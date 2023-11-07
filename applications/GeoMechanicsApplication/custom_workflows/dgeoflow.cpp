@@ -278,40 +278,54 @@ namespace Kratos
         return 0;
     }
 
-    int KratosExecute::ExecuteFlowAnalysis(const std::string&                       rWorkingDirectory,
-                                           const std::string&                       rProjectParamsFileName,
-                                           double                                   minCriticalHead,
-                                           double                                   maxCriticalHead,
-                                           double                                   stepCriticalHead,
-                                           const std::string&                       rCriticalHeadBoundaryModelPartName,
-                                           const std::function<void(const char*)>&  rLogCallback,
-                                           const std::function<void(double)>&       rReportProgress,
-                                           const std::function<void(const char*)>&  rReportTextualProgress,
-                                           const std::function<bool()>&             rShouldCancel)
+    struct CriticalHeadInfo
     {
+        double minCriticalHead = 0.0;
+        double maxCriticalHead;
+        double stepCriticalHead;
+    };
+
+
+    int KratosExecute::ExecuteFlowAnalysis(const std::string& rWorkingDirectory,
+                                           const std::string& rProjectParamsFileName,
+                                           double minCriticalHead,
+                                           double maxCriticalHead,
+                                           double stepCriticalHead,
+                                           const std::string& rCriticalHeadBoundaryModelPartName,
+                                           const std::function<void(const char*)>& rLogCallback,
+                                           const std::function<void(double)>& rReportProgress,
+                                           const std::function<void(const char*)>& rReportTextualProgress,
+                                           const std::function<bool()>& rShouldCancel)
+    {
+        mWorkingDirectory = rWorkingDirectory;
+
+        CriticalHeadInfo criticalHeadInfo;
+        criticalHeadInfo.minCriticalHead = minCriticalHead;
+        criticalHeadInfo.maxCriticalHead = maxCriticalHead;
+
         this->SetEchoLevel(1);
 
         std::stringstream kratosLogBuffer;
         LoggerOutput::Pointer p_output(new LoggerOutput(kratosLogBuffer));
         Logger::AddOutput(p_output);
-        
+
         try
         {
             rReportProgress(0.0);
 
-            std::string projectpath = rWorkingDirectory + "/" + rProjectParamsFileName;
+            std::string projectpath = mWorkingDirectory + "/" + rProjectParamsFileName;
             const FileInputUtility input_utility;
             auto projectfile = input_utility.ProjectParametersFromFile(projectpath);
 
             auto materialname = projectfile["solver_settings"]["material_import_settings"]["materials_filename"].GetString();
-            std::string materialpath = rWorkingDirectory + "/" + materialname;
+            std::string materialpath = mWorkingDirectory + "/" + materialname;
 
             auto modelName = projectfile["solver_settings"]["model_part_name"].GetString();
 
             ModelPart &model_part = current_model.CreateModelPart(modelName);
             model_part.SetBufferSize(2);
 
-            KRATOS_INFO_IF("GeoFlowKernel", this->GetEchoLevel() > 0) << "Working Directory: " << rWorkingDirectory << std::endl;
+            KRATOS_INFO_IF("GeoFlowKernel", this->GetEchoLevel() > 0) << "Working Directory: " << mWorkingDirectory << std::endl;
             KRATOS_INFO_IF("GeoFlowKernel", this->GetEchoLevel() > 0) << "Project Name: " << rProjectParamsFileName << std::endl;
 
             const auto p_solving_strategy = setup_strategy_dgeoflow(model_part);
@@ -319,41 +333,15 @@ namespace Kratos
 
             KRATOS_INFO_IF("GeoFlowKernel", this->GetEchoLevel() > 0) << "Setup Solving Strategy" << std::endl;
 
-            model_part.AddNodalSolutionStepVariable(VELOCITY);
-            model_part.AddNodalSolutionStepVariable(ACCELERATION);
+            AddNodalSolutionStepVariables(model_part);
 
-            // Displacement
-            model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
-            model_part.AddNodalSolutionStepVariable(TOTAL_DISPLACEMENT);
-            model_part.AddNodalSolutionStepVariable(REACTION);
-            model_part.AddNodalSolutionStepVariable(POINT_LOAD);
-            model_part.AddNodalSolutionStepVariable(LINE_LOAD);
-            model_part.AddNodalSolutionStepVariable(SURFACE_LOAD);
-            model_part.AddNodalSolutionStepVariable(VOLUME_ACCELERATION);
-            model_part.AddNodalSolutionStepVariable(NORMAL_CONTACT_STRESS);
-            model_part.AddNodalSolutionStepVariable(TANGENTIAL_CONTACT_STRESS);
-
-            // Water
-            model_part.AddNodalSolutionStepVariable(WATER_PRESSURE);
-            model_part.AddNodalSolutionStepVariable(REACTION_WATER_PRESSURE);
-            model_part.AddNodalSolutionStepVariable(DT_WATER_PRESSURE);
-            model_part.AddNodalSolutionStepVariable(NORMAL_FLUID_FLUX);
-            model_part.AddNodalSolutionStepVariable(HYDRAULIC_DISCHARGE);
-
-            // Smoothing
-            model_part.AddNodalSolutionStepVariable(NODAL_AREA);
-            model_part.AddNodalSolutionStepVariable(NODAL_CAUCHY_STRESS_TENSOR);
-            model_part.AddNodalSolutionStepVariable(NODAL_DAMAGE_VARIABLE);
-            model_part.AddNodalSolutionStepVariable(NODAL_JOINT_AREA);
-            model_part.AddNodalSolutionStepVariable(NODAL_JOINT_WIDTH);
-            model_part.AddNodalSolutionStepVariable(NODAL_JOINT_DAMAGE);
 
             KRATOS_INFO_IF("GeoFlowKernel", this->GetEchoLevel() > 0) << "Nodal Solution Variables Added" << std::endl;
 
             // Don't include the file extension of the mesh file name, since that is automatically appended by the
             // constructor of class ModelPartIO
             const auto mesh_file_name = projectfile["solver_settings"]["model_import_settings"]["input_filename"].GetString();
-            const auto mesh_file_path = rWorkingDirectory + "/" + mesh_file_name;
+            const auto mesh_file_path = mWorkingDirectory + "/" + mesh_file_name;
             ModelPartIO reader{mesh_file_path};
             reader.ReadModelPart(model_part);
 
@@ -387,145 +375,15 @@ namespace Kratos
 
             if (!hasPiping)
             {
-                MainExecution(model_part, processes, p_solving_strategy, 0.0, 1.0, 1);
                 const auto gid_output_settings = projectfile["output_processes"]["gid_output"][0]["Parameters"];
-                GeoOutputWriter writer{gid_output_settings, rWorkingDirectory, model_part};
-                writer.WriteGiDOutput(model_part, gid_output_settings);
+                ExecuteWithoutPiping(model_part, processes, rReportProgress, rReportTextualProgress,
+                                     projectfile, gid_output_settings, rLogCallback, p_output);
             }
             else
             {
-                KRATOS_INFO_IF("GeoFlowKernel", this->GetEchoLevel() > 0) << "Critical head search started." << std::endl;
-                KRATOS_INFO_IF("GeoFlowKernel", this->GetEchoLevel() > 0) << "Critical head min head: " << minCriticalHead << std::endl;
-                KRATOS_INFO_IF("GeoFlowKernel", this->GetEchoLevel() > 0) << "Critical head max head: " << maxCriticalHead << std::endl;
-                KRATOS_INFO_IF("GeoFlowKernel", this->GetEchoLevel() > 0) << "Critical head step size: " << stepCriticalHead << std::endl;
-
-                shared_ptr<Process> RiverBoundary;
-                if (rCriticalHeadBoundaryModelPartName.empty())
-                {
-                    RiverBoundary = FindRiverBoundaryAutomatically(p_solving_strategy, processes);
-                }
-                else
-                {
-                    RiverBoundary = FindRiverBoundaryByName(rCriticalHeadBoundaryModelPartName, processes);
-                }
-
-                if (!RiverBoundary)
-                {
-                    throw std::logic_error("No river boundary found.");
-                }
-
-                double criticalHead;
-                double currentHead;
-                bool pipingSuccess = false;
-
-                auto currentProcess = std::static_pointer_cast<GeoFlowApplyConstantHydrostaticPressureProcess>(RiverBoundary);
-                KRATOS_INFO_IF("GeoFlowKernel", this->GetEchoLevel() > 0) << "River boundary name: " << currentProcess->GetName() << std::endl;
-
-                currentProcess->SetReferenceCoord(minCriticalHead);
-                currentHead = minCriticalHead;
-                criticalHead = currentHead;
-
-                std::vector<Element *> pipeElements;
-                pipeElements = p_solving_strategy->GetPipingElements();
-                const auto noPipeElements = pipeElements.size();
-
-                int step = 1;
-                const auto maxSteps = static_cast<int>(std::ceil((maxCriticalHead - minCriticalHead) / stepCriticalHead)) + 2;
-
-                while (true)
-                {
-                    if (maxCriticalHead - criticalHead < -1e-9)
-                    {
-                        KRATOS_INFO_IF("GeoFlowKernel", this->GetEchoLevel() > 0) << "Critical head undetermined at " << criticalHead << ", max search head reached: " << maxCriticalHead << std::endl;
-                        break;
-                    }
-
-                    KRATOS_INFO_IF("GeoFlowKernel", this->GetEchoLevel() > 0) << "Searching at head: " << currentHead << std::endl;
-
-                    std::ostringstream currentHeadStream;
-                    currentHeadStream << std::setprecision(8) << std::noshowpoint << currentHead;
-                    std::string currentHeadString = currentHeadStream.str();
-
-                    std::string progress = "Calculating head level " + currentHeadString + "m (" + std::to_string(step) + "/" + std::to_string(maxSteps) + ")";
-                    rReportTextualProgress(progress.data());
-                    rReportProgress(((double)step) / ((double)maxSteps));
-
-                    MainExecution(model_part, processes, p_solving_strategy, 0.0, 1.0, 1);
-
-                    auto count = std::size_t{0};
-                    for (Element *element : pipeElements)
-                    {
-                        if (element->GetValue(PIPE_ACTIVE))
-                            count += 1;
-                    }
-
-                    KRATOS_INFO_IF("GeoFlowKernel", this->GetEchoLevel() > 0) << "Open pipe elements: " << count << std::endl;
-
-                    if (count == noPipeElements)
-                    {
-                        if (abs(currentHead - minCriticalHead) < 1e-9)
-                        {
-                            KRATOS_INFO_IF("GeoFlowKernel", this->GetEchoLevel() > 0) << "Critical head undetermined: All pipe elements open at initial search value :" << minCriticalHead << std::endl;
-                        }
-                        else
-                        {
-                            pipingSuccess = true;
-                            KRATOS_INFO_IF("GeoFlowKernel", this->GetEchoLevel() > 0) << "Critical head found: " << criticalHead << std::endl;
-                        }
-                        break;
-                    }
-
-                    const auto gid_output_settings = projectfile["output_processes"]["gid_output"][0]["Parameters"];
-                    GeoOutputWriter writer{gid_output_settings, rWorkingDirectory, model_part};
-                    writer.WriteGiDOutput(model_part, gid_output_settings);
-
-                    // Update boundary conditions for next search head.
-                    if (RiverBoundary->Info() == "ApplyConstantScalarValueProcess")
-                    {
-                        ResetModelParts();
-                        throw std::logic_error("ApplyConstantScalarValueProcess process search is not Implemented");
-                    }
-
-                    if (RiverBoundary->Info() == "ApplyConstantHydrostaticPressureProcess")
-                    {
-                        criticalHead = currentProcess->GetReferenceCoord();
-                        currentHead = criticalHead + stepCriticalHead;
-                        currentProcess->SetReferenceCoord(currentHead);
-                        step++;
-                    }
-
-                    if (rShouldCancel())
-                    {
-                        rLogCallback(kratosLogBuffer.str().c_str());
-                        Logger::RemoveOutput(p_output);
-                        ResetModelParts();
-                        return 0;
-                    }
-                }
-
-                KRATOS_INFO_IF("GeoFlowKernel", this->GetEchoLevel() > 0) << "Writing result to: " << rWorkingDirectory << "\\criticalHead.json" << std::endl;
-
-                // output critical head_json
-                std::ofstream CriticalHeadFile(rWorkingDirectory + "\\criticalHead.json");
-
-                CriticalHeadFile << "{\n";
-                CriticalHeadFile << "\t \"PipeData\":\t{\n";
-                if (pipingSuccess)
-                {
-                    CriticalHeadFile << "\t\t \"Success\": \"True\",\n";
-                    CriticalHeadFile << "\t\t \"CriticalHead\": \"" + std::to_string(criticalHead) + "\"\n";
-                }
-                else
-                {
-                    CriticalHeadFile << "\t\t \"Success\": \"False\"\n";
-                }
-                CriticalHeadFile << "\t }\n";
-                CriticalHeadFile << "}\n";
-
-                // Close the file
-                CriticalHeadFile.close();
-
-                KRATOS_INFO_IF("GeoFlowKernel", this->GetEchoLevel() > 0) << "Finished writing result" << std::endl;
+                ExecuteWithPiping(model_part, processes, mWorkingDirectory, rReportProgress, rReportTextualProgress,
+                                  projectfile, rCriticalHeadBoundaryModelPartName, minCriticalHead, maxCriticalHead,
+                                  stepCriticalHead, rLogCallback, p_output, rShouldCancel);
             }
 
             rLogCallback(kratosLogBuffer.str().c_str());
@@ -544,6 +402,204 @@ namespace Kratos
             ResetModelParts();
             return 1;
         }
+    }
+
+    void KratosExecute::ExecuteWithoutPiping(ModelPart& model_part,
+                                             const std::vector<std::shared_ptr<Process>>& processes,
+                                             const std::function<void(double)>& rReportProgress,
+                                             const std::function<void(const char*)>& rReportTextualProgress,
+                                             const Kratos::Parameters& projectfile,
+                                             const Kratos::Parameters& gid_output_settings,
+                                             const std::function<void(const char*)>& rLogCallback,
+                                             LoggerOutput::Pointer p_output)
+    {
+        const auto p_solving_strategy = setup_strategy_dgeoflow(model_part);
+        p_solving_strategy->SetEchoLevel(0);
+        MainExecution(model_part, processes, p_solving_strategy, 0.0, 1.0, 1);
+        GeoOutputWriter writer{gid_output_settings, mWorkingDirectory, model_part};
+        writer.WriteGiDOutput(model_part, gid_output_settings);
+    }
+
+    int KratosExecute::ExecuteWithPiping(ModelPart& model_part,
+                                          const std::vector<std::shared_ptr<Process>>& processes,
+                                          const std::string& rWorkingDirectory,
+                                          const std::function<void(double)>& rReportProgress,
+                                          const std::function<void(const char*)>& rReportTextualProgress,
+                                          const Kratos::Parameters& projectfile,
+                                          const std::string& rCriticalHeadBoundaryModelPartName,
+                                          double minCriticalHead,
+                                          double maxCriticalHead,
+                                          double stepCriticalHead,
+                                          const std::function<void(const char*)>& rLogCallback,
+                                          LoggerOutput::Pointer p_output,
+                                          const std::function<bool()>& rShouldCancel)
+    {
+        std::stringstream kratosLogBuffer;
+        KRATOS_INFO_IF("GeoFlowKernel", this->GetEchoLevel() > 0) << "Critical head search started." << std::endl;
+        KRATOS_INFO_IF("GeoFlowKernel", this->GetEchoLevel() > 0) << "Critical head min head: " << minCriticalHead << std::endl;
+        KRATOS_INFO_IF("GeoFlowKernel", this->GetEchoLevel() > 0) << "Critical head max head: " << maxCriticalHead << std::endl;
+        KRATOS_INFO_IF("GeoFlowKernel", this->GetEchoLevel() > 0) << "Critical head step size: " << stepCriticalHead << std::endl;
+        const auto p_solving_strategy = setup_strategy_dgeoflow(model_part);
+        p_solving_strategy->SetEchoLevel(0);
+        shared_ptr<Process> RiverBoundary;
+        if (rCriticalHeadBoundaryModelPartName.empty())
+        {
+            RiverBoundary = FindRiverBoundaryAutomatically(p_solving_strategy, processes);
+        }
+        else
+        {
+            RiverBoundary = FindRiverBoundaryByName(rCriticalHeadBoundaryModelPartName, processes);
+        }
+
+        if (!RiverBoundary)
+        {
+            throw std::logic_error("No river boundary found.");
+        }
+
+        double criticalHead;
+        double currentHead;
+        bool pipingSuccess = false;
+
+        auto currentProcess = std::static_pointer_cast<GeoFlowApplyConstantHydrostaticPressureProcess>(RiverBoundary);
+        KRATOS_INFO_IF("GeoFlowKernel", this->GetEchoLevel() > 0) << "River boundary name: " << currentProcess->GetName() << std::endl;
+
+        currentProcess->SetReferenceCoord(minCriticalHead);
+        currentHead = minCriticalHead;
+        criticalHead = currentHead;
+
+        std::vector<Element *> pipeElements;
+        pipeElements = p_solving_strategy->GetPipingElements();
+        const auto noPipeElements = pipeElements.size();
+
+        int step = 1;
+        const auto maxSteps = static_cast<int>(std::ceil((maxCriticalHead - minCriticalHead) / stepCriticalHead)) + 2;
+
+        while (true)
+        {
+            if (maxCriticalHead - criticalHead < -1e-9)
+            {
+                KRATOS_INFO_IF("GeoFlowKernel", this->GetEchoLevel() > 0) << "Critical head undetermined at " << criticalHead << ", max search head reached: " << maxCriticalHead << std::endl;
+                break;
+            }
+
+            KRATOS_INFO_IF("GeoFlowKernel", this->GetEchoLevel() > 0) << "Searching at head: " << currentHead << std::endl;
+
+            std::ostringstream currentHeadStream;
+            currentHeadStream << std::setprecision(8) << std::noshowpoint << currentHead;
+            std::string currentHeadString = currentHeadStream.str();
+
+            std::string progress = "Calculating head level " + currentHeadString + "m (" + std::to_string(step) + "/" + std::to_string(maxSteps) + ")";
+            rReportTextualProgress(progress.data());
+            rReportProgress(((double)step) / ((double)maxSteps));
+
+            MainExecution(model_part, processes, p_solving_strategy, 0.0, 1.0, 1);
+
+            auto count = std::size_t{0};
+            for (Element *element : pipeElements)
+            {
+                if (element->GetValue(PIPE_ACTIVE))
+                    count += 1;
+            }
+
+            KRATOS_INFO_IF("GeoFlowKernel", this->GetEchoLevel() > 0) << "Open pipe elements: " << count << std::endl;
+
+            if (count == noPipeElements)
+            {
+                if (abs(currentHead - minCriticalHead) < 1e-9)
+                {
+                    KRATOS_INFO_IF("GeoFlowKernel", this->GetEchoLevel() > 0) << "Critical head undetermined: All pipe elements open at initial search value :" << minCriticalHead << std::endl;
+                }
+                else
+                {
+                    pipingSuccess = true;
+                    KRATOS_INFO_IF("GeoFlowKernel", this->GetEchoLevel() > 0) << "Critical head found: " << criticalHead << std::endl;
+                }
+                break;
+            }
+
+            const auto gid_output_settings = projectfile["output_processes"]["gid_output"][0]["Parameters"];
+            GeoOutputWriter writer{gid_output_settings, mWorkingDirectory, model_part};
+            writer.WriteGiDOutput(model_part, gid_output_settings);
+
+            // Update boundary conditions for next search head.
+            if (RiverBoundary->Info() == "ApplyConstantScalarValueProcess")
+            {
+                ResetModelParts();
+                throw std::logic_error("ApplyConstantScalarValueProcess process search is not Implemented");
+            }
+
+            if (RiverBoundary->Info() == "ApplyConstantHydrostaticPressureProcess")
+            {
+                criticalHead = currentProcess->GetReferenceCoord();
+                currentHead = criticalHead + stepCriticalHead;
+                currentProcess->SetReferenceCoord(currentHead);
+                step++;
+            }
+
+            if (rShouldCancel())
+            {
+                rLogCallback(kratosLogBuffer.str().c_str());
+                Logger::RemoveOutput(p_output);
+                ResetModelParts();
+                return 0;
+            }
+        }
+
+        KRATOS_INFO_IF("GeoFlowKernel", this->GetEchoLevel() > 0) << "Writing result to: " << mWorkingDirectory << "\\criticalHead.json" << std::endl;
+
+        // output critical head_json
+        std::ofstream CriticalHeadFile(mWorkingDirectory + "\\criticalHead.json");
+
+        CriticalHeadFile << "{\n";
+        CriticalHeadFile << "\t \"PipeData\":\t{\n";
+        if (pipingSuccess)
+        {
+            CriticalHeadFile << "\t\t \"Success\": \"True\",\n";
+            CriticalHeadFile << "\t\t \"CriticalHead\": \"" + std::to_string(criticalHead) + "\"\n";
+        }
+        else
+        {
+            CriticalHeadFile << "\t\t \"Success\": \"False\"\n";
+        }
+        CriticalHeadFile << "\t }\n";
+        CriticalHeadFile << "}\n";
+
+        // Close the file
+        CriticalHeadFile.close();
+
+        KRATOS_INFO_IF("GeoFlowKernel", this->GetEchoLevel() > 0) << "Finished writing result" << std::endl;
+    }
+
+    void KratosExecute::AddNodalSolutionStepVariables(ModelPart& model_part)
+    {
+        model_part.AddNodalSolutionStepVariable(VELOCITY);
+        model_part.AddNodalSolutionStepVariable(ACCELERATION);
+
+        // Displacement
+        model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
+        model_part.AddNodalSolutionStepVariable(TOTAL_DISPLACEMENT);
+        model_part.AddNodalSolutionStepVariable(REACTION);
+        model_part.AddNodalSolutionStepVariable(POINT_LOAD);
+        model_part.AddNodalSolutionStepVariable(LINE_LOAD);
+        model_part.AddNodalSolutionStepVariable(SURFACE_LOAD);
+        model_part.AddNodalSolutionStepVariable(VOLUME_ACCELERATION);
+        model_part.AddNodalSolutionStepVariable(NORMAL_CONTACT_STRESS);
+        model_part.AddNodalSolutionStepVariable(TANGENTIAL_CONTACT_STRESS);
+
+        // Water
+        model_part.AddNodalSolutionStepVariable(WATER_PRESSURE);
+        model_part.AddNodalSolutionStepVariable(REACTION_WATER_PRESSURE);
+        model_part.AddNodalSolutionStepVariable(DT_WATER_PRESSURE);
+        model_part.AddNodalSolutionStepVariable(NORMAL_FLUID_FLUX);
+        model_part.AddNodalSolutionStepVariable(HYDRAULIC_DISCHARGE);
+
+        // Smoothing
+        model_part.AddNodalSolutionStepVariable(NODAL_AREA);
+        model_part.AddNodalSolutionStepVariable(NODAL_CAUCHY_STRESS_TENSOR);
+        model_part.AddNodalSolutionStepVariable(NODAL_DAMAGE_VARIABLE);
+        model_part.AddNodalSolutionStepVariable(NODAL_JOINT_AREA);
+        model_part.AddNodalSolutionStepVariable(NODAL_JOINT_WIDTH);
+        model_part.AddNodalSolutionStepVariable(NODAL_JOINT_DAMAGE);
     }
 
     shared_ptr<Process> KratosExecute::FindRiverBoundaryByName(const std::string& rCriticalHeadBoundaryModelPartName,

@@ -62,6 +62,31 @@ namespace Kratos
                                 const std::function<void(const char*)>&  rReportTextualProgress,
                                 const std::function<bool()>&             rShouldCancel);
 
+        void ExecuteWithoutPiping(ModelPart& model_part,
+                                                 const std::vector<std::shared_ptr<Process>>& processes,
+                                                 const std::function<void(double)>& rReportProgress,
+                                                 const std::function<void(const char*)>& rReportTextualProgress,
+                                                 const Kratos::Parameters& projectfile,
+                                                 const Kratos::Parameters& gid_output_settings,
+                                                 const std::function<void(const char*)>& rLogCallback,
+                                                 LoggerOutput::Pointer p_output);
+
+        int ExecuteWithPiping(ModelPart& model_part,
+                                              const std::vector<std::shared_ptr<Process>>& processes,
+                                              const std::string& rWorkingDirectory,
+                                              const std::function<void(double)>& rReportProgress,
+                                              const std::function<void(const char*)>& rReportTextualProgress,
+                                              const Kratos::Parameters& projectfile,
+                                              const std::string& rCriticalHeadBoundaryModelPartName,
+                                              double minCriticalHead,
+                                              double maxCriticalHead,
+                                              double stepCriticalHead,
+                                              const std::function<void(const char*)>& rLogCallback,
+                                              LoggerOutput::Pointer p_output,
+                                              const std::function<bool()>& rShouldCancel);
+
+        void AddNodalSolutionStepVariables(ModelPart& model_part);
+
         typedef Node NodeType;
         typedef Geometry<NodeType> GeometryType;
         typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
@@ -95,6 +120,7 @@ namespace Kratos
         Model current_model;
         Kernel kernel;
         KratosGeoMechanicsApplication::Pointer geoApp;
+        std::string mWorkingDirectory;
         
         void ResetModelParts();
 
