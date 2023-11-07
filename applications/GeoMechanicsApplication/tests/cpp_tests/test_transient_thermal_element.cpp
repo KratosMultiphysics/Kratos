@@ -34,7 +34,7 @@ void TestThermalElement(ModelPart& rModelPart)
     Element::DofsVectorType ElementalDofList;
     p_element->GetDofList(ElementalDofList, r_current_process_info);
 
-    for (int i = 0; i < ElementalDofList.size(); i++) {
+    for (unsigned int i = 0; i < ElementalDofList.size(); i++) {
         ElementalDofList[i]->SetEquationId(i);
     }
 
