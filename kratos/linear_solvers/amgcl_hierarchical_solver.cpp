@@ -386,19 +386,6 @@ bool AMGCLHierarchicalSolver<TSparseSpace,TDenseSpace,TReorderer>::Solve(SparseM
     mpImpl->mAMGCLSettings.put("precond.pmask", static_cast<void*>(r_lower_dof_mask.data()));
     mpImpl->mAMGCLSettings.put("solver.verbose", 1 < mpImpl->mVerbosity);
 
-    if(4 <= mpImpl->mVerbosity) {
-        //output to matrix market
-        std::stringstream matrix_market_name;
-        matrix_market_name << "A" <<  ".mm";
-        TSparseSpace::WriteMatrixMarketMatrix((char*) (matrix_market_name.str()).c_str(), rA, false);
-
-        std::stringstream matrix_market_vectname;
-        matrix_market_vectname << "b" << ".mm";
-        TSparseSpace::WriteMatrixMarketVector((char*) (matrix_market_vectname.str()).c_str(), rB);
-
-        KRATOS_THROW_ERROR(std::logic_error, "verbosity = 4 prints the matrix and exits","")
-    }
-
     std::tuple<std::size_t,double> solver_results {
         std::numeric_limits<std::size_t>::max(),    // iteration count
         std::numeric_limits<double>::max()          // residual
@@ -616,11 +603,16 @@ AMGCLHierarchicalSolver<TSparseSpace,TDenseSpace,TReorderer>::SolveImpl(SparseMa
 
     if (4 <= mpImpl->mVerbosity) {
         KRATOS_INFO("AMGCLHierarchicalSolver")
+            << "writing system matrices A.mm b.mm\n";
+        TSparseSpace::WriteMatrixMarketMatrix("A.mm", rA, false);
+        TSparseSpace::WriteMatrixMarketVector("b.mm", rB);
+        KRATOS_INFO("AMGCLHierarchicalSolver")
             << "writing submatrices: All.mm Alh.mm Ahl.mm Ahh.mm\n";
         amgcl::io::mm_write("All.mm", All);
         amgcl::io::mm_write("Alh.mm", Alh);
         amgcl::io::mm_write("Ahl.mm", Ahl);
         amgcl::io::mm_write("Ahh.mm", Ahh);
+        KRATOS_ERROR << "verbosity >=4 prints system matrices and terminates\n";
     }
 
     auto solver = MakeCompositePreconditionedSolver<BlockSize>(*p_adapter, mpImpl->mAMGCLSettings);
