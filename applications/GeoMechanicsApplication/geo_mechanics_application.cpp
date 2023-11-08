@@ -9,6 +9,7 @@
 //
 //  Main authors:    Vahid Galavi,
 //                   Aron Noordam
+//                   Mohamed Nabi
 //
 
 // Application includes
@@ -226,6 +227,15 @@ void KratosGeoMechanicsApplication::Register() {
     KRATOS_REGISTER_CONDITION("UPwFaceLoadCondition2D4N", mUPwFaceLoadCondition2D4N)
     KRATOS_REGISTER_CONDITION("UPwFaceLoadCondition2D5N", mUPwFaceLoadCondition2D5N)
 
+    KRATOS_REGISTER_CONDITION("TNormalFluxCondition2D2N", mTNormalFluxCondition2D2N)
+    KRATOS_REGISTER_CONDITION("TNormalFluxCondition2D3N", mTNormalFluxCondition2D3N)
+    KRATOS_REGISTER_CONDITION("TNormalFluxCondition2D4N", mTNormalFluxCondition2D4N)
+    KRATOS_REGISTER_CONDITION("TNormalFluxCondition2D5N", mTNormalFluxCondition2D5N)
+    KRATOS_REGISTER_CONDITION("TNormalFluxCondition3D3N", mTNormalFluxCondition3D3N)
+    KRATOS_REGISTER_CONDITION("TNormalFluxCondition3D4N", mTNormalFluxCondition3D4N)
+    KRATOS_REGISTER_CONDITION("TNormalFluxCondition3D6N", mTNormalFluxCondition3D6N)
+    KRATOS_REGISTER_CONDITION("TNormalFluxCondition3D8N", mTNormalFluxCondition3D8N)
+    KRATOS_REGISTER_CONDITION("TNormalFluxCondition3D9N", mTNormalFluxCondition3D9N)
     KRATOS_REGISTER_CONDITION("UPwFaceLoadInterfaceCondition2D2N", mUPwFaceLoadInterfaceCondition2D2N)
     KRATOS_REGISTER_CONDITION("UPwFaceLoadInterfaceCondition3D4N", mUPwFaceLoadInterfaceCondition3D4N)
     KRATOS_REGISTER_CONDITION("UPwNormalFluxInterfaceCondition2D2N", mUPwNormalFluxInterfaceCondition2D2N)
