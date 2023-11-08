@@ -224,7 +224,7 @@ check_recommended_homebrew_package() {
 
 # Optional dependency - ccache
 if check_recommended_homebrew_package ccache; then
-    ccache_flag="-DCXX_COMPILER_LAUNCHER:STRING=ccache"
+    ccache_flag="-DCMAKE_CXX_COMPILER_LAUNCHER:STRING=ccache"
 fi
 
 # Optional dependency - ninja
