@@ -34,8 +34,15 @@ def CreateConvergenceAccelerators(convergence_accelerator_settings_list: KM.Para
                                   parent_echo_level: int):
     convergence_accelerators = []
     for conv_acc_settings in convergence_accelerator_settings_list.values():
-        solver = solvers[conv_acc_settings["solver"].GetString()]
-        interface_data_dict = solver.data_dict
+        if conv_acc_settings.Has("solver"):
+            solver = solvers[conv_acc_settings["solver"].GetString()]
+            interface_data_dict = solver.data_dict
+        else:
+            interface_data_dict = {}
+            for sequenceData in conv_acc_settings["solver_sequence"].values():
+                solver = solvers[sequenceData["solver"].GetString()]
+                data_name = sequenceData["data_name"].GetString()
+                interface_data_dict[data_name] = solver.data_dict[data_name]
         AddEchoLevelToSettings(conv_acc_settings, parent_echo_level)
         convergence_accelerators.append(ConvergenceAcceleratorWrapper(conv_acc_settings,
                                                                       interface_data_dict,

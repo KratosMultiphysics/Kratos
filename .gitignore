@@ -86,3 +86,6 @@ remote_*.md
 
 # External downloaded libs (TPL downloaded libs, etc...)
 external_libraries/tetgen/*
+
+# Mac folder info files
+*.DS_Store
