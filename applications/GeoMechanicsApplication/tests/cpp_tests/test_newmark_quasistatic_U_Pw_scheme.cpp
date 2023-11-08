@@ -40,6 +40,18 @@ public:
         mNonLinIterationFinalized = true;
     }
 
+    void EquationIdVector(EquationIdVectorType& rResult,
+                          const ProcessInfo& rCurrentProcessInfo) const override
+    {
+        mIsEquationIdSet = true;
+    }
+
+    void GetDofList(DofsVectorType& rElementalDofList,
+                    const ProcessInfo& rCurrentProcessInfo) const override
+    {
+        mIsGetDofListCalled = true;
+    }
+
     bool IsSolutionStepFinalized() const
     {
         return mSolutionStepFinalized;
@@ -60,11 +72,23 @@ public:
         return mNonLinIterationFinalized;
     }
 
+    bool IsEquationIdSet() const
+    {
+        return mIsEquationIdSet;
+    }
+
+    bool IsGetDofListCalled() const
+    {
+        return mIsGetDofListCalled;
+    }
+
 private:
     bool mSolutionStepInitialized = false;
     bool mSolutionStepFinalized = false;
     bool mNonLinIterationInitialized = false;
     bool mNonLinIterationFinalized = false;
+    mutable bool mIsEquationIdSet = false;
+    mutable bool mIsGetDofListCalled = false;
 };
 
 class SpyCondition : public Condition {
@@ -86,6 +110,18 @@ public:
         mNonLinIterationFinalized = true;
     }
 
+    void EquationIdVector(EquationIdVectorType& rResult,
+                          const ProcessInfo& rCurrentProcessInfo) const override
+    {
+        mIsEquationIdSet = true;
+    }
+
+    void GetDofList(DofsVectorType& rElementalDofList,
+                    const ProcessInfo& rCurrentProcessInfo) const override
+    {
+        mIsGetDofListCalled = true;
+    }
+
     bool IsSolutionStepFinalized() const
     {
         return mSolutionStepFinalized;
@@ -106,11 +142,23 @@ public:
         return mNonLinIterationFinalized;
     }
 
+    bool IsEquationIdSet() const
+    {
+        return mIsEquationIdSet;
+    }
+
+    bool IsGetDofListCalled() const
+    {
+        return mIsGetDofListCalled;
+    }
+
 private:
     bool mSolutionStepInitialized = false;
     bool mSolutionStepFinalized = false;
     bool mNonLinIterationInitialized = false;
     bool mNonLinIterationFinalized = false;
+    mutable bool mIsEquationIdSet = false;
+    mutable bool mIsGetDofListCalled = false;
 };
 
 } // namespace
@@ -217,7 +265,46 @@ public:
 
         return functions_and_checks;
     }
+
+    template <class T>
+    std::vector<std::pair<std::function<void(const Kratos::intrusive_ptr<T> Component)>, std::function<bool(const Kratos::intrusive_ptr<T> rElement)>>> CreateOtherFunctionsAndChecks()
+    {
+        std::vector<std::pair<std::function<void(const Kratos::intrusive_ptr<T> Component)>,
+                              std::function<bool(const Kratos::intrusive_ptr<T> Component)>>>
+            functions_and_checks;
+
+        Element::EquationIdVectorType equation_id_vector_type;
+        ProcessInfo info;
+
+        auto equation_id = [this, &equation_id_vector_type,
+                            &info](const Kratos::intrusive_ptr<T> Component) {
+            mScheme.EquationId(*Component.get(), equation_id_vector_type, info);
+        };
+
+        auto equation_id_check = [](const Kratos::intrusive_ptr<T> Component) {
+            return Component->IsEquationIdSet();
+        };
+
+        Element::DofsVectorType dofs;
+        auto get_dofs_list = [this, &dofs, &info](const Kratos::intrusive_ptr<T> Component) {
+            mScheme.GetDofList(*Component.get(), dofs, info);
+        };
+
+        auto get_dofs_list_check = [](const Kratos::intrusive_ptr<T> Component) {
+            return Component->IsGetDofListCalled();
+        };
+
+        functions_and_checks.push_back({equation_id, equation_id_check});
+        functions_and_checks.push_back({get_dofs_list, get_dofs_list_check});
+        return functions_and_checks;
+    }
 };
+
+KRATOS_TEST_CASE_IN_SUITE(CheckScheme_ReturnsZeroForValidScheme, KratosGeoMechanicsFastSuite)
+{
+    NewmarkQuasistaticUPwSchemeTester tester;
+    KRATOS_EXPECT_EQ(tester.mScheme.Check(*tester.mrModelPart), 0);
+}
 
 KRATOS_TEST_CASE_IN_SUITE(InitializeUPWScheme_SetsTimeFactors, KratosGeoMechanicsFastSuite)
 {
@@ -246,19 +333,22 @@ KRATOS_TEST_CASE_IN_SUITE(UPWSchemePredict_UpdatesVariablesDerivatives, KratosGe
     Vector Dx;
     Vector b;
 
-    tester.mScheme.Check(*tester.mrModelPart);
     tester.mScheme.Predict(*tester.mrModelPart, dof_set, A, Dx, b);
 
     auto expected_acceleration = Kratos::array_1d<double, 3>{-6.75, -9.0, -11.25};
     auto expected_velocity = Kratos::array_1d<double, 3>{-4.5, -6.0, -7.5};
-    auto expected_dt_water_pressure = 1.0/3.0;
+    auto expected_dt_water_pressure = 1.0 / 3.0;
 
-    KRATOS_EXPECT_EQ(tester.mrModelPart->Nodes()[0].FastGetSolutionStepValue(ACCELERATION), expected_acceleration);
-    KRATOS_EXPECT_EQ(tester.mrModelPart->Nodes()[0].FastGetSolutionStepValue(VELOCITY), expected_velocity);
-    KRATOS_EXPECT_DOUBLE_EQ(tester.mrModelPart->Nodes()[0].FastGetSolutionStepValue(DT_WATER_PRESSURE), expected_dt_water_pressure);
+    KRATOS_EXPECT_EQ(tester.mrModelPart->Nodes()[0].FastGetSolutionStepValue(ACCELERATION),
+                     expected_acceleration);
+    KRATOS_EXPECT_EQ(tester.mrModelPart->Nodes()[0].FastGetSolutionStepValue(VELOCITY),
+                     expected_velocity);
+    KRATOS_EXPECT_DOUBLE_EQ(
+        tester.mrModelPart->Nodes()[0].FastGetSolutionStepValue(DT_WATER_PRESSURE),
+        expected_dt_water_pressure);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(FinalizeSolutionStepActiveEntities_FinalizesOnlyActiveElements,
+KRATOS_TEST_CASE_IN_SUITE(FunctionCallsOnAllConditions_AreOnlyCalledForActiveElements,
                           KratosGeoMechanicsFastSuite)
 {
     NewmarkQuasistaticUPwSchemeTester tester;
@@ -285,12 +375,14 @@ KRATOS_TEST_CASE_IN_SUITE(FinalizeSolutionStepActiveEntities_FinalizesOnlyActive
     }
 }
 
-KRATOS_TEST_CASE_IN_SUITE(FinalizeSolutionStep_FinalizesOnlyActiveConditions, KratosGeoMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(FunctionCallsOnAllConditions_AreOnlyCalledForActiveConditions,
+                          KratosGeoMechanicsFastSuite)
 {
     NewmarkQuasistaticUPwSchemeTester tester;
     auto functions_and_checks = tester.CreateConditionFunctionsAndChecks<SpyCondition>();
 
-    for (const auto& [function, function_has_been_called_on_condition] : functions_and_checks) {
+    for (const auto& [function_on_all_conditions, function_has_been_called_on_condition] :
+         functions_and_checks) {
         tester.Setup();
         auto active_condition = Kratos::make_intrusive<SpyCondition>();
         active_condition->SetId(0);
@@ -303,10 +395,63 @@ KRATOS_TEST_CASE_IN_SUITE(FinalizeSolutionStep_FinalizesOnlyActiveConditions, Kr
         tester.mrModelPart->AddCondition(active_condition);
         tester.mrModelPart->AddCondition(inactive_condition);
 
-        function();
+        function_on_all_conditions();
 
         KRATOS_EXPECT_TRUE(function_has_been_called_on_condition(active_condition))
         KRATOS_EXPECT_FALSE(function_has_been_called_on_condition(inactive_condition))
+    }
+}
+
+KRATOS_TEST_CASE_IN_SUITE(2FunctionCallsOnAllConditions_AreOnlyCalledForActiveConditions,
+                          KratosGeoMechanicsFastSuite)
+{
+    NewmarkQuasistaticUPwSchemeTester tester;
+    auto functions_and_checks = tester.CreateOtherFunctionsAndChecks<SpyCondition>();
+
+    for (const auto& [function_on_condition, function_has_been_called_on_condition] :
+         functions_and_checks) {
+        tester.Setup();
+        auto active_condition = Kratos::make_intrusive<SpyCondition>();
+        active_condition->SetId(0);
+        active_condition->Set(ACTIVE, true);
+
+        auto inactive_condition = Kratos::make_intrusive<SpyCondition>();
+        inactive_condition->SetId(1);
+        inactive_condition->Set(ACTIVE, false);
+
+        tester.mrModelPart->AddCondition(active_condition);
+        tester.mrModelPart->AddCondition(inactive_condition);
+
+        function_on_condition(active_condition);
+        function_on_condition(inactive_condition);
+
+        KRATOS_EXPECT_TRUE(function_has_been_called_on_condition(active_condition))
+        KRATOS_EXPECT_FALSE(function_has_been_called_on_condition(inactive_condition))
+    }
+}
+
+KRATOS_TEST_CASE_IN_SUITE(2FunctionCallsOnAllElements_AreOnlyCalledForActiveElements,
+                          KratosGeoMechanicsFastSuite)
+{
+    NewmarkQuasistaticUPwSchemeTester tester;
+    auto functions_and_checks = tester.CreateOtherFunctionsAndChecks<SpyElement>();
+
+    for (const auto& [function_on_element, function_has_been_called_on_condition] :
+         functions_and_checks) {
+        tester.Setup();
+        auto active_element = Kratos::make_intrusive<SpyElement>();
+        active_element->Set(ACTIVE, true);
+        active_element->SetId(0);
+
+        auto inactive_element = Kratos::make_intrusive<SpyElement>();
+        inactive_element->Set(ACTIVE, false);
+        inactive_element->SetId(1);
+
+        function_on_element(active_element);
+        function_on_element(inactive_element);
+
+        KRATOS_EXPECT_TRUE(function_has_been_called_on_condition(active_element))
+        KRATOS_EXPECT_FALSE(function_has_been_called_on_condition(inactive_element))
     }
 }
 
