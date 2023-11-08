@@ -389,10 +389,8 @@ class KratosGeoMechanicsSetMultipleMovingLoadProcessTests(KratosUnittest.TestCas
         parameters = self.base_parameters
         parameters.AddVector("configuration", [-0.25])
 
-        self.mp.ProcessInfo.SetValue(KratosMultiphysics.TIME,
-                                     0)
-        self.mp.ProcessInfo.SetValue(KratosMultiphysics.DELTA_TIME,
-                                     0.25)
+        self.mp.ProcessInfo.SetValue(KratosMultiphysics.TIME, 0)
+        self.mp.ProcessInfo.SetValue(KratosMultiphysics.DELTA_TIME, 0.25)
 
         process = GMA.SetMultipleMovingLoadsProcess(self.mp, parameters)
         cond = self.cmp.GetCondition(2)
@@ -629,10 +627,8 @@ class KratosGeoMechanicsSetMultipleMovingLoadProcessTests(KratosUnittest.TestCas
         parameters = self.base_parameters
         parameters.AddVector("configuration", [-0.5])
 
-        self.mp.ProcessInfo.SetValue(KratosMultiphysics.TIME,
-                                     0)
-        self.mp.ProcessInfo.SetValue(KratosMultiphysics.DELTA_TIME,
-                                     0.5)
+        self.mp.ProcessInfo.SetValue(KratosMultiphysics.TIME, 0)
+        self.mp.ProcessInfo.SetValue(KratosMultiphysics.DELTA_TIME, 0.5)
         process = GMA.SetMultipleMovingLoadsProcess(self.mp, parameters)
 
         # get conditions
