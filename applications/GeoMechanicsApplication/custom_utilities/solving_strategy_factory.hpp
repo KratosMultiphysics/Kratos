@@ -36,13 +36,23 @@ public:
         KRATOS_ERROR_IF_NOT(rSolverSettings.Has(strategy_type))
         << "The parameter strategy_type is undefined, aborting.";
 
-        auto solver = LinearSolverFactory<TSparseSpace, TDenseSpace>().Create(rSolverSettings["linear_solver_settings"]);
-        auto scheme = SchemeFactory<TSparseSpace, TDenseSpace>::Create(rSolverSettings);
-        auto builder_and_solver = BuilderAndSolverFactory<TSparseSpace, TDenseSpace, TLinearSolver>::Create(rSolverSettings, solver);
-        auto criteria = ConvergenceCriteriaFactory<TSparseSpace, TDenseSpace>::Create(rSolverSettings);
+        const auto echo_level = rSolverSettings["echo_level"].GetInt();
 
-        if (rSolverSettings[strategy_type].GetString() ==
-            GeoMechanicsNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver>::Name())
+        auto solver = LinearSolverFactory<TSparseSpace, TDenseSpace>().Create(rSolverSettings["linear_solver_settings"]);
+        KRATOS_ERROR_IF_NOT(solver) << "Failed to create a linear solver" << std::endl;
+
+        auto scheme = SchemeFactory<TSparseSpace, TDenseSpace>::Create(rSolverSettings);
+        KRATOS_ERROR_IF_NOT(scheme) << "Failed to create a scheme" << std::endl;
+
+        auto builder_and_solver = BuilderAndSolverFactory<TSparseSpace, TDenseSpace, TLinearSolver>::Create(rSolverSettings, solver);
+        KRATOS_ERROR_IF_NOT(builder_and_solver) << "Failed to create a builder-and-solver" << std::endl;
+        builder_and_solver->SetEchoLevel(echo_level);
+
+        auto criteria = ConvergenceCriteriaFactory<TSparseSpace, TDenseSpace>::Create(rSolverSettings);
+        KRATOS_ERROR_IF_NOT(criteria) << "Failed to create convergence criteria" << std::endl;
+        criteria->SetEchoLevel(echo_level);
+
+        if (rSolverSettings[strategy_type].GetString() == "newton_raphson")
         {
             const auto max_iterations = rSolverSettings["max_iterations"].GetInt();
             const auto calculate_reactions = rSolverSettings["calculate_reactions"].GetBool();
@@ -50,7 +60,7 @@ public:
             const auto move_mesh_flag = rSolverSettings["move_mesh_flag"].GetBool();
 
             auto strategy_parameters = ExtractStrategyParameters(rSolverSettings);
-            return std::make_unique<GeoMechanicsNewtonRaphsonStrategy<TSparseSpace,
+            auto result = std::make_unique<GeoMechanicsNewtonRaphsonStrategy<TSparseSpace,
                     TDenseSpace,
                     TLinearSolver>>(rModelPart,
                     scheme,
@@ -62,6 +72,8 @@ public:
                     calculate_reactions,
                     reform_dof_set_at_each_step,
                     move_mesh_flag);
+            result->SetEchoLevel(echo_level);
+            return result;
         }
 
         return nullptr;
