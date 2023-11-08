@@ -76,7 +76,10 @@ public:
     void EquationIdVector(EquationIdVectorType& rResult,
                           const ProcessInfo& rCurrentProcessInfo) const override;
 
-protected:
+    void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
+                              VectorType& rRightHandSideVector,
+                              const ProcessInfo& rCurrentProcessInfo) override;
+private:
     void CalculateAll(MatrixType& rLeftHandSideMatrix,
                       VectorType& rRightHandSideVector,
                       const ProcessInfo& CurrentProcessInfo,
@@ -116,13 +119,9 @@ protected:
 
     void CalculateConductivityVector(ElementVariables& rVariables);
 
-    void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
-                              VectorType& rRightHandSideVector,
-                              const ProcessInfo& rCurrentProcessInfo) override;
 
     GeometryData::IntegrationMethod GetIntegrationMethod() const override;
 
-private:
     void VerifyProperty(Kratos::Variable<double>& rVariable) const;
     void CheckDomainSize() const;
     void CheckSolutionStepsData(int rId, Kratos::Variable<double>& rVariable) const;
