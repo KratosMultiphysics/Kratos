@@ -133,7 +133,7 @@ public:
 
     NewmarkQuasistaticUPwScheme<SparseSpaceType, LocalSpaceType> CreateValidScheme() const
     {
-        NewmarkQuasistaticUPwScheme<SparseSpaceType, LocalSpaceType> result(0.5, 0.5, 0.75);
+        NewmarkQuasistaticUPwScheme<SparseSpaceType, LocalSpaceType> result(0.25, 0.5, 0.75);
         return result;
     }
 
@@ -148,14 +148,10 @@ public:
         return result;
     }
 
-    template<class T>
-    std::vector<std::pair<std::function<void()>,
-                          std::function<bool(const Kratos::intrusive_ptr<T> rElement)>>>
-    CreateConditionFunctionsAndChecks()
+    template <class T>
+    std::vector<std::pair<std::function<void()>, std::function<bool(const Kratos::intrusive_ptr<T> rElement)>>> CreateConditionFunctionsAndChecks()
     {
-        std::vector<std::pair<std::function<void()>,
-                              std::function<bool(const Kratos::intrusive_ptr<T> rElement)>>>
-            functions_and_checks;
+        std::vector<std::pair<std::function<void()>, std::function<bool(const Kratos::intrusive_ptr<T> rElement)>>> functions_and_checks;
 
         CompressedMatrix A;
         Vector Dx;
@@ -168,15 +164,13 @@ public:
         auto initialize_function = [this, &A, &Dx, &b]() {
             mScheme.InitializeSolutionStep(*mrModelPart, A, Dx, b);
         };
-        auto initialize_non_linear_iteration =
-            [this, &A, &Dx, &b]() {
-                mScheme.InitializeNonLinIteration(*mrModelPart, A, Dx, b);
-            };
+        auto initialize_non_linear_iteration = [this, &A, &Dx, &b]() {
+            mScheme.InitializeNonLinIteration(*mrModelPart, A, Dx, b);
+        };
 
-        auto finalize_non_linear_iteration =
-            [this, &A, &Dx, &b]() {
-                mScheme.FinalizeNonLinIteration(*mrModelPart, A, Dx, b);
-            };
+        auto finalize_non_linear_iteration = [this, &A, &Dx, &b]() {
+            mScheme.FinalizeNonLinIteration(*mrModelPart, A, Dx, b);
+        };
 
         auto finalize_function_check = [](const Kratos::intrusive_ptr<T> rElement) {
             return rElement->IsSolutionStepFinalized();
@@ -191,10 +185,9 @@ public:
                 return rCondition->IsNonLinIterationInitialized();
             };
 
-        auto finalize_non_linear_iteration_check =
-            [](const Kratos::intrusive_ptr<T> rCondition) {
-                return rCondition->IsNonLinIterationFinalized();
-            };
+        auto finalize_non_linear_iteration_check = [](const Kratos::intrusive_ptr<T> rCondition) {
+            return rCondition->IsNonLinIterationFinalized();
+        };
 
         functions_and_checks.push_back({finalize_solution_step, finalize_function_check});
         functions_and_checks.push_back({initialize_function, initialize_function_check});
@@ -207,14 +200,31 @@ public:
     }
 };
 
+KRATOS_TEST_CASE_IN_SUITE(InitializeUPWScheme_SetsTimeFactors, KratosGeoMechanicsFastSuite)
+{
+    NewmarkQuasistaticUPwSchemeTester tester;
+    tester.mrModelPart->GetProcessInfo()[DELTA_TIME] = 4.0;
+
+    tester.mScheme.Initialize(*tester.mrModelPart);
+
+    // These are the expected numbers according to the SetTimeFactors function
+    const double expected_dt_pressure_coefficient = 1.0/3.0;
+    const double expected_velocity_coefficient = 0.5;
+    KRATOS_EXPECT_TRUE(tester.mScheme.SchemeIsInitialized())
+    KRATOS_EXPECT_DOUBLE_EQ(tester.mrModelPart->GetProcessInfo()[DT_PRESSURE_COEFFICIENT],
+                            expected_dt_pressure_coefficient);
+    KRATOS_EXPECT_DOUBLE_EQ(tester.mrModelPart->GetProcessInfo()[VELOCITY_COEFFICIENT],
+                            expected_velocity_coefficient);
+}
+
 KRATOS_TEST_CASE_IN_SUITE(FinalizeSolutionStepActiveEntities_FinalizesOnlyActiveElements,
                           KratosGeoMechanicsFastSuite)
 {
     NewmarkQuasistaticUPwSchemeTester tester;
     auto functions_and_checks = tester.CreateConditionFunctionsAndChecks<SpyElement>();
 
-    for (const auto& [function_on_all_elements, function_has_been_called_on_element] : functions_and_checks)
-    {
+    for (const auto& [function_on_all_elements, function_has_been_called_on_element] :
+         functions_and_checks) {
         tester.Setup();
         auto active_element = Kratos::make_intrusive<SpyElement>();
         active_element->Set(ACTIVE, true);
@@ -239,8 +249,7 @@ KRATOS_TEST_CASE_IN_SUITE(FinalizeSolutionStep_FinalizesOnlyActiveConditions, Kr
     NewmarkQuasistaticUPwSchemeTester tester;
     auto functions_and_checks = tester.CreateConditionFunctionsAndChecks<SpyCondition>();
 
-    for (const auto& [function, function_has_been_called_on_condition] : functions_and_checks)
-    {
+    for (const auto& [function, function_has_been_called_on_condition] : functions_and_checks) {
         tester.Setup();
         auto active_condition = Kratos::make_intrusive<SpyCondition>();
         active_condition->SetId(0);
