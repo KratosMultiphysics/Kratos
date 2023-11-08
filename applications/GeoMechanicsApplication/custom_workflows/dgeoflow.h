@@ -46,6 +46,13 @@
 
 namespace Kratos
 {
+    struct CriticalHeadInfo;
+//    {
+//        double minCriticalHead;
+//        double maxCriticalHead;
+//        double stepCriticalHead;
+//    };
+//
     class KRATOS_API(GEO_MECHANICS_APPLICATION) KratosExecute
     {
     public:
@@ -73,14 +80,11 @@ namespace Kratos
 
         int ExecuteWithPiping(ModelPart& model_part,
                                               const std::vector<std::shared_ptr<Process>>& processes,
-                                              const std::string& rWorkingDirectory,
                                               const std::function<void(double)>& rReportProgress,
                                               const std::function<void(const char*)>& rReportTextualProgress,
                                               const Kratos::Parameters& projectfile,
                                               const std::string& rCriticalHeadBoundaryModelPartName,
-                                              double minCriticalHead,
-                                              double maxCriticalHead,
-                                              double stepCriticalHead,
+                                              const CriticalHeadInfo& criticalHeadInfo,
                                               const std::function<void(const char*)>& rLogCallback,
                                               LoggerOutput::Pointer p_output,
                                               const std::function<bool()>& rShouldCancel);
