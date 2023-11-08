@@ -14,6 +14,7 @@ print_help() {
     echo "-b <build_path>       : path to the build directory (created if it does not exist yet)"
     echo "-i <install_path>     : path to the install directory (created if it does not exist yet)"
     echo "-t <build_type>       : build type [FullDebug, Debug, Release, RelWithDebInfo] (Default: Release)"
+    echo "-j <job-count>        : number of build jobs to launch in parallel (Default: use as many threads as the machine supports)."
     echo "-a <app-name>         : name of the application to build (can be passed repeatedly to add more applications)"
     echo "-o <cmake-opt>        : options/arguments to pass on to CMake. Semicolon (;) delimited, or defined repeatedly."
     echo
@@ -24,7 +25,7 @@ print_help() {
     echo "By default, Kratos is installed to the site-packages directory of the available python"
     echo "interpreter. This makes KratosMultiphysics and its applications immediately available from"
     echo "anywhere on the system without having to append PYTHONPATH, provided that the same interpreter"
-    echo "is used. Note however, that it is recommend to use a virtual python environment to avoid tainting"
+    echo "is used. Note however, that it is recommended to use a virtual python environment to avoid tainting"
     echo "the system python."
     echo
     echo "Build requirements:"
@@ -60,27 +61,28 @@ get_site_packages_dir() {
 # (assumed to be kratos_repo_root/scripts)
 script_dir="$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
 
-source_dir="$(dirname "${script_dir}")" # <== path to the kratos repo root
-app_dir="${source_dir}/applications"    # <== path to the app directory of the kratos repo
+source_dir="$(dirname "${script_dir}")"         # <== path to the kratos repo root
+app_dir="${source_dir}/applications"            # <== path to the app directory of the kratos repo
 
-toolchain_root=""                       # <== root path of the compiler package (llvm)
-toolchain_bin=""                        # <== directory containing compiler executables
-toolchain_lib=""                        # <== directory containing compiler libraries
-toolchain_include=""                    # <== directory containing compiler headers
+toolchain_root=""                               # <== root path of the compiler package (llvm)
+toolchain_bin=""                                # <== directory containing compiler executables
+toolchain_lib=""                                # <== directory containing compiler libraries
+toolchain_include=""                            # <== directory containing compiler headers
 
-generator_target="Unix Makefiles"       # <== name of the generator program in CMake
-ccache_flag=""                          # <== sets CXX_COMPILER_LAUNCHER in CMake to ccache if available
-mpi_flag="OFF"                          # <== MPI flag to pass to CMake via USE_MPI
+generator_target="Unix Makefiles"               # <== name of the generator program in CMake
+ccache_flag=""                                  # <== sets CXX_COMPILER_LAUNCHER in CMake to ccache if available
+mpi_flag="OFF"                                  # <== MPI flag to pass to CMake via USE_MPI
 
 # Define default arguments
-build_type="Release".                   # <== passed to CMAKE_BUILD_TYPE
-build_dir="${source_dir}/build"         # <== path to the build directory
-install_dir="$(get_site_packages_dir)"  # <== path to install kratos to
-clean=0                                 # <== clean the build and install directories, then exit
-app_names=""                            # <== list of app names to build
-cmake_arguments=""                      # <== semicolon-separated list of options to pass to CMake
+build_type="Release".                           # <== passed to CMAKE_BUILD_TYPE
+job_count=$(sysctl -n machdep.cpu.thread_count) # <== number of jobs to use for building
+build_dir="${source_dir}/build"                 # <== path to the build directory
+install_dir="$(get_site_packages_dir)"          # <== path to install kratos to
+clean=0                                         # <== clean the build and install directories, then exit
+app_names=""                                    # <== list of app names to build
+cmake_arguments=""                              # <== semicolon-separated list of options to pass to CMake
 
-# Function to append the list of applications to build
+# Function to append the list of built applications
 add_app() {
     if [ "$1" != "${1#/}" ]; then       # <== absolute path
         if [ -d "$1" ]; then
@@ -97,7 +99,7 @@ add_app() {
 }
 
 # Parse command line arguments
-while getopts ":h C b: i: t: a: o:" arg; do
+while getopts ":h C b: i: t: j: a: o:" arg; do
     case "$arg" in
         h)  # Print help and exit without doing anything
             print_help
@@ -120,6 +122,14 @@ while getopts ":h C b: i: t: a: o:" arg; do
                  || "${build_type}" == "Release" ]]; then
                 print_help
                 echo "Error: invalid build type: ${build_type}"
+                exit 1
+            fi
+            ;;
+        j)  # Set the number of build jobs
+            if [[ "$OPTARG" =~ ^[1-9][0-9]*$ ]]; then
+                job_count="$OPTARG"
+            else
+                echo "Error: invalid number of jobs requested: '$OPTARG'"
                 exit 1
             fi
             ;;
@@ -214,7 +224,7 @@ check_recommended_homebrew_package() {
 
 # Optional dependency - ccache
 if check_recommended_homebrew_package ccache; then
-    ccache_flag="-DCXX_COMPILER_LAUNCHER:STRING=ccache"
+    ccache_flag="-DCMAKE_CXX_COMPILER_LAUNCHER:STRING=ccache"
 fi
 
 # Optional dependency - ninja
@@ -263,7 +273,7 @@ if ! cmake                                                  \
 fi
 
 # Build and install
-if ! cmake --build "$build_dir" --target install -j; then
+if ! cmake --build "$build_dir" --target install -j$job_count; then
     exit 1
 fi
 
