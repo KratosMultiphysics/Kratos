@@ -19,7 +19,51 @@
 
 namespace Kratos {
 
-namespace Internals {
+namespace {
+
+template<class MatrixType, class VectorOrExpressionType, class VectorType>
+void axpy(
+    const MatrixType& rA,
+    const VectorOrExpressionType& rX,
+    VectorType& rY,
+    bool ResetY)
+{
+    const auto& r_values = rA.value_data();
+    const auto& r_rows = rA.index1_data();
+    const auto& r_cols = rA.index2_data();
+
+    IndexPartition<IndexType>(rY.size()).for_each([&](IndexType row) {
+        double y_row = ResetY ? 0.0 : rY[row];
+        for (IndexType i = r_rows[row]; i < r_rows[row+1]; i++) {
+            IndexType col = r_cols[i];
+            y_row += r_values[i] * rX[col];
+        }
+        rY[row] = y_row;
+    });
+}
+
+
+template<class VectorOrExpressionType, class VectorType>
+void add_scaled(
+    const double a,
+    const VectorOrExpressionType& rX,
+    VectorType& rY)
+{
+    IndexPartition<IndexType>(rY.size()).for_each([&](IndexType row) {
+        rY[row] += a * rX[row];
+    });
+}
+
+template<class VectorType>
+double dot(
+    const VectorType& rX,
+    const VectorType& rY)
+{
+    return IndexPartition<IndexType>(rY.size()).for_each<SumReduction<double>>([&](IndexType i) {
+        return rY[i] * rX[i];
+    });
+}
+
 
 // Helper class to hold the coarse problem Gauss-Seidel iteration as a solver pointer
 template<
@@ -62,7 +106,7 @@ public:
                 IndexType row_end = r_row_indices[row+1];
 
                 double value = rB[row];
-                double diag = 1.0;
+                double diag = 0.0;
                 for (IndexType i = row_start; i < row_end; ++i) {
                     IndexType col = r_col_indices[i];
                     if (col == row) {
@@ -141,11 +185,23 @@ public:
 
         if (Settings["fine_solver_settings"]["solver_type"].GetString() == "gauss_seidel_smoothing") {
             mpFineSolver = Kratos::make_shared<
-                Internals::GaussSeidelIteration<SparseSpace, DenseSpace, ReordererType>
+                GaussSeidelIteration<SparseSpace, DenseSpace, ReordererType>
             >(Settings["fine_solver_settings"]);
         }
         else {
             mpFineSolver = factory.Create(Settings["fine_solver_settings"]);
+        }
+
+        mUseFlexibleGcr = Settings["flexible_gcr"].GetBool();
+        if (mUseFlexibleGcr) {
+            BaseType::SetPreconditioner(
+                PreconditionerFactory<TSparseSpaceType,TDenseSpaceType>().Create(Settings["gcr_preconditioner_type"].GetString()));
+
+            int stored_directions = Settings["gcr_stored_directions"].GetInt();
+            KRATOS_ERROR_IF(stored_directions < 0) << "gcr_stored_directions must be zero or positive, got " << stored_directions << std::endl;
+            mStoredDirections = stored_directions;
+
+            mC.reserve(mStoredDirections);
         }
 
         KRATOS_CATCH("");
@@ -185,6 +241,10 @@ public:
             mpInterpolationMatrix = AsSparseMatrix(matrix_map, rDofSet.size(), mLinearIds.size());
             mpRestrictionMatrix = SparseSpace::CreateEmptyMatrixPointer();
             SparseMatrixMultiplicationUtility::TransposeMatrix(*mpRestrictionMatrix, *mpInterpolationMatrix);
+
+            // Allocate storage for temporary vectors used in Solve
+            mpFineRhs = Kratos::make_shared<VectorType>(ZeroVector(rDofSet.size()));
+            mpDelta = Kratos::make_shared<VectorType>(ZeroVector(rDofSet.size()));
         }
 
         if (mpCoarseA == nullptr) {
@@ -206,6 +266,10 @@ public:
         if (mpCoarseSolver->AdditionalPhysicalDataIsNeeded()) {
             mpCoarseSolver->ProvideAdditionalData(*mpCoarseA, *mpCoarseX, *mpCoarseB, GetCoarseDofSet(rDofSet), rModelPart);
         }
+
+        if (mpFineSolver->AdditionalPhysicalDataIsNeeded()) {
+            mpFineSolver->ProvideAdditionalData(rA, rX, rB, rDofSet, rModelPart);
+        }
     }
 
 
@@ -222,6 +286,11 @@ public:
         mpRestrictionMatrix.reset();
 
         mCoarseDofSet.clear();
+
+        mpFineRhs.reset();
+        mpDelta.reset();
+
+        ClearGcrUpdateData();
     }
 
 
@@ -238,61 +307,11 @@ public:
         if(this->IsNotConsistent(rA, rX, rB))
             return false;
 
-        IndexType iter = 0;
-        this->SetIterationsNumber(iter);
-
-        VectorType residual = VectorType(rB);
-        VectorType delta = VectorType(rX.size());
-        VectorType fine_rhs = VectorType(rX.size());
-        VectorType aux = VectorType(rX.size());
-
-        SparseMatrixType& r_coarse_a = *mpCoarseA;
-        VectorType& r_coarse_b = *mpCoarseB;
-        VectorType& r_coarse_x = *mpCoarseX;
-
-        KRATOS_WATCH(rA.size1());
-        KRATOS_WATCH(r_coarse_a.size1());
-
-        constexpr bool init = true;
-        constexpr bool no_init = false;
-
-        this->mBNorm = SparseSpace::TwoNorm(rB);
-        this->SetResidualNorm(this->mBNorm);
-
-        while (this->IterationNeeded()) {
-            this->SetIterationsNumber(++iter);
-
-            // New approximation using fine solver/smoothing
-            SparseSpace::SetToZero(delta);
-            noalias(fine_rhs) = residual;
-            mpFineSolver->Solve(rA, delta, fine_rhs);
-
-            // Calculate coarse residual dl = rl - All*deltal - Alq*deltaq
-            noalias(aux) = residual;
-            parallel_axpy(rA, -delta, aux, no_init);
-            parallel_axpy(*mpRestrictionMatrix, aux, r_coarse_b, init);
-
-            // solve coarse problem
-            mpCoarseSolver->Solve(r_coarse_a, r_coarse_x, r_coarse_b);
-
-            // update the solution
-            parallel_axpy(*mpInterpolationMatrix, r_coarse_x, delta, no_init);
-            noalias(rX) += delta;
-
-            // update the residual
-            parallel_axpy(rA, -delta, residual, no_init);
-            this->SetResidualNorm(SparseSpace::TwoNorm(residual));
-
-            KRATOS_WATCH(this->GetResidualNorm());
-
-            // check convergence
-            if (this->IsConverged()) {
-                return true;
-            }
+        if (mUseFlexibleGcr) {
+            return HierarchicalGcrSolve(rA, rX, rB);
         }
 
-        //return is_solved;
-        return false;
+        return HierarchicalIterativeSolve(rA, rX, rB);
     }
 
 private:
@@ -315,6 +334,22 @@ private:
 
     DofsArrayType mCoarseDofSet{};
 
+    constexpr static bool init = true;
+    constexpr static bool no_init = false;
+
+    // Temporary storage for Solve
+    VectorPointerType mpFineRhs;
+    VectorPointerType mpDelta;
+
+    // Flexible GCR mode switch
+    bool mUseFlexibleGcr;
+
+    // Update strategy data
+    IndexType mOldestDirection = 0;
+    std::size_t mStoredDirections;
+    VectorPointerType mpAr;
+    std::vector<VectorType> mU;
+    std::vector<VectorType> mC;
 
     Parameters GetDefaultParameters() const {
         return Parameters(R"({
@@ -325,8 +360,151 @@ private:
             "fine_solver_settings": {
                 "solver_type": "gauss_seidel_smoothing",
                 "smoothing_iterations": 5
-            }
+            },
+            "flexible_gcr": false,
+            "gcr_stored_directions": 50,
+            "gcr_preconditioner_type": "none"
         })");
+    }
+
+
+    bool HierarchicalIterativeSolve(SparseMatrixType& rA, VectorType& rX, VectorType& rB)
+    {
+        //KRATOS_WATCH(rA.size1());
+        //KRATOS_WATCH(mpCoarseA->size1());
+
+        IndexType iter = 1;
+        double iter_residual = 0.0;
+        this->SetIterationsNumber(iter);
+
+        this->mBNorm = SparseSpace::TwoNorm(rB);
+        this->SetResidualNorm(this->mBNorm);
+
+        while (this->IterationNeeded()) {
+
+            iter_residual = this->SolveIteration(rA, rX, rB);
+
+            this->SetIterationsNumber(++iter);
+            this->SetResidualNorm(iter_residual);
+
+            if (BaseType::IsConverged()) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+
+    bool HierarchicalGcrSolve(SparseMatrixType& rA, VectorType& rX, VectorType& rB)
+    {
+        auto& r_preconditioner = *BaseType::GetPreconditioner();
+        r_preconditioner.Initialize(rA, rX, rB);
+        r_preconditioner.ApplyInverseRight(rX);
+        r_preconditioner.ApplyLeft(rB);
+
+        IndexType iter = 0;
+        this->SetIterationsNumber(iter);
+
+        VectorType residual = ZeroVector(rB.size());
+        r_preconditioner.Mult(rA, rX, residual);
+        TSparseSpaceType::ScaleAndAdd(1.0, rB, -1.0, residual);
+
+        VectorType u = ZeroVector(rB.size());
+        VectorType c = ZeroVector(rB.size());
+
+        this->mBNorm = SparseSpace::TwoNorm(residual);
+        this->SetResidualNorm(this->mBNorm);
+        //KRATOS_WATCH(this->mBNorm)
+
+        while (this->IterationNeeded()) {
+            this->SetIterationsNumber(++iter);
+
+            // Select initial u
+            VectorType aux_rhs = residual;
+            SparseSpace::SetToZero(u);
+            SolveIteration(rA, u, aux_rhs);
+
+            // Initial c
+            r_preconditioner.Mult(rA, u, c);
+
+            for (SizeType i = 0; i < mC.size(); i++) {
+                IndexType index = (i + mOldestDirection) % mStoredDirections;
+                double a = -1.0 * dot(mC[index], c);
+                add_scaled(a, mC[index], c);
+                add_scaled(a, mU[index], u);
+            }
+
+            double i_norm_c = 1.0 / SparseSpace::TwoNorm(c);
+            SparseSpace::InplaceMult(c, i_norm_c);
+            SparseSpace::InplaceMult(u, i_norm_c);
+
+            if (mC.size() < mStoredDirections) {
+                mC.push_back(c);
+                mU.push_back(u);
+            }
+            else {
+                noalias(mC[mOldestDirection]) = c;
+                noalias(mU[mOldestDirection]) = u;
+                mOldestDirection = (mOldestDirection + 1) % mStoredDirections;
+            }
+
+            double cr = dot(c, residual);
+            //KRATOS_WATCH(cr)
+            //KRATOS_WATCH(SparseSpace::TwoNorm(u))
+            add_scaled(cr, u, rX);
+            add_scaled(-cr, c, residual);
+
+            this->SetResidualNorm(SparseSpace::TwoNorm(residual));
+            //KRATOS_WATCH(this->GetResidualNorm());
+        }
+
+        r_preconditioner.Finalize(rX);
+        //KRATOS_WATCH(iter);
+        ClearGcrUpdateData();
+        return BaseType::IsConverged();
+    }
+
+
+    double SolveIteration(SparseMatrixType& rA, VectorType& rX, VectorType& rResidual)
+    {
+        VectorType& r_coarse_x = *mpCoarseX;
+        VectorType& r_coarse_b = *mpCoarseB;
+
+        VectorType& r_delta = *mpDelta;
+        VectorType& r_fine_rhs = *mpFineRhs;
+
+        // New approximation using fine solver/smoothing
+        SparseSpace::SetToZero(r_delta);
+        noalias(r_fine_rhs) = rResidual;
+        mpFineSolver->Solve(rA, r_delta, r_fine_rhs);
+
+        // Calculate coarse residual dl = rl - All*deltal - Alq*deltaq
+        noalias(r_fine_rhs) = rResidual;
+        axpy(rA, -r_delta, r_fine_rhs, no_init);
+        axpy(*mpRestrictionMatrix, r_fine_rhs, r_coarse_b, init);
+
+        // solve coarse problem
+        mpCoarseSolver->Solve(*mpCoarseA, r_coarse_x, r_coarse_b);
+
+        // update the solution
+        axpy(*mpInterpolationMatrix, r_coarse_x, r_delta, no_init);
+        noalias(rX) += r_delta;
+
+        // update the residual
+        axpy(rA, -r_delta, rResidual, no_init);
+
+        //KRATOS_WATCH(SparseSpace::TwoNorm(rResidual));
+        return SparseSpace::TwoNorm(rResidual);
+    }
+
+
+    void ClearGcrUpdateData()
+    {
+        mOldestDirection = 0;
+        mU.clear();
+        mC.clear();
+        mpAr.reset();
     }
 
 
@@ -547,27 +725,6 @@ private:
         p_matrix->set_filled(r_rows.size(), r_values.size());
 
         return p_matrix;
-    }
-
-
-    void parallel_axpy(
-        const SparseMatrixType& rA,
-        const VectorType& rX,
-        VectorType& rY,
-        bool ResetY)
-    {
-        const auto& r_values = rA.value_data();
-        const auto& r_rows = rA.index1_data();
-        const auto& r_cols = rA.index2_data();
-
-        IndexPartition<IndexType>(rY.size()).for_each([&](IndexType row) {
-            double total = ResetY ? 0.0 : rY[row];
-            for (IndexType i = r_rows[row]; i < r_rows[row+1]; i++) {
-                IndexType col = r_cols[i];
-                total += r_values[i] * rX[col];
-            }
-            rY[row] = total;
-        });
     }
 
 };
