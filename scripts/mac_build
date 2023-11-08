@@ -116,12 +116,12 @@ while getopts ":h C b: i: t: j: a: o:" arg; do
             ;;
         t)  # Set build type
             build_type="$OPTARG"
-            if ! [[ "${build_type}" == "FullDebug"
-                 || "${build_type}" == "Debug"
-                 || "${build_type}" == "RelWithDebInfo"
-                 || "${build_type}" == "Release" ]]; then
-                print_help
+            if ! [[ "${build_type}" = "FullDebug"
+                 || "${build_type}" = "Debug"
+                 || "${build_type}" = "RelWithDebInfo"
+                 || "${build_type}" = "Release" ]]; then
                 echo "Error: invalid build type: ${build_type}"
+                print_help
                 exit 1
             fi
             ;;
