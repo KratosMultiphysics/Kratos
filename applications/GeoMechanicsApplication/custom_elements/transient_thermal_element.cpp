@@ -201,8 +201,6 @@ void TransientThermalElement<TDim, TNumNodes>::InitializeElementVariables(
 {
     KRATOS_TRY
 
-    InitializeProperties(rVariables);
-
     rVariables.DtTemperatureCoefficient = rCurrentProcessInfo[DT_TEMPERATURE_COEFFICIENT];
 
     InitializeNodalTemperatureVariables(rVariables);
@@ -330,7 +328,7 @@ void TransientThermalElement<TDim, TNumNodes>::CalculateCapacityMatrix(ElementVa
 
     const auto& r_properties = GetProperties();
 
-    const double cWater = r_properties[POROSITY] * rVariables.Saturation *
+    const double cWater = r_properties[POROSITY] * r_properties[SATURATION] *
                           r_properties[DENSITY_WATER] * r_properties[SPECIFIC_HEAT_CAPACITY_WATER];
     const double cSolid = (1.0 - r_properties[POROSITY]) *
                           r_properties[DENSITY_SOLID] * r_properties[SPECIFIC_HEAT_CAPACITY_SOLID];
@@ -409,18 +407,6 @@ void TransientThermalElement<TDim, TNumNodes>::CalculateConductivityVector(Eleme
         -prod(rVariables.ConductivityMatrix, rVariables.TemperatureVector);
 
     KRATOS_CATCH("");
-}
-
-template <unsigned int TDim, unsigned int TNumNodes>
-void TransientThermalElement<TDim, TNumNodes>::InitializeProperties(ElementVariables& rVariables)
-{
-    KRATOS_TRY
-
-    const PropertiesType& rProp = GetProperties();
-
-    rVariables.Saturation = rProp[SATURATION];
-
-    KRATOS_CATCH("")
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>

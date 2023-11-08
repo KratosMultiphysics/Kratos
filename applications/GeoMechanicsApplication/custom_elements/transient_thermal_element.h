@@ -26,8 +26,6 @@ public:
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(TransientThermalElement);
 
     struct ElementVariables {
-        double Saturation;
-
         double DtTemperatureCoefficient;
         array_1d<double, TNumNodes> TemperatureVector;
         array_1d<double, TNumNodes> DtTemperatureVector;
@@ -113,8 +111,6 @@ protected:
     double CalculateIntegrationCoefficient(const GeometryType::IntegrationPointsArrayType& rIntegrationPoints,
                                            unsigned int PointNumber,
                                            double detJ);
-
-    void InitializeProperties(ElementVariables& rVariables);
 
     void CalculateConductivityMatrix(ElementVariables& rVariables);
 
