@@ -51,7 +51,7 @@ namespace Kratos
  * @author Vicente Mataix Ferrandiz
  */
 template<class TObject>
-class PointObject
+class KRATOS_API(KRATOS_CORE) PointObject
     : public Point
 {
 public:
@@ -61,6 +61,9 @@ public:
 
     /// Base class definition
     using BaseType = Point;
+
+    /// Definition of the object type
+    using ObjectType = TObject;
 
     /// Counted pointer of PointObject
     KRATOS_CLASS_POINTER_DEFINITION( PointObject );
