@@ -13,13 +13,13 @@
 #pragma once
 
 // System includes
+#include <vector>
 
 // External includes
 
 // Project includes
 #include "utilities/pointer_communicator.h"
 #include "spatial_containers/spatial_search_result.h"
-#include "containers/pointer_vector_set.h"
 #include "includes/indexed_object.h"
 #include "containers/array_1d.h"
 
@@ -61,13 +61,7 @@ public:
     using SpatialSearchResultPointerType = typename SpatialSearchResultType::Pointer;
 
     /// Local vector of SpatialSearchResult
-    using LocalResultsVector = PointerVectorSet<SpatialSearchResultType,
-                               IndexedObject,
-                               std::less<typename IndexedObject::result_type>,
-                               std::equal_to<typename IndexedObject::result_type>,
-                               SpatialSearchResultPointerType,
-                               std::vector<SpatialSearchResultPointerType>
-                               >;
+    using LocalResultsVector = std::vector<SpatialSearchResultPointerType>;
 
     /// The global pointer communicator
     using GlobalPointerCommunicatorType = GlobalPointerCommunicator<SpatialSearchResultType>;
@@ -102,7 +96,7 @@ public:
      * @param os The output stream
      * @return The output stream
      */
-    std::ostream& operator<<(std::ostream& os) 
+    std::ostream& operator<<(std::ostream& os)
     {
         this->PrintData(os);
         return os;
@@ -115,7 +109,7 @@ public:
      */
     SpatialSearchResultType& operator[](const std::size_t Index)
     {
-        return *(mLocalResults.begin() + Index);
+        return *(mLocalResults[Index]);
     }
 
     /**
@@ -125,7 +119,7 @@ public:
      */
     const SpatialSearchResultType& operator[](const std::size_t Index) const 
     {
-        return *(mLocalResults.begin() + Index);
+        return *(mLocalResults[Index]);
     }
 
     /**
@@ -496,7 +490,7 @@ public:
      * This method returns a reference to the LocalResultsVector mLocalResults.
      * @return A reference to the LocalResultsVector mLocalResults.
      */
-    LocalResultsVector& GetLocalResults() 
+    LocalResultsVector& GetLocalResults()
     {
         return mLocalResults;
     }
@@ -538,10 +532,10 @@ public:
 private:
     ///@name Member Variables
     ///@{
-    
+
     LocalResultsVector mLocalResults;                                           /// Local results
     GlobalResultsVector mGlobalResults;                                         /// Global results
-   
+
     GlobalPointerCommunicatorPointerType mpGlobalPointerCommunicator = nullptr; /// Global pointer to the communicator 
 
     ///@}

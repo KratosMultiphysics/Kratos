@@ -121,8 +121,8 @@ void SpatialSearchResultContainer<TObjectType>::SynchronizeAll(const DataCommuni
             global_gp.reserve(global_result_size);
 
             // Fill global vector with local result
-            for (auto& r_value : mLocalResults) {
-                global_gp.push_back(GlobalPointerResultType(&r_value, rank));
+            for (auto& p_value : mLocalResults) {
+                global_gp.push_back(GlobalPointerResultType(p_value.get(), rank));
             }
 
             // Create a lambda to generate the vector of indexes greater than zero
@@ -162,8 +162,8 @@ void SpatialSearchResultContainer<TObjectType>::SynchronizeAll(const DataCommuni
             if (local_result_size > 0) {
                 std::vector<GlobalPointerResultType> local_gp;
                 local_gp.reserve(local_result_size);
-                for (auto& r_value : mLocalResults) {
-                    local_gp.push_back(GlobalPointerResultType(&r_value, rank));
+                for (auto& p_value : mLocalResults) {
+                    local_gp.push_back(GlobalPointerResultType(p_value.get(), rank));
                 }
                 rDataCommunicator.Send(local_gp, 0);
             }
@@ -179,8 +179,8 @@ void SpatialSearchResultContainer<TObjectType>::SynchronizeAll(const DataCommuni
         }
     } else { // Serial code
         // Fill global vector
-        for (auto& r_value : mLocalResults) {
-            mGlobalResults.push_back(&r_value);
+        for (auto& p_value : mLocalResults) {
+            mGlobalResults.push_back(p_value.get());
         }
     }
 
