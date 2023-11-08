@@ -27,7 +27,6 @@ public:
 
     struct ElementVariables {
         double SolidDensity;
-        double WaterHeatCapacity;
         double SolidHeatCapacity;
         double Porosity;
         double Saturation;

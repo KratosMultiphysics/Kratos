@@ -331,7 +331,7 @@ void TransientThermalElement<TDim, TNumNodes>::CalculateCapacityMatrix(ElementVa
     const auto& r_properties = GetProperties();
 
     const double cWater = rVariables.Porosity * rVariables.Saturation *
-                          r_properties[DENSITY_WATER] * rVariables.WaterHeatCapacity;
+                          r_properties[DENSITY_WATER] * r_properties[SPECIFIC_HEAT_CAPACITY_WATER];
     const double cSolid = (1.0 - rVariables.Porosity) *
                           rVariables.SolidDensity * rVariables.SolidHeatCapacity;
     noalias(rVariables.CapacityMatrix) =
@@ -420,7 +420,6 @@ void TransientThermalElement<TDim, TNumNodes>::InitializeProperties(ElementVaria
 
     rVariables.SolidDensity = rProp[DENSITY_SOLID];
     rVariables.Porosity = rProp[POROSITY];
-    rVariables.WaterHeatCapacity = rProp[SPECIFIC_HEAT_CAPACITY_WATER];
     rVariables.SolidHeatCapacity = rProp[SPECIFIC_HEAT_CAPACITY_SOLID];
     rVariables.Saturation = rProp[SATURATION];
 
