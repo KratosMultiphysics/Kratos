@@ -26,13 +26,6 @@ TransientThermalElement<TDim, TNumNodes>::TransientThermalElement(IndexType NewI
 
 template <unsigned int TDim, unsigned int TNumNodes>
 TransientThermalElement<TDim, TNumNodes>::TransientThermalElement(IndexType NewId,
-                                                                  const NodesArrayType& ThisNodes)
-    : Element(NewId, ThisNodes)
-{
-}
-
-template <unsigned int TDim, unsigned int TNumNodes>
-TransientThermalElement<TDim, TNumNodes>::TransientThermalElement(IndexType NewId,
                                                                   GeometryType::Pointer pGeometry)
     : Element(NewId, pGeometry)
 {

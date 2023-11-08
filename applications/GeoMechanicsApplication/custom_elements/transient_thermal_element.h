@@ -53,8 +53,6 @@ public:
 
     explicit TransientThermalElement(IndexType NewId = 0);
 
-    TransientThermalElement(IndexType NewId, const NodesArrayType& ThisNodes);
-
     TransientThermalElement(IndexType NewId, GeometryType::Pointer pGeometry);
 
     TransientThermalElement(IndexType NewId,
