@@ -155,21 +155,21 @@ void BindSpatialSearchResultContainer(pybind11::module& m, const std::string& rC
  */
 template<typename T>
 void BindSpatialSearchResultContainerVector(pybind11::module& m, const std::string& rClassName) {
-    using ContainerMapType = SpatialSearchResultContainerVector<T>;
-    pybind11::class_<ContainerMapType, typename ContainerMapType::Pointer>(m, rClassName.c_str())
+    using ContainerVectorType = SpatialSearchResultContainerVector<T>;
+    pybind11::class_<ContainerVectorType, typename ContainerVectorType::Pointer>(m, rClassName.c_str())
     .def(pybind11::init<>())
-    .def("NumberOfSearchResults", &ContainerMapType::NumberOfSearchResults)
-    .def("InitializeResult", &ContainerMapType::InitializeResult)
-    .def("HasResult",  &ContainerMapType::HasResult)
-    .def("Clear", &ContainerMapType::Clear)
-    .def("__getitem__", [](ContainerMapType& self, const std::size_t Index) {
+    .def("NumberOfSearchResults", &ContainerVectorType::NumberOfSearchResults)
+    .def("InitializeResult", &ContainerVectorType::InitializeResult)
+    .def("HasResult",  &ContainerVectorType::HasResult)
+    .def("Clear", &ContainerVectorType::Clear)
+    .def("__getitem__", [](ContainerVectorType& self, const std::size_t Index) {
         return self[Index];
     })
-    .def("__call__", [](ContainerMapType& self, const std::size_t Index) {
+    .def("__call__", [](ContainerVectorType& self, const std::size_t Index) {
         return self(Index);
     })
-    .def("__str__", PrintObject<ContainerMapType>)
-    .def("__iter__", [](ContainerMapType& self) {
+    .def("__str__", PrintObject<ContainerVectorType>)
+    .def("__iter__", [](ContainerVectorType& self) {
         return pybind11::make_iterator(self.begin(), self.end());
     }, pybind11::keep_alive<0, 1>()); /* Keep object alive while iterator is used */
 }
