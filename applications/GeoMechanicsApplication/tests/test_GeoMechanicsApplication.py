@@ -75,7 +75,7 @@ def AssembleTestSuites():
                         KratosGeoMechanicsK0ProcedureProcessTests,
                         KratosGeoMechanicsSolverTests,
                         KratosGeoMechanicsChangingWaterLevelTests,
-                        KratosGeoMechanicsSetMultipleMovingLoadProcessTests
+                        KratosGeoMechanicsSetMultipleMovingLoadProcessTests,
                         KratosGeoMechanicsStrainMeasureTests
                         ]
 
