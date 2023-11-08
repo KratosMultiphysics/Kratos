@@ -8,7 +8,7 @@ script_name="$(basename ${BASH_SOURCE[0]})"
 # Function for printing usage info
 print_help() {
     echo "$script_name - Configure, build, and install KratosMultiphysics."
-    echo "Usage: $script_name [-h] [-C] [-b <build-dir>] [-i <install-dir>] [-t <build-type>] [-a <app-name>] [-o <cmake-opt>]"
+    echo "Usage: $script_name [-h] [-C] [-b <build-dir>] [-i <install-dir>] [-t <build-type>] [-j <job-count>] [-a <app-name>] [-o <cmake-opt>]"
     echo "-h                    : print this help and exit"
     echo "-C                    : clean build and install directories, then exit"
     echo "-b <build_path>       : path to the build directory (created if it does not exist yet)"
