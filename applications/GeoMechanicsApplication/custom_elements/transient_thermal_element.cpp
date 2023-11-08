@@ -62,7 +62,7 @@ void TransientThermalElement<TDim, TNumNodes>::GetDofList(DofsVectorType& rEleme
 {
     KRATOS_TRY
 
-    const unsigned int N_DOF = GetNumberOfDOF();
+    constexpr unsigned int N_DOF = TNumNodes;
     if (rElementalDofList.size() != N_DOF) {
         rElementalDofList.resize(N_DOF);
     }
@@ -81,7 +81,7 @@ void TransientThermalElement<TDim, TNumNodes>::EquationIdVector(
 {
     KRATOS_TRY
 
-    const unsigned int N_DOF = GetNumberOfDOF();
+    constexpr unsigned int N_DOF = TNumNodes;
     if (rResult.size() != N_DOF) {
         rResult.resize(N_DOF, false);
     }
@@ -291,12 +291,6 @@ void TransientThermalElement<TDim, TNumNodes>::CalculateKinematics(ElementVariab
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-unsigned int TransientThermalElement<TDim, TNumNodes>::GetNumberOfDOF() const
-{
-    return TNumNodes;
-}
-
-template <unsigned int TDim, unsigned int TNumNodes>
 void TransientThermalElement<TDim, TNumNodes>::InitializeNodalTemperatureVariables(ElementVariables& rVariables)
 {
     KRATOS_TRY
@@ -406,7 +400,7 @@ void TransientThermalElement<TDim, TNumNodes>::CalculateLocalSystem(
 {
     KRATOS_TRY
 
-    const unsigned int N_DOF = GetNumberOfDOF();
+    constexpr unsigned int N_DOF = TNumNodes;
 
     if (rLeftHandSideMatrix.size1() != N_DOF) {
         rLeftHandSideMatrix.resize(N_DOF, N_DOF, false);

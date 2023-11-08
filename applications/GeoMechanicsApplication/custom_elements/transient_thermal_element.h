@@ -109,8 +109,6 @@ private:
 
     void InitializeNodalTemperatureVariables(ElementVariables& rVariables);
 
-    unsigned int GetNumberOfDOF() const;
-
     void CalculateConductivityMatrix(ElementVariables& rVariables);
 
     void CalculateCapacityMatrix(ElementVariables& rVariables) const;
