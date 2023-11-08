@@ -66,7 +66,7 @@ bool SpatialSearchResultContainerVector<TObjectType>::HasResult(const IndexType 
         return false;
     } else {
         return mPointResults[Index] != nullptr;
-    }      
+    }
 }
 
 /***********************************************************************************/
@@ -128,7 +128,7 @@ void SpatialSearchResultContainerVector<TObjectType>::PrintData(std::ostream& rO
 
 template <class TObjectType>
 void SpatialSearchResultContainerVector<TObjectType>::save(Serializer& rSerializer) const
-{ 
+{
     rSerializer.save("PointResults", mPointResults);
 }
 
