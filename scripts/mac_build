@@ -1,6 +1,6 @@
 #!/bin/bash
 # authors: Máté Kelemen
-# Run this script with the -h flag for info.
+# Run this script with the -h flag for more info.
 
 # Name of this script
 script_name="$(basename ${BASH_SOURCE[0]})"
@@ -36,7 +36,7 @@ print_help() {
     echo
     echo "Recommended build tools:"
     echo " - ccache ('brew install ccache')"
-    echo " - ninja ('brew install ccache')"
+    echo " - ninja ('brew install ninja')"
     echo
     echo "Caveats:"
     echo "The clang that gets shipped by default lacks OpenMP binaries, so one option is to use another version"
