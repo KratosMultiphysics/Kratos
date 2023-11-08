@@ -328,8 +328,10 @@ void TransientThermalElement<TDim, TNumNodes>::CalculateCapacityMatrix(ElementVa
 {
     KRATOS_TRY
 
+    const auto& r_properties = GetProperties();
+
     const double cWater = rVariables.Porosity * rVariables.Saturation *
-                          rVariables.WaterDensity * rVariables.WaterHeatCapacity;
+                          r_properties[DENSITY_WATER] * rVariables.WaterHeatCapacity;
     const double cSolid = (1.0 - rVariables.Porosity) *
                           rVariables.SolidDensity * rVariables.SolidHeatCapacity;
     noalias(rVariables.CapacityMatrix) =
@@ -416,7 +418,6 @@ void TransientThermalElement<TDim, TNumNodes>::InitializeProperties(ElementVaria
 
     const PropertiesType& rProp = GetProperties();
 
-    rVariables.WaterDensity = rProp[DENSITY_WATER];
     rVariables.SolidDensity = rProp[DENSITY_SOLID];
     rVariables.Porosity = rProp[POROSITY];
     rVariables.WaterHeatCapacity = rProp[SPECIFIC_HEAT_CAPACITY_WATER];

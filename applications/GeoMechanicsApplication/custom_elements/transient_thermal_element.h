@@ -26,7 +26,6 @@ public:
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(TransientThermalElement);
 
     struct ElementVariables {
-        double WaterDensity;
         double SolidDensity;
         double WaterHeatCapacity;
         double SolidHeatCapacity;
