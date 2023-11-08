@@ -174,7 +174,7 @@ void BindSpatialSearchResultContainerVector(pybind11::module& m, const std::stri
     }, pybind11::keep_alive<0, 1>()); /* Keep object alive while iterator is used */
 }
 
-/** 
+/**
  * @brief Copies a Python list of radius to a C++ radius array.
  * @param rListOfRadius list of radius to copy
  * @return Radius array with copied radius
@@ -663,7 +663,7 @@ void AddSearchStrategiesToPython(pybind11::module& m)
     BindSpatialSearchResultContainer<Element>(m, "SpatialSearchResultContainerElement");
     BindSpatialSearchResultContainer<Condition>(m, "SpatialSearchResultContainerCondition");
 
-    // Containers map
+    // Containers vector
     BindSpatialSearchResultContainerVector<Node>(m, "SpatialSearchResultContainerVectorNode");
     BindSpatialSearchResultContainerVector<GeometricalObject>(m, "SpatialSearchResultContainerVectorGeometricalObject");
     BindSpatialSearchResultContainerVector<Element>(m, "SpatialSearchResultContainerVectorElement");
@@ -758,7 +758,7 @@ void AddSearchStrategiesToPython(pybind11::module& m)
         return list_results;
     })
     ;
-    
+
     /* Define the search wrappers */
     // GeometricalObjectsBins
     DefineSearchWrapper<GeometricalObjectsBins>(m, "SearchWrapperGeometricalObjectBins");
