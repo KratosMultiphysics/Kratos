@@ -115,19 +115,19 @@ protected:
 
     unsigned int GetNumberOfDOF() const;
 
-    virtual double CalculateIntegrationCoefficient(const GeometryType::IntegrationPointsArrayType& rIntegrationPoints,
-                                                   unsigned int PointNumber,
-                                                   double detJ);
+    double CalculateIntegrationCoefficient(const GeometryType::IntegrationPointsArrayType& rIntegrationPoints,
+                                           unsigned int PointNumber,
+                                           double detJ);
 
     void InitializeProperties(ElementVariables& rVariables);
 
-    virtual void CalculateConductivityMatrix(ElementVariables& rVariables);
+    void CalculateConductivityMatrix(ElementVariables& rVariables);
 
-    virtual void CalculateCapacityMatrix(ElementVariables& rVariables) const;
+    void CalculateCapacityMatrix(ElementVariables& rVariables) const;
 
-    virtual void CalculateCapacityVector(ElementVariables& rVariables) const;
+    void CalculateCapacityVector(ElementVariables& rVariables) const;
 
-    virtual void CalculateConductivityVector(ElementVariables& rVariables);
+    void CalculateConductivityVector(ElementVariables& rVariables);
 
     void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
                               VectorType& rRightHandSideVector,
