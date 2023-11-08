@@ -108,10 +108,6 @@ protected:
 
     unsigned int GetNumberOfDOF() const;
 
-    double CalculateIntegrationCoefficient(const GeometryType::IntegrationPointsArrayType& rIntegrationPoints,
-                                           unsigned int PointNumber,
-                                           double detJ);
-
     void CalculateConductivityMatrix(ElementVariables& rVariables);
 
     void CalculateCapacityMatrix(ElementVariables& rVariables) const;
