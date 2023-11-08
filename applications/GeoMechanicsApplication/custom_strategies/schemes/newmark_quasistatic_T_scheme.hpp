@@ -20,20 +20,16 @@
 #include "solving_strategies/schemes/scheme.h"
 
 // Application includes
+#include "custom_strategies/schemes/geo_mechanics_scheme.hpp"
 #include "geo_mechanics_application_variables.h"
-#include "custom_strategies/schemes/newmark_quasistatic_U_Pw_scheme.hpp"
 
-namespace Kratos
-{
+namespace Kratos {
 
-template<class TSparseSpace, class TDenseSpace>
+template <class TSparseSpace, class TDenseSpace>
 
-class NewmarkQuasistaticTScheme : public NewmarkQuasistaticUPwScheme<TSparseSpace,TDenseSpace>
-{
-
+class NewmarkQuasistaticTScheme : public GeoMechanicsScheme<TSparseSpace, TDenseSpace> {
 public:
-
-    KRATOS_CLASS_POINTER_DEFINITION( NewmarkQuasistaticTScheme );
+    KRATOS_CLASS_POINTER_DEFINITION(NewmarkQuasistaticTScheme);
 
     using BaseType = Scheme<TSparseSpace, TDenseSpace>;
     using DofsArrayType = typename BaseType::DofsArrayType;
@@ -42,9 +38,10 @@ public:
     using LocalSystemVectorType = typename BaseType::LocalSystemVectorType;
     using LocalSystemMatrixType = typename BaseType::LocalSystemMatrixType;
 
-    explicit NewmarkQuasistaticTScheme(double theta) :
-        NewmarkQuasistaticUPwScheme<TSparseSpace,TDenseSpace>(0.25, 0.5, theta)
-    { }
+    explicit NewmarkQuasistaticTScheme(double theta)
+        : GeoMechanicsScheme<TSparseSpace, TDenseSpace>(), mTheta(theta)
+    {
+    }
 
     ~NewmarkQuasistaticTScheme() override = default;
 
@@ -54,66 +51,78 @@ public:
 
         BaseType::Check(rModelPart);
 
-        //check that variables are correctly allocated
-        for (const auto& rNode : rModelPart.Nodes())
-        {
+        // check that variables are correctly allocated
+        for (const auto& rNode : rModelPart.Nodes()) {
             if (!rNode.SolutionStepsDataHas(TEMPERATURE))
-                KRATOS_ERROR << "TEMPERATURE variable is not allocated for node "
-                             << rNode.Id()
-                             << std::endl;
+                KRATOS_ERROR
+                    << "TEMPERATURE variable is not allocated for node "
+                    << rNode.Id() << std::endl;
 
             if (!rNode.SolutionStepsDataHas(DT_TEMPERATURE))
-                KRATOS_ERROR << "DT_TEMPERATURE variable is not allocated for node "
-                             << rNode.Id()
-                             << std::endl;
+                KRATOS_ERROR
+                    << "DT_TEMPERATURE variable is not allocated for node "
+                    << rNode.Id() << std::endl;
 
             if (!rNode.HasDofFor(TEMPERATURE))
-                KRATOS_ERROR << "missing TEMPERATURE dof on node "
-                             << rNode.Id()
+                KRATOS_ERROR << "missing TEMPERATURE dof on node " << rNode.Id()
                              << std::endl;
         }
 
-        //check for minimum value of the buffer index.
         if (rModelPart.GetBufferSize() < 2)
-            KRATOS_ERROR << "insufficient buffer size. Buffer size should be greater or equal to 2. Current size is "
-                         << rModelPart.GetBufferSize()
-                         << std::endl;
+            KRATOS_ERROR << "insufficient buffer size. Buffer size should be "
+                            "greater or equal to 2. Current size is "
+                         << rModelPart.GetBufferSize() << std::endl;
 
-        // Check beta, gamma and theta
-        if (mBeta <= 0.0 || mGamma<= 0.0 || mTheta <= 0.0)
-            KRATOS_ERROR << "Some of the scheme variables: beta, gamma or theta has an invalid value "
+        if (mTheta <= 0.0)
+            KRATOS_ERROR << "Theta has an invalid value"
                          << std::endl;
 
         return 0;
 
-        KRATOS_CATCH( "" )
+        KRATOS_CATCH("")
     }
+
+    void FinalizeSolutionStep( ModelPart& rModelPart,
+                              TSystemMatrixType& A,
+                              TSystemVectorType& Dx,
+                              TSystemVectorType& b) override
+    {
+        FinalizeSolutionStepActiveEntities(rModelPart,A,Dx,b);
+    }
+
 
 protected:
     inline void UpdateVariablesDerivatives(ModelPart& rModelPart) override
     {
         KRATOS_TRY
-        //Update DtPressure
-        block_for_each(rModelPart.Nodes(), [this](Node& rNode){
-            const double DeltaTemperature =  rNode.FastGetSolutionStepValue(TEMPERATURE)
-                                        - rNode.FastGetSolutionStepValue(TEMPERATURE, 1);
-            const auto &PreviousDtTemperature = rNode.FastGetSolutionStepValue(DT_TEMPERATURE, 1);
+        // Update DtPressure
+        block_for_each(rModelPart.Nodes(), [this](Node& rNode) {
+            const double delta_temperature =
+                rNode.FastGetSolutionStepValue(TEMPERATURE) -
+                rNode.FastGetSolutionStepValue(TEMPERATURE, 1);
+            const auto& previous_dt_temperature =
+                rNode.FastGetSolutionStepValue(DT_TEMPERATURE, 1);
 
-            rNode.FastGetSolutionStepValue(DT_TEMPERATURE) =  1.0/(mTheta*mDeltaTime)*(DeltaTemperature - (1.0-mTheta)*mDeltaTime*PreviousDtTemperature);
+            rNode.FastGetSolutionStepValue(DT_TEMPERATURE) =
+                1.0 / (mTheta * mDeltaTime) *
+                (delta_temperature - (1.0 - mTheta) * mDeltaTime * previous_dt_temperature);
         });
 
-        KRATOS_CATCH( "" )
+        KRATOS_CATCH("")
     }
 
     inline void SetTimeFactors(ModelPart& rModelPart) override
     {
         KRATOS_TRY
 
-    	mDeltaTime = rModelPart.GetProcessInfo()[DELTA_TIME];
-        rModelPart.GetProcessInfo()[DT_TEMPERATURE_COEFFICIENT] = 1.0 / (mTheta * mDeltaTime);
+        mDeltaTime = rModelPart.GetProcessInfo()[DELTA_TIME];
+        rModelPart.GetProcessInfo()[DT_TEMPERATURE_COEFFICIENT] =
+            1.0 / (mTheta * mDeltaTime);
 
         KRATOS_CATCH("")
     }
 
+private:
+    double mTheta = 0.0;
 }; // Class NewmarkQuasistaticTScheme
-}  // namespace Kratos
+} // namespace Kratos

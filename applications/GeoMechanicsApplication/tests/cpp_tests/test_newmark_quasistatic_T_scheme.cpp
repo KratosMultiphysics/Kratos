@@ -62,8 +62,7 @@ KRATOS_TEST_CASE_IN_SUITE(ForInvalidTheta_CheckBackwardEulerQuasistaticTScheme_T
     p_node->AddDof(TEMPERATURE);
 
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(scheme.Check(model_part),
-                                      "Some of the scheme variables: beta, "
-                                      "gamma or theta has an invalid value ")
+                                      "Theta has an invalid value")
 }
 
 KRATOS_TEST_CASE_IN_SUITE(ForInvalidBufferSize_CheckBackwardEulerQuasistaticTScheme_Throws,
