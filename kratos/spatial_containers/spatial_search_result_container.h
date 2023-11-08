@@ -57,13 +57,16 @@ public:
     /// Spatial search result type
     using SpatialSearchResultType = SpatialSearchResult<TObjectType>;
 
+    /// The spatial search result pointer type
+    using SpatialSearchResultPointerType = typename SpatialSearchResultType::Pointer;
+
     /// Local vector of SpatialSearchResult
     using LocalResultsVector = PointerVectorSet<SpatialSearchResultType,
                                IndexedObject,
                                std::less<typename IndexedObject::result_type>,
                                std::equal_to<typename IndexedObject::result_type>,
-                               typename SpatialSearchResultType::Pointer,
-                               std::vector<typename SpatialSearchResultType::Pointer>
+                               SpatialSearchResultPointerType,
+                               std::vector<SpatialSearchResultPointerType>
                                >;
 
     /// The global pointer communicator
