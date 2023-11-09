@@ -57,6 +57,9 @@ public:
     /// Spatial search result type
     using SpatialSearchResultType = SpatialSearchResult<TObjectType>;
 
+    /// The spatial search result reference type
+    using SpatialSearchResultReferenceType = SpatialSearchResultType&;
+
     /// The spatial search result pointer type
     using SpatialSearchResultPointerType = typename SpatialSearchResultType::Pointer;
 
@@ -107,7 +110,7 @@ public:
      * @param Index The index
      * @return The result container
      */
-    SpatialSearchResultType& operator[](const std::size_t Index)
+    SpatialSearchResultReferenceType operator[](const std::size_t Index)
     {
         return *(mLocalResults[Index]);
     }
@@ -117,7 +120,7 @@ public:
      * @param Index The index
      * @return The result container
      */
-    const SpatialSearchResultType& operator[](const std::size_t Index) const 
+    const SpatialSearchResultReferenceType operator[](const std::size_t Index) const
     {
         return *(mLocalResults[Index]);
     }
@@ -127,7 +130,7 @@ public:
      * @param Index The index
      * @return The result container
      */
-    SpatialSearchResultType& operator()(const std::size_t Index)
+    SpatialSearchResultReferenceType operator()(const std::size_t Index)
     {
         // Check if the communicator has been created
         KRATOS_ERROR_IF(mpGlobalPointerCommunicator == nullptr) << "The communicator has not been created. Therefore is not synchronized" << std::endl;
@@ -139,7 +142,7 @@ public:
      * @param Index The index
      * @return The result container
      */
-    const SpatialSearchResultType& operator()(const std::size_t Index) const 
+    const SpatialSearchResultType& operator()(const std::size_t Index) const
     {
         // Check if the communicator has been created
         KRATOS_ERROR_IF(mpGlobalPointerCommunicator == nullptr) << "The communicator has not been created. Therefore is not synchronized" << std::endl;
@@ -372,13 +375,13 @@ public:
      * @brief Add a result to the container
      * @param rResult The result to be added
      */
-    void AddResult(SpatialSearchResultType& rResult);
+    void AddResult(SpatialSearchResultReferenceType rResult);
 
     /**
      * @brief Pushes back a result to the container
      * @param rResult The result to be added
      */
-    void push_back(SpatialSearchResultType& rResult)
+    void push_back(SpatialSearchResultReferenceType rResult)
     {
         AddResult(rResult);
     }
@@ -510,7 +513,7 @@ public:
      * This method returns the GlobalPointerCommunicatorPointer mpGlobalPointerCommunicator.
      * @return The GlobalPointerCommunicatorPointer mpGlobalPointerCommunicator.
      */
-    GlobalPointerCommunicatorPointerType GetGlobalPointerCommunicator() 
+    GlobalPointerCommunicatorPointerType GetGlobalPointerCommunicator()
     {
         return mpGlobalPointerCommunicator;
     }
@@ -536,7 +539,7 @@ private:
     LocalResultsVector mLocalResults;                                           /// Local results
     GlobalResultsVector mGlobalResults;                                         /// Global results
 
-    GlobalPointerCommunicatorPointerType mpGlobalPointerCommunicator = nullptr; /// Global pointer to the communicator 
+    GlobalPointerCommunicatorPointerType mpGlobalPointerCommunicator = nullptr; /// Global pointer to the communicator
 
     ///@}
     ///@name Private Operations
