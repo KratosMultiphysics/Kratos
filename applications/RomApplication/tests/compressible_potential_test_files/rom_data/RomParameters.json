@@ -9,7 +9,8 @@
             "AUXILIARY_VELOCITY_POTENTIAL",
             "VELOCITY_POTENTIAL"
         ],
-        "number_of_rom_dofs": 1
+        "number_of_rom_dofs": 1,
+        "rom_bns_settings":{}
     },
     "hrom_settings": {},
     "nodal_modes": {

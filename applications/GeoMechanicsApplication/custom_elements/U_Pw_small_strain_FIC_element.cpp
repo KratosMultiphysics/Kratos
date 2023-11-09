@@ -68,7 +68,6 @@ int UPwSmallStrainFICElement<TDim,TNumNodes>::
     Check( const ProcessInfo& rCurrentProcessInfo ) const
 {
     KRATOS_TRY
-    // KRATOS_INFO("0-UPwSmallStrainFICElement::Check()") << this->Id() << std::endl;
 
     // Verify generic variables
     int ierr = UPwSmallStrainElement<TDim, TNumNodes>::Check(rCurrentProcessInfo);
@@ -79,8 +78,6 @@ int UPwSmallStrainFICElement<TDim,TNumNodes>::
     // Verify specific properties
     if (Prop[IGNORE_UNDRAINED])
         KRATOS_ERROR << "IGNORE_UNDRAINED cannot be used in FIC elements. Use Non FIC elements instead" << this->Id() << std::endl;
-
-    // KRATOS_INFO("1-UPwSmallStrainElement::Check()") << std::endl;
 
     return ierr;
 
@@ -117,7 +114,7 @@ void UPwSmallStrainFICElement<TDim,TNumNodes>::
     InitializeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY;
-    // KRATOS_INFO("0-UPwSmallStrainFICElement::InitializeNonLinearIteration()") << this->Id() << std::endl;    
+ 
     //Defining necessary variables
     const GeometryType& Geom = this->GetGeometry();
     const SizeType NumGPoints = Geom.IntegrationPointsNumber( mThisIntegrationMethod );
@@ -168,8 +165,7 @@ void UPwSmallStrainFICElement<TDim,TNumNodes>::
 
     this->ExtrapolateGPConstitutiveTensor(ConstitutiveTensorContainer);
     this->ExtrapolateGPDtStress(DtStressContainer);
-
-    // KRATOS_INFO("1-UPwSmallStrainFICElement::InitializeNonLinearIteration()") << this->Id() << std::endl;    
+   
     KRATOS_CATCH("")
 }
 

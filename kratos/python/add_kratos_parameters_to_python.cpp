@@ -19,9 +19,7 @@
 #include "includes/kratos_parameters.h"
 #include "add_kratos_parameters_to_python.h"
 
-namespace Kratos {
-
-namespace Python {
+namespace Kratos::Python {
 
 pybind11::list items(Parameters const& self)
 {
@@ -146,6 +144,4 @@ void  AddKratosParametersToPython(pybind11::module& m)
     ;
 }
 
-} // namespace Python.
-
-} // Namespace Kratos
+} // namespace Kratos::Python.

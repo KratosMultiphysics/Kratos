@@ -24,11 +24,30 @@
 // Project includes
 #include "geometries/triangle_3d_6.h"
 #include "geometries/tetrahedra_3d_4.h"
+#include "utilities/geometry_utilities.h"
 #include "utilities/integration_utilities.h"
 #include "integration/tetrahedron_gauss_legendre_integration_points.h"
 
 namespace Kratos
 {
+///@name Kratos Globals
+///@{
+
+///@}
+///@name Type Definitions
+///@{
+
+///@}
+///@name  Enum's
+///@{
+
+///@}
+///@name  Functions
+///@{
+
+///@}
+///@name Kratos Classes
+///@{
 /**
  * @class Tetrahedra3D10
  * @ingroup KratosCore
@@ -50,157 +69,96 @@ namespace Kratos
  * @author Janosch Stascheit
  * @author Felix Nagel
  */
-template<class TPointType> class Tetrahedra3D10 : public Geometry<TPointType>
+template<class TPointType>
+class Tetrahedra3D10
+    : public Geometry<TPointType>
 {
 public:
-    /**
-     * Type Definitions
-     */
+    ///@name Type Definitions
+    ///@{
 
-    /**
-     * Geometry as base class.
-     */
-    typedef Geometry<TPointType> BaseType;
+    /// Geometry as base class.
+    using BaseType = Geometry<TPointType>;
 
-    /**
-     * Type of edge and face geometries
-     */
-    typedef Line3D3<TPointType> EdgeType;
-    typedef Triangle3D6<TPointType> FaceType;
+    /// Type of edge and face geometries
+    using EdgeType = Line3D3<TPointType>;
+    using FaceType = Triangle3D6<TPointType>;
 
-    /**
-     * Pointer definition of Tetrahedra3D10
-     */
+    /// Pointer definition of Tetrahedra3D10
     KRATOS_CLASS_POINTER_DEFINITION( Tetrahedra3D10 );
 
-    /**
-     * Integration methods implemented in geometry.
-     */
-    typedef GeometryData::IntegrationMethod IntegrationMethod;
+    /// Integration methods implemented in geometry.
+    using IntegrationMethod = GeometryData::IntegrationMethod;
 
-    /**
-     * A Vector of counted pointers to Geometries. Used for
-     * returning edges of the geometry.
-     */
-    typedef typename BaseType::GeometriesArrayType GeometriesArrayType;
+    /// A Vector of counted pointers to Geometries. Used for
+    /// returning edges of the geometry.
+    using GeometriesArrayType = typename BaseType::GeometriesArrayType;
 
-    /**
-     * Redefinition of template parameter TPointType.
-     */
-    typedef TPointType PointType;
+    /// Redefinition of template parameter TPointType.
+    using PointType = TPointType;
 
-    /**
-     * Type used for indexing in geometry class.std::size_t used for indexing
-     * point or integration point access methods and also all other
-     * methods which need point or integration point index.
-     */
-    typedef typename BaseType::IndexType IndexType;
+    /// Type used for indexing in geometry class. std::size_t used for indexing
+    /// point or integration point access methods and also all other
+    /// methods which need point or integration point index.
+    using IndexType = typename BaseType::IndexType;
 
+    /// This type used to return size or dimension in
+    /// geometry. Dimension, WorkingDimension, PointsNumber, and
+    /// ... return this type as their results.
+    using SizeType = typename BaseType::SizeType;
 
-    /**
-     * This typed used to return size or dimension in
-     * geometry. Dimension, WorkingDimension, PointsNumber and
-     * ... return this type as their results.
-     */
-    typedef typename BaseType::SizeType SizeType;
+    /// Array of counted pointers to point. This type used to hold
+    /// geometry's points.
+    using PointsArrayType = typename BaseType::PointsArrayType;
 
-    /**
-     * Array of counted pointers to point. This type used to hold
-     * geometry's points.
-     */
-    typedef typename BaseType::PointsArrayType PointsArrayType;
+    /// This type used for representing an integration point in
+    /// geometry. This integration point is a point with an
+    /// additional weight component.
+    using IntegrationPointType = typename BaseType::IntegrationPointType;
 
-    /**
-     * This type used for representing an integration point in
-     * geometry. This integration point is a point with an
-     * additional weight component.
-     */
-    typedef typename BaseType::IntegrationPointType IntegrationPointType;
+    /// A Vector of IntegrationPointType which used to hold
+    /// integration points related to an integration
+    /// method. IntegrationPoints functions used this type to return
+    /// their results.
+    using IntegrationPointsArrayType = typename BaseType::IntegrationPointsArrayType;
 
-    /**
-     * A Vector of IntegrationPointType which used to hold
-     * integration points related to an integration
-     * method. IntegrationPoints functions used this type to return
-     * their results.
-     */
-    typedef typename BaseType::IntegrationPointsArrayType IntegrationPointsArrayType;
+    /// A Vector of IntegrationPointsArrayType which used to hold
+    /// integration points related to different integration method
+    /// implemented in geometry.
+    using IntegrationPointsContainerType = typename BaseType::IntegrationPointsContainerType;
 
-    /**
-     * A Vector of IntegrationPointsArrayType which used to hold
-     * integration points related to different integration method
-     * implemented in geometry.
-     */
-    typedef typename BaseType::IntegrationPointsContainerType IntegrationPointsContainerType;
+    /// A third order tensor used as shape functions' values
+    /// container.
+    using ShapeFunctionsValuesContainerType = typename BaseType::ShapeFunctionsValuesContainerType;
 
-    /**
-     * A third order tensor used as shape functions' values
-     * container.
-     */
-    typedef typename BaseType::ShapeFunctionsValuesContainerType
-    ShapeFunctionsValuesContainerType;
+    /// A fourth order tensor used as shape functions' local
+    /// gradients container in geometry.
+    using ShapeFunctionsLocalGradientsContainerType = typename BaseType::ShapeFunctionsLocalGradientsContainerType;
 
-    /**
-     * A fourth order tensor used as shape functions' local
-     * gradients container in geometry.
-     */
-    typedef typename BaseType::ShapeFunctionsLocalGradientsContainerType
-    ShapeFunctionsLocalGradientsContainerType;
+    /// A third order tensor to hold Jacobian matrices evaluated at
+    /// integration points. Jacobian and InverseOfJacobian functions
+    /// return this type as their result.
+    using JacobiansType = typename BaseType::JacobiansType;
 
-    /**
-     * A third order tensor to hold jacobian matrices evaluated at
-     * integration points. Jacobian and InverseOfJacobian functions
-     * return this type as their result.
-     */
-    typedef typename BaseType::JacobiansType JacobiansType;
+    /// A third order tensor to hold shape functions' local
+    /// gradients. ShapefunctionsLocalGradients function return this
+    /// type as its result.
+    using ShapeFunctionsGradientsType = typename BaseType::ShapeFunctionsGradientsType;
 
-    /**
-     * A third order tensor to hold shape functions' local
-     * gradients. ShapefunctionsLocalGradients function return this
-     * type as its result.
-     */
-    typedef typename BaseType::ShapeFunctionsGradientsType ShapeFunctionsGradientsType;
+    /// Type of the normal vector used for normal to edges in geometry.
+    using NormalType = typename BaseType::NormalType;
 
-    /**
-     * Type of the normal vector used for normal to edges in geomety.
-     */
-    typedef typename BaseType::NormalType NormalType;
+    /// Type of coordinates array
+    using CoordinatesArrayType = typename BaseType::CoordinatesArrayType;
 
-    /**
-     * Type of coordinates array
-     */
-    typedef typename BaseType::CoordinatesArrayType CoordinatesArrayType;
+    /// Type of Matrix
+    using MatrixType = Matrix;
 
-    /**
-     * Type of Matrix
-     */
-    typedef Matrix MatrixType;
+    ///@}
+    ///@name Life Cycle
+    ///@{
 
-
-    /**
-     * Life Cycle
-     */
-
-//     Tetrahedra3D10( const PointType& Point1, const PointType& Point2,
-//                     const PointType& Point3, const PointType& Point4 ,
-//                     const PointType& Point5, const PointType& Point6,
-//                     const PointType& Point7, const PointType& Point8 ,
-//                     const PointType& Point9, const PointType& Point10
-//                   )
-//         : BaseType( PointsArrayType(), &msGeometryData )
-//     {
-//         this->Points().reserve( 10 );
-//         this->Points().push_back( typename PointType::Pointer( new PointType( Point1 ) ) );
-//         this->Points().push_back( typename PointType::Pointer( new PointType( Point2 ) ) );
-//         this->Points().push_back( typename PointType::Pointer( new PointType( Point3 ) ) );
-//         this->Points().push_back( typename PointType::Pointer( new PointType( Point4 ) ) );
-//         this->Points().push_back( typename PointType::Pointer( new PointType( Point5 ) ) );
-//         this->Points().push_back( typename PointType::Pointer( new PointType( Point6 ) ) );
-//         this->Points().push_back( typename PointType::Pointer( new PointType( Point7 ) ) );
-//         this->Points().push_back( typename PointType::Pointer( new PointType( Point8 ) ) );
-//         this->Points().push_back( typename PointType::Pointer( new PointType( Point9 ) ) );
-//         this->Points().push_back( typename PointType::Pointer( new PointType( Point10 ) ) );
-//     }
-
+    /// Default constructor.
     Tetrahedra3D10( typename PointType::Pointer pPoint1,
                     typename PointType::Pointer pPoint2,
                     typename PointType::Pointer pPoint3,
@@ -227,11 +185,14 @@ public:
         this->Points().push_back( pPoint10 );
     }
 
+    /**
+     * @brief Constructor with points array
+     * @param ThisPoints The points of the current geometry
+     */
     Tetrahedra3D10( const PointsArrayType& ThisPoints )
         : BaseType( ThisPoints, &msGeometryData )
     {
-        if ( this->PointsNumber() != 10 )
-            KRATOS_ERROR << "Invalid points number. Expected 10, given " << this->PointsNumber() << std::endl;
+        KRATOS_ERROR_IF( this->PointsNumber() != 10 ) << "Invalid points number. Expected 10, given " << this->PointsNumber() << std::endl;
     }
 
     /// Constructor with Geometry Id
@@ -296,9 +257,9 @@ public:
         return GeometryData::KratosGeometryType::Kratos_Tetrahedra3D10;
     }
 
-    /**
-     * Operators
-     */
+    ///@}
+    ///@name Operators
+    ///@{
 
     /**
      * Assignment operator.
@@ -335,7 +296,6 @@ public:
 
         return *this;
     }
-
 
     ///@}
     ///@name Operations
@@ -418,7 +378,7 @@ public:
      */
     double Length() const override
     {
-        return sqrt( fabs( this->DeterminantOfJacobian( PointType() ) ) );
+        return std::sqrt( std::abs( this->DeterminantOfJacobian( PointType() ) ) );
     }
 
     /**
@@ -463,12 +423,29 @@ public:
      * @see Length()
      * @see Area()
      * @see Volume()
-     *
-     * :TODO: might be necessary to reimplement
      */
     double DomainSize() const override
     {
-        return  Volume();
+        return Volume();
+    }
+
+    /**
+     * @brief Returns the local coordinates of a given arbitrary point
+     * @param rResult The vector containing the local coordinates of the point
+     * @param rPoint The point in global coordinates
+     * @return The vector containing the local coordinates of the point
+     */
+    CoordinatesArrayType& PointLocalCoordinates(
+        CoordinatesArrayType& rResult,
+        const CoordinatesArrayType& rPoint
+        ) const override
+    {
+        // Using linear approximation for planar faces
+        if (this->FacesArePlanar()) {
+            return GeometryUtils::PointLocalCoordinatesPlanarFaceTetrahedra(*this, rResult, rPoint);
+        } else {
+            return BaseType::PointLocalCoordinates( rResult, rPoint );
+        }
     }
 
     /**
@@ -487,14 +464,10 @@ public:
     {
         this->PointLocalCoordinates( rResult, rPoint );
 
-        if ( (rResult[0] >= (0.0 - Tolerance)) && (rResult[0] <= (1.0 + Tolerance)) )
-        {
-            if ( (rResult[1] >= (0.0 - Tolerance)) && (rResult[1] <= (1.0 + Tolerance)) )
-            {
-                if ( (rResult[2] >= (0.0 - Tolerance)) && (rResult[2] <= (1.0 + Tolerance)) )
-                {
-                    if ((( 1.0 - ( rResult[0] + rResult[1] + rResult[2] ) ) >= (0.0 - Tolerance) ) && (( 1.0 - ( rResult[0] + rResult[1] + rResult[2] ) ) <= (1.0 + Tolerance) ) )
-                    {
+        if ( (rResult[0] >= (0.0 - Tolerance)) && (rResult[0] <= (1.0 + Tolerance)) ) {
+            if ( (rResult[1] >= (0.0 - Tolerance)) && (rResult[1] <= (1.0 + Tolerance)) ) {
+                if ( (rResult[2] >= (0.0 - Tolerance)) && (rResult[2] <= (1.0 + Tolerance)) ) {
+                    if ((( 1.0 - ( rResult[0] + rResult[1] + rResult[2] ) ) >= (0.0 - Tolerance) ) && (( 1.0 - ( rResult[0] + rResult[1] + rResult[2] ) ) <= (1.0 + Tolerance) ) ) {
                         return true;
                     }
                 }
@@ -675,10 +648,9 @@ public:
         return rResult;
     }
 
-
-    /**
-     * Shape Function
-     */
+    ///@}
+    ///@name Shape Function
+    ///@{
 
     Vector& ShapeFunctionsValues(Vector &rResult, const CoordinatesArrayType& rCoordinates) const override
     {
@@ -781,7 +753,9 @@ public:
      */
     bool HasIntersection(const Point& rLowPoint, const Point& rHighPoint) const override
     {
+        // Check if the faces are planar
         if (this->FacesArePlanar()) {
+            // TODO: Move implementation to GeometryUtils to avoid creating a new tetrahedra
             return Tetrahedra3D4<TPointType>(
                 this->pGetPoint(0),
                 this->pGetPoint(1),
@@ -792,7 +766,6 @@ public:
         }
         return false;
     }
-
 
     ///@}
     ///@name Spatial Operations
@@ -873,28 +846,24 @@ public:
      */
     void PrintData( std::ostream& rOStream ) const override
     {
+        // Base Geometry class PrintData call
         BaseType::PrintData( rOStream );
         std::cout << std::endl;
-        Matrix jacobian;
-        this->Jacobian( jacobian, PointType() );
-        rOStream << "    Jacobian in the origin\t : " << jacobian;
+
+        // If the geometry has valid points, calculate and output its data
+        if (this->AllPointsAreValid()) {
+            Matrix jacobian;
+            this->Jacobian( jacobian, PointType() );
+            rOStream << "    Jacobian in the origin\t : " << jacobian;
+        }
     }
-
-protected:
-
-    /**
-     * there are no protected class members
-     */
-
 private:
+    ///@name Static Member Variables
+    ///@{
 
-    /**
-     * Static Member Variables
-     */
     static const GeometryData msGeometryData;
 
     static const GeometryDimension msGeometryDimension;
-
 
     ///@}
     ///@name Serialization
@@ -912,12 +881,15 @@ private:
         KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, BaseType );
     }
 
+    ///@}
+    ///@name Private Life Cycle
+    ///@{
+
     Tetrahedra3D10(): BaseType( PointsArrayType(), &msGeometryData ) {}
 
-
-    /**
-     * Private Operations
-     */
+    ///@}
+    ///@name Private Operations
+    ///@{
 
     /**
      * @brief Returns vector of shape function values at local coordinate.
@@ -1096,11 +1068,9 @@ private:
     }
 
     /**
-     * Checks if faces are planar. We iterate for all edges and check
+     * @brief Checks if faces are planar. We iterate for all edges and check
      * that the sum of 0-2 and 2-1 segments is no bigger than 0-1.
-     *
      * @return bool faces are planar or not
-     *
      */
     bool FacesArePlanar() const
     {
@@ -1116,35 +1086,32 @@ private:
         return true;
     }
 
-
-    /**
-     * Private Friends
-     */
+    ///@}
+    ///@name Private  Friends
+    ///@{
 
     template<class TOtherPointType> friend class Tetrahedra3D10;
 
+    ///@}
+    ///@name Un accessible methods
+    ///@{
 
-    /**
-     * Un accessible methods
-     */
-
-
+    ///@}
 };// Class Tetrahedra3D10
 
+///@}
+///@name Type Definitions
+///@{
 
-/**
- * Input and output
- */
+///@}
+///@name Input and output
+///@{
 
-/**
- * input stream function
- */
+/// input stream function
 template<class TPointType> inline std::istream& operator >> (
     std::istream& rIStream, Tetrahedra3D10<TPointType>& rThis );
 
-/**
- * output stream function
- */
+/// output stream function
 template<class TPointType> inline std::ostream& operator << (
     std::ostream& rOStream, const Tetrahedra3D10<TPointType>& rThis )
 {
@@ -1154,7 +1121,6 @@ template<class TPointType> inline std::ostream& operator << (
 
     return rOStream;
 }
-
 
 template<class TPointType> const
 GeometryData Tetrahedra3D10<TPointType>::msGeometryData(
@@ -1167,5 +1133,7 @@ GeometryData Tetrahedra3D10<TPointType>::msGeometryData(
 
 template<class TPointType> const
 GeometryDimension Tetrahedra3D10<TPointType>::msGeometryDimension(3, 3);
+
+///@}
 
 }// namespace Kratos.

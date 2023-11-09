@@ -54,6 +54,11 @@ class ApplyK0ProcedureProcess : public Process
         KRATOS_CATCH("")
     }
 
+    std::string Info() const override
+    {
+        return "ApplyK0ProcedureProcess";
+    }
+
   private:
       ModelPart& mrModelPart;
 
