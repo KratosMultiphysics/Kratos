@@ -82,9 +82,6 @@ private:
     void InitializeElementVariables(ElementVariables& rVariables,
                                     const ProcessInfo& CurrentProcessInfo);
 
-    void CalculateAndAddCapacityVector(VectorType& rRightHandSideVector,
-                                       ElementVariables& rVariables);
-
     void InitializeNodalTemperatureVariables(ElementVariables& rVariables);
 
     void CalculateConductivityMatrix(ElementVariables& rVariables);
