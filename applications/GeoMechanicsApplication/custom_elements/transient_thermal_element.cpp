@@ -352,20 +352,10 @@ void TransientThermalElement<TDim, TNumNodes>::CalculateAndAddCapacityVector(
 {
     KRATOS_TRY
 
-    CalculateCapacityVector(rVariables);
+    const auto capacity_vector =
+        array_1d<double, TNumNodes>{-prod(rVariables.CapacityMatrix, rVariables.DtTemperatureVector)};
     GeoElementUtilities::AssemblePBlockVector<0, TNumNodes>(
-        rRightHandSideVector, rVariables.CapacityVector);
-
-    KRATOS_CATCH("")
-}
-
-template <unsigned int TDim, unsigned int TNumNodes>
-void TransientThermalElement<TDim, TNumNodes>::CalculateCapacityVector(ElementVariables& rVariables) const
-{
-    KRATOS_TRY
-
-    noalias(rVariables.CapacityVector) =
-        -prod(rVariables.CapacityMatrix, rVariables.DtTemperatureVector);
+        rRightHandSideVector, capacity_vector);
 
     KRATOS_CATCH("")
 }

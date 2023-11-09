@@ -39,7 +39,6 @@ public:
         double IntegrationCoefficient;
         BoundedMatrix<double, TNumNodes, TNumNodes> ConductivityMatrix;
         BoundedMatrix<double, TNumNodes, TNumNodes> CapacityMatrix;
-        array_1d<double, TNumNodes> CapacityVector;
     };
 
     explicit TransientThermalElement(IndexType NewId = 0);
@@ -110,8 +109,6 @@ private:
     void CalculateConductivityMatrix(ElementVariables& rVariables);
 
     void CalculateCapacityMatrix(ElementVariables& rVariables) const;
-
-    void CalculateCapacityVector(ElementVariables& rVariables) const;
 
     GeometryData::IntegrationMethod GetIntegrationMethod() const override;
 
