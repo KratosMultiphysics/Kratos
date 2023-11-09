@@ -186,10 +186,13 @@ void TransientThermalElement<TDim, TNumNodes>::CalculateAll(
         if (CalculateStiffnessMatrixFlag) {
             CalculateAndAddLHS(rLeftHandSideMatrix, Variables);
         }
+    }
 
-        if (CalculateResidualVectorFlag) {
-            CalculateAndAddRHS(rRightHandSideVector, Variables);
-        }
+    GeoElementUtilities::AssemblePBlockMatrix<0, TNumNodes>(rLeftHandSideMatrix, Variables.ConductivityMatrix);
+    GeoElementUtilities::AssemblePBlockMatrix<0, TNumNodes>(rLeftHandSideMatrix, Variables.DtTemperatureCoefficient * Variables.CapacityMatrix);
+
+    if (CalculateResidualVectorFlag) {
+        this->CalculateAndAddRHS(rRightHandSideVector, Variables);
     }
 
     KRATOS_CATCH("")
@@ -223,6 +226,9 @@ void TransientThermalElement<TDim, TNumNodes>::InitializeElementVariables(
     rGeom.ShapeFunctionsIntegrationPointsGradients(
         rVariables.DN_DXContainer, rVariables.detJContainer, GetIntegrationMethod());
 
+    rVariables.CapacityMatrix = ZeroMatrix(TNumNodes, TNumNodes);
+    rVariables.ConductivityMatrix = ZeroMatrix(TNumNodes, TNumNodes);
+
     KRATOS_CATCH("")
 }
 
@@ -245,8 +251,6 @@ void TransientThermalElement<TDim, TNumNodes>::CalculateAndAddConductivityMatrix
     KRATOS_TRY
 
     CalculateConductivityMatrix(rVariables);
-    GeoElementUtilities::AssemblePBlockMatrix<0, TNumNodes>(
-        rLeftHandSideMatrix, rVariables.ConductivityMatrix);
 
     KRATOS_CATCH("")
 }
@@ -258,8 +262,6 @@ void TransientThermalElement<TDim, TNumNodes>::CalculateAndAddCapacityMatrix(
     KRATOS_TRY
 
     CalculateCapacityMatrix(rVariables);
-    GeoElementUtilities::AssemblePBlockMatrix<0, TNumNodes>(
-        rLeftHandSideMatrix, rVariables.CapacityMatrix);
 
     KRATOS_CATCH("")
 }
@@ -316,9 +318,9 @@ void TransientThermalElement<TDim, TNumNodes>::CalculateCapacityMatrix(ElementVa
                           r_properties[DENSITY_WATER] * r_properties[SPECIFIC_HEAT_CAPACITY_WATER];
     const double cSolid = (1.0 - r_properties[POROSITY]) *
                           r_properties[DENSITY_SOLID] * r_properties[SPECIFIC_HEAT_CAPACITY_SOLID];
-    noalias(rVariables.CapacityMatrix) =
+    noalias(rVariables.CapacityMatrix) +=
         (cWater + cSolid) * outer_prod(rVariables.N, rVariables.N) *
-        rVariables.IntegrationCoefficient * rVariables.DtTemperatureCoefficient;
+        rVariables.IntegrationCoefficient;
 
     KRATOS_CATCH("")
 }
@@ -338,7 +340,7 @@ void TransientThermalElement<TDim, TNumNodes>::CalculateConductivityMatrix(Eleme
 
     BoundedMatrix<double, TDim, TNumNodes> Temp =
         prod(rVariables.ConstitutiveMatrix, trans(rVariables.GradNT));
-    noalias(rVariables.ConductivityMatrix) =
+    noalias(rVariables.ConductivityMatrix) +=
         prod(rVariables.GradNT, Temp) * rVariables.IntegrationCoefficient;
 
     KRATOS_CATCH("");
@@ -362,7 +364,6 @@ void TransientThermalElement<TDim, TNumNodes>::CalculateCapacityVector(ElementVa
 {
     KRATOS_TRY
 
-    rVariables.CapacityMatrix /= rVariables.DtTemperatureCoefficient;
     noalias(rVariables.CapacityVector) =
         -prod(rVariables.CapacityMatrix, rVariables.DtTemperatureVector);
 
