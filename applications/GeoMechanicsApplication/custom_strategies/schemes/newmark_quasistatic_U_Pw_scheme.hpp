@@ -97,11 +97,7 @@ public:
                 << std::endl;
         }
 
-        //check for minimum value of the buffer index.
-        KRATOS_ERROR_IF(rModelPart.GetBufferSize() < 2)
-            << "insufficient buffer size. Buffer size should be greater than 2. Current size is"
-            << rModelPart.GetBufferSize()
-            << std::endl;
+        CheckBufferSize(rModelPart);
 
         // Check beta, gamma and theta
         KRATOS_ERROR_IF(mBeta <= 0.0 || mGamma<= 0.0 || mTheta <= 0.0)

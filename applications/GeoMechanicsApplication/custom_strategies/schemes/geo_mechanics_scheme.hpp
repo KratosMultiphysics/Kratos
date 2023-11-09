@@ -275,7 +275,7 @@ public:
         OpenMPUtils::PartitionVector DofSetPartition;
         OpenMPUtils::DivideInPartitions(rDofSet.size(), NumThreads, DofSetPartition);
 
-        #pragma omp parallel
+#pragma omp parallel
         {
             int k = OpenMPUtils::ThisThread();
 
@@ -299,6 +299,14 @@ public:
     }
 
 protected:
+    void CheckBufferSize(const ModelPart& rModelPart) const
+    {
+        KRATOS_ERROR_IF(rModelPart.GetBufferSize() < 2)
+            << "insufficient buffer size. Buffer size should be "
+               "greater or equal to 2. Current size is "
+            << rModelPart.GetBufferSize() << std::endl;
+    }
+
     double mDeltaTime = 0.0;
 
     virtual inline void SetTimeFactors(ModelPart& rModelPart) = 0;

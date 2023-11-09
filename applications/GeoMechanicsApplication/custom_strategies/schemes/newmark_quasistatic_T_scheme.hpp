@@ -26,17 +26,9 @@
 namespace Kratos {
 
 template <class TSparseSpace, class TDenseSpace>
-
 class NewmarkQuasistaticTScheme : public GeoMechanicsScheme<TSparseSpace, TDenseSpace> {
 public:
     KRATOS_CLASS_POINTER_DEFINITION(NewmarkQuasistaticTScheme);
-
-    using BaseType = Scheme<TSparseSpace, TDenseSpace>;
-    using DofsArrayType = typename BaseType::DofsArrayType;
-    using TSystemMatrixType = typename BaseType::TSystemMatrixType;
-    using TSystemVectorType = typename BaseType::TSystemVectorType;
-    using LocalSystemVectorType = typename BaseType::LocalSystemVectorType;
-    using LocalSystemMatrixType = typename BaseType::LocalSystemMatrixType;
 
     explicit NewmarkQuasistaticTScheme(double theta)
         : GeoMechanicsScheme<TSparseSpace, TDenseSpace>(), mTheta(theta)
@@ -49,9 +41,19 @@ public:
     {
         KRATOS_TRY
 
-        BaseType::Check(rModelPart);
+        Scheme<TSparseSpace, TDenseSpace>::Check(rModelPart);
+        CheckAllocatedVariables(rModelPart);
+        CheckBufferSize(rModelPart);
 
-        // check that variables are correctly allocated
+        KRATOS_ERROR_IF(mTheta <= 0) << "Theta has an invalid value\n";
+
+        return 0;
+
+        KRATOS_CATCH("")
+    }
+
+    void CheckAllocatedVariables(const ModelPart& rModelPart) const
+    {
         for (const auto& rNode : rModelPart.Nodes()) {
             if (!rNode.SolutionStepsDataHas(TEMPERATURE))
                 KRATOS_ERROR
@@ -67,29 +69,15 @@ public:
                 KRATOS_ERROR << "missing TEMPERATURE dof on node " << rNode.Id()
                              << std::endl;
         }
-
-        if (rModelPart.GetBufferSize() < 2)
-            KRATOS_ERROR << "insufficient buffer size. Buffer size should be "
-                            "greater or equal to 2. Current size is "
-                         << rModelPart.GetBufferSize() << std::endl;
-
-        if (mTheta <= 0.0)
-            KRATOS_ERROR << "Theta has an invalid value"
-                         << std::endl;
-
-        return 0;
-
-        KRATOS_CATCH("")
     }
 
-    void FinalizeSolutionStep( ModelPart& rModelPart,
+    void FinalizeSolutionStep(ModelPart& rModelPart,
                               TSystemMatrixType& A,
                               TSystemVectorType& Dx,
                               TSystemVectorType& b) override
     {
-        FinalizeSolutionStepActiveEntities(rModelPart,A,Dx,b);
+        FinalizeSolutionStepActiveEntities(rModelPart, A, Dx, b);
     }
-
 
 protected:
     inline void UpdateVariablesDerivatives(ModelPart& rModelPart) override
