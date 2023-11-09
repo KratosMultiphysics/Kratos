@@ -60,8 +60,6 @@ public:
 
     int Check(const ProcessInfo& rCurrentProcessInfo) const override;
 
-    void Initialize(const ProcessInfo& rCurrentProcessInfo) override;
-
     void GetDofList(DofsVectorType& rElementalDofList,
                     const ProcessInfo& rCurrentProcessInfo) const override;
 
@@ -81,8 +79,9 @@ private:
 
     void InitializeNodalTemperatureVariables(ElementVariables& rVariables);
 
-    void CalculateConductivityMatrix(ElementVariables& rVariables,
-                                     const Matrix&     rGradNT);
+    void CalculateConductivityMatrix(ElementVariables&  rVariables,
+                                     const Matrix&      rGradNT,
+                                     const ProcessInfo& rCurrentProcessInfo);
 
     void CalculateCapacityMatrix(ElementVariables& rVariables,
                                  const Vector&     rN) const;
@@ -92,8 +91,6 @@ private:
     void VerifyProperty(Kratos::Variable<double>& rVariable) const;
     void CheckDomainSize() const;
     void CheckSolutionStepsData(int rId, Kratos::Variable<double>& rVariable) const;
-
-    const ProcessInfo* mpCurrentProcessInfo = nullptr;
 
     friend class Serializer;
 

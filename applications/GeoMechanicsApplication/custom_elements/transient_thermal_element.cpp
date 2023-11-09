@@ -95,12 +95,6 @@ void TransientThermalElement<TDim, TNumNodes>::EquationIdVector(
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void TransientThermalElement<TDim, TNumNodes>::Initialize(const ProcessInfo& rCurrentProcessInfo)
-{
-    mpCurrentProcessInfo = &rCurrentProcessInfo;
-}
-
-template <unsigned int TDim, unsigned int TNumNodes>
 int TransientThermalElement<TDim, TNumNodes>::Check(const ProcessInfo& rCurrentProcessInfo) const
 {
     KRATOS_TRY
@@ -173,7 +167,7 @@ void TransientThermalElement<TDim, TNumNodes>::CalculateAll(
             IntegrationPoints[GPoint].Weight() * Variables.detJContainer[GPoint];
 
         const auto gradNT = Matrix{Variables.DN_DXContainer[GPoint]};
-        CalculateConductivityMatrix(Variables, gradNT);
+        CalculateConductivityMatrix(Variables, gradNT, rCurrentProcessInfo);
 
         const auto N = Vector{row(NContainer, GPoint)};
         CalculateCapacityMatrix(Variables, N);
@@ -254,18 +248,15 @@ void TransientThermalElement<TDim, TNumNodes>::CalculateCapacityMatrix(ElementVa
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void TransientThermalElement<TDim, TNumNodes>::CalculateConductivityMatrix(ElementVariables& rVariables,
-                                                                           const Matrix&     rGradNT)
+void TransientThermalElement<TDim, TNumNodes>::CalculateConductivityMatrix(ElementVariables&  rVariables,
+                                                                           const Matrix&      rGradNT,
+                                                                           const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
-    KRATOS_ERROR_IF(mpCurrentProcessInfo == nullptr)
-        << " ProcessInfo is not initialised in TransientThermalElement " << std::endl;
-
     GeoThermalDispersionLaw geo(TDim);
-
-    const auto constitutive_matrix = geo.CalculateThermalDispersionMatrix(
-        GetProperties(), *mpCurrentProcessInfo, GetGeometry());
+    const auto constitutive_matrix =
+            geo.CalculateThermalDispersionMatrix(GetProperties(), rCurrentProcessInfo, GetGeometry());
 
     BoundedMatrix<double, TDim, TNumNodes> Temp = prod(constitutive_matrix, trans(rGradNT));
     noalias(rVariables.ConductivityMatrix) += prod(rGradNT, Temp) * rVariables.IntegrationCoefficient;
