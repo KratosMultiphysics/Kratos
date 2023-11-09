@@ -60,11 +60,14 @@ public:
     /// The spatial search result reference type
     using SpatialSearchResultReferenceType = SpatialSearchResultType&;
 
+    /// The spatial search result const reference type
+    using SpatialSearchResultConstReferenceType = const SpatialSearchResultType&;
+
     /// The spatial search result pointer type
     using SpatialSearchResultPointerType = typename SpatialSearchResultType::Pointer;
 
     /// Local vector of SpatialSearchResult
-    using LocalResultsVector = std::vector<SpatialSearchResultPointerType>;
+    using LocalResultsVector = std::vector<SpatialSearchResultType>;
 
     /// The global pointer communicator
     using GlobalPointerCommunicatorType = GlobalPointerCommunicator<SpatialSearchResultType>;
@@ -112,7 +115,7 @@ public:
      */
     SpatialSearchResultReferenceType operator[](const std::size_t Index)
     {
-        return *(mLocalResults[Index]);
+        return mLocalResults[Index];
     }
 
     /**
@@ -120,9 +123,9 @@ public:
      * @param Index The index
      * @return The result container
      */
-    const SpatialSearchResultReferenceType operator[](const std::size_t Index) const
+    SpatialSearchResultConstReferenceType operator[](const std::size_t Index) const
     {
-        return *(mLocalResults[Index]);
+        return mLocalResults[Index];
     }
 
     /**
@@ -142,7 +145,7 @@ public:
      * @param Index The index
      * @return The result container
      */
-    const SpatialSearchResultType& operator()(const std::size_t Index) const
+    SpatialSearchResultConstReferenceType operator()(const std::size_t Index) const
     {
         // Check if the communicator has been created
         KRATOS_ERROR_IF(mpGlobalPointerCommunicator == nullptr) << "The communicator has not been created. Therefore is not synchronized" << std::endl;

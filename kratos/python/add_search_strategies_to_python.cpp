@@ -127,7 +127,7 @@ void BindSpatialSearchResultContainer(pybind11::module& m, const std::string& rC
     .def("GetResultIndices", &ContainerType::GetResultIndices)
     .def("GetResultCoordinates", &ContainerType::GetResultCoordinates)
     .def("__getitem__", [](ContainerType& self, const std::size_t Index) {
-        return *(self.GetLocalResults()[Index]);
+        return self.GetLocalResults()[Index];
     })
     .def("__call__", [](ContainerType& self, const std::size_t Index) {
         // Check if the communicator has been created

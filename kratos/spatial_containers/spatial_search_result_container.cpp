@@ -40,8 +40,7 @@ void SpatialSearchResultContainer<TObjectType>::AddResult(SpatialSearchResultTyp
     // Check if the object has been found
     if (rResult.IsObjectFound()) {
         // Adding to the local results
-        auto p_result = Kratos::make_shared<SpatialSearchResultType>(rResult);
-        mLocalResults.push_back(p_result);
+        mLocalResults.emplace_back(rResult);
     }
 }
 
@@ -57,8 +56,7 @@ void SpatialSearchResultContainer<TObjectType>::AddResult(
     // Check if the object has been found (not nullptr)
     if (pResult != nullptr) {
         // Adding to the local results
-        auto p_result = Kratos::make_shared<SpatialSearchResultType>(pResult, Rank);
-        mLocalResults.push_back(p_result);
+        mLocalResults.emplace_back(pResult, Rank);
     }
 }
 
@@ -75,9 +73,8 @@ void SpatialSearchResultContainer<TObjectType>::AddResult(
     // Check if the object has been found (not nullptr)
     if (pResult != nullptr) {
         // Adding to the local results
-        auto p_result = Kratos::make_shared<SpatialSearchResultType>(pResult, Rank);
-        p_result->SetDistance(Distance);
-        mLocalResults.push_back(p_result);
+        mLocalResults.emplace_back(pResult, Rank);
+        (mLocalResults.back()).SetDistance(Distance);
     }
 }
 
@@ -121,8 +118,8 @@ void SpatialSearchResultContainer<TObjectType>::SynchronizeAll(const DataCommuni
             global_gp.reserve(global_result_size);
 
             // Fill global vector with local result
-            for (auto& p_value : mLocalResults) {
-                global_gp.push_back(GlobalPointerResultType(p_value.get(), rank));
+            for (auto& r_value : mLocalResults) {
+                global_gp.push_back(GlobalPointerResultType(&r_value, rank));
             }
 
             // Create a lambda to generate the vector of indexes greater than zero
@@ -162,8 +159,8 @@ void SpatialSearchResultContainer<TObjectType>::SynchronizeAll(const DataCommuni
             if (local_result_size > 0) {
                 std::vector<GlobalPointerResultType> local_gp;
                 local_gp.reserve(local_result_size);
-                for (auto& p_value : mLocalResults) {
-                    local_gp.push_back(GlobalPointerResultType(p_value.get(), rank));
+                for (auto& r_value : mLocalResults) {
+                    local_gp.push_back(GlobalPointerResultType(&r_value, rank));
                 }
                 rDataCommunicator.Send(local_gp, 0);
             }
@@ -179,8 +176,8 @@ void SpatialSearchResultContainer<TObjectType>::SynchronizeAll(const DataCommuni
         }
     } else { // Serial code
         // Fill global vector
-        for (auto& p_value : mLocalResults) {
-            mGlobalResults.push_back(p_value.get());
+        for (auto& r_value : mLocalResults) {
+            mGlobalResults.push_back(&r_value);
         }
     }
 
