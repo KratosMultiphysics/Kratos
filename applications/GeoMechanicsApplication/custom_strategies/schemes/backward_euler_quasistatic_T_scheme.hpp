@@ -14,20 +14,11 @@
 
 #pragma once
 
-// Project includes
 #include "custom_strategies/schemes/newmark_quasistatic_T_scheme.hpp"
-#include "includes/define.h"
-#include "includes/model_part.h"
-#include "solving_strategies/schemes/scheme.h"
-#include "utilities/parallel_utilities.h"
-
-// Application includes
-#include "geo_mechanics_application_variables.h"
 
 namespace Kratos {
 
 template <class TSparseSpace, class TDenseSpace>
-
 class BackwardEulerQuasistaticTScheme
     : public NewmarkQuasistaticTScheme<TSparseSpace, TDenseSpace> {
 public:

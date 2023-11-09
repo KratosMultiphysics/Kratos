@@ -10,6 +10,7 @@
 //  Main authors:    Richard Faasse
 //
 #pragma once
+
 #include "solving_strategies/schemes/scheme.h"
 
 namespace Kratos {
@@ -288,7 +289,7 @@ public:
 
         int NumThreads = ParallelUtilities::GetNumThreads();
         OpenMPUtils::PartitionVector DofSetPartition;
-        OpenMPUtils::DivideInPartitions(rDofSet.size(), NumThreads, DofSetPartition);
+        OpenMPUtils::DivideInPartitions(static_int<int>(rDofSet.size()), NumThreads, DofSetPartition);
 
 #pragma omp parallel
         {
