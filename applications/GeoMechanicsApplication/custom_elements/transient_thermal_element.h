@@ -29,7 +29,6 @@ public:
         double DtTemperatureCoefficient;
         array_1d<double, TNumNodes> TemperatureVector;
         array_1d<double, TNumNodes> DtTemperatureVector;
-        Matrix ConstitutiveMatrix;
         Vector N;
         Matrix GradNT;
         Matrix GradNTInitialConfiguration;

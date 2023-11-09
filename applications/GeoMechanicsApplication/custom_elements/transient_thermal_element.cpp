@@ -306,11 +306,11 @@ void TransientThermalElement<TDim, TNumNodes>::CalculateConductivityMatrix(Eleme
 
     GeoThermalDispersionLaw geo(TDim);
 
-    rVariables.ConstitutiveMatrix = geo.CalculateThermalDispersionMatrix(
+    const auto constitutive_matrix = geo.CalculateThermalDispersionMatrix(
         GetProperties(), *mpCurrentProcessInfo, GetGeometry());
 
     BoundedMatrix<double, TDim, TNumNodes> Temp =
-        prod(rVariables.ConstitutiveMatrix, trans(rVariables.GradNT));
+        prod(constitutive_matrix, trans(rVariables.GradNT));
     noalias(rVariables.ConductivityMatrix) +=
         prod(rVariables.GradNT, Temp) * rVariables.IntegrationCoefficient;
 
