@@ -42,7 +42,7 @@ std::size_t SpatialSearchResultContainerVector<TObjectType>::NumberOfSearchResul
 /***********************************************************************************/
 
 template <class TObjectType>
-SpatialSearchResultContainer<TObjectType>& SpatialSearchResultContainerVector<TObjectType>::InitializeResult(const IndexType Index)
+typename SpatialSearchResultContainerVector<TObjectType>::SpatialSearchResultContainerType& SpatialSearchResultContainerVector<TObjectType>::InitializeResult(const IndexType Index)
 {
     // If doesn't exists, create it
     if (!HasResult(Index)) {

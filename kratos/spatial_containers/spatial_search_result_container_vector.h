@@ -46,8 +46,14 @@ public:
     /// Pointer definition of SpatialSearchResultContainerVector
     KRATOS_CLASS_POINTER_DEFINITION(SpatialSearchResultContainerVector);
 
+    /// The spatial search result container type
+    using SpatialSearchResultContainerType = SpatialSearchResultContainer<TObjectType>;
+
+    /// The spatial search result container pointer type
+    using SpatialSearchResultContainerPointerType = SpatialSearchResultContainerType*;
+
     /// The container type
-    using ContainerType = std::vector<SpatialSearchResultContainer<TObjectType>*>;
+    using ContainerType = std::vector<SpatialSearchResultContainerPointerType>;
 
     // Define the iterator class
     class iterator {
@@ -56,7 +62,7 @@ public:
         using iterator_category = std::forward_iterator_tag;
 
         /// The type of the value pointed to by the iterator.
-        using value_type = SpatialSearchResultContainer<TObjectType>;
+        using value_type = SpatialSearchResultContainerType;
 
         /// The difference type between two iterators.
         using difference_type = std::ptrdiff_t;
@@ -137,7 +143,7 @@ public:
         using iterator_category = std::forward_iterator_tag;
 
         /// The type of the value pointed to by the iterator.
-        using value_type = SpatialSearchResultContainer<TObjectType>;
+        using value_type = SpatialSearchResultContainerType;
 
         /// The difference type between two iterators.
         using difference_type = std::ptrdiff_t;
@@ -235,7 +241,7 @@ public:
      * @param Index The index to be initialized
      * @return The result container
      */
-    SpatialSearchResultContainer<TObjectType>& operator[](const IndexType Index)
+    SpatialSearchResultContainerType& operator[](const IndexType Index)
     {
         KRATOS_ERROR_IF_NOT(this->HasResult(Index)) << "The result container does not exist for index: " << Index << std::endl;
         return *mPointResults[Index];
@@ -246,7 +252,7 @@ public:
      * @param Index The index to be initialized
      * @return The result container
      */
-    const SpatialSearchResultContainer<TObjectType>& operator[](const IndexType Index) const
+    const SpatialSearchResultContainerType& operator[](const IndexType Index) const
     {
         KRATOS_ERROR_IF_NOT(this->HasResult(Index)) << "The result container does not exist for index: " << Index << std::endl;
         return *mPointResults[Index];
@@ -257,7 +263,7 @@ public:
      * @param Index The index to be initialized
      * @return The result container
      */
-    SpatialSearchResultContainer<TObjectType>& operator()(const IndexType Index)
+    SpatialSearchResultContainerType& operator()(const IndexType Index)
     {
         KRATOS_ERROR_IF_NOT(this->HasResult(Index)) << "The result container does not exist for index: " << Index << std::endl;
         return *mPointResults[Index];
@@ -268,7 +274,7 @@ public:
      * @param Index The index to be initialized
      * @return The result container
      */
-    const SpatialSearchResultContainer<TObjectType>& operator()(const IndexType Index) const
+    const SpatialSearchResultContainerType& operator()(const IndexType Index) const
     {
         KRATOS_ERROR_IF_NOT(this->HasResult(Index)) << "The result container does not exist for index: " << Index << std::endl;
         return *mPointResults[Index];
@@ -282,7 +288,7 @@ public:
      * @brief Returns an iterator pointing to the beginning of the container.
      * @return An iterator pointing to the beginning of the container.
      */
-    iterator begin() 
+    iterator begin()
     {
         return iterator(mPointResults.begin());
     }
@@ -291,7 +297,7 @@ public:
      * @brief Returns an iterator pointing to the end of the container.
      * @return An iterator pointing to the end of the container.
      */
-    iterator end() 
+    iterator end()
     {
         return iterator(mPointResults.end());
     }
@@ -300,7 +306,7 @@ public:
      * @brief Returns a constant iterator pointing to the beginning of the container.
      * @return A constant iterator pointing to the beginning of the container.
      */
-    const_iterator begin() const 
+    const_iterator begin() const
     {
         return const_iterator(mPointResults.begin());
     }
@@ -309,7 +315,7 @@ public:
      * @brief Returns a constant iterator pointing to the end of the container.
      * @return A constant iterator pointing to the end of the container.
      */
-    const_iterator end() const 
+    const_iterator end() const
     {
         return const_iterator(mPointResults.end());
     }
@@ -324,7 +330,7 @@ public:
      * @brief Initialize the container
      * @param Index The index to be initialized
      */
-    SpatialSearchResultContainer<TObjectType>& InitializeResult(const IndexType Index);
+    SpatialSearchResultContainerType& InitializeResult(const IndexType Index);
 
     /**
      * @brief Check if coordinates are initialized
@@ -354,7 +360,7 @@ public:
      * @brief Get the container
      * @return The container
      */
-    ContainerType& GetContainer() 
+    ContainerType& GetContainer()
     {
         return mPointResults;
     }
@@ -376,7 +382,7 @@ public:
 private:
     ///@name Member Variables
     ///@{
-    
+
     ContainerType mPointResults;  /// The results of each point
 
     ///@}
