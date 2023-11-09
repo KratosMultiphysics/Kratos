@@ -28,6 +28,14 @@ namespace Kratos {
 template <class TSparseSpace, class TDenseSpace>
 class NewmarkQuasistaticTScheme : public GeoMechanicsScheme<TSparseSpace, TDenseSpace> {
 public:
+
+    using BaseType              = Scheme<TSparseSpace,TDenseSpace>;
+    using DofsArrayType         = typename BaseType::DofsArrayType;
+    using TSystemMatrixType     = typename BaseType::TSystemMatrixType;
+    using TSystemVectorType     = typename BaseType::TSystemVectorType;
+    using LocalSystemVectorType = typename BaseType::LocalSystemVectorType;
+    using LocalSystemMatrixType = typename BaseType::LocalSystemMatrixType;
+
     KRATOS_CLASS_POINTER_DEFINITION(NewmarkQuasistaticTScheme);
 
     explicit NewmarkQuasistaticTScheme(double theta)

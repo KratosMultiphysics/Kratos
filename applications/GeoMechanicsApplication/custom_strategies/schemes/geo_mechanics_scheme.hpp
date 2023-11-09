@@ -17,6 +17,13 @@ namespace Kratos {
 template <class TSparseSpace, class TDenseSpace>
 class GeoMechanicsScheme : public Scheme<TSparseSpace, TDenseSpace> {
 public:
+    using BaseType              = Scheme<TSparseSpace,TDenseSpace>;
+    using DofsArrayType         = typename BaseType::DofsArrayType;
+    using TSystemMatrixType     = typename BaseType::TSystemMatrixType;
+    using TSystemVectorType     = typename BaseType::TSystemVectorType;
+    using LocalSystemVectorType = typename BaseType::LocalSystemVectorType;
+    using LocalSystemMatrixType = typename BaseType::LocalSystemMatrixType;
+
     void GetDofList(const Element& rElement,
                     Element::DofsVectorType& rDofList,
                     const ProcessInfo& rCurrentProcessInfo) override
