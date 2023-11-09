@@ -20,8 +20,8 @@
 #include "solving_strategies/schemes/scheme.h"
 
 // Application includes
-#include "custom_strategies/schemes/geo_mechanics_scheme.hpp"
 #include "geo_mechanics_application_variables.h"
+#include "geo_mechanics_scheme.hpp"
 
 namespace Kratos {
 
@@ -55,19 +55,16 @@ public:
     void CheckAllocatedVariables(const ModelPart& rModelPart) const
     {
         for (const auto& rNode : rModelPart.Nodes()) {
-            if (!rNode.SolutionStepsDataHas(TEMPERATURE))
-                KRATOS_ERROR
-                    << "TEMPERATURE variable is not allocated for node "
-                    << rNode.Id() << std::endl;
+            KRATOS_ERROR_IF(!rNode.SolutionStepsDataHas(TEMPERATURE))
+                << "TEMPERATURE variable is not allocated for node "
+                << rNode.Id() << std::endl;
 
-            if (!rNode.SolutionStepsDataHas(DT_TEMPERATURE))
-                KRATOS_ERROR
-                    << "DT_TEMPERATURE variable is not allocated for node "
-                    << rNode.Id() << std::endl;
+            KRATOS_ERROR_IF(!rNode.SolutionStepsDataHas(DT_TEMPERATURE))
+                << "DT_TEMPERATURE variable is not allocated for node "
+                << rNode.Id() << std::endl;
 
-            if (!rNode.HasDofFor(TEMPERATURE))
-                KRATOS_ERROR << "missing TEMPERATURE dof on node " << rNode.Id()
-                             << std::endl;
+            KRATOS_ERROR_IF(!rNode.HasDofFor(TEMPERATURE))
+                << "missing TEMPERATURE dof on node " << rNode.Id() << std::endl;
         }
     }
 
@@ -92,8 +89,8 @@ protected:
                 rNode.FastGetSolutionStepValue(DT_TEMPERATURE, 1);
 
             rNode.FastGetSolutionStepValue(DT_TEMPERATURE) =
-                1.0 / (mTheta * mDeltaTime) *
-                (delta_temperature - (1.0 - mTheta) * mDeltaTime * previous_dt_temperature);
+                1.0 / (mTheta * GetDeltaTime()) *
+                (delta_temperature - (1.0 - mTheta) * GetDeltaTime() * previous_dt_temperature);
         });
 
         KRATOS_CATCH("")
@@ -103,9 +100,9 @@ protected:
     {
         KRATOS_TRY
 
-        mDeltaTime = rModelPart.GetProcessInfo()[DELTA_TIME];
+        SetDeltaTime(rModelPart.GetProcessInfo()[DELTA_TIME]);
         rModelPart.GetProcessInfo()[DT_TEMPERATURE_COEFFICIENT] =
-            1.0 / (mTheta * mDeltaTime);
+            1.0 / (mTheta * GetDeltaTime());
 
         KRATOS_CATCH("")
     }

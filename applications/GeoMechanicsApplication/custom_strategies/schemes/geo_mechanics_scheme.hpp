@@ -307,10 +307,21 @@ protected:
             << rModelPart.GetBufferSize() << std::endl;
     }
 
-    double mDeltaTime = 0.0;
-
     virtual inline void SetTimeFactors(ModelPart& rModelPart) = 0;
     virtual inline void UpdateVariablesDerivatives(ModelPart& rModelPart) = 0;
+
+    double GetDeltaTime() const
+    {
+        return mDeltaTime;
+    }
+
+    void SetDeltaTime(double DeltaTime)
+    {
+        mDeltaTime = DeltaTime;
+    }
+
+private:
+    double mDeltaTime = 0.0;
 };
 
 } // namespace Kratos

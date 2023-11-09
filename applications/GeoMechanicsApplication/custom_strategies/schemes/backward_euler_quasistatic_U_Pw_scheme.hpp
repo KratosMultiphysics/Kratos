@@ -31,8 +31,6 @@ class BackwardEulerQuasistaticUPwScheme : public NewmarkQuasistaticUPwScheme<TSp
 public:
     KRATOS_CLASS_POINTER_DEFINITION( BackwardEulerQuasistaticUPwScheme );
 
-    using NewmarkQuasistaticUPwScheme<TSparseSpace,TDenseSpace>::mDeltaTime;
-
     BackwardEulerQuasistaticUPwScheme() :
         NewmarkQuasistaticUPwScheme<TSparseSpace,TDenseSpace>(1.0, 1.0, 1.0)
     {
@@ -43,9 +41,9 @@ protected:
     {
         KRATOS_TRY
 
-        mDeltaTime = rModelPart.GetProcessInfo()[DELTA_TIME];
-        rModelPart.GetProcessInfo()[VELOCITY_COEFFICIENT]    = 1.0/mDeltaTime;
-        rModelPart.GetProcessInfo()[DT_PRESSURE_COEFFICIENT] = 1.0/mDeltaTime;
+        SetDeltaTime(rModelPart.GetProcessInfo()[DELTA_TIME]);
+        rModelPart.GetProcessInfo()[VELOCITY_COEFFICIENT]    = 1.0/GetDeltaTime();
+        rModelPart.GetProcessInfo()[DT_PRESSURE_COEFFICIENT] = 1.0/GetDeltaTime();
 
         KRATOS_CATCH("")
     }
@@ -58,13 +56,14 @@ protected:
         block_for_each(rModelPart.Nodes(), [this](Node& rNode) {
             // refactor, extract the (a -b)/mDeltaTime that happens 3 times here
             noalias(rNode.FastGetSolutionStepValue(VELOCITY))     = (  rNode.FastGetSolutionStepValue(DISPLACEMENT)
-                                                                                   - rNode.FastGetSolutionStepValue(DISPLACEMENT, 1)) / mDeltaTime;
+                                                                                   - rNode.FastGetSolutionStepValue(DISPLACEMENT, 1)) / GetDeltaTime();
 
             noalias(rNode.FastGetSolutionStepValue(ACCELERATION)) = (  rNode.FastGetSolutionStepValue(VELOCITY)
-                                                                                   - rNode.FastGetSolutionStepValue(VELOCITY,1) ) / mDeltaTime;
+                                                                                   - rNode.FastGetSolutionStepValue(VELOCITY,1) ) / GetDeltaTime();
 
             rNode.FastGetSolutionStepValue(DT_WATER_PRESSURE)        = (  rNode.FastGetSolutionStepValue(WATER_PRESSURE)
-                                                                                  - rNode.FastGetSolutionStepValue(WATER_PRESSURE, 1)) / mDeltaTime;
+                                                                                  - rNode.FastGetSolutionStepValue(WATER_PRESSURE, 1)) / GetDeltaTime();
+
         });
 
         KRATOS_CATCH( "" )

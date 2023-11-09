@@ -175,9 +175,9 @@ protected:
     {
         KRATOS_TRY
 
-        mDeltaTime = rModelPart.GetProcessInfo()[DELTA_TIME];
-        rModelPart.GetProcessInfo()[VELOCITY_COEFFICIENT]    = mGamma/(mBeta*mDeltaTime);
-        rModelPart.GetProcessInfo()[DT_PRESSURE_COEFFICIENT] = 1.0/(mTheta*mDeltaTime);
+        SetDeltaTime(rModelPart.GetProcessInfo()[DELTA_TIME]);
+        rModelPart.GetProcessInfo()[VELOCITY_COEFFICIENT]    = mGamma/(mBeta*GetDeltaTime());
+        rModelPart.GetProcessInfo()[DT_PRESSURE_COEFFICIENT] = 1.0/(mTheta*GetDeltaTime());
 
         KRATOS_CATCH("")
     }
@@ -190,24 +190,24 @@ protected:
         block_for_each(rModelPart.Nodes(), [&](Node& rNode) {
             noalias(rNode.FastGetSolutionStepValue(ACCELERATION)) =  ((  rNode.FastGetSolutionStepValue(DISPLACEMENT)
                                                                       - rNode.FastGetSolutionStepValue(DISPLACEMENT, 1))
-                                                                   - mDeltaTime * rNode.FastGetSolutionStepValue(VELOCITY, 1) 
-                                                                   - (0.5-mBeta) * mDeltaTime * mDeltaTime
+                                                                   - GetDeltaTime() * rNode.FastGetSolutionStepValue(VELOCITY, 1)
+                                                                   - (0.5-mBeta) * GetDeltaTime() * GetDeltaTime()
                                                                    * rNode.FastGetSolutionStepValue(ACCELERATION, 1) )
-                                                                   / (mBeta*mDeltaTime*mDeltaTime);
+                                                                   / (mBeta*GetDeltaTime()*GetDeltaTime());
 
             noalias(rNode.FastGetSolutionStepValue(VELOCITY)) =  rNode.FastGetSolutionStepValue(VELOCITY, 1)
-                                                                + (1.0-mGamma)*mDeltaTime
+                                                                + (1.0-mGamma)*GetDeltaTime()
                                                                 * rNode.FastGetSolutionStepValue(ACCELERATION, 1)
-                                                                + mGamma * mDeltaTime
+                                                                + mGamma * GetDeltaTime()
                                                                 * rNode.FastGetSolutionStepValue(ACCELERATION);
 
             const double DeltaPressure =  rNode.FastGetSolutionStepValue(WATER_PRESSURE)
                                         - rNode.FastGetSolutionStepValue(WATER_PRESSURE, 1);
 
             rNode.FastGetSolutionStepValue(DT_WATER_PRESSURE) = ( DeltaPressure
-                                                                 - (1.0-mTheta) * mDeltaTime
+                                                                 - (1.0-mTheta) * GetDeltaTime()
                                                                   * rNode.FastGetSolutionStepValue(DT_WATER_PRESSURE, 1))
-                                                                / (mTheta*mDeltaTime);
+                                                                / (mTheta*GetDeltaTime());
         });
 
         KRATOS_CATCH( "" )

@@ -31,8 +31,6 @@ class BackwardEulerQuasistaticPwScheme : public NewmarkQuasistaticPwScheme<TSpar
 public:
     KRATOS_CLASS_POINTER_DEFINITION( BackwardEulerQuasistaticPwScheme );
 
-    using NewmarkQuasistaticUPwScheme<TSparseSpace,TDenseSpace>::mDeltaTime;
-
     BackwardEulerQuasistaticPwScheme() :
         NewmarkQuasistaticPwScheme<TSparseSpace,TDenseSpace>(1.0)
     {}
@@ -46,7 +44,7 @@ protected:
        block_for_each(rModelPart.Nodes(), [this](Node& rNode){
             const double DeltaPressure =  rNode.FastGetSolutionStepValue(WATER_PRESSURE)
                                         - rNode.FastGetSolutionStepValue(WATER_PRESSURE, 1);
-            rNode.FastGetSolutionStepValue(DT_WATER_PRESSURE) = DeltaPressure / mDeltaTime;
+            rNode.FastGetSolutionStepValue(DT_WATER_PRESSURE) = DeltaPressure / GetDeltaTime();
         });
 
         KRATOS_CATCH( "" )

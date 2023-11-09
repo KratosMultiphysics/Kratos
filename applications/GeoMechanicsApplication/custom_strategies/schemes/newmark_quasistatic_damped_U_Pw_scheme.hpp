@@ -29,7 +29,6 @@ public:
     using BaseType              = Scheme<TSparseSpace,TDenseSpace>;
     using LocalSystemVectorType = typename BaseType::LocalSystemVectorType;
     using LocalSystemMatrixType = typename BaseType::LocalSystemMatrixType;
-    using NewmarkQuasistaticUPwScheme<TSparseSpace,TDenseSpace>::mDeltaTime;
     using NewmarkQuasistaticUPwScheme<TSparseSpace,TDenseSpace>::mBeta;
     using NewmarkQuasistaticUPwScheme<TSparseSpace,TDenseSpace>::mGamma;
 
@@ -118,7 +117,7 @@ protected:
                          const ProcessInfo& CurrentProcessInfo)
     {
         // adding damping contribution
-        if (C.size1() != 0) noalias(LHS_Contribution) += (mGamma/(mBeta*mDeltaTime))*C;
+        if (C.size1() != 0) noalias(LHS_Contribution) += (mGamma/(mBeta*GetDeltaTime()))*C;
     }
 
     void AddDampingToRHS(Element &rCurrentElement,
