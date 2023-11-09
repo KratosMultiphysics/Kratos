@@ -76,14 +76,6 @@ public:
         }
     }
 
-    void FinalizeSolutionStep(ModelPart& rModelPart,
-                              TSystemMatrixType& A,
-                              TSystemVectorType& Dx,
-                              TSystemVectorType& b) override
-    {
-        this->FinalizeSolutionStepActiveEntities(rModelPart, A, Dx, b);
-    }
-
 protected:
     inline void UpdateVariablesDerivatives(ModelPart& rModelPart) override
     {

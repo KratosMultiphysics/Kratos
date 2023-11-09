@@ -1,0 +1,220 @@
+// KRATOS___
+//     //   ) )
+//    //         ___      ___
+//   //  ____  //___) ) //   ) )
+//  //    / / //       //   / /
+// ((____/ / ((____   ((___/ /  MECHANICS
+//
+//  License:         geo_mechanics_application/license.txt
+//
+//  Main authors:    Richard Faasse
+//
+
+#include "testing/testing.h"
+
+#include "containers/model.h"
+#include "custom_strategies/schemes/geo_mechanics_scheme.hpp"
+#include "spaces/ublas_space.h"
+#include "test_utilities/spy_condition.h"
+#include "test_utilities/spy_element.h"
+
+using namespace Kratos;
+using SparseSpaceType = UblasSpace<double, CompressedMatrix, Vector>;
+using LocalSpaceType = UblasSpace<double, Matrix, Vector>;
+
+namespace Kratos::Testing {
+
+class GeoMechanicsSchemeTester {
+public:
+    Model mModel;
+    GeoMechanicsScheme<SparseSpaceType, LocalSpaceType> mScheme;
+
+    void Setup()
+    {
+        mModel.Reset();
+        mModel.CreateModelPart("dummy", 2);
+        mScheme = GeoMechanicsScheme<SparseSpaceType, LocalSpaceType>();
+    }
+
+    template <class T>
+    void TestFunctionCalledOnComponent_IsOnlyCalledWhenComponentIsActive()
+    {
+        auto functions_and_checks =
+            CreateFunctionsAndChecksCalledOnASingleComponent<T>();
+
+        for (const auto& [function_on_component, function_has_been_called_on_component] :
+             functions_and_checks) {
+            Setup();
+            auto active_component = Kratos::make_intrusive<T>();
+            active_component->SetId(0);
+            active_component->Set(ACTIVE, true);
+
+            auto inactive_component = Kratos::make_intrusive<T>();
+            inactive_component->SetId(1);
+            inactive_component->Set(ACTIVE, false);
+
+            function_on_component(active_component);
+            function_on_component(inactive_component);
+
+            KRATOS_EXPECT_TRUE(function_has_been_called_on_component(active_component))
+            KRATOS_EXPECT_FALSE(function_has_been_called_on_component(inactive_component))
+        }
+    }
+
+    template <class T>
+    void TestFunctionCallOnAllComponents_AreOnlyCalledForActiveComponents()
+    {
+        auto functions_and_checks = CreateFunctionsAndChecksCalledOnAllComponents<T>();
+
+        for (const auto& [function_on_all_elements, function_has_been_called_on_element] :
+             functions_and_checks) {
+            Setup();
+            auto active_component = Kratos::make_intrusive<T>();
+            active_component->Set(ACTIVE, true);
+            active_component->SetId(0);
+
+            auto inactive_component = Kratos::make_intrusive<T>();
+            inactive_component->Set(ACTIVE, false);
+            inactive_component->SetId(1);
+
+            AddComponent(active_component);
+            AddComponent(inactive_component);
+
+            function_on_all_elements();
+
+            KRATOS_EXPECT_TRUE(function_has_been_called_on_element(active_component))
+            KRATOS_EXPECT_FALSE(function_has_been_called_on_element(inactive_component))
+        }
+    }
+
+    template <class T>
+    std::vector<std::pair<std::function<void()>, std::function<bool(const Kratos::intrusive_ptr<T> rElement)>>> CreateFunctionsAndChecksCalledOnAllComponents()
+    {
+        std::vector<std::pair<std::function<void()>, std::function<bool(const Kratos::intrusive_ptr<T> rElement)>>> functions_and_checks;
+
+        CompressedMatrix A;
+        Vector Dx;
+        Vector b;
+
+        // Create functions that need to be called in the test
+        auto finalize_solution_step = [this, &A, &Dx, &b]() {
+            mScheme.FinalizeSolutionStep(GetModelPart(), A, Dx, b);
+        };
+
+        auto initialize_function = [this, &A, &Dx, &b]() {
+            mScheme.InitializeSolutionStep(GetModelPart(), A, Dx, b);
+        };
+        auto initialize_non_linear_iteration = [this, &A, &Dx, &b]() {
+            mScheme.InitializeNonLinIteration(GetModelPart(), A, Dx, b);
+        };
+
+        auto finalize_non_linear_iteration = [this, &A, &Dx, &b]() {
+            mScheme.FinalizeNonLinIteration(GetModelPart(), A, Dx, b);
+        };
+
+        // Create functions that check if the previously mentioned functions have been called
+        auto finalize_function_check = [](const Kratos::intrusive_ptr<T> rElement) {
+            return rElement->IsSolutionStepFinalized();
+        };
+
+        auto initialize_function_check = [](const Kratos::intrusive_ptr<T> rElement) {
+            return rElement->IsSolutionStepInitialized();
+        };
+
+        auto initialize_non_linear_iteration_check =
+            [](const Kratos::intrusive_ptr<T> rCondition) {
+                return rCondition->IsNonLinIterationInitialized();
+            };
+
+        auto finalize_non_linear_iteration_check = [](const Kratos::intrusive_ptr<T> rCondition) {
+            return rCondition->IsNonLinIterationFinalized();
+        };
+
+        functions_and_checks.push_back({finalize_solution_step, finalize_function_check});
+        functions_and_checks.push_back({initialize_function, initialize_function_check});
+        functions_and_checks.push_back({initialize_non_linear_iteration,
+                                        initialize_non_linear_iteration_check});
+        functions_and_checks.push_back({finalize_non_linear_iteration,
+                                        finalize_non_linear_iteration_check});
+
+        return functions_and_checks;
+    }
+
+    template <class T>
+    std::vector<std::pair<std::function<void(const Kratos::intrusive_ptr<T> Component)>, std::function<bool(const Kratos::intrusive_ptr<T> rElement)>>> CreateFunctionsAndChecksCalledOnASingleComponent()
+    {
+        std::vector<std::pair<std::function<void(const Kratos::intrusive_ptr<T> Component)>,
+                              std::function<bool(const Kratos::intrusive_ptr<T> Component)>>>
+            functions_and_checks;
+
+        Element::EquationIdVectorType equation_id_vector_type;
+        ProcessInfo info;
+
+        auto equation_id = [this, &equation_id_vector_type,
+                            &info](const Kratos::intrusive_ptr<T> Component) {
+            mScheme.EquationId(*Component.get(), equation_id_vector_type, info);
+        };
+
+        auto equation_id_check = [](const Kratos::intrusive_ptr<T> Component) {
+            return Component->IsEquationIdSet();
+        };
+
+        Element::DofsVectorType dofs;
+        auto get_dofs_list = [this, &dofs, &info](const Kratos::intrusive_ptr<T> Component) {
+            mScheme.GetDofList(*Component.get(), dofs, info);
+        };
+
+        auto get_dofs_list_check = [](const Kratos::intrusive_ptr<T> Component) {
+            return Component->IsGetDofListCalled();
+        };
+
+        functions_and_checks.push_back({equation_id, equation_id_check});
+        functions_and_checks.push_back({get_dofs_list, get_dofs_list_check});
+        return functions_and_checks;
+    }
+
+    void AddComponent(ModelPart::ElementType::Pointer element)
+    {
+        GetModelPart().AddElement(element);
+    }
+
+    void AddComponent(ModelPart::ConditionType::Pointer condition)
+    {
+        GetModelPart().AddCondition(condition);
+    }
+
+    ModelPart& GetModelPart()
+    {
+        return mModel.GetModelPart("dummy");
+    }
+};
+
+KRATOS_TEST_CASE_IN_SUITE(FunctionCallsOnAllElements_AreOnlyCalledForActiveElements,
+                          KratosGeoMechanicsFastSuite)
+{
+    GeoMechanicsSchemeTester tester;
+    tester.TestFunctionCallOnAllComponents_AreOnlyCalledForActiveComponents<SpyElement>();
+}
+
+KRATOS_TEST_CASE_IN_SUITE(FunctionCallsOnAllConditions_AreOnlyCalledForActiveConditions,
+                          KratosGeoMechanicsFastSuite)
+{
+    GeoMechanicsSchemeTester tester;
+    tester.TestFunctionCallOnAllComponents_AreOnlyCalledForActiveComponents<SpyCondition>();
+}
+
+KRATOS_TEST_CASE_IN_SUITE(FunctionCalledOnCondition_IsOnlyCalledWhenConditionIsActive,
+                          KratosGeoMechanicsFastSuite)
+{
+    GeoMechanicsSchemeTester tester;
+    tester.TestFunctionCalledOnComponent_IsOnlyCalledWhenComponentIsActive<SpyCondition>();
+}
+
+KRATOS_TEST_CASE_IN_SUITE(FunctionCalledOnElement_IsOnlyCalledWhenElementIsActive,
+                          KratosGeoMechanicsFastSuite)
+{
+    GeoMechanicsSchemeTester tester;
+    tester.TestFunctionCalledOnComponent_IsOnlyCalledWhenComponentIsActive<SpyElement>();
+}
+
+} // namespace Kratos::Testing

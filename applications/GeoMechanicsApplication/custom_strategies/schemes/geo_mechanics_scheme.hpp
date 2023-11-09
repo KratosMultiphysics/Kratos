@@ -182,6 +182,14 @@ public:
         KRATOS_CATCH("")
     }
 
+    void FinalizeSolutionStep(ModelPart& rModelPart,
+                              TSystemMatrixType& A,
+                              TSystemVectorType& Dx,
+                              TSystemVectorType& b) override
+    {
+        FinalizeSolutionStepActiveEntities(rModelPart, A, Dx, b);
+    }
+
     void CalculateSystemContributions(Element& rCurrentElement,
                                       LocalSystemMatrixType& LHS_Contribution,
                                       LocalSystemVectorType& RHS_Contribution,
@@ -314,8 +322,14 @@ protected:
             << rModelPart.GetBufferSize() << std::endl;
     }
 
-    virtual inline void SetTimeFactors(ModelPart& rModelPart) = 0;
-    virtual inline void UpdateVariablesDerivatives(ModelPart& rModelPart) = 0;
+    virtual inline void SetTimeFactors(ModelPart& rModelPart) {
+        // intentionally empty
+    }
+    virtual inline void UpdateVariablesDerivatives(ModelPart& rModelPart)
+    {
+        // intentionally empty
+    }
+
 
     double GetDeltaTime() const
     {
