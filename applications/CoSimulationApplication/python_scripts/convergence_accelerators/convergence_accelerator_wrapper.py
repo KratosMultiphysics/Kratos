@@ -125,6 +125,10 @@ class ConvergenceAcceleratorWrapper:
         self.interface_data.SetData(updated_data)
 
     def _ComputeAndApplyBlockUpdate(self, solver_name = None):
+        # Defaulting to the first solver in the sequence
+        if solver_name is None:
+            solver_name = self.solver_names_sequence[0]
+
         # Retrieving solver and data names
         solver_id = self.solver_names_sequence.index(solver_name)
         data_name, interface_data = list(self.interface_data_dict.items())[solver_id]
