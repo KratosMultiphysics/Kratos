@@ -29,7 +29,6 @@ public:
         double DtTemperatureCoefficient;
         array_1d<double, TNumNodes> TemperatureVector;
         array_1d<double, TNumNodes> DtTemperatureVector;
-        Vector N;
         Matrix GradNT;
         Vector detJContainer;
         Matrix NContainer;
@@ -86,7 +85,8 @@ private:
 
     void CalculateConductivityMatrix(ElementVariables& rVariables);
 
-    void CalculateCapacityMatrix(ElementVariables& rVariables) const;
+    void CalculateCapacityMatrix(ElementVariables& rVariables,
+                                 const Vector&     rN) const;
 
     GeometryData::IntegrationMethod GetIntegrationMethod() const override;
 

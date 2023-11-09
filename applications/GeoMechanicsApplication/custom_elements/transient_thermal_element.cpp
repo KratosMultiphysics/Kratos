@@ -171,7 +171,6 @@ void TransientThermalElement<TDim, TNumNodes>::CalculateAll(
 
     // Loop over integration points
     for (unsigned int GPoint = 0; GPoint < IntegrationPoints.size(); ++GPoint) {
-        Variables.N = row(Variables.NContainer, GPoint);
         Variables.GradNT = Variables.DN_DXContainer[GPoint];
 
         // Compute weighting coefficient for integration
@@ -179,7 +178,9 @@ void TransientThermalElement<TDim, TNumNodes>::CalculateAll(
             IntegrationPoints[GPoint].Weight() * Variables.detJContainer[GPoint];
 
         CalculateConductivityMatrix(Variables);
-        CalculateCapacityMatrix(Variables);
+
+        const auto N = Vector{row(Variables.NContainer, GPoint)};
+        CalculateCapacityMatrix(Variables, N);
     }
 
     GeoElementUtilities::AssemblePBlockMatrix<0, TNumNodes>(rLeftHandSideMatrix, Variables.ConductivityMatrix);
@@ -207,7 +208,6 @@ void TransientThermalElement<TDim, TNumNodes>::InitializeElementVariables(
     InitializeNodalTemperatureVariables(rVariables);
 
     // Variables computed at each GP
-    rVariables.N.resize(TNumNodes, false);
     rVariables.GradNT.resize(TNumNodes, TDim, false);
 
     const GeometryType& rGeom = GetGeometry();
@@ -247,7 +247,8 @@ void TransientThermalElement<TDim, TNumNodes>::InitializeNodalTemperatureVariabl
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void TransientThermalElement<TDim, TNumNodes>::CalculateCapacityMatrix(ElementVariables& rVariables) const
+void TransientThermalElement<TDim, TNumNodes>::CalculateCapacityMatrix(ElementVariables& rVariables,
+                                                                       const Vector&     rN) const
 {
     KRATOS_TRY
 
@@ -258,8 +259,7 @@ void TransientThermalElement<TDim, TNumNodes>::CalculateCapacityMatrix(ElementVa
     const double cSolid = (1.0 - r_properties[POROSITY]) *
                           r_properties[DENSITY_SOLID] * r_properties[SPECIFIC_HEAT_CAPACITY_SOLID];
     noalias(rVariables.CapacityMatrix) +=
-        (cWater + cSolid) * outer_prod(rVariables.N, rVariables.N) *
-        rVariables.IntegrationCoefficient;
+        (cWater + cSolid) * outer_prod(rN, rN) * rVariables.IntegrationCoefficient;
 
     KRATOS_CATCH("")
 }
