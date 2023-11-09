@@ -82,9 +82,6 @@ private:
     void InitializeElementVariables(ElementVariables& rVariables,
                                     const ProcessInfo& CurrentProcessInfo);
 
-    void CalculateAndAddConductivityVector(VectorType& rRightHandSideVector,
-                                           ElementVariables& rVariables);
-
     void CalculateAndAddCapacityVector(VectorType& rRightHandSideVector,
                                        ElementVariables& rVariables);
 
