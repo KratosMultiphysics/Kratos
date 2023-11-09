@@ -31,7 +31,6 @@ public:
         array_1d<double, TNumNodes> DtTemperatureVector;
         Matrix GradNT;
         Vector detJContainer;
-        Matrix NContainer;
         GeometryType::ShapeFunctionsGradientsType DN_DXContainer;
         double IntegrationCoefficient;
         BoundedMatrix<double, TNumNodes, TNumNodes> ConductivityMatrix;

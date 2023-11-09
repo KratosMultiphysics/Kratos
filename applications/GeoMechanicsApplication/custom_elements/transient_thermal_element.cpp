@@ -169,6 +169,8 @@ void TransientThermalElement<TDim, TNumNodes>::CalculateAll(
     ElementVariables Variables;
     InitializeElementVariables(Variables, rCurrentProcessInfo);
 
+    const auto NContainer = Matrix{GetGeometry().ShapeFunctionsValues(GetIntegrationMethod())};
+
     // Loop over integration points
     for (unsigned int GPoint = 0; GPoint < IntegrationPoints.size(); ++GPoint) {
         Variables.GradNT = Variables.DN_DXContainer[GPoint];
@@ -179,7 +181,7 @@ void TransientThermalElement<TDim, TNumNodes>::CalculateAll(
 
         CalculateConductivityMatrix(Variables);
 
-        const auto N = Vector{row(Variables.NContainer, GPoint)};
+        const auto N = Vector{row(NContainer, GPoint)};
         CalculateCapacityMatrix(Variables, N);
     }
 
@@ -213,10 +215,6 @@ void TransientThermalElement<TDim, TNumNodes>::InitializeElementVariables(
     const GeometryType& rGeom = GetGeometry();
     const unsigned int NumGPoints =
         rGeom.IntegrationPointsNumber(GetIntegrationMethod());
-
-    // shape functions
-    rVariables.NContainer.resize(NumGPoints, TNumNodes, false);
-    rVariables.NContainer = rGeom.ShapeFunctionsValues(GetIntegrationMethod());
 
     // gradient of shape functions and determinant of Jacobian
     rVariables.detJContainer.resize(NumGPoints, false);
