@@ -69,8 +69,8 @@ public:
                 const double &CurrentAcceleration  = rNode.FastGetSolutionStepValue(ACCELERATION_X);
 
                 rNode.FastGetSolutionStepValue(DISPLACEMENT_X) =  PreviousDisplacement
-                                                                           + GetDeltaTime() * PreviousVelocity
-                                                                           + GetDeltaTime() * GetDeltaTime()
+                                                                           + this->GetDeltaTime() * PreviousVelocity
+                                                                           + this->GetDeltaTime() * this->GetDeltaTime()
                                                                              * ( ( 0.5 - mBeta) * PreviousAcceleration + mBeta * CurrentAcceleration );
             }
             else if (rNode.IsFixed(VELOCITY_X))
@@ -79,7 +79,7 @@ public:
                 const double &PreviousVelocity     = rNode.FastGetSolutionStepValue(VELOCITY_X, 1);
                 const double &CurrentVelocity      = rNode.FastGetSolutionStepValue(VELOCITY_X);
                 rNode.FastGetSolutionStepValue(DISPLACEMENT_X) =  PreviousDisplacement
-                                                                          + GetDeltaTime()*((mBeta/mGamma)*(CurrentVelocity - PreviousVelocity)
+                                                                          + this->GetDeltaTime()*((mBeta/mGamma)*(CurrentVelocity - PreviousVelocity)
                                                                           + PreviousVelocity);
             }
             else if (!rNode.IsFixed(DISPLACEMENT_X))
@@ -89,8 +89,8 @@ public:
                 const double &PreviousAcceleration = rNode.FastGetSolutionStepValue(ACCELERATION_X, 1);
 
                 rNode.FastGetSolutionStepValue(DISPLACEMENT_X) =   PreviousDisplacement
-                                                                 + GetDeltaTime() * PreviousVelocity
-                                                                 + 0.5 * GetDeltaTime() * GetDeltaTime()
+                                                                 + this->GetDeltaTime() * PreviousVelocity
+                                                                 + 0.5 * this->GetDeltaTime() * this->GetDeltaTime()
                                                                  * PreviousAcceleration;
             }
 
@@ -102,8 +102,8 @@ public:
                 const double &CurrentAcceleration  = rNode.FastGetSolutionStepValue(ACCELERATION_Y);
 
                 rNode.FastGetSolutionStepValue(DISPLACEMENT_Y) =  PreviousDisplacement
-                                                                + GetDeltaTime() * PreviousVelocity
-                                                                + GetDeltaTime() * GetDeltaTime()
+                                                                + this->GetDeltaTime() * PreviousVelocity
+                                                                + this->GetDeltaTime() * this->GetDeltaTime()
                                                                 * ( ( 0.5 - mBeta) * PreviousAcceleration + mBeta * CurrentAcceleration );
             }
             else if (rNode.IsFixed(VELOCITY_Y))
@@ -112,7 +112,7 @@ public:
                 const double &PreviousVelocity     = rNode.FastGetSolutionStepValue(VELOCITY_Y, 1);
                 const double &CurrentVelocity      = rNode.FastGetSolutionStepValue(VELOCITY_Y);
                 rNode.FastGetSolutionStepValue(DISPLACEMENT_Y) =  PreviousDisplacement
-                                                                 + GetDeltaTime()*((mBeta/mGamma)*(CurrentVelocity - PreviousVelocity)
+                                                                 + this->GetDeltaTime()*((mBeta/mGamma)*(CurrentVelocity - PreviousVelocity)
                                                                  + PreviousVelocity);
             }
             else if (!rNode.IsFixed(DISPLACEMENT_Y))
@@ -122,8 +122,8 @@ public:
                 const double &PreviousAcceleration = rNode.FastGetSolutionStepValue(ACCELERATION_Y, 1);
 
                 rNode.FastGetSolutionStepValue(DISPLACEMENT_Y) =   PreviousDisplacement
-                                                                 + GetDeltaTime() * PreviousVelocity
-                                                                 + 0.5 * GetDeltaTime() * GetDeltaTime()
+                                                                 + this->GetDeltaTime() * PreviousVelocity
+                                                                 + 0.5 * this->GetDeltaTime() * this->GetDeltaTime()
                                                                  * PreviousAcceleration;
             }
 
@@ -138,8 +138,8 @@ public:
                     const double &CurrentAcceleration  = rNode.FastGetSolutionStepValue(ACCELERATION_Z);
 
                     rNode.FastGetSolutionStepValue(DISPLACEMENT_Z) =  PreviousDisplacement
-                                                                    + GetDeltaTime() * PreviousVelocity
-                                                                    + GetDeltaTime() * GetDeltaTime()
+                                                                    + this->GetDeltaTime() * PreviousVelocity
+                                                                    + this->GetDeltaTime() * this->GetDeltaTime()
                                                                     * ( ( 0.5 - mBeta) * PreviousAcceleration + mBeta * CurrentAcceleration );
                 }
                 else if (rNode.IsFixed(VELOCITY_Z))
@@ -148,7 +148,7 @@ public:
                     const double &PreviousVelocity     = rNode.FastGetSolutionStepValue(VELOCITY_Z, 1);
                     const double &CurrentVelocity      = rNode.FastGetSolutionStepValue(VELOCITY_Z);
                     rNode.FastGetSolutionStepValue(DISPLACEMENT_Z) =  PreviousDisplacement
-                                                                    + GetDeltaTime()*((mBeta/mGamma)*(CurrentVelocity - PreviousVelocity)
+                                                                    + this->GetDeltaTime()*((mBeta/mGamma)*(CurrentVelocity - PreviousVelocity)
                                                                     + PreviousVelocity);
                 }
                 else if (!rNode.IsFixed(DISPLACEMENT_Z))
@@ -158,31 +158,31 @@ public:
                     const double &PreviousAcceleration = rNode.FastGetSolutionStepValue(ACCELERATION_Z, 1);
 
                     rNode.FastGetSolutionStepValue(DISPLACEMENT_Z) =   PreviousDisplacement
-                                                                    + GetDeltaTime() * PreviousVelocity
-                                                                    + 0.5 * GetDeltaTime() * GetDeltaTime()
+                                                                    + this->GetDeltaTime() * PreviousVelocity
+                                                                    + 0.5 * this->GetDeltaTime() * this->GetDeltaTime()
                                                                     * PreviousAcceleration;
                 }
             }
 
-            noalias(rNode.FastGetSolutionStepValue(ACCELERATION)) =   (1.0/(mBeta*GetDeltaTime()*GetDeltaTime()))
+            noalias(rNode.FastGetSolutionStepValue(ACCELERATION)) =   (1.0/(mBeta*this->GetDeltaTime()*this->GetDeltaTime()))
                                                                     * ( (rNode.FastGetSolutionStepValue(DISPLACEMENT) - rNode.FastGetSolutionStepValue(DISPLACEMENT,1))
-                                                                     - GetDeltaTime()
+                                                                     - this->GetDeltaTime()
                                                                      * rNode.FastGetSolutionStepValue(VELOCITY, 1)
-                                                                     - (0.5-mBeta) * GetDeltaTime() * GetDeltaTime()
+                                                                     - (0.5-mBeta) * this->GetDeltaTime() * this->GetDeltaTime()
                                                                      * rNode.FastGetSolutionStepValue(ACCELERATION,1));
 
             noalias(rNode.FastGetSolutionStepValue(VELOCITY)) =   rNode.FastGetSolutionStepValue(VELOCITY, 1)
-                                                                 + (1.0-mGamma) * GetDeltaTime()
+                                                                 + (1.0-mGamma) * this->GetDeltaTime()
                                                                  * rNode.FastGetSolutionStepValue(ACCELERATION,1)
-                                                                 + mGamma * GetDeltaTime()
+                                                                 + mGamma * this->GetDeltaTime()
                                                                  * rNode.FastGetSolutionStepValue(ACCELERATION);
 
             const double DeltaPressure =  rNode.FastGetSolutionStepValue(WATER_PRESSURE)
                                         - rNode.FastGetSolutionStepValue(WATER_PRESSURE, 1);
 
-            rNode.FastGetSolutionStepValue(DT_WATER_PRESSURE) =  (1.0/(mTheta*GetDeltaTime()))
+            rNode.FastGetSolutionStepValue(DT_WATER_PRESSURE) =  (1.0/(mTheta*this->GetDeltaTime()))
                                                                 * ( DeltaPressure
-                                                                   - (1.0-mTheta) * GetDeltaTime()
+                                                                   - (1.0-mTheta) * this->GetDeltaTime()
                                                                    * rNode.FastGetSolutionStepValue(DT_WATER_PRESSURE,1));
         });
 
@@ -350,11 +350,11 @@ protected:
 
         // adding mass contribution
         if (M.size1() != 0)
-            noalias(LHS_Contribution) += (1.0/(mBeta*GetDeltaTime()*GetDeltaTime()))*M;
+            noalias(LHS_Contribution) += (1.0/(mBeta*this->GetDeltaTime()*this->GetDeltaTime()))*M;
 
         // adding damping contribution
         if (C.size1() != 0)
-            noalias(LHS_Contribution) += (mGamma/(mBeta*GetDeltaTime()))*C;
+            noalias(LHS_Contribution) += (mGamma/(mBeta*this->GetDeltaTime()))*C;
 
         KRATOS_CATCH( "" )
     }

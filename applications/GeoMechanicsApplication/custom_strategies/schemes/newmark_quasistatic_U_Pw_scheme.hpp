@@ -97,7 +97,7 @@ public:
                 << std::endl;
         }
 
-        CheckBufferSize(rModelPart);
+        this->CheckBufferSize(rModelPart);
 
         // Check beta, gamma and theta
         KRATOS_ERROR_IF(mBeta <= 0.0 || mGamma<= 0.0 || mTheta <= 0.0)
@@ -135,7 +135,7 @@ public:
                 rNode.FastGetSolutionStepValue(NODAL_JOINT_DAMAGE)    = 0.0;
             });
 
-            FinalizeSolutionStepActiveEntities(rModelPart,A,Dx,b);
+            this->FinalizeSolutionStepActiveEntities(rModelPart,A,Dx,b);
 
             // Compute smoothed nodal variables
             block_for_each(rModelPart.Nodes(), [&](Node& rNode) {
@@ -160,7 +160,7 @@ public:
             });
 
         } else {
-            FinalizeSolutionStepActiveEntities(rModelPart,A,Dx,b);
+            this->FinalizeSolutionStepActiveEntities(rModelPart,A,Dx,b);
         }
 
         KRATOS_CATCH("")
@@ -175,9 +175,9 @@ protected:
     {
         KRATOS_TRY
 
-        SetDeltaTime(rModelPart.GetProcessInfo()[DELTA_TIME]);
-        rModelPart.GetProcessInfo()[VELOCITY_COEFFICIENT]    = mGamma/(mBeta*GetDeltaTime());
-        rModelPart.GetProcessInfo()[DT_PRESSURE_COEFFICIENT] = 1.0/(mTheta*GetDeltaTime());
+        this->SetDeltaTime(rModelPart.GetProcessInfo()[DELTA_TIME]);
+        rModelPart.GetProcessInfo()[VELOCITY_COEFFICIENT]    = mGamma/(mBeta*this->GetDeltaTime());
+        rModelPart.GetProcessInfo()[DT_PRESSURE_COEFFICIENT] = 1.0/(mTheta*this->GetDeltaTime());
 
         KRATOS_CATCH("")
     }
@@ -190,24 +190,24 @@ protected:
         block_for_each(rModelPart.Nodes(), [&](Node& rNode) {
             noalias(rNode.FastGetSolutionStepValue(ACCELERATION)) =  ((  rNode.FastGetSolutionStepValue(DISPLACEMENT)
                                                                       - rNode.FastGetSolutionStepValue(DISPLACEMENT, 1))
-                                                                   - GetDeltaTime() * rNode.FastGetSolutionStepValue(VELOCITY, 1)
-                                                                   - (0.5-mBeta) * GetDeltaTime() * GetDeltaTime()
+                                                                   - this->GetDeltaTime() * rNode.FastGetSolutionStepValue(VELOCITY, 1)
+                                                                   - (0.5-mBeta) * this->GetDeltaTime() * this->GetDeltaTime()
                                                                    * rNode.FastGetSolutionStepValue(ACCELERATION, 1) )
-                                                                   / (mBeta*GetDeltaTime()*GetDeltaTime());
+                                                                   / (mBeta*this->GetDeltaTime()*this->GetDeltaTime());
 
             noalias(rNode.FastGetSolutionStepValue(VELOCITY)) =  rNode.FastGetSolutionStepValue(VELOCITY, 1)
-                                                                + (1.0-mGamma)*GetDeltaTime()
+                                                                + (1.0-mGamma)* this->GetDeltaTime()
                                                                 * rNode.FastGetSolutionStepValue(ACCELERATION, 1)
-                                                                + mGamma * GetDeltaTime()
+                                                                + mGamma * this->GetDeltaTime()
                                                                 * rNode.FastGetSolutionStepValue(ACCELERATION);
 
             const double DeltaPressure =  rNode.FastGetSolutionStepValue(WATER_PRESSURE)
                                         - rNode.FastGetSolutionStepValue(WATER_PRESSURE, 1);
 
             rNode.FastGetSolutionStepValue(DT_WATER_PRESSURE) = ( DeltaPressure
-                                                                 - (1.0-mTheta) * GetDeltaTime()
+                                                                 - (1.0-mTheta) * this->GetDeltaTime()
                                                                   * rNode.FastGetSolutionStepValue(DT_WATER_PRESSURE, 1))
-                                                                / (mTheta*GetDeltaTime());
+                                                                / (mTheta* this->GetDeltaTime());
         });
 
         KRATOS_CATCH( "" )

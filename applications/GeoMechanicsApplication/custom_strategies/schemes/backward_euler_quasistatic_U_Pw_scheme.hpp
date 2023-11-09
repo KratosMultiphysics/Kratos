@@ -41,9 +41,9 @@ protected:
     {
         KRATOS_TRY
 
-        SetDeltaTime(rModelPart.GetProcessInfo()[DELTA_TIME]);
-        rModelPart.GetProcessInfo()[VELOCITY_COEFFICIENT]    = 1.0/GetDeltaTime();
-        rModelPart.GetProcessInfo()[DT_PRESSURE_COEFFICIENT] = 1.0/GetDeltaTime();
+        this->SetDeltaTime(rModelPart.GetProcessInfo()[DELTA_TIME]);
+        rModelPart.GetProcessInfo()[VELOCITY_COEFFICIENT]    = 1.0/this->GetDeltaTime();
+        rModelPart.GetProcessInfo()[DT_PRESSURE_COEFFICIENT] = 1.0/this->GetDeltaTime();
 
         KRATOS_CATCH("")
     }
@@ -56,13 +56,13 @@ protected:
         block_for_each(rModelPart.Nodes(), [this](Node& rNode) {
             // refactor, extract the (a -b)/mDeltaTime that happens 3 times here
             noalias(rNode.FastGetSolutionStepValue(VELOCITY))     = (  rNode.FastGetSolutionStepValue(DISPLACEMENT)
-                                                                                   - rNode.FastGetSolutionStepValue(DISPLACEMENT, 1)) / GetDeltaTime();
+                                                                                   - rNode.FastGetSolutionStepValue(DISPLACEMENT, 1)) / this->GetDeltaTime();
 
             noalias(rNode.FastGetSolutionStepValue(ACCELERATION)) = (  rNode.FastGetSolutionStepValue(VELOCITY)
-                                                                                   - rNode.FastGetSolutionStepValue(VELOCITY,1) ) / GetDeltaTime();
+                                                                                   - rNode.FastGetSolutionStepValue(VELOCITY,1) ) / this->GetDeltaTime();
 
             rNode.FastGetSolutionStepValue(DT_WATER_PRESSURE)        = (  rNode.FastGetSolutionStepValue(WATER_PRESSURE)
-                                                                                  - rNode.FastGetSolutionStepValue(WATER_PRESSURE, 1)) / GetDeltaTime();
+                                                                                  - rNode.FastGetSolutionStepValue(WATER_PRESSURE, 1)) / this->GetDeltaTime();
 
         });
 

@@ -51,7 +51,7 @@ public:
 
         Scheme<TSparseSpace, TDenseSpace>::Check(rModelPart);
         CheckAllocatedVariables(rModelPart);
-        CheckBufferSize(rModelPart);
+        this->CheckBufferSize(rModelPart);
 
         KRATOS_ERROR_IF(mTheta <= 0) << "Theta has an invalid value\n";
 
@@ -81,7 +81,7 @@ public:
                               TSystemVectorType& Dx,
                               TSystemVectorType& b) override
     {
-        FinalizeSolutionStepActiveEntities(rModelPart, A, Dx, b);
+        this->FinalizeSolutionStepActiveEntities(rModelPart, A, Dx, b);
     }
 
 protected:
@@ -97,8 +97,8 @@ protected:
                 rNode.FastGetSolutionStepValue(DT_TEMPERATURE, 1);
 
             rNode.FastGetSolutionStepValue(DT_TEMPERATURE) =
-                1.0 / (mTheta * GetDeltaTime()) *
-                (delta_temperature - (1.0 - mTheta) * GetDeltaTime() * previous_dt_temperature);
+                1.0 / (mTheta * this->GetDeltaTime()) *
+                (delta_temperature - (1.0 - mTheta) * this->GetDeltaTime() * previous_dt_temperature);
         });
 
         KRATOS_CATCH("")
@@ -108,9 +108,9 @@ protected:
     {
         KRATOS_TRY
 
-        SetDeltaTime(rModelPart.GetProcessInfo()[DELTA_TIME]);
+        this->SetDeltaTime(rModelPart.GetProcessInfo()[DELTA_TIME]);
         rModelPart.GetProcessInfo()[DT_TEMPERATURE_COEFFICIENT] =
-            1.0 / (mTheta * GetDeltaTime());
+            1.0 / (mTheta * this->GetDeltaTime());
 
         KRATOS_CATCH("")
     }

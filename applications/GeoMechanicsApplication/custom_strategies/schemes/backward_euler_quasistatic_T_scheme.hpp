@@ -47,7 +47,7 @@ protected:
             const double DeltaTemperature =
                 rNode.FastGetSolutionStepValue(TEMPERATURE) -
                 rNode.FastGetSolutionStepValue(TEMPERATURE, 1);
-            rNode.FastGetSolutionStepValue(DT_TEMPERATURE) = DeltaTemperature / mDeltaTime;
+            rNode.FastGetSolutionStepValue(DT_TEMPERATURE) = DeltaTemperature / this->GetDeltaTime();
         });
 
         KRATOS_CATCH("")

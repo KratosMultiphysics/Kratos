@@ -44,7 +44,7 @@ protected:
        block_for_each(rModelPart.Nodes(), [this](Node& rNode){
             const double DeltaPressure =  rNode.FastGetSolutionStepValue(WATER_PRESSURE)
                                         - rNode.FastGetSolutionStepValue(WATER_PRESSURE, 1);
-            rNode.FastGetSolutionStepValue(DT_WATER_PRESSURE) = DeltaPressure / GetDeltaTime();
+            rNode.FastGetSolutionStepValue(DT_WATER_PRESSURE) = DeltaPressure / this->GetDeltaTime();
         });
 
         KRATOS_CATCH( "" )

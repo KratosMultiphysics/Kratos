@@ -349,7 +349,7 @@ KRATOS_TEST_CASE_IN_SUITE(UPWSchemePredict_UpdatesVariablesDerivatives, KratosGe
         expected_dt_water_pressure);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(FunctionCallsOnAllConditions_AreOnlyCalledForActiveElements,
+KRATOS_TEST_CASE_IN_SUITE(FunctionCallsOnAllElements_AreOnlyCalledForActiveElements,
                           KratosGeoMechanicsFastSuite)
 {
     NewmarkQuasistaticUPwSchemeTester tester;

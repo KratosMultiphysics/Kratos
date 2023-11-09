@@ -68,7 +68,7 @@ public:
                 << std::endl;
         }
 
-        CheckBufferSize(rModelPart);
+        this->CheckBufferSize(rModelPart);
 
         // Check beta, gamma and theta
         KRATOS_ERROR_IF(mBeta <= 0.0 || mGamma<= 0.0 || mTheta <= 0.0)
@@ -103,7 +103,7 @@ protected:
                                         - rNode.FastGetSolutionStepValue(WATER_PRESSURE, 1);
             const auto &PreviousDtPressure = rNode.FastGetSolutionStepValue(DT_WATER_PRESSURE, 1);
 
-            rNode.FastGetSolutionStepValue(DT_WATER_PRESSURE) =  (1.0/(mTheta*GetDeltaTime()))*(DeltaPressure - (1.0-mTheta)*GetDeltaTime()*PreviousDtPressure);
+            rNode.FastGetSolutionStepValue(DT_WATER_PRESSURE) =  (1.0/(mTheta*this->GetDeltaTime()))*(DeltaPressure - (1.0-mTheta)*this->GetDeltaTime()*PreviousDtPressure);
         });
 
         KRATOS_CATCH( "" )

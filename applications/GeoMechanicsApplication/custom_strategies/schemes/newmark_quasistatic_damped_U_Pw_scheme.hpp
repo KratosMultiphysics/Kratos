@@ -117,7 +117,7 @@ protected:
                          const ProcessInfo& CurrentProcessInfo)
     {
         // adding damping contribution
-        if (C.size1() != 0) noalias(LHS_Contribution) += (mGamma/(mBeta*GetDeltaTime()))*C;
+        if (C.size1() != 0) noalias(LHS_Contribution) += (mGamma/(mBeta*this->GetDeltaTime()))*C;
     }
 
     void AddDampingToRHS(Element &rCurrentElement,
