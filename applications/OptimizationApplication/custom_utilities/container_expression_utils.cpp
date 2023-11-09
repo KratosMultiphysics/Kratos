@@ -234,6 +234,24 @@ double ContainerExpressionUtils::NormL2(
 }
 
 template<class TContainerType>
+double ContainerExpressionUtils::Sum(const ContainerExpression<TContainerType>& rContainer)
+{
+    const auto& r_expression = rContainer.GetExpression();
+    const IndexType local_size = rContainer.GetItemComponentCount();
+    const IndexType number_of_entities = rContainer.GetContainer().size();
+
+    return rContainer.GetModelPart().GetCommunicator().GetDataCommunicator().SumAll(IndexPartition<IndexType>(number_of_entities).for_each<SumReduction<double>>([&rContainer, &r_expression, local_size](const IndexType EntityIndex) {
+        const IndexType local_data_begin_index = EntityIndex * local_size;
+        double value = 0.0;
+        for (IndexType i = 0; i < local_size; ++i) {
+            value += r_expression.Evaluate(EntityIndex, local_data_begin_index, i);
+        }
+        return value;
+    }));
+}
+
+
+template<class TContainerType>
 double ContainerExpressionUtils::InnerProduct(
     const ContainerExpression<TContainerType>& rContainer1,
     const ContainerExpression<TContainerType>& rContainer2)
@@ -654,6 +672,7 @@ void ContainerExpressionUtils::ComputeNodalVariableProductWithEntityMatrix(
     template KRATOS_API(OPTIMIZATION_APPLICATION) double ContainerExpressionUtils::EntityMaxNormL2(const ContainerExpression<ContainerType>&);                                                                                                                        \
     template KRATOS_API(OPTIMIZATION_APPLICATION) double ContainerExpressionUtils::NormInf(const ContainerExpression<ContainerType>&);                                                                                                                                \
     template KRATOS_API(OPTIMIZATION_APPLICATION) double ContainerExpressionUtils::NormL2(const ContainerExpression<ContainerType>&);                                                                                                                                 \
+    template KRATOS_API(OPTIMIZATION_APPLICATION) double ContainerExpressionUtils::Sum(const ContainerExpression<ContainerType>&);                                                                                                                                 \
     template KRATOS_API(OPTIMIZATION_APPLICATION) double ContainerExpressionUtils::InnerProduct(const ContainerExpression<ContainerType>&, const ContainerExpression<ContainerType>&);                                                                                \
     template KRATOS_API(OPTIMIZATION_APPLICATION) void ContainerExpressionUtils::ProductWithEntityMatrix(ContainerExpression<ContainerType>&, const typename UblasSpace<double, CompressedMatrix, Vector>::MatrixType&, const ContainerExpression<ContainerType>&);   \
     template KRATOS_API(OPTIMIZATION_APPLICATION) void ContainerExpressionUtils::ProductWithEntityMatrix(ContainerExpression<ContainerType>&, const Matrix&, const ContainerExpression<ContainerType>&);

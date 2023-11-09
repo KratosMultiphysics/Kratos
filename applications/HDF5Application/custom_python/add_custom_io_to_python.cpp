@@ -237,6 +237,8 @@ void AddCustomIOToPython(pybind11::module& m)
         .def("Close", &HDF5::File::Close)
         .def("GetFileSize",&HDF5::File::GetFileSize)
         .def("GetFileName",&HDF5::File::GetFileName)
+        .def("WriteAttribute", [](HDF5::File& rSelf, const std::string& rPath, const Parameters Attributes) { rSelf.WriteAttribute(rPath, Attributes); }, py::arg("h5_path"), py::arg("attributes"))
+        .def("ReadAttribute", [](HDF5::File& rSelf, const std::string& rPath) -> Parameters { return rSelf.ReadAttribute(rPath); }, py::arg("h5_path"))
         ;
 
     py::class_<HDF5::ModelPartIO, HDF5::ModelPartIO::Pointer, IO>(m,"HDF5ModelPartIO")

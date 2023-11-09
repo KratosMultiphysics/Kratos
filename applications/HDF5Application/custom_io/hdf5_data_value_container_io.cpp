@@ -80,7 +80,7 @@ void Read(
 
     const bool is_read = (... || ReadComponentData<TDataTypes>(rFile, rVariableName, rPrefix, rData));
 
-    KRATOS_ERROR_IF_NOT(is_read) << "The variable \"" << rVariableName << "\" not found in registered variables list.";
+    // KRATOS_ERROR_IF_NOT(is_read) << "The variable \"" << rVariableName << "\" not found in registered variables list.";
 
     KRATOS_CATCH("");
 }
@@ -96,7 +96,7 @@ void Write(
 
     const bool is_written = (... || WriteComponentData<TDataTypes>(rFile, rVariableName, rPrefix, rData));
 
-    KRATOS_ERROR_IF_NOT(is_written) << "The variable \"" << rVariableName << "\" not found in registered variables list.";
+    // KRATOS_ERROR_IF_NOT(is_written) << "The variable \"" << rVariableName << "\" not found in registered variables list.";
 
     KRATOS_CATCH("");
 }

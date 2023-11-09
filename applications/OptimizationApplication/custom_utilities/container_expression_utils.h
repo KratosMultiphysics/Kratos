@@ -123,6 +123,18 @@ public:
     static double EntityMaxNormL2(const ContainerExpression<TContainerType>& rContainer);
 
     /**
+     * @brief Sum the entities in the container expression.
+     *
+     * It will sum all the components of each entity in the container expression.
+     *
+     * @tparam TContainerType           Type of the container
+     * @param rContainer                Container on which summation is computed
+     * @return double                   Sum of the entities in the container.
+     */
+    template<class TContainerType>
+    static double Sum(const ContainerExpression<TContainerType>& rContainer);
+
+    /**
      * @brief Computes inner product between two container expressions by evaluating
      * both expressions for each entity in their containers, hence this is an
      * expensive operation. Both containers should have the same model part,
