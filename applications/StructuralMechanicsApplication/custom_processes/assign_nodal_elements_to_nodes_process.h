@@ -30,7 +30,7 @@ namespace Kratos
 ///@{
 
     /// The size definition
-    typedef std::size_t SizeType;
+    using SizeType = std::size_t;
 
 ///@}
 ///@name  Enum's
@@ -58,15 +58,15 @@ public:
     KRATOS_CLASS_POINTER_DEFINITION(AssignNodalElementsToNodesProcess);
 
     /// The index definition
-    typedef std::size_t                                     IndexType;
+    using IndexType = std::size_t;
 
     /// Geometric type definitions
-    typedef Geometry<Node>                               GeometryType;
+    using GeometryType = Geometry<Node>;
 
     /// The definition of the containers
-    typedef ModelPart::NodesContainerType              NodesArrayType;
-    typedef ModelPart::ConditionsContainerType    ConditionsArrayType;
-    typedef ModelPart::ElementsContainerType        ElementsArrayType;
+    using NodesArrayType = ModelPart::NodesContainerType;
+    using ConditionsArrayType = ModelPart::ConditionsContainerType;
+    using ElementsArrayType = ModelPart::ElementsContainerType;
 
     ///@}
     ///@name Life Cycle
