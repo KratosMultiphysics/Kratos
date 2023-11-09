@@ -21,40 +21,44 @@ namespace Kratos::Testing {
 
 void TestTnormalFluxCondition(ModelPart& rModelPart)
 {
-    Element::Pointer p_element = rModelPart.pGetElement(1);
+    Condition::Pointer p_condition = rModelPart.pGetCondition(1);
 
     for (unsigned int i = 0; i < rModelPart.NumberOfNodes(); i++) {
-        p_element->GetGeometry()[i].AddDof(TEMPERATURE);
+        p_condition->GetGeometry()[i].AddDof(TEMPERATURE);
     }
 
     const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
-    // p_element->Check(r_current_process_info);
-    // Check requires a solution?
+    // p_condition->Check(r_current_process_info);
+    // Check requires a solution? 
 
-    Element::DofsVectorType ElementalDofList;
-    p_element->GetDofList(ElementalDofList, r_current_process_info);
+    Condition::DofsVectorType dof_list;
+    p_condition->GetDofList(dof_list, r_current_process_info);
 
-    for (unsigned int i = 0; i < ElementalDofList.size(); i++) {
-        ElementalDofList[i]->SetEquationId(i);
+    for (unsigned int i = 0; i < dof_list.size(); i++) {
+        dof_list[i]->SetEquationId(i);
     }
 
-    Element::EquationIdVectorType EquationIdVector;
-    p_element->EquationIdVector(EquationIdVector, r_current_process_info);
+    Condition::EquationIdVectorType equation_id_vector;
+    p_condition->EquationIdVector(equation_id_vector, r_current_process_info);
 
     // Check the EquationIdVector values
-    for (unsigned int i = 0; i < EquationIdVector.size(); i++) {
-        KRATOS_EXPECT_TRUE(EquationIdVector[i] == i);
+    for (unsigned int i = 0; i < equation_id_vector.size(); i++) {
+        KRATOS_EXPECT_TRUE(equation_id_vector[i] == i);
     }
 }
 
 void GenerateTnormalFluxCondition2D2N(ModelPart& rModelPart)
 {
+	rModelPart.GetProcessInfo()[DOMAIN_SIZE] = 2;
+
+	rModelPart.CreateNewProperties(0);
+	Properties::Pointer p_cond_prop = rModelPart.pGetProperties(0);
     // Geometry creation
     rModelPart.CreateNewNode(1, 0.0, 0.0, 0.0);
     rModelPart.CreateNewNode(2, 1.0, 0.0, 0.0);
-    std::vector<ModelPart::IndexType> elemNodes{1, 2};
-    rModelPart.CreateNewElement("mTNormalFluxCondition2D2N", 1, elemNodes,
-                                rModelPart.CreateNewProperties(0));
+    std::vector<ModelPart::IndexType> cond_nodes{1, 2};
+    rModelPart.CreateNewCondition("TNormalFluxCondition2D2N", 1, cond_nodes,
+                                p_cond_prop);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(EquationIdVectorTnormalFluxCondition2D2N, KratosGeoMechanicsFastSuite)
@@ -75,8 +79,8 @@ void GenerateTnormalFluxCondition2D3N(ModelPart& rModelPart)
     rModelPart.CreateNewNode(1, 0.0, 0.0, 0.0);
     rModelPart.CreateNewNode(2, 1.0, 0.0, 0.0);
     rModelPart.CreateNewNode(3, 1.0, 1.0, 0.0);
-    std::vector<ModelPart::IndexType> elemNodes{1, 2, 3};
-    rModelPart.CreateNewElement("mTNormalFluxCondition2D3N", 1, elemNodes,
+    std::vector<ModelPart::IndexType> cond_nodes{1, 2, 3};
+    rModelPart.CreateNewCondition("TNormalFluxCondition2D3N", 1, cond_nodes,
                                 rModelPart.CreateNewProperties(0));
 }
 
@@ -99,12 +103,12 @@ void GenerateTnormalFluxCondition2D4N(ModelPart& rModelPart)
     rModelPart.CreateNewNode(2, 1.0, 0.0, 0.0);
     rModelPart.CreateNewNode(3, 1.0, 1.0, 0.0);
     rModelPart.CreateNewNode(4, 0.6666, 0.3333, 0.0);
-    std::vector<ModelPart::IndexType> elemNodes{1, 2, 3, 4};
-    rModelPart.CreateNewElement("mTNormalFluxCondition2D4N", 1, elemNodes,
+    std::vector<ModelPart::IndexType> cond_nodes{1, 2, 3, 4};
+    rModelPart.CreateNewCondition("TNormalFluxCondition2D4N", 1, cond_nodes,
                                 rModelPart.CreateNewProperties(0));
 }
 
-KRATOS_TEST_CASE_IN_SUITE(EquationIdVectormTNormalFluxCondition2D4N, KratosGeoMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(EquationIdVectorTNormalFluxCondition2D4N, KratosGeoMechanicsFastSuite)
 {
     Model this_model;
     ModelPart& model_part = this_model.CreateModelPart("Main", 3);
@@ -124,14 +128,13 @@ void GenerateTnormalFluxCondition2D5N(ModelPart& rModelPart)
     rModelPart.CreateNewNode(3, 1.0, 1.0, 0.0);
     rModelPart.CreateNewNode(4, 0.5, 0.0, 0.0);
     rModelPart.CreateNewNode(5, 1.0, 0.5, 0.0);
-    rModelPart.CreateNewNode(6, 0.5, 0.5, 0.0);
 
-    std::vector<ModelPart::IndexType> elemNodes{1, 2, 3, 4, 5, 6};
-    rModelPart.CreateNewElement("mTNormalFluxCondition2D5N", 1, elemNodes,
+    std::vector<ModelPart::IndexType> cond_nodes{1, 2, 3, 4, 5};
+    rModelPart.CreateNewCondition("TNormalFluxCondition2D5N", 1, cond_nodes,
                                 rModelPart.CreateNewProperties(0));
 }
 
-KRATOS_TEST_CASE_IN_SUITE(EquationIdVectormTNormalFluxCondition2D5N, KratosGeoMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(EquationIdVectorTNormalFluxCondition2D5N, KratosGeoMechanicsFastSuite)
 {
     Model this_model;
     ModelPart& model_part = this_model.CreateModelPart("Main", 3);
@@ -151,12 +154,12 @@ void GenerateTnormalFluxCondition3D4N(ModelPart& rModelPart)
     rModelPart.CreateNewNode(3, 1.0, 1.0, 0.0);
     rModelPart.CreateNewNode(4, 0.5, 0.0, 0.0);
 
-    std::vector<ModelPart::IndexType> elemNodes{1, 2, 3, 4};
-    rModelPart.CreateNewElement("mTNormalFluxCondition3D4N", 1, elemNodes,
+    std::vector<ModelPart::IndexType> cond_nodes{1, 2, 3, 4};
+    rModelPart.CreateNewCondition("TNormalFluxCondition3D4N", 1, cond_nodes,
                                 rModelPart.CreateNewProperties(0));
 }
 
-KRATOS_TEST_CASE_IN_SUITE(EquationIdVectormTNormalFluxCondition3D4N, KratosGeoMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(EquationIdVectorTNormalFluxCondition3D4N, KratosGeoMechanicsFastSuite)
 {
     Model this_model;
     ModelPart& model_part = this_model.CreateModelPart("Main", 3);
@@ -177,15 +180,13 @@ void GenerateTnormalFluxCondition3D6N(ModelPart& rModelPart)
     rModelPart.CreateNewNode(4, 0.5, 0.0, 0.0);
     rModelPart.CreateNewNode(5, 1.0, 0.5, 0.0);
     rModelPart.CreateNewNode(6, 0.5, 0.5, 0.0);
-    rModelPart.CreateNewNode(7, 0.5, 0.5, 0.0);
-    rModelPart.CreateNewNode(8, 0.5, 0.5, 0.0);
 
-    std::vector<ModelPart::IndexType> elemNodes{1, 2, 3, 4, 5, 6, 7, 8};
-    rModelPart.CreateNewElement("mTNormalFluxCondition3D6N", 1, elemNodes,
+    std::vector<ModelPart::IndexType> cond_nodes{1, 2, 3, 4, 5, 6};
+    rModelPart.CreateNewCondition("TNormalFluxCondition3D6N", 1, cond_nodes,
                                 rModelPart.CreateNewProperties(0));
 }
 
-KRATOS_TEST_CASE_IN_SUITE(EquationIdVectormTNormalFluxCondition3D6N, KratosGeoMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(EquationIdVectorTNormalFluxCondition3D6N, KratosGeoMechanicsFastSuite)
 {
     Model this_model;
     ModelPart& model_part = this_model.CreateModelPart("Main", 3);
@@ -209,12 +210,12 @@ void GenerateTnormalFluxCondition3D8N(ModelPart& rModelPart)
     rModelPart.CreateNewNode(7, 0.5, 0.5, 0.0);
     rModelPart.CreateNewNode(8, 0.5, 0.5, 0.0);
 
-    std::vector<ModelPart::IndexType> elemNodes{1, 2, 3, 4, 5, 6, 7, 8};
-    rModelPart.CreateNewElement("mTNormalFluxCondition3D8N", 1, elemNodes,
+    std::vector<ModelPart::IndexType> cond_nodes{1, 2, 3, 4, 5, 6, 7, 8};
+    rModelPart.CreateNewCondition("TNormalFluxCondition3D8N", 1, cond_nodes,
                                 rModelPart.CreateNewProperties(0));
 }
 
-KRATOS_TEST_CASE_IN_SUITE(EquationIdVectormTNormalFluxCondition3D8N, KratosGeoMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(EquationIdVectorTNormalFluxCondition3D8N, KratosGeoMechanicsFastSuite)
 {
     Model this_model;
     ModelPart& model_part = this_model.CreateModelPart("Main", 3);
@@ -238,14 +239,13 @@ void GenerateTnormalFluxCondition3D9N(ModelPart& rModelPart)
     rModelPart.CreateNewNode(7, 0.5, 0.5, 0.0);
     rModelPart.CreateNewNode(8, 0.5, 0.5, 0.0);
     rModelPart.CreateNewNode(9, 0.5, 0.5, 0.0);
-    rModelPart.CreateNewNode(10, 0.5, 0.5, 0.0);
 
-    std::vector<ModelPart::IndexType> elemNodes{1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
-    rModelPart.CreateNewElement("mTNormalFluxCondition3D9N", 1, elemNodes,
+    std::vector<ModelPart::IndexType> cond_nodes{1, 2, 3, 4, 5, 6, 7, 8, 9};
+    rModelPart.CreateNewCondition("TNormalFluxCondition3D9N", 1, cond_nodes,
                                 rModelPart.CreateNewProperties(0));
 }
 
-KRATOS_TEST_CASE_IN_SUITE(EquationIdVectormTNormalFluxCondition3D9N, KratosGeoMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(EquationIdVectorTNormalFluxCondition3D9N, KratosGeoMechanicsFastSuite)
 {
     Model this_model;
     ModelPart& model_part = this_model.CreateModelPart("Main", 3);
