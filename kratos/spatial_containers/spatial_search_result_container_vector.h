@@ -49,6 +49,9 @@ public:
     /// The spatial search result container type
     using SpatialSearchResultContainerType = SpatialSearchResultContainer<TObjectType>;
 
+    /// The spatial search result container reference type
+    using SpatialSearchResultContainerReferenceType = SpatialSearchResultContainerType&;
+
     /// The spatial search result container pointer type
     using SpatialSearchResultContainerPointerType = SpatialSearchResultContainerType*;
 
@@ -68,10 +71,10 @@ public:
         using difference_type = std::ptrdiff_t;
 
         /// A pointer to the value type.
-        using pointer = value_type*;
+        using pointer = SpatialSearchResultContainerPointerType;
 
         /// A reference to the value type.
-        using reference = value_type&;
+        using reference = SpatialSearchResultContainerReferenceType;
 
         /**
          * @brief Constructs an iterator pointing to the specified position.
@@ -149,10 +152,10 @@ public:
         using difference_type = std::ptrdiff_t;
 
         /// A pointer to the value type.
-        using pointer = const value_type*;
+        using pointer = const SpatialSearchResultContainerPointerType;
 
         /// A reference to the value type.
-        using reference = const value_type&;
+        using reference = const SpatialSearchResultContainerReferenceType;
 
         /**
          * @brief Constructs a constant iterator pointing to the specified position.
@@ -241,7 +244,7 @@ public:
      * @param Index The index to be initialized
      * @return The result container
      */
-    SpatialSearchResultContainerType& operator[](const IndexType Index)
+    SpatialSearchResultContainerReferenceType operator[](const IndexType Index)
     {
         KRATOS_ERROR_IF_NOT(this->HasResult(Index)) << "The result container does not exist for index: " << Index << std::endl;
         return *mPointResults[Index];
@@ -252,7 +255,7 @@ public:
      * @param Index The index to be initialized
      * @return The result container
      */
-    const SpatialSearchResultContainerType& operator[](const IndexType Index) const
+    const SpatialSearchResultContainerReferenceType operator[](const IndexType Index) const
     {
         KRATOS_ERROR_IF_NOT(this->HasResult(Index)) << "The result container does not exist for index: " << Index << std::endl;
         return *mPointResults[Index];
@@ -263,7 +266,7 @@ public:
      * @param Index The index to be initialized
      * @return The result container
      */
-    SpatialSearchResultContainerType& operator()(const IndexType Index)
+    SpatialSearchResultContainerReferenceType operator()(const IndexType Index)
     {
         KRATOS_ERROR_IF_NOT(this->HasResult(Index)) << "The result container does not exist for index: " << Index << std::endl;
         return *mPointResults[Index];
@@ -274,7 +277,7 @@ public:
      * @param Index The index to be initialized
      * @return The result container
      */
-    const SpatialSearchResultContainerType& operator()(const IndexType Index) const
+    const SpatialSearchResultContainerReferenceType operator()(const IndexType Index) const
     {
         KRATOS_ERROR_IF_NOT(this->HasResult(Index)) << "The result container does not exist for index: " << Index << std::endl;
         return *mPointResults[Index];
@@ -330,7 +333,7 @@ public:
      * @brief Initialize the container
      * @param Index The index to be initialized
      */
-    SpatialSearchResultContainerType& InitializeResult(const IndexType Index);
+    SpatialSearchResultContainerReferenceType InitializeResult(const IndexType Index);
 
     /**
      * @brief Check if coordinates are initialized
