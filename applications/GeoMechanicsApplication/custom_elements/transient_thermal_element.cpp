@@ -174,8 +174,8 @@ void TransientThermalElement<TDim, TNumNodes>::CalculateAll(
 
     // Loop over integration points
     for (unsigned int GPoint = 0; GPoint < NumGPoints; ++GPoint) {
-        // Compute GradNpT, B and StrainVector
-        CalculateKinematics(Variables, GPoint);
+        Variables.N = row(Variables.NContainer, GPoint);
+        Variables.GradNT = Variables.DN_DXContainer[GPoint];
 
         // Compute weighting coefficient for integration
         Variables.IntegrationCoefficient =
@@ -224,19 +224,6 @@ void TransientThermalElement<TDim, TNumNodes>::InitializeElementVariables(
 
     rVariables.CapacityMatrix = ZeroMatrix(TNumNodes, TNumNodes);
     rVariables.ConductivityMatrix = ZeroMatrix(TNumNodes, TNumNodes);
-
-    KRATOS_CATCH("")
-}
-
-template <unsigned int TDim, unsigned int TNumNodes>
-void TransientThermalElement<TDim, TNumNodes>::CalculateKinematics(ElementVariables& rVariables,
-                                                                   unsigned int PointNumber)
-{
-    KRATOS_TRY
-
-    // Setting the vector of shape functions and the matrix of the shape functions global gradients
-    rVariables.N = row(rVariables.NContainer, PointNumber);
-    rVariables.GradNT = rVariables.DN_DXContainer[PointNumber];
 
     KRATOS_CATCH("")
 }

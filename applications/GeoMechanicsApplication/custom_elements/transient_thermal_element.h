@@ -82,8 +82,6 @@ private:
     void InitializeElementVariables(ElementVariables& rVariables,
                                     const ProcessInfo& CurrentProcessInfo);
 
-    void CalculateKinematics(ElementVariables& rVariables, unsigned int PointNumber);
-
     void CalculateAndAddConductivityVector(VectorType& rRightHandSideVector,
                                            ElementVariables& rVariables);
 
