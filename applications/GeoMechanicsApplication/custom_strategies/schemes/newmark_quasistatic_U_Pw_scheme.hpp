@@ -171,7 +171,7 @@ protected:
     double mGamma = 0.5;
     double mTheta = 0.5;
 
-    virtual inline void SetTimeFactors(ModelPart& rModelPart)
+    inline void SetTimeFactors(ModelPart& rModelPart) override
     {
         KRATOS_TRY
 
@@ -182,7 +182,7 @@ protected:
         KRATOS_CATCH("")
     }
 
-    virtual inline void UpdateVariablesDerivatives(ModelPart& rModelPart)
+    inline void UpdateVariablesDerivatives(ModelPart& rModelPart) override
     {
         KRATOS_TRY
 
