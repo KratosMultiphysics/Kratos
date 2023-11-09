@@ -2,6 +2,7 @@ import typing
 import scipy.cluster.hierarchy as sch
 from pathlib import Path
 from functools import reduce
+import numpy as np
 
 import KratosMultiphysics as Kratos
 import KratosMultiphysics.OptimizationApplication as KratosOA
@@ -40,18 +41,7 @@ class CosineSimilaritySensorPlacementAlgorithm(SensorPlacementAlgorithm):
         self.is_csv_output = self.parameters["output_to_csv"].GetBool()
 
     def Execute(self, list_of_specifications: 'list[KratosDT.Sensors.SensorSpecification]') -> None:
-        # categorize specs based on name
-        dict_of_specs: 'dict[str, list[KratosDT.Sensors.SensorSpecification]]' = {}
-        for spec in list_of_specifications:
-            if not spec.GetName() in dict_of_specs.keys():
-                dict_of_specs[spec.GetName()] = []
-            dict_of_specs[spec.GetName()].append(spec)
-
-        # now find the best specs from each category
-        self.list_of_specifications: 'list[KratosDT.Sensors.SensorSpecification]' = []
-        for _, specs in dict_of_specs.items():
-            sorted_specs = sorted(specs, key=lambda x: abs(x.GetSensorValue()), reverse=True)
-            self.list_of_specifications.extend(sorted_specs[:int(len(sorted_specs) * self.parameters["percentage_of_best_sensors_to_consider"].GetDouble())])
+        self.list_of_specifications = list_of_specifications
 
         if len(self.list_of_specifications) == 0:
             raise RuntimeError("No specifications are given.")
@@ -69,76 +59,75 @@ class CosineSimilaritySensorPlacementAlgorithm(SensorPlacementAlgorithm):
             self.ComputeSensorPlacement(f"element/{k}", lambda x: x.GetElementExpression(k))
 
     def ComputeSensorPlacement(self, name: str, retrieval_method: 'typing.Callable[[KratosDT.Sensors.SensorSpecification], typing.Union[Kratos.Expression.NodalExpression, Kratos.Expression.ConditionExpression, Kratos.Expression.ElementExpression]]'):
+        # first cluster them based on the location of the sensor
         number_of_sensors = self.parameters["number_of_sensors"].GetInt()
+
         normalized_specifications = GetNormalizedSpecifications(self.list_of_specifications, retrieval_method)
-        distances = GetCosineDistances(normalized_specifications, retrieval_method)
-        linkage = sch.linkage(distances, method=self.parameters["clustering_method"].GetString())
-        clusters = sch.fcluster(linkage, number_of_sensors, 'maxclust')
 
-        # group clusters
-        clustered_specs:'dict[int, list[tuple[int, KratosDT.Sensors.SensorSpecification]]]' = {}
-        for i, cluster_id in enumerate(clusters):
-            if cluster_id not in clustered_specs.keys():
-                clustered_specs[cluster_id] = []
-            spec = normalized_specifications[i]
+        if len(normalized_specifications) == 0:
+            raise RuntimeError("No specifications with zero vectors found.")
+
+        # compute best sensor for each entity
+        total_number_of_entities = len(retrieval_method(normalized_specifications[0]).GetContainer())
+
+        entity_best_specs_list:'list[KratosDT.Sensors.SensorSpecification]' = []
+        for entity_index in range(total_number_of_entities):
+            entity_best_spec = max(normalized_specifications, key=lambda x: retrieval_method(x).Evaluate()[entity_index])
+            entity_best_specs_list.append(entity_best_spec)
+
+        unique_normalized_list = list(set(entity_best_specs_list))
+
+        # now sensors based on their sensitvities which are used for updating
+        spec_cosine_distances = GetCosineDistances(unique_normalized_list, retrieval_method)
+        spec_cosine_linkage = sch.linkage(spec_cosine_distances, method=self.parameters["clustering_method"].GetString())
+        spec_cosine_clusters = sch.fcluster(spec_cosine_linkage, number_of_sensors, 'maxclust')
+
+        # now group the sensors in each cluster and assign SENSOR_CLUSTER_ID
+        # assign the cluster id for the entity as well
+        spec_clusters_dict:'dict[int, tuple[list[int], list[KratosDT.Sensors.SensorSpecification]]]' = {}
+        entity_cluster_data: 'list[int]' = [-1] * total_number_of_entities
+        for i, cluster_id in enumerate(spec_cosine_clusters):
+            if cluster_id not in spec_clusters_dict.keys():
+                spec_clusters_dict[cluster_id] = ([], [])
+            spec = unique_normalized_list[i]
             spec.SetValue(KratosDT.SENSOR_CLUSTER_ID, cluster_id)
-            clustered_specs[cluster_id].append((i, spec))
+            spec_clusters_dict[cluster_id][1].append(spec)
+            for entity_index in range(total_number_of_entities):
+                if entity_best_specs_list[entity_index] == spec:
+                    entity_cluster_data[entity_index] = cluster_id
+                    spec_clusters_dict[cluster_id][0].append(entity_index)
 
-        # order clusters with max average sensor values
-        sorted_cluster_ids = sorted(
-                                range(1, number_of_sensors + 1),
-                                key=lambda x: (reduce(lambda accumulator, spec_data: accumulator + abs(spec_data[1].GetSensorValue()), clustered_specs[x], 0.0)) / len(clustered_specs[x]),
-                                reverse=True)
-
-        # now get the first sensor from the cluster which has the highest average sensor value, from that the sensor with the
-        # highest sensor value
-        best_sensors: 'list[tuple[int, KratosDT.Sensors.SensorSpecification]]' = [max(clustered_specs[sorted_cluster_ids[0]], key=lambda x: abs(x[1].GetSensorValue()))]
-        # now find the rest of the sensors which has the highest cosine distance to the already found ones.
-        number_of_normalized_specs = len(normalized_specifications)
-        for cluster_id in sorted_cluster_ids[1:]:
-            # get the cluster spec data
-            cluster_sensor_spec_data = clustered_specs[cluster_id]
-
-            max_combined_distance = 0.0
-            best_cluster_spec_data:'tuple[int, KratosDT.Sensors.SensorSpecification]' = (-1, None)
-
-            # iterate through every cluster spec to find the best orthogonal
-            # spec for already found specs
-            for cluster_spec_index, cluster_spec in cluster_sensor_spec_data:
-                min_combined_distance = 1e+16
-                for best_spec_index, _ in best_sensors:
-                    if best_spec_index > cluster_spec_index:
-                        i = cluster_spec_index
-                        j = best_spec_index
-                    elif best_spec_index < cluster_spec_index:
-                        i = best_spec_index
-                        j = cluster_spec_index
-                    else:
-                        raise RuntimeError("Trying to add a duplicate sensor")
-                    current_combined_distance = distances[number_of_normalized_specs * i + j - ((i + 2) * (i + 1)) // 2]
-
-                    if min_combined_distance > current_combined_distance:
-                        min_combined_distance = current_combined_distance
-
-                if max_combined_distance < min_combined_distance:
-                    max_combined_distance = min_combined_distance
-                    best_cluster_spec_data = (cluster_spec_index, cluster_spec)
-
-            best_sensors.append(best_cluster_spec_data)
+        # now look for the best sensor in each cluster which has the highest minimum for all the
+        # entities which it relates to
+        list_of_best_sensors: 'list[KratosDT.Sensors.SensorSpecification]' = []
+        for cluster_id, (entity_indices, list_of_specs) in spec_clusters_dict.items():
+            best_spec = max(list_of_specs, key=lambda x: np.min(np.take(retrieval_method(x).Evaluate(), entity_indices)))
+            list_of_best_sensors.append(best_spec)
 
         output_path = Path(self.parameters["output_folder"].GetString()) / f"sensors/{name}"
-        PrintSpecificationDataToCSV(normalized_specifications, output_path / f"clusters_{number_of_sensors:05d}.csv")
-        PrintSpecificationDataToCSV([spec for _, spec in best_sensors], output_path / f"best_placement_{number_of_sensors:05d}.csv")
+        PrintSpecificationDataToCSV(unique_normalized_list, output_path / f"clusters_{number_of_sensors:05d}.csv")
+        PrintSpecificationDataToCSV(list_of_best_sensors, output_path / f"best_placement_{number_of_sensors:05d}.csv")
 
-        if self.is_vtu_output and len(best_sensors) > 0:
-            model_part = retrieval_method(best_sensors[0][1]).GetModelPart()
-            vtu_output = Kratos.VtuOutput(model_part)
-            heat_map = retrieval_method(best_sensors[0][1])
-            for _, spec in best_sensors[1:]:
-                heat_map += retrieval_method(spec)
-            heat_map /= KratosOA.ExpressionUtils.NormL2(heat_map)
-            vtu_output.AddContainerExpression("heat_map", heat_map)
+        if self.is_vtu_output:
+            dummy_cexp = retrieval_method(entity_best_specs_list[0])
+            vtu_output = Kratos.VtuOutput(dummy_cexp.GetModelPart())
+
+            cexp = dummy_cexp.Clone()
+            Kratos.Expression.CArrayExpressionIO.Read(cexp, np.array(entity_cluster_data, dtype=np.int32))
+            vtu_output.AddContainerExpression("entity_cluster_id", cexp.Clone())
+
+            Kratos.Expression.CArrayExpressionIO.Read(cexp, np.array([spec.Id for spec in entity_best_specs_list], dtype=np.int32))
+            vtu_output.AddContainerExpression("entity_sensor_id", cexp.Clone())
+
+            if len(list_of_best_sensors) > 0:
+                heat_map = retrieval_method(list_of_best_sensors[0])
+                for spec in list_of_best_sensors[1:]:
+                    heat_map += retrieval_method(spec)
+                heat_map /= KratosOA.ExpressionUtils.NormL2(heat_map)
+                vtu_output.AddContainerExpression("heat_map", heat_map)
+
             vtu_output.PrintOutput(str(output_path / f"heat_map_{number_of_sensors:05d}"))
+
 
     def SmoothenSensitivityFields(self) -> None:
         mp_nodal, nodal_filter = self.__GetFilter(KratosOA.NodalExplicitFilter)
