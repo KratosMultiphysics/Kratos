@@ -261,10 +261,13 @@ namespace Kratos
             if (CalculateStiffnessMatrixFlag) {
                 this->CalculateAndAddLHS(rLeftHandSideMatrix, Variables);
             }
-            //Contributions to the right hand side
-            if (CalculateResidualVectorFlag) {
-                this->CalculateAndAddRHS(rRightHandSideVector, Variables);
-            }
+        }
+
+        GeoElementUtilities::AssemblePBlockMatrix<0, TNumNodes>(rLeftHandSideMatrix, Variables.conductivityMatrix);
+        GeoElementUtilities::AssemblePBlockMatrix<0, TNumNodes>(rLeftHandSideMatrix, Variables.dtTemperatureCoefficient * Variables.capacityMatrix);
+
+        if (CalculateResidualVectorFlag) {
+            this->CalculateAndAddRHS(rRightHandSideVector, Variables);
         }
 
         KRATOS_CATCH("")
@@ -307,6 +310,9 @@ namespace Kratos
             rVariables.detJContainer,
             this->GetIntegrationMethod());
 
+        rVariables.capacityMatrix = ZeroMatrix(TNumNodes, TNumNodes);
+        rVariables.conductivityMatrix = ZeroMatrix(TNumNodes, TNumNodes);
+
         KRATOS_CATCH("")
     }
 
@@ -335,8 +341,6 @@ namespace Kratos
         KRATOS_TRY
 
         this->CalculateConductivityMatrix(rVariables);
-        GeoElementUtilities::
-            AssemblePBlockMatrix<0, TNumNodes>(rLeftHandSideMatrix, rVariables.conductivityMatrix);
 
         KRATOS_CATCH("")
     }
@@ -351,7 +355,6 @@ namespace Kratos
         KRATOS_TRY
 
         this->CalculateCapacityMatrix(rVariables);
-        GeoElementUtilities::AssemblePBlockMatrix<0, TNumNodes>(rLeftHandSideMatrix, rVariables.capacityMatrix);
 
         KRATOS_CATCH("")
     }
@@ -438,9 +441,8 @@ namespace Kratos
             * rVariables.waterDensity * rVariables.waterHeatCapacity;
         const double cSolid = (1.0 - rVariables.porosity) * rVariables.solidDensity
             * rVariables.solidHeatCapacity;
-        noalias(rVariables.capacityMatrix) = (cWater + cSolid) * outer_prod(rVariables.N, rVariables.N)
-            * rVariables.IntegrationCoefficient
-            * rVariables.dtTemperatureCoefficient;
+        noalias(rVariables.capacityMatrix) += (cWater + cSolid) * outer_prod(rVariables.N, rVariables.N)
+            * rVariables.IntegrationCoefficient;
 
         KRATOS_CATCH("")
     }
@@ -458,7 +460,7 @@ namespace Kratos
         GeoThermalDispersion2DLaw::CalculateThermalDispersionMatrix(rVariables.constitutiveMatrix, rProp);
 
         BoundedMatrix<double, TDim, TNumNodes> Temp = prod(rVariables.constitutiveMatrix, trans(rVariables.GradNT));
-        noalias(rVariables.conductivityMatrix) = prod(rVariables.GradNT, Temp) * rVariables.IntegrationCoefficient;
+        noalias(rVariables.conductivityMatrix) += prod(rVariables.GradNT, Temp) * rVariables.IntegrationCoefficient;
 
         KRATOS_CATCH("");
     }
@@ -486,7 +488,6 @@ namespace Kratos
     {
         KRATOS_TRY
 
-        rVariables.capacityMatrix /= rVariables.dtTemperatureCoefficient;
         noalias(rVariables.capacityVector) = - prod(rVariables.capacityMatrix, rVariables.dtTemperatureVector);
 
         KRATOS_CATCH("")
@@ -517,7 +518,7 @@ namespace Kratos
 
         noalias(rVariables.conductivityVector) = - prod(rVariables.conductivityMatrix, rVariables.temperatureVector);
 
-        KRATOS_CATCH("");
+        KRATOS_CATCH("")
     }
 
     // ============================================================================================
