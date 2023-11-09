@@ -160,9 +160,7 @@ template <unsigned int TDim, unsigned int TNumNodes>
 void TransientThermalElement<TDim, TNumNodes>::CalculateAll(
     MatrixType& rLeftHandSideMatrix,
     VectorType& rRightHandSideVector,
-    const ProcessInfo& rCurrentProcessInfo,
-    bool CalculateStiffnessMatrixFlag,
-    bool CalculateResidualVectorFlag)
+    const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
@@ -183,17 +181,13 @@ void TransientThermalElement<TDim, TNumNodes>::CalculateAll(
         Variables.IntegrationCoefficient =
             IntegrationPoints[GPoint].Weight() * Variables.detJContainer[GPoint];
 
-        if (CalculateStiffnessMatrixFlag) {
-            CalculateAndAddLHS(rLeftHandSideMatrix, Variables);
-        }
+        CalculateAndAddLHS(rLeftHandSideMatrix, Variables);
     }
 
     GeoElementUtilities::AssemblePBlockMatrix<0, TNumNodes>(rLeftHandSideMatrix, Variables.ConductivityMatrix);
     GeoElementUtilities::AssemblePBlockMatrix<0, TNumNodes>(rLeftHandSideMatrix, Variables.DtTemperatureCoefficient * Variables.CapacityMatrix);
 
-    if (CalculateResidualVectorFlag) {
-        this->CalculateAndAddRHS(rRightHandSideVector, Variables);
-    }
+    this->CalculateAndAddRHS(rRightHandSideVector, Variables);
 
     KRATOS_CATCH("")
 }
@@ -392,11 +386,7 @@ void TransientThermalElement<TDim, TNumNodes>::CalculateLocalSystem(
     }
     noalias(rRightHandSideVector) = ZeroVector(N_DOF);
 
-    constexpr bool CalculateStiffnessMatrixFlag = true;
-    constexpr bool CalculateResidualVectorFlag = true;
-
-    CalculateAll(rLeftHandSideMatrix, rRightHandSideVector, rCurrentProcessInfo,
-                 CalculateStiffnessMatrixFlag, CalculateResidualVectorFlag);
+    CalculateAll(rLeftHandSideMatrix, rRightHandSideVector, rCurrentProcessInfo);
 
     KRATOS_CATCH("")
 }

@@ -79,9 +79,7 @@ public:
 private:
     void CalculateAll(MatrixType& rLeftHandSideMatrix,
                       VectorType& rRightHandSideVector,
-                      const ProcessInfo& CurrentProcessInfo,
-                      bool CalculateStiffnessMatrixFlag,
-                      bool CalculateResidualVectorFlag);
+                      const ProcessInfo& CurrentProcessInfo);
 
     void InitializeElementVariables(ElementVariables& rVariables,
                                     const ProcessInfo& CurrentProcessInfo);
