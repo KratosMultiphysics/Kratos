@@ -36,8 +36,8 @@ def GetNodalSpecificationsWithDirection(model: Kratos.Model, list_of_parameters:
 
     return list_of_specifications
 
-def PrintSpecificationDataToCSV(list_of_specifications: 'list[KratosDT.Sensors.SensorSpecification]', output_file_name: Path) -> None:
-    number_of_clusters = len(list_of_specifications)
+def PrintSpecificationDataToCSV(list_of_spec_views: 'list[typing.Union[KratosDT.Sensors.NodalSensorSpecificationView, KratosDT.Sensors.ConditionSensorSpecificationView, KratosDT.Sensors.ElementSensorSpecificationView]]', output_file_name: Path) -> None:
+    number_of_clusters = len(list_of_spec_views)
 
     # do nothing if number of clusters is zero
     if number_of_clusters == 0:
@@ -50,14 +50,15 @@ def PrintSpecificationDataToCSV(list_of_specifications: 'list[KratosDT.Sensors.S
         csv_output.write("#; name; value; location_x; location_y; location_z")
         # now write the headers of data containers
         list_of_vars = []
-        for var_name in list_of_specifications[0].GetDataVariableNames():
+        for var_name in list_of_spec_views[0].GetSensorSpecification().GetDataVariableNames():
             csv_output.write(f"; {var_name}")
             list_of_vars.append(Kratos.KratosGlobals.GetVariable(var_name))
         csv_output.write("\n")
 
         # now write the data
         sensor_id = 0
-        for spec in list_of_specifications:
+        for spec_view in list_of_spec_views:
+            spec = spec_view.GetSensorSpecification()
             sensor_id += 1
             loc = spec.GetLocation()
             csv_output.write(f"{sensor_id}; {spec.GetName()}; {spec.GetSensorValue()}; {loc[0]}; {loc[1]}; {loc[2]}")
@@ -65,18 +66,18 @@ def PrintSpecificationDataToCSV(list_of_specifications: 'list[KratosDT.Sensors.S
                 csv_output.write(f"; {spec.GetValue(var)}")
             csv_output.write("\n")
 
-def GetNormalizedSpecifications(list_of_specifications: 'list[KratosDT.Sensors.SensorSpecification]', retrieval_mathod: 'typing.Callable[[KratosDT.Sensors.SensorSpecification], typing.Union[Kratos.Expression.NodalExpression, Kratos.Expression.ConditionExpression, Kratos.Expression.ElementExpression]]') -> 'list[KratosDT.Sensors.SensorSpecification]':
-    result: 'list[KratosDT.Sensors.SensorSpecification]' = []
-    for spec in list_of_specifications:
-        cexp = retrieval_mathod(spec)
+def GetNormalizedSpecifications(list_of_spec_views: 'list[typing.Union[KratosDT.Sensors.NodalSensorSpecificationView, KratosDT.Sensors.ConditionSensorSpecificationView, KratosDT.Sensors.ElementSensorSpecificationView]]') -> 'list[typing.Union[KratosDT.Sensors.NodalSensorSpecificationView, KratosDT.Sensors.ConditionSensorSpecificationView, KratosDT.Sensors.ElementSensorSpecificationView]]':
+    result: 'list[typing.Union[KratosDT.Sensors.NodalSensorSpecificationView, KratosDT.Sensors.ConditionSensorSpecificationView, KratosDT.Sensors.ElementSensorSpecificationView]]' = []
+    for spec_view in list_of_spec_views:
+        cexp = spec_view.GetContainerExpression()
         norm_l2 = KratosOA.ExpressionUtils.NormL2(cexp)
         if norm_l2 > 0.0:
             cexp.SetExpression(cexp.GetExpression() / norm_l2)
             cexp.SetExpression(cexp.Flatten().GetExpression())
-            result.append(spec)
+            result.append(spec_view)
     return result
 
-def GetCosineDistances(list_of_specifications: 'list[KratosDT.Sensors.SensorSpecification]', retrieval_mathod: 'typing.Callable[[KratosDT.Sensors.SensorSpecification], typing.Union[Kratos.Expression.NodalExpression, Kratos.Expression.ConditionExpression, Kratos.Expression.ElementExpression]]') -> 'list[float]':
+def GetCosineDistances(list_of_spec_views: 'list[typing.Union[KratosDT.Sensors.NodalSensorSpecificationView, KratosDT.Sensors.ConditionSensorSpecificationView, KratosDT.Sensors.ElementSensorSpecificationView]]') -> 'list[float]':
     """Get the cosine distances in a flat array.
 
     The distances are computed as follows
@@ -86,16 +87,15 @@ def GetCosineDistances(list_of_specifications: 'list[KratosDT.Sensors.SensorSpec
     The vectors in u, v must be unit vectors
 
     Args:
-        list_of_specifications (list[KratosDT.Sensors.SensorSpecification]): List of specifications
+        list_of_specification_views (list[KratosDT.Sensors.SensorSpecificationView]): List of specification views
 
     Returns:
         list[float]: d(u, v) calculated for all u and v
     """
     results: 'list[float]' = []
-    for i, spec_i in enumerate(list_of_specifications):
-        cexp_i = retrieval_mathod(spec_i)
-        for spec_j in list_of_specifications[i+1:]:
-            results.append(1.0 - KratosOA.ExpressionUtils.InnerProduct(cexp_i, retrieval_mathod(spec_j)))
+    for i, spec_i in enumerate(list_of_spec_views):
+        for spec_j in list_of_spec_views[i+1:]:
+            results.append(1.0 - KratosOA.ExpressionUtils.InnerProduct(spec_i.GetContainerExpression(), spec_j.GetContainerExpression()))
     return results
 
 

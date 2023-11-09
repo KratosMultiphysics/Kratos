@@ -47,38 +47,39 @@ class CosineSimilaritySensorPlacementAlgorithm(SensorPlacementAlgorithm):
             raise RuntimeError("No specifications are given.")
 
         self.SmoothenSensitivityFields()
+
         first_specification = self.list_of_specifications[0]
 
         for k in first_specification.GetNodalExpressionsMap().keys():
-            self.ComputeSensorPlacement(f"nodal/{k}", lambda x: x.GetNodalExpression(k))
+            self.ComputeSensorPlacement(f"nodal/{k}", [KratosDT.Sensors.NodalSensorSpecificationView(spec, k) for spec in list_of_specifications])
 
         for k in first_specification.GetConditionExpressionsMap().keys():
-            self.ComputeSensorPlacement(f"condition/{k}", lambda x: x.GetConditionExpression(k))
+            self.ComputeSensorPlacement(f"condition/{k}", [KratosDT.Sensors.ConditionSensorSpecificationView(spec, k) for spec in list_of_specifications])
 
         for k in first_specification.GetElementExpressionsMap().keys():
-            self.ComputeSensorPlacement(f"element/{k}", lambda x: x.GetElementExpression(k))
+            self.ComputeSensorPlacement(f"element/{k}", [KratosDT.Sensors.ElementSensorSpecificationView(spec, k) for spec in list_of_specifications])
 
-    def ComputeSensorPlacement(self, name: str, retrieval_method: 'typing.Callable[[KratosDT.Sensors.SensorSpecification], typing.Union[Kratos.Expression.NodalExpression, Kratos.Expression.ConditionExpression, Kratos.Expression.ElementExpression]]'):
-        normalized_specifications = GetNormalizedSpecifications(self.list_of_specifications, retrieval_method)
+    def ComputeSensorPlacement(self, name: str, list_of_spec_views: 'list[typing.Union[KratosDT.Sensors.NodalSensorSpecificationView, KratosDT.Sensors.ConditionSensorSpecificationView, KratosDT.Sensors.ElementSensorSpecificationView]]'):
+        normalized_spec_views = GetNormalizedSpecifications(list_of_spec_views)
 
-        if len(normalized_specifications) == 0:
+        if len(normalized_spec_views) == 0:
             raise RuntimeError("No specifications with zero vectors found.")
 
-        dummy_cexp = retrieval_method(normalized_specifications[0])
+        dummy_cexp = normalized_spec_views[0].GetContainerExpression()
         vtu_output = Kratos.VtuOutput(dummy_cexp.GetModelPart())
 
         # compute best sensor for each entity
-        total_number_of_entities = len(retrieval_method(normalized_specifications[0]).GetContainer())
+        total_number_of_entities = len(normalized_spec_views[0].GetContainerExpression().GetContainer())
 
-        entity_best_specs_list:'list[KratosDT.Sensors.SensorSpecification]' = []
+        entity_best_specs_list:'list[typing.Union[KratosDT.Sensors.NodalSensorSpecificationView, KratosDT.Sensors.ConditionSensorSpecificationView, KratosDT.Sensors.ElementSensorSpecificationView]]' = []
         for entity_index in range(total_number_of_entities):
-            entity_best_spec = max(normalized_specifications, key=lambda x: retrieval_method(x).Evaluate()[entity_index])
+            entity_best_spec = max(normalized_spec_views, key=lambda x: x.GetContainerExpression().Evaluate()[entity_index])
             entity_best_specs_list.append(entity_best_spec)
 
         unique_normalized_list = list(set(entity_best_specs_list))
 
         # get the entity domain sizes
-        entity_domain_size_exp = retrieval_method(unique_normalized_list[0]).Clone()
+        entity_domain_size_exp = unique_normalized_list[0].GetContainerExpression().Clone()
         Kratos.Expression.EntityDomainSizeExpressionIO.Read(entity_domain_size_exp)
         total_domain_size = KratosOA.ExpressionUtils.Sum(entity_domain_size_exp)
         entity_domain_size_np_exp = entity_domain_size_exp.Evaluate()
@@ -102,7 +103,7 @@ class CosineSimilaritySensorPlacementAlgorithm(SensorPlacementAlgorithm):
                     number_of_sensors_in_cluster = len(spec_cluster_dict[cluster_id_to_break])
                     if number_of_sensors_in_cluster > 1:
                         Kratos.Logger.PrintInfo("", f"\tBreaking the cluster {cluster_id_to_break} having {number_of_sensors_in_cluster} sensor specifications...")
-                        new_clusters = self.ClusterListOfSpecifications(2, spec_cluster_dict[cluster_id_to_break], retrieval_method)
+                        new_clusters = self.ClusterListOfSpecifications(2, spec_cluster_dict[cluster_id_to_break])
                         spec_cluster_dict[cluster_id_to_break] = new_clusters[1]
                         if 2 in new_clusters.keys():
                             spec_cluster_dict[max(spec_cluster_dict.keys()) + 1] = new_clusters[2]
@@ -123,15 +124,15 @@ class CosineSimilaritySensorPlacementAlgorithm(SensorPlacementAlgorithm):
 
             # now look for the best sensor in each cluster which has the highest minimum for all the
             # entities which it relates to
-            list_of_best_sensors: 'list[KratosDT.Sensors.SensorSpecification]' = []
+            list_of_best_sensors: 'list[typing.Union[KratosDT.Sensors.NodalSensorSpecificationView, KratosDT.Sensors.ConditionSensorSpecificationView, KratosDT.Sensors.ElementSensorSpecificationView]]' = []
             entity_cluster_data = [-1] * total_number_of_entities
             for cluster_id, list_of_specs in spec_cluster_dict.items():
-                for spec in list_of_specs:
-                    spec.SetValue(KratosDT.SENSOR_CLUSTER_ID, cluster_id)
+                for spec_view in list_of_specs:
+                    spec_view.GetSensorSpecification().SetValue(KratosDT.SENSOR_CLUSTER_ID, cluster_id)
                 entity_indices = entity_index_cluster_dict[cluster_id]
                 for entity_index in entity_indices:
                     entity_cluster_data[entity_index] = cluster_id
-                best_spec = max(list_of_specs, key=lambda x: np.min(np.take(retrieval_method(x).Evaluate(), entity_indices)))
+                best_spec = max(list_of_specs, key=lambda x: np.min(np.take(x.GetContainerExpression().Evaluate(), entity_indices)))
                 list_of_best_sensors.append(best_spec)
 
             vtu_output.ClearCellContainerExpressions()
@@ -142,9 +143,9 @@ class CosineSimilaritySensorPlacementAlgorithm(SensorPlacementAlgorithm):
             vtu_output.AddContainerExpression("entity_cluster_id", cexp.Clone())
 
             if len(list_of_best_sensors) > 0:
-                heat_map = retrieval_method(list_of_best_sensors[0]).Clone()
-                for spec in list_of_best_sensors[1:]:
-                    heat_map += retrieval_method(spec)
+                heat_map = list_of_best_sensors[0].GetContainerExpression().Clone()
+                for spec_view in list_of_best_sensors[1:]:
+                    heat_map += spec_view.GetContainerExpression()
                 heat_map /= KratosOA.ExpressionUtils.NormL2(heat_map)
                 vtu_output.AddContainerExpression("heat_map", heat_map)
 
@@ -162,20 +163,20 @@ class CosineSimilaritySensorPlacementAlgorithm(SensorPlacementAlgorithm):
 
         PrintSpecificationDataToCSV(unique_normalized_list, output_path / f"clusters.csv")
 
-    def ClusterListOfSpecifications(self, number_of_cluster: int, list_of_specifications: 'list[KratosDT.Sensors.SensorSpecification]', retrieval_method: 'typing.Callable[[KratosDT.Sensors.SensorSpecification], typing.Union[Kratos.Expression.NodalExpression, Kratos.Expression.ConditionExpression, Kratos.Expression.ElementExpression]]') -> 'dict[int, list[KratosDT.Sensors.SensorSpecification]]':
-        spec_cosine_distances = GetCosineDistances(list_of_specifications, retrieval_method)
+    def ClusterListOfSpecifications(self, number_of_cluster: int, list_of_spec_views: 'list[typing.Union[KratosDT.Sensors.NodalSensorSpecificationView, KratosDT.Sensors.ConditionSensorSpecificationView, KratosDT.Sensors.ElementSensorSpecificationView]]') -> 'dict[int, list[typing.Union[KratosDT.Sensors.NodalSensorSpecificationView, KratosDT.Sensors.ConditionSensorSpecificationView, KratosDT.Sensors.ElementSensorSpecificationView]]]':
+        spec_cosine_distances = GetCosineDistances(list_of_spec_views)
         spec_cosine_linkage = sch.linkage(spec_cosine_distances, method=self.parameters["clustering_method"].GetString())
         spec_cosine_clusters = sch.fcluster(spec_cosine_linkage, number_of_cluster, 'maxclust')
 
-        cluster_dict: 'dict[int, list[KratosDT.Sensors.SensorSpecification]]' = {}
+        cluster_dict: 'dict[int, list[typing.Union[KratosDT.Sensors.NodalSensorSpecificationView, KratosDT.Sensors.ConditionSensorSpecificationView, KratosDT.Sensors.ElementSensorSpecificationView]]]' = {}
         for i, cluster_id in enumerate(spec_cosine_clusters):
             if cluster_id not in cluster_dict.keys():
                 cluster_dict[cluster_id] = []
-            cluster_dict[cluster_id].append(list_of_specifications[i])
+            cluster_dict[cluster_id].append(list_of_spec_views[i])
 
         return cluster_dict
 
-    def ComputeEntityClustering(self, entity_best_specs_list: 'list[KratosDT.Sensors.SensorSpecification]', cluster_dict: 'dict[int, list[KratosDT.Sensors.SensorSpecification]]'):
+    def ComputeEntityClustering(self, entity_best_specs_list: 'list[typing.Union[KratosDT.Sensors.NodalSensorSpecificationView, KratosDT.Sensors.ConditionSensorSpecificationView, KratosDT.Sensors.ElementSensorSpecificationView]]', cluster_dict: 'dict[int, list[typing.Union[KratosDT.Sensors.NodalSensorSpecificationView, KratosDT.Sensors.ConditionSensorSpecificationView, KratosDT.Sensors.ElementSensorSpecificationView]]]'):
         entity_clusters:'dict[int, list[int]]' = {}
         for cluster_id, specs_list in cluster_dict.items():
             entity_clusters[cluster_id] = []
