@@ -1,7 +1,6 @@
 import typing
 import scipy.cluster.hierarchy as sch
 from pathlib import Path
-from functools import reduce
 import numpy as np
 
 import KratosMultiphysics as Kratos
