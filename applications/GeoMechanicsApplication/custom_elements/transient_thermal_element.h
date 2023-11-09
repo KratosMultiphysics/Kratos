@@ -31,7 +31,6 @@ public:
         array_1d<double, TNumNodes> DtTemperatureVector;
         Vector N;
         Matrix GradNT;
-        Matrix GradNTInitialConfiguration;
         Vector detJContainer;
         Matrix NContainer;
         GeometryType::ShapeFunctionsGradientsType DN_DXContainer;
