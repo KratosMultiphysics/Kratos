@@ -375,22 +375,12 @@ void TransientThermalElement<TDim, TNumNodes>::CalculateAndAddConductivityVector
 {
     KRATOS_TRY
 
-    CalculateConductivityVector(rVariables);
+    const auto conductivity_vector =
+        array_1d<double, TNumNodes>{-prod(rVariables.ConductivityMatrix, rVariables.TemperatureVector)};
     GeoElementUtilities::AssemblePBlockVector<0, TNumNodes>(
-        rRightHandSideVector, rVariables.ConductivityVector);
+        rRightHandSideVector, conductivity_vector);
 
     KRATOS_CATCH("")
-}
-
-template <unsigned int TDim, unsigned int TNumNodes>
-void TransientThermalElement<TDim, TNumNodes>::CalculateConductivityVector(ElementVariables& rVariables)
-{
-    KRATOS_TRY
-
-    noalias(rVariables.ConductivityVector) =
-        -prod(rVariables.ConductivityMatrix, rVariables.TemperatureVector);
-
-    KRATOS_CATCH("");
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>

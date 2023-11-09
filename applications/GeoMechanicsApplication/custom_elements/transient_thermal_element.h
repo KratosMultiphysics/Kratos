@@ -39,7 +39,6 @@ public:
         double IntegrationCoefficient;
         BoundedMatrix<double, TNumNodes, TNumNodes> ConductivityMatrix;
         BoundedMatrix<double, TNumNodes, TNumNodes> CapacityMatrix;
-        array_1d<double, TNumNodes> ConductivityVector;
         array_1d<double, TNumNodes> CapacityVector;
     };
 
@@ -113,9 +112,6 @@ private:
     void CalculateCapacityMatrix(ElementVariables& rVariables) const;
 
     void CalculateCapacityVector(ElementVariables& rVariables) const;
-
-    void CalculateConductivityVector(ElementVariables& rVariables);
-
 
     GeometryData::IntegrationMethod GetIntegrationMethod() const override;
 
