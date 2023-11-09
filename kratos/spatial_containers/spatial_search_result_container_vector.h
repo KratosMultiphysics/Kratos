@@ -192,7 +192,7 @@ public:
         * @brief Dereference operator.
         * @return Reference to the value pointed to by the iterator.
         */
-        const SpatialSearchResultContainerReferenceType operator*() const {
+        const SpatialSearchResultContainerType& operator*() const {
             return **iter_;
         }
 
