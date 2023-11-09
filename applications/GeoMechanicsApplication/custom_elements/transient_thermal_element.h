@@ -90,9 +90,6 @@ private:
 
     void CalculateKinematics(ElementVariables& rVariables, unsigned int PointNumber);
 
-    void CalculateAndAddCapacityMatrix(MatrixType& rLeftHandSideMatrix,
-                                       ElementVariables& rVariables);
-
     void CalculateAndAddConductivityVector(VectorType& rRightHandSideVector,
                                            ElementVariables& rVariables);
 

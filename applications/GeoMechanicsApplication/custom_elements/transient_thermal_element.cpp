@@ -233,17 +233,6 @@ void TransientThermalElement<TDim, TNumNodes>::CalculateAndAddLHS(MatrixType& rL
     KRATOS_TRY
 
     CalculateConductivityMatrix(rVariables);
-    CalculateAndAddCapacityMatrix(rLeftHandSideMatrix, rVariables);
-
-    KRATOS_CATCH("")
-}
-
-template <unsigned int TDim, unsigned int TNumNodes>
-void TransientThermalElement<TDim, TNumNodes>::CalculateAndAddCapacityMatrix(
-    MatrixType& rLeftHandSideMatrix, ElementVariables& rVariables)
-{
-    KRATOS_TRY
-
     CalculateCapacityMatrix(rVariables);
 
     KRATOS_CATCH("")
