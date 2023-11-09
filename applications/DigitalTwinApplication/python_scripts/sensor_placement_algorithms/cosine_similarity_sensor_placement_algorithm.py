@@ -7,10 +7,12 @@ import numpy as np
 import KratosMultiphysics as Kratos
 import KratosMultiphysics.OptimizationApplication as KratosOA
 import KratosMultiphysics.DigitalTwinApplication as KratosDT
+import KratosMultiphysics.HDF5Application as KratosHDF5
 from KratosMultiphysics.DigitalTwinApplication.sensor_placement_algorithms.sensor_placement_algorithm import SensorPlacementAlgorithm
 from KratosMultiphysics.DigitalTwinApplication.utilities.sensor_specification_utils import GetNormalizedSpecifications
 from KratosMultiphysics.DigitalTwinApplication.utilities.sensor_specification_utils import GetCosineDistances
 from KratosMultiphysics.DigitalTwinApplication.utilities.sensor_specification_utils import PrintSpecificationDataToCSV
+from KratosMultiphysics.HDF5Application.core.file_io import OpenHDF5File
 
 class CosineSimilaritySensorPlacementAlgorithm(SensorPlacementAlgorithm):
     @classmethod
@@ -134,6 +136,21 @@ class CosineSimilaritySensorPlacementAlgorithm(SensorPlacementAlgorithm):
                     entity_cluster_data[entity_index] = cluster_id
                 best_spec = max(list_of_specs, key=lambda x: np.min(np.take(x.GetContainerExpression().Evaluate(), entity_indices)))
                 list_of_best_sensors.append(best_spec)
+
+            # put cluster information to hdf5
+            hdf5_params = Kratos.Parameters("""{
+                "file_name": "",
+                "file_access_mode": "truncate"
+            }""")
+            hdf5_params["file_name"].SetString(str(output_path / f"entity_cluster_data_{clustering_iteration:05d}.h5"))
+            with OpenHDF5File(hdf5_params, vtu_output.GetModelPart()) as h5_file:
+                h5_expio = KratosHDF5.ExpressionIO(Kratos.Parameters("""{"prefix": "/ClusterData/"}"""), h5_file)
+                for cluster_id, entity_indices in entity_index_cluster_dict.items():
+                    data = np.array([0.0] * total_number_of_entities, dtype=np.int32)
+                    data[entity_indices] = 1
+                    data_exp = dummy_cexp.Clone()
+                    Kratos.Expression.CArrayExpressionIO.Move(data_exp, data)
+                    h5_expio.Write(f"Cluster_{cluster_id:05d}", data_exp)
 
             vtu_output.ClearCellContainerExpressions()
             vtu_output.ClearNodalContainerExpressions()
