@@ -188,7 +188,8 @@ void TransientThermalElement<TDim, TNumNodes>::CalculateAll(
     GeoElementUtilities::AssemblePBlockMatrix<0, TNumNodes>(rLeftHandSideMatrix, Variables.ConductivityMatrix);
     GeoElementUtilities::AssemblePBlockMatrix<0, TNumNodes>(rLeftHandSideMatrix, Variables.DtTemperatureCoefficient * Variables.CapacityMatrix);
 
-    this->CalculateAndAddRHS(rRightHandSideVector, Variables);
+    CalculateAndAddCapacityVector(rRightHandSideVector, Variables);
+    CalculateAndAddConductivityVector(rRightHandSideVector, Variables);
 
     KRATOS_CATCH("")
 }
@@ -223,18 +224,6 @@ void TransientThermalElement<TDim, TNumNodes>::InitializeElementVariables(
 
     rVariables.CapacityMatrix = ZeroMatrix(TNumNodes, TNumNodes);
     rVariables.ConductivityMatrix = ZeroMatrix(TNumNodes, TNumNodes);
-
-    KRATOS_CATCH("")
-}
-
-template <unsigned int TDim, unsigned int TNumNodes>
-void TransientThermalElement<TDim, TNumNodes>::CalculateAndAddRHS(VectorType& rRightHandSideVector,
-                                                                  ElementVariables& rVariables)
-{
-    KRATOS_TRY
-
-    CalculateAndAddCapacityVector(rRightHandSideVector, rVariables);
-    CalculateAndAddConductivityVector(rRightHandSideVector, rVariables);
 
     KRATOS_CATCH("")
 }
