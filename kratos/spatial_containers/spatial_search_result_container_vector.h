@@ -70,12 +70,6 @@ public:
         /// The difference type between two iterators.
         using difference_type = std::ptrdiff_t;
 
-        /// A pointer to the value type.
-        using pointer = SpatialSearchResultContainerPointerType;
-
-        /// A reference to the value type.
-        using reference = SpatialSearchResultContainerReferenceType;
-
         /**
          * @brief Constructs an iterator pointing to the specified position.
          * @param iter The iterator to initialize from.
@@ -123,7 +117,7 @@ public:
         * @brief Dereference operator.
         * @return Reference to the value pointed to by the iterator.
         */
-        reference operator*() const {
+        SpatialSearchResultContainerReferenceType operator*() const {
             return **iter_;
         }
 
@@ -131,7 +125,7 @@ public:
         * @brief Member access operator.
         * @return Pointer to the value pointed to by the iterator.
         */
-        pointer operator->() const {
+        SpatialSearchResultContainerPointerType operator->() const {
             return *iter_;
         }
 
@@ -150,12 +144,6 @@ public:
 
         /// The difference type between two iterators.
         using difference_type = std::ptrdiff_t;
-
-        /// A pointer to the value type.
-        using pointer = const SpatialSearchResultContainerPointerType;
-
-        /// A reference to the value type.
-        using reference = const SpatialSearchResultContainerReferenceType;
 
         /**
          * @brief Constructs a constant iterator pointing to the specified position.
@@ -204,7 +192,7 @@ public:
         * @brief Dereference operator.
         * @return Reference to the value pointed to by the iterator.
         */
-        reference operator*() const {
+        const SpatialSearchResultContainerReferenceType operator*() const {
             return **iter_;
         }
 
@@ -212,7 +200,7 @@ public:
         * @brief Member access operator.
         * @return Pointer to the value pointed to by the iterator.
         */
-        pointer operator->() const {
+        const SpatialSearchResultContainerType* operator->() const {
             return *iter_;
         }
 
