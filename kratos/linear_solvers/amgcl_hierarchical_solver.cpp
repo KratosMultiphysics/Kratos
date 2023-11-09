@@ -196,13 +196,16 @@ struct CPTraits
  *           @f]
  *
  *          @f(A_{ll}@f) is defined by a boolean mask, represented by a @c char
- *          array that evaluate to true at row indices where @f(A_{ll}@f) has
- *          components.
+ *          array consisting of 1s at row indices where @f(A_{ll}@f) has
+ *          components, and 0s everywhere else.
+ *
+ *  @throws if the mask @a rMask contains items other than 0 or 1.
  */
 void MakeSubblocks(const CPTraits::AMGCL::ScalarBackend::matrix& rRootMatrix,
                    const CPTraits::Mask& rMask,
                    const std::array<CPTraits::AMGCL::ScalarBackend::matrix*,4>& rOutput)
 {
+    KRATOS_PROFILE_SCOPE(KRATOS_CODE_LOCATION);
     KRATOS_ERROR_IF_NOT(rMask.size() == rRootMatrix.nrows)
         << "Mask size mismatch: mask of size " << rMask.size()
         << " provided for matrix of size " << rRootMatrix.nrows << "x" << rRootMatrix.ncols;
@@ -241,6 +244,7 @@ void MakeSubblocks(const CPTraits::AMGCL::ScalarBackend::matrix& rRootMatrix,
     KRATOS_CATCH("")
 
     // Compute row patterns.
+    // @todo parallelize @matekelemen
     KRATOS_TRY
     //IndexPartition<std::size_t>(system_size).for_each([&rOutput, &rMask, &rRootMatrix, &block_local_indices] (std::size_t i_row) {
     for (std::size_t i_row=0ul; i_row<system_size; ++i_row) {
@@ -262,6 +266,7 @@ void MakeSubblocks(const CPTraits::AMGCL::ScalarBackend::matrix& rRootMatrix,
     KRATOS_CATCH("")
 
     // Copy data to submatrices
+    // @todo parallelize @matekelemen
     KRATOS_TRY
     //IndexPartition<std::size_t>(system_size).for_each([&rRootMatrix, &rMask, &rOutput, &block_local_indices](std::size_t i_row) -> void {
     for (std::size_t i_row=0ul; i_row<system_size; ++i_row) {
@@ -295,6 +300,54 @@ void MakeSubblocks(const CPTraits::AMGCL::ScalarBackend::matrix& rRootMatrix,
         }
     }
     //});
+    KRATOS_CATCH("")
+}
+
+
+/** @brief Scatter components of a vector into two other vectors.
+ *  @warning Segfaults if the mask @a rMask contains items other than 0 or 1.
+ */
+void MakeSubblocks(const TUblasSparseSpace<double>::VectorType& rRootVector,
+                   const CPTraits::Mask& rMask,
+                   const std::array<TUblasSparseSpace<double>::VectorType*,2>& rOutput)
+{
+    KRATOS_PROFILE_SCOPE(KRATOS_CODE_LOCATION);
+    KRATOS_ERROR_IF_NOT(rRootVector.size() == rMask.size())
+        << "input vector size " << rRootVector.size()
+        << " does not match the mask size " << rMask.size() << "\n";
+
+    KRATOS_TRY
+
+    // Make sure that all input/output vectors are distinct
+    {
+        std::set<const TUblasSparseSpace<double>::VectorType*> vectors {
+            &rRootVector,
+            rOutput[0],
+            rOutput[1]
+        };
+        KRATOS_ERROR_IF_NOT(vectors.size() == 3) << "all input/output vectors must be distinct";
+    }
+
+    // Resize output vectors
+    rOutput[0]->clear();
+    rOutput[1]->clear();
+    const std::size_t lower_count = std::count_if(rMask.begin(),
+                                                  rMask.end(),
+                                                  [](char v) -> bool {
+                                                    return v;
+                                                  });
+    const std::size_t higher_count = rMask.size() - lower_count;
+    rOutput[0]->resize(lower_count);
+    rOutput[1]->resize(higher_count);
+
+    // Copy components to the output vectors
+    std::array<std::size_t,2> i_subs {0ul, 0ul}; // <== {i_lower, i_higher}
+    for (std::size_t i_root=0ul; i_root<rRootVector.size(); ++i_root) {
+        const char is_higher = !rMask[i_root];
+        rOutput[is_higher]->data()[i_subs[is_higher]] = rRootVector[i_root];
+        ++i_subs[is_higher];
+    }
+
     KRATOS_CATCH("")
 }
 
@@ -595,30 +648,34 @@ AMGCLHierarchicalSolver<TSparseSpace,TDenseSpace,TReorderer>::SolveImpl(SparseMa
                                                rA.index2_data().begin(),
                                                rA.value_data().begin());
 
-    typename detail::CPTraits::AMGCL::ScalarBackend::matrix All, Alh, Ahl, Ahh;
-    {
-        KRATOS_PROFILE_SCOPE(KRATOS_CODE_LOCATION);
-        detail::MakeSubblocks(*p_adapter, mpImpl->mLowerDofMask.value(), {&All, &Alh, &Ahl, &Ahh});
-    }
+    // Separate components related to lower and higher order DoFs.
+    typename detail::CPTraits::AMGCL::ScalarBackend::matrix A_ll, A_lh, A_hl, A_hh;
+    Vector b_l, b_h;
+    detail::MakeSubblocks(*p_adapter, mpImpl->mLowerDofMask.value(), {&A_ll, &A_lh, &A_hl, &A_hh});
+    detail::MakeSubblocks(rB, mpImpl->mLowerDofMask.value(), {&b_l, &b_h});
 
+    // Dump the generated matrices to disk f requested.
     if (4 <= mpImpl->mVerbosity) {
         KRATOS_INFO("AMGCLHierarchicalSolver")
             << "writing system matrices A.mm b.mm\n";
         TSparseSpace::WriteMatrixMarketMatrix("A.mm", rA, false);
         TSparseSpace::WriteMatrixMarketVector("b.mm", rB);
         KRATOS_INFO("AMGCLHierarchicalSolver")
-            << "writing submatrices: All.mm Alh.mm Ahl.mm Ahh.mm\n";
-        amgcl::io::mm_write("All.mm", All);
-        amgcl::io::mm_write("Alh.mm", Alh);
-        amgcl::io::mm_write("Ahl.mm", Ahl);
-        amgcl::io::mm_write("Ahh.mm", Ahh);
+            << "writing submatrices: A_ll.mm A_lh.mm A_hl.mm A_hh.mm\n";
+        amgcl::io::mm_write("A_ll.mm", A_ll);
+        amgcl::io::mm_write("A_lh.mm", A_lh);
+        amgcl::io::mm_write("A_hl.mm", A_hl);
+        amgcl::io::mm_write("A_hh.mm", A_hh);
         KRATOS_ERROR << "verbosity >=4 prints system matrices and terminates\n";
     }
 
+    // Construct solver
     auto solver = MakeCompositePreconditionedSolver<BlockSize>(*p_adapter, mpImpl->mAMGCLSettings);
     KRATOS_INFO_IF("AMGCLHierarchicalSolver", 1 < mpImpl->mVerbosity)
         << "Solver memory usage: " << amgcl::human_readable_memory(amgcl::backend::bytes(solver))
         << "\n";
+
+    // Solve
     return solver(*p_adapter, rB, rX);
     KRATOS_CATCH("")
 }
