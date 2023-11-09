@@ -181,7 +181,7 @@ void TransientThermalElement<TDim, TNumNodes>::CalculateAll(
         Variables.IntegrationCoefficient =
             IntegrationPoints[GPoint].Weight() * Variables.detJContainer[GPoint];
 
-        CalculateAndAddLHS(rLeftHandSideMatrix, Variables);
+        CalculateAndAddLHS(Variables);
     }
 
     GeoElementUtilities::AssemblePBlockMatrix<0, TNumNodes>(rLeftHandSideMatrix, Variables.ConductivityMatrix);
@@ -227,8 +227,7 @@ void TransientThermalElement<TDim, TNumNodes>::InitializeElementVariables(
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void TransientThermalElement<TDim, TNumNodes>::CalculateAndAddLHS(MatrixType& rLeftHandSideMatrix,
-                                                                  ElementVariables& rVariables)
+void TransientThermalElement<TDim, TNumNodes>::CalculateAndAddLHS(ElementVariables& rVariables)
 {
     KRATOS_TRY
 

@@ -84,7 +84,7 @@ private:
     void InitializeElementVariables(ElementVariables& rVariables,
                                     const ProcessInfo& CurrentProcessInfo);
 
-    void CalculateAndAddLHS(MatrixType& rLeftHandSideMatrix, ElementVariables& rVariables);
+    void CalculateAndAddLHS(ElementVariables& rVariables);
 
     void CalculateAndAddRHS(VectorType& rRightHandSideVector, ElementVariables& rVariables);
 
