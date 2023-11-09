@@ -93,8 +93,7 @@ private:
     void CheckDomainSize() const;
     void CheckSolutionStepsData(int rId, Kratos::Variable<double>& rVariable) const;
 
-    bool mIsInitialised = false;
-    const ProcessInfo * mpCurrentProcessInfo;
+    const ProcessInfo* mpCurrentProcessInfo = nullptr;
 
     friend class Serializer;
 
