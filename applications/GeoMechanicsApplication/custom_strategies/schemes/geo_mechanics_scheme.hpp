@@ -289,7 +289,7 @@ public:
 
         int NumThreads = ParallelUtilities::GetNumThreads();
         OpenMPUtils::PartitionVector DofSetPartition;
-        OpenMPUtils::DivideInPartitions(static_int<int>(rDofSet.size()), NumThreads, DofSetPartition);
+        OpenMPUtils::DivideInPartitions(static_cast<int>(rDofSet.size()), NumThreads, DofSetPartition);
 
 #pragma omp parallel
         {
