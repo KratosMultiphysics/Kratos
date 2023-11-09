@@ -25,7 +25,7 @@ namespace Kratos::Testing
 {
 
 KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISpatialSearchResultContainerVectorInitializeResult, KratosMPICoreFastSuite)
-{    
+{
     // Create a test object
     SpatialSearchResultContainerVector<GeometricalObject> container_map;
 
@@ -40,7 +40,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISpatialSearchResultContainerVectorIniti
 }
 
 KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISpatialSearchResultContainerVectorClear, KratosMPICoreFastSuite)
-{    
+{
     // Create a test object
     SpatialSearchResultContainerVector<GeometricalObject> container_map;
 
@@ -56,7 +56,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISpatialSearchResultContainerVectorClear
 }
 
 KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISpatialSearchResultContainerVectorOperators, KratosMPICoreFastSuite)
-{    
+{
     // Create a test object
     SpatialSearchResultContainerVector<GeometricalObject> container_map;
 
