@@ -36,7 +36,6 @@ public:
         Vector detJContainer;
         Matrix NContainer;
         GeometryType::ShapeFunctionsGradientsType DN_DXContainer;
-        double detJ;
         double IntegrationCoefficient;
         BoundedMatrix<double, TNumNodes, TNumNodes> ConductivityMatrix;
         BoundedMatrix<double, TNumNodes, TNumNodes> CapacityMatrix;

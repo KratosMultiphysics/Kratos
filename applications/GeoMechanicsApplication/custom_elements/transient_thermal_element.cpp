@@ -181,7 +181,7 @@ void TransientThermalElement<TDim, TNumNodes>::CalculateAll(
 
         // Compute weighting coefficient for integration
         Variables.IntegrationCoefficient =
-            IntegrationPoints[GPoint].Weight() * Variables.detJ;
+            IntegrationPoints[GPoint].Weight() * Variables.detJContainer[GPoint];
 
         if (CalculateStiffnessMatrixFlag) {
             CalculateAndAddLHS(rLeftHandSideMatrix, Variables);
@@ -285,7 +285,6 @@ void TransientThermalElement<TDim, TNumNodes>::CalculateKinematics(ElementVariab
     // Setting the vector of shape functions and the matrix of the shape functions global gradients
     rVariables.N = row(rVariables.NContainer, PointNumber);
     rVariables.GradNT = rVariables.DN_DXContainer[PointNumber];
-    rVariables.detJ = rVariables.detJContainer[PointNumber];
 
     KRATOS_CATCH("")
 }
