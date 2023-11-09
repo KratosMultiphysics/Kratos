@@ -19,6 +19,7 @@
 
 // Application includes
 #include "custom_sensors/sensor_specification.h"
+#include "custom_sensors/sensor_specification_view.h"
 #include "custom_sensors/nodal_sensor_specification.h"
 #include "custom_sensors/adjoint_sensor.h"
 #include "custom_sensors/adjoint_displacement_sensor.h"
@@ -51,6 +52,30 @@ void  AddCustomSensorsToPython(pybind11::module& m)
         .def("GetElementExpressionsMap", &SensorSpecification::GetElementExpressionsMap)
         .def("GetDataVariableNames", &SensorSpecification::GetDataVariableNames)
         .def("__str__", PrintObject<SensorSpecification>);
+        ;
+
+    using nodal_sensor_specification_view = SensorSpecificationView<ModelPart::NodesContainerType>;
+    py::class_<nodal_sensor_specification_view, nodal_sensor_specification_view::Pointer>(sensor_module, "NodalSensorSpecificationView")
+        .def(py::init<SensorSpecification::Pointer, const std::string&>(), py::arg("sensor_specification"), py::arg("expression_name"))
+        .def("GetSensorSpecification", &nodal_sensor_specification_view::GetSensorSpecification)
+        .def("GetContainerExpression", &nodal_sensor_specification_view::GetContainerExpression)
+        .def("__str__", PrintObject<nodal_sensor_specification_view>);
+        ;
+
+    using condition_sensor_specification_view = SensorSpecificationView<ModelPart::ConditionsContainerType>;
+    py::class_<condition_sensor_specification_view, condition_sensor_specification_view::Pointer>(sensor_module, "ConditionSensorSpecificationView")
+        .def(py::init<SensorSpecification::Pointer, const std::string&>(), py::arg("sensor_specification"), py::arg("expression_name"))
+        .def("GetSensorSpecification", &condition_sensor_specification_view::GetSensorSpecification)
+        .def("GetContainerExpression", &condition_sensor_specification_view::GetContainerExpression)
+        .def("__str__", PrintObject<condition_sensor_specification_view>);
+        ;
+
+    using element_sensor_specification_view = SensorSpecificationView<ModelPart::ElementsContainerType>;
+    py::class_<element_sensor_specification_view, element_sensor_specification_view::Pointer>(sensor_module, "ElementSensorSpecificationView")
+        .def(py::init<SensorSpecification::Pointer, const std::string&>(), py::arg("sensor_specification"), py::arg("expression_name"))
+        .def("GetSensorSpecification", &element_sensor_specification_view::GetSensorSpecification)
+        .def("GetContainerExpression", &element_sensor_specification_view::GetContainerExpression)
+        .def("__str__", PrintObject<element_sensor_specification_view>);
         ;
 
     py::class_<NodalSensorSpecification, NodalSensorSpecification::Pointer, SensorSpecification>(sensor_module, "NodalSensorSpecification")
