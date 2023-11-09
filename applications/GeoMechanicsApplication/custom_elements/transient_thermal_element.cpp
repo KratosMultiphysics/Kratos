@@ -164,16 +164,13 @@ void TransientThermalElement<TDim, TNumNodes>::CalculateAll(
 {
     KRATOS_TRY
 
-    const GeometryType& rGeom = GetGeometry();
-    const GeometryType::IntegrationPointsArrayType& IntegrationPoints =
-        rGeom.IntegrationPoints(GetIntegrationMethod());
-    const unsigned int NumGPoints = IntegrationPoints.size();
+    const auto& IntegrationPoints = GetGeometry().IntegrationPoints(GetIntegrationMethod());
 
     ElementVariables Variables;
     InitializeElementVariables(Variables, rCurrentProcessInfo);
 
     // Loop over integration points
-    for (unsigned int GPoint = 0; GPoint < NumGPoints; ++GPoint) {
+    for (unsigned int GPoint = 0; GPoint < IntegrationPoints.size(); ++GPoint) {
         Variables.N = row(Variables.NContainer, GPoint);
         Variables.GradNT = Variables.DN_DXContainer[GPoint];
 
