@@ -102,10 +102,9 @@ namespace Kratos {
 
         InitializeContact(element1, element2, indentation);
 
-        LocalElasticContactForce[2]  = CalculateNormalForce(element1, element2, indentation, LocalCoordSystem);
-        cohesive_force               = CalculateCohesiveNormalForce(element1, element2, indentation);
-
+        LocalElasticContactForce[2] = CalculateNormalForce(element1, element2, indentation, LocalCoordSystem);
         CalculateViscoDampingForce(LocalRelVel, ViscoDampingLocalContactForce, element1, element2);
+        cohesive_force = 0.0;
 
         double normal_contact_force = LocalElasticContactForce[2] + ViscoDampingLocalContactForce[2];
 
@@ -142,14 +141,10 @@ namespace Kratos {
         return CalculateNormalForce(indentation);
     }
 
-    void DEM_D_Hertz_viscous_Coulomb::CalculateViscoDampingForce(double LocalRelVel[3],
-                                                                 double ViscoDampingLocalContactForce[3],
-                                                                 SphericParticle* const element1,
-                                                                 SphericParticle* const element2) {
+    void DEM_D_Hertz_viscous_Coulomb::CalculateViscoDampingForce(double LocalRelVel[3], double ViscoDampingLocalContactForce[3], SphericParticle* const element1, SphericParticle* const element2) {
 
         const double my_mass    = element1->GetMass();
         const double other_mass = element2->GetMass();
-
         const double equiv_mass = 1.0 / (1.0/my_mass + 1.0/other_mass);
 
         Properties& properties_of_this_contact = element1->GetProperties().GetSubProperties(element2->GetProperties().Id());
