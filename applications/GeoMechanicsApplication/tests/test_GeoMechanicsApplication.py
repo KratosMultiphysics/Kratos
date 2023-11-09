@@ -32,6 +32,7 @@ from test_sellmeijers_rule_validation import TestSellmeijersRuleValidation
 from test_consecutive_pipe_lines import TestConsecutivePipeLines
 from test_line_loads import KratosGeoMechanicsLineLoadTests
 from test_element_lab import KratosGeoMechanicsLabElementTests
+from test_transient_thermal import KratosGeoMechanicsTransientThermalTests
 from test_parameter_field import KratosGeoMechanicsParameterFieldTests
 from test_normal_load_on_1d_element import KratosGeoMechanicsNormalLoad1DTests
 from test_k0_procedure_process import KratosGeoMechanicsK0ProcedureProcessTests
@@ -69,6 +70,7 @@ def AssembleTestSuites():
                         KratosGeoMechanicsLineLoadTests,
                         KratosGeoMechanicsCurvedBeamElementTests,
                         KratosGeoMechanicsLabElementTests,
+                        KratosGeoMechanicsTransientThermalTests,
                         KratosGeoMechanicsParameterFieldTests,
                         KratosGeoMechanicsNormalLoad1DTests,
                         KratosGeoMechanicsK0ProcedureProcessTests,
