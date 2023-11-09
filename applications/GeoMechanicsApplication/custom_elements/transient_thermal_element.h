@@ -29,7 +29,6 @@ public:
         double DtTemperatureCoefficient;
         array_1d<double, TNumNodes> TemperatureVector;
         array_1d<double, TNumNodes> DtTemperatureVector;
-        Matrix GradNT;
         Vector detJContainer;
         GeometryType::ShapeFunctionsGradientsType DN_DXContainer;
         double IntegrationCoefficient;
@@ -82,7 +81,8 @@ private:
 
     void InitializeNodalTemperatureVariables(ElementVariables& rVariables);
 
-    void CalculateConductivityMatrix(ElementVariables& rVariables);
+    void CalculateConductivityMatrix(ElementVariables& rVariables,
+                                     const Matrix&     rGradNT);
 
     void CalculateCapacityMatrix(ElementVariables& rVariables,
                                  const Vector&     rN) const;

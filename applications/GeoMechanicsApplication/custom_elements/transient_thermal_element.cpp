@@ -173,13 +173,12 @@ void TransientThermalElement<TDim, TNumNodes>::CalculateAll(
 
     // Loop over integration points
     for (unsigned int GPoint = 0; GPoint < IntegrationPoints.size(); ++GPoint) {
-        Variables.GradNT = Variables.DN_DXContainer[GPoint];
-
         // Compute weighting coefficient for integration
         Variables.IntegrationCoefficient =
             IntegrationPoints[GPoint].Weight() * Variables.detJContainer[GPoint];
 
-        CalculateConductivityMatrix(Variables);
+        const auto gradNT = Matrix{Variables.DN_DXContainer[GPoint]};
+        CalculateConductivityMatrix(Variables, gradNT);
 
         const auto N = Vector{row(NContainer, GPoint)};
         CalculateCapacityMatrix(Variables, N);
@@ -208,9 +207,6 @@ void TransientThermalElement<TDim, TNumNodes>::InitializeElementVariables(
     rVariables.DtTemperatureCoefficient = rCurrentProcessInfo[DT_TEMPERATURE_COEFFICIENT];
 
     InitializeNodalTemperatureVariables(rVariables);
-
-    // Variables computed at each GP
-    rVariables.GradNT.resize(TNumNodes, TDim, false);
 
     const GeometryType& rGeom = GetGeometry();
     const unsigned int NumGPoints =
@@ -263,7 +259,8 @@ void TransientThermalElement<TDim, TNumNodes>::CalculateCapacityMatrix(ElementVa
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void TransientThermalElement<TDim, TNumNodes>::CalculateConductivityMatrix(ElementVariables& rVariables)
+void TransientThermalElement<TDim, TNumNodes>::CalculateConductivityMatrix(ElementVariables& rVariables,
+                                                                           const Matrix&     rGradNT)
 {
     KRATOS_TRY
 
@@ -275,10 +272,8 @@ void TransientThermalElement<TDim, TNumNodes>::CalculateConductivityMatrix(Eleme
     const auto constitutive_matrix = geo.CalculateThermalDispersionMatrix(
         GetProperties(), *mpCurrentProcessInfo, GetGeometry());
 
-    BoundedMatrix<double, TDim, TNumNodes> Temp =
-        prod(constitutive_matrix, trans(rVariables.GradNT));
-    noalias(rVariables.ConductivityMatrix) +=
-        prod(rVariables.GradNT, Temp) * rVariables.IntegrationCoefficient;
+    BoundedMatrix<double, TDim, TNumNodes> Temp = prod(constitutive_matrix, trans(rGradNT));
+    noalias(rVariables.ConductivityMatrix) += prod(rGradNT, Temp) * rVariables.IntegrationCoefficient;
 
     KRATOS_CATCH("");
 }
