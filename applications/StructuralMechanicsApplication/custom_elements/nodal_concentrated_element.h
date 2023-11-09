@@ -51,16 +51,16 @@ public:
     ///@{
 
     /// Definition of the geometry
-    typedef Geometry<Node> GeometryType;
+    using GeometryType = Geometry<Node>;
 
     /// Definition of the base type
-    typedef Element BaseType;
+    using BaseType = Element;
 
     /// Definition of the index type
-    typedef std::size_t IndexType;
+    using IndexType = std::size_t;
 
     /// Definition of the size type
-    typedef std::size_t SizeType;
+    using SizeType = std::size_t;
 
     /// Counted pointer of NodalConcentratedElement
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( NodalConcentratedElement);
@@ -302,29 +302,34 @@ public:
     ///@}
     ///@name Access
     ///@{
+
     ///@}
     ///@name Inquiry
     ///@{
+
     ///@}
     ///@name Input and output
     ///@{
+
     ///@}
     ///@name Friends
     ///@{
-    ///@}
 
+    ///@}
 protected:
     ///@name Protected static Member Variables
     ///@{
+
     ///@}
     ///@name Protected member Variables
     ///@{
-    ///@}
 
     Flags mELementalFlags; /// Elemental flags
 
+    ///@}
     ///@name Protected Operators
     ///@{
+
     NodalConcentratedElement() : Element()
     {
     }
@@ -352,9 +357,7 @@ protected:
     ///@{
 
     ///@}
-
 private:
-
     ///@name Static Member Variables
     ///@{
 
@@ -377,6 +380,7 @@ private:
     ///@}
     ///@name Serialization
     ///@{
+
     friend class Serializer;
 
     // A private default constructor necessary for serialization
@@ -384,7 +388,6 @@ private:
     void save(Serializer& rSerializer) const override;
 
     void load(Serializer& rSerializer) override;
-
 
     ///@name Private Inquiry
     ///@{
