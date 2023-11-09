@@ -27,6 +27,11 @@ template <unsigned int TDim, unsigned int TNumNodes>
 class KRATOS_API(GEO_MECHANICS_APPLICATION) TNormalFluxCondition
     : public TCondition<TDim, TNumNodes> {
 public:
+    using GeometryType = Geometry<NodeType>;
+    using PropertiesType = Properties;
+    using NodesArrayType = GeometryType::PointsArrayType;
+    using VectorType = Vector;
+
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(TNormalFluxCondition);
 
     TNormalFluxCondition();
