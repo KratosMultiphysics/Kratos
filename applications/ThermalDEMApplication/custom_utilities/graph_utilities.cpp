@@ -124,16 +124,18 @@ namespace Kratos {
       KRATOS_ERROR_IF_NOT(mFile_ParticleEnergyContributions) << "Could not open graph file for energy contributions!" << std::endl;
       mFile_ParticleEnergyContributions << "1 - TIME STEP | ";
       mFile_ParticleEnergyContributions << "2 - TIME | ";
-      mFile_ParticleEnergyContributions << "3 - GRAVITATIONAL | ";
-      mFile_ParticleEnergyContributions << "4 - ELASTIC | ";
-      mFile_ParticleEnergyContributions << "5 - KINETIC TRANSLATION | ";
-      mFile_ParticleEnergyContributions << "6 - KINETIC ROTATION | ";
+      mFile_ParticleEnergyContributions << "3 - GRAV | ";
+      mFile_ParticleEnergyContributions << "4 - ELAST | ";
+      mFile_ParticleEnergyContributions << "5 - KINET TRANS | ";
+      mFile_ParticleEnergyContributions << "6 - KINET ROT | ";
       mFile_ParticleEnergyContributions << "7 - TOTAL ENERGY | ";
-      mFile_ParticleEnergyContributions << "8 - ACCUMULATED DISSIP FRICTION | ";
-      mFile_ParticleEnergyContributions << "9 - ACCUMULATED DISSIP ROLL | ";
-      mFile_ParticleEnergyContributions << "10 - ACCUMULATED DISSIP DAMPING | ";
-      mFile_ParticleEnergyContributions << "11 - TOTAL ACCUMULATED DISSIP | ";
-      mFile_ParticleEnergyContributions << "12 - TOTAL ENERGY + ACCUMULATED DISSIP";
+      mFile_ParticleEnergyContributions << "8 - ACCUM DISSIP FRICTION | ";
+      mFile_ParticleEnergyContributions << "9 - ACCUM DISSIP ROLL | ";
+      mFile_ParticleEnergyContributions << "10 - ACCUM DISSIP DAMP | ";
+      mFile_ParticleEnergyContributions << "11 - ACCUM DISSIP DAMP NORMAL | ";
+      mFile_ParticleEnergyContributions << "12 - ACCUM DISSIP DAMP TANGENT | ";
+      mFile_ParticleEnergyContributions << "13 - TOTAL ACCUM DISSIP | ";
+      mFile_ParticleEnergyContributions << "14 - TOTAL ENERGY + ACCUM DISSIP";
       mFile_ParticleEnergyContributions << std::endl;
     }
 
@@ -182,10 +184,12 @@ namespace Kratos {
     double    total_energy_kinetic_rotation       =  0.0;
     double    total_energy                        =  0.0;
 
-    double    total_accum_energy_dissip_slid      =  0.0;
-    double    total_accum_energy_dissip_roll      =  0.0;
-    double    total_accum_energy_dissip_damp      =  0.0;
-    double    total_accum_energy_dissip           =  0.0;
+    double    total_accum_energy_dissip_slid         =  0.0;
+    double    total_accum_energy_dissip_roll         =  0.0;
+    double    total_accum_energy_dissip_damp         =  0.0;
+    double    total_accum_energy_dissip_damp_normal  =  0.0;
+    double    total_accum_energy_dissip_damp_tangent =  0.0;
+    double    total_accum_energy_dissip              =  0.0;
 
     ModelPart::ElementsContainerType::iterator it = rModelPart.GetCommunicator().LocalMesh().Elements().ptr_begin();
     #pragma omp parallel for schedule(dynamic, 100)
@@ -193,22 +197,26 @@ namespace Kratos {
       ThermalSphericParticle& particle = dynamic_cast<ThermalSphericParticle&> (*(it+i));
 
       // Accumulate values
-      const double vol                  = particle.CalculateVolume();
-      const double temp                 = particle.GetGeometry()[0].FastGetSolutionStepValue(TEMPERATURE);
-      double energy_potential_gravity   = 0.0;
-      double energy_potential_elastic   = 0.0;
-      double energy_kinetic_translation = 0.0;
-      double energy_kinetic_rotation    = 0.0;
-      double accum_energy_dissip_slid   = 0.0;
-      double accum_energy_dissip_roll   = 0.0;
-      double accum_energy_dissip_damp   = 0.0;
-      particle.Calculate(PARTICLE_GRAVITATIONAL_ENERGY,                energy_potential_gravity,   r_process_info);
-      particle.Calculate(PARTICLE_ELASTIC_ENERGY,                      energy_potential_elastic,   r_process_info);
-      particle.Calculate(PARTICLE_TRANSLATIONAL_KINEMATIC_ENERGY,      energy_kinetic_translation, r_process_info);
-      particle.Calculate(PARTICLE_ROTATIONAL_KINEMATIC_ENERGY,         energy_kinetic_rotation,    r_process_info);
-      particle.Calculate(PARTICLE_INELASTIC_FRICTIONAL_ENERGY,         accum_energy_dissip_slid,   r_process_info);
-      particle.Calculate(PARTICLE_INELASTIC_ROLLING_RESISTANCE_ENERGY, accum_energy_dissip_roll,   r_process_info);
-      particle.Calculate(PARTICLE_INELASTIC_VISCODAMPING_ENERGY,       accum_energy_dissip_damp,   r_process_info);
+      const double vol                        = particle.CalculateVolume();
+      const double temp                       = particle.GetGeometry()[0].FastGetSolutionStepValue(TEMPERATURE);
+      double energy_potential_gravity         = 0.0;
+      double energy_potential_elastic         = 0.0;
+      double energy_kinetic_translation       = 0.0;
+      double energy_kinetic_rotation          = 0.0;
+      double accum_energy_dissip_slid         = 0.0;
+      double accum_energy_dissip_roll         = 0.0;
+      double accum_energy_dissip_damp         = 0.0;
+      double accum_energy_dissip_damp_normal  = 0.0;
+      double accum_energy_dissip_damp_tangent = 0.0;
+      particle.Calculate(PARTICLE_GRAVITATIONAL_ENERGY,                energy_potential_gravity,         r_process_info);
+      particle.Calculate(PARTICLE_ELASTIC_ENERGY,                      energy_potential_elastic,         r_process_info);
+      particle.Calculate(PARTICLE_TRANSLATIONAL_KINEMATIC_ENERGY,      energy_kinetic_translation,       r_process_info);
+      particle.Calculate(PARTICLE_ROTATIONAL_KINEMATIC_ENERGY,         energy_kinetic_rotation,          r_process_info);
+      particle.Calculate(PARTICLE_INELASTIC_FRICTIONAL_ENERGY,         accum_energy_dissip_slid,         r_process_info);
+      particle.Calculate(PARTICLE_INELASTIC_ROLLING_RESISTANCE_ENERGY, accum_energy_dissip_roll,         r_process_info);
+      particle.Calculate(PARTICLE_INELASTIC_VISCODAMPING_ENERGY,       accum_energy_dissip_damp,         r_process_info);
+      particle.Calculate(PARTICLE_INELASTIC_DAMPING_NORMAL_ENERGY,     accum_energy_dissip_damp_normal,  r_process_info);
+      particle.Calculate(PARTICLE_INELASTIC_DAMPING_TANGENT_ENERGY,    accum_energy_dissip_damp_tangent, r_process_info);
 
       #pragma omp critical
       {
@@ -225,10 +233,12 @@ namespace Kratos {
         total_energy_kinetic_rotation    += energy_kinetic_rotation;
         total_energy                     += energy_potential_gravity + energy_potential_elastic + energy_kinetic_translation + energy_kinetic_rotation;
         
-        total_accum_energy_dissip_slid   += accum_energy_dissip_slid;
-        total_accum_energy_dissip_roll   += accum_energy_dissip_roll;
-        total_accum_energy_dissip_damp   += accum_energy_dissip_damp;
-        total_accum_energy_dissip        += accum_energy_dissip_slid + accum_energy_dissip_roll + accum_energy_dissip_damp;
+        total_accum_energy_dissip_slid         += accum_energy_dissip_slid;
+        total_accum_energy_dissip_roll         += accum_energy_dissip_roll;
+        total_accum_energy_dissip_damp         += accum_energy_dissip_damp;
+        total_accum_energy_dissip_damp_normal  += accum_energy_dissip_damp_normal;
+        total_accum_energy_dissip_damp_tangent += accum_energy_dissip_damp_tangent;
+        total_accum_energy_dissip              += accum_energy_dissip_slid + accum_energy_dissip_roll + accum_energy_dissip_damp;
       }
 
       if (mGraph_ParticleHeatFluxContributions) {
@@ -368,17 +378,19 @@ namespace Kratos {
                                          << std::endl;
 
     if (mFile_ParticleEnergyContributions.is_open())
-      mFile_ParticleEnergyContributions << time_step                        << " "
-                                        << time                             << " "
-                                        << total_energy_potential_gravity   << " "
-                                        << total_energy_potential_elastic   << " "
-                                        << total_energy_kinetic_translation << " "
-                                        << total_energy_kinetic_rotation    << " "
-                                        << total_energy                     << " "
-                                        << total_accum_energy_dissip_slid   << " "
-                                        << total_accum_energy_dissip_roll   << " "
-                                        << total_accum_energy_dissip_damp   << " "
-                                        << total_accum_energy_dissip        << " "
+      mFile_ParticleEnergyContributions << time_step                              << " "
+                                        << time                                   << " "
+                                        << total_energy_potential_gravity         << " "
+                                        << total_energy_potential_elastic         << " "
+                                        << total_energy_kinetic_translation       << " "
+                                        << total_energy_kinetic_rotation          << " "
+                                        << total_energy                           << " "
+                                        << total_accum_energy_dissip_slid         << " "
+                                        << total_accum_energy_dissip_roll         << " "
+                                        << total_accum_energy_dissip_damp         << " "
+                                        << total_accum_energy_dissip_damp_normal  << " "
+                                        << total_accum_energy_dissip_damp_tangent << " "
+                                        << total_accum_energy_dissip              << " "
                                         << total_energy+total_accum_energy_dissip
                                         << std::endl;
 

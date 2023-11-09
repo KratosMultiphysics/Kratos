@@ -213,6 +213,8 @@ array_1d<double, 3>& GetForce();
 virtual double& GetElasticEnergy();
 virtual double& GetInelasticFrictionalEnergy();
 virtual double& GetInelasticViscodampingEnergy();
+virtual double& GetInelasticDampingNormalEnergy();
+virtual double& GetInelasticDampingTangentEnergy();
 virtual double& GetInelasticRollingResistanceEnergy();
 
 PropertiesProxy* GetFastProperties();
@@ -241,6 +243,8 @@ virtual void PrintInfo(std::ostream& rOStream) const override {rOStream << "Sphe
 double mElasticEnergy;
 double mInelasticFrictionalEnergy;
 double mInelasticViscodampingEnergy;
+double mInelasticDampingNormalEnergy;
+double mInelasticDampingTangentEnergy;
 double mInelasticRollingResistanceEnergy;
 double mPartialRepresentativeVolume;
 
@@ -463,6 +467,8 @@ virtual void save(Serializer& rSerializer) const override
     rSerializer.save("mElasticEnergy", mElasticEnergy);
     rSerializer.save("mInelasticFrictionalEnergy", mInelasticFrictionalEnergy);
     rSerializer.save("mInelasticViscodampingEnergy", mInelasticViscodampingEnergy);
+    rSerializer.save("mInelasticDampingNormalEnergy", mInelasticDampingNormalEnergy);
+    rSerializer.save("mInelasticDampingTangentEnergy", mInelasticDampingTangentEnergy);
     rSerializer.save("mInelasticRollingResistanceEnergy", mInelasticRollingResistanceEnergy);
     rSerializer.save("mPartialRepresentativeVolume", mPartialRepresentativeVolume);
     rSerializer.save("mBondElements", mBondElements);
@@ -507,6 +513,8 @@ virtual void load(Serializer& rSerializer) override
     rSerializer.load("mElasticEnergy", mElasticEnergy);
     rSerializer.load("mInelasticFrictionalEnergy", mInelasticFrictionalEnergy);
     rSerializer.load("mInelasticViscodampingEnergy", mInelasticViscodampingEnergy);
+    rSerializer.load("mInelasticDampingNormalEnergy", mInelasticDampingNormalEnergy);
+    rSerializer.load("mInelasticDampingTangentEnergy", mInelasticDampingTangentEnergy);
     rSerializer.load("mInelasticRollingResistanceEnergy", mInelasticRollingResistanceEnergy);
     rSerializer.load("mPartialRepresentativeVolume", mPartialRepresentativeVolume);
     rSerializer.load("mBondElements", mBondElements);
