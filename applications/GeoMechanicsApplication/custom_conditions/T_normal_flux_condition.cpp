@@ -54,13 +54,13 @@ template <unsigned int TDim, unsigned int TNumNodes>
 void TNormalFluxCondition<TDim, TNumNodes>::CalculateRHS(VectorType& rRightHandSideVector,
                                                          const ProcessInfo& rCurrentProcessInfo)
 {
-    const GeometryType& rGeom = GetGeometry();
+    const GeometryType& rGeom = this->GetGeometry();
     const GeometryType::IntegrationPointsArrayType& IntegrationPoints =
-        rGeom.IntegrationPoints(GetIntegrationMethod());
+        rGeom.IntegrationPoints(this->GetIntegrationMethod());
     const unsigned int NumGPoints = IntegrationPoints.size();
     const unsigned int LocalDim = rGeom.LocalSpaceDimension();
 
-    const Matrix& NContainer = rGeom.ShapeFunctionsValues(GetIntegrationMethod());
+    const Matrix& NContainer = rGeom.ShapeFunctionsValues(this->GetIntegrationMethod());
     GeometryType::JacobiansType JContainer(NumGPoints);
 
     for (auto& x : JContainer) {
