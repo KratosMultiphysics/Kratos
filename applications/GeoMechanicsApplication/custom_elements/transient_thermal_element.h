@@ -68,8 +68,6 @@ private:
                       VectorType& rRightHandSideVector,
                       const ProcessInfo& CurrentProcessInfo);
 
-    void InitializeElementVariables(ElementVariables& rVariables);
-
     void InitializeNodalTemperatureVariables(ElementVariables& rVariables);
 
     Vector CalculateIntegrationCoefficients(const Vector& detJContainer) const;

@@ -154,7 +154,7 @@ void TransientThermalElement<TDim, TNumNodes>::CalculateAll(
     KRATOS_TRY
 
     ElementVariables Variables;
-    InitializeElementVariables(Variables);
+    InitializeNodalTemperatureVariables(Variables);
 
     const auto& rGeom = GetGeometry();
     const unsigned int NumGPoints = rGeom.IntegrationPointsNumber(GetIntegrationMethod());
@@ -180,17 +180,6 @@ void TransientThermalElement<TDim, TNumNodes>::CalculateAll(
     const auto conductivity_vector =
         array_1d<double, TNumNodes>{-prod(conductivity_matrix, Variables.TemperatureVector)};
     GeoElementUtilities::AssemblePBlockVector<0, TNumNodes>(rRightHandSideVector, conductivity_vector);
-
-    KRATOS_CATCH("")
-}
-
-template <unsigned int TDim, unsigned int TNumNodes>
-void TransientThermalElement<TDim, TNumNodes>::InitializeElementVariables(
-    ElementVariables& rVariables)
-{
-    KRATOS_TRY
-
-    InitializeNodalTemperatureVariables(rVariables);
 
     KRATOS_CATCH("")
 }
