@@ -146,26 +146,26 @@ class TSolver(GeoSolver):
 
     def _ConstructConvergenceCriterion(self, convergence_criterion):
 
-        d_rt = self.settings["temperature_relative_tolerance"].GetDouble()
-        d_at = self.settings["temperature_absolute_tolerance"].GetDouble()
+        t_rt = self.settings["temperature_relative_tolerance"].GetDouble()
+        t_at = self.settings["temperature_absolute_tolerance"].GetDouble()
         r_rt = self.settings["residual_relative_tolerance"].GetDouble()
         r_at = self.settings["residual_absolute_tolerance"].GetDouble()
         echo_level = self.settings["echo_level"].GetInt()
 
         if convergence_criterion.lower() == "temperature_criterion":
-            convergence_criterion = KratosMultiphysics.MixedGenericCriteria([(KratosMultiphysics.TEMPERATURE, d_rt, d_at)])
+            convergence_criterion = KratosMultiphysics.MixedGenericCriteria([(KratosMultiphysics.TEMPERATURE, t_rt, t_at)])
             convergence_criterion.SetEchoLevel(echo_level)
         elif convergence_criterion.lower() == "residual_criterion":
             convergence_criterion = KratosMultiphysics.ResidualCriteria(r_rt, r_at)
             convergence_criterion.SetEchoLevel(echo_level)
         elif convergence_criterion.lower() == "and_criterion":
-            temperature = KratosMultiphysics.MixedGenericCriteria([(KratosMultiphysics.TEMPERATURE, d_rt, d_at)])
+            temperature = KratosMultiphysics.MixedGenericCriteria([(KratosMultiphysics.TEMPERATURE, t_rt, t_at)])
             temperature.SetEchoLevel(echo_level)
             residual = KratosMultiphysics.ResidualCriteria(r_rt, r_at)
             residual.SetEchoLevel(echo_level)
             convergence_criterion = KratosMultiphysics.AndCriteria(residual, temperature)
         elif convergence_criterion.lower() == "or_criterion":
-            temperature = KratosMultiphysics.MixedGenericCriteria([(KratosMultiphysics.TEMPERATURE, d_rt, d_at)])
+            temperature = KratosMultiphysics.MixedGenericCriteria([(KratosMultiphysics.TEMPERATURE, t_rt, t_at)])
             temperature.SetEchoLevel(echo_level)
             residual = KratosMultiphysics.ResidualCriteria(r_rt, r_at)
             residual.SetEchoLevel(echo_level)
