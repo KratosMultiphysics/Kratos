@@ -71,11 +71,7 @@ namespace Kratos
 
         void ExecuteWithoutPiping(ModelPart& model_part,
                                                  const std::vector<std::shared_ptr<Process>>& processes,
-                                                 const std::function<void(double)>& rReportProgress,
-                                                 const std::function<void(const char*)>& rReportTextualProgress,
-                                                 const Kratos::Parameters& gid_output_settings,
-                                                 const std::function<void(const char*)>& rLogCallback,
-                                                 LoggerOutput::Pointer p_output);
+                                                 const Kratos::Parameters& gid_output_settings);
 
         int ExecuteWithPiping(ModelPart& model_part,
                                               const std::vector<std::shared_ptr<Process>>& processes,

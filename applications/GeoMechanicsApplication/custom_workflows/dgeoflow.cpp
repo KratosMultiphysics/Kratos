@@ -382,8 +382,7 @@ namespace Kratos
 
             if (!hasPiping)
             {
-                ExecuteWithoutPiping(model_part, processes, rReportProgress, rReportTextualProgress,
-                                     gid_output_settings, rLogCallback, p_output);
+                ExecuteWithoutPiping(model_part, processes, gid_output_settings);
             }
             else
             {
@@ -411,11 +410,7 @@ namespace Kratos
 
     void KratosExecute::ExecuteWithoutPiping(ModelPart& model_part,
                                              const std::vector<std::shared_ptr<Process>>& processes,
-                                             const std::function<void(double)>& rReportProgress,
-                                             const std::function<void(const char*)>& rReportTextualProgress,
-                                             const Kratos::Parameters& gid_output_settings,
-                                             const std::function<void(const char*)>& rLogCallback,
-                                             LoggerOutput::Pointer p_output)
+                                             const Kratos::Parameters& gid_output_settings)
     {
         const auto p_solving_strategy = setup_strategy_dgeoflow(model_part);
         p_solving_strategy->SetEchoLevel(0);
