@@ -264,54 +264,6 @@ void MakeSubblocks(const TUblasSparseSpace<double>::MatrixType& rRootMatrix,
 }
 
 
-/** @brief Scatter components of a vector into two other vectors.
- *  @warning Segfaults if the mask @a rMask contains items other than 0 or 1.
- */
-void MakeSubblocks(const TUblasSparseSpace<double>::VectorType& rRootVector,
-                   const CPTraits::Mask& rMask,
-                   const std::array<TUblasSparseSpace<double>::VectorType*,2>& rOutput)
-{
-    KRATOS_PROFILE_SCOPE(KRATOS_CODE_LOCATION);
-    KRATOS_ERROR_IF_NOT(rRootVector.size() == rMask.size())
-        << "input vector size " << rRootVector.size()
-        << " does not match the mask size " << rMask.size() << "\n";
-
-    KRATOS_TRY
-
-    // Make sure that all input/output vectors are distinct
-    {
-        std::set<const TUblasSparseSpace<double>::VectorType*> vectors {
-            &rRootVector,
-            rOutput[0],
-            rOutput[1]
-        };
-        KRATOS_ERROR_IF_NOT(vectors.size() == 3) << "all input/output vectors must be distinct";
-    }
-
-    // Resize output vectors
-    rOutput[0]->clear();
-    rOutput[1]->clear();
-    const std::size_t lower_count = std::count_if(rMask.begin(),
-                                                  rMask.end(),
-                                                  [](char v) -> bool {
-                                                    return v;
-                                                  });
-    const std::size_t higher_count = rMask.size() - lower_count;
-    rOutput[0]->resize(lower_count);
-    rOutput[1]->resize(higher_count);
-
-    // Copy components to the output vectors
-    std::array<std::size_t,2> i_subs {0ul, 0ul}; // <== {i_lower, i_higher}
-    for (std::size_t i_root=0ul; i_root<rRootVector.size(); ++i_root) {
-        const char is_higher = !rMask[i_root];
-        rOutput[is_higher]->data()[i_subs[is_higher]] = rRootVector[i_root];
-        ++i_subs[is_higher];
-    }
-
-    KRATOS_CATCH("")
-}
-
-
 } // namespace detail
 
 
@@ -332,10 +284,14 @@ struct AMGCLHierarchicalSolver<TSparseSpace,TDenseSpace,TReorderer>::Impl
 
     std::size_t mDoFCount;
 
+    std::size_t mMaxIterations;
+
     // Indicates whether the variable at the given index is lower order.
     std::optional<std::vector<char>> mLowerDofMask;
 
-    boost::property_tree::ptree mAMGCLSettings;
+    boost::property_tree::ptree mLowerAMGCLSettings;
+
+    boost::property_tree::ptree mFullAMGCLSettings;
 }; // struct AMGCLHierarchicalSolver::Impl
 
 
@@ -355,15 +311,25 @@ AMGCLHierarchicalSolver<TSparseSpace,TDenseSpace,TReorderer>::AMGCLHierarchicalS
         << " but constructing an AMGCLHierarchicalSolver";
 
     detail::ParametersWithDefaults safe_parameters(parameters, default_parameters);
-    mpImpl->mTolerance = safe_parameters["amgcl_settings"]["solver"]["tol"].Get<double>();
+    mpImpl->mTolerance = safe_parameters["amgcl_settings"]["coarse"]["solver"]["tol"].Get<double>();
     mpImpl->mVerbosity = safe_parameters["verbosity"].Get<int>();
+    mpImpl->mMaxIterations = safe_parameters["max_iterations"].Get<int>();
     mpImpl->mDoFCount = 0ul;
 
+    // Convert parameters to AMGCL settings
     std::stringstream json_stream;
-    json_stream << safe_parameters["amgcl_settings"].GetInput().PrettyPrintJsonString();
+
+    json_stream << safe_parameters["amgcl_settings"]["coarse"].GetInput().PrettyPrintJsonString();
     boost::property_tree::read_json(
         json_stream,
-        mpImpl->mAMGCLSettings
+        mpImpl->mLowerAMGCLSettings
+    );
+
+    json_stream.clear();
+    json_stream << safe_parameters["amgcl_settings"]["full"].GetInput().PrettyPrintJsonString();
+    boost::property_tree::read_json(
+        json_stream,
+        mpImpl->mFullAMGCLSettings
     );
     KRATOS_CATCH("")
 }
@@ -395,9 +361,7 @@ bool AMGCLHierarchicalSolver<TSparseSpace,TDenseSpace,TReorderer>::Solve(SparseM
         << "DoF mask size " << r_lower_dof_mask.size()
         << " does not match system size " << TSparseSpace::Size1(rA);
 
-    mpImpl->mAMGCLSettings.put("precond.pmask_size", r_lower_dof_mask.size());
-    mpImpl->mAMGCLSettings.put("precond.pmask", static_cast<void*>(r_lower_dof_mask.data()));
-    mpImpl->mAMGCLSettings.put("solver.verbose", 1 < mpImpl->mVerbosity);
+    mpImpl->mLowerAMGCLSettings.put("solver.verbose", 1 < mpImpl->mVerbosity);
 
     std::tuple<std::size_t,double> solver_results {
         std::numeric_limits<std::size_t>::max(),    // iteration count
@@ -550,40 +514,38 @@ AMGCLHierarchicalSolver<TSparseSpace,TDenseSpace,TReorderer>::GetDefaultParamete
 {
     "solver_type" : "amgcl_hierarchical",
     "verbosity" : 1,
-    "scaling": false,
-    "schur_variable" : "PRESSURE",
+    "max_iterations" : 50,
     "amgcl_settings" : {
-        "solver": {
-            "type": "lgmres",
-            "M": 50,
-            "maxiter": 1000,
-            "tol": 1e-8,
-            "verbose": true
-        },
-        "precond": {
-            "pmask_size": -1,
-            "adjust_p": 0,
-            "type": 2,
-            "usolver": {
-                "solver": {
-                    "type": "preonly"
+        "coarse" : {
+            "precond" : {
+                "class" : "amg",
+                "relax" : {
+                    "type" : "ilu0"
                 },
-                "precond": {
-                    "relax": {
-                        "type": "ilup"
-                    },
-                    "coarsening": {
-                        "type": "aggregation",
-                        "aggr": {
-                            "eps_strong": 0
-                        }
+                "coarsening" : {
+                    "type" : "aggregation",
+                    "aggr" : {
+                        "eps_strong" : 0.8,
+                        "block_size" : 1
                     }
-                }
+                },
+                "coarse_enough" : 333,
+                "npre" : 1,
+                "npost" : 1
             },
-            "psolver": {
-                "solver": {
-                    "type": "preonly"
-                }
+            "solver" : {
+                "type" : "cg",
+                "maxiter" : 5,
+                "tol" : 1e-6
+            }
+        },
+        "full" : {
+            "precond" : {
+                "class" : "relaxation",
+                "type" : "gauss_seidel"
+            },
+            "solver" : {
+                "type" : "preonly"
             }
         }
     }
@@ -606,9 +568,7 @@ AMGCLHierarchicalSolver<TSparseSpace,TDenseSpace,TReorderer>::SolveImpl(SparseMa
 
     // Separate components related to lower and higher order DoFs.
     SparseMatrix A_ll, A_lh, A_hl, A_hh;
-    Vector b_l, b_h;
     detail::MakeSubblocks(rA, mpImpl->mLowerDofMask.value(), {&A_ll, &A_lh, &A_hl, &A_hh});
-    detail::MakeSubblocks(rB, mpImpl->mLowerDofMask.value(), {&b_l, &b_h});
 
     // Dump the generated matrices to disk f requested.
     if (4 <= mpImpl->mVerbosity) {
@@ -631,14 +591,132 @@ AMGCLHierarchicalSolver<TSparseSpace,TDenseSpace,TReorderer>::SolveImpl(SparseMa
                                          rA.index2_data().begin(),
                                          rA.value_data().begin());
 
-    // Construct solver
-    auto solver = MakeCompositePreconditionedSolver<BlockSize>(*p_a, mpImpl->mAMGCLSettings);
+    auto p_a_ll = amgcl::adapter::zero_copy(TSparseSpace::Size1(A_ll),
+                                            A_ll.index1_data().begin(),
+                                            A_ll.index2_data().begin(),
+                                            A_ll.value_data().begin());
+
+    // Define solver type
+    using ScalarBackend = amgcl::backend::builtin<double>;
+    using ScalarSolver = amgcl::make_solver<
+        amgcl::runtime::preconditioner<ScalarBackend>,
+        amgcl::runtime::solver::wrapper<ScalarBackend>
+    >;
+
+    using Block = amgcl::static_matrix<double,BlockSize,BlockSize>;
+    using BlockBackend = amgcl::backend::builtin<Block>;
+    using BlockSolver = amgcl::make_block_solver<
+        amgcl::runtime::preconditioner<BlockBackend>,
+        amgcl::runtime::solver::wrapper<BlockBackend>
+    >;
+
+    using Solver = std::conditional_t<
+        BlockSize == 1,
+        ScalarSolver,
+        BlockSolver
+    >;
+
+    // Construct solvers
+    auto lower_solver = Solver(*p_a_ll, mpImpl->mLowerAMGCLSettings);
+    auto full_solver = ScalarSolver(*p_a, mpImpl->mFullAMGCLSettings);
     KRATOS_INFO_IF("AMGCLHierarchicalSolver", 1 < mpImpl->mVerbosity)
-        << "Solver memory usage: " << amgcl::human_readable_memory(amgcl::backend::bytes(solver))
+        << "Solver memory usage: " << amgcl::human_readable_memory(amgcl::backend::bytes(lower_solver)
+                                                                   + amgcl::backend::bytes(full_solver))
         << "\n";
 
+    // Construct block maps for vectors
+    const auto& r_mask = mpImpl->mLowerDofMask.value();
+    const std::size_t full_size = r_mask.size();
+
+    const std::size_t unmasked_count = std::count(r_mask.begin(),
+                                                  r_mask.end(),
+                                                  0);
+    const std::size_t masked_count = full_size - unmasked_count;
+
+    // Define a map for restriction, that collects the indices
+    // of components local to the block they belong to.
+    std::vector<std::size_t> block_local_indices(full_size);
+
+    // Fill the block map
+    std::array<std::size_t,2> block_counters {0ul, 0ul}; // {l, h}
+    for (std::size_t i_global=0ul; i_global<full_size; ++i_global) {
+        const char mask_value = r_mask[i_global];
+        const std::size_t i_block = !mask_value;
+        block_local_indices[i_global] = block_counters[i_block]++;
+    }
+
+    const auto coarsen = [&block_local_indices, &r_mask](const Vector& rRoot,
+                                                         std::array<Vector,2>& rSubs) {
+        for (std::size_t i_root=0ul; i_root<rRoot.size(); ++i_root) {
+            const char mask_value = r_mask[i_root];
+            const std::size_t i_block = !mask_value;
+            const std::size_t i_sub = block_local_indices[i_root];
+            rSubs[i_block][i_sub] = rRoot[i_root];
+        }
+    };
+
+    const auto aggregate = [&block_local_indices, &r_mask](const std::array<Vector,2>& rSubs,
+                                                           Vector& rRoot) {
+        for (std::size_t i_root=0ul; i_root<rRoot.size(); ++i_root) {
+            const char mask_value = r_mask[i_root];
+            const std::size_t i_block = !mask_value;
+            const std::size_t i_sub = block_local_indices[i_root];
+            rRoot[i_root] += rSubs[i_block][i_sub];
+        }
+    };
+
     // Solve
-    return solver(*p_a, rB, rX);
+    std::fill(rX.begin(),
+              rX.end(),
+              0.0);
+    Vector residual = rB;
+    double rhs_norm = norm_2(rB);
+    rhs_norm = rhs_norm == 0.0 ? 1.0 : rhs_norm;
+    std::cout << "initial residual is " << norm_2(residual) / rhs_norm << "\n";
+
+    std::array<Vector,2> x, r, d; // <== {x_l, x_h}, {r_l, r_h}, {d_l, d_h}
+    x[0].resize(  masked_count);
+    x[1].resize(unmasked_count);
+    r[0].resize(  masked_count);
+    r[1].resize(unmasked_count);
+    d[0].resize(  masked_count);
+    d[1].resize(unmasked_count);
+
+    Vector delta(full_size, 0.0);
+    Vector d_l(masked_count, 0.0);
+
+    std::tuple<std::size_t,double> return_pair {0ul, std::numeric_limits<double>::max()};
+    const std::size_t max_iterations = mpImpl->mMaxIterations;
+    for (std::size_t i_iteration=0ul; i_iteration<max_iterations; ++i_iteration) {
+        // Perform a few relaxation passes on the full system
+        KRATOS_TRY
+        full_solver(*p_a, residual, delta);
+        KRATOS_CATCH("")
+        coarsen(delta, d);
+
+        // Compute restricted residual
+        d_l = r[0] - prod(A_ll, d[0]) - prod(A_lh, d[1]);
+
+        // Solve lower
+        KRATOS_TRY
+        lower_solver(*p_a_ll, d_l, r[0]);
+        KRATOS_CATCH("")
+        d[0] += r[0];
+
+        // Update solution
+        aggregate(d, rX);
+
+        // Compute the residual
+        noalias(residual) = rB - prod(rA, rX);
+        coarsen(residual, r);
+
+        std::get<0>(return_pair)++;
+        std::get<1>(return_pair) = norm_2(residual) / rhs_norm;
+        std::cout << "full iteration "
+                  << std::get<0>(return_pair)
+                  << " at residual " << std::get<1>(return_pair) << "\n";
+    }
+    return return_pair;
     KRATOS_CATCH("")
 }
 
@@ -670,12 +748,12 @@ void AMGCLHierarchicalSolver<TSparseSpace,TDenseSpace,TReorderer>::PrintData(std
 {
     rStream
         << (mpImpl->mLowerDofMask.has_value() ? "initialized" : "uninitialized") << "\n"
-        << "tolerance: " << mpImpl->mTolerance << "\n"
-        << "DoF size: " << mpImpl->mDoFCount << "\n"
-        << "verbosity: " << mpImpl->mVerbosity << "\n"
+        << "tolerance     : " << mpImpl->mTolerance << "\n"
+        << "DoF size      : " << mpImpl->mDoFCount << "\n"
+        << "verbosity     : " << mpImpl->mVerbosity << "\n"
         << "AMGCL settings: "
         ;
-    boost::property_tree::json_parser::write_json(rStream, mpImpl->mAMGCLSettings);
+    boost::property_tree::json_parser::write_json(rStream, mpImpl->mLowerAMGCLSettings);
 }
 
 
