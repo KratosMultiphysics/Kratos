@@ -26,7 +26,9 @@ namespace Kratos {
 template <unsigned int TDim, unsigned int TNumNodes>
 class KRATOS_API(GEO_MECHANICS_APPLICATION) TNormalFluxCondition
     : public TCondition<TDim, TNumNodes> {
+
 public:
+
     using GeometryType = Geometry<NodeType>;
     using PropertiesType = Properties;
     using NodesArrayType = GeometryType::PointsArrayType;
@@ -49,6 +51,7 @@ public:
                               PropertiesType::Pointer pProperties) const override;
 
 protected:
+
     struct NormalFluxVariables {
         double normalFlux;
         double IntegrationCoefficient;
@@ -66,6 +69,7 @@ protected:
                                                  const double& Weight);
 
 private:
+
     friend class Serializer;
 
     void save(Serializer& rSerializer) const override
