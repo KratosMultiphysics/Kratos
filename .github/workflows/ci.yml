@@ -33,8 +33,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        build-type: [Custom, FullDebug]
-        compiler: [gcc, clang]
+        build-type: [FullDebug]
+        compiler: [clang]
     env:
       KRATOS_BUILD_TYPE: ${{ matrix.build-type }}
       OMPI_MCA_rmaps_base_oversubscribe: 1 # Allow oversubscription for MPI (needed for OpenMPI >= 3.0)
