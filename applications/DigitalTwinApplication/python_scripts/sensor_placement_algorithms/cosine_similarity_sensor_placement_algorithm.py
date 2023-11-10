@@ -16,13 +16,14 @@ class CosineSimilaritySensorPlacementAlgorithm(SensorPlacementAlgorithm):
     @classmethod
     def GetDefaultParameters(cls) -> Kratos.Parameters:
         return Kratos.Parameters("""{
-            "type"                      : "cosine_similarity_sensor_placement",
-            "output_to_vtu"             : true,
-            "output_to_csv"             : true,
-            "output_folder"             : "sensor_placement/cluster_average",
-            "clustering_method"         : "average",
-            "sensor_coverage_percentage": 5.0,
-            "max_clustering_iterations" : 100,
+            "type"                             : "cosine_similarity_sensor_placement",
+            "output_to_vtu"                    : true,
+            "output_to_csv"                    : true,
+            "output_folder"                    : "sensor_placement/cluster_average",
+            "clustering_method"                : "average",
+            "sensor_coverage_percentage"       : 5.0,
+            "max_clustering_iterations"        : 100,
+            "best_sensor_identification_method": "highest_minimum",
             "filtering": {
                 "filter_radius"             : 5.0,
                 "filter_function_type"      : "linear",
@@ -92,6 +93,8 @@ class CosineSimilaritySensorPlacementAlgorithm(SensorPlacementAlgorithm):
 
         list_of_cluster_ids_cannot_be_divided: 'list[int]' = []
 
+        best_sensor_identification_method = self.parameters["best_sensor_identification_method"].GetString()
+
         clustering_iteration = 0
         clusters_to_break: 'list[int]' = [1]
         list_of_best_sensors: 'list[typing.Union[KratosDT.Sensors.NodalSensorSpecificationView, KratosDT.Sensors.ConditionSensorSpecificationView, KratosDT.Sensors.ElementSensorSpecificationView]]' = []
@@ -123,18 +126,57 @@ class CosineSimilaritySensorPlacementAlgorithm(SensorPlacementAlgorithm):
                 if cluster_domain_size > maximum_allowed_domain_size_per_cluster:
                     clusters_to_break.append(cluster_id)
 
-            # now look for the best sensor in each cluster which has the highest minimum for all the
-            # entities which it relates to
             list_of_best_sensors.clear()
             entity_cluster_data = [-1] * total_number_of_entities
+
             for cluster_id, list_of_specs in spec_cluster_dict.items():
                 for spec_view in list_of_specs:
                     spec_view.GetSensorSpecification().SetValue(KratosDT.SENSOR_CLUSTER_ID, cluster_id)
                 entity_indices = entity_index_cluster_dict[cluster_id]
                 for entity_index in entity_indices:
                     entity_cluster_data[entity_index] = cluster_id
-                best_spec = max(list_of_specs, key=lambda x: np.min(np.take(x.GetContainerExpression().Evaluate(), entity_indices)))
-                list_of_best_sensors.append(best_spec)
+
+            if best_sensor_identification_method == "highest_minimum":
+                # now look for the best sensor in each cluster which has the highest minimum for all the
+                # entities which it relates to
+                for cluster_id, list_of_specs in spec_cluster_dict.items():
+                    entity_indices = entity_index_cluster_dict[cluster_id]
+                    best_spec = max(list_of_specs, key=lambda x: np.min(np.take(x.GetContainerExpression().Evaluate(), entity_indices)))
+                    list_of_best_sensors.append(best_spec)
+            elif best_sensor_identification_method == "most_similar":
+                for cluster_id, list_of_specs in spec_cluster_dict.items():
+                    average_array = list_of_specs[0].GetContainerExpression().Evaluate()
+                    for spec in list_of_specs[1:]:
+                        average_array += spec.GetContainerExpression().Evaluate()
+                    best_spec = max(list_of_specs, key=lambda x: np.inner(average_array, x.GetContainerExpression().Evaluate()))
+                    list_of_best_sensors.append(best_spec)
+            elif best_sensor_identification_method == "most_orthogonal" or best_sensor_identification_method == "most_distanced":
+                # now look for the best sensor in each cluster is orthogonal to each other, starting with the most covered cluster in the sorted cluster ids
+                cluster_values = {}
+                overall_updating_exp = dummy_cexp.Clone()
+                Kratos.Expression.CArrayExpressionIO.Read(overall_updating_exp, np.array([1.0] * total_number_of_entities))
+                overall_updating_exp /= KratosOA.ExpressionUtils.NormL2(overall_updating_exp)
+                for cluster_id, list_of_specs in spec_cluster_dict.items():
+                    entity_indices = entity_index_cluster_dict[cluster_id]
+                    best_spec = max(list_of_specs, key=lambda x: np.min(np.take(x.GetContainerExpression().Evaluate(), entity_indices)))
+                    cluster_values[cluster_id] = KratosOA.ExpressionUtils.InnerProduct(best_spec.GetContainerExpression(), overall_updating_exp)
+
+                sorted_cluster_ids = sorted(spec_cluster_dict.keys(), key=lambda x: cluster_values[x], reverse=True)
+
+                best_cluster_id = sorted_cluster_ids[0]
+                list_of_best_sensors.append(max(spec_cluster_dict[best_cluster_id], key=lambda x: np.min(np.take(x.GetContainerExpression().Evaluate(), entity_index_cluster_dict[best_cluster_id]))))
+                if best_sensor_identification_method == "most_orthogonal":
+                    # first one is taken from the following
+                    for cluster_id in sorted_cluster_ids[1:]:
+                        list_of_specs = spec_cluster_dict[cluster_id]
+                        list_of_best_sensors.append(max(list_of_specs, key=lambda y: KratosOA.ExpressionUtils.InnerProduct(min(list_of_best_sensors, key=lambda x: KratosOA.ExpressionUtils.InnerProduct(x.GetContainerExpression(), y.GetContainerExpression())).GetContainerExpression(), y.GetContainerExpression())))
+                elif best_sensor_identification_method == "most_distanced":
+                    # first one is taken from the following
+                    for cluster_id in sorted_cluster_ids[1:]:
+                        list_of_specs = spec_cluster_dict[cluster_id]
+                        list_of_best_sensors.append(max(list_of_specs, key=lambda y: np.linalg.norm(min(list_of_best_sensors, key=lambda x: np.linalg.norm(x.GetSensorSpecification().GetLocation() - y.GetSensorSpecification().GetLocation())).GetSensorSpecification().GetLocation() - y.GetSensorSpecification().GetLocation())))
+            else:
+                raise RuntimeError(f"Unsupported best_sensor_identification_method = {best_sensor_identification_method}")
 
             vtu_output.ClearCellContainerExpressions()
             vtu_output.ClearNodalContainerExpressions()
