@@ -1,5 +1,3 @@
-from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
-
 # Importing the Kratos Library
 import KratosMultiphysics
 import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication
@@ -11,7 +9,7 @@ def Factory(settings, Model):
 
 ## All the processes python should be derived from "Process"
 class AssignNodalElementsToNodesProcess(KratosMultiphysics.Process):
-    """This process creates nodeal elements in all the nodes of a model part
+    """This process creates nodal elements in all the nodes of a model part
 
     Only the member variables listed below should be accessed directly.
 
