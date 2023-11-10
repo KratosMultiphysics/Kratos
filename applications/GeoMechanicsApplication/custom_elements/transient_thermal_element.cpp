@@ -178,7 +178,7 @@ void TransientThermalElement<TDim, TNumNodes>::CalculateAll(
     GeoElementUtilities::AssemblePBlockVector<0, TNumNodes>(rRightHandSideVector, capacity_vector);
 
     const auto conductivity_vector =
-        array_1d<double, TNumNodes>{-prod(conductivity_matrix, Variables.TemperatureVector)};
+        array_1d<double, TNumNodes>{-prod(conductivity_matrix, GetTemperatureVector())};
     GeoElementUtilities::AssemblePBlockVector<0, TNumNodes>(rRightHandSideVector, conductivity_vector);
 
     KRATOS_CATCH("")
@@ -192,7 +192,6 @@ void TransientThermalElement<TDim, TNumNodes>::InitializeNodalTemperatureVariabl
     const GeometryType& rGeom = GetGeometry();
 
     for (unsigned int i = 0; i < TNumNodes; ++i) {
-        rVariables.TemperatureVector[i] = rGeom[i].FastGetSolutionStepValue(TEMPERATURE);
         rVariables.DtTemperatureVector[i] =
             rGeom[i].FastGetSolutionStepValue(DT_TEMPERATURE);
     }
@@ -221,6 +220,16 @@ TransientThermalElement<TDim, TNumNodes>::CalculateCapacityMatrix(const Vector& 
         result += (cWater + cSolid) * outer_prod(N, N) * rIntegrationCoefficients[GPoint];
     }
 
+    return result;
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
+array_1d<double, TNumNodes> TransientThermalElement<TDim, TNumNodes>::GetTemperatureVector() const
+{
+    auto        result     = array_1d<double, TNumNodes>{};
+    const auto& r_geometry = GetGeometry();
+    std::transform(r_geometry.begin(), r_geometry.end(), result.begin(),
+                   [](const auto& node){return node.FastGetSolutionStepValue(TEMPERATURE);});
     return result;
 }
 

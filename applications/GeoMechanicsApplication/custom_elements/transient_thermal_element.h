@@ -26,7 +26,6 @@ public:
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(TransientThermalElement);
 
     struct ElementVariables {
-        array_1d<double, TNumNodes> TemperatureVector;
         array_1d<double, TNumNodes> DtTemperatureVector;
     };
 
@@ -77,6 +76,8 @@ private:
                                                                             const ProcessInfo& rCurrentProcessInfo) const;
 
     BoundedMatrix<double, TNumNodes, TNumNodes> CalculateCapacityMatrix(const Vector& rIntegrationCoefficients) const;
+
+    array_1d<double, TNumNodes> GetTemperatureVector() const;
 
     GeometryData::IntegrationMethod GetIntegrationMethod() const override;
 
