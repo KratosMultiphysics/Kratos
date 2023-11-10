@@ -1,10 +1,5 @@
-# Importing the Kratos Library
 import KratosMultiphysics
-
-# Import applications
 import KratosMultiphysics.GeoMechanicsApplication as KratosGeo
-
-# Import base class file
 from KratosMultiphysics.GeoMechanicsApplication.geomechanics_solver import GeoMechanicalSolver as GeoSolver
 
 
@@ -103,11 +98,10 @@ class TSolver(GeoSolver):
 
     def AddDofs(self):
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.TEMPERATURE, self.main_model_part)
-
         KratosMultiphysics.Logger.PrintInfo("GeoMechanics_T_Solver", "DOFs added correctly.")
 
     def Initialize(self):
-        KratosMultiphysics.Logger.PrintInfo("::[GeoMechanics_T_Solver]:: ", "Initialisation ...")
+        KratosMultiphysics.Logger.PrintInfo("::[GeoMechanics_T_Solver]:: ", "Started Initialization")
         
         super().Initialize()
 
@@ -117,12 +111,10 @@ class TSolver(GeoSolver):
         self.deactivate_conditions_on_inactive_elements_process = KratosGeo.DeactivateConditionsOnInactiveElements(self.computing_model_part)
         self.deactivate_conditions_on_inactive_elements_process.Execute()
 
-        KratosMultiphysics.Logger.PrintInfo("GeoMechanics_T_Solver", "solver.Initialize is set successfully")
-
         # Check if everything is assigned correctly
         self.Check()
 
-        KratosMultiphysics.Logger.PrintInfo("GeoMechanics_T_Solver", "Solver initialization finished.")
+        KratosMultiphysics.Logger.PrintInfo("GeoMechanics_T_Solver", "Solver initialization finished and validated.")
 
     def _ConstructScheme(self, scheme_type, solution_type):
 
@@ -148,7 +140,7 @@ class TSolver(GeoSolver):
                 KratosMultiphysics.Logger.PrintInfo("GeoMechanics_T_Solver, scheme", "Backward Euler Steady-state heat transfer.")
                 scheme = KratosGeo.BackwardEulerQuasistaticTScheme()
         else:
-            raise Exception("Apart from Newmark and Backward Euler, other scheme_type are not available.")
+            raise Exception("Apart from Newmark and Backward Euler, no other scheme_type is available for thermal calculations.")
 
         return scheme
 
