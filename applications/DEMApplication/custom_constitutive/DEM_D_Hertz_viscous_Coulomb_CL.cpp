@@ -370,8 +370,9 @@ namespace Kratos {
 
     void DEM_D_Hertz_viscous_Coulomb::CalculateInelasticViscodampingEnergyDEM(double& inelastic_viscodamping_energy, double ViscoDampingLocalContactForce[3], double LocalDeltDisp[3])
     {
-        double viscodamping_energy = 0.50*sqrt(ViscoDampingLocalContactForce[0]*ViscoDampingLocalContactForce[0]*LocalDeltDisp[0]*LocalDeltDisp[0]+ViscoDampingLocalContactForce[1]*ViscoDampingLocalContactForce[1]*LocalDeltDisp[1]*LocalDeltDisp[1]+ViscoDampingLocalContactForce[2]*ViscoDampingLocalContactForce[2]*LocalDeltDisp[2]*LocalDeltDisp[2]);
-        inelastic_viscodamping_energy += viscodamping_energy;
+        double viscodamping_energy_normal  = 0.50*sqrt(ViscoDampingLocalContactForce[2] * ViscoDampingLocalContactForce[2] * LocalDeltDisp[2] * LocalDeltDisp[2]);
+        double viscodamping_energy_tangent = 0.50*sqrt(ViscoDampingLocalContactForce[0] * ViscoDampingLocalContactForce[0] * LocalDeltDisp[0] * LocalDeltDisp[0] + ViscoDampingLocalContactForce[1] * ViscoDampingLocalContactForce[1] * LocalDeltDisp[1] * LocalDeltDisp[1]);
+        inelastic_viscodamping_energy += viscodamping_energy_normal + viscodamping_energy_tangent;
     }
 
     void DEM_D_Hertz_viscous_Coulomb::CalculateElasticEnergyFEM(double& elastic_energy, double indentation, double LocalElasticContactForce[3])
@@ -390,8 +391,9 @@ namespace Kratos {
 
     void DEM_D_Hertz_viscous_Coulomb::CalculateInelasticViscodampingEnergyFEM(double& inelastic_viscodamping_energy, double ViscoDampingLocalContactForce[3], double LocalDeltDisp[3])
     {
-        double viscodamping_energy = sqrt(ViscoDampingLocalContactForce[0]*ViscoDampingLocalContactForce[0]*LocalDeltDisp[0]*LocalDeltDisp[0]+ViscoDampingLocalContactForce[1]*ViscoDampingLocalContactForce[1]*LocalDeltDisp[1]*LocalDeltDisp[1]+ViscoDampingLocalContactForce[2]*ViscoDampingLocalContactForce[2]*LocalDeltDisp[2]*LocalDeltDisp[2]);
-        inelastic_viscodamping_energy += viscodamping_energy;
+        double viscodamping_energy_normal  = sqrt(ViscoDampingLocalContactForce[2] * ViscoDampingLocalContactForce[2] * LocalDeltDisp[2] * LocalDeltDisp[2]);
+        double viscodamping_energy_tangent = sqrt(ViscoDampingLocalContactForce[0] * ViscoDampingLocalContactForce[0] * LocalDeltDisp[0] * LocalDeltDisp[0] + ViscoDampingLocalContactForce[1] * ViscoDampingLocalContactForce[1] * LocalDeltDisp[1] * LocalDeltDisp[1]);
+        inelastic_viscodamping_energy += viscodamping_energy_normal + viscodamping_energy_tangent;
     }
 
 } // namespace Kratos
