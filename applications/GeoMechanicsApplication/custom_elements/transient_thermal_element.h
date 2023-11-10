@@ -59,10 +59,6 @@ public:
                               VectorType& rRightHandSideVector,
                               const ProcessInfo& rCurrentProcessInfo) override;
 private:
-    void CalculateAll(MatrixType& rLeftHandSideMatrix,
-                      VectorType& rRightHandSideVector,
-                      const ProcessInfo& CurrentProcessInfo);
-
     Vector CalculateIntegrationCoefficients(const Vector& detJContainer) const;
 
     BoundedMatrix<double, TNumNodes, TNumNodes> CalculateConductivityMatrix(const GeometryType::ShapeFunctionsGradientsType& rShapeFunctionGradients,

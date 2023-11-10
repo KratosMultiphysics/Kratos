@@ -146,42 +146,6 @@ int TransientThermalElement<TDim, TNumNodes>::Check(const ProcessInfo& rCurrentP
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void TransientThermalElement<TDim, TNumNodes>::CalculateAll(
-    MatrixType& rLeftHandSideMatrix,
-    VectorType& rRightHandSideVector,
-    const ProcessInfo& rCurrentProcessInfo)
-{
-    KRATOS_TRY
-
-    const auto& rGeom = GetGeometry();
-    const unsigned int NumGPoints = rGeom.IntegrationPointsNumber(GetIntegrationMethod());
-
-    GeometryType::ShapeFunctionsGradientsType DN_DXContainer;
-    Vector detJContainer{NumGPoints};
-    rGeom.ShapeFunctionsIntegrationPointsGradients(DN_DXContainer, detJContainer, GetIntegrationMethod());
-
-    const auto integration_coefficients = CalculateIntegrationCoefficients(detJContainer);
-
-    const auto conductivity_matrix =
-            CalculateConductivityMatrix(DN_DXContainer, integration_coefficients, rCurrentProcessInfo);
-    const auto capacity_matrix = CalculateCapacityMatrix(integration_coefficients);
-
-    GeoElementUtilities::AssemblePBlockMatrix<0, TNumNodes>(rLeftHandSideMatrix, conductivity_matrix);
-    const auto DtTemperatureCoefficient = rCurrentProcessInfo[DT_TEMPERATURE_COEFFICIENT];
-    GeoElementUtilities::AssemblePBlockMatrix<0, TNumNodes>(rLeftHandSideMatrix, DtTemperatureCoefficient * capacity_matrix);
-
-    const auto capacity_vector =
-        array_1d<double, TNumNodes>{-prod(capacity_matrix, GetNodalValuesOf(DT_TEMPERATURE))};
-    GeoElementUtilities::AssemblePBlockVector<0, TNumNodes>(rRightHandSideVector, capacity_vector);
-
-    const auto conductivity_vector =
-        array_1d<double, TNumNodes>{-prod(conductivity_matrix, GetNodalValuesOf(TEMPERATURE))};
-    GeoElementUtilities::AssemblePBlockVector<0, TNumNodes>(rRightHandSideVector, conductivity_vector);
-
-    KRATOS_CATCH("")
-}
-
-template <unsigned int TDim, unsigned int TNumNodes>
 BoundedMatrix<double, TNumNodes, TNumNodes>
 TransientThermalElement<TDim, TNumNodes>::CalculateCapacityMatrix(const Vector& rIntegrationCoefficients) const
 {
@@ -247,7 +211,30 @@ void TransientThermalElement<TDim, TNumNodes>::CalculateLocalSystem(
     noalias(rLeftHandSideMatrix)  = ZeroMatrix(N_DOF, N_DOF);
     noalias(rRightHandSideVector) = ZeroVector(N_DOF);
 
-    CalculateAll(rLeftHandSideMatrix, rRightHandSideVector, rCurrentProcessInfo);
+    const auto& rGeom = GetGeometry();
+    const unsigned int NumGPoints = rGeom.IntegrationPointsNumber(GetIntegrationMethod());
+
+    GeometryType::ShapeFunctionsGradientsType DN_DXContainer;
+    Vector detJContainer{NumGPoints};
+    rGeom.ShapeFunctionsIntegrationPointsGradients(DN_DXContainer, detJContainer, GetIntegrationMethod());
+
+    const auto integration_coefficients = CalculateIntegrationCoefficients(detJContainer);
+
+    const auto conductivity_matrix =
+        CalculateConductivityMatrix(DN_DXContainer, integration_coefficients, rCurrentProcessInfo);
+    const auto capacity_matrix = CalculateCapacityMatrix(integration_coefficients);
+
+    GeoElementUtilities::AssemblePBlockMatrix<0, TNumNodes>(rLeftHandSideMatrix, conductivity_matrix);
+    const auto DtTemperatureCoefficient = rCurrentProcessInfo[DT_TEMPERATURE_COEFFICIENT];
+    GeoElementUtilities::AssemblePBlockMatrix<0, TNumNodes>(rLeftHandSideMatrix, DtTemperatureCoefficient * capacity_matrix);
+
+    const auto capacity_vector =
+        array_1d<double, TNumNodes>{-prod(capacity_matrix, GetNodalValuesOf(DT_TEMPERATURE))};
+    GeoElementUtilities::AssemblePBlockVector<0, TNumNodes>(rRightHandSideVector, capacity_vector);
+
+    const auto conductivity_vector =
+        array_1d<double, TNumNodes>{-prod(conductivity_matrix, GetNodalValuesOf(TEMPERATURE))};
+    GeoElementUtilities::AssemblePBlockVector<0, TNumNodes>(rRightHandSideVector, conductivity_vector);
 
     KRATOS_CATCH("")
 }
