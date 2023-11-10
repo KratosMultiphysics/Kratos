@@ -32,7 +32,6 @@ public:
         Vector detJContainer;
         GeometryType::ShapeFunctionsGradientsType DN_DXContainer;
         double IntegrationCoefficient;
-        BoundedMatrix<double, TNumNodes, TNumNodes> ConductivityMatrix;
         BoundedMatrix<double, TNumNodes, TNumNodes> CapacityMatrix;
     };
 
@@ -81,9 +80,9 @@ private:
 
     Vector CalculateIntegrationCoefficients(const Vector& detJContainer) const;
 
-    void CalculateConductivityMatrix(ElementVariables&  rVariables,
-                                     const Matrix&      rGradNT,
-                                     const ProcessInfo& rCurrentProcessInfo);
+    BoundedMatrix<double, TNumNodes, TNumNodes> CalculateConductivityMatrix(const GeometryType::ShapeFunctionsGradientsType& rShapeFunctionGradients,
+                                                                            const Vector& rIntegrationCoefficients,
+                                                                            const ProcessInfo& rCurrentProcessInfo) const;
 
     void CalculateCapacityMatrix(ElementVariables& rVariables,
                                  const Vector&     rN) const;
