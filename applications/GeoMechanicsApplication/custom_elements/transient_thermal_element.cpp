@@ -153,31 +153,20 @@ void TransientThermalElement<TDim, TNumNodes>::CalculateAll(
 {
     KRATOS_TRY
 
-    const auto& IntegrationPoints = GetGeometry().IntegrationPoints(GetIntegrationMethod());
-
     ElementVariables Variables;
     InitializeElementVariables(Variables, rCurrentProcessInfo);
-
-    const auto NContainer = Matrix{GetGeometry().ShapeFunctionsValues(GetIntegrationMethod())};
 
     const auto integration_coefficients = CalculateIntegrationCoefficients(Variables.detJContainer);
 
     const auto conductivity_matrix =
             CalculateConductivityMatrix(Variables.DN_DXContainer, integration_coefficients, rCurrentProcessInfo);
-
-    // Loop over integration points
-    for (unsigned int GPoint = 0; GPoint < IntegrationPoints.size(); ++GPoint) {
-        Variables.IntegrationCoefficient = integration_coefficients[GPoint];
-
-        const auto N = Vector{row(NContainer, GPoint)};
-        CalculateCapacityMatrix(Variables, N);
-    }
+    const auto capacity_matrix = CalculateCapacityMatrix(integration_coefficients);
 
     GeoElementUtilities::AssemblePBlockMatrix<0, TNumNodes>(rLeftHandSideMatrix, conductivity_matrix);
-    GeoElementUtilities::AssemblePBlockMatrix<0, TNumNodes>(rLeftHandSideMatrix, Variables.DtTemperatureCoefficient * Variables.CapacityMatrix);
+    GeoElementUtilities::AssemblePBlockMatrix<0, TNumNodes>(rLeftHandSideMatrix, Variables.DtTemperatureCoefficient * capacity_matrix);
 
     const auto capacity_vector =
-        array_1d<double, TNumNodes>{-prod(Variables.CapacityMatrix, Variables.DtTemperatureVector)};
+        array_1d<double, TNumNodes>{-prod(capacity_matrix, Variables.DtTemperatureVector)};
     GeoElementUtilities::AssemblePBlockVector<0, TNumNodes>(rRightHandSideVector, capacity_vector);
 
     const auto conductivity_vector =
@@ -207,8 +196,6 @@ void TransientThermalElement<TDim, TNumNodes>::InitializeElementVariables(
     rGeom.ShapeFunctionsIntegrationPointsGradients(
         rVariables.DN_DXContainer, rVariables.detJContainer, GetIntegrationMethod());
 
-    rVariables.CapacityMatrix = ZeroMatrix(TNumNodes, TNumNodes);
-
     KRATOS_CATCH("")
 }
 
@@ -229,21 +216,27 @@ void TransientThermalElement<TDim, TNumNodes>::InitializeNodalTemperatureVariabl
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void TransientThermalElement<TDim, TNumNodes>::CalculateCapacityMatrix(ElementVariables& rVariables,
-                                                                       const Vector&     rN) const
+BoundedMatrix<double, TNumNodes, TNumNodes>
+TransientThermalElement<TDim, TNumNodes>::CalculateCapacityMatrix(const Vector& rIntegrationCoefficients) const
 {
-    KRATOS_TRY
-
     const auto& r_properties = GetProperties();
 
     const double cWater = r_properties[POROSITY] * r_properties[SATURATION] *
                           r_properties[DENSITY_WATER] * r_properties[SPECIFIC_HEAT_CAPACITY_WATER];
     const double cSolid = (1.0 - r_properties[POROSITY]) *
                           r_properties[DENSITY_SOLID] * r_properties[SPECIFIC_HEAT_CAPACITY_SOLID];
-    noalias(rVariables.CapacityMatrix) +=
-        (cWater + cSolid) * outer_prod(rN, rN) * rVariables.IntegrationCoefficient;
 
-    KRATOS_CATCH("")
+    const auto& IntegrationPoints = GetGeometry().IntegrationPoints(GetIntegrationMethod());
+
+    const auto NContainer = Matrix{GetGeometry().ShapeFunctionsValues(GetIntegrationMethod())};
+
+    auto result = BoundedMatrix<double, TNumNodes, TNumNodes>{ZeroMatrix{TNumNodes, TNumNodes}};
+    for (unsigned int GPoint = 0; GPoint < IntegrationPoints.size(); ++GPoint) {
+        const auto N = Vector{row(NContainer, GPoint)};
+        result += (cWater + cSolid) * outer_prod(N, N) * rIntegrationCoefficients[GPoint];
+    }
+
+    return result;
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>

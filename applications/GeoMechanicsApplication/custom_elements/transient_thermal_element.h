@@ -31,8 +31,6 @@ public:
         array_1d<double, TNumNodes> DtTemperatureVector;
         Vector detJContainer;
         GeometryType::ShapeFunctionsGradientsType DN_DXContainer;
-        double IntegrationCoefficient;
-        BoundedMatrix<double, TNumNodes, TNumNodes> CapacityMatrix;
     };
 
     explicit TransientThermalElement(IndexType NewId = 0);
@@ -84,8 +82,7 @@ private:
                                                                             const Vector& rIntegrationCoefficients,
                                                                             const ProcessInfo& rCurrentProcessInfo) const;
 
-    void CalculateCapacityMatrix(ElementVariables& rVariables,
-                                 const Vector&     rN) const;
+    BoundedMatrix<double, TNumNodes, TNumNodes> CalculateCapacityMatrix(const Vector& rIntegrationCoefficients) const;
 
     GeometryData::IntegrationMethod GetIntegrationMethod() const override;
 
