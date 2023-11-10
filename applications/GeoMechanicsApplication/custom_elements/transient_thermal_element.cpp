@@ -154,7 +154,7 @@ void TransientThermalElement<TDim, TNumNodes>::CalculateAll(
     KRATOS_TRY
 
     ElementVariables Variables;
-    InitializeElementVariables(Variables, rCurrentProcessInfo);
+    InitializeElementVariables(Variables);
 
     const auto& rGeom = GetGeometry();
     const unsigned int NumGPoints = rGeom.IntegrationPointsNumber(GetIntegrationMethod());
@@ -170,7 +170,8 @@ void TransientThermalElement<TDim, TNumNodes>::CalculateAll(
     const auto capacity_matrix = CalculateCapacityMatrix(integration_coefficients);
 
     GeoElementUtilities::AssemblePBlockMatrix<0, TNumNodes>(rLeftHandSideMatrix, conductivity_matrix);
-    GeoElementUtilities::AssemblePBlockMatrix<0, TNumNodes>(rLeftHandSideMatrix, Variables.DtTemperatureCoefficient * capacity_matrix);
+    const auto DtTemperatureCoefficient = rCurrentProcessInfo[DT_TEMPERATURE_COEFFICIENT];
+    GeoElementUtilities::AssemblePBlockMatrix<0, TNumNodes>(rLeftHandSideMatrix, DtTemperatureCoefficient * capacity_matrix);
 
     const auto capacity_vector =
         array_1d<double, TNumNodes>{-prod(capacity_matrix, Variables.DtTemperatureVector)};
@@ -185,11 +186,9 @@ void TransientThermalElement<TDim, TNumNodes>::CalculateAll(
 
 template <unsigned int TDim, unsigned int TNumNodes>
 void TransientThermalElement<TDim, TNumNodes>::InitializeElementVariables(
-    ElementVariables& rVariables, const ProcessInfo& rCurrentProcessInfo)
+    ElementVariables& rVariables)
 {
     KRATOS_TRY
-
-    rVariables.DtTemperatureCoefficient = rCurrentProcessInfo[DT_TEMPERATURE_COEFFICIENT];
 
     InitializeNodalTemperatureVariables(rVariables);
 

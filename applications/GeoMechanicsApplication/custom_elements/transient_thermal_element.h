@@ -26,7 +26,6 @@ public:
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(TransientThermalElement);
 
     struct ElementVariables {
-        double DtTemperatureCoefficient;
         array_1d<double, TNumNodes> TemperatureVector;
         array_1d<double, TNumNodes> DtTemperatureVector;
     };
@@ -69,8 +68,7 @@ private:
                       VectorType& rRightHandSideVector,
                       const ProcessInfo& CurrentProcessInfo);
 
-    void InitializeElementVariables(ElementVariables& rVariables,
-                                    const ProcessInfo& CurrentProcessInfo);
+    void InitializeElementVariables(ElementVariables& rVariables);
 
     void InitializeNodalTemperatureVariables(ElementVariables& rVariables);
 
