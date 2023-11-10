@@ -244,15 +244,7 @@ void TransientThermalElement<TDim, TNumNodes>::CalculateLocalSystem(
     KRATOS_TRY
 
     constexpr unsigned int N_DOF = TNumNodes;
-
-    if (rLeftHandSideMatrix.size1() != N_DOF) {
-        rLeftHandSideMatrix.resize(N_DOF, N_DOF, false);
-    }
-    noalias(rLeftHandSideMatrix) = ZeroMatrix(N_DOF, N_DOF);
-
-    if (rRightHandSideVector.size() != N_DOF) {
-        rRightHandSideVector.resize(N_DOF, false);
-    }
+    noalias(rLeftHandSideMatrix)  = ZeroMatrix(N_DOF, N_DOF);
     noalias(rRightHandSideVector) = ZeroVector(N_DOF);
 
     CalculateAll(rLeftHandSideMatrix, rRightHandSideVector, rCurrentProcessInfo);
