@@ -71,8 +71,16 @@ private:
 
     BoundedMatrix<double, TNumNodes, TNumNodes> CalculateCapacityMatrix(const Vector& rIntegrationCoefficients) const;
 
-    array_1d<double, TNumNodes> GetTemperatureVector() const;
-    array_1d<double, TNumNodes> GetDtTemperatureVector() const;
+    array_1d<double, TNumNodes> GetNodalValuesOf(const Variable<double>& rNodalVariable) const
+    {
+        auto result = array_1d<double, TNumNodes>{};
+        const auto& r_geometry = GetGeometry();
+        std::transform(r_geometry.begin(), r_geometry.end(), result.begin(),
+                       [&rNodalVariable](const auto& node) {
+                           return node.FastGetSolutionStepValue(rNodalVariable);
+                       });
+        return result;
+    }
 
     GeometryData::IntegrationMethod GetIntegrationMethod() const override;
 
