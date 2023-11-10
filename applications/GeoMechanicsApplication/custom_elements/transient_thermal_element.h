@@ -59,6 +59,16 @@ public:
                               VectorType& rRightHandSideVector,
                               const ProcessInfo& rCurrentProcessInfo) override;
 private:
+    static void AddContributionsToLhsMatrix(MatrixType&                                        rLeftHandSideMatrix,
+                                            const BoundedMatrix<double, TNumNodes, TNumNodes>& rConductivityMatrix,
+                                            const BoundedMatrix<double, TNumNodes, TNumNodes>& rCapacityMatrix,
+                                            double                                             DtTemperatureCoefficient)
+    {
+        GeoElementUtilities::AssemblePBlockMatrix<0, TNumNodes>(rLeftHandSideMatrix, rConductivityMatrix);
+        GeoElementUtilities::AssemblePBlockMatrix<0, TNumNodes>(rLeftHandSideMatrix,
+                                                                DtTemperatureCoefficient * rCapacityMatrix);
+    }
+
     Vector CalculateIntegrationCoefficients(const Vector& detJContainer) const;
 
     BoundedMatrix<double, TNumNodes, TNumNodes> CalculateConductivityMatrix(const GeometryType::ShapeFunctionsGradientsType& rShapeFunctionGradients,

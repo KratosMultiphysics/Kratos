@@ -224,9 +224,8 @@ void TransientThermalElement<TDim, TNumNodes>::CalculateLocalSystem(
         CalculateConductivityMatrix(DN_DXContainer, integration_coefficients, rCurrentProcessInfo);
     const auto capacity_matrix = CalculateCapacityMatrix(integration_coefficients);
 
-    GeoElementUtilities::AssemblePBlockMatrix<0, TNumNodes>(rLeftHandSideMatrix, conductivity_matrix);
-    const auto DtTemperatureCoefficient = rCurrentProcessInfo[DT_TEMPERATURE_COEFFICIENT];
-    GeoElementUtilities::AssemblePBlockMatrix<0, TNumNodes>(rLeftHandSideMatrix, DtTemperatureCoefficient * capacity_matrix);
+    AddContributionsToLhsMatrix(rLeftHandSideMatrix, conductivity_matrix, capacity_matrix,
+                                rCurrentProcessInfo[DT_TEMPERATURE_COEFFICIENT]);
 
     const auto capacity_vector =
         array_1d<double, TNumNodes>{-prod(capacity_matrix, GetNodalValuesOf(DT_TEMPERATURE))};
