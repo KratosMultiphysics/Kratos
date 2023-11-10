@@ -323,6 +323,15 @@ public:
     ///@name Access
     ///@{
 
+    /**
+     * @brief Returns the data communicator.
+     * @return The data communicator.
+     */
+    const DataCommunicator& GetDataCommunicator() const
+    {
+        return mrDataCommunicator;
+    }
+
     ///@}
     ///@name Inquiry
     ///@{
