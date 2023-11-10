@@ -151,7 +151,7 @@ void UPwSmallStrainElement<TDim,TNumNodes>::InitializeSolutionStep(const Process
                                      rCurrentProcessInfo);
 
     // create general parameters of retention law
-    RetentionLaw::Parameters RetentionParameters(rGeom, this->GetProperties(), rCurrentProcessInfo);
+    RetentionLaw::Parameters RetentionParameters(this->GetProperties(), rCurrentProcessInfo);
 
     //Loop over integration points
     for ( unsigned int GPoint = 0; GPoint < NumGPoints; ++GPoint) {
@@ -321,7 +321,7 @@ void UPwSmallStrainElement<TDim,TNumNodes>::
                                      rCurrentProcessInfo);
 
     // create general parameters of retention law
-    RetentionLaw::Parameters RetentionParameters(rGeom, this->GetProperties(), rCurrentProcessInfo);
+    RetentionLaw::Parameters RetentionParameters(this->GetProperties(), rCurrentProcessInfo);
 
     Matrix StressContainer(NumGPoints, mStressVector[0].size());
     //Loop over integration points
@@ -519,7 +519,7 @@ void UPwSmallStrainElement<TDim,TNumNodes>::CalculateOnIntegrationPoints(const V
                                          rCurrentProcessInfo);
 
         // create general parameters of retention law
-        RetentionLaw::Parameters RetentionParameters(rGeom, this->GetProperties(), rCurrentProcessInfo);
+        RetentionLaw::Parameters RetentionParameters(this->GetProperties(), rCurrentProcessInfo);
 
         //Loop over integration points
         for ( unsigned int GPoint = 0; GPoint < NumGPoints; ++GPoint ) {
@@ -660,7 +660,7 @@ void UPwSmallStrainElement<TDim,TNumNodes>::
         array_1d<double,TDim> FluidFlux;
 
         // create general parameters of retention law
-        RetentionLaw::Parameters RetentionParameters(rGeom, this->GetProperties(), rCurrentProcessInfo);
+        RetentionLaw::Parameters RetentionParameters(this->GetProperties(), rCurrentProcessInfo);
 
         //Loop over integration points
         for ( unsigned int GPoint = 0; GPoint < NumGPoints; ++GPoint ) {
@@ -748,7 +748,7 @@ void UPwSmallStrainElement<TDim,TNumNodes>::
                                          rCurrentProcessInfo);
 
         // create general parameters of retention law
-        RetentionLaw::Parameters RetentionParameters(rGeom, this->GetProperties(), rCurrentProcessInfo);
+        RetentionLaw::Parameters RetentionParameters(this->GetProperties(), rCurrentProcessInfo);
 
         Vector VoigtVector(mStressVector[0].size());
         noalias(VoigtVector) = ZeroVector(VoigtVector.size());
@@ -1046,7 +1046,7 @@ void UPwSmallStrainElement<TDim,TNumNodes>::
                                       rCurrentProcessInfo );
 
     // create general parametes of retention law
-    RetentionLaw::Parameters RetentionParameters(rGeom, this->GetProperties(), rCurrentProcessInfo);
+    RetentionLaw::Parameters RetentionParameters(this->GetProperties(), rCurrentProcessInfo);
 
     //Defining shape functions at all integration points
     //Defining necessary variables
@@ -1120,7 +1120,7 @@ void UPwSmallStrainElement<TDim,TNumNodes>::
                                       rCurrentProcessInfo );
 
     // create general parameters of retention law
-    RetentionLaw::Parameters RetentionParameters(rGeom, this->GetProperties(), rCurrentProcessInfo);
+    RetentionLaw::Parameters RetentionParameters(this->GetProperties(), rCurrentProcessInfo);
 
     const bool hasBiotCoefficient = rProp.Has(BIOT_COEFFICIENT);
 
