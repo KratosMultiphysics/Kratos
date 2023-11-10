@@ -39,8 +39,6 @@ class AssignNodalElementsToNodesProcess(KratosMultiphysics.Process):
         )
 
         to_validate_parameters = KratosMultiphysics.Parameters("""{}""")
-        if settings.Has("mesh_id":
-            to_validate_parameters.AddValue("mesh_id", settings["mesh_id"])
         if settings.Has("model_part_name"):
             to_validate_parameters.AddValue("model_part_name", settings["model_part_name"])
         if settings.Has("sub_model_part_name"):
@@ -52,10 +50,6 @@ class AssignNodalElementsToNodesProcess(KratosMultiphysics.Process):
 
         # Overwrite the default settings with user-provided parameters
         to_validate_parameters.RecursivelyValidateAndAssignDefaults(default_settings)
-        if settings.Has("mesh_id"):
-            settings.SetValue("mesh_id", to_validate_parameters["mesh_id"])
-        else:
-            settings.AddValue("mesh_id", to_validate_parameters["mesh_id"])
         if settings.Has("model_part_name"):
             settings.SetValue("model_part_name", to_validate_parameters["model_part_name"])
         else:
