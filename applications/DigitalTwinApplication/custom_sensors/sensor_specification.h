@@ -52,18 +52,11 @@ public:
         const IndexType NewId);
 
     /// Destructor.
-    virtual ~SensorSpecification() = default;
+    ~SensorSpecification() override = default;
 
     ///@}
     ///@name Public operations
     ///@{
-
-    /**
-     * @brief Get the sensor location.
-     *
-     * @return Point
-     */
-    virtual Point GetLocation() const;
 
     /**
      * @brief Get the Name of the sensor
@@ -73,11 +66,18 @@ public:
     std::string GetName() const;
 
     /**
-     * @brief Get the Sensor value
+     * @brief Set the Location of the sensor
      *
-     * @return double
+     * @param rLocation     New location to set.
      */
-    double GetSensorValue() const;
+    void SetLocation(const array_1d<double, 3>& rLocation);
+
+    /**
+     * @brief Get the sensor location.
+     *
+     * @return Point
+     */
+    array_1d<double, 3> GetLocation() const;
 
     /**
      * @brief Set the Sensor Value
@@ -85,6 +85,13 @@ public:
      * @param SensorValue   Sensor value to be set.
      */
     void SetSensorValue(const double SensorValue);
+
+    /**
+     * @brief Get the Sensor value
+     *
+     * @return double
+     */
+    double GetSensorValue() const;
 
     /**
      * @brief Adds a given nodal expression under the given name.
@@ -196,6 +203,8 @@ private:
     const std::string mName;
 
     double mSensorValue;
+
+    array_1d<double, 3> mLocation;
 
     std::unordered_map<std::string, ContainerExpression<ModelPart::NodesContainerType>::Pointer> mNodalExpressions;
 

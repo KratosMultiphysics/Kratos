@@ -29,13 +29,9 @@ SensorSpecification::SensorSpecification(
     const IndexType NewId)
     : IndexedObject(NewId),
       mName(rName),
-      mSensorValue(0.0)
+      mSensorValue(0.0),
+      mLocation{}
 {
-}
-
-Point SensorSpecification::GetLocation() const
-{
-    KRATOS_ERROR << "Calling baseclass SensorSpecification::GetLocation. Please implement this in derrived class.";
 }
 
 std::string SensorSpecification::GetName() const
@@ -43,14 +39,24 @@ std::string SensorSpecification::GetName() const
     return mName;
 }
 
-double SensorSpecification::GetSensorValue() const
+void SensorSpecification::SetLocation(const array_1d<double, 3>& rLocation)
 {
-    return mSensorValue;
+    mLocation = rLocation;
+}
+
+array_1d<double, 3> SensorSpecification::GetLocation() const
+{
+    return mLocation;
 }
 
 void SensorSpecification::SetSensorValue(const double SensorValue)
 {
     mSensorValue = SensorValue;
+}
+
+double SensorSpecification::GetSensorValue() const
+{
+    return mSensorValue;
 }
 
 void SensorSpecification::AddNodalExpression(

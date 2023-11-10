@@ -20,7 +20,6 @@
 // Application includes
 #include "custom_sensors/sensor_specification.h"
 #include "custom_sensors/sensor_specification_view.h"
-#include "custom_sensors/nodal_sensor_specification.h"
 #include "custom_sensors/adjoint_sensor.h"
 #include "custom_sensors/adjoint_displacement_sensor.h"
 
@@ -37,10 +36,12 @@ void  AddCustomSensorsToPython(pybind11::module& m)
 
     // Add sensor specifications
     py::class_<SensorSpecification, SensorSpecification::Pointer, IndexedObject, DataValueContainer>(sensor_module, "SensorSpecification")
-        .def("GetLocation", &SensorSpecification::GetLocation)
+        .def(py::init<const std::string&, const IndexType>(), py::arg("sensor_name"), py::arg("sensor_id"))
         .def("GetName", &SensorSpecification::GetName)
-        .def("GetSensorValue", &SensorSpecification::GetSensorValue)
+        .def("SetLocation", &SensorSpecification::SetLocation, py::arg("new_location"))
+        .def("GetLocation", &SensorSpecification::GetLocation)
         .def("SetSensorValue", &SensorSpecification::SetSensorValue, py::arg("sensor_value"))
+        .def("GetSensorValue", &SensorSpecification::GetSensorValue)
         .def("AddNodalExpression", &SensorSpecification::AddNodalExpression, py::arg("nodal_expression_name"), py::arg("nodal_expression"))
         .def("GetNodalExpression", &SensorSpecification::GetNodalExpression, py::arg("nodal_expression_name"))
         .def("GetNodalExpressionsMap", &SensorSpecification::GetNodalExpressionsMap)
@@ -76,11 +77,6 @@ void  AddCustomSensorsToPython(pybind11::module& m)
         .def("GetSensorSpecification", &element_sensor_specification_view::GetSensorSpecification)
         .def("GetContainerExpression", &element_sensor_specification_view::GetContainerExpression)
         .def("__str__", PrintObject<element_sensor_specification_view>);
-        ;
-
-    py::class_<NodalSensorSpecification, NodalSensorSpecification::Pointer, SensorSpecification>(sensor_module, "NodalSensorSpecification")
-        .def(py::init<const std::string&, const IndexType, const double, const ModelPart::NodeType::Pointer>(), py::arg("sensor_name"), py::arg("sensor_id"), py::arg("sensor_weight"), py::arg("sensor_node"))
-        .def("GetNode", &NodalSensorSpecification::GetNode)
         ;
 
     // Add sensor adjint responses
