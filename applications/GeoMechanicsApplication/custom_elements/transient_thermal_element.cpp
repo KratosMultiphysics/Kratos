@@ -156,10 +156,17 @@ void TransientThermalElement<TDim, TNumNodes>::CalculateAll(
     ElementVariables Variables;
     InitializeElementVariables(Variables, rCurrentProcessInfo);
 
-    const auto integration_coefficients = CalculateIntegrationCoefficients(Variables.detJContainer);
+    const auto& rGeom = GetGeometry();
+    const unsigned int NumGPoints = rGeom.IntegrationPointsNumber(GetIntegrationMethod());
+
+    GeometryType::ShapeFunctionsGradientsType DN_DXContainer;
+    Vector detJContainer{NumGPoints};
+    rGeom.ShapeFunctionsIntegrationPointsGradients(DN_DXContainer, detJContainer, GetIntegrationMethod());
+
+    const auto integration_coefficients = CalculateIntegrationCoefficients(detJContainer);
 
     const auto conductivity_matrix =
-            CalculateConductivityMatrix(Variables.DN_DXContainer, integration_coefficients, rCurrentProcessInfo);
+            CalculateConductivityMatrix(DN_DXContainer, integration_coefficients, rCurrentProcessInfo);
     const auto capacity_matrix = CalculateCapacityMatrix(integration_coefficients);
 
     GeoElementUtilities::AssemblePBlockMatrix<0, TNumNodes>(rLeftHandSideMatrix, conductivity_matrix);
@@ -185,16 +192,6 @@ void TransientThermalElement<TDim, TNumNodes>::InitializeElementVariables(
     rVariables.DtTemperatureCoefficient = rCurrentProcessInfo[DT_TEMPERATURE_COEFFICIENT];
 
     InitializeNodalTemperatureVariables(rVariables);
-
-    const GeometryType& rGeom = GetGeometry();
-    const unsigned int NumGPoints =
-        rGeom.IntegrationPointsNumber(GetIntegrationMethod());
-
-    // gradient of shape functions and determinant of Jacobian
-    rVariables.detJContainer.resize(NumGPoints, false);
-
-    rGeom.ShapeFunctionsIntegrationPointsGradients(
-        rVariables.DN_DXContainer, rVariables.detJContainer, GetIntegrationMethod());
 
     KRATOS_CATCH("")
 }

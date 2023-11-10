@@ -29,8 +29,6 @@ public:
         double DtTemperatureCoefficient;
         array_1d<double, TNumNodes> TemperatureVector;
         array_1d<double, TNumNodes> DtTemperatureVector;
-        Vector detJContainer;
-        GeometryType::ShapeFunctionsGradientsType DN_DXContainer;
     };
 
     explicit TransientThermalElement(IndexType NewId = 0);
