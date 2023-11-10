@@ -182,30 +182,6 @@ public:
     void Initialize(const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
-     * @brief It is called to initialize the solution step
-     * @param rCurrentProcessInfo: the current process info instance
-     */
-    void InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
-
-    /**
-     * @brief It is called to initialize the NL iteration
-     * @param rCurrentProcessInfo: the current process info instance
-     */
-    void InitializeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo) override;
-
-    /**
-     * @brief It is called to finalize the solution step
-     * @param rCurrentProcessInfo: the current process info instance
-     */
-    void FinalizeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo) override;
-
-    /**
-     * @brief It is called to finalize the NL iteration
-     * @param rCurrentProcessInfo: the current process info instance
-     */
-    void FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
-
-    /**
      * @brief This is called during the assembling process in order to calculate all elemental contributions to the global system  matrix and the right hand side
      * @param rLeftHandSideMatrix: the elemental left hand side matrix
      * @param rRightHandSideVector: the elemental right hand side
@@ -401,9 +377,11 @@ private:
 ///@}
 ///@name Type Definitions
 ///@{
+
 ///@}
 ///@name Input and output
 ///@{
+
 ///@}
 
 } // namespace Kratos.

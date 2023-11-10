@@ -14,7 +14,6 @@
 // External includes
 
 // Project includes
-#include "includes/define.h"
 #include "includes/checks.h"
 #include "includes/kratos_flags.h"
 #include "custom_elements/nodal_concentrated_element.h"
@@ -351,7 +350,7 @@ void NodalConcentratedElement::GetSecondDerivativesVector( Vector& rValues, int 
     if ( rValues.size() != system_size )
         rValues.resize( system_size, false );
 
-    // Auxiliar index
+    // Auxiliary index
     IndexType aux_index = 0;
 
     // The displacement terms
@@ -360,7 +359,6 @@ void NodalConcentratedElement::GetSecondDerivativesVector( Vector& rValues, int 
 
         rValues[0] = r_node.GetSolutionStepValue( ACCELERATION_X, Step );
         rValues[1] = r_node.GetSolutionStepValue( ACCELERATION_Y, Step );
-
         if ( dimension == 3 ) {
             rValues[2] = r_node.GetSolutionStepValue( ACCELERATION_Z, Step );
         }
@@ -374,7 +372,6 @@ void NodalConcentratedElement::GetSecondDerivativesVector( Vector& rValues, int 
 
         rValues[aux_index + 0] = r_node.GetSolutionStepValue( ANGULAR_ACCELERATION_X, Step );
         rValues[aux_index + 1] = r_node.GetSolutionStepValue( ANGULAR_ACCELERATION_Y, Step );
-
         if ( dimension == 3 ) {
             rValues[aux_index + 2] = r_node.GetSolutionStepValue( ANGULAR_ACCELERATION_Z, Step );
         }
@@ -488,54 +485,6 @@ void NodalConcentratedElement::Initialize(const ProcessInfo& rCurrentProcessInfo
             mELementalFlags.Set(NodalConcentratedElement::COMPUTE_ROTATIONAL_DAMPING_RATIO, false);
         }
     }
-
-    KRATOS_CATCH( "" );
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-void NodalConcentratedElement::InitializeSolutionStep( const ProcessInfo& rCurrentProcessInfo )
-{
-    KRATOS_TRY;
-
-    BaseType::InitializeSolutionStep(rCurrentProcessInfo);
-
-    KRATOS_CATCH( "" );
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-void NodalConcentratedElement::InitializeNonLinearIteration( const ProcessInfo& rCurrentProcessInfo )
-{
-    KRATOS_TRY;
-
-    BaseType::InitializeNonLinearIteration(rCurrentProcessInfo);
-
-    KRATOS_CATCH( "" );
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-void NodalConcentratedElement::FinalizeNonLinearIteration( const ProcessInfo& rCurrentProcessInfo )
-{
-    KRATOS_TRY;
-
-    BaseType::FinalizeNonLinearIteration(rCurrentProcessInfo);
-
-    KRATOS_CATCH( "" );
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-void NodalConcentratedElement::FinalizeSolutionStep( const ProcessInfo& rCurrentProcessInfo )
-{
-    KRATOS_TRY;
-
-    BaseType::FinalizeSolutionStep(rCurrentProcessInfo);
 
     KRATOS_CATCH( "" );
 }
