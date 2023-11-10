@@ -29,10 +29,8 @@ AdjointDisplacementSensor::AdjointDisplacementSensor(
     Model& rModel,
     Parameters SensorSettings)
     : mrModel(rModel),
-      mNodeId(0),
       mElementId(0),
-      mNodeIndex(0),
-      mIsNodeAvailable(false)
+      mIsElementAvailable(false)
 {
     KRATOS_TRY;
 
@@ -62,8 +60,8 @@ void AdjointDisplacementSensor::SetSensorSpecification(SensorSpecification& rSen
     const auto& r_local_mesh = r_communicator.LocalMesh();
     const auto& r_data_communicator = r_communicator.GetDataCommunicator();
 
-    KRATOS_ERROR_IF_NOT(rSensorSpecification.Has(SENSOR_NODE_ID))
-        << "No SENSOR_NODE_ID found in the sensor specification.";
+    KRATOS_ERROR_IF_NOT(rSensorSpecification.Has(SENSOR_ELEMENT_ID))
+        << "No SENSOR_ELEMENT_ID found in the sensor specification.";
 
     KRATOS_ERROR_IF_NOT(rSensorSpecification.Has(SENSOR_DIRECTION))
         << "No SENSOR_DIRECTION found in the sensor specification.";
@@ -71,47 +69,18 @@ void AdjointDisplacementSensor::SetSensorSpecification(SensorSpecification& rSen
     KRATOS_ERROR_IF_NOT(rSensorSpecification.Has(SENSOR_WEIGHT))
         << "No SENSOR_WEIGHT found in the sensor specification.";
 
-    mNodeId = rSensorSpecification.GetValue(SENSOR_NODE_ID);
-    mIsNodeAvailable = r_local_mesh.HasNode(mNodeId);
-
-    KRATOS_ERROR_IF_NOT(r_data_communicator.OrReduceAll(mIsNodeAvailable))
-        << "Node id " << mNodeId << " not found in " << r_model_part.FullName() << ".\n";
-
-    mWeight = rSensorSpecification.GetValue(SENSOR_WEIGHT);
+    mElementId = rSensorSpecification.GetValue(SENSOR_ELEMENT_ID);
     mDirection = rSensorSpecification.GetValue(SENSOR_DIRECTION);
+    mWeight = rSensorSpecification.GetValue(SENSOR_WEIGHT);
 
-    mElementId = 0;
-    mNodeIndex = 0;
+    mIsElementAvailable = r_local_mesh.HasElement(mElementId);
 
-    if (!rSensorSpecification.Has(SENSOR_ELEMENT_ID)){
-        if (mIsNodeAvailable) {
-            bool found_node = false;
-            for (const auto& r_element : r_local_mesh.Elements()) {
-                const auto& r_geometry = r_element.GetGeometry();
-                for (IndexType i = 0; i < r_geometry.size(); ++i) {
-                    if (static_cast<int>(r_geometry[i].Id()) == mNodeId) {
-                        mElementId = r_element.Id();
-                        mNodeIndex = i;
-                        found_node = true;
-                        break;
-                    }
-                }
+    KRATOS_ERROR_IF_NOT(r_data_communicator.OrReduceAll(mIsElementAvailable))
+        << "Element id " << mElementId << " not found in " << r_model_part.FullName() << ".\n";
 
-                if (found_node) {
-                    break;
-                }
-            }
-
-            KRATOS_ERROR_IF(!found_node)
-                << "The node " << mNodeId << " is not associated with any elements in "
-                << r_model_part.FullName() << ".\n";
-        }
-
-        rSensorSpecification.SetValue(SENSOR_ELEMENT_ID, r_data_communicator.SumAll(mElementId));
-        rSensorSpecification.SetValue(SENSOR_ELEMENT_NODE_INDEX, r_data_communicator.SumAll(mNodeIndex));
-    } else {
-        mElementId = rSensorSpecification.GetValue(SENSOR_ELEMENT_ID);
-        mNodeIndex = rSensorSpecification.GetValue(SENSOR_ELEMENT_NODE_INDEX);
+    if (mIsElementAvailable) {
+        const auto& r_element = r_local_mesh.GetElement(mElementId);
+        r_element.GetGeometry().PointLocalCoordinates(mLocalCoordinates, rSensorSpecification.GetLocation());
     }
 
     KRATOS_CATCH("");
@@ -119,12 +88,21 @@ void AdjointDisplacementSensor::SetSensorSpecification(SensorSpecification& rSen
 
 double AdjointDisplacementSensor::CalculateValue(ModelPart& rModelPart)
 {
-    double displacement = 0.0;
-    if (mIsNodeAvailable) {
-        const auto& r_node = rModelPart.GetNode(mNodeId);
-        displacement = inner_prod(r_node.FastGetSolutionStepValue(DISPLACEMENT), mDirection) / mWeight;
+    double directional_displacement = 0.0;
+    if (mIsElementAvailable) {
+        const auto& r_element = rModelPart.GetElement(mElementId);
+        const auto& r_geometry = r_element.GetGeometry();
+
+        Vector Ns;
+        r_geometry.ShapeFunctionsValues(Ns, mLocalCoordinates);
+        array_1d<double, 3> displacement{};
+        for (IndexType i = 0; i < r_geometry.size(); ++i) {
+            displacement += r_geometry[i].FastGetSolutionStepValue(DISPLACEMENT) * Ns[i];
+        }
+
+        directional_displacement = inner_prod(displacement, mDirection) / mWeight;
     }
-    return rModelPart.GetCommunicator().GetDataCommunicator().SumAll(displacement);
+    return rModelPart.GetCommunicator().GetDataCommunicator().SumAll(directional_displacement);
 }
 
 void AdjointDisplacementSensor::CalculateGradient(
@@ -144,11 +122,14 @@ void AdjointDisplacementSensor::CalculateGradient(
     if (static_cast<int>(rAdjointElement.Id()) == mElementId) {
         const auto& r_geometry = rAdjointElement.GetGeometry();
         const IndexType block_size = rResidualGradient.size1() / r_geometry.size();
-        const IndexType block_start_index = mNodeIndex * block_size;
 
-        rResponseGradient[block_start_index] = mDirection[0];
-        rResponseGradient[block_start_index + 1] = mDirection[1];
-        rResponseGradient[block_start_index + 2] = mDirection[2];
+        Vector Ns;
+        r_geometry.ShapeFunctionsValues(Ns, mLocalCoordinates);
+        for (IndexType i = 0; i < r_geometry.size(); ++i) {
+            rResponseGradient[i * block_size] = Ns[i] * mDirection[0];
+            rResponseGradient[i * block_size + 1] = Ns[i] * mDirection[1];
+            rResponseGradient[i * block_size + 2] = Ns[i] * mDirection[2];
+        }
     }
 
     rResponseGradient /= mWeight;

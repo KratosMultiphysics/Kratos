@@ -141,15 +141,13 @@ private:
 
     array_1d<double, 3> mDirection;
 
-    double mWeight;
+    array_1d<double, 3> mLocalCoordinates;
 
-    int mNodeId;
+    double mWeight;
 
     int mElementId;
 
-    int mNodeIndex;
-
-    bool mIsNodeAvailable;
+    bool mIsElementAvailable;
 
     ///@}
     ///@name Private operations
