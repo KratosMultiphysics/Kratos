@@ -219,21 +219,13 @@ void TransientThermalElement<TDim, TNumNodes>::CalculateLocalSystem(
     rGeom.ShapeFunctionsIntegrationPointsGradients(DN_DXContainer, detJContainer, GetIntegrationMethod());
 
     const auto integration_coefficients = CalculateIntegrationCoefficients(detJContainer);
-
     const auto conductivity_matrix =
         CalculateConductivityMatrix(DN_DXContainer, integration_coefficients, rCurrentProcessInfo);
     const auto capacity_matrix = CalculateCapacityMatrix(integration_coefficients);
 
     AddContributionsToLhsMatrix(rLeftHandSideMatrix, conductivity_matrix, capacity_matrix,
                                 rCurrentProcessInfo[DT_TEMPERATURE_COEFFICIENT]);
-
-    const auto capacity_vector =
-        array_1d<double, TNumNodes>{-prod(capacity_matrix, GetNodalValuesOf(DT_TEMPERATURE))};
-    GeoElementUtilities::AssemblePBlockVector<0, TNumNodes>(rRightHandSideVector, capacity_vector);
-
-    const auto conductivity_vector =
-        array_1d<double, TNumNodes>{-prod(conductivity_matrix, GetNodalValuesOf(TEMPERATURE))};
-    GeoElementUtilities::AssemblePBlockVector<0, TNumNodes>(rRightHandSideVector, conductivity_vector);
+    AddContributionsToRhsVector(rRightHandSideVector, conductivity_matrix, capacity_matrix);
 
     KRATOS_CATCH("")
 }

@@ -69,6 +69,19 @@ private:
                                                                 DtTemperatureCoefficient * rCapacityMatrix);
     }
 
+    void AddContributionsToRhsVector(VectorType&                                        rRightHandSideVector,
+                                     const BoundedMatrix<double, TNumNodes, TNumNodes>& rConductivityMatrix,
+                                     const BoundedMatrix<double, TNumNodes, TNumNodes>& rCapacityMatrix) const
+    {
+        const auto capacity_vector =
+                array_1d<double, TNumNodes>{-prod(rCapacityMatrix, GetNodalValuesOf(DT_TEMPERATURE))};
+        GeoElementUtilities::AssemblePBlockVector<0, TNumNodes>(rRightHandSideVector, capacity_vector);
+
+        const auto conductivity_vector =
+                array_1d<double, TNumNodes>{-prod(rConductivityMatrix, GetNodalValuesOf(TEMPERATURE))};
+        GeoElementUtilities::AssemblePBlockVector<0, TNumNodes>(rRightHandSideVector, conductivity_vector);
+    }
+
     Vector CalculateIntegrationCoefficients(const Vector& detJContainer) const;
 
     BoundedMatrix<double, TNumNodes, TNumNodes> CalculateConductivityMatrix(const GeometryType::ShapeFunctionsGradientsType& rShapeFunctionGradients,
