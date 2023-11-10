@@ -201,17 +201,17 @@ struct CPTraits
  *
  *  @throws if the mask @a rMask contains items other than 0 or 1.
  */
-void MakeSubblocks(const CPTraits::AMGCL::ScalarBackend::matrix& rRootMatrix,
+void MakeSubblocks(const TUblasSparseSpace<double>::MatrixType& rRootMatrix,
                    const CPTraits::Mask& rMask,
-                   const std::array<CPTraits::AMGCL::ScalarBackend::matrix*,4>& rOutput)
+                   const std::array<TUblasSparseSpace<double>::MatrixType*,4>& rOutput)
 {
     KRATOS_PROFILE_SCOPE(KRATOS_CODE_LOCATION);
-    KRATOS_ERROR_IF_NOT(rMask.size() == rRootMatrix.nrows)
+    KRATOS_ERROR_IF_NOT(rMask.size() == rRootMatrix.size1())
         << "Mask size mismatch: mask of size " << rMask.size()
-        << " provided for matrix of size " << rRootMatrix.nrows << "x" << rRootMatrix.ncols;
+        << " provided for matrix of size " << rRootMatrix.size1() << "x" << rRootMatrix.size2();
 
-    KRATOS_ERROR_IF_NOT(rRootMatrix.nrows == rRootMatrix.ncols)
-        << "Expecting a square matrix, but got " << rRootMatrix.nrows << "x" << rRootMatrix.ncols;
+    KRATOS_ERROR_IF_NOT(rRootMatrix.size1() == rRootMatrix.size2())
+        << "Expecting a square matrix, but got " << rRootMatrix.size1() << "x" << rRootMatrix.size2();
 
     KRATOS_ERROR_IF_NOT(std::count(rOutput.begin(), rOutput.end(), nullptr) == 0)
         << "Output pointers must point to existing matrices";
@@ -237,69 +237,29 @@ void MakeSubblocks(const CPTraits::AMGCL::ScalarBackend::matrix& rRootMatrix,
 
     // Resize submatrices.
     KRATOS_TRY
-    rOutput[0]->set_size(masked_count, masked_count, true);
-    rOutput[1]->set_size(masked_count, unmasked_count, true);
-    rOutput[2]->set_size(unmasked_count, masked_count, true);
-    rOutput[3]->set_size(unmasked_count, unmasked_count, true);
+    rOutput[0]->resize(  masked_count,   masked_count, false);
+    rOutput[1]->resize(  masked_count, unmasked_count, false);
+    rOutput[2]->resize(unmasked_count,   masked_count, false);
+    rOutput[3]->resize(unmasked_count, unmasked_count, false);
     KRATOS_CATCH("")
 
-    // Compute row patterns.
-    // @todo parallelize @matekelemen
+    // Fill submatrices
+    // Note: the matrices are filled in proper row-major order,
+    //       so each insertion should be O(1) (unless a reallocation
+    //       is triggered).
     KRATOS_TRY
-    //IndexPartition<std::size_t>(system_size).for_each([&rOutput, &rMask, &rRootMatrix, &block_local_indices] (std::size_t i_row) {
-    for (std::size_t i_row=0ul; i_row<system_size; ++i_row) {
-        const std::size_t i_block_local = block_local_indices[i_row];
+    for (auto it_row=rRootMatrix.begin1(); it_row!=rRootMatrix.end1(); ++it_row) {
+        const std::size_t i_row = it_row.index1();
         const char row_mask = rMask[i_row];
-
-        for (auto it_column=rRootMatrix.row_begin(i_row); it_column; ++it_column) {
-            const char column_mask = rMask[it_column.col()];
-            const char i_block = (~(column_mask | (row_mask << 1))) & 0b11; // <== flattened index of the block
-            ++rOutput[i_block]->ptr[i_block_local + 1];
-        }
-    }
-    //});
-
-    for (CPTraits::AMGCL::ScalarBackend::matrix* p_output : rOutput) {
-        const auto nonzeros = p_output->scan_row_sizes();
-        p_output->set_nonzeros(nonzeros);
-    }
-    KRATOS_CATCH("")
-
-    // Copy data to submatrices
-    // @todo parallelize @matekelemen
-    KRATOS_TRY
-    //IndexPartition<std::size_t>(system_size).for_each([&rRootMatrix, &rMask, &rOutput, &block_local_indices](std::size_t i_row) -> void {
-    for (std::size_t i_row=0ul; i_row<system_size; ++i_row) {
-        const std::size_t i_block_row = block_local_indices[i_row];
-        const char row_mask = rMask[i_row];
-        std::array<std::size_t,4> head_indices {
-            0ul, // <== {  masked,   masked}
-            0ul, // <== {  masked, unmasked}
-            0ul, // <== {unmasked,   masked}
-            0ul  // <== {unmasked, unmasked}
-        };
-
-        const std::size_t i_head = (~row_mask << 1) & 0b11;
-        head_indices[i_head] = rOutput[i_head]->ptr[i_block_row];
-        head_indices[i_head + 1] = rOutput[i_head + 1]->ptr[i_block_row];
-
-        for (auto it_column=rRootMatrix.row_begin(i_row); it_column; ++it_column) {
-            const auto i_column = it_column.col();
-            const std::size_t i_block_column = block_local_indices[i_column];
-            const double value = it_column.value();
+        for (auto it_entry=it_row.begin(); it_entry!=it_row.end(); ++it_entry) {
+            const std::size_t i_column = it_entry.index2();
             const char column_mask = rMask[i_column];
-
             const char i_block = (~(column_mask | (row_mask << 1))) & 0b11; // <== flattened index of the block
-            KRATOS_DEBUG_ERROR_IF_NOT(i_block_column < rOutput[i_block]->ncols)
-                << "column index " << i_block_column << " exceeds number of columns "
-                << rOutput[i_block]->ncols << " in submatrix " << std::bitset<2>(i_block);
-
-            rOutput[i_block]->col[head_indices[i_block]] = i_block_column;
-            rOutput[i_block]->val[head_indices[i_block]] = value;
-            ++head_indices[i_block];
+            rOutput[i_block]->insert_element(block_local_indices[i_row],
+                                             block_local_indices[i_column],
+                                             *it_entry);
         }
     }
-    //});
     KRATOS_CATCH("")
 }
 
@@ -643,15 +603,11 @@ AMGCLHierarchicalSolver<TSparseSpace,TDenseSpace,TReorderer>::SolveImpl(SparseMa
                                                                         Vector& rB) const
 {
     KRATOS_TRY
-    auto p_adapter = amgcl::adapter::zero_copy(TSparseSpace::Size1(rA),
-                                               rA.index1_data().begin(),
-                                               rA.index2_data().begin(),
-                                               rA.value_data().begin());
 
     // Separate components related to lower and higher order DoFs.
-    typename detail::CPTraits::AMGCL::ScalarBackend::matrix A_ll, A_lh, A_hl, A_hh;
+    SparseMatrix A_ll, A_lh, A_hl, A_hh;
     Vector b_l, b_h;
-    detail::MakeSubblocks(*p_adapter, mpImpl->mLowerDofMask.value(), {&A_ll, &A_lh, &A_hl, &A_hh});
+    detail::MakeSubblocks(rA, mpImpl->mLowerDofMask.value(), {&A_ll, &A_lh, &A_hl, &A_hh});
     detail::MakeSubblocks(rB, mpImpl->mLowerDofMask.value(), {&b_l, &b_h});
 
     // Dump the generated matrices to disk f requested.
@@ -662,21 +618,27 @@ AMGCLHierarchicalSolver<TSparseSpace,TDenseSpace,TReorderer>::SolveImpl(SparseMa
         TSparseSpace::WriteMatrixMarketVector("b.mm", rB);
         KRATOS_INFO("AMGCLHierarchicalSolver")
             << "writing submatrices: A_ll.mm A_lh.mm A_hl.mm A_hh.mm\n";
-        amgcl::io::mm_write("A_ll.mm", A_ll);
-        amgcl::io::mm_write("A_lh.mm", A_lh);
-        amgcl::io::mm_write("A_hl.mm", A_hl);
-        amgcl::io::mm_write("A_hh.mm", A_hh);
+        TSparseSpace::WriteMatrixMarketMatrix("A_ll.mm", A_ll, false);
+        TSparseSpace::WriteMatrixMarketMatrix("A_lh.mm", A_lh, false);
+        TSparseSpace::WriteMatrixMarketMatrix("A_hl.mm", A_hl, false);
+        TSparseSpace::WriteMatrixMarketMatrix("A_hh.mm", A_hh, false);
         KRATOS_ERROR << "verbosity >=4 prints system matrices and terminates\n";
     }
 
+    // Construct adapters for AMGCL
+    auto p_a = amgcl::adapter::zero_copy(TSparseSpace::Size1(rA),
+                                         rA.index1_data().begin(),
+                                         rA.index2_data().begin(),
+                                         rA.value_data().begin());
+
     // Construct solver
-    auto solver = MakeCompositePreconditionedSolver<BlockSize>(*p_adapter, mpImpl->mAMGCLSettings);
+    auto solver = MakeCompositePreconditionedSolver<BlockSize>(*p_a, mpImpl->mAMGCLSettings);
     KRATOS_INFO_IF("AMGCLHierarchicalSolver", 1 < mpImpl->mVerbosity)
         << "Solver memory usage: " << amgcl::human_readable_memory(amgcl::backend::bytes(solver))
         << "\n";
 
     // Solve
-    return solver(*p_adapter, rB, rX);
+    return solver(*p_a, rB, rX);
     KRATOS_CATCH("")
 }
 
