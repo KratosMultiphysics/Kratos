@@ -34,9 +34,6 @@ AssignNodalElementsToNodesProcess::AssignNodalElementsToNodesProcess(
 
     // We create a list of parameters to partially validate, and we validate them
     Parameters to_validate_parameters = Parameters(R"({})" );
-    if (mThisParameters.Has("model_part_name")) {
-        to_validate_parameters.AddValue("model_part_name", mThisParameters["model_part_name"]);
-    }
     if (mThisParameters.Has("rayleigh_damping")) {
         to_validate_parameters.AddValue("rayleigh_damping", mThisParameters["rayleigh_damping"]);
     }
@@ -45,11 +42,6 @@ AssignNodalElementsToNodesProcess::AssignNodalElementsToNodesProcess(
     }
 
     to_validate_parameters.ValidateAndAssignDefaults(GetDefaultParameters());
-    if (mThisParameters.Has("model_part_name")) {
-        mThisParameters.SetValue("model_part_name", to_validate_parameters["model_part_name"]);
-    } else {
-        mThisParameters.AddValue("model_part_name", to_validate_parameters["model_part_name"]);
-    }
     if (mThisParameters.Has("rayleigh_damping")) {
         mThisParameters.SetValue("rayleigh_damping", to_validate_parameters["rayleigh_damping"]);
     } else {
@@ -61,8 +53,8 @@ AssignNodalElementsToNodesProcess::AssignNodalElementsToNodesProcess(
         mThisParameters.AddValue("interval", to_validate_parameters["interval"]);
     }
 
-    // List of auxiliar parameters to assign in case not defined
-    Parameters auxiliar_parameters = Parameters(R"(
+    // List of auxiliary parameters to assign in case not defined
+    Parameters auxiliary_parameters = Parameters(R"(
     {
         "nodal_mass"                     : null,
         "nodal_inertia"                  : [null, null, null],
@@ -72,12 +64,12 @@ AssignNodalElementsToNodesProcess::AssignNodalElementsToNodesProcess(
         "nodal_rotational_damping_ratio" : [null, null, null]
     })" );
 
-    if (!mThisParameters.Has("nodal_mass")) mThisParameters.AddValue("nodal_mass", auxiliar_parameters["nodal_mass"]);
-    if (!mThisParameters.Has("nodal_inertia")) mThisParameters.AddValue("nodal_inertia", auxiliar_parameters["nodal_inertia"]);
-    if (!mThisParameters.Has("nodal_stiffness")) mThisParameters.AddValue("nodal_stiffness", auxiliar_parameters["nodal_stiffness"]);
-    if (!mThisParameters.Has("nodal_rotational_stiffness")) mThisParameters.AddValue("nodal_rotational_stiffness", auxiliar_parameters["nodal_rotational_stiffness"]);
-    if (!mThisParameters.Has("nodal_damping_ratio")) mThisParameters.AddValue("nodal_damping_ratio", auxiliar_parameters["nodal_damping_ratio"]);
-    if (!mThisParameters.Has("nodal_rotational_damping_ratio")) mThisParameters.AddValue("nodal_rotational_damping_ratio", auxiliar_parameters["nodal_rotational_damping_ratio"]);
+    if (!mThisParameters.Has("nodal_mass")) mThisParameters.AddValue("nodal_mass", auxiliary_parameters["nodal_mass"]);
+    if (!mThisParameters.Has("nodal_inertia")) mThisParameters.AddValue("nodal_inertia", auxiliary_parameters["nodal_inertia"]);
+    if (!mThisParameters.Has("nodal_stiffness")) mThisParameters.AddValue("nodal_stiffness", auxiliary_parameters["nodal_stiffness"]);
+    if (!mThisParameters.Has("nodal_rotational_stiffness")) mThisParameters.AddValue("nodal_rotational_stiffness", auxiliary_parameters["nodal_rotational_stiffness"]);
+    if (!mThisParameters.Has("nodal_damping_ratio")) mThisParameters.AddValue("nodal_damping_ratio", auxiliary_parameters["nodal_damping_ratio"]);
+    if (!mThisParameters.Has("nodal_rotational_damping_ratio")) mThisParameters.AddValue("nodal_rotational_damping_ratio", auxiliary_parameters["nodal_rotational_damping_ratio"]);
 
     KRATOS_CATCH("")
 }
@@ -107,17 +99,19 @@ void AssignNodalElementsToNodesProcess::ExecuteInitialize()
     // Domain size
     const SizeType domain_size = r_root_model_part.GetProcessInfo()[DOMAIN_SIZE];
 
-    // We get the proper model part
-    const std::string& r_model_part_name = mThisParameters["model_part_name"].GetString();
-    ModelPart& r_model_part = (r_model_part_name == "") ? mrThisModelPart : mrThisModelPart.GetSubModelPart(r_model_part_name);
-    r_model_part.AddProperties(p_properties);
+    // We assign the properties to the model part
+    if (mrThisModelPart.Name() != r_root_model_part.Name()) {
+        mrThisModelPart.AddProperties(p_properties);
+    }
 
     // We assign values for the not null properties
+    double nodal_mass = 0.0;
     if (!mThisParameters["nodal_mass"].IsNull()) {
-        p_properties->SetValue(NODAL_MASS, mThisParameters["nodal_mass"].GetDouble());
+        nodal_mass = mThisParameters["nodal_mass"].GetDouble();
+        p_properties->SetValue(NODAL_MASS, nodal_mass);
     }
+    array_1d<double, 3> nodal_inertia = ZeroVector(3);
     if (!mThisParameters["nodal_inertia"][0].IsNull() || !mThisParameters["nodal_inertia"][1].IsNull() || !mThisParameters["nodal_inertia"][2].IsNull()) {
-        array_1d<double, 3> nodal_inertia = ZeroVector(3);;
         if (!mThisParameters["nodal_inertia"][0].IsNull()) {
             nodal_inertia[0] = mThisParameters["nodal_inertia"][0].GetDouble();
         }
@@ -130,8 +124,8 @@ void AssignNodalElementsToNodesProcess::ExecuteInitialize()
 
         p_properties->SetValue(NODAL_INERTIA, nodal_inertia);
     }
+    array_1d<double, 3> nodal_stiffness = ZeroVector(3);
     if (!mThisParameters["nodal_stiffness"][0].IsNull() || !mThisParameters["nodal_stiffness"][1].IsNull() || !mThisParameters["nodal_stiffness"][2].IsNull()) {
-        array_1d<double, 3> nodal_stiffness = ZeroVector(3);;
         if (!mThisParameters["nodal_stiffness"][0].IsNull()) {
             nodal_stiffness[0] = mThisParameters["nodal_stiffness"][0].GetDouble();
         }
@@ -144,8 +138,8 @@ void AssignNodalElementsToNodesProcess::ExecuteInitialize()
 
         p_properties->SetValue(NODAL_DISPLACEMENT_STIFFNESS, nodal_stiffness);
     }
+    array_1d<double, 3> nodal_rotational_stiffness = ZeroVector(3);
     if (!mThisParameters["nodal_rotational_stiffness"][0].IsNull() || !mThisParameters["nodal_rotational_stiffness"][1].IsNull() || !mThisParameters["nodal_rotational_stiffness"][2].IsNull()) {
-        array_1d<double, 3> nodal_rotational_stiffness = ZeroVector(3);;
         if (!mThisParameters["nodal_rotational_stiffness"][0].IsNull()) {
             nodal_rotational_stiffness[0] = mThisParameters["nodal_rotational_stiffness"][0].GetDouble();
         }
@@ -158,8 +152,8 @@ void AssignNodalElementsToNodesProcess::ExecuteInitialize()
 
         p_properties->SetValue(NODAL_ROTATIONAL_STIFFNESS, nodal_rotational_stiffness);
     }
+    array_1d<double, 3> nodal_damping_ratio = ZeroVector(3);
     if (!mThisParameters["nodal_damping_ratio"][0].IsNull() || !mThisParameters["nodal_damping_ratio"][1].IsNull() || !mThisParameters["nodal_damping_ratio"][2].IsNull()) {
-        array_1d<double, 3> nodal_damping_ratio = ZeroVector(3);;
         if (!mThisParameters["nodal_damping_ratio"][0].IsNull()) {
             nodal_damping_ratio[0] = mThisParameters["nodal_damping_ratio"][0].GetDouble();
         }
@@ -172,8 +166,8 @@ void AssignNodalElementsToNodesProcess::ExecuteInitialize()
 
         p_properties->SetValue(NODAL_DAMPING_RATIO, nodal_damping_ratio);
     }
+    array_1d<double, 3> nodal_rotational_damping_ratio = ZeroVector(3);
     if (!mThisParameters["nodal_rotational_damping_ratio"][0].IsNull() || !mThisParameters["nodal_rotational_damping_ratio"][1].IsNull() || !mThisParameters["nodal_rotational_damping_ratio"][2].IsNull()) {
-        array_1d<double, 3> nodal_rotational_damping_ratio = ZeroVector(3);;
         if (!mThisParameters["nodal_rotational_damping_ratio"][0].IsNull()) {
             nodal_rotational_damping_ratio[0] = mThisParameters["nodal_rotational_damping_ratio"][0].GetDouble();
         }
@@ -203,11 +197,11 @@ void AssignNodalElementsToNodesProcess::ExecuteInitialize()
         p_properties->SetValue(CONSIDER_RAYLEIGH_DAMPING, true);
     }
     PointerVector<Node> aux_node_array(1);
-    const auto it_node_begin = r_model_part.NodesBegin();
+    const auto it_node_begin = mrThisModelPart.NodesBegin();
     aux_node_array(0) = *(it_node_begin).base();
 
-    const SizeType number_of_nodes = r_model_part.Nodes().size();
-    std::vector<Element::Pointer> auxiliar_elements_vector;
+    const SizeType number_of_nodes = mrThisModelPart.Nodes().size();
+    std::vector<Element::Pointer> auxiliary_elements_vector;
 
     GeometryType::Pointer p_dummy_geom = GetPointGeometryFromNode(aux_node_array, domain_size);
     const Element& r_reference_element = NodalConcentratedElement(0, p_dummy_geom);
@@ -215,7 +209,7 @@ void AssignNodalElementsToNodesProcess::ExecuteInitialize()
     #pragma omp parallel
     {
         // Buffer for new elements if created
-        std::vector<Element::Pointer> auxiliar_elements_vector_buffer;
+        std::vector<Element::Pointer> auxiliary_elements_vector_buffer;
 
         #pragma omp for
         for(int i=0; i< static_cast<int>(number_of_nodes); ++i) {
@@ -225,7 +219,7 @@ void AssignNodalElementsToNodesProcess::ExecuteInitialize()
             this_node_array(0) = *(it_node).base();
 
             auto p_element = r_reference_element.Create(number_elements + 1 + i, GetPointGeometryFromNode(this_node_array, domain_size), p_properties);
-            auxiliar_elements_vector_buffer.push_back(p_element);
+            auxiliary_elements_vector_buffer.push_back(p_element);
 
             // Deep copy elemental flags
             p_element->Set(Flags(*it_node));
@@ -234,20 +228,20 @@ void AssignNodalElementsToNodesProcess::ExecuteInitialize()
         // Combine buffers together
         #pragma omp critical
         {
-            std::move(auxiliar_elements_vector_buffer.begin(),auxiliar_elements_vector_buffer.end(),back_inserter(auxiliar_elements_vector));
+            std::move(auxiliary_elements_vector_buffer.begin(),auxiliary_elements_vector_buffer.end(),back_inserter(auxiliary_elements_vector));
         }
     }
 
     // Adding to the model part
     ElementsArrayType aux_elems;
-    aux_elems.GetContainer() = auxiliar_elements_vector;
-    r_model_part.AddElements(aux_elems.begin(), aux_elems.end());
+    aux_elems.GetContainer() = auxiliary_elements_vector;
+    mrThisModelPart.AddElements(aux_elems.begin(), aux_elems.end());
 
     // We Initialize the elements
-    EntitiesUtilities::InitializeEntities<Element>(r_model_part);
+    EntitiesUtilities::InitializeEntities<Element>(mrThisModelPart);
 
     // Inactive by default
-    VariableUtils().SetFlag(ACTIVE, false, r_model_part.Elements());
+    VariableUtils().SetFlag(ACTIVE, false, mrThisModelPart.Elements());
 
     // Set the flag ACTIVE
     this->Set(ACTIVE, false);
@@ -262,15 +256,11 @@ void AssignNodalElementsToNodesProcess::ExecuteInitializeSolutionStep()
 {
     KRATOS_TRY
 
-    // We get the proper model part
-    const std::string& model_part_name = mThisParameters["model_part_name"].GetString();
-    ModelPart& r_model_part = (model_part_name == "") ? mrThisModelPart : mrThisModelPart.GetSubModelPart(model_part_name);
-
     // Check the interval
     if (mThisParameters["interval"][0].GetDouble() > 0.0 || mThisParameters["interval"][1].GetDouble() < 1e30) {
         if (this->IsNot(ACTIVE)) {
             // Initialize initial displacement and rotation
-            block_for_each(r_model_part.Elements(), [&](Element& rElement) {
+            block_for_each(mrThisModelPart.Elements(), [&](Element& rElement) {
                 if (rElement.Has(NODAL_INITIAL_DISPLACEMENT)) {
                     rElement.SetValue(NODAL_INITIAL_DISPLACEMENT, rElement.GetGeometry()[0].FastGetSolutionStepValue(DISPLACEMENT));
                 }
@@ -279,13 +269,13 @@ void AssignNodalElementsToNodesProcess::ExecuteInitializeSolutionStep()
                 }
             });
             // Set the flag ACTIVE
-            VariableUtils().SetFlag(ACTIVE, true, r_model_part.Elements());
+            VariableUtils().SetFlag(ACTIVE, true, mrThisModelPart.Elements());
             this->Set(ACTIVE, true);
         }
     } else {
         if (this->Is(ACTIVE)) {
             // Set the flag ACTIVE
-            VariableUtils().SetFlag(ACTIVE, false, r_model_part.Elements());
+            VariableUtils().SetFlag(ACTIVE, false, mrThisModelPart.Elements());
             this->Set(ACTIVE, false);
         }
     }
