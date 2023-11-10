@@ -246,7 +246,6 @@ GeometryData::IntegrationMethod TransientThermalElement<TDim, TNumNodes>::GetInt
 
     switch (TNumNodes) {
     case 3:
-        return Data::GI_GAUSS_2;
     case 6:
         return Data::GI_GAUSS_2;
     case 10:
