@@ -25,15 +25,14 @@ class AssignNodalElementsToNodesProcess(KratosMultiphysics.Process):
         Model -- the container of the different model parts.
         settings -- Kratos parameters containing solver settings.
         """
-
-        KratosMultiphysics.Process.__init__(self)
+        # Calling base class constructor
+        super().__init__()
 
         default_settings = KratosMultiphysics.Parameters("""
         {
-            "main_model_part_name"           : "Structure",
-            "sub_model_part_name"            : "",
-            "rayleigh_damping"               : false,
-            "interval"                       : [0.0, 1e30]
+            "model_part_name"  : "Structure",
+            "rayleigh_damping" : false,
+            "interval"         : [0.0, 1e30]
         }
         """
         )
@@ -41,8 +40,6 @@ class AssignNodalElementsToNodesProcess(KratosMultiphysics.Process):
         to_validate_parameters = KratosMultiphysics.Parameters("""{}""")
         if settings.Has("model_part_name"):
             to_validate_parameters.AddValue("model_part_name", settings["model_part_name"])
-        if settings.Has("sub_model_part_name"):
-            to_validate_parameters.AddValue("sub_model_part_name", settings["sub_model_part_name"])
         if settings.Has("rayleigh_damping"):
             to_validate_parameters.AddValue("rayleigh_damping", settings["rayleigh_damping"])
         if settings.Has("interval"):
@@ -54,10 +51,6 @@ class AssignNodalElementsToNodesProcess(KratosMultiphysics.Process):
             settings.SetValue("model_part_name", to_validate_parameters["model_part_name"])
         else:
             settings.AddValue("model_part_name", to_validate_parameters["model_part_name"])
-        if settings.Has("sub_model_part_name"):
-            settings.SetValue("sub_model_part_name", to_validate_parameters["sub_model_part_name"])
-        else:
-            settings.AddValue("sub_model_part_name", to_validate_parameters["sub_model_part_name"])
         if settings.Has("rayleigh_damping"):
             settings.SetValue("rayleigh_damping", to_validate_parameters["rayleigh_damping"])
         else:
@@ -67,8 +60,8 @@ class AssignNodalElementsToNodesProcess(KratosMultiphysics.Process):
         else:
             settings.AddValue("interval", to_validate_parameters["interval"])
 
-        # List of auxiliar parameters to assign in case not defined
-        auxiliar_parameters = KratosMultiphysics.Parameters("""
+        # List of auxiliary parameters to assign in case not defined
+        auxiliary_parameters = KratosMultiphysics.Parameters("""
         {
             "nodal_mass"                     : null,
             "nodal_inertia"                  : [null, null, null],
@@ -81,17 +74,17 @@ class AssignNodalElementsToNodesProcess(KratosMultiphysics.Process):
         )
 
         if not settings.Has("nodal_mass"):
-            settings.AddValue("nodal_mass", auxiliar_parameters["nodal_mass"])
+            settings.AddValue("nodal_mass", auxiliary_parameters["nodal_mass"])
         if not settings.Has("nodal_inertia"):
-            settings.AddValue("nodal_inertia", auxiliar_parameters["nodal_inertia"])
+            settings.AddValue("nodal_inertia", auxiliary_parameters["nodal_inertia"])
         if not settings.Has("nodal_stiffness"):
-            settings.AddValue("nodal_stiffness", auxiliar_parameters["nodal_stiffness"])
+            settings.AddValue("nodal_stiffness", auxiliary_parameters["nodal_stiffness"])
         if not settings.Has("nodal_rotational_stiffness"):
-            settings.AddValue("nodal_rotational_stiffness", auxiliar_parameters["nodal_rotational_stiffness"])
+            settings.AddValue("nodal_rotational_stiffness", auxiliary_parameters["nodal_rotational_stiffness"])
         if not settings.Has("nodal_damping_ratio"):
-            settings.AddValue("nodal_damping_ratio", auxiliar_parameters["nodal_damping_ratio"])
+            settings.AddValue("nodal_damping_ratio", auxiliary_parameters["nodal_damping_ratio"])
         if not settings.Has("nodal_rotational_damping_ratio"):
-            settings.AddValue("nodal_rotational_damping_ratio", auxiliar_parameters["nodal_rotational_damping_ratio"])
+            settings.AddValue("nodal_rotational_damping_ratio", auxiliary_parameters["nodal_rotational_damping_ratio"])
 
         # The main model part
         self.model = Model
@@ -99,7 +92,6 @@ class AssignNodalElementsToNodesProcess(KratosMultiphysics.Process):
 
         # The creation of the process
         process_parameters = KratosMultiphysics.Parameters("""{}""")
-        process_parameters.AddValue("model_part_name", settings["sub_model_part_name"])
         process_parameters.AddValue("rayleigh_damping", settings["rayleigh_damping"])
         process_parameters.AddValue("nodal_mass", settings["nodal_mass"])
         process_parameters.AddValue("nodal_inertia", settings["nodal_inertia"])
@@ -111,7 +103,7 @@ class AssignNodalElementsToNodesProcess(KratosMultiphysics.Process):
         self.assign_nodal_elements_to_nodes = StructuralMechanicsApplication.AssignNodalElementsToNodesProcess(self.main_model_part, process_parameters)
 
     def ExecuteInitialize(self):
-        """ This method is executed at the begining to initialize the process
+        """ This method is executed at the beginning to initialize the process
 
         Keyword arguments:
         self -- It signifies an instance of a class.
