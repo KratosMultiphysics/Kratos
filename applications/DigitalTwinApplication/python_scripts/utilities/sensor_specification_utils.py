@@ -110,5 +110,28 @@ def GetCosineDistances(list_of_spec_views: 'list[typing.Union[KratosDT.Sensors.N
             results.append(1.0 - KratosOA.ExpressionUtils.InnerProduct(spec_i.GetContainerExpression(), spec_j.GetContainerExpression()))
     return results
 
-
-
+def AddSensorSpecificationVariableData(specification: KratosDT.Sensors.SensorSpecification, variable_data: Kratos.Parameters) -> None:
+    for var_name, var_value in variable_data:
+        var = Kratos.KratosGlobals.GetVariable(var_name)
+        if isinstance(var, Kratos.BoolVariable):
+            specification.SetValue(var, var_value.GetBool())
+        elif isinstance(var, Kratos.IntegerVariable):
+            specification.SetValue(var, var_value.GetInt())
+        elif isinstance(var, Kratos.DoubleVariable):
+            specification.SetValue(var, var_value.GetDouble())
+        elif isinstance(var, Kratos.StringVariable):
+            specification.SetValue(var, var_value.GetString())
+        elif isinstance(var, Kratos.Array1DVariable3):
+            value = var_value.GetVector()
+            specification.SetValue(var, [value[0], value[1], value[2]])
+        elif isinstance(var, Kratos.Array1DVariable4):
+            value = var_value.GetVector()
+            specification.SetValue(var, [value[0], value[1], value[2], value[3]])
+        elif isinstance(var, Kratos.Array1DVariable6):
+            value = var_value.GetVector()
+            specification.SetValue(var, [value[0], value[1], value[2], value[3], value[4], value[5]])
+        elif isinstance(var, Kratos.Array1DVariable9):
+            value = var_value.GetVector()
+            specification.SetValue(var, [value[0], value[1], value[2], value[3], value[4], value[5], value[6], value[7], value[8]])
+        elif isinstance(var, Kratos.VectorVariable):
+            specification.SetValue(var, var_value.GetVector())
