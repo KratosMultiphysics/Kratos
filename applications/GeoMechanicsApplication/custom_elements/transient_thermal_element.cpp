@@ -140,7 +140,7 @@ int TransientThermalElement<TDim, TNumNodes>::Check(const ProcessInfo& rCurrentP
         VerifyProperty(THERMAL_CONDUCTIVITY_SOLID_XZ);
     }
 
-    KRATOS_CATCH("");
+    KRATOS_CATCH("")
 
     return 0;
 }
