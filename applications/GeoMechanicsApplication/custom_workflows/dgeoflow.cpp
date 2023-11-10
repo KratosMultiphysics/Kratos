@@ -302,6 +302,8 @@ namespace Kratos
                                            const std::function<bool()>& rShouldCancel)
     {
         mWorkingDirectory = rWorkingDirectory;
+        mCriticalHeadBoundaryModelPartName = rCriticalHeadBoundaryModelPartName;
+
 
         CriticalHeadInfo criticalHeadInfo(minCriticalHead, maxCriticalHead, stepCriticalHead);
 
@@ -376,16 +378,17 @@ namespace Kratos
                 return 0;
             }
 
+            const auto gid_output_settings = projectfile["output_processes"]["gid_output"][0]["Parameters"];
+
             if (!hasPiping)
             {
-                const auto gid_output_settings = projectfile["output_processes"]["gid_output"][0]["Parameters"];
                 ExecuteWithoutPiping(model_part, processes, rReportProgress, rReportTextualProgress,
-                                     projectfile, gid_output_settings, rLogCallback, p_output);
+                                     gid_output_settings, rLogCallback, p_output);
             }
             else
             {
                 ExecuteWithPiping(model_part, processes, rReportProgress, rReportTextualProgress,
-                                  projectfile, rCriticalHeadBoundaryModelPartName, criticalHeadInfo, rLogCallback, p_output, rShouldCancel);
+                                  gid_output_settings, criticalHeadInfo, rLogCallback, p_output, rShouldCancel);
             }
 
             rLogCallback(kratosLogBuffer.str().c_str());
@@ -410,7 +413,6 @@ namespace Kratos
                                              const std::vector<std::shared_ptr<Process>>& processes,
                                              const std::function<void(double)>& rReportProgress,
                                              const std::function<void(const char*)>& rReportTextualProgress,
-                                             const Kratos::Parameters& projectfile,
                                              const Kratos::Parameters& gid_output_settings,
                                              const std::function<void(const char*)>& rLogCallback,
                                              LoggerOutput::Pointer p_output)
@@ -426,8 +428,7 @@ namespace Kratos
                                           const std::vector<std::shared_ptr<Process>>& processes,
                                           const std::function<void(double)>& rReportProgress,
                                           const std::function<void(const char*)>& rReportTextualProgress,
-                                          const Kratos::Parameters& projectfile,
-                                          const std::string& rCriticalHeadBoundaryModelPartName,
+                                         const Kratos::Parameters& gid_output_settings,
                                           const CriticalHeadInfo& criticalHeadInfo,
                                           const std::function<void(const char*)>& rLogCallback,
                                           LoggerOutput::Pointer p_output,
@@ -441,13 +442,13 @@ namespace Kratos
         const auto p_solving_strategy = setup_strategy_dgeoflow(model_part);
         p_solving_strategy->SetEchoLevel(0);
         shared_ptr<Process> RiverBoundary;
-        if (rCriticalHeadBoundaryModelPartName.empty())
+        if (mCriticalHeadBoundaryModelPartName.empty())
         {
             RiverBoundary = FindRiverBoundaryAutomatically(p_solving_strategy, processes);
         }
         else
         {
-            RiverBoundary = FindRiverBoundaryByName(rCriticalHeadBoundaryModelPartName, processes);
+            RiverBoundary = FindRiverBoundaryByName(mCriticalHeadBoundaryModelPartName, processes);
         }
 
         if (!RiverBoundary)
@@ -516,7 +517,6 @@ namespace Kratos
                 break;
             }
 
-            const auto gid_output_settings = projectfile["output_processes"]["gid_output"][0]["Parameters"];
             GeoOutputWriter writer{gid_output_settings, mWorkingDirectory, model_part};
             writer.WriteGiDOutput(model_part, gid_output_settings);
 

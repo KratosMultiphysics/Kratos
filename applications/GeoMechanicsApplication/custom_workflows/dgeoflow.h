@@ -73,7 +73,6 @@ namespace Kratos
                                                  const std::vector<std::shared_ptr<Process>>& processes,
                                                  const std::function<void(double)>& rReportProgress,
                                                  const std::function<void(const char*)>& rReportTextualProgress,
-                                                 const Kratos::Parameters& projectfile,
                                                  const Kratos::Parameters& gid_output_settings,
                                                  const std::function<void(const char*)>& rLogCallback,
                                                  LoggerOutput::Pointer p_output);
@@ -82,8 +81,7 @@ namespace Kratos
                                               const std::vector<std::shared_ptr<Process>>& processes,
                                               const std::function<void(double)>& rReportProgress,
                                               const std::function<void(const char*)>& rReportTextualProgress,
-                                              const Kratos::Parameters& projectfile,
-                                              const std::string& rCriticalHeadBoundaryModelPartName,
+                                              const Kratos::Parameters& gid_output_settings,
                                               const CriticalHeadInfo& criticalHeadInfo,
                                               const std::function<void(const char*)>& rLogCallback,
                                               LoggerOutput::Pointer p_output,
@@ -125,6 +123,7 @@ namespace Kratos
         Kernel kernel;
         KratosGeoMechanicsApplication::Pointer geoApp;
         std::string mWorkingDirectory;
+        std::string mCriticalHeadBoundaryModelPartName;
         
         void ResetModelParts();
 
