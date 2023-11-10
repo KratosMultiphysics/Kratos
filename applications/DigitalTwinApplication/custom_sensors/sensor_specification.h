@@ -184,6 +184,12 @@ public:
      */
     std::vector<std::string> GetDataVariableNames() const;
 
+    void ClearNodalExpressions();
+
+    void ClearConditionExpressions();
+
+    void ClearElementExpressions();
+
     ///@}
     ///@name Input and output
     ///@{

@@ -173,6 +173,21 @@ std::vector<std::string> SensorSpecification::GetDataVariableNames() const
     return result;
 }
 
+void SensorSpecification::ClearNodalExpressions()
+{
+    mNodalExpressions.clear();
+}
+
+void SensorSpecification::ClearConditionExpressions()
+{
+    mConditionExpressions.clear();
+}
+
+void SensorSpecification::ClearElementExpressions()
+{
+    mElementExpressions.clear();
+}
+
 std::string SensorSpecification::Info() const
 {
     std::stringstream msg;

@@ -52,6 +52,9 @@ void  AddCustomSensorsToPython(pybind11::module& m)
         .def("GetElementExpression", &SensorSpecification::GetElementExpression, py::arg("element_expression_name"))
         .def("GetElementExpressionsMap", &SensorSpecification::GetElementExpressionsMap)
         .def("GetDataVariableNames", &SensorSpecification::GetDataVariableNames)
+        .def("ClearNodalExpressions", &SensorSpecification::ClearNodalExpressions)
+        .def("ClearConditionExpressions", &SensorSpecification::ClearConditionExpressions)
+        .def("ClearElementExpressions", &SensorSpecification::ClearElementExpressions)
         .def("__str__", PrintObject<SensorSpecification>);
         ;
 
