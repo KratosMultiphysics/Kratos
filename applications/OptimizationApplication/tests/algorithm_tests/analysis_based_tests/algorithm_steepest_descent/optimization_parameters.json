@@ -35,15 +35,6 @@
     ],
     "responses": [
         {
-            "name": "mass_Structure",
-            "type": "mass_response_function",
-            "settings": {
-                "evaluated_model_part_names": [
-                    "Structure"
-                ]
-            }
-        },
-        {
             "name": "strain_energy",
             "type": "linear_strain_energy_response_function",
             "settings": {
