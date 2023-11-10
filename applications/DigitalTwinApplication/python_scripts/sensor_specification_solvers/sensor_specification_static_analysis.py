@@ -7,7 +7,7 @@ import KratosMultiphysics.HDF5Application as KratosHDF5
 
 from KratosMultiphysics.analysis_stage import AnalysisStage
 from KratosMultiphysics.DigitalTwinApplication.sensor_specification_solvers.sensor_specification_adjoint_static_solver import SensorSpecificationAdjointStaticSolver
-from KratosMultiphysics.DigitalTwinApplication.utilities.sensor_specification_utils import GetNodalSpecificationsWithDirection
+from KratosMultiphysics.DigitalTwinApplication.utilities.sensor_specification_utils import GetSpecifications
 from KratosMultiphysics.DigitalTwinApplication.utilities.expression_utils import GetContainerExpression
 from KratosMultiphysics.DigitalTwinApplication.utilities.expression_utils import GetContainerExpressionType
 from KratosMultiphysics.HDF5Application.core.file_io import CreateHDF5File
@@ -35,7 +35,7 @@ class SensorSpecificationStaticAnalysis(AnalysisStage):
 
             if sensor_type == "adjoint_displacement_sensor":
                 adjoint_sensor = KratosDT.Sensors.AdjointDisplacementSensor(self.model, sensor_setting["base_settings"])
-                self.dict_of_sensor_specifications[adjoint_sensor] = GetNodalSpecificationsWithDirection(self.model, sensor_setting["list_of_specifications"].values())
+                self.dict_of_sensor_specifications[adjoint_sensor] = GetSpecifications(self._GetSolver().GetComputingModelPart(), sensor_setting["list_of_specifications"].values())
             else:
                 raise RuntimeError(f"Unsupported sensor_type = \"{sensor_type}\".")
 

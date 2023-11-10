@@ -2,16 +2,15 @@ import typing
 import scipy.cluster.hierarchy as sch
 from pathlib import Path
 import numpy as np
+import json
 
 import KratosMultiphysics as Kratos
 import KratosMultiphysics.OptimizationApplication as KratosOA
 import KratosMultiphysics.DigitalTwinApplication as KratosDT
-import KratosMultiphysics.HDF5Application as KratosHDF5
 from KratosMultiphysics.DigitalTwinApplication.sensor_placement_algorithms.sensor_placement_algorithm import SensorPlacementAlgorithm
 from KratosMultiphysics.DigitalTwinApplication.utilities.sensor_specification_utils import GetNormalizedSpecifications
 from KratosMultiphysics.DigitalTwinApplication.utilities.sensor_specification_utils import GetCosineDistances
 from KratosMultiphysics.DigitalTwinApplication.utilities.sensor_specification_utils import PrintSpecificationDataToCSV
-from KratosMultiphysics.HDF5Application.core.file_io import OpenHDF5File
 
 class CosineSimilaritySensorPlacementAlgorithm(SensorPlacementAlgorithm):
     @classmethod
@@ -95,6 +94,7 @@ class CosineSimilaritySensorPlacementAlgorithm(SensorPlacementAlgorithm):
 
         clustering_iteration = 0
         clusters_to_break: 'list[int]' = [1]
+        list_of_best_sensors: 'list[typing.Union[KratosDT.Sensors.NodalSensorSpecificationView, KratosDT.Sensors.ConditionSensorSpecificationView, KratosDT.Sensors.ElementSensorSpecificationView]]' = []
         while clustering_iteration < self.parameters["max_clustering_iterations"].GetInt() and set(list_of_cluster_ids_cannot_be_divided) != set(clusters_to_break) and len(clusters_to_break) > 0:
             Kratos.Logger.PrintInfo(self.__class__.__name__,f"Clustering iteration {clustering_iteration}")
             clustering_iteration += 1
@@ -125,7 +125,7 @@ class CosineSimilaritySensorPlacementAlgorithm(SensorPlacementAlgorithm):
 
             # now look for the best sensor in each cluster which has the highest minimum for all the
             # entities which it relates to
-            list_of_best_sensors: 'list[typing.Union[KratosDT.Sensors.NodalSensorSpecificationView, KratosDT.Sensors.ConditionSensorSpecificationView, KratosDT.Sensors.ElementSensorSpecificationView]]' = []
+            list_of_best_sensors.clear()
             entity_cluster_data = [-1] * total_number_of_entities
             for cluster_id, list_of_specs in spec_cluster_dict.items():
                 for spec_view in list_of_specs:
@@ -135,21 +135,6 @@ class CosineSimilaritySensorPlacementAlgorithm(SensorPlacementAlgorithm):
                     entity_cluster_data[entity_index] = cluster_id
                 best_spec = max(list_of_specs, key=lambda x: np.min(np.take(x.GetContainerExpression().Evaluate(), entity_indices)))
                 list_of_best_sensors.append(best_spec)
-
-            # put cluster information to hdf5
-            hdf5_params = Kratos.Parameters("""{
-                "file_name": "",
-                "file_access_mode": "truncate"
-            }""")
-            hdf5_params["file_name"].SetString(str(output_path / f"entity_cluster_data_{clustering_iteration:05d}.h5"))
-            with OpenHDF5File(hdf5_params, vtu_output.GetModelPart()) as h5_file:
-                h5_expio = KratosHDF5.ExpressionIO(Kratos.Parameters("""{"prefix": "/ClusterData/"}"""), h5_file)
-                for cluster_id, entity_indices in entity_index_cluster_dict.items():
-                    data = np.array([0.0] * total_number_of_entities, dtype=np.int32)
-                    data[entity_indices] = 1
-                    data_exp = dummy_cexp.Clone()
-                    Kratos.Expression.CArrayExpressionIO.Move(data_exp, data)
-                    h5_expio.Write(f"Cluster_{cluster_id:05d}", data_exp)
 
             vtu_output.ClearCellContainerExpressions()
             vtu_output.ClearNodalContainerExpressions()
@@ -169,6 +154,44 @@ class CosineSimilaritySensorPlacementAlgorithm(SensorPlacementAlgorithm):
             vtu_output.PrintOutput(str(output_path / f"heat_map_{clustering_iteration:05d}"))
 
         Kratos.Logger.PrintInfo(self.__class__.__name__, f"Found {len(list_of_best_sensors)} clusters with sensors.")
+
+        if len(list_of_best_sensors) > 0:
+            list_of_vars = []
+            for var_name in list_of_best_sensors[0].GetSensorSpecification().GetDataVariableNames():
+                var = Kratos.KratosGlobals.GetVariable(var_name)
+                if isinstance(var, Kratos.IntegerVariable) or isinstance(var, Kratos.DoubleVariable) or isinstance(var, Kratos.StringVariable) or isinstance(var, Kratos.BoolVariable):
+                    list_of_vars.append((var, lambda x: x))
+                elif isinstance(var, Kratos.Array1DVariable3):
+                    list_of_vars.append((var, lambda x: [x[0], x[1], x[2]]))
+                elif isinstance(var, Kratos.Array1DVariable4):
+                    list_of_vars.append((var, lambda x: [x[0], x[1], x[2], x[3]]))
+                elif isinstance(var, Kratos.Array1DVariable6):
+                    list_of_vars.append((var, lambda x: [x[0], x[1], x[2], x[3], x[4], x[5]]))
+                elif isinstance(var, Kratos.Array1DVariable9):
+                    list_of_vars.append((var, lambda x: [x[0], x[1], x[2], x[3], x[4], x[5], x[6], x[7], x[8]]))
+                else:
+                    raise RuntimeError(f"Unsupported variable type = {var_name}.")
+
+            # now write the specs with data
+            json_specifications = {
+                "list_of_specifications": []
+            }
+            with open(str(output_path / "best_sensor_specification_data.json"), "w") as file_output:
+                for best_spec_view in list_of_best_sensors:
+                    best_spec = best_spec_view.GetSensorSpecification()
+                    loc = best_spec.GetLocation()
+                    json_spec = {
+                        "name": best_spec.GetName(),
+                        "id": best_spec.Id,
+                        "location": [loc[0], loc[1], loc[2]],
+                        "value": best_spec.GetSensorValue(),
+                        "cluster_entity_indices": entity_index_cluster_dict[best_spec.GetValue(KratosDT.SENSOR_CLUSTER_ID)],
+                        "variable_data": {}
+                    }
+                    for var, func in list_of_vars:
+                        json_spec["variable_data"][var.Name()] = func(best_spec.GetValue(var))
+                    json_specifications["list_of_specifications"].append(json_spec)
+                file_output.write(json.dumps(json_specifications, indent=4))
 
         if len(clusters_to_break) > 0:
             Kratos.Logger.PrintWarning(self.__class__.__name__, f"The max_clustering_iterations and/or unbreakable clusters limit reached without breaking {len(clusters_to_break)} clusters.\n\t Following clusters does not satisfy the prescribed coverage area:")

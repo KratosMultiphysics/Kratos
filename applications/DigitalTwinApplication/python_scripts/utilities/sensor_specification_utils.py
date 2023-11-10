@@ -5,34 +5,46 @@ import KratosMultiphysics as Kratos
 import KratosMultiphysics.OptimizationApplication as KratosOA
 import KratosMultiphysics.DigitalTwinApplication as KratosDT
 
-def GetNodalSpecificationsWithDirection(model: Kratos.Model, list_of_parameters: 'list[Kratos.Parameters]') -> 'list[KratosDT.Sensors.SensorSpecification]':
-    default_settings = Kratos.Parameters("""{
-        "name"           : "SENSOR_NAME",
-        "model_part_name": "PLEASE_SPECIFY_MODEL_PART_NAME",
-        "direction"      : [0.0, 0.0, 0.0],
-        "node_ids"       : [],
-        "weight"         : 1.0,
-        "use_all_nodes"  : false
-    }""")
+def GetSpecifications(model_part: Kratos.ModelPart, list_of_parameters: 'list[Kratos.Parameters]') -> 'list[KratosDT.Sensors.SensorSpecification]':
+    point_locator = Kratos.BruteForcePointLocator(model_part)
 
     list_of_specifications: 'list[KratosDT.Sensors.SensorSpecification]' = []
+    shape_funcs = Kratos.Vector()
     for parameters in list_of_parameters:
-        parameters.ValidateAndAssignDefaults(default_settings)
-
+        sensor_id = parameters["id"].GetInt()
         sensor_name = parameters["name"].GetString()
-        model_part = model[parameters["model_part_name"].GetString()]
-        direction = Kratos.Array3(parameters["direction"].GetVector())
-        weight = parameters["weight"].GetDouble()
+        location = Kratos.Point(parameters["location"].GetVector())
 
-        if parameters["use_all_nodes"].GetBool():
-            nodes: 'list[Kratos.Node]' = model_part.Nodes
-        else:
-            nodes: 'list[Kratos.Node]' = [model_part.GetNode(v) for v in parameters["node_ids"].GetVector()]
+        spec = KratosDT.Sensors.SensorSpecification(sensor_name, sensor_id)
+        spec.SetLocation(location)
+        spec.SetValue(KratosDT.SENSOR_ELEMENT_ID, point_locator.FindElement(location, shape_funcs, Kratos.Configuration.Initial, 1e-8))
 
-        for i, node in enumerate(nodes):
-            specification = KratosDT.Sensors.NodalSensorSpecification(sensor_name, i + 1, weight, node)
-            specification.SetValue(KratosDT.SENSOR_DIRECTION, direction)
-            list_of_specifications.append(specification)
+        if parameters.Has("variable_data"):
+            var_value: Kratos.Parameters
+            for var_name, var_value in parameters["variable_data"].items():
+                var = Kratos.KratosGlobals.GetVariable(var_name)
+                if isinstance(var, Kratos.BoolVariable):
+                    spec.SetValue(var, var_value.GetBool())
+                elif isinstance(var, Kratos.IntegerVariable):
+                    spec.SetValue(var, var_value.GetInt())
+                elif isinstance(var, Kratos.DoubleVariable):
+                    spec.SetValue(var, var_value.GetDouble())
+                elif isinstance(var, Kratos.Array1DVariable3):
+                    vec = var_value.GetVector()
+                    spec.SetValue(var, Kratos.Array3([vec[0], vec[1], vec[2]]))
+                elif isinstance(var, Kratos.Array1DVariable4):
+                    vec = var_value.GetVector()
+                    spec.SetValue(var, Kratos.Array4([vec[0], vec[1], vec[2], vec[3]]))
+                elif isinstance(var, Kratos.Array1DVariable6):
+                    vec = var_value.GetVector()
+                    spec.SetValue(var, Kratos.Array6([vec[0], vec[1], vec[2], vec[3], vec[4], vec[6]]))
+                elif isinstance(var, Kratos.Array1DVariable9):
+                    vec = var_value.GetVector()
+                    spec.SetValue(var, Kratos.Array9([vec[0], vec[1], vec[2], vec[3], vec[4], vec[6], vec[7], vec[8]]))
+                elif isinstance(var, Kratos.VectorVariable):
+                    spec.SetValue(var, var_value.GetVector())
+
+        list_of_specifications.append(spec)
 
     return list_of_specifications
 
