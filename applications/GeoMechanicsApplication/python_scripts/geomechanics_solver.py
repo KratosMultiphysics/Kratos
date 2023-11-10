@@ -226,7 +226,8 @@ class GeoMechanicalSolver(PythonSolver):
         self.linear_solver = self._ConstructLinearSolver()
 
         # Builder and solver creation
-        builder_and_solver = self._ConstructBuilderAndSolver(self.settings["block_builder"].GetBool())
+        builder_and_solver = self._ConstructBuilderAndSolver(self.settings["block_builder"].GetBool(),
+                                                             self.settings["prebuild_dynamics"].GetBool())
 
         # Solution scheme creation
         self.scheme = self._ConstructScheme(self.settings["scheme_type"].GetString(),
@@ -437,11 +438,15 @@ class GeoMechanicalSolver(PythonSolver):
         import KratosMultiphysics.python_linear_solver_factory as linear_solver_factory
         return linear_solver_factory.ConstructSolver(self.settings["linear_solver_settings"])
 
-    def _ConstructBuilderAndSolver(self, block_builder):
+    def _ConstructBuilderAndSolver(self, block_builder, prebuild_dynamics):
 
         # Creating the builder and solver
         if (block_builder):
-            builder_and_solver = KratosMultiphysics.ResidualBasedBlockBuilderAndSolver(self.linear_solver)
+            if prebuild_dynamics:
+                builder_and_solver = (
+                    GeoMechanicsApplication.IncrementalNewmarkBlockBuilderAndSolverWithMassAndDamping(self.linear_solver))
+            else:
+                builder_and_solver = KratosMultiphysics.ResidualBasedBlockBuilderAndSolver(self.linear_solver)
         else:
             builder_and_solver = KratosMultiphysics.ResidualBasedEliminationBuilderAndSolver(self.linear_solver)
 

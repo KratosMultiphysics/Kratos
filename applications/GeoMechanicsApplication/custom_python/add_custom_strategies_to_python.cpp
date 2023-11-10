@@ -26,11 +26,13 @@
 
 //builders and solvers
 #include "custom_strategies/builder_and_solvers/residualbased_block_builder_and_solver_with_mass_and_damping.h"
+#include "custom_strategies/builder_and_solvers/incremental_newmark_block_builder_and_solver_with_mass_and_damping.h"
 
 //schemes
 #include "custom_strategies/schemes/newmark_quasistatic_U_Pw_scheme.hpp"
 #include "custom_strategies/schemes/newmark_quasistatic_damped_U_Pw_scheme.hpp"
 #include "custom_strategies/schemes/newmark_dynamic_U_Pw_scheme.hpp"
+#include "custom_strategies/schemes/incremental_newmark_dynamic_U_Pw_scheme.hpp"
 #include "custom_strategies/schemes/newmark_quasistatic_Pw_scheme.hpp"
 #include "custom_strategies/schemes/backward_euler_quasistatic_U_Pw_scheme.hpp"
 #include "custom_strategies/schemes/backward_euler_quasistatic_Pw_scheme.hpp"
@@ -57,6 +59,7 @@ void AddCustomStrategiesToPython(pybind11::module& m)
     using NewmarkQuasistaticUPwSchemeType = NewmarkQuasistaticUPwScheme< SparseSpaceType, LocalSpaceType >;
     using NewmarkQuasistaticDampedUPwSchemeType = NewmarkQuasistaticDampedUPwScheme< SparseSpaceType, LocalSpaceType >;
     using NewmarkDynamicUPwSchemeType = NewmarkDynamicUPwScheme< SparseSpaceType, LocalSpaceType >;
+    using IncrementalNewmarkDynamicUPwSchemeType = IncrementalNewmarkDynamicUPwScheme< SparseSpaceType, LocalSpaceType >;
     using NewmarkQuasistaticPwSchemeType = NewmarkQuasistaticPwScheme< SparseSpaceType, LocalSpaceType >;
     using BackwardEulerQuasistaticUPwSchemeType = BackwardEulerQuasistaticUPwScheme< SparseSpaceType, LocalSpaceType >;
     using BackwardEulerQuasistaticPwSchemeType = BackwardEulerQuasistaticPwScheme< SparseSpaceType, LocalSpaceType >;
@@ -78,6 +81,10 @@ void AddCustomStrategiesToPython(pybind11::module& m)
     py::class_< NewmarkDynamicUPwSchemeType,typename NewmarkDynamicUPwSchemeType::Pointer, BaseSchemeType >
     (m, "NewmarkDynamicUPwScheme", py::module_local())
     .def(py::init<  double, double, double >());
+
+    py::class_< IncrementalNewmarkDynamicUPwSchemeType, typename IncrementalNewmarkDynamicUPwSchemeType::Pointer, BaseSchemeType >
+        (m, "IncrementalNewmarkDynamicUPwScheme", py::module_local())
+        .def(py::init<  double, double, double >());
 
     py::class_< NewmarkQuasistaticPwSchemeType, typename NewmarkQuasistaticPwSchemeType::Pointer, BaseSchemeType >
     (m, "NewmarkQuasistaticPwScheme")
@@ -111,6 +118,13 @@ void AddCustomStrategiesToPython(pybind11::module& m)
 
     using ResidualBasedBlockBuilderAndSolverWithMassAndDampingType = ResidualBasedBlockBuilderAndSolverWithMassAndDamping< SparseSpaceType, LocalSpaceType, LinearSolverType >;
     py::class_< ResidualBasedBlockBuilderAndSolverWithMassAndDampingType, ResidualBasedBlockBuilderAndSolverWithMassAndDampingType::Pointer, BuilderAndSolverType>(m, "ResidualBasedBlockBuilderAndSolverWithMassAndDamping")
+        .def(py::init< LinearSolverType::Pointer >())
+        .def(py::init< LinearSolverType::Pointer, Parameters >())
+        ;
+
+
+    using IncrementalNewmarkBlockBuilderAndSolverWithMassAndDampingType = IncrementalNewmarkBlockBuilderAndSolverWithMassAndDamping< SparseSpaceType, LocalSpaceType, LinearSolverType >;
+    py::class_< IncrementalNewmarkBlockBuilderAndSolverWithMassAndDampingType, IncrementalNewmarkBlockBuilderAndSolverWithMassAndDampingType::Pointer, BuilderAndSolverType>(m, "IncrementalNewmarkBlockBuilderAndSolverWithMassAndDamping")
         .def(py::init< LinearSolverType::Pointer >())
         .def(py::init< LinearSolverType::Pointer, Parameters >())
         ;

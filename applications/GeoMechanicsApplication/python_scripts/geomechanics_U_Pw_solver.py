@@ -193,6 +193,9 @@ class UPwSolver(GeoSolver):
             elif (solution_type.lower() == "dynamic"):
                 KratosMultiphysics.Logger.PrintInfo("GeoMechanics_U_Pw_Solver, scheme", "Dynamic.")
                 scheme = KratosGeo.NewmarkDynamicUPwScheme(beta,gamma,theta)
+            elif (solution_type.lower() == "dynamic_linear"):
+                KratosMultiphysics.Logger.PrintInfo("GeoMechanics_U_Pw_Solver, scheme", "Dynamic Linear.")
+                scheme = KratosGeo.IncrementalNewmarkDynamicUPwScheme(beta, gamma, theta)
             elif (solution_type.lower() == "k0-procedure" or solution_type.lower() == "k0_procedure"):
                 if (rayleigh_m < 1.0e-20 and rayleigh_k < 1.0e-20):
                     KratosMultiphysics.Logger.PrintInfo("GeoMechanics_U_Pw_Solver, scheme", "Quasi-UnDamped.")
