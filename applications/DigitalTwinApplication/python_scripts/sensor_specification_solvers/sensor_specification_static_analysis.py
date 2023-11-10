@@ -46,6 +46,12 @@ class SensorSpecificationStaticAnalysis(AnalysisStage):
         return "::[SensorSpecificationAnalysis]:: "
 
     def RunSolutionLoop(self):
+        # clear specification data containers
+        for specification in self.GetListOfSpecifications():
+            specification.ClearNodalExpressions()
+            specification.ClearConditionExpressions()
+            specification.ClearElementExpressions()
+
         computing_model_part: Kratos.ModelPart = self._GetSolver().GetComputingModelPart()
 
         output_path = Path("sensor_specification_sensitivities.h5")
