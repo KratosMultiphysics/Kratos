@@ -25,18 +25,18 @@ namespace Kratos
 {
 
 SensorSpecification::SensorSpecification(
-    const std::string &rName,
+    const std::string &rType,
     const IndexType NewId)
     : IndexedObject(NewId),
-      mName(rName),
+      mType(rType),
       mSensorValue(0.0),
       mLocation{}
 {
 }
 
-std::string SensorSpecification::GetName() const
+std::string SensorSpecification::GetType() const
 {
-    return mName;
+    return mType;
 }
 
 void SensorSpecification::SetLocation(const array_1d<double, 3>& rLocation)
@@ -191,7 +191,7 @@ void SensorSpecification::ClearElementExpressions()
 std::string SensorSpecification::Info() const
 {
     std::stringstream msg;
-    msg << "SensorSpecification " << this->GetName() << " #" << this->GetId();
+    msg << "SensorSpecification " << this->GetType() << " #" << this->GetId();
     return msg.str();
 }
 

@@ -54,13 +54,13 @@ class SensorSpecificationOutputProcess(Kratos.OutputProcess):
     def PrintOutput(self) -> None:
         self.output_file_name.parent.mkdir(exist_ok=True, parents=True)
         with open(str(self.output_file_name), "w") as file_output:
-            file_output.write("#;name;value;location_x;location_y;location_z\n")
+            file_output.write("#; type; value; location_x; location_y; location_z\n")
             for adjoint_sensor, list_of_specifications in self.dict_of_sensor_specifications.items():
                 for spec in list_of_specifications:
                     adjoint_sensor.SetSensorSpecification(spec)
                     spec.SetSensorValue(adjoint_sensor.CalculateValue(self.model_part))
                     loc = spec.GetLocation()
-                    file_output.write(f"{spec.Id};{spec.GetName()};{spec.GetSensorValue()};{loc[0]};{loc[1]};{loc[2]}\n")
+                    file_output.write(f"{spec.Id}; {spec.GetType()}; {spec.GetSensorValue()}; {loc[0]}; {loc[1]}; {loc[2]}\n")
 
 
 

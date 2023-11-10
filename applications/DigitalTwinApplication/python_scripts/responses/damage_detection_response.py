@@ -151,11 +151,10 @@ class DamageDetectionResponse(ResponseFunction):
 
                 cexp_gradient.SetExpression(cexp_gradient.Flatten().GetExpression())
 
-
     def __GetSpecification(self, sensor_name: str, sensor_id: int) -> KratosDT.Sensors.SensorSpecification:
         found_specfication = False
         for specification in self.list_of_specifications:
-            if specification.GetName() == sensor_name and specification.Id == sensor_id:
+            if specification.GetType() == sensor_name and specification.Id == sensor_id:
                 found_specfication = True
                 break
         if not found_specfication:

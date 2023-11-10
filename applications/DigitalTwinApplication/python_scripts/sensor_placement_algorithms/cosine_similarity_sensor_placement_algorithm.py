@@ -223,7 +223,7 @@ class CosineSimilaritySensorPlacementAlgorithm(SensorPlacementAlgorithm):
                     best_spec = best_spec_view.GetSensorSpecification()
                     loc = best_spec.GetLocation()
                     json_spec = {
-                        "name": best_spec.GetName(),
+                        "type": best_spec.GetType(),
                         "id": best_spec.Id,
                         "location": [loc[0], loc[1], loc[2]],
                         "value": best_spec.GetSensorValue(),
@@ -316,7 +316,7 @@ class CosineSimilaritySensorPlacementAlgorithm(SensorPlacementAlgorithm):
                 v.SetExpression(filtered_field.GetExpression())
 
             if self.is_vtu_output:
-                vtu_output.PrintOutput(str(vtu_output_path / f"{specification.GetName()}_{specification.Id:05d}"))
+                vtu_output.PrintOutput(str(vtu_output_path / f"{specification.GetType()}_{specification.Id:05d}"))
 
     def __GetFilter(self, filter_type: 'typing.Union[typing.Type[KratosOA.NodalExplicitFilter], typing.Type[KratosOA.ConditionExplicitFilter], typing.Type[KratosOA.ElementExplicitFilter]]') -> 'tuple[Kratos.ModelPart, typing.Union[KratosOA.NodalExplicitFilter, KratosOA.ConditionExplicitFilter, KratosOA.ElementExplicitFilter]]':
         filter_settings = self.parameters["filtering"]

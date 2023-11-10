@@ -59,7 +59,7 @@ def PrintSpecificationDataToCSV(list_of_spec_views: 'list[typing.Union[KratosDT.
 
     with open(str(output_file_name), "w") as csv_output:
         # write the headers of spec
-        csv_output.write("#; name; value; location_x; location_y; location_z")
+        csv_output.write("#; type; value; location_x; location_y; location_z")
         # now write the headers of data containers
         list_of_vars = []
         for var_name in list_of_spec_views[0].GetSensorSpecification().GetDataVariableNames():
@@ -73,7 +73,7 @@ def PrintSpecificationDataToCSV(list_of_spec_views: 'list[typing.Union[KratosDT.
             spec = spec_view.GetSensorSpecification()
             sensor_id += 1
             loc = spec.GetLocation()
-            csv_output.write(f"{sensor_id}; {spec.GetName()}; {spec.GetSensorValue()}; {loc[0]}; {loc[1]}; {loc[2]}")
+            csv_output.write(f"{sensor_id}; {spec.GetType()}; {spec.GetSensorValue()}; {loc[0]}; {loc[1]}; {loc[2]}")
             for var in list_of_vars:
                 csv_output.write(f"; {spec.GetValue(var)}")
             csv_output.write("\n")

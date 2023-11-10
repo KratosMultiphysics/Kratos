@@ -36,8 +36,8 @@ void  AddCustomSensorsToPython(pybind11::module& m)
 
     // Add sensor specifications
     py::class_<SensorSpecification, SensorSpecification::Pointer, IndexedObject, DataValueContainer>(sensor_module, "SensorSpecification")
-        .def(py::init<const std::string&, const IndexType>(), py::arg("sensor_name"), py::arg("sensor_id"))
-        .def("GetName", &SensorSpecification::GetName)
+        .def(py::init<const std::string&, const IndexType>(), py::arg("sensor_type"), py::arg("sensor_id"))
+        .def("GetType", &SensorSpecification::GetType)
         .def("SetLocation", &SensorSpecification::SetLocation, py::arg("new_location"))
         .def("GetLocation", &SensorSpecification::GetLocation)
         .def("SetSensorValue", &SensorSpecification::SetSensorValue, py::arg("sensor_value"))

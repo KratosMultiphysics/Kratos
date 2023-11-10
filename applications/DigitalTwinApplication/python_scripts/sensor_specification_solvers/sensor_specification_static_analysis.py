@@ -71,11 +71,11 @@ class SensorSpecificationStaticAnalysis(AnalysisStage):
 
             for specification in list_of_specifications:
                 computing_model_part.ProcessInfo[Kratos.STEP] += 1
-                computing_model_part.ProcessInfo[KratosDT.SENSOR_NAME] = specification.GetName()
+                computing_model_part.ProcessInfo[KratosDT.SENSOR_NAME] = specification.GetType()
                 computing_model_part.ProcessInfo[KratosDT.SENSOR_ID] = specification.Id
                 computing_model_part.ProcessInfo[KratosDT.SENSOR_LOCATION] = specification.GetLocation()
 
-                h5_path = f"/SensitivityData/{adjoint_sensor.__class__.__name__}/{specification.GetName()}/{specification.Id}"
+                h5_path = f"/SensitivityData/{adjoint_sensor.__class__.__name__}/{specification.GetType()}/{specification.Id}"
                 sensitivity_variables: 'dict[Kratos.Globals.DataLocation, list[typing.Union[Kratos.DoubleVariable, Kratos.Array1DVariable3]]]' = self._GetSolver().GetSensitivtyVariables()
                 if not h5_file.HasPath(h5_path):
                     # recursively creat group

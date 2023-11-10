@@ -48,7 +48,7 @@ public:
 
     /// Constructor.
     SensorSpecification(
-        const std::string &rName,
+        const std::string &rType,
         const IndexType NewId);
 
     /// Destructor.
@@ -59,11 +59,11 @@ public:
     ///@{
 
     /**
-     * @brief Get the Name of the sensor
+     * @brief Get the Type of the sensor
      *
      * @return std::string
      */
-    std::string GetName() const;
+    std::string GetType() const;
 
     /**
      * @brief Set the Location of the sensor
@@ -206,7 +206,7 @@ private:
     ///@name Private member variables
     ///@{
 
-    const std::string mName;
+    const std::string mType;
 
     double mSensorValue;
 
