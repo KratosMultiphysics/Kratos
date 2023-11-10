@@ -39,6 +39,7 @@ class MdpaModelPartController(ModelPartController):
             Kratos.ModelPartIO(self.input_filename, Kratos.ModelPartIO.READ | Kratos.ModelPartIO.MESH_ONLY).ReadModelPart(self.model_part)
 
         self.model_part.ProcessInfo[Kratos.DOMAIN_SIZE] = self.domain_size
+        Kratos.Logger.PrintInfo(self.__class__.__name__, f"Read {self.model_part.FullName()}.")
 
     def GetModelPart(self) -> Kratos.ModelPart:
         return self.model_part
