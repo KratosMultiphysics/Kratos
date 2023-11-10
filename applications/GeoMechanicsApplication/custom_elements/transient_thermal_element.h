@@ -79,6 +79,8 @@ private:
 
     void InitializeNodalTemperatureVariables(ElementVariables& rVariables);
 
+    Vector CalculateIntegrationCoefficients(const Vector& detJContainer) const;
+
     void CalculateConductivityMatrix(ElementVariables&  rVariables,
                                      const Matrix&      rGradNT,
                                      const ProcessInfo& rCurrentProcessInfo);

@@ -160,11 +160,11 @@ void TransientThermalElement<TDim, TNumNodes>::CalculateAll(
 
     const auto NContainer = Matrix{GetGeometry().ShapeFunctionsValues(GetIntegrationMethod())};
 
+    const auto integration_coefficients = CalculateIntegrationCoefficients(Variables.detJContainer);
+
     // Loop over integration points
     for (unsigned int GPoint = 0; GPoint < IntegrationPoints.size(); ++GPoint) {
-        // Compute weighting coefficient for integration
-        Variables.IntegrationCoefficient =
-            IntegrationPoints[GPoint].Weight() * Variables.detJContainer[GPoint];
+        Variables.IntegrationCoefficient = integration_coefficients[GPoint];
 
         const auto gradNT = Matrix{Variables.DN_DXContainer[GPoint]};
         CalculateConductivityMatrix(Variables, gradNT, rCurrentProcessInfo);
@@ -245,6 +245,19 @@ void TransientThermalElement<TDim, TNumNodes>::CalculateCapacityMatrix(ElementVa
         (cWater + cSolid) * outer_prod(rN, rN) * rVariables.IntegrationCoefficient;
 
     KRATOS_CATCH("")
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
+Vector TransientThermalElement<TDim, TNumNodes>::CalculateIntegrationCoefficients(const Vector& detJContainer) const
+{
+    const auto& IntegrationPoints = GetGeometry().IntegrationPoints(GetIntegrationMethod());
+
+    Vector result{IntegrationPoints.size()};
+    for (unsigned int GPoint = 0; GPoint < IntegrationPoints.size(); ++GPoint) {
+        result[GPoint] = IntegrationPoints[GPoint].Weight() * detJContainer[GPoint];
+    }
+
+    return result;
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
