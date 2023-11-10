@@ -9,6 +9,11 @@ kratos_add_dependency(${KRATOS_SOURCE_DIR}/applications/LinearSolversApplication
 
 include_directories( ${KRATOS_SOURCE_DIR}/kratos )
 
+set(KRATOS_LINEAR_SOLVERS_APPLICATION_LIB_INC 
+    "${KRATOS_SOURCE_DIR}/applications/LinearSolversApplication/external_libraries/eigen3"
+    "${KRATOS_SOURCE_DIR}/applications/LinearSolversApplication/external_libraries/spectra1/include"
+)
+
 ## RomApplication Core sources
 file(GLOB_RECURSE KRATOS_ROM_APPLICATION_CORE
     ${CMAKE_CURRENT_SOURCE_DIR}/rom_application.cpp
