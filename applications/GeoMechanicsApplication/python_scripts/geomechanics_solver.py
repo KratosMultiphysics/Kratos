@@ -248,8 +248,14 @@ class GeoMechanicalSolver(PythonSolver):
 
         self.solver.Initialize()
 
+        self.find_neighbour_elements_of_conditions_process = GeoMechanicsApplication.FindNeighbourElementsOfConditionsProcess(self.computing_model_part)
+        self.find_neighbour_elements_of_conditions_process.Execute()
+
+        self.deactivate_conditions_on_inactive_elements_process = GeoMechanicsApplication.DeactivateConditionsOnInactiveElements(self.computing_model_part)
+        self.deactivate_conditions_on_inactive_elements_process.Execute()
+
     def InitializeSolutionStep(self):
-        self.solver.InitializeSolutionStep()
+            self.solver.InitializeSolutionStep()
 
     def Predict(self):
         self.solver.Predict()

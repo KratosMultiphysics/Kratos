@@ -105,12 +105,6 @@ class TSolver(GeoSolver):
         
         super().Initialize()
 
-        self.find_neighbour_elements_of_conditions_process = KratosGeo.FindNeighbourElementsOfConditionsProcess(self.computing_model_part)
-        self.find_neighbour_elements_of_conditions_process.Execute()
-
-        self.deactivate_conditions_on_inactive_elements_process = KratosGeo.DeactivateConditionsOnInactiveElements(self.computing_model_part)
-        self.deactivate_conditions_on_inactive_elements_process.Execute()
-
         # Check if everything is assigned correctly
         self.Check()
 
