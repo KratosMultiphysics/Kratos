@@ -26,13 +26,13 @@
 namespace Kratos {
 
 template <class TSparseSpace, class TDenseSpace>
-class GeneralizedNewmarkTScheme : public GeoMechanicsTimeIntegrationScheme<TSparseSpace, TDenseSpace> {
+class GeneralizedNewmarkTScheme
+    : public GeoMechanicsTimeIntegrationScheme<TSparseSpace, TDenseSpace> {
 public:
-
-    using BaseType              = Scheme<TSparseSpace,TDenseSpace>;
-    using DofsArrayType         = typename BaseType::DofsArrayType;
-    using TSystemMatrixType     = typename BaseType::TSystemMatrixType;
-    using TSystemVectorType     = typename BaseType::TSystemVectorType;
+    using BaseType = Scheme<TSparseSpace, TDenseSpace>;
+    using DofsArrayType = typename BaseType::DofsArrayType;
+    using TSystemMatrixType = typename BaseType::TSystemMatrixType;
+    using TSystemVectorType = typename BaseType::TSystemVectorType;
     using LocalSystemVectorType = typename BaseType::LocalSystemVectorType;
     using LocalSystemMatrixType = typename BaseType::LocalSystemMatrixType;
 
@@ -80,7 +80,6 @@ protected:
     inline void UpdateVariablesDerivatives(ModelPart& rModelPart) override
     {
         KRATOS_TRY
-        // Update DtPressure
         block_for_each(rModelPart.Nodes(), [this](Node& rNode) {
             const double delta_temperature =
                 rNode.FastGetSolutionStepValue(TEMPERATURE) -
@@ -89,10 +88,9 @@ protected:
                 rNode.FastGetSolutionStepValue(DT_TEMPERATURE, 1);
 
             rNode.FastGetSolutionStepValue(DT_TEMPERATURE) =
-                1.0 / (mTheta * this->GetDeltaTime()) *
-                (delta_temperature - (1.0 - mTheta) * this->GetDeltaTime() * previous_dt_temperature);
+                (delta_temperature - (1.0 - mTheta) * this->GetDeltaTime() * previous_dt_temperature) /
+                (mTheta * this->GetDeltaTime());
         });
-
         KRATOS_CATCH("")
     }
 

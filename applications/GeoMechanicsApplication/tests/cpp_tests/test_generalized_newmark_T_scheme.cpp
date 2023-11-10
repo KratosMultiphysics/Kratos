@@ -139,7 +139,6 @@ KRATOS_TEST_CASE_IN_SUITE(ThermalSchemeUpdate_SetsDtTemperature, KratosGeoMechan
     const double current_temperature = 10.0;
     const double previous_temperature = 5.0;
     const double previous_dt_temperature = 3.0;
-    const double theta = 0.75;
     const double delta_time = 2.0;
 
     model_part.GetProcessInfo()[DELTA_TIME] = delta_time;
@@ -148,9 +147,8 @@ KRATOS_TEST_CASE_IN_SUITE(ThermalSchemeUpdate_SetsDtTemperature, KratosGeoMechan
     node.FastGetSolutionStepValue(TEMPERATURE, 1) = previous_temperature;
     node.FastGetSolutionStepValue(DT_TEMPERATURE, 1) = previous_dt_temperature;
 
-    double expected_value = 1.0 / (theta * delta_time) *
-                            (current_temperature - previous_temperature -
-                             (1.0 - theta) * delta_time * previous_dt_temperature);
+    // This is the expected value as calculated by the UpdateVariablesDerivatives
+    double expected_value = 7.0/3.0;
 
     ModelPart::DofsArrayType dof_set;
     CompressedMatrix A;
