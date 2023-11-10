@@ -21,12 +21,12 @@
 
 // Application includes
 #include "geo_mechanics_application_variables.h"
-#include "geo_mechanics_scheme.hpp"
+#include "geomechanics_time_integration_scheme.hpp"
 
 namespace Kratos {
 
 template <class TSparseSpace, class TDenseSpace>
-class NewmarkQuasistaticTScheme : public GeoMechanicsScheme<TSparseSpace, TDenseSpace> {
+class GeneralizedNewmarkTScheme : public GeoMechanicsTimeIntegrationScheme<TSparseSpace, TDenseSpace> {
 public:
 
     using BaseType              = Scheme<TSparseSpace,TDenseSpace>;
@@ -36,14 +36,14 @@ public:
     using LocalSystemVectorType = typename BaseType::LocalSystemVectorType;
     using LocalSystemMatrixType = typename BaseType::LocalSystemMatrixType;
 
-    KRATOS_CLASS_POINTER_DEFINITION(NewmarkQuasistaticTScheme);
+    KRATOS_CLASS_POINTER_DEFINITION(GeneralizedNewmarkTScheme);
 
-    explicit NewmarkQuasistaticTScheme(double theta)
-        : GeoMechanicsScheme<TSparseSpace, TDenseSpace>(), mTheta(theta)
+    explicit GeneralizedNewmarkTScheme(double theta)
+        : GeoMechanicsTimeIntegrationScheme<TSparseSpace, TDenseSpace>(), mTheta(theta)
     {
     }
 
-    ~NewmarkQuasistaticTScheme() override = default;
+    ~GeneralizedNewmarkTScheme() override = default;
 
     int Check(const ModelPart& rModelPart) const override
     {
@@ -109,5 +109,5 @@ protected:
 
 private:
     double mTheta = 0.0;
-}; // Class NewmarkQuasistaticTScheme
+}; // Class GeneralizedNewmarkTScheme
 } // namespace Kratos

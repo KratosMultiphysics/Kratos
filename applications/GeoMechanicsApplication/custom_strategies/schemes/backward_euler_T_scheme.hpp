@@ -14,18 +14,18 @@
 
 #pragma once
 
-#include "custom_strategies/schemes/newmark_quasistatic_T_scheme.hpp"
+#include "custom_strategies/schemes/generalized_newmark_T_scheme.hpp"
 
 namespace Kratos {
 
 template <class TSparseSpace, class TDenseSpace>
-class BackwardEulerQuasistaticTScheme
-    : public NewmarkQuasistaticTScheme<TSparseSpace, TDenseSpace> {
+class BackwardEulerTScheme
+    : public GeneralizedNewmarkTScheme<TSparseSpace, TDenseSpace> {
 public:
-    KRATOS_CLASS_POINTER_DEFINITION(BackwardEulerQuasistaticTScheme);
+    KRATOS_CLASS_POINTER_DEFINITION(BackwardEulerTScheme);
 
-    BackwardEulerQuasistaticTScheme()
-        : NewmarkQuasistaticTScheme<TSparseSpace, TDenseSpace>(1.0)
+    BackwardEulerTScheme()
+        : GeneralizedNewmarkTScheme<TSparseSpace, TDenseSpace>(1.0)
     {
     }
 
@@ -44,5 +44,5 @@ protected:
         KRATOS_CATCH("")
     }
 
-}; // Class BackwardEulerQuasistaticTScheme
+}; // Class BackwardEulerTScheme
 } // namespace Kratos

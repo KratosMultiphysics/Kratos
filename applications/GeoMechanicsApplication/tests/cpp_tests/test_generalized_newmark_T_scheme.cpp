@@ -10,7 +10,7 @@
 //  Main authors:    Richard Faasse
 //
 
-#include "custom_strategies/schemes/newmark_quasistatic_T_scheme.hpp"
+#include "custom_strategies/schemes/generalized_newmark_T_scheme.hpp"
 #include "spaces/ublas_space.h"
 #include "testing/testing.h"
 
@@ -20,9 +20,9 @@ using LocalSpaceType = UblasSpace<double, Matrix, Vector>;
 
 namespace Kratos::Testing {
 
-NewmarkQuasistaticTScheme<SparseSpaceType, LocalSpaceType> CreateValidScheme()
+GeneralizedNewmarkTScheme<SparseSpaceType, LocalSpaceType> CreateValidScheme()
 {
-    NewmarkQuasistaticTScheme<SparseSpaceType, LocalSpaceType> result(0.75);
+    GeneralizedNewmarkTScheme<SparseSpaceType, LocalSpaceType> result(0.75);
     return result;
 }
 
@@ -52,7 +52,7 @@ KRATOS_TEST_CASE_IN_SUITE(ForInvalidTheta_CheckBackwardEulerQuasistaticTScheme_T
                           KratosGeoMechanicsFastSuite)
 {
     const int invalid_theta = -2;
-    NewmarkQuasistaticTScheme<SparseSpaceType, LocalSpaceType> scheme(invalid_theta);
+    GeneralizedNewmarkTScheme<SparseSpaceType, LocalSpaceType> scheme(invalid_theta);
 
     Model model;
     auto& model_part = model.CreateModelPart("dummy", 2);
@@ -68,7 +68,7 @@ KRATOS_TEST_CASE_IN_SUITE(ForInvalidTheta_CheckBackwardEulerQuasistaticTScheme_T
 KRATOS_TEST_CASE_IN_SUITE(ForInvalidBufferSize_CheckBackwardEulerQuasistaticTScheme_Throws,
                           KratosGeoMechanicsFastSuite)
 {
-    NewmarkQuasistaticTScheme<SparseSpaceType, LocalSpaceType> scheme(0.75);
+    GeneralizedNewmarkTScheme<SparseSpaceType, LocalSpaceType> scheme(0.75);
 
     Model model;
     const int invalid_buffer_size = 1;
@@ -87,7 +87,7 @@ KRATOS_TEST_CASE_IN_SUITE(ForInvalidBufferSize_CheckBackwardEulerQuasistaticTSch
 KRATOS_TEST_CASE_IN_SUITE(ForMissingNodalDof_CheckBackwardEulerQuasistaticTScheme_Throws,
                           KratosGeoMechanicsFastSuite)
 {
-    NewmarkQuasistaticTScheme<SparseSpaceType, LocalSpaceType> scheme(0.75);
+    GeneralizedNewmarkTScheme<SparseSpaceType, LocalSpaceType> scheme(0.75);
 
     Model model;
     auto& model_part = model.CreateModelPart("dummy", 2);
@@ -102,7 +102,7 @@ KRATOS_TEST_CASE_IN_SUITE(ForMissingNodalDof_CheckBackwardEulerQuasistaticTSchem
 KRATOS_TEST_CASE_IN_SUITE(ForMissingDtTemperatureSolutionStepVariable_CheckBackwardEulerQuasistaticTScheme_Throws,
                           KratosGeoMechanicsFastSuite)
 {
-    NewmarkQuasistaticTScheme<SparseSpaceType, LocalSpaceType> scheme(0.75);
+    GeneralizedNewmarkTScheme<SparseSpaceType, LocalSpaceType> scheme(0.75);
 
     Model model;
     auto& model_part = model.CreateModelPart("dummy", 2);
@@ -118,7 +118,7 @@ KRATOS_TEST_CASE_IN_SUITE(ForMissingDtTemperatureSolutionStepVariable_CheckBackw
 KRATOS_TEST_CASE_IN_SUITE(ForMissingTemperatureSolutionStepVariable_CheckBackwardEulerQuasistaticTScheme_Throws,
                           KratosGeoMechanicsFastSuite)
 {
-    NewmarkQuasistaticTScheme<SparseSpaceType, LocalSpaceType> scheme(0.75);
+    GeneralizedNewmarkTScheme<SparseSpaceType, LocalSpaceType> scheme(0.75);
 
     Model model;
     auto& model_part = model.CreateModelPart("dummy", 2);

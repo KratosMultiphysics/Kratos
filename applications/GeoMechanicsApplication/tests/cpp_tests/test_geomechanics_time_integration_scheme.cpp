@@ -13,7 +13,7 @@
 #include "testing/testing.h"
 
 #include "containers/model.h"
-#include "custom_strategies/schemes/geo_mechanics_scheme.hpp"
+#include "custom_strategies/schemes/geomechanics_time_integration_scheme.hpp"
 #include "spaces/ublas_space.h"
 #include "test_utilities/spy_condition.h"
 #include "test_utilities/spy_element.h"
@@ -27,13 +27,13 @@ namespace Kratos::Testing {
 class GeoMechanicsSchemeTester {
 public:
     Model mModel;
-    GeoMechanicsScheme<SparseSpaceType, LocalSpaceType> mScheme;
+    GeoMechanicsTimeIntegrationScheme<SparseSpaceType, LocalSpaceType> mScheme;
 
     void Setup()
     {
         mModel.Reset();
         mModel.CreateModelPart("dummy", 2);
-        mScheme = GeoMechanicsScheme<SparseSpaceType, LocalSpaceType>();
+        mScheme = GeoMechanicsTimeIntegrationScheme<SparseSpaceType, LocalSpaceType>();
     }
 
     template <class T>

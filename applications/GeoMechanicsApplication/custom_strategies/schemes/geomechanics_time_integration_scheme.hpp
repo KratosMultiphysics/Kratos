@@ -16,7 +16,7 @@
 namespace Kratos {
 
 template <class TSparseSpace, class TDenseSpace>
-class GeoMechanicsScheme : public Scheme<TSparseSpace, TDenseSpace> {
+class GeoMechanicsTimeIntegrationScheme : public Scheme<TSparseSpace, TDenseSpace> {
 public:
     using BaseType              = Scheme<TSparseSpace,TDenseSpace>;
     using DofsArrayType         = typename BaseType::DofsArrayType;

@@ -10,7 +10,7 @@
 //  Main authors:    Richard Faasse
 //
 
-#include "custom_strategies/schemes/backward_euler_quasistatic_T_scheme.hpp"
+#include "custom_strategies/schemes/backward_euler_T_scheme.hpp"
 #include "spaces/ublas_space.h"
 #include "testing/testing.h"
 
@@ -23,7 +23,7 @@ using LocalSpaceType = UblasSpace<double, Matrix, Vector>;
 KRATOS_TEST_CASE_IN_SUITE(BackwardEulerScheme_UpdatesVariablesDerivatives_WhenPredictIsCalled,
                           KratosGeoMechanicsFastSuite)
 {
-    BackwardEulerQuasistaticTScheme<SparseSpaceType, LocalSpaceType> scheme;
+    BackwardEulerTScheme<SparseSpaceType, LocalSpaceType> scheme;
     Model model;
     auto& model_part = model.CreateModelPart("dummy", 2);
 

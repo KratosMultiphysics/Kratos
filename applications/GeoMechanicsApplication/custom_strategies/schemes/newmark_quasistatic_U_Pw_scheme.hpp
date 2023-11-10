@@ -18,13 +18,13 @@
 #include "utilities/parallel_utilities.h"
 
 #include "geo_mechanics_application_variables.h"
-#include "geo_mechanics_scheme.hpp"
+#include "geomechanics_time_integration_scheme.hpp"
 
 namespace Kratos
 {
 
 template<class TSparseSpace, class TDenseSpace>
-class NewmarkQuasistaticUPwScheme : public GeoMechanicsScheme<TSparseSpace,TDenseSpace>
+class NewmarkQuasistaticUPwScheme : public GeoMechanicsTimeIntegrationScheme<TSparseSpace,TDenseSpace>
 {
 public:
     KRATOS_CLASS_POINTER_DEFINITION( NewmarkQuasistaticUPwScheme );
@@ -37,7 +37,7 @@ public:
     using LocalSystemMatrixType = typename BaseType::LocalSystemMatrixType;
 
     NewmarkQuasistaticUPwScheme(double beta, double gamma, double theta)
-        : GeoMechanicsScheme<TSparseSpace, TDenseSpace>()
+        : GeoMechanicsTimeIntegrationScheme<TSparseSpace, TDenseSpace>()
         , mBeta(beta)
         , mGamma(gamma)
         , mTheta(theta)
