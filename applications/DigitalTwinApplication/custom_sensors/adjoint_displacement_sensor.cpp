@@ -95,7 +95,7 @@ double AdjointDisplacementSensor::CalculateValue(ModelPart& rModelPart)
 
         Vector Ns;
         r_geometry.ShapeFunctionsValues(Ns, mLocalCoordinates);
-        array_1d<double, 3> displacement{};
+        array_1d<double, 3> displacement = ZeroVector(3);
         for (IndexType i = 0; i < r_geometry.size(); ++i) {
             displacement += r_geometry[i].FastGetSolutionStepValue(DISPLACEMENT) * Ns[i];
         }
