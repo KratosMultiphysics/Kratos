@@ -153,9 +153,6 @@ void TransientThermalElement<TDim, TNumNodes>::CalculateAll(
 {
     KRATOS_TRY
 
-    ElementVariables Variables;
-    InitializeNodalTemperatureVariables(Variables);
-
     const auto& rGeom = GetGeometry();
     const unsigned int NumGPoints = rGeom.IntegrationPointsNumber(GetIntegrationMethod());
 
@@ -174,27 +171,12 @@ void TransientThermalElement<TDim, TNumNodes>::CalculateAll(
     GeoElementUtilities::AssemblePBlockMatrix<0, TNumNodes>(rLeftHandSideMatrix, DtTemperatureCoefficient * capacity_matrix);
 
     const auto capacity_vector =
-        array_1d<double, TNumNodes>{-prod(capacity_matrix, Variables.DtTemperatureVector)};
+        array_1d<double, TNumNodes>{-prod(capacity_matrix, GetDtTemperatureVector())};
     GeoElementUtilities::AssemblePBlockVector<0, TNumNodes>(rRightHandSideVector, capacity_vector);
 
     const auto conductivity_vector =
         array_1d<double, TNumNodes>{-prod(conductivity_matrix, GetTemperatureVector())};
     GeoElementUtilities::AssemblePBlockVector<0, TNumNodes>(rRightHandSideVector, conductivity_vector);
-
-    KRATOS_CATCH("")
-}
-
-template <unsigned int TDim, unsigned int TNumNodes>
-void TransientThermalElement<TDim, TNumNodes>::InitializeNodalTemperatureVariables(ElementVariables& rVariables)
-{
-    KRATOS_TRY
-
-    const GeometryType& rGeom = GetGeometry();
-
-    for (unsigned int i = 0; i < TNumNodes; ++i) {
-        rVariables.DtTemperatureVector[i] =
-            rGeom[i].FastGetSolutionStepValue(DT_TEMPERATURE);
-    }
 
     KRATOS_CATCH("")
 }
@@ -230,6 +212,16 @@ array_1d<double, TNumNodes> TransientThermalElement<TDim, TNumNodes>::GetTempera
     const auto& r_geometry = GetGeometry();
     std::transform(r_geometry.begin(), r_geometry.end(), result.begin(),
                    [](const auto& node){return node.FastGetSolutionStepValue(TEMPERATURE);});
+    return result;
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
+array_1d<double, TNumNodes> TransientThermalElement<TDim, TNumNodes>::GetDtTemperatureVector() const
+{
+    auto        result     = array_1d<double, TNumNodes>{};
+    const auto& r_geometry = GetGeometry();
+    std::transform(r_geometry.begin(), r_geometry.end(), result.begin(),
+                   [](const auto& node){return node.FastGetSolutionStepValue(DT_TEMPERATURE);});
     return result;
 }
 

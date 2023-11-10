@@ -25,10 +25,6 @@ class KRATOS_API(GEO_MECHANICS_APPLICATION) TransientThermalElement : public Ele
 public:
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(TransientThermalElement);
 
-    struct ElementVariables {
-        array_1d<double, TNumNodes> DtTemperatureVector;
-    };
-
     explicit TransientThermalElement(IndexType NewId = 0);
 
     TransientThermalElement(IndexType NewId, GeometryType::Pointer pGeometry);
@@ -67,8 +63,6 @@ private:
                       VectorType& rRightHandSideVector,
                       const ProcessInfo& CurrentProcessInfo);
 
-    void InitializeNodalTemperatureVariables(ElementVariables& rVariables);
-
     Vector CalculateIntegrationCoefficients(const Vector& detJContainer) const;
 
     BoundedMatrix<double, TNumNodes, TNumNodes> CalculateConductivityMatrix(const GeometryType::ShapeFunctionsGradientsType& rShapeFunctionGradients,
@@ -78,6 +72,7 @@ private:
     BoundedMatrix<double, TNumNodes, TNumNodes> CalculateCapacityMatrix(const Vector& rIntegrationCoefficients) const;
 
     array_1d<double, TNumNodes> GetTemperatureVector() const;
+    array_1d<double, TNumNodes> GetDtTemperatureVector() const;
 
     GeometryData::IntegrationMethod GetIntegrationMethod() const override;
 
