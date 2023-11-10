@@ -21,7 +21,7 @@
 #include "spatial_containers/spatial_search_result.h"
 #include "spatial_containers/spatial_search_result_container.h"
 
-namespace Kratos::Testing 
+namespace Kratos::Testing
 {
 
 KRATOS_TEST_CASE_IN_SUITE(SpatialSearchResultContainerAddResult, KratosCoreFastSuite)
@@ -131,6 +131,16 @@ KRATOS_TEST_CASE_IN_SUITE(SpatialSearchResultContainerGetResultShapeFunctions, K
     KRATOS_EXPECT_EQ(shape_functions.size(), 1);
     KRATOS_EXPECT_NEAR(shape_functions[0][0], 0.5, 1.0e-12);
     KRATOS_EXPECT_NEAR(shape_functions[0][1], 0.5, 1.0e-12);
+
+    // Check is inside
+    auto is_inside_true = container.GetResultIsInside(point, 1.0e-5);
+    KRATOS_EXPECT_EQ(is_inside_true.size(), 1);
+    KRATOS_EXPECT_TRUE(is_inside_true[0]);
+
+    Point point_outside = Point(1.0e6, 1.0e6, 1.0e6);
+    auto is_inside_false = container.GetResultIsInside(point_outside, 1.0e-5);
+    KRATOS_EXPECT_EQ(is_inside_false.size(), 1);
+    KRATOS_EXPECT_FALSE(is_inside_false[0]);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(SpatialSearchResultContainerGetResultIndices, KratosCoreFastSuite)

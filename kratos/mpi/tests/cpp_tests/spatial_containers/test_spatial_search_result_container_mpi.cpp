@@ -28,7 +28,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISpatialSearchResultContainerAddResult, 
 {
     // The data communicator
     const DataCommunicator& r_data_comm = Testing::GetDefaultDataCommunicator();
-    
+
     // Create a test object
     SpatialSearchResultContainer<GeometricalObject> container;
 
@@ -105,14 +105,14 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISpatialSearchResultContainerSynchronize
     // Check global pointers
     auto& r_global_pointers = container.GetGlobalResults();
     KRATOS_EXPECT_EQ(static_cast<int>(r_global_pointers.size()), r_data_comm.Size());
-    KRATOS_EXPECT_EQ(r_global_pointers.size(), container.NumberOfGlobalResults()); 
+    KRATOS_EXPECT_EQ(r_global_pointers.size(), container.NumberOfGlobalResults());
 }
 
 KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISpatialSearchResultContainerGetResultShapeFunctions, KratosMPICoreFastSuite)
 {
     // The data communicator
     const DataCommunicator& r_data_comm = Testing::GetDefaultDataCommunicator();
-    
+
     // Create a test object
     SpatialSearchResultContainer<GeometricalObject> container;
 
@@ -141,13 +141,27 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISpatialSearchResultContainerGetResultSh
         KRATOS_EXPECT_NEAR(shape_functions[i_rank][0], 0.5, 1.0e-12);
         KRATOS_EXPECT_NEAR(shape_functions[i_rank][1], 0.5, 1.0e-12);
     }
+
+    // Check is inside
+    auto is_inside_true = container.GetResultIsInside(point, 1.0e-5);
+    KRATOS_EXPECT_EQ(static_cast<int>(is_inside_true.size()), r_data_comm.Size());
+    for (int i_rank = 0; i_rank < r_data_comm.Size(); ++i_rank) {
+        KRATOS_EXPECT_TRUE(is_inside_true[i_rank]);
+    }
+
+    Point point_outside = Point(1.0e6, 1.0e6, 1.0e6);
+    auto is_inside_false = container.GetResultIsInside(point_outside, 1.0e-5);
+    KRATOS_EXPECT_EQ(static_cast<int>(is_inside_true.size()), r_data_comm.Size());
+    for (int i_rank = 0; i_rank < r_data_comm.Size(); ++i_rank) {
+        KRATOS_EXPECT_FALSE(is_inside_false[i_rank]);
+    }
 }
 
 KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISpatialSearchResultContainerGetResultIndices, KratosMPICoreFastSuite)
 {
     // The data communicator
     const DataCommunicator& r_data_comm = Testing::GetDefaultDataCommunicator();
-    
+
     // Create a test object
     SpatialSearchResultContainer<GeometricalObject> container;
 
@@ -162,12 +176,12 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISpatialSearchResultContainerGetResultIn
     container.SynchronizeAll(r_data_comm);
 
     // Compute shape functions
-    auto indixes = container.GetResultIndices();
+    auto indices = container.GetResultIndices();
 
     // Check shape functions
-    KRATOS_EXPECT_EQ(static_cast<int>(indixes.size()), r_data_comm.Size());
+    KRATOS_EXPECT_EQ(static_cast<int>(indices.size()), r_data_comm.Size());
     for (int i_rank = 0; i_rank < r_data_comm.Size(); ++i_rank) {
-        KRATOS_EXPECT_EQ(static_cast<int>(indixes[i_rank]), i_rank + 1);
+        KRATOS_EXPECT_EQ(static_cast<int>(indices[i_rank]), i_rank + 1);
     }
 }
 
@@ -175,7 +189,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISpatialSearchResultContainerGetResultCo
 {
     // The data communicator
     const DataCommunicator& r_data_comm = Testing::GetDefaultDataCommunicator();
-    
+
     // Create a test object
     SpatialSearchResultContainer<GeometricalObject> container;
 

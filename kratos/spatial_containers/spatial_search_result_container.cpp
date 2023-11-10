@@ -216,6 +216,48 @@ std::vector<double> SpatialSearchResultContainer<TObjectType>::GetDistances()
 /***********************************************************************************/
 
 template <class TObjectType>
+std::vector<bool> SpatialSearchResultContainer<TObjectType>::GetResultIsInside(
+    const array_1d<double, 3>& rPoint,
+    const double Tolerance
+    )
+{
+    // Check if the communicator has been created
+    KRATOS_ERROR_IF(mpGlobalPointerCommunicator == nullptr) << "The communicator has not been created." << std::endl;
+
+    // Define the coordinates vector
+    const std::size_t number_of_gp = mGlobalResults.size();
+    std::vector<bool> is_inside(number_of_gp, false);
+
+    // Call Apply to get the proxy
+    auto proxy = this->Apply([&rPoint, &Tolerance](GlobalPointerResultType& rGP) -> bool {
+        auto p_object = rGP->Get();
+        if constexpr (std::is_same<TObjectType, GeometricalObject>::value) {
+            auto& r_geometry = p_object->GetGeometry();
+            Point::CoordinatesArrayType aux_coords;
+            return r_geometry.IsInside(rPoint, aux_coords, Tolerance);
+        } else if constexpr (std::is_same<TObjectType, Node>::value) {
+            KRATOS_ERROR << "Nodes do not provide is inside. Not possible to compute is inside for point: " << rPoint[0]<< "\t" << rPoint[1] << "\t" << rPoint[2] << std::endl;
+            return false;
+        } else {
+            KRATOS_ERROR << "Not implemented yet. Not possible to compute is inside for point: " << rPoint[0]<< "\t" << rPoint[1] << "\t" << rPoint[2] << std::endl;
+            return false;
+        }
+    });
+
+    // Get the is inside
+    const auto& r_data_comm = mpGlobalPointerCommunicator->GetDataCommunicator();
+    for(std::size_t i=0; i<number_of_gp; ++i) {
+        auto& r_gp = mGlobalResults(i);
+        is_inside[i] = r_data_comm.MaxAll(proxy.Get(r_gp));
+    }
+
+    return is_inside;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template <class TObjectType>
 std::vector<Vector> SpatialSearchResultContainer<TObjectType>::GetResultShapeFunctions(const array_1d<double, 3>& rPoint)
 {
     // Check if the communicator has been created

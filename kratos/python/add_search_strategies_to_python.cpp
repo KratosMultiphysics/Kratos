@@ -123,6 +123,7 @@ void BindSpatialSearchResultContainer(pybind11::module& m, const std::string& rC
     .def("Clear", &ContainerType::Clear)
     .def("SynchronizeAll", &ContainerType::SynchronizeAll)
     .def("GetDistances", &ContainerType::GetDistances)
+    .def("GetResultIsInside", &ContainerType::GetResultIsInside)
     .def("GetResultShapeFunctions", &ContainerType::GetResultShapeFunctions)
     .def("GetResultIndices", &ContainerType::GetResultIndices)
     .def("GetResultCoordinates", &ContainerType::GetResultCoordinates)

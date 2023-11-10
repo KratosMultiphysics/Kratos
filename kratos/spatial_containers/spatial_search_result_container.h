@@ -14,6 +14,7 @@
 
 // System includes
 #include <vector>
+#include <limits>
 
 // External includes
 
@@ -455,6 +456,17 @@ public:
      * @return A vector containing all the distances
      */
     std::vector<double> GetDistances();
+
+    /**
+     * @brief Retrieves if inside the geometry
+     * @param rPoint The point coordinates
+     * @param Tolerance The tolerance considered
+     * @return A vector containing all the booleans showing is inside the geometry
+     */
+    std::vector<bool> GetResultIsInside(
+        const array_1d<double, 3>& rPoint,
+        const double Tolerance = std::numeric_limits<double>::epsilon()
+        );
 
     /**
      * @brief Considers the global pointer communicator to get the shape functions of the resulting object
