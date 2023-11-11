@@ -236,10 +236,10 @@ std::vector<bool> SpatialSearchResultContainer<TObjectType>::GetResultIsInside(
             Point::CoordinatesArrayType aux_coords;
             return r_geometry.IsInside(rPoint, aux_coords, Tolerance);
         } else if constexpr (std::is_same<TObjectType, Node>::value) {
-            KRATOS_ERROR << "Nodes do not provide is inside. Not possible to compute is inside for point: " << rPoint[0]<< "\t" << rPoint[1] << "\t" << rPoint[2] << std::endl;
+            KRATOS_ERROR << "Nodes do not provide is inside. Not possible to compute is inside for point: " << rPoint[0]<< "\t" << rPoint[1] << "\t" << rPoint[2] << " with tolerance " << Tolerance << std::endl;
             return false;
         } else {
-            KRATOS_ERROR << "Not implemented yet. Not possible to compute is inside for point: " << rPoint[0]<< "\t" << rPoint[1] << "\t" << rPoint[2] << std::endl;
+            KRATOS_ERROR << "Not implemented yet. Not possible to compute is inside for point: " << rPoint[0]<< "\t" << rPoint[1] << "\t" << rPoint[2] << " with tolerance " << Tolerance << std::endl;
             return false;
         }
     });
