@@ -1,4 +1,5 @@
 from typing import Optional, Type, Union
+import csv
 
 import KratosMultiphysics as Kratos
 import KratosMultiphysics.OptimizationApplication as KratosOA
@@ -12,7 +13,6 @@ from KratosMultiphysics.OptimizationApplication.execution_policies.execution_pol
 from KratosMultiphysics.OptimizationApplication.utilities.optimization_problem import OptimizationProblem
 from KratosMultiphysics.DigitalTwinApplication.utilities.sensor_specification_utils import AddSensorSpecificationVariableData
 from KratosMultiphysics.DigitalTwinApplication.sensor_specification_solvers.sensor_specification_static_analysis import SensorSpecificationStaticAnalysis
-import pandas
 
 def Factory(model: Kratos.Model, parameters: Kratos.Parameters, optimization_problem: OptimizationProblem) -> ResponseFunction:
     if not parameters.Has("name"):
@@ -32,22 +32,14 @@ class DamageDetectionResponse(ResponseFunction):
             ],
             "adjoint_parameters": {},
             "test_analysis_list": [
-                    {
-                        "primal_analysis_name": "Structure_static",
-                        "sensor_measurement_data_file": "measurement_data.csv",
-                        "sensor_computed_data_file": "computed_data.csv",
-                        "weight": 1.0
-                    }
-                ],
-            "list_of_specifications": [
                 {
-                    "name": "disp_x",
-                    "id": 1,
-                    "location":[0.0, 0.0, 0.0],
-                    "variable_data": {}
+                    "primal_analysis_name": "Structure_static",
+                    "sensor_measurement_data_file": "measurement_data.csv",
+                    "sensor_computed_data_file": "computed_data.csv",
+                    "weight": 1.0
                 }
             ]
-            }""")
+        }""")
         parameters.ValidateAndAssignDefaults(default_settings)
 
         self.model = model
@@ -69,13 +61,17 @@ class DamageDetectionResponse(ResponseFunction):
         self.model_part_operation = ModelPartOperation(self.model, ModelPartOperation.OperationType.UNION, f"response_{self.GetName()}", evaluated_model_part_names, False)
         self.model_part: Optional[Kratos.ModelPart] = None
 
+        self.analysis_model_part_operation = ModelPartOperation(self.model, ModelPartOperation.OperationType.UNION, f"response_test_analysis_{self.GetName()}", [exec.GetAnalysisModelPart().FullName() for exec, _, _, _ in self.list_of_test_analysis_data], False)
+        self.analysis_model_part: Optional[Kratos.ModelPart] = None
+
         self.adjoint_analysis = SensorSpecificationStaticAnalysis(self.model, parameters["adjoint_parameters"])
 
     def GetImplementedPhysicalKratosVariables(self) -> 'list[SupportedSensitivityFieldVariableTypes]':
-        return [KratosOA.SHAPE, Kratos.DENSITY, Kratos.THICKNESS, KratosOA.CROSS_AREA]
+        return [Kratos.YOUNG_MODULUS]
 
     def Initialize(self) -> None:
         self.model_part = self.model_part_operation.GetModelPart()
+        self.analysis_model_part = self.analysis_model_part_operation.GetModelPart()
 
         self.adjoint_analysis.Initialize()
         self.list_of_specifications = self.adjoint_analysis.GetListOfSpecifications()
@@ -91,44 +87,72 @@ class DamageDetectionResponse(ResponseFunction):
             raise RuntimeError("Please call DamageDetectionResponse::Initialize first.")
         return self.model_part
 
-    def GetAnalysisModelPart(self) -> None:
-        return None
+    def GetAnalysisModelPart(self) -> Kratos.ModelPart:
+        if self.analysis_model_part is None:
+            raise RuntimeError("Please call DamageDetectionResponse::Initialize first.")
+        return self.analysis_model_part
 
     def CalculateValue(self) -> float:
+        for exec_policy, _, _, _ in self.list_of_test_analysis_data:
+            exec_policy.Execute()
+
+        raise RuntimeError(1)
+
         result = 0.0
-        for _, sensor_measurement_data_file_name, sensor_computed_data_file, test_case_weight in self.list_of_test_analysis_data:
-            data = pandas.read_csv(sensor_measurement_data_file_name, delimiter=";")
-            measured_names = data["name"]
-            measured_ids = data["#"]
-            measured_values = data["value"].to_numpy()
+        for _, sensor_measurement_data_file_name, sensor_computed_data_file_name, test_case_weight in self.list_of_test_analysis_data:
+            csv_measurement_file = open(sensor_measurement_data_file_name, "r")
+            csv_computed_file = open(sensor_computed_data_file_name, "r")
 
-            data = pandas.read_csv(sensor_computed_data_file, delimiter=";")
-            computed_values = data["value"]
+            csv_measurement_stream = csv.reader(csv_measurement_file, delimiter=";")
+            csv_computed_stream = csv.reader(csv_computed_file, delimiter=";")
 
-            for sensor_name, sensor_id, measured_value, computed_value in zip(measured_names, measured_ids, measured_values, computed_values):
-                sensor_weight = self.__GetSensorWeight(self.__GetSpecification(sensor_name, sensor_id))
-                result += ((measured_value - computed_value) ** 2) / (2.0 * sensor_weight * test_case_weight)
+            measured_type_index, measured_id_index, measured_value_index = self.__GetHeaderIndices(csv_measurement_stream)
+            computed_type_index, computed_id_index, computed_value_index = self.__GetHeaderIndices(csv_computed_stream)
+
+            for measured_row, computed_row in zip(csv_computed_stream, csv_computed_stream):
+                measured_sensor_type = measured_row[measured_type_index].strip()
+                computed_sensor_type = computed_row[computed_type_index].strip()
+                if measured_sensor_type != computed_sensor_type:
+                    raise RuntimeError(f"Mismatching sensor types found [ measured_sensor_type = {measured_sensor_type}, computed_sensor_type = {computed_sensor_type}]")
+
+                measured_id = measured_row[measured_id_index].strip()
+                computed_id = computed_row[computed_id_index].strip()
+                if measured_id != computed_id:
+                    raise RuntimeError(f"Mismatching sensor ids found [ measured_id = {measured_id}, computed_id = {computed_id}]")
+
+                spec = self.__GetSpecification(measured_sensor_type, measured_id)
+                measured_value = float(measured_row[measured_value_index])
+                computed_value = float(computed_row[computed_value_index])
+                result += spec.GetValue(KratosDT.SENSOR_WEIGHT) * test_case_weight * ((measured_value - computed_value) ** 2) / 2.0
+
+            csv_computed_file.close()
+            csv_measurement_file.close()
+
         return result
 
     def CalculateGradient(self, physical_variable_collective_expressions: 'dict[SupportedSensitivityFieldVariableTypes, KratosOA.CollectiveExpression]') -> None:
         self.adjoint_analysis.Run()
 
+        if len(physical_variable_collective_expressions.keys()) > 1:
+            raise RuntimeError(f"Currently {self.__class__.__name__} only supports computing gradient w.r.t. one variable only.")
+
         # first merge all the model parts
         merged_model_part_map = ModelPartUtilities.GetMergedMap(physical_variable_collective_expressions, False)
 
-        for _, sensor_measurement_data_file_name, sensor_computed_data_file, test_case_weight in self.list_of_test_analysis_data:
-            data = pandas.read_csv(sensor_measurement_data_file_name, delimiter=";")
-            measured_names = data["name"]
-            measured_ids = data["#"]
-            measured_values = data["value"].to_numpy()
+        for _, sensor_measurement_data_file_name, sensor_computed_data_file_name, test_case_weight in self.list_of_test_analysis_data:
+            csv_measurement_file = open(sensor_measurement_data_file_name, "r")
+            csv_computed_file = open(sensor_computed_data_file_name, "r")
 
-            data = pandas.read_csv(sensor_computed_data_file, delimiter=";")
-            computed_values = data["value"]
+            csv_measurement_stream = csv.reader(csv_measurement_file, delimiter=";")
+            csv_computed_stream = csv.reader(csv_computed_file, delimiter=";")
+
+            measured_type_index, measured_id_index, measured_value_index = self.__GetHeaderIndices(csv_measurement_stream)
+            computed_type_index, computed_id_index, computed_value_index = self.__GetHeaderIndices(csv_computed_stream)
 
             for physical_variable, merged_model_part in merged_model_part_map.items():
                 list_of_container_expression = physical_variable_collective_expressions[physical_variable].GetContainerExpressions()
                 if len(list_of_container_expression) > 0:
-                    raise RuntimeError(f"Currently it only supports one model part.")
+                    raise RuntimeError(f"Currently {self.__class__.__name__} only supports one model part.")
 
                 cexp_gradient = list_of_container_expression[0]
                 Kratos.Expression.LiteralExpressionIO.SetDataToZero(cexp_gradient, physical_variable)
@@ -142,27 +166,48 @@ class DamageDetectionResponse(ResponseFunction):
                 else:
                     raise RuntimeError("Unsupported type.")
 
-                for sensor_name, sensor_id, measured_value, computed_value in zip(measured_names, measured_ids, measured_values, computed_values):
-                    specification = self.__GetSpecification(sensor_name, sensor_id)
-                    specicaition_view = specifcation_view_type(specification, physical_variable.Name() + "_SENSITIVITY")
+                for measured_row, computed_row in zip(csv_computed_stream, csv_computed_stream):
+                    measured_sensor_type = measured_row[measured_type_index].strip()
+                    computed_sensor_type = computed_row[computed_type_index].strip()
+                    if measured_sensor_type != computed_sensor_type:
+                        raise RuntimeError(f"Mismatching sensor types found [ measured_sensor_type = {measured_sensor_type}, computed_sensor_type = {computed_sensor_type}]")
 
-                    sensor_weight = self.__GetSensorWeight(specification)
-                    cexp_gradient += specicaition_view.GetContainerExpression() * (measured_value - computed_value) / (sensor_weight * test_case_weight)
+                    measured_id = measured_row[measured_id_index].strip()
+                    computed_id = computed_row[computed_id_index].strip()
+                    if measured_id != computed_id:
+                        raise RuntimeError(f"Mismatching sensor ids found [ measured_id = {measured_id}, computed_id = {computed_id}]")
+
+                    spec = self.__GetSpecification(measured_sensor_type, measured_id)
+                    measured_value = float(measured_row[measured_value_index])
+                    computed_value = float(computed_row[computed_value_index])
+                    specicaition_view = specifcation_view_type(spec, physical_variable.Name() + "_SENSITIVITY")
+
+                    cexp_gradient += specicaition_view.GetContainerExpression() * (measured_value - computed_value) * test_case_weight * spec.GetValue(KratosDT.SENSOR_WEIGHT)
 
                 cexp_gradient.SetExpression(cexp_gradient.Flatten().GetExpression())
 
-    def __GetSpecification(self, sensor_name: str, sensor_id: int) -> KratosDT.Sensors.SensorSpecification:
+            csv_computed_file.close()
+            csv_measurement_file.close()
+
+    def __GetSpecification(self, sensor_type: str, sensor_id: int) -> KratosDT.Sensors.SensorSpecification:
         found_specfication = False
         for specification in self.list_of_specifications:
-            if specification.GetType() == sensor_name and specification.Id == sensor_id:
+            if specification.GetType() == sensor_type and specification.Id == sensor_id:
                 found_specfication = True
                 break
         if not found_specfication:
-            raise RuntimeError(f"The sensor specification for {sensor_name} with {sensor_id} not found.")
+            raise RuntimeError(f"The sensor specification for {sensor_type} with {sensor_id} not found.")
         return specification
 
     def __GetSensorWeight(self, specification: KratosDT.Sensors.SensorSpecification) -> float:
         return specification.GetValue(KratosDT.SENSOR_WEIGHT)
+
+    def __GetHeaderIndices(self, csv_stream: csv.reader) -> 'tuple[int, int, int]':
+        headers = [s.strip() for s in next(csv_stream)]
+        type_index = headers.index("type")
+        id_index = headers.index("#")
+        value_index = headers.index("value")
+        return type_index, id_index, value_index
 
     def __str__(self) -> str:
         return f"Response [type = {self.__class__.__name__}, name = {self.GetName()}, model part name = {self.model_part.FullName()}]"

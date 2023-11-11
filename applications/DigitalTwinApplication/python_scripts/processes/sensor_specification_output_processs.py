@@ -15,7 +15,6 @@ def Factory(settings: Kratos.Parameters, model: Kratos.Model):
         )
     return SensorSpecificationOutputProcess(model, settings["Parameters"])
 
-
 class SensorSpecificationOutputProcess(Kratos.OutputProcess):
     def __init__(self, model: Kratos.Model, settings: Kratos.Parameters):
         Kratos.OutputProcess.__init__(self)

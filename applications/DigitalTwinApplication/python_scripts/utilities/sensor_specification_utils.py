@@ -12,10 +12,10 @@ def GetSpecifications(model_part: Kratos.ModelPart, list_of_parameters: 'list[Kr
     shape_funcs = Kratos.Vector()
     for parameters in list_of_parameters:
         sensor_id = parameters["id"].GetInt()
-        sensor_name = parameters["name"].GetString()
+        sensor_type = parameters["type"].GetString()
         location = Kratos.Point(parameters["location"].GetVector())
 
-        spec = KratosDT.Sensors.SensorSpecification(sensor_name, sensor_id)
+        spec = KratosDT.Sensors.SensorSpecification(sensor_type, sensor_id)
         spec.SetLocation(location)
         spec.SetValue(KratosDT.SENSOR_ELEMENT_ID, point_locator.FindElement(location, shape_funcs, Kratos.Configuration.Initial, 1e-8))
 
