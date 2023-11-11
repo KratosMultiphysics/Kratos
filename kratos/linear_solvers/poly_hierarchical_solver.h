@@ -26,12 +26,12 @@ namespace Kratos {
 template<class TSparseSpace,
          class TDenseSpace,
          class TReorderer = Reorderer<TSparseSpace, TDenseSpace> >
-class AMGCLHierarchicalSolver final : public LinearSolver<TSparseSpace,
+class PolyHierarchicalSolver final : public LinearSolver<TSparseSpace,
                                                        TDenseSpace,
                                                        TReorderer>
 {
 public:
-    KRATOS_CLASS_POINTER_DEFINITION(AMGCLHierarchicalSolver);
+    KRATOS_CLASS_POINTER_DEFINITION(PolyHierarchicalSolver);
 
     using Base =  LinearSolver<TSparseSpace, TDenseSpace, TReorderer>;
 
@@ -41,11 +41,11 @@ public:
 
     using DenseMatrix = typename TDenseSpace::MatrixType;
 
-    AMGCLHierarchicalSolver(Parameters rParameters);
+    PolyHierarchicalSolver(Parameters rParameters);
 
-    AMGCLHierarchicalSolver(AMGCLHierarchicalSolver&&) noexcept = default;
+    PolyHierarchicalSolver(PolyHierarchicalSolver&&) noexcept = default;
 
-    ~AMGCLHierarchicalSolver() override;
+    ~PolyHierarchicalSolver() override;
 
     /// @copydoc LinearSolver::Solve
     bool Solve(SparseMatrix& rA, Vector& rX, Vector& rB) override;
@@ -92,18 +92,15 @@ public:
     static Parameters GetDefaultParameters();
 
 private:
-    template <unsigned BlockSize>
-    std::tuple<size_t, double> SolveImpl(SparseMatrix& rA, Vector& rX, Vector& rB) const;
-
-    AMGCLHierarchicalSolver(const AMGCLHierarchicalSolver& Other) = delete;
+    PolyHierarchicalSolver(const PolyHierarchicalSolver& Other) = delete;
 
     struct Impl;
     std::unique_ptr<Impl> mpImpl;
-}; // class AMGCLHierarchicalSolver
+}; // class PolyHierarchicalSolver
 
 
 template<class TSparseSpace, class TDenseSpace,class TReorderer>
-inline std::istream& operator >> (std::istream& rIStream, AMGCLHierarchicalSolver< TSparseSpace,
+inline std::istream& operator >> (std::istream& rIStream, PolyHierarchicalSolver< TSparseSpace,
                                   TDenseSpace, TReorderer>& rThis)
 {
     return rIStream;
@@ -114,7 +111,7 @@ inline std::istream& operator >> (std::istream& rIStream, AMGCLHierarchicalSolve
  */
 template<class TSparseSpace, class TDenseSpace, class TReorderer>
 inline std::ostream& operator << (std::ostream& rOStream,
-                                  const AMGCLHierarchicalSolver<TSparseSpace,
+                                  const PolyHierarchicalSolver<TSparseSpace,
                                   TDenseSpace, TReorderer>& rThis)
 {
     rThis.PrintInfo(rOStream);

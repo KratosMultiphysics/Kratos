@@ -30,6 +30,8 @@
 #include "linear_solvers/direct_solver.h"
 #include "linear_solvers/skyline_lu_factorization_solver.h"
 #include "linear_solvers/skyline_lu_custom_scalar_solver.h"
+#include "linear_solvers/poly_hierarchical_solver.h"
+#include "linear_solvers/gauss_seidel_relaxation.h"
 #include "linear_solvers/scaling_solver.h"
 
 #include "linear_solvers/preconditioner.h"
@@ -70,6 +72,8 @@ void  AddLinearSolversToPython(pybind11::module& m)
     typedef PowerIterationEigenvalueSolver<SpaceType, LocalSpaceType, LinearSolverType> PowerIterationEigenvalueSolverType;
     typedef PowerIterationHighestEigenvalueSolver<SpaceType, LocalSpaceType, LinearSolverType> PowerIterationHighestEigenvalueSolverType;
     typedef RayleighQuotientIterationEigenvalueSolver<SpaceType, LocalSpaceType, LinearSolverType> RayleighQuotientIterationEigenvalueSolverType;
+    typedef PolyHierarchicalSolver<SpaceType,LocalSpaceType> PolyHierarchicalSolverType;
+    typedef GaussSeidelRelaxation<SpaceType,LocalSpaceType> GaussSeidelSolverType;
 
     typedef TLinearSolverType<std::complex<double>, std::complex<double>> ComplexLinearSolverType;
     typedef TLinearSolverType<double, std::complex<double>> MixedLinearSolverType;
@@ -190,6 +194,14 @@ void  AddLinearSolversToPython(pybind11::module& m)
     .def(py::init<double, unsigned int, unsigned int, LinearSolverType::Pointer, double>())
     .def(py::init<Parameters, LinearSolverType::Pointer>())
     ;
+
+    py::class_<PolyHierarchicalSolverType, PolyHierarchicalSolverType::Pointer, LinearSolverType>(m, "PolyHierarchicalSolver")
+        .def(py::init<Parameters>())
+        ;
+
+    py::class_<GaussSeidelSolverType, GaussSeidelSolverType::Pointer, LinearSolverType>(m, "GaussSeidelRelaxation")
+        .def(py::init<Parameters>())
+        ;
 
     typedef Reorderer<SpaceType,  LocalSpaceType > ReordererType;
     typedef DirectSolver<SpaceType,  LocalSpaceType, ReordererType > DirectSolverType;
