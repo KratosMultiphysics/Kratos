@@ -22,40 +22,6 @@
 
 namespace Kratos {
 
-
-void Parameters2PTree(Parameters input,
-                      boost::property_tree::ptree& r_output)
-{
-    for (auto it=input.begin(); it!=input.end(); ++it) {
-        const auto key = it.name();
-        const auto value = *it;
-
-        if (value.Is<bool>()) {
-            r_output.add(key, value.Get<bool>());
-        } else if (value.Is<int>()) {
-            r_output.add(key, value.Get<int>());
-        } else if (value.Is<double>()) {
-            r_output.add(key, value.Get<double>());
-        } else if (value.Is<std::string>()) {
-            r_output.add(key, value.Get<std::string>());
-        } else if (value.Is<Parameters>()) {
-            r_output.add_child(key, {});
-            Parameters2PTree(value, r_output.get_child(key));
-        } else {
-            KRATOS_ERROR << "Unsupported parameter type for '" << key << "'\n";
-        }
-    }
-}
-
-
-boost::property_tree::ptree Parameters2PTree(Parameters parameters)
-{
-    boost::property_tree::ptree output;
-    Parameters2PTree(parameters, output);
-    return output;
-}
-
-
 #ifdef AMGCL_GPGPU
 vex::Context& vexcl_context() {
     static vex::Context ctx(vex::Filter::Env);
@@ -227,12 +193,11 @@ void AMGCLSolve(
     TUblasSparseSpace<double>::VectorType& rB,
     TUblasSparseSpace<double>::IndexType& rIterationNumber,
     double& rResidual,
-    Parameters params,
+    boost::property_tree::ptree amgclParams,
     int verbosity_level,
     bool use_gpgpu
     )
 {
-    auto amgclParams = Parameters2PTree(params);
     if (use_gpgpu) {
         // ILU0 in a GPU backend has approximate iterative implementation.
         // Increase the default number of iterations to make ILU0 more robust.
@@ -243,7 +208,6 @@ void AMGCLSolve(
             amgclParams.put("precond.relax.solve.iters", ilu0_iters);
     }
 
-    KRATOS_TRY
     switch (block_size) {
         case 2:
             AMGCLBlockSolve<2>(rA, rX, rB, rIterationNumber, rResidual, amgclParams, verbosity_level, use_gpgpu);
@@ -258,7 +222,6 @@ void AMGCLSolve(
             AMGCLScalarSolve(rA, rX, rB, rIterationNumber, rResidual, amgclParams, verbosity_level, use_gpgpu);
             return;
     }
-    KRATOS_CATCH("")
 }
 
 }

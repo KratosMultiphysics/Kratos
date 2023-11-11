@@ -7,7 +7,7 @@
 //  License:         BSD License
 //                   Kratos default license: kratos/license.txt
 //
-//  Main authors:    Denis Demidov
+//  Main authors:    Denis Demidov 
 //                   Riccardo Rossi
 //
 
@@ -38,8 +38,6 @@
 // Project includes
 #include "trilinos_space.h"
 #include "custom_utilities/trilinos_solver_utilities.h"
-#include "amgcl_mpi_solver.h"
-#include "linear_solvers/amgcl_solver.h"
 
 namespace Kratos
 {
@@ -58,7 +56,7 @@ void AMGCLScalarSolve(
     TrilinosSpace<Epetra_FECrsMatrix, Epetra_FEVector>::VectorType& rB,
     TrilinosSpace<Epetra_FECrsMatrix, Epetra_FEVector>::IndexType& rIterationNumber,
     double& rResidual,
-    const boost::property_tree::ptree& amgclParams,
+    const boost::property_tree::ptree &amgclParams,
     int verbosity_level,
     bool use_gpgpu
     )
@@ -207,12 +205,11 @@ void AMGCLSolve(
     TrilinosSpace<Epetra_FECrsMatrix, Epetra_FEVector>::VectorType& rB,
     TrilinosSpace<Epetra_FECrsMatrix, Epetra_FEVector>::IndexType& rIterationNumber,
     double& rResidual,
-    Parameters params,
+    boost::property_tree::ptree amgclParams,
     int verbosity_level,
     bool use_gpgpu
     )
 {
-    auto amgclParams = Parameters2PTree(params);
     switch (block_size) {
         case 2:
             AMGCLBlockSolve<2>(rA, rX, rB, rIterationNumber, rResidual, amgclParams, verbosity_level, use_gpgpu);
