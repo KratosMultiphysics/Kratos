@@ -34,6 +34,7 @@ class BLOCKMVQNConvergenceAccelerator(CoSimulationConvergenceAccelerator):
 
         horizon = self.settings["horizon"].GetInt()
         self.alpha = self.settings["alpha"].GetDouble()
+        self.epsilon = self.settings["epsilon"].GetDouble()
 
         self.X_tilde = {}
         self.X = {}
@@ -95,7 +96,7 @@ class BLOCKMVQNConvergenceAccelerator(CoSimulationConvergenceAccelerator):
             V[i] = self.X_tilde[data_name][i] - self.X_tilde[data_name][i + 1]
         V = V.T
 
-        self.J_hat[data_name] = self.J[data_name] + (V - self.J[data_name] @ W) @ (np.linalg.pinv(W))
+        self.J_hat[data_name] = self.J[data_name] + (V - self.J[data_name] @ W) @ (np.linalg.pinv(W, rcond=self.epsilon))
 
         blockJacobian = (np.eye(row) - self.J_hat[data_name] @ self.J_hat[coupled_data_name])
         b = r - self.J_hat[data_name] @ yResidual
@@ -120,6 +121,7 @@ class BLOCKMVQNConvergenceAccelerator(CoSimulationConvergenceAccelerator):
         this_defaults = KM.Parameters("""{
             "horizon" : 15,
             "alpha"   : 1.0,
+            "epsilon" : 1e-7,
             "solver_sequence" : []
         }""")
         this_defaults.AddMissingParameters(super()._GetDefaultParameters())
