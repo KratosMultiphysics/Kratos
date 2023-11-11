@@ -134,7 +134,7 @@ namespace Kratos {
         inelastic_damping_normal_energy += 0.50 * sqrt(ViscoDampingLocalContactForce[2] * ViscoDampingLocalContactForce[2] * LocalDeltDisp[2] * LocalDeltDisp[2]);
 
         double& inelastic_damping_tangent_energy = element1->GetInelasticDampingTangentEnergy();
-        inelastic_damping_tangent_energy += 0.50 * sqrt(ViscoDampingLocalContactForce[0] * ViscoDampingLocalContactForce[0] * LocalDeltDisp[0] * LocalDeltDisp[0]) + 0.5 * sqrt(ViscoDampingLocalContactForce[1] * ViscoDampingLocalContactForce[1] * LocalDeltDisp[1] * LocalDeltDisp[1]);
+        inelastic_damping_tangent_energy += 0.50 * sqrt(ViscoDampingLocalContactForce[0] * ViscoDampingLocalContactForce[0] * LocalDeltDisp[0] * LocalDeltDisp[0]) + 0.50 * sqrt(ViscoDampingLocalContactForce[1] * ViscoDampingLocalContactForce[1] * LocalDeltDisp[1] * LocalDeltDisp[1]);
     }
 
 
@@ -234,7 +234,7 @@ namespace Kratos {
         inelastic_damping_normal_energy += sqrt(ViscoDampingLocalContactForce[2] * ViscoDampingLocalContactForce[2] * LocalDeltDisp[2] * LocalDeltDisp[2]);
 
         double& inelastic_damping_tangent_energy = element->GetInelasticDampingTangentEnergy();
-        inelastic_damping_tangent_energy += sqrt(ViscoDampingLocalContactForce[0] * ViscoDampingLocalContactForce[0] * LocalDeltDisp[0] * LocalDeltDisp[0] + ViscoDampingLocalContactForce[1] * ViscoDampingLocalContactForce[1] * LocalDeltDisp[1] * LocalDeltDisp[1]);
+        inelastic_damping_tangent_energy += sqrt(ViscoDampingLocalContactForce[0] * ViscoDampingLocalContactForce[0] * LocalDeltDisp[0] * LocalDeltDisp[0]) + sqrt(ViscoDampingLocalContactForce[1] * ViscoDampingLocalContactForce[1] * LocalDeltDisp[1] * LocalDeltDisp[1]);
     }
 
     template<class NeighbourClassType>
