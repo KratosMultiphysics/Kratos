@@ -18,8 +18,12 @@
             << "Unknown parameter " << NAME << std::endl
 #endif
 
+// Project includes
+#include "amgcl_hierarchical_solver.h"
+#include "spaces/ublas_space.h"
+#include "utilities/profiler.h"
+
 // External includes
-#include "amgcl/adapter/crs_tuple.hpp"
 #include "amgcl/adapter/ublas.hpp"
 #include "amgcl/adapter/zero_copy.hpp"
 #include "amgcl/backend/builtin.hpp"
@@ -27,19 +31,11 @@
 #include "amgcl/make_solver.hpp"
 #include "amgcl/make_block_solver.hpp"
 #include "amgcl/solver/runtime.hpp"
-#include "amgcl/preconditioner/schur_pressure_correction.hpp"
 #include "amgcl/preconditioner/runtime.hpp"
-#include "amgcl/io/mm.hpp"
 #include "boost/property_tree/ptree.hpp"
 #include "boost/property_tree/json_parser.hpp"
 
-// Project includes
-#include "amgcl_hierarchical_solver.h"
-#include "spaces/ublas_space.h"
-#include "utilities/profiler.h"
-
 // STL includes
-#include <amgcl/util.hpp>
 #include <type_traits> // remove_reference_t, remove_cv_t
 #include <sstream> // stringstream
 #include <optional> // optional
@@ -50,53 +46,6 @@ namespace Kratos {
 
 
 namespace detail {
-
-
-template <unsigned BlockSize>
-struct CompositePreconditionedSolver
-{
-private:
-    static_assert(0 < BlockSize, "Invalid block size");
-
-    using ScalarBackend = amgcl::backend::builtin<double>;
-    using ScalarSolver = amgcl::make_solver<
-        amgcl::runtime::preconditioner<ScalarBackend>,
-        amgcl::runtime::solver::wrapper<ScalarBackend>
-    >;
-
-    using Block = amgcl::static_matrix<double,BlockSize,BlockSize>;
-    using BlockBackend = amgcl::backend::builtin<Block>;
-    using BlockSolver = amgcl::make_block_solver<
-        amgcl::runtime::preconditioner<BlockBackend>,
-        amgcl::runtime::solver::wrapper<BlockBackend>
-    >;
-
-public:
-    using Type = amgcl::make_solver<
-        amgcl::preconditioner::schur_pressure_correction<BlockSolver,ScalarSolver>,
-        amgcl::runtime::solver::wrapper<ScalarBackend>
-    >;
-}; // struct CompositePreconditionedSolver
-
-
-
-template <>
-struct CompositePreconditionedSolver<1>
-{
-private:
-    using Backend = amgcl::backend::builtin<double>;
-    using Solver = amgcl::make_solver<
-        amgcl::runtime::preconditioner<Backend>,
-        amgcl::runtime::solver::wrapper<Backend>
-    >;
-
-public:
-    using Type = amgcl::make_solver<
-        amgcl::preconditioner::schur_pressure_correction<Solver,Solver>,
-        amgcl::runtime::solver::wrapper<Backend>
-    >;
-};
-
 
 
 class ParametersWithDefaults
@@ -265,11 +214,6 @@ void MakeSubblocks(const TUblasSparseSpace<double>::MatrixType& rRootMatrix,
 
 
 } // namespace detail
-
-
-
-template <unsigned BlockSize>
-using MakeCompositePreconditionedSolver = typename detail::CompositePreconditionedSolver<BlockSize>::Type;
 
 
 
@@ -670,9 +614,8 @@ AMGCLHierarchicalSolver<TSparseSpace,TDenseSpace,TReorderer>::SolveImpl(SparseMa
               rX.end(),
               0.0);
     Vector residual = rB;
-    double rhs_norm = norm_2(rB);
-    rhs_norm = rhs_norm == 0.0 ? 1.0 : rhs_norm;
-    std::cout << "initial residual is " << norm_2(residual) / rhs_norm << "\n";
+    const double rhs_norm = norm_2(rB);
+    KRATOS_ERROR_IF_NOT(rhs_norm);
 
     std::array<Vector,2> x, r, d; // <== {x_l, x_h}, {r_l, r_h}, {d_l, d_h}
     x[0].resize(  masked_count);
@@ -683,9 +626,10 @@ AMGCLHierarchicalSolver<TSparseSpace,TDenseSpace,TReorderer>::SolveImpl(SparseMa
     d[1].resize(unmasked_count);
 
     Vector delta(full_size, 0.0);
-    Vector d_l(masked_count, 0.0);
+    Vector lower_residual(masked_count, 0.0);
+    Vector lower_delta(masked_count, 0.0);
 
-    std::tuple<std::size_t,double> return_pair {0ul, std::numeric_limits<double>::max()};
+    std::tuple<std::size_t,double> return_pair {0ul, 1.0};
     const std::size_t max_iterations = mpImpl->mMaxIterations;
     for (std::size_t i_iteration=0ul; i_iteration<max_iterations; ++i_iteration) {
         // Perform a few relaxation passes on the full system
@@ -695,26 +639,26 @@ AMGCLHierarchicalSolver<TSparseSpace,TDenseSpace,TReorderer>::SolveImpl(SparseMa
         coarsen(delta, d);
 
         // Compute restricted residual
-        d_l = r[0] - prod(A_ll, d[0]) - prod(A_lh, d[1]);
+        coarsen(residual, r);
+        lower_residual = r[0] - prod(A_ll, d[0]) - prod(A_lh, d[1]);
 
         // Solve lower
         KRATOS_TRY
-        lower_solver(*p_a_ll, d_l, r[0]);
+        lower_solver(*p_a_ll, lower_residual, lower_delta);
         KRATOS_CATCH("")
-        d[0] += r[0];
+        d[0] += lower_delta;
 
         // Update solution
         aggregate(d, rX);
 
         // Compute the residual
         noalias(residual) = rB - prod(rA, rX);
-        coarsen(residual, r);
 
         std::get<0>(return_pair)++;
         std::get<1>(return_pair) = norm_2(residual) / rhs_norm;
-        std::cout << "full iteration "
-                  << std::get<0>(return_pair)
-                  << " at residual " << std::get<1>(return_pair) << "\n";
+        KRATOS_INFO_IF("AMGCLHierarchicalSolver", 1 <= mpImpl->mVerbosity)
+            << "iteration " << std::get<0>(return_pair)
+            << " residual " << std::get<1>(return_pair) << "\n";
     }
     return return_pair;
     KRATOS_CATCH("")
