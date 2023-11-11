@@ -7,7 +7,6 @@ from KratosMultiphysics.CoSimulationApplication.coupled_solvers.gauss_seidel_str
 
 # CoSimulation imports
 import KratosMultiphysics.CoSimulationApplication.co_simulation_tools as cs_tools
-import KratosMultiphysics.CoSimulationApplication.factories.helpers as factories_helper
 import KratosMultiphysics.CoSimulationApplication.colors as colors
 
 def Create(settings, models, solver_name):
