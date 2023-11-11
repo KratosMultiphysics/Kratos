@@ -255,7 +255,7 @@ AMGCLHierarchicalSolver<TSparseSpace,TDenseSpace,TReorderer>::AMGCLHierarchicalS
         << " but constructing an AMGCLHierarchicalSolver";
 
     detail::ParametersWithDefaults safe_parameters(parameters, default_parameters);
-    mpImpl->mTolerance = safe_parameters["amgcl_settings"]["coarse"]["solver"]["tol"].Get<double>();
+    mpImpl->mTolerance = safe_parameters["tolerance"].Get<double>();
     mpImpl->mVerbosity = safe_parameters["verbosity"].Get<int>();
     mpImpl->mMaxIterations = safe_parameters["max_iterations"].Get<int>();
     mpImpl->mDoFCount = 0ul;
@@ -459,6 +459,7 @@ AMGCLHierarchicalSolver<TSparseSpace,TDenseSpace,TReorderer>::GetDefaultParamete
     "solver_type" : "amgcl_hierarchical",
     "verbosity" : 1,
     "max_iterations" : 50,
+    "tolerance" : 1e-6,
     "amgcl_settings" : {
         "coarse" : {
             "precond" : {
@@ -591,35 +592,30 @@ AMGCLHierarchicalSolver<TSparseSpace,TDenseSpace,TReorderer>::SolveImpl(SparseMa
 
     const auto coarsen = [&block_local_indices, &r_mask](const Vector& rRoot,
                                                          std::array<Vector,2>& rSubs) {
-        for (std::size_t i_root=0ul; i_root<rRoot.size(); ++i_root) {
+        //for (std::size_t i_root=0ul; i_root<rRoot.size(); ++i_root) {
+        IndexPartition<std::size_t>(rRoot.size()).for_each([&](std::size_t i_root){
             const char mask_value = r_mask[i_root];
             const std::size_t i_block = !mask_value;
             const std::size_t i_sub = block_local_indices[i_root];
             rSubs[i_block][i_sub] = rRoot[i_root];
-        }
+        });
+        //}
     };
 
     const auto aggregate = [&block_local_indices, &r_mask](const std::array<Vector,2>& rSubs,
                                                            Vector& rRoot) {
-        for (std::size_t i_root=0ul; i_root<rRoot.size(); ++i_root) {
+        //for (std::size_t i_root=0ul; i_root<rRoot.size(); ++i_root) {
+        IndexPartition<std::size_t>(rRoot.size()).for_each([&](std::size_t i_root){
             const char mask_value = r_mask[i_root];
             const std::size_t i_block = !mask_value;
             const std::size_t i_sub = block_local_indices[i_root];
             rRoot[i_root] += rSubs[i_block][i_sub];
-        }
+        });
+        //}
     };
 
     // Solve
-    std::fill(rX.begin(),
-              rX.end(),
-              0.0);
-    Vector residual = rB;
-    const double rhs_norm = norm_2(rB);
-    KRATOS_ERROR_IF_NOT(rhs_norm);
-
-    std::array<Vector,2> x, r, d; // <== {x_l, x_h}, {r_l, r_h}, {d_l, d_h}
-    x[0].resize(  masked_count);
-    x[1].resize(unmasked_count);
+    std::array<Vector,2> r, d; // <== {r_l, r_h}, {d_l, d_h}
     r[0].resize(  masked_count);
     r[1].resize(unmasked_count);
     d[0].resize(  masked_count);
@@ -628,6 +624,14 @@ AMGCLHierarchicalSolver<TSparseSpace,TDenseSpace,TReorderer>::SolveImpl(SparseMa
     Vector delta(full_size, 0.0);
     Vector lower_residual(masked_count, 0.0);
     Vector lower_delta(masked_count, 0.0);
+    Vector residual = rB;
+
+    KRATOS_INFO_IF("AMGCLHierarchicalSolver", 1 <= mpImpl->mVerbosity)
+        << "coarse size: " << masked_count
+        << " fine size: " << unmasked_count << "\n";
+
+    const double rhs_norm = norm_2(rB);
+    KRATOS_ERROR_IF_NOT(rhs_norm);
 
     std::tuple<std::size_t,double> return_pair {0ul, 1.0};
     const std::size_t max_iterations = mpImpl->mMaxIterations;
@@ -640,25 +644,37 @@ AMGCLHierarchicalSolver<TSparseSpace,TDenseSpace,TReorderer>::SolveImpl(SparseMa
 
         // Compute restricted residual
         coarsen(residual, r);
-        lower_residual = r[0] - prod(A_ll, d[0]) - prod(A_lh, d[1]);
+        noalias(lower_residual) = r[0] - prod(A_ll, d[0]) - prod(A_lh, d[1]);
 
         // Solve lower
         KRATOS_TRY
         lower_solver(*p_a_ll, lower_residual, lower_delta);
         KRATOS_CATCH("")
-        d[0] += lower_delta;
+
+        if (2 <= mpImpl->mVerbosity) {
+            const double diff_norm = norm_2(lower_delta) / norm_2(d[0]);
+            KRATOS_INFO("AMGCLHierarchicalSolver")
+                << "norm of lower order correction: " << diff_norm << "\n";
+        }
 
         // Update solution
+        noalias(d[0]) += lower_delta;
         aggregate(d, rX);
 
         // Compute the residual
         noalias(residual) = rB - prod(rA, rX);
 
+        // Update status
         std::get<0>(return_pair)++;
         std::get<1>(return_pair) = norm_2(residual) / rhs_norm;
         KRATOS_INFO_IF("AMGCLHierarchicalSolver", 1 <= mpImpl->mVerbosity)
             << "iteration " << std::get<0>(return_pair)
             << " residual " << std::get<1>(return_pair) << "\n";
+
+        // Early exit if converged
+        if (std::get<1>(return_pair) < mpImpl->mTolerance) {
+            break;
+        }
     }
     return return_pair;
     KRATOS_CATCH("")

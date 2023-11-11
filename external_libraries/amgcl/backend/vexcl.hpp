@@ -208,20 +208,20 @@ struct vexcl {
 
     struct gather {
         size_t n;
-        mutable vex::gather G;
+        mutable vex::gather<real> G;
         mutable std::vector<char> buf;
 
         gather(size_t src_size, const std::vector<ptrdiff_t> &I, const params &prm)
             : n(I.size()), G(prm.context(), src_size, std::vector<size_t>(I.begin(), I.end()))
         { }
 
-        template <class S, class D>
-        void operator()(const vex::vector<S> &src, vex::vector<D> &dst) const {
-            if (buf.size() < sizeof(D) * n) buf.resize(sizeof(D) * n);
-            auto t = reinterpret_cast<D*>(buf.data());
-            G(src, t);
-            vex::copy(t, t + n, dst.begin());
-        }
+        //template <class S, class D>
+        //void operator()(const vex::vector<S> &src, vex::vector<D> &dst) const {
+        //    if (buf.size() < sizeof(D) * n) buf.resize(sizeof(D) * n);
+        //    auto t = reinterpret_cast<D*>(buf.data());
+        //    std::get<vex::gather<S>>(G)(src, t);
+        //    vex::copy(t, t + n, dst.begin());
+        //}
 
         template <class S, class D>
         void operator()(const vex::vector<S> &vec, std::vector<D> &vals) const {
@@ -231,11 +231,11 @@ struct vexcl {
 
     struct scatter {
         size_t n;
-        mutable vex::scatter S;
+        mutable vex::scatter<real> impl;
         mutable std::vector<char> buf;
 
         scatter(size_t size, const std::vector<ptrdiff_t> &I, const params &prm)
-            : n(I.size()), S(prm.context(), size, std::vector<size_t>(I.begin(), I.end()))
+            : n(I.size()), impl(prm.context(), size, std::vector<size_t>(I.begin(), I.end()))
         { }
 
         template <class S, class D>
@@ -243,7 +243,7 @@ struct vexcl {
             if (buf.size() < sizeof(D) * n) buf.resize(sizeof(D) * n);
             auto t = reinterpret_cast<D*>(buf.data());
             vex::copy(src.begin(), src.end(), t);
-            S(t, dst);
+            impl(t, dst);
         }
     };
 
