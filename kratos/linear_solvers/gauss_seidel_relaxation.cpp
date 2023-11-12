@@ -24,6 +24,10 @@ template <class TSparseSpace,
           class TReorderer>
 struct GaussSeidelRelaxation<TSparseSpace,TDenseSpace,TReorderer>::Impl
 {
+    double mRelaxation;
+
+    bool mSymmetric;
+
     double mTolerance;
 
     int mVerbosity;
@@ -47,6 +51,8 @@ GaussSeidelRelaxation<TSparseSpace,TDenseSpace,TReorderer>::GaussSeidelRelaxatio
         << "Requested a(n) '" << parameters["solver_type"].GetString() << "' solver,"
         << " but constructing a GaussSeidelRelaxation";
 
+    mpImpl->mRelaxation = parameters["relaxation"].Get<double>();
+    mpImpl->mSymmetric = parameters["symmetric"].Get<bool>();
     mpImpl->mTolerance = parameters["tolerance"].Get<double>();
     mpImpl->mVerbosity = parameters["verbosity"].Get<int>();
     mpImpl->mMaxIterations = parameters["max_iterations"].Get<int>();
@@ -64,6 +70,19 @@ GaussSeidelRelaxation<TSparseSpace,TDenseSpace,TReorderer>::~GaussSeidelRelaxati
 }
 
 
+namespace {
+template <class TIterator>
+void GaussSeidelSweep(TIterator it_row,
+                      TIterator it_row_end,
+                      Vector& rX,
+                      const Vector& rB,
+                      const double relaxation)
+{
+
+}
+} // unnamed namespace
+
+
 template<class TSparseSpace,
          class TDenseSpace,
          class TReorderer>
@@ -73,26 +92,50 @@ bool GaussSeidelRelaxation<TSparseSpace,TDenseSpace,TReorderer>::Solve(SparseMat
 {
     KRATOS_TRY
 
+    const double relaxation = mpImpl->mRelaxation;
+    const bool symmetric = mpImpl->mSymmetric;
     Vector residual(rX.size());
 
-    for (std::size_t i_relax=0ul; i_relax<mpImpl->mMaxIterations; ++i_relax) {
-        const auto it_row_end = rA.end1();
-        for (auto it_row=rA.begin1(); it_row!=it_row_end; ++it_row) {
-            const std::size_t i_row = it_row.index1();
-            double value = rB[i_row];
-            double diagonal = 1.0;
+    const std::size_t max_iterations = mpImpl->mSymmetric ? 2 * mpImpl->mMaxIterations : mpImpl->mMaxIterations;
+    for (std::size_t i_relax=0ul; i_relax<max_iterations; ++i_relax) {
+        if (symmetric && (i_relax % 2)) {
+            const auto it_row_end = rA.rend1();
+            for (auto it_row=rA.rbegin1(); it_row!=it_row_end; ++it_row) {
+                const std::size_t i_row = it_row.index1();
+                double value = rB[i_row];
+                double diagonal = 1.0;
 
-            const auto it_column_end = it_row.end();
-            for (auto it_column=it_row.begin(); it_column!=it_column_end; ++it_column) {
-                const auto i_column = it_column.index2();
-                if (i_column == i_row) {
-                    diagonal = *it_column;
-                } else {
-                    value -= *it_column * rX[i_column];
+                const auto it_column_end = it_row.rend();
+                for (auto it_column=it_row.rbegin(); it_column!=it_column_end; ++it_column) {
+                    const auto i_column = it_column.index2();
+                    if (i_column == i_row) {
+                        diagonal = *it_column;
+                    } else {
+                        value -= *it_column * rX[i_column];
+                    }
                 }
-            }
 
-            rX[i_row] = value / diagonal;
+                rX[i_row] += relaxation * (value / diagonal - rX[i_row]);
+            }
+        } else {
+            const auto it_row_end = rA.end1();
+            for (auto it_row=rA.begin1(); it_row!=it_row_end; ++it_row) {
+                const std::size_t i_row = it_row.index1();
+                double value = rB[i_row];
+                double diagonal = 1.0;
+
+                const auto it_column_end = it_row.end();
+                for (auto it_column=it_row.begin(); it_column!=it_column_end; ++it_column) {
+                    const auto i_column = it_column.index2();
+                    if (i_column == i_row) {
+                        diagonal = *it_column;
+                    } else {
+                        value -= *it_column * rX[i_column];
+                    }
+                }
+
+                rX[i_row] += relaxation * (value / diagonal - rX[i_row]);
+            }
         }
 
         //noalias(residual) = rB - prod(rA, rX);
@@ -118,7 +161,9 @@ GaussSeidelRelaxation<TSparseSpace,TDenseSpace,TReorderer>::GetDefaultParameters
     "solver_type" : "gauss_seidel",
     "verbosity" : 0,
     "max_iterations" : 500,
-    "tolerance" : 1e-6
+    "tolerance" : 1e-6,
+    "relaxation" : 1.0,
+    "symmetric" : false
 }
     )");
 }

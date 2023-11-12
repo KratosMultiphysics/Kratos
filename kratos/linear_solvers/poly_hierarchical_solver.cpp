@@ -206,7 +206,7 @@ struct PolyHierarchicalSolver<TSparseSpace,TDenseSpace,TReorderer>::Impl
 
     typename TSparseSpace::MatrixType mCoarseMatrix;
 
-    typename TSparseSpace::MatrixType mOffDiagonal;
+    typename TSparseSpace::MatrixType mMixedMatrix;
 }; // struct PolyHierarchicalSolver::Impl
 
 
@@ -256,8 +256,8 @@ template<class TSparseSpace,
          class TDenseSpace,
          class TReorderer>
 bool PolyHierarchicalSolver<TSparseSpace,TDenseSpace,TReorderer>::Solve(SparseMatrix& rA,
-                                                                         Vector& rX,
-                                                                         Vector& rB)
+                                                                        Vector& rX,
+                                                                        Vector& rB)
 {
     KRATOS_ERROR_IF_NOT(mpImpl->mCoarseMask.has_value())
         << "PolyHierarchicalSolver::Solve called before PolyHierarchicalSolver::ProvideAdditionalData";
@@ -282,106 +282,108 @@ bool PolyHierarchicalSolver<TSparseSpace,TDenseSpace,TReorderer>::Solve(SparseMa
                                                   0);
     const std::size_t masked_count = full_size - unmasked_count;
 
+    KRATOS_INFO_IF("PolyHierarchicalSolver", 1 <= mpImpl->mVerbosity)
+        << "coarse size: " << masked_count
+        << " fine size: " << full_size << "\n";
+
     // Define a map for restriction, that collects the indices
     // of components local to the block they belong to.
     std::vector<std::size_t> block_local_indices(full_size);
 
     // Fill the block map
-    std::array<std::size_t,2> block_counters {0ul, 0ul}; // {l, h}
-    for (std::size_t i_global=0ul; i_global<full_size; ++i_global) {
-        const char mask_value = r_mask[i_global];
-        const std::size_t i_block = !mask_value;
-        block_local_indices[i_global] = block_counters[i_block]++;
+    {
+        std::array<std::size_t,2> block_counters {0ul, 0ul}; // {l, h}
+        for (std::size_t i_global=0ul; i_global<full_size; ++i_global) {
+            const char mask_value = r_mask[i_global];
+            const std::size_t i_block = !mask_value;
+            block_local_indices[i_global] = block_counters[i_block]++;
+        }
     }
 
-    const auto coarsen = [&block_local_indices, &r_mask](const Vector& rRoot,
-                                                         std::array<Vector,2>& rSubs) {
+    const auto to_blocks = [&block_local_indices, &r_mask](const Vector& rRoot,
+                                                           std::array<Vector,2>& rBlocks) {
         //for (std::size_t i_root=0ul; i_root<rRoot.size(); ++i_root) {
         IndexPartition<std::size_t>(rRoot.size()).for_each([&](std::size_t i_root){
             const char mask_value = r_mask[i_root];
             const std::size_t i_block = !mask_value;
             const std::size_t i_sub = block_local_indices[i_root];
-            rSubs[i_block][i_sub] = rRoot[i_root];
+            rBlocks[i_block][i_sub] = rRoot[i_root];
         });
         //}
     };
 
-    const auto aggregate = [&block_local_indices, &r_mask](const std::array<Vector,2>& rSubs,
-                                                           Vector& rRoot) {
+    const auto from_blocks = [&block_local_indices, &r_mask](const std::array<Vector,2>& rBlocks,
+                                                             Vector& rRoot) {
         //for (std::size_t i_root=0ul; i_root<rRoot.size(); ++i_root) {
         IndexPartition<std::size_t>(rRoot.size()).for_each([&](std::size_t i_root){
             const char mask_value = r_mask[i_root];
             const std::size_t i_block = !mask_value;
             const std::size_t i_sub = block_local_indices[i_root];
-            rRoot[i_root] += rSubs[i_block][i_sub];
+            rRoot[i_root] += rBlocks[i_block][i_sub];
         });
         //}
     };
 
-    // Solve
-    std::array<Vector,2> r, d; // <== {r_l, r_h}, {d_l, d_h}
-    r[0].resize(  masked_count);
-    r[1].resize(unmasked_count);
-    d[0].resize(  masked_count);
-    d[1].resize(unmasked_count);
+    // Define vectors that must be broken up into
+    // lower and higher order parts.
+    std::array<Vector,2> block_residuals, block_deltas; // <== {r_l, r_h}, {d_l, d_h}
+    block_residuals[0].resize(  masked_count);
+    block_residuals[1].resize(unmasked_count);
+    block_deltas[0].resize(  masked_count);
+    block_deltas[1].resize(unmasked_count);
 
-    Vector delta(full_size, 0.0);
-    Vector coarse_residual(masked_count, 0.0);
+    Vector fine_residual = rB;
+    Vector fine_delta(full_size, 0.0);
     Vector coarse_delta(masked_count, 0.0);
-    Vector residual = rB;
-
-    KRATOS_INFO_IF("PolyHierarchicalSolver", 1 <= mpImpl->mVerbosity)
-        << "coarse size: " << masked_count
-        << " fine size: " << unmasked_count << "\n";
 
     const double rhs_norm = norm_2(rB);
     KRATOS_ERROR_IF_NOT(rhs_norm);
 
-    std::tuple<std::size_t,double> results {0ul, 1.0};
+    double residual_norm = 1.0;
     const std::size_t max_iterations = mpImpl->mMaxIterations;
     for (std::size_t i_iteration=0ul; i_iteration<max_iterations; ++i_iteration) {
         // Perform a few relaxation passes on the full system
         KRATOS_TRY
-        mpImpl->mpFineSolver->Solve(rA, delta, residual);
+        mpImpl->mpFineSolver->Solve(rA, fine_delta, fine_residual);
         KRATOS_CATCH("")
-        coarsen(delta, d);
+        to_blocks(fine_delta, block_deltas);
 
         // Compute restricted residual
-        coarsen(residual, r);
-        noalias(coarse_residual) = r[0] - prod(mpImpl->mCoarseMatrix, d[0]) - prod(mpImpl->mOffDiagonal, d[1]);
+        to_blocks(fine_residual, block_residuals);
+        block_residuals[0] -= prod(mpImpl->mCoarseMatrix, block_deltas[0])
+                              + prod(mpImpl->mMixedMatrix, block_deltas[1]);
 
         // Solve coarse
         KRATOS_TRY
-        mpImpl->mpCoarseSolver->Solve(mpImpl->mCoarseMatrix, coarse_delta, coarse_residual);
+        mpImpl->mpCoarseSolver->Solve(mpImpl->mCoarseMatrix, coarse_delta, block_residuals[0]);
         KRATOS_CATCH("")
 
         if (2 <= mpImpl->mVerbosity) {
-            const double diff_norm = norm_2(coarse_delta) / norm_2(d[0]);
+            const double diff_norm = norm_2(coarse_delta) / norm_2(block_deltas[0]);
             KRATOS_INFO("PolyHierarchicalSolver")
                 << "norm of coarse order correction: " << diff_norm << "\n";
         }
 
         // Update solution
-        noalias(d[0]) += coarse_delta;
-        aggregate(d, rX);
+        noalias(block_deltas[0]) += coarse_delta;
+        from_blocks(block_deltas, rX);
 
-        // Compute the residual
-        noalias(residual) = rB - prod(rA, rX);
+        // Compute the fine_residual
+        noalias(fine_residual) = rB - prod(rA, rX);
 
         // Update status
-        std::get<0>(results)++;
-        std::get<1>(results) = norm_2(residual) / rhs_norm;
+        residual_norm = norm_2(fine_residual) / rhs_norm;
         KRATOS_INFO_IF("PolyHierarchicalSolver", 1 <= mpImpl->mVerbosity)
-            << "iteration " << std::get<0>(results)
-            << " residual " << std::get<1>(results) << "\n";
+            << "iteration " << i_iteration
+            << " residual " << residual_norm << "\n";
 
         // Early exit if converged
-        if (std::get<1>(results) < mpImpl->mTolerance) {
+        if (residual_norm < mpImpl->mTolerance) {
             break;
         }
     }
 
-    return std::get<1>(results) < mpImpl->mTolerance;
+    return residual_norm < mpImpl->mTolerance;
     KRATOS_CATCH("")
 }
 
@@ -402,36 +404,51 @@ void PolyHierarchicalSolver<TSparseSpace,TDenseSpace,TReorderer>::ProvideAdditio
     // Construct coarse mask
     if (!mpImpl->mCoarseMask.has_value()) {
         mpImpl->mCoarseMask.emplace();
+        KRATOS_INFO_IF("PolyHierarchicalSolver", 3 <= mpImpl->mVerbosity)
+            << "construct coarse mask" << std::endl;
+    } else {
+        KRATOS_INFO_IF("PolyHierarchicalSolver", 3 <= mpImpl->mVerbosity)
+            << "reconstruct coarse mask" << std::endl;
     }
+
     auto& r_coarse_mask = mpImpl->mCoarseMask.value();
     r_coarse_mask.resize(TSparseSpace::Size1(rA), false);
 
     // Loop through elements and collect the DoFs' IDs
     // that are related to corner vertices.
-    Element::DofsVectorType element_dofs;
-    for (const Element& r_element : rModelPart.Elements()) {
-        const auto& r_geometry = r_element.GetGeometry();
-        element_dofs.clear();
-        r_element.GetDofList(element_dofs, rModelPart.GetProcessInfo());
-        switch (r_geometry.GetGeometryType()) {
-            case GeometryData::KratosGeometryType::Kratos_Tetrahedra3D10: {
-                for (unsigned i_dof=0; i_dof<4; ++i_dof) {
-                    const std::size_t equation_id = element_dofs[i_dof]->EquationId();
-                    r_coarse_mask[equation_id] = true;
+    //for (const Element& r_element : rModelPart.Elements()) {
+    block_for_each(rModelPart.Elements(), [&rModelPart,&rA,&r_coarse_mask](const Element& r_element) {
+        // @todo the parallel version of this loop relies on undefined behaviour,
+        //       because all threads write to the same coarse mask at once => implement
+        //       an ANY reduction. @matekelemen
+        if (r_element.IsActive()) {
+            const auto& r_geometry = r_element.GetGeometry();
+            switch (r_geometry.GetGeometryType()) {
+                case GeometryData::KratosGeometryType::Kratos_Tetrahedra3D10: {
+                    Element::DofsVectorType element_dofs;
+                    r_element.GetDofList(element_dofs, rModelPart.GetProcessInfo());
+                    for (unsigned i_dof=0; i_dof<4*3/*@todo - generalize*/; ++i_dof) {
+                        const std::size_t equation_id = element_dofs[i_dof]->EquationId();
+                        KRATOS_DEBUG_ERROR_IF_NOT(equation_id < TSparseSpace::Size1(rA));
+                        r_coarse_mask[equation_id] = true;
+                    }
+                    break;
                 }
-                break;
-            }
-            default: {
-                KRATOS_ERROR << "Unsupported element geometry: " << r_geometry;
-            }
-        } // switch GeometryType
-    }
+                default: {
+                    KRATOS_ERROR << "Unsupported element geometry: " << r_geometry;
+                }
+            } // switch GeometryType
+        }
+    });
+    //}
 
     // Separate components related to coarse and higher order DoFs.
+    KRATOS_INFO_IF("PolyHierarchicalSolver", 3 <= mpImpl->mVerbosity)
+        << "construct lower-higher order subblocks" << std::endl;
     SparseMatrix A_hl, A_hh;
     detail::MakeSubblocks(rA,
                           mpImpl->mCoarseMask.value(),
-                          {&mpImpl->mCoarseMatrix, &mpImpl->mOffDiagonal, &A_hl, &A_hh});
+                          {&mpImpl->mCoarseMatrix, &mpImpl->mMixedMatrix, &A_hl, &A_hh});
 
     // Dump the generated matrices to disk f requested.
     if (4 <= mpImpl->mVerbosity) {
@@ -442,7 +459,7 @@ void PolyHierarchicalSolver<TSparseSpace,TDenseSpace,TReorderer>::ProvideAdditio
         KRATOS_INFO("PolyHierarchicalSolver")
             << "writing submatrices: A_ll.mm A_lh.mm A_hl.mm A_hh.mm\n";
         TSparseSpace::WriteMatrixMarketMatrix("A_ll.mm", mpImpl->mCoarseMatrix, false);
-        TSparseSpace::WriteMatrixMarketMatrix("A_lh.mm", mpImpl->mOffDiagonal, false);
+        TSparseSpace::WriteMatrixMarketMatrix("A_lh.mm", mpImpl->mMixedMatrix, false);
         TSparseSpace::WriteMatrixMarketMatrix("A_hl.mm", A_hl, false);
         TSparseSpace::WriteMatrixMarketMatrix("A_hh.mm", A_hh, false);
     }
