@@ -201,7 +201,7 @@ class UPwSolver(GeoSolver):
                     KratosMultiphysics.Logger.PrintInfo("GeoMechanics_U_Pw_Solver, scheme", "Quasi-Damped.")
                     scheme = KratosGeo.NewmarkQuasistaticDampedUPwScheme(beta,gamma,theta)
             else:
-              raise Exception("Undefined solution type", solution_type)
+              raise RuntimeError(f"Undefined solution type '{solution_type}'")
         elif (scheme_type.lower() == "backward_euler"or scheme_type.lower() == "backward-euler"):
             if (solution_type.lower() == "quasi-static" or solution_type.lower() == "quasi_static"):
                 KratosMultiphysics.Logger.PrintInfo("GeoMechanics_U_Pw_Solver, scheme", "Backward Euler.")
@@ -210,9 +210,9 @@ class UPwSolver(GeoSolver):
                 KratosMultiphysics.Logger.PrintInfo("GeoMechanics_U_Pw_Solver, scheme", "Backward Euler.")
                 scheme = KratosGeo.BackwardEulerQuasistaticUPwScheme()
             else:
-              raise Exception("Undefined/incompatible solution type with Backward Euler", solution_type)
+                raise RuntimeError(f"Undefined/incompatible solution type with Backward Euler: '{solution_type}'")
         else:
-            raise Exception("Apart from Newmark, other scheme_type are not available.")
+            raise RuntimeError("Apart from Newmark, other scheme_type are not available.")
 
         return scheme
 
@@ -260,6 +260,14 @@ class UPwSolver(GeoSolver):
             raise Exception(err_msg)
 
         return convergence_criterion
+
+    def _ConstructBuilderAndSolver(self, block_builder):
+        if (block_builder and
+            self.settings.Has("prebuild_dynamics") and
+            self.settings["prebuild_dynamics"].GetBool()):
+            return KratosGeo.ResidualBasedBlockBuilderAndSolverWithMassAndDamping(self.linear_solver)
+
+        return super()._ConstructBuilderAndSolver(block_builder)
 
     def _CheckConvergence(self):
         IsConverged = self.solver.IsConverged()

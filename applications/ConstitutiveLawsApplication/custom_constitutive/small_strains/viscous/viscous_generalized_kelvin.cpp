@@ -121,8 +121,8 @@ void ViscousGeneralizedKelvin<TElasticBehaviourLaw>::ComputeViscoElasticity(Cons
     const Flags& r_flags = rValues.GetOptions();
 
     // We compute the strain in case not provided
+    Vector& r_strain_vector = rValues.GetStrainVector();
     if (r_flags.IsNot( ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN)) {
-        Vector& r_strain_vector = rValues.GetStrainVector();
         this->CalculateValue(rValues, STRAIN, r_strain_vector);
     }
 
@@ -146,7 +146,6 @@ void ViscousGeneralizedKelvin<TElasticBehaviourLaw>::ComputeViscoElasticity(Cons
         Vector elastic_strain(VoigtSize);
 
         // Apply increments
-        const Vector& r_strain_vector = rValues.GetStrainVector();
         for (IndexType i = 0; i < number_sub_increments; ++i) {
             noalias(aux) = (std::exp(-dt / delay_time) * prod(inverse_constitutive_matrix, aux_stress_vector)) / delay_time;
             noalias(inelastic_strain) = std::exp(-dt / delay_time) * inelastic_strain + aux;
@@ -158,7 +157,8 @@ void ViscousGeneralizedKelvin<TElasticBehaviourLaw>::ComputeViscoElasticity(Cons
         noalias(integrated_stress_vector) = aux_stress_vector;
 
         if (r_flags.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR)) {
-            rValues.SetConstitutiveMatrix(constitutive_matrix);
+            Matrix& r_constitutive_matrix = rValues.GetConstitutiveMatrix();
+            noalias(r_constitutive_matrix) = constitutive_matrix;
         }
     } else {
         // Elastic Matrix
@@ -210,8 +210,8 @@ void ViscousGeneralizedKelvin<TElasticBehaviourLaw>::FinalizeMaterialResponseCau
     const Flags& r_flags = rValues.GetOptions();
 
     // We compute the strain in case not provided
+    Vector& r_strain_vector = rValues.GetStrainVector();
     if (r_flags.IsNot( ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN)) {
-        Vector& r_strain_vector = rValues.GetStrainVector();
         this->CalculateValue(rValues, STRAIN, r_strain_vector);
     }
 
@@ -233,7 +233,6 @@ void ViscousGeneralizedKelvin<TElasticBehaviourLaw>::FinalizeMaterialResponseCau
     Vector elastic_strain(VoigtSize);
 
     // Apply increments
-    const Vector& r_strain_vector = rValues.GetStrainVector();
     for (IndexType i = 0; i < number_sub_increments; ++i) {
         noalias(aux) = (std::exp(-dt / delay_time) * prod(inverse_constitutive_matrix, aux_stress_vector)) / delay_time;
         noalias(inelastic_strain) = std::exp(-dt / delay_time) * inelastic_strain + aux;
@@ -241,8 +240,8 @@ void ViscousGeneralizedKelvin<TElasticBehaviourLaw>::FinalizeMaterialResponseCau
         noalias(aux_stress_vector) = prod(constitutive_matrix, elastic_strain);
     }
 
-    mPrevInelasticStrainVector = inelastic_strain;
-    mPrevStressVector = aux_stress_vector;
+    noalias(mPrevInelasticStrainVector) = inelastic_strain;
+    noalias(mPrevStressVector) = aux_stress_vector;
 }
 
 /***********************************************************************************/
