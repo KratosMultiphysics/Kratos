@@ -25,15 +25,11 @@ class TestTransferConditions(KratosUnittest.TestCase):
                 mp.CreateNewCondition("MPMParticlePenaltyDirichletCondition2D3N", condition_id, [1, 2, 3], mp.GetProperties()[1])
             if condition_type == "neumann":
                 mp.CreateNewCondition("MPMParticlePointLoadCondition2D3N", condition_id, [1, 2, 3], mp.GetProperties()[1])
-            if condition_type == "coupling":
-                mp.CreateNewCondition("MPMParticlePenaltyCouplingInterfaceCondition2D3N", condition_id, [1, 2, 3], mp.GetProperties()[1])
         if dimension == 3:
             if condition_type == "dirichlet":
                 mp.CreateNewCondition("MPMParticlePenaltyDirichletCondition3D4N", condition_id, [1, 2, 3, 4], mp.GetProperties()[1])
             if condition_type == "neumann":
                 mp.CreateNewCondition("MPMParticlePointLoadCondition3D4N", condition_id, [1, 2, 3, 4], mp.GetProperties()[1])
-            if condition_type == "coupling":
-                mp.CreateNewCondition("MPMParticlePenaltyCouplingInterfaceCondition3D4N", condition_id, [1, 2, 3, 4], mp.GetProperties()[1])
 
     def _assign_pseudo_variables(self, cond, condition_type):
         process_info = KratosMultiphysics.ProcessInfo()
@@ -58,10 +54,6 @@ class TestTransferConditions(KratosUnittest.TestCase):
         else:
             point_load = [KratosMultiphysics.Vector([3.3,4.4,5.5])]
             cond.SetValuesOnIntegrationPoints(KratosParticle.POINT_LOAD,point_load ,process_info)
-
-        if condition_type == "coupling":
-            contact_force = [KratosMultiphysics.Vector([3.7,4.4,5.5])]
-            cond.SetValuesOnIntegrationPoints(KratosParticle.MPC_CONTACT_FORCE,contact_force ,process_info)
 
     def _check_conditions(self, mp, dimension):
         process_info = KratosMultiphysics.ProcessInfo()
@@ -123,10 +115,6 @@ class TestTransferConditions(KratosUnittest.TestCase):
                 self.assertVectorAlmostEqual(imposed_veclocity[0],[1.0,-1.0,1.1],7)
                 imposed_acceleration = cond.CalculateOnIntegrationPoints(KratosParticle.MPC_IMPOSED_ACCELERATION, process_info)
                 self.assertVectorAlmostEqual(imposed_acceleration[0],[1.0,-1.0,2.1],7)
-                if(cond.Info() == "Condition #4"):
-                    #penalty_coupling_interface_condition member
-                    contact_force = cond.CalculateOnIntegrationPoints(KratosParticle.MPC_CONTACT_FORCE, process_info)
-                    self.assertVectorAlmostEqual(contact_force[0],[3.7,4.4,5.5],7)
             #base_condition members
             xg = cond.CalculateOnIntegrationPoints(KratosParticle.MPC_COORD, process_info)
             self.assertVectorAlmostEqual(xg[0],[1.5,-1.0,2.1])
@@ -189,14 +177,8 @@ class TestTransferConditions(KratosUnittest.TestCase):
     def test_transfer_conditions2D_dirichlet_neumann(self):
         self._transfer_conditions(dimension=2, condition_type_2="neumann")
 
-    def test_transfer_conditions2D_dirichlet_coupling(self):
-        self._transfer_conditions(dimension=2, condition_type_2="coupling")
-
     def test_transfer_conditions3D_dirichlet_neumann(self):
         self._transfer_conditions(dimension=3, condition_type_2="neumann")
-
-    def test_transfer_conditions3D_dirichlet_coupling(self):
-        self._transfer_conditions(dimension=3, condition_type_2="coupling")
 
 if __name__ == '__main__':
     KratosUnittest.main()

@@ -20,7 +20,7 @@
 #include "input_output/logger_output.h"
 #include "input_output/logger_table_output.h"
 #include "includes/model_part_io.h"
-#include "write_output.h"
+#include "geo_output_writer.h"
 #include "custom_utilities/file_input_utility.h"
 
 
@@ -388,7 +388,9 @@ namespace Kratos
             if (!hasPiping)
             {
                 MainExecution(model_part, processes, p_solving_strategy, 0.0, 1.0, 1);
-                GeoOutputWriter::WriteGiDOutput(model_part, projectfile, rWorkingDirectory);
+                const auto gid_output_settings = projectfile["output_processes"]["gid_output"][0]["Parameters"];
+                GeoOutputWriter writer{gid_output_settings, rWorkingDirectory, model_part};
+                writer.WriteGiDOutput(model_part, gid_output_settings);
             }
             else
             {
@@ -473,7 +475,9 @@ namespace Kratos
                         break;
                     }
 
-                    GeoOutputWriter::WriteGiDOutput(model_part, projectfile, rWorkingDirectory);
+                    const auto gid_output_settings = projectfile["output_processes"]["gid_output"][0]["Parameters"];
+                    GeoOutputWriter writer{gid_output_settings, rWorkingDirectory, model_part};
+                    writer.WriteGiDOutput(model_part, gid_output_settings);
 
                     // Update boundary conditions for next search head.
                     if (RiverBoundary->Info() == "ApplyConstantScalarValueProcess")
