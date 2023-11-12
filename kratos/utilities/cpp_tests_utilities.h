@@ -17,6 +17,7 @@
 // External includes
 
 // Project includes
+#include "testing/testing.h"
 
 namespace Kratos
 {
@@ -135,21 +136,27 @@ namespace CppTestsUtilities
      * @param HalfX The half-length of the cube in the X-direction.
      * @param HalfY The half-length of the cube in the Y-direction.
      * @param HalfZ The half-length of the cube in the Z-direction.
+     * @param rDataCommunicator The data communicator.
      * @return ModelPart& The created cube skin model part.
      */
     KRATOS_API(KRATOS_CORE) ModelPart& CreateCubeSkinModelPart(
         Model& rCurrentModel,
         const double HalfX = 0.6,
         const double HalfY = 0.9,
-        const double HalfZ = 0.3
+        const double HalfZ = 0.3,
+        const DataCommunicator& rDataCommunicator = Testing::GetDefaultDataCommunicator()
         );
 
     /**
      * @brief Create a cube model part.
      * @param rCurrentModel The current model.
+     * @param rDataCommunicator The data communicator.
      * @return The created cube model part.
      */
-    KRATOS_API(KRATOS_CORE) ModelPart& CreateCubeModelPart(Model& rCurrentModel);
+    KRATOS_API(KRATOS_CORE) ModelPart& CreateCubeModelPart(
+        Model& rCurrentModel,
+        const DataCommunicator& rDataCommunicator = Testing::GetDefaultDataCommunicator()
+        );
 
 }; // namespace CppTestsUtilities
 }  // namespace Kratos
