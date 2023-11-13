@@ -674,9 +674,9 @@ void MedModelPartIO::ReadModelPart(ModelPart& rThisModelPart)
             }
         }
 
-        KRATOS_ERROR_IF(num_geometries_total + num_geometries < std::max(num_geometries_total, num_geometries))
+        KRATOS_ERROR_IF(num_geometries_total + IndexType(num_geometries) < std::max(num_geometries_total, IndexType(num_geometries)))
             << "number of geometries read (" << num_geometries_total << " + " << num_geometries << ") exceeds the capacity of the index type";
-        num_geometries_total += num_geometries;
+        num_geometries_total += IndexType(num_geometries);
 
         KRATOS_INFO("MedModelPartIO") << "Read " << num_geometries << " geometries of type " << kratos_geo_name << std::endl;
     }
