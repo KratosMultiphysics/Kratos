@@ -74,13 +74,15 @@ class CosineSimilaritySensorPlacementAlgorithm(SensorPlacementAlgorithm):
 
         dummy_cexp = normalized_sensor_views[0].GetContainerExpression()
         vtu_output = Kratos.VtuOutput(dummy_cexp.GetModelPart())
-        total_number_of_entities = len(normalized_sensor_views[0].GetContainerExpression().GetContainer())
+        total_number_of_entities = len(dummy_cexp.GetContainer())
 
         # compute best sensor for each entity
         entity_best_sensors_list:'list[SensorViewUnionType]' = []
-        for entity_index in range(total_number_of_entities):
+        list_of_entity_ids: 'list[int]' = []
+        for entity_index, entity in enumerate(dummy_cexp.GetContainer()):
             entity_best_spec = max(normalized_sensor_views, key=lambda x: x.GetContainerExpression().Evaluate()[entity_index])
             entity_best_sensors_list.append(entity_best_spec)
+            list_of_entity_ids.append(entity.Id)
 
         unique_normalized_list = list(set(entity_best_sensors_list))
 
@@ -205,15 +207,19 @@ class CosineSimilaritySensorPlacementAlgorithm(SensorPlacementAlgorithm):
             for var_name in list_of_best_sensor_views[0].GetSensor().GetDataVariableNames():
                 var: SupportedVariableUnionType = Kratos.KratosGlobals.GetVariable(var_name)
                 list_of_vars.append((var, GetKratosValueToPythonValueConverter(list_of_best_sensor_views[0].GetSensor().GetValue(var))))
+            list_of_vars.append((KratosDT.SENSOR_ENTITY_IDS, GetKratosValueToPythonValueConverter(Kratos.Vector())))
 
             # now write the sensors with data
             json_sensors = {"list_of_sensors": []}
-            with open(str(output_path / "best_sensor_specification_data.json"), "w") as file_output:
+            with open(str(output_path / "best_sensor_data.json"), "w") as file_output:
                 for sensor_view in list_of_best_sensor_views:
                     sensor = sensor_view.GetSensor()
                     json_params = json.loads(sensor.GetSensorParameters().WriteJsonString())
                     json_params["variable_data"] = {}
-                    json_params["cluster_entity_ids"] = entity_index_cluster_dict[sensor.GetValue(KratosDT.SENSOR_CLUSTER_ID)],
+
+                    # add cluster ids
+                    list_of_entity_indices = entity_index_cluster_dict[sensor.GetValue(KratosDT.SENSOR_CLUSTER_ID)]
+                    sensor.SetValue(KratosDT.SENSOR_ENTITY_IDS, Kratos.Vector([float(list_of_entity_ids[i]) for i in list_of_entity_indices]))
                     for var, func in list_of_vars:
                         json_params["variable_data"][var.Name()] = func(sensor.GetValue(var))
                     json_sensors["list_of_sensors"].append(json_params)
