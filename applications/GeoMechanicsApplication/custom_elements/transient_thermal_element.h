@@ -129,14 +129,19 @@ public:
     {
         switch (TNumNodes) {
             case 3:
+            case 4:
             case 6:
+            case 8:
+            case 9:
+            case 20:
+            case 27:
                 return GeometryData::IntegrationMethod::GI_GAUSS_2;
             case 10:
                 return GeometryData::IntegrationMethod::GI_GAUSS_4;
             case 15:
                 return GeometryData::IntegrationMethod::GI_GAUSS_5;
             default:
-                return GeometryData::IntegrationMethod::GI_GAUSS_2;
+                KRATOS_ERROR << "Can't return integration method: unexpected number of nodes: " << TNumNodes << std::endl;
         }
     }
 
