@@ -208,7 +208,7 @@ private:
         return result;
     }
 
-    void VerifyProperty(const Kratos::Variable<double>& rVariable) const
+    void CheckProperty(const Kratos::Variable<double>& rVariable) const
     {
         KRATOS_ERROR_IF_NOT(GetProperties().Has(rVariable)) << rVariable.Name()
                                                             << " does not exist in the material properties" << std::endl;
@@ -218,24 +218,24 @@ private:
 
     void CheckProperties() const
     {
-        VerifyProperty(DENSITY_WATER);
-        VerifyProperty(POROSITY);
-        VerifyProperty(SATURATION);
-        VerifyProperty(DENSITY_SOLID);
-        VerifyProperty(SPECIFIC_HEAT_CAPACITY_WATER);
-        VerifyProperty(SPECIFIC_HEAT_CAPACITY_SOLID);
-        VerifyProperty(THERMAL_CONDUCTIVITY_WATER);
-        VerifyProperty(THERMAL_CONDUCTIVITY_SOLID_XX);
-        VerifyProperty(THERMAL_CONDUCTIVITY_SOLID_YY);
-        VerifyProperty(THERMAL_CONDUCTIVITY_SOLID_XY);
-        VerifyProperty(LONGITUDINAL_DISPERSIVITY);
-        VerifyProperty(TRANSVERSE_DISPERSIVITY);
-        VerifyProperty(SOLID_COMPRESSIBILITY);
+        CheckProperty(DENSITY_WATER);
+        CheckProperty(POROSITY);
+        CheckProperty(SATURATION);
+        CheckProperty(DENSITY_SOLID);
+        CheckProperty(SPECIFIC_HEAT_CAPACITY_WATER);
+        CheckProperty(SPECIFIC_HEAT_CAPACITY_SOLID);
+        CheckProperty(THERMAL_CONDUCTIVITY_WATER);
+        CheckProperty(THERMAL_CONDUCTIVITY_SOLID_XX);
+        CheckProperty(THERMAL_CONDUCTIVITY_SOLID_YY);
+        CheckProperty(THERMAL_CONDUCTIVITY_SOLID_XY);
+        CheckProperty(LONGITUDINAL_DISPERSIVITY);
+        CheckProperty(TRANSVERSE_DISPERSIVITY);
+        CheckProperty(SOLID_COMPRESSIBILITY);
 
         if constexpr(TDim == 3) {
-            VerifyProperty(THERMAL_CONDUCTIVITY_SOLID_ZZ);
-            VerifyProperty(THERMAL_CONDUCTIVITY_SOLID_YZ);
-            VerifyProperty(THERMAL_CONDUCTIVITY_SOLID_XZ);
+            CheckProperty(THERMAL_CONDUCTIVITY_SOLID_ZZ);
+            CheckProperty(THERMAL_CONDUCTIVITY_SOLID_YZ);
+            CheckProperty(THERMAL_CONDUCTIVITY_SOLID_XZ);
         }
     }
 
