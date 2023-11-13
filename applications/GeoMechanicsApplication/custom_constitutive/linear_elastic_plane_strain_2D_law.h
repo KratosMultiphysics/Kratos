@@ -71,7 +71,7 @@ public:
     bool IsIncremental() override;
 
     /**
-     * @brief  Itreturns the value of a specified variable
+     * @brief  It returns the value of a specified variable
      * @param rThisVariable the variable to be returned
      * @param rValue a reference to the returned value
      * @param rValue output: the value of the specified variable
@@ -96,14 +96,14 @@ protected:
                             Vector& rStressVector,
                             ConstitutiveLaw::Parameters& rValues) override;
 
-    virtual void UpdateInternalDeltaStrainVector(ConstitutiveLaw::Parameters &rValues);
-    virtual void UpdateInternalStrainVectorFinalized(ConstitutiveLaw::Parameters &rValues);
-    virtual void SetExternalStressVector(Vector& rStressVector);
-    virtual void SetInternalStressVector(const Vector& rStressVector);
-    virtual void SetInternalStrainVector(const Vector& rStrainVector);
-    virtual void InitializeMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues);
-    virtual void FinalizeMaterialResponseCauchy(ConstitutiveLaw::Parameters & rValues);
-    virtual void FinalizeMaterialResponsePK2(ConstitutiveLaw::Parameters& rValues);
+    void UpdateInternalDeltaStrainVector(ConstitutiveLaw::Parameters &rValues);
+    void UpdateInternalStrainVectorFinalized(ConstitutiveLaw::Parameters &rValues);
+    void SetExternalStressVector(Vector& rStressVector);
+    void SetInternalStressVector(const Vector& rStressVector);
+    void SetInternalStrainVector(const Vector& rStrainVector);
+    void InitializeMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues) final;
+    void FinalizeMaterialResponseCauchy(ConstitutiveLaw::Parameters & rValues) final;
+    void FinalizeMaterialResponsePK2(ConstitutiveLaw::Parameters& rValues) final;
 
     ///@}
 
