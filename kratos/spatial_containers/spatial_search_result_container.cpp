@@ -216,6 +216,40 @@ std::vector<double> SpatialSearchResultContainer<TObjectType>::GetDistances()
 /***********************************************************************************/
 
 template <class TObjectType>
+std::vector<bool> SpatialSearchResultContainer<TObjectType>::GetResultIsActive()
+{
+    // Check if the communicator has been created
+    KRATOS_ERROR_IF(mpGlobalPointerCommunicator == nullptr) << "The communicator has not been created." << std::endl;
+
+    // Define the coordinates vector
+    const std::size_t number_of_gp = mGlobalResults.size();
+    std::vector<bool> is_active(number_of_gp, false);
+
+    // Call Apply to get the proxy
+    auto proxy = this->Apply([](GlobalPointerResultType& rGP) -> bool {
+        auto p_object = rGP->Get();
+        if constexpr (std::is_same<TObjectType, GeometricalObject>::value || std::is_same<TObjectType, Node>::value) {
+            return p_object->IsActive();
+        } else {
+            KRATOS_ERROR << "Not implemented yet. Not possible to compute is active for point." << std::endl;
+            return false;
+        }
+    });
+
+    // Get the is inside
+    const auto& r_data_comm = mpGlobalPointerCommunicator->GetDataCommunicator();
+    for(std::size_t i=0; i<number_of_gp; ++i) {
+        auto& r_gp = mGlobalResults(i);
+        is_active[i] = r_data_comm.MaxAll(proxy.Get(r_gp));
+    }
+
+    return is_active;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template <class TObjectType>
 std::vector<bool> SpatialSearchResultContainer<TObjectType>::GetResultIsInside(
     const array_1d<double, 3>& rPoint,
     const double Tolerance

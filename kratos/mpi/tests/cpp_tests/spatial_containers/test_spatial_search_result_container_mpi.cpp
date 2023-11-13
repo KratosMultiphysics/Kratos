@@ -157,6 +157,47 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISpatialSearchResultContainerGetResultSh
     }
 }
 
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISpatialSearchResultContainerGetResultIsActive, KratosMPICoreFastSuite)
+{
+    // The data communicator
+    const DataCommunicator& r_data_comm = Testing::GetDefaultDataCommunicator();
+
+    // Create a test object
+    SpatialSearchResultContainer<GeometricalObject> container;
+
+    // Create a test result
+    GeometricalObject object = GeometricalObject(r_data_comm.Rank() + 1);
+    SpatialSearchResult<GeometricalObject> result(&object);
+
+    // Add the result to the container
+    container.AddResult(result);
+
+    // Synchronize the container between partitions
+    container.SynchronizeAll(r_data_comm);
+
+    // Compute is active
+    auto is_active = container.GetResultIsActive();
+
+    // Check is active
+    KRATOS_EXPECT_EQ(static_cast<int>(is_active.size()), r_data_comm.Size());
+    for (int i_rank = 0; i_rank < r_data_comm.Size(); ++i_rank) {
+        KRATOS_EXPECT_TRUE(static_cast<int>(is_active[i_rank]));
+    }
+
+    // Deactivate the object
+    object.Set(ACTIVE, false);
+
+    // Compute is active
+    is_active = container.GetResultIsActive();
+
+    // Check is active
+    KRATOS_EXPECT_EQ(static_cast<int>(is_active.size()), r_data_comm.Size());
+    for (int i_rank = 0; i_rank < r_data_comm.Size(); ++i_rank) {
+        KRATOS_EXPECT_FALSE(static_cast<int>(is_active[i_rank]));
+    }
+
+}
+
 KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISpatialSearchResultContainerGetResultIndices, KratosMPICoreFastSuite)
 {
     // The data communicator
@@ -175,10 +216,10 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISpatialSearchResultContainerGetResultIn
     // Synchronize the container between partitions
     container.SynchronizeAll(r_data_comm);
 
-    // Compute shape functions
+    // Compute indices
     auto indices = container.GetResultIndices();
 
-    // Check shape functions
+    // Check indices
     KRATOS_EXPECT_EQ(static_cast<int>(indices.size()), r_data_comm.Size());
     for (int i_rank = 0; i_rank < r_data_comm.Size(); ++i_rank) {
         KRATOS_EXPECT_EQ(static_cast<int>(indices[i_rank]), i_rank + 1);
