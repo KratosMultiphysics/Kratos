@@ -216,6 +216,29 @@ private:
                                                           << Id() << std::endl;
     }
 
+    void CheckProperties() const
+    {
+        VerifyProperty(DENSITY_WATER);
+        VerifyProperty(POROSITY);
+        VerifyProperty(SATURATION);
+        VerifyProperty(DENSITY_SOLID);
+        VerifyProperty(SPECIFIC_HEAT_CAPACITY_WATER);
+        VerifyProperty(SPECIFIC_HEAT_CAPACITY_SOLID);
+        VerifyProperty(THERMAL_CONDUCTIVITY_WATER);
+        VerifyProperty(THERMAL_CONDUCTIVITY_SOLID_XX);
+        VerifyProperty(THERMAL_CONDUCTIVITY_SOLID_YY);
+        VerifyProperty(THERMAL_CONDUCTIVITY_SOLID_XY);
+        VerifyProperty(LONGITUDINAL_DISPERSIVITY);
+        VerifyProperty(TRANSVERSE_DISPERSIVITY);
+        VerifyProperty(SOLID_COMPRESSIBILITY);
+
+        if constexpr(TDim == 3) {
+            VerifyProperty(THERMAL_CONDUCTIVITY_SOLID_ZZ);
+            VerifyProperty(THERMAL_CONDUCTIVITY_SOLID_YZ);
+            VerifyProperty(THERMAL_CONDUCTIVITY_SOLID_XZ);
+        }
+    }
+
     void CheckDomainSize() const
     {
         constexpr auto min_domain_size = 1.0e-15;

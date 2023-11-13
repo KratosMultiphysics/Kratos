@@ -25,20 +25,7 @@ int TransientThermalElement<TDim, TNumNodes>::Check(const ProcessInfo& rCurrentP
     CheckHasSolutionStepsDataFor(TEMPERATURE);
     CheckHasSolutionStepsDataFor(DT_TEMPERATURE);
     CheckHasDofsFor(TEMPERATURE);
-
-    VerifyProperty(DENSITY_WATER);
-    VerifyProperty(POROSITY);
-    VerifyProperty(SATURATION);
-    VerifyProperty(DENSITY_SOLID);
-    VerifyProperty(SPECIFIC_HEAT_CAPACITY_WATER);
-    VerifyProperty(SPECIFIC_HEAT_CAPACITY_SOLID);
-    VerifyProperty(THERMAL_CONDUCTIVITY_WATER);
-    VerifyProperty(THERMAL_CONDUCTIVITY_SOLID_XX);
-    VerifyProperty(THERMAL_CONDUCTIVITY_SOLID_YY);
-    VerifyProperty(THERMAL_CONDUCTIVITY_SOLID_XY);
-    VerifyProperty(LONGITUDINAL_DISPERSIVITY);
-    VerifyProperty(TRANSVERSE_DISPERSIVITY);
-    VerifyProperty(SOLID_COMPRESSIBILITY);
+    CheckProperties();
 
     const GeometryType& rGeom = GetGeometry();
 
@@ -49,12 +36,6 @@ int TransientThermalElement<TDim, TNumNodes>::Check(const ProcessInfo& rCurrentP
             KRATOS_ERROR << " Node with non-zero Z coordinate found. Id: " << pos->Id()
                          << std::endl;
         }
-    }
-
-    if (TDim > 2) {
-        VerifyProperty(THERMAL_CONDUCTIVITY_SOLID_ZZ);
-        VerifyProperty(THERMAL_CONDUCTIVITY_SOLID_YZ);
-        VerifyProperty(THERMAL_CONDUCTIVITY_SOLID_XZ);
     }
 
     KRATOS_CATCH("")
