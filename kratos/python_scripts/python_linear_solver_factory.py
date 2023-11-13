@@ -1,4 +1,8 @@
 import KratosMultiphysics as KM
+try:
+    import KratosMultiphysics.LinearSolversApplication
+except ImportError:
+    pass
 from KratosMultiphysics import kratos_utilities as kratos_utils
 from importlib import import_module
 
