@@ -19,26 +19,6 @@
 namespace Kratos {
 
 template <unsigned int TDim, unsigned int TNumNodes>
-TransientThermalElement<TDim, TNumNodes>::TransientThermalElement(IndexType NewId)
-    : Element(NewId)
-{
-}
-
-template <unsigned int TDim, unsigned int TNumNodes>
-TransientThermalElement<TDim, TNumNodes>::TransientThermalElement(IndexType NewId,
-                                                                  GeometryType::Pointer pGeometry)
-    : Element(NewId, pGeometry)
-{
-}
-
-template <unsigned int TDim, unsigned int TNumNodes>
-TransientThermalElement<TDim, TNumNodes>::TransientThermalElement(
-    IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
-    : Element(NewId, pGeometry, pProperties)
-{
-}
-
-template <unsigned int TDim, unsigned int TNumNodes>
 TransientThermalElement<TDim, TNumNodes>::~TransientThermalElement() = default;
 
 template <unsigned int TDim, unsigned int TNumNodes>

@@ -25,13 +25,20 @@ class KRATOS_API(GEO_MECHANICS_APPLICATION) TransientThermalElement : public Ele
 public:
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(TransientThermalElement);
 
-    explicit TransientThermalElement(IndexType NewId = 0);
+    explicit TransientThermalElement(IndexType NewId = 0) : Element(NewId) {}
 
-    TransientThermalElement(IndexType NewId, GeometryType::Pointer pGeometry);
+    TransientThermalElement(IndexType             NewId,
+                            GeometryType::Pointer pGeometry)
+            : Element(NewId, pGeometry)
+    {
+    }
 
-    TransientThermalElement(IndexType NewId,
-                            GeometryType::Pointer pGeometry,
-                            PropertiesType::Pointer pProperties);
+    TransientThermalElement(IndexType               NewId,
+                            GeometryType::Pointer   pGeometry,
+                            PropertiesType::Pointer pProperties)
+            : Element(NewId, pGeometry, pProperties)
+    {
+    }
 
     TransientThermalElement& operator=(TransientThermalElement const& rOther) = delete;
 
