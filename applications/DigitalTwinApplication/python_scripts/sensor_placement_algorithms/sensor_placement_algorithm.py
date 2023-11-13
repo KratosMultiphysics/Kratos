@@ -9,5 +9,5 @@ class SensorPlacementAlgorithm(abc.ABC):
         pass
 
     @abc.abstractmethod
-    def Execute(self, list_of_specifications: 'list[KratosDT.Sensors.SensorSpecification]') -> None:
+    def Execute(self, list_of_specifications: 'list[KratosDT.Sensors.Sensor]') -> None:
         pass
