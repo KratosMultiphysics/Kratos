@@ -46,6 +46,18 @@ void GeoLinearElasticPlaneStrain2DLaw::GetLawFeatures(Features& rFeatures)
     rFeatures.mSpaceDimension = WorkingSpaceDimension();
 }
 
+SizeType GeoLinearElasticPlaneStrain2DLaw::WorkingSpaceDimension() {
+    return Dimension;
+}
+
+SizeType GeoLinearElasticPlaneStrain2DLaw::GetStrainSize() const {
+    return VoigtSize;
+}
+
+bool GeoLinearElasticPlaneStrain2DLaw::IsIncremental() {
+    return true;
+}
+
 void GeoLinearElasticPlaneStrain2DLaw::CalculateElasticMatrix(Matrix& C, ConstitutiveLaw::Parameters& rValues)
 {
     KRATOS_TRY
@@ -144,6 +156,24 @@ void GeoLinearElasticPlaneStrain2DLaw::FinalizeMaterialResponsePK2(ConstitutiveL
 {
     // Small deformation so we can call the Cauchy method
     FinalizeMaterialResponseCauchy(rValues);
+}
+
+void GeoLinearElasticPlaneStrain2DLaw::save(Serializer &rSerializer) const {
+    KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, LinearPlaneStrainK0Law)
+    rSerializer.save("StressVector",mStressVector);
+    rSerializer.save("StressVectorFinalized",mStressVectorFinalized);
+    rSerializer.save("DeltaStrainVector",mDeltaStrainVector);
+    rSerializer.save("StrainVectorFinalized",mStrainVectorFinalized);
+    rSerializer.save("mIsModelInitialized",mIsModelInitialized);
+}
+
+void GeoLinearElasticPlaneStrain2DLaw::load(Serializer &rSerializer) {
+    KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, LinearPlaneStrainK0Law)
+    rSerializer.load("StressVector",mStressVector);
+    rSerializer.load("StressVectorFinalized",mStressVectorFinalized);
+    rSerializer.load("DeltaStrainVector",mDeltaStrainVector);
+    rSerializer.load("StrainVectorFinalized",mStrainVectorFinalized);
+    rSerializer.load("mIsModelInitialized",mIsModelInitialized);
 }
 
 } // Namespace Kratos

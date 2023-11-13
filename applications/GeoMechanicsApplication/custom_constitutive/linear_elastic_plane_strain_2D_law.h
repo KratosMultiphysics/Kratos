@@ -60,24 +60,15 @@ public:
      * @brief Dimension of the law:
      * @return The dimension were the law is working
      */
-    SizeType WorkingSpaceDimension() override
-    {
-        return Dimension;
-    }
+    SizeType WorkingSpaceDimension() override;
 
     /**
      * @brief Voigt tensor size:
      * @return The size of the strain vector in Voigt notation
      */
-    SizeType GetStrainSize() const override
-    {
-        return VoigtSize;
-    }
+    SizeType GetStrainSize() const override;
 
-    bool IsIncremental() override
-    {
-        return true;
-    }
+    bool IsIncremental() override;
 
     /**
      * @brief  Itreturns the value of a specified variable
@@ -119,23 +110,13 @@ protected:
 private:
     array_1d<double, VoigtSize> mStressVector;
     array_1d<double, VoigtSize> mStressVectorFinalized;
-
     array_1d<double, VoigtSize> mDeltaStrainVector;
     array_1d<double, VoigtSize> mStrainVectorFinalized;
     bool                        mIsModelInitialized = false;
 
-
     friend class Serializer;
-
-    void save(Serializer& rSerializer) const override
-    {
-        KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, LinearPlaneStrainK0Law)
-    }
-
-    void load(Serializer& rSerializer) override
-    {
-        KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, LinearPlaneStrainK0Law)
-    }
+    void save(Serializer& rSerializer) const override;
+    void load(Serializer& rSerializer) override;
 }; // Class GeoLinearElasticPlaneStrain2DLaw
 
 }
