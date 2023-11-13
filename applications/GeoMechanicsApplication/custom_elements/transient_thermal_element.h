@@ -217,7 +217,9 @@ private:
 
     void CheckDomainSize() const
     {
-        KRATOS_ERROR_IF(GetGeometry().DomainSize() < 1.0e-15) << "DomainSize < 1.0e-15 for element " << Id() << std::endl;
+        constexpr auto min_domain_size = 1.0e-15;
+        KRATOS_ERROR_IF(GetGeometry().DomainSize() < min_domain_size)
+            << "DomainSize smaller than " << min_domain_size << " for element " << Id() << std::endl;
     }
 
     void CheckSolutionStepsData(int rId, Kratos::Variable<double>& rVariable) const;
