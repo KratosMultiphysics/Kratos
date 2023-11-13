@@ -21,12 +21,13 @@
 
 #include "geo_mechanics_application.h"
 #include "linear_solvers_application.h"
+#include "structural_mechanics_application.h"
 #include "utilities/variable_utils.h"
+#include "custom_utilities/process_factory.hpp"
 
 namespace Kratos
 {
 
-class ProcessFactory;
 class InputUtility;
 class ProcessInfoParser;
 class Process;
@@ -85,11 +86,22 @@ private:
         });
     }
 
+    template <typename ProcessType>
+    std::function<ProcessFactory::ProductType(const Parameters&)> MakeCreatorFor()
+    {
+        return [&model = mModel](const Parameters& rProcessSettings)
+        {
+            auto& model_part = model.GetModelPart(rProcessSettings["model_part_name"].GetString());
+            return std::make_unique<ProcessType>(model_part, rProcessSettings);
+        };
+    }
+
     Kernel mKernel;
     Model mModel;
     std::string mModelPartName;
     KratosGeoMechanicsApplication::Pointer mpGeoApp;
     KratosLinearSolversApplication::Pointer mpLinearSolversApp;
+    KratosStructuralMechanicsApplication::Pointer mpStructuralMechanicsApp;
     std::unique_ptr<ProcessFactory> mProcessFactory = std::make_unique<ProcessFactory>();
     std::unique_ptr<InputUtility> mpInputUtility;
     std::unique_ptr<ProcessInfoParser> mpProcessInfoParser;
