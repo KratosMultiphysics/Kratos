@@ -61,7 +61,17 @@ public:
     int Check(const ProcessInfo& rCurrentProcessInfo) const override;
 
     void GetDofList(DofsVectorType& rElementalDofList,
-                    const ProcessInfo& rCurrentProcessInfo) const override;
+                    const ProcessInfo& ) const override
+    {
+        KRATOS_TRY
+
+        rElementalDofList.resize(TNumNodes);
+        for (unsigned int i = 0; i < TNumNodes; ++i) {
+            rElementalDofList[i] = GetGeometry()[i].pGetDof(TEMPERATURE);
+        }
+
+        KRATOS_CATCH("")
+    }
 
     void EquationIdVector(EquationIdVectorType& rResult,
                           const ProcessInfo& rCurrentProcessInfo) const override;

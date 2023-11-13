@@ -19,25 +19,6 @@
 namespace Kratos {
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void TransientThermalElement<TDim, TNumNodes>::GetDofList(DofsVectorType& rElementalDofList,
-                                                          const ProcessInfo& rCurrentProcessInfo) const
-{
-    KRATOS_TRY
-
-    constexpr unsigned int N_DOF = TNumNodes;
-    if (rElementalDofList.size() != N_DOF) {
-        rElementalDofList.resize(N_DOF);
-    }
-
-    const GeometryType& rGeom = GetGeometry();
-    for (unsigned int i = 0; i < N_DOF; ++i) {
-        rElementalDofList[i] = rGeom[i].pGetDof(TEMPERATURE);
-    }
-
-    KRATOS_CATCH("")
-}
-
-template <unsigned int TDim, unsigned int TNumNodes>
 void TransientThermalElement<TDim, TNumNodes>::EquationIdVector(
     EquationIdVectorType& rResult, const ProcessInfo& rCurrentProcessInfo) const
 {
