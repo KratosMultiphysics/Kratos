@@ -38,6 +38,9 @@ class SensorOutputProcess(Kratos.OutputProcess):
         s_name = str(self.output_file_name)
         s_name = s_name.replace("<step>", str(self.model_part.ProcessInfo[Kratos.STEP]))
         s_name = s_name.replace("<time>", str(self.model_part.ProcessInfo[Kratos.TIME]))
+        # calculate and assign values for each sensor
+        for sensor in self.list_of_sensors:
+            sensor.SetSensorValue(sensor.CalculateValue(self.model_part))
         PrintSensorViewsListToCSV(Path(s_name), self.list_of_sensors, self.properties_list)
 
 
