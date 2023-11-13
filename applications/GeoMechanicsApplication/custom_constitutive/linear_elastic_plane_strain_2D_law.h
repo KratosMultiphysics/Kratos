@@ -29,7 +29,7 @@ class KRATOS_API(GEO_MECHANICS_APPLICATION) GeoLinearElasticPlaneStrain2DLaw
     : public LinearPlaneStrainK0Law
 {
 public:
-    /// The base class ElasticIsotropicK03DLaw type definition
+    /// The base class LinearPlaneStrainK0Law type definition
     using BaseType = LinearPlaneStrainK0Law;
 
     /// The size type definition
@@ -72,6 +72,11 @@ public:
     SizeType GetStrainSize() const override
     {
         return VoigtSize;
+    }
+
+    bool IsIncremental() override
+    {
+        return true;
     }
 
     /**
