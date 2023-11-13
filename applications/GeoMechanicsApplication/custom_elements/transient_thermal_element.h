@@ -59,7 +59,21 @@ public:
         return make_intrusive<TransientThermalElement>(NewId, pGeom, pProperties);
     }
 
-    int Check(const ProcessInfo& rCurrentProcessInfo) const override;
+    int Check(const ProcessInfo&) const override
+    {
+        KRATOS_TRY
+
+        CheckDomainSize();
+        CheckHasSolutionStepsDataFor(TEMPERATURE);
+        CheckHasSolutionStepsDataFor(DT_TEMPERATURE);
+        CheckHasDofsFor(TEMPERATURE);
+        CheckProperties();
+        CheckForNonZeroZCoordinateIn2D();
+
+        KRATOS_CATCH("")
+
+        return 0;
+    }
 
     void GetDofList(DofsVectorType& rElementalDofList,
                     const ProcessInfo& ) const override

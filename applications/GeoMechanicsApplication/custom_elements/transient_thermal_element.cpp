@@ -16,23 +16,6 @@
 
 namespace Kratos {
 
-template <unsigned int TDim, unsigned int TNumNodes>
-int TransientThermalElement<TDim, TNumNodes>::Check(const ProcessInfo& rCurrentProcessInfo) const
-{
-    KRATOS_TRY
-
-    CheckDomainSize();
-    CheckHasSolutionStepsDataFor(TEMPERATURE);
-    CheckHasSolutionStepsDataFor(DT_TEMPERATURE);
-    CheckHasDofsFor(TEMPERATURE);
-    CheckProperties();
-    CheckForNonZeroZCoordinateIn2D();
-
-    KRATOS_CATCH("")
-
-    return 0;
-}
-
 template class TransientThermalElement<2, 3>;
 template class TransientThermalElement<2, 4>;
 template class TransientThermalElement<2, 6>;
