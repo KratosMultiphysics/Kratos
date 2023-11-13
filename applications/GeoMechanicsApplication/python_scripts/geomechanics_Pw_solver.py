@@ -157,27 +157,22 @@ class PwSolver(GeoSolver):
 
         D_RT = self.settings["water_pressure_relative_tolerance"].GetDouble()
         D_AT = self.settings["water_pressure_absolute_tolerance"].GetDouble()
-        R_RT = self.settings["residual_relative_tolerance"].GetDouble()
-        R_AT = self.settings["residual_absolute_tolerance"].GetDouble()
         echo_level = self.settings["echo_level"].GetInt()
 
         if (convergence_criterion.lower() == "water_pressure_criterion"):
             convergence_criterion = KratosMultiphysics.MixedGenericCriteria([(KratosMultiphysics.WATER_PRESSURE, D_RT, D_AT)])
             convergence_criterion.SetEchoLevel(echo_level)
         elif (convergence_criterion.lower() == "residual_criterion"):
-            convergence_criterion = KratosMultiphysics.ResidualCriteria(R_RT, R_AT)
-            convergence_criterion.SetEchoLevel(echo_level)
+            convergence_criterion = self._GetResidualCriterion()
         elif (convergence_criterion.lower() == "and_criterion"):
             WaterPressure = KratosMultiphysics.MixedGenericCriteria([(KratosMultiphysics.WATER_PRESSURE, D_RT, D_AT)])
             WaterPressure.SetEchoLevel(echo_level)
-            Residual = KratosMultiphysics.ResidualCriteria(R_RT, R_AT)
-            Residual.SetEchoLevel(echo_level)
+            Residual = self._GetResidualCriterion()
             convergence_criterion = KratosMultiphysics.AndCriteria(Residual, WaterPressure)
         elif (convergence_criterion.lower() == "or_criterion"):
             WaterPressure = KratosMultiphysics.MixedGenericCriteria([(KratosMultiphysics.WATER_PRESSURE, D_RT, D_AT)])
             WaterPressure.SetEchoLevel(echo_level)
-            Residual = KratosMultiphysics.ResidualCriteria(R_RT, R_AT)
-            Residual.SetEchoLevel(echo_level)
+            Residual = self._GetResidualCriterion()
             convergence_criterion = KratosMultiphysics.OrCriteria(Residual, WaterPressure)
         else:
             err_msg =  "The requested convergence criterion \"" + convergence_criterion + "\" is not available!\n"

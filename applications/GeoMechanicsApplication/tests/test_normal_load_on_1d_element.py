@@ -75,7 +75,7 @@ class KratosGeoMechanicsNormalLoad1DTests(KratosUnittest.TestCase):
         for diff in relative_difference:
             self.assertAlmostEqual(diff, 0, places=3)
 
-    @KratosUnittest.skip("unit test skipped due to problem in the core, remove skip statement after #10950 is solved")
+    # @KratosUnittest.skip("unit test skipped due to problem in the core, remove skip statement after #10950 is solved")
     def test_normal_load_on_beam_higher_order(self):
         """
         Tests the deflection of a beam following a normal load.

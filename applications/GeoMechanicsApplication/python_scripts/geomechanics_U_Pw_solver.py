@@ -222,22 +222,15 @@ class UPwSolver(GeoSolver):
             convergence_criterion = KratosMultiphysics.DisplacementCriteria(D_RT, D_AT)
             convergence_criterion.SetEchoLevel(echo_level)
         elif (convergence_criterion.lower() == "residual_criterion"):
-            convergence_criterion = KratosMultiphysics.ResidualCriteria(R_RT, R_AT)
-            # other_dof_name = "WATER_PRESSURE"
-            # convergence_criterion = KratosStructure.ResidualDisplacementAndOtherDoFCriteria(R_RT, R_AT, other_dof_name)
-            convergence_criterion.SetEchoLevel(echo_level)
+            convergence_criterion = self._GetResidualCriterion()
         elif (convergence_criterion.lower() == "and_criterion"):
             Displacement = KratosMultiphysics.DisplacementCriteria(D_RT, D_AT)
             Displacement.SetEchoLevel(echo_level)
-            Residual = KratosMultiphysics.ResidualCriteria(R_RT, R_AT)
-            # other_dof_name = "WATER_PRESSURE"
-            # Residual = KratosStructure.ResidualDisplacementAndOtherDoFCriteria(R_RT, R_AT, other_dof_name)
-            Residual.SetEchoLevel(echo_level)
+            Residual = self._GetResidualCriterion()
             convergence_criterion = KratosMultiphysics.AndCriteria(Residual, Displacement)
         elif (convergence_criterion.lower() == "or_criterion"):
             Displacement = KratosMultiphysics.DisplacementCriteria(D_RT, D_AT)
             Displacement.SetEchoLevel(echo_level)
-            # Residual = KratosMultiphysics.ResidualCriteria(R_RT, R_AT)
             other_dof_name = "WATER_PRESSURE"
             Residual = KratosStructure.ResidualDisplacementAndOtherDoFCriteria(R_RT, R_AT, other_dof_name)
             Residual.SetEchoLevel(echo_level)

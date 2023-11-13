@@ -119,54 +119,52 @@ class TSolver(GeoSolver):
             KratosMultiphysics.Logger.PrintInfo("GeoMechanics_T_Solver, solution_type", solution_type)
             if solution_type.lower() == "transient-heat-transfer" or solution_type.lower() == "transient_heat_transfer":
                 KratosMultiphysics.Logger.PrintInfo("GeoMechanics_T_Solver, scheme", "Newmark Transient heat transfer.")
-                scheme = KratosGeo.NewmarkQuasistaticTScheme(theta)
+                scheme = KratosGeo.NewmarkTScheme(theta)
             elif solution_type.lower() == "steady-state-heat-transfer" or solution_type.lower() == "steady_state_heat_transfer":
-                KratosMultiphysics.Logger.PrintInfo("GeoMechanics_T_Solver, scheme", "Newmark Steady-state heat transfer.")
-                scheme = KratosGeo.NewmarkQuasistaticTScheme(theta)
-
+                raise Exception("Steady state heat transfer calculations are not supported.")
             else:
                 raise Exception("Undefined solution type", solution_type)
+
         elif scheme_type.lower() == "backward_euler":
             if solution_type.lower() == "transient-heat-transfer" or solution_type.lower() == "transient_heat_transfer":
                 KratosMultiphysics.Logger.PrintInfo("GeoMechanics_T_Solver, scheme", "Backward Euler Transient heat transfer.")
-                scheme = KratosGeo.BackwardEulerQuasistaticTScheme()
+                scheme = KratosGeo.BackwardEulerTScheme()
             elif solution_type.lower() == "steady-state-heat-transfer" or solution_type.lower() == "steady_state_heat_transfer":
-                KratosMultiphysics.Logger.PrintInfo("GeoMechanics_T_Solver, scheme", "Backward Euler Steady-state heat transfer.")
-                scheme = KratosGeo.BackwardEulerQuasistaticTScheme()
+                raise Exception("Steady state heat transfer calculations are not supported.")
+            else:
+                raise Exception("Undefined solution type", solution_type)
+
         else:
             raise Exception("Apart from Newmark and Backward Euler, no other scheme_type is available for thermal calculations.")
 
         return scheme
 
+
+
     def _ConstructConvergenceCriterion(self, convergence_criterion):
-
-        t_rt = self.settings["temperature_relative_tolerance"].GetDouble()
-        t_at = self.settings["temperature_absolute_tolerance"].GetDouble()
-        r_rt = self.settings["residual_relative_tolerance"].GetDouble()
-        r_at = self.settings["residual_absolute_tolerance"].GetDouble()
-        echo_level = self.settings["echo_level"].GetInt()
-
         if convergence_criterion.lower() == "temperature_criterion":
-            convergence_criterion = KratosMultiphysics.MixedGenericCriteria([(KratosMultiphysics.TEMPERATURE, t_rt, t_at)])
-            convergence_criterion.SetEchoLevel(echo_level)
+            return self._GetTemperatureCriterion()
         elif convergence_criterion.lower() == "residual_criterion":
-            convergence_criterion = KratosMultiphysics.ResidualCriteria(r_rt, r_at)
-            convergence_criterion.SetEchoLevel(echo_level)
+            return self._GetResidualCriterion()
         elif convergence_criterion.lower() == "and_criterion":
-            temperature = KratosMultiphysics.MixedGenericCriteria([(KratosMultiphysics.TEMPERATURE, t_rt, t_at)])
-            temperature.SetEchoLevel(echo_level)
-            residual = KratosMultiphysics.ResidualCriteria(r_rt, r_at)
-            residual.SetEchoLevel(echo_level)
-            convergence_criterion = KratosMultiphysics.AndCriteria(residual, temperature)
+            temperature = self._GetTemperatureCriterion()
+            residual = self._GetResidualCriterion()
+            return KratosMultiphysics.AndCriteria(residual, temperature)
         elif convergence_criterion.lower() == "or_criterion":
-            temperature = KratosMultiphysics.MixedGenericCriteria([(KratosMultiphysics.TEMPERATURE, t_rt, t_at)])
-            temperature.SetEchoLevel(echo_level)
-            residual = KratosMultiphysics.ResidualCriteria(r_rt, r_at)
-            residual.SetEchoLevel(echo_level)
-            convergence_criterion = KratosMultiphysics.OrCriteria(residual, temperature)
+            temperature = self._GetTemperatureCriterion()
+            residual = self._GetResidualCriterion()
+            return KratosMultiphysics.OrCriteria(residual, temperature)
         else:
             err_msg = "The requested convergence criterion \"" + convergence_criterion + "\" is not available!\n"
             err_msg += "Available options are: \"temperature_criterion\", \"residual_criterion\", \"and_criterion\", \"or_criterion\""
             raise Exception(err_msg)
 
-        return convergence_criterion
+    def _GetTemperatureCriterion(self):
+        t_rt = self.settings["temperature_relative_tolerance"].GetDouble()
+        t_at = self.settings["temperature_absolute_tolerance"].GetDouble()
+        echo_level = self.settings["echo_level"].GetInt()
+
+        temperature = KratosMultiphysics.MixedGenericCriteria([(KratosMultiphysics.TEMPERATURE, t_rt, t_at)])
+        temperature.SetEchoLevel(echo_level)
+
+        return temperature
