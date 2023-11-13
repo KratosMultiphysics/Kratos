@@ -68,32 +68,6 @@ int TransientThermalElement<TDim, TNumNodes>::Check(const ProcessInfo& rCurrentP
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void TransientThermalElement<TDim, TNumNodes>::CalculateLocalSystem(
-    MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo)
-{
-    KRATOS_TRY
-
-    constexpr unsigned int N_DOF = TNumNodes;
-    noalias(rLeftHandSideMatrix)  = ZeroMatrix(N_DOF, N_DOF);
-    noalias(rRightHandSideVector) = ZeroVector(N_DOF);
-
-    GeometryType::ShapeFunctionsGradientsType DN_DXContainer;
-    Vector detJContainer;
-    GetGeometry().ShapeFunctionsIntegrationPointsGradients(DN_DXContainer, detJContainer, GetIntegrationMethod());
-
-    const auto integration_coefficients = CalculateIntegrationCoefficients(detJContainer);
-    const auto conductivity_matrix =
-        CalculateConductivityMatrix(DN_DXContainer, integration_coefficients, rCurrentProcessInfo);
-    const auto capacity_matrix = CalculateCapacityMatrix(integration_coefficients);
-
-    AddContributionsToLhsMatrix(rLeftHandSideMatrix, conductivity_matrix, capacity_matrix,
-                                rCurrentProcessInfo[DT_TEMPERATURE_COEFFICIENT]);
-    AddContributionsToRhsVector(rRightHandSideVector, conductivity_matrix, capacity_matrix);
-
-    KRATOS_CATCH("")
-}
-
-template <unsigned int TDim, unsigned int TNumNodes>
 GeometryData::IntegrationMethod TransientThermalElement<TDim, TNumNodes>::GetIntegrationMethod() const
 {
     using Data = GeometryData::IntegrationMethod;
