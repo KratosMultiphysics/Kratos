@@ -70,19 +70,6 @@ int TransientThermalElement<TDim, TNumNodes>::Check(const ProcessInfo& rCurrentP
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-Vector TransientThermalElement<TDim, TNumNodes>::CalculateIntegrationCoefficients(const Vector& detJContainer) const
-{
-    const auto& IntegrationPoints = GetGeometry().IntegrationPoints(GetIntegrationMethod());
-
-    Vector result{IntegrationPoints.size()};
-    for (unsigned int GPoint = 0; GPoint < IntegrationPoints.size(); ++GPoint) {
-        result[GPoint] = IntegrationPoints[GPoint].Weight() * detJContainer[GPoint];
-    }
-
-    return result;
-}
-
-template <unsigned int TDim, unsigned int TNumNodes>
 BoundedMatrix<double, TNumNodes, TNumNodes>
 TransientThermalElement<TDim, TNumNodes>::CalculateConductivityMatrix(const GeometryType::ShapeFunctionsGradientsType& rShapeFunctionGradients,
                                                                       const Vector& rIntegrationCoefficients,

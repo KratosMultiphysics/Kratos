@@ -113,7 +113,17 @@ private:
         GeoElementUtilities::AssemblePBlockVector<0, TNumNodes>(rRightHandSideVector, conductivity_vector);
     }
 
-    Vector CalculateIntegrationCoefficients(const Vector& detJContainer) const;
+    Vector CalculateIntegrationCoefficients(const Vector& rDetJContainer) const
+    {
+        const auto& r_integration_points = GetGeometry().IntegrationPoints(GetIntegrationMethod());
+
+        auto result = Vector{r_integration_points.size()};
+        for (unsigned int GPoint = 0; GPoint < r_integration_points.size(); ++GPoint) {
+            result[GPoint] = r_integration_points[GPoint].Weight() * rDetJContainer[GPoint];
+        }
+
+        return result;
+    }
 
     BoundedMatrix<double, TNumNodes, TNumNodes> CalculateConductivityMatrix(const GeometryType::ShapeFunctionsGradientsType& rShapeFunctionGradients,
                                                                             const Vector& rIntegrationCoefficients,
