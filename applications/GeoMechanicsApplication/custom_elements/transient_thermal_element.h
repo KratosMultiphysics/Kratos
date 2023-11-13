@@ -16,6 +16,7 @@
 
 #include "custom_utilities/element_utilities.hpp"
 #include "geo_mechanics_application_variables.h"
+#include "custom_constitutive/thermal_dispersion_law.h"
 #include "includes/serializer.h"
 
 namespace Kratos {
@@ -127,7 +128,20 @@ private:
 
     BoundedMatrix<double, TNumNodes, TNumNodes> CalculateConductivityMatrix(const GeometryType::ShapeFunctionsGradientsType& rShapeFunctionGradients,
                                                                             const Vector& rIntegrationCoefficients,
-                                                                            const ProcessInfo& rCurrentProcessInfo) const;
+                                                                            const ProcessInfo& rCurrentProcessInfo) const
+    {
+        GeoThermalDispersionLaw law{TDim};
+        const auto constitutive_matrix =
+                law.CalculateThermalDispersionMatrix(GetProperties(), rCurrentProcessInfo, GetGeometry());
+
+        auto result = BoundedMatrix<double, TNumNodes, TNumNodes>{ZeroMatrix{TNumNodes, TNumNodes}};
+        for (unsigned int GPoint = 0; GPoint < GetGeometry().IntegrationPointsNumber(GetIntegrationMethod()); ++GPoint) {
+            BoundedMatrix<double, TDim, TNumNodes> Temp = prod(constitutive_matrix, trans(rShapeFunctionGradients[GPoint]));
+            result += prod(rShapeFunctionGradients[GPoint], Temp) * rIntegrationCoefficients[GPoint];
+        }
+
+        return result;
+    }
 
     BoundedMatrix<double, TNumNodes, TNumNodes> CalculateCapacityMatrix(const Vector& rIntegrationCoefficients) const
     {

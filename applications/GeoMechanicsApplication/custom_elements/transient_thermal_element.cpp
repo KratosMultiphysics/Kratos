@@ -13,8 +13,6 @@
 //
 
 #include "custom_elements/transient_thermal_element.h"
-#include "custom_constitutive/thermal_dispersion_law.h"
-#include "includes/condition.h"
 
 namespace Kratos {
 
@@ -67,25 +65,6 @@ int TransientThermalElement<TDim, TNumNodes>::Check(const ProcessInfo& rCurrentP
     KRATOS_CATCH("")
 
     return 0;
-}
-
-template <unsigned int TDim, unsigned int TNumNodes>
-BoundedMatrix<double, TNumNodes, TNumNodes>
-TransientThermalElement<TDim, TNumNodes>::CalculateConductivityMatrix(const GeometryType::ShapeFunctionsGradientsType& rShapeFunctionGradients,
-                                                                      const Vector& rIntegrationCoefficients,
-                                                                      const ProcessInfo& rCurrentProcessInfo) const
-{
-    GeoThermalDispersionLaw geo(TDim);
-    const auto constitutive_matrix =
-        geo.CalculateThermalDispersionMatrix(GetProperties(), rCurrentProcessInfo, GetGeometry());
-
-    auto result = BoundedMatrix<double, TNumNodes, TNumNodes>{ZeroMatrix{TNumNodes, TNumNodes}};
-    for (unsigned int GPoint = 0; GPoint < GetGeometry().IntegrationPointsNumber(GetIntegrationMethod()); ++GPoint) {
-        BoundedMatrix<double, TDim, TNumNodes> Temp = prod(constitutive_matrix, trans(rShapeFunctionGradients[GPoint]));
-        result += prod(rShapeFunctionGradients[GPoint], Temp) * rIntegrationCoefficients[GPoint];
-    }
-
-    return result;
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
