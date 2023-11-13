@@ -49,14 +49,14 @@ public:
                             const NodesArrayType&   rThisNodes,
                             PropertiesType::Pointer pProperties) const override
     {
-        return Element::Pointer{new TransientThermalElement{NewId, GetGeometry().Create(rThisNodes), pProperties}};
+        return make_intrusive<TransientThermalElement>(NewId, GetGeometry().Create(rThisNodes), pProperties);
     }
 
     Element::Pointer Create(IndexType               NewId,
                             GeometryType::Pointer   pGeom,
                             PropertiesType::Pointer pProperties) const override
     {
-        return Element::Pointer{new TransientThermalElement{NewId, pGeom, pProperties}};
+        return make_intrusive<TransientThermalElement>(NewId, pGeom, pProperties);
     }
 
     int Check(const ProcessInfo& rCurrentProcessInfo) const override;
