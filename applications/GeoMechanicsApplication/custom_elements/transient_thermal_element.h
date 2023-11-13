@@ -14,7 +14,7 @@
 
 #pragma once
 
-#include "custom_utilities/element_utilities.hpp"
+#include "includes/element.h"
 #include "geo_mechanics_application_variables.h"
 #include "custom_constitutive/thermal_dispersion_law.h"
 #include "includes/serializer.h"
@@ -30,14 +30,14 @@ public:
 
     TransientThermalElement(IndexType             NewId,
                             GeometryType::Pointer pGeometry)
-            : Element(NewId, pGeometry)
+        : Element(NewId, pGeometry)
     {
     }
 
     TransientThermalElement(IndexType               NewId,
                             GeometryType::Pointer   pGeometry,
                             PropertiesType::Pointer pProperties)
-            : Element(NewId, pGeometry, pProperties)
+        : Element(NewId, pGeometry, pProperties)
     {
     }
 
@@ -115,11 +115,8 @@ public:
                 CalculateConductivityMatrix(DN_DXContainer, integration_coefficients, rCurrentProcessInfo);
         const auto capacity_matrix = CalculateCapacityMatrix(integration_coefficients);
 
-        noalias(rLeftHandSideMatrix) = ZeroMatrix(TNumNodes, TNumNodes);
         AddContributionsToLhsMatrix(rLeftHandSideMatrix, conductivity_matrix, capacity_matrix,
                                     rCurrentProcessInfo[DT_TEMPERATURE_COEFFICIENT]);
-
-        noalias(rRightHandSideVector) = ZeroVector(TNumNodes);
         AddContributionsToRhsVector(rRightHandSideVector, conductivity_matrix, capacity_matrix);
 
         KRATOS_CATCH("")
@@ -151,9 +148,8 @@ private:
                                             const BoundedMatrix<double, TNumNodes, TNumNodes>& rCapacityMatrix,
                                             double                                             DtTemperatureCoefficient)
     {
-        GeoElementUtilities::AssemblePBlockMatrix<0, TNumNodes>(rLeftHandSideMatrix, rConductivityMatrix);
-        GeoElementUtilities::AssemblePBlockMatrix<0, TNumNodes>(rLeftHandSideMatrix,
-                                                                DtTemperatureCoefficient * rCapacityMatrix);
+        rLeftHandSideMatrix = rConductivityMatrix;
+        rLeftHandSideMatrix += (DtTemperatureCoefficient * rCapacityMatrix);
     }
 
     void AddContributionsToRhsVector(VectorType&                                        rRightHandSideVector,
@@ -162,11 +158,10 @@ private:
     {
         const auto capacity_vector =
                 array_1d<double, TNumNodes>{-prod(rCapacityMatrix, GetNodalValuesOf(DT_TEMPERATURE))};
-        GeoElementUtilities::AssemblePBlockVector<0, TNumNodes>(rRightHandSideVector, capacity_vector);
-
+        rRightHandSideVector = capacity_vector;
         const auto conductivity_vector =
                 array_1d<double, TNumNodes>{-prod(rConductivityMatrix, GetNodalValuesOf(TEMPERATURE))};
-        GeoElementUtilities::AssemblePBlockVector<0, TNumNodes>(rRightHandSideVector, conductivity_vector);
+        rRightHandSideVector += conductivity_vector;
     }
 
     Vector CalculateIntegrationCoefficients(const Vector& rDetJContainer) const
