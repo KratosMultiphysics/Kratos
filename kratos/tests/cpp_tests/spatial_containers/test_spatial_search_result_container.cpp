@@ -143,6 +143,30 @@ KRATOS_TEST_CASE_IN_SUITE(SpatialSearchResultContainerGetResultShapeFunctions, K
     KRATOS_EXPECT_FALSE(is_inside_false[0]);
 }
 
+KRATOS_TEST_CASE_IN_SUITE(SpatialSearchResultContainerGetResultIsLocal, KratosCoreFastSuite)
+{
+    // Create a test object
+    SpatialSearchResultContainer<GeometricalObject> container;
+
+    // Create a test result
+    GeometricalObject object = GeometricalObject(1);
+    SpatialSearchResult<GeometricalObject> result(&object);
+
+    // Add the result to the container
+    container.AddResult(result);
+
+    // Synchronize the container between partitions
+    DataCommunicator data_communicator;
+    container.SynchronizeAll(data_communicator);
+
+    // Compute is local
+    auto is_local = container.GetResultIsLocal();
+
+    // Check is local
+    KRATOS_EXPECT_EQ(is_local.size(), 1);
+    KRATOS_EXPECT_TRUE(is_local[0]);
+}
+
 KRATOS_TEST_CASE_IN_SUITE(SpatialSearchResultContainerGetResultIsActive, KratosCoreFastSuite)
 {
     // Create a test object

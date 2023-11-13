@@ -157,6 +157,38 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISpatialSearchResultContainerGetResultSh
     }
 }
 
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISpatialSearchResultContainerGetResultIsLocal, KratosMPICoreFastSuite)
+{
+    // The data communicator
+    const DataCommunicator& r_data_comm = Testing::GetDefaultDataCommunicator();
+
+    // Create a test object
+    SpatialSearchResultContainer<GeometricalObject> container;
+
+    // Create a test result
+    GeometricalObject object = GeometricalObject(r_data_comm.Rank() + 1);
+    SpatialSearchResult<GeometricalObject> result(&object);
+
+    // Add the result to the container
+    container.AddResult(result);
+
+    // Synchronize the container between partitions
+    container.SynchronizeAll(r_data_comm);
+
+    // Compute is local
+    auto is_local = container.GetResultIsActive();
+
+    // Check is local
+    KRATOS_EXPECT_EQ(static_cast<int>(is_local.size()), r_data_comm.Size());
+    for (int i_rank = 0; i_rank < r_data_comm.Size(); ++i_rank) {
+        if (i_rank == r_data_comm.Rank()) {
+            KRATOS_EXPECT_TRUE(static_cast<int>(is_local[i_rank]));
+        } else {
+            KRATOS_EXPECT_FALSE(static_cast<int>(is_local[i_rank]));
+        }
+    }
+}
+
 KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISpatialSearchResultContainerGetResultIsActive, KratosMPICoreFastSuite)
 {
     // The data communicator
@@ -195,7 +227,6 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISpatialSearchResultContainerGetResultIs
     for (int i_rank = 0; i_rank < r_data_comm.Size(); ++i_rank) {
         KRATOS_EXPECT_FALSE(static_cast<int>(is_active[i_rank]));
     }
-
 }
 
 KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISpatialSearchResultContainerGetResultIndices, KratosMPICoreFastSuite)

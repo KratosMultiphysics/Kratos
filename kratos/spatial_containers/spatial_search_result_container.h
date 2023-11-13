@@ -458,6 +458,12 @@ public:
     std::vector<double> GetDistances();
 
     /**
+     * @brief Retrieves if is local the entity
+     * @return A vector containing all the booleans showing is local the entity
+     */
+    std::vector<bool> GetResultIsLocal();
+
+    /**
      * @brief Retrieves if is active the entity
      * @return A vector containing all the booleans showing is active the entity
      */
