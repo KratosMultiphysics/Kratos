@@ -68,15 +68,6 @@ int TransientThermalElement<TDim, TNumNodes>::Check(const ProcessInfo& rCurrentP
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void TransientThermalElement<TDim, TNumNodes>::CheckDomainSize() const
-{
-    const GeometryType& rGeom = GetGeometry();
-    if (rGeom.DomainSize() < 1.0e-15) {
-        KRATOS_ERROR << "DomainSize < 1.0e-15 for the element " << Id() << std::endl;
-    }
-}
-
-template <unsigned int TDim, unsigned int TNumNodes>
 void TransientThermalElement<TDim, TNumNodes>::CheckSolutionStepsData(
     int rId, Kratos::Variable<double>& rVariable) const
 {

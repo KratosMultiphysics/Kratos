@@ -215,7 +215,11 @@ private:
                                                           << Id() << std::endl;
     }
 
-    void CheckDomainSize() const;
+    void CheckDomainSize() const
+    {
+        KRATOS_ERROR_IF(GetGeometry().DomainSize() < 1.0e-15) << "DomainSize < 1.0e-15 for element " << Id() << std::endl;
+    }
+
     void CheckSolutionStepsData(int rId, Kratos::Variable<double>& rVariable) const;
 
     friend class Serializer;
