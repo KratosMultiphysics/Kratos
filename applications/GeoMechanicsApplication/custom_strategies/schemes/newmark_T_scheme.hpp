@@ -62,16 +62,9 @@ public:
     void CheckAllocatedVariables(const ModelPart& rModelPart) const
     {
         for (const auto& r_node : rModelPart.Nodes()) {
-            KRATOS_ERROR_IF(!r_node.SolutionStepsDataHas(TEMPERATURE))
-                << "TEMPERATURE variable is not allocated for node "
-                << r_node.Id() << std::endl;
-
-            KRATOS_ERROR_IF(!r_node.SolutionStepsDataHas(DT_TEMPERATURE))
-                << "DT_TEMPERATURE variable is not allocated for node "
-                << r_node.Id() << std::endl;
-
-            KRATOS_ERROR_IF(!r_node.HasDofFor(TEMPERATURE))
-                << "missing TEMPERATURE dof on node " << r_node.Id() << std::endl;
+            this->CheckSolutionStepsData(r_node, TEMPERATURE);
+            this->CheckSolutionStepsData(r_node, DT_TEMPERATURE);
+            this->CheckDof(r_node, TEMPERATURE);
         }
     }
 
