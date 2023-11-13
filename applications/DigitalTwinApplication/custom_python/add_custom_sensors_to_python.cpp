@@ -16,12 +16,12 @@
 #include <pybind11/stl.h>
 
 // Project includes
+#include "response_functions/adjoint_response_function.h"
 
 // Application includes
-#include "custom_sensors/sensor_specification.h"
-#include "custom_sensors/sensor_specification_view.h"
-#include "custom_sensors/adjoint_sensor.h"
-#include "custom_sensors/adjoint_displacement_sensor.h"
+#include "custom_sensors/sensor.h"
+#include "custom_sensors/sensor_view.h"
+#include "custom_sensors/displacement_sensor.h"
 
 // Include base h
 #include "custom_python/add_custom_sensors_to_python.h"
@@ -35,60 +35,60 @@ void  AddCustomSensorsToPython(pybind11::module& m)
     auto sensor_module = m.def_submodule("Sensors");
 
     // Add sensor specifications
-    py::class_<SensorSpecification, SensorSpecification::Pointer, IndexedObject, DataValueContainer>(sensor_module, "SensorSpecification")
-        .def(py::init<const std::string&, const IndexType>(), py::arg("sensor_type"), py::arg("sensor_id"))
-        .def("GetType", &SensorSpecification::GetType)
-        .def("SetLocation", &SensorSpecification::SetLocation, py::arg("new_location"))
-        .def("GetLocation", &SensorSpecification::GetLocation)
-        .def("SetSensorValue", &SensorSpecification::SetSensorValue, py::arg("sensor_value"))
-        .def("GetSensorValue", &SensorSpecification::GetSensorValue)
-        .def("AddNodalExpression", &SensorSpecification::AddNodalExpression, py::arg("nodal_expression_name"), py::arg("nodal_expression"))
-        .def("GetNodalExpression", &SensorSpecification::GetNodalExpression, py::arg("nodal_expression_name"))
-        .def("GetNodalExpressionsMap", &SensorSpecification::GetNodalExpressionsMap)
-        .def("AddConditionExpression", &SensorSpecification::AddConditionExpression, py::arg("condition_expression_name"), py::arg("condition_expression"))
-        .def("GetConditionExpression", &SensorSpecification::GetConditionExpression, py::arg("condition_expression_name"))
-        .def("GetConditionExpressionsMap", &SensorSpecification::GetConditionExpressionsMap)
-        .def("AddElementExpression", &SensorSpecification::AddElementExpression, py::arg("element_expression_name"), py::arg("element_expression"))
-        .def("GetElementExpression", &SensorSpecification::GetElementExpression, py::arg("element_expression_name"))
-        .def("GetElementExpressionsMap", &SensorSpecification::GetElementExpressionsMap)
-        .def("GetDataVariableNames", &SensorSpecification::GetDataVariableNames)
-        .def("ClearNodalExpressions", &SensorSpecification::ClearNodalExpressions)
-        .def("ClearConditionExpressions", &SensorSpecification::ClearConditionExpressions)
-        .def("ClearElementExpressions", &SensorSpecification::ClearElementExpressions)
-        .def("__str__", PrintObject<SensorSpecification>);
+    py::class_<Sensor, Sensor::Pointer, AdjointResponseFunction, DataValueContainer>(sensor_module, "Sensor")
+        .def("GetName", &Sensor::GetName)
+        .def("GetLocation", &Sensor::GetLocation)
+        .def("GetWeight", &Sensor::GetWeight)
+        .def("GetSensorValue", &Sensor::GetSensorValue)
+        .def("SetSensorValue", &Sensor::SetSensorValue)
+        .def("GetSensorParameters", &Sensor::GetSensorParameters)
+        .def("AddNodalExpression", &Sensor::AddNodalExpression, py::arg("nodal_expression_name"), py::arg("nodal_expression"))
+        .def("GetNodalExpression", &Sensor::GetNodalExpression, py::arg("nodal_expression_name"))
+        .def("GetNodalExpressionsMap", &Sensor::GetNodalExpressionsMap)
+        .def("AddConditionExpression", &Sensor::AddConditionExpression, py::arg("condition_expression_name"), py::arg("condition_expression"))
+        .def("GetConditionExpression", &Sensor::GetConditionExpression, py::arg("condition_expression_name"))
+        .def("GetConditionExpressionsMap", &Sensor::GetConditionExpressionsMap)
+        .def("AddElementExpression", &Sensor::AddElementExpression, py::arg("element_expression_name"), py::arg("element_expression"))
+        .def("GetElementExpression", &Sensor::GetElementExpression, py::arg("element_expression_name"))
+        .def("GetElementExpressionsMap", &Sensor::GetElementExpressionsMap)
+        .def("GetDataVariableNames", &Sensor::GetDataVariableNames)
+        .def("ClearNodalExpressions", &Sensor::ClearNodalExpressions)
+        .def("ClearConditionExpressions", &Sensor::ClearConditionExpressions)
+        .def("ClearElementExpressions", &Sensor::ClearElementExpressions)
+        .def("__str__", PrintObject<Sensor>);
         ;
 
-    using nodal_sensor_specification_view = SensorSpecificationView<ModelPart::NodesContainerType>;
-    py::class_<nodal_sensor_specification_view, nodal_sensor_specification_view::Pointer>(sensor_module, "NodalSensorSpecificationView")
-        .def(py::init<SensorSpecification::Pointer, const std::string&>(), py::arg("sensor_specification"), py::arg("expression_name"))
-        .def("GetSensorSpecification", &nodal_sensor_specification_view::GetSensorSpecification)
-        .def("GetContainerExpression", &nodal_sensor_specification_view::GetContainerExpression)
-        .def("__str__", PrintObject<nodal_sensor_specification_view>);
+    using nodal_sensor_view = SensorView<ModelPart::NodesContainerType>;
+    py::class_<nodal_sensor_view, nodal_sensor_view::Pointer>(sensor_module, "NodalSensorView")
+        .def(py::init<Sensor::Pointer, const std::string&>(), py::arg("sensor"), py::arg("expression_name"))
+        .def("GetSensor", &nodal_sensor_view::GetSensor)
+        .def("GetContainerExpression", &nodal_sensor_view::GetContainerExpression)
+        .def("__str__", PrintObject<nodal_sensor_view>);
         ;
 
-    using condition_sensor_specification_view = SensorSpecificationView<ModelPart::ConditionsContainerType>;
-    py::class_<condition_sensor_specification_view, condition_sensor_specification_view::Pointer>(sensor_module, "ConditionSensorSpecificationView")
-        .def(py::init<SensorSpecification::Pointer, const std::string&>(), py::arg("sensor_specification"), py::arg("expression_name"))
-        .def("GetSensorSpecification", &condition_sensor_specification_view::GetSensorSpecification)
-        .def("GetContainerExpression", &condition_sensor_specification_view::GetContainerExpression)
-        .def("__str__", PrintObject<condition_sensor_specification_view>);
+    using condition_sensor_view = SensorView<ModelPart::ConditionsContainerType>;
+    py::class_<condition_sensor_view, condition_sensor_view::Pointer>(sensor_module, "ConditionSensorView")
+        .def(py::init<Sensor::Pointer, const std::string&>(), py::arg("sensor"), py::arg("expression_name"))
+        .def("GetSensor", &condition_sensor_view::GetSensor)
+        .def("GetContainerExpression", &condition_sensor_view::GetContainerExpression)
+        .def("__str__", PrintObject<condition_sensor_view>);
         ;
 
-    using element_sensor_specification_view = SensorSpecificationView<ModelPart::ElementsContainerType>;
-    py::class_<element_sensor_specification_view, element_sensor_specification_view::Pointer>(sensor_module, "ElementSensorSpecificationView")
-        .def(py::init<SensorSpecification::Pointer, const std::string&>(), py::arg("sensor_specification"), py::arg("expression_name"))
-        .def("GetSensorSpecification", &element_sensor_specification_view::GetSensorSpecification)
-        .def("GetContainerExpression", &element_sensor_specification_view::GetContainerExpression)
-        .def("__str__", PrintObject<element_sensor_specification_view>);
+    using element_sensor_view = SensorView<ModelPart::ElementsContainerType>;
+    py::class_<element_sensor_view, element_sensor_view::Pointer>(sensor_module, "ElementSensorView")
+        .def(py::init<Sensor::Pointer, const std::string&>(), py::arg("sensor"), py::arg("expression_name"))
+        .def("GetSensor", &element_sensor_view::GetSensor)
+        .def("GetContainerExpression", &element_sensor_view::GetContainerExpression)
+        .def("__str__", PrintObject<element_sensor_view>);
         ;
 
-    // Add sensor adjint responses
-    py::class_<AdjointSensor, AdjointSensor::Pointer, AdjointResponseFunction>(sensor_module, "AdjointSensor")
-        .def("SetSensorSpecification", &AdjointSensor::SetSensorSpecification, py::arg("sensor_specification"))
-        ;
-
-    py::class_<AdjointDisplacementSensor, AdjointDisplacementSensor::Pointer, AdjointSensor>(sensor_module, "AdjointDisplacementSensor")
-        .def(py::init<Model&, Parameters>(), py::arg("model"), py::arg("sensor_parameters"))
+    py::class_<DisplacementSensor, DisplacementSensor::Pointer, Sensor>(sensor_module, "DisplacementSensor")
+        .def(py::init<const std::string&,const Point&,const array_1d<double, 3>&,const Element&,const double>(),
+            py::arg("name"),
+            py::arg("location"),
+            py::arg("direction"),
+            py::arg("element"),
+            py::arg("weight"))
         ;
 }
 
