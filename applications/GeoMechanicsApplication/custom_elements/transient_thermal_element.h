@@ -110,6 +110,21 @@ public:
         KRATOS_CATCH("")
     }
 
+    GeometryData::IntegrationMethod GetIntegrationMethod() const override
+    {
+        switch (TNumNodes) {
+            case 3:
+            case 6:
+                return GeometryData::IntegrationMethod::GI_GAUSS_2;
+            case 10:
+                return GeometryData::IntegrationMethod::GI_GAUSS_4;
+            case 15:
+                return GeometryData::IntegrationMethod::GI_GAUSS_5;
+            default:
+                return GeometryData::IntegrationMethod::GI_GAUSS_2;
+        }
+    }
+
 private:
     static void AddContributionsToLhsMatrix(MatrixType&                                        rLeftHandSideMatrix,
                                             const BoundedMatrix<double, TNumNodes, TNumNodes>& rConductivityMatrix,
@@ -191,8 +206,6 @@ private:
                        });
         return result;
     }
-
-    GeometryData::IntegrationMethod GetIntegrationMethod() const override;
 
     void VerifyProperty(Kratos::Variable<double>& rVariable) const;
     void CheckDomainSize() const;

@@ -68,24 +68,6 @@ int TransientThermalElement<TDim, TNumNodes>::Check(const ProcessInfo& rCurrentP
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-GeometryData::IntegrationMethod TransientThermalElement<TDim, TNumNodes>::GetIntegrationMethod() const
-{
-    using Data = GeometryData::IntegrationMethod;
-
-    switch (TNumNodes) {
-    case 3:
-    case 6:
-        return Data::GI_GAUSS_2;
-    case 10:
-        return Data::GI_GAUSS_4;
-    case 15:
-        return Data::GI_GAUSS_5;
-    default:
-        return Data::GI_GAUSS_2;
-    }
-}
-
-template <unsigned int TDim, unsigned int TNumNodes>
 void TransientThermalElement<TDim, TNumNodes>::VerifyProperty(Kratos::Variable<double>& rVariable) const
 {
     const PropertiesType& rProp = GetProperties();
