@@ -24,14 +24,7 @@ int TransientThermalElement<TDim, TNumNodes>::Check(const ProcessInfo& rCurrentP
     CheckDomainSize();
     CheckHasSolutionStepsDataFor(TEMPERATURE);
     CheckHasSolutionStepsDataFor(DT_TEMPERATURE);
-
-    const GeometryType& rGeom = GetGeometry();
-    for (unsigned int i = 0; i < TNumNodes; ++i) {
-        if (!rGeom[i].HasDofFor(TEMPERATURE)) {
-            KRATOS_ERROR << "missing degree of freedom for TEMPERATURE on node "
-                         << rGeom[i].Id() << std::endl;
-        }
-    }
+    CheckHasDofsFor(TEMPERATURE);
 
     VerifyProperty(DENSITY_WATER);
     VerifyProperty(POROSITY);
@@ -46,6 +39,8 @@ int TransientThermalElement<TDim, TNumNodes>::Check(const ProcessInfo& rCurrentP
     VerifyProperty(LONGITUDINAL_DISPERSIVITY);
     VerifyProperty(TRANSVERSE_DISPERSIVITY);
     VerifyProperty(SOLID_COMPRESSIBILITY);
+
+    const GeometryType& rGeom = GetGeometry();
 
     if (TDim == 2) {
         auto pos = std::find_if(rGeom.begin(), rGeom.end(),

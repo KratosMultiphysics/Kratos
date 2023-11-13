@@ -101,10 +101,11 @@ public:
                 CalculateConductivityMatrix(DN_DXContainer, integration_coefficients, rCurrentProcessInfo);
         const auto capacity_matrix = CalculateCapacityMatrix(integration_coefficients);
 
-        noalias(rLeftHandSideMatrix)  = ZeroMatrix(TNumNodes, TNumNodes);
-        noalias(rRightHandSideVector) = ZeroVector(TNumNodes);
+        noalias(rLeftHandSideMatrix) = ZeroMatrix(TNumNodes, TNumNodes);
         AddContributionsToLhsMatrix(rLeftHandSideMatrix, conductivity_matrix, capacity_matrix,
                                     rCurrentProcessInfo[DT_TEMPERATURE_COEFFICIENT]);
+
+        noalias(rRightHandSideVector) = ZeroVector(TNumNodes);
         AddContributionsToRhsVector(rRightHandSideVector, conductivity_matrix, capacity_matrix);
 
         KRATOS_CATCH("")
@@ -227,6 +228,14 @@ private:
         for (const auto& node : GetGeometry()) {
             KRATOS_ERROR_IF_NOT(node.SolutionStepsDataHas(rVariable))
                 << "Missing variable " << rVariable.Name() << " on node " << node.Id() << std::endl;
+        }
+    }
+
+    void CheckHasDofsFor(const Variable<double>& rVariable) const
+    {
+        for (const auto& node : GetGeometry()) {
+            KRATOS_ERROR_IF_NOT(node.HasDofFor(rVariable))
+                << "Missing degree of freedom for " << rVariable.Name() << " on node " << node.Id() << std::endl;
         }
     }
 
