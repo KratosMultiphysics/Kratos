@@ -60,6 +60,12 @@ void MaxAll(const std::vector<__VA_ARGS__>& rLocalValues, std::vector<__VA_ARGS_
 
 #endif
 
+#ifndef KRATOS_MPI_DATA_COMMUNICATOR_DECLARE_ALLREDUCE_LOC_INTERFACE_FOR_TYPE
+#define KRATOS_MPI_DATA_COMMUNICATOR_DECLARE_ALLREDUCE_LOC_INTERFACE_FOR_TYPE(...)                                  \
+std::pair<__VA_ARGS__, int> MinLocAll(const __VA_ARGS__& rLocalValue) const override;                               \
+std::pair<__VA_ARGS__, int> MaxLocAll(const __VA_ARGS__& rLocalValue) const override;
+#endif
+
 #ifndef KRATOS_MPI_DATA_COMMUNICATOR_DECLARE_SCANSUM_INTERFACE_FOR_TYPE
 #define KRATOS_MPI_DATA_COMMUNICATOR_DECLARE_SCANSUM_INTERFACE_FOR_TYPE(...)                                            \
 __VA_ARGS__ ScanSum(const __VA_ARGS__& rLocalValue) const override;                                                     \
@@ -216,6 +222,13 @@ class KRATOS_API(KRATOS_MPI_CORE) MPIDataCommunicator: public DataCommunicator
     KRATOS_MPI_DATA_COMMUNICATOR_DECLARE_PUBLIC_INTERFACE_FOR_TYPE(array_1d<double, 9>)
     KRATOS_MPI_DATA_COMMUNICATOR_DECLARE_PUBLIC_INTERFACE_FOR_TYPE(Vector)
     KRATOS_MPI_DATA_COMMUNICATOR_DECLARE_PUBLIC_INTERFACE_FOR_TYPE(Matrix)
+
+    // MinLoc and MaxLoc AllReduce operations
+    KRATOS_MPI_DATA_COMMUNICATOR_DECLARE_ALLREDUCE_LOC_INTERFACE_FOR_TYPE(char)
+    KRATOS_MPI_DATA_COMMUNICATOR_DECLARE_ALLREDUCE_LOC_INTERFACE_FOR_TYPE(int)
+    KRATOS_MPI_DATA_COMMUNICATOR_DECLARE_ALLREDUCE_LOC_INTERFACE_FOR_TYPE(unsigned int)
+    KRATOS_MPI_DATA_COMMUNICATOR_DECLARE_ALLREDUCE_LOC_INTERFACE_FOR_TYPE(long unsigned int)
+    KRATOS_MPI_DATA_COMMUNICATOR_DECLARE_ALLREDUCE_LOC_INTERFACE_FOR_TYPE(double)
 
     // Reduce operations
 
@@ -379,6 +392,20 @@ class KRATOS_API(KRATOS_MPI_CORE) MPIDataCommunicator: public DataCommunicator
     template<class TDataType> std::vector<TDataType> AllReduceDetailVector(
         const std::vector<TDataType>& rLocalValues,
         MPI_Op Operation) const;
+
+    /**
+    * @brief Performs an AllReduce operation with location information (the partition where the reduced value was found).
+    * @details This function performs an AllReduce operation on a pair of data and an integer location using the specified MPI operation. The AllReduce operation combines the data from all processes and stores the result in the pair's first element. The location information (integer) is the partition where the reduced value was found.
+    * @tparam TDataType The data type of the pair's first element.
+    * @param rLocalValues A pair containing the local data and location information to be reduced.
+    * @param Operation The MPI operation to use for the reduction.
+    * @return A pair where the first element contains the result of the AllReduce operation, and the second element is the partition where the reduced value was found.
+    */
+    template<class TDataType>
+    std::pair<TDataType, int> AllReduceDetailWithLocation(
+        const std::pair<TDataType, int>& rLocalValues,
+        MPI_Op Operation
+        ) const;
 
     template<class TDataType> void ScanDetail(
         const TDataType& rLocalValues,

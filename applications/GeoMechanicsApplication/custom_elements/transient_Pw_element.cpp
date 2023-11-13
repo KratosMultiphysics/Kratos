@@ -316,8 +316,8 @@ void TransientPwElement<TDim,TNumNodes>::
     const GeometryType& Geom = this->GetGeometry();
     const unsigned int NumGPoints = Geom.IntegrationPointsNumber( this->GetIntegrationMethod() );
 
-    // create general parametes of retention law
-    RetentionLaw::Parameters RetentionParameters(Geom, this->GetProperties(), rCurrentProcessInfo);
+    // create general parameters of retention law
+    RetentionLaw::Parameters RetentionParameters(this->GetProperties(), rCurrentProcessInfo);
 
     //Loop over integration points
     for ( unsigned int GPoint = 0; GPoint < NumGPoints; ++GPoint) {
@@ -369,8 +369,8 @@ void TransientPwElement<TDim,TNumNodes>::
     const GeometryType& Geom = this->GetGeometry();
     const unsigned int NumGPoints = Geom.IntegrationPointsNumber( this->GetIntegrationMethod() );
 
-    // create general parametes of retention law
-    RetentionLaw::Parameters RetentionParameters(Geom, this->GetProperties(), rCurrentProcessInfo);
+    // create general parameters of retention law
+    RetentionLaw::Parameters RetentionParameters(this->GetProperties(), rCurrentProcessInfo);
 
     //Loop over integration points
     for ( unsigned int GPoint = 0; GPoint < NumGPoints; ++GPoint ) {
@@ -479,8 +479,8 @@ void TransientPwElement<TDim,TNumNodes>::
     this->InitializeElementVariables( Variables,
                                       rCurrentProcessInfo );
 
-    // create general parametes of retention law
-    RetentionLaw::Parameters RetentionParameters(Geom, this->GetProperties(), rCurrentProcessInfo);
+    // create general parameters of retention law
+    RetentionLaw::Parameters RetentionParameters(this->GetProperties(), rCurrentProcessInfo);
 
     const bool hasBiotCoefficient = Prop.Has(BIOT_COEFFICIENT);
 
