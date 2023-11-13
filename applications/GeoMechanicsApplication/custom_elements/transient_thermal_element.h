@@ -222,7 +222,13 @@ private:
             << "DomainSize smaller than " << min_domain_size << " for element " << Id() << std::endl;
     }
 
-    void CheckSolutionStepsData(int rId, Kratos::Variable<double>& rVariable) const;
+    void CheckHasSolutionStepsDataFor(const Variable<double>& rVariable) const
+    {
+        for (const auto& node : GetGeometry()) {
+            KRATOS_ERROR_IF_NOT(node.SolutionStepsDataHas(rVariable))
+                << "Missing variable " << rVariable.Name() << " on node " << node.Id() << std::endl;
+        }
+    }
 
     friend class Serializer;
 

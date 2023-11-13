@@ -22,11 +22,11 @@ int TransientThermalElement<TDim, TNumNodes>::Check(const ProcessInfo& rCurrentP
     KRATOS_TRY
 
     CheckDomainSize();
-    const GeometryType& rGeom = GetGeometry();
+    CheckHasSolutionStepsDataFor(TEMPERATURE);
+    CheckHasSolutionStepsDataFor(DT_TEMPERATURE);
 
+    const GeometryType& rGeom = GetGeometry();
     for (unsigned int i = 0; i < TNumNodes; ++i) {
-        CheckSolutionStepsData(i, TEMPERATURE);
-        CheckSolutionStepsData(i, DT_TEMPERATURE);
         if (!rGeom[i].HasDofFor(TEMPERATURE)) {
             KRATOS_ERROR << "missing degree of freedom for TEMPERATURE on node "
                          << rGeom[i].Id() << std::endl;
@@ -65,17 +65,6 @@ int TransientThermalElement<TDim, TNumNodes>::Check(const ProcessInfo& rCurrentP
     KRATOS_CATCH("")
 
     return 0;
-}
-
-template <unsigned int TDim, unsigned int TNumNodes>
-void TransientThermalElement<TDim, TNumNodes>::CheckSolutionStepsData(
-    int rId, Kratos::Variable<double>& rVariable) const
-{
-    const GeometryType& rGeom = GetGeometry();
-    if (rGeom[rId].SolutionStepsDataHas(rVariable)) {
-        KRATOS_ERROR << "missing variable " << rVariable.Name() << " on node "
-                     << rGeom[rId].Id() << std::endl;
-    }
 }
 
 template class TransientThermalElement<2, 3>;
