@@ -70,11 +70,6 @@ public:
 
     bool IsIncremental() override;
 
-    bool IsIncremental() override
-    {
-        return true;
-    }
-
     /**
      * @brief  It returns the value of a specified variable
      * @param rThisVariable the variable to be returned
