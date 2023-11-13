@@ -262,6 +262,17 @@ private:
         }
     }
 
+    void CheckForNonZeroZCoordinateIn2D() const
+    {
+        if constexpr(TDim == 2) {
+            const auto& r_geometry = GetGeometry();
+            auto pos = std::find_if(r_geometry.begin(), r_geometry.end(),
+                                    [](const auto& node) { return node.Z() != 0.0; });
+            KRATOS_ERROR_IF_NOT(pos == r_geometry.end()) << " Node with non-zero Z coordinate found. Id: " << pos->Id()
+                                                         << std::endl;
+        }
+    }
+
     friend class Serializer;
 
     void save(Serializer& rSerializer) const override

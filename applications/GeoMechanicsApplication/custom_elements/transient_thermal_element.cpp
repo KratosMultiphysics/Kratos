@@ -26,17 +26,7 @@ int TransientThermalElement<TDim, TNumNodes>::Check(const ProcessInfo& rCurrentP
     CheckHasSolutionStepsDataFor(DT_TEMPERATURE);
     CheckHasDofsFor(TEMPERATURE);
     CheckProperties();
-
-    const GeometryType& rGeom = GetGeometry();
-
-    if (TDim == 2) {
-        auto pos = std::find_if(rGeom.begin(), rGeom.end(),
-                                [](const auto& node) { return node.Z() != 0.0; });
-        if (pos != rGeom.end()) {
-            KRATOS_ERROR << " Node with non-zero Z coordinate found. Id: " << pos->Id()
-                         << std::endl;
-        }
-    }
+    CheckForNonZeroZCoordinateIn2D();
 
     KRATOS_CATCH("")
 
