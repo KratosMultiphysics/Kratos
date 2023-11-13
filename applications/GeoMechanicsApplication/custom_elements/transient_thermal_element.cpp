@@ -282,18 +282,6 @@ void TransientThermalElement<TDim, TNumNodes>::CheckSolutionStepsData(
     }
 }
 
-template <unsigned int TDim, unsigned int TNumNodes>
-void TransientThermalElement<TDim, TNumNodes>::save(Serializer& rSerializer) const
-{
-    KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Element)
-}
-
-template <unsigned int TDim, unsigned int TNumNodes>
-void TransientThermalElement<TDim, TNumNodes>::load(Serializer& rSerializer)
-{
-    KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element)
-}
-
 template class TransientThermalElement<2, 3>;
 template class TransientThermalElement<2, 4>;
 template class TransientThermalElement<2, 6>;
