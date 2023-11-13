@@ -222,7 +222,7 @@ void SmallStrainIsotropicDamage3DMazars::CalculateStressResponse(
         if(r_material_properties.Has(DAMAGE_THRESHOLD_COMPRESSION)==true){
             k0c = r_material_properties[DAMAGE_THRESHOLD_COMPRESSION];
         }else{
-            k0c = (10/3)*ft/E;
+            k0c = ft/E;
         }
 
         const double k0 = k0t  * H * (1-del_r) + (1.0- H + del_r) * k0c;
@@ -231,11 +231,9 @@ void SmallStrainIsotropicDamage3DMazars::CalculateStressResponse(
         const double max_e = std::max(mInternalVariables[0], local_equivalent_strain);
         const double kappa = std::max(max_e, k0);
 
-        //damage loading condition
-        const double f_d   = local_equivalent_strain - kappa;
-        if (f_d < 0.0){
+        if ((kappa >= 0.0) && (kappa <= k0)){
             D = 0.0;
-        }else if (f_d == 0.0) {
+        }else if (kappa > k0) {
             const double var1     = pow((k0/kappa),beta1);
             const double var2     = exp(-beta2*((kappa-k0)/(k0)));
             D                     = 1.0 - var1 * var2;
@@ -256,14 +254,14 @@ void SmallStrainIsotropicDamage3DMazars::CalculateStressResponse(
             dKappadEpsilon /= local_equivalent_strain ;
             BoundedMatrixVoigtType product(6,6);
             TensorProduct6(product,dsde,dKappadEpsilon);
-            r_constitutive_matrix = DN * r_constitutive_matrix + dDdKappa * prod(product,r_constitutive_matrix);
+            //r_constitutive_matrix = DN * r_constitutive_matrix + dDdKappa * prod(product,r_constitutive_matrix);
+            r_constitutive_matrix = DN * r_constitutive_matrix;
         }else{
             KRATOS_ERROR << "check the damage loading function" << std::endl;
         }
         if(D < 0.0) D = 0.0;
         rInternalVariables[0] = max_e;
         rInternalVariables[1] = D;
-        KRATOS_WATCH(r_stress_vector);
         KRATOS_WATCH(rParametersValues.GetProcessInfo()[TIME]);
         KRATOS_WATCH("-------------------------------------------");
         //std::exit(-1);
