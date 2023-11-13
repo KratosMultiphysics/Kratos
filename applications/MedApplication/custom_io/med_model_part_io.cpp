@@ -20,6 +20,7 @@
 #include "med_inc.h"
 #include "med_model_part_io.h"
 #include "includes/model_part_io.h"
+#include "utilities/builtin_timer.h"
 #include "utilities/parallel_utilities.h"
 #include "utilities/reduction_utilities.h"
 #include "utilities/variable_utils.h"
@@ -68,6 +69,13 @@ void CheckMEDErrorCode(const int ierr, const std::string& MEDCallName)
     KRATOS_ERROR_IF(ierr < 0) << MEDCallName << " failed with error code " << ierr << "." << std::endl;
 }
 
+// The names in the MED-file often have trailing null-chars, which need to be removed
+// this can otherwise make debugging very tricky
+void RemoveTrailingNullChars(std::string& rInput)
+{
+    rInput.erase(std::find(rInput.begin(), rInput.end(), '\0'), rInput.end());
+}
+
 template<typename T>
 void CheckConnectivitiesSize(
     const std::size_t ExpectedSize,
@@ -88,7 +96,7 @@ std::function<void(std::vector<T>&)> GetReorderFunction(const med_geometry_type 
         };
 
     case MED_TRIA6:
-        return [](auto& rConnectivities) -> void {
+        return [](auto& rConnectivities){
             CheckConnectivitiesSize(6, rConnectivities);
             std::swap(rConnectivities[1], rConnectivities[2]);
             std::swap(rConnectivities[3], rConnectivities[5]);
@@ -101,17 +109,56 @@ std::function<void(std::vector<T>&)> GetReorderFunction(const med_geometry_type 
         };
 
     case MED_QUAD8:
-        KRATOS_ERROR << "MED_QUAD8 is med_quad8 is not implemented!" << std::endl;
+        return [](auto& Connectivities){
+            CheckConnectivitiesSize(8, Connectivities);
+            std::swap(Connectivities[1], Connectivities[3]);
+            std::swap(Connectivities[4], Connectivities[7]);
+            std::swap(Connectivities[5], Connectivities[6]);
+        };
 
-    case MED_QUAD9: // should be same as MED_QUAD8
-        KRATOS_ERROR << "MED_QUAD9 is not implemented!" << std::endl;
+    case MED_QUAD9:
+        return [](auto& Connectivities){
+            CheckConnectivitiesSize(9, Connectivities);
+            std::swap(Connectivities[1], Connectivities[3]);
+            std::swap(Connectivities[4], Connectivities[7]);
+            std::swap(Connectivities[5], Connectivities[6]);
+        };
+
+    case MED_TETRA4:
+        return [](auto& rConnectivities){
+            CheckConnectivitiesSize(4, rConnectivities);
+            std::swap(rConnectivities[2], rConnectivities[3]);
+        };
 
     case MED_TETRA10:
-        return [](auto& rConnectivities) -> void {
+        return [](auto& rConnectivities){
             CheckConnectivitiesSize(10, rConnectivities);
             std::swap(rConnectivities[1], rConnectivities[2]);
             std::swap(rConnectivities[4], rConnectivities[6]);
             std::swap(rConnectivities[8], rConnectivities[9]);
+        };
+
+    case MED_HEXA8:
+        return [](auto& rConnectivities){
+            CheckConnectivitiesSize(8, rConnectivities);
+            std::swap(rConnectivities[1], rConnectivities[4]);
+            std::swap(rConnectivities[2], rConnectivities[7]);
+        };
+
+    case MED_HEXA20:
+        KRATOS_ERROR << "MED_HEXA20 is not implemented!" << std::endl;
+        return [](auto& rConnectivities){
+            CheckConnectivitiesSize(20, rConnectivities);
+            std::swap(rConnectivities[1], rConnectivities[4]);
+            std::swap(rConnectivities[2], rConnectivities[7]);
+        };
+
+    case MED_HEXA27:
+        KRATOS_ERROR << "MED_HEXA27 is not implemented!" << std::endl;
+        return [](auto& rConnectivities){
+            CheckConnectivitiesSize(27, rConnectivities);
+            std::swap(rConnectivities[1], rConnectivities[4]);
+            std::swap(rConnectivities[2], rConnectivities[7]);
         };
 
     case MED_PYRA5:
@@ -120,9 +167,20 @@ std::function<void(std::vector<T>&)> GetReorderFunction(const med_geometry_type 
     case MED_PYRA13:
         KRATOS_ERROR << "MED_PYRA13 is not implemented!" << std::endl;
 
+    case MED_PENTA6:
+        KRATOS_ERROR << "MED_PENTA6 is not implemented!" << std::endl;
+
+    case MED_PENTA15:
+        KRATOS_ERROR << "MED_PENTA15 is not implemented!" << std::endl;
+
     default:
         return [](auto& Connectivities){
             // does nothing if no reordering is needed
+            /*
+            - MED_POINT1
+            - MED_SEG2
+            - MED_SEG3
+            */
         };
     }
 }
@@ -217,6 +275,74 @@ auto GetNodeCoordinates(
     KRATOS_CATCH("")
 }
 
+auto GetFamilyNumbers(
+    const med_idt FileHandle,
+	const char* pMeshName,
+    const int NumberOfEntities,
+    const med_entity_type EntityTpe,
+    const med_geometry_type GeomType = MED_NONE)
+{
+    KRATOS_TRY
+
+    std::vector<med_int> family_numbers(NumberOfEntities);
+
+    const auto err = MEDmeshEntityFamilyNumberRd(
+        FileHandle, pMeshName,
+        MED_NO_DT, MED_NO_IT,
+        EntityTpe, GeomType,
+        family_numbers.data());
+
+    CheckMEDErrorCode(err, "MEDmeshEntityFamilyNumberRd");
+
+    return family_numbers;
+
+    KRATOS_CATCH("")
+}
+
+auto GetGroupsByFamily(
+    const med_idt FileHandle,
+	const char* pMeshName)
+{
+    KRATOS_TRY
+
+    std::unordered_map<int, std::vector<std::string>> groups_by_family;
+
+    const int num_families = MEDnFamily(FileHandle, pMeshName);
+    CheckMEDErrorCode(num_families, "MEDnFamily");
+
+    std::string c_group_names;
+
+    std::string family_name;
+    family_name.resize(MED_NAME_SIZE + 1);
+
+    med_int family_number;
+
+    for (int i=1; i<num_families+1; ++i) {
+        const int num_groups = MEDnFamilyGroup(FileHandle, pMeshName, i);
+        CheckMEDErrorCode(num_groups, "MEDnFamilyGroup");
+
+        if (num_groups == 0) {continue;} // this family has no groups assigned
+
+        c_group_names.resize(MED_LNAME_SIZE * num_groups + 1);
+
+        const med_err err = MEDfamilyInfo(FileHandle, pMeshName, i, family_name.data(), &family_number, c_group_names.data());
+        CheckMEDErrorCode(err, "MEDfamilyInfo");
+
+        std::vector<std::string> group_names(num_groups);
+        // split the goup names
+        for (int i = 0; i < num_groups; i++) {
+            group_names[i] = c_group_names.substr(i * MED_LNAME_SIZE, MED_LNAME_SIZE);
+            RemoveTrailingNullChars(group_names[i]);
+        }
+
+        groups_by_family[family_number] = std::move(group_names);
+    }
+
+    return groups_by_family;
+
+    KRATOS_CATCH("")
+}
+
 } // anonymous namespace
 
 class MedModelPartIO::MedFileHandler
@@ -279,7 +405,7 @@ public:
             std::string axis_name(MED_SNAME_SIZE*space_dim+1, '\0');
             std::string axis_unit(MED_SNAME_SIZE*space_dim+1, '\0');
 
-            med_err err = MEDmeshInfo(
+            const med_err err = MEDmeshInfo(
                 mFileHandle,
                 1,
                 mMeshName.data(),
@@ -295,7 +421,7 @@ public:
                 axis_unit.data());
             CheckMEDErrorCode(err, "MEDmeshInfo");
 
-            mMeshName.erase(std::find(mMeshName.begin(), mMeshName.end(), '\0'), mMeshName.end());
+            RemoveTrailingNullChars(mMeshName);
             mDimension = space_dim;
         }
 
@@ -350,7 +476,13 @@ void MedModelPartIO::ReadModelPart(ModelPart& rThisModelPart)
 {
     KRATOS_TRY
 
+    BuiltinTimer timer;
+
+    const bool add_nodes_of_geometries = true; // TODO make this an input parameter
+
     KRATOS_ERROR_IF_NOT(mpFileHandler->IsReadMode()) << "MedModelPartIO needs to be created in read mode to read a ModelPart!" << std::endl;
+    KRATOS_ERROR_IF_NOT(rThisModelPart.NumberOfNodes() == 0) << "ModelPart is not empty, it has Nodes!" << std::endl;
+    KRATOS_ERROR_IF_NOT(rThisModelPart.NumberOfSubModelParts() == 0) << "ModelPart is not empty, it has SubModelParts!" << std::endl;
 
     // reading nodes
     const int num_nodes = GetNumberOfNodes(mpFileHandler->GetFileHandle(), mpFileHandler->GetMeshName());
@@ -361,6 +493,32 @@ void MedModelPartIO::ReadModelPart(ModelPart& rThisModelPart)
     }
 
     const int dimension = mpFileHandler->GetDimension();
+
+    // read family info => Map from family number to group names aka SubModelPart names
+    const auto groups_by_fam = GetGroupsByFamily(
+        mpFileHandler->GetFileHandle(),
+        mpFileHandler->GetMeshName());
+
+    // create SubModelPart hierarchy
+    for (const auto& r_map : groups_by_fam) {
+        for (const auto& r_smp_name : r_map.second) {
+            if (!rThisModelPart.HasSubModelPart(r_smp_name)) {
+                rThisModelPart.CreateSubModelPart(r_smp_name);
+            }
+        }
+    }
+
+    // get node family numbers, if the file contains them
+    std::vector<med_int> node_family_numbers;
+    if (!groups_by_fam.empty()) {
+        node_family_numbers = GetFamilyNumbers(
+            mpFileHandler->GetFileHandle(),
+            mpFileHandler->GetMeshName(),
+            num_nodes,
+            med_entity_type::MED_NODE);
+    }
+
+    std::unordered_map<std::string, std::vector<IndexType>> smp_nodes;
 
     const auto node_coords = GetNodeCoordinates(
         mpFileHandler->GetFileHandle(),
@@ -388,12 +546,25 @@ void MedModelPartIO::ReadModelPart(ModelPart& rThisModelPart)
     for (int i=0; i<num_nodes; ++i) {
         std::array<double, 3> coords{0,0,0};
         for (int j=0; j<dimension; ++j) {coords[j] = node_coords[i*dimension+j];}
+        IndexType new_node_id = i+1;
+
         rThisModelPart.CreateNewNode(
-            id_begin + static_cast<std::size_t>(i),
+            new_node_id,
             coords[0],
             coords[1],
             coords[2]
         );
+
+        if (groups_by_fam.empty()) {continue;} // file does not contain families
+
+        const int fam_num = node_family_numbers[i];
+        if (fam_num == 0) {continue;} // node does not belong to a SubModelPart
+
+        const auto it_groups = groups_by_fam.find(fam_num);
+        KRATOS_ERROR_IF(it_groups == groups_by_fam.end()) << "Missing node family with number " << fam_num << "!" << std::endl;
+        for (const auto& r_smp_name : it_groups->second) {
+            smp_nodes[r_smp_name].push_back(new_node_id);
+        }
     }
 
     KRATOS_INFO("MedModelPartIO") << "Read " << num_nodes << " nodes" << std::endl;
@@ -409,22 +580,9 @@ void MedModelPartIO::ReadModelPart(ModelPart& rThisModelPart)
         MED_CONNECTIVITY, MED_NODAL,
         &coordinatechangement, &geotransformation); // TODO error if smaller zero, holds probably for the other functions too that return med_int
 
-    // Get an available range of geometry IDs
-    // (start after the hightest existing ID in the root part)
-    id_begin = 1;
-    if (!rThisModelPart.GetRootModelPart().Geometries().empty()) {
-        const auto& r_geometries = rThisModelPart.GetRootModelPart().Geometries();
-        id_begin = IndexPartition<std::size_t>(r_geometries.size())
-                    .for_each<MaxReduction<std::size_t>>([](const GeometryType& rGeometry) -> std::size_t {
-                        return rGeometry.Id();
-                    });
+    IndexType num_geometries_total = 0;
 
-        // Check for integer overflow
-        KRATOS_ERROR_IF(id_begin == std::numeric_limits<std::size_t>::max()) << "Geometry ID overflow while reading " << mFileName << " into " << rThisModelPart.Name() << '\n';
-         ++id_begin;
-    }
-
-    int num_geometries_total = 0;
+    std::unordered_map<std::string, std::vector<IndexType>> smp_geoms;
 
     // looping geometry types
     std::vector<IndexType> geom_node_ids;
@@ -451,6 +609,17 @@ void MedModelPartIO::ReadModelPart(ModelPart& rThisModelPart)
             MED_CELL, geo_type,
             MED_CONNECTIVITY, MED_NODAL,
             &coordinatechangement, &geotransformation);
+
+        // get node family numbers, if the file contains them
+        std::vector<med_int> geom_family_numbers;
+        if (!groups_by_fam.empty()) {
+            geom_family_numbers = GetFamilyNumbers(
+                mpFileHandler->GetFileHandle(),
+                mpFileHandler->GetMeshName(),
+                num_geometries,
+                med_entity_type::MED_CELL,
+                geo_type);
+        }
 
         // read cells connectivity in the mesh
         const int num_nodes_geo_type = geo_type%100;
@@ -484,8 +653,25 @@ void MedModelPartIO::ReadModelPart(ModelPart& rThisModelPart)
             reorder_fct(geom_node_ids);
 
             rThisModelPart.CreateNewGeometry(kratos_geo_name,
-                                             id_begin++,
+                                             ++num_geometries_total,
                                              geom_node_ids);
+
+            if (groups_by_fam.empty()) {continue;} // file does not contain families
+            const int fam_num = geom_family_numbers[i];
+            if (fam_num == 0) {continue;} // geometry does not belong to a SubModelPart
+
+            const auto it_groups = groups_by_fam.find(fam_num);
+            KRATOS_ERROR_IF(it_groups == groups_by_fam.end()) << "Missing geometry family with number " << fam_num << "!" << std::endl;
+            for (const auto& r_smp_name : it_groups->second) {
+                smp_geoms[r_smp_name].push_back(num_geometries_total);
+            }
+
+            if (add_nodes_of_geometries) {
+                // make sure the nodes of the geometries are also added
+                for (const auto& r_smp_name : it_groups->second) {
+                    smp_nodes[r_smp_name].insert(smp_nodes[r_smp_name].end(), geom_node_ids.begin(), geom_node_ids.end());
+                }
+            }
         }
 
         KRATOS_ERROR_IF(num_geometries_total + num_geometries < std::max(num_geometries_total, num_geometries))
@@ -497,12 +683,26 @@ void MedModelPartIO::ReadModelPart(ModelPart& rThisModelPart)
 
     KRATOS_INFO_IF("MedModelPartIO", num_geometries_total > 0) << "Read " << num_geometries_total << " geometries in total" << std::endl;
 
+    for (const auto& r_map : smp_nodes) {
+        // TODO making unique is more efficient, as requires less searches!
+        rThisModelPart.GetSubModelPart(r_map.first).AddNodes(r_map.second);
+    }
+
+    for (const auto& r_map : smp_geoms) {
+        // TODO making unique is more efficient, as requires less searches!
+        rThisModelPart.GetSubModelPart(r_map.first).AddGeometries(r_map.second);
+    }
+
+    KRATOS_INFO("MedModelPartIO") << "Reading file " << mFileName << " took " << timer << std::endl;
+
     KRATOS_CATCH("")
 }
 
 void MedModelPartIO::WriteModelPart(const ModelPart& rThisModelPart)
 {
     KRATOS_TRY
+
+    BuiltinTimer timer;
 
     // TODO what happens if this function is called multiple times?
     // will it overwrite the mesh?
@@ -618,6 +818,8 @@ void MedModelPartIO::WriteModelPart(const ModelPart& rThisModelPart)
         const auto med_geom_type = KratosToMedGeometryType.at(geom_type);
         write_geometries(med_geom_type, np_map[geom_type], conn);
     }
+
+    KRATOS_INFO("MedModelPartIO") << "Writing file " << mFileName << " took " << timer << std::endl;
 
     KRATOS_CATCH("")
 }

@@ -17,6 +17,7 @@
 // Project includes
 #include "containers/model.h"
 #include "geometries/quadrilateral_2d_4.h"
+#include "geometries/hexahedra_3d_8.h"
 #include "processes/structured_mesh_generator_process.h"
 #include "testing/testing.h"
 #include "custom_io/med_model_part_io.h"
@@ -133,7 +134,7 @@ KRATOS_TEST_CASE_IN_SUITE(WriteRead2DTriangularMesh, KratosMedFastSuite)
         Parameters mesher_parameters(R"(
         {
             "number_of_divisions": 7,
-            "element_name": "Element2D3N",
+            "element_name": "Element3D3N",
             "create_skin_sub_model_part" : false,
             "create_body_sub_model_part" : false
         })");
@@ -155,7 +156,7 @@ KRATOS_TEST_CASE_IN_SUITE(WriteRead2DQuadrilateralMesh, KratosMedFastSuite)
         }
 
         for (std::size_t i=0; i<num_quads; ++i) {
-            rModelPart.CreateNewGeometry("Quadrilateral2D4", std::vector<ModelPart::IndexType>{
+            rModelPart.CreateNewGeometry("Quadrilateral3D4", std::vector<ModelPart::IndexType>{
                 (i*2)+1,
                 (i*2)+3,
                 (i*2)+4,
@@ -177,7 +178,7 @@ KRATOS_TEST_CASE_IN_SUITE(WriteRead2DTriAndQuadMesh, KratosMedFastSuite)
 
         // first writing all quads
         for (std::size_t i=0; i<num_quads; ++i) {
-            rModelPart.CreateNewGeometry("Quadrilateral2D4", std::vector<ModelPart::IndexType>{
+            rModelPart.CreateNewGeometry("Quadrilateral3D4", std::vector<ModelPart::IndexType>{
                 (i*2)+1,
                 (i*2)+3,
                 (i*2)+4,
@@ -188,12 +189,68 @@ KRATOS_TEST_CASE_IN_SUITE(WriteRead2DTriAndQuadMesh, KratosMedFastSuite)
         // then writing all triangles
         for (std::size_t i=0; i<num_quads; ++i) {
             rModelPart.CreateNewNode(++node_id, i*1+0.5,1,0);
-            rModelPart.CreateNewGeometry("Triangle2D3", std::vector<ModelPart::IndexType>{
+            rModelPart.CreateNewGeometry("Triangle3D3", std::vector<ModelPart::IndexType>{
                 (i*2)+4,
                 static_cast<ModelPart::IndexType>(node_id),
                 (i*2)+2
             });
         }
+    });
+}
+
+KRATOS_TEST_CASE_IN_SUITE(WriteRead3DTetraMesh, KratosMedFastSuite)
+{
+    MedWriteReadModelPart(this->Name(), [](ModelPart& rModelPart){
+        const double max_x = 1.0;
+        const double min_x = 0.0;
+        const double max_y = 1.0;
+        const double min_y = 0.0;
+        const double max_z = 1.0;
+        const double min_z = 0.0;
+        auto p_point_1 = Kratos::make_intrusive<Node>(1, min_x, min_y, min_z);
+        auto p_point_2 = Kratos::make_intrusive<Node>(2, max_x, min_y, min_z);
+        auto p_point_3 = Kratos::make_intrusive<Node>(3, max_x, max_y, min_z);
+        auto p_point_4 = Kratos::make_intrusive<Node>(4, min_x, max_y, min_z);
+        auto p_point_5 = Kratos::make_intrusive<Node>(5, min_x, min_y, max_z);
+        auto p_point_6 = Kratos::make_intrusive<Node>(6, max_x, min_y, max_z);
+        auto p_point_7 = Kratos::make_intrusive<Node>(7, max_x, max_y, max_z);
+        auto p_point_8 = Kratos::make_intrusive<Node>(8, min_x, max_y, max_z);
+        Hexahedra3D8<Node> geometry(p_point_1, p_point_2, p_point_3, p_point_4, p_point_5, p_point_6, p_point_7, p_point_8);
+
+        Parameters mesher_parameters(R"(
+        {
+            "number_of_divisions": 5,
+            "element_name": "Element3D4N",
+            "create_skin_sub_model_part" : false,
+            "create_body_sub_model_part" : false
+        })");
+
+        StructuredMeshGeneratorProcess(geometry, rModelPart, mesher_parameters).Execute();
+        // create geometries!
+        MedTestingUtilities::AddGeometriesFromElements(rModelPart);
+    });
+}
+
+KRATOS_TEST_CASE_IN_SUITE(WriteRead3DHexa, KratosMedFastSuite)
+{
+    MedWriteReadModelPart(this->Name(), [](ModelPart& rModelPart){
+        const double max_x = 1.0;
+        const double min_x = 0.0;
+        const double max_y = 1.0;
+        const double min_y = 0.0;
+        const double max_z = 1.0;
+        const double min_z = 0.0;
+        auto p_point_1 = Kratos::make_intrusive<Node>(1, min_x, min_y, min_z);
+        auto p_point_2 = Kratos::make_intrusive<Node>(2, max_x, min_y, min_z);
+        auto p_point_3 = Kratos::make_intrusive<Node>(3, max_x, max_y, min_z);
+        auto p_point_4 = Kratos::make_intrusive<Node>(4, min_x, max_y, min_z);
+        auto p_point_5 = Kratos::make_intrusive<Node>(5, min_x, min_y, max_z);
+        auto p_point_6 = Kratos::make_intrusive<Node>(6, max_x, min_y, max_z);
+        auto p_point_7 = Kratos::make_intrusive<Node>(7, max_x, max_y, max_z);
+        auto p_point_8 = Kratos::make_intrusive<Node>(8, min_x, max_y, max_z);
+        auto p_geom = Kratos::make_shared<Hexahedra3D8<Node>>(p_point_1, p_point_2, p_point_3, p_point_4, p_point_5, p_point_6, p_point_7, p_point_8);
+
+        rModelPart.AddGeometry(p_geom);
     });
 }
 

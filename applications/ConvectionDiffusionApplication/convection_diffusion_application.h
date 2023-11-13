@@ -233,9 +233,9 @@ private:
     const AxisymmetricEulerianConvectionDiffusionElement<2,3>  mAxisymmetricEulerianConvectionDiffusion2D3N;
     const AxisymmetricEulerianConvectionDiffusionElement<2,4>  mAxisymmetricEulerianConvectionDiffusion2D4N;
 
-    const EulerianConvectionDiffusionElement<2,3>  mEulerianConvDiff2D;
+    const EulerianConvectionDiffusionElement<2,3>  mEulerianConvDiff2D3N;
     const EulerianConvectionDiffusionElement<2,4>  mEulerianConvDiff2D4N;
-    const EulerianConvectionDiffusionElement<3,4>  mEulerianConvDiff3D;
+    const EulerianConvectionDiffusionElement<3,4>  mEulerianConvDiff3D4N;
     const EulerianConvectionDiffusionElement<3,8>  mEulerianConvDiff3D8N;
     const EulerianDiffusionElement<2,3>  mEulerianDiffusion2D3N;
     const EulerianDiffusionElement<3,4>  mEulerianDiffusion3D4N;

@@ -130,8 +130,7 @@ void TransientPwInterfaceElement<TDim,TNumNodes>::InitializeSolutionStep(const P
     KRATOS_TRY
 
     // create general parameters of retention law
-    RetentionLaw::Parameters RetentionParameters(this->GetGeometry(),
-                                                 this->GetProperties(),
+    RetentionLaw::Parameters RetentionParameters(this->GetProperties(),
                                                  rCurrentProcessInfo);
 
     //Loop over integration points
@@ -149,8 +148,7 @@ void TransientPwInterfaceElement<TDim,TNumNodes>::FinalizeSolutionStep(const Pro
     KRATOS_TRY
 
     // create general parameters of retention law
-    RetentionLaw::Parameters RetentionParameters(this->GetGeometry(),
-                                                 this->GetProperties(),
+    RetentionLaw::Parameters RetentionParameters(this->GetProperties(),
                                                  rCurrentProcessInfo);
 
     //Loop over integration points
@@ -298,8 +296,7 @@ void TransientPwInterfaceElement<TDim,TNumNodes>::
 
         // create general parameters of retention law
         RetentionLaw::Parameters
-            RetentionParameters(Geom,
-                                this->GetProperties(),
+            RetentionParameters(this->GetProperties(),
                                 rCurrentProcessInfo);
 
         //Loop over integration points
@@ -512,8 +509,8 @@ void TransientPwInterfaceElement<TDim,TNumNodes>::CalculateAll(MatrixType& rLeft
     array_1d<double,TDim> RelDispVector;
     SFGradAuxVariables SFGradAuxVars;
 
-    // create general parametes of retention law
-    RetentionLaw::Parameters RetentionParameters(Geom, this->GetProperties(), CurrentProcessInfo);
+    // create general parameters of retention law
+    RetentionLaw::Parameters RetentionParameters(this->GetProperties(), CurrentProcessInfo);
 
     const bool hasBiotCoefficient = Prop.Has(BIOT_COEFFICIENT);
 
