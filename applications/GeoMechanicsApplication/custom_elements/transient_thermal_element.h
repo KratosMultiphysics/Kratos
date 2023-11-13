@@ -119,7 +119,23 @@ private:
                                                                             const Vector& rIntegrationCoefficients,
                                                                             const ProcessInfo& rCurrentProcessInfo) const;
 
-    BoundedMatrix<double, TNumNodes, TNumNodes> CalculateCapacityMatrix(const Vector& rIntegrationCoefficients) const;
+    BoundedMatrix<double, TNumNodes, TNumNodes> CalculateCapacityMatrix(const Vector& rIntegrationCoefficients) const
+    {
+        const auto& r_properties = GetProperties();
+        const auto  cWater = r_properties[POROSITY] * r_properties[SATURATION] *
+                             r_properties[DENSITY_WATER] * r_properties[SPECIFIC_HEAT_CAPACITY_WATER];
+        const auto  cSolid = (1.0 - r_properties[POROSITY]) *
+                             r_properties[DENSITY_SOLID] * r_properties[SPECIFIC_HEAT_CAPACITY_SOLID];
+
+        auto result = BoundedMatrix<double, TNumNodes, TNumNodes>{ZeroMatrix{TNumNodes, TNumNodes}};
+        const auto& NContainer = GetGeometry().ShapeFunctionsValues(GetIntegrationMethod());
+        for (unsigned int GPoint = 0; GPoint < GetGeometry().IntegrationPointsNumber(GetIntegrationMethod()); ++GPoint) {
+            const auto N = Vector{row(NContainer, GPoint)};
+            result += (cWater + cSolid) * outer_prod(N, N) * rIntegrationCoefficients[GPoint];
+        }
+
+        return result;
+    }
 
     array_1d<double, TNumNodes> GetNodalValuesOf(const Variable<double>& rNodalVariable) const
     {

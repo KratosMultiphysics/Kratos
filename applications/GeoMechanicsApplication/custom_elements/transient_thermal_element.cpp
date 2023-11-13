@@ -70,30 +70,6 @@ int TransientThermalElement<TDim, TNumNodes>::Check(const ProcessInfo& rCurrentP
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-BoundedMatrix<double, TNumNodes, TNumNodes>
-TransientThermalElement<TDim, TNumNodes>::CalculateCapacityMatrix(const Vector& rIntegrationCoefficients) const
-{
-    const auto& r_properties = GetProperties();
-
-    const double cWater = r_properties[POROSITY] * r_properties[SATURATION] *
-                          r_properties[DENSITY_WATER] * r_properties[SPECIFIC_HEAT_CAPACITY_WATER];
-    const double cSolid = (1.0 - r_properties[POROSITY]) *
-                          r_properties[DENSITY_SOLID] * r_properties[SPECIFIC_HEAT_CAPACITY_SOLID];
-
-    const auto& IntegrationPoints = GetGeometry().IntegrationPoints(GetIntegrationMethod());
-
-    const auto NContainer = Matrix{GetGeometry().ShapeFunctionsValues(GetIntegrationMethod())};
-
-    auto result = BoundedMatrix<double, TNumNodes, TNumNodes>{ZeroMatrix{TNumNodes, TNumNodes}};
-    for (unsigned int GPoint = 0; GPoint < IntegrationPoints.size(); ++GPoint) {
-        const auto N = Vector{row(NContainer, GPoint)};
-        result += (cWater + cSolid) * outer_prod(N, N) * rIntegrationCoefficients[GPoint];
-    }
-
-    return result;
-}
-
-template <unsigned int TDim, unsigned int TNumNodes>
 Vector TransientThermalElement<TDim, TNumNodes>::CalculateIntegrationCoefficients(const Vector& detJContainer) const
 {
     const auto& IntegrationPoints = GetGeometry().IntegrationPoints(GetIntegrationMethod());
