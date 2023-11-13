@@ -40,11 +40,9 @@ public:
     {
     }
 
-    TransientThermalElement& operator=(TransientThermalElement const& rOther) = delete;
-
-    TransientThermalElement(TransientThermalElement const& rOther) = delete;
-
-    ~TransientThermalElement() override;
+    ~TransientThermalElement() override = default;
+    TransientThermalElement(const TransientThermalElement&) = delete;
+    TransientThermalElement& operator=(const TransientThermalElement&) = delete;
 
     Element::Pointer Create(IndexType               NewId,
                             const NodesArrayType&   rThisNodes,

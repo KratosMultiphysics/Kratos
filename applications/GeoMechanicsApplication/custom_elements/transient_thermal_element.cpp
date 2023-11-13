@@ -19,9 +19,6 @@
 namespace Kratos {
 
 template <unsigned int TDim, unsigned int TNumNodes>
-TransientThermalElement<TDim, TNumNodes>::~TransientThermalElement() = default;
-
-template <unsigned int TDim, unsigned int TNumNodes>
 void TransientThermalElement<TDim, TNumNodes>::GetDofList(DofsVectorType& rElementalDofList,
                                                           const ProcessInfo& rCurrentProcessInfo) const
 {
