@@ -150,7 +150,7 @@ KRATOS_TEST_CASE_IN_SUITE(SpatialSearchResultContainerGetResultIsLocal, KratosCo
 
     // Create a test result
     GeometricalObject object = GeometricalObject(1);
-    SpatialSearchResult<GeometricalObject> result(&object);
+    SpatialSearchResult<GeometricalObject> result(&object, 0);
 
     // Add the result to the container
     container.AddResult(result);

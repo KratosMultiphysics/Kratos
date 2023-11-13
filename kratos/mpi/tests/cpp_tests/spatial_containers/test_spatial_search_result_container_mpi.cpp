@@ -167,7 +167,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISpatialSearchResultContainerGetResultIs
 
     // Create a test result
     GeometricalObject object = GeometricalObject(r_data_comm.Rank() + 1);
-    SpatialSearchResult<GeometricalObject> result(&object);
+    SpatialSearchResult<GeometricalObject> result(&object, r_data_comm.Rank());
 
     // Add the result to the container
     container.AddResult(result);
@@ -176,7 +176,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISpatialSearchResultContainerGetResultIs
     container.SynchronizeAll(r_data_comm);
 
     // Compute is local
-    auto is_local = container.GetResultIsActive();
+    auto is_local = container.GetResultIsLocal();
 
     // Check is local
     KRATOS_EXPECT_EQ(static_cast<int>(is_local.size()), r_data_comm.Size());

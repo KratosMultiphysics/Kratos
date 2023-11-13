@@ -226,7 +226,7 @@ std::vector<bool> SpatialSearchResultContainer<TObjectType>::GetResultIsLocal()
     std::vector<bool> is_local(number_of_gp, false);
 
     // Call Apply to get the proxy
-    auto proxy = this->Apply([](GlobalPointerResultType& rGP) -> bool {
+    auto proxy = this->Apply([](GlobalPointerResultType& rGP) -> int {
         return rGP->Get().GetRank();
     });
 
@@ -235,7 +235,8 @@ std::vector<bool> SpatialSearchResultContainer<TObjectType>::GetResultIsLocal()
     const int rank = r_data_comm.Rank();
     for(std::size_t i=0; i<number_of_gp; ++i) {
         auto& r_gp = mGlobalResults(i);
-        is_local[i] = (rank == proxy.Get(r_gp));
+        const int retrieved_rank = r_data_comm.MaxAll(proxy.Get(r_gp));
+        is_local[i] = (rank == retrieved_rank);
     }
 
     return is_local;
