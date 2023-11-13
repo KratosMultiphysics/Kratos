@@ -39,13 +39,19 @@ public:
 
     ~TransientThermalElement() override;
 
-    Element::Pointer Create(IndexType NewId,
-                            NodesArrayType const& rThisNodes,
-                            PropertiesType::Pointer pProperties) const override;
+    Element::Pointer Create(IndexType               NewId,
+                            const NodesArrayType&   rThisNodes,
+                            PropertiesType::Pointer pProperties) const override
+    {
+        return Element::Pointer{new TransientThermalElement{NewId, GetGeometry().Create(rThisNodes), pProperties}};
+    }
 
-    Element::Pointer Create(IndexType NewId,
-                            GeometryType::Pointer pGeom,
-                            PropertiesType::Pointer pProperties) const override;
+    Element::Pointer Create(IndexType               NewId,
+                            GeometryType::Pointer   pGeom,
+                            PropertiesType::Pointer pProperties) const override
+    {
+        return Element::Pointer{new TransientThermalElement{NewId, pGeom, pProperties}};
+    }
 
     int Check(const ProcessInfo& rCurrentProcessInfo) const override;
 

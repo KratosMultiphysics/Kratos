@@ -42,21 +42,6 @@ template <unsigned int TDim, unsigned int TNumNodes>
 TransientThermalElement<TDim, TNumNodes>::~TransientThermalElement() = default;
 
 template <unsigned int TDim, unsigned int TNumNodes>
-Element::Pointer TransientThermalElement<TDim, TNumNodes>::Create(
-    IndexType NewId, NodesArrayType const& rThisNodes, PropertiesType::Pointer pProperties) const
-{
-    return Element::Pointer(new TransientThermalElement(
-        NewId, GetGeometry().Create(rThisNodes), pProperties));
-}
-
-template <unsigned int TDim, unsigned int TNumNodes>
-Element::Pointer TransientThermalElement<TDim, TNumNodes>::Create(
-    IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties) const
-{
-    return Element::Pointer(new TransientThermalElement(NewId, pGeom, pProperties));
-}
-
-template <unsigned int TDim, unsigned int TNumNodes>
 void TransientThermalElement<TDim, TNumNodes>::GetDofList(DofsVectorType& rElementalDofList,
                                                           const ProcessInfo& rCurrentProcessInfo) const
 {
