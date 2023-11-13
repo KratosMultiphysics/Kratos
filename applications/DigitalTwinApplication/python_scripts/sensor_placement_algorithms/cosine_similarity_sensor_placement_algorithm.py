@@ -196,7 +196,7 @@ class CosineSimilaritySensorPlacementAlgorithm(SensorPlacementAlgorithm):
                 heat_map /= KratosOA.ExpressionUtils.NormL2(heat_map)
                 vtu_output.AddContainerExpression("heat_map", heat_map)
 
-            PrintSensorViewsListToCSV(output_path / f"best_placement_{clustering_iteration:05d}.csv", list_of_best_sensor_views, ["type", "name", "location", "value", "SENSOR_CLUSTER_ID"])
+            PrintSensorViewsListToCSV(output_path / f"best_placement_{clustering_iteration:05d}.csv", [s_view.GetSensor() for s_view in list_of_best_sensor_views], ["type", "name", "location", "value", "SENSOR_CLUSTER_ID"])
             vtu_output.PrintOutput(str(output_path / f"heat_map_{clustering_iteration:05d}"))
 
         Kratos.Logger.PrintInfo(self.__class__.__name__, f"Found {len(list_of_best_sensor_views)} clusters with sensors.")
@@ -232,7 +232,7 @@ class CosineSimilaritySensorPlacementAlgorithm(SensorPlacementAlgorithm):
                 cluster_domain_size = np.sum(np.take(entity_domain_size_np_exp, entity_indices))
                 Kratos.Logger.PrintInfo("", f"\t\t Cluster {cluster_id_to_break} - domain size = {cluster_domain_size * 100.0 / total_domain_size:0.3f} %")
 
-        PrintSensorViewsListToCSV(output_path / f"clusters.csv", unique_normalized_list, ["type", "name", "location", "value", "SENSOR_CLUSTER_ID"])
+        PrintSensorViewsListToCSV(output_path / f"clusters.csv", [s_view.GetSensor() for s_view in unique_normalized_list], ["type", "name", "location", "value", "SENSOR_CLUSTER_ID"])
 
     def ClusterListOfSensorViews(self, number_of_cluster: int, list_of_sensor_views: 'list[SensorViewUnionType]') -> 'dict[int, list[SensorViewUnionType]]':
         sensor_cosine_distances = GetCosineDistances(list_of_sensor_views)

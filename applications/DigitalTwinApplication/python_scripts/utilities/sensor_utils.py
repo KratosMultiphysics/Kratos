@@ -31,6 +31,7 @@ def GetSensors(model_part: Kratos.ModelPart, list_of_parameters: 'list[Kratos.Pa
                                         """{
                                                 "type"         : "displacement_sensor",
                                                 "name"         : "",
+                                                "value"        : 0,
                                                 "location"     : [0.0, 0.0, 0.0],
                                                 "direction"    : [0.0, 0.0, 0.0],
                                                 "weight"       : 1.0,
@@ -61,18 +62,18 @@ def GetSensors(model_part: Kratos.ModelPart, list_of_parameters: 'list[Kratos.Pa
             list_of_sensors.append(sensor)
     return list_of_sensors
 
-def PrintSensorViewsListToCSV(output_file_name: Path, list_of_sensor_views: 'list[SensorViewUnionType]', list_of_sensor_properties: 'list[str]') -> None:
-    """Writes data in the list_of_sensor_views to CSV file.
+def PrintSensorViewsListToCSV(output_file_name: Path, list_of_sensors: 'list[KratosDT.Sensors.Sensor]', list_of_sensor_properties: 'list[str]') -> None:
+    """Writes data in the list_of_sensors to CSV file.
 
-    This method writes data from all the list_of_sensor_views to the CSV file. The columns of the
+    This method writes data from all the list_of_sensors to the CSV file. The columns of the
     CSV is determined by list_of_sensor_properties.
 
     Args:
         output_file_name (Path): CSV file name (including the .csv extension).
-        list_of_sensor_views (list[SensorViewUnionType]): List of sensor views.
+        list_of_sensors (list[Sensor]): List of sensors.
         list_of_sensor_properties (list[str]): List of columns to write.
     """
-    number_of_sensor_views = len(list_of_sensor_views)
+    number_of_sensor_views = len(list_of_sensors)
 
     # do nothing if number of clusters is zero
     if number_of_sensor_views == 0:
@@ -83,7 +84,7 @@ def PrintSensorViewsListToCSV(output_file_name: Path, list_of_sensor_views: 'lis
 
     with open(str(output_file_name), "w") as file_output:
         # print the headers
-        first_sensor = list_of_sensor_views[0].GetSensor()
+        first_sensor = list_of_sensors[0]
 
         # write the csv id
         file_output.write("#")
@@ -118,8 +119,7 @@ def PrintSensorViewsListToCSV(output_file_name: Path, list_of_sensor_views: 'lis
 
         file_output.write(f"{param_property_headers}{value_property_headers}\n")
 
-        for i, sensor_view in enumerate(list_of_sensor_views):
-            sensor = sensor_view.GetSensor()
+        for i, sensor in enumerate(list_of_sensors):
             # write the id
             file_output.write(f"{i+1}")
 

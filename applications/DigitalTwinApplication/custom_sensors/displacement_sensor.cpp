@@ -40,6 +40,7 @@ DisplacementSensor::DisplacementSensor(
         << "The direction should be a non zero unit vector [ direction = " << mDirection << " ].\n";
 
     rElement.GetGeometry().PointLocalCoordinates(mLocalPoint, this->GetLocation());
+    this->SetValue(SENSOR_ELEMENT_ID, static_cast<int>(mElementId));
 }
 
 const Parameters DisplacementSensor::GetSensorParameters() const
@@ -51,15 +52,13 @@ const Parameters DisplacementSensor::GetSensorParameters() const
         "value"     : 0.0,
         "location"  : [0.0, 0.0, 0.0],
         "direction" : [0.0, 0.0, 0.0],
-        "weight"    : 0.0,
-        "element_id": 0
+        "weight"    : 0.0
     })" );
     parameters["name"].SetString(this->GetName());
     parameters["value"].SetDouble(this->GetSensorValue());
     parameters["location"].SetVector(this->GetLocation());
     parameters["direction"].SetVector(mDirection);
     parameters["weight"].SetDouble(this->GetWeight());
-    parameters["element_id"].SetInt(mElementId);
     return parameters;
 }
 
