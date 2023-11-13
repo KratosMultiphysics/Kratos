@@ -46,7 +46,7 @@ const Parameters DisplacementSensor::GetSensorParameters() const
 {
     Parameters parameters = Parameters(R"(
     {
-        "type"      : "DisplacementSensor",
+        "type"      : "displacement_sensor",
         "name"      : "",
         "value"     : 0.0,
         "location"  : [0.0, 0.0, 0.0],
