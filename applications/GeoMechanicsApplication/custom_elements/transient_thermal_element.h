@@ -74,7 +74,17 @@ public:
     }
 
     void EquationIdVector(EquationIdVectorType& rResult,
-                          const ProcessInfo& rCurrentProcessInfo) const override;
+                          const ProcessInfo& ) const override
+    {
+        KRATOS_TRY
+
+        rResult.resize(TNumNodes, false);
+        for (unsigned int i = 0; i < TNumNodes; ++i) {
+            rResult[i] = GetGeometry()[i].GetDof(TEMPERATURE).EquationId();
+        }
+
+        KRATOS_CATCH("")
+    }
 
     void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
                               VectorType& rRightHandSideVector,
