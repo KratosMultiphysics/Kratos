@@ -68,20 +68,6 @@ int TransientThermalElement<TDim, TNumNodes>::Check(const ProcessInfo& rCurrentP
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void TransientThermalElement<TDim, TNumNodes>::VerifyProperty(Kratos::Variable<double>& rVariable) const
-{
-    const PropertiesType& rProp = GetProperties();
-    if (!rProp.Has(rVariable)) {
-        KRATOS_ERROR << rVariable.Name()
-                     << " does not exist in the material properties." << std::endl;
-    }
-    else if (rProp[rVariable] < 0.0) {
-        KRATOS_ERROR << rVariable.Name() << " has an invalid value at element"
-                     << Id() << "." << std::endl;
-    }
-}
-
-template <unsigned int TDim, unsigned int TNumNodes>
 void TransientThermalElement<TDim, TNumNodes>::CheckDomainSize() const
 {
     const GeometryType& rGeom = GetGeometry();

@@ -207,7 +207,14 @@ private:
         return result;
     }
 
-    void VerifyProperty(Kratos::Variable<double>& rVariable) const;
+    void VerifyProperty(const Kratos::Variable<double>& rVariable) const
+    {
+        KRATOS_ERROR_IF_NOT(GetProperties().Has(rVariable)) << rVariable.Name()
+                                                            << " does not exist in the material properties" << std::endl;
+        KRATOS_ERROR_IF(GetProperties()[rVariable] < 0.0) << rVariable.Name() << " has an invalid value at element "
+                                                          << Id() << std::endl;
+    }
+
     void CheckDomainSize() const;
     void CheckSolutionStepsData(int rId, Kratos::Variable<double>& rVariable) const;
 
