@@ -52,7 +52,7 @@ public:
         CheckAllocatedVariables(rModelPart);
         this->CheckBufferSize(rModelPart);
 
-        KRATOS_ERROR_IF(mTheta <= 0) << "Theta has an invalid value\n";
+        KRATOS_ERROR_IF(this->mTheta <= 0) << "Theta has an invalid value\n";
 
         return 0;
 
