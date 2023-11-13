@@ -51,7 +51,7 @@ KRATOS_TEST_CASE_IN_SUITE(CheckBackwardEulerQuasistaticTScheme_WithAllNecessaryP
 KRATOS_TEST_CASE_IN_SUITE(ForInvalidTheta_CheckBackwardEulerQuasistaticTScheme_Throws,
                           KratosGeoMechanicsFastSuite)
 {
-    const int invalid_theta = -2;
+    constexpr int invalid_theta = -2;
     GeneralizedNewmarkTScheme<SparseSpaceType, LocalSpaceType> scheme(invalid_theta);
 
     Model model;
@@ -71,7 +71,7 @@ KRATOS_TEST_CASE_IN_SUITE(ForInvalidBufferSize_CheckBackwardEulerQuasistaticTSch
     GeneralizedNewmarkTScheme<SparseSpaceType, LocalSpaceType> scheme(0.75);
 
     Model model;
-    const int invalid_buffer_size = 1;
+    constexpr int invalid_buffer_size = 1;
     auto& model_part = model.CreateModelPart("dummy", invalid_buffer_size);
     model_part.AddNodalSolutionStepVariable(TEMPERATURE);
     model_part.AddNodalSolutionStepVariable(DT_TEMPERATURE);
@@ -136,10 +136,10 @@ KRATOS_TEST_CASE_IN_SUITE(ThermalSchemeUpdate_SetsDtTemperature, KratosGeoMechan
     Model model;
     ModelPart& model_part = CreateValidModelPart(model);
 
-    const double current_temperature = 10.0;
-    const double previous_temperature = 5.0;
-    const double previous_dt_temperature = 3.0;
-    const double delta_time = 2.0;
+    constexpr double current_temperature = 10.0;
+    constexpr double previous_temperature = 5.0;
+    constexpr double previous_dt_temperature = 3.0;
+    constexpr double delta_time = 2.0;
 
     model_part.GetProcessInfo()[DELTA_TIME] = delta_time;
     Node& node = model_part.Nodes()[0];
@@ -148,7 +148,7 @@ KRATOS_TEST_CASE_IN_SUITE(ThermalSchemeUpdate_SetsDtTemperature, KratosGeoMechan
     node.FastGetSolutionStepValue(DT_TEMPERATURE, 1) = previous_dt_temperature;
 
     // This is the expected value as calculated by the UpdateVariablesDerivatives
-    double expected_value = 7.0/3.0;
+    constexpr double expected_value = 7.0/3.0;
 
     ModelPart::DofsArrayType dof_set;
     CompressedMatrix A;
@@ -166,13 +166,13 @@ KRATOS_TEST_CASE_IN_SUITE(InitializeScheme_SetsTimeFactors, KratosGeoMechanicsFa
     auto scheme = CreateValidScheme();
     Model model;
     ModelPart& model_part = CreateValidModelPart(model);
-    const double delta_time = 3.0;
+    constexpr double delta_time = 3.0;
     model_part.GetProcessInfo()[DELTA_TIME] = delta_time;
 
     scheme.Initialize(model_part);
 
     KRATOS_EXPECT_TRUE(scheme.SchemeIsInitialized())
-    const double theta = 0.75;
+    constexpr double theta = 0.75;
     KRATOS_EXPECT_DOUBLE_EQ(model_part.GetProcessInfo()[DT_TEMPERATURE_COEFFICIENT],
                             1.0 / (theta * delta_time));
 }

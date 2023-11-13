@@ -88,8 +88,8 @@ KRATOS_TEST_CASE_IN_SUITE(InitializeUPWScheme_SetsTimeFactors, KratosGeoMechanic
     tester.mScheme.Initialize(tester.GetModelPart());
 
     // These are the expected numbers according to the SetTimeFactors function
-    const double expected_dt_pressure_coefficient = 1.0 / 3.0;
-    const double expected_velocity_coefficient = 0.5;
+    constexpr double expected_dt_pressure_coefficient = 1.0 / 3.0;
+    constexpr double expected_velocity_coefficient = 0.5;
     KRATOS_EXPECT_TRUE(tester.mScheme.SchemeIsInitialized())
     KRATOS_EXPECT_DOUBLE_EQ(tester.GetModelPart().GetProcessInfo()[DT_PRESSURE_COEFFICIENT],
                             expected_dt_pressure_coefficient);
@@ -110,9 +110,9 @@ KRATOS_TEST_CASE_IN_SUITE(UPWSchemePredict_UpdatesVariablesDerivatives, KratosGe
     tester.mScheme.Predict(tester.GetModelPart(), dof_set, A, Dx, b);
 
     // These expected numbers result from the calculations in UpdateVariablesDerivatives
-    auto expected_acceleration = Kratos::array_1d<double, 3>{-6.75, -9.0, -11.25};
-    auto expected_velocity = Kratos::array_1d<double, 3>{-4.5, -6.0, -7.5};
-    auto expected_dt_water_pressure = 1.0 / 3.0;
+    const auto expected_acceleration = Kratos::array_1d<double, 3>{-6.75, -9.0, -11.25};
+    const auto expected_velocity = Kratos::array_1d<double, 3>{-4.5, -6.0, -7.5};
+    constexpr auto expected_dt_water_pressure = 1.0 / 3.0;
 
     KRATOS_EXPECT_EQ(tester.GetModelPart().Nodes()[0].FastGetSolutionStepValue(ACCELERATION),
                      expected_acceleration);
