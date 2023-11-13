@@ -35,7 +35,7 @@ public:
         : Kratos::ApplyConstantScalarValueProcess(rModelPart, rVariable, DoubleValue, MeshId, rOptions)
     {}
 
-    bool hasWaterPressure()
+    bool hasWaterPressure() const
     {
         return mvariable_name == "WATER_PRESSURE";
     }
@@ -59,7 +59,7 @@ public:
         return mrModelPart;
     }
 
-    double GetReferenceCoord()
+    double GetReferenceCoord() const
     {
         return mReferenceCoordinate;
     }
@@ -69,7 +69,7 @@ public:
         mReferenceCoordinate = value;
     }
 
-    bool hasWaterPressure()
+    bool hasWaterPressure() const
     {
         return mVariableName == "WATER_PRESSURE";
     }
@@ -89,7 +89,7 @@ namespace Kratos
             kernel.ImportApplication(geoApp);
         }
 
-        Kratos::OpenMPUtils::SetNumThreads(1);
+        ParallelUtilities::SetNumThreads(1);
         if (this->GetEchoLevel() > 0)
         {
             Kratos::OpenMPUtils::PrintOMPInfo();
@@ -120,7 +120,7 @@ namespace Kratos
         const double abs_tol = 1.0e-9;
         VariableData *p_water_pres = &WATER_PRESSURE;
         KratosExecute::ConvergenceVariableListType convergence_settings{std::make_tuple(p_water_pres, rel_tol, abs_tol)};
-        return KratosExecute::ConvergenceCriteriaType::Pointer(new KratosExecute::MixedGenericCriteriaType(convergence_settings));
+        return std::make_shared<KratosExecute::MixedGenericCriteriaType>(convergence_settings);
     }
 
     KratosExecute::LinearSolverType::Pointer KratosExecute::setup_solver_dgeoflow()
@@ -410,7 +410,7 @@ namespace Kratos
 
     void KratosExecute::ExecuteWithoutPiping(ModelPart& model_part,
                                              const std::vector<std::shared_ptr<Process>>& processes,
-                                             const Kratos::Parameters& gid_output_settings)
+                                             const Kratos::Parameters& gid_output_settings) const
     {
         const auto p_solving_strategy = setup_strategy_dgeoflow(model_part);
         p_solving_strategy->SetEchoLevel(0);
@@ -423,7 +423,7 @@ namespace Kratos
                                           const std::vector<std::shared_ptr<Process>>& processes,
                                           const std::function<void(double)>& rReportProgress,
                                           const std::function<void(const char*)>& rReportTextualProgress,
-                                         const Kratos::Parameters& gid_output_settings,
+                                          const Kratos::Parameters& gid_output_settings,
                                           const CriticalHeadInfo& criticalHeadInfo,
                                           const std::function<void(const char*)>& rLogCallback,
                                           LoggerOutput::Pointer p_output,
@@ -562,9 +562,10 @@ namespace Kratos
         CriticalHeadFile.close();
 
         KRATOS_INFO_IF("GeoFlowKernel", this->GetEchoLevel() > 0) << "Finished writing result" << std::endl;
+        return 0;
     }
 
-    void KratosExecute::AddNodalSolutionStepVariables(ModelPart& model_part)
+    void KratosExecute::AddNodalSolutionStepVariables(ModelPart& model_part) const
     {
         model_part.AddNodalSolutionStepVariable(VELOCITY);
         model_part.AddNodalSolutionStepVariable(ACCELERATION);
@@ -656,15 +657,8 @@ namespace Kratos
                 auto current_process = std::static_pointer_cast<GeoFlowApplyConstantScalarValueProcess>(process);
                 if (current_process->hasWaterPressure())
                 {
-                    currentModelPart = &current_process->GetModelPart();
-                    try
-                    {
-                        currentModelPart->GetNode(RiverNode);
-                        RiverBoundary = current_process;
-                    }
-                    catch (...)
-                    {
-                    }
+                    currentModelPart->GetNode(RiverNode);
+                    RiverBoundary = current_process;
                 }
             }
             else if (process->Info() == "ApplyConstantHydrostaticPressureProcess")
@@ -673,14 +667,8 @@ namespace Kratos
                 currentModelPart = &current_process->GetModelPart();
                 if (current_process->hasWaterPressure())
                 {
-                    try
-                    {
-                        currentModelPart->GetNode(RiverNode);
-                        RiverBoundary = current_process;
-                    }
-                    catch (...)
-                    {
-                    }
+                    currentModelPart->GetNode(RiverNode);
+                    RiverBoundary = current_process;
                 }
             }
         }

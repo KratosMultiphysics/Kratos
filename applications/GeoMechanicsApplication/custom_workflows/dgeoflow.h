@@ -71,7 +71,7 @@ namespace Kratos
 
         void ExecuteWithoutPiping(ModelPart& model_part,
                                                  const std::vector<std::shared_ptr<Process>>& processes,
-                                                 const Kratos::Parameters& gid_output_settings);
+                                                 const Kratos::Parameters& gid_output_settings) const;
 
         int ExecuteWithPiping(ModelPart& model_part,
                                               const std::vector<std::shared_ptr<Process>>& processes,
@@ -83,7 +83,7 @@ namespace Kratos
                                               LoggerOutput::Pointer p_output,
                                               const std::function<bool()>& rShouldCancel);
 
-        void AddNodalSolutionStepVariables(ModelPart& model_part);
+        void AddNodalSolutionStepVariables(ModelPart& model_part) const;
 
         typedef Node NodeType;
         typedef Geometry<NodeType> GeometryType;
