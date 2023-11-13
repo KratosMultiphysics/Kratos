@@ -448,7 +448,7 @@ namespace Kratos
 
         if (!RiverBoundary)
         {
-            throw std::logic_error("No river boundary found.");
+            KRATOS_ERROR << "No river boundary found.";
         }
 
         double criticalHead;
@@ -519,7 +519,7 @@ namespace Kratos
             if (RiverBoundary->Info() == "ApplyConstantScalarValueProcess")
             {
                 ResetModelParts();
-                throw std::logic_error("ApplyConstantScalarValueProcess process search is not Implemented");
+                KRATOS_ERROR << "ApplyConstantScalarValueProcess process search is not implemented.";
             }
 
             if (RiverBoundary->Info() == "ApplyConstantHydrostaticPressureProcess")
@@ -617,7 +617,7 @@ namespace Kratos
 
         if (!RiverBoundary)
         {
-            std::cerr << "No boundary found with the model part name " << rCriticalHeadBoundaryModelPartName << "." << std::endl;
+            KRATOS_ERROR_IF_NOT(RiverBoundary) << "No boundary found with the model part name " << rCriticalHeadBoundaryModelPartName << "." << std::endl;
             return nullptr;
         }
 
@@ -675,7 +675,7 @@ namespace Kratos
 
         if (!RiverBoundary)
         {
-            std::cerr << "No boundary found on the river side at node " << RiverNode << "." << std::endl;
+            KRATOS_ERROR_IF_NOT(RiverBoundary) << "No boundary found on the river side at node " << RiverNode << "." << std::endl;
             return nullptr;
         }
 
