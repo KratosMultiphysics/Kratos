@@ -459,8 +459,8 @@ void UPwSmallStrainFICElement<TDim,TNumNodes>::
     FICElementVariables FICVariables;
     this->InitializeFICElementVariables(FICVariables, Variables.DN_DXContainer, Geom, Prop, CurrentProcessInfo);
 
-    // create general parametes of retention law
-    RetentionLaw::Parameters RetentionParameters(Geom, this->GetProperties(), CurrentProcessInfo);
+    // create general parameters of retention law
+    RetentionLaw::Parameters RetentionParameters(this->GetProperties(), CurrentProcessInfo);
 
     const bool hasBiotCoefficient = Prop.Has(BIOT_COEFFICIENT);
 

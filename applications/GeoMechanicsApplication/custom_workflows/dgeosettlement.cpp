@@ -21,7 +21,6 @@
 #include "custom_processes/apply_excavation_process.h"
 
 #include "custom_utilities/input_utility.h"
-#include "custom_utilities/process_factory.hpp"
 #include "custom_utilities/process_info_parser.h"
 #include "custom_utilities/solving_strategy_factory.hpp"
 #include "spaces/ublas_space.h"
@@ -130,51 +129,17 @@ KratosGeoSettlement::KratosGeoSettlement(std::unique_ptr<InputUtility> pInputUti
 void KratosGeoSettlement::InitializeProcessFactory()
 {
     mProcessFactory->AddCreator("ApplyScalarConstraintTableProcess",
-                                [&model = mModel](const Parameters& rParameters)
-                                {
-                                    auto& model_part = model.GetModelPart(rParameters["model_part_name"].GetString());
-                                    return std::make_unique<ApplyScalarConstraintTableProcess>(model_part,
-                                                                                               rParameters);
-                                });
-
+                                MakeCreatorFor<ApplyScalarConstraintTableProcess>());
     mProcessFactory->AddCreator("ApplyNormalLoadTableProcess",
-                                [this](const Parameters& rParameters)
-                                {
-                                      return std::make_unique<ApplyNormalLoadTableProcess>(GetMainModelPart(),
-                                                                                           rParameters);
-                                });
-
+                                MakeCreatorFor<ApplyNormalLoadTableProcess>());
     mProcessFactory->AddCreator("ApplyVectorConstraintTableProcess",
-                                [&model = mModel](const Parameters& rParameters)
-                                {
-                                    auto& model_part = model.GetModelPart(rParameters["model_part_name"].GetString());
-                                    return std::make_unique<ApplyVectorConstraintTableProcess>(model_part,
-                                                                                               rParameters);
-                                });
-
+                                MakeCreatorFor<ApplyVectorConstraintTableProcess>());
     mProcessFactory->AddCreator("SetParameterFieldProcess",
-                                [&model = mModel](const Parameters& rParameters)
-                                {
-                                    auto& model_part = model.GetModelPart(rParameters["model_part_name"].GetString());
-                                    return std::make_unique<SetParameterFieldProcess>(model_part,
-                                                                                      rParameters);
-                                });
-
+                                MakeCreatorFor<SetParameterFieldProcess>());
     mProcessFactory->AddCreator("ApplyExcavationProcess",
-                                [&model = mModel](const Parameters& rParameters)
-                                {
-                                    auto& model_part = model.GetModelPart(rParameters["model_part_name"].GetString());
-                                    return std::make_unique<ApplyExcavationProcess>(model_part,
-                                                                                    rParameters);
-                                });
-
+                                MakeCreatorFor<ApplyExcavationProcess>());
     mProcessFactory->AddCreator("ApplyK0ProcedureProcess",
-                                [&model = mModel](const Parameters& rParameters)
-                                {
-                                    auto& model_part = model.GetModelPart(rParameters["model_part_name"].GetString());
-                                    return std::make_unique<ApplyK0ProcedureProcess>(model_part,
-                                                                                     rParameters);
-                                });
+                                MakeCreatorFor<ApplyK0ProcedureProcess>());
 
     mProcessFactory->SetCallBackWhenProcessIsUnknown([](const std::string& rProcessName)
     {
@@ -437,6 +402,7 @@ void KratosGeoSettlement::PrepareModelPart(const Parameters& rSolverSettings)
     }
     GetComputationalModelPart().AddElements(std::vector<IndexedObject::IndexType>{element_id_set.begin(), element_id_set.end()});
 
+    GetComputationalModelPart().Conditions().clear();
     const auto processes_sub_model_part_list = rSolverSettings["processes_sub_model_part_list"];
     std::vector<std::string> domain_condition_names;
     for (const auto& sub_model_part : processes_sub_model_part_list) {
