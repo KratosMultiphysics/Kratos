@@ -133,6 +133,9 @@
 #include "custom_constitutive/linear_elastic_3D_interface_law.h"
 #include "custom_constitutive/linear_elastic_2D_beam_law.h"
 
+#include "factories/standard_linear_solver_factory.h"
+#include "custom_solvers/pre_factorized_skyline_lu_factorization_solver.h"
+
 namespace Kratos {
 
 ///@name Kratos Globals
@@ -536,6 +539,15 @@ private:
 
     const LinearElastic2DBeamLaw          mLinearElastic2DBeamLaw;
 
+    using SparseSpaceType = UblasSpace<double, CompressedMatrix, Vector>;
+    using LocalSpaceType = UblasSpace<double, Matrix, Vector>;
+    using ReordererType = Reorderer<SparseSpaceType, LocalSpaceType >;
+    // using DirectSolverType = DirectSolver<SparseSpaceType, LocalSpaceType, ReordererType >;
+    // using PreFactorizedSkylineLUFactorizationSolverType = PreFactorizedSkylineLUFactorizationSolver<SparseSpaceType, LocalSpaceType, ReordererType >;
+
+    using PreFactorizedSkylineLUFactorizationSolverType = PreFactorizedSkylineLUFactorizationSolver<SparseSpaceType, LocalSpaceType>;
+    const StandardLinearSolverFactory<SparseSpaceType, LocalSpaceType, PreFactorizedSkylineLUFactorizationSolverType> mPreFactorizedSkylineLUFactorizationSolver = StandardLinearSolverFactory<SparseSpaceType, LocalSpaceType, PreFactorizedSkylineLUFactorizationSolverType>();
+    // const PreFactorizedSkylineLUFactorizationSolver< SparseSpaceType, LocalSpaceType, ReordererType> mPreFactorizedSkylineLuFactorizationSolver;
 
     ///@}
 

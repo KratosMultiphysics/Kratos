@@ -495,5 +495,7 @@ void KratosGeoMechanicsApplication::Register() {
     KRATOS_REGISTER_VARIABLE( STATE_VARIABLE_49 )
     KRATOS_REGISTER_VARIABLE( STATE_VARIABLE_50 )
 
+    KRATOS_REGISTER_LINEAR_SOLVER("PreFactorizedSkylineLUFactorizationSolver", mPreFactorizedSkylineLUFactorizationSolver)
+
    }
 }  // namespace Kratos.

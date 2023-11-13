@@ -445,6 +445,7 @@ class GeoMechanicalSolver(PythonSolver):
             if prebuild_dynamics:
                 builder_and_solver = (
                     GeoMechanicsApplication.IncrementalNewmarkBlockBuilderAndSolverWithMassAndDamping(self.linear_solver))
+                    #GeoMechanicsApplication.ResidualBasedBlockBuilderAndSolverWithMassAndDamping(self.linear_solver))
             else:
                 builder_and_solver = KratosMultiphysics.ResidualBasedBlockBuilderAndSolver(self.linear_solver)
         else:

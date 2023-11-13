@@ -27,6 +27,7 @@
 #include "geo_mechanics_application.h"
 #include "geo_mechanics_application_variables.h"
 #include "custom_python/add_custom_strategies_to_python.h"
+#include "custom_python/add_custom_solvers_to_python.h"
 #include "custom_python/add_custom_constitutive_laws_to_python.h"
 #include "custom_python/add_custom_processes_to_python.h"
 #include "custom_python/add_custom_utilities_to_python.h"
@@ -45,6 +46,7 @@ PYBIND11_MODULE(KratosGeoMechanicsApplication,m)
             .def(py::init<>());
 
     AddCustomStrategiesToPython(m);
+    AddCustomSolversToPython(m);
     AddCustomUtilitiesToPython(m);
     AddCustomConstitutiveLawsToPython(m);
     AddCustomProcessesToPython(m);
