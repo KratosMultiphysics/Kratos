@@ -31,7 +31,7 @@
 #include "custom_strategies/schemes/backward_euler_T_scheme.hpp"
 #include "custom_strategies/schemes/backward_euler_quasistatic_Pw_scheme.hpp"
 #include "custom_strategies/schemes/backward_euler_quasistatic_U_Pw_scheme.hpp"
-#include "custom_strategies/schemes/generalized_newmark_T_scheme.hpp"
+#include "custom_strategies/schemes/newmark_T_scheme.hpp"
 #include "custom_strategies/schemes/newmark_dynamic_U_Pw_scheme.hpp"
 #include "custom_strategies/schemes/newmark_quasistatic_Pw_scheme.hpp"
 #include "custom_strategies/schemes/newmark_quasistatic_U_Pw_scheme.hpp"
@@ -59,8 +59,7 @@ void AddCustomStrategiesToPython(pybind11::module& m)
     using NewmarkQuasistaticDampedUPwSchemeType = NewmarkQuasistaticDampedUPwScheme< SparseSpaceType, LocalSpaceType >;
     using NewmarkDynamicUPwSchemeType = NewmarkDynamicUPwScheme< SparseSpaceType, LocalSpaceType >;
     using NewmarkQuasistaticPwSchemeType = NewmarkQuasistaticPwScheme< SparseSpaceType, LocalSpaceType >;
-    using NewmarkQuasistaticTSchemeType =
-        GeneralizedNewmarkTScheme< SparseSpaceType, LocalSpaceType >;
+    using NewmarkQuasistaticTSchemeType = NewmarkTScheme< SparseSpaceType, LocalSpaceType >;
 
     using BackwardEulerQuasistaticUPwSchemeType = BackwardEulerQuasistaticUPwScheme< SparseSpaceType, LocalSpaceType >;
     using BackwardEulerQuasistaticPwSchemeType = BackwardEulerQuasistaticPwScheme< SparseSpaceType, LocalSpaceType >;
@@ -90,7 +89,7 @@ void AddCustomStrategiesToPython(pybind11::module& m)
     .def(py::init<  double >());
 
     py::class_<NewmarkQuasistaticTSchemeType, typename NewmarkQuasistaticTSchemeType::Pointer, BaseSchemeType>
-        (m, "GeneralizedNewmarkTScheme")
+        (m, "NewmarkTScheme")
             .def(py::init<double>());
 
     py::class_< BackwardEulerQuasistaticUPwSchemeType, typename BackwardEulerQuasistaticUPwSchemeType::Pointer, BaseSchemeType >

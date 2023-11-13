@@ -99,11 +99,7 @@ protected:
 
         //Update DtPressure
         block_for_each(rModelPart.Nodes(), [&](Node& rNode){
-            const double DeltaPressure =  rNode.FastGetSolutionStepValue(WATER_PRESSURE)
-                                        - rNode.FastGetSolutionStepValue(WATER_PRESSURE, 1);
-            const auto &PreviousDtPressure = rNode.FastGetSolutionStepValue(DT_WATER_PRESSURE, 1);
-
-            rNode.FastGetSolutionStepValue(DT_WATER_PRESSURE) =  (1.0/(mTheta*this->GetDeltaTime()))*(DeltaPressure - (1.0-mTheta)*this->GetDeltaTime()*PreviousDtPressure);
+            this->UpdateScalarTimeDerivative(rNode, WATER_PRESSURE, DT_WATER_PRESSURE);
         });
 
         KRATOS_CATCH( "" )

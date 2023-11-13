@@ -18,13 +18,13 @@
 #include "utilities/parallel_utilities.h"
 
 #include "geo_mechanics_application_variables.h"
-#include "geomechanics_time_integration_scheme.hpp"
+#include "generalized_newmark_scheme.hpp"
 
 namespace Kratos
 {
 
 template<class TSparseSpace, class TDenseSpace>
-class NewmarkQuasistaticUPwScheme : public GeoMechanicsTimeIntegrationScheme<TSparseSpace,TDenseSpace>
+class NewmarkQuasistaticUPwScheme : public GeneralizedNewmarkScheme<TSparseSpace,TDenseSpace>
 {
 public:
     KRATOS_CLASS_POINTER_DEFINITION( NewmarkQuasistaticUPwScheme );
@@ -37,10 +37,9 @@ public:
     using LocalSystemMatrixType = typename BaseType::LocalSystemMatrixType;
 
     NewmarkQuasistaticUPwScheme(double beta, double gamma, double theta)
-        : GeoMechanicsTimeIntegrationScheme<TSparseSpace, TDenseSpace>()
+        : GeneralizedNewmarkScheme<TSparseSpace, TDenseSpace>(theta)
         , mBeta(beta)
         , mGamma(gamma)
-        , mTheta(theta)
     {}
 
     int Check(const ModelPart& rModelPart) const override
@@ -100,7 +99,7 @@ public:
         this->CheckBufferSize(rModelPart);
 
         // Check beta, gamma and theta
-        KRATOS_ERROR_IF(mBeta <= 0.0 || mGamma<= 0.0 || mTheta <= 0.0)
+        KRATOS_ERROR_IF(mBeta <= 0.0 || mGamma<= 0.0 || this->mTheta <= 0.0)
             << "Some of the scheme variables: beta, gamma or theta has an invalid value"
             << std::endl;
 
@@ -169,7 +168,6 @@ public:
 protected:
     double mBeta  = 0.25;
     double mGamma = 0.5;
-    double mTheta = 0.5;
 
     inline void SetTimeFactors(ModelPart& rModelPart) override
     {
@@ -177,7 +175,7 @@ protected:
 
         this->SetDeltaTime(rModelPart.GetProcessInfo()[DELTA_TIME]);
         rModelPart.GetProcessInfo()[VELOCITY_COEFFICIENT]    = mGamma/(mBeta*this->GetDeltaTime());
-        rModelPart.GetProcessInfo()[DT_PRESSURE_COEFFICIENT] = 1.0/(mTheta*this->GetDeltaTime());
+        rModelPart.GetProcessInfo()[DT_PRESSURE_COEFFICIENT] = 1.0/(this->mTheta*this->GetDeltaTime());
 
         KRATOS_CATCH("")
     }
@@ -201,13 +199,7 @@ protected:
                                                                 + mGamma * this->GetDeltaTime()
                                                                 * rNode.FastGetSolutionStepValue(ACCELERATION);
 
-            const double DeltaPressure =  rNode.FastGetSolutionStepValue(WATER_PRESSURE)
-                                        - rNode.FastGetSolutionStepValue(WATER_PRESSURE, 1);
-
-            rNode.FastGetSolutionStepValue(DT_WATER_PRESSURE) = ( DeltaPressure
-                                                                 - (1.0-mTheta) * this->GetDeltaTime()
-                                                                  * rNode.FastGetSolutionStepValue(DT_WATER_PRESSURE, 1))
-                                                                / (mTheta* this->GetDeltaTime());
+            this->UpdateScalarTimeDerivative(rNode, WATER_PRESSURE, DT_WATER_PRESSURE);
         });
 
         KRATOS_CATCH( "" )

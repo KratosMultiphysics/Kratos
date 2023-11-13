@@ -14,18 +14,18 @@
 
 #pragma once
 
-#include "custom_strategies/schemes/generalized_newmark_T_scheme.hpp"
+#include "custom_strategies/schemes/newmark_T_scheme.hpp"
 
 namespace Kratos {
 
 template <class TSparseSpace, class TDenseSpace>
 class BackwardEulerTScheme
-    : public GeneralizedNewmarkTScheme<TSparseSpace, TDenseSpace> {
+    : public NewmarkTScheme<TSparseSpace, TDenseSpace> {
 public:
     KRATOS_CLASS_POINTER_DEFINITION(BackwardEulerTScheme);
 
     BackwardEulerTScheme()
-        : GeneralizedNewmarkTScheme<TSparseSpace, TDenseSpace>(1.0)
+        : NewmarkTScheme<TSparseSpace, TDenseSpace>(1.0)
     {
     }
 

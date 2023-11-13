@@ -177,13 +177,7 @@ public:
                                                                  + mGamma * this->GetDeltaTime()
                                                                  * rNode.FastGetSolutionStepValue(ACCELERATION);
 
-            const double DeltaPressure =  rNode.FastGetSolutionStepValue(WATER_PRESSURE)
-                                        - rNode.FastGetSolutionStepValue(WATER_PRESSURE, 1);
-
-            rNode.FastGetSolutionStepValue(DT_WATER_PRESSURE) =  (1.0/(mTheta*this->GetDeltaTime()))
-                                                                * ( DeltaPressure
-                                                                   - (1.0-mTheta) * this->GetDeltaTime()
-                                                                   * rNode.FastGetSolutionStepValue(DT_WATER_PRESSURE,1));
+            this->UpdateScalarTimeDerivative(rNode, WATER_PRESSURE, DT_WATER_PRESSURE);
         });
 
 
