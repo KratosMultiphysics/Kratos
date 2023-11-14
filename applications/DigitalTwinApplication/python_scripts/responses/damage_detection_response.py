@@ -61,12 +61,12 @@ class DamageDetectionResponse(ResponseFunction):
             sensor_measurement_data_file_name = params["sensor_measurement_data_file"].GetString()
             sensor_computed_data_file = params["sensor_computed_data_file"].GetString()
             weight = params["weight"].GetDouble()
-            self.list_of_test_analysis_data.append((optimization_problem.GetExecutionPolicy(primal_analysis_name), sensor_measurement_data_file_name, sensor_computed_data_file, weight))
+            self.list_of_test_analysis_data.append((optimization_problem.GetExecutionPolicy(primal_analysis_name), sensor_measurement_data_file_name, weight))
 
         self.model_part_operation = ModelPartOperation(self.model, ModelPartOperation.OperationType.UNION, f"response_{self.GetName()}", evaluated_model_part_names, False)
         self.model_part: Optional[Kratos.ModelPart] = None
 
-        self.analysis_model_part_operation = ModelPartOperation(self.model, ModelPartOperation.OperationType.UNION, f"response_test_analysis_{self.GetName()}", [exec.GetAnalysisModelPart().FullName() for exec, _, _, _ in self.list_of_test_analysis_data], False)
+        self.analysis_model_part_operation = ModelPartOperation(self.model, ModelPartOperation.OperationType.UNION, f"response_test_analysis_{self.GetName()}", [exec.GetAnalysisModelPart().FullName() for exec, _, _ in self.list_of_test_analysis_data], False)
         self.analysis_model_part: Optional[Kratos.ModelPart] = None
 
         self.adjoint_analysis = SensorSensitivityStaticAnalysis(self.model, parameters["adjoint_parameters"])
@@ -110,33 +110,22 @@ class DamageDetectionResponse(ResponseFunction):
 
     def CalculateValue(self) -> float:
         result = 0.0
-        for exec_policy, sensor_measurement_data_file_name, sensor_computed_data_file_name, test_case_weight in self.list_of_test_analysis_data:
+        for exec_policy, sensor_measurement_data_file_name, test_case_weight in self.list_of_test_analysis_data:
             # first run the primal analysis.
             exec_policy.Execute()
             Kratos.Logger.PrintInfo(self.__class__.__name__, f"Computed \"{exec_policy.GetName()}\".")
 
             # now open the data files generated from the primal analysis.
-            csv_measurement_file = open(sensor_measurement_data_file_name, "r")
-            csv_computed_file = open(sensor_computed_data_file_name, "r")
+            with open(sensor_measurement_data_file_name, "r") as csv_measurement_file:
+                csv_measurement_stream = csv.reader(csv_measurement_file, delimiter=",")
+                measured_name_index, measured_value_index = self.__GetHeaderIndices(csv_measurement_stream)
 
-            csv_measurement_stream = csv.reader(csv_measurement_file, delimiter=",")
-            csv_computed_stream = csv.reader(csv_computed_file, delimiter=",")
-
-            measured_name_index, measured_value_index = self.__GetHeaderIndices(csv_measurement_stream)
-            computed_name_index, computed_value_index = self.__GetHeaderIndices(csv_computed_stream)
-
-            for measured_row, computed_row in zip(csv_measurement_stream, csv_computed_stream):
-                measured_sensor_name = measured_row[measured_name_index].strip()
-                computed_sensor_name = computed_row[computed_name_index].strip()
-                if measured_sensor_name != computed_sensor_name:
-                    raise RuntimeError(f"Mismatching sensor names found [ measured_sensor_name = {measured_sensor_name}, computed_sensor_name = {computed_sensor_name}]")
-
-                measured_value = float(measured_row[measured_value_index])
-                computed_value = float(computed_row[computed_value_index])
-                result += test_case_weight * ((computed_value - measured_value) ** 2) / 2.0
-
-            csv_computed_file.close()
-            csv_measurement_file.close()
+                for measured_row in csv_measurement_stream:
+                    measured_sensor_name = measured_row[measured_name_index].strip()
+                    measured_value = float(measured_row[measured_value_index])
+                    sensor = self.__GetSensor(measured_sensor_name)
+                    computed_value = sensor.CalculateValue(exec_policy.GetAnalysisModelPart())
+                    result += test_case_weight * ((computed_value - measured_value) ** 2) / 2.0
 
         return result
 
@@ -153,59 +142,48 @@ class DamageDetectionResponse(ResponseFunction):
             self.__GetVtuOutput(None).ClearCellContainerExpressions()
             self.__GetVtuOutput(None).ClearNodalContainerExpressions()
 
-        for _, sensor_measurement_data_file_name, sensor_computed_data_file_name, test_case_weight in self.list_of_test_analysis_data:
-            csv_measurement_file = open(sensor_measurement_data_file_name, "r")
-            csv_computed_file = open(sensor_computed_data_file_name, "r")
+        for _, sensor_measurement_data_file_name, test_case_weight in self.list_of_test_analysis_data:
+            with open(sensor_measurement_data_file_name, "r") as csv_measurement_file:
+                csv_measurement_stream = csv.reader(csv_measurement_file, delimiter=",")
+                measured_name_index, measured_value_index = self.__GetHeaderIndices(csv_measurement_stream)
 
-            csv_measurement_stream = csv.reader(csv_measurement_file, delimiter=",")
-            csv_computed_stream = csv.reader(csv_computed_file, delimiter=",")
+                for physical_variable, _ in merged_model_part_map.items():
+                    list_of_container_expression = physical_variable_collective_expressions[physical_variable].GetContainerExpressions()
+                    if len(list_of_container_expression) > 1:
+                        raise RuntimeError(f"Currently {self.__class__.__name__} only supports one model part.")
 
-            measured_name_index, measured_value_index = self.__GetHeaderIndices(csv_measurement_stream)
-            computed_name_index, computed_value_index = self.__GetHeaderIndices(csv_computed_stream)
+                    cexp_gradient = list_of_container_expression[0]
+                    Kratos.Expression.LiteralExpressionIO.SetDataToZero(cexp_gradient, physical_variable)
+                    sensor_view_type: 'Optional[Type[SensorViewUnionType]]' = None
+                    if isinstance(cexp_gradient, Kratos.Expression.NodalExpression):
+                        sensor_view_type = KratosDT.Sensors.NodalSensorView
+                    elif isinstance(cexp_gradient, Kratos.Expression.ConditionExpression):
+                        sensor_view_type = KratosDT.Sensors.ConditionSensorView
+                    elif isinstance(cexp_gradient, Kratos.Expression.ElementExpression):
+                        sensor_view_type = KratosDT.Sensors.ElementSensorView
+                    else:
+                        raise RuntimeError("Unsupported type.")
 
-            for physical_variable, _ in merged_model_part_map.items():
-                list_of_container_expression = physical_variable_collective_expressions[physical_variable].GetContainerExpressions()
-                if len(list_of_container_expression) > 1:
-                    raise RuntimeError(f"Currently {self.__class__.__name__} only supports one model part.")
+                    for measured_row in csv_measurement_stream:
+                        measured_sensor_name = measured_row[measured_name_index].strip()
+                        sensor = self.__GetSensor(measured_sensor_name)
 
-                cexp_gradient = list_of_container_expression[0]
-                Kratos.Expression.LiteralExpressionIO.SetDataToZero(cexp_gradient, physical_variable)
-                sensor_view_type: 'Optional[Type[SensorViewUnionType]]' = None
-                if isinstance(cexp_gradient, Kratos.Expression.NodalExpression):
-                    sensor_view_type = KratosDT.Sensors.NodalSensorView
-                elif isinstance(cexp_gradient, Kratos.Expression.ConditionExpression):
-                    sensor_view_type = KratosDT.Sensors.ConditionSensorView
-                elif isinstance(cexp_gradient, Kratos.Expression.ElementExpression):
-                    sensor_view_type = KratosDT.Sensors.ElementSensorView
-                else:
-                    raise RuntimeError("Unsupported type.")
+                        measured_value = float(measured_row[measured_value_index])
+                        computed_value = sensor.GetSensorValue()
+                        sensor_view = sensor_view_type(sensor, physical_variable.Name() + "_SENSITIVITY")
 
-                for measured_row, computed_row in zip(csv_measurement_stream, csv_computed_stream):
-                    measured_sensor_name = measured_row[measured_name_index].strip()
-                    computed_sensor_name = computed_row[computed_name_index].strip()
-                    if measured_sensor_name != computed_sensor_name:
-                        raise RuntimeError(f"Mismatching sensor types found [ measured_sensor_name = {measured_sensor_name}, computed_sensor_name = {computed_sensor_name}]")
+                        sensor.SetValue(KratosDT.SENSOR_MEASURED_VALUE, measured_value)
+                        sensor.SetValue(KratosDT.SENSOR_ERROR, abs(measured_value - computed_value))
+                        sensor.SetValue(KratosDT.SENSOR_SENSITIVITY_NORM_INF, KratosOA.ExpressionUtils.NormInf(sensor_view.GetContainerExpression()))
+                        sensor.SetValue(KratosDT.SENSOR_SENSITIVITY_NORM_L2, KratosOA.ExpressionUtils.NormL2(sensor_view.GetContainerExpression()))
 
-                    sensor = self.__GetSensor(measured_sensor_name)
-                    measured_value = float(measured_row[measured_value_index])
-                    computed_value = float(computed_row[computed_value_index])
-                    sensor_view = sensor_view_type(sensor, physical_variable.Name() + "_SENSITIVITY")
+                        if self.output_sensor_sensitivities:
+                            cexp = sensor_view.GetContainerExpression()
+                            self.__GetVtuOutput(cexp.GetModelPart()).AddContainerExpression(sensor.GetName(), cexp.Clone())
 
-                    sensor.SetValue(KratosDT.SENSOR_MEASURED_VALUE, measured_value)
-                    sensor.SetValue(KratosDT.SENSOR_ERROR, abs(measured_value - computed_value))
-                    sensor.SetValue(KratosDT.SENSOR_SENSITIVITY_NORM_INF, KratosOA.ExpressionUtils.NormInf(sensor_view.GetContainerExpression()))
-                    sensor.SetValue(KratosDT.SENSOR_SENSITIVITY_NORM_L2, KratosOA.ExpressionUtils.NormL2(sensor_view.GetContainerExpression()))
+                        cexp_gradient += sensor_view.GetContainerExpression() * (computed_value - measured_value) * test_case_weight
 
-                    if self.output_sensor_sensitivities:
-                        cexp = sensor_view.GetContainerExpression()
-                        self.__GetVtuOutput(cexp.GetModelPart()).AddContainerExpression(sensor.GetName(), cexp.Clone())
-
-                    cexp_gradient += sensor_view.GetContainerExpression() * (computed_value - measured_value) * test_case_weight
-
-                cexp_gradient.SetExpression(cexp_gradient.Flatten().GetExpression())
-
-            csv_computed_file.close()
-            csv_measurement_file.close()
+                    cexp_gradient.SetExpression(cexp_gradient.Flatten().GetExpression())
 
         if self.output_sensor_sensitivities and self.vtu_output is not None:
             self.__GetVtuOutput(None).PrintOutput(str(self.output_folder / f"sensor_sensitivities_{self.optimization_problem.GetStep()}"))
