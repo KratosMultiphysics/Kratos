@@ -20,65 +20,22 @@
 #include "utilities/parallel_utilities.h"
 
 // Application includes
+#include "generalized_backward_euler_scheme.hpp"
 #include "geo_mechanics_application_variables.h"
 
 namespace Kratos {
 
 template <class TSparseSpace, class TDenseSpace>
 class BackwardEulerQuasistaticPwScheme
-    : public GeoMechanicsTimeIntegrationScheme<TSparseSpace, TDenseSpace> {
+    : public GeneralizedBackwardEulerScheme<TSparseSpace, TDenseSpace> {
 public:
     KRATOS_CLASS_POINTER_DEFINITION(BackwardEulerQuasistaticPwScheme);
 
     BackwardEulerQuasistaticPwScheme()
-        : GeoMechanicsTimeIntegrationScheme<TSparseSpace, TDenseSpace>()
+        : GeneralizedBackwardEulerScheme<TSparseSpace, TDenseSpace>(WATER_PRESSURE, DT_WATER_PRESSURE,
+                                                                    DT_PRESSURE_COEFFICIENT)
     {
     }
-
-protected:
-    inline void UpdateVariablesDerivatives(ModelPart& rModelPart) override
-    {
-        KRATOS_TRY
-
-        block_for_each(rModelPart.Nodes(), [this](Node& rNode) {
-            this->UpdateScalarTimeDerivative(rNode, WATER_PRESSURE,
-                                             DT_WATER_PRESSURE);
-        });
-
-        KRATOS_CATCH("")
-    }
-
-    void CheckAllocatedVariables(const ModelPart& rModelPart) const override
-    {
-        for (const auto& rNode : rModelPart.Nodes()) {
-            this->CheckSolutionStepsData(rNode, WATER_PRESSURE);
-            this->CheckSolutionStepsData(rNode, DT_WATER_PRESSURE);
-            this->CheckDof(rNode, WATER_PRESSURE);
-        }
-    }
-
-    inline void SetTimeFactors(ModelPart& rModelPart) override
-    {
-        KRATOS_TRY
-
-        this->SetDeltaTime(rModelPart.GetProcessInfo()[DELTA_TIME]);
-        rModelPart.GetProcessInfo()[DT_PRESSURE_COEFFICIENT] =
-            1.0 / (this->GetDeltaTime());
-
-        KRATOS_CATCH("")
-    }
-
-    void UpdateScalarTimeDerivative(Node& rNode,
-                                    const Variable<double>& variable,
-                                    const Variable<double>& dt_variable) const override
-    {
-        const double delta_pressure =
-            rNode.FastGetSolutionStepValue(variable) -
-            rNode.FastGetSolutionStepValue(variable, 1);
-        rNode.FastGetSolutionStepValue(dt_variable) =
-            delta_pressure / this->GetDeltaTime();
-    }
-
 }; // Class BackwardEulerQuasistaticPwScheme
 
 } // namespace Kratos
