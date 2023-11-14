@@ -60,18 +60,6 @@ public:
         KRATOS_CATCH("")
     }
 
-    void FinalizeSolutionStep(ModelPart& rModelPart,
-                              TSystemMatrixType& A,
-                              TSystemVectorType& Dx,
-                              TSystemVectorType& b) override
-    {
-        KRATOS_TRY
-
-        MotherType::FinalizeSolutionStepActiveEntities(rModelPart, A, Dx, b);
-
-        KRATOS_CATCH("")
-    }
-
 protected:
     inline void UpdateVariablesDerivatives(ModelPart& rModelPart) override
     {
@@ -87,6 +75,7 @@ protected:
 
     void CheckAllocatedVariables(const ModelPart& rModelPart) const override
     {
+        // check that variables are correctly allocated
         for (const auto& rNode : rModelPart.Nodes()) {
             this->CheckSolutionStepsData(rNode, WATER_PRESSURE);
             this->CheckSolutionStepsData(rNode, DT_WATER_PRESSURE);

@@ -75,7 +75,7 @@ KRATOS_TEST_CASE_IN_SUITE(InitializeBackwardEulerPwScheme_SetsTimeFactors, Krato
 KRATOS_TEST_CASE_IN_SUITE(ForInvalidBufferSize_CheckBackwardEulerPwScheme_Throws,
                           KratosGeoMechanicsFastSuite)
 {
-    NewmarkQuasistaticPwScheme<SparseSpaceType, LocalSpaceType> scheme(0.75);
+    BackwardEulerQuasistaticPwScheme<SparseSpaceType, LocalSpaceType> scheme;
 
     Model model;
     constexpr int invalid_buffer_size = 1;
@@ -94,7 +94,7 @@ KRATOS_TEST_CASE_IN_SUITE(ForInvalidBufferSize_CheckBackwardEulerPwScheme_Throws
 KRATOS_TEST_CASE_IN_SUITE(ForMissingNodalDof_CheckBackwardEulerPwScheme_Throws,
                           KratosGeoMechanicsFastSuite)
 {
-    NewmarkQuasistaticPwScheme<SparseSpaceType, LocalSpaceType> scheme(0.75);
+    BackwardEulerQuasistaticPwScheme<SparseSpaceType, LocalSpaceType> scheme;
 
     Model model;
     auto& model_part = model.CreateModelPart("dummy", 2);
@@ -109,7 +109,7 @@ KRATOS_TEST_CASE_IN_SUITE(ForMissingNodalDof_CheckBackwardEulerPwScheme_Throws,
 KRATOS_TEST_CASE_IN_SUITE(ForMissingDtWaterPressureSolutionStepVariable_CheckBackwardEulerPwScheme_Throws,
                           KratosGeoMechanicsFastSuite)
 {
-    NewmarkQuasistaticPwScheme<SparseSpaceType, LocalSpaceType> scheme(0.75);
+    BackwardEulerQuasistaticPwScheme<SparseSpaceType, LocalSpaceType> scheme;
 
     Model model;
     auto& model_part = model.CreateModelPart("dummy", 2);
@@ -125,7 +125,7 @@ KRATOS_TEST_CASE_IN_SUITE(ForMissingDtWaterPressureSolutionStepVariable_CheckBac
 KRATOS_TEST_CASE_IN_SUITE(ForMissingWaterPressureSolutionStepVariable_CheckBackwardEulerPwScheme_Throws,
                           KratosGeoMechanicsFastSuite)
 {
-    NewmarkQuasistaticPwScheme<SparseSpaceType, LocalSpaceType> scheme(0.75);
+    BackwardEulerQuasistaticPwScheme<SparseSpaceType, LocalSpaceType> scheme;
 
     Model model;
     auto& model_part = model.CreateModelPart("dummy", 2);
