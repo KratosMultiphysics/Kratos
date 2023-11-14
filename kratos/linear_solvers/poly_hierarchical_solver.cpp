@@ -326,16 +326,18 @@ bool PolyHierarchicalSolver<TSparseSpace,TDenseSpace,TReorderer>::Solve(SparseMa
     // Define vectors that must be broken up into
     // lower and higher order parts.
     std::array<Vector,2> block_residuals, block_deltas; // <== {r_l, r_h}, {d_l, d_h}
-    block_residuals[0].resize(  masked_count);
-    block_residuals[1].resize(unmasked_count);
-    block_deltas[0].resize(  masked_count);
-    block_deltas[1].resize(unmasked_count);
+    TSparseSpace::Resize(block_residuals[0],  masked_count);
+    TSparseSpace::Resize(block_residuals[1],unmasked_count);
+    TSparseSpace::Resize(block_deltas[0],     masked_count);
+    TSparseSpace::Resize(block_deltas[1],   unmasked_count);
 
     Vector fine_residual = rB;
     Vector fine_delta(full_size, 0.0);
     Vector coarse_delta(masked_count, 0.0);
 
-    const double rhs_norm = norm_2(rB);
+    std::array<Vector,2> tmp; // <== temporary vectors for storing intermediate results
+
+    const double rhs_norm = TSparseSpace::TwoNorm(rB);
     KRATOS_ERROR_IF_NOT(rhs_norm);
 
     double residual_norm = 1.0;
@@ -347,10 +349,14 @@ bool PolyHierarchicalSolver<TSparseSpace,TDenseSpace,TReorderer>::Solve(SparseMa
         KRATOS_CATCH("")
         to_blocks(fine_delta, block_deltas);
 
-        // Compute restricted residual
+        // Compute restricted residual:
+        // r_l -= A_ll * x_l + A_lh * x_h
         to_blocks(fine_residual, block_residuals);
-        block_residuals[0] -= prod(mpImpl->mCoarseMatrix, block_deltas[0])
-                              + prod(mpImpl->mMixedMatrix, block_deltas[1]);
+        TSparseSpace::Resize(tmp[0], masked_count);
+        TSparseSpace::Resize(tmp[1], masked_count);
+        TSparseSpace::Mult(mpImpl->mCoarseMatrix, block_deltas[0], tmp[0]);
+        TSparseSpace::Mult(mpImpl->mMixedMatrix, block_deltas[1], tmp[1]);
+        block_residuals[0] -= tmp[0] + tmp[1];
 
         // Solve coarse
         KRATOS_TRY
@@ -358,7 +364,7 @@ bool PolyHierarchicalSolver<TSparseSpace,TDenseSpace,TReorderer>::Solve(SparseMa
         KRATOS_CATCH("")
 
         if (2 <= mpImpl->mVerbosity) {
-            const double diff_norm = norm_2(coarse_delta) / norm_2(block_deltas[0]);
+            const double diff_norm = TSparseSpace::TwoNorm(coarse_delta) / TSparseSpace::TwoNorm(block_deltas[0]);
             KRATOS_INFO("PolyHierarchicalSolver")
                 << "norm of coarse order correction: " << diff_norm << "\n";
         }
@@ -368,10 +374,12 @@ bool PolyHierarchicalSolver<TSparseSpace,TDenseSpace,TReorderer>::Solve(SparseMa
         from_blocks(block_deltas, rX);
 
         // Compute the fine_residual
-        noalias(fine_residual) = rB - prod(rA, rX);
+        TSparseSpace::Resize(tmp[0], full_size);
+        TSparseSpace::Mult(rA, rX, tmp[0]);
+        noalias(fine_residual) = rB - tmp[0];
 
         // Update status
-        residual_norm = norm_2(fine_residual) / rhs_norm;
+        residual_norm = TSparseSpace::TwoNorm(fine_residual) / rhs_norm;
         KRATOS_INFO_IF("PolyHierarchicalSolver", 1 <= mpImpl->mVerbosity)
             << "iteration " << i_iteration
             << " residual " << residual_norm << "\n";
@@ -446,6 +454,44 @@ void PolyHierarchicalSolver<TSparseSpace,TDenseSpace,TReorderer>::ProvideAdditio
     });
     //}
 
+    // Loop through conditions and collect the DoFs' IDs
+    // that are related to corner vertices.
+    //for (const Condition& r_condition : rModelPart.Conditions()) {
+    block_for_each(rModelPart.Conditions(), [&rModelPart,&rA,&r_coarse_mask](const Condition& r_condition) {
+        // @todo the parallel version of this loop relies on undefined behaviour,
+        //       because all threads write to the same coarse mask at once => implement
+        //       an ANY reduction. @matekelemen
+        if (r_condition.IsActive()) {
+            const auto& r_geometry = r_condition.GetGeometry();
+            switch (r_geometry.GetGeometryType()) {
+                case GeometryData::KratosGeometryType::Kratos_Tetrahedra3D10: {
+                    Condition::DofsVectorType condition_dofs;
+                    r_condition.GetDofList(condition_dofs, rModelPart.GetProcessInfo());
+                    for (unsigned i_dof=0; i_dof<4*3/*@todo - generalize*/; ++i_dof) {
+                        const std::size_t equation_id = condition_dofs[i_dof]->EquationId();
+                        KRATOS_DEBUG_ERROR_IF_NOT(equation_id < TSparseSpace::Size1(rA));
+                        r_coarse_mask[equation_id] = true;
+                    }
+                    break;
+                }
+                case GeometryData::KratosGeometryType::Kratos_Triangle3D6: {
+                    Condition::DofsVectorType condition_dofs;
+                    r_condition.GetDofList(condition_dofs, rModelPart.GetProcessInfo());
+                    for (unsigned i_dof=0; i_dof<3*3/*@todo - generalize*/; ++i_dof) {
+                        const std::size_t equation_id = condition_dofs[i_dof]->EquationId();
+                        KRATOS_DEBUG_ERROR_IF_NOT(equation_id < TSparseSpace::Size1(rA));
+                        r_coarse_mask[equation_id] = true;
+                    }
+                    break;
+                }
+                default: {
+                    KRATOS_ERROR << "Unsupported condition geometry: " << r_geometry;
+                }
+            } // switch GeometryType
+        }
+    });
+    //}
+
     // Separate components related to coarse and higher order DoFs.
     KRATOS_INFO_IF("PolyHierarchicalSolver", 3 <= mpImpl->mVerbosity)
         << "construct lower-higher order subblocks" << std::endl;
@@ -469,6 +515,7 @@ void PolyHierarchicalSolver<TSparseSpace,TDenseSpace,TReorderer>::ProvideAdditio
     }
 
     if (mpImpl->mpCoarseSolver->AdditionalPhysicalDataIsNeeded()) {
+        /// @todo @fixme restrict input arguments to the coarse space
         mpImpl->mpCoarseSolver->ProvideAdditionalData(mpImpl->mCoarseMatrix, rX, rB, rDofs, rModelPart);
     }
 
