@@ -30,7 +30,6 @@
 #include "custom_elements/eulerian_conv_diff.h"
 #include "custom_elements/laplacian_element.h"
 #include "custom_elements/laplacian_shifted_boundary_element.h"
-#include "custom_elements/laplacian_IGA_element.h"
 #include "custom_elements/conv_diff_shifted_boundary_element.h"
 #include "custom_elements/mixed_laplacian_element.h"
 #include "custom_elements/embedded_laplacian_element.h"
@@ -231,7 +230,6 @@ private:
     ///@{
 
     const EulerianConvectionDiffusionElement<2,3>  mEulerianConvDiff2D;
-    const ConvDiffShiftedBoundaryElement<2,3> mConvDiffShiftedBoundary2D;
     const EulerianConvectionDiffusionElement<2,4>  mEulerianConvDiff2D4N;
     const EulerianConvectionDiffusionElement<3,4>  mEulerianConvDiff3D;
     const EulerianConvectionDiffusionElement<3,8>  mEulerianConvDiff3D8N;
@@ -241,8 +239,6 @@ private:
     const ConvDiff2D  mConvDiff2D;
     const ConvDiff3D  mConvDiff3D;
     const LaplacianElement mLaplacian2D3N;
-    const LaplacianShiftedBoundaryElement<2> mLaplacianShiftedBoundary2D3N;
-    const LaplacianIGAElement<2> mLaplacianIGA2D3N;
     const LaplacianElement mLaplacian3D4N;
     const LaplacianElement mLaplacian3D8N;
     const LaplacianElement mLaplacian3D27N;
@@ -260,7 +256,6 @@ private:
     const FluxCondition<2>  mFluxCondition2D2N;
     const FluxCondition<3>  mFluxCondition3D3N;
     const FluxCondition<4>  mFluxCondition3D4N;
-    const SBMLaplacianCondition mSBMLaplacianCondition;
 
     const AdjointThermalFace mAdjointThermalFace2D2N;
     const AdjointThermalFace mAdjointThermalFace3D3N;
