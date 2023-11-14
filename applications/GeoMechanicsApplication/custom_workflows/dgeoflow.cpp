@@ -454,8 +454,6 @@ namespace Kratos
         CriticalHeadSearch(model_part, processes, rReportProgress, rReportTextualProgress, gid_output_settings,
                            criticalHeadInfo, rLogCallback, p_output, rShouldCancel, RiverBoundary, p_solving_strategy);
 
-        double criticalHead;
-
         KRATOS_INFO_IF("GeoFlowKernel", this->GetEchoLevel() > 0) << "Writing result to: " << mWorkingDirectory << "\\criticalHead.json" << std::endl;
 
         // output critical head_json
@@ -527,7 +525,6 @@ namespace Kratos
                                           const GeoMechanicsNewtonRaphsonErosionProcessStrategyType::Pointer& p_solving_strategy)
     {
         std::stringstream kratosLogBuffer;
-        double criticalHead;
         double currentHead;
 
         auto currentProcess = std::static_pointer_cast<GeoFlowApplyConstantHydrostaticPressureProcess>(RiverBoundary);

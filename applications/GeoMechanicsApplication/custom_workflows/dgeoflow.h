@@ -133,6 +133,7 @@ namespace Kratos
         std::string mWorkingDirectory;
         std::string mCriticalHeadBoundaryModelPartName;
         bool pipingSuccess = false;
+        double criticalHead;
         
         void ResetModelParts();
 
