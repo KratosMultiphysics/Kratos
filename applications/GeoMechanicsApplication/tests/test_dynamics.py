@@ -2,6 +2,7 @@ import os
 import json
 
 import KratosMultiphysics.KratosUnittest as KratosUnittest
+import KratosMultiphysics.GeoMechanicsApplication as KratosGeo
 import test_helper
 
 
@@ -59,7 +60,8 @@ class KratosGeoMechanicsDynamicsTests(KratosUnittest.TestCase):
         test_name = 'test_1d_wave_prop_drained_soil_constant_mass_damping.gid'
         file_path = test_helper.get_file_path(os.path.join('.', test_name))
 
-        test_helper.run_kratos(file_path)
+        simulation = test_helper.run_kratos(file_path)
+        self.assertTrue(isinstance(simulation._GetSolver().builder_and_solver, KratosGeo.ResidualBasedBlockBuilderAndSolverWithMassAndDamping))
 
         with open(os.path.join(file_path, "calculated_result.json")) as fp:
             calculated_result = json.load(fp)

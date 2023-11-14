@@ -97,6 +97,9 @@ elseif(${CMAKE_COMPILER_IS_GNUCXX})
         set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wsuggest-override -Wignored-qualifiers")
     endif()
 
+    # Always link with libstdc++fs.a when using GCC 8 (greater than 7 and less than 9)
+    # Note: This command makes sure that this option comes pretty late on the cmdline.
+    link_libraries("$<$<AND:$<CXX_COMPILER_ID:GNU>,$<VERSION_GREATER:$<CXX_COMPILER_VERSION>,7.0>,$<VERSION_LESS:$<CXX_COMPILER_VERSION>,9.0>>:-lstdc++fs>")
 elseif(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=c89")
