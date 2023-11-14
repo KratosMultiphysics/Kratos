@@ -1,4 +1,4 @@
-## @module blockMvqn
+## @module ibqnls
 # This module contains the class IBQNLSConvergenceAccelerator
 # Author: Tiba Azzeddine
 # Date: Nov. 13, 2023

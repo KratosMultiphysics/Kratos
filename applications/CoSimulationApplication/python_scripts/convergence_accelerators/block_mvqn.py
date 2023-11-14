@@ -1,4 +1,4 @@
-## @module blockMvqn
+## @module block_mvqn
 # This module contains the class MVQNConvergenceAccelerator
 # Author: Tiba Azzeddine
 # Date: Nov. 06, 2023
