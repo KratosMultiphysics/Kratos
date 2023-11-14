@@ -152,7 +152,7 @@ int KratosGeoSettlement::RunStage(const std::filesystem::path&            rWorki
                                   const std::function<void(const char*)>& rLogCallback,
                                   const std::function<void(double)>&      ,
                                   const std::function<void(const char*)>& ,
-                                  const std::function<bool()>&            )
+                                  const std::function<bool()>&            rShouldCancel)
 {
     std::stringstream kratos_log_buffer;
     LoggerOutput::Pointer logger_output = CreateLoggingOutput(kratos_log_buffer);
@@ -197,6 +197,7 @@ int KratosGeoSettlement::RunStage(const std::filesystem::path&            rWorki
 
         if (mpTimeLoopExecutor)
         {
+            mpTimeLoopExecutor->SetCancelDelegate(rShouldCancel);
             mpTimeLoopExecutor->SetProcessObservables(process_observables);
             mpTimeLoopExecutor->SetTimeIncrementor(MakeTimeIncrementor(project_parameters));
             mpTimeLoopExecutor->SetSolverStrategyWrapper(MakeStrategyWrapper(project_parameters,
