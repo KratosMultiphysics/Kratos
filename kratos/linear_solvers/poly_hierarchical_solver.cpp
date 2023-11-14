@@ -20,7 +20,6 @@
 #include <type_traits> // remove_reference_t, remove_cv_t
 #include <sstream> // stringstream
 #include <optional> // optional
-#include <bitset> // bitset
 
 
 namespace Kratos {
@@ -400,6 +399,8 @@ void PolyHierarchicalSolver<TSparseSpace,TDenseSpace,TReorderer>::ProvideAdditio
 {
     KRATOS_TRY
     KRATOS_PROFILE_SCOPE(KRATOS_CODE_LOCATION);
+    KRATOS_INFO("PolyHierarchicalSolver")
+        << mpImpl->mVerbosity << "\n";
 
     // Construct coarse mask
     if (!mpImpl->mCoarseMask.has_value()) {
@@ -428,9 +429,12 @@ void PolyHierarchicalSolver<TSparseSpace,TDenseSpace,TReorderer>::ProvideAdditio
                     Element::DofsVectorType element_dofs;
                     r_element.GetDofList(element_dofs, rModelPart.GetProcessInfo());
                     for (unsigned i_dof=0; i_dof<4*3/*@todo - generalize*/; ++i_dof) {
-                        const std::size_t equation_id = element_dofs[i_dof]->EquationId();
-                        KRATOS_DEBUG_ERROR_IF_NOT(equation_id < TSparseSpace::Size1(rA));
-                        r_coarse_mask[equation_id] = true;
+                        if (!element_dofs[i_dof]->IsFixed()) {
+                            const std::size_t equation_id = element_dofs[i_dof]->EquationId();
+                            KRATOS_DEBUG_ERROR_IF_NOT(equation_id < TSparseSpace::Size1(rA));
+                            KRATOS_INFO("Linear DoF: ") << *element_dofs[i_dof] << "\n";
+                            r_coarse_mask[equation_id] = true;
+                        }
                     }
                     break;
                 }
@@ -450,7 +454,7 @@ void PolyHierarchicalSolver<TSparseSpace,TDenseSpace,TReorderer>::ProvideAdditio
                           mpImpl->mCoarseMask.value(),
                           {&mpImpl->mCoarseMatrix, &mpImpl->mMixedMatrix, &A_hl, &A_hh});
 
-    // Dump the generated matrices to disk f requested.
+    // Dump the generated matrices to disk if requested.
     if (4 <= mpImpl->mVerbosity) {
         KRATOS_INFO("PolyHierarchicalSolver")
             << "writing system matrices A.mm b.mm\n";
