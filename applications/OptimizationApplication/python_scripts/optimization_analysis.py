@@ -49,7 +49,6 @@ class OptimizationAnalysis:
         for process_type in self.__algorithm.GetProcessesOrder():
             CallOnAll(self.optimization_problem.GetListOfProcesses(process_type), Kratos.Process.ExecuteInitialize)
         CallOnAll(self.optimization_problem.GetListOfExecutionPolicies(), ExecutionPolicyDecorator.Initialize)
-        CallOnAll(self.optimization_problem.GetListOfControls(), Control.Initialize)
 
         self.__algorithm.Initialize()
 
@@ -57,8 +56,6 @@ class OptimizationAnalysis:
         for process_type in self.__algorithm.GetProcessesOrder():
             CallOnAll(self.optimization_problem.GetListOfProcesses(process_type), Kratos.Process.Check)
         CallOnAll(self.optimization_problem.GetListOfExecutionPolicies(), ExecutionPolicyDecorator.Check)
-        CallOnAll(self.optimization_problem.GetListOfControls(), Control.Check)
-        CallOnAll(self.optimization_problem.GetListOfResponses(), ResponseFunction.Check)
 
         self.__algorithm.Check()
 
@@ -69,8 +66,6 @@ class OptimizationAnalysis:
         for process_type in self.__algorithm.GetProcessesOrder():
             CallOnAll(self.optimization_problem.GetListOfProcesses(process_type), Kratos.Process.ExecuteFinalize)
         CallOnAll(self.optimization_problem.GetListOfExecutionPolicies(), ExecutionPolicyDecorator.Finalize)
-        CallOnAll(self.optimization_problem.GetListOfControls(), Control.Finalize)
-        CallOnAll(self.optimization_problem.GetListOfResponses(), ResponseFunction.Finalize)
 
     def Run(self):
         with OptimizationAnalysisTimeLogger():
