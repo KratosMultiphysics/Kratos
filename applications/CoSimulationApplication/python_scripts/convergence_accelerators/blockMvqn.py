@@ -106,7 +106,7 @@ class BLOCKMVQNConvergenceAccelerator(CoSimulationConvergenceAccelerator):
     def FinalizeSolutionStep( self ):
 
         ## Assign J=J_hat
-        for _, data_name in enumerate(self.J.keys()):
+        for data_name in self.J:
             self.J[data_name] = self.J_hat[data_name].copy()
 
             ## Clear the buffer

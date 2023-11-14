@@ -25,7 +25,7 @@ class ConvergenceAcceleratorWrapper:
             self.solver_names_sequence = []
             self.coupl_data_names = {}
             self.input_data = {}
-            for _, data_name in enumerate(self.interface_data_dict.keys()):
+            for data_name in self.interface_data_dict:
                 self.solver_names_sequence.append(self.interface_data_dict[data_name].solver_name)
             self.isBlockAccelerator = True
             for solverData in settings["solver_sequence"].values():
@@ -57,7 +57,7 @@ class ConvergenceAcceleratorWrapper:
             self.gather_scatter_required = {}
             self.data_comm = {}
             self.sizes_from_ranks = {}
-            for _, data_name in enumerate(interface_data_dict.keys()):
+            for data_name in interface_data_dict:
                 if self.interface_data_dict[data_name].IsDefinedOnThisRank():
                     conv_acc_supports_dist_data = self.conv_acc.SupportsDistributedData()
                     self.executing_rank[data_name] = conv_acc_supports_dist_data or (self.interface_data_dict[data_name].GetModelPart().GetCommunicator().MyPID() == 0)
@@ -71,7 +71,7 @@ class ConvergenceAcceleratorWrapper:
         if self.isBlockAccelerator:
             self.prev_input_data = {}
             self.output_data = {}
-            for _, data_name in enumerate(self.interface_data_dict.keys()):
+            for data_name in self.interface_data_dict:
                 self.prev_input_data[data_name] = self.interface_data_dict[data_name].GetData()
                 self.output_data[data_name] = self.interface_data_dict[data_name].GetData()
 
@@ -88,7 +88,7 @@ class ConvergenceAcceleratorWrapper:
         # Saving the previous data for the computation of the residual
         # and the computation of the solution update
         if self.isBlockAccelerator:
-            for _, data_name in enumerate(self.interface_data_dict.keys()):
+            for data_name in self.interface_data_dict:
                 interface_data = self.interface_data_dict[data_name]
                 if interface_data.IsDefinedOnThisRank():
                     self.input_data[data_name] = interface_data.GetData()
