@@ -89,7 +89,7 @@ namespace Kratos
                         }
                     }
 
-                    if (solution.size() == 0) {
+                    if (solution.size() == 0 || clip_area == 0.0 ) {
                         continue;
                     }
                     else if (std::abs(clip_area- span_area) < 1000) {
@@ -104,6 +104,7 @@ namespace Kratos
                         typename IntegrationPointsArrayType::iterator integration_point_iterator = rIntegrationPoints.begin();
                         advance(integration_point_iterator, initial_integration_size);
 
+                        // Create the 2D Gauss Points within each knot span
                         IntegrationPointUtilities::IntegrationPoints2D(
                             integration_point_iterator,
                             rIntegrationInfo.GetNumberOfIntegrationPointsPerSpan(0), rIntegrationInfo.GetNumberOfIntegrationPointsPerSpan(1),

@@ -2099,10 +2099,19 @@ void ModelPart::RemoveSubModelPart(std::string const& ThisSubModelPartName)
             mSubModelParts.erase(ThisSubModelPartName);
         }
     } else {
-        if (i == mSubModelParts.end()) {
-            ErrorNonExistingSubModelPart(sub_model_part_name);
-        }
-
+        // Modified in order to let it works also when there is no any true_boundary. (Need to modify)
+        // std::ifstream infile("txt_files/true_points.txt");
+        // bool file_true_points_exists = infile.good(); 
+        // KRATOS_WATCH('ciaoooo')
+        // KRATOS_WATCH(file_true_points_exists)
+        // KRATOS_WATCH(ThisSubModelPartName)
+        // if (file_true_points_exists==true){
+        //     if (i == mSubModelParts.end()) {
+        //         ErrorNonExistingSubModelPart(sub_model_part_name);
+        //     }
+        // }
+        // else {mSubModelParts.erase(ThisSubModelPartName);}
+        mSubModelParts.erase(ThisSubModelPartName);
         return i->RemoveSubModelPart(ThisSubModelPartName.substr(delim_pos + 1));
     }
 }
