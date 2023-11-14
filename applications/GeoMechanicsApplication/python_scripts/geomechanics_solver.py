@@ -226,7 +226,7 @@ class GeoMechanicalSolver(PythonSolver):
         self.linear_solver = self._ConstructLinearSolver()
 
         # Builder and solver creation
-        builder_and_solver = self._CreateBuilderAndSolver()
+        self.builder_and_solver = self._CreateBuilderAndSolver()
 
         # Solution scheme creation
         self.scheme = self._ConstructScheme(self.settings["scheme_type"].GetString(),
