@@ -55,9 +55,6 @@ public:
         *** NOTE: Pointers are used only to point to a certain variable,
         *   no "new" or "malloc" can be used for this Parameters ***
 
-        * GEOMETRIC PARAMETERS:
-        * @param mrElementGeometry reference to the element's geometry (input data)
-
         * MATERIAL PROPERTIES:
         * @param mrMaterialProperties reference to the material's Properties object (input data)
 
@@ -67,12 +64,10 @@ public:
         */
 
     public:
-        Parameters(const GeometryType& rElementGeometry,
-                   const Properties& rMaterialProperties,
+        Parameters(const Properties& rMaterialProperties,
                    const ProcessInfo& rCurrentProcessInfo)
             : mrCurrentProcessInfo(rCurrentProcessInfo),
-              mrMaterialProperties(rMaterialProperties),
-              mrElementGeometry(rElementGeometry){};
+              mrMaterialProperties(rMaterialProperties){};
 
         ~Parameters() = default;
 
@@ -99,16 +94,10 @@ public:
             return mrMaterialProperties;
         }
 
-        const GeometryType& GetElementGeometry() const
-        {
-            return mrElementGeometry;
-        }
-
     private:
         std::optional<double> mFluidPressure;
         const ProcessInfo& mrCurrentProcessInfo;
         const Properties& mrMaterialProperties;
-        const GeometryType& mrElementGeometry;
 
     }; // class Parameters end
 

@@ -236,7 +236,7 @@ class GeoMechanicalSolver(PythonSolver):
         self.convergence_criterion = self._ConstructConvergenceCriterion(self.settings["convergence_criterion"].GetString())
 
         # Solver creation
-        self.solver = self._ConstructSolver(builder_and_solver,
+        self.solver = self._ConstructSolver(self.builder_and_solver,
                                             self.settings["strategy_type"].GetString())
 
         # Set echo_level
