@@ -48,18 +48,14 @@ public:
     {
         KRATOS_TRY
 
-        Scheme<TSparseSpace, TDenseSpace>::Check(rModelPart);
-        CheckAllocatedVariables(rModelPart);
-        this->CheckBufferSize(rModelPart);
-
+        GeoMechanicsTimeIntegrationScheme<TSparseSpace, TDenseSpace>::Check(rModelPart);
         KRATOS_ERROR_IF(this->mTheta <= 0) << "Theta has an invalid value\n";
-
         return 0;
 
         KRATOS_CATCH("")
     }
 
-    void CheckAllocatedVariables(const ModelPart& rModelPart) const
+    void CheckAllocatedVariables(const ModelPart& rModelPart) const override
     {
         for (const auto& r_node : rModelPart.Nodes()) {
             this->CheckSolutionStepsData(r_node, TEMPERATURE);

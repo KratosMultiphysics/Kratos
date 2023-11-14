@@ -14,18 +14,24 @@
 
 #pragma once
 
-#include "custom_strategies/schemes/newmark_T_scheme.hpp"
+// Project includes
+#include "includes/define.h"
+#include "includes/model_part.h"
+#include "solving_strategies/schemes/scheme.h"
+
+// Application includes
+#include "generalized_newmark_scheme.hpp"
+#include "geo_mechanics_application_variables.h"
+#include "geomechanics_time_integration_scheme.hpp"
 
 namespace Kratos {
 
 template <class TSparseSpace, class TDenseSpace>
-class BackwardEulerTScheme
-    : public NewmarkTScheme<TSparseSpace, TDenseSpace> {
+class BackwardEulerTScheme : public GeoMechanicsTimeIntegrationScheme<TSparseSpace, TDenseSpace> {
 public:
     KRATOS_CLASS_POINTER_DEFINITION(BackwardEulerTScheme);
 
-    BackwardEulerTScheme()
-        : NewmarkTScheme<TSparseSpace, TDenseSpace>(1.0)
+    BackwardEulerTScheme() : GeoMechanicsTimeIntegrationScheme<TSparseSpace, TDenseSpace>()
     {
     }
 
@@ -35,11 +41,23 @@ protected:
         KRATOS_TRY
 
         block_for_each(rModelPart.Nodes(), [this](Node& rNode) {
-            const double DeltaTemperature =
+            const double delta_temperature =
                 rNode.FastGetSolutionStepValue(TEMPERATURE) -
                 rNode.FastGetSolutionStepValue(TEMPERATURE, 1);
-            rNode.FastGetSolutionStepValue(DT_TEMPERATURE) = DeltaTemperature / this->GetDeltaTime();
+            rNode.FastGetSolutionStepValue(DT_TEMPERATURE) =
+                delta_temperature / this->GetDeltaTime();
         });
+
+        KRATOS_CATCH("")
+    }
+
+    inline void SetTimeFactors(ModelPart& rModelPart) override
+    {
+        KRATOS_TRY
+
+        this->SetDeltaTime(rModelPart.GetProcessInfo()[DELTA_TIME]);
+        rModelPart.GetProcessInfo()[DT_TEMPERATURE_COEFFICIENT] =
+            1.0 / (this->GetDeltaTime());
 
         KRATOS_CATCH("")
     }

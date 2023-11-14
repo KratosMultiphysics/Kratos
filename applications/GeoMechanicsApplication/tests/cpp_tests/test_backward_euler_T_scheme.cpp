@@ -53,4 +53,23 @@ KRATOS_TEST_CASE_IN_SUITE(BackwardEulerScheme_UpdatesVariablesDerivatives_WhenPr
                             expected_dt_temperature);
 }
 
+KRATOS_TEST_CASE_IN_SUITE(InitializeBackwardEulerScheme_SetsTimeFactors, KratosGeoMechanicsFastSuite)
+{
+    BackwardEulerTScheme<SparseSpaceType, LocalSpaceType> scheme;
+    Model model;
+    auto& model_part = model.CreateModelPart("dummy", 2);
+
+    model_part.AddNodalSolutionStepVariable(TEMPERATURE);
+    model_part.AddNodalSolutionStepVariable(DT_TEMPERATURE);
+
+    constexpr double delta_time = 3.0;
+    model_part.GetProcessInfo()[DELTA_TIME] = delta_time;
+
+    scheme.Initialize(model_part);
+
+    KRATOS_EXPECT_TRUE(scheme.SchemeIsInitialized())
+    KRATOS_EXPECT_DOUBLE_EQ(model_part.GetProcessInfo()[DT_TEMPERATURE_COEFFICIENT],
+                            1.0 / (delta_time));
+}
+
 } // namespace Kratos::Testing

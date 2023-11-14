@@ -25,6 +25,19 @@ public:
     using LocalSystemVectorType = typename BaseType::LocalSystemVectorType;
     using LocalSystemMatrixType = typename BaseType::LocalSystemMatrixType;
 
+    int Check(const ModelPart& rModelPart) const override
+    {
+        KRATOS_TRY
+
+        Scheme<TSparseSpace, TDenseSpace>::Check(rModelPart);
+        CheckAllocatedVariables(rModelPart);
+        this->CheckBufferSize(rModelPart);
+
+        return 0;
+
+        KRATOS_CATCH("")
+    }
+
     void GetDofList(const Element& rElement,
                     Element::DofsVectorType& rDofList,
                     const ProcessInfo& rCurrentProcessInfo) override
@@ -343,6 +356,11 @@ protected:
         // intentionally empty
     }
 
+    virtual void CheckAllocatedVariables(const ModelPart& rModelPart) const
+    {
+        // intentionally empty
+    }
+
     double GetDeltaTime() const
     {
         return mDeltaTime;
@@ -352,6 +370,7 @@ protected:
     {
         mDeltaTime = DeltaTime;
     }
+
 
 private:
     double mDeltaTime = 0.0;
