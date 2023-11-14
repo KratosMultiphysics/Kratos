@@ -20,19 +20,19 @@
 #include "utilities/parallel_utilities.h"
 
 // Application includes
-#include "generalized_backward_euler_scheme.hpp"
+#include "backward_euler_scheme.hpp"
 #include "geo_mechanics_application_variables.h"
 
 namespace Kratos {
 
 template <class TSparseSpace, class TDenseSpace>
 class BackwardEulerQuasistaticPwScheme
-    : public GeneralizedBackwardEulerScheme<TSparseSpace, TDenseSpace> {
+    : public BackwardEulerScheme<TSparseSpace, TDenseSpace> {
 public:
     KRATOS_CLASS_POINTER_DEFINITION(BackwardEulerQuasistaticPwScheme);
 
     BackwardEulerQuasistaticPwScheme()
-        : GeneralizedBackwardEulerScheme<TSparseSpace, TDenseSpace>(
+        : BackwardEulerScheme<TSparseSpace, TDenseSpace>(
               WATER_PRESSURE, DT_WATER_PRESSURE, DT_PRESSURE_COEFFICIENT)
     {
     }

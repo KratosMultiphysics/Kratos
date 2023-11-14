@@ -17,10 +17,10 @@
 namespace Kratos {
 
 template <class TSparseSpace, class TDenseSpace>
-class GeneralizedBackwardEulerScheme
+class BackwardEulerScheme
     : public GeoMechanicsTimeIntegrationScheme<TSparseSpace, TDenseSpace> {
 public:
-    GeneralizedBackwardEulerScheme(const Variable<double>& rVariable,
+    BackwardEulerScheme(const Variable<double>& rVariable,
                                    const Variable<double>& rDeltaTimeVariable,
                                    const Variable<double>& rDeltaTimeVariableCoefficient)
         : GeoMechanicsTimeIntegrationScheme<TSparseSpace, TDenseSpace>(),

@@ -20,7 +20,7 @@
 #include "solving_strategies/schemes/scheme.h"
 
 // Application includes
-#include "generalized_backward_euler_scheme.hpp"
+#include "backward_euler_scheme.hpp"
 #include "generalized_newmark_scheme.hpp"
 #include "geo_mechanics_application_variables.h"
 #include "geomechanics_time_integration_scheme.hpp"
@@ -29,12 +29,12 @@ namespace Kratos {
 
 template <class TSparseSpace, class TDenseSpace>
 class BackwardEulerTScheme
-    : public GeneralizedBackwardEulerScheme<TSparseSpace, TDenseSpace> {
+    : public BackwardEulerScheme<TSparseSpace, TDenseSpace> {
 public:
     KRATOS_CLASS_POINTER_DEFINITION(BackwardEulerTScheme);
 
     BackwardEulerTScheme()
-        : GeneralizedBackwardEulerScheme<TSparseSpace, TDenseSpace>(
+        : BackwardEulerScheme<TSparseSpace, TDenseSpace>(
               TEMPERATURE, DT_TEMPERATURE, DT_TEMPERATURE_COEFFICIENT)
     {
     }
