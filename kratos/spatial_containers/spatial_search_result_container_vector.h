@@ -229,7 +229,7 @@ public:
 
    /**
      * @brief Operator []
-     * @param Index The index to be initialized
+     * @param Index The index to be retrieved
      * @return The result container
      */
     SpatialSearchResultContainerReferenceType operator[](const IndexType Index)
@@ -240,7 +240,7 @@ public:
 
     /**
      * @brief Operator []
-     * @param Index The index to be initialized
+     * @param Index The index to be retrieved
      * @return The result container
      */
     const SpatialSearchResultContainerType& operator[](const IndexType Index) const
@@ -251,24 +251,22 @@ public:
 
     /**
      * @brief Operator ()
-     * @param Index The index to be initialized
-     * @return The result container
+     * @param Index The index to be retrieved
+     * @return The result container pointer
      */
-    SpatialSearchResultContainerReferenceType operator()(const IndexType Index)
+    SpatialSearchResultContainerPointerType operator()(const IndexType Index)
     {
-        KRATOS_ERROR_IF_NOT(this->HasResult(Index)) << "The result container does not exist for index: " << Index << std::endl;
-        return *mPointResults[Index];
+        return mPointResults[Index];
     }
 
     /**
      * @brief Operator ()
-     * @param Index The index to be initialized
-     * @return The result container
+     * @param Index The index to be retrieved
+     * @return The result container pointer
      */
-    const SpatialSearchResultContainerType& operator()(const IndexType Index) const
+    const SpatialSearchResultContainerType* operator()(const IndexType Index) const
     {
-        KRATOS_ERROR_IF_NOT(this->HasResult(Index)) << "The result container does not exist for index: " << Index << std::endl;
-        return *mPointResults[Index];
+        return mPointResults[Index];
     }
 
     ///@}
