@@ -32,7 +32,6 @@ class TimeLoopExecutor : public TimeLoopExecutorInterface {
 public :
     void SetCancelDelegate(const std::function<bool()>& rCancelDelegate) override
     {
-        mCancelDelegateAvailable = true;
         mCancelDelegate = rCancelDelegate;
     }
 
@@ -104,11 +103,10 @@ private:
 
     bool IsCancelled() const
     {
-        return mCancelDelegateAvailable && mCancelDelegate();
+        return mCancelDelegate && mCancelDelegate();
     }
 
     std::unique_ptr<TimeIncrementor>  mTimeIncrementor;
-    bool                              mCancelDelegateAvailable = false;
     std::function<bool()>             mCancelDelegate;
     std::unique_ptr<TimeStepExecutor> mTimeStepExecutor = std::make_unique<TimeStepExecutor>();
     std::shared_ptr<StrategyWrapper>  mStrategyWrapper;
