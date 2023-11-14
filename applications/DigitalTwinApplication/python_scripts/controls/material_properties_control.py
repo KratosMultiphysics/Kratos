@@ -8,14 +8,16 @@ from KratosMultiphysics.OptimizationApplication.utilities.union_utilities import
 from KratosMultiphysics.OptimizationApplication.utilities.union_utilities import SupportedSensitivityFieldVariableTypes
 from KratosMultiphysics.OptimizationApplication.utilities.helper_utilities import IsSameContainerExpression
 from KratosMultiphysics.OptimizationApplication.utilities.model_part_utilities import ModelPartOperation
+from KratosMultiphysics.OptimizationApplication.utilities.optimization_problem import OptimizationProblem
+from KratosMultiphysics.OptimizationApplication.utilities.component_data_view import ComponentDataView
 
-def Factory(model: Kratos.Model, parameters: Kratos.Parameters, _) -> Control:
+def Factory(model: Kratos.Model, parameters: Kratos.Parameters, optimization_problem: OptimizationProblem) -> Control:
     if not parameters.Has("name"):
         raise RuntimeError(f"MaterialPropertiesControl instantiation requires a \"name\" in parameters [ parameters = {parameters}].")
     if not parameters.Has("settings"):
         raise RuntimeError(f"MaterialPropertiesControl instantiation requires a \"settings\" in parameters [ parameters = {parameters}].")
 
-    return MaterialPropertiesControl(parameters["name"].GetString(), model, parameters["settings"])
+    return MaterialPropertiesControl(parameters["name"].GetString(), model, parameters["settings"], optimization_problem)
 
 class MaterialPropertiesControl(Control):
     """Material properties control
@@ -26,7 +28,7 @@ class MaterialPropertiesControl(Control):
     TODO: Extend with filtering techniques when they are implemented.
 
     """
-    def __init__(self, name: str, model: Kratos.Model, parameters: Kratos.Parameters):
+    def __init__(self, name: str, model: Kratos.Model, parameters: Kratos.Parameters, optimization_problem: OptimizationProblem):
         super().__init__(name)
 
         default_settings = Kratos.Parameters("""{
@@ -75,6 +77,7 @@ class MaterialPropertiesControl(Control):
         self.adjoint_model_part: Optional[Kratos.ModelPart] = None
         self.filter: Optional[KratosOA.ElementExplicitFilter] = None
         self.parameters = parameters
+        self.optimization_problem = optimization_problem
 
     def Initialize(self) -> None:
         self.primal_model_part = self.primal_model_part_operation.GetModelPart()
@@ -128,15 +131,9 @@ class MaterialPropertiesControl(Control):
         if not IsSameContainerExpression(control_field, self.GetEmptyField()):
             raise RuntimeError(f"Updates for the required element container not found for control \"{self.GetName()}\". [ required model part name: {self.adjoint_model_part.FullName()}, given model part name: {control_field.GetModelPart().FullName()} ]")
 
-        # TODO: Implement inverse filtering mechanisms here
-        # since no filtering is implemented yet, we are checking the unfiltered updates with the filtered updates. This needs to be changed once the
-        # filtering mechanisms are implemented.
-
-        # get the current unfiltered control field
-        # unfiltered_control_field = self.GetControlField()
-
-        # if KratosOA.ExpressionUtils.NormL2(unfiltered_control_field - control_field) > 1e-9:
         filtered_control_field = self.__GetFilter().FilterIntegratedField(control_field)
+        unbuffered_data = ComponentDataView(self, self.optimization_problem).GetUnBufferedData()
+        unbuffered_data.SetValue("filtered_control_field", filtered_control_field.Clone(), overwrite=True)
         KratosOA.PropertiesVariableExpressionIO.Write(filtered_control_field, self.controlled_physical_variable)
         return True
 
@@ -164,4 +161,4 @@ class MaterialPropertiesControl(Control):
         return self.filter
 
     def __str__(self) -> str:
-        return f"Control [type = {self.__class__.__name__}, name = {self.GetName()}, model part name = {self.adjoint_model_part.FullName()}, control variable = {self.controlled_physical_variable.Name()}"
+        return f"Control [type = {self.__class__.__name__}, name = {self.GetName()}, model part name = {self.adjoint_model_part_operation.GetModelPartFullName()}, control variable = {self.controlled_physical_variable.Name()}"
