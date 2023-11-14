@@ -1,5 +1,6 @@
 from typing import Optional, Type
 import csv
+from pathlib import Path
 
 import KratosMultiphysics as Kratos
 import KratosMultiphysics.OptimizationApplication as KratosOA
@@ -13,6 +14,7 @@ from KratosMultiphysics.OptimizationApplication.execution_policies.execution_pol
 from KratosMultiphysics.OptimizationApplication.utilities.optimization_problem import OptimizationProblem
 from KratosMultiphysics.DigitalTwinApplication.sensor_sensitivity_solvers.sensor_sensitivity_static_analysis import SensorSensitivityStaticAnalysis
 from KratosMultiphysics.DigitalTwinApplication.utilities.sensor_utils import SensorViewUnionType
+from KratosMultiphysics.DigitalTwinApplication.utilities.sensor_utils import PrintSensorViewsListToCSV
 
 def Factory(model: Kratos.Model, parameters: Kratos.Parameters, optimization_problem: OptimizationProblem) -> ResponseFunction:
     if not parameters.Has("name"):
@@ -38,7 +40,8 @@ class DamageDetectionResponse(ResponseFunction):
                     "sensor_computed_data_file": "computed_data.csv",
                     "weight": 1.0
                 }
-            ]
+            ],
+            "output_folder": "damage_output"
         }""")
         parameters.ValidateAndAssignDefaults(default_settings)
 
@@ -67,6 +70,7 @@ class DamageDetectionResponse(ResponseFunction):
         self.adjoint_analysis = SensorSensitivityStaticAnalysis(self.model, parameters["adjoint_parameters"])
 
         self.sensor_name_dict: 'dict[str, KratosDT.Sensors.Sensor]' = {}
+        self.optimization_problem = optimization_problem
 
     def GetImplementedPhysicalKratosVariables(self) -> 'list[SupportedSensitivityFieldVariableTypes]':
         return [Kratos.YOUNG_MODULUS]
@@ -174,7 +178,12 @@ class DamageDetectionResponse(ResponseFunction):
                     sensor = self.__GetSensor(measured_sensor_name)
                     measured_value = float(measured_row[measured_value_index])
                     computed_value = float(computed_row[computed_value_index])
+                    sensor.SetSensorValue(computed_value)
+                    sensor.SetValue(Kratos.PRESSURE, measured_value)
+                    sensor.SetValue(Kratos.DENSITY, abs(measured_value - computed_value))
                     sensor_view = sensor_view_type(sensor, physical_variable.Name() + "_SENSITIVITY")
+                    sensor.SetValue(Kratos.TEMPERATURE, KratosOA.ExpressionUtils.NormInf(sensor_view.GetContainerExpression()))
+                    sensor.SetValue(Kratos.DAMAGE_VARIABLE, KratosOA.ExpressionUtils.NormL2(sensor_view.GetContainerExpression()))
 
                     cexp_gradient += sensor_view.GetContainerExpression() * (measured_value - computed_value) * test_case_weight * sensor.GetWeight()
 
@@ -182,6 +191,8 @@ class DamageDetectionResponse(ResponseFunction):
 
             csv_computed_file.close()
             csv_measurement_file.close()
+
+        PrintSensorViewsListToCSV(Path(f"computed_values/data_{self.optimization_problem.GetStep()}.csv"), self.list_of_sensors, ["type", "name", "location", "value", "PRESSURE", "DENSITY", "TEMPERATURE", "DAMAGE_VARIABLE"])
 
     def __GetSensor(self, sensor_name: str) -> KratosDT.Sensors.Sensor:
         return self.sensor_name_dict[sensor_name]
