@@ -32,8 +32,8 @@ public:
     KRATOS_CLASS_POINTER_DEFINITION(BackwardEulerQuasistaticPwScheme);
 
     BackwardEulerQuasistaticPwScheme()
-        : GeneralizedBackwardEulerScheme<TSparseSpace, TDenseSpace>(WATER_PRESSURE, DT_WATER_PRESSURE,
-                                                                    DT_PRESSURE_COEFFICIENT)
+        : GeneralizedBackwardEulerScheme<TSparseSpace, TDenseSpace>(
+              WATER_PRESSURE, DT_WATER_PRESSURE, DT_PRESSURE_COEFFICIENT)
     {
     }
 }; // Class BackwardEulerQuasistaticPwScheme

@@ -21,12 +21,12 @@ class GeneralizedBackwardEulerScheme
     : public GeoMechanicsTimeIntegrationScheme<TSparseSpace, TDenseSpace> {
 public:
     GeneralizedBackwardEulerScheme(const Variable<double>& rVariable,
-                                   const Variable<double>& rDeltaVariable,
-                                   const Variable<double>& rDeltaVariableCoefficient)
+                                   const Variable<double>& rDeltaTimeVariable,
+                                   const Variable<double>& rDeltaTimeVariableCoefficient)
         : GeoMechanicsTimeIntegrationScheme<TSparseSpace, TDenseSpace>(),
           mVariable(rVariable),
-          mDeltaVariable(rDeltaVariable),
-          mDeltaVariableCoefficient(rDeltaVariableCoefficient)
+          mDeltaTimeVariable(rDeltaTimeVariable),
+          mDeltaTimeVariableCoefficient(rDeltaTimeVariableCoefficient)
     {
     }
 
@@ -36,8 +36,7 @@ protected:
         KRATOS_TRY
 
         block_for_each(rModelPart.Nodes(), [this](Node& rNode) {
-            this->UpdateScalarTimeDerivative(rNode, mVariable,
-                                             mDeltaVariable);
+            this->UpdateScalarTimeDerivative(rNode, mVariable, mDeltaTimeVariable);
         });
 
         KRATOS_CATCH("")
@@ -58,7 +57,7 @@ protected:
         KRATOS_TRY
 
         this->SetDeltaTime(rModelPart.GetProcessInfo()[DELTA_TIME]);
-        rModelPart.GetProcessInfo()[mDeltaVariableCoefficient] =
+        rModelPart.GetProcessInfo()[mDeltaTimeVariableCoefficient] =
             1.0 / (this->GetDeltaTime());
 
         KRATOS_CATCH("")
@@ -66,17 +65,17 @@ protected:
 
     void CheckAllocatedVariables(const ModelPart& rModelPart) const override
     {
-        for (const auto& rNode : rModelPart.Nodes()) {
-            this->CheckSolutionStepsData(rNode, mVariable);
-            this->CheckSolutionStepsData(rNode, mDeltaVariable);
-            this->CheckDof(rNode, mVariable);
+        for (const auto& r_node : rModelPart.Nodes()) {
+            this->CheckSolutionStepsData(r_node, mVariable);
+            this->CheckSolutionStepsData(r_node, mDeltaTimeVariable);
+            this->CheckDof(r_node, mVariable);
         }
     }
 
 private:
     Variable<double> mVariable;
-    Variable<double> mDeltaVariable;
-    Variable<double> mDeltaVariableCoefficient;
+    Variable<double> mDeltaTimeVariable;
+    Variable<double> mDeltaTimeVariableCoefficient;
 };
 
 } // namespace Kratos
