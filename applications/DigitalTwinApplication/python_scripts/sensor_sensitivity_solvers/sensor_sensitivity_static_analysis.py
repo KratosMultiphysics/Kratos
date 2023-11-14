@@ -21,9 +21,10 @@ class SensorSensitivityStaticAnalysis(AnalysisStage):
         super().Initialize()
 
         default_sensor_settings = Kratos.Parameters("""{
-            "perturbation_size"      : 1e-8,
-            "adapt_perturbation_size": true,
-            "list_of_sensors"        : []
+            "perturbation_size"            : 1e-8,
+            "adapt_perturbation_size"      : true,
+            "force_calculate_sensitivities": true,
+            "list_of_sensors"              : []
         }""")
 
         sensor_settings = self.project_parameters["sensor_settings"]
@@ -33,6 +34,7 @@ class SensorSensitivityStaticAnalysis(AnalysisStage):
         model_part.ProcessInfo[KratosDT.PERTURBATION_SIZE] = sensor_settings["perturbation_size"].GetDouble()
         model_part.ProcessInfo[KratosDT.ADAPT_PERTURBATION_SIZE] = sensor_settings["adapt_perturbation_size"].GetBool()
         self.listof_sensors = GetSensors(model_part, sensor_settings["list_of_sensors"].values())
+        self.force_calculate_sensitivities = sensor_settings["force_calculate_sensitivities"].GetBool()
 
     def _CreateSolver(self) -> SensorSensitivityAdjointStaticSolver:
         return SensorSensitivityAdjointStaticSolver(self.model, self.project_parameters["solver_settings"])
@@ -66,13 +68,14 @@ class SensorSensitivityStaticAnalysis(AnalysisStage):
 
             h5_path = f"/SensitivityData/{sensor.__class__.__name__}/{sensor.GetName()}"
             sensitivity_variables: 'dict[Kratos.Globals.DataLocation, list[typing.Union[Kratos.DoubleVariable, Kratos.Array1DVariable3]]]' = self._GetSolver().GetSensitivtyVariables()
-            if not h5_file.HasPath(h5_path):
-                # recursively creat group
-                h5_path_name_data = h5_path.split("/")[1:]
-                for i, _ in enumerate(h5_path_name_data):
-                    current_long_path = "/" + "/".join(h5_path_name_data[0:i+1])
-                    if not h5_file.HasPath(current_long_path):
-                        h5_file.CreateGroup(current_long_path)
+            if not h5_file.HasPath(h5_path) or self.force_calculate_sensitivities:
+                if not h5_file.HasPath(h5_path):
+                    # recursively creat group
+                    h5_path_name_data = h5_path.split("/")[1:]
+                    for i, _ in enumerate(h5_path_name_data):
+                        current_long_path = "/" + "/".join(h5_path_name_data[0:i+1])
+                        if not h5_file.HasPath(current_long_path):
+                            h5_file.CreateGroup(current_long_path)
 
                 self._GetSolver().SetSensor(sensor)
                 self.InitializeSolutionStep()
