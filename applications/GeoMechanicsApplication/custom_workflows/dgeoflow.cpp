@@ -372,9 +372,8 @@ namespace Kratos
 
             if (rShouldCancel())
             {
-                rLogCallback(kratosLogBuffer.str().c_str());
-                Logger::RemoveOutput(p_output);
-                ResetModelParts();
+                CheckCancellationAndLog(rLogCallback, p_output);
+
                 return 0;
             }
 
@@ -390,20 +389,16 @@ namespace Kratos
                                   gid_output_settings, criticalHeadInfo, rLogCallback, p_output, rShouldCancel);
             }
 
-            rLogCallback(kratosLogBuffer.str().c_str());
-            Logger::RemoveOutput(p_output);
+            CheckCancellationAndLog(rLogCallback, p_output);
 
-            ResetModelParts();
             return 0;
         }
         catch (const std::exception &exc)
         {
             KRATOS_INFO_IF("GeoFlowKernel", this->GetEchoLevel() > 0) << exc.what();
 
-            rLogCallback(kratosLogBuffer.str().c_str());
-            Logger::RemoveOutput(p_output);
+            CheckCancellationAndLog(rLogCallback, p_output);
 
-            ResetModelParts();
             return 1;
         }
     }
@@ -542,7 +537,6 @@ namespace Kratos
         const auto maxSteps = static_cast<int>(std::ceil((criticalHeadInfo.maxCriticalHead - criticalHeadInfo.minCriticalHead) / criticalHeadInfo.stepCriticalHead)) + 2;
 
 
-
         while (true)
         {
             if (criticalHeadInfo.maxCriticalHead - criticalHead < -1e-9)
@@ -606,12 +600,21 @@ namespace Kratos
 
             if (rShouldCancel())
             {
-                rLogCallback(kratosLogBuffer.str().c_str());
-                Logger::RemoveOutput(p_output);
-                ResetModelParts();
+                CheckCancellationAndLog(rLogCallback, p_output);
+
                 return 0;
             }
         }
+    }
+
+    void KratosExecute::CheckCancellationAndLog(const std::function<void(const char*)>& rLogCallback,
+                                               LoggerOutput::Pointer p_output)
+    {
+        std::stringstream kratosLogBuffer;
+
+        rLogCallback(kratosLogBuffer.str().c_str());
+        Logger::RemoveOutput(p_output);
+        ResetModelParts();
     }
 
     shared_ptr<Process> KratosExecute::FindRiverBoundaryByName(const std::string& rCriticalHeadBoundaryModelPartName,

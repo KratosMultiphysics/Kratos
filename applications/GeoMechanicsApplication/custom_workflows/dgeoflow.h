@@ -114,6 +114,9 @@ namespace Kratos
                                const shared_ptr<Process>& RiverBoundary,
                                const GeoMechanicsNewtonRaphsonErosionProcessStrategyType::Pointer& p_solving_strategy);
 
+        void CheckCancellationAndLog(const std::function<void(const char*)>& rLogCallback,
+                                    LoggerOutput::Pointer p_output);
+
         // Dof arrays
         typedef SetIdentityFunction<Dof<double>> result_type;
         typedef PointerVectorSet<Dof<double>, SetIdentityFunction<Dof<double>>, std::less<result_type>,
