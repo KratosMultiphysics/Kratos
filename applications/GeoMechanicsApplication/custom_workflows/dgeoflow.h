@@ -102,6 +102,18 @@ namespace Kratos
         typedef GeoMechanicsNewtonRaphsonErosionProcessStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType>
             GeoMechanicsNewtonRaphsonErosionProcessStrategyType;
 
+        int CriticalHeadSearch(ModelPart& model_part,
+                               const std::vector<std::shared_ptr<Process>>& processes,
+                               const std::function<void(double)>& rReportProgress,
+                               const std::function<void(const char*)>& rReportTextualProgress,
+                               const Kratos::Parameters& gid_output_settings,
+                               const CriticalHeadInfo& criticalHeadInfo,
+                               const std::function<void(const char*)>& rLogCallback,
+                               LoggerOutput::Pointer p_output,
+                               const std::function<bool()>& rShouldCancel,
+                               const shared_ptr<Process>& RiverBoundary,
+                               const GeoMechanicsNewtonRaphsonErosionProcessStrategyType::Pointer& p_solving_strategy);
+
         // Dof arrays
         typedef SetIdentityFunction<Dof<double>> result_type;
         typedef PointerVectorSet<Dof<double>, SetIdentityFunction<Dof<double>>, std::less<result_type>,
@@ -120,6 +132,7 @@ namespace Kratos
         KratosGeoMechanicsApplication::Pointer geoApp;
         std::string mWorkingDirectory;
         std::string mCriticalHeadBoundaryModelPartName;
+        bool pipingSuccess = false;
         
         void ResetModelParts();
 

@@ -311,7 +311,7 @@ namespace Kratos
         this->SetEchoLevel(1);
 
         std::stringstream kratosLogBuffer;
-        LoggerOutput::Pointer p_output(new LoggerOutput(kratosLogBuffer));
+        auto p_output = std::make_shared<LoggerOutput>(kratosLogBuffer);
         Logger::AddOutput(p_output);
 
         try
@@ -451,9 +451,84 @@ namespace Kratos
             KRATOS_ERROR << "No river boundary found.";
         }
 
+        CriticalHeadSearch(model_part, processes, rReportProgress, rReportTextualProgress, gid_output_settings,
+                           criticalHeadInfo, rLogCallback, p_output, rShouldCancel, RiverBoundary, p_solving_strategy);
+
+        double criticalHead;
+
+        KRATOS_INFO_IF("GeoFlowKernel", this->GetEchoLevel() > 0) << "Writing result to: " << mWorkingDirectory << "\\criticalHead.json" << std::endl;
+
+        // output critical head_json
+        std::ofstream CriticalHeadFile(mWorkingDirectory + "\\criticalHead.json");
+
+        CriticalHeadFile << "{\n";
+        CriticalHeadFile << "\t \"PipeData\":\t{\n";
+        if (pipingSuccess)
+        {
+            CriticalHeadFile << "\t\t \"Success\": \"True\",\n";
+            CriticalHeadFile << "\t\t \"CriticalHead\": \"" + std::to_string(criticalHead) + "\"\n";
+        }
+        else
+        {
+            CriticalHeadFile << "\t\t \"Success\": \"False\"\n";
+        }
+        CriticalHeadFile << "\t }\n";
+        CriticalHeadFile << "}\n";
+
+        // Close the file
+        CriticalHeadFile.close();
+
+        KRATOS_INFO_IF("GeoFlowKernel", this->GetEchoLevel() > 0) << "Finished writing result" << std::endl;
+        return 0;
+    }
+
+    void KratosExecute::AddNodalSolutionStepVariables(ModelPart& model_part) const
+    {
+        model_part.AddNodalSolutionStepVariable(VELOCITY);
+        model_part.AddNodalSolutionStepVariable(ACCELERATION);
+
+        // Displacement
+        model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
+        model_part.AddNodalSolutionStepVariable(TOTAL_DISPLACEMENT);
+        model_part.AddNodalSolutionStepVariable(REACTION);
+        model_part.AddNodalSolutionStepVariable(POINT_LOAD);
+        model_part.AddNodalSolutionStepVariable(LINE_LOAD);
+        model_part.AddNodalSolutionStepVariable(SURFACE_LOAD);
+        model_part.AddNodalSolutionStepVariable(VOLUME_ACCELERATION);
+        model_part.AddNodalSolutionStepVariable(NORMAL_CONTACT_STRESS);
+        model_part.AddNodalSolutionStepVariable(TANGENTIAL_CONTACT_STRESS);
+
+        // Water
+        model_part.AddNodalSolutionStepVariable(WATER_PRESSURE);
+        model_part.AddNodalSolutionStepVariable(REACTION_WATER_PRESSURE);
+        model_part.AddNodalSolutionStepVariable(DT_WATER_PRESSURE);
+        model_part.AddNodalSolutionStepVariable(NORMAL_FLUID_FLUX);
+        model_part.AddNodalSolutionStepVariable(HYDRAULIC_DISCHARGE);
+
+        // Smoothing
+        model_part.AddNodalSolutionStepVariable(NODAL_AREA);
+        model_part.AddNodalSolutionStepVariable(NODAL_CAUCHY_STRESS_TENSOR);
+        model_part.AddNodalSolutionStepVariable(NODAL_DAMAGE_VARIABLE);
+        model_part.AddNodalSolutionStepVariable(NODAL_JOINT_AREA);
+        model_part.AddNodalSolutionStepVariable(NODAL_JOINT_WIDTH);
+        model_part.AddNodalSolutionStepVariable(NODAL_JOINT_DAMAGE);
+    }
+
+    int KratosExecute::CriticalHeadSearch(ModelPart& model_part,
+                                          const std::vector<std::shared_ptr<Process>>& processes,
+                                          const std::function<void(double)>& rReportProgress,
+                                          const std::function<void(const char*)>& rReportTextualProgress,
+                                          const Kratos::Parameters& gid_output_settings,
+                                          const CriticalHeadInfo& criticalHeadInfo,
+                                          const std::function<void(const char*)>& rLogCallback,
+                                          LoggerOutput::Pointer p_output,
+                                          const std::function<bool()>& rShouldCancel,
+                                          const shared_ptr<Process>& RiverBoundary,
+                                          const GeoMechanicsNewtonRaphsonErosionProcessStrategyType::Pointer& p_solving_strategy)
+    {
+        std::stringstream kratosLogBuffer;
         double criticalHead;
         double currentHead;
-        bool pipingSuccess = false;
 
         auto currentProcess = std::static_pointer_cast<GeoFlowApplyConstantHydrostaticPressureProcess>(RiverBoundary);
         KRATOS_INFO_IF("GeoFlowKernel", this->GetEchoLevel() > 0) << "River boundary name: " << currentProcess->GetName() << std::endl;
@@ -468,6 +543,8 @@ namespace Kratos
 
         int step = 1;
         const auto maxSteps = static_cast<int>(std::ceil((criticalHeadInfo.maxCriticalHead - criticalHeadInfo.minCriticalHead) / criticalHeadInfo.stepCriticalHead)) + 2;
+
+
 
         while (true)
         {
@@ -538,63 +615,6 @@ namespace Kratos
                 return 0;
             }
         }
-
-        KRATOS_INFO_IF("GeoFlowKernel", this->GetEchoLevel() > 0) << "Writing result to: " << mWorkingDirectory << "\\criticalHead.json" << std::endl;
-
-        // output critical head_json
-        std::ofstream CriticalHeadFile(mWorkingDirectory + "\\criticalHead.json");
-
-        CriticalHeadFile << "{\n";
-        CriticalHeadFile << "\t \"PipeData\":\t{\n";
-        if (pipingSuccess)
-        {
-            CriticalHeadFile << "\t\t \"Success\": \"True\",\n";
-            CriticalHeadFile << "\t\t \"CriticalHead\": \"" + std::to_string(criticalHead) + "\"\n";
-        }
-        else
-        {
-            CriticalHeadFile << "\t\t \"Success\": \"False\"\n";
-        }
-        CriticalHeadFile << "\t }\n";
-        CriticalHeadFile << "}\n";
-
-        // Close the file
-        CriticalHeadFile.close();
-
-        KRATOS_INFO_IF("GeoFlowKernel", this->GetEchoLevel() > 0) << "Finished writing result" << std::endl;
-        return 0;
-    }
-
-    void KratosExecute::AddNodalSolutionStepVariables(ModelPart& model_part) const
-    {
-        model_part.AddNodalSolutionStepVariable(VELOCITY);
-        model_part.AddNodalSolutionStepVariable(ACCELERATION);
-
-        // Displacement
-        model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
-        model_part.AddNodalSolutionStepVariable(TOTAL_DISPLACEMENT);
-        model_part.AddNodalSolutionStepVariable(REACTION);
-        model_part.AddNodalSolutionStepVariable(POINT_LOAD);
-        model_part.AddNodalSolutionStepVariable(LINE_LOAD);
-        model_part.AddNodalSolutionStepVariable(SURFACE_LOAD);
-        model_part.AddNodalSolutionStepVariable(VOLUME_ACCELERATION);
-        model_part.AddNodalSolutionStepVariable(NORMAL_CONTACT_STRESS);
-        model_part.AddNodalSolutionStepVariable(TANGENTIAL_CONTACT_STRESS);
-
-        // Water
-        model_part.AddNodalSolutionStepVariable(WATER_PRESSURE);
-        model_part.AddNodalSolutionStepVariable(REACTION_WATER_PRESSURE);
-        model_part.AddNodalSolutionStepVariable(DT_WATER_PRESSURE);
-        model_part.AddNodalSolutionStepVariable(NORMAL_FLUID_FLUX);
-        model_part.AddNodalSolutionStepVariable(HYDRAULIC_DISCHARGE);
-
-        // Smoothing
-        model_part.AddNodalSolutionStepVariable(NODAL_AREA);
-        model_part.AddNodalSolutionStepVariable(NODAL_CAUCHY_STRESS_TENSOR);
-        model_part.AddNodalSolutionStepVariable(NODAL_DAMAGE_VARIABLE);
-        model_part.AddNodalSolutionStepVariable(NODAL_JOINT_AREA);
-        model_part.AddNodalSolutionStepVariable(NODAL_JOINT_WIDTH);
-        model_part.AddNodalSolutionStepVariable(NODAL_JOINT_DAMAGE);
     }
 
     shared_ptr<Process> KratosExecute::FindRiverBoundaryByName(const std::string& rCriticalHeadBoundaryModelPartName,
