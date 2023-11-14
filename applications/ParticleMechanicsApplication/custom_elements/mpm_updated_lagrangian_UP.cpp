@@ -535,8 +535,8 @@ void MPMUpdatedLagrangianUP::CalculateAndAddPressureForces(VectorType& rRightHan
     const unsigned int dimension = r_geometry.WorkingSpaceDimension();
     unsigned int index_p = dimension;
     const Matrix& r_N = GetGeometry().ShapeFunctionsValues();
-    //double& bulk_modulus = 1.0; // initialization
-    const double& bulk_modulus = GetProperties()[BULK_MODULUS];
+   
+    double bulk_modulus = 1.0;
 
      if (GetProperties().Has(YOUNG_MODULUS) && GetProperties().Has(POISSON_RATIO))
     {
@@ -547,8 +547,9 @@ void MPMUpdatedLagrangianUP::CalculateAndAddPressureForces(VectorType& rRightHan
         if (bulk_modulus != bulk_modulus)
             bulk_modulus = 1e16;
     }
-    else if (GetProperties().Has(DYNAMIC_VISCOSITY) ) {
-            const double& bulk_modulus = GetProperties()[BULK_MODULUS];
+    else if (GetProperties().Has(DYNAMIC_VISCOSITY) ) 
+    {
+       bulk_modulus = GetProperties()[BULK_MODULUS];
     }
 
 
@@ -833,7 +834,7 @@ void MPMUpdatedLagrangianUP::CalculateAndAddKpp (MatrixType& rLeftHandSideMatrix
     const unsigned int number_of_nodes = GetGeometry().size();
     const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
     const Matrix& r_N = GetGeometry().ShapeFunctionsValues();
-    const double& bulk_modulus  = GetProperties()[BULK_MODULUS];
+    double bulk_modulus  = 1.0;
 
 
    if (GetProperties().Has(YOUNG_MODULUS) && GetProperties().Has(POISSON_RATIO))
@@ -845,8 +846,8 @@ void MPMUpdatedLagrangianUP::CalculateAndAddKpp (MatrixType& rLeftHandSideMatrix
         if (bulk_modulus != bulk_modulus)
             bulk_modulus = 1e16;
     }
-    else {
-        const double& bulk_modulus  = GetProperties()[BULK_MODULUS];
+    else if (GetProperties().Has(DYNAMIC_VISCOSITY)) {
+        bulk_modulus  = GetProperties()[BULK_MODULUS];
     }
 
 
