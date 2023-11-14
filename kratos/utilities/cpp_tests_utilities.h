@@ -17,6 +17,7 @@
 // External includes
 
 // Project includes
+#include "testing/testing.h"
 
 namespace Kratos
 {
@@ -143,7 +144,7 @@ namespace CppTestsUtilities
         const double HalfX = 0.6,
         const double HalfY = 0.9,
         const double HalfZ = 0.3,
-        const DataCommunicator& rDataCommunicator = DataCommunicator::GetDefault()
+        const DataCommunicator& rDataCommunicator = Testing::GetDefaultDataCommunicator()
         );
 
     /**
@@ -154,7 +155,7 @@ namespace CppTestsUtilities
      */
     KRATOS_API(KRATOS_CORE) ModelPart& CreateCubeModelPart(
         Model& rCurrentModel,
-        const DataCommunicator& rDataCommunicator = DataCommunicator::GetDefault()
+        const DataCommunicator& rDataCommunicator = Testing::GetDefaultDataCommunicator()
         );
 
 }; // namespace CppTestsUtilities

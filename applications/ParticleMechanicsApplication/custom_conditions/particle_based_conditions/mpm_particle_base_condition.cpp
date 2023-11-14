@@ -18,6 +18,7 @@
 // Project includes
 #include "custom_conditions/particle_based_conditions/mpm_particle_base_condition.h"
 #include "includes/checks.h"
+#include "custom_utilities/particle_mechanics_math_utilities.h"
 
 namespace Kratos
 {
@@ -75,7 +76,7 @@ void MPMParticleBaseCondition::GetDofList(
         if ( dimension == 3 ){
             rElementalDofList.push_back( r_geometry[i].pGetDof( DISPLACEMENT_Z ) );
         }
-        
+
     }
 
     KRATOS_CATCH("")
@@ -380,6 +381,7 @@ void MPMParticleBaseCondition::SetValuesOnIntegrationPoints(const Variable<array
     }
     else if (rVariable == MPC_NORMAL) {
         m_normal = rValues[0];
+        ParticleMechanicsMathUtilities<double>::Normalize(m_normal);
     }
     else {
         KRATOS_ERROR << "Variable " << rVariable << " is called in SetValuesOnIntegrationPoints, but is not implemented." << std::endl;
