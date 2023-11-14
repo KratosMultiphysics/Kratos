@@ -212,8 +212,8 @@ void SteadyStatePwPipingElement<TDim,TNumNodes>::
     array_1d<double,TDim> RelDispVector;
     SFGradAuxVariables SFGradAuxVars;
 
-    // create general parametes of retention law
-    RetentionLaw::Parameters RetentionParameters(Geom, this->GetProperties(), CurrentProcessInfo);
+    // create general parameters of retention law
+    RetentionLaw::Parameters RetentionParameters(this->GetProperties(), CurrentProcessInfo);
 
     //Loop over integration points
     for ( unsigned int GPoint = 0; GPoint < NumGPoints; ++GPoint) {

@@ -527,7 +527,7 @@ private:
         const CellType& rCell,
         const PointType& rPoint,
         const double Radius,
-        std::unordered_set<GeometricalObject*>& rResults
+        std::unordered_map<GeometricalObject*, double>& rResults
         );
 
     /**
