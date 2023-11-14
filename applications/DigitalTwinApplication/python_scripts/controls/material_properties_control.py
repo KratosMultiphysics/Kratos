@@ -36,9 +36,16 @@ class MaterialPropertiesControl(Control):
                     "adjoint_model_part_name": "PLEASE_PROVIDE_MODEL_PART_NAME"
                 }
             ],
-            "control_variable_name": ""
+            "control_variable_name": "",
+            "filtering": {
+                "filter_radius": 5.0,
+                "filter_function_type": "linear",
+                "fixed_model_part_name": "",
+                "damping_function_type": "sigmoidal",
+                "max_nodes_in_filter_radius": 1000
+            }
         }""")
-        parameters.ValidateAndAssignDefaults(default_settings)
+        parameters.RecursivelyValidateAndAssignDefaults(default_settings)
 
         self.model = model
 
@@ -66,6 +73,8 @@ class MaterialPropertiesControl(Control):
                                                 False)
         self.primal_model_part: Optional[Kratos.ModelPart] = None
         self.adjoint_model_part: Optional[Kratos.ModelPart] = None
+        self.filter: Optional[KratosOA.ElementExplicitFilter] = None
+        self.parameters = parameters
 
     def Initialize(self) -> None:
         self.primal_model_part = self.primal_model_part_operation.GetModelPart()
@@ -113,8 +122,7 @@ class MaterialPropertiesControl(Control):
         if not IsSameContainerExpression(physical_gradient, self.GetEmptyField()):
             raise RuntimeError(f"Gradients for the required element container not found for control \"{self.GetName()}\". [ required model part name: {self.adjoint_model_part.FullName()}, given model part name: {physical_gradient.GetModelPart().FullName()} ]")
 
-        # TODO: Implement filtering mechanisms here
-        return physical_gradient_variable_container_expression_map[self.controlled_physical_variable].Clone()
+        return self.__GetFilter().FilterIntegratedField(physical_gradient_variable_container_expression_map[self.controlled_physical_variable])
 
     def Update(self, control_field: ContainerExpressionTypes) -> bool:
         if not IsSameContainerExpression(control_field, self.GetEmptyField()):
@@ -128,8 +136,32 @@ class MaterialPropertiesControl(Control):
         # unfiltered_control_field = self.GetControlField()
 
         # if KratosOA.ExpressionUtils.NormL2(unfiltered_control_field - control_field) > 1e-9:
-        KratosOA.PropertiesVariableExpressionIO.Write(control_field, self.controlled_physical_variable)
+        filtered_control_field = self.__GetFilter().FilterIntegratedField(control_field)
+        KratosOA.PropertiesVariableExpressionIO.Write(filtered_control_field, self.controlled_physical_variable)
         return True
+
+    def __GetFilter(self) -> KratosOA.ElementExplicitFilter:
+        if self.filter is None:
+            filtering_params = self.parameters["filtering"]
+            fixed_model_part_name = filtering_params["fixed_model_part_name"].GetString()
+            if fixed_model_part_name != "":
+                self.filter = KratosOA.ElementExplicitFilter(
+                                        self.adjoint_model_part,
+                                        self.model[fixed_model_part_name],
+                                        filtering_params["filter_function_type"].GetString(),
+                                        filtering_params["damping_function_type"].GetString(),
+                                        filtering_params["max_nodes_in_filter_radius"].GetInt())
+            else:
+                self.filter = KratosOA.ElementExplicitFilter(
+                                        self.adjoint_model_part,
+                                        filtering_params["filter_function_type"].GetString(),
+                                        filtering_params["max_nodes_in_filter_radius"].GetInt())
+
+            filter_radius_expression = Kratos.Expression.ElementExpression(self.adjoint_model_part)
+            Kratos.Expression.LiteralExpressionIO.SetData(filter_radius_expression, filtering_params["filter_radius"].GetDouble())
+            self.filter.SetFilterRadius(filter_radius_expression)
+
+        return self.filter
 
     def __str__(self) -> str:
         return f"Control [type = {self.__class__.__name__}, name = {self.GetName()}, model part name = {self.adjoint_model_part.FullName()}, control variable = {self.controlled_physical_variable.Name()}"
