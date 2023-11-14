@@ -230,8 +230,8 @@ private:
         const auto& r_integration_points = GetGeometry().IntegrationPoints(GetIntegrationMethod());
 
         auto result = Vector{r_integration_points.size()};
-        for (unsigned int GPoint = 0; GPoint < r_integration_points.size(); ++GPoint) {
-            result[GPoint] = r_integration_points[GPoint].Weight() * rDetJContainer[GPoint];
+        for (unsigned int integration_point_index = 0; integration_point_index < r_integration_points.size(); ++integration_point_index) {
+            result[integration_point_index] = r_integration_points[integration_point_index].Weight() * rDetJContainer[integration_point_index];
         }
 
         return result;
@@ -246,9 +246,9 @@ private:
                 law.CalculateThermalDispersionMatrix(GetProperties(), rCurrentProcessInfo);
 
         auto result = BoundedMatrix<double, TNumNodes, TNumNodes>{ZeroMatrix{TNumNodes, TNumNodes}};
-        for (unsigned int GPoint = 0; GPoint < GetGeometry().IntegrationPointsNumber(GetIntegrationMethod()); ++GPoint) {
-            BoundedMatrix<double, TDim, TNumNodes> Temp = prod(constitutive_matrix, trans(rShapeFunctionGradients[GPoint]));
-            result += prod(rShapeFunctionGradients[GPoint], Temp) * rIntegrationCoefficients[GPoint];
+        for (unsigned int integration_point_index = 0; integration_point_index < GetGeometry().IntegrationPointsNumber(GetIntegrationMethod()); ++integration_point_index) {
+            BoundedMatrix<double, TDim, TNumNodes> Temp = prod(constitutive_matrix, trans(rShapeFunctionGradients[integration_point_index]));
+            result += prod(rShapeFunctionGradients[integration_point_index], Temp) * rIntegrationCoefficients[integration_point_index];
         }
 
         return result;
@@ -257,16 +257,16 @@ private:
     BoundedMatrix<double, TNumNodes, TNumNodes> CalculateCapacityMatrix(const Vector& rIntegrationCoefficients) const
     {
         const auto& r_properties = GetProperties();
-        const auto  cWater = r_properties[POROSITY] * r_properties[SATURATION] *
-                             r_properties[DENSITY_WATER] * r_properties[SPECIFIC_HEAT_CAPACITY_WATER];
-        const auto  cSolid = (1.0 - r_properties[POROSITY]) *
-                             r_properties[DENSITY_SOLID] * r_properties[SPECIFIC_HEAT_CAPACITY_SOLID];
+        const auto  c_water = r_properties[POROSITY] * r_properties[SATURATION] *
+                              r_properties[DENSITY_WATER] * r_properties[SPECIFIC_HEAT_CAPACITY_WATER];
+        const auto  c_solid = (1.0 - r_properties[POROSITY]) *
+                              r_properties[DENSITY_SOLID] * r_properties[SPECIFIC_HEAT_CAPACITY_SOLID];
 
         auto result = BoundedMatrix<double, TNumNodes, TNumNodes>{ZeroMatrix{TNumNodes, TNumNodes}};
-        const auto& NContainer = GetGeometry().ShapeFunctionsValues(GetIntegrationMethod());
-        for (unsigned int GPoint = 0; GPoint < GetGeometry().IntegrationPointsNumber(GetIntegrationMethod()); ++GPoint) {
-            const auto N = Vector{row(NContainer, GPoint)};
-            result += (cWater + cSolid) * outer_prod(N, N) * rIntegrationCoefficients[GPoint];
+        const auto& r_N_container = GetGeometry().ShapeFunctionsValues(GetIntegrationMethod());
+        for (unsigned int integration_point_index = 0; integration_point_index < GetGeometry().IntegrationPointsNumber(GetIntegrationMethod()); ++integration_point_index) {
+            const auto N = Vector{row(r_N_container, integration_point_index)};
+            result += (c_water + c_solid) * outer_prod(N, N) * rIntegrationCoefficients[integration_point_index];
         }
 
         return result;
