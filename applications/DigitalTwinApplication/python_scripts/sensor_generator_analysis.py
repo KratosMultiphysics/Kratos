@@ -30,7 +30,9 @@ class SensorGeneratorAnalysis:
         for sensor_group in self.parameters["sensor_groups"].values():
             container_type = sensor_group["container_type"].GetString()
             container: 'typing.Union[Kratos.ElementsArray, Kratos.ConditionsArray]'
-            if container_type == "elements":
+            if container_type == "nodes":
+                container = self.model_part.Nodes
+            elif container_type == "elements":
                 container = self.model_part.Elements
             elif container_type == "conditions":
                 container = self.model_part.Conditions
@@ -42,7 +44,9 @@ class SensorGeneratorAnalysis:
                 sensor_params.AddVector("location", Kratos.Vector())
 
             location = sensor_group["location"].GetString()
-            if location == "center":
+            if container_type == "nodes":
+                location_retrieval = lambda x: [x.X, x.Y, x.Z]
+            elif location == "center":
                 location_retrieval = lambda x: x.GetGeometry().Center()
             else:
                 raise RuntimeError(f"Unsupported location = \"{location}\".")
