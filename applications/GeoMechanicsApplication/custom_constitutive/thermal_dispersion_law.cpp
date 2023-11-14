@@ -36,13 +36,13 @@ SizeType GeoThermalDispersionLaw::WorkingSpaceDimension()
 }
 
 Matrix GeoThermalDispersionLaw::CalculateThermalDispersionMatrix(
-    const Properties& rProp, const ProcessInfo& rProcessInfo, const Geometry<Node>& rElementGeometry) const
+    const Properties& rProp, const ProcessInfo& rProcessInfo) const
 {
     KRATOS_TRY
 
     Matrix result = ZeroMatrix(mNumberOfDimensions, mNumberOfDimensions);
 
-    RetentionLaw::Parameters parameters(rElementGeometry, rProp, rProcessInfo);
+    RetentionLaw::Parameters parameters(rProp, rProcessInfo);
     auto retention_law = RetentionLawFactory::Clone(rProp);
     const double saturation = retention_law->CalculateSaturation(parameters);
     const double water_fraction = rProp[POROSITY] * saturation;
