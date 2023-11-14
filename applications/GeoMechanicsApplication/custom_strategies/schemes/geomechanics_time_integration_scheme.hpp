@@ -361,6 +361,13 @@ protected:
         // intentionally empty
     }
 
+    virtual void UpdateScalarTimeDerivative(Node& rNode,
+                                            const Variable<double>& variable,
+                                            const Variable<double>& dt_variable) const
+    {
+        // intentionally empty
+    }
+;
     double GetDeltaTime() const
     {
         return mDeltaTime;

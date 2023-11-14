@@ -27,7 +27,7 @@ public:
 protected:
     void UpdateScalarTimeDerivative(Node& rNode,
                                     const Variable<double>& variable,
-                                    const Variable<double>& dt_variable) const
+                                    const Variable<double>& dt_variable) const override
     {
         const double delta_variable = rNode.FastGetSolutionStepValue(variable) -
                                       rNode.FastGetSolutionStepValue(variable, 1);

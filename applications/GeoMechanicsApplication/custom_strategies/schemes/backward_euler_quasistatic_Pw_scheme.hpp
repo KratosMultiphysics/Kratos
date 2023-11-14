@@ -40,13 +40,9 @@ protected:
     {
         KRATOS_TRY
 
-        // Update DtPressure
         block_for_each(rModelPart.Nodes(), [this](Node& rNode) {
-            const double delta_pressure =
-                rNode.FastGetSolutionStepValue(WATER_PRESSURE) -
-                rNode.FastGetSolutionStepValue(WATER_PRESSURE, 1);
-            rNode.FastGetSolutionStepValue(DT_WATER_PRESSURE) =
-                delta_pressure / this->GetDeltaTime();
+            this->UpdateScalarTimeDerivative(rNode, WATER_PRESSURE,
+                                             DT_WATER_PRESSURE);
         });
 
         KRATOS_CATCH("")
@@ -70,6 +66,17 @@ protected:
             1.0 / (this->GetDeltaTime());
 
         KRATOS_CATCH("")
+    }
+
+    void UpdateScalarTimeDerivative(Node& rNode,
+                                    const Variable<double>& variable,
+                                    const Variable<double>& dt_variable) const override
+    {
+        const double delta_pressure =
+            rNode.FastGetSolutionStepValue(variable) -
+            rNode.FastGetSolutionStepValue(variable, 1);
+        rNode.FastGetSolutionStepValue(dt_variable) =
+            delta_pressure / this->GetDeltaTime();
     }
 
 }; // Class BackwardEulerQuasistaticPwScheme
