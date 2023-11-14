@@ -41,7 +41,7 @@ class DamageDetectionResponse(ResponseFunction):
                     "weight": 1.0
                 }
             ],
-            "output_folder": "damage_output"
+            "output_folder": "Optimization_Results"
         }""")
         parameters.ValidateAndAssignDefaults(default_settings)
 
@@ -71,6 +71,7 @@ class DamageDetectionResponse(ResponseFunction):
 
         self.sensor_name_dict: 'dict[str, KratosDT.Sensors.Sensor]' = {}
         self.optimization_problem = optimization_problem
+        self.output_folder = Path(parameters["output_folder"].GetString())
 
     def GetImplementedPhysicalKratosVariables(self) -> 'list[SupportedSensitivityFieldVariableTypes]':
         return [Kratos.YOUNG_MODULUS]
@@ -123,10 +124,9 @@ class DamageDetectionResponse(ResponseFunction):
                 if measured_sensor_name != computed_sensor_name:
                     raise RuntimeError(f"Mismatching sensor names found [ measured_sensor_name = {measured_sensor_name}, computed_sensor_name = {computed_sensor_name}]")
 
-                sensor = self.__GetSensor(measured_sensor_name)
                 measured_value = float(measured_row[measured_value_index])
                 computed_value = float(computed_row[computed_value_index])
-                result += sensor.GetWeight() * test_case_weight * ((measured_value - computed_value) ** 2) / 2.0
+                result += test_case_weight * ((measured_value - computed_value) ** 2) / 2.0
 
             csv_computed_file.close()
             csv_measurement_file.close()
@@ -178,21 +178,25 @@ class DamageDetectionResponse(ResponseFunction):
                     sensor = self.__GetSensor(measured_sensor_name)
                     measured_value = float(measured_row[measured_value_index])
                     computed_value = float(computed_row[computed_value_index])
-                    sensor.SetSensorValue(computed_value)
-                    sensor.SetValue(Kratos.PRESSURE, measured_value)
-                    sensor.SetValue(Kratos.DENSITY, abs(measured_value - computed_value))
                     sensor_view = sensor_view_type(sensor, physical_variable.Name() + "_SENSITIVITY")
-                    sensor.SetValue(Kratos.TEMPERATURE, KratosOA.ExpressionUtils.NormInf(sensor_view.GetContainerExpression()))
-                    sensor.SetValue(Kratos.DAMAGE_VARIABLE, KratosOA.ExpressionUtils.NormL2(sensor_view.GetContainerExpression()))
 
-                    cexp_gradient += sensor_view.GetContainerExpression() * (measured_value - computed_value) * test_case_weight * sensor.GetWeight()
+                    sensor.SetSensorValue(computed_value)
+                    sensor.SetValue(KratosDT.SENSOR_MEASURED_VALUE, measured_value)
+                    sensor.SetValue(KratosDT.SENSOR_ERROR, abs(measured_value - computed_value))
+                    sensor.SetValue(KratosDT.SENSOR_SENSITIVITY_NORM_INF, KratosOA.ExpressionUtils.NormInf(sensor_view.GetContainerExpression()))
+                    sensor.SetValue(KratosDT.SENSOR_SENSITIVITY_NORM_L2, KratosOA.ExpressionUtils.NormL2(sensor_view.GetContainerExpression()))
+
+                    cexp_gradient += sensor_view.GetContainerExpression() * (measured_value - computed_value) * test_case_weight
 
                 cexp_gradient.SetExpression(cexp_gradient.Flatten().GetExpression())
 
             csv_computed_file.close()
             csv_measurement_file.close()
 
-        PrintSensorViewsListToCSV(Path(f"computed_values/data_{self.optimization_problem.GetStep()}.csv"), self.list_of_sensors, ["type", "name", "location", "value", "PRESSURE", "DENSITY", "TEMPERATURE", "DAMAGE_VARIABLE"])
+        PrintSensorViewsListToCSV(
+            self.output_folder / f"senor_info_{self.optimization_problem.GetStep()}.csv",
+            self.list_of_sensors,
+            ["type", "name", "location", "value", "SENSOR_MEASURED_VALUE", "SENSOR_ERROR", "SENSOR_SENSITIVITY_NORM_INF", "SENSOR_SENSITIVITY_NORM_L2"])
 
     def __GetSensor(self, sensor_name: str) -> KratosDT.Sensors.Sensor:
         return self.sensor_name_dict[sensor_name]
