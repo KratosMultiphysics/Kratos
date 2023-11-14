@@ -206,7 +206,7 @@ void KratosGeoMechanicsApplication::Register() {
     KRATOS_REGISTER_ELEMENT("GeoCrBeamElementLinear3D2N", mGeoCrBeamElementLinear3D2N)
     KRATOS_REGISTER_ELEMENT("GeoCurvedBeamElement2D3N", mGeoCurvedBeamElement2D3N)
 
-    // Updated-Lagrangian elements
+    // Register thermal elements
     KRATOS_REGISTER_ELEMENT("TransientThermalElement2D3N", mTransientThermalElement2D3N)
     KRATOS_REGISTER_ELEMENT("TransientThermalElement2D4N", mTransientThermalElement2D4N)
     KRATOS_REGISTER_ELEMENT("TransientThermalElement3D4N", mTransientThermalElement3D4N)
