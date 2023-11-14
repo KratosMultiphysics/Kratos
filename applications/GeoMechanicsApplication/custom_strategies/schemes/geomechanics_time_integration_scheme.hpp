@@ -34,7 +34,7 @@ public:
     }
 
     void GetDofList(const Condition& rCondition,
-                    Element::DofsVectorType& rDofList,
+                    Condition::DofsVectorType& rDofList,
                     const ProcessInfo& rCurrentProcessInfo) override
     {
         if (IsActive(rCondition))
@@ -50,7 +50,7 @@ public:
     }
 
     void EquationId(const Condition& rCondition,
-                    Element::EquationIdVectorType& rEquationId,
+                    Condition::EquationIdVectorType& rEquationId,
                     const ProcessInfo& rCurrentProcessInfo) override
     {
         if (IsActive(rCondition))

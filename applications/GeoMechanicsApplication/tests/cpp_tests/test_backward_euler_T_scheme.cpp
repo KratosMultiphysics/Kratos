@@ -30,9 +30,9 @@ KRATOS_TEST_CASE_IN_SUITE(BackwardEulerScheme_UpdatesVariablesDerivatives_WhenPr
     model_part.AddNodalSolutionStepVariable(TEMPERATURE);
     model_part.AddNodalSolutionStepVariable(DT_TEMPERATURE);
 
-    const double current_temperature = 1.0;
-    const double previous_temperature = 0.0;
-    const double delta_time = 4.0;
+    constexpr double current_temperature = 1.0;
+    constexpr double previous_temperature = 0.0;
+    constexpr double delta_time = 4.0;
 
     model_part.GetProcessInfo()[DELTA_TIME] = delta_time;
     auto p_node = model_part.CreateNewNode(0, 0.0, 0.0, 0.0);
@@ -48,7 +48,7 @@ KRATOS_TEST_CASE_IN_SUITE(BackwardEulerScheme_UpdatesVariablesDerivatives_WhenPr
     Vector b;
     scheme.Predict(model_part, dof_set, A, Dx, b);
 
-    const double expected_dt_temperature = 0.25;
+    constexpr double expected_dt_temperature = 0.25;
     KRATOS_EXPECT_DOUBLE_EQ(p_node->FastGetSolutionStepValue(DT_TEMPERATURE),
                             expected_dt_temperature);
 }
