@@ -1367,7 +1367,7 @@ public:
 
         // First we do a chek
         if(rModelPart.NumberOfNodes() != 0)
-            KRATOS_ERROR_IF_NOT(rModelPart.NodesBegin()->SolutionStepsDataHas(rVar)) << "ERROR:: Variable : " << rVar << "not included in the Solution step data ";
+            KRATOS_ERROR_IF_NOT(rModelPart.NodesBegin()->SolutionStepsDataHas(rVar)) << "ERROR:: Variable : " << rVar << "not included in the Solution step data of " << rModelPart.FullName() << ".";
 
         rModelPart.GetNodalSolutionStepVariablesList().AddDof(&rVar);
 

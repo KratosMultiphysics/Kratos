@@ -2,6 +2,7 @@ from typing import Optional
 
 import KratosMultiphysics as Kratos
 import KratosMultiphysics.OptimizationApplication as KratosOA
+import KratosMultiphysics.DigitalTwinApplication as KratosDT
 from KratosMultiphysics.OptimizationApplication.controls.control import Control
 from KratosMultiphysics.OptimizationApplication.utilities.union_utilities import ContainerExpressionTypes
 from KratosMultiphysics.OptimizationApplication.utilities.union_utilities import SupportedSensitivityFieldVariableTypes
@@ -29,7 +30,12 @@ class MaterialPropertiesControl(Control):
         super().__init__(name)
 
         default_settings = Kratos.Parameters("""{
-            "model_part_names"     : [""],
+            "model_part_names": [
+                {
+                    "primal_model_part_name" : "PLEASE_PROVIDE_MODEL_PART_NAME",
+                    "adjoint_model_part_name": "PLEASE_PROVIDE_MODEL_PART_NAME"
+                }
+            ],
             "control_variable_name": ""
         }""")
         parameters.ValidateAndAssignDefaults(default_settings)
@@ -42,19 +48,40 @@ class MaterialPropertiesControl(Control):
             raise RuntimeError(f"{control_variable_name} with {control_variable_type} type is not supported. Only supports double variables")
         self.controlled_physical_variable = Kratos.KratosGlobals.GetVariable(control_variable_name)
 
-        controlled_model_part_names = parameters["model_part_names"].GetStringArray()
+        controlled_model_part_names: 'list[Kratos.Parameters]' = parameters["model_part_names"].values()
         if len(controlled_model_part_names) == 0:
             raise RuntimeError(f"No model parts were provided for MaterialPropertiesControl. [ control name = \"{self.GetName()}\"]")
 
-        self.model_part_operation = ModelPartOperation(self.model, ModelPartOperation.OperationType.UNION, f"control_{self.GetName()}", controlled_model_part_names, False)
-        self.model_part: Optional[Kratos.ModelPart] = None
+        self.primal_model_part_operation = ModelPartOperation(
+                                                self.model,
+                                                ModelPartOperation.OperationType.UNION,
+                                                f"control_primal_{self.GetName()}",
+                                                [param["primal_model_part_name"].GetString() for param in controlled_model_part_names],
+                                                False)
+        self.adjoint_model_part_operation = ModelPartOperation(
+                                                self.model,
+                                                ModelPartOperation.OperationType.UNION,
+                                                f"control_adjoint_{self.GetName()}",
+                                                [param["adjoint_model_part_name"].GetString() for param in controlled_model_part_names],
+                                                False)
+        self.primal_model_part: Optional[Kratos.ModelPart] = None
+        self.adjoint_model_part: Optional[Kratos.ModelPart] = None
 
     def Initialize(self) -> None:
-        self.model_part = self.model_part_operation.GetModelPart()
+        self.primal_model_part = self.primal_model_part_operation.GetModelPart()
+        self.adjoint_model_part = self.adjoint_model_part_operation.GetModelPart()
 
-        if not KratosOA.ModelPartUtils.CheckModelPartStatus(self.model_part, "element_specific_properties_created"):
-            KratosOA.OptimizationUtils.CreateEntitySpecificPropertiesForContainer(self.model_part, self.model_part.Elements)
-            KratosOA.ModelPartUtils.LogModelPartStatus(self.model_part, "element_specific_properties_created")
+        if not KratosOA.ModelPartUtils.CheckModelPartStatus(self.primal_model_part, "element_specific_properties_created"):
+            KratosOA.OptimizationUtils.CreateEntitySpecificPropertiesForContainer(self.primal_model_part, self.primal_model_part.Elements)
+            KratosOA.ModelPartUtils.LogModelPartStatus(self.primal_model_part, "element_specific_properties_created")
+
+            if self.primal_model_part != self.adjoint_model_part:
+                if KratosOA.ModelPartUtils.CheckModelPartStatus(self.adjoint_model_part, "element_specific_properties_created"):
+                    raise RuntimeError(f"Trying to create element specific properties for {self.adjoint_model_part.FullName()} which already has element specific properties.")
+
+                # now assign the properties of primal to the adjoint model parts
+                KratosDT.ControlUtils.AssignEquivalentProperties(self.primal_model_part.Elements, self.adjoint_model_part.Elements)
+                KratosOA.ModelPartUtils.LogModelPartStatus(self.adjoint_model_part, "element_specific_properties_created")
 
     def Check(self) -> None:
         pass
@@ -66,7 +93,7 @@ class MaterialPropertiesControl(Control):
         return [self.controlled_physical_variable]
 
     def GetEmptyField(self) -> ContainerExpressionTypes:
-        field = Kratos.Expression.ElementExpression(self.model_part)
+        field = Kratos.Expression.ElementExpression(self.adjoint_model_part)
         Kratos.Expression.LiteralExpressionIO.SetData(field, 0.0)
         return field
 
@@ -84,14 +111,14 @@ class MaterialPropertiesControl(Control):
 
         physical_gradient = physical_gradient_variable_container_expression_map[self.controlled_physical_variable]
         if not IsSameContainerExpression(physical_gradient, self.GetEmptyField()):
-            raise RuntimeError(f"Gradients for the required element container not found for control \"{self.GetName()}\". [ required model part name: {self.model_part.FullName()}, given model part name: {physical_gradient.GetModelPart().FullName()} ]")
+            raise RuntimeError(f"Gradients for the required element container not found for control \"{self.GetName()}\". [ required model part name: {self.adjoint_model_part.FullName()}, given model part name: {physical_gradient.GetModelPart().FullName()} ]")
 
         # TODO: Implement filtering mechanisms here
         return physical_gradient_variable_container_expression_map[self.controlled_physical_variable].Clone()
 
     def Update(self, control_field: ContainerExpressionTypes) -> bool:
         if not IsSameContainerExpression(control_field, self.GetEmptyField()):
-            raise RuntimeError(f"Updates for the required element container not found for control \"{self.GetName()}\". [ required model part name: {self.model_part.FullName()}, given model part name: {control_field.GetModelPart().FullName()} ]")
+            raise RuntimeError(f"Updates for the required element container not found for control \"{self.GetName()}\". [ required model part name: {self.adjoint_model_part.FullName()}, given model part name: {control_field.GetModelPart().FullName()} ]")
 
         # TODO: Implement inverse filtering mechanisms here
         # since no filtering is implemented yet, we are checking the unfiltered updates with the filtered updates. This needs to be changed once the
@@ -107,4 +134,4 @@ class MaterialPropertiesControl(Control):
         return False
 
     def __str__(self) -> str:
-        return f"Control [type = {self.__class__.__name__}, name = {self.GetName()}, model part name = {self.model_part.FullName()}, control variable = {self.controlled_physical_variable.Name()}"
+        return f"Control [type = {self.__class__.__name__}, name = {self.GetName()}, model part name = {self.adjoint_model_part.FullName()}, control variable = {self.controlled_physical_variable.Name()}"
