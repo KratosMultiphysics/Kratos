@@ -442,24 +442,24 @@ std::vector<std::vector<int>> SpatialSearchResultContainer<TObjectType>::GetResu
 
     // Define the coordinates vector
     const std::size_t number_of_gp = mGlobalResults.size();
-    std::vector<std::vector<std::size_t>> indices(number_of_gp);
+    std::vector<std::vector<int>> indices(number_of_gp);
 
     // Call Apply to get the proxy
-    auto proxy = this->Apply([](GlobalPointerResultType& rGP) -> std::vector<std::size_t> {
+    auto proxy = this->Apply([](GlobalPointerResultType& rGP) -> std::vector<int> {
         auto p_object = rGP->Get();
         if constexpr (std::is_same<TObjectType, GeometricalObject>::value) {
             auto& r_geometry = p_object->GetGeometry();
-            std::vector<std::size_t> gp_indices(r_geometry.size());
+            std::vector<int> gp_indices(r_geometry.size());
             for (unsigned int i = 0; i < r_geometry.size(); ++i) {
                 gp_indices[i] = r_geometry[i].FastGetSolutionStepValue(PARTITION_INDEX);
             }
             return gp_indices;
         } else if constexpr (std::is_same<TObjectType, Node>::value) {
-            std::vector<std::size_t> gp_indices(1, p_object->FastGetSolutionStepValue(PARTITION_INDEX));
+            std::vector<int> gp_indices(1, p_object->FastGetSolutionStepValue(PARTITION_INDEX));
             return gp_indices;
         } else {
             KRATOS_ERROR << "Not implemented yet" << std::endl;
-            std::vector<std::size_t> gp_indices;
+            std::vector<int> gp_indices;
             return gp_indices;
         }
     });
