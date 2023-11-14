@@ -28,8 +28,6 @@ void TestThermalElement(ModelPart& rModelPart)
     }
 
     const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
-    // p_element->Check(r_current_process_info);
-    // Check requires a solution?
 
     Element::DofsVectorType ElementalDofList;
     p_element->GetDofList(ElementalDofList, r_current_process_info);
@@ -41,9 +39,8 @@ void TestThermalElement(ModelPart& rModelPart)
     Element::EquationIdVectorType EquationIdVector;
     p_element->EquationIdVector(EquationIdVector, r_current_process_info);
 
-    // Check the EquationIdVector values
     for (unsigned int i = 0; i < EquationIdVector.size(); i++) {
-        KRATOS_EXPECT_TRUE(EquationIdVector[i] == i)
+        KRATOS_EXPECT_EQ(EquationIdVector[i], i);
     }
 }
 
