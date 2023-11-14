@@ -182,7 +182,7 @@ private:
     {
         GeoThermalDispersionLaw law{TDim};
         const auto constitutive_matrix =
-                law.CalculateThermalDispersionMatrix(GetProperties(), rCurrentProcessInfo, GetGeometry());
+                law.CalculateThermalDispersionMatrix(GetProperties(), rCurrentProcessInfo);
 
         auto result = BoundedMatrix<double, TNumNodes, TNumNodes>{ZeroMatrix{TNumNodes, TNumNodes}};
         for (unsigned int GPoint = 0; GPoint < GetGeometry().IntegrationPointsNumber(GetIntegrationMethod()); ++GPoint) {
