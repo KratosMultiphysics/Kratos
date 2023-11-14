@@ -435,7 +435,7 @@ std::vector<std::vector<std::size_t>> SpatialSearchResultContainer<TObjectType>:
 /***********************************************************************************/
 
 template <class TObjectType>
-std::vector<std::vector<std::size_t>> SpatialSearchResultContainer<TObjectType>::GetResultPartitionIndices()
+std::vector<std::vector<int>> SpatialSearchResultContainer<TObjectType>::GetResultPartitionIndices()
 {
     // Check if the communicator has been created
     KRATOS_ERROR_IF(mpGlobalPointerCommunicator == nullptr) << "The communicator has not been created." << std::endl;
