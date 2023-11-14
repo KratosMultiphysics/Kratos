@@ -125,13 +125,13 @@ class MaterialPropertiesControl(Control):
         # filtering mechanisms are implemented.
 
         # get the current unfiltered control field
-        unfiltered_control_field = self.GetControlField()
+        # unfiltered_control_field = self.GetControlField()
 
-        if KratosOA.ExpressionUtils.NormL2(unfiltered_control_field - control_field) > 1e-9:
-            KratosOA.PropertiesVariableExpressionIO.Write(control_field, self.controlled_physical_variable)
-            return True
+        # if KratosOA.ExpressionUtils.NormL2(unfiltered_control_field - control_field) > 1e-9:
+        KratosOA.PropertiesVariableExpressionIO.Write(control_field, self.controlled_physical_variable)
+        return True
 
-        return False
+        # return False
 
     def __str__(self) -> str:
         return f"Control [type = {self.__class__.__name__}, name = {self.GetName()}, model part name = {self.adjoint_model_part.FullName()}, control variable = {self.controlled_physical_variable.Name()}"
