@@ -51,7 +51,7 @@ void GenerateTransientThermalElement2D3N(ModelPart& rModelPart)
     rModelPart.CreateNewNode(2, 1.0, 0.0, 0.0);
     rModelPart.CreateNewNode(3, 1.0, 1.0, 0.0);
     std::vector<ModelPart::IndexType> node_ids{1, 2, 3};
-    rModelPart.CreateNewElement("TransientThermalElement2D3N", 1, node_ids,
+    rModelPart.CreateNewElement("GeoTransientThermalElement2D3N", 1, node_ids,
                                 rModelPart.CreateNewProperties(0));
 }
 
@@ -75,7 +75,7 @@ void GenerateTransientThermalElement2D4N(ModelPart& rModelPart)
     rModelPart.CreateNewNode(3, 1.0, 1.0, 0.0);
     rModelPart.CreateNewNode(4, 0.6666, 0.3333, 0.0);
     std::vector<ModelPart::IndexType> node_ids{1, 2, 3, 4};
-    rModelPart.CreateNewElement("TransientThermalElement2D4N", 1, node_ids,
+    rModelPart.CreateNewElement("GeoTransientThermalElement2D4N", 1, node_ids,
                                 rModelPart.CreateNewProperties(0));
 }
 
@@ -102,7 +102,7 @@ void GenerateTransientThermalElement2D6N(ModelPart& rModelPart)
     rModelPart.CreateNewNode(6, 0.5, 0.5, 0.0);
 
     std::vector<ModelPart::IndexType> node_ids{1, 2, 3, 4, 5, 6};
-    rModelPart.CreateNewElement("TransientThermalElement2D6N", 1, node_ids,
+    rModelPart.CreateNewElement("GeoTransientThermalElement2D6N", 1, node_ids,
                                 rModelPart.CreateNewProperties(0));
 }
 
@@ -131,7 +131,7 @@ void GenerateTransientThermalElement2D8N(ModelPart& rModelPart)
     rModelPart.CreateNewNode(8, 0.5, 0.5, 0.0);
 
     std::vector<ModelPart::IndexType> node_ids{1, 2, 3, 4, 5, 6, 7, 8};
-    rModelPart.CreateNewElement("TransientThermalElement2D8N", 1, node_ids,
+    rModelPart.CreateNewElement("GeoTransientThermalElement2D8N", 1, node_ids,
                                 rModelPart.CreateNewProperties(0));
 }
 
@@ -161,7 +161,7 @@ void GenerateTransientThermalElement2D9N(ModelPart& rModelPart)
     rModelPart.CreateNewNode(9, 0.5, 0.5, 0.0);
 
     std::vector<ModelPart::IndexType> node_ids{1, 2, 3, 4, 5, 6, 7, 8, 9};
-    rModelPart.CreateNewElement("TransientThermalElement2D9N", 1, node_ids,
+    rModelPart.CreateNewElement("GeoTransientThermalElement2D9N", 1, node_ids,
                                 rModelPart.CreateNewProperties(0));
 }
 
@@ -192,7 +192,7 @@ void GenerateTransientThermalElement2D10N(ModelPart& rModelPart)
     rModelPart.CreateNewNode(10, 0.5, 0.5, 0.0);
 
     std::vector<ModelPart::IndexType> node_ids{1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
-    rModelPart.CreateNewElement("TransientThermalElement2D10N", 1, node_ids,
+    rModelPart.CreateNewElement("GeoTransientThermalElement2D10N", 1, node_ids,
                                 rModelPart.CreateNewProperties(0));
 }
 
@@ -229,7 +229,7 @@ void GenerateTransientThermalElement2D15N(ModelPart& rModelPart)
 
     std::vector<ModelPart::IndexType> node_ids{1, 2, 3, 4, 5, 6, 7, 8,
                                                9, 10, 11, 12, 13, 14, 15};
-    rModelPart.CreateNewElement("TransientThermalElement2D15N", 1, node_ids,
+    rModelPart.CreateNewElement("GeoTransientThermalElement2D15N", 1, node_ids,
                                 rModelPart.CreateNewProperties(0));
 }
 
@@ -254,7 +254,7 @@ void GenerateTransientThermalElement3D4N(ModelPart& rModelPart)
     rModelPart.CreateNewNode(4, 0.5, 0.0, 0.0);
 
     std::vector<ModelPart::IndexType> node_ids{1, 2, 3, 4};
-    rModelPart.CreateNewElement("TransientThermalElement3D4N", 1, node_ids,
+    rModelPart.CreateNewElement("GeoTransientThermalElement3D4N", 1, node_ids,
                                 rModelPart.CreateNewProperties(0));
 }
 
@@ -283,7 +283,7 @@ void GenerateTransientThermalElement3D8N(ModelPart& rModelPart)
     rModelPart.CreateNewNode(8, 0.5, 0.5, 0.0);
 
     std::vector<ModelPart::IndexType> node_ids{1, 2, 3, 4, 5, 6, 7, 8};
-    rModelPart.CreateNewElement("TransientThermalElement3D8N", 1, node_ids,
+    rModelPart.CreateNewElement("GeoTransientThermalElement3D8N", 1, node_ids,
                                 rModelPart.CreateNewProperties(0));
 }
 
@@ -314,7 +314,7 @@ void GenerateTransientThermalElement3D10N(ModelPart& rModelPart)
     rModelPart.CreateNewNode(10, 0.5, 0.5, 0.0);
 
     std::vector<ModelPart::IndexType> node_ids{1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
-    rModelPart.CreateNewElement("TransientThermalElement3D10N", 1, node_ids,
+    rModelPart.CreateNewElement("GeoTransientThermalElement3D10N", 1, node_ids,
                                 rModelPart.CreateNewProperties(0));
 }
 
@@ -356,7 +356,7 @@ void GenerateTransientThermalElement3D20N(ModelPart& rModelPart)
 
     std::vector<ModelPart::IndexType> node_ids{
         1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20};
-    rModelPart.CreateNewElement("TransientThermalElement3D20N", 1, node_ids,
+    rModelPart.CreateNewElement("GeoTransientThermalElement3D20N", 1, node_ids,
                                 rModelPart.CreateNewProperties(0));
 }
 
@@ -406,7 +406,7 @@ void GenerateTransientThermalElement3D27N(ModelPart& rModelPart)
     std::vector<ModelPart::IndexType> node_ids{
         1,  2,  3,  4,  5,  6,  7,  8,  9,  10, 11, 12, 13, 14,
         15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27};
-    rModelPart.CreateNewElement("TransientThermalElement3D27N", 1, node_ids,
+    rModelPart.CreateNewElement("GeoTransientThermalElement3D27N", 1, node_ids,
                                 rModelPart.CreateNewProperties(0));
 }
 
