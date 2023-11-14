@@ -10,25 +10,25 @@
 //  Main authors:    Richard Faasse
 //
 
-#include "custom_strategies/schemes/backward_euler_T_scheme.hpp"
+#include "custom_strategies/schemes/backward_euler_quasistatic_Pw_scheme.hpp"
 #include "spaces/ublas_space.h"
 #include "testing/testing.h"
-
-namespace Kratos::Testing {
 
 using namespace Kratos;
 using SparseSpaceType = UblasSpace<double, CompressedMatrix, Vector>;
 using LocalSpaceType = UblasSpace<double, Matrix, Vector>;
 
-KRATOS_TEST_CASE_IN_SUITE(BackwardEulerScheme_UpdatesVariablesDerivatives_WhenPredictIsCalled,
+namespace Kratos::Testing {
+
+KRATOS_TEST_CASE_IN_SUITE(BackwardEulerPwScheme_UpdatesVariablesDerivatives_WhenPredictIsCalled,
                           KratosGeoMechanicsFastSuite)
 {
-    BackwardEulerTScheme<SparseSpaceType, LocalSpaceType> scheme;
+    BackwardEulerQuasistaticPwScheme<SparseSpaceType, LocalSpaceType> scheme;
     Model model;
     auto& model_part = model.CreateModelPart("dummy", 2);
 
-    model_part.AddNodalSolutionStepVariable(TEMPERATURE);
-    model_part.AddNodalSolutionStepVariable(DT_TEMPERATURE);
+    model_part.AddNodalSolutionStepVariable(WATER_PRESSURE);
+    model_part.AddNodalSolutionStepVariable(DT_WATER_PRESSURE);
 
     constexpr double current_temperature = 1.0;
     constexpr double previous_temperature = 0.0;
@@ -36,10 +36,10 @@ KRATOS_TEST_CASE_IN_SUITE(BackwardEulerScheme_UpdatesVariablesDerivatives_WhenPr
 
     model_part.GetProcessInfo()[DELTA_TIME] = delta_time;
     auto p_node = model_part.CreateNewNode(0, 0.0, 0.0, 0.0);
-    p_node->FastGetSolutionStepValue(TEMPERATURE) = current_temperature;
-    p_node->FastGetSolutionStepValue(TEMPERATURE, 1) = previous_temperature;
+    p_node->FastGetSolutionStepValue(WATER_PRESSURE) = current_temperature;
+    p_node->FastGetSolutionStepValue(WATER_PRESSURE, 1) = previous_temperature;
 
-    KRATOS_EXPECT_DOUBLE_EQ(p_node->FastGetSolutionStepValue(DT_TEMPERATURE), 0.0);
+    KRATOS_EXPECT_DOUBLE_EQ(p_node->FastGetSolutionStepValue(DT_WATER_PRESSURE), 0.0);
 
     scheme.Initialize(model_part);
     ModelPart::DofsArrayType dof_set;
@@ -49,18 +49,18 @@ KRATOS_TEST_CASE_IN_SUITE(BackwardEulerScheme_UpdatesVariablesDerivatives_WhenPr
     scheme.Predict(model_part, dof_set, A, Dx, b);
 
     constexpr double expected_dt_temperature = 0.25;
-    KRATOS_EXPECT_DOUBLE_EQ(p_node->FastGetSolutionStepValue(DT_TEMPERATURE),
+    KRATOS_EXPECT_DOUBLE_EQ(p_node->FastGetSolutionStepValue(DT_WATER_PRESSURE),
                             expected_dt_temperature);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(InitializeBackwardEulerScheme_SetsTimeFactors, KratosGeoMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(InitializeBackwardEulerPwScheme_SetsTimeFactors, KratosGeoMechanicsFastSuite)
 {
-    BackwardEulerTScheme<SparseSpaceType, LocalSpaceType> scheme;
+    BackwardEulerQuasistaticPwScheme<SparseSpaceType, LocalSpaceType> scheme;
     Model model;
     auto& model_part = model.CreateModelPart("dummy", 2);
 
-    model_part.AddNodalSolutionStepVariable(TEMPERATURE);
-    model_part.AddNodalSolutionStepVariable(DT_TEMPERATURE);
+    model_part.AddNodalSolutionStepVariable(WATER_PRESSURE);
+    model_part.AddNodalSolutionStepVariable(DT_WATER_PRESSURE);
 
     constexpr double delta_time = 3.0;
     model_part.GetProcessInfo()[DELTA_TIME] = delta_time;
@@ -68,22 +68,22 @@ KRATOS_TEST_CASE_IN_SUITE(InitializeBackwardEulerScheme_SetsTimeFactors, KratosG
     scheme.Initialize(model_part);
 
     KRATOS_EXPECT_TRUE(scheme.SchemeIsInitialized())
-    KRATOS_EXPECT_DOUBLE_EQ(model_part.GetProcessInfo()[DT_TEMPERATURE_COEFFICIENT],
+    KRATOS_EXPECT_DOUBLE_EQ(model_part.GetProcessInfo()[DT_PRESSURE_COEFFICIENT],
                             1.0 / (delta_time));
 }
 
-KRATOS_TEST_CASE_IN_SUITE(ForInvalidBufferSize_CheckBackwardEulerQuasistaticTScheme_Throws,
+KRATOS_TEST_CASE_IN_SUITE(ForInvalidBufferSize_CheckBackwardEulerPwScheme_Throws,
                           KratosGeoMechanicsFastSuite)
 {
-    BackwardEulerTScheme<SparseSpaceType, LocalSpaceType> scheme;
+    NewmarkQuasistaticPwScheme<SparseSpaceType, LocalSpaceType> scheme(0.75);
 
     Model model;
     constexpr int invalid_buffer_size = 1;
     auto& model_part = model.CreateModelPart("dummy", invalid_buffer_size);
-    model_part.AddNodalSolutionStepVariable(TEMPERATURE);
-    model_part.AddNodalSolutionStepVariable(DT_TEMPERATURE);
+    model_part.AddNodalSolutionStepVariable(WATER_PRESSURE);
+    model_part.AddNodalSolutionStepVariable(DT_WATER_PRESSURE);
     auto p_node = model_part.CreateNewNode(0, 0.0, 0.0, 0.0);
-    p_node->AddDof(TEMPERATURE);
+    p_node->AddDof(WATER_PRESSURE);
 
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         scheme.Check(model_part),
@@ -91,50 +91,50 @@ KRATOS_TEST_CASE_IN_SUITE(ForInvalidBufferSize_CheckBackwardEulerQuasistaticTSch
         "2. Current size is ")
 }
 
-KRATOS_TEST_CASE_IN_SUITE(ForMissingNodalDof_CheckBackwardEulerQuasistaticTScheme_Throws,
+KRATOS_TEST_CASE_IN_SUITE(ForMissingNodalDof_CheckBackwardEulerPwScheme_Throws,
                           KratosGeoMechanicsFastSuite)
 {
-    BackwardEulerTScheme<SparseSpaceType, LocalSpaceType> scheme;
+    NewmarkQuasistaticPwScheme<SparseSpaceType, LocalSpaceType> scheme(0.75);
 
     Model model;
     auto& model_part = model.CreateModelPart("dummy", 2);
-    model_part.AddNodalSolutionStepVariable(TEMPERATURE);
-    model_part.AddNodalSolutionStepVariable(DT_TEMPERATURE);
+    model_part.AddNodalSolutionStepVariable(WATER_PRESSURE);
+    model_part.AddNodalSolutionStepVariable(DT_WATER_PRESSURE);
     auto p_node = model_part.CreateNewNode(0, 0.0, 0.0, 0.0);
 
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(scheme.Check(model_part),
-                                      "missing TEMPERATURE dof on node ")
+                                      "missing WATER_PRESSURE dof on node ")
 }
 
-KRATOS_TEST_CASE_IN_SUITE(ForMissingDtTemperatureSolutionStepVariable_CheckBackwardEulerQuasistaticTScheme_Throws,
+KRATOS_TEST_CASE_IN_SUITE(ForMissingDtWaterPressureSolutionStepVariable_CheckBackwardEulerPwScheme_Throws,
                           KratosGeoMechanicsFastSuite)
 {
-    BackwardEulerTScheme<SparseSpaceType, LocalSpaceType> scheme;
+    NewmarkQuasistaticPwScheme<SparseSpaceType, LocalSpaceType> scheme(0.75);
 
     Model model;
     auto& model_part = model.CreateModelPart("dummy", 2);
-    model_part.AddNodalSolutionStepVariable(TEMPERATURE);
+    model_part.AddNodalSolutionStepVariable(WATER_PRESSURE);
     auto p_node = model_part.CreateNewNode(0, 0.0, 0.0, 0.0);
-    p_node->AddDof(TEMPERATURE);
+    p_node->AddDof(WATER_PRESSURE);
 
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         scheme.Check(model_part),
-        "DT_TEMPERATURE variable is not allocated for node 0")
+        "DT_WATER_PRESSURE variable is not allocated for node 0")
 }
 
-KRATOS_TEST_CASE_IN_SUITE(ForMissingTemperatureSolutionStepVariable_CheckBackwardEulerQuasistaticTScheme_Throws,
+KRATOS_TEST_CASE_IN_SUITE(ForMissingWaterPressureSolutionStepVariable_CheckBackwardEulerPwScheme_Throws,
                           KratosGeoMechanicsFastSuite)
 {
-    BackwardEulerTScheme<SparseSpaceType, LocalSpaceType> scheme;
+    NewmarkQuasistaticPwScheme<SparseSpaceType, LocalSpaceType> scheme(0.75);
 
     Model model;
     auto& model_part = model.CreateModelPart("dummy", 2);
-    model_part.AddNodalSolutionStepVariable(DT_TEMPERATURE);
+    model_part.AddNodalSolutionStepVariable(DT_WATER_PRESSURE);
     auto p_node = model_part.CreateNewNode(0, 0.0, 0.0, 0.0);
 
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         scheme.Check(model_part),
-        "TEMPERATURE variable is not allocated for node 0")
+        "WATER_PRESSURE variable is not allocated for node 0")
 }
 
 } // namespace Kratos::Testing

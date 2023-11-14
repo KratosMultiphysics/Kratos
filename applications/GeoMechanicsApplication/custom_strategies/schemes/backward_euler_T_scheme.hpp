@@ -62,5 +62,14 @@ protected:
         KRATOS_CATCH("")
     }
 
+    void CheckAllocatedVariables(const ModelPart& rModelPart) const override
+    {
+        for (const auto& r_node : rModelPart.Nodes()) {
+            this->CheckSolutionStepsData(r_node, TEMPERATURE);
+            this->CheckSolutionStepsData(r_node, DT_TEMPERATURE);
+            this->CheckDof(r_node, TEMPERATURE);
+        }
+    }
+
 }; // Class BackwardEulerTScheme
 } // namespace Kratos
