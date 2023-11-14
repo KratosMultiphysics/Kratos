@@ -112,7 +112,7 @@ public:
         GetGeometry().ShapeFunctionsIntegrationPointsGradients(DN_DXContainer, detJContainer, GetIntegrationMethod());
         const auto integration_coefficients = CalculateIntegrationCoefficients(detJContainer);
         const auto conductivity_matrix =
-                CalculateConductivityMatrix(DN_DXContainer, integration_coefficients, rCurrentProcessInfo);
+            CalculateConductivityMatrix(DN_DXContainer, integration_coefficients, rCurrentProcessInfo);
         const auto capacity_matrix = CalculateCapacityMatrix(integration_coefficients);
 
         AddContributionsToLhsMatrix(rLeftHandSideMatrix, conductivity_matrix, capacity_matrix,

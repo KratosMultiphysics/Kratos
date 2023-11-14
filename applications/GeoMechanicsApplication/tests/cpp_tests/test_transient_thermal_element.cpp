@@ -43,7 +43,7 @@ void TestThermalElement(ModelPart& rModelPart)
 
     // Check the EquationIdVector values
     for (unsigned int i = 0; i < EquationIdVector.size(); i++) {
-        KRATOS_EXPECT_TRUE(EquationIdVector[i] == i);
+        KRATOS_EXPECT_TRUE(EquationIdVector[i] == i)
     }
 }
 
