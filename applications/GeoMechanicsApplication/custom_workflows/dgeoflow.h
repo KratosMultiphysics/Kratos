@@ -47,12 +47,7 @@
 namespace Kratos
 {
     struct CriticalHeadInfo;
-//    {
-//        double minCriticalHead;
-//        double maxCriticalHead;
-//        double stepCriticalHead;
-//    };
-//
+
     class KRATOS_API(GEO_MECHANICS_APPLICATION) KratosExecute
     {
     public:
@@ -102,7 +97,7 @@ namespace Kratos
         typedef GeoMechanicsNewtonRaphsonErosionProcessStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType>
             GeoMechanicsNewtonRaphsonErosionProcessStrategyType;
 
-        int CriticalHeadSearch(ModelPart& model_part,
+        int FindCriticalHead(ModelPart& model_part,
                                const std::vector<std::shared_ptr<Process>>& processes,
                                const std::function<void(double)>& rReportProgress,
                                const std::function<void(const char*)>& rReportTextualProgress,
@@ -114,7 +109,9 @@ namespace Kratos
                                const shared_ptr<Process>& RiverBoundary,
                                const GeoMechanicsNewtonRaphsonErosionProcessStrategyType::Pointer& p_solving_strategy);
 
-        void CheckCancellationAndLog(const std::function<void(const char*)>& rLogCallback,
+        void HandleCriticalHeadFound(const CriticalHeadInfo& criticalHeadInfo);
+
+        void HandleCancellationAndReset(const std::function<void(const char*)>& rLogCallback,
                                     LoggerOutput::Pointer p_output);
 
         // Dof arrays
@@ -137,6 +134,8 @@ namespace Kratos
         std::string mCriticalHeadBoundaryModelPartName;
         bool pipingSuccess = false;
         double criticalHead;
+        double currentHead;
+        bool exitLoop = false;
         
         void ResetModelParts();
 
