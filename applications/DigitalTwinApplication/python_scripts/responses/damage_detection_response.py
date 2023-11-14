@@ -191,7 +191,6 @@ class DamageDetectionResponse(ResponseFunction):
                     computed_value = float(computed_row[computed_value_index])
                     sensor_view = sensor_view_type(sensor, physical_variable.Name() + "_SENSITIVITY")
 
-                    sensor.SetSensorValue(computed_value)
                     sensor.SetValue(KratosDT.SENSOR_MEASURED_VALUE, measured_value)
                     sensor.SetValue(KratosDT.SENSOR_ERROR, abs(measured_value - computed_value))
                     sensor.SetValue(KratosDT.SENSOR_SENSITIVITY_NORM_INF, KratosOA.ExpressionUtils.NormInf(sensor_view.GetContainerExpression()))

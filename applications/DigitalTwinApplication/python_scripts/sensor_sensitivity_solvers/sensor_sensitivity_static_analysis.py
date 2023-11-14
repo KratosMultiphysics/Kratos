@@ -1,16 +1,12 @@
 import typing
-from pathlib import Path
 
 import KratosMultiphysics as Kratos
 import KratosMultiphysics.DigitalTwinApplication as KratosDT
-import KratosMultiphysics.HDF5Application as KratosHDF5
 
 from KratosMultiphysics.analysis_stage import AnalysisStage
 from KratosMultiphysics.DigitalTwinApplication.sensor_sensitivity_solvers.sensor_sensitivity_adjoint_static_solver import SensorSensitivityAdjointStaticSolver
 from KratosMultiphysics.DigitalTwinApplication.utilities.sensor_utils import GetSensors
 from KratosMultiphysics.DigitalTwinApplication.utilities.expression_utils import GetContainerExpression
-from KratosMultiphysics.DigitalTwinApplication.utilities.expression_utils import GetContainerExpressionType
-from KratosMultiphysics.HDF5Application.core.file_io import CreateHDF5File
 
 class SensorSensitivityStaticAnalysis(AnalysisStage):
     def __init__(self, model: Kratos.Model, project_parameters: Kratos.Parameters):
@@ -40,7 +36,7 @@ class SensorSensitivityStaticAnalysis(AnalysisStage):
         return SensorSensitivityAdjointStaticSolver(self.model, self.project_parameters["solver_settings"])
 
     def _GetSimulationName(self) -> str:
-        return "::[SensorSpecificationAnalysis]:: "
+        return "::[SensorAnalysis]:: "
 
     def RunSolutionLoop(self):
         # clear sensor data containers
@@ -51,96 +47,25 @@ class SensorSensitivityStaticAnalysis(AnalysisStage):
 
         computing_model_part: Kratos.ModelPart = self._GetSolver().GetComputingModelPart()
 
-        output_path = Path("sensor_sensitivities.h5")
-        hdf5_parameters = Kratos.Parameters("""
-                {
-                    "file_name": "sensor_sensitivities.h5",
-                    "file_access_mode": "truncate"
-                }""")
-        if output_path.is_file:
-            hdf5_parameters["file_access_mode"].SetString("read_write")
-
-        h5_file = CreateHDF5File(computing_model_part, hdf5_parameters)
         for sensor in self.listof_sensors:
             computing_model_part.ProcessInfo[Kratos.STEP] += 1
             computing_model_part.ProcessInfo[KratosDT.SENSOR_NAME] = sensor.GetName()
             computing_model_part.ProcessInfo[KratosDT.SENSOR_LOCATION] = sensor.GetLocation()
 
-            h5_path = f"/SensitivityData/{sensor.__class__.__name__}/{sensor.GetName()}"
-            sensitivity_variables: 'dict[Kratos.Globals.DataLocation, list[typing.Union[Kratos.DoubleVariable, Kratos.Array1DVariable3]]]' = self._GetSolver().GetSensitivtyVariables()
-            if not h5_file.HasPath(h5_path) or self.force_calculate_sensitivities:
-                if not h5_file.HasPath(h5_path):
-                    # recursively creat group
-                    h5_path_name_data = h5_path.split("/")[1:]
-                    for i, _ in enumerate(h5_path_name_data):
-                        current_long_path = "/" + "/".join(h5_path_name_data[0:i+1])
-                        if not h5_file.HasPath(current_long_path):
-                            h5_file.CreateGroup(current_long_path)
+            self._GetSolver().SetSensor(sensor)
+            self.InitializeSolutionStep()
+            sensor.InitializeSolutionStep()
 
-                self._GetSolver().SetSensor(sensor)
-                self.InitializeSolutionStep()
-                sensor.InitializeSolutionStep()
+            self._GetSolver().SolveSolutionStep()
 
-                self._GetSolver().SolveSolutionStep()
+            # calling calculate value to set the sensor value
+            sensor.SetSensorValue(sensor.CalculateValue(computing_model_part))
 
-                # calling calculate value to set the sensor value
-                sensor.SetSensorValue(sensor.CalculateValue(computing_model_part))
+            sensor.FinalizeSolutionStep()
+            self.FinalizeSolutionStep()
+            self.UpdateSensorSensitivities(sensor)
 
-                sensor.FinalizeSolutionStep()
-                self.FinalizeSolutionStep()
-                self.UpdateSensorSensitivities(sensor)
-
-                # now save everything for reloading
-                attribs = Kratos.Parameters("""{
-                    "value": 0.0
-                }""")
-                attribs["value"].SetDouble(sensor.GetSensorValue())
-                h5_file.WriteAttribute(h5_path, attribs)
-
-                for data_location, variables in sensitivity_variables.items():
-                    h5_data_params = Kratos.Parameters("""{
-                        "prefix": ""
-                    }""")
-                    h5_data_params["prefix"].SetString(f"{h5_path}/{data_location.name}/")
-                    h5_file_data = KratosHDF5.ExpressionIO(h5_data_params, h5_file)
-                    if data_location in [Kratos.Globals.DataLocation.NodeHistorical, Kratos.Globals.DataLocation.NodeNonHistorical]:
-                        for variable in variables:
-                            h5_file_data.Write(f"{variable.Name()}", sensor.GetNodalExpression(f"{variable.Name()}").Clone())
-                    elif data_location == Kratos.Globals.DataLocation.Condition:
-                        for variable in variables:
-                            h5_file_data.Write(f"{variable.Name()}", sensor.GetConditionExpression(f"{variable.Name()}").Clone())
-                    elif data_location == Kratos.Globals.DataLocation.Element:
-                        for variable in variables:
-                            h5_file_data.Write(f"{variable.Name()}", sensor.GetElementExpression(f"{variable.Name()}").Clone())
-                    else:
-                        raise RuntimeError(f"Unsupported data location type = {data_location}.")
-
-                self.OutputSolutionStep()
-            else:
-                attribs = h5_file.ReadAttribute(h5_path)
-                sensor.SetSensorValue(attribs["value"].GetDouble())
-                sensitivity_model_part: Kratos.ModelPart = self._GetSolver().GetSensitivityModelPart()
-                for data_location, variables in sensitivity_variables.items():
-                    h5_data_params = Kratos.Parameters("""{
-                        "prefix": ""
-                    }""")
-                    h5_data_params["prefix"].SetString(f"{h5_path}/{data_location.name}/")
-                    h5_file_data = KratosHDF5.ExpressionIO(h5_data_params, h5_file)
-
-                    exp_type = GetContainerExpressionType(data_location)
-                    for variable in variables:
-                        expression = exp_type(sensitivity_model_part)
-                        h5_file_data.Read(f"{variable.Name()}", expression)
-                        if isinstance(expression, Kratos.Expression.NodalExpression):
-                            sensor.AddNodalExpression(variable.Name(), expression)
-                        elif isinstance(expression, Kratos.Expression.ConditionExpression):
-                            sensor.AddConditionExpression(variable.Name(), expression)
-                        elif isinstance(expression, Kratos.Expression.ElementExpression):
-                            sensor.AddElementExpression(variable.Name(), expression)
-                        else:
-                            raise RuntimeError("Unsupported expression type.")
-
-        h5_file.Close()
+            self.OutputSolutionStep()
 
     def GetListOfSensors(self) -> 'list[KratosDT.Sensors.Sensor]':
         return self.listof_sensors
