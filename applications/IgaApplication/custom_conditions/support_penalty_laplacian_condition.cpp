@@ -52,14 +52,18 @@ namespace Kratos
         Matrix DN_DPSI(number_of_nodes,dim);
         Matrix InvJ0(dim,dim);
 
-        // Compute the normal
+        // Compute the normals
+        array_1d<double, 3> tangent_parameter_space;
         array_1d<double, 3> normal_physical_space;
-        r_geometry.Calculate(LOCAL_TANGENT, normal_physical_space); // The output is actually the formal to the surrogate boundary
-        double magnitude = std::sqrt(normal_physical_space[0] * normal_physical_space[0] + normal_physical_space[1] * normal_physical_space[1]);
-        normal_physical_space[0] = -normal_physical_space[0] / magnitude;
-        normal_physical_space[1] = +normal_physical_space[1] / magnitude;  // By observations on the result of .Calculate(LOCAL_TANGENT
-        // KRATOS_WATCH(normal_physical_space)
 
+        r_geometry.Calculate(LOCAL_TANGENT, tangent_parameter_space); // Gives the result in the parameter space !!
+        double magnitude = std::sqrt(tangent_parameter_space[0] * tangent_parameter_space[0] + tangent_parameter_space[1] * tangent_parameter_space[1]);
+        
+        // Only in this particular case!!! (NEED TO CHANGE!)
+        normal_physical_space[0] = - tangent_parameter_space[0] / magnitude;
+        normal_physical_space[1] = + tangent_parameter_space[1] / magnitude;  // By observations on the result of .Calculate(LOCAL_TANGENT
+        
+        // KRATOS_WATCH(normal_physical_space)
 
         const GeometryType::ShapeFunctionsGradientsType& DN_De = r_geometry.ShapeFunctionsLocalGradients(this->GetIntegrationMethod());
         r_geometry.Jacobian(J0,this->GetIntegrationMethod());
