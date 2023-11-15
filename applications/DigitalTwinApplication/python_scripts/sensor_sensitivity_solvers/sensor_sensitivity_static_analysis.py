@@ -7,6 +7,7 @@ from KratosMultiphysics.analysis_stage import AnalysisStage
 from KratosMultiphysics.DigitalTwinApplication.sensor_sensitivity_solvers.sensor_sensitivity_adjoint_static_solver import SensorSensitivityAdjointStaticSolver
 from KratosMultiphysics.DigitalTwinApplication.utilities.sensor_utils import GetSensors
 from KratosMultiphysics.DigitalTwinApplication.utilities.expression_utils import GetContainerExpression
+from KratosMultiphysics.DigitalTwinApplication.utilities.expression_utils import ExpressionDataLocation
 
 class SensorSensitivityStaticAnalysis(AnalysisStage):
     def __init__(self, model: Kratos.Model, project_parameters: Kratos.Parameters):
@@ -76,7 +77,7 @@ class SensorSensitivityStaticAnalysis(AnalysisStage):
 
     def UpdateSensorSensitivities(self, sensor: KratosDT.Sensors.Sensor) -> None:
         sensitivity_model_part: Kratos.ModelPart = self._GetSolver().GetSensitivityModelPart()
-        sensitivity_variables: 'dict[Kratos.Globals.DataLocation, list[typing.Union[Kratos.DoubleVariable, Kratos.Array1DVariable3]]]' = self._GetSolver().GetSensitivtyVariables()
+        sensitivity_variables: 'dict[ExpressionDataLocation, list[typing.Union[Kratos.DoubleVariable, Kratos.Array1DVariable3]]]' = self._GetSolver().GetSensitivtyVariables()
         for data_location, variables in sensitivity_variables.items():
             for variable in variables:
                 # first read the variable

@@ -4,6 +4,7 @@ import KratosMultiphysics as Kratos
 import KratosMultiphysics.DigitalTwinApplication as KratosDT
 
 from KratosMultiphysics.StructuralMechanicsApplication.structural_mechanics_adjoint_static_solver import StructuralMechanicsAdjointStaticSolver
+from KratosMultiphysics.DigitalTwinApplication.utilities.expression_utils import ExpressionDataLocation
 
 class SensorSensitivityAdjointStaticSolver(StructuralMechanicsAdjointStaticSolver):
     def __init__(self, model: Kratos.Model, custom_settings: Kratos.Parameters):
@@ -44,12 +45,12 @@ class SensorSensitivityAdjointStaticSolver(StructuralMechanicsAdjointStaticSolve
             self.sensitivity_builder.Initialize()
             self.sensitivity_builder_initialized = True
 
-    def GetSensitivtyVariables(self) -> 'dict[Kratos.Globals.DataLocation, list[typing.Union[Kratos.DoubleVariable, Kratos.Array1DVariable3]]]':
+    def GetSensitivtyVariables(self) -> 'dict[ExpressionDataLocation, list[typing.Union[Kratos.DoubleVariable, Kratos.Array1DVariable3]]]':
         sensitivity_settings = self.settings["sensitivity_settings"]
         return {
-            Kratos.Globals.DataLocation.NodeHistorical: [Kratos.KratosGlobals.GetVariable(f"{var_name}_SENSITIVITY") for var_name in sensitivity_settings["nodal_solution_step_sensitivity_variables"].GetStringArray()],
-            Kratos.Globals.DataLocation.Condition: [Kratos.KratosGlobals.GetVariable(f"{var_name}_SENSITIVITY") for var_name in sensitivity_settings["condition_data_value_sensitivity_variables"].GetStringArray()],
-            Kratos.Globals.DataLocation.Element: [Kratos.KratosGlobals.GetVariable(f"{var_name}_SENSITIVITY") for var_name in sensitivity_settings["element_data_value_sensitivity_variables"].GetStringArray()]
+            ExpressionDataLocation.NodeHistorical: [Kratos.KratosGlobals.GetVariable(f"{var_name}_SENSITIVITY") for var_name in sensitivity_settings["nodal_solution_step_sensitivity_variables"].GetStringArray()],
+            ExpressionDataLocation.Condition: [Kratos.KratosGlobals.GetVariable(f"{var_name}_SENSITIVITY") for var_name in sensitivity_settings["condition_data_value_sensitivity_variables"].GetStringArray()],
+            ExpressionDataLocation.Element: [Kratos.KratosGlobals.GetVariable(f"{var_name}_SENSITIVITY") for var_name in sensitivity_settings["element_data_value_sensitivity_variables"].GetStringArray()]
         }
 
     def GetSensitivityModelPart(self) -> Kratos.ModelPart:

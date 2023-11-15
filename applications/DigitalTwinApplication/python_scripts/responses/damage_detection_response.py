@@ -1,6 +1,5 @@
-from typing import Optional, Type
+from typing import Optional
 import csv
-from pathlib import Path
 
 import KratosMultiphysics as Kratos
 import KratosMultiphysics.OptimizationApplication as KratosOA
@@ -9,20 +8,18 @@ from KratosMultiphysics.OptimizationApplication.responses.response_function impo
 from KratosMultiphysics.OptimizationApplication.responses.response_function import SupportedSensitivityFieldVariableTypes
 from KratosMultiphysics.OptimizationApplication.utilities.union_utilities import SupportedSensitivityFieldVariableTypes
 from KratosMultiphysics.OptimizationApplication.utilities.model_part_utilities import ModelPartOperation
-from KratosMultiphysics.OptimizationApplication.utilities.model_part_utilities import ModelPartUtilities
 from KratosMultiphysics.OptimizationApplication.execution_policies.execution_policy_decorator import ExecutionPolicyDecorator
 from KratosMultiphysics.OptimizationApplication.utilities.optimization_problem import OptimizationProblem
 from KratosMultiphysics.DigitalTwinApplication.sensor_sensitivity_solvers.system_identification_static_analysis import SystemIdentificationStaticAnalysis
-from KratosMultiphysics.DigitalTwinApplication.utilities.sensor_utils import SensorViewUnionType
-from KratosMultiphysics.DigitalTwinApplication.utilities.sensor_utils import PrintSensorViewsListToCSV
+from KratosMultiphysics.DigitalTwinApplication.utilities.data_io import GetDataIO, DataIO
 
 def Factory(model: Kratos.Model, parameters: Kratos.Parameters, optimization_problem: OptimizationProblem) -> ResponseFunction:
     if not parameters.Has("name"):
         raise RuntimeError(f"DamageDetectionResponse instantiation requires a \"name\" in parameters [ parameters = {parameters}].")
     if not parameters.Has("settings"):
         raise RuntimeError(f"DamageDetectionResponse instantiation requires a \"settings\" in parameters [ parameters = {parameters}].")
-
     return DamageDetectionResponse(parameters["name"].GetString(), model, parameters["settings"], optimization_problem)
+
 
 class DamageDetectionResponse(ResponseFunction):
     def __init__(self, name: str, model: Kratos.Model, parameters: Kratos.Parameters, optimization_problem: OptimizationProblem):
@@ -37,7 +34,16 @@ class DamageDetectionResponse(ResponseFunction):
                 {
                     "primal_analysis_name": "Structure_static",
                     "sensor_measurement_csv_file": "measurement_data.csv",
-                    "weight": 1.0
+                    "weight": 1.0,
+                    "variable_io_settings": {
+                        "model_part_name"           : "Structure",
+                        "nodal_hist_variable_names"    : [],
+                        "nodal_non_hist_variable_names": [],
+                        "condition_variable_names"     : [],
+                        "element_variable_names"       : [],
+                        "condition_property_names"     : [],
+                        "element_property_names"       : []
+                    }
                 }
             ]
         }""")
@@ -50,18 +56,18 @@ class DamageDetectionResponse(ResponseFunction):
             raise RuntimeError(f"No model parts were provided for DamageDetectionResponse. [ response name = \"{self.GetName()}\"]")
 
         # reading test analsis list
-        self.list_of_test_analysis_data: 'list[tuple[ExecutionPolicyDecorator, str, str, float]]' = []
+        self.list_of_test_analysis_data: 'list[tuple[ExecutionPolicyDecorator, DataIO, str, float]]' = []
         for params in parameters["test_analysis_list"]:
             params.ValidateAndAssignDefaults(default_settings["test_analysis_list"][0])
             primal_analysis_name = params["primal_analysis_name"].GetString()
             sensor_measurement_data_file_name = params["sensor_measurement_csv_file"].GetString()
             weight = params["weight"].GetDouble()
-            self.list_of_test_analysis_data.append((optimization_problem.GetExecutionPolicy(primal_analysis_name), sensor_measurement_data_file_name, weight))
+            self.list_of_test_analysis_data.append((optimization_problem.GetExecutionPolicy(primal_analysis_name), GetDataIO(self.model, "Optimization_Results", params["variable_io_settings"], optimization_problem), sensor_measurement_data_file_name, weight))
 
         self.model_part_operation = ModelPartOperation(self.model, ModelPartOperation.OperationType.UNION, f"response_{self.GetName()}", evaluated_model_part_names, False)
         self.model_part: Optional[Kratos.ModelPart] = None
 
-        self.analysis_model_part_operation = ModelPartOperation(self.model, ModelPartOperation.OperationType.UNION, f"response_test_analysis_{self.GetName()}", [exec.GetAnalysisModelPart().FullName() for exec, _, _ in self.list_of_test_analysis_data], False)
+        self.analysis_model_part_operation = ModelPartOperation(self.model, ModelPartOperation.OperationType.UNION, f"response_test_analysis_{self.GetName()}", [exec.GetAnalysisModelPart().FullName() for exec, _, _, _ in self.list_of_test_analysis_data], False)
         self.analysis_model_part: Optional[Kratos.ModelPart] = None
 
         self.adjoint_analysis = SystemIdentificationStaticAnalysis(self.model, parameters["adjoint_parameters"])
@@ -98,9 +104,10 @@ class DamageDetectionResponse(ResponseFunction):
 
     def CalculateValue(self) -> float:
         result = 0.0
-        for exec_policy, sensor_measurement_data_file_name, test_case_weight in self.list_of_test_analysis_data:
+        for exec_policy, data_io, sensor_measurement_data_file_name, test_case_weight in self.list_of_test_analysis_data:
             # first run the primal analysis.
             exec_policy.Execute()
+            data_io.Write()
 
             with open(sensor_measurement_data_file_name, "r") as csv_measurement_file:
                 csv_measurement_stream = csv.reader(csv_measurement_file, delimiter=",")
@@ -123,7 +130,7 @@ class DamageDetectionResponse(ResponseFunction):
                 Kratos.Expression.LiteralExpressionIO.SetDataToZero(container_expression, physical_variable)
 
         # now compute sensitivities for each test scenario
-        for exec_policy, sensor_measurement_data_file_name, test_case_weight in self.list_of_test_analysis_data:
+        for exec_policy, data_io, sensor_measurement_data_file_name, test_case_weight in self.list_of_test_analysis_data:
             # read and replace the measurement data for each test scenario
             with open(sensor_measurement_data_file_name, "r") as csv_measurement_file:
                 csv_measurement_stream = csv.reader(csv_measurement_file, delimiter=",")
@@ -136,6 +143,7 @@ class DamageDetectionResponse(ResponseFunction):
 
             # run a single adjoint for each test scenario
             self.adjoint_analysis._GetSolver().GetComputingModelPart().ProcessInfo[KratosDT.TEST_ANALYSIS_NAME] = exec_policy.GetName()
+            data_io.Read()
             self.adjoint_analysis.RunSolutionLoop()
             sensitivities = self.adjoint_analysis.GetSensitivities()
 
