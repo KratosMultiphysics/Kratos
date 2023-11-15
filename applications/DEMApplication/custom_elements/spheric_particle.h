@@ -189,6 +189,7 @@ void SetProgrammedDestructionTime(const double time);
 virtual double GetRadius();
 virtual void   SetRadius(double radius);
 virtual void   SetRadius();
+virtual void   SetRadius(bool is_radius_expansion, double radius_expansion_rate, double radius_multiplier_max, double radius_multiplier, double radius_multiplier_old);
 virtual double CalculateVolume();
 virtual double GetInteractionRadius(const int radius_index = 0);
 virtual void SetInteractionRadius(const double radius, const int radius_index = 0);

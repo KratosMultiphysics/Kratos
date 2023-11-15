@@ -330,6 +330,12 @@ KRATOS_CREATE_VARIABLE(Quaternion<double>, AUX_ORIENTATION)
 KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(LOCAL_AUX_ANGULAR_VELOCITY)
 // ******************* Quaternion Integration END *******************
 
+// ****************Radius expansion method BEGIN*******************
+KRATOS_CREATE_VARIABLE(bool, IS_RADIUS_EXPANSION)
+KRATOS_CREATE_VARIABLE(double, RADIUS_EXPANSION_RATE)
+KRATOS_CREATE_VARIABLE(double, RADIUS_MULTIPLIER_MAX)
+// *****************Radius expansion method END********************
+
 // FORCE AND MOMENTUM
 KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(CONTACT_IMPULSE)
 KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(PARTICLE_MOMENT)
@@ -823,6 +829,12 @@ void KratosDEMApplication::Register() {
     KRATOS_REGISTER_VARIABLE(AUX_ORIENTATION)
     KRATOS_REGISTER_VARIABLE(LOCAL_AUX_ANGULAR_VELOCITY)
     // ******************* Quaternion Integration END *******************
+
+    // ****************Radius expansion method BEGIN*******************
+    KRATOS_CREATE_VARIABLE(bool, IS_RADIUS_EXPANSION)
+    KRATOS_CREATE_VARIABLE(double, RADIUS_EXPANSION_RATE)
+    KRATOS_CREATE_VARIABLE(double, RADIUS_MULTIPLIER_MAX)
+    // *****************Radius expansion method END********************
 
     // FORCE AND MOMENTUM
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(CONTACT_IMPULSE)
