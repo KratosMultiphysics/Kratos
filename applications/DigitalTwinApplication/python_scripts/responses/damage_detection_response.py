@@ -39,8 +39,7 @@ class DamageDetectionResponse(ResponseFunction):
             "test_analysis_list": [
                 {
                     "primal_analysis_name": "Structure_static",
-                    "sensor_measurement_data_file": "measurement_data.csv",
-                    "sensor_computed_data_file": "computed_data.csv",
+                    "sensor_measurement_csv_file": "measurement_data.csv",
                     "weight": 1.0
                 }
             ]
@@ -58,7 +57,7 @@ class DamageDetectionResponse(ResponseFunction):
         for params in parameters["test_analysis_list"]:
             params.ValidateAndAssignDefaults(default_settings["test_analysis_list"][0])
             primal_analysis_name = params["primal_analysis_name"].GetString()
-            sensor_measurement_data_file_name = params["sensor_measurement_data_file"].GetString()
+            sensor_measurement_data_file_name = params["sensor_measurement_csv_file"].GetString()
             sensor_computed_data_file = params["sensor_computed_data_file"].GetString()
             weight = params["weight"].GetDouble()
             self.list_of_test_analysis_data.append((optimization_problem.GetExecutionPolicy(primal_analysis_name), sensor_measurement_data_file_name, weight))
