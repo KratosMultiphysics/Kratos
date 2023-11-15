@@ -28,10 +28,8 @@ class GeoMechanicalSolver(PythonSolver):
         if model_part_name == "":
             raise Exception('Please specify a model_part name!')
 
-        # This will be changed once the Model is fully supported!
         if self.model.HasModelPart(model_part_name):
             self.main_model_part = self.model[model_part_name]
-            self.solver_imports_model_part = False
         else:
             self.main_model_part = self.model.CreateModelPart(model_part_name)
 
@@ -40,7 +38,6 @@ class GeoMechanicalSolver(PythonSolver):
                 raise Exception('Please specify a "domain_size" >= 0!')
 
             self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, domain_size)
-            self.solver_imports_model_part = True
 
         self.min_buffer_size = 2
 
@@ -190,8 +187,7 @@ class GeoMechanicalSolver(PythonSolver):
     def ImportModelPart(self):
         """This function imports the ModelPart
         """
-        if self.solver_imports_model_part:
-            self._ImportModelPart(self.main_model_part, self.settings["model_import_settings"])
+        self._ImportModelPart(self.main_model_part, self.settings["model_import_settings"])
 
     def PrepareModelPart(self):
         """This function prepares the ModelPart for being used by the PythonSolver
