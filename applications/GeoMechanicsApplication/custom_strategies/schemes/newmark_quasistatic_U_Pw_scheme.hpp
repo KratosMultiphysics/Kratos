@@ -51,37 +51,16 @@ public:
 
         // check that variables are correctly allocated
         for (const auto& rNode : rModelPart.Nodes()) {
-            KRATOS_ERROR_IF_NOT(rNode.SolutionStepsDataHas(DISPLACEMENT))
-                << "DISPLACEMENT variable is not allocated for node "
-                << rNode.Id() << std::endl;
+            this->CheckSolutionStepsData(rNode, DISPLACEMENT);
+            this->CheckSolutionStepsData(rNode, VELOCITY);
+            this->CheckSolutionStepsData(rNode, ACCELERATION);
+            this->CheckSolutionStepsData(rNode, WATER_PRESSURE);
+            this->CheckSolutionStepsData(rNode, DT_WATER_PRESSURE);
 
-            KRATOS_ERROR_IF_NOT(rNode.SolutionStepsDataHas(VELOCITY))
-                << "VELOCITY variable is not allocated for node " << rNode.Id()
-                << std::endl;
-
-            KRATOS_ERROR_IF_NOT(rNode.SolutionStepsDataHas(ACCELERATION))
-                << "ACCELERATION variable is not allocated for node "
-                << rNode.Id() << std::endl;
-
-            KRATOS_ERROR_IF_NOT(rNode.SolutionStepsDataHas(WATER_PRESSURE))
-                << "WATER_PRESSURE variable is not allocated for node "
-                << rNode.Id() << std::endl;
-
-            KRATOS_ERROR_IF_NOT(rNode.SolutionStepsDataHas(DT_WATER_PRESSURE))
-                << "DT_WATER_PRESSURE variable is not allocated for node "
-                << rNode.Id() << std::endl;
-
-            KRATOS_ERROR_IF_NOT(rNode.HasDofFor(DISPLACEMENT_X))
-                << "missing DISPLACEMENT_X dof on node " << rNode.Id() << std::endl;
-
-            KRATOS_ERROR_IF_NOT(rNode.HasDofFor(DISPLACEMENT_Y))
-                << "missing DISPLACEMENT_Y dof on node " << rNode.Id() << std::endl;
-
-            KRATOS_ERROR_IF_NOT(rNode.HasDofFor(DISPLACEMENT_Z))
-                << "missing DISPLACEMENT_Z dof on node " << rNode.Id() << std::endl;
-
-            KRATOS_ERROR_IF_NOT(rNode.HasDofFor(WATER_PRESSURE))
-                << "missing WATER_PRESSURE dof on node " << rNode.Id() << std::endl;
+            this->CheckDof(rNode, DISPLACEMENT_X);
+            this->CheckDof(rNode, DISPLACEMENT_Y);
+            this->CheckDof(rNode, DISPLACEMENT_Z);
+            this->CheckDof(rNode, WATER_PRESSURE);
         }
 
         this->CheckBufferSize(rModelPart);

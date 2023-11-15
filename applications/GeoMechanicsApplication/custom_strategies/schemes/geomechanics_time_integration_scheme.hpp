@@ -333,14 +333,16 @@ protected:
             << rModelPart.GetBufferSize() << std::endl;
     }
 
-    void CheckSolutionStepsData(const Node& r_node, const Variable<double>& variable) const
+    template <class T>
+    void CheckSolutionStepsData(const Node& r_node, const Variable<T>& variable) const
     {
         KRATOS_ERROR_IF(!r_node.SolutionStepsDataHas(variable))
             << variable.Name() << " variable is not allocated for node "
             << r_node.Id() << std::endl;
     }
 
-    void CheckDof(const Node& r_node, const Variable<double>& variable) const
+    template <class T>
+    void CheckDof(const Node& r_node, const Variable<T>& variable) const
     {
         KRATOS_ERROR_IF(!r_node.HasDofFor(variable))
             << "missing " << variable.Name() << " dof on node " << r_node.Id()
