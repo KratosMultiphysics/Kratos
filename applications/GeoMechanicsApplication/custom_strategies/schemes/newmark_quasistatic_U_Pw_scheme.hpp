@@ -50,17 +50,17 @@ public:
         BaseType::Check(rModelPart);
 
         // check that variables are correctly allocated
-        for (const auto& rNode : rModelPart.Nodes()) {
-            this->CheckSolutionStepsData(rNode, DISPLACEMENT);
-            this->CheckSolutionStepsData(rNode, VELOCITY);
-            this->CheckSolutionStepsData(rNode, ACCELERATION);
-            this->CheckSolutionStepsData(rNode, WATER_PRESSURE);
-            this->CheckSolutionStepsData(rNode, DT_WATER_PRESSURE);
+        for (const auto& r_node : rModelPart.Nodes()) {
+            this->CheckSolutionStepsData(r_node, DISPLACEMENT);
+            this->CheckSolutionStepsData(r_node, VELOCITY);
+            this->CheckSolutionStepsData(r_node, ACCELERATION);
+            this->CheckSolutionStepsData(r_node, WATER_PRESSURE);
+            this->CheckSolutionStepsData(r_node, DT_WATER_PRESSURE);
 
-            this->CheckDof(rNode, DISPLACEMENT_X);
-            this->CheckDof(rNode, DISPLACEMENT_Y);
-            this->CheckDof(rNode, DISPLACEMENT_Z);
-            this->CheckDof(rNode, WATER_PRESSURE);
+            this->CheckDof(r_node, DISPLACEMENT_X);
+            this->CheckDof(r_node, DISPLACEMENT_Y);
+            this->CheckDof(r_node, DISPLACEMENT_Z);
+            this->CheckDof(r_node, WATER_PRESSURE);
         }
 
         this->CheckBufferSize(rModelPart);
@@ -82,20 +82,20 @@ public:
         KRATOS_TRY
 
         if (rModelPart.GetProcessInfo()[NODAL_SMOOTHING]) {
-            unsigned int Dim = rModelPart.GetProcessInfo()[DOMAIN_SIZE];
+            unsigned int dim = rModelPart.GetProcessInfo()[DOMAIN_SIZE];
 
-            SizeType StressTensorSize = STRESS_TENSOR_SIZE_2D;
-            if (Dim == N_DIM_3D)
-                StressTensorSize = STRESS_TENSOR_SIZE_3D;
+            SizeType stress_tensor_size = STRESS_TENSOR_SIZE_2D;
+            if (dim == N_DIM_3D)
+                stress_tensor_size = STRESS_TENSOR_SIZE_3D;
 
             // Clear nodal variables
-            block_for_each(rModelPart.Nodes(), [&StressTensorSize](Node& rNode) {
+            block_for_each(rModelPart.Nodes(), [&stress_tensor_size](Node& rNode) {
                 rNode.FastGetSolutionStepValue(NODAL_AREA) = 0.0;
-                Matrix& rNodalStress =
+                Matrix& r_nodal_stress =
                     rNode.FastGetSolutionStepValue(NODAL_CAUCHY_STRESS_TENSOR);
-                if (rNodalStress.size1() != StressTensorSize)
-                    rNodalStress.resize(StressTensorSize, StressTensorSize, false);
-                noalias(rNodalStress) = ZeroMatrix(StressTensorSize, StressTensorSize);
+                if (r_nodal_stress.size1() != stress_tensor_size)
+                    r_nodal_stress.resize(stress_tensor_size, stress_tensor_size, false);
+                noalias(r_nodal_stress) = ZeroMatrix(stress_tensor_size, stress_tensor_size);
                 rNode.FastGetSolutionStepValue(NODAL_DAMAGE_VARIABLE) = 0.0;
                 rNode.FastGetSolutionStepValue(NODAL_JOINT_AREA) = 0.0;
                 rNode.FastGetSolutionStepValue(NODAL_JOINT_WIDTH) = 0.0;
@@ -106,25 +106,25 @@ public:
 
             // Compute smoothed nodal variables
             block_for_each(rModelPart.Nodes(), [&](Node& rNode) {
-                const double& NodalArea = rNode.FastGetSolutionStepValue(NODAL_AREA);
-                if (NodalArea > 1.0e-20) {
-                    const double InvNodalArea = 1.0 / NodalArea;
-                    Matrix& rNodalStress =
+                const double& nodal_area = rNode.FastGetSolutionStepValue(NODAL_AREA);
+                if (nodal_area > 1.0e-20) {
+                    const double InvNodalArea = 1.0 / nodal_area;
+                    Matrix& r_nodal_stress =
                         rNode.FastGetSolutionStepValue(NODAL_CAUCHY_STRESS_TENSOR);
-                    for (unsigned int i = 0; i < rNodalStress.size1(); ++i) {
-                        for (unsigned int j = 0; j < rNodalStress.size2(); ++j) {
-                            rNodalStress(i, j) *= InvNodalArea;
+                    for (unsigned int i = 0; i < r_nodal_stress.size1(); ++i) {
+                        for (unsigned int j = 0; j < r_nodal_stress.size2(); ++j) {
+                            r_nodal_stress(i, j) *= InvNodalArea;
                         }
                     }
                     rNode.FastGetSolutionStepValue(NODAL_DAMAGE_VARIABLE) *= InvNodalArea;
                 }
 
-                const double& NodalJointArea =
+                const double& nodal_joint_area =
                     rNode.FastGetSolutionStepValue(NODAL_JOINT_AREA);
-                if (NodalJointArea > 1.0e-20) {
-                    const double InvNodalJointArea = 1.0 / NodalJointArea;
-                    rNode.FastGetSolutionStepValue(NODAL_JOINT_WIDTH) *= InvNodalJointArea;
-                    rNode.FastGetSolutionStepValue(NODAL_JOINT_DAMAGE) *= InvNodalJointArea;
+                if (nodal_joint_area > 1.0e-20) {
+                    const double inv_nodal_joint_area = 1.0 / nodal_joint_area;
+                    rNode.FastGetSolutionStepValue(NODAL_JOINT_WIDTH) *= inv_nodal_joint_area;
+                    rNode.FastGetSolutionStepValue(NODAL_JOINT_DAMAGE) *= inv_nodal_joint_area;
                 }
             });
         }
