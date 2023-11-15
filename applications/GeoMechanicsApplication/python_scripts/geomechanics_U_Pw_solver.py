@@ -268,7 +268,7 @@ class UPwSolver(GeoSolver):
             self.settings["prebuild_dynamics"].GetBool()):
             return KratosGeo.ResidualBasedBlockBuilderAndSolverWithMassAndDamping(self.linear_solver)
 
-        return super()._ConstructBuilderAndSolver(block_builder)
+        return super()._CreateBuilderAndSolver()
 
     def _CheckConvergence(self):
         IsConverged = self.solver.IsConverged()
