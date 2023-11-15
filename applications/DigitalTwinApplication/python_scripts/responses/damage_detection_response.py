@@ -58,7 +58,6 @@ class DamageDetectionResponse(ResponseFunction):
             params.ValidateAndAssignDefaults(default_settings["test_analysis_list"][0])
             primal_analysis_name = params["primal_analysis_name"].GetString()
             sensor_measurement_data_file_name = params["sensor_measurement_csv_file"].GetString()
-            sensor_computed_data_file = params["sensor_computed_data_file"].GetString()
             weight = params["weight"].GetDouble()
             self.list_of_test_analysis_data.append((optimization_problem.GetExecutionPolicy(primal_analysis_name), sensor_measurement_data_file_name, weight))
 
@@ -123,6 +122,8 @@ class DamageDetectionResponse(ResponseFunction):
                     measured_sensor_name = measured_row[measured_name_index].strip()
                     measured_value = float(measured_row[measured_value_index])
                     sensor = self.__GetSensor(measured_sensor_name)
+                    print(measured_value)
+                    print(sensor.GetName())
                     computed_value = sensor.CalculateValue(exec_policy.GetAnalysisModelPart())
                     result += test_case_weight * ((computed_value - measured_value) ** 2) / 2.0
 
