@@ -181,7 +181,7 @@ class DamageDetectionResponse(ResponseFunction):
                             cexp = sensor_view.GetContainerExpression()
                             self.__GetVtuOutput(cexp.GetModelPart()).AddContainerExpression(sensor.GetName(), cexp.Clone())
 
-                        cexp_gradient += sensor_view.GetContainerExpression() * (computed_value - measured_value) * test_case_weight
+                        cexp_gradient -= sensor_view.GetContainerExpression() * (computed_value - measured_value) * test_case_weight
 
                     cexp_gradient.SetExpression(cexp_gradient.Flatten().GetExpression())
 
@@ -193,6 +193,22 @@ class DamageDetectionResponse(ResponseFunction):
                 self.output_folder / f"senor_info_{self.optimization_problem.GetStep()}.csv",
                 self.list_of_sensors,
                 ["type", "name", "location", "value", "SENSOR_MEASURED_VALUE", "SENSOR_ERROR", "SENSOR_SENSITIVITY_NORM_INF", "SENSOR_SENSITIVITY_NORM_L2"])
+
+        # numpy_data = cexp_gradient.Evaluate()
+
+        # # do finite diff for checking
+        # for exec, sensor_measurement_data_file_name, test_case_weight in self.list_of_test_analysis_data:
+        #     delta = 1e+5
+        #     ref_values = self.CalculateValue()
+
+        #     for i, element in enumerate(self.model["Structure"].Elements):
+        #         element.Properties[Kratos.YOUNG_MODULUS] += delta
+        #         exec.Execute()
+        #         fd_sensitivities = (self.CalculateValue() - ref_values) / delta
+        #         print("fd", fd_sensitivities, "ad", numpy_data[i])
+        #         element.Properties[Kratos.YOUNG_MODULUS] -= delta
+
+        #     raise RuntimeError(1)
 
     def __GetSensor(self, sensor_name: str) -> KratosDT.Sensors.Sensor:
         return self.sensor_name_dict[sensor_name]
