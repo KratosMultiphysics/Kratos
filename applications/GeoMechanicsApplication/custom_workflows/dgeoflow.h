@@ -54,12 +54,12 @@ namespace Kratos
     public:
         KratosExecute();
 
-        int ExecuteFlowAnalysis(const std::string&                       rWorkingDirectory,
+        int ExecuteFlowAnalysis(std::string_view                       rWorkingDirectory,
                                 const std::string&                       rProjectParamsFileName,
                                 double                                   minCriticalHead,
                                 double                                   maxCriticalHead,
                                 double                                   stepCriticalHead,
-                                const std::string&                       rCriticalHeadBoundaryModelPartName,
+                                std::string_view                       rCriticalHeadBoundaryModelPartName,
                                 const std::function<void(const char*)>&  rLogCallback,
                                 const std::function<void(double)>&       rReportProgress,
                                 const std::function<void(const char*)>&  rReportTextualProgress,
