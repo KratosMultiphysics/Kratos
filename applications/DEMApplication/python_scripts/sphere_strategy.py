@@ -177,6 +177,15 @@ class ExplicitStrategy():
         else:
             self.global_viscous_damping = DEM_parameters["GlobalViscousDamping"].GetDouble()
 
+        if "RadiusExpansionOption" in DEM_parameters.keys():
+            self.radius_expansion_option = DEM_parameters["RadiusExpansionOption"].GetBool()
+
+        if "RadiusExpansionRate" in DEM_parameters.keys():
+            self.radius_expansion_rate = DEM_parameters["RadiusExpansionRate"].GetDouble()
+
+        if "RadiusMultiplierMax" in DEM_parameters.keys():
+            self.radius_multiplier_max = DEM_parameters["RadiusMultiplierMax"].GetDouble()
+        
         # PRINTING VARIABLES
         self.print_export_id = DEM_parameters["PostExportId"].GetBool()
         self.print_export_skin_sphere = 0
@@ -272,6 +281,11 @@ class ExplicitStrategy():
         self.SetOneOrZeroInProcessInfoAccordingToBoolValue(self.spheres_model_part, ROLLING_FRICTION_OPTION, self.rolling_friction_option)
         self.spheres_model_part.ProcessInfo.SetValue(GLOBAL_DAMPING, self.global_damping)
         self.spheres_model_part.ProcessInfo.SetValue(GLOBAL_VISCOUS_DAMPING, self.global_viscous_damping)
+
+        #Radius expansion method
+        self.spheres_model_part.ProcessInfo.SetValue(IS_RADIUS_EXPANSION, self.radius_expansion_option)
+        self.spheres_model_part.ProcessInfo.SetValue(RADIUS_EXPANSION_RATE, self.radius_expansion_rate)
+        self.spheres_model_part.ProcessInfo.SetValue(RADIUS_MULTIPLIER_MAX, self.radius_multiplier_max)
 
         # SEARCH-RELATED
         self.spheres_model_part.ProcessInfo.SetValue(SEARCH_RADIUS_INCREMENT, self.search_increment)
@@ -456,7 +470,7 @@ class ExplicitStrategy():
         self.cplusplus_strategy.InitializeSolutionStep()
 
     def SetNormalRadiiOnAllParticles(self):
-        self.cplusplus_strategy.SetNormalRadiiOnAllParticles(self.spheres_model_part)
+        self.cplusplus_strategy.SetNormalRadiiOnAllParticlesBeforeInitilization(self.spheres_model_part)
 
     def SetSearchRadiiOnAllParticles(self):
 

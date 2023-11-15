@@ -276,6 +276,12 @@ PYBIND11_MODULE(KratosDEMApplication,m)
     KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, LOCAL_AUX_ANGULAR_VELOCITY)
     // ******************* Quaternion Integration END *******************
 
+    // ****************Radius expansion method BEGIN*******************
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, IS_RADIUS_EXPANSION)
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, RADIUS_EXPANSION_RATE)
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, RADIUS_MULTIPLIER_MAX)
+    // *****************Radius expansion method END********************
+
     // FORCE AND MOMENTUM
 
     KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, PARTICLE_MOMENT)

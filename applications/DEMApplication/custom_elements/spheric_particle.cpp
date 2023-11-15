@@ -2197,6 +2197,19 @@ double SphericParticle::GetRadius()                                             
 double SphericParticle::CalculateVolume()                                                 { return 4.0 * Globals::Pi / 3.0 * mRadius * mRadius * mRadius;     }
 void   SphericParticle::SetRadius(double radius)                                          { mRadius = radius;       }
 void   SphericParticle::SetRadius()                                                       { mRadius = GetGeometry()[0].FastGetSolutionStepValue(RADIUS);       }
+void   SphericParticle::SetRadius(bool is_radius_expansion, double radius_expansion_rate, double radius_multiplier_max, double radius_multiplier, double radius_multiplier_old)                                                       
+{ 
+    if (is_radius_expansion){
+        if (radius_multiplier_old >= 1.0) {
+            mRadius = (GetGeometry()[0].FastGetSolutionStepValue(RADIUS) / radius_multiplier_old) * radius_multiplier;
+            GetGeometry()[0].FastGetSolutionStepValue(RADIUS) = mRadius;
+        } else {
+            mRadius = GetGeometry()[0].FastGetSolutionStepValue(RADIUS);
+        }
+    } else {
+        mRadius = GetGeometry()[0].FastGetSolutionStepValue(RADIUS);
+    }
+}
 double SphericParticle::GetInteractionRadius(const int radius_index)                      { return mRadius;         }
 void   SphericParticle::SetInteractionRadius(const double radius, const int radius_index) { mRadius = radius; GetGeometry()[0].FastGetSolutionStepValue(RADIUS) = radius;}
 double SphericParticle::GetSearchRadius()                                                 { return mSearchRadius;   }
