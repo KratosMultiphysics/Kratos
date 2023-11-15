@@ -28,8 +28,7 @@
 namespace Kratos {
 
 template <class TSparseSpace, class TDenseSpace>
-class BackwardEulerTScheme
-    : public BackwardEulerScheme<TSparseSpace, TDenseSpace> {
+class BackwardEulerTScheme : public BackwardEulerScheme<TSparseSpace, TDenseSpace> {
 public:
     KRATOS_CLASS_POINTER_DEFINITION(BackwardEulerTScheme);
 
