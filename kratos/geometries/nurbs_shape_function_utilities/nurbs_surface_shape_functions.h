@@ -263,6 +263,16 @@ public:
         mShapeFunctionsU.ComputeBSplineShapeFunctionValuesAtSpan(rKnotsU, SpanU, ParameterU);
         mShapeFunctionsV.ComputeBSplineShapeFunctionValuesAtSpan(rKnotsV, SpanV, ParameterV);
 
+
+        std::ofstream outputFile("txt_files/Gauss_Point_coordinates.txt", std::ios::app);
+        if (!outputFile.is_open())
+        {
+            std::cerr << "Failed to open the file for writing." << std::endl;
+            return;
+        }
+        outputFile << ParameterU << "  " << ParameterV <<"\n";
+        outputFile.close();
+
         // compute 2D shape functions
         for (IndexType i = 0; i <= DerivativeOrder(); i++) {
             for (IndexType j = 0; j <= DerivativeOrder() - i; j++) {
