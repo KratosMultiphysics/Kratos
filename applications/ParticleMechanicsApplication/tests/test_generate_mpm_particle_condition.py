@@ -30,6 +30,10 @@ class TestGenerateMPMParticleCondition(KratosUnittest.TestCase):
         for condition in grid_model_part.Conditions:
             condition.SetValue(KratosParticle.PARTICLES_PER_CONDITION, num_particle)
             condition.SetValue(KratosParticle.MPC_BOUNDARY_CONDITION_TYPE, 1)
+            if (geometry_element == "Point"):
+                condition.SetValue(KratosParticle.MPC_IS_NEUMANN, True)
+                condition.SetValue(KratosParticle.POINT_LOAD, [0.0,0,0])
+
 
 
         # Create element and nodes for initial meshes

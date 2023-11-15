@@ -159,7 +159,7 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::CalculateMassMatrix( Matrix
     this->InitializeElementVariables(Variables, Geom, Prop, rCurrentProcessInfo);
 
     // create general parameters of retention law
-    RetentionLaw::Parameters RetentionParameters(Geom, this->GetProperties(), rCurrentProcessInfo);
+    RetentionLaw::Parameters RetentionParameters(this->GetProperties(), rCurrentProcessInfo);
 
     //Defining necessary variables
     BoundedMatrix<double, TDim+1, TNumNodes*(TDim+1)> Nut = ZeroMatrix(TDim+1, TNumNodes*(TDim+1));
@@ -243,7 +243,7 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::InitializeSolutionStep(cons
     std::vector<double> JointWidthContainer(NumGPoints);
 
     // create general parameters of retention law
-    RetentionLaw::Parameters RetentionParameters(Geom, this->GetProperties(), rCurrentProcessInfo);
+    RetentionLaw::Parameters RetentionParameters(this->GetProperties(), rCurrentProcessInfo);
 
     //Loop over integration points
     for ( unsigned int GPoint = 0; GPoint < NumGPoints; ++GPoint ) {
@@ -305,7 +305,7 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::FinalizeSolutionStep(const 
     std::vector<double> JointWidthContainer(NumGPoints);
 
     // create general parameters of retention law
-    RetentionLaw::Parameters RetentionParameters(Geom, this->GetProperties(), rCurrentProcessInfo);
+    RetentionLaw::Parameters RetentionParameters(this->GetProperties(), rCurrentProcessInfo);
 
     //Loop over integration points
     for ( unsigned int GPoint = 0; GPoint < NumGPoints; ++GPoint ) {
@@ -603,8 +603,7 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::CalculateOnIntegrationPoint
         this->InitializeElementVariables(Variables, rGeom, this->GetProperties(), rCurrentProcessInfo);
 
         // create general parameters of retention law
-        RetentionLaw::Parameters RetentionParameters(rGeom, this->GetProperties(), rCurrentProcessInfo);
-
+        RetentionLaw::Parameters RetentionParameters(this->GetProperties(), rCurrentProcessInfo);
         //Loop over integration points
         for ( unsigned int GPoint = 0; GPoint < NumGPoints; ++GPoint ) {
             Variables.FluidPressure = CalculateFluidPressure(Variables);
@@ -853,7 +852,7 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::CalculateOnLobattoIntegrati
                                          rCurrentProcessInfo);
 
         // create general parameters of retention law
-        RetentionLaw::Parameters RetentionParameters(Geom, this->GetProperties(), rCurrentProcessInfo);
+        RetentionLaw::Parameters RetentionParameters(this->GetProperties(), rCurrentProcessInfo);
 
         //Loop over integration points
         for ( unsigned int GPoint = 0; GPoint < NumGPoints; ++GPoint ) {
@@ -1041,7 +1040,7 @@ void UPwSmallStrainInterfaceElement<TDim, TNumNodes>::CalculateOnLobattoIntegrat
                                          rCurrentProcessInfo);
 
         // create general parameters of retention law
-        RetentionLaw::Parameters RetentionParameters(rGeom, this->GetProperties(), rCurrentProcessInfo);
+        RetentionLaw::Parameters RetentionParameters(this->GetProperties(), rCurrentProcessInfo);
 
         Vector VoigtVector(mStressVector[0].size());
         noalias(VoigtVector) = ZeroVector(VoigtVector.size());
@@ -1404,7 +1403,7 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::CalculateAll(MatrixType& rL
     SFGradAuxVariables SFGradAuxVars;
 
     // create general parameters of retention law
-    RetentionLaw::Parameters RetentionParameters(Geom, this->GetProperties(), CurrentProcessInfo);
+    RetentionLaw::Parameters RetentionParameters(this->GetProperties(), CurrentProcessInfo);
 
     const bool hasBiotCoefficient = Prop.Has(BIOT_COEFFICIENT);
 
