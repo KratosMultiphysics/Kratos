@@ -5,7 +5,7 @@
 //                   Multi-Physics
 //
 //  License:        BSD License
-//	                Kratos default license: kratos/license.txt
+//                  Kratos default license: kratos/license.txt
 //
 //  Main Authors:   Máté Kelemen
 //
@@ -14,9 +14,10 @@
 #define KRATOS_MESH_MOVING_PARAMETRIC_LINEAR_TRANSFORMATION_INCLUDED
 
 // Project includes
-#include "linear_transform.h"
 #include "includes/kratos_parameters.h"
 #include "utilities/function_parser_utility.h"
+#include "utilities/quaternion.h"
+#include "custom_utilities/affine_transform.h"
 
 namespace Kratos
 {
@@ -25,44 +26,44 @@ namespace Kratos
 ///@{
 
 
-/** Class for applying parametrically defined linear transformations
- *  @details see @ref{LinearTransform} for transform conventions. This class
- *  derives from @ref{LinearTransform}, but every parameter is parsed from
- *  an input @ref{Parameters} to a @ref{GenericFunctionUtility} that is
- *  evaluated on each application of the transform.
+/** @brief Class for applying parametrically defined affine transformations.
+ *  @details see @ref AffineTransform for transform conventions. Every
+ *           transform parameter is parsed from an input @ref Parameters
+ *           to a @ref GenericFunctionUtility that is evaluated on each
+ *           application of the transform.
  */
-class KRATOS_API(MESH_MOVING_APPLICATION) ParametricLinearTransform : protected LinearTransform
+class KRATOS_API(MESH_MOVING_APPLICATION) ParametricAffineTransform : protected AffineTransform
 {
 public:
     ///@name Type definitions
     ///@{
 
-    KRATOS_CLASS_POINTER_DEFINITION(ParametricLinearTransform);
+    KRATOS_CLASS_POINTER_DEFINITION(ParametricAffineTransform);
 
     using FunctionType = GenericFunctionUtility;
 
     ///@}
     ///@name Life Cycle
     ///@{
-    
-    /** Construct via axis & angle
+
+    /** @brief Construct via axis & angle
      *  @param rAxis axis of rotation (array of size 3)
      *  @param rAngle angle of rotation (in radians, scalar)
      *  @param rReferencePoint a point on the axis of rotation (array of size 3)
      *  @param rTranslationVector translation vector (array of size 3)
      */
-    ParametricLinearTransform(const Parameters axis,
+    ParametricAffineTransform(const Parameters axis,
                               const Parameters angle,
                               const Parameters referencePoint,
                               const Parameters translationVector);
 
-    /** Construct via euler angles
+    /** @brief Construct via euler angles
      *  @param rEulerAngles euler angles (radians, array of size 3)
      *  @param rReferencePoint origin of rotation (array of size 3)
      *  @param rTranslationVector translation vector (array of size 3)
-     *  @note The euler angles follow the convention specified by @ref{Quaternion} (Z, -X', Z")
+     *  @note The euler angles follow the convention specified by @ref Quaternion (Z, -X', Z")
      */
-    ParametricLinearTransform(const Parameters eulerAngles,
+    ParametricAffineTransform(const Parameters eulerAngles,
                               const Parameters referencePoint,
                               const Parameters translationVector);
 
@@ -70,14 +71,13 @@ public:
     ///@name Operations
     ///@{
 
-    /** Evaluate the transformation at the given location and apply it to a position vector, returning its transformed version
-     *  @note the transformation is not updated unless at least one transformation-related
-     *  quantity has changed since the last call to ParametricLinearTransform::Apply.
-     *  @param rPoint point to be transformed; it also acts as the current position input to @ref{GenericFunctionUtility}
-     *  @param t time, see @ref{GenericFunctionUtility}
-     *  @param X initial x-coordinate, see @ref{GenericFunctionUtility}
-     *  @param Y initial y-coordinate, see @ref{GenericFunctionUtility}
-     *  @param Z initial z-coordinate, see @ref{GenericFunctionUtility}
+    /** @brief Evaluate the transformation at the given location and apply it to a position vector, returning its transformed version.
+     *  @param rPoint point to be transformed; it also acts as the current position input to @ref GenericFunctionUtility.
+     *  @param t time, see @ref GenericFunctionUtility.
+     *  @param X initial x-coordinate, see @ref GenericFunctionUtility.
+     *  @param Y initial y-coordinate, see @ref GenericFunctionUtility.
+     *  @param Z initial z-coordinate, see @ref GenericFunctionUtility.
+     *  @warning This function is not thread-safe (@ref BasicGenericFunctionUtility is mutated on each call).
      */
     array_1d<double,3> Apply(const array_1d<double,3>& rPoint,
                              const double t,
@@ -95,7 +95,7 @@ private:
     // Necessary to parse constants
     static std::string ExtractFunctionBody(const Parameters parameters);
 
-    /// Class for storing and evaluating an array of @ref{GenericFunctionUtility}
+    /// Class for storing and evaluating an array of @ref GenericFunctionUtility.
     template <std::size_t ArraySize>
     class VectorFunction : public std::array<FunctionType::Pointer,ArraySize>
     {
@@ -154,7 +154,7 @@ private:
     Quaternion<double> mQuaternion;
 
     ///@}
-}; // class ParametricLinearTransform
+}; // class ParametricAffineTransform
 
 
 ///@}
