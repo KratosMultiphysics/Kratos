@@ -289,6 +289,21 @@ namespace Kratos
         {}
     };
 
+    struct CallBackFunctions
+    {
+        const std::function<void(const char*)>& rLogCallback;
+        const std::function<void(const char*)>& rReportTextualProgress;
+        const std::function<void(double)>& rReportProgress;
+        const std::function<bool()>& rShouldCancel;
+
+        CallBackFunctions(const std::function<void(const char*)>& rLogCallback,
+                          const std::function<void(const char*)>& rReportTextualProgress,
+                          const std::function<void(double)>& rReportProgress,
+                          const std::function<bool()>& rShouldCancel) :
+            rLogCallback(rLogCallback), rReportTextualProgress(rReportTextualProgress), rReportProgress(rReportProgress), rShouldCancel(rShouldCancel)
+        {}
+    };
+
 
     int KratosExecute::ExecuteFlowAnalysis(const std::string& rWorkingDirectory,
                                            const std::string& rProjectParamsFileName,
@@ -385,8 +400,8 @@ namespace Kratos
             }
             else
             {
-                ExecuteWithPiping(model_part, processes, rReportProgress, rReportTextualProgress,
-                                  gid_output_settings, criticalHeadInfo, rLogCallback, p_output, rShouldCancel);
+                CallBackFunctions callBackFunctions(rLogCallback, rReportTextualProgress, rReportProgress, rShouldCancel);
+                ExecuteWithPiping(model_part, processes, gid_output_settings, criticalHeadInfo, p_output, callBackFunctions);
             }
 
             HandleCancellationAndReset(rLogCallback, p_output);
@@ -417,13 +432,10 @@ namespace Kratos
 
     int KratosExecute::ExecuteWithPiping(ModelPart& model_part,
                                           const std::vector<std::shared_ptr<Process>>& processes,
-                                          const std::function<void(double)>& rReportProgress,
-                                          const std::function<void(const char*)>& rReportTextualProgress,
                                           const Kratos::Parameters& gid_output_settings,
                                           const CriticalHeadInfo& criticalHeadInfo,
-                                          const std::function<void(const char*)>& rLogCallback,
                                           LoggerOutput::Pointer p_output,
-                                          const std::function<bool()>& rShouldCancel)
+                                          const CallBackFunctions& rCallBackFunctions)
     {
         std::stringstream kratosLogBuffer;
         KRATOS_INFO_IF("GeoFlowKernel", this->GetEchoLevel() > 0) << "Critical head search started." << std::endl;
@@ -447,8 +459,8 @@ namespace Kratos
             KRATOS_ERROR << "No river boundary found.";
         }
 
-        FindCriticalHead(model_part, processes, rReportProgress, rReportTextualProgress, gid_output_settings,
-                           criticalHeadInfo, rLogCallback, p_output, rShouldCancel, RiverBoundary, p_solving_strategy);
+        FindCriticalHead(model_part, processes, gid_output_settings, criticalHeadInfo, p_output, RiverBoundary,
+                         p_solving_strategy, rCallBackFunctions);
 
         KRATOS_INFO_IF("GeoFlowKernel", this->GetEchoLevel() > 0) << "Writing result to: " << mWorkingDirectory << "\\criticalHead.json" << std::endl;
 
@@ -509,16 +521,13 @@ namespace Kratos
     }
 
     int KratosExecute::FindCriticalHead(ModelPart& model_part,
-                                          const std::vector<std::shared_ptr<Process>>& processes,
-                                          const std::function<void(double)>& rReportProgress,
-                                          const std::function<void(const char*)>& rReportTextualProgress,
-                                          const Kratos::Parameters& gid_output_settings,
-                                          const CriticalHeadInfo& criticalHeadInfo,
-                                          const std::function<void(const char*)>& rLogCallback,
-                                          LoggerOutput::Pointer p_output,
-                                          const std::function<bool()>& rShouldCancel,
-                                          const shared_ptr<Process>& RiverBoundary,
-                                          const GeoMechanicsNewtonRaphsonErosionProcessStrategyType::Pointer& p_solving_strategy)
+                                        const std::vector<std::shared_ptr<Process>>& processes,
+                                        const Kratos::Parameters& gid_output_settings,
+                                        const CriticalHeadInfo& criticalHeadInfo,
+                                        LoggerOutput::Pointer p_output,
+                                        const shared_ptr<Process>& RiverBoundary,
+                                        const GeoMechanicsNewtonRaphsonErosionProcessStrategyType::Pointer& p_solving_strategy,
+                                        const CallBackFunctions& rCallBackFunctions)
     {
 
         auto currentProcess = std::static_pointer_cast<GeoFlowApplyConstantHydrostaticPressureProcess>(RiverBoundary);
@@ -552,8 +561,8 @@ namespace Kratos
             std::string currentHeadString = currentHeadStream.str();
 
             std::string progress = "Calculating head level " + currentHeadString + "m (" + std::to_string(step) + "/" + std::to_string(maxSteps) + ")";
-            rReportTextualProgress(progress.data());
-            rReportProgress(((double)step) / ((double)maxSteps));
+            rCallBackFunctions.rReportTextualProgress(progress.data());
+            rCallBackFunctions.rReportProgress(((double)step) / ((double)maxSteps));
 
             MainExecution(model_part, processes, p_solving_strategy, 0.0, 1.0, 1);
 
@@ -590,9 +599,9 @@ namespace Kratos
                 step++;
             }
 
-            if (rShouldCancel())
+            if (rCallBackFunctions.rShouldCancel())
             {
-                HandleCancellationAndReset(rLogCallback, p_output);
+                HandleCancellationAndReset(rCallBackFunctions.rLogCallback, p_output);
 
                 return 0;
             }
