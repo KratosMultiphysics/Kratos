@@ -39,7 +39,9 @@ class MaterialPropertiesControl(Control):
                 }
             ],
             "control_variable_name": "",
+            "control_variable_bounds": [0.0, 0.0],
             "filtering": {
+                "filter_type": "vertex_morphing",
                 "filter_radius": 5.0,
                 "filter_function_type": "linear",
                 "fixed_model_part_name": "",
@@ -78,6 +80,7 @@ class MaterialPropertiesControl(Control):
         self.filter: Optional[KratosOA.ElementExplicitFilter] = None
         self.parameters = parameters
         self.optimization_problem = optimization_problem
+        self.control_variable_bounds = parameters["control_variable_bounds"].GetVector()
 
     def Initialize(self) -> None:
         self.primal_model_part = self.primal_model_part_operation.GetModelPart()
@@ -131,7 +134,10 @@ class MaterialPropertiesControl(Control):
         if not IsSameContainerExpression(control_field, self.GetEmptyField()):
             raise RuntimeError(f"Updates for the required element container not found for control \"{self.GetName()}\". [ required model part name: {self.adjoint_model_part.FullName()}, given model part name: {control_field.GetModelPart().FullName()} ]")
 
-        filtered_control_field = self.__GetFilter().FilterField(control_field)
+        # first clip the control field to max and mins
+        clipped_control_field = control_field.Clone()
+        KratosDT.ControlUtils.ClipContainerExpression(clipped_control_field, self.control_variable_bounds[0], self.control_variable_bounds[1])
+        filtered_control_field = self.__GetFilter().FilterField(clipped_control_field)
         unbuffered_data = ComponentDataView(self, self.optimization_problem).GetUnBufferedData()
         unbuffered_data.SetValue("filtered_control_field", filtered_control_field.Clone(), overwrite=True)
         KratosOA.PropertiesVariableExpressionIO.Write(filtered_control_field, self.controlled_physical_variable)
