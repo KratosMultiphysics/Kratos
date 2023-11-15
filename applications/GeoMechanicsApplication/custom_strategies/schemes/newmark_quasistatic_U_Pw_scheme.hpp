@@ -66,7 +66,7 @@ public:
         this->CheckBufferSize(rModelPart);
 
         // Check beta, gamma and theta
-        KRATOS_ERROR_IF(mBeta <= 0.0 || mGamma <= 0.0 || this->mTheta <= 0.0) << "Some of the scheme variables: beta, gamma or theta has an invalid value"
+        KRATOS_ERROR_IF(mBeta <= 0.0 || mGamma <= 0.0) << "Some of the scheme variables: beta or gamma has an invalid value"
                                                                               << std::endl;
 
         return 0;
@@ -108,15 +108,15 @@ public:
             block_for_each(rModelPart.Nodes(), [&](Node& rNode) {
                 const double& nodal_area = rNode.FastGetSolutionStepValue(NODAL_AREA);
                 if (nodal_area > 1.0e-20) {
-                    const double InvNodalArea = 1.0 / nodal_area;
+                    const double inv_nodal_area = 1.0 / nodal_area;
                     Matrix& r_nodal_stress =
                         rNode.FastGetSolutionStepValue(NODAL_CAUCHY_STRESS_TENSOR);
                     for (unsigned int i = 0; i < r_nodal_stress.size1(); ++i) {
                         for (unsigned int j = 0; j < r_nodal_stress.size2(); ++j) {
-                            r_nodal_stress(i, j) *= InvNodalArea;
+                            r_nodal_stress(i, j) *= inv_nodal_area;
                         }
                     }
-                    rNode.FastGetSolutionStepValue(NODAL_DAMAGE_VARIABLE) *= InvNodalArea;
+                    rNode.FastGetSolutionStepValue(NODAL_DAMAGE_VARIABLE) *= inv_nodal_area;
                 }
 
                 const double& nodal_joint_area =
@@ -143,11 +143,9 @@ protected:
     {
         KRATOS_TRY
 
-        this->SetDeltaTime(rModelPart.GetProcessInfo()[DELTA_TIME]);
+        GeneralizedNewmarkScheme<TSparseSpace, TDenseSpace>::SetTimeFactors(rModelPart);
         rModelPart.GetProcessInfo()[VELOCITY_COEFFICIENT] =
             mGamma / (mBeta * this->GetDeltaTime());
-        rModelPart.GetProcessInfo()[DT_PRESSURE_COEFFICIENT] =
-            1.0 / (this->mTheta * this->GetDeltaTime());
 
         KRATOS_CATCH("")
     }

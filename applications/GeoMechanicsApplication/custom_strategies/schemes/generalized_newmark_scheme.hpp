@@ -78,9 +78,8 @@ protected:
         KRATOS_CATCH("")
     }
 
-    double mTheta = 0.0;
-
 private:
+    double mTheta = 0.0;
     Variable<double> mVariable;
     Variable<double> mDeltaTimeVariable;
     Variable<double> mDeltaTimeVariableCoefficient;

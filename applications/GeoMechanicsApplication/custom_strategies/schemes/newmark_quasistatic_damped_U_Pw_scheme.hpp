@@ -36,9 +36,9 @@ public:
         : NewmarkQuasistaticUPwScheme<TSparseSpace,TDenseSpace>(beta, gamma, theta)
     {
         //Allocate auxiliary memory
-        int NumThreads = ParallelUtilities::GetNumThreads();
-        mDampingMatrix.resize(NumThreads);
-        mVelocityVector.resize(NumThreads);
+        int num_threads = ParallelUtilities::GetNumThreads();
+        mDampingMatrix.resize(num_threads);
+        mVelocityVector.resize(num_threads);
     }
 
     void CalculateSystemContributions(
@@ -108,10 +108,6 @@ public:
     }
 
 protected:
-    /// Member Variables
-    std::vector< Matrix > mDampingMatrix;
-    std::vector< Vector > mVelocityVector;
-
     void AddDampingToLHS(LocalSystemMatrixType& LHS_Contribution,
                          LocalSystemMatrixType& C,
                          const ProcessInfo& CurrentProcessInfo)
@@ -134,6 +130,10 @@ protected:
             noalias(RHS_Contribution) -= prod(C, mVelocityVector[thread]);
         }
     }
+
+private:
+    std::vector< Matrix > mDampingMatrix;
+    std::vector< Vector > mVelocityVector;
 }; // Class NewmarkQuasistaticDampedUPwScheme
 
 }
