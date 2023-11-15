@@ -175,11 +175,9 @@ namespace Kratos
         return p_solving_strategy;
     }
 
-    std::vector<std::shared_ptr<Process>> KratosExecute::parseProcess(ModelPart &model_part, Parameters projFile)
+    void KratosExecute::parseProcess(ModelPart &model_part, Parameters projFile)
     {
         // Currently: In DGeoflow only fixed hydrostatic head has been , also need load of gravity.
-
-        std::vector<std::shared_ptr<Process>> processes;
 
         auto constraints_processes = projFile["processes"]["constraints_process_list"];
         for (Parameters process : constraints_processes)
@@ -196,13 +194,13 @@ namespace Kratos
             if (pressure_type == "Uniform")
             {
                 auto value = process["Parameters"]["value"].GetDouble();
-                processes.push_back(make_shared<GeoFlowApplyConstantScalarValueProcess>(part, WATER_PRESSURE, value, 0, ApplyConstantScalarValueProcess::VARIABLE_IS_FIXED));
+                mProcesses.push_back(make_shared<GeoFlowApplyConstantScalarValueProcess>(part, WATER_PRESSURE, value, 0, ApplyConstantScalarValueProcess::VARIABLE_IS_FIXED));
             }
             else if (pressure_type == "Hydrostatic")
             {
                 auto cProcesses = process.Clone();
                 cProcesses["Parameters"].RemoveValue("fluid_pressure_type");
-                processes.push_back(make_shared<GeoFlowApplyConstantHydrostaticPressureProcess>(part, cProcesses["Parameters"]));
+                mProcesses.push_back(make_shared<GeoFlowApplyConstantHydrostaticPressureProcess>(part, cProcesses["Parameters"]));
             }
             else
             {
@@ -216,33 +214,31 @@ namespace Kratos
         std::size_t found = name.find_last_of('.');
         std::string subname = name.substr(found + 1);
         ModelPart &part = model_part.GetSubModelPart(subname);
-        processes.push_back(make_shared<ApplyConstantScalarValueProcess>(ApplyConstantScalarValueProcess(part, VOLUME_ACCELERATION_X,
+        mProcesses.push_back(make_shared<ApplyConstantScalarValueProcess>(ApplyConstantScalarValueProcess(part, VOLUME_ACCELERATION_X,
                                                                                                          0.0, 0, ApplyConstantScalarValueProcess::VARIABLE_IS_FIXED)));
 
-        processes.push_back(make_shared<ApplyConstantScalarValueProcess>(ApplyConstantScalarValueProcess(part, VOLUME_ACCELERATION_Y, -9.81,
+        mProcesses.push_back(make_shared<ApplyConstantScalarValueProcess>(ApplyConstantScalarValueProcess(part, VOLUME_ACCELERATION_Y, -9.81,
                                                                                                          0, ApplyConstantScalarValueProcess::VARIABLE_IS_FIXED)));
 
-        processes.push_back(make_shared<Process>(ApplyConstantScalarValueProcess(part, VOLUME_ACCELERATION_Z, 0.0,
+        mProcesses.push_back(make_shared<Process>(ApplyConstantScalarValueProcess(part, VOLUME_ACCELERATION_Z, 0.0,
                                                                                  0, ApplyConstantScalarValueProcess::VARIABLE_IS_FIXED)));
 
-        return processes;
     }
 
     int KratosExecute::MainExecution(ModelPart&                                                          rModelPart,
-                                     const std::vector<std::shared_ptr<Process>>&                        rProcesses,
                                      const GeoMechanicsNewtonRaphsonErosionProcessStrategyType::Pointer& rpSolvingStrategy,
                                      double                                                              Time,
                                      double                                                              DeltaTime,
-                                     unsigned int                                                        NumberOfIterations)
+                                     unsigned int                                                        NumberOfIterations) const
     {
 
     	// Initialize
-        for (const auto& process : rProcesses)
+        for (const auto& process : mProcesses)
         {
             process->ExecuteInitialize();
         }
 
-        for (const auto& process : rProcesses)
+        for (const auto& process : mProcesses)
         {
             process->ExecuteBeforeSolutionLoop();
         }
@@ -254,7 +250,7 @@ namespace Kratos
             rpSolvingStrategy->Initialize();
             rpSolvingStrategy->InitializeSolutionStep();
 
-            for (const auto& process : rProcesses)
+            for (const auto& process : mProcesses)
             {
                 process->ExecuteInitializeSolutionStep();
             }
@@ -262,7 +258,7 @@ namespace Kratos
             rpSolvingStrategy->Predict();
             rpSolvingStrategy->SolveSolutionStep();
 
-            for (const auto& process : rProcesses)
+            for (const auto& process : mProcesses)
             {
                 process->ExecuteFinalizeSolutionStep();
             }
@@ -270,7 +266,7 @@ namespace Kratos
             rpSolvingStrategy->FinalizeSolutionStep();
         }
 
-        for (const auto& process : rProcesses)
+        for (const auto& process : mProcesses)
         {
             process->ExecuteFinalize();
         }
@@ -379,7 +375,7 @@ namespace Kratos
 
             KRATOS_INFO_IF("GeoFlowKernel", this->GetEchoLevel() > 0) << "Added DoF" << std::endl;
 
-            std::vector<std::shared_ptr<Process>> processes = parseProcess(model_part, projectfile);
+            parseProcess(model_part, projectfile);
 
             KRATOS_INFO_IF("GeoFlowKernel", this->GetEchoLevel() > 0) << "Parsed Process Data" << std::endl;
 
@@ -396,12 +392,12 @@ namespace Kratos
 
             if (!hasPiping)
             {
-                ExecuteWithoutPiping(model_part, processes, gid_output_settings);
+                ExecuteWithoutPiping(model_part, gid_output_settings);
             }
             else
             {
                 CallBackFunctions callBackFunctions(rLogCallback, rReportTextualProgress, rReportProgress, rShouldCancel);
-                ExecuteWithPiping(model_part, processes, gid_output_settings, criticalHeadInfo, p_output, callBackFunctions);
+                ExecuteWithPiping(model_part, gid_output_settings, criticalHeadInfo, p_output, callBackFunctions);
             }
 
             HandleCancellationAndReset(rLogCallback, p_output);
@@ -419,19 +415,17 @@ namespace Kratos
     }
 
     void KratosExecute::ExecuteWithoutPiping(ModelPart& model_part,
-                                             const std::vector<std::shared_ptr<Process>>& processes,
                                              const Kratos::Parameters& gid_output_settings) const
     {
         const auto p_solving_strategy = setup_strategy_dgeoflow(model_part);
         p_solving_strategy->SetEchoLevel(0);
-        MainExecution(model_part, processes, p_solving_strategy, 0.0, 1.0, 1);
+        MainExecution(model_part, p_solving_strategy, 0.0, 1.0, 1);
 
         GeoOutputWriter writer{gid_output_settings, mWorkingDirectory, model_part};
         writer.WriteGiDOutput(model_part, gid_output_settings);
     }
 
     int KratosExecute::ExecuteWithPiping(ModelPart& model_part,
-                                          const std::vector<std::shared_ptr<Process>>& processes,
                                           const Kratos::Parameters& gid_output_settings,
                                           const CriticalHeadInfo& criticalHeadInfo,
                                           LoggerOutput::Pointer p_output,
@@ -447,11 +441,11 @@ namespace Kratos
         shared_ptr<Process> RiverBoundary;
         if (mCriticalHeadBoundaryModelPartName.empty())
         {
-            RiverBoundary = FindRiverBoundaryAutomatically(p_solving_strategy, processes);
+            RiverBoundary = FindRiverBoundaryAutomatically(p_solving_strategy);
         }
         else
         {
-            RiverBoundary = FindRiverBoundaryByName(mCriticalHeadBoundaryModelPartName, processes);
+            RiverBoundary = FindRiverBoundaryByName(mCriticalHeadBoundaryModelPartName);
         }
 
         if (!RiverBoundary)
@@ -459,7 +453,7 @@ namespace Kratos
             KRATOS_ERROR << "No river boundary found.";
         }
 
-        FindCriticalHead(model_part, processes, gid_output_settings, criticalHeadInfo, p_output, RiverBoundary,
+        FindCriticalHead(model_part, gid_output_settings, criticalHeadInfo, p_output, RiverBoundary,
                          p_solving_strategy, rCallBackFunctions);
 
         KRATOS_INFO_IF("GeoFlowKernel", this->GetEchoLevel() > 0) << "Writing result to: " << mWorkingDirectory << "\\criticalHead.json" << std::endl;
@@ -521,7 +515,6 @@ namespace Kratos
     }
 
     int KratosExecute::FindCriticalHead(ModelPart& model_part,
-                                        const std::vector<std::shared_ptr<Process>>& processes,
                                         const Kratos::Parameters& gid_output_settings,
                                         const CriticalHeadInfo& criticalHeadInfo,
                                         LoggerOutput::Pointer p_output,
@@ -564,7 +557,7 @@ namespace Kratos
             rCallBackFunctions.rReportTextualProgress(progress.data());
             rCallBackFunctions.rReportProgress(((double)step) / ((double)maxSteps));
 
-            MainExecution(model_part, processes, p_solving_strategy, 0.0, 1.0, 1);
+            MainExecution(model_part, p_solving_strategy, 0.0, 1.0, 1);
 
             auto count = std::size_t{0};
             for (Element *element : pipeElements)
@@ -632,12 +625,11 @@ namespace Kratos
         ResetModelParts();
     }
 
-    shared_ptr<Process> KratosExecute::FindRiverBoundaryByName(const std::string& rCriticalHeadBoundaryModelPartName,
-                                                               const std::vector<std::shared_ptr<Process>>& rProcesses)
+    shared_ptr<Process> KratosExecute::FindRiverBoundaryByName(const std::string& rCriticalHeadBoundaryModelPartName) const
     {
         shared_ptr<Process> RiverBoundary;
 
-        for (const auto& process : rProcesses)
+        for (const auto& process : mProcesses)
         {
             if (process->Info() == "ApplyConstantHydrostaticPressureProcess")
             {
@@ -659,8 +651,7 @@ namespace Kratos
         return RiverBoundary;
     }
 
-    shared_ptr<Process> KratosExecute::FindRiverBoundaryAutomatically(const KratosExecute::GeoMechanicsNewtonRaphsonErosionProcessStrategyType::Pointer& rpSolvingStrategy,
-                                                                      const std::vector<std::shared_ptr<Process>>& rProcesses)
+    shared_ptr<Process> KratosExecute::FindRiverBoundaryAutomatically(const KratosExecute::GeoMechanicsNewtonRaphsonErosionProcessStrategyType::Pointer& rpSolvingStrategy) const
     {
         shared_ptr<Process> RiverBoundary;
 
@@ -683,7 +674,7 @@ namespace Kratos
         }
 
         // Get Find boundary in Processes
-        for (const auto& process : rProcesses)
+        for (const auto& process : mProcesses)
         {
             ModelPart *currentModelPart;
 

@@ -66,15 +66,13 @@ namespace Kratos
                                 const std::function<bool()>&             rShouldCancel);
 
         void ExecuteWithoutPiping(ModelPart& model_part,
-                                                 const std::vector<std::shared_ptr<Process>>& processes,
-                                                 const Kratos::Parameters& gid_output_settings) const;
+                                  const Kratos::Parameters& gid_output_settings) const;
 
         int ExecuteWithPiping(ModelPart& model_part,
-                                              const std::vector<std::shared_ptr<Process>>& processes,
-                                              const Kratos::Parameters& gid_output_settings,
-                                              const CriticalHeadInfo& criticalHeadInfo,
-                                              LoggerOutput::Pointer p_output,
-                                              const CallBackFunctions& rCallBackFunctions);
+                              const Kratos::Parameters& gid_output_settings,
+                              const CriticalHeadInfo& criticalHeadInfo,
+                              LoggerOutput::Pointer p_output,
+                              const CallBackFunctions& rCallBackFunctions);
 
         void AddNodalSolutionStepVariables(ModelPart& model_part) const;
 
@@ -96,7 +94,6 @@ namespace Kratos
             GeoMechanicsNewtonRaphsonErosionProcessStrategyType;
 
         int FindCriticalHead(ModelPart& model_part,
-                               const std::vector<std::shared_ptr<Process>>& processes,
                                const Kratos::Parameters& gid_output_settings,
                                const CriticalHeadInfo& criticalHeadInfo,
                                LoggerOutput::Pointer p_output,
@@ -118,7 +115,7 @@ namespace Kratos
         static ConvergenceCriteriaType::Pointer setup_criteria_dgeoflow();
         static LinearSolverType::Pointer setup_solver_dgeoflow();
         static GeoMechanicsNewtonRaphsonErosionProcessStrategyType::Pointer setup_strategy_dgeoflow(ModelPart &model_part);
-        static std::vector<std::shared_ptr<Process>> parseProcess(ModelPart &model_part, Parameters projFile);
+        void parseProcess(ModelPart &model_part, Parameters projFile);
 
     private:
         // Initial Setup
@@ -131,6 +128,7 @@ namespace Kratos
         double criticalHead;
         double currentHead;
         bool exitLoop = false;
+        std::vector<std::shared_ptr<Process>> mProcesses;
 
         void ResetModelParts();
 
@@ -140,17 +138,14 @@ namespace Kratos
 
         void SetEchoLevel(int level);
 
-        static shared_ptr<Process> FindRiverBoundaryByName(const std::string& rCriticalHeadBoundaryModelPartName,
-                                                           const std::vector<std::shared_ptr<Process>>& rProcesses);
+        shared_ptr<Process> FindRiverBoundaryByName(const std::string& rCriticalHeadBoundaryModelPartName) const;
 
-        static shared_ptr<Process> FindRiverBoundaryAutomatically(const KratosExecute::GeoMechanicsNewtonRaphsonErosionProcessStrategyType::Pointer& rpSolvingStrategy,
-                                                                  const std::vector<std::shared_ptr<Process>>& rProcesses);
+        shared_ptr<Process> FindRiverBoundaryAutomatically(const KratosExecute::GeoMechanicsNewtonRaphsonErosionProcessStrategyType::Pointer& rpSolvingStrategy) const;
 
-        static int MainExecution(ModelPart&                                                          rModelPart,
-                                 const std::vector<std::shared_ptr<Process>>&                        rProcesses,
-                                 const GeoMechanicsNewtonRaphsonErosionProcessStrategyType::Pointer& rpSolvingStrategy,
-                                 double                                                              Time,
-                                 double                                                              DeltaTime,
-                                 unsigned int                                                        NumberOfIterations);
+        int MainExecution(ModelPart&                                                          rModelPart,
+                          const GeoMechanicsNewtonRaphsonErosionProcessStrategyType::Pointer& rpSolvingStrategy,
+                          double                                                              Time,
+                          double                                                              DeltaTime,
+                          unsigned int                                                        NumberOfIterations) const;
     };
 }
