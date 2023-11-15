@@ -153,6 +153,8 @@ class ConvectionDiffusionSolver(PythonSolver):
             "problem_domain_sub_model_part_list": [""],
             "processes_sub_model_part_list": [""],
             "auxiliary_variables_list" : [],
+            "auxiliary_dofs_list" : [],
+            "auxiliary_reaction_list" : [],
             "assign_neighbour_elements_to_conditions" : true
         }
         """)
@@ -278,6 +280,12 @@ class ConvectionDiffusionSolver(PythonSolver):
         # Add the DOFs and reaction list to each node
         KratosMultiphysics.VariableUtils.AddDofsList(dofs_with_reactions_list, self.main_model_part)
 
+        # Append user-defined DOFs and reactions in the ProjectParameters
+        auxiliary_solver_utilities.AddAuxiliaryDofsToDofsWithReactionsList(
+            self.settings["auxiliary_dofs_list"],
+            self.settings["auxiliary_reaction_list"],
+            dofs_with_reactions_list)
+
         KratosMultiphysics.Logger.PrintInfo("::[ConvectionDiffusionSolver]:: ", "DOF's ADDED")
 
     def GetDofsList(self):
@@ -317,7 +325,8 @@ class ConvectionDiffusionSolver(PythonSolver):
             else:
                 KratosMultiphysics.Logger.PrintInfo("::[ConvectionDiffusionSolver]:: ", "Materials were not imported.")
 
-            KratosMultiphysics.ReplaceElementsAndConditionsProcess(self.main_model_part,self._get_element_condition_replace_settings()).Execute()
+            # Ho commentato "ReplaceElementsAndConditionsProcess"
+            # KratosMultiphysics.ReplaceElementsAndConditionsProcess(self.main_model_part,self._get_element_condition_replace_settings()).Execute()
 
             tmoc = KratosMultiphysics.TetrahedralMeshOrientationCheck
             throw_errors = False

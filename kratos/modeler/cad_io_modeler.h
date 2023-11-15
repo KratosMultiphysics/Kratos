@@ -102,6 +102,12 @@ public:
     {
     }
 
+    Parameters ReadParamatersFile(
+        const std::string& rDataFileName) const;
+
+    void CreateTheSnakeCoordinates(const Parameters refinements_parameters);
+    
+
     ///@}
 
 private:
