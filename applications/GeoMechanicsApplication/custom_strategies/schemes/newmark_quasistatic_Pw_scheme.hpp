@@ -25,21 +25,16 @@ namespace Kratos {
 
 template <class TSparseSpace, class TDenseSpace>
 class NewmarkQuasistaticPwScheme
-    : public NewmarkQuasistaticUPwScheme<TSparseSpace, TDenseSpace> {
+    : public GeneralizedNewmarkScheme<TSparseSpace, TDenseSpace> {
 public:
     KRATOS_CLASS_POINTER_DEFINITION(NewmarkQuasistaticPwScheme);
 
     using BaseType = Scheme<TSparseSpace, TDenseSpace>;
     using TSystemMatrixType = typename BaseType::TSystemMatrixType;
     using TSystemVectorType = typename BaseType::TSystemVectorType;
-    using MotherType = NewmarkQuasistaticUPwScheme<TSparseSpace, TDenseSpace>;
-    // mBeta and mGamma are not really used
-    using MotherType::mBeta;
-    using MotherType::mGamma;
-    using MotherType::mTheta;
 
     explicit NewmarkQuasistaticPwScheme(double theta)
-        : NewmarkQuasistaticUPwScheme<TSparseSpace, TDenseSpace>(0.25, 0.5, theta)
+        : GeneralizedNewmarkScheme<TSparseSpace, TDenseSpace>(theta)
     {
     }
 
@@ -50,7 +45,7 @@ public:
         GeoMechanicsTimeIntegrationScheme<TSparseSpace, TDenseSpace>::Check(rModelPart);
 
         // Check beta, gamma and theta
-        KRATOS_ERROR_IF(mBeta <= 0.0 || mGamma <= 0.0 || mTheta <= 0.0)
+        KRATOS_ERROR_IF(this->mTheta <= 0.0)
             << "Some of the scheme variables: beta, gamma or theta has an "
                "invalid value "
             << std::endl;
@@ -81,6 +76,16 @@ protected:
             this->CheckSolutionStepsData(rNode, DT_WATER_PRESSURE);
             this->CheckDof(rNode, WATER_PRESSURE);
         }
+    }
+
+    inline void SetTimeFactors(ModelPart& rModelPart) override
+    {
+        KRATOS_TRY
+
+        this->SetDeltaTime(rModelPart.GetProcessInfo()[DELTA_TIME]);
+        rModelPart.GetProcessInfo()[DT_PRESSURE_COEFFICIENT] = 1.0/(this->mTheta*this->GetDeltaTime());
+
+        KRATOS_CATCH("")
     }
 
 }; // Class NewmarkQuasistaticPwScheme
