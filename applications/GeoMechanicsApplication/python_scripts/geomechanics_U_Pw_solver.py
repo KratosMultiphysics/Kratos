@@ -261,7 +261,8 @@ class UPwSolver(GeoSolver):
 
         return convergence_criterion
 
-    def _ConstructBuilderAndSolver(self, block_builder):
+    def _CreateBuilderAndSolver(self):
+        block_builder = self.settings["block_builder"].GetBool()
         if (block_builder and
             self.settings.Has("prebuild_dynamics") and
             self.settings["prebuild_dynamics"].GetBool()):
