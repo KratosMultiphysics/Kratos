@@ -1,5 +1,6 @@
 from datetime import datetime
 from typing import Union, Any
+from pathlib import Path
 
 import KratosMultiphysics as Kratos
 from KratosMultiphysics.OptimizationApplication.responses.response_function import ResponseFunction
@@ -113,6 +114,7 @@ class OptimizationProblemAsciiOutputProcess(Kratos.OutputProcess):
             # now get the buffered data headers
             self.list_of_headers = self._GetHeaders(lambda x: x.GetBufferedData())
             # write the ehader information
+            Path(self.output_file_name).parent.mkdir(exist_ok=True, parents=True)
             self._WriteHeaders()
             self.initialized_headers = True
 
