@@ -405,6 +405,8 @@ jobs:
       KRATOS_BUILD_TYPE: Custom
       OMPI_MCA_rmaps_base_oversubscribe: 1 # Allow oversubscription for MPI (needed for OpenMPI >= 3.0)
       OMPI_MCA_btl_vader_single_copy_mechanism: none # suppressing some annoying OpenMPI messages
+      OMPI_ALLOW_RUN_AS_ROOT: 1 # required since for now running as root
+      OMPI_ALLOW_RUN_AS_ROOT_CONFIRM: 1 # required since for now running as root
 
     container:
       image: kratosmultiphysics/kratos-image-ci-ubuntu-22-04:latest
