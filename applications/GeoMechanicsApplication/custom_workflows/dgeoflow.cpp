@@ -597,6 +597,7 @@ namespace Kratos
                 return 0;
             }
         }
+        return 0;
     }
 
     void KratosExecute::HandleCriticalHeadFound(const CriticalHeadInfo& criticalHeadInfo)
