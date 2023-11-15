@@ -131,7 +131,7 @@ class MaterialPropertiesControl(Control):
         if not IsSameContainerExpression(control_field, self.GetEmptyField()):
             raise RuntimeError(f"Updates for the required element container not found for control \"{self.GetName()}\". [ required model part name: {self.adjoint_model_part.FullName()}, given model part name: {control_field.GetModelPart().FullName()} ]")
 
-        filtered_control_field = self.__GetFilter().FilterIntegratedField(control_field)
+        filtered_control_field = self.__GetFilter().FilterField(control_field)
         unbuffered_data = ComponentDataView(self, self.optimization_problem).GetUnBufferedData()
         unbuffered_data.SetValue("filtered_control_field", filtered_control_field.Clone(), overwrite=True)
         KratosOA.PropertiesVariableExpressionIO.Write(filtered_control_field, self.controlled_physical_variable)
