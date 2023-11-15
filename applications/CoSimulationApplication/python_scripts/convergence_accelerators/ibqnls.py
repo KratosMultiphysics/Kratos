@@ -161,8 +161,10 @@ class IBQNLSConvergenceAccelerator(CoSimulationConvergenceAccelerator):
 
             if data_name == list(self.W_new.keys())[-1]: ## Check if last solver in the sequence
                 # Saving the V matrix for the next (first) iteration to recover the approximate jacobian
-                if self.V_old[data_name] != []:
+                if len(self.V_old[data_name]) > 0 and len(self.V_new[data_name]) > 0:
                     self.previousV = np.hstack((self.V_new[data_name].copy(), self.V_old[data_name].copy()))
+                elif len(self.V_new[data_name]) == 0:
+                    self.previousV = self.V_old[data_name].copy()
                 else:
                     self.previousV = self.V_new[data_name].copy()
 
