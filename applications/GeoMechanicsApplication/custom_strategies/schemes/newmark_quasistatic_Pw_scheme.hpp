@@ -34,7 +34,8 @@ public:
     using TSystemVectorType = typename BaseType::TSystemVectorType;
 
     explicit NewmarkQuasistaticPwScheme(double theta)
-        : GeneralizedNewmarkScheme<TSparseSpace, TDenseSpace>(theta)
+        : GeneralizedNewmarkScheme<TSparseSpace, TDenseSpace>(
+              theta, WATER_PRESSURE, DT_WATER_PRESSURE, DT_PRESSURE_COEFFICIENT)
     {
     }
 
@@ -54,40 +55,6 @@ public:
 
         KRATOS_CATCH("")
     }
-
-protected:
-    inline void UpdateVariablesDerivatives(ModelPart& rModelPart) override
-    {
-        KRATOS_TRY
-
-        // Update DtPressure
-        block_for_each(rModelPart.Nodes(), [&](Node& rNode) {
-            this->UpdateScalarTimeDerivative(rNode, WATER_PRESSURE, DT_WATER_PRESSURE);
-        });
-
-        KRATOS_CATCH("")
-    }
-
-    void CheckAllocatedVariables(const ModelPart& rModelPart) const override
-    {
-        // check that variables are correctly allocated
-        for (const auto& rNode : rModelPart.Nodes()) {
-            this->CheckSolutionStepsData(rNode, WATER_PRESSURE);
-            this->CheckSolutionStepsData(rNode, DT_WATER_PRESSURE);
-            this->CheckDof(rNode, WATER_PRESSURE);
-        }
-    }
-
-    inline void SetTimeFactors(ModelPart& rModelPart) override
-    {
-        KRATOS_TRY
-
-        this->SetDeltaTime(rModelPart.GetProcessInfo()[DELTA_TIME]);
-        rModelPart.GetProcessInfo()[DT_PRESSURE_COEFFICIENT] = 1.0/(this->mTheta*this->GetDeltaTime());
-
-        KRATOS_CATCH("")
-    }
-
 }; // Class NewmarkQuasistaticPwScheme
 
 } // namespace Kratos

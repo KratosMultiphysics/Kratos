@@ -19,12 +19,30 @@ template <class TSparseSpace, class TDenseSpace>
 class GeneralizedNewmarkScheme
     : public GeoMechanicsTimeIntegrationScheme<TSparseSpace, TDenseSpace> {
 public:
-    explicit GeneralizedNewmarkScheme(double theta)
-        : GeoMechanicsTimeIntegrationScheme<TSparseSpace, TDenseSpace>(), mTheta(theta)
+    explicit GeneralizedNewmarkScheme(double theta,
+                                      const Variable<double>& rVariable,
+                                      const Variable<double>& rDeltaTimeVariable,
+                                      const Variable<double>& rDeltaTimeVariableCoefficient)
+        : GeoMechanicsTimeIntegrationScheme<TSparseSpace, TDenseSpace>(),
+          mTheta(theta),
+          mVariable(rVariable),
+          mDeltaTimeVariable(rDeltaTimeVariable),
+          mDeltaTimeVariableCoefficient(rDeltaTimeVariableCoefficient)
     {
     }
 
 protected:
+    inline void UpdateVariablesDerivatives(ModelPart& rModelPart) override
+    {
+        KRATOS_TRY
+
+        block_for_each(rModelPart.Nodes(), [&](Node& rNode) {
+            this->UpdateScalarTimeDerivative(rNode, mVariable, mDeltaTimeVariable);
+        });
+
+        KRATOS_CATCH("")
+    }
+
     void UpdateScalarTimeDerivative(Node& rNode,
                                     const Variable<double>& variable,
                                     const Variable<double>& dt_variable) const override
@@ -39,7 +57,32 @@ protected:
             (mTheta * this->GetDeltaTime());
     }
 
+    void CheckAllocatedVariables(const ModelPart& rModelPart) const override
+    {
+        for (const auto& r_node : rModelPart.Nodes()) {
+            this->CheckSolutionStepsData(r_node, mVariable);
+            this->CheckSolutionStepsData(r_node, mDeltaTimeVariable);
+            this->CheckDof(r_node, mVariable);
+        }
+    }
+
+    inline void SetTimeFactors(ModelPart& rModelPart) override
+    {
+        KRATOS_TRY
+
+        this->SetDeltaTime(rModelPart.GetProcessInfo()[DELTA_TIME]);
+        rModelPart.GetProcessInfo()[mDeltaTimeVariableCoefficient] =
+            1.0 / (this->mTheta * this->GetDeltaTime());
+
+        KRATOS_CATCH("")
+    }
+
     double mTheta = 0.0;
+
+private:
+    Variable<double> mVariable;
+    Variable<double> mDeltaTimeVariable;
+    Variable<double> mDeltaTimeVariableCoefficient;
 };
 
 } // namespace Kratos

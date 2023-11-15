@@ -38,7 +38,8 @@ public:
     KRATOS_CLASS_POINTER_DEFINITION(NewmarkTScheme);
 
     explicit NewmarkTScheme(double theta)
-        : GeneralizedNewmarkScheme<TSparseSpace, TDenseSpace>(theta)
+        : GeneralizedNewmarkScheme<TSparseSpace, TDenseSpace>(
+              theta, TEMPERATURE, DT_TEMPERATURE, DT_TEMPERATURE_COEFFICIENT)
     {
     }
 
@@ -54,39 +55,6 @@ public:
 
         KRATOS_CATCH("")
     }
-
-    void CheckAllocatedVariables(const ModelPart& rModelPart) const override
-    {
-        for (const auto& r_node : rModelPart.Nodes()) {
-            this->CheckSolutionStepsData(r_node, TEMPERATURE);
-            this->CheckSolutionStepsData(r_node, DT_TEMPERATURE);
-            this->CheckDof(r_node, TEMPERATURE);
-        }
-    }
-
-protected:
-    inline void UpdateVariablesDerivatives(ModelPart& rModelPart) override
-    {
-        KRATOS_TRY
-
-        block_for_each(rModelPart.Nodes(), [this](Node& rNode) {
-            this->UpdateScalarTimeDerivative(rNode, TEMPERATURE, DT_TEMPERATURE);
-        });
-
-        KRATOS_CATCH("")
-    }
-
-    inline void SetTimeFactors(ModelPart& rModelPart) override
-    {
-        KRATOS_TRY
-
-        this->SetDeltaTime(rModelPart.GetProcessInfo()[DELTA_TIME]);
-        rModelPart.GetProcessInfo()[DT_TEMPERATURE_COEFFICIENT] =
-            1.0 / (this->mTheta * this->GetDeltaTime());
-
-        KRATOS_CATCH("")
-    }
-
 
 }; // Class NewmarkTScheme
 } // namespace Kratos
