@@ -45,16 +45,9 @@ KRATOS_TEST_CASE_IN_SUITE(ForInvalidTheta_CheckBackwardEulerQuasistaticTScheme_T
                           KratosGeoMechanicsFastSuite)
 {
     constexpr int invalid_theta = -2;
-    NewmarkTScheme<SparseSpaceType, LocalSpaceType> scheme(invalid_theta);
+    using SchemeType = NewmarkTScheme<SparseSpaceType, LocalSpaceType>;
 
-    Model model;
-    auto& model_part = model.CreateModelPart("dummy", 2);
-    model_part.AddNodalSolutionStepVariable(TEMPERATURE);
-    model_part.AddNodalSolutionStepVariable(DT_TEMPERATURE);
-    auto p_node = model_part.CreateNewNode(0, 0.0, 0.0, 0.0);
-    p_node->AddDof(TEMPERATURE);
-
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN(scheme.Check(model_part),
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(SchemeType scheme(invalid_theta),
                                       "Theta has an invalid value")
 }
 

@@ -53,17 +53,10 @@ KRATOS_TEST_CASE_IN_SUITE(ForInvalidTheta_CheckNewmarkPwScheme_Throws,
                           KratosGeoMechanicsFastSuite)
 {
     constexpr int invalid_theta = -2;
-    NewmarkQuasistaticPwScheme<SparseSpaceType, LocalSpaceType> scheme(invalid_theta);
+    using SchemeType = NewmarkQuasistaticPwScheme<SparseSpaceType, LocalSpaceType>;
 
-    Model model;
-    auto& model_part = model.CreateModelPart("dummy", 2);
-    model_part.AddNodalSolutionStepVariable(WATER_PRESSURE);
-    model_part.AddNodalSolutionStepVariable(DT_WATER_PRESSURE);
-    auto p_node = model_part.CreateNewNode(0, 0.0, 0.0, 0.0);
-    p_node->AddDof(WATER_PRESSURE);
-
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN(scheme.Check(model_part),
-                                      "Some of the scheme variables: beta, gamma or theta has an invalid value")
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(SchemeType scheme(invalid_theta),
+                                      "Theta has an invalid value")
 }
 
 KRATOS_TEST_CASE_IN_SUITE(ForInvalidBufferSize_CheckNewmarkPwScheme_Throws,

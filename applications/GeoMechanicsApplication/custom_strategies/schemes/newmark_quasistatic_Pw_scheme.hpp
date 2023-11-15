@@ -39,22 +39,6 @@ public:
     {
     }
 
-    int Check(const ModelPart& rModelPart) const override
-    {
-        KRATOS_TRY
-
-        GeoMechanicsTimeIntegrationScheme<TSparseSpace, TDenseSpace>::Check(rModelPart);
-
-        // Check beta, gamma and theta
-        KRATOS_ERROR_IF(this->mTheta <= 0.0)
-            << "Some of the scheme variables: beta, gamma or theta has an "
-               "invalid value "
-            << std::endl;
-
-        return 0;
-
-        KRATOS_CATCH("")
-    }
 }; // Class NewmarkQuasistaticPwScheme
 
 } // namespace Kratos

@@ -43,18 +43,5 @@ public:
     {
     }
 
-    ~NewmarkTScheme() override = default;
-
-    int Check(const ModelPart& rModelPart) const override
-    {
-        KRATOS_TRY
-
-        GeoMechanicsTimeIntegrationScheme<TSparseSpace, TDenseSpace>::Check(rModelPart);
-        KRATOS_ERROR_IF(this->mTheta <= 0) << "Theta has an invalid value\n";
-        return 0;
-
-        KRATOS_CATCH("")
-    }
-
 }; // Class NewmarkTScheme
 } // namespace Kratos

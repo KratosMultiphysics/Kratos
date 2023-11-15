@@ -29,6 +29,7 @@ public:
           mDeltaTimeVariable(rDeltaTimeVariable),
           mDeltaTimeVariableCoefficient(rDeltaTimeVariableCoefficient)
     {
+        KRATOS_ERROR_IF(this->mTheta <= 0) << "Theta has an invalid value\n";
     }
 
 protected:
