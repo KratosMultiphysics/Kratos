@@ -126,7 +126,7 @@ void AddCustomStrategiesToPython(pybind11::module& m)
     using IncrementalNewmarkBlockBuilderAndSolverWithMassAndDampingType = IncrementalNewmarkBlockBuilderAndSolverWithMassAndDamping< SparseSpaceType, LocalSpaceType, LinearSolverType >;
     py::class_< IncrementalNewmarkBlockBuilderAndSolverWithMassAndDampingType, IncrementalNewmarkBlockBuilderAndSolverWithMassAndDampingType::Pointer, BuilderAndSolverType>(m, "IncrementalNewmarkBlockBuilderAndSolverWithMassAndDamping")
         .def(py::init< LinearSolverType::Pointer >())
-        .def(py::init< LinearSolverType::Pointer, Parameters >())
+        .def(py::init< LinearSolverType::Pointer, Parameters, double, double >())
         ;
 }
 

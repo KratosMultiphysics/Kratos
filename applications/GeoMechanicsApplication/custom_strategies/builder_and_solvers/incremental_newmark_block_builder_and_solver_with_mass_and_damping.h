@@ -114,10 +114,6 @@ public:
     using ElementsContainerType = PointerVectorSet < Element, IndexedObject>;
     using EquationIdVectorType = Element::EquationIdVectorType;
 
-    double mBeta = 0.25;
-    double mGamma = 0.5;
-
-
 
     ///@}
     ///@name Life Cycle
@@ -133,8 +129,8 @@ public:
      */
     explicit IncrementalNewmarkBlockBuilderAndSolverWithMassAndDamping(
         typename TLinearSolver::Pointer pNewLinearSystemSolver,
-        Parameters ThisParameters
-        ) : BaseType(pNewLinearSystemSolver)
+        Parameters ThisParameters, double beta, double gamma 
+        ) : BaseType(pNewLinearSystemSolver), mBeta(beta), mGamma(gamma)
     {
         // Validate and assign defaults
         ThisParameters = this->ValidateAndAssignParameters(ThisParameters, this->GetDefaultParameters());
@@ -156,6 +152,24 @@ public:
     ///@}
     ///@name Operations
     ///@{
+
+
+
+    void InitializeSolutionStep(
+        ModelPart& rModelPart,
+        TSystemMatrixType& rA,
+        TSystemVectorType& rDx,
+        TSystemVectorType& rb
+    )
+    {
+
+        mPrevIterationForce.resize(BaseType::mEquationSystemSize, false);
+        TSparseSpace::SetToZero(mPrevIterationForce);
+
+    }
+
+
+
 
     /**
      * @brief Function to perform the build of the RHS. The vector could be sized as the total number
@@ -214,11 +228,11 @@ public:
 
         }
 
-        if (r_current_process_info[NL_ITERATION_NUMBER] == 1)
-        {
-            mPrevIterationForce.resize(BaseType::mEquationSystemSize, false);
-            TSparseSpace::SetToZero(mPrevIterationForce);
-        }
+        // if (r_current_process_info[NL_ITERATION_NUMBER] == 1)
+        // {
+        //     mPrevIterationForce.resize(BaseType::mEquationSystemSize, false);
+        //     TSparseSpace::SetToZero(mPrevIterationForce);
+        // }
 
         // Assemble all elements
         const auto timer = BuiltinTimer();
@@ -280,16 +294,9 @@ public:
 
         rb = mCurrentRhs - mPrevExternalForce - mPrevIterationForce;
 
-
-        //if (r_current_process_info[NL_ITERATION_NUMBER] == 1) {
         AddMassAndDampingToRhs(rModelPart, rb);
-        //}
 
-        for (int i = 0; i < BaseType::mEquationSystemSize; i++)
-        {
-            //mPrevExternalForce(i) = new_rhs(i);
-            mPrevIterationForce(i) = rb(i);
-        }
+        std::copy(rb.begin(), rb.end(), mPrevIterationForce.begin());
 
 
         KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolverWithMassAndDamping", this->GetEchoLevel() >= 1) << "Build time: " << timer.ElapsedSeconds() << std::endl;
@@ -381,17 +388,19 @@ public:
             Timer::Stop("ApplyRHSConstraints");
         }
 
+        const auto timer = BuiltinTimer();
         BaseType::ApplyDirichletConditions(pScheme, rModelPart, rA, rDx, rb);
+        KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolverWithMassAndDamping", this->GetEchoLevel() >= 1) << "Apply dirichlet: " << timer.ElapsedSeconds() << std::endl;
 
         KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolverWithMassAndDamping", this->GetEchoLevel() == 3) << "Before the solution of the system" << "\nSystem Matrix = " << rA << "\nUnknowns vector = " << rDx << "\nRHS vector = " << rb << std::endl;
 
-        const auto timer = BuiltinTimer();
+        const auto timer2 = BuiltinTimer();
         Timer::Start("Solve");
 
         BaseType::SystemSolveWithPhysics(rA, rDx, rb, rModelPart);
 
         Timer::Stop("Solve");
-        KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolverWithMassAndDamping", this->GetEchoLevel() >= 1) << "System solve time: " << timer.ElapsedSeconds() << std::endl;
+        KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolverWithMassAndDamping", this->GetEchoLevel() >= 1) << "System solve time: " << timer2.ElapsedSeconds() << std::endl;
 
         KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolverWithMassAndDamping", this->GetEchoLevel() == 3) << "After the solution of the system" << "\nSystem Matrix = " << rA << "\nUnknowns vector = " << rDx << "\nRHS vector = " << rb << std::endl;
 
@@ -412,7 +421,7 @@ public:
         KRATOS_TRY
 
     	Timer::Start("BuildRHS");
-
+        const auto timer = BuiltinTimer();
         BuildRHSNoDirichlet(pScheme, rModelPart, rb);
 
         //NOTE: dofs are assumed to be numbered consecutively in the BlockBuilderAndSolver
@@ -424,6 +433,8 @@ public:
                 rb[i] = 0.0;
             }
             });
+
+        KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolverWithMassAndDamping", this->GetEchoLevel() >= 1) << "build rhs no dirichlete time: " << timer.ElapsedSeconds() << std::endl;
 
         Timer::Stop("BuildRHS");
 
@@ -447,10 +458,9 @@ public:
     {
         ResidualBasedBlockBuilderAndSolver::FinalizeSolutionStep(rModelPart, rA, rDx, rb);
 
-        for (int i = 0; i < BaseType::mEquationSystemSize; i++)
-        {
-            mPrevExternalForce(i) = mCurrentRhs(i);
-        }
+        // copy current rhs to prev external force
+        std::copy(mCurrentRhs.begin(), mCurrentRhs.end(), mPrevExternalForce.begin());
+
 
     }
 
@@ -517,6 +527,9 @@ protected:
     ///@name Protected member Variables
     ///@{
 
+    double mBeta = 0.25;
+    double mGamma = 0.5;
+
     ///@}
     ///@name Protected Operators
     ///@{
@@ -526,8 +539,10 @@ protected:
     ///@{
 
 
+
     void GetFirstAndSecondDerivativeVector(TSystemVectorType& rFirstDerivativeVector, TSystemVectorType& rSecondDerivativeVector, ModelPart& rModelPart)
     {
+        const auto timer = BuiltinTimer();
         NodesArrayType& r_nodes = rModelPart.Nodes();
         const auto n_nodes = static_cast<int>(r_nodes.size());
 
@@ -540,38 +555,31 @@ protected:
             rSecondDerivativeVector.resize(BaseType::mEquationSystemSize, false);
         }
         TSparseSpace::SetToZero(rSecondDerivativeVector);
+        
+        block_for_each(rModelPart.Nodes(), [&rFirstDerivativeVector, &rSecondDerivativeVector](Node& rNode) {
+            const bool isActive = (rNode.IsDefined(ACTIVE)) ? rNode.Is(ACTIVE) : true;
+            if (isActive) {
 
-        std::size_t id_x;
-        std::size_t id_y;
-        std::size_t id_z;
+                std::size_t id_x = rNode.GetDof(DISPLACEMENT_X).EquationId();
+                std::size_t id_y = rNode.GetDof(DISPLACEMENT_Y).EquationId();
 
-        #pragma omp parallel firstprivate(n_nodes) private(id_x, id_y, id_z)
-        {
-            #pragma omp for schedule(guided, 512) nowait
-            for (int i = 0; i < n_nodes; i++) {
-                typename NodesArrayType::iterator it = r_nodes.begin() + i;
-                // If the node is active
-                if (it->IsActive()) {
+                rFirstDerivativeVector[id_x] = rNode.FastGetSolutionStepValue(VELOCITY_X);
+                rFirstDerivativeVector[id_y] = rNode.FastGetSolutionStepValue(VELOCITY_Y);
 
-                    id_x = it->GetDof(DISPLACEMENT_X).EquationId();
-                    id_y = it->GetDof(DISPLACEMENT_Y).EquationId();
+                rSecondDerivativeVector[id_x] = rNode.FastGetSolutionStepValue(ACCELERATION_X);
+                rSecondDerivativeVector[id_y] = rNode.FastGetSolutionStepValue(ACCELERATION_Y);
 
-                    rFirstDerivativeVector[id_x] = it->FastGetSolutionStepValue(VELOCITY_X);
-                    rFirstDerivativeVector[id_y] = it->FastGetSolutionStepValue(VELOCITY_Y);
+                if (rNode.HasDofFor(DISPLACEMENT_Z))
+                {
+                    std::size_t id_z = rNode.GetDof(DISPLACEMENT_Z).EquationId();
 
-                    rSecondDerivativeVector[id_x] = it->FastGetSolutionStepValue(ACCELERATION_X);
-                    rSecondDerivativeVector[id_y] = it->FastGetSolutionStepValue(ACCELERATION_Y);
-
-                    if (it->HasDofFor(DISPLACEMENT_Z))
-                    {
-                        id_z = it->GetDof(DISPLACEMENT_Z).EquationId();
-
-                        rFirstDerivativeVector[id_z] = it->FastGetSolutionStepValue(VELOCITY_Z);
-                        rSecondDerivativeVector[id_z] = it->FastGetSolutionStepValue(ACCELERATION_Z);
-                    }
+                    rFirstDerivativeVector[id_z] = rNode.FastGetSolutionStepValue(VELOCITY_Z);
+                    rSecondDerivativeVector[id_z] = rNode.FastGetSolutionStepValue(ACCELERATION_Z);
                 }
-            }
-        }
+            }});
+
+
+        KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolverWithMassAndDamping", this->GetEchoLevel() >= 1) << "Get derivatives time: " << timer.ElapsedSeconds() << std::endl;
     }
 
 
@@ -592,10 +600,6 @@ protected:
         
         //contributions to the system
         LocalSystemVectorType rhs_contribution = LocalSystemVectorType(0);
-        //LocalSystemVectorType delta_rhs = LocalSystemVectorType(BaseType::mEquationSystemSize);
-        //LocalSystemVectorType new_rhs = LocalSystemVectorType(BaseType::mEquationSystemSize);
-
-        //TSparseSpace::SetToZero(delta_rhs);
         if (mCurrentRhs.size() != BaseType::mEquationSystemSize)
         {
             mCurrentRhs.resize(BaseType::mEquationSystemSize, false);
@@ -621,7 +625,8 @@ protected:
         
 
         rhs_contribution.resize(0, false);
-    
+
+        const auto timer = BuiltinTimer();
         // assemble all conditions
         const int nconditions = static_cast<int>(r_conditions.size());
         #pragma omp for schedule(guided, 512)
@@ -641,16 +646,13 @@ protected:
 
         rb = mCurrentRhs - mPrevExternalForce - mPrevIterationForce;
 
-        //if (r_current_process_info[NL_ITERATION_NUMBER] == 1) {
+        KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolverWithMassAndDamping", this->GetEchoLevel() >= 1) << "Assemble rhs time: " << timer.ElapsedSeconds() << std::endl;
         AddMassAndDampingToRhs(rModelPart, rb);
-        //}
+        
 
-        for (int i = 0; i< BaseType::mEquationSystemSize; i++)
-        {
-            //mPrevExternalForce(i) = mCurrentRhs(i);
-            mPrevIterationForce(i) = rb(i);
-        }
-
+        // copy rhs to previousIterationForce vector
+        std::copy(rb.begin(), rb.end(), mPrevIterationForce.begin());
+        
         KRATOS_CATCH("")
 
     }
@@ -698,17 +700,22 @@ private:
 
 		// calculate and add mass and damping contribution to rhs
         double dt = rModelPart.GetProcessInfo()[DELTA_TIME];
-        double a1 = 1 / (mBeta * dt);
-        double a2 = 1 / (2 * mBeta);
-        double a3 = mGamma / mBeta;
-        double a4 = (dt * (mGamma / (2 * mBeta) - 1));
 
-        TSystemVectorType m_part = first_derivative_vector * a1 + second_derivative_vector * a2;
+        // calculate integration constants
+        const double a1 = 1 / (mBeta * dt);
+        const double a2 = 1 / (2 * mBeta);
+        const double a3 = mGamma / mBeta;
+        const double a4 = (dt * (mGamma / (2 * mBeta) - 1));
+
+        TSystemVectorType m_part = a1 * first_derivative_vector + a2 * second_derivative_vector;
         TSystemVectorType c_part = a3 * first_derivative_vector + a4 * second_derivative_vector;
+
+        const auto timer = BuiltinTimer();
 
         CalculateAndAddDynamicContributionToRhs(m_part, mMassMatrix, rdelta_b);
         CalculateAndAddDynamicContributionToRhs(c_part, mDampingMatrix, rdelta_b);
 
+        KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolverWithMassAndDamping", this->GetEchoLevel() >= 1) << "Calculate and add dynamic contribution time: " << timer.ElapsedSeconds() << std::endl;
     }
 
 

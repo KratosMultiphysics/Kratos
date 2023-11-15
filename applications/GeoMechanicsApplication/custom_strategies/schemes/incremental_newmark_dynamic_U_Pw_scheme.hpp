@@ -50,6 +50,94 @@ public:
         mPreviousRhs.resize(NumThreads);
     }
 
+    void Initialize(ModelPart& rModelPart) override
+    {
+        KRATOS_TRY;
+
+        BaseType::Initialize(rModelPart);
+
+        // initialize element as it is required to initialize solution step and non linear iteration
+        BaseType::InitializeElements(rModelPart);
+
+        const ProcessInfo& rCurrentProcessInfo = rModelPart.GetProcessInfo();
+
+        // Initialize solutionstep and non-linear iteration here as LHS is required to be constant throughout the computation
+        block_for_each(rModelPart.Elements(), [&rCurrentProcessInfo](Element& rElement) {
+            const bool isActive = (rElement.IsDefined(ACTIVE)) ? rElement.Is(ACTIVE) : true;
+            if (isActive) rElement.InitializeSolutionStep(rCurrentProcessInfo);
+            });
+
+        // initialize non linear iteration, here as LHS is requried to be constant 
+        block_for_each(rModelPart.Elements(), [&rCurrentProcessInfo](Element& rElement) {
+            const bool isActive = (rElement.IsDefined(ACTIVE)) ? rElement.Is(ACTIVE) : true;
+            if (isActive) rElement.InitializeNonLinearIteration(rCurrentProcessInfo);
+            });
+
+
+        KRATOS_CATCH("");
+    }
+
+    void InitializeSolutionStep(ModelPart& rModelPart,
+        TSystemMatrixType& A,
+        TSystemVectorType& Dx,
+        TSystemVectorType& b) override
+    {
+        KRATOS_TRY
+
+            SetTimeFactors(rModelPart);
+
+        const ProcessInfo& rCurrentProcessInfo = rModelPart.GetProcessInfo();
+
+        block_for_each(rModelPart.Conditions(), [&rCurrentProcessInfo](Condition& rCondition) {
+            const bool isActive = (rCondition.IsDefined(ACTIVE)) ? rCondition.Is(ACTIVE) : true;
+            if (isActive) rCondition.InitializeSolutionStep(rCurrentProcessInfo);
+            });
+
+        KRATOS_CATCH("")
+    }
+
+    void InitializeNonLinIteration(ModelPart& rModelPart,
+        TSystemMatrixType& A,
+        TSystemVectorType& Dx,
+        TSystemVectorType& b) override
+    {
+        KRATOS_TRY
+
+            const ProcessInfo& rCurrentProcessInfo = rModelPart.GetProcessInfo();
+
+
+        block_for_each(rModelPart.Conditions(), [&rCurrentProcessInfo](Condition& rCondition) {
+            const bool isActive = (rCondition.IsDefined(ACTIVE)) ? rCondition.Is(ACTIVE) : true;
+            if (isActive) rCondition.InitializeNonLinearIteration(rCurrentProcessInfo);
+            });
+
+        KRATOS_CATCH("")
+    }
+
+
+    void FinalizeNonLinIteration(ModelPart& rModelPart,
+        TSystemMatrixType& A,
+        TSystemVectorType& Dx,
+        TSystemVectorType& b) override
+    {
+        KRATOS_TRY
+
+            const ProcessInfo& rCurrentProcessInfo = rModelPart.GetProcessInfo();
+
+        // finalize non linear interation for element in order to calculate stresses within element
+        block_for_each(rModelPart.Elements(), [&rCurrentProcessInfo](Element& rElement) {
+            const bool isActive = (rElement.IsDefined(ACTIVE)) ? rElement.Is(ACTIVE) : true;
+            if (isActive) rElement.FinalizeNonLinearIteration(rCurrentProcessInfo);
+            });
+
+        block_for_each(rModelPart.Conditions(), [&rCurrentProcessInfo](Condition& rCondition) {
+            const bool isActive = (rCondition.IsDefined(ACTIVE)) ? rCondition.Is(ACTIVE) : true;
+            if (isActive) rCondition.FinalizeNonLinearIteration(rCurrentProcessInfo);
+            });
+
+        KRATOS_CATCH("")
+    }
+
     void Predict(
         ModelPart& rModelPart,
         DofsArrayType& rDofSet,
@@ -57,11 +145,7 @@ public:
         TSystemVectorType& Dx,
         TSystemVectorType& b) override
     {
-        KRATOS_TRY
-
-		// no prediction
-
-        KRATOS_CATCH( "" )
+		// no prediction required
     }
 
     void CalculateSystemContributions(
@@ -81,9 +165,8 @@ public:
 
         rCurrentCondition.CalculateDampingMatrix(mDampingMatrix[thread], CurrentProcessInfo);
 
+        // here dynamics are only added to lhs, dynamics are added to the right hand side within the builder_and_solver
         this->AddDynamicsToLHS(LHS_Contribution, mMassMatrix[thread], mDampingMatrix[thread], CurrentProcessInfo);
-
-        //this->AddDynamicsToRHS(rCurrentCondition, RHS_Contribution, mMassMatrix[thread], mDampingMatrix[thread], CurrentProcessInfo);
 
         rCurrentCondition.EquationIdVector(EquationId, CurrentProcessInfo);
 
@@ -99,22 +182,34 @@ public:
     {
         KRATOS_TRY
 
-        int thread = OpenMPUtils::ThisThread();
+        // no rhs contribution from elements
+        this->CalculateLHSContribution(
+            rCurrentElement,
+            LHS_Contribution,
+            EquationId, CurrentProcessInfo);
 
-        rCurrentElement.CalculateLocalSystem(LHS_Contribution,RHS_Contribution,CurrentProcessInfo);
-
-        // no rhs contribution from stiffness
+        if (RHS_Contribution.size() != EquationId.size())
+            RHS_Contribution.resize(EquationId.size(), false);
+        
         TSparseSpace::SetToZero(RHS_Contribution);
 
-        rCurrentElement.CalculateMassMatrix(mMassMatrix[thread],CurrentProcessInfo);
 
-        rCurrentElement.CalculateDampingMatrix(mDampingMatrix[thread],CurrentProcessInfo);
 
-        this->AddDynamicsToLHS(LHS_Contribution, mMassMatrix[thread], mDampingMatrix[thread], CurrentProcessInfo);
-
-        //this->AddDynamicsToRHS(rCurrentElement, RHS_Contribution, mMassMatrix[thread], mDampingMatrix[thread], CurrentProcessInfo);
-
-        rCurrentElement.EquationIdVector(EquationId,CurrentProcessInfo);
+        // int thread = OpenMPUtils::ThisThread();
+        //
+        // rCurrentElement.CalculateLocalSystem(LHS_Contribution, RHS_Contribution, CurrentProcessInfo);
+        //
+        // TSparseSpace::SetToZero(RHS_Contribution);
+        //
+        // rCurrentElement.CalculateMassMatrix(mMassMatrix[thread], CurrentProcessInfo);
+        //
+        // rCurrentElement.CalculateDampingMatrix(mDampingMatrix[thread], CurrentProcessInfo);
+        //
+        // this->AddDynamicsToLHS(LHS_Contribution, mMassMatrix[thread], mDampingMatrix[thread], CurrentProcessInfo);
+        //
+        // //this->AddDynamicsToRHS(rCurrentElement, RHS_Contribution, mMassMatrix[thread], mDampingMatrix[thread], CurrentProcessInfo);
+        //
+        // rCurrentElement.EquationIdVector(EquationId, CurrentProcessInfo);
 
 
         KRATOS_CATCH( "" )
@@ -126,23 +221,20 @@ public:
         Element::EquationIdVectorType& EquationId,
         const ProcessInfo& CurrentProcessInfo) override
     {
-        KRATOS_TRY
+       
+            KRATOS_ERROR << "Build_and_solver should not request rhs contribution from IncrementalNewmarkDynamicUPwScheme" << std::endl;;
     
-        int thread = OpenMPUtils::ThisThread();
+        // int thread = OpenMPUtils::ThisThread();
+        //
+        //
+        // rCurrentElement.CalculateMassMatrix(mMassMatrix[thread], CurrentProcessInfo);
+        //
+        // rCurrentElement.CalculateDampingMatrix(mDampingMatrix[thread],CurrentProcessInfo);
+        //
+        // this->AddDynamicsToRHS(rCurrentElement, RHS_Contribution, mMassMatrix[thread], mDampingMatrix[thread], CurrentProcessInfo);
+        //
+        // rCurrentElement.EquationIdVector(EquationId,CurrentProcessInfo);
 
-
-
-        // rCurrentElement.CalculateRightHandSide(RHS_Contribution,CurrentProcessInfo);
-    
-        rCurrentElement.CalculateMassMatrix(mMassMatrix[thread], CurrentProcessInfo);
-    
-        rCurrentElement.CalculateDampingMatrix(mDampingMatrix[thread],CurrentProcessInfo);
-    
-        this->AddDynamicsToRHS(rCurrentElement, RHS_Contribution, mMassMatrix[thread], mDampingMatrix[thread], CurrentProcessInfo);
-    
-        rCurrentElement.EquationIdVector(EquationId,CurrentProcessInfo);
-    
-        KRATOS_CATCH( "" )
     }
 
     void CalculateRHSContribution(
@@ -151,21 +243,21 @@ public:
         Element::EquationIdVectorType& rEquationIds,
         const ProcessInfo& rCurrentProcessInfo) override
     {
-        KRATOS_TRY
-
-        int thread = OpenMPUtils::ThisThread();
-
-        rCurrentCondition.CalculateRightHandSide(rRHS_Contribution, rCurrentProcessInfo);
-
-        rCurrentCondition.CalculateMassMatrix(mMassMatrix[thread], rCurrentProcessInfo);
-
-        rCurrentCondition.CalculateDampingMatrix(mDampingMatrix[thread], rCurrentProcessInfo);
-
-        this->AddDynamicsToRHS(rCurrentCondition, rRHS_Contribution, mMassMatrix[thread], mDampingMatrix[thread], rCurrentProcessInfo);
+        //KRATOS_TRY
+        KRATOS_ERROR << "Build_and_solver should not request rhs contribution from IncrementalNewmarkDynamicUPwScheme" << std::endl;;
+        // int thread = OpenMPUtils::ThisThread();
+        //
+        // rCurrentCondition.CalculateRightHandSide(rRHS_Contribution, rCurrentProcessInfo);
+        //
+        // rCurrentCondition.CalculateMassMatrix(mMassMatrix[thread], rCurrentProcessInfo);
+        //
+        // rCurrentCondition.CalculateDampingMatrix(mDampingMatrix[thread], rCurrentProcessInfo);
+        //
+        // this->AddDynamicsToRHS(rCurrentCondition, rRHS_Contribution, mMassMatrix[thread], mDampingMatrix[thread], rCurrentProcessInfo);
 
         rCurrentCondition.EquationIdVector(rEquationIds, rCurrentProcessInfo);
 
-        KRATOS_CATCH("")
+        //KRATOS_CATCH("")
     }
 
     void CalculateLHSContribution(
@@ -240,77 +332,77 @@ protected:
         KRATOS_CATCH( "" )
     }
 
-    void AddDynamicsToRHS(Condition& rCurrentCondition,
-        LocalSystemVectorType& RHS_Contribution,
-        LocalSystemMatrixType& M,
-        LocalSystemMatrixType& C,
-        const ProcessInfo& CurrentProcessInfo)
-    {
-        KRATOS_TRY
-
-            int thread = OpenMPUtils::ThisThread();
-
-        if (M.size1() != 0 || C.size1() != 0)
-        {
-            rCurrentCondition.GetSecondDerivativesVector(mAccelerationVector[thread], 0);
-            rCurrentCondition.GetFirstDerivativesVector(mVelocityVector[thread], 0);
-
-            //adding inertia contribution
-            if (M.size1() != 0)
-            {
-
-                auto m_part = mVelocityVector[thread] * (1 / (mBeta * mDeltaTime)) + mAccelerationVector[thread] * (1 / (2 * mBeta));
-
-                noalias(RHS_Contribution) += prod(M, m_part);
-            }
-
-            //adding damping contribution
-            if (C.size1() != 0)
-            {
-                auto c_part = mVelocityVector[thread] * (mGamma / mBeta) + mAccelerationVector[thread] * (mDeltaTime * (mGamma / (2 * mBeta) - 1));
-
-                noalias(RHS_Contribution) += prod(C, c_part);
-            }
-        }
-
-        KRATOS_CATCH("")
-    }
-
-    void AddDynamicsToRHS(Element &rCurrentElement,
-                          LocalSystemVectorType& RHS_Contribution,
-                          LocalSystemMatrixType& M,
-                          LocalSystemMatrixType& C,
-                          const ProcessInfo& CurrentProcessInfo)
-    {
-        KRATOS_TRY
-
-        int thread = OpenMPUtils::ThisThread();
-
-        if (M.size1() != 0 || C.size1() != 0)
-        {
-            rCurrentElement.GetSecondDerivativesVector(mAccelerationVector[thread], 0);
-            rCurrentElement.GetFirstDerivativesVector(mVelocityVector[thread], 0);
-
-            //adding inertia contribution
-            if (M.size1() != 0)
-            {
-
-                auto m_part = mVelocityVector[thread] * (1 / (mBeta * mDeltaTime)) + mAccelerationVector[thread] * (1 / (2 * mBeta));
-
-                noalias(RHS_Contribution) += prod(M, mAccelerationVector[thread]);
-            }
-
-            //adding damping contribution
-            if (C.size1() != 0)
-            {
-                auto c_part = mVelocityVector[thread] * (mGamma / mBeta) + mAccelerationVector[thread] * (mDeltaTime * (mGamma / (2 * mBeta) - 1));
-
-                noalias(RHS_Contribution) += prod(C, mVelocityVector[thread]);
-            }
-        }
-
-        KRATOS_CATCH( "" )
-    }
+    // void AddDynamicsToRHS(Condition& rCurrentCondition,
+    //     LocalSystemVectorType& RHS_Contribution,
+    //     LocalSystemMatrixType& M,
+    //     LocalSystemMatrixType& C,
+    //     const ProcessInfo& CurrentProcessInfo)
+    // {
+    //     KRATOS_TRY
+    //
+    //         int thread = OpenMPUtils::ThisThread();
+    //
+    //     if (M.size1() != 0 || C.size1() != 0)
+    //     {
+    //         rCurrentCondition.GetSecondDerivativesVector(mAccelerationVector[thread], 0);
+    //         rCurrentCondition.GetFirstDerivativesVector(mVelocityVector[thread], 0);
+    //
+    //         //adding inertia contribution
+    //         if (M.size1() != 0)
+    //         {
+    //
+    //             auto m_part = mVelocityVector[thread] * (1 / (mBeta * mDeltaTime)) + mAccelerationVector[thread] * (1 / (2 * mBeta));
+    //
+    //             noalias(RHS_Contribution) += prod(M, m_part);
+    //         }
+    //
+    //         //adding damping contribution
+    //         if (C.size1() != 0)
+    //         {
+    //             auto c_part = mVelocityVector[thread] * (mGamma / mBeta) + mAccelerationVector[thread] * (mDeltaTime * (mGamma / (2 * mBeta) - 1));
+    //
+    //             noalias(RHS_Contribution) += prod(C, c_part);
+    //         }
+    //     }
+    //
+    //     KRATOS_CATCH("")
+    // }
+    //
+    // void AddDynamicsToRHS(Element &rCurrentElement,
+    //                       LocalSystemVectorType& RHS_Contribution,
+    //                       LocalSystemMatrixType& M,
+    //                       LocalSystemMatrixType& C,
+    //                       const ProcessInfo& CurrentProcessInfo)
+    // {
+    //     KRATOS_TRY
+    //
+    //     int thread = OpenMPUtils::ThisThread();
+    //
+    //     if (M.size1() != 0 || C.size1() != 0)
+    //     {
+    //         rCurrentElement.GetSecondDerivativesVector(mAccelerationVector[thread], 0);
+    //         rCurrentElement.GetFirstDerivativesVector(mVelocityVector[thread], 0);
+    //
+    //         //adding inertia contribution
+    //         if (M.size1() != 0)
+    //         {
+    //
+    //             auto m_part = mVelocityVector[thread] * (1 / (mBeta * mDeltaTime)) + mAccelerationVector[thread] * (1 / (2 * mBeta));
+    //
+    //             noalias(RHS_Contribution) += prod(M, mAccelerationVector[thread]);
+    //         }
+    //
+    //         //adding damping contribution
+    //         if (C.size1() != 0)
+    //         {
+    //             auto c_part = mVelocityVector[thread] * (mGamma / mBeta) + mAccelerationVector[thread] * (mDeltaTime * (mGamma / (2 * mBeta) - 1));
+    //
+    //             noalias(RHS_Contribution) += prod(C, mVelocityVector[thread]);
+    //         }
+    //     }
+    //
+    //     KRATOS_CATCH( "" )
+    // }
 
 
     void Update(ModelPart& rModelPart,

@@ -318,6 +318,13 @@ void UPwBaseElement<TDim,TNumNodes>::
 {
     KRATOS_TRY;
 
+    const unsigned int N_DOF = this->GetNumberOfDOF();
+
+    //Resetting the LHS
+    if (rLeftHandSideMatrix.size1() != N_DOF)
+        rLeftHandSideMatrix.resize(N_DOF, N_DOF, false);
+    noalias(rLeftHandSideMatrix) = ZeroMatrix(N_DOF, N_DOF);
+
     // Calculation flags
     const bool CalculateStiffnessMatrixFlag = true;
     const bool CalculateResidualVectorFlag = false;
