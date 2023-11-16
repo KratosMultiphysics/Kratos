@@ -21,6 +21,7 @@
 #include "scheme_factory.hpp"
 #include "convergence_criteria_factory.hpp"
 #include "builder_and_solver_factory.hpp"
+#include "solving_strategies/strategies/line_search_strategy.h"
 
 namespace Kratos
 {
@@ -68,6 +69,27 @@ public:
                     criteria,
                     builder_and_solver,
                     strategy_parameters,
+                    max_iterations,
+                    calculate_reactions,
+                    reform_dof_set_at_each_step,
+                    move_mesh_flag);
+            result->SetEchoLevel(echo_level);
+            return result;
+        }
+
+        if (rSolverSettings[strategy_type].GetString() == "line_search")
+        {
+            const auto max_iterations = rSolverSettings["max_iterations"].GetInt();
+            const auto calculate_reactions = rSolverSettings["calculate_reactions"].GetBool();
+            const auto reform_dof_set_at_each_step = rSolverSettings["reform_dofs_at_each_step"].GetBool();
+            const auto move_mesh_flag = rSolverSettings["move_mesh_flag"].GetBool();
+
+            auto result = std::make_unique<LineSearchStrategy<TSparseSpace,
+                    TDenseSpace,
+                    TLinearSolver>>(rModelPart,
+                    scheme,
+                    criteria,
+                    builder_and_solver,
                     max_iterations,
                     calculate_reactions,
                     reform_dof_set_at_each_step,
