@@ -274,32 +274,31 @@ namespace Kratos
         return 0;
     }
 
-    struct CriticalHeadInfo
-    {
-        double minCriticalHead = 0.0;
-        double maxCriticalHead = 0.0;
-        double stepCriticalHead = 0.0;
-
-        CriticalHeadInfo(double minCriticalHead, double maxCriticalHead, double stepCriticalHead) :
-            minCriticalHead(minCriticalHead), maxCriticalHead(maxCriticalHead), stepCriticalHead(stepCriticalHead)
-        {}
-    };
-
-    struct CallBackFunctions
-    {
-        const std::function<void(const char*)>& rLogCallback;
-        const std::function<void(const char*)>& rReportTextualProgress;
-        const std::function<void(double)>& rReportProgress;
-        const std::function<bool()>& rShouldCancel;
-
-        CallBackFunctions(const std::function<void(const char*)>& rLogCallback,
-                          const std::function<void(const char*)>& rReportTextualProgress,
-                          const std::function<void(double)>& rReportProgress,
-                          const std::function<bool()>& rShouldCancel) :
-            rLogCallback(rLogCallback), rReportTextualProgress(rReportTextualProgress), rReportProgress(rReportProgress), rShouldCancel(rShouldCancel)
-        {}
-    };
-
+//    struct CriticalHeadInfo
+//    {
+//        double minCriticalHead = 0.0;
+//        double maxCriticalHead = 0.0;
+//        double stepCriticalHead = 0.0;
+//
+//        CriticalHeadInfo(double minCriticalHead, double maxCriticalHead, double stepCriticalHead) :
+//            minCriticalHead(minCriticalHead), maxCriticalHead(maxCriticalHead), stepCriticalHead(stepCriticalHead)
+//        {}
+//    };
+//
+//    struct CallBackFunctions
+//    {
+//        const std::function<void(const char*)>& rLogCallback;
+//        const std::function<void(const char*)>& rReportTextualProgress;
+//        const std::function<void(double)>& rReportProgress;
+//        const std::function<bool()>& rShouldCancel;
+//
+//        CallBackFunctions(const std::function<void(const char*)>& rLogCallback,
+//                          const std::function<void(const char*)>& rReportTextualProgress,
+//                          const std::function<void(double)>& rReportProgress,
+//                          const std::function<bool()>& rShouldCancel) :
+//            rLogCallback(rLogCallback), rReportTextualProgress(rReportTextualProgress), rReportProgress(rReportProgress), rShouldCancel(rShouldCancel)
+//        {}
+//    };
 
     int KratosExecute::ExecuteFlowAnalysis(std::string_view rWorkingDirectory,
                                            const std::string& rProjectParamsFileName,
