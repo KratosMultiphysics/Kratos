@@ -1,0 +1,1 @@
+/home/virtro/Desktop/Master_thesis/steady_fsi_GPR/DOE/valid/inlet_velocity_0_0.dat

@@ -1,0 +1,79 @@
+{
+    "problem_data": {
+        "parallel_type": "OpenMP",
+        "echo_level": 0
+    },
+
+    "model_parts": [],
+
+    "analyses": [
+        {
+            "name": "fsi",
+            "type": "kratos_cosim_analysis_execution_policy",
+            "settings": {
+                "model_names": [
+                    "fluid", "structure"
+                ],
+                "analysis_module": "KratosMultiphysics.CoSimulationApplication",
+                "analysis_type": "CoSimulationAnalysis",
+                "analysis_settings": {
+                    "@include_json": "cosim_mok_fsi_parameters.json"
+                }              
+            }
+        }
+    ],
+
+    "responses": [],
+
+    "controls": [{
+            "name": "materials_control",
+            "type": "surrogate_doe",
+            "settings": {
+            	"control_model_name"	: "structure",
+            	"names_of_models_to_reset"	: ["structure", "fluid"],
+                "analysis_name" : "fsi",
+                "variable_names_list": ["YOUNG_MODULUS"],
+                "property_ID" : 0
+            }
+        }],
+
+    "algorithm_settings": {
+        "type": "fsi_surrogate",
+        "surrogate_settings": {
+            "DOE_csv"	: {"train" : "DOE/train/train.csv",
+        	               "valid" : "DOE/valid/valid.csv"},
+            "samples_csv"	: {"train" : "surrogate_io/train.csv",
+        	                   "valid" : "surrogate_io/valid.csv"},
+            "variables": {"solutionVars"  : ["('PRESSURE','FluidModelPart.NoSlip2D_FSI', 'fluid')",
+                                                     "('DISPLACEMENT','Structure.GENERIC_FSI', 'structure')"],
+                          "controlVars"   :["YOUNG_MODULUS"]}
+        },
+        "controls": ["materials_control"]
+        
+    },
+    "processes": {
+        "kratos_processes": {},
+        "optimization_data_processes": {
+            "output_processes": [
+                {
+                    "type": "surrogate_modelling_vtu_output_process",
+                    "module": "KratosMultiphysics.OptimizationApplication.processes",
+                    "model_name": "fluid",
+                    "settings": {
+                        "model_part_name"                    : "FluidModelPart.Parts_Fluid",
+                        "output_control_type"                : "step",
+                        "output_interval"                    : 1,
+                        "file_format"                        : "binary",
+                        "output_precision"                   : 7,
+                        "output_sub_model_parts"             : false,
+                        "output_path"                        : {"train" : "DOE/train",
+                                                                "valid" : "DOE/valid"},
+                        "save_output_files_in_folder"        : true,
+                        "delete_existing_data_folder"        : false,
+                        "nodal_solution_step_data_variables" : ["VELOCITY","PRESSURE","MESH_DISPLACEMENT","MESH_VELOCITY"]
+                    }
+                }
+            ]
+        }
+    }
+}
