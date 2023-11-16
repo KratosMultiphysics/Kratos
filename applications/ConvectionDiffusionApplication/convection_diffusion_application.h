@@ -40,7 +40,6 @@
 #include "custom_conditions/thermal_face.h"
 #include "custom_conditions/flux_condition.h"
 #include "custom_conditions/adjoint_thermal_face.h"
-#include "custom_conditions/sbm_laplacian_condition.h"
 
 #include "includes/variables.h"
 #include "includes/condition.h"
