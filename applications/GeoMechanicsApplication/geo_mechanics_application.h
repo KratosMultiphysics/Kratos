@@ -110,6 +110,7 @@
 #include "custom_elements/geo_linear_truss_element.hpp"
 #include "custom_elements/geo_cable_element.hpp"
 #include "custom_elements/geo_curved_beam_element.hpp"
+#include "custom_elements/transient_thermal_element.h"
 
 // constitutive models
 #include "custom_constitutive/bilinear_cohesive_3D_law.hpp"
@@ -443,6 +444,20 @@ private:
     const GeoCableElement<2,2>       mGeoCableElement2D2N       { 0, Kratos::make_shared< Line2D2 <NodeType> >(Element::GeometryType::PointsArrayType(2)) };
     const GeoCableElement<3,2>       mGeoCableElement3D2N       { 0, Kratos::make_shared< Line3D2 <NodeType> >(Element::GeometryType::PointsArrayType(2)) };
     const GeoCurvedBeamElement<2,3>  mGeoCurvedBeamElement2D3N  { 0, Kratos::make_shared< Line2D3 <NodeType> >(Element::GeometryType::PointsArrayType(3)) };
+
+    // transient one-phase temperature elements:
+    const TransientThermalElement<2, 3> mTransientThermalElement2D3N { 0, Kratos::make_shared< Triangle2D3      <NodeType> >(Element::GeometryType::PointsArrayType( 3)) };
+    const TransientThermalElement<2, 6> mTransientThermalElement2D6N { 0, Kratos::make_shared< Triangle2D6      <NodeType> >(Element::GeometryType::PointsArrayType( 6)) };
+    const TransientThermalElement<2,10> mTransientThermalElement2D10N{ 0, Kratos::make_shared< Triangle2D10     <NodeType> >(Element::GeometryType::PointsArrayType(10)) };
+    const TransientThermalElement<2,15> mTransientThermalElement2D15N{ 0, Kratos::make_shared< Triangle2D15     <NodeType> >(Element::GeometryType::PointsArrayType(15)) };
+    const TransientThermalElement<2, 4> mTransientThermalElement2D4N { 0, Kratos::make_shared< Quadrilateral2D4 <NodeType> >(Element::GeometryType::PointsArrayType( 4)) };
+    const TransientThermalElement<2, 8> mTransientThermalElement2D8N { 0, Kratos::make_shared< Quadrilateral2D8 <NodeType> >(Element::GeometryType::PointsArrayType( 8)) };
+    const TransientThermalElement<2, 9> mTransientThermalElement2D9N { 0, Kratos::make_shared< Quadrilateral2D9 <NodeType> >(Element::GeometryType::PointsArrayType( 9)) };
+    const TransientThermalElement<3, 4> mTransientThermalElement3D4N { 0, Kratos::make_shared< Tetrahedra3D4    <NodeType> >(Element::GeometryType::PointsArrayType( 4)) };
+    const TransientThermalElement<3,10> mTransientThermalElement3D10N{ 0, Kratos::make_shared< Tetrahedra3D10   <NodeType> >(Element::GeometryType::PointsArrayType(10)) };
+    const TransientThermalElement<3, 8> mTransientThermalElement3D8N { 0, Kratos::make_shared< Hexahedra3D8     <NodeType> >(Element::GeometryType::PointsArrayType( 8)) };
+    const TransientThermalElement<3,20> mTransientThermalElement3D20N{ 0, Kratos::make_shared< Hexahedra3D20    <NodeType> >(Element::GeometryType::PointsArrayType(20)) };
+    const TransientThermalElement<3,27> mTransientThermalElement3D27N{ 0, Kratos::make_shared< Hexahedra3D27    <NodeType> >(Element::GeometryType::PointsArrayType(27)) };
 
     // conditions
     const UPwForceCondition<2,1> mUPwForceCondition2D1N{ 0, Kratos::make_shared< Point2D <NodeType> >(Condition::GeometryType::PointsArrayType(1)) };
