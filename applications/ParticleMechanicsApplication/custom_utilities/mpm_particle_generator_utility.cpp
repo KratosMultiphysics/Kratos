@@ -947,6 +947,27 @@ namespace MPMParticleGeneratorUtility
         }
     }
 
+    void GenerateLagrangeNodes(ModelPart& rBackgroundGridModelPart)
+    {
+        for (int i = 0; i < static_cast<int>(rBackgroundGridModelPart.Elements().size()); ++i)
+        {
+            auto element_itr = (rBackgroundGridModelPart.ElementsBegin() + i);
+            auto coord = element_itr->GetGeometry().Center();
+            auto p_new_node = rBackgroundGridModelPart.CreateNewNode(rBackgroundGridModelPart.Nodes().size() + 1, coord[0], coord[1], coord[2]);
+
+            p_new_node->AddDof(VECTOR_LAGRANGE_MULTIPLIER_X,WEIGHTED_VECTOR_RESIDUAL_X);
+            p_new_node->AddDof(VECTOR_LAGRANGE_MULTIPLIER_Y,WEIGHTED_VECTOR_RESIDUAL_Y);
+            p_new_node->AddDof(VECTOR_LAGRANGE_MULTIPLIER_Z,WEIGHTED_VECTOR_RESIDUAL_Z);
+
+            p_new_node->AddDof(DISPLACEMENT_X,REACTION_X);
+            p_new_node->AddDof(DISPLACEMENT_Y,REACTION_Y);
+            p_new_node->AddDof(DISPLACEMENT_Z,REACTION_Z);
+
+            element_itr->GetGeometry().SetValue(MPC_LAGRANGE_NODE, p_new_node);
+            element_itr->GetGeometry().SetValue(MPC_COUNTER, 0);
+            element_itr->GetGeometry().SetValue(MP_COUNTER, 0);
+        }
+    }
     //
     // Specializing the functions for the templates
     //

@@ -81,6 +81,12 @@ namespace MPMParticleGeneratorUtility
     void GenerateMaterialPointCondition(ModelPart& rBackgroundGridModelPart,
                                             ModelPart& rInitialModelPart,
                                             ModelPart& rMPMModelPart);
+
+    /**
+     * @brief Function to add dofs to elements for Lagrange multiplier.
+     * @details non-conforming Perturbed Lagrangian or Lagrange multiplier conditions
+     */
+    void GenerateLagrangeNodes(ModelPart& rBackgroundGridModelPart);
     /**
      * @brief Function to Initiate material point condition.
      * @details Generating particle condition using a designated shape functions

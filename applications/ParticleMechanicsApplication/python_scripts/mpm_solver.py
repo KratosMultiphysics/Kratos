@@ -55,6 +55,7 @@ class MPMSolver(PythonSolver):
             "residual_absolute_tolerance"        : 1.0E-9,
             "max_iteration"                      : 20,
             "pressure_dofs"                      : false,
+            "lagrange_dofs"                      : false,
             "stabilization"                      : "ppp",
             "compressible"                       : true,
             "axis_symmetric_flag"                : false,
@@ -211,6 +212,7 @@ class MPMSolver(PythonSolver):
 
     def _GenerateMaterialPoint(self):
         pressure_dofs          = self.settings["pressure_dofs"].GetBool()
+        lagrange_dofs          = self.settings["lagrange_dofs"].GetBool()
         axis_symmetric_flag    = self.settings["axis_symmetric_flag"].GetBool()
         if axis_symmetric_flag:
             self.grid_model_part.ProcessInfo.SetValue(KratosParticle.IS_AXISYMMETRIC, True)
@@ -234,6 +236,9 @@ class MPMSolver(PythonSolver):
             # Generate MP Element and Condition
             KratosParticle.GenerateMaterialPointElement(self.grid_model_part, self.initial_mesh_model_part, self.material_point_model_part, pressure_dofs)
             KratosParticle.GenerateMaterialPointCondition(self.grid_model_part, self.initial_mesh_model_part, self.material_point_model_part)
+
+            if lagrange_dofs:
+                KratosParticle.GenerateLagrangeNodes(self.grid_model_part)
         else:
             self.grid_model_part.ProcessInfo = self.material_point_model_part.ProcessInfo
 
