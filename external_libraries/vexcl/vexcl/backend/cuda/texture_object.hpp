@@ -37,11 +37,19 @@ THE SOFTWARE.
 
 namespace vex {
 
-namespace traits {                                                             \
-template <> struct is_vector_expr_terminal<CUtexObject> : std::true_type {};
+struct cuda_tex_object {
+    CUtexObject h;
+};
+
+inline cuda_tex_object wrap(CUtexObject h) {
+    return cuda_tex_object{h};
 }
 
-template <> struct type_name_impl<CUtexObject> {
+namespace traits {                                                             \
+template <> struct is_vector_expr_terminal<cuda_tex_object> : std::true_type {};
+}
+
+template <> struct type_name_impl<cuda_tex_object> {
     static std::string get() { return "cudaTextureObject_t"; }
 };
 

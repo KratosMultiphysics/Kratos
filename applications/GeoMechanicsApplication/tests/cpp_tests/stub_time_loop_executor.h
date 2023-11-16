@@ -20,6 +20,9 @@ class StubTimeLoopExecutor : public TimeLoopExecutorInterface
 {
 public:
     explicit StubTimeLoopExecutor(size_t NumberOfExpectedProcesses = 0);
+
+    void SetCancelDelegate(const std::function<bool()>& rCancelDelegate) override;
+    
     void SetProcessObservables(const std::vector<std::weak_ptr<Process>>& rProcessObservables) override;
 
     void SetTimeIncrementor(std::unique_ptr<TimeIncrementor> pTimeIncrementor) override;

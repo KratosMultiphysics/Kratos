@@ -39,8 +39,12 @@ public:
     template <class T>
     void TestFunctionCalledOnComponent_IsOnlyCalledWhenComponentIsActive()
     {
-        auto functions_and_checks =
-            CreateFunctionsAndChecksCalledOnASingleComponent<T>();
+        typename T::EquationIdVectorType r_equation_id_vector;
+        ProcessInfo r_process_info;
+        typename T::DofsVectorType r_dofs_vector;
+
+        auto functions_and_checks = CreateFunctionsAndChecksCalledOnASingleComponent<T>(
+            r_equation_id_vector, r_process_info, r_dofs_vector);
 
         for (const auto& [function_on_component, function_has_been_called_on_component] :
              functions_and_checks) {
@@ -64,7 +68,12 @@ public:
     template <class T>
     void TestFunctionCallOnAllComponents_AreOnlyCalledForActiveComponents()
     {
-        auto functions_and_checks = CreateFunctionsAndChecksCalledOnAllComponents<T>();
+        CompressedMatrix A;
+        Vector Dx;
+        Vector b;
+
+        auto functions_and_checks =
+            CreateFunctionsAndChecksCalledOnAllComponents<T>(A, Dx, b);
 
         for (const auto& [function_on_all_elements, function_has_been_called_on_element] :
              functions_and_checks) {
@@ -88,13 +97,10 @@ public:
     }
 
     template <class T>
-    std::vector<std::pair<std::function<void()>, std::function<bool(const Kratos::intrusive_ptr<T> rElement)>>> CreateFunctionsAndChecksCalledOnAllComponents()
+    std::vector<std::pair<std::function<void()>, std::function<bool(const Kratos::intrusive_ptr<T> rElement)>>> CreateFunctionsAndChecksCalledOnAllComponents(
+        CompressedMatrix& A, Vector& Dx, Vector& b)
     {
         std::vector<std::pair<std::function<void()>, std::function<bool(const Kratos::intrusive_ptr<T> rElement)>>> functions_and_checks;
-
-        CompressedMatrix A;
-        Vector Dx;
-        Vector b;
 
         // Create functions that need to be called in the test
         auto finalize_solution_step = [this, &A, &Dx, &b]() {
@@ -140,28 +146,28 @@ public:
         return functions_and_checks;
     }
 
-    template <class T>
-    std::vector<std::pair<std::function<void(const Kratos::intrusive_ptr<T> Component)>, std::function<bool(const Kratos::intrusive_ptr<T> rElement)>>> CreateFunctionsAndChecksCalledOnASingleComponent()
+    template <typename T>
+    std::vector<std::pair<std::function<void(const Kratos::intrusive_ptr<T> Component)>, std::function<bool(const Kratos::intrusive_ptr<T> rElement)>>> CreateFunctionsAndChecksCalledOnASingleComponent(
+        typename T::EquationIdVectorType& rEquationIdVector,
+        ProcessInfo& rProcessInfo,
+        typename T::DofsVectorType& rDofsVector)
     {
         std::vector<std::pair<std::function<void(const Kratos::intrusive_ptr<T> Component)>,
                               std::function<bool(const Kratos::intrusive_ptr<T> Component)>>>
             functions_and_checks;
 
-        Element::EquationIdVectorType equation_id_vector_type;
-        ProcessInfo info;
-
-        auto equation_id = [this, &equation_id_vector_type,
-                            &info](const Kratos::intrusive_ptr<T> Component) {
-            mScheme.EquationId(*Component.get(), equation_id_vector_type, info);
+        auto equation_id = [this, &rEquationIdVector,
+                            &rProcessInfo](const Kratos::intrusive_ptr<T> Component) {
+            mScheme.EquationId(*Component.get(), rEquationIdVector, rProcessInfo);
         };
 
         auto equation_id_check = [](const Kratos::intrusive_ptr<T> Component) {
-            return Component->IsEquationIdSet();
+            return Component->IsEquationIdRetrieved();
         };
 
-        Element::DofsVectorType dofs;
-        auto get_dofs_list = [this, &dofs, &info](const Kratos::intrusive_ptr<T> Component) {
-            mScheme.GetDofList(*Component.get(), dofs, info);
+        auto get_dofs_list = [this, &rDofsVector, &rProcessInfo](
+                                 const Kratos::intrusive_ptr<T> Component) {
+            mScheme.GetDofList(*Component.get(), rDofsVector, rProcessInfo);
         };
 
         auto get_dofs_list_check = [](const Kratos::intrusive_ptr<T> Component) {

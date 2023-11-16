@@ -44,8 +44,11 @@ KRATOS_TEST_CASE_IN_SUITE(CheckBackwardEulerQuasistaticTScheme_WithAllNecessaryP
 KRATOS_TEST_CASE_IN_SUITE(ForInvalidTheta_CheckBackwardEulerQuasistaticTScheme_Throws,
                           KratosGeoMechanicsFastSuite)
 {
-    constexpr int invalid_theta = -2;
+    constexpr double invalid_theta = -2.0;
     using SchemeType = NewmarkTScheme<SparseSpaceType, LocalSpaceType>;
+
+    Model model;
+    const auto& model_part = CreateValidTemperatureModelPart(model);
 
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(SchemeType scheme(invalid_theta),
                                       "Theta has an invalid value")
@@ -56,16 +59,13 @@ KRATOS_TEST_CASE_IN_SUITE(ForInvalidBufferSize_CheckNewmarkTScheme_Throws, Krato
     NewmarkTScheme<SparseSpaceType, LocalSpaceType> scheme(0.75);
 
     Model model;
-    constexpr int invalid_buffer_size = 1;
-    auto& model_part = model.CreateModelPart("dummy", invalid_buffer_size);
-    model_part.AddNodalSolutionStepVariable(TEMPERATURE);
-    model_part.AddNodalSolutionStepVariable(DT_TEMPERATURE);
-    auto p_node = model_part.CreateNewNode(0, 0.0, 0.0, 0.0);
-    p_node->AddDof(TEMPERATURE);
+    constexpr auto invalid_buffer_size = ModelPart::IndexType{1};
+    auto& model_part = CreateValidTemperatureModelPart(model);
+    model_part.SetBufferSize(invalid_buffer_size);
 
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         scheme.Check(model_part),
-        "insufficient buffer size. Buffer size should be greater or equal to "
+        "insufficient buffer size. Buffer size should be greater than or equal to "
         "2. Current size is 1")
 }
 
@@ -86,8 +86,8 @@ KRATOS_TEST_CASE_IN_SUITE(ForMissingNodalDof_CheckNewmarkTScheme_Throws, KratosG
 KRATOS_TEST_CASE_IN_SUITE(ForMissingDtTemperatureSolutionStepVariable_CheckNewmarkTScheme_Throws,
                           KratosGeoMechanicsFastSuite)
 {
-    NewmarkTScheme<SparseSpaceType, LocalSpaceType> scheme(0.75);
 
+    NewmarkTScheme<SparseSpaceType, LocalSpaceType> scheme(0.75);
     Model model;
     auto& model_part = model.CreateModelPart("dummy", 2);
     model_part.AddNodalSolutionStepVariable(TEMPERATURE);
@@ -102,8 +102,8 @@ KRATOS_TEST_CASE_IN_SUITE(ForMissingDtTemperatureSolutionStepVariable_CheckNewma
 KRATOS_TEST_CASE_IN_SUITE(ForMissingTemperatureSolutionStepVariable_CheckNewmarkTScheme_Throws,
                           KratosGeoMechanicsFastSuite)
 {
-    NewmarkTScheme<SparseSpaceType, LocalSpaceType> scheme(0.75);
 
+    NewmarkTScheme<SparseSpaceType, LocalSpaceType> scheme(0.75);
     Model model;
     auto& model_part = model.CreateModelPart("dummy", 2);
     model_part.AddNodalSolutionStepVariable(DT_TEMPERATURE);

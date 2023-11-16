@@ -36,8 +36,7 @@ public:
 
     NewmarkQuasistaticUPwScheme<SparseSpaceType, LocalSpaceType> CreateValidScheme() const
     {
-        NewmarkQuasistaticUPwScheme<SparseSpaceType, LocalSpaceType> result(0.25, 0.5, 0.75);
-        return result;
+        return NewmarkQuasistaticUPwScheme<SparseSpaceType, LocalSpaceType>(0.25, 0.5, 0.75);
     }
 
     void CreateValidModelPart()
@@ -80,10 +79,9 @@ KRATOS_TEST_CASE_IN_SUITE(CheckScheme_ReturnsZeroForValidScheme, KratosGeoMechan
     KRATOS_EXPECT_EQ(tester.mScheme.Check(tester.GetModelPart()), 0);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(InitializeUPWScheme_SetsTimeFactors, KratosGeoMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(InitializeUPwScheme_SetsTimeFactors, KratosGeoMechanicsFastSuite)
 {
     NewmarkQuasistaticUPwSchemeTester tester;
-    tester.GetModelPart().GetProcessInfo()[DELTA_TIME] = 4.0;
 
     tester.mScheme.Initialize(tester.GetModelPart());
 
@@ -97,7 +95,7 @@ KRATOS_TEST_CASE_IN_SUITE(InitializeUPWScheme_SetsTimeFactors, KratosGeoMechanic
                             expected_velocity_coefficient);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(UPWSchemePredict_UpdatesVariablesDerivatives, KratosGeoMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(UPwSchemePredict_UpdatesVariablesDerivatives, KratosGeoMechanicsFastSuite)
 {
     NewmarkQuasistaticUPwSchemeTester tester;
 
@@ -114,10 +112,15 @@ KRATOS_TEST_CASE_IN_SUITE(UPWSchemePredict_UpdatesVariablesDerivatives, KratosGe
     const auto expected_velocity = Kratos::array_1d<double, 3>{-4.5, -6.0, -7.5};
     constexpr auto expected_dt_water_pressure = 1.0 / 3.0;
 
-    KRATOS_EXPECT_EQ(tester.GetModelPart().Nodes()[0].FastGetSolutionStepValue(ACCELERATION),
-                     expected_acceleration);
-    KRATOS_EXPECT_EQ(tester.GetModelPart().Nodes()[0].FastGetSolutionStepValue(VELOCITY),
-                     expected_velocity);
+    const auto actual_acceleration = tester.GetModelPart().Nodes()[0].FastGetSolutionStepValue(ACCELERATION);
+    KRATOS_EXPECT_EQ(actual_acceleration.size(), expected_acceleration.size());
+    for (int i = 0; i < actual_acceleration.size(); ++i)
+        KRATOS_EXPECT_DOUBLE_EQ(actual_acceleration[i], expected_acceleration[i]);
+
+    const auto actual_velocity = tester.GetModelPart().Nodes()[0].FastGetSolutionStepValue(VELOCITY);
+    for (int i = 0; i < actual_velocity.size(); ++i)
+        KRATOS_EXPECT_DOUBLE_EQ(actual_velocity[i], expected_velocity[i]);
+
     KRATOS_EXPECT_DOUBLE_EQ(
         tester.GetModelPart().Nodes()[0].FastGetSolutionStepValue(DT_WATER_PRESSURE),
         expected_dt_water_pressure);
