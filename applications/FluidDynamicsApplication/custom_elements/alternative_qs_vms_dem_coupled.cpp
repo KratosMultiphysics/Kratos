@@ -708,9 +708,7 @@ void AlternativeQSVMSDEMCoupled<TElementData>::AddMassStabilization(
 {
     const double density = this->GetAtCoordinate(rData.Density,rData.N);
 
-    const array_1d<double, 3> convective_velocity =
-        this->GetAtCoordinate(rData.Velocity, rData.N) -
-        this->GetAtCoordinate(rData.MeshVelocity, rData.N);
+    const array_1d<double, 3> convective_velocity = this->FullConvectiveVelocity(rData);
 
     BoundedMatrix<double,Dim,Dim> tau_one = ZeroMatrix(Dim, Dim);
     double tau_two;
