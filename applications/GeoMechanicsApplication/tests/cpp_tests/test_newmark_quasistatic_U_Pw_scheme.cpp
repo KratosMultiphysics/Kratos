@@ -114,11 +114,11 @@ KRATOS_TEST_CASE_IN_SUITE(UPwSchemePredict_UpdatesVariablesDerivatives, KratosGe
 
     const auto actual_acceleration = tester.GetModelPart().Nodes()[0].FastGetSolutionStepValue(ACCELERATION);
     KRATOS_EXPECT_EQ(actual_acceleration.size(), expected_acceleration.size());
-    for (int i = 0; i < actual_acceleration.size(); ++i)
+    for (std::size_t i = 0; i < actual_acceleration.size(); ++i)
         KRATOS_EXPECT_DOUBLE_EQ(actual_acceleration[i], expected_acceleration[i]);
 
     const auto actual_velocity = tester.GetModelPart().Nodes()[0].FastGetSolutionStepValue(VELOCITY);
-    for (int i = 0; i < actual_velocity.size(); ++i)
+    for (std::size_t i = 0; i < actual_velocity.size(); ++i)
         KRATOS_EXPECT_DOUBLE_EQ(actual_velocity[i], expected_velocity[i]);
 
     KRATOS_EXPECT_DOUBLE_EQ(
