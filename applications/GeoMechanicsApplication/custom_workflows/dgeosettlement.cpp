@@ -152,7 +152,7 @@ int KratosGeoSettlement::RunStage(const std::filesystem::path&            rWorki
                                   const std::function<void(const char*)>& rLogCallback,
                                   const std::function<void(double)>&      ,
                                   const std::function<void(const char*)>& ,
-                                  const std::function<bool()>&            )
+                                  const std::function<bool()>&            rShouldCancel)
 {
     std::stringstream kratos_log_buffer;
     LoggerOutput::Pointer logger_output = CreateLoggingOutput(kratos_log_buffer);
@@ -197,6 +197,7 @@ int KratosGeoSettlement::RunStage(const std::filesystem::path&            rWorki
 
         if (mpTimeLoopExecutor)
         {
+            mpTimeLoopExecutor->SetCancelDelegate(rShouldCancel);
             mpTimeLoopExecutor->SetProcessObservables(process_observables);
             mpTimeLoopExecutor->SetTimeIncrementor(MakeTimeIncrementor(project_parameters));
             mpTimeLoopExecutor->SetSolverStrategyWrapper(MakeStrategyWrapper(project_parameters,
@@ -402,6 +403,7 @@ void KratosGeoSettlement::PrepareModelPart(const Parameters& rSolverSettings)
     }
     GetComputationalModelPart().AddElements(std::vector<IndexedObject::IndexType>{element_id_set.begin(), element_id_set.end()});
 
+    GetComputationalModelPart().Conditions().clear();
     const auto processes_sub_model_part_list = rSolverSettings["processes_sub_model_part_list"];
     std::vector<std::string> domain_condition_names;
     for (const auto& sub_model_part : processes_sub_model_part_list) {
