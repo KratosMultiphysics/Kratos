@@ -19,6 +19,8 @@ class ParticleVtkOutputProcess(KratosMultiphysics.OutputProcess):
         self.settings = settings
 
         self.full_model_part_name = self.settings["model_part_name"].GetString()
+        if self.full_model_part_name.startswith('Background_Grid'):
+            self.full_model_part_name = self.full_model_part_name.replace('Background_Grid','MPM_Material')
         main_model_part_name = self.full_model_part_name.split(".",1)[0]
         self.main_model_part = self.model[main_model_part_name]
 
