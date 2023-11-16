@@ -208,6 +208,8 @@ class VariablesManager:
         self.dem_vars += [Kratos.BUOYANCY]
         self.dem_vars += [Kratos.VELOCITY_OLD]
         self.dem_vars += [Kratos.SLIP_VELOCITY]
+        self.dem_vars += [DEM.DEM_STRESS_TENSOR]
+        self.dem_vars += [DEM.GROUP_ID]
 
         if self.do_include_history_force:
             self.dem_vars += [Kratos.BASSET_FORCE]
@@ -232,7 +234,7 @@ class VariablesManager:
             and parameters["add_each_hydro_force_option"].GetBool()):
             self.dem_vars += [Kratos.LIFT_FORCE]
 
-        if parameters["add_each_hydro_force_option"].GetBool():
+        if parameters["add_each_hydro_force_option"].GetBool() and parameters["properties"]["hydrodynamic_law_parameters"]["inviscid_force_parameters"]["name"].GetString() != "default":
             self.dem_vars += [Kratos.VIRTUAL_MASS_FORCE]
 
         # clusters variables
@@ -367,6 +369,7 @@ class VariablesManager:
 
             if parameters["coupling"]["backward_coupling"]["filter_velocity_option"].GetBool():
                 self.coupling_fluid_vars += [Kratos.PARTICLE_VEL_FILTERED]
+                self.coupling_fluid_vars += [Kratos.AVERAGED_PARTICLE_VELOCITY]
                 self.coupling_fluid_vars += [Kratos.TIME_AVERAGED_ARRAY_3]
                 self.coupling_fluid_vars += [Kratos.PHASE_FRACTION]
 
@@ -399,6 +402,8 @@ class VariablesManager:
             self.coupling_dem_vars += [Kratos.FLUID_VEL_PROJECTED]
             self.coupling_dem_vars += [Kratos.FLUID_ACCEL_PROJECTED]
             self.coupling_dem_vars += [Kratos.FLUID_DENSITY_PROJECTED]
+            self.coupling_dem_vars += [Kratos.DRAG_COEFFICIENT]
+            self.coupling_dem_vars += [SDEM.HYDRODYNAMIC_REACTION_PROJECTED]
             self.coupling_dem_vars += [Kratos.FLUID_VISCOSITY_PROJECTED]
             self.coupling_dem_vars += [Kratos.HYDRODYNAMIC_FORCE]
             self.coupling_dem_vars += [Kratos.HYDRODYNAMIC_MOMENT]
@@ -443,6 +448,7 @@ class VariablesManager:
                 self.time_filtered_vars += [Kratos.FLUID_FRACTION]
 
         if parameters["coupling"]["backward_coupling"]["filter_velocity_option"].GetBool():
+            self.coupling_fluid_vars += [Kratos.AVERAGED_PARTICLE_VELOCITY]
             self.time_filtered_vars += [Kratos.PARTICLE_VEL_FILTERED]
 
         if self.time_filtered_vars:
