@@ -11,13 +11,12 @@
 //
 
 // Internal includes
-#include "linear_transform.h"
+#include "affine_transform.h"
 
-namespace Kratos
-{
+namespace Kratos {
 
 
-LinearTransform::LinearTransform()
+AffineTransform::AffineTransform()
 {
     KRATOS_TRY
 
@@ -33,7 +32,7 @@ LinearTransform::LinearTransform()
 }
 
 
-LinearTransform::LinearTransform(const array_1d<double,3>& rAxis,
+AffineTransform::AffineTransform(const array_1d<double,3>& rAxis,
                                  const double angle,
                                  const array_1d<double,3>& rReferencePoint,
                                  const array_1d<double,3>& rTranslationVector)
@@ -51,7 +50,7 @@ LinearTransform::LinearTransform(const array_1d<double,3>& rAxis,
 }
 
 
-LinearTransform::LinearTransform(const array_1d<double,3>& rEulerAngles,
+AffineTransform::AffineTransform(const array_1d<double,3>& rEulerAngles,
                                  const array_1d<double,3>& rReferencePoint,
                                  const array_1d<double,3>& rTranslationVector)
 {
@@ -67,7 +66,7 @@ LinearTransform::LinearTransform(const array_1d<double,3>& rEulerAngles,
 }
 
 
-LinearTransform::LinearTransform(const Quaternion<double>& rQuaternion,
+AffineTransform::AffineTransform(const Quaternion<double>& rQuaternion,
                                  const array_1d<double,3>& rReferencePoint,
                                  const array_1d<double,3>& rTranslationVector)
 {
@@ -83,7 +82,7 @@ LinearTransform::LinearTransform(const Quaternion<double>& rQuaternion,
 }
 
 
-void LinearTransform::SetRotation(const array_1d<double,3>& rAxis,
+void AffineTransform::SetRotation(const array_1d<double,3>& rAxis,
                                   const double angle,
                                   const array_1d<double,3>& rReferencePoint)
 {
@@ -104,7 +103,7 @@ void LinearTransform::SetRotation(const array_1d<double,3>& rAxis,
 }
 
 
-void LinearTransform::SetRotation(const array_1d<double,3>& rEulerAngles,
+void AffineTransform::SetRotation(const array_1d<double,3>& rEulerAngles,
                                   const array_1d<double,3>& rReferencePoint)
 {
     KRATOS_TRY
@@ -117,7 +116,7 @@ void LinearTransform::SetRotation(const array_1d<double,3>& rEulerAngles,
 }
 
 
-void LinearTransform::SetRotation(const Quaternion<double>& rQuaternion,
+void AffineTransform::SetRotation(const Quaternion<double>& rQuaternion,
                                   const array_1d<double,3>& rReferencePoint)
 {
     KRATOS_TRY
@@ -131,19 +130,9 @@ void LinearTransform::SetRotation(const Quaternion<double>& rQuaternion,
 }
 
 
-void LinearTransform::SetTranslation(const array_1d<double,3>& rTranslationVector)
+void AffineTransform::SetTranslation(const array_1d<double,3>& rTranslationVector)
 {
     mTranslationVector = rTranslationVector;
-}
-
-
-array_1d<double,3> LinearTransform::Apply(const array_1d<double,3>& rPoint) const
-{
-    KRATOS_TRY
-
-    return prod(mRotationMatrix, rPoint - mReferencePoint) + mReferencePoint + mTranslationVector;
-
-    KRATOS_CATCH("");
 }
 
 
