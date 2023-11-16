@@ -115,8 +115,8 @@ void GeoLinearElasticPlaneStrain2DLaw::CalculatePK2Stress(const Vector& rStrainV
 }
 
 void GeoLinearElasticPlaneStrain2DLaw::UpdateInternalDeltaStrainVector(ConstitutiveLaw::Parameters &rValues){
-    const Vector& rStrainVector = rValues.GetStrainVector();
-    std::transform(rStrainVector.begin(), rStrainVector.begin() + mDeltaStrainVector.size(), mStrainVectorFinalized.begin(), mDeltaStrainVector.begin(), std::minus<>{} );
+    const Vector& r_strain_vector = rValues.GetStrainVector();
+    std::transform(r_strain_vector.begin(), r_strain_vector.begin() + mDeltaStrainVector.size(), mStrainVectorFinalized.begin(), mDeltaStrainVector.begin(), std::minus<>{} );
 }
 
 void GeoLinearElasticPlaneStrain2DLaw::UpdateInternalStrainVectorFinalized(ConstitutiveLaw::Parameters &rValues) {
@@ -140,18 +140,18 @@ void GeoLinearElasticPlaneStrain2DLaw::InitializeMaterialResponseCauchy(Constitu
     if (!mIsModelInitialized)
     {
         // stress and strain vectors must be initialized:
-        const Vector& rStressVector = rValues.GetStressVector();
-        const Vector& rStrainVector = rValues.GetStrainVector();
+        const Vector& r_stress_vector = rValues.GetStressVector();
+        const Vector& r_strain_vector = rValues.GetStrainVector();
 
-        SetInternalStressVector(rStressVector);
-        SetInternalStrainVector(rStrainVector);
+        SetInternalStressVector(r_stress_vector);
+        SetInternalStrainVector(r_strain_vector);
 
         mIsModelInitialized = true;
     }
     KRATOS_CATCH("")
 }
 
-void GeoLinearElasticPlaneStrain2DLaw::FinalizeMaterialResponseCauchy(ConstitutiveLaw::Parameters & rValues)
+void GeoLinearElasticPlaneStrain2DLaw::FinalizeMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues)
 {
     UpdateInternalStrainVectorFinalized(rValues);
     mStressVectorFinalized = mStressVector;
