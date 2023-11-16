@@ -10,8 +10,7 @@
 //  Main Authors:   Máté Kelemen
 //
 
-#ifndef KRATOS_MESH_MOVING_PARAMETRIC_LINEAR_TRANSFORMATION_INCLUDED
-#define KRATOS_MESH_MOVING_PARAMETRIC_LINEAR_TRANSFORMATION_INCLUDED
+#pragma once
 
 // Project includes
 #include "includes/kratos_parameters.h"
@@ -160,5 +159,3 @@ private:
 ///@}
 
 } // namespace Kratos
-
-#endif

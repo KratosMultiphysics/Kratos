@@ -10,8 +10,7 @@
 //  Main Authors:   Máté Kelemen
 //
 
-#ifndef KRATOS_MESH_MOVING_LINEAR_TRANSFORMATION_INCLUDED
-#define KRATOS_MESH_MOVING_LINEAR_TRANSFORMATION_INCLUDED
+#pragma once
 
 // Project includes
 #include "utilities/quaternion.h"
@@ -142,4 +141,3 @@ protected:
 
 } // namespace Kratos
 
-#endif // KRATOS_MESH_MOVING_LINEAR_TRANSFORMATION_INCLUDED
