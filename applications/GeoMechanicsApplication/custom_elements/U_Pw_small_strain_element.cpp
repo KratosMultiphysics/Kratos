@@ -151,7 +151,7 @@ void UPwSmallStrainElement<TDim,TNumNodes>::InitializeSolutionStep(const Process
                                      rCurrentProcessInfo);
 
     // create general parameters of retention law
-    RetentionLaw::Parameters RetentionParameters(rGeom, this->GetProperties(), rCurrentProcessInfo);
+    RetentionLaw::Parameters RetentionParameters(this->GetProperties(), rCurrentProcessInfo);
 
     //Loop over integration points
     for ( unsigned int GPoint = 0; GPoint < NumGPoints; ++GPoint) {
@@ -321,7 +321,7 @@ void UPwSmallStrainElement<TDim,TNumNodes>::
                                      rCurrentProcessInfo);
 
     // create general parameters of retention law
-    RetentionLaw::Parameters RetentionParameters(rGeom, this->GetProperties(), rCurrentProcessInfo);
+    RetentionLaw::Parameters RetentionParameters(this->GetProperties(), rCurrentProcessInfo);
 
     Matrix StressContainer(NumGPoints, mStressVector[0].size());
     //Loop over integration points
@@ -519,7 +519,7 @@ void UPwSmallStrainElement<TDim,TNumNodes>::CalculateOnIntegrationPoints(const V
                                          rCurrentProcessInfo);
 
         // create general parameters of retention law
-        RetentionLaw::Parameters RetentionParameters(rGeom, this->GetProperties(), rCurrentProcessInfo);
+        RetentionLaw::Parameters RetentionParameters(this->GetProperties(), rCurrentProcessInfo);
 
         //Loop over integration points
         for ( unsigned int GPoint = 0; GPoint < NumGPoints; ++GPoint ) {
@@ -541,7 +541,7 @@ void UPwSmallStrainElement<TDim,TNumNodes>::CalculateOnIntegrationPoints(const V
         //Defining the shape functions, the Jacobian and the shape functions local gradients Containers
         const Matrix& NContainer = rGeom.ShapeFunctionsValues( mThisIntegrationMethod );
 
-        const auto NodalHydraulicHead = GeoElementUtilities::CalculateNodalHydraulicHeadFromWaterPressures<TNumNodes>(rGeom, rProp);
+        const auto NodalHydraulicHead = GeoElementUtilities::CalculateNodalHydraulicHeadFromWaterPressures(rGeom, rProp);
 
         //Loop over integration points
         for ( unsigned int GPoint = 0; GPoint < NumGPoints; ++GPoint ) {
@@ -660,7 +660,7 @@ void UPwSmallStrainElement<TDim,TNumNodes>::
         array_1d<double,TDim> FluidFlux;
 
         // create general parameters of retention law
-        RetentionLaw::Parameters RetentionParameters(rGeom, this->GetProperties(), rCurrentProcessInfo);
+        RetentionLaw::Parameters RetentionParameters(this->GetProperties(), rCurrentProcessInfo);
 
         //Loop over integration points
         for ( unsigned int GPoint = 0; GPoint < NumGPoints; ++GPoint ) {
@@ -722,6 +722,7 @@ void UPwSmallStrainElement<TDim,TNumNodes>::
     //Defining necessary variables
     const GeometryType& rGeom = this->GetGeometry();
     const IndexType NumGPoints = rGeom.IntegrationPointsNumber( mThisIntegrationMethod );
+    const PropertiesType& rProp = this->GetProperties();
 
     if ( rOutput.size() != NumGPoints )
         rOutput.resize(NumGPoints);
@@ -736,7 +737,6 @@ void UPwSmallStrainElement<TDim,TNumNodes>::
         }
     } else if (rVariable == TOTAL_STRESS_VECTOR) {
         //Defining necessary variables
-        const PropertiesType& rProp = this->GetProperties();
 
         ConstitutiveLaw::Parameters ConstitutiveParameters(rGeom,rProp,rCurrentProcessInfo);
         ConstitutiveParameters.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
@@ -748,7 +748,7 @@ void UPwSmallStrainElement<TDim,TNumNodes>::
                                          rCurrentProcessInfo);
 
         // create general parameters of retention law
-        RetentionLaw::Parameters RetentionParameters(rGeom, this->GetProperties(), rCurrentProcessInfo);
+        RetentionLaw::Parameters RetentionParameters(this->GetProperties(), rCurrentProcessInfo);
 
         Vector VoigtVector(mStressVector[0].size());
         noalias(VoigtVector) = ZeroVector(VoigtVector.size());
@@ -836,7 +836,15 @@ void UPwSmallStrainElement<TDim,TNumNodes>::
 
             rOutput[GPoint] = Variables.StrainVector;
         }
-    } else {
+    }
+    else if (rProp.Has(rVariable))
+    {
+        // map initial material property to gauss points, as required for the output 
+        rOutput.clear();
+        std::fill_n(std::back_inserter(rOutput), mConstitutiveLawVector.size(), rProp.GetValue(rVariable));
+
+    }
+    else {
         for ( unsigned int i = 0; i < mConstitutiveLawVector.size(); ++i )
             rOutput[i] = mConstitutiveLawVector[i]->GetValue( rVariable , rOutput[i] );
     }
@@ -1038,7 +1046,7 @@ void UPwSmallStrainElement<TDim,TNumNodes>::
                                       rCurrentProcessInfo );
 
     // create general parametes of retention law
-    RetentionLaw::Parameters RetentionParameters(rGeom, this->GetProperties(), rCurrentProcessInfo);
+    RetentionLaw::Parameters RetentionParameters(this->GetProperties(), rCurrentProcessInfo);
 
     //Defining shape functions at all integration points
     //Defining necessary variables
@@ -1112,7 +1120,7 @@ void UPwSmallStrainElement<TDim,TNumNodes>::
                                       rCurrentProcessInfo );
 
     // create general parameters of retention law
-    RetentionLaw::Parameters RetentionParameters(rGeom, this->GetProperties(), rCurrentProcessInfo);
+    RetentionLaw::Parameters RetentionParameters(this->GetProperties(), rCurrentProcessInfo);
 
     const bool hasBiotCoefficient = rProp.Has(BIOT_COEFFICIENT);
 
@@ -1759,7 +1767,7 @@ void UPwSmallStrainElement<TDim,TNumNodes>::
 {
     if (rVariables.UseHenckyStrain) {
         this->CalculateDeformationGradient(rVariables, GPoint);
-        this->CalculateHenckyStrain( rVariables );
+        noalias(rVariables.StrainVector) = StressStrainUtilities::CalculateHenckyStrain(rVariables.F, VoigtSize);
     } else {
         this->CalculateCauchyStrain( rVariables );
     }
@@ -1836,50 +1844,6 @@ void UPwSmallStrainElement<TDim,TNumNodes>::
         noalias(rVariables.StrainVector) = MathUtils<double>::StrainTensorToVector(ETensor);
     }
 
-}
-
-//----------------------------------------------------------------------------------------
-template< unsigned int TDim, unsigned int TNumNodes >
-void UPwSmallStrainElement<TDim,TNumNodes>::
-    CalculateHenckyStrain( ElementVariables& rVariables )
-{
-    KRATOS_TRY
-
-    //-Compute total deformation gradient
-    const Matrix& F = rVariables.F;
-
-    Matrix CMatrix;
-    CMatrix = prod(trans(F), F);
-
-    // Declare the different matrix
-    Matrix EigenValuesMatrix = ZeroMatrix(TDim, TDim);
-    Matrix EigenVectorsMatrix = ZeroMatrix(TDim, TDim);
-
-    // Decompose matrix
-    MathUtils<double>::GaussSeidelEigenSystem(CMatrix, EigenVectorsMatrix, EigenValuesMatrix, 1.0e-16, 20);
-
-    // Calculate the eigenvalues of the E matrix
-    for (IndexType i = 0; i < TDim; ++i) {
-        EigenValuesMatrix(i, i) = 0.5 * std::log(EigenValuesMatrix(i, i));
-    }
-
-    // Calculate E matrix
-    Matrix ETensor = ZeroMatrix(TDim, TDim);
-    MathUtils<double>::BDBtProductOperation(ETensor, EigenValuesMatrix, EigenVectorsMatrix);
-
-    // Hencky Strain Calculation
-    if constexpr (TDim==2) {
-        Vector StrainVector;
-        StrainVector = MathUtils<double>::StrainTensorToVector(ETensor);
-        rVariables.StrainVector[INDEX_2D_PLANE_STRAIN_XX] = StrainVector[0];
-        rVariables.StrainVector[INDEX_2D_PLANE_STRAIN_YY] = StrainVector[1];
-        rVariables.StrainVector[INDEX_2D_PLANE_STRAIN_ZZ] = 0.0;
-        rVariables.StrainVector[INDEX_2D_PLANE_STRAIN_XY] = StrainVector[2];
-    } else {
-        noalias(rVariables.StrainVector) = MathUtils<double>::StrainTensorToVector(ETensor);
-    }
-
-    KRATOS_CATCH( "" )
 }
 
 //----------------------------------------------------------------------------------------

@@ -212,8 +212,8 @@ void SteadyStatePwPipingElement<TDim,TNumNodes>::
     array_1d<double,TDim> RelDispVector;
     SFGradAuxVariables SFGradAuxVars;
 
-    // create general parametes of retention law
-    RetentionLaw::Parameters RetentionParameters(Geom, this->GetProperties(), CurrentProcessInfo);
+    // create general parameters of retention law
+    RetentionLaw::Parameters RetentionParameters(this->GetProperties(), CurrentProcessInfo);
 
     //Loop over integration points
     for ( unsigned int GPoint = 0; GPoint < NumGPoints; ++GPoint) {
@@ -265,7 +265,7 @@ void SteadyStatePwPipingElement<TDim,TNumNodes>::
 template< >
 double SteadyStatePwPipingElement<2, 4>::CalculateHeadGradient(const PropertiesType& Prop, const GeometryType& Geom, double dx)
 {
-    auto nodalHead = GeoElementUtilities::CalculateNodalHydraulicHeadFromWaterPressures<4>(Geom, Prop);
+    const auto nodalHead = GeoElementUtilities::CalculateNodalHydraulicHeadFromWaterPressures(Geom, Prop);
 	return std::abs((nodalHead[3] + nodalHead[0]) / 2 - (nodalHead[2] + nodalHead[1])/2) / dx;
 }
 template< >
