@@ -148,7 +148,7 @@ public:
     {
         const auto& r_current_process_info = rModelPart.GetProcessInfo();
         block_for_each(rModelPart.Elements(),
-                       [&r_current_process_info, pMemberFunction, this](auto& rElement) {
+                       [&r_current_process_info, pMemberFunction](auto& rElement) {
                            if (IsActive(rElement)) {
                                (rElement.*pMemberFunction)(r_current_process_info);
                            }
@@ -160,14 +160,14 @@ public:
     {
         const auto& r_current_process_info = rModelPart.GetProcessInfo();
         block_for_each(rModelPart.Conditions(),
-                       [&r_current_process_info, pMemberFunction, this](Condition& rCondition) {
+                       [&r_current_process_info, pMemberFunction](Condition& rCondition) {
                            if (IsActive(rCondition))
                                (rCondition.*pMemberFunction)(r_current_process_info);
                        });
     }
 
     template <class T>
-    bool IsActive(const T& rComponent)
+    static bool IsActive(const T& rComponent)
     {
         return !(rComponent.IsDefined(ACTIVE)) || rComponent.Is(ACTIVE);
     }
