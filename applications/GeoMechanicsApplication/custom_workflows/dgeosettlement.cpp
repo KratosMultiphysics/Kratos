@@ -69,6 +69,11 @@ double GetIncreaseFactorFrom(const Parameters& rProjectParameters)
     return rProjectParameters["solver_settings"]["increase_factor"].GetDouble();
 }
 
+double GetMaxDeltaTimeFactorFrom(const Parameters& rProjectParameters)
+{
+    return rProjectParameters["solver_settings"]["max_delta_time_factor"].GetDouble();
+}
+
 std::size_t GetMinNumberOfIterationsFrom(const Parameters& rProjectParameters)
 {
     return static_cast<std::size_t>(rProjectParameters["solver_settings"]["min_iterations"].GetInt());
@@ -319,6 +324,7 @@ std::unique_ptr<TimeIncrementor> KratosGeoSettlement::MakeTimeIncrementor(const 
                                                      GetMaxNumberOfCyclesFrom(rProjectParameters),
                                                      GetReductionFactorFrom(rProjectParameters),
                                                      GetIncreaseFactorFrom(rProjectParameters),
+                                                     GetMaxDeltaTimeFactorFrom(rProjectParameters),
                                                      GetMinNumberOfIterationsFrom(rProjectParameters),
                                                      GetMaxNumberOfIterationsFrom(rProjectParameters));
 }
