@@ -54,6 +54,32 @@ namespace Kratos
     public:
         KratosExecute();
 
+        using NodeType = Node;
+        using SparseSpaceType = UblasSpace<double, CompressedMatrix, Vector>;
+        using LocalSpaceType = UblasSpace<double, Matrix, Vector>;
+
+        // The direct solver
+        using LinearSolverType = LinearSolver<SparseSpaceType, LocalSpaceType>;
+        using SkylineLUFactorizationSolverType = SkylineLUFactorizationSolver<SparseSpaceType, LocalSpaceType>;
+
+        // The convergence criteria type
+        using ConvergenceCriteriaType = ConvergenceCriteria<SparseSpaceType, LocalSpaceType>;
+        using MixedGenericCriteriaType = MixedGenericCriteria<SparseSpaceType, LocalSpaceType>;
+        using ConvergenceVariableListType = typename MixedGenericCriteriaType::ConvergenceVariableListType;
+
+        using GeoMechanicsNewtonRaphsonErosionProcessStrategyType =
+                GeoMechanicsNewtonRaphsonErosionProcessStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType>;
+
+        // Dof arrays
+        using result_type = SetIdentityFunction<Dof<double>>;
+
+
+        static ConvergenceCriteriaType::Pointer setup_criteria_dgeoflow();
+        static LinearSolverType::Pointer setup_solver_dgeoflow();
+        static GeoMechanicsNewtonRaphsonErosionProcessStrategyType::Pointer setup_strategy_dgeoflow(ModelPart &model_part);
+        void parseProcess(ModelPart &model_part, Parameters projFile);
+
+
         int ExecuteFlowAnalysis(std::string_view                       rWorkingDirectory,
                                 const std::string&                       rProjectParamsFileName,
                                 double                                   minCriticalHead,
@@ -76,23 +102,6 @@ namespace Kratos
 
         void AddNodalSolutionStepVariables(ModelPart& model_part) const;
 
-        typedef Node NodeType;
-        typedef Geometry<NodeType> GeometryType;
-        typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
-        typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
-
-        // The direct solver
-        typedef LinearSolver<SparseSpaceType, LocalSpaceType> LinearSolverType;
-        typedef SkylineLUFactorizationSolver<SparseSpaceType, LocalSpaceType> SkylineLUFactorizationSolverType;
-
-        // The convergence criteria type
-        typedef ConvergenceCriteria<SparseSpaceType, LocalSpaceType> ConvergenceCriteriaType;
-        typedef MixedGenericCriteria<SparseSpaceType, LocalSpaceType> MixedGenericCriteriaType;
-        typedef typename MixedGenericCriteriaType::ConvergenceVariableListType ConvergenceVariableListType;
-
-        typedef GeoMechanicsNewtonRaphsonErosionProcessStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType>
-            GeoMechanicsNewtonRaphsonErosionProcessStrategyType;
-
         int FindCriticalHead(ModelPart& model_part,
                                const Kratos::Parameters& gid_output_settings,
                                const CriticalHeadInfo& criticalHeadInfo,
@@ -106,16 +115,6 @@ namespace Kratos
         void HandleCancellationAndReset(const std::function<void(const char*)>& rLogCallback,
                                     LoggerOutput::Pointer p_output);
 
-        // Dof arrays
-        typedef SetIdentityFunction<Dof<double>> result_type;
-        typedef PointerVectorSet<Dof<double>, SetIdentityFunction<Dof<double>>, std::less<result_type>,
-                                 std::equal_to<result_type>, Dof<double> *>
-            DofsArrayType;
-
-        static ConvergenceCriteriaType::Pointer setup_criteria_dgeoflow();
-        static LinearSolverType::Pointer setup_solver_dgeoflow();
-        static GeoMechanicsNewtonRaphsonErosionProcessStrategyType::Pointer setup_strategy_dgeoflow(ModelPart &model_part);
-        void parseProcess(ModelPart &model_part, Parameters projFile);
 
     private:
         // Initial Setup
@@ -124,10 +123,10 @@ namespace Kratos
         KratosGeoMechanicsApplication::Pointer geoApp;
         std::string mWorkingDirectory;
         std::string mCriticalHeadBoundaryModelPartName;
-        bool pipingSuccess = false;
-        double criticalHead;
-        double currentHead;
-        bool exitLoop = false;
+        bool mPipingSuccess = false;
+        double mCriticalHead;
+        double mCurrentHead;
+        bool mExitLoop = false;
         std::vector<std::shared_ptr<Process>> mProcesses;
 
         void ResetModelParts();
