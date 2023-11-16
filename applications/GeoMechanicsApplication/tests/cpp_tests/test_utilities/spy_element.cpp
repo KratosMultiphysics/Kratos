@@ -13,14 +13,14 @@
 
 namespace Kratos::Testing {
 
-void SpyElement::FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
-{
-    mSolutionStepFinalized = true;
-}
-
 void SpyElement::InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
 {
     mSolutionStepInitialized = true;
+}
+
+void SpyElement::FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
+{
+    mSolutionStepFinalized = true;
 }
 
 void SpyElement::InitializeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo)
@@ -36,7 +36,7 @@ void SpyElement::FinalizeNonLinearIteration(const ProcessInfo& rCurrentProcessIn
 void SpyElement::EquationIdVector(Element::EquationIdVectorType& rResult,
                                   const ProcessInfo& rCurrentProcessInfo) const
 {
-    mIsEquationIdSet = true;
+    mIsEquationIdRetrieved = true;
 }
 
 void SpyElement::GetDofList(Element::DofsVectorType& rElementalDofList,
@@ -45,14 +45,14 @@ void SpyElement::GetDofList(Element::DofsVectorType& rElementalDofList,
     mIsGetDofListCalled = true;
 }
 
-bool SpyElement::IsSolutionStepFinalized() const
-{
-    return mSolutionStepFinalized;
-}
-
 bool SpyElement::IsSolutionStepInitialized() const
 {
     return mSolutionStepInitialized;
+}
+
+bool SpyElement::IsSolutionStepFinalized() const
+{
+    return mSolutionStepFinalized;
 }
 
 bool SpyElement::IsNonLinIterationInitialized() const
@@ -65,9 +65,9 @@ bool SpyElement::IsNonLinIterationFinalized() const
     return mNonLinIterationFinalized;
 }
 
-bool SpyElement::IsEquationIdSet() const
+bool SpyElement::IsEquationIdRetrieved() const
 {
-    return mIsEquationIdSet;
+    return mIsEquationIdRetrieved;
 }
 
 bool SpyElement::IsGetDofListCalled() const

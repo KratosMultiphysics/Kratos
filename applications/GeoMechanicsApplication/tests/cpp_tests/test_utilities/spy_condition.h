@@ -18,8 +18,8 @@ namespace Kratos::Testing {
 
 class SpyCondition : public Condition {
 public:
-    void FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
     void InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
+    void FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
     void InitializeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo) override;
     void FinalizeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo) override;
 
@@ -29,16 +29,11 @@ public:
     void GetDofList(DofsVectorType& rElementalDofList,
                     const ProcessInfo& rCurrentProcessInfo) const override;
 
-    bool IsSolutionStepFinalized() const;
-
     bool IsSolutionStepInitialized() const;
-
+    bool IsSolutionStepFinalized() const;
     bool IsNonLinIterationInitialized() const;
-
     bool IsNonLinIterationFinalized() const;
-
-    bool IsEquationIdSet() const;
-
+    bool IsEquationIdRetrieved() const;
     bool IsGetDofListCalled() const;
 
 private:
@@ -46,7 +41,7 @@ private:
     bool mSolutionStepFinalized = false;
     bool mNonLinIterationInitialized = false;
     bool mNonLinIterationFinalized = false;
-    mutable bool mIsEquationIdSet = false;
+    mutable bool mIsEquationIdRetrieved = false;
     mutable bool mIsGetDofListCalled = false;
 };
 

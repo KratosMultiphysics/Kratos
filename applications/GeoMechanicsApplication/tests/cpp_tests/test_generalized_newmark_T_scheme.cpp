@@ -22,8 +22,7 @@ namespace Kratos::Testing {
 
 GeneralizedNewmarkTScheme<SparseSpaceType, LocalSpaceType> CreateValidScheme()
 {
-    GeneralizedNewmarkTScheme<SparseSpaceType, LocalSpaceType> result(0.75);
-    return result;
+    return GeneralizedNewmarkTScheme<SparseSpaceType, LocalSpaceType>(0.75);
 }
 
 ModelPart& CreateValidModelPart(Model& rModel)
@@ -51,15 +50,11 @@ KRATOS_TEST_CASE_IN_SUITE(CheckBackwardEulerQuasistaticTScheme_WithAllNecessaryP
 KRATOS_TEST_CASE_IN_SUITE(ForInvalidTheta_CheckBackwardEulerQuasistaticTScheme_Throws,
                           KratosGeoMechanicsFastSuite)
 {
-    constexpr int invalid_theta = -2;
+    constexpr double invalid_theta = -2.0;
     GeneralizedNewmarkTScheme<SparseSpaceType, LocalSpaceType> scheme(invalid_theta);
 
     Model model;
-    auto& model_part = model.CreateModelPart("dummy", 2);
-    model_part.AddNodalSolutionStepVariable(TEMPERATURE);
-    model_part.AddNodalSolutionStepVariable(DT_TEMPERATURE);
-    auto p_node = model_part.CreateNewNode(0, 0.0, 0.0, 0.0);
-    p_node->AddDof(TEMPERATURE);
+    const auto& model_part = CreateValidModelPart(model);
 
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(scheme.Check(model_part),
                                       "Theta has an invalid value")
@@ -68,26 +63,23 @@ KRATOS_TEST_CASE_IN_SUITE(ForInvalidTheta_CheckBackwardEulerQuasistaticTScheme_T
 KRATOS_TEST_CASE_IN_SUITE(ForInvalidBufferSize_CheckBackwardEulerQuasistaticTScheme_Throws,
                           KratosGeoMechanicsFastSuite)
 {
-    GeneralizedNewmarkTScheme<SparseSpaceType, LocalSpaceType> scheme(0.75);
+    auto scheme = CreateValidScheme();
 
     Model model;
-    constexpr int invalid_buffer_size = 1;
-    auto& model_part = model.CreateModelPart("dummy", invalid_buffer_size);
-    model_part.AddNodalSolutionStepVariable(TEMPERATURE);
-    model_part.AddNodalSolutionStepVariable(DT_TEMPERATURE);
-    auto p_node = model_part.CreateNewNode(0, 0.0, 0.0, 0.0);
-    p_node->AddDof(TEMPERATURE);
+    constexpr auto invalid_buffer_size = ModelPart::IndexType{1};
+    auto& model_part = CreateValidModelPart(model);
+    model_part.SetBufferSize(invalid_buffer_size);
 
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         scheme.Check(model_part),
-        "insufficient buffer size. Buffer size should be greater or equal to "
-        "2. Current size is ")
+        "insufficient buffer size. Buffer size should be greater than or equal to "
+        "2. Current size is 1")
 }
 
 KRATOS_TEST_CASE_IN_SUITE(ForMissingNodalDof_CheckBackwardEulerQuasistaticTScheme_Throws,
                           KratosGeoMechanicsFastSuite)
 {
-    GeneralizedNewmarkTScheme<SparseSpaceType, LocalSpaceType> scheme(0.75);
+    auto scheme = CreateValidScheme();
 
     Model model;
     auto& model_part = model.CreateModelPart("dummy", 2);
@@ -102,7 +94,7 @@ KRATOS_TEST_CASE_IN_SUITE(ForMissingNodalDof_CheckBackwardEulerQuasistaticTSchem
 KRATOS_TEST_CASE_IN_SUITE(ForMissingDtTemperatureSolutionStepVariable_CheckBackwardEulerQuasistaticTScheme_Throws,
                           KratosGeoMechanicsFastSuite)
 {
-    GeneralizedNewmarkTScheme<SparseSpaceType, LocalSpaceType> scheme(0.75);
+    auto scheme = CreateValidScheme();
 
     Model model;
     auto& model_part = model.CreateModelPart("dummy", 2);
@@ -118,7 +110,7 @@ KRATOS_TEST_CASE_IN_SUITE(ForMissingDtTemperatureSolutionStepVariable_CheckBackw
 KRATOS_TEST_CASE_IN_SUITE(ForMissingTemperatureSolutionStepVariable_CheckBackwardEulerQuasistaticTScheme_Throws,
                           KratosGeoMechanicsFastSuite)
 {
-    GeneralizedNewmarkTScheme<SparseSpaceType, LocalSpaceType> scheme(0.75);
+    auto scheme = CreateValidScheme();
 
     Model model;
     auto& model_part = model.CreateModelPart("dummy", 2);

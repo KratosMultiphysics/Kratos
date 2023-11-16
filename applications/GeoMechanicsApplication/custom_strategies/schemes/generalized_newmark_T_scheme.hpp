@@ -99,6 +99,6 @@ protected:
     }
 
 private:
-    double mTheta = 0.0;
+    double mTheta = 1.0;
 }; // Class GeneralizedNewmarkTScheme
 } // namespace Kratos
