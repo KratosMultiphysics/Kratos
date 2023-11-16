@@ -190,25 +190,6 @@ public:
         
         TSparseSpace::SetToZero(RHS_Contribution);
 
-
-
-        // int thread = OpenMPUtils::ThisThread();
-        //
-        // rCurrentElement.CalculateLocalSystem(LHS_Contribution, RHS_Contribution, CurrentProcessInfo);
-        //
-        // TSparseSpace::SetToZero(RHS_Contribution);
-        //
-        // rCurrentElement.CalculateMassMatrix(mMassMatrix[thread], CurrentProcessInfo);
-        //
-        // rCurrentElement.CalculateDampingMatrix(mDampingMatrix[thread], CurrentProcessInfo);
-        //
-        // this->AddDynamicsToLHS(LHS_Contribution, mMassMatrix[thread], mDampingMatrix[thread], CurrentProcessInfo);
-        //
-        // //this->AddDynamicsToRHS(rCurrentElement, RHS_Contribution, mMassMatrix[thread], mDampingMatrix[thread], CurrentProcessInfo);
-        //
-        // rCurrentElement.EquationIdVector(EquationId, CurrentProcessInfo);
-
-
         KRATOS_CATCH( "" )
     }
 
@@ -220,17 +201,6 @@ public:
     {
        
             KRATOS_ERROR << "Build_and_solver should not request rhs contribution from IncrementalNewmarkDynamicUPwScheme" << std::endl;;
-    
-        // int thread = OpenMPUtils::ThisThread();
-        //
-        //
-        // rCurrentElement.CalculateMassMatrix(mMassMatrix[thread], CurrentProcessInfo);
-        //
-        // rCurrentElement.CalculateDampingMatrix(mDampingMatrix[thread],CurrentProcessInfo);
-        //
-        // this->AddDynamicsToRHS(rCurrentElement, RHS_Contribution, mMassMatrix[thread], mDampingMatrix[thread], CurrentProcessInfo);
-        //
-        // rCurrentElement.EquationIdVector(EquationId,CurrentProcessInfo);
 
     }
 
@@ -240,21 +210,7 @@ public:
         Element::EquationIdVectorType& rEquationIds,
         const ProcessInfo& rCurrentProcessInfo) override
     {
-        //KRATOS_TRY
         KRATOS_ERROR << "Build_and_solver should not request rhs contribution from IncrementalNewmarkDynamicUPwScheme" << std::endl;;
-        // int thread = OpenMPUtils::ThisThread();
-        //
-        // rCurrentCondition.CalculateRightHandSide(rRHS_Contribution, rCurrentProcessInfo);
-        //
-        // rCurrentCondition.CalculateMassMatrix(mMassMatrix[thread], rCurrentProcessInfo);
-        //
-        // rCurrentCondition.CalculateDampingMatrix(mDampingMatrix[thread], rCurrentProcessInfo);
-        //
-        // this->AddDynamicsToRHS(rCurrentCondition, rRHS_Contribution, mMassMatrix[thread], mDampingMatrix[thread], rCurrentProcessInfo);
-
-        rCurrentCondition.EquationIdVector(rEquationIds, rCurrentProcessInfo);
-
-        //KRATOS_CATCH("")
     }
 
     void CalculateLHSContribution(
@@ -329,78 +285,6 @@ protected:
         KRATOS_CATCH( "" )
     }
 
-    // void AddDynamicsToRHS(Condition& rCurrentCondition,
-    //     LocalSystemVectorType& RHS_Contribution,
-    //     LocalSystemMatrixType& M,
-    //     LocalSystemMatrixType& C,
-    //     const ProcessInfo& CurrentProcessInfo)
-    // {
-    //     KRATOS_TRY
-    //
-    //         int thread = OpenMPUtils::ThisThread();
-    //
-    //     if (M.size1() != 0 || C.size1() != 0)
-    //     {
-    //         rCurrentCondition.GetSecondDerivativesVector(mAccelerationVector[thread], 0);
-    //         rCurrentCondition.GetFirstDerivativesVector(mVelocityVector[thread], 0);
-    //
-    //         //adding inertia contribution
-    //         if (M.size1() != 0)
-    //         {
-    //
-    //             auto m_part = mVelocityVector[thread] * (1 / (mBeta * mDeltaTime)) + mAccelerationVector[thread] * (1 / (2 * mBeta));
-    //
-    //             noalias(RHS_Contribution) += prod(M, m_part);
-    //         }
-    //
-    //         //adding damping contribution
-    //         if (C.size1() != 0)
-    //         {
-    //             auto c_part = mVelocityVector[thread] * (mGamma / mBeta) + mAccelerationVector[thread] * (mDeltaTime * (mGamma / (2 * mBeta) - 1));
-    //
-    //             noalias(RHS_Contribution) += prod(C, c_part);
-    //         }
-    //     }
-    //
-    //     KRATOS_CATCH("")
-    // }
-    //
-    // void AddDynamicsToRHS(Element &rCurrentElement,
-    //                       LocalSystemVectorType& RHS_Contribution,
-    //                       LocalSystemMatrixType& M,
-    //                       LocalSystemMatrixType& C,
-    //                       const ProcessInfo& CurrentProcessInfo)
-    // {
-    //     KRATOS_TRY
-    //
-    //     int thread = OpenMPUtils::ThisThread();
-    //
-    //     if (M.size1() != 0 || C.size1() != 0)
-    //     {
-    //         rCurrentElement.GetSecondDerivativesVector(mAccelerationVector[thread], 0);
-    //         rCurrentElement.GetFirstDerivativesVector(mVelocityVector[thread], 0);
-    //
-    //         //adding inertia contribution
-    //         if (M.size1() != 0)
-    //         {
-    //
-    //             auto m_part = mVelocityVector[thread] * (1 / (mBeta * mDeltaTime)) + mAccelerationVector[thread] * (1 / (2 * mBeta));
-    //
-    //             noalias(RHS_Contribution) += prod(M, mAccelerationVector[thread]);
-    //         }
-    //
-    //         //adding damping contribution
-    //         if (C.size1() != 0)
-    //         {
-    //             auto c_part = mVelocityVector[thread] * (mGamma / mBeta) + mAccelerationVector[thread] * (mDeltaTime * (mGamma / (2 * mBeta) - 1));
-    //
-    //             noalias(RHS_Contribution) += prod(C, mVelocityVector[thread]);
-    //         }
-    //     }
-    //
-    //     KRATOS_CATCH( "" )
-    // }
-
 
     void Update(ModelPart& rModelPart,
         DofsArrayType& rDofSet,
@@ -410,7 +294,7 @@ protected:
     {
         KRATOS_TRY
 
-            int NumThreads = ParallelUtilities::GetNumThreads();
+        int NumThreads = ParallelUtilities::GetNumThreads();
         OpenMPUtils::PartitionVector DofSetPartition;
         OpenMPUtils::DivideInPartitions(rDofSet.size(), NumThreads, DofSetPartition);
 
@@ -440,14 +324,17 @@ protected:
         TSystemVectorType& b) override
     {
         const ProcessInfo& rCurrentProcessInfo = rModelPart.GetProcessInfo();
+
         // finalize non linear interation for element in order to calculate stresses within element
         block_for_each(rModelPart.Elements(), [&rCurrentProcessInfo](Element& rElement) {
             const bool isActive = (rElement.IsDefined(ACTIVE)) ? rElement.Is(ACTIVE) : true;
             if (isActive) rElement.FinalizeNonLinearIteration(rCurrentProcessInfo);
             });
 
+        // finalize solution step
     	NewmarkQuasistaticUPwScheme::FinalizeSolutionStep(rModelPart, A, Dx, b);
 
+        // update derivatives
         this->UpdateVariablesDerivatives(rModelPart);
     }
 
@@ -456,24 +343,24 @@ protected:
     {
         KRATOS_TRY
 
-            //Update Acceleration, Velocity and DtPressure
-            block_for_each(rModelPart.Nodes(), [&](Node& rNode) {
+        //Update Acceleration, Velocity and DtPressure
+        block_for_each(rModelPart.Nodes(), [&](Node& rNode) {
 
-	            const auto delta_u = rNode.FastGetSolutionStepValue(DISPLACEMENT) - rNode.FastGetSolutionStepValue(DISPLACEMENT, 1);
+            const auto delta_u = rNode.FastGetSolutionStepValue(DISPLACEMENT) - rNode.FastGetSolutionStepValue(DISPLACEMENT, 1);
 
-	            const auto delta_a = (delta_u * (1 / (mBeta * mDeltaTime * mDeltaTime))
-	                - rNode.FastGetSolutionStepValue(VELOCITY) * (1 / (mBeta * mDeltaTime))
-	                - rNode.FastGetSolutionStepValue(ACCELERATION) * (1 / (2 * mBeta)));
+            const auto delta_a = (delta_u * (1 / (mBeta * mDeltaTime * mDeltaTime))
+                - rNode.FastGetSolutionStepValue(VELOCITY) * (1 / (mBeta * mDeltaTime))
+                - rNode.FastGetSolutionStepValue(ACCELERATION) * (1 / (2 * mBeta)));
 
-	            const auto delta_v = delta_u * (mGamma / (mBeta * mDeltaTime))
-	                - rNode.FastGetSolutionStepValue(VELOCITY) * (mGamma / mBeta)
-	                + rNode.FastGetSolutionStepValue(ACCELERATION) * (mDeltaTime * (1 - mGamma / (2 * mBeta)));
+            const auto delta_v = delta_u * (mGamma / (mBeta * mDeltaTime))
+                - rNode.FastGetSolutionStepValue(VELOCITY) * (mGamma / mBeta)
+                + rNode.FastGetSolutionStepValue(ACCELERATION) * (mDeltaTime * (1 - mGamma / (2 * mBeta)));
 
 
-	            rNode.FastGetSolutionStepValue(ACCELERATION) += delta_a;
-	            rNode.FastGetSolutionStepValue(VELOCITY) += delta_v;
+            noalias(rNode.FastGetSolutionStepValue(ACCELERATION)) += delta_a;
+            noalias(rNode.FastGetSolutionStepValue(VELOCITY)) += delta_v;
 
-                });
+            });
 
         KRATOS_CATCH("")
     }
