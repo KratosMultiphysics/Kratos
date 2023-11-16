@@ -203,6 +203,8 @@ namespace Kratos::MPMSearchElementUtility
                         r_found_geom.Points()[j].Set(ACTIVE);
                     }
                 }
+                int& mp_counter = r_found_geom.GetValue(MP_COUNTER) ; 
+                    mp_counter +=1;
             } else {
                 #pragma omp critical
                 rMissingElements.push_back(&*element_itr);
@@ -236,6 +238,9 @@ namespace Kratos::MPMSearchElementUtility
                     CreateQuadraturePointsUtility<Node>::UpdateFromLocalCoordinates(
                         condition_itr->pGetGeometry(), local_coordinates,
                         condition_itr->GetGeometry().IntegrationPoints()[0].Weight(), r_found_geom);
+
+                    int& mpc_counter = r_found_geom.GetValue(MPC_COUNTER) ; 
+                    mpc_counter +=1;
 
                     for (IndexType j = 0; j < r_found_geom.PointsNumber(); ++j) {
                         r_found_geom[j].Set(ACTIVE);
@@ -340,6 +345,10 @@ namespace Kratos::MPMSearchElementUtility
                     for (IndexType j = 0; j < r_geometry.PointsNumber(); ++j) {
                         r_geometry[j].Set(ACTIVE);
                     }
+                    
+                    int& mp_counter = pelem->GetGeometry().GetValue(MP_COUNTER); 
+                    mp_counter +=1;
+
                 } else {
                     KRATOS_INFO("MPMSearchElementUtility") << "WARNING: Search Element for Material Point: "
                         << element_itr->Id() << " is failed. Geometry is cleared." << std::endl;
@@ -378,6 +387,10 @@ namespace Kratos::MPMSearchElementUtility
                         for (IndexType j = 0; j < r_geometry.PointsNumber(); ++j) {
                             r_geometry[j].Set(ACTIVE);
                         }
+
+                        int& mpc_counter = pelem->GetGeometry().GetValue(MPC_COUNTER) ; 
+                        mpc_counter +=1;
+
                     } else {
                         KRATOS_INFO("MPMSearchElementUtility") << "WARNING: Search Element for Material Point Condition: " << condition_itr->Id()
                             << " is failed. Geometry is cleared." << std::endl;
@@ -401,6 +414,11 @@ namespace Kratos::MPMSearchElementUtility
             for (IndexType j = 0; j < r_geometry.PointsNumber(); ++j) {
                 r_geometry[j].Reset(ACTIVE);
             }
+
+            int& mpc_counter = element_itr->GetValue(MPC_COUNTER) ; 
+            mpc_counter =0;
+            int& mp_counter = element_itr->GetValue(MP_COUNTER); 
+            mp_counter =0;
         }
     }
 
