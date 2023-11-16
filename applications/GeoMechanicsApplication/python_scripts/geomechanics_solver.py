@@ -141,17 +141,27 @@ class GeoMechanicalSolver(PythonSolver):
 
         super().ValidateSettings()
 
-        # Checks if scaling is used in combination with rebuild level lower than 2 and prebuild dynamics, if so it
-        # throws an error
-        if (self.settings.Has("linear_solver_settings") and
-            self.settings["linear_solver_settings"].Has("scaling") and
-            self.settings["linear_solver_settings"]["scaling"].GetBool()):
-            if (self.settings.Has("rebuild_level") and
-                self.settings["rebuild_level"].GetInt() < 2):
-                raise ValueError("Scaling can only be used if rebuild level is at least equal to 2")
-            if (self.settings.Has("prebuild_dynamics") and
-                self.settings["prebuild_dynamics"].GetBool()):
-                raise ValueError("Scaling can not be used if prebuild dynamics is true")
+        if self.settings.Has("linear_solver_settings"):
+            # Checks if scaling is used in combination with rebuild level lower than 2 and prebuild dynamics, if so it
+            # throws an error
+            if (self.settings["linear_solver_settings"].Has("scaling") and
+                    self.settings["linear_solver_settings"]["scaling"].GetBool()):
+                if (self.settings.Has("rebuild_level") and
+                        self.settings["rebuild_level"].GetInt() < 2):
+                    raise ValueError("Scaling can only be used if rebuild level is at least equal to 2")
+                if (self.settings.Has("prebuild_dynamics") and
+                        self.settings["prebuild_dynamics"].GetBool()):
+                    raise ValueError("Scaling can not be used if prebuild dynamics is true")
+
+            # Checks if the pre_factorized_skyline_lu_factorization_solver is used in combination with rebuild level not
+            # equal to 0, if so it throws an error
+            if (self.settings["linear_solver_settings"].Has("solver_type") and
+                    self.settings["linear_solver_settings"]["solver_type"].GetString().lower() ==
+                    "pre_factorized_skyline_lu_factorization_solver"):
+                if (self.settings.Has("rebuild_level") and
+                        self.settings["rebuild_level"].GetInt() != 0):
+                    raise ValueError("pre_factorized_skyline_lu_factorization_solver can only be used if rebuild level "
+                                     "is 0, i.e. the lhs is not rebuilt throughout the computation")
 
     def AddVariables(self):
         # this can safely be called also for restarts, it is internally checked if the variables exist already
@@ -444,7 +454,9 @@ class GeoMechanicalSolver(PythonSolver):
         if (block_builder):
             if prebuild_dynamics:
                 builder_and_solver = (
-                    GeoMechanicsApplication.IncrementalNewmarkBlockBuilderAndSolverWithMassAndDamping(self.linear_solver))
+                    GeoMechanicsApplication.IncrementalNewmarkBlockBuilderAndSolverWithMassAndDamping(
+                        self.linear_solver, KratosMultiphysics.Parameters("{}"),
+                        self.settings["newmark_beta"].GetDouble(), self.settings["newmark_gamma"].GetDouble()))
                     #GeoMechanicsApplication.ResidualBasedBlockBuilderAndSolverWithMassAndDamping(self.linear_solver))
             else:
                 builder_and_solver = KratosMultiphysics.ResidualBasedBlockBuilderAndSolver(self.linear_solver)

@@ -124,11 +124,8 @@ public:
 
             const ProcessInfo& rCurrentProcessInfo = rModelPart.GetProcessInfo();
 
-        // finalize non linear interation for element in order to calculate stresses within element
-        block_for_each(rModelPart.Elements(), [&rCurrentProcessInfo](Element& rElement) {
-            const bool isActive = (rElement.IsDefined(ACTIVE)) ? rElement.Is(ACTIVE) : true;
-            if (isActive) rElement.FinalizeNonLinearIteration(rCurrentProcessInfo);
-            });
+
+        // elements do not have to be finalized, as the LHS is required to be constant througout the computation
 
         block_for_each(rModelPart.Conditions(), [&rCurrentProcessInfo](Condition& rCondition) {
             const bool isActive = (rCondition.IsDefined(ACTIVE)) ? rCondition.Is(ACTIVE) : true;
@@ -430,7 +427,8 @@ protected:
             }
         }
 
-       // this->UpdateVariablesDerivatives(rModelPart);
+       // update derivatives at finalize solution step
+
 
         KRATOS_CATCH("")
     }
@@ -441,7 +439,14 @@ protected:
         TSystemVectorType& Dx,
         TSystemVectorType& b) override
     {
-        NewmarkQuasistaticUPwScheme::FinalizeSolutionStep(rModelPart, A, Dx, b);
+        const ProcessInfo& rCurrentProcessInfo = rModelPart.GetProcessInfo();
+        // finalize non linear interation for element in order to calculate stresses within element
+        block_for_each(rModelPart.Elements(), [&rCurrentProcessInfo](Element& rElement) {
+            const bool isActive = (rElement.IsDefined(ACTIVE)) ? rElement.Is(ACTIVE) : true;
+            if (isActive) rElement.FinalizeNonLinearIteration(rCurrentProcessInfo);
+            });
+
+    	NewmarkQuasistaticUPwScheme::FinalizeSolutionStep(rModelPart, A, Dx, b);
 
         this->UpdateVariablesDerivatives(rModelPart);
     }
