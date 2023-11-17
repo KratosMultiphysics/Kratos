@@ -1,0 +1,5 @@
+# vtk DataFile Version 4.0
+vtk output
+BINARY
+DATASET UNSTRUCTURED_GRID
+POINTS 0 float

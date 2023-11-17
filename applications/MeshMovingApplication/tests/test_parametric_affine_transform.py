@@ -5,7 +5,7 @@ import KratosMultiphysics.KratosUnittest as UnitTest
 
 import math
 
-class ParametricLinearTransformTest(UnitTest.TestCase):
+class ParametricAffineTransformTest(UnitTest.TestCase):
 
     @staticmethod
     def GeneratePoints():
@@ -21,7 +21,7 @@ class ParametricLinearTransformTest(UnitTest.TestCase):
 
     def test_ConstantTransform(self):
         points = self.GeneratePoints()
-        transform = MeshMoving.ParametricLinearTransform(
+        transform = MeshMoving.ParametricAffineTransform(
             self.GetConstantAxis(),
             self.GetConstantAngle(),
             self.GetConstantReferencePoint(),
@@ -31,7 +31,7 @@ class ParametricLinearTransformTest(UnitTest.TestCase):
 
     def test_ConstantTransformEuler(self):
         points = self.GeneratePoints()
-        transform = MeshMoving.ParametricLinearTransform(
+        transform = MeshMoving.ParametricAffineTransform(
             self.GetConstantEulerAngles(),
             self.GetConstantReferencePoint(),
             self.GetConstantTranslationVector())
@@ -40,7 +40,7 @@ class ParametricLinearTransformTest(UnitTest.TestCase):
 
     def test_ParametricAngle(self):
         points = self.GeneratePoints()
-        transform = MeshMoving.ParametricLinearTransform(
+        transform = MeshMoving.ParametricAffineTransform(
             self.GetConstantAxis(),
             Parameters(f""" "-(t+1.0) * {math.pi} / 2.0" """),
             self.GetConstantReferencePoint(),
@@ -54,7 +54,7 @@ class ParametricLinearTransformTest(UnitTest.TestCase):
 
     def test_ParametricAxis(self):
         points = self.GeneratePoints()
-        transform = MeshMoving.ParametricLinearTransform(
+        transform = MeshMoving.ParametricAffineTransform(
             Parameters(""" ["t", "1.0-t", 0.0] """),
             self.GetConstantAngle(),
             self.GetConstantReferencePoint(),
@@ -68,7 +68,7 @@ class ParametricLinearTransformTest(UnitTest.TestCase):
 
     def test_ParametricEulerAngles(self):
         points = self.GeneratePoints()
-        transform = MeshMoving.ParametricLinearTransform(
+        transform = MeshMoving.ParametricAffineTransform(
             Parameters(f""" [{-math.pi/2.0}, {-math.pi/2.0}, "(1.0-t)*{math.pi/2.0}"] """),
             self.GetConstantReferencePoint(),
             self.GetConstantTranslationVector())
@@ -81,7 +81,7 @@ class ParametricLinearTransformTest(UnitTest.TestCase):
 
     def test_ParametricReferencePoint(self):
         points = self.GeneratePoints()
-        transform = MeshMoving.ParametricLinearTransform(
+        transform = MeshMoving.ParametricAffineTransform(
             self.GetConstantAxis(),
             self.GetConstantAngle(),
             Parameters(""" ["t-1.0", 0.0, 0.0] """),
@@ -95,7 +95,7 @@ class ParametricLinearTransformTest(UnitTest.TestCase):
 
     def test_ParametricTranslationVector(self):
         points = self.GeneratePoints()
-        transform = MeshMoving.ParametricLinearTransform(
+        transform = MeshMoving.ParametricAffineTransform(
             self.GetConstantAxis(),
             self.GetConstantAngle(),
             self.GetConstantReferencePoint(),

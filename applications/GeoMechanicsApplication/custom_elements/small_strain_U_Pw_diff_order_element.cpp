@@ -297,8 +297,8 @@ void SmallStrainUPwDiffOrderElement::
     ConstitutiveParameters.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
     ConstitutiveParameters.Set(ConstitutiveLaw::INITIALIZE_MATERIAL_RESPONSE); //Note: this is for nonlocal damage
 
-    // create general parametes of retention law
-    RetentionLaw::Parameters RetentionParameters(GetGeometry(), GetProperties(), rCurrentProcessInfo);
+    // create general parameters of retention law
+    RetentionLaw::Parameters RetentionParameters(GetProperties(), rCurrentProcessInfo);
 
     //Loop over integration points
     for ( unsigned int GPoint = 0; GPoint < mConstitutiveLawVector.size(); ++GPoint ) {
@@ -492,8 +492,8 @@ void SmallStrainUPwDiffOrderElement::
     ElementVariables Variables;
     this->InitializeElementVariables(Variables, rCurrentProcessInfo);
 
-    // create general parametes of retention law
-    RetentionLaw::Parameters RetentionParameters(rGeom, this->GetProperties(), rCurrentProcessInfo);
+    // create general parameters of retention law
+    RetentionLaw::Parameters RetentionParameters(this->GetProperties(), rCurrentProcessInfo);
 
     Matrix M = ZeroMatrix(BlockElementSize, BlockElementSize);
 
@@ -742,8 +742,8 @@ void SmallStrainUPwDiffOrderElement::
     //ConstitutiveParameters.GetOptions().Set(ConstitutiveLaw::COMPUTE_STRESS);
     ConstitutiveParameters.GetOptions().Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
 
-    // create general parametes of retention law
-    RetentionLaw::Parameters RetentionParameters(GetGeometry(), GetProperties(), rCurrentProcessInfo);
+    // create general parameters of retention law
+    RetentionLaw::Parameters RetentionParameters(GetProperties(), rCurrentProcessInfo);
 
     //Loop over integration points
     for ( unsigned int GPoint = 0; GPoint < mConstitutiveLawVector.size(); ++GPoint ) {
@@ -1133,8 +1133,8 @@ void SmallStrainUPwDiffOrderElement::
         this->InitializeElementVariables(Variables,
                                          rCurrentProcessInfo);
 
-        // create general parametes of retention law
-        RetentionLaw::Parameters RetentionParameters(rGeom, GetProperties(), rCurrentProcessInfo);
+        // create general parameters of retention law
+        RetentionLaw::Parameters RetentionParameters(GetProperties(), rCurrentProcessInfo);
 
         //Loop over integration points
         for ( unsigned int GPoint = 0; GPoint < mRetentionLawVector.size(); ++GPoint ) {
@@ -1220,8 +1220,8 @@ void SmallStrainUPwDiffOrderElement::
         ElementVariables Variables;
         this->InitializeElementVariables(Variables,rCurrentProcessInfo);
 
-        // create general parametes of retention law
-        RetentionLaw::Parameters RetentionParameters(rGeom, GetProperties(), rCurrentProcessInfo);
+        // create general parameters of retention law
+        RetentionLaw::Parameters RetentionParameters(GetProperties(), rCurrentProcessInfo);
 
         //Loop over integration points
         for ( unsigned int GPoint = 0; GPoint < mConstitutiveLawVector.size(); ++GPoint ) {
@@ -1361,8 +1361,8 @@ void SmallStrainUPwDiffOrderElement::
         const SizeType StressTensorSize = (Dim == N_DIM_3D ? STRESS_TENSOR_SIZE_3D : STRESS_TENSOR_SIZE_2D);
         for (unsigned int i=0; i < StressTensorSize; ++i) VoigtVector[i] = 1.0;
 
-        // create general parametes of retention law
-        RetentionLaw::Parameters RetentionParameters(rGeom, GetProperties(), rCurrentProcessInfo);
+        // create general parameters of retention law
+        RetentionLaw::Parameters RetentionParameters(GetProperties(), rCurrentProcessInfo);
 
         const bool hasBiotCoefficient = rProp.Has(BIOT_COEFFICIENT);
 
@@ -1507,8 +1507,8 @@ void SmallStrainUPwDiffOrderElement::
     ConstitutiveParameters.GetOptions().Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
     if (CalculateResidualVectorFlag)  ConstitutiveParameters.GetOptions().Set(ConstitutiveLaw::COMPUTE_STRESS);
 
-    // create general parametes of retention law
-    RetentionLaw::Parameters RetentionParameters(rGeom, rProp, rCurrentProcessInfo);
+    // create general parameters of retention law
+    RetentionLaw::Parameters RetentionParameters(rProp, rCurrentProcessInfo);
 
     //Loop over integration points
     const GeometryType::IntegrationPointsArrayType& IntegrationPoints = rGeom.IntegrationPoints( this->GetIntegrationMethod() );
