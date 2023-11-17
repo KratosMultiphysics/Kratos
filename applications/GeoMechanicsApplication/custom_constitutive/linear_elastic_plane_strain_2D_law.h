@@ -96,8 +96,8 @@ protected:
                             Vector& rStressVector,
                             ConstitutiveLaw::Parameters& rValues) override;
 
-    void UpdateInternalDeltaStrainVector(ConstitutiveLaw::Parameters &rValues);
-    void UpdateInternalStrainVectorFinalized(ConstitutiveLaw::Parameters &rValues);
+    void UpdateInternalDeltaStrainVector(const Vector& r_strain_vector);
+    void UpdateInternalStrainVectorFinalized(const Vector& r_strain_vector);
     void SetExternalStressVector(Vector& rStressVector);
     void SetInternalStressVector(const Vector& rStressVector);
     void SetInternalStrainVector(const Vector& rStrainVector);
@@ -108,11 +108,11 @@ protected:
     ///@}
 
 private:
-    array_1d<double, VoigtSize> mStressVector;
-    array_1d<double, VoigtSize> mStressVectorFinalized;
-    array_1d<double, VoigtSize> mDeltaStrainVector;
-    array_1d<double, VoigtSize> mStrainVectorFinalized;
-    bool                        mIsModelInitialized = false;
+    Vector mStressVector          = ZeroVector(VoigtSize);
+    Vector mStressVectorFinalized = ZeroVector(VoigtSize);
+    Vector mDeltaStrainVector     = ZeroVector(VoigtSize);
+    Vector mStrainVectorFinalized = ZeroVector(VoigtSize);
+    bool   mIsModelInitialized    = false;
 
     friend class Serializer;
     void save(Serializer& rSerializer) const override;
