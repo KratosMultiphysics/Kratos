@@ -14,6 +14,8 @@
 
 // System includes
 #include <string>
+#include <numeric>
+#include <variant>
 #include <iostream>
 #include <algorithm>
 
@@ -181,7 +183,7 @@ public:
         const SizeType n_steps = std::ceil(target_dt / max_dt); // Required number of substeps (rounded up)
         const double dt = target_dt / n_steps; // Time increment to be used in the substep loop
         KRATOS_INFO_IF("FluxCorrectedTransportConvectionProcess", mEchoLevel > 0) << "Solving FCT convection with \u0394t = " << dt << " (max allowed \u0394t = " <<  max_dt << ")" << std::endl;
-        
+
         // Substepping time loop
         for (IndexType step = 1; step <= n_steps; ++step) {
             // Solve current substep
@@ -302,7 +304,7 @@ private:
     std::vector<array_1d<double,3>> mConvectionValues; /// Auxiliary vector to store the convection variable values (e.g. VELOCITY)
 
     typename EdgeBasedDataStructure<TDim>::UniquePointer mpEdgeDataStructure; /// Pointer to the edge-based data structure
-    
+
     ///@}
     ///@name Private Operators
     ///@{
@@ -369,7 +371,7 @@ private:
     }
 
     void SolveSubStep(const double DeltaTime)
-    {   
+    {
         // Calculate the low order Runge-Kutta update
         const double low_order_max_iteration = 1;
         const double low_order_diff_constant = mDiffusionConstant;
@@ -385,7 +387,7 @@ private:
         const SizeType rk_steps = std::visit([](const auto& rTableau){return rTableau.SubstepCount();}, butcher_tableau_variant);
         std::vector<std::vector<double>> rk_residuals_lo(mAuxSize, std::vector<double>(rk_steps, 0.0));
         std::vector<std::vector<double>> rk_residuals_ho(mAuxSize, std::vector<double>(rk_steps, 0.0));
-    
+
         // Initialize intermediate substep solution vector
         std::vector<double> rk_u_lo = mSolutionOld;
         std::vector<double> rk_u_ho = mSolutionOld;
@@ -450,7 +452,7 @@ private:
     }
 
     // void SolveSubStep(const double DeltaTime)
-    // {   
+    // {
     //     // Calculate the low order Runge-Kutta update
     //     const double low_order_max_iteration = 1;
     //     const double low_order_diff_constant = mDiffusionConstant;
@@ -461,7 +463,7 @@ private:
     //     const double high_order_diff_constant = 0.0;
     //     CalculateSolutionUpdate(mHighOrderUpdate, high_order_diff_constant, DeltaTime, high_order_max_iteration);
 
-    //     // Add the low order update 
+    //     // Add the low order update
     //     IndexPartition<IndexType>(mAuxSize).for_each([this](IndexType i){
     //         mSolution[i] = mSolutionOld[i] + mLowOrderUpdate[i];
     //     });
@@ -490,7 +492,7 @@ private:
     //     // Allocate auxiliary Runge-Kutta arrays
     //     const SizeType rk_steps = std::visit([](const auto& rTableau){return rTableau.SubstepCount();}, butcher_tableau_variant);
     //     std::vector<std::vector<double>> rk_residuals(mAuxSize, std::vector<double>(rk_steps, 0.0));
-    
+
     //     // Initialize intermediate substep solution vector
     //     std::vector<double> rk_u = mSolutionOld;
 
@@ -512,7 +514,7 @@ private:
     //     const auto rk_weights = std::visit([](const auto& rTableau) -> auto {return rTableau.GetWeights();}, butcher_tableau_variant);
     //     ExplicitSolveUpdate(rSolutionUpdate, rk_residuals, DeltaTime, rk_weights.begin(), rk_weights.end(), MaxIteration);
     // }
-    
+
     auto GetButcherTableauVariant()
     {
         if (mTimeSchemeName == "forward_euler") {
@@ -669,7 +671,7 @@ private:
                     rUpdater(rSolution, i_node_id, aux_update[i_node_id]);
                 }
             });
-        } 
+        }
     }
 
     void CalculateResidual(
@@ -692,7 +694,7 @@ private:
             array_1d<double, TDim> d_ij;
             array_1d<double, TDim> b_ij;
             array_1d<double, TDim> F_ij_num;
-            array_1d<double, 3> vel_ij_half;
+            // array_1d<double, 3> vel_ij_half;
         };
 
         // Off-diagonal (edge) contributions assembly
@@ -710,7 +712,7 @@ private:
                 auto& d_ij = rTLS.d_ij;
                 auto& b_ij = rTLS.b_ij;
                 auto& F_ij_num = rTLS.F_ij_num;
-                auto& vel_ij_half = rTLS.vel_ij_half;
+                // auto& vel_ij_half = rTLS.vel_ij_half;
 
                 // i-node nodal data
                 const double u_i = rSolutionVector[iRow];
