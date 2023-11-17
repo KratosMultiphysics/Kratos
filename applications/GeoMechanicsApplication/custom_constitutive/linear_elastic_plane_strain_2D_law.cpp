@@ -122,7 +122,7 @@ void GeoLinearElasticPlaneStrain2DLaw::UpdateInternalStrainVectorFinalized(const
     this->SetInternalStrainVector(r_strain_vector);
 }
 
-void GeoLinearElasticPlaneStrain2DLaw::SetExternalStressVector(Vector& r_stress_vector){
+void GeoLinearElasticPlaneStrain2DLaw::SetExternalStressVector(Vector& r_stress_vector) const{
     r_stress_vector = mStressVector;
 }
 

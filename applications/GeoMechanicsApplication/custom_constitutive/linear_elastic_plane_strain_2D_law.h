@@ -98,7 +98,7 @@ protected:
 
     void UpdateInternalDeltaStrainVector(const Vector& r_strain_vector);
     void UpdateInternalStrainVectorFinalized(const Vector& r_strain_vector);
-    void SetExternalStressVector(Vector& rStressVector);
+    void SetExternalStressVector(Vector& rStressVector) const;
     void SetInternalStressVector(const Vector& rStressVector);
     void SetInternalStrainVector(const Vector& rStrainVector);
     void InitializeMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues) final;
