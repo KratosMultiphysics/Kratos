@@ -51,7 +51,7 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/// @brief Process to solve a pure convection problem using a Flux Corrected Transport scheme
+/// @brief Process to solve a pure convection problem using a Flux Corrected Transport scheme and an edge-based data structure
 /// @tparam TDim Number of dimensions
 template<unsigned int TDim>
 class FluxCorrectedTransportConvectionProcess : public Process
