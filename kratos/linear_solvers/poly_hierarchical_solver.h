@@ -50,37 +50,22 @@ public:
     /// @copydoc LinearSolver::Solve
     bool Solve(SparseMatrix& rA, Vector& rX, Vector& rB) override;
 
-    /**
-     * Multi solve method for solving a set of linear systems with same coefficient matrix.
-     * Solves the linear system Ax=b and puts the result on SystemVector& rX.
-     * rX is also th initial guess for iterative methods.
-     * @param rA. System matrix
-     * @param rX. Solution vector.
-     * @param rB. Right hand side vector.
-     */
+    /// @copydoc LinearSolver::Solve
     bool Solve(SparseMatrix& rA, DenseMatrix& rX, DenseMatrix& rB) override;
 
-    void  PrintInfo(std::ostream& rOStream) const override;
+    /// @copydoc LinearSolver::PrintInfo
+    void PrintInfo(std::ostream& rOStream) const override;
 
-    void  PrintData(std::ostream& rOStream) const override;
+    /// @copydoc LinearSolver::PrintData
+    void PrintData(std::ostream& rOStream) const override;
 
-    /** Some solvers may require a minimum degree of knowledge of the structure of the matrix. To make an example
-     * when solving a mixed u-p problem, it is important to identify the row associated to v and p.
-     * another example is the automatic prescription of rotation null-space for smoothed-aggregation solvers
-     * which require knowledge on the spatial position of the nodes associated to a given dof.
-     * This function tells if the solver requires such data
-     */
+    /// @copydoc LinearSolver::AdditionalPhysicalDataIsNeeded
     bool AdditionalPhysicalDataIsNeeded() override
     {
         return true;
     }
 
-    /** Some solvers may require a minimum degree of knowledge of the structure of the matrix. To make an example
-     * when solving a mixed u-p problem, it is important to identify the row associated to v and p.
-     * another example is the automatic prescription of rotation null-space for smoothed-aggregation solvers
-     * which require knowledge on the spatial position of the nodes associated to a given dof.
-     * This function is the place to eventually provide such data
-     */
+    /// @copydoc LinearSolver::ProvideAdditionalData
     void ProvideAdditionalData (
         SparseMatrix& rA,
         Vector& rX,
