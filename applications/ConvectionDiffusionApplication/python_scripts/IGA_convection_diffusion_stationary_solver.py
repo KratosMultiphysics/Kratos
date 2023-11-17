@@ -1,6 +1,6 @@
 import KratosMultiphysics
 import numpy as np
-from scipy.spatial import Delaunay
+# from scipy.spatial import Delaunay
 import matplotlib.pyplot as plt
 import json
 import os
@@ -16,10 +16,9 @@ class IGAConvectionDiffusionStationarySolver(convection_diffusion_stationary_sol
     print('IGA ci siamo')
 
     name_mdpa_true_boundary = "mdpa_files/Weird_shape3" 
-    # file_true_boundary_exists = os.path.isfile(name_mdpa_true_boundary+".mdpa")
-    file_true_boundary_exists = os.path.isfile(os.path.join(name_mdpa_true_boundary + ".mdpa"))
+    file_mdpa_exists = os.path.isfile(os.path.join(name_mdpa_true_boundary + ".mdpa"))
 
-    if (file_true_boundary_exists) :
+    if (file_mdpa_exists) :
         current_model = KratosMultiphysics.Model()
         skin_model_part = current_model.CreateModelPart("skin_model_part")
         skin_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.TEMPERATURE)
@@ -35,6 +34,9 @@ class IGAConvectionDiffusionStationarySolver(convection_diffusion_stationary_sol
             for condition in skin_model_part.Conditions :
                 file.write(f"{condition.GetNodes()[0].X} {condition.GetNodes()[0].Y}\n")
                 file.write(f"{condition.GetNodes()[1].X} {condition.GetNodes()[1].Y}\n")
+    else :
+        if os.path.exists("txt_file/true_points.txt") :
+            os.remove("txt_file/true_points.txt")
 
     def __init__(self, main_model_part, custom_settings):
         super().__init__(main_model_part, custom_settings)

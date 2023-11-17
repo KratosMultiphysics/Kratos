@@ -95,7 +95,7 @@ void LaplacianIGAElement<TDim>::CalculateLocalSystem(MatrixType& rLeftHandSideMa
 
     const auto& r_geometry = GetGeometry();
     const unsigned int number_of_points = r_geometry.size();
-    const unsigned int dim = r_geometry.WorkingSpaceDimension();
+    const unsigned int dim = r_geometry.WorkingSpaceDimension(); // dim = 3
     
     //resizing as needed the LHS
     if(rLeftHandSideMatrix.size1() != number_of_points)
@@ -114,9 +114,8 @@ void LaplacianIGAElement<TDim>::CalculateLocalSystem(MatrixType& rLeftHandSideMa
 
         
     // Initialize DN_DX
-    Matrix DN_DX(number_of_points,dim);
-    Matrix DN_DPSI(number_of_points,dim);
-    Matrix InvJ0(dim,dim);
+    Matrix DN_DX(number_of_points,2);
+    Matrix InvJ0(2,2);
     Vector temp(number_of_points);
 
     // Initialize Jacobian
@@ -149,25 +148,25 @@ void LaplacianIGAElement<TDim>::CalculateLocalSystem(MatrixType& rLeftHandSideMa
         // r_geometry.Jacobian(J0, IntegrationPointIndex, this->GetIntegrationMethod());
         
         double DetJ0;
+        Matrix Jacobian = ZeroMatrix(2,2);
+        Jacobian(0,0) = J0[i_point](0,0);
+        Jacobian(0,1) = J0[i_point](0,1);
+        Jacobian(1,0) = J0[i_point](1,0);
+        Jacobian(1,1) = J0[i_point](1,1);
+
         // Calculating inverse jacobian and jacobian determinant
-        MathUtils<double>::InvertMatrix(J0[i_point],InvJ0,DetJ0);
+        MathUtils<double>::InvertMatrix(Jacobian,InvJ0,DetJ0);
 
         // Calculating the cartesian derivatives (it is avoided storing them to minimize storage)
         noalias(DN_DX) = prod(DN_De[i_point],InvJ0);
 
-        // NEW!!  ->  WATCH OUT WHEN YOU DEAL WITH 2D problems, without this it invents the third component of DN_DX
-        for (size_t i = 0; i < DN_DX.size1(); ++i) {
-            DN_DX(i, 2) = 0.0;
-        }
-
         auto N = row(N_gausspoint,i_point); // these are the N which correspond to the gauss point "i_point"
-        const double IntToReferenceWeight = integration_points[i_point].Weight() * abs(DetJ0); // I have added a minus here because the determinant is negative
+        const double IntToReferenceWeight = integration_points[i_point].Weight() * fabs(DetJ0);
         // Watch out DetJ0 = -1
 
         // Also the conductivity is multiplied by the value of the shape function at the GaussPoint
         const double conductivity_gauss = inner_prod(N, nodal_conductivity);
         noalias(rLeftHandSideMatrix) += IntToReferenceWeight * conductivity_gauss * prod(DN_DX, trans(DN_DX)); //
-
 
         // Calculating the local RHS
         const double qgauss = inner_prod(N, heat_flux_local);

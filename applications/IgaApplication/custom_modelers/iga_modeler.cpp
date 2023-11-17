@@ -215,7 +215,7 @@ namespace Kratos
             }
             if (rParameters["iga_model_part"].GetString() == "Support_2") {
                 // Read the control_points from the external file in order to know how many edge I have to add (need to improve this)
-                std::ifstream file("txt_files/Snake_coordinates2.txt");
+                std::ifstream file("txt_files/Snake_coordinates.txt");
                 double x, y;
                 std::vector<double> coordinates_x;
                 while (file >> x >> y) {coordinates_x.push_back(x);}

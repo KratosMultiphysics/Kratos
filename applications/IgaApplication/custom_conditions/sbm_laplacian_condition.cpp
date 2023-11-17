@@ -68,7 +68,7 @@ namespace Kratos
         {
             // Note that integration_points.size() = 1   &   number_of_nodes = 9
             // Differential area
-            double penalty_integration = penalty * integration_points[point_number].Weight() * abs(determinant_jacobian_vector[point_number]);
+            double penalty_integration = penalty * integration_points[point_number].Weight() * fabs(determinant_jacobian_vector[point_number]);
 
             Vector projection(2);
 
@@ -112,11 +112,18 @@ namespace Kratos
         
             const Matrix& N = r_geometry.ShapeFunctionsValues();
 
+            Matrix Jacobian = ZeroMatrix(2,2);
+            Jacobian(0,0) = J0[point_number](0,0);
+            Jacobian(0,1) = J0[point_number](0,1);
+            Jacobian(1,0) = J0[point_number](1,0);
+            Jacobian(1,1) = J0[point_number](1,1);
+
             // Calculating inverse jacobian and jacobian determinant
-            MathUtils<double>::InvertMatrix(J0[point_number],InvJ0,DetJ0);
+            MathUtils<double>::InvertMatrix(Jacobian,InvJ0,DetJ0);
 
             // Calculating the PHYSICAL SPACE derivatives (it is avoided storing them to minimize storage)
             noalias(DN_DX) = prod(DN_De[point_number],InvJ0);
+
             // Calculating the PARAMETER SPACE derivatives
             Matrix Identity_Matrix = ZeroMatrix(2,2);
             Identity_Matrix(0,0) = 1.0;
@@ -170,12 +177,12 @@ namespace Kratos
             // Assembly
 
             // Termine -(GRAD_w * n, u + GRAD_u * d + ...)
-            noalias(rLeftHandSideMatrix) -= Guglielmo_innovation * prod(trans(DN_dot_n), H)                * integration_points[point_number].Weight() * abs(determinant_jacobian_vector[point_number]) ;
-            noalias(rLeftHandSideMatrix) -= Guglielmo_innovation * prod(trans(DN_dot_n), H_gradient_term)  * integration_points[point_number].Weight() * abs(determinant_jacobian_vector[point_number]) ;
-            noalias(rLeftHandSideMatrix) -= Guglielmo_innovation * prod(trans(DN_dot_n), H_hessian_term)   * integration_points[point_number].Weight() * abs(determinant_jacobian_vector[point_number]) ;
-            noalias(rLeftHandSideMatrix) -= Guglielmo_innovation * prod(trans(DN_dot_n), H_3rdTayor_term)  * integration_points[point_number].Weight() * abs(determinant_jacobian_vector[point_number]) ;
+            noalias(rLeftHandSideMatrix) -= Guglielmo_innovation * prod(trans(DN_dot_n), H)                * integration_points[point_number].Weight() * fabs(determinant_jacobian_vector[point_number]) ;
+            noalias(rLeftHandSideMatrix) -= Guglielmo_innovation * prod(trans(DN_dot_n), H_gradient_term)  * integration_points[point_number].Weight() * fabs(determinant_jacobian_vector[point_number]) ;
+            noalias(rLeftHandSideMatrix) -= Guglielmo_innovation * prod(trans(DN_dot_n), H_hessian_term)   * integration_points[point_number].Weight() * fabs(determinant_jacobian_vector[point_number]) ;
+            noalias(rLeftHandSideMatrix) -= Guglielmo_innovation * prod(trans(DN_dot_n), H_3rdTayor_term)  * integration_points[point_number].Weight() * fabs(determinant_jacobian_vector[point_number]) ;
             // Termine -(w,GRAD_u * n) from integration by parts -> Fundamental !! 
-            noalias(rLeftHandSideMatrix) -= prod(trans(H), DN_dot_n)                                      * integration_points[point_number].Weight() * abs(determinant_jacobian_vector[point_number]) ;
+            noalias(rLeftHandSideMatrix) -= prod(trans(H), DN_dot_n)                                      * integration_points[point_number].Weight() * fabs(determinant_jacobian_vector[point_number]) ;
             // SBM terms (Taylor Expansion) + alpha * (w + GRAD_w * d + ..., u + GRAD_u * d + ...)
             noalias(rLeftHandSideMatrix) += prod(trans(H + H_gradient_term + H_hessian_term + H_3rdTayor_term), H              ) * penalty_integration ;
             noalias(rLeftHandSideMatrix) += prod(trans(H + H_gradient_term + H_hessian_term + H_3rdTayor_term), H_gradient_term) * penalty_integration ;
@@ -209,7 +216,7 @@ namespace Kratos
                 }
                 noalias(rRightHandSideVector) -= prod(prod(trans(H + H_gradient_term + H_hessian_term + H_3rdTayor_term), H), u_D) * penalty_integration;
                 // Dirichlet BCs
-                noalias(rRightHandSideVector) += Guglielmo_innovation * prod(prod(trans(DN_dot_n), H), u_D) * integration_points[point_number].Weight() * abs(determinant_jacobian_vector[point_number]);
+                noalias(rRightHandSideVector) += Guglielmo_innovation * prod(prod(trans(DN_dot_n), H), u_D) * integration_points[point_number].Weight() * fabs(determinant_jacobian_vector[point_number]);
 
 
             }

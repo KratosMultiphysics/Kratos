@@ -34,8 +34,6 @@ namespace Kratos
         const auto& r_geometry = GetGeometry();
         const SizeType number_of_nodes = r_geometry.size();
 
-        const SizeType mat_size = r_geometry.WorkingSpaceDimension() * number_of_nodes;
-
         // Integration
         const GeometryType::IntegrationPointsArrayType& integration_points = r_geometry.IntegrationPoints();
 
@@ -48,8 +46,7 @@ namespace Kratos
         GeometryType::JacobiansType J0;
         // Initialize DN_DX
         const unsigned int dim = 2;
-        Matrix DN_DX(number_of_nodes,dim);
-        Matrix DN_DPSI(number_of_nodes,dim);
+        Matrix DN_DX(number_of_nodes,3);
         Matrix InvJ0(dim,dim);
 
         // Compute the normals
@@ -78,15 +75,24 @@ namespace Kratos
         {
             const Matrix& N = r_geometry.ShapeFunctionsValues();
 
+            Matrix Jacobian = ZeroMatrix(2,2);
+            Jacobian(0,0) = J0[point_number](0,0);
+            Jacobian(0,1) = J0[point_number](0,1);
+            Jacobian(1,0) = J0[point_number](1,0);
+            Jacobian(1,1) = J0[point_number](1,1);
+
             // Calculating inverse jacobian and jacobian determinant
-            MathUtils<double>::InvertMatrix(J0[point_number],InvJ0,DetJ0);
+            MathUtils<double>::InvertMatrix(Jacobian,InvJ0,DetJ0);
+            Matrix InvJ0_23 = ZeroMatrix(2,3);
+            InvJ0_23(0,0) = InvJ0(0,0);
+            InvJ0_23(0,1) = InvJ0(0,1);
+            InvJ0_23(1,0) = InvJ0(1,0);
+            InvJ0_23(1,1) = InvJ0(1,1);
+            InvJ0_23(0,2) = 0;
+            InvJ0_23(1,2) = 0;
 
             // // Calculating the cartesian derivatives (it is avoided storing them to minimize storage)
-            noalias(DN_DX) = prod(DN_De[point_number],InvJ0);
-            Matrix Identity_Matrix = ZeroMatrix(2,2);
-            Identity_Matrix(0,0) = 1.0;
-            Identity_Matrix(1,1) = 1.0;
-            noalias(DN_DPSI) = prod(DN_De[point_number],Identity_Matrix);
+            noalias(DN_DX) = prod(DN_De[point_number],InvJ0_23);
             
             Matrix H = ZeroMatrix(1, number_of_nodes);
             Matrix DN_dot_n = ZeroMatrix(1, number_of_nodes);
@@ -97,7 +103,7 @@ namespace Kratos
             }
 
             // Differential area
-            double penalty_integration = penalty * integration_points[point_number].Weight() * determinant_jacobian_vector[point_number];
+            double penalty_integration = penalty * integration_points[point_number].Weight() * fabs(determinant_jacobian_vector[point_number]);
 
             // Guglielmo innovaction
             double Guglielmo_innovation = -1.0;  // = 1 -> Penalty approach
@@ -109,9 +115,9 @@ namespace Kratos
             // Assembly
             noalias(rLeftHandSideMatrix) -= prod(trans(H), H) * penalty_integration;
             // Assembly of the integration by parts term -(w,GRAD_u * n) -> Fundamental !!
-            noalias(rLeftHandSideMatrix) -= prod(trans(H), DN_dot_n)                        * integration_points[point_number].Weight() * determinant_jacobian_vector[point_number] ;
+            noalias(rLeftHandSideMatrix) -= prod(trans(H), DN_dot_n)                        * integration_points[point_number].Weight() * fabs(determinant_jacobian_vector[point_number]) ;
             // Of the Dirichlet BCs -(GRAD_w* n,u) 
-            noalias(rLeftHandSideMatrix) -= Guglielmo_innovation * prod(trans(DN_dot_n), H) * integration_points[point_number].Weight() * determinant_jacobian_vector[point_number] ;
+            noalias(rLeftHandSideMatrix) -= Guglielmo_innovation * prod(trans(DN_dot_n), H) * integration_points[point_number].Weight() * fabs(determinant_jacobian_vector[point_number]) ;
 
 
 
@@ -126,7 +132,7 @@ namespace Kratos
                 double temperature = sin(GP_parameter_coord[0]) * sinh(GP_parameter_coord[1]);
                 // double temperature = GP_parameter_coord[0]*GP_parameter_coord[0]*GP_parameter_coord[0] + GP_parameter_coord[1]*GP_parameter_coord[1]*GP_parameter_coord[1] ;
                 
-                Vector u_D(mat_size);
+                Vector u_D(number_of_nodes);
                 for (IndexType i = 0; i < number_of_nodes; ++i)
                 {
                     const double temper = r_geometry[i].FastGetSolutionStepValue(TEMPERATURE);
@@ -140,7 +146,7 @@ namespace Kratos
                 // exit(0);
                 noalias(rRightHandSideVector) += prod(prod(trans(H), H), u_D) * penalty_integration;
                 // Of the Dirichlet BCs
-                noalias(rRightHandSideVector) += Guglielmo_innovation * prod(prod(trans(DN_dot_n), H), u_D) * integration_points[point_number].Weight() * determinant_jacobian_vector[point_number];
+                noalias(rRightHandSideVector) += Guglielmo_innovation * prod(prod(trans(DN_dot_n), H), u_D) * integration_points[point_number].Weight() * fabs(determinant_jacobian_vector[point_number]);
                 // exit(0);
 
             }

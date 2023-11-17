@@ -370,7 +370,7 @@ private:
         bool file_true_points_exists = true ;
         if (file_true_points_exists==true){
 
-            std::ifstream file("txt_files/Snake_coordinates2.txt");
+            std::ifstream file("txt_files/Snake_coordinates.txt");
             double x, y;
             std::vector<double> coordinates_x;
             std::vector<double> coordinates_y;
@@ -381,7 +381,7 @@ private:
             file.close();
 
             std::vector<NurbsCurveGeometry<2, PointerVector<Point>>::Pointer> trimming_curves_GPT;
-            for (int i = 0; i < coordinates_x.size(); ++i) {
+            for (std::size_t i = 0; i < coordinates_x.size(); ++i) {
                 Vector active_range_knot_vector = ZeroVector(2);
                 
                 Point::Pointer point1 = Kratos::make_shared<Point>(coordinates_x[i], coordinates_y[i], 0.0);
@@ -489,7 +489,7 @@ private:
         if (file_true_points_exists==true){
             
             // Leggo i control_points da file esterno, solo per coordinates_x.size() ??
-            std::ifstream file("txt_files/Snake_coordinates2.txt");
+            std::ifstream file("txt_files/Snake_coordinates.txt");
             double x, y;
             std::vector<double> coordinates_x;
             std::vector<double> coordinates_y;
