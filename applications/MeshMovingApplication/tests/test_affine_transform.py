@@ -4,7 +4,7 @@ import KratosMultiphysics.KratosUnittest as UnitTest
 
 import math
 
-class LinearTransformTest(UnitTest.TestCase):
+class AffineTransformTest(UnitTest.TestCase):
 
     @staticmethod
     def GeneratePoints():
@@ -24,7 +24,7 @@ class LinearTransformTest(UnitTest.TestCase):
         reference_point = [-1.0, 0.0, 0.0]
         translation_vector = [1.0, 2.0, 3.0]
 
-        transform = MeshMoving.LinearTransform(
+        transform = MeshMoving.AffineTransform(
             axis,
             angle,
             reference_point,
@@ -37,7 +37,7 @@ class LinearTransformTest(UnitTest.TestCase):
         reference_point = [-1.0, 0.0, 0.0]
         translation_vector = [1.0, 2.0, 3.0]
 
-        transform = MeshMoving.LinearTransform(
+        transform = MeshMoving.AffineTransform(
             euler_angles,
             reference_point,
             translation_vector)
@@ -53,7 +53,7 @@ class LinearTransformTest(UnitTest.TestCase):
         reference_point = [-1.0, 0.0, 0.0]
         translation_vector = [1.0, 2.0, 3.0]
 
-        transform = MeshMoving.LinearTransform(
+        transform = MeshMoving.AffineTransform(
             quaternion,
             reference_point,
             translation_vector)
