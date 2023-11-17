@@ -407,7 +407,7 @@ KRATOS_TEST_CASE_IN_SUITE(ReduceUpscaledIncrementToAvoidExceedingMaxDeltaTimeFac
     previous_state.num_of_iterations = settings.MinNumOfIterations - 1; // this should normally increase the increment
 
     time_incrementor.PostTimeStepExecution(previous_state);
-    KRATOS_EXPECT_DOUBLE_EQ(1.5 * settings.StartIncrement, time_incrementor.GetIncrement());
+    KRATOS_EXPECT_DOUBLE_EQ(settings.MaxDeltaTimeFactor * settings.StartIncrement, time_incrementor.GetIncrement());
 }
 
 }

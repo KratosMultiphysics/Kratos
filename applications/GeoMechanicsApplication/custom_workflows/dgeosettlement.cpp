@@ -71,7 +71,7 @@ double GetIncreaseFactorFrom(const Parameters& rProjectParameters)
 
 double GetMaxDeltaTimeFactorFrom(const Parameters& rProjectParameters)
 {
-    return rProjectParameters["solver_settings"]["max_delta_time_factor"].GetDouble();
+   return rProjectParameters["solver_settings"]["time_stepping"]["max_delta_time_factor"].GetDouble();
 }
 
 std::size_t GetMinNumberOfIterationsFrom(const Parameters& rProjectParameters)

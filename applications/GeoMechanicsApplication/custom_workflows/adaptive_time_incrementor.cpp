@@ -80,8 +80,7 @@ void AdaptiveTimeIncrementor::PostTimeStepExecution(const TimeStepEndState& rRes
     }
     else if (rResultantState.Converged() &&
              (rResultantState.num_of_iterations < mMinNumOfIterations)) {
-        mDeltaTime *= mIncreaseFactor;
-        mDeltaTime = std::min(mDeltaTime,mMaxDeltaTime);
+        mDeltaTime = std::min(mDeltaTime * mIncreaseFactor, mMaxDeltaTime);
     }
 
     // Avoid incrementing the time beyond the end time
