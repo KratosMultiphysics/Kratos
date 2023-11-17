@@ -46,7 +46,7 @@ namespace Kratos
 /**
  * @class ResidualCriteria
  * @ingroup KratosCore
- * @brief This is a convergence criteria that employes the residual as criteria
+ * @brief This is a convergence criteria that considers the residual as criteria
  * @details The reactions from the RHS are not computed in the residual
  * @author Riccardo Rossi
 */
@@ -60,31 +60,32 @@ public:
     ///@name Type Definitions
     ///@{
 
+    /// Pointer definition of ResidualCriteria
     KRATOS_CLASS_POINTER_DEFINITION( ResidualCriteria );
 
     /// The definition of the base ConvergenceCriteria
-    typedef ConvergenceCriteria< TSparseSpace, TDenseSpace > BaseType;
+    using BaseType = ConvergenceCriteria< TSparseSpace, TDenseSpace >;
 
     /// The definition of the current class
-    typedef ResidualCriteria< TSparseSpace, TDenseSpace > ClassType;
+    using ClassType = ResidualCriteria< TSparseSpace, TDenseSpace >;
 
     /// The data type
-    typedef typename BaseType::TDataType TDataType;
+    using TDataType = typename BaseType::TDataType;
 
     /// The dofs array type
-    typedef typename BaseType::DofsArrayType DofsArrayType;
+    using DofsArrayType = typename BaseType::DofsArrayType;
 
     /// The sparse matrix type
-    typedef typename BaseType::TSystemMatrixType TSystemMatrixType;
+    using TSystemMatrixType = typename BaseType::TSystemMatrixType;
 
     /// The dense vector type
-    typedef typename BaseType::TSystemVectorType TSystemVectorType;
+    using TSystemVectorType = typename BaseType::TSystemVectorType;
 
     /// Definition of the IndexType
-    typedef std::size_t IndexType;
+    using IndexType = std::size_t;
 
     /// Definition of the size type
-    typedef std::size_t SizeType;
+    using SizeType = std::size_t;
 
     ///@}
     ///@name Life Cycle
@@ -211,7 +212,6 @@ public:
     void Initialize(ModelPart& rModelPart) override
     {
         BaseType::Initialize(rModelPart);
-        KRATOS_ERROR_IF(rModelPart.IsDistributed() && rModelPart.NumberOfMasterSlaveConstraints() > 0) << "This Criteria does not yet support constraints in MPI!" << std::endl;
     }
 
     /**
@@ -323,7 +323,6 @@ public:
     ///@{
 
     ///@}
-
 protected:
     ///@name Protected static Member Variables
     ///@{
@@ -422,7 +421,6 @@ protected:
     ///@{
 
     ///@}
-
 private:
     ///@name Static Member Variables
     ///@{
