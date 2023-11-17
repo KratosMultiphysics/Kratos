@@ -20,7 +20,7 @@ using namespace Kratos;
 using SparseSpaceType = UblasSpace<double, CompressedMatrix, Vector>;
 using LocalSpaceType = UblasSpace<double, Matrix, Vector>;
 
-KRATOS_TEST_CASE_IN_SUITE(BackwardEulerScheme_UpdatesVariablesDerivatives_WhenPredictIsCalled,
+KRATOS_TEST_CASE_IN_SUITE(BackwardEulerTScheme_UpdatesVariablesDerivatives_WhenPredictIsCalled,
                           KratosGeoMechanicsFastSuite)
 {
     BackwardEulerTScheme<SparseSpaceType, LocalSpaceType> scheme;
@@ -53,7 +53,7 @@ KRATOS_TEST_CASE_IN_SUITE(BackwardEulerScheme_UpdatesVariablesDerivatives_WhenPr
                             expected_dt_temperature);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(InitializeBackwardEulerScheme_SetsTimeFactors, KratosGeoMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(InitializeBackwardEulerTScheme_SetsTimeFactors, KratosGeoMechanicsFastSuite)
 {
     BackwardEulerTScheme<SparseSpaceType, LocalSpaceType> scheme;
     Model model;
@@ -72,7 +72,7 @@ KRATOS_TEST_CASE_IN_SUITE(InitializeBackwardEulerScheme_SetsTimeFactors, KratosG
                             1.0 / (delta_time));
 }
 
-KRATOS_TEST_CASE_IN_SUITE(ForInvalidBufferSize_CheckBackwardEulerQuasistaticTScheme_Throws,
+KRATOS_TEST_CASE_IN_SUITE(ForInvalidBufferSize_CheckBackwardEulerTScheme_Throws,
                           KratosGeoMechanicsFastSuite)
 {
     BackwardEulerTScheme<SparseSpaceType, LocalSpaceType> scheme;
@@ -91,7 +91,7 @@ KRATOS_TEST_CASE_IN_SUITE(ForInvalidBufferSize_CheckBackwardEulerQuasistaticTSch
         "2. Current size is 1")
 }
 
-KRATOS_TEST_CASE_IN_SUITE(ForMissingNodalDof_CheckBackwardEulerQuasistaticTScheme_Throws,
+KRATOS_TEST_CASE_IN_SUITE(ForMissingNodalDof_CheckBackwardEulerTScheme_Throws,
                           KratosGeoMechanicsFastSuite)
 {
     BackwardEulerTScheme<SparseSpaceType, LocalSpaceType> scheme;
@@ -106,7 +106,7 @@ KRATOS_TEST_CASE_IN_SUITE(ForMissingNodalDof_CheckBackwardEulerQuasistaticTSchem
                                       "missing TEMPERATURE dof on node ")
 }
 
-KRATOS_TEST_CASE_IN_SUITE(ForMissingDtTemperatureSolutionStepVariable_CheckBackwardEulerQuasistaticTScheme_Throws,
+KRATOS_TEST_CASE_IN_SUITE(ForMissingDtTemperatureSolutionStepVariable_CheckBackwardEulerTScheme_Throws,
                           KratosGeoMechanicsFastSuite)
 {
     BackwardEulerTScheme<SparseSpaceType, LocalSpaceType> scheme;
@@ -122,7 +122,7 @@ KRATOS_TEST_CASE_IN_SUITE(ForMissingDtTemperatureSolutionStepVariable_CheckBackw
         "DT_TEMPERATURE variable is not allocated for node 0")
 }
 
-KRATOS_TEST_CASE_IN_SUITE(ForMissingTemperatureSolutionStepVariable_CheckBackwardEulerQuasistaticTScheme_Throws,
+KRATOS_TEST_CASE_IN_SUITE(ForMissingTemperatureSolutionStepVariable_CheckBackwardEulerTScheme_Throws,
                           KratosGeoMechanicsFastSuite)
 {
     BackwardEulerTScheme<SparseSpaceType, LocalSpaceType> scheme;

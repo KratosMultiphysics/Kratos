@@ -73,13 +73,13 @@ public:
     }
 };
 
-KRATOS_TEST_CASE_IN_SUITE(CheckScheme_ReturnsZeroForValidScheme, KratosGeoMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(CheckNewmarkUPwScheme_ReturnsZeroForValidScheme, KratosGeoMechanicsFastSuite)
 {
     NewmarkQuasistaticUPwSchemeTester tester;
     KRATOS_EXPECT_EQ(tester.mScheme.Check(tester.GetModelPart()), 0);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(InitializeUPwScheme_SetsTimeFactors, KratosGeoMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(InitializeNewmarkUPwScheme_SetsTimeFactors, KratosGeoMechanicsFastSuite)
 {
     NewmarkQuasistaticUPwSchemeTester tester;
 
@@ -95,7 +95,7 @@ KRATOS_TEST_CASE_IN_SUITE(InitializeUPwScheme_SetsTimeFactors, KratosGeoMechanic
                             expected_velocity_coefficient);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(UPwSchemePredict_UpdatesVariablesDerivatives, KratosGeoMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(NewmarkUPwSchemePredict_UpdatesVariablesDerivatives, KratosGeoMechanicsFastSuite)
 {
     NewmarkQuasistaticUPwSchemeTester tester;
 

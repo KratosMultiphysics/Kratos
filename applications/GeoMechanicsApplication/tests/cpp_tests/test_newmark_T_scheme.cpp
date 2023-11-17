@@ -31,7 +31,7 @@ ModelPart& CreateValidTemperatureModelPart(Model& rModel)
     return result;
 }
 
-KRATOS_TEST_CASE_IN_SUITE(CheckBackwardEulerQuasistaticTScheme_WithAllNecessaryParts_Returns0,
+KRATOS_TEST_CASE_IN_SUITE(CheckNewmarkTScheme_WithAllNecessaryParts_Returns0,
                           KratosGeoMechanicsFastSuite)
 {
     Model model;
@@ -41,14 +41,11 @@ KRATOS_TEST_CASE_IN_SUITE(CheckBackwardEulerQuasistaticTScheme_WithAllNecessaryP
     KRATOS_EXPECT_EQ(scheme.Check(model_part), 0);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(ForInvalidTheta_CheckBackwardEulerQuasistaticTScheme_Throws,
+KRATOS_TEST_CASE_IN_SUITE(ForInvalidTheta_CheckNewmarkTScheme_Throws,
                           KratosGeoMechanicsFastSuite)
 {
     constexpr double invalid_theta = -2.0;
     using SchemeType = NewmarkTScheme<SparseSpaceType, LocalSpaceType>;
-
-    Model model;
-    const auto& model_part = CreateValidTemperatureModelPart(model);
 
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(SchemeType scheme(invalid_theta),
                                       "Theta has an invalid value")
@@ -114,7 +111,7 @@ KRATOS_TEST_CASE_IN_SUITE(ForMissingTemperatureSolutionStepVariable_CheckNewmark
         "TEMPERATURE variable is not allocated for node 0")
 }
 
-KRATOS_TEST_CASE_IN_SUITE(ThermalSchemeUpdate_SetsDtTemperature, KratosGeoMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(NewmarkTSchemeUpdate_SetsDtTemperature, KratosGeoMechanicsFastSuite)
 {
     NewmarkTScheme<SparseSpaceType, LocalSpaceType> scheme(0.75);
     Model model;
@@ -145,7 +142,7 @@ KRATOS_TEST_CASE_IN_SUITE(ThermalSchemeUpdate_SetsDtTemperature, KratosGeoMechan
     KRATOS_EXPECT_DOUBLE_EQ(node.FastGetSolutionStepValue(DT_TEMPERATURE), expected_value);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(InitializeScheme_SetsTimeFactors, KratosGeoMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(InitializeNewmarkTScheme_SetsTimeFactors, KratosGeoMechanicsFastSuite)
 {
     NewmarkTScheme<SparseSpaceType, LocalSpaceType> scheme(0.75);
     Model model;
