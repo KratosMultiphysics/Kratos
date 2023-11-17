@@ -4,21 +4,20 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Riccardo Rossi
 //
 //
 
-#if !defined(KRATOS_DISPLACEMENT_CRITERIA )
-#define  KRATOS_DISPLACEMENT_CRITERIA
+#pragma once
 
-/* System includes */
+// System includes
 
-/* External includes */
+// External includes
 
-/* Project includes */
+// Project includes
 #include "includes/model_part.h"
 #include "includes/define.h"
 #include "solving_strategies/convergencecriterias/convergence_criteria.h"
@@ -47,7 +46,7 @@ namespace Kratos
 /**
  * @class DisplacementCriteria
  * @ingroup KratosCore
- * @brief This is a convergence criteria that employes the increment on the solution as criteria
+ * @brief This is a convergence criteria that considers the increment on the solution as criteria
  * @details The reactions from the RHS are not computed in the solution
  * @author Riccardo Rossi
 */
@@ -61,26 +60,32 @@ public:
     ///@name Type Definitions
     ///@{
 
+    /// Pointer definition of ResidualCriteria
     KRATOS_CLASS_POINTER_DEFINITION( DisplacementCriteria );
 
-    typedef ConvergenceCriteria< TSparseSpace, TDenseSpace > BaseType;
+    /// The definition of the base ConvergenceCriteria
+    using BaseType = ConvergenceCriteria< TSparseSpace, TDenseSpace >;
 
     /// The definition of the current class
-    typedef DisplacementCriteria< TSparseSpace, TDenseSpace > ClassType;
+    using ClassType = DisplacementCriteria< TSparseSpace, TDenseSpace >;
 
-    typedef TSparseSpace SparseSpaceType;
+    /// The data type
+    using TDataType = typename BaseType::TDataType;
 
-    typedef typename BaseType::TDataType TDataType;
+    /// The dofs array type
+    using DofsArrayType = typename BaseType::DofsArrayType;
 
-    typedef typename BaseType::DofsArrayType DofsArrayType;
+    /// The sparse matrix type
+    using TSystemMatrixType = typename BaseType::TSystemMatrixType;
 
-    typedef typename BaseType::TSystemMatrixType TSystemMatrixType;
+    /// The dense vector type
+    using TSystemVectorType = typename BaseType::TSystemVectorType;
 
-    typedef typename BaseType::TSystemVectorType TSystemVectorType;
+    /// Definition of the IndexType
+    using IndexType = std::size_t;
 
-    typedef std::size_t IndexType;
-
-    typedef std::size_t SizeType;
+    /// Definition of the size type
+    using SizeType = std::size_t;
 
     ///@}
     ///@name Life Cycle
@@ -128,7 +133,6 @@ public:
     /** Destructor.
     */
     ~DisplacementCriteria() override {}
-
 
     ///@}
     ///@name Operators
@@ -285,7 +289,6 @@ public:
     ///@name Access
     ///@{
 
-
     ///@}
     ///@name Inquiry
     ///@{
@@ -316,23 +319,18 @@ public:
     ///@name Friends
     ///@{
 
-
     ///@}
-
 protected:
     ///@name Protected static Member Variables
     ///@{
-
 
     ///@}
     ///@name Protected member Variables
     ///@{
 
-
     ///@}
     ///@name Protected Operators
     ///@{
-
 
     ///@}
     ///@name Protected Operations
@@ -353,22 +351,18 @@ protected:
     ///@name Protected  Access
     ///@{
 
-
     ///@}
     ///@name Protected Inquiry
     ///@{
-
 
     ///@}
     ///@name Protected LifeCycle
     ///@{
 
     ///@}
-
 private:
     ///@name Static Member Variables
     ///@{
-
 
     ///@}
     ///@name Member Variables
@@ -379,7 +373,6 @@ private:
     TDataType mAlwaysConvergedNorm; /// The absolute value threshold for the norm of the residual
 
     TDataType mReferenceDispNorm;   /// The norm at the beginning of the iterations
-
 
     ///@}
     ///@name Private Operators
@@ -448,35 +441,25 @@ private:
     ///@name Private Operations
     ///@{
 
-
     ///@}
     ///@name Private  Access
     ///@{
-
 
     ///@}
     ///@name Private Inquiry
     ///@{
 
-
     ///@}
     ///@name Un accessible methods
     ///@{
 
-
     ///@}
-
 }; /* Class DisplacementCriteria */
 
 ///@}
-
 ///@name Type Definitions
 ///@{
-
 
 ///@}
 
 }  /* namespace Kratos.*/
-
-#endif /* KRATOS_DISPLACEMENT_CRITERIA  defined */
-
