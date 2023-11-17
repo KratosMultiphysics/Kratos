@@ -214,6 +214,7 @@ public:
     void Initialize(ModelPart& rModelPart) override
     {
         BaseType::Initialize(rModelPart);
+        KRATOS_ERROR_IF(rModelPart.IsDistributed() && rModelPart.NumberOfMasterSlaveConstraints() > 0) << "This Criteria does not yet support constraints in MPI!" << std::endl;
     }
 
     /**
