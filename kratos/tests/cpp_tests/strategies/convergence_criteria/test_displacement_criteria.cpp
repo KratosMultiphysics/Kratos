@@ -26,8 +26,7 @@
 
 namespace Kratos::Testing
 {
-using NodeType = Node;
-using GeometryType = Geometry<NodeType>;
+using GeometryType = Geometry<Node>;
 using LocalSpaceType = UblasSpace<double, Matrix, Vector>;
 using SparseSpaceType = UblasSpace<double, CompressedMatrix, Vector>;
 
