@@ -48,7 +48,7 @@ KRATOS_TEST_CASE_IN_SUITE(ForInvalidTheta_CheckNewmarkTScheme_Throws,
     using SchemeType = NewmarkTScheme<SparseSpaceType, LocalSpaceType>;
 
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(SchemeType scheme(invalid_theta),
-                                      "Theta has an invalid value")
+                                      "Theta must be larger than zero, but got -2")
 }
 
 KRATOS_TEST_CASE_IN_SUITE(ForInvalidBufferSize_CheckNewmarkTScheme_Throws, KratosGeoMechanicsFastSuite)

@@ -21,8 +21,8 @@ class BackwardEulerScheme
     : public GeoMechanicsTimeIntegrationScheme<TSparseSpace, TDenseSpace> {
 public:
     BackwardEulerScheme(const Variable<double>& rVariable,
-                                   const Variable<double>& rDeltaTimeVariable,
-                                   const Variable<double>& rDeltaTimeVariableCoefficient)
+                        const Variable<double>& rDeltaTimeVariable,
+                        const Variable<double>& rDeltaTimeVariableCoefficient)
         : GeoMechanicsTimeIntegrationScheme<TSparseSpace, TDenseSpace>(),
           mVariable(rVariable),
           mDeltaTimeVariable(rDeltaTimeVariable),
@@ -46,8 +46,8 @@ protected:
                                     const Variable<double>& variable,
                                     const Variable<double>& dt_variable) const override
     {
-        const double delta_variable = rNode.FastGetSolutionStepValue(variable) -
-                                      rNode.FastGetSolutionStepValue(variable, 1);
+        const auto delta_variable = rNode.FastGetSolutionStepValue(variable, 0) -
+                                    rNode.FastGetSolutionStepValue(variable, 1);
         rNode.FastGetSolutionStepValue(dt_variable) =
             delta_variable / this->GetDeltaTime();
     }

@@ -29,7 +29,8 @@ public:
           mDeltaTimeVariable(rDeltaTimeVariable),
           mDeltaTimeVariableCoefficient(rDeltaTimeVariableCoefficient)
     {
-        KRATOS_ERROR_IF(this->mTheta <= 0) << "Theta has an invalid value\n";
+        KRATOS_ERROR_IF(this->mTheta <= 0)
+            << "Theta must be larger than zero, but got " << this->mTheta << "\n";
     }
 
 protected:
@@ -48,10 +49,9 @@ protected:
                                     const Variable<double>& variable,
                                     const Variable<double>& dt_variable) const override
     {
-        const double delta_variable = rNode.FastGetSolutionStepValue(variable) -
-                                      rNode.FastGetSolutionStepValue(variable, 1);
-        const auto& previous_dt_variable =
-            rNode.FastGetSolutionStepValue(dt_variable, 1);
+        const auto delta_variable = rNode.FastGetSolutionStepValue(variable, 0) -
+                                    rNode.FastGetSolutionStepValue(variable, 1);
+        const auto previous_dt_variable = rNode.FastGetSolutionStepValue(dt_variable, 1);
 
         rNode.FastGetSolutionStepValue(dt_variable) =
             (delta_variable - (1.0 - mTheta) * this->GetDeltaTime() * previous_dt_variable) /
@@ -72,14 +72,17 @@ protected:
         KRATOS_TRY
 
         this->SetDeltaTime(rModelPart.GetProcessInfo()[DELTA_TIME]);
+        KRATOS_ERROR_IF(this->GetDeltaTime() <= 0)
+            << "DeltaTime must be larger than zero, but got "
+            << this->GetDeltaTime() << "\n";
         rModelPart.GetProcessInfo()[mDeltaTimeVariableCoefficient] =
-            1.0 / (this->mTheta * this->GetDeltaTime());
+            1.0 / (mTheta * this->GetDeltaTime());
 
         KRATOS_CATCH("")
     }
 
 private:
-    double mTheta = 0.0;
+    double mTheta = 1.0;
     Variable<double> mVariable;
     Variable<double> mDeltaTimeVariable;
     Variable<double> mDeltaTimeVariableCoefficient;

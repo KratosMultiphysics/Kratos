@@ -56,7 +56,7 @@ KRATOS_TEST_CASE_IN_SUITE(ForInvalidTheta_CheckNewmarkPwScheme_Throws,
     using SchemeType = NewmarkQuasistaticPwScheme<SparseSpaceType, LocalSpaceType>;
 
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(SchemeType scheme(invalid_theta),
-                                      "Theta has an invalid value")
+                                      "Theta must be larger than zero, but got -2")
 }
 
 KRATOS_TEST_CASE_IN_SUITE(ForInvalidBufferSize_CheckNewmarkPwScheme_Throws,
