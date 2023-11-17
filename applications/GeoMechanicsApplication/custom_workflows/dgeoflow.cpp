@@ -640,7 +640,7 @@ namespace Kratos
         // Get Find boundary in Processes
         for (const auto& process : mProcesses)
         {
-            ModelPart *currentModelPart;
+            ModelPart *currentModelPart = nullptr;
 
             if (process->Info() == "ApplyConstantScalarValueProcess")
             {
