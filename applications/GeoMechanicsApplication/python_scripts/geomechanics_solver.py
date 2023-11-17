@@ -560,11 +560,10 @@ class GeoMechanicalSolver(PythonSolver):
         return solving_strategy
 
     def _GetResidualCriterion(self):
-        r_rt = self.settings["residual_relative_tolerance"].GetDouble()
-        r_at = self.settings["residual_absolute_tolerance"].GetDouble()
-        echo_level = self.settings["echo_level"].GetInt()
-        residual_criterion = KratosMultiphysics.ResidualCriteria(r_rt, r_at)
-        residual_criterion.SetEchoLevel(echo_level)
+        relative_tolerance = self.settings["residual_relative_tolerance"].GetDouble()
+        absolute_tolerance = self.settings["residual_absolute_tolerance"].GetDouble()
+        residual_criterion = KratosMultiphysics.ResidualCriteria(relative_tolerance, absolute_tolerance)
+        residual_criterion.SetEchoLevel(self.settings["echo_level"].GetInt())
 
         return residual_criterion
 

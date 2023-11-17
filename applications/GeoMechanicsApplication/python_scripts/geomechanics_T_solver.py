@@ -21,17 +21,12 @@ class TSolver(GeoSolver):
             "solver_type": "geomechanics_T_solver",
             "model_part_name": "PorousDomain",
             "domain_size": 2,
-            "start_time": 0.0,
             "model_import_settings":{
                 "input_type": "mdpa",
                 "input_filename": "unknown_name"
             },
             "material_import_settings" :{
                 "materials_filename": ""
-            },
-            "time_stepping": {
-                "end_time" : 1.0,
-                "time_step": 0.1
             },
             "buffer_size": 2,
             "echo_level": 0,
@@ -136,15 +131,15 @@ class TSolver(GeoSolver):
 
     def _ConstructConvergenceCriterion(self, convergence_criterion):
         if convergence_criterion.lower() == "temperature_criterion":
-            return self._GetTemperatureCriterion()
+            return self._MakeTemperatureCriterion()
         elif convergence_criterion.lower() == "residual_criterion":
             return self._GetResidualCriterion()
         elif convergence_criterion.lower() == "and_criterion":
-            temperature = self._GetTemperatureCriterion()
+            temperature = self._MakeTemperatureCriterion()
             residual = self._GetResidualCriterion()
             return KratosMultiphysics.AndCriteria(residual, temperature)
         elif convergence_criterion.lower() == "or_criterion":
-            temperature = self._GetTemperatureCriterion()
+            temperature = self._MakeTemperatureCriterion()
             residual = self._GetResidualCriterion()
             return KratosMultiphysics.OrCriteria(residual, temperature)
         else:
@@ -152,12 +147,11 @@ class TSolver(GeoSolver):
             err_msg += "Available options are: \"temperature_criterion\", \"residual_criterion\", \"and_criterion\", \"or_criterion\""
             raise RuntimeError(err_msg)
 
-    def _GetTemperatureCriterion(self):
-        t_rt = self.settings["temperature_relative_tolerance"].GetDouble()
-        t_at = self.settings["temperature_absolute_tolerance"].GetDouble()
-        echo_level = self.settings["echo_level"].GetInt()
+    def _MakeTemperatureCriterion(self):
+        relative_tolerance = self.settings["temperature_relative_tolerance"].GetDouble()
+        absolute_tolerance = self.settings["temperature_absolute_tolerance"].GetDouble()
 
-        temperature = KratosMultiphysics.MixedGenericCriteria([(KratosMultiphysics.TEMPERATURE, t_rt, t_at)])
-        temperature.SetEchoLevel(echo_level)
+        temperature = KratosMultiphysics.MixedGenericCriteria([(KratosMultiphysics.TEMPERATURE, relative_tolerance, absolute_tolerance)])
+        temperature.SetEchoLevel(self.settings["echo_level"].GetInt())
 
         return temperature
