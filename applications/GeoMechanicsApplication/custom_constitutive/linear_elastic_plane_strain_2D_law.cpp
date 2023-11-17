@@ -115,7 +115,7 @@ void GeoLinearElasticPlaneStrain2DLaw::CalculatePK2Stress(const Vector& rStrainV
 }
 
 void GeoLinearElasticPlaneStrain2DLaw::UpdateInternalDeltaStrainVector(const Vector& r_strain_vector){
-    std::transform(r_strain_vector.begin(), r_strain_vector.begin() + mDeltaStrainVector.size(), mStrainVectorFinalized.begin(), mDeltaStrainVector.begin(), std::minus<>{} );
+    mDeltaStrainVector = r_strain_vector - mStrainVectorFinalized;
 }
 
 void GeoLinearElasticPlaneStrain2DLaw::UpdateInternalStrainVectorFinalized(const Vector& r_strain_vector) {
@@ -123,15 +123,15 @@ void GeoLinearElasticPlaneStrain2DLaw::UpdateInternalStrainVectorFinalized(const
 }
 
 void GeoLinearElasticPlaneStrain2DLaw::SetExternalStressVector(Vector& r_stress_vector){
-    std::copy(mStressVector.begin(), mStressVector.begin() + r_stress_vector.size(), r_stress_vector.begin());
+    r_stress_vector = mStressVector;
 }
 
 void GeoLinearElasticPlaneStrain2DLaw::SetInternalStressVector(const Vector& r_stress_vector){
-    std::copy(r_stress_vector.begin(), r_stress_vector.begin() + mStressVectorFinalized.size(), mStressVectorFinalized.begin());
+    mStressVectorFinalized = r_stress_vector;
 }
 
 void GeoLinearElasticPlaneStrain2DLaw::SetInternalStrainVector(const Vector& r_strain_vector){
-    std::copy(r_strain_vector.begin(), r_strain_vector.begin() + mStrainVectorFinalized.size(), mStrainVectorFinalized.begin());
+    mStrainVectorFinalized = r_strain_vector;
 }
 void GeoLinearElasticPlaneStrain2DLaw::InitializeMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues)
 {
