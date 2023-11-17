@@ -72,9 +72,6 @@ protected:
         KRATOS_TRY
 
         this->SetDeltaTime(rModelPart.GetProcessInfo()[DELTA_TIME]);
-        KRATOS_ERROR_IF(this->GetDeltaTime() <= 0)
-            << "DeltaTime must be larger than zero, but got "
-            << this->GetDeltaTime() << "\n";
         rModelPart.GetProcessInfo()[mDeltaTimeVariableCoefficient] =
             1.0 / (mTheta * this->GetDeltaTime());
 
