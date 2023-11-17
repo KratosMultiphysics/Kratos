@@ -87,7 +87,7 @@ KRATOS_TEST_CASE_IN_SUITE(ForInvalidBufferSize_CheckBackwardEulerPwScheme_Throws
 
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         scheme.Check(model_part),
-        "insufficient buffer size. Buffer size should be greater or equal to "
+        "insufficient buffer size. Buffer size should be greater than or equal to "
         "2. Current size is 1")
 }
 
