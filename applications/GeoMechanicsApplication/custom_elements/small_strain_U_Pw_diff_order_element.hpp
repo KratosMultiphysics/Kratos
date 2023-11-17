@@ -50,7 +50,7 @@ public:
     SmallStrainUPwDiffOrderElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties);
 
     // Destructor
-    virtual ~SmallStrainUPwDiffOrderElement();
+    ~SmallStrainUPwDiffOrderElement() override;
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     Element::Pointer Create(IndexType NewId,
@@ -258,7 +258,7 @@ protected:
                                                     unsigned int PointNumber) const;
 
     void SetConstitutiveParameters(ElementVariables& rVariables,
-                                   ConstitutiveLaw::Parameters& rConstitutiveParameters);
+                                   ConstitutiveLaw::Parameters& rConstitutiveParameters) const;
 
     virtual double CalculateIntegrationCoefficient( const GeometryType::IntegrationPointsArrayType& IntegrationPoints,
                                                     unsigned int PointNumber,
@@ -266,7 +266,7 @@ protected:
 
     void CalculateAndAddLHS(MatrixType& rLeftHandSideMatrix, ElementVariables& rVariables);
 
-    void CalculateAndAddStiffnessMatrix(MatrixType& rLeftHandSideMatrix, ElementVariables& rVariables);
+    void CalculateAndAddStiffnessMatrix(MatrixType& rLeftHandSideMatrix, ElementVariables& rVariables) const;
 
     void CalculateAndAddCouplingMatrix(MatrixType& rLeftHandSideMatrix, ElementVariables& rVariables);
 
@@ -313,10 +313,10 @@ protected:
     virtual void CalculateDeformationGradient( ElementVariables& rVariables,
                                                unsigned int GPoint );
 
-    double CalculateFluidPressure( const ElementVariables &rVariables);
+    double CalculateFluidPressure( const ElementVariables &rVariables) const;
 
     void SetRetentionParameters(const ElementVariables& rVariables,
-                                RetentionLaw::Parameters& rRetentionParameters);
+                                RetentionLaw::Parameters& rRetentionParameters) const;
 
     void CalculateRetentionResponse( ElementVariables &rVariables,
                                      RetentionLaw::Parameters &rRetentionParameters,
