@@ -18,7 +18,8 @@
         "KratosParticleMechanicsApplication==${KRATOS_VERSION}",
         "KratosPoroMechanicsApplication==${KRATOS_VERSION}",
         "KratosShallowWaterApplication==${KRATOS_VERSION}",
-        "KratosStructuralMechanicsApplication==${KRATOS_VERSION}"
+        "KratosStructuralMechanicsApplication==${KRATOS_VERSION}",
+        "KratosGeoMechanicsApplication==${KRATOS_VERSION}"
     ],
 	"author": "Kratos Team",
 	"author_email": "kratos@listas.cimne.upc.edu",
