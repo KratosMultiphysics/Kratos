@@ -31,15 +31,10 @@ KRATOS_TEST_CASE_IN_SUITE(CalculateExtrapolatedHeadFlow_1, KratosGeoMechanicsInt
     auto execute = Kratos::KratosExecute();
 
     Kratos::KratosExecute::CriticalHeadInfo critical_head_info(0, 0, 0);
-
-    std::ofstream stream;
-    stream.open("./applications/GeoMechanicsApplication/tests/test_head_extrapolation_custom_workflow_flow/test_output.txt", std::ios_base::out);
-    auto log_callback = [&stream](const char* output){stream << output;};
-
-    Kratos::KratosExecute::CallBackFunctions call_back_functions(log_callback,
-                                                                 flow_stubs::emptyProgress,
-                                                                 flow_stubs::emptyLog,
-                                                                 flow_stubs::emptyCancel);
+    Kratos::KratosExecute::CallBackFunctions call_back_functions(&flow_stubs::emptyLog,
+                                                                 &flow_stubs::emptyProgress,
+                                                                 &flow_stubs::emptyLog,
+                                                                 &flow_stubs::emptyCancel);
 
     int status = execute.ExecuteFlowAnalysis(workingDirectory, projectFile, critical_head_info, "", call_back_functions);
 
