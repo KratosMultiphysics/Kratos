@@ -499,9 +499,46 @@ public:
             KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolver", this->GetEchoLevel() >=1) << "Constraints build time: " << timer_constraints.ElapsedSeconds() << std::endl;
         }
 
+        KRATOS_WATCH('ApplyDirichletConditions1')
+
         ApplyDirichletConditions(pScheme, rModelPart, A, Dx, b);
 
         KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolver", ( this->GetEchoLevel() == 3)) << "Before the solution of the system" << "\nSystem Matrix = " << A << "\nUnknowns vector = " << Dx << "\nRHS vector = " << b << std::endl;
+
+        KRATOS_WATCH('ApplyDirichletConditions6 --> A(i,i) = 1.0 on the zero-lines')
+        // Check rows for near-zero entries and set diagonal to 1 if necessary
+        const double threshold = 1e-7;
+        int number_zero_rows = 0;
+        for(std::size_t i = 0; i < A.size1(); ++i)
+        {
+            bool is_all_zero = true;
+            for(std::size_t j = 0; j < A.size2(); ++j)
+            {
+                if(std::abs(A(i,j)) > threshold)
+                {
+                    is_all_zero = false;
+                    break;
+                }
+            }
+            if(is_all_zero)
+            {
+                A(i,i) = 1.0;
+                number_zero_rows++;
+                // // STAMPA quali righe
+                // std::ofstream outputFile2("zero_rows.txt", std::ios::app);
+                // outputFile2 << i << " ";
+                // outputFile2.close();
+            }
+        }
+        // // VAi a capo
+        // std::ofstream outputFile2("zero_rows.txt", std::ios::app);
+        // outputFile2 <<  "\n";
+        // outputFile2.close();
+
+        // KRATOS_WATCH(number_zero_rows)
+        // std::ofstream outputFile("number_of_zero_rows.txt", std::ios::app);
+        // outputFile << number_zero_rows <<"\n";
+        // outputFile.close();
 
         const auto timer = BuiltinTimer();
         Timer::Start("Solve");
@@ -947,6 +984,7 @@ public:
     {
         const std::size_t system_size = rA.size1();
         Vector scaling_factors (system_size);
+        KRATOS_WATCH('ApplyDirichletConditions2')
 
         const auto it_dof_iterator_begin = BaseType::mDofSet.begin();
 
@@ -955,6 +993,7 @@ public:
             auto it_dof_iterator = it_dof_iterator_begin + Index;
             if (it_dof_iterator->IsFixed()) {
                 scaling_factors[Index] = 0.0;
+                KRATOS_WATCH('ApplyDirichletConditions3') // it's not passing here
             } else {
                 scaling_factors[Index] = 1.0;
             }
@@ -972,6 +1011,9 @@ public:
             const std::size_t col_end = Arow_indices[Index+1];
             const double k_factor = scaling_factors[Index];
             if (k_factor == 0.0) {
+                KRATOS_WATCH('ApplyDirichletConditions4')
+                KRATOS_WATCH(col_begin)
+                KRATOS_WATCH(col_end)
                 // Zero out the whole row, except the diagonal
                 for (std::size_t j = col_begin; j < col_end; ++j)
                     if (Acol_indices[j] != Index )
@@ -986,6 +1028,7 @@ public:
                         Avalues[j] = 0.0;
             }
         });
+        KRATOS_WATCH('ApplyDirichletConditions5')
     }
 
     /**

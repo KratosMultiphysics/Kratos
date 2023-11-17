@@ -9,8 +9,8 @@
 //  Main authors:    Ruben Zorrilla
 //
 
-#if !defined(KRATOS_LAPLACIAN_SHIFTED_BOUNDARY_ELEMENT_H_INCLUDED )
-#define  KRATOS_LAPLACIAN_SHIFTED_BOUNDARY_ELEMENT_H_INCLUDED
+#if !defined(KRATOS_CONV_DIFF_IGA_ELEMENT_H_INCLUDED )
+#define  KRATOS_CONV_DIFF_IGA_ELEMENT_H_INCLUDED
 
 // System includes
 
@@ -19,9 +19,9 @@
 // Project includes
 #include "includes/define.h"
 #include "includes/element.h"
+#include "includes/ublas_interface.h"
+#include "includes/variables.h"
 
-// Application includes
-#include "laplacian_element.h"
 
 namespace Kratos
 {
@@ -46,16 +46,16 @@ namespace Kratos
 ///@{
 
 template<std::size_t TDim>
-class LaplacianShiftedBoundaryElement : public LaplacianElement
+class ConvDiffIGAElement : public Element
 {
 public:
     ///@name Type Definitions
     ///@{
 
-    /// Counted pointer of LaplacianShiftedBoundaryElement
-    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(LaplacianShiftedBoundaryElement);
+    /// Counted pointer of ConvDiffIGAElement
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(ConvDiffIGAElement);
 
-    typedef LaplacianElement BaseType;
+    typedef Element BaseType;
 
     static constexpr std::size_t NumNodes = TDim + 1;
 
@@ -64,17 +64,17 @@ public:
     ///@{
 
     /// Default constructor.
-    LaplacianShiftedBoundaryElement(
+    ConvDiffIGAElement(
         IndexType NewId,
         GeometryType::Pointer pGeometry);
 
-    LaplacianShiftedBoundaryElement(
+    ConvDiffIGAElement(
         IndexType NewId,
         GeometryType::Pointer pGeometry,
         PropertiesType::Pointer pProperties);
 
     /// Destructor.
-    virtual ~LaplacianShiftedBoundaryElement();
+    virtual ~ConvDiffIGAElement();
 
     ///@}
     ///@name Operators
@@ -95,24 +95,29 @@ public:
         GeometryType::Pointer pGeom,
         PropertiesType::Pointer pProperties) const override;
 
-    void CalculateLocalSystem(
-        MatrixType& rLeftHandSideMatrix,
-        VectorType& rRightHandSideVector,
-        const ProcessInfo& rCurrentProcessInfo) override;
 
-    void CalculateLeftHandSide(
-        MatrixType& rLeftHandSideMatrix,
-        const ProcessInfo& rCurrentProcessInfo) override;
 
-    void CalculateRightHandSide(
-        VectorType& rRightHandSideVector,
-        const ProcessInfo& rCurrentProcessInfo) override;
+    void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo) override;
+
+    void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, const ProcessInfo& rCurrentProcessInfo) override;
+
+    void CalculateRightHandSide(VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo) override;
+
+    void EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo& rCurrentProcessInfo) const override;
+
+    void GetDofList(DofsVectorType& ElementalDofList, const ProcessInfo& CurrentProcessInfo) const override;
 
     int Check(const ProcessInfo& rCurrentProcessInfo) const override;
 
-    LaplacianShiftedBoundaryElement() : LaplacianElement()
+    void FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
+
+    void InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
+
+    ConvDiffIGAElement() : Element()
     {
     }
+
+
     ///@}
     ///@name Access
     ///@{
@@ -121,7 +126,8 @@ public:
     ///@}
     ///@name Inquiry
     ///@{
-
+    
+    IntegrationMethod GetIntegrationMethod() const override;
 
     ///@}
     ///@name Input and output
@@ -143,8 +149,7 @@ protected:
     ///@}
     ///@name Protected member Variables
     ///@{
-
-
+    
     ///@}
     ///@name Protected Operators
     ///@{
@@ -177,6 +182,16 @@ private:
     ///@name Static Member Variables
     ///@{
 
+    
+    // /// Calculates LHS and RHS dependent on flags
+    // void CalculateAll(
+    //     MatrixType& rLeftHandSideMatrix,
+    //     VectorType& rRightHandSideVector,
+    //     const ProcessInfo& rCurrentProcessInfo,
+    //     const bool CalculateStiffnessMatrixFlag,
+    //     const bool CalculateResidualVectorFlag
+    // ) const;
+
 
     ///@}
     ///@name Member Variables
@@ -191,12 +206,12 @@ private:
 
     void save(Serializer& rSerializer) const override
     {
-        KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, LaplacianElement);
+        KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Element);
     }
 
     void load(Serializer& rSerializer) override
     {
-        KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, LaplacianElement);
+        KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element);
     }
 
     ///@}
@@ -208,7 +223,7 @@ private:
     ///@name Private Operations
     ///@{
 
-    std::vector<std::size_t> GetSurrogateFacesIds();
+    // std::vector<std::size_t> GetSurrogateFacesIds();
 
     ///@}
     ///@name Private  Access
@@ -225,14 +240,14 @@ private:
     ///@{
 
     /// Assignment operator.
-    //LaplacianShiftedBoundaryElement& operator=(const LaplacianShiftedBoundaryElement& rOther);
+    //ConvDiffIGAElement& operator=(const ConvDiffIGAElement& rOther);
 
     /// Copy constructor.
-    //LaplacianShiftedBoundaryElement(const LaplacianShiftedBoundaryElement& rOther);
+    //ConvDiffIGAElement(const ConvDiffIGAElement& rOther);
 
     ///@}
 
-}; // Class LaplacianShiftedBoundaryElement
+}; // Class ConvDiffIGAElement
 
 ///@}
 
@@ -247,11 +262,11 @@ private:
 
 /// input stream function
 /*  inline std::istream& operator >> (std::istream& rIStream,
-				    LaplacianShiftedBoundaryElement& rThis);
+				    ConvDiffIGAElement& rThis);
 */
 /// output stream function
 /*  inline std::ostream& operator << (std::ostream& rOStream,
-				    const LaplacianShiftedBoundaryElement& rThis)
+				    const ConvDiffIGAElement& rThis)
     {
       rThis.PrintInfo(rOStream);
       rOStream << std::endl;

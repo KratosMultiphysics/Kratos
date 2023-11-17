@@ -1,26 +1,9 @@
-from inspect import Parameter
 import KratosMultiphysics
-import math
 import numpy as np
-import KratosMultiphysics.KratosUnittest as KratosUnittest
-import pdb
-
-# Import applications
-import KratosMultiphysics.ConvectionDiffusionApplication as ConvectionDiffusionApplication
-if KratosMultiphysics.ParallelEnvironment.GetDefaultDataCommunicator().IsDistributed():
-    import KratosMultiphysics.mpi as KratosMPI
-    import KratosMultiphysics.MetisApplication as KratosMetis
-    import KratosMultiphysics.TrilinosApplication as KratosTrilinos
 
 # Import base class file
 from KratosMultiphysics.ConvectionDiffusionApplication import convection_diffusion_stationary_solver
-# from KratosMultiphysics.ConvectionDiffusionApplication.ConvectionDiffusionSolver import convection_diffusion_stationary_solver
 from KratosMultiphysics.ConvectionDiffusionApplication.Functions import*
-
-from KratosMultiphysics.assign_scalar_variable_process import AssignScalarVariableProcess
-
-# Need for DistanceModificationProcess
-import KratosMultiphysics.FluidDynamicsApplication as KratosCFD
 
 def CreateSolver(main_model_part, custom_settings):
     return SBMConvectionDiffusionStationarySolver(main_model_part, custom_settings)
@@ -52,10 +35,10 @@ class SBMConvectionDiffusionStationarySolver(convection_diffusion_stationary_sol
             # node.Fix(KratosMultiphysics.VELOCITY_X)
             # node.Fix(KratosMultiphysics.VELOCITY_Y)
             # node.Fix(KratosMultiphysics.VELOCITY_Z)
-            if node.Is(BOUNDARY) : 
+            if node.Is(KratosMultiphysics.BOUNDARY) : 
                 # node.SetSolutionStepValue(KratosMultiphysics.TEMPERATURE, 0.25*(9-node.X**2-node.Y**2-2*math.log(3) + math.log((node.X)**2+(node.Y)**2)) + 0.25 *math.sin(node.X) * math.sinh(node.Y))
                 # node.Fix(KratosMultiphysics.TEMPERATURE)
-                node.Set(BOUNDARY, False)
+                node.Set(KratosMultiphysics.BOUNDARY, False)
         skin_model_part = self.skin_model_part
         # Total number of skin elements
         tot_skin_el = len(self.skin_model_part.Conditions)
@@ -71,7 +54,7 @@ class SBMConvectionDiffusionStationarySolver(convection_diffusion_stationary_sol
         self.surrogate_sub_model_part = main_model_part.CreateSubModelPart("surrogate_sub_model_part")
         tot_sur_nodes = 0 
         for node in main_model_part.Nodes :
-            if node.Is(BOUNDARY):
+            if node.Is(KratosMultiphysics.BOUNDARY):
                 self.surrogate_sub_model_part.AddNode(node,0)
                 tot_sur_nodes = tot_sur_nodes + 1
         
@@ -106,14 +89,14 @@ class SBMConvectionDiffusionStationarySolver(convection_diffusion_stationary_sol
 
         ## Find the so called "INTERFACE" elements
         for elem in sub_model_part_fluid.Elements :
-            if elem.Is(BOUNDARY) :
+            if elem.Is(KratosMultiphysics.BOUNDARY) :
                 count_surr = 0
                 # Let's count how many surrogate nodes the element has
                 for node in elem.GetNodes() :
-                    if node.Is(BOUNDARY) :
+                    if node.Is(KratosMultiphysics.BOUNDARY) :
                         count_surr = count_surr + 1
                 if count_surr > 1 :  # two or three nodes are surrogate nodes
-                    elem.Set(INTERFACE, True) # FUNDAMENTAL
+                    elem.Set(KratosMultiphysics.INTERFACE, True) # FUNDAMENTAL
 
         elemental_neighbours_process = KratosMultiphysics.GenericFindElementalNeighboursProcess(main_model_part)
         elemental_neighbours_process.Execute()
@@ -219,7 +202,7 @@ class SBMConvectionDiffusionStationarySolver(convection_diffusion_stationary_sol
 
         file_white = open("elem_white.txt", "w")
         for elem in self.main_model_part.Elements :
-            if elem.IsNot(ACTIVE) :
+            if elem.IsNot(KratosMultiphysics.ACTIVE) :
                 file_white.write(str(elem.Id))
                 file_white.write('\n')
         file_white.close()
