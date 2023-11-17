@@ -96,7 +96,7 @@ class TSolver(GeoSolver):
         KratosMultiphysics.Logger.PrintInfo("GeoMechanics_T_Solver", "DOFs added correctly.")
 
     def Initialize(self):
-        KratosMultiphysics.Logger.PrintInfo("::[GeoMechanics_T_Solver]:: ", "Started Initialization")  
+        KratosMultiphysics.Logger.PrintInfo("::[GeoMechanics_T_Solver]:: ", "Started Initialization")
         super().Initialize()
 
         # Check if everything is assigned correctly
