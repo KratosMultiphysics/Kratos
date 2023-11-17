@@ -208,15 +208,6 @@ public:
     }
 
     /**
-     * @brief This function initialize the convergence criteria
-     * @param rModelPart Reference to the ModelPart containing the problem. (unused)
-     */
-    void Initialize(ModelPart& rModelPart) override
-    {
-        BaseType::Initialize(rModelPart);
-    }
-
-    /**
      * @brief This function initializes the solution step
      * @param rModelPart Reference to the ModelPart containing the problem.
      * @param rDofSet Reference to the container of the problem's degrees of freedom (stored by the BuilderAndSolver)
