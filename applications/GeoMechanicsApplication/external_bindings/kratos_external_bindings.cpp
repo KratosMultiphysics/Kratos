@@ -24,16 +24,17 @@ extern "C"
                                                void __stdcall         reportTextualProgress(const char*),
                                                bool __stdcall         shouldCancel())
     {
+        Kratos::KratosExecute::CriticalHeadInfo critical_head_info(minCriticalHead, maxCriticalHead, stepCriticalHead);
+        Kratos::KratosExecute::CallBackFunctions call_back_functions(logCallback,
+                                                                     reportProgress,
+                                                                     reportTextualProgress,
+                                                                     shouldCancel);
+
         int errorCode = instance->ExecuteFlowAnalysis(workingDirectory,
                                                       projectFile,
-                                                      minCriticalHead,
-                                                      maxCriticalHead,
-                                                      stepCriticalHead,
+                                                      critical_head_info,
                                                       criticalHeadBoundaryModelPartName,
-                                                      logCallback,
-                                                      reportProgress,
-                                                      reportTextualProgress,
-                                                      shouldCancel);
+                                                      call_back_functions);
         return errorCode;
     }
 

@@ -91,29 +91,25 @@ namespace Kratos
 
         struct CallBackFunctions
         {
-            const std::function<void(const char*)>& rLogCallback;
-            const std::function<void(const char*)>& rReportTextualProgress;
-            const std::function<void(double)>& rReportProgress;
-            const std::function<bool()>& rShouldCancel;
+            std::function<void(const char*)> rLogCallback;
+            std::function<void(double)> rReportProgress;
+            std::function<void(const char*)> rReportTextualProgress;
+            std::function<bool()> rShouldCancel;
 
-            CallBackFunctions(const std::function<void(const char*)>& rLogCallback,
-                              const std::function<void(const char*)>& rReportTextualProgress,
-                              const std::function<void(double)>& rReportProgress,
-                              const std::function<bool()>& rShouldCancel) :
-                    rLogCallback(rLogCallback), rReportTextualProgress(rReportTextualProgress), rReportProgress(rReportProgress), rShouldCancel(rShouldCancel)
+            CallBackFunctions(std::function<void(const char*)> rLogCallback,
+                              std::function<void(double)> rReportProgress,
+                              std::function<void(const char*)> rReportTextualProgress,
+                              std::function<bool()> rShouldCancel) :
+                    rLogCallback(std::move(rLogCallback)), rReportProgress(std::move(rReportProgress)), rReportTextualProgress(std::move(rReportTextualProgress)),
+                    rShouldCancel(std::move(rShouldCancel))
             {}
         };
 
-        int ExecuteFlowAnalysis(std::string_view                       rWorkingDirectory,
-                                const std::string&                       rProjectParamsFileName,
-                                double                                   minCriticalHead,
-                                double                                   maxCriticalHead,
-                                double                                   stepCriticalHead,
-                                std::string_view                       rCriticalHeadBoundaryModelPartName,
-                                const std::function<void(const char*)>&  rLogCallback,
-                                const std::function<void(double)>&       rReportProgress,
-                                const std::function<void(const char*)>&  rReportTextualProgress,
-                                const std::function<bool()>&             rShouldCancel);
+        int ExecuteFlowAnalysis(std::string_view rWorkingDirectory,
+                                const std::string& rProjectParamsFileName,
+                                const CriticalHeadInfo& criticalHeadInfo,
+                                std::string_view rCriticalHeadBoundaryModelPartName,
+                                const CallBackFunctions& rCallBackFunctions);
 
         void ExecuteWithoutPiping(ModelPart& model_part,
                                   const Kratos::Parameters& gid_output_settings) const;

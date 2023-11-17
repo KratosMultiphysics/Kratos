@@ -225,11 +225,11 @@ namespace Kratos
 
     }
 
-    int KratosExecute::MainExecution(ModelPart&                                                          rModelPart,
+    int KratosExecute::MainExecution(ModelPart& rModelPart,
                                      const GeoMechanicsNewtonRaphsonErosionProcessStrategyType::Pointer& rpSolvingStrategy,
-                                     double                                                              Time,
-                                     double                                                              DeltaTime,
-                                     unsigned int                                                        NumberOfIterations) const
+                                     double Time,
+                                     double DeltaTime,
+                                     unsigned int NumberOfIterations) const
     {
 
     	// Initialize
@@ -274,48 +274,14 @@ namespace Kratos
         return 0;
     }
 
-//    struct CriticalHeadInfo
-//    {
-//        double minCriticalHead = 0.0;
-//        double maxCriticalHead = 0.0;
-//        double stepCriticalHead = 0.0;
-//
-//        CriticalHeadInfo(double minCriticalHead, double maxCriticalHead, double stepCriticalHead) :
-//            minCriticalHead(minCriticalHead), maxCriticalHead(maxCriticalHead), stepCriticalHead(stepCriticalHead)
-//        {}
-//    };
-//
-//    struct CallBackFunctions
-//    {
-//        const std::function<void(const char*)>& rLogCallback;
-//        const std::function<void(const char*)>& rReportTextualProgress;
-//        const std::function<void(double)>& rReportProgress;
-//        const std::function<bool()>& rShouldCancel;
-//
-//        CallBackFunctions(const std::function<void(const char*)>& rLogCallback,
-//                          const std::function<void(const char*)>& rReportTextualProgress,
-//                          const std::function<void(double)>& rReportProgress,
-//                          const std::function<bool()>& rShouldCancel) :
-//            rLogCallback(rLogCallback), rReportTextualProgress(rReportTextualProgress), rReportProgress(rReportProgress), rShouldCancel(rShouldCancel)
-//        {}
-//    };
-
     int KratosExecute::ExecuteFlowAnalysis(std::string_view rWorkingDirectory,
                                            const std::string& rProjectParamsFileName,
-                                           double minCriticalHead,
-                                           double maxCriticalHead,
-                                           double stepCriticalHead,
+                                           const CriticalHeadInfo& criticalHeadInfo,
                                            std::string_view rCriticalHeadBoundaryModelPartName,
-                                           const std::function<void(const char*)>& rLogCallback,
-                                           const std::function<void(double)>& rReportProgress,
-                                           const std::function<void(const char*)>& rReportTextualProgress,
-                                           const std::function<bool()>& rShouldCancel)
+                                           const CallBackFunctions& rCallBackFunctions)
     {
         mWorkingDirectory = rWorkingDirectory;
         mCriticalHeadBoundaryModelPartName = rCriticalHeadBoundaryModelPartName;
-
-
-        CriticalHeadInfo criticalHeadInfo(minCriticalHead, maxCriticalHead, stepCriticalHead);
 
 
         this->SetEchoLevel(1);
@@ -326,7 +292,7 @@ namespace Kratos
 
         try
         {
-            rReportProgress(0.0);
+            rCallBackFunctions.rReportProgress(0.0);
 
             std::string projectpath = mWorkingDirectory + "/" + rProjectParamsFileName;
             const FileInputUtility input_utility;
@@ -378,11 +344,11 @@ namespace Kratos
 
             KRATOS_INFO_IF("GeoFlowKernel", this->GetEchoLevel() > 0) << "Parsed Process Data" << std::endl;
 
-            bool hasPiping = stepCriticalHead != 0;
+            bool hasPiping = criticalHeadInfo.stepCriticalHead != 0;
 
-            if (rShouldCancel())
+            if (rCallBackFunctions.rShouldCancel())
             {
-                HandleCancellationAndReset(rLogCallback, p_output);
+                HandleCancellationAndReset(rCallBackFunctions.rLogCallback, p_output);
 
                 return 0;
             }
@@ -395,11 +361,10 @@ namespace Kratos
             }
             else
             {
-                CallBackFunctions callBackFunctions(rLogCallback, rReportTextualProgress, rReportProgress, rShouldCancel);
-                ExecuteWithPiping(model_part, gid_output_settings, criticalHeadInfo, p_output, callBackFunctions);
+                ExecuteWithPiping(model_part, gid_output_settings, criticalHeadInfo, p_output, rCallBackFunctions);
             }
 
-            HandleCancellationAndReset(rLogCallback, p_output);
+            HandleCancellationAndReset(rCallBackFunctions.rLogCallback, p_output);
 
             return 0;
         }
@@ -407,7 +372,7 @@ namespace Kratos
         {
             KRATOS_INFO_IF("GeoFlowKernel", this->GetEchoLevel() > 0) << exc.what();
 
-            HandleCancellationAndReset(rLogCallback, p_output);
+            HandleCancellationAndReset(rCallBackFunctions.rLogCallback, p_output);
 
             return 1;
         }
@@ -425,10 +390,10 @@ namespace Kratos
     }
 
     int KratosExecute::ExecuteWithPiping(ModelPart& model_part,
-                                          const Kratos::Parameters& gid_output_settings,
-                                          const CriticalHeadInfo& criticalHeadInfo,
-                                          LoggerOutput::Pointer p_output,
-                                          const CallBackFunctions& rCallBackFunctions)
+                                         const Kratos::Parameters& gid_output_settings,
+                                         const CriticalHeadInfo& criticalHeadInfo,
+                                         LoggerOutput::Pointer p_output,
+                                         const CallBackFunctions& rCallBackFunctions)
     {
         std::stringstream kratosLogBuffer;
         KRATOS_INFO_IF("GeoFlowKernel", this->GetEchoLevel() > 0) << "Critical head search started." << std::endl;
@@ -615,7 +580,7 @@ namespace Kratos
     }
 
     void KratosExecute::HandleCancellationAndReset(const std::function<void(const char*)>& rLogCallback,
-                                               LoggerOutput::Pointer p_output)
+                                                   LoggerOutput::Pointer p_output)
     {
         std::stringstream kratosLogBuffer;
 
