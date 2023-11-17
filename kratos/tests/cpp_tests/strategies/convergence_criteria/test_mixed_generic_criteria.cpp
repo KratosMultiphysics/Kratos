@@ -13,9 +13,9 @@
 // System includes
 #include <limits>
 
-/* External includes */
+// External includes
 
-/* Project includes */
+// Project includes
 #include "testing/testing.h"
 #include "containers/model.h"
 #include "geometries/point_3d.h"
