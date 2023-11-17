@@ -226,8 +226,8 @@ class UPwSolver(GeoSolver):
         elif (convergence_criterion.lower() == "and_criterion"):
             Displacement = KratosMultiphysics.DisplacementCriteria(D_RT, D_AT)
             Displacement.SetEchoLevel(echo_level)
-            Residual = self._GetResidualCriterion()
-            convergence_criterion = KratosMultiphysics.AndCriteria(Residual, Displacement)
+            residual = self._GetResidualCriterion()
+            convergence_criterion = KratosMultiphysics.AndCriteria(residual, Displacement)
         elif (convergence_criterion.lower() == "or_criterion"):
             Displacement = KratosMultiphysics.DisplacementCriteria(D_RT, D_AT)
             Displacement.SetEchoLevel(echo_level)

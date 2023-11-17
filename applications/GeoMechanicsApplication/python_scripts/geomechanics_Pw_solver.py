@@ -167,13 +167,13 @@ class PwSolver(GeoSolver):
         elif (convergence_criterion.lower() == "and_criterion"):
             WaterPressure = KratosMultiphysics.MixedGenericCriteria([(KratosMultiphysics.WATER_PRESSURE, D_RT, D_AT)])
             WaterPressure.SetEchoLevel(echo_level)
-            Residual = self._GetResidualCriterion()
-            convergence_criterion = KratosMultiphysics.AndCriteria(Residual, WaterPressure)
+            residual = self._GetResidualCriterion()
+            convergence_criterion = KratosMultiphysics.AndCriteria(residual, WaterPressure)
         elif (convergence_criterion.lower() == "or_criterion"):
             WaterPressure = KratosMultiphysics.MixedGenericCriteria([(KratosMultiphysics.WATER_PRESSURE, D_RT, D_AT)])
             WaterPressure.SetEchoLevel(echo_level)
-            Residual = self._GetResidualCriterion()
-            convergence_criterion = KratosMultiphysics.OrCriteria(Residual, WaterPressure)
+            residual = self._GetResidualCriterion()
+            convergence_criterion = KratosMultiphysics.OrCriteria(residual, WaterPressure)
         else:
             err_msg =  "The requested convergence criterion \"" + convergence_criterion + "\" is not available!\n"
             err_msg += "Available options are: \"water_pressure_criterion\", \"residual_criterion\", \"and_criterion\", \"or_criterion\""
