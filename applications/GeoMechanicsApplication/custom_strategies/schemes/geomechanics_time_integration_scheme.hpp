@@ -391,7 +391,6 @@ protected:
         mDeltaTime = DeltaTime;
     }
 
-
 private:
     double mDeltaTime = 1.0;
 };
