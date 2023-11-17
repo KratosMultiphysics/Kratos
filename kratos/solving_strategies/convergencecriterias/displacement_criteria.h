@@ -19,7 +19,8 @@
 
 // Project includes
 #include "includes/model_part.h"
-#include "includes/define.h"
+#include "utilities/parallel_utilities.h"
+#include "utilities/reduction_utilities.h"
 #include "solving_strategies/convergencecriterias/convergence_criteria.h"
 
 namespace Kratos
@@ -385,18 +386,17 @@ private:
      */
     void CalculateReferenceNorm(DofsArrayType& rDofSet)
     {
-        TDataType reference_disp_norm = TDataType();
-        TDataType dof_value;
+        // Auxiliary struct
+        struct TLS {TDataType dof_value{};};
 
-        #pragma omp parallel for reduction(+:reference_disp_norm)
-        for (int i = 0; i < static_cast<int>(rDofSet.size()); i++) {
-            auto it_dof = rDofSet.begin() + i;
-
-            if(it_dof->IsFree()) {
-                dof_value = it_dof->GetSolutionStepValue();
-                reference_disp_norm += dof_value * dof_value;
+        const TDataType reference_disp_norm = block_for_each<SumReduction<TDataType>>(rDofSet, TLS(), [](auto& rDof, TLS& rTLS) {
+            if(rDof.IsFree()) {
+                rTLS.dof_value = rDof.GetSolutionStepValue();
+                return std::pow(rTLS.dof_value, 2);
+            } else {
+                return TDataType();
             }
-        }
+        });
         mReferenceDispNorm = std::sqrt(reference_disp_norm);
     }
 
@@ -417,21 +417,22 @@ private:
         TDataType final_correction_norm = TDataType();
         SizeType dof_num = 0;
 
+        // Custom reduction
+        using CustomReduction = CombinedReduction<SumReduction<TDataType>,SumReduction<SizeType>>;
+
+        // Auxiliary struct
+        struct TLS {TDataType dof_value{};IndexType dof_id{}; TDataType variation_dof_value{};};
+
         // Loop over Dofs
-        #pragma omp parallel for reduction(+:final_correction_norm,dof_num)
-        for (int i = 0; i < static_cast<int>(rDofSet.size()); i++) {
-            auto it_dof = rDofSet.begin() + i;
-
-            IndexType dof_id;
-            TDataType variation_dof_value;
-
-            if (it_dof->IsFree()) {
-                dof_id = it_dof->EquationId();
-                variation_dof_value = Dx[dof_id];
-                final_correction_norm += std::pow(variation_dof_value, 2);
-                dof_num++;
+        std::tie(final_correction_norm, dof_num) = block_for_each<CustomReduction>(rDofSet, TLS(), [&Dx](auto& rDof, TLS& rTLS) {
+            if (rDof.IsFree()) {
+                rTLS.dof_id = rDof.EquationId();
+                rTLS.variation_dof_value = Dx[rTLS.dof_id];
+                return std::make_tuple(std::pow(rTLS.variation_dof_value, 2), 1);
+            } else {
+                return std::make_tuple(0.0, 0);
             }
-        }
+        });
 
         rDofNum = dof_num;
         return std::sqrt(final_correction_norm);

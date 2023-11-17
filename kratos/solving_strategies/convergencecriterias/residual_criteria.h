@@ -20,6 +20,8 @@
 #include "includes/model_part.h"
 #include "includes/define.h"
 #include "utilities/constraint_utilities.h"
+#include "utilities/parallel_utilities.h"
+#include "utilities/reduction_utilities.h"
 #include "solving_strategies/convergencecriterias/convergence_criteria.h"
 
 namespace Kratos
@@ -360,37 +362,33 @@ protected:
         TDataType residual_solution_norm = TDataType();
         SizeType dof_num = 0;
 
-        // Auxiliar values
-        TDataType residual_dof_value{};
-        const auto it_dof_begin = rDofSet.begin();
-        const int number_of_dof = static_cast<int>(rDofSet.size());
+        // Custom reduction
+        using CustomReduction = CombinedReduction<SumReduction<TDataType>,SumReduction<SizeType>>;
+
+        // Auxiliary struct
+        struct TLS {TDataType residual_dof_value{};};
 
         // Loop over Dofs
         if (rModelPart.NumberOfMasterSlaveConstraints() > 0) {
-            #pragma omp parallel for firstprivate(residual_dof_value) reduction(+:residual_solution_norm, dof_num)
-            for (int i = 0; i < number_of_dof; i++) {
-                auto it_dof = it_dof_begin + i;
-
-                const IndexType dof_id = it_dof->EquationId();
-
+            std::tie(residual_solution_norm, dof_num) = block_for_each<CustomReduction>(rDofSet, TLS(), [this, &rb](auto& rDof, TLS& rTLS) {
+                const IndexType dof_id = rDof.EquationId();
                 if (mActiveDofs[dof_id] == 1) {
-                    residual_dof_value = TSparseSpace::GetValue(rb,dof_id);
-                    residual_solution_norm += std::pow(residual_dof_value, 2);
-                    dof_num++;
+                    rTLS.residual_dof_value = TSparseSpace::GetValue(rb, dof_id);
+                    return std::make_tuple(std::pow(rTLS.residual_dof_value, 2), 1);
+                } else {
+                    return std::make_tuple(0.0, 0);
                 }
-            }
+            });
         } else {
-            #pragma omp parallel for firstprivate(residual_dof_value) reduction(+:residual_solution_norm, dof_num)
-            for (int i = 0; i < number_of_dof; i++) {
-                auto it_dof = it_dof_begin + i;
-
-                if (!it_dof->IsFixed()) {
-                    const IndexType dof_id = it_dof->EquationId();
-                    residual_dof_value = TSparseSpace::GetValue(rb,dof_id);
-                    residual_solution_norm += std::pow(residual_dof_value, 2);
-                    dof_num++;
+            std::tie(residual_solution_norm, dof_num) = block_for_each<CustomReduction>(rDofSet, TLS(), [&rb](auto& rDof, TLS& rTLS) {
+                if (!rDof.IsFixed()) {
+                    const IndexType dof_id = rDof.EquationId();
+                    rTLS.residual_dof_value = TSparseSpace::GetValue(rb, dof_id);
+                    return std::make_tuple(std::pow(rTLS.residual_dof_value, 2), 1);
+                } else {
+                    return std::make_tuple(0.0, 0);
                 }
-            }
+            });
         }
 
         rDofNum = dof_num;
