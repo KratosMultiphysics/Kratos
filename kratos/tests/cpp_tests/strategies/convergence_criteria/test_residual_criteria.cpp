@@ -13,9 +13,9 @@
 // System includes
 #include <limits>
 
-/* External includes */
+// External includes
 
-/* Project includes */
+// Project includes
 #include "testing/testing.h"
 #include "containers/model.h"
 #include "geometries/point_3d.h"
@@ -71,6 +71,9 @@ KRATOS_TEST_CASE_IN_SUITE(ResidualCriteria, KratosCoreFastSuite)
     auto residual_criteria = ResidualCriteriaType(rel_tol, abs_tol);
 
     // Set the auxiliary arrays
+    for (auto& r_node : r_model_part.Nodes()) {
+        r_node.pGetDof(PRESSURE)->SetEquationId(r_node.Id() - 1);
+    }
     DofsArrayType aux_dof_set;
     aux_dof_set.reserve(10);
     for (auto& r_node : r_model_part.Nodes()) {
