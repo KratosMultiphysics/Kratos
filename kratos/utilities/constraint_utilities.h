@@ -4,15 +4,14 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Vicente Mataix Ferrandiz
 //                   Klaus B Sautter
 //
 
-#if !defined(KRATOS_CONSTRAINT_UTILITIES)
-#define KRATOS_CONSTRAINT_UTILITIES
+#pragma once
 
 // System includes
 
@@ -104,4 +103,3 @@ namespace ConstraintUtilities
 
 }; // namespace ConstraintUtilities
 }  // namespace Kratos
-#endif /* KRATOS_CONSTRAINT_UTILITIES defined */
