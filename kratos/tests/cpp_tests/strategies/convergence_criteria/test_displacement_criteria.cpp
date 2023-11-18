@@ -105,7 +105,7 @@ KRATOS_TEST_CASE_IN_SUITE(DisplacementCriteria, KratosCoreFastSuite)
     for (auto& r_node : r_model_part.Nodes()) {
         const double aux_val = r_node.Id() * aux_constant;
         r_node.FastGetSolutionStepValue(PRESSURE) = aux_val;
-        Dx[i] = aux_val / 200.0;
+        Dx[i] = aux_val / 1000.0;
         i++;
     }
 
