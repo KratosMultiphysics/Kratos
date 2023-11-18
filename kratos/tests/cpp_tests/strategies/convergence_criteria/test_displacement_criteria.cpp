@@ -71,6 +71,9 @@ KRATOS_TEST_CASE_IN_SUITE(DisplacementCriteria, KratosCoreFastSuite)
     auto displacement_criteria = DisplacementCriteriaType(rel_tol, abs_tol);
 
     // Set the auxiliary arrays
+    for (auto& r_node : r_model_part.Nodes()) {
+        r_node.pGetDof(PRESSURE)->SetEquationId(r_node.Id() - 1);
+    }
     DofsArrayType aux_dof_set;
     aux_dof_set.reserve(10);
     for (auto& r_node : r_model_part.Nodes()) {
