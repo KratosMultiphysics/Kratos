@@ -49,7 +49,7 @@ void GenerateTestDisplacementCriteriaModelPart(ModelPart& rModelPart)
 }
 
 /**
- * Checks the displacement criteria with two double variables
+ * Checks the displacement criteria
  */
 KRATOS_TEST_CASE_IN_SUITE(DisplacementCriteria, KratosCoreFastSuite)
 {
