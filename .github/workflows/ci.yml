@@ -54,7 +54,6 @@ jobs:
   ubuntu:
     runs-on: ubuntu-latest
     needs: changed-files
-    if: always() # runs even if the previous step fails (then it compiles everything)
     strategy:
       fail-fast: false
       matrix:
