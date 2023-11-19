@@ -44,7 +44,7 @@ jobs:
       - id: get_files
         run:
           msg=$(gh pr view ${{ github.event.pull_request.number }} --json files --jq '.files.[].path')
-          echo "changed_files<<EOF"$'\n'"$msg"$'\n'EOF >> $GITHUB_OUTPUT
+          echo "changed_files=the_fIlEs >> $GITHUB_OUTPUT
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
