@@ -40,7 +40,7 @@ jobs:
         shell: bash
         run: |
           pr_number=${{ github.event.pull_request.number }}
-          changed_files_pr=${gh pr view ${pr_number} --json files --jq '.files.[].path'}
+          changed_files_pr=$(gh pr view ${pr_number} --json files --jq '.files.[].path')
           echo "changed_files=${changed_files_pr}" >> $GITHUB_OUTPUT
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
