@@ -37,7 +37,7 @@ jobs:
       - uses: actions/checkout@v4
 
       - id: print
-        run: gh pr view ${{ github.event.pull_request.number }} --json files --jq '.files.[].path')
+        run: gh pr view ${{ github.event.pull_request.number }} --json files --jq '.files.[].path'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
