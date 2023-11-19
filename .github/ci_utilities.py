@@ -3,13 +3,10 @@ import subprocess
 from sys import argv, version
 from os import getenv
 
+
 def get_files_changed_in_pr(pr_number: int) -> list[Path] | None:
     try:
-        # subprocess.run(
-        #     ["gh pr view ${{ github.event.pull_request.number }} --json files --jq '.files.[].path'"],
-        #     check=True,
-        # )
-        p = subprocess.run(
+        process_output: str = subprocess.run(
             [
                 "gh",
                 "pr",
@@ -22,11 +19,9 @@ def get_files_changed_in_pr(pr_number: int) -> list[Path] | None:
             ],
             check=True,
             capture_output=True,
-        )
+        ).stdout.decode()
 
-        output: str = p.stdout.decode()
-
-        modified_files: list[Path] = [Path(f) for f in output.splitlines()]
+        modified_files: list[Path] = [Path(f) for f in process_output.splitlines()]
 
         return modified_files
 
