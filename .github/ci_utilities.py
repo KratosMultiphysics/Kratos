@@ -1,7 +1,7 @@
 from pathlib import Path
 import subprocess
 from sys import argv, version
-
+from os import getenv
 
 def get_files_changed_in_pr(pr_number: int) -> list[Path] | None:
     try:
@@ -37,6 +37,7 @@ def get_files_changed_in_pr(pr_number: int) -> list[Path] | None:
 if __name__ == "__main__":
     print(version)
     print(argv)
+    print(f"{getenv('GITHUB_PR_NUMBER')=}")
     modified_files = get_files_changed_in_pr(argv[1])
 
     print(f"Modified files: {modified_files}")
