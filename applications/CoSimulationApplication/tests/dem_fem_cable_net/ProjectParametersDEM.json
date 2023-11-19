@@ -1,0 +1,87 @@
+{
+"Dimension"                        : 3,
+"PeriodicDomainOption"             : false,
+"BoundingBoxOption"                : true,
+"AutomaticBoundingBoxOption"       : false,
+"BoundingBoxEnlargementFactor"     : 1.0,
+"BoundingBoxStartTime"             : 0.0,
+"BoundingBoxStopTime"              : 1000.0,
+"BoundingBoxMaxX"                  : 10,
+"BoundingBoxMaxY"                  : 10,
+"BoundingBoxMaxZ"                  : 10,
+"BoundingBoxMinX"                  : -10,
+"BoundingBoxMinY"                  : -10,
+"BoundingBoxMinZ"                  : -10,
+
+"dem_inlet_option"                 : false,
+"GravityX"                         : 0.0,
+"GravityY"                         : -6.378103166302658,
+"GravityZ"                         : -6.378103166302658,
+
+"EnergyCalculationOption"          : false,
+"VelocityTrapOption"               : false,
+"RotationOption"                   : true,
+"CleanIndentationsOption"          : true,
+"solver_settings" : {
+    "strategy"                   : "sphere_strategy",
+        "RemoveBallsInitiallyTouchingWalls"          : false,
+        "material_import_settings"           : {
+            "materials_filename" : "MaterialsDEM.json"
+        }
+    },
+"RemoveBallsInEmbeddedOption"      : true,
+
+"DeltaOption"                      : "Absolute",
+"SearchTolerance"                  : 0.0,
+"AmplifiedSearchRadiusExtension"   : 0.0,
+"ModelDataInfo"                    : false,
+"VirtualMassCoefficient"           : 1.0,
+"RollingFrictionOption"            : false,
+"GlobalDamping"                    : 0.0,
+"ContactMeshOption"                : false,
+"OutputFileType"                   : "Binary",
+"Multifile"                        : "multiple_files",
+"ElementType"                      : "SphericPartDEMElement3D",
+
+"TranslationalIntegrationScheme"   : "Symplectic_Euler",
+"RotationalIntegrationScheme"      : "Direct_Integration",
+"AutomaticTimestep"                : false,
+"DeltaTimeSafetyFactor"            : 1.0,
+"MaxTimeStep"                      : 5e-5,
+"FinalTime"                        : 0.01,
+"ControlTime"                      : 4.0,
+"NeighbourSearchFrequency"         : 1,
+
+"GraphExportFreq"                  : 10e1,
+"VelTrapGraphExportFreq"           : 10e1,
+"OutputTimeStep"                   : 10e1,
+"PostBoundingBox"                  : false,
+"PostDisplacement"                 : false,
+"PostVelocity"                     : false,
+"PostTotalForces"                  : false,
+"PostRigidElementForces"           : false,
+"PostRadius"                       : false,
+"PostAngularVelocity"              : false,
+"PostParticleMoment"               : false,
+"PostEulerAngles"                  : false,
+"PostRollingResistanceMoment"      : false,
+"PostCharacteristicLength"         : false,
+
+"PostElasticForces"                : false,
+"PostContactForces"                : false,
+"PostTangentialElasticForces"      : false,
+"PostShearStress"                  : false,
+"PostPressure"                     : false,
+
+"PostNonDimensionalVolumeWear"     : false,
+"PostNodalArea"                    : false,
+
+"PostLocalContactForce"            : false,
+"PostRHS"                          : false,
+"PostDampForces"                   : false,
+"PostAppliedForces"                : false,
+"PostGroupId"                      : false,
+"PostExportId"                     : false,
+
+"problem_name" : "cableNet"
+}

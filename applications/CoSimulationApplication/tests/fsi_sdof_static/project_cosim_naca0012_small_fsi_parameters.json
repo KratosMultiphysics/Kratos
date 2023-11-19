@@ -1,0 +1,104 @@
+{
+    "problem_data" :
+    {
+        "start_time" : 0.0,
+        "end_time" : 1.0,
+        "echo_level" : 0,
+        "print_colors" : true,
+        "parallel_type" : "OpenMP"
+    },
+    "solver_settings" :
+    {
+        "type" : "coupled_solvers.gauss_seidel_strong",
+        "echo_level" : 0,
+        "num_coupling_iterations" : 10,
+        "data_transfer_operators" : {
+            "transfer_forces" : {
+                "type" : "sum_distributed_to_single"
+            },
+            "transfer_disp" : {
+                "type" : "copy_single_to_distributed"
+            }
+        },
+        "convergence_accelerators" : [
+            {
+                "type"      : "aitken",
+                "solver"    : "fluid",
+                "data_name" : "disp_y"
+            }
+        ],
+        "convergence_criteria" :[
+        {
+            "type" : "relative_norm_initial_residual",
+            "solver"   : "fluid",
+            "data_name"     : "disp_y",
+            "abs_tolerance" : 1e-9,
+            "rel_tolerance" : 1e-2
+        }],
+        "coupling_sequence":
+        [
+            {
+                "name": "fluid",
+                "output_data_list": [],
+                "input_data_list": []
+            },{
+                "name": "structure",
+                "input_data_list"  : [{
+                    "data"              : "force_y",
+                    "from_solver"       : "fluid",
+                    "from_solver_data"  : "force_y",
+                    "data_transfer_operator" : "transfer_forces",
+                    "data_transfer_operator_options" : []
+                }],
+                "output_data_list" : [
+                    {
+                        "data"           : "disp_y",
+                        "to_solver"      : "fluid",
+                        "to_solver_data" : "disp_y",
+                        "data_transfer_operator" : "transfer_disp"
+                    }
+                ]
+            }
+
+        ],
+        "solvers" :
+        {
+            "fluid":
+            {
+                "type" : "solver_wrappers.kratos.potential_flow_wrapper",
+                "solver_wrapper_settings" : {
+                    "input_file"  : "fsi_sdof_static/naca0012_small_parameters_coupling"
+                },
+                "data" : {
+                    "disp_y" : {
+                        "model_part_name" : "FluidModelPart.Body2D_Body",
+                        "variable_name" : "MESH_DISPLACEMENT_Y"
+                    },
+                    "force_y" : {
+                        "model_part_name" : "FluidModelPart.Body2D_Body",
+                        "variable_name" : "REACTION_Y"
+                    }
+                }
+            },
+            "structure" :
+            {
+                "type" : "solver_wrappers.sdof.static_sdof_solver_wrapper",
+                "solver_wrapper_settings" : {
+                    "input_file"  : "fsi_sdof_static/ProjectParametersSDoF"
+                },
+                "data" : {
+                    "disp_y" : {
+                        "model_part_name" : "Sdof_Static",
+                        "variable_name" : "SCALAR_DISPLACEMENT",
+                        "location"     : "model_part"
+                    },
+                    "force_y" : {
+                        "model_part_name" : "Sdof_Static",
+                        "variable_name" : "SCALAR_FORCE",
+                        "location"     : "model_part"
+                    }
+                }
+            }
+        }
+    }
+}

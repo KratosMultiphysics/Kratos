@@ -1,0 +1,104 @@
+{
+    "problem_data" :
+    {
+        "start_time" : 0.0,
+        "end_time" : 0.5,
+        "echo_level" : 0,
+        "print_colors" : true,
+        "parallel_type" : "OpenMP"
+    },
+    "solver_settings" :
+    {
+        "type" : "coupled_solvers.gauss_seidel_weak",
+        "echo_level" : 0,
+        "predictors" : [
+        ],
+        "data_transfer_operators" : {
+            "copy_transfer" : {
+                "type" : "copy"
+            }
+        },
+        "coupling_sequence":
+        [
+            {
+                "name": "ping",
+                "input_data_list"  : [
+                ],
+                "output_data_list" : [
+                    {
+                        "data"           : "send_data",
+                        "to_solver"      : "pong",
+                        "to_solver_data" : "recv_data",
+                        "data_transfer_operator" : "copy_transfer"
+                    }
+                ]
+            },
+            {
+                "name": "pong",
+                "input_data_list"   : [
+                ],
+                "output_data_list"  : [{
+                    "data"           : "send_data",
+                    "to_solver"      : "ping",
+                    "to_solver_data" : "recv_data",
+                    "data_transfer_operator" : "copy_transfer"
+                }]
+            }
+        ],
+        "solvers" :
+        {
+            "ping":
+            {
+                "type" : "solver_wrappers.cpp_ping_pong.ping_pong_wrapper",
+                "solver_wrapper_settings" : {
+                    "main_model_part_name" : "ping",
+                    "domain_size" : 2,
+                    "executable_name"  : "../../../../cmake_build/applications/CoSimulationApplication/ping",
+                    "export_data"      : ["send_data"],
+                    "import_data"      : ["recv_data"]
+                },
+                "io_settings":{
+                    "type":"cpp_ping_pong.ping_pong_io"
+                },
+                "data" : {
+                    "send_data" : {
+                        "model_part_name" : "ping",
+                        "variable_name"   : "PRESSURE",
+                        "location"        : "node_historical"
+                    },
+                    "recv_data" : {
+                        "model_part_name" : "ping",
+                        "variable_name"   : "PRESSURE",
+                        "location"        : "node_historical"
+                    }
+                }
+            },
+            "pong" :
+            {
+                "type" : "solver_wrappers.cpp_ping_pong.ping_pong_wrapper",
+                "solver_wrapper_settings" : {
+                    "main_model_part_name" : "pong",
+                    "domain_size" : 2,
+                    "executable_name"  : "../../../../cmake_build/applications/CoSimulationApplication/pong",
+                    "export_data"      : ["send_data"],
+                    "import_data"      : ["recv_data"]
+                },
+                "io_settings":{
+                    "type":"cpp_ping_pong.ping_pong_io"
+                },
+                "data" : {
+                    "send_data" : {
+                        "model_part_name" : "pong",
+                        "variable_name"   : "PRESSURE",
+                        "location"        : "node_historical"
+                    },
+                    "recv_data" : {
+                        "model_part_name" : "pong",
+                        "variable_name"   : "PRESSURE",
+                        "location"        : "node_historical"
+                    }
+                }
+            }
+        }
+    }
+}
