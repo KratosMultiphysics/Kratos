@@ -1,10 +1,9 @@
-from pathlib import Path
+import json
 import subprocess
-from sys import argv, version
-from os import getenv
+from os import environ
 
 
-def get_files_changed_in_pr(pr_number: int) -> list[Path] | None:
+def get_files_changed_in_pr(pr_number: int) -> list[str] | None:
     try:
         process_output: str = subprocess.run(
             [
@@ -21,9 +20,7 @@ def get_files_changed_in_pr(pr_number: int) -> list[Path] | None:
             capture_output=True,
         ).stdout.decode()
 
-        modified_files: list[Path] = [Path(f) for f in process_output.splitlines()]
-
-        return modified_files
+        return process_output.splitlines()
 
     except Exception as e:
         print(f"An error occured while getting the modified files: {e}")
@@ -31,9 +28,10 @@ def get_files_changed_in_pr(pr_number: int) -> list[Path] | None:
 
 
 if __name__ == "__main__":
-    print(version)
-    print(argv)
-    print(f"{getenv('GITHUB_PR_NUMBER')=}")
-    modified_files = get_files_changed_in_pr(argv[1])
+    assert "GITHUB_TOKEN" in environ, 'missing environment variable "GITHUB_TOKEN"!'
+    assert "GITHUB_PR_NUMBER" in environ, 'missing environment variable "GITHUB_PR_NUMBER"!'
 
-    print(f"Modified files: {modified_files}")
+    pr_number: int = int(environ["GITHUB_PR_NUMBER"])
+    modified_files = get_files_changed_in_pr(pr_number)
+
+    print(json.dumps(modified_files))

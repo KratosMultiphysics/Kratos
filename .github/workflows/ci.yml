@@ -38,11 +38,10 @@ jobs:
 
       - id: get_files
         run: |
-          msg=$(gh pr view ${{ github.event.pull_request.number }} --json files --jq '.files.[].path')
-          new_msg="${msg//$'\n'/;}"
-          echo "changed_files=${new_msg}" >> $GITHUB_OUTPUT
+          echo "changed_files=$(python3 .github/ci_utilities.py)" >> $GITHUB_OUTPUT
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_PR_NUMBER: ${{ github.event.pull_request.number }}
 
   ubuntu:
     runs-on: ubuntu-latest
