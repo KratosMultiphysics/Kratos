@@ -1,6 +1,6 @@
 from pathlib import Path
 import subprocess
-from sys import argv
+from sys import argv, version
 
 
 def get_files_changed_in_pr(pr_number: int) -> list[Path] | None:
@@ -21,14 +21,22 @@ def get_files_changed_in_pr(pr_number: int) -> list[Path] | None:
                 ".files.[].path",
             ],
             check=True,
-            capture_output=True
+            capture_output=True,
         )
 
-        print(f"Process output: {p.stdout.decode('ascii')}")
+        output: str = p.stdout.decode()
+
+        modified_files: list[Path] = [Path(f) for f in output.splitlines()]
+
+        return modified_files
+
     except:
         return None
 
 
 if __name__ == "__main__":
+    print(version)
     print(argv)
-    get_files_changed_in_pr(argv[1])
+    modified_files = get_files_changed_in_pr(argv[1])
+
+    print(f"Modified files: {modified_files}")
