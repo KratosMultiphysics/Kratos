@@ -1,5 +1,6 @@
 from pathlib import Path
 import subprocess
+from sys import argv
 
 
 def get_files_changed_in_pr() -> list[Path] | None:
@@ -26,4 +27,5 @@ def get_files_changed_in_pr() -> list[Path] | None:
 
 
 if __name__ == "__main__":
+    print(argv)
     get_files_changed_in_pr()
