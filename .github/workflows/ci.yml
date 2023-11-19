@@ -29,22 +29,21 @@ permissions:
   contents: read
 
 jobs:
-  test-changed-files:
+  changed-files:
     runs-on: ubuntu-latest
+    outputs:
+      files: ${{ steps.get_files.outputs.changed_files }}
     steps:
       - uses: actions/checkout@v4
 
-      - run: gh pr view ${{ github.event.pull_request.number }} --json files --jq '.files.[].path'
+      - id: get_files
+        run: echo "changed_files=gh pr view ${{ github.event.pull_request.number }} --json files --jq '.files.[].path'" >> $GITHUB_OUTPUT
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - run: python .github/ci_utilities.py ${{ github.event.pull_request.number }}
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          GITHUB_PR_NUMBER: ${{ github.event.pull_request.number }}
 
   ubuntu:
     runs-on: ubuntu-latest
+    needs: changed-files
     strategy:
       fail-fast: false
       matrix:
@@ -66,10 +65,7 @@ jobs:
     # => must be added to the docker container to avoid reinstalling it in every CI run
 
     - name: Print changed files
-      run: python3 .github/ci_utilities.py ${{ github.event.pull_request.number }}
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        GITHUB_PR_NUMBER: ${{ github.event.pull_request.number }}
+      run: echo ${{needs.changed-files.outputs.files}}
 
     - name: Build
       shell: bash
