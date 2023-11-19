@@ -47,7 +47,7 @@ jobs:
           echo ${msg}
           new_msg="${msg//$'\n'/;}"
           echo ${new_msg}
-          echo "changed_files=${new_msg}" >> $GITHUB_OUTPUT
+          echo "changed_files=${new_msg}" >> $GITHUB_OUTPUT"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
