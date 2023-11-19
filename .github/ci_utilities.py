@@ -3,7 +3,8 @@ import subprocess
 from os import environ
 
 
-def get_files_changed_in_pr(pr_number: int) -> list[str] | None:
+def get_files_changed_in_pr(pr_number: int) -> list[str]:
+    # from: https://stackoverflow.com/questions/25071579/list-all-files-changed-in-a-pull-request-in-git-github
     try:
         process_output: str = subprocess.run(
             [
@@ -24,7 +25,7 @@ def get_files_changed_in_pr(pr_number: int) -> list[str] | None:
 
     except Exception as e:
         print(f"An error occured while getting the modified files: {e}")
-        return None
+        return []
 
 
 if __name__ == "__main__":
