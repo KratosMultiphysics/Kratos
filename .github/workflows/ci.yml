@@ -36,6 +36,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - id: print
+        run: gh pr view ${{ github.event.pull_request.number }} --json files --jq '.files.[].path')
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
       - id: get_files
         run:
           echo "changed_files=$(gh pr view ${{ github.event.pull_request.number }} --json files --jq '.files.[].path')" >> $GITHUB_OUTPUT
