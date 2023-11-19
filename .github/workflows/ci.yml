@@ -42,7 +42,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - id: get_files
-        run:
+        run: |
           msg=$(gh pr view ${{ github.event.pull_request.number }} --json files --jq '.files.[].path')
           echo ${msg}
           new_msg="${msg//$'\n'/;}"
