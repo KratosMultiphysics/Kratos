@@ -9,7 +9,7 @@ def get_files_changed_in_pr(pr_number: int) -> list[Path] | None:
         #     ["gh pr view ${{ github.event.pull_request.number }} --json files --jq '.files.[].path'"],
         #     check=True,
         # )
-        subprocess.run(
+        p = subprocess.run(
             [
                 "gh",
                 "pr",
@@ -23,6 +23,8 @@ def get_files_changed_in_pr(pr_number: int) -> list[Path] | None:
             check=True,
             capture_output=True
         )
+
+        print(f"Process output: {p.stdout.decode('ascii')}")
     except:
         return None
 
