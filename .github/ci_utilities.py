@@ -25,7 +25,8 @@ def get_files_changed_in_pr(pr_number: int) -> list[Path] | None:
 
         return modified_files
 
-    except:
+    except Exception as e:
+        print(f"An error occured while getting the modified files: {e}")
         return None
 
 
