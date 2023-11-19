@@ -21,6 +21,7 @@ def get_files_changed_in_pr(pr_number: int) -> list[Path] | None:
                 ".files.[].path",
             ],
             check=True,
+            capture_output=True
         )
     except:
         return None
