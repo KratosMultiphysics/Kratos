@@ -38,6 +38,10 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
+      - run: python .github/ci_utilities.py'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
   ubuntu:
     runs-on: ubuntu-latest
     strategy:
