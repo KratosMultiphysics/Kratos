@@ -53,6 +53,7 @@ jobs:
 
   ubuntu:
     runs-on: ubuntu-latest
+    if: always()
     needs: changed-files
     strategy:
       fail-fast: false
