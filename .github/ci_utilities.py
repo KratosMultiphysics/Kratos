@@ -18,7 +18,7 @@ def get_files_changed_in_pr(pr_number: int) -> list[Path] | None:
                 "--json",
                 "files",
                 "--jq",
-                "'.files.[].path'",
+                ".files.[].path",
             ],
             check=True,
         )
