@@ -32,7 +32,7 @@ jobs:
   test-changed-files:
     runs-on: ubuntu-latest
     steps:
-      - run: gh pr view ${{ github.event.pull_request.number }}' --json files --jq '.files.[].path'
+      - run: gh pr view ${{ github.event.pull_request.number }} --json files --jq '.files.[].path'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
