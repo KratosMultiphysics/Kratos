@@ -72,7 +72,7 @@ jobs:
     # => must be added to the docker container to avoid reinstalling it in every CI run
 
     - name: Print changed files
-      run: echo ${{needs.changed-files.outputs.changed_files}}
+      run: echo ${{needs.changed-files.outputs.files}}
 
     - name: Build
       shell: bash
