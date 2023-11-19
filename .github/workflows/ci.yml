@@ -66,7 +66,7 @@ jobs:
     # => must be added to the docker container to avoid reinstalling it in every CI run
 
     - name: Print changed files
-      run: python .github/ci_utilities.py ${{ github.event.pull_request.number }}
+      run: python3 .github/ci_utilities.py ${{ github.event.pull_request.number }}
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         GITHUB_PR_NUMBER: ${{ github.event.pull_request.number }}
