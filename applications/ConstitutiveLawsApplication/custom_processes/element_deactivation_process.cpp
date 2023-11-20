@@ -78,7 +78,7 @@ void ElementDeactivationProcess::ExecuteFinalizeSolutionStep()
             if (mAverageOverIP) {
                 IndexType counter = 0;
                 const IndexType vector_size = element_data[0].size();
-                
+
                 double average_value = 0.0;
                 for (IndexType ip = 0; ip < number_ip; ++ip) {
                     for (IndexType component = 0; component < vector_size; ++component) {
@@ -118,7 +118,8 @@ const Parameters ElementDeactivationProcess::GetDefaultParameters() const
         "model_part_name"             : "please_specify_model_part_name",
         "variable_name"               : "DAMAGE",
         "variable_maximum_threshold"  : 0.9999,
-        "average_calculation_over_ip" : true
+        "average_calculation_over_ip" : true,
+        "interval"        : [0.0,10000000]
     })");
 
     return default_parameters;

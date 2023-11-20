@@ -30,7 +30,8 @@ class ElementDeactivationProcess(KM.Process):
             "model_part_name"             : "please_specify_model_part_name",
             "variable_name"               : "DAMAGE",
             "variable_maximum_threshold"  : 0.9999,
-            "average_calculation_over_ip" : true
+            "average_calculation_over_ip" : true,
+            "interval"        : [0.0,10000000]
         }""")
         settings.ValidateAndAssignDefaults(default_settings)
 
