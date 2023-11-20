@@ -74,8 +74,8 @@ namespace Kratos
 
         static ConvergenceCriteriaType::Pointer setup_criteria_dgeoflow();
         static LinearSolverType::Pointer setup_solver_dgeoflow();
-        static GeoMechanicsNewtonRaphsonErosionProcessStrategyType::Pointer setup_strategy_dgeoflow(ModelPart &model_part);
-        void parseProcess(ModelPart &model_part, Parameters projFile);
+        static GeoMechanicsNewtonRaphsonErosionProcessStrategyType::Pointer setup_strategy_dgeoflow(ModelPart& rModelPart);
+        void ParseProcesses(ModelPart& rModelPart, Parameters projFile);
 
 
         struct CriticalHeadInfo
@@ -107,51 +107,50 @@ namespace Kratos
 
         int ExecuteFlowAnalysis(std::string_view rWorkingDirectory,
                                 const std::string& rProjectParamsFileName,
-                                const CriticalHeadInfo& criticalHeadInfo,
+                                const CriticalHeadInfo& rCriticalHeadInfo,
                                 std::string_view rCriticalHeadBoundaryModelPartName,
                                 const CallBackFunctions& rCallBackFunctions);
 
-        void ExecuteWithoutPiping(ModelPart& model_part,
+        void ExecuteWithoutPiping(ModelPart& rModelPart,
                                   const Kratos::Parameters& gid_output_settings) const;
 
-        int ExecuteWithPiping(ModelPart& model_part,
+        int ExecuteWithPiping(ModelPart& rModelPart,
                               const Kratos::Parameters& gid_output_settings,
-                              const CriticalHeadInfo& criticalHeadInfo,
+                              const CriticalHeadInfo& rCriticalHeadInfo,
                               LoggerOutput::Pointer p_output,
                               const CallBackFunctions& rCallBackFunctions);
 
-        void AddNodalSolutionStepVariables(ModelPart& model_part) const;
+        void AddNodalSolutionStepVariables(ModelPart& rModelPart) const;
 
-        int FindCriticalHead(ModelPart& model_part,
+        int FindCriticalHead(ModelPart& rModelPart,
                                const Kratos::Parameters& gid_output_settings,
-                               const CriticalHeadInfo& criticalHeadInfo,
+                               const CriticalHeadInfo& rCriticalHeadInfo,
                                LoggerOutput::Pointer p_output,
-                               const shared_ptr<Process>& RiverBoundary,
+                               const shared_ptr<Process>& river_boundary,
                                const GeoMechanicsNewtonRaphsonErosionProcessStrategyType::Pointer& p_solving_strategy,
                                const CallBackFunctions& rCallBackFunctions);
 
-        void HandleCriticalHeadFound(const CriticalHeadInfo& criticalHeadInfo);
+        void HandleCriticalHeadFound(const CriticalHeadInfo& rCriticalHeadInfo);
 
-        void HandleCancellationAndReset(const std::function<void(const char*)>& rLogCallback,
-                                    LoggerOutput::Pointer p_output);
+        void HandleCleanUp(const std::function<void(const char*)>& rLogCallback,
+                           LoggerOutput::Pointer p_output);
 
 
     private:
         // Initial Setup
-        Model current_model;
-        Kernel kernel;
-        KratosGeoMechanicsApplication::Pointer geoApp;
+        Model mCurrentModel;
+        Kernel mKernel;
+        KratosGeoMechanicsApplication::Pointer mpGeoApp;
         std::string mWorkingDirectory;
         std::string mCriticalHeadBoundaryModelPartName;
         bool mPipingSuccess = false;
-        double mCriticalHead;
-        double mCurrentHead;
+        double mCriticalHead = 0.0;
+        double mCurrentHead = 0.0;
         bool mExitLoop = false;
         std::vector<std::shared_ptr<Process>> mProcesses;
+        int mEchoLevel = 1;
 
         void ResetModelParts();
-
-        int echoLevel = 1;
 
         [[nodiscard]] int GetEchoLevel() const;
 

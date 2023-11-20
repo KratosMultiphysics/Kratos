@@ -30,13 +30,13 @@ KRATOS_TEST_CASE_IN_SUITE(CalculateExtrapolatedHeadFlow_1, KratosGeoMechanicsInt
 
     auto execute = Kratos::KratosExecute();
 
-    Kratos::KratosExecute::CriticalHeadInfo critical_head_info(0, 0, 0);
-    Kratos::KratosExecute::CallBackFunctions call_back_functions(&flow_stubs::emptyLog,
+    const Kratos::KratosExecute::CriticalHeadInfo critical_head_info(0, 0, 0);
+    const Kratos::KratosExecute::CallBackFunctions call_back_functions(&flow_stubs::emptyLog,
                                                                  &flow_stubs::emptyProgress,
                                                                  &flow_stubs::emptyLog,
                                                                  &flow_stubs::emptyCancel);
 
-    int status = execute.ExecuteFlowAnalysis(workingDirectory, projectFile, critical_head_info, "", call_back_functions);
+    const int status = execute.ExecuteFlowAnalysis(workingDirectory, projectFile, critical_head_info, "", call_back_functions);
 
     KRATOS_EXPECT_EQ(status, 0);
 
@@ -54,13 +54,13 @@ KRATOS_TEST_CASE_IN_SUITE(CalculateExtrapolatedHeadFlow_1, KratosGeoMechanicsInt
 
     auto execute = Kratos::KratosExecute();
 
-    Kratos::KratosExecute::CriticalHeadInfo critical_head_info(0, 0, 0);
-    Kratos::KratosExecute::CallBackFunctions call_back_functions(&flow_stubs::emptyLog,
+    const Kratos::KratosExecute::CriticalHeadInfo critical_head_info(0, 0, 0);
+    const Kratos::KratosExecute::CallBackFunctions call_back_functions(&flow_stubs::emptyLog,
                                                                  &flow_stubs::emptyProgress,
                                                                  &flow_stubs::emptyLog,
                                                                  &flow_stubs::emptyCancel);
 
-    int status = execute.ExecuteFlowAnalysis(workingDirectory, projectFile, critical_head_info, "", call_back_functions);
+    const int status = execute.ExecuteFlowAnalysis(workingDirectory, projectFile, critical_head_info, "", call_back_functions);
 
     KRATOS_EXPECT_EQ(status, 0);
 
@@ -78,13 +78,13 @@ KRATOS_TEST_CASE_IN_SUITE(CalculateExtrapolatedHeadFlow_3, KratosGeoMechanicsInt
 
     auto execute = Kratos::KratosExecute();
 
-    Kratos::KratosExecute::CriticalHeadInfo critical_head_info(0, 0, 0);
-    Kratos::KratosExecute::CallBackFunctions call_back_functions(&flow_stubs::emptyLog,
+    const Kratos::KratosExecute::CriticalHeadInfo critical_head_info(0, 0, 0);
+    const Kratos::KratosExecute::CallBackFunctions call_back_functions(&flow_stubs::emptyLog,
                                                                  &flow_stubs::emptyProgress,
                                                                  &flow_stubs::emptyLog,
                                                                  &flow_stubs::emptyCancel);
 
-    int status = execute.ExecuteFlowAnalysis(workingDirectory, projectFile, critical_head_info, "", call_back_functions);
+    const int status = execute.ExecuteFlowAnalysis(workingDirectory, projectFile, critical_head_info, "", call_back_functions);
 
     KRATOS_EXPECT_EQ(status, 0);
 
@@ -102,13 +102,13 @@ KRATOS_TEST_CASE_IN_SUITE(CalculateExtrapolatedHeadFlow_4, KratosGeoMechanicsInt
 
     auto execute = Kratos::KratosExecute();
 
-    Kratos::KratosExecute::CriticalHeadInfo critical_head_info(0, 0, 0);
-    Kratos::KratosExecute::CallBackFunctions call_back_functions(&flow_stubs::emptyLog,
+    const Kratos::KratosExecute::CriticalHeadInfo critical_head_info(0, 0, 0);
+    const Kratos::KratosExecute::CallBackFunctions call_back_functions(&flow_stubs::emptyLog,
                                                                  &flow_stubs::emptyProgress,
                                                                  &flow_stubs::emptyLog,
                                                                  &flow_stubs::emptyCancel);
 
-    int status = execute.ExecuteFlowAnalysis(workingDirectory, projectFile, critical_head_info, "", call_back_functions);
+    const int status = execute.ExecuteFlowAnalysis(workingDirectory, projectFile, critical_head_info, "", call_back_functions);
 
     KRATOS_EXPECT_EQ(status, 0);
 
