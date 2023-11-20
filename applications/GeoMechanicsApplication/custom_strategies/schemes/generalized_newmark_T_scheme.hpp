@@ -16,13 +16,11 @@
 
 // Project includes
 #include "includes/define.h"
-#include "includes/model_part.h"
-#include "solving_strategies/schemes/scheme.h"
 
 // Application includes
 #include "generalized_newmark_scheme.hpp"
 #include "geo_mechanics_application_variables.h"
-#include "geomechanics_time_integration_scheme.hpp"
+
 namespace Kratos {
 
 template <class TSparseSpace, class TDenseSpace>

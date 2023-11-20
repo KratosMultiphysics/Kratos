@@ -13,11 +13,7 @@
 #pragma once
 
 // Project includes
-#include "geomechanics_time_integration_scheme.hpp"
 #include "includes/define.h"
-#include "includes/model_part.h"
-#include "solving_strategies/schemes/scheme.h"
-#include "utilities/parallel_utilities.h"
 
 // Application includes
 #include "backward_euler_scheme.hpp"
