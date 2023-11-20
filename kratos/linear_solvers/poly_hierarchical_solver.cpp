@@ -446,6 +446,38 @@ void GetNonzeroQuadraticCoefficients(GeometryData::KratosGeometryType Geometry,
     >;
     using PairVector = std::vector<Pair>;
     switch (Geometry) {
+        case G::Kratos_Point2D: {
+            *itOutput = std::make_pair(0ul, PairVector {{0ul, 1.0}});
+            break;
+        }
+        case G::Kratos_Point3D: {
+            *itOutput = std::make_pair(0ul, PairVector {{0ul, 1.0}});
+            break;
+        }
+        case G::Kratos_Line2D2: {
+            *itOutput = std::make_pair(0ul, PairVector {{0ul, 1.0}});
+            *itOutput = std::make_pair(1ul, PairVector {{1ul, 1.0}});
+            break;
+        }
+        case G::Kratos_Line2D3: {
+            *itOutput = std::make_pair(0ul, PairVector {{0ul, 1.0},
+                                                        {2ul, 0.5}});
+            *itOutput = std::make_pair(1ul, PairVector {{1ul, 1.0},
+                                                        {2ul, 0.5}});
+            break;
+        }
+        case G::Kratos_Line3D2: {
+            *itOutput = std::make_pair(0ul, PairVector {{0ul, 1.0}});
+            *itOutput = std::make_pair(1ul, PairVector {{1ul, 1.0}});
+            break;
+        }
+        case G::Kratos_Line3D3: {
+            *itOutput = std::make_pair(0ul, PairVector {{0ul, 1.0},
+                                                        {2ul, 0.5}});
+            *itOutput = std::make_pair(1ul, PairVector {{1ul, 1.0},
+                                                        {2ul, 0.5}});
+            break;
+        }
         case G::Kratos_Triangle2D6: {
             *itOutput++ = std::make_pair(0ul,
                                          PairVector {
