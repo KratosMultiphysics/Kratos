@@ -120,6 +120,8 @@ namespace Kratos
                               LoggerOutput::Pointer p_output,
                               const CallBackFunctions& rCallBackFunctions);
 
+        void KratosExecute::WriteCriticalHeadResultToFile() const;
+
         void AddNodalSolutionStepVariables(ModelPart& rModelPart) const;
 
         int FindCriticalHead(ModelPart& rModelPart,
@@ -127,7 +129,7 @@ namespace Kratos
                                const CriticalHeadInfo& rCriticalHeadInfo,
                                LoggerOutput::Pointer p_output,
                                const shared_ptr<Process>& river_boundary,
-                               const GeoMechanicsNewtonRaphsonErosionProcessStrategyType::Pointer& p_solving_strategy,
+                               const GeoMechanicsNewtonRaphsonErosionProcessStrategyType::Pointer pSolvingStrategy,
                                const CallBackFunctions& rCallBackFunctions);
 
         void HandleCriticalHeadFound(const CriticalHeadInfo& rCriticalHeadInfo);
@@ -158,10 +160,10 @@ namespace Kratos
 
         shared_ptr<Process> FindRiverBoundaryByName(const std::string& rCriticalHeadBoundaryModelPartName) const;
 
-        shared_ptr<Process> FindRiverBoundaryAutomatically(const KratosExecute::GeoMechanicsNewtonRaphsonErosionProcessStrategyType::Pointer& rpSolvingStrategy) const;
+        shared_ptr<Process> FindRiverBoundaryAutomatically(const KratosExecute::GeoMechanicsNewtonRaphsonErosionProcessStrategyType::Pointer rpSolvingStrategy) const;
 
         int MainExecution(ModelPart&                                                          rModelPart,
-                          const GeoMechanicsNewtonRaphsonErosionProcessStrategyType::Pointer& rpSolvingStrategy,
+                          const GeoMechanicsNewtonRaphsonErosionProcessStrategyType::Pointer rpSolvingStrategy,
                           double                                                              Time,
                           double                                                              DeltaTime,
                           unsigned int                                                        NumberOfIterations) const;
