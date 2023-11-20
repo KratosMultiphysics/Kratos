@@ -367,7 +367,7 @@ protected:
                     rTLS.residual_dof_value = TSparseSpace::GetValue(rb, dof_id);
                     return std::make_tuple(std::pow(rTLS.residual_dof_value, 2), 1);
                 } else {
-                    return std::make_tuple(0.0, 0);
+                    return std::make_tuple(TDataType(), 0);;
                 }
             });
         } else {
@@ -377,7 +377,7 @@ protected:
                     rTLS.residual_dof_value = TSparseSpace::GetValue(rb, dof_id);
                     return std::make_tuple(std::pow(rTLS.residual_dof_value, 2), 1);
                 } else {
-                    return std::make_tuple(0.0, 0);
+                    return std::make_tuple(TDataType(), 0);;
                 }
             });
         }
