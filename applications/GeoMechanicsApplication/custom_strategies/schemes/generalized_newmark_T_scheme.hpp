@@ -26,15 +26,16 @@
 namespace Kratos {
 
 template <class TSparseSpace, class TDenseSpace>
-class NewmarkTScheme : public GeneralizedNewmarkScheme<TSparseSpace, TDenseSpace> {
+class GeneralizedNewmarkTScheme
+    : public GeneralizedNewmarkScheme<TSparseSpace, TDenseSpace> {
 public:
-    KRATOS_CLASS_POINTER_DEFINITION(NewmarkTScheme);
+    KRATOS_CLASS_POINTER_DEFINITION(GeneralizedNewmarkTScheme);
 
-    explicit NewmarkTScheme(double theta)
+    explicit GeneralizedNewmarkTScheme(double theta)
         : GeneralizedNewmarkScheme<TSparseSpace, TDenseSpace>(
               theta, TEMPERATURE, DT_TEMPERATURE, DT_TEMPERATURE_COEFFICIENT)
     {
     }
 
-}; // Class NewmarkTScheme
+}; // Class GeneralizedNewmarkTScheme
 } // namespace Kratos

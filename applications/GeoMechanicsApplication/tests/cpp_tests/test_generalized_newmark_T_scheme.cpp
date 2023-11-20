@@ -10,7 +10,7 @@
 //  Main authors:    Richard Faasse
 //
 
-#include "custom_strategies/schemes/newmark_T_scheme.hpp"
+#include "custom_strategies/schemes/generalized_newmark_T_scheme.hpp"
 #include "spaces/ublas_space.h"
 #include "testing/testing.h"
 
@@ -35,7 +35,7 @@ KRATOS_TEST_CASE_IN_SUITE(CheckNewmarkTScheme_WithAllNecessaryParts_Returns0,
                           KratosGeoMechanicsFastSuite)
 {
     Model model;
-    NewmarkTScheme<SparseSpaceType, LocalSpaceType> scheme(0.75);
+    GeneralizedNewmarkTScheme<SparseSpaceType, LocalSpaceType> scheme(0.75);
     const auto& model_part = CreateValidTemperatureModelPart(model);
 
     KRATOS_EXPECT_EQ(scheme.Check(model_part), 0);
@@ -45,7 +45,7 @@ KRATOS_TEST_CASE_IN_SUITE(ForInvalidTheta_CheckNewmarkTScheme_Throws,
                           KratosGeoMechanicsFastSuite)
 {
     constexpr double invalid_theta = -2.0;
-    using SchemeType = NewmarkTScheme<SparseSpaceType, LocalSpaceType>;
+    using SchemeType = GeneralizedNewmarkTScheme<SparseSpaceType, LocalSpaceType>;
 
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(SchemeType scheme(invalid_theta),
                                       "Theta must be larger than zero, but got -2")
@@ -53,7 +53,7 @@ KRATOS_TEST_CASE_IN_SUITE(ForInvalidTheta_CheckNewmarkTScheme_Throws,
 
 KRATOS_TEST_CASE_IN_SUITE(ForInvalidBufferSize_CheckNewmarkTScheme_Throws, KratosGeoMechanicsFastSuite)
 {
-    NewmarkTScheme<SparseSpaceType, LocalSpaceType> scheme(0.75);
+    GeneralizedNewmarkTScheme<SparseSpaceType, LocalSpaceType> scheme(0.75);
 
     Model model;
     constexpr auto invalid_buffer_size = ModelPart::IndexType{1};
@@ -68,7 +68,7 @@ KRATOS_TEST_CASE_IN_SUITE(ForInvalidBufferSize_CheckNewmarkTScheme_Throws, Krato
 
 KRATOS_TEST_CASE_IN_SUITE(ForMissingNodalDof_CheckNewmarkTScheme_Throws, KratosGeoMechanicsFastSuite)
 {
-    NewmarkTScheme<SparseSpaceType, LocalSpaceType> scheme(0.75);
+    GeneralizedNewmarkTScheme<SparseSpaceType, LocalSpaceType> scheme(0.75);
 
     Model model;
     auto& model_part = model.CreateModelPart("dummy", 2);
@@ -83,8 +83,7 @@ KRATOS_TEST_CASE_IN_SUITE(ForMissingNodalDof_CheckNewmarkTScheme_Throws, KratosG
 KRATOS_TEST_CASE_IN_SUITE(ForMissingDtTemperatureSolutionStepVariable_CheckNewmarkTScheme_Throws,
                           KratosGeoMechanicsFastSuite)
 {
-
-    NewmarkTScheme<SparseSpaceType, LocalSpaceType> scheme(0.75);
+    GeneralizedNewmarkTScheme<SparseSpaceType, LocalSpaceType> scheme(0.75);
     Model model;
     auto& model_part = model.CreateModelPart("dummy", 2);
     model_part.AddNodalSolutionStepVariable(TEMPERATURE);
@@ -99,8 +98,7 @@ KRATOS_TEST_CASE_IN_SUITE(ForMissingDtTemperatureSolutionStepVariable_CheckNewma
 KRATOS_TEST_CASE_IN_SUITE(ForMissingTemperatureSolutionStepVariable_CheckNewmarkTScheme_Throws,
                           KratosGeoMechanicsFastSuite)
 {
-
-    NewmarkTScheme<SparseSpaceType, LocalSpaceType> scheme(0.75);
+    GeneralizedNewmarkTScheme<SparseSpaceType, LocalSpaceType> scheme(0.75);
     Model model;
     auto& model_part = model.CreateModelPart("dummy", 2);
     model_part.AddNodalSolutionStepVariable(DT_TEMPERATURE);
@@ -113,7 +111,7 @@ KRATOS_TEST_CASE_IN_SUITE(ForMissingTemperatureSolutionStepVariable_CheckNewmark
 
 KRATOS_TEST_CASE_IN_SUITE(NewmarkTSchemeUpdate_SetsDtTemperature, KratosGeoMechanicsFastSuite)
 {
-    NewmarkTScheme<SparseSpaceType, LocalSpaceType> scheme(0.75);
+    GeneralizedNewmarkTScheme<SparseSpaceType, LocalSpaceType> scheme(0.75);
     Model model;
     ModelPart& model_part = CreateValidTemperatureModelPart(model);
 
@@ -144,7 +142,7 @@ KRATOS_TEST_CASE_IN_SUITE(NewmarkTSchemeUpdate_SetsDtTemperature, KratosGeoMecha
 
 KRATOS_TEST_CASE_IN_SUITE(InitializeNewmarkTScheme_SetsTimeFactors, KratosGeoMechanicsFastSuite)
 {
-    NewmarkTScheme<SparseSpaceType, LocalSpaceType> scheme(0.75);
+    GeneralizedNewmarkTScheme<SparseSpaceType, LocalSpaceType> scheme(0.75);
     Model model;
     ModelPart& model_part = CreateValidTemperatureModelPart(model);
     constexpr double delta_time = 3.0;
