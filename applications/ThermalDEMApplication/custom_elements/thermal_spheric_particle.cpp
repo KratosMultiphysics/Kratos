@@ -8,9 +8,7 @@
 
 /*
 * Important tags:
-*   attention;
-*   assumption;
-*   todo;
+*   attention; assumption; todo;
 */
 
 // System includes
