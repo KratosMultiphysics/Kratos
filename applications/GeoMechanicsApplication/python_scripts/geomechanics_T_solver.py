@@ -131,14 +131,14 @@ class TSolver(GeoSolver):
         if convergence_criterion.lower() == "temperature_criterion":
             return self._MakeTemperatureCriterion()
         elif convergence_criterion.lower() == "residual_criterion":
-            return self._GetResidualCriterion()
+            return self._MakeResidualCriterion()
         elif convergence_criterion.lower() == "and_criterion":
             temperature = self._MakeTemperatureCriterion()
-            residual = self._GetResidualCriterion()
+            residual = self._MakeResidualCriterion()
             return KratosMultiphysics.AndCriteria(residual, temperature)
         elif convergence_criterion.lower() == "or_criterion":
             temperature = self._MakeTemperatureCriterion()
-            residual = self._GetResidualCriterion()
+            residual = self._MakeResidualCriterion()
             return KratosMultiphysics.OrCriteria(residual, temperature)
         else:
             err_msg = "The requested convergence criterion \"" + convergence_criterion + "\" is not available!\n"
