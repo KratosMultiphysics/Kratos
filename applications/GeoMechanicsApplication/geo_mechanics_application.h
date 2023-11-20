@@ -129,6 +129,7 @@
 #include "custom_constitutive/small_strain_umat_2D_plane_strain_law.hpp"
 #include "custom_constitutive/small_strain_umat_3D_interface_law.hpp"
 #include "custom_constitutive/small_strain_umat_3D_law.hpp"
+#include "custom_constitutive/thermal_dispersion_law.h"
 
 namespace Kratos {
 
@@ -556,6 +557,9 @@ private:
     const LinearElastic3DInterfaceLaw     mLinearElastic3DInterfaceLaw;
 
     const LinearElastic2DBeamLaw          mLinearElastic2DBeamLaw;
+
+    const GeoThermalDispersionLaw mGeoThermalDispersion2DLaw(2);
+    const GeoThermalDispersionLaw mGeoThermalDispersion3DLaw(3);
 
     ///@}
 
