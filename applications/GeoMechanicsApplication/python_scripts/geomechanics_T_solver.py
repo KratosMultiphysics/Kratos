@@ -109,7 +109,7 @@ class TSolver(GeoSolver):
         self.main_model_part.ProcessInfo.SetValue(KratosGeo.DT_TEMPERATURE_COEFFICIENT, 1.0)
 
         KratosMultiphysics.Logger.PrintInfo("GeoMechanics_T_Solver, solution_type", solution_type)
-        if solution_type.lower() == "transient-heat-transfer" or solution_type.lower() == "transient_heat_transfer":
+        if solution_type.lower() == "transient_heat_transfer":
             if scheme_type.lower() == "newmark" or scheme_type.lower() == "newmark_flow":
                 theta = self.settings["newmark_theta"].GetDouble()
                 KratosMultiphysics.Logger.PrintInfo("GeoMechanics_T_Solver, scheme", "Newmark Transient heat transfer.")
@@ -120,8 +120,6 @@ class TSolver(GeoSolver):
             else:
                 raise RuntimeError("Apart from Newmark and Backward Euler, no other scheme_type is available for thermal calculations.")
 
-        elif solution_type.lower() == "steady-state-heat-transfer" or solution_type.lower() == "steady_state_heat_transfer":
-             raise RuntimeError("Steady state heat transfer calculations are not supported.")
         else:
              raise RuntimeError("Undefined solution type", solution_type)
 
