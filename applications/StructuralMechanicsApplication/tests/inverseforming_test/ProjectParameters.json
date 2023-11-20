@@ -103,7 +103,7 @@
                 "output_sub_model_parts"                      : false,
                 "output_path"                                 : "vtk_output",
                 "save_output_files_in_folder"                 : true,
-                "write_deformed_configuration"                  : false,
+                "write_deformed_configuration"                : false,
                 "nodal_solution_step_data_variables"          : ["DISPLACEMENT","REACTION"],
                 "nodal_data_value_variables"                  : ["NORMAL"],
                 "element_data_value_variables"                : [],

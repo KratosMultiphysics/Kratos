@@ -159,6 +159,63 @@ void MembraneElement::CalculateLeftHandSide(
 
 {
     TotalStiffnessMatrix(rLeftHandSideMatrix,GetGeometry().GetDefaultIntegrationMethod(),rCurrentProcessInfo);
+    KRATOS_WATCH(rLeftHandSideMatrix)
+    const SizeType number_of_nodes = GetGeometry().size();
+    const SizeType dimension = GetGeometry().WorkingSpaceDimension();
+    const SizeType system_size = number_of_nodes * dimension;
+    Matrix derivative_external_forces = ZeroMatrix(system_size);
+
+    SizeType DFZintIndex = 2;   // index z-row from DFintDU
+    SizeType rowIndex = 0;      // rows of DFextDU to fill
+    for (SizeType i = 0; i < number_of_nodes; i++)
+    {
+        Matrix DFextDU_i = ZeroMatrix(number_of_nodes, system_size); //maybe not needed if directly add to DFEXTDU
+        Vector derivative_Fint_z = ZeroVector(system_size);
+        for (SizeType j = 0; j < system_size; j++)
+        {
+            derivative_Fint_z[j] = rLeftHandSideMatrix(DFZintIndex,j);
+        }
+        KRATOS_WATCH(derivative_Fint_z)
+        // for (int j : rLeftHandSideMatrix(DFZintIndex)) {
+        //     derivative_Fint_z[j] = j;
+        // }
+        // Get node normal
+        array_1d<double, 3> node_normal = GetGeometry()[i].GetValue(NORMAL);
+
+        // Get nodal Fext/du contribution
+        // DFextDU_i = prod(trans(node_normal), derivative_Fint_z) * (1 / node_normal[2]);
+        for (SizeType m = 0; m < dimension; m++)
+        {
+            for (SizeType n = 0; n < system_size; n++)
+            {   // [3x1] x [1x9] = [3x9]
+                DFextDU_i(m,n) = (1 / node_normal[2]) * (node_normal[m] * derivative_Fint_z[n]);
+            }
+        }
+        KRATOS_WATCH(DFextDU_i)
+        // Fill DFextDU entries
+        for (SizeType rowCurrent = rowIndex; rowCurrent < (rowIndex + 3); rowCurrent++)
+        {
+            for (SizeType j = 0; j < system_size; j++)
+            {
+                derivative_external_forces(rowCurrent,j) = DFextDU_i(rowCurrent - rowIndex,j);
+            }
+            // for (int j :DFextDU_i[rowIndex]) {
+            //     derivative_external_forces[rowIndex] = j;
+            // }
+        }
+        DFZintIndex += 3;
+        rowIndex += 3;
+    }
+    KRATOS_WATCH(derivative_external_forces)
+    // subtract DFintDU - DFextDU
+    for (SizeType dof_s = 0; dof_s < system_size; dof_s++)
+    {
+        for (SizeType dof_r = 0; dof_r < system_size; ++dof_r)
+        {
+            rLeftHandSideMatrix(dof_s, dof_r) -= derivative_external_forces(dof_s, dof_r);
+        }
+    }
+    KRATOS_WATCH(rLeftHandSideMatrix)
 }
 
 //***********************************************************************************
@@ -200,13 +257,13 @@ void MembraneElement::CalculateRightHandSide(MatrixType& rLeftHandSideVector,
     KRATOS_WATCH(normal_2)
 
 
-    if (abs(internal_forces[2]) > 1e-15){
+    if (std::abs(internal_forces[2]) > 1e-15){
         p_0 = internal_forces[2] / normal_0[2];
     }
-    if (abs(internal_forces[5]) > 1e-15){
+    if (std::abs(internal_forces[5]) > 1e-15){
         p_1 = internal_forces[5] / normal_1[2];
     }
-    if (abs(internal_forces[8]) > 1e-15){
+    if (std::abs(internal_forces[8]) > 1e-15){
         p_2 = internal_forces[8] / normal_2[2];
     }
     // external_forces = [ 0,    1,   2,    3,    4,    5,    6,    7,    8    ]
@@ -221,6 +278,10 @@ void MembraneElement::CalculateRightHandSide(MatrixType& rLeftHandSideVector,
     external_forces(7) = p_2 * normal_2[1];
     external_forces(8) = p_2 * normal_2[2];
     noalias(rRightHandSideVector) += external_forces;
+    KRATOS_WATCH(p_0)
+    KRATOS_WATCH(p_1)
+    KRATOS_WATCH(p_2)
+    KRATOS_WATCH(external_forces)
     KRATOS_WATCH(rRightHandSideVector)
     CalculateAndAddBodyForce(rRightHandSideVector,rCurrentProcessInfo);
 }

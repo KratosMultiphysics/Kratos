@@ -7,7 +7,7 @@
                 "name" : "LinearElasticPlaneStress2DLaw"
             },
             "Variables"        : {
-                "THICKNESS"               : 1.0,
+                "THICKNESS"               : 0.01,
                 "PRESTRESS_VECTOR"        : [0,0,0],
                 "PROJECTION_TYPE_COMBO"   : "planar",
                 "PRESTRESS_AXIS_1_GLOBAL" : [0.0,0.0,0.0],
