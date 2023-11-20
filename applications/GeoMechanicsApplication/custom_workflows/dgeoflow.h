@@ -122,7 +122,7 @@ namespace Kratos
                               const CallBackFunctions& rCallBackFunctions,
                               const GeoMechanicsNewtonRaphsonErosionProcessStrategyType::Pointer pSolvingStrategy);
 
-        void KratosExecute::WriteCriticalHeadResultToFile() const;
+        void WriteCriticalHeadResultToFile() const;
 
         void AddNodalSolutionStepVariables(ModelPart& rModelPart) const;
 
