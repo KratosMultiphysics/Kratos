@@ -136,7 +136,7 @@ namespace Kratos
 
         void HandleCriticalHeadFound(const CriticalHeadInfo& rCriticalHeadInfo);
 
-        void HandleCleanUp(const std::function<void(const char*)> LogCallback,
+        void HandleCleanUp(const CallBackFunctions& rCallBackFunctions,
                            LoggerOutput::Pointer pOutput);
 
 
@@ -152,6 +152,7 @@ namespace Kratos
         double mCurrentHead = 0.0;
         std::vector<std::shared_ptr<Process>> mProcesses;
         int mEchoLevel = 1;
+        bool mExitLoop = false;
 
         void ResetModelParts();
 

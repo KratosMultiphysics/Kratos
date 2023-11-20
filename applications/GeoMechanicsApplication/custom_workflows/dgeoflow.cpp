@@ -348,7 +348,7 @@ namespace Kratos
 
             if (rCallBackFunctions.ShouldCancel())
             {
-                HandleCleanUp(rCallBackFunctions.LogCallback, pOutput);
+                HandleCleanUp(rCallBackFunctions, pOutput);
 
                 return 0;
             }
@@ -364,7 +364,7 @@ namespace Kratos
                 ExecuteWithoutPiping(rModelPart, rGidOutputSettings, pSolvingStrategy);
             }
 
-            HandleCleanUp(rCallBackFunctions.LogCallback, pOutput);
+            HandleCleanUp(rCallBackFunctions, pOutput);
 
             return 0;
         }
@@ -372,7 +372,7 @@ namespace Kratos
         {
             KRATOS_INFO_IF("GeoFlowKernel", this->GetEchoLevel() > 0) << exc.what();
 
-            HandleCleanUp(rCallBackFunctions.LogCallback, pOutput);
+            HandleCleanUp(rCallBackFunctions, pOutput);
 
             return 1;
         }
@@ -503,14 +503,12 @@ namespace Kratos
         int step = 1;
         const auto max_steps = static_cast<int>(std::ceil((rCriticalHeadInfo.maxCriticalHead - rCriticalHeadInfo.minCriticalHead) / rCriticalHeadInfo.stepCriticalHead)) + 2;
 
-        bool exit_loop = false;
-
-        while (!exit_loop)
+        while (!mExitLoop)
         {
             if (rCriticalHeadInfo.maxCriticalHead - mCriticalHead < -1e-9)
             {
                 KRATOS_INFO_IF("GeoFlowKernel", this->GetEchoLevel() > 0) << "Critical head undetermined at " << mCriticalHead << ", max search head reached: " << rCriticalHeadInfo.maxCriticalHead << std::endl;
-                exit_loop = true;
+                mExitLoop = true;
                 break;
             }
 
@@ -538,7 +536,7 @@ namespace Kratos
             if (count == noPipeElements)
             {
                 HandleCriticalHeadFound(rCriticalHeadInfo);
-                exit_loop = true;
+                mExitLoop = true;
             }
 
             GeoOutputWriter writer{rGidOutputSettings, mWorkingDirectory, rModelPart};
@@ -561,7 +559,7 @@ namespace Kratos
 
             if (rCallBackFunctions.ShouldCancel())
             {
-                HandleCleanUp(rCallBackFunctions.LogCallback, pOutput);
+                HandleCleanUp(rCallBackFunctions, pOutput);
 
                 return 0;
             }
@@ -582,12 +580,12 @@ namespace Kratos
         }
     }
 
-    void KratosExecute::HandleCleanUp(std::function<void(const char*)> LogCallback,
+    void KratosExecute::HandleCleanUp(const CallBackFunctions& rCallBackFunctions,
                                       LoggerOutput::Pointer pOutput)
     {
         std::stringstream kratos_log_buffer;
 
-        LogCallback(kratos_log_buffer.str().c_str());
+        rCallBackFunctions.LogCallback(kratos_log_buffer.str().c_str());
         Logger::RemoveOutput(pOutput);
         ResetModelParts();
     }
