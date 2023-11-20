@@ -82,6 +82,10 @@ public:
     [[nodiscard]] unsigned int NumberOfSolverStrategyPredictCalls()                const {return mSolverStrategyPredictCalls;}
     [[nodiscard]] unsigned int NumberOfSolverStrategySolveSolutionStepCalls()      const {return mSolverStrategySolveSolutionsStepCalls;}
     [[nodiscard]] unsigned int NumberOfSolverStrategyFinalizeSolutionStepCalls()   const {return mSolverStrategyFinalizeSolutionStepCalls;}
+    void FinalizeOutput() override
+    {
+        // intentionally empty
+    }
 
 private:
     TimeStepEndState::ConvergenceState mConvergenceState;
@@ -133,7 +137,7 @@ KRATOS_TEST_CASE_IN_SUITE(ProcessMemberFunctionsAllCalledOnce, KratosGeoMechanic
     KRATOS_EXPECT_EQ(1, spy->NumberOfExecuteFinalizeSolutionStepCalls());
 }
 
-KRATOS_TEST_CASE_IN_SUITE(SolverStrategyMemberFunctionsAllExceptFinalizeCalledOnce, KratosGeoMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(SolverStrategyMemberFunctionsAllExceptInitializeAndFinalizeCalledOnce, KratosGeoMechanicsFastSuite)
 {
     TimeStepExecutor executor;
     auto converging_strategy = std::make_shared<DummyStrategyWrapper>(TimeStepEndState::ConvergenceState::converged);
@@ -142,7 +146,7 @@ KRATOS_TEST_CASE_IN_SUITE(SolverStrategyMemberFunctionsAllExceptFinalizeCalledOn
 
     executor.Run(time);
 
-    KRATOS_EXPECT_EQ(1, converging_strategy->NumberOfSolverStrategyInitializeCalls());
+    KRATOS_EXPECT_EQ(0, converging_strategy->NumberOfSolverStrategyInitializeCalls());
     KRATOS_EXPECT_EQ(1, converging_strategy->NumberOfSolverStrategyInitializeSolutionStepCalls());
     KRATOS_EXPECT_EQ(1, converging_strategy->NumberOfSolverStrategyPredictCalls());
     KRATOS_EXPECT_EQ(1, converging_strategy->NumberOfSolverStrategySolveSolutionStepCalls());

@@ -28,7 +28,8 @@ void TimeStepExecutor::SetProcessObservables(const std::vector<std::weak_ptr<Pro
 
 TimeStepEndState TimeStepExecutor::Run(double Time)
 {
-    mStrategyWrapper->Initialize();
+    KRATOS_INFO("TimeStepExecutor") << "Running time step at time " << Time << std::endl;
+
     mStrategyWrapper->InitializeSolutionStep();
 
     for (const auto& process_observable : mProcessObservables)

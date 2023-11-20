@@ -78,7 +78,7 @@ public:
     KRATOS_CLASS_POINTER_DEFINITION(PointerVectorSet);
 
     /// Key type for searching in this container.
-    typedef typename std::remove_reference<decltype(std::declval<TGetKeyType>()(std::declval<TDataType>()))>::type key_type;
+    using key_type = typename std::remove_reference<decltype(std::declval<TGetKeyType>()(std::declval<TDataType>()))>::type;
 
     // Data type stored in this container.
     using data_type = TDataType;
@@ -89,11 +89,17 @@ public:
     using const_reference = const TDataType&;
     using ContainerType = TContainerType;
 
+    /// @}
+    /// @name Iterators
+    /// @{
     using iterator = boost::indirect_iterator<typename TContainerType::iterator>;
     using const_iterator = boost::indirect_iterator<typename TContainerType::const_iterator>;
     using reverse_iterator = boost::indirect_iterator<typename TContainerType::reverse_iterator>;
     using const_reverse_iterator = boost::indirect_iterator<typename TContainerType::const_reverse_iterator>;
 
+    /// @}
+    /// @name Other definitions
+    /// @{
     using size_type = typename TContainerType::size_type;
     using ptr_iterator = typename TContainerType::iterator;
     using ptr_const_iterator = typename TContainerType::const_iterator;
@@ -234,11 +240,13 @@ public:
      * @brief Equality comparison operator for two PointerVectorSet objects.
      * @details This operator checks if two PointerVectorSet objects are equal by comparing their sizes
      * and the equality of their elements using the EqualKeyTo comparison function.
+     * @note This function is marked as "noexcept," and it asserts that the container is not empty.
      * @param r The PointerVectorSet to compare with.
      * @return true if the two sets are equal, false otherwise.
      */
-    bool operator==(const PointerVectorSet& r) const // nothrow
+    bool operator==(const PointerVectorSet& r) const noexcept
     {
+        assert( !empty() );
         if (size() != r.size())
             return false;
         else
@@ -249,11 +257,13 @@ public:
      * @brief Less than comparison operator for two PointerVectorSet objects.
      * @details This operator checks if one PointerVectorSet is less than another by comparing their
      * elements using the CompareKey comparison function in a lexicographical order.
+     * @note This function is marked as "noexcept," and it asserts that the container is not empty.
      * @param r The PointerVectorSet to compare with.
      * @return true if this set is less than r, false otherwise.
      */
-    bool operator<(const PointerVectorSet& r) const // nothrow
+    bool operator<(const PointerVectorSet& r) const noexcept
     {
+        assert( !empty() );
         return std::lexicographical_compare(mData.begin(), mData.end(), r.mData.begin(), r.mData.end(), CompareKey());
     }
 
@@ -261,124 +271,253 @@ public:
     ///@name Operations
     ///@{
 
-    iterator                   begin()
+    /**
+     * @brief Returns an iterator pointing to the beginning of the container.
+     * @return An iterator pointing to the beginning of the container.
+     */
+    iterator begin()
     {
         return iterator( mData.begin() );
     }
-    const_iterator             begin() const
+
+    /**
+     * @brief Returns a constant iterator pointing to the beginning of the container.
+     * @return A constant iterator pointing to the beginning of the container.
+     */
+    const_iterator begin() const
     {
         return const_iterator( mData.begin() );
     }
 
+    /**
+     * @brief Returns a constant iterator pointing to the beginning of the container.
+     * @return A constant iterator pointing to the beginning of the container.
+     */
     const_iterator cbegin()
     {
         return const_iterator(mData.begin());
     }
 
+    /**
+     * @brief Returns a constant iterator pointing to the beginning of the container.
+     * @return A constant iterator pointing to the beginning of the container.
+     */
     const_iterator cbegin() const
     {
         return const_iterator(mData.begin());
     }
 
-    iterator                   end()
+    /**
+     * @brief Returns an iterator pointing to the end of the container.
+     * @return An iterator pointing to the end of the container.
+     */
+    iterator end()
     {
         return iterator( mData.end() );
     }
-    const_iterator             end() const
+
+    /**
+     * @brief Returns a constant iterator pointing to the end of the container.
+     * @return A constant iterator pointing to the end of the container.
+     */
+    const_iterator end() const
     {
         return const_iterator( mData.end() );
     }
 
+    /**
+     * @brief Returns a constant iterator pointing to the end of the container.
+     * @return A constant iterator pointing to the end of the container.
+     */
     const_iterator cend()
     {
         return const_iterator(mData.end());
     }
 
+    /**
+     * @brief Returns a constant iterator pointing to the end of the container.
+     * @return A constant iterator pointing to the end of the container.
+     */
     const_iterator cend() const
     {
         return const_iterator(mData.end());
     }
 
-    reverse_iterator           rbegin()
+    /**
+     * @brief Returns a reverse iterator pointing to the beginning of the container.
+     * @return A reverse iterator pointing to the beginning of the container.
+     */
+    reverse_iterator rbegin()
     {
         return reverse_iterator( mData.rbegin() );
     }
-    const_reverse_iterator     rbegin() const
+
+    /**
+     * @brief Returns a constant reverse iterator pointing to the beginning of the container.
+     * @return A constant reverse iterator pointing to the beginning of the container.
+     */
+    const_reverse_iterator rbegin() const
     {
         return const_reverse_iterator( mData.rbegin() );
     }
-    reverse_iterator           rend()
+
+    /**
+     * @brief Returns a reverse iterator pointing to the end of the container.
+     * @return A reverse iterator pointing to the end of the container.
+     */
+    reverse_iterator rend()
     {
         return reverse_iterator( mData.rend() );
     }
-    const_reverse_iterator     rend() const
+
+    /**
+     * @brief Returns a constant reverse iterator pointing to the end of the container.
+     * @return A constant reverse iterator pointing to the end of the container.
+     */
+    const_reverse_iterator rend() const
     {
         return const_reverse_iterator( mData.rend() );
     }
-    ptr_iterator               ptr_begin()
+
+    /**
+     * @brief Returns an iterator pointing to the beginning of the underlying data container.
+     * @return An iterator pointing to the beginning of the underlying data container.
+     */
+    ptr_iterator ptr_begin()
     {
         return mData.begin();
     }
-    ptr_const_iterator         ptr_begin() const
+
+    /**
+     * @brief Returns a constant iterator pointing to the beginning of the underlying data container.
+     * @return A constant iterator pointing to the beginning of the underlying data container.
+     */
+    ptr_const_iterator ptr_begin() const
     {
         return mData.begin();
     }
-    ptr_iterator               ptr_end()
+
+    /**
+     * @brief Returns an iterator pointing to the end of the underlying data container.
+     * @return An iterator pointing to the end of the underlying data container.
+     */
+    ptr_iterator ptr_end()
     {
         return mData.end();
     }
-    ptr_const_iterator         ptr_end() const
+
+    /**
+     * @brief Returns a constant iterator pointing to the end of the underlying data container.
+     * @return A constant iterator pointing to the end of the underlying data container.
+     */
+    ptr_const_iterator ptr_end() const
     {
         return mData.end();
     }
-    ptr_reverse_iterator       ptr_rbegin()
+
+    /**
+     * @brief Returns a reverse iterator pointing to the beginning of the underlying data container.
+     * @return A reverse iterator pointing to the beginning of the underlying data container.
+     */
+    ptr_reverse_iterator ptr_rbegin()
     {
         return mData.rbegin();
     }
+
+    /**
+     * @brief Returns a constant reverse iterator pointing to the beginning of the underlying data container.
+     * @return A constant reverse iterator pointing to the beginning of the underlying data container.
+     */
     ptr_const_reverse_iterator ptr_rbegin() const
     {
         return mData.rbegin();
     }
-    ptr_reverse_iterator       ptr_rend()
+
+    /**
+     * @brief Returns a reverse iterator pointing to the end of the underlying data container.
+     * @return A reverse iterator pointing to the end of the underlying data container.
+     */
+    ptr_reverse_iterator ptr_rend()
     {
         return mData.rend();
     }
+
+    /**
+     * @brief Returns a constant reverse iterator pointing to the end of the underlying data container.
+     * @return A constant reverse iterator pointing to the end of the underlying data container.
+     */
     ptr_const_reverse_iterator ptr_rend() const
     {
         return mData.rend();
     }
 
-    reference        front()       /* nothrow */
+    /**
+     * @brief Returns a reference to the first element in the container.
+     * @note This function is marked as "noexcept," and it asserts that the container is not empty.
+     * @return A reference to the first element in the container.
+     */
+    reference front() noexcept
     {
         assert( !empty() );
         return *(mData.front());
     }
-    const_reference  front() const /* nothrow */
+
+    /**
+     * @brief Returns a constant reference to the first element in the container.
+     * @note This function is marked as "noexcept," and it asserts that the container is not empty.
+     * @return A constant reference to the first element in the container.
+     */
+    const_reference front() const noexcept
     {
         assert( !empty() );
         return *(mData.front());
     }
-    reference        back()        /* nothrow */
-    {
-        assert( !empty() );
-        return *(mData.back());
-    }
-    const_reference  back() const  /* nothrow */
+
+    /**
+     * @brief Returns a reference to the last element in the container.
+     * @note This function is marked as "noexcept," and it asserts that the container is not empty.
+     * @return A reference to the last element in the container.
+     */
+    reference back() noexcept
     {
         assert( !empty() );
         return *(mData.back());
     }
 
+    /**
+     * @brief Returns a constant reference to the last element in the container.
+     * @note This function is marked as "noexcept," and it asserts that the container is not empty.
+     * @return A constant reference to the last element in the container.
+     */
+    const_reference back() const noexcept
+    {
+        assert( !empty() );
+        return *(mData.back());
+    }
+
+    /**
+     * @brief Returns the number of elements in the container.
+     * @return The number of elements in the container.
+     */
     size_type size() const
     {
         return mData.size();
     }
 
+    /**
+     * @brief Returns the maximum possible number of elements the container can hold.
+     * @return The maximum possible number of elements the container can hold.
+     */
     size_type max_size() const
     {
         return mData.max_size();
     }
 
+    /**
+     * @brief Returns the key comparison function used for ordering elements in the container.
+     * @details This function returns an instance of the key comparison function (TCompareType) used for ordering elements in the container.
+     * @return The key comparison function.
+     */
     key_compare key_comp() const
     {
         return TCompareType();
@@ -686,11 +825,21 @@ public:
     ///@name Inquiry
     ///@{
 
+    /**
+     * @brief Check if the data container is empty.
+     * @details This function checks if the data container, represented by the member variable mData, is empty.
+     * @return True if the data container is empty, false otherwise.
+     */
     bool empty() const
     {
         return mData.empty();
     }
 
+    /**
+     * @brief Check if the data container is sorted.
+     * @details This function checks if the sorted portion of the data, indicated by the member variable mSortedPartSize, is equal to the total size of the data container mData. This is used to determine if the data is sorted.
+     * @return True if the data is sorted, false otherwise.
+     */
     bool IsSorted() const
     {
         return (mSortedPartSize == mData.size());
@@ -727,70 +876,101 @@ public:
     ///@{
 
     ///@}
-protected:
-    ///@name Protected static Member Variables
-    ///@{
-
-    ///@}
-    ///@name Protected member Variables
-    ///@{
-
-    ///@}
-    ///@name Protected Operators
-    ///@{
-
-    ///@}
-    ///@name Protected Operations
-    ///@{
-
-    ///@}
-    ///@name Protected  Access
-    ///@{
-
-    ///@}
-    ///@name Protected Inquiry
-    ///@{
-
-    ///@}
-    ///@name Protected LifeCycle
-    ///@{
-
-    ///@}
 private:
+    ///@{
 
+    /**
+     * @class CompareKey
+     * @brief A class providing comparison operators for keys in a custom map.
+     * @details This class defines comparison operators for keys in a custom map. It allows you to compare keys using the specified comparison type and key extraction functions.
+     */
     class CompareKey
     {
     public:
+        /**
+         * @brief Compare a key with a pointer to an object.
+         * @details This function compares a key of type `key_type` with a pointer to an object of type `TPointerType` using the specified comparison function and key extraction function.
+         * @param a The key of type `key_type`.
+         * @param b The pointer to an object of type `TPointerType`.
+         * @return True if the key `a` is less than the extracted key from `b`, false otherwise.
+         */
         bool operator()(key_type a, TPointerType b) const
         {
             return TCompareType()(a, TGetKeyType()(*b));
         }
+
+        /**
+         * @brief Compare a pointer to an object with a key.
+         * @details This function compares a pointer to an object of type `TPointerType` with a key of type `key_type` using the specified comparison function and key extraction function.
+         * @param a The pointer to an object of type `TPointerType`.
+         * @param b The key of type `key_type`.
+         * @return True if the extracted key from `a` is less than the key `b`, false otherwise.
+         */
         bool operator()(TPointerType a, key_type b) const
         {
             return TCompareType()(TGetKeyType()(*a), b);
         }
+
+        /**
+         * @brief Compare two pointers to objects.
+         * @details This function compares two pointers to objects of type `TPointerType` using the specified comparison function and key extraction function.
+         * @param a The pointer to the first object of type `TPointerType`.
+         * @param b The pointer to the second object of type `TPointerType`.
+         * @return True if the extracted key from `a` is less than the extracted key from `b`, false otherwise.
+         */
         bool operator()(TPointerType a, TPointerType b) const
         {
             return TCompareType()(TGetKeyType()(*a), TGetKeyType()(*b));
         }
     };
 
+    /**
+    * @class EqualKeyTo
+    * @brief A class providing equality comparison operators for keys in a custom map.
+    * @details This class defines equality comparison operators for keys in a custom map. It allows you to check if a key is equal to the specified key using the specified equality function and key extraction function.
+    */
     class EqualKeyTo
     {
-        key_type mKey;
+        key_type mKey;  /// The key to compare against.
     public:
+        /**
+        * @brief Default constructor.
+        * @details Initializes the `EqualKeyTo` object with a default-constructed key.
+        */
         EqualKeyTo() : mKey() {}
+
+        /**
+        * @brief Explicit constructor with a specified key.
+        * @details Initializes the `EqualKeyTo` object with the specified key.
+        * @param Key The key of type `key_type` to compare against.
+        */
         explicit EqualKeyTo(key_type Key) : mKey(Key) {}
+
+        /**
+        * @brief Compare a pointer to an object with the stored key.
+        * @details This function checks if the key stored in this `EqualKeyTo` object is equal to the extracted key from the pointer to an object of type `TPointerType`.
+        * @param a The pointer to an object of type `TPointerType`.
+        * @return True if the stored key is equal to the extracted key from `a`, false otherwise.
+        */
         bool operator()(TPointerType a) const
         {
             return TEqualType()(mKey, TGetKeyType()(*a));
         }
+
+        /**
+        * @brief Compare two pointers to objects with each other.
+        * @details This function checks if the extracted keys from two pointers to objects of type `TPointerType` are equal using the specified equality function and key extraction function.
+        * @param a The pointer to the first object of type `TPointerType`.
+        * @param b The pointer to the second object of type `TPointerType`.
+        * @return True if the extracted key from `a` is equal to the extracted key from `b`, false otherwise.
+        */
         bool operator()(TPointerType a, TPointerType b) const
         {
             return TEqualType()(TGetKeyType()(*a), TGetKeyType()(*b));
         }
     };
 
+    ///@}
     ///@name Static Member Variables
     ///@{
 
@@ -798,8 +978,13 @@ private:
     ///@name Member Variables
     ///@{
 
+    /// The data container holding the elements.
     TContainerType mData;
-    size_type  mSortedPartSize;
+    
+    /// The size of the sorted portion of the data.
+    size_type mSortedPartSize;
+    
+    /// The maximum buffer size for data storage.
     size_type mMaxBufferSize;
 
     ///@}
@@ -810,17 +995,35 @@ private:
     ///@name Private Operations
     ///@{
 
+    /**
+     * @brief Extract the key from an iterator and apply a key extraction function.
+     * @details This function extracts the key from an iterator and applies a key extraction function of type `TGetKeyType` to it.
+     * @param i The iterator from which the key is extracted.
+     * @return The key extracted from the iterator after applying the key extraction function.
+     */
     key_type KeyOf(iterator i)
     {
         return TGetKeyType()(*i);
     }
 
+    /**
+     * @brief Extract the key from a pointer iterator and apply a key extraction function.
+     * @details This function extracts the key from a pointer iterator and applies a key extraction function of type `TGetKeyType` to it.
+     * @param i The pointer iterator from which the key is extracted.
+     * @return The key extracted from the pointer iterator after applying the key extraction function.
+     */
     key_type KeyOf(ptr_iterator i)
     {
         return TGetKeyType()(**i);
     }
 
-    key_type KeyOf(const TDataType & i)
+    /**
+    * @brief Extract the key from a data element and apply a key extraction function.
+    * @details This function extracts the key from a data element of type `TDataType` and applies a key extraction function of type `TGetKeyType` to it.
+    * @param i The data element from which the key is extracted.
+    * @return The key extracted from the data element after applying the key extraction function.
+    */
+    key_type KeyOf(const TDataType &i)
     {
         return TGetKeyType()(i);
     }
@@ -829,8 +1032,16 @@ private:
     ///@name Serialization
     ///@{
 
+    /**
+     * @class Serializer
+     * @brief A fried class responsible for handling the serialization process.
+     */
     friend class Serializer;
 
+    /**
+     * @brief Extract the object's state and uses the Serializer to store it.
+     * @param rSerializer Serializer instance to be used for saving.
+     */
     virtual void save(Serializer& rSerializer) const
     {
         size_type local_size = mData.size();
@@ -844,6 +1055,10 @@ private:
         rSerializer.save("Max Buffer Size",mMaxBufferSize);
     }
 
+    /**
+     * @brief Set the object's state based on data provided by the Serializer.
+     * @param rSerializer Serializer instance to be used for loading.
+     */
     virtual void load(Serializer& rSerializer)
     {
         size_type local_size;
