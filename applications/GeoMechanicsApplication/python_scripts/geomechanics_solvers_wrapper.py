@@ -9,13 +9,7 @@ def CreateSolverByParameters(model, custom_settings, parallelism):
     if (type(custom_settings) != KratosMultiphysics.Parameters):
         raise Exception("input is expected to be provided as a Kratos Parameters object")
 
-    if custom_settings.Has("solver_settings"):
-        params = custom_settings["solver_settings"]
-        #To conform with other apps where only the "solver_settings" are passed
-    else:
-        params = custom_settings
-
-    solver_type_raw = params["solver_type"].GetString()
+    solver_type_raw = custom_settings["solver_type"].GetString()
 
     # Solvers for OpenMP parallelism
     if (parallelism == "OpenMP"):
@@ -35,7 +29,7 @@ def CreateSolverByParameters(model, custom_settings, parallelism):
         raise Exception(err_msg)
 
     module_full_name = 'KratosMultiphysics.GeoMechanicsApplication.' + solver_module_name
-    solver = import_module(module_full_name).CreateSolver(model, params)
+    solver = import_module(module_full_name).CreateSolver(model, custom_settings)
     return solver
 
 
