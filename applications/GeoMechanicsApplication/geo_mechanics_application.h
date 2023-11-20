@@ -100,7 +100,7 @@
 #include "custom_elements/updated_lagrangian_U_Pw_diff_order_axisymmetric_element.hpp"
 #include "custom_elements/updated_lagrangian_U_Pw_diff_order_element.hpp"
 
-/* geo structural element */
+// geo structural element
 #include "custom_elements/geo_cable_element.hpp"
 #include "custom_elements/geo_cr_beam_element_2D2N.hpp"
 #include "custom_elements/geo_cr_beam_element_3D2N.hpp"
@@ -108,30 +108,27 @@
 #include "custom_elements/geo_cr_beam_element_linear_3D2N.hpp"
 #include "custom_elements/geo_curved_beam_element.hpp"
 #include "custom_elements/geo_linear_truss_element.hpp"
-#include "custom_elements/transient_thermal_element.h"
 #include "custom_elements/geo_truss_element.hpp"
+#include "custom_elements/transient_thermal_element.h"
 
 // constitutive models
-#include "custom_constitutive/bilinear_cohesive_3D_law.hpp"
 #include "custom_constitutive/bilinear_cohesive_2D_law.hpp"
+#include "custom_constitutive/bilinear_cohesive_3D_law.hpp"
 #include "custom_constitutive/elastic_isotropic_K0_3d_law.h"
-#include "custom_constitutive/linear_elastic_plane_strain_K0_law.h"
-#include "custom_constitutive/linear_elastic_plane_strain_2D_law.h"
-#include "custom_constitutive/linear_elastic_plane_stress_2D_law.h"
-
-#include "custom_constitutive/small_strain_udsm_3D_law.hpp"
-#include "custom_constitutive/small_strain_udsm_2D_plane_strain_law.hpp"
-#include "custom_constitutive/small_strain_udsm_2D_interface_law.hpp"
-#include "custom_constitutive/small_strain_udsm_3D_interface_law.hpp"
-
-#include "custom_constitutive/small_strain_umat_3D_law.hpp"
-#include "custom_constitutive/small_strain_umat_2D_plane_strain_law.hpp"
-#include "custom_constitutive/small_strain_umat_2D_interface_law.hpp"
-#include "custom_constitutive/small_strain_umat_3D_interface_law.hpp"
-
+#include "custom_constitutive/linear_elastic_2D_beam_law.h"
 #include "custom_constitutive/linear_elastic_2D_interface_law.h"
 #include "custom_constitutive/linear_elastic_3D_interface_law.h"
-#include "custom_constitutive/linear_elastic_2D_beam_law.h"
+#include "custom_constitutive/linear_elastic_plane_strain_2D_law.h"
+#include "custom_constitutive/linear_elastic_plane_strain_K0_law.h"
+#include "custom_constitutive/linear_elastic_plane_stress_2D_law.h"
+#include "custom_constitutive/small_strain_udsm_2D_interface_law.hpp"
+#include "custom_constitutive/small_strain_udsm_2D_plane_strain_law.hpp"
+#include "custom_constitutive/small_strain_udsm_3D_interface_law.hpp"
+#include "custom_constitutive/small_strain_udsm_3D_law.hpp"
+#include "custom_constitutive/small_strain_umat_2D_interface_law.hpp"
+#include "custom_constitutive/small_strain_umat_2D_plane_strain_law.hpp"
+#include "custom_constitutive/small_strain_umat_3D_interface_law.hpp"
+#include "custom_constitutive/small_strain_umat_3D_law.hpp"
 
 namespace Kratos {
 
