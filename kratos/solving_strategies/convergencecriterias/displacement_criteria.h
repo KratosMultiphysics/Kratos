@@ -61,7 +61,7 @@ public:
     ///@name Type Definitions
     ///@{
 
-    /// Pointer definition of ResidualCriteria
+    /// Pointer definition of DisplacementCriteria
     KRATOS_CLASS_POINTER_DEFINITION( DisplacementCriteria );
 
     /// The definition of the base ConvergenceCriteria
