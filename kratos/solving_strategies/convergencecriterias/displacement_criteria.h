@@ -430,7 +430,7 @@ private:
                 rTLS.variation_dof_value = Dx[rTLS.dof_id];
                 return std::make_tuple(std::pow(rTLS.variation_dof_value, 2), 1);
             } else {
-                return std::make_tuple(0.0, 0);
+                return std::make_tuple(TDataType(), 0);
             }
         });
 
