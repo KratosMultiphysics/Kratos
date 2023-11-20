@@ -169,6 +169,9 @@ class GeoMechanicalSolver(PythonSolver):
         ## Fluid Variables
         self._add_water_variables()
 
+        # Add temperature variables
+        self._add_temperature_variables()
+
         ## smoothing variables
         self._add_smoothing_variables()
 
@@ -248,8 +251,14 @@ class GeoMechanicalSolver(PythonSolver):
 
         self.solver.Initialize()
 
+        self.find_neighbour_elements_of_conditions_process = GeoMechanicsApplication.FindNeighbourElementsOfConditionsProcess(self.computing_model_part)
+        self.find_neighbour_elements_of_conditions_process.Execute()
+
+        self.deactivate_conditions_on_inactive_elements_process = GeoMechanicsApplication.DeactivateConditionsOnInactiveElements(self.computing_model_part)
+        self.deactivate_conditions_on_inactive_elements_process.Execute()
+
     def InitializeSolutionStep(self):
-        self.solver.InitializeSolutionStep()
+            self.solver.InitializeSolutionStep()
 
     def Predict(self):
         self.solver.Predict()
@@ -345,6 +354,13 @@ class GeoMechanicalSolver(PythonSolver):
         self.main_model_part.AddNodalSolutionStepVariable(GeoMechanicsApplication.NORMAL_FLUID_FLUX)
         # Add variables for the water conditions
         self.main_model_part.AddNodalSolutionStepVariable(GeoMechanicsApplication.HYDRAULIC_DISCHARGE)
+
+    def _add_temperature_variables(self):
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.TEMPERATURE)
+        # Add dynamic variables
+        self.main_model_part.AddNodalSolutionStepVariable(GeoMechanicsApplication.DT_TEMPERATURE)
+        # Add variables for the heat conditions
+        self.main_model_part.AddNodalSolutionStepVariable(GeoMechanicsApplication.NORMAL_HEAT_FLUX)
 
     def _add_smoothing_variables(self):
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_AREA)
@@ -542,3 +558,12 @@ class GeoMechanicalSolver(PythonSolver):
             raise RuntimeError(f"Undefined strategy type '{strategy_type}'")
 
         return solving_strategy
+
+    def _MakeResidualCriterion(self):
+        relative_tolerance = self.settings["residual_relative_tolerance"].GetDouble()
+        absolute_tolerance = self.settings["residual_absolute_tolerance"].GetDouble()
+        residual_criterion = KratosMultiphysics.ResidualCriteria(relative_tolerance, absolute_tolerance)
+        residual_criterion.SetEchoLevel(self.settings["echo_level"].GetInt())
+
+        return residual_criterion
+
