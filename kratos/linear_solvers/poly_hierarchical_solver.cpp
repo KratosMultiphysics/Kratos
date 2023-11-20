@@ -290,12 +290,9 @@ bool PolyHierarchicalSolver<TSparseSpace,TDenseSpace,TReorderer>::Solve(SparseMa
         mpImpl->mpFineSolver->Solve(rA, fine_delta, fine_residual);
         KRATOS_CATCH("")
 
-        // Update solution
-        rX += fine_delta;
-
         // Update residual
-        TSparseSpace::Mult(rA, rX, fine_tmp);
-        fine_residual = rB - fine_tmp;
+        TSparseSpace::Mult(rA, fine_delta, fine_tmp);
+        fine_residual -= fine_tmp;
 
         // Restrict the updated residual
         TSparseSpace::Mult(mpImpl->mRestrictionOperator,
@@ -311,8 +308,8 @@ bool PolyHierarchicalSolver<TSparseSpace,TDenseSpace,TReorderer>::Solve(SparseMa
         KRATOS_CATCH("")
 
         // Update solution
-        TSparseSpace::Mult(mpImpl->mInterpolationOperator, coarse_delta, fine_delta);
-        rX += fine_delta;
+        TSparseSpace::Mult(mpImpl->mInterpolationOperator, coarse_delta, fine_tmp);
+        rX += fine_delta + fine_tmp;
 
         // Update the fine residual
         TSparseSpace::Mult(rA, rX, fine_tmp);
