@@ -18,7 +18,6 @@
 
 // Project includes
 #include "includes/model_part.h"
-#include "includes/define.h"
 #include "utilities/constraint_utilities.h"
 #include "utilities/parallel_utilities.h"
 #include "utilities/reduction_utilities.h"
@@ -77,6 +76,9 @@ public:
     /// The dofs array type
     using DofsArrayType = typename BaseType::DofsArrayType;
 
+    /// The definition of the DoF data type
+    using DofType = typename Node::DofType;
+
     /// The sparse matrix type
     using TSystemMatrixType = typename BaseType::TSystemMatrixType;
 
@@ -93,7 +95,7 @@ public:
     ///@name Life Cycle
     ///@{
 
-    //* Constructor.
+    /// Default constructor.
     explicit ResidualCriteria()
         : BaseType()
     {
@@ -113,7 +115,11 @@ public:
         this->mActualizeRHSIsNeeded = true;
     }
 
-    //* Constructor.
+    /**
+    * @brief Constructor 2 arguments
+    * @param NewRatioTolerance The ratio tolerance for the convergence.
+    * @param AlwaysConvergedNorm The absolute tolerance for the convergence.
+    */
     explicit ResidualCriteria(
         TDataType NewRatioTolerance,
         TDataType AlwaysConvergedNorm)
@@ -124,7 +130,10 @@ public:
         this->mActualizeRHSIsNeeded = true;
     }
 
-    //* Copy constructor.
+    /**
+    * @brief Copy constructor
+    * @param rOther The criteria to be copied
+    */
     explicit ResidualCriteria( ResidualCriteria const& rOther )
       :BaseType(rOther)
       ,mRatioTolerance(rOther.mRatioTolerance)
@@ -136,12 +145,17 @@ public:
         this->mActualizeRHSIsNeeded = true;
     }
 
-    //* Destructor.
+    /**
+     * @brief Destructor.
+     */
     ~ResidualCriteria() override {}
 
     ///@}
     ///@name Operators
     ///@{
+
+    /// Deleted assignment operator.
+    ResidualCriteria& operator=(ResidualCriteria const& rOther) = delete;
 
     ///@}
     ///@name Operations
@@ -334,6 +348,18 @@ protected:
     ///@name Protected member Variables
     ///@{
 
+    TDataType mRatioTolerance{};      /// The ratio threshold for the norm of the residual
+
+    TDataType mInitialResidualNorm{}; /// The reference norm of the residual
+
+    TDataType mCurrentResidualNorm{}; /// The current norm of the residual
+
+    TDataType mAlwaysConvergedNorm{}; /// The absolute value threshold for the norm of the residual
+
+    TDataType mReferenceDispNorm{};   /// The norm at the beginning of the iterations
+
+    std::vector<int> mActiveDofs;     /// This vector contains the dofs that are active
+
     ///@}
     ///@name Protected Operators
     ///@{
@@ -341,6 +367,32 @@ protected:
     ///@}
     ///@name Protected Operations
     ///@{
+
+    /**
+     * @brief Check if a Degree of Freedom (Dof) is active
+     * @details This function checks if a given Degree of Freedom (Dof) is active.
+     * @param DofId The id of the Dof to check.
+     * @return True if the Dof is free, false otherwise.
+     */
+    virtual bool IsActiveDof(const IndexType DofId)
+    {
+        return mActiveDofs[DofId] == 1;
+    }
+
+    /**
+     * @brief Check if a Degree of Freedom (Dof) is free.
+     * @details This function checks if a given Degree of Freedom (Dof) is free.
+     * @param rDof The Degree of Freedom to check.
+     * @param Rank The rank of the Dof.
+     * @return True if the Dof is free, false otherwise.
+     */
+    virtual bool IsFreeDof(
+        const DofType& rDof,
+        const int Rank
+        )
+    {
+        return rDof.IsFree();
+    }
 
     /**
      * @brief This method computes the norm of the residual
@@ -359,6 +411,12 @@ protected:
         const TSystemVectorType& rb
         )
     {
+        // Retrieve the data communicator
+        const auto& r_data_communicator = rModelPart.GetCommunicator().GetDataCommunicator();
+
+        // The current MPI rank
+        const int rank = r_data_communicator.Rank();
+
         // Initialize
         TDataType residual_solution_norm = TDataType();
         SizeType dof_num = 0;
@@ -373,7 +431,7 @@ protected:
         if (rModelPart.NumberOfMasterSlaveConstraints() > 0) {
             std::tie(residual_solution_norm, dof_num) = block_for_each<CustomReduction>(rDofSet, TLS(), [this, &rb](auto& rDof, TLS& rTLS) {
                 const IndexType dof_id = rDof.EquationId();
-                if (mActiveDofs[dof_id] == 1) {
+                if (this->IsActiveDof(dof_id)) {
                     rTLS.residual_dof_value = TSparseSpace::GetValue(rb, dof_id);
                     return std::make_tuple(std::pow(rTLS.residual_dof_value, 2), 1);
                 } else {
@@ -381,8 +439,8 @@ protected:
                 }
             });
         } else {
-            std::tie(residual_solution_norm, dof_num) = block_for_each<CustomReduction>(rDofSet, TLS(), [&rb](auto& rDof, TLS& rTLS) {
-                if (!rDof.IsFixed()) {
+            std::tie(residual_solution_norm, dof_num) = block_for_each<CustomReduction>(rDofSet, TLS(), [this, &rb, &rank](auto& rDof, TLS& rTLS) {
+                if(this->IsFreeDof(rDof, rank)) {
                     const IndexType dof_id = rDof.EquationId();
                     rTLS.residual_dof_value = TSparseSpace::GetValue(rb, dof_id);
                     return std::make_tuple(std::pow(rTLS.residual_dof_value, 2), 1);
@@ -392,8 +450,8 @@ protected:
             });
         }
 
-        rDofNum = dof_num;
-        rResidualSolutionNorm = std::sqrt(residual_solution_norm);
+        rDofNum = r_data_communicator.SumAll(dof_num);
+        rResidualSolutionNorm = std::sqrt(r_data_communicator.SumAll(residual_solution_norm));
     }
 
     /**
@@ -427,18 +485,6 @@ private:
     ///@}
     ///@name Member Variables
     ///@{
-
-    TDataType mRatioTolerance{};      /// The ratio threshold for the norm of the residual
-
-    TDataType mInitialResidualNorm{}; /// The reference norm of the residual
-
-    TDataType mCurrentResidualNorm{}; /// The current norm of the residual
-
-    TDataType mAlwaysConvergedNorm{}; /// The absolute value threshold for the norm of the residual
-
-    TDataType mReferenceDispNorm{};   /// The norm at the beginning of the iterations
-
-    std::vector<int> mActiveDofs;     /// This vector contains the dofs that are active
 
     ///@}
     ///@name Private Operators
