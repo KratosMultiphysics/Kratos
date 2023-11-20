@@ -206,9 +206,10 @@ void AlternativeDVMSDEMCoupled<TElementData>::Initialize(const ProcessInfo& rCur
     }
 
     if (mPredictedSubscaleVelocity.size() != number_of_gauss_points) {
+        Vector zero_vector = ZeroVector(Dim);
         mPredictedSubscaleVelocity.resize(number_of_gauss_points);
         for (unsigned int g = 0; g < number_of_gauss_points; g++) {
-            mPredictedSubscaleVelocity[g] = ZeroVector(Dim);
+            mPredictedSubscaleVelocity[g] = zero_vector ;
         }
     }
 
