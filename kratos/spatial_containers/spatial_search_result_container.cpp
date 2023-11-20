@@ -98,6 +98,16 @@ void SpatialSearchResultContainer<TObjectType>::Clear()
 /***********************************************************************************/
 
 template <class TObjectType>
+void SpatialSearchResultContainer<TObjectType>::GenerateGlobalPointerCommunicator(const DataCommunicator& rDataCommunicator)
+{
+    // Generate the communicator
+    mpGlobalPointerCommunicator = Kratos::make_shared<GlobalPointerCommunicatorType>(rDataCommunicator, mGlobalResults.ptr_begin(), mGlobalResults.ptr_end());
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template <class TObjectType>
 void SpatialSearchResultContainer<TObjectType>::SynchronizeAll(const DataCommunicator& rDataCommunicator)
 {
     // Synchronize local results to global results
@@ -182,7 +192,7 @@ void SpatialSearchResultContainer<TObjectType>::SynchronizeAll(const DataCommuni
     }
 
     // Generate the communicator
-    mpGlobalPointerCommunicator = Kratos::make_shared<GlobalPointerCommunicatorType>(rDataCommunicator, mGlobalResults.ptr_begin(), mGlobalResults.ptr_end());
+    GenerateGlobalPointerCommunicator(rDataCommunicator);
 }
 
 /***********************************************************************************/

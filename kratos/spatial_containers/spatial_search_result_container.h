@@ -426,6 +426,12 @@ public:
     void Clear();
 
     /**
+     * @brief Generate the global pointer communicator
+     * @param rDataCommunicator The data communicator
+     */
+    void GenerateGlobalPointerCommunicator(const DataCommunicator& rDataCommunicator);
+
+    /**
      * @brief Synchronize the container between partitions
      * @details This method synchronizes the container between partitions
      * @param rDataCommunicator The data communicator
