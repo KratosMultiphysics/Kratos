@@ -103,7 +103,7 @@ Begin Nodes
 End Nodes
 
 
-Begin Elements TransientThermalElement2D8N
+Begin Elements GeoTransientThermalElement2D8N
         1          1    93    96    92    85    94    95    88    89 
         2          1    92    86    69    85    90    81    77    88 
         3          1    86    79    55    69    83    65    63    81 

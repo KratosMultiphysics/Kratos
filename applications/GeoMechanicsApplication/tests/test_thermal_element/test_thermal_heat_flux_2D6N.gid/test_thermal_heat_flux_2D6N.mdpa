@@ -160,7 +160,7 @@ Begin Nodes
 End Nodes
 
 
-Begin Elements TransientThermalElement2D6N
+Begin Elements GeoTransientThermalElement2D6N
    1  1  56 58 52  65  66  67
    2  1  52 58 42  66  68  69
    3  1  45 53 46  70  71  72

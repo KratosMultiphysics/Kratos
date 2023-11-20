@@ -128,7 +128,7 @@ Begin Nodes
 End Nodes
 
 
-Begin Elements TransientThermalElement2D9N
+Begin Elements GeoTransientThermalElement2D9N
         1          1   118   121   117   107   119   120   112   113   116 
         2          1   117   110    89   107   114   103    99   112   108 
         3          1   110   101    70    89   106    84    80   103    95 

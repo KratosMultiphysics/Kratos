@@ -51,7 +51,7 @@ Begin Nodes
 End Nodes
 
 
-Begin Elements TransientThermalElement2D3N
+Begin Elements GeoTransientThermalElement2D3N
    1  1  36 38 32
    2  1  32 38 24
    3  1  25 33 26

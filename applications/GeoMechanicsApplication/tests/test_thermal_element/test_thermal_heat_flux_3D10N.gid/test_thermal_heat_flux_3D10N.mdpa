@@ -435,7 +435,7 @@ Begin Nodes
 End Nodes
 
 
-Begin Elements TransientThermalElement3D10N
+Begin Elements GeoTransientThermalElement3D10N
         1          1    61    41   108    76    46    70    82    63    53    87 
         2          1    41   108    76   111    70    87    53    68   103    91 
         3          1    41   108   111   145    70   103    68    86   118   124 
