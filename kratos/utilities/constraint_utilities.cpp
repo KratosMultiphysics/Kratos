@@ -4,8 +4,8 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Vicente Mataix Ferrandiz
 //
@@ -20,9 +20,7 @@
 #include "utilities/parallel_utilities.h"
 #include "utilities/atomic_utilities.h"
 
-namespace Kratos
-{
-namespace ConstraintUtilities
+namespace Kratos::ConstraintUtilities
 {
 void ComputeActiveDofs(
     ModelPart& rModelPart,
@@ -340,5 +338,4 @@ void PreComputeExplicitConstraintMassAndInertia(
     KRATOS_CATCH("")
 }
 
-} // namespace ConstraintUtilities
-} // namespace Kratos
+} // namespace Kratos::ConstraintUtilities
