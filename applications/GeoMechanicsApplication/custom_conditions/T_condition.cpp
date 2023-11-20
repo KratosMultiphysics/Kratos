@@ -43,8 +43,8 @@ Condition::Pointer TCondition<TDim, TNumNodes>::Create(IndexType NewId,
                                                        NodesArrayType const& rThisNodes,
                                                        PropertiesType::Pointer pProperties) const
 {
-    return Condition::Pointer(
-        new TCondition(NewId, GetGeometry().Create(rThisNodes), pProperties));
+    return Kratos::make_intrusive<TCondition>(
+        NewId, GetGeometry().Create(rThisNodes), pProperties);
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
