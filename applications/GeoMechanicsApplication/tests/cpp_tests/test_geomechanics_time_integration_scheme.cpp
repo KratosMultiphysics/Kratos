@@ -14,6 +14,7 @@
 
 #include "containers/model.h"
 #include "custom_strategies/schemes/geomechanics_time_integration_scheme.hpp"
+#include "geo_mechanics_application_variables.h"
 #include "spaces/ublas_space.h"
 #include "test_utilities/spy_condition.h"
 #include "test_utilities/spy_element.h"
@@ -221,6 +222,21 @@ KRATOS_TEST_CASE_IN_SUITE(FunctionCalledOnElement_IsOnlyCalledWhenElementIsActiv
 {
     GeoMechanicsSchemeTester tester;
     tester.TestFunctionCalledOnComponent_IsOnlyCalledWhenComponentIsActive<SpyElement>();
+}
+
+KRATOS_TEST_CASE_IN_SUITE(ForInvalidBufferSize_CheckGeoMechanicsTimeIntegrationScheme_Throws,
+                          KratosGeoMechanicsFastSuite)
+{
+    GeoMechanicsTimeIntegrationScheme<SparseSpaceType, LocalSpaceType> scheme;
+
+    Model model;
+    constexpr int invalid_buffer_size = 1;
+    const auto& model_part = model.CreateModelPart("dummy", invalid_buffer_size);
+
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(scheme.Check(model_part),
+                                      "insufficient buffer size. Buffer size "
+                                      "should be greater than or equal to "
+                                      "2. Current size is 1")
 }
 
 } // namespace Kratos::Testing

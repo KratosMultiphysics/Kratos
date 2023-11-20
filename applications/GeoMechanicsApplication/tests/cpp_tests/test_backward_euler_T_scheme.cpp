@@ -72,25 +72,6 @@ KRATOS_TEST_CASE_IN_SUITE(InitializeBackwardEulerTScheme_SetsTimeFactors, Kratos
                             1.0 / (delta_time));
 }
 
-KRATOS_TEST_CASE_IN_SUITE(ForInvalidBufferSize_CheckBackwardEulerTScheme_Throws,
-                          KratosGeoMechanicsFastSuite)
-{
-    BackwardEulerTScheme<SparseSpaceType, LocalSpaceType> scheme;
-
-    Model model;
-    constexpr int invalid_buffer_size = 1;
-    auto& model_part = model.CreateModelPart("dummy", invalid_buffer_size);
-    model_part.AddNodalSolutionStepVariable(TEMPERATURE);
-    model_part.AddNodalSolutionStepVariable(DT_TEMPERATURE);
-    auto p_node = model_part.CreateNewNode(0, 0.0, 0.0, 0.0);
-    p_node->AddDof(TEMPERATURE);
-
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
-        scheme.Check(model_part),
-        "insufficient buffer size. Buffer size should be greater than or equal to "
-        "2. Current size is 1")
-}
-
 KRATOS_TEST_CASE_IN_SUITE(ForMissingNodalDof_CheckBackwardEulerTScheme_Throws,
                           KratosGeoMechanicsFastSuite)
 {

@@ -31,39 +31,13 @@ ModelPart& CreateValidTemperatureModelPart(Model& rModel)
     return result;
 }
 
-KRATOS_TEST_CASE_IN_SUITE(CheckNewmarkTScheme_WithAllNecessaryParts_Returns0,
-                          KratosGeoMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(CheckNewmarkTScheme_WithAllNecessaryParts_Returns0, KratosGeoMechanicsFastSuite)
 {
     Model model;
     GeneralizedNewmarkTScheme<SparseSpaceType, LocalSpaceType> scheme(0.75);
     const auto& model_part = CreateValidTemperatureModelPart(model);
 
     KRATOS_EXPECT_EQ(scheme.Check(model_part), 0);
-}
-
-KRATOS_TEST_CASE_IN_SUITE(ForInvalidTheta_CheckNewmarkTScheme_Throws,
-                          KratosGeoMechanicsFastSuite)
-{
-    constexpr double invalid_theta = -2.0;
-    using SchemeType = GeneralizedNewmarkTScheme<SparseSpaceType, LocalSpaceType>;
-
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN(SchemeType scheme(invalid_theta),
-                                      "Theta must be larger than zero, but got -2")
-}
-
-KRATOS_TEST_CASE_IN_SUITE(ForInvalidBufferSize_CheckNewmarkTScheme_Throws, KratosGeoMechanicsFastSuite)
-{
-    GeneralizedNewmarkTScheme<SparseSpaceType, LocalSpaceType> scheme(0.75);
-
-    Model model;
-    constexpr auto invalid_buffer_size = ModelPart::IndexType{1};
-    auto& model_part = CreateValidTemperatureModelPart(model);
-    model_part.SetBufferSize(invalid_buffer_size);
-
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
-        scheme.Check(model_part),
-        "insufficient buffer size. Buffer size should be greater than or equal to "
-        "2. Current size is 1")
 }
 
 KRATOS_TEST_CASE_IN_SUITE(ForMissingNodalDof_CheckNewmarkTScheme_Throws, KratosGeoMechanicsFastSuite)

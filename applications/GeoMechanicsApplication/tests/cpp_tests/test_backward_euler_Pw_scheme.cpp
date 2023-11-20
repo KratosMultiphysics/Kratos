@@ -72,25 +72,6 @@ KRATOS_TEST_CASE_IN_SUITE(InitializeBackwardEulerPwScheme_SetsTimeFactors, Krato
                             1.0 / (delta_time));
 }
 
-KRATOS_TEST_CASE_IN_SUITE(ForInvalidBufferSize_CheckBackwardEulerPwScheme_Throws,
-                          KratosGeoMechanicsFastSuite)
-{
-    BackwardEulerQuasistaticPwScheme<SparseSpaceType, LocalSpaceType> scheme;
-
-    Model model;
-    constexpr int invalid_buffer_size = 1;
-    auto& model_part = model.CreateModelPart("dummy", invalid_buffer_size);
-    model_part.AddNodalSolutionStepVariable(WATER_PRESSURE);
-    model_part.AddNodalSolutionStepVariable(DT_WATER_PRESSURE);
-    auto p_node = model_part.CreateNewNode(0, 0.0, 0.0, 0.0);
-    p_node->AddDof(WATER_PRESSURE);
-
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
-        scheme.Check(model_part),
-        "insufficient buffer size. Buffer size should be greater than or equal to "
-        "2. Current size is 1")
-}
-
 KRATOS_TEST_CASE_IN_SUITE(ForMissingNodalDof_CheckBackwardEulerPwScheme_Throws,
                           KratosGeoMechanicsFastSuite)
 {
