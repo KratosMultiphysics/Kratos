@@ -132,22 +132,11 @@ void SpatialSearchResultContainer<TObjectType>::SynchronizeAll(const DataCommuni
                 global_gp.push_back(GlobalPointerResultType(&r_value, rank));
             }
 
-            // Create a lambda to generate the vector of indexes greater than zero
-            auto GenerateIndexesLambda = [](const std::vector<int>& rInputVector) {
-                std::vector<int> indexes;
-                for (int i = 1; i < static_cast<int>(rInputVector.size()); ++i) {
-                    if (rInputVector[i] > 0) {
-                        indexes.push_back(i);
-                    }
-                }
-                return indexes;
-            };
-
             // Call the lambda to generate the result vector of partitions with results
-            std::vector<int> resultVector = GenerateIndexesLambda(recv_buffer);
+            std::vector<int> result_vector = GenerateGreaterThanZeroIndexes(recv_buffer);
 
             // Iterate over the ranks
-            for (int rank_to_recv : resultVector) {
+            for (int rank_to_recv : result_vector) {
                 std::vector<GlobalPointerResultType> recv_gps;
                 rDataCommunicator.Recv(recv_gps, rank_to_recv);
                 for (auto& r_value : recv_gps) {
