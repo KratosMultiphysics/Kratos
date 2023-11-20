@@ -84,7 +84,11 @@ class AlgorithmSteepestDescent(Algorithm):
 
     @time_decorator()
     def ComputeSearchDirection(self, obj_grad) -> KratosOA.CollectiveExpression:
-        search_direction = obj_grad * -1.0
+        # if self.algorithm_data.GetBufferedData().HasValue("search_direction"):
+        #     search_direction = self.algorithm_data.GetBufferedData()["search_direction"] - 1.0 * obj_grad
+        # else:
+        #     search_direction = - obj_grad
+        search_direction = - obj_grad
         self.algorithm_data.GetBufferedData()["search_direction"] = search_direction.Clone()
         return search_direction
 
@@ -115,6 +119,7 @@ class AlgorithmSteepestDescent(Algorithm):
 
     @time_decorator()
     def Solve(self):
+        self.init_value = self.__objective.CalculateStandardizedValue(self.__control_field)
         while not self.converged:
             with OptimizationAlgorithmTimeLogger("AlgorithmSteepestDescent",self._optimization_problem.GetStep()):
                 self.__obj_val = self.__objective.CalculateStandardizedValue(self.__control_field)
@@ -127,6 +132,10 @@ class AlgorithmSteepestDescent(Algorithm):
                 obj_grad = self.__objective.CalculateStandardizedGradient()
 
                 self.ComputeSearchDirection(obj_grad)
+
+                # if self.__obj_val / self.init_value < 0.01:
+                #     self.__line_search_method._max_step /= 10
+                #     self.init_value /= 10
 
                 alpha = self.__line_search_method.ComputeStep()
 

@@ -61,7 +61,7 @@ class AlgorithmNAG(Algorithm):
         self.__objective = StandardizedObjective(parameters["objective"], self.master_control, self._optimization_problem)
         self.__control_field = None
         self.__obj_val = None
-        self.momentum = None
+        self.prev_update = None
 
         self.nu = 0.95
 
@@ -102,13 +102,16 @@ class AlgorithmNAG(Algorithm):
             update = search_direction * alpha
         elif isinstance(alpha, KratosOA.CollectiveExpression):
             update = search_direction.Scale(alpha)
-        if self.momentum:
-            mom_update = update.Clone() + self.momentum * 0.5
-            self.algorithm_data.GetBufferedData()["control_field_update"] = mom_update * 1.5
-            self.momentum = mom_update * 1.5
+        if self.prev_update:
+            mom_update = update + self.prev_update * 0.3
+            self.algorithm_data.GetBufferedData()["control_field_update"] = update + mom_update * 0.3
+            self.prev_update = mom_update
         else:
-            self.algorithm_data.GetBufferedData()["control_field_update"] = update * 1.5
-            self.momentum = update * 1.5
+            self.algorithm_data.GetBufferedData()["control_field_update"] = update * 1.3
+            self.prev_update = update
+
+        for expression in self.prev_update.GetContainerExpressions():
+            expression.SetExpression(expression.Flatten().GetExpression())
 
     @time_decorator()
     def UpdateControl(self) -> KratosOA.CollectiveExpression:
