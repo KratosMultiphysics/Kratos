@@ -91,43 +91,45 @@ namespace Kratos
 
         struct CallBackFunctions
         {
-            std::function<void(const char*)> rLogCallback;
-            std::function<void(double)> rReportProgress;
-            std::function<void(const char*)> rReportTextualProgress;
-            std::function<bool()> rShouldCancel;
+            std::function<void(const char*)> LogCallback;
+            std::function<void(double)> ReportProgress;
+            std::function<void(const char*)> ReportTextualProgress;
+            std::function<bool()> ShouldCancel;
 
-            CallBackFunctions(std::function<void(const char*)> rLogCallback,
-                              std::function<void(double)> rReportProgress,
-                              std::function<void(const char*)> rReportTextualProgress,
-                              std::function<bool()> rShouldCancel) :
-                    rLogCallback(std::move(rLogCallback)), rReportProgress(std::move(rReportProgress)), rReportTextualProgress(std::move(rReportTextualProgress)),
-                    rShouldCancel(std::move(rShouldCancel))
+            CallBackFunctions(std::function<void(const char*)> LogCallback,
+                              std::function<void(double)> ReportProgress,
+                              std::function<void(const char*)> ReportTextualProgress,
+                              std::function<bool()> ShouldCancel) :
+                    LogCallback(std::move(LogCallback)), ReportProgress(std::move(ReportProgress)), ReportTextualProgress(std::move(ReportTextualProgress)),
+                    ShouldCancel(std::move(ShouldCancel))
             {}
         };
 
-        int ExecuteFlowAnalysis(std::string_view rWorkingDirectory,
+        int ExecuteFlowAnalysis(std::string_view WorkingDirectory,
                                 const std::string& rProjectParamsFileName,
                                 const CriticalHeadInfo& rCriticalHeadInfo,
-                                std::string_view rCriticalHeadBoundaryModelPartName,
+                                std::string_view CriticalHeadBoundaryModelPartName,
                                 const CallBackFunctions& rCallBackFunctions);
 
         void ExecuteWithoutPiping(ModelPart& rModelPart,
-                                  const Kratos::Parameters& gid_output_settings) const;
+                                  const Kratos::Parameters& rGidOutputSettings,
+                                  const GeoMechanicsNewtonRaphsonErosionProcessStrategyType::Pointer pSolvingStrategy) const;
 
         int ExecuteWithPiping(ModelPart& rModelPart,
-                              const Kratos::Parameters& gid_output_settings,
+                              const Kratos::Parameters& rGidOutputSettings,
                               const CriticalHeadInfo& rCriticalHeadInfo,
-                              LoggerOutput::Pointer p_output,
-                              const CallBackFunctions& rCallBackFunctions);
+                              LoggerOutput::Pointer pOutput,
+                              const CallBackFunctions& rCallBackFunctions,
+                              const GeoMechanicsNewtonRaphsonErosionProcessStrategyType::Pointer pSolvingStrategy);
 
         void KratosExecute::WriteCriticalHeadResultToFile() const;
 
         void AddNodalSolutionStepVariables(ModelPart& rModelPart) const;
 
         int FindCriticalHead(ModelPart& rModelPart,
-                               const Kratos::Parameters& gid_output_settings,
+                               const Kratos::Parameters& rGidOutputSettings,
                                const CriticalHeadInfo& rCriticalHeadInfo,
-                               LoggerOutput::Pointer p_output,
+                               LoggerOutput::Pointer pOutput,
                                const shared_ptr<Process>& river_boundary,
                                const GeoMechanicsNewtonRaphsonErosionProcessStrategyType::Pointer pSolvingStrategy,
                                const CallBackFunctions& rCallBackFunctions);
@@ -135,7 +137,7 @@ namespace Kratos
         void HandleCriticalHeadFound(const CriticalHeadInfo& rCriticalHeadInfo);
 
         void HandleCleanUp(const std::function<void(const char*)>& rLogCallback,
-                           LoggerOutput::Pointer p_output);
+                           LoggerOutput::Pointer pOutput);
 
 
     private:
@@ -148,7 +150,6 @@ namespace Kratos
         bool mPipingSuccess = false;
         double mCriticalHead = 0.0;
         double mCurrentHead = 0.0;
-        bool mExitLoop = false;
         std::vector<std::shared_ptr<Process>> mProcesses;
         int mEchoLevel = 1;
 
@@ -158,7 +159,7 @@ namespace Kratos
 
         void SetEchoLevel(int level);
 
-        shared_ptr<Process> FindRiverBoundaryByName(const std::string& rCriticalHeadBoundaryModelPartName) const;
+        shared_ptr<Process> FindRiverBoundaryByName(const std::string& CriticalHeadBoundaryModelPartName) const;
 
         shared_ptr<Process> FindRiverBoundaryAutomatically(const KratosExecute::GeoMechanicsNewtonRaphsonErosionProcessStrategyType::Pointer rpSolvingStrategy) const;
 
