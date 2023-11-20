@@ -86,7 +86,9 @@ void SpatialSearchResultContainerVector<TObjectType>::SynchronizeAll(const DataC
 {
     // Synchronize all the results
     for (auto p_result : mPointResults) {
-        p_result->SynchronizeAll(rDataCommunicator);
+        if (p_result != nullptr) {
+            p_result->SynchronizeAll(rDataCommunicator);
+        }
     }
 }
 
