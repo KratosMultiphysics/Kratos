@@ -252,16 +252,15 @@ namespace Kratos
 
     // Heat generation
     // ASSUMPTION: Heat is generated even when neighbor is adiabatic
-    if (r_process_info[HEAT_GENERATION_OPTION] && mHasMotion)
+    if (r_process_info[HEAT_GENERATION_OPTION])
       mGenerationHeatFlux += GetGenerationModel().ComputeHeatGeneration(r_process_info, this);
 
-    // Check if neighbor is adiabatic
-    if (CheckAdiabaticNeighbor())
+    // Check if wall neighbor is adiabatic
+    if ((mNeighborType & WALL_NEIGHBOR && mNeighbor_w->Is(DEMThermalFlags::IS_ADIABATIC)))
       return;
 
     // Heat transfer mechanisms
-    if (r_process_info[DIRECT_CONDUCTION_OPTION])
-      mConductionDirectHeatFlux += GetDirectConductionModel().ComputeHeatFlux(r_process_info, this);
+    mConductionDirectHeatFlux += GetDirectConductionModel().ComputeHeatFlux(r_process_info, this);
 
     KRATOS_CATCH("")
   }
