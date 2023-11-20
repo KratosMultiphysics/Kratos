@@ -73,22 +73,22 @@ void TNormalFluxCondition<TDim, TNumNodes>::CalculateRHS(VectorType& rRightHandS
     for (unsigned int i = 0; i < TNumNodes; ++i) {
         normalFluxVector[i] = rGeom[i].FastGetSolutionStepValue(NORMAL_HEAT_FLUX);
     }
-    NormalFluxVariables Variables;
+    NormalFluxVariables variables;
 
     for (unsigned int GPoint = 0; GPoint < NumGPoints; ++GPoint) {
         // Obtain N
-        noalias(Variables.N) = row(NContainer, GPoint);
+        noalias(variables.N) = row(NContainer, GPoint);
 
         // Compute normal flux
-        Variables.normalFlux = MathUtils<>::Dot(Variables.N, normalFluxVector);
+        variables.normalFlux = MathUtils<>::Dot(variables.N, normalFluxVector);
 
         // Compute weighting coefficient for integration
-        this->CalculateIntegrationCoefficient(Variables.IntegrationCoefficient,
+        this->CalculateIntegrationCoefficient(variables.IntegrationCoefficient,
                                               JContainer[GPoint],
                                               IntegrationPoints[GPoint].Weight());
 
         // Contributions to the right hand side
-        this->CalculateAndAddRHS(rRightHandSideVector, Variables);
+        this->CalculateAndAddRHS(rRightHandSideVector, variables);
     }
 }
 
