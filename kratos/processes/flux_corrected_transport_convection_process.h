@@ -101,7 +101,7 @@ public:
         mpConvectionVar = &KratosComponents<Variable<array_1d<double, 3>>>::Get(ThisParameters["convection_variable_name"].GetString());
 
         // Check provided values
-        KRATOS_ERROR_IF(mDiffusionConstant < 1.0e-12 || mDiffusionConstant - 1.0 > 1.0e-12)
+        KRATOS_ERROR_IF(mDiffusionConstant < 1.0e-12 || mDiffusionConstant > 1.0)
             << "Provided 'diffusion_constant' " << mDiffusionConstant << " is not valid. Value must be between 0 and 1." << std::endl;
     }
 
