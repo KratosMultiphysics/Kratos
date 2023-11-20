@@ -41,4 +41,4 @@ def CreateSolverByParameters(model, custom_settings, parallelism):
 
 def CreateSolver(model, custom_settings):
     parallelism = custom_settings["problem_data"]["parallel_type"].GetString()
-    return CreateSolverByParameters(model, custom_settings,parallelism)
+    return CreateSolverByParameters(model, custom_settings["solver_settings"], parallelism)
