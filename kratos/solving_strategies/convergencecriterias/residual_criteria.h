@@ -20,6 +20,8 @@
 #include "includes/model_part.h"
 #include "includes/define.h"
 #include "utilities/constraint_utilities.h"
+#include "utilities/parallel_utilities.h"
+#include "utilities/reduction_utilities.h"
 #include "solving_strategies/convergencecriterias/convergence_criteria.h"
 
 namespace Kratos
@@ -46,7 +48,7 @@ namespace Kratos
 /**
  * @class ResidualCriteria
  * @ingroup KratosCore
- * @brief This is a convergence criteria that employes the residual as criteria
+ * @brief This is a convergence criteria that considers the residual as criteria
  * @details The reactions from the RHS are not computed in the residual
  * @author Riccardo Rossi
 */
@@ -60,31 +62,32 @@ public:
     ///@name Type Definitions
     ///@{
 
+    /// Pointer definition of ResidualCriteria
     KRATOS_CLASS_POINTER_DEFINITION( ResidualCriteria );
 
     /// The definition of the base ConvergenceCriteria
-    typedef ConvergenceCriteria< TSparseSpace, TDenseSpace > BaseType;
+    using BaseType = ConvergenceCriteria< TSparseSpace, TDenseSpace >;
 
     /// The definition of the current class
-    typedef ResidualCriteria< TSparseSpace, TDenseSpace > ClassType;
+    using ClassType = ResidualCriteria< TSparseSpace, TDenseSpace >;
 
     /// The data type
-    typedef typename BaseType::TDataType TDataType;
+    using TDataType = typename BaseType::TDataType;
 
     /// The dofs array type
-    typedef typename BaseType::DofsArrayType DofsArrayType;
+    using DofsArrayType = typename BaseType::DofsArrayType;
 
     /// The sparse matrix type
-    typedef typename BaseType::TSystemMatrixType TSystemMatrixType;
+    using TSystemMatrixType = typename BaseType::TSystemMatrixType;
 
     /// The dense vector type
-    typedef typename BaseType::TSystemVectorType TSystemVectorType;
+    using TSystemVectorType = typename BaseType::TSystemVectorType;
 
     /// Definition of the IndexType
-    typedef std::size_t IndexType;
+    using IndexType = std::size_t;
 
     /// Definition of the size type
-    typedef std::size_t SizeType;
+    using SizeType = std::size_t;
 
     ///@}
     ///@name Life Cycle
@@ -323,7 +326,6 @@ public:
     ///@{
 
     ///@}
-
 protected:
     ///@name Protected static Member Variables
     ///@{
@@ -361,37 +363,33 @@ protected:
         TDataType residual_solution_norm = TDataType();
         SizeType dof_num = 0;
 
-        // Auxiliar values
-        TDataType residual_dof_value{};
-        const auto it_dof_begin = rDofSet.begin();
-        const int number_of_dof = static_cast<int>(rDofSet.size());
+        // Custom reduction
+        using CustomReduction = CombinedReduction<SumReduction<TDataType>,SumReduction<SizeType>>;
+
+        // Auxiliary struct
+        struct TLS {TDataType residual_dof_value{};};
 
         // Loop over Dofs
         if (rModelPart.NumberOfMasterSlaveConstraints() > 0) {
-            #pragma omp parallel for firstprivate(residual_dof_value) reduction(+:residual_solution_norm, dof_num)
-            for (int i = 0; i < number_of_dof; i++) {
-                auto it_dof = it_dof_begin + i;
-
-                const IndexType dof_id = it_dof->EquationId();
-
+            std::tie(residual_solution_norm, dof_num) = block_for_each<CustomReduction>(rDofSet, TLS(), [this, &rb](auto& rDof, TLS& rTLS) {
+                const IndexType dof_id = rDof.EquationId();
                 if (mActiveDofs[dof_id] == 1) {
-                    residual_dof_value = TSparseSpace::GetValue(rb,dof_id);
-                    residual_solution_norm += std::pow(residual_dof_value, 2);
-                    dof_num++;
+                    rTLS.residual_dof_value = TSparseSpace::GetValue(rb, dof_id);
+                    return std::make_tuple(std::pow(rTLS.residual_dof_value, 2), 1);
+                } else {
+                    return std::make_tuple(TDataType(), 0);;
                 }
-            }
+            });
         } else {
-            #pragma omp parallel for firstprivate(residual_dof_value) reduction(+:residual_solution_norm, dof_num)
-            for (int i = 0; i < number_of_dof; i++) {
-                auto it_dof = it_dof_begin + i;
-
-                if (!it_dof->IsFixed()) {
-                    const IndexType dof_id = it_dof->EquationId();
-                    residual_dof_value = TSparseSpace::GetValue(rb,dof_id);
-                    residual_solution_norm += std::pow(residual_dof_value, 2);
-                    dof_num++;
+            std::tie(residual_solution_norm, dof_num) = block_for_each<CustomReduction>(rDofSet, TLS(), [&rb](auto& rDof, TLS& rTLS) {
+                if (!rDof.IsFixed()) {
+                    const IndexType dof_id = rDof.EquationId();
+                    rTLS.residual_dof_value = TSparseSpace::GetValue(rb, dof_id);
+                    return std::make_tuple(std::pow(rTLS.residual_dof_value, 2), 1);
+                } else {
+                    return std::make_tuple(TDataType(), 0);;
                 }
-            }
+            });
         }
 
         rDofNum = dof_num;
@@ -422,7 +420,6 @@ protected:
     ///@{
 
     ///@}
-
 private:
     ///@name Static Member Variables
     ///@{
