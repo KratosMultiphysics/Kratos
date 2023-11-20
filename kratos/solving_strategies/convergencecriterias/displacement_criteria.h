@@ -4,23 +4,23 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Riccardo Rossi
 //
 //
 
-#if !defined(KRATOS_DISPLACEMENT_CRITERIA )
-#define  KRATOS_DISPLACEMENT_CRITERIA
+#pragma once
 
-/* System includes */
+// System includes
 
-/* External includes */
+// External includes
 
-/* Project includes */
+// Project includes
 #include "includes/model_part.h"
-#include "includes/define.h"
+#include "utilities/parallel_utilities.h"
+#include "utilities/reduction_utilities.h"
 #include "solving_strategies/convergencecriterias/convergence_criteria.h"
 
 namespace Kratos
@@ -47,7 +47,7 @@ namespace Kratos
 /**
  * @class DisplacementCriteria
  * @ingroup KratosCore
- * @brief This is a convergence criteria that employes the increment on the solution as criteria
+ * @brief This is a convergence criteria that considers the increment on the solution as criteria
  * @details The reactions from the RHS are not computed in the solution
  * @author Riccardo Rossi
 */
@@ -61,26 +61,32 @@ public:
     ///@name Type Definitions
     ///@{
 
+    /// Pointer definition of DisplacementCriteria
     KRATOS_CLASS_POINTER_DEFINITION( DisplacementCriteria );
 
-    typedef ConvergenceCriteria< TSparseSpace, TDenseSpace > BaseType;
+    /// The definition of the base ConvergenceCriteria
+    using BaseType = ConvergenceCriteria< TSparseSpace, TDenseSpace >;
 
     /// The definition of the current class
-    typedef DisplacementCriteria< TSparseSpace, TDenseSpace > ClassType;
+    using ClassType = DisplacementCriteria< TSparseSpace, TDenseSpace >;
 
-    typedef TSparseSpace SparseSpaceType;
+    /// The data type
+    using TDataType = typename BaseType::TDataType;
 
-    typedef typename BaseType::TDataType TDataType;
+    /// The dofs array type
+    using DofsArrayType = typename BaseType::DofsArrayType;
 
-    typedef typename BaseType::DofsArrayType DofsArrayType;
+    /// The sparse matrix type
+    using TSystemMatrixType = typename BaseType::TSystemMatrixType;
 
-    typedef typename BaseType::TSystemMatrixType TSystemMatrixType;
+    /// The dense vector type
+    using TSystemVectorType = typename BaseType::TSystemVectorType;
 
-    typedef typename BaseType::TSystemVectorType TSystemVectorType;
+    /// Definition of the IndexType
+    using IndexType = std::size_t;
 
-    typedef std::size_t IndexType;
-
-    typedef std::size_t SizeType;
+    /// Definition of the size type
+    using SizeType = std::size_t;
 
     ///@}
     ///@name Life Cycle
@@ -128,7 +134,6 @@ public:
     /** Destructor.
     */
     ~DisplacementCriteria() override {}
-
 
     ///@}
     ///@name Operators
@@ -285,7 +290,6 @@ public:
     ///@name Access
     ///@{
 
-
     ///@}
     ///@name Inquiry
     ///@{
@@ -316,23 +320,18 @@ public:
     ///@name Friends
     ///@{
 
-
     ///@}
-
 protected:
     ///@name Protected static Member Variables
     ///@{
-
 
     ///@}
     ///@name Protected member Variables
     ///@{
 
-
     ///@}
     ///@name Protected Operators
     ///@{
-
 
     ///@}
     ///@name Protected Operations
@@ -353,22 +352,18 @@ protected:
     ///@name Protected  Access
     ///@{
 
-
     ///@}
     ///@name Protected Inquiry
     ///@{
-
 
     ///@}
     ///@name Protected LifeCycle
     ///@{
 
     ///@}
-
 private:
     ///@name Static Member Variables
     ///@{
-
 
     ///@}
     ///@name Member Variables
@@ -379,7 +374,6 @@ private:
     TDataType mAlwaysConvergedNorm; /// The absolute value threshold for the norm of the residual
 
     TDataType mReferenceDispNorm;   /// The norm at the beginning of the iterations
-
 
     ///@}
     ///@name Private Operators
@@ -392,18 +386,17 @@ private:
      */
     void CalculateReferenceNorm(DofsArrayType& rDofSet)
     {
-        TDataType reference_disp_norm = TDataType();
-        TDataType dof_value;
+        // Auxiliary struct
+        struct TLS {TDataType dof_value{};};
 
-        #pragma omp parallel for reduction(+:reference_disp_norm)
-        for (int i = 0; i < static_cast<int>(rDofSet.size()); i++) {
-            auto it_dof = rDofSet.begin() + i;
-
-            if(it_dof->IsFree()) {
-                dof_value = it_dof->GetSolutionStepValue();
-                reference_disp_norm += dof_value * dof_value;
+        const TDataType reference_disp_norm = block_for_each<SumReduction<TDataType>>(rDofSet, TLS(), [](auto& rDof, TLS& rTLS) {
+            if(rDof.IsFree()) {
+                rTLS.dof_value = rDof.GetSolutionStepValue();
+                return std::pow(rTLS.dof_value, 2);
+            } else {
+                return TDataType();
             }
-        }
+        });
         mReferenceDispNorm = std::sqrt(reference_disp_norm);
     }
 
@@ -424,21 +417,22 @@ private:
         TDataType final_correction_norm = TDataType();
         SizeType dof_num = 0;
 
+        // Custom reduction
+        using CustomReduction = CombinedReduction<SumReduction<TDataType>,SumReduction<SizeType>>;
+
+        // Auxiliary struct
+        struct TLS {TDataType dof_value{};IndexType dof_id{}; TDataType variation_dof_value{};};
+
         // Loop over Dofs
-        #pragma omp parallel for reduction(+:final_correction_norm,dof_num)
-        for (int i = 0; i < static_cast<int>(rDofSet.size()); i++) {
-            auto it_dof = rDofSet.begin() + i;
-
-            IndexType dof_id;
-            TDataType variation_dof_value;
-
-            if (it_dof->IsFree()) {
-                dof_id = it_dof->EquationId();
-                variation_dof_value = Dx[dof_id];
-                final_correction_norm += std::pow(variation_dof_value, 2);
-                dof_num++;
+        std::tie(final_correction_norm, dof_num) = block_for_each<CustomReduction>(rDofSet, TLS(), [&Dx](auto& rDof, TLS& rTLS) {
+            if (rDof.IsFree()) {
+                rTLS.dof_id = rDof.EquationId();
+                rTLS.variation_dof_value = Dx[rTLS.dof_id];
+                return std::make_tuple(std::pow(rTLS.variation_dof_value, 2), 1);
+            } else {
+                return std::make_tuple(TDataType(), 0);
             }
-        }
+        });
 
         rDofNum = dof_num;
         return std::sqrt(final_correction_norm);
@@ -448,35 +442,25 @@ private:
     ///@name Private Operations
     ///@{
 
-
     ///@}
     ///@name Private  Access
     ///@{
-
 
     ///@}
     ///@name Private Inquiry
     ///@{
 
-
     ///@}
     ///@name Un accessible methods
     ///@{
 
-
     ///@}
-
 }; /* Class DisplacementCriteria */
 
 ///@}
-
 ///@name Type Definitions
 ///@{
-
 
 ///@}
 
 }  /* namespace Kratos.*/
-
-#endif /* KRATOS_DISPLACEMENT_CRITERIA  defined */
-
