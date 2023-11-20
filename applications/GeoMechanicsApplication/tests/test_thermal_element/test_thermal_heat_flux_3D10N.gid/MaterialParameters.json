@@ -4,7 +4,7 @@
       "properties_id":           1,
       "Material": {
           "constitutive_law": {
-              "name"             :  "GeoThermalDispersion2DLaw" 
+              "name"             :  "GeoThermalDispersion3DLaw" 
           },
           "Variables": {
               "DENSITY_SOLID"                 :  2650,
@@ -18,7 +18,7 @@
               "THERMAL_CONDUCTIVITY_SOLID_ZZ" :  1.50,
               "THERMAL_CONDUCTIVITY_SOLID_XY" :  0.0,
               "THERMAL_CONDUCTIVITY_SOLID_YZ" :  0.0,
-              "THERMAL_CONDUCTIVITY_SOLID_ZX" :  0.0,
+              "THERMAL_CONDUCTIVITY_SOLID_XZ" :  0.0,
               "THERMAL_CONDUCTIVITY_WATER"    :  0.48,
               "LONGITUDINAL_DISPERSIVITY"     :  1.0,
               "TRANSVERSE_DISPERSIVITY"       :  1.0,
