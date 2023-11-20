@@ -34,7 +34,6 @@ public:
     using TSystemMatrixType     = typename BaseType::TSystemMatrixType;
     using TSystemVectorType     = typename BaseType::TSystemVectorType;
     using MotherType = NewmarkQuasistaticUPwScheme<TSparseSpace,TDenseSpace>;
-    using MotherType::mDeltaTime;
 // mBeta and mGamma are not really used
     using MotherType::mBeta;
     using MotherType::mGamma;
@@ -69,11 +68,7 @@ public:
                 << std::endl;
         }
 
-        //check for minimum value of the buffer index.
-        KRATOS_ERROR_IF(rModelPart.GetBufferSize() < 2)
-            << "insufficient buffer size. Buffer size should be greater than 2. Current size is "
-            << rModelPart.GetBufferSize()
-            << std::endl;
+        this->CheckBufferSize(rModelPart);
 
         // Check beta, gamma and theta
         KRATOS_ERROR_IF(mBeta <= 0.0 || mGamma<= 0.0 || mTheta <= 0.0)
@@ -108,7 +103,7 @@ protected:
                                         - rNode.FastGetSolutionStepValue(WATER_PRESSURE, 1);
             const auto &PreviousDtPressure = rNode.FastGetSolutionStepValue(DT_WATER_PRESSURE, 1);
 
-            rNode.FastGetSolutionStepValue(DT_WATER_PRESSURE) =  (1.0/(mTheta*mDeltaTime))*(DeltaPressure - (1.0-mTheta)*mDeltaTime*PreviousDtPressure);
+            rNode.FastGetSolutionStepValue(DT_WATER_PRESSURE) =  (1.0/(mTheta*this->GetDeltaTime()))*(DeltaPressure - (1.0-mTheta)*this->GetDeltaTime()*PreviousDtPressure);
         });
 
         KRATOS_CATCH( "" )

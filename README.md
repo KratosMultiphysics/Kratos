@@ -42,14 +42,14 @@ _KRATOS Multiphysics_ ("Kratos") is a framework for building parallel, multi-dis
 
 **Kratos** provides a core which defines the common framework and several application which work like plug-ins that can be extended in diverse fields.
 
-Its main applications are:
+## Its main applications are:
 - [DEM](applications/DEMApplication) for cohesive and non cohesive spheric and non spheric particles simulation
 - [Fluid Dynamics](applications/FluidDynamicsApplication/README.md) Provides 2D and 3D incompressible fluids formulation
 - [Fluid Structure Interaction](applications/FSIApplication/README.md) for solution of different FSI problems
 - [Structural Mechanics](applications/StructuralMechanicsApplication/README.md) Providing solution for solid, shell and beam structures with linear and nonlinear, static and dynamic behavior
 - [Contact Structural Mechanics](applications/ContactStructuralMechanicsApplication/README.md) For contact problems used along the [Structural Mechanics application](applications/StructuralMechanicsApplication/README.md)
 
-Some main modules are:
+## Some main modules are:
 - [Linear Solvers](applications/LinearSolversApplication/README.md)
 - [Trilinos](applications/TrilinosApplication/README.md)
 - [Metis](applications/MetisApplication/README.md)
@@ -57,6 +57,7 @@ Some main modules are:
 
 # Documentation
 Here you can find the basic documentation of the project:
+
 ## Getting Started
 * Getting Kratos (Last compiled Release)
     * [Kratos from `pip`](https://pypi.org/project/KratosMultiphysics/): Just simply type on terminal `pip install KratosMultiphysics-all`
@@ -131,11 +132,10 @@ Some users of the technologies developed in Kratos are:
 <p>ONERA, The French Aerospace Lab<br>Applied Aerodynamics Department</p>
 </span>
 
-
-Looking forward to seeing your logo here!
+🤗 Looking forward to seeing your logo here!
 
 # Special Thanks To
-In Kratos Core:
+## In Kratos Core:
 - [Boost](http://www.boost.org/) for ublas
 - [pybind11](https://github.com/pybind/pybind11) for exposing C++ to python
 - [GidPost](https://www.gidhome.com/gid-plus/tools/476/gidpost/) providing output to [GiD](https://www.gidhome.com/)
@@ -143,7 +143,7 @@ In Kratos Core:
 - [JSON](https://github.com/nlohmann/json) JSON for Modern C++
 - [ZLib](https://zlib.net/) The compression library
 
-In applications:
+## In applications:
 - [Eigen](http://eigen.tuxfamily.org) For linear solvers used in the [LinearSolversApplication](applications/LinearSolversApplication)
 - [Trilinos](https://trilinos.org/) for MPI linear algebra and solvers used in [TrilinosApplication](applications/TrilinosApplication)
 - [METIS](http://glaros.dtc.umn.edu/gkhome/views/metis) for partitioning in [MetisApplication](applications/MetisApplication/README.md)

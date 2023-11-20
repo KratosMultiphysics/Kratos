@@ -11,18 +11,16 @@
 //
 
 // Project includes
-#include "parametric_linear_transform.h"
+#include "parametric_affine_transform.h"
 
-namespace Kratos
-{
+namespace Kratos {
 
 
-ParametricLinearTransform::ParametricLinearTransform(const Parameters axis,
+ParametricAffineTransform::ParametricAffineTransform(const Parameters axis,
                                                      const Parameters angle,
                                                      const Parameters referencePoint,
                                                      const Parameters translationVector)
-    : LinearTransform(),
-      mReferencePointFunction(referencePoint),
+    : mReferencePointFunction(referencePoint),
       mTranslationVectorFunction(translationVector)
 {
     KRATOS_TRY
@@ -56,11 +54,10 @@ ParametricLinearTransform::ParametricLinearTransform(const Parameters axis,
 }
 
 
-ParametricLinearTransform::ParametricLinearTransform(const Parameters eulerAngles,
+ParametricAffineTransform::ParametricAffineTransform(const Parameters eulerAngles,
                                                      const Parameters referencePoint,
                                                      const Parameters translationVector)
-    : LinearTransform(),
-      mReferencePointFunction(referencePoint),
+    : mReferencePointFunction(referencePoint),
       mTranslationVectorFunction(translationVector)
 {
     KRATOS_TRY
@@ -76,11 +73,8 @@ ParametricLinearTransform::ParametricLinearTransform(const Parameters eulerAngle
                                            const double Z) mutable
     {
         KRATOS_TRY
-
         const auto euler_angles = angle_function(x, y, z, t, X, Y, Z);
-
         return Quaternion<double>::FromEulerAngles(euler_angles);
-
         KRATOS_CATCH("");
     };
 
@@ -88,7 +82,7 @@ ParametricLinearTransform::ParametricLinearTransform(const Parameters eulerAngle
 }
 
 
-array_1d<double,3> ParametricLinearTransform::Apply(const array_1d<double,3>& rPoint,
+array_1d<double,3> ParametricAffineTransform::Apply(const array_1d<double,3>& rPoint,
                                                     const double t,
                                                     const double X,
                                                     const double Y,
@@ -150,13 +144,13 @@ array_1d<double,3> ParametricLinearTransform::Apply(const array_1d<double,3>& rP
     this->SetTranslation(translation_vector);
 
     // Perform the transformation
-    return LinearTransform::Apply(rPoint);
+    return AffineTransform::Apply(rPoint);
 
     KRATOS_CATCH("");
 }
 
 
-std::string ParametricLinearTransform::ExtractFunctionBody(const Parameters parameters)
+std::string ParametricAffineTransform::ExtractFunctionBody(const Parameters parameters)
 {
     KRATOS_TRY
 
@@ -164,11 +158,9 @@ std::string ParametricLinearTransform::ExtractFunctionBody(const Parameters para
 
     if (parameters.IsString()) {
         body = parameters.GetString();
-    }
-    else if (parameters.IsNumber()) {
+    } else if (parameters.IsNumber()) {
         body = std::to_string(parameters.GetDouble());
-    }
-    else {
+    } else {
         KRATOS_ERROR << "Cannot extract function body from Parameters: " << parameters;
     }
 
