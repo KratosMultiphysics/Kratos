@@ -10,7 +10,8 @@ import KratosMultiphysics.DigitalTwinApplication as KratosDT
 from KratosMultiphysics.DigitalTwinApplication.sensor_placement_algorithms.sensor_placement_algorithm import SensorPlacementAlgorithm
 from KratosMultiphysics.DigitalTwinApplication.utilities.sensor_utils import GetNormalizedSensorViews
 from KratosMultiphysics.DigitalTwinApplication.utilities.sensor_utils import GetCosineDistances
-from KratosMultiphysics.DigitalTwinApplication.utilities.sensor_utils import PrintSensorViewsListToCSV
+from KratosMultiphysics.DigitalTwinApplication.utilities.sensor_utils import PrintSensorListToCSV
+from KratosMultiphysics.DigitalTwinApplication.utilities.sensor_utils import PrintSensorListToJson
 from KratosMultiphysics.DigitalTwinApplication.utilities.data_utils import GetKratosValueToPythonValueConverter
 from KratosMultiphysics.DigitalTwinApplication.utilities.data_utils import SensorViewUnionType
 from KratosMultiphysics.DigitalTwinApplication.utilities.data_utils import SupportedVariableUnionType
@@ -195,34 +196,19 @@ class CosineSimilaritySensorPlacementAlgorithm(SensorPlacementAlgorithm):
                 heat_map /= KratosOA.ExpressionUtils.NormL2(heat_map)
                 vtu_output.AddContainerExpression("heat_map", heat_map)
 
-            PrintSensorViewsListToCSV(output_path / f"best_placement_{clustering_iteration:05d}.csv", [s_view.GetSensor() for s_view in list_of_best_sensor_views], ["type", "name", "location", "value", "SENSOR_CLUSTER_ID"])
+            PrintSensorListToCSV(output_path / f"best_placement_{clustering_iteration:05d}.csv", [s_view.GetSensor() for s_view in list_of_best_sensor_views], ["type", "name", "location", "value", "SENSOR_CLUSTER_ID"])
             vtu_output.PrintOutput(str(output_path / f"heat_map_{clustering_iteration:05d}"))
 
         Kratos.Logger.PrintInfo(self.__class__.__name__, f"Found {len(list_of_best_sensor_views)} clusters with sensors.")
 
         if len(list_of_best_sensor_views) > 0:
-            # write the json file for best sensor placement.
-            list_of_vars: 'list[tuple[SupportedVariableUnionType, typing.Callable[[SupportedValueUnionType], typing.Union[bool, int, float, str, list[float]]]]]' = []
-            for var_name in list_of_best_sensor_views[0].GetSensor().GetDataVariableNames():
-                var: SupportedVariableUnionType = Kratos.KratosGlobals.GetVariable(var_name)
-                list_of_vars.append((var, GetKratosValueToPythonValueConverter(list_of_best_sensor_views[0].GetSensor().GetValue(var))))
-            list_of_vars.append((KratosDT.SENSOR_ENTITY_IDS, GetKratosValueToPythonValueConverter(Kratos.Vector())))
+            for sensor_view in list_of_best_sensor_views:
+                sensor = sensor_view.GetSensor()
+                # add cluster ids
+                list_of_entity_indices = entity_index_cluster_dict[sensor.GetValue(KratosDT.SENSOR_CLUSTER_ID)]
+                sensor.SetValue(KratosDT.SENSOR_ENTITY_IDS, Kratos.Vector([float(list_of_entity_ids[i]) for i in list_of_entity_indices]))
 
-            # now write the sensors with data
-            json_sensors = {"list_of_sensors": []}
-            with open(str(output_path / "best_sensor_data.json"), "w") as file_output:
-                for sensor_view in list_of_best_sensor_views:
-                    sensor = sensor_view.GetSensor()
-                    json_params = json.loads(sensor.GetSensorParameters().WriteJsonString())
-                    json_params["variable_data"] = {}
-
-                    # add cluster ids
-                    list_of_entity_indices = entity_index_cluster_dict[sensor.GetValue(KratosDT.SENSOR_CLUSTER_ID)]
-                    sensor.SetValue(KratosDT.SENSOR_ENTITY_IDS, Kratos.Vector([float(list_of_entity_ids[i]) for i in list_of_entity_indices]))
-                    for var, func in list_of_vars:
-                        json_params["variable_data"][var.Name()] = func(sensor.GetValue(var))
-                    json_sensors["list_of_sensors"].append(json_params)
-                file_output.write(json.dumps(json_sensors, indent=4))
+            PrintSensorListToJson(output_path / "best_sensor_data.json", [sensor_view.GetSensor() for sensor_view in list_of_best_sensor_views])
 
         if len(list_of_clusters_to_break) > 0:
             Kratos.Logger.PrintWarning(self.__class__.__name__, f"The max_clustering_iterations and/or unbreakable clusters limit reached without breaking {len(list_of_clusters_to_break)} clusters.\n\t Following clusters does not satisfy the prescribed coverage area:")
@@ -231,7 +217,7 @@ class CosineSimilaritySensorPlacementAlgorithm(SensorPlacementAlgorithm):
                 cluster_domain_size = np.sum(np.take(entity_domain_size_np_exp, entity_indices))
                 Kratos.Logger.PrintInfo("", f"\t\t Cluster {cluster_id_to_break} - domain size = {cluster_domain_size * 100.0 / total_domain_size:0.3f} %")
 
-        PrintSensorViewsListToCSV(output_path / f"clusters.csv", [s_view.GetSensor() for s_view in unique_normalized_list], ["type", "name", "location", "value", "SENSOR_CLUSTER_ID"])
+        PrintSensorListToCSV(output_path / f"clusters.csv", [s_view.GetSensor() for s_view in unique_normalized_list], ["type", "name", "location", "value", "SENSOR_CLUSTER_ID"])
 
     def ClusterListOfSensorViews(self, number_of_cluster: int, list_of_sensor_views: 'list[SensorViewUnionType]') -> 'dict[int, list[SensorViewUnionType]]':
         sensor_cosine_distances = GetCosineDistances(list_of_sensor_views)

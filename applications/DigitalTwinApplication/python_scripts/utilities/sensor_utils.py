@@ -1,4 +1,5 @@
 import typing
+import json
 from pathlib import Path
 
 import KratosMultiphysics as Kratos
@@ -9,6 +10,7 @@ from KratosMultiphysics.DigitalTwinApplication.utilities.data_utils import Suppo
 from KratosMultiphysics.DigitalTwinApplication.utilities.data_utils import SupportedVariableUnionType
 from KratosMultiphysics.DigitalTwinApplication.utilities.data_utils import GetParameterToKratosValuesConverter
 from KratosMultiphysics.DigitalTwinApplication.utilities.data_utils import GetKratosValueToCSVStringConverter
+from KratosMultiphysics.DigitalTwinApplication.utilities.data_utils import GetKratosValueToPythonValueConverter
 from KratosMultiphysics.DigitalTwinApplication.utilities.data_utils import GetNameToCSVString
 
 def GetSensors(model_part: Kratos.ModelPart, list_of_parameters: 'list[Kratos.Parameters]') -> 'list[KratosDT.Sensors.Sensor]':
@@ -62,7 +64,7 @@ def GetSensors(model_part: Kratos.ModelPart, list_of_parameters: 'list[Kratos.Pa
             list_of_sensors.append(sensor)
     return list_of_sensors
 
-def PrintSensorViewsListToCSV(output_file_name: Path, list_of_sensors: 'list[KratosDT.Sensors.Sensor]', list_of_sensor_properties: 'list[str]') -> None:
+def PrintSensorListToCSV(output_file_name: Path, list_of_sensors: 'list[KratosDT.Sensors.Sensor]', list_of_sensor_properties: 'list[str]') -> None:
     """Writes data in the list_of_sensors to CSV file.
 
     This method writes data from all the list_of_sensors to the CSV file. The columns of the
@@ -177,6 +179,26 @@ def GetCosineDistances(list_of_sensor_views: 'list[SensorViewUnionType]') -> 'li
             results.append(1.0 - KratosOA.ExpressionUtils.InnerProduct(sensor_view_i.GetContainerExpression(), sensor_view_j.GetContainerExpression()))
     return results
 
+def GetEuclideanDistances(list_of_sensor_views: 'list[SensorViewUnionType]') -> 'list[float]':
+    """Get the Euclidean distances in a flat array.
+
+    The distances are computed as follows
+
+         d(u, v) = |u-v|
+
+    Args:
+        list_of_sensor_views (list[SensorViewUnionType]): List of sensor views
+
+    Returns:
+        list[float]: d(u, v) calculated for all u and v
+    """
+    results: 'list[float]' = []
+    for i, sensor_view_i in enumerate(list_of_sensor_views):
+        for sensor_view_j in list_of_sensor_views[i+1:]:
+            dist = sensor_view_i.GetSensor().GetLocation() - sensor_view_j.GetSensor().GetLocation()
+            results.append((dist[0]**2 + dist[1]**2 + dist[2]**2) ** 0.5)
+    return results
+
 def AddSensorVariableData(sensor: KratosDT.Sensors.Sensor, variable_data: Kratos.Parameters) -> None:
     """Adds sensor variable data.
 
@@ -205,4 +227,31 @@ def GetSensorTypeDict(list_of_sensors: 'list[SensorViewUnionType]') -> 'dict[str
             result[sensor_type] = []
         result[sensor_type].append(sensor)
     return result
+
+def PrintSensorListToJson(output_file_name: Path, list_of_sensors: 'list[KratosDT.Sensors.Sensor]') -> None:
+    number_of_sensor_views = len(list_of_sensors)
+
+    # do nothing if number of clusters is zero
+    if number_of_sensor_views == 0:
+        return
+
+    # create output path
+    output_file_name.parent.mkdir(exist_ok=True, parents=True)
+
+    list_of_vars: 'list[tuple[SupportedVariableUnionType, typing.Callable[[SupportedValueUnionType], typing.Union[bool, int, float, str, list[float]]]]]' = []
+    for var_name in list_of_sensors[0].GetDataVariableNames():
+        var: SupportedVariableUnionType = Kratos.KratosGlobals.GetVariable(var_name)
+        list_of_vars.append((var, GetKratosValueToPythonValueConverter(list_of_sensors[0].GetValue(var))))
+
+    json_sensors = {"list_of_sensors": []}
+    with open(str(output_file_name), "w") as file_output:
+        for sensor in list_of_sensors:
+            json_params = json.loads(sensor.GetSensorParameters().WriteJsonString())
+            json_params["variable_data"] = {}
+
+            for var, func in list_of_vars:
+                json_params["variable_data"][var.Name()] = func(sensor.GetValue(var))
+            json_sensors["list_of_sensors"].append(json_params)
+
+        file_output.write(json.dumps(json_sensors, indent=4))
 

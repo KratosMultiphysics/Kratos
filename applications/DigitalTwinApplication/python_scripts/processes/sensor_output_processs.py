@@ -3,7 +3,7 @@ import KratosMultiphysics as Kratos
 import KratosMultiphysics.DigitalTwinApplication as KratosDT
 
 from KratosMultiphysics.DigitalTwinApplication.utilities.sensor_utils import GetSensors
-from KratosMultiphysics.DigitalTwinApplication.utilities.sensor_utils import PrintSensorViewsListToCSV
+from KratosMultiphysics.DigitalTwinApplication.utilities.sensor_utils import PrintSensorListToCSV
 
 def Factory(settings: Kratos.Parameters, model: Kratos.Model):
     if (not isinstance(model, Kratos.Model)):
@@ -41,7 +41,7 @@ class SensorOutputProcess(Kratos.OutputProcess):
         # calculate and assign values for each sensor
         for sensor in self.list_of_sensors:
             sensor.SetSensorValue(sensor.CalculateValue(self.model_part))
-        PrintSensorViewsListToCSV(Path(s_name), self.list_of_sensors, self.properties_list)
+        PrintSensorListToCSV(Path(s_name), self.list_of_sensors, self.properties_list)
 
 
 
