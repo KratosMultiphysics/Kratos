@@ -558,8 +558,8 @@ private:
 
     const LinearElastic2DBeamLaw          mLinearElastic2DBeamLaw;
 
-    const GeoThermalDispersionLaw mGeoThermalDispersion2DLaw(2);
-    const GeoThermalDispersionLaw mGeoThermalDispersion3DLaw(3);
+    const GeoThermalDispersionLaw mGeoThermalDispersion2DLaw{ConstitutiveLaw::SizeType(2)};
+    const GeoThermalDispersionLaw mGeoThermalDispersion3DLaw{ConstitutiveLaw::SizeType(3)};
 
     ///@}
 
