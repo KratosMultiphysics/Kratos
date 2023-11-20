@@ -106,6 +106,11 @@ pybind11_add_module(KratosHDF5Application MODULE THIN_LTO ${KRATOS_HDF5_APPLICAT
 target_link_libraries(KratosHDF5Application PRIVATE KratosHDF5Core)
 set_target_properties(KratosHDF5Application PROPERTIES PREFIX "")
 
+# Shared PCH
+if(KRATOS_USE_PCH MATCHES ON)
+    target_precompile_headers(KratosHDF5Core REUSE_FROM KratosCoreSharedPch)
+endif(KRATOS_USE_PCH MATCHES ON)
+
 # Set batch size in the unity build
 IF(CMAKE_UNITY_BUILD MATCHES ON)
     set_target_properties(KratosHDF5Core PROPERTIES UNITY_BUILD_BATCH_SIZE ${KRATOS_UNITY_BUILD_BATCH_SIZE})

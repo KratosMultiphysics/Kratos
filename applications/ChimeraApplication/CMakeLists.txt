@@ -38,6 +38,11 @@ pybind11_add_module(KratosChimeraApplication MODULE THIN_LTO ${KRATOS_CHIMERA_AP
 target_link_libraries(KratosChimeraApplication PRIVATE KratosChimeraApplicationCore)
 set_target_properties(KratosChimeraApplication PROPERTIES PREFIX "")
 
+# Shared PCH
+if(KRATOS_USE_PCH MATCHES ON)
+    target_precompile_headers(KratosChimeraApplicationCore REUSE_FROM KratosCoreSharedPch)
+endif(KRATOS_USE_PCH MATCHES ON)
+
 # Set batch size in the unity build
 IF(CMAKE_UNITY_BUILD MATCHES ON)
     set_target_properties(KratosChimeraApplicationCore PROPERTIES UNITY_BUILD_BATCH_SIZE ${KRATOS_UNITY_BUILD_BATCH_SIZE})

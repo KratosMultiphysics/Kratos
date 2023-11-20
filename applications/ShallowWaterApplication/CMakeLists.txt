@@ -43,6 +43,11 @@ pybind11_add_module(KratosShallowWaterApplication MODULE THIN_LTO ${KRATOS_SHALL
 target_link_libraries(KratosShallowWaterApplication PRIVATE KratosShallowWaterCore)
 set_target_properties(KratosShallowWaterApplication PROPERTIES PREFIX "")
 
+# Shared PCH
+if(KRATOS_USE_PCH MATCHES ON)
+    target_precompile_headers(KratosShallowWaterCore REUSE_FROM KratosCoreSharedPch)
+endif(KRATOS_USE_PCH MATCHES ON)
+
 # Set batch size in the unity build
 IF(CMAKE_UNITY_BUILD MATCHES ON)
     set_target_properties(KratosShallowWaterCore PROPERTIES UNITY_BUILD_BATCH_SIZE ${KRATOS_UNITY_BUILD_BATCH_SIZE})

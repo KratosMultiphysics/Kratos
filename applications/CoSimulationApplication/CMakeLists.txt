@@ -45,6 +45,11 @@ pybind11_add_module(KratosCoSimulationApplication MODULE THIN_LTO ${KRATOS_CO_SI
 target_link_libraries(KratosCoSimulationApplication PRIVATE KratosCoSimulationCore )
 set_target_properties(KratosCoSimulationApplication PROPERTIES PREFIX "")
 
+# Shared PCH
+if(KRATOS_USE_PCH MATCHES ON)
+    target_precompile_headers(KratosCoSimulationCore REUSE_FROM KratosCoreSharedPch)
+endif(KRATOS_USE_PCH MATCHES ON)
+
 # Set batch size in the unity build
 IF(CMAKE_UNITY_BUILD MATCHES ON)
     set_target_properties(KratosCoSimulationCore PROPERTIES UNITY_BUILD_BATCH_SIZE ${KRATOS_UNITY_BUILD_BATCH_SIZE})

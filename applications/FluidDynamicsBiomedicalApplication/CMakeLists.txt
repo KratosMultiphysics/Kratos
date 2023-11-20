@@ -15,7 +15,6 @@ set( KRATOS_FLUID_DYNAMICS_BIOMEDICAL_APPLICATION_CORE_SOURCES
   # utilities
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/parabolic_profile_utilities.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/wss_statistics_utilities.cpp
-
 )
 
 ## define python interface sources
@@ -39,6 +38,11 @@ set_target_properties( KratosFluidDynamicsBiomedicalCore PROPERTIES COMPILE_DEFI
 pybind11_add_module( KratosFluidDynamicsBiomedicalApplication MODULE THIN_LTO ${KRATOS_FLUID_DYNAMICS_BIOMEDICAL_PYTHON_INTERFACE_SOURCES} )
 target_link_libraries( KratosFluidDynamicsBiomedicalApplication PRIVATE KratosFluidDynamicsBiomedicalCore)
 set_target_properties( KratosFluidDynamicsBiomedicalApplication PROPERTIES PREFIX "")
+
+# Shared PCH
+if(KRATOS_USE_PCH MATCHES ON)
+    target_precompile_headers(KratosFluidDynamicsBiomedicalCore REUSE_FROM KratosCoreSharedPch)
+endif(KRATOS_USE_PCH MATCHES ON)
 
 # Set batch size in the unity build
 IF(CMAKE_UNITY_BUILD MATCHES ON)

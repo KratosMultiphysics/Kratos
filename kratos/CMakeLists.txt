@@ -82,6 +82,7 @@ target_compile_definitions(KratosVersion PRIVATE
 
 ## Define library KratosCore to be included in all of the others
 add_library(KratosCore SHARED ${KRATOS_CORE_SOURCES} ${KRATOS_CORE_TESTING_ENGINE_SOURCES} ${KRATOS_CORE_INPUT_OUTPUT_SOURCES} ${KRATOS_EXPRESSION_SOURCES} ${KRATOS_TEST_SOURCES} ${KRATOS_TPL_SOURCES} $<TARGET_OBJECTS:KratosVersion>)
+add_library(KratosCoreSharedPch SHARED ${KRATOS_CORE_SOURCES} ${KRATOS_CORE_TESTING_ENGINE_SOURCES} ${KRATOS_CORE_INPUT_OUTPUT_SOURCES} ${KRATOS_EXPRESSION_SOURCES} ${KRATOS_TPL_SOURCES} $<TARGET_OBJECTS:KratosVersion>)
 
 # Set the shared external libraries for kratos (gidpost, tyniexpr, json, etc...)
 set(KRATOS_EXTERNAL_LIBRARIES gidpost tinyexpr clipper)
@@ -100,8 +101,12 @@ if(${CMAKE_COMPILER_IS_GNUCXX})
     endif()
 endif()
 
+# KratosCore link libraries and definitions
 target_link_libraries(KratosCore PUBLIC ${KRATOS_EXTERNAL_LIBRARIES})
 set_target_properties(KratosCore PROPERTIES COMPILE_DEFINITIONS "KRATOS_CORE=IMPORT,API")
+
+# KratosCoreSharedPch link libraries and definitions (Its important to leave KRATOS_CORE= undefined!!!)
+target_link_libraries(KratosCoreSharedPch PUBLIC ${KRATOS_EXTERNAL_LIBRARIES})
 
 # Set batch size in the unity build
 if(CMAKE_UNITY_BUILD MATCHES ON)
@@ -136,6 +141,7 @@ target_link_libraries(Kratos PRIVATE ${KRATOS_TEST_LIBRARIES} KratosCore)
 # Precompile most demanding / widely included headers
 if(KRATOS_USE_PCH MATCHES ON)
     target_precompile_headers(KratosCore PRIVATE "$<$<COMPILE_LANGUAGE:CXX>:${CMAKE_CURRENT_SOURCE_DIR}/includes/model_part.h>")
+    target_precompile_headers(KratosCoreSharedPch PRIVATE "$<$<COMPILE_LANGUAGE:CXX>:${CMAKE_CURRENT_SOURCE_DIR}/includes/model_part.h>")
 endif(KRATOS_USE_PCH MATCHES ON)
 
 # Pass python version flags ONLY TO THE INTERFACE

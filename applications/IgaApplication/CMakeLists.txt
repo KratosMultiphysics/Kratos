@@ -38,6 +38,11 @@ pybind11_add_module(KratosIgaApplication MODULE THIN_LTO ${KRATOS_IGA_APPLICATIO
 target_link_libraries(KratosIgaApplication PRIVATE KratosIgaCore)
 set_target_properties(KratosIgaApplication PROPERTIES PREFIX "")
 
+# Shared PCH
+if(KRATOS_USE_PCH MATCHES ON)
+    target_precompile_headers(KratosIgaCore REUSE_FROM KratosCoreSharedPch)
+endif(KRATOS_USE_PCH MATCHES ON)
+
 # Set batch size in the unity build
 IF(CMAKE_UNITY_BUILD MATCHES ON)
     set_target_properties(KratosIgaCore PROPERTIES UNITY_BUILD_BATCH_SIZE ${KRATOS_UNITY_BUILD_BATCH_SIZE})

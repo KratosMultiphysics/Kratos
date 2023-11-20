@@ -125,6 +125,11 @@ pybind11_add_module(KratosPoromechanicsApplication MODULE THIN_LTO ${KRATOS_PORO
 target_link_libraries(KratosPoromechanicsApplication PRIVATE KratosPoromechanicsCore)
 set_target_properties(KratosPoromechanicsApplication PROPERTIES PREFIX "")
 
+# Shared PCH
+if(KRATOS_USE_PCH MATCHES ON)
+    target_precompile_headers(KratosPoromechanicsCore REUSE_FROM KratosCoreSharedPch)
+endif(KRATOS_USE_PCH MATCHES ON)
+
 # Set batch size in the unity build
 IF(CMAKE_UNITY_BUILD MATCHES ON)
     set_target_properties(KratosPoromechanicsCore PROPERTIES UNITY_BUILD_BATCH_SIZE ${KRATOS_UNITY_BUILD_BATCH_SIZE})

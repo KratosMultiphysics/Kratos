@@ -42,6 +42,11 @@ pybind11_add_module(KratosOptimizationApplication MODULE THIN_LTO ${KRATOS_OPTIM
 target_link_libraries(KratosOptimizationApplication PRIVATE KratosOptimizationCore)
 set_target_properties(KratosOptimizationApplication PROPERTIES PREFIX "")
 
+# Shared PCH
+if(KRATOS_USE_PCH MATCHES ON)
+    target_precompile_headers(KratosOptimizationCore REUSE_FROM KratosCoreSharedPch)
+endif(KRATOS_USE_PCH MATCHES ON)
+
 # Set batch size in the unity build
 IF(CMAKE_UNITY_BUILD MATCHES ON)
     set_target_properties(KratosOptimizationCore PROPERTIES UNITY_BUILD_BATCH_SIZE ${KRATOS_UNITY_BUILD_BATCH_SIZE})

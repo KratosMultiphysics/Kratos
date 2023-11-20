@@ -44,6 +44,11 @@ pybind11_add_module(KratosConstitutiveLawsApplication MODULE THIN_LTO ${KRATOS_C
 target_link_libraries(KratosConstitutiveLawsApplication PRIVATE KratosConstitutiveLawsCore)
 set_target_properties(KratosConstitutiveLawsApplication PROPERTIES PREFIX "")
 
+# Shared PCH
+if(KRATOS_USE_PCH MATCHES ON)
+    target_precompile_headers(KratosConstitutiveLawsCore REUSE_FROM KratosCoreSharedPch)
+endif(KRATOS_USE_PCH MATCHES ON)
+
 # Set batch size in the unity build
 IF(CMAKE_UNITY_BUILD MATCHES ON)
     set_target_properties(KratosConstitutiveLawsCore PROPERTIES UNITY_BUILD_BATCH_SIZE ${KRATOS_UNITY_BUILD_BATCH_SIZE})

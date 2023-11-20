@@ -38,12 +38,16 @@ target_link_libraries(KratosMedCore PUBLIC KratosCore ${MED_LIBRARIES} ${HDF5_C_
 set_target_properties(KratosMedCore PROPERTIES COMPILE_DEFINITIONS "MED_APPLICATION=EXPORT,API")
 target_include_directories(KratosMedCore SYSTEM PRIVATE hdf5::hdf5)
 
-
 ###############################################################
 ## define library Kratos which defines the basic python interface
 pybind11_add_module(KratosMedApplication MODULE THIN_LTO ${KRATOS_MED_APPLICATION_PYTHON_INTERFACE})
 target_link_libraries(KratosMedApplication PRIVATE KratosMedCore)
 set_target_properties(KratosMedApplication PROPERTIES PREFIX "")
+
+# Shared PCH
+if(KRATOS_USE_PCH MATCHES ON)
+    target_precompile_headers(KratosMedCore REUSE_FROM KratosCoreSharedPch)
+endif(KRATOS_USE_PCH MATCHES ON)
 
 # changing the .dll suffix to .pyd (Windows)
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")

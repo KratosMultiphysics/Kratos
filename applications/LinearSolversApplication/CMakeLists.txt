@@ -95,6 +95,11 @@ pybind11_add_module( KratosLinearSolversApplication MODULE THIN_LTO ${KRATOS_LIN
 target_link_libraries( KratosLinearSolversApplication PRIVATE KratosLinearSolversCore )
 set_target_properties( KratosLinearSolversApplication PROPERTIES PREFIX "")
 
+# Shared PCH
+if(KRATOS_USE_PCH MATCHES ON)
+    target_precompile_headers(KratosLinearSolversCore REUSE_FROM KratosCoreSharedPch)
+endif(KRATOS_USE_PCH MATCHES ON)
+
 # Set batch size in the unity build
 IF(CMAKE_UNITY_BUILD MATCHES ON)
     set_target_properties(KratosLinearSolversCore PROPERTIES UNITY_BUILD_BATCH_SIZE ${KRATOS_UNITY_BUILD_BATCH_SIZE})

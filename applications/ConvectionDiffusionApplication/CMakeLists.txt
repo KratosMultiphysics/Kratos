@@ -58,6 +58,11 @@ pybind11_add_module( KratosConvectionDiffusionApplication MODULE THIN_LTO ${KRAT
 target_link_libraries( KratosConvectionDiffusionApplication PRIVATE KratosConvectionDiffusionCore)
 set_target_properties( KratosConvectionDiffusionApplication PROPERTIES PREFIX "")
 
+# Shared PCH
+if(KRATOS_USE_PCH MATCHES ON)
+    target_precompile_headers(KratosConvectionDiffusionCore REUSE_FROM KratosCoreSharedPch)
+endif(KRATOS_USE_PCH MATCHES ON)
+
 # Set batch size in the unity build
 IF(CMAKE_UNITY_BUILD MATCHES ON)
     set_target_properties(KratosConvectionDiffusionCore PROPERTIES UNITY_BUILD_BATCH_SIZE ${KRATOS_UNITY_BUILD_BATCH_SIZE})

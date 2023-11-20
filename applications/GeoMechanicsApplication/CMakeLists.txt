@@ -45,12 +45,16 @@ add_library(KratosGeoMechanicsCore SHARED ${KRATOS_GEO_MECHANICS_APPLICATION_COR
 target_link_libraries(KratosGeoMechanicsCore PUBLIC KratosCore KratosStructuralMechanicsCore KratosLinearSolversCore ${CMAKE_DL_LIBS})
 set_target_properties(KratosGeoMechanicsCore PROPERTIES COMPILE_DEFINITIONS "GEO_MECHANICS_APPLICATION=EXPORT,API")
 
-
 ###############################################################
 ## define library Kratos which defines the basic python interface
 pybind11_add_module(KratosGeoMechanicsApplication MODULE THIN_LTO ${KRATOS_GEO_MECHANICS_APPLICATION_PYTHON_INTERFACE})
 target_link_libraries(KratosGeoMechanicsApplication PRIVATE KratosGeoMechanicsCore)
 set_target_properties(KratosGeoMechanicsApplication PROPERTIES PREFIX "")
+
+# Shared PCH
+if(KRATOS_USE_PCH MATCHES ON)
+    target_precompile_headers(KratosGeoMechanicsCore REUSE_FROM KratosCoreSharedPch)
+endif(KRATOS_USE_PCH MATCHES ON)
 
 # Set batch size in the unity build
 IF(CMAKE_UNITY_BUILD MATCHES ON)

@@ -38,6 +38,11 @@ pybind11_add_module(KratosCableNetApplication MODULE THIN_LTO ${KRATOS_CABLE_NET
 target_link_libraries(KratosCableNetApplication PRIVATE KratosCableNetCore)
 set_target_properties(KratosCableNetApplication PROPERTIES PREFIX "")
 
+# Shared PCH
+if(KRATOS_USE_PCH MATCHES ON)
+    target_precompile_headers(KratosCableNetCore REUSE_FROM KratosCoreSharedPch)
+endif(KRATOS_USE_PCH MATCHES ON)
+
 # Set batch size in the unity build
 IF(CMAKE_UNITY_BUILD MATCHES ON)
     set_target_properties(KratosCableNetCore PROPERTIES UNITY_BUILD_BATCH_SIZE ${KRATOS_UNITY_BUILD_BATCH_SIZE})

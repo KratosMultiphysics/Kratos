@@ -35,6 +35,11 @@ pybind11_add_module(KratosMappingApplication MODULE THIN_LTO ${KRATOS_MAPPING_AP
 target_link_libraries(KratosMappingApplication PRIVATE KratosMappingCore)
 set_target_properties(KratosMappingApplication PROPERTIES PREFIX "")
 
+# Shared PCH
+if(KRATOS_USE_PCH MATCHES ON)
+    target_precompile_headers(KratosMappingCore REUSE_FROM KratosCoreSharedPch)
+endif(KRATOS_USE_PCH MATCHES ON)
+
 # Set batch size in the unity build
 IF(CMAKE_UNITY_BUILD MATCHES ON)
     set_target_properties(KratosMappingCore PROPERTIES UNITY_BUILD_BATCH_SIZE ${KRATOS_UNITY_BUILD_BATCH_SIZE})
