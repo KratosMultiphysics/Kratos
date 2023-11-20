@@ -130,13 +130,13 @@ namespace Kratos
                                const Kratos::Parameters& rGidOutputSettings,
                                const CriticalHeadInfo& rCriticalHeadInfo,
                                LoggerOutput::Pointer pOutput,
-                               const shared_ptr<Process>& river_boundary,
+                               const shared_ptr<Process>& pRiverBoundary,
                                const GeoMechanicsNewtonRaphsonErosionProcessStrategyType::Pointer pSolvingStrategy,
                                const CallBackFunctions& rCallBackFunctions);
 
         void HandleCriticalHeadFound(const CriticalHeadInfo& rCriticalHeadInfo);
 
-        void HandleCleanUp(const std::function<void(const char*)>& rLogCallback,
+        void HandleCleanUp(const std::function<void(const char*)> LogCallback,
                            LoggerOutput::Pointer pOutput);
 
 

@@ -382,8 +382,6 @@ namespace Kratos
                                              const Kratos::Parameters& rGidOutputSettings,
                                              const GeoMechanicsNewtonRaphsonErosionProcessStrategyType::Pointer pSolvingStrategy) const
     {
-//        const auto pSolvingStrategy = setup_strategy_dgeoflow(rModelPart);
-//        pSolvingStrategy->SetEchoLevel(0);
         MainExecution(rModelPart, pSolvingStrategy, 0.0, 1.0, 1);
 
         GeoOutputWriter writer{rGidOutputSettings, mWorkingDirectory, rModelPart};
@@ -401,24 +399,23 @@ namespace Kratos
         KRATOS_INFO_IF("GeoFlowKernel", this->GetEchoLevel() > 0) << "Critical head min head: " << rCriticalHeadInfo.minCriticalHead << std::endl;
         KRATOS_INFO_IF("GeoFlowKernel", this->GetEchoLevel() > 0) << "Critical head max head: " << rCriticalHeadInfo.maxCriticalHead << std::endl;
         KRATOS_INFO_IF("GeoFlowKernel", this->GetEchoLevel() > 0) << "Critical head step size: " << rCriticalHeadInfo.stepCriticalHead << std::endl;
-//        const auto pSolvingStrategy = setup_strategy_dgeoflow(rModelPart);
-//        pSolvingStrategy->SetEchoLevel(0);
-        shared_ptr<Process> river_boundary;
+
+        shared_ptr<Process> p_river_boundary;
         if (mCriticalHeadBoundaryModelPartName.empty())
         {
-            river_boundary = FindRiverBoundaryAutomatically(pSolvingStrategy);
+            p_river_boundary = FindRiverBoundaryAutomatically(pSolvingStrategy);
         }
         else
         {
-            river_boundary = FindRiverBoundaryByName(mCriticalHeadBoundaryModelPartName);
+            p_river_boundary = FindRiverBoundaryByName(mCriticalHeadBoundaryModelPartName);
         }
 
-        if (!river_boundary)
+        if (!p_river_boundary)
         {
             KRATOS_ERROR << "No river boundary found.";
         }
 
-        FindCriticalHead(rModelPart, rGidOutputSettings, rCriticalHeadInfo, pOutput, river_boundary,
+        FindCriticalHead(rModelPart, rGidOutputSettings, rCriticalHeadInfo, pOutput, p_river_boundary,
                          pSolvingStrategy, rCallBackFunctions);
 
         WriteCriticalHeadResultToFile();
@@ -487,12 +484,12 @@ namespace Kratos
                                         const Kratos::Parameters& rGidOutputSettings,
                                         const CriticalHeadInfo& rCriticalHeadInfo,
                                         LoggerOutput::Pointer pOutput,
-                                        const shared_ptr<Process>& river_boundary,
+                                        const shared_ptr<Process>& pRiverBoundary,
                                         const GeoMechanicsNewtonRaphsonErosionProcessStrategyType::Pointer pSolvingStrategy,
                                         const CallBackFunctions& rCallBackFunctions)
     {
 
-        auto current_process = std::static_pointer_cast<GeoFlowApplyConstantHydrostaticPressureProcess>(river_boundary);
+        auto current_process = std::static_pointer_cast<GeoFlowApplyConstantHydrostaticPressureProcess>(pRiverBoundary);
         KRATOS_INFO_IF("GeoFlowKernel", this->GetEchoLevel() > 0) << "River boundary name: " << current_process->GetName() << std::endl;
 
         current_process->SetReferenceCoord(rCriticalHeadInfo.minCriticalHead);
@@ -548,13 +545,13 @@ namespace Kratos
             writer.WriteGiDOutput(rModelPart, rGidOutputSettings);
 
             // Update boundary conditions for next search head.
-            if (river_boundary->Info() == "ApplyConstantScalarValueProcess")
+            if (pRiverBoundary->Info() == "ApplyConstantScalarValueProcess")
             {
                 ResetModelParts();
                 KRATOS_ERROR << "ApplyConstantScalarValueProcess process search is not implemented.";
             }
 
-            if (river_boundary->Info() == "ApplyConstantHydrostaticPressureProcess")
+            if (pRiverBoundary->Info() == "ApplyConstantHydrostaticPressureProcess")
             {
                 mCriticalHead = current_process->GetReferenceCoord();
                 mCurrentHead = mCriticalHead + rCriticalHeadInfo.stepCriticalHead;
@@ -585,19 +582,19 @@ namespace Kratos
         }
     }
 
-    void KratosExecute::HandleCleanUp(const std::function<void(const char*)>& rLogCallback,
+    void KratosExecute::HandleCleanUp(std::function<void(const char*)> LogCallback,
                                       LoggerOutput::Pointer pOutput)
     {
         std::stringstream kratos_log_buffer;
 
-        rLogCallback(kratos_log_buffer.str().c_str());
+        LogCallback(kratos_log_buffer.str().c_str());
         Logger::RemoveOutput(pOutput);
         ResetModelParts();
     }
 
     shared_ptr<Process> KratosExecute::FindRiverBoundaryByName(const std::string& CriticalHeadBoundaryModelPartName) const
     {
-        shared_ptr<Process> river_boundary;
+        shared_ptr<Process> p_river_boundary;
 
         for (const auto& process : mProcesses)
         {
@@ -607,19 +604,19 @@ namespace Kratos
                 if (current_process->hasWaterPressure() &&
                     (current_process->GetName() == CriticalHeadBoundaryModelPartName))
                 {
-                    river_boundary = current_process;
+                    p_river_boundary = current_process;
                 }
             }
         }
 
-        KRATOS_ERROR_IF_NOT(river_boundary) << "No boundary found with the model part name " << CriticalHeadBoundaryModelPartName << "." << std::endl;
+        KRATOS_ERROR_IF_NOT(p_river_boundary) << "No boundary found with the model part name " << CriticalHeadBoundaryModelPartName << "." << std::endl;
 
-        return river_boundary;
+        return p_river_boundary;
     }
 
     shared_ptr<Process> KratosExecute::FindRiverBoundaryAutomatically(const KratosExecute::GeoMechanicsNewtonRaphsonErosionProcessStrategyType::Pointer rpSolvingStrategy) const
     {
-        shared_ptr<Process> river_boundary;
+        shared_ptr<Process> p_river_boundary;
 
         std::vector<Element *> pipe_elements;
         pipe_elements = rpSolvingStrategy->GetPipingElements();
@@ -651,7 +648,7 @@ namespace Kratos
                 if (current_process->hasWaterPressure())
                 {
                     currentModelPart->GetNode(RiverNode);
-                    river_boundary = current_process;
+                    p_river_boundary = current_process;
                 }
             }
             else if (process->Info() == "ApplyConstantHydrostaticPressureProcess")
@@ -661,13 +658,13 @@ namespace Kratos
                 if (current_process->hasWaterPressure())
                 {
                     currentModelPart->GetNode(RiverNode);
-                    river_boundary = current_process;
+                    p_river_boundary = current_process;
                 }
             }
         }
 
-        KRATOS_ERROR_IF_NOT(river_boundary) << "No boundary found on the river side at node " << RiverNode << "." << std::endl;
+        KRATOS_ERROR_IF_NOT(p_river_boundary) << "No boundary found on the river side at node " << RiverNode << "." << std::endl;
 
-        return river_boundary;
+        return p_river_boundary;
     }
 }
