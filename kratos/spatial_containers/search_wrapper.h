@@ -409,12 +409,12 @@ private:
                 r_partial_result.AddResult(r_result);
             }
 
-            // Synchronize
-            r_partial_result.SynchronizeAll(mrDataCommunicator);
-
             // Update counter
             ++counter;
         }
+
+        // Synchronize
+        rResults.SynchronizeAll(mrDataCommunicator);
     }
 
     /**
@@ -460,12 +460,12 @@ private:
             LocalSearchNearestInRadius(*it_point, Radius, result, allocation_size);
             r_point_result.AddResult(result);
 
-            // Synchronize
-            r_point_result.SynchronizeAll(mrDataCommunicator);
-
             // Update counter
             ++counter;
         }
+
+        // Synchronize
+        rResults.SynchronizeAll(mrDataCommunicator);
     }
 
     /**
@@ -505,12 +505,12 @@ private:
             LocalSearchNearest(*it_point, result);
             r_point_result.AddResult(result);
 
-            // Synchronize
-            r_point_result.SynchronizeAll(mrDataCommunicator);
-
             // Update counter
             ++counter;
         }
+
+        // Synchronize
+        rResults.SynchronizeAll(mrDataCommunicator);
     }
 
     /**
@@ -552,12 +552,12 @@ private:
             LocalSearchIsInside(*it_point, result);
             r_point_result.AddResult(result);
 
-            // Synchronize
-            r_point_result.SynchronizeAll(mrDataCommunicator);
-
             // Update counter
             ++counter;
         }
+
+        // Synchronize
+        rResults.SynchronizeAll(mrDataCommunicator);
     }
 
 #ifdef KRATOS_USING_MPI
@@ -613,10 +613,10 @@ private:
                     r_partial_result.AddResult(r_result);
                 }
             }
-
-            // Synchronize
-            r_partial_result.SynchronizeAll(mrDataCommunicator);
         }
+
+        // Synchronize
+        rResults.SynchronizeAll(mrDataCommunicator);
     }
 
     /**
@@ -689,10 +689,10 @@ private:
                 // Add the local search
                 r_partial_result.AddResult(local_result);
             }
-
-            // Synchronize
-            r_partial_result.SynchronizeAll(mrDataCommunicator);
         }
+
+        // Synchronize
+        rResults.SynchronizeAll(mrDataCommunicator);
     }
 
     /**
@@ -765,10 +765,10 @@ private:
                 // Add the local search
                 r_partial_result.AddResult(local_result);
             }
-
-            // Synchronize
-            r_partial_result.SynchronizeAll(mrDataCommunicator);
         }
+
+        // Synchronize
+        rResults.SynchronizeAll(mrDataCommunicator);
     }
 
     /**
@@ -837,10 +837,10 @@ private:
                 // Add the local search
                 r_partial_result.AddResult(local_result);
             }
-
-            // Synchronize
-            r_partial_result.SynchronizeAll(mrDataCommunicator);
         }
+
+        // Synchronize
+        rResults.SynchronizeAll(mrDataCommunicator);
     }
 
 #endif
