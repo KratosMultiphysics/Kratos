@@ -12,6 +12,7 @@ from KratosMultiphysics.DigitalTwinApplication.utilities.data_utils import GetPa
 from KratosMultiphysics.DigitalTwinApplication.utilities.data_utils import GetKratosValueToCSVStringConverter
 from KratosMultiphysics.DigitalTwinApplication.utilities.data_utils import GetKratosValueToPythonValueConverter
 from KratosMultiphysics.DigitalTwinApplication.utilities.data_utils import GetNameToCSVString
+from KratosMultiphysics.DigitalTwinApplication.utilities.expression_utils import ExpressionUnionType
 
 def GetSensors(model_part: Kratos.ModelPart, list_of_parameters: 'list[Kratos.Parameters]') -> 'list[KratosDT.Sensors.Sensor]':
     """Get list of sensors from given parameters.
@@ -255,3 +256,24 @@ def PrintSensorListToJson(output_file_name: Path, list_of_sensors: 'list[KratosD
 
         file_output.write(json.dumps(json_sensors, indent=4))
 
+def GetBestCoverageSensorView(list_of_sensor_views: 'list[SensorViewUnionType]') -> SensorViewUnionType:
+    if len(list_of_sensor_views) == 0:
+        raise RuntimeError("No sensor views found.")
+
+    front_sensor_view = list_of_sensor_views[0]
+    overall_updating_exp = front_sensor_view.GetContainerExpression().Clone()
+    overall_updating_exp = overall_updating_exp * 0.0 + 1.0
+    overall_updating_exp /= KratosOA.ExpressionUtils.NormL2(overall_updating_exp)
+    overall_updating_exp.SetExpression(overall_updating_exp.Flatten().GetExpression())
+    return min(list_of_sensor_views, key=lambda x: 1.0 - KratosOA.ExpressionUtils.InnerProduct(overall_updating_exp, x.GetContainerExpression()))
+
+def ComputeHeatMap(list_of_sensor_views: 'list[SensorViewUnionType]') -> ExpressionUnionType:
+    if len(list_of_sensor_views) == 0:
+        raise RuntimeError("No sensor views found.")
+
+    front_sensor_view = list_of_sensor_views[0]
+    heat_map = front_sensor_view.GetContainerExpression().Clone()
+    for sensor_view in list_of_sensor_views[1:]:
+        heat_map += sensor_view.GetContainerExpression()
+    heat_map /= KratosOA.ExpressionUtils.NormL2(heat_map)
+    return heat_map.Flatten()

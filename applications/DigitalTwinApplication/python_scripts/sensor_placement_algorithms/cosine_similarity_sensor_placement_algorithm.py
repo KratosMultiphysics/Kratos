@@ -208,7 +208,9 @@ class CosineSimilaritySensorPlacementAlgorithm(SensorPlacementAlgorithm):
                 list_of_entity_indices = entity_index_cluster_dict[sensor.GetValue(KratosDT.SENSOR_CLUSTER_ID)]
                 sensor.SetValue(KratosDT.SENSOR_ENTITY_IDS, Kratos.Vector([float(list_of_entity_ids[i]) for i in list_of_entity_indices]))
 
-            PrintSensorListToJson(output_path / "best_sensor_data.json", [sensor_view.GetSensor() for sensor_view in list_of_best_sensor_views])
+            list_of_best_sensors = [sensor_view.GetSensor() for sensor_view in list_of_best_sensor_views]
+            PrintSensorListToJson(output_path / "best_sensor_data.json", list_of_best_sensors)
+            PrintSensorListToCSV(output_path / "best_sensor_data.csv", list_of_best_sensors, ["type", "name", "location", "value"])
 
         if len(list_of_clusters_to_break) > 0:
             Kratos.Logger.PrintWarning(self.__class__.__name__, f"The max_clustering_iterations and/or unbreakable clusters limit reached without breaking {len(list_of_clusters_to_break)} clusters.\n\t Following clusters does not satisfy the prescribed coverage area:")

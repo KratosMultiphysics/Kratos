@@ -10,6 +10,7 @@ from KratosMultiphysics.OptimizationApplication.model_part_controllers.mdpa_mode
 from KratosMultiphysics.DigitalTwinApplication.sensor_sensitivity_solvers.sensor_sensitivity_analysis import SensorSensitivityAnalysis
 from KratosMultiphysics.DigitalTwinApplication.sensor_placement_algorithms.cosine_similarity_sensor_placement_algorithm import CosineSimilaritySensorPlacementAlgorithm
 from KratosMultiphysics.DigitalTwinApplication.sensor_placement_algorithms.least_cosine_euclidean_similarity_sensor_placement_algorithm import LeastCosineEuclideanSimilaritySensorPlacementAlgorithm
+from KratosMultiphysics.DigitalTwinApplication.sensor_placement_algorithms.cosine_similarity_with_triangulation_sensor_placement import CosineSimilarityWithTriangulationSensorPlacement
 from KratosMultiphysics.DigitalTwinApplication.utilities.expression_utils import ExpressionDataLocation
 from KratosMultiphysics.HDF5Application.core.file_io import OpenHDF5File
 class SensorPlacementAnalysis:
@@ -45,6 +46,8 @@ class SensorPlacementAnalysis:
             self.algorithm = CosineSimilaritySensorPlacementAlgorithm(self.model, self.project_parameters["algorithm_settings"])
         elif algorithm_type == "least_cosine_euclidean_similarity_sensor_placement_algorithm":
             self.algorithm = LeastCosineEuclideanSimilaritySensorPlacementAlgorithm(self.model, self.project_parameters["algorithm_settings"])
+        elif algorithm_type == "cosine_similarity_with_triangulation_sensor_placement":
+            self.algorithm = CosineSimilarityWithTriangulationSensorPlacement(self.model, self.project_parameters["algorithm_settings"])
         else:
             raise RuntimeError(f"Unsupported algorithm type = \"{algorithm_type}\" requested.")
 
