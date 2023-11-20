@@ -205,7 +205,12 @@ void AlternativeDVMSDEMCoupled<TElementData>::Initialize(const ProcessInfo& rCur
             mPreviousVelocity[g] = ZeroVector(Dim);
     }
 
-    mPredictedSubscaleVelocity.resize(number_of_gauss_points);
+    if (mPredictedSubscaleVelocity.size() != number_of_gauss_points) {
+        mPredictedSubscaleVelocity.resize(number_of_gauss_points);
+        for (unsigned int g = 0; g < number_of_gauss_points; g++) {
+            mPredictedSubscaleVelocity[g] = ZeroVector(Dim);
+        }
+    }
 
     // The old velocity may be already defined (if restarting)
     // and we want to keep the loaded values in that case.
