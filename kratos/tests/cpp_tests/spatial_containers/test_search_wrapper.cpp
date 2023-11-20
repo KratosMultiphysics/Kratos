@@ -23,7 +23,7 @@
 #include "geometries/triangle_3d_3.h"
 #include "utilities/cpp_tests_utilities.h"
 
-namespace Kratos::Testing 
+namespace Kratos::Testing
 {
 
 // Definition of the geometrical object bins search wrapper
