@@ -92,7 +92,7 @@ public:
     ///@name Life Cycle
     ///@{
 
-    //* Constructor.
+    // Default constructor.
     explicit DisplacementCriteria()
         : BaseType()
     {
@@ -110,7 +110,10 @@ public:
         this->AssignSettings(ThisParameters);
     }
 
-    /** Constructor.
+    /**
+    * @brief Constructor 2 arguments
+    * @param NewRatioTolerance The ratio tolerance for the convergence.
+    * @param AlwaysConvergedNorm The absolute tolerance for the convergence.
     */
     explicit DisplacementCriteria(
         TDataType NewRatioTolerance,
@@ -153,7 +156,7 @@ public:
     }
 
     /**
-     * Compute relative and absolute error.
+     * @brief Compute relative and absolute error.
      * @param rModelPart Reference to the ModelPart containing the problem.
      * @param rDofSet Reference to the container of the problem's degrees of freedom (stored by the BuilderAndSolver)
      * @param A System matrix (unused)
@@ -210,7 +213,7 @@ public:
     }
 
     /**
-     * This function initialize the convergence criteria
+     * @brief This function initialize the convergence criteria
      * @param rModelPart Reference to the ModelPart containing the problem. (unused)
      */
     void Initialize(
@@ -221,7 +224,7 @@ public:
     }
 
     /**
-     * This function initializes the solution step
+     * @brief This function initializes the solution step
      * @param rModelPart Reference to the ModelPart containing the problem.
      * @param rDofSet Reference to the container of the problem's degrees of freedom (stored by the BuilderAndSolver)
      * @param A System matrix (unused)
@@ -240,7 +243,7 @@ public:
     }
 
     /**
-     * This function finalizes the solution step
+     * @brief This function finalizes the solution step
      * @param rModelPart Reference to the ModelPart containing the problem.
      * @param rDofSet Reference to the container of the problem's degrees of freedom (stored by the BuilderAndSolver)
      * @param A System matrix (unused)
