@@ -126,12 +126,10 @@ void TCondition<TDim, TNumNodes>::CalculateRHS(VectorType& rRightHandSideVector,
     KRATOS_CATCH("")
 }
 
-template class TCondition<2, 1>;
 template class TCondition<2, 2>;
 template class TCondition<2, 3>;
 template class TCondition<2, 4>;
 template class TCondition<2, 5>;
-template class TCondition<3, 1>;
 template class TCondition<3, 3>;
 template class TCondition<3, 4>;
 template class TCondition<3, 6>;
