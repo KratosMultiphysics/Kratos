@@ -47,7 +47,7 @@ void TestTnormalFluxCondition(ModelPart& rModelPart)
 
 void GenerateTnormalFluxCondition2D2N(ModelPart& rModelPart)
 {
-	rModelPart.GetProcessInfo()[DOMAIN_SIZE] = 2;
+    rModelPart.GetProcessInfo()[DOMAIN_SIZE] = 2;
 
     Properties::Pointer p_cond_prop = rModelPart.CreateNewProperties(0);
     // Geometry creation
