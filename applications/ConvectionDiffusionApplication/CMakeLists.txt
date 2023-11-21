@@ -9,6 +9,7 @@ set( KRATOS_CONVECTION_DIFFUSION_APPLICATION_CORE_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/convection_diffusion_application.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/convection_diffusion_application_variables.cpp
 
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/axisymmetric_eulerian_convection_diffusion.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/eulerian_conv_diff.cpp
 
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/conv_diff_2d.cpp
@@ -23,6 +24,7 @@ set( KRATOS_CONVECTION_DIFFUSION_APPLICATION_CORE_SOURCES
 
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/adjoint_diffusion_element.cpp
 
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/axisymmetric_thermal_face.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/thermal_face.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/flux_condition.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/laplacian_shifted_boundary_condition.cpp
@@ -45,7 +47,10 @@ set( KRATOS_CONVECTION_DIFFUSION_PYTHON_INTERFACE_SOURCES
 
 ## define test sources
 if(${KRATOS_BUILD_TESTING} MATCHES ON)
-     file(GLOB_RECURSE KRATOS_CONVECTION_DIFFUSION_TESTING_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/tests/cpp_tests/*.cpp)
+    file( GLOB_RECURSE KRATOS_CONVECTION_DIFFUSION_TESTING_SOURCES
+        ${CMAKE_CURRENT_SOURCE_DIR}/tests/cpp_tests/*.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/tests/test_utilities/*.cpp
+    )
 endif(${KRATOS_BUILD_TESTING} MATCHES ON)
 
 ###############################################################

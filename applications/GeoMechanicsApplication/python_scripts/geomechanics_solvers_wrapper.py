@@ -20,9 +20,12 @@ def CreateSolver(model, custom_settings):
 
         elif solver_type in ("pw", "geomechanics_pw_solver"):
             solver_module_name = "geomechanics_Pw_solver"
+
+        elif solver_type in ("t", "geomechanics_t_solver"):
+            solver_module_name = "geomechanics_T_solver"
         else:
             err_msg =  "The requested solver type \"" + solver_type + "\" is not in the python solvers wrapper\n"
-            err_msg += "Available options are: \"geomechanics_U_Pw_solver\", \"geomechanics_Pw_solver\""
+            err_msg += "Available options are: \"geomechanics_U_Pw_solver\", \"geomechanics_Pw_solver\", \"geomechanics_T_solver\""
             raise Exception(err_msg)
     else:
         err_msg =  "The requested parallel type \"" + parallelism + "\" is not available!\n"

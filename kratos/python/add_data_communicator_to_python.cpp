@@ -21,9 +21,7 @@
 #include "includes/data_communicator.h"
 #include "includes/parallel_environment.h"
 
-namespace Kratos {
-
-namespace Python {
+namespace Kratos::Python {
 
 template<class TValue>
 std::vector<TValue> VectorBroadcastWrapper(
@@ -104,6 +102,10 @@ void AddDataCommunicatorMethodForDataType(
     rDataCommunicatorModule.def(("MinAll" + plural_arg_text).c_str(), py::overload_cast<const std::vector<TDataType>&>(&DataCommunicator::MinAll, py::const_), py::arg(list_of_values.c_str()));
     rDataCommunicatorModule.def("MaxAll", py::overload_cast<const TDataType&>(&DataCommunicator::MaxAll, py::const_), py::arg(value_text.c_str()));
     rDataCommunicatorModule.def(("MaxAll" + plural_arg_text).c_str(), py::overload_cast<const std::vector<TDataType>&>(&DataCommunicator::MaxAll, py::const_), py::arg(list_of_values.c_str()));
+    if constexpr (std::is_same_v<TDataType, double> || std::is_same_v<TDataType, int>) {
+        rDataCommunicatorModule.def("MinLocAll", py::overload_cast<const TDataType&>(&DataCommunicator::MinLocAll, py::const_), py::arg(value_text.c_str()));
+        rDataCommunicatorModule.def("MaxLocAll", py::overload_cast<const TDataType&>(&DataCommunicator::MaxLocAll, py::const_), py::arg(value_text.c_str()));
+    }
 
     rDataCommunicatorModule.def("ScanSum", py::overload_cast<const TDataType&>(&DataCommunicator::ScanSum, py::const_), py::arg(value_text.c_str()));
     rDataCommunicatorModule.def(("ScanSum" + plural_arg_text).c_str(), py::overload_cast<const std::vector<TDataType>&>(&DataCommunicator::ScanSum, py::const_), py::arg(list_of_values.c_str()));
@@ -172,6 +174,4 @@ void AddDataCommunicatorToPython(pybind11::module &m)
     .def("__str__", PrintObject<DataCommunicator>);
 }
 
-} // namespace Python.
-
-} // Namespace Kratos
+} // namespace Kratos::Python.

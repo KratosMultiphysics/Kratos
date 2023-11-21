@@ -17,6 +17,7 @@
 #include "includes/model_part.h"
 #include "utilities/parallel_utilities.h"
 #include "solving_strategies/schemes/scheme.h"
+#include "newmark_quasistatic_U_Pw_scheme.hpp"
 
 // Application includes
 #include "geo_mechanics_application_variables.h"
@@ -30,8 +31,6 @@ class BackwardEulerQuasistaticUPwScheme : public NewmarkQuasistaticUPwScheme<TSp
 public:
     KRATOS_CLASS_POINTER_DEFINITION( BackwardEulerQuasistaticUPwScheme );
 
-    using NewmarkQuasistaticUPwScheme<TSparseSpace,TDenseSpace>::mDeltaTime;
-
     BackwardEulerQuasistaticUPwScheme() :
         NewmarkQuasistaticUPwScheme<TSparseSpace,TDenseSpace>(1.0, 1.0, 1.0)
     {
@@ -42,9 +41,9 @@ protected:
     {
         KRATOS_TRY
 
-        mDeltaTime = rModelPart.GetProcessInfo()[DELTA_TIME];
-        rModelPart.GetProcessInfo()[VELOCITY_COEFFICIENT]    = 1.0/mDeltaTime;
-        rModelPart.GetProcessInfo()[DT_PRESSURE_COEFFICIENT] = 1.0/mDeltaTime;
+        this->SetDeltaTime(rModelPart.GetProcessInfo()[DELTA_TIME]);
+        rModelPart.GetProcessInfo()[VELOCITY_COEFFICIENT]    = 1.0/this->GetDeltaTime();
+        rModelPart.GetProcessInfo()[DT_PRESSURE_COEFFICIENT] = 1.0/this->GetDeltaTime();
 
         KRATOS_CATCH("")
     }
@@ -57,16 +56,22 @@ protected:
         block_for_each(rModelPart.Nodes(), [this](Node& rNode) {
             // refactor, extract the (a -b)/mDeltaTime that happens 3 times here
             noalias(rNode.FastGetSolutionStepValue(VELOCITY))     = (  rNode.FastGetSolutionStepValue(DISPLACEMENT)
-                                                                                   - rNode.FastGetSolutionStepValue(DISPLACEMENT, 1)) / mDeltaTime;
+                                                                                   - rNode.FastGetSolutionStepValue(DISPLACEMENT, 1)) / this->GetDeltaTime();
 
             noalias(rNode.FastGetSolutionStepValue(ACCELERATION)) = (  rNode.FastGetSolutionStepValue(VELOCITY)
-                                                                                   - rNode.FastGetSolutionStepValue(VELOCITY,1) ) / mDeltaTime;
+                                                                                   - rNode.FastGetSolutionStepValue(VELOCITY,1) ) / this->GetDeltaTime();
 
             rNode.FastGetSolutionStepValue(DT_WATER_PRESSURE)        = (  rNode.FastGetSolutionStepValue(WATER_PRESSURE)
-                                                                                  - rNode.FastGetSolutionStepValue(WATER_PRESSURE, 1)) / mDeltaTime;
+                                                                                  - rNode.FastGetSolutionStepValue(WATER_PRESSURE, 1)) / this->GetDeltaTime();
+
         });
 
         KRATOS_CATCH( "" )
+    }
+
+    std::string Info() const override
+    {
+        return "BackwardEulerQuasistaticUPwScheme";
     }
 }; // Class BackwardEulerQuasistaticUPwScheme
 

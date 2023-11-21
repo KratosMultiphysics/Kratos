@@ -235,6 +235,11 @@ public:
         return mNumberOfRomModes;
     } 
 
+    bool GetMonotonicityPreservingFlag() const noexcept
+    {
+        return mMonotonicityPreservingFlag;
+    }
+
     void ProjectToFineBasis(
         const TSystemVectorType& rRomUnkowns,
         const ModelPart& rModelPart,
@@ -251,7 +256,8 @@ public:
     }
 
     void BuildRightROMBasis(
-        const ModelPart& rModelPart) 
+        const ModelPart& rModelPart,
+        Matrix& rPhiGlobal) 
     {
         const auto& r_dof_set = BaseBuilderAndSolverType::GetDofSet();
         block_for_each(r_dof_set, [&](const DofType& r_dof)
@@ -261,10 +267,10 @@ public:
             const Matrix::size_type row_id = mMapPhi.at(r_dof.GetVariable().Key());
             if (r_dof.IsFixed())
             {
-                noalias(row(mPhiGlobal, r_dof.EquationId())) = ZeroVector(r_rom_nodal_basis.size2());
+                noalias(row(rPhiGlobal, r_dof.EquationId())) = ZeroVector(r_rom_nodal_basis.size2());
             }
             else{
-                noalias(row(mPhiGlobal, r_dof.EquationId())) = row(r_rom_nodal_basis, row_id);
+                noalias(row(rPhiGlobal, r_dof.EquationId())) = row(r_rom_nodal_basis, row_id);
             }
         });
     }
@@ -340,7 +346,7 @@ public:
 
         BuildAndProjectROM(pScheme, rModelPart, A, b, Dx);
         
-        SolveROM(rModelPart, A, b, Dx);
+        SolveROM(rModelPart, mEigenRomA, mEigenRomB, Dx);
 
         KRATOS_CATCH("")
     }
@@ -388,7 +394,9 @@ public:
             "name" : "global_rom_builder_and_solver",
             "nodal_unknowns" : [],
             "number_of_rom_dofs" : 10,
-            "monotonicity_preserving": false
+            "rom_bns_settings" : {
+                "monotonicity_preserving": false
+            }
         })");
         default_parameters.AddMissingParameters(BaseBuilderAndSolverType::GetDefaultParameters());
 
@@ -446,13 +454,10 @@ protected:
 
     SizeType mNodalDofs;
     std::unordered_map<Kratos::VariableData::KeyType, Matrix::size_type> mMapPhi;
-
     ElementsArrayType mSelectedElements;
     ConditionsArrayType mSelectedConditions;
-
     bool mHromSimulation = false;
     bool mHromWeightsInitialized = false;
-
     bool mRightRomBasisInitialized = false;
 
     ///@}
@@ -470,7 +475,7 @@ protected:
         // Set member variables
         mNodalDofs = ThisParameters["nodal_unknowns"].size();
         mNumberOfRomModes = ThisParameters["number_of_rom_dofs"].GetInt();
-        mMonotonicityPreservingFlag = ThisParameters["monotonicity_preserving"].GetBool();
+        mMonotonicityPreservingFlag = ThisParameters["rom_bns_settings"]["monotonicity_preserving"].GetBool();
 
         // Set up a map with key the variable key and value the correct row in ROM basis
         IndexType k = 0;
@@ -753,7 +758,7 @@ protected:
             mRightRomBasisInitialized = true;
         }
 
-        BuildRightROMBasis(rModelPart);
+        BuildRightROMBasis(rModelPart, mPhiGlobal);
 
         auto a_wrapper = UblasWrapper<double>(rA);
         const auto& eigen_rA = a_wrapper.matrix();
@@ -774,8 +779,8 @@ protected:
      */
     virtual void SolveROM(
         ModelPart &rModelPart,
-        TSystemMatrixType &rA,
-        TSystemVectorType &rb,
+        EigenDynamicMatrix &rEigenRomA,
+        EigenDynamicVector &rEigenRomB,
         TSystemVectorType &rDx)
     {
         KRATOS_TRY
@@ -786,7 +791,7 @@ protected:
 
         using EigenDynamicVector = Eigen::Matrix<double, Eigen::Dynamic, 1>;
         Eigen::Map<EigenDynamicVector> dxrom_eigen(dxrom.data().begin(), dxrom.size());
-        dxrom_eigen = mEigenRomA.colPivHouseholderQr().solve(mEigenRomB);
+        dxrom_eigen = rEigenRomA.colPivHouseholderQr().solve(rEigenRomB);
         
         double time = solving_timer.ElapsedSeconds();
         KRATOS_INFO_IF("GlobalROMBuilderAndSolver", (this->GetEchoLevel() > 0)) << "Solve reduced system time: " << time << std::endl;

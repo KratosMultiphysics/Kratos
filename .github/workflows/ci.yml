@@ -2,6 +2,7 @@ name: CI
 
 on:
   pull_request:
+  merge_group:
     branches:
       - master
     paths-ignore:       # This must be the same as .github/workflows/ci_dummy.yml - "paths" !
@@ -45,7 +46,7 @@ jobs:
       options: --user 1001
 
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
 
     # - name: Installing dependencies
     # => must be added to the docker container to avoid reinstalling it in every CI run
@@ -144,7 +145,7 @@ jobs:
       KRATOS_BUILD_TYPE: Custom
 
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     - uses: actions/setup-python@v4
       with:
         python-version: '3.8'
@@ -223,7 +224,7 @@ jobs:
         CCACHE_MAXSIZE: 500M
 
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
 
     - name: Cache Build
       id: cache-build
@@ -335,7 +336,7 @@ jobs:
       KRATOS_BUILD_TYPE: Custom
 
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     - uses: actions/setup-python@v4
       with:
         python-version: '3.8'
@@ -405,16 +406,22 @@ jobs:
       KRATOS_BUILD_TYPE: Custom
       OMPI_MCA_rmaps_base_oversubscribe: 1 # Allow oversubscription for MPI (needed for OpenMPI >= 3.0)
       OMPI_MCA_btl_vader_single_copy_mechanism: none # suppressing some annoying OpenMPI messages
+      OMPI_ALLOW_RUN_AS_ROOT: 1 # required since for now running as root
+      OMPI_ALLOW_RUN_AS_ROOT_CONFIRM: 1 # required since for now running as root
 
     container:
       image: kratosmultiphysics/kratos-image-ci-ubuntu-22-04:latest
-      options: --user 1001
+      # options: --user 1001 # must run as root to install the intel compiler
 
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
 
     # - name: Installing dependencies
     # => must be added to the docker container to avoid reinstalling it in every CI run
+
+    - name: Install intel compiler
+      shell: bash
+      run: sudo apt-get install -y --no-install-recommends intel-oneapi-compiler-dpcpp-cpp-and-cpp-classic
 
     - name: Build
       shell: bash
@@ -497,7 +504,7 @@ jobs:
       options: --user 1001
 
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
 
     # - name: Installing dependencies
     # => must be added to the docker container to avoid reinstalling it in every CI run

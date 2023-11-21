@@ -169,6 +169,7 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
         .def("ExecuteOnConditions", &GaussPointErrorUtility::ExecuteOnConditions)
         .def("ExecuteOnConditionsGradient", &GaussPointErrorUtility::ExecuteOnConditionsGradient)
         .def("ExecuteOnConditionsSolution", &GaussPointErrorUtility::ExecuteOnConditionsSolution)
+    ;
 
     py::class_<EmbeddedMLSConstraintProcess, EmbeddedMLSConstraintProcess::Pointer, Process>(m,"EmbeddedMLSConstraintProcess")
     .def(py::init<Model&, Parameters>())

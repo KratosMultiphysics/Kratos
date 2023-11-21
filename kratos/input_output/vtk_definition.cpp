@@ -40,6 +40,8 @@ const std::map<GeometryData::KratosGeometryType, char> VtkDefinitions::KratosVtk
         {GeometryData::KratosGeometryType::Kratos_Hexahedra3D20, 25},
         {GeometryData::KratosGeometryType::Kratos_Prism3D15, 26},
         {GeometryData::KratosGeometryType::Kratos_Pyramid3D13, 27},
+        {GeometryData::KratosGeometryType::Kratos_Quadrilateral2D9, 28},
+        {GeometryData::KratosGeometryType::Kratos_Quadrilateral3D9, 28},
         {GeometryData::KratosGeometryType::Kratos_Hexahedra3D27, 29}};
 
 } // namespace Kratos
