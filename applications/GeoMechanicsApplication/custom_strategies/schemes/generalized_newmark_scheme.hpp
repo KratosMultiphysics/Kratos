@@ -38,7 +38,7 @@ protected:
     {
         KRATOS_TRY
 
-        block_for_each(rModelPart.Nodes(), [&](Node& rNode) {
+        block_for_each(rModelPart.Nodes(), [this](Node& rNode) {
             this->UpdateScalarTimeDerivative(rNode, mVariable, mDeltaTimeVariable);
         });
 

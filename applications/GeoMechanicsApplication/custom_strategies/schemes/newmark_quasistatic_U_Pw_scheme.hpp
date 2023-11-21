@@ -96,8 +96,8 @@ public:
 
             // Compute smoothed nodal variables
             block_for_each(rModelPart.Nodes(), [&](Node& rNode) {
-                const double& nodal_area = rNode.FastGetSolutionStepValue(NODAL_AREA);
-                if (nodal_area > 1.0e-20) {
+                if (const double& nodal_area = rNode.FastGetSolutionStepValue(NODAL_AREA);
+                    nodal_area > 1.0e-20) {
                     const double inv_nodal_area = 1.0 / nodal_area;
                     Matrix& r_nodal_stress =
                         rNode.FastGetSolutionStepValue(NODAL_CAUCHY_STRESS_TENSOR);
@@ -109,9 +109,9 @@ public:
                     rNode.FastGetSolutionStepValue(NODAL_DAMAGE_VARIABLE) *= inv_nodal_area;
                 }
 
-                const double& nodal_joint_area =
-                    rNode.FastGetSolutionStepValue(NODAL_JOINT_AREA);
-                if (nodal_joint_area > 1.0e-20) {
+                if (const double& nodal_joint_area =
+                        rNode.FastGetSolutionStepValue(NODAL_JOINT_AREA);
+                    nodal_joint_area > 1.0e-20) {
                     const double inv_nodal_joint_area = 1.0 / nodal_joint_area;
                     rNode.FastGetSolutionStepValue(NODAL_JOINT_WIDTH) *= inv_nodal_joint_area;
                     rNode.FastGetSolutionStepValue(NODAL_JOINT_DAMAGE) *= inv_nodal_joint_area;
