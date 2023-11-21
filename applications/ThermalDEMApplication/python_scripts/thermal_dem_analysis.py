@@ -35,9 +35,10 @@ class ThermalDEMAnalysis(DEMAnalysisStage):
         SetDefaultBoolParameterIfNotExists(dem_parameters, "PostGraphParticleTempAvg")
         SetDefaultBoolParameterIfNotExists(dem_parameters, "PostGraphParticleTempDev")
         SetDefaultBoolParameterIfNotExists(dem_parameters, "PostGraphModelTempAvg")
-        SetDefaultBoolParameterIfNotExists(dem_parameters, "PostGraphHeatFluxContributions")
-        SetDefaultBoolParameterIfNotExists(dem_parameters, "PostGraphHeatGenContributions")
-        SetDefaultBoolParameterIfNotExists(dem_parameters, "PostGraphEnergyContributions")
+        SetDefaultBoolParameterIfNotExists(dem_parameters, "PostGraphMechanicalEnergy")
+        SetDefaultBoolParameterIfNotExists(dem_parameters, "PostGraphThermalEnergy")
+        SetDefaultBoolParameterIfNotExists(dem_parameters, "PostGraphHeatGeneration")
+        SetDefaultBoolParameterIfNotExists(dem_parameters, "PostGraphRelativeHeatGeneration")
         SetDefaultBoolParameterIfNotExists(dem_parameters, "PostMapHeatGeneration")
 
         return dem_parameters

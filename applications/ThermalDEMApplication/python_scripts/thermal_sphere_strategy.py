@@ -199,15 +199,16 @@ class ExplicitStrategy(BaseStrategy):
         self.fluid_velocity[2]          = self.fluid_props["fluid_velocity_Z"].GetDouble()
         
         # Post options
-        self.PostGraphParticleTempMin     = GetBoolParameterIfItExists(self.DEM_parameters, "PostGraphParticleTempMin")
-        self.PostGraphParticleTempMax     = GetBoolParameterIfItExists(self.DEM_parameters, "PostGraphParticleTempMax")
-        self.PostGraphParticleTempAvg     = GetBoolParameterIfItExists(self.DEM_parameters, "PostGraphParticleTempAvg")
-        self.PostGraphParticleTempDev     = GetBoolParameterIfItExists(self.DEM_parameters, "PostGraphParticleTempDev")
-        self.PostGraphModelTempAvg        = GetBoolParameterIfItExists(self.DEM_parameters, "PostGraphModelTempAvg")
-        self.PostGraphFluxContributions   = GetBoolParameterIfItExists(self.DEM_parameters, "PostGraphHeatFluxContributions")
-        self.PostGraphGenContributions    = GetBoolParameterIfItExists(self.DEM_parameters, "PostGraphHeatGenContributions")
-        self.PostGraphEnergyContributions = GetBoolParameterIfItExists(self.DEM_parameters, "PostGraphEnergyContributions")
-        self.PostMapHeatGeneration        = GetBoolParameterIfItExists(self.DEM_parameters, "PostMapHeatGeneration")
+        self.PostGraphParticleTempMin        = GetBoolParameterIfItExists(self.DEM_parameters, "PostGraphParticleTempMin")
+        self.PostGraphParticleTempMax        = GetBoolParameterIfItExists(self.DEM_parameters, "PostGraphParticleTempMax")
+        self.PostGraphParticleTempAvg        = GetBoolParameterIfItExists(self.DEM_parameters, "PostGraphParticleTempAvg")
+        self.PostGraphParticleTempDev        = GetBoolParameterIfItExists(self.DEM_parameters, "PostGraphParticleTempDev")
+        self.PostGraphModelTempAvg           = GetBoolParameterIfItExists(self.DEM_parameters, "PostGraphModelTempAvg")
+        self.PostGraphMechanicalEnergy       = GetBoolParameterIfItExists(self.DEM_parameters, "PostGraphMechanicalEnergy")
+        self.PostGraphThermalEnergy          = GetBoolParameterIfItExists(self.DEM_parameters, "PostGraphThermalEnergy")
+        self.PostGraphHeatGeneration         = GetBoolParameterIfItExists(self.DEM_parameters, "PostGraphHeatGeneration")
+        self.PostGraphRelativeHeatGeneration = GetBoolParameterIfItExists(self.DEM_parameters, "PostGraphRelativeHeatGeneration")
+        self.PostMapHeatGeneration           = GetBoolParameterIfItExists(self.DEM_parameters, "PostMapHeatGeneration")
 
         self.heat_map_corner1         = Vector(3)
         self.heat_map_corner1[0]      = min(self.thermal_settings["heat_map_corners"][0][0].GetDouble(),self.thermal_settings["heat_map_corners"][1][0].GetDouble())
@@ -355,14 +356,15 @@ class ExplicitStrategy(BaseStrategy):
     
     #----------------------------------------------------------------------------------------------
     def SetGraphFlags(self):
-        if (self.PostGraphParticleTempMin     or
-            self.PostGraphParticleTempMax     or
-            self.PostGraphParticleTempAvg     or 
-            self.PostGraphParticleTempDev     or
-            self.PostGraphModelTempAvg        or
-            self.PostGraphFluxContributions   or
-            self.PostGraphGenContributions    or
-            self.PostGraphEnergyContributions):
+        if (self.PostGraphParticleTempMin  or
+            self.PostGraphParticleTempMax  or
+            self.PostGraphParticleTempAvg  or 
+            self.PostGraphParticleTempDev  or
+            self.PostGraphModelTempAvg     or
+            self.PostGraphMechanicalEnergy or
+            self.PostGraphThermalEnergy    or
+            self.PostGraphHeatGeneration   or
+            self.PostGraphRelativeHeatGeneration):
             self.write_graph = True
         else:
             self.write_graph = False
@@ -607,9 +609,10 @@ class ExplicitStrategy(BaseStrategy):
                                                self.PostGraphParticleTempAvg,
                                                self.PostGraphParticleTempDev,
                                                self.PostGraphModelTempAvg,
-                                               self.PostGraphFluxContributions,
-                                               self.PostGraphGenContributions,
-                                               self.PostGraphEnergyContributions)
+                                               self.PostGraphMechanicalEnergy,
+                                               self.PostGraphThermalEnergy,
+                                               self.PostGraphHeatGeneration,
+                                               self.PostGraphRelativeHeatGeneration,)
 
         if (self.PostMapHeatGeneration):
             self.heat_map_utils.ExecuteInitialize(self.spheres_model_part)

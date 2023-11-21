@@ -37,9 +37,10 @@ namespace Kratos
                              bool ParticleTempAvg,
                              bool ParticleTempDev,
                              bool ModelTempAvg,
-                             bool ParticleHeatFluxContributions,
-                             bool ParticleHeatGenContributions,
-                             bool ParticleEnergyContributions);
+                             bool MechanicalEnergy,
+                             bool ThermalEnergy,
+                             bool HeatGenValues,
+                             bool HeatGenContrib);
       void ExecuteFinalizeSolutionStep(ModelPart& rModelPart);
       void ExecuteFinalize(void);
 
@@ -51,18 +52,20 @@ namespace Kratos
       bool mGraph_ParticleTempAvg;
       bool mGraph_ParticleTempDev;
       bool mGraph_ModelTempAvg;
-      bool mGraph_ParticleHeatFluxContributions;
-      bool mGraph_ParticleHeatGenContributions;
-      bool mGraph_ParticleEnergyContributions;
+      bool mGraph_MechanicalEnergy;
+      bool mGraph_ThermalEnergy;
+      bool mGraph_HeatGenValues;
+      bool mGraph_HeatGenContrib;
 
-      std::ofstream mFile_ParticleTempMin;
-      std::ofstream mFile_ParticleTempMax;
-      std::ofstream mFile_ParticleTempAvg;
-      std::ofstream mFile_ParticleTempDev;
-      std::ofstream mFile_ModelTempAvg;
-      std::ofstream mFile_ParticleHeatFluxContributions;
-      std::ofstream mFile_ParticleHeatGenContributions;
-      std::ofstream mFile_ParticleEnergyContributions;
+      std::ofstream mFile_ParticleTempMin;  // Minimum particle temperature
+      std::ofstream mFile_ParticleTempMax;  // Maximum particle temperature
+      std::ofstream mFile_ParticleTempAvg;  // Average particle temperature
+      std::ofstream mFile_ParticleTempDev;  // Std dev particle temperature
+      std::ofstream mFile_ModelTempAvg;     // Volume-average particle temperature
+      std::ofstream mFile_MechanicalEnergy; // Mechanical energy components (current energies and accumulated dissipations)
+      std::ofstream mFile_ThermalEnergy;    // Accumulated thermal energy generation components (U[J]=Q[W]*t[s])
+      std::ofstream mFile_HeatGenValues;    // Current values of heat generation components (Q[W])
+      std::ofstream mFile_HeatGenContrib;   // Relative contributions of current values heat generation components (%)
 
     private:
 
