@@ -191,7 +191,7 @@ public:
         const SizeType size_b = TSparseSpace::Size(rb);
         if (size_b != 0) { //if we are solving for something
 
-            SizeType size_residual;
+            unsigned int size_residual;
             CalculateResidualNorm(rModelPart, mCurrentResidualNorm, size_residual, rDofSet, rb);
 
             TDataType ratio{};
@@ -244,7 +244,7 @@ public:
             ConstraintUtilities::ComputeActiveDofs(rModelPart, mActiveDofs, rDofSet);
         }
 
-        SizeType size_residual;
+        unsigned int size_residual;
         CalculateResidualNorm(rModelPart, mInitialResidualNorm, size_residual, rDofSet, rb);
     }
 
@@ -396,7 +396,7 @@ protected:
     virtual void CalculateResidualNorm(
         ModelPart& rModelPart,
         TDataType& rResidualSolutionNorm,
-        SizeType& rDofNum,
+        unsigned int& rDofNum,
         DofsArrayType& rDofSet,
         const TSystemVectorType& rb
         )
@@ -409,10 +409,10 @@ protected:
 
         // Initialize
         TDataType residual_solution_norm = TDataType();
-        SizeType dof_num = 0;
+        unsigned int dof_num = 0;
 
         // Custom reduction
-        using CustomReduction = CombinedReduction<SumReduction<TDataType>,SumReduction<SizeType>>;
+        using CustomReduction = CombinedReduction<SumReduction<TDataType>,SumReduction<unsigned int>>;
 
         // Auxiliary struct
         struct TLS {TDataType residual_dof_value{};};
