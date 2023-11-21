@@ -411,7 +411,7 @@ protected:
         unsigned int dof_num = 0;
 
         // Custom reduction
-        using CustomReduction = CombinedReduction<SumReduction<TDataType>,SumReduction<SizeType>>;
+        using CustomReduction = CombinedReduction<SumReduction<TDataType>,SumReduction<unsigned int>>;
 
         // Auxiliary struct
         struct TLS {TDataType residual_dof_value{};};

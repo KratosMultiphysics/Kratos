@@ -470,10 +470,10 @@ private:
 
         // Initialize
         TDataType final_correction_norm = TDataType();
-        SizeType dof_num = 0;
+        unsigned int dof_num = 0;
 
         // Custom reduction
-        using CustomReduction = CombinedReduction<SumReduction<TDataType>,SumReduction<SizeType>>;
+        using CustomReduction = CombinedReduction<SumReduction<TDataType>,SumReduction<unsigned int>>;
 
         // Auxiliary struct
         struct TLS {TDataType dof_value{}; TDataType variation_dof_value{};};
