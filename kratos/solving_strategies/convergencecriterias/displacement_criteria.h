@@ -186,8 +186,9 @@ public:
     {
         const int rank = rModelPart.GetCommunicator().MyPID();
         const TDataType approx_zero_tolerance = std::numeric_limits<TDataType>::epsilon();
-        if (SparseSpaceType::Size(rDx) != 0) { //if we are solving for something
-            unsigned int size_solution;
+        const SizeType size_Dx = SparseSpaceType::Size(rDx);
+        if (size_Dx != 0) { //if we are solving for something
+            SizeType size_solution;
             const TDataType final_correction_norm = CalculateFinalCorrectionNorm(size_solution, rDofSet, rDx, rModelPart);
 
             TDataType ratio{};
@@ -455,7 +456,7 @@ private:
      * @todo We should doo as in the residual criteria, and consider the active DoFs (not just free), taking into account the MPC in addition to fixed DoFs
      */
     TDataType CalculateFinalCorrectionNorm(
-        unsigned int& rDofNum,
+        SizeType& rDofNum,
         DofsArrayType& rDofSet,
         const TSystemVectorType& rDx,
         ModelPart& rModelPart
@@ -469,10 +470,10 @@ private:
 
         // Initialize
         TDataType final_correction_norm = TDataType();
-        unsigned int dof_num = 0;
+        SizeType dof_num = 0;
 
         // Custom reduction
-        using CustomReduction = CombinedReduction<SumReduction<TDataType>,SumReduction<unsigned int>>;
+        using CustomReduction = CombinedReduction<SumReduction<TDataType>,SumReduction<SizeType>>;
 
         // Auxiliary struct
         struct TLS {TDataType dof_value{}; TDataType variation_dof_value{};};
