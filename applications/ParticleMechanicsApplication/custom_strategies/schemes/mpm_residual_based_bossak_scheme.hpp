@@ -216,28 +216,47 @@ public:
 		{
 			auto i = rModelPart.NodesBegin() + iter;
             const array_1d<double, 3 > & r_previous_displacement = (i)->FastGetSolutionStepValue(DISPLACEMENT, 1);
-			const array_1d<double, 3 > & r_previous_velocity     = (i)->FastGetSolutionStepValue(VELOCITY, 1);
-            const array_1d<double, 3 > & r_previous_acceleration = (i)->FastGetSolutionStepValue(ACCELERATION, 1);
+			array_1d<double, 3 > & r_previous_velocity     = (i)->FastGetSolutionStepValue(VELOCITY, 1);
+            array_1d<double, 3 > & r_previous_acceleration = (i)->FastGetSolutionStepValue(ACCELERATION, 1);
 
             array_1d<double, 3 > & r_current_displacement  = (i)->FastGetSolutionStepValue(DISPLACEMENT);
 
             // Displacement prediction for implicit MPM
             if (!(i->pGetDof(DISPLACEMENT_X)->IsFixed()))
                 r_current_displacement[0] = 0.0;
-            else
-                r_current_displacement[0]  = r_previous_displacement[0];
+            else{
+                // imposed displacement
+                r_current_displacement[0]  = r_previous_displacement[0];    
+                
+                // at Dirichlet boundary zero velocity and acceleration at nodes
+                r_previous_velocity[0] = 0.0;
+                r_previous_acceleration[0] = 0.0;
+            }
 
             if (!(i->pGetDof(DISPLACEMENT_Y)->IsFixed()))
                 r_current_displacement[1] = 0.0;
-            else
+            else{
+                // imposed displacement
                 r_current_displacement[1]  = r_previous_displacement[1];
+                
+                // at Dirichlet boundary zero velocity and acceleration at nodes
+                r_previous_velocity[1] = 0.0;
+                r_previous_acceleration[1] = 0.0;
+            }
 
             if (i->HasDofFor(DISPLACEMENT_Z))
             {
                 if (!(i->pGetDof(DISPLACEMENT_Z)->IsFixed()))
                     r_current_displacement[2] = 0.0;
-                else
+                else{
+                    // imposed displacement
                     r_current_displacement[2]  = r_previous_displacement[2];
+                    
+                    // at Dirichlet boundary zero velocity and acceleration at nodes
+                    r_previous_velocity[2] = 0.0;
+                    r_previous_acceleration[2] = 0.0;
+                }
+                    
             }
 
             // Pressure prediction for implicit MPM
@@ -251,12 +270,12 @@ public:
             }
 
             // Updating time derivatives
-            array_1d<double, 3 > & current_velocity       = (i)->FastGetSolutionStepValue(VELOCITY);
-            array_1d<double, 3 > & current_acceleration   = (i)->FastGetSolutionStepValue(ACCELERATION);
+            array_1d<double, 3 > & r_current_velocity       = (i)->FastGetSolutionStepValue(VELOCITY);
+            array_1d<double, 3 > & r_current_acceleration   = (i)->FastGetSolutionStepValue(ACCELERATION);
 
             if (mIsDynamic){
-                BossakBaseType::UpdateVelocity(current_velocity, r_current_displacement, r_previous_velocity, r_previous_acceleration);
-                BossakBaseType::UpdateAcceleration (current_acceleration, r_current_displacement, r_previous_velocity, r_previous_acceleration);
+                BossakBaseType::UpdateVelocity(r_current_velocity, r_current_displacement, r_previous_velocity, r_previous_acceleration);
+                BossakBaseType::UpdateAcceleration (r_current_acceleration, r_current_displacement, r_previous_velocity, r_previous_acceleration);
             }
 
 		}
