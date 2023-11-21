@@ -18,9 +18,6 @@
 // Project includes
 #include "testing/testing.h"
 #include "containers/model.h"
-#include "geometries/point_3d.h"
-#include "includes/define.h"
-#include "includes/model_part.h"
 #include "solving_strategies/convergencecriterias/displacement_criteria.h"
 #include "spaces/ublas_space.h"
 
