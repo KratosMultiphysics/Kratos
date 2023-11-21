@@ -225,7 +225,6 @@ public:
 
         rCurrentComponent.CalculateLocalSystem(
             LHS_Contribution, RHS_Contribution, CurrentProcessInfo);
-
         rCurrentComponent.EquationIdVector(EquationId, CurrentProcessInfo);
 
         KRATOS_CATCH("")
@@ -258,7 +257,6 @@ public:
         KRATOS_TRY
 
         rCurrentComponent.CalculateRightHandSide(RHS_Contribution, CurrentProcessInfo);
-
         rCurrentComponent.EquationIdVector(EquationId, CurrentProcessInfo);
 
         KRATOS_CATCH("")
@@ -291,7 +289,6 @@ public:
         KRATOS_TRY
 
         rCurrentComponent.CalculateLeftHandSide(LHS_Contribution, CurrentProcessInfo);
-
         rCurrentComponent.EquationIdVector(EquationId, CurrentProcessInfo);
 
         KRATOS_CATCH("")
@@ -305,28 +302,12 @@ public:
     {
         KRATOS_TRY
 
-        int num_threads = ParallelUtilities::GetNumThreads();
-        OpenMPUtils::PartitionVector dof_set_partition;
-        OpenMPUtils::DivideInPartitions(static_cast<int>(rDofSet.size()),
-                                        num_threads, dof_set_partition);
-
-#pragma omp parallel
-        {
-            int k = OpenMPUtils::ThisThread();
-
-            typename DofsArrayType::iterator dofs_begin =
-                rDofSet.begin() + dof_set_partition[k];
-            typename DofsArrayType::iterator dofs_end =
-                rDofSet.begin() + dof_set_partition[k + 1];
-
-            // Update Displacement and Pressure (DOFs)
-            for (typename DofsArrayType::iterator it_dof = dofs_begin;
-                 it_dof != dofs_end; ++it_dof) {
-                if (it_dof->IsFree())
-                    it_dof->GetSolutionStepValue() +=
-                        TSparseSpace::GetValue(Dx, it_dof->EquationId());
+        block_for_each(rDofSet, [&Dx](auto& dof) {
+            if (dof.IsFree()) {
+                dof.GetSolutionStepValue() +=
+                    TSparseSpace::GetValue(Dx, dof.EquationId());
             }
-        }
+        });
 
         this->UpdateVariablesDerivatives(rModelPart);
 
@@ -376,11 +357,10 @@ protected:
 
     virtual void UpdateScalarTimeDerivative(Node& rNode,
                                             const Variable<double>& variable,
-                                            const Variable<double>& dt_variable) const
-    {
+                                            const Variable<double>& dt_variable) const {
         // intentionally empty
     }
-;
+
     [[nodiscard]] double GetDeltaTime() const
     {
         return mDeltaTime;
