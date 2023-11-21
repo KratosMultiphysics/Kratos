@@ -28,9 +28,7 @@ void TestTnormalFluxCondition(ModelPart& rModelPart)
     }
 
     const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
-    // p_condition->Check(r_current_process_info);
-    // Check requires a solution? 
-
+ 
     Condition::DofsVectorType dof_list;
     p_condition->GetDofList(dof_list, r_current_process_info);
 
@@ -51,8 +49,7 @@ void GenerateTnormalFluxCondition2D2N(ModelPart& rModelPart)
 {
 	rModelPart.GetProcessInfo()[DOMAIN_SIZE] = 2;
 
-	rModelPart.CreateNewProperties(0);
-	Properties::Pointer p_cond_prop = rModelPart.pGetProperties(0);
+    Properties::Pointer p_cond_prop = rModelPart.CreateNewProperties(0);
     // Geometry creation
     rModelPart.CreateNewNode(1, 0.0, 0.0, 0.0);
     rModelPart.CreateNewNode(2, 1.0, 0.0, 0.0);
