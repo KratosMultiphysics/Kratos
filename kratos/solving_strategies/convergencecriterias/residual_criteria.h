@@ -171,7 +171,7 @@ public:
     }
 
     /**
-     * @brief Criterias that need to be called after getting the solution
+     * @brief Criterion that need to be called after getting the solution
      * @details Compute relative and absolute error.
      * @param rModelPart Reference to the ModelPart containing the problem.
      * @param rDofSet Reference to the container of the problem's degrees of freedom (stored by the BuilderAndSolver)
@@ -188,8 +188,7 @@ public:
         const TSystemVectorType& rb
         ) override
     {
-        const SizeType size_b = TSparseSpace::Size(rb);
-        if (size_b != 0) { //if we are solving for something
+        if (TSparseSpace::Size(rb) != 0) { //if we are solving for something
 
             SizeType size_residual;
             CalculateResidualNorm(rModelPart, mCurrentResidualNorm, size_residual, rDofSet, rb);
@@ -419,7 +418,7 @@ protected:
 
         // Initialize
         TDataType residual_solution_norm = TDataType();
-        SizeType dof_num = 0;
+        unsigned int dof_num = 0;
 
         // Custom reduction
         using CustomReduction = CombinedReduction<SumReduction<TDataType>,SumReduction<SizeType>>;
@@ -450,7 +449,7 @@ protected:
             });
         }
 
-        rDofNum = r_data_communicator.SumAll(dof_num);
+        rDofNum = static_cast<SizeType>(r_data_communicator.SumAll(dof_num));
         rResidualSolutionNorm = std::sqrt(r_data_communicator.SumAll(residual_solution_norm));
     }
 

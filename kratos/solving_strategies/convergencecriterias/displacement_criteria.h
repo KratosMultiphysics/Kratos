@@ -488,7 +488,7 @@ private:
             }
         });
 
-        rDofNum = r_data_communicator.SumAll(dof_num);
+        rDofNum = static_cast<SizeType>(r_data_communicator.SumAll(dof_num));
         return std::sqrt(r_data_communicator.SumAll(final_correction_norm));
     }
 
