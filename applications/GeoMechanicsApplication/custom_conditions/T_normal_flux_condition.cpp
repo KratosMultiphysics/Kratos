@@ -43,14 +43,6 @@ template <unsigned int TDim, unsigned int TNumNodes>
 TNormalFluxCondition<TDim, TNumNodes>::~TNormalFluxCondition() = default;
 
 template <unsigned int TDim, unsigned int TNumNodes>
-Condition::Pointer TNormalFluxCondition<TDim, TNumNodes>::Create(
-    IndexType NewId, NodesArrayType const& rThisNodes, PropertiesType::Pointer pProperties) const
-{
-    return Condition::Pointer(new TNormalFluxCondition(
-        NewId, this->GetGeometry().Create(rThisNodes), pProperties));
-}
-
-template <unsigned int TDim, unsigned int TNumNodes>
 void TNormalFluxCondition<TDim, TNumNodes>::CalculateRHS(VectorType& rRightHandSideVector,
                                                          const ProcessInfo& rCurrentProcessInfo)
 {

@@ -38,7 +38,11 @@ public:
 
     Condition::Pointer Create(IndexType NewId,
                               NodesArrayType const& rThisNodes,
-                              PropertiesType::Pointer pProperties) const override;
+                              PropertiesType::Pointer pProperties) const override
+    {
+        return Kratos::make_intrusive<TCondition>(
+            NewId, GetGeometry().Create(rThisNodes), pProperties);
+    }
 
     void GetDofList(DofsVectorType& rConditionDofList,
                     const ProcessInfo& rCurrentProcessInfo) const override;

@@ -39,15 +39,6 @@ template <unsigned int TDim, unsigned int TNumNodes>
 TCondition<TDim, TNumNodes>::~TCondition() = default;
 
 template <unsigned int TDim, unsigned int TNumNodes>
-Condition::Pointer TCondition<TDim, TNumNodes>::Create(IndexType NewId,
-                                                       NodesArrayType const& rThisNodes,
-                                                       PropertiesType::Pointer pProperties) const
-{
-    return Kratos::make_intrusive<TCondition>(
-        NewId, GetGeometry().Create(rThisNodes), pProperties);
-}
-
-template <unsigned int TDim, unsigned int TNumNodes>
 void TCondition<TDim, TNumNodes>::GetDofList(DofsVectorType& rConditionDofList,
                                              const ProcessInfo& rCurrentProcessInfo) const
 {

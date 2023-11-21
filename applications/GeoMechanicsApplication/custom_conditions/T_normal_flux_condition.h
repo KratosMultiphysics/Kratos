@@ -47,7 +47,11 @@ public:
 
     Condition::Pointer Create(IndexType NewId,
                               NodesArrayType const& rThisNodes,
-                              PropertiesType::Pointer pProperties) const override;
+                              PropertiesType::Pointer pProperties) const override
+    {
+        return Condition::Pointer(new TNormalFluxCondition(
+            NewId, this->GetGeometry().Create(rThisNodes), pProperties));
+    }
 
 protected:
     struct NormalFluxVariables {
