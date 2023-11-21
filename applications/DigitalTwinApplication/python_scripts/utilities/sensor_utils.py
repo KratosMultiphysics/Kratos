@@ -12,7 +12,7 @@ from KratosMultiphysics.DigitalTwinApplication.utilities.data_utils import GetPa
 from KratosMultiphysics.DigitalTwinApplication.utilities.data_utils import GetKratosValueToCSVStringConverter
 from KratosMultiphysics.DigitalTwinApplication.utilities.data_utils import GetKratosValueToPythonValueConverter
 from KratosMultiphysics.DigitalTwinApplication.utilities.data_utils import GetNameToCSVString
-from KratosMultiphysics.DigitalTwinApplication.utilities.expression_utils import ExpressionUnionType
+from KratosMultiphysics.DigitalTwinApplication.utilities.expression_utils import ExpressionUnionType, ExpressionFilterUnionType, GetContainerExpressionType
 
 def GetSensors(model_part: Kratos.ModelPart, list_of_parameters: 'list[Kratos.Parameters]') -> 'list[KratosDT.Sensors.Sensor]':
     """Get list of sensors from given parameters.
@@ -277,3 +277,53 @@ def ComputeHeatMap(list_of_sensor_views: 'list[SensorViewUnionType]') -> Express
         heat_map += sensor_view.GetContainerExpression()
     heat_map /= KratosOA.ExpressionUtils.NormL2(heat_map)
     return heat_map.Flatten()
+
+def GetFilter(model_part: Kratos.ModelPart, filter_field_location: Kratos.Globals.DataLocation, filter_parameters: Kratos.Parameters) -> ExpressionFilterUnionType:
+    if not filter_parameters.Has("filter_type"):
+        raise RuntimeError(f"Parameters does not contain filter_type. {filter_parameters}")
+
+    filter_type = filter_parameters["filter_type"].GetString()
+    if filter_type == "entity_nodal_entity_filter":
+        if filter_field_location == Kratos.Globals.DataLocation.Condition:
+            return KratosOA.ConditionNodeConditionFilter(model_part)
+        elif filter_field_location == Kratos.Globals.DataLocation.Element:
+            return KratosOA.ElementNodeElementFilter(model_part)
+        else:
+            raise RuntimeError(f"Unsupported filter field location = {filter_field_location.name}")
+    elif filter_type == "explicit_vertex_morphing":
+        default_settings = Kratos.Parameters("""{
+            "filter_type"               : "explicit_vertex_morphing",
+            "filter_radius"             : 5.0,
+            "filter_function_type"      : "linear",
+            "fixed_model_part_name"     : "",
+            "damping_function_type"     : "sigmoidal",
+            "max_nodes_in_filter_radius": 1000
+        }""")
+        filter_parameters.ValidateAndAssignDefaults(default_settings)
+
+        expression_type = GetContainerExpressionType(filter_field_location)
+        filter_radius_exp = expression_type(model_part)
+        Kratos.Expression.LiteralExpressionIO.SetData(filter_radius_exp, filter_parameters["filter_radius"].GetDouble())
+        fixed_model_part_name = filter_parameters["fixed_model_part_name"].GetString()
+        filter_function_type = filter_parameters["filter_function_type"].GetString()
+        damping_function_type = filter_parameters["damping_function_type"].GetString()
+        max_filtering_nodes = filter_parameters["max_nodes_in_filter_radius"].GetInt()
+
+        if expression_type == Kratos.Expression.NodalExpression:
+            filter_type = KratosOA.NodalExplicitFilter
+        elif expression_type == Kratos.Expression.ConditionExpression:
+            filter_type = KratosOA.ConditionExplicitFilter
+        elif expression_type == Kratos.Expression.ElementExpression:
+            filter_type = KratosOA.ElementExplicitFilter
+        else:
+            raise RuntimeError("Unsupported filter type.")
+
+        if fixed_model_part_name == "":
+            vm_filter = filter_type(model_part, filter_function_type, max_filtering_nodes)
+        else:
+            vm_filter = filter_type(model_part, model_part.GetModel()[fixed_model_part_name], filter_function_type, damping_function_type, max_filtering_nodes)
+
+        vm_filter.SetFilterRadius(filter_radius_exp)
+        return vm_filter
+    else:
+        raise RuntimeError(f"Unsupported filter_type = {filter_type}.")
