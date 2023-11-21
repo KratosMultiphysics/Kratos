@@ -116,7 +116,7 @@ class LeastCosineEuclideanSimilaritySensorPlacementAlgorithm(SensorPlacementAlgo
         stats = tools.Statistics(lambda ind: ind.fitness.values)
         stats.register("Max distance", np.max)
 
-        _, _ = algorithms.eaSimple(pop, toolbox, cxpb=0.5, mutpb=0.2, ngen=100,
+        _, _ = algorithms.eaSimple(pop, toolbox, cxpb=0.5, mutpb=0.4, ngen=100,
                                     stats=stats, halloffame=hof, verbose=True)
 
         output_path = Path(self.parameters["output_folder"].GetString()) / f"sensors/{name}"
