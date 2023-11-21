@@ -41,7 +41,7 @@ void TestTnormalFluxCondition(ModelPart& rModelPart)
 
     // Check the EquationIdVector values
     for (unsigned int i = 0; i < equation_id_vector.size(); i++) {
-        KRATOS_EXPECT_TRUE(equation_id_vector[i] == i);
+        KRATOS_EXPECT_EQ(equation_id_vector[i], i);
     }
 }
 
