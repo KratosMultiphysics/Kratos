@@ -64,7 +64,7 @@ protected:
 
     virtual void CalculateIntegrationCoefficient(double& rIntegrationCoefficient,
                                                  const Matrix& Jacobian,
-                                                 const double& Weight);
+                                                 double Weight);
 
 private:
     friend class Serializer;
