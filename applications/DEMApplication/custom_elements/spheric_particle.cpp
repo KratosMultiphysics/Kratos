@@ -286,12 +286,12 @@ void SphericParticle::CalculateRightHandSide(const ProcessInfo& r_process_info, 
 
     NodeType& this_node = GetGeometry()[0];
 
-    array_1d<double, 3> additional_forces           = ZeroVector(3);
-    array_1d<double, 3>& elastic_force              = this_node.FastGetSolutionStepValue(ELASTIC_FORCES);
-    array_1d<double, 3>& contact_force              = this_node.FastGetSolutionStepValue(CONTACT_FORCES);
-    array_1d<double, 3>& rigid_element_force        = this_node.FastGetSolutionStepValue(RIGID_ELEMENT_FORCE);
-    array_1d<double, 3>& total_forces               = this_node.FastGetSolutionStepValue(TOTAL_FORCES);
-    array_1d<double, 3>& total_moment               = this_node.FastGetSolutionStepValue(PARTICLE_MOMENT);
+    array_1d<double, 3> additional_forces    = ZeroVector(3);
+    array_1d<double, 3>& elastic_force       = this_node.FastGetSolutionStepValue(ELASTIC_FORCES);
+    array_1d<double, 3>& contact_force       = this_node.FastGetSolutionStepValue(CONTACT_FORCES);
+    array_1d<double, 3>& rigid_element_force = this_node.FastGetSolutionStepValue(RIGID_ELEMENT_FORCE);
+    array_1d<double, 3>& total_forces        = this_node.FastGetSolutionStepValue(TOTAL_FORCES);
+    array_1d<double, 3>& total_moment        = this_node.FastGetSolutionStepValue(PARTICLE_MOMENT);
 
     elastic_force.clear();
     contact_force.clear();

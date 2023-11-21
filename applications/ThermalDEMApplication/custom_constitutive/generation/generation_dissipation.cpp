@@ -35,7 +35,7 @@ namespace Kratos {
     // Conversion and partition coefficients
     const double conversion = r_process_info[HEAT_GENERATION_RATIO];
     const double partition  = ComputePartitionCoeff(particle);
-    const double coeff      = conversion * partition;
+    const double coeff      = conversion * partition / time;
 
     // Initialize contribution from different sources of heat generation
     double heat_gen;
@@ -48,7 +48,7 @@ namespace Kratos {
 
     // Damping thermal power
     if (r_process_info[GENERATION_DAMPING_OPTION]) {
-      heat_gen = coeff * contact_params.viscodamping_energy / time;
+      heat_gen = coeff * contact_params.viscodamping_energy;
 
       if (particle->mNeighborType & PARTICLE_NEIGHBOR) {
         heat_gen_damping_pp = heat_gen;
@@ -62,7 +62,7 @@ namespace Kratos {
 
     // Sliding friction thermal power
     if (r_process_info[GENERATION_SLIDING_OPTION]) {
-      heat_gen = coeff * contact_params.frictional_energy / time;
+      heat_gen = coeff * contact_params.frictional_energy;
 
       if (particle->mNeighborType & PARTICLE_NEIGHBOR) {
         heat_gen_sliding_pp = heat_gen;
@@ -75,8 +75,8 @@ namespace Kratos {
     }
 
     // Rolling friction thermal power
-    if (r_process_info[GENERATION_ROLLING_OPTION] && particle->Is(DEMFlags::HAS_ROTATION) && particle->Is(DEMFlags::HAS_ROLLING_FRICTION)) {
-      heat_gen = coeff * contact_params.rollresist_energy / time;
+    if (r_process_info[GENERATION_ROLLING_OPTION] && particle->Is(DEMFlags::HAS_ROLLING_FRICTION)) {
+      heat_gen = coeff * contact_params.rollresist_energy;
 
       if (particle->mNeighborType & PARTICLE_NEIGHBOR) {
         heat_gen_rolling_pp = heat_gen;
