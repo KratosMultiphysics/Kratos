@@ -14,31 +14,27 @@ from KratosMultiphysics.DigitalTwinApplication.utilities.sensor_utils import Pri
 from KratosMultiphysics.DigitalTwinApplication.utilities.sensor_utils import PrintSensorListToJson
 from KratosMultiphysics.DigitalTwinApplication.utilities.sensor_utils import GetBestCoverageSensorView
 from KratosMultiphysics.DigitalTwinApplication.utilities.sensor_utils import ComputeHeatMap
+from KratosMultiphysics.DigitalTwinApplication.utilities.sensor_utils import GetFilter
 from KratosMultiphysics.DigitalTwinApplication.utilities.data_utils import SensorViewUnionType
+from KratosMultiphysics.DigitalTwinApplication.utilities.expression_utils import ExpressionFilterUnionType
 
 class CosineSimilarityWithTriangulationSensorPlacement(SensorPlacementAlgorithm):
     @classmethod
     def GetDefaultParameters(cls) -> Kratos.Parameters:
         return Kratos.Parameters("""{
-            "type"                             : "least_cosine_euclidean_similarity_sensor_placement_algorithm",
-            "output_to_vtu"                    : true,
-            "output_to_csv"                    : true,
-            "output_folder"                    : "sensor_placement/",
-            "minimum_distance"                 : 0.0,
-            "filtering": {
-                "filter_radius"             : 5.0,
-                "filter_function_type"      : "linear",
-                "fixed_model_part_name"     : "",
-                "damping_function_type"     : "sigmoidal",
-                "max_nodes_in_filter_radius": 1000
-            }
+            "type"            : "least_cosine_euclidean_similarity_sensor_placement_algorithm",
+            "output_to_vtu"   : true,
+            "output_to_csv"   : true,
+            "output_folder"   : "sensor_placement/",
+            "minimum_distance": 0.0,
+            "filtering"       : {}
         }""")
 
     def __init__(self, model: Kratos.Model, parameters: Kratos.Parameters) -> None:
         self.model = model
         self.parameters = parameters
         self.list_of_sensors:'list[KratosDT.Sensors.Sensor]' = []
-        self.parameters.RecursivelyValidateAndAssignDefaults(self.GetDefaultParameters())
+        self.parameters.ValidateAndAssignDefaults(self.GetDefaultParameters())
         self.is_vtu_output = self.parameters["output_to_vtu"].GetBool()
         self.is_csv_output = self.parameters["output_to_csv"].GetBool()
         self.minimum_distance = self.parameters["minimum_distance"].GetDouble()
@@ -123,9 +119,9 @@ class CosineSimilarityWithTriangulationSensorPlacement(SensorPlacementAlgorithm)
         vtu_output.PrintOutput(str(output_path / "heat_map"))
 
     def SmoothenSensitivityFields(self) -> None:
-        mp_nodal, nodal_filter = self.__GetFilter(KratosOA.NodalExplicitFilter)
-        mp_condition, condition_filter = self.__GetFilter(KratosOA.ConditionExplicitFilter)
-        mp_element, element_filter = self.__GetFilter(KratosOA.ElementExplicitFilter)
+        mp_nodal, nodal_filter = self.__GetFilter(Kratos.Globals.DataLocation.NodeHistorical)
+        mp_condition, condition_filter = self.__GetFilter(Kratos.Globals.DataLocation.Condition)
+        mp_element, element_filter = self.__GetFilter(Kratos.Globals.DataLocation.Element)
 
         output_path = Path(self.parameters["output_folder"].GetString())
 
@@ -174,46 +170,27 @@ class CosineSimilarityWithTriangulationSensorPlacement(SensorPlacementAlgorithm)
             if self.is_vtu_output:
                 vtu_output.PrintOutput(str(vtu_output_path / f"{sensor.GetName()}"))
 
-    def __GetFilter(self, filter_type: 'typing.Union[typing.Type[KratosOA.NodalExplicitFilter], typing.Type[KratosOA.ConditionExplicitFilter], typing.Type[KratosOA.ElementExplicitFilter]]') -> 'tuple[Kratos.ModelPart, typing.Union[KratosOA.NodalExplicitFilter, KratosOA.ConditionExplicitFilter, KratosOA.ElementExplicitFilter]]':
-        filter_settings = self.parameters["filtering"]
-        filter_settings.ValidateAndAssignDefaults(self.GetDefaultParameters()["filtering"])
-
-        fixed_model_part_name = filter_settings["fixed_model_part_name"].GetString()
-        filter_function_type = filter_settings["filter_function_type"].GetString()
-        damping_function_type = filter_settings["damping_function_type"].GetString()
-        filter_radius = filter_settings["filter_radius"].GetDouble()
-        max_filtering_nodes = filter_settings["max_nodes_in_filter_radius"].GetInt()
-
-        # first create the nodal filter
-        vm_filter: filter_type = None
+    def __GetFilter(self, filter_field_type: Kratos.Globals.DataLocation) -> 'tuple[Kratos.ModelPart, ExpressionFilterUnionType]':
+        field_filter: ExpressionFilterUnionType = None
         model_part: Kratos.ModelPart = None
         for sensor in self.list_of_sensors:
-            if filter_type == KratosOA.NodalExplicitFilter:
+            if filter_field_type in [Kratos.Globals.DataLocation.NodeHistorical, Kratos.Globals.DataLocation.NodeNonHistorical]:
                 expressions_list = sensor.GetNodalExpressionsMap().values()
-                filter_radius_exp_type = Kratos.Expression.NodalExpression
-            elif filter_type == KratosOA.ConditionExplicitFilter:
+            elif filter_field_type == Kratos.Globals.DataLocation.Condition:
                 expressions_list = sensor.GetConditionExpressionsMap().values()
-                filter_radius_exp_type = Kratos.Expression.ConditionExpression
-            elif filter_type == KratosOA.ElementExplicitFilter:
+            elif filter_field_type == Kratos.Globals.DataLocation.Element:
                 expressions_list = sensor.GetElementExpressionsMap().values()
-                filter_radius_exp_type = Kratos.Expression.ElementExpression
-            for v in expressions_list:
-                if vm_filter is None:
-                    model_part = v.GetModelPart()
-                    if fixed_model_part_name == "":
-                        vm_filter = filter_type(model_part, filter_function_type, max_filtering_nodes)
-                    else:
-                        vm_filter = filter_type(model_part, self.model[fixed_model_part_name], filter_function_type, damping_function_type, max_filtering_nodes)
-                    filter_radius_exp = filter_radius_exp_type(model_part)
-                    Kratos.Expression.LiteralExpressionIO.SetData(filter_radius_exp, filter_radius)
-                    vm_filter.SetFilterRadius(filter_radius_exp)
 
-                    Kratos.Logger.PrintInfo(self.__class__.__name__, f"Created a {filter_type.__name__} filter for {model_part.FullName()}.")
+            for v in expressions_list:
+                if field_filter is None:
+                    model_part = v.GetModelPart()
+                    field_filter = GetFilter(model_part, filter_field_type, self.parameters["filtering"])
                     break
 
-            if vm_filter is not None:
+            if field_filter is not None:
                 break
-        return model_part, vm_filter
+
+        return model_part, field_filter
 
 
 
