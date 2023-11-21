@@ -81,7 +81,7 @@ void TNormalFluxCondition<TDim, TNumNodes>::CalculateRHS(VectorType& rRightHandS
         // Obtain N
         noalias(variables.N) = row(r_N_container, integration_point);
 
-        // Compute normal flux
+        // Interpolation of nodal normal flux to integration point normal flux.
         variables.NormalFlux = MathUtils<>::Dot(variables.N, normal_flux_vector);
 
         // Compute weighting coefficient for integration

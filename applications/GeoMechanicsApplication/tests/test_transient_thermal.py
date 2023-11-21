@@ -5,7 +5,7 @@ import test_helper
 
 class KratosGeoMechanicsTransientThermalTests(KratosUnittest.TestCase):
     """
-    This class contains benchmark tests which are checked with the analytical solution
+    This class contains benchmark tests which are checked with the regression on a previously obtained value.
     """
     etalon_value1 = 28.04411163544510063559
     etalon_value2 = 17.55892791313559322
