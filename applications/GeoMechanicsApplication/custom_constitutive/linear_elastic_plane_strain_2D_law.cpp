@@ -68,8 +68,8 @@ void GeoLinearElasticPlaneStrain2DLaw::CalculateElasticMatrix(Matrix& C, Constit
     KRATOS_TRY
 
     const Properties &r_material_properties = rValues.GetMaterialProperties();
-    const double &  E  = r_material_properties[YOUNG_MODULUS];
-    const double &  NU = r_material_properties[POISSON_RATIO];
+    const auto  E  = r_material_properties[YOUNG_MODULUS];
+    const auto  NU = r_material_properties[POISSON_RATIO];
 
     this->CheckClearElasticMatrix(C);
 
@@ -101,7 +101,7 @@ void GeoLinearElasticPlaneStrain2DLaw::CalculatePK2Stress(const Vector& rStrainV
 {
     KRATOS_TRY
 
-    UpdateInternalDeltaStrainVector(rValues.GetStrainVector());
+    mDeltaStrainVector = rValues.GetStrainVector() - mStrainVectorFinalized;
 
     Matrix C;
     this->CalculateElasticMatrix(C, rValues);
@@ -109,41 +109,20 @@ void GeoLinearElasticPlaneStrain2DLaw::CalculatePK2Stress(const Vector& rStrainV
     // Incremental formulation
     noalias(mStressVector) = mStressVectorFinalized + prod(C, mDeltaStrainVector);
 
-    SetExternalStressVector(rStressVector);
+    rStressVector = mStressVector;
 
     KRATOS_CATCH("")
 }
 
-void GeoLinearElasticPlaneStrain2DLaw::UpdateInternalDeltaStrainVector(const Vector& r_strain_vector){
-    mDeltaStrainVector = r_strain_vector - mStrainVectorFinalized;
-}
 
-void GeoLinearElasticPlaneStrain2DLaw::UpdateInternalStrainVectorFinalized(const Vector& r_strain_vector) {
-    this->SetInternalStrainVector(r_strain_vector);
-}
-
-void GeoLinearElasticPlaneStrain2DLaw::SetExternalStressVector(Vector& r_stress_vector) const{
-    r_stress_vector = mStressVector;
-}
-
-void GeoLinearElasticPlaneStrain2DLaw::SetInternalStressVector(const Vector& r_stress_vector){
-    mStressVectorFinalized = r_stress_vector;
-}
-
-void GeoLinearElasticPlaneStrain2DLaw::SetInternalStrainVector(const Vector& r_strain_vector){
-    mStrainVectorFinalized = r_strain_vector;
-}
 void GeoLinearElasticPlaneStrain2DLaw::InitializeMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues)
 {
     KRATOS_TRY
     if (!mIsModelInitialized)
     {
         // stress and strain vectors must be initialized:
-        const Vector& r_stress_vector = rValues.GetStressVector();
-        const Vector& r_strain_vector = rValues.GetStrainVector();
-
-        SetInternalStressVector(r_stress_vector);
-        SetInternalStrainVector(r_strain_vector);
+        mStressVectorFinalized = rValues.GetStressVector();
+        mStrainVectorFinalized = rValues.GetStrainVector();
 
         mIsModelInitialized = true;
     }
@@ -152,7 +131,7 @@ void GeoLinearElasticPlaneStrain2DLaw::InitializeMaterialResponseCauchy(Constitu
 
 void GeoLinearElasticPlaneStrain2DLaw::FinalizeMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues)
 {
-    UpdateInternalStrainVectorFinalized(rValues.GetStrainVector());
+    mStrainVectorFinalized = rValues.GetStrainVector();
     mStressVectorFinalized = mStressVector;
 }
 

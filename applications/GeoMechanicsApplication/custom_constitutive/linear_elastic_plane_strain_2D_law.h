@@ -77,6 +77,7 @@ public:
      * @param rValue output: the value of the specified variable
      */
     bool& GetValue(const Variable<bool>& rThisVariable, bool& rValue) override;
+    using ConstitutiveLaw::GetValue;
 
 protected:
     /**
@@ -96,11 +97,6 @@ protected:
                             Vector& rStressVector,
                             ConstitutiveLaw::Parameters& rValues) override;
 
-    void UpdateInternalDeltaStrainVector(const Vector& r_strain_vector);
-    void UpdateInternalStrainVectorFinalized(const Vector& r_strain_vector);
-    void SetExternalStressVector(Vector& rStressVector) const;
-    void SetInternalStressVector(const Vector& rStressVector);
-    void SetInternalStrainVector(const Vector& rStrainVector);
     void InitializeMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues) final;
     void FinalizeMaterialResponseCauchy(ConstitutiveLaw::Parameters & rValues) final;
     void FinalizeMaterialResponsePK2(ConstitutiveLaw::Parameters& rValues) final;
