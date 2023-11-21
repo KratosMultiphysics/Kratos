@@ -28,18 +28,12 @@ class LeastCosineEuclideanSimilaritySensorPlacementAlgorithm(SensorPlacementAlgo
     @classmethod
     def GetDefaultParameters(cls) -> Kratos.Parameters:
         return Kratos.Parameters("""{
-            "type"                             : "least_cosine_euclidean_similarity_sensor_placement_algorithm",
-            "output_to_vtu"                    : true,
-            "output_to_csv"                    : true,
-            "output_folder"                    : "sensor_placement/",
-            "number_of_sensors"                : 0,
-            "filtering": {
-                "filter_radius"             : 5.0,
-                "filter_function_type"      : "linear",
-                "fixed_model_part_name"     : "",
-                "damping_function_type"     : "sigmoidal",
-                "max_nodes_in_filter_radius": 1000
-            }
+            "type"             : "least_cosine_euclidean_similarity_sensor_placement_algorithm",
+            "output_to_vtu"    : true,
+            "output_to_csv"    : true,
+            "output_folder"    : "sensor_placement/",
+            "number_of_sensors": 0,
+            "filtering"        : {}
         }""")
 
     def __init__(self, model: Kratos.Model, parameters: Kratos.Parameters) -> None:

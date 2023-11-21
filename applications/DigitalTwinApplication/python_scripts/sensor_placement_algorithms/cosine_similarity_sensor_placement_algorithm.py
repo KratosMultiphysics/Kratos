@@ -29,13 +29,7 @@ class CosineSimilaritySensorPlacementAlgorithm(SensorPlacementAlgorithm):
             "sensor_coverage_percentage"       : 5.0,
             "max_clustering_iterations"        : 100,
             "best_sensor_identification_method": "highest_minimum",
-            "filtering": {
-                "filter_radius"             : 5.0,
-                "filter_function_type"      : "linear",
-                "fixed_model_part_name"     : "",
-                "damping_function_type"     : "sigmoidal",
-                "max_nodes_in_filter_radius": 1000
-            }
+            "filtering"                        : {}
         }""")
 
     def __init__(self, model: Kratos.Model, parameters: Kratos.Parameters) -> None:
