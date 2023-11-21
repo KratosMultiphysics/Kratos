@@ -107,7 +107,7 @@ void TNormalFluxCondition<TDim, TNumNodes>::CalculateAndAddRHS(VectorType& rRigh
 
 template <unsigned int TDim, unsigned int TNumNodes>
 void TNormalFluxCondition<TDim, TNumNodes>::CalculateIntegrationCoefficient(
-    double& rIntegrationCoefficient, const Matrix& rJacobian, const double& Weight)
+    double& rIntegrationCoefficient, const Matrix& rJacobian, double Weight)
 {
     Vector normal_vector = ZeroVector(TDim);
 
