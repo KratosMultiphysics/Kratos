@@ -30,16 +30,16 @@ KRATOS_TEST_CASE_IN_SUITE(BackwardEulerPwScheme_UpdatesVariablesDerivatives_When
     model_part.AddNodalSolutionStepVariable(WATER_PRESSURE);
     model_part.AddNodalSolutionStepVariable(DT_WATER_PRESSURE);
 
-    constexpr double current_temperature = 1.0;
-    constexpr double previous_temperature = 0.0;
+    constexpr double current_pressure = 1.0;
+    constexpr double previous_pressure = 0.0;
     constexpr double delta_time = 4.0;
 
     model_part.GetProcessInfo()[DELTA_TIME] = delta_time;
     auto p_node = model_part.CreateNewNode(0, 0.0, 0.0, 0.0);
-    p_node->FastGetSolutionStepValue(WATER_PRESSURE) = current_temperature;
-    p_node->FastGetSolutionStepValue(WATER_PRESSURE, 1) = previous_temperature;
+    p_node->FastGetSolutionStepValue(WATER_PRESSURE, 0) = current_pressure;
+    p_node->FastGetSolutionStepValue(WATER_PRESSURE, 1) = previous_pressure;
 
-    KRATOS_EXPECT_DOUBLE_EQ(p_node->FastGetSolutionStepValue(DT_WATER_PRESSURE), 0.0);
+    KRATOS_EXPECT_DOUBLE_EQ(p_node->FastGetSolutionStepValue(DT_WATER_PRESSURE, 0), 0.0);
 
     scheme.Initialize(model_part);
     ModelPart::DofsArrayType dof_set;
@@ -69,7 +69,7 @@ KRATOS_TEST_CASE_IN_SUITE(InitializeBackwardEulerPwScheme_SetsTimeFactors, Krato
 
     KRATOS_EXPECT_TRUE(scheme.SchemeIsInitialized())
     KRATOS_EXPECT_DOUBLE_EQ(model_part.GetProcessInfo()[DT_PRESSURE_COEFFICIENT],
-                            1.0 / (delta_time));
+                            1.0 / delta_time);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(ForMissingNodalDof_CheckBackwardEulerPwScheme_Throws,

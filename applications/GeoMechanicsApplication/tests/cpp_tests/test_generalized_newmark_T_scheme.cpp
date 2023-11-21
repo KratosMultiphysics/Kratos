@@ -96,12 +96,9 @@ KRATOS_TEST_CASE_IN_SUITE(NewmarkTSchemeUpdate_SetsDtTemperature, KratosGeoMecha
 
     model_part.GetProcessInfo()[DELTA_TIME] = delta_time;
     Node& node = model_part.Nodes()[0];
-    node.FastGetSolutionStepValue(TEMPERATURE) = current_temperature;
+    node.FastGetSolutionStepValue(TEMPERATURE, 0) = current_temperature;
     node.FastGetSolutionStepValue(TEMPERATURE, 1) = previous_temperature;
     node.FastGetSolutionStepValue(DT_TEMPERATURE, 1) = previous_dt_temperature;
-
-    // This is the expected value as calculated by the UpdateVariablesDerivatives
-    constexpr double expected_value = 7.0 / 3.0;
 
     ModelPart::DofsArrayType dof_set;
     CompressedMatrix A;
@@ -111,7 +108,8 @@ KRATOS_TEST_CASE_IN_SUITE(NewmarkTSchemeUpdate_SetsDtTemperature, KratosGeoMecha
     scheme.Initialize(model_part);
     scheme.Predict(model_part, dof_set, A, Dx, b);
 
-    KRATOS_EXPECT_DOUBLE_EQ(node.FastGetSolutionStepValue(DT_TEMPERATURE), expected_value);
+    // This is the expected value as calculated by the UpdateVariablesDerivatives
+    KRATOS_EXPECT_DOUBLE_EQ(node.FastGetSolutionStepValue(DT_TEMPERATURE, 0), 7.0 / 3.0);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(InitializeNewmarkTScheme_SetsTimeFactors, KratosGeoMechanicsFastSuite)

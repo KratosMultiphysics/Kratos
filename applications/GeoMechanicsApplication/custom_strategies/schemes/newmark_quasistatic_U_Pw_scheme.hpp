@@ -146,24 +146,33 @@ protected:
 
         // Update Acceleration, Velocity and DtPressure
         block_for_each(rModelPart.Nodes(), [&](Node& rNode) {
-            noalias(rNode.FastGetSolutionStepValue(ACCELERATION)) =
-                ((rNode.FastGetSolutionStepValue(DISPLACEMENT) -
-                  rNode.FastGetSolutionStepValue(DISPLACEMENT, 1)) -
-                 this->GetDeltaTime() * rNode.FastGetSolutionStepValue(VELOCITY, 1) -
-                 (0.5 - mBeta) * this->GetDeltaTime() * this->GetDeltaTime() *
-                     rNode.FastGetSolutionStepValue(ACCELERATION, 1)) /
-                (mBeta * this->GetDeltaTime() * this->GetDeltaTime());
-
-            noalias(rNode.FastGetSolutionStepValue(VELOCITY)) =
-                rNode.FastGetSolutionStepValue(VELOCITY, 1) +
-                (1.0 - mGamma) * this->GetDeltaTime() *
-                    rNode.FastGetSolutionStepValue(ACCELERATION, 1) +
-                mGamma * this->GetDeltaTime() * rNode.FastGetSolutionStepValue(ACCELERATION);
-
+            UpdateVectorSecondTimeDerivative(rNode);
+            UpdateVectorFirstTimeDerivative(rNode);
             this->UpdateScalarTimeDerivative(rNode, WATER_PRESSURE, DT_WATER_PRESSURE);
         });
 
         KRATOS_CATCH("")
+    }
+
+private:
+    void UpdateVectorFirstTimeDerivative(Node& rNode) const
+    {
+        noalias(rNode.FastGetSolutionStepValue(VELOCITY, 0)) =
+            rNode.FastGetSolutionStepValue(VELOCITY, 1) +
+            (1.0 - mGamma) * this->GetDeltaTime() *
+                rNode.FastGetSolutionStepValue(ACCELERATION, 1) +
+            mGamma * this->GetDeltaTime() * rNode.FastGetSolutionStepValue(ACCELERATION, 0);
+    }
+
+    void UpdateVectorSecondTimeDerivative(Node& rNode) const
+    {
+        noalias(rNode.FastGetSolutionStepValue(ACCELERATION, 0)) =
+            ((rNode.FastGetSolutionStepValue(DISPLACEMENT, 0) -
+              rNode.FastGetSolutionStepValue(DISPLACEMENT, 1)) -
+             this->GetDeltaTime() * rNode.FastGetSolutionStepValue(VELOCITY, 1) -
+             (0.5 - mBeta) * this->GetDeltaTime() * this->GetDeltaTime() *
+                 rNode.FastGetSolutionStepValue(ACCELERATION, 1)) /
+            (mBeta * this->GetDeltaTime() * this->GetDeltaTime());
     }
 }; // Class NewmarkQuasistaticUPwScheme
 

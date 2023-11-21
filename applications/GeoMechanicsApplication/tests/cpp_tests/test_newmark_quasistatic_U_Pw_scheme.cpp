@@ -63,7 +63,7 @@ public:
             Kratos::array_1d<double, 3>{7.0, 8.0, 9.0};
 
         p_node->FastGetSolutionStepValue(WATER_PRESSURE, 1) = 1.0;
-        p_node->FastGetSolutionStepValue(WATER_PRESSURE) = 2.0;
+        p_node->FastGetSolutionStepValue(WATER_PRESSURE, 0) = 2.0;
     }
 
     ModelPart& GetModelPart()
@@ -111,17 +111,17 @@ KRATOS_TEST_CASE_IN_SUITE(NewmarkUPwSchemePredict_UpdatesVariablesDerivatives, K
     const auto expected_velocity = Kratos::array_1d<double, 3>{-4.5, -6.0, -7.5};
     constexpr auto expected_dt_water_pressure = 1.0 / 3.0;
 
-    const auto actual_acceleration = tester.GetModelPart().Nodes()[0].FastGetSolutionStepValue(ACCELERATION);
+    const auto actual_acceleration = tester.GetModelPart().Nodes()[0].FastGetSolutionStepValue(ACCELERATION, 0);
     KRATOS_EXPECT_EQ(actual_acceleration.size(), expected_acceleration.size());
     for (std::size_t i = 0; i < actual_acceleration.size(); ++i)
         KRATOS_EXPECT_DOUBLE_EQ(actual_acceleration[i], expected_acceleration[i]);
 
-    const auto actual_velocity = tester.GetModelPart().Nodes()[0].FastGetSolutionStepValue(VELOCITY);
+    const auto actual_velocity = tester.GetModelPart().Nodes()[0].FastGetSolutionStepValue(VELOCITY, 0);
     for (std::size_t i = 0; i < actual_velocity.size(); ++i)
         KRATOS_EXPECT_DOUBLE_EQ(actual_velocity[i], expected_velocity[i]);
 
     KRATOS_EXPECT_DOUBLE_EQ(
-        tester.GetModelPart().Nodes()[0].FastGetSolutionStepValue(DT_WATER_PRESSURE),
+        tester.GetModelPart().Nodes()[0].FastGetSolutionStepValue(DT_WATER_PRESSURE, 0),
         expected_dt_water_pressure);
 }
 
@@ -147,7 +147,7 @@ KRATOS_TEST_CASE_IN_SUITE(ForMissingNodalDof_CheckNewmarkUPwScheme_Throws, Krato
         Kratos::array_1d<double, 3>{7.0, 8.0, 9.0};
 
     p_node->FastGetSolutionStepValue(WATER_PRESSURE, 1) = 1.0;
-    p_node->FastGetSolutionStepValue(WATER_PRESSURE) = 2.0;
+    p_node->FastGetSolutionStepValue(WATER_PRESSURE, 0) = 2.0;
 
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(tester.mScheme.Check(model_part), "ACCELERATION variable is not allocated for node 0")
 }

@@ -36,10 +36,10 @@ KRATOS_TEST_CASE_IN_SUITE(BackwardEulerTScheme_UpdatesVariablesDerivatives_WhenP
 
     model_part.GetProcessInfo()[DELTA_TIME] = delta_time;
     auto p_node = model_part.CreateNewNode(0, 0.0, 0.0, 0.0);
-    p_node->FastGetSolutionStepValue(TEMPERATURE) = current_temperature;
+    p_node->FastGetSolutionStepValue(TEMPERATURE, 0) = current_temperature;
     p_node->FastGetSolutionStepValue(TEMPERATURE, 1) = previous_temperature;
 
-    KRATOS_EXPECT_DOUBLE_EQ(p_node->FastGetSolutionStepValue(DT_TEMPERATURE), 0.0);
+    KRATOS_EXPECT_DOUBLE_EQ(p_node->FastGetSolutionStepValue(DT_TEMPERATURE, 0), 0.0);
 
     scheme.Initialize(model_part);
     ModelPart::DofsArrayType dof_set;
@@ -49,7 +49,7 @@ KRATOS_TEST_CASE_IN_SUITE(BackwardEulerTScheme_UpdatesVariablesDerivatives_WhenP
     scheme.Predict(model_part, dof_set, A, Dx, b);
 
     constexpr double expected_dt_temperature = 0.25;
-    KRATOS_EXPECT_DOUBLE_EQ(p_node->FastGetSolutionStepValue(DT_TEMPERATURE),
+    KRATOS_EXPECT_DOUBLE_EQ(p_node->FastGetSolutionStepValue(DT_TEMPERATURE, 0),
                             expected_dt_temperature);
 }
 
@@ -68,12 +68,11 @@ KRATOS_TEST_CASE_IN_SUITE(InitializeBackwardEulerTScheme_SetsTimeFactors, Kratos
     scheme.Initialize(model_part);
 
     KRATOS_EXPECT_TRUE(scheme.SchemeIsInitialized())
-    KRATOS_EXPECT_DOUBLE_EQ(model_part.GetProcessInfo()[DT_TEMPERATURE_COEFFICIENT],
-                            1.0 / (delta_time));
+    KRATOS_EXPECT_DOUBLE_EQ(
+        model_part.GetProcessInfo()[DT_TEMPERATURE_COEFFICIENT], 1.0 / delta_time);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(ForMissingNodalDof_CheckBackwardEulerTScheme_Throws,
-                          KratosGeoMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(ForMissingNodalDof_CheckBackwardEulerTScheme_Throws, KratosGeoMechanicsFastSuite)
 {
     BackwardEulerTScheme<SparseSpaceType, LocalSpaceType> scheme;
 
@@ -110,7 +109,6 @@ KRATOS_TEST_CASE_IN_SUITE(ForMissingTemperatureSolutionStepVariable_CheckBackwar
 
     Model model;
     auto& model_part = model.CreateModelPart("dummy", 2);
-    model_part.AddNodalSolutionStepVariable(DT_TEMPERATURE);
     auto p_node = model_part.CreateNewNode(0, 0.0, 0.0, 0.0);
 
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(

@@ -53,7 +53,7 @@ protected:
                                     rNode.FastGetSolutionStepValue(variable, 1);
         const auto previous_dt_variable = rNode.FastGetSolutionStepValue(dt_variable, 1);
 
-        rNode.FastGetSolutionStepValue(dt_variable) =
+        rNode.FastGetSolutionStepValue(dt_variable, 0) =
             (delta_variable - (1.0 - mTheta) * this->GetDeltaTime() * previous_dt_variable) /
             (mTheta * this->GetDeltaTime());
     }
@@ -71,9 +71,10 @@ protected:
     {
         KRATOS_TRY
 
-        this->SetDeltaTime(rModelPart.GetProcessInfo()[DELTA_TIME]);
+        const auto delta_time = rModelPart.GetProcessInfo()[DELTA_TIME];
+        this->SetDeltaTime(delta_time);
         rModelPart.GetProcessInfo()[mDeltaTimeVariableCoefficient] =
-            1.0 / (mTheta * this->GetDeltaTime());
+            1.0 / (mTheta * delta_time);
 
         KRATOS_CATCH("")
     }

@@ -39,8 +39,7 @@ ModelPart& CreateValidModelPart(Model& rModel)
 }
 } // namespace
 
-KRATOS_TEST_CASE_IN_SUITE(CheckNewmarkPwScheme_WithAllNecessaryParts_Returns0,
-                          KratosGeoMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(CheckNewmarkPwScheme_WithAllNecessaryParts_Returns0, KratosGeoMechanicsFastSuite)
 {
     Model model;
     auto scheme = CreateValidScheme();
@@ -49,8 +48,7 @@ KRATOS_TEST_CASE_IN_SUITE(CheckNewmarkPwScheme_WithAllNecessaryParts_Returns0,
     KRATOS_EXPECT_EQ(scheme.Check(model_part), 0);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(ForMissingNodalDof_CheckNewmarkPwScheme_Throws,
-                          KratosGeoMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(ForMissingNodalDof_CheckNewmarkPwScheme_Throws, KratosGeoMechanicsFastSuite)
 {
     NewmarkQuasistaticPwScheme<SparseSpaceType, LocalSpaceType> scheme(0.75);
 
@@ -102,18 +100,15 @@ KRATOS_TEST_CASE_IN_SUITE(NewmarkPwSchemeUpdate_SetsDtPressure, KratosGeoMechani
     ModelPart& model_part = CreateValidModelPart(model);
 
     constexpr double current_pressure = 10.0;
-    constexpr double previous_temperature = 5.0;
-    constexpr double previous_dt_temperature = 3.0;
+    constexpr double previous_pressure = 5.0;
+    constexpr double previous_dt_pressure = 3.0;
     constexpr double delta_time = 2.0;
 
     model_part.GetProcessInfo()[DELTA_TIME] = delta_time;
     Node& node = model_part.Nodes()[0];
-    node.FastGetSolutionStepValue(WATER_PRESSURE) = current_pressure;
-    node.FastGetSolutionStepValue(WATER_PRESSURE, 1) = previous_temperature;
-    node.FastGetSolutionStepValue(DT_WATER_PRESSURE, 1) = previous_dt_temperature;
-
-    // This is the expected value as calculated by the UpdateVariablesDerivatives
-    constexpr double expected_value = 7.0/3.0;
+    node.FastGetSolutionStepValue(WATER_PRESSURE, 0) = current_pressure;
+    node.FastGetSolutionStepValue(WATER_PRESSURE, 1) = previous_pressure;
+    node.FastGetSolutionStepValue(DT_WATER_PRESSURE, 1) = previous_dt_pressure;
 
     ModelPart::DofsArrayType dof_set;
     CompressedMatrix A;
@@ -123,7 +118,8 @@ KRATOS_TEST_CASE_IN_SUITE(NewmarkPwSchemeUpdate_SetsDtPressure, KratosGeoMechani
     scheme.Initialize(model_part);
     scheme.Predict(model_part, dof_set, A, Dx, b);
 
-    KRATOS_EXPECT_DOUBLE_EQ(node.FastGetSolutionStepValue(DT_WATER_PRESSURE), expected_value);
+    // This is the expected value as calculated by the UpdateVariablesDerivatives
+    KRATOS_EXPECT_DOUBLE_EQ(node.FastGetSolutionStepValue(DT_WATER_PRESSURE, 0), 7.0 / 3.0);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(InitializeNewmarkPwScheme_SetsTimeFactors, KratosGeoMechanicsFastSuite)
