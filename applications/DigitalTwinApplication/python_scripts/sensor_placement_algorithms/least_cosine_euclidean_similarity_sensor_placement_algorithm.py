@@ -40,7 +40,7 @@ class LeastCosineEuclideanSimilaritySensorPlacementAlgorithm(SensorPlacementAlgo
         self.model = model
         self.parameters = parameters
         self.list_of_sensors:'list[KratosDT.Sensors.Sensor]' = []
-        self.parameters.RecursivelyValidateAndAssignDefaults(self.GetDefaultParameters())
+        self.parameters.ValidateAndAssignDefaults(self.GetDefaultParameters())
         self.is_vtu_output = self.parameters["output_to_vtu"].GetBool()
         self.is_csv_output = self.parameters["output_to_csv"].GetBool()
         self.number_of_sensors = self.parameters["number_of_sensors"].GetInt()
