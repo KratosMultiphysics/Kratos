@@ -41,39 +41,29 @@ public:
           mBeta(beta),
           mGamma(gamma)
     {
+        KRATOS_ERROR_IF(mBeta <= 0)
+            << "Beta must be larger than zero, but got " << mBeta << "\n";
+        KRATOS_ERROR_IF(mGamma <= 0)
+            << "Gamma must be larger than zero, but got " << mGamma << "\n";
     }
 
-    int Check(const ModelPart& rModelPart) const override
+protected:
+    void CheckAllocatedVariables(const ModelPart& rModelPart) const override
     {
-        KRATOS_TRY
+        GeneralizedNewmarkScheme<TSparseSpace, TDenseSpace>::CheckAllocatedVariables(rModelPart);
 
-        BaseType::Check(rModelPart);
-
-        // check that variables are correctly allocated
         for (const auto& r_node : rModelPart.Nodes()) {
             this->CheckSolutionStepsData(r_node, DISPLACEMENT);
             this->CheckSolutionStepsData(r_node, VELOCITY);
             this->CheckSolutionStepsData(r_node, ACCELERATION);
-            this->CheckSolutionStepsData(r_node, WATER_PRESSURE);
-            this->CheckSolutionStepsData(r_node, DT_WATER_PRESSURE);
 
             this->CheckDof(r_node, DISPLACEMENT_X);
             this->CheckDof(r_node, DISPLACEMENT_Y);
             this->CheckDof(r_node, DISPLACEMENT_Z);
-            this->CheckDof(r_node, WATER_PRESSURE);
         }
-
-        this->CheckBufferSize(rModelPart);
-
-        // Check beta, gamma and theta
-        KRATOS_ERROR_IF(mBeta <= 0.0 || mGamma <= 0.0) << "Some of the scheme variables: beta or gamma has an invalid value"
-                                                                              << std::endl;
-
-        return 0;
-
-        KRATOS_CATCH("")
     }
 
+public:
     void FinalizeSolutionStep(ModelPart& rModelPart,
                               TSystemMatrixType& A,
                               TSystemVectorType& Dx,

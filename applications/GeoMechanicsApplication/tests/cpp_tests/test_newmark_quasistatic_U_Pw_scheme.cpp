@@ -42,7 +42,6 @@ public:
     void CreateValidModelPart()
     {
         auto& result = mModel.CreateModelPart("dummy", 2);
-        result.AddNodalSolutionStepVariable(TEMPERATURE);
         result.AddNodalSolutionStepVariable(VELOCITY);
         result.AddNodalSolutionStepVariable(ACCELERATION);
         result.AddNodalSolutionStepVariable(DT_WATER_PRESSURE);
@@ -125,5 +124,54 @@ KRATOS_TEST_CASE_IN_SUITE(NewmarkUPwSchemePredict_UpdatesVariablesDerivatives, K
         tester.GetModelPart().Nodes()[0].FastGetSolutionStepValue(DT_WATER_PRESSURE),
         expected_dt_water_pressure);
 }
+
+KRATOS_TEST_CASE_IN_SUITE(ForMissingNodalDof_CheckNewmarkUPwScheme_Throws, KratosGeoMechanicsFastSuite)
+{
+    NewmarkQuasistaticUPwSchemeTester tester;
+    auto& model_part = tester.mModel.CreateModelPart("MissingAcceleration", 2);
+    model_part.AddNodalSolutionStepVariable(VELOCITY); // Missing ACCELERATION
+    model_part.AddNodalSolutionStepVariable(DT_WATER_PRESSURE);
+    model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
+    model_part.AddNodalSolutionStepVariable(WATER_PRESSURE);
+
+    auto p_node = model_part.CreateNewNode(0, 0.0, 0.0, 0.0);
+    p_node->AddDof(DISPLACEMENT_X);
+    p_node->AddDof(DISPLACEMENT_Y);
+    p_node->AddDof(DISPLACEMENT_Z);
+    p_node->AddDof(WATER_PRESSURE);
+    model_part.GetProcessInfo()[DELTA_TIME] = 4.0;
+
+    p_node->FastGetSolutionStepValue(VELOCITY, 1) =
+        Kratos::array_1d<double, 3>{1.0, 2.0, 3.0};
+    p_node->FastGetSolutionStepValue(DISPLACEMENT, 1) =
+        Kratos::array_1d<double, 3>{7.0, 8.0, 9.0};
+
+    p_node->FastGetSolutionStepValue(WATER_PRESSURE, 1) = 1.0;
+    p_node->FastGetSolutionStepValue(WATER_PRESSURE) = 2.0;
+
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(tester.mScheme.Check(model_part), "ACCELERATION variable is not allocated for node 0")
+}
+
+KRATOS_TEST_CASE_IN_SUITE(ForInvalidBeta_CheckNewmarkUPwScheme_Throws, KratosGeoMechanicsFastSuite)
+{
+    constexpr double invalid_beta = -2.3;
+    using SchemeType = NewmarkQuasistaticUPwScheme<SparseSpaceType, LocalSpaceType>;
+
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        SchemeType scheme(invalid_beta, 0.5, 0.75),
+        "Beta must be larger than zero, but got -2.3")
+}
+
+KRATOS_TEST_CASE_IN_SUITE(ForInvalidGamma_CheckNewmarkUPwScheme_Throws, KratosGeoMechanicsFastSuite)
+{
+    constexpr double invalid_gamma = -2.5;
+    using SchemeType = NewmarkQuasistaticUPwScheme<SparseSpaceType, LocalSpaceType>;
+
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        SchemeType scheme(0.25, invalid_gamma, 0.75),
+        "Gamma must be larger than zero, but got -2.5")
+}
+
+
 
 } // namespace Kratos::Testing

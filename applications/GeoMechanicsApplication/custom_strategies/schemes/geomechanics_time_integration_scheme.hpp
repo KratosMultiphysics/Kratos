@@ -25,13 +25,13 @@ public:
     using LocalSystemVectorType = typename BaseType::LocalSystemVectorType;
     using LocalSystemMatrixType = typename BaseType::LocalSystemMatrixType;
 
-    int Check(const ModelPart& rModelPart) const override
+    int Check(const ModelPart& rModelPart) const final
     {
         KRATOS_TRY
 
         Scheme<TSparseSpace, TDenseSpace>::Check(rModelPart);
         CheckAllocatedVariables(rModelPart);
-        this->CheckBufferSize(rModelPart);
+        CheckBufferSize(rModelPart);
 
         return 0;
 
