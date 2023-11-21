@@ -14,7 +14,6 @@
 
 #include "containers/model.h"
 #include "custom_strategies/schemes/geomechanics_time_integration_scheme.hpp"
-#include "geo_mechanics_application_variables.h"
 #include "spaces/ublas_space.h"
 #include "test_utilities/spy_condition.h"
 #include "test_utilities/spy_element.h"
@@ -237,6 +236,60 @@ KRATOS_TEST_CASE_IN_SUITE(ForInvalidBufferSize_CheckGeoMechanicsTimeIntegrationS
                                       "insufficient buffer size. Buffer size "
                                       "should be greater than or equal to "
                                       "2. Current size is 1")
+}
+
+void TestUpdateForNumberOfThreads(int NumberOfThreads)
+{
+    GeoMechanicsSchemeTester tester;
+    tester.Setup();
+    CompressedMatrix A;
+    Vector Dx = ZeroVector(3);
+    Vector b;
+    ModelPart::DofsArrayType dofs_array;
+
+    ParallelUtilities::SetNumThreads(NumberOfThreads);
+
+    tester.GetModelPart().AddNodalSolutionStepVariable(WATER_PRESSURE);
+    tester.GetModelPart().AddNodalSolutionStepVariable(DISPLACEMENT);
+
+    auto p_node = tester.GetModelPart().CreateNewNode(1, 0.0, 0.0, 0.0);
+    p_node->AddDof(WATER_PRESSURE);
+    p_node->AddDof(DISPLACEMENT_X);
+    p_node->AddDof(DISPLACEMENT_Y);
+
+    auto dof_water_pressure = p_node->pGetDof(WATER_PRESSURE);
+    dof_water_pressure->GetSolutionStepValue(WATER_PRESSURE) = 42.0;
+    dof_water_pressure->SetEquationId(0);
+    dofs_array.push_back(dof_water_pressure);
+    Dx[0] = 1.0; // Meaning the updated value = 42.0 + 1.0 = 43.0
+
+    auto dof_displacement = p_node->pGetDof(DISPLACEMENT_X);
+    dof_displacement->GetSolutionStepValue(DISPLACEMENT_X) = 3.14;
+    dof_displacement->SetEquationId(1);
+    dofs_array.push_back(dof_displacement);
+    Dx[1] = 6.0; // Meaning the updated value = 3.14 + 6.0 = 9.14
+
+    auto dof_inactive_displacement = p_node->pGetDof(DISPLACEMENT_Y);
+    dof_inactive_displacement->GetSolutionStepValue(DISPLACEMENT_Y) = 1.0;
+    dof_inactive_displacement->SetEquationId(1);
+    dof_inactive_displacement->FixDof();
+    dofs_array.push_back(dof_inactive_displacement);
+    Dx[2] = 3.0; // Meaning the updated value stays 1.0, since the dof_water_pressure is fixed
+
+    tester.mScheme.Update(tester.GetModelPart(), dofs_array, A, Dx, b);
+
+    KRATOS_EXPECT_DOUBLE_EQ(dofs_array.begin()->GetSolutionStepValue(WATER_PRESSURE), 43.0);
+    KRATOS_EXPECT_DOUBLE_EQ(
+        (dofs_array.begin() + 1)->GetSolutionStepValue(DISPLACEMENT_X), 9.14);
+    KRATOS_EXPECT_DOUBLE_EQ(
+        (dofs_array.begin() + 2)->GetSolutionStepValue(DISPLACEMENT_Y), 1.0);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(GeoMechanicsTimeIntegrationScheme_GivesCorrectDofs_WhenUpdateIsCalled,
+                          KratosGeoMechanicsFastSuite)
+{
+    TestUpdateForNumberOfThreads(1);
+    TestUpdateForNumberOfThreads(2);
 }
 
 } // namespace Kratos::Testing
