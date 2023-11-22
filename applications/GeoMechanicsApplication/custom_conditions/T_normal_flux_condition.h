@@ -67,7 +67,7 @@ protected:
     void CalculateAndAddRHS(VectorType& rRightHandSideVector, NormalFluxVariables& rVariables);
 
     virtual void CalculateIntegrationCoefficient(double& rIntegrationCoefficient,
-                                                 const Matrix& Jacobian,
+                                                 const Matrix& rJacobian,
                                                  double Weight);
 
 private:
