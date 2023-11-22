@@ -93,12 +93,16 @@ class PotentialFlowAdjointSolver(PotentialFlowSolver):
         self.main_model_part.AddNodalSolutionStepVariable(KCPFApp.ADJOINT_AUXILIARY_VELOCITY_POTENTIAL)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.SHAPE_SENSITIVITY)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NORMAL_SENSITIVITY)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.REACTION_X)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.REACTION_Y)
 
         KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Variables ADDED")
 
     def AddDofs(self):
-        KratosMultiphysics.VariableUtils().AddDof(KCPFApp.ADJOINT_VELOCITY_POTENTIAL, self.main_model_part)
-        KratosMultiphysics.VariableUtils().AddDof(KCPFApp.ADJOINT_AUXILIARY_VELOCITY_POTENTIAL, self.main_model_part)
+        dofs_and_reactions_to_add = []
+        dofs_and_reactions_to_add.append(["ADJOINT_VELOCITY_POTENTIAL", "REACTION_ADJOINT_VELOCITY_POTENTIAL"])
+        dofs_and_reactions_to_add.append(["ADJOINT_AUXILIARY_VELOCITY_POTENTIAL", "REACTION_ADJOINT_AUXILIARY_VELOCITY_POTENTIAL"])
+        KratosMultiphysics.VariableUtils.AddDofsList(dofs_and_reactions_to_add, self.main_model_part)
 
     def Initialize(self):
         # Call base solver Initialize() to calculate the nodal neighbours and initialize the strategy
