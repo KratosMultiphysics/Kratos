@@ -71,7 +71,10 @@ class PetrovGalerkinTrainingUtility(object):
                 non_converged_iteration_snapshot = KratosMultiphysics.Vector()
                 KratosMultiphysics.ReadMatrixMarketVector(to_erase_file, non_converged_iteration_snapshot)
                 snapshots_matrix.append(non_converged_iteration_snapshot)
-            snapshots_matrix = -np.array(snapshots_matrix).T
+            if self.basis_strategy == "residuals":
+                snapshots_matrix = np.array(snapshots_matrix).T
+            elif self.basis_strategy == "reactions":
+                snapshots_matrix = -np.array(snapshots_matrix).T # Negate for 'reactions' as they are residuals with opposite sign.
             if self.echo_level > 0 : KratosMultiphysics.Logger.PrintInfo("PetrovGalerkinTrainingUtility","Generating matrix of residuals.")
         else:
             err_msg = "\'self.basis_strategy\' is not available. Select either 'jacobian' or 'residuals'."
