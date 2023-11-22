@@ -39,24 +39,6 @@ template <unsigned int TDim, unsigned int TNumNodes>
 TCondition<TDim, TNumNodes>::~TCondition() = default;
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void TCondition<TDim, TNumNodes>::GetDofList(DofsVectorType& rConditionDofList,
-                                             const ProcessInfo& rCurrentProcessInfo) const
-{
-    KRATOS_TRY
-
-    if (rConditionDofList.size() != TNumNodes) {
-        rConditionDofList.resize(TNumNodes);
-    }
-
-    const GeometryType& rGeom = GetGeometry();
-    for (unsigned int i = 0; i < TNumNodes; ++i) {
-        rConditionDofList[i] = rGeom[i].pGetDof(TEMPERATURE);
-    }
-
-    KRATOS_CATCH("")
-}
-
-template <unsigned int TDim, unsigned int TNumNodes>
 void TCondition<TDim, TNumNodes>::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
                                                        VectorType& rRightHandSideVector,
                                                        const ProcessInfo& rCurrentProcessInfo)

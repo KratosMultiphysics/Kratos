@@ -45,7 +45,20 @@ public:
     }
 
     void GetDofList(DofsVectorType& rConditionDofList,
-                    const ProcessInfo& rCurrentProcessInfo) const override;
+                    const ProcessInfo& ) const override
+    {
+        KRATOS_TRY
+
+        if (rConditionDofList.size() != TNumNodes) {
+            rConditionDofList.resize(TNumNodes);
+        }
+
+        for (unsigned int i = 0; i < TNumNodes; ++i) {
+            rConditionDofList[i] = GetGeometry()[i].pGetDof(TEMPERATURE);
+        }
+
+        KRATOS_CATCH("")
+    }
 
     void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
                               VectorType& rRightHandSideVector,
@@ -76,4 +89,4 @@ private:
     }
 };
 
-}
+} // namespace Kratos
