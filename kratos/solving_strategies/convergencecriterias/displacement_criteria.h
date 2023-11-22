@@ -184,11 +184,13 @@ public:
         const TSystemVectorType& rb
         ) override
     {
-        const int rank = rModelPart.GetCommunicator().MyPID();
-        const TDataType approx_zero_tolerance = std::numeric_limits<TDataType>::epsilon();
-        const SizeType size_Dx = SparseSpaceType::Size(rDx);
-        if (size_Dx != 0) { //if we are solving for something
-            SizeType size_solution;
+        if (SparseSpaceType::Size(rDx) != 0) { //if we are solving for something
+            // Some values
+            const int rank = rModelPart.GetCommunicator().GetDataCommunicator().Rank();
+            const TDataType approx_zero_tolerance = std::numeric_limits<TDataType>::epsilon();
+
+            // The final correction norm calculation
+            SizeType size_solution = 0;
             const TDataType final_correction_norm = CalculateFinalCorrectionNorm(size_solution, rDofSet, rDx, rModelPart);
 
             TDataType ratio = 0.0;
@@ -214,12 +216,9 @@ public:
             rModelPart.GetProcessInfo()[CONVERGENCE_RATIO] = ratio;
             rModelPart.GetProcessInfo()[RESIDUAL_NORM] = absolute_norm;
 
-            if ( ratio <= mRatioTolerance  ||  absolute_norm<mAlwaysConvergedNorm )  { //  || (final_correction_norm/x.size())<=1e-7)
-                KRATOS_INFO_IF("DISPLACEMENT CRITERION", this->GetEchoLevel() > 0 && rank == 0) << "Convergence is achieved" << std::endl;
-                return true;
-            } else {
-                return false;
-            }
+            const bool has_achieved_convergence = ratio <= mRatioTolerance || absolute_norm < mAlwaysConvergedNorm; //  || (final_correction_norm/x.size())<=1e-7)
+            KRATOS_INFO_IF("DISPLACEMENT CRITERION", has_achieved_convergence && this->GetEchoLevel() > 0 && rank == 0) << "Convergence is achieved" << std::endl;
+            return has_achieved_convergence;
         } else { //in this case all the displacements are imposed!
             return true;
         }
