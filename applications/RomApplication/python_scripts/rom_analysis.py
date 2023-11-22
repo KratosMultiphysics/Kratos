@@ -74,7 +74,7 @@ def CreateRomAnalysisInstance(cls, global_model, parameters):
                 self.project_parameters["solver_settings"]["rom_settings"]["rom_bns_settings"].AddString("solving_technique", solving_technique)
                 self.project_parameters["solver_settings"]["rom_settings"]["rom_bns_settings"].AddBool("train_petrov_galerkin", self.train_petrov_galerkin)
                 #Adding the basis strategy for generating the left ROB for the Petrov-Galerkin ROM.
-                petrov_galerkin_basis_strategy = self.rom_bns_settings["basis_strategy"].GetString() if self.rom_parameters["rom_settings"].Has("basis_strategy") else "residuals"
+                petrov_galerkin_basis_strategy = self.rom_bns_settings["basis_strategy"].GetString() if self.rom_bns_settings.Has("basis_strategy") else "residuals"
                 self.project_parameters["solver_settings"]["rom_settings"]["rom_bns_settings"].AddString("basis_strategy", petrov_galerkin_basis_strategy)
 
             ##Petrov Galerkin
