@@ -49,8 +49,8 @@ public:
                               NodesArrayType const& rThisNodes,
                               PropertiesType::Pointer pProperties) const override
     {
-        return Condition::Pointer(new TNormalFluxCondition(
-            NewId, this->GetGeometry().Create(rThisNodes), pProperties));
+        return Kratos::make_intrusive<TNormalFluxCondition>(
+            NewId, GetGeometry().Create(rThisNodes), pProperties);
     }
 
 protected:
