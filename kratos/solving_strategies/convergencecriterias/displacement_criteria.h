@@ -191,7 +191,7 @@ public:
             SizeType size_solution;
             const TDataType final_correction_norm = CalculateFinalCorrectionNorm(size_solution, rDofSet, rDx, rModelPart);
 
-            TDataType ratio{};
+            TDataType ratio = 0.0;
 
             CalculateReferenceNorm(rDofSet, rModelPart);
             if (mReferenceDispNorm < approx_zero_tolerance) {
@@ -345,11 +345,11 @@ protected:
     ///@name Protected member Variables
     ///@{
 
-    TDataType mRatioTolerance;      /// The ratio threshold for the norm of the residual
+    TDataType mRatioTolerance = 0.0;      /// The ratio threshold for the norm of the residual
 
-    TDataType mAlwaysConvergedNorm; /// The absolute value threshold for the norm of the residual
+    TDataType mAlwaysConvergedNorm = 0.0; /// The absolute value threshold for the norm of the residual
 
-    TDataType mReferenceDispNorm;   /// The norm at the beginning of the iterations
+    TDataType mReferenceDispNorm = 0.0;   /// The norm at the beginning of the iterations
 
     ///@}
     ///@name Protected Operators
