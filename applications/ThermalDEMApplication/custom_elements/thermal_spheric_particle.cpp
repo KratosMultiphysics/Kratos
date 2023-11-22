@@ -148,9 +148,15 @@ namespace Kratos
     mContactParamsWall.clear();
 
     // Initialize accumulated energy dissipations
-    mPreviousViscodampingEnergy = 0.0;
-    mPreviousFrictionalEnergy   = 0.0;
-    mPreviousRollResistEnergy   = 0.0;
+    mPreviousViscodampingEnergy            = 0.0;
+    mPreviousFrictionalEnergy              = 0.0;
+    mPreviousRollResistEnergy              = 0.0;
+    mGenerationThermalEnergy_damp_particle = 0.0;
+    mGenerationThermalEnergy_damp_wall     = 0.0;
+    mGenerationThermalEnergy_slid_particle = 0.0;
+    mGenerationThermalEnergy_slid_wall     = 0.0;
+    mGenerationThermalEnergy_roll_particle = 0.0;
+    mGenerationThermalEnergy_roll_wall     = 0.0;
 
     KRATOS_CATCH("")
   }

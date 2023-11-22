@@ -191,6 +191,14 @@ namespace Kratos {
     double total_dissip_damp_tangent =  0.0;
     double total_dissip              =  0.0;
 
+    double total_thermal_slid_pp = 0.0;
+    double total_thermal_slid_pw = 0.0;
+    double total_thermal_roll_pp = 0.0;
+    double total_thermal_roll_pw = 0.0;
+    double total_thermal_damp_pp = 0.0;
+    double total_thermal_damp_pw = 0.0;
+    double total_thermal         = 0.0;
+
     double total_heat_gen_slid_pp = 0.0;
     double total_heat_gen_slid_pw = 0.0;
     double total_heat_gen_roll_pp = 0.0;
@@ -223,15 +231,22 @@ namespace Kratos {
       double dissip_damp                      = 0.0;
       double dissip_damp_normal               = 0.0;
       double dissip_damp_tangent              = 0.0;
-      particle.Calculate(PARTICLE_GRAVITATIONAL_ENERGY,                energy_potential_gravity,         r_process_info);
-      particle.Calculate(PARTICLE_ELASTIC_ENERGY,                      energy_potential_elastic,         r_process_info);
-      particle.Calculate(PARTICLE_TRANSLATIONAL_KINEMATIC_ENERGY,      energy_kinetic_translation,       r_process_info);
-      particle.Calculate(PARTICLE_ROTATIONAL_KINEMATIC_ENERGY,         energy_kinetic_rotation,          r_process_info);
-      particle.Calculate(PARTICLE_INELASTIC_FRICTIONAL_ENERGY,         dissip_slid,                      r_process_info);
-      particle.Calculate(PARTICLE_INELASTIC_ROLLING_RESISTANCE_ENERGY, dissip_roll,                      r_process_info);
-      particle.Calculate(PARTICLE_INELASTIC_VISCODAMPING_ENERGY,       dissip_damp,                      r_process_info);
-      particle.Calculate(PARTICLE_INELASTIC_DAMPING_NORMAL_ENERGY,     dissip_damp_normal,               r_process_info);
-      particle.Calculate(PARTICLE_INELASTIC_DAMPING_TANGENT_ENERGY,    dissip_damp_tangent,              r_process_info);
+      particle.Calculate(PARTICLE_GRAVITATIONAL_ENERGY,                energy_potential_gravity,   r_process_info);
+      particle.Calculate(PARTICLE_ELASTIC_ENERGY,                      energy_potential_elastic,   r_process_info);
+      particle.Calculate(PARTICLE_TRANSLATIONAL_KINEMATIC_ENERGY,      energy_kinetic_translation, r_process_info);
+      particle.Calculate(PARTICLE_ROTATIONAL_KINEMATIC_ENERGY,         energy_kinetic_rotation,    r_process_info);
+      particle.Calculate(PARTICLE_INELASTIC_FRICTIONAL_ENERGY,         dissip_slid,                r_process_info);
+      particle.Calculate(PARTICLE_INELASTIC_ROLLING_RESISTANCE_ENERGY, dissip_roll,                r_process_info);
+      particle.Calculate(PARTICLE_INELASTIC_VISCODAMPING_ENERGY,       dissip_damp,                r_process_info);
+      particle.Calculate(PARTICLE_INELASTIC_DAMPING_NORMAL_ENERGY,     dissip_damp_normal,         r_process_info);
+      particle.Calculate(PARTICLE_INELASTIC_DAMPING_TANGENT_ENERGY,    dissip_damp_tangent,        r_process_info);
+
+      const double thermal_slid_pp = fabs(particle.mGenerationThermalEnergy_slid_particle);
+      const double thermal_slid_pw = fabs(particle.mGenerationThermalEnergy_slid_wall);
+      const double thermal_roll_pp = fabs(particle.mGenerationThermalEnergy_roll_particle);
+      const double thermal_roll_pw = fabs(particle.mGenerationThermalEnergy_roll_wall);
+      const double thermal_damp_pp = fabs(particle.mGenerationThermalEnergy_damp_particle);
+      const double thermal_damp_pw = fabs(particle.mGenerationThermalEnergy_damp_wall);
 
       const double heat_gen_slid_pp = fabs(particle.mGenerationHeatFlux_slid_particle);
       const double heat_gen_slid_pw = fabs(particle.mGenerationHeatFlux_slid_wall);
@@ -262,6 +277,14 @@ namespace Kratos {
         total_dissip_damp_normal  += dissip_damp_normal;
         total_dissip_damp_tangent += dissip_damp_tangent;
         total_dissip              += dissip_slid + dissip_roll + dissip_damp;
+
+        total_thermal_slid_pp += thermal_slid_pp;
+        total_thermal_slid_pw += thermal_slid_pw;
+        total_thermal_roll_pp += thermal_roll_pp;
+        total_thermal_roll_pw += thermal_roll_pw;
+        total_thermal_damp_pp += thermal_damp_pp;
+        total_thermal_damp_pw += thermal_damp_pw;
+        total_thermal         += thermal_slid_pp + thermal_slid_pw + thermal_roll_pp + thermal_roll_pw + thermal_damp_pp + thermal_damp_pw;
 
         total_heat_gen_slid_pp += heat_gen_slid_pp;
         total_heat_gen_slid_pw += heat_gen_slid_pw;
@@ -346,6 +369,18 @@ namespace Kratos {
                              << total_dissip                     << " "
                              << total_energy+total_dissip
                              << std::endl;
+
+    if (mFile_ThermalEnergy.is_open())
+      mFile_ThermalEnergy << time_step              << " "
+                          << time                   << " "
+                          << total_thermal_slid_pp << " "
+                          << total_thermal_slid_pw << " "
+                          << total_thermal_roll_pp << " "
+                          << total_thermal_roll_pw << " "
+                          << total_thermal_damp_pp << " "
+                          << total_thermal_damp_pw << " "
+                          << total_thermal
+                          << std::endl;
 
     if (mFile_HeatGenValues.is_open())
       mFile_HeatGenValues << time_step              << " "
