@@ -202,8 +202,8 @@ class PotentialFlowSolver(FluidSolver):
         # Degrees of freedom
         self.main_model_part.AddNodalSolutionStepVariable(KCPFApp.VELOCITY_POTENTIAL)
         self.main_model_part.AddNodalSolutionStepVariable(KCPFApp.AUXILIARY_VELOCITY_POTENTIAL)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.REACTION_X)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.REACTION_Y)
+        self.main_model_part.AddNodalSolutionStepVariable(KCPFApp.REACTION_VELOCITY_POTENTIAL)
+        self.main_model_part.AddNodalSolutionStepVariable(KCPFApp.REACTION_AUXILIARY_VELOCITY_POTENTIAL)
 
         # Add variables that the user defined in the ProjectParameters
         for i in range(self.settings["auxiliary_variables_list"].size()):
