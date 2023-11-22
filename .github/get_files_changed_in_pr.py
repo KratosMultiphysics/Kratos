@@ -19,7 +19,8 @@ def get_files_changed_in_pr(pr_number: int) -> list[str]:
             ],
             check=True,
             capture_output=True,
-        ).stdout.decode()
+            text=True
+        ).stdout
 
         return process_output.splitlines()
 
