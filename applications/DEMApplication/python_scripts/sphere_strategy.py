@@ -185,6 +185,9 @@ class ExplicitStrategy():
 
         if "RadiusMultiplierMax" in DEM_parameters.keys():
             self.radius_multiplier_max = DEM_parameters["RadiusMultiplierMax"].GetDouble()
+
+        if "EnergyCalculationOption" in DEM_parameters.keys():
+            self.energy_calculation_option = DEM_parameters["EnergyCalculationOption"].GetBool()
         
         # PRINTING VARIABLES
         self.print_export_id = DEM_parameters["PostExportId"].GetBool()
@@ -286,6 +289,8 @@ class ExplicitStrategy():
         self.spheres_model_part.ProcessInfo.SetValue(IS_RADIUS_EXPANSION, self.radius_expansion_option)
         self.spheres_model_part.ProcessInfo.SetValue(RADIUS_EXPANSION_RATE, self.radius_expansion_rate)
         self.spheres_model_part.ProcessInfo.SetValue(RADIUS_MULTIPLIER_MAX, self.radius_multiplier_max)
+
+        self.spheres_model_part.ProcessInfo.SetValue(ENERGY_CALCULATION_OPTION, self.energy_calculation_option)
 
         # SEARCH-RELATED
         self.spheres_model_part.ProcessInfo.SetValue(SEARCH_RADIUS_INCREMENT, self.search_increment)

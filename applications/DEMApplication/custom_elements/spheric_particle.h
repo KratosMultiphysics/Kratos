@@ -215,6 +215,7 @@ virtual double& GetElasticEnergy();
 virtual double& GetInelasticFrictionalEnergy();
 virtual double& GetInelasticViscodampingEnergy();
 virtual double& GetInelasticRollingResistanceEnergy();
+virtual double& GetMaxNormalBallToBallForceTimesRadius();
 
 PropertiesProxy* GetFastProperties();
 void   SetFastProperties(PropertiesProxy* pProps);
@@ -244,6 +245,7 @@ double mInelasticFrictionalEnergy;
 double mInelasticViscodampingEnergy;
 double mInelasticRollingResistanceEnergy;
 double mPartialRepresentativeVolume;
+double mMaxNormalBallToBallForceTimesRadius;
 
 std::vector<ParticleContactElement*> mBondElements;
 std::vector<SphericParticle*>     mNeighbourElements;
@@ -466,6 +468,7 @@ virtual void save(Serializer& rSerializer) const override
     rSerializer.save("mInelasticViscodampingEnergy", mInelasticViscodampingEnergy);
     rSerializer.save("mInelasticRollingResistanceEnergy", mInelasticRollingResistanceEnergy);
     rSerializer.save("mPartialRepresentativeVolume", mPartialRepresentativeVolume);
+    rSerializer.save("mMaxNormalBallToBallForceTimesRadius", mMaxNormalBallToBallForceTimesRadius);
     rSerializer.save("mBondElements", mBondElements);
     rSerializer.save("mNeighbourElements", mNeighbourElements);
     rSerializer.save("mContactingNeighbourIds", mContactingNeighbourIds);
@@ -510,6 +513,7 @@ virtual void load(Serializer& rSerializer) override
     rSerializer.load("mInelasticViscodampingEnergy", mInelasticViscodampingEnergy);
     rSerializer.load("mInelasticRollingResistanceEnergy", mInelasticRollingResistanceEnergy);
     rSerializer.load("mPartialRepresentativeVolume", mPartialRepresentativeVolume);
+    rSerializer.load("mMaxNormalBallToBallForceTimesRadius", mMaxNormalBallToBallForceTimesRadius);
     rSerializer.load("mBondElements", mBondElements);
     rSerializer.load("mNeighbourElements", mNeighbourElements);
     rSerializer.load("mContactingNeighbourIds", mContactingNeighbourIds);

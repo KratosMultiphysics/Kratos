@@ -117,6 +117,7 @@ SphericParticle::~SphericParticle(){
 SphericParticle& SphericParticle::operator=(const SphericParticle& rOther) {
     DiscreteElement::operator=(rOther);
     mElasticEnergy = rOther.mElasticEnergy;
+    mMaxNormalBallToBallForceTimesRadius = rOther.mMaxNormalBallToBallForceTimesRadius;
     mInelasticFrictionalEnergy = rOther.mInelasticFrictionalEnergy;
     mInelasticViscodampingEnergy = rOther.mInelasticViscodampingEnergy;
     mInelasticRollingResistanceEnergy = rOther.mInelasticRollingResistanceEnergy;
@@ -250,6 +251,8 @@ void SphericParticle::Initialize(const ProcessInfo& r_process_info)
     inelastic_viscodamping_energy = 0.0;
     double& inelastic_rollingresistance_energy = this->GetInelasticRollingResistanceEnergy();
     inelastic_rollingresistance_energy = 0.0;
+    double& max_normal_ball_to_ball_force_times_radius = this->GetMaxNormalBallToBallForceTimesRadius();
+    max_normal_ball_to_ball_force_times_radius = 0.0;
 
     DEMIntegrationScheme::Pointer& translational_integration_scheme = GetProperties()[DEM_TRANSLATIONAL_INTEGRATION_SCHEME_POINTER];
     DEMIntegrationScheme::Pointer& rotational_integration_scheme = GetProperties()[DEM_ROTATIONAL_INTEGRATION_SCHEME_POINTER];
@@ -882,6 +885,13 @@ void SphericParticle::ComputeBallToBallContactForceAndMoment(SphericParticle::Pa
                 }
             }
 
+            if (r_process_info[ENERGY_CALCULATION_OPTION]){
+                double NormalBallToBallForceTimesRadius = this->GetRadius() * LocalContactForce[2];
+                if ( NormalBallToBallForceTimesRadius > mMaxNormalBallToBallForceTimesRadius) {
+                    mMaxNormalBallToBallForceTimesRadius = NormalBallToBallForceTimesRadius;
+                }
+            }
+
             // Store contact information needed for later processes
             StoreBallToBallContactInfo(r_process_info, data_buffer, GlobalContactForce, LocalContactForce, ViscoDampingLocalContactForce, sliding);
 
@@ -1459,6 +1469,8 @@ void SphericParticle::InitializeSolutionStep(const ProcessInfo& r_process_info)
     central_node.FastGetSolutionStepValue(REPRESENTATIVE_VOLUME) = CalculateVolume();
     double& elastic_energy = this->GetElasticEnergy();
     elastic_energy = 0.0;
+    double& max_normal_ball_to_ball_force_times_radius = this->GetMaxNormalBallToBallForceTimesRadius();
+    max_normal_ball_to_ball_force_times_radius = 0.0;
     if (this->Is(DEMFlags::HAS_STRESS_TENSOR)) {
         for (int i = 0; i < 3; i++) {
             for (int j = 0; j < 3; j++) {
@@ -1977,6 +1989,12 @@ void SphericParticle::Calculate(const Variable<double>& rVariable, double& Outpu
 
     }
 
+    if (rVariable == PARTICLE_MAX_NORMAL_BALL_TO_BALL_FORCE_TIMES_RADIUS) {
+
+        Output = GetMaxNormalBallToBallForceTimesRadius();
+
+    }
+
     if (rVariable == PARTICLE_INELASTIC_FRICTIONAL_ENERGY) {
 
         Output = GetInelasticFrictionalEnergy();
@@ -2233,6 +2251,7 @@ double&              SphericParticle::GetElasticEnergy()                        
 double&              SphericParticle::GetInelasticFrictionalEnergy()                      { return mInelasticFrictionalEnergy; }
 double&              SphericParticle::GetInelasticViscodampingEnergy()                    { return mInelasticViscodampingEnergy; }
 double&              SphericParticle::GetInelasticRollingResistanceEnergy()               { return mInelasticRollingResistanceEnergy; }
+double&              SphericParticle::GetMaxNormalBallToBallForceTimesRadius()            { return mMaxNormalBallToBallForceTimesRadius; }
 
 void   SphericParticle::SetYoungFromProperties(double* young)                                          { GetFastProperties()->SetYoungFromProperties( young);                                            }
 void   SphericParticle::SetPoissonFromProperties(double* poisson)                                      { GetFastProperties()->SetPoissonFromProperties( poisson);                                        }
