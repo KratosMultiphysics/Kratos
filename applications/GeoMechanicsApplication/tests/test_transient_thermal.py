@@ -18,7 +18,7 @@ class KratosGeoMechanicsTransientThermalTests(KratosUnittest.TestCase):
     def tearDown(self):
         # Code here will be placed AFTER every test in this TestCase.
         pass
-    
+
     def test_thermal_heat_flux_2D3N(self):
         test_name = 'test_thermal_heat_flux_2D3N'
         file_path = test_helper.get_file_path(os.path.join('test_thermal_element', test_name + '.gid'))
