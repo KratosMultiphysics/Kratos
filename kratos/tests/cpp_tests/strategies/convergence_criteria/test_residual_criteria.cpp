@@ -95,6 +95,10 @@ KRATOS_TEST_CASE_IN_SUITE(ResidualCriteria, KratosCoreFastSuite)
     // Initialize the solution step
     residual_criteria.InitializeSolutionStep(r_model_part, aux_dof_set, A, Dx, b);
 
+    // Check convergence (failing)
+    bool convergence = residual_criteria.PostCriteria(r_model_part, aux_dof_set, A, Dx, b);
+    KRATOS_EXPECT_FALSE(convergence)
+
     // Set the auxiliary fake data to check the convergence for (passing)
     i = 0;
     for (auto& r_node : r_model_part.Nodes()) {
@@ -103,8 +107,8 @@ KRATOS_TEST_CASE_IN_SUITE(ResidualCriteria, KratosCoreFastSuite)
         i++;
     }
 
-    // Check convergence
-    const bool convergence = residual_criteria.PostCriteria(r_model_part, aux_dof_set, A, Dx, b);
+    // Check convergence (passing)
+    convergence = residual_criteria.PostCriteria(r_model_part, aux_dof_set, A, Dx, b);
     KRATOS_EXPECT_TRUE(convergence)
 }
 
@@ -167,6 +171,10 @@ KRATOS_TEST_CASE_IN_SUITE(ResidualCriteriaWithMPC, KratosCoreFastSuite)
     // Initialize the solution step
     residual_criteria.InitializeSolutionStep(r_model_part, aux_dof_set, A, Dx, b);
 
+    // Check convergence (failing)
+    bool convergence = residual_criteria.PostCriteria(r_model_part, aux_dof_set, A, Dx, b);
+    KRATOS_EXPECT_FALSE(convergence)
+
     // Set the auxiliary fake data to check the convergence for (passing)
     i = 0;
     for (auto& r_node : r_model_part.Nodes()) {
@@ -178,8 +186,8 @@ KRATOS_TEST_CASE_IN_SUITE(ResidualCriteriaWithMPC, KratosCoreFastSuite)
         i++;
     }
 
-    // Check convergence
-    const bool convergence = residual_criteria.PostCriteria(r_model_part, aux_dof_set, A, Dx, b);
+    // Check convergence (passing)
+    convergence = residual_criteria.PostCriteria(r_model_part, aux_dof_set, A, Dx, b);
     KRATOS_EXPECT_TRUE(convergence)
 }
 

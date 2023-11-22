@@ -370,12 +370,17 @@ protected:
     /**
      * @brief Check if a Degree of Freedom (Dof) is active
      * @details This function checks if a given Degree of Freedom (Dof) is active.
-     * @param DofId The id of the Dof to check.
+     * @param rDof The Degree of Freedom to check.
+     * @param Rank The rank of the Dof.
      * @return True if the Dof is free, false otherwise.
      */
-    virtual bool IsActiveDof(const IndexType DofId)
+    virtual bool IsActiveDof(
+        const DofType& rDof,
+        const int Rank
+        )
     {
-        return mActiveDofs[DofId] == 1;
+        const IndexType dof_id = rDof.EquationId();
+        return mActiveDofs[dof_id] == 1;
     }
 
     /**
@@ -428,10 +433,9 @@ protected:
 
         // Loop over Dofs
         if (rModelPart.NumberOfMasterSlaveConstraints() > 0) {
-            std::tie(residual_solution_norm, dof_num) = block_for_each<CustomReduction>(rDofSet, TLS(), [this, &rb](auto& rDof, TLS& rTLS) {
-                const IndexType dof_id = rDof.EquationId();
-                if (this->IsActiveDof(dof_id)) {
-                    rTLS.residual_dof_value = TSparseSpace::GetValue(rb, dof_id);
+            std::tie(residual_solution_norm, dof_num) = block_for_each<CustomReduction>(rDofSet, TLS(), [this, &rb, &rank](auto& rDof, TLS& rTLS) {
+                if (this->IsActiveDof(rDof, rank)) {
+                    rTLS.residual_dof_value = TSparseSpace::GetValue(rb, rDof.EquationId());
                     return std::make_tuple(std::pow(rTLS.residual_dof_value, 2), 1);
                 } else {
                     return std::make_tuple(TDataType(), 0);;
@@ -440,8 +444,7 @@ protected:
         } else {
             std::tie(residual_solution_norm, dof_num) = block_for_each<CustomReduction>(rDofSet, TLS(), [this, &rb, &rank](auto& rDof, TLS& rTLS) {
                 if(this->IsFreeDof(rDof, rank)) {
-                    const IndexType dof_id = rDof.EquationId();
-                    rTLS.residual_dof_value = TSparseSpace::GetValue(rb, dof_id);
+                    rTLS.residual_dof_value = TSparseSpace::GetValue(rb, rDof.EquationId());
                     return std::make_tuple(std::pow(rTLS.residual_dof_value, 2), 1);
                 } else {
                     return std::make_tuple(TDataType(), 0);;
