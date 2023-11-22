@@ -20,6 +20,7 @@ class SystemIdentificationStaticAnalysis(AnalysisStage):
         default_sensor_settings = Kratos.Parameters("""{
             "perturbation_size"            : 1e-8,
             "adapt_perturbation_size"      : true,
+            "p_coefficient"                : 2.0,
             "list_of_sensors"              : []
         }""")
 
@@ -31,7 +32,7 @@ class SystemIdentificationStaticAnalysis(AnalysisStage):
         model_part.ProcessInfo[KratosDT.ADAPT_PERTURBATION_SIZE] = sensor_settings["adapt_perturbation_size"].GetBool()
         self.listof_sensors = GetSensors(model_part, sensor_settings["list_of_sensors"].values())
 
-        self.measurement_residual_response_function = KratosDT.Sensors.MeasurementResidualResponseFunction()
+        self.measurement_residual_response_function = KratosDT.Sensors.MeasurementResidualPNormResponseFunction(sensor_settings["p_coefficient"].GetDouble())
         for sensor in self.listof_sensors:
             sensor.SetValue(KratosDT.SENSOR_MEASURED_VALUE, 0.0)
             self.measurement_residual_response_function.AddSensor(sensor)

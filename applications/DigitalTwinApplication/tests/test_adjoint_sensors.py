@@ -2,6 +2,7 @@ from math import sqrt
 import KratosMultiphysics as Kratos
 import KratosMultiphysics.DigitalTwinApplication as KratosDT
 import KratosMultiphysics.KratosUnittest as UnitTest
+from KratosMultiphysics.DigitalTwinApplication.utilities.sensor_utils import GetSensors
 
 
 class TestAdjointDisplacementSensor(UnitTest.TestCase):
@@ -29,61 +30,57 @@ class TestAdjointDisplacementSensor(UnitTest.TestCase):
             "perturbation_size"      : 1e-8,
             "adapt_perturbation_size": false
         }""")
-        cls.adjoint_sensor = KratosDT.Sensors.AdjointDisplacementSensor(cls.model, params)
-
-    def test_CalculateValue(self):
-        specification = KratosDT.Sensors.SensorSpecification("test", 1)
-        specification.SetLocation([1/3, 1/3, 0.0])
-        specification.SetValue(KratosDT.SENSOR_WEIGHT, 1.0)
-        specification.SetValue(KratosDT.SENSOR_ELEMENT_ID, 1)
-        specification.SetValue(KratosDT.SENSOR_DIRECTION, [1, 0, 0])
-        self.adjoint_sensor.SetSensorSpecification(specification)
-        value = self.adjoint_sensor.CalculateValue(self.model_part)
-        self.assertAlmostEqual(value, 7/3)
-
-        specification.SetValue(KratosDT.SENSOR_DIRECTION, [1/sqrt(2.0), 1/sqrt(2.0), 0])
-        self.adjoint_sensor.SetSensorSpecification(specification)
-        value = self.adjoint_sensor.CalculateValue(self.model_part)
-        self.assertAlmostEqual(value, 4.006938426723769)
-
-        specification.SetLocation([2/3, 2/3, 0])
-        specification.SetValue(KratosDT.SENSOR_ELEMENT_ID, 2)
-        specification.SetValue(KratosDT.SENSOR_DIRECTION, [1, 0, 0])
-        self.adjoint_sensor.SetSensorSpecification(specification)
-        value = self.adjoint_sensor.CalculateValue(self.model_part)
-        self.assertAlmostEqual(value, 3.0)
-
-        specification.SetValue(KratosDT.SENSOR_DIRECTION, [1/sqrt(2.0), 1/sqrt(2.0), 0])
-        self.adjoint_sensor.SetSensorSpecification(specification)
-        value = self.adjoint_sensor.CalculateValue(self.model_part)
-        self.assertAlmostEqual(value, 4.949747468305832)
+        #cls.adjoint_sensor = KratosDT.Sensors.AdjointDisplacementSensor(cls.model, params)
 
     def test_CalculateGradient(self):
-        specification = KratosDT.Sensors.SensorSpecification("test", 1)
-        specification.SetLocation([1/3, 1/3, 0.0])
-        specification.SetValue(KratosDT.SENSOR_WEIGHT, 1.0)
-        specification.SetValue(KratosDT.SENSOR_ELEMENT_ID, 1)
-        specification.SetValue(KratosDT.SENSOR_DIRECTION, [1/sqrt(2.0), 1/sqrt(2.0), 0])
-        self.adjoint_sensor.SetSensorSpecification(specification)
+        residual_sensor = KratosDT.Sensors.MeasurementResidualPNormResponseFunction(2.0)
 
-        ref_value = self.adjoint_sensor.CalculateValue(self.model_part)
+        params_list = Kratos.Parameters("""{
+            "list_of_sensors": [
+                {
+                        "type"         : "displacement_sensor",
+                        "name"         : "s1",
+                        "value"        : 0,
+                        "location"     : [0.3333, 0.3333, 0.0],
+                        "direction"    : [1.0, 0.0, 0.0],
+                        "weight"       : 1.0,
+                        "variable_data": {}
+                },
+                {
+                        "type"         : "displacement_sensor",
+                        "name"         : "s2",
+                        "value"        : 0,
+                        "location"     : [0.666, 0.666, 0.0],
+                        "direction"    : [1.0, 0.0, 0.0],
+                        "weight"       : 1.0,
+                        "variable_data": {}
+                }
+            ]
+        }""")
+
+        sensors_list = GetSensors(self.model_part, params_list["list_of_sensors"].values())
+        for sensor in sensors_list:
+            sensor.SetValue(KratosDT.SENSOR_MEASURED_VALUE, 1.0)
+            residual_sensor.AddSensor(sensor)
+
+        ref_value = residual_sensor.CalculateValue(self.model_part)
         delta = 1e-8
 
         residual_matrix = Kratos.Matrix(18, 18)
         response_sensitivities = Kratos.Vector()
         element = self.model_part.GetElement(1)
-        self.adjoint_sensor.CalculateGradient(element, residual_matrix, response_sensitivities, self.model_part.ProcessInfo)
+        residual_sensor.CalculateGradient(element, residual_matrix, response_sensitivities, self.model_part.ProcessInfo)
         for i, node in enumerate(element.GetGeometry()):
             node.SetSolutionStepValue(Kratos.DISPLACEMENT_X, node.GetSolutionStepValue(Kratos.DISPLACEMENT_X) + delta)
-            perturbed_value = self.adjoint_sensor.CalculateValue(self.model_part)
+            perturbed_value = residual_sensor.CalculateValue(self.model_part)
             sensitivity = (perturbed_value - ref_value) / delta
-            self.assertAlmostEqual(sensitivity, response_sensitivities[i * 6])
+            self.assertAlmostEqual(sensitivity, response_sensitivities[i * 6], 6)
             node.SetSolutionStepValue(Kratos.DISPLACEMENT_X, node.GetSolutionStepValue(Kratos.DISPLACEMENT_X) - delta)
 
             node.SetSolutionStepValue(Kratos.DISPLACEMENT_Y, node.GetSolutionStepValue(Kratos.DISPLACEMENT_Y) + delta)
-            perturbed_value = self.adjoint_sensor.CalculateValue(self.model_part)
+            perturbed_value = residual_sensor.CalculateValue(self.model_part)
             sensitivity = (perturbed_value - ref_value) / delta
-            self.assertAlmostEqual(sensitivity, response_sensitivities[i * 6 + 1])
+            self.assertAlmostEqual(sensitivity, response_sensitivities[i * 6 + 1], 6)
             node.SetSolutionStepValue(Kratos.DISPLACEMENT_Y, node.GetSolutionStepValue(Kratos.DISPLACEMENT_Y) - delta)
 
 

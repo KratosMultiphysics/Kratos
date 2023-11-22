@@ -103,11 +103,11 @@ class AlgorithmNAG(Algorithm):
         elif isinstance(alpha, KratosOA.CollectiveExpression):
             update = search_direction.Scale(alpha)
         if self.prev_update:
-            mom_update = update + self.prev_update * 0.3
-            self.algorithm_data.GetBufferedData()["control_field_update"] = update + mom_update * 0.3
+            mom_update = update + self.prev_update * 0.95
+            self.algorithm_data.GetBufferedData()["control_field_update"] = update + mom_update * 0.95
             self.prev_update = mom_update
         else:
-            self.algorithm_data.GetBufferedData()["control_field_update"] = update * 1.3
+            self.algorithm_data.GetBufferedData()["control_field_update"] = update * 1.95
             self.prev_update = update
 
         for expression in self.prev_update.GetContainerExpressions():
