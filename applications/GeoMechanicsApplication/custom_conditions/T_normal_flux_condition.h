@@ -50,7 +50,7 @@ public:
                               PropertiesType::Pointer pProperties) const override
     {
         return Kratos::make_intrusive<TNormalFluxCondition>(
-            NewId, GetGeometry().Create(rThisNodes), pProperties);
+            NewId, this->GetGeometry().Create(rThisNodes), pProperties);
     }
 
 protected:
