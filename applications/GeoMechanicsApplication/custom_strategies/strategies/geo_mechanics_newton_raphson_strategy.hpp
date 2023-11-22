@@ -98,7 +98,7 @@ public:
                     "rebuild_level": 2
                 }  )" );
 
-            // Validate agains defaults -- this also ensures no type mismatch
+            // Validate against defaults -- this also ensures no type mismatch
             rParameters.ValidateAndAssignDefaults(default_parameters);
 
             // Set Load SubModelParts and Variable names
