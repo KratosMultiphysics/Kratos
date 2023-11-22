@@ -306,6 +306,17 @@ class DEMEnergyCalculator():
 
             self.energy_graph_counter += 1
 
+    def CalculateNormalizedKinematicEnergy(self):
+
+        particle_number_times_max_normal_ball_to_ball_force_times_radius = self.SpheresEnergyUtil.CalculateParticleNumberTimesMaxNormalBallToBallForceTimesRadius(self.SpheresModelPart)
+        
+        if particle_number_times_max_normal_ball_to_ball_force_times_radius == 0.0:
+            normalized_kinematic_energy = 0.0
+        else:
+            normalized_kinematic_energy = self.kinematic_energy / particle_number_times_max_normal_ball_to_ball_force_times_radius
+        
+        return normalized_kinematic_energy
+    
     def CalculateEnergy(self):
 
         self.translational_kinematic_energy = self.SpheresEnergyUtil.CalculateTranslationalKinematicEnergy(self.SpheresModelPart) + self.ClusterEnergyUtil.CalculateTranslationalKinematicEnergy(self.ClusterModelPart)
