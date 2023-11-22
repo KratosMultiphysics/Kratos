@@ -21,11 +21,6 @@ using LocalSpaceType = UblasSpace<double, Matrix, Vector>;
 namespace Kratos::Testing {
 
 namespace {
-NewmarkQuasistaticPwScheme<SparseSpaceType, LocalSpaceType> CreateValidScheme()
-{
-    NewmarkQuasistaticPwScheme<SparseSpaceType, LocalSpaceType> result(0.75);
-    return result;
-}
 
 ModelPart& CreateValidModelPart(Model& rModel)
 {
@@ -42,7 +37,8 @@ ModelPart& CreateValidModelPart(Model& rModel)
 KRATOS_TEST_CASE_IN_SUITE(CheckNewmarkPwScheme_WithAllNecessaryParts_Returns0, KratosGeoMechanicsFastSuite)
 {
     Model model;
-    auto scheme = CreateValidScheme();
+    constexpr double theta = 0.75;
+    NewmarkQuasistaticPwScheme<SparseSpaceType, LocalSpaceType> scheme(theta);
     const auto& model_part = CreateValidModelPart(model);
 
     KRATOS_EXPECT_EQ(scheme.Check(model_part), 0);
@@ -50,7 +46,8 @@ KRATOS_TEST_CASE_IN_SUITE(CheckNewmarkPwScheme_WithAllNecessaryParts_Returns0, K
 
 KRATOS_TEST_CASE_IN_SUITE(ForMissingNodalDof_CheckNewmarkPwScheme_Throws, KratosGeoMechanicsFastSuite)
 {
-    NewmarkQuasistaticPwScheme<SparseSpaceType, LocalSpaceType> scheme(0.75);
+    constexpr double theta = 0.75;
+    NewmarkQuasistaticPwScheme<SparseSpaceType, LocalSpaceType> scheme(theta);
 
     Model model;
     auto& model_part = model.CreateModelPart("dummy", 2);
@@ -65,7 +62,8 @@ KRATOS_TEST_CASE_IN_SUITE(ForMissingNodalDof_CheckNewmarkPwScheme_Throws, Kratos
 KRATOS_TEST_CASE_IN_SUITE(ForMissingDtWaterPressureSolutionStepVariable_CheckNewmarkPwScheme_Throws,
                           KratosGeoMechanicsFastSuite)
 {
-    NewmarkQuasistaticPwScheme<SparseSpaceType, LocalSpaceType> scheme(0.75);
+    constexpr double theta = 0.75;
+    NewmarkQuasistaticPwScheme<SparseSpaceType, LocalSpaceType> scheme(theta);
 
     Model model;
     auto& model_part = model.CreateModelPart("dummy", 2);
@@ -81,11 +79,11 @@ KRATOS_TEST_CASE_IN_SUITE(ForMissingDtWaterPressureSolutionStepVariable_CheckNew
 KRATOS_TEST_CASE_IN_SUITE(ForMissingWaterPressureSolutionStepVariable_CheckNewmarkPwScheme_Throws,
                           KratosGeoMechanicsFastSuite)
 {
-    NewmarkQuasistaticPwScheme<SparseSpaceType, LocalSpaceType> scheme(0.75);
+    constexpr double theta = 0.75;
+    NewmarkQuasistaticPwScheme<SparseSpaceType, LocalSpaceType> scheme(theta);
 
     Model model;
     auto& model_part = model.CreateModelPart("dummy", 2);
-    model_part.AddNodalSolutionStepVariable(DT_WATER_PRESSURE);
     auto p_node = model_part.CreateNewNode(0, 0.0, 0.0, 0.0);
 
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
@@ -95,7 +93,9 @@ KRATOS_TEST_CASE_IN_SUITE(ForMissingWaterPressureSolutionStepVariable_CheckNewma
 
 KRATOS_TEST_CASE_IN_SUITE(NewmarkPwSchemeUpdate_SetsDtPressure, KratosGeoMechanicsFastSuite)
 {
-    auto scheme = CreateValidScheme();
+    constexpr double theta = 0.75;
+    NewmarkQuasistaticPwScheme<SparseSpaceType, LocalSpaceType> scheme(theta);
+
     Model model;
     ModelPart& model_part = CreateValidModelPart(model);
 
@@ -124,7 +124,9 @@ KRATOS_TEST_CASE_IN_SUITE(NewmarkPwSchemeUpdate_SetsDtPressure, KratosGeoMechani
 
 KRATOS_TEST_CASE_IN_SUITE(InitializeNewmarkPwScheme_SetsTimeFactors, KratosGeoMechanicsFastSuite)
 {
-    auto scheme = CreateValidScheme();
+    constexpr double theta = 0.75;
+    NewmarkQuasistaticPwScheme<SparseSpaceType, LocalSpaceType> scheme(theta);
+
     Model model;
     ModelPart& model_part = CreateValidModelPart(model);
     constexpr double delta_time = 3.0;
@@ -133,7 +135,6 @@ KRATOS_TEST_CASE_IN_SUITE(InitializeNewmarkPwScheme_SetsTimeFactors, KratosGeoMe
     scheme.Initialize(model_part);
 
     KRATOS_EXPECT_TRUE(scheme.SchemeIsInitialized())
-    constexpr double theta = 0.75;
     KRATOS_EXPECT_DOUBLE_EQ(model_part.GetProcessInfo()[DT_PRESSURE_COEFFICIENT],
                             1.0 / (theta * delta_time));
 }

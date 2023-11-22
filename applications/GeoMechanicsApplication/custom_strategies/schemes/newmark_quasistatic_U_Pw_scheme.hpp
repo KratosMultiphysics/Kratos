@@ -47,23 +47,6 @@ public:
             << "Gamma must be larger than zero, but got " << mGamma << "\n";
     }
 
-protected:
-    void CheckAllocatedVariables(const ModelPart& rModelPart) const override
-    {
-        GeneralizedNewmarkScheme<TSparseSpace, TDenseSpace>::CheckAllocatedVariables(rModelPart);
-
-        for (const auto& r_node : rModelPart.Nodes()) {
-            this->CheckSolutionStepsData(r_node, DISPLACEMENT);
-            this->CheckSolutionStepsData(r_node, VELOCITY);
-            this->CheckSolutionStepsData(r_node, ACCELERATION);
-
-            this->CheckDof(r_node, DISPLACEMENT_X);
-            this->CheckDof(r_node, DISPLACEMENT_Y);
-            this->CheckDof(r_node, DISPLACEMENT_Z);
-        }
-    }
-
-public:
     void FinalizeSolutionStep(ModelPart& rModelPart,
                               TSystemMatrixType& A,
                               TSystemVectorType& Dx,
@@ -129,6 +112,21 @@ protected:
     double mBeta = 0.25;
     double mGamma = 0.5;
 
+    void CheckAllocatedVariables(const ModelPart& rModelPart) const override
+    {
+        GeneralizedNewmarkScheme<TSparseSpace, TDenseSpace>::CheckAllocatedVariables(rModelPart);
+
+        for (const auto& r_node : rModelPart.Nodes()) {
+            this->CheckSolutionStepsData(r_node, DISPLACEMENT);
+            this->CheckSolutionStepsData(r_node, VELOCITY);
+            this->CheckSolutionStepsData(r_node, ACCELERATION);
+
+            this->CheckDof(r_node, DISPLACEMENT_X);
+            this->CheckDof(r_node, DISPLACEMENT_Y);
+            this->CheckDof(r_node, DISPLACEMENT_Z);
+        }
+    }
+
     inline void SetTimeFactors(ModelPart& rModelPart) override
     {
         KRATOS_TRY
@@ -145,7 +143,7 @@ protected:
         KRATOS_TRY
 
         // Update Acceleration, Velocity and DtPressure
-        block_for_each(rModelPart.Nodes(), [&](Node& rNode) {
+        block_for_each(rModelPart.Nodes(), [this](Node& rNode) {
             UpdateVectorSecondTimeDerivative(rNode);
             UpdateVectorFirstTimeDerivative(rNode);
             this->UpdateScalarTimeDerivative(rNode, WATER_PRESSURE, DT_WATER_PRESSURE);

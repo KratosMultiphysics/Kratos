@@ -49,7 +49,7 @@ KRATOS_TEST_CASE_IN_SUITE(BackwardEulerPwScheme_UpdatesVariablesDerivatives_When
     scheme.Predict(model_part, dof_set, A, Dx, b);
 
     constexpr double expected_dt_temperature = 0.25;
-    KRATOS_EXPECT_DOUBLE_EQ(p_node->FastGetSolutionStepValue(DT_WATER_PRESSURE),
+    KRATOS_EXPECT_DOUBLE_EQ(p_node->FastGetSolutionStepValue(DT_WATER_PRESSURE, 0),
                             expected_dt_temperature);
 }
 
@@ -110,7 +110,6 @@ KRATOS_TEST_CASE_IN_SUITE(ForMissingWaterPressureSolutionStepVariable_CheckBackw
 
     Model model;
     auto& model_part = model.CreateModelPart("dummy", 2);
-    model_part.AddNodalSolutionStepVariable(DT_WATER_PRESSURE);
     auto p_node = model_part.CreateNewNode(0, 0.0, 0.0, 0.0);
 
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(

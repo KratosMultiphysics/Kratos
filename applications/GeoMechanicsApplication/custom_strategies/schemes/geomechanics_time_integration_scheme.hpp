@@ -326,27 +326,27 @@ protected:
     }
 
     template <class T>
-    void CheckSolutionStepsData(const Node& r_node, const Variable<T>& variable) const
+    void CheckSolutionStepsData(const Node& rNode, const Variable<T>& rVariable) const
     {
-        KRATOS_ERROR_IF_NOT(r_node.SolutionStepsDataHas(variable))
-            << variable.Name() << " variable is not allocated for node "
-            << r_node.Id() << std::endl;
+        KRATOS_ERROR_IF_NOT(rNode.SolutionStepsDataHas(rVariable))
+            << rVariable.Name() << " variable is not allocated for node "
+            << rNode.Id() << std::endl;
     }
 
     template <class T>
-    void CheckDof(const Node& r_node, const Variable<T>& variable) const
+    void CheckDof(const Node& rNode, const Variable<T>& rVariable) const
     {
-        KRATOS_ERROR_IF_NOT(r_node.HasDofFor(variable))
-            << "missing " << variable.Name() << " dof on node " << r_node.Id()
+        KRATOS_ERROR_IF_NOT(rNode.HasDofFor(rVariable))
+            << "missing " << rVariable.Name() << " dof on node " << rNode.Id()
             << std::endl;
     }
 
+    virtual void CheckAllocatedVariables(const ModelPart& rModelPart) const = 0;
     virtual inline void SetTimeFactors(ModelPart& rModelPart) = 0;
     virtual inline void UpdateVariablesDerivatives(ModelPart& rModelPart) = 0;
-    virtual void CheckAllocatedVariables(const ModelPart& rModelPart) const = 0;
     virtual void UpdateScalarTimeDerivative(Node& rNode,
-                                            const Variable<double>& variable,
-                                            const Variable<double>& dt_variable) const = 0;
+                                            const Variable<double>& rVariable,
+                                            const Variable<double>& rDtVariable) const = 0;
 
     [[nodiscard]] double GetDeltaTime() const
     {
