@@ -250,7 +250,7 @@ public:
 
         // Filling mActiveDofs when MPC exist
         if (rModelPart.NumberOfMasterSlaveConstraints() > 0) {
-            ConstraintUtilities::ComputeActiveDofs(rModelPart, mActiveDofs, rDofSet);
+            ComputeActiveDofs(rModelPart, rDofSet);
         }
 
         SizeType size_residual;
@@ -366,6 +366,20 @@ protected:
     ///@}
     ///@name Protected Operations
     ///@{
+
+    /**
+     * @brief This method computes the active dofs
+     * @param rModelPart Reference to the ModelPart containing the problem
+     * @param rDofSet The whole set of dofs
+     */
+    virtual void ComputeActiveDofs(
+        ModelPart& rModelPart,
+        const ModelPart::DofsArrayType& rDofSet
+        )
+    {
+        // Filling mActiveDofs when MPC exist
+        ConstraintUtilities::ComputeActiveDofs(rModelPart, mActiveDofs, rDofSet);
+    }
 
     /**
      * @brief Check if a Degree of Freedom (Dof) is active
