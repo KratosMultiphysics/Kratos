@@ -26,6 +26,7 @@
 #include "mpi/utilities/parallel_fill_communicator.h"
 #include "mpi/utilities/model_part_communicator_utilities.h"
 #include "spaces/ublas_space.h"
+#include "trilinos_space.h"
 
 namespace Kratos::Testing
 {
