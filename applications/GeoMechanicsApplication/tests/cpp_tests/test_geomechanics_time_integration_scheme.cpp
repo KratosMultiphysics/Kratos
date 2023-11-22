@@ -24,16 +24,42 @@ using LocalSpaceType = UblasSpace<double, Matrix, Vector>;
 
 namespace Kratos::Testing {
 
+// We need this class to test all non-abstract functions of the GeoMechanicsTimeIntegrationScheme
+// class. We cannot use the GeoMechanicsTimeIntegrationScheme class directly, because it is
+// abstract.
+class ConcreteGeoMechanicsTimeIntegrationScheme : public GeoMechanicsTimeIntegrationScheme<SparseSpaceType, LocalSpaceType>
+{
+protected:
+    void SetTimeFactors(ModelPart& rModelPart) override
+    {
+        // Intentionally left empty
+    }
+    void UpdateVariablesDerivatives(ModelPart& rModelPart) override
+    {
+        // Intentionally left empty
+    }
+    void CheckAllocatedVariables(const ModelPart& rModelPart) const override
+    {
+        // Intentionally left empty
+    }
+    void UpdateScalarTimeDerivative(Node& rNode,
+                                    const Variable<double>& variable,
+                                    const Variable<double>& dt_variable) const override
+    {
+        // Intentionally left empty
+    }
+};
+
 class GeoMechanicsSchemeTester {
 public:
     Model mModel;
-    GeoMechanicsTimeIntegrationScheme<SparseSpaceType, LocalSpaceType> mScheme;
+    ConcreteGeoMechanicsTimeIntegrationScheme mScheme;
 
     void Setup()
     {
         mModel.Reset();
         mModel.CreateModelPart("dummy", 2);
-        mScheme = GeoMechanicsTimeIntegrationScheme<SparseSpaceType, LocalSpaceType>();
+        mScheme = ConcreteGeoMechanicsTimeIntegrationScheme();
     }
 
     template <class T>
@@ -226,7 +252,7 @@ KRATOS_TEST_CASE_IN_SUITE(FunctionCalledOnElement_IsOnlyCalledWhenElementIsActiv
 KRATOS_TEST_CASE_IN_SUITE(ForInvalidBufferSize_CheckGeoMechanicsTimeIntegrationScheme_Throws,
                           KratosGeoMechanicsFastSuite)
 {
-    GeoMechanicsTimeIntegrationScheme<SparseSpaceType, LocalSpaceType> scheme;
+    ConcreteGeoMechanicsTimeIntegrationScheme scheme;
 
     Model model;
     constexpr int invalid_buffer_size = 1;

@@ -341,25 +341,12 @@ protected:
             << std::endl;
     }
 
-    virtual inline void SetTimeFactors(ModelPart& rModelPart)
-    {
-        // intentionally empty
-    }
-    virtual inline void UpdateVariablesDerivatives(ModelPart& rModelPart)
-    {
-        // intentionally empty
-    }
-
-    virtual void CheckAllocatedVariables(const ModelPart& rModelPart) const
-    {
-        // intentionally empty
-    }
-
+    virtual inline void SetTimeFactors(ModelPart& rModelPart) = 0;
+    virtual inline void UpdateVariablesDerivatives(ModelPart& rModelPart) = 0;
+    virtual void CheckAllocatedVariables(const ModelPart& rModelPart) const = 0;
     virtual void UpdateScalarTimeDerivative(Node& rNode,
                                             const Variable<double>& variable,
-                                            const Variable<double>& dt_variable) const {
-        // intentionally empty
-    }
+                                            const Variable<double>& dt_variable) const = 0;
 
     [[nodiscard]] double GetDeltaTime() const
     {
