@@ -93,7 +93,7 @@ KRATOS_TEST_CASE_IN_SUITE(DisplacementCriteria, KratosCoreFastSuite)
         i++;
     }
 
-    // Check convergence
+    // Check convergence (failing)
     bool convergence = displacement_criteria.PostCriteria(r_model_part, aux_dof_set, A, Dx, b);
     KRATOS_EXPECT_FALSE(convergence)
 
@@ -106,7 +106,7 @@ KRATOS_TEST_CASE_IN_SUITE(DisplacementCriteria, KratosCoreFastSuite)
         i++;
     }
 
-    // Check convergence
+    // Check convergence (passing)
     convergence = displacement_criteria.PostCriteria(r_model_part, aux_dof_set, A, Dx, b);
     KRATOS_EXPECT_TRUE(convergence)
 }
