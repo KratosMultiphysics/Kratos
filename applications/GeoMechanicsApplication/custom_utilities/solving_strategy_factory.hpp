@@ -16,12 +16,13 @@
 #include <string>
 
 #include "solving_strategies/strategies/solving_strategy.h"
+#include "solving_strategies/strategies/line_search_strategy.h"
 #include "custom_strategies/strategies/geo_mechanics_newton_raphson_strategy.hpp"
 #include "factories/standard_linear_solver_factory.h"
 #include "scheme_factory.hpp"
 #include "convergence_criteria_factory.hpp"
 #include "builder_and_solver_factory.hpp"
-#include "solving_strategies/strategies/line_search_strategy.h"
+#include "parameters_utilities.h"
 
 namespace Kratos {
 
@@ -29,7 +30,7 @@ template<class TSparseSpace, class TDenseSpace, class TLinearSolver>
 class SolvingStrategyFactory {
 public:
     [[nodiscard]] static std::unique_ptr<SolvingStrategy<TSparseSpace, TDenseSpace>>
-    Create(const Parameters &rSolverSettings, ModelPart &rModelPart) {
+    Create(const Parameters& rSolverSettings, ModelPart& rModelPart) {
         const std::string strategy_type = "strategy_type";
 
         KRATOS_ERROR_IF_NOT(rSolverSettings.Has(strategy_type))
@@ -104,8 +105,8 @@ public:
     }
 
 private:
-    static Parameters ExtractStrategyParameters(const Parameters &rSolverSettings,
-                                                const std::vector<std::string> strategy_entries) {
+    static Parameters ExtractStrategyParameters(const Parameters& rSolverSettings,
+                                                const std::vector<std::string>& strategy_entries) {
         Parameters result;
         for (const std::string &entry: strategy_entries) {
             if (rSolverSettings.Has(entry)) {
