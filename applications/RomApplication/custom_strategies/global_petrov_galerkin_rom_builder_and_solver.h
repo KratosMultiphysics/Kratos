@@ -187,7 +187,7 @@ public:
 
         BaseType::Build(pScheme, rModelPart, rA, rb);
 
-        BaseType::ApplyDirichletConditions(pScheme, rModelPart, rA, rDx, rb);
+        // BaseType::ApplyDirichletConditions(pScheme, rModelPart, rA, rDx, rb);
     }
 
     void GetRightROMBasis(
