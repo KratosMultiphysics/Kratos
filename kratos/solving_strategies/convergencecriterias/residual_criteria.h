@@ -18,7 +18,6 @@
 
 // Project includes
 #include "includes/model_part.h"
-#include "includes/define.h"
 #include "utilities/constraint_utilities.h"
 #include "utilities/parallel_utilities.h"
 #include "utilities/reduction_utilities.h"
@@ -77,6 +76,9 @@ public:
     /// The dofs array type
     using DofsArrayType = typename BaseType::DofsArrayType;
 
+    /// The definition of the DoF data type
+    using DofType = typename Node::DofType;
+
     /// The sparse matrix type
     using TSystemMatrixType = typename BaseType::TSystemMatrixType;
 
@@ -93,7 +95,7 @@ public:
     ///@name Life Cycle
     ///@{
 
-    //* Constructor.
+    /// Default constructor.
     explicit ResidualCriteria()
         : BaseType()
     {
@@ -113,7 +115,11 @@ public:
         this->mActualizeRHSIsNeeded = true;
     }
 
-    //* Constructor.
+    /**
+    * @brief Constructor 2 arguments
+    * @param NewRatioTolerance The ratio tolerance for the convergence.
+    * @param AlwaysConvergedNorm The absolute tolerance for the convergence.
+    */
     explicit ResidualCriteria(
         TDataType NewRatioTolerance,
         TDataType AlwaysConvergedNorm)
@@ -124,7 +130,10 @@ public:
         this->mActualizeRHSIsNeeded = true;
     }
 
-    //* Copy constructor.
+    /**
+    * @brief Copy constructor
+    * @param rOther The criteria to be copied
+    */
     explicit ResidualCriteria( ResidualCriteria const& rOther )
       :BaseType(rOther)
       ,mRatioTolerance(rOther.mRatioTolerance)
@@ -136,12 +145,17 @@ public:
         this->mActualizeRHSIsNeeded = true;
     }
 
-    //* Destructor.
+    /**
+     * @brief Destructor.
+     */
     ~ResidualCriteria() override {}
 
     ///@}
     ///@name Operators
     ///@{
+
+    /// Deleted assignment operator.
+    ResidualCriteria& operator=(ResidualCriteria const& rOther) = delete;
 
     ///@}
     ///@name Operations
@@ -157,7 +171,7 @@ public:
     }
 
     /**
-     * @brief Criterias that need to be called after getting the solution
+     * @brief Criterion that need to be called after getting the solution
      * @details Compute relative and absolute error.
      * @param rModelPart Reference to the ModelPart containing the problem.
      * @param rDofSet Reference to the container of the problem's degrees of freedom (stored by the BuilderAndSolver)
@@ -174,9 +188,11 @@ public:
         const TSystemVectorType& rb
         ) override
     {
-        const SizeType size_b = TSparseSpace::Size(rb);
-        if (size_b != 0) { //if we are solving for something
+        if (TSparseSpace::Size(rb) != 0) { //if we are solving for something
+            // Some values
+            const int rank = rModelPart.GetCommunicator().GetDataCommunicator().Rank();
 
+            // Calculate the residual norm
             SizeType size_residual;
             CalculateResidualNorm(rModelPart, mCurrentResidualNorm, size_residual, rDofSet, rb);
 
@@ -190,18 +206,15 @@ public:
             const TDataType float_size_residual = static_cast<TDataType>(size_residual);
             const TDataType absolute_norm = (mCurrentResidualNorm/float_size_residual);
 
-            KRATOS_INFO_IF("RESIDUAL CRITERION", this->GetEchoLevel() > 1 && rModelPart.GetCommunicator().MyPID() == 0) << " :: [ Initial residual norm = " << mInitialResidualNorm << "; Current residual norm =  " << mCurrentResidualNorm << "]" << std::endl;
-            KRATOS_INFO_IF("RESIDUAL CRITERION", this->GetEchoLevel() > 0 && rModelPart.GetCommunicator().MyPID() == 0) << " :: [ Obtained ratio = " << ratio << "; Expected ratio = " << mRatioTolerance << "; Absolute norm = " << absolute_norm << "; Expected norm =  " << mAlwaysConvergedNorm << "]" << std::endl;
+            KRATOS_INFO_IF("RESIDUAL CRITERION", this->GetEchoLevel() > 1 && rank == 0) << " :: [ Initial residual norm = " << mInitialResidualNorm << "; Current residual norm =  " << mCurrentResidualNorm << "]" << std::endl;
+            KRATOS_INFO_IF("RESIDUAL CRITERION", this->GetEchoLevel() > 0 && rank == 0) << " :: [ Obtained ratio = " << ratio << "; Expected ratio = " << mRatioTolerance << "; Absolute norm = " << absolute_norm << "; Expected norm =  " << mAlwaysConvergedNorm << "]" << std::endl;
 
             rModelPart.GetProcessInfo()[CONVERGENCE_RATIO] = ratio;
             rModelPart.GetProcessInfo()[RESIDUAL_NORM] = absolute_norm;
 
-            if (ratio <= mRatioTolerance || absolute_norm < mAlwaysConvergedNorm) {
-                KRATOS_INFO_IF("RESIDUAL CRITERION", this->GetEchoLevel() > 0 && rModelPart.GetCommunicator().MyPID() == 0) << "Convergence is achieved" << std::endl;
-                return true;
-            } else {
-                return false;
-            }
+            const bool has_achieved_convergence = ratio <= mRatioTolerance || absolute_norm < mAlwaysConvergedNorm;
+            KRATOS_INFO_IF("RESIDUAL CRITERION", has_achieved_convergence && this->GetEchoLevel() > 0 && rank == 0) << "Convergence is achieved" << std::endl;
+            return has_achieved_convergence;
         } else {
             return true;
         }
@@ -237,7 +250,7 @@ public:
 
         // Filling mActiveDofs when MPC exist
         if (rModelPart.NumberOfMasterSlaveConstraints() > 0) {
-            ConstraintUtilities::ComputeActiveDofs(rModelPart, mActiveDofs, rDofSet);
+            ComputeActiveDofs(rModelPart, rDofSet);
         }
 
         SizeType size_residual;
@@ -334,6 +347,18 @@ protected:
     ///@name Protected member Variables
     ///@{
 
+    TDataType mRatioTolerance{};      /// The ratio threshold for the norm of the residual
+
+    TDataType mInitialResidualNorm{}; /// The reference norm of the residual
+
+    TDataType mCurrentResidualNorm{}; /// The current norm of the residual
+
+    TDataType mAlwaysConvergedNorm{}; /// The absolute value threshold for the norm of the residual
+
+    TDataType mReferenceDispNorm{};   /// The norm at the beginning of the iterations
+
+    std::vector<int> mActiveDofs;     /// This vector contains the dofs that are active
+
     ///@}
     ///@name Protected Operators
     ///@{
@@ -341,6 +366,51 @@ protected:
     ///@}
     ///@name Protected Operations
     ///@{
+
+    /**
+     * @brief This method computes the active dofs
+     * @param rModelPart Reference to the ModelPart containing the problem
+     * @param rDofSet The whole set of dofs
+     */
+    virtual void ComputeActiveDofs(
+        ModelPart& rModelPart,
+        const ModelPart::DofsArrayType& rDofSet
+        )
+    {
+        // Filling mActiveDofs when MPC exist
+        ConstraintUtilities::ComputeActiveDofs(rModelPart, mActiveDofs, rDofSet);
+    }
+
+    /**
+     * @brief Check if a Degree of Freedom (Dof) is active
+     * @details This function checks if a given Degree of Freedom (Dof) is active.
+     * @param rDof The Degree of Freedom to check.
+     * @param Rank The rank of the Dof.
+     * @return True if the Dof is free, false otherwise.
+     */
+    virtual bool IsActiveDof(
+        const DofType& rDof,
+        const int Rank
+        )
+    {
+        const IndexType dof_id = rDof.EquationId();
+        return mActiveDofs[dof_id] == 1;
+    }
+
+    /**
+     * @brief Check if a Degree of Freedom (Dof) is free.
+     * @details This function checks if a given Degree of Freedom (Dof) is free.
+     * @param rDof The Degree of Freedom to check.
+     * @param Rank The rank of the Dof.
+     * @return True if the Dof is free, false otherwise.
+     */
+    virtual bool IsFreeDof(
+        const DofType& rDof,
+        const int Rank
+        )
+    {
+        return rDof.IsFree();
+    }
 
     /**
      * @brief This method computes the norm of the residual
@@ -359,41 +429,45 @@ protected:
         const TSystemVectorType& rb
         )
     {
+        // Retrieve the data communicator
+        const auto& r_data_communicator = rModelPart.GetCommunicator().GetDataCommunicator();
+
+        // The current MPI rank
+        const int rank = r_data_communicator.Rank();
+
         // Initialize
         TDataType residual_solution_norm = TDataType();
-        SizeType dof_num = 0;
+        unsigned int dof_num = 0;
 
         // Custom reduction
-        using CustomReduction = CombinedReduction<SumReduction<TDataType>,SumReduction<SizeType>>;
+        using CustomReduction = CombinedReduction<SumReduction<TDataType>,SumReduction<unsigned int>>;
 
         // Auxiliary struct
         struct TLS {TDataType residual_dof_value{};};
 
         // Loop over Dofs
         if (rModelPart.NumberOfMasterSlaveConstraints() > 0) {
-            std::tie(residual_solution_norm, dof_num) = block_for_each<CustomReduction>(rDofSet, TLS(), [this, &rb](auto& rDof, TLS& rTLS) {
-                const IndexType dof_id = rDof.EquationId();
-                if (mActiveDofs[dof_id] == 1) {
-                    rTLS.residual_dof_value = TSparseSpace::GetValue(rb, dof_id);
+            std::tie(residual_solution_norm, dof_num) = block_for_each<CustomReduction>(rDofSet, TLS(), [this, &rb, &rank](auto& rDof, TLS& rTLS) {
+                if (this->IsActiveDof(rDof, rank)) {
+                    rTLS.residual_dof_value = TSparseSpace::GetValue(rb, rDof.EquationId());
                     return std::make_tuple(std::pow(rTLS.residual_dof_value, 2), 1);
                 } else {
-                    return std::make_tuple(TDataType(), 0);;
+                    return std::make_tuple(TDataType(), 0);
                 }
             });
         } else {
-            std::tie(residual_solution_norm, dof_num) = block_for_each<CustomReduction>(rDofSet, TLS(), [&rb](auto& rDof, TLS& rTLS) {
-                if (!rDof.IsFixed()) {
-                    const IndexType dof_id = rDof.EquationId();
-                    rTLS.residual_dof_value = TSparseSpace::GetValue(rb, dof_id);
+            std::tie(residual_solution_norm, dof_num) = block_for_each<CustomReduction>(rDofSet, TLS(), [this, &rb, &rank](auto& rDof, TLS& rTLS) {
+                if(this->IsFreeDof(rDof, rank)) {
+                    rTLS.residual_dof_value = TSparseSpace::GetValue(rb, rDof.EquationId());
                     return std::make_tuple(std::pow(rTLS.residual_dof_value, 2), 1);
                 } else {
-                    return std::make_tuple(TDataType(), 0);;
+                    return std::make_tuple(TDataType(), 0);
                 }
             });
         }
 
-        rDofNum = dof_num;
-        rResidualSolutionNorm = std::sqrt(residual_solution_norm);
+        rDofNum = static_cast<SizeType>(r_data_communicator.SumAll(dof_num));
+        rResidualSolutionNorm = std::sqrt(r_data_communicator.SumAll(residual_solution_norm));
     }
 
     /**
@@ -427,18 +501,6 @@ private:
     ///@}
     ///@name Member Variables
     ///@{
-
-    TDataType mRatioTolerance{};      /// The ratio threshold for the norm of the residual
-
-    TDataType mInitialResidualNorm{}; /// The reference norm of the residual
-
-    TDataType mCurrentResidualNorm{}; /// The current norm of the residual
-
-    TDataType mAlwaysConvergedNorm{}; /// The absolute value threshold for the norm of the residual
-
-    TDataType mReferenceDispNorm{};   /// The norm at the beginning of the iterations
-
-    std::vector<int> mActiveDofs;     /// This vector contains the dofs that are active
 
     ///@}
     ///@name Private Operators
