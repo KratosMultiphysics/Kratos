@@ -12,6 +12,7 @@
 
 // Project includes
 #include "poly_hierarchical_solver.h"
+#include "includes/code_location.h"
 #include "includes/global_variables.h"
 #include "spaces/ublas_space.h"
 #include "utilities/profiler.h"
@@ -359,7 +360,7 @@ void GetLowerOrderDofs(typename TSparseSpace::MatrixType& rA,
 
     const ProcessInfo& r_process_info = rModelPart.GetProcessInfo();
 
-    using ThreadLocalStorage = Element::EquationIdVectorType;
+    using ThreadLocalStorage = Element::DofsVectorType;
     ThreadLocalStorage rTls; // <== defined only for the serial loop
 
     // Loop through elements and collect the DoFs' IDs
@@ -377,7 +378,7 @@ void GetLowerOrderDofs(typename TSparseSpace::MatrixType& rA,
             const Geometry<Node>& r_geometry = r_entity.GetGeometry();
             const GeometryData::KratosGeometryFamily geometry_family = r_geometry.GetGeometryFamily();
 
-            r_entity.EquationIdVector(rTls, r_process_info);
+            r_entity.GetDofList(rTls, r_process_info);
 
             // The number of DoFs must be a multiple of the number of
             // fine nodes, because each node should have the same DoFs.
@@ -394,7 +395,7 @@ void GetLowerOrderDofs(typename TSparseSpace::MatrixType& rA,
 
             for (std::size_t i_local_dof=0ul; i_local_dof<lower_order_dof_count; ++i_local_dof) {
                 //if (rTls[i_local_dof]->IsFree()) {
-                    const std::size_t equation_id = rTls[i_local_dof];
+                    const std::size_t equation_id = rTls[i_local_dof]->EquationId();
                     KRATOS_DEBUG_ERROR_IF_NOT(equation_id < TSparseSpace::Size1(rA));
                     rCoarseMask[equation_id] = true;
                 //}
@@ -568,7 +569,9 @@ void MapHigherToLowerOrder(const ModelPart& rModelPart,
                                 Detail::IndexPairTraits::IsLess
                            >& rInterpolationMap)
 {
+    KRATOS_PROFILE_SCOPE(KRATOS_CODE_LOCATION);
     KRATOS_TRY
+
     const ProcessInfo& r_process_info = rModelPart.GetProcessInfo();
     Element::EquationIdVectorType local_to_fine_dof_map;
     for (auto proxy : MakeProxy<TEntityLocation>(rModelPart)) {
@@ -647,16 +650,29 @@ void PolyHierarchicalSolver<TSparseSpace,TDenseSpace,TReorderer>::ProvideAdditio
     GetLowerOrderDofs<Globals::DataLocation::Element,TSparseSpace>(rA,
                                                                    rModelPart,
                                                                    coarse_mask);
-    GetLowerOrderDofs<Globals::DataLocation::Condition,TSparseSpace>(rA,
-                                                                     rModelPart,
-                                                                     coarse_mask);
 
-    // Compute an index map associating fine DoF indices with coarse ones.
+    // Conditions shouldn't introduce coarse DoFs, but I'll leave this
+    // here for the time being in case I'm missing some exocotic boundary
+    // condition implementations @matekelemen.
+    //GetLowerOrderDofs<Globals::DataLocation::Condition,TSparseSpace>(rA,
+    //                                                                 rModelPart,
+    //                                                                 coarse_mask);
+
+    // Compute an index map associating fine DoF indices with coarse ones
+    // and collect coarse DoFs.
     std::vector<std::size_t> coarse_dof_indices(system_size);
+    ModelPart::DofsArrayType coarse_dofs;
+    coarse_dofs.reserve(std::size_t(0.4 * system_size)); // <== reserve assuming quadratic tets
     std::size_t masked_count = 0ul;
+
     for (std::size_t i_mask=0; i_mask<system_size; ++i_mask) {
         if (coarse_mask[i_mask]) {
             coarse_dof_indices[i_mask] = masked_count++;
+            coarse_dofs.push_back(*(rDofs.ptr_begin() + i_mask));
+        } else {
+            // Indices at fine DoFs should not be accessed
+            // (doing so will result in a segfault instead of silent miscalculations)
+            coarse_dof_indices[i_mask] = std::numeric_limits<std::size_t>::max();
         }
     }
 
@@ -679,27 +695,35 @@ void PolyHierarchicalSolver<TSparseSpace,TDenseSpace,TReorderer>::ProvideAdditio
                                                               coarse_dof_indices,
                                                               restriction_map,
                                                               interpolation_map);
-        MapHigherToLowerOrder<Globals::DataLocation::Condition>(rModelPart,
-                                                                coarse_dof_indices,
-                                                                restriction_map,
-                                                                interpolation_map);
 
-        for (auto pair : restriction_map) {
-            const std::size_t i_row = pair.first.first;
-            const std::size_t i_column = pair.first.second;
-            KRATOS_DEBUG_ERROR_IF_NOT(i_row < masked_count);
-            KRATOS_DEBUG_ERROR_IF_NOT(i_column < system_size);
-            const double value = pair.second;
-            r_restriction_operator.insert_element(i_row, i_column, value);
-        }
+        // Conditions shouldn't introduce coarse DoFs, but I'll leave this
+        // here for the time being in case I'm missing some exocotic boundary
+        // condition implementations @matekelemen.
+        //MapHigherToLowerOrder<Globals::DataLocation::Condition>(rModelPart,
+        //                                                        coarse_dof_indices,
+        //                                                        restriction_map,
+        //                                                        interpolation_map);
 
-        for (auto pair : interpolation_map) {
-            const std::size_t i_row = pair.first.first;
-            const std::size_t i_column = pair.first.second;
-            KRATOS_DEBUG_ERROR_IF_NOT(i_row < masked_count);
-            KRATOS_DEBUG_ERROR_IF_NOT(i_column < system_size);
-            const double value = pair.second;
-            r_interpolation_operator.insert_element(i_row, i_column, value);
+        {
+            KRATOS_PROFILE_SCOPE(KRATOS_CODE_LOCATION);
+
+            for (auto pair : restriction_map) {
+                const std::size_t i_row = pair.first.first;
+                const std::size_t i_column = pair.first.second;
+                KRATOS_DEBUG_ERROR_IF_NOT(i_row < masked_count);
+                KRATOS_DEBUG_ERROR_IF_NOT(i_column < system_size);
+                const double value = pair.second;
+                r_restriction_operator.insert_element(i_row, i_column, value);
+            }
+
+            for (auto pair : interpolation_map) {
+                const std::size_t i_row = pair.first.first;
+                const std::size_t i_column = pair.first.second;
+                KRATOS_DEBUG_ERROR_IF_NOT(i_row < masked_count);
+                KRATOS_DEBUG_ERROR_IF_NOT(i_column < system_size);
+                const double value = pair.second;
+                r_interpolation_operator.insert_element(i_row, i_column, value);
+            }
         }
     }
 
@@ -722,15 +746,6 @@ void PolyHierarchicalSolver<TSparseSpace,TDenseSpace,TReorderer>::ProvideAdditio
     }
 
     if (mpImpl->mCoarseSystem.mpSolver->AdditionalPhysicalDataIsNeeded()) {
-        // Find coarse DoFs
-        ModelPart::DofsArrayType coarse_dofs;
-        coarse_dofs.reserve(masked_count);
-        for (auto it_dof=rDofs.ptr_begin(); it_dof!=rDofs.ptr_end(); ++it_dof) {
-            if (coarse_mask[(*it_dof)->EquationId()]) {
-                coarse_dofs.push_back(*it_dof);
-            }
-        }
-
         // Restrict solution and RHS vectors
         Vector coarse_x(masked_count), coarse_b(masked_count);
         TSparseSpace::Mult(mpImpl->mRestrictionOperator,

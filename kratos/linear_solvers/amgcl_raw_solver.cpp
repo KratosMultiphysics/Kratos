@@ -35,6 +35,11 @@
 #include "boost/property_tree/ptree.hpp"
 #include "boost/property_tree/json_parser.hpp"
 
+#ifdef AMGCL_GPGPU
+#include <amgcl/backend/vexcl.hpp>
+#include <amgcl/backend/vexcl_static_matrix.hpp>
+#endif
+
 // STL includes
 #include <sstream> // stringstream
 #include <optional> // optional
@@ -42,6 +47,25 @@
 
 
 namespace Kratos {
+
+
+#ifdef AMGCL_GPGPU
+vex::Context& GetVexCLContext() {
+    static vex::Context ctx(vex::Filter::Env);
+    static bool run_once = [](){
+        std::cout << "VexCL context:\n" << ctx << std::endl;
+        return true;
+    }();
+    (void)run_once; // suppress "unused variable" warnings
+    return ctx;
+}
+
+template <int TBlockSize>
+void RegisterVexCLStaticMatrixType() {
+    static vex::scoped_program_header header(GetVexCLContext(),
+            amgcl::backend::vexcl_static_matrix_declaration<double,TBlockSize>());
+}
+#endif
 
 
 // Define solver types
@@ -67,12 +91,41 @@ using BlockSolver = amgcl::make_block_solver<
 >;
 
 
+#ifdef AMGCL_GPGPU
+    using VexCLSingleBackend = amgcl::backend::vexcl<double>;
+    using VexCLSingleSolver = amgcl::make_solver<
+        amgcl::runtime::preconditioner<VexCLBackend>,
+        amgcl::runtime::solver<VexCLBackend>
+    >;
+
+    using VexCLDoubleBackend = amgcl::backend::vexcl<double>;
+    using VexCLDoubleSolver = amgcl::make_solver<
+        amgcl::runtime::preconditioner<VexCLBackend>,
+        amgcl::runtime::solver<VexCLBackend>
+    >;
+#endif
+
+
 using AMGCLSolverVariant = std::variant<
     std::unique_ptr<ScalarSolver>,
     std::unique_ptr<BlockSolver<2>>,
     std::unique_ptr<BlockSolver<3>>,
     std::unique_ptr<BlockSolver<4>>
+    #ifdef AMGCL_GPGPU
+    ,std::unique_ptr<VexCLSingleSolver>
+    ,std::unique_ptr<VexCLDoubleSolver>
+    #endif
 >;
+
+
+enum class AMGCLBackendType
+{
+    CPU
+    #ifdef AMGCL_GPGPU
+    ,SinglePrecisionGPU
+    ,DoublePrecisionGPU
+    #endif
+}; // enum class VexCLBackendType
 
 
 template <class TSparseSpace,
@@ -93,6 +146,8 @@ struct AMGCLRawSolver<TSparseSpace,TDenseSpace,TReorderer>::Impl
         std::shared_ptr<amgcl::backend::crs<typename TSparseSpace::DataType>> mpAdapter;
         const typename TSparseSpace::MatrixType* mpMatrix = nullptr;
     } mSolverStruct;
+
+    AMGCLBackendType mBackendType = AMGCLBackendType::CPU;
 }; // struct AMGCLRawSolver::Impl
 
 
@@ -113,6 +168,32 @@ AMGCLRawSolver<TSparseSpace,TDenseSpace,TReorderer>::AMGCLRawSolver(Parameters p
 
     mpImpl->mVerbosity = parameters["verbosity"].Get<int>();
     mpImpl->mTolerance = parameters["tolerance"].Get<double>();
+
+    // Get requested backend type. Supported arguments:
+    // - ""         : empty string means no GPU backend => default to the built-in CPU backend
+    // - "float"    : single precision floating point GPU backend
+    // - "double"   : double precision floating point GPU backend
+    const std::string requested_backend_type = parameters["gpgpu_backend"].GetString();
+    if (requested_backend_type.empty()) {
+        // CPU backend by default
+        mpImpl->mBackendType = AMGCLBackendType::CPU;
+    } else if (requested_backend_type == "float") {
+        #ifdef AMGCL_GPGPU
+            mpImpl->mBackendType = AMGCLBackendType::SinglePrecisionGPU;
+        #else
+            KRATOS_ERROR << "the requested gpgpu backend 'float' is not available because Kratos was compiled without GPU support\n";
+        #endif
+    } else if (requested_backend_type == "double") {
+        #ifdef AMGCL_GPGPU
+            mpImpl->mBackendType = AMGCLBackendType::DoublePrecisionGPU;
+        #else
+            KRATOS_ERROR << "the requested gpgpu backend 'double' is not available because Kratos was compiled without GPU support\n";
+        #endif
+    } else {
+        KRATOS_ERROR << "unsupported argument for 'gpgpu_backend': "
+                     << requested_backend_type
+                     << ". Available options are '', 'float', or 'double'.\n";
+    }
 
     // Convert parameters to AMGCL settings
     std::stringstream json_stream;
@@ -152,12 +233,39 @@ bool AMGCLRawSolver<TSparseSpace,TDenseSpace,TReorderer>::Solve(SparseMatrix& rA
         << "solver got a different matrix than it was initialized with "
         << &rA << " != " << mpImpl->mSolverStruct.mpMatrix << "\n";
 
-    const auto [iteration_count, residual] = std::visit([&rB, &rX, this](auto& rpSolver){
-                                                            return rpSolver->operator()(*mpImpl->mSolverStruct.mpAdapter,
-                                                                                        rB,
-                                                                                        rX);
-                                                        },
-                                                        mpImpl->mSolverStruct.mSolver);;
+    const auto [iteration_count, residual] = std::visit(
+        [&rB, &rX, this](auto& rpSolver){
+            #ifdef AMGCL_GPGPU
+            if constexpr (std::is_same_v<
+                            typename std::remove_reference_t<decltype(rpSolver)>::element_type,
+                            VexCLDoubleSolver
+                          >) {
+                auto& vexcl_context = GetVexCLContext();
+                KRATOS_ERROR_IF_NOT(vexcl_context) << "invalid VexCL context state\n";
+                vex::vector<double> x(vexcl_context, rX.size(), rX.data());
+                vex::vector<double> b(vexcl_context, rB.size(), rB.data());
+                const auto results = rpSolver->operator()(b, x);
+                vex::copy(x.begin(), x.end(), rX.begin());
+                return results;
+            } else if constexpr(std::is_same_v<
+                            typename std::remove_reference_t<decltype(rpSolver)>::element_type,
+                            VexCLDoubleSolver
+                          >) {
+                auto& vexcl_context = GetVexCLContext();
+                KRATOS_ERROR_IF_NOT(vexcl_context) << "invalid VexCL context state\n";
+                vex::vector<float> x(vexcl_context, rX.size(), rX.data());
+                vex::vector<float> b(vexcl_context, rB.size(), rB.data());
+                const auto results = rpSolver->operator()(b, x);
+                vex::copy(x.begin(), x.end(), rX.begin());
+                return results;
+            } else
+            #endif
+            {
+                return rpSolver->operator()(rB, rX);
+            }
+        },
+        mpImpl->mSolverStruct.mSolver
+    );
 
     KRATOS_WARNING_IF("AMGCLRawSolver", 1 <= mpImpl->mVerbosity && mpImpl->mTolerance <= residual)
         << "Failed to converge. Residual: " << residual << "\n";
@@ -253,43 +361,63 @@ void AMGCLRawSolver<TSparseSpace,TDenseSpace,TReorderer>::ProvideAdditionalData(
         KRATOS_ERROR_IF(mpImpl->mDoFCount != max_block_size) << "Block size is not consistent. Local: " << mpImpl->mDoFCount  << " Max: " << max_block_size << std::endl;
     }
 
+    KRATOS_INFO_IF("AMGCLRawSolver", 1 <= mpImpl->mVerbosity)
+        << "block size: " << mpImpl->mDoFCount << "\n";
+
     // Construct matrix adapter
     mpImpl->mSolverStruct.mpMatrix = &rA;
-    mpImpl->mSolverStruct.mpAdapter = amgcl::adapter::zero_copy(TSparseSpace::Size1(rA),
-                                                                rA.index1_data().begin(),
-                                                                rA.index2_data().begin(),
-                                                                rA.value_data().begin());
 
     // Construct solver
-    //auto solver = Solver(*p_a, mpImpl->mAMGCLSettings);
-    switch (mpImpl->mDoFCount) {
-        case 1:
-            mpImpl->mSolverStruct.mSolver = std::make_unique<ScalarSolver>(
-                *mpImpl->mSolverStruct.mpAdapter,
-                mpImpl->mAMGCLSettings
-            );
-            break;
-        case 2:
-            mpImpl->mSolverStruct.mSolver = std::make_unique<BlockSolver<2>>(
-                *mpImpl->mSolverStruct.mpAdapter,
-                mpImpl->mAMGCLSettings
-            );
-            break;
-        case 3:
-            mpImpl->mSolverStruct.mSolver = std::make_unique<BlockSolver<3>>(
-                *mpImpl->mSolverStruct.mpAdapter,
-                mpImpl->mAMGCLSettings
-            );
-            break;
-        case 4:
-            mpImpl->mSolverStruct.mSolver = std::make_unique<BlockSolver<4>>(
-                *mpImpl->mSolverStruct.mpAdapter,
-                mpImpl->mAMGCLSettings
-            );
-            break;
-        default:
-            KRATOS_ERROR << "unsupported block size: " << mpImpl->mDoFCount << "\n";
-    }
+    #ifdef AMGCL_GPGPU
+        mpImpl->mAMGCLSettings.q = GetVexCLContext();
+        RegisterVexCLStaticMatrixType<2>();
+        RegisterVexCLStaticMatrixType<3>();
+        RegisterVexCLStaticMatrixType<4>();
+        mpImpl->mSolverStruct.mpAdapter = amgcl::adapter::block_matrix<double>(std::tie(
+            TSparseSpace::Size1(rA),
+            rA.index1_data(),
+            rA.index2_data(),
+            rA.value_data()
+        ));
+
+        mpImpl->mSolver = std::make_unique<VexCLSolver>(
+            *mpImpl->mSolverStruct.mpAdapter,
+            mpImpl->mAMGCLSettings
+        );
+    #else
+        mpImpl->mSolverStruct.mpAdapter = amgcl::adapter::zero_copy(TSparseSpace::Size1(rA),
+                                                                    rA.index1_data().begin(),
+                                                                    rA.index2_data().begin(),
+                                                                    rA.value_data().begin());
+        switch (mpImpl->mDoFCount) {
+            case 1:
+                mpImpl->mSolverStruct.mSolver = std::make_unique<ScalarSolver>(
+                    *mpImpl->mSolverStruct.mpAdapter,
+                    mpImpl->mAMGCLSettings
+                );
+                break;
+            case 2:
+                mpImpl->mSolverStruct.mSolver = std::make_unique<BlockSolver<2>>(
+                    *mpImpl->mSolverStruct.mpAdapter,
+                    mpImpl->mAMGCLSettings
+                );
+                break;
+            case 3:
+                mpImpl->mSolverStruct.mSolver = std::make_unique<BlockSolver<3>>(
+                    *mpImpl->mSolverStruct.mpAdapter,
+                    mpImpl->mAMGCLSettings
+                );
+                break;
+            case 4:
+                mpImpl->mSolverStruct.mSolver = std::make_unique<BlockSolver<4>>(
+                    *mpImpl->mSolverStruct.mpAdapter,
+                    mpImpl->mAMGCLSettings
+                );
+                break;
+            default:
+                KRATOS_ERROR << "unsupported block size: " << mpImpl->mDoFCount << "\n";
+        }
+    #endif
 
     KRATOS_INFO_IF("AMGCLRawSolver", 1 < mpImpl->mVerbosity)
         << "Block DoFs: " << mpImpl->mDoFCount << "\n";
@@ -309,6 +437,7 @@ AMGCLRawSolver<TSparseSpace,TDenseSpace,TReorderer>::GetDefaultParameters()
     "solver_type" : "amgcl_raw",
     "verbosity" : 0,
     "tolerance" : 1e-6,
+    "gpgpu_backend" : "",
     "amgcl_settings" : {
         "precond" : {
             "class" : "amg",
