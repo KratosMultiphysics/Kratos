@@ -17,7 +17,7 @@
 // Project includes
 #include "testing/testing.h"
 #include "mpi/includes/mpi_data_communicator.h"
-#include "trilinos_cpp_test_utilities.h"
+#include "../trilinos_cpp_test_utilities.h"
 #include "custom_utilities/trilinos_assembling_utilities.h"
 
 namespace Kratos::Testing
