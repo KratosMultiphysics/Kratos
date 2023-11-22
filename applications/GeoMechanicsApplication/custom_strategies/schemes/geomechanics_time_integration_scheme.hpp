@@ -25,6 +25,19 @@ public:
     using LocalSystemVectorType = typename BaseType::LocalSystemVectorType;
     using LocalSystemMatrixType = typename BaseType::LocalSystemMatrixType;
 
+    int Check(const ModelPart& rModelPart) const final
+    {
+        KRATOS_TRY
+
+        Scheme<TSparseSpace, TDenseSpace>::Check(rModelPart);
+        CheckAllocatedVariables(rModelPart);
+        CheckBufferSize(rModelPart);
+
+        return 0;
+
+        KRATOS_CATCH("")
+    }
+
     void GetDofList(const Element& rElement,
                     Element::DofsVectorType& rDofList,
                     const ProcessInfo& rCurrentProcessInfo) override
@@ -212,7 +225,6 @@ public:
 
         rCurrentComponent.CalculateLocalSystem(
             LHS_Contribution, RHS_Contribution, CurrentProcessInfo);
-
         rCurrentComponent.EquationIdVector(EquationId, CurrentProcessInfo);
 
         KRATOS_CATCH("")
@@ -245,7 +257,6 @@ public:
         KRATOS_TRY
 
         rCurrentComponent.CalculateRightHandSide(RHS_Contribution, CurrentProcessInfo);
-
         rCurrentComponent.EquationIdVector(EquationId, CurrentProcessInfo);
 
         KRATOS_CATCH("")
@@ -278,7 +289,6 @@ public:
         KRATOS_TRY
 
         rCurrentComponent.CalculateLeftHandSide(LHS_Contribution, CurrentProcessInfo);
-
         rCurrentComponent.EquationIdVector(EquationId, CurrentProcessInfo);
 
         KRATOS_CATCH("")
@@ -292,28 +302,12 @@ public:
     {
         KRATOS_TRY
 
-        int num_threads = ParallelUtilities::GetNumThreads();
-        OpenMPUtils::PartitionVector dof_set_partition;
-        OpenMPUtils::DivideInPartitions(static_cast<int>(rDofSet.size()),
-                                        num_threads, dof_set_partition);
-
-#pragma omp parallel
-        {
-            int k = OpenMPUtils::ThisThread();
-
-            typename DofsArrayType::iterator dofs_begin =
-                rDofSet.begin() + dof_set_partition[k];
-            typename DofsArrayType::iterator dofs_end =
-                rDofSet.begin() + dof_set_partition[k + 1];
-
-            // Update Displacement and Pressure (DOFs)
-            for (typename DofsArrayType::iterator it_dof = dofs_begin;
-                 it_dof != dofs_end; ++it_dof) {
-                if (it_dof->IsFree())
-                    it_dof->GetSolutionStepValue() +=
-                        TSparseSpace::GetValue(Dx, it_dof->EquationId());
+        block_for_each(rDofSet, [&Dx](auto& dof) {
+            if (dof.IsFree()) {
+                dof.GetSolutionStepValue() +=
+                    TSparseSpace::GetValue(Dx, dof.EquationId());
             }
-        }
+        });
 
         this->UpdateVariablesDerivatives(rModelPart);
 
@@ -331,28 +325,28 @@ protected:
             << rModelPart.GetBufferSize() << std::endl;
     }
 
-    void CheckSolutionStepsData(const Node& r_node, const Variable<double>& variable) const
+    template <class T>
+    void CheckSolutionStepsData(const Node& rNode, const Variable<T>& rVariable) const
     {
-        KRATOS_ERROR_IF_NOT(r_node.SolutionStepsDataHas(variable))
-            << variable.Name() << " variable is not allocated for node "
-            << r_node.Id() << std::endl;
+        KRATOS_ERROR_IF_NOT(rNode.SolutionStepsDataHas(rVariable))
+            << rVariable.Name() << " variable is not allocated for node "
+            << rNode.Id() << std::endl;
     }
 
-    void CheckDof(const Node& r_node, const Variable<double>& variable) const
+    template <class T>
+    void CheckDof(const Node& rNode, const Variable<T>& rVariable) const
     {
-        KRATOS_ERROR_IF_NOT(r_node.HasDofFor(variable))
-            << "missing " << variable.Name() << " dof on node " << r_node.Id()
+        KRATOS_ERROR_IF_NOT(rNode.HasDofFor(rVariable))
+            << "missing " << rVariable.Name() << " dof on node " << rNode.Id()
             << std::endl;
     }
 
-    virtual inline void SetTimeFactors(ModelPart& rModelPart)
-    {
-        // intentionally empty
-    }
-    virtual inline void UpdateVariablesDerivatives(ModelPart& rModelPart)
-    {
-        // intentionally empty
-    }
+    virtual void CheckAllocatedVariables(const ModelPart& rModelPart) const = 0;
+    virtual inline void SetTimeFactors(ModelPart& rModelPart) = 0;
+    virtual inline void UpdateVariablesDerivatives(ModelPart& rModelPart) = 0;
+    virtual void UpdateScalarTimeDerivative(Node& rNode,
+                                            const Variable<double>& rVariable,
+                                            const Variable<double>& rDtVariable) const = 0;
 
     [[nodiscard]] double GetDeltaTime() const
     {
