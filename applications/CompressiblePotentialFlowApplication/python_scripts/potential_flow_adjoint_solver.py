@@ -93,8 +93,6 @@ class PotentialFlowAdjointSolver(PotentialFlowSolver):
         self.main_model_part.AddNodalSolutionStepVariable(KCPFApp.ADJOINT_AUXILIARY_VELOCITY_POTENTIAL)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.SHAPE_SENSITIVITY)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NORMAL_SENSITIVITY)
-        self.main_model_part.AddNodalSolutionStepVariable(KCPFApp.REACTION_ADJOINT_VELOCITY_POTENTIAL)
-        self.main_model_part.AddNodalSolutionStepVariable(KCPFApp.REACTION_ADJOINT_AUXILIARY_VELOCITY_POTENTIAL)
 
         KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Variables ADDED")
 
