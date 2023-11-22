@@ -387,32 +387,39 @@ public:
         KRATOS_CATCH("")
     }
 
-    void WriteReactionDataToMatrixMarket(ModelPart& rModelPart)
+    void WriteReactionDataToMatrixMarket(
+        ModelPart& rModelPart,
+        const std::stringstream& MatrixMarketVectorName
+    )
     {
+
+        std::vector<const Variable<double>*> variables;
+        for (const auto& unknown : mNodalUnknowns) {
+            variables.push_back(&KratosComponents<Variable<double>>::Get(unknown));
+        }
+
         std::vector<double> aux_data_array;
 
-        // Loop over all nodes in the ModelPart
+        // Loop over all nodes
         for (auto& node : rModelPart.Nodes()) {
+            for (const auto* var : variables) {
+                // Check if the node has the DoF
+                if (node.HasDofFor(*var)) {
+                    // Get the DoF
+                    const auto& dof = node.pGetDof(*var);
 
-            // Append the value of REACTION_AUXILIARY_VELOCITY_POTENTIAL for the current node
-            aux_data_array.push_back(node.FastGetSolutionStepValue(REACTION_AUXILIARY_VELOCITY_POTENTIAL));
-
-            // Append the value of REACTION_VELOCITY_POTENTIAL for the current node
-            aux_data_array.push_back(node.FastGetSolutionStepValue(REACTION_VELOCITY_POTENTIAL));
+                    // Get the reaction value and add it to the array
+                    aux_data_array.push_back(dof->GetSolutionStepReactionValue());
+                }
+            }
         }
 
         // Convert std::vector to Ublas Vector
         Vector aux_vector(aux_data_array.size());
         std::copy(aux_data_array.begin(), aux_data_array.end(), aux_vector.begin());
 
-        // Create the file name
-        std::stringstream matrix_market_vector_name;
-        matrix_market_vector_name << "R_" << rModelPart.GetProcessInfo()[TIME]
-                                << "_" << rModelPart.GetProcessInfo()[NL_ITERATION_NUMBER]
-                                << ".res.mm";
-
         // Write the vector to a MatrixMarket file
-        SparseSpaceType::WriteMatrixMarketVector(matrix_market_vector_name.str().c_str(), aux_vector);
+        SparseSpaceType::WriteMatrixMarketVector(MatrixMarketVectorName.str().c_str(), aux_vector);
     }
 
     void BuildAndSolve(
@@ -428,16 +435,16 @@ public:
 
         // Obtain the assembled residuals vector (To build a basis for Petrov-Galerkin)
         if (mTrainPetrovGalerkinFlag) {
+            std::stringstream matrix_market_vector_name;
+            matrix_market_vector_name << "R_" << rModelPart.GetProcessInfo()[TIME]
+                                    << "_" << rModelPart.GetProcessInfo()[NL_ITERATION_NUMBER]
+                                    << ".res.mm";
             if (mBasisStrategy == "reactions") {
-                std::stringstream matrix_market_vector_name;
-                matrix_market_vector_name << "R_" << rModelPart.GetProcessInfo()[TIME]
-                                        << "_" << rModelPart.GetProcessInfo()[NL_ITERATION_NUMBER]
-                                        << ".res.mm";
                 SparseSpaceType::WriteMatrixMarketVector(matrix_market_vector_name.str().c_str(), b);
             }
             else if (mBasisStrategy == "residuals") {  // Assuming "reactions" or another suitable keyword
                 BaseType::CalculateReactions(pScheme, rModelPart, A, Dx, b);
-                WriteReactionDataToMatrixMarket(rModelPart);
+                WriteReactionDataToMatrixMarket(rModelPart, matrix_market_vector_name);
             }
         }
 
@@ -540,6 +547,7 @@ protected:
         BaseType::AssignSettings(ThisParameters);
 
         // // Set member variables
+        mNodalUnknowns = ThisParameters["nodal_unknowns"].GetStringArray();
         mTrainPetrovGalerkinFlag = ThisParameters["rom_bns_settings"]["train_petrov_galerkin"].GetBool();
         mBasisStrategy = ThisParameters["rom_bns_settings"]["basis_strategy"].GetString();
         mSolvingTechnique = ThisParameters["rom_bns_settings"]["solving_technique"].GetString();
@@ -725,6 +733,7 @@ protected:
     ///@{
 
 private:
+    std::vector<std::string> mNodalUnknowns;
     bool mTrainPetrovGalerkinFlag = false;
     std::string mBasisStrategy;
     std::string mSolvingTechnique;
