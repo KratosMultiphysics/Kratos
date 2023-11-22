@@ -393,13 +393,12 @@ public:
 
         // Loop over all nodes in the ModelPart
         for (auto& node : rModelPart.Nodes()) {
-            // aux_data_array.push_back(node.FastGetSolutionStepValue(REACTION_WATER_PRESSURE));
 
-            // Append the value of REACTION_Y for the current node
-            aux_data_array.push_back(node.FastGetSolutionStepValue(REACTION_Y));
+            // Append the value of REACTION_AUXILIARY_VELOCITY_POTENTIAL for the current node
+            aux_data_array.push_back(node.FastGetSolutionStepValue(REACTION_AUXILIARY_VELOCITY_POTENTIAL));
 
-            // Append the value of REACTION_X for the current node
-            aux_data_array.push_back(node.FastGetSolutionStepValue(REACTION_X));
+            // Append the value of REACTION_VELOCITY_POTENTIAL for the current node
+            aux_data_array.push_back(node.FastGetSolutionStepValue(REACTION_VELOCITY_POTENTIAL));
         }
 
         // Convert std::vector to Ublas Vector
