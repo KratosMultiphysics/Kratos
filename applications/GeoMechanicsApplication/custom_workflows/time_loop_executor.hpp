@@ -89,7 +89,7 @@ private:
 
         auto end_state = mTimeStepExecutor->Run(end_time);
         mTimeIncrementor->PostTimeStepExecution(end_state);
-        mProgressDelegate(end_time);
+        UpdateProgress(end_time);
         return end_state;
     }
 
@@ -110,6 +110,13 @@ private:
     bool IsCancelled() const
     {
         return mCancelDelegate && mCancelDelegate();
+    }
+
+    void UpdateProgress(double Time)
+    {
+        if (mProgressDelegate) {
+            mProgressDelegate(Time);
+        }
     }
 
     std::unique_ptr<TimeIncrementor>  mTimeIncrementor;
