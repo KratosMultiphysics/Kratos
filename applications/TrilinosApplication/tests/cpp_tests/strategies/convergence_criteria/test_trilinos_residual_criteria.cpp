@@ -1,8 +1,8 @@
-//    |  /           |
-//    ' /   __| _` | __|  _ \   __|
-//    . \  |   (   | |   (   |\__ `
-//   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics
+//  KRATOS  _____     _ _ _
+//         |_   _| __(_) (_)_ __   ___  ___
+//           | || '__| | | | '_ \ / _ \/ __|
+//           | || |  | | | | | | | (_) \__
+//           |_||_|  |_|_|_|_| |_|\___/|___/ APPLICATION
 //
 //  License:         BSD License
 //                   Kratos default license: kratos/license.txt
@@ -25,7 +25,6 @@
 #include "mpi/includes/mpi_data_communicator.h"
 #include "mpi/utilities/parallel_fill_communicator.h"
 #include "mpi/utilities/model_part_communicator_utilities.h"
-#include "../../trilinos_cpp_test_utilities.h"
 #include "spaces/ublas_space.h"
 
 namespace Kratos::Testing
