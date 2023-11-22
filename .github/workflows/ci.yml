@@ -38,7 +38,7 @@ jobs:
 
       - id: get_files
         run: |
-          echo "changed_files=$(python3 .github/ci_utilities.py)" >> $GITHUB_OUTPUT
+          echo "changed_files=$(python3 .github/get_files_changed_in_pr.py)" >> $GITHUB_OUTPUT
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GITHUB_PR_NUMBER: ${{ github.event.pull_request.number }}
