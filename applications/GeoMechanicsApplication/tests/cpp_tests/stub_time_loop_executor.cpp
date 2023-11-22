@@ -32,6 +32,10 @@ void StubTimeLoopExecutor::SetProcessObservables(const std::vector<std::weak_ptr
     }
 }
 
+void StubTimeLoopExecutor::SetCancelDelegate(const std::function<bool()>& rCancelDelegate) {
+    // intentionally empty
+}
+
 void StubTimeLoopExecutor::SetTimeIncrementor(std::unique_ptr<TimeIncrementor> pTimeIncrementor) {
     // intentionally empty
 }
