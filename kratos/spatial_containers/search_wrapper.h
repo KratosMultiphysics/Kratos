@@ -646,7 +646,7 @@ private:
             auto& r_point_result = rResults[all_points_ids[i_point]];
 
             // Check if the point is inside the set
-            if (SearchUtilities::PointIsInsideBoundingBox(r_local_bb, point, Radius)) {
+            if (SearchUtilities::PointIsInsideBoundingBox(r_local_bb, point)) {
                 // Search
                 std::vector<ResultType> results;
                 LocalSearchInRadius(point, Radius, results, allocation_size);
@@ -713,7 +713,7 @@ private:
             ResultType local_result;
 
             // Check if the point is inside the set
-            if (SearchUtilities::PointIsInsideBoundingBox(r_local_bb, point, Radius)) {
+            if (SearchUtilities::PointIsInsideBoundingBox(r_local_bb, point)) {
                 // Call local search
                 LocalSearchNearestInRadius(point, Radius, local_result, allocation_size);
             }
@@ -790,7 +790,7 @@ private:
 
             // Check if the point is inside the set
             ResultType local_result;
-            if (SearchUtilities::PointIsInsideBoundingBox(r_local_bb, point, max_radius)) {
+            if (SearchUtilities::PointIsInsideBoundingBox(r_local_bb, point)) {
                 // Call local search
                 LocalSearchNearestInRadius(point, max_radius, local_result, allocation_size);
             }
