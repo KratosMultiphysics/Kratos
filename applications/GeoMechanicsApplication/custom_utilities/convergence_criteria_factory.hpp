@@ -14,6 +14,7 @@
 
 #include "solving_strategies/convergencecriterias/displacement_criteria.h"
 #include "solving_strategies/convergencecriterias/residual_criteria.h"
+#include "parameters_utilities.h"
 
 namespace Kratos
 {
@@ -35,7 +36,7 @@ public:
             const std::vector<std::string> entries_to_copy = {
                 "displacement_absolute_tolerance",
                 "displacement_relative_tolerance"};
-            Parameters convergence_inputs = ExtractEntries(rSolverSettings, entries_to_copy);
+            Parameters convergence_inputs = ParametersUtilities::ExtractParameters(rSolverSettings, entries_to_copy);
             return std::make_shared<DisplacementCriteria<TSparseSpace, TDenseSpace>>(convergence_inputs);
         }
         if (rSolverSettings["convergence_criterion"].GetString() ==
@@ -43,7 +44,7 @@ public:
         {
             const std::vector<std::string> entries_to_copy = {
                 "residual_absolute_tolerance", "residual_relative_tolerance"};
-            Parameters convergence_inputs = ExtractEntries(rSolverSettings, entries_to_copy);
+            Parameters convergence_inputs = ParametersUtilities::ExtractParameters(rSolverSettings, entries_to_copy);
             return std::make_shared<ResidualCriteria<TSparseSpace, TDenseSpace>>(convergence_inputs);
         }
 
@@ -52,22 +53,6 @@ public:
                      << "supported criteria are: 'displacement_criterion', "
                         "'residual_criterion'."
                      << std::endl;
-    }
-
-    static Parameters ExtractEntries(const Parameters& rSolverSettings,
-                                     const std::vector<std::string>& entries_to_copy)
-    {
-        Parameters result;
-
-        for (const std::string& entry : entries_to_copy)
-        {
-            if (rSolverSettings.Has(entry))
-            {
-                result.AddValue(entry, rSolverSettings[entry]);
-            }
-        }
-
-        return result;
     }
 };
 

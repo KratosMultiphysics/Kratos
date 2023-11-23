@@ -12,15 +12,25 @@
 //                   Gennady Markelov
 //
 
-#include "custom_utilities/parameters_utilities.h" 
+#include "custom_utilities/parameters_utilities.h"
 
 namespace Kratos {
 
 Parameters ParametersUtilities::ExtractParameters(const Parameters& rSourceParameters,
                                                         const std::vector<std::string>& rNamesOfParametersToCopy)
 {
+    // The reason we cannot use Parameters.CopyValuesFromExistingParameters(...) function here is that
+    // it throws an exception if the parameter is not found in the source parameters.
     auto result = Parameters{};
-    result.CopyValuesFromExistingParameters(rSourceParameters, rNamesOfParametersToCopy);
+
+    for (const std::string& entry : rNamesOfParametersToCopy)
+    {
+        if (rSourceParameters.Has(entry))
+        {
+            result.AddValue(entry, rSourceParameters[entry]);
+        }
+    }
+
     return result;
  }
 
