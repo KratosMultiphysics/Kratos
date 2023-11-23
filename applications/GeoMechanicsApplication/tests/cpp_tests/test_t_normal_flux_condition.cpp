@@ -20,7 +20,7 @@ using namespace Kratos;
 
 namespace Kratos::Testing {
 
-void TestTnormalFluxCondition(ModelPart& rModelPart, std::vector<double> & rExpectedRightHandSide)
+void TestTnormalFluxCondition(ModelPart& rModelPart, const std::vector<double> & rExpectedRightHandSide)
 {
     Condition::Pointer p_condition = rModelPart.pGetCondition(1);
 
@@ -90,7 +90,7 @@ KRATOS_TEST_CASE_IN_SUITE(TNormalFluxCondition2D2N, KratosGeoMechanicsFastSuite)
 
     GenerateTnormalFluxCondition2D2N(model_part);
 
-    std::vector<double> expected_right_hand_side{5.0, 5.0};
+    const std::vector<double> expected_right_hand_side{5.0, 5.0};
     TestTnormalFluxCondition(model_part, expected_right_hand_side);
 }
 
@@ -118,7 +118,7 @@ KRATOS_TEST_CASE_IN_SUITE(TNormalFluxCondition2D3N, KratosGeoMechanicsFastSuite)
 
     GenerateTnormalFluxCondition2D3N(model_part);
 
-    std::vector<double> expected_right_hand_side{5.77898, 3.3428, 18.24365};
+    const std::vector<double> expected_right_hand_side{5.77898, 3.3428, 18.24365};
     TestTnormalFluxCondition(model_part, expected_right_hand_side);
 }
 
@@ -147,7 +147,7 @@ KRATOS_TEST_CASE_IN_SUITE(TNormalFluxCondition2D4N, KratosGeoMechanicsFastSuite)
 
     GenerateTnormalFluxCondition2D4N(model_part);
 
-    std::vector<double> expected_right_hand_side{7.33331, 2.60131, 16.89195, 5.27702};
+    const std::vector<double> expected_right_hand_side{7.33331, 2.60131, 16.89195, 5.27702};
     TestTnormalFluxCondition(model_part, expected_right_hand_side);
 }
 
@@ -177,7 +177,7 @@ KRATOS_TEST_CASE_IN_SUITE(TNormalFluxCondition2D5N, KratosGeoMechanicsFastSuite)
 
     GenerateTnormalFluxCondition2D5N(model_part);
 
-    std::vector<double> expected_right_hand_side{9.11795, 3.92042, 27.99155, 1.3485, 18.8636};
+    const std::vector<double> expected_right_hand_side{9.11795, 3.92042, 27.99155, 1.3485, 18.8636};
     TestTnormalFluxCondition(model_part, expected_right_hand_side);
 }
 
@@ -206,7 +206,7 @@ KRATOS_TEST_CASE_IN_SUITE(TNormalFluxCondition3D4N, KratosGeoMechanicsFastSuite)
 
     GenerateTnormalFluxCondition3D4N(model_part);
 
-    std::vector<double> expected_right_hand_side{0.569177, 1.29087, 0.985844, 0.569177};
+    const std::vector<double> expected_right_hand_side{0.569177, 1.29087, 0.985844, 0.569177};
     TestTnormalFluxCondition(model_part, expected_right_hand_side);
 }
 
@@ -237,7 +237,7 @@ KRATOS_TEST_CASE_IN_SUITE(TNormalFluxCondition3D6N, KratosGeoMechanicsFastSuite)
 
     GenerateTnormalFluxCondition3D6N(model_part);
 
-    std::vector<double> expected_right_hand_side{3.60822e-16, -2.77556e-16, -1.66533e-16,
+    const std::vector<double> expected_right_hand_side{3.60822e-16, -2.77556e-16, -1.66533e-16,
                             1.66667,     1.66667,      1.66667};
     TestTnormalFluxCondition(model_part, expected_right_hand_side);
 }
@@ -271,7 +271,7 @@ KRATOS_TEST_CASE_IN_SUITE(TNormalFluxCondition3D8N, KratosGeoMechanicsFastSuite)
 
     GenerateTnormalFluxCondition3D8N(model_part);
 
-    std::vector<double> expected_right_hand_side{0.133919, 0.635973, -0.403995, -0.117107,
+    const std::vector<double> expected_right_hand_side{0.133919, 0.635973, -0.403995, -0.117107,
                             1.86947,  1.53697,  0.721923,  1.09723};
     TestTnormalFluxCondition(model_part, expected_right_hand_side);
 }
@@ -306,7 +306,7 @@ KRATOS_TEST_CASE_IN_SUITE(TNormalFluxCondition3D9N, KratosGeoMechanicsFastSuite)
 
     GenerateTnormalFluxCondition3D9N(model_part);
 
-    std::vector<double> expected_right_hand_side{0.325617, 0.741605, -0.0401643, 0.160657, 0.785555,
+    const std::vector<double> expected_right_hand_side{0.325617, 0.741605, -0.0401643, 0.160657, 0.785555,
                             0.467627, 0.228477, 0.324183,   0.676021};
     TestTnormalFluxCondition(model_part, expected_right_hand_side);
 }
