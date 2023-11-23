@@ -21,7 +21,7 @@
 #include "spatial_containers/spatial_search_result.h"
 #include "spatial_containers/spatial_search_result_container_vector.h"
 
-namespace Kratos::Testing 
+namespace Kratos::Testing
 {
 
 KRATOS_TEST_CASE_IN_SUITE(SpatialSearchResultContainerVectorInitializeResult, KratosCoreFastSuite)
@@ -36,6 +36,23 @@ KRATOS_TEST_CASE_IN_SUITE(SpatialSearchResultContainerVectorInitializeResult, Kr
     // Check that the result was added correctly
     KRATOS_EXPECT_TRUE(container_map.HasResult(index));
     const std::size_t fake_index = 1;
+    KRATOS_EXPECT_FALSE(container_map.HasResult(fake_index));
+}
+
+KRATOS_TEST_CASE_IN_SUITE(SpatialSearchResultContainerVectorInitializeResults, KratosCoreFastSuite)
+{
+    // Create a test object
+    SpatialSearchResultContainerVector<GeometricalObject> container_map;
+
+    // Initialize result
+    const std::vector<std::size_t> indexes{0,1,2,3,4,5,6,7,8,9};
+    container_map.InitializeResults(indexes);
+
+    // Check that the result was added correctly
+    for (auto index : indexes) {
+        KRATOS_EXPECT_TRUE(container_map.HasResult(index));
+    }
+    const std::size_t fake_index = 10;
     KRATOS_EXPECT_FALSE(container_map.HasResult(fake_index));
 }
 
