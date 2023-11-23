@@ -75,18 +75,22 @@ void RegisterVexCLStaticMatrixType() {
 namespace Detail {
 
 
-template <class TValue, unsigned BlockSize>
-using AMGCLBlock = amgcl::static_matrix<TValue,BlockSize,BlockSize>;
+template <class TValue, unsigned TBlockSize>
+using AMGCLBlock = amgcl::static_matrix<TValue,TBlockSize,TBlockSize>;
 
 
 // Trait class defining an AMGCL backend for the provided template arguments,
 // and its associated preconditioner, wrapper, and solver.
-template <unsigned BlockSize>
+template <class TSparseSpace, unsigned TBlockSize>
 struct AMGCLTraits
 {
     template <template <class, class ...> class TBackend, class TValue, class ...TArgs>
     struct Impl
     {
+        using SparseSpace = TSparseSpace;
+
+        constexpr static inline unsigned BlockSize = TBlockSize;
+
         // Indicates whether the system matrix and vectors must be transferred
         // to/from another device (GPU) before/after invoking the solver.
         constexpr static inline bool IsGPUBound =
@@ -96,32 +100,47 @@ struct AMGCLTraits
             false;
         #endif
 
-        constexpr static inline bool IsScalar = BlockSize == 1;
+        constexpr static inline bool IsScalar = TBlockSize == 1;
 
         using Scalar = TValue;
+
+        // Indicates whether the value type of the sparse space is identical
+        // to the scalar type of the AMGCL backend. This is comes to play when
+        // deciding whether  to copy the provided system matrices and vectors,
+        // or an adapter is enough.
+        constexpr static inline bool IsScalarTypeSame = std::is_same_v<
+            typename TSparseSpace::DataType,
+            Scalar
+        >;
 
         using Value = std::conditional_t<
             IsScalar,
             Scalar,
-            amgcl::static_matrix<Scalar,BlockSize,BlockSize>
+            amgcl::static_matrix<Scalar,TBlockSize,TBlockSize>
         >;
 
         using RHSValue = std::conditional_t<
             IsScalar,
             Scalar,
-            amgcl::static_matrix<TValue,BlockSize,1>
+            amgcl::static_matrix<TValue,TBlockSize,1>
         >;
 
         using MatrixAdapter = std::conditional_t<
-            IsGPUBound,
-            amgcl::adapter::block_matrix_adapter<typename TUblasSparseSpace<Scalar>::MatrixType,Value>,
-            amgcl::backend::crs<Scalar>
+            IsScalar,
+            amgcl::backend::crs<Scalar>,
+            amgcl::adapter::block_matrix_adapter<
+                std::tuple<std::size_t,
+                           amgcl::iterator_range<const std::size_t*>,
+                           amgcl::iterator_range<const std::size_t*>,
+                           amgcl::iterator_range<const Scalar*>>,
+                Value
+            >
         >;
 
         using Backend = std::conditional_t<
             IsScalar,
             TBackend<TValue>,
-            TBackend<AMGCLBlock<TValue,BlockSize>>
+            TBackend<AMGCLBlock<TValue,TBlockSize>>
         >;
 
         using Preconditioner = amgcl::runtime::preconditioner<Backend>;
@@ -149,6 +168,78 @@ struct AMGCLBundle
     std::unique_ptr<typename Traits::Solver> mpSolver;
 
     std::shared_ptr<typename Traits::MatrixAdapter> mpMatrixAdapter;
+
+    // If the backend's scalar type doesn't match the value type of
+    // the system matrix, the system matrix must be copied and stored
+    // for the lifetime of the solver. In this case, the matrix adapter
+    // required by AMGCL will reference this converted matrix instead
+    // of the original one.
+    std::conditional_t<
+        std::is_same_v<typename Traits::Scalar,double>,
+        std::monostate, // <== dummy if the backend scalar matches the matrix' value type
+        typename TUblasSparseSpace<typename Traits::Scalar>::MatrixType
+    > mMaybeMatrixCopy;
+
+    /// @brief Construct an AMGCL solver and its supporting variables.
+    /// @details The constructor has 3 main jobs to take care of:
+    ///          - copy the system matrix if the backend's and sparse space's
+    ///            scalar types differ.
+    ///          - construct a matrix adapter for AMGCL that provides a view on
+    ///            the system matrix or (its copy).
+    ///          - construct the AMGCL solver using the matrix adapter.
+    ///          The AMGCL backend type depends on the @ref AMGCLTraits::Impl
+    ///          type that this class is instantiated with (@a TAMGCLTraits).
+    ///          - CPU or GPU backend
+    ///          - single or double precision scalar type
+    ///          - block size
+    AMGCLBundle(const typename TAMGCLTraits::SparseSpace::MatrixType& rSystemMatrix,
+                const boost::property_tree::ptree& rSolverSettings)
+        : mpSolver(),
+          mpMatrixAdapter(),
+          mMaybeMatrixCopy()
+    {
+        KRATOS_TRY
+
+        // Copy the system matrix if necessary and construct the adapter.
+        if constexpr (TAMGCLTraits::IsScalarTypeSame) {
+            mpMatrixAdapter = std::make_shared<typename TAMGCLTraits::MatrixAdapter>(
+                amgcl::backend::map(rSystemMatrix));
+        } else {
+            // Assume TUblasSparseSpace
+            // ==> MatrixType is boost::ublas::compressed_matrix
+            mMaybeMatrixCopy.resize(TAMGCLTraits::SparseSpace::Size1(rSystemMatrix),
+                                    TAMGCLTraits::SparseSpace::Size2(rSystemMatrix));
+            mMaybeMatrixCopy.index1_data().resize(rSystemMatrix.index1_data().size());
+            mMaybeMatrixCopy.index2_data().resize(rSystemMatrix.index2_data().size());
+            mMaybeMatrixCopy.value_data().resize(rSystemMatrix.value_data().size());
+            std::copy(rSystemMatrix.index1_data().begin(),
+                      rSystemMatrix.index1_data().end(),
+                      mMaybeMatrixCopy.index1_data().begin());
+            std::copy(rSystemMatrix.index2_data().begin(),
+                      rSystemMatrix.index2_data().end(),
+                      mMaybeMatrixCopy.index2_data().begin());
+            std::copy(rSystemMatrix.value_data().begin(),
+                      rSystemMatrix.value_data().end(),
+                      mMaybeMatrixCopy.value_data().begin());
+
+            mpMatrixAdapter = std::make_shared<typename TAMGCLTraits::MatrixAdapter>(
+                amgcl::backend::map(mMaybeMatrixCopy));
+        }
+
+        // Construct solver
+        if constexpr (TAMGCLTraits::IsGPUBound) {
+            typename TAMGCLTraits::Backend::params backend_parameters;
+            backend_parameters.q = GetVexCLContext();
+            mpSolver = std::make_unique<typename TAMGCLTraits::Solver>(*mpMatrixAdapter,
+                                                                       rSolverSettings,
+                                                                       backend_parameters);
+        } else {
+            mpSolver = std::make_unique<typename TAMGCLTraits::Solver>(*mpMatrixAdapter,
+                                                                       rSolverSettings);
+        }
+
+        KRATOS_CATCH("")
+    }
 }; // struct AMGCLBundle
 
 
@@ -195,6 +286,9 @@ struct AMGCLRawSolver<TSparseSpace,TDenseSpace,TReorderer>::Impl
     // AMGCLRawSolver::Solve.
     const typename TSparseSpace::MatrixType* mpA = nullptr;
 
+    template <unsigned BlockSize>
+    using AMGCLTraits = Detail::AMGCLTraits<TSparseSpace,BlockSize>;
+
     // A variant for grouping members related to the wrapped AMGCL solver. It's meant
     // to bundle solvers using different backends as well as its associated matrix wrapper.
     // The wrapped types are composed of the permutations of the following attributes:
@@ -202,42 +296,49 @@ struct AMGCLRawSolver<TSparseSpace,TDenseSpace,TReorderer>::Impl
     // - backend type [bultin, vexcl]
     // - value type [double, float (vexcl only)]
     std::variant<
+        // Dummy type to enable default constructor.
+        std::monostate,
+
         // Double precision CPU backend with a block size of 1.
-        Detail::AMGCLBundle<typename Detail::AMGCLTraits<1>::Impl<amgcl::backend::builtin,double>>,
+        Detail::AMGCLBundle<typename AMGCLTraits<1>::template Impl<amgcl::backend::builtin,double>>,
 
         // Double precision CPU backend with a block size of 2.
-        Detail::AMGCLBundle<typename Detail::AMGCLTraits<2>::Impl<amgcl::backend::builtin,double>>,
+        Detail::AMGCLBundle<typename AMGCLTraits<2>::template Impl<amgcl::backend::builtin,double>>,
 
         // Double precision CPU backend with a block size of 3.
-        Detail::AMGCLBundle<typename Detail::AMGCLTraits<3>::Impl<amgcl::backend::builtin,double>>,
+        Detail::AMGCLBundle<typename AMGCLTraits<3>::template Impl<amgcl::backend::builtin,double>>,
 
         // Double precision CPU backend with a block size of 4.
-        Detail::AMGCLBundle<typename Detail::AMGCLTraits<4>::Impl<amgcl::backend::builtin,double>>,
+        Detail::AMGCLBundle<typename AMGCLTraits<4>::template Impl<amgcl::backend::builtin,double>>
+
+        #ifdef AMGCL_GPGPU
 
         // Double precision GPU backend with a block size of 1.
-        Detail::AMGCLBundle<typename Detail::AMGCLTraits<1>::Impl<amgcl::backend::vexcl,double>>,
+        ,Detail::AMGCLBundle<typename AMGCLTraits<1>::template Impl<amgcl::backend::vexcl,double>>,
 
         // Double precision GPU backend with a block size of 2.
-        Detail::AMGCLBundle<typename Detail::AMGCLTraits<2>::Impl<amgcl::backend::vexcl,double>>,
+        Detail::AMGCLBundle<typename AMGCLTraits<2>::template Impl<amgcl::backend::vexcl,double>>,
 
         // Double precision GPU backend with a block size of 3.
-        Detail::AMGCLBundle<typename Detail::AMGCLTraits<3>::Impl<amgcl::backend::vexcl,double>>,
+        Detail::AMGCLBundle<typename AMGCLTraits<3>::template Impl<amgcl::backend::vexcl,double>>,
 
         // Double precision GPU backend with a block size of 4.
-        Detail::AMGCLBundle<typename Detail::AMGCLTraits<4>::Impl<amgcl::backend::vexcl,double>>,
+        Detail::AMGCLBundle<typename AMGCLTraits<4>::template Impl<amgcl::backend::vexcl,double>>,
 
         // Double precision GPU backend with a block size of 1.
-        Detail::AMGCLBundle<typename Detail::AMGCLTraits<1>::Impl<amgcl::backend::vexcl,float>>,
+        Detail::AMGCLBundle<typename AMGCLTraits<1>::template Impl<amgcl::backend::vexcl,float>>,
 
         // Double precision GPU backend with a block size of 2.
-        Detail::AMGCLBundle<typename Detail::AMGCLTraits<2>::Impl<amgcl::backend::vexcl,float>>,
+        Detail::AMGCLBundle<typename AMGCLTraits<2>::template Impl<amgcl::backend::vexcl,float>>,
 
         // Double precision GPU backend with a block size of 3.
-        Detail::AMGCLBundle<typename Detail::AMGCLTraits<3>::Impl<amgcl::backend::vexcl,float>>,
+        Detail::AMGCLBundle<typename AMGCLTraits<3>::template Impl<amgcl::backend::vexcl,float>>,
 
         // Double precision GPU backend with a block size of 4.
-        Detail::AMGCLBundle<typename Detail::AMGCLTraits<4>::Impl<amgcl::backend::vexcl,float>>
-    > mSolverVariant;
+        Detail::AMGCLBundle<typename AMGCLTraits<4>::template Impl<amgcl::backend::vexcl,float>>
+
+        #endif
+    > mSolverBundle;
 }; // struct AMGCLRawSolver::Impl
 
 
@@ -270,11 +371,17 @@ AMGCLRawSolver<TSparseSpace,TDenseSpace,TReorderer>::AMGCLRawSolver(Parameters p
     } else if (requested_backend_type == "float") {
         #ifdef AMGCL_GPGPU
             mpImpl->mBackendType = AMGCLBackendType::SinglePrecisionGPU;
+            RegisterVexCLStaticMatrixType<2>();
+            RegisterVexCLStaticMatrixType<3>();
+            RegisterVexCLStaticMatrixType<4>();
         #else
             KRATOS_ERROR << "the requested gpgpu backend 'float' is not available because Kratos was compiled without GPU support\n";
         #endif
     } else if (requested_backend_type == "double") {
         #ifdef AMGCL_GPGPU
+            RegisterVexCLStaticMatrixType<2>();
+            RegisterVexCLStaticMatrixType<3>();
+            RegisterVexCLStaticMatrixType<4>();
             mpImpl->mBackendType = AMGCLBackendType::DoublePrecisionGPU;
         #else
             KRATOS_ERROR << "the requested gpgpu backend 'double' is not available because Kratos was compiled without GPU support\n";
@@ -319,50 +426,64 @@ bool AMGCLRawSolver<TSparseSpace,TDenseSpace,TReorderer>::Solve(SparseMatrix& rA
     // Override AMGCL settings
     //mpImpl->mAMGCLSettings.put("solver.verbose", 1 < mpImpl->mVerbosity);
 
-    KRATOS_ERROR_IF_NOT(&rA == mpImpl->mSolverStruct.mpMatrix)
+    KRATOS_ERROR_IF_NOT(&rA == mpImpl->mpA)
         << "solver got a different matrix than it was initialized with "
-        << &rA << " != " << mpImpl->mSolverStruct.mpMatrix << "\n";
+        << &rA << " != " << mpImpl->mpA << "\n";
 
     const auto [iteration_count, residual] = std::visit(
-        [&rB, &rX] (auto& rpSolver) -> std::tuple<std::size_t,double> {
-            #ifdef AMGCL_GPGPU
-            if constexpr (std::is_same_v<
-                            typename std::remove_reference_t<decltype(rpSolver)>::element_type,
-                            VexCLDoublePrecisionSolver
-                          >) {
-                auto& vexcl_context = GetVexCLContext();
-                KRATOS_ERROR_IF_NOT(vexcl_context) << "invalid VexCL context state\n";
+        [&rB, &rX] (auto& rBundle) -> std::tuple<std::size_t,double> {
+            using BundleType = std::remove_reference_t<decltype(rBundle)>;
 
-                vex::vector<double> x(vexcl_context, rX.size(), &*rX.begin());
-                vex::vector<double> b(vexcl_context, rB.size(), &*rB.begin());
-                const auto results = rpSolver->operator()(b, x);
+            if constexpr (!std::is_same_v<BundleType,std::monostate>) {
+                #ifdef AMGCL_GPGPU
+                if constexpr (BundleType::Traits::IsGPUBound) {
+                    auto& vexcl_context = GetVexCLContext();
+                    KRATOS_ERROR_IF_NOT(vexcl_context) << "invalid VexCL context state\n";
 
-                vex::copy(x.begin(), x.end(), rX.begin());
-                return results;
-            } else if constexpr(std::is_same_v<
-                            typename std::remove_reference_t<decltype(rpSolver)>::element_type,
-                            VexCLDoublePrecisionSolver
-                          >) {
-                auto& vexcl_context = GetVexCLContext();
-                KRATOS_ERROR_IF_NOT(vexcl_context) << "invalid VexCL context state\n";
+                    if constexpr (BundleType::Traits::IsScalarTypeSame) {
+                        // Transfer system vectors to the GPU
+                        vex::vector<typename BundleType::Traits::Scalar> x_gpu(vexcl_context, rX.size(), &*rX.begin());
+                        vex::vector<typename BundleType::Traits::Scalar> b_gpu(vexcl_context, rB.size(), &*rB.begin());
 
-                std::vector<float> x_float(rX.begin(), rX.end());
-                std::vector<float> b_float(rB.begin(), rB.end());
-                vex::vector<float> x(vexcl_context, x_float.size(), x_float.data());
-                vex::vector<float> b(vexcl_context, b_float.size(), b_float.data());
-                const auto results = rpSolver->operator()(b, x);
+                        // Solve
+                        const auto results = rBundle.mpSolver->operator()(b_gpu, x_gpu);
 
-                vex::copy(GetVexCLContext(), x.begin(), x.end(), x_float.begin());
-                std::copy(x_float.begin(), x_float.end(), rX.begin());
-                return results;
-            } else
-            #endif
-            {
-                const auto results = rpSolver->operator()(rB, rX);
-                return results;
+                        // Fetch solution from the GPU and return
+                        vex::copy(x_gpu.begin(), x_gpu.end(), rX.begin());
+                        return results;
+                    } else /*BundleType::Traits::IsScalarTypeSame*/ {
+                        // Convert system vectors to the GPU's scalar type
+                        std::vector<typename BundleType::Traits::Scalar> x_cpu(rX.begin(), rX.end());
+                        std::vector<typename BundleType::Traits::Scalar> b_cpu(rB.begin(), rB.end());
+
+                        // Transfer converted system vectors to the GPU
+                        vex::vector<typename BundleType::Traits::Scalar> x_gpu(vexcl_context, x_cpu.size(), x_cpu.data());
+                        vex::vector<typename BundleType::Traits::Scalar> b_gpu(vexcl_context, b_cpu.size(), b_cpu.data());
+
+                        // Solve
+                        const auto results = rBundle.mpSolver->operator()(b_gpu, x_gpu);
+
+                        // Fetch solution from the GPU
+                        vex::copy(x_gpu.begin(), x_gpu.end(), x_cpu.begin());
+
+                        // Convert solution to the scalar type of the sparse space and return
+                        std::copy(x_cpu.begin(), x_cpu.end(), rX.begin());
+                        return results;
+                    }
+                } else /*BundleType::Traits::IsGPUBound*/
+                #endif
+                {
+                    // CPU bound solvers are assumed to have a matching scalar type
+                    static_assert(BundleType::Traits::IsScalarTypeSame);
+
+                    // Solve and return
+                    return rBundle.mpSolver->operator()(rB, rX);
+                }
+            } else /*BundleType != std::monostate*/ {
+                KRATOS_ERROR << "AMGCL solver type is unset. Did you forget to call AMGCLRawSolver::ProvideAdditionalData?\n";
             }
         },
-        mpImpl->mSolverStruct.mSolver
+        mpImpl->mSolverBundle
     );
 
     KRATOS_WARNING_IF("AMGCLRawSolver", 1 <= mpImpl->mVerbosity && mpImpl->mTolerance <= residual)
@@ -373,13 +494,6 @@ bool AMGCLRawSolver<TSparseSpace,TDenseSpace,TReorderer>::Solve(SparseMatrix& rA
                   << "Error: " << residual << "\n"
                   << "\n";
     }
-
-    // Construct solver
-    KRATOS_INFO_IF("AMGCLRawSolver", 2 <= mpImpl->mVerbosity)
-        << "Solver memory usage: "
-        << amgcl::human_readable_memory(std::visit([](auto& rpSolver){return amgcl::backend::bytes(*rpSolver);},
-                                                   mpImpl->mSolverStruct.mSolver))
-        << "\n";
 
     return residual < mpImpl->mTolerance ? true : false;
     KRATOS_CATCH("")
@@ -398,6 +512,12 @@ void AMGCLRawSolver<TSparseSpace,TDenseSpace,TReorderer>::ProvideAdditionalData(
 {
     KRATOS_TRY
     KRATOS_PROFILE_SCOPE(KRATOS_CODE_LOCATION);
+
+    // Several details of the implementation in this source file rely on
+    // the value type of the sparse space being double. This could be generalized
+    // to other value types as well, but hasn't been done so far due to the lack
+    // of other value types so far.
+    static_assert(std::is_same_v<typename SparseMatrix::value_type,double>);
 
     std::optional<std::size_t> old_dof_count;
     std::size_t dof_count = 0;
@@ -464,102 +584,53 @@ void AMGCLRawSolver<TSparseSpace,TDenseSpace,TReorderer>::ProvideAdditionalData(
 
     // Construct solver and matrix adapter
     mpImpl->mpA = &rA;
-    std::visit([&rA, this](auto& rAMGCLBundle){
-            using Traits = typename std::remove_reference_t<decltype(rAMGCLBundle)>::Traits;
-            using ScalarType = typename Traits::Scalar;
-            constexpr bool is_gpu_bound = Traits::IsGPUBound;
 
-            if constexpr (std::is_same_v<ScalarType,double>) {
-                if constexpr (is_gpu_bound) {
-                    rAMGCLBundle.mpMatrixAdapter = std::shared_ptr<typename Traits::MatrixAdapter>(
-                        new typename Traits::MatrixAdapter(rA));
-                } else {
-                    rAMGCLBundle.mpMatrixAdapter = amgcl::adapter::zero_copy(TSparseSpace::Size1(rA),
-                                                                             rA.index1_data().begin(),
-                                                                             rA.index2_data().begin(),
-                                                                             rA.value_data().begin());
-                }
-            } else if constexpr (std::is_same_v<ScalarType,float>) {
-                if constexpr (is_gpu_bound) {
-                    rAMGCLBundle.mpMatrixAdapter = std::shared_ptr<typename Traits::MatrixAdapter>(
-                        new typename Traits::MatrixAdapter(rA));
-                } else {
-                    rAMGCLBundle.mpMatrixAdapter = amgcl::adapter::zero_copy(TSparseSpace::Size1(rA),
-                                                                             rA.index1_data().begin(),
-                                                                             rA.index2_data().begin(),
-                                                                             rA.value_data().begin());
-                }
-            } else {
-                static_assert(std::is_same_v<ScalarType,void>, "unhandled variant");
-            }
-        },
-        mpImpl->mSolverVariant);
+    #define KRATOS_CONSTRUCT_AMGCL_SOLVER_BUNDLE_WITH_BLOCK_SIZE(BACKEND_TEMPLATE, BACKEND_SCALAR, BLOCK_SIZE)  \
+        using Bundle = Detail::AMGCLBundle<typename Detail::AMGCLTraits<TSparseSpace,1>::template               \
+                    Impl<BACKEND_TEMPLATE,BACKEND_SCALAR>>;                                                     \
+        mpImpl->mSolverBundle = Bundle(rA, mpImpl->mAMGCLSettings)
+
+    #define KRATOS_CONSTRUCT_AMGCL_SOLVER_BUNDLE(BACKEND_TEMPLATE, BACKEND_SCALAR)                          \
+        switch (mpImpl->mDoFCount) {                                                                        \
+            case 1: {                                                                                       \
+                KRATOS_CONSTRUCT_AMGCL_SOLVER_BUNDLE_WITH_BLOCK_SIZE(BACKEND_TEMPLATE, BACKEND_SCALAR, 1);  \
+                break;                                                                                      \
+            }                                                                                               \
+            case 2: {                                                                                       \
+                KRATOS_CONSTRUCT_AMGCL_SOLVER_BUNDLE_WITH_BLOCK_SIZE(BACKEND_TEMPLATE, BACKEND_SCALAR, 2);  \
+                break;                                                                                      \
+            }                                                                                               \
+            case 3: {                                                                                       \
+                KRATOS_CONSTRUCT_AMGCL_SOLVER_BUNDLE_WITH_BLOCK_SIZE(BACKEND_TEMPLATE, BACKEND_SCALAR, 3);  \
+                break;                                                                                      \
+            }                                                                                               \
+            case 4: {                                                                                       \
+                KRATOS_CONSTRUCT_AMGCL_SOLVER_BUNDLE_WITH_BLOCK_SIZE(BACKEND_TEMPLATE, BACKEND_SCALAR, 4);  \
+                break;                                                                                      \
+            }                                                                                               \
+            default: KRATOS_ERROR << "unsupported block size: " << mpImpl->mDoFCount << "\n";               \
+        } // switch mpImpl->mDoFCount
 
     // Construct the solver
     switch (mpImpl->mBackendType) {
         #ifdef AMGCL_GPGPU
             case AMGCLBackendType::SinglePrecisionGPU: {
-                VexCLDoublePrecisionBackend::params vexcl_parameters;
-                vexcl_parameters.q = GetVexCLContext();
-
-                RegisterVexCLStaticMatrixType<2>();
-                RegisterVexCLStaticMatrixType<3>();
-                RegisterVexCLStaticMatrixType<4>();
-
-                mpImpl->mSolverStruct.mSolver = std::make_unique<VexCLSinglePrecisionSolver>(
-                    *mpImpl->mSolverStruct.mpAdapter,
-                    mpImpl->mAMGCLSettings
-                );
+                KRATOS_CONSTRUCT_AMGCL_SOLVER_BUNDLE(amgcl::backend::vexcl, float);
                 break;
-            } // case AMGCLBackendType::SinglePrecisionGPU
+            }
             case AMGCLBackendType::DoublePrecisionGPU: {
-                VexCLDoublePrecisionBackend::params vexcl_parameters;
-                vexcl_parameters.q = GetVexCLContext();
-
-                RegisterVexCLStaticMatrixType<2>();
-                RegisterVexCLStaticMatrixType<3>();
-                RegisterVexCLStaticMatrixType<4>();
-
-                mpImpl->mSolverStruct.mSolver = std::make_unique<VexCLDoublePrecisionSolver>(
-                    *mpImpl->mSolverStruct.mpAdapter,
-                    mpImpl->mAMGCLSettings
-                );
-                break;
-            } // case AMGCLBackendType::DoublePredicisonGPU
+                KRATOS_CONSTRUCT_AMGCL_SOLVER_BUNDLE(amgcl::backend::vexcl, double);
+            }
         #endif
         case AMGCLBackendType::CPU: {
-            switch (mpImpl->mDoFCount) {
-                case 1:
-                    mpImpl->mSolverStruct.mSolver = std::make_unique<ScalarSolver>(
-                        *mpImpl->mSolverStruct.mpAdapter,
-                        mpImpl->mAMGCLSettings
-                    );
-                    break;
-                case 2:
-                    mpImpl->mSolverStruct.mSolver = std::make_unique<BlockSolver<2>>(
-                        *mpImpl->mSolverStruct.mpAdapter,
-                        mpImpl->mAMGCLSettings
-                    );
-                    break;
-                case 3:
-                    mpImpl->mSolverStruct.mSolver = std::make_unique<BlockSolver<3>>(
-                        *mpImpl->mSolverStruct.mpAdapter,
-                        mpImpl->mAMGCLSettings
-                    );
-                    break;
-                case 4:
-                    mpImpl->mSolverStruct.mSolver = std::make_unique<BlockSolver<4>>(
-                        *mpImpl->mSolverStruct.mpAdapter,
-                        mpImpl->mAMGCLSettings
-                    );
-                    break;
-                default:
-                    KRATOS_ERROR << "unsupported block size: " << mpImpl->mDoFCount << "\n";
-            } // switch mpImpl->mDoFCount
+            KRATOS_CONSTRUCT_AMGCL_SOLVER_BUNDLE(amgcl::backend::builtin, double);
             break;
         } // case AMGCLBackendType::CPU
         default: KRATOS_ERROR << "unhandled AMGCL backend enum: " << (int)mpImpl->mBackendType << "\n";
     } // switch mpImpl->mBackendType
+
+    #undef KRATOS_CONSTRUCT_AMGCL_SOLVER_BUNDLE
+    #undef KRATOS_CONSTRUCT_AMGCL_SOLVER_BUNDLE_WITH_BLOCK_SIZE
 
     KRATOS_INFO_IF("AMGCLRawSolver", 1 < mpImpl->mVerbosity)
         << "Block DoFs: " << mpImpl->mDoFCount << "\n";
