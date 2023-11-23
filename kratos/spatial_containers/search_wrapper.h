@@ -21,6 +21,7 @@
 #include "includes/geometrical_object.h"
 #include "includes/kratos_parameters.h"
 #include "utilities/search_utilities.h"
+#include "utilities/parallel_utilities.h"
 #include "spatial_containers/geometrical_objects_bins.h"
 #include "spatial_containers/spatial_containers.h"
 #include "spatial_containers/spatial_search_result_container.h"
@@ -391,27 +392,35 @@ private:
         // Retrieving parameters
         const int allocation_size = mSettings["allocation_size"].GetInt();
 
-        // Adding the results to the container
-        std::size_t counter = 0, id = 0;
-        // TODO: Use ParallelUtilities
-        for (auto it_point = itPointBegin ; it_point != itPointEnd ; it_point++) {
+        // Retrieving the number of points
+        const std::size_t number_of_points = itPointEnd - itPointBegin;
+
+        // Definition of indexes
+        std::vector<IndexType> indexes(number_of_points, 0);
+        IndexPartition<IndexType>(number_of_points).for_each([&indexes, &itPointBegin](std::size_t index) {
+            auto it_point = itPointBegin + index;
             if constexpr (std::is_same<TPointIteratorType, ModelPart::NodeIterator>::value || std::is_same<TPointIteratorType, ModelPart::NodeConstantIterator>::value) {
-                id = it_point->Id();
+                indexes[index] = it_point->Id();
             } else {
-                id = counter;
+                indexes[index] = index;
             }
-            auto& r_partial_result = rResults.InitializeResult(id);
+        });
+
+        // Initialize results
+        rResults.InitializeResults(indexes);
+
+        // Adding the results to the container
+        IndexPartition<IndexType>(number_of_points).for_each([this, &indexes, &itPointBegin, &rResults, &Radius, &allocation_size](std::size_t index) {
+            auto it_point = itPointBegin + index;
+            auto& r_point_result = rResults[indexes[index]];
 
             // Search
             std::vector<ResultType> results;
             LocalSearchInRadius(*it_point, Radius, results, allocation_size);
             for (auto& r_result : results) {
-                r_partial_result.AddResult(r_result);
+                r_point_result.AddResult(r_result);
             }
-
-            // Update counter
-            ++counter;
-        }
+        });
 
         // Synchronize
         rResults.SynchronizeAll(mrDataCommunicator);
@@ -446,23 +455,33 @@ private:
         // Retrieving parameters
         const int allocation_size = mSettings["allocation_size"].GetInt();
 
-        // Adding the results to the container
-        std::size_t counter = 0, id = 0;
-        // TODO: Use ParallelUtilities
-        for (auto it_point = itPointBegin ; it_point != itPointEnd ; it_point++) {
+        // Retrieving the number of points
+        const std::size_t number_of_points = itPointEnd - itPointBegin;
+
+        // Definition of indexes
+        std::vector<IndexType> indexes(number_of_points, 0);
+        IndexPartition<IndexType>(number_of_points).for_each([&indexes, &itPointBegin](std::size_t index) {
+            auto it_point = itPointBegin + index;
             if constexpr (std::is_same<TPointIteratorType, ModelPart::NodeIterator>::value || std::is_same<TPointIteratorType, ModelPart::NodeConstantIterator>::value) {
-                id = it_point->Id();
+                indexes[index] = it_point->Id();
             } else {
-                id = counter;
+                indexes[index] = index;
             }
-            auto& r_point_result = rResults.InitializeResult(id);
+        });
+
+        // Initialize results
+        rResults.InitializeResults(indexes);
+
+        // Adding the results to the container
+        IndexPartition<IndexType>(number_of_points).for_each([this, &indexes, &itPointBegin, &rResults, &Radius, &allocation_size](std::size_t index) {
+            auto it_point = itPointBegin + index;
+            auto& r_point_result = rResults[indexes[index]];
+
+            // Search
             ResultType result;
             LocalSearchNearestInRadius(*it_point, Radius, result, allocation_size);
             r_point_result.AddResult(result);
-
-            // Update counter
-            ++counter;
-        }
+        });
 
         // Synchronize
         rResults.SynchronizeAll(mrDataCommunicator);
@@ -491,23 +510,33 @@ private:
             rResults.Clear();
         }
 
-        // Adding the results to the container
-        std::size_t counter = 0, id = 0;
-        // TODO: Use ParallelUtilities
-        for (auto it_point = itPointBegin ; it_point != itPointEnd ; it_point++) {
+        // Retrieving the number of points
+        const std::size_t number_of_points = itPointEnd - itPointBegin;
+
+        // Definition of indexes
+        std::vector<IndexType> indexes(number_of_points, 0);
+        IndexPartition<IndexType>(number_of_points).for_each([&indexes, &itPointBegin](std::size_t index) {
+            auto it_point = itPointBegin + index;
             if constexpr (std::is_same<TPointIteratorType, ModelPart::NodeIterator>::value || std::is_same<TPointIteratorType, ModelPart::NodeConstantIterator>::value) {
-                id = it_point->Id();
+                indexes[index] = it_point->Id();
             } else {
-                id = counter;
+                indexes[index] = index;
             }
-            auto& r_point_result = rResults.InitializeResult(id);
+        });
+
+        // Initialize results
+        rResults.InitializeResults(indexes);
+
+        // Adding the results to the container
+        IndexPartition<IndexType>(number_of_points).for_each([this, &indexes, &itPointBegin, &rResults](std::size_t index) {
+            auto it_point = itPointBegin + index;
+            auto& r_point_result = rResults[indexes[index]];
+
+            // Search
             ResultType result;
             LocalSearchNearest(*it_point, result);
             r_point_result.AddResult(result);
-
-            // Update counter
-            ++counter;
-        }
+        });
 
         // Synchronize
         rResults.SynchronizeAll(mrDataCommunicator);
@@ -538,23 +567,33 @@ private:
             rResults.Clear();
         }
 
-        // Adding the results to the container
-        std::size_t counter = 0, id = 0;
-        // TODO: Use ParallelUtilities
-        for (auto it_point = itPointBegin ; it_point != itPointEnd ; it_point++) {
+        // Retrieving the number of points
+        const std::size_t number_of_points = itPointEnd - itPointBegin;
+
+        // Definition of indexes
+        std::vector<IndexType> indexes(number_of_points, 0);
+        IndexPartition<IndexType>(number_of_points).for_each([&indexes, &itPointBegin](std::size_t index) {
+            auto it_point = itPointBegin + index;
             if constexpr (std::is_same<TPointIteratorType, ModelPart::NodeIterator>::value || std::is_same<TPointIteratorType, ModelPart::NodeConstantIterator>::value) {
-                id = it_point->Id();
+                indexes[index] = it_point->Id();
             } else {
-                id = counter;
+                indexes[index] = index;
             }
-            auto& r_point_result = rResults.InitializeResult(id);
+        });
+
+        // Initialize results
+        rResults.InitializeResults(indexes);
+
+        // Adding the results to the container
+        IndexPartition<IndexType>(number_of_points).for_each([this, &indexes, &itPointBegin, &rResults](std::size_t index) {
+            auto it_point = itPointBegin + index;
+            auto& r_point_result = rResults[indexes[index]];
+
+            // Search
             ResultType result;
             LocalSearchIsInside(*it_point, result);
             r_point_result.AddResult(result);
-
-            // Update counter
-            ++counter;
-        }
+        });
 
         // Synchronize
         rResults.SynchronizeAll(mrDataCommunicator);
@@ -597,12 +636,14 @@ private:
         // The local bounding box
         const auto& r_local_bb = mpSearchObject ? mpSearchObject->GetBoundingBox() : BoundingBox<PointType>();
 
+        // Initialize results
+        rResults.InitializeResults(all_points_ids);
+
         // Perform the corresponding searches
         const std::size_t total_number_of_points = all_points_coordinates.size()/3;
-        // TODO: Use ParallelUtilities
-        for (std::size_t i_point = 0; i_point < total_number_of_points; ++i_point) {
+        IndexPartition<IndexType>(total_number_of_points).for_each([this, &all_points_ids, &all_points_coordinates, &r_local_bb, &itPointBegin, &rResults, &Radius, &allocation_size](std::size_t i_point) {
             const Point point(all_points_coordinates[i_point * 3 + 0], all_points_coordinates[i_point * 3 + 1], all_points_coordinates[i_point * 3 + 2]);
-            auto& r_partial_result = rResults.InitializeResult(all_points_ids[i_point]);
+            auto& r_point_result = rResults[all_points_ids[i_point]];
 
             // Check if the point is inside the set
             if (SearchUtilities::PointIsInsideBoundingBox(r_local_bb, point, Radius)) {
@@ -610,10 +651,10 @@ private:
                 std::vector<ResultType> results;
                 LocalSearchInRadius(point, Radius, results, allocation_size);
                 for (auto& r_result : results) {
-                    r_partial_result.AddResult(r_result);
+                    r_point_result.AddResult(r_result);
                 }
             }
-        }
+        });
 
         // Synchronize
         rResults.SynchronizeAll(mrDataCommunicator);
@@ -659,13 +700,14 @@ private:
         // The local bounding box
         const auto& r_local_bb = mpSearchObject ? mpSearchObject->GetBoundingBox() : BoundingBox<PointType>();
 
+        // Initialize results
+        rResults.InitializeResults(all_points_ids);
+
         // Perform the corresponding searches
         const std::size_t total_number_of_points = all_points_coordinates.size()/3;
-        // TODO: Use ParallelUtilities
-        for (std::size_t i_point = 0; i_point < total_number_of_points; ++i_point) {
-            // Perform local search
+        IndexPartition<IndexType>(total_number_of_points).for_each([this, &all_points_ids, &all_points_coordinates, &r_local_bb, &itPointBegin, &rResults, &Radius, &allocation_size, &current_rank](std::size_t i_point) {
             const Point point(all_points_coordinates[i_point * 3 + 0], all_points_coordinates[i_point * 3 + 1], all_points_coordinates[i_point * 3 + 2]);
-            auto& r_partial_result = rResults.InitializeResult(all_points_ids[i_point]);
+            auto& r_point_result = rResults[all_points_ids[i_point]];
 
             // Result of search
             ResultType local_result;
@@ -687,9 +729,9 @@ private:
             // Get the solution from the computed_rank
             if (global_min.second == current_rank) {
                 // Add the local search
-                r_partial_result.AddResult(local_result);
+                r_point_result.AddResult(local_result);
             }
-        }
+        });
 
         // Synchronize
         rResults.SynchronizeAll(mrDataCommunicator);
@@ -735,15 +777,16 @@ private:
         const double max_radius= *std::max_element(box_size.begin(), box_size.end());
 
         // The local bounding box
-        const auto& r_local_bb = mpSearchObject ? mpSearchObject->GetBoundingBox() : BoundingBox<PointType>(); 
+        const auto& r_local_bb = mpSearchObject ? mpSearchObject->GetBoundingBox() : BoundingBox<PointType>();
+
+        // Initialize results
+        rResults.InitializeResults(all_points_ids);
 
         // Perform the corresponding searches
         const std::size_t total_number_of_points = all_points_coordinates.size()/3;
-        // TODO: Use ParallelUtilities
-        for (std::size_t i_point = 0; i_point < total_number_of_points; ++i_point) {
-            // Perform local search
+        IndexPartition<IndexType>(total_number_of_points).for_each([this, &all_points_ids, &all_points_coordinates, &r_local_bb, &itPointBegin, &rResults, &allocation_size, &current_rank, &max_radius](std::size_t i_point) {
             const Point point(all_points_coordinates[i_point * 3 + 0], all_points_coordinates[i_point * 3 + 1], all_points_coordinates[i_point * 3 + 2]);
-            auto& r_partial_result = rResults.InitializeResult(all_points_ids[i_point]);
+            auto& r_point_result = rResults[all_points_ids[i_point]];
 
             // Check if the point is inside the set
             ResultType local_result;
@@ -763,9 +806,9 @@ private:
             // Get the solution from the computed_rank
             if (global_min.second == current_rank) {
                 // Add the local search
-                r_partial_result.AddResult(local_result);
+                r_point_result.AddResult(local_result);
             }
-        }
+        });
 
         // Synchronize
         rResults.SynchronizeAll(mrDataCommunicator);
@@ -807,13 +850,14 @@ private:
         // The local bounding box
         const auto& r_local_bb = mpSearchObject ? mpSearchObject->GetBoundingBox() : BoundingBox<PointType>();
 
+        // Initialize results
+        rResults.InitializeResults(all_points_ids);
+
         // Perform the corresponding searches
         const std::size_t total_number_of_points = all_points_coordinates.size()/3;
-        // TODO: Use ParallelUtilities
-        for (std::size_t i_point = 0; i_point < total_number_of_points; ++i_point) {
-            // Perform local search
+        IndexPartition<IndexType>(total_number_of_points).for_each([this, &all_points_ids, &all_points_coordinates, &r_local_bb, &itPointBegin, &rResults, &current_rank](std::size_t i_point) {
             const Point point(all_points_coordinates[i_point * 3 + 0], all_points_coordinates[i_point * 3 + 1], all_points_coordinates[i_point * 3 + 2]);
-            auto& r_partial_result = rResults.InitializeResult(all_points_ids[i_point]);
+            auto& r_point_result = rResults[all_points_ids[i_point]];
 
             // Check if the point is inside the set
             int computed_rank = std::numeric_limits<int>::max();
@@ -835,9 +879,9 @@ private:
             // Get the solution from the computed_rank
             if (computed_rank == current_rank) {
                 // Add the local search
-                r_partial_result.AddResult(local_result);
+                r_point_result.AddResult(local_result);
             }
-        }
+        });
 
         // Synchronize
         rResults.SynchronizeAll(mrDataCommunicator);
