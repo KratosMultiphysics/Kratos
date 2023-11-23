@@ -635,19 +635,18 @@ private:
 
         // The local bounding box
         const auto& r_local_bb = mpSearchObject ? mpSearchObject->GetBoundingBox() : BoundingBox<PointType>();
-        const double bb_threshold = norm_2(r_local_bb.GetMaxPoint() - r_local_bb.GetMinPoint()) * 0.5;
 
         // Initialize results
         rResults.InitializeResults(all_points_ids);
 
         // Perform the corresponding searches
         const std::size_t total_number_of_points = all_points_coordinates.size()/3;
-        IndexPartition<IndexType>(total_number_of_points).for_each([this, &all_points_ids, &all_points_coordinates, &r_local_bb, &itPointBegin, &rResults, &Radius, &allocation_size, &bb_threshold](std::size_t i_point) {
+        IndexPartition<IndexType>(total_number_of_points).for_each([this, &all_points_ids, &all_points_coordinates, &r_local_bb, &itPointBegin, &rResults, &Radius, &allocation_size](std::size_t i_point) {
             const Point point(all_points_coordinates[i_point * 3 + 0], all_points_coordinates[i_point * 3 + 1], all_points_coordinates[i_point * 3 + 2]);
             auto& r_point_result = rResults[all_points_ids[i_point]];
 
             // Check if the point is inside the set
-            if (SearchUtilities::PointIsInsideBoundingBox(r_local_bb, point, bb_threshold)) {
+            if (SearchUtilities::PointIsInsideBoundingBox(r_local_bb, point)) {
                 // Search
                 std::vector<ResultType> results;
                 LocalSearchInRadius(point, Radius, results, allocation_size);
@@ -700,14 +699,13 @@ private:
 
         // The local bounding box
         const auto& r_local_bb = mpSearchObject ? mpSearchObject->GetBoundingBox() : BoundingBox<PointType>();
-        const double bb_threshold = norm_2(r_local_bb.GetMaxPoint() - r_local_bb.GetMinPoint()) * 0.5;
 
         // Initialize results
         rResults.InitializeResults(all_points_ids);
 
         // Perform the corresponding searches
         const std::size_t total_number_of_points = all_points_coordinates.size()/3;
-        IndexPartition<IndexType>(total_number_of_points).for_each([this, &all_points_ids, &all_points_coordinates, &r_local_bb, &itPointBegin, &rResults, &Radius, &allocation_size, &current_rank, &bb_threshold](std::size_t i_point) {
+        IndexPartition<IndexType>(total_number_of_points).for_each([this, &all_points_ids, &all_points_coordinates, &r_local_bb, &itPointBegin, &rResults, &Radius, &allocation_size, &current_rank](std::size_t i_point) {
             const Point point(all_points_coordinates[i_point * 3 + 0], all_points_coordinates[i_point * 3 + 1], all_points_coordinates[i_point * 3 + 2]);
             auto& r_point_result = rResults[all_points_ids[i_point]];
 
@@ -715,7 +713,7 @@ private:
             ResultType local_result;
 
             // Check if the point is inside the set
-            if (SearchUtilities::PointIsInsideBoundingBox(r_local_bb, point, bb_threshold)) {
+            if (SearchUtilities::PointIsInsideBoundingBox(r_local_bb, point)) {
                 // Call local search
                 LocalSearchNearestInRadius(point, Radius, local_result, allocation_size);
             }
@@ -780,20 +778,19 @@ private:
 
         // The local bounding box
         const auto& r_local_bb = mpSearchObject ? mpSearchObject->GetBoundingBox() : BoundingBox<PointType>();
-        const double bb_threshold = norm_2(r_local_bb.GetMaxPoint() - r_local_bb.GetMinPoint()) * 0.5;
 
         // Initialize results
         rResults.InitializeResults(all_points_ids);
 
         // Perform the corresponding searches
         const std::size_t total_number_of_points = all_points_coordinates.size()/3;
-        IndexPartition<IndexType>(total_number_of_points).for_each([this, &all_points_ids, &all_points_coordinates, &r_local_bb, &itPointBegin, &rResults, &allocation_size, &current_rank, &max_radius, &bb_threshold](std::size_t i_point) {
+        IndexPartition<IndexType>(total_number_of_points).for_each([this, &all_points_ids, &all_points_coordinates, &r_local_bb, &itPointBegin, &rResults, &allocation_size, &current_rank, &max_radius](std::size_t i_point) {
             const Point point(all_points_coordinates[i_point * 3 + 0], all_points_coordinates[i_point * 3 + 1], all_points_coordinates[i_point * 3 + 2]);
             auto& r_point_result = rResults[all_points_ids[i_point]];
 
             // Check if the point is inside the set
             ResultType local_result;
-            if (SearchUtilities::PointIsInsideBoundingBox(r_local_bb, point, bb_threshold)) {
+            if (SearchUtilities::PointIsInsideBoundingBox(r_local_bb, point)) {
                 // Call local search
                 LocalSearchNearestInRadius(point, max_radius, local_result, allocation_size);
             }
@@ -852,21 +849,20 @@ private:
 
         // The local bounding box
         const auto& r_local_bb = mpSearchObject ? mpSearchObject->GetBoundingBox() : BoundingBox<PointType>();
-        const double bb_threshold = norm_2(r_local_bb.GetMaxPoint() - r_local_bb.GetMinPoint()) * 0.5;
 
         // Initialize results
         rResults.InitializeResults(all_points_ids);
 
         // Perform the corresponding searches
         const std::size_t total_number_of_points = all_points_coordinates.size()/3;
-        IndexPartition<IndexType>(total_number_of_points).for_each([this, &all_points_ids, &all_points_coordinates, &r_local_bb, &itPointBegin, &rResults, &current_rank, &bb_threshold](std::size_t i_point) {
+        IndexPartition<IndexType>(total_number_of_points).for_each([this, &all_points_ids, &all_points_coordinates, &r_local_bb, &itPointBegin, &rResults, &current_rank](std::size_t i_point) {
             const Point point(all_points_coordinates[i_point * 3 + 0], all_points_coordinates[i_point * 3 + 1], all_points_coordinates[i_point * 3 + 2]);
             auto& r_point_result = rResults[all_points_ids[i_point]];
 
             // Check if the point is inside the set
             int computed_rank = std::numeric_limits<int>::max();
             ResultType local_result;
-            if (SearchUtilities::PointIsInsideBoundingBox(r_local_bb, point, bb_threshold)) {
+            if (SearchUtilities::PointIsInsideBoundingBox(r_local_bb, point)) {
                 // Call local search
                 LocalSearchIsInside(point, local_result);
 
