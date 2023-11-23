@@ -44,6 +44,8 @@ public:
             NewId, GetGeometry().Create(rThisNodes), pProperties);
     }
 
+    using Condition::Create;
+
     void GetDofList(DofsVectorType& rConditionDofList,
                     const ProcessInfo& ) const override
     {
