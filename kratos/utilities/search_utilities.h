@@ -230,6 +230,7 @@ public:
      * @param rAllPointsCoordinates vector where the computed coordinates will be stored
      * @param rAllPointsIds The ids of all the points (just a counter for points, and ids for nodes)
      * @param rBoundingBox The bounding box considered
+     * @param ThresholdBoundingBox The threshold for computing is inside bounding box considered
      * @param rDataCommunicator The data communicator
      * @tparam TPointIteratorType The type of the point iterator
      * @tparam TBoundingBoxType The type of the bounding box
@@ -241,6 +242,7 @@ public:
         std::vector<double>& rAllPointsCoordinates,
         std::vector<IndexType>& rAllPointsIds,
         const TBoundingBoxType& rBoundingBox,
+        const double ThresholdBoundingBox,
         const DataCommunicator& rDataCommunicator
         )
     {
@@ -252,7 +254,7 @@ public:
         KRATOS_DEBUG_ERROR_IF(total_number_of_points < 0) << "The total number of points is negative" << std::endl;
 
         // We synchronize the points
-        return SynchronizePointsWithBoundingBox(itPointBegin, itPointEnd, rAllPointsCoordinates, rAllPointsIds, rBoundingBox, rDataCommunicator, number_of_points, total_number_of_points);
+        return SynchronizePointsWithBoundingBox(itPointBegin, itPointEnd, rAllPointsCoordinates, rAllPointsIds, rBoundingBox, ThresholdBoundingBox, rDataCommunicator, number_of_points, total_number_of_points);
     }
 
     /**
@@ -587,6 +589,7 @@ private:
      * @param rAllPointsCoordinates Vector to store the synchronized points' coordinates
      * @param rAllPointsIds The ids of all the points (just a counter for points, and ids for nodes)
      * @param rBoundingBox The bounding box considered
+     * @param ThresholdBoundingBox The threshold for computing is inside bounding box considered
      * @param rDataCommunicator Object for data communication between processes
      * @param NumberOfPoints Local number of points to be synchronized
      * @param TotalNumberOfPoints Total number of points across all processes
@@ -601,6 +604,7 @@ private:
         std::vector<double>& rAllPointsCoordinates,
         std::vector<IndexType>& rAllPointsIds,
         const TBoundingBoxType& rBoundingBox,
+        const double ThresholdBoundingBox,
         const DataCommunicator& rDataCommunicator,
         const int NumberOfPoints,
         const int TotalNumberOfPoints
@@ -627,7 +631,7 @@ private:
                 point_to_test[0] = all_points_coordinates[3 * i_point + 0];
                 point_to_test[1] = all_points_coordinates[3 * i_point + 1];
                 point_to_test[2] = all_points_coordinates[3 * i_point + 2];
-                if (PointIsInsideBoundingBox(rBoundingBox, point_to_test)) {
+                if (PointIsInsideBoundingBox(rBoundingBox, point_to_test, ThresholdBoundingBox)) {
                     for (i_coord = 0; i_coord < 3; ++i_coord) {
                         rAllPointsCoordinates.push_back(all_points_coordinates[3 * i_point + i_coord]);
                     }
@@ -639,7 +643,7 @@ private:
             const std::size_t total_number_of_points = itPointEnd - itPointBegin;
             for (IndexType i_point = 0 ; i_point < total_number_of_points; ++i_point) {
                 auto it_point = itPointBegin + i_point;
-                if (PointIsInsideBoundingBox(rBoundingBox, *it_point)) {
+                if (PointIsInsideBoundingBox(rBoundingBox, *it_point, ThresholdBoundingBox)) {
                     noalias(coordinates) = it_point->Coordinates();
                     rAllPointsIds.push_back(all_points_ids[i_point]);
                     for (i_coord = 0; i_coord < 3; ++i_coord) {
