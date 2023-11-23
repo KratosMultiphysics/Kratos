@@ -157,7 +157,7 @@ public:
         const int rank = r_data_communicator.Rank();
         for (auto& r_dof : rDofSet) {
             if (r_dof.GetSolutionStepValue(PARTITION_INDEX) == rank) {
-                mInitialDoFId = r_dof.EquationId();
+                BaseType::mInitialDoFId = r_dof.EquationId();
                 break;
             }
         }
@@ -244,72 +244,8 @@ protected:
         ) override
     {
         // Filling mActiveDofs when MPC exist
-        ConstraintUtilities::DistributedComputeActiveDofs(rModelPart, BaseType::mActiveDofs, rDofSet, mInitialDoFId);
+        ConstraintUtilities::DistributedComputeActiveDofs(rModelPart, BaseType::mActiveDofs, rDofSet, BaseType::mInitialDoFId);
     }
-
-    /**
-     * @brief Check if a Degree of Freedom (Dof) is active
-     * @details This function checks if a given Degree of Freedom (Dof) is active.
-     * @param rDof The Degree of Freedom to check.
-     * @param Rank The rank of the Dof.
-     * @return True if the Dof is free, false otherwise.
-     */
-    bool IsActiveDof(
-        const DofType& rDof,
-        const int Rank
-        ) override
-    {
-        const IndexType dof_id = rDof.EquationId();
-        KRATOS_DEBUG_ERROR_IF((dof_id - mInitialDoFId) >= BaseType::mActiveDofs.size()) << "DofId is greater than the size of the active Dofs vector. DofId: " << dof_id << "\tInitialDoFId: " << mInitialDoFId << "\tActiveDofs size: " << BaseType::mActiveDofs.size() << std::endl;
-        return (BaseType::mActiveDofs[dof_id - mInitialDoFId] == 1 && (rDof.GetSolutionStepValue(PARTITION_INDEX) == Rank));
-    }
-
-    /**
-     * @brief Check if a Degree of Freedom (Dof) is free.
-     * @details This function checks if a given Degree of Freedom (Dof) is free.
-     * @param rDof The Degree of Freedom to check.
-     * @param Rank The rank of the Dof.
-     * @return True if the Dof is free, false otherwise.
-     */
-    bool IsFreeDof(
-        const DofType& rDof,
-        const int Rank
-        ) override
-    {
-        return (rDof.IsFree() && (rDof.GetSolutionStepValue(PARTITION_INDEX) == Rank));
-    }
-
-    /**
-     * @brief This method assigns settings to member variables
-     * @param ThisParameters Parameters that are assigned to the member variables
-     */
-    void AssignSettings(const Parameters ThisParameters) override
-    {
-        BaseType::AssignSettings(ThisParameters);
-    }
-
-    ///@}
-    ///@name Protected  Access
-    ///@{
-
-    ///@}
-    ///@name Protected Inquiry
-    ///@{
-
-    ///@}
-    ///@name Protected LifeCycle
-    ///@{
-
-    ///@}
-private:
-    ///@name Member Variables
-    ///@{
-
-    IndexType mInitialDoFId = 0; /// The initial DoF Id
-
-    ///@}
-    ///@name Private Operations
-    ///@{
 
     ///@}
 }; // Class TrilinosResidualCriteria

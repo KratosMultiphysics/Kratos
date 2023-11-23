@@ -19,7 +19,6 @@
 #include "testing/testing.h"
 #include "containers/model.h"
 #include "solving_strategies/convergencecriterias/displacement_criteria.h"
-#include "spaces/ublas_space.h"
 
 namespace Kratos::Testing
 {

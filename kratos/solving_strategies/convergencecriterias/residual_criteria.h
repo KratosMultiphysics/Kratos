@@ -22,6 +22,7 @@
 #include "utilities/parallel_utilities.h"
 #include "utilities/reduction_utilities.h"
 #include "solving_strategies/convergencecriterias/convergence_criteria.h"
+#include "spaces/ublas_space.h"
 
 namespace Kratos
 {
@@ -141,6 +142,8 @@ public:
       ,mCurrentResidualNorm(rOther.mCurrentResidualNorm)
       ,mAlwaysConvergedNorm(rOther.mAlwaysConvergedNorm)
       ,mReferenceDispNorm(rOther.mReferenceDispNorm)
+      ,mActiveDofs(rOther.mActiveDofs)
+      ,mInitialDoFId(rOther.mInitialDoFId)
     {
         this->mActualizeRHSIsNeeded = true;
     }
@@ -349,6 +352,8 @@ protected:
 
     std::vector<int> mActiveDofs;     /// This vector contains the dofs that are active
 
+    IndexType mInitialDoFId{};        /// The initial DoF Id
+
     ///@}
     ///@name Protected Operators
     ///@{
@@ -378,13 +383,18 @@ protected:
      * @param Rank The rank of the Dof.
      * @return True if the Dof is free, false otherwise.
      */
-    virtual bool IsActiveDof(
+    bool IsActiveDof(
         const DofType& rDof,
         const int Rank
         )
     {
         const IndexType dof_id = rDof.EquationId();
-        return mActiveDofs[dof_id] == 1;
+        if constexpr (std::is_same<TSparseSpace, UblasSpace<double, CompressedMatrix, Vector>>::value) {
+            return mActiveDofs[dof_id] == 1;
+        } else {
+            KRATOS_DEBUG_ERROR_IF((dof_id - mInitialDoFId) >= mActiveDofs.size()) << "DofId is greater than the size of the active Dofs vector. DofId: " << dof_id << "\tInitialDoFId: " << mInitialDoFId << "\tActiveDofs size: " << mActiveDofs.size() << std::endl;
+            return (mActiveDofs[dof_id - mInitialDoFId] == 1 && (rDof.GetSolutionStepValue(PARTITION_INDEX) == Rank));
+        }
     }
 
     /**
@@ -394,12 +404,16 @@ protected:
      * @param Rank The rank of the Dof.
      * @return True if the Dof is free, false otherwise.
      */
-    virtual bool IsFreeDof(
+    bool IsFreeDof(
         const DofType& rDof,
         const int Rank
         )
     {
-        return rDof.IsFree();
+        if constexpr (std::is_same<TSparseSpace, UblasSpace<double, CompressedMatrix, Vector>>::value) {
+            return rDof.IsFree();
+        } else {
+            return (rDof.IsFree() && (rDof.GetSolutionStepValue(PARTITION_INDEX) == Rank));
+        }
     }
 
     /**
@@ -447,7 +461,7 @@ protected:
             });
         } else {
             std::tie(residual_solution_norm, dof_num) = block_for_each<CustomReduction>(rDofSet, TLS(), [this, &rb, &rank](auto& rDof, TLS& rTLS) {
-                if(this->IsFreeDof(rDof, rank)) {
+                if (this->IsFreeDof(rDof, rank)) {
                     rTLS.residual_dof_value = TSparseSpace::GetValue(rb, rDof.EquationId());
                     return std::make_tuple(std::pow(rTLS.residual_dof_value, 2), 1);
                 } else {
@@ -470,47 +484,6 @@ protected:
         mAlwaysConvergedNorm = ThisParameters["residual_absolute_tolerance"].GetDouble();
         mRatioTolerance = ThisParameters["residual_relative_tolerance"].GetDouble();
     }
-
-    ///@}
-    ///@name Protected  Access
-    ///@{
-
-    ///@}
-    ///@name Protected Inquiry
-    ///@{
-
-    ///@}
-    ///@name Protected LifeCycle
-    ///@{
-
-    ///@}
-private:
-    ///@name Static Member Variables
-    ///@{
-
-    ///@}
-    ///@name Member Variables
-    ///@{
-
-    ///@}
-    ///@name Private Operators
-    ///@{
-
-    ///@}
-    ///@name Private Operations
-    ///@{
-
-    ///@}
-    ///@name Private  Access
-    ///@{
-
-    ///@}
-    ///@name Private Inquiry
-    ///@{
-
-    ///@}
-    ///@name Un accessible methods
-    ///@{
 
     ///@}
 

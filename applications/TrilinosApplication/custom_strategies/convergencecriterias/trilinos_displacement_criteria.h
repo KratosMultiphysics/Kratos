@@ -246,23 +246,6 @@ private:
     ///@name Private Operations
     ///@{
 
-    /**
-     * @brief Check if a Degree of Freedom (Dof) is free.
-     * @details This function checks if a given Degree of Freedom (Dof) is free.
-     * @param rDof The Degree of Freedom to check.
-     * @param Rank The rank of the Dof.
-     * @return True if the Dof is free, false otherwise.
-     * @todo We should doo as in the residual criteria, and consider the active DoFs (not just free), taking into account the MPC in addition to fixed DoFs
-     */
-    bool IsFreeDof(
-        const DofType& rDof,
-        const int Rank
-        ) override
-    {
-        return (rDof.IsFree() && (rDof.GetSolutionStepValue(PARTITION_INDEX) == Rank));
-    }
-
-
     ///@}
     ///@name Private  Access
     ///@{
