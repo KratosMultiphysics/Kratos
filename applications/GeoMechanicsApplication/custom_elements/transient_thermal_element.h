@@ -174,9 +174,6 @@ private:
         CheckProperty(THERMAL_CONDUCTIVITY_SOLID_XX);
         CheckProperty(THERMAL_CONDUCTIVITY_SOLID_YY);
         CheckProperty(THERMAL_CONDUCTIVITY_SOLID_XY);
-        CheckProperty(LONGITUDINAL_DISPERSIVITY);
-        CheckProperty(TRANSVERSE_DISPERSIVITY);
-        CheckProperty(SOLID_COMPRESSIBILITY);
 
         if constexpr(TDim == 3) {
             CheckProperty(THERMAL_CONDUCTIVITY_SOLID_ZZ);

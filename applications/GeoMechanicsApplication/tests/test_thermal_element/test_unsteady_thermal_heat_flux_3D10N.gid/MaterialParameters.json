@@ -19,10 +19,7 @@
               "THERMAL_CONDUCTIVITY_SOLID_XY" :  0.0,
               "THERMAL_CONDUCTIVITY_SOLID_YZ" :  0.0,
               "THERMAL_CONDUCTIVITY_SOLID_XZ" :  0.0,
-              "THERMAL_CONDUCTIVITY_WATER"    :  0.48,
-              "LONGITUDINAL_DISPERSIVITY"     :  1.0,
-              "TRANSVERSE_DISPERSIVITY"       :  1.0,
-              "SOLID_COMPRESSIBILITY"         :  1.0
+              "THERMAL_CONDUCTIVITY_WATER"    :  0.48
          },
          "Tables": {}
       }
