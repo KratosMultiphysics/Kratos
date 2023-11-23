@@ -17,18 +17,18 @@
 namespace Kratos {
 
 template <unsigned int TDim, unsigned int TNumNodes>
-TCondition<TDim, TNumNodes>::TCondition() : Condition()
+GeoTCondition<TDim, TNumNodes>::GeoTCondition() : Condition()
 {
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-TCondition<TDim, TNumNodes>::TCondition(IndexType NewId, GeometryType::Pointer pGeometry)
+GeoTCondition<TDim, TNumNodes>::GeoTCondition(IndexType NewId, GeometryType::Pointer pGeometry)
     : Condition(NewId, pGeometry)
 {
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-TCondition<TDim, TNumNodes>::TCondition(IndexType NewId,
+GeoTCondition<TDim, TNumNodes>::GeoTCondition(IndexType NewId,
                                         GeometryType::Pointer pGeometry,
                                         PropertiesType::Pointer pProperties)
     : Condition(NewId, pGeometry, pProperties)
@@ -36,10 +36,10 @@ TCondition<TDim, TNumNodes>::TCondition(IndexType NewId,
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-TCondition<TDim, TNumNodes>::~TCondition() = default;
+GeoTCondition<TDim, TNumNodes>::~GeoTCondition() = default;
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void TCondition<TDim, TNumNodes>::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
+void GeoTCondition<TDim, TNumNodes>::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
                                                        VectorType& rRightHandSideVector,
                                                        const ProcessInfo& rCurrentProcessInfo)
 {
@@ -61,7 +61,7 @@ void TCondition<TDim, TNumNodes>::CalculateLocalSystem(MatrixType& rLeftHandSide
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void TCondition<TDim, TNumNodes>::EquationIdVector(EquationIdVectorType& rResult,
+void GeoTCondition<TDim, TNumNodes>::EquationIdVector(EquationIdVectorType& rResult,
                                                    const ProcessInfo& rCurrentProcessInfo) const
 {
     KRATOS_TRY
@@ -79,7 +79,7 @@ void TCondition<TDim, TNumNodes>::EquationIdVector(EquationIdVectorType& rResult
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void TCondition<TDim, TNumNodes>::CalculateAll(MatrixType& rLeftHandSideMatrix,
+void GeoTCondition<TDim, TNumNodes>::CalculateAll(MatrixType& rLeftHandSideMatrix,
                                                VectorType& rRightHandSideVector,
                                                const ProcessInfo& rCurrentProcessInfo)
 {
@@ -87,7 +87,7 @@ void TCondition<TDim, TNumNodes>::CalculateAll(MatrixType& rLeftHandSideMatrix,
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void TCondition<TDim, TNumNodes>::CalculateRHS(VectorType& rRightHandSideVector,
+void GeoTCondition<TDim, TNumNodes>::CalculateRHS(VectorType& rRightHandSideVector,
                                                const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
@@ -99,14 +99,14 @@ void TCondition<TDim, TNumNodes>::CalculateRHS(VectorType& rRightHandSideVector,
     KRATOS_CATCH("")
 }
 
-template class TCondition<2, 2>;
-template class TCondition<2, 3>;
-template class TCondition<2, 4>;
-template class TCondition<2, 5>;
-template class TCondition<3, 3>;
-template class TCondition<3, 4>;
-template class TCondition<3, 6>;
-template class TCondition<3, 8>;
-template class TCondition<3, 9>;
+template class GeoTCondition<2, 2>;
+template class GeoTCondition<2, 3>;
+template class GeoTCondition<2, 4>;
+template class GeoTCondition<2, 5>;
+template class GeoTCondition<3, 3>;
+template class GeoTCondition<3, 4>;
+template class GeoTCondition<3, 6>;
+template class GeoTCondition<3, 8>;
+template class GeoTCondition<3, 9>;
 
 } // namespace Kratos

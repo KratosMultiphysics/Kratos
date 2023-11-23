@@ -24,23 +24,23 @@
 namespace Kratos {
 
 template <unsigned int TDim, unsigned int TNumNodes>
-class KRATOS_API(GEO_MECHANICS_APPLICATION) TCondition : public Condition {
+class KRATOS_API(GEO_MECHANICS_APPLICATION) GeoTCondition : public Condition {
 public:
-    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(TCondition);
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(GeoTCondition);
 
-    TCondition();
+    GeoTCondition();
 
-    TCondition(IndexType NewId, GeometryType::Pointer pGeometry);
+    GeoTCondition(IndexType NewId, GeometryType::Pointer pGeometry);
 
-    TCondition(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties);
+    GeoTCondition(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties);
 
-    ~TCondition() override;
+    ~GeoTCondition() override;
 
     Condition::Pointer Create(IndexType NewId,
                               NodesArrayType const& rThisNodes,
                               PropertiesType::Pointer pProperties) const override
     {
-        return Kratos::make_intrusive<TCondition>(
+        return Kratos::make_intrusive<GeoTCondition>(
             NewId, GetGeometry().Create(rThisNodes), pProperties);
     }
 

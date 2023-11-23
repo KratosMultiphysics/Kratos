@@ -525,15 +525,15 @@ private:
     const UPwLysmerAbsorbingCondition<3,3> mUPwLysmerAbsorbingCondition3D3N{ 0, Kratos::make_shared< Triangle3D3      <NodeType> >(Condition::GeometryType::PointsArrayType(3)) };
     const UPwLysmerAbsorbingCondition<3,4> mUPwLysmerAbsorbingCondition3D4N{ 0, Kratos::make_shared< Quadrilateral3D4 <NodeType> >(Condition::GeometryType::PointsArrayType(4)) };
     
-    const TNormalFluxCondition<2, 2> mTNormalFluxCondition2D2N{ 0, Kratos::make_shared< Line2D2          <NodeType> >(Condition::GeometryType::PointsArrayType(2)) };
-    const TNormalFluxCondition<2, 3> mTNormalFluxCondition2D3N{ 0, Kratos::make_shared< Line2D3          <NodeType> >(Condition::GeometryType::PointsArrayType(3)) };
-    const TNormalFluxCondition<2, 4> mTNormalFluxCondition2D4N{ 0, Kratos::make_shared< Line2D4          <NodeType> >(Condition::GeometryType::PointsArrayType(4)) };
-    const TNormalFluxCondition<2, 5> mTNormalFluxCondition2D5N{ 0, Kratos::make_shared< Line2D5          <NodeType> >(Condition::GeometryType::PointsArrayType(5)) };
-    const TNormalFluxCondition<3, 3> mTNormalFluxCondition3D3N{ 0, Kratos::make_shared< Triangle3D3      <NodeType> >(Condition::GeometryType::PointsArrayType(3)) };
-    const TNormalFluxCondition<3, 6> mTNormalFluxCondition3D6N{ 0, Kratos::make_shared< Triangle3D6      <NodeType> >(Condition::GeometryType::PointsArrayType(6)) };
-    const TNormalFluxCondition<3, 4> mTNormalFluxCondition3D4N{ 0, Kratos::make_shared< Quadrilateral3D4 <NodeType> >(Condition::GeometryType::PointsArrayType(4)) };
-    const TNormalFluxCondition<3, 8> mTNormalFluxCondition3D8N{ 0, Kratos::make_shared< Quadrilateral3D8 <NodeType> >(Condition::GeometryType::PointsArrayType(8)) };
-    const TNormalFluxCondition<3, 9> mTNormalFluxCondition3D9N{ 0, Kratos::make_shared< Quadrilateral3D9 <NodeType> >(Condition::GeometryType::PointsArrayType(9)) };
+    const GeoTNormalFluxCondition<2, 2> mGeoTNormalFluxCondition2D2N{ 0, Kratos::make_shared< Line2D2          <NodeType> >(Condition::GeometryType::PointsArrayType(2)) };
+    const GeoTNormalFluxCondition<2, 3> mGeoTNormalFluxCondition2D3N{ 0, Kratos::make_shared< Line2D3          <NodeType> >(Condition::GeometryType::PointsArrayType(3)) };
+    const GeoTNormalFluxCondition<2, 4> mGeoTNormalFluxCondition2D4N{ 0, Kratos::make_shared< Line2D4          <NodeType> >(Condition::GeometryType::PointsArrayType(4)) };
+    const GeoTNormalFluxCondition<2, 5> mGeoTNormalFluxCondition2D5N{ 0, Kratos::make_shared< Line2D5          <NodeType> >(Condition::GeometryType::PointsArrayType(5)) };
+    const GeoTNormalFluxCondition<3, 3> mGeoTNormalFluxCondition3D3N{ 0, Kratos::make_shared< Triangle3D3      <NodeType> >(Condition::GeometryType::PointsArrayType(3)) };
+    const GeoTNormalFluxCondition<3, 6> mGeoTNormalFluxCondition3D6N{ 0, Kratos::make_shared< Triangle3D6      <NodeType> >(Condition::GeometryType::PointsArrayType(6)) };
+    const GeoTNormalFluxCondition<3, 4> mGeoTNormalFluxCondition3D4N{ 0, Kratos::make_shared< Quadrilateral3D4 <NodeType> >(Condition::GeometryType::PointsArrayType(4)) };
+    const GeoTNormalFluxCondition<3, 8> mGeoTNormalFluxCondition3D8N{ 0, Kratos::make_shared< Quadrilateral3D8 <NodeType> >(Condition::GeometryType::PointsArrayType(8)) };
+    const GeoTNormalFluxCondition<3, 9> mGeoTNormalFluxCondition3D9N{ 0, Kratos::make_shared< Quadrilateral3D9 <NodeType> >(Condition::GeometryType::PointsArrayType(9)) };
 
     // constitutive models
     const BilinearCohesive3DLaw             mBilinearCohesive3DLaw;

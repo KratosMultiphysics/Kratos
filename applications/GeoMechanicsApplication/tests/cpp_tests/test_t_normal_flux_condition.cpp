@@ -20,7 +20,7 @@ using namespace Kratos;
 
 namespace Kratos::Testing {
 
-void TestTnormalFluxCondition(ModelPart& rModelPart, const std::vector<double> & rExpectedRightHandSide)
+void TestGeoTnormalFluxCondition(ModelPart& rModelPart, const std::vector<double> & rExpectedRightHandSide)
 {
     Condition::Pointer p_condition = rModelPart.pGetCondition(1);
 
@@ -67,7 +67,7 @@ void AssignNormalHeatFlux(ModelPart& rModelPart, double value)
     }
 }
 
-void GenerateTnormalFluxCondition2D2N(ModelPart& rModelPart)
+void GenerateGeoTnormalFluxCondition2D2N(ModelPart& rModelPart)
 {
     // Geometry creation
     rModelPart.CreateNewNode(1, 0.0, 0.0, 0.0);
@@ -76,11 +76,11 @@ void GenerateTnormalFluxCondition2D2N(ModelPart& rModelPart)
     AssignNormalHeatFlux(rModelPart, 10.0);
 
     std::vector<ModelPart::IndexType> cond_nodes{1, 2};
-    rModelPart.CreateNewCondition("TNormalFluxCondition2D2N", 1, cond_nodes,
+    rModelPart.CreateNewCondition("GeoTNormalFluxCondition2D2N", 1, cond_nodes,
                                   rModelPart.CreateNewProperties(0));
 }
 
-KRATOS_TEST_CASE_IN_SUITE(TNormalFluxCondition2D2N, KratosGeoMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(GeoTNormalFluxCondition2D2N, KratosGeoMechanicsFastSuite)
 {
     Model this_model;
     ModelPart& model_part = this_model.CreateModelPart("Main", 3);
@@ -88,13 +88,13 @@ KRATOS_TEST_CASE_IN_SUITE(TNormalFluxCondition2D2N, KratosGeoMechanicsFastSuite)
     model_part.AddNodalSolutionStepVariable(TEMPERATURE);
     model_part.AddNodalSolutionStepVariable(NORMAL_HEAT_FLUX);
 
-    GenerateTnormalFluxCondition2D2N(model_part);
+    GenerateGeoTnormalFluxCondition2D2N(model_part);
 
     const std::vector<double> expected_right_hand_side{5.0, 5.0};
-    TestTnormalFluxCondition(model_part, expected_right_hand_side);
+    TestGeoTnormalFluxCondition(model_part, expected_right_hand_side);
 }
 
-void GenerateTnormalFluxCondition2D3N(ModelPart& rModelPart)
+void GenerateGeoTnormalFluxCondition2D3N(ModelPart& rModelPart)
 {
     // Geometry creation
     rModelPart.CreateNewNode(1, 0.0, 0.0, 0.0);
@@ -104,11 +104,11 @@ void GenerateTnormalFluxCondition2D3N(ModelPart& rModelPart)
     AssignNormalHeatFlux(rModelPart, 10.0);
 
     std::vector<ModelPart::IndexType> cond_nodes{1, 2, 3};
-    rModelPart.CreateNewCondition("TNormalFluxCondition2D3N", 1, cond_nodes,
+    rModelPart.CreateNewCondition("GeoTNormalFluxCondition2D3N", 1, cond_nodes,
                                   rModelPart.CreateNewProperties(0));
 }
 
-KRATOS_TEST_CASE_IN_SUITE(TNormalFluxCondition2D3N, KratosGeoMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(GeoTNormalFluxCondition2D3N, KratosGeoMechanicsFastSuite)
 {
     Model this_model;
     ModelPart& model_part = this_model.CreateModelPart("Main", 3);
@@ -116,13 +116,13 @@ KRATOS_TEST_CASE_IN_SUITE(TNormalFluxCondition2D3N, KratosGeoMechanicsFastSuite)
     model_part.AddNodalSolutionStepVariable(TEMPERATURE);
     model_part.AddNodalSolutionStepVariable(NORMAL_HEAT_FLUX);
 
-    GenerateTnormalFluxCondition2D3N(model_part);
+    GenerateGeoTnormalFluxCondition2D3N(model_part);
 
     const std::vector<double> expected_right_hand_side{5.77898, 3.3428, 18.24365};
-    TestTnormalFluxCondition(model_part, expected_right_hand_side);
+    TestGeoTnormalFluxCondition(model_part, expected_right_hand_side);
 }
 
-void GenerateTnormalFluxCondition2D4N(ModelPart& rModelPart)
+void GenerateGeoTnormalFluxCondition2D4N(ModelPart& rModelPart)
 {
     // Geometry creation
     rModelPart.CreateNewNode(1, 0.0, 0.0, 0.0);
@@ -133,11 +133,11 @@ void GenerateTnormalFluxCondition2D4N(ModelPart& rModelPart)
     AssignNormalHeatFlux(rModelPart, 10.0);
 
     std::vector<ModelPart::IndexType> cond_nodes{1, 2, 3, 4};
-    rModelPart.CreateNewCondition("TNormalFluxCondition2D4N", 1, cond_nodes,
+    rModelPart.CreateNewCondition("GeoTNormalFluxCondition2D4N", 1, cond_nodes,
                                   rModelPart.CreateNewProperties(0));
 }
 
-KRATOS_TEST_CASE_IN_SUITE(TNormalFluxCondition2D4N, KratosGeoMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(GeoTNormalFluxCondition2D4N, KratosGeoMechanicsFastSuite)
 {
     Model this_model;
     ModelPart& model_part = this_model.CreateModelPart("Main", 3);
@@ -145,13 +145,13 @@ KRATOS_TEST_CASE_IN_SUITE(TNormalFluxCondition2D4N, KratosGeoMechanicsFastSuite)
     model_part.AddNodalSolutionStepVariable(TEMPERATURE);
     model_part.AddNodalSolutionStepVariable(NORMAL_HEAT_FLUX);
 
-    GenerateTnormalFluxCondition2D4N(model_part);
+    GenerateGeoTnormalFluxCondition2D4N(model_part);
 
     const std::vector<double> expected_right_hand_side{7.33331, 2.60131, 16.89195, 5.27702};
-    TestTnormalFluxCondition(model_part, expected_right_hand_side);
+    TestGeoTnormalFluxCondition(model_part, expected_right_hand_side);
 }
 
-void GenerateTnormalFluxCondition2D5N(ModelPart& rModelPart)
+void GenerateGeoTnormalFluxCondition2D5N(ModelPart& rModelPart)
 {
     // Geometry creation
     rModelPart.CreateNewNode(1, 0.0, 0.0, 0.0);
@@ -163,11 +163,11 @@ void GenerateTnormalFluxCondition2D5N(ModelPart& rModelPart)
     AssignNormalHeatFlux(rModelPart, 10.0);
 
     std::vector<ModelPart::IndexType> cond_nodes{1, 2, 3, 4, 5};
-    rModelPart.CreateNewCondition("TNormalFluxCondition2D5N", 1, cond_nodes,
+    rModelPart.CreateNewCondition("GeoTNormalFluxCondition2D5N", 1, cond_nodes,
                                   rModelPart.CreateNewProperties(0));
 }
 
-KRATOS_TEST_CASE_IN_SUITE(TNormalFluxCondition2D5N, KratosGeoMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(GeoTNormalFluxCondition2D5N, KratosGeoMechanicsFastSuite)
 {
     Model this_model;
     ModelPart& model_part = this_model.CreateModelPart("Main", 3);
@@ -175,13 +175,13 @@ KRATOS_TEST_CASE_IN_SUITE(TNormalFluxCondition2D5N, KratosGeoMechanicsFastSuite)
     model_part.AddNodalSolutionStepVariable(TEMPERATURE);
     model_part.AddNodalSolutionStepVariable(NORMAL_HEAT_FLUX);
 
-    GenerateTnormalFluxCondition2D5N(model_part);
+    GenerateGeoTnormalFluxCondition2D5N(model_part);
 
     const std::vector<double> expected_right_hand_side{9.11795, 3.92042, 27.99155, 1.3485, 18.8636};
-    TestTnormalFluxCondition(model_part, expected_right_hand_side);
+    TestGeoTnormalFluxCondition(model_part, expected_right_hand_side);
 }
 
-void GenerateTnormalFluxCondition3D4N(ModelPart& rModelPart)
+void GenerateGeoTnormalFluxCondition3D4N(ModelPart& rModelPart)
 {
     // Geometry creation
     rModelPart.CreateNewNode(1, 0.0, 0.0, 0.0);
@@ -192,11 +192,11 @@ void GenerateTnormalFluxCondition3D4N(ModelPart& rModelPart)
     AssignNormalHeatFlux(rModelPart, 10.0);
 
     std::vector<ModelPart::IndexType> cond_nodes{1, 2, 3, 4};
-    rModelPart.CreateNewCondition("TNormalFluxCondition3D4N", 1, cond_nodes,
+    rModelPart.CreateNewCondition("GeoTNormalFluxCondition3D4N", 1, cond_nodes,
                                   rModelPart.CreateNewProperties(0));
 }
 
-KRATOS_TEST_CASE_IN_SUITE(TNormalFluxCondition3D4N, KratosGeoMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(GeoTNormalFluxCondition3D4N, KratosGeoMechanicsFastSuite)
 {
     Model this_model;
     ModelPart& model_part = this_model.CreateModelPart("Main", 3);
@@ -204,13 +204,13 @@ KRATOS_TEST_CASE_IN_SUITE(TNormalFluxCondition3D4N, KratosGeoMechanicsFastSuite)
     model_part.AddNodalSolutionStepVariable(TEMPERATURE);
     model_part.AddNodalSolutionStepVariable(NORMAL_HEAT_FLUX);
 
-    GenerateTnormalFluxCondition3D4N(model_part);
+    GenerateGeoTnormalFluxCondition3D4N(model_part);
 
     const std::vector<double> expected_right_hand_side{0.569177, 1.29087, 0.985844, 0.569177};
-    TestTnormalFluxCondition(model_part, expected_right_hand_side);
+    TestGeoTnormalFluxCondition(model_part, expected_right_hand_side);
 }
 
-void GenerateTnormalFluxCondition3D6N(ModelPart& rModelPart)
+void GenerateGeoTnormalFluxCondition3D6N(ModelPart& rModelPart)
 {
     // Geometry creation
     rModelPart.CreateNewNode(1, 0.0, 0.0, 0.0);
@@ -223,11 +223,11 @@ void GenerateTnormalFluxCondition3D6N(ModelPart& rModelPart)
     AssignNormalHeatFlux(rModelPart, 10.0);
 
     std::vector<ModelPart::IndexType> cond_nodes{1, 2, 3, 4, 5, 6};
-    rModelPart.CreateNewCondition("TNormalFluxCondition3D6N", 1, cond_nodes,
+    rModelPart.CreateNewCondition("GeoTNormalFluxCondition3D6N", 1, cond_nodes,
                                   rModelPart.CreateNewProperties(0));
 }
 
-KRATOS_TEST_CASE_IN_SUITE(TNormalFluxCondition3D6N, KratosGeoMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(GeoTNormalFluxCondition3D6N, KratosGeoMechanicsFastSuite)
 {
     Model this_model;
     ModelPart& model_part = this_model.CreateModelPart("Main", 3);
@@ -235,14 +235,14 @@ KRATOS_TEST_CASE_IN_SUITE(TNormalFluxCondition3D6N, KratosGeoMechanicsFastSuite)
     model_part.AddNodalSolutionStepVariable(TEMPERATURE);
     model_part.AddNodalSolutionStepVariable(NORMAL_HEAT_FLUX);
 
-    GenerateTnormalFluxCondition3D6N(model_part);
+    GenerateGeoTnormalFluxCondition3D6N(model_part);
 
     const std::vector<double> expected_right_hand_side{3.60822e-16, -2.77556e-16, -1.66533e-16,
                             1.66667,     1.66667,      1.66667};
-    TestTnormalFluxCondition(model_part, expected_right_hand_side);
+    TestGeoTnormalFluxCondition(model_part, expected_right_hand_side);
 }
 
-void GenerateTnormalFluxCondition3D8N(ModelPart& rModelPart)
+void GenerateGeoTnormalFluxCondition3D8N(ModelPart& rModelPart)
 {
     // Geometry creation
     rModelPart.CreateNewNode(1, 0.0, 0.0, 0.0);
@@ -257,11 +257,11 @@ void GenerateTnormalFluxCondition3D8N(ModelPart& rModelPart)
     AssignNormalHeatFlux(rModelPart, 10.0);
 
     std::vector<ModelPart::IndexType> cond_nodes{1, 2, 3, 4, 5, 6, 7, 8};
-    rModelPart.CreateNewCondition("TNormalFluxCondition3D8N", 1, cond_nodes,
+    rModelPart.CreateNewCondition("GeoTNormalFluxCondition3D8N", 1, cond_nodes,
                                   rModelPart.CreateNewProperties(0));
 }
 
-KRATOS_TEST_CASE_IN_SUITE(TNormalFluxCondition3D8N, KratosGeoMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(GeoTNormalFluxCondition3D8N, KratosGeoMechanicsFastSuite)
 {
     Model this_model;
     ModelPart& model_part = this_model.CreateModelPart("Main", 3);
@@ -269,14 +269,14 @@ KRATOS_TEST_CASE_IN_SUITE(TNormalFluxCondition3D8N, KratosGeoMechanicsFastSuite)
     model_part.AddNodalSolutionStepVariable(TEMPERATURE);
     model_part.AddNodalSolutionStepVariable(NORMAL_HEAT_FLUX);
 
-    GenerateTnormalFluxCondition3D8N(model_part);
+    GenerateGeoTnormalFluxCondition3D8N(model_part);
 
     const std::vector<double> expected_right_hand_side{0.133919, 0.635973, -0.403995, -0.117107,
                             1.86947,  1.53697,  0.721923,  1.09723};
-    TestTnormalFluxCondition(model_part, expected_right_hand_side);
+    TestGeoTnormalFluxCondition(model_part, expected_right_hand_side);
 }
 
-void GenerateTnormalFluxCondition3D9N(ModelPart& rModelPart)
+void GenerateGeoTnormalFluxCondition3D9N(ModelPart& rModelPart)
 {
     // Geometry creation
     rModelPart.CreateNewNode(1, 0.0, 0.0, 0.0);
@@ -292,11 +292,11 @@ void GenerateTnormalFluxCondition3D9N(ModelPart& rModelPart)
     AssignNormalHeatFlux(rModelPart, 10.0);
 
     std::vector<ModelPart::IndexType> cond_nodes{1, 2, 3, 4, 5, 6, 7, 8, 9};
-    rModelPart.CreateNewCondition("TNormalFluxCondition3D9N", 1, cond_nodes,
+    rModelPart.CreateNewCondition("GeoTNormalFluxCondition3D9N", 1, cond_nodes,
                                   rModelPart.CreateNewProperties(0));
 }
 
-KRATOS_TEST_CASE_IN_SUITE(TNormalFluxCondition3D9N, KratosGeoMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(GeoTNormalFluxCondition3D9N, KratosGeoMechanicsFastSuite)
 {
     Model this_model;
     ModelPart& model_part = this_model.CreateModelPart("Main", 3);
@@ -304,11 +304,11 @@ KRATOS_TEST_CASE_IN_SUITE(TNormalFluxCondition3D9N, KratosGeoMechanicsFastSuite)
     model_part.AddNodalSolutionStepVariable(TEMPERATURE);
     model_part.AddNodalSolutionStepVariable(NORMAL_HEAT_FLUX);
 
-    GenerateTnormalFluxCondition3D9N(model_part);
+    GenerateGeoTnormalFluxCondition3D9N(model_part);
 
     const std::vector<double> expected_right_hand_side{0.325617, 0.741605, -0.0401643, 0.160657, 0.785555,
                             0.467627, 0.228477, 0.324183,   0.676021};
-    TestTnormalFluxCondition(model_part, expected_right_hand_side);
+    TestGeoTnormalFluxCondition(model_part, expected_right_hand_side);
 }
 
 } // namespace Kratos::Testing

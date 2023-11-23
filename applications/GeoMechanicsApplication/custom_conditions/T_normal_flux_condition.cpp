@@ -19,31 +19,31 @@
 namespace Kratos {
 
 template <unsigned int TDim, unsigned int TNumNodes>
-TNormalFluxCondition<TDim, TNumNodes>::TNormalFluxCondition()
-    : TCondition<TDim, TNumNodes>()
+GeoTNormalFluxCondition<TDim, TNumNodes>::GeoTNormalFluxCondition()
+    : GeoTCondition<TDim, TNumNodes>()
 {
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-TNormalFluxCondition<TDim, TNumNodes>::TNormalFluxCondition(IndexType NewId,
+GeoTNormalFluxCondition<TDim, TNumNodes>::GeoTNormalFluxCondition(IndexType NewId,
                                                             GeometryType::Pointer pGeometry)
-    : TCondition<TDim, TNumNodes>(NewId, pGeometry)
+    : GeoTCondition<TDim, TNumNodes>(NewId, pGeometry)
 {
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-TNormalFluxCondition<TDim, TNumNodes>::TNormalFluxCondition(IndexType NewId,
+GeoTNormalFluxCondition<TDim, TNumNodes>::GeoTNormalFluxCondition(IndexType NewId,
                                                             GeometryType::Pointer pGeometry,
                                                             PropertiesType::Pointer pProperties)
-    : TCondition<TDim, TNumNodes>(NewId, pGeometry, pProperties)
+    : GeoTCondition<TDim, TNumNodes>(NewId, pGeometry, pProperties)
 {
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-TNormalFluxCondition<TDim, TNumNodes>::~TNormalFluxCondition() = default;
+GeoTNormalFluxCondition<TDim, TNumNodes>::~GeoTNormalFluxCondition() = default;
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void TNormalFluxCondition<TDim, TNumNodes>::CalculateRHS(VectorType& rRightHandSideVector,
+void GeoTNormalFluxCondition<TDim, TNumNodes>::CalculateRHS(VectorType& rRightHandSideVector,
                                                          const ProcessInfo& rCurrentProcessInfo)
 {
     const GeometryType& r_geom = this->GetGeometry();
@@ -87,7 +87,7 @@ void TNormalFluxCondition<TDim, TNumNodes>::CalculateRHS(VectorType& rRightHandS
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void TNormalFluxCondition<TDim, TNumNodes>::CalculateAndAddRHS(VectorType& rRightHandSideVector,
+void GeoTNormalFluxCondition<TDim, TNumNodes>::CalculateAndAddRHS(VectorType& rRightHandSideVector,
                                                                NormalFluxVariables& rVariables)
 {
     noalias(rVariables.FluxVector) =
@@ -98,7 +98,7 @@ void TNormalFluxCondition<TDim, TNumNodes>::CalculateAndAddRHS(VectorType& rRigh
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void TNormalFluxCondition<TDim, TNumNodes>::CalculateIntegrationCoefficient(
+void GeoTNormalFluxCondition<TDim, TNumNodes>::CalculateIntegrationCoefficient(
     double& rIntegrationCoefficient, const Matrix& rJacobian, double Weight)
 {
     Vector normal_vector = ZeroVector(TDim);
@@ -113,14 +113,14 @@ void TNormalFluxCondition<TDim, TNumNodes>::CalculateIntegrationCoefficient(
     rIntegrationCoefficient = Weight * MathUtils<double>::Norm(normal_vector);
 }
 
-template class TNormalFluxCondition<2, 2>;
-template class TNormalFluxCondition<2, 3>;
-template class TNormalFluxCondition<2, 4>;
-template class TNormalFluxCondition<2, 5>;
-template class TNormalFluxCondition<3, 3>;
-template class TNormalFluxCondition<3, 4>;
-template class TNormalFluxCondition<3, 6>;
-template class TNormalFluxCondition<3, 8>;
-template class TNormalFluxCondition<3, 9>;
+template class GeoTNormalFluxCondition<2, 2>;
+template class GeoTNormalFluxCondition<2, 3>;
+template class GeoTNormalFluxCondition<2, 4>;
+template class GeoTNormalFluxCondition<2, 5>;
+template class GeoTNormalFluxCondition<3, 3>;
+template class GeoTNormalFluxCondition<3, 4>;
+template class GeoTNormalFluxCondition<3, 6>;
+template class GeoTNormalFluxCondition<3, 8>;
+template class GeoTNormalFluxCondition<3, 9>;
 
 } // namespace Kratos

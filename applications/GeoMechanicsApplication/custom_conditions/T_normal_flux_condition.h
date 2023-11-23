@@ -24,8 +24,8 @@
 namespace Kratos {
 
 template <unsigned int TDim, unsigned int TNumNodes>
-class KRATOS_API(GEO_MECHANICS_APPLICATION) TNormalFluxCondition
-    : public TCondition<TDim, TNumNodes> {
+class KRATOS_API(GEO_MECHANICS_APPLICATION) GeoTNormalFluxCondition
+    : public GeoTCondition<TDim, TNumNodes> {
 public:
     using NodeType = Node;
     using GeometryType = Geometry<NodeType>;
@@ -33,23 +33,23 @@ public:
     using NodesArrayType = GeometryType::PointsArrayType;
     using VectorType = Vector;
 
-    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(TNormalFluxCondition);
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(GeoTNormalFluxCondition);
 
-    TNormalFluxCondition();
+    GeoTNormalFluxCondition();
 
-    TNormalFluxCondition(IndexType NewId, GeometryType::Pointer pGeometry);
+    GeoTNormalFluxCondition(IndexType NewId, GeometryType::Pointer pGeometry);
 
-    TNormalFluxCondition(IndexType NewId,
+    GeoTNormalFluxCondition(IndexType NewId,
                          GeometryType::Pointer pGeometry,
                          PropertiesType::Pointer pProperties);
 
-    ~TNormalFluxCondition() override;
+    ~GeoTNormalFluxCondition() override;
 
     Condition::Pointer Create(IndexType NewId,
                               NodesArrayType const& rThisNodes,
                               PropertiesType::Pointer pProperties) const override
     {
-        return Kratos::make_intrusive<TNormalFluxCondition>(
+        return Kratos::make_intrusive<GeoTNormalFluxCondition>(
             NewId, this->GetGeometry().Create(rThisNodes), pProperties);
     }
 

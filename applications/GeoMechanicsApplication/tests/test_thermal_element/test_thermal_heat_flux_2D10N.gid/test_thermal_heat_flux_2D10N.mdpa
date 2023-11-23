@@ -405,7 +405,7 @@ Begin Elements GeoTransientThermalElement2D10N
 End Elements
 
 
-Begin Conditions TNormalFluxCondition2D4N
+Begin Conditions GeoTNormalFluxCondition2D4N
   1  1  1 5  9 10
   2  1  5 6 11 12
   3  1  6 7 13 14
