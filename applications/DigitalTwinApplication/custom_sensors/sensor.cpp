@@ -11,6 +11,7 @@
 //
 
 // System includes
+#include <type_traits>
 
 // External includes
 
@@ -60,20 +61,40 @@ void Sensor::SetSensorValue(const double Value)
     mSensorValue = Value;
 }
 
+template<class TContainerType>
+void Sensor::AddContainerExpression(
+    const std::string& rExpressionName,
+    typename ContainerExpression<TContainerType>::Pointer pContainerExpression)
+{
+    KRATOS_TRY
+
+    if constexpr(std::is_same_v<TContainerType, ModelPart::NodesContainerType>) {
+        const auto p_itr = mNodalExpressions.find(rExpressionName);
+        KRATOS_ERROR_IF_NOT(p_itr == mNodalExpressions.end())
+            << "A nodal expression named \"" << rExpressionName << " already exists.";
+        mNodalExpressions[rExpressionName] = pContainerExpression;
+    } else if constexpr(std::is_same_v<TContainerType, ModelPart::ConditionsContainerType>) {
+        const auto p_itr = mConditionExpressions.find(rExpressionName);
+        KRATOS_ERROR_IF_NOT(p_itr == mConditionExpressions.end())
+            << "A condition expression named \"" << rExpressionName << " already exists.";
+        mConditionExpressions[rExpressionName] = pContainerExpression;
+    } else if constexpr(std::is_same_v<TContainerType, ModelPart::ElementsContainerType>) {
+        const auto p_itr = mElementExpressions.find(rExpressionName);
+        KRATOS_ERROR_IF_NOT(p_itr == mElementExpressions.end())
+            << "A element expression named \"" << rExpressionName << " already exists.";
+        mElementExpressions[rExpressionName] = pContainerExpression;
+    } else {
+        static_assert(std::is_same_v<TContainerType, TContainerType>, "Unsupported container type.");
+    }
+
+    KRATOS_CATCH("");
+}
+
 void Sensor::AddNodalExpression(
     const std::string& rExpressionName,
     ContainerExpression<ModelPart::NodesContainerType>::Pointer pNodalExpression)
 {
-    KRATOS_TRY
-
-    const auto p_itr = mNodalExpressions.find(rExpressionName);
-
-    KRATOS_ERROR_IF_NOT(p_itr == mNodalExpressions.end())
-        << "A nodal expression named \"" << rExpressionName << " already exists.";
-
-    mNodalExpressions[rExpressionName] = pNodalExpression;
-
-    KRATOS_CATCH("");
+    AddContainerExpression<ModelPart::NodesContainerType>(rExpressionName, pNodalExpression);
 }
 
 ContainerExpression<ModelPart::NodesContainerType>::Pointer Sensor::GetNodalExpression(const std::string& rExpressionName) const
@@ -99,16 +120,7 @@ void Sensor::AddConditionExpression(
     const std::string& rExpressionName,
     ContainerExpression<ModelPart::ConditionsContainerType>::Pointer pConditionExpression)
 {
-    KRATOS_TRY
-
-    const auto p_itr = mConditionExpressions.find(rExpressionName);
-
-    KRATOS_ERROR_IF_NOT(p_itr == mConditionExpressions.end())
-        << "A condition expression named \"" << rExpressionName << " already exists.";
-
-    mConditionExpressions[rExpressionName] = pConditionExpression;
-
-    KRATOS_CATCH("");
+    AddContainerExpression<ModelPart::ConditionsContainerType>(rExpressionName, pConditionExpression);
 }
 
 ContainerExpression<ModelPart::ConditionsContainerType>::Pointer Sensor::GetConditionExpression(const std::string& rExpressionName) const
@@ -134,16 +146,7 @@ void Sensor::AddElementExpression(
     const std::string& rExpressionName,
     ContainerExpression<ModelPart::ElementsContainerType>::Pointer pElementExpression)
 {
-    KRATOS_TRY
-
-    const auto p_itr = mElementExpressions.find(rExpressionName);
-
-    KRATOS_ERROR_IF_NOT(p_itr == mElementExpressions.end())
-        << "A condition expression named \"" << rExpressionName << " already exists.";
-
-    mElementExpressions[rExpressionName] = pElementExpression;
-
-    KRATOS_CATCH("");
+    AddContainerExpression<ModelPart::ElementsContainerType>(rExpressionName, pElementExpression);
 }
 
 ContainerExpression<ModelPart::ElementsContainerType>::Pointer Sensor::GetElementExpression(const std::string& rExpressionName) const

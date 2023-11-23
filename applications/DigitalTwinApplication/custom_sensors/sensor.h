@@ -119,6 +119,20 @@ public:
     void SetSensorValue(const double Value);
 
     /**
+     * @brief Adds given container expression
+     *
+     * @throws If an expression is found already under the given name in the respective TContainerType container.
+     *
+     * @tparam TContainerType       Type of the container expression.
+     * @param rExpressionName       Name of the container expression.
+     * @param pContainerExpression  Container expression to be added.
+     */
+    template<class TContainerType>
+    void AddContainerExpression(
+        const std::string& rExpressionName,
+        typename ContainerExpression<TContainerType>::Pointer pContainerExpression);
+
+    /**
      * @brief Adds a given nodal expression under the given name.
      * @throws If an expression is found already under the given name.
      *
