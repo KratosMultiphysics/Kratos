@@ -52,11 +52,10 @@ namespace Kratos {
 #ifdef AMGCL_GPGPU
 vex::Context& GetVexCLContext() {
     static vex::Context ctx(vex::Filter::Env);
-    static bool run_once = [](){
+    [[maybe_unused]] static bool run_once = [](){
         std::cout << "VexCL context:\n" << ctx << std::endl;
         return true;
     }();
-    (void)run_once; // suppress "unused variable" warnings
     return ctx;
 }
 
@@ -68,54 +67,97 @@ void RegisterVexCLStaticMatrixType() {
 #endif
 
 
-// Define solver types
-using ScalarBackend = amgcl::backend::builtin<double>;
-using ScalarSolver = amgcl::make_solver<
-    amgcl::runtime::preconditioner<ScalarBackend>,
-    amgcl::runtime::solver::wrapper<ScalarBackend>
->;
+// -------------------------------------
+// --- Template Nightmare Land Begin ---
+// -------------------------------------
 
 
+namespace Detail {
+
+
+template <class TValue, unsigned BlockSize>
+using AMGCLBlock = amgcl::static_matrix<TValue,BlockSize,BlockSize>;
+
+
+// Trait class defining an AMGCL backend for the provided template arguments,
+// and its associated preconditioner, wrapper, and solver.
 template <unsigned BlockSize>
-using Block = amgcl::static_matrix<double,BlockSize,BlockSize>;
+struct AMGCLTraits
+{
+    template <template <class, class ...> class TBackend, class TValue, class ...TArgs>
+    struct Impl
+    {
+        // Indicates whether the system matrix and vectors must be transferred
+        // to/from another device (GPU) before/after invoking the solver.
+        constexpr static inline bool IsGPUBound =
+        #ifdef AMGCL_GPGPU
+            std::is_same_v<TBackend<TValue,TArgs...>,amgcl::backend::vexcl<TValue,TArgs...>>;
+        #else
+            false;
+        #endif
+
+        constexpr static inline bool IsScalar = BlockSize == 1;
+
+        using Scalar = TValue;
+
+        using Value = std::conditional_t<
+            IsScalar,
+            Scalar,
+            amgcl::static_matrix<Scalar,BlockSize,BlockSize>
+        >;
+
+        using RHSValue = std::conditional_t<
+            IsScalar,
+            Scalar,
+            amgcl::static_matrix<TValue,BlockSize,1>
+        >;
+
+        using MatrixAdapter = std::conditional_t<
+            IsGPUBound,
+            amgcl::adapter::block_matrix_adapter<typename TUblasSparseSpace<Scalar>::MatrixType,Value>,
+            amgcl::backend::crs<Scalar>
+        >;
+
+        using Backend = std::conditional_t<
+            IsScalar,
+            TBackend<TValue>,
+            TBackend<AMGCLBlock<TValue,BlockSize>>
+        >;
+
+        using Preconditioner = amgcl::runtime::preconditioner<Backend>;
+
+        using SolverWrapper = amgcl::runtime::solver::wrapper<Backend>;
+
+        using Solver = std::conditional_t<
+            IsScalar,
+            amgcl::make_solver<Preconditioner,SolverWrapper>,
+            amgcl::make_block_solver<Preconditioner,SolverWrapper>
+        >;
+    }; // struct Impl
+
+    template <template <class, class ...> class TBackend, class TValue, class ...TArgs>
+    using Solver = typename Impl<TBackend,TValue,TArgs...>::Solver;
+}; // struct AMGCLTraits
 
 
-template <unsigned BlockSize>
-using BlockBackend = amgcl::backend::builtin<Block<BlockSize>>;
+// Wrapper class bundling a solver with an associated matrix adapter.
+template <class TAMGCLTraits>
+struct AMGCLBundle
+{
+    using Traits = TAMGCLTraits;
+
+    std::unique_ptr<typename Traits::Solver> mpSolver;
+
+    std::shared_ptr<typename Traits::MatrixAdapter> mpMatrixAdapter;
+}; // struct AMGCLBundle
 
 
-template <unsigned BlockSize>
-using BlockSolver = amgcl::make_block_solver<
-    amgcl::runtime::preconditioner<BlockBackend<BlockSize>>,
-    amgcl::runtime::solver::wrapper<BlockBackend<BlockSize>>
->;
+} // namespace Detail
 
 
-#ifdef AMGCL_GPGPU
-    using VexCLSingleBackend = amgcl::backend::vexcl<double>;
-    using VexCLSingleSolver = amgcl::make_solver<
-        amgcl::runtime::preconditioner<VexCLBackend>,
-        amgcl::runtime::solver<VexCLBackend>
-    >;
-
-    using VexCLDoubleBackend = amgcl::backend::vexcl<double>;
-    using VexCLDoubleSolver = amgcl::make_solver<
-        amgcl::runtime::preconditioner<VexCLBackend>,
-        amgcl::runtime::solver<VexCLBackend>
-    >;
-#endif
-
-
-using AMGCLSolverVariant = std::variant<
-    std::unique_ptr<ScalarSolver>,
-    std::unique_ptr<BlockSolver<2>>,
-    std::unique_ptr<BlockSolver<3>>,
-    std::unique_ptr<BlockSolver<4>>
-    #ifdef AMGCL_GPGPU
-    ,std::unique_ptr<VexCLSingleSolver>
-    ,std::unique_ptr<VexCLDoubleSolver>
-    #endif
->;
+// -------------------------------------
+// --- Template Nightmare Land End -----
+// -------------------------------------
 
 
 enum class AMGCLBackendType
@@ -137,17 +179,65 @@ struct AMGCLRawSolver<TSparseSpace,TDenseSpace,TReorderer>::Impl
 
     double mTolerance;
 
+    // AMGCL backend selected by the user.
+    AMGCLBackendType mBackendType = AMGCLBackendType::CPU;
+
+    // Block size computed in AMGCLRawSolver::ProvideAdditionalData and
+    // set in the settings passed to AMGCL.
     std::size_t mDoFCount;
 
+    // Settings to be translated from Kratos::Parameters
+    // to something that AMGCL uses.
     boost::property_tree::ptree mAMGCLSettings;
 
-    struct {
-        AMGCLSolverVariant mSolver;
-        std::shared_ptr<amgcl::backend::crs<typename TSparseSpace::DataType>> mpAdapter;
-        const typename TSparseSpace::MatrixType* mpMatrix = nullptr;
-    } mSolverStruct;
+    // Pointer to the system matrix to be set in AMGCLRawSolver::ProvideAdditionalData.
+    // This matrix is then required to reside at the same address when invoking
+    // AMGCLRawSolver::Solve.
+    const typename TSparseSpace::MatrixType* mpA = nullptr;
 
-    AMGCLBackendType mBackendType = AMGCLBackendType::CPU;
+    // A variant for grouping members related to the wrapped AMGCL solver. It's meant
+    // to bundle solvers using different backends as well as its associated matrix wrapper.
+    // The wrapped types are composed of the permutations of the following attributes:
+    // - block size [1, 2, 3, 4]
+    // - backend type [bultin, vexcl]
+    // - value type [double, float (vexcl only)]
+    std::variant<
+        // Double precision CPU backend with a block size of 1.
+        Detail::AMGCLBundle<typename Detail::AMGCLTraits<1>::Impl<amgcl::backend::builtin,double>>,
+
+        // Double precision CPU backend with a block size of 2.
+        Detail::AMGCLBundle<typename Detail::AMGCLTraits<2>::Impl<amgcl::backend::builtin,double>>,
+
+        // Double precision CPU backend with a block size of 3.
+        Detail::AMGCLBundle<typename Detail::AMGCLTraits<3>::Impl<amgcl::backend::builtin,double>>,
+
+        // Double precision CPU backend with a block size of 4.
+        Detail::AMGCLBundle<typename Detail::AMGCLTraits<4>::Impl<amgcl::backend::builtin,double>>,
+
+        // Double precision GPU backend with a block size of 1.
+        Detail::AMGCLBundle<typename Detail::AMGCLTraits<1>::Impl<amgcl::backend::vexcl,double>>,
+
+        // Double precision GPU backend with a block size of 2.
+        Detail::AMGCLBundle<typename Detail::AMGCLTraits<2>::Impl<amgcl::backend::vexcl,double>>,
+
+        // Double precision GPU backend with a block size of 3.
+        Detail::AMGCLBundle<typename Detail::AMGCLTraits<3>::Impl<amgcl::backend::vexcl,double>>,
+
+        // Double precision GPU backend with a block size of 4.
+        Detail::AMGCLBundle<typename Detail::AMGCLTraits<4>::Impl<amgcl::backend::vexcl,double>>,
+
+        // Double precision GPU backend with a block size of 1.
+        Detail::AMGCLBundle<typename Detail::AMGCLTraits<1>::Impl<amgcl::backend::vexcl,float>>,
+
+        // Double precision GPU backend with a block size of 2.
+        Detail::AMGCLBundle<typename Detail::AMGCLTraits<2>::Impl<amgcl::backend::vexcl,float>>,
+
+        // Double precision GPU backend with a block size of 3.
+        Detail::AMGCLBundle<typename Detail::AMGCLTraits<3>::Impl<amgcl::backend::vexcl,float>>,
+
+        // Double precision GPU backend with a block size of 4.
+        Detail::AMGCLBundle<typename Detail::AMGCLTraits<4>::Impl<amgcl::backend::vexcl,float>>
+    > mSolverVariant;
 }; // struct AMGCLRawSolver::Impl
 
 
@@ -234,34 +324,42 @@ bool AMGCLRawSolver<TSparseSpace,TDenseSpace,TReorderer>::Solve(SparseMatrix& rA
         << &rA << " != " << mpImpl->mSolverStruct.mpMatrix << "\n";
 
     const auto [iteration_count, residual] = std::visit(
-        [&rB, &rX, this](auto& rpSolver){
+        [&rB, &rX] (auto& rpSolver) -> std::tuple<std::size_t,double> {
             #ifdef AMGCL_GPGPU
             if constexpr (std::is_same_v<
                             typename std::remove_reference_t<decltype(rpSolver)>::element_type,
-                            VexCLDoubleSolver
+                            VexCLDoublePrecisionSolver
                           >) {
                 auto& vexcl_context = GetVexCLContext();
                 KRATOS_ERROR_IF_NOT(vexcl_context) << "invalid VexCL context state\n";
-                vex::vector<double> x(vexcl_context, rX.size(), rX.data());
-                vex::vector<double> b(vexcl_context, rB.size(), rB.data());
+
+                vex::vector<double> x(vexcl_context, rX.size(), &*rX.begin());
+                vex::vector<double> b(vexcl_context, rB.size(), &*rB.begin());
                 const auto results = rpSolver->operator()(b, x);
+
                 vex::copy(x.begin(), x.end(), rX.begin());
                 return results;
             } else if constexpr(std::is_same_v<
                             typename std::remove_reference_t<decltype(rpSolver)>::element_type,
-                            VexCLDoubleSolver
+                            VexCLDoublePrecisionSolver
                           >) {
                 auto& vexcl_context = GetVexCLContext();
                 KRATOS_ERROR_IF_NOT(vexcl_context) << "invalid VexCL context state\n";
-                vex::vector<float> x(vexcl_context, rX.size(), rX.data());
-                vex::vector<float> b(vexcl_context, rB.size(), rB.data());
+
+                std::vector<float> x_float(rX.begin(), rX.end());
+                std::vector<float> b_float(rB.begin(), rB.end());
+                vex::vector<float> x(vexcl_context, x_float.size(), x_float.data());
+                vex::vector<float> b(vexcl_context, b_float.size(), b_float.data());
                 const auto results = rpSolver->operator()(b, x);
-                vex::copy(x.begin(), x.end(), rX.begin());
+
+                vex::copy(GetVexCLContext(), x.begin(), x.end(), x_float.begin());
+                std::copy(x_float.begin(), x_float.end(), rX.begin());
                 return results;
             } else
             #endif
             {
-                return rpSolver->operator()(rB, rX);
+                const auto results = rpSolver->operator()(rB, rX);
+                return results;
             }
         },
         mpImpl->mSolverStruct.mSolver
@@ -364,60 +462,104 @@ void AMGCLRawSolver<TSparseSpace,TDenseSpace,TReorderer>::ProvideAdditionalData(
     KRATOS_INFO_IF("AMGCLRawSolver", 1 <= mpImpl->mVerbosity)
         << "block size: " << mpImpl->mDoFCount << "\n";
 
-    // Construct matrix adapter
-    mpImpl->mSolverStruct.mpMatrix = &rA;
+    // Construct solver and matrix adapter
+    mpImpl->mpA = &rA;
+    std::visit([&rA, this](auto& rAMGCLBundle){
+            using Traits = typename std::remove_reference_t<decltype(rAMGCLBundle)>::Traits;
+            using ScalarType = typename Traits::Scalar;
+            constexpr bool is_gpu_bound = Traits::IsGPUBound;
 
-    // Construct solver
-    #ifdef AMGCL_GPGPU
-        mpImpl->mAMGCLSettings.q = GetVexCLContext();
-        RegisterVexCLStaticMatrixType<2>();
-        RegisterVexCLStaticMatrixType<3>();
-        RegisterVexCLStaticMatrixType<4>();
-        mpImpl->mSolverStruct.mpAdapter = amgcl::adapter::block_matrix<double>(std::tie(
-            TSparseSpace::Size1(rA),
-            rA.index1_data(),
-            rA.index2_data(),
-            rA.value_data()
-        ));
+            if constexpr (std::is_same_v<ScalarType,double>) {
+                if constexpr (is_gpu_bound) {
+                    rAMGCLBundle.mpMatrixAdapter = std::shared_ptr<typename Traits::MatrixAdapter>(
+                        new typename Traits::MatrixAdapter(rA));
+                } else {
+                    rAMGCLBundle.mpMatrixAdapter = amgcl::adapter::zero_copy(TSparseSpace::Size1(rA),
+                                                                             rA.index1_data().begin(),
+                                                                             rA.index2_data().begin(),
+                                                                             rA.value_data().begin());
+                }
+            } else if constexpr (std::is_same_v<ScalarType,float>) {
+                if constexpr (is_gpu_bound) {
+                    rAMGCLBundle.mpMatrixAdapter = std::shared_ptr<typename Traits::MatrixAdapter>(
+                        new typename Traits::MatrixAdapter(rA));
+                } else {
+                    rAMGCLBundle.mpMatrixAdapter = amgcl::adapter::zero_copy(TSparseSpace::Size1(rA),
+                                                                             rA.index1_data().begin(),
+                                                                             rA.index2_data().begin(),
+                                                                             rA.value_data().begin());
+                }
+            } else {
+                static_assert(std::is_same_v<ScalarType,void>, "unhandled variant");
+            }
+        },
+        mpImpl->mSolverVariant);
 
-        mpImpl->mSolver = std::make_unique<VexCLSolver>(
-            *mpImpl->mSolverStruct.mpAdapter,
-            mpImpl->mAMGCLSettings
-        );
-    #else
-        mpImpl->mSolverStruct.mpAdapter = amgcl::adapter::zero_copy(TSparseSpace::Size1(rA),
-                                                                    rA.index1_data().begin(),
-                                                                    rA.index2_data().begin(),
-                                                                    rA.value_data().begin());
-        switch (mpImpl->mDoFCount) {
-            case 1:
-                mpImpl->mSolverStruct.mSolver = std::make_unique<ScalarSolver>(
+    // Construct the solver
+    switch (mpImpl->mBackendType) {
+        #ifdef AMGCL_GPGPU
+            case AMGCLBackendType::SinglePrecisionGPU: {
+                VexCLDoublePrecisionBackend::params vexcl_parameters;
+                vexcl_parameters.q = GetVexCLContext();
+
+                RegisterVexCLStaticMatrixType<2>();
+                RegisterVexCLStaticMatrixType<3>();
+                RegisterVexCLStaticMatrixType<4>();
+
+                mpImpl->mSolverStruct.mSolver = std::make_unique<VexCLSinglePrecisionSolver>(
                     *mpImpl->mSolverStruct.mpAdapter,
                     mpImpl->mAMGCLSettings
                 );
                 break;
-            case 2:
-                mpImpl->mSolverStruct.mSolver = std::make_unique<BlockSolver<2>>(
+            } // case AMGCLBackendType::SinglePrecisionGPU
+            case AMGCLBackendType::DoublePrecisionGPU: {
+                VexCLDoublePrecisionBackend::params vexcl_parameters;
+                vexcl_parameters.q = GetVexCLContext();
+
+                RegisterVexCLStaticMatrixType<2>();
+                RegisterVexCLStaticMatrixType<3>();
+                RegisterVexCLStaticMatrixType<4>();
+
+                mpImpl->mSolverStruct.mSolver = std::make_unique<VexCLDoublePrecisionSolver>(
                     *mpImpl->mSolverStruct.mpAdapter,
                     mpImpl->mAMGCLSettings
                 );
                 break;
-            case 3:
-                mpImpl->mSolverStruct.mSolver = std::make_unique<BlockSolver<3>>(
-                    *mpImpl->mSolverStruct.mpAdapter,
-                    mpImpl->mAMGCLSettings
-                );
-                break;
-            case 4:
-                mpImpl->mSolverStruct.mSolver = std::make_unique<BlockSolver<4>>(
-                    *mpImpl->mSolverStruct.mpAdapter,
-                    mpImpl->mAMGCLSettings
-                );
-                break;
-            default:
-                KRATOS_ERROR << "unsupported block size: " << mpImpl->mDoFCount << "\n";
-        }
-    #endif
+            } // case AMGCLBackendType::DoublePredicisonGPU
+        #endif
+        case AMGCLBackendType::CPU: {
+            switch (mpImpl->mDoFCount) {
+                case 1:
+                    mpImpl->mSolverStruct.mSolver = std::make_unique<ScalarSolver>(
+                        *mpImpl->mSolverStruct.mpAdapter,
+                        mpImpl->mAMGCLSettings
+                    );
+                    break;
+                case 2:
+                    mpImpl->mSolverStruct.mSolver = std::make_unique<BlockSolver<2>>(
+                        *mpImpl->mSolverStruct.mpAdapter,
+                        mpImpl->mAMGCLSettings
+                    );
+                    break;
+                case 3:
+                    mpImpl->mSolverStruct.mSolver = std::make_unique<BlockSolver<3>>(
+                        *mpImpl->mSolverStruct.mpAdapter,
+                        mpImpl->mAMGCLSettings
+                    );
+                    break;
+                case 4:
+                    mpImpl->mSolverStruct.mSolver = std::make_unique<BlockSolver<4>>(
+                        *mpImpl->mSolverStruct.mpAdapter,
+                        mpImpl->mAMGCLSettings
+                    );
+                    break;
+                default:
+                    KRATOS_ERROR << "unsupported block size: " << mpImpl->mDoFCount << "\n";
+            } // switch mpImpl->mDoFCount
+            break;
+        } // case AMGCLBackendType::CPU
+        default: KRATOS_ERROR << "unhandled AMGCL backend enum: " << (int)mpImpl->mBackendType << "\n";
+    } // switch mpImpl->mBackendType
 
     KRATOS_INFO_IF("AMGCLRawSolver", 1 < mpImpl->mVerbosity)
         << "Block DoFs: " << mpImpl->mDoFCount << "\n";
