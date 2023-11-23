@@ -228,11 +228,15 @@ struct AMGCLBundle
 
         // Construct solver
         if constexpr (TAMGCLTraits::IsGPUBound) {
-            typename TAMGCLTraits::Backend::params backend_parameters;
-            backend_parameters.q = GetVexCLContext();
-            mpSolver = std::make_unique<typename TAMGCLTraits::Solver>(*mpMatrixAdapter,
-                                                                       rSolverSettings,
-                                                                       backend_parameters);
+            #ifdef AMGCL_GPGPU
+                typename TAMGCLTraits::Backend::params backend_parameters;
+                backend_parameters.q = GetVexCLContext();
+                mpSolver = std::make_unique<typename TAMGCLTraits::Solver>(*mpMatrixAdapter,
+                                                                           rSolverSettings,
+                                                                           backend_parameters);
+            #else
+                KRATOS_ERROR << "internal solver error: requesting a GPU solver while Kratos is compiled without GPU support\n";
+            #endif
         } else {
             mpSolver = std::make_unique<typename TAMGCLTraits::Solver>(*mpMatrixAdapter,
                                                                        rSolverSettings);
@@ -497,6 +501,16 @@ bool AMGCLRawSolver<TSparseSpace,TDenseSpace,TReorderer>::Solve(SparseMatrix& rA
 
     return residual < mpImpl->mTolerance ? true : false;
     KRATOS_CATCH("")
+}
+
+
+
+template<class TSparseSpace,
+         class TDenseSpace,
+         class TReorderer>
+bool AMGCLRawSolver<TSparseSpace,TDenseSpace,TReorderer>::AdditionalPhysicalDataIsNeeded()
+{
+    return true;
 }
 
 

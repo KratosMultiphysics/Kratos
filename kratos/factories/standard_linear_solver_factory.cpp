@@ -25,7 +25,6 @@
 #include "linear_solvers/tfqmr_solver.h"
 #include "linear_solvers/amgcl_solver.h"
 #include "linear_solvers/amgcl_ns_solver.h"
-#include "linear_solvers/amgcl_raw_solver.h"
 #include "linear_solvers/scaling_solver.h"
 #include "linear_solvers/monotonicity_preserving_solver.h"
 #include "linear_solvers/skyline_lu_custom_scalar_solver.h"
@@ -52,7 +51,6 @@ namespace Kratos
         typedef SkylineLUFactorizationSolver<SpaceType,  LocalSpaceType> SkylineLUFactorizationSolverType;
         typedef AMGCLSolver<SpaceType,  LocalSpaceType> AMGCLSolverType;
         typedef AMGCL_NS_Solver<SpaceType,  LocalSpaceType> AMGCL_NS_SolverType;
-        typedef AMGCLRawSolver<SpaceType,LocalSpaceType> AMGCLRawSolverType;
         typedef SkylineLUCustomScalarSolver<ComplexSpaceType, ComplexLocalSpaceType> SkylineLUComplexSolverType;
         typedef PolyHierarchicalSolver<SpaceType,LocalSpaceType> PolyHierarchicalSolverType;
         typedef GaussSeidelRelaxation<SpaceType,LocalSpaceType> GaussSeidelSolverType;
@@ -71,7 +69,6 @@ namespace Kratos
         static auto TFQMRSolverFactory = StandardLinearSolverFactory<SpaceType,LocalSpaceType,TFQMRSolverType>();
         static auto AMGCLSolverFactory= StandardLinearSolverFactory<SpaceType,LocalSpaceType,AMGCLSolverType>();
         static auto AMGCL_NS_SolverFactory= StandardLinearSolverFactory<SpaceType,LocalSpaceType,AMGCL_NS_SolverType>();
-        static auto AMGCLRawSolverFactory = StandardLinearSolverFactory<SpaceType,LocalSpaceType,AMGCLRawSolverType>();
         static auto ScalingSolverFactory= StandardLinearSolverFactory<SpaceType,LocalSpaceType,ScalingSolverType>();
         static auto MonotonicityPreservingSolverFactory= StandardLinearSolverFactory<SpaceType,LocalSpaceType,MonotonicityPreservingSolverType>();
         static auto PolyHierarchicalSolverFactory = StandardLinearSolverFactory<SpaceType,LocalSpaceType,PolyHierarchicalSolverType>();
@@ -89,7 +86,6 @@ namespace Kratos
         KRATOS_REGISTER_LINEAR_SOLVER("skyline_lu_factorization",SkylineLUFactorizationSolverFactory );
         KRATOS_REGISTER_LINEAR_SOLVER("amgcl", AMGCLSolverFactory);
         KRATOS_REGISTER_LINEAR_SOLVER("amgcl_ns",AMGCL_NS_SolverFactory );
-        KRATOS_REGISTER_LINEAR_SOLVER("amgcl_raw", AMGCLRawSolverFactory);
         KRATOS_REGISTER_LINEAR_SOLVER("scaling",ScalingSolverFactory );
         KRATOS_REGISTER_LINEAR_SOLVER("monotonicity_preserving",MonotonicityPreservingSolverFactory );
         KRATOS_REGISTER_LINEAR_SOLVER("poly_hierarchical", PolyHierarchicalSolverFactory);

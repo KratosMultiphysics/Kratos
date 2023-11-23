@@ -22,7 +22,6 @@
 
 #include "linear_solvers/amgcl_solver.h"
 #include "linear_solvers/amgcl_ns_solver.h"
-#include "linear_solvers/amgcl_raw_solver.h"
 
 namespace Kratos::Python {
 
@@ -70,12 +69,6 @@ void  AddAMGCLSolverToPython(pybind11::module& m)
     py::class_<AMGCL_NS_SolverType, std::shared_ptr<AMGCL_NS_SolverType>, LinearSolverType>(m, "AMGCL_NS_Solver")
         .def(py::init<Parameters>())
         ;
-
-    using AMGCLRawSolverType = AMGCLRawSolver<SpaceType,LocalSpaceType>;
-    py::class_<AMGCLRawSolverType, std::shared_ptr<AMGCLRawSolverType>, LinearSolverType>(m, "AMGCLRawSolver")
-        .def(py::init<Parameters>())
-        ;
-
 }
 
 }  // namespace Kratos::Python.

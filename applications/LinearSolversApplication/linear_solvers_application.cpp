@@ -13,12 +13,14 @@
 // Project includes
 #include "includes/define.h"
 #include "linear_solvers_application.h"
+#include "factories/standard_linear_solver_factory.h"
 #include "custom_factories/dense_linear_solver_factory.h"
 
 #include "custom_solvers/eigen_sparse_cg_solver.h"
 #include "custom_solvers/eigen_sparse_lu_solver.h"
 #include "custom_solvers/eigen_sparse_qr_solver.h"
 #include "custom_solvers/eigen_direct_solver.h"
+#include "custom_solvers/amgcl_raw_solver.h"
 
 #if defined USE_EIGEN_MKL
 #include "custom_solvers/eigen_pardiso_lu_solver.h"
@@ -61,6 +63,13 @@ void KratosLinearSolversApplication::Register()
     using SparseCGType = EigenDirectSolver<EigenSparseCGSolver<double>>;
     static auto SparseCGFactory = SparseCGType::Factory();
     KRATOS_REGISTER_LINEAR_SOLVER("sparse_cg", SparseCGFactory);
+
+    // Sparse AMG solver
+    static auto AMGCLRawSolverFactory = StandardLinearSolverFactory<
+        TUblasSparseSpace<double>,
+        TUblasDenseSpace<double>,
+        AMGCLRawSolver<TUblasSparseSpace<double>,TUblasDenseSpace<double>>>();
+    KRATOS_REGISTER_LINEAR_SOLVER("amgcl_raw", AMGCLRawSolverFactory);
 
 #if defined USE_EIGEN_MKL
 
