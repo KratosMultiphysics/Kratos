@@ -74,7 +74,7 @@ void GeoTNormalFluxCondition<TDim, TNumNodes>::CalculateRHS(VectorType& rRightHa
         noalias(variables.N) = row(r_N_container, integration_point);
 
         // Interpolation of nodal normal flux to integration point normal flux.
-        variables.NormalFlux = MathUtils<>::Dot(variables.N, normal_flux_vector);
+        variables.NormalFluxOnNode = MathUtils<>::Dot(variables.N, normal_flux_vector);
 
         // Compute weighting coefficient for integration
         this->CalculateIntegrationCoefficient(
@@ -90,11 +90,11 @@ template <unsigned int TDim, unsigned int TNumNodes>
 void GeoTNormalFluxCondition<TDim, TNumNodes>::CalculateAndAddRHS(VectorType& rRightHandSideVector,
                                                                NormalFluxVariables& rVariables)
 {
-    noalias(rVariables.FluxVector) =
-        rVariables.NormalFlux * rVariables.N * rVariables.IntegrationCoefficient;
+    noalias(rVariables.NormalFluxOnIntegPoints) =
+        rVariables.NormalFluxOnNode * rVariables.N * rVariables.IntegrationCoefficient;
 
     GeoElementUtilities::AssemblePBlockVector<0, TNumNodes>(
-        rRightHandSideVector, rVariables.FluxVector);
+        rRightHandSideVector, rVariables.NormalFluxOnIntegPoints);
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>

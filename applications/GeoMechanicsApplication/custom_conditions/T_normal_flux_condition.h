@@ -55,10 +55,10 @@ public:
 
 protected:
     struct NormalFluxVariables {
-        double NormalFlux;
+        double NormalFluxOnNode;
         double IntegrationCoefficient;
         array_1d<double, TNumNodes> N;
-        array_1d<double, TNumNodes> FluxVector;
+        array_1d<double, TNumNodes> NormalFluxOnIntegPoints;
     };
 
     void CalculateRHS(VectorType& rRightHandSideVector,
