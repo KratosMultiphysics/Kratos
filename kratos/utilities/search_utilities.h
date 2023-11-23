@@ -224,6 +224,38 @@ public:
     }
 
     /**
+     * @brief SynchronousPointSynchronization prepares synchronously the coordinates of the points for MPI search.
+     * @param itPointBegin Iterator to the beginning of the points range
+     * @param itPointEnd Iterator to the end of the points range
+     * @param rAllPointsCoordinates vector where the computed coordinates will be stored
+     * @param rAllPointsIds The ids of all the points (just a counter for points, and ids for nodes)
+     * @param rBoundingBox The bounding box considered
+     * @param rDataCommunicator The data communicator
+     * @tparam TPointIteratorType The type of the point iterator
+     * @tparam TBoundingBoxType The type of the bounding box
+     */
+    template<typename TPointIteratorType, typename TBoundingBoxType>
+    static std::vector<IndexType> SynchronousPointSynchronizationWithBoundingBox(
+        TPointIteratorType itPointBegin,
+        TPointIteratorType itPointEnd,
+        std::vector<double>& rAllPointsCoordinates,
+        std::vector<IndexType>& rAllPointsIds,
+        const TBoundingBoxType& rBoundingBox,
+        const DataCommunicator& rDataCommunicator
+        )
+    {
+        // First check that the points are the same in all processes
+        int number_of_points, total_number_of_points;
+        CalculateNumberOfPoints(itPointBegin, itPointEnd, number_of_points, total_number_of_points, rDataCommunicator);
+
+        KRATOS_DEBUG_ERROR_IF(number_of_points < 0) << "The number of points is negative" << std::endl;
+        KRATOS_DEBUG_ERROR_IF(total_number_of_points < 0) << "The total number of points is negative" << std::endl;
+
+        // We synchronize the points
+        return SynchronizePointsWithBoundingBox(itPointBegin, itPointEnd, rAllPointsCoordinates, rAllPointsIds, rBoundingBox, rDataCommunicator, number_of_points, total_number_of_points);
+    }
+
+    /**
      * @brief SynchronousPointSynchronizationWithRecvSizes prepares synchronously the coordinates of the points for MPI search including the recv sizes
      * @details With recv sizes
      * @param itPointBegin Iterator to the beginning of the points range
@@ -424,7 +456,7 @@ public:
     ///@}
 private:
     ///@name Private Operations
-    ///@{  
+    ///@{
 
     /**
      * @details Synchronizes points between different processes. 
@@ -464,8 +496,12 @@ private:
         }
 
         // Initialize and resize vectors
-        rAllPointsCoordinates.resize(TotalNumberOfPoints * 3);
-        rAllPointsIds.resize(TotalNumberOfPoints);
+        if (rAllPointsCoordinates.size() != static_cast<unsigned int>(TotalNumberOfPoints * 3)) {
+            rAllPointsCoordinates.resize(TotalNumberOfPoints * 3);
+        }
+        if (rAllPointsIds.size() != static_cast<unsigned int>(TotalNumberOfPoints)) {
+            rAllPointsIds.resize(TotalNumberOfPoints);
+        }
         std::vector<int> recv_sizes(world_size, 0);
 
         // Auxiliary variables
@@ -541,6 +577,84 @@ private:
 
         // Return the recv sizes
         return recv_sizes;
+    }
+
+    /**
+     * @details Synchronizes points between different processes. 
+     * @details Synchonously
+     * @param itPointBegin Iterator pointing to the beginning of the range of points
+     * @param itPointEnd Iterator pointing to the end of the range of points
+     * @param rAllPointsCoordinates Vector to store the synchronized points' coordinates
+     * @param rAllPointsIds The ids of all the points (just a counter for points, and ids for nodes)
+     * @param rBoundingBox The bounding box considered
+     * @param rDataCommunicator Object for data communication between processes
+     * @param NumberOfPoints Local number of points to be synchronized
+     * @param TotalNumberOfPoints Total number of points across all processes
+     * @return A vector containing the sizes of data for each process
+     * @tparam TPointIteratorType The type of the point iterator
+     * @tparam TBoundingBoxType The type of the bounding box
+     */
+    template<typename TPointIteratorType, typename TBoundingBoxType>
+    static std::vector<IndexType> SynchronizePointsWithBoundingBox(
+        TPointIteratorType itPointBegin,
+        TPointIteratorType itPointEnd,
+        std::vector<double>& rAllPointsCoordinates,
+        std::vector<IndexType>& rAllPointsIds,
+        const TBoundingBoxType& rBoundingBox,
+        const DataCommunicator& rDataCommunicator,
+        const int NumberOfPoints,
+        const int TotalNumberOfPoints
+        )
+    {
+        // Initialize and resize vectors
+        rAllPointsCoordinates.reserve(TotalNumberOfPoints * 3);
+        std::vector<double> all_points_coordinates(TotalNumberOfPoints * 3);
+        rAllPointsIds.reserve(TotalNumberOfPoints);
+        std::vector<IndexType> all_points_ids(TotalNumberOfPoints);
+
+        // Sync all points first
+        SynchronizePoints(itPointBegin, itPointEnd, all_points_coordinates, all_points_ids, rDataCommunicator, NumberOfPoints, TotalNumberOfPoints);
+
+        // Some definitions
+        IndexType i_coord = 0;
+        array_1d<double, 3> coordinates;
+
+        // If distributed
+        if (rDataCommunicator.IsDistributed()) {
+            // Fill actual vectors
+            Point point_to_test;
+            for (IndexType i_point = 0; i_point < static_cast<IndexType>(TotalNumberOfPoints); ++i_point) {
+                point_to_test[0] = all_points_coordinates[3 * i_point + 0];
+                point_to_test[1] = all_points_coordinates[3 * i_point + 1];
+                point_to_test[2] = all_points_coordinates[3 * i_point + 2];
+                if (PointIsInsideBoundingBox(rBoundingBox, point_to_test)) {
+                    for (i_coord = 0; i_coord < 3; ++i_coord) {
+                        rAllPointsCoordinates.push_back(all_points_coordinates[3 * i_point + i_coord]);
+                    }
+                    rAllPointsIds.push_back(all_points_ids[i_point]);
+                }
+            }
+        } else { // Serial
+            // Assign values
+            const std::size_t total_number_of_points = itPointEnd - itPointBegin;
+            for (IndexType i_point = 0 ; i_point < total_number_of_points; ++i_point) {
+                auto it_point = itPointBegin + i_point;
+                if (PointIsInsideBoundingBox(rBoundingBox, *it_point)) {
+                    noalias(coordinates) = it_point->Coordinates();
+                    rAllPointsIds.push_back(all_points_ids[i_point]);
+                    for (i_coord = 0; i_coord < 3; ++i_coord) {
+                        rAllPointsCoordinates.push_back(coordinates[i_coord]);
+                    }
+                }
+            }
+        }
+
+        // Shrink to actual size
+        rAllPointsIds.shrink_to_fit();
+        rAllPointsCoordinates.shrink_to_fit();
+
+        // Return the recv sizes
+        return all_points_ids;
     }
 
     /**
