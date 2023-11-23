@@ -62,7 +62,7 @@ public:
 
             const std::vector<std::string> strategy_entries = {"loads_sub_model_part_list",
                                                                "loads_variable_list"};
-            auto strategy_parameters = ExtractStrategyParameters(rSolverSettings, strategy_entries);
+            auto strategy_parameters = ParametersUtilities::ExtractParameters(rSolverSettings, strategy_entries);
             auto result = std::make_unique<GeoMechanicsNewtonRaphsonStrategy<TSparseSpace,
                     TDenseSpace,
                     TLinearSolver>>(rModelPart,
@@ -90,7 +90,7 @@ public:
                                                                "reform_dofs_at_each_step",
                                                                "echo_level"};
 
-            auto strategy_parameters = ExtractStrategyParameters(rSolverSettings, strategy_entries);
+            auto strategy_parameters = ParametersUtilities::ExtractParameters(rSolverSettings, strategy_entries);
             auto result = std::make_unique<LineSearchStrategy<TSparseSpace,
                     TDenseSpace,
                     TLinearSolver>>(rModelPart,
@@ -103,20 +103,6 @@ public:
 
         return nullptr;
     }
-
-private:
-    static Parameters ExtractStrategyParameters(const Parameters& rSolverSettings,
-                                                const std::vector<std::string>& strategy_entries) {
-        Parameters result;
-        for (const std::string &entry: strategy_entries) {
-            if (rSolverSettings.Has(entry)) {
-                result.AddValue(entry, rSolverSettings[entry]);
-            }
-        }
-
-        return result;
-    }
-
 };
 
 }
