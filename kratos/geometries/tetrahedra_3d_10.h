@@ -1077,7 +1077,7 @@ private:
         constexpr double tol = 1e-6;
         constexpr std::array<std::array<size_t, 3>, 6> edges{
             {{0, 1, 4}, {1, 2, 5}, {2, 0, 6}, {0, 3, 7}, {1, 3, 8}, {2, 3, 9}}};
-        const auto& r_points = Points();
+        const auto& r_points = this->Points();
         for (const auto& r_edge : edges) {
             const double a = MathUtils<double>::Norm3(r_points[r_edge[0]] - r_points[r_edge[1]]);
             const double b = MathUtils<double>::Norm3(r_points[r_edge[1]] - r_points[r_edge[2]]);
