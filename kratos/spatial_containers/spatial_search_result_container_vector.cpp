@@ -59,6 +59,29 @@ typename SpatialSearchResultContainerVector<TObjectType>::SpatialSearchResultCon
 /***********************************************************************************/
 
 template <class TObjectType>
+void SpatialSearchResultContainerVector<TObjectType>::InitializeResults(const std::vector<IndexType>& rIndexes)
+{
+    // Get the max index
+    const auto it_max_index = std::max_element(rIndexes.begin(), rIndexes.end());
+    const IndexType max_index = *it_max_index;
+
+    // Resize vector
+    if (max_index >= mPointResults.size()) {
+        mPointResults.resize(max_index + 1);
+    }
+
+    // Create the results
+    block_for_each(rIndexes, [this](const IndexType Index) {
+        if (!HasResult(Index)) {
+            mPointResults[Index] = new SpatialSearchResultContainer<TObjectType>();
+        }
+    });
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template <class TObjectType>
 bool SpatialSearchResultContainerVector<TObjectType>::HasResult(const IndexType Index) const
 {
     // Check size

@@ -36,6 +36,7 @@ namespace Kratos
  * @tparam TObjectType The type of the object
  * @ingroup KratosCore
  * @author Vicente Mataix Ferrandiz
+ * @todo Add a map of indexes to avoid store nullptr when a huge Id is considered
  */
 template <class TObjectType>
 class KRATOS_API(KRATOS_CORE) SpatialSearchResultContainerVector
@@ -222,6 +223,7 @@ public:
     /// Destructor.
     virtual ~SpatialSearchResultContainerVector() {
         // Make sure to delete the pointers stored in the container
+        // TODO: Delete in parallel
         for (auto pResult : mPointResults) {
             delete pResult;
         }
@@ -322,8 +324,15 @@ public:
     /**
      * @brief Initialize the container
      * @param Index The index to be initialized
+     * @return The result container
      */
     SpatialSearchResultContainerReferenceType InitializeResult(const IndexType Index);
+
+    /**
+     * @brief Initialize the container
+     * @param Indexes The indexes to be initialized
+     */
+    void InitializeResults(const std::vector<IndexType>& rIndexes);
 
     /**
      * @brief Check if coordinates are initialized
