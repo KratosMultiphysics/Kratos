@@ -15,7 +15,6 @@
 //  System includes
 
 //  External includes
-#include "Epetra_MpiComm.h"
 
 //  Project includes
 #include "solving_strategies/convergencecriterias/displacement_criteria.h"
