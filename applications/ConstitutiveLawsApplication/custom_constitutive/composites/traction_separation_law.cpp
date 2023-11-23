@@ -1037,6 +1037,8 @@ void TractionSeparationLaw3D<TDim>::FinalizeMaterialResponsePK2(ConstitutiveLaw:
                                             rValues.GetProcessInfo(),
                                             fatigue_interfacial_stress_vector_mode_one,
                                             equivalent_stress_mode_one_fred,
+                                            DelaminationDamageModeOne[i+1],
+                                            ThresholdModeOne[i],
                                             INTERFACIAL_NORMAL_STRENGTH);
 
             mFatigueDataContainersModeTwo[i].FinalizeSolutionStep(HCFVariablesModeTwo,
@@ -1044,6 +1046,8 @@ void TractionSeparationLaw3D<TDim>::FinalizeMaterialResponsePK2(ConstitutiveLaw:
                                             rValues.GetProcessInfo(),
                                             fatigue_interfacial_stress_vector_mode_two,
                                             equivalent_stress_mode_two,
+                                            DelaminationDamageModeTwo[i+1],
+                                            ThresholdModeTwo[i],
                                             INTERFACIAL_SHEAR_STRENGTH,
                                             USER_DEFINED_METHOD);
             // End fatigue calculations

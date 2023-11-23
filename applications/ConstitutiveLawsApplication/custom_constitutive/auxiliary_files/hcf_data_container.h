@@ -58,6 +58,7 @@ public:
         double PreviousMinStress = 0.0;
         double WohlerStress = 1.0;
         double Sth = 0.0;
+        double ReferenceDamage = 0.0;
         double CyclesToFailure = 0.0;
         bool NewCycle = false;
         double Alphat = 0.0;
@@ -132,6 +133,8 @@ public:
                             const ProcessInfo& rCurrentProcessInfo,
                             ConstitutiveLaw::StressVectorType stress_vector,
                             double uniaxial_stress,
+                            double damage,
+                            double threshold,
                             const Variable<double>& rVariable = YIELD_STRESS,
                             const Variable<bool>& rMethodVariable = DEFAULT_METHOD);
 
@@ -298,6 +301,7 @@ private:
     double mPreviousMinStress = 0.0;
     double mWohlerStress = 1.0;
     double mThresholdStress = 0.0;
+    double mReferenceDamage = 0.0;
     double mCyclesToFailure = std::numeric_limits<double>::infinity();
     bool mNewCycleIndicator = false;
     double mPreviousCycleTime = 0.0; // Instanced variable used in the advanciing process for the conversion between time and number of cycles.
