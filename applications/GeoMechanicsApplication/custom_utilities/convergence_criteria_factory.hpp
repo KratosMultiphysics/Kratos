@@ -36,7 +36,8 @@ public:
             const std::vector<std::string> entries_to_copy = {
                 "displacement_absolute_tolerance",
                 "displacement_relative_tolerance"};
-            Parameters convergence_inputs = ParametersUtilities::ExtractParameters(rSolverSettings, entries_to_copy);
+            const Parameters convergence_inputs =
+                ParametersUtilities::CopyOptionalParameters(rSolverSettings, entries_to_copy);
             return std::make_shared<DisplacementCriteria<TSparseSpace, TDenseSpace>>(convergence_inputs);
         }
         if (rSolverSettings["convergence_criterion"].GetString() ==
@@ -44,7 +45,8 @@ public:
         {
             const std::vector<std::string> entries_to_copy = {
                 "residual_absolute_tolerance", "residual_relative_tolerance"};
-            Parameters convergence_inputs = ParametersUtilities::ExtractParameters(rSolverSettings, entries_to_copy);
+            const auto convergence_inputs = ParametersUtilities::CopyOptionalParameters(
+                rSolverSettings, entries_to_copy);
             return std::make_shared<ResidualCriteria<TSparseSpace, TDenseSpace>>(convergence_inputs);
         }
 
