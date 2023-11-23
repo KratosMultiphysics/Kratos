@@ -263,6 +263,36 @@ void SpatialSearchResultContainerVector<TObjectType>::PrintData(std::ostream& rO
 /***********************************************************************************/
 
 template <class TObjectType>
+void SpatialSearchResultContainerVector<TObjectType>::CopyingValuesToGlobalResultsVector(
+    const std::vector<GlobalPointerResultType>& rGlobalResults,
+    const std::vector<std::size_t>& rActiveResults,
+    const std::vector<std::size_t>& rResultGlobalSize
+    )
+{
+    // Transfer to global pointer
+    std::size_t counter = 1;
+    std::size_t index_solution = 0;
+    std::size_t global_results_number_current_result = rResultGlobalSize[index_solution]; // I can do rResultGlobalSize[0], for consistency
+    auto p_result = mPointResults[rActiveResults[index_solution]]; // I can do mPointResults[rActiveResults[0]], for consistency
+    const std::size_t global_results_size = rGlobalResults.size();
+    for (std::size_t i_gp = 0; i_gp < global_results_size; ++i_gp) {
+        auto& r_gp = rGlobalResults[i_gp];
+        if (counter == global_results_number_current_result && i_gp < global_results_size - 1) {
+            counter = 1;
+            ++index_solution;
+            global_results_number_current_result = rResultGlobalSize[index_solution];
+            p_result = mPointResults[rActiveResults[index_solution]];
+        }
+        // Add to the result
+        p_result->GetGlobalResults().push_back(r_gp);
+        ++counter;
+    }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template <class TObjectType>
 void SpatialSearchResultContainerVector<TObjectType>::save(Serializer& rSerializer) const
 {
     rSerializer.save("PointResults", mPointResults);
