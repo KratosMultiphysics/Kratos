@@ -90,6 +90,7 @@ const std::string testParameters = R"(
     }
 )";
 
+
 KRATOS_TEST_CASE_IN_SUITE(CreateSolvingStrategy_Throws_WhenNoStrategyTypeIsDefined, KratosGeoMechanicsFastSuite)
 {
     Model model;
@@ -101,12 +102,28 @@ KRATOS_TEST_CASE_IN_SUITE(CreateSolvingStrategy_Throws_WhenNoStrategyTypeIsDefin
             parameters, dummy_model_part), "The parameter strategy_type is undefined, aborting.")
 }
 
-KRATOS_TEST_CASE_IN_SUITE(Create_ReturnsSolvingStrategy_ForNewtonRhapsonStrategy, KratosGeoMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(Create_ReturnsSolvingStrategy_ForNewtonRaphsonStrategy, KratosGeoMechanicsFastSuite)
 {
     Model model;
     const int buffer_size = 2;
     auto& dummy_model_part = model.CreateModelPart("dummy", buffer_size);
     const Parameters parameters{testParameters};
+
+    const auto created_strategy = SolvingStrategyFactoryType::Create(
+            parameters, dummy_model_part);
+
+    KRATOS_EXPECT_TRUE(created_strategy->GetMoveMeshFlag()) // since it is set to true in the parameters
+    KRATOS_EXPECT_NE(created_strategy, nullptr);
+    KRATOS_EXPECT_EQ(created_strategy->Check(), 0);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(Create_ReturnsSolvingStrategy_ForLineSearchStrategy, KratosGeoMechanicsFastSuite)
+{
+    Model model;
+    const int buffer_size = 2;
+    auto& dummy_model_part = model.CreateModelPart("dummy", buffer_size);
+    Parameters parameters{testParameters};
+    parameters["strategy_type"].SetString("line_search");
 
     const auto created_strategy = SolvingStrategyFactoryType::Create(
             parameters, dummy_model_part);

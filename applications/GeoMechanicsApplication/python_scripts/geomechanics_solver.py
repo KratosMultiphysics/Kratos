@@ -518,7 +518,6 @@ class GeoMechanicalSolver(PythonSolver):
             self.strategy_params.AddValue("max_alpha",                  self.settings["max_alpha"])
             self.strategy_params.AddValue("line_search_tolerance",      self.settings["line_search_tolerance"])
             self.strategy_params.AddValue("move_mesh_flag",             self.settings["move_mesh_flag"])
-            self.strategy_params.AddValue("move_mesh_flag",             self.settings["move_mesh_flag"])
             self.strategy_params.AddValue("reform_dofs_at_each_step",   self.settings["reform_dofs_at_each_step"])
             self.strategy_params.AddValue("echo_level",                 self.settings["echo_level"])
 
