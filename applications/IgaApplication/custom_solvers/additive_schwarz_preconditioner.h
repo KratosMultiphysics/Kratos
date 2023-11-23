@@ -239,7 +239,9 @@ private:
 
         mpS = TSparseSpaceType::CreateEmptyMatrixPointer();
         SparseMatrixType& S = *mpS;
-
+        std::cout << "Size: " << rA.size1() << ", " << rA.size2() << std::endl;
+        std::cout << "Capacity: " << rA.nnz_capacity() << std::endl;
+        std::cout << "NNZ: " << rA.nnz() << std::endl;
         S.resize(rA.size1(), rA.size1(), false);
         S.reserve(rA.nnz_capacity(), false);
 
@@ -289,9 +291,9 @@ private:
 
         double M_det = 0.0;
         DenseMatrixType M_invert = ZeroMatrix(local_size, local_size);
-        M_invert = omega * M_invert;
         //@TODO Replace this by dense solver.
         MathUtils<double>::InvertMatrix(M, M_invert, M_det, -1e-6);
+        M_invert = omega * M_invert;
 
         for (IndexType i_local = 0; i_local < local_size; ++i_local) {
             const IndexType i_global = rEquationId[i_local];

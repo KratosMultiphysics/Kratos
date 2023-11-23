@@ -19,6 +19,7 @@
 #include "custom_conditions/point_load_condition.h"
 #include "utilities/math_utils.h"
 #include "utilities/integration_utilities.h"
+#include "includes/variables.h"
 
 namespace Kratos
 {
@@ -126,6 +127,9 @@ void PointLoadCondition::CalculateAll(
         noalias(PointLoad) = this->GetValue( POINT_LOAD );
     }
 
+    const double Time = rCurrentProcessInfo[TIME];
+    const double value = std::sin(4.0 * Time);
+
     for (unsigned int ii = 0; ii < NumberOfNodes; ++ii)
     {
         const unsigned int base = ii*Dimension;
@@ -137,7 +141,7 @@ void PointLoadCondition::CalculateAll(
 
         for(unsigned int k = 0; k < Dimension; ++k)
         {
-            rRightHandSideVector[base + k] += GetPointLoadIntegrationWeight() * PointLoad[k];
+            rRightHandSideVector[base + k] += GetPointLoadIntegrationWeight() * PointLoad[k]; // * value;
         }
     }
 

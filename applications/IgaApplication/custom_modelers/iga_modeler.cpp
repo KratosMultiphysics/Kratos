@@ -4,7 +4,7 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:         BSD License 
+//  License:         BSD License
 //                   Kratos default license: kratos/license.txt
 //
 
@@ -168,8 +168,30 @@ namespace Kratos
                 rGeometryList[i].CreateQuadraturePointGeometries(
                     geometries, shape_function_derivatives_order, integration_info);
             }
+            int value_1 = integration_info.GetNumberOfIntegrationPointsPerSpan(0);
+            int value_2 = integration_info.GetNumberOfIntegrationPointsPerSpan(1);
+            int iteration = 0;
+            while( geometries.size() == 0 && iteration < 100){
+                value_1++;
+                value_2++;
+                integration_info.SetNumberOfIntegrationPointsPerSpan(0,value_1);
+                integration_info.SetNumberOfIntegrationPointsPerSpan(1,value_2);
+                //integration_info.SetNumberOfIntegrationPointsPerSpan(0,value);
+                if (GeometryType == "SurfaceEdge"
+                    && rGeometryList[i].GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Coupling_Geometry)
+                {
+                    rGeometryList[i].GetGeometryPart(0).CreateQuadraturePointGeometries(
+                        geometries, shape_function_derivatives_order, integration_info);
+                }
+                else
+                {
+                    rGeometryList[i].CreateQuadraturePointGeometries(
+                        geometries, shape_function_derivatives_order, integration_info);
+                }
+                iteration++;
 
-            KRATOS_INFO_IF("CreateQuadraturePointGeometries", mEchoLevel > 1)
+            }
+            KRATOS_INFO_IF("CreateQuadraturePointGeometries", mEchoLevel > 1 && geometries.size()==0 )
                 << geometries.size() << " quadrature point geometries have been created." << std::endl;
 
             if (type == "element" || type == "Element") {

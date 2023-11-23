@@ -89,7 +89,7 @@ If the application is compiled with MKL, [FEAST 4.0](http://www.ecs.umass.edu/~p
     "number_of_eigenvalues": 3,
     "search_lowest_eigenvalues": true,
     "e_min" : 0.0,
-    "e_max" : 0.2
+    "e_max" : 0.2,
 }
 ```
 

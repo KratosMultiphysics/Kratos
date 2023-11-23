@@ -398,6 +398,105 @@ public:
         }
 
 
+        // Remove Predict!!!
+        // const int DomainSize = 3;
+        // const double beta = 0.25;
+        // const double gamma = 0.5;
+
+        // #pragma omp parallel for schedule(guided,512)
+        // for (int i = 0; i < static_cast<int>(r_nodes.size()); ++i) {
+        //     const auto it_node = it_node_begin + i;
+        //     array_1d<double, 3>& r_prev_acceleration = it_node->FastGetSolutionStepValue(ACCELERATION, 1);
+        //     array_1d<double, 3>& r_current_acceleration = it_node->FastGetSolutionStepValue(ACCELERATION);
+
+        //     array_1d<double, 3>& r_prev_velocity = it_node->FastGetSolutionStepValue(VELOCITY, 1);
+        //     array_1d<double, 3>& r_current_velocity = it_node->FastGetSolutionStepValue(VELOCITY);
+
+        //     array_1d<double, 3>& r_prev_displacement = it_node->FastGetSolutionStepValue(DISPLACEMENT,1);
+        //     array_1d<double, 3>& r_current_displacement = it_node->FastGetSolutionStepValue(DISPLACEMENT);
+
+        //     for (IndexType j = 0; j < 3; j++) {
+        //         r_current_acceleration[j] = 0.0;
+        //         r_current_velocity[j] = r_prev_velocity[j] + mTime.Delta * (1.0-gamma)*r_prev_acceleration[j];
+        //         r_current_displacement[j] = r_prev_displacement[j] + mTime.Delta * r_prev_velocity[j] + (1.0 - 2.0*beta) * mTime.Delta*mTime.Delta / 2.0 * r_prev_acceleration[j];
+
+        //         r_prev_velocity[j] = r_current_velocity[j];
+        //         r_prev_displacement[j] = r_current_displacement[j];
+        //     }
+        // }
+
+        // for( int k = 0; k < 3; ++k){
+        //     const auto it_element_begin = rModelPart.ElementsBegin();
+        //     #pragma omp parallel for schedule(guided,512)
+        //     for (int i = 0; i < static_cast<int>(r_nodes.size()); ++i) {
+        //         const auto it_node = it_node_begin + i;
+        //         array_1d<double, 3>& r_current_residual = it_node->FastGetSolutionStepValue(FORCE_RESIDUAL);
+        //         for (IndexType j = 0; j < DomainSize; j++) {
+        //             r_current_residual[j] = 0.0;
+        //         }
+        //     }
+        //     this->CalculateAndAddRHS(rModelPart);
+        //     // #pragma omp parallel for schedule(guided,512)
+        //     // for(int i =0; i < static_cast<int>( rModelPart.NumberOfElements()); ++i){
+        //     //     const auto it_element = it_element_begin + i;
+        //     //     Vector RHS_Contribution{};
+        //     //     it_element->CalculateRightHandSide(RHS_Contribution, r_current_process_info);
+        //     //     it_element->AddExplicitContribution(RHS_Contribution, RESIDUAL_VECTOR, FORCE_RESIDUAL, r_current_process_info);
+        //     //     //Vector dummy_vector{};
+        //     //     //it_element->AddExplicitContribution(dummy_vector, RESIDUAL_VECTOR, NODAL_MASS, r_current_process_info);
+        //     // }
+
+        //     #pragma omp parallel for schedule(guided,512)
+        //     for (int i = 0; i < static_cast<int>(r_nodes.size()); ++i) {
+        //         // Current step information "N+1" (before step update).
+        //         const auto it_node = it_node_begin + i;
+        //         array_1d<double, 3>& r_current_acceleration = it_node->FastGetSolutionStepValue(ACCELERATION);
+        //         array_1d<double, 3>& r_current_velocity = it_node->FastGetSolutionStepValue(VELOCITY);
+        //         array_1d<double, 3>& r_current_displacement = it_node->FastGetSolutionStepValue(DISPLACEMENT);
+
+        //         array_1d<double, 3>& r_prev_velocity = it_node->FastGetSolutionStepValue(VELOCITY, 1);
+        //         array_1d<double, 3>& r_prev_displacement = it_node->FastGetSolutionStepValue(DISPLACEMENT, 1);
+
+        //         const array_1d<double, 3>& r_current_residual = it_node->FastGetSolutionStepValue(FORCE_RESIDUAL);
+        //         const double nodal_mass = it_node->GetValue(NODAL_MASS);
+
+        //         array_1d<double, 3> delta_acceleration{};
+        //         if (nodal_mass > numerical_limit)
+        //             delta_acceleration = (r_current_residual) / nodal_mass;
+        //         else
+        //             delta_acceleration = ZeroVector(3);
+
+        //         std::array<bool, 3> fix_displacements = {false, false, false};
+
+        //         fix_displacements[0] = (it_node->GetDof(DISPLACEMENT_X, disppos).IsFixed());
+        //         fix_displacements[1] = (it_node->GetDof(DISPLACEMENT_Y, disppos + 1).IsFixed());
+        //         if (DomainSize == 3)
+        //             fix_displacements[2] = (it_node->GetDof(DISPLACEMENT_Z, disppos + 2).IsFixed());
+
+        //         for (IndexType j = 0; j < DomainSize; j++) {
+        //             if (fix_displacements[j]) {
+        //                 delta_acceleration[j] = 0.0;
+
+        //             }
+
+        //             r_current_acceleration[j] = r_current_acceleration[j] + delta_acceleration[j];
+        //             r_current_velocity[j] = r_prev_velocity[j] + gamma*mTime.Delta * r_current_acceleration[j];
+        //             r_current_displacement[j] = r_prev_displacement[j] + beta*mTime.Delta*mTime.Delta * r_current_acceleration[j];
+        //         } // for DomainSize
+
+        //     }
+
+
+        // }
+
+        // if (has_dof_for_rot_z){
+        //     #pragma omp parallel for schedule(guided,512)
+        //     for (int i = 0; i < static_cast<int>(r_nodes.size()); ++i) {
+        //         this->UpdateRotationalDegreesOfFreedom(it_node_begin + i, rotppos, dim);
+        //     } // for Node parallel
+        // }
+
+
         KRATOS_CATCH("")
     }
 

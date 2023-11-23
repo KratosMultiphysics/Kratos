@@ -17,6 +17,7 @@
 
 // Project includes
 #include "custom_conditions/support_penalty_condition.h"
+#include "utilities/atomic_utilities.h"
 
 namespace Kratos
 {
@@ -128,6 +129,38 @@ namespace Kratos
 
             rDeterminantOfJacobian[point_number] = norm_2(a_1 * local_tangent[0] + a_2 * local_tangent[1]);
         }
+    }
+
+
+    void SupportPenaltyCondition::AddExplicitContribution(
+        const VectorType& rRHSVector,
+        const Variable<VectorType>& rRHSVariable,
+        const Variable<array_1d<double, 3>>& rDestinationVariable,
+        const ProcessInfo& rCurrentProcessInfo
+        )
+    {
+        KRATOS_TRY;
+
+        // Computing the force residual
+        if (rRHSVariable == RESIDUAL_VECTOR && rDestinationVariable == FORCE_RESIDUAL) {
+            // Getting geometries
+            GeometryType& r_geom = this->GetGeometry();
+
+            const SizeType dimension = r_geom.WorkingSpaceDimension();
+            const SizeType number_of_nodes = r_geom.size();
+            for (IndexType i = 0; i < number_of_nodes; ++i) {
+                const IndexType index = dimension * i;
+
+                array_1d<double, 3>& r_force_residual = r_geom[i].FastGetSolutionStepValue(FORCE_RESIDUAL);
+
+                for (IndexType j = 0; j < dimension; ++j) {
+                    AtomicAdd(r_force_residual[j], (rRHSVector[index + j]));
+                }
+            }
+
+        }
+
+        KRATOS_CATCH("")
     }
 
     int SupportPenaltyCondition::Check(const ProcessInfo& rCurrentProcessInfo) const

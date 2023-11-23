@@ -135,6 +135,8 @@ public:
 
         bool is_solved = IterativeSolve(rA,rX,rB);
 
+        KRATOS_WARNING("CG Linear Solver")<<"Non converged linear solution. ["<< BaseType::GetResidualNorm()/BaseType::mBNorm << " > "<<  BaseType::GetTolerance() << "]" << std::endl;
+        KRATOS_WARNING("CG Linear Solver")<< "Iteration: " << BaseType::mIterationsNumber << std::endl;
         BaseType::GetPreconditioner()->Finalize(rX);
 
         return is_solved;
@@ -166,6 +168,8 @@ public:
             BaseType::GetPreconditioner()->ApplyLeft(b);
 
             is_solved &= IterativeSolve(rA,x,b);
+
+            KRATOS_WARNING("CG Linear Solver")<<"Non converged linear solution. ["<< BaseType::GetResidualNorm()/BaseType::mBNorm << " > "<<  BaseType::GetTolerance() << "]" << std::endl;
 
             BaseType::GetPreconditioner()->Finalize(x);
         }
@@ -317,7 +321,7 @@ private:
 // KRATOS_WATCH("ln344");
 	    alpha = TSparseSpaceType::Dot(rs,q);
 	    if (fabs(alpha) <= 1.0e-40)
-	      break;
+	      alpha = 1e-20;
             alpha = roh0 / alpha;
 
             TSparseSpaceType::ScaleAndAdd(1.00, r, -alpha, q, s);
@@ -328,7 +332,7 @@ private:
 
             //if(omega == 0.00)
             if(fabs(omega) <= 1.0e-40)
-                break;
+                omega = 1e-20;
 // KRATOS_WATCH("ln356");
             omega = TSparseSpaceType::Dot(qs,s) / omega;
 
@@ -339,8 +343,10 @@ private:
             roh1 = TSparseSpaceType::Dot(r,rs);
 
             //if((roh0 == 0.00) || (omega == 0.00))
-            if((fabs(roh0) <= 1.0e-40) || (fabs(omega) <= 1.0e-40))
-                break;
+            if((fabs(roh0) <= 1.0e-40))
+                roh0 = 1e-20;
+            if((fabs(omega) <= 1.0e-40))
+                omega = 1e-20;
 
             beta = (roh1 * alpha) / (roh0 * omega);
 // KRATOS_WATCH("ln370");
@@ -350,11 +356,18 @@ private:
             roh0 = roh1;
 
             BaseType::mResidualNorm =TSparseSpaceType::TwoNorm(r);
+
             BaseType::mIterationsNumber++;
+            if( BaseType::mIterationsNumber % 100 == 0){
+                std::cout << "Current Residual: " << BaseType::GetResidualNorm()/BaseType::mBNorm << std::endl;
+            }
 
         }
         while(BaseType::IterationNeeded());
 
+        std::cout << "alpha: " << alpha << std::endl;
+        std::cout << "roh0: " << roh0 << std::endl;
+        std::cout << "omega: " << omega << std::endl;
         return BaseType::IsConverged();
     }
 

@@ -502,6 +502,20 @@ void BaseSolidElement::AddExplicitContribution(
         noalias(damping_residual_contribution) = prod(damping_matrix, current_nodal_velocities);
     }
 
+    // Vector inertia_term = ZeroVector(element_size);
+    // Vector nodal_acceleration = ZeroVector(element_size);
+    // for (IndexType i = 0; i < number_of_nodes; ++i) {
+    //     const IndexType index = dimension * i;
+
+    //     const array_1d<double, 3 >& acceleration = r_geom[i].FastGetSolutionStepValue(ACCELERATION);
+    //     for (IndexType j = 0; j < dimension; ++j) {
+    //         nodal_acceleration[index+j] = acceleration[j];
+    //     }
+    // }
+    // Matrix mass_matrix;
+    // CalculateMassMatrix(mass_matrix, rCurrentProcessInfo);
+    // inertia_term = prod(mass_matrix, nodal_acceleration);
+
     // Computing the force residual
     if (rRHSVariable == RESIDUAL_VECTOR && rDestinationVariable == FORCE_RESIDUAL) {
         for (IndexType i = 0; i < number_of_nodes; ++i) {
@@ -510,7 +524,7 @@ void BaseSolidElement::AddExplicitContribution(
             array_1d<double, 3>& r_force_residual = r_geom[i].FastGetSolutionStepValue(FORCE_RESIDUAL);
 
             for (IndexType j = 0; j < dimension; ++j) {
-                AtomicAdd(r_force_residual[j], (rRHSVector[index + j] - damping_residual_contribution[index + j]));
+                AtomicAdd(r_force_residual[j], (rRHSVector[index + j] - damping_residual_contribution[index + j] )); //- inertia_term[index+j]
             }
         }
     }
@@ -602,7 +616,9 @@ void BaseSolidElement::CalculateMassMatrix(
     KRATOS_ERROR_IF_NOT(r_prop.Has(DENSITY)) << "DENSITY has to be provided for the calculation of the MassMatrix!" << std::endl;
 
     // Checking if computing lumped mass matrix
-    const bool compute_lumped_mass_matrix = StructuralMechanicsElementUtilities::ComputeLumpedMassMatrix(r_prop, rCurrentProcessInfo);
+    const bool compute_lumped_mass_matrix = true; //StructuralMechanicsElementUtilities::ComputeLumpedMassMatrix(r_prop, rCurrentProcessInfo);
+
+    //std::cout << "lumped: " << compute_lumped_mass_matrix << std::endl;
 
     // LUMPED MASS MATRIX
     if (compute_lumped_mass_matrix) {
@@ -616,10 +632,12 @@ void BaseSolidElement::CalculateMassMatrix(
 
         Matrix J0(dimension, dimension);
 
-        IntegrationMethod integration_method = IntegrationUtilities::GetIntegrationMethodForExactMassMatrixEvaluation(r_geom);
+        //IntegrationMethod integration_method = IntegrationUtilities::GetIntegrationMethodForExactMassMatrixEvaluation(r_geom);
+
+        IntegrationMethod integration_method = GeometryData::IntegrationMethod::GI_GAUSS_1;
         const GeometryType::IntegrationPointsArrayType& integration_points = r_geom.IntegrationPoints( integration_method );
         const Matrix& Ncontainer = r_geom.ShapeFunctionsValues(integration_method);
-
+        //std::cout << "point_number: " << integration_points.size() << std::endl;
         for ( IndexType point_number = 0; point_number < integration_points.size(); ++point_number ) {
             GeometryUtils::JacobianOnInitialConfiguration(
                 r_geom, integration_points[point_number], J0);
@@ -639,6 +657,7 @@ void BaseSolidElement::CalculateMassMatrix(
                         rMassMatrix( index_i + k, index_j + k ) += NiNj_weight;
                 }
             }
+            //std::cout << "mass: " << rMassMatrix( 0, 0 ) << std::endl;
         }
     }
 
@@ -783,6 +802,7 @@ void BaseSolidElement::CalculateOnIntegrationPoints(
             // If strain has to be computed inside of the constitutive law with PK2
             Values.SetStrainVector(this_constitutive_variables.StrainVector); //this is the input  parameter
 
+            //std::cout << number_of_integration_points << std::endl;
             for (IndexType point_number = 0; point_number < number_of_integration_points; ++point_number) {
                 // Compute element kinematics B, F, DN_DX ...
                 CalculateKinematicVariables(this_kinematic_variables, point_number, this->GetIntegrationMethod());
@@ -794,7 +814,10 @@ void BaseSolidElement::CalculateOnIntegrationPoints(
 
                 mConstitutiveLawVector[point_number]->CalculateValue(Values, STRAIN_ENERGY, StrainEnergy);
 
-                rOutput[point_number] = StrainEnergy;
+                Vector detJ(number_of_integration_points);
+                detJ = r_geometry.DeterminantOfJacobian(detJ);
+
+                rOutput[point_number] = StrainEnergy*integration_points[point_number].Weight()*detJ[point_number];
             }
         } else if ( rVariable == ERROR_INTEGRATION_POINT ) {
             const SizeType number_of_nodes = r_geometry.size();
@@ -816,64 +839,170 @@ void BaseSolidElement::CalculateOnIntegrationPoints(
             // Reading integration points
             const GeometryType::IntegrationPointsArrayType& integration_points = r_geometry.IntegrationPoints(  );
 
-            //Calculate Cauchy Stresses from the FE solution
-            std::vector<Vector> sigma_FE_solution(number_of_nodes);
-            const Variable<Vector>& r_variable_stress = CAUCHY_STRESS_VECTOR;
-            CalculateOnIntegrationPoints(r_variable_stress, sigma_FE_solution, rCurrentProcessInfo);
+            double x = (integration_points[0].X() * std::abs(2.0 - 0.00000000) ) + 0.00000000;
+            double y = (integration_points[0].Y() * std::abs(2.0 - 0.00000000) ) + 0.00000000;
+            double z = (integration_points[0].Z() * std::abs(5.0 - 0.00000000) ) + 0.00000000;
 
-            // calculate the determinatn of the Jacobian in the current configuration
-            Vector detJ(number_of_integration_points);
-            detJ = r_geometry.DeterminantOfJacobian(detJ);
+            double radius = std::sqrt(x*x + y*y);
+            double phi = -std::asin(y/radius);
 
-            // If strain has to be computed inside of the constitutive law with PK2
-            Values.SetStrainVector(this_constitutive_variables.StrainVector); //this is the input  parameter
+            // std::cout << "Phi: " << phi*180/3.14 << std::endl;
+            if( true ) { //z < 3.0 && z > 2.0 && std::abs(phi)*180.0/3.14159265359 > 30 && std::abs(phi)*180.0/3.14159265359 < 60) {
 
-            if (r_geometry[0].Has(RECOVERED_STRESS)) {
-                for (IndexType point_number = 0; point_number < number_of_integration_points; point_number++) {
-                    // Compute element kinematics B, F, DN_DX ...
-                    CalculateKinematicVariables(this_kinematic_variables, point_number, this->GetIntegrationMethod());
+                //Calculate Cauchy Stresses from the FE solution
+                std::vector<Vector> sigma_FE_solution(number_of_nodes);
+                const Variable<Vector>& r_variable_stress = CAUCHY_STRESS_VECTOR;
+                CalculateOnIntegrationPoints(r_variable_stress, sigma_FE_solution, rCurrentProcessInfo);
 
-                    // Compute material reponse
-                    CalculateConstitutiveVariables(this_kinematic_variables, this_constitutive_variables, Values, point_number, integration_points, GetStressMeasure());
+                // calculate the determinatn of the Jacobian in the current configuration
+                Vector detJ(number_of_integration_points);
+                detJ = r_geometry.DeterminantOfJacobian(detJ);
 
-                    double integration_weight = GetIntegrationWeight(integration_points, point_number, detJ[point_number]);
+                // std::cout << "in here: " << std::endl;
+                // for( int i = 0; i < sigma_FE_solution.size(); ++i){
+                //     std::cout << sigma_FE_solution[i] << ", ";
+                // }
+                // std::cout << '\n';
 
-                    if (dimension == 2 && this->GetProperties().Has(THICKNESS))
-                        integration_weight *= this->GetProperties()[THICKNESS];
-
-                    // Calculate recovered stresses at integration points
-                    Vector sigma_recovered = ZeroVector(strain_size);
-
-                    // sigma_recovered = sum(N_i * sigma_recovered_i)
-                    for (IndexType node_number=0; node_number<number_of_nodes; node_number++) {
-                        const auto& r_sigma_recovered_node = r_geometry[node_number].GetValue(RECOVERED_STRESS);
-                        for (IndexType stress_component = 0; stress_component<strain_size; stress_component++) {
-                            sigma_recovered[stress_component] += this_kinematic_variables.N[node_number] * r_sigma_recovered_node[stress_component];
-                        }
+                BoundedMatrix<double, 3, 3> rotation_matrix{};
+                for( int i = 0; i < 3; ++i){
+                    for( int j = 0; j < 3; ++j){
+                        rotation_matrix(i,j) = 0.0;
                     }
-
-                    // Calculate error_sigma
-                    Vector error_sigma(strain_size);
-                    error_sigma = sigma_recovered - sigma_FE_solution[point_number];
-
-                    // For debug
-                    KRATOS_TRACE("ERROR_INTEGRATION_POINT")
-                    <<"sigma recovered: " << sigma_recovered << std::endl
-                    <<"sigma FE: " << sigma_FE_solution[point_number] << std::endl;
-
-                    // Calculate inverse of material matrix
-                    Matrix invD(strain_size,strain_size);
-                    double detD;
-                    MathUtils<double>::InvertMatrix(this_constitutive_variables.D, invD,detD);
-
-                    // Calculate error_energy
-                    rOutput[point_number] = integration_weight * inner_prod(error_sigma, prod(invD, error_sigma));
                 }
-            } else {
-                for (IndexType point_number = 0; point_number < number_of_integration_points; point_number++) {
-                    rOutput[point_number] = 0.0;
-                }
+                rotation_matrix(0,0) = std::cos(phi);
+                rotation_matrix(1,1) = std::cos(phi);
+                rotation_matrix(0,1) = std::sin(phi);
+                rotation_matrix(1,0) = -std::sin(phi);
+                rotation_matrix(2,2) = 1;
+
+                //xy
+                //yz
+                //xz
+
+                double p = 20.0;
+                double E = 40.0;
+                double Ri = 1.0;
+                double Ro = 2.0;
+                double sigma_rr = p*Ri*Ri / ( Ro*Ro - Ri*Ri) - p * Ri*Ri*Ro*Ro / ( radius*radius*(Ro*Ro - Ri*Ri));
+                double sigma_phi =   p*Ri*Ri / ( Ro*Ro - Ri*Ri) + p * Ri*Ri*Ro*Ro / ( radius*radius*(Ro*Ro - Ri*Ri));
+
+                BoundedMatrix<double, 3, 3> fe_stress;
+                fe_stress(0,0) = sigma_rr;
+                fe_stress(1,1) = sigma_phi;
+                fe_stress(2,2) = 0.0;
+
+                fe_stress(0,1) = 0.0;
+                fe_stress(1,0) = 0.0;
+
+                fe_stress(1,2) = 0.0;
+                fe_stress(2,1) = 0.0;
+
+                fe_stress(0,2) = 0.0;
+                fe_stress(2,0) = 0.0;
+
+                BoundedMatrix<double, 3, 3> rotation_trans = trans(rotation_matrix);
+                BoundedMatrix<double, 3, 3> first_res = prod(rotation_matrix, fe_stress);
+                BoundedMatrix<double, 3, 3> rotated_stress = prod(first_res, rotation_trans);
+
+
+
+                // std::cout << "sigma_rr: " << sigma_rr << std::endl;
+                // std::cout << "sigma_phi: " << sigma_phi << std::endl;
+
+                // for( int i = 0; i < 3; ++i){
+                //     for( int j = 0; j < 3; ++j){
+                //         std::cout << rotated_stress(i,j) << " , ";
+                //     }
+                //     // std::cout << '\n';
+                // }
+                // std::cout << '\n';
+                Vector sigma_anal = ZeroVector(6);
+                sigma_anal[0] =  rotated_stress(0,0);
+                sigma_anal[1] =  rotated_stress(1,1);
+                sigma_anal[2] =  rotated_stress(2,2);
+
+                sigma_anal[3] = rotated_stress(0,1);
+                sigma_anal[3] = rotated_stress(1,0);
+
+                sigma_anal[4] = rotated_stress(1,2);
+                sigma_anal[4] = rotated_stress(2,1);
+
+                sigma_anal[5] = rotated_stress(0,2);
+                sigma_anal[5] = rotated_stress(2,0);
+
+
+                // sigma_anal[0] = sigma_rr;
+                // sigma_anal[1] = sigma_phi;
+                // If strain has to be computed inside of the constitutive law with PK2
+                Values.SetStrainVector(this_constitutive_variables.StrainVector); //this is the input  parameter
+
+                //if (r_geometry[0].Has(RECOVERED_STRESS)) {
+                    for (IndexType point_number = 0; point_number < number_of_integration_points; point_number++) {
+                        // Compute element kinematics B, F, DN_DX ...
+                        CalculateKinematicVariables(this_kinematic_variables, point_number, this->GetIntegrationMethod());
+
+                        // Compute material reponse
+                        CalculateConstitutiveVariables(this_kinematic_variables, this_constitutive_variables, Values, point_number, integration_points, GetStressMeasure());
+
+                        double integration_weight = GetIntegrationWeight(integration_points, point_number, detJ[point_number]);
+
+                        if (dimension == 2 && this->GetProperties().Has(THICKNESS))
+                            integration_weight *= this->GetProperties()[THICKNESS];
+
+                        // Calculate recovered stresses at integration points
+                        Vector sigma_recovered = ZeroVector(strain_size);
+
+                        // sigma_recovered = sum(N_i * sigma_recovered_i)
+                        // for (IndexType node_number=0; node_number<number_of_nodes; node_number++) {
+                        //     const auto& r_sigma_recovered_node = r_geometry[node_number].GetValue(RECOVERED_STRESS);
+                        //     for (IndexType stress_component = 0; stress_component<strain_size; stress_component++) {
+                        //         sigma_recovered[stress_component] += this_kinematic_variables.N[node_number] * r_sigma_recovered_node[stress_component];
+                        //     }
+                        // }
+
+                        // calculate the determinatn of the Jacobian in the current configuration
+                        Vector detJ(number_of_integration_points);
+                        detJ = r_geometry.DeterminantOfJacobian(detJ);
+
+                        // Calculate error_sigma
+                        Vector error_sigma(strain_size);
+                        if( rCurrentProcessInfo[IS_RESTARTED] == true )
+                        {
+                            error_sigma = sigma_anal - sigma_FE_solution[0];
+                        } else {
+                            error_sigma = sigma_anal;
+                        }
+
+                        // For debug
+                        // KRATOS_TRACE("ERROR_INTEGRATION_POINT")
+                        // <<"sigma recovered: " << sigma_recovered << std::endl
+                        // <<"sigma FE: " << sigma_FE_solution[point_number] << std::endl;
+
+                        //std::cout << error_sigma << ", ";
+
+                        //std::cout << '\n';
+
+                        // Calculate inverse of material matrix
+                        Matrix invD(strain_size,strain_size);
+                        double detD;
+                        MathUtils<double>::InvertMatrix(this_constitutive_variables.D, invD,detD);
+
+                        // Calculate error_energy
+                        rOutput.resize(2);
+                        rOutput[0] = integration_weight * inner_prod(error_sigma, prod(invD, error_sigma));
+                        rOutput[1] = integration_weight * inner_prod(error_sigma, error_sigma);
+
+                    }
             }
+            else {
+                rOutput[0] = 0.0;
+            }
+            // } else {
+            //     for (IndexType point_number = 0; point_number < number_of_integration_points; point_number++) {
+            //         rOutput[point_number] = 0.0;
+            //     }
+            // }
         } else if (rVariable == VON_MISES_STRESS) {
             const SizeType number_of_nodes = r_geometry.size();
             const SizeType dimension = r_geometry.WorkingSpaceDimension();
@@ -1041,6 +1170,7 @@ void BaseSolidElement::CalculateOnIntegrationPoints(
                     CalculateConstitutiveVariables(this_kinematic_variables, this_constitutive_variables, Values, point_number, integration_points, ConstitutiveLaw::StressMeasure_Cauchy);
                 } else {
                     // Compute material reponse
+                //std::cout << "Value: " << std::endl;
                     CalculateConstitutiveVariables(this_kinematic_variables, this_constitutive_variables, Values, point_number, integration_points,ConstitutiveLaw::StressMeasure_PK2);
                 }
 
@@ -1835,20 +1965,84 @@ void BaseSolidElement::CalculateLumpedMassVector(
     const double density = StructuralMechanicsElementUtilities::GetDensityForMassMatrixComputation(*this);
     const double thickness = (dimension == 2 && r_prop.Has(THICKNESS)) ? r_prop[THICKNESS] : 1.0;
 
-    // LUMPED MASS MATRIX
-    const double total_mass = GetGeometry().DomainSize() * density * thickness;
+ // LUMPED MASS MATRIX
+    // const double total_mass = GetGeometry().DomainSize() * density * thickness;
 
-    Vector lumping_factors;
-    lumping_factors = GetGeometry().LumpingFactors( lumping_factors );
+    // Vector lumping_factors;
+    // lumping_factors = GetGeometry().LumpingFactors( lumping_factors );
 
-    for ( IndexType i = 0; i < number_of_nodes; ++i ) {
-        const double temp = lumping_factors[i] * total_mass;
-        for ( IndexType j = 0; j < dimension; ++j ) {
-            IndexType index = i * dimension + j;
-            rLumpedMassVector[index] = temp;
+    // for ( IndexType i = 0; i < number_of_nodes; ++i ) {
+    //     const double temp = lumping_factors[i] * total_mass;
+    //     for ( IndexType j = 0; j < dimension; ++j ) {
+    //         IndexType index = i * dimension + j;
+    //         rLumpedMassVector[index] = temp;
+    //     }
+    // }
+
+
+
+    Matrix J0(dimension, dimension);
+
+    // // Clear matrix
+    Matrix rMassMatrix = ZeroMatrix( mat_size, mat_size );
+
+    IntegrationMethod integration_method = GeometryData::IntegrationMethod::GI_GAUSS_1;
+    const GeometryType::IntegrationPointsArrayType& integration_points = r_geom.IntegrationPoints( integration_method );
+    const Matrix& Ncontainer = r_geom.ShapeFunctionsValues(integration_method);
+
+    double total_mass = 0.0;
+    double test = 0.0;
+    //std::cout << "point_number: " << integration_points.size() << std::endl;
+    for ( IndexType point_number = 0; point_number < integration_points.size(); ++point_number ) {
+        GeometryUtils::JacobianOnInitialConfiguration(
+            r_geom, integration_points[point_number], J0);
+        const double detJ0 = MathUtils<double>::Det(J0);
+        const double integration_weight =
+            GetIntegrationWeight(integration_points, point_number, detJ0) * thickness;
+        const Vector& rN = row(Ncontainer,point_number);
+
+        for ( IndexType i = 0; i < number_of_nodes; ++i ) {
+            const SizeType index_i = i * dimension;
+
+            for ( IndexType j = 0; j < number_of_nodes; ++j ) {
+                const SizeType index_j = j * dimension;
+                const double NiNj_weight = rN[i] * rN[j] * integration_weight * density;
+                test += rN[i] * rN[j];
+                for ( IndexType k = 0; k < dimension; ++k )
+                    rMassMatrix( index_i + k, index_j + k ) += NiNj_weight;
+            }
         }
+        total_mass += density*integration_weight;
     }
 
+    //KRATOS_WATCH(test);
+    // LUMPED MASS MATRIX
+    //const double total_mass = GetGeometry().DomainSize() * density * thickness;
+
+    //Vector lumping_factors;
+    //lumping_factors = GetGeometry().LumpingFactors( lumping_factors, GeometryType::LumpingMethods::DIAGONAL_SCALING );
+    // for ( IndexType i = 0; i < number_of_nodes; ++i ) {
+    //     const double temp = lumping_factors[i] * total_mass;
+    //     for ( IndexType j = 0; j < dimension; ++j ) {
+    //         IndexType index = i * dimension + j;
+    //         rLumpedMassVector[index] = temp;
+    //     }
+    // }
+    // double sum_mass = 0.0;
+    // for(IndexType i = 0; i < rMassMatrix.size1(); ++i){
+    //     rLumpedMassVector(i) = rMassMatrix(i,i);
+    //     sum_mass += rMassMatrix(i,i);
+    // }
+
+    // rLumpedMassVector *= total_mass/sum_mass;
+    for( IndexType i = 0; i < rMassMatrix.size1(); ++i){
+        double row_sum = 0.0;
+        for( IndexType j = 0; j < rMassMatrix.size2(); ++j){
+            row_sum += rMassMatrix(i,j);
+        }
+        rLumpedMassVector[i] = row_sum;
+    }
+    //KRATOS_WATCH( rLumpedMassVector );
     KRATOS_CATCH("");
 }
 

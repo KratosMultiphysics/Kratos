@@ -16,7 +16,7 @@
 
 // Project includes
 #include "custom_conditions/load_condition.h"
-
+#include "utilities/atomic_utilities.h"
 
 namespace Kratos
 {
@@ -95,13 +95,15 @@ namespace Kratos
                 if (this->Has(POINT_LOAD))
                 {
                     const array_1d<double, 3>& point_load = this->GetValue(POINT_LOAD);
-
+                    const double Time = rCurrentProcessInfo[TIME];
+                    const double value = std::sin(4.0 * Time);
+                    //std::cout << "Value: " << value << std::endl;
                     for (IndexType i = 0; i < number_of_nodes; i++)
                     {
                         IndexType index = 3 * i;
-                        f[index]     += point_load[0] * r_N(point_number, i);
-                        f[index + 1] += point_load[1] * r_N(point_number, i);
-                        f[index + 2] += point_load[2] * r_N(point_number, i);
+                        f[index]     += point_load[0] * r_N(point_number, i); //*value;
+                        f[index + 1] += point_load[1] * r_N(point_number, i); //*value;
+                        f[index + 2] += point_load[2] * r_N(point_number, i); //*value;
                     }
                 }
 
@@ -224,6 +226,37 @@ namespace Kratos
             }
         }
     }
+
+    void LoadCondition::AddExplicitContribution(
+        const VectorType& rRHSVector,
+        const Variable<VectorType>& rRHSVariable,
+        const Variable<array_1d<double, 3>>& rDestinationVariable,
+        const ProcessInfo& rCurrentProcessInfo
+        )
+    {
+        KRATOS_TRY;
+
+        auto& r_geom = this->GetGeometry();
+        const auto& r_prop = this->GetProperties();
+
+        const SizeType dimension = r_geom.WorkingSpaceDimension();
+        const SizeType number_of_nodes = r_geom.size();
+
+        // Computing the force residual
+        if (rRHSVariable == RESIDUAL_VECTOR && rDestinationVariable == FORCE_RESIDUAL) {
+            for (IndexType i = 0; i < number_of_nodes; ++i) {
+                const IndexType index = dimension * i;
+
+                array_1d<double, 3>& r_force_residual = r_geom[i].FastGetSolutionStepValue(FORCE_RESIDUAL);
+
+                for (IndexType j = 0; j < dimension; ++j) {
+                    AtomicAdd(r_force_residual[j], (rRHSVector[index + j]));
+                }
+            }
+        }
+        KRATOS_CATCH("")
+    }
+
 
     void LoadCondition::DeterminantOfJacobianInitial(
         const GeometryType& rGeometry,

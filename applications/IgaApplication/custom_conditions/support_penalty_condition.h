@@ -199,6 +199,12 @@ namespace Kratos
             const GeometryType& rGeometry,
             Vector& rDeterminantOfJacobian);
 
+
+        void AddExplicitContribution(
+            const VectorType& rRHSVector,
+            const Variable<VectorType>& rRHSVariable,
+            const Variable<array_1d<double, 3>>& rDestinationVariable,
+            const ProcessInfo& rCurrentProcessInfo ) override;
         ///@}
         ///@name Check
         ///@{

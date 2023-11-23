@@ -305,6 +305,42 @@ namespace Kratos
             insert_knots_w[i] = knot_w;
         }
 
+        //C0 continuity
+        // double delta_knot_u = 1.0 / NumKnotSpansU;
+        // double knot_u = 0.0;
+        // const int knot_multiplicity_u = OrderU;
+        // const int n_new_knots_u = (NumKnotSpansU-1)*knot_multiplicity_u;
+        // std::vector<double> insert_knots_u( n_new_knots_u );
+        // for( IndexType i = 0; i < n_new_knots_u; i=i+knot_multiplicity_u){
+        //     knot_u += delta_knot_u;
+        //     for( IndexType j = 0; j < knot_multiplicity_u; j++){
+        //         insert_knots_u[i+j] = knot_u;
+        //     }
+        // }
+        // double delta_knot_v = 1.0 / NumKnotSpansV;
+        // double knot_v = 0.0;
+        // const int knot_multiplicity_v = OrderV;
+        // const int n_new_knots_v = (NumKnotSpansV-1)*knot_multiplicity_v ;
+        // std::vector<double> insert_knots_v( n_new_knots_v );
+        // for( IndexType i = 0; i < n_new_knots_v; i=i+knot_multiplicity_v){
+        //     knot_v += delta_knot_v;
+        //     for( IndexType j = 0; j < knot_multiplicity_v; j++){
+        //         insert_knots_v[i+j] = knot_v;
+        //     }
+        // }
+
+        // double delta_knot_w = 1.0 / NumKnotSpansW;
+        // double knot_w = 0.0;
+        // const int knot_multiplicity_w = OrderW;
+        // const int n_new_knots_w = (NumKnotSpansW-1)*knot_multiplicity_w;
+        // std::vector<double> insert_knots_w( n_new_knots_w );
+        // for( IndexType i = 0; i < n_new_knots_w; i=i+knot_multiplicity_w){
+        //     knot_w += delta_knot_w;
+        //     for( IndexType j = 0; j < knot_multiplicity_w; j++){
+        //         insert_knots_w[i+j] = knot_w;
+        //     }
+        // }
+
         // Add geometry to model part
         if( mParameters.Has("geometry_name") ){
             p_volume_geometry->SetId(mParameters["geometry_name"].GetString());
