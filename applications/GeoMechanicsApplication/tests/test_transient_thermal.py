@@ -21,7 +21,7 @@ class KratosGeoMechanicsTransientThermalTests(KratosUnittest.TestCase):
 
     def test_thermal_heat_flux_2D3N(self):
         test_name = 'test_thermal_heat_flux_2D3N'
-        file_path = test_helper.get_file_path(os.path.join('test_thermal_element', test_name + '.gid'))
+        file_path = test_helper.get_file_path(os.path.join('test_thermal_element', test_name))
         simulation = test_helper.run_kratos(file_path)
         temperature = test_helper.get_temperature(simulation)
         temp = temperature[37]
@@ -29,7 +29,7 @@ class KratosGeoMechanicsTransientThermalTests(KratosUnittest.TestCase):
 
     def test_thermal_heat_flux_2D6N(self):
         test_name = 'test_thermal_heat_flux_2D6N'
-        file_path = test_helper.get_file_path(os.path.join('test_thermal_element', test_name + '.gid'))
+        file_path = test_helper.get_file_path(os.path.join('test_thermal_element', test_name))
         simulation = test_helper.run_kratos(file_path)
         temperature = test_helper.get_temperature(simulation)
         temp = temperature[57]
@@ -37,7 +37,7 @@ class KratosGeoMechanicsTransientThermalTests(KratosUnittest.TestCase):
 
     def test_thermal_heat_flux_2D10N(self):
         test_name = 'test_thermal_heat_flux_2D10N'
-        file_path = test_helper.get_file_path(os.path.join('test_thermal_element', test_name + '.gid'))
+        file_path = test_helper.get_file_path(os.path.join('test_thermal_element', test_name))
         simulation = test_helper.run_kratos(file_path)
         temperature = test_helper.get_temperature(simulation)
         temp = temperature[77]
@@ -45,7 +45,7 @@ class KratosGeoMechanicsTransientThermalTests(KratosUnittest.TestCase):
 
     def test_thermal_heat_flux_2D15N(self):
         test_name = 'test_thermal_heat_flux_2D15N'
-        file_path = test_helper.get_file_path(os.path.join('test_thermal_element', test_name + '.gid'))
+        file_path = test_helper.get_file_path(os.path.join('test_thermal_element', test_name))
         simulation = test_helper.run_kratos(file_path)
         temperature = test_helper.get_temperature(simulation)
         temp = temperature[97]
@@ -53,7 +53,7 @@ class KratosGeoMechanicsTransientThermalTests(KratosUnittest.TestCase):
 
     def test_thermal_heat_flux_2D4N(self):
         test_name = 'test_thermal_heat_flux_2D4N'
-        file_path = test_helper.get_file_path(os.path.join('test_thermal_element', test_name + '.gid'))
+        file_path = test_helper.get_file_path(os.path.join('test_thermal_element', test_name))
         simulation = test_helper.run_kratos(file_path)
         temperature = test_helper.get_temperature(simulation)
         temp = temperature[18]
@@ -61,7 +61,7 @@ class KratosGeoMechanicsTransientThermalTests(KratosUnittest.TestCase):
 
     def test_thermal_heat_flux_2D8N(self):
         test_name = 'test_thermal_heat_flux_2D8N'
-        file_path = test_helper.get_file_path(os.path.join('test_thermal_element', test_name + '.gid'))
+        file_path = test_helper.get_file_path(os.path.join('test_thermal_element', test_name))
         simulation = test_helper.run_kratos(file_path)
         temperature = test_helper.get_temperature(simulation)
         temp = temperature[50]
@@ -69,7 +69,7 @@ class KratosGeoMechanicsTransientThermalTests(KratosUnittest.TestCase):
 
     def test_thermal_heat_flux_2D9N(self):
         test_name = 'test_thermal_heat_flux_2D9N'
-        file_path = test_helper.get_file_path(os.path.join('test_thermal_element', test_name + '.gid'))
+        file_path = test_helper.get_file_path(os.path.join('test_thermal_element', test_name))
         simulation = test_helper.run_kratos(file_path)
         temperature = test_helper.get_temperature(simulation)
         temp = temperature[63]
@@ -77,7 +77,7 @@ class KratosGeoMechanicsTransientThermalTests(KratosUnittest.TestCase):
 
     def test_thermal_heat_flux_3D4N(self):
         test_name = 'test_thermal_heat_flux_3D4N'
-        file_path = test_helper.get_file_path(os.path.join('test_thermal_element', test_name + '.gid'))
+        file_path = test_helper.get_file_path(os.path.join('test_thermal_element', test_name))
         simulation = test_helper.run_kratos(file_path)
         temperature = test_helper.get_temperature(simulation)
         temp = temperature[22]
@@ -85,7 +85,7 @@ class KratosGeoMechanicsTransientThermalTests(KratosUnittest.TestCase):
 
     def test_thermal_heat_flux_3D10N(self):
         test_name = 'test_thermal_heat_flux_3D10N'
-        file_path = test_helper.get_file_path(os.path.join('test_thermal_element', test_name + '.gid'))
+        file_path = test_helper.get_file_path(os.path.join('test_thermal_element', test_name))
         simulation = test_helper.run_kratos(file_path)
         temperature = test_helper.get_temperature(simulation)
         temp = temperature[124]
@@ -93,7 +93,7 @@ class KratosGeoMechanicsTransientThermalTests(KratosUnittest.TestCase):
         
     def test_unsteady_thermal_heat_flux_2D6N(self):
         test_name = 'test_unsteady_thermal_heat_flux_2D6N'
-        file_path = test_helper.get_file_path(os.path.join('test_thermal_element', test_name + '.gid'))
+        file_path = test_helper.get_file_path(os.path.join('test_thermal_element', test_name))
         simulation = test_helper.run_kratos(file_path)
         temperature = test_helper.get_temperature(simulation)
         temp = temperature[57]
@@ -101,7 +101,7 @@ class KratosGeoMechanicsTransientThermalTests(KratosUnittest.TestCase):
 
     def test_unsteady_thermal_heat_flux_2D10N(self):
         test_name = 'test_unsteady_thermal_heat_flux_2D10N'
-        file_path = test_helper.get_file_path(os.path.join('test_thermal_element', test_name + '.gid'))
+        file_path = test_helper.get_file_path(os.path.join('test_thermal_element', test_name))
         simulation = test_helper.run_kratos(file_path)
         temperature = test_helper.get_temperature(simulation)
         temp = temperature[77]
@@ -109,7 +109,7 @@ class KratosGeoMechanicsTransientThermalTests(KratosUnittest.TestCase):
 
     def test_unsteady_thermal_heat_flux_2D15N(self):
         test_name = 'test_unsteady_thermal_heat_flux_2D15N'
-        file_path = test_helper.get_file_path(os.path.join('test_thermal_element', test_name + '.gid'))
+        file_path = test_helper.get_file_path(os.path.join('test_thermal_element', test_name))
         simulation = test_helper.run_kratos(file_path)
         temperature = test_helper.get_temperature(simulation)
         temp = temperature[97]
@@ -117,7 +117,7 @@ class KratosGeoMechanicsTransientThermalTests(KratosUnittest.TestCase):
 
     def test_unsteady_thermal_heat_flux_2D4N(self):
         test_name = 'test_unsteady_thermal_heat_flux_2D4N'
-        file_path = test_helper.get_file_path(os.path.join('test_thermal_element', test_name + '.gid'))
+        file_path = test_helper.get_file_path(os.path.join('test_thermal_element', test_name))
         simulation = test_helper.run_kratos(file_path)
         temperature = test_helper.get_temperature(simulation)
         temp = temperature[18]
@@ -125,7 +125,7 @@ class KratosGeoMechanicsTransientThermalTests(KratosUnittest.TestCase):
 
     def test_unsteady_thermal_heat_flux_2D8N(self):
         test_name = 'test_unsteady_thermal_heat_flux_2D8N'
-        file_path = test_helper.get_file_path(os.path.join('test_thermal_element', test_name + '.gid'))
+        file_path = test_helper.get_file_path(os.path.join('test_thermal_element', test_name))
         simulation = test_helper.run_kratos(file_path)
         temperature = test_helper.get_temperature(simulation)
         temp = temperature[50]
@@ -133,7 +133,7 @@ class KratosGeoMechanicsTransientThermalTests(KratosUnittest.TestCase):
 
     def test_unsteady_thermal_heat_flux_2D9N(self):
         test_name = 'test_unsteady_thermal_heat_flux_2D9N'
-        file_path = test_helper.get_file_path(os.path.join('test_thermal_element', test_name + '.gid'))
+        file_path = test_helper.get_file_path(os.path.join('test_thermal_element', test_name))
         simulation = test_helper.run_kratos(file_path)
         temperature = test_helper.get_temperature(simulation)
         temp = temperature[63]
@@ -141,7 +141,7 @@ class KratosGeoMechanicsTransientThermalTests(KratosUnittest.TestCase):
 
     def test_unsteady_thermal_heat_flux_3D4N(self):
         test_name = 'test_unsteady_thermal_heat_flux_3D4N'
-        file_path = test_helper.get_file_path(os.path.join('test_thermal_element', test_name + '.gid'))
+        file_path = test_helper.get_file_path(os.path.join('test_thermal_element', test_name))
         simulation = test_helper.run_kratos(file_path)
         temperature = test_helper.get_temperature(simulation)
         temp = temperature[22]
@@ -149,7 +149,7 @@ class KratosGeoMechanicsTransientThermalTests(KratosUnittest.TestCase):
 
     def test_unsteady_thermal_heat_flux_3D10N(self):
         test_name = 'test_unsteady_thermal_heat_flux_3D10N'
-        file_path = test_helper.get_file_path(os.path.join('test_thermal_element', test_name + '.gid'))
+        file_path = test_helper.get_file_path(os.path.join('test_thermal_element', test_name))
         simulation = test_helper.run_kratos(file_path)
         temperature = test_helper.get_temperature(simulation)
         temp = temperature[124]
