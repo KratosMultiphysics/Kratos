@@ -26,11 +26,22 @@
 
 namespace Kratos
 {
+template <class TObjectType>
+SpatialSearchResultContainerVector<TObjectType>::~SpatialSearchResultContainerVector() 
+{
+    // Make sure to delete the pointers stored in the container
+    block_for_each(mPointResults, [](auto p_result) {
+        delete p_result;
+    });
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
 
 template <class TObjectType>
 std::size_t SpatialSearchResultContainerVector<TObjectType>::NumberOfSearchResults() const
 {
-    return block_for_each<SumReduction<IndexType>>(mPointResults, [&](auto p_result) {
+    return block_for_each<SumReduction<IndexType>>(mPointResults, [](auto p_result) {
         if (p_result != nullptr) {
             return 1;
         }
@@ -196,7 +207,7 @@ void SpatialSearchResultContainerVector<TObjectType>::SynchronizeAll(const DataC
         }
     } else { // Serial code
         // Iterate over all the results
-        for (auto p_result : mPointResults) {
+        block_for_each(mPointResults, [](auto p_result) {
             if (p_result != nullptr) {
                 // Fill global vector
                 auto& r_global_results = p_result->GetGlobalResults();
@@ -204,15 +215,15 @@ void SpatialSearchResultContainerVector<TObjectType>::SynchronizeAll(const DataC
                     r_global_results.push_back(&r_value);
                 }
             }
-        }
+        });
     }
 
     // Generate global pointer communicator
-    for (auto p_result : mPointResults) {
+    block_for_each(mPointResults, [&rDataCommunicator](auto p_result) {
         if (p_result != nullptr) {
             p_result->GenerateGlobalPointerCommunicator(rDataCommunicator);
         }
-    }
+    });
 }
 
 /***********************************************************************************/
@@ -230,7 +241,7 @@ std::string SpatialSearchResultContainerVector<TObjectType>::Info() const
 /***********************************************************************************/
 
 template <class TObjectType>
-void SpatialSearchResultContainerVector<TObjectType>::PrintInfo(std::ostream& rOStream) const 
+void SpatialSearchResultContainerVector<TObjectType>::PrintInfo(std::ostream& rOStream) const
 {
     rOStream << "SpatialSearchResultContainerVector" << "\n";
 }
