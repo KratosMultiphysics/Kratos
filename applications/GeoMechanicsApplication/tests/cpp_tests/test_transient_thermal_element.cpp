@@ -36,12 +36,42 @@ void TestThermalElement(ModelPart& rModelPart)
         elemental_dofs[i]->SetEquationId(i);
     }
 
+    for (const auto& element_dof : elemental_dofs) {
+        KRATOS_EXPECT_EQ(element_dof->GetVariable(), TEMPERATURE);
+    }
+
     Element::EquationIdVectorType equation_ids;
     p_element->EquationIdVector(equation_ids, r_current_process_info);
 
     for (unsigned int i = 0; i < equation_ids.size(); i++) {
         KRATOS_EXPECT_EQ(equation_ids[i], i);
     }
+}
+
+void GenerateTransientThermalElementWithZeroDomainSize(ModelPart& rModelPart)
+{
+    // Geometry creation
+    rModelPart.CreateNewNode(1, 0.0, 0.0, 0.0);
+    rModelPart.CreateNewNode(2, 0.0, 0.0, 0.0);
+    rModelPart.CreateNewNode(3, 0.0, 0.0, 0.0);
+    std::vector<ModelPart::IndexType> node_ids{1, 2, 3};
+    rModelPart.CreateNewElement("GeoTransientThermalElement2D3N", 1, node_ids,
+                                rModelPart.CreateNewProperties(0));
+}
+
+KRATOS_TEST_CASE_IN_SUITE(CheckElement_Throws_WhenDomainSizeIsInvalid, KratosGeoMechanicsFastSuite)
+{
+    Model this_model;
+    ModelPart& model_part = this_model.CreateModelPart("Main", 3);
+
+    GenerateTransientThermalElementWithZeroDomainSize(model_part);
+
+    Element::Pointer p_element = model_part.pGetElement(1);
+    const ProcessInfo& r_current_process_info = model_part.GetProcessInfo();
+
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        p_element->Check(r_current_process_info),
+        "DomainSize smaller than 1e-15 for element 1")
 }
 
 void GenerateTransientThermalElement2D3N(ModelPart& rModelPart)
@@ -53,6 +83,48 @@ void GenerateTransientThermalElement2D3N(ModelPart& rModelPart)
     std::vector<ModelPart::IndexType> node_ids{1, 2, 3};
     rModelPart.CreateNewElement("GeoTransientThermalElement2D3N", 1, node_ids,
                                 rModelPart.CreateNewProperties(0));
+}
+
+KRATOS_TEST_CASE_IN_SUITE(CheckElement_Throws_WhenTemperatureIsMissing, KratosGeoMechanicsFastSuite)
+{
+    Model this_model;
+    ModelPart& model_part = this_model.CreateModelPart("Main", 3);
+    GenerateTransientThermalElement2D3N(model_part);
+
+    Element::Pointer p_element = model_part.pGetElement(1);
+    const ProcessInfo& r_current_process_info = model_part.GetProcessInfo();
+
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(p_element->Check(r_current_process_info),
+                                      "Missing variable TEMPERATURE on node 1")
+}
+
+KRATOS_TEST_CASE_IN_SUITE(CheckElement_Throws_WhenDtTemperatureIsMissing, KratosGeoMechanicsFastSuite)
+{
+    Model this_model;
+    ModelPart& model_part = this_model.CreateModelPart("Main", 3);
+    model_part.AddNodalSolutionStepVariable(TEMPERATURE);
+    GenerateTransientThermalElement2D3N(model_part);
+
+    Element::Pointer p_element = model_part.pGetElement(1);
+    const ProcessInfo& r_current_process_info = model_part.GetProcessInfo();
+
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(p_element->Check(r_current_process_info),
+                                      "Missing variable DT_TEMPERATURE on node 1")
+}
+
+KRATOS_TEST_CASE_IN_SUITE(CheckElement_Throws_WhenTemperatureDofIsMissing, KratosGeoMechanicsFastSuite)
+{
+    Model this_model;
+    ModelPart& model_part = this_model.CreateModelPart("Main", 3);
+    model_part.AddNodalSolutionStepVariable(TEMPERATURE);
+    model_part.AddNodalSolutionStepVariable(DT_TEMPERATURE);
+    GenerateTransientThermalElement2D3N(model_part);
+
+    Element::Pointer p_element = model_part.pGetElement(1);
+    const ProcessInfo& r_current_process_info = model_part.GetProcessInfo();
+
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(p_element->Check(r_current_process_info),
+                                      "Missing degree of freedom for TEMPERATURE on node 1")
 }
 
 KRATOS_TEST_CASE_IN_SUITE(EquationIdVectorTransientThermalElement2D3N, KratosGeoMechanicsFastSuite)
@@ -227,7 +299,7 @@ void GenerateTransientThermalElement2D15N(ModelPart& rModelPart)
     rModelPart.CreateNewNode(14, 0.5, 0.5, 0.0);
     rModelPart.CreateNewNode(15, 0.5, 0.5, 0.0);
 
-    std::vector<ModelPart::IndexType> node_ids{1, 2, 3, 4, 5, 6, 7, 8,
+    std::vector<ModelPart::IndexType> node_ids{1, 2,  3,  4,  5,  6,  7, 8,
                                                9, 10, 11, 12, 13, 14, 15};
     rModelPart.CreateNewElement("GeoTransientThermalElement2D15N", 1, node_ids,
                                 rModelPart.CreateNewProperties(0));
