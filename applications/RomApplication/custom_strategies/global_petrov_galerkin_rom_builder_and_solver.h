@@ -215,7 +215,7 @@ public:
         }
 
         if (mLeftRomBasisInitialized==false){
-            mPsiGlobal = ZeroMatrix(BaseBuilderAndSolverType::mEquationSystemSize, BaseType::GetNumberOfROMModes());
+            mPsiGlobal = ZeroMatrix(BaseBuilderAndSolverType::mEquationSystemSize, mNumberOfPetrovGalerkinRomModes);
             mLeftRomBasisInitialized = true;
         }
 
