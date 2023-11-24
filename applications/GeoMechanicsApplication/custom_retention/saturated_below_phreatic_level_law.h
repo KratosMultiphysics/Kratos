@@ -104,6 +104,9 @@ public:
               const ProcessInfo& rCurrentProcessInfo) override;
 
 private:
+
+    const double mPrecision = std::numeric_limits<double>::epsilon(); 
+
     friend class Serializer;
 
     void save(Serializer& rSerializer) const override

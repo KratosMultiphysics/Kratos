@@ -47,10 +47,10 @@ double SaturatedBelowPhreaticLevelLaw::CalculateSaturation(Parameters &rParamete
 {
     KRATOS_TRY
 
-    constexpr double precision = 1e-15;
+
     const double &p = rParameters.GetFluidPressure();
 
-    if (p < 0.0 - precision) {
+    if (p < 0.0 - mPrecision) {
         return rParameters.GetMaterialProperties()[SATURATED_SATURATION];
     } else {
         return rParameters.GetMaterialProperties()[RESIDUAL_SATURATION];
@@ -77,10 +77,9 @@ double SaturatedBelowPhreaticLevelLaw::CalculateRelativePermeability(Parameters 
 {
     KRATOS_TRY
 
-    constexpr double precision = 1e-15;
     const double &p = rParameters.GetFluidPressure();
 
-    if (p < 0.0 - precision) {
+    if (p < 0.0 - mPrecision) {
         return 1.0;
     } else {
         return rParameters.GetMaterialProperties()[MINIMUM_RELATIVE_PERMEABILITY];

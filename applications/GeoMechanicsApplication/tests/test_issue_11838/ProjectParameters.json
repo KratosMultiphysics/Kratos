@@ -1,0 +1,184 @@
+{
+    "problem_data": {
+        "problem_name": "calculate_moving_load_on_soil_3d",
+        "start_time": 0.0,
+        "end_time": 0.1,
+        "echo_level": 1,
+        "parallel_type": "OpenMP",
+        "number_of_threads": 1
+    },
+    "solver_settings": {
+        "solver_type": "U_Pw",
+        "model_part_name": "PorousDomain",
+        "domain_size": 3,
+        "model_import_settings": {
+            "input_type": "mdpa",
+            "input_filename": "calculate_moving_load_on_soil_3d_stage_1"
+        },
+        "material_import_settings": {
+            "materials_filename": "MaterialParameters_stage_1.json"
+        },
+        "time_stepping": {
+            "time_step": 0.01,
+            "max_delta_time_factor": 1000
+        },
+        "reduction_factor": 1.0,
+        "increase_factor": 1.0,
+        "buffer_size": 2,
+        "echo_level": 1,
+        "clear_storage": false,
+        "compute_reactions": false,
+        "move_mesh_flag": false,
+        "reform_dofs_at_each_step": false,
+        "nodal_smoothing": true,
+        "block_builder": true,
+        "rebuild_level": 2,
+        "prebuild_dynamics": false,
+        "solution_type": "dynamic",
+        "rayleigh_m": 0.01,
+        "rayleigh_k": 0.01,
+        "calculate_reactions": true,
+        "rotation_dofs": true,
+        "reset_displacements": false,
+        "scheme_type": "newmark",
+        "newmark_beta": 0.25,
+        "newmark_gamma": 0.5,
+        "newmark_theta": 0.5,
+        "strategy_type": "newton_raphson",
+        "max_iterations": 15,
+        "min_iterations": 6,
+        "number_cycles": 100,
+        "convergence_criterion": "displacement_criterion",
+        "displacement_relative_tolerance": 0.0001,
+        "displacement_absolute_tolerance": 1e-09,
+        "linear_solver_settings": {
+            "solver_type": "amgcl",
+            "scaling": false,
+            "tolerance": 1e-06,
+            "max_iteration": 1000
+        },
+        "problem_domain_sub_model_part_list": [
+            "soil_layer"
+        ],
+        "processes_sub_model_part_list": [
+            "moving_load",
+            "base_fixed",
+            "roller_fixed"
+        ],
+        "body_domain_sub_model_part_list": [
+            "soil_layer"
+        ]
+    },
+    "output_processes": {
+        "vtk_output": [
+            {
+                "python_module": "vtk_output_process",
+                "kratos_module": "KratosMultiphysics",
+                "process_name": "VtkOutputProcess",
+                "Parameters": {
+                    "model_part_name": "PorousDomain.porous_computational_model_part",
+                    "output_path": "output/output_vtk_porous_computational_model_part",
+                    "file_format": "ascii",
+                    "output_precision": 7,
+                    "output_control_type": "step",
+                    "output_interval": 10,
+                    "nodal_solution_step_data_variables": [
+                        "DISPLACEMENT",
+                        "TOTAL_DISPLACEMENT"
+                    ],
+                    "gauss_point_variables_in_elements": []
+                }
+            }
+        ]
+    },
+    "processes": {
+        "constraints_process_list": [
+            {
+                "python_module": "apply_vector_constraint_table_process",
+                "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
+                "process_name": "ApplyVectorConstraintTableProcess",
+                "Parameters": {
+                    "active": [
+                        true,
+                        true,
+                        true
+                    ],
+                    "is_fixed": [
+                        true,
+                        true,
+                        true
+                    ],
+                    "value": [
+                        0.0,
+                        0.0,
+                        0.0
+                    ],
+                    "model_part_name": "PorousDomain.base_fixed",
+                    "variable_name": "DISPLACEMENT",
+                    "table": [
+                        0,
+                        0,
+                        0
+                    ]
+                }
+            },
+            {
+                "python_module": "apply_vector_constraint_table_process",
+                "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
+                "process_name": "ApplyVectorConstraintTableProcess",
+                "Parameters": {
+                    "active": [
+                        true,
+                        true,
+                        true
+                    ],
+                    "is_fixed": [
+                        true,
+                        false,
+                        false
+                    ],
+                    "value": [
+                        0.0,
+                        0.0,
+                        0.0
+                    ],
+                    "model_part_name": "PorousDomain.roller_fixed",
+                    "variable_name": "DISPLACEMENT",
+                    "table": [
+                        0,
+                        0,
+                        0
+                    ]
+                }
+            }
+        ],
+        "loads_process_list": [
+            {
+                "python_module": "set_moving_load_process",
+                "kratos_module": "StructuralMechanicsApplication",
+                "process_name": "SetMovingLoadProcess",
+                "Parameters": {
+                    "load": [
+                        -10.0,
+                        -10.0,
+                        0.0
+                    ],
+                    "direction": [
+                        1,
+                        1,
+                        1
+                    ],
+                    "velocity": 0.0,
+                    "origin": [
+                        1.0,
+                        1.0,
+                        1.0
+                    ],
+                    "offset": 0.0,
+                    "model_part_name": "PorousDomain.moving_load",
+                    "variable_name": "POINT_LOAD"
+                }
+            }
+        ]
+    }
+}
