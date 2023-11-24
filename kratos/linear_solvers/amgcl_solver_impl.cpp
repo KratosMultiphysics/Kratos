@@ -51,6 +51,10 @@ void AMGCLScalarSolve(
     bool use_gpgpu
     )
 {
+    if (2 < verbosity_level) {
+        write_json(std::cout, amgclParams);
+    }
+
 #ifdef AMGCL_GPGPU
     if (use_gpgpu && vexcl_context()) {
         auto &ctx = vexcl_context();
@@ -119,6 +123,10 @@ void AMGCLBlockSolve(
         amgclParams.erase("precond.coarsening");
     else
         amgclParams.put("precond.coarsening.aggr.block_size",1);
+
+    if (2 < verbosity_level) {
+        write_json(std::cout, amgclParams);
+    }
 
     typedef amgcl::static_matrix<double, TBlockSize, TBlockSize> value_type;
     typedef amgcl::static_matrix<double, TBlockSize, 1> rhs_type;

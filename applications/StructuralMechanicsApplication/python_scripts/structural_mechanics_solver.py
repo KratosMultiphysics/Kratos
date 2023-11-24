@@ -240,7 +240,7 @@ class MechanicalSolver(PythonSolver):
     def Initialize(self):
         """Perform initialization after adding nodal variables and dofs to the main model part. """
         KratosMultiphysics.Logger.PrintInfo("::[MechanicalSolver]:: ", "Initializing ...")
-        
+
         # The mechanical solution strategy is created here if it does not already exist.
         if self.settings["clear_storage"].GetBool():
             self.Clear()

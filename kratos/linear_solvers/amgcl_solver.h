@@ -373,10 +373,6 @@ public:
             mAMGCLParameters.put("precond.coarsening.aggr.block_size", mBlockSize);
         }
 
-        if (mVerbosity > 2) {
-            write_json(std::cout, mAMGCLParameters);
-        }
-
         if(mVerbosity == 4) {
             //output to matrix market
             std::stringstream matrix_market_name;
