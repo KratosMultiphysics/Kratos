@@ -36,6 +36,7 @@ void TestThermalElement(ModelPart& rModelPart)
         elemental_dofs[i]->SetEquationId(i);
     }
 
+    // Only the TEMPERATURE dofs should be returned by the element
     for (const auto& element_dof : elemental_dofs) {
         KRATOS_EXPECT_EQ(element_dof->GetVariable(), TEMPERATURE);
     }
