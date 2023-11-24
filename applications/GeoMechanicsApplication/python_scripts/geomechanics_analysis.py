@@ -66,14 +66,17 @@ class GeoMechanicsAnalysisBase(AnalysisStage):
         super().Initialize()
 
         if (self.reset_displacements):
-            KratosMultiphysics.VariableUtils().SetHistoricalVariableToZero(KratosMultiphysics.DISPLACEMENT,self._GetSolver().GetComputingModelPart().Nodes)
-            KratosMultiphysics.VariableUtils().SetHistoricalVariableToZero(KratosMultiphysics.ROTATION,self._GetSolver().GetComputingModelPart().Nodes)
+            if self._GetSolver().main_model_part.HasNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT):
+                KratosMultiphysics.VariableUtils().SetHistoricalVariableToZero(KratosMultiphysics.DISPLACEMENT, self._GetSolver().GetComputingModelPart().Nodes)
+                for node in self._GetSolver().GetComputingModelPart().Nodes:
+                    dNew = node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT, 0)
+                    node.SetSolutionStepValue(KratosMultiphysics.DISPLACEMENT, 1, dNew)
 
-            for node in self._GetSolver().GetComputingModelPart().Nodes:
-                dNew = node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT,0)
-                node.SetSolutionStepValue(KratosMultiphysics.DISPLACEMENT, 1, dNew)
-                rotNew = node.GetSolutionStepValue(KratosMultiphysics.ROTATION,0)
-                node.SetSolutionStepValue(KratosMultiphysics.ROTATION, 1, rotNew)
+            if self._GetSolver().main_model_part.HasNodalSolutionStepVariable(KratosMultiphysics.ROTATION):
+                KratosMultiphysics.VariableUtils().SetHistoricalVariableToZero(KratosMultiphysics.ROTATION, self._GetSolver().GetComputingModelPart().Nodes)
+                for node in self._GetSolver().GetComputingModelPart().Nodes:
+                    rotNew = node.GetSolutionStepValue(KratosMultiphysics.ROTATION, 0)
+                    node.SetSolutionStepValue(KratosMultiphysics.ROTATION, 1, rotNew)
 
             KratosMultiphysics.VariableUtils().UpdateCurrentToInitialConfiguration(self._GetSolver().GetComputingModelPart().Nodes)
 
