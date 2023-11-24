@@ -18,6 +18,7 @@
 #include "geo_mechanics_application_variables.h"
 #include "custom_constitutive/thermal_dispersion_law.h"
 #include "includes/serializer.h"
+#include "custom_retention/retention_law_factory.h"
 
 namespace Kratos {
 
@@ -93,7 +94,8 @@ public:
         const auto integration_coefficients = CalculateIntegrationCoefficients(det_J_container);
         const auto conductivity_matrix =
             CalculateConductivityMatrix(dN_dX_container, integration_coefficients, rCurrentProcessInfo);
-        const auto capacity_matrix = CalculateCapacityMatrix(integration_coefficients);
+        const auto capacity_matrix =
+            CalculateCapacityMatrix(integration_coefficients, rCurrentProcessInfo);
 
         AddContributionsToLhsMatrix(rLeftHandSideMatrix, conductivity_matrix, capacity_matrix,
                                     rCurrentProcessInfo[DT_TEMPERATURE_COEFFICIENT]);
@@ -251,10 +253,14 @@ private:
         return result;
     }
 
-    BoundedMatrix<double, TNumNodes, TNumNodes> CalculateCapacityMatrix(const Vector& rIntegrationCoefficients) const
+    BoundedMatrix<double, TNumNodes, TNumNodes> CalculateCapacityMatrix(
+        const Vector& rIntegrationCoefficients, const ProcessInfo& rCurrentProcessInfo) const
     {
         const auto& r_properties = GetProperties();
-        const auto  c_water = r_properties[POROSITY] * r_properties[SATURATED_SATURATION] *
+        RetentionLaw::Parameters parameters(r_properties, rCurrentProcessInfo);
+        auto retention_law = RetentionLawFactory::Clone(r_properties);
+        const double saturation = retention_law->CalculateSaturation(parameters);
+        const auto c_water = r_properties[POROSITY] * saturation *
                               r_properties[DENSITY_WATER] * r_properties[SPECIFIC_HEAT_CAPACITY_WATER];
         const auto  c_solid = (1.0 - r_properties[POROSITY]) *
                               r_properties[DENSITY_SOLID] * r_properties[SPECIFIC_HEAT_CAPACITY_SOLID];
