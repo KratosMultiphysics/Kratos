@@ -384,7 +384,7 @@ protected:
      * @param Rank The rank of the Dof.
      * @return True if the Dof is free, false otherwise.
      */
-    bool IsActiveDof(
+    bool IsActiveAndLocalDof(
         const DofType& rDof,
         const int Rank
         )
@@ -406,7 +406,7 @@ protected:
      * @param Rank The rank of the Dof.
      * @return True if the Dof is free, false otherwise.
      */
-    bool IsFreeDof(
+    bool IsFreeAndLocalDof(
         const DofType& rDof,
         const int Rank
         )
@@ -454,7 +454,7 @@ protected:
         // Loop over Dofs
         if (rModelPart.NumberOfMasterSlaveConstraints() > 0) {
             std::tie(residual_solution_norm, dof_num) = block_for_each<CustomReduction>(rDofSet, TLS(), [this, &rb, &rank](auto& rDof, TLS& rTLS) {
-                if (this->IsActiveDof(rDof, rank)) {
+                if (this->IsActiveAndLocalDof(rDof, rank)) {
                     rTLS.residual_dof_value = TSparseSpace::GetValue(rb, rDof.EquationId());
                     return std::make_tuple(std::pow(rTLS.residual_dof_value, 2), 1);
                 } else {
@@ -463,7 +463,7 @@ protected:
             });
         } else {
             std::tie(residual_solution_norm, dof_num) = block_for_each<CustomReduction>(rDofSet, TLS(), [this, &rb, &rank](auto& rDof, TLS& rTLS) {
-                if (this->IsFreeDof(rDof, rank)) {
+                if (this->IsFreeAndLocalDof(rDof, rank)) {
                     rTLS.residual_dof_value = TSparseSpace::GetValue(rb, rDof.EquationId());
                     return std::make_tuple(std::pow(rTLS.residual_dof_value, 2), 1);
                 } else {

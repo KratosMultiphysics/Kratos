@@ -407,7 +407,7 @@ private:
      * @return True if the Dof is free, false otherwise.
      * @todo We should doo as in the residual criteria, and consider the active DoFs (not just free), taking into account the MPC in addition to fixed DoFs
      */
-    bool IsFreeDof(
+    bool IsFreeAndLocalDof(
         const DofType& rDof,
         const int Rank
         )
@@ -441,7 +441,7 @@ private:
         struct TLS {TDataType dof_value{};};
 
         const TDataType reference_disp_norm = block_for_each<SumReduction<TDataType>>(rDofSet, TLS(), [this, &rank](auto& rDof, TLS& rTLS) {
-            if (ClassType::IsFreeDof(rDof, rank)) {
+            if (ClassType::IsFreeAndLocalDof(rDof, rank)) {
                 rTLS.dof_value = rDof.GetSolutionStepValue();
                 return std::pow(rTLS.dof_value, 2);
             } else {
@@ -484,7 +484,7 @@ private:
 
         // Loop over Dofs
         std::tie(final_correction_norm, dof_num) = block_for_each<CustomReduction>(rDofSet, TLS(), [this, &rDx, &rank](auto& rDof, TLS& rTLS) {
-            if (this->IsFreeDof(rDof, rank)) {
+            if (this->IsFreeAndLocalDof(rDof, rank)) {
                 rTLS.variation_dof_value = SparseSpaceType::GetValue(rDx, rDof.EquationId());
                 return std::make_tuple(std::pow(rTLS.variation_dof_value, 2), 1);
             } else {
