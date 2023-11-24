@@ -60,23 +60,22 @@ class GeoMechanicsAnalysisBase(AnalysisStage):
         total_displacement = old_total_displacement + stage_displacement
         node.SetSolutionStepValue(KratosGeo.TOTAL_DISPLACEMENT, total_displacement)
 
+    def ResetIfHasNodalSolutionStepVariable(self, variable):
+        if self._GetSolver().main_model_part.HasNodalSolutionStepVariable(variable):
+            KratosMultiphysics.VariableUtils().SetHistoricalVariableToZero(variable, self._GetSolver().GetComputingModelPart().Nodes)
+            for node in self._GetSolver().GetComputingModelPart().Nodes:
+                new_value = node.GetSolutionStepValue(variable, 0)
+                node.SetSolutionStepValue(variable, 1, new_value)
+
+
     def Initialize(self):
         self._GetSolver().main_model_part.ProcessInfo[KratosGeo.RESET_DISPLACEMENTS] = self.reset_displacements
 
         super().Initialize()
 
         if (self.reset_displacements):
-            if self._GetSolver().main_model_part.HasNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT):
-                KratosMultiphysics.VariableUtils().SetHistoricalVariableToZero(KratosMultiphysics.DISPLACEMENT, self._GetSolver().GetComputingModelPart().Nodes)
-                for node in self._GetSolver().GetComputingModelPart().Nodes:
-                    dNew = node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT, 0)
-                    node.SetSolutionStepValue(KratosMultiphysics.DISPLACEMENT, 1, dNew)
-
-            if self._GetSolver().main_model_part.HasNodalSolutionStepVariable(KratosMultiphysics.ROTATION):
-                KratosMultiphysics.VariableUtils().SetHistoricalVariableToZero(KratosMultiphysics.ROTATION, self._GetSolver().GetComputingModelPart().Nodes)
-                for node in self._GetSolver().GetComputingModelPart().Nodes:
-                    rotNew = node.GetSolutionStepValue(KratosMultiphysics.ROTATION, 0)
-                    node.SetSolutionStepValue(KratosMultiphysics.ROTATION, 1, rotNew)
+            self.ResetIfHasNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
+            self.ResetIfHasNodalSolutionStepVariable(KratosMultiphysics.ROTATION)
 
             KratosMultiphysics.VariableUtils().UpdateCurrentToInitialConfiguration(self._GetSolver().GetComputingModelPart().Nodes)
 
