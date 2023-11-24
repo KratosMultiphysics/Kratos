@@ -525,16 +525,7 @@ public:
     * @return A vector of indexes where elements in the input vector are greater than zero.
     * @note Static method that can be used without an instance of this class. Will be called in the vector class.
     */
-    static std::vector<int> GenerateGreaterThanZeroIndexes(const std::vector<int>& rInputVector)
-    {
-        std::vector<int> indexes;
-        for (int i = 1; i < static_cast<int>(rInputVector.size()); ++i) {
-            if (rInputVector[i] > 0) {
-                indexes.push_back(i);
-            }
-        }
-        return indexes;
-    }
+    static std::vector<int> GenerateGreaterThanZeroIndexes(const std::vector<int>& rInputVector);
 
     ///@}
     ///@name Access

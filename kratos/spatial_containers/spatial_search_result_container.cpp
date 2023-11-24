@@ -518,6 +518,21 @@ std::vector<std::vector<array_1d<double, 3>>> SpatialSearchResultContainer<TObje
 /***********************************************************************************/
 
 template <class TObjectType>
+std::vector<int> SpatialSearchResultContainer<TObjectType>::GenerateGreaterThanZeroIndexes(const std::vector<int>& rInputVector)
+{
+    std::vector<int> indexes;
+    for (int i = 1; i < static_cast<int>(rInputVector.size()); ++i) {
+        if (rInputVector[i] > 0) {
+            indexes.push_back(i);
+        }
+    }
+    return indexes;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template <class TObjectType>
 std::string SpatialSearchResultContainer<TObjectType>::Info() const
 {
     std::stringstream buffer;
