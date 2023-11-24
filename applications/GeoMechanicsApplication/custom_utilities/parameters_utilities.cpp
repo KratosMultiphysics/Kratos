@@ -12,15 +12,33 @@
 //                   Gennady Markelov
 //
 
-#include "custom_utilities/parameters_utilities.h" 
+#include "custom_utilities/parameters_utilities.h"
 
 namespace Kratos {
 
-Parameters ParametersUtilities::ExtractParameters(const Parameters& rSourceParameters,
+Parameters ParametersUtilities::CopyRequiredParameters(const Parameters& rSourceParameters,
                                                         const std::vector<std::string>& rNamesOfParametersToCopy)
 {
     auto result = Parameters{};
     result.CopyValuesFromExistingParameters(rSourceParameters, rNamesOfParametersToCopy);
+    return result;
+ }
+
+ Parameters ParametersUtilities::CopyOptionalParameters(const Parameters& rSourceParameters,
+                                                        const std::vector<std::string>& rNamesOfParametersToCopy)
+ {
+    // The difference between CopyOptionalParameters and CopyRequiredParameters is that
+    // the former does not throw an error if a parameter is not found in the source parameters.
+    auto result = Parameters{};
+
+    for (const std::string& entry : rNamesOfParametersToCopy)
+    {
+        if (rSourceParameters.Has(entry))
+        {
+            result.AddValue(entry, rSourceParameters[entry]);
+        }
+    }
+
     return result;
  }
 
