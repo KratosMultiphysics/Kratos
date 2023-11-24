@@ -286,4 +286,46 @@ KRATOS_TEST_CASE_IN_SUITE(SpatialSearchResultContainerGetResultCoordinates, Krat
     KRATOS_EXPECT_VECTOR_NEAR(coordinates[0][1], p_node2->Coordinates(), 1.0e-12);
 }
 
+KRATOS_TEST_CASE_IN_SUITE(SpatialSearchResultContainerRemoveResultsFromIndexesList, KratosCoreFastSuite)
+{
+    // Create a test object
+    SpatialSearchResultContainer<GeometricalObject> container;
+
+    // Create a test result
+    GeometricalObject object_1 = GeometricalObject(1);
+    SpatialSearchResult<GeometricalObject> result_1(&object_1);
+    container.AddResult(result_1);
+    GeometricalObject object_2 = GeometricalObject(2);
+    SpatialSearchResult<GeometricalObject> result_2(&object_2);
+    container.AddResult(result_2);
+    GeometricalObject object_3 = GeometricalObject(3);
+    SpatialSearchResult<GeometricalObject> result_3(&object_3);
+    container.AddResult(result_3);
+
+    // Check that the result was added correctly
+    KRATOS_EXPECT_EQ(container.NumberOfLocalResults(), 3);
+
+    // Synchronize the container between partitions
+    DataCommunicator data_communicator;
+    container.SynchronizeAll(data_communicator);
+
+    // Check global pointers
+    KRATOS_EXPECT_EQ(container.NumberOfGlobalResults(), 3);
+
+    // Remove indexes
+    std::vector<std::size_t> index_to_remove(2,3);
+    container.RemoveResultsFromIndexesList(index_to_remove);
+
+    // Check that the result was removed correctly
+    KRATOS_EXPECT_EQ(container.NumberOfLocalResults(), 1);
+    KRATOS_EXPECT_EQ(container.NumberOfGlobalResults(), 1);
+
+    // Compute indices
+    auto indices = container.GetResultIndices();
+
+    // Check indices
+    KRATOS_EXPECT_EQ(indices.size(), 1);
+    KRATOS_EXPECT_EQ(indices[0], object_1.Id());
+}
+
 }  // namespace Kratos::Testing
