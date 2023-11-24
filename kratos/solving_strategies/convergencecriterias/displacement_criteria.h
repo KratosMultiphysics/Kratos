@@ -22,7 +22,6 @@
 #include "utilities/parallel_utilities.h"
 #include "utilities/reduction_utilities.h"
 #include "solving_strategies/convergencecriterias/convergence_criteria.h"
-#include "spaces/ublas_space.h"
 
 namespace Kratos
 {
@@ -402,6 +401,7 @@ private:
     /**
      * @brief Check if a Degree of Freedom (Dof) is free.
      * @details This function checks if a given Degree of Freedom (Dof) is free.
+     * The reason why PARTITION_INDEX is considered in distributed runs is to avoid adding twice (or even more times) the same value into the norm
      * @param rDof The Degree of Freedom to check.
      * @param Rank The rank of the Dof.
      * @return True if the Dof is free, false otherwise.

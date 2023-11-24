@@ -19,6 +19,7 @@
 #include "testing/testing.h"
 #include "containers/model.h"
 #include "solving_strategies/convergencecriterias/residual_criteria.h"
+#include "spaces/ublas_space.h"
 
 namespace Kratos::Testing
 {

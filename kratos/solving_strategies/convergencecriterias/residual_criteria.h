@@ -15,6 +15,7 @@
 // System includes
 
 // External includes
+#include <limits>
 
 // Project includes
 #include "includes/model_part.h"
@@ -22,7 +23,6 @@
 #include "utilities/parallel_utilities.h"
 #include "utilities/reduction_utilities.h"
 #include "solving_strategies/convergencecriterias/convergence_criteria.h"
-#include "spaces/ublas_space.h"
 
 namespace Kratos
 {
@@ -340,19 +340,19 @@ protected:
     ///@name Protected member Variables
     ///@{
 
-    TDataType mRatioTolerance{};      /// The ratio threshold for the norm of the residual
+    TDataType mRatioTolerance{};                                     /// The ratio threshold for the norm of the residual
 
-    TDataType mInitialResidualNorm{}; /// The reference norm of the residual
+    TDataType mInitialResidualNorm{};                                /// The reference norm of the residual
 
-    TDataType mCurrentResidualNorm{}; /// The current norm of the residual
+    TDataType mCurrentResidualNorm{};                                /// The current norm of the residual
 
-    TDataType mAlwaysConvergedNorm{}; /// The absolute value threshold for the norm of the residual
+    TDataType mAlwaysConvergedNorm{};                                /// The absolute value threshold for the norm of the residual
 
-    TDataType mReferenceDispNorm{};   /// The norm at the beginning of the iterations
+    TDataType mReferenceDispNorm{};                                  /// The norm at the beginning of the iterations
 
-    std::vector<int> mActiveDofs;     /// This vector contains the dofs that are active
+    std::vector<int> mActiveDofs;                                    /// This vector contains the dofs that are active
 
-    IndexType mInitialDoFId{};        /// The initial DoF Id
+    IndexType mInitialDoFId = std::numeric_limits<IndexType>::max(); /// The initial DoF Id
 
     ///@}
     ///@name Protected Operators
@@ -379,6 +379,7 @@ protected:
     /**
      * @brief Check if a Degree of Freedom (Dof) is active
      * @details This function checks if a given Degree of Freedom (Dof) is active.
+     * The reason why PARTITION_INDEX is considered in distributed runs is to avoid adding twice (or even more times) the same value into the norm
      * @param rDof The Degree of Freedom to check.
      * @param Rank The rank of the Dof.
      * @return True if the Dof is free, false otherwise.
@@ -400,6 +401,7 @@ protected:
     /**
      * @brief Check if a Degree of Freedom (Dof) is free.
      * @details This function checks if a given Degree of Freedom (Dof) is free.
+     * The reason why PARTITION_INDEX is considered in distributed runs is to avoid adding twice (or even more times) the same value into the norm
      * @param rDof The Degree of Freedom to check.
      * @param Rank The rank of the Dof.
      * @return True if the Dof is free, false otherwise.
