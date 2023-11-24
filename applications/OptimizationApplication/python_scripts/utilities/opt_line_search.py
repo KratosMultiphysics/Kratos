@@ -53,11 +53,11 @@ class ConstStep():
             raise RuntimeError("\"gradient_scaling\" has unknown type.")
 
 
-        if not self.init_norm:
-            self.init_norm = norm
+        # if not self.init_norm:
+        #     self.init_norm = norm
 
         if not math.isclose(norm, 0.0, abs_tol=1e-20):
-            search_direction /= self.init_norm
+            search_direction /= norm
 
 
 

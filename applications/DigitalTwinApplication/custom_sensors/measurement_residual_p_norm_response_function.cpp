@@ -146,26 +146,16 @@ double MeasurementResidualPNormResponseFunction::CalculateValue(ModelPart& rMode
 {
     KRATOS_TRY
 
-    mMaxSensorErrorSquare = 0.0;
-    double temp = 0.0;
+    double value = 0.0;
     for (auto& p_sensor : mpSensorsList) {
         const double sensor_value = p_sensor->CalculateValue(rModelPart);
         p_sensor->SetSensorValue(sensor_value);
         const double current_sensor_error_square  = std::pow(sensor_value - p_sensor->GetValue(SENSOR_MEASURED_VALUE), 2);
         p_sensor->SetValue(SENSOR_ERROR_SQUARE, current_sensor_error_square);
-        mMaxSensorErrorSquare = std::max(mMaxSensorErrorSquare, current_sensor_error_square);
-        temp += std::pow(current_sensor_error_square, mPCoefficient);
+        value += std::pow(p_sensor->GetValue(SENSOR_ERROR_SQUARE), mPCoefficient);
     }
 
-    temp = std::pow(temp, 1/mPCoefficient - 1.0) * (std::pow(mMaxSensorErrorSquare, mPCoefficient - 1.0));
-
-    double value = 0.0;
-    for (auto& p_sensor : mpSensorsList) {
-        value += std::pow(p_sensor->GetValue(SENSOR_ERROR_SQUARE) / mMaxSensorErrorSquare, mPCoefficient);
-        p_sensor->SetValue(SENSOR_ERROR_P_COEFF_1, temp * std::pow(p_sensor->GetValue(SENSOR_ERROR_SQUARE) / mMaxSensorErrorSquare, mPCoefficient - 1.0));
-    }
-
-    return mMaxSensorErrorSquare * std::pow(value, 1 / mPCoefficient);
+    return std::pow(value, 1 / mPCoefficient);
 
     KRATOS_CATCH("");
 }
@@ -185,10 +175,16 @@ void MeasurementResidualPNormResponseFunction::CalculateDerivative(
     rResponseGradient.clear();
 
     auto& local_sensor_response_gradient = mResponseGradientList[OpenMPUtils::ThisThread()];
+    double temp = 0.0;
+    for (auto& p_sensor : mpSensorsList) {
+        temp += ( std::pow( p_sensor->GetValue(SENSOR_ERROR_SQUARE), mPCoefficient ) );
+    }
+    double c1 = 1 / mPCoefficient * std::pow( temp, 1/mPCoefficient - 1 );
 
     for (auto& p_sensor : mpSensorsList) {
         TCalculationType::Calculate(*p_sensor, local_sensor_response_gradient, rResidualGradient, rArgs...);
-        noalias(rResponseGradient) += local_sensor_response_gradient * 2.0 * std::pow(p_sensor->GetValue(SENSOR_ERROR_SQUARE), 0.5) * (p_sensor->GetValue(SENSOR_ERROR_P_COEFF_1));
+        double error = p_sensor->GetSensorValue() - p_sensor->GetValue(SENSOR_MEASURED_VALUE);
+        noalias(rResponseGradient) += c1 * local_sensor_response_gradient * 2.0 * error * mPCoefficient * std::pow( p_sensor->GetValue(SENSOR_ERROR_SQUARE), mPCoefficient - 1 ) ;
     }
 
     KRATOS_CATCH("");
