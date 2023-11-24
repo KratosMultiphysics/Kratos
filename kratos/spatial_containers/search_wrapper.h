@@ -628,31 +628,33 @@ private:
         // Retrieving parameters
         const int allocation_size = mSettings["allocation_size"].GetInt();
 
-        // Prepare MPI search
-        std::vector<double> all_points_coordinates;
-        std::vector<IndexType> all_points_ids;
-        SearchUtilities::SynchronousPointSynchronization(itPointBegin, itPointEnd, all_points_coordinates, all_points_ids, mrDataCommunicator);
-
         // The local bounding box
         const auto& r_local_bb = mpSearchObject ? mpSearchObject->GetBoundingBox() : BoundingBox<PointType>();
 
+        // Prepare MPI search
+        std::vector<double> all_points_coordinates;
+        std::vector<IndexType> all_points_ids;
+        std::vector<IndexType> indexes = SearchUtilities::SynchronousPointSynchronizationWithBoundingBox(itPointBegin, itPointEnd, all_points_coordinates, all_points_ids, r_local_bb, Radius, mrDataCommunicator);
+
         // Initialize results
-        rResults.InitializeResults(all_points_ids);
+        rResults.InitializeResults(indexes);
 
         // Perform the corresponding searches
         const std::size_t total_number_of_points = all_points_coordinates.size()/3;
-        IndexPartition<IndexType>(total_number_of_points).for_each([this, &all_points_ids, &all_points_coordinates, &r_local_bb, &itPointBegin, &rResults, &Radius, &allocation_size](std::size_t i_point) {
-            const Point point(all_points_coordinates[i_point * 3 + 0], all_points_coordinates[i_point * 3 + 1], all_points_coordinates[i_point * 3 + 2]);
+        struct TLS {
+            Point point;
+        };
+        IndexPartition<IndexType>(total_number_of_points).for_each(TLS(),[this, &all_points_ids, &all_points_coordinates, &rResults, &Radius, &allocation_size](std::size_t i_point, TLS& rTLS) {
+            rTLS.point[0] = all_points_coordinates[i_point * 3 + 0];
+            rTLS.point[1] = all_points_coordinates[i_point * 3 + 1];
+            rTLS.point[2] = all_points_coordinates[i_point * 3 + 2];
             auto& r_point_result = rResults[all_points_ids[i_point]];
 
-            // Check if the point is inside the set
-            if (SearchUtilities::PointIsInsideBoundingBox(r_local_bb, point, Radius)) {
-                // Search
-                std::vector<ResultType> results;
-                LocalSearchInRadius(point, Radius, results, allocation_size);
-                for (auto& r_result : results) {
-                    r_point_result.AddResult(r_result);
-                }
+            // Search
+            std::vector<ResultType> results;
+            LocalSearchInRadius(rTLS.point, Radius, results, allocation_size);
+            for (auto& r_result : results) {
+                r_point_result.AddResult(r_result);
             }
         });
 
@@ -705,17 +707,22 @@ private:
 
         // Perform the corresponding searches
         const std::size_t total_number_of_points = all_points_coordinates.size()/3;
-        IndexPartition<IndexType>(total_number_of_points).for_each([this, &all_points_ids, &all_points_coordinates, &r_local_bb, &itPointBegin, &rResults, &Radius, &allocation_size, &current_rank](std::size_t i_point) {
-            const Point point(all_points_coordinates[i_point * 3 + 0], all_points_coordinates[i_point * 3 + 1], all_points_coordinates[i_point * 3 + 2]);
+        struct TLS {
+            Point point;
+        };
+        IndexPartition<IndexType>(total_number_of_points).for_each(TLS(),[this, &all_points_ids, &all_points_coordinates, &r_local_bb, &rResults, &Radius, &allocation_size, &current_rank](std::size_t i_point, TLS& rTLS) {
+            rTLS.point[0] = all_points_coordinates[i_point * 3 + 0];
+            rTLS.point[1] = all_points_coordinates[i_point * 3 + 1];
+            rTLS.point[2] = all_points_coordinates[i_point * 3 + 2];
             auto& r_point_result = rResults[all_points_ids[i_point]];
 
             // Result of search
             ResultType local_result;
 
             // Check if the point is inside the set
-            if (SearchUtilities::PointIsInsideBoundingBox(r_local_bb, point, Radius)) {
+            if (SearchUtilities::PointIsInsideBoundingBox(r_local_bb, rTLS.point, Radius)) {
                 // Call local search
-                LocalSearchNearestInRadius(point, Radius, local_result, allocation_size);
+                LocalSearchNearestInRadius(rTLS.point, Radius, local_result, allocation_size);
             }
 
             /* Now sync results between partitions */
@@ -784,15 +791,20 @@ private:
 
         // Perform the corresponding searches
         const std::size_t total_number_of_points = all_points_coordinates.size()/3;
-        IndexPartition<IndexType>(total_number_of_points).for_each([this, &all_points_ids, &all_points_coordinates, &r_local_bb, &itPointBegin, &rResults, &allocation_size, &current_rank, &max_radius](std::size_t i_point) {
-            const Point point(all_points_coordinates[i_point * 3 + 0], all_points_coordinates[i_point * 3 + 1], all_points_coordinates[i_point * 3 + 2]);
+        struct TLS {
+            Point point;
+        };
+        IndexPartition<IndexType>(total_number_of_points).for_each(TLS(),[this, &all_points_ids, &all_points_coordinates, &r_local_bb, &rResults, &allocation_size, &current_rank, &max_radius](std::size_t i_point, TLS& rTLS) {
+            rTLS.point[0] = all_points_coordinates[i_point * 3 + 0];
+            rTLS.point[1] = all_points_coordinates[i_point * 3 + 1];
+            rTLS.point[2] = all_points_coordinates[i_point * 3 + 2];
             auto& r_point_result = rResults[all_points_ids[i_point]];
 
             // Check if the point is inside the set
             ResultType local_result;
-            if (SearchUtilities::PointIsInsideBoundingBox(r_local_bb, point, max_radius)) {
+            if (SearchUtilities::PointIsInsideBoundingBox(r_local_bb, rTLS.point, max_radius)) {
                 // Call local search
-                LocalSearchNearestInRadius(point, max_radius, local_result, allocation_size);
+                LocalSearchNearestInRadius(rTLS.point, max_radius, local_result, allocation_size);
             }
 
             /* Now sync results between partitions */
@@ -855,16 +867,21 @@ private:
 
         // Perform the corresponding searches
         const std::size_t total_number_of_points = all_points_coordinates.size()/3;
-        IndexPartition<IndexType>(total_number_of_points).for_each([this, &all_points_ids, &all_points_coordinates, &r_local_bb, &itPointBegin, &rResults, &current_rank](std::size_t i_point) {
-            const Point point(all_points_coordinates[i_point * 3 + 0], all_points_coordinates[i_point * 3 + 1], all_points_coordinates[i_point * 3 + 2]);
+        struct TLS {
+            Point point;
+        };
+        IndexPartition<IndexType>(total_number_of_points).for_each(TLS(),[this, &all_points_ids, &all_points_coordinates, &r_local_bb, &rResults, &current_rank](std::size_t i_point, TLS& rTLS) {
+            rTLS.point[0] = all_points_coordinates[i_point * 3 + 0];
+            rTLS.point[1] = all_points_coordinates[i_point * 3 + 1];
+            rTLS.point[2] = all_points_coordinates[i_point * 3 + 2];
             auto& r_point_result = rResults[all_points_ids[i_point]];
 
             // Check if the point is inside the set
             int computed_rank = std::numeric_limits<int>::max();
             ResultType local_result;
-            if (SearchUtilities::PointIsInsideBoundingBox(r_local_bb, point)) {
+            if (SearchUtilities::PointIsInsideBoundingBox(r_local_bb, rTLS.point)) {
                 // Call local search
-                LocalSearchIsInside(point, local_result);
+                LocalSearchIsInside(rTLS.point, local_result);
 
                 // Set current rank
                 computed_rank = current_rank;
