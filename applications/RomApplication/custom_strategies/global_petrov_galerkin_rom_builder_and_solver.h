@@ -159,7 +159,12 @@ public:
 
         const auto assembling_timer = BuiltinTimer();
 
-        BuildAndApplyDirichletConditions(pScheme, rModelPart, rA, rb, rDx);
+        if (rA.size1() != BaseBuilderAndSolverType::mEquationSystemSize || rA.size2() != BaseBuilderAndSolverType::mEquationSystemSize) {
+            rA.resize(BaseBuilderAndSolverType::mEquationSystemSize, BaseBuilderAndSolverType::mEquationSystemSize, false);
+            BaseType::ConstructMatrixStructure(pScheme, rA, rModelPart);
+        }
+
+        BaseType::Build(pScheme, rModelPart, rA, rb);
 
         if (BaseType::GetMonotonicityPreservingFlag()) {
             BaseType::MonotonicityPreserving(rA, rb);
@@ -171,23 +176,6 @@ public:
         KRATOS_INFO_IF("GlobalPetrovGalerkinROMBuilderAndSolver", (BaseType::GetEchoLevel() > 0)) << "Build and project time: " << time << std::endl;
 
         KRATOS_CATCH("")
-    }
-
-    void BuildAndApplyDirichletConditions(
-        typename TSchemeType::Pointer pScheme,
-        ModelPart &rModelPart,
-        TSystemMatrixType &rA,
-        TSystemVectorType &rb,
-        TSystemVectorType &rDx
-    ){
-        if (rA.size1() != BaseBuilderAndSolverType::mEquationSystemSize || rA.size2() != BaseBuilderAndSolverType::mEquationSystemSize) {
-            rA.resize(BaseBuilderAndSolverType::mEquationSystemSize, BaseBuilderAndSolverType::mEquationSystemSize, false);
-            BaseType::ConstructMatrixStructure(pScheme, rA, rModelPart);
-        }
-
-        BaseType::Build(pScheme, rModelPart, rA, rb);
-
-        // BaseType::ApplyDirichletConditions(pScheme, rModelPart, rA, rDx, rb);
     }
 
     void GetRightROMBasis(
