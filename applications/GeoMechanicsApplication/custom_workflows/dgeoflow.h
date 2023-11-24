@@ -152,7 +152,6 @@ namespace Kratos
         double mCurrentHead = 0.0;
         std::vector<std::shared_ptr<Process>> mProcesses;
         int mEchoLevel = 1;
-        bool mExitLoop = false;
 
         void ResetModelParts();
 
@@ -169,5 +168,8 @@ namespace Kratos
                           double                                                              Time,
                           double                                                              DeltaTime,
                           unsigned int                                                        NumberOfIterations) const;
+
+        bool AreExceedingMaxCriticalHead(double CurrentHead,
+                                         double MaxCriticalHead) const;
     };
 }

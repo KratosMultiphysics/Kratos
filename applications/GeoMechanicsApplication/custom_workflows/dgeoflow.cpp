@@ -503,15 +503,8 @@ namespace Kratos
         int step = 1;
         const auto max_steps = static_cast<int>(std::ceil((rCriticalHeadInfo.maxCriticalHead - rCriticalHeadInfo.minCriticalHead) / rCriticalHeadInfo.stepCriticalHead)) + 2;
 
-        while (!mExitLoop)
+        while (!AreExceedingMaxCriticalHead(mCriticalHead, rCriticalHeadInfo.maxCriticalHead))
         {
-            if (rCriticalHeadInfo.maxCriticalHead - mCriticalHead < -1e-9)
-            {
-                KRATOS_INFO_IF("GeoFlowKernel", this->GetEchoLevel() > 0) << "Critical head undetermined at " << mCriticalHead << ", max search head reached: " << rCriticalHeadInfo.maxCriticalHead << std::endl;
-                mExitLoop = true;
-                break;
-            }
-
             KRATOS_INFO_IF("GeoFlowKernel", this->GetEchoLevel() > 0) << "Searching at head: " << mCurrentHead << std::endl;
 
             std::ostringstream current_head_stream;
@@ -536,7 +529,7 @@ namespace Kratos
             if (count == noPipeElements)
             {
                 HandleCriticalHeadFound(rCriticalHeadInfo);
-                mExitLoop = true;
+                break;
             }
 
             GeoOutputWriter writer{rGidOutputSettings, mWorkingDirectory, rModelPart};
@@ -664,5 +657,13 @@ namespace Kratos
         KRATOS_ERROR_IF_NOT(p_river_boundary) << "No boundary found on the river side at node " << RiverNode << "." << std::endl;
 
         return p_river_boundary;
+    }
+
+    bool KratosExecute::AreExceedingMaxCriticalHead(double CurrentHead,
+                                                    double MaxCriticalHead) const
+    {
+        const auto result = (CurrentHead > MaxCriticalHead + 1e-9);
+        KRATOS_INFO_IF("GeoFlowKernel", result && (this->GetEchoLevel() > 0)) << "Critical head undetermined at " << CurrentHead << ", max search head reached: " << MaxCriticalHead << std::endl;
+        return result;
     }
 }
