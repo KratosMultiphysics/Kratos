@@ -166,7 +166,7 @@ private:
     {
         CheckProperty(DENSITY_WATER);
         CheckProperty(POROSITY);
-        CheckProperty(SATURATION);
+        CheckProperty(SATURATED_SATURATION);
         CheckProperty(DENSITY_SOLID);
         CheckProperty(SPECIFIC_HEAT_CAPACITY_WATER);
         CheckProperty(SPECIFIC_HEAT_CAPACITY_SOLID);
@@ -254,7 +254,7 @@ private:
     BoundedMatrix<double, TNumNodes, TNumNodes> CalculateCapacityMatrix(const Vector& rIntegrationCoefficients) const
     {
         const auto& r_properties = GetProperties();
-        const auto  c_water = r_properties[POROSITY] * r_properties[SATURATION] *
+        const auto  c_water = r_properties[POROSITY] * r_properties[SATURATED_SATURATION] *
                               r_properties[DENSITY_WATER] * r_properties[SPECIFIC_HEAT_CAPACITY_WATER];
         const auto  c_solid = (1.0 - r_properties[POROSITY]) *
                               r_properties[DENSITY_SOLID] * r_properties[SPECIFIC_HEAT_CAPACITY_SOLID];
