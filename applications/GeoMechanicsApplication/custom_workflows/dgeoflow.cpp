@@ -503,7 +503,7 @@ namespace Kratos
         int step = 1;
         const auto max_steps = static_cast<int>(std::ceil((rCriticalHeadInfo.maxCriticalHead - rCriticalHeadInfo.minCriticalHead) / rCriticalHeadInfo.stepCriticalHead)) + 2;
 
-        while (!AreExceedingMaxCriticalHead(mCriticalHead, rCriticalHeadInfo.maxCriticalHead))
+        while (!AreExceedingMaxCriticalHead(mCurrentHead, rCriticalHeadInfo.maxCriticalHead))
         {
             KRATOS_INFO_IF("GeoFlowKernel", this->GetEchoLevel() > 0) << "Searching at head: " << mCurrentHead << std::endl;
 
@@ -583,6 +583,14 @@ namespace Kratos
         ResetModelParts();
     }
 
+    bool KratosExecute::AreExceedingMaxCriticalHead(double CurrentHead,
+                                                    double MaxCriticalHead) const
+    {
+        const auto result = (CurrentHead > MaxCriticalHead + 1e-9);
+        KRATOS_INFO_IF("GeoFlowKernel", result && (this->GetEchoLevel() > 0)) << "Critical head undetermined at " << CurrentHead << ", max search head reached: " << MaxCriticalHead << std::endl;
+        return result;
+    }
+
     shared_ptr<Process> KratosExecute::FindRiverBoundaryByName(const std::string& CriticalHeadBoundaryModelPartName) const
     {
         shared_ptr<Process> p_river_boundary;
@@ -659,11 +667,4 @@ namespace Kratos
         return p_river_boundary;
     }
 
-    bool KratosExecute::AreExceedingMaxCriticalHead(double CurrentHead,
-                                                    double MaxCriticalHead) const
-    {
-        const auto result = (CurrentHead > MaxCriticalHead + 1e-9);
-        KRATOS_INFO_IF("GeoFlowKernel", result && (this->GetEchoLevel() > 0)) << "Critical head undetermined at " << CurrentHead << ", max search head reached: " << MaxCriticalHead << std::endl;
-        return result;
-    }
 }
