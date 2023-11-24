@@ -497,13 +497,13 @@ public:
      * @brief Considers the global pointer communicator to get the indices of the resulting object
      * @return A vector containing all the indices
      */
-    std::vector<std::size_t> GetResultIndices();
+    std::vector<IndexType> GetResultIndices();
 
     /**
      * @brief Considers the global pointer communicator to get the indices of the nodes of the resulting object
      * @return A vector containing all the indices
      */
-    std::vector<std::vector<std::size_t>> GetResultNodeIndices();
+    std::vector<std::vector<IndexType>> GetResultNodeIndices();
 
     /**
      * @brief Considers the global pointer communicator to get the partition indices of the nodes of the resulting object
@@ -516,6 +516,13 @@ public:
      * @return A vector containing all the coordinates
      */
     std::vector<std::vector<array_1d<double, 3>>> GetResultCoordinates();
+
+    /**
+     * @brief Removes elements at specified indexes from a list.
+     * @details This function takes a list of indexes and removes the elements at those indexes from the list.
+     * @param rIndexes A constant reference to a std::vector<IndexType> containing the indexes of elements to be removed.
+     */
+    void RemoveResultsFromIndexesList(const std::vector<IndexType>& rIndexes);
 
     /**
     * @brief Generates a vector of indexes where the elements in the input vector are greater than zero.

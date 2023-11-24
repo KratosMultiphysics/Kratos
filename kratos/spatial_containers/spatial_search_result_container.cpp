@@ -364,14 +364,14 @@ std::vector<Vector> SpatialSearchResultContainer<TObjectType>::GetResultShapeFun
 /***********************************************************************************/
 
 template <class TObjectType>
-std::vector<std::size_t> SpatialSearchResultContainer<TObjectType>::GetResultIndices()
+std::vector<IndexType> SpatialSearchResultContainer<TObjectType>::GetResultIndices()
 {
     // Check if the communicator has been created
     KRATOS_ERROR_IF(mpGlobalPointerCommunicator == nullptr) << "The communicator has not been created." << std::endl;
 
     // Define the indices vector
     const std::size_t number_of_gp = mGlobalResults.size();
-    std::vector<std::size_t> indices(number_of_gp);
+    std::vector<IndexType> indices(number_of_gp);
 
     // Call Apply to get the proxy
     auto proxy = this->Apply([](GlobalPointerResultType& rGP) -> std::size_t {
@@ -392,31 +392,31 @@ std::vector<std::size_t> SpatialSearchResultContainer<TObjectType>::GetResultInd
 /***********************************************************************************/
 
 template <class TObjectType>
-std::vector<std::vector<std::size_t>> SpatialSearchResultContainer<TObjectType>::GetResultNodeIndices()
+std::vector<std::vector<IndexType>> SpatialSearchResultContainer<TObjectType>::GetResultNodeIndices()
 {
     // Check if the communicator has been created
     KRATOS_ERROR_IF(mpGlobalPointerCommunicator == nullptr) << "The communicator has not been created." << std::endl;
 
     // Define the coordinates vector
     const std::size_t number_of_gp = mGlobalResults.size();
-    std::vector<std::vector<std::size_t>> indices(number_of_gp);
+    std::vector<std::vector<IndexType>> indices(number_of_gp);
 
     // Call Apply to get the proxy
-    auto proxy = this->Apply([](GlobalPointerResultType& rGP) -> std::vector<std::size_t> {
+    auto proxy = this->Apply([](GlobalPointerResultType& rGP) -> std::vector<IndexType> {
         auto p_object = rGP->Get();
         if constexpr (std::is_same<TObjectType, GeometricalObject>::value) {
             auto& r_geometry = p_object->GetGeometry();
-            std::vector<std::size_t> gp_indices(r_geometry.size());
+            std::vector<IndexType> gp_indices(r_geometry.size());
             for (unsigned int i = 0; i < r_geometry.size(); ++i) {
                 gp_indices[i] = r_geometry[i].Id();
             }
             return gp_indices;
         } else if constexpr (std::is_same<TObjectType, Node>::value) {
-            std::vector<std::size_t> gp_indices(1, p_object->Id());
+            std::vector<IndexType> gp_indices(1, p_object->Id());
             return gp_indices;
         } else {
             KRATOS_ERROR << "Not implemented yet" << std::endl;
-            std::vector<std::size_t> gp_indices;
+            std::vector<IndexType> gp_indices;
             return gp_indices;
         }
     });
@@ -512,6 +512,51 @@ std::vector<std::vector<array_1d<double, 3>>> SpatialSearchResultContainer<TObje
     }
 
     return coordinates;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template <class TObjectType>
+void SpatialSearchResultContainer<TObjectType>::RemoveResultsFromIndexesList(const std::vector<IndexType>& rIndexes)
+{
+    // Prepare for local remove
+    std::unordered_map<IndexType, IndexType> local_indexes_map;
+    const auto it_begin_local = mLocalResults.begin();
+    for (IndexType i = 0; i < mLocalResults.size(); ++i) {
+        local_indexes_map.insert({(it_begin_local + i)->Get()->Id(), i});
+    }
+
+    // Remove from local results
+    std::vector<IndexType> local_indexes_to_remove;
+    for (const auto index : rIndexes) {
+        const auto it_find = local_indexes_map.find(index);
+        if (it_find != local_indexes_map.end()) {
+            local_indexes_to_remove.push_back(it_find->second);
+        }
+    }
+    std::sort(local_indexes_to_remove.begin(), local_indexes_to_remove.end(), std::greater<IndexType>());
+    for (const auto index : local_indexes_to_remove) {
+        mLocalResults.erase(mLocalResults.begin() + index);
+    }
+
+    // Prepare a map of current indexes for quick lookup
+    const auto current_indexes = this->GetResultIndices();
+    std::unordered_map<IndexType, IndexType> current_indexes_map;
+    for (IndexType i = 0; i < current_indexes.size(); ++i) {
+        current_indexes_map[current_indexes[i]] = i;
+    }
+
+    // Determine and remove indexes from global results
+    std::vector<IndexType> indexes_to_remove;
+    indexes_to_remove.reserve(rIndexes.size());
+    for (auto i_remove : rIndexes) {
+        indexes_to_remove.push_back(current_indexes_map[i_remove]);
+    }
+    std::sort(indexes_to_remove.begin(), indexes_to_remove.end(), std::greater<IndexType>());
+    for (const auto index : indexes_to_remove) {
+        mGlobalResults.erase(mGlobalResults.begin() + index);
+    }
 }
 
 /***********************************************************************************/
