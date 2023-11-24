@@ -412,7 +412,7 @@ private:
         const int Rank
         )
     {
-        if constexpr (std::is_same<TSparseSpace, UblasSpace<double, CompressedMatrix, Vector>>::value) {
+        if constexpr (TSparseSpace::IsDistributedSpace()) {
             return rDof.IsFree();
         } else {
             return (rDof.IsFree() && (rDof.GetSolutionStepValue(PARTITION_INDEX) == Rank));
