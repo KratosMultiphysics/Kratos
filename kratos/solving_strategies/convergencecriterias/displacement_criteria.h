@@ -412,7 +412,7 @@ private:
         const int Rank
         )
     {
-        if constexpr (TSparseSpace::IsDistributedSpace()) {
+        if constexpr (!TSparseSpace::IsDistributedSpace()) {
             return rDof.IsFree();
         } else {
             return (rDof.IsFree() && (rDof.GetSolutionStepValue(PARTITION_INDEX) == Rank));
