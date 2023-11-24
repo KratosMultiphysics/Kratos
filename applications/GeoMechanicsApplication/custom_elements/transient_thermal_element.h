@@ -168,6 +168,7 @@ private:
     {
         CheckProperty(DENSITY_WATER);
         CheckProperty(POROSITY);
+        CheckSaturatedLaw();
         CheckProperty(SATURATED_SATURATION);
         CheckProperty(DENSITY_SOLID);
         CheckProperty(SPECIFIC_HEAT_CAPACITY_WATER);
@@ -190,6 +191,16 @@ private:
                                                             << " does not exist in the thermal element's properties" << std::endl;
         KRATOS_ERROR_IF(GetProperties()[rVariable] < 0.0) << rVariable.Name() << " has an invalid value at element "
                                                           << Id() << std::endl;
+    }
+
+    void CheckSaturatedLaw() const
+    {
+        const auto& r_variable = RETENTION_LAW;
+        KRATOS_ERROR_IF_NOT(GetProperties().Has(r_variable)) << r_variable.Name()
+                                                            << " does not exist in the thermal element's properties" << std::endl;
+        KRATOS_ERROR_IF_NOT(GetProperties()[r_variable] == "SaturatedLaw") << r_variable.Name() << " has an invalid law ("
+                                                           << GetProperties()[r_variable] << ") at element "
+                                                           << Id() << std::endl;
     }
 
     void CheckForNonZeroZCoordinateIn2D() const
@@ -260,7 +271,7 @@ private:
         RetentionLaw::Parameters parameters(r_properties, rCurrentProcessInfo);
         auto retention_law = RetentionLawFactory::Clone(r_properties);
         const double saturation = retention_law->CalculateSaturation(parameters);
-        const auto c_water = r_properties[POROSITY] * saturation *
+        const auto  c_water = r_properties[POROSITY] * saturation *
                               r_properties[DENSITY_WATER] * r_properties[SPECIFIC_HEAT_CAPACITY_WATER];
         const auto  c_solid = (1.0 - r_properties[POROSITY]) *
                               r_properties[DENSITY_SOLID] * r_properties[SPECIFIC_HEAT_CAPACITY_SOLID];
