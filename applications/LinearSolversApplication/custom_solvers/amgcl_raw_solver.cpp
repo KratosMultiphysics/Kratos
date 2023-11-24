@@ -523,6 +523,7 @@ bool AMGCLRawSolver<TSparseSpace,TDenseSpace,TReorderer>::AdditionalPhysicalData
 
 
 
+// Copied from AMGCLSolver::ProvideAdditionalData
 template<class TSparseSpace>
 std::size_t FindBlockSize(const typename TSparseSpace::MatrixType& rA,
                           const ModelPart& rModelPart,
@@ -530,31 +531,35 @@ std::size_t FindBlockSize(const typename TSparseSpace::MatrixType& rA,
 {
     KRATOS_TRY
     std::size_t block_size = 0ul;
-    std::optional<std::size_t> old_dof_count;
-    std::size_t dof_count = 0;
+    int old_ndof = -1;
+    int ndof=0;
 
-    // Compute block size
     if (!rModelPart.IsDistributed()) {
-        std::size_t old_dof_id = rDofs.empty() ? 0ul : rDofs.begin()->Id();
-        for (const auto& rDof : rDofs) {
-            if (rDof.EquationId() < TSparseSpace::Size1(rA)) {
-                const auto dof_id = rDof.Id();
-                if(dof_id != old_dof_id) {
-                    old_dof_id = dof_id;
-                    if (!old_dof_count.has_value()) {
-                        old_dof_count = dof_count;
-                    } else if (old_dof_count != dof_count) { //if it is different than the block size is 1
-                        old_dof_count = -1;
+        unsigned int old_node_id = rDofs.size() ? rDofs.begin()->Id() : 0;
+        for (auto it = rDofs.begin(); it!=rDofs.end(); it++) {
+            if(it->EquationId() < TSparseSpace::Size1(rA) ) {
+                IndexType id = it->Id();
+                if(id != old_node_id) {
+                    old_node_id = id;
+                    if(old_ndof == -1) old_ndof = ndof;
+                    else if(old_ndof != ndof) { //if it is different than the block size is 1
+                        old_ndof = -1;
                         break;
                     }
-                    dof_count = 1;
-                } else { // else (dof_id != old_dof_id)
-                    ++dof_count;
+
+                    ndof=1;
+                } else {
+                    ndof++;
                 }
             }
         }
-        block_size = old_dof_count.has_value() ? 1 : dof_count;
-    } else { //distributed
+
+        if(old_ndof == -1)
+            block_size = 1;
+        else
+            block_size = ndof;
+
+    } else { //distribute
         const std::size_t system_size = TSparseSpace::Size1(rA);
         int current_rank = rModelPart.GetCommunicator().GetDataCommunicator().Rank();
         unsigned int old_node_id = rDofs.size() ? rDofs.begin()->Id() : 0;
@@ -563,27 +568,25 @@ std::size_t FindBlockSize(const typename TSparseSpace::MatrixType& rA,
                 IndexType id = it->Id();
                 if(id != old_node_id) {
                     old_node_id = id;
-                    if(!old_dof_count.has_value()) {
-                        old_dof_count = dof_count;
-                    } else if (old_dof_count.value() != dof_count) { //if it is different than the block size is 1
-                        old_dof_count = -1;
+                    if(old_ndof == -1) old_ndof = ndof;
+                    else if(old_ndof != ndof) { //if it is different than the block size is 1
+                        old_ndof = -1;
                         break;
                     }
 
-                    dof_count=1;
+                    ndof=1;
                 } else {
-                    dof_count++;
+                    ndof++;
                 }
             }
         }
 
-        if(old_dof_count.has_value()) {
-            block_size = dof_count;
-        }
+        if(old_ndof != -1)
+            block_size = ndof;
 
-        const std::size_t max_block_size = rModelPart.GetCommunicator().GetDataCommunicator().MaxAll(block_size);
+        int max_block_size = rModelPart.GetCommunicator().GetDataCommunicator().MaxAll(block_size);
 
-        if(!old_dof_count.has_value()) {
+        if( old_ndof == -1) {
             block_size = max_block_size;
         }
 
