@@ -615,6 +615,7 @@ class RomManager(object):
     def set_pg_rom_bns_settings(self, f):
         # Clear existing rom_bns_settings
         f["rom_settings"]['rom_bns_settings'] = {}
+        f["rom_settings"]['rom_bns_settings']['train_petrov_galerkin'] = False
 
         # Set 'monotonicity_preserving' based on the settings or default to False
         f["rom_settings"]['rom_bns_settings']['monotonicity_preserving'] = (
