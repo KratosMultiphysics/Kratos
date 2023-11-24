@@ -91,6 +91,18 @@ set_target_properties( KratosLinearSolversCore PROPERTIES COMPILE_DEFINITIONS "L
 
 target_include_directories(KratosLinearSolversCore SYSTEM PUBLIC ${CMAKE_CURRENT_SOURCE_DIR} ${KRATOS_LINEAR_SOLVERS_APPLICATION_LIB_INC})
 
+if (${AMGCL_GPGPU} MATCHES ON)
+    if ("${AMGCL_GPGPU_BACKEND}" STREQUAL "OpenCL" AND TARGET VexCL::OpenCL)
+        target_link_libraries(KratosLinearSolversCore PUBLIC VexCL::OpenCL)
+        add_definitions(-DAMGCL_GPGPU)
+    elseif ("${AMGCL_GPGPU_BACKEND}" STREQUAL "CUDA" AND TARGET VexCL::CUDA)
+        target_link_libraries(KratosLinearSolversCore PUBLIC VexCL::CUDA)
+        add_definitions(-DAMGCL_GPGPU)
+    else()
+        message(WARNING "AMGCL GPGPU backend not found")
+    endif()
+endif()
+
 ## LinearSolversApplication python module
 pybind11_add_module( KratosLinearSolversApplication MODULE THIN_LTO ${KRATOS_LINEARSOLVERS_APPLICATION_PYTHON_INTERFACE} )
 target_link_libraries( KratosLinearSolversApplication PRIVATE KratosLinearSolversCore )

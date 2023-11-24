@@ -119,7 +119,7 @@ struct AMGCLTraits
             amgcl::static_matrix<Scalar,TBlockSize,TBlockSize>
         >;
 
-        using RHSValue = std::conditional_t<
+        using RHS = std::conditional_t<
             IsScalar,
             Scalar,
             amgcl::static_matrix<TValue,TBlockSize,1>
@@ -153,9 +153,6 @@ struct AMGCLTraits
             amgcl::make_block_solver<Preconditioner,SolverWrapper>
         >;
     }; // struct Impl
-
-    template <template <class, class ...> class TBackend, class TValue, class ...TArgs>
-    using Solver = typename Impl<TBackend,TValue,TArgs...>::Solver;
 }; // struct AMGCLTraits
 
 
@@ -329,16 +326,16 @@ struct AMGCLRawSolver<TSparseSpace,TDenseSpace,TReorderer>::Impl
         // Double precision GPU backend with a block size of 4.
         Detail::AMGCLBundle<typename AMGCLTraits<4>::template Impl<amgcl::backend::vexcl,double>>,
 
-        // Double precision GPU backend with a block size of 1.
+        // Single precision GPU backend with a block size of 1.
         Detail::AMGCLBundle<typename AMGCLTraits<1>::template Impl<amgcl::backend::vexcl,float>>,
 
-        // Double precision GPU backend with a block size of 2.
+        // Single precision GPU backend with a block size of 2.
         Detail::AMGCLBundle<typename AMGCLTraits<2>::template Impl<amgcl::backend::vexcl,float>>,
 
-        // Double precision GPU backend with a block size of 3.
+        // Single precision GPU backend with a block size of 3.
         Detail::AMGCLBundle<typename AMGCLTraits<3>::template Impl<amgcl::backend::vexcl,float>>,
 
-        // Double precision GPU backend with a block size of 4.
+        // Single precision GPU backend with a block size of 4.
         Detail::AMGCLBundle<typename AMGCLTraits<4>::template Impl<amgcl::backend::vexcl,float>>
 
         #endif
@@ -439,36 +436,44 @@ bool AMGCLRawSolver<TSparseSpace,TDenseSpace,TReorderer>::Solve(SparseMatrix& rA
             using BundleType = std::remove_reference_t<decltype(rBundle)>;
 
             if constexpr (!std::is_same_v<BundleType,std::monostate>) {
+                const std::size_t system_block_size = rX.size() / BundleType::Traits::BlockSize;
+
                 #ifdef AMGCL_GPGPU
                 if constexpr (BundleType::Traits::IsGPUBound) {
                     auto& vexcl_context = GetVexCLContext();
                     KRATOS_ERROR_IF_NOT(vexcl_context) << "invalid VexCL context state\n";
 
                     if constexpr (BundleType::Traits::IsScalarTypeSame) {
+                        typename BundleType::Traits::RHS* x_begin = reinterpret_cast<typename BundleType::Traits::RHS*>(&*rX.begin());
+                        typename BundleType::Traits::RHS* b_begin = reinterpret_cast<typename BundleType::Traits::RHS*>(&*rB.begin());
+
                         // Transfer system vectors to the GPU
-                        vex::vector<typename BundleType::Traits::Scalar> x_gpu(vexcl_context, rX.size(), &*rX.begin());
-                        vex::vector<typename BundleType::Traits::Scalar> b_gpu(vexcl_context, rB.size(), &*rB.begin());
+                        vex::vector<typename BundleType::Traits::RHS> x_gpu(vexcl_context, system_block_size, x_begin);
+                        vex::vector<typename BundleType::Traits::RHS> b_gpu(vexcl_context, system_block_size, b_begin);
 
                         // Solve
                         const auto results = rBundle.mpSolver->operator()(b_gpu, x_gpu);
 
                         // Fetch solution from the GPU and return
-                        vex::copy(x_gpu.begin(), x_gpu.end(), rX.begin());
+                        vex::copy(x_gpu.begin(), x_gpu.end(), x_begin);
                         return results;
                     } else /*BundleType::Traits::IsScalarTypeSame*/ {
                         // Convert system vectors to the GPU's scalar type
                         std::vector<typename BundleType::Traits::Scalar> x_cpu(rX.begin(), rX.end());
                         std::vector<typename BundleType::Traits::Scalar> b_cpu(rB.begin(), rB.end());
 
+                        typename BundleType::Traits::RHS* x_cpu_begin = reinterpret_cast<typename BundleType::Traits::RHS*>(x_cpu.data());
+                        typename BundleType::Traits::RHS* b_cpu_begin = reinterpret_cast<typename BundleType::Traits::RHS*>(b_cpu.data());
+
                         // Transfer converted system vectors to the GPU
-                        vex::vector<typename BundleType::Traits::Scalar> x_gpu(vexcl_context, x_cpu.size(), x_cpu.data());
-                        vex::vector<typename BundleType::Traits::Scalar> b_gpu(vexcl_context, b_cpu.size(), b_cpu.data());
+                        vex::vector<typename BundleType::Traits::RHS> x_gpu(vexcl_context, system_block_size, x_cpu_begin);
+                        vex::vector<typename BundleType::Traits::RHS> b_gpu(vexcl_context, system_block_size, b_cpu_begin);
 
                         // Solve
                         const auto results = rBundle.mpSolver->operator()(b_gpu, x_gpu);
 
                         // Fetch solution from the GPU
-                        vex::copy(x_gpu.begin(), x_gpu.end(), x_cpu.begin());
+                        vex::copy(x_gpu.begin(), x_gpu.end(), x_cpu_begin);
 
                         // Convert solution to the scalar type of the sparse space and return
                         std::copy(x_cpu.begin(), x_cpu.end(), rX.begin());
@@ -481,7 +486,10 @@ bool AMGCLRawSolver<TSparseSpace,TDenseSpace,TReorderer>::Solve(SparseMatrix& rA
                     static_assert(BundleType::Traits::IsScalarTypeSame);
 
                     // Solve and return
-                    return rBundle.mpSolver->operator()(rB, rX);
+                    auto x_begin = reinterpret_cast<typename BundleType::Traits::RHS*>(&*rX.begin());
+                    auto b_begin = reinterpret_cast<typename BundleType::Traits::RHS*>(&*rB.begin());
+                    return rBundle.mpSolver->operator()(boost::make_iterator_range(b_begin, b_begin + system_block_size),
+                                                        boost::make_iterator_range(x_begin, x_begin + system_block_size));
                 }
             } else /*BundleType != std::monostate*/ {
                 KRATOS_ERROR << "AMGCL solver type is unset. Did you forget to call AMGCLRawSolver::ProvideAdditionalData?\n";
@@ -515,24 +523,13 @@ bool AMGCLRawSolver<TSparseSpace,TDenseSpace,TReorderer>::AdditionalPhysicalData
 
 
 
-template<class TSparseSpace,
-         class TDenseSpace,
-         class TReorderer>
-void AMGCLRawSolver<TSparseSpace,TDenseSpace,TReorderer>::ProvideAdditionalData(SparseMatrix& rA,
-                                                                                Vector& rX,
-                                                                                Vector& rB,
-                                                                                ModelPart::DofsArrayType& rDofs,
-                                                                                ModelPart& rModelPart)
+template<class TSparseSpace>
+std::size_t FindBlockSize(const typename TSparseSpace::MatrixType& rA,
+                          const ModelPart& rModelPart,
+                          ModelPart::DofsArrayType& rDofs)
 {
     KRATOS_TRY
-    KRATOS_PROFILE_SCOPE(KRATOS_CODE_LOCATION);
-
-    // Several details of the implementation in this source file rely on
-    // the value type of the sparse space being double. This could be generalized
-    // to other value types as well, but hasn't been done so far due to the lack
-    // of other value types so far.
-    static_assert(std::is_same_v<typename SparseMatrix::value_type,double>);
-
+    std::size_t block_size = 0ul;
     std::optional<std::size_t> old_dof_count;
     std::size_t dof_count = 0;
 
@@ -556,7 +553,7 @@ void AMGCLRawSolver<TSparseSpace,TDenseSpace,TReorderer>::ProvideAdditionalData(
                 }
             }
         }
-        mpImpl->mDoFCount = old_dof_count.has_value() ? 1 : dof_count;
+        block_size = old_dof_count.has_value() ? 1 : dof_count;
     } else { //distributed
         const std::size_t system_size = TSparseSpace::Size1(rA);
         int current_rank = rModelPart.GetCommunicator().GetDataCommunicator().Rank();
@@ -581,18 +578,37 @@ void AMGCLRawSolver<TSparseSpace,TDenseSpace,TReorderer>::ProvideAdditionalData(
         }
 
         if(old_dof_count.has_value()) {
-            mpImpl->mDoFCount = dof_count;
+            block_size = dof_count;
         }
 
-        const std::size_t max_block_size = rModelPart.GetCommunicator().GetDataCommunicator().MaxAll(mpImpl->mDoFCount);
+        const std::size_t max_block_size = rModelPart.GetCommunicator().GetDataCommunicator().MaxAll(block_size);
 
         if(!old_dof_count.has_value()) {
-            mpImpl->mDoFCount = max_block_size;
+            block_size = max_block_size;
         }
 
-        KRATOS_ERROR_IF(mpImpl->mDoFCount != max_block_size) << "Block size is not consistent. Local: " << mpImpl->mDoFCount  << " Max: " << max_block_size << std::endl;
+        KRATOS_ERROR_IF(block_size != max_block_size) << "Block size is not consistent. Local: " << block_size  << " Max: " << max_block_size << std::endl;
     }
 
+    return block_size;
+    KRATOS_CATCH("")
+}
+
+
+
+template<class TSparseSpace,
+         class TDenseSpace,
+         class TReorderer>
+void AMGCLRawSolver<TSparseSpace,TDenseSpace,TReorderer>::ProvideAdditionalData(SparseMatrix& rA,
+                                                                                Vector& rX,
+                                                                                Vector& rB,
+                                                                                ModelPart::DofsArrayType& rDofs,
+                                                                                ModelPart& rModelPart)
+{
+    KRATOS_TRY
+    KRATOS_PROFILE_SCOPE(KRATOS_CODE_LOCATION);
+
+    mpImpl->mDoFCount = FindBlockSize<TSparseSpace>(rA, rModelPart, rDofs);
     KRATOS_INFO_IF("AMGCLRawSolver", 1 <= mpImpl->mVerbosity)
         << "block size: " << mpImpl->mDoFCount << "\n";
 
@@ -634,6 +650,7 @@ void AMGCLRawSolver<TSparseSpace,TDenseSpace,TReorderer>::ProvideAdditionalData(
             }
             case AMGCLBackendType::DoublePrecisionGPU: {
                 KRATOS_CONSTRUCT_AMGCL_SOLVER_BUNDLE(amgcl::backend::vexcl, double);
+                break;
             }
         #endif
         case AMGCLBackendType::CPU: {
