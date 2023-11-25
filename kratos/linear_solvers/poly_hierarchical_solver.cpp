@@ -532,7 +532,7 @@ void MapHigherToLowerOrder(const ModelPart& rModelPart,
                     for (std::size_t i_node_dof=0ul; i_node_dof<dofs_per_node; ++i_node_dof) {
                         const std::size_t i_coarse_dof_in_fine_system = r_coarse_node_dofs[i_node_dof]->EquationId();
 
-                        if (rCoarseDofMask[i_coarse_dof_in_fine_system]) {
+                        if (rCoarseDofMask[i_coarse_dof_in_fine_system]) { // <== ignore DoF if not in the coarse set
                             const std::size_t i_coarse_dof = rCoarseDofMap[i_coarse_dof_in_fine_system];
                             const std::size_t i_fine_dof = r_fine_node_dofs[i_node_dof]->EquationId();
                             rRestrictionMap.emplace(std::make_pair(i_coarse_dof, i_fine_dof), r_fine_coefficient_pair.second);
@@ -593,7 +593,8 @@ void PolyHierarchicalSolver<TSparseSpace,TDenseSpace,TReorderer>::ProvideAdditio
     // If the coarse solver's AdditionalPhysicalDataIsNeeded is true, the coarse
     // DoF list must be constructed, and it must map equation IDs to the coarse
     // system's index space. This means constructing an entirely new list of DoFs,
-    // so it should be avoided if the coarse solver doesn't need it.
+    // so it should be avoided if the coarse solver doesn't need it
+    // (hence the std::optional).
     std::optional<std::vector<ModelPart::DofType>> coarse_dofs;
     std::size_t masked_count = 0ul;
     if (mpImpl->mCoarseSystem.mpSolver->AdditionalPhysicalDataIsNeeded()) {
@@ -624,15 +625,28 @@ void PolyHierarchicalSolver<TSparseSpace,TDenseSpace,TReorderer>::ProvideAdditio
     KRATOS_INFO_IF("PolyHierarchicalSolver", 1 <= mpImpl->mVerbosity)
         << "coarse system size: " << masked_count << "\n";
 
+    // Compute the restriction operator and the interpolation operator (transpose of the restriction)
     typename TSparseSpace::MatrixType& r_restriction_operator = mpImpl->mRestrictionOperator;
     typename TSparseSpace::MatrixType& r_interpolation_operator = mpImpl->mInterpolationOperator;
 
     {
+        // The restriction and interpolation operators are linear, so they can be stored in
+        // matrix format. In this case they are stored as sparse matrices, which compicates
+        // their construction somewhat. Entries are calculated by looping over elements and
+        // their nodes, which does not guarantee that DoFs are iterated in sorted order of
+        // their equation IDs (row indices of the restriction operator), and each DoF may
+        // be iterated over more than once. This poses a problem for the efficiency of
+        // filling the sparse matrices, so the construction is broken down to two stages:
+        // 1) collect the sparse matrix entries in a set, sorted in row-major order
+        // 2) insert entries to the sparse matrix from the set
         std::map<
             std::pair<std::size_t,std::size_t>,
             double,
             Detail::IndexPairTraits::IsLess
         > restriction_map, interpolation_map;
+
+        // Collect entries of the restriction operator's sparse matrix
+        // from elements
         MapHigherToLowerOrder<Globals::DataLocation::Element>(rModelPart,
                                                               coarse_mask,
                                                               coarse_dof_indices,
@@ -642,6 +656,8 @@ void PolyHierarchicalSolver<TSparseSpace,TDenseSpace,TReorderer>::ProvideAdditio
         // Conditions shouldn't introduce coarse DoFs, but I'll leave this
         // here for the time being in case I'm missing some exotic boundary
         // condition implementations @matekelemen.
+        // Collect entries of the restriction operator's sparse matrix
+        // from conditions
         //MapHigherToLowerOrder<Globals::DataLocation::Condition>(rModelPart,
         //                                                        coarse_dof_indices,
         //                                                        restriction_map,
