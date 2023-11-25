@@ -313,7 +313,7 @@ KRATOS_TEST_CASE_IN_SUITE(SpatialSearchResultContainerRemoveResultsFromIndexesLi
     KRATOS_EXPECT_EQ(container.NumberOfGlobalResults(), 3);
 
     // Remove indexes
-    std::vector<std::size_t> index_to_remove(2,3);
+    std::vector<std::size_t> index_to_remove({2,3});
     container.RemoveResultsFromIndexesList(index_to_remove);
 
     // Check that the result was removed correctly
