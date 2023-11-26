@@ -292,7 +292,7 @@ struct AMGCLRawSolver<TSparseSpace,TDenseSpace,TReorderer>::Impl
     // A variant for grouping members related to the wrapped AMGCL solver. It's meant
     // to bundle solvers using different backends as well as its associated matrix wrapper.
     // The wrapped types are composed of the permutations of the following attributes:
-    // - block size [1, 2, 3, 4]
+    // - block size [1, 2, 3, 4, 5, 6]
     // - backend type [bultin, vexcl]
     // - value type [double, float (vexcl only)]
     std::variant<
@@ -617,11 +617,11 @@ void AMGCLRawSolver<TSparseSpace,TDenseSpace,TReorderer>::ProvideAdditionalData(
                 break;                                                                                      \
             }                                                                                               \
             case 5: {                                                                                       \
-                KRATOS_CONSTRUCT_AMGCL_SOLVER_BUNDLE_WITH_BLOCK_SIZE(BACKEND_TEMPLATE, BACKEND_SCALAR, 4);  \
+                KRATOS_CONSTRUCT_AMGCL_SOLVER_BUNDLE_WITH_BLOCK_SIZE(BACKEND_TEMPLATE, BACKEND_SCALAR, 5);  \
                 break;                                                                                      \
             }                                                                                               \
             case 6: {                                                                                       \
-                KRATOS_CONSTRUCT_AMGCL_SOLVER_BUNDLE_WITH_BLOCK_SIZE(BACKEND_TEMPLATE, BACKEND_SCALAR, 4);  \
+                KRATOS_CONSTRUCT_AMGCL_SOLVER_BUNDLE_WITH_BLOCK_SIZE(BACKEND_TEMPLATE, BACKEND_SCALAR, 6);  \
                 break;                                                                                      \
             }                                                                                               \
             default: KRATOS_ERROR << "unsupported block size: " << mpImpl->mDoFCount << "\n";               \
@@ -734,8 +734,8 @@ void AMGCLRawSolver<TSparseSpace,TDenseSpace,TReorderer>::PrintData(std::ostream
 
 
 
-template
-class AMGCLRawSolver<
+template class KRATOS_API(LINEARSOLVERS_APPLICATION)
+AMGCLRawSolver<
     TUblasSparseSpace<double>,
     TUblasDenseSpace<double>,
     Reorderer<

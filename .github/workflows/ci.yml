@@ -29,8 +29,23 @@ permissions:
   contents: read
 
 jobs:
+  changed-files:
+    runs-on: ubuntu-latest
+    outputs:
+      files: ${{ steps.get_files.outputs.changed_files }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - id: get_files
+        run: |
+          echo "changed_files=$(python3 .github/get_files_changed_in_pr.py)" >> $GITHUB_OUTPUT
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_PR_NUMBER: ${{ github.event.pull_request.number }}
+
   ubuntu:
     runs-on: ubuntu-latest
+    needs: changed-files
     strategy:
       fail-fast: false
       matrix:
@@ -50,6 +65,9 @@ jobs:
 
     # - name: Installing dependencies
     # => must be added to the docker container to avoid reinstalling it in every CI run
+
+    - name: Print changed files
+      run: echo "${{needs.changed-files.outputs.files}}"
 
     - name: Build
       shell: bash
