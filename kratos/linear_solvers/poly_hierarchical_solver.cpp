@@ -220,6 +220,12 @@ bool PolyHierarchicalSolver<TSparseSpace,TDenseSpace,TReorderer>::Solve(SparseMa
         //fine_residual -= fine_tmp;
         TSparseSpace::UnaliasedAdd(fine_residual, -1.0, fine_tmp);
 
+        KRATOS_INFO_IF("PolyHierarchicalSolver", 3 <= mpImpl->mVerbosity)
+            << "iteration " << i_iteration
+            << " residual after smoothing "
+            << TSparseSpace::TwoNorm(fine_residual) / rhs_norm
+            << "\n";
+
         // Restrict the updated residual
         // r_coarse = R * r_fine
         TSparseSpace::Mult(mpImpl->mRestrictionOperator,
@@ -301,9 +307,6 @@ void GetLowerOrderDofs(typename TSparseSpace::MatrixType& rA,
         const Geometry<Node>& r_geometry = r_entity.GetGeometry();
 
         if (r_entity.IsActive() && r_geometry.PointsNumber()) {
-            // Assume each node has the same number of DoFs in the element
-            const std::size_t dofs_per_node = r_geometry[0].GetDofs().size();
-
             // Get the number of vertices on the equivalent lower order element
             const std::size_t coarse_node_count = GetLinearGeometryVertexCount(r_geometry.GetGeometryFamily());
             KRATOS_DEBUG_ERROR_IF_NOT(coarse_node_count <= r_geometry.PointsNumber())
@@ -313,12 +316,10 @@ void GetLowerOrderDofs(typename TSparseSpace::MatrixType& rA,
             // Mark each DoF of all nodes on the equivalent lower order element
             // unless they are constrained as slave dofs in multi-point constraints
             for (std::size_t i_node=0ul; i_node<coarse_node_count; ++i_node) {
-                if (r_geometry[i_node].IsNot(SLAVE)) {
+                if (r_geometry[i_node].IsNot(SLAVE) /*&& r_geometry[i_node].IsNot(MASTER)*/) {
                     const auto& r_node_dofs = r_geometry[i_node].GetDofs();
-                    for (std::size_t i_local_dof=0ul; i_local_dof<dofs_per_node; ++i_local_dof) {
-                        //KRATOS_WATCH(r_node_dofs[i_local_dof]->EquationId());
-                        const std::size_t i_equation = r_node_dofs[i_local_dof]->EquationId();
-                        //KRATOS_WATCH(i_equation);
+                    for (const auto& rp_dof : r_node_dofs) {
+                        const std::size_t i_equation = rp_dof->EquationId();
                         KRATOS_DEBUG_ERROR_IF_NOT(i_equation < TSparseSpace::Size1(rA));
                         rCoarseMask[i_equation] = true;
                     }
@@ -505,9 +506,6 @@ void MapHigherToLowerOrder(const ModelPart& rModelPart,
         const std::size_t fine_vertex_count = r_fine_geometry.PointsNumber();
 
         if (r_entity.IsActive() && fine_vertex_count) {
-            // Assume each node has the same number of DoFs in the element
-            const std::size_t dofs_per_node = r_fine_geometry[0].GetDofs().size();
-
             std::vector<std::pair<
                 std::size_t,        // <== coarse DoF index
                 std::vector<std::pair<
@@ -522,12 +520,12 @@ void MapHigherToLowerOrder(const ModelPart& rModelPart,
             for (const auto& r_restriction_pair : restriction_coefficients) {
                 const std::size_t i_coarse_vertex = r_restriction_pair.first;
                 const auto& r_coarse_node_dofs = r_fine_geometry[i_coarse_vertex].GetDofs();
-                KRATOS_DEBUG_ERROR_IF_NOT(r_coarse_node_dofs.size() == dofs_per_node);
 
                 for (const auto& r_fine_coefficient_pair : r_restriction_pair.second) {
                     const std::size_t i_fine_vertex = r_fine_coefficient_pair.first;
                     const auto& r_fine_node_dofs = r_fine_geometry[i_fine_vertex].GetDofs();
-                    KRATOS_DEBUG_ERROR_IF_NOT(r_fine_node_dofs.size() == dofs_per_node);
+                    KRATOS_ERROR_IF_NOT(r_fine_node_dofs.size() == r_coarse_node_dofs.size());
+                    const std::size_t dofs_per_node = r_fine_node_dofs.size();
 
                     for (std::size_t i_node_dof=0ul; i_node_dof<dofs_per_node; ++i_node_dof) {
                         const std::size_t i_coarse_dof_in_fine_system = r_coarse_node_dofs[i_node_dof]->EquationId();
