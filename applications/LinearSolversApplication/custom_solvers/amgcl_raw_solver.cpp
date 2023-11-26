@@ -734,8 +734,8 @@ void AMGCLRawSolver<TSparseSpace,TDenseSpace,TReorderer>::PrintData(std::ostream
 
 
 
-template KRATOS_API(LINEAR_SOLVERS_APPLICATION)
-class AMGCLRawSolver<
+template class KRATOS_API(LINEAR_SOLVERS_APPLICATION)
+AMGCLRawSolver<
     TUblasSparseSpace<double>,
     TUblasDenseSpace<double>,
     Reorderer<
