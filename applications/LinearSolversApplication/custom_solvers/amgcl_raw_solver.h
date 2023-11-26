@@ -88,7 +88,7 @@ namespace Kratos {
 template<class TSparseSpace,
          class TDenseSpace,
          class TReorderer = Reorderer<TSparseSpace, TDenseSpace> >
-class KRATOS_API(LINEAR_SOLVERS_APPLICATION) AMGCLRawSolver final
+class KRATOS_API(LINEARSOLVERS_APPLICATION) AMGCLRawSolver final
     : public LinearSolver<TSparseSpace,
                           TDenseSpace,
                           TReorderer>
