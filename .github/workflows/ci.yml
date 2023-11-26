@@ -31,6 +31,7 @@ permissions:
 jobs:
   changed-files:
     runs-on: ubuntu-latest
+    # see https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#example-defining-outputs-for-a-job
     outputs:
       files: ${{ steps.get_files.outputs.changed_files }}
     steps:
@@ -159,6 +160,7 @@ jobs:
 
   windows:
     runs-on: windows-2022
+    needs: changed-files
     env:
       KRATOS_BUILD_TYPE: Custom
 
@@ -167,6 +169,9 @@ jobs:
     - uses: actions/setup-python@v4
       with:
         python-version: '3.8'
+
+    - name: Print changed files
+      run: echo "${{needs.changed-files.outputs.files}}"
 
     - name: Download boost
       run: |
