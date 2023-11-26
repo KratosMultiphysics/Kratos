@@ -27,6 +27,8 @@
 #include "custom_solvers/eigen_dense_direct_solver.h"
 #include "custom_solvers/eigen_dense_eigenvalue_solver.h"
 #include "custom_solvers/eigensystem_solver.h"
+#include "custom_solvers/amgcl_raw_solver.h"
+#include "spaces/ublas_space.h"
 
 #if defined USE_EIGEN_MKL
 #include "custom_solvers/eigen_pardiso_lu_solver.h"
@@ -151,6 +153,17 @@ void register_spectra_sym_g_eigs_shift_solver(pybind11::module& m, const std::st
     ;
 }
 
+void register_amgcl_raw_solver(pybind11::module& rModule, const std::string& rName)
+{
+    using Solver = AMGCLRawSolver<TUblasSparseSpace<double>,TUblasDenseSpace<double>>;
+    using Pointer = Solver::Pointer;
+    using Base = LinearSolver<TUblasSparseSpace<double>,TUblasDenseSpace<double>>;
+
+    pybind11::class_<Solver,Pointer,Base>(rModule, rName.c_str())
+        .def(pybind11::init<Parameters>())
+        ;
+}
+
 void register_base_dense_solver(pybind11::module& m)
 {
     namespace py = pybind11;
@@ -260,6 +273,8 @@ void AddCustomSolversToPython(pybind11::module& m)
 
     // --- spectra eigensystem solver
     register_spectra_sym_g_eigs_shift_solver(m, "SpectraSymGEigsShiftSolver");
+
+    register_amgcl_raw_solver(m, "AMGCLRawSolver");
 
     typedef UblasSpace<double, CompressedMatrix, boost::numeric::ublas::vector<double>> SparseSpaceType;
     typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
