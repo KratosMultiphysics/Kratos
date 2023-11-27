@@ -41,12 +41,9 @@ SpatialSearchResultContainerVector<TObjectType>::~SpatialSearchResultContainerVe
 template <class TObjectType>
 std::size_t SpatialSearchResultContainerVector<TObjectType>::NumberOfSearchResults() const
 {
-    return block_for_each<SumReduction<IndexType>>(mPointResults, [](auto p_result) {
-        if (p_result != nullptr) {
-            return 1;
-        }
-        return 0;
-    });
+    // Some check
+    KRATOS_DEBUG_ERROR_IF_NOT(mMapIdsStored.size() == mPointResults.size()) << "Allocation non consistent as mMapIdsStored size: " << mMapIdsStored.size() << " and mPointResults size: " << mPointResults.size() << std::endl;
+    return mMapIdsStored.size();
 }
 
 /***********************************************************************************/
@@ -55,15 +52,25 @@ std::size_t SpatialSearchResultContainerVector<TObjectType>::NumberOfSearchResul
 template <class TObjectType>
 typename SpatialSearchResultContainerVector<TObjectType>::SpatialSearchResultContainerReferenceType SpatialSearchResultContainerVector<TObjectType>::InitializeResult(const IndexType Index)
 {
+    // Some check
+    KRATOS_DEBUG_ERROR_IF_NOT(mMapIdsStored.size() == mPointResults.size()) << "Allocation non consistent as mMapIdsStored size: " << mMapIdsStored.size() << " and mPointResults size: " << mPointResults.size() << std::endl;
+
     // If doesn't exists, create it
-    if (!HasResult(Index)) {
+    const auto it_find = mMapIdsStored.find(Index);
+    if (it_find == mMapIdsStored.end()) {
         // Resize vector
-        mPointResults.resize(Index + 1);
+        const std::size_t current_size = mPointResults.size();
+        mPointResults.resize(current_size + 1);
+
+        // Add index to map
+        mMapIdsStored.insert({Index, current_size});
 
         // Create the result
-        mPointResults[Index] = new SpatialSearchResultContainer<TObjectType>();
+        mPointResults[current_size] = new SpatialSearchResultContainer<TObjectType>();
+        return *mPointResults[current_size];
+    } else {
+        return *mPointResults[it_find->second];
     }
-    return *mPointResults[Index];
 }
 
 /***********************************************************************************/
@@ -72,20 +79,30 @@ typename SpatialSearchResultContainerVector<TObjectType>::SpatialSearchResultCon
 template <class TObjectType>
 void SpatialSearchResultContainerVector<TObjectType>::InitializeResults(const std::vector<IndexType>& rIndexes)
 {
-    // Get the max index
-    const auto it_max_index = std::max_element(rIndexes.begin(), rIndexes.end());
-    const IndexType max_index = *it_max_index;
+    // Some check
+    KRATOS_DEBUG_ERROR_IF_NOT(mMapIdsStored.size() == mPointResults.size()) << "Allocation non consistent as mMapIdsStored size: " << mMapIdsStored.size() << " and mPointResults size: " << mPointResults.size() << std::endl;
 
-    // Resize vector
-    if (max_index >= mPointResults.size()) {
-        mPointResults.resize(max_index + 1);
+    // Define counter
+    std::size_t counter = 0;
+    const std::size_t current_size = mPointResults.size();
+    std::vector<IndexType> values_to_initialize;
+    for (const auto index : rIndexes) {
+        const auto it_find = mMapIdsStored.find(index);
+        if (it_find == mMapIdsStored.end()) {
+            // Add index to map
+            mMapIdsStored.insert({index, current_size + counter});
+            values_to_initialize.push_back(current_size + counter);
+
+            // Update counters
+            ++counter;
+        }
     }
+    // Resize vector
+    mPointResults.resize(current_size + counter);
 
     // Create the results
-    block_for_each(rIndexes, [this](const IndexType Index) {
-        if (!HasResult(Index)) {
-            mPointResults[Index] = new SpatialSearchResultContainer<TObjectType>();
-        }
+    block_for_each(values_to_initialize, [this](const auto Index) {
+        mPointResults[Index] = new SpatialSearchResultContainer<TObjectType>();
     });
 }
 
@@ -95,12 +112,12 @@ void SpatialSearchResultContainerVector<TObjectType>::InitializeResults(const st
 template <class TObjectType>
 bool SpatialSearchResultContainerVector<TObjectType>::HasResult(const IndexType Index) const
 {
-    // Check size
-    if (Index >= mPointResults.size()) {
-        return false;
-    } else {
-        return mPointResults[Index] != nullptr;
-    }
+    // Some check
+    KRATOS_DEBUG_ERROR_IF_NOT(mMapIdsStored.size() == mPointResults.size()) << "Allocation non consistent as mMapIdsStored size: " << mMapIdsStored.size() << " and mPointResults size: " << mPointResults.size() << std::endl;
+
+    // Check if index is initialized
+    const auto it_find = mMapIdsStored.find(Index);
+    return (it_find != mMapIdsStored.end());
 }
 
 /***********************************************************************************/
@@ -110,6 +127,7 @@ template <class TObjectType>
 void SpatialSearchResultContainerVector<TObjectType>::Clear()
 {
     mPointResults.clear();
+    mMapIdsStored.clear();
 }
 
 /***********************************************************************************/
@@ -135,15 +153,13 @@ void SpatialSearchResultContainerVector<TObjectType>::SynchronizeAll(const DataC
         // Iterate over all the results
         for (std::size_t i = 0; i < mPointResults.size(); ++i) {
             auto p_result = mPointResults[i];
-            if (p_result != nullptr) {
-                active_results.push_back(i);
-                const int local_result_size = p_result->GetLocalResults().size();
-                total_local_size += local_result_size;
-                const int global_result_size = rDataCommunicator.SumAll(local_result_size);
-                result_global_size.push_back(global_result_size);
-                total_global_size += global_result_size;
-                p_result->GetGlobalResults().reserve(global_result_size);
-            }
+            active_results.push_back(i);
+            const int local_result_size = p_result->GetLocalResults().size();
+            total_local_size += local_result_size;
+            const int global_result_size = rDataCommunicator.SumAll(local_result_size);
+            result_global_size.push_back(global_result_size);
+            total_global_size += global_result_size;
+            p_result->GetGlobalResults().reserve(global_result_size);
         }
 
         // Gather sizes to send/receive
@@ -208,21 +224,17 @@ void SpatialSearchResultContainerVector<TObjectType>::SynchronizeAll(const DataC
     } else { // Serial code
         // Iterate over all the results
         block_for_each(mPointResults, [](auto p_result) {
-            if (p_result != nullptr) {
-                // Fill global vector
-                auto& r_global_results = p_result->GetGlobalResults();
-                for (auto& r_value : p_result->GetLocalResults()) {
-                    r_global_results.push_back(&r_value);
-                }
+            // Fill global vector
+            auto& r_global_results = p_result->GetGlobalResults();
+            for (auto& r_value : p_result->GetLocalResults()) {
+                r_global_results.push_back(&r_value);
             }
         });
     }
 
     // Generate global pointer communicator
     block_for_each(mPointResults, [&rDataCommunicator](auto p_result) {
-        if (p_result != nullptr) {
-            p_result->GenerateGlobalPointerCommunicator(rDataCommunicator);
-        }
+        p_result->GenerateGlobalPointerCommunicator(rDataCommunicator);
     });
 }
 
@@ -254,12 +266,10 @@ void SpatialSearchResultContainerVector<TObjectType>::PrintData(std::ostream& rO
 {
     // Print results
     rOStream << "SpatialSearchResultContainerVector data summary: " << "\n";
-    for (IndexType i = 0; i < mPointResults.size(); ++i) {
-        auto p_result = mPointResults[i];
-        if (p_result !=  nullptr) {
-            rOStream << "Point " << i << ": ";
-            p_result->PrintData(rOStream);
-        }
+    for (auto& r_pair : mMapIdsStored) {
+        auto p_result = mPointResults[r_pair.second];
+        rOStream << "Point " << r_pair.first << ": ";
+        p_result->PrintData(rOStream);
     }
 }
 
@@ -300,6 +310,7 @@ template <class TObjectType>
 void SpatialSearchResultContainerVector<TObjectType>::save(Serializer& rSerializer) const
 {
     rSerializer.save("PointResults", mPointResults);
+    rSerializer.save("MapIdsStored", mMapIdsStored);
 }
 
 /***********************************************************************************/
@@ -308,7 +319,8 @@ void SpatialSearchResultContainerVector<TObjectType>::save(Serializer& rSerializ
 template <class TObjectType>
 void SpatialSearchResultContainerVector<TObjectType>::load(Serializer& rSerializer)
 {
-    rSerializer.load("PointResults", mPointResults);
+    rSerializer.save("PointResults", mPointResults);
+    rSerializer.save("MapIdsStored", mMapIdsStored);
 }
 
 /***********************************************************************************/

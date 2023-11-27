@@ -36,7 +36,6 @@ namespace Kratos
  * @tparam TObjectType The type of the object
  * @ingroup KratosCore
  * @author Vicente Mataix Ferrandiz
- * @todo Add a map of indexes to avoid store nullptr when a huge Id is considered
  */
 template <class TObjectType>
 class KRATOS_API(KRATOS_CORE) SpatialSearchResultContainerVector
@@ -47,6 +46,9 @@ public:
 
     /// Pointer definition of SpatialSearchResultContainerVector
     KRATOS_CLASS_POINTER_DEFINITION(SpatialSearchResultContainerVector);
+
+    /// The index map type
+    using IndexMapType = std::unordered_map<IndexType, IndexType>;
 
     /// The spatial search result container type
     using SpatialSearchResultContainerType = SpatialSearchResultContainer<TObjectType>;
@@ -234,8 +236,9 @@ public:
      */
     SpatialSearchResultContainerReferenceType operator[](const IndexType Index)
     {
-        KRATOS_ERROR_IF_NOT(this->HasResult(Index)) << "The result container does not exist for index: " << Index << std::endl;
-        return *mPointResults[Index];
+        auto it_found = mMapIdsStored.find(Index);
+        KRATOS_ERROR_IF_NOT(it_found != mMapIdsStored.end()) << "The result container does not exist for index: " << Index << std::endl;
+        return *mPointResults[it_found->second];
     }
 
     /**
@@ -245,8 +248,9 @@ public:
      */
     const SpatialSearchResultContainerType& operator[](const IndexType Index) const
     {
-        KRATOS_ERROR_IF_NOT(this->HasResult(Index)) << "The result container does not exist for index: " << Index << std::endl;
-        return *mPointResults[Index];
+        auto it_found = mMapIdsStored.find(Index);
+        KRATOS_ERROR_IF_NOT(it_found != mMapIdsStored.end()) << "The result container does not exist for index: " << Index << std::endl;
+        return *mPointResults[it_found->second];
     }
 
     /**
@@ -361,6 +365,15 @@ public:
         return mPointResults;
     }
 
+    /**
+     * @brief Get the map of indexes stored
+     * @return The map of indexes stored
+     */
+    IndexMapType& GetMapIdsStored()
+    {
+        return mMapIdsStored;
+    }
+
     ///@}
     ///@name Input and output
     ///@{
@@ -379,7 +392,8 @@ private:
     ///@name Member Variables
     ///@{
 
-    ContainerType mPointResults;  /// The results of each point
+    ContainerType mPointResults; /// The results of each point
+    IndexMapType mMapIdsStored;  /// A map of the stored Ids
 
     ///@}
     ///@name Private Operations
