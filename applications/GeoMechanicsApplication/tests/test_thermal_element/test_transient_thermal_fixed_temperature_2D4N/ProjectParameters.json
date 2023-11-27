@@ -132,7 +132,6 @@
             "model_part_name":      "PorousDomain.right",
             "variable_name":        "TEMPERATURE",
             "is_fixed":             true,
-            "fluid_pressure_type": "Uniform",
             "value":                25.0,
             "table":                0
         }

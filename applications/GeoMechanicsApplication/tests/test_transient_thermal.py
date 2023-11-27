@@ -250,6 +250,7 @@ class KratosGeoMechanicsTransientThermalTests(KratosUnittest.TestCase):
         temperature = test_helper.get_temperature(simulation)
         temp = temperature[77]
         self.assertAlmostEqual(2.98104309613254, temp)
+
     def test_transient_thermal_fixed_temperature_2D15N(self):
         test_name = 'test_transient_thermal_fixed_temperature_2D15N'
         file_path = test_helper.get_file_path(os.path.join('test_thermal_element', test_name))
