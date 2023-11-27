@@ -29,10 +29,14 @@ KRATOS_TEST_CASE_IN_SUITE(CalculateExtrapolatedHeadFlow_1, KratosGeoMechanicsInt
     auto projectFile = "ProjectParameters_1.json";
 
     auto execute = Kratos::KratosExecute();
-    int status = execute.ExecuteFlowAnalysis(workingDirectory, projectFile,
-                                             0, 0, 0,
-                                             "", &flow_stubs::emptyLog, &flow_stubs::emptyProgress,
-                                             &flow_stubs::emptyLog, &flow_stubs::emptyCancel);
+
+    const Kratos::KratosExecute::CriticalHeadInfo critical_head_info(0, 0, 0);
+    const Kratos::KratosExecute::CallBackFunctions call_back_functions(&flow_stubs::emptyLog,
+                                                                 &flow_stubs::emptyProgress,
+                                                                 &flow_stubs::emptyLog,
+                                                                 &flow_stubs::emptyCancel);
+
+    const int status = execute.ExecuteFlowAnalysis(workingDirectory, projectFile, critical_head_info, "", call_back_functions);
 
     KRATOS_EXPECT_EQ(status, 0);
 
@@ -49,10 +53,14 @@ KRATOS_TEST_CASE_IN_SUITE(CalculateExtrapolatedHeadFlow_1, KratosGeoMechanicsInt
     auto projectFile = "ProjectParameters_2.json";
 
     auto execute = Kratos::KratosExecute();
-    int status = execute.ExecuteFlowAnalysis(workingDirectory, projectFile,
-                                             0, 0, 0,
-                                             "", &flow_stubs::emptyLog, &flow_stubs::emptyProgress,
-                                             &flow_stubs::emptyLog, &flow_stubs::emptyCancel);
+
+    const Kratos::KratosExecute::CriticalHeadInfo critical_head_info(0, 0, 0);
+    const Kratos::KratosExecute::CallBackFunctions call_back_functions(&flow_stubs::emptyLog,
+                                                                 &flow_stubs::emptyProgress,
+                                                                 &flow_stubs::emptyLog,
+                                                                 &flow_stubs::emptyCancel);
+
+    const int status = execute.ExecuteFlowAnalysis(workingDirectory, projectFile, critical_head_info, "", call_back_functions);
 
     KRATOS_EXPECT_EQ(status, 0);
 
@@ -69,10 +77,14 @@ KRATOS_TEST_CASE_IN_SUITE(CalculateExtrapolatedHeadFlow_3, KratosGeoMechanicsInt
     auto projectFile = "ProjectParameters_3.json";
 
     auto execute = Kratos::KratosExecute();
-    int status = execute.ExecuteFlowAnalysis(workingDirectory, projectFile,
-                                             0, 0, 0,
-                                             "", &flow_stubs::emptyLog, &flow_stubs::emptyProgress,
-                                             &flow_stubs::emptyLog, &flow_stubs::emptyCancel);
+
+    const Kratos::KratosExecute::CriticalHeadInfo critical_head_info(0, 0, 0);
+    const Kratos::KratosExecute::CallBackFunctions call_back_functions(&flow_stubs::emptyLog,
+                                                                 &flow_stubs::emptyProgress,
+                                                                 &flow_stubs::emptyLog,
+                                                                 &flow_stubs::emptyCancel);
+
+    const int status = execute.ExecuteFlowAnalysis(workingDirectory, projectFile, critical_head_info, "", call_back_functions);
 
     KRATOS_EXPECT_EQ(status, 0);
 
@@ -89,10 +101,14 @@ KRATOS_TEST_CASE_IN_SUITE(CalculateExtrapolatedHeadFlow_4, KratosGeoMechanicsInt
     auto projectFile = "ProjectParameters_4.json";
 
     auto execute = Kratos::KratosExecute();
-    int status = execute.ExecuteFlowAnalysis(workingDirectory, projectFile,
-                                             0, 0, 0,
-                                             "", &flow_stubs::emptyLog, &flow_stubs::emptyProgress,
-                                             &flow_stubs::emptyLog, &flow_stubs::emptyCancel);
+
+    const Kratos::KratosExecute::CriticalHeadInfo critical_head_info(0, 0, 0);
+    const Kratos::KratosExecute::CallBackFunctions call_back_functions(&flow_stubs::emptyLog,
+                                                                 &flow_stubs::emptyProgress,
+                                                                 &flow_stubs::emptyLog,
+                                                                 &flow_stubs::emptyCancel);
+
+    const int status = execute.ExecuteFlowAnalysis(workingDirectory, projectFile, critical_head_info, "", call_back_functions);
 
     KRATOS_EXPECT_EQ(status, 0);
 
