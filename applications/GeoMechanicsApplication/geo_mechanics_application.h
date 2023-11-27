@@ -8,18 +8,16 @@
 //  License:         geo_mechanics_application/license.txt
 //
 //  Main authors:    Vahid Galavi
+//                   Mohamed Nabi
 //
-
 
 #pragma once
 
 // System includes
-#include <string>
 #include <iostream>
-
+#include <string>
 
 // External includes
-
 
 // Project includes
 #include "includes/define.h"
@@ -30,108 +28,108 @@
 #include "geo_mechanics_application_variables.h"
 
 // conditions
-#include "custom_conditions/U_Pw_force_condition.hpp"
-#include "custom_conditions/U_Pw_face_load_condition.hpp"
-#include "custom_conditions/U_Pw_normal_face_load_condition.hpp"
-#include "custom_conditions/U_Pw_normal_flux_condition.hpp"
-#include "custom_conditions/U_Pw_normal_flux_FIC_condition.hpp"
-#include "custom_conditions/U_Pw_face_load_interface_condition.hpp"
-#include "custom_conditions/U_Pw_normal_flux_interface_condition.hpp"
 #include "custom_conditions/Pw_normal_flux_condition.hpp"
-#include "custom_conditions/line_load_2D_diff_order_condition.hpp"
-#include "custom_conditions/line_normal_load_2D_diff_order_condition.hpp"
-#include "custom_conditions/line_normal_fluid_flux_2D_diff_order_condition.hpp"
-#include "custom_conditions/surface_load_3D_diff_order_condition.hpp"
-#include "custom_conditions/surface_normal_load_3D_diff_order_condition.hpp"
-#include "custom_conditions/surface_normal_fluid_flux_3D_diff_order_condition.hpp"
-#include "custom_conditions/axisymmetric_U_Pw_normal_face_load_condition.hpp"
-#include "custom_conditions/axisymmetric_line_normal_load_2D_diff_order_condition.hpp"
-#include "custom_conditions/axisymmetric_line_normal_fluid_flux_2D_diff_order_condition.hpp"
+#include "custom_conditions/T_normal_flux_condition.h"
+#include "custom_conditions/U_Pw_face_load_condition.hpp"
+#include "custom_conditions/U_Pw_face_load_interface_condition.hpp"
+#include "custom_conditions/U_Pw_force_condition.hpp"
+#include "custom_conditions/U_Pw_normal_face_load_condition.hpp"
+#include "custom_conditions/U_Pw_normal_flux_FIC_condition.hpp"
+#include "custom_conditions/U_Pw_normal_flux_condition.hpp"
+#include "custom_conditions/U_Pw_normal_flux_interface_condition.hpp"
 #include "custom_conditions/U_Pw_normal_lysmer_absorbing_condition.hpp"
+#include "custom_conditions/axisymmetric_U_Pw_normal_face_load_condition.hpp"
+#include "custom_conditions/axisymmetric_line_normal_fluid_flux_2D_diff_order_condition.hpp"
+#include "custom_conditions/axisymmetric_line_normal_load_2D_diff_order_condition.hpp"
+#include "custom_conditions/line_load_2D_diff_order_condition.hpp"
+#include "custom_conditions/line_normal_fluid_flux_2D_diff_order_condition.hpp"
+#include "custom_conditions/line_normal_load_2D_diff_order_condition.hpp"
+#include "custom_conditions/surface_load_3D_diff_order_condition.hpp"
+#include "custom_conditions/surface_normal_fluid_flux_3D_diff_order_condition.hpp"
+#include "custom_conditions/surface_normal_load_3D_diff_order_condition.hpp"
 
 // Geometries
-#include "geometries/triangle_2d_3.h"
-#include "geometries/triangle_2d_6.h"
-#include "geometries/triangle_2d_10.h"
-#include "geometries/triangle_2d_15.h"
-#include "geometries/quadrilateral_2d_4.h"
-#include "geometries/quadrilateral_2d_8.h"
-#include "geometries/quadrilateral_2d_9.h"
-#include "geometries/quadrilateral_interface_2d_4.h"
-#include "geometries/tetrahedra_3d_4.h"
-#include "geometries/tetrahedra_3d_10.h"
-#include "geometries/prism_interface_3d_6.h"
-#include "geometries/hexahedra_3d_8.h"
 #include "geometries/hexahedra_3d_20.h"
 #include "geometries/hexahedra_3d_27.h"
+#include "geometries/hexahedra_3d_8.h"
 #include "geometries/hexahedra_interface_3d_8.h"
-#include "geometries/point_2d.h"
-#include "geometries/point_3d.h"
 #include "geometries/line_2d_2.h"
 #include "geometries/line_2d_3.h"
 #include "geometries/line_2d_4.h"
 #include "geometries/line_2d_5.h"
-#include "geometries/triangle_3d_3.h"
-#include "geometries/triangle_3d_6.h"
+#include "geometries/point_2d.h"
+#include "geometries/point_3d.h"
+#include "geometries/prism_interface_3d_6.h"
+#include "geometries/quadrilateral_2d_4.h"
+#include "geometries/quadrilateral_2d_8.h"
+#include "geometries/quadrilateral_2d_9.h"
 #include "geometries/quadrilateral_3d_4.h"
 #include "geometries/quadrilateral_3d_8.h"
 #include "geometries/quadrilateral_3d_9.h"
+#include "geometries/quadrilateral_interface_2d_4.h"
 #include "geometries/quadrilateral_interface_3d_4.h"
+#include "geometries/tetrahedra_3d_10.h"
+#include "geometries/tetrahedra_3d_4.h"
+#include "geometries/triangle_2d_10.h"
+#include "geometries/triangle_2d_15.h"
+#include "geometries/triangle_2d_3.h"
+#include "geometries/triangle_2d_6.h"
+#include "geometries/triangle_3d_3.h"
+#include "geometries/triangle_3d_6.h"
 
 // elements
-#include "custom_elements/transient_Pw_element.hpp"
-#include "custom_elements/steady_state_Pw_element.hpp"
+#include "custom_elements/U_Pw_small_strain_FIC_element.hpp"
+#include "custom_elements/U_Pw_small_strain_axisymmetric_FIC_element.hpp"
+#include "custom_elements/U_Pw_small_strain_axisymmetric_element.hpp"
 #include "custom_elements/U_Pw_small_strain_element.hpp"
 #include "custom_elements/U_Pw_small_strain_interface_element.hpp"
 #include "custom_elements/U_Pw_small_strain_link_interface_element.hpp"
-#include "custom_elements/U_Pw_small_strain_FIC_element.hpp"
-#include "custom_elements/small_strain_U_Pw_diff_order_element.hpp"
-#include "custom_elements/drained_U_Pw_small_strain_element.hpp"
-#include "custom_elements/undrained_U_Pw_small_strain_element.hpp"
-#include "custom_elements/U_Pw_updated_lagrangian_element.hpp"
-#include "custom_elements/updated_lagrangian_U_Pw_diff_order_element.hpp"
 #include "custom_elements/U_Pw_updated_lagrangian_FIC_element.hpp"
+#include "custom_elements/U_Pw_updated_lagrangian_element.hpp"
+#include "custom_elements/drained_U_Pw_small_strain_element.hpp"
 #include "custom_elements/small_strain_U_Pw_diff_order_axisymmetric_element.hpp"
-#include "custom_elements/U_Pw_small_strain_axisymmetric_element.hpp"
-#include "custom_elements/U_Pw_small_strain_axisymmetric_FIC_element.hpp"
-#include "custom_elements/transient_Pw_interface_element.hpp"
+#include "custom_elements/small_strain_U_Pw_diff_order_element.hpp"
+#include "custom_elements/steady_state_Pw_element.hpp"
 #include "custom_elements/steady_state_Pw_interface_element.hpp"
 #include "custom_elements/steady_state_Pw_piping_element.hpp"
-#include "custom_elements/updated_lagrangian_U_Pw_diff_order_axisymmetric_element.hpp"
-#include "custom_elements/updated_lagrangian_U_Pw_axisymmetric_element.hpp"
+#include "custom_elements/transient_Pw_element.hpp"
+#include "custom_elements/transient_Pw_interface_element.hpp"
+#include "custom_elements/undrained_U_Pw_small_strain_element.hpp"
 #include "custom_elements/updated_lagrangian_U_Pw_axisymmetric_FIC_element.hpp"
+#include "custom_elements/updated_lagrangian_U_Pw_axisymmetric_element.hpp"
+#include "custom_elements/updated_lagrangian_U_Pw_diff_order_axisymmetric_element.hpp"
+#include "custom_elements/updated_lagrangian_U_Pw_diff_order_element.hpp"
 
-/* geo structural element */
-#include "custom_elements/geo_cr_beam_element_3D2N.hpp"
+// geo structural element
+#include "custom_elements/geo_cable_element.hpp"
 #include "custom_elements/geo_cr_beam_element_2D2N.hpp"
+#include "custom_elements/geo_cr_beam_element_3D2N.hpp"
 #include "custom_elements/geo_cr_beam_element_linear_2D2N.hpp"
 #include "custom_elements/geo_cr_beam_element_linear_3D2N.hpp"
-#include "custom_elements/geo_truss_element.hpp"
-#include "custom_elements/geo_linear_truss_element.hpp"
-#include "custom_elements/geo_cable_element.hpp"
 #include "custom_elements/geo_curved_beam_element.hpp"
+#include "custom_elements/geo_linear_truss_element.hpp"
+#include "custom_elements/geo_truss_element.hpp"
+#include "custom_elements/transient_thermal_element.h"
 
 // constitutive models
-#include "custom_constitutive/bilinear_cohesive_3D_law.hpp"
 #include "custom_constitutive/bilinear_cohesive_2D_law.hpp"
+#include "custom_constitutive/bilinear_cohesive_3D_law.hpp"
 #include "custom_constitutive/elastic_isotropic_K0_3d_law.h"
-#include "custom_constitutive/linear_elastic_plane_strain_K0_law.h"
-#include "custom_constitutive/linear_elastic_plane_strain_2D_law.h"
-#include "custom_constitutive/linear_elastic_plane_stress_2D_law.h"
-
-#include "custom_constitutive/small_strain_udsm_3D_law.hpp"
-#include "custom_constitutive/small_strain_udsm_2D_plane_strain_law.hpp"
-#include "custom_constitutive/small_strain_udsm_2D_interface_law.hpp"
-#include "custom_constitutive/small_strain_udsm_3D_interface_law.hpp"
-
-#include "custom_constitutive/small_strain_umat_3D_law.hpp"
-#include "custom_constitutive/small_strain_umat_2D_plane_strain_law.hpp"
-#include "custom_constitutive/small_strain_umat_2D_interface_law.hpp"
-#include "custom_constitutive/small_strain_umat_3D_interface_law.hpp"
-
+#include "custom_constitutive/linear_elastic_2D_beam_law.h"
 #include "custom_constitutive/linear_elastic_2D_interface_law.h"
 #include "custom_constitutive/linear_elastic_3D_interface_law.h"
-#include "custom_constitutive/linear_elastic_2D_beam_law.h"
+#include "custom_constitutive/linear_elastic_plane_strain_2D_law.h"
+#include "custom_constitutive/linear_elastic_plane_strain_K0_law.h"
+#include "custom_constitutive/linear_elastic_plane_stress_2D_law.h"
+#include "custom_constitutive/small_strain_udsm_2D_interface_law.hpp"
+#include "custom_constitutive/small_strain_udsm_2D_plane_strain_law.hpp"
+#include "custom_constitutive/small_strain_udsm_3D_interface_law.hpp"
+#include "custom_constitutive/small_strain_udsm_3D_law.hpp"
+#include "custom_constitutive/small_strain_umat_2D_interface_law.hpp"
+#include "custom_constitutive/small_strain_umat_2D_plane_strain_law.hpp"
+#include "custom_constitutive/small_strain_umat_3D_interface_law.hpp"
+#include "custom_constitutive/small_strain_umat_3D_law.hpp"
+#include "custom_constitutive/thermal_dispersion_law.h"
 
 namespace Kratos {
 
@@ -444,6 +442,20 @@ private:
     const GeoCableElement<3,2>       mGeoCableElement3D2N       { 0, Kratos::make_shared< Line3D2 <NodeType> >(Element::GeometryType::PointsArrayType(2)) };
     const GeoCurvedBeamElement<2,3>  mGeoCurvedBeamElement2D3N  { 0, Kratos::make_shared< Line2D3 <NodeType> >(Element::GeometryType::PointsArrayType(3)) };
 
+    // transient one-phase temperature elements:
+    const TransientThermalElement<2, 3> mTransientThermalElement2D3N { 0, Kratos::make_shared< Triangle2D3      <NodeType> >(Element::GeometryType::PointsArrayType( 3)) };
+    const TransientThermalElement<2, 6> mTransientThermalElement2D6N { 0, Kratos::make_shared< Triangle2D6      <NodeType> >(Element::GeometryType::PointsArrayType( 6)) };
+    const TransientThermalElement<2,10> mTransientThermalElement2D10N{ 0, Kratos::make_shared< Triangle2D10     <NodeType> >(Element::GeometryType::PointsArrayType(10)) };
+    const TransientThermalElement<2,15> mTransientThermalElement2D15N{ 0, Kratos::make_shared< Triangle2D15     <NodeType> >(Element::GeometryType::PointsArrayType(15)) };
+    const TransientThermalElement<2, 4> mTransientThermalElement2D4N { 0, Kratos::make_shared< Quadrilateral2D4 <NodeType> >(Element::GeometryType::PointsArrayType( 4)) };
+    const TransientThermalElement<2, 8> mTransientThermalElement2D8N { 0, Kratos::make_shared< Quadrilateral2D8 <NodeType> >(Element::GeometryType::PointsArrayType( 8)) };
+    const TransientThermalElement<2, 9> mTransientThermalElement2D9N { 0, Kratos::make_shared< Quadrilateral2D9 <NodeType> >(Element::GeometryType::PointsArrayType( 9)) };
+    const TransientThermalElement<3, 4> mTransientThermalElement3D4N { 0, Kratos::make_shared< Tetrahedra3D4    <NodeType> >(Element::GeometryType::PointsArrayType( 4)) };
+    const TransientThermalElement<3,10> mTransientThermalElement3D10N{ 0, Kratos::make_shared< Tetrahedra3D10   <NodeType> >(Element::GeometryType::PointsArrayType(10)) };
+    const TransientThermalElement<3, 8> mTransientThermalElement3D8N { 0, Kratos::make_shared< Hexahedra3D8     <NodeType> >(Element::GeometryType::PointsArrayType( 8)) };
+    const TransientThermalElement<3,20> mTransientThermalElement3D20N{ 0, Kratos::make_shared< Hexahedra3D20    <NodeType> >(Element::GeometryType::PointsArrayType(20)) };
+    const TransientThermalElement<3,27> mTransientThermalElement3D27N{ 0, Kratos::make_shared< Hexahedra3D27    <NodeType> >(Element::GeometryType::PointsArrayType(27)) };
+
     // conditions
     const UPwForceCondition<2,1> mUPwForceCondition2D1N{ 0, Kratos::make_shared< Point2D <NodeType> >(Condition::GeometryType::PointsArrayType(1)) };
     const UPwForceCondition<3,1> mUPwForceCondition3D1N{ 0, Kratos::make_shared< Point3D <NodeType> >(Condition::GeometryType::PointsArrayType(1)) };
@@ -512,6 +524,16 @@ private:
     const UPwLysmerAbsorbingCondition<2,3> mUPwLysmerAbsorbingCondition2D3N{ 0, Kratos::make_shared< Line2D3          <NodeType> >(Condition::GeometryType::PointsArrayType(3)) };
     const UPwLysmerAbsorbingCondition<3,3> mUPwLysmerAbsorbingCondition3D3N{ 0, Kratos::make_shared< Triangle3D3      <NodeType> >(Condition::GeometryType::PointsArrayType(3)) };
     const UPwLysmerAbsorbingCondition<3,4> mUPwLysmerAbsorbingCondition3D4N{ 0, Kratos::make_shared< Quadrilateral3D4 <NodeType> >(Condition::GeometryType::PointsArrayType(4)) };
+    
+    const GeoTNormalFluxCondition<2, 2> mGeoTNormalFluxCondition2D2N{ 0, Kratos::make_shared< Line2D2          <NodeType> >(Condition::GeometryType::PointsArrayType(2)) };
+    const GeoTNormalFluxCondition<2, 3> mGeoTNormalFluxCondition2D3N{ 0, Kratos::make_shared< Line2D3          <NodeType> >(Condition::GeometryType::PointsArrayType(3)) };
+    const GeoTNormalFluxCondition<2, 4> mGeoTNormalFluxCondition2D4N{ 0, Kratos::make_shared< Line2D4          <NodeType> >(Condition::GeometryType::PointsArrayType(4)) };
+    const GeoTNormalFluxCondition<2, 5> mGeoTNormalFluxCondition2D5N{ 0, Kratos::make_shared< Line2D5          <NodeType> >(Condition::GeometryType::PointsArrayType(5)) };
+    const GeoTNormalFluxCondition<3, 3> mGeoTNormalFluxCondition3D3N{ 0, Kratos::make_shared< Triangle3D3      <NodeType> >(Condition::GeometryType::PointsArrayType(3)) };
+    const GeoTNormalFluxCondition<3, 6> mGeoTNormalFluxCondition3D6N{ 0, Kratos::make_shared< Triangle3D6      <NodeType> >(Condition::GeometryType::PointsArrayType(6)) };
+    const GeoTNormalFluxCondition<3, 4> mGeoTNormalFluxCondition3D4N{ 0, Kratos::make_shared< Quadrilateral3D4 <NodeType> >(Condition::GeometryType::PointsArrayType(4)) };
+    const GeoTNormalFluxCondition<3, 8> mGeoTNormalFluxCondition3D8N{ 0, Kratos::make_shared< Quadrilateral3D8 <NodeType> >(Condition::GeometryType::PointsArrayType(8)) };
+    const GeoTNormalFluxCondition<3, 9> mGeoTNormalFluxCondition3D9N{ 0, Kratos::make_shared< Quadrilateral3D9 <NodeType> >(Condition::GeometryType::PointsArrayType(9)) };
 
     // constitutive models
     const BilinearCohesive3DLaw             mBilinearCohesive3DLaw;
@@ -536,6 +558,8 @@ private:
 
     const LinearElastic2DBeamLaw          mLinearElastic2DBeamLaw;
 
+    const GeoThermalDispersionLaw mGeoThermalDispersion2DLaw{ConstitutiveLaw::SizeType(2)};
+    const GeoThermalDispersionLaw mGeoThermalDispersion3DLaw{ConstitutiveLaw::SizeType(3)};
 
     ///@}
 
@@ -543,10 +567,8 @@ private:
 
 ///@}
 
-
 ///@name Type Definitions
 ///@{
-
 
 ///@}
 ///@name Input and output
@@ -554,5 +576,4 @@ private:
 
 ///@}
 
-
-}
+} // namespace Kratos

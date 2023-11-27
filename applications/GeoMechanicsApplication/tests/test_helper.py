@@ -127,6 +127,14 @@ def get_velocity(simulation):
 
     return get_nodal_variable(simulation, Kratos.VELOCITY)
 
+def get_temperature(simulation):
+    """
+    Gets the temperature from kratos simulation
+ 
+    :param simulation:
+    :return:
+    """
+    return get_nodal_variable(simulation, Kratos.TEMPERATURE)
 
 def get_water_pressure(simulation):
     """
