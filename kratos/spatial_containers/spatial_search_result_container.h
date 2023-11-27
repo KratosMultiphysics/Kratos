@@ -470,6 +470,12 @@ public:
     std::vector<bool> GetResultIsLocal();
 
     /**
+     * @brief Retrieves the rank of the entity
+     * @return A vector containing all the ranks of the entity
+     */
+    std::vector<int> GetResultRank();
+
+    /**
      * @brief Retrieves if is active the entity
      * @return A vector containing all the booleans showing is active the entity
      */

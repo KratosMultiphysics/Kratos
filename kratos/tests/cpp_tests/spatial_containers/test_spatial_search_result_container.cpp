@@ -165,6 +165,13 @@ KRATOS_TEST_CASE_IN_SUITE(SpatialSearchResultContainerGetResultIsLocal, KratosCo
     // Check is local
     KRATOS_EXPECT_EQ(is_local.size(), 1);
     KRATOS_EXPECT_TRUE(is_local[0]);
+
+    // Compute ranks
+    auto ranks = container.GetResultRank();
+
+    // Check is local
+    KRATOS_EXPECT_EQ(ranks.size(), 1);
+    KRATOS_EXPECT_EQ(ranks[0], 0);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(SpatialSearchResultContainerGetResultIsActive, KratosCoreFastSuite)

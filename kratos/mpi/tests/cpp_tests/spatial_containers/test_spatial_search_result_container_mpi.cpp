@@ -187,6 +187,15 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISpatialSearchResultContainerGetResultIs
             KRATOS_EXPECT_FALSE(static_cast<int>(is_local[i_rank]));
         }
     }
+
+    // Compute ranks
+    auto ranks = container.GetResultRank();
+
+    // Check ranks
+    KRATOS_EXPECT_EQ(static_cast<int>(ranks.size()), r_data_comm.Size());
+    for (int i_rank = 0; i_rank < r_data_comm.Size(); ++i_rank) {
+        KRATOS_EXPECT_EQ(ranks[i_rank], i_rank);
+    }
 }
 
 KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISpatialSearchResultContainerGetResultIsActive, KratosMPICoreFastSuite)

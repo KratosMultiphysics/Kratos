@@ -245,6 +245,34 @@ std::vector<bool> SpatialSearchResultContainer<TObjectType>::GetResultIsLocal()
 /***********************************************************************************/
 
 template <class TObjectType>
+std::vector<int> SpatialSearchResultContainer<TObjectType>::GetResultRank()
+{
+    // Check if the communicator has been created
+    KRATOS_ERROR_IF(mpGlobalPointerCommunicator == nullptr) << "The communicator has not been created." << std::endl;
+
+    // Define the coordinates vector
+    const std::size_t number_of_gp = mGlobalResults.size();
+    std::vector<int> ranks(number_of_gp, false);
+
+    // Call Apply to get the proxy
+    auto proxy = this->Apply([](GlobalPointerResultType& rGP) -> int {
+        return rGP->Get().GetRank();
+    });
+
+    // Get the is inside
+    const auto& r_data_comm = mpGlobalPointerCommunicator->GetDataCommunicator();
+    for(std::size_t i=0; i<number_of_gp; ++i) {
+        auto& r_gp = mGlobalResults(i);
+        ranks[i] = r_data_comm.MaxAll(proxy.Get(r_gp));
+    }
+
+    return ranks;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template <class TObjectType>
 std::vector<bool> SpatialSearchResultContainer<TObjectType>::GetResultIsActive()
 {
     // Check if the communicator has been created
