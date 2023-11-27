@@ -156,6 +156,13 @@ namespace Kratos {
       mFile_HeatGenContrib << std::endl;
     }
 
+    mFile_MassInSilo.open("mass_in_silo.txt", std::ios::out);
+    KRATOS_ERROR_IF_NOT(mFile_MassInSilo) << "Could not open graph mass_in_silo discharge_rate.txt!" << std::endl;
+    mFile_MassInSilo << "1 - TIME STEP | ";
+    mFile_MassInSilo << "2 - TIME | ";
+    mFile_MassInSilo << "3 - Mass";
+    mFile_MassInSilo << std::endl;
+
     KRATOS_CATCH("")
   }
 
@@ -171,6 +178,7 @@ namespace Kratos {
     const int num_particles     =  rModelPart.NumberOfElements();
     int       num_particles_gen =  0;
     double    total_vol         =  0.0;
+    double    total_silo_mass   =  0.0;
 
     double particle_temp_min =  DBL_MAX;
     double particle_temp_max = -DBL_MAX;
@@ -222,6 +230,11 @@ namespace Kratos {
       const double vol  = particle.CalculateVolume();
       const double temp = particle.GetGeometry()[0].FastGetSolutionStepValue(TEMPERATURE);
 
+      double mass = 0.0;
+      double coord_z = particle.GetGeometry()[0].Coordinates()[2];
+      if (coord_z > 0.25)
+        mass = particle.GetMass();
+
       double energy_potential_gravity         = 0.0;
       double energy_potential_elastic         = 0.0;
       double energy_kinetic_translation       = 0.0;
@@ -259,6 +272,7 @@ namespace Kratos {
       #pragma omp critical
       {
         total_vol += vol;
+        total_silo_mass += mass;
         if (temp < particle_temp_min) particle_temp_min = temp;
         if (temp > particle_temp_max) particle_temp_max = temp;
         particle_temp_avg += temp;
@@ -405,6 +419,11 @@ namespace Kratos {
                            << contrib_heat_gen_damp_pw
                            << std::endl;
 
+    mFile_MassInSilo << time_step << " "
+                     << time      << " "
+                     << total_silo_mass
+                     << std::endl;
+
     KRATOS_CATCH("")
   }
 
@@ -422,6 +441,7 @@ namespace Kratos {
     if (mFile_ThermalEnergy.is_open())     mFile_ThermalEnergy.close();
     if (mFile_HeatGenValues.is_open())     mFile_HeatGenValues.close();
     if (mFile_HeatGenContrib.is_open())    mFile_HeatGenContrib.close();
+    if (mFile_MassInSilo.is_open())        mFile_MassInSilo.close();
 
     KRATOS_CATCH("")
   }

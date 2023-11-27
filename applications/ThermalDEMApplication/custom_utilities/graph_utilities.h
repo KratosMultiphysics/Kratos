@@ -66,6 +66,7 @@ namespace Kratos
       std::ofstream mFile_ThermalEnergy;    // Accumulated thermal energy generation components (U[J]=Q[W]*t[s])
       std::ofstream mFile_HeatGenValues;    // Current values of heat generation components (Q[W])
       std::ofstream mFile_HeatGenContrib;   // Relative contributions of current values heat generation components (%)
+      std::ofstream mFile_MassInSilo;       // Relative contributions of current values heat generation components (%)
 
     private:
 
