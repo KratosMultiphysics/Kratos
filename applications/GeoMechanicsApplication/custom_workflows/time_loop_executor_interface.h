@@ -16,6 +16,7 @@
 
 #include <vector>
 #include <memory>
+#include <functional>
 
 #include "time_step_end_state.hpp"
 #include "time_incrementor.h"
@@ -29,6 +30,7 @@ class Process;
 class TimeLoopExecutorInterface{
 public :
     virtual ~TimeLoopExecutorInterface() = default;
+    virtual void SetCancelDelegate(const std::function<bool()>& rCancelDelegate) = 0;
     virtual void SetProcessObservables(const std::vector<std::weak_ptr<Process>>& rProcessObservables) = 0;
     virtual void SetTimeIncrementor(std::unique_ptr<TimeIncrementor> pTimeIncrementor) = 0;
     virtual void SetSolverStrategyWrapper(std::shared_ptr<StrategyWrapper> pStrategyWrapper) = 0;

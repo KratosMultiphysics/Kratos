@@ -1,249 +1,91 @@
-import os
-from pyevtk import hl
-from pyevtk import vtk
-import numpy as np
 import KratosMultiphysics
-import KratosMultiphysics.ParticleMechanicsApplication as KratosParticle
 import KratosMultiphysics.kratos_utilities as kratos_utils
 from  KratosMultiphysics.deprecation_management import DeprecationManager
+import KratosMultiphysics.ParticleMechanicsApplication as KratosParticle
 
-# Import time library
-from time import time
+def Factory(settings: KratosMultiphysics.Parameters, model: KratosMultiphysics.Model) -> KratosMultiphysics.OutputProcess:
+    if not isinstance(model, KratosMultiphysics.Model):
+        raise Exception("expected input shall be a Model object, encapsulating a json string")
+    if not isinstance(settings, KratosMultiphysics.Parameters):
+        raise Exception("expected input shall be a Parameters object, encapsulating a json string")
+    return ParticleVtkOutputProcess(model, settings["Parameters"])
 
-def Factory(settings, Model):
-    if(type(settings) != KratosMultiphysics.Parameters):
-        raise Exception("Expected input shall be a Parameters object, encapsulating a json string")
-    model_part = Model[settings["Parameters"]["model_part_name"].GetString()]
-    parameters = settings["Parameters"]
-    return ParticleVTKOutputProcess(model_part, parameters)
+class ParticleVtkOutputProcess(KratosMultiphysics.OutputProcess):
 
-class ParticleVTKOutputProcess(KratosMultiphysics.OutputProcess):
-    defaults = KratosMultiphysics.Parameters("""{
-        "model_part_name"                    : "MPM_Material",
-        "output_control_type"                : "step",
-        "output_interval"                    : 1,
-        "file_format"                        : "ascii",
-        "output_precision"                   : 7,
-        "folder_name"                        : "vtk_output",
-        "output_sub_model_parts"             : false,
-        "save_output_files_in_folder"        : true,
-        "gauss_point_results" : []
-    }""")
+    def __init__(self, model: KratosMultiphysics.Model, settings: KratosMultiphysics.Parameters) -> None:
+        super().__init__()
 
-    def __init__(self, model_part, param):
-        KratosMultiphysics.OutputProcess.__init__(self)
+        self.model = model
+        self.settings = settings
 
-        if param is None:
-            param = self.defaults
-        else:
-            self.TranslateLegacyVariablesAccordingToCurrentStandard(param)
-            param.ValidateAndAssignDefaults(self.defaults)
+        self.full_model_part_name = self.settings["model_part_name"].GetString()
+        if self.full_model_part_name.startswith('Background_Grid'):
+            self.full_model_part_name = self.full_model_part_name.replace('Background_Grid','MPM_Material')
+        main_model_part_name = self.full_model_part_name.split(".",1)[0]
+        self.main_model_part = self.model[main_model_part_name]
 
-        self.param = param
-        self.model_part = model_part
-        self.problem_name = param["model_part_name"].GetString()
+        # Change name deprecated settings
+        self.TranslateLegacyVariablesAccordingToCurrentStandard(self.settings)
+        # Validate settings using default parameters defined in ParticleVtkOutput process
+        # Default settings can be found in "custom_io/particle_vtk_output.cpp"
+        default_settings = KratosParticle.ParticleVtkOutput.GetDefaultParameters()
+        self.settings.ValidateAndAssignDefaults(default_settings)
 
-        self.next_output = 0.0
+        if self.settings["save_output_files_in_folder"].GetBool():
+            if self.main_model_part.GetCommunicator().MyPID() == 0:
+                output_path = self.settings["output_path"].GetString()
+                if not self.main_model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED]:
+                    kratos_utils.DeleteDirectoryIfExisting(output_path)
+            self.main_model_part.GetCommunicator().GetDataCommunicator().Barrier()
 
-        self.coords_X = np.empty(0)
-        self.coords_Y = np.empty(0)
-        self.coords_Z = np.empty(0)
-        self.temp_results = np.empty([0,3])
-        self.result_names = []
-        self.result_dict = {}
-
-        self.vtk_post_path_directory = os.path.join(param["folder_name"].GetString())
-        if not self.model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED]:
-            kratos_utils.DeleteDirectoryIfExisting(self.vtk_post_path_directory)
-            os.makedirs(str(self.vtk_post_path_directory))
+        # Print background grid model part
+        if not self.main_model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED]:
+            grid_settings = KratosMultiphysics.Parameters()
+            grid_settings.AddString("model_part_name","Background_Grid")
+            grid_settings.AddString("file_format",self.settings["file_format"].GetString())
+            grid_settings.AddDouble("output_precision",self.settings["output_precision"].GetDouble())
+            grid_settings.AddBool("output_sub_model_parts",self.settings["output_sub_model_parts"].GetBool())
+            grid_settings.AddString("output_path",self.settings["output_path"].GetString())
+            grid_settings.AddBool("save_output_files_in_folder",self.settings["save_output_files_in_folder"].GetBool())
+            background_grid = self.model["Background_Grid"]
+            KratosMultiphysics.VtkOutput(background_grid, grid_settings).PrintOutput()
 
     # This function can be extended with new deprecated variables as they are generated
-    def TranslateLegacyVariablesAccordingToCurrentStandard(self, settings):
-        # Defining a string to help the user understand where the warnings come from (in case any is thrown)
+    def TranslateLegacyVariablesAccordingToCurrentStandard(self, settings: KratosMultiphysics.Parameters) -> None:
         context_string = type(self).__name__
+
         old_name = 'output_frequency'
         new_name = 'output_interval'
+        if DeprecationManager.HasDeprecatedVariable(context_string, settings, old_name, new_name):
+            DeprecationManager.ReplaceDeprecatedVariableName(settings, old_name, new_name)
 
-        if DeprecationManager.HasDeprecatedVariable(context_string,settings,old_name,new_name):
-            DeprecationManager.ReplaceDeprecatedVariableName(settings,old_name,new_name)
+        old_name = 'write_properties_id'
+        new_name = 'write_ids'
+        if DeprecationManager.HasDeprecatedVariable(context_string, settings, old_name, new_name):
+            DeprecationManager.ReplaceDeprecatedVariableName(settings, old_name, new_name)
 
+        old_name = 'folder_name'
+        new_name = 'output_path'
+        if DeprecationManager.HasDeprecatedVariable(context_string, settings, old_name, new_name):
+            DeprecationManager.ReplaceDeprecatedVariableName(settings, old_name, new_name)
 
-        # Public Functions
-    def ExecuteInitialize(self):
-        # Set up output frequency and format
-        output_control_type = self.param["output_control_type"].GetString()
-        if output_control_type == "time":
-            self.output_control_is_time = True
-        elif output_control_type == "step":
-            self.output_control_is_time = False
-        else:
-            msg = "{0} Error: Unknown value \"{1}\" read for parameter \"{2}\"".format(self.__class__.__name__,output_control_type,"file_label")
-            raise Exception(msg)
+        old_name = 'gauss_point_results'
+        new_name = 'gauss_point_variables_in_elements'
+        if DeprecationManager.HasDeprecatedVariable(context_string, settings, old_name, new_name):
+            DeprecationManager.ReplaceDeprecatedVariableName(settings, old_name, new_name)
 
-        self.output_frequency = self.param["output_interval"].GetDouble()
+    def ExecuteBeforeSolutionLoop(self) -> None:
+        vtk_model_part = self.model[self.full_model_part_name]
+        self.vtk_io = KratosParticle.ParticleVtkOutput(vtk_model_part, self.settings)
 
-        # Set Variable list to print
-        self.variable_name_list = self.param["gauss_point_results"]
-        self.variable_list      = []
-        for i in range(self.variable_name_list.size()):
-            var_name = self.variable_name_list[i].GetString()
-            variable = self._get_variable(var_name)
-            self.variable_list.append(variable)
+        self.__controller = KratosMultiphysics.OutputController(self.model, self.settings)
 
-    def ExecuteBeforeSolutionLoop(self): pass
+        if not self.main_model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED]:
+            self.vtk_io.PrintOutput()
 
-    def ExecuteInitializeSolutionStep(self): pass
+    def PrintOutput(self) -> None:
+        self.vtk_io.PrintOutput()
+        self.__controller.Update()
 
-    def ExecuteFinalizeSolutionStep(self): pass
-
-    def ExecuteFinalize(self): pass
-
-    def PrintOutput(self):
-        # Print the output
-        self._get_mp_coords()
-        self._get_mp_results()
-        self._write_vtk()
-
-        # Schedule next output
-        time = self._get_pretty_time(self.model_part.ProcessInfo[KratosMultiphysics.TIME])
-        if self.output_frequency > 0.0: # Note: if == 0, we'll just always print
-            if self.output_control_is_time:
-                while self._get_pretty_time(self.next_output) <= time:
-                    self.next_output += self.output_frequency
-            else:
-                while self.next_output <= self.model_part.ProcessInfo[KratosMultiphysics.STEP]:
-                    self.next_output += self.output_frequency
-
-    def IsOutputStep(self):
-        if self.output_control_is_time:
-            time = self._get_pretty_time(self.model_part.ProcessInfo[KratosMultiphysics.TIME])
-            return (time >= self._get_pretty_time(self.next_output))
-        else:
-            return ( self.model_part.ProcessInfo[KratosMultiphysics.STEP] >= self.next_output )
-
-    # Private Functions
-    def _get_pretty_time(self,time):
-        pretty_time = "{0:.12g}".format(time)
-        pretty_time = float(pretty_time)
-        return pretty_time
-
-    def _get_attribute(self, my_string, function_pointer, attribute_type):
-        """Return the python object named by the string argument.
-
-        To be used with functions from KratosGlobals
-
-        Examples:
-        variable = self._get_attribute("DISPLACEMENT",
-                                       KratosMultiphysics.ParticleMechanicsApplication.GetVariable,
-                                       "Variable")
-        """
-        splitted = my_string.split(".")
-
-        if len(splitted) == 0:
-            raise Exception("Something wrong. Trying to split the string " + my_string)
-        if len(splitted) > 3:
-            raise Exception("Something wrong. String " + my_string + " has too many arguments")
-
-        attribute_name = splitted[-1]
-
-        if len(splitted) == 2 or len(splitted) == 3:
-            warning_msg =  "Ignoring \"" +  my_string.rsplit(".",1)[0]
-            warning_msg += "\" for " + attribute_type +" \"" + attribute_name + "\""
-            KratosMultiphysics.Logger.PrintInfo("Warning in mpm gid output", warning_msg)
-
-        return function_pointer(attribute_name) # This also checks if the application has been imported
-
-    def _get_variable(self, my_string):
-        """Return the python object of a Variable named by the string argument.
-
-        Examples:
-        recommended usage:
-        variable = self._get_variable("MP_VELOCITY")
-        deprecated:
-        variable = self._get_variables("KratosMultiphysics.ParticleMechanicsApplication.MP_VELOCITY")
-        """
-        return self._get_attribute(my_string, KratosMultiphysics.KratosGlobals.GetVariable, "Variable")
-
-    def _get_mp_coords(self):
-        number_of_mps = self.model_part.NumberOfElements(0)
-        if len(self.coords_X) != number_of_mps:
-            self.coords_X = np.empty(number_of_mps)
-            self.coords_Y = np.empty(number_of_mps)
-            self.coords_Z = np.empty(number_of_mps)
-
-        i = 0
-        for mpm in self.model_part.Elements:
-            coord = mpm.CalculateOnIntegrationPoints(KratosParticle.MP_COORD,self.model_part.ProcessInfo)[0]
-            self.coords_X[i] = coord[0]
-            self.coords_Y[i] = coord[1]
-            self.coords_Z[i] = coord[2]
-            i += 1
-
-    def _get_mp_results(self):
-        clock_time = self._start_time_measure()
-        number_of_results = self.variable_name_list.size()
-        number_of_mps = self.model_part.NumberOfElements(0)
-
-        if len(self.result_names) != number_of_results:
-            self.result_names = ["dummy"]*number_of_results
-        if len(self.temp_results) != number_of_results:
-            self.temp_results = np.empty([number_of_mps,3])
-
-        for result_index in range(number_of_results):
-            var_name = self.variable_name_list[result_index].GetString()
-            self.result_names[result_index] = var_name
-
-            variable = self.variable_list[result_index]
-            var_size = 0
-            is_scalar = self._is_scalar(variable)
-
-            # Write in result file
-            mpm_index = 0
-            for mpm in self.model_part.Elements:
-                print_variable = mpm.CalculateOnIntegrationPoints(variable,self.model_part.ProcessInfo)[0]
-                if is_scalar:
-                    self.temp_results[mpm_index,0] = print_variable
-                else:
-                    var_size =  print_variable.Size()
-                    if var_size == 1 or var_size == 3:
-                        for i in range(var_size):
-                            self.temp_results[mpm_index,i] = print_variable[i]
-                    else:
-                        KratosMultiphysics.Logger.PrintInfo("Warning in mpm vtk output", "Printing format is not defined for variable: ", var_name, "with size: ", var_size)
-
-                mpm_index += 1
-
-            # store in dictionary
-            if var_size == 1 or is_scalar:
-                self.result_dict[var_name] = self._GetCSlice(0)
-            elif var_size == 3:
-                #self.result_dict[var_name] = (self.temp_results[:,0],self.temp_results[:,1],self.temp_results[:,2])
-                self.result_dict[var_name] = (self._GetCSlice(0),self._GetCSlice(1),self._GetCSlice(2))
-            else:
-                KratosMultiphysics.Logger.PrintInfo("Warning in mpm vtk output", "Printing format is not defined for variable: ", var_name, "with size: ", var_size)
-
-        self._stop_time_measure(clock_time)
-
-    def _GetCSlice(self,index):
-        # returns a contiguous slice, needed for vtk writing
-        return np.asarray(self.temp_results[:,index], order = 'C')
-
-    def _write_vtk(self):
-        particles_filename = self.problem_name + str(self.model_part.ProcessInfo[KratosMultiphysics.STEP])
-        path = os.path.join(self.vtk_post_path_directory, particles_filename)
-        hl.pointsToVTK(path, self.coords_X, self.coords_Y, self.coords_Z, self.result_dict)
-
-    def _start_time_measure(self):
-        return time()
-
-    def _stop_time_measure(self, time_ip):
-        time_fp = time()
-        KratosMultiphysics.Logger.PrintInfo("::[Particle VTK Output Process]:: ", "[Spent time for output = ", time_fp - time_ip, "sec]")
-
-    def _is_scalar(self,variable):
-        is_scalar = False
-        if (isinstance(variable,KratosMultiphysics.IntegerVariable) or isinstance(variable,KratosMultiphysics.DoubleVariable) or isinstance(variable,KratosMultiphysics.BoolVariable)):
-            is_scalar = True
-        elif (isinstance(variable,KratosMultiphysics.StringVariable)):
-            raise Exception("String variable cant be printed.")
-        return is_scalar
+    def IsOutputStep(self) -> bool:
+        return self.__controller.Evaluate()
