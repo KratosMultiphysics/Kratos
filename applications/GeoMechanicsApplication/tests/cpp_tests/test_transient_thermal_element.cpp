@@ -17,14 +17,20 @@
 
 using namespace Kratos;
 
-namespace Kratos::Testing {
+namespace Kratos::Testing
+{
 
-void TestThermalElement(ModelPart& rModelPart)
+void TestThermalElement(ModelPart& rModelPart,
+                        Matrix ExpectedLeftHandSideMatrix = {},
+                        Vector ExpectedRightHandSideVector = {})
 {
     Element::Pointer p_element = rModelPart.pGetElement(1);
 
-    for (unsigned int i = 0; i < rModelPart.NumberOfNodes(); i++) {
+    for (unsigned int i = 0; i < rModelPart.NumberOfNodes(); i++)
+    {
         p_element->GetGeometry()[i].AddDof(TEMPERATURE);
+        // Set temperature to some non-zero value
+        p_element->GetGeometry()[i].GetSolutionStepValue(TEMPERATURE) = i * 1.0;
     }
 
     const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
@@ -32,21 +38,49 @@ void TestThermalElement(ModelPart& rModelPart)
     Element::DofsVectorType elemental_dofs;
     p_element->GetDofList(elemental_dofs, r_current_process_info);
 
-    for (unsigned int i = 0; i < elemental_dofs.size(); i++) {
+    for (unsigned int i = 0; i < elemental_dofs.size(); i++)
+    {
         elemental_dofs[i]->SetEquationId(i);
     }
 
     // Only the TEMPERATURE dofs should be returned by the element
-    for (const auto& element_dof : elemental_dofs) {
+    for (const auto& element_dof : elemental_dofs)
+    {
         KRATOS_EXPECT_EQ(element_dof->GetVariable(), TEMPERATURE);
     }
 
     Element::EquationIdVectorType equation_ids;
     p_element->EquationIdVector(equation_ids, r_current_process_info);
 
-    for (unsigned int i = 0; i < equation_ids.size(); i++) {
+    for (unsigned int i = 0; i < equation_ids.size(); i++)
+    {
         KRATOS_EXPECT_EQ(equation_ids[i], i);
     }
+
+    //    Matrix left_hand_side_matrix;
+    //    Vector right_hand_side;
+    //
+    //    p_element->CalculateLocalSystem(left_hand_side_matrix, right_hand_side,
+    //                                    r_current_process_info);
+    //
+    //    KRATOS_EXPECT_EQ(left_hand_side_matrix.size1(), ExpectedLeftHandSideMatrix.size1());
+    //    KRATOS_EXPECT_EQ(left_hand_side_matrix.size2(), ExpectedLeftHandSideMatrix.size2());
+    //    for (int i = 0; i < left_hand_side_matrix.size1(); i++)
+    //    {
+    //        for (int j = 0; j < left_hand_side_matrix.size2(); j++)
+    //        {
+    //            KRATOS_EXPECT_DOUBLE_EQ(left_hand_side_matrix(i, j),
+    //                                    ExpectedLeftHandSideMatrix(i, j));
+    //        }
+    //    }
+    //
+    //    left_hand_side_matrix(0, 0) = 0.0;
+    //
+    //    KRATOS_EXPECT_EQ(right_hand_side.size(), ExpectedRightHandSideVector.size());
+    //    for (int i = 0; i < right_hand_side.size(); i++)
+    //    {
+    //        KRATOS_EXPECT_DOUBLE_EQ(right_hand_side[i], ExpectedRightHandSideVector[i]);
+    //    }
 }
 
 void GenerateTransientThermalElementWithZeroDomainSize(ModelPart& rModelPart)
@@ -78,6 +112,10 @@ KRATOS_TEST_CASE_IN_SUITE(CheckElement_Throws_WhenDomainSizeIsInvalid, KratosGeo
 void GenerateTransientThermalElement2D3N(ModelPart& rModelPart)
 {
     // Geometry creation
+
+    //    rModelPart.AddNodalSolutionStepVariable(TEMPERATURE);
+    //    rModelPart.AddNodalSolutionStepVariable(DT_TEMPERATURE);
+
     rModelPart.CreateNewNode(1, 0.0, 0.0, 0.0);
     rModelPart.CreateNewNode(2, 1.0, 0.0, 0.0);
     rModelPart.CreateNewNode(3, 1.0, 1.0, 0.0);
@@ -109,8 +147,9 @@ KRATOS_TEST_CASE_IN_SUITE(CheckElement_Throws_WhenDtTemperatureIsMissing, Kratos
     Element::Pointer p_element = model_part.pGetElement(1);
     const ProcessInfo& r_current_process_info = model_part.GetProcessInfo();
 
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN(p_element->Check(r_current_process_info),
-                                      "Missing variable DT_TEMPERATURE on node 1")
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        p_element->Check(r_current_process_info),
+        "Missing variable DT_TEMPERATURE on node 1")
 }
 
 KRATOS_TEST_CASE_IN_SUITE(CheckElement_Throws_WhenTemperatureDofIsMissing, KratosGeoMechanicsFastSuite)
@@ -124,8 +163,104 @@ KRATOS_TEST_CASE_IN_SUITE(CheckElement_Throws_WhenTemperatureDofIsMissing, Krato
     Element::Pointer p_element = model_part.pGetElement(1);
     const ProcessInfo& r_current_process_info = model_part.GetProcessInfo();
 
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN(p_element->Check(r_current_process_info),
-                                      "Missing degree of freedom for TEMPERATURE on node 1")
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        p_element->Check(r_current_process_info),
+        "Missing degree of freedom for TEMPERATURE on node 1")
+}
+
+KRATOS_TEST_CASE_IN_SUITE(CheckElement_Throws_WhenPropertyIsMissing, KratosGeoMechanicsFastSuite)
+{
+    Model this_model;
+    ModelPart& model_part = this_model.CreateModelPart("Main", 3);
+    model_part.AddNodalSolutionStepVariable(TEMPERATURE);
+    model_part.AddNodalSolutionStepVariable(DT_TEMPERATURE);
+    GenerateTransientThermalElement2D3N(model_part);
+
+    Element::Pointer p_element = model_part.pGetElement(1);
+    for (auto& node : p_element->GetGeometry())
+    {
+        node.AddDof(TEMPERATURE);
+    }
+    const ProcessInfo& r_current_process_info = model_part.GetProcessInfo();
+
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        p_element->Check(r_current_process_info),
+        "DENSITY_WATER does not exist in the thermal element's properties")
+}
+
+KRATOS_TEST_CASE_IN_SUITE(CheckElement_Returns0_When2DElementIsCorrectlySet, KratosGeoMechanicsFastSuite)
+{
+    Model this_model;
+    ModelPart& model_part = this_model.CreateModelPart("Main", 3);
+    model_part.AddNodalSolutionStepVariable(TEMPERATURE);
+    model_part.AddNodalSolutionStepVariable(DT_TEMPERATURE);
+    GenerateTransientThermalElement2D3N(model_part);
+
+    Element::Pointer p_element = model_part.pGetElement(1);
+    for (auto& node : p_element->GetGeometry())
+    {
+        node.AddDof(TEMPERATURE);
+    }
+
+    Properties::Pointer p_properties = model_part.pGetElement(1)->pGetProperties();
+    p_properties->SetValue(DENSITY_WATER, 1.0);
+    p_properties->SetValue(POROSITY, 1.0);
+    p_properties->SetValue(SATURATED_SATURATION, 1.0);
+    p_properties->SetValue(DENSITY_SOLID, 1.0);
+    p_properties->SetValue(SPECIFIC_HEAT_CAPACITY_WATER, 1.0);
+    p_properties->SetValue(SPECIFIC_HEAT_CAPACITY_SOLID, 1.0);
+    p_properties->SetValue(THERMAL_CONDUCTIVITY_WATER, 1.0);
+    p_properties->SetValue(THERMAL_CONDUCTIVITY_SOLID_XX, 1.0);
+    p_properties->SetValue(THERMAL_CONDUCTIVITY_SOLID_YY, 1.0);
+    p_properties->SetValue(THERMAL_CONDUCTIVITY_SOLID_XY, 1.0);
+
+    const ProcessInfo& r_current_process_info = model_part.GetProcessInfo();
+
+    KRATOS_EXPECT_EQ(p_element->Check(r_current_process_info), 0);
+}
+
+void GenerateTransientThermalElement2D3NWithNonZeroZ(ModelPart& rModelPart)
+{
+    // Geometry creation
+    rModelPart.CreateNewNode(1, 0.0, 0.0, 1.0);
+    rModelPart.CreateNewNode(2, 1.0, 0.0, -1.0);
+    rModelPart.CreateNewNode(3, 1.0, 1.0, 0.0);
+    std::vector<ModelPart::IndexType> node_ids{1, 2, 3};
+    rModelPart.CreateNewElement("GeoTransientThermalElement2D3N", 1, node_ids,
+                                rModelPart.CreateNewProperties(0));
+}
+
+KRATOS_TEST_CASE_IN_SUITE(CheckElement_Throws_When2DElementHasNonZeroZValue, KratosGeoMechanicsFastSuite)
+{
+    Model this_model;
+    ModelPart& model_part = this_model.CreateModelPart("Main", 3);
+    model_part.AddNodalSolutionStepVariable(TEMPERATURE);
+    model_part.AddNodalSolutionStepVariable(DT_TEMPERATURE);
+    GenerateTransientThermalElement2D3NWithNonZeroZ(model_part);
+
+    Element::Pointer p_element = model_part.pGetElement(1);
+    for (auto& node : p_element->GetGeometry())
+    {
+        node.AddDof(TEMPERATURE);
+    }
+
+    Properties::Pointer p_properties = model_part.pGetElement(1)->pGetProperties();
+    p_properties->SetValue(DENSITY_WATER, 1.0);
+    p_properties->SetValue(POROSITY, 1.0);
+    p_properties->SetValue(SATURATED_SATURATION, 1.0);
+    p_properties->SetValue(DENSITY_SOLID, 1.0);
+    p_properties->SetValue(SPECIFIC_HEAT_CAPACITY_WATER, 1.0);
+    p_properties->SetValue(SPECIFIC_HEAT_CAPACITY_SOLID, 1.0);
+    p_properties->SetValue(THERMAL_CONDUCTIVITY_WATER, 1.0);
+    p_properties->SetValue(THERMAL_CONDUCTIVITY_SOLID_XX, 1.0);
+    p_properties->SetValue(THERMAL_CONDUCTIVITY_SOLID_YY, 1.0);
+    p_properties->SetValue(THERMAL_CONDUCTIVITY_SOLID_XY, 1.0);
+
+    const ProcessInfo& r_current_process_info = model_part.GetProcessInfo();
+
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        p_element->Check(r_current_process_info),
+        "Node with non-zero Z coordinate found. Id: 1")
 }
 
 KRATOS_TEST_CASE_IN_SUITE(EquationIdVectorTransientThermalElement2D3N, KratosGeoMechanicsFastSuite)
@@ -137,7 +272,7 @@ KRATOS_TEST_CASE_IN_SUITE(EquationIdVectorTransientThermalElement2D3N, KratosGeo
 
     GenerateTransientThermalElement2D3N(model_part);
 
-    TestThermalElement(model_part);
+    TestThermalElement(model_part, ZeroMatrix(3, 3), ZeroVector(3));
 }
 
 void GenerateTransientThermalElement2D4N(ModelPart& rModelPart)
