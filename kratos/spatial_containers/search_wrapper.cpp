@@ -295,7 +295,7 @@ void SearchWrapper<TSearchObject>::LocalSearchIsInside(
 /***********************************************************************************/
 
 template<class TSearchObject>
-const Parameters SearchWrapper<TSearchObject>::GetDefaultParameters() const 
+const Parameters SearchWrapper<TSearchObject>::GetDefaultParameters() const
 {
     const Parameters default_parameters = Parameters(R"(
     {

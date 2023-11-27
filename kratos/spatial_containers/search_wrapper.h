@@ -691,26 +691,23 @@ private:
         // Retrieving parameters
         const int allocation_size = mSettings["allocation_size"].GetInt();
 
-        // Prepare MPI search
-        std::vector<double> all_points_coordinates;
-        std::vector<IndexType> all_points_ids;
-        SearchUtilities::SynchronousPointSynchronization(itPointBegin, itPointEnd, all_points_coordinates, all_points_ids, mrDataCommunicator);
-
-        // Get the rank
-        const int current_rank = GetRank();
-
         // The local bounding box
         const auto& r_local_bb = mpSearchObject ? mpSearchObject->GetBoundingBox() : BoundingBox<PointType>();
 
+        // Prepare MPI search
+        std::vector<double> all_points_coordinates;
+        std::vector<IndexType> all_points_ids;
+        std::vector<IndexType> indexes = SearchUtilities::SynchronousPointSynchronizationWithBoundingBox(itPointBegin, itPointEnd, all_points_coordinates, all_points_ids, r_local_bb, Radius, mrDataCommunicator);
+
         // Initialize results
-        rResults.InitializeResults(all_points_ids);
+        rResults.InitializeResults(indexes);
 
         // Perform the corresponding searches
         const std::size_t total_number_of_points = all_points_coordinates.size()/3;
         struct TLS {
             Point point;
         };
-        IndexPartition<IndexType>(total_number_of_points).for_each(TLS(),[this, &all_points_ids, &all_points_coordinates, &r_local_bb, &rResults, &Radius, &allocation_size, &current_rank](std::size_t i_point, TLS& rTLS) {
+        IndexPartition<IndexType>(total_number_of_points).for_each(TLS(),[this, &all_points_ids, &all_points_coordinates, &r_local_bb, &rResults, &Radius, &allocation_size](std::size_t i_point, TLS& rTLS) {
             rTLS.point[0] = all_points_coordinates[i_point * 3 + 0];
             rTLS.point[1] = all_points_coordinates[i_point * 3 + 1];
             rTLS.point[2] = all_points_coordinates[i_point * 3 + 2];
@@ -718,30 +715,15 @@ private:
 
             // Result of search
             ResultType local_result;
-
-            // Check if the point is inside the set
-            if (SearchUtilities::PointIsInsideBoundingBox(r_local_bb, rTLS.point, Radius)) {
-                // Call local search
-                LocalSearchNearestInRadius(rTLS.point, Radius, local_result, allocation_size);
-            }
-
-            /* Now sync results between partitions */
-
-            // Get the distance
-            const double local_distance = (local_result.IsObjectFound() && local_result.IsDistanceCalculated()) ? local_result.GetDistance() : std::numeric_limits<double>::max();
-
-            // Find the minimum value and the rank that holds it
-            const auto global_min = mrDataCommunicator.MinLocAll(local_distance);
-
-            // Get the solution from the computed_rank
-            if (global_min.second == current_rank) {
-                // Add the local search
-                r_point_result.AddResult(local_result);
-            }
+            LocalSearchNearestInRadius(rTLS.point, Radius, local_result, allocation_size);
+            r_point_result.AddResult(local_result);
         });
 
         // Synchronize
         rResults.SynchronizeAll(mrDataCommunicator);
+
+        // Remove the non closest results
+        KeepOnlyClosestResult(rResults);
     }
 
     /**
@@ -767,17 +749,6 @@ private:
             rResults.Clear();
         }
 
-        // Retrieving parameters
-        const int allocation_size = mSettings["allocation_size"].GetInt();
-
-        // Prepare MPI search
-        std::vector<double> all_points_coordinates;
-        std::vector<IndexType> all_points_ids;
-        SearchUtilities::SynchronousPointSynchronization(itPointBegin, itPointEnd, all_points_coordinates, all_points_ids, mrDataCommunicator);
-
-        // Get the rank
-        const int current_rank = GetRank();
-
         // Get the maximum radius
         const auto bb = GetBoundingBox();
         const array_1d<double, 3> box_size = bb.GetMaxPoint() - bb.GetMinPoint();
@@ -786,44 +757,36 @@ private:
         // The local bounding box
         const auto& r_local_bb = mpSearchObject ? mpSearchObject->GetBoundingBox() : BoundingBox<PointType>();
 
+        // Prepare MPI search
+        std::vector<double> all_points_coordinates;
+        std::vector<IndexType> all_points_ids;
+        std::vector<IndexType> indexes = SearchUtilities::SynchronousPointSynchronizationWithBoundingBox(itPointBegin, itPointEnd, all_points_coordinates, all_points_ids, r_local_bb, max_radius, mrDataCommunicator);
+
         // Initialize results
-        rResults.InitializeResults(all_points_ids);
+        rResults.InitializeResults(indexes);
 
         // Perform the corresponding searches
         const std::size_t total_number_of_points = all_points_coordinates.size()/3;
         struct TLS {
             Point point;
         };
-        IndexPartition<IndexType>(total_number_of_points).for_each(TLS(),[this, &all_points_ids, &all_points_coordinates, &r_local_bb, &rResults, &allocation_size, &current_rank, &max_radius](std::size_t i_point, TLS& rTLS) {
+        IndexPartition<IndexType>(total_number_of_points).for_each(TLS(),[this, &all_points_ids, &all_points_coordinates, &r_local_bb, &rResults](std::size_t i_point, TLS& rTLS) {
             rTLS.point[0] = all_points_coordinates[i_point * 3 + 0];
             rTLS.point[1] = all_points_coordinates[i_point * 3 + 1];
             rTLS.point[2] = all_points_coordinates[i_point * 3 + 2];
             auto& r_point_result = rResults[all_points_ids[i_point]];
 
-            // Check if the point is inside the set
+            // Result of search
             ResultType local_result;
-            if (SearchUtilities::PointIsInsideBoundingBox(r_local_bb, rTLS.point, max_radius)) {
-                // Call local search
-                LocalSearchNearestInRadius(rTLS.point, max_radius, local_result, allocation_size);
-            }
-
-            /* Now sync results between partitions */
-
-            // Get the distance
-            const double local_distance = (local_result.IsObjectFound() && local_result.IsDistanceCalculated()) ? local_result.GetDistance() : std::numeric_limits<double>::max();
-
-            // Find the minimum value and the rank that holds it
-            const auto global_min = mrDataCommunicator.MinLocAll(local_distance);
-
-            // Get the solution from the computed_rank
-            if (global_min.second == current_rank) {
-                // Add the local search
-                r_point_result.AddResult(local_result);
-            }
+            LocalSearchNearest(rTLS.point, local_result);
+            r_point_result.AddResult(local_result);
         });
 
         // Synchronize
         rResults.SynchronizeAll(mrDataCommunicator);
+
+        // Remove the non closest results
+        KeepOnlyClosestResult(rResults);
     }
 
     /**
@@ -851,57 +814,39 @@ private:
             rResults.Clear();
         }
 
-        // Prepare MPI search
-        std::vector<double> all_points_coordinates;
-        std::vector<IndexType> all_points_ids;
-        SearchUtilities::SynchronousPointSynchronization(itPointBegin, itPointEnd, all_points_coordinates, all_points_ids, mrDataCommunicator);
-
-        // Get the rank
-        const int current_rank = GetRank();
-
         // The local bounding box
         const auto& r_local_bb = mpSearchObject ? mpSearchObject->GetBoundingBox() : BoundingBox<PointType>();
 
+        // Prepare MPI search
+        std::vector<double> all_points_coordinates;
+        std::vector<IndexType> all_points_ids;
+        std::vector<IndexType> indexes = SearchUtilities::SynchronousPointSynchronizationWithBoundingBox(itPointBegin, itPointEnd, all_points_coordinates, all_points_ids, r_local_bb, 0.0, mrDataCommunicator);
+
         // Initialize results
-        rResults.InitializeResults(all_points_ids);
+        rResults.InitializeResults(indexes);
 
         // Perform the corresponding searches
         const std::size_t total_number_of_points = all_points_coordinates.size()/3;
         struct TLS {
             Point point;
         };
-        IndexPartition<IndexType>(total_number_of_points).for_each(TLS(),[this, &all_points_ids, &all_points_coordinates, &r_local_bb, &rResults, &current_rank](std::size_t i_point, TLS& rTLS) {
+        IndexPartition<IndexType>(total_number_of_points).for_each(TLS(),[this, &all_points_ids, &all_points_coordinates, &r_local_bb, &rResults](std::size_t i_point, TLS& rTLS) {
             rTLS.point[0] = all_points_coordinates[i_point * 3 + 0];
             rTLS.point[1] = all_points_coordinates[i_point * 3 + 1];
             rTLS.point[2] = all_points_coordinates[i_point * 3 + 2];
             auto& r_point_result = rResults[all_points_ids[i_point]];
 
-            // Check if the point is inside the set
-            int computed_rank = std::numeric_limits<int>::max();
+            // Result of search
             ResultType local_result;
-            if (SearchUtilities::PointIsInsideBoundingBox(r_local_bb, rTLS.point)) {
-                // Call local search
-                LocalSearchIsInside(rTLS.point, local_result);
-
-                // Set current rank
-                computed_rank = current_rank;
-            }
-
-            // Now sync results between partitions
-            //KRATOS_WARNING("SearchWrapper.SearchIsInside") << "This assumes that first one of the viable results is the closest one. The algorithm  sets distance to 0, so it is ambiguous which is the closest one." << std::endl;
-
-            // Min rank of all ranks
-            computed_rank = mrDataCommunicator.MinAll(computed_rank);
-
-            // Get the solution from the computed_rank
-            if (computed_rank == current_rank) {
-                // Add the local search
-                r_point_result.AddResult(local_result);
-            }
+            LocalSearchIsInside(rTLS.point, local_result);
+            r_point_result.AddResult(local_result);
         });
 
         // Synchronize
         rResults.SynchronizeAll(mrDataCommunicator);
+
+        // Remove the non lowest rank results
+        KeepOnlyLowestRankResult(rResults);
     }
 
 #endif
@@ -963,6 +908,79 @@ private:
         const PointType& rPoint,
         ResultType& rResult
         );
+
+    /**
+     * @brief This method removes tle solutions according to a given lambda
+     * @param rResults Results to be simplified
+     * @param rLambda Lambda to be considered as a criteria
+     */
+    template<class TLambda>
+    void KeepOnlyGivenLambdaResult(
+        ResultContainerVectorType& rResults,
+        const TLambda& rLambda
+        )
+    {
+        // Retrieve th solution
+        auto& r_results_vector = rResults.GetContainer();
+        block_for_each(r_results_vector, [&rLambda](auto& pPartialResult) {
+            // First must not be null
+            if (pPartialResult != nullptr) {
+                auto& r_partial_result = *pPartialResult;
+                // Then must have at least one solution
+                if (r_partial_result.NumberOfGlobalResults() > 0) {
+                    // The values
+                    const auto values = rLambda(r_partial_result);
+
+                    // The indexes
+                    std::vector<IndexType> indexes = r_partial_result.GetResultIndices();
+
+                    // Find the index of the minimum value
+                    auto it_min_distance = std::min_element(values.begin(), values.end());
+
+                    // Check if the values vector is not empty
+                    if (it_min_distance != values.end()) {
+                        // Calculate the position
+                        const IndexType pos = std::distance(values.begin(), it_min_distance);
+
+                        // Retrieve the corresponding index from indexes vector
+                        const IndexType index_to_remove = indexes[pos];
+
+                        // Remove the index from the indexes vector
+                        indexes.erase(std::remove(indexes.begin(), indexes.end(), index_to_remove), indexes.end());
+
+                        // Remove all results but the closest one
+                        r_partial_result.RemoveResultsFromIndexesList(indexes);
+                    } else {
+                        KRATOS_ERROR << "Distances vector is empty." << std::endl;
+                    }
+                }
+            }
+        });
+    }
+
+    /**
+     * @brief This method removes the solutions if there are not the closest
+     * @param rResults Results to be simplified
+     */
+    void KeepOnlyClosestResult(ResultContainerVectorType& rResults)
+    {
+        auto distance_lambda = [](ResultContainerType& rResult) -> std::vector<double> {
+            return rResult.GetDistances();
+        };
+        KeepOnlyGivenLambdaResult(rResults, distance_lambda);
+    }
+
+    /**
+     * @brief This method removes the solutions not in the lowest rank
+     * @param rResults Results to be simplified
+     */
+    void KeepOnlyLowestRankResult(ResultContainerVectorType& rResults)
+    {
+        auto rank_lambda = [](ResultContainerType& rResult) -> std::vector<int> {
+            return rResult.GetResultRank();
+        };
+        KeepOnlyGivenLambdaResult(rResults, rank_lambda);
+    }
 
     /**
      * @brief This method returns the default parameters of the search
