@@ -58,10 +58,10 @@ vex::Context& GetVexCLContext() {
     return ctx;
 }
 
-template <int TBlockSize>
+template <class TValue, int TBlockSize>
 void RegisterVexCLStaticMatrixType() {
     static vex::scoped_program_header header(GetVexCLContext(),
-            amgcl::backend::vexcl_static_matrix_declaration<double,TBlockSize>());
+            amgcl::backend::vexcl_static_matrix_declaration<TValue,TBlockSize>());
 }
 #endif
 
@@ -388,22 +388,22 @@ AMGCLRawSolver<TSparseSpace,TDenseSpace,TReorderer>::AMGCLRawSolver(Parameters p
         mpImpl->mBackendType = AMGCLBackendType::CPU;
     } else if (requested_backend_type == "float") {
         #ifdef AMGCL_GPGPU
-            RegisterVexCLStaticMatrixType<2>();
-            RegisterVexCLStaticMatrixType<3>();
-            RegisterVexCLStaticMatrixType<4>();
-            RegisterVexCLStaticMatrixType<5>();
-            RegisterVexCLStaticMatrixType<6>();
+            RegisterVexCLStaticMatrixType<float,2>();
+            RegisterVexCLStaticMatrixType<float,3>();
+            RegisterVexCLStaticMatrixType<float,4>();
+            RegisterVexCLStaticMatrixType<float,5>();
+            RegisterVexCLStaticMatrixType<float,6>();
             mpImpl->mBackendType = AMGCLBackendType::SinglePrecisionGPU;
         #else
             KRATOS_ERROR << "the requested gpgpu backend 'float' is not available because Kratos was compiled without GPU support\n";
         #endif
     } else if (requested_backend_type == "double") {
         #ifdef AMGCL_GPGPU
-            RegisterVexCLStaticMatrixType<2>();
-            RegisterVexCLStaticMatrixType<3>();
-            RegisterVexCLStaticMatrixType<4>();
-            RegisterVexCLStaticMatrixType<5>();
-            RegisterVexCLStaticMatrixType<6>();
+            RegisterVexCLStaticMatrixType<double,2>();
+            RegisterVexCLStaticMatrixType<double,3>();
+            RegisterVexCLStaticMatrixType<double,4>();
+            RegisterVexCLStaticMatrixType<double,5>();
+            RegisterVexCLStaticMatrixType<double,6>();
             mpImpl->mBackendType = AMGCLBackendType::DoublePrecisionGPU;
         #else
             KRATOS_ERROR << "the requested gpgpu backend 'double' is not available because Kratos was compiled without GPU support\n";
