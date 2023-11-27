@@ -254,8 +254,12 @@ void SpatialSearchResultContainerVector<TObjectType>::PrintData(std::ostream& rO
 {
     // Print results
     rOStream << "SpatialSearchResultContainerVector data summary: " << "\n";
-    for (auto p_result : mPointResults) {
-        p_result->PrintData(rOStream);
+    for (IndexType i = 0; i < mPointResults.size(); ++i) {
+        auto p_result = mPointResults[i];
+        if (p_result !=  nullptr) {
+            rOStream << "Point " << i << ": ";
+            p_result->PrintData(rOStream);
+        }
     }
 }
 
