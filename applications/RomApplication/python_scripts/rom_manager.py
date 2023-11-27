@@ -24,7 +24,7 @@ class RomManager(object):
         self.CustomizeSimulation = CustomizeSimulation
         self.UpdateProjectParameters = UpdateProjectParameters
         self.UpdateMaterialParametersFile = UpdateMaterialParametersFile
-
+        self.SetUpQuantityOfInterestContainers()
 
 
     def Fit(self, mu_train=[None], store_all_snapshots=False, store_fom_snapshots=False, store_rom_snapshots=False, store_hrom_snapshots=False, store_residuals_projected = False):
@@ -239,6 +239,7 @@ class RomManager(object):
             analysis_stage_class = self._GetAnalysisStageClass(parameters_copy)
             simulation = self.CustomizeSimulation(analysis_stage_class,model,parameters_copy)
             simulation.Run()
+            self.QoI_Fit_FOM.append(simulation.GetFinalData(Id))
             for process in simulation._GetListOfOutputProcesses():
                 if isinstance(process, CalculateRomBasisOutputProcess):
                     BasisOutputProcess = process
@@ -267,6 +268,7 @@ class RomManager(object):
             analysis_stage_class = type(SetUpSimulationInstance(model, parameters_copy))
             simulation = self.CustomizeSimulation(analysis_stage_class,model,parameters_copy)
             simulation.Run()
+            self.QoI_Fit_ROM.append(simulation.GetFinalData(Id))
             for process in simulation._GetListOfOutputProcesses():
                 if isinstance(process, CalculateRomBasisOutputProcess):
                     BasisOutputProcess = process
@@ -763,3 +765,26 @@ class RomManager(object):
 
         #save the array inside the chosen directory
         np.save(file_path, numpy_array)
+
+
+
+    def SetUpQuantityOfInterestContainers(self):
+        #TODO implement more options if the QoI is too large to keep in RAM
+        self.QoI_Fit_FOM = []
+        self.QoI_Fit_ROM = []
+        self.QoI_Fit_HROM = []
+        self.QoI_Test_FOM = []
+        self.QoI_Test_ROM = []
+        self.QoI_Test_HROM = []
+        self.QoI_Run_FOM = []
+        self.QoI_Run_ROM = []
+        self.QoI_Run_HROM = []
+
+
+
+
+
+
+
+
+
