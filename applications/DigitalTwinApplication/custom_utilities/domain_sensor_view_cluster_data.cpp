@@ -43,20 +43,10 @@ TContainerType& DomainSensorViewClusterData<TContainerType>::GetContainer() cons
 
 template<class TContainerType>
 DomainSensorViewClusterData<TContainerType>::DomainSensorViewClusterData(
-    const SensorViewVectorType& rSensorViewsList,
-    const SensorViewVectorType& rRepresentativeSensorViewsForEntitiesList)
+    const SensorViewVectorType& rSensorViewsList)
     : mpModelPart(&SensorUtils::GetSensorViewsModelPart<TContainerType>(rSensorViewsList)),
-      mSensorViewPointersList(rSensorViewsList),
-      mRepresentativeSensorsForEntities(rRepresentativeSensorViewsForEntitiesList)
+      mSensorViewPointersList(rSensorViewsList)
 {
-    KRATOS_TRY
-
-    KRATOS_ERROR_IF_NOT(mRepresentativeSensorsForEntities.size() == GetContainer().size())
-        << "The representative sensor views for entities list size and number of entities size mismatch "
-        << "[ representative sensor views for entities list size = " << mRepresentativeSensorsForEntities.size()
-        << ", number of entities size = " << GetContainer().size() << " ].\n";
-
-    KRATOS_CATCH("");
 }
 
 template<class TContainerType>

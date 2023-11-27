@@ -38,26 +38,22 @@ void AddSensorClusterUtilsToPython(
 {
     namespace py = pybind11;
 
-    std::string upper_prefix, lower_suffix, lower_prefix;
+    std::string upper_prefix, lower_prefix;
     if constexpr(std::is_same_v<TContainerType, ModelPart::NodesContainerType>) {
         upper_prefix = "Nodal";
-        lower_suffix = "node";
         lower_prefix = "nodal";
     } else if constexpr(std::is_same_v<TContainerType, ModelPart::ConditionsContainerType>) {
         upper_prefix = "Condition";
-        lower_suffix = "condition";
         lower_prefix = "condition";
     } else if constexpr(std::is_same_v<TContainerType, ModelPart::ElementsContainerType>) {
         upper_prefix = "Element";
-        lower_suffix = "element";
         lower_prefix = "element";
     }
 
     const std::string& cluster_data_name = upper_prefix + "SensorViewClusterData";
-    const std::string& cluster_data_py_hint_name = "representative_sensor_views_for_local_" + lower_suffix + "s";
     using sensor_cluster_data = DomainSensorViewClusterData<TContainerType>;
     py::class_<sensor_cluster_data, typename sensor_cluster_data::Pointer>(m, cluster_data_name.c_str())
-        .def(py::init<const typename sensor_cluster_data::SensorViewVectorType&, const typename sensor_cluster_data::SensorViewVectorType&>(), py::arg("sensor_views_list"), py::arg(cluster_data_py_hint_name.c_str()))
+        .def(py::init<const typename sensor_cluster_data::SensorViewVectorType&>(), py::arg("sensor_views_list"))
         .def("AddDistances", &sensor_cluster_data::AddDistances, py::arg("distances_type"), py::arg("compressed_distances_matrix"))
         .def("GetContainer", &sensor_cluster_data::GetContainer, py::return_value_policy::reference)
         .def("GetSensorViews", &sensor_cluster_data::GetSensorViews, py::return_value_policy::reference)
@@ -69,10 +65,13 @@ void AddSensorClusterUtilsToPython(
     using cluster = SensorViewCluster<TContainerType>;
     py::class_<cluster, typename cluster::Pointer, IndexedObject>(m, cluster_name.c_str())
         .def(py::init<const IndexType, typename DomainSensorViewClusterData<TContainerType>::Pointer>(), py::arg("cluster_id"), py::arg(StringUtilities::ConvertCamelCaseToSnakeCase(cluster_data_name).c_str()))
+        .def("Clone", &cluster::Clone)
+        .def("Clear", &cluster::Clear)
         .def("SetSensorViews", &cluster::SetSensorViews, py::arg(sensor_views_py_hint.c_str()))
         .def("GetSensorViews", &cluster::GetSensorViews)
         .def("GetDistances", &cluster::GetDistances, py::arg("distances_type"))
-        .def("GetEntities", &cluster::GetEntities, py::return_value_policy::reference)
+        .def("SetEntities", &cluster::SetEntities, py::arg((lower_prefix + "_array").c_str()))
+        .def("GetEntities", py::overload_cast<>(&cluster::GetEntities, py::const_), py::return_value_policy::reference)
         .def("GetDataContainer", &cluster::GetDataContainer)
         ;
 }
@@ -98,6 +97,9 @@ void AddCustomUtilitiesToPython(pybind11::module& m)
     sensor_utils.def("GetDomainSize", &SensorUtils::GetDomainSize<ModelPart::NodesContainerType>, py::arg("nodes_array"), py::arg("data_communicator"));
     sensor_utils.def("GetDomainSize", &SensorUtils::GetDomainSize<ModelPart::ConditionsContainerType>, py::arg("conditions_array"), py::arg("data_communicator"));
     sensor_utils.def("GetDomainSize", &SensorUtils::GetDomainSize<ModelPart::ElementsContainerType>, py::arg("elements_array"), py::arg("data_communicator"));
+    sensor_utils.def("AssignEntitiesToClusters", &SensorUtils::AssignEntitiesToClusters<ModelPart::NodesContainerType>, py::arg("nodal_sensor_view_clusters"), py::arg("nodal_expressions_list"));
+    sensor_utils.def("AssignEntitiesToClusters", &SensorUtils::AssignEntitiesToClusters<ModelPart::ConditionsContainerType>, py::arg("condition_sensor_view_clusters"), py::arg("condition_expression_list"));
+    sensor_utils.def("AssignEntitiesToClusters", &SensorUtils::AssignEntitiesToClusters<ModelPart::ElementsContainerType>, py::arg("element_sensor_view_clusters"), py::arg("elements_expression_list"));
 
     auto cluster_utils = m.def_submodule("ClusterUtils");
     AddSensorClusterUtilsToPython<ModelPart::NodesContainerType>(cluster_utils);

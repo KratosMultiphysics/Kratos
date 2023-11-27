@@ -1,6 +1,7 @@
 import typing
 import json
 from pathlib import Path
+from math import sqrt
 
 import KratosMultiphysics as Kratos
 import KratosMultiphysics.OptimizationApplication as KratosOA
@@ -200,6 +201,19 @@ def GetEuclideanDistances(list_of_sensor_views: 'list[SensorViewUnionType]') -> 
             results.append((dist[0]**2 + dist[1]**2 + dist[2]**2) ** 0.5)
     return results
 
+def GetSubDistances(original_distances: 'list[float]', sub_indices_list: 'list[int]') -> 'list[float]':
+    m = len(original_distances)
+    n = int((1 + sqrt(8*m + 1)) / 2)
+    if m != (n * (n-1)) // 2:
+        raise RuntimeError("Invalid original distances vector given.")
+
+    sub_indices_list = sorted(sub_indices_list)
+    sub_distances: 'list[float]' = []
+    for i, sub_index_i in enumerate(sub_indices_list):
+        for sub_index_j in sub_indices_list[i+1:]:
+            sub_distances.append(original_distances[n * sub_index_i + sub_index_j - ((sub_index_i + 2) * (sub_index_i + 1)) // 2])
+    return sub_distances
+
 def AddSensorVariableData(sensor: KratosDT.Sensors.Sensor, variable_data: Kratos.Parameters) -> None:
     """Adds sensor variable data.
 
@@ -266,6 +280,12 @@ def GetBestCoverageSensorView(list_of_sensor_views: 'list[SensorViewUnionType]')
     overall_updating_exp /= KratosOA.ExpressionUtils.NormL2(overall_updating_exp)
     overall_updating_exp.SetExpression(overall_updating_exp.Flatten().GetExpression())
     return min(list_of_sensor_views, key=lambda x: 1.0 - KratosOA.ExpressionUtils.InnerProduct(overall_updating_exp, x.GetContainerExpression()))
+
+def GetDistance(i: int, j: int, compressed_distance_matrix: 'list[float]') -> float:
+    local_i_j = sorted([i, j])
+    n = len(compressed_distance_matrix)
+    m = int((1.0 + sqrt(8.0*n + 1.0)) / 2)
+    return compressed_distance_matrix[m*local_i_j[0] + local_i_j[1] - ((local_i_j[0] + 2)*(local_i_j[0] + 1)) // 2]
 
 def ComputeHeatMap(list_of_sensor_views: 'list[SensorViewUnionType]') -> ExpressionUnionType:
     if len(list_of_sensor_views) == 0:

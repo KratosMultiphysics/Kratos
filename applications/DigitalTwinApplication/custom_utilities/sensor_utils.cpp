@@ -96,6 +96,57 @@ double SensorUtils::GetDomainSize(
     KRATOS_CATCH("");
 }
 
+template<class TContainerType>
+void SensorUtils::AssignEntitiesToClusters(
+    const std::vector<typename SensorViewCluster<TContainerType>::Pointer>& rSensorViewClusters,
+    const std::vector<typename ContainerExpression<TContainerType>::Pointer>& rContainerExpressionsList)
+{
+    KRATOS_TRY
+
+    const auto number_of_clusters = rSensorViewClusters.size();
+
+    KRATOS_ERROR_IF_NOT(number_of_clusters == rContainerExpressionsList.size())
+        << "Number of clusters and number of container expressions mismatch [ "
+        << "number of clusters = " << number_of_clusters << ", number of container expressions = "
+        << rContainerExpressionsList.size() << " ].\n";
+
+    KRATOS_ERROR_IF(number_of_clusters == 0) << "No clusters provided.";
+
+    auto& r_container = rContainerExpressionsList[0]->GetContainer();
+    const auto number_of_entities = r_container.size();
+    std::vector<IndexType> indices(number_of_entities);
+
+    IndexPartition<IndexType>(number_of_entities).for_each([&indices, &rContainerExpressionsList, number_of_clusters](const auto Index) {
+        double best_value = 0.0;
+        IndexType best_index = 0;
+        for (IndexType j = 0; j < number_of_clusters; ++j) {
+            const double current_value = rContainerExpressionsList[j]->GetExpression().Evaluate(Index, Index, 0);
+            if (current_value > best_value) {
+                best_value = current_value;
+                best_index = j;
+            }
+        }
+        indices[Index] = best_index;
+    });
+
+    // clean existing lists in the clusters
+    for (auto& p_sensor_view_cluster : rSensorViewClusters) {
+        p_sensor_view_cluster->GetEntities().clear();
+    }
+
+    // now fill the entities containers in serial
+    for (IndexType i = 0; i < number_of_entities; ++i) {
+        rSensorViewClusters[indices[i]]->GetEntities().push_back(&*(r_container.begin() + i));
+    }
+
+    // now sort and make unique
+    for (auto& p_sensor_view_cluster : rSensorViewClusters) {
+        p_sensor_view_cluster->GetEntities().Unique();
+    }
+
+    KRATOS_CATCH("");
+}
+
 // template instantiations
 #ifndef KRATOS_SENSOR_UTILS
 #define KRATOS_SENSOR_UTILS(CONTAINER_TYPE)                                          \
@@ -105,7 +156,10 @@ double SensorUtils::GetDomainSize(
     template ModelPart& SensorUtils::GetSensorViewsModelPart<CONTAINER_TYPE>(        \
         const std::vector<SensorView<CONTAINER_TYPE>::Pointer>&);                    \
     template double SensorUtils::GetDomainSize<CONTAINER_TYPE>(                      \
-        const CONTAINER_TYPE&, const DataCommunicator&);
+        const CONTAINER_TYPE&, const DataCommunicator&);                             \
+    template void SensorUtils::AssignEntitiesToClusters<CONTAINER_TYPE>(             \
+        const std::vector<typename SensorViewCluster<CONTAINER_TYPE>::Pointer>&,     \
+        const std::vector<typename ContainerExpression<CONTAINER_TYPE>::Pointer>&);
 
 #endif
 

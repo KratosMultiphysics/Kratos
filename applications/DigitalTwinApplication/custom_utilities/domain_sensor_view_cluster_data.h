@@ -47,9 +47,7 @@ public:
     ///@name Life cycle
     ///@{
 
-    DomainSensorViewClusterData(
-        const SensorViewVectorType& rSensorViewsList,
-        const SensorViewVectorType& rRepresentativeSensorViewsForEntitiesList);
+    DomainSensorViewClusterData(const SensorViewVectorType& rSensorViewsList);
 
     ///@}
     ///@name Public operations
@@ -70,8 +68,6 @@ public:
 
     SensorViewVectorType& GetSensorViews() { return mSensorViewPointersList; };
 
-    SensorViewVectorType& GetRepresentativeSensorViewsForEntities() { return mRepresentativeSensorsForEntities; };
-
     ModelPart& GetModelPart() const { return *mpModelPart; };
 
     ///@}
@@ -83,8 +79,6 @@ private:
     ModelPart * const mpModelPart;
 
     SensorViewVectorType mSensorViewPointersList;
-
-    SensorViewVectorType mRepresentativeSensorsForEntities;
 
     std::unordered_map<std::string, std::vector<double>> mDistancesMap;
 

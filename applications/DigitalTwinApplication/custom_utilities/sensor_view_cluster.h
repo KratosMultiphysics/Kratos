@@ -57,15 +57,23 @@ public:
     ///@name Public operations
     ///@{
 
+    typename SensorViewCluster<TContainerType>::Pointer Clone() const;
+
     void SetSensorViews(const SensorViewVectorType& rSensorViews);
 
     SensorViewVectorType GetSensorViews() const;
 
     std::vector<double> GetDistances(const std::string& rDistancesName) const;
 
+    void SetEntities(const TContainerType& rContainer) { mEntities = rContainer; }
+
     TContainerType& GetEntities() { return mEntities; }
 
+    const TContainerType& GetEntities() const { return mEntities; }
+
     typename DomainSensorViewClusterData<TContainerType>::Pointer GetDataContainer() { return mpDataContainer; }
+
+    void Clear();
 
     ///@}
 private:

@@ -23,6 +23,8 @@
 
 // Application includes
 #include "custom_sensors/sensor_view.h"
+#include "custom_utilities/sensor_view_cluster.h"
+
 
 namespace Kratos {
 ///@name Kratos Classes
@@ -46,6 +48,11 @@ public:
     static double GetDomainSize(
         const TContainerType& rContainer,
         const DataCommunicator& rDataCommunicator);
+
+    template<class TContainerType>
+    static void AssignEntitiesToClusters(
+        const std::vector<typename SensorViewCluster<TContainerType>::Pointer>& rSensorViewClusers,
+        const std::vector<typename ContainerExpression<TContainerType>::Pointer>& rContainerExpressionsList);
 
     ///@}
 };

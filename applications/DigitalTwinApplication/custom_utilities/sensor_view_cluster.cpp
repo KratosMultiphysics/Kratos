@@ -36,6 +36,22 @@ SensorViewCluster<TContainerType>::SensorViewCluster(
 }
 
 template<class TContainerType>
+typename SensorViewCluster<TContainerType>::Pointer SensorViewCluster<TContainerType>::Clone() const
+{
+    auto p_cluster = Kratos::make_shared<SensorViewCluster<TContainerType>>(this->Id(), mpDataContainer);
+    p_cluster->SetEntities(this->GetEntities());
+    p_cluster->SetSensorViews(this->GetSensorViews());
+    return p_cluster;
+}
+
+template<class TContainerType>
+void SensorViewCluster<TContainerType>::Clear()
+{
+    this->mEntities.clear();
+    this->mSensorViewIndices.clear();
+}
+
+template<class TContainerType>
 void SensorViewCluster<TContainerType>::SetSensorViews(const SensorViewVectorType& rSensorViews)
 {
     KRATOS_TRY
@@ -60,21 +76,6 @@ void SensorViewCluster<TContainerType>::SetSensorViews(const SensorViewVectorTyp
 
     // sort the sensor indices
     std::sort(mSensorViewIndices.begin(), mSensorViewIndices.end());
-
-    auto& r_container = mpDataContainer->GetContainer();
-    const auto& representative_sensors = mpDataContainer->GetRepresentativeSensorViewsForEntities();
-
-    // now add the proper entities
-    for (IndexType i = 0; i < representative_sensors.size(); ++i) {
-        const auto& p_representative_sensor = representative_sensors[i];
-        const auto found_sum = block_for_each<SumReduction<IndexType>>(rSensorViews, [&p_representative_sensor](const auto& pSensorView) -> IndexType {
-            return p_representative_sensor == pSensorView;
-        });
-
-        if (found_sum > 0) {
-            mEntities.push_back(&*(r_container.begin() + i));
-        }
-    }
 
     KRATOS_CATCH("");
 }
