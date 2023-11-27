@@ -707,7 +707,7 @@ private:
         struct TLS {
             Point point;
         };
-        IndexPartition<IndexType>(total_number_of_points).for_each(TLS(),[this, &all_points_ids, &all_points_coordinates, &r_local_bb, &rResults, &Radius, &allocation_size](std::size_t i_point, TLS& rTLS) {
+        IndexPartition<IndexType>(total_number_of_points).for_each(TLS(),[this, &all_points_ids, &all_points_coordinates, &rResults, &Radius, &allocation_size](std::size_t i_point, TLS& rTLS) {
             rTLS.point[0] = all_points_coordinates[i_point * 3 + 0];
             rTLS.point[1] = all_points_coordinates[i_point * 3 + 1];
             rTLS.point[2] = all_points_coordinates[i_point * 3 + 2];
@@ -770,7 +770,7 @@ private:
         struct TLS {
             Point point;
         };
-        IndexPartition<IndexType>(total_number_of_points).for_each(TLS(),[this, &all_points_ids, &all_points_coordinates, &r_local_bb, &rResults](std::size_t i_point, TLS& rTLS) {
+        IndexPartition<IndexType>(total_number_of_points).for_each(TLS(),[this, &all_points_ids, &all_points_coordinates, &rResults](std::size_t i_point, TLS& rTLS) {
             rTLS.point[0] = all_points_coordinates[i_point * 3 + 0];
             rTLS.point[1] = all_points_coordinates[i_point * 3 + 1];
             rTLS.point[2] = all_points_coordinates[i_point * 3 + 2];
@@ -830,7 +830,7 @@ private:
         struct TLS {
             Point point;
         };
-        IndexPartition<IndexType>(total_number_of_points).for_each(TLS(),[this, &all_points_ids, &all_points_coordinates, &r_local_bb, &rResults](std::size_t i_point, TLS& rTLS) {
+        IndexPartition<IndexType>(total_number_of_points).for_each(TLS(),[this, &all_points_ids, &all_points_coordinates, &rResults](std::size_t i_point, TLS& rTLS) {
             rTLS.point[0] = all_points_coordinates[i_point * 3 + 0];
             rTLS.point[1] = all_points_coordinates[i_point * 3 + 1];
             rTLS.point[2] = all_points_coordinates[i_point * 3 + 2];
