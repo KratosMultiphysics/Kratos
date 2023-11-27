@@ -77,7 +77,7 @@ def AssembleTestSuites():
                         KratosGeoMechanicsSolverTests,
                         KratosGeoMechanicsChangingWaterLevelTests,
                         KratosGeoMechanicsStrainMeasureTests,
-                        KratosGeoMechanicsSetMultipleMovingLoadProcessTests,
+                        KratosGeoMechanicsSetMultipleMovingLoadProcessTests
                         ]
 
     # Create an array with the selected tests

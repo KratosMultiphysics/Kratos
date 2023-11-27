@@ -154,7 +154,7 @@ class KratosGeoMechanicsTransientThermalTests(KratosUnittest.TestCase):
         temperature = test_helper.get_temperature(simulation)
         temp = temperature[124]
         self.assertAlmostEqual(1.2294110493528096, temp)
- 
+
     def test_thermal_fixed_temperature_2D3N(self):
         test_name = 'test_thermal_fixed_temperature_2D3N'
         file_path = test_helper.get_file_path(os.path.join('test_thermal_element', test_name))
@@ -210,7 +210,7 @@ class KratosGeoMechanicsTransientThermalTests(KratosUnittest.TestCase):
         temperature = test_helper.get_temperature(simulation)
         temp = temperature[63]
         self.assertAlmostEqual(4.9497705225, temp)
-        
+
     def test_thermal_fixed_temperature_3D4N(self):
         test_name = 'test_thermal_fixed_temperature_3D4N'
         file_path = test_helper.get_file_path(os.path.join('test_thermal_element', test_name))

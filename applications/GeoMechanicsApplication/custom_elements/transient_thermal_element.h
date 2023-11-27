@@ -168,7 +168,7 @@ private:
     {
         CheckProperty(DENSITY_WATER);
         CheckProperty(POROSITY);
-        CheckSaturatedLaw();
+        CheckProperty(RETENTION_LAW, "SaturatedLaw" );
         CheckProperty(SATURATED_SATURATION);
         CheckProperty(DENSITY_SOLID);
         CheckProperty(SPECIFIC_HEAT_CAPACITY_WATER);
@@ -193,14 +193,13 @@ private:
                                                           << Id() << std::endl;
     }
 
-    void CheckSaturatedLaw() const
+    void CheckProperty(const Kratos::Variable<std::string>& rVariable, const std::string & rName ) const
     {
-        const auto& r_variable = RETENTION_LAW;
-        KRATOS_ERROR_IF_NOT(GetProperties().Has(r_variable)) << r_variable.Name()
+        KRATOS_ERROR_IF_NOT(GetProperties().Has(rVariable)) << rVariable.Name()
                                                             << " does not exist in the thermal element's properties" << std::endl;
-        KRATOS_ERROR_IF_NOT(GetProperties()[r_variable] == "SaturatedLaw") << r_variable.Name() << " has an invalid law ("
-                                                           << GetProperties()[r_variable] << ") at element "
-                                                           << Id() << std::endl;
+        KRATOS_ERROR_IF_NOT(GetProperties()[rVariable] == rName) << rVariable.Name() << " has a value of (" << GetProperties()[rVariable]
+                                                                 << ") instead of (" << rName << ") at element "
+                                                                 << Id() << std::endl;
     }
 
     void CheckForNonZeroZCoordinateIn2D() const
