@@ -300,6 +300,10 @@ class GeoMechanicalSolver(PythonSolver):
     def Check(self):
         self.solver.Check()
 
+    def _GetScheme(self):
+        #if not hasattr(self, 'scheme'):
+        #    self.scheme = self._CreateScheme()
+        return self.scheme
 
     #### Specific internal functions ####
 
