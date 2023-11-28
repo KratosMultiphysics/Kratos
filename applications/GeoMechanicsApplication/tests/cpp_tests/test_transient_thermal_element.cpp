@@ -38,74 +38,49 @@ void SetProperties(Element::Pointer p_element)
     p_properties->SetValue(THERMAL_CONDUCTIVITY_SOLID_XX, 10.0);
     p_properties->SetValue(THERMAL_CONDUCTIVITY_SOLID_YY, 1.0);
     p_properties->SetValue(THERMAL_CONDUCTIVITY_SOLID_XY, 0.0);
+    p_properties->SetValue(RETENTION_LAW, "SaturatedLaw");
 }
 
-void TestThermalElement(ModelPart& rModelPart,
-                        Matrix ExpectedLeftHandSideMatrix = {},
-                        Vector ExpectedRightHandSideVector = {})
+void SetupElement(ModelPart& rModelPart)
 {
-    Element::Pointer p_element = rModelPart.pGetElement(1);
+    Element::Pointer p_element;
+    Element::DofsVectorType elemental_dofs;
 
+    p_element = rModelPart.pGetElement(1);
+    const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
     for (unsigned int i = 0; i < rModelPart.NumberOfNodes(); i++)
     {
         p_element->GetGeometry()[i].AddDof(TEMPERATURE);
-        // Set temperature to some non-zero value
+        // Set temperature to some values to get a non-zero right hand side
         p_element->GetGeometry()[i].GetSolutionStepValue(TEMPERATURE) = i * 1.0;
     }
 
-    const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
-
-    Element::DofsVectorType elemental_dofs;
     p_element->GetDofList(elemental_dofs, r_current_process_info);
-
     for (unsigned int i = 0; i < elemental_dofs.size(); i++)
     {
         elemental_dofs[i]->SetEquationId(i);
     }
-
-
-    Element::EquationIdVectorType equation_ids;
-    p_element->EquationIdVector(equation_ids, r_current_process_info);
     SetProperties(p_element);
+}
 
-    // Only the TEMPERATURE dofs should be returned by the element
+void ValidateThermalElement(ModelPart& rModelPart)
+{
+    auto p_element = rModelPart.pGetElement(1);
+    const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
+
+    Element::DofsVectorType elemental_dofs;
+    p_element->GetDofList(elemental_dofs, r_current_process_info);
     for (const auto& element_dof : elemental_dofs)
     {
+        // Only the TEMPERATURE dofs should be returned by the element
         KRATOS_EXPECT_EQ(element_dof->GetVariable(), TEMPERATURE);
     }
 
+    Element::EquationIdVectorType equation_ids;
+    p_element->EquationIdVector(equation_ids, r_current_process_info);
     for (unsigned int i = 0; i < equation_ids.size(); i++)
     {
         KRATOS_EXPECT_EQ(equation_ids[i], i);
-    }
-
-    if (ExpectedLeftHandSideMatrix.size1() == 0 || ExpectedRightHandSideVector.size() == 0)
-    {
-        return;
-    }
-
-    Matrix left_hand_side_matrix;
-    Vector right_hand_side;
-
-    p_element->CalculateLocalSystem(left_hand_side_matrix, right_hand_side,
-                                    r_current_process_info);
-
-    KRATOS_EXPECT_EQ(left_hand_side_matrix.size1(), ExpectedLeftHandSideMatrix.size1());
-    KRATOS_EXPECT_EQ(left_hand_side_matrix.size2(), ExpectedLeftHandSideMatrix.size2());
-
-    for (std::size_t i = 0; i < left_hand_side_matrix.size1(); i++)
-    {
-        for (std::size_t j = 0; j < left_hand_side_matrix.size2(); j++)
-        {
-            KRATOS_EXPECT_DOUBLE_EQ(left_hand_side_matrix(i, j),
-                                    ExpectedLeftHandSideMatrix(i, j));
-        }
-    }
-
-    KRATOS_EXPECT_EQ(right_hand_side.size(), ExpectedRightHandSideVector.size());
-    for (std::size_t i = 0; i < right_hand_side.size(); i++)
-    {
-        KRATOS_EXPECT_DOUBLE_EQ(right_hand_side[i], ExpectedRightHandSideVector[i]);
     }
 }
 
@@ -210,27 +185,6 @@ KRATOS_TEST_CASE_IN_SUITE(CheckElement_Throws_WhenPropertyIsMissing, KratosGeoMe
         "DENSITY_WATER does not exist in the thermal element's properties")
 }
 
-KRATOS_TEST_CASE_IN_SUITE(CheckElement_Returns0_When2DElementIsCorrectlySet, KratosGeoMechanicsFastSuite)
-{
-    Model this_model;
-    ModelPart& model_part = this_model.CreateModelPart("Main", 3);
-    model_part.AddNodalSolutionStepVariable(TEMPERATURE);
-    model_part.AddNodalSolutionStepVariable(DT_TEMPERATURE);
-    GenerateTransientThermalElement2D3N(model_part);
-
-    Element::Pointer p_element = model_part.pGetElement(1);
-    for (auto& node : p_element->GetGeometry())
-    {
-        node.AddDof(TEMPERATURE);
-    }
-
-    SetProperties(p_element);
-
-    const ProcessInfo& r_current_process_info = model_part.GetProcessInfo();
-
-    KRATOS_EXPECT_EQ(p_element->Check(r_current_process_info), 0);
-}
-
 void GenerateTransientThermalElement2D3NWithNonZeroZ(ModelPart& rModelPart)
 {
     // Geometry creation
@@ -249,20 +203,78 @@ KRATOS_TEST_CASE_IN_SUITE(CheckElement_Throws_When2DElementHasNonZeroZValue, Kra
     model_part.AddNodalSolutionStepVariable(TEMPERATURE);
     model_part.AddNodalSolutionStepVariable(DT_TEMPERATURE);
     GenerateTransientThermalElement2D3NWithNonZeroZ(model_part);
-
-    Element::Pointer p_element = model_part.pGetElement(1);
-    for (auto& node : p_element->GetGeometry())
-    {
-        node.AddDof(TEMPERATURE);
-    }
-
-    SetProperties(model_part.pGetElement(1));
+    SetupElement(model_part);
 
     const ProcessInfo& r_current_process_info = model_part.GetProcessInfo();
-
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
-        p_element->Check(r_current_process_info),
+        model_part.GetElement(1).Check(r_current_process_info),
         "Node with non-zero Z coordinate found. Id: 1")
+}
+
+KRATOS_TEST_CASE_IN_SUITE(CheckElement_Returns0_When2DElementIsCorrectlySet, KratosGeoMechanicsFastSuite)
+{
+    Model this_model;
+    ModelPart& model_part = this_model.CreateModelPart("Main", 3);
+    model_part.AddNodalSolutionStepVariable(TEMPERATURE);
+    model_part.AddNodalSolutionStepVariable(DT_TEMPERATURE);
+    GenerateTransientThermalElement2D3N(model_part);
+    SetupElement(model_part);
+
+    const ProcessInfo& r_current_process_info = model_part.GetProcessInfo();
+    KRATOS_EXPECT_EQ(model_part.GetElement(1).Check(r_current_process_info), 0);
+}
+
+void ExpectDoubleMatrixEqual(const Matrix& rExpectedMatrix, const Matrix& rActualMatrix)
+{
+    KRATOS_EXPECT_EQ(rActualMatrix.size1(), rExpectedMatrix.size1());
+    KRATOS_EXPECT_EQ(rActualMatrix.size2(), rExpectedMatrix.size2());
+    for (std::size_t i = 0; i < rActualMatrix.size1(); i++)
+    {
+        for (std::size_t j = 0; j < rActualMatrix.size2(); j++)
+        {
+            KRATOS_EXPECT_DOUBLE_EQ(rActualMatrix(i, j), rExpectedMatrix(i, j));
+        }
+    }
+}
+
+void ExpectDoubleVectorEqual(const Vector& rExpectedVector, const Vector& rActualVector)
+{
+    KRATOS_EXPECT_EQ(rActualVector.size(), rExpectedVector.size());
+    for (std::size_t i = 0; i < rActualVector.size(); i++)
+    {
+        KRATOS_EXPECT_DOUBLE_EQ(rActualVector[i], rExpectedVector[i]);
+    }
+}
+
+KRATOS_TEST_CASE_IN_SUITE(ThermalElement_ReturnsExpectedMatrixAndVector_WhenCalculateLocalSystem,
+                          KratosGeoMechanicsFastSuite)
+{
+    Model this_model;
+    ModelPart& model_part = this_model.CreateModelPart("Main", 3);
+    model_part.AddNodalSolutionStepVariable(TEMPERATURE);
+    model_part.AddNodalSolutionStepVariable(DT_TEMPERATURE);
+    GenerateTransientThermalElement2D3N(model_part);
+    SetupElement(model_part);
+
+    Element::Pointer p_element = model_part.pGetElement(1);
+    const ProcessInfo& r_current_process_info = model_part.GetProcessInfo();
+
+    Matrix left_hand_side_matrix;
+    Vector right_hand_side;
+    p_element->CalculateLocalSystem(left_hand_side_matrix, right_hand_side,
+                                    r_current_process_info);
+
+    Matrix expected_matrix(3, 3);
+    expected_matrix <<=  5,   -5,    0,
+                        -5,  5.5, -0.5,
+                         0, -0.5,  0.5;
+    ExpectDoubleMatrixEqual(expected_matrix, left_hand_side_matrix);
+
+    // Calculated by hand (matrix multiplication between the
+    // lhs and the temperature vector, which is 0.0, 1.0, 2.0)
+    Vector expected_vector(3);
+    expected_vector <<= 5, -4.5, -0.5;
+    ExpectDoubleVectorEqual(expected_vector, right_hand_side);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(EquationIdVectorTransientThermalElement2D3N, KratosGeoMechanicsFastSuite)
@@ -274,395 +286,394 @@ KRATOS_TEST_CASE_IN_SUITE(EquationIdVectorTransientThermalElement2D3N, KratosGeo
     model_part.AddNodalSolutionStepVariable(DT_TEMPERATURE);
 
     GenerateTransientThermalElement2D3N(model_part);
+    SetupElement(model_part);
 
-    Matrix expected_matrix(3, 3);
-    expected_matrix <<=  5,   -5,    0,
-                        -5,  5.5, -0.5,
-                         0, -0.5,  0.5;
-
-    Vector expected_vector(3);
-    expected_vector <<= 5, -4.5, -0.5;
-
-    TestThermalElement(model_part, expected_matrix, expected_vector);
+    ValidateThermalElement(model_part);
 }
 
- void GenerateTransientThermalElement2D4N(ModelPart& rModelPart)
+void GenerateTransientThermalElement2D4N(ModelPart& rModelPart)
 {
-     // Geometry creation
-     rModelPart.CreateNewNode(1, 0.0, 0.0, 0.0);
-     rModelPart.CreateNewNode(2, 1.0, 0.0, 0.0);
-     rModelPart.CreateNewNode(3, 1.0, 1.0, 0.0);
-     rModelPart.CreateNewNode(4, 0.6666, 0.3333, 0.0);
-     std::vector<ModelPart::IndexType> node_ids{1, 2, 3, 4};
-     rModelPart.CreateNewElement("GeoTransientThermalElement2D4N", 1, node_ids,
-                                 rModelPart.CreateNewProperties(0));
- }
+    // Geometry creation
+    rModelPart.CreateNewNode(1, 0.0, 0.0, 0.0);
+    rModelPart.CreateNewNode(2, 1.0, 0.0, 0.0);
+    rModelPart.CreateNewNode(3, 1.0, 1.0, 0.0);
+    rModelPart.CreateNewNode(4, 0.6666, 0.3333, 0.0);
+    std::vector<ModelPart::IndexType> node_ids{1, 2, 3, 4};
+    rModelPart.CreateNewElement("GeoTransientThermalElement2D4N", 1, node_ids,
+                                rModelPart.CreateNewProperties(0));
+}
 
- KRATOS_TEST_CASE_IN_SUITE(EquationIdVectorTransientThermalElement2D4N, KratosGeoMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(EquationIdVectorTransientThermalElement2D4N, KratosGeoMechanicsFastSuite)
 {
-     Model this_model;
-     ModelPart& model_part = this_model.CreateModelPart("Main", 3);
-     // Variables addition
-     model_part.AddNodalSolutionStepVariable(TEMPERATURE);
+    Model this_model;
+    ModelPart& model_part = this_model.CreateModelPart("Main", 3);
+    // Variables addition
+    model_part.AddNodalSolutionStepVariable(TEMPERATURE);
 
-     GenerateTransientThermalElement2D4N(model_part);
+    GenerateTransientThermalElement2D4N(model_part);
+    SetupElement(model_part);
 
-     TestThermalElement(model_part);
- }
+    ValidateThermalElement(model_part);
+}
 
- void GenerateTransientThermalElement2D6N(ModelPart& rModelPart)
+void GenerateTransientThermalElement2D6N(ModelPart& rModelPart)
 {
-     // Geometry creation
-     rModelPart.CreateNewNode(1, 0.0, 0.0, 0.0);
-     rModelPart.CreateNewNode(2, 1.0, 0.0, 0.0);
-     rModelPart.CreateNewNode(3, 1.0, 1.0, 0.0);
-     rModelPart.CreateNewNode(4, 0.5, 0.0, 0.0);
-     rModelPart.CreateNewNode(5, 1.0, 0.5, 0.0);
-     rModelPart.CreateNewNode(6, 0.5, 0.5, 0.0);
+    // Geometry creation
+    rModelPart.CreateNewNode(1, 0.0, 0.0, 0.0);
+    rModelPart.CreateNewNode(2, 1.0, 0.0, 0.0);
+    rModelPart.CreateNewNode(3, 1.0, 1.0, 0.0);
+    rModelPart.CreateNewNode(4, 0.5, 0.0, 0.0);
+    rModelPart.CreateNewNode(5, 1.0, 0.5, 0.0);
+    rModelPart.CreateNewNode(6, 0.5, 0.5, 0.0);
 
-     std::vector<ModelPart::IndexType> node_ids{1, 2, 3, 4, 5, 6};
-     rModelPart.CreateNewElement("GeoTransientThermalElement2D6N", 1, node_ids,
-                                 rModelPart.CreateNewProperties(0));
- }
+    std::vector<ModelPart::IndexType> node_ids{1, 2, 3, 4, 5, 6};
+    rModelPart.CreateNewElement("GeoTransientThermalElement2D6N", 1, node_ids,
+                                rModelPart.CreateNewProperties(0));
+}
 
- KRATOS_TEST_CASE_IN_SUITE(EquationIdVectorTransientThermalElement2D6N, KratosGeoMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(EquationIdVectorTransientThermalElement2D6N, KratosGeoMechanicsFastSuite)
 {
-     Model this_model;
-     ModelPart& model_part = this_model.CreateModelPart("Main", 3);
-     // Variables addition
-     model_part.AddNodalSolutionStepVariable(TEMPERATURE);
+    Model this_model;
+    ModelPart& model_part = this_model.CreateModelPart("Main", 3);
+    // Variables addition
+    model_part.AddNodalSolutionStepVariable(TEMPERATURE);
 
-     GenerateTransientThermalElement2D6N(model_part);
+    GenerateTransientThermalElement2D6N(model_part);
+    SetupElement(model_part);
 
-     TestThermalElement(model_part);
- }
+    ValidateThermalElement(model_part);
+}
 
- void GenerateTransientThermalElement2D8N(ModelPart& rModelPart)
+void GenerateTransientThermalElement2D8N(ModelPart& rModelPart)
 {
-     // Geometry creation
-     rModelPart.CreateNewNode(1, 0.0, 0.0, 0.0);
-     rModelPart.CreateNewNode(2, 1.0, 0.0, 0.0);
-     rModelPart.CreateNewNode(3, 1.0, 1.0, 0.0);
-     rModelPart.CreateNewNode(4, 0.5, 0.0, 0.0);
-     rModelPart.CreateNewNode(5, 1.0, 0.5, 0.0);
-     rModelPart.CreateNewNode(6, 0.5, 0.5, 0.0);
-     rModelPart.CreateNewNode(7, 0.5, 0.5, 0.0);
-     rModelPart.CreateNewNode(8, 0.5, 0.5, 0.0);
+    // Geometry creation
+    rModelPart.CreateNewNode(1, 0.0, 0.0, 0.0);
+    rModelPart.CreateNewNode(2, 1.0, 0.0, 0.0);
+    rModelPart.CreateNewNode(3, 1.0, 1.0, 0.0);
+    rModelPart.CreateNewNode(4, 0.5, 0.0, 0.0);
+    rModelPart.CreateNewNode(5, 1.0, 0.5, 0.0);
+    rModelPart.CreateNewNode(6, 0.5, 0.5, 0.0);
+    rModelPart.CreateNewNode(7, 0.5, 0.5, 0.0);
+    rModelPart.CreateNewNode(8, 0.5, 0.5, 0.0);
 
-     std::vector<ModelPart::IndexType> node_ids{1, 2, 3, 4, 5, 6, 7, 8};
-     rModelPart.CreateNewElement("GeoTransientThermalElement2D8N", 1, node_ids,
-                                 rModelPart.CreateNewProperties(0));
- }
+    std::vector<ModelPart::IndexType> node_ids{1, 2, 3, 4, 5, 6, 7, 8};
+    rModelPart.CreateNewElement("GeoTransientThermalElement2D8N", 1, node_ids,
+                                rModelPart.CreateNewProperties(0));
+}
 
- KRATOS_TEST_CASE_IN_SUITE(EquationIdVectorTransientThermalElement2D8N, KratosGeoMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(EquationIdVectorTransientThermalElement2D8N, KratosGeoMechanicsFastSuite)
 {
-     Model this_model;
-     ModelPart& model_part = this_model.CreateModelPart("Main", 3);
-     // Variables addition
-     model_part.AddNodalSolutionStepVariable(TEMPERATURE);
+    Model this_model;
+    ModelPart& model_part = this_model.CreateModelPart("Main", 3);
+    // Variables addition
+    model_part.AddNodalSolutionStepVariable(TEMPERATURE);
 
-     GenerateTransientThermalElement2D8N(model_part);
+    GenerateTransientThermalElement2D8N(model_part);
+    SetupElement(model_part);
 
-     TestThermalElement(model_part);
- }
+    ValidateThermalElement(model_part);
+}
 
- void GenerateTransientThermalElement2D9N(ModelPart& rModelPart)
+void GenerateTransientThermalElement2D9N(ModelPart& rModelPart)
 {
-     // Geometry creation
-     rModelPart.CreateNewNode(1, 0.0, 0.0, 0.0);
-     rModelPart.CreateNewNode(2, 1.0, 0.0, 0.0);
-     rModelPart.CreateNewNode(3, 1.0, 1.0, 0.0);
-     rModelPart.CreateNewNode(4, 0.5, 0.0, 0.0);
-     rModelPart.CreateNewNode(5, 1.0, 0.5, 0.0);
-     rModelPart.CreateNewNode(6, 0.5, 0.5, 0.0);
-     rModelPart.CreateNewNode(7, 0.5, 0.5, 0.0);
-     rModelPart.CreateNewNode(8, 0.5, 0.5, 0.0);
-     rModelPart.CreateNewNode(9, 0.5, 0.5, 0.0);
+    // Geometry creation
+    rModelPart.CreateNewNode(1, 0.0, 0.0, 0.0);
+    rModelPart.CreateNewNode(2, 1.0, 0.0, 0.0);
+    rModelPart.CreateNewNode(3, 1.0, 1.0, 0.0);
+    rModelPart.CreateNewNode(4, 0.5, 0.0, 0.0);
+    rModelPart.CreateNewNode(5, 1.0, 0.5, 0.0);
+    rModelPart.CreateNewNode(6, 0.5, 0.5, 0.0);
+    rModelPart.CreateNewNode(7, 0.5, 0.5, 0.0);
+    rModelPart.CreateNewNode(8, 0.5, 0.5, 0.0);
+    rModelPart.CreateNewNode(9, 0.5, 0.5, 0.0);
 
-     std::vector<ModelPart::IndexType> node_ids{1, 2, 3, 4, 5, 6, 7, 8, 9};
-     rModelPart.CreateNewElement("GeoTransientThermalElement2D9N", 1, node_ids,
-                                 rModelPart.CreateNewProperties(0));
- }
+    std::vector<ModelPart::IndexType> node_ids{1, 2, 3, 4, 5, 6, 7, 8, 9};
+    rModelPart.CreateNewElement("GeoTransientThermalElement2D9N", 1, node_ids,
+                                rModelPart.CreateNewProperties(0));
+}
 
- KRATOS_TEST_CASE_IN_SUITE(EquationIdVectorTransientThermalElement2D9N, KratosGeoMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(EquationIdVectorTransientThermalElement2D9N, KratosGeoMechanicsFastSuite)
 {
-     Model this_model;
-     ModelPart& model_part = this_model.CreateModelPart("Main", 3);
-     // Variables addition
-     model_part.AddNodalSolutionStepVariable(TEMPERATURE);
+    Model this_model;
+    ModelPart& model_part = this_model.CreateModelPart("Main", 3);
+    // Variables addition
+    model_part.AddNodalSolutionStepVariable(TEMPERATURE);
 
-     GenerateTransientThermalElement2D9N(model_part);
+    GenerateTransientThermalElement2D9N(model_part);
+    SetupElement(model_part);
 
-     TestThermalElement(model_part);
- }
+    ValidateThermalElement(model_part);
+}
 
- void GenerateTransientThermalElement2D10N(ModelPart& rModelPart)
+void GenerateTransientThermalElement2D10N(ModelPart& rModelPart)
 {
-     // Geometry creation
-     rModelPart.CreateNewNode(1, 0.0, 0.0, 0.0);
-     rModelPart.CreateNewNode(2, 1.0, 0.0, 0.0);
-     rModelPart.CreateNewNode(3, 1.0, 1.0, 0.0);
-     rModelPart.CreateNewNode(4, 0.5, 0.0, 0.0);
-     rModelPart.CreateNewNode(5, 1.0, 0.5, 0.0);
-     rModelPart.CreateNewNode(6, 0.5, 0.5, 0.0);
-     rModelPart.CreateNewNode(7, 0.5, 0.5, 0.0);
-     rModelPart.CreateNewNode(8, 0.5, 0.5, 0.0);
-     rModelPart.CreateNewNode(9, 0.5, 0.5, 0.0);
-     rModelPart.CreateNewNode(10, 0.5, 0.5, 0.0);
+    // Geometry creation
+    rModelPart.CreateNewNode(1, 0.0, 0.0, 0.0);
+    rModelPart.CreateNewNode(2, 1.0, 0.0, 0.0);
+    rModelPart.CreateNewNode(3, 1.0, 1.0, 0.0);
+    rModelPart.CreateNewNode(4, 0.5, 0.0, 0.0);
+    rModelPart.CreateNewNode(5, 1.0, 0.5, 0.0);
+    rModelPart.CreateNewNode(6, 0.5, 0.5, 0.0);
+    rModelPart.CreateNewNode(7, 0.5, 0.5, 0.0);
+    rModelPart.CreateNewNode(8, 0.5, 0.5, 0.0);
+    rModelPart.CreateNewNode(9, 0.5, 0.5, 0.0);
+    rModelPart.CreateNewNode(10, 0.5, 0.5, 0.0);
 
-     std::vector<ModelPart::IndexType> node_ids{1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
-     rModelPart.CreateNewElement("GeoTransientThermalElement2D10N", 1, node_ids,
-                                 rModelPart.CreateNewProperties(0));
- }
+    std::vector<ModelPart::IndexType> node_ids{1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
+    rModelPart.CreateNewElement("GeoTransientThermalElement2D10N", 1, node_ids,
+                                rModelPart.CreateNewProperties(0));
+}
 
- KRATOS_TEST_CASE_IN_SUITE(EquationIdVectorTransientThermalElement2D10N, KratosGeoMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(EquationIdVectorTransientThermalElement2D10N, KratosGeoMechanicsFastSuite)
 {
-     Model this_model;
-     ModelPart& model_part = this_model.CreateModelPart("Main", 3);
-     // Variables addition
-     model_part.AddNodalSolutionStepVariable(TEMPERATURE);
+    Model this_model;
+    ModelPart& model_part = this_model.CreateModelPart("Main", 3);
+    // Variables addition
+    model_part.AddNodalSolutionStepVariable(TEMPERATURE);
 
-     GenerateTransientThermalElement2D10N(model_part);
+    GenerateTransientThermalElement2D10N(model_part);
+    SetupElement(model_part);
 
-     TestThermalElement(model_part);
- }
+    ValidateThermalElement(model_part);
+}
 
- void GenerateTransientThermalElement2D15N(ModelPart& rModelPart)
+void GenerateTransientThermalElement2D15N(ModelPart& rModelPart)
 {
-     // Geometry creation
-     rModelPart.CreateNewNode(1, 0.0, 0.0, 0.0);
-     rModelPart.CreateNewNode(2, 1.0, 0.0, 0.0);
-     rModelPart.CreateNewNode(3, 1.0, 1.0, 0.0);
-     rModelPart.CreateNewNode(4, 0.5, 0.0, 0.0);
-     rModelPart.CreateNewNode(5, 1.0, 0.5, 0.0);
-     rModelPart.CreateNewNode(6, 0.5, 0.5, 0.0);
-     rModelPart.CreateNewNode(7, 0.5, 0.5, 0.0);
-     rModelPart.CreateNewNode(8, 0.5, 0.5, 0.0);
-     rModelPart.CreateNewNode(9, 0.5, 0.5, 0.0);
-     rModelPart.CreateNewNode(10, 0.5, 0.5, 0.0);
-     rModelPart.CreateNewNode(11, 0.5, 0.5, 0.0);
-     rModelPart.CreateNewNode(12, 0.5, 0.5, 0.0);
-     rModelPart.CreateNewNode(13, 0.5, 0.5, 0.0);
-     rModelPart.CreateNewNode(14, 0.5, 0.5, 0.0);
-     rModelPart.CreateNewNode(15, 0.5, 0.5, 0.0);
+    // Geometry creation
+    rModelPart.CreateNewNode(1, 0.0, 0.0, 0.0);
+    rModelPart.CreateNewNode(2, 1.0, 0.0, 0.0);
+    rModelPart.CreateNewNode(3, 1.0, 1.0, 0.0);
+    rModelPart.CreateNewNode(4, 0.5, 0.0, 0.0);
+    rModelPart.CreateNewNode(5, 1.0, 0.5, 0.0);
+    rModelPart.CreateNewNode(6, 0.5, 0.5, 0.0);
+    rModelPart.CreateNewNode(7, 0.5, 0.5, 0.0);
+    rModelPart.CreateNewNode(8, 0.5, 0.5, 0.0);
+    rModelPart.CreateNewNode(9, 0.5, 0.5, 0.0);
+    rModelPart.CreateNewNode(10, 0.5, 0.5, 0.0);
+    rModelPart.CreateNewNode(11, 0.5, 0.5, 0.0);
+    rModelPart.CreateNewNode(12, 0.5, 0.5, 0.0);
+    rModelPart.CreateNewNode(13, 0.5, 0.5, 0.0);
+    rModelPart.CreateNewNode(14, 0.5, 0.5, 0.0);
+    rModelPart.CreateNewNode(15, 0.5, 0.5, 0.0);
 
-     std::vector<ModelPart::IndexType> node_ids{1, 2,  3,  4,  5,  6,  7, 8,
-                                                9, 10, 11, 12, 13, 14, 15};
-     rModelPart.CreateNewElement("GeoTransientThermalElement2D15N", 1, node_ids,
-                                 rModelPart.CreateNewProperties(0));
- }
+    std::vector<ModelPart::IndexType> node_ids{1, 2,  3,  4,  5,  6,  7, 8,
+                                               9, 10, 11, 12, 13, 14, 15};
+    rModelPart.CreateNewElement("GeoTransientThermalElement2D15N", 1, node_ids,
+                                rModelPart.CreateNewProperties(0));
+}
 
- KRATOS_TEST_CASE_IN_SUITE(EquationIdVectorTransientThermalElement2D15N, KratosGeoMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(EquationIdVectorTransientThermalElement2D15N, KratosGeoMechanicsFastSuite)
 {
-     Model this_model;
-     ModelPart& model_part = this_model.CreateModelPart("Main", 3);
-     // Variables addition
-     model_part.AddNodalSolutionStepVariable(TEMPERATURE);
+    Model this_model;
+    ModelPart& model_part = this_model.CreateModelPart("Main", 3);
+    // Variables addition
+    model_part.AddNodalSolutionStepVariable(TEMPERATURE);
 
-     GenerateTransientThermalElement2D15N(model_part);
+    GenerateTransientThermalElement2D15N(model_part);
+    SetupElement(model_part);
 
-     TestThermalElement(model_part);
- }
+    ValidateThermalElement(model_part);
+}
 
- void GenerateTransientThermalElement3D4N(ModelPart& rModelPart)
+void GenerateTransientThermalElement3D4N(ModelPart& rModelPart)
 {
-     // Geometry creation
-     rModelPart.CreateNewNode(1, 0.0, 0.0, 0.0);
-     rModelPart.CreateNewNode(2, 1.0, 0.0, 0.0);
-     rModelPart.CreateNewNode(3, 1.0, 1.0, 0.0);
-     rModelPart.CreateNewNode(4, 0.5, 0.0, 1.0);
+    // Geometry creation
+    rModelPart.CreateNewNode(1, 0.0, 0.0, 0.0);
+    rModelPart.CreateNewNode(2, 1.0, 0.0, 0.0);
+    rModelPart.CreateNewNode(3, 1.0, 1.0, 0.0);
+    // The z coordinate is non-zero to ensure the element has a non-zero domain size
+    rModelPart.CreateNewNode(4, 0.5, 0.0, 1.0);
 
-     std::vector<ModelPart::IndexType> node_ids{1, 2, 3, 4};
-     rModelPart.CreateNewElement("GeoTransientThermalElement3D4N", 1, node_ids,
-                                 rModelPart.CreateNewProperties(0));
- }
+    std::vector<ModelPart::IndexType> node_ids{1, 2, 3, 4};
+    rModelPart.CreateNewElement("GeoTransientThermalElement3D4N", 1, node_ids,
+                                rModelPart.CreateNewProperties(0));
+}
 
- KRATOS_TEST_CASE_IN_SUITE(CheckElement_Throws_When3DPropertyHasInvalidValue, KratosGeoMechanicsFastSuite)
- {
-     Model this_model;
-     ModelPart& model_part = this_model.CreateModelPart("Main", 3);
-     model_part.AddNodalSolutionStepVariable(TEMPERATURE);
-     model_part.AddNodalSolutionStepVariable(DT_TEMPERATURE);
-     GenerateTransientThermalElement3D4N(model_part);
-
-     Element::Pointer p_element = model_part.pGetElement(1);
-     for (auto& node : p_element->GetGeometry())
-     {
-        node.AddDof(TEMPERATURE);
-     }
-
-     SetProperties(p_element);
-     p_element->GetProperties().SetValue(THERMAL_CONDUCTIVITY_SOLID_ZZ, -5.0);
-
-     const ProcessInfo& r_current_process_info = model_part.GetProcessInfo();
-
-     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
-         p_element->Check(r_current_process_info),
-         "THERMAL_CONDUCTIVITY_SOLID_ZZ has an invalid value at element 1")
- }
-
- KRATOS_TEST_CASE_IN_SUITE(EquationIdVectorTransientThermalElement3D4N, KratosGeoMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(CheckElement_Throws_When3DPropertyHasInvalidValue, KratosGeoMechanicsFastSuite)
 {
-     Model this_model;
-     ModelPart& model_part = this_model.CreateModelPart("Main", 3);
-     // Variables addition
-     model_part.AddNodalSolutionStepVariable(TEMPERATURE);
+    Model this_model;
+    ModelPart& model_part = this_model.CreateModelPart("Main", 3);
+    model_part.AddNodalSolutionStepVariable(TEMPERATURE);
+    model_part.AddNodalSolutionStepVariable(DT_TEMPERATURE);
+    GenerateTransientThermalElement3D4N(model_part);
+    SetupElement(model_part);
 
-     GenerateTransientThermalElement3D4N(model_part);
+    Element::Pointer p_element = model_part.pGetElement(1);
+    p_element->GetProperties().SetValue(THERMAL_CONDUCTIVITY_SOLID_ZZ, -5.0);
 
-     TestThermalElement(model_part);
- }
+    const ProcessInfo& r_current_process_info = model_part.GetProcessInfo();
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        p_element->Check(r_current_process_info),
+        "THERMAL_CONDUCTIVITY_SOLID_ZZ has an invalid value at element 1")
+}
 
- void GenerateTransientThermalElement3D8N(ModelPart& rModelPart)
+KRATOS_TEST_CASE_IN_SUITE(EquationIdVectorTransientThermalElement3D4N, KratosGeoMechanicsFastSuite)
 {
-     // Geometry creation
-     rModelPart.CreateNewNode(1, 0.0, 0.0, 0.0);
-     rModelPart.CreateNewNode(2, 1.0, 0.0, 0.0);
-     rModelPart.CreateNewNode(3, 1.0, 1.0, 0.0);
-     rModelPart.CreateNewNode(4, 0.5, 0.0, 0.0);
-     rModelPart.CreateNewNode(5, 1.0, 0.5, 0.0);
-     rModelPart.CreateNewNode(6, 0.5, 0.5, 0.0);
-     rModelPart.CreateNewNode(7, 0.5, 0.5, 0.0);
-     rModelPart.CreateNewNode(8, 0.5, 0.5, 0.0);
+    Model this_model;
+    ModelPart& model_part = this_model.CreateModelPart("Main", 3);
+    // Variables addition
+    model_part.AddNodalSolutionStepVariable(TEMPERATURE);
 
-     std::vector<ModelPart::IndexType> node_ids{1, 2, 3, 4, 5, 6, 7, 8};
-     rModelPart.CreateNewElement("GeoTransientThermalElement3D8N", 1, node_ids,
-                                 rModelPart.CreateNewProperties(0));
- }
+    GenerateTransientThermalElement3D4N(model_part);
+    SetupElement(model_part);
 
- KRATOS_TEST_CASE_IN_SUITE(EquationIdVectorTransientThermalElement3D8N, KratosGeoMechanicsFastSuite)
+    ValidateThermalElement(model_part);
+}
+
+void GenerateTransientThermalElement3D8N(ModelPart& rModelPart)
 {
-     Model this_model;
-     ModelPart& model_part = this_model.CreateModelPart("Main", 3);
-     // Variables addition
-     model_part.AddNodalSolutionStepVariable(TEMPERATURE);
+    // Geometry creation
+    rModelPart.CreateNewNode(1, 0.0, 0.0, 0.0);
+    rModelPart.CreateNewNode(2, 1.0, 0.0, 0.0);
+    rModelPart.CreateNewNode(3, 1.0, 1.0, 0.0);
+    rModelPart.CreateNewNode(4, 0.5, 0.0, 0.0);
+    rModelPart.CreateNewNode(5, 1.0, 0.5, 0.0);
+    rModelPart.CreateNewNode(6, 0.5, 0.5, 0.0);
+    rModelPart.CreateNewNode(7, 0.5, 0.5, 0.0);
+    rModelPart.CreateNewNode(8, 0.5, 0.5, 0.0);
 
-     GenerateTransientThermalElement3D8N(model_part);
+    std::vector<ModelPart::IndexType> node_ids{1, 2, 3, 4, 5, 6, 7, 8};
+    rModelPart.CreateNewElement("GeoTransientThermalElement3D8N", 1, node_ids,
+                                rModelPart.CreateNewProperties(0));
+}
 
-     TestThermalElement(model_part);
- }
-
- void GenerateTransientThermalElement3D10N(ModelPart& rModelPart)
+KRATOS_TEST_CASE_IN_SUITE(EquationIdVectorTransientThermalElement3D8N, KratosGeoMechanicsFastSuite)
 {
-     // Geometry creation
-     rModelPart.CreateNewNode(1, 0.0, 0.0, 0.0);
-     rModelPart.CreateNewNode(2, 1.0, 0.0, 0.0);
-     rModelPart.CreateNewNode(3, 1.0, 1.0, 0.0);
-     rModelPart.CreateNewNode(4, 0.5, 0.0, 0.0);
-     rModelPart.CreateNewNode(5, 1.0, 0.5, 0.0);
-     rModelPart.CreateNewNode(6, 0.5, 0.5, 0.0);
-     rModelPart.CreateNewNode(7, 0.5, 0.5, 0.0);
-     rModelPart.CreateNewNode(8, 0.5, 0.5, 0.0);
-     rModelPart.CreateNewNode(9, 0.5, 0.5, 0.0);
-     rModelPart.CreateNewNode(10, 0.5, 0.5, 0.0);
+    Model this_model;
+    ModelPart& model_part = this_model.CreateModelPart("Main", 3);
+    // Variables addition
+    model_part.AddNodalSolutionStepVariable(TEMPERATURE);
 
-     std::vector<ModelPart::IndexType> node_ids{1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
-     rModelPart.CreateNewElement("GeoTransientThermalElement3D10N", 1, node_ids,
-                                 rModelPart.CreateNewProperties(0));
- }
+    GenerateTransientThermalElement3D8N(model_part);
+    SetupElement(model_part);
 
- KRATOS_TEST_CASE_IN_SUITE(EquationIdVectorTransientThermalElement3D10N, KratosGeoMechanicsFastSuite)
+    ValidateThermalElement(model_part);
+}
+
+void GenerateTransientThermalElement3D10N(ModelPart& rModelPart)
 {
-     Model this_model;
-     ModelPart& model_part = this_model.CreateModelPart("Main", 3);
-     // Variables addition
-     model_part.AddNodalSolutionStepVariable(TEMPERATURE);
+    // Geometry creation
+    rModelPart.CreateNewNode(1, 0.0, 0.0, 0.0);
+    rModelPart.CreateNewNode(2, 1.0, 0.0, 0.0);
+    rModelPart.CreateNewNode(3, 1.0, 1.0, 0.0);
+    rModelPart.CreateNewNode(4, 0.5, 0.0, 0.0);
+    rModelPart.CreateNewNode(5, 1.0, 0.5, 0.0);
+    rModelPart.CreateNewNode(6, 0.5, 0.5, 0.0);
+    rModelPart.CreateNewNode(7, 0.5, 0.5, 0.0);
+    rModelPart.CreateNewNode(8, 0.5, 0.5, 0.0);
+    rModelPart.CreateNewNode(9, 0.5, 0.5, 0.0);
+    rModelPart.CreateNewNode(10, 0.5, 0.5, 0.0);
 
-     GenerateTransientThermalElement3D10N(model_part);
+    std::vector<ModelPart::IndexType> node_ids{1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
+    rModelPart.CreateNewElement("GeoTransientThermalElement3D10N", 1, node_ids,
+                                rModelPart.CreateNewProperties(0));
+}
 
-     TestThermalElement(model_part);
- }
-
- void GenerateTransientThermalElement3D20N(ModelPart& rModelPart)
+KRATOS_TEST_CASE_IN_SUITE(EquationIdVectorTransientThermalElement3D10N, KratosGeoMechanicsFastSuite)
 {
-     // Geometry creation
-     rModelPart.CreateNewNode(1, 0.0, 0.0, 0.0);
-     rModelPart.CreateNewNode(2, 1.0, 0.0, 0.0);
-     rModelPart.CreateNewNode(3, 1.0, 1.0, 0.0);
-     rModelPart.CreateNewNode(4, 0.5, 0.0, 0.0);
-     rModelPart.CreateNewNode(5, 1.0, 0.5, 0.0);
-     rModelPart.CreateNewNode(6, 0.5, 0.5, 0.0);
-     rModelPart.CreateNewNode(7, 0.5, 0.5, 0.0);
-     rModelPart.CreateNewNode(8, 0.5, 0.5, 0.0);
-     rModelPart.CreateNewNode(9, 0.5, 0.5, 0.0);
-     rModelPart.CreateNewNode(10, 0.5, 0.5, 0.0);
-     rModelPart.CreateNewNode(11, 0.5, 0.5, 0.0);
-     rModelPart.CreateNewNode(12, 0.5, 0.5, 0.0);
-     rModelPart.CreateNewNode(13, 0.5, 0.5, 0.0);
-     rModelPart.CreateNewNode(14, 0.5, 0.5, 0.0);
-     rModelPart.CreateNewNode(15, 0.5, 0.5, 0.0);
-     rModelPart.CreateNewNode(16, 0.5, 0.5, 0.0);
-     rModelPart.CreateNewNode(17, 0.5, 0.5, 0.0);
-     rModelPart.CreateNewNode(18, 0.5, 0.5, 0.0);
-     rModelPart.CreateNewNode(19, 0.5, 0.5, 0.0);
-     rModelPart.CreateNewNode(20, 0.5, 0.5, 0.0);
+    Model this_model;
+    ModelPart& model_part = this_model.CreateModelPart("Main", 3);
+    // Variables addition
+    model_part.AddNodalSolutionStepVariable(TEMPERATURE);
 
-     std::vector<ModelPart::IndexType> node_ids{
-         1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20};
-     rModelPart.CreateNewElement("GeoTransientThermalElement3D20N", 1, node_ids,
-                                 rModelPart.CreateNewProperties(0));
- }
+    GenerateTransientThermalElement3D10N(model_part);
+    SetupElement(model_part);
 
- KRATOS_TEST_CASE_IN_SUITE(EquationIdVectorTransientThermalElement3D20N, KratosGeoMechanicsFastSuite)
+    ValidateThermalElement(model_part);
+}
+
+void GenerateTransientThermalElement3D20N(ModelPart& rModelPart)
 {
-     Model this_model;
-     ModelPart& model_part = this_model.CreateModelPart("Main", 3);
-     // Variables addition
-     model_part.AddNodalSolutionStepVariable(TEMPERATURE);
+    // Geometry creation
+    rModelPart.CreateNewNode(1, 0.0, 0.0, 0.0);
+    rModelPart.CreateNewNode(2, 1.0, 0.0, 0.0);
+    rModelPart.CreateNewNode(3, 1.0, 1.0, 0.0);
+    rModelPart.CreateNewNode(4, 0.5, 0.0, 0.0);
+    rModelPart.CreateNewNode(5, 1.0, 0.5, 0.0);
+    rModelPart.CreateNewNode(6, 0.5, 0.5, 0.0);
+    rModelPart.CreateNewNode(7, 0.5, 0.5, 0.0);
+    rModelPart.CreateNewNode(8, 0.5, 0.5, 0.0);
+    rModelPart.CreateNewNode(9, 0.5, 0.5, 0.0);
+    rModelPart.CreateNewNode(10, 0.5, 0.5, 0.0);
+    rModelPart.CreateNewNode(11, 0.5, 0.5, 0.0);
+    rModelPart.CreateNewNode(12, 0.5, 0.5, 0.0);
+    rModelPart.CreateNewNode(13, 0.5, 0.5, 0.0);
+    rModelPart.CreateNewNode(14, 0.5, 0.5, 0.0);
+    rModelPart.CreateNewNode(15, 0.5, 0.5, 0.0);
+    rModelPart.CreateNewNode(16, 0.5, 0.5, 0.0);
+    rModelPart.CreateNewNode(17, 0.5, 0.5, 0.0);
+    rModelPart.CreateNewNode(18, 0.5, 0.5, 0.0);
+    rModelPart.CreateNewNode(19, 0.5, 0.5, 0.0);
+    rModelPart.CreateNewNode(20, 0.5, 0.5, 0.0);
 
-     GenerateTransientThermalElement3D20N(model_part);
+    std::vector<ModelPart::IndexType> node_ids{
+        1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20};
+    rModelPart.CreateNewElement("GeoTransientThermalElement3D20N", 1, node_ids,
+                                rModelPart.CreateNewProperties(0));
+}
 
-     TestThermalElement(model_part);
- }
-
- void GenerateTransientThermalElement3D27N(ModelPart& rModelPart)
+KRATOS_TEST_CASE_IN_SUITE(EquationIdVectorTransientThermalElement3D20N, KratosGeoMechanicsFastSuite)
 {
-     // Geometry creation
-     rModelPart.CreateNewNode(1, 0.0, 0.0, 0.0);
-     rModelPart.CreateNewNode(2, 1.0, 0.0, 0.0);
-     rModelPart.CreateNewNode(3, 1.0, 1.0, 0.0);
-     rModelPart.CreateNewNode(4, 0.5, 0.0, 0.0);
-     rModelPart.CreateNewNode(5, 1.0, 0.5, 0.0);
-     rModelPart.CreateNewNode(6, 0.5, 0.5, 0.0);
-     rModelPart.CreateNewNode(7, 0.5, 0.5, 0.0);
-     rModelPart.CreateNewNode(8, 0.5, 0.5, 0.0);
-     rModelPart.CreateNewNode(9, 0.5, 0.5, 0.0);
-     rModelPart.CreateNewNode(10, 0.5, 0.5, 0.0);
-     rModelPart.CreateNewNode(11, 0.5, 0.5, 0.0);
-     rModelPart.CreateNewNode(12, 0.5, 0.5, 0.0);
-     rModelPart.CreateNewNode(13, 0.5, 0.5, 0.0);
-     rModelPart.CreateNewNode(14, 0.5, 0.5, 0.0);
-     rModelPart.CreateNewNode(15, 0.5, 0.5, 0.0);
-     rModelPart.CreateNewNode(16, 0.5, 0.5, 0.0);
-     rModelPart.CreateNewNode(17, 0.5, 0.5, 0.0);
-     rModelPart.CreateNewNode(18, 0.5, 0.5, 0.0);
-     rModelPart.CreateNewNode(19, 0.5, 0.5, 0.0);
-     rModelPart.CreateNewNode(20, 0.5, 0.5, 0.0);
-     rModelPart.CreateNewNode(21, 0.5, 0.5, 0.0);
-     rModelPart.CreateNewNode(22, 0.5, 0.5, 0.0);
-     rModelPart.CreateNewNode(23, 0.5, 0.5, 0.0);
-     rModelPart.CreateNewNode(24, 0.5, 0.5, 0.0);
-     rModelPart.CreateNewNode(25, 0.5, 0.5, 0.0);
-     rModelPart.CreateNewNode(26, 0.5, 0.5, 0.0);
-     rModelPart.CreateNewNode(27, 0.5, 0.5, 0.0);
+    Model this_model;
+    ModelPart& model_part = this_model.CreateModelPart("Main", 3);
+    // Variables addition
+    model_part.AddNodalSolutionStepVariable(TEMPERATURE);
 
-     std::vector<ModelPart::IndexType> node_ids{
-         1,  2,  3,  4,  5,  6,  7,  8,  9,  10, 11, 12, 13, 14,
-         15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27};
-     rModelPart.CreateNewElement("GeoTransientThermalElement3D27N", 1, node_ids,
-                                 rModelPart.CreateNewProperties(0));
- }
+    GenerateTransientThermalElement3D20N(model_part);
+    SetupElement(model_part);
 
- KRATOS_TEST_CASE_IN_SUITE(EquationIdVectorTransientThermalElement3D27N, KratosGeoMechanicsFastSuite)
+    ValidateThermalElement(model_part);
+}
+
+void GenerateTransientThermalElement3D27N(ModelPart& rModelPart)
 {
-     Model this_model;
-     ModelPart& model_part = this_model.CreateModelPart("Main", 3);
-     // Variables addition
-     model_part.AddNodalSolutionStepVariable(TEMPERATURE);
+    // Geometry creation
+    rModelPart.CreateNewNode(1, 0.0, 0.0, 0.0);
+    rModelPart.CreateNewNode(2, 1.0, 0.0, 0.0);
+    rModelPart.CreateNewNode(3, 1.0, 1.0, 0.0);
+    rModelPart.CreateNewNode(4, 0.5, 0.0, 0.0);
+    rModelPart.CreateNewNode(5, 1.0, 0.5, 0.0);
+    rModelPart.CreateNewNode(6, 0.5, 0.5, 0.0);
+    rModelPart.CreateNewNode(7, 0.5, 0.5, 0.0);
+    rModelPart.CreateNewNode(8, 0.5, 0.5, 0.0);
+    rModelPart.CreateNewNode(9, 0.5, 0.5, 0.0);
+    rModelPart.CreateNewNode(10, 0.5, 0.5, 0.0);
+    rModelPart.CreateNewNode(11, 0.5, 0.5, 0.0);
+    rModelPart.CreateNewNode(12, 0.5, 0.5, 0.0);
+    rModelPart.CreateNewNode(13, 0.5, 0.5, 0.0);
+    rModelPart.CreateNewNode(14, 0.5, 0.5, 0.0);
+    rModelPart.CreateNewNode(15, 0.5, 0.5, 0.0);
+    rModelPart.CreateNewNode(16, 0.5, 0.5, 0.0);
+    rModelPart.CreateNewNode(17, 0.5, 0.5, 0.0);
+    rModelPart.CreateNewNode(18, 0.5, 0.5, 0.0);
+    rModelPart.CreateNewNode(19, 0.5, 0.5, 0.0);
+    rModelPart.CreateNewNode(20, 0.5, 0.5, 0.0);
+    rModelPart.CreateNewNode(21, 0.5, 0.5, 0.0);
+    rModelPart.CreateNewNode(22, 0.5, 0.5, 0.0);
+    rModelPart.CreateNewNode(23, 0.5, 0.5, 0.0);
+    rModelPart.CreateNewNode(24, 0.5, 0.5, 0.0);
+    rModelPart.CreateNewNode(25, 0.5, 0.5, 0.0);
+    rModelPart.CreateNewNode(26, 0.5, 0.5, 0.0);
+    rModelPart.CreateNewNode(27, 0.5, 0.5, 0.0);
 
-     GenerateTransientThermalElement3D27N(model_part);
+    std::vector<ModelPart::IndexType> node_ids{
+        1,  2,  3,  4,  5,  6,  7,  8,  9,  10, 11, 12, 13, 14,
+        15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27};
+    rModelPart.CreateNewElement("GeoTransientThermalElement3D27N", 1, node_ids,
+                                rModelPart.CreateNewProperties(0));
+}
 
-     TestThermalElement(model_part);
- }
+KRATOS_TEST_CASE_IN_SUITE(EquationIdVectorTransientThermalElement3D27N, KratosGeoMechanicsFastSuite)
+{
+    Model this_model;
+    ModelPart& model_part = this_model.CreateModelPart("Main", 3);
+    // Variables addition
+    model_part.AddNodalSolutionStepVariable(TEMPERATURE);
+
+    GenerateTransientThermalElement3D27N(model_part);
+    SetupElement(model_part);
+
+    ValidateThermalElement(model_part);
+}
 
 } // namespace Kratos::Testing
