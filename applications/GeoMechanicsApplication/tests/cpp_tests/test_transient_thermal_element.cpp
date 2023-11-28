@@ -498,7 +498,7 @@ KRATOS_TEST_CASE_IN_SUITE(EquationIdVectorTransientThermalElement2D3N, KratosGeo
 
      KRATOS_EXPECT_EXCEPTION_IS_THROWN(
          p_element->Check(r_current_process_info),
-         "THERMAL_CONDUCTIVITY_SOLID_ZZ has invalid value for element 1")
+         "THERMAL_CONDUCTIVITY_SOLID_ZZ has an invalid value at element 1")
  }
 
  KRATOS_TEST_CASE_IN_SUITE(EquationIdVectorTransientThermalElement3D4N, KratosGeoMechanicsFastSuite)
