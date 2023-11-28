@@ -533,61 +533,126 @@ class RomManager(object):
                 f['projection_strategy']="galerkin"
                 f['train_hrom']=False
                 f['run_hrom']=False
-                self.set_monotonicity_preserving_settings(f)
+                f['galerkin_rom_bns_settings'] = self.SetGalerkinBnSParameters()
+                # self.set_monotonicity_preserving_settings(f)
             elif simulation_to_run=='trainHROMGalerkin':
                 f['train_hrom']=True
                 f['run_hrom']=False
-                self.set_monotonicity_preserving_settings(f)
+                # self.set_monotonicity_preserving_settings(f)
+                f['galerkin_rom_bns_settings'] = self.SetGalerkinBnSParameters()
             elif simulation_to_run=='runHROMGalerkin':
                 f['projection_strategy']="galerkin"
                 f['train_hrom']=False
                 f['run_hrom']=True
-                self.set_monotonicity_preserving_settings(f)
+                # self.set_monotonicity_preserving_settings(f)
+                f['galerkin_rom_bns_settings'] = self.SetGalerkinBnSParameters()
             elif simulation_to_run == 'lspg':
                 f['train_hrom'] = False
                 f['run_hrom'] = False
                 f['projection_strategy'] = "lspg"
-                self.set_lspg_rom_bns_settings(f)
+                f['lspg_rom_bns_settings'] = self.SetLSPGBnSParameters()
+                # self.set_lspg_rom_bns_settings(f)
             elif simulation_to_run == 'trainHROMLSPG':
                 f['train_hrom'] = True
                 f['run_hrom'] = False
                 f['projection_strategy'] = "lspg"
-                self.set_lspg_rom_bns_settings(f)
+                # self.set_lspg_rom_bns_settings(f)
+                f['lspg_rom_bns_settings'] = self.SetLSPGBnSParameters()
             elif simulation_to_run == 'runHROMLSPG':
                 f['train_hrom'] = False
                 f['run_hrom'] = True
                 f['projection_strategy'] = "lspg"
-                self.set_lspg_rom_bns_settings(f)
+                # self.set_lspg_rom_bns_settings(f)
+                f['lspg_rom_bns_settings'] = self.SetLSPGBnSParameters()
             elif simulation_to_run == 'TrainPG':
                 f['train_hrom'] = False
                 f['run_hrom'] = False
                 f['projection_strategy'] = "lspg"
-                self.set_lspg_rom_bns_settings(f)
+                # self.set_lspg_rom_bns_settings(f)
+                f['lspg_rom_bns_settings'] = self.SetLSPGBnSParameters()
                 f["rom_settings"]['rom_bns_settings']['train_petrov_galerkin'] = True  # Override the default
             elif simulation_to_run=='PG':
                 f['train_hrom']=False
                 f['run_hrom']=False
                 f['projection_strategy']="petrov_galerkin"
-                self.set_pg_rom_bns_settings(f)
+                f['petrov_galerkin_rom_bns_settings'] = self.SetPetrovGalerkinBnSParameters()
+                # self.set_pg_rom_bns_settings(f)
             elif simulation_to_run=='trainHROMPetrovGalerkin':
                 f['train_hrom']=True
                 f['run_hrom']=False
                 f['projection_strategy']="petrov_galerkin"
-                self.set_pg_rom_bns_settings(f)
+                f['petrov_galerkin_rom_bns_settings'] = self.SetPetrovGalerkinBnSParameters()
+                # self.set_pg_rom_bns_settings(f)
             elif simulation_to_run=='runHROMPetrovGalerkin':
                 f['train_hrom']=False
                 f['run_hrom']=True
                 f['projection_strategy']="petrov_galerkin"
-                self.set_pg_rom_bns_settings(f)
+                f['petrov_galerkin_rom_bns_settings'] = self.SetPetrovGalerkinBnSParameters()
+                # self.set_pg_rom_bns_settings(f)
             else:
                 raise Exception(f'Unknown flag "{simulation_to_run}" change for RomParameters.json')
             parameter_file.seek(0)
             json.dump(f,parameter_file,indent=4)
             parameter_file.truncate()
 
-
     def set_monotonicity_preserving_settings(self,f):
         f["rom_settings"]['rom_bns_settings']['monotonicity_preserving'] = self.general_rom_manager_parameters["ROM"]["galerkin_rom_bns_settings"]["monotonicity_preserving"].GetBool() if self.general_rom_manager_parameters["ROM"]["galerkin_rom_bns_settings"].Has("monotonicity_preserving") else False
+
+    def SetGalerkinBnSParameters(self):
+        defaults = self._GetGalerkinBnSParameters()
+        if not (self.general_rom_manager_parameters["ROM"].Has("galerkin_rom_bns_settings")):
+            self.general_rom_manager_parameters["ROM"].AddEmptyValue("galerkin_rom_bns_settings")
+
+        rom_params = self.general_rom_manager_parameters["ROM"]["galerkin_rom_bns_settings"]
+
+        keys_with_defaults = {
+            'monotonicity_preserving': False
+        }
+
+        for key in keys_with_defaults:
+            if key in rom_params.keys():
+                defaults[key] = rom_params[key]
+
+        return defaults
+
+    def SetLSPGBnSParameters(self):
+        defaults = self._GetLSPGBnSParameters()
+        if not (self.general_rom_manager_parameters["ROM"].Has("lspg_rom_bns_settings")):
+            self.general_rom_manager_parameters["ROM"].AddEmptyValue("lspg_rom_bns_settings")
+
+        rom_params = self.general_rom_manager_parameters["ROM"]["lspg_rom_bns_settings"]
+
+        keys_with_defaults = {
+            'train_petrov_galerkin': False,
+            'basis_strategy': "residuals",
+            'include_phi': False,
+            'svd_truncation_tolerance': 1e-6,
+            'solving_technique': "normal_equations",
+            'monotonicity_preserving': False
+        }
+
+        for key in keys_with_defaults:
+            if key in rom_params.keys():
+                defaults[key] = rom_params[key]
+
+        return defaults
+
+    def SetPetrovGalerkinBnSParameters(self):
+        defaults = self._GetPetrovGalerkinBnSParameters()
+        if not (self.general_rom_manager_parameters["ROM"].Has("petrov_galerkin_rom_bns_settings")):
+            self.general_rom_manager_parameters["ROM"].AddEmptyValue("petrov_galerkin_rom_bns_settings")
+
+        rom_params = self.general_rom_manager_parameters["ROM"]["petrov_galerkin_rom_bns_settings"]
+
+        keys_with_defaults = {
+            'monotonicity_preserving': False
+        }
+
+        for key in keys_with_defaults:
+            if key in rom_params.keys():
+                defaults[key] = rom_params[key]
+
+        return defaults
 
     def set_lspg_rom_bns_settings(self, f):
         settings = self.general_rom_manager_parameters["ROM"]["lspg_rom_bns_settings"]
@@ -774,3 +839,26 @@ class RomManager(object):
 
         #save the array inside the chosen directory
         np.save(file_path, numpy_array)
+
+    def _GetGalerkinBnSParameters(self):
+        rom_bns_settings = KratosMultiphysics.Parameters("""{
+                'monotonicity_preserving': false
+            }""")
+        return rom_bns_settings
+
+    def _GetPetrovGalerkinBnSParameters(self):
+        rom_bns_settings = KratosMultiphysics.Parameters("""{
+            "monotonicity_preserving": false
+        }""")
+        return rom_bns_settings
+
+    def _GetLSPGBnSParameters(self):
+        rom_bns_settings = KratosMultiphysics.Parameters("""{
+                "train_petrov_galerkin": false,
+                "basis_strategy": "residuals",                        // 'residuals', 'jacobian', 'reactions'
+                "include_phi": false,
+                "svd_truncation_tolerance": 1e-8,
+                "solving_technique": "normal_equations",              // 'normal_equations', 'qr_decomposition'
+                "monotonicity_preserving": false
+            }""")
+        return rom_bns_settings
