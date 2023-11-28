@@ -63,21 +63,21 @@ void TestThermalElement(ModelPart& rModelPart,
         elemental_dofs[i]->SetEquationId(i);
     }
 
+
+    Element::EquationIdVectorType equation_ids;
+    p_element->EquationIdVector(equation_ids, r_current_process_info);
+    SetProperties(p_element);
+
     // Only the TEMPERATURE dofs should be returned by the element
     for (const auto& element_dof : elemental_dofs)
     {
         KRATOS_EXPECT_EQ(element_dof->GetVariable(), TEMPERATURE);
     }
 
-    Element::EquationIdVectorType equation_ids;
-    p_element->EquationIdVector(equation_ids, r_current_process_info);
-
     for (unsigned int i = 0; i < equation_ids.size(); i++)
     {
         KRATOS_EXPECT_EQ(equation_ids[i], i);
     }
-
-    SetProperties(p_element);
 
     if (ExpectedLeftHandSideMatrix.size1() == 0 || ExpectedRightHandSideVector.size() == 0)
     {
@@ -496,7 +496,9 @@ KRATOS_TEST_CASE_IN_SUITE(EquationIdVectorTransientThermalElement2D3N, KratosGeo
 
      const ProcessInfo& r_current_process_info = model_part.GetProcessInfo();
 
-     KRATOS_EXPECT_EQ(p_element->Check(r_current_process_info), 0);
+     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+         p_element->Check(r_current_process_info),
+         "THERMAL_CONDUCTIVITY_SOLID_ZZ has invalid value for element 1")
  }
 
  KRATOS_TEST_CASE_IN_SUITE(EquationIdVectorTransientThermalElement3D4N, KratosGeoMechanicsFastSuite)
