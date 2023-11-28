@@ -83,8 +83,8 @@ void UPwUpdatedLagrangianElement<TDim,TNumNodes>::
     ElementVariables Variables;
     this->InitializeElementVariables(Variables, rCurrentProcessInfo);
 
-    // create general parametes of retention law
-    RetentionLaw::Parameters RetentionParameters(this->GetGeometry(), this->GetProperties(), rCurrentProcessInfo);
+    // create general parameters of retention law
+    RetentionLaw::Parameters RetentionParameters(this->GetProperties(), rCurrentProcessInfo);
 
     const bool hasBiotCoefficient = this->GetProperties().Has(BIOT_COEFFICIENT);
 

@@ -18,7 +18,7 @@
 
 // Project includes
 #include "includes/define.h"
-#include "containers/container_expression/expressions/literal/literal_flat_expression.h"
+#include "expression/literal_flat_expression.h"
 #include "utilities/xml_utilities/xml_expression_element.h"
 
 namespace Kratos {
@@ -83,7 +83,7 @@ protected:
      * @param rTabbing          Tabbing used for expression writing.
      */
     virtual void WriteExpressions(
-        const std::vector<Expression::Pointer>& rExpressions,
+        const std::vector<Expression::ConstPointer>& rExpressions,
         const std::string& rTabbing) = 0;
 
     ///@}

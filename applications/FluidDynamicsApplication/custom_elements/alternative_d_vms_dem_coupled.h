@@ -264,13 +264,6 @@ protected:
     void CalculateResistanceTensor(
         const TElementData& rData);
 
-    void CalculateSpectralRadius(
-        const TElementData& rData,
-        double& spectral_radius,
-        double tau_one_NS,
-        const double c1,
-        MatrixType matrix) const;
-
     void AddMassStabilization(
         TElementData& rData,
         MatrixType& rMassMatrix) override;

@@ -47,8 +47,6 @@ void UpdatedLagrangianUPwDiffOrderElement::
 {
     KRATOS_TRY
 
-    //KRATOS_INFO("0-UpdatedLagrangianUPwDiffOrderElement::CalculateAll()") << CalculateStiffnessMatrixFlag << " " << CalculateStiffnessMatrixFlag << std::endl;
-
     const GeometryType& rGeom = GetGeometry();
     const PropertiesType& rProp = this->GetProperties();
 
@@ -64,8 +62,8 @@ void UpdatedLagrangianUPwDiffOrderElement::
     ConstitutiveParameters.GetOptions().Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
     if (CalculateResidualVectorFlag)  ConstitutiveParameters.GetOptions().Set(ConstitutiveLaw::COMPUTE_STRESS);
 
-    // create general parametes of retention law
-    RetentionLaw::Parameters RetentionParameters(rGeom, rProp, rCurrentProcessInfo);
+    // create general parameters of retention law
+    RetentionLaw::Parameters RetentionParameters(rProp, rCurrentProcessInfo);
 
     //Loop over integration points
     const GeometryType::IntegrationPointsArrayType& IntegrationPoints = rGeom.IntegrationPoints( this->GetIntegrationMethod() );
@@ -121,7 +119,6 @@ void UpdatedLagrangianUPwDiffOrderElement::
         }
     }
 
-    //KRATOS_INFO("1-UpdatedLagrangianUPwDiffOrderElement::CalculateAll()") << std::endl;
     KRATOS_CATCH( "" )
 }
 
@@ -132,7 +129,6 @@ void UpdatedLagrangianUPwDiffOrderElement::
                                              unsigned int GPoint)
 {
     KRATOS_TRY
-    //KRATOS_INFO("0-UpdatedLagrangianUPwDiffOrderElement::CalculateAndAddGeometricStiffnessMatrix()") << std::endl;
 
     const GeometryType& rGeom = GetGeometry();
     const SizeType NumUNodes = rGeom.PointsNumber();
@@ -151,7 +147,6 @@ void UpdatedLagrangianUPwDiffOrderElement::
     //Distribute stiffness block matrix into the elemental matrix
     this->AssembleUBlockMatrix(rLeftHandSideMatrix,UMatrix);
 
-    //KRATOS_INFO("1-UpdatedLagrangianUPwDiffOrderElement::CalculateAndAddGeometricStiffnessMatrix()") << std::endl;
     KRATOS_CATCH( "" )
 }
 
@@ -213,8 +208,6 @@ void UpdatedLagrangianUPwDiffOrderElement::
         SmallStrainUPwDiffOrderElement::
             CalculateOnIntegrationPoints(rVariable, rOutput, rCurrentProcessInfo);
     }
-
-    // KRATOS_INFO("1-UpdatedLagrangianUPwDiffOrderElement::1-CalculateOnIntegrationPoints()") << std::endl;
 
     KRATOS_CATCH( "" )
 }

@@ -18,6 +18,7 @@
 // Project includes
 #include "move_mesh_utilities.h"
 #include "containers/model.h"
+#include "custom_utilities/parametric_affine_transform.h"
 #include "includes/mesh_moving_variables.h" // TODO remove after mesh-vel-comp-functions are removed
 #include "utilities/parallel_utilities.h"
 
@@ -66,7 +67,7 @@ void MoveModelPart(
 {
     KRATOS_TRY
 
-    const LinearTransform transform(
+    const AffineTransform transform(
         rRotationAxis,
         rotationAngle,
         rReferencePoint,
@@ -86,7 +87,7 @@ void MoveModelPart(
 {
     KRATOS_TRY
 
-    ParametricLinearTransform transform(
+    ParametricAffineTransform transform(
         rotationAxis,
         rotationAngle,
         referencePoint,
@@ -99,7 +100,7 @@ void MoveModelPart(
 
 void MoveModelPart(
     ModelPart& rModelPart,
-    const LinearTransform& rTransform)
+    const AffineTransform& rTransform)
 {
     KRATOS_TRY
 
@@ -115,7 +116,7 @@ void MoveModelPart(
 
 void MoveModelPart(
     ModelPart& rModelPart,
-    ParametricLinearTransform& rTransform)
+    ParametricAffineTransform& rTransform)
 {
     KRATOS_TRY
 
@@ -123,9 +124,10 @@ void MoveModelPart(
 
     block_for_each(
         rModelPart.Nodes(),
-        [&rTransform, time](Node& rNode){
+        rTransform,
+        [time](Node& rNode, ParametricAffineTransform& rTLSTransform){
             const array_1d<double,3>& initial_position = rNode.GetInitialPosition();
-            noalias(rNode.GetSolutionStepValue(MESH_DISPLACEMENT)) = rTransform.Apply(
+            noalias(rNode.GetSolutionStepValue(MESH_DISPLACEMENT)) = rTLSTransform.Apply(
                 initial_position,
                 time,
                 rNode.X0(),

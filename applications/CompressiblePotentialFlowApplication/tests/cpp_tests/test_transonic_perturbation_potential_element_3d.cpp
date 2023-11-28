@@ -167,7 +167,7 @@ KRATOS_TEST_CASE_IN_SUITE(PingTransonicPerturbationPotentialFlowElementLHS3D,
     PotentialFlowTestUtilities::ComputeElementalSensitivities<4>(
         model_part, LHS_finite_diference, LHS_analytical, potential);
 
-    KRATOS_CHECK_MATRIX_NEAR(LHS_finite_diference, LHS_analytical, 1e-10);
+    KRATOS_EXPECT_MATRIX_NEAR(LHS_finite_diference, LHS_analytical, 1e-10);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(PingTransonicPerturbationPotentialFlowSupersonicElementLHS3D,
@@ -189,7 +189,7 @@ KRATOS_TEST_CASE_IN_SUITE(PingTransonicPerturbationPotentialFlowSupersonicElemen
 
     ComputeElementalSensitivitiesTransonic3D(LHS_finite_diference, LHS_analytical, high_potential, low_potential);
 
-    KRATOS_CHECK_MATRIX_NEAR(LHS_finite_diference, LHS_analytical, 1e-10);
+    KRATOS_EXPECT_MATRIX_NEAR(LHS_finite_diference, LHS_analytical, 1e-10);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(PingTransonicPerturbationPotentialFlowSupersonicElementLHSClamped3D, CompressiblePotentialApplicationFastSuite) {
@@ -209,7 +209,7 @@ KRATOS_TEST_CASE_IN_SUITE(PingTransonicPerturbationPotentialFlowSupersonicElemen
 
     ComputeElementalSensitivitiesTransonic3D(LHS_finite_diference, LHS_analytical, high_potential, low_potential);
 
-    KRATOS_CHECK_MATRIX_NEAR(LHS_finite_diference, LHS_analytical, 1e-10);
+    KRATOS_EXPECT_MATRIX_NEAR(LHS_finite_diference, LHS_analytical, 1e-10);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(PingTransonicPerturbationPotentialFlowSupersonicDeceleratingElementLHS3D, CompressiblePotentialApplicationFastSuite) {
@@ -229,7 +229,7 @@ KRATOS_TEST_CASE_IN_SUITE(PingTransonicPerturbationPotentialFlowSupersonicDecele
 
     ComputeElementalSensitivitiesTransonic3D(LHS_finite_diference, LHS_analytical, high_potential, low_potential);
 
-    KRATOS_CHECK_MATRIX_NEAR(LHS_finite_diference, LHS_analytical, 1e-10);
+    KRATOS_EXPECT_MATRIX_NEAR(LHS_finite_diference, LHS_analytical, 1e-10);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(PingTransonicPerturbationPotentialFlowSupersonicDeceleratingElementLHSClamped3D, CompressiblePotentialApplicationFastSuite) {
@@ -249,7 +249,7 @@ KRATOS_TEST_CASE_IN_SUITE(PingTransonicPerturbationPotentialFlowSupersonicDecele
 
     ComputeElementalSensitivitiesTransonic3D(LHS_finite_diference, LHS_analytical, high_potential, low_potential);
 
-    KRATOS_CHECK_MATRIX_NEAR(LHS_finite_diference, LHS_analytical, 1e-10);
+    KRATOS_EXPECT_MATRIX_NEAR(LHS_finite_diference, LHS_analytical, 1e-10);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(TransonicPerturbationPotentialFlowElementEquationId3D,
@@ -291,7 +291,7 @@ KRATOS_TEST_CASE_IN_SUITE(TransonicPerturbationPotentialFlowElementEquationId3D,
     pCurrentElement->EquationIdVector(EquationIdVector, r_current_process_info);
 
     std::vector<double> reference{23.0, 74.0, 55.0, 35.0, 87.0};
-    KRATOS_CHECK_VECTOR_NEAR(EquationIdVector, reference, 1e-15);
+    KRATOS_EXPECT_VECTOR_NEAR(EquationIdVector, reference, 1e-15);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(PingWakeTransonicPerturbationPotentialFlowElementLHS3D,
@@ -313,7 +313,7 @@ KRATOS_TEST_CASE_IN_SUITE(PingWakeTransonicPerturbationPotentialFlowElementLHS3D
     PotentialFlowTestUtilities::ComputeWakeElementalSensitivities<4>(
         model_part, LHS_finite_diference, LHS_analytical, potential);
 
-    KRATOS_CHECK_MATRIX_NEAR(LHS_finite_diference, LHS_analytical, 1e-10);
+    KRATOS_EXPECT_MATRIX_NEAR(LHS_finite_diference, LHS_analytical, 1e-10);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(PingWakeTransonicPerturbationPotentialFlowElementLHS3DClamping,
@@ -335,7 +335,7 @@ KRATOS_TEST_CASE_IN_SUITE(PingWakeTransonicPerturbationPotentialFlowElementLHS3D
     PotentialFlowTestUtilities::ComputeWakeElementalSensitivities<4>(
         model_part, LHS_finite_diference, LHS_analytical, potential);
 
-    KRATOS_CHECK_MATRIX_NEAR(LHS_finite_diference, LHS_analytical, 1e-10);
+    KRATOS_EXPECT_MATRIX_NEAR(LHS_finite_diference, LHS_analytical, 1e-10);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(PingWakeStructureTransonicPerturbationPotentialFlowElementLHS3D,
@@ -360,7 +360,7 @@ KRATOS_TEST_CASE_IN_SUITE(PingWakeStructureTransonicPerturbationPotentialFlowEle
     PotentialFlowTestUtilities::ComputeWakeElementalSensitivities<4>(
         model_part, LHS_finite_diference, LHS_analytical, potential);
 
-    KRATOS_CHECK_MATRIX_NEAR(LHS_finite_diference, LHS_analytical, 1e-10);
+    KRATOS_EXPECT_MATRIX_NEAR(LHS_finite_diference, LHS_analytical, 1e-10);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(PingWakeStructureTransonicPerturbationPotentialFlowElementLHS3DClamping,
@@ -385,7 +385,7 @@ KRATOS_TEST_CASE_IN_SUITE(PingWakeStructureTransonicPerturbationPotentialFlowEle
     PotentialFlowTestUtilities::ComputeWakeElementalSensitivities<4>(
         model_part, LHS_finite_diference, LHS_analytical, potential);
 
-    KRATOS_CHECK_MATRIX_NEAR(LHS_finite_diference, LHS_analytical, 1e-10);
+    KRATOS_EXPECT_MATRIX_NEAR(LHS_finite_diference, LHS_analytical, 1e-10);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(TransonicPerturbationPotentialFlowElementRHS3D,
@@ -410,7 +410,7 @@ KRATOS_TEST_CASE_IN_SUITE(TransonicPerturbationPotentialFlowElementRHS3D,
     std::vector<double> reference{71.66991905097665, -64.11826564927853,
                                   -3.932086180475159, -3.619567221222969};
 
-    KRATOS_CHECK_VECTOR_NEAR(RHS, reference, 1e-13);
+    KRATOS_EXPECT_VECTOR_NEAR(RHS, reference, 1e-13);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(TransonicPerturbationPotentialFlowInletElementRHS3D,
@@ -435,7 +435,7 @@ KRATOS_TEST_CASE_IN_SUITE(TransonicPerturbationPotentialFlowInletElementRHS3D,
     std::vector<double> reference{71.66991905097665, -64.11826564927853,
                                   -3.932086180475159, -3.619567221222969};
 
-    KRATOS_CHECK_VECTOR_NEAR(RHS, reference, 1e-13);
+    KRATOS_EXPECT_VECTOR_NEAR(RHS, reference, 1e-13);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(TransonicPerturbationPotentialFlowInletElementLHS3D,
@@ -467,7 +467,7 @@ KRATOS_TEST_CASE_IN_SUITE(TransonicPerturbationPotentialFlowInletElementLHS3D,
 
     for (unsigned int i = 0; i < LHS.size1(); i++) {
         for (unsigned int j = 0; j < LHS.size2(); j++) {
-            KRATOS_CHECK_NEAR(LHS(i, j), reference[i * 4 + j], 1e-16);
+            KRATOS_EXPECT_NEAR(LHS(i, j), reference[i * 4 + j], 1e-16);
         }
     }
 }
@@ -535,7 +535,7 @@ KRATOS_TEST_CASE_IN_SUITE(TransonicPerturbationPotentialFlowSupersonicElementLHS
 
     for (unsigned int i = 0; i < LHS.size1(); i++) {
         for (unsigned int j = 0; j < LHS.size2(); j++) {
-            KRATOS_CHECK_NEAR(LHS(i, j), reference[i * 5 + j], 1e-16);
+            KRATOS_EXPECT_NEAR(LHS(i, j), reference[i * 5 + j], 1e-16);
         }
     }
 }
@@ -603,7 +603,7 @@ KRATOS_TEST_CASE_IN_SUITE(TransonicPerturbationPotentialFlowSupersonicElementLHS
 
     for (unsigned int i = 0; i < LHS.size1(); i++) {
         for (unsigned int j = 0; j < LHS.size2(); j++) {
-            KRATOS_CHECK_NEAR(LHS(i, j), reference[i * 5 + j], 1e-16);
+            KRATOS_EXPECT_NEAR(LHS(i, j), reference[i * 5 + j], 1e-16);
         }
     }
 }
@@ -671,7 +671,7 @@ KRATOS_TEST_CASE_IN_SUITE(TransonicPerturbationPotentialFlowSupersonicDecelerati
 
     for (unsigned int i = 0; i < LHS.size1(); i++) {
         for (unsigned int j = 0; j < LHS.size2(); j++) {
-            KRATOS_CHECK_NEAR(LHS(i, j), reference[i * 5 + j], 1e-16);
+            KRATOS_EXPECT_NEAR(LHS(i, j), reference[i * 5 + j], 1e-16);
         }
     }
 }
@@ -739,7 +739,7 @@ KRATOS_TEST_CASE_IN_SUITE(TransonicPerturbationPotentialFlowSupersonicDecelerati
 
     for (unsigned int i = 0; i < LHS.size1(); i++) {
         for (unsigned int j = 0; j < LHS.size2(); j++) {
-            KRATOS_CHECK_NEAR(LHS(i, j), reference[i * 5 + j], 1e-16);
+            KRATOS_EXPECT_NEAR(LHS(i, j), reference[i * 5 + j], 1e-16);
         }
     }
 }
@@ -800,7 +800,7 @@ KRATOS_TEST_CASE_IN_SUITE(TransonicPerturbationPotentialFlowSupersonicElementRHS
 
     std::vector<double> reference{78.83234736892321,-53.38880960120657,-4.323508014019686,-21.12002975369695,0};
 
-    KRATOS_CHECK_VECTOR_NEAR(RHS, reference, 1e-14);
+    KRATOS_EXPECT_VECTOR_NEAR(RHS, reference, 1e-14);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(WakeTransonicPerturbationPotentialFlowElementRHS3D,
@@ -832,7 +832,7 @@ KRATOS_TEST_CASE_IN_SUITE(WakeTransonicPerturbationPotentialFlowElementRHS3D,
                                   68.65551596318301, -58.62766030853704,
                                   -4.30462713896052, -0.9519047619047626};
 
-    KRATOS_CHECK_VECTOR_NEAR(RHS, reference, 1e-13);
+    KRATOS_EXPECT_VECTOR_NEAR(RHS, reference, 1e-13);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(WakeStructureTransonicPerturbationPotentialFlowElementRHS3D,
@@ -867,7 +867,7 @@ KRATOS_TEST_CASE_IN_SUITE(WakeStructureTransonicPerturbationPotentialFlowElement
                                   68.65551596318301, -58.62766030853704,
                                   -4.30462713896052, -5.007824951224748};
 
-    KRATOS_CHECK_VECTOR_NEAR(RHS, reference, 1e-13);
+    KRATOS_EXPECT_VECTOR_NEAR(RHS, reference, 1e-13);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(WakeTransonicPerturbationPotentialFlowElementLHS3D,
@@ -912,7 +912,7 @@ KRATOS_TEST_CASE_IN_SUITE(WakeTransonicPerturbationPotentialFlowElementLHS3D,
     {
         for (unsigned int j = 0; j < LHS.size2(); j++)
         {
-            KRATOS_CHECK_NEAR(LHS(i, j), reference[8 * i + j], 1e-16);
+            KRATOS_EXPECT_NEAR(LHS(i, j), reference[8 * i + j], 1e-16);
         }
     }
 }
@@ -962,7 +962,7 @@ KRATOS_TEST_CASE_IN_SUITE(WakeTransonicPerturbationPotentialFlowElementLHS3DClam
     {
         for (unsigned int j = 0; j < LHS.size2(); j++)
         {
-            KRATOS_CHECK_NEAR(LHS(i, j), reference[8 * i + j], 1e-16);
+            KRATOS_EXPECT_NEAR(LHS(i, j), reference[8 * i + j], 1e-16);
         }
     }
 }
@@ -1011,7 +1011,7 @@ KRATOS_TEST_CASE_IN_SUITE(WakeStructureTransonicPerturbationPotentialFlowElement
     {
         for (unsigned int j = 0; j < LHS.size2(); j++)
         {
-            KRATOS_CHECK_NEAR(LHS(i, j), reference[8 * i + j], 1e-16);
+            KRATOS_EXPECT_NEAR(LHS(i, j), reference[8 * i + j], 1e-16);
         }
     }
 }
@@ -1063,7 +1063,7 @@ KRATOS_TEST_CASE_IN_SUITE(WakeStructureTransonicPerturbationPotentialFlowElement
     {
         for (unsigned int j = 0; j < LHS.size2(); j++)
         {
-            KRATOS_CHECK_NEAR(LHS(i, j), reference[8 * i + j], 1e-16);
+            KRATOS_EXPECT_NEAR(LHS(i, j), reference[8 * i + j], 1e-16);
         }
     }
 }

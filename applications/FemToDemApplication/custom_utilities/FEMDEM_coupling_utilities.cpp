@@ -191,8 +191,8 @@ void FEMDEMCouplingUtilities::ComputeAndTranferAveragedContactTotalForces(
             }
             it_cond->SetValue(FORCE_LOAD, dem_forces);
             // We reset it for the next substepping
-            noalias(r_explicit_impulse_node) = ZeroVector(3);
-            noalias(r_explicit_impulse_DEM)  = ZeroVector(3);
+            r_explicit_impulse_node.clear();
+            r_explicit_impulse_DEM.clear();
         }
     }
 }
@@ -217,9 +217,8 @@ void FEMDEMCouplingUtilities::ResetContactImpulses(
             auto p_spheric_particle_associated = r_node.GetValue(DEM_PARTICLE_POINTER);
             array_1d<double,3>& r_explicit_impulse_node = r_node.FastGetSolutionStepValue(CONTACT_IMPULSE);
             array_1d<double,3>& r_explicit_impulse_DEM = (p_spheric_particle_associated->GetGeometry()[0]).FastGetSolutionStepValue(CONTACT_IMPULSE);
-            array_1d<double,3> zero_vector = ZeroVector(3);
-            r_explicit_impulse_node = zero_vector;
-            r_explicit_impulse_DEM  = zero_vector;
+            r_explicit_impulse_node.clear();
+            r_explicit_impulse_DEM.clear();
         }
     }
 }
@@ -272,20 +271,31 @@ int FEMDEMCouplingUtilities::GetNumberOfNodes(
     return rModelPart.NumberOfNodes();
 }
 
+/***********************************************************************************/
+/***********************************************************************************/
 
 bool FEMDEMCouplingUtilities::IsGenerateDEMRequired(
     ModelPart &rModelPart
     )
 {
+    bool required = false;
     const auto it_elem_begin = rModelPart.ElementsBegin();
-
-    // #pragma omp parallel for
-    for (int i = 0; i < static_cast<int>(rModelPart.Elements().size()); ++i) {
-        auto it_elem = it_elem_begin + i;
-        if (it_elem->GetValue(GENERATE_DEM))
-            return true;
+    #pragma omp parallel
+    {
+        #pragma omp for
+        for (int i = 0; i < static_cast<int>(rModelPart.Elements().size()); ++i)
+        {
+            auto it_elem = it_elem_begin + i;
+            if (it_elem->GetValue(GENERATE_DEM)) {
+                #pragma omp critical
+                {
+                    required = true;
+                }
+            }
+        }
     }
-    return false;
+
+    return required;
 }
 
 /***********************************************************************************/
