@@ -291,14 +291,20 @@ void SpatialSearchResultContainerVector<TObjectType>::CopyingValuesToGlobalResul
     const std::size_t global_results_size = rGlobalResults.size();
     for (std::size_t i_gp = 0; i_gp < global_results_size; ++i_gp) {
         auto& r_gp = rGlobalResults[i_gp];
+
+        // Add to the result
+        p_result->GetGlobalResults().push_back(r_gp);
+
+        // Check if jumping to next vector
         if (counter == global_results_number_current_result && i_gp < global_results_size - 1) {
-            counter = 1;
+            counter = 0;
             ++index_solution;
+            KRATOS_WATCH(index_solution)
             global_results_number_current_result = rResultGlobalSize[index_solution];
             p_result = mPointResults[rActiveResults[index_solution]];
         }
-        // Add to the result
-        p_result->GetGlobalResults().push_back(r_gp);
+
+        // Update counter
         ++counter;
     }
 }
