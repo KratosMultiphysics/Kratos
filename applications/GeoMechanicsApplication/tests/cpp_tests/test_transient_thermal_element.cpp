@@ -71,6 +71,8 @@ void ValidateThermalElement(ModelPart& rModelPart)
 
     Element::DofsVectorType elemental_dofs;
     p_element->GetDofList(elemental_dofs, r_current_process_info);
+
+    KRATOS_EXPECT_EQ(elemental_dofs.size(), p_element->GetGeometry().size());
     for (const auto& element_dof : elemental_dofs)
     {
         // Only the TEMPERATURE dofs should be returned by the element
