@@ -29,6 +29,7 @@ void SetProperties(Element::Pointer p_element)
     p_properties->SetValue(DENSITY_WATER, 1.0);
     p_properties->SetValue(POROSITY, 0.0);
     p_properties->SetValue(SATURATED_SATURATION, 1.0);
+    p_properties->SetValue(RETENTION_LAW, "SaturatedLaw");
     p_properties->SetValue(DENSITY_SOLID, 1.0);
     p_properties->SetValue(SPECIFIC_HEAT_CAPACITY_WATER, 1.0);
     p_properties->SetValue(SPECIFIC_HEAT_CAPACITY_SOLID, 1.0);
@@ -38,7 +39,6 @@ void SetProperties(Element::Pointer p_element)
     p_properties->SetValue(THERMAL_CONDUCTIVITY_SOLID_XX, 10.0);
     p_properties->SetValue(THERMAL_CONDUCTIVITY_SOLID_YY, 1.0);
     p_properties->SetValue(THERMAL_CONDUCTIVITY_SOLID_XY, 0.0);
-    p_properties->SetValue(RETENTION_LAW, "SaturatedLaw");
 }
 
 void SetupElement(ModelPart& rModelPart)
@@ -48,11 +48,12 @@ void SetupElement(ModelPart& rModelPart)
 
     p_element = rModelPart.pGetElement(1);
     const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
-    for (unsigned int i = 0; i < rModelPart.NumberOfNodes(); i++)
+    auto element_geometry = p_element->GetGeometry();
+    for (unsigned int i = 0; i < element_geometry.size(); i++)
     {
-        p_element->GetGeometry()[i].AddDof(TEMPERATURE);
+        element_geometry[i].AddDof(TEMPERATURE);
         // Set temperature to some values to get a non-zero right hand side
-        p_element->GetGeometry()[i].GetSolutionStepValue(TEMPERATURE) = i * 1.0;
+        element_geometry[i].GetSolutionStepValue(TEMPERATURE) = i * 1.0;
     }
 
     p_element->GetDofList(elemental_dofs, r_current_process_info);
