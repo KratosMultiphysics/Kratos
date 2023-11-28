@@ -21,6 +21,7 @@ using namespace Kratos;
 namespace Kratos::Testing
 {
 
+void setProperties(Element::Pointer p_element);
 void TestThermalElement(ModelPart& rModelPart,
                         Matrix ExpectedLeftHandSideMatrix = {},
                         Vector ExpectedRightHandSideVector = {})
@@ -58,19 +59,7 @@ void TestThermalElement(ModelPart& rModelPart,
         KRATOS_EXPECT_EQ(equation_ids[i], i);
     }
 
-    Properties::Pointer p_properties = p_element->pGetProperties();
-
-    // Please note these are not representative values, it just ensures the values are set
-    p_properties->SetValue(DENSITY_WATER, 1.0);
-    p_properties->SetValue(POROSITY, 1.0);
-    p_properties->SetValue(SATURATED_SATURATION, 1.0);
-    p_properties->SetValue(DENSITY_SOLID, 1.0);
-    p_properties->SetValue(SPECIFIC_HEAT_CAPACITY_WATER, 1.0);
-    p_properties->SetValue(SPECIFIC_HEAT_CAPACITY_SOLID, 1.0);
-    p_properties->SetValue(THERMAL_CONDUCTIVITY_WATER, 1.0);
-    p_properties->SetValue(THERMAL_CONDUCTIVITY_SOLID_XX, 1.0);
-    p_properties->SetValue(THERMAL_CONDUCTIVITY_SOLID_YY, 1.0);
-    p_properties->SetValue(THERMAL_CONDUCTIVITY_SOLID_XY, 1.0);
+    setProperties(p_element);
 
     if (ExpectedLeftHandSideMatrix.size1() == 0 || ExpectedRightHandSideVector.size() == 0)
     {
@@ -86,29 +75,38 @@ void TestThermalElement(ModelPart& rModelPart,
     KRATOS_EXPECT_EQ(left_hand_side_matrix.size1(), ExpectedLeftHandSideMatrix.size1());
     KRATOS_EXPECT_EQ(left_hand_side_matrix.size2(), ExpectedLeftHandSideMatrix.size2());
 
-    std::stringstream stream;
-    for (int i = 0; i < left_hand_side_matrix.size1(); i++)
+    for (std::size_t i = 0; i < left_hand_side_matrix.size1(); i++)
     {
-        for (int j = 0; j < left_hand_side_matrix.size2(); j++)
+        for (std::size_t j = 0; j < left_hand_side_matrix.size2(); j++)
         {
-//            stream << left_hand_side_matrix(i, j) << ", ";
-
-                        KRATOS_EXPECT_DOUBLE_EQ(left_hand_side_matrix(i, j),
-                                                ExpectedLeftHandSideMatrix(i, j));
+            KRATOS_EXPECT_DOUBLE_EQ(left_hand_side_matrix(i, j),
+                                    ExpectedLeftHandSideMatrix(i, j));
         }
-//        stream << "\n";
     }
-
-//    KRATOS_ERROR << stream.str() << std::endl;
 
     KRATOS_EXPECT_EQ(right_hand_side.size(), ExpectedRightHandSideVector.size());
-    for (int i = 0; i < right_hand_side.size(); i++)
+    for (std::size_t i = 0; i < right_hand_side.size(); i++)
     {
-//        stream << right_hand_side[i] << ", ";
         KRATOS_EXPECT_DOUBLE_EQ(right_hand_side[i], ExpectedRightHandSideVector[i]);
     }
+}
+void setProperties(Element::Pointer p_element)
+{
+    Properties::Pointer p_properties = p_element->pGetProperties();
 
-//    KRATOS_ERROR << stream.str() << std::endl;
+    // Please note these are not representative values, it just ensures the values are set
+    p_properties->SetValue(DENSITY_WATER, 1.0);
+    p_properties->SetValue(POROSITY, 0.0);
+    p_properties->SetValue(SATURATED_SATURATION, 1.0);
+    p_properties->SetValue(DENSITY_SOLID, 1.0);
+    p_properties->SetValue(SPECIFIC_HEAT_CAPACITY_WATER, 1.0);
+    p_properties->SetValue(SPECIFIC_HEAT_CAPACITY_SOLID, 1.0);
+    p_properties->SetValue(THERMAL_CONDUCTIVITY_WATER, 1.0);
+
+    // This ensures the lhs matrix has differences for x/y
+    p_properties->SetValue(THERMAL_CONDUCTIVITY_SOLID_XX, 10.0);
+    p_properties->SetValue(THERMAL_CONDUCTIVITY_SOLID_YY, 1.0);
+    p_properties->SetValue(THERMAL_CONDUCTIVITY_SOLID_XY, 0.0);
 }
 
 void GenerateTransientThermalElementWithZeroDomainSize(ModelPart& rModelPart)
@@ -140,7 +138,6 @@ KRATOS_TEST_CASE_IN_SUITE(CheckElement_Throws_WhenDomainSizeIsInvalid, KratosGeo
 void GenerateTransientThermalElement2D3N(ModelPart& rModelPart)
 {
     // Geometry creation
-
     rModelPart.CreateNewNode(1, 0.0, 0.0, 0.0);
     rModelPart.CreateNewNode(2, 1.0, 0.0, 0.0);
     rModelPart.CreateNewNode(3, 1.0, 1.0, 0.0);
@@ -271,17 +268,7 @@ KRATOS_TEST_CASE_IN_SUITE(CheckElement_Throws_When2DElementHasNonZeroZValue, Kra
         node.AddDof(TEMPERATURE);
     }
 
-    Properties::Pointer p_properties = model_part.pGetElement(1)->pGetProperties();
-    p_properties->SetValue(DENSITY_WATER, 1.0);
-    p_properties->SetValue(POROSITY, 1.0);
-    p_properties->SetValue(SATURATED_SATURATION, 1.0);
-    p_properties->SetValue(DENSITY_SOLID, 1.0);
-    p_properties->SetValue(SPECIFIC_HEAT_CAPACITY_WATER, 1.0);
-    p_properties->SetValue(SPECIFIC_HEAT_CAPACITY_SOLID, 1.0);
-    p_properties->SetValue(THERMAL_CONDUCTIVITY_WATER, 1.0);
-    p_properties->SetValue(THERMAL_CONDUCTIVITY_SOLID_XX, 1.0);
-    p_properties->SetValue(THERMAL_CONDUCTIVITY_SOLID_YY, 1.0);
-    p_properties->SetValue(THERMAL_CONDUCTIVITY_SOLID_XY, 1.0);
+    setProperties(model_part.pGetElement(1));
 
     const ProcessInfo& r_current_process_info = model_part.GetProcessInfo();
 
@@ -301,12 +288,12 @@ KRATOS_TEST_CASE_IN_SUITE(EquationIdVectorTransientThermalElement2D3N, KratosGeo
     GenerateTransientThermalElement2D3N(model_part);
 
     Matrix expected_matrix(3, 3);
-    expected_matrix <<=  0.5, -0.5,  0,
-                        -0.5,  1,   -0.5,
-                         0,   -0.5,  0.5;
+    expected_matrix <<=  5,   -5,    0,
+                        -5,  5.5, -0.5,
+                         0, -0.5,  0.5;
 
     Vector expected_vector(3);
-    expected_vector <<= 0.5, -0, -0.5;
+    expected_vector <<= 5, -4.5, -0.5;
 
     TestThermalElement(model_part, expected_matrix, expected_vector);
 }
