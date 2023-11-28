@@ -60,21 +60,21 @@ namespace Kratos
 /**
  * @class GlobalPetrovGalerkinROMBuilderAndSolver
  * @ingroup RomApplication
- * @brief This class provides an implementation for the LeastSquaresPetrovGalerkinROM builder and solver operations.
- * This B&S now inherits from the GlobalROMBuilderAndSolver, which in turn inherits
- * from the ResidualBasedBlockBuilderAndSolver. The RHS is composed of unbalanced loads
+ * @brief This class provides an implementation for the GlobalPetrovGalerkinROM builder and solver operations.
+ * This Builder and Solver (B&S) now inherits from the GlobalROMBuilderAndSolver, which in turn inherits
+ * from the ResidualBasedBlockBuilderAndSolver. The Right-Hand Side (RHS) is composed of unbalanced loads
  * (residual) and is constructed using the ResidualBasedBlockBuilderAndSolver. Similarly, the
- * LHS is constructed using the ResidualBasedBlockBuilderAndSolver and is then multiplied
- * by the ROM RIGHT BASIS. This results in a rectangular system with dimensions of FOM size
- * by ROM size. This system can be solved using either the normal equations or the QR
- * decomposition. The degrees of freedom are rearranged so that the restrained ones are
+ * Left-Hand Side (LHS) is constructed using the ResidualBasedBlockBuilderAndSolver and is then multiplied
+ * by the ROM RIGHT BASIS. We then project it onto the ROM LEFT BASIS, yielding a rectangular system (ROM size) that is then
+ * solved using the QR decomposition. The degrees of freedom are rearranged so that the restrained ones are
  * placed at the end of the system, ordered inversely to the DofSet, mirroring the arrangement
- * in the FOM.
+ * in the Full Order Model (FOM).
  * @tparam TSparseSpace Defines the sparse system under consideration
  * @tparam TDenseSpace Defines the dense system under consideration
  * @tparam TLinearSolver Specifies the linear solver being utilized
  * @author Sebastian Ares de Parga Regalado
  */
+
 
 template <class TSparseSpace, class TDenseSpace, class TLinearSolver>
 class GlobalPetrovGalerkinROMBuilderAndSolver : public GlobalROMBuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver>
