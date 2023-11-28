@@ -98,7 +98,7 @@ public:
     ///@name Life Cycle
     ///@{
 
-    /// Constructor.
+    /// Default constructor.
     explicit DisplacementCriteria()
         : BaseType()
     {
@@ -168,7 +168,7 @@ public:
     }
 
     /**
-     * Compute relative and absolute error.
+     * @brief Compute relative and absolute error.
      * @param rModelPart Reference to the ModelPart containing the problem.
      * @param rDofSet Reference to the container of the problem's degrees of freedom (stored by the BuilderAndSolver)
      * @param rA System matrix (unused)
@@ -225,7 +225,7 @@ public:
     }
 
     /**
-     * This function initialize the convergence criteria
+     * @brief This function initialize the convergence criteria
      * @param rModelPart Reference to the ModelPart containing the problem. (unused)
      */
     void Initialize(
@@ -236,7 +236,7 @@ public:
     }
 
     /**
-     * This function initializes the solution step
+     * @brief This function initializes the solution step
      * @param rModelPart Reference to the ModelPart containing the problem.
      * @param rDofSet Reference to the container of the problem's degrees of freedom (stored by the BuilderAndSolver)
      * @param rA System matrix (unused)
@@ -255,7 +255,7 @@ public:
     }
 
     /**
-     * This function finalizes the solution step
+     * @brief This function finalizes the solution step
      * @param rModelPart Reference to the ModelPart containing the problem.
      * @param rDofSet Reference to the container of the problem's degrees of freedom (stored by the BuilderAndSolver)
      * @param rA System matrix (unused)
@@ -401,17 +401,22 @@ private:
     /**
      * @brief Check if a Degree of Freedom (Dof) is free.
      * @details This function checks if a given Degree of Freedom (Dof) is free.
+     * The reason why PARTITION_INDEX is considered in distributed runs is to avoid adding twice (or even more times) the same value into the norm
      * @param rDof The Degree of Freedom to check.
      * @param Rank The rank of the Dof.
      * @return True if the Dof is free, false otherwise.
      * @todo We should doo as in the residual criteria, and consider the active DoFs (not just free), taking into account the MPC in addition to fixed DoFs
      */
-    virtual bool IsFreeDof(
+    bool IsFreeAndLocalDof(
         const DofType& rDof,
         const int Rank
         )
     {
-        return rDof.IsFree();
+        if constexpr (!TSparseSpace::IsDistributedSpace()) {
+            return rDof.IsFree();
+        } else {
+            return (rDof.IsFree() && (rDof.GetSolutionStepValue(PARTITION_INDEX) == Rank));
+        }
     }
 
     /**
@@ -436,7 +441,7 @@ private:
         struct TLS {TDataType dof_value{};};
 
         const TDataType reference_disp_norm = block_for_each<SumReduction<TDataType>>(rDofSet, TLS(), [this, &rank](auto& rDof, TLS& rTLS) {
-            if(this->IsFreeDof(rDof, rank)) {
+            if (ClassType::IsFreeAndLocalDof(rDof, rank)) {
                 rTLS.dof_value = rDof.GetSolutionStepValue();
                 return std::pow(rTLS.dof_value, 2);
             } else {
@@ -479,7 +484,7 @@ private:
 
         // Loop over Dofs
         std::tie(final_correction_norm, dof_num) = block_for_each<CustomReduction>(rDofSet, TLS(), [this, &rDx, &rank](auto& rDof, TLS& rTLS) {
-            if(this->IsFreeDof(rDof, rank)) {
+            if (this->IsFreeAndLocalDof(rDof, rank)) {
                 rTLS.variation_dof_value = SparseSpaceType::GetValue(rDx, rDof.EquationId());
                 return std::make_tuple(std::pow(rTLS.variation_dof_value, 2), 1);
             } else {
@@ -490,18 +495,6 @@ private:
         rDofNum = static_cast<SizeType>(r_data_communicator.SumAll(dof_num));
         return std::sqrt(r_data_communicator.SumAll(final_correction_norm));
     }
-
-    ///@}
-    ///@name Private  Access
-    ///@{
-
-    ///@}
-    ///@name Private Inquiry
-    ///@{
-
-    ///@}
-    ///@name Un accessible methods
-    ///@{
 
     ///@}
 }; /* Class DisplacementCriteria */
