@@ -299,7 +299,6 @@ void SpatialSearchResultContainerVector<TObjectType>::CopyingValuesToGlobalResul
         if (counter == global_results_number_current_result && i_gp < global_results_size - 1) {
             counter = 0;
             ++index_solution;
-            KRATOS_WATCH(index_solution)
             global_results_number_current_result = rResultGlobalSize[index_solution];
             p_result = mPointResults[rActiveResults[index_solution]];
         }
