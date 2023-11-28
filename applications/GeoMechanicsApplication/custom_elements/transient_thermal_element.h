@@ -18,6 +18,7 @@
 #include "geo_mechanics_application_variables.h"
 #include "custom_constitutive/thermal_dispersion_law.h"
 #include "includes/serializer.h"
+#include "custom_retention/retention_law_factory.h"
 
 namespace Kratos {
 
@@ -93,7 +94,8 @@ public:
         const auto integration_coefficients = CalculateIntegrationCoefficients(det_J_container);
         const auto conductivity_matrix =
             CalculateConductivityMatrix(dN_dX_container, integration_coefficients, rCurrentProcessInfo);
-        const auto capacity_matrix = CalculateCapacityMatrix(integration_coefficients);
+        const auto capacity_matrix =
+            CalculateCapacityMatrix(integration_coefficients, rCurrentProcessInfo);
 
         AddContributionsToLhsMatrix(rLeftHandSideMatrix, conductivity_matrix, capacity_matrix,
                                     rCurrentProcessInfo[DT_TEMPERATURE_COEFFICIENT]);
@@ -166,7 +168,8 @@ private:
     {
         CheckProperty(DENSITY_WATER);
         CheckProperty(POROSITY);
-        CheckProperty(SATURATION);
+        CheckProperty(RETENTION_LAW, "SaturatedLaw" );
+        CheckProperty(SATURATED_SATURATION);
         CheckProperty(DENSITY_SOLID);
         CheckProperty(SPECIFIC_HEAT_CAPACITY_WATER);
         CheckProperty(SPECIFIC_HEAT_CAPACITY_SOLID);
@@ -174,9 +177,6 @@ private:
         CheckProperty(THERMAL_CONDUCTIVITY_SOLID_XX);
         CheckProperty(THERMAL_CONDUCTIVITY_SOLID_YY);
         CheckProperty(THERMAL_CONDUCTIVITY_SOLID_XY);
-        CheckProperty(LONGITUDINAL_DISPERSIVITY);
-        CheckProperty(TRANSVERSE_DISPERSIVITY);
-        CheckProperty(SOLID_COMPRESSIBILITY);
 
         if constexpr(TDim == 3) {
             CheckProperty(THERMAL_CONDUCTIVITY_SOLID_ZZ);
@@ -191,6 +191,15 @@ private:
                                                             << " does not exist in the thermal element's properties" << std::endl;
         KRATOS_ERROR_IF(GetProperties()[rVariable] < 0.0) << rVariable.Name() << " has an invalid value at element "
                                                           << Id() << std::endl;
+    }
+
+    void CheckProperty(const Kratos::Variable<std::string>& rVariable, const std::string & rName ) const
+    {
+        KRATOS_ERROR_IF_NOT(GetProperties().Has(rVariable)) << rVariable.Name()
+                                                            << " does not exist in the thermal element's properties" << std::endl;
+        KRATOS_ERROR_IF_NOT(GetProperties()[rVariable] == rName) << rVariable.Name() << " has a value of (" << GetProperties()[rVariable]
+                                                                 << ") instead of (" << rName << ") at element "
+                                                                 << Id() << std::endl;
     }
 
     void CheckForNonZeroZCoordinateIn2D() const
@@ -254,10 +263,14 @@ private:
         return result;
     }
 
-    BoundedMatrix<double, TNumNodes, TNumNodes> CalculateCapacityMatrix(const Vector& rIntegrationCoefficients) const
+    BoundedMatrix<double, TNumNodes, TNumNodes> CalculateCapacityMatrix(
+        const Vector& rIntegrationCoefficients, const ProcessInfo& rCurrentProcessInfo) const
     {
         const auto& r_properties = GetProperties();
-        const auto  c_water = r_properties[POROSITY] * r_properties[SATURATION] *
+        RetentionLaw::Parameters parameters(r_properties, rCurrentProcessInfo);
+        auto retention_law = RetentionLawFactory::Clone(r_properties);
+        const double saturation = retention_law->CalculateSaturation(parameters);
+        const auto  c_water = r_properties[POROSITY] * saturation *
                               r_properties[DENSITY_WATER] * r_properties[SPECIFIC_HEAT_CAPACITY_WATER];
         const auto  c_solid = (1.0 - r_properties[POROSITY]) *
                               r_properties[DENSITY_SOLID] * r_properties[SPECIFIC_HEAT_CAPACITY_SOLID];

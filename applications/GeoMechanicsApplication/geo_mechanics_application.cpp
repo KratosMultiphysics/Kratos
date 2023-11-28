@@ -9,11 +9,11 @@
 //
 //  Main authors:    Vahid Galavi,
 //                   Aron Noordam
+//                   Mohamed Nabi
 //
 
 // Application includes
 #include "geo_mechanics_application.h"
-
 
 namespace Kratos {
 // We define the node type
@@ -74,7 +74,7 @@ void KratosGeoMechanicsApplication::Register() {
 
     KRATOS_REGISTER_ELEMENT("SteadyStatePwPipingElement2D4N", mSteadyStatePwPipingElement2D4N)
     KRATOS_REGISTER_ELEMENT("SteadyStatePwPipingElement3D6N", mSteadyStatePwPipingElement3D6N)
-    KRATOS_REGISTER_ELEMENT("SteadyStatePwPipingElement3D8N", mSteadyStatePwPipingElement3D8N) 
+    KRATOS_REGISTER_ELEMENT("SteadyStatePwPipingElement3D8N", mSteadyStatePwPipingElement3D8N)
 
     // Small strain elements
     KRATOS_REGISTER_ELEMENT("UPwSmallStrainElement2D3N", mUPwSmallStrainElement2D3N)
@@ -277,9 +277,19 @@ void KratosGeoMechanicsApplication::Register() {
     KRATOS_REGISTER_CONDITION("UPwLysmerAbsorbingCondition3D3N", mUPwLysmerAbsorbingCondition3D3N)
     KRATOS_REGISTER_CONDITION("UPwLysmerAbsorbingCondition3D4N", mUPwLysmerAbsorbingCondition3D4N)
 
+    KRATOS_REGISTER_CONDITION("GeoTNormalFluxCondition2D2N", mGeoTNormalFluxCondition2D2N)
+    KRATOS_REGISTER_CONDITION("GeoTNormalFluxCondition2D3N", mGeoTNormalFluxCondition2D3N)
+    KRATOS_REGISTER_CONDITION("GeoTNormalFluxCondition2D4N", mGeoTNormalFluxCondition2D4N)
+    KRATOS_REGISTER_CONDITION("GeoTNormalFluxCondition2D5N", mGeoTNormalFluxCondition2D5N)
+    KRATOS_REGISTER_CONDITION("GeoTNormalFluxCondition3D3N", mGeoTNormalFluxCondition3D3N)
+    KRATOS_REGISTER_CONDITION("GeoTNormalFluxCondition3D4N", mGeoTNormalFluxCondition3D4N)
+    KRATOS_REGISTER_CONDITION("GeoTNormalFluxCondition3D6N", mGeoTNormalFluxCondition3D6N)
+    KRATOS_REGISTER_CONDITION("GeoTNormalFluxCondition3D8N", mGeoTNormalFluxCondition3D8N)
+    KRATOS_REGISTER_CONDITION("GeoTNormalFluxCondition3D9N", mGeoTNormalFluxCondition3D9N)
+
     //Register Constitutive Laws
-    KRATOS_REGISTER_CONSTITUTIVE_LAW("BilinearCohesive3DLaw",           mBilinearCohesive3DLaw)
-    KRATOS_REGISTER_CONSTITUTIVE_LAW("BilinearCohesive2DLaw",           mBilinearCohesive2DLaw)
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("BilinearCohesive3DLaw", mBilinearCohesive3DLaw)
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("BilinearCohesive2DLaw", mBilinearCohesive2DLaw)
 
     KRATOS_REGISTER_CONSTITUTIVE_LAW("LinearElasticPlaneStrainK02DLaw",  mLinearPlaneStrainK0Law)
     KRATOS_REGISTER_CONSTITUTIVE_LAW("LinearElasticK03DLaw",             mElasticIsotropicK03DLaw)
@@ -301,6 +311,9 @@ void KratosGeoMechanicsApplication::Register() {
     KRATOS_REGISTER_CONSTITUTIVE_LAW("LinearElastic3DInterfaceLaw",   mLinearElastic3DInterfaceLaw)
 
     KRATOS_REGISTER_CONSTITUTIVE_LAW("LinearElastic2DBeamLaw",        mLinearElastic2DBeamLaw)
+
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("GeoThermalDispersion2DLaw",     mGeoThermalDispersion2DLaw)
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("GeoThermalDispersion3DLaw",     mGeoThermalDispersion3DLaw)
 
     //Register Variables
     KRATOS_REGISTER_VARIABLE( VELOCITY_COEFFICIENT )

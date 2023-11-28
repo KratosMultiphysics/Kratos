@@ -36,7 +36,6 @@ public:
     using LocalSystemMatrixType = typename BaseType::LocalSystemMatrixType;
     using NewmarkQuasistaticUPwScheme<TSparseSpace,TDenseSpace>::mBeta;
     using NewmarkQuasistaticUPwScheme<TSparseSpace,TDenseSpace>::mGamma;
-    using NewmarkQuasistaticUPwScheme<TSparseSpace,TDenseSpace>::mTheta;
 
     NewmarkDynamicUPwScheme(double beta, double gamma, double theta)
         : NewmarkQuasistaticUPwScheme<TSparseSpace,TDenseSpace>(beta, gamma, theta)
@@ -177,13 +176,7 @@ public:
                                                                  + mGamma * this->GetDeltaTime()
                                                                  * rNode.FastGetSolutionStepValue(ACCELERATION);
 
-            const double DeltaPressure =  rNode.FastGetSolutionStepValue(WATER_PRESSURE)
-                                        - rNode.FastGetSolutionStepValue(WATER_PRESSURE, 1);
-
-            rNode.FastGetSolutionStepValue(DT_WATER_PRESSURE) =  (1.0/(mTheta*this->GetDeltaTime()))
-                                                                * ( DeltaPressure
-                                                                   - (1.0-mTheta) * this->GetDeltaTime()
-                                                                   * rNode.FastGetSolutionStepValue(DT_WATER_PRESSURE,1));
+            this->UpdateScalarTimeDerivative(rNode, WATER_PRESSURE, DT_WATER_PRESSURE);
         });
 
 
@@ -335,12 +328,6 @@ public:
     }
 
 protected:
-    /// Member Variables
-    std::vector< Matrix > mMassMatrix;
-    std::vector< Vector > mAccelerationVector;
-    std::vector< Matrix > mDampingMatrix;
-    std::vector< Vector > mVelocityVector;
-
     void AddDynamicsToLHS(LocalSystemMatrixType& LHS_Contribution,
                           LocalSystemMatrixType& M,
                           LocalSystemMatrixType& C,
@@ -412,6 +399,12 @@ protected:
 
         KRATOS_CATCH( "" )
     }
+
+private:
+    std::vector< Matrix > mMassMatrix;
+    std::vector< Vector > mAccelerationVector;
+    std::vector< Matrix > mDampingMatrix;
+    std::vector< Vector > mVelocityVector;
 }; // Class NewmarkDynamicUPwScheme
 
 }
