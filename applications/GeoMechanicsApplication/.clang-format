@@ -1,16 +1,16 @@
 Language: Cpp
 AccessModifierOffset: -4
-AlignEscapedNewlinesLeft: true
+AlignEscapedNewlines: Left
 AlignTrailingComments: true
 AllowAllParametersOfDeclarationOnNextLine: true
-AllowShortBlocksOnASingleLine: false
+AllowShortBlocksOnASingleLine: Never
 AllowShortFunctionsOnASingleLine: None
 AllowShortIfStatementsOnASingleLine: false
 AllowShortLoopsOnASingleLine: false
 AlwaysBreakBeforeMultilineStrings: true
-AlwaysBreakTemplateDeclarations: true
+AlwaysBreakTemplateDeclarations: Yes
 BinPackParameters: false
-BreakBeforeBinaryOperators: false
+BreakBeforeBinaryOperators: None
 BreakBeforeBraces: Allman
 BreakBeforeTernaryOperators: true
 BreakConstructorInitializersBeforeComma: false
@@ -25,7 +25,6 @@ ExperimentalAutoDetectBinPacking: false
 IndentCaseLabels: false
 IndentWidth: 4
 IndentWrappedFunctionNames: false
-IndentFunctionDeclarationAfterType: false
 MaxEmptyLinesToKeep: 1
 KeepEmptyLinesAtTheStartOfBlocks: false
 NamespaceIndentation: None
@@ -45,6 +44,6 @@ SpacesInCStyleCastParentheses: false
 SpacesInContainerLiterals: true
 SpacesInParentheses: false
 Cpp11BracedListStyle: true
-Standard: Cpp11
+Standard: c++17
 TabWidth: 4
 UseTab: Never
