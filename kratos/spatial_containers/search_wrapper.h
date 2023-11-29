@@ -163,16 +163,12 @@ public:
         const bool ClearSolution = true
         )
     {
-#ifdef KRATOS_USING_MPI
-    // Call distributed version
-    if (mrDataCommunicator.IsDistributed()) {
-        DistributedSearchInRadius(itPointBegin, itPointEnd, Radius, rResults, ClearSolution);
-    } else { // Call serial version
-        SerialSearchInRadius(itPointBegin, itPointEnd, Radius, rResults, ClearSolution);
-    }
-#else // Calling just serial method
-    SerialSearchInRadius(itPointBegin, itPointEnd, Radius, rResults, ClearSolution);
-#endif
+        // Call distributed version
+        if (mrDataCommunicator.IsDistributed()) {
+            DistributedSearchInRadius(itPointBegin, itPointEnd, Radius, rResults, ClearSolution);
+        } else { // Call serial version
+            SerialSearchInRadius(itPointBegin, itPointEnd, Radius, rResults, ClearSolution);
+        }
     }
 
     /**
@@ -196,16 +192,12 @@ public:
         const bool ClearSolution = true
         )
     {
-#ifdef KRATOS_USING_MPI
-    // Call distributed version
-    if (mrDataCommunicator.IsDistributed()) {
-        DistributedSearchNearestInRadius(itPointBegin, itPointEnd, Radius, rResults, ClearSolution);
-    } else { // Call serial version
-        SerialSearchNearestInRadius(itPointBegin, itPointEnd, Radius, rResults, ClearSolution);
-    }
-#else // Calling just serial method
-    SerialSearchNearestInRadius(itPointBegin, itPointEnd, Radius, rResults, ClearSolution);
-#endif
+        // Call distributed version
+        if (mrDataCommunicator.IsDistributed()) {
+            DistributedSearchNearestInRadius(itPointBegin, itPointEnd, Radius, rResults, ClearSolution);
+        } else { // Call serial version
+            SerialSearchNearestInRadius(itPointBegin, itPointEnd, Radius, rResults, ClearSolution);
+        }
     }
 
     /**
@@ -226,16 +218,12 @@ public:
         const bool ClearSolution = true
         )
     {
-#ifdef KRATOS_USING_MPI
-    // Call distributed version
-    if (mrDataCommunicator.IsDistributed()) {
-        DistributedSearchNearest(itPointBegin, itPointEnd, rResults, ClearSolution);
-    } else { // Call serial version
-        SerialSearchNearest(itPointBegin, itPointEnd, rResults, ClearSolution);
-    }
-#else // Calling just serial method
-    SerialSearchNearest(itPointBegin, itPointEnd, rResults, ClearSolution);
-#endif
+        // Call distributed version
+        if (mrDataCommunicator.IsDistributed()) {
+            DistributedSearchNearest(itPointBegin, itPointEnd, rResults, ClearSolution);
+        } else { // Call serial version
+            SerialSearchNearest(itPointBegin, itPointEnd, rResults, ClearSolution);
+        }
     }
 
     /**
@@ -258,16 +246,12 @@ public:
         const bool ClearSolution = true
         )
     {
-#ifdef KRATOS_USING_MPI
-    // Call distributed version
-    if (mrDataCommunicator.IsDistributed()) {
-        DistributedSearchIsInside(itPointBegin, itPointEnd, rResults, ClearSolution);
-    } else { // Call serial version
-        SerialSearchIsInside(itPointBegin, itPointEnd, rResults, ClearSolution);
-    }
-#else // Calling just serial method
-    SerialSearchIsInside(itPointBegin, itPointEnd, rResults, ClearSolution);
-#endif
+        // Call distributed version
+        if (mrDataCommunicator.IsDistributed()) {
+            DistributedSearchIsInside(itPointBegin, itPointEnd, rResults, ClearSolution);
+        } else { // Call serial version
+            SerialSearchIsInside(itPointBegin, itPointEnd, rResults, ClearSolution);
+        }
     }
 
     ///@}
@@ -847,6 +831,53 @@ private:
 
         // Remove the non lowest rank results
         KeepOnlyLowestRankResult(rResults);
+    }
+
+#else
+    template<class TPointIteratorType>
+    void DistributedSearchInRadius(
+        TPointIteratorType itPointBegin,
+        TPointIteratorType itPointEnd,
+        const double Radius,
+        ResultContainerVectorType& rResults,
+        const bool ClearSolution = true
+        )
+    {
+        KRATOS_ERROR << "Running distributed method requires to compile with MPI support" << std::endl;
+    }
+
+    template<class TPointIteratorType>
+    void DistributedSearchNearestInRadius(
+        TPointIteratorType itPointBegin,
+        TPointIteratorType itPointEnd,
+        const double Radius,
+        ResultContainerVectorType& rResults,
+        const bool ClearSolution = true
+        )
+    {
+        KRATOS_ERROR << "Running distributed method requires to compile with MPI support" << std::endl;
+    }
+
+    template<class TPointIteratorType>
+    void DistributedSearchNearest(
+        TPointIteratorType itPointBegin,
+        TPointIteratorType itPointEnd,
+        ResultContainerVectorType& rResults,
+        const bool ClearSolution = true
+        )
+    {
+        KRATOS_ERROR << "Running distributed method requires to compile with MPI support" << std::endl;
+    }
+
+    template<class TPointIteratorType>
+    void DistributedSearchIsInside(
+        TPointIteratorType itPointBegin,
+        TPointIteratorType itPointEnd,
+        ResultContainerVectorType& rResults,
+        const bool ClearSolution = true
+        )
+    {
+        KRATOS_ERROR << "Running distributed method requires to compile with MPI support" << std::endl;
     }
 
 #endif
