@@ -98,6 +98,9 @@ public:
     void FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
 
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    void SetValuesOnIntegrationPoints(const Variable<Vector>& rVariable,
+                                      const std::vector<Vector>& rValues,
+                                      const ProcessInfo& rCurrentProcessInfo) override;
 
     void CalculateOnIntegrationPoints(const Variable<double>& rVariable,
                                       std::vector<double>& rOutput,

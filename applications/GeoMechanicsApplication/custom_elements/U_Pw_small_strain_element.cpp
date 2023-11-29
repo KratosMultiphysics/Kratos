@@ -432,9 +432,30 @@ void UPwSmallStrainElement<TDim, TNumNodes>::ExtrapolateGPValues(const Matrix& S
         rGeom[i].UnSetLock();
     }
 
-    KRATOS_CATCH( "" )
+    KRATOS_CATCH("")
 }
 
+template< unsigned int TDim, unsigned int TNumNodes >
+void UPwSmallStrainElement<TDim,TNumNodes>::SetValuesOnIntegrationPoints(const Variable<Vector>& rVariable,
+                                                                         const std::vector<Vector>& rValues,
+                                                                         const ProcessInfo& rCurrentProcessInfo)
+{
+    KRATOS_TRY
+
+    if (rVariable == CAUCHY_STRESS_VECTOR) {
+        KRATOS_ERROR_IF (rValues.size() != mStressVector.size()) <<
+            "Unexpected number of values for UPwSmallStrainElement::SetValuesOnIntegrationPoints" << std::endl;
+        std::copy(rValues.begin(), rValues.end(), mStressVector.begin());
+    } else {
+        KRATOS_ERROR_IF (rValues.size() < mConstitutiveLawVector.size()) <<
+            "Insufficient number of values for UPwSmallStrainElement::SetValuesOnIntegrationPoints" << std::endl;
+        for (unsigned int GPoint = 0; GPoint < mConstitutiveLawVector.size(); ++GPoint) {
+            mConstitutiveLawVector[GPoint]->SetValue(rVariable, rValues[GPoint], rCurrentProcessInfo);
+        }
+    }
+
+    KRATOS_CATCH("")
+}
 //----------------------------------------------------------------------------------------------------
 template< unsigned int TDim, unsigned int TNumNodes >
 void UPwSmallStrainElement<TDim,TNumNodes>::CalculateOnIntegrationPoints(const Variable<double>& rVariable,
