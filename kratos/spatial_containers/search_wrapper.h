@@ -833,6 +833,53 @@ private:
         KeepOnlyLowestRankResult(rResults);
     }
 
+#else
+    template<class TPointIteratorType>
+    void DistributedSearchInRadius(
+        TPointIteratorType itPointBegin,
+        TPointIteratorType itPointEnd,
+        const double Radius,
+        ResultContainerVectorType& rResults,
+        const bool ClearSolution = true
+        )
+    {
+        KRATOS_ERROR << "Running distributed method requires to compile with MPI support" << std::endl;
+    }
+
+    template<class TPointIteratorType>
+    void DistributedSearchNearestInRadius(
+        TPointIteratorType itPointBegin,
+        TPointIteratorType itPointEnd,
+        const double Radius,
+        ResultContainerVectorType& rResults,
+        const bool ClearSolution = true
+        )
+    {
+        KRATOS_ERROR << "Running distributed method requires to compile with MPI support" << std::endl;
+    }
+
+    template<class TPointIteratorType>
+    void DistributedSearchNearest(
+        TPointIteratorType itPointBegin,
+        TPointIteratorType itPointEnd,
+        ResultContainerVectorType& rResults,
+        const bool ClearSolution = true
+        )
+    {
+        KRATOS_ERROR << "Running distributed method requires to compile with MPI support" << std::endl;
+    }
+
+    template<class TPointIteratorType>
+    void DistributedSearchIsInside(
+        TPointIteratorType itPointBegin,
+        TPointIteratorType itPointEnd,
+        ResultContainerVectorType& rResults,
+        const bool ClearSolution = true
+        )
+    {
+        KRATOS_ERROR << "Running distributed method requires to compile with MPI support" << std::endl;
+    }
+
 #endif
 
     /**
