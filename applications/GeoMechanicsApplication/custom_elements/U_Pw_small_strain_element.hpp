@@ -87,8 +87,6 @@ public:
 
     int Check(const ProcessInfo& rCurrentProcessInfo) const override;
 
-///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
     void InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
 
     void InitializeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo) override;
@@ -97,10 +95,11 @@ public:
 
     void FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
 
-///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     void SetValuesOnIntegrationPoints(const Variable<Vector>& rVariable,
                                       const std::vector<Vector>& rValues,
                                       const ProcessInfo& rCurrentProcessInfo) override;
+
+    using UPwBaseElement<TDim,TNumNodes>::SetValuesOnIntegrationPoints;
 
     void CalculateOnIntegrationPoints(const Variable<double>& rVariable,
                                       std::vector<double>& rOutput,
@@ -121,18 +120,14 @@ public:
     // Turn back information as a string.
     std::string Info() const override
     {
-        std::stringstream buffer;
-        buffer << "U-Pw small strain Element #" << this->Id() << "\nConstitutive law: " << mConstitutiveLawVector[0]->Info();
-        return buffer.str();
+        return "U-Pw small strain Element #" + std::to_string(this->Id()) + "\nConstitutive law: " + mConstitutiveLawVector[0]->Info();
     }
 
     // Print information about this object.
     void PrintInfo(std::ostream& rOStream) const override
     {
-        rOStream << "U-Pw small strain Element #" << this->Id() << "\nConstitutive law: " << mConstitutiveLawVector[0]->Info();
+        rOStream << Info();
     }
-
-///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 protected:
 
