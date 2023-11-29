@@ -69,10 +69,10 @@ protected:
 
     struct NormalFluxVariables
     {
-        double NormalFlux;
+        double normalFlux;
         double IntegrationCoefficient;
-        array_1d<double,TNumNodes> Np;
-        array_1d<double,TNumNodes> TVector;
+        array_1d<double,TNumNodes> N;
+        array_1d<double,TNumNodes> fluxVector;
     };
     
     // ============================================================================================

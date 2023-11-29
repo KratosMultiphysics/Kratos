@@ -59,11 +59,11 @@ void TCondition<TDim,TNumNodes>::GetDofList(
 {
     KRATOS_TRY
 
-    unsigned int conditionSize = TNumNodes;
-    const GeometryType& rGeom = GetGeometry();
-    if (rConditionDofList.size() != conditionSize)
-        rConditionDofList.resize( conditionSize );
+    if (rConditionDofList.size() != TNumNodes) {
+        rConditionDofList.resize(TNumNodes);
+    }
 
+    const GeometryType& rGeom = GetGeometry();
     for (unsigned int i = 0; i < TNumNodes; ++i) {
         rConditionDofList[i] = rGeom[i].pGetDof(TEMPERATURE);
     }
@@ -74,49 +74,49 @@ void TCondition<TDim,TNumNodes>::GetDofList(
 // ============================================================================================
 // ============================================================================================
 template<unsigned int TDim, unsigned int TNumNodes>
-void TCondition<TDim,TNumNodes>::CalculateLocalSystem(
+void TCondition<TDim, TNumNodes>::CalculateLocalSystem(
     MatrixType& rLeftHandSideMatrix,
     VectorType& rRightHandSideVector,
     const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
-    unsigned int conditionSize = TNumNodes;
     //Resetting the LHS
-    if ( rLeftHandSideMatrix.size1() != conditionSize )
-        rLeftHandSideMatrix.resize( conditionSize, conditionSize, false );
-    noalias( rLeftHandSideMatrix ) = ZeroMatrix( conditionSize, conditionSize );
+    if (rLeftHandSideMatrix.size1() != TNumNodes || rLeftHandSideMatrix.size2() != TNumNodes) {
+        rLeftHandSideMatrix.resize(TNumNodes, TNumNodes, false);
+    }
+    noalias(rLeftHandSideMatrix) = ZeroMatrix(TNumNodes, TNumNodes);
 
     //Resetting the RHS
-    if ( rRightHandSideVector.size() != conditionSize )
-        rRightHandSideVector.resize( conditionSize, false );
-    noalias( rRightHandSideVector ) = ZeroVector( conditionSize );
+    if (rRightHandSideVector.size() != TNumNodes) {
+        rRightHandSideVector.resize(TNumNodes, false);
+    }
+    noalias(rRightHandSideVector) = ZeroVector(TNumNodes);
 
     this->CalculateAll(rLeftHandSideMatrix, rRightHandSideVector, rCurrentProcessInfo);
-        
-    KRATOS_CATCH( "" )
+
+    KRATOS_CATCH("")
 }
 
 // ============================================================================================
 // ============================================================================================
 template<unsigned int TDim, unsigned int TNumNodes>
-void TCondition<TDim,TNumNodes>::EquationIdVector(
+void TCondition<TDim, TNumNodes>::EquationIdVector(
     EquationIdVectorType& rResult,
     const ProcessInfo& rCurrentProcessInfo) const
 {
     KRATOS_TRY
 
-    unsigned int conditionSize = TNumNodes;
+    if (rResult.size() != TNumNodes) {
+        rResult.resize(TNumNodes, false);
+    }
+
     const GeometryType& rGeom = GetGeometry();
-
-    if (rResult.size() != conditionSize)
-        rResult.resize( conditionSize,false );
-
     for (unsigned int i = 0; i < TNumNodes; ++i) {
         rResult[i] = rGeom[i].GetDof(TEMPERATURE).EquationId();
     }
-   
-    KRATOS_CATCH( "" )
+
+    KRATOS_CATCH("")
 }
 
 // ============================================================================================
@@ -125,9 +125,9 @@ template<unsigned int TDim, unsigned int TNumNodes>
 void TCondition<TDim,TNumNodes>::CalculateAll(
     MatrixType& rLeftHandSideMatrix,
     VectorType& rRightHandSideVector,
-    const ProcessInfo& CurrentProcessInfo)
+    const ProcessInfo& rCurrentProcessInfo)
 {
-    this->CalculateRHS(rRightHandSideVector, CurrentProcessInfo);
+    this->CalculateRHS(rRightHandSideVector, rCurrentProcessInfo);
 }
 
 // ============================================================================================
@@ -135,7 +135,7 @@ void TCondition<TDim,TNumNodes>::CalculateAll(
 template<unsigned int TDim, unsigned int TNumNodes>
 void TCondition<TDim,TNumNodes>::CalculateRHS(
     VectorType& rRightHandSideVector,
-    const ProcessInfo& CurrentProcessInfo)
+    const ProcessInfo& rCurrentProcessInfo)
 {    
     KRATOS_TRY
 

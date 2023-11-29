@@ -52,47 +52,46 @@ Condition::Pointer TNormalFluxCondition<TDim,TNumNodes>::Create(
 // ============================================================================================
 // ============================================================================================
 template<unsigned int TDim, unsigned int TNumNodes>
-void TNormalFluxCondition<TDim,TNumNodes>::CalculateRHS(
+void TNormalFluxCondition<TDim, TNumNodes>::CalculateRHS(
     VectorType& rRightHandSideVector,
-    const ProcessInfo& CurrentProcessInfo)
-{        
+    const ProcessInfo& rCurrentProcessInfo)
+{
     //Previous definitions
-    const GeometryType& Geom = this->GetGeometry();
-    const GeometryType::IntegrationPointsArrayType& IntegrationPoints = Geom.IntegrationPoints(this->GetIntegrationMethod());
+    const GeometryType& rGeom = this->GetGeometry();
+    const GeometryType::IntegrationPointsArrayType& IntegrationPoints = rGeom.IntegrationPoints(this->GetIntegrationMethod());
     const unsigned int NumGPoints = IntegrationPoints.size();
-    const unsigned int LocalDim = Geom.LocalSpaceDimension();
-    
+    const unsigned int LocalDim = rGeom.LocalSpaceDimension();
+
     //Containers of variables at all integration points
-    const Matrix& NContainer = Geom.ShapeFunctionsValues(this->GetIntegrationMethod());
+    const Matrix& NContainer = rGeom.ShapeFunctionsValues(this->GetIntegrationMethod());
     GeometryType::JacobiansType JContainer(NumGPoints);
-    for(unsigned int i = 0; i < NumGPoints; ++i)
-        (JContainer[i]).resize(TDim,LocalDim,false);
-    Geom.Jacobian( JContainer, this->GetIntegrationMethod());
-    
+
+    for (auto& x : JContainer) {
+        x.resize(TDim, LocalDim, false);
+    }
+
+    rGeom.Jacobian(JContainer, this->GetIntegrationMethod());
+
     //Condition variables
-    array_1d<double,TNumNodes> normal_flux_vector;
-    for(unsigned int i = 0; i < TNumNodes; ++i)
-    {
-        normal_flux_vector[i] = Geom[i].FastGetSolutionStepValue(NORMAL_HEAT_FLUX);
+    array_1d<double, TNumNodes> normalFluxVector;
+    for (unsigned int i = 0; i < TNumNodes; ++i) {
+        normalFluxVector[i] = rGeom[i].FastGetSolutionStepValue(NORMAL_HEAT_FLUX);
     }
     NormalFluxVariables Variables;
-    
+
     //Loop over integration points
-    for(unsigned int GPoint = 0; GPoint < NumGPoints; ++GPoint) {
+    for (unsigned int GPoint = 0; GPoint < NumGPoints; ++GPoint) {
+        //Obtain N
+        noalias(Variables.N) = row(NContainer, GPoint);
+
         //Compute normal flux 
-        Variables.NormalFlux = 0.0;
-        for (unsigned int i = 0; i < TNumNodes; ++i) {
-            Variables.NormalFlux += NContainer(GPoint,i) * normal_flux_vector[i];
-        }
-        
-        //Obtain Np
-        noalias(Variables.Np) = row(NContainer,GPoint);
-                
+        Variables.normalFlux = MathUtils<>::Dot(Variables.N, normalFluxVector);
+
         //Compute weighting coefficient for integration
         this->CalculateIntegrationCoefficient(Variables.IntegrationCoefficient,
-                                              JContainer[GPoint],
-                                              IntegrationPoints[GPoint].Weight() );
-                
+            JContainer[GPoint],
+            IntegrationPoints[GPoint].Weight());
+
         //Contributions to the right hand side
         this->CalculateAndAddRHS(rRightHandSideVector, Variables);
     }
@@ -105,10 +104,10 @@ void TNormalFluxCondition<TDim,TNumNodes>::CalculateAndAddRHS(
     VectorType& rRightHandSideVector,
     NormalFluxVariables& rVariables )
 {
-    noalias(rVariables.TVector) = rVariables.NormalFlux * rVariables.Np * rVariables.IntegrationCoefficient;
+    noalias(rVariables.fluxVector) = rVariables.normalFlux * rVariables.N * rVariables.IntegrationCoefficient;
 
     GeoElementUtilities::
-        AssemblePBlockVector<0, TNumNodes>(rRightHandSideVector, rVariables.TVector);
+        AssemblePBlockVector<0, TNumNodes>(rRightHandSideVector, rVariables.fluxVector);
 }
 
 // ============================================================================================
@@ -119,17 +118,15 @@ void TNormalFluxCondition<TDim,TNumNodes>::CalculateIntegrationCoefficient(
     const Matrix& Jacobian,
     const double& Weight)
 {
-    Vector NormalVector = ZeroVector(TDim);
+    Vector normalVector = ZeroVector(TDim);
 
-    if constexpr (TDim == 2)
-    {
-        NormalVector = column(Jacobian, 0);
+    if constexpr (TDim == 2) {
+        normalVector = column(Jacobian, 0);
     }
-    else if constexpr (TDim == 3)
-    {
-        MathUtils<double>::CrossProduct(NormalVector, column(Jacobian, 0), column(Jacobian, 1));
+    else if constexpr (TDim == 3) {
+        MathUtils<double>::CrossProduct(normalVector, column(Jacobian, 0), column(Jacobian, 1));
     }
-    rIntegrationCoefficient = Weight * MathUtils<double>::Norm(NormalVector);
+    rIntegrationCoefficient = Weight * MathUtils<double>::Norm(normalVector);
 }
 
 // ============================================================================================

@@ -46,49 +46,33 @@ namespace Kratos
         /// The definition of the sizetype
         using SizeType = std::size_t;
 
-    	std::vector<ConstitutiveLaw::Pointer> mConstitutiveLawVector;
         bool mIsInitialised = false;
 
         struct ElementVariables
         {
-            ///Properties variables
-            double WaterDensity;
-            double SolidDensity;
-            double WaterHeatCapacity;
-            double SolidHeatCapacity;
-            double WaterThermalConductivity;
-            double SolidThermalConductivityXX;
-            double SolidThermalConductivityXY;
-            double SolidThermalConductivityYX;
-            double SolidThermalConductivityYY;
-            double Porosity;
-            double Saturation;
+            double waterDensity;
+            double solidDensity;
+            double waterHeatCapacity;
+            double solidHeatCapacity;
+            double porosity;
+            double saturation;
 
-            ///ProcessInfo variables
-            double DtTemperatureCoefficient;
-
-            ///Nodal variables
-            array_1d<double, TNumNodes> TemperatureVector;
-            array_1d<double, TNumNodes> DtTemperatureVector;
-
-            ///Constitutive Law parameters
-            Matrix ConstitutiveMatrix;
+            double dtTemperatureCoefficient;
+            array_1d<double, TNumNodes> temperatureVector;
+            array_1d<double, TNumNodes> dtTemperatureVector;
+            Matrix constitutiveMatrix;
             Vector N;
             Matrix GradNT;
             Matrix GradNTInitialConfiguration;
-
             Vector detJContainer;
             Matrix NContainer;
             GeometryType::ShapeFunctionsGradientsType DN_DXContainer;
-
-            // needed for updated Lagrangian:
             double detJ;
             double IntegrationCoefficient;
-
-            //Auxiliary Variables
-            BoundedMatrix<double, TNumNodes, TNumNodes> TMatrix;
-            array_1d<double, TNumNodes> TVector;
-            BoundedMatrix<double, TNumNodes, TDim> TDimMatrix;
+            BoundedMatrix<double, TNumNodes, TNumNodes> conductivityMatrix;
+            BoundedMatrix<double, TNumNodes, TNumNodes> capacityMatrix;
+            array_1d<double, TNumNodes> conductivityVector;
+            array_1d<double, TNumNodes> capacityVector;
         };
 
     	/// Default Constructor
@@ -148,7 +132,7 @@ namespace Kratos
 
         void CalculateAndAddLHS(MatrixType & rLeftHandSideMatrix, ElementVariables & rVariables);
 
-        void CalculateAndAddRHS(VectorType & rRightHandSideVector, ElementVariables & rVariables, unsigned int GPoint);
+        void CalculateAndAddRHS(VectorType & rRightHandSideVector, ElementVariables & rVariables);
 
         void CalculateKinematics(ElementVariables & rVariables, unsigned int PointNumber);
 
@@ -166,18 +150,13 @@ namespace Kratos
 
         void InitializeProperties(ElementVariables& rVariables);
 
-        virtual void CalculateConductivityMatrix(BoundedMatrix<double, TNumNodes, TNumNodes>& TMatrix,
-            ElementVariables& rVariables);
+        virtual void CalculateConductivityMatrix(ElementVariables& rVariables);
 
-        virtual void CalculateCapacityMatrix(BoundedMatrix<double, TNumNodes, TNumNodes>& TMatrix,
-            ElementVariables& rVariables) const;
+        virtual void CalculateCapacityMatrix(ElementVariables& rVariables) const;
         
-        virtual void CalculateCapacityVector(BoundedMatrix<double, TNumNodes, TNumNodes>& TMatrix,
-            array_1d<double, TNumNodes>& TVector, ElementVariables& rVariables) const;
+        virtual void CalculateCapacityVector(ElementVariables& rVariables) const;
 
-        virtual void  CalculateConductivityVector(BoundedMatrix<double, TNumNodes, TDim>& TDimMatrix,
-            BoundedMatrix<double, TNumNodes, TNumNodes>& TMatrix, array_1d<double, TNumNodes>& TVector,
-            const ElementVariables& rVariables);
+        virtual void  CalculateConductivityVector(ElementVariables& rVariables);
 
         void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector,
             const ProcessInfo& rCurrentProcessInfo) override;
