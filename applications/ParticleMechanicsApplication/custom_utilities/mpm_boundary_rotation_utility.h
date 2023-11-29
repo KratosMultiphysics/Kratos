@@ -239,7 +239,7 @@ public:
 		{
 			this->ApplySlipCondition(rLocalMatrix, rLocalVector, rGeometry);
 		}
-		// Otherwise, do the following modification [ONLY applied to penalty conditions]
+		// Otherwise, do the following modification
 		else
 		{
 			const unsigned int LocalSize = rLocalVector.size();
@@ -254,16 +254,14 @@ public:
 				{
 					if(this->IsSlip(rGeometry[itNode]))
 					{
-						// First displacement dof (normal component) for each rotated block is always constrained
+                        // First displacement dof of a Node is the normal component
 						unsigned int j = itNode * block_size;
 
                         double mu = rGeometry[itNode].GetValue(FRICTION_COEFFICIENT);
 
                         if (mu > 0) {
-                            // Positive friction coefficient -- friction active
+                            // Friction active
 
-                            // ONLY need to modify the LHS/RHS for friction if node is in sliding state, i.e. the
-                            // max tangential force has been exceeded for the node => friction_state == true
                             int friction_state = rGeometry[itNode].FastGetSolutionStepValue(FRICTION_STATE, 0);
 
                             if (friction_state == SLIDING) {
@@ -272,18 +270,13 @@ public:
                                 bool dyn_friction_set = rGeometry[itNode].Is(OUTLET);
                                 rGeometry[itNode].Set(OUTLET);
                                 rGeometry[itNode].UnSetLock();
-//                                KRATOS_WATCH(dyn_friction_set);
 
-                                // if dynamic friction has not been set, set it -- otherwise zero out current contribution
-                                // [ note: GetValue will retrieve the max tangent forces computed in AssignFrictionState ]
+                                // Zero out tangential penalty terms of RHS corresponding to SLIDING node on RHS, adding
+                                // the dynamic friction computed in AssignFrictionState if not yet added
                                 for (unsigned int i = 1; i < domain_size; i++)
                                     rLocalVector[j + i] = dyn_friction_set ? 0.0 : rGeometry[itNode].GetValue(FRICTION_CONTACT_FORCE)[i];
 
-
-//                                KRATOS_WATCH(rLocalVector[j+1]);
-//                                KRATOS_WATCH(rGeometry[itNode]);
-
-                                // allow slip along tangential direction -- zero out tangential penalty terms on LHS
+                                // Zero out tangential penalty terms of LHS corresponding to SLIDING node
                                 for (unsigned int k = j + 1; k < j + block_size; ++k) {
                                     for (unsigned int i = 0; i < rLocalMatrix.size1(); ++i) {
                                         rLocalMatrix(i, k) = 0.0;
@@ -293,7 +286,7 @@ public:
                             } // Else, do nothing -- max tangent force not exceeded, node is fixed
                         }
                         else {
-                            // Friction off -- zero out tangential entries in RHS & LHS
+                            // Friction inactive -- zero out tangential entries in RHS & LHS
                             for (unsigned int i = j + 1; i < (j + block_size); ++i) {
                                 rLocalVector[i] = 0.0;
 
