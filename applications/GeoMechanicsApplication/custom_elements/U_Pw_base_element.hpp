@@ -57,7 +57,7 @@ public:
         mThisIntegrationMethod = this->GetIntegrationMethod();
     }
 
-    ~UPwBaseElement() override {}
+    ~UPwBaseElement() override = default;
 
     Element::Pointer Create(IndexType NewId,
                             NodesArrayType const& ThisNodes,

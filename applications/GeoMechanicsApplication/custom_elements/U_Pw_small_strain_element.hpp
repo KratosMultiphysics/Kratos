@@ -51,9 +51,6 @@ public:
     using UPwBaseElement<TDim,TNumNodes>::CalculateDerivativesOnInitialConfiguration;
     using UPwBaseElement<TDim,TNumNodes>::mThisIntegrationMethod;
 
-///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-    /// Default Constructor
     explicit UPwSmallStrainElement(IndexType NewId = 0) : UPwBaseElement<TDim,TNumNodes>( NewId ) {}
 
     /// Constructor using an array of nodes
@@ -75,7 +72,6 @@ public:
     UPwSmallStrainElement(UPwSmallStrainElement&&) = delete;
     UPwSmallStrainElement& operator=(UPwSmallStrainElement&&) = delete;
 
-///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     Element::Pointer Create( IndexType NewId,
                              NodesArrayType const& ThisNodes,
@@ -117,13 +113,11 @@ public:
                                       std::vector<Matrix>& rOutput,
                                       const ProcessInfo& rCurrentProcessInfo) override;
 
-    // Turn back information as a string.
     std::string Info() const override
     {
         return "U-Pw small strain Element #" + std::to_string(this->Id()) + "\nConstitutive law: " + mConstitutiveLawVector[0]->Info();
     }
 
-    // Print information about this object.
     void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << Info();
@@ -335,11 +329,7 @@ protected:
                                                           ElementVariables& rVariables,
                                                           unsigned int GPoint );
 
-///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
 private:
-    /// Serialization
-
     friend class Serializer;
 
     void save(Serializer& rSerializer) const override
