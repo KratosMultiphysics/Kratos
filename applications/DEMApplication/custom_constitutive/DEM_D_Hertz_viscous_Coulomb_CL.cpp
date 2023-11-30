@@ -265,8 +265,8 @@ namespace Kratos {
         const double ActualTotalShearForce      = sqrt(tangential_contact_force_0 * tangential_contact_force_0 + tangential_contact_force_1 * tangential_contact_force_1);
 
         Properties& properties_of_this_contact = element->GetProperties().GetSubProperties(neighbour->GetProperties().Id());
-        const double equiv_tg_of_static_fri_ang = properties_of_this_contact[STATIC_FRICTION];
-        MaximumAdmisibleShearForce = normal_contact_force * equiv_tg_of_static_fri_ang;
+        const double fri_ang = properties_of_this_contact[STATIC_FRICTION];
+        MaximumAdmisibleShearForce = normal_contact_force * fri_ang;
 
         if (ActualTotalShearForce > MaximumAdmisibleShearForce) {
           sliding = true;
