@@ -1105,7 +1105,7 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateAll(MatrixType& rLeftHandS
 
 template <unsigned int TDim, unsigned int TNumNodes>
 double UPwSmallStrainElement<TDim, TNumNodes>::CalculateBiotCoefficient(const ElementVariables& rVariables,
-                                                                        const bool &hasBiotCoefficient) const
+                                                                        bool hasBiotCoefficient) const
 {
     KRATOS_TRY
 
@@ -1115,7 +1115,7 @@ double UPwSmallStrainElement<TDim, TNumNodes>::CalculateBiotCoefficient(const El
     if (hasBiotCoefficient) {
         return rProp[BIOT_COEFFICIENT];
     } else {
-        // calculate Bulk modulus from stiffness matrix
+        // Calculate Bulk modulus from stiffness matrix
         const double BulkModulus = CalculateBulkModulus(rVariables.ConstitutiveMatrix);
         return 1.0 - BulkModulus / rProp[BULK_MODULUS_SOLID];
     }
@@ -1125,7 +1125,7 @@ double UPwSmallStrainElement<TDim, TNumNodes>::CalculateBiotCoefficient(const El
 
 template <unsigned int TDim, unsigned int TNumNodes>
 void UPwSmallStrainElement<TDim, TNumNodes>::InitializeBiotCoefficients(ElementVariables& rVariables,
-                                                                        const bool &hasBiotCoefficient)
+                                                                        bool hasBiotCoefficient)
 {
     KRATOS_TRY
 
@@ -1149,7 +1149,7 @@ void UPwSmallStrainElement<TDim, TNumNodes>::InitializeBiotCoefficients(ElementV
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void UPwSmallStrainElement<TDim, TNumNodes>::CalculatePermeabilityUpdateFactor( ElementVariables &rVariables)
+void UPwSmallStrainElement<TDim, TNumNodes>::CalculatePermeabilityUpdateFactor(ElementVariables& rVariables)
 {
     KRATOS_TRY
 
@@ -1171,7 +1171,7 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculatePermeabilityUpdateFactor( 
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-double UPwSmallStrainElement<TDim, TNumNodes>::CalculateBulkModulus(const Matrix &ConstitutiveMatrix) const
+double UPwSmallStrainElement<TDim, TNumNodes>::CalculateBulkModulus(const Matrix& ConstitutiveMatrix) const
 {
     KRATOS_TRY
 
@@ -1247,7 +1247,7 @@ void UPwSmallStrainElement<TDim, TNumNodes>::InitializeElementVariables(ElementV
 template <unsigned int TDim, unsigned int TNumNodes>
 void UPwSmallStrainElement<TDim, TNumNodes>::CalculateBMatrix(Matrix& rB,
                                                               const Matrix& GradNpT,
-                                                              const Vector &Np)
+                                                              const Vector& Np)
 {
     KRATOS_TRY
 
@@ -1345,12 +1345,12 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateAndAddCouplingMatrix(Matri
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void UPwSmallStrainElement<TDim, TNumNodes>::CalculateCompressibilityMatrix(BoundedMatrix<double,TNumNodes,TNumNodes> &PMatrix,
-                                                                            const ElementVariables &rVariables) const
+void UPwSmallStrainElement<TDim, TNumNodes>::CalculateCompressibilityMatrix(BoundedMatrix<double,TNumNodes,TNumNodes>& rPMatrix,
+                                                                            const ElementVariables& rVariables) const
 {
     KRATOS_TRY
 
-    noalias(PMatrix) = - PORE_PRESSURE_SIGN_FACTOR 
+    noalias(rPMatrix) = - PORE_PRESSURE_SIGN_FACTOR
                        * rVariables.DtPressureCoefficient
                        * rVariables.BiotModulusInverse
                        * outer_prod(rVariables.Np, rVariables.Np)
@@ -1525,7 +1525,7 @@ void UPwSmallStrainElement<TDim,TNumNodes>::CalculateAndAddCouplingTerms(VectorT
 template <unsigned int TDim, unsigned int TNumNodes>
 void UPwSmallStrainElement<TDim, TNumNodes>::CalculateCompressibilityFlow(BoundedMatrix<double, TNumNodes, TNumNodes>& rPMatrix,
                                                                           array_1d<double, TNumNodes>& rPVector,
-                                                                          const ElementVariables &rVariables) const
+                                                                          const ElementVariables& rVariables) const
 {
     KRATOS_TRY
 
@@ -1871,7 +1871,7 @@ void UPwSmallStrainElement<TDim, TNumNodes>::SetRetentionParameters(const Elemen
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-double UPwSmallStrainElement<TDim, TNumNodes>::CalculateFluidPressure(const ElementVariables &rVariables)
+double UPwSmallStrainElement<TDim, TNumNodes>::CalculateFluidPressure(const ElementVariables& rVariables)
 {
     KRATOS_TRY
 
