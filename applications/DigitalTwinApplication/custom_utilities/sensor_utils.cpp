@@ -18,6 +18,7 @@
 #include "includes/model_part.h"
 #include "utilities/reduction_utilities.h"
 #include "utilities/parallel_utilities.h"
+#include "expression/literal_flat_expression.h"
 
 // Application includes
 
@@ -97,7 +98,7 @@ double SensorUtils::GetDomainSize(
 }
 
 template<class TContainerType>
-void SensorUtils::AssignEntitiesToClusters(
+void SensorUtils::AssignEntitiesToClustersBasedOnOptimalSensor(
     const std::vector<typename SensorViewCluster<TContainerType>::Pointer>& rSensorViewClusters,
     const std::vector<typename ContainerExpression<TContainerType>::Pointer>& rContainerExpressionsList)
 {
@@ -147,19 +148,57 @@ void SensorUtils::AssignEntitiesToClusters(
     KRATOS_CATCH("");
 }
 
+template<class TContainerType>
+void SensorUtils::GetThresholdSensorViews(
+    const double ThresholdValue,
+    const std::string& rExpressionName,
+    std::vector<typename SensorView<TContainerType>::Pointer>& rOutputSensorViews,
+    const std::vector<typename SensorView<TContainerType>::Pointer>& rNormalizedSensorViews)
+{
+    KRATOS_TRY
+
+    rOutputSensorViews.resize(rNormalizedSensorViews.size());
+
+    for (IndexType i = 0; i < rNormalizedSensorViews.size(); ++i) {
+        auto& p_normalized_sensor_view = rNormalizedSensorViews[i];
+        auto& r_input_expression = p_normalized_sensor_view->GetContainerExpression()->GetExpression();
+        auto p_output_expression = LiteralFlatExpression<int>::Create(r_input_expression.NumberOfEntities(), r_input_expression.GetItemShape());
+        const auto number_of_components = r_input_expression.GetItemComponentCount();
+
+        IndexPartition<IndexType>(r_input_expression.NumberOfEntities()).for_each([&p_output_expression, &r_input_expression, ThresholdValue, number_of_components](const auto Index){
+            const IndexType data_begin_index = Index * number_of_components;
+            for (IndexType i = 0; i < number_of_components; ++i) {
+                *(p_output_expression->begin() + i) = (r_input_expression.Evaluate(Index, data_begin_index, i) > ThresholdValue);
+            }
+        });
+
+        auto p_copy = p_normalized_sensor_view->GetContainerExpression()->Clone();
+        p_copy->SetExpression(p_output_expression);
+
+        p_normalized_sensor_view->GetSensor()->template AddContainerExpression<TContainerType>(rExpressionName, p_copy);
+        rOutputSensorViews[i] = Kratos::make_shared<SensorView<TContainerType>>(p_normalized_sensor_view->GetSensor(), rExpressionName);
+    }
+
+    KRATOS_CATCH("");
+}
+
 // template instantiations
 #ifndef KRATOS_SENSOR_UTILS
-#define KRATOS_SENSOR_UTILS(CONTAINER_TYPE)                                          \
-    template void SensorUtils::IdentifyBestSensorViewForEveryEntity<CONTAINER_TYPE>( \
-        std::vector<SensorView<CONTAINER_TYPE>::Pointer>&,                           \
-        const std::vector<SensorView<CONTAINER_TYPE>::Pointer>&);                    \
-    template ModelPart& SensorUtils::GetSensorViewsModelPart<CONTAINER_TYPE>(        \
-        const std::vector<SensorView<CONTAINER_TYPE>::Pointer>&);                    \
-    template double SensorUtils::GetDomainSize<CONTAINER_TYPE>(                      \
-        const CONTAINER_TYPE&, const DataCommunicator&);                             \
-    template void SensorUtils::AssignEntitiesToClusters<CONTAINER_TYPE>(             \
-        const std::vector<typename SensorViewCluster<CONTAINER_TYPE>::Pointer>&,     \
-        const std::vector<typename ContainerExpression<CONTAINER_TYPE>::Pointer>&);
+#define KRATOS_SENSOR_UTILS(CONTAINER_TYPE)                                                  \
+    template void SensorUtils::IdentifyBestSensorViewForEveryEntity<CONTAINER_TYPE>(         \
+        std::vector<SensorView<CONTAINER_TYPE>::Pointer>&,                                   \
+        const std::vector<SensorView<CONTAINER_TYPE>::Pointer>&);                            \
+    template ModelPart& SensorUtils::GetSensorViewsModelPart<CONTAINER_TYPE>(                \
+        const std::vector<SensorView<CONTAINER_TYPE>::Pointer>&);                            \
+    template double SensorUtils::GetDomainSize<CONTAINER_TYPE>(                              \
+        const CONTAINER_TYPE&, const DataCommunicator&);                                     \
+    template void SensorUtils::AssignEntitiesToClustersBasedOnOptimalSensor<CONTAINER_TYPE>( \
+        const std::vector<typename SensorViewCluster<CONTAINER_TYPE>::Pointer>&,             \
+        const std::vector<typename ContainerExpression<CONTAINER_TYPE>::Pointer>&);          \
+    template void SensorUtils::GetThresholdSensorViews<CONTAINER_TYPE>(                      \
+        const double, const std::string&,                                                    \
+        std::vector<typename SensorView<CONTAINER_TYPE>::Pointer>&,                          \
+        const std::vector<typename SensorView<CONTAINER_TYPE>::Pointer>&);
 
 #endif
 

@@ -50,10 +50,16 @@ public:
         const DataCommunicator& rDataCommunicator);
 
     template<class TContainerType>
-    static void AssignEntitiesToClusters(
+    static void AssignEntitiesToClustersBasedOnOptimalSensor(
         const std::vector<typename SensorViewCluster<TContainerType>::Pointer>& rSensorViewClusers,
         const std::vector<typename ContainerExpression<TContainerType>::Pointer>& rContainerExpressionsList);
 
+    template<class TContainerType>
+    static void GetThresholdSensorViews(
+        const double ThresholdValue,
+        const std::string& rExpressionName,
+        std::vector<typename SensorView<TContainerType>::Pointer>& rOutputSensorViews,
+        const std::vector<typename SensorView<TContainerType>::Pointer>& rNormalizedSensorViews);
     ///@}
 };
 

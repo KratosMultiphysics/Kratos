@@ -63,6 +63,8 @@ public:
 
     SensorViewVectorType GetSensorViews() const;
 
+    const std::vector<IndexType>& GetSensorViewIndices() const { return mSensorViewIndices; }
+
     std::vector<double> GetDistances(const std::string& rDistancesName) const;
 
     void SetEntities(const TContainerType& rContainer) { mEntities = rContainer; }

@@ -1,7 +1,9 @@
 import typing
 import abc
 import scipy.cluster.hierarchy as sch
+from scipy.spatial.distance import squareform
 from pathlib import Path
+import pyomo.environ as pyomo
 
 import KratosMultiphysics as Kratos
 import KratosMultiphysics.OptimizationApplication as KratosOA
@@ -11,7 +13,7 @@ from KratosMultiphysics.DigitalTwinApplication.utilities.sensor_utils import Get
 from KratosMultiphysics.DigitalTwinApplication.utilities.sensor_utils import GetCosineDistances
 from KratosMultiphysics.DigitalTwinApplication.utilities.sensor_utils import PrintSensorListToCSV
 from KratosMultiphysics.DigitalTwinApplication.utilities.sensor_utils import PrintSensorListToJson
-from KratosMultiphysics.DigitalTwinApplication.utilities.sensor_utils import GetFilter, GetDistance
+from KratosMultiphysics.DigitalTwinApplication.utilities.sensor_utils import GetFilter, GetDistance, GetBestCoverageSensorView
 from KratosMultiphysics.DigitalTwinApplication.utilities.data_utils import SensorViewUnionType
 from KratosMultiphysics.DigitalTwinApplication.utilities.data_utils import SensorViewUnionType
 from KratosMultiphysics.DigitalTwinApplication.utilities.expression_utils import ExpressionFilterUnionType, ExpressionUnionType
@@ -21,70 +23,6 @@ ClusterUnionType = typing.Union[
                             KratosDT.ClusterUtils.ConditionSensorViewCluster,
                             KratosDT.ClusterUtils.ElementSensorViewCluster
                         ]
-
-class ClusterSensorIdentification(abc.ABC):
-    @abc.abstractmethod
-    def GetClusterSensors(self, list_of_clusters: 'list[ClusterUnionType]') -> 'list[SensorViewUnionType]':
-        pass
-
-class MostOrthogonalSensorIdentification(ClusterSensorIdentification):
-    def GetClusterSensors(self, list_of_clusters: list[ClusterUnionType]) -> list[SensorViewUnionType]:
-        most_covered_sensitivities: ExpressionUnionType = list_of_clusters[0].GetSensorViews()[0].GetContainerExpression().Clone()
-        most_covered_sensitivities = most_covered_sensitivities * 0.0 + 1.0
-        most_covered_sensitivities /= KratosOA.ExpressionUtils.NormL2(most_covered_sensitivities)
-        most_covered_sensitivities = most_covered_sensitivities.Flatten()
-
-        # first sort list of clusters with the least cosine distance to the most covered
-        list_of_value_cluster_pair: 'list[tuple[float, ClusterUnionType]]' = []
-        best_coverage_sensor: 'typing.Optional[SensorViewUnionType]' = None
-        best_coverage_sensor_inner_product = 0.0
-        for cluster in list_of_clusters:
-            max_inner_product = 0.0
-            current_sensor_max_inner_product: 'typing.Optional[SensorViewUnionType]' = None
-            for sensor_view in cluster.GetSensorViews():
-                current_inner_product = KratosOA.ExpressionUtils.InnerProduct(most_covered_sensitivities, sensor_view.GetContainerExpression())
-                if current_inner_product > max_inner_product:
-                    max_inner_product = current_inner_product
-                    current_sensor_max_inner_product = sensor_view
-            if max_inner_product > best_coverage_sensor_inner_product:
-                best_coverage_sensor_inner_product = max_inner_product
-                best_coverage_sensor = current_sensor_max_inner_product
-            list_of_value_cluster_pair.append((max_inner_product, cluster))
-
-        list_of_sorted_clusters = sorted(list_of_value_cluster_pair, key=lambda x: x[0], reverse=True)
-
-        Kratos.Logger.PrintInfo(self.__class__.__name__, f"Found best coverage sensor \"{best_coverage_sensor.GetSensor().GetName()}\" with coverage of {best_coverage_sensor_inner_product} from cluster {list_of_sorted_clusters[0][1].Id}.")
-        best_sensor_cluster = list_of_clusters[0].Clone()
-        best_sensor_cluster.Clear()
-        best_sensor_cluster.SetSensorViews([best_coverage_sensor])
-
-        dummy_cluster = best_sensor_cluster.Clone()
-        for _, cluster in list_of_sorted_clusters[1:]:
-            max_distance = 0.0
-            potential_sensor = None
-            for sensor_view in cluster.GetSensorViews():
-                dummy_cluster.Clear()
-                dummy_sensor_views = best_sensor_cluster.GetSensorViews()
-                dummy_sensor_views.append(sensor_view)
-                dummy_cluster.SetSensorViews(dummy_sensor_views)
-                dummy_sensor_views = dummy_cluster.GetSensorViews()
-                dummy_distances = dummy_cluster.GetDistances("cosine_distance")
-                i = dummy_sensor_views.index(sensor_view)
-                n = len(dummy_sensor_views)
-                min_sensor_index = min([j for j in range(n) if i != j], key=lambda j: GetDistance(i, j, dummy_distances))
-                min_distance = GetDistance(i, min_sensor_index, dummy_distances)
-                if min_distance > max_distance:
-                    max_distance = min_distance
-                    potential_sensor = sensor_view
-
-            current_sensor_views = best_sensor_cluster.GetSensorViews()
-            current_sensor_views.append(potential_sensor)
-            best_sensor_cluster.SetSensorViews(current_sensor_views)
-            Kratos.Logger.PrintInfo(self.__class__.__name__, f"Found sensor \"{potential_sensor.GetSensor().GetName()}\" from cluster {cluster.Id}.")
-
-        return best_sensor_cluster.GetSensorViews()
-
-
 class CosineSimilaritySensorPlacementAlgorithm(SensorPlacementAlgorithm):
     @classmethod
     def GetDefaultParameters(cls) -> Kratos.Parameters:
@@ -94,10 +32,8 @@ class CosineSimilaritySensorPlacementAlgorithm(SensorPlacementAlgorithm):
             "output_to_csv"                    : true,
             "output_folder"                    : "sensor_placement/cluster_average",
             "clustering_method"                : "average",
-            "cluster_representation_method"    : "average_vector",
             "sensor_coverage_percentage"       : 5.0,
             "max_clustering_iterations"        : 100,
-            "best_sensor_identification_method": "highest_minimum",
             "filtering"                        : {}
         }""")
 
@@ -108,8 +44,6 @@ class CosineSimilaritySensorPlacementAlgorithm(SensorPlacementAlgorithm):
         self.parameters.ValidateAndAssignDefaults(self.GetDefaultParameters())
         self.is_vtu_output = self.parameters["output_to_vtu"].GetBool()
         self.is_csv_output = self.parameters["output_to_csv"].GetBool()
-        self.best_sensor_identification_method = self.parameters["best_sensor_identification_method"].GetString()
-        self.cluster_representation_method = self.parameters["cluster_representation_method"].GetString()
 
     def Execute(self, list_of_sensors: 'list[KratosDT.Sensors.Sensor]') -> None:
         self.list_of_sensors = list_of_sensors
@@ -140,7 +74,9 @@ class CosineSimilaritySensorPlacementAlgorithm(SensorPlacementAlgorithm):
         normalized_sensor_views = GetNormalizedSensorViews(list_of_sensor_views)
 
         domain_sensor_view_cluster_data = self.domain_sensor_view_cluster_type(normalized_sensor_views)
-        domain_sensor_view_cluster_data.AddDistances("cosine_distance", GetCosineDistances(normalized_sensor_views))
+        compressed_distances = GetCosineDistances(normalized_sensor_views)
+        domain_sensor_view_cluster_data.AddDistances("cosine_distance", compressed_distances)
+        distances = 1.0 - squareform(compressed_distances)
 
         model_part = domain_sensor_view_cluster_data.GetModelPart()
         data_communicator = model_part.GetCommunicator().GetDataCommunicator()
@@ -168,9 +104,32 @@ class CosineSimilaritySensorPlacementAlgorithm(SensorPlacementAlgorithm):
         maximum_allowed_domain_size_per_cluster = KratosDT.SensorUtils.GetDomainSize(first_cluster.GetEntities(), data_communicator) * self.parameters["sensor_coverage_percentage"].GetDouble() / 100.0
 
         list_of_clusters: 'list[ClusterUnionType]' = [first_cluster]
+        list_of_cluster_representative_sensors: 'list[SensorViewUnionType]' = [GetBestCoverageSensorView(normalized_sensor_views)]
         list_of_clusters_to_divide: 'list[int]' = [0]
         list_of_cluster_ids_not_divisible: list[int] = []
+
         for clustering_iteration in range(1, self.parameters["max_clustering_iterations"].GetInt() + 1):
+            # first assign entities to clusters
+            KratosDT.SensorUtils.AssignEntitiesToClustersBasedOnOptimalSensor(list_of_clusters, [sensor_view.GetContainerExpression() for sensor_view in list_of_cluster_representative_sensors])
+
+            if self.is_vtu_output:
+                # now set cluster id in every entity
+                for cluster in list_of_clusters:
+                    Kratos.VariableUtils().SetNonHistoricalVariable(KratosDT.SENSOR_CLUSTER_ID, cluster.Id, cluster.GetEntities())
+                vtu_output.PrintOutput(str(output_path / f"{model_part.FullName()}_{clustering_iteration:05d}"))
+            if self.is_csv_output:
+                for cluster in list_of_clusters:
+                    for sensor_view in cluster.GetSensorViews():
+                        sensor_view.GetSensor().SetValue(KratosDT.SENSOR_CLUSTER_ID, cluster.Id)
+                PrintSensorListToCSV(output_path / f"sensor_cluster_iteration_{clustering_iteration:05d}.csv", [sensor_view.GetSensor() for sensor_view in normalized_sensor_views], ["type", "name", "location", "value", "SENSOR_CLUSTER_ID"])
+                PrintSensorListToCSV(output_path / f"cluster_representative_sensor_iteration_{clustering_iteration:05d}.csv", [sensor_view.GetSensor() for sensor_view in list_of_cluster_representative_sensors], ["type", "name", "location", "value", "SENSOR_CLUSTER_ID"])
+
+            # now check whether the cluster is too large
+            list_of_clusters_to_divide.clear()
+            for i, cluster in enumerate(list_of_clusters):
+                if cluster.Id not in list_of_cluster_ids_not_divisible and KratosDT.SensorUtils.GetDomainSize(cluster.GetEntities(), data_communicator) > maximum_allowed_domain_size_per_cluster:
+                    list_of_clusters_to_divide.append(i)
+
             # no more clusters to divide, then exit the while loop
             if len(list_of_clusters_to_divide) == 0:
                 break
@@ -190,41 +149,38 @@ class CosineSimilaritySensorPlacementAlgorithm(SensorPlacementAlgorithm):
                 else:
                     list_of_cluster_ids_not_divisible.append(cluster.Id)
 
-            # now compute the average for each cluster
-            cluster_expressions_list: 'list[ExpressionUnionType]' = []
+            # create the mixed integer non-linear programming model
+            model = pyomo.ConcreteModel()
+            model.N = pyomo.Set(initialize=range(len(normalized_sensor_views)))
+            model.w = pyomo.Var()
+            model.x_list = pyomo.Var(model.N, domain=pyomo.Binary)
+            model.objective = pyomo.Objective(expr=model.w, sense=pyomo.minimize)
+
+            # add the equality constraints
+            model.constraints_list = pyomo.ConstraintList()
             for cluster in list_of_clusters:
-                current_exp = dummy_exp.Clone() * 0.0
-                for sensor_view in cluster.GetSensorViews():
-                    current_exp += sensor_view.GetContainerExpression()
-                if self.cluster_representation_method == "unit_vector":
-                    cluster_expressions_list.append((current_exp / KratosOA.ExpressionUtils.NormL2(current_exp)).Flatten())
-                elif self.cluster_representation_method == "average_vector":
-                    cluster_expressions_list.append((current_exp / len(cluster.GetSensorViews())).Flatten())
-                else:
-                    raise RuntimeError(f"Unsupported cluster representation method.")
+                model.constraints_list.add(sum([model.x_list[i] for i in cluster.GetSensorViewIndices()]) == 1)
 
-            KratosDT.SensorUtils.AssignEntitiesToClusters(list_of_clusters, cluster_expressions_list)
+            # add the inequality constraints
+            for i, cluster_i in enumerate(list_of_clusters):
+                for cluster_j in list_of_clusters[i+1:]:
+                    z_ineuqality_constraint = 0.0
+                    for i_x_index in cluster_i.GetSensorViewIndices():
+                        for j_x_index in cluster_j.GetSensorViewIndices():
+                            z_ineuqality_constraint += distances[i_x_index, j_x_index] * model.x_list[i_x_index] * model.x_list[j_x_index]
+                    model.constraints_list.add(expr=z_ineuqality_constraint <= model.w)
 
-            # now check whether the cluster is too large
-            list_of_clusters_to_divide.clear()
-            for i, cluster in enumerate(list_of_clusters):
-                if cluster.Id not in list_of_cluster_ids_not_divisible and KratosDT.SensorUtils.GetDomainSize(cluster.GetEntities(), data_communicator) > maximum_allowed_domain_size_per_cluster:
-                    list_of_clusters_to_divide.append(i)
+            pyomo.SolverFactory("mindtpy").solve(model, tee=False)
 
-            if self.is_vtu_output:
-                # now set cluster id in every entity
-                for cluster in list_of_clusters:
-                    Kratos.VariableUtils().SetNonHistoricalVariable(KratosDT.SENSOR_CLUSTER_ID, cluster.Id, cluster.GetEntities())
-                vtu_output.PrintOutput(str(output_path / f"{model_part.FullName()}_{clustering_iteration:05d}"))
-            if self.is_csv_output:
-                for cluster in list_of_clusters:
-                    for sensor_view in cluster.GetSensorViews():
-                        sensor_view.GetSensor().SetValue(KratosDT.SENSOR_CLUSTER_ID, cluster.Id)
-                PrintSensorListToCSV(output_path / f"sensor_cluster_iteration_{clustering_iteration:05d}.csv", [sensor_view.GetSensor() for sensor_view in normalized_sensor_views], ["type", "name", "location", "value", "SENSOR_CLUSTER_ID"])
+            list_of_cluster_representative_sensors.clear()
+            for cluster in list_of_clusters:
+                for cluster_index, sensor_view in zip(cluster.GetSensorViewIndices(), cluster.GetSensorViews()):
+                    if pyomo.value(model.x_list[cluster_index]) == 1:
+                        list_of_cluster_representative_sensors.append(sensor_view)
 
         Kratos.Logger.PrintInfo(self.__class__.__name__, f"Found {len(list_of_clusters)} clusters.")
 
-        list_of_best_sensors = [sensor_view.GetSensor() for sensor_view in MostOrthogonalSensorIdentification().GetClusterSensors(list_of_clusters)]
+        list_of_best_sensors = [sensor_view.GetSensor() for sensor_view in list_of_cluster_representative_sensors]
         PrintSensorListToJson(output_path / "best_sensor_data.json", list_of_best_sensors)
         PrintSensorListToCSV(output_path / "best_sensor_data.csv", list_of_best_sensors, ["type", "name", "location", "value", "SENSOR_CLUSTER_ID"])
 

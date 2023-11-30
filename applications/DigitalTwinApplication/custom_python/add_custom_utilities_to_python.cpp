@@ -69,6 +69,7 @@ void AddSensorClusterUtilsToPython(
         .def("Clear", &cluster::Clear)
         .def("SetSensorViews", &cluster::SetSensorViews, py::arg(sensor_views_py_hint.c_str()))
         .def("GetSensorViews", &cluster::GetSensorViews)
+        .def("GetSensorViewIndices", &cluster::GetSensorViewIndices, py::return_value_policy::reference)
         .def("GetDistances", &cluster::GetDistances, py::arg("distances_type"))
         .def("SetEntities", &cluster::SetEntities, py::arg((lower_prefix + "_array").c_str()))
         .def("GetEntities", py::overload_cast<>(&cluster::GetEntities, py::const_), py::return_value_policy::reference)
@@ -97,9 +98,9 @@ void AddCustomUtilitiesToPython(pybind11::module& m)
     sensor_utils.def("GetDomainSize", &SensorUtils::GetDomainSize<ModelPart::NodesContainerType>, py::arg("nodes_array"), py::arg("data_communicator"));
     sensor_utils.def("GetDomainSize", &SensorUtils::GetDomainSize<ModelPart::ConditionsContainerType>, py::arg("conditions_array"), py::arg("data_communicator"));
     sensor_utils.def("GetDomainSize", &SensorUtils::GetDomainSize<ModelPart::ElementsContainerType>, py::arg("elements_array"), py::arg("data_communicator"));
-    sensor_utils.def("AssignEntitiesToClusters", &SensorUtils::AssignEntitiesToClusters<ModelPart::NodesContainerType>, py::arg("nodal_sensor_view_clusters"), py::arg("nodal_expressions_list"));
-    sensor_utils.def("AssignEntitiesToClusters", &SensorUtils::AssignEntitiesToClusters<ModelPart::ConditionsContainerType>, py::arg("condition_sensor_view_clusters"), py::arg("condition_expression_list"));
-    sensor_utils.def("AssignEntitiesToClusters", &SensorUtils::AssignEntitiesToClusters<ModelPart::ElementsContainerType>, py::arg("element_sensor_view_clusters"), py::arg("elements_expression_list"));
+    sensor_utils.def("AssignEntitiesToClustersBasedOnOptimalSensor", &SensorUtils::AssignEntitiesToClustersBasedOnOptimalSensor<ModelPart::NodesContainerType>, py::arg("nodal_sensor_view_clusters"), py::arg("nodal_expressions_list"));
+    sensor_utils.def("AssignEntitiesToClustersBasedOnOptimalSensor", &SensorUtils::AssignEntitiesToClustersBasedOnOptimalSensor<ModelPart::ConditionsContainerType>, py::arg("condition_sensor_view_clusters"), py::arg("condition_expression_list"));
+    sensor_utils.def("AssignEntitiesToClustersBasedOnOptimalSensor", &SensorUtils::AssignEntitiesToClustersBasedOnOptimalSensor<ModelPart::ElementsContainerType>, py::arg("element_sensor_view_clusters"), py::arg("elements_expression_list"));
 
     auto cluster_utils = m.def_submodule("ClusterUtils");
     AddSensorClusterUtilsToPython<ModelPart::NodesContainerType>(cluster_utils);

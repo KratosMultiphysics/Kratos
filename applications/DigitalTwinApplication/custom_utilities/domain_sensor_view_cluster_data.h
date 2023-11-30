@@ -70,6 +70,11 @@ public:
 
     ModelPart& GetModelPart() const { return *mpModelPart; };
 
+    // double GetDistance(
+    //     const IndexType Index1,
+    //     const IndexType Index2,
+    //     const std::string)
+
     ///@}
 
 private:
