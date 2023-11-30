@@ -40,7 +40,7 @@ public:
 
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( UPwBaseElement );
 
-    UPwBaseElement(IndexType NewId = 0) : Element( NewId ) {}
+    explicit UPwBaseElement(IndexType NewId = 0) : Element( NewId ) {}
 
     /// Constructor using an array of nodes
     UPwBaseElement(IndexType NewId, const NodesArrayType& ThisNodes) : Element(NewId, ThisNodes) {}
@@ -58,6 +58,10 @@ public:
     }
 
     ~UPwBaseElement() override = default;
+    UPwBaseElement(const UPwBaseElement&) = delete;
+    UPwBaseElement& operator=(const UPwBaseElement&) = delete;
+    UPwBaseElement(UPwBaseElement&&) noexcept = delete;
+    UPwBaseElement& operator=(UPwBaseElement&&) noexcept = delete;
 
     Element::Pointer Create(IndexType NewId,
                             NodesArrayType const& ThisNodes,
@@ -230,10 +234,6 @@ private:
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, Element )
     }
-
-    UPwBaseElement & operator=(UPwBaseElement const& rOther);
-
-    UPwBaseElement(UPwBaseElement const& rOther);
 
 
 }; // Class UPwBaseElement
