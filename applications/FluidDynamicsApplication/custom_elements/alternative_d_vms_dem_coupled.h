@@ -303,14 +303,6 @@ protected:
         const TElementData& rData,
         double& rPressureSubscale) const override;
 
-    bool GaussSeidelEigenSystem(
-        MatrixType& rA,
-        MatrixType& rEigenVectorsMatrix,
-        MatrixType& rEigenValuesMatrix,
-        const double Tolerance = 1.0e-18,
-        const SizeType MaxIterations = 20
-        ) const;
-
     array_1d<double,3> FullConvectiveVelocity(
         const TElementData& rData) const override;
 
