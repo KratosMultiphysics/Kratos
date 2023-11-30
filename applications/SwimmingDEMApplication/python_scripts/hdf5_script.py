@@ -187,6 +187,7 @@ class EnergyAnalytics(object):
         self.file_path = os.path.join(str(self.problem_path),self.parameters["file_name"].GetString())
         self.dtype = np.float64
         self.fluid_kinetic_energy_x = []
+        self.fluid_kinetic_energy_y = []
         self.fluid_kinetic_energy_z = []
         self.particle_kinetic_energy_x = []
         self.particle_kinetic_energy_z = []
@@ -199,7 +200,7 @@ class EnergyAnalytics(object):
         self.spheres_model_part = spheres_model_part
         self.fluid_model_part = fluid_model_part
 
-        fke_x = fke_z = pke_x = pke_z = t_pke = 0.0
+        fke_x = fke_y = fke_z = pke_x = pke_z = t_pke = 0.0
         max_node_x = nodal_area_upper = nodal_area_bottom = 0.0
 
         solid_fraction_cont = solid_fraction_disc = 0.0
@@ -207,6 +208,7 @@ class EnergyAnalytics(object):
 
         for node in self.fluid_model_part.Nodes:
             fke_x += 0.5*node.GetSolutionStepValue(Kratos.NODAL_AREA)*node.GetSolutionStepValue(Kratos.FLUID_FRACTION)*node.GetSolutionStepValue(Kratos.DENSITY)*node.GetSolutionStepValue(Kratos.VELOCITY_X)**2
+            fke_y += 0.5*node.GetSolutionStepValue(Kratos.NODAL_AREA)*node.GetSolutionStepValue(Kratos.FLUID_FRACTION)*node.GetSolutionStepValue(Kratos.DENSITY)*node.GetSolutionStepValue(Kratos.VELOCITY_Y)**2
             fke_z += 0.5*node.GetSolutionStepValue(Kratos.NODAL_AREA)*node.GetSolutionStepValue(Kratos.FLUID_FRACTION)*node.GetSolutionStepValue(Kratos.DENSITY)*node.GetSolutionStepValue(Kratos.VELOCITY_Z)**2
             solid_fraction_cont += node.GetSolutionStepValue(Kratos.NODAL_AREA) - node.GetSolutionStepValue(Kratos.NODAL_AREA) * node.GetSolutionStepValue(Kratos.FLUID_FRACTION)
 
@@ -224,20 +226,16 @@ class EnergyAnalytics(object):
         self.time.append(time)
         self.particle_kinetic_energy_x.append(pke_x)
         self.particle_kinetic_energy_z.append(pke_z)
-        # self.fluid_kinetic_energy_x.append(fke_x/nodal_area_bottom)
-        # self.fluid_kinetic_energy_z.append(fke_z/nodal_area_upper)
         self.fluid_kinetic_energy_x.append(fke_x)
+        self.fluid_kinetic_energy_y.append(fke_y)
         self.fluid_kinetic_energy_z.append(fke_z)
         self.particle_total_kinetic_energy.append(t_pke)
         self.front_position.append(max_node_x)
 
         with h5py.File(self.file_path, 'a') as f:
                 self.WriteDataToFile(file_or_group = f,
-                            names = ['FLUID_KINETIC_ENERGY_X','FLUID_KINETIC_ENERGY_Z','PARTICLES_KINETIC_ENERGY_X','PARTICLES_KINETIC_ENERGY_Z', 'PARTICLES_TOTAL_KINETIC_ENERGY', 'FRONT_POSITION', 'TIME'],
-                            data = [self.fluid_kinetic_energy_x ,self.fluid_kinetic_energy_z, self.particle_kinetic_energy_x, self.particle_kinetic_energy_z, self.particle_total_kinetic_energy, self.front_position, self.time])
-                # self.WriteDataToFile(file_or_group = f,
-                #             names = ['FLUID_KINETIC_ENERGY_X','FLUID_KINETIC_ENERGY_Z', 'TIME'],
-                #             data = [self.fluid_kinetic_energy_x ,self.fluid_kinetic_energy_z, self.time])
+                            names = ['FLUID_KINETIC_ENERGY_X', 'FLUID_KINETIC_ENERGY_Y','FLUID_KINETIC_ENERGY_Z','PARTICLES_KINETIC_ENERGY_X','PARTICLES_KINETIC_ENERGY_Z', 'PARTICLES_TOTAL_KINETIC_ENERGY', 'FRONT_POSITION', 'TIME'],
+                            data = [self.fluid_kinetic_energy_x, self.fluid_kinetic_energy_y, self.fluid_kinetic_energy_z, self.particle_kinetic_energy_x, self.particle_kinetic_energy_z, self.particle_total_kinetic_energy, self.front_position, self.time])
 
     def WriteDataToFile(self, file_or_group, names, data):
         if self.group_name in file_or_group:
@@ -245,6 +243,111 @@ class EnergyAnalytics(object):
             self.sub_group = file_or_group.create_group(self.group_name)
         else:
             self.sub_group = file_or_group.create_group(self.group_name)
+
+        for name, datum in zip(names, data):
+            if name in file_or_group:
+                file_or_group.__delitem__(name)
+        for name, datum in zip(names, data):
+            self.sub_group.create_dataset(name = name, data = datum)
+
+class ParticleVelocity(object):
+    def __init__(self):
+        """The default constructor of the class.
+
+        Keyword arguments:
+        self -- It signifies an instance of a class.
+        """
+        self.parameters = Kratos.Parameters( """
+        {
+            "file_name": "sp_data.hdf5",
+            "target_porosity" : 0.3,
+            "probe_height" : 0.2032
+        }  """ )
+
+
+        self.problem_path = os.getcwd()
+        self.file_path = os.path.join(str(self.problem_path),self.parameters["file_name"].GetString())
+        self.dtype = np.float64
+        self.velocity = []
+        self.time = []
+        self.group_name = str(1)
+
+    def WriteData(self, spheres_model_part, time):
+        vel = 0.0
+        for node in spheres_model_part.Nodes:
+            vel += np.sqrt(node.GetSolutionStepValue(Kratos.VELOCITY_X)**2+node.GetSolutionStepValue(Kratos.VELOCITY_Y)**2 + node.GetSolutionStepValue(Kratos.VELOCITY_Z)**2)
+
+        self.time.append(time)
+        self.velocity.append(vel)
+
+        with h5py.File(self.file_path, 'a') as f:
+                self.WriteDataToFile(file_or_group = f,
+                            names = ['VELOCITY', 'TIME'],
+                            data = [self.velocity, self.time])
+
+    def WriteDataToFile(self, file_or_group, names, data):
+        if self.group_name in file_or_group:
+            file_or_group['/'].__delitem__(self.group_name)
+            self.sub_group = file_or_group.create_group(self.group_name)
+        else:
+            self.sub_group = file_or_group.create_group(self.group_name)
+
+        for name, datum in zip(names, data):
+            if name in file_or_group:
+                file_or_group.__delitem__(name)
+        for name, datum in zip(names, data):
+            self.sub_group.create_dataset(name = name, data = datum)
+
+
+class KineticEnergy(object):
+    def __init__(self, test_number):
+        """The default constructor of the class.
+
+        Keyword arguments:
+        self -- It signifies an instance of a class.
+        """
+        self.parameters = Kratos.Parameters( """
+        {
+            "file_name": "sp_data.hdf5",
+            "target_porosity" : 0.3,
+            "probe_height" : 0.2032
+        }  """ )
+
+
+        self.problem_path = os.getcwd()
+        self.file_path = os.path.join(str(self.problem_path),self.parameters["file_name"].GetString())
+        self.dtype = np.float64
+        self.fluid_kinetic_energy = []
+        self.time = []
+        self.group_name = str(test_number)
+
+    def WriteData(self, fluid_model_part, model_type, amin, time):
+        self.fluid_model_part = fluid_model_part
+        self.model_type = model_type
+        self.alpha_min = amin
+
+        fke = 0.0
+
+        for node in self.fluid_model_part.Nodes:
+            fke += 0.5*node.GetSolutionStepValue(Kratos.NODAL_AREA)*node.GetSolutionStepValue(Kratos.FLUID_FRACTION)*node.GetSolutionStepValue(Kratos.DENSITY)*(node.GetSolutionStepValue(Kratos.VELOCITY_X)**2+node.GetSolutionStepValue(Kratos.VELOCITY_Y)**2 + node.GetSolutionStepValue(Kratos.VELOCITY_Z)**2)
+
+        self.time.append(time)
+        self.fluid_kinetic_energy.append(fke/(8*np.pi**3))
+
+        with h5py.File(self.file_path, 'a') as f:
+                self.WriteDataToFile(file_or_group = f,
+                            names = ['FLUID_KINETIC_ENERGY', 'TIME'],
+                            data = [self.fluid_kinetic_energy, self.time])
+
+    def WriteDataToFile(self, file_or_group, names, data):
+        if self.group_name in file_or_group:
+            file_or_group['/'].__delitem__(self.group_name)
+            self.sub_group = file_or_group.create_group(self.group_name)
+        else:
+            self.sub_group = file_or_group.create_group(self.group_name)
+
+        self.sub_group.attrs['model_type'] = str(self.model_type)
+        self.sub_group.attrs['alpha_min'] = str(self.alpha_min)
 
         for name, datum in zip(names, data):
             if name in file_or_group:
