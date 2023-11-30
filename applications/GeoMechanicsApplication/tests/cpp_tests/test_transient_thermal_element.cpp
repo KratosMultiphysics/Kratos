@@ -286,7 +286,6 @@ KRATOS_TEST_CASE_IN_SUITE(EquationIdVectorTransientThermalElement2D3N, KratosGeo
     ModelPart& model_part = this_model.CreateModelPart("Main", 3);
     // Variables addition
     model_part.AddNodalSolutionStepVariable(TEMPERATURE);
-    model_part.AddNodalSolutionStepVariable(DT_TEMPERATURE);
 
     GenerateTransientThermalElement2D3N(model_part);
     SetupElement(model_part);
