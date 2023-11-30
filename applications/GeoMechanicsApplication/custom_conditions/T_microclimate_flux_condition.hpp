@@ -62,6 +62,10 @@ public:
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     Condition::Pointer Create(IndexType NewId,NodesArrayType const& ThisNodes,PropertiesType::Pointer pProperties ) const override;
+
+    void CalculateLocalSystem(MatrixType&        rLeftHandSideMatrix,
+                              VectorType&        rRightHandSideVector,
+                              const ProcessInfo& rCurrentProcessInfo) override;
  
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -129,9 +133,6 @@ protected:
 
     void CalculateNodalFluxes(const ProcessInfo& CurrentProcessInfo,
         ElementVariables& rVariables);
-
-    void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector,
-        const ProcessInfo& rCurrentProcessInfo) override;
 
     void InitializeProperties();
 
