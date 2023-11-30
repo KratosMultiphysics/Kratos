@@ -1064,15 +1064,15 @@ array_1d<double,3> QSVMSDEMCoupled<TElementData>::FullConvectiveVelocity(
     //Adding subscale term componentwise because return type is of size 3, but subscale is of size Dim
     const array_1d<double,Dim>& r_predicted_subscale = mPredictedSubscaleVelocity[rData.IntegrationPointIndex];
 
-    for (unsigned int d = 0; d < Dim; d++) {
-    }
+    for (unsigned int d = 0; d < Dim; d++)
         convective_velocity[d] += r_predicted_subscale[d];
+
     return convective_velocity;
 
 }
+
 template< class TElementData >
-    const TElementData& rData)
-void QSVMSDEMCoupled<TElementData>::UpdateSubscaleVelocity(
+void QSVMSDEMCoupled<TElementData>::UpdateSubscaleVelocity(const TElementData& rData)
 {
     array_1d<double,Dim> predicted_subscale_velocity;
 
@@ -1098,13 +1098,12 @@ void QSVMSDEMCoupled<TElementData>::UpdateSubscaleVelocity(
     double tau_two;
 
     this->CalculateTau(rData,v_d,tau_one,tau_two);
-
-}
+    for (unsigned int d = 0; d < Dim; d++)
+        predicted_subscale_velocity[d] = tau_one(d,d) * static_residual[d];
 
     noalias(mPredictedSubscaleVelocity[rData.IntegrationPointIndex]) = predicted_subscale_velocity;
 
-        predicted_subscale_velocity[d] = tau_one(d,d) * static_residual[d];
-    for (unsigned int d = 0; d < Dim; d++)
+}
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Private functions
 ///////////////////////////////////////////////////////////////////////////////////////////////////
