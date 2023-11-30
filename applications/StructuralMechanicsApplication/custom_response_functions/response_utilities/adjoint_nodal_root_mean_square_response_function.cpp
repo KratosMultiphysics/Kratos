@@ -61,11 +61,6 @@ namespace Kratos
             }
         }
 
-        KRATOS_WATCH(mTracedDofLabel)
-        KRATOS_WATCH(mTracedDofDirection)
-        KRATOS_WATCH(mTracedDofTimeDerivativeOrder)
-        KRATOS_WATCH(mTracedDynDofLabel)
-
         // Check if direction for traced dof is valid
         KRATOS_ERROR_IF_NOT((mTracedDofDirection == "X" || mTracedDofDirection == "Y" || mTracedDofDirection == "Z"))
             << "AdjointNodalDisplacementResponseFunction: Specified direction is not available. Use X, Y or Z as direction." << std::endl;
