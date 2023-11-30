@@ -32,7 +32,7 @@
 #include "custom_response_functions/response_utilities/adjoint_linear_strain_energy_response_function.h"
 #include "custom_response_functions/response_utilities/adjoint_nodal_reaction_response_function.h"
 
-#include "custom_response_functions/response_utilities/adjoint_nodal_displacement_root_mean_square_response_function.h"
+#include "custom_response_functions/response_utilities/adjoint_nodal_root_mean_square_response_function.h"
 #include "custom_response_functions/response_utilities/adjoint_damping_energy_dissipation_response_function.h"
 #include "custom_response_functions/response_utilities/adjoint_test_response_function.h"
 
@@ -87,8 +87,8 @@ void  AddCustomResponseFunctionUtilitiesToPython(pybind11::module& m)
         (m, "AdjointTestResponseFunction")
         .def(py::init<ModelPart&, Parameters>());
 
-    py::class_<AdjointNodalDisplacementRootMeanSquareResponseFunction, AdjointNodalDisplacementRootMeanSquareResponseFunction::Pointer, AdjointResponseFunction>
-        (m, "AdjointNodalDisplacementRootMeanSquareResponseFunction")
+    py::class_<AdjointNodalRootMeanSquareResponseFunction, AdjointNodalRootMeanSquareResponseFunction::Pointer, AdjointResponseFunction>
+        (m, "AdjointNodalRootMeanSquareResponseFunction")
         .def(py::init<ModelPart&, Parameters>());
 
     py::class_<AdjointDampingEnergyDissipationResponseFunction, AdjointDampingEnergyDissipationResponseFunction::Pointer, AdjointResponseFunction>

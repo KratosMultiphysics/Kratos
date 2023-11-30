@@ -43,12 +43,12 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/** \brief AdjointNodalDisplacementRootMeanSquareResponseFunction
+/** \brief AdjointNodalRootMeanSquareResponseFunction
 *
 * This is a response function which traces the radicand of the root mean square of a chosen displacement or rotation of a single
 * node as response. It is designed to be used in dynamic adjoint sensitivity analysis.
 */
-class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) AdjointNodalDisplacementRootMeanSquareResponseFunction : public AdjointStructuralResponseFunction
+class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) AdjointNodalRootMeanSquareResponseFunction : public AdjointStructuralResponseFunction
 {
 public:
     ///@name Type Definitions
@@ -56,21 +56,22 @@ public:
 
     typedef Element::DofsVectorType DofsVectorType;
     typedef Node<3>::Pointer PointTypePointer;
+    typedef Variable<array_1d<double, 3>> ArrayVariableType;
 
     ///@}
     ///@name Pointer Definitions
-    /// Pointer definition of AdjointNodalDisplacementRootMeanSquareResponseFunction
-    KRATOS_CLASS_POINTER_DEFINITION(AdjointNodalDisplacementRootMeanSquareResponseFunction);
+    /// Pointer definition of AdjointNodalRootMeanSquareResponseFunction
+    KRATOS_CLASS_POINTER_DEFINITION(AdjointNodalRootMeanSquareResponseFunction);
 
     ///@}
     ///@name Life Cycle
     ///@{
 
     /// Default constructor.
-    AdjointNodalDisplacementRootMeanSquareResponseFunction(ModelPart& rModelPart, Parameters ResponseSettings);
+    AdjointNodalRootMeanSquareResponseFunction(ModelPart& rModelPart, Parameters ResponseSettings);
 
     /// Destructor.
-    ~AdjointNodalDisplacementRootMeanSquareResponseFunction() override;
+    ~AdjointNodalRootMeanSquareResponseFunction() override;
 
     ///@}
     ///@name Operators
@@ -192,7 +193,10 @@ private:
     ///@{
 
     double mTimeDomain;
-    std::string mTracedDofLabel;
+    std::string mTracedDofLabel; // displacement or rotation
+    int mTracedDofTimeDerivativeOrder; // 0, 1, 2 -> displacement, velocity, acceleration
+    std::string mTracedDynDofLabel;
+    std::string mTracedDofDirection; // X, Y or Z
     std::string mResponsePartName;
     std::unordered_map<IndexType, std::vector<IndexType>> mElementNodeMap;
 
@@ -220,7 +224,7 @@ private:
 
     ///@}
 
-}; // Class AdjointNodalDisplacementRootMeanSquareResponseFunction
+}; // Class AdjointNodalRootMeanSquareResponseFunction
 
 ///@}
 
