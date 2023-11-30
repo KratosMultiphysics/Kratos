@@ -252,6 +252,9 @@ namespace Kratos {
                                                                             double& AuxElasticShearForce,
                                                                             double& MaximumAdmisibleShearForce) {
         double minoring_factor = 1.0;
+        if (previous_indentation > indentation)
+          minoring_factor = sqrt(indentation / previous_indentation);
+
         LocalElasticContactForce[0] = minoring_factor * OldLocalElasticContactForce[0] - mKt * LocalDeltDisp[0];
         LocalElasticContactForce[1] = minoring_factor * OldLocalElasticContactForce[1] - mKt * LocalDeltDisp[1];
 
