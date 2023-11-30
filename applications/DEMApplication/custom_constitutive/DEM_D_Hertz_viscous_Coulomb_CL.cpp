@@ -117,8 +117,7 @@ namespace Kratos {
         double AuxElasticShearForce;
         double MaximumAdmisibleShearForce;
 
-        CalculateTangentialForceWithNeighbour(normal_contact_force, OldLocalElasticContactForce, LocalElasticContactForce, ViscoDampingLocalContactForce, LocalDeltDisp,
-                                              LocalRelVel, sliding, element1, element2, indentation, previous_indentation, AuxElasticShearForce, MaximumAdmisibleShearForce);
+        CalculateTangentialForceWithNeighbour(normal_contact_force, OldLocalElasticContactForce, LocalElasticContactForce, ViscoDampingLocalContactForce, LocalDeltDisp, LocalRelVel, sliding, element1, element2, indentation, previous_indentation, AuxElasticShearForce, MaximumAdmisibleShearForce);
 
         double& elastic_energy = element1->GetElasticEnergy();
         CalculateElasticEnergyDEM(elastic_energy, indentation, LocalElasticContactForce);
@@ -137,7 +136,6 @@ namespace Kratos {
         double& inelastic_damping_tangent_energy = element1->GetInelasticDampingTangentEnergy();
         inelastic_damping_tangent_energy += 0.50 * sqrt(ViscoDampingLocalContactForce[0] * ViscoDampingLocalContactForce[0] * LocalDeltDisp[0] * LocalDeltDisp[0]) + 0.50 * sqrt(ViscoDampingLocalContactForce[1] * ViscoDampingLocalContactForce[1] * LocalDeltDisp[1] * LocalDeltDisp[1]);
     }
-
 
     double DEM_D_Hertz_viscous_Coulomb::CalculateNormalForce(SphericParticle* const element1, SphericParticle* const element2, const double indentation, double LocalCoordSystem[3][3]) {
         return CalculateNormalForce(indentation);
@@ -272,11 +270,7 @@ namespace Kratos {
         const double ActualTotalShearForce = sqrt(tangential_contact_force_0 * tangential_contact_force_0 + tangential_contact_force_1 * tangential_contact_force_1);
 
         const double equiv_tg_of_static_fri_ang = properties_of_this_contact[STATIC_FRICTION];
-        const double equiv_tg_of_dynamic_fri_ang = properties_of_this_contact[DYNAMIC_FRICTION];
-        const double equiv_friction_decay_coefficient = properties_of_this_contact[FRICTION_DECAY];
-        const double ShearRelVel = sqrt(LocalRelVel[0] * LocalRelVel[0] + LocalRelVel[1] * LocalRelVel[1]);
-        double equiv_friction = equiv_tg_of_dynamic_fri_ang + (equiv_tg_of_static_fri_ang - equiv_tg_of_dynamic_fri_ang) * exp(-equiv_friction_decay_coefficient * ShearRelVel);
-        MaximumAdmisibleShearForce = normal_contact_force * equiv_friction;
+        MaximumAdmisibleShearForce = normal_contact_force * equiv_tg_of_static_fri_ang;
 
         if (ActualTotalShearForce > MaximumAdmisibleShearForce) {
           sliding = true;
