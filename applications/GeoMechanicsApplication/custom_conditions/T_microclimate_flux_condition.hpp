@@ -63,6 +63,9 @@ public:
 
     Condition::Pointer Create(IndexType NewId,NodesArrayType const& ThisNodes,PropertiesType::Pointer pProperties ) const override;
 
+    void Initialize(const ProcessInfo& rCurrentProcessInfo) override;
+    void InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
+
     void CalculateLocalSystem(MatrixType&        rLeftHandSideMatrix,
                               VectorType&        rRightHandSideVector,
                               const ProcessInfo& rCurrentProcessInfo) override;
@@ -110,10 +113,6 @@ protected:
     // Member Variables
     
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-                
-    void Initialize(const ProcessInfo& rCurrentProcessInfo) override;
-
-    void InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
 
     void InitializeElementVariables(ElementVariables& rVariables, const ProcessInfo& rCurrentProcessInfo);
 
