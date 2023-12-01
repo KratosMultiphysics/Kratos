@@ -64,8 +64,6 @@ class DesignLoggerVTK( DesignLogger ):
         condition_results = self.output_settings["condition_results"]
         vtk_parameters.AddValue("condition_data_value_variables", condition_results)
 
-        vtk_parameters.AddValue("element_data_value_variables", condition_results)
-
         if output_mode == "write_design_surface":
             vtk_parameters["model_part_name"].SetString(self.design_surface.FullName())
         elif output_mode == "write_optimization_model_part":

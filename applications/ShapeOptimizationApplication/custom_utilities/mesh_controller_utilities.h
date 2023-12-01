@@ -121,7 +121,7 @@ public:
     {
         for(auto & condition_i: mrModelPart.Conditions()) {
             int number_of_nodes = condition_i.GetGeometry().PointsNumber();
-            condition_i.GetProperties()[THICKNESS] = condition_i.GetProperties()[THICKNESS_INITIAL];
+            condition_i.GetProperties()[THICKNESS] = condition_i.GetValue(THICKNESS_ELEMENTAL_INITIAL);
             for(auto & node_i: condition_i.GetGeometry()) {
                 condition_i.GetProperties()[THICKNESS] += node_i.FastGetSolutionStepValue(rInputVariable) / number_of_nodes;
             }

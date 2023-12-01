@@ -19,6 +19,7 @@
 #include "utilities/variable_utils.h"
 #include "utilities/parallel_utilities.h"
 #include "utilities/reduction_utilities.h"
+#include "utilities/math_utils.h"
 
 // ==============================================================================
 
@@ -38,6 +39,8 @@ DirectionalDerivativeResponseFunctionUtility::DirectionalDerivativeResponseFunct
 
 	const double min_angle = ResponseSettings["min_angle"].GetDouble();
 	mTanAngle = std::tan(min_angle * Globals::Pi / 180);
+
+	mMaxSearchAngle = ResponseSettings["neighbour_search_max_angle"].GetDouble();
 
 	const std::string gradient_mode = ResponseSettings["gradient_mode"].GetString();
 	if (gradient_mode != "analytic")
@@ -125,28 +128,46 @@ void DirectionalDerivativeResponseFunctionUtility::CalculateGradient()
 		const array_3d condition_center = cond_i.GetGeometry().Center();
 		const double condition_thickness = cond_i.GetProperties().GetValue(THICKNESS);
 
+		// find condition neighbour closest to main direction
+		double minimal_cross_product_norm = 1e8;
+		unsigned int selected_neighbour_id;
+		bool neighbour_selected = false;
 		for (auto& r_condition_neighbour : r_condition_neighbours) {
 			const array_3d neighbour_center = r_condition_neighbour.GetGeometry().Center();
-			const double neighbour_thickness = r_condition_neighbour.GetProperties().GetValue(THICKNESS);
-
 			const array_3d d = neighbour_center - condition_center;
-			if (norm_2(d) > 0 && std::abs(inner_prod(mMainDirection, d)) > 1E-8) {
-				const array_3d dt_dx = (neighbour_thickness - condition_thickness) * d / pow(norm_2(d), 2);
-				const double g_j = inner_prod(mMainDirection, dt_dx) + mTanAngle;
 
-				if (g_j <= 0) {
-					continue;
-				}
-				const array_3d dt_dx_dti = (-1) * d / pow(norm_2(d), 2);
-				const array_3d dt_dx_dtj = 1 * d / pow(norm_2(d), 2);
+			array_3d neighbour_cross_product;
+			MathUtils<double>::CrossProduct(neighbour_cross_product, d, mMainDirection);
 
-				const double dgj_dti = inner_prod(mMainDirection, dt_dx_dti);
-				const double dgj_dtj = inner_prod(mMainDirection, dt_dx_dtj);
+			double angle = std::acos(inner_prod(d, mMainDirection) / (norm_2(d) * norm_2(mMainDirection)));
 
-				// Add to aggregated sensitivities
-				cond_i.GetValue(THICKNESS_SENSITIVITY) += 1/mValue * g_j * dgj_dti;
-				r_condition_neighbour.GetValue(THICKNESS_SENSITIVITY) += 1/mValue * g_j * dgj_dtj;
+			if (norm_2(neighbour_cross_product) < minimal_cross_product_norm && angle < mMaxSearchAngle) {
+				minimal_cross_product_norm = norm_2(neighbour_cross_product);
+				selected_neighbour_id = r_condition_neighbour.Id();
+				neighbour_selected = true;
 			}
+		}
+
+		if (!neighbour_selected) {
+			continue;
+		}
+
+		auto& r_condition_neighbour = mrModelPart.GetCondition(selected_neighbour_id);
+		const array_3d neighbour_center = r_condition_neighbour.GetGeometry().Center();
+		const double neighbour_thickness = r_condition_neighbour.GetProperties().GetValue(THICKNESS);
+		const array_3d d = neighbour_center - condition_center;
+		if (norm_2(d) > 0 && std::abs(inner_prod(mMainDirection, d)) > 1E-8) {
+			const double g_j = (neighbour_thickness - condition_thickness) / inner_prod(mMainDirection, d) + mTanAngle;
+
+			if (g_j <= 0) {
+				continue;
+			}
+			const double dgj_dti = -1 / inner_prod(mMainDirection, d);
+			const double dgj_dtj = 1 / inner_prod(mMainDirection, d);
+
+			// Add to aggregated sensitivities
+			cond_i.GetValue(THICKNESS_SENSITIVITY) += 1/mValue * g_j * dgj_dti;
+			r_condition_neighbour.GetValue(THICKNESS_SENSITIVITY) += 1/mValue * g_j * dgj_dtj;
 		}
 	}
 
@@ -164,18 +185,37 @@ double DirectionalDerivativeResponseFunctionUtility::CalculateConditionValue(Con
 	double g_k = 0.0;
 
 	auto& r_neighbouring_conditions = rFace.GetValue(ADJACENT_FACES);
-    for (auto& r_condition_neighbour : r_neighbouring_conditions) {
 
+	// find condition neighbour closest to main direction
+	double minimal_cross_product_norm = 1e8;
+	unsigned int selected_neighbour_id;
+	bool neighbour_selected = false;
+	for (auto& r_condition_neighbour : r_neighbouring_conditions) {
 		const array_3d neighbour_center = r_condition_neighbour.GetGeometry().Center();
-		const double neighbour_thickness = r_condition_neighbour.GetProperties().GetValue(THICKNESS);
-
 		const array_3d d = neighbour_center - condition_center;
 
-		double g_j = 0.0;
-		if (norm_2(d) > 0 && std::abs(inner_prod(mMainDirection, d)) > 1E-8) {
-			const array_3d dt_dx = (neighbour_thickness - condition_thickness) * d / pow(norm_2(d), 2);
-			g_j = inner_prod(mMainDirection, dt_dx) + mTanAngle;
+		array_3d neighbour_cross_product;
+		MathUtils<double>::CrossProduct(neighbour_cross_product, d, mMainDirection);
+
+		double angle = std::acos(inner_prod(d, mMainDirection) / (norm_2(d) * norm_2(mMainDirection)));
+
+		if (norm_2(neighbour_cross_product) < minimal_cross_product_norm && angle < mMaxSearchAngle) {
+			minimal_cross_product_norm = norm_2(neighbour_cross_product);
+			selected_neighbour_id = r_condition_neighbour.Id();
+			neighbour_selected = true;
 		}
+	}
+
+	if (!neighbour_selected) {
+		return 0.0;
+	}
+
+	auto& r_condition_neighbour = mrModelPart.GetCondition(selected_neighbour_id);
+	const array_3d neighbour_center = r_condition_neighbour.GetGeometry().Center();
+	const double neighbour_thickness = r_condition_neighbour.GetProperties().GetValue(THICKNESS);
+	const array_3d d = neighbour_center - condition_center;
+	if (norm_2(d) > 0 && std::abs(inner_prod(mMainDirection, d)) > 1E-8) {
+		const double g_j = (neighbour_thickness - condition_thickness) / inner_prod(mMainDirection, d) + mTanAngle;
 
 		if (g_j > 0) {
 			g_k += g_j*g_j;

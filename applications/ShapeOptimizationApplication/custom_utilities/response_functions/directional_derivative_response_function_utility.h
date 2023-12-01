@@ -144,6 +144,7 @@ private:
 	array_3d mMainDirection;
 	double mValue;
 	double mTanAngle;
+	double mMaxSearchAngle;
 
 	///@}
 

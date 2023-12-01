@@ -83,6 +83,7 @@ class DirectionalDerivativeResponseFunction(ResponseFunctionInterface):
             "main_direction": [0.0, 0.0, 1.0],
             "gradient_mode": "analytic",
             "min_angle": 0.0,
+            "neighbour_search_max_angle": 60.0,
             "step_size": 1e-6
         }""")
         return this_defaults
@@ -125,10 +126,8 @@ class DirectionalDerivativeResponseFunction(ResponseFunctionInterface):
     def CalculateGradient(self):
         Logger.PrintInfo("DirectionalDerivativeResponse", "Starting gradient calculation for response", self.identifier)
 
-        # for condition in self.model_part.Conditions:
-        #     condition.SetValue(KSO.THICKNESS_SENSITIVITY, 0.0)
-        for property in self.model_part.Properties:
-            property.SetValue(KSO.THICKNESS_SENSITIVITY, 0.0)
+        for condition in self.model_part.Conditions:
+            condition.SetValue(KSO.THICKNESS_SENSITIVITY, 0.0)
 
         startTime = timer.time()
         self.response_function_utility.CalculateGradient()

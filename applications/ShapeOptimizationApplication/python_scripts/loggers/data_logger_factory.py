@@ -56,7 +56,7 @@ class DataLogger():
             "sensitivity_heatmap"       : false,
             "sensitivity_heatmap_settings": {},
             "nodal_results"             : [ "SHAPE_CHANGE" ],
-            "condition_results"         : [ "THICKNESS" ],
+            "condition_results"         : [],
             "output_format"             : { "name": "vtk" }
         }""")
 
