@@ -36,6 +36,10 @@ void StubTimeLoopExecutor::SetCancelDelegate(const std::function<bool()>& rCance
     // intentionally empty
 }
 
+void StubTimeLoopExecutor::SetProgressDelegate(const std::function<void(double)>& rProgressDelegate) {
+    // intentionally empty
+}
+
 void StubTimeLoopExecutor::SetTimeIncrementor(std::unique_ptr<TimeIncrementor> pTimeIncrementor) {
     // intentionally empty
 }
