@@ -70,7 +70,6 @@ KRATOS_TEST_CASE_IN_SUITE(NoThrowWhenInitializingSolutionStepOnThermalMicroClima
 
     r_model_part.CreateNewNode(1, 0.0, 0.0, 0.0);
     r_model_part.CreateNewNode(2, 1.0, 0.0, 0.0);
-    auto p_geometry = r_model_part.CreateNewGeometry("Line2D2", std::vector<ModelPart::IndexType>{1, 2});
 
     for (auto& node : r_model_part.Nodes()) {
         node.FastGetSolutionStepValue(AIR_TEMPERATURE, 0) = 1.0;
@@ -85,17 +84,16 @@ KRATOS_TEST_CASE_IN_SUITE(NoThrowWhenInitializingSolutionStepOnThermalMicroClima
 
     auto p_properties = CreateDummyConditionProperties(r_model_part);
 
-    constexpr auto number_of_dimensions = 2u;
-    constexpr auto number_of_nodes = 2u;
     constexpr auto condition_id = size_t{1};
-    auto condition = TMicroClimateFluxCondition<number_of_dimensions, number_of_nodes>{condition_id, p_geometry, p_properties};
+    const auto node_ids = std::vector<ModelPart::IndexType>{1, 2};
+    auto p_condition = r_model_part.CreateNewCondition("GeoTMicroClimateFluxCondition2D2N", condition_id, node_ids, p_properties);
 
     r_model_part.GetProcessInfo()[DELTA_TIME] = 0.5;
 
     auto error_text = std::string{};
     auto has_thrown = false;
     try {
-        condition.InitializeSolutionStep(r_model_part.GetProcessInfo());
+        p_condition->InitializeSolutionStep(r_model_part.GetProcessInfo());
     }
     catch (const Exception& e) {
         error_text = e.what();
