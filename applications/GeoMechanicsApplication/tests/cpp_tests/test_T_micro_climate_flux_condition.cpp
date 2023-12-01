@@ -32,6 +32,87 @@ std::shared_ptr<Properties> CreateDummyConditionProperties(ModelPart& rModelPart
     return p_result;
 }
 
+void CreateNodesInModelPart(ModelPart& rModelPart,
+                            std::size_t NumberOfNodes)
+{
+    for (auto node_index = 0; node_index < NumberOfNodes; ++node_index) {
+        const auto x = static_cast<double>(node_index);
+        const auto y = 0.5 * x;
+        const auto z = 0.0;
+        rModelPart.CreateNewNode(node_index+1, x, y, z);
+    }
+}
+
+void AddSolutionStepVariablesToModelPart(ModelPart& rModelPart,
+                                         const std::vector<const Variable<double>*>& rVariables)
+{
+    for (auto p_variable : rVariables) {
+        rModelPart.AddNodalSolutionStepVariable(*p_variable);
+    }
+}
+
+void AddSolutionStepValuesToNodes(ModelPart::NodesContainerType& rNodes,
+                                  const Variable<double>& rVariable)
+{
+    for (auto& node : rNodes) {
+        node.FastGetSolutionStepValue(rVariable, 0) = 1.0;
+        node.FastGetSolutionStepValue(rVariable, 1) = 0.0;
+    }
+}
+
+void AddSolutionStepValuesToNodes(ModelPart::NodesContainerType& rNodes,
+                                  const std::vector<const Variable<double>*>& rVariables)
+{
+    for (auto p_variable : rVariables) {
+        AddSolutionStepValuesToNodes(rNodes, *p_variable);
+    }
+}
+
+ModelPart& CreateDummyModelPartWithNodes(Model& rModel,
+                                         std::size_t NumberOfNodes)
+{
+    constexpr auto buffer_size = Model::IndexType{2};
+    auto& r_result = rModel.CreateModelPart("dummy", buffer_size);
+
+    const auto variables = std::vector<const Variable<double>*>{&AIR_TEMPERATURE,
+                                                                &SOLAR_RADIATION,
+                                                                &WIND_SPEED,
+                                                                &TEMPERATURE};
+    AddSolutionStepVariablesToModelPart(r_result, variables);
+
+    CreateNodesInModelPart(r_result, NumberOfNodes);
+    AddSolutionStepValuesToNodes(r_result.Nodes(), variables);
+
+    r_result.GetProcessInfo()[DELTA_TIME] = 0.5;
+
+    return r_result;
+}
+
+intrusive_ptr<Condition> CreateMicroClimateCondition(ModelPart& rModelPart,
+                                                     shared_ptr<Properties> pProperties)
+{
+    constexpr auto condition_id = std::size_t{1};
+    auto node_ids = std::vector<ModelPart::IndexType>{};
+    for (const auto& node : rModelPart.Nodes()) {
+        node_ids.emplace_back(node.Id());
+    }
+    const auto condition_name = std::string{"GeoTMicroClimateFluxCondition2D"} + std::to_string(node_ids.size()) + "N";
+    return rModelPart.CreateNewCondition(condition_name, condition_id, node_ids, pProperties);
+}
+
+std::string ExecuteInitializeSolutionStep(intrusive_ptr<Condition> pCondition,
+                                          const ProcessInfo& rProcessInfo)
+{
+    try {
+        pCondition->InitializeSolutionStep(rProcessInfo);
+    }
+    catch (const Exception& e) {
+        return e.what();
+    }
+
+    return {}; // no error message
+}
+
 }
 
 
@@ -58,50 +139,17 @@ KRATOS_TEST_CASE_IN_SUITE(NoThrowWhenInitializingThermalMicroClimateCondition, K
     KRATOS_EXPECT_FALSE(has_thrown)
 }
 
-KRATOS_TEST_CASE_IN_SUITE(NoThrowWhenInitializingSolutionStepOnThermalMicroClimateCondition, KratosGeoMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(NoErrorWhenInitializingSolutionStepOnThermalMicroClimateCondition2D2N, KratosGeoMechanicsFastSuite)
 {
     Model test_model;
-    constexpr auto buffer_size = Model::IndexType{2};
-    auto& r_model_part = test_model.CreateModelPart("dummy", buffer_size);
-    r_model_part.AddNodalSolutionStepVariable(AIR_TEMPERATURE);
-    r_model_part.AddNodalSolutionStepVariable(SOLAR_RADIATION);
-    r_model_part.AddNodalSolutionStepVariable(WIND_SPEED);
-    r_model_part.AddNodalSolutionStepVariable(TEMPERATURE);
+    constexpr auto number_of_nodes = std::size_t{2};
+    auto& r_model_part = CreateDummyModelPartWithNodes(test_model, number_of_nodes);
+    auto  p_properties = CreateDummyConditionProperties(r_model_part);
+    auto  p_condition  = CreateMicroClimateCondition(r_model_part, p_properties);
 
-    r_model_part.CreateNewNode(1, 0.0, 0.0, 0.0);
-    r_model_part.CreateNewNode(2, 1.0, 0.0, 0.0);
+    const auto error_text = ExecuteInitializeSolutionStep(p_condition, r_model_part.GetProcessInfo());
 
-    for (auto& node : r_model_part.Nodes()) {
-        node.FastGetSolutionStepValue(AIR_TEMPERATURE, 0) = 1.0;
-        node.FastGetSolutionStepValue(AIR_TEMPERATURE, 1) = 0.0;
-        node.FastGetSolutionStepValue(SOLAR_RADIATION, 0) = 1.0;
-        node.FastGetSolutionStepValue(SOLAR_RADIATION, 1) = 0.0;
-        node.FastGetSolutionStepValue(WIND_SPEED, 0) = 1.0;
-        node.FastGetSolutionStepValue(WIND_SPEED, 1) = 0.0;
-        node.FastGetSolutionStepValue(TEMPERATURE, 0) = 1.0;
-        node.FastGetSolutionStepValue(TEMPERATURE, 1) = 0.0;
-    }
-
-    auto p_properties = CreateDummyConditionProperties(r_model_part);
-
-    constexpr auto condition_id = size_t{1};
-    const auto node_ids = std::vector<ModelPart::IndexType>{1, 2};
-    auto p_condition = r_model_part.CreateNewCondition("GeoTMicroClimateFluxCondition2D2N", condition_id, node_ids, p_properties);
-
-    r_model_part.GetProcessInfo()[DELTA_TIME] = 0.5;
-
-    auto error_text = std::string{};
-    auto has_thrown = false;
-    try {
-        p_condition->InitializeSolutionStep(r_model_part.GetProcessInfo());
-    }
-    catch (const Exception& e) {
-        error_text = e.what();
-        has_thrown = true;
-    }
-
-    KRATOS_EXPECT_STREQ(error_text.data(), std::string{}.data())
-    KRATOS_EXPECT_FALSE(has_thrown)
+    KRATOS_EXPECT_STREQ(error_text.data(), "")
 }
 
 }
