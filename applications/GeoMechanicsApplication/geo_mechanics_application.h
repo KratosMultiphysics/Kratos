@@ -30,6 +30,7 @@
 // conditions
 #include "custom_conditions/Pw_normal_flux_condition.hpp"
 #include "custom_conditions/T_normal_flux_condition.h"
+#include "custom_conditions/T_microclimate_flux_condition.hpp"
 #include "custom_conditions/U_Pw_face_load_condition.hpp"
 #include "custom_conditions/U_Pw_face_load_interface_condition.hpp"
 #include "custom_conditions/U_Pw_force_condition.hpp"
@@ -534,6 +535,17 @@ private:
     const GeoTNormalFluxCondition<3, 4> mGeoTNormalFluxCondition3D4N{ 0, Kratos::make_shared< Quadrilateral3D4 <NodeType> >(Condition::GeometryType::PointsArrayType(4)) };
     const GeoTNormalFluxCondition<3, 8> mGeoTNormalFluxCondition3D8N{ 0, Kratos::make_shared< Quadrilateral3D8 <NodeType> >(Condition::GeometryType::PointsArrayType(8)) };
     const GeoTNormalFluxCondition<3, 9> mGeoTNormalFluxCondition3D9N{ 0, Kratos::make_shared< Quadrilateral3D9 <NodeType> >(Condition::GeometryType::PointsArrayType(9)) };
+
+    const TMicroClimateFluxCondition<2, 2> mGeoTMicroClimateFluxCondition2D2N{0, Kratos::make_shared<Line2D2         <NodeType>>(Condition::GeometryType::PointsArrayType(2))};
+    const TMicroClimateFluxCondition<2, 3> mGeoTMicroClimateFluxCondition2D3N{0, Kratos::make_shared<Line2D3         <NodeType>>(Condition::GeometryType::PointsArrayType(3))};
+    const TMicroClimateFluxCondition<2, 4> mGeoTMicroClimateFluxCondition2D4N{0, Kratos::make_shared<Line2D4         <NodeType>>(Condition::GeometryType::PointsArrayType(4))};
+    const TMicroClimateFluxCondition<2, 5> mGeoTMicroClimateFluxCondition2D5N{0, Kratos::make_shared<Line2D5         <NodeType>>(Condition::GeometryType::PointsArrayType(5))};
+    const TMicroClimateFluxCondition<3, 3> mGeoTMicroClimateFluxCondition3D3N{0, Kratos::make_shared<Triangle3D3     <NodeType>>(Condition::GeometryType::PointsArrayType(3))};
+    const TMicroClimateFluxCondition<3, 6> mGeoTMicroClimateFluxCondition3D6N{0, Kratos::make_shared<Triangle3D6     <NodeType>>(Condition::GeometryType::PointsArrayType(6))};
+    const TMicroClimateFluxCondition<3, 4> mGeoTMicroClimateFluxCondition3D4N{0, Kratos::make_shared<Quadrilateral3D4<NodeType>>(Condition::GeometryType::PointsArrayType(4))};
+    const TMicroClimateFluxCondition<3, 8> mGeoTMicroClimateFluxCondition3D8N{0, Kratos::make_shared<Quadrilateral3D8<NodeType>>(Condition::GeometryType::PointsArrayType(8))};
+    const TMicroClimateFluxCondition<3, 9> mGeoTMicroClimateFluxCondition3D9N{0, Kratos::make_shared<Quadrilateral3D9<NodeType>>(Condition::GeometryType::PointsArrayType(9))};
+
 
     // constitutive models
     const BilinearCohesive3DLaw             mBilinearCohesive3DLaw;
