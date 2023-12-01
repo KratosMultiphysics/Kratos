@@ -112,7 +112,7 @@ private:
         return mCancelDelegate && mCancelDelegate();
     }
 
-    void UpdateProgress(double Time)
+    void UpdateProgress(double Time) const
     {
         if (mProgressDelegate) {
             mProgressDelegate(Time);
