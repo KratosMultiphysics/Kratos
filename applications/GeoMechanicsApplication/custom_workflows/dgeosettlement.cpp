@@ -155,7 +155,7 @@ void KratosGeoSettlement::InitializeProcessFactory()
 int KratosGeoSettlement::RunStage(const std::filesystem::path&            rWorkingDirectory,
                                   const std::filesystem::path&            rProjectParametersFile,
                                   const std::function<void(const char*)>& rLogCallback,
-                                  const std::function<void(double)>&      ,
+                                  const std::function<void(double)>&      rProgressDelegate,
                                   const std::function<void(const char*)>& ,
                                   const std::function<bool()>&            rShouldCancel)
 {
@@ -203,6 +203,7 @@ int KratosGeoSettlement::RunStage(const std::filesystem::path&            rWorki
         if (mpTimeLoopExecutor)
         {
             mpTimeLoopExecutor->SetCancelDelegate(rShouldCancel);
+            mpTimeLoopExecutor->SetProgressDelegate(rProgressDelegate);
             mpTimeLoopExecutor->SetProcessObservables(process_observables);
             mpTimeLoopExecutor->SetTimeIncrementor(MakeTimeIncrementor(project_parameters));
             mpTimeLoopExecutor->SetSolverStrategyWrapper(MakeStrategyWrapper(project_parameters,
