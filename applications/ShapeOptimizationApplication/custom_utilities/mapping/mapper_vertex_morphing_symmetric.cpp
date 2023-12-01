@@ -91,8 +91,39 @@ void MapperVertexMorphingSymmetric::Map( const Variable<array_3d> &rOriginVariab
 
 void MapperVertexMorphingSymmetric::Map( const Variable<double> &rOriginVariable, const Variable<double> &rDestinationVariable)
 {
-    KRATOS_ERROR << "Scalar mapping not possible." << std::endl;
-}
+    if (mIsMappingInitialized == false)
+        Initialize();
+
+    BuiltinTimer timer;
+    KRATOS_INFO("") << std::endl;
+    KRATOS_INFO("ShapeOpt") << "Starting mapping of " << rOriginVariable.Name() << "..." << std::endl;
+
+    Vector values_origin(mrOriginModelPart.Nodes().size());
+    Vector values_destination(mrDestinationModelPart.Nodes().size());
+
+    // Prepare vectors for mapping
+    values_origin.clear();
+    values_destination.clear();
+
+    block_for_each(mrOriginModelPart.Nodes(), [&](const ModelPart::NodeType& rNode) {
+        const int i = rNode.GetValue(MAPPING_ID);
+        const double& r_nodal_variable = rNode.FastGetSolutionStepValue(rOriginVariable);
+        values_origin[i] = r_nodal_variable;
+    });
+
+    // Perform mapping
+    SparseSpaceType::Mult(mMappingMatrixScalar, values_origin, values_destination);
+
+    // Assign results to nodal variable
+    block_for_each(mrDestinationModelPart.Nodes(), [&](ModelPart::NodeType& rNode) {
+        const int i = rNode.GetValue(MAPPING_ID);
+        double& r_node_double = rNode.FastGetSolutionStepValue(rDestinationVariable);
+        r_node_double = values_destination[i];
+    });
+
+    KRATOS_INFO("ShapeOpt") << "Finished mapping in " << timer.ElapsedSeconds() << " s." << std::endl;
+
+ }
 
 void MapperVertexMorphingSymmetric::InverseMap( const Variable<array_3d> &rDestinationVariable, const Variable<array_3d> &rOriginVariable)
 {
@@ -133,7 +164,36 @@ void MapperVertexMorphingSymmetric::InverseMap( const Variable<array_3d> &rDesti
 
 void MapperVertexMorphingSymmetric::InverseMap(const Variable<double> &rDestinationVariable, const Variable<double> &rOriginVariable)
 {
-    KRATOS_ERROR << "Scalar mapping not possible." << std::endl;
+    if (mIsMappingInitialized == false)
+        Initialize();
+
+    BuiltinTimer timer;
+    KRATOS_INFO("") << std::endl;
+    KRATOS_INFO("ShapeOpt") << "Starting mapping of " << rOriginVariable.Name() << "..." << std::endl;
+
+    Vector values_origin(mrOriginModelPart.Nodes().size());
+    Vector values_destination(mrDestinationModelPart.Nodes().size());
+
+    // Prepare vectors for mapping
+    values_origin.clear();
+    values_destination.clear();
+
+    block_for_each(mrDestinationModelPart.Nodes(), [&](const ModelPart::NodeType& rNode) {
+        const int i = rNode.GetValue(MAPPING_ID);
+        const double& r_nodal_value = rNode.FastGetSolutionStepValue(rDestinationVariable);
+        values_destination[i] = r_nodal_value;
+    });
+
+    SparseSpaceType::TransposeMult(mMappingMatrixScalar,values_destination,values_origin);
+
+    // Assign results to nodal variable
+    block_for_each(mrOriginModelPart.Nodes(), [&](ModelPart::NodeType& rNode) {
+        const int i = rNode.GetValue(MAPPING_ID);
+        double& r_nodal_value = rNode.FastGetSolutionStepValue(rOriginVariable);
+        r_nodal_value = values_origin[i];
+    });
+
+    KRATOS_INFO("ShapeOpt") << "Finished mapping in " << timer.ElapsedSeconds() << " s." << std::endl;
 }
 
 void MapperVertexMorphingSymmetric::Update()
@@ -165,6 +225,7 @@ void MapperVertexMorphingSymmetric::InitializeComputationOfMappingMatrix()
 {
     mpSearchTree.reset();
     mMappingMatrix.clear();
+    mMappingMatrixScalar.clear();
 }
 
 void MapperVertexMorphingSymmetric::CreateFilterFunction()
@@ -179,6 +240,7 @@ void MapperVertexMorphingSymmetric::InitializeMappingVariables()
     const unsigned int origin_node_number = mrOriginModelPart.Nodes().size();
     const unsigned int destination_node_number = mrDestinationModelPart.Nodes().size();
     mMappingMatrix.resize(destination_node_number*3,origin_node_number*3,false);
+    mMappingMatrixScalar.resize(destination_node_number,origin_node_number,false);
 }
 
 void MapperVertexMorphingSymmetric::AssignMappingIds()
@@ -310,6 +372,10 @@ void MapperVertexMorphingSymmetric::AllocateMatrix() {
             mMappingMatrix.insert_element(row_id*3+2, i*3+1, 0.0);
             mMappingMatrix.insert_element(row_id*3+2, i*3+2, 0.0);
         }
+        // each node affects a 1x1 part of the scalar mapping matrix
+        for (unsigned int i: unique_col_ids) {
+            mMappingMatrixScalar.insert_element(row_id, i, 0.0);
+        }
     }
 }
 
@@ -357,6 +423,8 @@ void MapperVertexMorphingSymmetric::FillMappingMatrixWithWeights(
                 mMappingMatrix(row_id*3+i, column_id*3+j) += weight*transformation_matrix(i,j);
             }
         }
+        // no transformation of weights for scalar mapping necessary
+        mMappingMatrixScalar(row_id, column_id) += weight;
     }
 }
 
