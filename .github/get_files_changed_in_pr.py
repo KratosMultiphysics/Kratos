@@ -1,10 +1,12 @@
-import json
 import subprocess
 from os import environ
 
 
 def get_files_changed_in_pr(pr_number: int) -> list[str]:
     # from: https://stackoverflow.com/questions/25071579/list-all-files-changed-in-a-pull-request-in-git-github
+
+    modified_files: list[str] = []
+
     try:
         process_output: str = subprocess.run(
             [
@@ -19,14 +21,15 @@ def get_files_changed_in_pr(pr_number: int) -> list[str]:
             ],
             check=True,
             capture_output=True,
-            text=True
+            text=True,
         ).stdout
 
-        return process_output.splitlines()
+        modified_files = [f'"{f_name}"' for f_name in process_output.splitlines()]
 
     except Exception as e:
         print(f"An error occured while getting the modified files: {e}")
-        return []
+
+    return modified_files
 
 
 if __name__ == "__main__":
@@ -36,4 +39,4 @@ if __name__ == "__main__":
     pr_number: int = int(environ["GITHUB_PR_NUMBER"])
     modified_files = get_files_changed_in_pr(pr_number)
 
-    print(json.dumps(modified_files))
+    print(" ".join(modified_files))
