@@ -1,6 +1,7 @@
 import json
 from argparse import ArgumentParser
 from functools import lru_cache
+from os import getenv
 from pathlib import Path
 from typing import List, Set
 
@@ -55,3 +56,4 @@ if __name__ == "__main__":
     print(f"{get_changed_applications()=}")
     print(f"{is_core_changed()=}")
     print(f"{is_mpi_core_changed()=}")
+    print(f"{getenv('CI_CHANGED_FILES')=}")
