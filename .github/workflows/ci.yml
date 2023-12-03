@@ -69,9 +69,6 @@ jobs:
     # - name: Installing dependencies
     # => must be added to the docker container to avoid reinstalling it in every CI run
 
-    - name: Print changed files
-      run: python3 kratos/python_scripts/testing/ci_utilities.py -w ${{needs.changed-files.outputs.files}}
-
     - name: Build
       shell: bash
       run: |
