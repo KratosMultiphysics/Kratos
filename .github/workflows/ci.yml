@@ -54,7 +54,8 @@ jobs:
         compiler: [gcc, clang]
     env:
       KRATOS_BUILD_TYPE: ${{ matrix.build-type }}
-      CI_CHANGED_FILES: ${{needs.changed-files.outputs.files}}
+      KRATOS_CI_CHANGED_FILES: ${{needs.changed-files.outputs.files}}
+      KRATOS_CI_APPLICATIONS: ".github/workflows/ci_apps_linux.json"
       OMPI_MCA_rmaps_base_oversubscribe: 1 # Allow oversubscription for MPI (needed for OpenMPI >= 3.0)
       OMPI_MCA_btl_vader_single_copy_mechanism: none # suppressing some annoying OpenMPI messages
 
@@ -90,6 +91,7 @@ jobs:
         fi
         source /opt/intel/oneapi/setvars.sh
         cp .github/workflows/configure.sh configure.sh
+        python3 kratos/python_scripts/testing/ci_utilities.py
         bash configure.sh
 
     - name: Running python tests
@@ -164,15 +166,14 @@ jobs:
     needs: changed-files
     env:
       KRATOS_BUILD_TYPE: Custom
+      KRATOS_CI_CHANGED_FILES: ${{needs.changed-files.outputs.files}}
+      KRATOS_CI_APPLICATIONS: ".github/workflows/ci_apps_windows.json"
 
     steps:
     - uses: actions/checkout@v4
     - uses: actions/setup-python@v4
       with:
         python-version: '3.8'
-
-    - name: Print changed files
-      run: echo "${{needs.changed-files.outputs.files}}"
 
     - name: Download boost
       run: |
@@ -194,6 +195,7 @@ jobs:
       shell: cmd
       run: |
         copy .\.github\workflows\configure.cmd
+        python kratos/python_scripts/testing/ci_utilities.py
         configure.cmd
 
     - name: Running python tests

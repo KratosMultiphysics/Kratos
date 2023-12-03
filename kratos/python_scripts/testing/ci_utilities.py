@@ -1,24 +1,31 @@
 import json
-from argparse import ArgumentParser
 from functools import lru_cache
 from os import getenv
 from pathlib import Path
 from typing import List, Set
 
-CHANGED_FILES_CI = Path("ci_changed_files.json")
 
+def check_valid_environment_configuration_exists() -> None:
+    if not getenv("KRATOS_CI_CHANGED_FILES"):
+        raise RuntimeError("Invalid CI-environment: KRATOS_CI_CHANGED_FILES")
 
-def write_changed_files_to_disk(changed_files: List[str]) -> None:
-    with open(CHANGED_FILES_CI, "w", encoding="utf-8") as ci_file:
-        json.dump(changed_files, ci_file, indent=4)
+    if not getenv("KRATOS_CI_APPLICATIONS"):
+        raise RuntimeError("Invalid CI-environment: KRATOS_CI_APPLICATIONS")
+
+    if not Path(getenv("KRATOS_CI_APPLICATIONS")).exists():
+        raise RuntimeError("Invalid CI-environment: KRATOS_CI_APPLICATIONS file does not exist")
 
 
 @lru_cache
 def changed_files() -> List[Path]:
-    with open(CHANGED_FILES_CI, encoding="utf-8") as ci_file:
-        changed_files = json.load(ci_file)
+    check_valid_environment_configuration_exists()
+    return [Path(f) for f in getenv("KRATOS_CI_CHANGED_FILES").split('" "')]
 
-    return [Path(f) for f in changed_files]
+
+def ci_applications() -> List[str]:
+    check_valid_environment_configuration_exists()
+    with open(getenv("KRATOS_CI_APPLICATIONS")) as ci_apps_file:
+        return json.load(ci_apps_file)
 
 
 def get_changed_applications() -> List[str]:
@@ -42,18 +49,10 @@ def are_only_python_files_changed() -> bool:
 
 
 if __name__ == "__main__":
-    parser: ArgumentParser = ArgumentParser()
-
-    parser.add_argument("-w", "--write", help="Write changed files as json string format", nargs="*")
-
-    args = parser.parse_args()
-
-    if args.write:
-        write_changed_files_to_disk(args.write)
-
+    print(f"{changed_files()=}")
+    print(f"{ci_applications()=}")
     print(f"{get_changed_files_extensions()=}")
     print(f"{are_only_python_files_changed()=}")
     print(f"{get_changed_applications()=}")
     print(f"{is_core_changed()=}")
     print(f"{is_mpi_core_changed()=}")
-    print(f"{getenv('CI_CHANGED_FILES')=}")
