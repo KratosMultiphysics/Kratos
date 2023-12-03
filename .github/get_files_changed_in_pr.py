@@ -1,3 +1,4 @@
+import json
 import subprocess
 from os import environ
 
@@ -24,7 +25,7 @@ def get_files_changed_in_pr(pr_number: int) -> list[str]:
             text=True,
         ).stdout
 
-        modified_files = [f'"{f_name}"' for f_name in process_output.splitlines()]
+        modified_files = process_output.splitlines()
 
     except Exception as e:
         print(f"An error occured while getting the modified files: {e}")
@@ -39,4 +40,4 @@ if __name__ == "__main__":
     pr_number: int = int(environ["GITHUB_PR_NUMBER"])
     modified_files = get_files_changed_in_pr(pr_number)
 
-    print(" ".join(modified_files))
+    print(json.dumps(modified_files))
