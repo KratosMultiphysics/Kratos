@@ -156,12 +156,19 @@ namespace Kratos {
       mFile_HeatGenContrib << std::endl;
     }
 
-    mFile_MassInSilo.open("mass_in_silo.txt", std::ios::out);
-    KRATOS_ERROR_IF_NOT(mFile_MassInSilo) << "Could not open graph mass_in_silo discharge_rate.txt!" << std::endl;
+    mFile_MassInSilo.open("graph_mass_in_silo.txt", std::ios::out);
+    KRATOS_ERROR_IF_NOT(mFile_MassInSilo) << "Could not open graph file graph_mass_in_silo.txt!" << std::endl;
     mFile_MassInSilo << "1 - TIME STEP | ";
     mFile_MassInSilo << "2 - TIME | ";
-    mFile_MassInSilo << "3 - Mass";
+    mFile_MassInSilo << "3 - MASS";
     mFile_MassInSilo << std::endl;
+
+    mFile_Coordination.open("graph_coordination.txt", std::ios::out);
+    KRATOS_ERROR_IF_NOT(mFile_Coordination) << "Could not open graph file graph_mass_in_silo.txt!" << std::endl;
+    mFile_Coordination << "1 - TIME STEP | ";
+    mFile_Coordination << "2 - TIME | ";
+    mFile_Coordination << "3 - COORDINATION";
+    mFile_Coordination << std::endl;
 
     KRATOS_CATCH("")
   }
@@ -177,6 +184,7 @@ namespace Kratos {
 
     const int num_particles     =  rModelPart.NumberOfElements();
     int       num_particles_gen =  0;
+    int       total_coord       = 0;
     double    total_vol         =  0.0;
     double    total_silo_mass   =  0.0;
 
@@ -227,6 +235,7 @@ namespace Kratos {
     for (int i = 0; i < num_particles; i++) {
       ThermalSphericParticle& particle = dynamic_cast<ThermalSphericParticle&> (*(it+i));
 
+      const int coord   = particle.mNeighbourElements.size() + particle.mNeighbourRigidFaces.size();
       const double vol  = particle.CalculateVolume();
       const double temp = particle.GetGeometry()[0].FastGetSolutionStepValue(TEMPERATURE);
 
@@ -271,6 +280,7 @@ namespace Kratos {
 
       #pragma omp critical
       {
+        total_coord += coord;
         total_vol += vol;
         total_silo_mass += mass;
         if (temp < particle_temp_min) particle_temp_min = temp;
@@ -320,6 +330,7 @@ namespace Kratos {
       }
     } // Loop over particles
 
+    total_coord       /= num_particles;
     particle_temp_avg /= num_particles;
     model_temp_avg    /= total_vol;
     particle_temp_dev  = sqrt(std::max(0.0, particle_temp_dev / num_particles - particle_temp_avg * particle_temp_avg));
@@ -424,6 +435,11 @@ namespace Kratos {
                      << total_silo_mass
                      << std::endl;
 
+    mFile_Coordination << time_step << " "
+                       << time      << " "
+                       << total_coord
+                       << std::endl;
+
     KRATOS_CATCH("")
   }
 
@@ -442,6 +458,7 @@ namespace Kratos {
     if (mFile_HeatGenValues.is_open())     mFile_HeatGenValues.close();
     if (mFile_HeatGenContrib.is_open())    mFile_HeatGenContrib.close();
     if (mFile_MassInSilo.is_open())        mFile_MassInSilo.close();
+    if (mFile_Coordination.is_open())      mFile_Coordination.close();
 
     KRATOS_CATCH("")
   }
