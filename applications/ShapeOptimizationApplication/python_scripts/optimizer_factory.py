@@ -234,6 +234,13 @@ class Optimizer:
             if not optimization_settings.Has(key):
                 raise RuntimeError("Optimizer: Required setting '{}' missing in 'optimization_settings'!".format(key))
 
+        # doing some tricks since the type of "design_variables" can be sub parameter or a list
+        if optimization_settings["design_variables"].IsSubParameter():
+            design_variable = optimization_settings["design_variables"].Clone()
+            optimization_settings.RemoveValue("design_variables")
+            optimization_settings.AddEmptyList("design_variables")
+            optimization_settings["design_variables"].Append(design_variable)
+
         optimization_settings.ValidateAndAssignDefaults(default_settings)
 
     # ------------------------------------------------------------------------------
