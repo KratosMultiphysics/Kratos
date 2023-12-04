@@ -33,8 +33,8 @@ namespace Kratos::Testing
 
     auto settlement = CustomWorkflowFactory::CreateKratosGeoSettlement();
     for (int i = 0; i < 4; ++i) {
-        auto projectFile = "ProjectParameters_stage"+ std::to_string(i + 1) + ".json";
-        int status = settlement->RunStage(working_directory, projectFile,
+        auto project_file = "ProjectParameters_stage"+ std::to_string(i + 1) + ".json";
+        int status = settlement->RunStage(working_directory, project_file,
                                           &flow_stubs::emptyLog, &flow_stubs::emptyProgress,
                                           &flow_stubs::emptyLog, &flow_stubs::emptyCancel);
 
