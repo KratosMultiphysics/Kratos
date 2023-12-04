@@ -165,4 +165,17 @@ KRATOS_TEST_CASE_IN_SUITE(NoErrorWhenInitializingSolutionStepOnThermalMicroClima
     KRATOS_EXPECT_STREQ(error_text.data(), "")
 }
 
+KRATOS_TEST_CASE_IN_SUITE(NoErrorWhenInitializingSolutionStepOnThermalMicroClimateCondition2D4N, KratosGeoMechanicsFastSuite)
+{
+    Model test_model;
+    constexpr auto number_of_nodes = std::size_t{4};
+    auto& r_model_part = CreateDummyModelPartWithNodes(test_model, number_of_nodes);
+    auto  p_properties = CreateDummyConditionProperties(r_model_part);
+    auto  p_condition  = CreateMicroClimateCondition(r_model_part, p_properties);
+
+    const auto error_text = ExecuteInitializeSolutionStep(p_condition, r_model_part.GetProcessInfo());
+
+    KRATOS_EXPECT_STREQ(error_text.data(), "")
+}
+
 }
