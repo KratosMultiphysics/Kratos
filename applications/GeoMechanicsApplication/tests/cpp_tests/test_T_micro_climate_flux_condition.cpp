@@ -43,11 +43,17 @@ void CreateNodesForLineCondition(ModelPart& rModelPart,
     }
 }
 
-void CreateNodesForLinearTriangle(ModelPart& rModelPart)
+void CreateNodesForTriangle(ModelPart& rModelPart,
+                            bool WantMidSideNodes)
 {
     rModelPart.CreateNewNode(ModelPart::IndexType{1}, 0.0, 0.0, 0.0);
     rModelPart.CreateNewNode(ModelPart::IndexType{2}, 2.0, 0.0, 0.0);
     rModelPart.CreateNewNode(ModelPart::IndexType{3}, 0.0, 2.0, 0.0);
+    if (WantMidSideNodes) {
+        rModelPart.CreateNewNode(ModelPart::IndexType{4}, 1.0, 0.0, 0.0);
+        rModelPart.CreateNewNode(ModelPart::IndexType{5}, 1.0, 1.0, 0.0);
+        rModelPart.CreateNewNode(ModelPart::IndexType{6}, 0.0, 1.0, 0.0);
+    }
 }
 
 void AddSolutionStepVariablesToModelPart(ModelPart& rModelPart,
@@ -220,7 +226,27 @@ KRATOS_TEST_CASE_IN_SUITE(NoErrorWhenInitializingSolutionStepOnThermalMicroClima
 KRATOS_TEST_CASE_IN_SUITE(NoErrorWhenInitializingSolutionStepOnThermalMicroClimateCondition3D3N, KratosGeoMechanicsFastSuite)
 {
     Model test_model;
-    auto  create_nodes_func = [](ModelPart& rModelPart){CreateNodesForLinearTriangle(rModelPart);};
+    auto  create_nodes_func = [](ModelPart& rModelPart){
+        constexpr auto want_mid_side_nodes = false;
+        CreateNodesForTriangle(rModelPart, want_mid_side_nodes);
+    };
+    auto& r_model_part = CreateDummyModelPartWithNodes(test_model, create_nodes_func);
+    auto  p_properties = CreateDummyConditionProperties(r_model_part);
+    constexpr auto dimension_size = std::size_t{3};
+    auto  p_condition  = CreateMicroClimateCondition(r_model_part, p_properties, dimension_size);
+
+    const auto error_text = ExecuteInitializeSolutionStep(p_condition, r_model_part.GetProcessInfo());
+
+    KRATOS_EXPECT_STREQ(error_text.data(), "")
+}
+
+KRATOS_TEST_CASE_IN_SUITE(NoErrorWhenInitializingSolutionStepOnThermalMicroClimateCondition3D6N, KratosGeoMechanicsFastSuite)
+{
+    Model test_model;
+    auto  create_nodes_func = [](ModelPart& rModelPart){
+        constexpr auto want_mid_side_nodes = true;
+        CreateNodesForTriangle(rModelPart, want_mid_side_nodes);
+    };
     auto& r_model_part = CreateDummyModelPartWithNodes(test_model, create_nodes_func);
     auto  p_properties = CreateDummyConditionProperties(r_model_part);
     constexpr auto dimension_size = std::size_t{3};
