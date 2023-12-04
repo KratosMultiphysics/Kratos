@@ -56,7 +56,7 @@ void CreateNodesForTriangle(ModelPart& rModelPart,
     }
 }
 
-enum class HigherOrderElementConfiguration{None, Serendipity};
+enum class HigherOrderElementConfiguration{None, Serendipity, LaGrange};
 
 void CreateNodesForQuadrilateral(ModelPart& rModelPart,
                                  HigherOrderElementConfiguration configuration )
@@ -72,6 +72,9 @@ void CreateNodesForQuadrilateral(ModelPart& rModelPart,
     rModelPart.CreateNewNode(ModelPart::IndexType{6}, 2.0, 1.0, 0.0);
     rModelPart.CreateNewNode(ModelPart::IndexType{7}, 1.0, 2.0, 0.0);
     rModelPart.CreateNewNode(ModelPart::IndexType{8}, 0.0, 1.0, 0.0);
+    if (configuration == HigherOrderElementConfiguration::LaGrange) {
+        rModelPart.CreateNewNode(ModelPart::IndexType{9}, 1.0, 1.0, 0.0);
+    }
 }
 
 void AddSolutionStepVariablesToModelPart(ModelPart& rModelPart,
@@ -296,6 +299,22 @@ KRATOS_TEST_CASE_IN_SUITE(NoErrorWhenInitializingSolutionStepOnThermalMicroClima
     Model test_model;
     auto  create_nodes_func = [](ModelPart& rModelPart){
         CreateNodesForQuadrilateral(rModelPart, HigherOrderElementConfiguration::Serendipity);
+    };
+    auto& r_model_part = CreateDummyModelPartWithNodes(test_model, create_nodes_func);
+    auto  p_properties = CreateDummyConditionProperties(r_model_part);
+    constexpr auto dimension_size = std::size_t{3};
+    auto  p_condition  = CreateMicroClimateCondition(r_model_part, p_properties, dimension_size);
+
+    const auto error_text = ExecuteInitializeSolutionStep(p_condition, r_model_part.GetProcessInfo());
+
+    KRATOS_EXPECT_STREQ(error_text.data(), "")
+}
+
+KRATOS_TEST_CASE_IN_SUITE(NoErrorWhenInitializingSolutionStepOnThermalMicroClimateCondition3D9N, KratosGeoMechanicsFastSuite)
+{
+    Model test_model;
+    auto  create_nodes_func = [](ModelPart& rModelPart){
+        CreateNodesForQuadrilateral(rModelPart, HigherOrderElementConfiguration::LaGrange);
     };
     auto& r_model_part = CreateDummyModelPartWithNodes(test_model, create_nodes_func);
     auto  p_properties = CreateDummyConditionProperties(r_model_part);
