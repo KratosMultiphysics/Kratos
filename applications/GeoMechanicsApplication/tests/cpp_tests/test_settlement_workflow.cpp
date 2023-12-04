@@ -42,15 +42,16 @@ namespace Kratos::Testing
             working_directory, project_file, &flow_stubs::emptyLog,
             &flow_stubs::emptyProgress, &flow_stubs::emptyLog, &flow_stubs::emptyCancel);
 
-        const std::string original = working_directory.generic_string() +
-                                     std::string("/test_model_stage") +
-                                     std::to_string(i + 1) + ".post.orig.res";
-        const std::string result = working_directory.generic_string() +
-                                   std::string("/test_model_stage") +
-                                   std::to_string(i + 1) + ".post.res";
+        const std::string original_file =
+            "test_model_stage" + std::to_string(i + 1) + ".post.orig.res";
+        const std::string result_file =
+            "test_model_stage" + std::to_string(i + 1) + ".post.res";
+
+        const auto original_path = working_directory / original_file;
+        const auto result_path = working_directory / result_file;
 
         KRATOS_EXPECT_EQ(status, 0);
-        KRATOS_EXPECT_TRUE(TestUtilities::CompareFiles(original, result))
+        KRATOS_EXPECT_TRUE(TestUtilities::CompareFiles(original_path, result_path))
     }
 }
 
