@@ -32,8 +32,8 @@ std::shared_ptr<Properties> CreateDummyConditionProperties(ModelPart& rModelPart
     return p_result;
 }
 
-void CreateNodesInModelPart(ModelPart& rModelPart,
-                            std::size_t NumberOfNodes)
+void CreateNodesForLineCondition(ModelPart& rModelPart,
+                                 std::size_t NumberOfNodes)
 {
     for (auto node_index = 0; node_index < NumberOfNodes; ++node_index) {
         const auto x = static_cast<double>(node_index);
@@ -69,7 +69,7 @@ void AddSolutionStepValuesToNodes(ModelPart::NodesContainerType& rNodes,
 }
 
 ModelPart& CreateDummyModelPartWithNodes(Model& rModel,
-                                         std::size_t NumberOfNodes)
+                                         const std::function<void(ModelPart&)>& rCreateNodesFunc)
 {
     constexpr auto buffer_size = Model::IndexType{2};
     auto& r_result = rModel.CreateModelPart("dummy", buffer_size);
@@ -80,7 +80,7 @@ ModelPart& CreateDummyModelPartWithNodes(Model& rModel,
                                                                 &TEMPERATURE};
     AddSolutionStepVariablesToModelPart(r_result, variables);
 
-    CreateNodesInModelPart(r_result, NumberOfNodes);
+    rCreateNodesFunc(r_result);
     AddSolutionStepValuesToNodes(r_result.Nodes(), variables);
 
     r_result.GetProcessInfo()[DELTA_TIME] = 0.5;
@@ -142,8 +142,11 @@ KRATOS_TEST_CASE_IN_SUITE(NoThrowWhenInitializingThermalMicroClimateCondition, K
 KRATOS_TEST_CASE_IN_SUITE(NoErrorWhenInitializingSolutionStepOnThermalMicroClimateCondition2D2N, KratosGeoMechanicsFastSuite)
 {
     Model test_model;
-    constexpr auto number_of_nodes = std::size_t{2};
-    auto& r_model_part = CreateDummyModelPartWithNodes(test_model, number_of_nodes);
+    auto  create_nodes_func = [](ModelPart& rModelPart){
+        constexpr auto number_of_nodes = std::size_t{2};
+        CreateNodesForLineCondition(rModelPart, number_of_nodes);
+    };
+    auto& r_model_part = CreateDummyModelPartWithNodes(test_model, create_nodes_func);
     auto  p_properties = CreateDummyConditionProperties(r_model_part);
     auto  p_condition  = CreateMicroClimateCondition(r_model_part, p_properties);
 
@@ -155,8 +158,11 @@ KRATOS_TEST_CASE_IN_SUITE(NoErrorWhenInitializingSolutionStepOnThermalMicroClima
 KRATOS_TEST_CASE_IN_SUITE(NoErrorWhenInitializingSolutionStepOnThermalMicroClimateCondition2D3N, KratosGeoMechanicsFastSuite)
 {
     Model test_model;
-    constexpr auto number_of_nodes = std::size_t{3};
-    auto& r_model_part = CreateDummyModelPartWithNodes(test_model, number_of_nodes);
+    auto  create_nodes_func = [](ModelPart& rModelPart){
+        constexpr auto number_of_nodes = std::size_t{3};
+        CreateNodesForLineCondition(rModelPart, number_of_nodes);
+    };
+    auto& r_model_part = CreateDummyModelPartWithNodes(test_model, create_nodes_func);
     auto  p_properties = CreateDummyConditionProperties(r_model_part);
     auto  p_condition  = CreateMicroClimateCondition(r_model_part, p_properties);
 
@@ -168,8 +174,11 @@ KRATOS_TEST_CASE_IN_SUITE(NoErrorWhenInitializingSolutionStepOnThermalMicroClima
 KRATOS_TEST_CASE_IN_SUITE(NoErrorWhenInitializingSolutionStepOnThermalMicroClimateCondition2D4N, KratosGeoMechanicsFastSuite)
 {
     Model test_model;
-    constexpr auto number_of_nodes = std::size_t{4};
-    auto& r_model_part = CreateDummyModelPartWithNodes(test_model, number_of_nodes);
+    auto  create_nodes_func = [](ModelPart& rModelPart){
+        constexpr auto number_of_nodes = std::size_t{4};
+        CreateNodesForLineCondition(rModelPart, number_of_nodes);
+    };
+    auto& r_model_part = CreateDummyModelPartWithNodes(test_model, create_nodes_func);
     auto  p_properties = CreateDummyConditionProperties(r_model_part);
     auto  p_condition  = CreateMicroClimateCondition(r_model_part, p_properties);
 
@@ -181,8 +190,11 @@ KRATOS_TEST_CASE_IN_SUITE(NoErrorWhenInitializingSolutionStepOnThermalMicroClima
 KRATOS_TEST_CASE_IN_SUITE(NoErrorWhenInitializingSolutionStepOnThermalMicroClimateCondition2D5N, KratosGeoMechanicsFastSuite)
 {
     Model test_model;
-    constexpr auto number_of_nodes = std::size_t{5};
-    auto& r_model_part = CreateDummyModelPartWithNodes(test_model, number_of_nodes);
+    auto  create_nodes_func = [](ModelPart& rModelPart){
+        constexpr auto number_of_nodes = std::size_t{5};
+        CreateNodesForLineCondition(rModelPart, number_of_nodes);
+    };
+    auto& r_model_part = CreateDummyModelPartWithNodes(test_model, create_nodes_func);
     auto  p_properties = CreateDummyConditionProperties(r_model_part);
     auto  p_condition  = CreateMicroClimateCondition(r_model_part, p_properties);
 
