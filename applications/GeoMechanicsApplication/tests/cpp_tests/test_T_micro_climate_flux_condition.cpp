@@ -56,12 +56,22 @@ void CreateNodesForTriangle(ModelPart& rModelPart,
     }
 }
 
-void CreateNodesForQuadrilateral(ModelPart& rModelPart)
+enum class HigherOrderElementConfiguration{None, Serendipity};
+
+void CreateNodesForQuadrilateral(ModelPart& rModelPart,
+                                 HigherOrderElementConfiguration configuration )
 {
     rModelPart.CreateNewNode(ModelPart::IndexType{1}, 0.0, 0.0, 0.0);
     rModelPart.CreateNewNode(ModelPart::IndexType{2}, 2.0, 0.0, 0.0);
     rModelPart.CreateNewNode(ModelPart::IndexType{3}, 2.0, 2.0, 0.0);
     rModelPart.CreateNewNode(ModelPart::IndexType{4}, 0.0, 2.0, 0.0);
+    if (configuration == HigherOrderElementConfiguration::None)
+        return;
+
+    rModelPart.CreateNewNode(ModelPart::IndexType{5}, 1.0, 0.0, 0.0);
+    rModelPart.CreateNewNode(ModelPart::IndexType{6}, 2.0, 1.0, 0.0);
+    rModelPart.CreateNewNode(ModelPart::IndexType{7}, 1.0, 2.0, 0.0);
+    rModelPart.CreateNewNode(ModelPart::IndexType{8}, 0.0, 1.0, 0.0);
 }
 
 void AddSolutionStepVariablesToModelPart(ModelPart& rModelPart,
@@ -269,7 +279,23 @@ KRATOS_TEST_CASE_IN_SUITE(NoErrorWhenInitializingSolutionStepOnThermalMicroClima
 {
     Model test_model;
     auto  create_nodes_func = [](ModelPart& rModelPart){
-        CreateNodesForQuadrilateral(rModelPart);
+        CreateNodesForQuadrilateral(rModelPart, HigherOrderElementConfiguration::None);
+    };
+    auto& r_model_part = CreateDummyModelPartWithNodes(test_model, create_nodes_func);
+    auto  p_properties = CreateDummyConditionProperties(r_model_part);
+    constexpr auto dimension_size = std::size_t{3};
+    auto  p_condition  = CreateMicroClimateCondition(r_model_part, p_properties, dimension_size);
+
+    const auto error_text = ExecuteInitializeSolutionStep(p_condition, r_model_part.GetProcessInfo());
+
+    KRATOS_EXPECT_STREQ(error_text.data(), "")
+}
+
+KRATOS_TEST_CASE_IN_SUITE(NoErrorWhenInitializingSolutionStepOnThermalMicroClimateCondition3D8N, KratosGeoMechanicsFastSuite)
+{
+    Model test_model;
+    auto  create_nodes_func = [](ModelPart& rModelPart){
+        CreateNodesForQuadrilateral(rModelPart, HigherOrderElementConfiguration::Serendipity);
     };
     auto& r_model_part = CreateDummyModelPartWithNodes(test_model, create_nodes_func);
     auto  p_properties = CreateDummyConditionProperties(r_model_part);
