@@ -115,7 +115,9 @@ SolvingStrategyWrapperType CreateWrapperWithDefaultProcessInfoEntries(ModelPart&
 ModelPart& CreateDummyModelPart(Model& rModel)
 {
     const auto buffer_size = ModelPart::IndexType{2};
-    return rModel.CreateModelPart("dummy", buffer_size);
+    auto& r_model_part = rModel.CreateModelPart("dummy", buffer_size);
+    r_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
+    return r_model_part;
 }
 
 SolvingStrategyWrapperType CreateWrapperWithEmptyProcessInfo(ModelPart& rModelPart)
