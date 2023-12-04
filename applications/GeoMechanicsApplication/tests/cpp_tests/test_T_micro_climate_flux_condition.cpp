@@ -56,6 +56,14 @@ void CreateNodesForTriangle(ModelPart& rModelPart,
     }
 }
 
+void CreateNodesForQuadrilateral(ModelPart& rModelPart)
+{
+    rModelPart.CreateNewNode(ModelPart::IndexType{1}, 0.0, 0.0, 0.0);
+    rModelPart.CreateNewNode(ModelPart::IndexType{2}, 2.0, 0.0, 0.0);
+    rModelPart.CreateNewNode(ModelPart::IndexType{3}, 2.0, 2.0, 0.0);
+    rModelPart.CreateNewNode(ModelPart::IndexType{4}, 0.0, 2.0, 0.0);
+}
+
 void AddSolutionStepVariablesToModelPart(ModelPart& rModelPart,
                                          const std::vector<const Variable<double>*>& rVariables)
 {
@@ -246,6 +254,22 @@ KRATOS_TEST_CASE_IN_SUITE(NoErrorWhenInitializingSolutionStepOnThermalMicroClima
     auto  create_nodes_func = [](ModelPart& rModelPart){
         constexpr auto want_mid_side_nodes = true;
         CreateNodesForTriangle(rModelPart, want_mid_side_nodes);
+    };
+    auto& r_model_part = CreateDummyModelPartWithNodes(test_model, create_nodes_func);
+    auto  p_properties = CreateDummyConditionProperties(r_model_part);
+    constexpr auto dimension_size = std::size_t{3};
+    auto  p_condition  = CreateMicroClimateCondition(r_model_part, p_properties, dimension_size);
+
+    const auto error_text = ExecuteInitializeSolutionStep(p_condition, r_model_part.GetProcessInfo());
+
+    KRATOS_EXPECT_STREQ(error_text.data(), "")
+}
+
+KRATOS_TEST_CASE_IN_SUITE(NoErrorWhenInitializingSolutionStepOnThermalMicroClimateCondition3D4N, KratosGeoMechanicsFastSuite)
+{
+    Model test_model;
+    auto  create_nodes_func = [](ModelPart& rModelPart){
+        CreateNodesForQuadrilateral(rModelPart);
     };
     auto& r_model_part = CreateDummyModelPartWithNodes(test_model, create_nodes_func);
     auto  p_properties = CreateDummyConditionProperties(r_model_part);
