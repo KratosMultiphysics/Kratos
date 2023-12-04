@@ -142,13 +142,13 @@ KRATOS_TEST_CASE_IN_SUITE(GetEndTimeFromStrategyWrapper_ReturnsCorrectNumber, Kr
     KRATOS_EXPECT_DOUBLE_EQ(wrapper.GetEndTime(), 17.0);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(GetConvergenceStateFromStrategyWrapper_ReturnsCorrectState, KratosGeoMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(SolveSolutionStepFromStrategyWrapper_ReturnsCorrectState, KratosGeoMechanicsFastSuite)
 {
     Model model;
     auto& model_part = CreateDummyModelPart(model);
     auto  wrapper    = CreateWrapperWithDefaultProcessInfoEntries(model_part);
 
-    KRATOS_EXPECT_EQ(wrapper.GetConvergenceState(), TimeStepEndState::ConvergenceState::converged);
+    KRATOS_EXPECT_EQ(wrapper.SolveSolutionStep(), TimeStepEndState::ConvergenceState::converged);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(SetEndTimeFromStrategyWrapper, KratosGeoMechanicsFastSuite)

@@ -35,24 +35,25 @@ TimeStepEndState TimeStepExecutor::Run(double Time)
     for (const auto& process_observable : mProcessObservables)
     {
         auto process = process_observable.lock();
-        if (process) process->ExecuteInitializeSolutionStep();
+        if (process)
+            process->ExecuteInitializeSolutionStep();
     }
 
     mStrategyWrapper->Predict();
-    mStrategyWrapper->SolveSolutionStep();
 
     TimeStepEndState result;
-    result.time              = Time;
-    result.convergence_state = mStrategyWrapper->GetConvergenceState();
+    result.convergence_state = mStrategyWrapper->SolveSolutionStep();
+    result.time = Time;
     result.num_of_iterations = mStrategyWrapper->GetNumberOfIterations();
 
     for (const auto& process_observable : mProcessObservables)
     {
         auto process = process_observable.lock();
-        if (process) process->ExecuteFinalizeSolutionStep();
+        if (process)
+            process->ExecuteFinalizeSolutionStep();
     }
 
     return result;
 }
 
-}
+} // namespace Kratos
