@@ -41,9 +41,13 @@ TimeStepEndState TimeStepExecutor::Run(double Time)
 
     mStrategyWrapper->Predict();
 
+    // Here we directly use the SolveSolutionStep() method of the strategy wrapper
+    // to get the convergence state, instead of the IsConverged method of the strategy.
+    // This is because the IsConverged method of the strategy makes unforeseen changes
+    // to the results.
     TimeStepEndState result;
-    result.convergence_state = mStrategyWrapper->SolveSolutionStep();
     result.time = Time;
+    result.convergence_state = mStrategyWrapper->SolveSolutionStep();
     result.num_of_iterations = mStrategyWrapper->GetNumberOfIterations();
 
     for (const auto& process_observable : mProcessObservables)
