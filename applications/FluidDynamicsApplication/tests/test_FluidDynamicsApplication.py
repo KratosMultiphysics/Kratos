@@ -43,6 +43,7 @@ from test_flows_measuring_utility import FlowsMeasuringUtilityTest
 from levelset_consistent_nodal_gradient_test import ConsistentLevelsetNodalGradientTest
 from adjoint_conditions import TestAdjointMonolithicWallCondition
 from test_fluid_auxiliary_utilities import FluidAuxiliaryUtilitiesTest
+from test_hydraulic_fluid_auxiliary_utilities import HydraulicFluidAuxiliaryUtilitiesTest
 from test_navier_stokes_compressible_explicit_solver import NavierStokesCompressibleExplicitSolverTest
 from two_fluid_mass_conservation_source_test import TwoFluidMassConservationTest
 from two_fluid_hydraulic_test import TwoFluidHydraulicSolverTest
@@ -128,6 +129,7 @@ def AssembleTestSuites():
     nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([FluidElementTest]))
     nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([IntegrationPointStatisticsTest]))
     nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([FlowsMeasuringUtilityTest]))
+    nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([HydraulicFluidAuxiliaryUtilitiesTest]))
     nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([FluidAuxiliaryUtilitiesTest]))
     nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TwoFluidMassConservationTest]))
     nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TwoFluidHydraulicSolverTest]))

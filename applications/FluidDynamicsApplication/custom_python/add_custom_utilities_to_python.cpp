@@ -25,6 +25,7 @@
 #include "linear_solvers/linear_solver.h"
 
 #include "custom_utilities/fluid_auxiliary_utilities.h"
+#include "custom_utilities/hydraulic_fluid_auxiliary_utilities.h"
 #include "custom_utilities/drag_utilities.h"
 #include "custom_utilities/dynamic_smagorinsky_utilities.h"
 #include "custom_utilities/estimate_dt_utilities.h"
@@ -199,8 +200,9 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
         .def_static("RandomFillNonHistoricalVariable", py::overload_cast<ModelPart::ElementsContainerType&, const Variable<array_1d<double, 3>>&, const IndexType, const double, const double>(&FluidTestUtilities::RandomFillNonHistoricalVariable<ModelPart::ElementsContainerType, array_1d<double, 3>>))
         .def_static("RandomFillNonHistoricalVariable", py::overload_cast<ModelPart::ElementsContainerType&, const Variable<array_1d<double, 3>>&, const std::string&, const IndexType, const double, const double>(&FluidTestUtilities::RandomFillNonHistoricalVariable<ModelPart::ElementsContainerType, array_1d<double, 3>>))
         ;
-}
-
-}  // namespace Python.
+    py::class_<HydraulicFluidAuxiliaryUtilities>(m, "HydraulicFluidAuxiliaryUtilities")
+        .def_static("CalculateWettedPetimeter", [](ModelPart &rModelPart, const Flags &rSkinFlag){ return HydraulicFluidAuxiliaryUtilities::CalculateWettedPetimeter(rModelPart, rSkinFlag); });
+    }
+    }  // namespace Python.
 
 } // Namespace Kratos

@@ -2078,7 +2078,7 @@ namespace Kratos
                     if (eps < 1.0)
                     {
                         double k_inv = 150.0 * (1.0 - eps) * (1.0 - eps) / (eps * eps * eps * d * d);
-                        a = mViscosity * k_inv;
+                        // a = mViscosity * k_inv;
                         b = (1.75 / eps) * sqrt(k_inv / (150.0 * eps));
                     }
                     else
