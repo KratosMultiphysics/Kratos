@@ -41,16 +41,17 @@ TimeStepEndState TimeStepExecutor::Run(double Time)
     mStrategyWrapper->Predict();
     mStrategyWrapper->SolveSolutionStep();
 
+    TimeStepEndState result;
+    result.time              = Time;
+    result.convergence_state = mStrategyWrapper->GetConvergenceState();
+    result.num_of_iterations = mStrategyWrapper->GetNumberOfIterations();
+
     for (const auto& process_observable : mProcessObservables)
     {
         auto process = process_observable.lock();
         if (process) process->ExecuteFinalizeSolutionStep();
     }
 
-    TimeStepEndState result;
-    result.time              = Time;
-    result.convergence_state = mStrategyWrapper->GetConvergenceState();
-    result.num_of_iterations = mStrategyWrapper->GetNumberOfIterations();
     return result;
 }
 
