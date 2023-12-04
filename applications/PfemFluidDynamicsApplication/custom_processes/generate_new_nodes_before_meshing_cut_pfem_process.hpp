@@ -7,8 +7,7 @@
 //
 //
 
-#if !defined(KRATOS_GENERATE_NEW_NODES_BEFORE_MESHING_CUT_PFEM_PROCESS_H_INCLUDED)
-#define KRATOS_GENERATE_NEW_NODES_BEFORE_MESHING_CUT_PFEM_PROCESS_H_INCLUDED
+#pragma once
 
 // External includes
 
@@ -63,17 +62,18 @@ namespace Kratos
 		///@{
 
 		/// Default constructor.
-		GenerateNewNodesBeforeMeshingCutPfemProcess(ModelPart &rModelPart,
-													MesherUtilities::MeshingParameters &rRemeshingParameters,
-													int EchoLevel)
-			: mrModelPart(rModelPart),
-			  mrRemesh(rRemeshingParameters)
+		GenerateNewNodesBeforeMeshingCutPfemProcess(
+			ModelPart &rModelPart,
+			MesherUtilities::MeshingParameters &rRemeshingParameters,
+			int EchoLevel)
+			: mrModelPart(rModelPart)
+			, mrRemesh(rRemeshingParameters)
 		{
 			mEchoLevel = EchoLevel;
 		}
 
 		/// Destructor.
-		virtual ~GenerateNewNodesBeforeMeshingCutPfemProcess() {}
+		virtual ~GenerateNewNodesBeforeMeshingCutPfemProcess() = default;
 
 		///@}
 		///@name Operators
@@ -94,15 +94,15 @@ namespace Kratos
 		{
 			KRATOS_TRY
 
-			if (mEchoLevel > 1)
-				std::cout << " [ GENERATE NEW NODES for homomgeneous mesh: " << std::endl;
+			KRATOS_INFO_IF("GenerateNewNodesBeforeMeshingCutPfemProcess", mEchoLevel > 1)
+				<< " [ GENERATE NEW NODES for homogeneous mesh: " << std::endl;
 
-			if (mrModelPart.Name() != mrRemesh.SubModelPartName)
-				std::cout << " ModelPart Supplied do not corresponds to the Meshing Domain: (" << mrModelPart.Name() << " != " << mrRemesh.SubModelPartName << ")" << std::endl;
+			KRATOS_WARNING_IF("GenerateNewNodesBeforeMeshingCutPfemProcess", mrModelPart.Name() != mrRemesh.SubModelPartName)
+				<< " ModelPart Supplied do not corresponds to the meshing domain: " << mrModelPart.FullName() << " != " << mrRemesh.SubModelPartName << "." << std::endl;
 
-			const ProcessInfo &rCurrentProcessInfo = mrModelPart.GetProcessInfo();
-			double currentTime = rCurrentProcessInfo[TIME];
-			double timeInterval = rCurrentProcessInfo[DELTA_TIME];
+			const auto &r_current_process_info = mrModelPart.GetProcessInfo();
+			double currentTime = r_current_process_info[TIME];
+			double timeInterval = r_current_process_info[DELTA_TIME];
 			const SizeType dimension = mrModelPart.ElementsBegin()->GetGeometry().WorkingSpaceDimension();
 
 			bool refiningBox = false;
@@ -119,8 +119,8 @@ namespace Kratos
 				mrRemesh.Info->RemovedNodes = 0;
 				mrRemesh.Info->BalancePrincipalSecondaryPartsNodes = 0;
 
-				if (mEchoLevel > 1)
-					std::cout << " First meshes: I repare the mesh without adding new nodes" << std::endl;
+				KRATOS_INFO_IF("GenerateNewNodesBeforeMeshingCutPfemProcess", mEchoLevel > 1)
+					<< " First meshes: I repare the mesh without adding new nodes" << std::endl;
 				mrRemesh.Info->InitialNumberOfNodes = mrRemesh.Info->NumberOfNodes;
 			}
 
@@ -144,8 +144,8 @@ namespace Kratos
 				}
 			}
 
-			if (ElementsToRefine > 0 && mEchoLevel > 1)
-				std::cout << " I will look for " << ElementsToRefine << " new nodes" << std::endl;
+			KRATOS_INFO_IF("GenerateNewNodesBeforeMeshingCutPfemProcess", ElementsToRefine > 0 && mEchoLevel > 1)
+				<< " I will look for " << ElementsToRefine << " new nodes" << std::endl;
 
 			if (refiningBox == false)
 			{
@@ -260,8 +260,8 @@ namespace Kratos
 
 			mrRemesh.InputInitializedFlag = false;
 
-			if (mEchoLevel > 1)
-				std::cout << "   GENERATE NEW NODES ]; " << std::endl;
+			KRATOS_INFO_IF("GenerateNewNodesBeforeMeshingCutPfemProcess", mEchoLevel > 1)
+				<< "   GENERATE NEW NODES ]; " << std::endl;
 
 			KRATOS_CATCH(" ")
 		}
@@ -324,7 +324,9 @@ namespace Kratos
 		///@name Private Operations
 		///@{
 
-		void CopyDofs(Node::DofsContainerType const &From, Node::DofsContainerType &To)
+		void CopyDofs(
+			Node::DofsContainerType const &From,
+			Node::DofsContainerType &To)
 		{
 			for (auto &p_dof : From)
 			{
@@ -332,13 +334,14 @@ namespace Kratos
 			}
 		}
 
-		void SelectEdgeToRefine2D(Element::GeometryType &Element,
-								  std::vector<array_1d<double, 3>> &new_positions,
-								  std::vector<double> &biggest_volumes,
-								  std::vector<array_1d<SizeType, 4>> &nodes_id_to_interpolate,
-								  int &CountNodes,
-								  int &ElementsToRefine,
-								  SizeType &addedNodesAtEulerianInlet)
+		void SelectEdgeToRefine2D(
+			Element::GeometryType &Element,
+			std::vector<array_1d<double, 3>> &new_positions,
+			std::vector<double> &biggest_volumes,
+			std::vector<array_1d<SizeType, 4>> &nodes_id_to_interpolate,
+			int &CountNodes,
+			int &ElementsToRefine,
+			SizeType &addedNodesAtEulerianInlet)
 		{
 			KRATOS_TRY
 
@@ -412,7 +415,7 @@ namespace Kratos
 			{
 				penalization = 0;
 			}
-			else if (negativeDistanceNodes > 0) // to penalize insertion of nodes near the boundary 
+			else if (negativeDistanceNodes > 0) // to penalize insertion of nodes near the boundary
 			{
 				penalization = 0.9;
 			}
@@ -687,7 +690,7 @@ namespace Kratos
 			{
 				penalization = 0.95;
 			}
-			else if (negativeDistanceNodes > 0) // to penalize insertion of nodes near the boundary 
+			else if (negativeDistanceNodes > 0) // to penalize insertion of nodes near the boundary
 			{
 				penalization = 0.9;
 			}
@@ -922,8 +925,8 @@ namespace Kratos
 			double rigidNodeLocalMeshSize = 0;
 			double rigidNodeMeshCounter = 0;
 			double meanMeshSize = mrRemesh.Refine->CriticalRadius;
-			const ProcessInfo &rCurrentProcessInfo = mrModelPart.GetProcessInfo();
-			const double currentTime = rCurrentProcessInfo[TIME];
+			const auto &r_current_process_info = mrModelPart.GetProcessInfo();
+			const double currentTime = r_current_process_info[TIME];
 			bool insideTransitionZone = false;
 			for (SizeType pn = 0; pn < nds; ++pn)
 			{
@@ -969,7 +972,7 @@ namespace Kratos
 			{
 				penalization = 1.2; // to avoid to gain too much volume during remeshing step
 			}
-			else if (negativeDistanceNodes > 0) // to penalize insertion of nodes near the boundary 
+			else if (negativeDistanceNodes > 0) // to penalize insertion of nodes near the boundary
 			{
 				penalization = 0.9;
 			}
@@ -1084,12 +1087,13 @@ namespace Kratos
 			KRATOS_CATCH("")
 		}
 
-		void SelectEdgeToRefine3DWithRefinement(Element::GeometryType &Element,
-												std::vector<array_1d<double, 3>> &new_positions,
-												std::vector<array_1d<SizeType, 4>> &nodes_id_to_interpolate,
-												int &CountNodes,
-												const int ElementsToRefine,
-												int &nodesInTransitionZone)
+		void SelectEdgeToRefine3DWithRefinement(
+			Element::GeometryType &Element,
+			std::vector<array_1d<double, 3>> &new_positions,
+			std::vector<array_1d<SizeType, 4>> &nodes_id_to_interpolate,
+			int &CountNodes,
+			const int ElementsToRefine,
+			int &nodesInTransitionZone)
 		{
 			KRATOS_TRY
 
@@ -1100,8 +1104,8 @@ namespace Kratos
 			SizeType negativeDistanceNodes = 0;
 			bool toEraseNodeFound = false;
 			double meanMeshSize = mrRemesh.Refine->CriticalRadius;
-			const ProcessInfo &rCurrentProcessInfo = mrModelPart.GetProcessInfo();
-			double currentTime = rCurrentProcessInfo[TIME];
+			const ProcessInfo &r_current_process_info = mrModelPart.GetProcessInfo();
+			double currentTime = r_current_process_info[TIME];
 			bool insideTransitionZone = false;
 			double rigidNodeLocalMeshSize = 0;
 			double rigidNodeMeshCounter = 0;
@@ -1150,7 +1154,7 @@ namespace Kratos
 			{
 				penalization = 1.2; // to avoid to gain too much volume during remeshing step
 			}
-			else if (negativeDistanceNodes > 0) // to penalize insertion of nodes near the boundary 
+			else if (negativeDistanceNodes > 0) // to penalize insertion of nodes near the boundary
 			{
 				penalization = 0.9;
 			}
@@ -1293,11 +1297,12 @@ namespace Kratos
 			KRATOS_CATCH("")
 		}
 
-		void CreateAndAddNewNodesInCornerWall(std::vector<array_1d<double, 3>> &new_positions,
-											  std::vector<array_1d<SizeType, 4>> &nodes_id_to_interpolate,
-											  std::vector<Node::DofsContainerType> &NewDofs,
-											  int ElementsToRefine,
-											  SizeType &maxId)
+		void CreateAndAddNewNodesInCornerWall(
+			std::vector<array_1d<double, 3>> &new_positions,
+			std::vector<array_1d<SizeType, 4>> &nodes_id_to_interpolate,
+			std::vector<Node::DofsContainerType> &NewDofs,
+			int ElementsToRefine,
+			SizeType &maxId)
 		{
 			KRATOS_TRY
 
@@ -1368,10 +1373,11 @@ namespace Kratos
 			KRATOS_CATCH("")
 		}
 
-		void CreateAndAddNewNodes(std::vector<array_1d<double, 3>> &new_positions,
-								  std::vector<array_1d<SizeType, 4>> &nodes_id_to_interpolate,
-								  int ElementsToRefine,
-								  SizeType &maxId)
+		void CreateAndAddNewNodes(
+			std::vector<array_1d<double, 3>> &new_positions,
+			std::vector<array_1d<SizeType, 4>> &nodes_id_to_interpolate,
+			int ElementsToRefine,
+			SizeType &maxId)
 		{
 			KRATOS_TRY
 
@@ -1395,8 +1401,8 @@ namespace Kratos
 			// assign data to dofs
 			VariablesList &VariablesList = mrModelPart.GetNodalSolutionStepVariablesList();
 
-			const ProcessInfo &rCurrentProcessInfo = mrModelPart.GetProcessInfo();
-			SizeType principalModelPartId = rCurrentProcessInfo[MAIN_MATERIAL_PROPERTY];
+			const auto &r_current_process_info = mrModelPart.GetProcessInfo();
+			SizeType principalModelPartId = r_current_process_info[MAIN_MATERIAL_PROPERTY];
 
 			for (SizeType nn = 0; nn < new_positions.size(); nn++)
 			{
@@ -1492,7 +1498,11 @@ namespace Kratos
 			KRATOS_CATCH("")
 		}
 
-		void InterpolateFromTwoNodes(Node::Pointer master_node, Node::Pointer slave_node_1, Node::Pointer slave_node_2, VariablesList &rVariablesList)
+		void InterpolateFromTwoNodes(
+			Node::Pointer master_node,
+			Node::Pointer slave_node_1,
+			Node::Pointer slave_node_2,
+			VariablesList &rVariablesList)
 		{
 
 			KRATOS_TRY
@@ -1594,7 +1604,9 @@ namespace Kratos
 			KRATOS_CATCH("")
 		}
 
-		void TakeMaterialPropertiesFromNotRigidNode(Node::Pointer master_node, Node::Pointer SlaveNode)
+		void TakeMaterialPropertiesFromNotRigidNode(
+			Node::Pointer master_node,
+			Node::Pointer SlaveNode)
 		{
 
 			KRATOS_TRY
@@ -1702,5 +1714,3 @@ namespace Kratos
 	///@}
 
 } // namespace Kratos.
-
-#endif // KRATOS_GENERATE_NEW_NODES_BEFORE_MESHING_CUT_PFEM_PROCESS_H_INCLUDED  defined

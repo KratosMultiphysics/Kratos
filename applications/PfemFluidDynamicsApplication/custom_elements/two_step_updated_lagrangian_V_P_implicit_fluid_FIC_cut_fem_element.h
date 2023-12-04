@@ -66,55 +66,55 @@ namespace Kratos
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(TwoStepUpdatedLagrangianVPImplicitFluidFicCutFemElement);
 
     ///base type:
-    typedef TwoStepUpdatedLagrangianVPImplicitFluidFicElement<TDim> BaseType;
+    using BaseType = TwoStepUpdatedLagrangianVPImplicitFluidFicElement<TDim>;
 
     /// Node type
-    typedef Node NodeType;
+    using NodeType = Node;
 
     /// Geometry type (using with given NodeType)
-    typedef Geometry<NodeType> GeometryType;
+    using GometryType = Geometry<NodeType>;
 
     /// Definition of nodes container type, redefined from GeometryType
-    typedef Geometry<NodeType>::PointsArrayType NodesArrayType;
+    using NodesArrayType = Geometry<NodeType>::PointsArrayType;
 
     /// Vector type for local contributions to the linear system
-    typedef Vector VectorType;
+    using VectorType = Vector;
 
     /// Matrix type for local contributions to the linear system
-    typedef Matrix MatrixType;
+    using MatrixType = Matrix;
 
-    typedef std::size_t IndexType;
+    using IndexType = ::size_t;
 
-    typedef std::size_t SizeType;
+    using SizeType = std::size_t;
 
-    typedef std::vector<std::size_t> EquationIdVectorType;
+    using EquationIdVectorType = std::vector<std::size_t>;
 
-    typedef std::vector<Dof<double>::Pointer> DofsVectorType;
+    using DofsVectorType = std::vector<Dof<double>::Pointer>;
 
-    typedef PointerVectorSet<Dof<double>, IndexedObject> DofsArrayType;
+    using DofsArrayType = PointerVectorSet<Dof<double>, IndexedObject>;
 
     /// Type for shape function values container
-    typedef Kratos::Vector ShapeFunctionsType;
+    using ShapeFunctionsType = Kratos::Vector;
 
     /// Type for a matrix containing the shape function gradients
-    typedef Kratos::Matrix ShapeFunctionDerivativesType;
+    using ShapeFunctionDerivativesType = Kratos::Matrix;
 
     /// Type for an array of shape function gradient matrices
-    typedef GeometryType::ShapeFunctionsGradientsType ShapeFunctionDerivativesArrayType;
+    using ShapeFunctionDerivativesArrayType = GeometryType::ShapeFunctionsGradientsType;
 
-    typedef typename BaseType::PropertiesType PropertiesType;
+    using PropertiesType = typename BaseType::PropertiesType;
 
-    typedef typename BaseType::PropertiesType::Pointer pPropertiesType;
+    using pPropertiesType = typename BaseType::PropertiesType::Pointer;
 
-    typedef typename BaseType::ElementalVariables ElementalVariables;
+    using ElementalVariables = typename BaseType::ElementalVariables;
 
-    typedef GlobalPointersVector<NodeType> NodeWeakPtrVectorType;
+    using NodeWeakPtrVectorType = GlobalPointersVector<NodeType>;
 
     /// Reference type definition for constitutive laws
-    typedef ConstitutiveLaw ConstitutiveLawType;
+    using ConstitutiveLawType = ConstitutiveLaw;
 
     ///Pointer type for constitutive laws
-    typedef ConstitutiveLawType::Pointer ConstitutiveLawPointerType;
+    using ConstitutiveLawPointerType = ConstitutiveLawType::Pointer;
 
     /// Number of nodes
     static constexpr SizeType NumNodes = TDim + 1;
