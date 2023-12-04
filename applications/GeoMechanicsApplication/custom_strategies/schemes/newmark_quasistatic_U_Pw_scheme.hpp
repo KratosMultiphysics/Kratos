@@ -160,6 +160,12 @@ private:
             (1.0 - mGamma) * this->GetDeltaTime() *
                 rNode.FastGetSolutionStepValue(ACCELERATION, 1) +
             mGamma * this->GetDeltaTime() * rNode.FastGetSolutionStepValue(ACCELERATION, 0);
+
+        noalias(rNode.FastGetSolutionStepValue(ANGULAR_VELOCITY, 0)) =
+            rNode.FastGetSolutionStepValue(ANGULAR_VELOCITY, 1) +
+            (1.0 - mGamma) * this->GetDeltaTime() *
+                rNode.FastGetSolutionStepValue(ANGULAR_ACCELERATION, 1) +
+            mGamma * this->GetDeltaTime() * rNode.FastGetSolutionStepValue(ANGULAR_ACCELERATION, 0);
     }
 
     void UpdateVectorSecondTimeDerivative(Node& rNode) const
@@ -171,6 +177,15 @@ private:
              (0.5 - mBeta) * this->GetDeltaTime() * this->GetDeltaTime() *
                  rNode.FastGetSolutionStepValue(ACCELERATION, 1)) /
             (mBeta * this->GetDeltaTime() * this->GetDeltaTime());
+
+                noalias(rNode.FastGetSolutionStepValue(ANGULAR_ACCELERATION, 0)) =
+            ((rNode.FastGetSolutionStepValue(ROTATION, 0) -
+              rNode.FastGetSolutionStepValue(ROTATION, 1)) -
+             this->GetDeltaTime() * rNode.FastGetSolutionStepValue(ANGULAR_VELOCITY, 1) -
+             (0.5 - mBeta) * this->GetDeltaTime() * this->GetDeltaTime() *
+                 rNode.FastGetSolutionStepValue(ANGULAR_ACCELERATION, 1)) /
+            (mBeta * this->GetDeltaTime() * this->GetDeltaTime());
+
     }
 }; // Class NewmarkQuasistaticUPwScheme
 
