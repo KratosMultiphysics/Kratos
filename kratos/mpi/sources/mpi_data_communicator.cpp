@@ -480,7 +480,15 @@ const DataCommunicator& MPIDataCommunicator::GetSubDataCommunicator(
     ) const
 {
     if (ParallelEnvironment::HasDataCommunicator(rNewCommunicatorName)) {
-        return ParallelEnvironment::GetDataCommunicator(rNewCommunicatorName);
+        const DataCommunicator& r_data_communicator = ParallelEnvironment::GetDataCommunicator(rNewCommunicatorName);
+        const int rank = Rank();
+        const auto it_find = std::find(rRanks.begin(), rRanks.end(), rank);
+        if (it_find != rRanks.end()) {
+            KRATOS_ERROR_IF_NOT(r_data_communicator.IsDefinedOnThisRank()) << "The rank " << rank << " does not participate in the existing data communicator " << rNewCommunicatorName  << " despite being in the provided rank list" << std::endl;
+        } else {
+            KRATOS_ERROR_IF_NOT(r_data_communicator.IsNullOnThisRank()) << "The rank " << rank << " participates in the existing data communicator " << rNewCommunicatorName << " despite not being in the provided rank list" << std::endl;
+        }
+        return r_data_communicator;
     } else {
         return DataCommunicatorFactory::CreateFromRanksAndRegister(*this, rRanks, rNewCommunicatorName);
     }
