@@ -42,11 +42,11 @@ public:
         : NewmarkQuasistaticUPwScheme<TSparseSpace, TDenseSpace>(beta, gamma, theta)
     {
         // Allocate auxiliary memory
-        int NumThreads = ParallelUtilities::GetNumThreads();
-        mMassMatrix.resize(NumThreads);
-        mAccelerationVector.resize(NumThreads);
-        mDampingMatrix.resize(NumThreads);
-        mVelocityVector.resize(NumThreads);
+        int num_threads = ParallelUtilities::GetNumThreads();
+        mMassMatrix.resize(num_threads);
+        mAccelerationVector.resize(num_threads);
+        mDampingMatrix.resize(num_threads);
+        mVelocityVector.resize(num_threads);
     }
 
     void Predict(ModelPart& rModelPart,
@@ -65,64 +65,67 @@ public:
     }
     void PredictDisplacements(const ModelPart& rModelPart)
     {
-        block_for_each(
-            rModelPart.Nodes(),
-            [&](Node& rNode)
+        block_for_each(rModelPart.Nodes(),
+                       [&](Node& rNode) { PredictDisplacementsForNode(rNode); });
+    }
+
+    void PredictDisplacementsForNode(Node& rNode)
+    {
+        // This will become a for-loop over the variables
+        const auto variable_derivative = this->mVariableDerivatives[0];
+        PredictDisplacementsForVariable(rNode, variable_derivative);
+    }
+
+    void PredictDisplacementsForVariable(Node& rNode, const VariableDerivatives& rVariableWithDerivatives)
+    {
+        std::vector<std::string> components = {"X", "Y"};
+        if (rNode.HasDofFor(GetComponentFromVectorVariable(
+                rVariableWithDerivatives.instance, "Z")))
+            components.push_back("Z");
+
+        for (const auto& component : components)
+        {
+            const auto& second_time_derivative_component = GetComponentFromVectorVariable(
+                rVariableWithDerivatives.second_time_derivative, component);
+            const auto& first_time_derivative_component = GetComponentFromVectorVariable(
+                rVariableWithDerivatives.first_time_derivative, component);
+            const auto& instance_component = GetComponentFromVectorVariable(
+                rVariableWithDerivatives.instance, component);
+
+            const double previous_variable =
+                rNode.FastGetSolutionStepValue(instance_component, 1);
+            const double current_first_time_derivative =
+                rNode.FastGetSolutionStepValue(first_time_derivative_component, 0);
+            const double previous_first_time_derivative =
+                rNode.FastGetSolutionStepValue(first_time_derivative_component, 1);
+            const double current_second_time_derivative =
+                rNode.FastGetSolutionStepValue(second_time_derivative_component, 0);
+            const double previous_second_time_derivative =
+                rNode.FastGetSolutionStepValue(second_time_derivative_component, 1);
+
+            if (rNode.IsFixed(second_time_derivative_component))
             {
-                std::vector<std::string> components = {"X", "Y"};
-                const auto variable_derivative = this->mVariableDerivatives[0];
-                if (rNode.HasDofFor(GetComponentFromVectorVariable(
-                        variable_derivative.instance, "Z")))
-                    components.push_back("Z");
-
-                for (const auto& component : components)
-                {
-                    const auto& second_time_derivative_component = GetComponentFromVectorVariable(
-                        variable_derivative.second_time_derivative, component);
-                    const auto& first_time_derivative_component = GetComponentFromVectorVariable(
-                        variable_derivative.first_time_derivative, component);
-                    const auto& instance_component = GetComponentFromVectorVariable(
-                        variable_derivative.instance, component);
-
-                    const double previous_variable =
-                        rNode.FastGetSolutionStepValue(instance_component, 1);
-                    const double current_first_time_derivative =
-                        rNode.FastGetSolutionStepValue(first_time_derivative_component, 0);
-                    const double previous_first_time_derivative =
-                        rNode.FastGetSolutionStepValue(first_time_derivative_component, 1);
-                    const double current_second_time_derivative =
-                        rNode.FastGetSolutionStepValue(second_time_derivative_component, 0);
-                    const double previous_second_time_derivative =
-                        rNode.FastGetSolutionStepValue(second_time_derivative_component, 1);
-
-                    if (rNode.IsFixed(second_time_derivative_component))
-                    {
-                        rNode.FastGetSolutionStepValue(instance_component) =
-                            previous_variable +
-                            this->GetDeltaTime() * previous_first_time_derivative +
-                            this->GetDeltaTime() * this->GetDeltaTime() *
-                                ((0.5 - mBeta) * previous_second_time_derivative +
-                                 mBeta * current_second_time_derivative);
-                    }
-                    else if (rNode.IsFixed(first_time_derivative_component))
-                    {
-                        rNode.FastGetSolutionStepValue(instance_component) =
-                            previous_variable +
-                            this->GetDeltaTime() *
-                                ((mBeta / mGamma) * (current_first_time_derivative -
-                                                     previous_first_time_derivative) +
-                                 previous_first_time_derivative);
-                    }
-                    else if (!rNode.IsFixed(instance_component))
-                    {
-                        rNode.FastGetSolutionStepValue(instance_component) =
-                            previous_variable +
-                            this->GetDeltaTime() * previous_first_time_derivative +
-                            0.5 * this->GetDeltaTime() * this->GetDeltaTime() *
-                                previous_second_time_derivative;
-                    }
-                }
-            });
+                rNode.FastGetSolutionStepValue(instance_component) =
+                    previous_variable + this->GetDeltaTime() * previous_first_time_derivative +
+                    this->GetDeltaTime() * this->GetDeltaTime() *
+                        ((0.5 - mBeta) * previous_second_time_derivative +
+                         mBeta * current_second_time_derivative);
+            }
+            else if (rNode.IsFixed(first_time_derivative_component))
+            {
+                rNode.FastGetSolutionStepValue(instance_component) =
+                    previous_variable +
+                    this->GetDeltaTime() *
+                        ((mBeta / mGamma) * (current_first_time_derivative - previous_first_time_derivative) +
+                         previous_first_time_derivative);
+            }
+            else if (!rNode.IsFixed(instance_component))
+            {
+                rNode.FastGetSolutionStepValue(instance_component) =
+                    previous_variable + this->GetDeltaTime() * previous_first_time_derivative +
+                    0.5 * this->GetDeltaTime() * this->GetDeltaTime() * previous_second_time_derivative;
+            }
+        }
     }
 
     const Variable<double>& GetComponentFromVectorVariable(
