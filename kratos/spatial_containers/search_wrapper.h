@@ -616,23 +616,22 @@ private:
         const auto& r_local_bb = mpSearchObject ? mpSearchObject->GetBoundingBox() : BoundingBox<PointType>();
 
         // Prepare MPI search
-        std::vector<double> all_points_coordinates;
-        std::vector<IndexType> all_points_ids;
-        std::vector<IndexType> indexes = SearchUtilities::SynchronousPointSynchronizationWithBoundingBox(itPointBegin, itPointEnd, all_points_coordinates, all_points_ids, r_local_bb, Radius, mrDataCommunicator);
+        DistributedSearchInformation search_info;
+        SearchUtilities::SynchronousPointSynchronizationWithBoundingBox(itPointBegin, itPointEnd, search_info, r_local_bb, Radius, mrDataCommunicator);
 
         // Initialize results
-        rResults.InitializeResults(indexes);
+        rResults.InitializeResults(search_info.Indexes);
 
         // Perform the corresponding searches
-        const std::size_t total_number_of_points = all_points_coordinates.size()/3;
+        const std::size_t total_number_of_points = search_info.Indexes.size();
         struct TLS {
             Point point;
         };
-        IndexPartition<IndexType>(total_number_of_points).for_each(TLS(),[this, &all_points_ids, &all_points_coordinates, &rResults, &Radius, &allocation_size](std::size_t i_point, TLS& rTLS) {
-            rTLS.point[0] = all_points_coordinates[i_point * 3 + 0];
-            rTLS.point[1] = all_points_coordinates[i_point * 3 + 1];
-            rTLS.point[2] = all_points_coordinates[i_point * 3 + 2];
-            auto& r_point_result = rResults[all_points_ids[i_point]];
+        IndexPartition<IndexType>(total_number_of_points).for_each(TLS(),[this, &search_info, &rResults, &Radius, &allocation_size](std::size_t i_point, TLS& rTLS) {
+            rTLS.point[0] = search_info.PointCoordinates[i_point * 3 + 0];
+            rTLS.point[1] = search_info.PointCoordinates[i_point * 3 + 1];
+            rTLS.point[2] = search_info.PointCoordinates[i_point * 3 + 2];
+            auto& r_point_result = rResults[search_info.Indexes[i_point]];
 
             // Search
             std::vector<ResultType> results;
@@ -679,23 +678,22 @@ private:
         const auto& r_local_bb = mpSearchObject ? mpSearchObject->GetBoundingBox() : BoundingBox<PointType>();
 
         // Prepare MPI search
-        std::vector<double> all_points_coordinates;
-        std::vector<IndexType> all_points_ids;
-        std::vector<IndexType> indexes = SearchUtilities::SynchronousPointSynchronizationWithBoundingBox(itPointBegin, itPointEnd, all_points_coordinates, all_points_ids, r_local_bb, Radius, mrDataCommunicator);
+        DistributedSearchInformation search_info;
+        SearchUtilities::SynchronousPointSynchronizationWithBoundingBox(itPointBegin, itPointEnd, search_info, r_local_bb, Radius, mrDataCommunicator);
 
         // Initialize results
-        rResults.InitializeResults(indexes);
+        rResults.InitializeResults(search_info.Indexes);
 
         // Perform the corresponding searches
-        const std::size_t total_number_of_points = all_points_coordinates.size()/3;
+        const std::size_t total_number_of_points = search_info.Indexes.size();
         struct TLS {
             Point point;
         };
-        IndexPartition<IndexType>(total_number_of_points).for_each(TLS(),[this, &all_points_ids, &all_points_coordinates, &rResults, &Radius, &allocation_size](std::size_t i_point, TLS& rTLS) {
-            rTLS.point[0] = all_points_coordinates[i_point * 3 + 0];
-            rTLS.point[1] = all_points_coordinates[i_point * 3 + 1];
-            rTLS.point[2] = all_points_coordinates[i_point * 3 + 2];
-            auto& r_point_result = rResults[all_points_ids[i_point]];
+        IndexPartition<IndexType>(total_number_of_points).for_each(TLS(),[this, &search_info, &rResults, &Radius, &allocation_size](std::size_t i_point, TLS& rTLS) {
+            rTLS.point[0] = search_info.PointCoordinates[i_point * 3 + 0];
+            rTLS.point[1] = search_info.PointCoordinates[i_point * 3 + 1];
+            rTLS.point[2] = search_info.PointCoordinates[i_point * 3 + 2];
+            auto& r_point_result = rResults[search_info.Indexes[i_point]];
 
             // Result of search
             ResultType local_result;
@@ -742,23 +740,22 @@ private:
         const auto& r_local_bb = mpSearchObject ? mpSearchObject->GetBoundingBox() : BoundingBox<PointType>();
 
         // Prepare MPI search
-        std::vector<double> all_points_coordinates;
-        std::vector<IndexType> all_points_ids;
-        std::vector<IndexType> indexes = SearchUtilities::SynchronousPointSynchronizationWithBoundingBox(itPointBegin, itPointEnd, all_points_coordinates, all_points_ids, r_local_bb, max_radius, mrDataCommunicator);
+        DistributedSearchInformation search_info;
+        SearchUtilities::SynchronousPointSynchronizationWithBoundingBox(itPointBegin, itPointEnd, search_info, r_local_bb, max_radius, mrDataCommunicator);
 
         // Initialize results
-        rResults.InitializeResults(indexes);
+        rResults.InitializeResults(search_info.Indexes);
 
         // Perform the corresponding searches
-        const std::size_t total_number_of_points = all_points_coordinates.size()/3;
+        const std::size_t total_number_of_points = search_info.Indexes.size();
         struct TLS {
             Point point;
         };
-        IndexPartition<IndexType>(total_number_of_points).for_each(TLS(),[this, &all_points_ids, &all_points_coordinates, &rResults](std::size_t i_point, TLS& rTLS) {
-            rTLS.point[0] = all_points_coordinates[i_point * 3 + 0];
-            rTLS.point[1] = all_points_coordinates[i_point * 3 + 1];
-            rTLS.point[2] = all_points_coordinates[i_point * 3 + 2];
-            auto& r_point_result = rResults[all_points_ids[i_point]];
+        IndexPartition<IndexType>(total_number_of_points).for_each(TLS(),[this, &search_info, &rResults](std::size_t i_point, TLS& rTLS) {
+            rTLS.point[0] = search_info.PointCoordinates[i_point * 3 + 0];
+            rTLS.point[1] = search_info.PointCoordinates[i_point * 3 + 1];
+            rTLS.point[2] = search_info.PointCoordinates[i_point * 3 + 2];
+            auto& r_point_result = rResults[search_info.Indexes[i_point]];
 
             // Result of search
             ResultType local_result;
@@ -802,23 +799,22 @@ private:
         const auto& r_local_bb = mpSearchObject ? mpSearchObject->GetBoundingBox() : BoundingBox<PointType>();
 
         // Prepare MPI search
-        std::vector<double> all_points_coordinates;
-        std::vector<IndexType> all_points_ids;
-        std::vector<IndexType> indexes = SearchUtilities::SynchronousPointSynchronizationWithBoundingBox(itPointBegin, itPointEnd, all_points_coordinates, all_points_ids, r_local_bb, 0.0, mrDataCommunicator);
+        DistributedSearchInformation search_info;
+        SearchUtilities::SynchronousPointSynchronizationWithBoundingBox(itPointBegin, itPointEnd, search_info, r_local_bb, 0.0, mrDataCommunicator);
 
         // Initialize results
-        rResults.InitializeResults(indexes);
+        rResults.InitializeResults(search_info.Indexes);
 
         // Perform the corresponding searches
-        const std::size_t total_number_of_points = all_points_coordinates.size()/3;
+        const std::size_t total_number_of_points = search_info.Indexes.size();
         struct TLS {
             Point point;
         };
-        IndexPartition<IndexType>(total_number_of_points).for_each(TLS(),[this, &all_points_ids, &all_points_coordinates, &rResults](std::size_t i_point, TLS& rTLS) {
-            rTLS.point[0] = all_points_coordinates[i_point * 3 + 0];
-            rTLS.point[1] = all_points_coordinates[i_point * 3 + 1];
-            rTLS.point[2] = all_points_coordinates[i_point * 3 + 2];
-            auto& r_point_result = rResults[all_points_ids[i_point]];
+        IndexPartition<IndexType>(total_number_of_points).for_each(TLS(),[this, &search_info, &rResults](std::size_t i_point, TLS& rTLS) {
+            rTLS.point[0] = search_info.PointCoordinates[i_point * 3 + 0];
+            rTLS.point[1] = search_info.PointCoordinates[i_point * 3 + 1];
+            rTLS.point[2] = search_info.PointCoordinates[i_point * 3 + 2];
+            auto& r_point_result = rResults[search_info.Indexes[i_point]];
 
             // Result of search
             ResultType local_result;
