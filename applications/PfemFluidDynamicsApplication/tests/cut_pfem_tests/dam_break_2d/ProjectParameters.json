@@ -2,8 +2,8 @@
     "problem_data" : {
         "problem_name"   : "dam_break_2d",
         "start_time"     : 0.0,
-        "end_time"       : 0.006,
-        // "end_time"       : 0.3,
+        // "end_time"       : 0.006,
+        "end_time"       : 0.3,
         "echo_level"     : 0,
         "parallel_type"  : "OpenMP",
         "threads"        : 1,

@@ -1,9 +1,14 @@
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
 //
-//   Project Name:        KratosFluidDynamicsApplication $
-//   Last modified by:    $Author:               AFranci $
-//   Date:                $Date:           February 2016 $
-//   Revision:            $Revision:                 0.0 $
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
+//  Main authors:    Alessandro Franci
+//                   Ruben Zorrilla
 //
 
 // System includes
@@ -31,7 +36,7 @@ namespace Kratos
         new_element.SetData(this->GetData());
         new_element.SetFlags(this->GetFlags());
 
-        return Kratos::make_shared<TwoStepUpdatedLagrangianVPImplicitFluidFicCutFemElement>(new_element);
+        return Kratos::make_intrusive<TwoStepUpdatedLagrangianVPImplicitFluidFicCutFemElement>(new_element);
     }
 
     template <unsigned int TDim>
@@ -109,7 +114,6 @@ namespace Kratos
                 auto &r_dev_stress_vector = elemental_variables.UpdatedDeviatoricCauchyStress;
                 auto &r_constitutive_matrix = elemental_variables.ConstitutiveMatrix;
 
-                auto p_cons_law = this->GetProperties().GetValue(CONSTITUTIVE_LAW);
                 auto constitutive_law_values = ConstitutiveLaw::Parameters(
                     r_geom,
                     this->GetProperties(),
@@ -124,7 +128,12 @@ namespace Kratos
                 constitutive_law_values.SetStressVector(r_dev_stress_vector);
                 constitutive_law_values.SetConstitutiveMatrix(r_constitutive_matrix);
 
+                if (mpConstitutiveLaw == nullptr) {
+                    KRATOS_WATCH("Null constitutive law pointer!!!!!")
+                }
+                auto p_cons_law = this->GetProperties().GetValue(CONSTITUTIVE_LAW);
                 p_cons_law->CalculateMaterialResponseCauchy(constitutive_law_values);
+                // mpConstitutiveLaw->CalculateMaterialResponseCauchy(constitutive_law_values);
                 this->UpdateStressTensor(elemental_variables);
 
                 // Take dynamic viscosity from the bottom right corner of the constitutive matrix
