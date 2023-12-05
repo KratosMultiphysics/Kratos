@@ -219,7 +219,7 @@ private:
         }
     }
 
-    std::vector<VariableDerivatives> mVariableDerivatives{{DISPLACEMENT}, {ROTATION}};
+    std::vector<VariableDerivatives> mVariableDerivatives{VariableDerivatives(DISPLACEMENT), VariableDerivatives(ROTATION)};
 
 }; // Class NewmarkQuasistaticUPwScheme
 
