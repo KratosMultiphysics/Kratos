@@ -47,6 +47,9 @@ public:
         result.AddNodalSolutionStepVariable(DT_WATER_PRESSURE);
         result.AddNodalSolutionStepVariable(DISPLACEMENT);
         result.AddNodalSolutionStepVariable(WATER_PRESSURE);
+        result.AddNodalSolutionStepVariable(ROTATION);
+        result.AddNodalSolutionStepVariable(ANGULAR_VELOCITY);
+        result.AddNodalSolutionStepVariable(ANGULAR_ACCELERATION);
 
         auto p_node = result.CreateNewNode(0, 0.0, 0.0, 0.0);
         p_node->AddDof(DISPLACEMENT_X);
@@ -170,6 +173,7 @@ KRATOS_TEST_CASE_IN_SUITE(ForInvalidGamma_CheckNewmarkUPwScheme_Throws, KratosGe
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         SchemeType scheme(0.25, invalid_gamma, 0.75),
         "Gamma must be larger than zero, but got -2.5")
+
 }
 
 
