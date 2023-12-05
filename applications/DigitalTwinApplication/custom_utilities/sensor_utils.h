@@ -14,6 +14,7 @@
 
 // System includes
 #include <vector>
+#include <tuple>
 
 // External includes
 
@@ -60,6 +61,28 @@ public:
         const std::string& rExpressionName,
         std::vector<typename SensorView<TContainerType>::Pointer>& rOutputSensorViews,
         const std::vector<typename SensorView<TContainerType>::Pointer>& rNormalizedSensorViews);
+
+    template<class TContainerType>
+    static std::pair<IndexType, typename ContainerExpression<TContainerType>::Pointer> GetEntityCoverageMask(const SensorView<TContainerType>& rSensorView);
+
+    template<class TContainerType>
+    static IndexType CountWithInBounds(
+        const ContainerExpression<TContainerType>& rContainer,
+        const double LowerBound,
+        const double UpperBound);
+
+    template<class TContainerType>
+    static double Min(
+        const ContainerExpression<TContainerType>& rContainer);
+
+    template<class TContainerType>
+    static double Max(
+        const ContainerExpression<TContainerType>& rContainer);
+
+    template<class TContainerType>
+    static double Sum(
+        const ContainerExpression<TContainerType>& rContainer);
+
     ///@}
 };
 
