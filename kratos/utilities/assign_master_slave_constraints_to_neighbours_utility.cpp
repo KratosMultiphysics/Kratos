@@ -131,7 +131,7 @@ void AssignMasterSlaveConstraintsToNeighboursUtility::GetDofsAndCoordinatesForCl
 
     // Loop over the cloud of nodes
     for (std::size_t i = 0; i < CloudOfNodesArray.size(); i++) {
-        auto p_slave_node = CloudOfNodesArray[i];
+        auto p_slave_node = CloudOfNodesArray[i];//////CHANGE SLAVE NODE NAME
 
         // Loop over the variable list
         for (std::size_t j = 0; j < rVariableList.size(); j++) {
@@ -149,6 +149,99 @@ void AssignMasterSlaveConstraintsToNeighboursUtility::GetDofsAndCoordinatesForCl
 
         // Assign the coordinates of the slave node to the corresponding row in rCloudOfNodesCoordinates
         noalias(row(rCloudOfNodesCoordinates, i)) = p_slave_node->Coordinates();
+    }
+
+    KRATOS_CATCH("");
+}
+
+void AssignMasterSlaveConstraintsToNeighboursUtility::GetDofsAndCoordinatesForCloudOfNodesFlattened(
+    const ResultNodesContainerType& CloudOfNodesArray,
+    const std::vector<std::reference_wrapper<const Kratos::Variable<double>>>& rVariableList,
+    DofPointerVectorType& rCloudOfDofs,
+    Matrix& rCloudOfNodesCoordinates
+)
+{
+    KRATOS_TRY;
+
+    // Resize rCloudOfDofs to accommodate all DOFs for all variables
+    rCloudOfDofs.resize(rVariableList.size() * CloudOfNodesArray.size());
+
+    // Resize rCloudOfNodesCoordinates to match the size of the cloud of nodes
+    rCloudOfNodesCoordinates.resize(CloudOfNodesArray.size(), 3);
+
+    // Loop over the cloud of nodes
+    for (std::size_t i = 0; i < CloudOfNodesArray.size(); i++) {
+        auto p_slave_node = CloudOfNodesArray[i];
+
+        // Loop over the variable list
+        for (std::size_t j = 0; j < rVariableList.size(); j++) {
+            const auto& r_variable = rVariableList[j];
+
+            // Check if the slave node has the required DOF for the current variable
+            if (p_slave_node->HasDofFor(r_variable.get())) {
+                std::size_t counter = i * rVariableList.size() + j;
+                rCloudOfDofs[counter] = p_slave_node->pGetDof(r_variable.get());
+            } else {
+                KRATOS_ERROR << "The node with ID " << p_slave_node->Id() << " does not have the required DOF for the variable " << r_variable.get().Name() << std::endl;
+            }
+        }
+
+        // Assign the coordinates of the slave node to the corresponding row in rCloudOfNodesCoordinates
+        noalias(row(rCloudOfNodesCoordinates, i)) = p_slave_node->Coordinates();
+    }
+
+    KRATOS_CATCH("");
+}
+
+struct CustomComparator {
+    static constexpr double TOLERANCE = 1e-6;
+
+    bool operator()(const std::tuple<double, double, double>& a, const std::tuple<double, double, double>& b) const {
+        return std::fabs(std::get<0>(a) - std::get<0>(b)) > TOLERANCE ||
+               std::fabs(std::get<1>(a) - std::get<1>(b)) > TOLERANCE ||
+               std::fabs(std::get<2>(a) - std::get<2>(b)) > TOLERANCE;
+    }
+};
+
+void AssignMasterSlaveConstraintsToNeighboursUtility::FilterUniqueNodesForRBF(
+    ResultNodesContainerType& CloudOfNodesArray,
+    Matrix& rCloudOfNodesCoordinates
+) {
+    KRATOS_TRY;
+
+    // Use a set with a custom comparator to keep track of unique coordinates
+    std::set<std::tuple<double, double, double>, CustomComparator> unique_coords;
+
+    // Temporary vector to store unique nodes
+    std::vector<NodeType::Pointer> temp_nodes;
+
+    // Loop over the cloud of nodes
+    for (auto& p_node : CloudOfNodesArray) {
+        auto coords = p_node->Coordinates();
+        std::tuple<double, double, double> current_coords(coords[0], coords[1], coords[2]);
+
+        // Check if the coordinates are unique
+        if (unique_coords.find(current_coords) == unique_coords.end()) {
+            unique_coords.insert(current_coords);
+            temp_nodes.push_back(p_node);
+        }
+    }
+
+    // Clear the original CloudOfNodesArray and repopulate with unique nodes
+    CloudOfNodesArray.clear();
+    for (auto& p_node : temp_nodes) {
+        CloudOfNodesArray.push_back(p_node);
+    }
+
+    // Resize rCloudOfNodesCoordinates to match the size of unique nodes
+    rCloudOfNodesCoordinates.resize(temp_nodes.size(), 3);
+
+    // Fill rCloudOfNodesCoordinates with unique coordinates
+    for (std::size_t i = 0; i < temp_nodes.size(); i++) {
+        auto coords = temp_nodes[i]->Coordinates();
+        for (std::size_t j = 0; j < 3; j++) {
+            rCloudOfNodesCoordinates(i, j) = coords[j];
+        }
     }
 
     KRATOS_CATCH("");
@@ -216,6 +309,12 @@ void AssignMasterSlaveConstraintsToNeighboursUtility::AssignMasterSlaveConstrain
         constant_vector.resize(r_n_container.size());
         IndexType it = i.fetch_add(1) * rVariableList.size(); // Atomically increment the counter and get the previous value
 
+        if (p_slave_node->Id() == 929){
+            KRATOS_WATCH(r_cloud_of_nodes)
+            KRATOS_WATCH(r_n_container)
+            KRATOS_WATCH(shape_matrix)
+        }
+
         for (std::size_t j = 0; j < rVariableList.size(); ++j) {
             concurrent_constraints.enqueue(r_clone_constraint.Create(prev_num_mscs + it + j + 1, const_cast<DofPointerVectorType&>(r_cloud_of_dofs[j]), r_slave_dofs[j], shape_matrix, constant_vector));
         }
@@ -235,6 +334,288 @@ void AssignMasterSlaveConstraintsToNeighboursUtility::AssignMasterSlaveConstrain
     KRATOS_INFO("AssignMasterSlaveConstraintsToNeighboursUtility") << "Build and Assign Master-Slave Constraints Time: " << build_and_assign_mscs.ElapsedSeconds() << std::endl;
     KRATOS_CATCH("");
 }
+
+void AssignMasterSlaveConstraintsToNeighboursUtility::AssignRotationalMasterSlaveConstraintsToNodes(
+    NodesContainerType pSlaveNodes,
+    double const Radius,
+    ModelPart& rComputingModelPart,
+    const std::vector<std::reference_wrapper<const Kratos::Variable<double>>>& rVariableList,
+    double const MinNumOfNeighNodes,
+    const std::unordered_map<IndexType, std::pair<IndexType, double>>& GhostToOriginalMapping
+)
+{
+    KRATOS_TRY;
+
+    BuiltinTimer build_and_assign_mscs;
+
+    thread_local std::vector<DofPointerVectorType> r_cloud_of_dofs;
+    thread_local DofPointerVectorType r_cloud_of_master_dofs;
+    thread_local std::vector<DofPointerVectorType> r_slave_dofs;
+    thread_local Matrix r_cloud_of_nodes_coordinates;
+    thread_local Matrix r_cloud_of_master_nodes_coordinates;
+    thread_local array_1d<double, 3> r_slave_coordinates;
+    thread_local Vector r_n_container;
+    thread_local Vector constant_vector;
+    thread_local Matrix shape_matrix_x, shape_matrix_y, shape_matrix_z;
+
+    int prev_num_mscs = rComputingModelPart.NumberOfMasterSlaveConstraints();
+
+    KRATOS_WARNING_IF("AssignRotationalMasterSlaveConstraintsToNodes", prev_num_mscs > 0) << "Previous Master-Slave Constraints exist in the ModelPart. The new Constraints may interact with the existing ones." << std::endl;
+
+    auto& p_nodes_array = pSlaveNodes.GetContainer();
+
+    const auto& r_clone_constraint = KratosComponents<MasterSlaveConstraint>::Get("LinearMasterSlaveConstraint");
+
+    using MasterSlaveConstraintQueue = moodycamel::ConcurrentQueue<ModelPart::MasterSlaveConstraintType::Pointer>;
+    MasterSlaveConstraintQueue concurrent_constraints;
+
+    std::atomic<int> i(0);
+
+    block_for_each(p_nodes_array, [&](Node::Pointer& p_slave_node) {
+
+        // Skip nodes with IDs 1174 or 1015 950 1111
+        if (p_slave_node->Id() == 1174 || p_slave_node->Id() == 1015) {
+            return; // Skip the current iteration of the loop
+        }   
+
+        double local_radius = Radius;
+        ResultNodesContainerType r_cloud_of_nodes(0);
+        ResultNodesContainerType r_local_results(mMaxNumberOfNodes);
+
+        while (r_cloud_of_nodes.size() < MinNumOfNeighNodes) {
+            r_cloud_of_nodes.clear();
+            SearchNodesInRadiusForNode(p_slave_node, local_radius, r_cloud_of_nodes, r_local_results);
+            local_radius += Radius;
+        }
+
+        GetDofsAndCoordinatesForSlaveNode(p_slave_node, rVariableList, r_slave_dofs, r_slave_coordinates);
+        FilterUniqueNodesForRBF(r_cloud_of_nodes, r_cloud_of_nodes_coordinates);
+
+        ResultNodesContainerType r_cloud_of_master_nodes;
+        r_cloud_of_master_nodes.reserve(r_cloud_of_nodes.size());
+        for (auto& ghost_node : r_cloud_of_nodes) {
+            auto it = GhostToOriginalMapping.find(ghost_node->Id());
+            if (it != GhostToOriginalMapping.end()) {
+                IndexType master_node_id = it->second.first; // Extracting the original/master node ID from the mapping
+                Node::Pointer p_master_node = rComputingModelPart.pGetNode(master_node_id);
+                r_cloud_of_master_nodes.push_back(p_master_node);
+            } else {
+                KRATOS_ERROR << "Ghost Node ID " << ghost_node->Id() << " not found in GhostToOriginalMapping!" << std::endl;
+            }
+        }
+
+        GetDofsAndCoordinatesForCloudOfNodesFlattened(r_cloud_of_master_nodes, rVariableList, r_cloud_of_master_dofs, r_cloud_of_master_nodes_coordinates);
+
+        RBFShapeFunctionsUtility::CalculateShapeFunctions(r_cloud_of_nodes_coordinates, r_slave_coordinates, r_n_container);
+
+        Vector ListOfAngles;
+        ExtractAnglesFromMapping(r_cloud_of_nodes, GhostToOriginalMapping, ListOfAngles);
+
+        ObtainShapeMatrix(shape_matrix_x, shape_matrix_y, shape_matrix_z, r_n_container, ListOfAngles);
+        constant_vector.resize(shape_matrix_x.size2());
+        if (p_slave_node->Id() == 929){
+            KRATOS_WATCH(r_cloud_of_nodes)
+            KRATOS_WATCH(r_cloud_of_nodes_coordinates)
+            KRATOS_WATCH(r_slave_coordinates)
+            KRATOS_WATCH(r_cloud_of_master_nodes)
+            KRATOS_WATCH(r_cloud_of_master_dofs)
+            KRATOS_WATCH(r_n_container)
+            KRATOS_WATCH(ListOfAngles)
+            KRATOS_WATCH(shape_matrix_x)
+            KRATOS_WATCH(shape_matrix_y)
+            KRATOS_WATCH(shape_matrix_z)
+        }
+
+        IndexType it = i.fetch_add(1) * rVariableList.size();
+
+        std::vector<Matrix> shape_matrices = {shape_matrix_x, shape_matrix_y, shape_matrix_z};
+
+        for (std::size_t j = 0; j < rVariableList.size(); ++j) {
+            if (j >= shape_matrices.size()) {
+                KRATOS_ERROR << "Unexpected index in rVariableList. Only 3 DoFs (x, y, z) are supported." << std::endl;
+            }
+            concurrent_constraints.enqueue(r_clone_constraint.Create(prev_num_mscs + it + j + 1, r_cloud_of_master_dofs, r_slave_dofs[j], shape_matrices[j], constant_vector));
+        }
+
+
+    });
+
+    ConstraintContainerType temp_constraints;
+    ModelPart::MasterSlaveConstraintType::Pointer p_constraint;
+
+    while (concurrent_constraints.try_dequeue(p_constraint))
+        temp_constraints.push_back(p_constraint);
+
+    rComputingModelPart.AddMasterSlaveConstraints(temp_constraints.begin(), temp_constraints.end());
+
+    KRATOS_INFO("AssignRotationalMasterSlaveConstraintsToNodes") << "Build and Assign Rotational Master-Slave Constraints Time: " << build_and_assign_mscs.ElapsedSeconds() << std::endl;
+
+    KRATOS_CATCH("");
+}
+
+void AssignMasterSlaveConstraintsToNeighboursUtility::ObtainShapeMatrix(
+    Matrix& shape_matrix_x,
+    Matrix& shape_matrix_y,
+    Matrix& shape_matrix_z,
+    Vector& rN_container,
+    Vector& ListOfAngles
+)
+{
+    std::vector<double> rotation_x_global;
+    std::vector<double> rotation_y_global;
+    std::vector<double> rotation_z_global;
+    std::vector<double> rotation_x(3);
+    std::vector<double> rotation_y(3);
+    std::vector<double> rotation_z(3);
+    for (int i=0; i < static_cast<int>(rN_container.size()); i++){
+        //TODO: Any kind of rotation. x-axis, y-axis, z-axis. Make it a function.
+        rotation_x[0] = rN_container[i]*cos(ListOfAngles[i]);
+        rotation_x[1] = -rN_container[i]*sin(ListOfAngles[i]);
+        rotation_x[2] = rN_container[i]*0.0;
+        rotation_y[0] = rN_container[i]*sin(ListOfAngles[i]);
+        rotation_y[1] = rN_container[i]*cos(ListOfAngles[i]);
+        rotation_y[2] = rN_container[i]*0.0;
+        rotation_z[0] = rN_container[i]*0.0;
+        rotation_z[1] = rN_container[i]*0.0;
+        rotation_z[2] = rN_container[i]*1.0;
+        // noalias(row(shape_matrix,i)) = aux_vector_x;
+        rotation_x_global.insert(rotation_x_global.end(),rotation_x.begin(),rotation_x.end());
+        rotation_y_global.insert(rotation_y_global.end(),rotation_y.begin(),rotation_y.end());
+        rotation_z_global.insert(rotation_z_global.end(),rotation_z.begin(),rotation_z.end());
+    }
+    shape_matrix_x.resize(1, rotation_x_global.size());
+    shape_matrix_y.resize(1, rotation_y_global.size());
+    shape_matrix_z.resize(1, rotation_z_global.size());
+    for (int i=0; i<static_cast<int>(rotation_x_global.size());i++){
+        shape_matrix_x(0,i) = rotation_x_global[i];
+        shape_matrix_y(0,i) = rotation_y_global[i];
+        shape_matrix_z(0,i) = rotation_z_global[i];
+    }
+}
+
+// void AssignMasterSlaveConstraintsToNeighboursUtility::AssignRotationalMasterSlaveConstraintsToNodes(
+//     NodesContainerType pSlaveNodes,
+//     double const Radius,
+//     ModelPart& rComputingModelPart,
+//     const std::vector<std::reference_wrapper<const Kratos::Variable<double>>>& rVariableList,
+//     double const MinNumOfNeighNodes,
+//     const std::unordered_map<IndexType, std::pair<IndexType, double>>& GhostToOriginalMapping
+//     )
+// {
+//     KRATOS_TRY;
+
+//     BuiltinTimer build_and_assign_mscs;
+
+//     thread_local std::vector<DofPointerVectorType> r_cloud_of_dofs;
+//     thread_local std::vector<DofPointerVectorType> r_slave_dofs;
+//     thread_local Matrix r_cloud_of_nodes_coordinates;
+//     thread_local array_1d<double, 3> r_slave_coordinates;
+//     thread_local Vector r_n_container;
+//     thread_local Vector constant_vector;
+//     thread_local Matrix shape_matrix;
+
+//     int prev_num_mscs = rComputingModelPart.NumberOfMasterSlaveConstraints();
+
+//     KRATOS_WARNING_IF("AssignRotationalMasterSlaveConstraintsToNodes", prev_num_mscs > 0) << "Previous Master-Slave Constraints exist in the ModelPart. The new Constraints may interact with the existing ones." << std::endl;
+
+//     auto& p_nodes_array = pSlaveNodes.GetContainer();
+
+//     const auto& r_clone_constraint = KratosComponents<MasterSlaveConstraint>::Get("LinearMasterSlaveConstraint");
+
+//     using MasterSlaveConstraintQueue = moodycamel::ConcurrentQueue<ModelPart::MasterSlaveConstraintType::Pointer>;
+//     MasterSlaveConstraintQueue concurrent_constraints;
+
+//     std::atomic<int> i(0);
+
+//     block_for_each(p_nodes_array, [&](Node::Pointer& p_slave_node) {
+
+//         double local_radius = Radius;
+//         ResultNodesContainerType r_cloud_of_nodes(0);
+//         ResultNodesContainerType r_local_results(mMaxNumberOfNodes);
+
+//         while (r_cloud_of_nodes.size() < MinNumOfNeighNodes) {
+//             r_cloud_of_nodes.clear();
+//             SearchNodesInRadiusForNode(p_slave_node, local_radius, r_cloud_of_nodes, r_local_results);
+//             local_radius += Radius;
+//         }
+
+//         GetDofsAndCoordinatesForSlaveNode(p_slave_node, rVariableList, r_slave_dofs, r_slave_coordinates);
+//         GetDofsAndCoordinatesForCloudOfNodes(r_cloud_of_nodes, rVariableList, r_cloud_of_dofs, r_cloud_of_nodes_coordinates);
+
+//         RBFShapeFunctionsUtility::CalculateShapeFunctions(r_cloud_of_nodes_coordinates, r_slave_coordinates, r_n_container);
+
+//         shape_matrix.resize(1, r_n_container.size());
+//         noalias(row(shape_matrix, 0)) = r_n_container;
+//         constant_vector.resize(r_n_container.size());
+
+//         // Check if the current slave node is a ghost node and adjust for rotation if necessary
+//         if (GhostToOriginalMapping.find(p_slave_node->Id()) != GhostToOriginalMapping.end()) {
+//             auto mapping_data = GhostToOriginalMapping.at(p_slave_node->Id());
+//             double rotation_angle = mapping_data.second;
+//             AdjustConstraintForRotation(rotation_angle, shape_matrix);
+//         }
+
+//         IndexType it = i.fetch_add(1) * rVariableList.size();
+
+//         for (std::size_t j = 0; j < rVariableList.size(); ++j) {
+//             concurrent_constraints.enqueue(r_clone_constraint.Create(prev_num_mscs + it + j + 1, const_cast<DofPointerVectorType&>(r_cloud_of_dofs[j]), r_slave_dofs[j], shape_matrix, constant_vector));
+//         }
+
+//     });
+
+//     ConstraintContainerType temp_constraints;
+//     ModelPart::MasterSlaveConstraintType::Pointer p_constraint;
+
+//     while (concurrent_constraints.try_dequeue(p_constraint))
+//         temp_constraints.push_back(p_constraint);
+
+//     rComputingModelPart.AddMasterSlaveConstraints(temp_constraints.begin(), temp_constraints.end());
+
+//     KRATOS_INFO("AssignRotationalMasterSlaveConstraintsToNodes") << "Build and Assign Rotational Master-Slave Constraints Time: " << build_and_assign_mscs.ElapsedSeconds() << std::endl;
+
+//     KRATOS_CATCH("");
+// }
+
+void AssignMasterSlaveConstraintsToNeighboursUtility::AdjustConstraintForRotation(double rotation_angle, Matrix& shape_matrix)
+{
+    KRATOS_TRY;
+
+    double cos_theta = std::cos(rotation_angle * M_PI / 180.0); // Convert degrees to radians
+    double sin_theta = std::sin(rotation_angle * M_PI / 180.0);
+
+    for (std::size_t i = 0; i < shape_matrix.size1(); ++i) {
+        double original_w1 = shape_matrix(i, 0);
+        double original_w2 = shape_matrix(i, 1);
+
+        shape_matrix(i, 0) = original_w1 * cos_theta - original_w2 * sin_theta;
+        shape_matrix(i, 1) = original_w1 * sin_theta + original_w2 * cos_theta;
+    }
+
+    KRATOS_CATCH("");
+}
+
+void AssignMasterSlaveConstraintsToNeighboursUtility::ExtractAnglesFromMapping(
+    const ResultNodesContainerType& Results,
+    const std::unordered_map<IndexType, std::pair<IndexType, double>>& GhostToOriginalMapping,
+    Vector& ListOfAngles
+)
+{
+    ListOfAngles.resize(Results.size(), false);
+    for(int i = 0; i < static_cast<int>(Results.size()); i++)
+    {
+        auto it = GhostToOriginalMapping.find(Results[i]->Id());
+        if(it != GhostToOriginalMapping.end())
+        {
+            ListOfAngles[i] = it->second.second; // Extracting the angle from the mapping
+        }
+        else
+        {
+            KRATOS_ERROR << "Node ID " << Results[i]->Id() << " not found in GhostToOriginalMapping!" << std::endl;
+        }
+    }
+}
+
+}  // namespace Kratos.
 
 void AssignMasterSlaveConstraintsToNeighboursUtility::InterpolateVelocityToNodes(
     NodesContainerType pDestinationNodes,
