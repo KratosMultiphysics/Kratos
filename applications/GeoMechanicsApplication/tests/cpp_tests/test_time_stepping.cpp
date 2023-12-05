@@ -58,26 +58,17 @@ public:
     {
         return 4;
     };
-    [[nodiscard]] double GetEndTime() const override
-    {
-        return 10.;
-    };
+    [[nodiscard]] double GetEndTime() const override { return 10.; };
     void SetEndTime(double EndTime) override
     {
         // intentionally empty
     }
-    [[nodiscard]] double GetTimeIncrement() const override
-    {
-        return 0.0;
-    }
+    [[nodiscard]] double GetTimeIncrement() const override { return 0.0; }
     void SetTimeIncrement(double TimeIncrement) override
     {
         // intentionally empty
     }
-    [[nodiscard]] std::size_t GetStepNumber() const override
-    {
-        return 0;
-    }
+    [[nodiscard]] std::size_t GetStepNumber() const override { return 0; }
     void IncrementStepNumber() override
     {
         // intentionally empty
@@ -98,18 +89,12 @@ public:
         // intentionally empty
     };
 
-    void Initialize() override
-    {
-        ++mSolverStrategyInitializeCalls;
-    }
+    void Initialize() override { ++mSolverStrategyInitializeCalls; }
     void InitializeSolutionStep() override
     {
         ++mSolverStrategyInitializeSolutionStepCalls;
     }
-    void Predict() override
-    {
-        ++mSolverStrategyPredictCalls;
-    }
+    void Predict() override { ++mSolverStrategyPredictCalls; }
     TimeStepEndState::ConvergenceState SolveSolutionStep() override
     {
         ++mSolverStrategySolveSolutionsStepCalls;

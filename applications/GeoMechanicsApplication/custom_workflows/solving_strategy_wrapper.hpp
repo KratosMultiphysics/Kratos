@@ -67,10 +67,7 @@ public:
         mpStrategy->InitializeSolutionStep();
     }
 
-    void Predict() override
-    {
-        mpStrategy->Predict();
-    }
+    void Predict() override { mpStrategy->Predict(); }
 
     void SetEndTime(double EndTime) override
     {

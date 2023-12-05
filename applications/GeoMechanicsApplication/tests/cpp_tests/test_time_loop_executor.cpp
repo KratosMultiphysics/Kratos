@@ -70,25 +70,16 @@ public:
         ++mpModelPart->GetProcessInfo()[STEP];
     }
 
-    void CloneTimeStep() override
-    {
-        mIsCloned = true;
-    }
+    void CloneTimeStep() override { mIsCloned = true; }
 
-    [[nodiscard]] bool IsCloned() const
-    {
-        return mIsCloned;
-    }
+    [[nodiscard]] bool IsCloned() const { return mIsCloned; }
 
     void RestorePositionsAndDOFVectorToStartOfStep() override
     {
         mIsRestoreCalled = true;
     }
 
-    [[nodiscard]] bool IsRestoreCalled() const
-    {
-        return mIsRestoreCalled;
-    }
+    [[nodiscard]] bool IsRestoreCalled() const { return mIsRestoreCalled; }
 
     void SaveTotalDisplacementFieldAtStartOfTimeLoop() override
     {
@@ -110,10 +101,7 @@ public:
         return mCountAccumulateTotalDisplacementFieldCalled;
     }
 
-    void OutputProcess() override
-    {
-        ++mCountOutputProcessCalled;
-    }
+    void OutputProcess() override { ++mCountOutputProcessCalled; }
 
     [[nodiscard]] std::size_t GetCountOutputProcessCalled() const
     {
@@ -141,10 +129,7 @@ public:
     {
         return mConvergenceState;
     }
-    void FinalizeSolutionStep() override
-    {
-        ++mCountFinalizeSolutionStepCalled;
-    }
+    void FinalizeSolutionStep() override { ++mCountFinalizeSolutionStepCalled; }
     void FinalizeOutput() override
     {
         // intentionally empty
@@ -180,10 +165,7 @@ public:
     {
         return CycleNumber < mNumCyclesPerStep;
     }
-    [[nodiscard]] double GetIncrement() const override
-    {
-        return 0.5;
-    }
+    [[nodiscard]] double GetIncrement() const override { return 0.5; }
     void PostTimeStepExecution(const TimeStepEndState& rResultantState) override
     {
         // intentionally empty
