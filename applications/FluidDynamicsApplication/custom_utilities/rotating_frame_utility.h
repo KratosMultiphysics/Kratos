@@ -29,7 +29,8 @@
 #include "utilities/builtin_timer.h"
 #include "utilities/math_utils.h"
 
-namespace Kratos {
+namespace Kratos 
+{
 ///@addtogroup FluidDynamicsApplication
 ///@{
 
