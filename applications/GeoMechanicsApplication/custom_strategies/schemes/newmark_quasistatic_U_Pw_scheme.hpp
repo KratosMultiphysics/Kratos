@@ -29,12 +29,10 @@ struct VariableDerivatives
     Variable<array_1d<double, 3>> first_time_derivative;
     Variable<array_1d<double, 3>> second_time_derivative;
 
-    VariableDerivatives(const Variable<array_1d<double, 3>>& instance,
-                        const Variable<array_1d<double, 3>>& first_time_derivative,
-                        const Variable<array_1d<double, 3>>& second_time_derivative)
+    explicit VariableDerivatives(const Variable<array_1d<double, 3>>& instance)
         : instance(instance),
-          first_time_derivative(first_time_derivative),
-          second_time_derivative(second_time_derivative)
+          first_time_derivative(instance.GetTimeDerivative()),
+          second_time_derivative(first_time_derivative.GetTimeDerivative())
     {
     }
 };
@@ -192,12 +190,15 @@ private:
     {
         for (const auto& variable_derivative : mVariableDerivatives)
         {
-            noalias(rNode.FastGetSolutionStepValue(variable_derivative.first_time_derivative, 0)) =
+            noalias(rNode.FastGetSolutionStepValue(
+                variable_derivative.first_time_derivative, 0)) =
                 rNode.FastGetSolutionStepValue(variable_derivative.first_time_derivative, 1) +
                 (1.0 - mGamma) * this->GetDeltaTime() *
-                    rNode.FastGetSolutionStepValue(variable_derivative.second_time_derivative, 1) +
+                    rNode.FastGetSolutionStepValue(
+                        variable_derivative.second_time_derivative, 1) +
                 mGamma * this->GetDeltaTime() *
-                    rNode.FastGetSolutionStepValue(variable_derivative.second_time_derivative, 0);
+                    rNode.FastGetSolutionStepValue(
+                        variable_derivative.second_time_derivative, 0);
         }
     }
 
@@ -205,20 +206,20 @@ private:
     {
         for (const auto& variable_derivative : mVariableDerivatives)
         {
-            noalias(rNode.FastGetSolutionStepValue(variable_derivative.second_time_derivative, 0)) =
+            noalias(rNode.FastGetSolutionStepValue(
+                variable_derivative.second_time_derivative, 0)) =
                 ((rNode.FastGetSolutionStepValue(variable_derivative.instance, 0) -
                   rNode.FastGetSolutionStepValue(variable_derivative.instance, 1)) -
                  this->GetDeltaTime() * rNode.FastGetSolutionStepValue(
                                             variable_derivative.first_time_derivative, 1) -
                  (0.5 - mBeta) * this->GetDeltaTime() * this->GetDeltaTime() *
-                     rNode.FastGetSolutionStepValue(variable_derivative.second_time_derivative, 1)) /
+                     rNode.FastGetSolutionStepValue(
+                         variable_derivative.second_time_derivative, 1)) /
                 (mBeta * this->GetDeltaTime() * this->GetDeltaTime());
         }
     }
 
-    std::vector<VariableDerivatives> mVariableDerivatives{
-        {DISPLACEMENT, VELOCITY, ACCELERATION},
-        {ROTATION, ANGULAR_VELOCITY, ANGULAR_ACCELERATION}};
+    std::vector<VariableDerivatives> mVariableDerivatives{{DISPLACEMENT}, {ROTATION}};
 
 }; // Class NewmarkQuasistaticUPwScheme
 
