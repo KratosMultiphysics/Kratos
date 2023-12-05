@@ -49,6 +49,57 @@ namespace Kratos
 ///@{
 
 /**
+ * @brief This struct provides information related with distributed search
+ * @details The class contains the following:
+ *  - PointCoordinates: The coordinates of the points to be created
+ *  - Indexes: The indexes of the points to be created
+ *  - Ranks: The ranks where the results will be defined
+ */
+struct DistributedSearchInformation
+{
+    /// Alias for the data type used to represent indices.
+    using IndexType = std::size_t;
+
+    /// Alias for the data type used to represent sizes.
+    using SizeType = std::size_t;
+
+    std::vector<double> PointCoordinates; /// Vector to store point coordinates.
+    std::vector<IndexType> Indexes;       /// Vector to store point indices. // NOTE: This could be removed in the future
+    std::vector<std::vector<int>> Ranks;  /// Vector of vectors to store ranks.
+
+    /**
+     * @brief Reserve memory for the point data vectors.
+     * @param Size The size to reserve.
+     */
+    void Reserve(const SizeType Size)
+    {
+        PointCoordinates.reserve(Size * 3);
+        Indexes.reserve(Size);
+        Ranks.reserve(Size);
+    }
+
+    /**
+     * @brief Shrink the capacity of the point data vectors to fit the data.
+     */
+    void Shrink()
+    {
+        PointCoordinates.shrink_to_fit();
+        Indexes.shrink_to_fit();
+        Ranks.shrink_to_fit();
+    }
+
+    /**
+     * @brief Clear all the data in the point data vectors.
+     */
+    void Clear()
+    {
+        PointCoordinates.clear();
+        Indexes.clear();
+        Ranks.clear();
+    }
+};
+
+/**
  * @class SearchUtilities
  * @ingroup KratosCore
  * @brief MPI utilities for searching geometrical objects
@@ -227,8 +278,7 @@ public:
      * @brief SynchronousPointSynchronization prepares synchronously the coordinates of the points for MPI search.
      * @param itPointBegin Iterator to the beginning of the points range
      * @param itPointEnd Iterator to the end of the points range
-     * @param rAllPointsCoordinates vector where the computed coordinates will be stored
-     * @param rAllPointsIds The ids of all the points (just a counter for points, and ids for nodes)
+     * @param rSearchInfo The class containing the result of the search
      * @param rBoundingBox The bounding box considered
      * @param ThresholdBoundingBox The threshold for computing is inside bounding box considered
      * @param rDataCommunicator The data communicator
@@ -236,11 +286,10 @@ public:
      * @tparam TBoundingBoxType The type of the bounding box
      */
     template<typename TPointIteratorType, typename TBoundingBoxType>
-    static std::vector<IndexType> SynchronousPointSynchronizationWithBoundingBox(
+    static void SynchronousPointSynchronizationWithBoundingBox(
         TPointIteratorType itPointBegin,
         TPointIteratorType itPointEnd,
-        std::vector<double>& rAllPointsCoordinates,
-        std::vector<IndexType>& rAllPointsIds,
+        DistributedSearchInformation& rSearchInfo,
         const TBoundingBoxType& rBoundingBox,
         const double ThresholdBoundingBox,
         const DataCommunicator& rDataCommunicator
@@ -254,7 +303,7 @@ public:
         KRATOS_DEBUG_ERROR_IF(total_number_of_points < 0) << "The total number of points is negative" << std::endl;
 
         // We synchronize the points
-        return SynchronizePointsWithBoundingBox(itPointBegin, itPointEnd, rAllPointsCoordinates, rAllPointsIds, rBoundingBox, ThresholdBoundingBox, rDataCommunicator, number_of_points, total_number_of_points);
+        SynchronizePointsWithBoundingBox(itPointBegin, itPointEnd, rSearchInfo, rBoundingBox, ThresholdBoundingBox, rDataCommunicator, number_of_points, total_number_of_points);
     }
 
     /**
@@ -582,12 +631,11 @@ private:
     }
 
     /**
-     * @details Synchronizes points between different processes. 
+     * @details Synchronizes points between different processes.
      * @details Synchonously
      * @param itPointBegin Iterator pointing to the beginning of the range of points
      * @param itPointEnd Iterator pointing to the end of the range of points
-     * @param rAllPointsCoordinates Vector to store the synchronized points' coordinates
-     * @param rAllPointsIds The ids of all the points (just a counter for points, and ids for nodes)
+     * @param rSearchInfo The class containing the result of the search
      * @param rBoundingBox The bounding box considered
      * @param ThresholdBoundingBox The threshold for computing is inside bounding box considered
      * @param rDataCommunicator Object for data communication between processes
@@ -596,13 +644,13 @@ private:
      * @return A vector containing the sizes of data for each process
      * @tparam TPointIteratorType The type of the point iterator
      * @tparam TBoundingBoxType The type of the bounding box
+     * @return The distributed search information
      */
     template<typename TPointIteratorType, typename TBoundingBoxType>
-    static std::vector<IndexType> SynchronizePointsWithBoundingBox(
+    static void SynchronizePointsWithBoundingBox(
         TPointIteratorType itPointBegin,
         TPointIteratorType itPointEnd,
-        std::vector<double>& rAllPointsCoordinates,
-        std::vector<IndexType>& rAllPointsIds,
+        DistributedSearchInformation& rSearchInfo,
         const TBoundingBoxType& rBoundingBox,
         const double ThresholdBoundingBox,
         const DataCommunicator& rDataCommunicator,
@@ -611,9 +659,8 @@ private:
         )
     {
         // Initialize and resize vectors
-        rAllPointsCoordinates.reserve(TotalNumberOfPoints * 3);
+        rSearchInfo.Reserve(TotalNumberOfPoints);
         std::vector<double> all_points_coordinates(TotalNumberOfPoints * 3);
-        rAllPointsIds.reserve(TotalNumberOfPoints);
         std::vector<IndexType> all_points_ids(TotalNumberOfPoints);
 
         // Sync all points first
@@ -625,17 +672,43 @@ private:
 
         // If distributed
         if (rDataCommunicator.IsDistributed()) {
+            // Prepare MPI data
+            const int rank = rDataCommunicator.Rank();
+            const int world_size = rDataCommunicator.Size();
+            std::vector<int> ranks(1, rank);
+            std::vector<int> inside_ranks(world_size);
+
             // Fill actual vectors
             Point point_to_test;
             for (IndexType i_point = 0; i_point < static_cast<IndexType>(TotalNumberOfPoints); ++i_point) {
                 point_to_test[0] = all_points_coordinates[3 * i_point + 0];
                 point_to_test[1] = all_points_coordinates[3 * i_point + 1];
                 point_to_test[2] = all_points_coordinates[3 * i_point + 2];
-                if (PointIsInsideBoundingBox(rBoundingBox, point_to_test, ThresholdBoundingBox)) {
+                const bool is_inside = PointIsInsideBoundingBox(rBoundingBox, point_to_test, ThresholdBoundingBox);
+                inside_ranks.resize(world_size);
+                if (is_inside) {
                     for (i_coord = 0; i_coord < 3; ++i_coord) {
-                        rAllPointsCoordinates.push_back(all_points_coordinates[3 * i_point + i_coord]);
+                        rSearchInfo.PointCoordinates.push_back(all_points_coordinates[3 * i_point + i_coord]);
                     }
-                    rAllPointsIds.push_back(all_points_ids[i_point]);
+                    rSearchInfo.Indexes.push_back(all_points_ids[i_point]);
+                    ranks[0] = rank;
+                } else {
+                    ranks[0] = -1;
+                }
+                rDataCommunicator.AllGather(ranks, inside_ranks);
+                // Use std::remove_if and vector::erase to remove elements less than 0
+                inside_ranks.erase(
+                    std::remove_if(
+                        inside_ranks.begin(),
+                        inside_ranks.end(),
+                        [](const int rank) { return rank < 0; }
+                    ),
+                    inside_ranks.end()
+                );
+
+                // Now adding // NOTE: Should be ordered, so a priori is not required to reorder
+                if (is_inside) {
+                     rSearchInfo.Ranks.push_back(inside_ranks);
                 }
             }
         } else { // Serial
@@ -645,20 +718,18 @@ private:
                 auto it_point = itPointBegin + i_point;
                 if (PointIsInsideBoundingBox(rBoundingBox, *it_point, ThresholdBoundingBox)) {
                     noalias(coordinates) = it_point->Coordinates();
-                    rAllPointsIds.push_back(all_points_ids[i_point]);
                     for (i_coord = 0; i_coord < 3; ++i_coord) {
-                        rAllPointsCoordinates.push_back(coordinates[i_coord]);
+                        rSearchInfo.PointCoordinates.push_back(coordinates[i_coord]);
                     }
+                    rSearchInfo.Indexes.push_back(all_points_ids[i_point]);
+                    std::vector<int> ranks(1, 0);
+                    rSearchInfo.Ranks.push_back(ranks);
                 }
             }
         }
 
         // Shrink to actual size
-        rAllPointsIds.shrink_to_fit();
-        rAllPointsCoordinates.shrink_to_fit();
-
-        // Return the recv sizes
-        return all_points_ids;
+        rSearchInfo.Shrink();
     }
 
     /**
