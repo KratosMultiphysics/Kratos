@@ -17,10 +17,10 @@
 
 // Project includes
 #include "includes/parallel_environment.h"
-
 #include "mpi/includes/mpi_data_communicator.h"
 #include "mpi/includes/mpi_manager.h"
 #include "mpi/includes/mpi_message.h"
+#include "mpi/utilities/data_communicator_factory.h"
 
 #ifndef KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_SYNC_SHAPE_INTERFACE_FOR_TYPE
 #define KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_SYNC_SHAPE_INTERFACE_FOR_TYPE(...)       \
@@ -472,6 +472,18 @@ bool MPIDataCommunicator::IsDefinedOnThisRank() const
 bool MPIDataCommunicator::IsNullOnThisRank() const
 {
     return mComm == MPI_COMM_NULL;
+}
+
+const DataCommunicator& MPIDataCommunicator::GetSubDataCommunicator(
+    const std::vector<int>& rRanks,
+    const std::string& rNewCommunicatorName
+    ) const
+{
+    if (ParallelEnvironment::HasDataCommunicator(rNewCommunicatorName)) {
+        return ParallelEnvironment::GetDataCommunicator(rNewCommunicatorName);
+    } else {
+        return DataCommunicatorFactory::CreateFromRanksAndRegister(*this, rRanks, rNewCommunicatorName);
+    }
 }
 
 // IO
