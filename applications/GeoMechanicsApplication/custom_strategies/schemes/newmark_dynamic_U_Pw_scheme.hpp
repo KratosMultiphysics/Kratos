@@ -57,68 +57,78 @@ public:
     {
         KRATOS_TRY
 
-        // Predict Displacements on free nodes and update Acceleration, Velocity and DtPressure
+        PredictDisplacements(rModelPart);
+        // Update Acceleration, Velocity and DtPressure
+        this->UpdateVariablesDerivatives(rModelPart);
+
+        KRATOS_CATCH("")
+    }
+    void PredictDisplacements(const ModelPart& rModelPart)
+    {
         block_for_each(
             rModelPart.Nodes(),
             [&](Node& rNode)
             {
                 std::vector<std::string> components = {"X", "Y"};
                 const auto variable_derivative = this->mVariableDerivatives[0];
-                if (rNode.HasDofFor(KratosComponents<Variable<double>>::Get(
-                        variable_derivative.instance.Name() + "_Z")))
+                if (rNode.HasDofFor(GetComponentFromVectorVariable(
+                        variable_derivative.instance, "Z")))
                     components.push_back("Z");
 
                 for (const auto& component : components)
                 {
-                    auto& second_time_derivative_component =
-                        KratosComponents<Variable<double>>::Get(
-                            variable_derivative.second_time_derivative.Name() + "_" + component);
-                    auto& first_time_derivative_component =
-                        KratosComponents<Variable<double>>::Get(
-                            variable_derivative.first_time_derivative.Name() + "_" + component);
-                    auto& instance_component =
-                        KratosComponents<Variable<double>>::Get(
-                            variable_derivative.instance.Name() + "_" + component);
+                    const auto& second_time_derivative_component = GetComponentFromVectorVariable(
+                        variable_derivative.second_time_derivative, component);
+                    const auto& first_time_derivative_component = GetComponentFromVectorVariable(
+                        variable_derivative.first_time_derivative, component);
+                    const auto& instance_component = GetComponentFromVectorVariable(
+                        variable_derivative.instance, component);
 
-                    const double& PreviousDisplacement =
+                    const double previous_variable =
                         rNode.FastGetSolutionStepValue(instance_component, 1);
-                    const double& PreviousVelocity =
+                    const double current_first_time_derivative =
+                        rNode.FastGetSolutionStepValue(first_time_derivative_component, 0);
+                    const double previous_first_time_derivative =
                         rNode.FastGetSolutionStepValue(first_time_derivative_component, 1);
-                    const double& PreviousAcceleration =
+                    const double current_second_time_derivative =
+                        rNode.FastGetSolutionStepValue(second_time_derivative_component, 0);
+                    const double previous_second_time_derivative =
                         rNode.FastGetSolutionStepValue(second_time_derivative_component, 1);
-                    const double& CurrentAcceleration =
-                        rNode.FastGetSolutionStepValue(second_time_derivative_component);
-                    const double& CurrentVelocity =
-                        rNode.FastGetSolutionStepValue(first_time_derivative_component);
 
                     if (rNode.IsFixed(second_time_derivative_component))
                     {
                         rNode.FastGetSolutionStepValue(instance_component) =
-                            PreviousDisplacement + this->GetDeltaTime() * PreviousVelocity +
+                            previous_variable +
+                            this->GetDeltaTime() * previous_first_time_derivative +
                             this->GetDeltaTime() * this->GetDeltaTime() *
-                                ((0.5 - mBeta) * PreviousAcceleration + mBeta * CurrentAcceleration);
+                                ((0.5 - mBeta) * previous_second_time_derivative +
+                                 mBeta * current_second_time_derivative);
                     }
                     else if (rNode.IsFixed(first_time_derivative_component))
                     {
                         rNode.FastGetSolutionStepValue(instance_component) =
-                            PreviousDisplacement +
+                            previous_variable +
                             this->GetDeltaTime() *
-                                ((mBeta / mGamma) * (CurrentVelocity - PreviousVelocity) +
-                                 PreviousVelocity);
+                                ((mBeta / mGamma) * (current_first_time_derivative -
+                                                     previous_first_time_derivative) +
+                                 previous_first_time_derivative);
                     }
                     else if (!rNode.IsFixed(instance_component))
                     {
                         rNode.FastGetSolutionStepValue(instance_component) =
-                            PreviousDisplacement + this->GetDeltaTime() * PreviousVelocity +
-                            0.5 * this->GetDeltaTime() * this->GetDeltaTime() * PreviousAcceleration;
+                            previous_variable +
+                            this->GetDeltaTime() * previous_first_time_derivative +
+                            0.5 * this->GetDeltaTime() * this->GetDeltaTime() *
+                                previous_second_time_derivative;
                     }
                 }
-
             });
+    }
 
-            this->UpdateVariablesDerivatives(rModelPart);
-
-        KRATOS_CATCH("")
+    const Variable<double>& GetComponentFromVectorVariable(
+        const Variable<array_1d<double, 3>>& rSource, const std::string& rComponent)
+    {
+        return KratosComponents<Variable<double>>::Get(rSource.Name() + "_" + rComponent);
     }
 
     void CalculateSystemContributions(Condition& rCurrentCondition,
