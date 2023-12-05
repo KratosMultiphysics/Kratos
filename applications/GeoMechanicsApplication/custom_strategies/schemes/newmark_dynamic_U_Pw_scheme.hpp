@@ -128,6 +128,7 @@ public:
         }
     }
 
+    // TODO make sure this will not throw an exception
     const Variable<double>& GetComponentFromVectorVariable(
         const Variable<array_1d<double, 3>>& rSource, const std::string& rComponent)
     {
