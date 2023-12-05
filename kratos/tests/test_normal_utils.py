@@ -130,6 +130,7 @@ class TestNormalUtilsCoarseSphere(KratosUnittest.TestCase):
 
             self.assertLess(CalculateNorm(normal - solution_normal), 0.15)
 
+    @KratosUnittest.skipIf(KratosMultiphysics.IsDistributedRun(), "This test is designed for serial runs only.")
     def test_ComputeSimplexNormalModelPartWithLineCondition(self):
         #Adding one line, to make sure it is getting ignored
         self.model_part.CreateNewCondition("LineCondition3D2N", 1000, [1,2], self.model_part.GetProperties()[1])
