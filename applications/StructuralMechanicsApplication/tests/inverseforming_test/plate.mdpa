@@ -1,0 +1,77 @@
+Begin ModelPartData
+//  VARIABLE_NAME value
+End ModelPartData
+
+Begin Properties 0
+End Properties
+Begin Nodes
+    1  0               0.0            0.0
+    2  4.33015         0.0            2.5
+    3  8.6603          0.0            0.0
+    4  0               5.0            0.0
+    5  4.33015         5.0            2.5
+    6  8.6603          5.0            0.0
+End Nodes
+
+Begin Elements MembraneElement3D3N// GUI group identifier: Membrane Auto1
+        1          0     1     5     4
+        2          0     5     1     2
+        3          0     2     6     5
+        4          0     6     2     3
+End Elements
+
+Begin Conditions SmallDisplacementSurfaceLoadCondition3D3N// GUI group identifier: Membrane Auto1
+       10          0     1     5     4
+       20          0     5     1     2
+       30          0     2     6     5
+       40          0     6     2     3
+End Conditions
+
+Begin SubModelPart Parts_Membrane_Membrane_Auto1 // Group Membrane Auto1 // Subtree Parts_Membrane
+    Begin SubModelPartNodes
+            1
+            2
+            3
+            4
+            5
+            6
+    End SubModelPartNodes
+    Begin SubModelPartElements
+            1
+            2
+            3
+            4
+    End SubModelPartElements
+End SubModelPart
+Begin SubModelPart DISPLACEMENT_Displacement_CenterDown // Group Displacement CenterDown // Subtree DISPLACEMENT
+    Begin SubModelPartNodes
+            2
+    End SubModelPartNodes
+End SubModelPart
+Begin SubModelPart DISPLACEMENT_Displacement_CenterUp // Group Displacement CenterUp // Subtree DISPLACEMENT
+    Begin SubModelPartNodes
+            5
+    End SubModelPartNodes
+End SubModelPart
+Begin SubModelPart DISPLACEMENT_Displacement_Z // Group Displacement Z // Subtree DISPLACEMENT
+    Begin SubModelPartNodes
+           2
+           5
+    End SubModelPartNodes
+End SubModelPart
+Begin SubModelPart SurfaceLoad3D_Membrane_Auto1 // Group Membrane Auto1 // Subtree SurfaceLoad3D
+    Begin SubModelPartNodes
+            1
+            2
+            3
+            4
+            5
+            6
+    End SubModelPartNodes
+    Begin SubModelPartConditions
+           10
+           20
+           30
+           40
+    End SubModelPartConditions
+End SubModelPart
