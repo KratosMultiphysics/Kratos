@@ -295,6 +295,30 @@ void SearchWrapper<TSearchObject>::LocalSearchIsInside(
 /***********************************************************************************/
 
 template<class TSearchObject>
+void SearchWrapper<TSearchObject>::KeepOnlyClosestResult(ResultContainerVectorType& rResults)
+{
+    auto distance_lambda = [](ResultContainerType& rResult) -> std::vector<double> {
+        return rResult.GetDistances();
+    };
+    KeepOnlyGivenLambdaResult(rResults, distance_lambda);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<class TSearchObject>
+void SearchWrapper<TSearchObject>::KeepOnlyLowestRankResult(ResultContainerVectorType& rResults)
+{
+    auto rank_lambda = [](ResultContainerType& rResult) -> std::vector<int> {
+        return rResult.GetResultRank();
+    };
+    KeepOnlyGivenLambdaResult(rResults, rank_lambda);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<class TSearchObject>
 const Parameters SearchWrapper<TSearchObject>::GetDefaultParameters() const
 {
     const Parameters default_parameters = Parameters(R"(

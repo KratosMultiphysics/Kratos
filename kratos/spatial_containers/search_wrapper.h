@@ -989,25 +989,13 @@ private:
      * @brief This method removes the solutions if there are not the closest
      * @param rResults Results to be simplified
      */
-    void KeepOnlyClosestResult(ResultContainerVectorType& rResults)
-    {
-        auto distance_lambda = [](ResultContainerType& rResult) -> std::vector<double> {
-            return rResult.GetDistances();
-        };
-        KeepOnlyGivenLambdaResult(rResults, distance_lambda);
-    }
+    void KeepOnlyClosestResult(ResultContainerVectorType& rResults);
 
     /**
      * @brief This method removes the solutions not in the lowest rank
      * @param rResults Results to be simplified
      */
-    void KeepOnlyLowestRankResult(ResultContainerVectorType& rResults)
-    {
-        auto rank_lambda = [](ResultContainerType& rResult) -> std::vector<int> {
-            return rResult.GetResultRank();
-        };
-        KeepOnlyGivenLambdaResult(rResults, rank_lambda);
-    }
+    void KeepOnlyLowestRankResult(ResultContainerVectorType& rResults);
 
     /**
      * @brief This method returns the default parameters of the search
