@@ -185,6 +185,8 @@ protected:
         KRATOS_CATCH("")
     }
 
+    std::vector<VariableDerivatives> mVariableDerivatives{VariableDerivatives(DISPLACEMENT), VariableDerivatives(ROTATION)};
+
 private:
     void UpdateVectorFirstTimeDerivative(Node& rNode) const
     {
@@ -219,7 +221,6 @@ private:
         }
     }
 
-    std::vector<VariableDerivatives> mVariableDerivatives{VariableDerivatives(DISPLACEMENT), VariableDerivatives(ROTATION)};
 
 }; // Class NewmarkQuasistaticUPwScheme
 

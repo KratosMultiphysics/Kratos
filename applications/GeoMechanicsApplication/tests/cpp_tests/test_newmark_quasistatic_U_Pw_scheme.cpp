@@ -170,9 +170,7 @@ KRATOS_TEST_CASE_IN_SUITE(ForInvalidGamma_CheckNewmarkUPwScheme_Throws, KratosGe
     constexpr double invalid_gamma = -2.5;
     using SchemeType = NewmarkQuasistaticUPwScheme<SparseSpaceType, LocalSpaceType>;
 
-    auto& test = KratosComponents<Variable<double>>::Get( ACCELERATION.Name() + "_X" );
 
-    KRATOS_EXPECT_EQ(test.Name(), "ACCELERATION_X");
 
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         SchemeType scheme(0.25, invalid_gamma, 0.75),
