@@ -754,13 +754,17 @@ void NormalCalculationUtils::AuxiliaryCalculateOnSimplex(
         });
     }
 
+    const auto condition_simplex_type = Dimension == 2
+            ? GeometryData::KratosGeometryType::Kratos_Line2D2
+            : GeometryData::KratosGeometryType::Kratos_Triangle3D3;
+
     // Adding the normals to the nodes
-    block_for_each(rConditions, [&rNormalVariable, this](Condition& rCondition) {
+    block_for_each(rConditions, [&rNormalVariable, &condition_simplex_type, this](Condition& rCondition) {
         auto& r_geometry = rCondition.GetGeometry();
-        if (rCondition.GetGeometry().PointsNumber() == 3) {
-            constexpr double coeff = 1.0 / 3.0;
+        if (rCondition.GetGeometry().GetGeometryType() == condition_simplex_type) {
+            const double coeff = 1.0 / r_geometry.size();
             const auto& r_normal = rCondition.GetValue(rNormalVariable);
-            for (unsigned int i = 0; i < 3; ++i) {
+            for (unsigned int i = 0; i < r_geometry.size(); ++i) {
                 auto& r_node = r_geometry[i];
                 r_node.SetLock();
                 noalias(GetNormalValue<TIsHistorical>(r_node, rNormalVariable)) += coeff * r_normal;
