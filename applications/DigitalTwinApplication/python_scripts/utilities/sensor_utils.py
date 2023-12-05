@@ -2,6 +2,7 @@ import typing
 import json
 from pathlib import Path
 from math import sqrt
+import numpy as np
 
 import KratosMultiphysics as Kratos
 import KratosMultiphysics.OptimizationApplication as KratosOA
@@ -347,3 +348,32 @@ def GetFilter(model_part: Kratos.ModelPart, filter_field_location: Kratos.Global
         return vm_filter
     else:
         raise RuntimeError(f"Unsupported filter_type = {filter_type}.")
+
+def GetSimilarSensorViews(reference_expression: ExpressionUnionType, cosine_similarity_lb: float, cosine_similarity_ub: float, list_of_sensor_views: 'list[SensorViewUnionType]') -> 'list[SensorViewUnionType]':
+    results: 'list[SensorViewUnionType]' = []
+    for sensor_view in list_of_sensor_views:
+        cosine_similarity = KratosOA.ExpressionUtils.InnerProduct(sensor_view.GetContainerExpression(), reference_expression)
+        if cosine_similarity <= cosine_similarity_ub and cosine_similarity > cosine_similarity_lb:
+            results.append(sensor_view)
+    return results
+
+def GetSensorCoverageMasks(sensor_views: 'list[SensorViewUnionType]', domain_size_exp: ExpressionUnionType) -> 'list[ExpressionUnionType]':
+    list_of_coverage_masks: 'list[ExpressionUnionType]' = []
+    total_domain_size = KratosDT.SensorUtils.Sum(domain_size_exp)
+
+    for sensor_view in sensor_views:
+        _, coverage_mask = KratosDT.SensorUtils.GetEntityCoverageMask(sensor_view)
+        coverage = KratosDT.SensorUtils.Sum(domain_size_exp.Scale(coverage_mask)) / total_domain_size
+        Kratos.Logger.PrintInfo("GetSensorCoverageMasks", f"Coverage of \"{sensor_view.GetSensor().GetName()}\" is {coverage * 100:6.3f}%")
+        sensor_view.GetSensor().SetValue(KratosDT.SENSOR_COVERAGE, coverage)
+        list_of_coverage_masks.append(coverage_mask)
+    return list_of_coverage_masks
+
+def ComputeMinimumDistanceSquare(reference_view: SensorViewUnionType, sensor_views: 'list[SensorViewUnionType]') -> float:
+    minimum_distance = 1e+100
+    for sensor_view in sensor_views:
+        current_distance = reference_view.GetSensor().GetLocation() - sensor_view.GetSensor().GetLocation()
+        current_distance = current_distance[0] ** 2 + current_distance[1] ** 2 + current_distance[2] ** 2
+        if minimum_distance > current_distance:
+            minimum_distance = current_distance
+    return minimum_distance

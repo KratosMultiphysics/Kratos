@@ -8,11 +8,7 @@ import KratosMultiphysics.HDF5Application as KratosHDF5
 from KratosMultiphysics.analysis_stage import AnalysisStage
 from KratosMultiphysics.OptimizationApplication.model_part_controllers.mdpa_model_part_controller import MdpaModelPartController
 from KratosMultiphysics.DigitalTwinApplication.sensor_sensitivity_solvers.sensor_sensitivity_analysis import SensorSensitivityAnalysis
-from KratosMultiphysics.DigitalTwinApplication.sensor_placement_algorithms.cosine_similarity_sensor_placement_algorithm import CosineSimilaritySensorPlacementAlgorithm
-from KratosMultiphysics.DigitalTwinApplication.sensor_placement_algorithms.least_cosine_euclidean_similarity_sensor_placement_algorithm import LeastCosineEuclideanSimilaritySensorPlacementAlgorithm
-from KratosMultiphysics.DigitalTwinApplication.sensor_placement_algorithms.cosine_similarity_with_triangulation_sensor_placement import CosineSimilarityWithTriangulationSensorPlacement
-from KratosMultiphysics.DigitalTwinApplication.sensor_placement_algorithms.minimum_redundancy_sensor_placement_algorithm import MinimumRedundancySensorPlacementAlgorithm
-from KratosMultiphysics.DigitalTwinApplication.sensor_placement_algorithms.redundancy_gap_sensor_placement_algorithm import RedundancyGapSensorPlacementAlgorithm
+from KratosMultiphysics.DigitalTwinApplication.sensor_placement_algorithms.sensor_placement_algorithm import SensorPlacementAlgorithm
 from KratosMultiphysics.DigitalTwinApplication.utilities.expression_utils import ExpressionDataLocation
 from KratosMultiphysics.HDF5Application.core.file_io import OpenHDF5File
 class SensorPlacementAnalysis:
@@ -44,18 +40,22 @@ class SensorPlacementAnalysis:
         self.__list_of_sensor_analyses: 'list[SensorSensitivityAnalysis]' = self._CreateAnalyses(self.project_parameters["sensor_analyses"])
 
         algorithm_type = self.project_parameters["algorithm_settings"]["type"].GetString()
-        if algorithm_type == "cosine_similarity_sensor_placement":
-            self.algorithm = CosineSimilaritySensorPlacementAlgorithm(self.model, self.project_parameters["algorithm_settings"])
-        elif algorithm_type == "least_cosine_euclidean_similarity_sensor_placement_algorithm":
-            self.algorithm = LeastCosineEuclideanSimilaritySensorPlacementAlgorithm(self.model, self.project_parameters["algorithm_settings"])
-        elif algorithm_type == "cosine_similarity_with_triangulation_sensor_placement":
-            self.algorithm = CosineSimilarityWithTriangulationSensorPlacement(self.model, self.project_parameters["algorithm_settings"])
-        elif algorithm_type == "minimum_redundancy_sensor_placement_algorithm":
-            self.algorithm = MinimumRedundancySensorPlacementAlgorithm(self.model, self.project_parameters["algorithm_settings"])
-        elif algorithm_type == "redundancy_gap_sensor_placement_algorithm":
-            self.algorithm = RedundancyGapSensorPlacementAlgorithm(self.model, self.project_parameters["algorithm_settings"])
-        else:
-            raise RuntimeError(f"Unsupported algorithm type = \"{algorithm_type}\" requested.")
+
+        algorithm_module = importlib.import_module(f"KratosMultiphysics.DigitalTwinApplication.sensor_placement_algorithms.{algorithm_type}")
+        self.algorithm: SensorPlacementAlgorithm = getattr(algorithm_module, Kratos.StringUtilities.ConvertSnakeCaseToCamelCase(algorithm_type))(self.model, self.project_parameters["algorithm_settings"])
+
+        # if algorithm_type == "cosine_similarity_sensor_placement":
+        #     self.algorithm = CosineSimilaritySensorPlacementAlgorithm(self.model, self.project_parameters["algorithm_settings"])
+        # elif algorithm_type == "least_cosine_euclidean_similarity_sensor_placement_algorithm":
+        #     self.algorithm = LeastCosineEuclideanSimilaritySensorPlacementAlgorithm(self.model, self.project_parameters["algorithm_settings"])
+        # elif algorithm_type == "cosine_similarity_with_triangulation_sensor_placement":
+        #     self.algorithm = CosineSimilarityWithTriangulationSensorPlacement(self.model, self.project_parameters["algorithm_settings"])
+        # elif algorithm_type == "minimum_redundancy_sensor_placement_algorithm":
+        #     self.algorithm = MinimumRedundancySensorPlacementAlgorithm(self.model, self.project_parameters["algorithm_settings"])
+        # elif algorithm_type == "redundancy_gap_sensor_placement_algorithm":
+        #     self.algorithm = RedundancyGapSensorPlacementAlgorithm(self.model, self.project_parameters["algorithm_settings"])
+        # else:
+        #     raise RuntimeError(f"Unsupported algorithm type = \"{algorithm_type}\" requested.")
 
     def Initialize(self):
         list(map(MdpaModelPartController.ImportModelPart, self.__list_of_model_part_controllers))
