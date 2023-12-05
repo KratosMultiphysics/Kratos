@@ -57,7 +57,7 @@ class KRATOS_API(KRATOS_CORE) AssignMasterSlaveConstraintsToNeighboursUtility
     public:
       ///@name Type Definitions
       ///@{
-      
+
       //Node Types
       using NodeType = ModelPart::NodeType;
 
@@ -151,6 +151,13 @@ class KRATOS_API(KRATOS_CORE) AssignMasterSlaveConstraintsToNeighboursUtility
           NodesContainerType pSlaveNodes,
           double const Radius,
           ModelPart& rComputingModelPart,
+          const std::vector<std::reference_wrapper<const Kratos::Variable<double>>>& rVariableList,
+          double const MinNumOfNeighNodes
+      );
+
+      void InterpolateVelocityToNodes(
+          NodesContainerType pDestinationNodes,
+          double const Radius,
           const std::vector<std::reference_wrapper<const Kratos::Variable<double>>>& rVariableList,
           double const MinNumOfNeighNodes
       );

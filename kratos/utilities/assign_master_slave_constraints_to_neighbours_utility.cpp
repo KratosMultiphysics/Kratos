@@ -20,7 +20,7 @@
 // Project includes
 #include "utilities/assign_master_slave_constraints_to_neighbours_utility.h"
 
-namespace Kratos 
+namespace Kratos
 {
 ///@addtogroup Kratos Core
 ///@{
@@ -43,8 +43,8 @@ AssignMasterSlaveConstraintsToNeighboursUtility::AssignMasterSlaveConstraintsToN
     NodesContainerType::ContainerType& nodes_model_part = rMasterStructureNodes.GetContainer();
     mpBins = Kratos::make_unique<NodeBinsType>(nodes_model_part.begin(), nodes_model_part.end());
     mMaxNumberOfNodes = rMasterStructureNodes.size();
-    KRATOS_CATCH(""); 
-} 
+    KRATOS_CATCH("");
+}
 
 // Destructor
 AssignMasterSlaveConstraintsToNeighboursUtility::~AssignMasterSlaveConstraintsToNeighboursUtility() {}
@@ -97,7 +97,7 @@ void AssignMasterSlaveConstraintsToNeighboursUtility::GetDofsAndCoordinatesForSl
     } else {
         std::stringstream variables_str;
         variables_str << "[";
-        for (const auto& variable : rVariableList) 
+        for (const auto& variable : rVariableList)
             variables_str << variable.get() << ", ";
         variables_str.seekp(-2, std::ios_base::end); // Remove the last ", "
         variables_str << "]";
@@ -206,7 +206,7 @@ void AssignMasterSlaveConstraintsToNeighboursUtility::AssignMasterSlaveConstrain
         // Get Dofs and Coordinates for the slave node and the cloud of nodes
         GetDofsAndCoordinatesForSlaveNode(p_slave_node, rVariableList, r_slave_dofs, r_slave_coordinates);
         GetDofsAndCoordinatesForCloudOfNodes(r_cloud_of_nodes, rVariableList, r_cloud_of_dofs, r_cloud_of_nodes_coordinates);
-        
+
         // Calculate shape functions
         RBFShapeFunctionsUtility::CalculateShapeFunctions(r_cloud_of_nodes_coordinates, r_slave_coordinates, r_n_container);
 
@@ -235,5 +235,61 @@ void AssignMasterSlaveConstraintsToNeighboursUtility::AssignMasterSlaveConstrain
     KRATOS_INFO("AssignMasterSlaveConstraintsToNeighboursUtility") << "Build and Assign Master-Slave Constraints Time: " << build_and_assign_mscs.ElapsedSeconds() << std::endl;
     KRATOS_CATCH("");
 }
-}  // namespace Kratos.
 
+void AssignMasterSlaveConstraintsToNeighboursUtility::InterpolateVelocityToNodes(
+    NodesContainerType pDestinationNodes,
+    double const Radius,
+    const std::vector<std::reference_wrapper<const Kratos::Variable<double>>>& rVariableList,
+    double const MinNumOfNeighNodes
+    )
+{
+    KRATOS_TRY;
+
+    BuiltinTimer build_and_assign_mscs;
+
+    // Declare thread-local storage (TLS) variables
+    thread_local std::vector<DofPointerVectorType> r_cloud_of_dofs;           // The DOFs of the cloud of nodes
+    thread_local std::vector<DofPointerVectorType> r_destination_dofs;              // The DOFs of the destination node
+    thread_local Matrix r_cloud_of_nodes_coordinates;                          // The coordinates of the cloud of nodes
+    thread_local array_1d<double, 3> r_destination_coordinates;                      // The coordinates of the destination node
+    thread_local Vector r_n_container;                                         // Container for shape functions
+
+    auto& p_nodes_array = pDestinationNodes.GetContainer();  // Get the container of destination nodes
+
+    // Declare a counter variable outside the loop as std::atomic<int>
+    std::atomic<int> i(0);
+
+    block_for_each(p_nodes_array, [&](Node::Pointer& p_destination_node) {
+
+        double local_radius = Radius;
+
+        ResultNodesContainerType r_cloud_of_nodes(0);  // Container for the cloud of nodes
+        ResultNodesContainerType r_local_results(mMaxNumberOfNodes);  // Container for node search results
+
+        while (r_cloud_of_nodes.size() < MinNumOfNeighNodes) {
+            r_cloud_of_nodes.clear();
+            SearchNodesInRadiusForNode(p_destination_node, local_radius, r_cloud_of_nodes, r_local_results);  // Search for nodes in the radius
+            local_radius += Radius;
+        }
+
+        // Get Dofs and Coordinates for the slave node and the cloud of nodes
+        GetDofsAndCoordinatesForSlaveNode(p_destination_node, rVariableList, r_destination_dofs, r_destination_coordinates);
+        GetDofsAndCoordinatesForCloudOfNodes(r_cloud_of_nodes, rVariableList, r_cloud_of_dofs, r_cloud_of_nodes_coordinates);
+
+        // Calculate shape functions
+        RBFShapeFunctionsUtility::CalculateShapeFunctions(r_cloud_of_nodes_coordinates, r_destination_coordinates, r_n_container);
+
+        // IndexType it = i.fetch_add(1) * rVariableList.size(); // Atomically increment the counter and get the previous value
+
+        for (std::size_t j = 0; j < rVariableList.size(); ++j) {
+            double interpolated_variable_value = 0.0;
+            for (std::size_t k = 0; k < r_cloud_of_nodes.size(); ++k){
+                auto r_current_node = r_cloud_of_nodes[k];
+                interpolated_variable_value += r_current_node->FastGetSolutionStepValue(rVariableList[j].get()) * r_n_container[k];
+            }
+            p_destination_node->FastGetSolutionStepValue(rVariableList[j].get(), interpolated_variable_value);
+        }
+    });
+    KRATOS_CATCH("");
+}  // namespace Kratos.
+}
