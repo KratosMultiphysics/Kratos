@@ -184,7 +184,7 @@ namespace Kratos {
 
     const int num_particles     =  rModelPart.NumberOfElements();
     int       num_particles_gen =  0;
-    int       total_coord       = 0;
+    double    total_coord       =  0.0;
     double    total_vol         =  0.0;
     double    total_silo_mass   =  0.0;
 
@@ -235,9 +235,9 @@ namespace Kratos {
     for (int i = 0; i < num_particles; i++) {
       ThermalSphericParticle& particle = dynamic_cast<ThermalSphericParticle&> (*(it+i));
 
-      const int coord   = particle.mNeighbourElements.size() + particle.mNeighbourRigidFaces.size();
-      const double vol  = particle.CalculateVolume();
-      const double temp = particle.GetGeometry()[0].FastGetSolutionStepValue(TEMPERATURE);
+      const double coord = particle.mNeighbourElements.size() + particle.mNeighbourRigidFaces.size();
+      const double vol   = particle.CalculateVolume();
+      const double temp  = particle.GetGeometry()[0].FastGetSolutionStepValue(TEMPERATURE);
 
       double mass = 0.0;
       double coord_z = particle.GetGeometry()[0].Coordinates()[2];
