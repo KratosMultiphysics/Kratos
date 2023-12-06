@@ -58,7 +58,7 @@ public:
         KRATOS_TRY
 
         PredictDisplacements(rModelPart);
-        // Update Acceleration, Velocity and DtPressure
+        // Update (Angular) Acceleration, (Angular) Velocity and DtPressure
         this->UpdateVariablesDerivatives(rModelPart);
 
         KRATOS_CATCH("")
@@ -72,8 +72,10 @@ public:
     void PredictDisplacementsForNode(Node& rNode)
     {
         // This will become a for-loop over the variables
-        const auto variable_derivative = this->mVariableDerivatives[0];
-        PredictDisplacementsForVariable(rNode, variable_derivative);
+        for (const auto variable_derivative : this->mVariableDerivatives)
+        {
+            PredictDisplacementsForVariable(rNode, variable_derivative);
+        }
     }
 
     void PredictDisplacementsForVariable(Node& rNode, const VariableDerivatives& rVariableWithDerivatives)
@@ -85,12 +87,12 @@ public:
 
         for (const auto& component : components)
         {
-            const auto& second_time_derivative_component = GetComponentFromVectorVariable(
-                rVariableWithDerivatives.second_time_derivative, component);
-            const auto& first_time_derivative_component = GetComponentFromVectorVariable(
-                rVariableWithDerivatives.first_time_derivative, component);
             const auto& instance_component = GetComponentFromVectorVariable(
                 rVariableWithDerivatives.instance, component);
+            const auto& first_time_derivative_component = GetComponentFromVectorVariable(
+                rVariableWithDerivatives.first_time_derivative, component);
+            const auto& second_time_derivative_component = GetComponentFromVectorVariable(
+                rVariableWithDerivatives.second_time_derivative, component);
 
             const double previous_variable =
                 rNode.FastGetSolutionStepValue(instance_component, 1);

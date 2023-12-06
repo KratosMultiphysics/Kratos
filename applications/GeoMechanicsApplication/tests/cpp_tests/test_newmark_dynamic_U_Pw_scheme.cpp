@@ -52,6 +52,9 @@ public:
         p_node->AddDof(DISPLACEMENT_Y);
         p_node->AddDof(DISPLACEMENT_Z);
         p_node->AddDof(WATER_PRESSURE);
+        p_node->AddDof(ROTATION_X);
+        p_node->AddDof(ROTATION_Y);
+        p_node->AddDof(ROTATION_Z);
         result.GetProcessInfo()[DELTA_TIME] = 4.0;
 
         p_node->FastGetSolutionStepValue(VELOCITY, 0) =
