@@ -32,6 +32,8 @@
 #include "custom_strategies/lspg_rom_builder_and_solver.h"
 #include "custom_strategies/petrov_galerkin_rom_builder_and_solver.h"
 #include "custom_strategies/global_rom_builder_and_solver.h"
+#include "custom_strategies/ann_prom_global_rom_builder_and_solver.h"
+#include "custom_strategies/pod_global_rom_builder_and_solver.h"
 
 //linear solvers
 #include "linear_solvers/linear_solver.h"
@@ -80,6 +82,25 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
     .def("GetRightROMBasis", &LeastSquaresPetrovGalerkinROMBuilderAndSolverType::GetRightROMBasis)
     ;
 
+
+    typedef AnnPromGlobalROMBuilderAndSolver<SparseSpaceType, LocalSpaceType, LinearSolverType> AnnPromGlobalROMBuilderAndSolverType;
+    
+    py::class_<AnnPromGlobalROMBuilderAndSolverType, typename AnnPromGlobalROMBuilderAndSolverType::Pointer, ResidualBasedBlockBuilderAndSolverType>(m, "AnnPromGlobalROMBuilderAndSolver")
+    .def(py::init< LinearSolverType::Pointer, Parameters>() )
+    .def("SetNumberOfROMModes", &AnnPromGlobalROMBuilderAndSolverType::SetNumberOfROMModes)
+    .def("SetNumberOfNNLayers", &AnnPromGlobalROMBuilderAndSolverType::SetNumberOfNNLayers)
+    .def("SetNNLayer", &AnnPromGlobalROMBuilderAndSolverType::SetNNLayer)
+    .def("SetPhiMatrices", &AnnPromGlobalROMBuilderAndSolverType::SetPhiMatrices)
+    .def("SetTestMatrix", &AnnPromGlobalROMBuilderAndSolverType::SetTestMatrix)
+    .def("SetTestVector", &AnnPromGlobalROMBuilderAndSolverType::SetTestVector)
+    ;
+
+    typedef PODGlobalROMBuilderAndSolver<SparseSpaceType, LocalSpaceType, LinearSolverType> PODGlobalROMBuilderAndSolverType;
+    
+    py::class_<PODGlobalROMBuilderAndSolverType, typename PODGlobalROMBuilderAndSolverType::Pointer, ResidualBasedBlockBuilderAndSolverType>(m, "PODGlobalROMBuilderAndSolver")
+    .def(py::init< LinearSolverType::Pointer, Parameters>() )
+    .def("SetNumberOfROMModes", &PODGlobalROMBuilderAndSolverType::SetNumberOfROMModes)
+    ;
 
 }
 

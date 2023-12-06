@@ -7,7 +7,7 @@
 //  License:        BSD License
 //                  Kratos default license: kratos/license.txt
 //
-//  Main authors:   Sebastian Ares de Parga
+//  Main authors:   Nicolás Sibuet, Sebastian Ares de Parga
 //                  
 //
 
@@ -57,10 +57,10 @@ namespace Kratos
 ///@{
 
 /**
- * @class GlobalROMBuilderAndSolver
+ * @class AnnPromGlobalROMBuilderAndSolver
  */
 template <class TSparseSpace, class TDenseSpace, class TLinearSolver>
-class GlobalROMBuilderAndSolver : public ResidualBasedBlockBuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver>
+class AnnPromGlobalROMBuilderAndSolver : public ResidualBasedBlockBuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver>
 {
 public:
 
@@ -77,14 +77,14 @@ public:
     ///@{
 
     // Class pointer definition
-    KRATOS_CLASS_POINTER_DEFINITION(GlobalROMBuilderAndSolver);
+    KRATOS_CLASS_POINTER_DEFINITION(AnnPromGlobalROMBuilderAndSolver);
 
     // The size_t types
     using SizeType = std::size_t;
     using IndexType = std::size_t;
 
     /// The definition of the current class
-    using ClassType = GlobalROMBuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver>;
+    using ClassType = AnnPromGlobalROMBuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver>;
 
     /// Definition of the classes from the base class
     using BaseBuilderAndSolverType = BuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver>;
@@ -120,7 +120,7 @@ public:
     ///@name Life cycle
     ///@{
 
-    explicit GlobalROMBuilderAndSolver(
+    explicit AnnPromGlobalROMBuilderAndSolver(
         typename TLinearSolver::Pointer pNewLinearSystemSolver,
         Parameters ThisParameters): BaseType(pNewLinearSystemSolver)
     {
@@ -130,13 +130,13 @@ public:
         this->AssignSettings(this_parameters_copy);
     }
 
-    explicit GlobalROMBuilderAndSolver(
+    explicit AnnPromGlobalROMBuilderAndSolver(
         typename TLinearSolver::Pointer pNewLinearSystemSolver)
         : ResidualBasedBlockBuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver>(pNewLinearSystemSolver)
     {
     }
 
-    ~GlobalROMBuilderAndSolver() = default;
+    ~AnnPromGlobalROMBuilderAndSolver() = default;
 
     ///@}
     ///@name Operators
@@ -159,9 +159,9 @@ public:
     {
         KRATOS_TRY;
 
-        KRATOS_INFO_IF("GlobalROMBuilderAndSolver", (this->GetEchoLevel() > 1)) << "Setting up the dofs" << std::endl;
-        KRATOS_INFO_IF("GlobalROMBuilderAndSolver", (this->GetEchoLevel() > 2)) << "Number of threads" << ParallelUtilities::GetNumThreads() << "\n" << std::endl;
-        KRATOS_INFO_IF("GlobalROMBuilderAndSolver", (this->GetEchoLevel() > 2)) << "Initializing element loop" << std::endl;
+        KRATOS_INFO_IF("AnnPromGlobalROMBuilderAndSolver", (this->GetEchoLevel() > 1)) << "Setting up the dofs" << std::endl;
+        KRATOS_INFO_IF("AnnPromGlobalROMBuilderAndSolver", (this->GetEchoLevel() > 2)) << "Number of threads" << ParallelUtilities::GetNumThreads() << "\n" << std::endl;
+        KRATOS_INFO_IF("AnnPromGlobalROMBuilderAndSolver", (this->GetEchoLevel() > 2)) << "Initializing element loop" << std::endl;
 
         // Get model part data
         if (mHromWeightsInitialized == false) {
@@ -171,7 +171,7 @@ public:
         auto dof_queue = ExtractDofSet(pScheme, rModelPart);
 
         // Fill a sorted auxiliary array of with the DOFs set
-        KRATOS_INFO_IF("GlobalROMBuilderAndSolver", (this->GetEchoLevel() > 2)) << "Initializing ordered array filling\n" << std::endl;
+        KRATOS_INFO_IF("AnnPromGlobalROMBuilderAndSolver", (this->GetEchoLevel() > 2)) << "Initializing ordered array filling\n" << std::endl;
         auto dof_array = SortAndRemoveDuplicateDofs(dof_queue);
 
         // Update base builder and solver DOFs array and set corresponding flag
@@ -180,8 +180,8 @@ public:
 
         // Throw an exception if there are no DOFs involved in the analysis
         KRATOS_ERROR_IF(BaseBuilderAndSolverType::GetDofSet().size() == 0) << "No degrees of freedom!" << std::endl;
-        KRATOS_INFO_IF("GlobalROMBuilderAndSolver", (this->GetEchoLevel() > 2)) << "Number of degrees of freedom:" << BaseBuilderAndSolverType::GetDofSet().size() << std::endl;
-        KRATOS_INFO_IF("GlobalROMBuilderAndSolver", (this->GetEchoLevel() > 2)) << "Finished setting up the dofs" << std::endl;
+        KRATOS_INFO_IF("AnnPromGlobalROMBuilderAndSolver", (this->GetEchoLevel() > 2)) << "Number of degrees of freedom:" << BaseBuilderAndSolverType::GetDofSet().size() << std::endl;
+        KRATOS_INFO_IF("AnnPromGlobalROMBuilderAndSolver", (this->GetEchoLevel() > 2)) << "Finished setting up the dofs" << std::endl;
 
 #ifdef KRATOS_DEBUG
         // If reactions are to be calculated, we check if all the dofs have reactions defined
@@ -233,39 +233,65 @@ public:
     SizeType GetNumberOfROMModes() const noexcept
     {
         return mNumberOfRomModes;
-    } 
+    }
+
+    void SetNumberOfROMModes(SizeType numberOfRomModes)
+    {
+        mNumberOfRomModes = numberOfRomModes;
+        // KRATOS_INFO_IF("AnnPromGlobalROMBuilderAndSolver", (this->GetEchoLevel() >= 0)) << "SetNumberOfROMModes: " << mNumberOfRomModes << std::endl;
+    }
+
+    void SetNumberOfNNLayers(SizeType numberOfNNLayers)
+    {
+        mNNLayers = vector<Matrix> (numberOfNNLayers);
+    }
+
+    void SetNNLayer(
+        SizeType layerIndex,
+        Matrix nnLayer
+    )
+    {
+        mNNLayers[layerIndex]= nnLayer;
+        // KRATOS_INFO_IF("AnnPromGlobalROMBuilderAndSolver", (this->GetEchoLevel() >= 0)) << "SetNNLayer: " << mNNLayers << std::endl;
+    }
+
+    void SetPhiMatrices(
+        Matrix svdPhiInf,
+        Matrix svdPhiSup
+    )
+    {
+        mSVDPhiMatrices = vector<Matrix>(2);
+        mSVDPhiMatrices[0] = svdPhiInf;
+        mSVDPhiMatrices[1] = svdPhiSup;
+        // KRATOS_INFO_IF("AnnPromGlobalROMBuilderAndSolver", (this->GetEchoLevel() >= 0)) << "SetPhiMatrices: " << mSVDPhiMatrices << std::endl;
+    }
+
+    void SetTestMatrix(Matrix testMatrix)
+    {
+        mTestMatrix = testMatrix;
+    }
+
+    void SetTestVector(Vector testVector)
+    {
+        mTestVector = testVector;
+    }
 
     bool GetMonotonicityPreservingFlag() const noexcept
     {
         return mMonotonicityPreservingFlag;
     }
 
-    void ProjectToFineBasis(
-        const TSystemVectorType& rRomUnkowns,
-        const ModelPart& rModelPart,
-        TSystemVectorType& rDx) const
-    {
-        const auto& r_dof_set = BaseBuilderAndSolverType::GetDofSet();
-        block_for_each(r_dof_set, [&](const DofType& r_dof)
-        {
-            const auto& r_node = rModelPart.GetNode(r_dof.Id());
-            const Matrix& r_rom_nodal_basis = r_node.GetValue(ROM_BASIS);
-            const Matrix::size_type row_id = mMapPhi.at(r_dof.GetVariable().Key());
-            rDx[r_dof.EquationId()] = inner_prod(row(r_rom_nodal_basis, row_id), rRomUnkowns);
-        });
-    
-        
-    }
-
     void BuildRightROMBasis(
         const ModelPart& rModelPart,
         Matrix& rPhiGlobal) 
     {
+
         const auto& r_dof_set = BaseBuilderAndSolverType::GetDofSet();
         block_for_each(r_dof_set, [&](const DofType& r_dof)
         {
             const auto& r_node = rModelPart.GetNode(r_dof.Id());
             const Matrix& r_rom_nodal_basis = r_node.GetValue(ROM_BASIS);
+            // KRATOS_INFO_IF("AnnPromGlobalROMBuilderAndSolver", (this->GetEchoLevel() >= 0)) << "BuildRightROMBasis: r_rom_nodal_basis:" << r_rom_nodal_basis << std::endl;
             const Matrix::size_type row_id = mMapPhi.at(r_dof.GetVariable().Key());
             if (r_dof.IsFixed())
             {
@@ -331,9 +357,13 @@ public:
         // Call the base B&S InitializeSolutionStep
         BaseBuilderAndSolverType::InitializeSolutionStep(rModelPart, rA, rDx, rb);
 
-        // Reset the ROM solution increment in the root modelpart database
         auto& r_root_mp = rModelPart.GetRootModelPart();
-        r_root_mp.GetValue(ROM_SOLUTION_INCREMENT) = ZeroVector(GetNumberOfROMModes());
+        // KRATOS_INFO_IF("AnnPromGlobalROMBuilderAndSolver", (this->GetEchoLevel() >= 0)) << "InitializeSolutionStep: rom_solution_increment: " << r_root_mp.GetValue(ROM_SOLUTION_INCREMENT) << std::endl;
+
+
+        // Reset the ROM solution increment in the root modelpart database
+        // auto& r_root_mp = rModelPart.GetRootModelPart();
+        // r_root_mp.GetValue(ROM_SOLUTION_INCREMENT) = ZeroVector(GetNumberOfROMModes());
     }
 
     
@@ -346,7 +376,11 @@ public:
     {
         KRATOS_TRY
 
+        // KRATOS_INFO_IF("AnnPromGlobalROMBuilderAndSolver", (this->GetEchoLevel() >= 0)) << "BuildAndSolve: " << "StartedBuildAndSolveStep" << std::endl;
+
         BuildAndProjectROM(pScheme, rModelPart, A, b, Dx);
+
+        // KRATOS_INFO_IF("AnnPromGlobalROMBuilderAndSolver", (this->GetEchoLevel() >= 0)) << "BuildAndSolve: " << "Between BuildAndProject and Solve" << std::endl;
         
         SolveROM(rModelPart, mEigenRomA, mEigenRomB, Dx);
 
@@ -393,7 +427,7 @@ public:
     {
         Parameters default_parameters = Parameters(R"(
         {
-            "name" : "global_rom_builder_and_solver",
+            "name" : "ann_prom_global_rom_builder_and_solver",
             "nodal_unknowns" : [],
             "number_of_rom_dofs" : 10,
             "rom_bns_settings" : {
@@ -407,7 +441,7 @@ public:
 
     static std::string Name()
     {
-        return "global_rom_builder_and_solver";
+        return "ann_prom_global_rom_builder_and_solver";
     }
 
     ///@}
@@ -425,7 +459,7 @@ public:
     /// Turn back information as a string.
     virtual std::string Info() const override
     {
-        return "GlobalROMBuilderAndSolver";
+        return "AnnPromGlobalROMBuilderAndSolver";
     }
 
     /// Print information about this object.
@@ -640,22 +674,47 @@ protected:
 
         const auto assembling_timer = BuiltinTimer();
 
+        // KRATOS_INFO_IF("AnnPromGlobalROMBuilderAndSolver", (this->GetEchoLevel() >= 0)) << "BuildAndProjectROM: rA (init):" << rA.size1() << rA.size2() << std::endl;
+        // KRATOS_INFO_IF("AnnPromGlobalROMBuilderAndSolver", (this->GetEchoLevel() >= 0)) << "BuildAndProjectROM: rb (init):" << rb.size() << std::endl;
+        // KRATOS_INFO_IF("AnnPromGlobalROMBuilderAndSolver", (this->GetEchoLevel() >= 0)) << "BuildAndProjectROM: rDx (init):" << rDx.size() << std::endl;
+
         if (rA.size1() != BaseType::mEquationSystemSize || rA.size2() != BaseType::mEquationSystemSize) {
             rA.resize(BaseType::mEquationSystemSize, BaseType::mEquationSystemSize, false);
             BaseType::ConstructMatrixStructure(pScheme, rA, rModelPart);
         }
 
+        // KRATOS_INFO_IF("AnnPromGlobalROMBuilderAndSolver", (this->GetEchoLevel() >= 0)) << "BuildAndProjectROM: rA (structured):" << rA.size1() << rA.size2() << std::endl;
+
         Build(pScheme, rModelPart, rA, rb);
+
+        // KRATOS_INFO_IF("AnnPromGlobalROMBuilderAndSolver", (this->GetEchoLevel() >= 0)) << "BuildAndProjectROM: rA (final):" << rA.size1() << rA.size2() << std::endl;
+        // KRATOS_INFO_IF("AnnPromGlobalROMBuilderAndSolver", (this->GetEchoLevel() >= 0)) << "BuildAndProjectROM: rb (final):" << rb.size() << std::endl;
 
         if (mMonotonicityPreservingFlag) {
             BaseType::ApplyDirichletConditions(pScheme, rModelPart, rA, rDx, rb);
             MonotonicityPreserving(rA, rb);
         }
 
+        // KRATOS_INFO_IF("AnnPromGlobalROMBuilderAndSolver", (this->GetEchoLevel() >= 0)) << "BuildAndProjectROM: rA (monoton):" << rA.size1() << rA.size2() << std::endl;
+        // KRATOS_INFO_IF("AnnPromGlobalROMBuilderAndSolver", (this->GetEchoLevel() >= 0)) << "BuildAndProjectROM: rb (monoton):" << rb.size() << std::endl;
+
+        auto& r_root_mp = rModelPart.GetRootModelPart();
+        RomSystemVectorType& rRomUnknowns = r_root_mp.GetValue(ROM_SOLUTION_INCREMENT);
+
+
+        // KRATOS_INFO_IF("AnnPromGlobalROMBuilderAndSolver", (this->GetEchoLevel() >= 0)) << "BuildAndProjectROM: rRomUnknowns (init):" << rRomUnknowns << std::endl;
+        
+        // Vector testDiff = mTestVector - rDx;
+        // KRATOS_INFO_IF("AnnPromGlobalROMBuilderAndSolver", (this->GetEchoLevel() >= 0)) << "BuildAndProjectROM: error in rDx (init): " << testDiff << std::endl;
+
+        GetDecoderGradient(rRomUnknowns, mPhiGlobal);
+
+        WriteElementalBasis(mPhiGlobal, rModelPart);
+
         ProjectROM(rModelPart, rA, rb);
 
         double time = assembling_timer.ElapsedSeconds();
-        KRATOS_INFO_IF("GlobalROMBuilderAndSolver", (this->GetEchoLevel() > 0)) << "Build and project time: " << time << std::endl;
+        KRATOS_INFO_IF("AnnPromGlobalROMBuilderAndSolver", (this->GetEchoLevel() > 0)) << "Build and project time: " << time << std::endl;
 
         KRATOS_CATCH("")
     }
@@ -760,12 +819,18 @@ protected:
             mRightRomBasisInitialized = true;
         }
 
+        // KRATOS_INFO_IF("AnnPromGlobalROMBuilderAndSolver", (this->GetEchoLevel() >= 0)) << "ProjectROM: mPhiGlobal (init):" << mPhiGlobal << std::endl;
+
         BuildRightROMBasis(rModelPart, mPhiGlobal);
+
+        // KRATOS_INFO_IF("AnnPromGlobalROMBuilderAndSolver", (this->GetEchoLevel() >= 0)) << "ProjectROM: mPhiGlobal (updated):" << mPhiGlobal << std::endl;
 
         auto a_wrapper = UblasWrapper<double>(rA);
         const auto& eigen_rA = a_wrapper.matrix();
         Eigen::Map<EigenDynamicVector> eigen_rb(rb.data().begin(), rb.size());
         Eigen::Map<EigenDynamicMatrix> eigen_mPhiGlobal(mPhiGlobal.data().begin(), mPhiGlobal.size1(), mPhiGlobal.size2());
+
+        // KRATOS_INFO_IF("AnnPromGlobalROMBuilderAndSolver", (this->GetEchoLevel() >= 0)) << "ProjectROM: eigen_mPhiGlobal:" << eigen_mPhiGlobal << std::endl;
         
         EigenDynamicMatrix eigen_rA_times_mPhiGlobal = eigen_rA * eigen_mPhiGlobal; //TODO: Make it in parallel.
 
@@ -788,6 +853,7 @@ protected:
         KRATOS_TRY
 
         RomSystemVectorType dxrom(GetNumberOfROMModes());
+        // KRATOS_INFO_IF("AnnPromGlobalROMBuilderAndSolver", (this->GetEchoLevel() >= 0)) << "SolveROM: dxrom (init): " << dxrom << std::endl;
         
         const auto solving_timer = BuiltinTimer();
 
@@ -796,18 +862,209 @@ protected:
         dxrom_eigen = rEigenRomA.colPivHouseholderQr().solve(rEigenRomB);
         
         double time = solving_timer.ElapsedSeconds();
-        KRATOS_INFO_IF("GlobalROMBuilderAndSolver", (this->GetEchoLevel() > 0)) << "Solve reduced system time: " << time << std::endl;
-
+        KRATOS_INFO_IF("AnnPromGlobalROMBuilderAndSolver", (this->GetEchoLevel() > 0)) << "Solve reduced system time: " << time << std::endl;
+        // KRATOS_INFO_IF("AnnPromGlobalROMBuilderAndSolver", (this->GetEchoLevel() >= 0)) << "SolveROM: Solve reduced system time: " << time << std::endl;
+        
         // Save the ROM solution increment in the root modelpart database
         auto& r_root_mp = rModelPart.GetRootModelPart();
-        noalias(r_root_mp.GetValue(ROM_SOLUTION_INCREMENT)) += dxrom;
+
+        RomSystemVectorType& xrom = r_root_mp.GetValue(ROM_SOLUTION_INCREMENT);
+        // KRATOS_INFO_IF("AnnPromGlobalROMBuilderAndSolver", (this->GetEchoLevel() >= 0)) << "SolveROM: xrom (init)" << xrom << std::endl;
+
+        // KRATOS_INFO_IF("AnnPromGlobalROMBuilderAndSolver", (this->GetEchoLevel() >= 0)) << "SolveROM: dxrom (updated): " << dxrom << std::endl;
+        // KRATOS_INFO_IF("AnnPromGlobalROMBuilderAndSolver", (this->GetEchoLevel() >= 0)) << "SolveROM: xrom (updated)" << xrom << std::endl;
 
         // project reduced solution back to full order model
         const auto backward_projection_timer = BuiltinTimer();
-        ProjectToFineBasis(dxrom, rModelPart, rDx);
-        KRATOS_INFO_IF("GlobalROMBuilderAndSolver", (this->GetEchoLevel() > 0)) << "Project to fine basis time: " << backward_projection_timer.ElapsedSeconds() << std::endl;
+        ProjectToFineBasis(xrom, dxrom, rDx);
+        KRATOS_INFO_IF("AnnPromGlobalROMBuilderAndSolver", (this->GetEchoLevel() > 0)) << "Project to fine basis time: " << backward_projection_timer.ElapsedSeconds() << std::endl;
+
+        noalias(xrom) += dxrom;
 
         KRATOS_CATCH("")
+    }
+
+    void ProjectToFineBasis(
+        const TSystemVectorType& rRomUnknowns,
+        const RomSystemVectorType& dxrom,
+        TSystemVectorType& rDx)
+    {
+        // KRATOS_INFO_IF("AnnPromGlobalROMBuilderAndSolver", (this->GetEchoLevel() >= 0)) << "ProjectToFineBasis: PostProcess(NN(q_inf))" << NNForwardPass(rRomUnknowns) << std::endl;
+
+        Eigen::Map<EigenDynamicVector> eigen_rDx(rDx.data().begin(), rDx.size());
+        eigen_rDx = NNForwardPass(rRomUnknowns+dxrom) - NNForwardPass(rRomUnknowns);
+    }
+
+    void GetDecoderGradient(
+        const RomSystemVectorType& rRomUnknowns,
+        Matrix& rPhiGlobal)
+    {   
+        // KRATOS_INFO_IF("AnnPromGlobalROMBuilderAndSolver", (this->GetEchoLevel() >= 0)) << "GetDecoderGradient: rRomUnknowns:" << rRomUnknowns << std::endl;
+
+        vector<Matrix> grad_layers = mNNLayers;
+        // KRATOS_INFO_IF("AnnPromGlobalROMBuilderAndSolver", (this->GetEchoLevel() >= 0)) << "GetDecoderGradient: mNNLayers size: " << mNNLayers.size() << std::endl;
+        Vector rRomUnknowns_temp = rRomUnknowns;
+        Eigen::Map<EigenDynamicVector> eigen_rRomUnknowns_temp(rRomUnknowns_temp.data().begin(), rRomUnknowns_temp.size());
+        EigenDynamicVector layer_in = eigen_rRomUnknowns_temp;
+        // Eigen::Map<EigenDynamicVector> eigen_layer_in(layer_in.data().begin(), layer_in.size());
+        
+        EigenDynamicVector layer_out;
+        int i=0;
+        for(const auto& layers_item : mNNLayers)
+        {
+            // noalias(layer_out) = prod(layer,layer_in);
+            Matrix layer = layers_item;
+            // KRATOS_INFO_IF("AnnPromGlobalROMBuilderAndSolver", (this->GetEchoLevel() >= 0)) << "GetDecoderGradient: layer " << i << ": " << layer << std::endl;
+            // KRATOS_INFO_IF("AnnPromGlobalROMBuilderAndSolver", (this->GetEchoLevel() >= 0)) << "GetDecoderGradient: layer_in " << i << ": " << layer_in << std::endl;
+            // KRATOS_INFO_IF("AnnPromGlobalROMBuilderAndSolver", (this->GetEchoLevel() >= 0)) << "GetDecoderGradient: grad_layers " << i << " (init): " << grad_layers[i] << std::endl;
+            Eigen::Map<EigenDynamicMatrix> eigen_layer(layer.data().begin(), layer.size1(), layer.size2());
+            // layer_out = eigen_layer.transpose() * eigen_layer_in;
+            layer_out = eigen_layer.transpose() * layer_in;
+            if(i<mNNLayers.size()-1)
+            {
+                IndexPartition<IndexType>(layer_out.size()).for_each([&](IndexType Index)
+                {   
+                    if (layer_out[Index]<0.0){
+                        // KRATOS_INFO_IF("AnnPromGlobalROMBuilderAndSolver", (this->GetEchoLevel() >= 0)) << "GetDecoderGradient: layer_out element " << Index << ": " << layer_out[Index] << std::endl;
+                        for (int j = 0; j < grad_layers[i].size1(); j++)
+                        {
+                            // We will need to check the dimensionspf the matrices and determine if we have to multiply rows or columns
+                            // KRATOS_INFO_IF("AnnPromGlobalROMBuilderAndSolver", (this->GetEchoLevel() >= 0)) << "GetDecoderGradient: grad_layers row " << j << "," << Index << "(init): " << grad_layers[i](j,Index) << std::endl;
+                            grad_layers[i](j,Index) = grad_layers[i](j,Index)*exp(layer_out[Index]);
+                            // KRATOS_INFO_IF("AnnPromGlobalROMBuilderAndSolver", (this->GetEchoLevel() >= 0)) << "GetDecoderGradient: grad_layers row " << j << "," << Index << "(updated): " << grad_layers[i](j,Index) << std::endl;
+                        }
+                    }
+                
+                    // KRATOS_INFO_IF("AnnPromGlobalROMBuilderAndSolver", (this->GetEchoLevel() >= 0)) << "GetDecoderGradient: grad_layers " << i << " (init): " << grad_layers[i] << std::endl;
+                });
+                // KRATOS_INFO_IF("AnnPromGlobalROMBuilderAndSolver", (this->GetEchoLevel() >= 0)) << "GetDecoderGradient: grad_layers " << i << " (final): " << grad_layers[i] << std::endl;
+                // KRATOS_INFO_IF("AnnPromGlobalROMBuilderAndSolver", (this->GetEchoLevel() >= 0)) << "GetDecoderGradient: layer_out " << i << " (init): " << layer_out << std::endl;
+                ELUActivation(layer_out);
+            }
+            // KRATOS_INFO_IF("AnnPromGlobalROMBuilderAndSolver", (this->GetEchoLevel() >= 0)) << "GetDecoderGradient: layer_out " << i << " (final): " << layer_out << std::endl;
+            layer_in = layer_out;
+            i++;
+        }
+
+        EigenDynamicMatrix intermediate_gradients;
+        Eigen::Map<EigenDynamicMatrix> eigen_gradients_in_temp(grad_layers[0].data().begin(), grad_layers[0].size1(), grad_layers[0].size2());
+        EigenDynamicMatrix gradients_in = eigen_gradients_in_temp.transpose();
+        // KRATOS_INFO_IF("AnnPromGlobalROMBuilderAndSolver", (this->GetEchoLevel() >= 0)) << "GetDecoderGradient: gradients_in[0]: " << gradients_in << std::endl;
+
+        for (int i = 0; i < grad_layers.size()-1; i++)
+        {
+            // noalias(intermediate_gradients) = prod(grad_layers[i+1],gradients_in);Matrix layer = layers_item;
+            Eigen::Map<EigenDynamicMatrix> eigen_grad_layer(grad_layers[i+1].data().begin(), grad_layers[i+1].size1(), grad_layers[i+1].size2());
+            // KRATOS_INFO_IF("AnnPromGlobalROMBuilderAndSolver", (this->GetEchoLevel() >= 0)) << "GetDecoderGradient: eigen_grad_layer " << i+1 << ": " << eigen_grad_layer << std::endl;
+            intermediate_gradients = eigen_grad_layer.transpose() * gradients_in;
+            // KRATOS_INFO_IF("AnnPromGlobalROMBuilderAndSolver", (this->GetEchoLevel() >= 0)) << "GetDecoderGradient: intermediate_gradients " << i+1 << ": " << intermediate_gradients << std::endl;
+            gradients_in = intermediate_gradients;
+        }
+
+        // KRATOS_INFO_IF("AnnPromGlobalROMBuilderAndSolver", (this->GetEchoLevel() >= 0)) << "GetDecoderGradient: intermediate_gradients (qsup): " << intermediate_gradients << std::endl;
+
+        PostProcessGradient(intermediate_gradients, rPhiGlobal);
+        // KRATOS_INFO_IF("AnnPromGlobalROMBuilderAndSolver", (this->GetEchoLevel() >= 0)) << "GetDecoderGradient: rPhiGlobal: " << rPhiGlobal << std::endl;
+
+        // KRATOS_INFO_IF("AnnPromGlobalROMBuilderAndSolver", (this->GetEchoLevel() >= 0)) << "GetDecoderGradient: mTestMatrix " << mTestMatrix << std::endl;
+
+        // Eigen::Map<EigenDynamicMatrix> eigen_test_matrix(mTestMatrix.data().begin(), mTestMatrix.size1(), mTestMatrix.size2());
+        // EigenDynamicMatrix testDiff = eigen_test_matrix - rPhiGlobal;
+        // Matrix testDiff = mTestMatrix - rPhiGlobal;
+
+        // KRATOS_INFO_IF("AnnPromGlobalROMBuilderAndSolver", (this->GetEchoLevel() >= 0)) << "GetDecoderGradient: error in gradient (final): " << testDiff << std::endl;
+
+
+    }
+
+    EigenDynamicVector NNForwardPass(
+        const Vector& nn_input)
+    {
+        Vector nn_input_temp = nn_input;
+        Eigen::Map<EigenDynamicVector> eigen_nn_input_temp(nn_input_temp.data().begin(), nn_input_temp.size());
+        EigenDynamicVector layer_in = eigen_nn_input_temp;
+
+        EigenDynamicVector layer_out;
+
+        int i=0;
+        for(const auto& layers_item : mNNLayers)
+        {
+            Matrix layer = layers_item;
+            Eigen::Map<EigenDynamicMatrix> eigen_layer(layer.data().begin(), layer.size1(), layer.size2());
+            // KRATOS_INFO_IF("AnnPromGlobalROMBuilderAndSolver", (this->GetEchoLevel() >= 0)) << "NNForwardPass: layer_in " << i << ": " << layer_in << std::endl;
+            // KRATOS_INFO_IF("AnnPromGlobalROMBuilderAndSolver", (this->GetEchoLevel() >= 0)) << "NNForwardPass: layer " << i << ": " << layer << std::endl;
+            layer_out = eigen_layer.transpose() * layer_in;
+            // KRATOS_INFO_IF("AnnPromGlobalROMBuilderAndSolver", (this->GetEchoLevel() >= 0)) << "NNForwardPass: layer_out " << i << ": " << layer_out << std::endl;
+            if (i<mNNLayers.size()-1)
+            {
+                ELUActivation(layer_out);
+            }
+            layer_in = layer_out;
+            i++;
+        }
+        // KRATOS_INFO_IF("AnnPromGlobalROMBuilderAndSolver", (this->GetEchoLevel() >= 0)) << "NNForwardPass: NN(q_inf)" << layer_out << std::endl;
+
+        return PostProcessQSup(layer_out, nn_input);
+    }
+
+    void ELUActivation(
+        EigenDynamicVector& layer_out)
+    {
+        IndexPartition<IndexType>(layer_out.size()).for_each([&](IndexType Index)
+        {
+            if (layer_out[Index]<0.0){
+                layer_out[Index] = exp(layer_out[Index]) - 1.0;
+            }
+        });
+    }
+
+    EigenDynamicVector PostProcessQSup(
+        const EigenDynamicVector& q_sup,
+        const Vector& nn_input)
+    {
+        Vector q_inf = nn_input;
+        Eigen::Map<EigenDynamicVector> eigen_q_inf(q_inf.data().begin(), q_inf.size());
+        Matrix SVD_Phi_inf = mSVDPhiMatrices[0];
+        Matrix SVD_Phi_sup = mSVDPhiMatrices[1];
+        Eigen::Map<EigenDynamicMatrix> eigen_SVD_Phi_inf(SVD_Phi_inf.data().begin(), SVD_Phi_inf.size1(), SVD_Phi_inf.size2());
+        Eigen::Map<EigenDynamicMatrix> eigen_SVD_Phi_sup(SVD_Phi_sup.data().begin(), SVD_Phi_sup.size1(), SVD_Phi_sup.size2());
+        EigenDynamicVector nn_out = eigen_SVD_Phi_inf * eigen_q_inf;
+        nn_out += eigen_SVD_Phi_sup * q_sup;
+        return nn_out;
+    }
+
+    void PostProcessGradient(
+        const EigenDynamicMatrix& intermediate_gradients,
+        Matrix& rPhiGlobal)
+    {
+        rPhiGlobal=mSVDPhiMatrices[0];
+        Matrix SVD_Phi_sup = mSVDPhiMatrices[1];
+        Eigen::Map<EigenDynamicMatrix> eigen_SVD_Phi_sup(SVD_Phi_sup.data().begin(), SVD_Phi_sup.size1(), SVD_Phi_sup.size2());
+        Eigen::Map<EigenDynamicMatrix> eigen_rPhiGlobal(rPhiGlobal.data().begin(), rPhiGlobal.size1(), rPhiGlobal.size2());
+        eigen_rPhiGlobal += eigen_SVD_Phi_sup * intermediate_gradients;
+    }
+
+    void WriteElementalBasis(
+        const Matrix& rPhiGlobal,
+        ModelPart& rModelPart) 
+    {
+        block_for_each(rModelPart.Nodes().GetContainer(),
+            [&](Node::Pointer p_node)
+        {
+            Matrix& r_rom_nodal_basis = p_node->GetValue(ROM_BASIS);
+            // KRATOS_INFO_IF("AnnPromGlobalROMBuilderAndSolver", (this->GetEchoLevel() >= 0)) << "WriteElementalBasis: r_rom_nodal_basis " << p_node->Id() << ": " << r_rom_nodal_basis << std::endl;
+            
+            for(int i=0; i < mNodalDofs; i++)
+            {
+                
+                // KRATOS_INFO_IF("AnnPromGlobalROMBuilderAndSolver", (this->GetEchoLevel() >= 0)) << "WriteElementalBasis: rPhiGlobal row node " << p_node->Id() << " dof " << i << ": " << row(rPhiGlobal, (p_node->Id()-1)*mNodalDofs+i) << std::endl;
+                // KRATOS_INFO_IF("AnnPromGlobalROMBuilderAndSolver", (this->GetEchoLevel() >= 0)) << "WriteElementalBasis: r_rom_nodal_basis row node " << p_node->Id() << " dof " << i << ": " << row(r_rom_nodal_basis, i) << std::endl;
+                row(r_rom_nodal_basis,i)=row(rPhiGlobal, (p_node->Id()-1)*mNodalDofs+i);
+                // KRATOS_INFO_IF("AnnPromGlobalROMBuilderAndSolver", (this->GetEchoLevel() >= 0)) << "WriteElementalBasis: r_rom_nodal_basis row node " << p_node->Id() << " dof " << i << ": " << row(r_rom_nodal_basis, i) << std::endl;
+            }
+            p_node->SetValue(ROM_BASIS, r_rom_nodal_basis);
+            
+        });
     }
 
     ///@}
@@ -830,13 +1087,17 @@ private:
     EigenDynamicVector mEigenRomB;
     Matrix mPhiGlobal;
     bool mMonotonicityPreservingFlag;
+    vector<Matrix> mNNLayers;
+    vector<Matrix> mSVDPhiMatrices;
+    Matrix mTestMatrix;
+    Vector mTestVector;
 
     ///@}
     ///@name Private operations 
     ///@{
 
     ///@}
-}; /* Class GlobalROMBuilderAndSolver */
+}; /* Class AnnPromGlobalROMBuilderAndSolver */
 
 ///@}
 ///@name Type Definitions

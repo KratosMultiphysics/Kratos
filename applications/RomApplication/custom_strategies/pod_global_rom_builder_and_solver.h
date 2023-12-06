@@ -57,10 +57,10 @@ namespace Kratos
 ///@{
 
 /**
- * @class GlobalROMBuilderAndSolver
+ * @class PODGlobalROMBuilderAndSolver
  */
 template <class TSparseSpace, class TDenseSpace, class TLinearSolver>
-class GlobalROMBuilderAndSolver : public ResidualBasedBlockBuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver>
+class PODGlobalROMBuilderAndSolver : public ResidualBasedBlockBuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver>
 {
 public:
 
@@ -77,14 +77,14 @@ public:
     ///@{
 
     // Class pointer definition
-    KRATOS_CLASS_POINTER_DEFINITION(GlobalROMBuilderAndSolver);
+    KRATOS_CLASS_POINTER_DEFINITION(PODGlobalROMBuilderAndSolver);
 
     // The size_t types
     using SizeType = std::size_t;
     using IndexType = std::size_t;
 
     /// The definition of the current class
-    using ClassType = GlobalROMBuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver>;
+    using ClassType = PODGlobalROMBuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver>;
 
     /// Definition of the classes from the base class
     using BaseBuilderAndSolverType = BuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver>;
@@ -120,7 +120,7 @@ public:
     ///@name Life cycle
     ///@{
 
-    explicit GlobalROMBuilderAndSolver(
+    explicit PODGlobalROMBuilderAndSolver(
         typename TLinearSolver::Pointer pNewLinearSystemSolver,
         Parameters ThisParameters): BaseType(pNewLinearSystemSolver)
     {
@@ -130,13 +130,13 @@ public:
         this->AssignSettings(this_parameters_copy);
     }
 
-    explicit GlobalROMBuilderAndSolver(
+    explicit PODGlobalROMBuilderAndSolver(
         typename TLinearSolver::Pointer pNewLinearSystemSolver)
         : ResidualBasedBlockBuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver>(pNewLinearSystemSolver)
     {
     }
 
-    ~GlobalROMBuilderAndSolver() = default;
+    ~PODGlobalROMBuilderAndSolver() = default;
 
     ///@}
     ///@name Operators
@@ -159,9 +159,9 @@ public:
     {
         KRATOS_TRY;
 
-        KRATOS_INFO_IF("GlobalROMBuilderAndSolver", (this->GetEchoLevel() > 1)) << "Setting up the dofs" << std::endl;
-        KRATOS_INFO_IF("GlobalROMBuilderAndSolver", (this->GetEchoLevel() > 2)) << "Number of threads" << ParallelUtilities::GetNumThreads() << "\n" << std::endl;
-        KRATOS_INFO_IF("GlobalROMBuilderAndSolver", (this->GetEchoLevel() > 2)) << "Initializing element loop" << std::endl;
+        KRATOS_INFO_IF("PODGlobalROMBuilderAndSolver", (this->GetEchoLevel() > 1)) << "Setting up the dofs" << std::endl;
+        KRATOS_INFO_IF("PODGlobalROMBuilderAndSolver", (this->GetEchoLevel() > 2)) << "Number of threads" << ParallelUtilities::GetNumThreads() << "\n" << std::endl;
+        KRATOS_INFO_IF("PODGlobalROMBuilderAndSolver", (this->GetEchoLevel() > 2)) << "Initializing element loop" << std::endl;
 
         // Get model part data
         if (mHromWeightsInitialized == false) {
@@ -171,7 +171,7 @@ public:
         auto dof_queue = ExtractDofSet(pScheme, rModelPart);
 
         // Fill a sorted auxiliary array of with the DOFs set
-        KRATOS_INFO_IF("GlobalROMBuilderAndSolver", (this->GetEchoLevel() > 2)) << "Initializing ordered array filling\n" << std::endl;
+        KRATOS_INFO_IF("PODGlobalROMBuilderAndSolver", (this->GetEchoLevel() > 2)) << "Initializing ordered array filling\n" << std::endl;
         auto dof_array = SortAndRemoveDuplicateDofs(dof_queue);
 
         // Update base builder and solver DOFs array and set corresponding flag
@@ -180,8 +180,8 @@ public:
 
         // Throw an exception if there are no DOFs involved in the analysis
         KRATOS_ERROR_IF(BaseBuilderAndSolverType::GetDofSet().size() == 0) << "No degrees of freedom!" << std::endl;
-        KRATOS_INFO_IF("GlobalROMBuilderAndSolver", (this->GetEchoLevel() > 2)) << "Number of degrees of freedom:" << BaseBuilderAndSolverType::GetDofSet().size() << std::endl;
-        KRATOS_INFO_IF("GlobalROMBuilderAndSolver", (this->GetEchoLevel() > 2)) << "Finished setting up the dofs" << std::endl;
+        KRATOS_INFO_IF("PODGlobalROMBuilderAndSolver", (this->GetEchoLevel() > 2)) << "Number of degrees of freedom:" << BaseBuilderAndSolverType::GetDofSet().size() << std::endl;
+        KRATOS_INFO_IF("PODGlobalROMBuilderAndSolver", (this->GetEchoLevel() > 2)) << "Finished setting up the dofs" << std::endl;
 
 #ifdef KRATOS_DEBUG
         // If reactions are to be calculated, we check if all the dofs have reactions defined
@@ -233,7 +233,13 @@ public:
     SizeType GetNumberOfROMModes() const noexcept
     {
         return mNumberOfRomModes;
-    } 
+    }
+
+    void SetNumberOfROMModes(SizeType numberOfRomModes)
+    {
+        mNumberOfRomModes = numberOfRomModes;
+        // KRATOS_INFO_IF("AnnPromGlobalROMBuilderAndSolver", (this->GetEchoLevel() >= 0)) << "SetNumberOfROMModes: " << mNumberOfRomModes << std::endl;
+    }
 
     bool GetMonotonicityPreservingFlag() const noexcept
     {
@@ -393,7 +399,7 @@ public:
     {
         Parameters default_parameters = Parameters(R"(
         {
-            "name" : "global_rom_builder_and_solver",
+            "name" : "pod_global_rom_builder_and_solver",
             "nodal_unknowns" : [],
             "number_of_rom_dofs" : 10,
             "rom_bns_settings" : {
@@ -407,7 +413,7 @@ public:
 
     static std::string Name()
     {
-        return "global_rom_builder_and_solver";
+        return "pod_global_rom_builder_and_solver";
     }
 
     ///@}
@@ -425,7 +431,7 @@ public:
     /// Turn back information as a string.
     virtual std::string Info() const override
     {
-        return "GlobalROMBuilderAndSolver";
+        return "PODGlobalROMBuilderAndSolver";
     }
 
     /// Print information about this object.
@@ -655,7 +661,7 @@ protected:
         ProjectROM(rModelPart, rA, rb);
 
         double time = assembling_timer.ElapsedSeconds();
-        KRATOS_INFO_IF("GlobalROMBuilderAndSolver", (this->GetEchoLevel() > 0)) << "Build and project time: " << time << std::endl;
+        KRATOS_INFO_IF("PODGlobalROMBuilderAndSolver", (this->GetEchoLevel() > 0)) << "Build and project time: " << time << std::endl;
 
         KRATOS_CATCH("")
     }
@@ -796,7 +802,7 @@ protected:
         dxrom_eigen = rEigenRomA.colPivHouseholderQr().solve(rEigenRomB);
         
         double time = solving_timer.ElapsedSeconds();
-        KRATOS_INFO_IF("GlobalROMBuilderAndSolver", (this->GetEchoLevel() > 0)) << "Solve reduced system time: " << time << std::endl;
+        KRATOS_INFO_IF("PODGlobalROMBuilderAndSolver", (this->GetEchoLevel() > 0)) << "Solve reduced system time: " << time << std::endl;
 
         // Save the ROM solution increment in the root modelpart database
         auto& r_root_mp = rModelPart.GetRootModelPart();
@@ -805,7 +811,7 @@ protected:
         // project reduced solution back to full order model
         const auto backward_projection_timer = BuiltinTimer();
         ProjectToFineBasis(dxrom, rModelPart, rDx);
-        KRATOS_INFO_IF("GlobalROMBuilderAndSolver", (this->GetEchoLevel() > 0)) << "Project to fine basis time: " << backward_projection_timer.ElapsedSeconds() << std::endl;
+        KRATOS_INFO_IF("PODGlobalROMBuilderAndSolver", (this->GetEchoLevel() > 0)) << "Project to fine basis time: " << backward_projection_timer.ElapsedSeconds() << std::endl;
 
         KRATOS_CATCH("")
     }
@@ -836,7 +842,7 @@ private:
     ///@{
 
     ///@}
-}; /* Class GlobalROMBuilderAndSolver */
+}; /* Class PODGlobalROMBuilderAndSolver */
 
 ///@}
 ///@name Type Definitions

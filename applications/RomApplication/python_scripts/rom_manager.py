@@ -169,7 +169,8 @@ class RomManager(object):
     def RunFOM(self, mu_run=[None]):
         self.__LaunchRunFOM(mu_run)
 
-    def RunROM(self, mu_run=[None]):
+    def RunROM(self, mu_run=[None], nn_rom_interface=None, output_path=None):
+        customROM=None ## This is temporary and should be done in a better way
         chosen_projection_strategy = self.general_rom_manager_parameters["projection_strategy"].GetString()
         #######################
         ######  Galerkin ######
@@ -183,10 +184,22 @@ class RomManager(object):
         ###  Petrov Galerkin   ###
         elif chosen_projection_strategy == "petrov_galerkin":
             self._ChangeRomFlags(simulation_to_run = "PG")
+        #########################################
+        ######  Custom ROM (Galerkin-like) ######
+        elif chosen_projection_strategy == "custom":
+            print("Got custom strategy string")
+            self._ChangeRomFlags(simulation_to_run = "custom")
+            customROM='annprom'
+        #########################################
+        ######  POD ROM (Galerkin-like) ######
+        elif chosen_projection_strategy == "pod":
+            print("Got POD (custom phi) strategy string")
+            self._ChangeRomFlags(simulation_to_run = "pod")
+            customROM='pod'
         else:
             err_msg = f'Provided projection strategy {chosen_projection_strategy} is not supported. Available options are \'galerkin\', \'lspg\' and \'petrov_galerkin\'.'
             raise Exception(err_msg)
-        self.__LaunchRunROM(mu_run)
+        self.__LaunchRunROM(mu_run, customROM, nn_rom_interface, output_path)
 
     def RunHROM(self, mu_run=[None], use_full_model_part = False):
         chosen_projection_strategy = self.general_rom_manager_parameters["projection_strategy"].GetString()
@@ -461,7 +474,7 @@ class RomManager(object):
             simulation.Run()
 
 
-    def __LaunchRunROM(self, mu_run):
+    def __LaunchRunROM(self, mu_run, customROM=None, nn_rom_interface=None, output_path=None):
         """
         This method should be parallel capable
         """
@@ -470,12 +483,12 @@ class RomManager(object):
 
         for Id, mu in enumerate(mu_run):
             parameters_copy = self.UpdateProjectParameters(parameters.Clone(), mu)
-            parameters_copy = self._StoreResultsByName(parameters_copy,'ROM_Run',mu,Id)
+            parameters_copy = self._StoreResultsByName(parameters_copy,'ROM_Run',mu,Id,output_path)
             materials_file_name = parameters_copy["solver_settings"]["material_import_settings"]["materials_filename"].GetString()
             self.UpdateMaterialParametersFile(materials_file_name, mu)
             model = KratosMultiphysics.Model()
-            analysis_stage_class = type(SetUpSimulationInstance(model, parameters_copy))
-            simulation = self.CustomizeSimulation(analysis_stage_class,model,parameters_copy)
+            analysis_stage_class = type(SetUpSimulationInstance(model, parameters_copy, customROM=customROM))
+            simulation = self.CustomizeSimulation(analysis_stage_class,model,parameters_copy, nn_rom_interface=nn_rom_interface)
             simulation.Run()
 
 
@@ -579,6 +592,19 @@ class RomManager(object):
                 f['run_hrom']=True
                 f['projection_strategy']="petrov_galerkin"
                 f["rom_settings"]['rom_bns_settings']['train_petrov_galerkin'] = False
+            elif simulation_to_run=='custom':
+                f['train_hrom']=False
+                f['run_hrom']=False
+                f['projection_strategy']="custom"
+            elif simulation_to_run=='pod':
+                f['train_hrom']=False
+                f['run_hrom']=False
+                f['projection_strategy']="pod"
+            # elif simulation_to_run=='custom_lspg':
+            #     f['train_hrom']=False
+            #     f['run_hrom']=False
+            #     f['projection_strategy']="custom_lspg"
+            #     self.set_lspg_rom_bns_settings(f)
             else:
                 raise Exception(f'Unknown flag "{simulation_to_run}" change for RomParameters.json')
             parameter_file.seek(0)
@@ -621,21 +647,23 @@ class RomManager(object):
 
         return parameters
 
-
-
-
-    def _StoreResultsByName(self,parameters,results_name,mu, Id):
+    
+    def _StoreResultsByName(self,parameters,results_name,mu, Id, output_path=None):
 
         if  self.general_rom_manager_parameters["output_name"].GetString() == "mu":
             case_name = (", ".join(map(str, mu)))
         elif self.general_rom_manager_parameters["output_name"].GetString() == "id":
             case_name = str(Id)
+        
+        if output_path is None:
+            output_path='Results/'
+
         if self.general_rom_manager_parameters["save_gid_output"].GetBool():
-            parameters["output_processes"]["gid_output"][0]["Parameters"]["output_name"].SetString('Results/'+ results_name +  case_name)
+            parameters["output_processes"]["gid_output"][0]["Parameters"]["output_name"].SetString(output_path+ results_name +  case_name)
         else:
             parameters["output_processes"].RemoveValue("gid_output")
         if self.general_rom_manager_parameters["save_vtk_output"].GetBool():
-            parameters["output_processes"]["vtk_output"][0]["Parameters"]["output_path"].SetString('Results/vtk_output_'+ results_name + case_name)
+            parameters["output_processes"]["vtk_output"][0]["Parameters"]["output_path"].SetString(output_path+'/vtk_output_'+ results_name + case_name)
         else:
             parameters["output_processes"].RemoveValue("vtk_output")
 
