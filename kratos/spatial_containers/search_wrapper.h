@@ -617,10 +617,10 @@ private:
 
         // Prepare MPI search
         DistributedSearchInformation search_info;
-        SearchUtilities::SynchronousPointSynchronizationWithBoundingBox(itPointBegin, itPointEnd, search_info, r_local_bb, Radius, mrDataCommunicator);
+        const std::vector<IndexType> all_points_ids = SearchUtilities::SynchronousPointSynchronizationWithBoundingBox(itPointBegin, itPointEnd, search_info, r_local_bb, Radius, mrDataCommunicator);
 
         // Initialize results
-        rResults.InitializeResults(search_info.Indexes);
+        rResults.InitializeResults(all_points_ids);
 
         // Perform the corresponding searches
         const std::size_t total_number_of_points = search_info.Indexes.size();
@@ -679,10 +679,10 @@ private:
 
         // Prepare MPI search
         DistributedSearchInformation search_info;
-        SearchUtilities::SynchronousPointSynchronizationWithBoundingBox(itPointBegin, itPointEnd, search_info, r_local_bb, Radius, mrDataCommunicator);
+        const std::vector<IndexType> all_points_ids = SearchUtilities::SynchronousPointSynchronizationWithBoundingBox(itPointBegin, itPointEnd, search_info, r_local_bb, Radius, mrDataCommunicator);
 
         // Initialize results
-        rResults.InitializeResults(search_info.Indexes);
+        rResults.InitializeResults(all_points_ids);
 
         // Perform the corresponding searches
         const std::size_t total_number_of_points = search_info.Indexes.size();
@@ -741,10 +741,10 @@ private:
 
         // Prepare MPI search
         DistributedSearchInformation search_info;
-        SearchUtilities::SynchronousPointSynchronizationWithBoundingBox(itPointBegin, itPointEnd, search_info, r_local_bb, max_radius, mrDataCommunicator);
+        const std::vector<IndexType> all_points_ids = SearchUtilities::SynchronousPointSynchronizationWithBoundingBox(itPointBegin, itPointEnd, search_info, r_local_bb, max_radius, mrDataCommunicator);
 
         // Initialize results
-        rResults.InitializeResults(search_info.Indexes);
+        rResults.InitializeResults(all_points_ids);
 
         // Perform the corresponding searches
         const std::size_t total_number_of_points = search_info.Indexes.size();
@@ -800,10 +800,10 @@ private:
 
         // Prepare MPI search
         DistributedSearchInformation search_info;
-        SearchUtilities::SynchronousPointSynchronizationWithBoundingBox(itPointBegin, itPointEnd, search_info, r_local_bb, 0.0, mrDataCommunicator);
+        const std::vector<IndexType> all_points_ids = SearchUtilities::SynchronousPointSynchronizationWithBoundingBox(itPointBegin, itPointEnd, search_info, r_local_bb, 0.0, mrDataCommunicator);
 
         // Initialize results
-        rResults.InitializeResults(search_info.Indexes);
+        rResults.InitializeResults(all_points_ids);
 
         // Perform the corresponding searches
         const std::size_t total_number_of_points = search_info.Indexes.size();
