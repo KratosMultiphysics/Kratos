@@ -53,6 +53,10 @@ class StructuralMechanicsAnalysis(AnalysisStage):
         for node in self._GetSolver().GetComputingModelPart().Nodes:
             node.Z0 = 0.0
         print("InitialGeometry flattened\n")
+         # *CHECK* Correct place to calculate normals? Possible in element, strategy or else?
+        normal_calculation_utils = KratosMultiphysics.NormalCalculationUtils()
+        normal_calculation_utils.CalculateUnitNormalsNonHistorical(self._GetSolver().GetComputingModelPart(), 0)
+        print("UnitNormals Calculated\n")
 
     def OutputSolutionStep(self):
         """This function printed / writes output files after the solution of a step
