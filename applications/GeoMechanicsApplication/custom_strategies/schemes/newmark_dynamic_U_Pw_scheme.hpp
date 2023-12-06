@@ -57,40 +57,40 @@ public:
     {
         KRATOS_TRY
 
-        PredictDisplacements(rModelPart);
+        PredictVariables(rModelPart);
         // Update (Angular) Acceleration, (Angular) Velocity and DtPressure
         this->UpdateVariablesDerivatives(rModelPart);
 
         KRATOS_CATCH("")
     }
-    void PredictDisplacements(const ModelPart& rModelPart)
+    void PredictVariables(const ModelPart& rModelPart)
     {
         block_for_each(rModelPart.Nodes(),
-                       [&](Node& rNode) { PredictDisplacementsForNode(rNode); });
+                       [&](Node& rNode) { PredictVariablesForNode(rNode); });
     }
 
-    void PredictDisplacementsForNode(Node& rNode)
+    void PredictVariablesForNode(Node& rNode)
     {
         for (const auto& variable_derivative : this->mVariableDerivatives)
         {
-            PredictDisplacementsForVariable(rNode, variable_derivative);
+            PredictVariableForNode(rNode, variable_derivative);
         }
     }
 
-    void PredictDisplacementsForVariable(Node& rNode, const VariableDerivatives& rVariableWithDerivatives)
+    void PredictVariableForNode(Node& rNode, const VariableWithTimeDerivatives& rVariableWithDerivatives)
     {
         std::vector<std::string> components = {"X", "Y"};
-        if (rNode.HasDofFor(GetComponentFromVectorVariable(
+        if (rNode.HasDofFor(this->GetComponentFromVectorVariable(
                 rVariableWithDerivatives.instance, "Z")))
             components.push_back("Z");
 
         for (const auto& component : components)
         {
-            const auto& instance_component = GetComponentFromVectorVariable(
+            const auto& instance_component = this->GetComponentFromVectorVariable(
                 rVariableWithDerivatives.instance, component);
-            const auto& first_time_derivative_component = GetComponentFromVectorVariable(
+            const auto& first_time_derivative_component = this->GetComponentFromVectorVariable(
                 rVariableWithDerivatives.first_time_derivative, component);
-            const auto& second_time_derivative_component = GetComponentFromVectorVariable(
+            const auto& second_time_derivative_component = this->GetComponentFromVectorVariable(
                 rVariableWithDerivatives.second_time_derivative, component);
 
             const double previous_variable =
@@ -127,12 +127,6 @@ public:
                     0.5 * this->GetDeltaTime() * this->GetDeltaTime() * previous_second_time_derivative;
             }
         }
-    }
-
-    const Variable<double>& GetComponentFromVectorVariable(
-        const Variable<array_1d<double, 3>>& rSource, const std::string& rComponent)
-    {
-        return KratosComponents<Variable<double>>::Get(rSource.Name() + "_" + rComponent);
     }
 
     void CalculateSystemContributions(Condition& rCurrentCondition,

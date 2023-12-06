@@ -23,13 +23,13 @@
 namespace Kratos
 {
 
-struct VariableDerivatives
+struct VariableWithTimeDerivatives
 {
     Variable<array_1d<double, 3>> instance;
     Variable<array_1d<double, 3>> first_time_derivative;
     Variable<array_1d<double, 3>> second_time_derivative;
 
-    explicit VariableDerivatives(const Variable<array_1d<double, 3>>& instance)
+    explicit VariableWithTimeDerivatives(const Variable<array_1d<double, 3>>& instance)
         : instance(instance),
           first_time_derivative(instance.GetTimeDerivative()),
           second_time_derivative(first_time_derivative.GetTimeDerivative())
@@ -147,13 +147,22 @@ protected:
 
         for (const auto& r_node : rModelPart.Nodes())
         {
-            this->CheckSolutionStepsData(r_node, DISPLACEMENT);
-            this->CheckSolutionStepsData(r_node, VELOCITY);
-            this->CheckSolutionStepsData(r_node, ACCELERATION);
+            // this will become a for-each loop once rotations can be added conditionally
+            // to the variable derivatives, right now only the displacement + derivatives
+            // are considered.
+            auto variable_derivative = mVariableDerivatives[0];
 
-            this->CheckDof(r_node, DISPLACEMENT_X);
-            this->CheckDof(r_node, DISPLACEMENT_Y);
-            this->CheckDof(r_node, DISPLACEMENT_Z);
+            this->CheckSolutionStepsData(r_node, variable_derivative.instance);
+            this->CheckSolutionStepsData(r_node, variable_derivative.first_time_derivative);
+            this->CheckSolutionStepsData(r_node, variable_derivative.second_time_derivative);
+
+            std::vector<std::string> components{"X", "Y", "Z"};
+            for (const auto& component : components)
+            {
+                const auto& variable_component = GetComponentFromVectorVariable(
+                    variable_derivative.instance, component);
+                this->CheckDof(r_node, variable_component);
+            }
         }
     }
 
@@ -185,8 +194,14 @@ protected:
         KRATOS_CATCH("")
     }
 
-    std::vector<VariableDerivatives> mVariableDerivatives{
-        VariableDerivatives(DISPLACEMENT), VariableDerivatives{ROTATION}};
+    const Variable<double>& GetComponentFromVectorVariable(
+        const Variable<array_1d<double, 3>>& rSource, const std::string& rComponent) const
+    {
+        return KratosComponents<Variable<double>>::Get(rSource.Name() + "_" + rComponent);
+    }
+
+    std::vector<VariableWithTimeDerivatives> mVariableDerivatives{
+        VariableWithTimeDerivatives(DISPLACEMENT), VariableWithTimeDerivatives{ROTATION}};
 
 private:
     void UpdateVectorFirstTimeDerivative(Node& rNode) const
