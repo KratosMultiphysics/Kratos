@@ -72,7 +72,7 @@ public:
     void PredictDisplacementsForNode(Node& rNode)
     {
         // This will become a for-loop over the variables
-        for (const auto variable_derivative : this->mVariableDerivatives)
+        for (const auto& variable_derivative : this->mVariableDerivatives)
         {
             PredictDisplacementsForVariable(rNode, variable_derivative);
         }
