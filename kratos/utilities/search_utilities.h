@@ -284,9 +284,10 @@ public:
      * @param rDataCommunicator The data communicator
      * @tparam TPointIteratorType The type of the point iterator
      * @tparam TBoundingBoxType The type of the bounding box
+     * @return The ids of all points
      */
     template<typename TPointIteratorType, typename TBoundingBoxType>
-    static void SynchronousPointSynchronizationWithBoundingBox(
+    static std::vector<IndexType> SynchronousPointSynchronizationWithBoundingBox(
         TPointIteratorType itPointBegin,
         TPointIteratorType itPointEnd,
         DistributedSearchInformation& rSearchInfo,
@@ -303,7 +304,7 @@ public:
         KRATOS_DEBUG_ERROR_IF(total_number_of_points < 0) << "The total number of points is negative" << std::endl;
 
         // We synchronize the points
-        SynchronizePointsWithBoundingBox(itPointBegin, itPointEnd, rSearchInfo, rBoundingBox, ThresholdBoundingBox, rDataCommunicator, number_of_points, total_number_of_points);
+        return SynchronizePointsWithBoundingBox(itPointBegin, itPointEnd, rSearchInfo, rBoundingBox, ThresholdBoundingBox, rDataCommunicator, number_of_points, total_number_of_points);
     }
 
     /**
@@ -644,10 +645,10 @@ private:
      * @return A vector containing the sizes of data for each process
      * @tparam TPointIteratorType The type of the point iterator
      * @tparam TBoundingBoxType The type of the bounding box
-     * @return The distributed search information
+     * @return The ids of all points
      */
     template<typename TPointIteratorType, typename TBoundingBoxType>
-    static void SynchronizePointsWithBoundingBox(
+    static std::vector<IndexType> SynchronizePointsWithBoundingBox(
         TPointIteratorType itPointBegin,
         TPointIteratorType itPointEnd,
         DistributedSearchInformation& rSearchInfo,
@@ -730,6 +731,8 @@ private:
 
         // Shrink to actual size
         rSearchInfo.Shrink();
+
+        return all_points_ids;
     }
 
     /**
