@@ -58,6 +58,17 @@ class StructuralMechanicsAnalysis(AnalysisStage):
         normal_calculation_utils.CalculateUnitNormalsNonHistorical(self._GetSolver().GetComputingModelPart(), 0)
         print("UnitNormals Calculated\n")
 
+    def ModifyAfterSolverInitialize(self):
+        # *CHECK* if correct place to initialize guess. Possibly in strategy or elsewhere. Called ONCE before solution-loop
+        # INITIAL GUESS FOR NEWTON RAPHSON
+        print("Initializing guess before RunSolutionLoop")
+        for node in self._GetSolver().GetComputingModelPart().Nodes:
+            node.SetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_X, 0, node.X - node.X0)
+            node.SetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Y, 0, node.Y - node.Y0)
+            node.SetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Z, 0, node.Z - node.Z0)
+            print("NODE:", node.Id, node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT))
+        print("Initializing guess with vertical projection\n")
+
     def OutputSolutionStep(self):
         """This function printed / writes output files after the solution of a step
         """
