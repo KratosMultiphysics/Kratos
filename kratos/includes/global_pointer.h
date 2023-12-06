@@ -202,7 +202,7 @@ public:
    * @param rOther The GlobalPointer object to be compared.
    * @return true if the underlying pointers are equal, false otherwise.
    */
-  bool operator==(const GlobalPointer& rOther)
+  bool operator==(const GlobalPointer& rOther) const
   {
 #ifdef KRATOS_USING_MPI
     return this->get() == rOther.get() && this->GetRank() == rOther.GetRank();
