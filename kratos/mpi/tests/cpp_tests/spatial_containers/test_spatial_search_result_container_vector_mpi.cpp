@@ -27,62 +27,62 @@ namespace Kratos::Testing
 KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISpatialSearchResultContainerVectorInitializeResult, KratosMPICoreFastSuite)
 {
     // Create a test object
-    SpatialSearchResultContainerVector<GeometricalObject> container_map;
+    SpatialSearchResultContainerVector<GeometricalObject> container_vector;
 
     // Initialize result
     const std::size_t index = 0;
-    container_map.InitializeResult(index);
+    container_vector.InitializeResult(index);
 
     // Check that the result was added correctly
-    KRATOS_EXPECT_TRUE(container_map.HasResult(index));
+    KRATOS_EXPECT_TRUE(container_vector.HasResult(index));
     const std::size_t fake_index = 1;
-    KRATOS_EXPECT_FALSE(container_map.HasResult(fake_index));
+    KRATOS_EXPECT_FALSE(container_vector.HasResult(fake_index));
 }
 
 KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISpatialSearchResultContainerVectorInitializeResults, KratosMPICoreFastSuite)
 {
     // Create a test object
-    SpatialSearchResultContainerVector<GeometricalObject> container_map;
+    SpatialSearchResultContainerVector<GeometricalObject> container_vector;
 
     // Initialize result
     const std::vector<std::size_t> indexes{0,1,2,3,4,5,6,7,8,9};
-    container_map.InitializeResults(indexes);
+    container_vector.InitializeResults(indexes);
 
     // Check that the result was added correctly
     for (auto index : indexes) {
-        KRATOS_EXPECT_TRUE(container_map.HasResult(index));
+        KRATOS_EXPECT_TRUE(container_vector.HasResult(index));
     }
     const std::size_t fake_index = 10;
-    KRATOS_EXPECT_FALSE(container_map.HasResult(fake_index));
+    KRATOS_EXPECT_FALSE(container_vector.HasResult(fake_index));
 }
 
 KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISpatialSearchResultContainerVectorClear, KratosMPICoreFastSuite)
 {
     // Create a test object
-    SpatialSearchResultContainerVector<GeometricalObject> container_map;
+    SpatialSearchResultContainerVector<GeometricalObject> container_vector;
 
     // Initialize result
     Point point = Point(0.5, 0.0, 0.0);
     const std::size_t index = 0;
-    container_map.InitializeResult(index);
+    container_vector.InitializeResult(index);
 
     // Check that the result was added correctly
-    KRATOS_EXPECT_TRUE(container_map.HasResult(index));
-    container_map.Clear();
-    KRATOS_EXPECT_FALSE(container_map.HasResult(index));
+    KRATOS_EXPECT_TRUE(container_vector.HasResult(index));
+    container_vector.Clear();
+    KRATOS_EXPECT_FALSE(container_vector.HasResult(index));
 }
 
 KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISpatialSearchResultContainerVectorOperators, KratosMPICoreFastSuite)
 {
     // Create a test object
-    SpatialSearchResultContainerVector<GeometricalObject> container_map;
+    SpatialSearchResultContainerVector<GeometricalObject> container_vector;
 
     // Initialize result
     const std::size_t index = 0;
-    container_map.InitializeResult(index);
+    container_vector.InitializeResult(index);
 
     // Check that the result was added correctly
-    auto& r_result = container_map[index];
+    auto& r_result = container_vector[index];
     auto& r_local_pointers = r_result.GetLocalResults();
     KRATOS_EXPECT_EQ(r_local_pointers.size(), 0);
     KRATOS_EXPECT_EQ(r_local_pointers.size(), r_result.NumberOfLocalResults());
