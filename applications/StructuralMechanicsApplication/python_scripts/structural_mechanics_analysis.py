@@ -48,6 +48,12 @@ class StructuralMechanicsAnalysis(AnalysisStage):
             if self.echo_level == 0:
                 KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(KratosMultiphysics.Logger.Severity.WARNING)
 
+    def ModifyInitialGeometry(self):
+        print("flatten InitialGeometry")
+        for node in self._GetSolver().GetComputingModelPart().Nodes:
+            node.Z0 = 0.0
+        print("InitialGeometry flattened\n")
+
     def OutputSolutionStep(self):
         """This function printed / writes output files after the solution of a step
         """
