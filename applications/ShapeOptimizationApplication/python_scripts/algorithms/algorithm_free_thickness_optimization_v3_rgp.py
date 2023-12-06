@@ -43,6 +43,8 @@ class AlgorithmFreeThicknessOptimizationv3RGP(OptimizationAlgorithm):
             "max_correction_share"    : 0.75,
             "max_iterations"          : 100,
             "relative_tolerance"      : 1e-3,
+            "shape_scaling_divisor"   : 4.0,
+            "thickness_scaling_divisor": 10.0,
             "line_search" : {
                 "line_search_type"           : "manual_stepping",
                 "normalize_search_direction" : true,
@@ -172,6 +174,8 @@ class AlgorithmFreeThicknessOptimizationv3RGP(OptimizationAlgorithm):
             self.optimization_model_part.AddNodalSolutionStepVariable(KSO.SEARCH_DIRECTION)
 
         self.variable_scaling = True
+        self.shape_scaling_divisor = self.algorithm_settings["shape_scaling_divisor"].GetDouble()
+        self.thickness_scaling_divisor = self.algorithm_settings["thickness_scaling_divisor"].GetDouble()
 
     # --------------------------------------------------------------------------
     def CheckApplicability(self):
@@ -192,9 +196,9 @@ class AlgorithmFreeThicknessOptimizationv3RGP(OptimizationAlgorithm):
         self.design_surface = self.model_part_controller.GetDesignSurface()
 
         if self.variable_scaling:
-            step_t = ( self.thickness_targets[len(self.thickness_targets)-1] - self.thickness_targets[0] ) / 10
+            step_t = ( self.thickness_targets[len(self.thickness_targets)-1] - self.thickness_targets[0] ) / self.thickness_scaling_divisor
             h = KSO.GeometryUtilities(self.design_surface).CalculateAverageElementSize()
-            step_x = h / 4
+            step_x = h / self.shape_scaling_divisor
             self.shape_scaling_factor = step_x
             self.thickness_scaling_factor = step_t
             KM.Logger.PrintInfo(f"Opt", f"Average element size {h}")
