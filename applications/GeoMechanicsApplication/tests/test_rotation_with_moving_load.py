@@ -13,17 +13,20 @@ class KratosGeoMechanicsRotationWithMovingLoadTests(KratosUnittest.TestCase):
         file_path = test_helper.get_file_path(test_name)
 
         # run simulation
-        simulation = test_helper.run_kratos(file_path)
+        test_helper.run_kratos(file_path)
         res_path = os.path.join(file_path, test_name + result_extension)
 
-        reader = test_helper.GiDOutputFileReader()x
+        reader = test_helper.GiDOutputFileReader()
         simulation_output = reader.read_output_from(res_path)
-        displacements = simulation_output["results"]["ROTATION"]
+        rotations = simulation_output["results"]["ROTATION"]
 
         # Validation for Time = 0.02
-        values_time_0_02 = reader.get_values_at_time(1.0, displacements)
+        values_time_0_02 = reader.get_values_at_time(1.0, rotations)
         value_for_node = reader.get_value_at_node(1, values_time_0_02)
-        # Assert
+
+        # This test is a regression test, if rotation is not added to the
+        # newmark upw scheme as a variable that needs to be predicted and
+        # updated, the results will be different.
         self.assertAlmostEqual(-0.000177858, value_for_node[2])
 
 if __name__ == '__main__':
