@@ -87,7 +87,6 @@ protected:
         array_1d<double, TNumNodes> TemperatureVector;
         array_1d<double, TNumNodes> DtTemperatureVector;
 
-        double NormalFlux;
         double IntegrationCoefficient;
         array_1d<double,TNumNodes> Np;
         array_1d<double,TNumNodes> TVector;
