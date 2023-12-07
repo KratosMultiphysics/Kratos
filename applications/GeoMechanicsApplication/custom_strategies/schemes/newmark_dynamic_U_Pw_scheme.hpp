@@ -82,7 +82,7 @@ public:
         std::vector<std::string> components = {"X", "Y"};
         if (rNode.HasDofFor(this->GetComponentFromVectorVariable(
                 rVariableWithDerivatives.instance, "Z")))
-            components.push_back("Z");
+            components.emplace_back("Z");
 
         for (const auto& component : components)
         {
