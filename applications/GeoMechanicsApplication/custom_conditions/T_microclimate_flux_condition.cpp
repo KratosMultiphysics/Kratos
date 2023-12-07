@@ -33,17 +33,6 @@ Condition::Pointer TMicroClimateFluxCondition<TDim,TNumNodes>::Create(
 // ============================================================================================
 // ============================================================================================
 template<unsigned int TDim, unsigned int TNumNodes>
-void TMicroClimateFluxCondition<TDim, TNumNodes>::Initialize(
-    const ProcessInfo& rCurrentProcessInfo)
-{
-    KRATOS_TRY
-
-    KRATOS_CATCH("")
-}
-
-// ============================================================================================
-// ============================================================================================
-template<unsigned int TDim, unsigned int TNumNodes>
 void TMicroClimateFluxCondition<TDim, TNumNodes>::InitializeSolutionStep(
     const ProcessInfo& rCurrentProcessInfo)
 {
