@@ -14,6 +14,7 @@
 #include <algorithm>
 #include <numeric>
 #include <cmath>
+#include <tuple>
 
 // External includes
 
@@ -298,33 +299,115 @@ double SensorUtils::Sum(
     KRATOS_CATCH("");
 }
 
+template<class TContainerType>
+std::vector<
+    std::pair<
+        std::vector<IndexType>,
+        typename ContainerExpression<TContainerType>::Pointer
+    >> SensorUtils::ClusterBasedOnCoverageMasks(const std::vector<typename ContainerExpression<TContainerType>::Pointer>& rCoverageMasks)
+{
+    KRATOS_TRY
+
+    KRATOS_ERROR_IF(rCoverageMasks.size() == 0) << "Empty coverage masks list provided.";
+
+    auto p_front_coverage = rCoverageMasks.front();
+    const auto& r_container = p_front_coverage->GetContainer();
+
+    std::vector<std::vector<IndexType>> entity_coverage_sensor_indices(r_container.size());
+
+    IndexPartition<IndexType>(r_container.size()).for_each([&entity_coverage_sensor_indices, &rCoverageMasks](const auto Index){
+        auto& current_entity_coverage_sensors = entity_coverage_sensor_indices[Index];
+        for (IndexType i = 0; i < rCoverageMasks.size(); ++i) {
+            if (rCoverageMasks[i]->GetExpression().Evaluate(Index, Index, 0) == 1) {
+                current_entity_coverage_sensors.push_back(i);
+            }
+        }
+        std::sort(current_entity_coverage_sensors.begin(), current_entity_coverage_sensors.end());
+    });
+
+    std::vector<std::pair<std::vector<IndexType>, std::vector<IndexType>>> vector_output;
+    for (IndexType i = 0; i < r_container.size(); ++i) {
+        const auto& r_coverage_sensor_indices = entity_coverage_sensor_indices[i];
+        const auto p_itr = std::find_if(vector_output.begin(), vector_output.end(), [&r_coverage_sensor_indices](const auto& rValuePair) { return std::get<0>(rValuePair) == r_coverage_sensor_indices; });
+        if (p_itr == vector_output.end()) {
+            auto mask = std::vector<IndexType>(r_container.size(), 0);
+            mask[i] = 1;
+            vector_output.push_back(std::make_pair(r_coverage_sensor_indices, mask));
+        } else {
+            std::get<1>(*p_itr)[i] = 1;
+        }
+    }
+
+    std::vector<std::pair<std::vector<IndexType>, typename ContainerExpression<TContainerType>::Pointer>> cexp_output;
+    for (const auto& r_value_pair : vector_output) {
+        const auto& r_mask = std::get<1>(r_value_pair);
+        auto p_expression = LiteralFlatExpression<int>::Create(r_container.size(), {});
+        auto& r_expression = *p_expression;
+        IndexPartition<IndexType>(r_container.size()).for_each([&r_expression, &r_mask](const auto Index) {
+            *(r_expression.begin() + Index) = r_mask[Index];
+        });
+        auto copy = p_front_coverage->Clone();
+        copy->SetExpression(p_expression);
+        cexp_output.push_back(std::make_pair(std::get<0>(r_value_pair), copy));
+    }
+
+    return cexp_output;
+
+    KRATOS_CATCH("");
+}
+
+template<class TContainerType>
+bool SensorUtils::IsSubMask(
+    const ContainerExpression<TContainerType>& rMainMask,
+    const ContainerExpression<TContainerType>& rSubMask)
+{
+    KRATOS_TRY
+
+    const auto& r_main_expression = rMainMask.GetExpression();
+    const auto& r_sub_expression = rSubMask.GetExpression();
+
+    KRATOS_ERROR_IF_NOT(r_main_expression.NumberOfEntities() == r_sub_expression.NumberOfEntities())
+        << "Mismatching expressions provided.";
+
+
+
+    // IndexPartition<IndexType>(r_main_expression.NumberOfEntities()).for_each<MinR([&r_main_expression, &r_sub_expression](const auto Index) {
+
+    // });
+
+    KRATOS_CATCH("");
+}
+
 // template instantiations
 #ifndef KRATOS_SENSOR_UTILS
-#define KRATOS_SENSOR_UTILS(CONTAINER_TYPE)                                                  \
-    template void SensorUtils::IdentifyBestSensorViewForEveryEntity<CONTAINER_TYPE>(         \
-        std::vector<SensorView<CONTAINER_TYPE>::Pointer>&,                                   \
-        const std::vector<SensorView<CONTAINER_TYPE>::Pointer>&);                            \
-    template ModelPart& SensorUtils::GetSensorViewsModelPart<CONTAINER_TYPE>(                \
-        const std::vector<SensorView<CONTAINER_TYPE>::Pointer>&);                            \
-    template double SensorUtils::GetDomainSize<CONTAINER_TYPE>(                              \
-        const CONTAINER_TYPE&, const DataCommunicator&);                                     \
-    template void SensorUtils::AssignEntitiesToClustersBasedOnOptimalSensor<CONTAINER_TYPE>( \
-        const std::vector<typename SensorViewCluster<CONTAINER_TYPE>::Pointer>&,             \
-        const std::vector<typename ContainerExpression<CONTAINER_TYPE>::Pointer>&);          \
-    template void SensorUtils::GetThresholdSensorViews<CONTAINER_TYPE>(                      \
-        const double, const std::string&,                                                    \
-        std::vector<typename SensorView<CONTAINER_TYPE>::Pointer>&,                          \
-        const std::vector<typename SensorView<CONTAINER_TYPE>::Pointer>&);                   \
-    template std::pair<IndexType, typename ContainerExpression<CONTAINER_TYPE>::Pointer>     \
-    SensorUtils::GetEntityCoverageMask<CONTAINER_TYPE>(const SensorView<CONTAINER_TYPE>&);   \
-    template IndexType SensorUtils::CountWithInBounds<CONTAINER_TYPE>(                       \
-        const ContainerExpression<CONTAINER_TYPE>&, const double, const double);             \
-    template double SensorUtils::Min<CONTAINER_TYPE>(                                        \
-        const ContainerExpression<CONTAINER_TYPE>&);                                         \
-    template double SensorUtils::Max<CONTAINER_TYPE>(                                        \
-        const ContainerExpression<CONTAINER_TYPE>&);                                         \
-    template double SensorUtils::Sum<CONTAINER_TYPE>(                                        \
-        const ContainerExpression<CONTAINER_TYPE>&);
+#define KRATOS_SENSOR_UTILS(CONTAINER_TYPE)                                                                        \
+    template void SensorUtils::IdentifyBestSensorViewForEveryEntity<CONTAINER_TYPE>(                               \
+        std::vector<SensorView<CONTAINER_TYPE>::Pointer>&,                                                         \
+        const std::vector<SensorView<CONTAINER_TYPE>::Pointer>&);                                                  \
+    template ModelPart& SensorUtils::GetSensorViewsModelPart<CONTAINER_TYPE>(                                      \
+        const std::vector<SensorView<CONTAINER_TYPE>::Pointer>&);                                                  \
+    template double SensorUtils::GetDomainSize<CONTAINER_TYPE>(                                                    \
+        const CONTAINER_TYPE&, const DataCommunicator&);                                                           \
+    template void SensorUtils::AssignEntitiesToClustersBasedOnOptimalSensor<CONTAINER_TYPE>(                       \
+        const std::vector<typename SensorViewCluster<CONTAINER_TYPE>::Pointer>&,                                   \
+        const std::vector<typename ContainerExpression<CONTAINER_TYPE>::Pointer>&);                                \
+    template void SensorUtils::GetThresholdSensorViews<CONTAINER_TYPE>(                                            \
+        const double, const std::string&,                                                                          \
+        std::vector<typename SensorView<CONTAINER_TYPE>::Pointer>&,                                                \
+        const std::vector<typename SensorView<CONTAINER_TYPE>::Pointer>&);                                         \
+    template std::pair<IndexType, typename ContainerExpression<CONTAINER_TYPE>::Pointer>                           \
+    SensorUtils::GetEntityCoverageMask<CONTAINER_TYPE>(const SensorView<CONTAINER_TYPE>&);                         \
+    template IndexType SensorUtils::CountWithInBounds<CONTAINER_TYPE>(                                             \
+        const ContainerExpression<CONTAINER_TYPE>&, const double, const double);                                   \
+    template double SensorUtils::Min<CONTAINER_TYPE>(                                                              \
+        const ContainerExpression<CONTAINER_TYPE>&);                                                               \
+    template double SensorUtils::Max<CONTAINER_TYPE>(                                                              \
+        const ContainerExpression<CONTAINER_TYPE>&);                                                               \
+    template double SensorUtils::Sum<CONTAINER_TYPE>(                                                              \
+        const ContainerExpression<CONTAINER_TYPE>&);                                                               \
+    template std::vector<std::pair<std::vector<IndexType>, typename ContainerExpression<CONTAINER_TYPE>::Pointer>> \
+    SensorUtils::ClusterBasedOnCoverageMasks<CONTAINER_TYPE>(                                                      \
+        const std::vector<typename ContainerExpression<CONTAINER_TYPE>::Pointer>&);
 
 #endif
 

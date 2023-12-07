@@ -83,6 +83,14 @@ public:
     static double Sum(
         const ContainerExpression<TContainerType>& rContainer);
 
+    template<class TContainerType>
+    static std::vector<std::pair<std::vector<IndexType>, typename ContainerExpression<TContainerType>::Pointer>> ClusterBasedOnCoverageMasks(const std::vector<typename ContainerExpression<TContainerType>::Pointer>& rCoverageMasks);
+
+    template<class TContainerType>
+    static bool IsSubMask(
+        const ContainerExpression<TContainerType>& rMainMask,
+        const ContainerExpression<TContainerType>& rSubMask);
+
     ///@}
 };
 

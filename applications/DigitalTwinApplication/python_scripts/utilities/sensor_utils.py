@@ -377,3 +377,50 @@ def ComputeMinimumDistanceSquare(reference_view: SensorViewUnionType, sensor_vie
         if minimum_distance > current_distance:
             minimum_distance = current_distance
     return minimum_distance
+
+def GetMostDistancedMax(relaxation: float, list_of_values: 'list[float]', potential_sensor_views: 'list[SensorViewUnionType]', current_sensor_views: 'list[SensorViewUnionType]') -> int:
+    list_of_values_with_index = [(i, v) for i, v in enumerate(list_of_values)]
+    list_of_values_with_index = sorted(list_of_values_with_index, key=lambda x: x[1], reverse=True)
+
+    cut_off_value = list_of_values_with_index[0][1] * (1 - relaxation)
+
+    max_distance = 0.0
+    max_distanced_index = 0
+    if len(current_sensor_views) > 0:
+        for i, v in list_of_values_with_index:
+            if v >= cut_off_value:
+                min_distance = 1e+9
+                for sensor_view in current_sensor_views:
+                    current_distance = sensor_view.GetSensor().GetLocation() - potential_sensor_views[i].GetSensor().GetLocation()
+                    current_distance = current_distance[0] ** 2 + current_distance[1] ** 2 + current_distance[2] ** 2
+                    min_distance = min(min_distance, current_distance)
+                if max_distance < min_distance:
+                    max_distance = min_distance
+                    max_distanced_index = i
+            else:
+                break
+    return max_distanced_index
+
+def GetMostDistancedMin(relaxation: float, list_of_values: 'list[float]', potential_sensor_views: 'list[SensorViewUnionType]', current_sensor_views: 'list[SensorViewUnionType]') -> int:
+    list_of_values_with_index = [(i, v) for i, v in enumerate(list_of_values)]
+    list_of_values_with_index = sorted(list_of_values_with_index, key=lambda x: x[1])
+
+    cut_off_value = list_of_values_with_index[0][1] * (1 + relaxation)
+
+    max_distance = 0.0
+    max_distanced_index = 0
+    if len(current_sensor_views) > 0:
+        for i, v in list_of_values_with_index:
+            if v <= cut_off_value:
+                min_distance = 1e+9
+                for sensor_view in current_sensor_views:
+                    current_distance = sensor_view.GetSensor().GetLocation() - potential_sensor_views[i].GetSensor().GetLocation()
+                    current_distance = current_distance[0] ** 2 + current_distance[1] ** 2 + current_distance[2] ** 2
+                    min_distance = min(min_distance, current_distance)
+                if max_distance < min_distance:
+                    max_distance = min_distance
+                    max_distanced_index = i
+            else:
+                break
+    return max_distanced_index
+
