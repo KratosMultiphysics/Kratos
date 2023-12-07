@@ -1,6 +1,5 @@
 import os
 
-import KratosMultiphysics                as Kratos
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 import test_helper
 

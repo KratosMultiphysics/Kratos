@@ -147,21 +147,22 @@ protected:
 
         for (const auto& r_node : rModelPart.Nodes())
         {
-            // this will become a for-each loop once rotations can be added conditionally
-            // to the variable derivatives, right now only the displacement + derivatives
-            // are considered.
-            auto variable_derivative = mVariableDerivatives[0];
-
-            this->CheckSolutionStepsData(r_node, variable_derivative.instance);
-            this->CheckSolutionStepsData(r_node, variable_derivative.first_time_derivative);
-            this->CheckSolutionStepsData(r_node, variable_derivative.second_time_derivative);
-
-            std::vector<std::string> components{"X", "Y", "Z"};
-            for (const auto& component : components)
+            for (const auto& variable_derivative : mVariableDerivatives)
             {
-                const auto& variable_component = GetComponentFromVectorVariable(
-                    variable_derivative.instance, component);
-                this->CheckDof(r_node, variable_component);
+                if (!rModelPart.HasNodalSolutionStepVariable(variable_derivative.instance))
+                    continue;
+
+                this->CheckSolutionStepsData(r_node, variable_derivative.instance);
+                this->CheckSolutionStepsData(r_node, variable_derivative.first_time_derivative);
+                this->CheckSolutionStepsData(r_node, variable_derivative.second_time_derivative);
+
+                std::vector<std::string> components{"X", "Y", "Z"};
+                for (const auto& component : components)
+                {
+                    const auto& variable_component = GetComponentFromVectorVariable(
+                        variable_derivative.instance, component);
+                    this->CheckDof(r_node, variable_component);
+                }
             }
         }
     }
@@ -208,6 +209,9 @@ private:
     {
         for (const auto& variable_derivative : mVariableDerivatives)
         {
+            if (!rNode.SolutionStepsDataHas(variable_derivative.instance))
+                continue;
+
             noalias(rNode.FastGetSolutionStepValue(
                 variable_derivative.first_time_derivative, 0)) =
                 rNode.FastGetSolutionStepValue(variable_derivative.first_time_derivative, 1) +
@@ -224,6 +228,9 @@ private:
     {
         for (const auto& variable_derivative : mVariableDerivatives)
         {
+            if (!rNode.SolutionStepsDataHas(variable_derivative.instance))
+                continue;
+
             noalias(rNode.FastGetSolutionStepValue(
                 variable_derivative.second_time_derivative, 0)) =
                 ((rNode.FastGetSolutionStepValue(variable_derivative.instance, 0) -

@@ -73,6 +73,8 @@ public:
     {
         for (const auto& variable_derivative : this->mVariableDerivatives)
         {
+            if (!rNode.SolutionStepsDataHas(variable_derivative.instance))
+                continue;
             PredictVariableForNode(rNode, variable_derivative);
         }
     }

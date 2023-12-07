@@ -47,9 +47,6 @@ public:
         result.AddNodalSolutionStepVariable(DT_WATER_PRESSURE);
         result.AddNodalSolutionStepVariable(DISPLACEMENT);
         result.AddNodalSolutionStepVariable(WATER_PRESSURE);
-        result.AddNodalSolutionStepVariable(ROTATION);
-        result.AddNodalSolutionStepVariable(ANGULAR_VELOCITY);
-        result.AddNodalSolutionStepVariable(ANGULAR_ACCELERATION);
 
         auto p_node = result.CreateNewNode(0, 0.0, 0.0, 0.0);
         p_node->AddDof(DISPLACEMENT_X);
