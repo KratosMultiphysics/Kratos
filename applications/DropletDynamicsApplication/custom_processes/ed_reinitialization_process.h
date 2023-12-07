@@ -112,6 +112,12 @@ public:
         ModelPart& rModelPart,
         TLinearSolver::Pointer);
 
+    EDReinitializationProcess(
+        ModelPart& rModelPart,
+        TLinearSolver::Pointer,
+        Parameters& rParameters);
+
+
     /// Destructor.
     ~EDReinitializationProcess() override
     {
@@ -200,6 +206,11 @@ private:
     std::string mAuxModelPartName = "Aux_EllipticDistanceReinitialization_Model_Part";
     bool mAuxModelPartIsCreated = false;
 
+    bool mReconsctruction = true;
+    bool mOptimization = true;
+    int mOptimizationIterations = 5;
+    double mOptimizationTolerance = 1e-3;
+
     SolvingStrategyType::UniquePointer mp_solving_strategy;
 
     ComputeGradientProcessPointerType mpGradientCalculator = nullptr;
@@ -214,7 +225,7 @@ private:
     ///@name Private Operations
     ///@{
 
-    //void CheckDefaultsAndProcessSettings(Parameters &rParameters);
+    void CheckDefaultsAndProcessSettings(Parameters &rParameters);
 
     void InitializeSolutionStrategy(
         /* TLinearSolver::Pointer pLinearSolver, */

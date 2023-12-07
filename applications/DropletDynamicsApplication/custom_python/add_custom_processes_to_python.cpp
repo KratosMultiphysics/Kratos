@@ -48,6 +48,7 @@ void AddCustomProcessesToPython(pybind11::module& m)
 
     py::class_<EDReinitializationProcess, EDReinitializationProcess::Pointer, Process>(m,"EDReinitializationProcess3D")
     .def(py::init< ModelPart&, LinearSolverType::Pointer >())
+    .def(py::init< ModelPart&, LinearSolverType::Pointer, Parameters& >())
     .def("Clear", &EDReinitializationProcess::Clear)   
     ;
     // .def(py::init< ModelPart&, Parameters >())
@@ -77,6 +78,7 @@ void AddCustomProcessesToPython(pybind11::module& m)
 
     py::class_<ContactAngleEvaluator, ContactAngleEvaluator::Pointer, Process>(m,"ContactAngleEvaluatorProcess")
     .def(py::init<ModelPart&>())
+    .def(py::init<ModelPart&, Parameters& >())
     ;
 
 }

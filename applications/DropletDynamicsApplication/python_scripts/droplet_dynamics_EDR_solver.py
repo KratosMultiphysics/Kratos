@@ -78,8 +78,18 @@ class DropletDynamicsSolver(PythonSolver):  # Before, it was derived from Navier
                     "cross_wind_stabilization_factor" : 0.7
                 }
             },
-            "distance_reinitialization": "variational",
+            "distance_reinitialization": "elliptic",
             "parallel_redistance_max_layers" : 25,
+            "elliptic_reinitialization_settings" : {
+                "recunstruction" : true,
+                "optimization" : true,
+                "maximum_iterations" : 5,
+                "max_grad_norm_deviation" : 1e-3
+            },
+            "contact_angle_settings": {
+                "theta_advancing" : 130,
+                "theta_receding" : 130
+            },
             "distance_smoothing": false,
             "distance_smoothing_coefficient": 1.0,
             "distance_modification_settings": {
@@ -346,14 +356,17 @@ class DropletDynamicsSolver(PythonSolver):  # Before, it was derived from Navier
         # filtering noises is necessary for curvature calculation
         # distance gradient is used as a boundary condition for smoothing process
         self._GetDistanceGradientProcess().Execute()
+        # curvature is calculated using nodal distance gradient
+        self._GetDistanceCurvatureProcess().Execute()
+        # Contact angle calculation
         self._GetContactAngleEvaluatorProcess().Execute()
 
         self._GetDistanceSmoothingProcess().Execute()
         KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Smoothing process is finished.")        
-
+# 
         # Eliptic distance reinitilization
         TimeStep = self.main_model_part.ProcessInfo[KratosMultiphysics.STEP]
-        if (TimeStep % 2 == 0):
+        if (TimeStep % 1 == 0):
             KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "EDReinitilization process is starting.")
             distance_max=-1.0e+12
             distance_min=1.0e+12
@@ -379,9 +392,7 @@ class DropletDynamicsSolver(PythonSolver):  # Before, it was derived from Navier
             KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Eliptic distance reinitilization process is finished.")
 
         # distance gradient is called again to comply with the smoothed/modified DISTANCE
-        self._GetDistanceGradientProcess().Execute()
-        # curvature is calculated using nodal distance gradient
-        self._GetDistanceCurvatureProcess().Execute()
+        self._GetDistanceGradientProcess().Execute()        
 
         # it is needed to store level-set consistent nodal PRESSURE_GRADIENT for stabilization purpose
         self._GetConsistentNodalPressureGradientProcess().Execute()
@@ -761,10 +772,13 @@ class DropletDynamicsSolver(PythonSolver):  # Before, it was derived from Navier
     
     def _CreateEllipticDistanceReinitialization(self):
         # construct the distance smoothing process
+        elliptic_reinitialization_settings = self.settings["elliptic_reinitialization_settings"]
+        elliptic_reinitialization_settings.ValidateAndAssignDefaults(self.GetDefaultParameters()["elliptic_reinitialization_settings"])
         linear_solver = self._levelset_linear_solver#._GetSmoothingLinearSolver()
         elliptic_distance_reinitialization = KratosDroplet.EDReinitializationProcess3D(
         self.main_model_part,
-        linear_solver)
+        linear_solver,
+        elliptic_reinitialization_settings)
         # if self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] == 2:
         #     calculate_electric_force_process = KratosDroplet.EllipticDistanceReinitialization(
         #     self.main_model_part,
@@ -984,7 +998,9 @@ class DropletDynamicsSolver(PythonSolver):  # Before, it was derived from Navier
         return self._distance_curvature_process
 
     def _CreateContactAngleEvaluatorProcess(self):
-        contact_angle_evaluator = KratosDroplet.ContactAngleEvaluatorProcess(self.main_model_part)
+        contact_angle_settings = self.settings["contact_angle_settings"]
+        contact_angle_settings.ValidateAndAssignDefaults(self.GetDefaultParameters()["contact_angle_settings"])
+        contact_angle_evaluator = KratosDroplet.ContactAngleEvaluatorProcess(self.main_model_part, contact_angle_settings)
 
         return contact_angle_evaluator
 

@@ -72,6 +72,15 @@ ContactAngleEvaluator(ModelPart& rModelPart):
     KRATOS_INFO("HERE_CONSTRUCTOR");
 }
 
+ContactAngleEvaluator(ModelPart& rModelPart, Parameters &rParameters):
+    Process(),
+    mrModelPart(rModelPart)
+{
+    KRATOS_INFO("HERE_CONSTRUCTOR");
+    // Check default settings
+    this->CheckDefaultsAndProcessSettings(rParameters);
+}
+
 /// Destructor.
 ~ContactAngleEvaluator() override
 {}
@@ -79,6 +88,20 @@ ContactAngleEvaluator(ModelPart& rModelPart):
 ///@}
 ///@name Operations
 ///@{
+
+void CheckDefaultsAndProcessSettings(Parameters &rParameters)
+    {
+        Parameters default_parameters(R"(
+    {
+        "theta_advancing" : 130,
+        "theta_receding" : 130
+    }  )");
+
+        rParameters.ValidateAndAssignDefaults(default_parameters);
+
+        theta_advancing = rParameters["theta_advancing"].GetDouble() * PI/180.0;
+        theta_receding = rParameters["theta_receding"].GetDouble() * PI/180.0;
+    }
 
 void ExecuteInitialize() override
 {
@@ -109,8 +132,8 @@ void Execute() override
     KRATOS_TRY;
     KRATOS_INFO("ContactAngleEvaluatorProcess") << "Execute: Start." << std::endl;
 
-    const double theta_advancing = 130.0*PI/180.0;//180.0*PI/180.0;//149.0*PI/180.0;//129.78*PI/
-    const double theta_receding = 130.0*PI/180.0;//0.0*PI/180.0;//115.0*PI/180.0;//129.78*PI/
+    // const double theta_advancing = 130.0*PI/180.0;//180.0*PI/180.0;//149.0*PI/180.0;//129.78*PI/
+    // const double theta_receding = 130.0*PI/180.0;//0.0*PI/180.0;//115.0*PI/180.0;//129.78*PI/
 
     const unsigned int num_nodes = mrModelPart.NumberOfNodes();
     const unsigned int num_elements = mrModelPart.NumberOfElements();
@@ -128,6 +151,7 @@ void Execute() override
     // Initial resize
     const auto& r_first_element_geometry = it_element_begin->GetGeometry();
     const std::size_t number_of_nodes_first_element = r_first_element_geometry.PointsNumber();
+    KRATOS_INFO("ContactAngleEvaluatorProcess") << "Number of nodes: " << num_nodes << ", Number of elements: " << num_elements << ", Number of nodes of first element: " << number_of_nodes_first_element << std::endl;
     const std::size_t local_space_dimension_first_element = r_first_element_geometry.LocalSpaceDimension();
 
     // Resize if needed
@@ -184,14 +208,14 @@ void Execute() override
             distances[i_node] = distance;
             if (distance > 0.0){
                 n_pos++;
-                if (is_structure_looKupTable[node.Id()]) {//if (node.GetValue(IS_STRUCTURE) == 1.0){
+                if (node.GetValue(IS_STRUCTURE) == 1.0){//if (is_structure_looKupTable[node.Id()]) {//
                     n_contact_pos++;
                     solid_normal += node.FastGetSolutionStepValue(NORMAL);
                     //n_contact++;
                 }
             } else{
                 n_neg++;
-                if (is_structure_looKupTable[node.Id()]) {//if (node.GetValue(IS_STRUCTURE) == 1.0){
+                if (node.GetValue(IS_STRUCTURE) == 1.0){//if (is_structure_looKupTable[node.Id()]) {//
                     n_contact_neg++;
                     solid_normal += node.FastGetSolutionStepValue(NORMAL);
                     //n_contact++;
@@ -238,7 +262,7 @@ void Execute() override
 
             for (std::size_t i_node = 0; i_node < number_of_nodes_first_element; ++i_node){
                 auto& node = r_geometry[i_node];
-                if (is_structure_looKupTable[node.Id()]) {//if (node.GetValue(IS_STRUCTURE) == 1.0){
+                if (node.GetValue(IS_STRUCTURE) == 1.0){//if (is_structure_looKupTable[node.Id()]) {//
                     gradient += node.FastGetSolutionStepValue(DISTANCE_GRADIENT);
                 }
             }
@@ -293,7 +317,7 @@ void Execute() override
             const int velocity_direction = (distance_diff < 0.0) - (distance_diff > 0.0);//inner_prod(velocity, normal);
             //it_node->FastGetSolutionStepValue(CONTACT_VELOCITY) = velocity_direction;
 
-            if (is_structure_looKupTable[it_node->Id()]) {//if (it_node->GetValue(IS_STRUCTURE) == 1.0){
+            if (it_node->GetValue(IS_STRUCTURE) == 1.0){//if (is_structure_looKupTable[it_node->Id()]) {//
                 /* if (velocity_direction > 0.0 && contact_angle < theta_advancing){
                     it_node->Fix(DISTANCE);
                 } else if (velocity_direction < 0.0 && contact_angle > theta_receding){
@@ -358,7 +382,7 @@ void Execute() override
 
         // CONTACT_ANGLE estimation
         if (node_i_contact_angle == 0.0 && node_i_distance > 0.0){
-            if (is_structure_looKupTable[it_node_i->Id()] && it_node_i->Coordinates()[2] == 0.0){    //it_node_i->GetValue(IS_STRUCTURE) == 1.0 This won't work if droplet has no contact with z=0 plane.
+            if (it_node_i->GetValue(IS_STRUCTURE) == 1.0 && it_node_i->Coordinates()[2] == 0.0){    //is_structure_looKupTable[it_node_i->Id()]// This won't work if droplet has no contact with z=0 plane.
                 double min_horizontal_dist = 1.0e6;
                 double min_dist_contact_angle;
                 unsigned int min_dist_index;
@@ -383,7 +407,7 @@ void Execute() override
                 const double radius_at_nodej = 2.0*node_j_curvature/(node_j_curvature*node_j_curvature + 1.0e-10);
                 node_i_contact_angle = std::asin( std::max( std::min( radius_at_nodej*std::sin(min_dist_contact_angle - PI/2.0)/(node_i_distance + radius_at_nodej), 1.0 ), -1.0 ) ) + PI/2.0; //min_dist_contact_angle;
 
-            } else if (is_structure_looKupTable[it_node_i->Id()] || it_node_i->Is(BOUNDARY)){ //it_node_i->GetValue(IS_STRUCTURE) == 1.0 By default contact angle is not set for the NON IS_STRUCTURE nodes
+            } else if (it_node_i->GetValue(IS_STRUCTURE) == 1.0 || it_node_i->Is(BOUNDARY)){ //is_structure_looKupTable[it_node_i->Id()]// By default contact angle is not set for the NON IS_STRUCTURE nodes
 
                 double min_dist = 1.0e6;
                 unsigned int min_dist_index;
@@ -475,6 +499,9 @@ private:
 
 ///@name Member Variables
 ///@{
+
+double theta_advancing;
+double theta_receding;
 
 ModelPart& mrModelPart;
 
