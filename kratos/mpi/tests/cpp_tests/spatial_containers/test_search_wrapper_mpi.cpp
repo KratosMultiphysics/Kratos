@@ -88,39 +88,69 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISearchWrapperGeometricalObjectsBinsSear
 
     // 0.29 radius
     search_wrapper_bins.SearchInRadius(r_array_nodes.begin(), r_array_nodes.end(), 0.29, results);
-    KRATOS_EXPECT_EQ(results.NumberOfSearchResults(), 1);
-    KRATOS_EXPECT_FALSE(results[point_id].IsObjectFound());
-    KRATOS_EXPECT_EQ(results[point_id].NumberOfGlobalResults(), 0);
+    // We expect only one result in first and second rank
+    if (rank == 0 || rank == 1) {
+        KRATOS_EXPECT_EQ(results.NumberOfSearchResults(), 1);
+        KRATOS_EXPECT_FALSE(results[point_id].IsObjectFound());
+        KRATOS_EXPECT_EQ(results[point_id].NumberOfGlobalResults(), 0);
+    } else {
+        KRATOS_EXPECT_EQ(results.NumberOfSearchResults(), 0);
+    }
 
     // 0.3 radius
     search_wrapper_bins.SearchInRadius(r_array_nodes.begin(), r_array_nodes.end(), 0.3, results);
-    KRATOS_EXPECT_EQ(results.NumberOfSearchResults(), 1);
-    KRATOS_EXPECT_TRUE(results[point_id].IsObjectFound());
-    KRATOS_EXPECT_EQ(results[point_id].NumberOfGlobalResults(), 4);
+    // We expect only one result in first and second rank
+    if (rank == 0 || rank == 1) {
+        KRATOS_EXPECT_EQ(results.NumberOfSearchResults(), 1);
+        KRATOS_EXPECT_TRUE(results[point_id].IsObjectFound());
+        KRATOS_EXPECT_EQ(results[point_id].NumberOfGlobalResults(), 4);
+    } else {
+        KRATOS_EXPECT_EQ(results.NumberOfSearchResults(), 0);
+    }
 
     // 0.4 radius
     search_wrapper_bins.SearchInRadius(r_array_nodes.begin(), r_array_nodes.end(), 0.4, results);
-    KRATOS_EXPECT_EQ(results.NumberOfSearchResults(), 1);
-    KRATOS_EXPECT_TRUE(results[point_id].IsObjectFound());
-    KRATOS_EXPECT_EQ(results[point_id].NumberOfGlobalResults(), 4);
+    // We expect only one result in first and second rank
+    if (rank == 0 || rank == 1) {
+        KRATOS_EXPECT_EQ(results.NumberOfSearchResults(), 1);
+        KRATOS_EXPECT_TRUE(results[point_id].IsObjectFound());
+        KRATOS_EXPECT_EQ(results[point_id].NumberOfGlobalResults(), 4);
+    } else {
+        KRATOS_EXPECT_EQ(results.NumberOfSearchResults(), 0);
+    }
 
     // 0.6 radius
     search_wrapper_bins.SearchInRadius(r_array_nodes.begin(), r_array_nodes.end(), 0.6, results);
-    KRATOS_EXPECT_EQ(results.NumberOfSearchResults(), 1);
-    KRATOS_EXPECT_TRUE(results[point_id].IsObjectFound());
-    KRATOS_EXPECT_EQ(results[point_id].NumberOfGlobalResults(), 8);
+    // We expect only one result in first and second rank
+    if (rank == 0 || rank == 1) {
+        KRATOS_EXPECT_EQ(results.NumberOfSearchResults(), 1);
+        KRATOS_EXPECT_TRUE(results[point_id].IsObjectFound());
+        KRATOS_EXPECT_EQ(results[point_id].NumberOfGlobalResults(), 8);
+    } else {
+        KRATOS_EXPECT_EQ(results.NumberOfSearchResults(), 0);
+    }
 
     // 0.7 radius
     search_wrapper_bins.SearchInRadius(r_array_nodes.begin(), r_array_nodes.end(), 0.7, results);
-    KRATOS_EXPECT_EQ(results.NumberOfSearchResults(), 1);
-    KRATOS_EXPECT_TRUE(results[point_id].IsObjectFound());
-    KRATOS_EXPECT_EQ(results[point_id].NumberOfGlobalResults(), 8);
+    // We expect only one result in first and second rank
+    if (rank == 0 || rank == 1) {
+        KRATOS_EXPECT_EQ(results.NumberOfSearchResults(), 1);
+        KRATOS_EXPECT_TRUE(results[point_id].IsObjectFound());
+        KRATOS_EXPECT_EQ(results[point_id].NumberOfGlobalResults(), 8);
+    } else {
+        KRATOS_EXPECT_EQ(results.NumberOfSearchResults(), 0);
+    }
 
     // 0.9 radius
     search_wrapper_bins.SearchInRadius(r_array_nodes.begin(), r_array_nodes.end(), 0.9, results);
-    KRATOS_EXPECT_EQ(results.NumberOfSearchResults(), 1);
-    KRATOS_EXPECT_TRUE(results[point_id].IsObjectFound());
-    KRATOS_EXPECT_EQ(results[point_id].NumberOfGlobalResults(), 12);
+    // We expect only one result in first and second rank
+    if (rank == 0 || rank == 1) {
+        KRATOS_EXPECT_EQ(results.NumberOfSearchResults(), 1);
+        KRATOS_EXPECT_TRUE(results[point_id].IsObjectFound());
+        KRATOS_EXPECT_EQ(results[point_id].NumberOfGlobalResults(), 12);
+    } else {
+        KRATOS_EXPECT_EQ(results.NumberOfSearchResults(), 0);
+    }
 }
 
 /** Checks search_wrapper_bins search nearest
@@ -158,23 +188,31 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISearchWrapperGeometricalObjectsBinsSear
     SearchWrapperGeometricalObjectsBins::ResultContainerVectorType results;
     search_wrapper_bins.SearchNearestInRadius(r_array_nodes.begin(), r_array_nodes.end(), cube_z - 1.e-4, results);
 
-    KRATOS_EXPECT_EQ(results.NumberOfSearchResults(), 1);
-    KRATOS_EXPECT_FALSE(results[near_point_id].IsObjectFound());
+    // We expect only one result in first and second rank
+    if (rank == 0 || rank == 1) {
+        KRATOS_EXPECT_EQ(results.NumberOfSearchResults(), 1);
+        KRATOS_EXPECT_FALSE(results[near_point_id].IsObjectFound());
+    }
 
     search_wrapper_bins.SearchNearestInRadius(r_array_nodes.begin(), r_array_nodes.end(), cube_z + 1.e-4, results);
 
-    KRATOS_EXPECT_EQ(results.NumberOfSearchResults(), 1);
-    KRATOS_EXPECT_TRUE(results[near_point_id].IsObjectFound());
-    KRATOS_EXPECT_EQ(results[near_point_id].NumberOfGlobalResults(), 1);
+    // We expect only one result in first and second rank
+    if (rank == 0 || rank == 1) {
+        KRATOS_EXPECT_EQ(results.NumberOfSearchResults(), 1);
+        KRATOS_EXPECT_TRUE(results[near_point_id].IsObjectFound());
+        KRATOS_EXPECT_EQ(results[near_point_id].NumberOfGlobalResults(), 1);
 
-    // Distances are just local
-    const auto distances = results[near_point_id].GetDistances();
-    KRATOS_EXPECT_NEAR(distances[0], (cube_z - epsilon), tolerance);
+        // Distances are just local
+        const auto distances = results[near_point_id].GetDistances();
+        KRATOS_EXPECT_NEAR(distances[0], (cube_z - epsilon), tolerance);
 
-    // Compute indices
-    auto indices = results[near_point_id].GetResultIndices();
-    const std::size_t id = indices[0];
-    KRATOS_EXPECT_EQ(id, 3);
+        // Compute indices
+        auto indices = results[near_point_id].GetResultIndices();
+        const std::size_t id = indices[0];
+        KRATOS_EXPECT_EQ(id, 3);
+    } else {
+        KRATOS_EXPECT_EQ(results.NumberOfSearchResults(), 0);
+    }
 }
 
 /** Checks search_wrapper_bins search nearest
@@ -212,18 +250,23 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISearchWrapperGeometricalObjectsBinsSear
     SearchWrapperGeometricalObjectsBins::ResultContainerVectorType results;
     search_wrapper_bins.SearchNearest(r_array_nodes.begin(), r_array_nodes.end(), results);
 
-    KRATOS_EXPECT_EQ(results.NumberOfSearchResults(), 1);
-    KRATOS_EXPECT_TRUE(results[near_point_id].IsObjectFound());
-    KRATOS_EXPECT_EQ(results[near_point_id].NumberOfGlobalResults(), 1);
+    // We expect only one result in first and second rank
+    if (rank == 0 || rank == 1) {
+        KRATOS_EXPECT_EQ(results.NumberOfSearchResults(), 1);
+        KRATOS_EXPECT_TRUE(results[near_point_id].IsObjectFound());
+        KRATOS_EXPECT_EQ(results[near_point_id].NumberOfGlobalResults(), 1);
 
-    // Distances are just local
-    const auto distances = results[near_point_id].GetDistances();
-    KRATOS_EXPECT_NEAR(distances[0], (cube_z - epsilon), tolerance);
+        // Distances are just local
+        const auto distances = results[near_point_id].GetDistances();
+        KRATOS_EXPECT_NEAR(distances[0], (cube_z - epsilon), tolerance);
 
-    // Compute indices
-    auto indices = results[near_point_id].GetResultIndices();
-    const std::size_t id = indices[0];
-    KRATOS_EXPECT_EQ(id, 3);
+        // Compute indices
+        auto indices = results[near_point_id].GetResultIndices();
+        const std::size_t id = indices[0];
+        KRATOS_EXPECT_EQ(id, 3);
+    } else {
+        KRATOS_EXPECT_EQ(results.NumberOfSearchResults(), 0);
+    }
 }
 
 /** Checks search_wrapper_bins empty search nearest
@@ -255,8 +298,13 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISearchWrapperGeometricalObjectsBinsEmpt
     SearchWrapperGeometricalObjectsBins::ResultContainerVectorType results;
     search_wrapper_bins.SearchNearest(r_array_nodes.begin(), r_array_nodes.end(), results);
 
-    KRATOS_EXPECT_EQ(results.NumberOfSearchResults(), 1);
-    KRATOS_EXPECT_FALSE(results[point_id].IsObjectFound());
+    // We expect only one result in first and second rank
+    if (rank == 0) {
+        KRATOS_EXPECT_EQ(results.NumberOfSearchResults(), 1);
+        KRATOS_EXPECT_FALSE(results[point_id].IsObjectFound());
+    } else {
+        KRATOS_EXPECT_EQ(results.NumberOfSearchResults(), 0);
+    }
 }
 
 /** Checks search_wrapper_bins search is inside
@@ -288,9 +336,14 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISearchWrapperGeometricalObjectsBinsSear
     SearchWrapperGeometricalObjectsBins::ResultContainerVectorType results;
     search_wrapper_bins.SearchIsInside(r_array_nodes.begin(), r_array_nodes.end(), results);
 
-    KRATOS_EXPECT_EQ(results.NumberOfSearchResults(), 1);
-    KRATOS_EXPECT_TRUE(results[inside_point_id].IsObjectFound());
-    KRATOS_EXPECT_EQ(results[inside_point_id].NumberOfGlobalResults(), 1);
+    // We expect only one result in first and second rank
+    if (rank == 0 || rank == 1) {
+        KRATOS_EXPECT_EQ(results.NumberOfSearchResults(), 1);
+        KRATOS_EXPECT_TRUE(results[inside_point_id].IsObjectFound());
+        KRATOS_EXPECT_EQ(results[inside_point_id].NumberOfGlobalResults(), 1);
+    } else {
+        KRATOS_EXPECT_EQ(results.NumberOfSearchResults(), 0);
+    }
 }
 
 /** Checks search_wrapper_bins search is inside = not found
@@ -322,8 +375,13 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISearchWrapperGeometricalObjectsBinsSear
     SearchWrapperGeometricalObjectsBins::ResultContainerVectorType results;
     search_wrapper_bins.SearchIsInside(r_array_nodes.begin(), r_array_nodes.end(), results);
 
-    KRATOS_EXPECT_EQ(results.NumberOfSearchResults(), 1);
-    KRATOS_EXPECT_FALSE(results[outside_point_id].IsObjectFound());
+    // We expect only in first rank
+    if (rank == 0) {
+        KRATOS_EXPECT_EQ(results.NumberOfSearchResults(), 1);
+        KRATOS_EXPECT_FALSE(results[outside_point_id].IsObjectFound());
+    } else {
+        KRATOS_EXPECT_EQ(results.NumberOfSearchResults(), 0);
+    }
 }
 
 // Definition of the trees search wrapper
@@ -366,15 +424,24 @@ void TestTreeSearchInRadius()
 
     // 0.3 radius
     search_wrapper.SearchInRadius(r_array_nodes.begin(), r_array_nodes.end(), 0.3, results);
-    KRATOS_EXPECT_EQ(results.NumberOfSearchResults(), 1);
-    KRATOS_EXPECT_FALSE(results[point_id].IsObjectFound());
-    KRATOS_EXPECT_EQ(results[point_id].NumberOfGlobalResults(), 0);
+    // We expect only one result in first and second rank
+    if (rank == 0 || rank == 1) {
+        KRATOS_EXPECT_EQ(results.NumberOfSearchResults(), 1);
+        KRATOS_EXPECT_FALSE(results[point_id].IsObjectFound());
+        KRATOS_EXPECT_EQ(results[point_id].NumberOfGlobalResults(), 0);
+    } else {
+        KRATOS_EXPECT_EQ(results.NumberOfSearchResults(), 0);
+    }
 
     // 2.0 radius
     search_wrapper.SearchInRadius(r_array_nodes.begin(), r_array_nodes.end(), 2.0, results);
-    KRATOS_EXPECT_EQ(results.NumberOfSearchResults(), 1);
-    KRATOS_EXPECT_TRUE(results[point_id].IsObjectFound());
-    KRATOS_EXPECT_EQ(results[point_id].NumberOfGlobalResults(), 12);
+    if (rank == 0 || rank == 1) {
+        KRATOS_EXPECT_EQ(results.NumberOfSearchResults(), 1);
+        KRATOS_EXPECT_TRUE(results[point_id].IsObjectFound());
+        KRATOS_EXPECT_EQ(results[point_id].NumberOfGlobalResults(), 12);
+    } else {
+        KRATOS_EXPECT_EQ(results.NumberOfSearchResults(), 0);
+    }
 }
 
 /** Checks SearchWrapper works for KDTreeElement search in radius
@@ -445,23 +512,33 @@ void TestTreeSearchNearestInRadius()
     typename TSearchWrapper::ResultContainerVectorType results;
     search_wrapper.SearchNearestInRadius(r_array_nodes.begin(), r_array_nodes.end(), cube_z, results);
 
-    KRATOS_EXPECT_EQ(results.NumberOfSearchResults(), 1);
-    KRATOS_EXPECT_FALSE(results[near_point_id].IsObjectFound());
+    // We expect only one result in first and second rank
+    if (rank == 0 || rank == 1) {
+        KRATOS_EXPECT_EQ(results.NumberOfSearchResults(), 1);
+        KRATOS_EXPECT_FALSE(results[near_point_id].IsObjectFound());
+    } else {
+        KRATOS_EXPECT_EQ(results.NumberOfSearchResults(), 0);
+    }
 
     search_wrapper.SearchNearestInRadius(r_array_nodes.begin(), r_array_nodes.end(), 0.6, results);
 
-    KRATOS_EXPECT_EQ(results.NumberOfSearchResults(), 1);
-    KRATOS_EXPECT_TRUE(results[near_point_id].IsObjectFound());
-    KRATOS_EXPECT_EQ(results[near_point_id].NumberOfGlobalResults(), 1);
+    // We expect only one result in first and second rank
+    if (rank == 0 || rank == 1) {
+        KRATOS_EXPECT_EQ(results.NumberOfSearchResults(), 1);
+        KRATOS_EXPECT_TRUE(results[near_point_id].IsObjectFound());
+        KRATOS_EXPECT_EQ(results[near_point_id].NumberOfGlobalResults(), 1);
 
-    // Distances
-    auto distances = results[near_point_id].GetDistances();
-    KRATOS_EXPECT_NEAR(distances[0], (cube_z - 0.08 - epsilon), tolerance);
+        // Distances
+        auto distances = results[near_point_id].GetDistances();
+        KRATOS_EXPECT_NEAR(distances[0], (cube_z - 0.08 - epsilon), tolerance);
 
-    // Compute indices
-    auto indices = results[near_point_id].GetResultIndices();
-    const std::size_t id = indices[0];
-    KRATOS_EXPECT_EQ(id, 4);
+        // Compute indices
+        auto indices = results[near_point_id].GetResultIndices();
+        const std::size_t id = indices[0];
+        KRATOS_EXPECT_EQ(id, 4);
+    } else {
+        KRATOS_EXPECT_EQ(results.NumberOfSearchResults(), 0);
+    }
 }
 
 /** Checks SearchWrapper works for KDTreeElement search nearest in radius
@@ -532,18 +609,23 @@ void TestTreeSearchNearest()
     typename TSearchWrapper::ResultContainerVectorType results;
     search_wrapper.SearchNearest(r_array_nodes.begin(), r_array_nodes.end(), results);
 
-    KRATOS_EXPECT_EQ(results.NumberOfSearchResults(), 1);
-    KRATOS_EXPECT_TRUE(results[near_point_id].IsObjectFound());
-    KRATOS_EXPECT_EQ(results[near_point_id].NumberOfGlobalResults(), 1);
+    // We expect only one result in first and second rank
+    if (rank == 0 || rank == 1) {
+        KRATOS_EXPECT_EQ(results.NumberOfSearchResults(), 1);
+        KRATOS_EXPECT_TRUE(results[near_point_id].IsObjectFound());
+        KRATOS_EXPECT_EQ(results[near_point_id].NumberOfGlobalResults(), 1);
 
-    // Distances
-    auto distances = results[near_point_id].GetDistances();
-    KRATOS_EXPECT_NEAR(distances[0], (cube_z - 0.08 - epsilon), tolerance);
+        // Distances
+        auto distances = results[near_point_id].GetDistances();
+        KRATOS_EXPECT_NEAR(distances[0], (cube_z - 0.08 - epsilon), tolerance);
 
-    // Compute indices
-    auto indices = results[near_point_id].GetResultIndices();
-    const std::size_t id = indices[0];
-    KRATOS_EXPECT_EQ(id, 4);
+        // Compute indices
+        auto indices = results[near_point_id].GetResultIndices();
+        const std::size_t id = indices[0];
+        KRATOS_EXPECT_EQ(id, 4);
+    } else {
+        KRATOS_EXPECT_EQ(results.NumberOfSearchResults(), 0);
+    }
 }
 
 /** Checks SearchWrapper works for KDTreeElement search nearest
@@ -608,8 +690,13 @@ void TestTreeSearchNearestEmpty()
     typename TSearchWrapper::ResultContainerVectorType results;
     search_wrapper.SearchNearest(r_array_nodes.begin(), r_array_nodes.end(), results);
 
-    KRATOS_EXPECT_EQ(results.NumberOfSearchResults(), 1);
-    KRATOS_EXPECT_FALSE(results[point_id].IsObjectFound());
+    // Only in first rank
+    if (rank == 0) {
+        KRATOS_EXPECT_EQ(results.NumberOfSearchResults(), 1);
+        KRATOS_EXPECT_FALSE(results[point_id].IsObjectFound());
+    } else {
+        KRATOS_EXPECT_EQ(results.NumberOfSearchResults(), 0);
+    }
 }
 
 /** Checks SearchWrapper works for KDTreeElement search nearest
