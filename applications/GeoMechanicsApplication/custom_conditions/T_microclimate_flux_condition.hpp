@@ -121,7 +121,6 @@ private:
     bool mIsInitialised = false;
     ElementVariables mVariables;
 
-
     // Serialization
     friend class Serializer;
     
@@ -134,7 +133,6 @@ private:
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, Condition )
     }
-    
 }; // class TMicroClimateFluxCondition.
 
 } // namespace Kratos.

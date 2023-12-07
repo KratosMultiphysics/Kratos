@@ -46,34 +46,34 @@ void TMicroClimateFluxCondition<TDim, TNumNodes>::CalculateAll(
 {
     KRATOS_TRY
 
-    //Previous definitions
+    // Previous definitions
     const GeometryType& Geom = this->GetGeometry();
     const GeometryType::IntegrationPointsArrayType& IntegrationPoints = Geom.IntegrationPoints(this->GetIntegrationMethod());
     const unsigned int NumGPoints = IntegrationPoints.size();
 
-    //Containers of variables at all integration points
+    // Containers of variables at all integration points
     const unsigned int LocalDim = Geom.LocalSpaceDimension();
     GeometryType::JacobiansType JContainer(NumGPoints);
     for (unsigned int i = 0; i < NumGPoints; ++i)
         (JContainer[i]).resize(TDim, LocalDim, false);
     Geom.Jacobian(JContainer, this->GetIntegrationMethod());
 
-    //Element variables
+    // Element variables
     this->InitializeElementVariables(mVariables, rCurrentProcessInfo);
 
-    //Loop over integration points
+    // Loop over integration points
     for (unsigned int GPoint = 0; GPoint < NumGPoints; ++GPoint) {
         mVariables.Np = row(mVariables.NContainer, GPoint);
 
-        //Compute weighting coefficient for integration
+        // Compute weighting coefficient for integration
         this->CalculateIntegrationCoefficient(mVariables.IntegrationCoefficient,
             JContainer[GPoint],
             IntegrationPoints[GPoint].Weight());
 
-        //Contributions to the left hand side
+        // Contributions to the left hand side
         this->CalculateAndAddLHS(rLeftHandSideMatrix, mVariables);
 
-        //Contributions to the right hand side
+        // Contributions to the right hand side
         this->CalculateAndAddRHS(rRightHandSideVector, mVariables);
     }
 
@@ -87,25 +87,21 @@ void TMicroClimateFluxCondition<TDim, TNumNodes>::InitializeElementVariables(
 {
     KRATOS_TRY
 
-    //Properties variables
-    //this->InitializeProperties(rVariables);
-
-    //Nodal Variables
+    // Nodal Variables
     this->InitializeNodalTemperatureVariables(rVariables);
 
-    //Nodal Variables
-    //this->CalculateRoughness(rCurrentProcessInfo, rVariables);
+    // Nodal Variables
     this->CalculateNodalFluxes(rCurrentProcessInfo, rVariables);
 
-    //Variables computed at each GP
+    // Variables computed at each GP
     rVariables.Np.resize(TNumNodes, false);
 
-    //General Variables
+    // General Variables
     const GeometryType& Geom = this->GetGeometry();
     const unsigned int NumGPoints = Geom.IntegrationPointsNumber(this->GetIntegrationMethod());
 
     // shape functions
-    (rVariables.NContainer).resize(NumGPoints, TNumNodes, false);
+    rVariables.NContainer.resize(NumGPoints, TNumNodes, false);
     rVariables.NContainer = Geom.ShapeFunctionsValues(this->GetIntegrationMethod());
 
     // gradient of shape functions and determinant of Jacobian
@@ -389,12 +385,12 @@ void TMicroClimateFluxCondition<TDim, TNumNodes>::CalculateLocalSystem(
 
     unsigned int conditionSize = TNumNodes;
 
-    //Resetting the LHS
+    // Resetting the LHS
     if (rLeftHandSideMatrix.size1() != conditionSize)
         rLeftHandSideMatrix.resize(conditionSize, conditionSize, false);
     noalias(rLeftHandSideMatrix) = ZeroMatrix(conditionSize, conditionSize);
 
-    //Resetting the RHS
+    // Resetting the RHS
     if (rRightHandSideVector.size() != conditionSize)
         rRightHandSideVector.resize(conditionSize, false);
     noalias(rRightHandSideVector) = ZeroVector(conditionSize);
