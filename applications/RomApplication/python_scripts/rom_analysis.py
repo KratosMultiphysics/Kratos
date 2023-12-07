@@ -71,6 +71,11 @@ def CreateRomAnalysisInstance(cls, global_model, parameters):
             ##LSPG
             if self.solving_strategy=="lspg":
                 solving_technique = self.rom_bns_settings["solving_technique"].GetString() if self.rom_bns_settings.Has("solving_technique") else "normal_equations"
+                # Check if the solving technique is either "normal_equations" or "qr_decomposition"
+                if solving_technique not in ["normal_equations", "qr_decomposition"]:
+                    err_msg = f"'{solving_technique}' is not a valid solving technique. Choose either 'normal_equations' or 'qr_decomposition'."
+                    raise Exception(err_msg)
+
                 self.project_parameters["solver_settings"]["rom_settings"]["rom_bns_settings"].AddString("solving_technique", solving_technique)
                 self.project_parameters["solver_settings"]["rom_settings"]["rom_bns_settings"].AddBool("train_petrov_galerkin", self.train_petrov_galerkin)
                 #Adding the basis strategy for generating the left ROB for the Petrov-Galerkin ROM.
