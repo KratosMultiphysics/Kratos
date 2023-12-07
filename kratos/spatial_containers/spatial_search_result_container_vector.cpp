@@ -27,7 +27,7 @@
 namespace Kratos
 {
 template <class TObjectType>
-SpatialSearchResultContainerVector<TObjectType>::~SpatialSearchResultContainerVector() 
+SpatialSearchResultContainerVector<TObjectType>::~SpatialSearchResultContainerVector()
 {
     // Make sure to delete the pointers stored in the container
     block_for_each(mPointResults, [](auto p_result) {
@@ -50,7 +50,10 @@ std::size_t SpatialSearchResultContainerVector<TObjectType>::NumberOfSearchResul
 /***********************************************************************************/
 
 template <class TObjectType>
-typename SpatialSearchResultContainerVector<TObjectType>::SpatialSearchResultContainerReferenceType SpatialSearchResultContainerVector<TObjectType>::InitializeResult(const IndexType Index)
+typename SpatialSearchResultContainerVector<TObjectType>::SpatialSearchResultContainerReferenceType SpatialSearchResultContainerVector<TObjectType>::InitializeResult(
+    const IndexType Index,
+    const DataCommunicator& rDataCommunicator
+    )
 {
     // Some check
     KRATOS_DEBUG_ERROR_IF_NOT(mMapIdsStored.size() == mPointResults.size()) << "Allocation non consistent as mMapIdsStored size: " << mMapIdsStored.size() << " and mPointResults size: " << mPointResults.size() << std::endl;
@@ -66,7 +69,7 @@ typename SpatialSearchResultContainerVector<TObjectType>::SpatialSearchResultCon
         mMapIdsStored.insert({Index, current_size});
 
         // Create the result
-        mPointResults[current_size] = new SpatialSearchResultContainer<TObjectType>();
+        mPointResults[current_size] = new SpatialSearchResultContainer<TObjectType>(rDataCommunicator);
         return *mPointResults[current_size];
     } else {
         return *mPointResults[it_find->second];
@@ -77,7 +80,10 @@ typename SpatialSearchResultContainerVector<TObjectType>::SpatialSearchResultCon
 /***********************************************************************************/
 
 template <class TObjectType>
-void SpatialSearchResultContainerVector<TObjectType>::InitializeResults(const std::vector<IndexType>& rIndexes)
+void SpatialSearchResultContainerVector<TObjectType>::InitializeResults(
+    const std::vector<IndexType>& rIndexes,
+    const std::vector<const DataCommunicator*>& rDataCommunicators
+    )
 {
     // Some check
     KRATOS_DEBUG_ERROR_IF_NOT(mMapIdsStored.size() == mPointResults.size()) << "Allocation non consistent as mMapIdsStored size: " << mMapIdsStored.size() << " and mPointResults size: " << mPointResults.size() << std::endl;
@@ -101,8 +107,8 @@ void SpatialSearchResultContainerVector<TObjectType>::InitializeResults(const st
     mPointResults.resize(current_size + counter);
 
     // Create the results
-    block_for_each(values_to_initialize, [this](const auto Index) {
-        mPointResults[Index] = new SpatialSearchResultContainer<TObjectType>();
+    block_for_each(values_to_initialize, [this, &rDataCommunicators](const auto Index) {
+        mPointResults[Index] = new SpatialSearchResultContainer<TObjectType>(*rDataCommunicators[Index]);
     });
 }
 
@@ -138,89 +144,94 @@ void SpatialSearchResultContainerVector<TObjectType>::SynchronizeAll(const DataC
 {
     // Synchronize local results to global results
     if(rDataCommunicator.IsDistributed()) { // MPI code
-        // MPI variables
-        const int world_size = rDataCommunicator.Size();
-        const int rank = rDataCommunicator.Rank();
-
-        // First lets define the sizes of the local results to send and receive
-        std::vector<std::size_t> active_results;
-        std::vector<std::size_t> result_global_size;
-
-        // Define the total sizes
-        std::size_t total_local_size = 0;
-        std::size_t total_global_size = 0;
-
-        // Iterate over all the results
-        for (std::size_t i = 0; i < mPointResults.size(); ++i) {
-            auto p_result = mPointResults[i];
-            active_results.push_back(i);
-            const int local_result_size = p_result->GetLocalResults().size();
-            total_local_size += local_result_size;
-            const int global_result_size = rDataCommunicator.SumAll(local_result_size);
-            result_global_size.push_back(global_result_size);
-            total_global_size += global_result_size;
-            p_result->GetGlobalResults().reserve(global_result_size);
+        // For the moment just sync manually
+        for (auto p_result : mPointResults) {
+            p_result->SynchronizeAll();
         }
+        // TODO:: FIX MPI CODE. Requires coloring and maybe asynchronous communication
+        // // First lets define the sizes of the local results to send and receive
+        // std::vector<std::size_t> active_results;
+        // active_results.reserve(mPointResults.size());
+        // std::vector<std::size_t> result_global_size;
+        // std::vector<GlobalPointerResultType> global_gp;
 
-        // Gather sizes to send/receive
-        std::vector<int> send_buffer(1, total_local_size);
-        std::vector<int> recv_buffer(world_size);
-        rDataCommunicator.AllGather(send_buffer, recv_buffer);
+        // // MPI variables
+        // const int world_size = rDataCommunicator.Size();
+        // const int rank = rDataCommunicator.Rank();
 
-        // Transfer the data along all partitions
-        if (rank == 0) { // In rank 0
-            // Prepare
-            std::vector<GlobalPointerResultType> global_gp;
-            global_gp.reserve(total_global_size);
+        // // Define the total sizes
+        // std::size_t total_local_size = 0;
+        // std::size_t total_global_size = 0;
 
-            // Fill global vector with local result
-            for (std::size_t i : active_results) {
-                auto p_result = mPointResults[i];
-                for (auto& r_value : p_result->GetLocalResults()) {
-                    global_gp.push_back(GlobalPointerResultType(&r_value, rank));
-                }
-            }
+        // // Iterate over all the results
+        // for (std::size_t i = 0; i < mPointResults.size(); ++i) {
+        //     auto p_result = mPointResults[i];
+        //     active_results.push_back(i);
+        //     const int local_result_size = p_result->GetLocalResults().size();
+        //     total_local_size += local_result_size;
+        //     const auto& r_sub_data_communicator = p_result->GetDataCommunicator();
+        //     const int global_result_size = r_sub_data_communicator.SumAll(local_result_size);
+        //     result_global_size.push_back(global_result_size);
+        //     total_global_size += global_result_size;
+        //     p_result->GetGlobalResults().reserve(global_result_size);
+        // }
 
-            // Call the lambda to generate the result vector of partitions with results
-            std::vector<int> resultVector = SpatialSearchResultContainer<TObjectType>::GenerateGreaterThanZeroIndexes(recv_buffer);
+        // // Gather sizes to send/receive
+        // std::vector<int> send_buffer(1, total_local_size);
+        // std::vector<int> recv_buffer(world_size);
+        // rDataCommunicator.AllGather(send_buffer, recv_buffer);
 
-            // Iterate over the ranks
-            for (int rank_to_recv : resultVector) {
-                std::vector<GlobalPointerResultType> recv_gps;
-                rDataCommunicator.Recv(recv_gps, rank_to_recv);
-                for (auto& r_value : recv_gps) {
-                    global_gp.push_back(r_value);
-                }
-            }
+        // // Transfer the data along all partitions
+        // if (rank == 0) { // In rank 0
+        //     // Prepare
+        //     std::vector<GlobalPointerResultType> global_gp;
+        //     global_gp.reserve(total_global_size);
 
-            // Send now to all ranks
-            for (int i_rank = 1; i_rank < world_size; ++i_rank) {
-                rDataCommunicator.Send(global_gp, i_rank);
-            }
+        //     // Fill global vector with local result
+        //     for (std::size_t i : active_results) {
+        //         auto p_result = mPointResults[i];
+        //         for (auto& r_value : p_result->GetLocalResults()) {
+        //             global_gp.push_back(GlobalPointerResultType(&r_value, rank));
+        //         }
+        //     }
 
-            // Copying values to global results
-            CopyingValuesToGlobalResultsVector(global_gp, active_results, result_global_size);
-        } else {
-            // Sending local results if any
-            if (total_local_size > 0) {
-                std::vector<GlobalPointerResultType> local_gp;
-                local_gp.reserve(total_local_size);
-                for (std::size_t i : active_results) {
-                    auto p_result = mPointResults[i];
-                    for (auto& r_value : p_result->GetLocalResults()) {
-                        local_gp.push_back(GlobalPointerResultType(&r_value, rank));
-                    }
-                }
-                rDataCommunicator.Send(local_gp, 0);
-            }
+        //     // Call the lambda to generate the result vector of partitions with results
+        //     std::vector<int> result_vector = SpatialSearchResultContainer<TObjectType>::GenerateGreaterThanZeroIndexes(recv_buffer);
 
-            // Receiving synced result
-            std::vector<GlobalPointerResultType> global_gp;
-            rDataCommunicator.Recv(global_gp, 0);
+        //     // Iterate over the ranks
+        //     for (int rank_to_recv : result_vector) {
+        //         std::vector<GlobalPointerResultType> recv_gps;
+        //         rDataCommunicator.Recv(recv_gps, rank_to_recv);
+        //         for (auto& r_value : recv_gps) {
+        //             global_gp.push_back(r_value);
+        //         }
+        //     }
 
-            // Copying values to global results
-            CopyingValuesToGlobalResultsVector(global_gp, active_results, result_global_size);
-        }
+        //     // Send now to all ranks
+        //     for (int i_rank = 1; i_rank < world_size; ++i_rank) {
+        //         rDataCommunicator.Send(global_gp, i_rank);
+        //     }
+        // } else {
+        //     // Sending local results if any
+        //     if (total_local_size > 0) {
+        //         std::vector<GlobalPointerResultType> local_gp;
+        //         local_gp.reserve(total_local_size);
+        //         for (std::size_t i : active_results) {
+        //             auto p_result = mPointResults[i];
+        //             for (auto& r_value : p_result->GetLocalResults()) {
+        //                 local_gp.push_back(GlobalPointerResultType(&r_value, rank));
+        //             }
+        //         }
+        //         rDataCommunicator.Send(local_gp, 0);
+        //     }
+
+        //     // Receiving synced result
+        //     std::vector<GlobalPointerResultType> global_gp;
+        //     rDataCommunicator.Recv(global_gp, 0);
+        // }
+
+        // // Copying values to global results
+        // CopyingValuesToGlobalResultsVector(global_gp, active_results, result_global_size);
     } else { // Serial code
         // Iterate over all the results
         block_for_each(mPointResults, [](auto p_result) {
@@ -230,12 +241,17 @@ void SpatialSearchResultContainerVector<TObjectType>::SynchronizeAll(const DataC
                 r_global_results.push_back(&r_value);
             }
         });
+
+        // Generate global pointer communicator
+        block_for_each(mPointResults, [](auto p_result) {
+            p_result->GenerateGlobalPointerCommunicator();
+        });
     }
 
-    // Generate global pointer communicator
-    block_for_each(mPointResults, [&rDataCommunicator](auto p_result) {
-        p_result->GenerateGlobalPointerCommunicator(rDataCommunicator);
-    });
+    // // Generate global pointer communicator
+    // block_for_each(mPointResults, [](auto p_result) {
+    //     p_result->GenerateGlobalPointerCommunicator();
+    // });
 }
 
 /***********************************************************************************/

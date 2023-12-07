@@ -322,15 +322,23 @@ public:
     /**
      * @brief Initialize the container
      * @param Index The index to be initialized
+     * @param rDataCommunicator The data communicator
      * @return The result container
      */
-    SpatialSearchResultContainerReferenceType InitializeResult(const IndexType Index);
+    SpatialSearchResultContainerReferenceType InitializeResult(
+        const IndexType Index,
+        const DataCommunicator& rDataCommunicator
+        );
 
     /**
      * @brief Initialize the container
      * @param Indexes The indexes to be initialized
+     * @param rDataCommunicators The data communicators
      */
-    void InitializeResults(const std::vector<IndexType>& rIndexes);
+    void InitializeResults(
+        const std::vector<IndexType>& rIndexes,
+        const std::vector<const DataCommunicator*>& rDataCommunicators
+        );
 
     /**
      * @brief Check if coordinates are initialized
