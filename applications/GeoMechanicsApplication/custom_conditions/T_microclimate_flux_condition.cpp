@@ -52,7 +52,7 @@ void TMicroClimateFluxCondition<TDim, TNumNodes>::InitializeSolutionStep(
         this->InitializeProperties();
         mIsInitialised = true;
     }
-    this->CalculateRoughness(rCurrentProcessInfo, rVariables);
+    this->CalculateRoughness(rCurrentProcessInfo, mVariables);
 }
 
 // ============================================================================================
@@ -78,25 +78,25 @@ void TMicroClimateFluxCondition<TDim, TNumNodes>::CalculateAll(
     Geom.Jacobian(JContainer, this->GetIntegrationMethod());
 
     //Element variables
-    this->InitializeElementVariables(rVariables, rCurrentProcessInfo);
+    this->InitializeElementVariables(mVariables, rCurrentProcessInfo);
 
     //Loop over integration points
     for (unsigned int GPoint = 0; GPoint < NumGPoints; ++GPoint) {
         //Compute GradNpT, B and StrainVector
-        this->CalculateKinematics(rVariables, GPoint);
+        this->CalculateKinematics(mVariables, GPoint);
 
         //Compute weighting coefficient for integration
         //Variables.IntegrationCoefficient =
         //    this->CalculateIntegrationCoefficient(IntegrationPoints, GPoint, Variables.detJ);
-        this->CalculateIntegrationCoefficient(rVariables.IntegrationCoefficient,
+        this->CalculateIntegrationCoefficient(mVariables.IntegrationCoefficient,
             JContainer[GPoint],
             IntegrationPoints[GPoint].Weight());
 
         //Contributions to the left hand side
-        this->CalculateAndAddLHS(rLeftHandSideMatrix, rVariables);
+        this->CalculateAndAddLHS(rLeftHandSideMatrix, mVariables);
 
         //Contributions to the right hand side
-        this->CalculateAndAddRHS(rRightHandSideVector, rVariables);
+        this->CalculateAndAddRHS(rRightHandSideVector, mVariables);
     }
 
     KRATOS_CATCH("")
@@ -453,18 +453,18 @@ void TMicroClimateFluxCondition<TDim, TNumNodes>::InitializeProperties()
 
     const PropertiesType& rProp = this->GetProperties();
 
-    rVariables.albedoCoefficient = rProp[ALPHA_COEFFICIENT];
-    rVariables.firstCoverStorageCoefficient = rProp[A1_COEFFICIENT];
-    rVariables.secondCoverStorageCoefficient = rProp[A2_COEFFICIENT];
-    rVariables.thirdCoverStorageCoefficient = rProp[A3_COEFFICIENT];
-    rVariables.buildEnvironmentRadiation = rProp[QF_COEFFICIENT];
-    rVariables.minimalStorage = rProp[SMIN_COEFFICIENT];
-    rVariables.maximalStorage = rProp[SMAX_COEFFICIENT];
+    mVariables.albedoCoefficient = rProp[ALPHA_COEFFICIENT];
+    mVariables.firstCoverStorageCoefficient = rProp[A1_COEFFICIENT];
+    mVariables.secondCoverStorageCoefficient = rProp[A2_COEFFICIENT];
+    mVariables.thirdCoverStorageCoefficient = rProp[A3_COEFFICIENT];
+    mVariables.buildEnvironmentRadiation = rProp[QF_COEFFICIENT];
+    mVariables.minimalStorage = rProp[SMIN_COEFFICIENT];
+    mVariables.maximalStorage = rProp[SMAX_COEFFICIENT];
 
     const GeometryType& Geom = this->GetGeometry();
-    rVariables.roughnessTemperature = Geom[0].FastGetSolutionStepValue(AIR_TEMPERATURE, 1);   // This value is not read correctly
-    rVariables.waterStorage = 0.0;                                                            // it is related to the initial value of the table
-    rVariables.netRadiation = Geom[0].FastGetSolutionStepValue(SOLAR_RADIATION, 1);  // This value is not read correctly, initial value of the table
+    mVariables.roughnessTemperature = Geom[0].FastGetSolutionStepValue(AIR_TEMPERATURE, 1);   // This value is not read correctly
+    mVariables.waterStorage = 0.0;                                                            // it is related to the initial value of the table
+    mVariables.netRadiation = Geom[0].FastGetSolutionStepValue(SOLAR_RADIATION, 1);  // This value is not read correctly, initial value of the table
 
     KRATOS_CATCH("")
 }
