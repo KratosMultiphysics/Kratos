@@ -99,6 +99,9 @@ public:
         ) : mrDataCommunicator(rDataCommunicator),
             mSettings(Settings)
     {
+        // Checking we are using a global communicator
+        KRATOS_ERROR_IF(mrDataCommunicator.IsNullOnThisRank()) << "The data communicator is null on this rank. Try to use a global communicator" << std::endl;
+
         // Validate and assign defaults
         mSettings.ValidateAndAssignDefaults(GetDefaultParameters());
 
@@ -300,11 +303,11 @@ private:
     ///@name Member Variables
     ///@{
 
-    typename TSearchObject::Pointer mpSearchObject=  nullptr;  /// The pointer to the base search considered
-    Kratos::unique_ptr<PointVector> mpPointVector =  nullptr;  /// The point vector considered in the search trees
-    std::vector<double> mGlobalBoundingBoxes;                  /// All the global BB, data is xmax, xmin,  ymax, ymin,  zmax, zmin
-    const DataCommunicator& mrDataCommunicator;                /// The data communicator
-    Parameters mSettings;                                      /// The settings considered
+    typename TSearchObject::Pointer mpSearchObject =  nullptr;  /// The pointer to the base search considered
+    Kratos::unique_ptr<PointVector> mpPointVector =  nullptr;   /// The point vector considered in the search trees
+    std::vector<double> mGlobalBoundingBoxes;                   /// All the global BB, data is xmax, xmin,  ymax, ymin,  zmax, zmin
+    const DataCommunicator& mrDataCommunicator;                 /// The data communicator
+    Parameters mSettings;                                       /// The settings considered
 
     ///@}
     ///@name Private Operators
@@ -391,7 +394,10 @@ private:
         });
 
         // Initialize results
-        rResults.InitializeResults(indexes);
+        {
+            const std::vector<const DataCommunicator*> data_communicators(indexes.size(), &mrDataCommunicator);
+            rResults.InitializeResults(indexes, data_communicators);
+        }
 
         // Adding the results to the container
         IndexPartition<IndexType>(number_of_points).for_each([this, &indexes, &itPointBegin, &rResults, &Radius, &allocation_size](std::size_t index) {
@@ -454,7 +460,10 @@ private:
         });
 
         // Initialize results
-        rResults.InitializeResults(indexes);
+        {
+            const std::vector<const DataCommunicator*> data_communicators(indexes.size(), &mrDataCommunicator);
+            rResults.InitializeResults(indexes, data_communicators);
+        }
 
         // Adding the results to the container
         IndexPartition<IndexType>(number_of_points).for_each([this, &indexes, &itPointBegin, &rResults, &Radius, &allocation_size](std::size_t index) {
@@ -509,7 +518,10 @@ private:
         });
 
         // Initialize results
-        rResults.InitializeResults(indexes);
+        {
+            const std::vector<const DataCommunicator*> data_communicators(indexes.size(), &mrDataCommunicator);
+            rResults.InitializeResults(indexes, data_communicators);
+        }
 
         // Adding the results to the container
         IndexPartition<IndexType>(number_of_points).for_each([this, &indexes, &itPointBegin, &rResults](std::size_t index) {
@@ -566,7 +578,10 @@ private:
         });
 
         // Initialize results
-        rResults.InitializeResults(indexes);
+        {
+            const std::vector<const DataCommunicator*> data_communicators(indexes.size(), &mrDataCommunicator);
+            rResults.InitializeResults(indexes, data_communicators);
+        }
 
         // Adding the results to the container
         IndexPartition<IndexType>(number_of_points).for_each([this, &indexes, &itPointBegin, &rResults](std::size_t index) {
@@ -620,7 +635,7 @@ private:
         const std::vector<IndexType> all_points_ids = SearchUtilities::SynchronousPointSynchronizationWithBoundingBox(itPointBegin, itPointEnd, search_info, r_local_bb, Radius, mrDataCommunicator);
 
         // Initialize results
-        rResults.InitializeResults(all_points_ids);
+        PrepareResultsInProperRanks(rResults, search_info);
 
         // Perform the corresponding searches
         const std::size_t total_number_of_points = search_info.Indexes.size();
@@ -682,7 +697,7 @@ private:
         const std::vector<IndexType> all_points_ids = SearchUtilities::SynchronousPointSynchronizationWithBoundingBox(itPointBegin, itPointEnd, search_info, r_local_bb, Radius, mrDataCommunicator);
 
         // Initialize results
-        rResults.InitializeResults(all_points_ids);
+        PrepareResultsInProperRanks(rResults, search_info);
 
         // Perform the corresponding searches
         const std::size_t total_number_of_points = search_info.Indexes.size();
@@ -744,7 +759,7 @@ private:
         const std::vector<IndexType> all_points_ids = SearchUtilities::SynchronousPointSynchronizationWithBoundingBox(itPointBegin, itPointEnd, search_info, r_local_bb, max_radius, mrDataCommunicator);
 
         // Initialize results
-        rResults.InitializeResults(all_points_ids);
+        PrepareResultsInProperRanks(rResults, search_info);
 
         // Perform the corresponding searches
         const std::size_t total_number_of_points = search_info.Indexes.size();
@@ -803,7 +818,7 @@ private:
         const std::vector<IndexType> all_points_ids = SearchUtilities::SynchronousPointSynchronizationWithBoundingBox(itPointBegin, itPointEnd, search_info, r_local_bb, 0.0, mrDataCommunicator);
 
         // Initialize results
-        rResults.InitializeResults(all_points_ids);
+        PrepareResultsInProperRanks(rResults, search_info);
 
         // Perform the corresponding searches
         const std::size_t total_number_of_points = search_info.Indexes.size();
@@ -998,6 +1013,29 @@ private:
     void KeepOnlyLowestRankResult(ResultContainerVectorType& rResults);
 
     /**
+     * @brief Generates a string by appending integer ranks to a base name.
+     * @details This function takes a base name and a vector of integer ranks and concatenates  them to generate a single string. The integer ranks are converted to strings and appended to the base name in the order they appear in the vector.
+     * @param rBaseName The base name to which the integer ranks will be appended.
+     * @param rRanks    A vector of integer ranks to be appended to the base name.
+     * @return A string containing the base name followed by the integer ranks.
+     */
+    std::string GenerateNameFromRanks(
+        const std::string& rBaseName,
+        const std::vector<int>& rRanks
+        );
+
+    /**
+     * @brief Prepare the search results in proper ranks.
+     * @details This function prepares the search results in proper ranks based on the provided search information.
+     * @param rResults The vector containing the search results to be prepared.
+     * @param rSearchInfo The distributed search information to determine the proper ranks.
+     */
+    void PrepareResultsInProperRanks(
+        ResultContainerVectorType& rResults,
+        const DistributedSearchInformation& rSearchInfo
+        );
+
+    /**
      * @brief This method returns the default parameters of the search
      * @return The default parameters
      */
@@ -1022,7 +1060,6 @@ private:
     SearchWrapper(SearchWrapper const& rOther) = delete;
 
     ///@}
-
 }; // Class SearchWrapper
 
 ///@}

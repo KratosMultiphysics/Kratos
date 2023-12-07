@@ -15,6 +15,7 @@
 // External includes
 
 // Project includes
+#include "includes/key_hash.h"
 #include "utilities/search_utilities.h"
 #include "spatial_containers/search_wrapper.h"
 
@@ -313,6 +314,66 @@ void SearchWrapper<TSearchObject>::KeepOnlyLowestRankResult(ResultContainerVecto
         return rResult.GetResultRank();
     };
     KeepOnlyGivenLambdaResult(rResults, rank_lambda);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<class TSearchObject>
+std::string SearchWrapper<TSearchObject>::GenerateNameFromRanks(
+    const std::string& rBaseName,
+    const std::vector<int>& rRanks
+    )
+{
+    std::stringstream ss;
+    ss << rBaseName;
+    for (const int rank : rRanks) {
+        ss << rank; // Convert int to string and append to stringstream
+    }
+    return ss.str();
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+/* TODO: Move it to key_hash.h, in more generic way */
+struct VectorHash {
+    std::size_t operator()(const std::vector<int>& v) const {
+        std::size_t seed = 0;
+        for (int i : v) {
+            HashCombine(seed, i);
+        }
+        return seed;
+    }
+};
+
+template<class TSearchObject>
+void SearchWrapper<TSearchObject>::PrepareResultsInProperRanks(
+    ResultContainerVectorType& rResults,
+    const DistributedSearchInformation& rSearchInfo
+    )
+{
+    // The base sub data communicator name
+    const std::string base_name = "SubCommunicator_";
+    const auto& r_ranks = rSearchInfo.Ranks;
+    const auto& r_indexes = rSearchInfo.Indexes;
+    std::vector<const DataCommunicator*> data_communicators(r_ranks.size(), nullptr);
+    std::unordered_map<std::vector<int>, const DataCommunicator*, VectorHash> data_communicators_database; // NOTE: WE use this to avoid the creating of strings concatenating integers and the seach of std::string that is expensive
+    for (std::size_t i = 0; i < r_ranks.size(); ++i) {
+        const auto& r_current_ranks = r_ranks[i];
+        auto it_find = data_communicators_database.find(r_current_ranks);
+        // Found
+        if (it_find != data_communicators_database.end()) {
+            data_communicators[i] = it_find->second;
+        } else { // Not found
+            // Generate the name
+            const std::string name = GenerateNameFromRanks(base_name, r_current_ranks);
+            const DataCommunicator& r_sub_communicator = mrDataCommunicator.GetSubDataCommunicator(r_current_ranks, name);
+            data_communicators[i] = &r_sub_communicator;
+            data_communicators_database.insert({r_current_ranks, &r_sub_communicator});
+        }
+    }
+    rResults.InitializeResults(r_indexes, data_communicators);
 }
 
 /***********************************************************************************/
