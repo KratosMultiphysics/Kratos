@@ -154,13 +154,18 @@ class TestSearchWrapper(KratosUnittest.TestCase):
 
         # Nodes array search
         results = self.search.SearchInRadius(self.sub_model_part.Nodes, radius)
-        self.assertEqual(results.NumberOfSearchResults(), 1)
-        node_results = results[self.node_id]
-        self.assertEqual(node_results.NumberOfGlobalResults(), 8)
-        ids = node_results.GetResultIndices()
-        self.assertEqual(len(ids), 8)
-        for id in ids:
-            self.assertTrue(id in cond_id_ref)
+        # Only in partitions were results are found
+        number_search_results = results.NumberOfSearchResults()
+        check = self.data_comm.SumAll(number_search_results)
+        self.assertGreater(check, 0)
+        if number_search_results > 0:
+            self.assertEqual(results.NumberOfSearchResults(), 1)
+            node_results = results[self.node_id]
+            self.assertEqual(node_results.NumberOfGlobalResults(), 8)
+            ids = node_results.GetResultIndices()
+            self.assertEqual(len(ids), 8)
+            for id in ids:
+                self.assertTrue(id in cond_id_ref)
 
     def _SearchNearestInRadius(self, search_type = "GeometricalObjectBins"):
         """
@@ -174,20 +179,25 @@ class TestSearchWrapper(KratosUnittest.TestCase):
 
         # Nodes array search
         results = self.search.SearchNearestInRadius(self.sub_model_part.Nodes, radius)
-        self.assertEqual(results.NumberOfSearchResults(), 1)
-        node_results = results[self.node_id]
-        self.assertEqual(node_results.NumberOfGlobalResults(), 1)
-        # Local result
-        if node_results.NumberOfLocalResults() == 1:
-            self.assertTrue(node_results[0].IsObjectFound())
-        # Global result
-        ids = node_results.GetDistances()
-        self.assertEqual(len(ids), 1)
-        # Distance is different depending on the search type used (GeometricalObjectBins or not)
-        if search_type == "GeometricalObjectBins":
-            self.assertAlmostEqual(ids[0], 0.326335, 6)
-        else:
-            self.assertAlmostEqual(ids[0], 0.106584, 6)
+        # Only in partitions were results are found
+        number_search_results = results.NumberOfSearchResults()
+        check = self.data_comm.SumAll(number_search_results)
+        self.assertGreater(check, 0)
+        if number_search_results > 0:
+            self.assertEqual(results.NumberOfSearchResults(), 1)
+            node_results = results[self.node_id]
+            self.assertEqual(node_results.NumberOfGlobalResults(), 1)
+            # Local result
+            if node_results.NumberOfLocalResults() == 1:
+                self.assertTrue(node_results[0].IsObjectFound())
+            # Global result
+            ids = node_results.GetDistances()
+            self.assertEqual(len(ids), 1)
+            # Distance is different depending on the search type used (GeometricalObjectBins or not)
+            if search_type == "GeometricalObjectBins":
+                self.assertAlmostEqual(ids[0], 0.326335, 6)
+            else:
+                self.assertAlmostEqual(ids[0], 0.106584, 6)
 
     def _SearchNearest(self, search_type = "GeometricalObjectBins"):
         """
@@ -198,20 +208,25 @@ class TestSearchWrapper(KratosUnittest.TestCase):
 
         # Nodes array search
         results = self.search.SearchNearest(self.sub_model_part.Nodes)
-        self.assertEqual(results.NumberOfSearchResults(), 1)
-        node_results = results[self.node_id]
-        self.assertEqual(node_results.NumberOfGlobalResults(), 1)
-        # Local result
-        if node_results.NumberOfLocalResults() == 1:
-            self.assertTrue(node_results[0].IsObjectFound())
-        # Global result
-        ids = node_results.GetDistances()
-        self.assertEqual(len(ids), 1)
-        # Distance is different depending on the search type used (GeometricalObjectBins or not)
-        if search_type == "GeometricalObjectBins":
-            self.assertAlmostEqual(ids[0], 0.326335, 6)
-        else:
-            self.assertAlmostEqual(ids[0], 0.106584, 6)
+        # Only in partitions were results are found
+        number_search_results = results.NumberOfSearchResults()
+        check = self.data_comm.SumAll(number_search_results)
+        self.assertGreater(check, 0)
+        if number_search_results > 0:
+            self.assertEqual(results.NumberOfSearchResults(), 1)
+            node_results = results[self.node_id]
+            self.assertEqual(node_results.NumberOfGlobalResults(), 1)
+            # Local result
+            if node_results.NumberOfLocalResults() == 1:
+                self.assertTrue(node_results[0].IsObjectFound())
+            # Global result
+            ids = node_results.GetDistances()
+            self.assertEqual(len(ids), 1)
+            # Distance is different depending on the search type used (GeometricalObjectBins or not)
+            if search_type == "GeometricalObjectBins":
+                self.assertAlmostEqual(ids[0], 0.326335, 6)
+            else:
+                self.assertAlmostEqual(ids[0], 0.106584, 6)
 
     def test_SearchWrapperGeometricalObjectBins_SearchInRadius(self):
         """
@@ -240,9 +255,14 @@ class TestSearchWrapper(KratosUnittest.TestCase):
 
         # Nodes array search
         results = self.search.SearchIsInside(self.sub_model_part.Nodes)
-        self.assertEqual(results.NumberOfSearchResults(), 1)
-        node_results = results[self.node_id]
-        self.assertFalse(node_results.IsObjectFound())
+        # Only in partitions were results are found
+        number_search_results = results.NumberOfSearchResults()
+        check = self.data_comm.SumAll(number_search_results)
+        self.assertGreater(check, 0)
+        if number_search_results > 0:
+            self.assertEqual(results.NumberOfSearchResults(), 1)
+            node_results = results[self.node_id]
+            self.assertFalse(node_results.IsObjectFound())
 
     def test_SearchWrapperKDTree_SearchInRadius(self):
         """
