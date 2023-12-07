@@ -156,25 +156,8 @@ std::string ExecuteInitializeSolutionStep(intrusive_ptr<Condition> pCondition,
     return {}; // no error message
 }
 
-Matrix CalculateLhsMatrix(intrusive_ptr<Condition> pCondition,
-                          const ProcessInfo& rProcessInfo)
-{
-    Matrix result;
-    Vector rhs_vector;
-    pCondition->CalculateLocalSystem(result, rhs_vector, rProcessInfo);
-    return result;
-}
-
-Vector CalculateRhsVector(intrusive_ptr<Condition> pCondition,
-                          const ProcessInfo& rProcessInfo)
-{
-    Matrix lhs_matrix;
-    Vector result;
-    pCondition->CalculateLocalSystem(lhs_matrix, result, rProcessInfo);
-    return result;
-}
-
 constexpr auto relative_tolerance = 1.0e-3;
+constexpr auto absolute_tolerance = 1.0e-3;
 
 }
 
@@ -352,7 +335,7 @@ KRATOS_TEST_CASE_IN_SUITE(NoErrorWhenInitializingSolutionStepOnThermalMicroClima
     KRATOS_EXPECT_STREQ(error_text.data(), "")
 }
 
-KRATOS_TEST_CASE_IN_SUITE(CalculateLhsMatrixForThermalMicroClimateCondition2D3N, KratosGeoMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(CalculateLocalSystemForThermalMicroClimateCondition2D3N, KratosGeoMechanicsFastSuite)
 {
     Model test_model;
     auto  create_nodes_func = [](ModelPart& rModelPart){
@@ -365,33 +348,51 @@ KRATOS_TEST_CASE_IN_SUITE(CalculateLhsMatrixForThermalMicroClimateCondition2D3N,
     auto  p_condition  = CreateMicroClimateCondition(r_model_part, p_properties, dimension_size);
     p_condition->InitializeSolutionStep(r_model_part.GetProcessInfo());
 
-    const auto lhs_matrix = CalculateLhsMatrix(p_condition, r_model_part.GetProcessInfo());
+    Matrix lhs_matrix;
+    Vector rhs_vector;
+    p_condition->CalculateLocalSystem(lhs_matrix, rhs_vector, r_model_part.GetProcessInfo());
 
     auto expected_lhs_matrix = Matrix{3, 3, 0.0};
     expected_lhs_matrix <<= 21.2568, -8.50271, 25.5081,
             -8.50271, 12.7541, 8.50271,
             25.5081, 8.50271, 68.0217;
     KRATOS_EXPECT_MATRIX_RELATIVE_NEAR(expected_lhs_matrix, lhs_matrix, relative_tolerance)
-}
-
-KRATOS_TEST_CASE_IN_SUITE(CalculateRhsVectorForThermalMicroClimateCondition2D3N, KratosGeoMechanicsFastSuite)
-{
-    Model test_model;
-    auto  create_nodes_func = [](ModelPart& rModelPart){
-        constexpr auto number_of_nodes = std::size_t{3};
-        CreateNodesForLineCondition(rModelPart, number_of_nodes);
-    };
-    auto& r_model_part = CreateDummyModelPartWithNodes(test_model, create_nodes_func);
-    auto  p_properties = CreateDummyConditionProperties(r_model_part);
-    constexpr auto dimension_size = std::size_t{2};
-    auto  p_condition  = CreateMicroClimateCondition(r_model_part, p_properties, dimension_size);
-    p_condition->InitializeSolutionStep(r_model_part.GetProcessInfo());
-
-    const auto rhs_vector = CalculateRhsVector(p_condition, r_model_part.GetProcessInfo());
 
     auto expected_rhs_vector = Vector{3, 0.0};
     expected_rhs_vector <<= -114.828, -38.2761, -306.209;
     KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(expected_rhs_vector, rhs_vector, relative_tolerance)
+}
+
+KRATOS_TEST_CASE_IN_SUITE(CalculateLocalSystemForThermalMicroClimateCondition3D6N, KratosGeoMechanicsFastSuite)
+{
+    Model test_model;
+    auto  create_nodes_func = [](ModelPart& rModelPart){
+        constexpr auto want_mid_side_nodes = true;
+        CreateNodesForTriangle(rModelPart, want_mid_side_nodes);
+    };
+    auto& r_model_part = CreateDummyModelPartWithNodes(test_model, create_nodes_func);
+    auto  p_properties = CreateDummyConditionProperties(r_model_part);
+    constexpr auto dimension_size = std::size_t{3};
+    auto  p_condition  = CreateMicroClimateCondition(r_model_part, p_properties, dimension_size);
+    p_condition->InitializeSolutionStep(r_model_part.GetProcessInfo());
+
+    Matrix lhs_matrix;
+    Vector rhs_vector;
+    p_condition->CalculateLocalSystem(lhs_matrix, rhs_vector, r_model_part.GetProcessInfo());
+
+    auto expected_lhs_matrix = Matrix{6, 6, 0.0};
+    expected_lhs_matrix <<= 1.95146, -0.975729, -0.975729, 0.975729, -1.95146, 0.975729,
+            -0.975729, 1.95146, -0.975729, 0.975729, 0.975729, -1.95146,
+            -0.975729, -0.975729, 1.95146, -1.95146, 0.975729, 0.975729,
+            0.975729, 0.975729, -1.95146, 10.733, 7.80583, 7.80583,
+            -1.95146, 0.975729, 0.975729, 7.80583, 10.733, 7.80583,
+            0.975729, -1.95146, 0.975729, 7.80583, 7.80583, 10.733;
+    KRATOS_EXPECT_MATRIX_RELATIVE_NEAR(expected_lhs_matrix, lhs_matrix, relative_tolerance)
+
+    auto expected_rhs_vector = Vector{6, 0.0};
+    expected_rhs_vector <<= 0.0, 0.0, 0.0, -79.0629, -79.0629, -79.0629;
+    // To compare computed zeros (the first three elements of 'rhs_vector') use an absolute_tolerance
+    KRATOS_EXPECT_VECTOR_NEAR(expected_rhs_vector, rhs_vector, absolute_tolerance)
 }
 
 }
