@@ -14,7 +14,10 @@
 #include "custom_conditions/T_microclimate_flux_condition.hpp"
 #include "testing/testing.h"
 
+#include <boost/numeric/ublas/assignment.hpp>
+
 using namespace Kratos;
+using namespace boost::numeric::ublas;
 
 namespace {
 
@@ -349,11 +352,11 @@ KRATOS_TEST_CASE_IN_SUITE(NoErrorWhenInitializingSolutionStepOnThermalMicroClima
     KRATOS_EXPECT_STREQ(error_text.data(), "")
 }
 
-KRATOS_TEST_CASE_IN_SUITE(CalculateLhsMatrixForThermalMicroClimateCondition2D2N, KratosGeoMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(CalculateLhsMatrixForThermalMicroClimateCondition2D3N, KratosGeoMechanicsFastSuite)
 {
     Model test_model;
     auto  create_nodes_func = [](ModelPart& rModelPart){
-        constexpr auto number_of_nodes = std::size_t{2};
+        constexpr auto number_of_nodes = std::size_t{3};
         CreateNodesForLineCondition(rModelPart, number_of_nodes);
     };
     auto& r_model_part = CreateDummyModelPartWithNodes(test_model, create_nodes_func);
@@ -364,7 +367,10 @@ KRATOS_TEST_CASE_IN_SUITE(CalculateLhsMatrixForThermalMicroClimateCondition2D2N,
 
     const auto lhs_matrix = CalculateLhsMatrix(p_condition, r_model_part.GetProcessInfo());
 
-    const auto expected_lhs_matrix = Matrix{2, 2, 11.0453};
+    auto expected_lhs_matrix = Matrix{3, 3, 0.0};
+    expected_lhs_matrix <<= 21.2568, -8.50271, 25.5081,
+            -8.50271, 12.7541, 8.50271,
+            25.5081, 8.50271, 68.0217;
     KRATOS_EXPECT_MATRIX_RELATIVE_NEAR(expected_lhs_matrix, lhs_matrix, relative_tolerance)
 }
 
