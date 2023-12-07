@@ -395,4 +395,37 @@ KRATOS_TEST_CASE_IN_SUITE(CalculateLocalSystemForThermalMicroClimateCondition3D6
     KRATOS_EXPECT_VECTOR_NEAR(expected_rhs_vector, rhs_vector, absolute_tolerance)
 }
 
+KRATOS_TEST_CASE_IN_SUITE(CalculateLocalSystemForThermalMicroClimateCondition3D8N, KratosGeoMechanicsFastSuite)
+{
+    Model test_model;
+    auto  create_nodes_func = [](ModelPart& rModelPart){
+        CreateNodesForQuadrilateral(rModelPart, HigherOrderElementConfiguration::Serendipity);
+    };
+    auto& r_model_part = CreateDummyModelPartWithNodes(test_model, create_nodes_func);
+    auto  p_properties = CreateDummyConditionProperties(r_model_part);
+    constexpr auto dimension_size = std::size_t{3};
+    auto  p_condition  = CreateMicroClimateCondition(r_model_part, p_properties, dimension_size);
+    p_condition->InitializeSolutionStep(r_model_part.GetProcessInfo());
+
+    Matrix lhs_matrix;
+    Vector rhs_vector;
+    p_condition->CalculateLocalSystem(lhs_matrix, rhs_vector, r_model_part.GetProcessInfo());
+
+    auto expected_lhs_matrix = Matrix{8, 8, 0.0};
+    expected_lhs_matrix <<= 5.26894, 1.75631, 2.63447, 1.75631, -5.26894, -7.02525, -7.02525, -5.26894,
+            1.75631, 5.26894, 1.75631, 2.63447, -5.26894, -5.26894, -7.02525, -7.02525,
+            2.63447, 1.75631, 5.26894, 1.75631, -7.02525, -5.26894, -5.26894, -7.02525,
+            1.75631, 2.63447, 1.75631, 5.26894, -7.02525, -7.02525, -5.26894, -5.26894,
+            -5.26894, -5.26894, -7.02525, -7.02525, 28.101, 17.5631, 14.0505, 17.5631,
+            -7.02525, -5.26894, -5.26894, -7.02525, 17.5631, 28.101, 17.5631, 14.0505,
+            -7.02525, -7.02525, -5.26894, -5.26894, 14.0505, 17.5631, 28.101, 17.5631,
+            -5.26894, -7.02525, -7.02525, -5.26894, 17.5631, 14.0505, 17.5631, 28.101;
+
+    KRATOS_EXPECT_MATRIX_RELATIVE_NEAR(expected_lhs_matrix, lhs_matrix, relative_tolerance)
+
+    auto expected_rhs_vector = Vector{8, 0.0};
+    expected_rhs_vector <<= 39.5314, 39.5314, 39.5314, 39.5314, -158.126, -158.126, -158.126, -158.126;
+    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(expected_rhs_vector, rhs_vector, relative_tolerance)
+}
+
 }
