@@ -131,8 +131,6 @@ protected:
 
     void InitializeProperties();
 
-    void CalculateKinematics(ElementVariables& rVariables, unsigned int PointNumber);
-
     void InitializeNodalTemperatureVariables(ElementVariables& rVariables);
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------

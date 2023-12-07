@@ -71,8 +71,7 @@ void TMicroClimateFluxCondition<TDim, TNumNodes>::CalculateAll(
 
     //Loop over integration points
     for (unsigned int GPoint = 0; GPoint < NumGPoints; ++GPoint) {
-        //Compute GradNpT, B and StrainVector
-        this->CalculateKinematics(mVariables, GPoint);
+        mVariables.Np = row(mVariables.NContainer, GPoint);
 
         //Compute weighting coefficient for integration
         this->CalculateIntegrationCoefficient(mVariables.IntegrationCoefficient,
@@ -452,21 +451,6 @@ void TMicroClimateFluxCondition<TDim, TNumNodes>::InitializeProperties()
     mVariables.roughnessTemperature = Geom[0].FastGetSolutionStepValue(AIR_TEMPERATURE, 1);   // This value is not read correctly
     mVariables.waterStorage = 0.0;                                                            // it is related to the initial value of the table
     mVariables.netRadiation = Geom[0].FastGetSolutionStepValue(SOLAR_RADIATION, 1);  // This value is not read correctly, initial value of the table
-
-    KRATOS_CATCH("")
-}
-
-// ============================================================================================
-// ============================================================================================
-template<unsigned int TDim, unsigned int TNumNodes>
-void TMicroClimateFluxCondition<TDim, TNumNodes>::CalculateKinematics(
-    ElementVariables& rVariables,
-    unsigned int PointNumber)
-{
-    KRATOS_TRY
-
-    //Setting the vector of shape functions and the matrix of the shape functions global gradients
-    rVariables.Np = row(rVariables.NContainer, PointNumber);
 
     KRATOS_CATCH("")
 }
