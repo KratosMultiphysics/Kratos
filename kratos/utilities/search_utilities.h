@@ -632,6 +632,131 @@ private:
     }
 
     /**
+     * @details Synchronizes points between different processes. 
+     * @details Synchonously
+     * @param itPointBegin Iterator pointing to the beginning of the range of points
+     * @param itPointEnd Iterator pointing to the end of the range of points
+     * @param rAllPointsCoordinates Vector to store the synchronized points' coordinates
+     * @param rAllPointsIds The ids of all the points (just a counter for points, and ids for nodes)
+     * @param rDataCommunicator Object for data communication between processes
+     * @param NumberOfPoints Local number of points to be synchronized
+     * @param TotalNumberOfPoints Total number of points across all processes
+     * @return A vector containing the ranks of each point
+     * @tparam TPointIteratorType The type of the point iterator
+     */
+    template<typename TPointIteratorType>
+    static std::vector<int> SynchronizePointsWithRanks(
+        TPointIteratorType itPointBegin,
+        TPointIteratorType itPointEnd,
+        std::vector<double>& rAllPointsCoordinates,
+        std::vector<IndexType>& rAllPointsIds,
+        const DataCommunicator& rDataCommunicator,
+        const int NumberOfPoints,
+        const int TotalNumberOfPoints
+        )
+    {
+        // Get the World Size and rank in MPI
+        const int world_size = rDataCommunicator.Size();
+        const int rank = rDataCommunicator.Rank();
+
+        // Getting global number of points
+        std::vector<int> points_per_partition(world_size);
+        std::vector<int> send_points_per_partition(1, NumberOfPoints);
+        std::vector<int> all_points_ranks(TotalNumberOfPoints);
+        rDataCommunicator.AllGather(send_points_per_partition, points_per_partition);
+        std::size_t initial_id = 0;
+        if constexpr (!std::is_same<TPointIteratorType, ModelPart::NodeIterator>::value || std::is_same<TPointIteratorType, ModelPart::NodeConstantIterator>::value) {
+            initial_id = std::accumulate(points_per_partition.begin(), points_per_partition.begin() + rank, 0);
+        }
+
+        // Initialize and resize vectors
+        if (rAllPointsCoordinates.size() != static_cast<unsigned int>(TotalNumberOfPoints * 3)) {
+            rAllPointsCoordinates.resize(TotalNumberOfPoints * 3);
+        }
+        if (rAllPointsIds.size() != static_cast<unsigned int>(TotalNumberOfPoints)) {
+            rAllPointsIds.resize(TotalNumberOfPoints);
+        }
+        std::vector<int> recv_sizes(world_size, 0);
+
+        // Auxiliary variables
+        std::size_t counter = 0;
+        array_1d<double, 3> coordinates;
+        unsigned int i_coord;
+
+        // If distributed
+        if (rDataCommunicator.IsDistributed()) {
+            // Initialize local points coordinates
+            std::vector<double> send_points_coordinates(NumberOfPoints * 3);
+            std::vector<IndexType> send_points_ids(NumberOfPoints);
+            std::vector<int> send_points_ranks(NumberOfPoints);
+            for (auto it_point = itPointBegin ; it_point != itPointEnd ; ++it_point) {
+                // In case of considering nodes
+                if constexpr (std::is_same<TPointIteratorType, ModelPart::NodeIterator>::value || std::is_same<TPointIteratorType, ModelPart::NodeConstantIterator>::value) {
+                    if (it_point->FastGetSolutionStepValue(PARTITION_INDEX) != rank) {
+                        continue; // Skip if not local
+                    }
+                }
+                noalias(coordinates) = it_point->Coordinates();
+                if constexpr (std::is_same<TPointIteratorType, ModelPart::NodeIterator>::value || std::is_same<TPointIteratorType, ModelPart::NodeConstantIterator>::value) {
+                    send_points_ids[counter] = it_point->Id();
+                } else {
+                    send_points_ids[counter] = initial_id + counter;
+                }
+                send_points_ranks[counter] = rank;
+                for (i_coord = 0; i_coord < 3; ++i_coord) {
+                    send_points_coordinates[3 * counter + i_coord] = coordinates[i_coord];
+                }
+                ++counter;
+            }
+
+            /* Sync coordinates */
+
+            // Generate vectors with sizes for AllGatherv
+            for (int i_rank = 0; i_rank < world_size; ++i_rank) {
+                recv_sizes[i_rank] = 3 * points_per_partition[i_rank];
+            }
+            std::vector<int> recv_offsets(world_size, 0);
+            for (int i_rank = 1; i_rank < world_size; ++i_rank) {
+                recv_offsets[i_rank] = recv_offsets[i_rank - 1] + recv_sizes[i_rank - 1];
+            }
+
+            // Invoke AllGatherv
+            rDataCommunicator.AllGatherv(send_points_coordinates, rAllPointsCoordinates, recv_sizes, recv_offsets);
+
+            /* Sync Ids */
+
+            // Generate vectors with sizes for AllGatherv
+            for (int i_rank = 0; i_rank < world_size; ++i_rank) {
+                recv_sizes[i_rank] = points_per_partition[i_rank];
+            }
+            for (int i_rank = 1; i_rank < world_size; ++i_rank) {
+                recv_offsets[i_rank] = recv_offsets[i_rank - 1] + recv_sizes[i_rank - 1];
+            }
+
+            // Invoke AllGatherv
+            rDataCommunicator.AllGatherv(send_points_ids, rAllPointsIds, recv_sizes, recv_offsets);
+            rDataCommunicator.AllGatherv(send_points_ranks, all_points_ranks, recv_sizes, recv_offsets);
+        } else { // Serial
+            // Assign values
+            for (auto it_point = itPointBegin ; it_point != itPointEnd ; ++it_point) {
+                noalias(coordinates) = it_point->Coordinates();
+                if constexpr (std::is_same<TPointIteratorType, ModelPart::NodeIterator>::value || std::is_same<TPointIteratorType, ModelPart::NodeConstantIterator>::value) {
+                    rAllPointsIds[counter] = it_point->Id();
+                } else {
+                    rAllPointsIds[counter] = initial_id + counter;
+                }
+                for (i_coord = 0; i_coord < 3; ++i_coord) {
+                    rAllPointsCoordinates[3 * counter + i_coord] = coordinates[i_coord];
+                }
+                ++counter;
+            }
+        }
+
+        // Return the ranks
+        return all_points_ranks;
+    }
+
+    /**
      * @details Synchronizes points between different processes.
      * @details Synchonously
      * @param itPointBegin Iterator pointing to the beginning of the range of points
@@ -665,7 +790,7 @@ private:
         std::vector<IndexType> all_points_ids(TotalNumberOfPoints);
 
         // Sync all points first
-        SynchronizePoints(itPointBegin, itPointEnd, all_points_coordinates, all_points_ids, rDataCommunicator, NumberOfPoints, TotalNumberOfPoints);
+        std::vector<int> all_points_ranks = SynchronizePointsWithRanks(itPointBegin, itPointEnd, all_points_coordinates, all_points_ids, rDataCommunicator, NumberOfPoints, TotalNumberOfPoints);
 
         // Some definitions
         IndexType i_coord = 0;
@@ -686,8 +811,9 @@ private:
                 point_to_test[1] = all_points_coordinates[3 * i_point + 1];
                 point_to_test[2] = all_points_coordinates[3 * i_point + 2];
                 const bool is_inside = PointIsInsideBoundingBox(rBoundingBox, point_to_test, ThresholdBoundingBox);
+                const bool to_be_included = is_inside || all_points_ranks[i_point] == rank;
                 inside_ranks.resize(world_size);
-                if (is_inside) {
+                if (to_be_included) {
                     for (i_coord = 0; i_coord < 3; ++i_coord) {
                         rSearchInfo.PointCoordinates.push_back(all_points_coordinates[3 * i_point + i_coord]);
                     }
@@ -708,7 +834,7 @@ private:
                 );
 
                 // Now adding // NOTE: Should be ordered, so a priori is not required to reorder
-                if (is_inside) {
+                if (to_be_included) {
                      rSearchInfo.Ranks.push_back(inside_ranks);
                 }
             }
