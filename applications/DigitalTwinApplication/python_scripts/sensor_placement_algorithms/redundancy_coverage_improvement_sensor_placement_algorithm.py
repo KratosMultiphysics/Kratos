@@ -9,7 +9,7 @@ from KratosMultiphysics.DigitalTwinApplication.sensor_placement_algorithms.senso
 from KratosMultiphysics.DigitalTwinApplication.utilities.sensor_utils import GetNormalizedSensorViews
 from KratosMultiphysics.DigitalTwinApplication.utilities.sensor_utils import PrintSensorListToCSV
 from KratosMultiphysics.DigitalTwinApplication.utilities.sensor_utils import PrintSensorListToJson
-from KratosMultiphysics.DigitalTwinApplication.utilities.sensor_utils import GetFilter, GetSensorCoverageMasks, ComputeMinimumDistanceSquare
+from KratosMultiphysics.DigitalTwinApplication.utilities.sensor_utils import GetFilter, GetSensorCoverageMasks, GetMostDistancedMax, GetMostDistancedMin
 from KratosMultiphysics.DigitalTwinApplication.utilities.data_utils import SensorViewUnionType
 from KratosMultiphysics.DigitalTwinApplication.utilities.data_utils import SensorViewUnionType
 from KratosMultiphysics.DigitalTwinApplication.utilities.expression_utils import ExpressionFilterUnionType, ExpressionUnionType
@@ -29,7 +29,8 @@ class RedundancyCoverageImprovementSensorPlacementAlgorithm(SensorPlacementAlgor
             "output_folder"                    : "sensor_placement",
             "required_maximum_overall_coverage": 0.9,
             "required_maximum_cluster_coverage": 0.1,
-            "required_minimum_redundancy"      : 3,
+            "relaxation_max_coverage"          : 1e-9,
+            "relaxation_min_coverage"          : 0.05,
             "maximum_number_of_iterations"     : 100,
             "filtering"                        : {}
         }""")
@@ -43,6 +44,8 @@ class RedundancyCoverageImprovementSensorPlacementAlgorithm(SensorPlacementAlgor
         self.is_csv_output = self.parameters["output_to_csv"].GetBool()
         self.required_maximum_overall_coverage = self.parameters["required_maximum_overall_coverage"].GetDouble()
         self.required_maximum_cluster_coverage = self.parameters["required_maximum_cluster_coverage"].GetDouble()
+        self.relaxation_max_coverage = self.parameters["relaxation_max_coverage"].GetDouble()
+        self.relaxation_min_coverage = self.parameters["relaxation_min_coverage"].GetDouble()
         self.maximum_number_of_iterations = self.parameters["maximum_number_of_iterations"].GetInt()
 
     def Execute(self, list_of_sensors: 'list[KratosDT.Sensors.Sensor]') -> None:
@@ -99,52 +102,36 @@ class RedundancyCoverageImprovementSensorPlacementAlgorithm(SensorPlacementAlgor
         list_of_selected_coverage_masks: 'list[ExpressionUnionType]' = []
         while (max_coverage < self.required_maximum_overall_coverage and iteration <= self.maximum_number_of_iterations):
             # find the sensor mask which increases coverage to the max
-            max_coverage = 0
-            best_coverage_index = -1
-            max_min_distance = 1e+9
+            list_of_coverages: 'list[float]' = []
             for i, coverage_mask in enumerate(coverage_masks):
                 # computing the additional area which is covered by this coverage mask
                 modified_overall_coverage_mask = overall_coverage_mask + coverage_mask
                 KratosDT.ControlUtils.ClipContainerExpression(modified_overall_coverage_mask, 0, 1)
                 coverage = KratosDT.SensorUtils.Sum(domain_size_exp.Scale(modified_overall_coverage_mask)) / total_domain_size
+                list_of_coverages.append(coverage)
 
-                if abs(coverage - max_coverage) < 1e-9:
-                    # both the sensors cover the same additional area
-                    # hence we choose the most distanced one to have better redundancy
-                    current_min_distance = ComputeMinimumDistanceSquare(normalized_sensor_views[i], list_of_selected_views)
-                    if current_min_distance > max_min_distance:
-                        max_min_distance = current_min_distance
-                        best_coverage_index = i
-                        max_coverage = coverage
+            best_coverage_index = GetMostDistancedMax(self.relaxation_max_coverage, list_of_coverages, normalized_sensor_views, list_of_selected_views)
+            list_of_selected_views.append(normalized_sensor_views[best_coverage_index])
+            list_of_selected_coverage_masks.append(coverage_masks[best_coverage_index])
+            overall_coverage_mask += coverage_masks[best_coverage_index]
+            overall_coverage_mask = overall_coverage_mask.Flatten()
+            max_coverage = list_of_coverages[best_coverage_index]
 
-                elif max_coverage < coverage:
-                    # current coverage is better than the max coverage we found so far
-                    # hence, getting that max coverage
-                    max_coverage = coverage
-                    best_coverage_index = i
-                    max_min_distance = ComputeMinimumDistanceSquare(normalized_sensor_views[i], list_of_selected_views)
+            if self.is_vtu_output:
+                vtu_output.ClearCellContainerExpressions()
+                vtu_output.ClearNodalContainerExpressions()
+                vtu_output.AddContainerExpression("sensor_coverage", coverage_masks[best_coverage_index].Clone())
+                vtu_output.AddContainerExpression("redundancy", overall_coverage_mask.Clone())
+                vtu_output.PrintOutput(str(output_path / f"redundancy_iteration_{iteration:05d}"))
 
-            if best_coverage_index != -1:
-                list_of_selected_views.append(normalized_sensor_views[best_coverage_index])
-                list_of_selected_coverage_masks.append(coverage_masks[best_coverage_index])
-                overall_coverage_mask += coverage_masks[best_coverage_index]
-                overall_coverage_mask = overall_coverage_mask.Flatten()
+            if self.is_csv_output:
+                PrintSensorListToCSV(output_path / f"redundancy_iteration_{iteration:05d}.csv", [sensor_view.GetSensor() for sensor_view in list_of_selected_views], ["type", "name", "location", "value"])
 
-                if self.is_vtu_output:
-                    vtu_output.ClearCellContainerExpressions()
-                    vtu_output.ClearNodalContainerExpressions()
-                    vtu_output.AddContainerExpression("sensor_coverage", coverage_masks[best_coverage_index].Clone())
-                    vtu_output.AddContainerExpression("redundancy", overall_coverage_mask.Clone())
-                    vtu_output.PrintOutput(str(output_path / f"redundancy_iteration_{iteration:05d}"))
+            Kratos.Logger.PrintInfo(self.__class__.__name__, f"Found sensor {normalized_sensor_views[best_coverage_index].GetSensor().GetName()} increasing coverage to {max_coverage * 100.0:6.3f}%.")
 
-                if self.is_csv_output:
-                    PrintSensorListToCSV(output_path / f"redundancy_iteration_{iteration:05d}.csv", [sensor_view.GetSensor() for sensor_view in list_of_selected_views], ["type", "name", "location", "value"])
-
-                Kratos.Logger.PrintInfo(self.__class__.__name__, f"Found sensor {normalized_sensor_views[best_coverage_index].GetSensor().GetName()} to increase coverage to {max_coverage * 100.0:6.3f}%.")
-
-                # now remove them from the remaining searches
-                del normalized_sensor_views[best_coverage_index]
-                del coverage_masks[best_coverage_index]
+            # now remove them from the remaining searches
+            del normalized_sensor_views[best_coverage_index]
+            del coverage_masks[best_coverage_index]
 
             iteration += 1
 
@@ -161,9 +148,7 @@ class RedundancyCoverageImprovementSensorPlacementAlgorithm(SensorPlacementAlgor
             # now check for all the remaining potential sensors, and get the sensor
             # which gives the next set of clusters with least coefficient of variation
             # in cluster areas.
-            minimum_cov = 1e+9
-            minimum_cov_sensor_index = -1
-            minimum_cov_cluster_indices_mask_expression_list: 'typing.Optional[list[tuple[list[int], ExpressionUnionType]]]' = None
+            list_of_covs: 'list[float]' = []
             for i, coverage_mask in enumerate(coverage_masks):
                 # find the potential clustering with new coverage mask
                 list_of_selected_coverage_masks.append(coverage_mask)
@@ -187,46 +172,41 @@ class RedundancyCoverageImprovementSensorPlacementAlgorithm(SensorPlacementAlgor
                             list_of_cluster_area_ratios.append(current_cluster_coverage_ratio)
 
                 if len(list_of_cluster_area_ratios) != 0:
-                    cov = numpy.std(list_of_cluster_area_ratios) / numpy.mean(list_of_cluster_area_ratios)
-                    if cov < minimum_cov:
-                        minimum_cov = cov
-                        minimum_cov_sensor_index = i
-                        minimum_cov_cluster_indices_mask_expression_list = potential_cluster_mask_indices_mask_expressions_list
+                    list_of_covs.append(numpy.std(list_of_cluster_area_ratios) / numpy.mean(list_of_cluster_area_ratios))
+                else:
+                    list_of_covs.append(1e+100)
 
-            # now we add the chosen sensor
-            if minimum_cov_sensor_index != -1:
-                list_of_selected_views.append(normalized_sensor_views[minimum_cov_sensor_index])
-                list_of_selected_coverage_masks.append(coverage_masks[minimum_cov_sensor_index])
-                overall_coverage_mask += coverage_masks[minimum_cov_sensor_index]
-                overall_coverage_mask = overall_coverage_mask.Flatten()
+            minimum_cov_sensor_index = GetMostDistancedMin(self.relaxation_min_coverage, list_of_covs, normalized_sensor_views, list_of_selected_views)
+            list_of_selected_views.append(normalized_sensor_views[minimum_cov_sensor_index])
+            list_of_selected_coverage_masks.append(coverage_masks[minimum_cov_sensor_index])
+            overall_coverage_mask += coverage_masks[minimum_cov_sensor_index]
+            overall_coverage_mask = overall_coverage_mask.Flatten()
 
-                self.UpdateClusters(clusters, minimum_cov_cluster_indices_mask_expression_list)
-                cluster_domain_sizes = {cluster_id: KratosDT.SensorUtils.Sum(domain_size_exp.Scale(exp)) for cluster_id, exp in clusters.items()}
-                cluster_id__max_domain_size = max(cluster_domain_sizes.items(), key=lambda x: x[1])
+            self.UpdateClusters(clusters, KratosDT.SensorUtils.ClusterBasedOnCoverageMasks(list_of_selected_coverage_masks))
+            cluster_domain_sizes = {cluster_id: KratosDT.SensorUtils.Sum(domain_size_exp.Scale(exp)) for cluster_id, exp in clusters.items()}
+            cluster_id__max_domain_size = max(cluster_domain_sizes.items(), key=lambda x: x[1])
 
-                Kratos.Logger.PrintInfo(self.__class__.__name__, f"Found a sensor {normalized_sensor_views[minimum_cov_sensor_index].GetSensor().GetName()} resulting with {cluster_id__max_domain_size[1]:0.3f} max cluster domain size.")
+            Kratos.Logger.PrintInfo(self.__class__.__name__, f"Found a sensor {normalized_sensor_views[minimum_cov_sensor_index].GetSensor().GetName()} resulting with {cluster_id__max_domain_size[1]:0.3f} max cluster domain size.")
 
-                del normalized_sensor_views[minimum_cov_sensor_index]
-                del coverage_masks[minimum_cov_sensor_index]
+            del normalized_sensor_views[minimum_cov_sensor_index]
+            del coverage_masks[minimum_cov_sensor_index]
 
-                # now vtu output of the current clustering
-                if self.is_vtu_output:
-                    vtu_output.ClearCellContainerExpressions()
-                    vtu_output.ClearNodalContainerExpressions()
-                    cluster_mask = dummy_exp * 0.0
-                    for cluster_id, mask_expression in clusters.items():
-                        # vtu_output.AddContainerExpression(f"cluster_{cluster_id:05d}", mask_expression)
-                        cluster_mask += mask_expression * cluster_id
-                    vtu_output.AddContainerExpression(f"clusters_overall", cluster_mask)
-                    vtu_output.AddContainerExpression("redundancy", overall_coverage_mask.Clone())
-                    vtu_output.AddContainerExpression("sensor_coverage", list_of_selected_coverage_masks[-1].Clone())
-                    vtu_output.PrintOutput(str(output_path / f"clustering_iteration_{iteration:05d}"))
+            # now vtu output of the current clustering
+            if self.is_vtu_output:
+                vtu_output.ClearCellContainerExpressions()
+                vtu_output.ClearNodalContainerExpressions()
+                cluster_mask = dummy_exp * 0.0
+                for cluster_id, mask_expression in clusters.items():
+                    # vtu_output.AddContainerExpression(f"cluster_{cluster_id:05d}", mask_expression)
+                    cluster_mask += mask_expression * cluster_id
+                vtu_output.AddContainerExpression(f"clusters_overall", cluster_mask)
+                vtu_output.AddContainerExpression("redundancy", overall_coverage_mask.Clone())
+                vtu_output.AddContainerExpression("sensor_coverage", list_of_selected_coverage_masks[-1].Clone())
+                vtu_output.PrintOutput(str(output_path / f"clustering_iteration_{iteration:05d}"))
 
-                # now csv output of the current clustering
-                if self.is_csv_output:
-                    PrintSensorListToCSV(output_path / f"clustering_iteration_{iteration:05d}.csv", [sensor_view.GetSensor() for sensor_view in list_of_selected_views], ["type", "name", "location", "value"])
-            else:
-                break
+            # now csv output of the current clustering
+            if self.is_csv_output:
+                PrintSensorListToCSV(output_path / f"clustering_iteration_{iteration:05d}.csv", [sensor_view.GetSensor() for sensor_view in list_of_selected_views], ["type", "name", "location", "value"])
 
             # compute area of each cluster and find the clusters which needs to be divided further
             iteration += 1
