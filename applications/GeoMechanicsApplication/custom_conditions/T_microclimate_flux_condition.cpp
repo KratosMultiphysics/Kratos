@@ -75,8 +75,6 @@ void TMicroClimateFluxCondition<TDim, TNumNodes>::CalculateAll(
         this->CalculateKinematics(mVariables, GPoint);
 
         //Compute weighting coefficient for integration
-        //Variables.IntegrationCoefficient =
-        //    this->CalculateIntegrationCoefficient(IntegrationPoints, GPoint, Variables.detJ);
         this->CalculateIntegrationCoefficient(mVariables.IntegrationCoefficient,
             JContainer[GPoint],
             IntegrationPoints[GPoint].Weight());
@@ -469,7 +467,6 @@ void TMicroClimateFluxCondition<TDim, TNumNodes>::CalculateKinematics(
 
     //Setting the vector of shape functions and the matrix of the shape functions global gradients
     rVariables.Np = row(rVariables.NContainer, PointNumber);
-    rVariables.detJ = rVariables.detJContainer[PointNumber];
 
     KRATOS_CATCH("")
 }

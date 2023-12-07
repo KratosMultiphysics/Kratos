@@ -103,7 +103,6 @@ protected:
         Matrix NContainer;
         //GeometryType::ShapeFunctionsGradientsType DN_DXContainer;
         // needed for updated Lagrangian:
-        double detJ;
         BoundedMatrix<double, TNumNodes, TNumNodes> TMatrix;
     };
     
