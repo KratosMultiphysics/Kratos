@@ -88,8 +88,9 @@ public:
 
     /**
      * @brief Constructor
+     * @param rDataCommunicator The data communicator
      */
-    SpatialSearchResultContainer();
+    SpatialSearchResultContainer(const DataCommunicator& rDataCommunicator);
 
     /// Destructor.
     virtual ~SpatialSearchResultContainer() = default;
@@ -429,14 +430,14 @@ public:
      * @brief Generate the global pointer communicator
      * @param rDataCommunicator The data communicator
      */
-    void GenerateGlobalPointerCommunicator(const DataCommunicator& rDataCommunicator);
+    void GenerateGlobalPointerCommunicator();
 
     /**
      * @brief Synchronize the container between partitions
      * @details This method synchronizes the container between partitions
      * @param rDataCommunicator The data communicator
      */
-    void SynchronizeAll(const DataCommunicator& rDataCommunicator);
+    void SynchronizeAll();
 
     /**
      * @brief Applies a user-provided function to the global pointers and return a proxy to the results.
@@ -545,8 +546,18 @@ public:
     ///@{
 
     /**
+     * @brief Accessor for mDataCommunicator.
+     * @details This method returns a reference to the DataCommunicator mDataCommunicator.
+     * @return A reference to the DataCommunicator mDataCommunicator.
+     */
+    const DataCommunicator& GetDataCommunicator()
+    {
+        return mrDataCommunicator;
+    }
+
+    /**
      * @brief Accessor for mLocalResults.
-     * This method returns a reference to the LocalResultsVector mLocalResults.
+     * @details This method returns a reference to the LocalResultsVector mLocalResults.
      * @return A reference to the LocalResultsVector mLocalResults.
      */
     LocalResultsVector& GetLocalResults()
@@ -556,7 +567,7 @@ public:
 
     /**
      * @brief Accessor for mGlobalResults.
-     * This method returns a reference to the GlobalResultsVector mGlobalResults.
+     * @details This method returns a reference to the GlobalResultsVector mGlobalResults.
      * @return A reference to the GlobalResultsVector mGlobalResults.
      */
     GlobalResultsVector& GetGlobalResults()
@@ -566,7 +577,7 @@ public:
 
     /**
      * @brief Accessor for mpGlobalPointerCommunicator.
-     * This method returns the GlobalPointerCommunicatorPointer mpGlobalPointerCommunicator.
+     * @details This method returns the GlobalPointerCommunicatorPointer mpGlobalPointerCommunicator.
      * @return The GlobalPointerCommunicatorPointer mpGlobalPointerCommunicator.
      */
     GlobalPointerCommunicatorPointerType GetGlobalPointerCommunicator()
@@ -592,6 +603,7 @@ private:
     ///@name Member Variables
     ///@{
 
+    const DataCommunicator& mrDataCommunicator;                                 /// The data communicator
     LocalResultsVector mLocalResults;                                           /// Local results
     GlobalResultsVector mGlobalResults;                                         /// Global results
 

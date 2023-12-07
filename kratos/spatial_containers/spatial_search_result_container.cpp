@@ -26,7 +26,8 @@ namespace Kratos
 {
 
 template <class TObjectType>
-SpatialSearchResultContainer<TObjectType>::SpatialSearchResultContainer()
+SpatialSearchResultContainer<TObjectType>::SpatialSearchResultContainer(const DataCommunicator& rDataCommunicator)
+    : mrDataCommunicator(rDataCommunicator)
 {
     // TODO: Add something if required
 }
@@ -98,31 +99,39 @@ void SpatialSearchResultContainer<TObjectType>::Clear()
 /***********************************************************************************/
 
 template <class TObjectType>
-void SpatialSearchResultContainer<TObjectType>::GenerateGlobalPointerCommunicator(const DataCommunicator& rDataCommunicator)
+void SpatialSearchResultContainer<TObjectType>::GenerateGlobalPointerCommunicator()
 {
     // Generate the communicator
-    mpGlobalPointerCommunicator = Kratos::make_shared<GlobalPointerCommunicatorType>(rDataCommunicator, mGlobalResults.ptr_begin(), mGlobalResults.ptr_end());
+    mpGlobalPointerCommunicator = Kratos::make_shared<GlobalPointerCommunicatorType>(mrDataCommunicator, mGlobalResults.ptr_begin(), mGlobalResults.ptr_end());
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
 
 template <class TObjectType>
-void SpatialSearchResultContainer<TObjectType>::SynchronizeAll(const DataCommunicator& rDataCommunicator)
+void SpatialSearchResultContainer<TObjectType>::SynchronizeAll()
 {
+    // TODO: Try to avoid use simple calls of Send/Recv and try to use more efficient methods
+
     // Synchronize local results to global results
-    if(rDataCommunicator.IsDistributed()) { // MPI code
+    if(mrDataCommunicator.IsDistributed()) { // MPI code
         const int local_result_size = mLocalResults.size();
-        const int global_result_size = rDataCommunicator.SumAll(local_result_size);
+        const int global_result_size = mrDataCommunicator.SumAll(local_result_size);
         mGlobalResults.reserve(global_result_size);
-        const int world_size = rDataCommunicator.Size();
-        const int rank = rDataCommunicator.Rank();
+        const int world_size = mrDataCommunicator.Size();
+        const int rank = mrDataCommunicator.Rank();
         std::vector<int> send_buffer(1, local_result_size);
         std::vector<int> recv_buffer(world_size);
-        rDataCommunicator.AllGather(send_buffer, recv_buffer);
+        mrDataCommunicator.AllGather(send_buffer, recv_buffer);
+        std::vector<int> send_rank(1, rank);
+        std::vector<int> ranks(world_size);
+        mrDataCommunicator.AllGather(send_rank, ranks);
 
-        // In rank 0
-        if (rank == 0) {
+        // Retrieve first rank
+        const int first_rank = ranks[0];
+
+        // In first rank
+        if (rank == first_rank) {
             // Prepare
             std::vector<GlobalPointerResultType> global_gp;
             global_gp.reserve(global_result_size);
@@ -138,7 +147,7 @@ void SpatialSearchResultContainer<TObjectType>::SynchronizeAll(const DataCommuni
             // Iterate over the ranks
             for (int rank_to_recv : result_vector) {
                 std::vector<GlobalPointerResultType> recv_gps;
-                rDataCommunicator.Recv(recv_gps, rank_to_recv);
+                mrDataCommunicator.Recv(recv_gps, rank_to_recv);
                 for (auto& r_value : recv_gps) {
                     global_gp.push_back(r_value);
                 }
@@ -146,7 +155,7 @@ void SpatialSearchResultContainer<TObjectType>::SynchronizeAll(const DataCommuni
 
             // Send now to all ranks
             for (int i_rank = 1; i_rank < world_size; ++i_rank) {
-                rDataCommunicator.Send(global_gp, i_rank);
+                mrDataCommunicator.Send(global_gp, ranks[i_rank]);
             }
 
             // Transfer to global pointer
@@ -161,12 +170,12 @@ void SpatialSearchResultContainer<TObjectType>::SynchronizeAll(const DataCommuni
                 for (auto& r_value : mLocalResults) {
                     local_gp.push_back(GlobalPointerResultType(&r_value, rank));
                 }
-                rDataCommunicator.Send(local_gp, 0);
+                mrDataCommunicator.Send(local_gp, first_rank);
             }
 
             // Receiving synced result
             std::vector<GlobalPointerResultType> global_gp;
-            rDataCommunicator.Recv(global_gp, 0);
+            mrDataCommunicator.Recv(global_gp, first_rank);
 
             // Transfer to global pointer
             for (auto& r_gp : global_gp) {
@@ -181,7 +190,7 @@ void SpatialSearchResultContainer<TObjectType>::SynchronizeAll(const DataCommuni
     }
 
     // Generate the communicator
-    GenerateGlobalPointerCommunicator(rDataCommunicator);
+    GenerateGlobalPointerCommunicator();
 }
 
 /***********************************************************************************/
@@ -230,11 +239,10 @@ std::vector<bool> SpatialSearchResultContainer<TObjectType>::GetResultIsLocal()
     });
 
     // Get the is inside
-    const auto& r_data_comm = mpGlobalPointerCommunicator->GetDataCommunicator();
-    const int rank = r_data_comm.Rank();
+    const int rank = mrDataCommunicator.Rank();
     for(std::size_t i=0; i<number_of_gp; ++i) {
         auto& r_gp = mGlobalResults(i);
-        const int retrieved_rank = r_data_comm.MaxAll(proxy.Get(r_gp));
+        const int retrieved_rank = mrDataCommunicator.MaxAll(proxy.Get(r_gp));
         is_local[i] = (rank == retrieved_rank);
     }
 
@@ -260,10 +268,9 @@ std::vector<int> SpatialSearchResultContainer<TObjectType>::GetResultRank()
     });
 
     // Get the is inside
-    const auto& r_data_comm = mpGlobalPointerCommunicator->GetDataCommunicator();
     for(std::size_t i=0; i<number_of_gp; ++i) {
         auto& r_gp = mGlobalResults(i);
-        ranks[i] = r_data_comm.MaxAll(proxy.Get(r_gp));
+        ranks[i] = mrDataCommunicator.MaxAll(proxy.Get(r_gp));
     }
 
     return ranks;
@@ -294,10 +301,9 @@ std::vector<bool> SpatialSearchResultContainer<TObjectType>::GetResultIsActive()
     });
 
     // Get the is inside
-    const auto& r_data_comm = mpGlobalPointerCommunicator->GetDataCommunicator();
     for(std::size_t i=0; i<number_of_gp; ++i) {
         auto& r_gp = mGlobalResults(i);
-        is_active[i] = r_data_comm.MaxAll(proxy.Get(r_gp));
+        is_active[i] = mrDataCommunicator.MaxAll(proxy.Get(r_gp));
     }
 
     return is_active;
@@ -336,10 +342,9 @@ std::vector<bool> SpatialSearchResultContainer<TObjectType>::GetResultIsInside(
     });
 
     // Get the is inside
-    const auto& r_data_comm = mpGlobalPointerCommunicator->GetDataCommunicator();
     for(std::size_t i=0; i<number_of_gp; ++i) {
         auto& r_gp = mGlobalResults(i);
-        is_inside[i] = r_data_comm.MaxAll(proxy.Get(r_gp));
+        is_inside[i] = mrDataCommunicator.MaxAll(proxy.Get(r_gp));
     }
 
     return is_inside;
@@ -639,6 +644,7 @@ void SpatialSearchResultContainer<TObjectType>::PrintData(std::ostream& rOStream
 template <class TObjectType>
 void SpatialSearchResultContainer<TObjectType>::save(Serializer& rSerializer) const
 {
+    //rSerializer.save("DataCommunicator", mrDataCommunicator); // TODO: DataCommunicator does not define Serializer
     rSerializer.save("LocalResults", mLocalResults);
     rSerializer.save("GlobalResults", mGlobalResults);
     //rSerializer.save("GlobalPointerCommunicator", mpGlobalPointerCommunicator); // Not necessary, is created and filled during use
@@ -650,6 +656,7 @@ void SpatialSearchResultContainer<TObjectType>::save(Serializer& rSerializer) co
 template <class TObjectType>
 void SpatialSearchResultContainer<TObjectType>::load(Serializer& rSerializer)
 {
+    //rSerializer.load("DataCommunicator", mrDataCommunicator); // TODO: DataCommunicator does not define Serializer
     rSerializer.load("LocalResults", mLocalResults);
     rSerializer.load("GlobalResults", mGlobalResults);
     //rSerializer.load("GlobalPointerCommunicator", mpGlobalPointerCommunicator); // Not necessary, is created and filled during use
