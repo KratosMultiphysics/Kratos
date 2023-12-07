@@ -66,9 +66,8 @@ void TMicroClimateFluxCondition<TDim, TNumNodes>::CalculateAll(
         mVariables.Np = row(mVariables.NContainer, GPoint);
 
         // Compute weighting coefficient for integration
-        this->CalculateIntegrationCoefficient(mVariables.IntegrationCoefficient,
-            JContainer[GPoint],
-            IntegrationPoints[GPoint].Weight());
+        mVariables.IntegrationCoefficient = this->CalculateIntegrationCoefficient(JContainer[GPoint],
+                                                                                  IntegrationPoints[GPoint].Weight());
 
         // Contributions to the left hand side
         this->CalculateAndAddLHS(rLeftHandSideMatrix, mVariables);
@@ -173,17 +172,16 @@ void TMicroClimateFluxCondition<TDim, TNumNodes>::CalculateAndAddLHS(
 }
 
 template<unsigned int TDim, unsigned int TNumNodes>
-void TMicroClimateFluxCondition<TDim,TNumNodes>::CalculateIntegrationCoefficient(
-    double& rIntegrationCoefficient,
+double TMicroClimateFluxCondition<TDim,TNumNodes>::CalculateIntegrationCoefficient(
     const Matrix& Jacobian,
-    const double& Weight)
+    double Weight)
 {
     if (TDim == 2)
     {
         const double dx_dxi = Jacobian(0, 0);
         const double dy_dxi = Jacobian(1, 0);
         const double ds = std::sqrt(dx_dxi * dx_dxi + dy_dxi * dy_dxi);
-        rIntegrationCoefficient = ds * Weight;
+        return ds * Weight;
     }
     else if (TDim == 3)
     {
@@ -194,7 +192,7 @@ void TMicroClimateFluxCondition<TDim,TNumNodes>::CalculateIntegrationCoefficient
         const double dA = std::sqrt(NormalVector[0] * NormalVector[0]
             + NormalVector[1] * NormalVector[1]
             + NormalVector[2] * NormalVector[2]);
-        rIntegrationCoefficient = dA * Weight;
+        return dA * Weight;
     }
 }
 

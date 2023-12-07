@@ -103,9 +103,8 @@ protected:
 
     void CalculateAndAddLHS(MatrixType& rLeftHandSideMatrix, ElementVariables& rVariables);
 
-    void CalculateIntegrationCoefficient(double& rIntegrationCoefficient,
-        const Matrix& Jacobian,
-        const double& Weight);
+    double CalculateIntegrationCoefficient(const Matrix& Jacobian,
+                                           double Weight);
 
     void CalculateRoughness(const ProcessInfo& CurrentProcessInfo,
         ElementVariables& rVariables);
