@@ -374,11 +374,11 @@ KRATOS_TEST_CASE_IN_SUITE(CalculateLhsMatrixForThermalMicroClimateCondition2D3N,
     KRATOS_EXPECT_MATRIX_RELATIVE_NEAR(expected_lhs_matrix, lhs_matrix, relative_tolerance)
 }
 
-KRATOS_TEST_CASE_IN_SUITE(CalculateRhsVectorForThermalMicroClimateCondition2D2N, KratosGeoMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(CalculateRhsVectorForThermalMicroClimateCondition2D3N, KratosGeoMechanicsFastSuite)
 {
     Model test_model;
     auto  create_nodes_func = [](ModelPart& rModelPart){
-        constexpr auto number_of_nodes = std::size_t{2};
+        constexpr auto number_of_nodes = std::size_t{3};
         CreateNodesForLineCondition(rModelPart, number_of_nodes);
     };
     auto& r_model_part = CreateDummyModelPartWithNodes(test_model, create_nodes_func);
@@ -389,7 +389,8 @@ KRATOS_TEST_CASE_IN_SUITE(CalculateRhsVectorForThermalMicroClimateCondition2D2N,
 
     const auto rhs_vector = CalculateRhsVector(p_condition, r_model_part.GetProcessInfo());
 
-    const auto expected_rhs_vector = Vector{2, -66.2962};
+    auto expected_rhs_vector = Vector{3, 0.0};
+    expected_rhs_vector <<= -114.828, -38.2761, -306.209;
     KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(expected_rhs_vector, rhs_vector, relative_tolerance)
 }
 
