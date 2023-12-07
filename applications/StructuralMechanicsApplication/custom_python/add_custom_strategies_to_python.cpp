@@ -25,6 +25,7 @@
 #include "custom_strategies/custom_strategies/formfinding_strategy.hpp"
 #include "custom_strategies/custom_strategies/mechanical_explicit_strategy.hpp"
 #include "custom_strategies/custom_strategies/prebuckling_strategy.hpp"
+#include "custom_strategies/custom_strategies/inverseforming_strategy.hpp"
 
 // Schemes
 #include "custom_strategies/custom_schemes/residual_based_relaxation_scheme.hpp"
@@ -68,6 +69,7 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
     typedef HarmonicAnalysisStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > HarmonicAnalysisStrategyType;
     typedef FormfindingStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > FormfindingStrategyType;
     typedef MechanicalExplicitStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > MechanicalExplicitStrategyType;
+    typedef InverseFormingStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > InverseFormingStrategyType;
 
 
     // Custom scheme types
@@ -125,6 +127,10 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
         .def(py::init<ModelPart&, BaseSchemeType::Pointer, BuilderAndSolverPointer, bool>() )
         .def("SetUseMaterialDampingFlag", &HarmonicAnalysisStrategyType::SetUseMaterialDampingFlag)
         .def("GetUseMaterialDampingFlag", &HarmonicAnalysisStrategyType::GetUseMaterialDampingFlag)
+        ;
+    // Inverse Forming Strategy
+    py::class_< InverseFormingStrategyType, typename InverseFormingStrategyType::Pointer, ResidualBasedNewtonRaphsonStrategyType >(m,"InverseFormingStrategy")
+        .def(py::init<ModelPart&, BaseSchemeType::Pointer, ConvergenceCriteriaPointer, BuilderAndSolverPointer, ModelPart&, const std::string&, int, bool, bool, bool>())
         ;
 
 
