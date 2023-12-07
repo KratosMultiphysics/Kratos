@@ -67,7 +67,13 @@ def CreateSolver(cls, model, custom_settings):
                     raise Exception(err_msg)
             projection_strategy = self.settings["projection_strategy"].GetString()
             assembling_strategy = self.settings["assembling_strategy"].GetString()
-            # For now, only Galerkin projection has the elemental or global approach option
+
+            # Check for the 'elemental' assembling strategy in case of 'lspg' projection strategy
+            if projection_strategy == "lspg" and assembling_strategy == "elemental":
+                warn_msg = "Elemental LSPG is not yet available. Using default global assembling strategy instead."
+                KratosMultiphysics.Logger.PrintWarning("::[ROMSolver]:: ", warn_msg)
+
+            # For now, only Galerkin and Petrov-Galerkin projections have the elemental or global approach option
             if projection_strategy in ("galerkin", "petrov_galerkin"): #TODO: Possibility of doing elemental lspg
                 available_assembling_strategies = {
                     "global",
