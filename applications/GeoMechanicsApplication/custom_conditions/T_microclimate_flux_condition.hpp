@@ -43,8 +43,7 @@ public:
     using NodesArrayType = Geometry<NodeType>::PointsArrayType;
     using VectorType = Vector;
     using MatrixType = Matrix;
-    
-    bool mIsInitialised = false;
+
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     // Default constructor
@@ -144,6 +143,7 @@ protected:
 private:
     
     // Member Variables
+    bool mIsInitialised = false;
     ElementVariables mVariables;
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
