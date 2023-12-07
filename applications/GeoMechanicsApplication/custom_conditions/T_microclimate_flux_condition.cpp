@@ -10,9 +10,7 @@
 //
 //  Main authors:    John van Esch
 //                   Mohamed Nabi
-//                   
 //
-
 
 // Application includes
 #include "custom_conditions/T_microclimate_flux_condition.hpp"
@@ -20,8 +18,6 @@
 namespace Kratos
 {
 
-// ============================================================================================
-// ============================================================================================
 template<unsigned int TDim, unsigned int TNumNodes>
 Condition::Pointer TMicroClimateFluxCondition<TDim,TNumNodes>::Create(
     IndexType NewId,NodesArrayType const& ThisNodes,
@@ -30,8 +26,6 @@ Condition::Pointer TMicroClimateFluxCondition<TDim,TNumNodes>::Create(
     return Condition::Pointer(new TMicroClimateFluxCondition(NewId, this->GetGeometry().Create(ThisNodes), pProperties));
 }
 
-// ============================================================================================
-// ============================================================================================
 template<unsigned int TDim, unsigned int TNumNodes>
 void TMicroClimateFluxCondition<TDim, TNumNodes>::InitializeSolutionStep(
     const ProcessInfo& rCurrentProcessInfo)
@@ -44,8 +38,6 @@ void TMicroClimateFluxCondition<TDim, TNumNodes>::InitializeSolutionStep(
     this->CalculateRoughness(rCurrentProcessInfo, mVariables);
 }
 
-// ============================================================================================
-// ============================================================================================
 template<unsigned int TDim, unsigned int TNumNodes>
 void TMicroClimateFluxCondition<TDim, TNumNodes>::CalculateAll(
     MatrixType& rLeftHandSideMatrix,
@@ -88,8 +80,6 @@ void TMicroClimateFluxCondition<TDim, TNumNodes>::CalculateAll(
     KRATOS_CATCH("")
 }
 
-// ============================================================================================
-// ============================================================================================
 template<unsigned int TDim, unsigned int TNumNodes>
 void TMicroClimateFluxCondition<TDim, TNumNodes>::InitializeElementVariables(
     ElementVariables& rVariables,
@@ -124,8 +114,6 @@ void TMicroClimateFluxCondition<TDim, TNumNodes>::InitializeElementVariables(
     KRATOS_CATCH("")
 }
 
-// ============================================================================================
-// ============================================================================================
 template<unsigned int TDim, unsigned int TNumNodes>
 void TMicroClimateFluxCondition<TDim, TNumNodes>::InitializeNodalTemperatureVariables(
     ElementVariables& rVariables)
@@ -143,8 +131,6 @@ void TMicroClimateFluxCondition<TDim, TNumNodes>::InitializeNodalTemperatureVari
     KRATOS_CATCH("")
 }
 
-// ============================================================================================
-// ============================================================================================
 template<unsigned int TDim, unsigned int TNumNodes>
 void TMicroClimateFluxCondition<TDim, TNumNodes>::CalculateAndAddRHS(
     VectorType& rRightHandSideVector,
@@ -154,8 +140,6 @@ void TMicroClimateFluxCondition<TDim, TNumNodes>::CalculateAndAddRHS(
     rVariables.TVector = prod(rVariables.TMatrix, rVariables.rightHandSideFlux);
     GeoElementUtilities::
         AssemblePBlockVector<0, TNumNodes>(rRightHandSideVector, rVariables.TVector);
-
-    //---------------
 
     rVariables.TMatrix = outer_prod(rVariables.Np, rVariables.Np) * rVariables.IntegrationCoefficient;
     Matrix TTMatrix = ZeroMatrix(TNumNodes, TNumNodes);
@@ -169,8 +153,6 @@ void TMicroClimateFluxCondition<TDim, TNumNodes>::CalculateAndAddRHS(
         AssemblePBlockVector<0, TNumNodes>(rRightHandSideVector, rVariables.TVector);
 }
 
-// ============================================================================================
-// ============================================================================================
 template<unsigned int TDim, unsigned int TNumNodes>
 void TMicroClimateFluxCondition<TDim, TNumNodes>::CalculateAndAddLHS(
     MatrixType& rLeftHandSideMatrix,
@@ -194,8 +176,6 @@ void TMicroClimateFluxCondition<TDim, TNumNodes>::CalculateAndAddLHS(
     KRATOS_CATCH("")
 }
 
-// ============================================================================================
-// ============================================================================================
 template<unsigned int TDim, unsigned int TNumNodes>
 void TMicroClimateFluxCondition<TDim,TNumNodes>::CalculateIntegrationCoefficient(
     double& rIntegrationCoefficient,
@@ -222,8 +202,6 @@ void TMicroClimateFluxCondition<TDim,TNumNodes>::CalculateIntegrationCoefficient
     }
 }
 
-// ============================================================================================
-// ============================================================================================
 template<unsigned int TDim, unsigned int TNumNodes>
 void TMicroClimateFluxCondition<TDim, TNumNodes>::CalculateRoughness(
     const ProcessInfo& CurrentProcessInfo,
@@ -286,8 +264,6 @@ void TMicroClimateFluxCondition<TDim, TNumNodes>::CalculateRoughness(
     }
 }
 
-// ============================================================================================
-// ============================================================================================
 template<unsigned int TDim, unsigned int TNumNodes>
 void TMicroClimateFluxCondition<TDim, TNumNodes>::CalculateNodalFluxes(
     const ProcessInfo& CurrentProcessInfo,
@@ -403,8 +379,6 @@ void TMicroClimateFluxCondition<TDim, TNumNodes>::CalculateNodalFluxes(
     }
 }
 
-// ============================================================================================
-// ============================================================================================
 template<unsigned int TDim, unsigned int TNumNodes>
 void TMicroClimateFluxCondition<TDim, TNumNodes>::CalculateLocalSystem(
     MatrixType& rLeftHandSideMatrix,
@@ -430,8 +404,6 @@ void TMicroClimateFluxCondition<TDim, TNumNodes>::CalculateLocalSystem(
     KRATOS_CATCH("")
 }
 
-// ============================================================================================
-// ============================================================================================
 template<unsigned int TDim, unsigned int TNumNodes>
 void TMicroClimateFluxCondition<TDim, TNumNodes>::InitializeProperties()
 {
@@ -455,8 +427,6 @@ void TMicroClimateFluxCondition<TDim, TNumNodes>::InitializeProperties()
     KRATOS_CATCH("")
 }
 
-// ============================================================================================
-// ============================================================================================
 template class TMicroClimateFluxCondition<2,2>;
 template class TMicroClimateFluxCondition<2,3>;
 template class TMicroClimateFluxCondition<2,4>;

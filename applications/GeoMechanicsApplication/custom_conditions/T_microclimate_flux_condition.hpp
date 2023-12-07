@@ -10,9 +10,6 @@
 //
 //  Main authors:    Mohamed Nabi
 //
-//
-//
-
 
 #pragma once
 
@@ -31,9 +28,7 @@ namespace Kratos
 template<unsigned int TDim, unsigned int TNumNodes>
 class KRATOS_API(GEO_MECHANICS_APPLICATION) TMicroClimateFluxCondition : public GeoTCondition<TDim,TNumNodes>
 {
-
 public:
-
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(TMicroClimateFluxCondition);
     
     using IndexType = std::size_t;
@@ -43,8 +38,6 @@ public:
     using NodesArrayType = Geometry<NodeType>::PointsArrayType;
     using VectorType = Vector;
     using MatrixType = Matrix;
-
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     // Default constructor
     TMicroClimateFluxCondition() : GeoTCondition<TDim,TNumNodes>() {}
@@ -58,8 +51,6 @@ public:
     // Destructor
     ~TMicroClimateFluxCondition() override {}
 
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
     Condition::Pointer Create(IndexType NewId,NodesArrayType const& ThisNodes,PropertiesType::Pointer pProperties ) const override;
 
     void InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
@@ -67,11 +58,8 @@ public:
     void CalculateLocalSystem(MatrixType&        rLeftHandSideMatrix,
                               VectorType&        rRightHandSideVector,
                               const ProcessInfo& rCurrentProcessInfo) override;
- 
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 protected:
-
     struct ElementVariables
     {
         double albedoCoefficient;
@@ -105,10 +93,6 @@ protected:
         // needed for updated Lagrangian:
         BoundedMatrix<double, TNumNodes, TNumNodes> TMatrix;
     };
-    
-    // Member Variables
-    
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     void InitializeElementVariables(ElementVariables& rVariables, const ProcessInfo& rCurrentProcessInfo);
 
@@ -133,18 +117,12 @@ protected:
 
     void InitializeNodalTemperatureVariables(ElementVariables& rVariables);
 
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
 private:
-    
-    // Member Variables
     bool mIsInitialised = false;
     ElementVariables mVariables;
 
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     // Serialization
-    
     friend class Serializer;
     
     void save(Serializer& rSerializer) const override
