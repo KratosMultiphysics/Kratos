@@ -65,23 +65,21 @@ protected:
         KRATOS_TRY
 
         // Update Acceleration, Velocity and DtPressure
-        block_for_each(
-            rModelPart.Nodes(),
-            [this](Node& rNode)
+        block_for_each(rModelPart.Nodes(), [this](Node& rNode)
+        {
+            for (const auto& r_variable_with_derivative : this->GetVariableDerivatives())
             {
-                for (const auto& r_variable_with_derivative : this->GetVariableDerivatives())
-                {
-                    SetDerivative(r_variable_with_derivative.first_time_derivative,
-                                  r_variable_with_derivative.instance, rNode);
+                SetDerivative(r_variable_with_derivative.first_time_derivative,
+                              r_variable_with_derivative.instance, rNode);
 
-                    // Make sure that setting the second_time_derivative is done after
-                    // setting the first_time_derivative.
-                    SetDerivative(r_variable_with_derivative.second_time_derivative,
-                                  r_variable_with_derivative.first_time_derivative, rNode);
-                }
+                // Make sure that setting the second_time_derivative is done
+                // after setting the first_time_derivative.
+                SetDerivative(r_variable_with_derivative.second_time_derivative,
+                              r_variable_with_derivative.first_time_derivative, rNode);
+            }
 
-                SetDerivative(DT_WATER_PRESSURE, WATER_PRESSURE, rNode);
-            });
+            SetDerivative(DT_WATER_PRESSURE, WATER_PRESSURE, rNode);
+        });
 
         KRATOS_CATCH("")
     }

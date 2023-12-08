@@ -77,55 +77,50 @@ public:
                 dim == N_DIM_3D ? STRESS_TENSOR_SIZE_3D : STRESS_TENSOR_SIZE_2D;
 
             // Clear nodal variables
-            block_for_each(
-                rModelPart.Nodes(),
-                [&stress_tensor_size](Node& rNode)
-                {
-                    rNode.FastGetSolutionStepValue(NODAL_AREA) = 0.0;
-                    Matrix& r_nodal_stress =
-                        rNode.FastGetSolutionStepValue(NODAL_CAUCHY_STRESS_TENSOR);
-                    if (r_nodal_stress.size1() != stress_tensor_size)
-                        r_nodal_stress.resize(stress_tensor_size, stress_tensor_size, false);
-                    noalias(r_nodal_stress) =
-                        ZeroMatrix(stress_tensor_size, stress_tensor_size);
-                    rNode.FastGetSolutionStepValue(NODAL_DAMAGE_VARIABLE) = 0.0;
-                    rNode.FastGetSolutionStepValue(NODAL_JOINT_AREA) = 0.0;
-                    rNode.FastGetSolutionStepValue(NODAL_JOINT_WIDTH) = 0.0;
-                    rNode.FastGetSolutionStepValue(NODAL_JOINT_DAMAGE) = 0.0;
-                });
+            block_for_each(rModelPart.Nodes(), [&stress_tensor_size](Node& rNode)
+            {
+                rNode.FastGetSolutionStepValue(NODAL_AREA) = 0.0;
+                Matrix& r_nodal_stress =
+                    rNode.FastGetSolutionStepValue(NODAL_CAUCHY_STRESS_TENSOR);
+                if (r_nodal_stress.size1() != stress_tensor_size)
+                    r_nodal_stress.resize(stress_tensor_size, stress_tensor_size, false);
+                noalias(r_nodal_stress) = ZeroMatrix(stress_tensor_size, stress_tensor_size);
+                rNode.FastGetSolutionStepValue(NODAL_DAMAGE_VARIABLE) = 0.0;
+                rNode.FastGetSolutionStepValue(NODAL_JOINT_AREA) = 0.0;
+                rNode.FastGetSolutionStepValue(NODAL_JOINT_WIDTH) = 0.0;
+                rNode.FastGetSolutionStepValue(NODAL_JOINT_DAMAGE) = 0.0;
+            });
 
             this->FinalizeSolutionStepActiveEntities(rModelPart, A, Dx, b);
 
             // Compute smoothed nodal variables
-            block_for_each(
-                rModelPart.Nodes(),
-                [](Node& rNode)
+            block_for_each(rModelPart.Nodes(), [](Node& rNode)
+            {
+                if (const double& nodal_area = rNode.FastGetSolutionStepValue(NODAL_AREA);
+                    nodal_area > 1.0e-20)
                 {
-                    if (const double& nodal_area = rNode.FastGetSolutionStepValue(NODAL_AREA);
-                        nodal_area > 1.0e-20)
+                    const double inv_nodal_area = 1.0 / nodal_area;
+                    Matrix& r_nodal_stress =
+                        rNode.FastGetSolutionStepValue(NODAL_CAUCHY_STRESS_TENSOR);
+                    for (unsigned int i = 0; i < r_nodal_stress.size1(); ++i)
                     {
-                        const double inv_nodal_area = 1.0 / nodal_area;
-                        Matrix& r_nodal_stress =
-                            rNode.FastGetSolutionStepValue(NODAL_CAUCHY_STRESS_TENSOR);
-                        for (unsigned int i = 0; i < r_nodal_stress.size1(); ++i)
+                        for (unsigned int j = 0; j < r_nodal_stress.size2(); ++j)
                         {
-                            for (unsigned int j = 0; j < r_nodal_stress.size2(); ++j)
-                            {
-                                r_nodal_stress(i, j) *= inv_nodal_area;
-                            }
+                            r_nodal_stress(i, j) *= inv_nodal_area;
                         }
-                        rNode.FastGetSolutionStepValue(NODAL_DAMAGE_VARIABLE) *= inv_nodal_area;
                     }
+                    rNode.FastGetSolutionStepValue(NODAL_DAMAGE_VARIABLE) *= inv_nodal_area;
+                }
 
-                    if (const double& nodal_joint_area =
-                            rNode.FastGetSolutionStepValue(NODAL_JOINT_AREA);
-                        nodal_joint_area > 1.0e-20)
-                    {
-                        const double inv_nodal_joint_area = 1.0 / nodal_joint_area;
-                        rNode.FastGetSolutionStepValue(NODAL_JOINT_WIDTH) *= inv_nodal_joint_area;
-                        rNode.FastGetSolutionStepValue(NODAL_JOINT_DAMAGE) *= inv_nodal_joint_area;
-                    }
-                });
+                if (const double& nodal_joint_area =
+                        rNode.FastGetSolutionStepValue(NODAL_JOINT_AREA);
+                    nodal_joint_area > 1.0e-20)
+                {
+                    const double inv_nodal_joint_area = 1.0 / nodal_joint_area;
+                    rNode.FastGetSolutionStepValue(NODAL_JOINT_WIDTH) *= inv_nodal_joint_area;
+                    rNode.FastGetSolutionStepValue(NODAL_JOINT_DAMAGE) *= inv_nodal_joint_area;
+                }
+            });
         }
         else
         {
@@ -181,14 +176,12 @@ protected:
         KRATOS_TRY
 
         // Update Acceleration, Velocity and DtPressure
-        block_for_each(rModelPart.Nodes(),
-                       [this](Node& rNode)
-                       {
-                           UpdateVectorSecondTimeDerivative(rNode);
-                           UpdateVectorFirstTimeDerivative(rNode);
-                           this->UpdateScalarTimeDerivative(
-                               rNode, WATER_PRESSURE, DT_WATER_PRESSURE);
-                       });
+        block_for_each(rModelPart.Nodes(), [this](Node& rNode)
+        {
+            UpdateVectorSecondTimeDerivative(rNode);
+            UpdateVectorFirstTimeDerivative(rNode);
+            this->UpdateScalarTimeDerivative(rNode, WATER_PRESSURE, DT_WATER_PRESSURE);
+        });
 
         KRATOS_CATCH("")
     }
