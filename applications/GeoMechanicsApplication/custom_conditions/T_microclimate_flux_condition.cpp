@@ -92,9 +92,6 @@ void TMicroClimateFluxCondition<TDim, TNumNodes>::InitializeElementVariables(
     // Nodal Variables
     this->CalculateNodalFluxes(rCurrentProcessInfo, rVariables);
 
-    // Variables computed at each GP
-    rVariables.Np.resize(TNumNodes, false);
-
     // General Variables
     const GeometryType& Geom = this->GetGeometry();
     const unsigned int NumGPoints = Geom.IntegrationPointsNumber(this->GetIntegrationMethod());

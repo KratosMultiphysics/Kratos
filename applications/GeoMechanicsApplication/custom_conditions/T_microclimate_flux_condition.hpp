@@ -89,7 +89,6 @@ protected:
         array_1d<double, TNumNodes> rightHandSideFlux;
         Vector detJContainer;
         Matrix NContainer;
-        //GeometryType::ShapeFunctionsGradientsType DN_DXContainer;
         // needed for updated Lagrangian:
         BoundedMatrix<double, TNumNodes, TNumNodes> TMatrix;
     };
