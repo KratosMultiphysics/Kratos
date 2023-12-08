@@ -113,7 +113,7 @@
                     ],
                     "local_axes": {},
                     "mesh_id": 0,
-                    "model_part_name": "Structure.DISPLACEMENT_Displacement_CenterDown",
+                    "model_part_name": "Structure.DISPLACEMENT_Displacement_YSYMM_Node_Down",
                     "value": [
                         0.0,
                         0.0,
@@ -139,7 +139,7 @@
                     ],
                     "local_axes": {},
                     "mesh_id": 0,
-                    "model_part_name": "Structure.DISPLACEMENT_Displacement_CenterUp",
+                    "model_part_name": "Structure.DISPLACEMENT_Displacement_YSYMM_Node_Up",
                     "value": [
                         0.0,
                         null,
@@ -188,7 +188,7 @@
         "max_iteration": 30,
         "model_import_settings": {
             "ignore_variables_not_in_solution_step_data": false,
-            "input_filename": "plate",
+            "input_filename": "cyl_sym",
             "input_type": "mdpa",
             "reorder": false,
             "reorder_consecutive": false,
