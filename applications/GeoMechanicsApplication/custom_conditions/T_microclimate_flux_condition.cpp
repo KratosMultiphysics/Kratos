@@ -14,6 +14,7 @@
 
 // Application includes
 #include "custom_conditions/T_microclimate_flux_condition.hpp"
+#include "custom_utilities/variables_utilities.hpp"
 
 namespace Kratos
 {
@@ -105,9 +106,8 @@ void TMicroClimateFluxCondition<TDim, TNumNodes>::InitializeNodalTemperatureVari
     const GeometryType& rGeom = this->GetGeometry();
 
     //Nodal Variables
-    mVariables.TemperatureVector.resize(TNumNodes);
+    mVariables.TemperatureVector = VariablesUtilities::GetNodalValues(this->GetGeometry(), TEMPERATURE);
     for (unsigned int i = 0; i < TNumNodes; ++i) {
-        mVariables.TemperatureVector[i] = rGeom[i].FastGetSolutionStepValue(TEMPERATURE);
         mVariables.DtTemperatureVector[i] = rGeom[i].FastGetSolutionStepValue(DT_TEMPERATURE);
     }
 
