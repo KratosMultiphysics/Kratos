@@ -34,36 +34,36 @@
 namespace Kratos
 {
 
-  ///@addtogroup PfemFluidDynamicsApplication
-  ///@{
+///@addtogroup PfemFluidDynamicsApplication
+///@{
 
-  ///@name Kratos Globals
-  ///@{
+///@name Kratos Globals
+///@{
 
-  ///@}
-  ///@name Type Definitions
-  ///@{
+///@}
+///@name Type Definitions
+///@{
 
-  ///@}
-  ///@name  Enum's
-  ///@{
+///@}
+///@name  Enum's
+///@{
 
-  ///@}
-  ///@name  Functions
-  ///@{
+///@}
+///@name  Functions
+///@{
 
-  ///@}
-  ///@name Kratos Classes
-  ///@{
+///@}
+///@name Kratos Classes
+///@{
 
-  /**
-   * @brief A FIC-stabilized CutPFEM element for the weakly-compressible Navier-Stokes equations
-   *
-   * @tparam TDim Number of dimensions
-   */
-  template <unsigned int TDim>
-  class TwoStepUpdatedLagrangianVPImplicitFluidFicCutFemElement : public TwoStepUpdatedLagrangianVPImplicitFluidFicElement<TDim>
-  {
+/**
+ * @brief A FIC-stabilized CutPFEM element for the weakly-compressible Navier-Stokes equations
+ *
+ * @tparam TDim Number of dimensions
+ */
+template <unsigned int TDim>
+class TwoStepUpdatedLagrangianVPImplicitFluidFicCutFemElement : public TwoStepUpdatedLagrangianVPImplicitFluidFicElement<TDim>
+{
 
   public:
     ///@name Type Definitions
@@ -232,15 +232,13 @@ namespace Kratos
     ///@{
 
     ///@}
-  protected:
+protected:
     ///@name Protected static Member Variables
     ///@{
 
     ///@}
     ///@name Protected member Variables
     ///@{
-
-    ConstitutiveLaw::Pointer mpConstitutiveLaw = nullptr;
 
     ///@}
     ///@name Protected Operators
@@ -275,7 +273,7 @@ namespace Kratos
     ///@{
 
     ///@}
-  private:
+private:
     ///@name Static Member Variables
     ///@{
 
@@ -350,34 +348,36 @@ namespace Kratos
     ///@{
 
     ///@}
-  }; // Class TwoStepUpdatedLagrangianVPImplicitFluidFicCutFemElement
-  ///@}
+}; // Class TwoStepUpdatedLagrangianVPImplicitFluidFicCutFemElement
+///@}
 
-  ///@name Type Definitions
-  ///@{
+///@name Type Definitions
+///@{
 
-  ///@}
-  ///@name Input and output
-  ///@{
+///@}
+///@name Input and output
+///@{
 
-  /// input stream function
-  template <unsigned int TDim>
-  inline std::istream &operator>>(std::istream &rIStream,
-                                  TwoStepUpdatedLagrangianVPImplicitFluidFicCutFemElement<TDim> &rThis)
-  {
+/// input stream function
+template <unsigned int TDim>
+inline std::istream &operator>>(
+    std::istream &rIStream,
+    TwoStepUpdatedLagrangianVPImplicitFluidFicCutFemElement<TDim> &rThis)
+{
     return rIStream;
-  }
+}
 
-  /// output stream function
-  template <unsigned int TDim>
-  inline std::ostream &operator<<(std::ostream &rOStream,
-                                  const TwoStepUpdatedLagrangianVPImplicitFluidFicCutFemElement<TDim> &rThis)
-  {
+/// output stream function
+template <unsigned int TDim>
+inline std::ostream &operator<<(
+    std::ostream &rOStream,
+    const TwoStepUpdatedLagrangianVPImplicitFluidFicCutFemElement<TDim> &rThis)
+{
     rThis.PrintInfo(rOStream);
     rOStream << std::endl;
     rThis.PrintData(rOStream);
 
     return rOStream;
-  }
+}
 
 } // namespace Kratos.

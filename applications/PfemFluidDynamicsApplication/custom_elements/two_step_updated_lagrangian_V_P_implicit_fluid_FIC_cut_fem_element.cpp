@@ -57,6 +57,13 @@ namespace Kratos
         VectorType &rRightHandSideVector,
         const ProcessInfo &rCurrentProcessInfo)
     {
+        //FIXME: This is a temporary solution until the issue with the InitializeSolutionStep is solved
+        // The pointer assignation must be donde once after the remeshing in the InitializeSolutionStep
+        if (this->mpConstitutiveLaw == nullptr) {
+            const auto& r_properties = this->GetProperties();
+            this->mpConstitutiveLaw = r_properties[CONSTITUTIVE_LAW]->Clone();
+        }
+
         // Volume Navier-Stokes contribution
         // Note that this uses the CalculateGeometryData below, meaning that if it is cut, it already does the subintegration
         BaseType::CalculateLocalMomentumEquations(rLeftHandSideMatrix, rRightHandSideVector, rCurrentProcessInfo);
@@ -128,12 +135,7 @@ namespace Kratos
                 constitutive_law_values.SetStressVector(r_dev_stress_vector);
                 constitutive_law_values.SetConstitutiveMatrix(r_constitutive_matrix);
 
-                if (mpConstitutiveLaw == nullptr) {
-                    KRATOS_WATCH("Null constitutive law pointer!!!!!")
-                }
-                auto p_cons_law = this->GetProperties().GetValue(CONSTITUTIVE_LAW);
-                p_cons_law->CalculateMaterialResponseCauchy(constitutive_law_values);
-                // mpConstitutiveLaw->CalculateMaterialResponseCauchy(constitutive_law_values);
+                this->mpConstitutiveLaw->CalculateMaterialResponseCauchy(constitutive_law_values);
                 this->UpdateStressTensor(elemental_variables);
 
                 // Take dynamic viscosity from the bottom right corner of the constitutive matrix
