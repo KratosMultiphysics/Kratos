@@ -22,7 +22,7 @@ namespace Kratos
 template<unsigned int TDim, unsigned int TNumNodes>
 Condition::Pointer TMicroClimateFluxCondition<TDim,TNumNodes>::Create(
     IndexType NewId,NodesArrayType const& ThisNodes,
-    PropertiesType::Pointer pProperties) const
+    Properties::Pointer pProperties) const
 {
     return Condition::Pointer(new TMicroClimateFluxCondition(NewId, this->GetGeometry().Create(ThisNodes), pProperties));
 }
@@ -350,15 +350,15 @@ void TMicroClimateFluxCondition<TDim, TNumNodes>::InitializeProperties()
 {
     KRATOS_TRY
 
-    const PropertiesType& rProp = this->GetProperties();
+    const auto& r_prop = this->GetProperties();
 
-    mVariables.albedoCoefficient = rProp[ALPHA_COEFFICIENT];
-    mVariables.firstCoverStorageCoefficient = rProp[A1_COEFFICIENT];
-    mVariables.secondCoverStorageCoefficient = rProp[A2_COEFFICIENT];
-    mVariables.thirdCoverStorageCoefficient = rProp[A3_COEFFICIENT];
-    mVariables.buildEnvironmentRadiation = rProp[QF_COEFFICIENT];
-    mVariables.minimalStorage = rProp[SMIN_COEFFICIENT];
-    mVariables.maximalStorage = rProp[SMAX_COEFFICIENT];
+    mVariables.albedoCoefficient = r_prop[ALPHA_COEFFICIENT];
+    mVariables.firstCoverStorageCoefficient = r_prop[A1_COEFFICIENT];
+    mVariables.secondCoverStorageCoefficient = r_prop[A2_COEFFICIENT];
+    mVariables.thirdCoverStorageCoefficient = r_prop[A3_COEFFICIENT];
+    mVariables.buildEnvironmentRadiation = r_prop[QF_COEFFICIENT];
+    mVariables.minimalStorage = r_prop[SMIN_COEFFICIENT];
+    mVariables.maximalStorage = r_prop[SMAX_COEFFICIENT];
 
     const GeometryType& Geom = this->GetGeometry();
     mVariables.roughnessTemperature = Geom[0].FastGetSolutionStepValue(AIR_TEMPERATURE, 1);   // This value is not read correctly

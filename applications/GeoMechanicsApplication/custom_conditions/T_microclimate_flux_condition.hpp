@@ -32,7 +32,6 @@ public:
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(TMicroClimateFluxCondition);
     
     using IndexType = std::size_t;
-    using PropertiesType = Properties;
     using GeometryType = Geometry<Node>;
     using NodesArrayType = GeometryType::PointsArrayType;
 
@@ -43,9 +42,9 @@ public:
     TMicroClimateFluxCondition( IndexType NewId, GeometryType::Pointer pGeometry ) : GeoTCondition<TDim,TNumNodes>(NewId, pGeometry) {}
     
     // Constructor 2
-    TMicroClimateFluxCondition( IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties ) : GeoTCondition<TDim,TNumNodes>(NewId, pGeometry, pProperties) {}
+    TMicroClimateFluxCondition( IndexType NewId, GeometryType::Pointer pGeometry, Properties::Pointer pProperties ) : GeoTCondition<TDim,TNumNodes>(NewId, pGeometry, pProperties) {}
 
-    Condition::Pointer Create(IndexType NewId,NodesArrayType const& ThisNodes,PropertiesType::Pointer pProperties ) const override;
+    Condition::Pointer Create(IndexType NewId,NodesArrayType const& ThisNodes,Properties::Pointer pProperties ) const override;
 
     void InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
 
