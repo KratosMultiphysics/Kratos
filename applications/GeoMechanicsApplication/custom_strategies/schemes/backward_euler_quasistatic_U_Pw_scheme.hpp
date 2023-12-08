@@ -69,7 +69,7 @@ protected:
             rModelPart.Nodes(),
             [this](Node& rNode)
             {
-                for (const auto& r_variable_with_derivative : this->mVariableDerivatives)
+                for (const auto& r_variable_with_derivative : this->GetVariableDerivatives())
                 {
                     SetDerivative(r_variable_with_derivative.first_time_derivative,
                                   r_variable_with_derivative.instance, rNode);

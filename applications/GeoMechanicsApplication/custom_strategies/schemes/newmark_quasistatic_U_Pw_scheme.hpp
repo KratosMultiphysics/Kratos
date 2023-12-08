@@ -101,7 +101,7 @@ public:
             // Compute smoothed nodal variables
             block_for_each(
                 rModelPart.Nodes(),
-                [&](Node& rNode)
+                [this](Node& rNode)
                 {
                     if (const double& nodal_area = rNode.FastGetSolutionStepValue(NODAL_AREA);
                         nodal_area > 1.0e-20)
@@ -201,8 +201,10 @@ protected:
         return KratosComponents<Variable<double>>::Get(rSource.Name() + "_" + rComponent);
     }
 
-    std::vector<VariableWithTimeDerivatives> mVariableDerivatives{
-        VariableWithTimeDerivatives(DISPLACEMENT), VariableWithTimeDerivatives{ROTATION}};
+    const std::vector<VariableWithTimeDerivatives>& GetVariableDerivatives() const
+    {
+        return mVariableDerivatives;
+    }
 
 private:
     void UpdateVectorFirstTimeDerivative(Node& rNode) const
@@ -243,6 +245,9 @@ private:
                 (mBeta * this->GetDeltaTime() * this->GetDeltaTime());
         }
     }
+
+    std::vector<VariableWithTimeDerivatives> mVariableDerivatives{
+        VariableWithTimeDerivatives(DISPLACEMENT), VariableWithTimeDerivatives{ROTATION}};
 
 }; // Class NewmarkQuasistaticUPwScheme
 

@@ -66,12 +66,12 @@ public:
     void PredictVariables(const ModelPart& rModelPart)
     {
         block_for_each(rModelPart.Nodes(),
-                       [&](Node& rNode) { PredictVariablesForNode(rNode); });
+                       [this](Node& rNode) { PredictVariablesForNode(rNode); });
     }
 
     void PredictVariablesForNode(Node& rNode)
     {
-        for (const auto& variable_derivative : this->mVariableDerivatives)
+        for (const auto& variable_derivative : this->GetVariableDerivatives())
         {
             if (!rNode.SolutionStepsDataHas(variable_derivative.instance))
                 continue;
