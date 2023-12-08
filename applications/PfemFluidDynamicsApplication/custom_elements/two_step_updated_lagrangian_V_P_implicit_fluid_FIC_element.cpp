@@ -46,22 +46,6 @@ namespace Kratos
       KRATOS_ERROR_IF_NOT(r_properties.Has(CONSTITUTIVE_LAW))
           << "In initialization of Element " << this->Info() << ": No CONSTITUTIVE_LAW defined for property "
           << r_properties.Id() << "." << std::endl;
-      if (this->Id() == 1) {
-        KRATOS_WATCH("Setting constitutive Law again!")
-        KRATOS_WATCH("Setting constitutive Law again!")
-        KRATOS_WATCH("Setting constitutive Law again!")
-        KRATOS_WATCH("Setting constitutive Law again!")
-        KRATOS_WATCH("Setting constitutive Law again!")
-        KRATOS_WATCH("Setting constitutive Law again!")
-        KRATOS_WATCH("Setting constitutive Law again!")
-        KRATOS_WATCH("Setting constitutive Law again!")
-        KRATOS_WATCH("Setting constitutive Law again!")
-        KRATOS_WATCH("Setting constitutive Law again!")
-        KRATOS_WATCH("Setting constitutive Law again!")
-        KRATOS_WATCH("Setting constitutive Law again!")
-        KRATOS_WATCH("Setting constitutive Law again!")
-      }
-      KRATOS_WATCH("Setting constitutive Law again!")
       mpConstitutiveLaw = r_properties[CONSTITUTIVE_LAW]->Clone();
     }
 
