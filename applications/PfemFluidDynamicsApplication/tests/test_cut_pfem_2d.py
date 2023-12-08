@@ -78,8 +78,7 @@ class TestCutPfem(KratosUnittest.TestCase):
         self.assertVectorAlmostEqual(node_20.GetSolutionStepValue(KratosMultiphysics.VELOCITY), [0.005757319479420786,-0.02134741138617036,0], self.check_places)
 
     def setUp(self):
-        self.print_output = True
-        # self.print_reference_values = True
+        self.print_output = False
         self.check_places = 10
         self.check_absolute_tolerance = 1.0e-8
         self.check_relative_tolerance = 1.0e-10
