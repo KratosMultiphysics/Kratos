@@ -59,13 +59,15 @@ void TMicroClimateFluxCondition<TDim, TNumNodes>::CalculateAll(
         (JContainer[i]).resize(TDim, LocalDim, false);
     Geom.Jacobian(JContainer, this->GetIntegrationMethod());
 
+    const auto& r_N_container = this->GetGeometry().ShapeFunctionsValues(this->GetIntegrationMethod());
+
     auto nodal_temperatures = array_1d<double, TNumNodes>{};
     VariablesUtilities::GetNodalValues(this->GetGeometry(), TEMPERATURE, nodal_temperatures.begin());
     this->InitializeElementVariables(rCurrentProcessInfo);
 
     // Loop over integration points
     for (unsigned int GPoint = 0; GPoint < NumGPoints; ++GPoint) {
-        mVariables.Np = row(mVariables.NContainer, GPoint);
+        mVariables.Np = row(r_N_container, GPoint);
 
         // Compute weighting coefficient for integration
         mVariables.IntegrationCoefficient = this->CalculateIntegrationCoefficient(JContainer[GPoint],
@@ -85,12 +87,6 @@ void TMicroClimateFluxCondition<TDim, TNumNodes>::InitializeElementVariables(
     KRATOS_TRY
 
     this->CalculateNodalFluxes(rCurrentProcessInfo);
-
-    // General Variables
-    const GeometryType& Geom = this->GetGeometry();
-
-    // shape functions
-    mVariables.NContainer = Geom.ShapeFunctionsValues(this->GetIntegrationMethod());
 
     KRATOS_CATCH("")
 }

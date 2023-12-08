@@ -73,7 +73,6 @@ private:
 
         array_1d<double, TNumNodes> leftHandSideFlux;
         array_1d<double, TNumNodes> rightHandSideFlux;
-        Matrix NContainer;
     };
 
     void InitializeElementVariables(const ProcessInfo& rCurrentProcessInfo);
