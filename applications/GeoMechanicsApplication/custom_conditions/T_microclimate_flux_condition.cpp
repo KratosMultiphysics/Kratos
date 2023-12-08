@@ -63,7 +63,8 @@ void TMicroClimateFluxCondition<TDim, TNumNodes>::CalculateAll(
 
     auto nodal_temperatures = array_1d<double, TNumNodes>{};
     VariablesUtilities::GetNodalValues(this->GetGeometry(), TEMPERATURE, nodal_temperatures.begin());
-    this->InitializeElementVariables(rCurrentProcessInfo);
+
+    this->CalculateNodalFluxes(rCurrentProcessInfo);
 
     // Loop over integration points
     for (unsigned int GPoint = 0; GPoint < NumGPoints; ++GPoint) {
@@ -76,17 +77,6 @@ void TMicroClimateFluxCondition<TDim, TNumNodes>::CalculateAll(
         this->CalculateAndAddLHS(rLeftHandSideMatrix);
         this->CalculateAndAddRHS(rRightHandSideVector, nodal_temperatures);
     }
-
-    KRATOS_CATCH("")
-}
-
-template<unsigned int TDim, unsigned int TNumNodes>
-void TMicroClimateFluxCondition<TDim, TNumNodes>::InitializeElementVariables(
-    const ProcessInfo& rCurrentProcessInfo)
-{
-    KRATOS_TRY
-
-    this->CalculateNodalFluxes(rCurrentProcessInfo);
 
     KRATOS_CATCH("")
 }

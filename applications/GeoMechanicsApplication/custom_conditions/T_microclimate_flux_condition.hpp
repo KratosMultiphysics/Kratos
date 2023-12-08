@@ -75,8 +75,6 @@ private:
         array_1d<double, TNumNodes> rightHandSideFlux;
     };
 
-    void InitializeElementVariables(const ProcessInfo& rCurrentProcessInfo);
-
     void CalculateAll(Matrix&            rLeftHandSideMatrix,
                       Vector&            rRightHandSideVector,
                       const ProcessInfo& rCurrentProcessInfo) override;
