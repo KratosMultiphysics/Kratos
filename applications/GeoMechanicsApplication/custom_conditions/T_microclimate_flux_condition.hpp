@@ -36,7 +36,6 @@ public:
     using NodeType = Node;
     using GeometryType = Geometry<NodeType>;
     using NodesArrayType = Geometry<NodeType>::PointsArrayType;
-    using MatrixType = Matrix;
 
     // Default constructor
     TMicroClimateFluxCondition() : GeoTCondition<TDim,TNumNodes>() {}
@@ -51,7 +50,7 @@ public:
 
     void InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
 
-    void CalculateLocalSystem(MatrixType&        rLeftHandSideMatrix,
+    void CalculateLocalSystem(Matrix&            rLeftHandSideMatrix,
                               Vector&            rRightHandSideVector,
                               const ProcessInfo& rCurrentProcessInfo) override;
 
@@ -80,12 +79,12 @@ private:
 
     void InitializeElementVariables(const ProcessInfo& rCurrentProcessInfo);
 
-    void CalculateAll(MatrixType&        rLeftHandSideMatrix,
+    void CalculateAll(Matrix&            rLeftHandSideMatrix,
                       Vector&            rRightHandSideVector,
                       const ProcessInfo& rCurrentProcessInfo) override;
     void CalculateAndAddRHS(Vector& rRightHandSideVector,
                             const Vector& rNodalTemperatures);
-    void CalculateAndAddLHS(MatrixType& rLeftHandSideMatrix);
+    void CalculateAndAddLHS(Matrix& rLeftHandSideMatrix);
 
     double CalculateIntegrationCoefficient(const Matrix& Jacobian,
                                            double Weight);

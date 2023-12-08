@@ -41,7 +41,7 @@ void TMicroClimateFluxCondition<TDim, TNumNodes>::InitializeSolutionStep(
 
 template<unsigned int TDim, unsigned int TNumNodes>
 void TMicroClimateFluxCondition<TDim, TNumNodes>::CalculateAll(
-    MatrixType& rLeftHandSideMatrix,
+    Matrix& rLeftHandSideMatrix,
     Vector& rRightHandSideVector,
     const ProcessInfo& rCurrentProcessInfo)
 {
@@ -121,7 +121,7 @@ void TMicroClimateFluxCondition<TDim, TNumNodes>::CalculateAndAddRHS(
 
 template<unsigned int TDim, unsigned int TNumNodes>
 void TMicroClimateFluxCondition<TDim, TNumNodes>::CalculateAndAddLHS(
-    MatrixType& rLeftHandSideMatrix)
+    Matrix& rLeftHandSideMatrix)
 {
     KRATOS_TRY
 
@@ -339,7 +339,7 @@ void TMicroClimateFluxCondition<TDim, TNumNodes>::CalculateNodalFluxes(
 
 template<unsigned int TDim, unsigned int TNumNodes>
 void TMicroClimateFluxCondition<TDim, TNumNodes>::CalculateLocalSystem(
-    MatrixType& rLeftHandSideMatrix,
+    Matrix& rLeftHandSideMatrix,
     Vector& rRightHandSideVector,
     const ProcessInfo& rCurrentProcessInfo)
 {
