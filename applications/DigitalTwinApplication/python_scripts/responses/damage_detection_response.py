@@ -1,5 +1,6 @@
 from typing import Optional
 import csv
+from pathlib import Path
 
 import KratosMultiphysics as Kratos
 import KratosMultiphysics.OptimizationApplication as KratosOA
@@ -12,6 +13,7 @@ from KratosMultiphysics.OptimizationApplication.execution_policies.execution_pol
 from KratosMultiphysics.OptimizationApplication.utilities.optimization_problem import OptimizationProblem
 from KratosMultiphysics.DigitalTwinApplication.sensor_sensitivity_solvers.system_identification_static_analysis import SystemIdentificationStaticAnalysis
 from KratosMultiphysics.DigitalTwinApplication.utilities.data_io import GetDataIO, DataIO
+from KratosMultiphysics.DigitalTwinApplication.utilities.sensor_utils import PrintSensorListToCSV
 
 def Factory(model: Kratos.Model, parameters: Kratos.Parameters, optimization_problem: OptimizationProblem) -> ResponseFunction:
     if not parameters.Has("name"):
@@ -73,6 +75,7 @@ class DamageDetectionResponse(ResponseFunction):
         self.adjoint_analysis = SystemIdentificationStaticAnalysis(self.model, parameters["adjoint_parameters"])
 
         self.sensor_name_dict: 'dict[str, KratosDT.Sensors.Sensor]' = {}
+        self.optimization_problem = optimization_problem
 
     def GetImplementedPhysicalKratosVariables(self) -> 'list[SupportedSensitivityFieldVariableTypes]':
         return [Kratos.YOUNG_MODULUS]
@@ -109,6 +112,7 @@ class DamageDetectionResponse(ResponseFunction):
             exec_policy.Execute()
             data_io.Write()
 
+            list_of_sensors: 'list[KratosDT.Sensors.Sensor]' = []
             with open(sensor_measurement_data_file_name, "r") as csv_measurement_file:
                 csv_measurement_stream = csv.reader(csv_measurement_file, delimiter=",")
                 measured_name_index, measured_value_index = self.__GetHeaderIndices(csv_measurement_stream)
@@ -116,10 +120,17 @@ class DamageDetectionResponse(ResponseFunction):
                 for measured_row in csv_measurement_stream:
                     measured_sensor_name = measured_row[measured_name_index].strip()
                     measured_value = float(measured_row[measured_value_index])
-                    self.__GetSensor(measured_sensor_name).SetValue(KratosDT.SENSOR_MEASURED_VALUE, measured_value)
+                    sensor =  self.__GetSensor(measured_sensor_name)
+                    list_of_sensors.append(sensor)
+                    sensor.SetValue(KratosDT.SENSOR_MEASURED_VALUE, measured_value)
 
             result += test_case_weight * self.adjoint_analysis.GetResponseFunction().CalculateValue(exec_policy.GetAnalysisModelPart())
             Kratos.Logger.PrintInfo(self.__class__.__name__, f"Computed \"{exec_policy.GetName()}\".")
+
+            for sensor in list_of_sensors:
+                sensor.SetValue(KratosDT.SENSOR_ERROR, abs(sensor.GetValue(KratosDT.SENSOR_MEASURED_VALUE) - sensor.GetSensorValue()))
+
+            PrintSensorListToCSV(Path(f"Optimization_Results/sensor_output_iteration_{self.optimization_problem.GetStep():05d}.csv"), list_of_sensors, ["type", "name", "location", "value", "SENSOR_MEASURED_VALUE", "SENSOR_ERROR"])
 
         return result
 
