@@ -73,7 +73,6 @@ private:
 
         double IntegrationCoefficient;
         array_1d<double,TNumNodes> Np;
-        array_1d<double,TNumNodes> TVector;
         double roughnessTemperature = 0.0;
         double netRadiation = 0.0;
         double waterStorage = 0.0;
