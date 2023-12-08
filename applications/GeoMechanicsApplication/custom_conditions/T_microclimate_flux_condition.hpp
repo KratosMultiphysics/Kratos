@@ -106,7 +106,7 @@ private:
 
     void InitializeProperties();
 
-    void InitializeNodalTemperatureVariables(ElementVariables& rVariables);
+    void InitializeNodalTemperatureVariables();
 
     // Serialization
     friend class Serializer;

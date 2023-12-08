@@ -85,7 +85,7 @@ void TMicroClimateFluxCondition<TDim, TNumNodes>::InitializeElementVariables(
     KRATOS_TRY
 
     // Nodal Variables
-    this->InitializeNodalTemperatureVariables(mVariables);
+    this->InitializeNodalTemperatureVariables();
 
     // Nodal Variables
     this->CalculateNodalFluxes(rCurrentProcessInfo, mVariables);
@@ -104,8 +104,7 @@ void TMicroClimateFluxCondition<TDim, TNumNodes>::InitializeElementVariables(
 }
 
 template<unsigned int TDim, unsigned int TNumNodes>
-void TMicroClimateFluxCondition<TDim, TNumNodes>::InitializeNodalTemperatureVariables(
-    ElementVariables& rVariables)
+void TMicroClimateFluxCondition<TDim, TNumNodes>::InitializeNodalTemperatureVariables()
 {
     KRATOS_TRY
 
@@ -113,8 +112,8 @@ void TMicroClimateFluxCondition<TDim, TNumNodes>::InitializeNodalTemperatureVari
 
     //Nodal Variables
     for (unsigned int i = 0; i < TNumNodes; ++i) {
-        rVariables.TemperatureVector[i] = rGeom[i].FastGetSolutionStepValue(TEMPERATURE);
-        rVariables.DtTemperatureVector[i] = rGeom[i].FastGetSolutionStepValue(DT_TEMPERATURE);
+        mVariables.TemperatureVector[i] = rGeom[i].FastGetSolutionStepValue(TEMPERATURE);
+        mVariables.DtTemperatureVector[i] = rGeom[i].FastGetSolutionStepValue(DT_TEMPERATURE);
     }
 
     KRATOS_CATCH("")
