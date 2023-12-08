@@ -103,13 +103,7 @@ void TMicroClimateFluxCondition<TDim, TNumNodes>::InitializeNodalTemperatureVari
 {
     KRATOS_TRY
 
-    const GeometryType& rGeom = this->GetGeometry();
-
-    //Nodal Variables
     mVariables.TemperatureVector = VariablesUtilities::GetNodalValues(this->GetGeometry(), TEMPERATURE);
-    for (unsigned int i = 0; i < TNumNodes; ++i) {
-        mVariables.DtTemperatureVector[i] = rGeom[i].FastGetSolutionStepValue(DT_TEMPERATURE);
-    }
 
     KRATOS_CATCH("")
 }

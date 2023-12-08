@@ -69,7 +69,6 @@ private:
 
         ///Nodal variables
         Vector TemperatureVector;
-        array_1d<double, TNumNodes> DtTemperatureVector;
 
         double IntegrationCoefficient;
         array_1d<double,TNumNodes> Np;
