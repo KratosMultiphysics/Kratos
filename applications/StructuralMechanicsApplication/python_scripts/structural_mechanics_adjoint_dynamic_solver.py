@@ -129,7 +129,16 @@ class StructuralMechanicsAdjointDynamicSolver(MechanicalSolver):
     def Initialize(self):
         """Perform initialization after adding nodal variables and dofs to the main model part. """
         response_type = self.settings["response_function_settings"]["response_type"].GetString()
-        if response_type == "adjoint_nodal_root_mean_square":
+        if response_type == "adjoint_least_squares":
+            # import measurement data
+            if not self.settings["response_function_settings"].Has("measurement_data_filename"):
+                raise Exception("AdjointMechanicalSolver: file with measurement data needed.")
+            
+            with open(self.settings["response_function_settings"]["measurement_data_filename"].GetString(), 'r') as parameter_file:
+                measurement_data = KratosMultiphysics.Parameters(parameter_file.read())
+
+            self.response_function = StructuralMechanicsApplication.AdjointLeastSquaresResponseFunction(self.main_model_part, self.settings["response_function_settings"], measurement_data)
+        elif response_type == "adjoint_nodal_root_mean_square":
             self.response_function = StructuralMechanicsApplication.AdjointNodalRootMeanSquareResponseFunction(self.main_model_part, self.settings["response_function_settings"])
         elif response_type == "adjoint_damping_energy_dissipation":
             self.response_function = StructuralMechanicsApplication.AdjointDampingEnergyDissipationResponseFunction(self.main_model_part, self.settings["response_function_settings"])
