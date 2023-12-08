@@ -204,8 +204,6 @@ void TMicroClimateFluxCondition<TDim, TNumNodes>::CalculateRoughness(
     const double currentAirTemperature = Geom[0].FastGetSolutionStepValue(AIR_TEMPERATURE);
     double currentWindSpeed = Geom[0].FastGetSolutionStepValue(WIND_SPEED);
 
-    const Properties mProperties = this->GetProperties();
-
     constexpr double roughnessLayerHeight = 10.0;
     constexpr double roughnessLayerResistance = 30.0;
     constexpr double vonNeumanCoefficient = 0.4;
