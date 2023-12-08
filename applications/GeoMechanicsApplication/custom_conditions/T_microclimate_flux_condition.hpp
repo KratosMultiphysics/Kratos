@@ -48,9 +48,6 @@ public:
     // Constructor 2
     TMicroClimateFluxCondition( IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties ) : GeoTCondition<TDim,TNumNodes>(NewId, pGeometry, pProperties) {}
 
-    // Destructor
-    ~TMicroClimateFluxCondition() override {}
-
     Condition::Pointer Create(IndexType NewId,NodesArrayType const& ThisNodes,PropertiesType::Pointer pProperties ) const override;
 
     void InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
