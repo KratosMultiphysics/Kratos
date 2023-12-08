@@ -282,7 +282,7 @@ void TMicroClimateFluxCondition<TDim, TNumNodes>::CalculateNodalFluxes(
     constexpr double surfaceResistance = 30.0;
 
     const auto previous_storage = rVariables.waterStorage;
-    rVariables.previousRadiation = rVariables.netRadiation;
+    const auto previous_radiation = rVariables.netRadiation;
     rVariables.waterStorage = 0.0;
     rVariables.netRadiation = 0.0;
 
@@ -325,7 +325,7 @@ void TMicroClimateFluxCondition<TDim, TNumNodes>::CalculateNodalFluxes(
         const double netRadiation = shortWaveRadiation + absorbedLongWaveRadiation - emittedLongWaveRadiation;
 
         // Eq 5.20
-        const double surfaceHeatStorage = firstCoverStorageCoefficient * netRadiation + secondCoverStorageCoefficient * (netRadiation - rVariables.previousRadiation) /
+        const double surfaceHeatStorage = firstCoverStorageCoefficient * netRadiation + secondCoverStorageCoefficient * (netRadiation - previous_radiation) /
             timeStepSize + thirdCoverStorageCoefficient;
 
         // Eq 5.34
