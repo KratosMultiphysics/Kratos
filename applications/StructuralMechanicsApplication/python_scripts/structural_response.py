@@ -490,7 +490,6 @@ class AdjointDynamicResponseFunction(ResponseFunctionInterface):
     def CalculateValue(self):
         
         value = self._GetResponseFunctionUtility().CalculateValue(self.primal_model_part)
-        actual_integral_value = self.primal_model_part.ProcessInfo[StructuralMechanicsApplication.RESPONSE_VALUE]
         self.primal_model_part.ProcessInfo[StructuralMechanicsApplication.RESPONSE_VALUE] += value * self.delta_time
 
     def CalculateGradient(self):
@@ -522,6 +521,7 @@ class AdjointDynamicResponseFunction(ResponseFunctionInterface):
             "adjoint_local_stress" : "LocalStress",
             "adjoint_max_stress" : "MaxStress",
             "adjoint_nodal_reaction" : "NodalReaction",
+            "adjoint_least_squares" : "LeastSquares",
             "adjoint_nodal_root_mean_square" : "NodalRootMeanSquare",
             "adjoint_damping_energy_dissipation" : "DampingEnergyDissipation"
         }
