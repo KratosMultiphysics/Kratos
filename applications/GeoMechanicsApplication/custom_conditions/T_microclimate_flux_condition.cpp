@@ -20,11 +20,12 @@ namespace Kratos
 {
 
 template<unsigned int TDim, unsigned int TNumNodes>
-Condition::Pointer TMicroClimateFluxCondition<TDim,TNumNodes>::Create(
-    IndexType NewId,NodesArrayType const& ThisNodes,
+Condition::Pointer TMicroClimateFluxCondition<TDim, TNumNodes>::Create(
+    IndexType NewId,
+    const NodesArrayType& rNodes,
     Properties::Pointer pProperties) const
 {
-    return Condition::Pointer(new TMicroClimateFluxCondition(NewId, this->GetGeometry().Create(ThisNodes), pProperties));
+    return make_intrusive<TMicroClimateFluxCondition>(NewId, this->GetGeometry().Create(rNodes), pProperties);
 }
 
 template<unsigned int TDim, unsigned int TNumNodes>

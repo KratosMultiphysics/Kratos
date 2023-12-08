@@ -47,7 +47,9 @@ public:
     {
     }
 
-    Condition::Pointer Create(IndexType NewId,NodesArrayType const& ThisNodes,Properties::Pointer pProperties ) const override;
+    Condition::Pointer Create(IndexType NewId,
+                              const NodesArrayType& rNodes,
+                              Properties::Pointer pProperties ) const override;
 
     void InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
 
