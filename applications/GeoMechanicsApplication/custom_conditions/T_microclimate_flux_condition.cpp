@@ -68,9 +68,7 @@ void TMicroClimateFluxCondition<TDim, TNumNodes>::CalculateAll(
         mVariables.IntegrationCoefficient = this->CalculateIntegrationCoefficient(JContainer[GPoint],
                                                                                   IntegrationPoints[GPoint].Weight());
 
-        // Contributions to the left hand side
-        this->CalculateAndAddLHS(rLeftHandSideMatrix, mVariables);
-
+        this->CalculateAndAddLHS(rLeftHandSideMatrix);
         this->CalculateAndAddRHS(rRightHandSideVector);
     }
 
@@ -141,23 +139,22 @@ void TMicroClimateFluxCondition<TDim, TNumNodes>::CalculateAndAddRHS(
 
 template<unsigned int TDim, unsigned int TNumNodes>
 void TMicroClimateFluxCondition<TDim, TNumNodes>::CalculateAndAddLHS(
-    MatrixType& rLeftHandSideMatrix,
-    ElementVariables& rVariables)
+    MatrixType& rLeftHandSideMatrix)
 {
     KRATOS_TRY
 
-    rVariables.TMatrix = outer_prod(rVariables.Np, rVariables.Np) * rVariables.IntegrationCoefficient;
+    mVariables.TMatrix = outer_prod(mVariables.Np, mVariables.Np) * mVariables.IntegrationCoefficient;
 
     Matrix TTMatrix = ZeroMatrix(TNumNodes, TNumNodes);
     for (unsigned int i = 0; i < TNumNodes; ++i)
     {
-        TTMatrix(i, i) = rVariables.leftHandSideFlux[i];
+        TTMatrix(i, i) = mVariables.leftHandSideFlux[i];
     }
 
-    rVariables.TMatrix = prod(rVariables.TMatrix, TTMatrix);
+    mVariables.TMatrix = prod(mVariables.TMatrix, TTMatrix);
 
     GeoElementUtilities::
-        AssemblePBlockMatrix<0, TNumNodes>(rLeftHandSideMatrix, rVariables.TMatrix);
+        AssemblePBlockMatrix<0, TNumNodes>(rLeftHandSideMatrix, mVariables.TMatrix);
 
     KRATOS_CATCH("")
 }

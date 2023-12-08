@@ -88,12 +88,11 @@ private:
 
     void InitializeElementVariables(const ProcessInfo& rCurrentProcessInfo);
 
-    void CalculateAll(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector,
-        const ProcessInfo& rCurrentProcessInfo) override;
-    
+    void CalculateAll(MatrixType&        rLeftHandSideMatrix,
+                      VectorType&        rRightHandSideVector,
+                      const ProcessInfo& rCurrentProcessInfo) override;
     void CalculateAndAddRHS(VectorType& rRightHandSideVector);
-
-    void CalculateAndAddLHS(MatrixType& rLeftHandSideMatrix, ElementVariables& rVariables);
+    void CalculateAndAddLHS(MatrixType& rLeftHandSideMatrix);
 
     double CalculateIntegrationCoefficient(const Matrix& Jacobian,
                                            double Weight);
