@@ -13,7 +13,9 @@
 
 #pragma once
 
-#include "includes/ublas_interface.h"
+#include <algorithm>
+
+#include "containers/variable.h"
 
 namespace Kratos
 {
@@ -21,16 +23,15 @@ namespace Kratos
 class VariablesUtilities
 {
 public:
-    template <typename GeometryType>
-    static Vector GetNodalValues(const GeometryType& rGeometry,
-                                 const Variable<double>& rNodalVariable)
+    template <typename GeometryType, typename OutputIt>
+    static OutputIt GetNodalValues(const GeometryType& rGeometry,
+                                   const Variable<double>& rNodalVariable,
+                                   OutputIt FirstOut)
     {
-        Vector result{rGeometry.size(), 0.0};
-        std::transform(rGeometry.begin(), rGeometry.end(), result.begin(),
-                       [&rNodalVariable](const auto& node) {
-                           return node.FastGetSolutionStepValue(rNodalVariable);
-                       });
-        return result;
+        return std::transform(rGeometry.begin(), rGeometry.end(), FirstOut,
+                              [&rNodalVariable](const auto& node) {
+                                  return node.FastGetSolutionStepValue(rNodalVariable);
+                              });
     }
 };
 

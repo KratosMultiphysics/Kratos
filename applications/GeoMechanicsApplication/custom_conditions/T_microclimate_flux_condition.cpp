@@ -59,7 +59,8 @@ void TMicroClimateFluxCondition<TDim, TNumNodes>::CalculateAll(
         (JContainer[i]).resize(TDim, LocalDim, false);
     Geom.Jacobian(JContainer, this->GetIntegrationMethod());
 
-    const auto nodal_temperatures = VariablesUtilities::GetNodalValues(this->GetGeometry(), TEMPERATURE);
+    auto nodal_temperatures = array_1d<double, TNumNodes>{};
+    VariablesUtilities::GetNodalValues(this->GetGeometry(), TEMPERATURE, nodal_temperatures.begin());
     this->InitializeElementVariables(rCurrentProcessInfo);
 
     // Loop over integration points
