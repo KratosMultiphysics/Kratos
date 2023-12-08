@@ -214,7 +214,6 @@ void TMicroClimateFluxCondition<TDim, TNumNodes>::CalculateRoughness(
     constexpr double gravitationalAcceleration = 9.81;
 
     const auto previous_roughness_temperature = rVariables.roughnessTemperature;
-    rVariables.previousStorage = rVariables.waterStorage;
     rVariables.previousRadiation = rVariables.netRadiation;
     rVariables.roughnessTemperature = 0.0;
 
