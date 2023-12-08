@@ -71,8 +71,7 @@ void TMicroClimateFluxCondition<TDim, TNumNodes>::CalculateAll(
         // Contributions to the left hand side
         this->CalculateAndAddLHS(rLeftHandSideMatrix, mVariables);
 
-        // Contributions to the right hand side
-        this->CalculateAndAddRHS(rRightHandSideVector, mVariables);
+        this->CalculateAndAddRHS(rRightHandSideVector);
     }
 
     KRATOS_CATCH("")
@@ -121,24 +120,23 @@ void TMicroClimateFluxCondition<TDim, TNumNodes>::InitializeNodalTemperatureVari
 
 template<unsigned int TDim, unsigned int TNumNodes>
 void TMicroClimateFluxCondition<TDim, TNumNodes>::CalculateAndAddRHS(
-    VectorType& rRightHandSideVector,
-    ElementVariables& rVariables)
+    VectorType& rRightHandSideVector)
 {
-    rVariables.TMatrix = outer_prod(rVariables.Np, rVariables.Np) * rVariables.IntegrationCoefficient;
-    rVariables.TVector = prod(rVariables.TMatrix, rVariables.rightHandSideFlux);
+    mVariables.TMatrix = outer_prod(mVariables.Np, mVariables.Np) * mVariables.IntegrationCoefficient;
+    mVariables.TVector = prod(mVariables.TMatrix, mVariables.rightHandSideFlux);
     GeoElementUtilities::
-        AssemblePBlockVector<0, TNumNodes>(rRightHandSideVector, rVariables.TVector);
+        AssemblePBlockVector<0, TNumNodes>(rRightHandSideVector, mVariables.TVector);
 
-    rVariables.TMatrix = outer_prod(rVariables.Np, rVariables.Np) * rVariables.IntegrationCoefficient;
+    mVariables.TMatrix = outer_prod(mVariables.Np, mVariables.Np) * mVariables.IntegrationCoefficient;
     Matrix TTMatrix = ZeroMatrix(TNumNodes, TNumNodes);
     for (unsigned int i = 0; i < TNumNodes; ++i)
     {
-        TTMatrix(i, i) = rVariables.leftHandSideFlux[i];
+        TTMatrix(i, i) = mVariables.leftHandSideFlux[i];
     }
-    rVariables.TMatrix = prod(rVariables.TMatrix, TTMatrix);
-    rVariables.TVector = -prod(rVariables.TMatrix, rVariables.TemperatureVector);
+    mVariables.TMatrix = prod(mVariables.TMatrix, TTMatrix);
+    mVariables.TVector = -prod(mVariables.TMatrix, mVariables.TemperatureVector);
     GeoElementUtilities::
-        AssemblePBlockVector<0, TNumNodes>(rRightHandSideVector, rVariables.TVector);
+        AssemblePBlockVector<0, TNumNodes>(rRightHandSideVector, mVariables.TVector);
 }
 
 template<unsigned int TDim, unsigned int TNumNodes>

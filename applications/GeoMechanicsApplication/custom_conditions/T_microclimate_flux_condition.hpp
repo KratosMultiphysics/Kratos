@@ -91,7 +91,7 @@ private:
     void CalculateAll(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector,
         const ProcessInfo& rCurrentProcessInfo) override;
     
-    void CalculateAndAddRHS(VectorType& rRightHandSideVector, ElementVariables& rVariables);
+    void CalculateAndAddRHS(VectorType& rRightHandSideVector);
 
     void CalculateAndAddLHS(MatrixType& rLeftHandSideMatrix, ElementVariables& rVariables);
 
