@@ -82,7 +82,7 @@ void TMicroClimateFluxCondition<TDim, TNumNodes>::InitializeElementVariables(
 {
     KRATOS_TRY
 
-    this->InitializeNodalTemperatureVariables();
+    mVariables.TemperatureVector = VariablesUtilities::GetNodalValues(this->GetGeometry(), TEMPERATURE);
     this->CalculateNodalFluxes(rCurrentProcessInfo);
 
     // General Variables
@@ -94,16 +94,6 @@ void TMicroClimateFluxCondition<TDim, TNumNodes>::InitializeElementVariables(
 
     // gradient of shape functions and determinant of Jacobian
     mVariables.detJContainer.resize(NumGPoints, false);
-
-    KRATOS_CATCH("")
-}
-
-template<unsigned int TDim, unsigned int TNumNodes>
-void TMicroClimateFluxCondition<TDim, TNumNodes>::InitializeNodalTemperatureVariables()
-{
-    KRATOS_TRY
-
-    mVariables.TemperatureVector = VariablesUtilities::GetNodalValues(this->GetGeometry(), TEMPERATURE);
 
     KRATOS_CATCH("")
 }

@@ -99,8 +99,6 @@ private:
 
     void InitializeProperties();
 
-    void InitializeNodalTemperatureVariables();
-
     // Serialization
     friend class Serializer;
 
