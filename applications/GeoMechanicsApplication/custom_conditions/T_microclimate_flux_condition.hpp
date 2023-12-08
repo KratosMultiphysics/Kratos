@@ -81,7 +81,6 @@ protected:
         double netRadiation = 0.0;
         double waterStorage = 0.0;
 
-        double previousRoughnessTemperature;
         double previousStorage;
         double previousRadiation;
 

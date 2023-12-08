@@ -213,7 +213,7 @@ void TMicroClimateFluxCondition<TDim, TNumNodes>::CalculateRoughness(
     constexpr double roughnessHeight = 1.0;
     constexpr double gravitationalAcceleration = 9.81;
 
-    rVariables.previousRoughnessTemperature = rVariables.roughnessTemperature;
+    const auto previous_roughness_temperature = rVariables.roughnessTemperature;
     rVariables.previousStorage = rVariables.waterStorage;
     rVariables.previousRadiation = rVariables.netRadiation;
     rVariables.roughnessTemperature = 0.0;
@@ -228,13 +228,13 @@ void TMicroClimateFluxCondition<TDim, TNumNodes>::CalculateRoughness(
 
         // Eq 5.29
         const double richardsonBulkModulus = 2.0 * gravitationalAcceleration * measurementHeight / (currentAirTemperature +
-            rVariables.previousRoughnessTemperature + 546.3) * (currentAirTemperature - rVariables.previousRoughnessTemperature) / (currentWindSpeed * currentWindSpeed);
+            previous_roughness_temperature + 546.3) * (currentAirTemperature - previous_roughness_temperature) / (currentWindSpeed * currentWindSpeed);
 
         // Eq 5.25
         const double frictionDragCoefficient = vonNeumanCoefficient / std::log(measurementHeight / roughnessHeight);
 
         double cof = 0.0;
-        if (rVariables.previousRoughnessTemperature >= currentAirTemperature) {
+        if (previous_roughness_temperature >= currentAirTemperature) {
             // Eq 5.27
             cof = richardsonBulkModulus / (1.0 + 75.0 * frictionDragCoefficient * frictionDragCoefficient *
                 std::sqrt(measurementHeight / roughnessHeight * std::fabs(richardsonBulkModulus)));
@@ -248,7 +248,7 @@ void TMicroClimateFluxCondition<TDim, TNumNodes>::CalculateRoughness(
 
         const double c = roughnessLayerResistance * roughnessLayerHeight + timeStepSize + timeStepSize * currentWindSpeed * roughnessLayerResistance *
             surfaceRoughnessFactor * frictionDragCoefficient * frictionDragCoefficient;
-        double currentRoughnessTemperature = (roughnessLayerResistance * roughnessLayerHeight * rVariables.previousRoughnessTemperature + timeStepSize *
+        double currentRoughnessTemperature = (roughnessLayerResistance * roughnessLayerHeight * previous_roughness_temperature + timeStepSize *
             initialSoilTemperature + timeStepSize * currentWindSpeed * roughnessLayerResistance * surfaceRoughnessFactor *
             frictionDragCoefficient * frictionDragCoefficient * currentAirTemperature) / c;
         rVariables.roughnessTemperature += currentRoughnessTemperature / TNumNodes;
