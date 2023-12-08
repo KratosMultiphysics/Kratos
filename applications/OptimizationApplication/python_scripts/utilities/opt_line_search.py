@@ -50,12 +50,14 @@ class ConstStep():
         else:
             raise RuntimeError("\"gradient_scaling\" has unknown type.")
 
+        print("SUNETH", norm)
+
         return norm
 
     @time_decorator()
     def ComputeStep(self) -> float:
         norm = self.ComputeScaleFactor()
-        if not math.isclose(norm, 0.0, abs_tol=1e-16):
+        if not math.isclose(norm, 0.0, abs_tol=1e-22):
             self.step = self._init_step / norm
         else:
             self.step =  self._init_step
@@ -91,6 +93,10 @@ class BBStep(ConstStep):
     def ComputeStep(self) -> KratosOA.CollectiveExpression:
         algorithm_buffered_data = ComponentDataView("algorithm", self._optimization_problem).GetBufferedData()
         norm = self.ComputeScaleFactor()
+        if not math.isclose(norm, 0.0, abs_tol=1e-20):
+            max_step= self._max_step / norm
+        else:
+            max_step = self._max_step
         if self._optimization_problem.GetStep() == 0:
             self.unscaled_step = self._init_step
         else:
@@ -100,18 +106,15 @@ class BBStep(ConstStep):
             d = algorithm_buffered_data.GetValue("control_field_update", 1)
             dy = KratosOA.ExpressionUtils.InnerProduct(d,y)
             dd = KratosOA.ExpressionUtils.InnerProduct(d,d)
-            if not math.isclose(dy, 0.0, abs_tol=1e-16):
+            if not math.isclose(dy, 0.0, abs_tol=1e-40):
                 self.unscaled_step = abs( dd / dy )
             else:
-                self.unscaled_step = self._max_step
+                self.unscaled_step = max_step
 
-        if not math.isclose(norm, 0.0, abs_tol=1e-16):
-            self.step = self.unscaled_step / norm
-        else:
-            self.step =  self.unscaled_step
+        self.step = self.unscaled_step
 
-        if self.step > self._max_step:
-            self.step = self._max_step
+        if self.step > max_step / norm:
+            self.step = max_step  / norm
 
         DictLogger("Line Search info",self.GetInfo())
 
@@ -148,14 +151,14 @@ class QNBBStep(BBStep):
             for i in range(len(y)):
                 yy = y[i] * y[i]
                 yd = y[i] * d[i]
-                if math.isclose(yy, 0.0, abs_tol=1e-16):
+                if math.isclose(yy, 0.0, abs_tol=1e-22):
                     self.step_numpy[i] = self._max_step
                 else:
                     self.step_numpy[i] = abs( yd / yy )
                 if self.step_numpy[i] > self._max_step:
                     self.step_numpy[i] = self._max_step
 
-        if not math.isclose(norm, 0.0, abs_tol=1e-16):
+        if not math.isclose(norm, 0.0, abs_tol=1e-22):
             self.step_numpy[:] /= norm
 
         DictLogger("Line Search info",self.GetInfo())
