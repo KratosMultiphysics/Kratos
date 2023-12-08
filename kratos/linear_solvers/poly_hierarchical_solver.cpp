@@ -19,6 +19,7 @@
 #include "factories/linear_solver_factory.h"
 #include "utilities/proxies.h"
 #include "utilities/sparse_matrix_multiplication_utility.h"
+#include "utilities/binbased_fast_point_locator.h" // BinBasedFastPointLocator
 
 // STL includes
 #include <type_traits> // remove_reference_t, remove_cv_t
@@ -296,7 +297,6 @@ void GetLowerOrderDofs(typename TSparseSpace::MatrixType& rA,
                        std::vector<bool>& rCoarseMask)
 {
     KRATOS_TRY
-
     // Loop through elements and collect the DoFs' IDs
     // that are related to corner vertices.
     // @todo the parallel version of this loop relies on undefined behaviour,
@@ -316,18 +316,19 @@ void GetLowerOrderDofs(typename TSparseSpace::MatrixType& rA,
             // Mark each DoF of all nodes on the equivalent lower order element
             // unless they are constrained as slave dofs in multi-point constraints
             for (std::size_t i_node=0ul; i_node<coarse_node_count; ++i_node) {
-                if (r_geometry[i_node].IsNot(SLAVE) /*&& r_geometry[i_node].IsNot(MASTER)*/) {
+                //if (r_geometry[i_node].IsNot(SLAVE) /*&& r_geometry[i_node].IsNot(MASTER)*/) {
                     const auto& r_node_dofs = r_geometry[i_node].GetDofs();
                     for (const auto& rp_dof : r_node_dofs) {
-                        const std::size_t i_equation = rp_dof->EquationId();
-                        KRATOS_DEBUG_ERROR_IF_NOT(i_equation < TSparseSpace::Size1(rA));
-                        rCoarseMask[i_equation] = true;
+                        const std::size_t i_fine_dof = rp_dof->EquationId();
+                        KRATOS_DEBUG_ERROR_IF_NOT(i_fine_dof < TSparseSpace::Size1(rA));
+
+                        // Flag the DoF as part of the coarse system
+                        rCoarseMask[i_fine_dof] = true;
                     }
-                } // if node is not SLAVE
+                //} // if node is not SLAVE
             }
         } // if (r_entity.IsActive())
-    }
-
+    } // for entity in rModelPart
     KRATOS_CATCH("")
 }
 
@@ -357,120 +358,112 @@ struct IndexPairTraits
 
 
 
+/// @brief Get the relationship between lower and higher order DoFs for the provided @ref Geometry.
+/// @tparam TOutputIterator output iterator with the following value type:
+///         @code
+///         std::vector<std::pair<
+///             std::size_t,        // <== index of the quadratic basis function
+///             double              // <== coefficient of the quadratic basis function
+///         >>
+///         @endcode
+/// @param Geometry type of geometry to get the relationships for.
+/// @param itOutput output iterator for the DoF relationships.
+/// @details each output item consists of the index of a higher order DoF and a related coefficient.
+///          The weighted sum of the output items equals the lower order basis function at the index
+///          of the output item. Note that higher order DoFs whose coefficient vanish are omitted.
+///          More formally, the output expresses the lower order basis functions (\f@ \psi \f@) as
+///          a linear combination of the higher order basis functions (\f@ \phi \f@).
+///          \f[
+///             \begin{align}
+///                 \psi_i(\bold x) &= \phi_i(\bold x) + \frac{1}{2} \sum_{j \in S_i}{\phi_j(\bold x)}
+///                 S_i &= \{ j | \psi_i(\bold x_j) \neq 0 \}
+///             \end{align}
+///          \f]
+/// @note The basis functions related to DoFs are assumed to be Lagrangian.
 template <class TOutputIterator>
 void GetNonzeroQuadraticCoefficients(GeometryData::KratosGeometryType Geometry,
                                      TOutputIterator itOutput)
 {
     using G = GeometryData::KratosGeometryType;
     using Pair = std::pair<
-        std::size_t,    // index of the quadratic shape function
-        double          // coefficient of the quadratic shape function
+        std::size_t,    // index of the quadratic basis function
+        double          // coefficient of the quadratic basis function
     >;
     using PairVector = std::vector<Pair>;
     switch (Geometry) {
         case G::Kratos_Point2D: {
-            *itOutput = std::make_pair(0ul, PairVector {{0ul, 1.0}});
+            *itOutput = PairVector {{0ul, 1.0}};
             break;
         }
         case G::Kratos_Point3D: {
-            *itOutput = std::make_pair(0ul, PairVector {{0ul, 1.0}});
+            *itOutput = PairVector {{0ul, 1.0}};
             break;
         }
         case G::Kratos_Line2D2: {
-            *itOutput = std::make_pair(0ul, PairVector {{0ul, 1.0}});
-            *itOutput = std::make_pair(1ul, PairVector {{1ul, 1.0}});
+            *itOutput = PairVector {{0ul, 1.0}};
+            *itOutput = PairVector {{1ul, 1.0}};
             break;
         }
         case G::Kratos_Line2D3: {
-            *itOutput = std::make_pair(0ul, PairVector {{0ul, 1.0},
-                                                        {2ul, 0.5}});
-            *itOutput = std::make_pair(1ul, PairVector {{1ul, 1.0},
-                                                        {2ul, 0.5}});
+            *itOutput = PairVector {{0ul, 1.0},
+                                    {2ul, 0.5}};
+            *itOutput = PairVector {{1ul, 1.0},
+                                    {2ul, 0.5}};
             break;
         }
         case G::Kratos_Line3D2: {
-            *itOutput = std::make_pair(0ul, PairVector {{0ul, 1.0}});
-            *itOutput = std::make_pair(1ul, PairVector {{1ul, 1.0}});
+            *itOutput = PairVector {{0ul, 1.0}};
+            *itOutput = PairVector {{1ul, 1.0}};
             break;
         }
         case G::Kratos_Line3D3: {
-            *itOutput = std::make_pair(0ul, PairVector {{0ul, 1.0},
-                                                        {2ul, 0.5}});
-            *itOutput = std::make_pair(1ul, PairVector {{1ul, 1.0},
-                                                        {2ul, 0.5}});
+            *itOutput = PairVector {{0ul, 1.0},
+                                    {2ul, 0.5}};
+            *itOutput = PairVector {{1ul, 1.0},
+                                    {2ul, 0.5}};
             break;
         }
         case G::Kratos_Triangle2D6: {
-            *itOutput++ = std::make_pair(0ul,
-                                         PairVector {
-                                            {0ul, 1.0},
-                                            {3ul, 0.5},
-                                            {5ul, 0.5}
-                                         });
-            *itOutput++ = std::make_pair(1ul,
-                                         PairVector {
-                                            {1ul, 1.0},
-                                            {3ul, 0.5},
-                                            {4ul, 0.5}
-                                         });
-            *itOutput++ = std::make_pair(2ul,
-                                         PairVector {
-                                            {2ul, 1.0},
-                                            {4ul, 0.5},
-                                            {5ul, 0.5}
-                                         });
+            *itOutput++ = PairVector {{0ul, 1.0},
+                                      {3ul, 0.5},
+                                      {5ul, 0.5}};
+            *itOutput++ = PairVector {{1ul, 1.0},
+                                      {3ul, 0.5},
+                                      {4ul, 0.5}};
+            *itOutput++ = PairVector {{2ul, 1.0},
+                                      {4ul, 0.5},
+                                      {5ul, 0.5}};
             break;
         }
         case G::Kratos_Triangle3D6: {
-            *itOutput++ = std::make_pair(0ul,
-                                         PairVector {
-                                            {0ul, 1.0},
-                                            {3ul, 0.5},
-                                            {5ul, 0.5}
-                                         });
-            *itOutput++ = std::make_pair(1ul,
-                                         PairVector {
-                                            {1ul, 1.0},
-                                            {3ul, 0.5},
-                                            {4ul, 0.5}
-                                         });
-            *itOutput++ = std::make_pair(2ul,
-                                         PairVector {
-                                            {2ul, 1.0},
-                                            {4ul, 0.5},
-                                            {5ul, 0.5}
-                                         });
+            *itOutput++ = PairVector {{0ul, 1.0},
+                                      {3ul, 0.5},
+                                      {5ul, 0.5}};
+            *itOutput++ = PairVector {{1ul, 1.0},
+                                      {3ul, 0.5},
+                                      {4ul, 0.5}};
+            *itOutput++ = PairVector {{2ul, 1.0},
+                                      {4ul, 0.5},
+                                      {5ul, 0.5}};
             break;
         }
         case G::Kratos_Tetrahedra3D10: {
-            *itOutput++ = std::make_pair(0ul,
-                                         PairVector {
-                                            {0ul, 1.0},
-                                            {4ul, 0.5},
-                                            {6ul, 0.5},
-                                            {7ul, 0.5}
-                                         });
-            *itOutput++ = std::make_pair(1ul,
-                                         PairVector {
-                                            {1ul, 1.0},
-                                            {4ul, 0.5},
-                                            {5ul, 0.5},
-                                            {8ul, 0.5}
-                                         });
-            *itOutput++ = std::make_pair(2ul,
-                                         PairVector {
-                                            {2ul, 1.0},
-                                            {5ul, 0.5},
-                                            {6ul, 0.5},
-                                            {9ul, 0.5}
-                                         });
-            *itOutput++ = std::make_pair(3ul,
-                                         PairVector {
-                                            {3ul, 1.0},
-                                            {7ul, 0.5},
-                                            {8ul, 0.5},
-                                            {9ul, 0.5}
-                                         });
+            *itOutput++ = PairVector {{0ul, 1.0},
+                                      {4ul, 0.5},
+                                      {6ul, 0.5},
+                                      {7ul, 0.5}};
+            *itOutput++ = PairVector {{1ul, 1.0},
+                                      {4ul, 0.5},
+                                      {5ul, 0.5},
+                                      {8ul, 0.5}};
+            *itOutput++ = PairVector {{2ul, 1.0},
+                                      {5ul, 0.5},
+                                      {6ul, 0.5},
+                                      {9ul, 0.5}};
+            *itOutput++ = PairVector {{3ul, 1.0},
+                                      {7ul, 0.5},
+                                      {8ul, 0.5},
+                                      {9ul, 0.5}};
             break;
         }
         default: KRATOS_ERROR << "unsupported geometry type " << (int) Geometry << "\n";
@@ -479,8 +472,29 @@ void GetNonzeroQuadraticCoefficients(GeometryData::KratosGeometryType Geometry,
 
 
 
+namespace Detail {
+struct MPCDoF
+{
+    std::size_t mCounterPartIndex;  // <== index of the MPC's other DoF (master or slave)
+
+    std::vector<std::tuple<
+        const Element*,             // <== element that contains the MPC DoF's counterpart
+        std::size_t,                // <== index of the coarse node within the element that contains the MPC DoF's counterpart
+        std::size_t                 // <== index of the MPC DoF's counterpart within the coarse node
+    >> mContainingElements;
+}; // struct MPCDoF
+
+using MasterSlaveDofMap = std::unordered_map<
+    std::size_t,            // <== equation ID of the MPC DoF
+    MPCDoF                  // <== additional info related to the MPC DoF
+>;
+} // namespace Detail
+
+
+
 template <Globals::DataLocation TEntityLocation>
 void MapHigherToLowerOrder(const ModelPart& rModelPart,
+                           std::optional<Detail::MasterSlaveDofMap>& rMasterSlaveDofMap,
                            const std::vector<bool>& rCoarseDofMask,
                            const std::vector<std::size_t>& rCoarseDofMap,
                            std::map<
@@ -506,22 +520,21 @@ void MapHigherToLowerOrder(const ModelPart& rModelPart,
         const std::size_t fine_vertex_count = r_fine_geometry.PointsNumber();
 
         if (r_entity.IsActive() && fine_vertex_count) {
-            std::vector<std::pair<
-                std::size_t,        // <== coarse DoF index
+            std::vector<
                 std::vector<std::pair<
                     std::size_t,    // <== fine DoF index
                     double          // <== fine DoF coefficient
                 >>
-            >> restriction_coefficients;
+            > restriction_coefficients;
             restriction_coefficients.reserve(4ul); // <== reserve assuming a tetrahedron (linear vertex count)
             GetNonzeroQuadraticCoefficients(r_fine_geometry.GetGeometryType(),
                                             std::back_inserter(restriction_coefficients));
 
-            for (const auto& r_restriction_pair : restriction_coefficients) {
-                const std::size_t i_coarse_vertex = r_restriction_pair.first;
+            for (std::size_t i_coarse_vertex=0ul; i_coarse_vertex<restriction_coefficients.size(); ++i_coarse_vertex) {
+                const auto& r_restriction_terms = restriction_coefficients[i_coarse_vertex];
                 const auto& r_coarse_node_dofs = r_fine_geometry[i_coarse_vertex].GetDofs();
 
-                for (const auto& r_fine_coefficient_pair : r_restriction_pair.second) {
+                for (const auto& r_fine_coefficient_pair : r_restriction_terms) {
                     const std::size_t i_fine_vertex = r_fine_coefficient_pair.first;
                     const auto& r_fine_node_dofs = r_fine_geometry[i_fine_vertex].GetDofs();
                     KRATOS_ERROR_IF_NOT(r_fine_node_dofs.size() == r_coarse_node_dofs.size());
@@ -535,12 +548,56 @@ void MapHigherToLowerOrder(const ModelPart& rModelPart,
                             const std::size_t i_fine_dof = r_fine_node_dofs[i_node_dof]->EquationId();
                             rRestrictionMap.emplace(std::make_pair(i_coarse_dof, i_fine_dof), r_fine_coefficient_pair.second);
                             rInterpolationMap.emplace(std::make_pair(i_fine_dof, i_coarse_dof), r_fine_coefficient_pair.second);
-                        }
-                    }
-                }
+
+                            // Check whether the coarse DoF participates in an MPC, and record
+                            // data about its connectivities if it does.
+                            if (rMasterSlaveDofMap.has_value()) {
+                                const auto it_mpc_dof = rMasterSlaveDofMap->find(i_coarse_dof_in_fine_system);
+                                if (it_mpc_dof != rMasterSlaveDofMap->end()) {
+                                    it_mpc_dof->second.mContainingElements.emplace_back(&r_entity,
+                                                                                        i_coarse_vertex,
+                                                                                        i_node_dof);
+                                } // if it_mpc_dof != rMasterSlaveDofMap->end
+                            } // rMasterSlaveDofMap.has_value()
+                        } // if rCoarseDofMask[i_coarse_dof_in_fine_system]
+                    } // for i_node_dof in range(dofs_per_node)
+                } // for coefficient_pair in restriction_terms
             }
         } // if (r_entity.IsActive())
-    }
+
+        // Loop over MPC DoFs and register their contributions
+        if (rMasterSlaveDofMap.has_value()) {
+            for (const auto& r_mpc_pair : rMasterSlaveDofMap.value()) {
+                const std::size_t i_coarse_dof_in_fine_system = r_mpc_pair.first;
+                const std::size_t i_coarse_dof = rCoarseDofMap[i_coarse_dof_in_fine_system];
+                const auto& r_mpc_info = r_mpc_pair.second;
+                for (auto entry : r_mpc_info.mContainingElements) {
+                    const Geometry<Node>& r_fine_geometry = std::get<0>(entry)->GetGeometry();
+                    const std::size_t i_coarse_vertex = std::get<1>(entry);
+                    const std::size_t i_node_dof = std::get<2>(entry);
+
+                    std::vector<
+                        std::vector<std::pair<
+                            std::size_t,    // <== fine DoF index
+                            double          // <== fine DoF coefficient
+                        >>
+                    > restriction_coefficients;
+                    restriction_coefficients.reserve(4ul); // <== reserve assuming a tetrahedron (linear vertex count)
+                    GetNonzeroQuadraticCoefficients(r_fine_geometry.GetGeometryType(),
+                                                    std::back_inserter(restriction_coefficients));
+                    KRATOS_ERROR_IF_NOT(i_coarse_vertex < restriction_coefficients.size());
+
+                    const auto& r_restriction_terms = restriction_coefficients[i_coarse_vertex];
+                    for (const auto& r_fine_coefficient_pair : r_restriction_terms) {
+                        const std::size_t i_fine_vertex = r_fine_coefficient_pair.first;
+                        const std::size_t i_fine_dof = r_fine_geometry[i_fine_vertex].GetDofs()[i_node_dof]->EquationId();
+                        rRestrictionMap.emplace(std::make_pair(i_coarse_dof, i_fine_dof), r_fine_coefficient_pair.second);
+                        rInterpolationMap.emplace(std::make_pair(i_fine_dof, i_coarse_dof), r_fine_coefficient_pair.second);
+                    }
+                }
+            } // for r_mpc_pair in rMasterSlaveDofMap.value()
+        } // if rMasterSlaveDofMap.has_value()
+    } // for entity in rModelPart
     KRATOS_CATCH("")
 }
 
@@ -612,7 +669,7 @@ void PolyHierarchicalSolver<TSparseSpace,TDenseSpace,TReorderer>::ProvideAdditio
             }
         }
     } else {
-        // Fill the fine=>coarse DoF index map
+        // Fill the fine => coarse DoF index map
         for (std::size_t i_mask=0; i_mask<system_size; ++i_mask) {
             if (coarse_mask[i_mask]) {
                 coarse_dof_indices[i_mask] = masked_count++;
@@ -628,13 +685,38 @@ void PolyHierarchicalSolver<TSparseSpace,TDenseSpace,TReorderer>::ProvideAdditio
     typename TSparseSpace::MatrixType& r_interpolation_operator = mpImpl->mInterpolationOperator;
 
     {
+        // Construct a map relating slave DoFs to their masters,
+        // which effectively couples the corresponding basis functions'
+        // support.
+        std::optional<Detail::MasterSlaveDofMap> master_slave_dof_map;
+        if (!rModelPart.MasterSlaveConstraints().empty()) {
+            Detail::MasterSlaveDofMap& r_map = master_slave_dof_map.emplace(); // <== construct an empty map in the optional
+            for (const auto& r_constraint : rModelPart.MasterSlaveConstraints()) {
+                // Disallow master-slave constraints that have multiple master or slave DoFs
+                // @todo add support for constraints with multiple master or slave DoFs @matekelemen
+                KRATOS_ERROR_IF_NOT(r_constraint.GetMasterDofsVector().size() == 1);
+                KRATOS_ERROR_IF_NOT(r_constraint.GetSlaveDofsVector().size() == 1);
+
+                const std::size_t master_id = r_constraint.GetMasterDofsVector().front()->EquationId();
+                const std::size_t slave_id = r_constraint.GetSlaveDofsVector().front()->EquationId();
+
+                KRATOS_ERROR_IF_NOT(!r_map.emplace(master_id, Detail::MasterSlaveDofMap::mapped_type {slave_id, {}}).second)
+                    << "DoF " << r_constraint.GetMasterDofsVector().front()->Id()
+                    << " appears in more than one multi-point constraint, which is not supported yet\n";
+
+                KRATOS_ERROR_IF_NOT(!r_map.emplace(slave_id, Detail::MasterSlaveDofMap::mapped_type {master_id, {}}).second)
+                    << "DoF " << r_constraint.GetSlaveDofsVector().front()->Id()
+                    << " appears in more than one multi-point constraint, which is not supported yet\n";
+            } // for r_constraint in MasterSlaveConstraints
+        } // if not MasterSlaveConstraint.empty()
+
         // The restriction and interpolation operators are linear, so they can be stored in
         // matrix format. In this case they are stored as sparse matrices, which compicates
         // their construction somewhat. Entries are calculated by looping over elements and
         // their nodes, which does not guarantee that DoFs are iterated in sorted order of
         // their equation IDs (row indices of the restriction operator), and each DoF may
         // be iterated over more than once. This poses a problem for the efficiency of
-        // filling the sparse matrices, so the construction is broken down to two stages:
+        // filling the sparse matrices, so the construction is broken down into two stages:
         // 1) collect the sparse matrix entries in a set, sorted in row-major order
         // 2) insert entries to the sparse matrix from the set
         std::map<
@@ -646,6 +728,7 @@ void PolyHierarchicalSolver<TSparseSpace,TDenseSpace,TReorderer>::ProvideAdditio
         // Collect entries of the restriction operator's sparse matrix
         // from elements
         MapHigherToLowerOrder<Globals::DataLocation::Element>(rModelPart,
+                                                              master_slave_dof_map,
                                                               coarse_mask,
                                                               coarse_dof_indices,
                                                               restriction_map,
@@ -657,6 +740,7 @@ void PolyHierarchicalSolver<TSparseSpace,TDenseSpace,TReorderer>::ProvideAdditio
         // Collect entries of the restriction operator's sparse matrix
         // from conditions
         //MapHigherToLowerOrder<Globals::DataLocation::Condition>(rModelPart,
+        //                                                        master_slave_dof_map,
         //                                                        coarse_dof_indices,
         //                                                        restriction_map,
         //                                                        interpolation_map);
