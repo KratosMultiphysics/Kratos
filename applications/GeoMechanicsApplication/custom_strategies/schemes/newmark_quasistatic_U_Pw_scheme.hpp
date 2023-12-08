@@ -99,7 +99,7 @@ public:
             // Compute smoothed nodal variables
             block_for_each(
                 rModelPart.Nodes(),
-                [this](Node& rNode)
+                [](Node& rNode)
                 {
                     if (const double& nodal_area = rNode.FastGetSolutionStepValue(NODAL_AREA);
                         nodal_area > 1.0e-20)
