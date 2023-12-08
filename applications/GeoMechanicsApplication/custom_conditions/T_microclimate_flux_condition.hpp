@@ -36,7 +36,6 @@ public:
     using NodeType = Node;
     using GeometryType = Geometry<NodeType>;
     using NodesArrayType = Geometry<NodeType>::PointsArrayType;
-    using VectorType = Vector;
     using MatrixType = Matrix;
 
     // Default constructor
@@ -53,7 +52,7 @@ public:
     void InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
 
     void CalculateLocalSystem(MatrixType&        rLeftHandSideMatrix,
-                              VectorType&        rRightHandSideVector,
+                              Vector&            rRightHandSideVector,
                               const ProcessInfo& rCurrentProcessInfo) override;
 
 private:
@@ -82,9 +81,9 @@ private:
     void InitializeElementVariables(const ProcessInfo& rCurrentProcessInfo);
 
     void CalculateAll(MatrixType&        rLeftHandSideMatrix,
-                      VectorType&        rRightHandSideVector,
+                      Vector&            rRightHandSideVector,
                       const ProcessInfo& rCurrentProcessInfo) override;
-    void CalculateAndAddRHS(VectorType& rRightHandSideVector,
+    void CalculateAndAddRHS(Vector& rRightHandSideVector,
                             const Vector& rNodalTemperatures);
     void CalculateAndAddLHS(MatrixType& rLeftHandSideMatrix);
 
