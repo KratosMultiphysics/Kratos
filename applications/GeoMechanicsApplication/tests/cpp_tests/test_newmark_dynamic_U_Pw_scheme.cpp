@@ -41,11 +41,11 @@ public:
     void CreateValidModelPart(const bool Add3DDofs)
     {
         auto& result = mModel.CreateModelPart("dummy", 2);
+        result.AddNodalSolutionStepVariable(DISPLACEMENT);
         result.AddNodalSolutionStepVariable(VELOCITY);
         result.AddNodalSolutionStepVariable(ACCELERATION);
-        result.AddNodalSolutionStepVariable(DT_WATER_PRESSURE);
-        result.AddNodalSolutionStepVariable(DISPLACEMENT);
         result.AddNodalSolutionStepVariable(WATER_PRESSURE);
+        result.AddNodalSolutionStepVariable(DT_WATER_PRESSURE);
         result.AddNodalSolutionStepVariable(ROTATION);
         result.AddNodalSolutionStepVariable(ANGULAR_VELOCITY);
         result.AddNodalSolutionStepVariable(ANGULAR_ACCELERATION);

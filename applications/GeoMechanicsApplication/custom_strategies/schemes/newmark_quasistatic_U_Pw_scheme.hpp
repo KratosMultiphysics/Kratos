@@ -72,11 +72,9 @@ public:
 
         if (rModelPart.GetProcessInfo()[NODAL_SMOOTHING])
         {
-            unsigned int dim = rModelPart.GetProcessInfo()[DOMAIN_SIZE];
-
-            SizeType stress_tensor_size = STRESS_TENSOR_SIZE_2D;
-            if (dim == N_DIM_3D)
-                stress_tensor_size = STRESS_TENSOR_SIZE_3D;
+            const unsigned int dim = rModelPart.GetProcessInfo()[DOMAIN_SIZE];
+            const auto stress_tensor_size =
+                dim == N_DIM_3D ? STRESS_TENSOR_SIZE_3D : STRESS_TENSOR_SIZE_2D;
 
             // Clear nodal variables
             block_for_each(
