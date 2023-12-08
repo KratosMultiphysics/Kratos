@@ -282,7 +282,7 @@ void TMicroClimateFluxCondition<TDim, TNumNodes>::CalculateNodalFluxes(
     constexpr double psychometricConstant = 0.63;
     constexpr double surfaceResistance = 30.0;
 
-    rVariables.previousStorage = rVariables.waterStorage;
+    const auto previous_storage = rVariables.waterStorage;
     rVariables.previousRadiation = rVariables.netRadiation;
     rVariables.waterStorage = 0.0;
     rVariables.netRadiation = 0.0;
@@ -340,23 +340,23 @@ void TMicroClimateFluxCondition<TDim, TNumNodes>::CalculateNodalFluxes(
 
         // Eq 5.36
         const double potentialEvaporation = latentHeatFlux / (waterDensity * latentEvaporationHeat);
-        const double potentialStorage = rVariables.previousStorage + timeStepSize * (precipitation - potentialEvaporation);
+        const double potentialStorage = previous_storage + timeStepSize * (precipitation - potentialEvaporation);
         if (potentialStorage > maximalStorage)
         {
             actualEvaporation = potentialEvaporation;
-            actualPrecipitation = (maximalStorage - rVariables.previousStorage) / timeStepSize + actualEvaporation;
+            actualPrecipitation = (maximalStorage - previous_storage) / timeStepSize + actualEvaporation;
         }
         else if (potentialStorage < minimalStorage)
         {
             actualPrecipitation = precipitation;
-            actualEvaporation = (rVariables.previousStorage - minimalStorage) / timeStepSize + actualPrecipitation;
+            actualEvaporation = (previous_storage - minimalStorage) / timeStepSize + actualPrecipitation;
         }
         else
         {
             actualEvaporation = potentialEvaporation;
             actualPrecipitation = precipitation;
         }
-        const double actualStorage = rVariables.previousStorage + timeStepSize * (actualPrecipitation - actualEvaporation);
+        const double actualStorage = previous_storage + timeStepSize * (actualPrecipitation - actualEvaporation);
         latentHeatFlux = actualEvaporation * waterDensity * latentEvaporationHeat;
 
         // Eq 5.31

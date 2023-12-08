@@ -81,7 +81,6 @@ protected:
         double netRadiation = 0.0;
         double waterStorage = 0.0;
 
-        double previousStorage;
         double previousRadiation;
 
         array_1d<double, TNumNodes> leftHandSideFlux;
