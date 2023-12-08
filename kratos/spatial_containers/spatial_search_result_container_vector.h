@@ -236,9 +236,7 @@ public:
      */
     SpatialSearchResultContainerReferenceType operator[](const IndexType Index)
     {
-        auto it_found = mMapIdsStored.find(Index);
-        KRATOS_ERROR_IF_NOT(it_found != mMapIdsStored.end()) << "The result container does not exist for index: " << Index << std::endl;
-        return *mPointResults[it_found->second];
+        return *mPointResults[Index];
     }
 
     /**
@@ -248,9 +246,7 @@ public:
      */
     const SpatialSearchResultContainerType& operator[](const IndexType Index) const
     {
-        auto it_found = mMapIdsStored.find(Index);
-        KRATOS_ERROR_IF_NOT(it_found != mMapIdsStored.end()) << "The result container does not exist for index: " << Index << std::endl;
-        return *mPointResults[it_found->second];
+        return *mPointResults[Index];
     }
 
     /**
@@ -321,24 +317,16 @@ public:
 
     /**
      * @brief Initialize the container
-     * @param Index The index to be initialized
      * @param rDataCommunicator The data communicator
      * @return The result container
      */
-    SpatialSearchResultContainerReferenceType InitializeResult(
-        const IndexType Index,
-        const DataCommunicator& rDataCommunicator
-        );
+    SpatialSearchResultContainerReferenceType InitializeResult(const DataCommunicator& rDataCommunicator);
 
     /**
      * @brief Initialize the container
-     * @param Indexes The indexes to be initialized
      * @param rDataCommunicators The data communicators
      */
-    void InitializeResults(
-        const std::vector<IndexType>& rIndexes,
-        const std::vector<const DataCommunicator*>& rDataCommunicators
-        );
+    void InitializeResults(const std::vector<const DataCommunicator*>& rDataCommunicators);
 
     /**
      * @brief Check if coordinates are initialized
@@ -373,15 +361,6 @@ public:
         return mPointResults;
     }
 
-    /**
-     * @brief Get the map of indexes stored
-     * @return The map of indexes stored
-     */
-    IndexMapType& GetMapIdsStored()
-    {
-        return mMapIdsStored;
-    }
-
     ///@}
     ///@name Input and output
     ///@{
@@ -401,8 +380,6 @@ private:
     ///@{
 
     ContainerType mPointResults; /// The results of each point
-    IndexMapType mMapIdsStored;  /// A map of the stored Ids
-
     ///@}
     ///@name Private Operations
     ///@{

@@ -34,7 +34,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISpatialSearchResultContainerVectorIniti
 
     // Initialize result
     const std::size_t index = 0;
-    container_vector.InitializeResult(index, r_data_comm);
+    container_vector.InitializeResult(r_data_comm);
 
     // Check that the result was added correctly
     KRATOS_EXPECT_TRUE(container_vector.HasResult(index));
@@ -53,7 +53,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISpatialSearchResultContainerVectorIniti
     // Initialize result
     const std::vector<std::size_t> indexes{0,1,2,3,4,5,6,7,8,9};
     const std::vector<const DataCommunicator*> data_communicators(indexes.size(), &r_data_comm);
-    container_vector.InitializeResults(indexes, data_communicators);
+    container_vector.InitializeResults(data_communicators);
 
     // Check that the result was added correctly
     for (auto index : indexes) {
@@ -74,7 +74,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISpatialSearchResultContainerVectorClear
     // Initialize result
     Point point = Point(0.5, 0.0, 0.0);
     const std::size_t index = 0;
-    container_vector.InitializeResult(index, r_data_comm);
+    container_vector.InitializeResult(r_data_comm);
 
     // Check that the result was added correctly
     KRATOS_EXPECT_TRUE(container_vector.HasResult(index));
@@ -92,7 +92,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISpatialSearchResultContainerVectorOpera
 
     // Initialize result
     const std::size_t index = 0;
-    container_vector.InitializeResult(index, r_data_comm);
+    container_vector.InitializeResult(r_data_comm);
 
     // Check that the result was added correctly
     auto& r_result = container_vector[index];
@@ -132,7 +132,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(SpatialSearchResultContainerVectorSynchron
     }
 
     // Initialize results
-    container_vector.InitializeResults(indexes, data_communicators);
+    container_vector.InitializeResults(data_communicators);
 
     // Create a result
     GeometricalObject object = GeometricalObject(rank + 1);

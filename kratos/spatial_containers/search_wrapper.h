@@ -382,27 +382,16 @@ private:
         // Retrieving the number of points
         const std::size_t number_of_points = itPointEnd - itPointBegin;
 
-        // Definition of indexes
-        std::vector<IndexType> indexes(number_of_points, 0);
-        IndexPartition<IndexType>(number_of_points).for_each([&indexes, &itPointBegin](std::size_t index) {
-            auto it_point = itPointBegin + index;
-            if constexpr (std::is_same<TPointIteratorType, ModelPart::NodeIterator>::value || std::is_same<TPointIteratorType, ModelPart::NodeConstantIterator>::value) {
-                indexes[index] = it_point->Id();
-            } else {
-                indexes[index] = index;
-            }
-        });
-
         // Initialize results
         {
-            const std::vector<const DataCommunicator*> data_communicators(indexes.size(), &mrDataCommunicator);
-            rResults.InitializeResults(indexes, data_communicators);
+            const std::vector<const DataCommunicator*> data_communicators(number_of_points, &mrDataCommunicator);
+            rResults.InitializeResults(data_communicators);
         }
 
         // Adding the results to the container
-        IndexPartition<IndexType>(number_of_points).for_each([this, &indexes, &itPointBegin, &rResults, &Radius, &allocation_size](std::size_t index) {
+        IndexPartition<IndexType>(number_of_points).for_each([this, &itPointBegin, &rResults, &Radius, &allocation_size](std::size_t index) {
             auto it_point = itPointBegin + index;
-            auto& r_point_result = rResults[indexes[index]];
+            auto& r_point_result = rResults[index];
 
             // Search
             std::vector<ResultType> results;
@@ -448,27 +437,16 @@ private:
         // Retrieving the number of points
         const std::size_t number_of_points = itPointEnd - itPointBegin;
 
-        // Definition of indexes
-        std::vector<IndexType> indexes(number_of_points, 0);
-        IndexPartition<IndexType>(number_of_points).for_each([&indexes, &itPointBegin](std::size_t index) {
-            auto it_point = itPointBegin + index;
-            if constexpr (std::is_same<TPointIteratorType, ModelPart::NodeIterator>::value || std::is_same<TPointIteratorType, ModelPart::NodeConstantIterator>::value) {
-                indexes[index] = it_point->Id();
-            } else {
-                indexes[index] = index;
-            }
-        });
-
         // Initialize results
         {
-            const std::vector<const DataCommunicator*> data_communicators(indexes.size(), &mrDataCommunicator);
-            rResults.InitializeResults(indexes, data_communicators);
+            const std::vector<const DataCommunicator*> data_communicators(number_of_points, &mrDataCommunicator);
+            rResults.InitializeResults(data_communicators);
         }
 
         // Adding the results to the container
-        IndexPartition<IndexType>(number_of_points).for_each([this, &indexes, &itPointBegin, &rResults, &Radius, &allocation_size](std::size_t index) {
+        IndexPartition<IndexType>(number_of_points).for_each([this, &itPointBegin, &rResults, &Radius, &allocation_size](std::size_t index) {
             auto it_point = itPointBegin + index;
-            auto& r_point_result = rResults[indexes[index]];
+            auto& r_point_result = rResults[index];
 
             // Search
             ResultType result;
@@ -506,27 +484,16 @@ private:
         // Retrieving the number of points
         const std::size_t number_of_points = itPointEnd - itPointBegin;
 
-        // Definition of indexes
-        std::vector<IndexType> indexes(number_of_points, 0);
-        IndexPartition<IndexType>(number_of_points).for_each([&indexes, &itPointBegin](std::size_t index) {
-            auto it_point = itPointBegin + index;
-            if constexpr (std::is_same<TPointIteratorType, ModelPart::NodeIterator>::value || std::is_same<TPointIteratorType, ModelPart::NodeConstantIterator>::value) {
-                indexes[index] = it_point->Id();
-            } else {
-                indexes[index] = index;
-            }
-        });
-
         // Initialize results
         {
-            const std::vector<const DataCommunicator*> data_communicators(indexes.size(), &mrDataCommunicator);
-            rResults.InitializeResults(indexes, data_communicators);
+            const std::vector<const DataCommunicator*> data_communicators(number_of_points, &mrDataCommunicator);
+            rResults.InitializeResults(data_communicators);
         }
 
         // Adding the results to the container
-        IndexPartition<IndexType>(number_of_points).for_each([this, &indexes, &itPointBegin, &rResults](std::size_t index) {
+        IndexPartition<IndexType>(number_of_points).for_each([this, &itPointBegin, &rResults](std::size_t index) {
             auto it_point = itPointBegin + index;
-            auto& r_point_result = rResults[indexes[index]];
+            auto& r_point_result = rResults[index];
 
             // Search
             ResultType result;
@@ -566,27 +533,16 @@ private:
         // Retrieving the number of points
         const std::size_t number_of_points = itPointEnd - itPointBegin;
 
-        // Definition of indexes
-        std::vector<IndexType> indexes(number_of_points, 0);
-        IndexPartition<IndexType>(number_of_points).for_each([&indexes, &itPointBegin](std::size_t index) {
-            auto it_point = itPointBegin + index;
-            if constexpr (std::is_same<TPointIteratorType, ModelPart::NodeIterator>::value || std::is_same<TPointIteratorType, ModelPart::NodeConstantIterator>::value) {
-                indexes[index] = it_point->Id();
-            } else {
-                indexes[index] = index;
-            }
-        });
-
         // Initialize results
         {
-            const std::vector<const DataCommunicator*> data_communicators(indexes.size(), &mrDataCommunicator);
-            rResults.InitializeResults(indexes, data_communicators);
+            const std::vector<const DataCommunicator*> data_communicators(number_of_points, &mrDataCommunicator);
+            rResults.InitializeResults(data_communicators);
         }
 
         // Adding the results to the container
-        IndexPartition<IndexType>(number_of_points).for_each([this, &indexes, &itPointBegin, &rResults](std::size_t index) {
+        IndexPartition<IndexType>(number_of_points).for_each([this, &itPointBegin, &rResults](std::size_t index) {
             auto it_point = itPointBegin + index;
-            auto& r_point_result = rResults[indexes[index]];
+            auto& r_point_result = rResults[index];
 
             // Search
             ResultType result;
@@ -632,7 +588,7 @@ private:
 
         // Prepare MPI search
         DistributedSearchInformation search_info;
-        const std::vector<IndexType> all_points_ids = SearchUtilities::SynchronousPointSynchronizationWithBoundingBox(itPointBegin, itPointEnd, search_info, r_local_bb, Radius, mrDataCommunicator);
+        SearchUtilities::SynchronousPointSynchronizationWithBoundingBox(itPointBegin, itPointEnd, search_info, r_local_bb, Radius, mrDataCommunicator);
 
         // Initialize results
         PrepareResultsInProperRanks(rResults, search_info);
@@ -646,7 +602,7 @@ private:
             rTLS.point[0] = search_info.PointCoordinates[i_point * 3 + 0];
             rTLS.point[1] = search_info.PointCoordinates[i_point * 3 + 1];
             rTLS.point[2] = search_info.PointCoordinates[i_point * 3 + 2];
-            auto& r_point_result = rResults[search_info.Indexes[i_point]];
+            auto& r_point_result = rResults[i_point];
 
             // Search
             std::vector<ResultType> results;
@@ -694,7 +650,7 @@ private:
 
         // Prepare MPI search
         DistributedSearchInformation search_info;
-        const std::vector<IndexType> all_points_ids = SearchUtilities::SynchronousPointSynchronizationWithBoundingBox(itPointBegin, itPointEnd, search_info, r_local_bb, Radius, mrDataCommunicator);
+        SearchUtilities::SynchronousPointSynchronizationWithBoundingBox(itPointBegin, itPointEnd, search_info, r_local_bb, Radius, mrDataCommunicator);
 
         // Initialize results
         PrepareResultsInProperRanks(rResults, search_info);
@@ -708,7 +664,7 @@ private:
             rTLS.point[0] = search_info.PointCoordinates[i_point * 3 + 0];
             rTLS.point[1] = search_info.PointCoordinates[i_point * 3 + 1];
             rTLS.point[2] = search_info.PointCoordinates[i_point * 3 + 2];
-            auto& r_point_result = rResults[search_info.Indexes[i_point]];
+            auto& r_point_result = rResults[i_point];
 
             // Result of search
             ResultType local_result;
@@ -756,7 +712,7 @@ private:
 
         // Prepare MPI search
         DistributedSearchInformation search_info;
-        const std::vector<IndexType> all_points_ids = SearchUtilities::SynchronousPointSynchronizationWithBoundingBox(itPointBegin, itPointEnd, search_info, r_local_bb, max_radius, mrDataCommunicator);
+        SearchUtilities::SynchronousPointSynchronizationWithBoundingBox(itPointBegin, itPointEnd, search_info, r_local_bb, max_radius, mrDataCommunicator);
 
         // Initialize results
         PrepareResultsInProperRanks(rResults, search_info);
@@ -770,7 +726,7 @@ private:
             rTLS.point[0] = search_info.PointCoordinates[i_point * 3 + 0];
             rTLS.point[1] = search_info.PointCoordinates[i_point * 3 + 1];
             rTLS.point[2] = search_info.PointCoordinates[i_point * 3 + 2];
-            auto& r_point_result = rResults[search_info.Indexes[i_point]];
+            auto& r_point_result = rResults[i_point];
 
             // Result of search
             ResultType local_result;
@@ -815,7 +771,7 @@ private:
 
         // Prepare MPI search
         DistributedSearchInformation search_info;
-        const std::vector<IndexType> all_points_ids = SearchUtilities::SynchronousPointSynchronizationWithBoundingBox(itPointBegin, itPointEnd, search_info, r_local_bb, 0.0, mrDataCommunicator);
+        SearchUtilities::SynchronousPointSynchronizationWithBoundingBox(itPointBegin, itPointEnd, search_info, r_local_bb, 0.0, mrDataCommunicator);
 
         // Initialize results
         PrepareResultsInProperRanks(rResults, search_info);
@@ -829,7 +785,7 @@ private:
             rTLS.point[0] = search_info.PointCoordinates[i_point * 3 + 0];
             rTLS.point[1] = search_info.PointCoordinates[i_point * 3 + 1];
             rTLS.point[2] = search_info.PointCoordinates[i_point * 3 + 2];
-            auto& r_point_result = rResults[search_info.Indexes[i_point]];
+            auto& r_point_result = rResults[i_point];
 
             // Result of search
             ResultType local_result;

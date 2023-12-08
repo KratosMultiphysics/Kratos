@@ -356,7 +356,6 @@ void SearchWrapper<TSearchObject>::PrepareResultsInProperRanks(
     // The base sub data communicator name
     const std::string base_name = "SubCommunicator_";
     const auto& r_ranks = rSearchInfo.Ranks;
-    const auto& r_indexes = rSearchInfo.Indexes;
     std::vector<const DataCommunicator*> data_communicators(r_ranks.size(), nullptr);
     std::unordered_map<std::vector<int>, const DataCommunicator*, VectorHash> data_communicators_database; // NOTE: WE use this to avoid the creating of strings concatenating integers and the seach of std::string that is expensive
     for (std::size_t i = 0; i < r_ranks.size(); ++i) {
@@ -373,7 +372,7 @@ void SearchWrapper<TSearchObject>::PrepareResultsInProperRanks(
             data_communicators_database.insert({r_current_ranks, &r_sub_communicator});
         }
     }
-    rResults.InitializeResults(r_indexes, data_communicators);
+    rResults.InitializeResults(data_communicators);
 }
 
 /***********************************************************************************/

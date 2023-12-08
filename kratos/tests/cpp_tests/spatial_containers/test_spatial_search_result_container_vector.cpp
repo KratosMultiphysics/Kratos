@@ -32,7 +32,7 @@ KRATOS_TEST_CASE_IN_SUITE(SpatialSearchResultContainerVectorInitializeResult, Kr
     // Initialize result
     const std::size_t index = 0;
     DataCommunicator data_communicator;
-    container_vector.InitializeResult(index, data_communicator);
+    container_vector.InitializeResult(data_communicator);
 
     // Check that the result was added correctly
     KRATOS_EXPECT_TRUE(container_vector.HasResult(index));
@@ -49,7 +49,7 @@ KRATOS_TEST_CASE_IN_SUITE(SpatialSearchResultContainerVectorInitializeResults, K
     DataCommunicator data_communicator;
     const std::vector<std::size_t> indexes{0,1,2,3,4,5,6,7,8,9};
     const std::vector<const DataCommunicator*> data_communicators(indexes.size(), &data_communicator);
-    container_vector.InitializeResults(indexes, data_communicators);
+    container_vector.InitializeResults(data_communicators);
 
     // Check that the result was added correctly
     for (auto index : indexes) {
@@ -67,7 +67,7 @@ KRATOS_TEST_CASE_IN_SUITE(SpatialSearchResultContainerVectorClear, KratosCoreFas
     // Initialize result
     const std::size_t index = 0;
     DataCommunicator data_communicator;
-    container_vector.InitializeResult(index, data_communicator);
+    container_vector.InitializeResult(data_communicator);
 
     // Check that the result was added correctly
     KRATOS_EXPECT_TRUE(container_vector.HasResult(index));
@@ -83,7 +83,7 @@ KRATOS_TEST_CASE_IN_SUITE(SpatialSearchResultContainerVectorOperators, KratosCor
     // Initialize result
     const std::size_t index = 0;
     DataCommunicator data_communicator;
-    container_vector.InitializeResult(index, data_communicator);
+    container_vector.InitializeResult(data_communicator);
 
     // Check that the result was added correctly
     auto& r_result = container_vector[index];
@@ -101,7 +101,7 @@ KRATOS_TEST_CASE_IN_SUITE(SpatialSearchResultContainerVectorSynchronizeAll, Krat
     DataCommunicator data_communicator;
     const std::vector<std::size_t> indexes{0,1};
     const std::vector<const DataCommunicator*> data_communicators(indexes.size(), &data_communicator);
-    container_vector.InitializeResults(indexes, data_communicators);
+    container_vector.InitializeResults(data_communicators);
 
     // Container 1
     auto& r_container_1 = container_vector[0];

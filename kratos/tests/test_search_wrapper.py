@@ -160,7 +160,7 @@ class TestSearchWrapper(KratosUnittest.TestCase):
         self.assertGreater(check, 0)
         if number_search_results > 0:
             self.assertEqual(results.NumberOfSearchResults(), 1)
-            node_results = results[self.node_id]
+            node_results = results[0]
             self.assertEqual(node_results.NumberOfGlobalResults(), 8)
             ids = node_results.GetResultIndices()
             self.assertEqual(len(ids), 8)
@@ -185,7 +185,7 @@ class TestSearchWrapper(KratosUnittest.TestCase):
         self.assertGreater(check, 0)
         if number_search_results > 0:
             self.assertEqual(results.NumberOfSearchResults(), 1)
-            node_results = results[self.node_id]
+            node_results = results[0]
             self.assertEqual(node_results.NumberOfGlobalResults(), 1)
             # Local result
             if node_results.NumberOfLocalResults() == 1:
@@ -214,7 +214,7 @@ class TestSearchWrapper(KratosUnittest.TestCase):
         self.assertGreater(check, 0)
         if number_search_results > 0:
             self.assertEqual(results.NumberOfSearchResults(), 1)
-            node_results = results[self.node_id]
+            node_results = results[0]
             self.assertEqual(node_results.NumberOfGlobalResults(), 1)
             # Local result
             if node_results.NumberOfLocalResults() == 1:
@@ -261,7 +261,7 @@ class TestSearchWrapper(KratosUnittest.TestCase):
         self.assertGreater(check, 0)
         if number_search_results > 0:
             self.assertEqual(results.NumberOfSearchResults(), 1)
-            node_results = results[self.node_id]
+            node_results = results[0]
             self.assertFalse(node_results.IsObjectFound())
 
     def test_SearchWrapperKDTree_SearchInRadius(self):
