@@ -192,7 +192,8 @@ private:
     ///@name Member Variables
     ///@{
 
-    size_t mCalcValueTimeStep = 1;
+    double mMeasurementDeltaTime;
+    SizeType mMeasurementTimeSteps;
     Parameters mMeasurementData;
     std::string mResponsePartName;
     std::unordered_map<IndexType, std::vector<IndexType>> mElementNodeMap;
@@ -206,6 +207,10 @@ private:
     ///@{
 
     void ComputeNeighboringElementNodeMap();
+
+    void InterpolateNodalMeasurementData(Vector& rNodalMeasuredDisplacement,
+                                         const IndexType& rNodeId,
+                                         const double& rSimulationTime);
 
     ///@}
     ///@name Private  Access

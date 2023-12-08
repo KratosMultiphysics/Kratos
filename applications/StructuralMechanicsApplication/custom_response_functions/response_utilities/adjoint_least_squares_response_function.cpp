@@ -25,10 +25,13 @@ namespace Kratos
         mMeasurementData = MeasurementData;
         mResponsePartName = ResponseSettings["response_part_name"].GetString();
 
+        // Assuming constant measurement time step
+        mMeasurementDeltaTime = MeasurementData["TIME"][1].GetDouble() - MeasurementData["TIME"][0].GetDouble();
+        mMeasurementTimeSteps = (MeasurementData["TIME"].GetVector()).size();
+
         // Check if measurement data for all nodes in response model part is available
         ModelPart& response_part = rModelPart.GetSubModelPart(mResponsePartName);
         for(auto& node_i : response_part.Nodes()){
-            KRATOS_WATCH("NODE_" + std::to_string(node_i.Id()))
             KRATOS_ERROR_IF_NOT( mMeasurementData.Has("NODE_" + std::to_string(node_i.Id())) )
                 << "AdjointNodalDisplacementResponseFunction: Node" << node_i.Id() << " has no measurement data." << std::endl;
         }
@@ -54,11 +57,7 @@ namespace Kratos
         const Variable<double>& r_z_dof = KratosComponents<Variable<double>>::Get("DISPLACEMENT_Z");
         
         const Variable<double>& r_time = KratosComponents<Variable<double>>::Get("TIME");
-        const Variable<double>& r_delta_time = KratosComponents<Variable<double>>::Get("DELTA_TIME");
-        
-        double time = rProcessInfo.GetValue(r_time);
-        double delta_time = -1 * rProcessInfo.GetValue(r_delta_time);
-        int time_step = int(((time)/(delta_time)) + 0.5);
+        double simulation_time = rProcessInfo.GetValue(r_time);
 
         Vector u = ZeroVector(3);
         Vector u_m = ZeroVector(3);
@@ -75,9 +74,7 @@ namespace Kratos
                         u[0] = mrModelPart.GetNode(node_id).FastGetSolutionStepValue(r_x_dof, 0);
                         u[1] = mrModelPart.GetNode(node_id).FastGetSolutionStepValue(r_y_dof, 0);
                         u[2] = mrModelPart.GetNode(node_id).FastGetSolutionStepValue(r_z_dof, 0);
-                        u_m[0] = mMeasurementData["NODE_"+ std::to_string(node_id)]["DISPLACEMENT_X"][time_step-1].GetDouble();
-                        u_m[1] = mMeasurementData["NODE_"+ std::to_string(node_id)]["DISPLACEMENT_Y"][time_step-1].GetDouble();
-                        u_m[2] = mMeasurementData["NODE_"+ std::to_string(node_id)]["DISPLACEMENT_Z"][time_step-1].GetDouble();
+                        this->InterpolateNodalMeasurementData(u_m, node_id, simulation_time); 
                         rResponseGradient[i] = u[0] - u_m[0];
                         rResponseGradient[i+1] = u[1] - u_m[1];
                         rResponseGradient[i+2] = u[2] - u_m[2];
@@ -185,7 +182,10 @@ namespace Kratos
     double AdjointLeastSquaresResponseFunction::CalculateValue(ModelPart& rModelPart)
     {
         KRATOS_TRY;
-              
+        
+        const Variable<double>& r_time = KratosComponents<Variable<double>>::Get("TIME");
+        double simulation_time = rModelPart.GetProcessInfo().GetValue(r_time);
+
         const Variable<double>& r_x_dof = KratosComponents<Variable<double>>::Get("DISPLACEMENT_X");
         const Variable<double>& r_y_dof = KratosComponents<Variable<double>>::Get("DISPLACEMENT_Y");
         const Variable<double>& r_z_dof = KratosComponents<Variable<double>>::Get("DISPLACEMENT_Z");
@@ -198,14 +198,11 @@ namespace Kratos
             u[0] = rModelPart.GetNode(node_i.Id()).FastGetSolutionStepValue(r_x_dof , 0);
             u[1] = rModelPart.GetNode(node_i.Id()).FastGetSolutionStepValue(r_y_dof , 0);
             u[2] = rModelPart.GetNode(node_i.Id()).FastGetSolutionStepValue(r_z_dof , 0);
-            u_m[0] = mMeasurementData["NODE_"+ std::to_string(node_i.Id())]["DISPLACEMENT_X"][mCalcValueTimeStep-1].GetDouble();
-            u_m[1] = mMeasurementData["NODE_"+ std::to_string(node_i.Id())]["DISPLACEMENT_Y"][mCalcValueTimeStep-1].GetDouble();
-            u_m[2] = mMeasurementData["NODE_"+ std::to_string(node_i.Id())]["DISPLACEMENT_Z"][mCalcValueTimeStep-1].GetDouble();
+            this->InterpolateNodalMeasurementData(u_m, node_i.Id(), simulation_time);
             value += inner_prod((u - u_m), (u - u_m));
         }
-
-        mCalcValueTimeStep += 1;
         return 0.5 * value;
+        
         KRATOS_CATCH("");
     }
 
@@ -233,6 +230,35 @@ namespace Kratos
         }
 
         KRATOS_CATCH("");
+    }
+
+    void AdjointLeastSquaresResponseFunction::InterpolateNodalMeasurementData(Vector& rNodalMeasuredDisplacement,
+                                                                              const IndexType& rNodeId,
+                                                                              const double& rSimulationTime)
+    {
+        double step = rSimulationTime / mMeasurementDeltaTime;
+        IndexType lower_step = int(step);
+        double lower_weight = int(step) + 1 - step;
+        if (lower_step < mMeasurementTimeSteps){
+            IndexType upper_step = int(step) + 1;
+            double upper_weight = step - int(step);
+
+            rNodalMeasuredDisplacement[0] = lower_weight * mMeasurementData["NODE_"+ std::to_string(rNodeId)]["DISPLACEMENT_X"][lower_step-1].GetDouble() +
+                                            upper_weight * mMeasurementData["NODE_"+ std::to_string(rNodeId)]["DISPLACEMENT_X"][upper_step-1].GetDouble();
+            rNodalMeasuredDisplacement[1] = lower_weight * mMeasurementData["NODE_"+ std::to_string(rNodeId)]["DISPLACEMENT_Y"][lower_step-1].GetDouble() +
+                                            upper_weight * mMeasurementData["NODE_"+ std::to_string(rNodeId)]["DISPLACEMENT_Y"][upper_step-1].GetDouble();
+            rNodalMeasuredDisplacement[2] = lower_weight * mMeasurementData["NODE_"+ std::to_string(rNodeId)]["DISPLACEMENT_Z"][lower_step-1].GetDouble() +
+                                            upper_weight * mMeasurementData["NODE_"+ std::to_string(rNodeId)]["DISPLACEMENT_Z"][upper_step-1].GetDouble();
+        }
+        else{
+
+            rNodalMeasuredDisplacement[0] = mMeasurementData["NODE_"+ std::to_string(rNodeId)]["DISPLACEMENT_X"][lower_step-1].GetDouble();
+            rNodalMeasuredDisplacement[1] = mMeasurementData["NODE_"+ std::to_string(rNodeId)]["DISPLACEMENT_Y"][lower_step-1].GetDouble();
+            rNodalMeasuredDisplacement[2] = mMeasurementData["NODE_"+ std::to_string(rNodeId)]["DISPLACEMENT_Z"][lower_step-1].GetDouble();
+
+
+        }
+
     }
 
     
