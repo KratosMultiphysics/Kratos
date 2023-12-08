@@ -59,6 +59,7 @@ void TMicroClimateFluxCondition<TDim, TNumNodes>::CalculateAll(
         (JContainer[i]).resize(TDim, LocalDim, false);
     Geom.Jacobian(JContainer, this->GetIntegrationMethod());
 
+    const auto nodal_temperatures = VariablesUtilities::GetNodalValues(this->GetGeometry(), TEMPERATURE);
     this->InitializeElementVariables(rCurrentProcessInfo);
 
     // Loop over integration points
@@ -70,7 +71,7 @@ void TMicroClimateFluxCondition<TDim, TNumNodes>::CalculateAll(
                                                                                   IntegrationPoints[GPoint].Weight());
 
         this->CalculateAndAddLHS(rLeftHandSideMatrix);
-        this->CalculateAndAddRHS(rRightHandSideVector);
+        this->CalculateAndAddRHS(rRightHandSideVector, nodal_temperatures);
     }
 
     KRATOS_CATCH("")
@@ -82,7 +83,6 @@ void TMicroClimateFluxCondition<TDim, TNumNodes>::InitializeElementVariables(
 {
     KRATOS_TRY
 
-    mVariables.TemperatureVector = VariablesUtilities::GetNodalValues(this->GetGeometry(), TEMPERATURE);
     this->CalculateNodalFluxes(rCurrentProcessInfo);
 
     // General Variables
@@ -100,7 +100,8 @@ void TMicroClimateFluxCondition<TDim, TNumNodes>::InitializeElementVariables(
 
 template<unsigned int TDim, unsigned int TNumNodes>
 void TMicroClimateFluxCondition<TDim, TNumNodes>::CalculateAndAddRHS(
-    VectorType& rRightHandSideVector)
+    VectorType& rRightHandSideVector,
+    const Vector& rNodalTemperatures)
 {
     auto temporary_matrix = BoundedMatrix<double, TNumNodes, TNumNodes>{outer_prod(mVariables.Np, mVariables.Np) * mVariables.IntegrationCoefficient};
     auto temporary_vector = array_1d<double,TNumNodes>{prod(temporary_matrix, mVariables.rightHandSideFlux)};
@@ -113,7 +114,7 @@ void TMicroClimateFluxCondition<TDim, TNumNodes>::CalculateAndAddRHS(
         flux_matrix(i, i) = mVariables.leftHandSideFlux[i];
     }
     temporary_matrix = prod(temporary_matrix, flux_matrix);
-    temporary_vector = -prod(temporary_matrix, mVariables.TemperatureVector);
+    temporary_vector = -prod(temporary_matrix, rNodalTemperatures);
     GeoElementUtilities::
         AssemblePBlockVector<0, TNumNodes>(rRightHandSideVector, temporary_vector);
 }

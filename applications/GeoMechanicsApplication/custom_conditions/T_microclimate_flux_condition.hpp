@@ -67,9 +67,6 @@ private:
         double minimalStorage;
         double maximalStorage;
 
-        ///Nodal variables
-        Vector TemperatureVector;
-
         double IntegrationCoefficient;
         array_1d<double,TNumNodes> Np;
         double roughnessTemperature = 0.0;
@@ -87,7 +84,8 @@ private:
     void CalculateAll(MatrixType&        rLeftHandSideMatrix,
                       VectorType&        rRightHandSideVector,
                       const ProcessInfo& rCurrentProcessInfo) override;
-    void CalculateAndAddRHS(VectorType& rRightHandSideVector);
+    void CalculateAndAddRHS(VectorType& rRightHandSideVector,
+                            const Vector& rNodalTemperatures);
     void CalculateAndAddLHS(MatrixType& rLeftHandSideMatrix);
 
     double CalculateIntegrationCoefficient(const Matrix& Jacobian,
