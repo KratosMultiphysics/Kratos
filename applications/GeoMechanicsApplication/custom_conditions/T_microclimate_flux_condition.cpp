@@ -122,12 +122,12 @@ void TMicroClimateFluxCondition<TDim, TNumNodes>::CalculateAndAddRHS(
     GeoElementUtilities::
         AssemblePBlockVector<0, TNumNodes>(rRightHandSideVector, mVariables.TVector);
 
-    Matrix TTMatrix = ZeroMatrix(TNumNodes, TNumNodes);
+    auto flux_matrix = Matrix{TNumNodes, TNumNodes, 0.0};
     for (unsigned int i = 0; i < TNumNodes; ++i)
     {
-        TTMatrix(i, i) = mVariables.leftHandSideFlux[i];
+        flux_matrix(i, i) = mVariables.leftHandSideFlux[i];
     }
-    temporary_matrix = prod(temporary_matrix, TTMatrix);
+    temporary_matrix = prod(temporary_matrix, flux_matrix);
     mVariables.TVector = -prod(temporary_matrix, mVariables.TemperatureVector);
     GeoElementUtilities::
         AssemblePBlockVector<0, TNumNodes>(rRightHandSideVector, mVariables.TVector);
@@ -141,13 +141,13 @@ void TMicroClimateFluxCondition<TDim, TNumNodes>::CalculateAndAddLHS(
 
     auto temporary_matrix = BoundedMatrix<double, TNumNodes, TNumNodes>{outer_prod(mVariables.Np, mVariables.Np) * mVariables.IntegrationCoefficient};
 
-    Matrix TTMatrix = ZeroMatrix(TNumNodes, TNumNodes);
+    auto flux_matrix = Matrix{TNumNodes, TNumNodes, 0.0};
     for (unsigned int i = 0; i < TNumNodes; ++i)
     {
-        TTMatrix(i, i) = mVariables.leftHandSideFlux[i];
+        flux_matrix(i, i) = mVariables.leftHandSideFlux[i];
     }
 
-    temporary_matrix = prod(temporary_matrix, TTMatrix);
+    temporary_matrix = prod(temporary_matrix, flux_matrix);
 
     GeoElementUtilities::
         AssemblePBlockMatrix<0, TNumNodes>(rLeftHandSideMatrix, temporary_matrix);
