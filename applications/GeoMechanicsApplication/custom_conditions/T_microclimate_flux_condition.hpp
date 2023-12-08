@@ -99,8 +99,7 @@ private:
 
     void CalculateRoughness(const ProcessInfo& CurrentProcessInfo);
 
-    void CalculateNodalFluxes(const ProcessInfo& CurrentProcessInfo,
-        ElementVariables& rVariables);
+    void CalculateNodalFluxes(const ProcessInfo& CurrentProcessInfo);
 
     void InitializeProperties();
 

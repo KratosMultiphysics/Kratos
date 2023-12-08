@@ -81,11 +81,8 @@ void TMicroClimateFluxCondition<TDim, TNumNodes>::InitializeElementVariables(
 {
     KRATOS_TRY
 
-    // Nodal Variables
     this->InitializeNodalTemperatureVariables();
-
-    // Nodal Variables
-    this->CalculateNodalFluxes(rCurrentProcessInfo, mVariables);
+    this->CalculateNodalFluxes(rCurrentProcessInfo);
 
     // General Variables
     const GeometryType& Geom = this->GetGeometry();
@@ -243,16 +240,15 @@ void TMicroClimateFluxCondition<TDim, TNumNodes>::CalculateRoughness(
 
 template<unsigned int TDim, unsigned int TNumNodes>
 void TMicroClimateFluxCondition<TDim, TNumNodes>::CalculateNodalFluxes(
-    const ProcessInfo& CurrentProcessInfo,
-    ElementVariables& rVariables)
+    const ProcessInfo& CurrentProcessInfo)
 {
-    const double albedoCoefficient = rVariables.albedoCoefficient;
-    const double firstCoverStorageCoefficient = rVariables.firstCoverStorageCoefficient;
-    const double secondCoverStorageCoefficient = rVariables.secondCoverStorageCoefficient;
-    const double thirdCoverStorageCoefficient = rVariables.thirdCoverStorageCoefficient;
-    const double buildEnvironmentRadiation = rVariables.buildEnvironmentRadiation;
-    const double minimalStorage = rVariables.minimalStorage;
-    const double maximalStorage = rVariables.maximalStorage;
+    const double albedoCoefficient = mVariables.albedoCoefficient;
+    const double firstCoverStorageCoefficient = mVariables.firstCoverStorageCoefficient;
+    const double secondCoverStorageCoefficient = mVariables.secondCoverStorageCoefficient;
+    const double thirdCoverStorageCoefficient = mVariables.thirdCoverStorageCoefficient;
+    const double buildEnvironmentRadiation = mVariables.buildEnvironmentRadiation;
+    const double minimalStorage = mVariables.minimalStorage;
+    const double maximalStorage = mVariables.maximalStorage;
 
     const Properties mProperties = this->GetProperties();
 
@@ -269,10 +265,10 @@ void TMicroClimateFluxCondition<TDim, TNumNodes>::CalculateNodalFluxes(
     constexpr double psychometricConstant = 0.63;
     constexpr double surfaceResistance = 30.0;
 
-    const auto previous_storage = rVariables.waterStorage;
-    const auto previous_radiation = rVariables.netRadiation;
-    rVariables.waterStorage = 0.0;
-    rVariables.netRadiation = 0.0;
+    const auto previous_storage = mVariables.waterStorage;
+    const auto previous_radiation = mVariables.netRadiation;
+    mVariables.waterStorage = 0.0;
+    mVariables.netRadiation = 0.0;
 
     for (unsigned int i = 0; i < TNumNodes; ++i)
     {
@@ -286,7 +282,7 @@ void TMicroClimateFluxCondition<TDim, TNumNodes>::CalculateNodalFluxes(
 
         // Eq 5.22
         const double sensibleHeatFluxLeft = airHeatCapacity * airDensity / roughnessLayerResistance;
-        const double sensibleHeatFluxRight = -airHeatCapacity * airDensity * rVariables.roughnessTemperature / roughnessLayerResistance;
+        const double sensibleHeatFluxRight = -airHeatCapacity * airDensity * mVariables.roughnessTemperature / roughnessLayerResistance;
 
         // Eq 5.35
         const double atmosphericResistance = 1.0 / (0.007 + 0.0056 * windSpeed);
@@ -349,10 +345,10 @@ void TMicroClimateFluxCondition<TDim, TNumNodes>::CalculateNodalFluxes(
         // Eq 5.31
         double subsurfaceHeatFlux = netRadiation - sensibleHeatFluxRight - latentHeatFlux + buildEnvironmentRadiation - surfaceHeatStorage;
 
-        rVariables.netRadiation += netRadiation / TNumNodes;
-        rVariables.waterStorage += actualStorage / TNumNodes;
-        rVariables.leftHandSideFlux[i] = sensibleHeatFluxLeft;
-        rVariables.rightHandSideFlux[i] = subsurfaceHeatFlux;
+        mVariables.netRadiation += netRadiation / TNumNodes;
+        mVariables.waterStorage += actualStorage / TNumNodes;
+        mVariables.leftHandSideFlux[i] = sensibleHeatFluxLeft;
+        mVariables.rightHandSideFlux[i] = subsurfaceHeatFlux;
     }
 }
 
