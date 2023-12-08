@@ -66,6 +66,11 @@ public:
     static std::pair<IndexType, typename ContainerExpression<TContainerType>::Pointer> GetEntityCoverageMask(const SensorView<TContainerType>& rSensorView);
 
     template<class TContainerType>
+    static std::pair<IndexType, typename ContainerExpression<TContainerType>::Pointer> GetEntityCoverageMaskWithThreshold(
+        const double threshold,
+        const SensorView<TContainerType>& rSensorView);
+
+    template<class TContainerType>
     static IndexType CountWithInBounds(
         const ContainerExpression<TContainerType>& rContainer,
         const double LowerBound,

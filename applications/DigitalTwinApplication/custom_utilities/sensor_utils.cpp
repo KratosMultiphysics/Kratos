@@ -241,6 +241,30 @@ std::pair<IndexType, typename ContainerExpression<TContainerType>::Pointer> Sens
 }
 
 template<class TContainerType>
+std::pair<IndexType, typename ContainerExpression<TContainerType>::Pointer> SensorUtils::GetEntityCoverageMaskWithThreshold(
+    const double threshold,
+    const SensorView<TContainerType>& rSensorView)
+{
+    KRATOS_TRY
+
+    const auto& p_input_container_expression = rSensorView.GetContainerExpression();
+    const auto& r_input_expression = p_input_container_expression->GetExpression();
+    const auto number_of_entities = r_input_expression.NumberOfEntities();
+
+    auto p_expression = LiteralFlatExpression<int>::Create(number_of_entities, {});
+    IndexPartition<IndexType>(number_of_entities).for_each([&p_expression, &r_input_expression, threshold](const auto Index) {
+        *(p_expression->begin() + Index) = r_input_expression.Evaluate(Index, Index, 0) > threshold;
+    });
+
+    auto output_container_expression = rSensorView.GetContainerExpression()->Clone();
+    output_container_expression->SetExpression(p_expression);
+
+    return std::make_pair(0UL, output_container_expression);
+
+    KRATOS_CATCH("");
+}
+
+template<class TContainerType>
 IndexType SensorUtils::CountWithInBounds(
     const ContainerExpression<TContainerType>& rContainer,
     const double LowerBound,
@@ -397,6 +421,9 @@ bool SensorUtils::IsSubMask(
         const std::vector<typename SensorView<CONTAINER_TYPE>::Pointer>&);                                         \
     template std::pair<IndexType, typename ContainerExpression<CONTAINER_TYPE>::Pointer>                           \
     SensorUtils::GetEntityCoverageMask<CONTAINER_TYPE>(const SensorView<CONTAINER_TYPE>&);                         \
+    template std::pair<IndexType, typename ContainerExpression<CONTAINER_TYPE>::Pointer>                           \
+    SensorUtils::GetEntityCoverageMaskWithThreshold<CONTAINER_TYPE>(                                               \
+        const double, const SensorView<CONTAINER_TYPE>&);                                                          \
     template IndexType SensorUtils::CountWithInBounds<CONTAINER_TYPE>(                                             \
         const ContainerExpression<CONTAINER_TYPE>&, const double, const double);                                   \
     template double SensorUtils::Min<CONTAINER_TYPE>(                                                              \

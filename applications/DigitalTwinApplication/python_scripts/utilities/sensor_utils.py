@@ -385,7 +385,7 @@ def GetMostDistancedMax(relaxation: float, list_of_values: 'list[float]', potent
     cut_off_value = list_of_values_with_index[0][1] * (1 - relaxation)
 
     max_distance = 0.0
-    max_distanced_index = 0
+    max_distanced_index = list_of_values_with_index[0][0]
     if len(current_sensor_views) > 0:
         for i, v in list_of_values_with_index:
             if v >= cut_off_value:
@@ -408,7 +408,7 @@ def GetMostDistancedMin(relaxation: float, list_of_values: 'list[float]', potent
     cut_off_value = list_of_values_with_index[0][1] * (1 + relaxation)
 
     max_distance = 0.0
-    max_distanced_index = 0
+    max_distanced_index = list_of_values_with_index[0][0]
     if len(current_sensor_views) > 0:
         for i, v in list_of_values_with_index:
             if v <= cut_off_value:

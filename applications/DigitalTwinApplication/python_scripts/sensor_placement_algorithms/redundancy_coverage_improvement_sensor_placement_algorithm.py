@@ -100,6 +100,7 @@ class RedundancyCoverageImprovementSensorPlacementAlgorithm(SensorPlacementAlgor
         iteration = 1
         list_of_selected_views: 'list[SensorViewUnionType]' = []
         list_of_selected_coverage_masks: 'list[ExpressionUnionType]' = []
+        clusters: 'dict[int, ExpressionUnionType]' = {}
         while (max_coverage < self.required_maximum_overall_coverage and iteration <= self.maximum_number_of_iterations):
             # find the sensor mask which increases coverage to the max
             list_of_coverages: 'list[float]' = []
@@ -120,6 +121,11 @@ class RedundancyCoverageImprovementSensorPlacementAlgorithm(SensorPlacementAlgor
             if self.is_vtu_output:
                 vtu_output.ClearCellContainerExpressions()
                 vtu_output.ClearNodalContainerExpressions()
+                self.UpdateClusters(clusters, KratosDT.SensorUtils.ClusterBasedOnCoverageMasks(list_of_selected_coverage_masks))
+                cluster_mask = dummy_exp * 0.0
+                for cluster_id, mask_expression in clusters.items():
+                    cluster_mask += mask_expression * cluster_id
+                vtu_output.AddContainerExpression(f"clusters_overall", cluster_mask)
                 vtu_output.AddContainerExpression("sensor_coverage", coverage_masks[best_coverage_index].Clone())
                 vtu_output.AddContainerExpression("redundancy", overall_coverage_mask.Clone())
                 vtu_output.PrintOutput(str(output_path / f"redundancy_iteration_{iteration:05d}"))
@@ -145,38 +151,24 @@ class RedundancyCoverageImprovementSensorPlacementAlgorithm(SensorPlacementAlgor
         cluster_domain_sizes = {cluster_id: KratosDT.SensorUtils.Sum(domain_size_exp.Scale(exp)) for cluster_id, exp in clusters.items()}
         cluster_id__max_domain_size = max(cluster_domain_sizes.items(), key=lambda x: x[1])
         while (iteration <= self.maximum_number_of_iterations and cluster_id__max_domain_size[1] > maxmum_allowed_cluster_size):
-            # now check for all the remaining potential sensors, and get the sensor
-            # which gives the next set of clusters with least coefficient of variation
-            # in cluster areas.
-            list_of_covs: 'list[float]' = []
+            # now check for all the remaining potential sensors and store cluster coverages for each potential cluster
+            list_of_values: 'list[float]' = []
             for i, coverage_mask in enumerate(coverage_masks):
                 # find the potential clustering with new coverage mask
                 list_of_selected_coverage_masks.append(coverage_mask)
                 potential_cluster_mask_indices_mask_expressions_list: 'list[tuple[list[int], ExpressionUnionType]]' = KratosDT.SensorUtils.ClusterBasedOnCoverageMasks(list_of_selected_coverage_masks)
                 del list_of_selected_coverage_masks[-1]
 
-                list_of_cluster_area_ratios: 'list[float]' = []
-                for _, potential_cluster_mask in potential_cluster_mask_indices_mask_expressions_list:
-                    potential_cluster_coverage_area = KratosDT.SensorUtils.Sum(domain_size_exp.Scale(potential_cluster_mask))
-                    # now we check whether the new clusters is in the cluster_ids_above_allowed_coverage and
-                    # the cluster size has changed due to new clustering. If it is not in the cluster_ids_above_allowed_coverage,
-                    # then we check whether the cluster indices from clusters in cluster_ids_above_allowed_coverage is a subset of
-                    # the potential_cluster_indices.
-                    cluster_id = cluster_id__max_domain_size[0]
-                    cluster_mask = clusters[cluster_id]
-                    if KratosDT.SensorUtils.Min(cluster_mask - potential_cluster_mask) >= 0:
-                        # this may be a new cluster created by having the new sensor
-                        current_cluster_coverage_ratio =  potential_cluster_coverage_area / cluster_domain_sizes[cluster_id]
-                        if abs(current_cluster_coverage_ratio - 1.0) > 1e-9:
-                            # the cluster has been sub-divided. add it to the list_of_cluster_areas
-                            list_of_cluster_area_ratios.append(current_cluster_coverage_ratio)
-
-                if len(list_of_cluster_area_ratios) != 0:
-                    list_of_covs.append(numpy.std(list_of_cluster_area_ratios) / numpy.mean(list_of_cluster_area_ratios))
+                if max([KratosDT.SensorUtils.Sum(domain_size_exp.Scale(mask)) for _, mask in  potential_cluster_mask_indices_mask_expressions_list]) < cluster_id__max_domain_size[1]:
+                    list_of_values.append(0.0)
                 else:
-                    list_of_covs.append(1e+100)
+                    list_of_values.append(1e+100)
 
-            minimum_cov_sensor_index = GetMostDistancedMin(self.relaxation_min_coverage, list_of_covs, normalized_sensor_views, list_of_selected_views)
+            if min(list_of_values) == 1e+100:
+                # we have not found any sensor which reduces the max cluster size. hence terminating.
+                break
+
+            minimum_cov_sensor_index = GetMostDistancedMin(self.relaxation_min_coverage, list_of_values, normalized_sensor_views, list_of_selected_views)
             list_of_selected_views.append(normalized_sensor_views[minimum_cov_sensor_index])
             list_of_selected_coverage_masks.append(coverage_masks[minimum_cov_sensor_index])
             overall_coverage_mask += coverage_masks[minimum_cov_sensor_index]
@@ -186,7 +178,7 @@ class RedundancyCoverageImprovementSensorPlacementAlgorithm(SensorPlacementAlgor
             cluster_domain_sizes = {cluster_id: KratosDT.SensorUtils.Sum(domain_size_exp.Scale(exp)) for cluster_id, exp in clusters.items()}
             cluster_id__max_domain_size = max(cluster_domain_sizes.items(), key=lambda x: x[1])
 
-            Kratos.Logger.PrintInfo(self.__class__.__name__, f"Found a sensor {normalized_sensor_views[minimum_cov_sensor_index].GetSensor().GetName()} resulting with {cluster_id__max_domain_size[1]:0.3f} max cluster domain size.")
+            Kratos.Logger.PrintInfo(self.__class__.__name__, f"Found a sensor {normalized_sensor_views[minimum_cov_sensor_index].GetSensor().GetName()} resulting with {cluster_id__max_domain_size[1]:0.3f} max cluster domain size with {len(clusters.keys())} clusters.")
 
             del normalized_sensor_views[minimum_cov_sensor_index]
             del coverage_masks[minimum_cov_sensor_index]
@@ -197,7 +189,6 @@ class RedundancyCoverageImprovementSensorPlacementAlgorithm(SensorPlacementAlgor
                 vtu_output.ClearNodalContainerExpressions()
                 cluster_mask = dummy_exp * 0.0
                 for cluster_id, mask_expression in clusters.items():
-                    # vtu_output.AddContainerExpression(f"cluster_{cluster_id:05d}", mask_expression)
                     cluster_mask += mask_expression * cluster_id
                 vtu_output.AddContainerExpression(f"clusters_overall", cluster_mask)
                 vtu_output.AddContainerExpression("redundancy", overall_coverage_mask.Clone())
@@ -207,6 +198,7 @@ class RedundancyCoverageImprovementSensorPlacementAlgorithm(SensorPlacementAlgor
             # now csv output of the current clustering
             if self.is_csv_output:
                 PrintSensorListToCSV(output_path / f"clustering_iteration_{iteration:05d}.csv", [sensor_view.GetSensor() for sensor_view in list_of_selected_views], ["type", "name", "location", "value"])
+                PrintSensorListToJson(output_path / f"clustering_iteration_{iteration:05d}.json", [sensor_view.GetSensor() for sensor_view in list_of_selected_views])
 
             # compute area of each cluster and find the clusters which needs to be divided further
             iteration += 1

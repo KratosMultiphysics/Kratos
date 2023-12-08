@@ -104,6 +104,9 @@ void AddCustomUtilitiesToPython(pybind11::module& m)
     sensor_utils.def("GetEntityCoverageMask", &SensorUtils::GetEntityCoverageMask<ModelPart::NodesContainerType>, py::arg("nodal_sensor_view"));
     sensor_utils.def("GetEntityCoverageMask", &SensorUtils::GetEntityCoverageMask<ModelPart::ConditionsContainerType>, py::arg("condition_sensor_view"));
     sensor_utils.def("GetEntityCoverageMask", &SensorUtils::GetEntityCoverageMask<ModelPart::ElementsContainerType>, py::arg("element_sensor_view"));
+    sensor_utils.def("GetEntityCoverageMaskWithThreshold", &SensorUtils::GetEntityCoverageMaskWithThreshold<ModelPart::NodesContainerType>, py::arg("threshold"), py::arg("nodal_sensor_view"));
+    sensor_utils.def("GetEntityCoverageMaskWithThreshold", &SensorUtils::GetEntityCoverageMaskWithThreshold<ModelPart::ConditionsContainerType>, py::arg("threshold"), py::arg("condition_sensor_view"));
+    sensor_utils.def("GetEntityCoverageMaskWithThreshold", &SensorUtils::GetEntityCoverageMaskWithThreshold<ModelPart::ElementsContainerType>, py::arg("threshold"), py::arg("element_sensor_view"));
     sensor_utils.def("CountWithInBounds", &SensorUtils::CountWithInBounds<ModelPart::NodesContainerType>, py::arg("nodal_expression"), py::arg("lower_bound"), py::arg("upper_bound"));
     sensor_utils.def("CountWithInBounds", &SensorUtils::CountWithInBounds<ModelPart::ConditionsContainerType>, py::arg("condition_expression"), py::arg("lower_bound"), py::arg("upper_bound"));
     sensor_utils.def("CountWithInBounds", &SensorUtils::CountWithInBounds<ModelPart::ElementsContainerType>, py::arg("element_expression"), py::arg("lower_bound"), py::arg("upper_bound"));
