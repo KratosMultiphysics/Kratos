@@ -68,7 +68,7 @@ private:
         double maximalStorage;
 
         ///Nodal variables
-        array_1d<double, TNumNodes> TemperatureVector;
+        Vector TemperatureVector;
         array_1d<double, TNumNodes> DtTemperatureVector;
 
         double IntegrationCoefficient;

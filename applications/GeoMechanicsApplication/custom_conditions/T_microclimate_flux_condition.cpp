@@ -105,6 +105,7 @@ void TMicroClimateFluxCondition<TDim, TNumNodes>::InitializeNodalTemperatureVari
     const GeometryType& rGeom = this->GetGeometry();
 
     //Nodal Variables
+    mVariables.TemperatureVector.resize(TNumNodes);
     for (unsigned int i = 0; i < TNumNodes; ++i) {
         mVariables.TemperatureVector[i] = rGeom[i].FastGetSolutionStepValue(TEMPERATURE);
         mVariables.DtTemperatureVector[i] = rGeom[i].FastGetSolutionStepValue(DT_TEMPERATURE);
