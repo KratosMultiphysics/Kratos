@@ -82,8 +82,6 @@ private:
         array_1d<double, TNumNodes> rightHandSideFlux;
         Vector detJContainer;
         Matrix NContainer;
-        // needed for updated Lagrangian:
-        BoundedMatrix<double, TNumNodes, TNumNodes> TMatrix;
     };
 
     void InitializeElementVariables(const ProcessInfo& rCurrentProcessInfo);

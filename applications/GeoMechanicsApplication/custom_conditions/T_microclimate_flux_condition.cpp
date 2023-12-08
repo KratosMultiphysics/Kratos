@@ -117,8 +117,8 @@ template<unsigned int TDim, unsigned int TNumNodes>
 void TMicroClimateFluxCondition<TDim, TNumNodes>::CalculateAndAddRHS(
     VectorType& rRightHandSideVector)
 {
-    mVariables.TMatrix = outer_prod(mVariables.Np, mVariables.Np) * mVariables.IntegrationCoefficient;
-    mVariables.TVector = prod(mVariables.TMatrix, mVariables.rightHandSideFlux);
+    auto temporary_matrix = BoundedMatrix<double, TNumNodes, TNumNodes>{outer_prod(mVariables.Np, mVariables.Np) * mVariables.IntegrationCoefficient};
+    mVariables.TVector = prod(temporary_matrix, mVariables.rightHandSideFlux);
     GeoElementUtilities::
         AssemblePBlockVector<0, TNumNodes>(rRightHandSideVector, mVariables.TVector);
 
@@ -127,8 +127,8 @@ void TMicroClimateFluxCondition<TDim, TNumNodes>::CalculateAndAddRHS(
     {
         TTMatrix(i, i) = mVariables.leftHandSideFlux[i];
     }
-    mVariables.TMatrix = prod(mVariables.TMatrix, TTMatrix);
-    mVariables.TVector = -prod(mVariables.TMatrix, mVariables.TemperatureVector);
+    temporary_matrix = prod(temporary_matrix, TTMatrix);
+    mVariables.TVector = -prod(temporary_matrix, mVariables.TemperatureVector);
     GeoElementUtilities::
         AssemblePBlockVector<0, TNumNodes>(rRightHandSideVector, mVariables.TVector);
 }
@@ -139,7 +139,7 @@ void TMicroClimateFluxCondition<TDim, TNumNodes>::CalculateAndAddLHS(
 {
     KRATOS_TRY
 
-    mVariables.TMatrix = outer_prod(mVariables.Np, mVariables.Np) * mVariables.IntegrationCoefficient;
+    auto temporary_matrix = BoundedMatrix<double, TNumNodes, TNumNodes>{outer_prod(mVariables.Np, mVariables.Np) * mVariables.IntegrationCoefficient};
 
     Matrix TTMatrix = ZeroMatrix(TNumNodes, TNumNodes);
     for (unsigned int i = 0; i < TNumNodes; ++i)
@@ -147,10 +147,10 @@ void TMicroClimateFluxCondition<TDim, TNumNodes>::CalculateAndAddLHS(
         TTMatrix(i, i) = mVariables.leftHandSideFlux[i];
     }
 
-    mVariables.TMatrix = prod(mVariables.TMatrix, TTMatrix);
+    temporary_matrix = prod(temporary_matrix, TTMatrix);
 
     GeoElementUtilities::
-        AssemblePBlockMatrix<0, TNumNodes>(rLeftHandSideMatrix, mVariables.TMatrix);
+        AssemblePBlockMatrix<0, TNumNodes>(rLeftHandSideMatrix, temporary_matrix);
 
     KRATOS_CATCH("")
 }
