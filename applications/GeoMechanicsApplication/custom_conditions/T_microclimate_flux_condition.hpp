@@ -35,14 +35,17 @@ public:
     using GeometryType = Geometry<Node>;
     using NodesArrayType = GeometryType::PointsArrayType;
 
-    // Default constructor
-    TMicroClimateFluxCondition() : GeoTCondition<TDim,TNumNodes>() {}
-    
-    // Constructor 1
-    TMicroClimateFluxCondition( IndexType NewId, GeometryType::Pointer pGeometry ) : GeoTCondition<TDim,TNumNodes>(NewId, pGeometry) {}
-    
-    // Constructor 2
-    TMicroClimateFluxCondition( IndexType NewId, GeometryType::Pointer pGeometry, Properties::Pointer pProperties ) : GeoTCondition<TDim,TNumNodes>(NewId, pGeometry, pProperties) {}
+    TMicroClimateFluxCondition() : GeoTCondition<TDim, TNumNodes>() {}
+
+    TMicroClimateFluxCondition(IndexType NewId, GeometryType::Pointer pGeometry)
+        : GeoTCondition<TDim, TNumNodes>(NewId, pGeometry)
+    {
+    }
+
+    TMicroClimateFluxCondition(IndexType NewId, GeometryType::Pointer pGeometry, Properties::Pointer pProperties)
+        : GeoTCondition<TDim, TNumNodes>(NewId, pGeometry, pProperties)
+    {
+    }
 
     Condition::Pointer Create(IndexType NewId,NodesArrayType const& ThisNodes,Properties::Pointer pProperties ) const override;
 
