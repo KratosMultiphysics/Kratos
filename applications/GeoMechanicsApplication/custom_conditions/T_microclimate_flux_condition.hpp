@@ -56,7 +56,7 @@ public:
                               VectorType&        rRightHandSideVector,
                               const ProcessInfo& rCurrentProcessInfo) override;
 
-protected:
+private:
     struct ElementVariables
     {
         double albedoCoefficient;
@@ -108,13 +108,9 @@ protected:
 
     void InitializeNodalTemperatureVariables(ElementVariables& rVariables);
 
-private:
-    bool mIsInitialised = false;
-    ElementVariables mVariables;
-
     // Serialization
     friend class Serializer;
-    
+
     void save(Serializer& rSerializer) const override
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, Condition )
@@ -124,6 +120,9 @@ private:
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, Condition )
     }
+
+    bool mIsInitialised = false;
+    ElementVariables mVariables;
 }; // class TMicroClimateFluxCondition.
 
 } // namespace Kratos.
