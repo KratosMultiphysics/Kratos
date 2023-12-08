@@ -97,7 +97,6 @@ void TMicroClimateFluxCondition<TDim, TNumNodes>::InitializeElementVariables(
     const unsigned int NumGPoints = Geom.IntegrationPointsNumber(this->GetIntegrationMethod());
 
     // shape functions
-    rVariables.NContainer.resize(NumGPoints, TNumNodes, false);
     rVariables.NContainer = Geom.ShapeFunctionsValues(this->GetIntegrationMethod());
 
     // gradient of shape functions and determinant of Jacobian
