@@ -122,7 +122,6 @@ void TMicroClimateFluxCondition<TDim, TNumNodes>::CalculateAndAddRHS(
     GeoElementUtilities::
         AssemblePBlockVector<0, TNumNodes>(rRightHandSideVector, mVariables.TVector);
 
-    mVariables.TMatrix = outer_prod(mVariables.Np, mVariables.Np) * mVariables.IntegrationCoefficient;
     Matrix TTMatrix = ZeroMatrix(TNumNodes, TNumNodes);
     for (unsigned int i = 0; i < TNumNodes; ++i)
     {
