@@ -35,7 +35,7 @@ void TMicroClimateFluxCondition<TDim, TNumNodes>::InitializeSolutionStep(
         this->InitializeProperties();
         mIsInitialised = true;
     }
-    this->CalculateRoughness(rCurrentProcessInfo, mVariables);
+    this->CalculateRoughness(rCurrentProcessInfo);
 }
 
 template<unsigned int TDim, unsigned int TNumNodes>
@@ -186,8 +186,7 @@ double TMicroClimateFluxCondition<TDim,TNumNodes>::CalculateIntegrationCoefficie
 
 template<unsigned int TDim, unsigned int TNumNodes>
 void TMicroClimateFluxCondition<TDim, TNumNodes>::CalculateRoughness(
-    const ProcessInfo& CurrentProcessInfo,
-    ElementVariables& rVariables)
+    const ProcessInfo& CurrentProcessInfo)
 {
     double timeStepSize = CurrentProcessInfo.GetValue(DELTA_TIME);
 
@@ -202,8 +201,8 @@ void TMicroClimateFluxCondition<TDim, TNumNodes>::CalculateRoughness(
     constexpr double roughnessHeight = 1.0;
     constexpr double gravitationalAcceleration = 9.81;
 
-    const auto previous_roughness_temperature = rVariables.roughnessTemperature;
-    rVariables.roughnessTemperature = 0.0;
+    const auto previous_roughness_temperature = mVariables.roughnessTemperature;
+    mVariables.roughnessTemperature = 0.0;
 
     for (unsigned int i = 0; i < TNumNodes; ++i)
     {
@@ -238,7 +237,7 @@ void TMicroClimateFluxCondition<TDim, TNumNodes>::CalculateRoughness(
         double currentRoughnessTemperature = (roughnessLayerResistance * roughnessLayerHeight * previous_roughness_temperature + timeStepSize *
             initialSoilTemperature + timeStepSize * currentWindSpeed * roughnessLayerResistance * surfaceRoughnessFactor *
             frictionDragCoefficient * frictionDragCoefficient * currentAirTemperature) / c;
-        rVariables.roughnessTemperature += currentRoughnessTemperature / TNumNodes;
+        mVariables.roughnessTemperature += currentRoughnessTemperature / TNumNodes;
     }
 }
 
