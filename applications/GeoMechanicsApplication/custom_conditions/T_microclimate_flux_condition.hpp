@@ -86,7 +86,7 @@ private:
         BoundedMatrix<double, TNumNodes, TNumNodes> TMatrix;
     };
 
-    void InitializeElementVariables(ElementVariables& rVariables, const ProcessInfo& rCurrentProcessInfo);
+    void InitializeElementVariables(const ProcessInfo& rCurrentProcessInfo);
 
     void CalculateAll(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector,
         const ProcessInfo& rCurrentProcessInfo) override;

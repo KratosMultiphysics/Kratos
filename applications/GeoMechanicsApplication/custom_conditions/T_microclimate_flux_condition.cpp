@@ -58,8 +58,7 @@ void TMicroClimateFluxCondition<TDim, TNumNodes>::CalculateAll(
         (JContainer[i]).resize(TDim, LocalDim, false);
     Geom.Jacobian(JContainer, this->GetIntegrationMethod());
 
-    // Element variables
-    this->InitializeElementVariables(mVariables, rCurrentProcessInfo);
+    this->InitializeElementVariables(rCurrentProcessInfo);
 
     // Loop over integration points
     for (unsigned int GPoint = 0; GPoint < NumGPoints; ++GPoint) {
@@ -81,26 +80,25 @@ void TMicroClimateFluxCondition<TDim, TNumNodes>::CalculateAll(
 
 template<unsigned int TDim, unsigned int TNumNodes>
 void TMicroClimateFluxCondition<TDim, TNumNodes>::InitializeElementVariables(
-    ElementVariables& rVariables,
     const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
     // Nodal Variables
-    this->InitializeNodalTemperatureVariables(rVariables);
+    this->InitializeNodalTemperatureVariables(mVariables);
 
     // Nodal Variables
-    this->CalculateNodalFluxes(rCurrentProcessInfo, rVariables);
+    this->CalculateNodalFluxes(rCurrentProcessInfo, mVariables);
 
     // General Variables
     const GeometryType& Geom = this->GetGeometry();
     const unsigned int NumGPoints = Geom.IntegrationPointsNumber(this->GetIntegrationMethod());
 
     // shape functions
-    rVariables.NContainer = Geom.ShapeFunctionsValues(this->GetIntegrationMethod());
+    mVariables.NContainer = Geom.ShapeFunctionsValues(this->GetIntegrationMethod());
 
     // gradient of shape functions and determinant of Jacobian
-    rVariables.detJContainer.resize(NumGPoints, false);
+    mVariables.detJContainer.resize(NumGPoints, false);
 
     KRATOS_CATCH("")
 }
