@@ -60,7 +60,6 @@ public:
 private:
     struct ElementVariables
     {
-        double secondCoverStorageCoefficient;
         double thirdCoverStorageCoefficient;
         double buildEnvironmentRadiation;
         double minimalStorage;
@@ -108,6 +107,7 @@ private:
     bool mIsInitialised = false;
     double mAlbedoCoefficient = 0.0;
     double mFirstCoverStorageCoefficient = 0.0;
+    double mSecondCoverStorageCoefficient = 0.0;
     ElementVariables mVariables;
 }; // class TMicroClimateFluxCondition.
 
