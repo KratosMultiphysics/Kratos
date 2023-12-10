@@ -160,8 +160,8 @@ void TMicroClimateFluxCondition<TDim, TNumNodes>::CalculateRoughness(
     constexpr double roughnessHeight = 1.0;
     constexpr double gravitationalAcceleration = 9.81;
 
-    const auto previous_roughness_temperature = mVariables.roughnessTemperature;
-    mVariables.roughnessTemperature = 0.0;
+    const auto previous_roughness_temperature = mRoughnessTemperature;
+    mRoughnessTemperature = 0.0;
 
     for (unsigned int i = 0; i < TNumNodes; ++i)
     {
@@ -196,7 +196,7 @@ void TMicroClimateFluxCondition<TDim, TNumNodes>::CalculateRoughness(
         double currentRoughnessTemperature = (roughnessLayerResistance * roughnessLayerHeight * previous_roughness_temperature + timeStepSize *
             initialSoilTemperature + timeStepSize * currentWindSpeed * roughnessLayerResistance * surfaceRoughnessFactor *
             frictionDragCoefficient * frictionDragCoefficient * currentAirTemperature) / c;
-        mVariables.roughnessTemperature += currentRoughnessTemperature / TNumNodes;
+        mRoughnessTemperature += currentRoughnessTemperature / TNumNodes;
     }
 }
 
@@ -236,7 +236,7 @@ void TMicroClimateFluxCondition<TDim, TNumNodes>::CalculateNodalFluxes(
 
         // Eq 5.22
         const double sensibleHeatFluxLeft = airHeatCapacity * airDensity / roughnessLayerResistance;
-        const double sensibleHeatFluxRight = -airHeatCapacity * airDensity * mVariables.roughnessTemperature / roughnessLayerResistance;
+        const double sensibleHeatFluxRight = -airHeatCapacity * airDensity * mRoughnessTemperature / roughnessLayerResistance;
 
         // Eq 5.35
         const double atmosphericResistance = 1.0 / (0.007 + 0.0056 * windSpeed);
@@ -337,7 +337,7 @@ void TMicroClimateFluxCondition<TDim, TNumNodes>::InitializeProperties()
     mMaximalStorage = r_prop[SMAX_COEFFICIENT];
 
     const GeometryType& Geom = this->GetGeometry();
-    mVariables.roughnessTemperature = Geom[0].FastGetSolutionStepValue(AIR_TEMPERATURE, 1);   // This value is not read correctly
+    mRoughnessTemperature = Geom[0].FastGetSolutionStepValue(AIR_TEMPERATURE, 1);   // This value is not read correctly
     mVariables.waterStorage = 0.0;                                                            // it is related to the initial value of the table
     mVariables.netRadiation = Geom[0].FastGetSolutionStepValue(SOLAR_RADIATION, 1);  // This value is not read correctly, initial value of the table
 

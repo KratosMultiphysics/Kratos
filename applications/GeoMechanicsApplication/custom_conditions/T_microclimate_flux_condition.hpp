@@ -62,7 +62,6 @@ private:
     {
         double IntegrationCoefficient;
         array_1d<double,TNumNodes> Np;
-        double roughnessTemperature = 0.0;
         double netRadiation = 0.0;
         double waterStorage = 0.0;
 
@@ -107,6 +106,7 @@ private:
     double mBuildEnvironmentRadiation = 0.0;
     double mMinimalStorage = 0.0;
     double mMaximalStorage = 0.0;
+    double mRoughnessTemperature = 0.0;
     ElementVariables mVariables;
 }; // class TMicroClimateFluxCondition.
 
