@@ -19,32 +19,32 @@ FILES_CHANGED_3: List[Path] = [
 
 
 class TestCIUtilities(KratosUnittest.TestCase):
-    def test_core_changes(self):
-        with patch(PATCH_NAME, return_value=FILES_CHANGED_1):
-            self.assertCountEqual(ci_utilities.get_changed_applications(), set())
-            self.assertTrue(ci_utilities.is_core_changed())
-            self.assertFalse(ci_utilities.is_mpi_core_changed())
-            self.assertCountEqual(ci_utilities.get_changed_files_extensions(), {".h"})
-            self.assertFalse(ci_utilities.are_only_python_files_changed())
+    @patch(PATCH_NAME, return_value=FILES_CHANGED_1)
+    def test_core_changes(self, _):
+        self.assertCountEqual(ci_utilities.get_changed_applications(), set())
+        self.assertTrue(ci_utilities.is_core_changed())
+        self.assertFalse(ci_utilities.is_mpi_core_changed())
+        self.assertCountEqual(ci_utilities.get_changed_files_extensions(), {".h"})
+        self.assertFalse(ci_utilities.are_only_python_files_changed())
 
-    def test_mpi_core_changes(self):
-        with patch(PATCH_NAME, return_value=FILES_CHANGED_2):
-            self.assertCountEqual(ci_utilities.get_changed_applications(), set())
-            self.assertTrue(ci_utilities.is_core_changed())
-            self.assertTrue(ci_utilities.is_mpi_core_changed())
-            self.assertCountEqual(ci_utilities.get_changed_files_extensions(), {".py"})
-            self.assertTrue(ci_utilities.are_only_python_files_changed())
+    @patch(PATCH_NAME, return_value=FILES_CHANGED_2)
+    def test_mpi_core_changes(self, _):
+        self.assertCountEqual(ci_utilities.get_changed_applications(), set())
+        self.assertTrue(ci_utilities.is_core_changed())
+        self.assertTrue(ci_utilities.is_mpi_core_changed())
+        self.assertCountEqual(ci_utilities.get_changed_files_extensions(), {".py"})
+        self.assertTrue(ci_utilities.are_only_python_files_changed())
 
-    def test_application_changes(self):
-        with patch(PATCH_NAME, return_value=FILES_CHANGED_3):
-            self.assertCountEqual(
-                ci_utilities.get_changed_applications(),
-                {"FluidDynamicsApplication", "LinearSolversApplication", "StructuralMechanicsApplication"},
-            )
-            self.assertFalse(ci_utilities.is_core_changed())
-            self.assertFalse(ci_utilities.is_mpi_core_changed())
-            self.assertCountEqual(ci_utilities.get_changed_files_extensions(), {".cpp", ".h", ".txt"})
-            self.assertFalse(ci_utilities.are_only_python_files_changed())
+    @patch(PATCH_NAME, return_value=FILES_CHANGED_3)
+    def test_application_changes(self, _):
+        self.assertCountEqual(
+            ci_utilities.get_changed_applications(),
+            {"FluidDynamicsApplication", "LinearSolversApplication", "StructuralMechanicsApplication"},
+        )
+        self.assertFalse(ci_utilities.is_core_changed())
+        self.assertFalse(ci_utilities.is_mpi_core_changed())
+        self.assertCountEqual(ci_utilities.get_changed_files_extensions(), {".cpp", ".h", ".txt"})
+        self.assertFalse(ci_utilities.are_only_python_files_changed())
 
 
 if __name__ == "__main__":
