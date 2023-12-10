@@ -2,6 +2,7 @@ import json
 from functools import lru_cache
 from os import getenv
 from pathlib import Path
+from pprint import pprint
 from typing import List, Set
 
 
@@ -47,12 +48,16 @@ def get_changed_files_extensions() -> Set[str]:
 def are_only_python_files_changed() -> bool:
     return get_changed_files_extensions() == {".py"}
 
-
-if __name__ == "__main__":
-    print(f"{changed_files()=}")
-    print(f"{ci_applications()=}")
+def print_ci_information() -> None:
+    """This function prints an overview of the CI related information"""
+    pprint(f"{changed_files()=}")
+    pprint(f"{ci_applications()=}")
     print(f"{get_changed_files_extensions()=}")
     print(f"{are_only_python_files_changed()=}")
     print(f"{get_changed_applications()=}")
     print(f"{is_core_changed()=}")
     print(f"{is_mpi_core_changed()=}")
+
+
+if __name__ == "__main__":
+    print_ci_information()
