@@ -204,7 +204,6 @@ template<unsigned int TDim, unsigned int TNumNodes>
 void TMicroClimateFluxCondition<TDim, TNumNodes>::CalculateNodalFluxes(
     const ProcessInfo& CurrentProcessInfo)
 {
-    const double buildEnvironmentRadiation = mVariables.buildEnvironmentRadiation;
     const double minimalStorage = mVariables.minimalStorage;
     const double maximalStorage = mVariables.maximalStorage;
 
@@ -271,7 +270,7 @@ void TMicroClimateFluxCondition<TDim, TNumNodes>::CalculateNodalFluxes(
             timeStepSize + mThirdCoverStorageCoefficient;
 
         // Eq 5.34
-        double latentHeatFlux = (vaporPressureIncrement * (netRadiation + buildEnvironmentRadiation - surfaceHeatStorage) + airHeatCapacity * airDensity *
+        double latentHeatFlux = (vaporPressureIncrement * (netRadiation + mBuildEnvironmentRadiation - surfaceHeatStorage) + airHeatCapacity * airDensity *
             (saturatedVaporPressure - actualVaporPressure) / atmosphericResistance) / (vaporPressureIncrement + psychometricConstant *  // division is replaced to * based on (3.34)
                 (1.0 + surfaceResistance / atmosphericResistance));   //Where is G (5.34)?
         latentHeatFlux = std::max(latentHeatFlux, 0.0);
@@ -301,7 +300,7 @@ void TMicroClimateFluxCondition<TDim, TNumNodes>::CalculateNodalFluxes(
         latentHeatFlux = actualEvaporation * waterDensity * latentEvaporationHeat;
 
         // Eq 5.31
-        double subsurfaceHeatFlux = netRadiation - sensibleHeatFluxRight - latentHeatFlux + buildEnvironmentRadiation - surfaceHeatStorage;
+        double subsurfaceHeatFlux = netRadiation - sensibleHeatFluxRight - latentHeatFlux + mBuildEnvironmentRadiation - surfaceHeatStorage;
 
         mVariables.netRadiation += netRadiation / TNumNodes;
         mVariables.waterStorage += actualStorage / TNumNodes;
@@ -336,7 +335,7 @@ void TMicroClimateFluxCondition<TDim, TNumNodes>::InitializeProperties()
     mFirstCoverStorageCoefficient = r_prop[A1_COEFFICIENT];
     mSecondCoverStorageCoefficient = r_prop[A2_COEFFICIENT];
     mThirdCoverStorageCoefficient = r_prop[A3_COEFFICIENT];
-    mVariables.buildEnvironmentRadiation = r_prop[QF_COEFFICIENT];
+    mBuildEnvironmentRadiation = r_prop[QF_COEFFICIENT];
     mVariables.minimalStorage = r_prop[SMIN_COEFFICIENT];
     mVariables.maximalStorage = r_prop[SMAX_COEFFICIENT];
 
