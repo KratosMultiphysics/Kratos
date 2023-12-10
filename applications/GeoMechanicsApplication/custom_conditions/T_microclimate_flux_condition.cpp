@@ -132,10 +132,10 @@ double TMicroClimateFluxCondition<TDim,TNumNodes>::CalculateIntegrationCoefficie
 {
     if (TDim == 2)
     {
-        const double dx_dxi = Jacobian(0, 0);
-        const double dy_dxi = Jacobian(1, 0);
-        const double ds = std::sqrt(dx_dxi * dx_dxi + dy_dxi * dy_dxi);
-        return ds * Weight;
+        Vector v{2};
+        v(0) = Jacobian(0, 0);
+        v(1) = Jacobian(1, 0);
+        return MathUtils<>::Norm(v) * Weight;
     }
     else if (TDim == 3)
     {
