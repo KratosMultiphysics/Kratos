@@ -29,8 +29,8 @@ def ci_applications() -> List[str]:
         return json.load(ci_apps_file)
 
 
-def get_changed_applications() -> List[str]:
-    return list({f.parts[1] for f in changed_files() if f.parts[0] == "applications"})
+def get_changed_applications() -> Set[str]:
+    return {f.parts[1] for f in changed_files() if f.parts[0] == "applications"}
 
 
 def is_core_changed() -> bool:
@@ -48,9 +48,10 @@ def get_changed_files_extensions() -> Set[str]:
 def are_only_python_files_changed() -> bool:
     return get_changed_files_extensions() == {".py"}
 
+
 def print_ci_information() -> None:
     """This function prints an overview of the CI related information"""
-    pprint(f"{changed_files()=}")
+    pprint(f"{sorted(changed_files())=}")
     pprint(f"{ci_applications()=}")
     print(f"{get_changed_files_extensions()=}")
     print(f"{are_only_python_files_changed()=}")
