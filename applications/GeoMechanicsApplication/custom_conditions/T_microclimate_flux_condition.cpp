@@ -322,18 +322,8 @@ void TMicroClimateFluxCondition<TDim, TNumNodes>::CalculateLocalSystem(
 {
     KRATOS_TRY
 
-    unsigned int conditionSize = TNumNodes;
-
-    // Resetting the LHS
-    if (rLeftHandSideMatrix.size1() != conditionSize)
-        rLeftHandSideMatrix.resize(conditionSize, conditionSize, false);
-    noalias(rLeftHandSideMatrix) = ZeroMatrix(conditionSize, conditionSize);
-
-    // Resetting the RHS
-    if (rRightHandSideVector.size() != conditionSize)
-        rRightHandSideVector.resize(conditionSize, false);
-    noalias(rRightHandSideVector) = ZeroVector(conditionSize);
-
+    rLeftHandSideMatrix = Matrix{TNumNodes, TNumNodes, 0.0};
+    rRightHandSideVector = Vector{TNumNodes, 0.0};
     this->CalculateAll(rLeftHandSideMatrix, rRightHandSideVector, rCurrentProcessInfo);
 
     KRATOS_CATCH("")
