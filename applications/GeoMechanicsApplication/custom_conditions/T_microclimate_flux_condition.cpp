@@ -204,7 +204,6 @@ template<unsigned int TDim, unsigned int TNumNodes>
 void TMicroClimateFluxCondition<TDim, TNumNodes>::CalculateNodalFluxes(
     const ProcessInfo& CurrentProcessInfo)
 {
-    const double firstCoverStorageCoefficient = mVariables.firstCoverStorageCoefficient;
     const double secondCoverStorageCoefficient = mVariables.secondCoverStorageCoefficient;
     const double thirdCoverStorageCoefficient = mVariables.thirdCoverStorageCoefficient;
     const double buildEnvironmentRadiation = mVariables.buildEnvironmentRadiation;
@@ -270,7 +269,7 @@ void TMicroClimateFluxCondition<TDim, TNumNodes>::CalculateNodalFluxes(
         const double netRadiation = shortWaveRadiation + absorbedLongWaveRadiation - emittedLongWaveRadiation;
 
         // Eq 5.20
-        const double surfaceHeatStorage = firstCoverStorageCoefficient * netRadiation + secondCoverStorageCoefficient * (netRadiation - previous_radiation) /
+        const double surfaceHeatStorage = mFirstCoverStorageCoefficient * netRadiation + secondCoverStorageCoefficient * (netRadiation - previous_radiation) /
             timeStepSize + thirdCoverStorageCoefficient;
 
         // Eq 5.34
@@ -336,7 +335,7 @@ void TMicroClimateFluxCondition<TDim, TNumNodes>::InitializeProperties()
     const auto& r_prop = this->GetProperties();
 
     mAlbedoCoefficient = r_prop[ALPHA_COEFFICIENT];
-    mVariables.firstCoverStorageCoefficient = r_prop[A1_COEFFICIENT];
+    mFirstCoverStorageCoefficient = r_prop[A1_COEFFICIENT];
     mVariables.secondCoverStorageCoefficient = r_prop[A2_COEFFICIENT];
     mVariables.thirdCoverStorageCoefficient = r_prop[A3_COEFFICIENT];
     mVariables.buildEnvironmentRadiation = r_prop[QF_COEFFICIENT];
