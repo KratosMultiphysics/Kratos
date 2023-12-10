@@ -42,48 +42,6 @@ void TMicroClimateFluxCondition<TDim, TNumNodes>::InitializeSolutionStep(
 }
 
 template<unsigned int TDim, unsigned int TNumNodes>
-void TMicroClimateFluxCondition<TDim, TNumNodes>::CalculateAll(
-    Matrix& rLeftHandSideMatrix,
-    Vector& rRightHandSideVector,
-    const ProcessInfo& rCurrentProcessInfo)
-{
-    KRATOS_TRY
-
-    // Previous definitions
-    const GeometryType& Geom = this->GetGeometry();
-    const GeometryType::IntegrationPointsArrayType& IntegrationPoints = Geom.IntegrationPoints(this->GetIntegrationMethod());
-    const unsigned int NumGPoints = IntegrationPoints.size();
-
-    // Containers of variables at all integration points
-    const unsigned int LocalDim = Geom.LocalSpaceDimension();
-    GeometryType::JacobiansType JContainer(NumGPoints);
-    for (unsigned int i = 0; i < NumGPoints; ++i)
-        (JContainer[i]).resize(TDim, LocalDim, false);
-    Geom.Jacobian(JContainer, this->GetIntegrationMethod());
-
-    const auto& r_N_container = this->GetGeometry().ShapeFunctionsValues(this->GetIntegrationMethod());
-
-    auto nodal_temperatures = array_1d<double, TNumNodes>{};
-    VariablesUtilities::GetNodalValues(this->GetGeometry(), TEMPERATURE, nodal_temperatures.begin());
-
-    this->CalculateNodalFluxes(rCurrentProcessInfo);
-
-    // Loop over integration points
-    for (unsigned int GPoint = 0; GPoint < NumGPoints; ++GPoint) {
-        mVariables.Np = row(r_N_container, GPoint);
-
-        // Compute weighting coefficient for integration
-        mVariables.IntegrationCoefficient = this->CalculateIntegrationCoefficient(JContainer[GPoint],
-                                                                                  IntegrationPoints[GPoint].Weight());
-
-        this->CalculateAndAddLHS(rLeftHandSideMatrix);
-        this->CalculateAndAddRHS(rRightHandSideVector, nodal_temperatures);
-    }
-
-    KRATOS_CATCH("")
-}
-
-template<unsigned int TDim, unsigned int TNumNodes>
 void TMicroClimateFluxCondition<TDim, TNumNodes>::CalculateAndAddRHS(
     Vector& rRightHandSideVector,
     const Vector& rNodalTemperatures)
@@ -316,7 +274,37 @@ void TMicroClimateFluxCondition<TDim, TNumNodes>::CalculateLocalSystem(
 
     rLeftHandSideMatrix = Matrix{TNumNodes, TNumNodes, 0.0};
     rRightHandSideVector = Vector{TNumNodes, 0.0};
-    this->CalculateAll(rLeftHandSideMatrix, rRightHandSideVector, rCurrentProcessInfo);
+
+    // Previous definitions
+    const GeometryType& Geom = this->GetGeometry();
+    const GeometryType::IntegrationPointsArrayType& IntegrationPoints = Geom.IntegrationPoints(this->GetIntegrationMethod());
+    const unsigned int NumGPoints = IntegrationPoints.size();
+
+    // Containers of variables at all integration points
+    const unsigned int LocalDim = Geom.LocalSpaceDimension();
+    GeometryType::JacobiansType JContainer(NumGPoints);
+    for (unsigned int i = 0; i < NumGPoints; ++i)
+        (JContainer[i]).resize(TDim, LocalDim, false);
+    Geom.Jacobian(JContainer, this->GetIntegrationMethod());
+
+    const auto& r_N_container = this->GetGeometry().ShapeFunctionsValues(this->GetIntegrationMethod());
+
+    auto nodal_temperatures = array_1d<double, TNumNodes>{};
+    VariablesUtilities::GetNodalValues(this->GetGeometry(), TEMPERATURE, nodal_temperatures.begin());
+
+    this->CalculateNodalFluxes(rCurrentProcessInfo);
+
+    // Loop over integration points
+    for (unsigned int GPoint = 0; GPoint < NumGPoints; ++GPoint) {
+        mVariables.Np = row(r_N_container, GPoint);
+
+        // Compute weighting coefficient for integration
+        mVariables.IntegrationCoefficient = this->CalculateIntegrationCoefficient(JContainer[GPoint],
+                                                                                  IntegrationPoints[GPoint].Weight());
+
+        this->CalculateAndAddLHS(rLeftHandSideMatrix);
+        this->CalculateAndAddRHS(rRightHandSideVector, nodal_temperatures);
+    }
 
     KRATOS_CATCH("")
 }

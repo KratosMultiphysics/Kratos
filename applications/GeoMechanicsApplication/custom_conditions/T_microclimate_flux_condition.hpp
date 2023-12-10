@@ -66,9 +66,6 @@ private:
         array_1d<double, TNumNodes> rightHandSideFlux;
     };
 
-    void CalculateAll(Matrix&            rLeftHandSideMatrix,
-                      Vector&            rRightHandSideVector,
-                      const ProcessInfo& rCurrentProcessInfo) override;
     void CalculateAndAddRHS(Vector& rRightHandSideVector,
                             const Vector& rNodalTemperatures);
     void CalculateAndAddLHS(Matrix& rLeftHandSideMatrix);
