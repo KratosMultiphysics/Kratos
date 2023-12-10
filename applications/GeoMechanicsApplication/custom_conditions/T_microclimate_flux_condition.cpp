@@ -137,14 +137,11 @@ double TMicroClimateFluxCondition<TDim,TNumNodes>::CalculateIntegrationCoefficie
     }
     else if (TDim == 3)
     {
-        double NormalVector[3];
+        Vector NormalVector{3};
         NormalVector[0] = Jacobian(1, 0) * Jacobian(2, 1) - Jacobian(2, 0) * Jacobian(1, 1);
         NormalVector[1] = Jacobian(2, 0) * Jacobian(0, 1) - Jacobian(0, 0) * Jacobian(2, 1);
         NormalVector[2] = Jacobian(0, 0) * Jacobian(1, 1) - Jacobian(1, 0) * Jacobian(0, 1);
-        const double dA = std::sqrt(NormalVector[0] * NormalVector[0]
-            + NormalVector[1] * NormalVector[1]
-            + NormalVector[2] * NormalVector[2]);
-        return dA * Weight;
+        return MathUtils<>::Norm(NormalVector) * Weight;
     }
 }
 
