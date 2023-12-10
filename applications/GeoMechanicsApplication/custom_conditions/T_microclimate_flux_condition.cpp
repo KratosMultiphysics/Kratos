@@ -204,8 +204,6 @@ template<unsigned int TDim, unsigned int TNumNodes>
 void TMicroClimateFluxCondition<TDim, TNumNodes>::CalculateNodalFluxes(
     const ProcessInfo& CurrentProcessInfo)
 {
-    const double maximalStorage = mVariables.maximalStorage;
-
     const Properties mProperties = this->GetProperties();
 
     const GeometryType& Geom = this->GetGeometry();
@@ -280,10 +278,10 @@ void TMicroClimateFluxCondition<TDim, TNumNodes>::CalculateNodalFluxes(
         // Eq 5.36
         const double potentialEvaporation = latentHeatFlux / (waterDensity * latentEvaporationHeat);
         const double potentialStorage = previous_storage + timeStepSize * (precipitation - potentialEvaporation);
-        if (potentialStorage > maximalStorage)
+        if (potentialStorage > mMaximalStorage)
         {
             actualEvaporation = potentialEvaporation;
-            actualPrecipitation = (maximalStorage - previous_storage) / timeStepSize + actualEvaporation;
+            actualPrecipitation = (mMaximalStorage - previous_storage) / timeStepSize + actualEvaporation;
         }
         else if (potentialStorage < mMinimalStorage)
         {
@@ -336,7 +334,7 @@ void TMicroClimateFluxCondition<TDim, TNumNodes>::InitializeProperties()
     mThirdCoverStorageCoefficient = r_prop[A3_COEFFICIENT];
     mBuildEnvironmentRadiation = r_prop[QF_COEFFICIENT];
     mMinimalStorage = r_prop[SMIN_COEFFICIENT];
-    mVariables.maximalStorage = r_prop[SMAX_COEFFICIENT];
+    mMaximalStorage = r_prop[SMAX_COEFFICIENT];
 
     const GeometryType& Geom = this->GetGeometry();
     mVariables.roughnessTemperature = Geom[0].FastGetSolutionStepValue(AIR_TEMPERATURE, 1);   // This value is not read correctly

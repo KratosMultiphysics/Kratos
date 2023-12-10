@@ -60,8 +60,6 @@ public:
 private:
     struct ElementVariables
     {
-        double maximalStorage;
-
         double IntegrationCoefficient;
         array_1d<double,TNumNodes> Np;
         double roughnessTemperature = 0.0;
@@ -108,6 +106,7 @@ private:
     double mThirdCoverStorageCoefficient = 0.0;
     double mBuildEnvironmentRadiation = 0.0;
     double mMinimalStorage = 0.0;
+    double mMaximalStorage = 0.0;
     ElementVariables mVariables;
 }; // class TMicroClimateFluxCondition.
 
