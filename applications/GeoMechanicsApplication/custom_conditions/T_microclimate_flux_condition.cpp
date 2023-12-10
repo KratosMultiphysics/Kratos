@@ -284,7 +284,7 @@ void TMicroClimateFluxCondition<TDim, TNumNodes>::CalculateLocalSystem(
     const unsigned int LocalDim = Geom.LocalSpaceDimension();
     GeometryType::JacobiansType JContainer(NumGPoints);
     for (unsigned int i = 0; i < NumGPoints; ++i)
-        (JContainer[i]).resize(TDim, LocalDim, false);
+        JContainer[i].resize(TDim, LocalDim, false);
     Geom.Jacobian(JContainer, this->GetIntegrationMethod());
 
     const auto& r_N_container = this->GetGeometry().ShapeFunctionsValues(this->GetIntegrationMethod());
