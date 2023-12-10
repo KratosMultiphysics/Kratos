@@ -60,7 +60,6 @@ public:
 private:
     struct ElementVariables
     {
-        double minimalStorage;
         double maximalStorage;
 
         double IntegrationCoefficient;
@@ -108,6 +107,7 @@ private:
     double mSecondCoverStorageCoefficient = 0.0;
     double mThirdCoverStorageCoefficient = 0.0;
     double mBuildEnvironmentRadiation = 0.0;
+    double mMinimalStorage = 0.0;
     ElementVariables mVariables;
 }; // class TMicroClimateFluxCondition.
 

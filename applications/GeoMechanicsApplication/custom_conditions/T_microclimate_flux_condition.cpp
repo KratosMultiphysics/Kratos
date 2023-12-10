@@ -204,7 +204,6 @@ template<unsigned int TDim, unsigned int TNumNodes>
 void TMicroClimateFluxCondition<TDim, TNumNodes>::CalculateNodalFluxes(
     const ProcessInfo& CurrentProcessInfo)
 {
-    const double minimalStorage = mVariables.minimalStorage;
     const double maximalStorage = mVariables.maximalStorage;
 
     const Properties mProperties = this->GetProperties();
@@ -286,10 +285,10 @@ void TMicroClimateFluxCondition<TDim, TNumNodes>::CalculateNodalFluxes(
             actualEvaporation = potentialEvaporation;
             actualPrecipitation = (maximalStorage - previous_storage) / timeStepSize + actualEvaporation;
         }
-        else if (potentialStorage < minimalStorage)
+        else if (potentialStorage < mMinimalStorage)
         {
             actualPrecipitation = precipitation;
-            actualEvaporation = (previous_storage - minimalStorage) / timeStepSize + actualPrecipitation;
+            actualEvaporation = (previous_storage - mMinimalStorage) / timeStepSize + actualPrecipitation;
         }
         else
         {
@@ -336,7 +335,7 @@ void TMicroClimateFluxCondition<TDim, TNumNodes>::InitializeProperties()
     mSecondCoverStorageCoefficient = r_prop[A2_COEFFICIENT];
     mThirdCoverStorageCoefficient = r_prop[A3_COEFFICIENT];
     mBuildEnvironmentRadiation = r_prop[QF_COEFFICIENT];
-    mVariables.minimalStorage = r_prop[SMIN_COEFFICIENT];
+    mMinimalStorage = r_prop[SMIN_COEFFICIENT];
     mVariables.maximalStorage = r_prop[SMAX_COEFFICIENT];
 
     const GeometryType& Geom = this->GetGeometry();
