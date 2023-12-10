@@ -15,6 +15,7 @@
 // Application includes
 #include "custom_conditions/T_microclimate_flux_condition.hpp"
 #include "custom_utilities/variables_utilities.hpp"
+#include "custom_utilities/ublas_utils.h"
 
 namespace Kratos
 {
@@ -132,10 +133,7 @@ double TMicroClimateFluxCondition<TDim,TNumNodes>::CalculateIntegrationCoefficie
 {
     if (TDim == 2)
     {
-        Vector v{2};
-        v(0) = Jacobian(0, 0);
-        v(1) = Jacobian(1, 0);
-        return MathUtils<>::Norm(v) * Weight;
+        return MathUtils<>::Norm(UBlasUtils::MakeVector({Jacobian(0, 0), Jacobian(1, 0)})) * Weight;
     }
     else if (TDim == 3)
     {
