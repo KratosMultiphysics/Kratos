@@ -137,11 +137,9 @@ double TMicroClimateFluxCondition<TDim,TNumNodes>::CalculateIntegrationCoefficie
     }
     else if (TDim == 3)
     {
-        Vector NormalVector{3};
-        NormalVector[0] = Jacobian(1, 0) * Jacobian(2, 1) - Jacobian(2, 0) * Jacobian(1, 1);
-        NormalVector[1] = Jacobian(2, 0) * Jacobian(0, 1) - Jacobian(0, 0) * Jacobian(2, 1);
-        NormalVector[2] = Jacobian(0, 0) * Jacobian(1, 1) - Jacobian(1, 0) * Jacobian(0, 1);
-        return MathUtils<>::Norm(NormalVector) * Weight;
+        const auto vec1 = UBlasUtils::MakeVector({Jacobian(0, 0), Jacobian(1, 0), Jacobian(2, 0)});
+        const auto vec2 = UBlasUtils::MakeVector({Jacobian(0, 1), Jacobian(1, 1), Jacobian(2, 1)});
+        return MathUtils<>::Norm(MathUtils<>::CrossProduct(vec1, vec2)) * Weight;
     }
 }
 
