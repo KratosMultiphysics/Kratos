@@ -219,9 +219,9 @@ void TMicroClimateFluxCondition<TDim, TNumNodes>::CalculateNodalFluxes(
     constexpr double psychometricConstant = 0.63;
     constexpr double surfaceResistance = 30.0;
 
-    const auto previous_storage = mVariables.waterStorage;
+    const auto previous_storage = mWaterStorage;
     const auto previous_radiation = mNetRadiation;
-    mVariables.waterStorage = 0.0;
+    mWaterStorage = 0.0;
     mNetRadiation = 0.0;
 
     for (unsigned int i = 0; i < TNumNodes; ++i)
@@ -300,7 +300,7 @@ void TMicroClimateFluxCondition<TDim, TNumNodes>::CalculateNodalFluxes(
         double subsurfaceHeatFlux = netRadiation - sensibleHeatFluxRight - latentHeatFlux + mBuildEnvironmentRadiation - surfaceHeatStorage;
 
         mNetRadiation += netRadiation / TNumNodes;
-        mVariables.waterStorage += actualStorage / TNumNodes;
+        mWaterStorage += actualStorage / TNumNodes;
         mVariables.leftHandSideFlux[i] = sensibleHeatFluxLeft;
         mVariables.rightHandSideFlux[i] = subsurfaceHeatFlux;
     }
@@ -337,8 +337,7 @@ void TMicroClimateFluxCondition<TDim, TNumNodes>::InitializeProperties()
     mMaximalStorage = r_prop[SMAX_COEFFICIENT];
 
     const GeometryType& Geom = this->GetGeometry();
-    mRoughnessTemperature = Geom[0].FastGetSolutionStepValue(AIR_TEMPERATURE, 1);   // This value is not read correctly
-    mVariables.waterStorage = 0.0;                                                            // it is related to the initial value of the table
+    mRoughnessTemperature = Geom[0].FastGetSolutionStepValue(AIR_TEMPERATURE, 1);   // This value is not read correctly, it is related to the initial value of the table
     mNetRadiation = Geom[0].FastGetSolutionStepValue(SOLAR_RADIATION, 1);  // This value is not read correctly, initial value of the table
 
     KRATOS_CATCH("")

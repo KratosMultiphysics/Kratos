@@ -62,8 +62,6 @@ private:
     {
         double IntegrationCoefficient;
         array_1d<double,TNumNodes> Np;
-        double waterStorage = 0.0;
-
         array_1d<double, TNumNodes> leftHandSideFlux;
         array_1d<double, TNumNodes> rightHandSideFlux;
     };
@@ -107,6 +105,7 @@ private:
     double mMaximalStorage = 0.0;
     double mRoughnessTemperature = 0.0;
     double mNetRadiation = 0.0;
+    double mWaterStorage = 0.0;
     ElementVariables mVariables;
 }; // class TMicroClimateFluxCondition.
 
