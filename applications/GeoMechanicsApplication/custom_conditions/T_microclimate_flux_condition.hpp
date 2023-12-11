@@ -73,7 +73,7 @@ private:
     double CalculateIntegrationCoefficient(const Matrix& Jacobian,
                                            double Weight);
 
-    void CalculateRoughness(const ProcessInfo& CurrentProcessInfo);
+    void CalculateRoughness(const ProcessInfo& rCurrentProcessInfo);
 
     void CalculateNodalFluxes(const ProcessInfo& rCurrentProcessInfo);
 

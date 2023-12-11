@@ -103,58 +103,56 @@ double TMicroClimateFluxCondition<TDim,TNumNodes>::CalculateIntegrationCoefficie
 
 template<unsigned int TDim, unsigned int TNumNodes>
 void TMicroClimateFluxCondition<TDim, TNumNodes>::CalculateRoughness(
-    const ProcessInfo& CurrentProcessInfo)
+    const ProcessInfo& rCurrentProcessInfo)
 {
-    double timeStepSize = CurrentProcessInfo.GetValue(DELTA_TIME);
+    const auto time_step_size = rCurrentProcessInfo.GetValue(DELTA_TIME);
 
-    const GeometryType& Geom = this->GetGeometry();
-    const double currentAirTemperature = Geom[0].FastGetSolutionStepValue(AIR_TEMPERATURE);
-    double currentWindSpeed = Geom[0].FastGetSolutionStepValue(WIND_SPEED);
+    const auto& r_geom = this->GetGeometry();
+    const auto current_air_temperature = r_geom[0].FastGetSolutionStepValue(AIR_TEMPERATURE);
+    const auto current_wind_speed = std::max(1.0e-3, r_geom[0].FastGetSolutionStepValue(WIND_SPEED));
 
-    constexpr double roughnessLayerHeight = 10.0;
-    constexpr double roughnessLayerResistance = 30.0;
-    constexpr double vonNeumanCoefficient = 0.4;
-    constexpr double measurementHeight = 10.0;
-    constexpr double roughnessHeight = 1.0;
-    constexpr double gravitationalAcceleration = 9.81;
+    constexpr auto roughness_layer_height = 10.0;
+    constexpr auto roughness_layer_resistance = 30.0;
+    constexpr auto von_neuman_coefficient = 0.4;
+    constexpr auto measurement_height = 10.0;
+    constexpr auto roughness_height = 1.0;
+    constexpr auto gravitational_acceleration = 9.81;
 
     const auto previous_roughness_temperature = mRoughnessTemperature;
     mRoughnessTemperature = 0.0;
 
     for (unsigned int i = 0; i < TNumNodes; ++i)
     {
-        const double initialSoilTemperature = Geom[i].FastGetSolutionStepValue(TEMPERATURE, 1);
+        const auto initial_soil_temperature = r_geom[i].FastGetSolutionStepValue(TEMPERATURE, 1);
 
-        double surfaceRoughnessFactor = 0.0;
-
-        currentWindSpeed = std::max(currentWindSpeed, 1.0e-3);
+        auto surface_roughness_factor = 0.0;
 
         // Eq 5.29
-        const double richardsonBulkModulus = 2.0 * gravitationalAcceleration * measurementHeight / (currentAirTemperature +
-            previous_roughness_temperature + 546.3) * (currentAirTemperature - previous_roughness_temperature) / (currentWindSpeed * currentWindSpeed);
+        const auto richardson_bulk_modulus = 2.0 * gravitational_acceleration * measurement_height / (current_air_temperature +
+            previous_roughness_temperature + 546.3) * (current_air_temperature - previous_roughness_temperature) / (current_wind_speed * current_wind_speed);
 
         // Eq 5.25
-        const double frictionDragCoefficient = vonNeumanCoefficient / std::log(measurementHeight / roughnessHeight);
+        const auto friction_drag_coefficient = von_neuman_coefficient / std::log(measurement_height / roughness_height);
 
-        double cof = 0.0;
-        if (previous_roughness_temperature >= currentAirTemperature) {
+        auto cof = 0.0;
+        if (previous_roughness_temperature >= current_air_temperature) {
             // Eq 5.27
-            cof = richardsonBulkModulus / (1.0 + 75.0 * frictionDragCoefficient * frictionDragCoefficient *
-                std::sqrt(measurementHeight / roughnessHeight * std::fabs(richardsonBulkModulus)));
-            surfaceRoughnessFactor = 1.0 - 15.0 * cof;
+            cof = richardson_bulk_modulus / (1.0 + 75.0 * friction_drag_coefficient * friction_drag_coefficient *
+                std::sqrt(measurement_height / roughness_height * std::abs(richardson_bulk_modulus)));
+            surface_roughness_factor = 1.0 - 15.0 * cof;
         }
         else {
             // Eq 5.28
-            cof = std::sqrt(1.0 + 5.0 * richardsonBulkModulus);
-            surfaceRoughnessFactor = 1.0 / (1.0 + 15.0 * richardsonBulkModulus * cof);
+            cof = std::sqrt(1.0 + 5.0 * richardson_bulk_modulus);
+            surface_roughness_factor = 1.0 / (1.0 + 15.0 * richardson_bulk_modulus * cof);
         }
 
-        const double c = roughnessLayerResistance * roughnessLayerHeight + timeStepSize + timeStepSize * currentWindSpeed * roughnessLayerResistance *
-            surfaceRoughnessFactor * frictionDragCoefficient * frictionDragCoefficient;
-        double currentRoughnessTemperature = (roughnessLayerResistance * roughnessLayerHeight * previous_roughness_temperature + timeStepSize *
-            initialSoilTemperature + timeStepSize * currentWindSpeed * roughnessLayerResistance * surfaceRoughnessFactor *
-            frictionDragCoefficient * frictionDragCoefficient * currentAirTemperature) / c;
-        mRoughnessTemperature += currentRoughnessTemperature / TNumNodes;
+        const auto c = roughness_layer_resistance * roughness_layer_height + time_step_size + time_step_size * current_wind_speed * roughness_layer_resistance *
+            surface_roughness_factor * friction_drag_coefficient * friction_drag_coefficient;
+        const auto current_roughness_temperature = (roughness_layer_resistance * roughness_layer_height * previous_roughness_temperature + time_step_size *
+            initial_soil_temperature + time_step_size * current_wind_speed * roughness_layer_resistance * surface_roughness_factor *
+            friction_drag_coefficient * friction_drag_coefficient * current_air_temperature) / c;
+        mRoughnessTemperature += current_roughness_temperature / TNumNodes;
     }
 }
 
