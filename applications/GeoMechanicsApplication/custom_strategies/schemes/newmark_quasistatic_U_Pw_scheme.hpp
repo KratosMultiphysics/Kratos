@@ -100,15 +100,7 @@ public:
                     nodal_area > 1.0e-20)
                 {
                     const double inv_nodal_area = 1.0 / nodal_area;
-                    Matrix& r_nodal_stress =
-                        rNode.FastGetSolutionStepValue(NODAL_CAUCHY_STRESS_TENSOR);
-                    for (unsigned int i = 0; i < r_nodal_stress.size1(); ++i)
-                    {
-                        for (unsigned int j = 0; j < r_nodal_stress.size2(); ++j)
-                        {
-                            r_nodal_stress(i, j) *= inv_nodal_area;
-                        }
-                    }
+                    rNode.FastGetSolutionStepValue(NODAL_CAUCHY_STRESS_TENSOR) *= inv_nodal_area;
                     rNode.FastGetSolutionStepValue(NODAL_DAMAGE_VARIABLE) *= inv_nodal_area;
                 }
 
@@ -149,7 +141,8 @@ protected:
                 this->CheckSolutionStepsData(r_node, variable_derivative.first_time_derivative);
                 this->CheckSolutionStepsData(r_node, variable_derivative.second_time_derivative);
 
-                std::vector<std::string> components{"X", "Y", "Z"};
+                // We don't check for "Z", since it is optional (in case of a 2D problem)
+                std::vector<std::string> components{"X", "Y"};
                 for (const auto& component : components)
                 {
                     const auto& variable_component = GetComponentFromVectorVariable(
@@ -175,7 +168,6 @@ protected:
     {
         KRATOS_TRY
 
-        // Update Acceleration, Velocity and DtPressure
         block_for_each(rModelPart.Nodes(), [this](Node& rNode)
         {
             UpdateVectorSecondTimeDerivative(rNode);

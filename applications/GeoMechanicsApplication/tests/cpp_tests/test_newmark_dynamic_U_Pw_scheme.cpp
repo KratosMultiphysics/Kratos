@@ -28,9 +28,9 @@ public:
     NewmarkDynamicUPwScheme<SparseSpaceType, LocalSpaceType> mScheme =
         CreateValidScheme();
 
-    explicit NewmarkDynamicUPwSchemeTester(const bool Add3DDofs = true)
+    explicit NewmarkDynamicUPwSchemeTester(const bool ThreeDCase = true)
     {
-        CreateValidModelPart(Add3DDofs);
+        CreateValidModelPart(ThreeDCase);
     }
 
     NewmarkDynamicUPwScheme<SparseSpaceType, LocalSpaceType> CreateValidScheme() const
@@ -180,8 +180,8 @@ KRATOS_TEST_CASE_IN_SUITE(NewmarkDynamicUPwSchemePredictFixedDisplacements_DoesN
 KRATOS_TEST_CASE_IN_SUITE(NewmarkDynamicUPwSchemePredictWithout3DDofs_DoesNotUpdateZDisplacement,
                           KratosGeoMechanicsFastSuite)
 {
-    const bool add_3d_dofs = false;
-    NewmarkDynamicUPwSchemeTester tester(add_3d_dofs);
+    const bool three_d_case = false;
+    NewmarkDynamicUPwSchemeTester tester(three_d_case);
 
     tester.mScheme.Initialize(tester.GetModelPart()); // This is needed to set the time factors
     ModelPart::DofsArrayType dof_set;

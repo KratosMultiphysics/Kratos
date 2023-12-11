@@ -64,7 +64,6 @@ protected:
     {
         KRATOS_TRY
 
-        // Update Acceleration, Velocity and DtPressure
         block_for_each(rModelPart.Nodes(), [this](Node& rNode)
         {
             for (const auto& r_variable_with_derivative : this->GetVariableDerivatives())
