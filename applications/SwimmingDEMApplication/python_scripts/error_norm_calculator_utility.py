@@ -21,7 +21,11 @@ class ErrorNormCalculatorUtility:
         self.rho = self.model_part.Elements.__iter__().__next__().Properties.GetValue(KratosMultiphysics.DENSITY)
         self.nu = self.model_part.Elements.__iter__().__next__().Properties.GetValue(KratosMultiphysics.DYNAMIC_VISCOSITY)/self.rho
         alpha_min = parameters["fluid_parameters"]["processes"]["initial_conditions_process_list"][0]["Parameters"]["benchmark_parameters"]["alpha_min"].GetDouble()
-        sigma = parameters["fluid_parameters"]["processes"]["initial_conditions_process_list"][0]["Parameters"]["benchmark_parameters"]["sigma"].GetDouble()
+        if parameters["fluid_parameters"]["processes"]["initial_conditions_process_list"][0]["Parameters"]["benchmark_parameters"].Has("sigma"):
+            sigma = parameters["fluid_parameters"]["processes"]["initial_conditions_process_list"][0]["Parameters"]["benchmark_parameters"]["sigma"].GetDouble()
+        else:
+            sigma = 0.0
+
         if parameters["fluid_parameters"]["processes"]["initial_conditions_process_list"][0]["Parameters"]["benchmark_parameters"].Has("omega"):
             omega = parameters["fluid_parameters"]["processes"]["initial_conditions_process_list"][0]["Parameters"]["benchmark_parameters"]["omega"].GetDouble()
         else:
