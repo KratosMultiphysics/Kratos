@@ -39,6 +39,7 @@ def GetDefaultInputParameters():
             "VelocityTrapMinZ"                 : 0.0,
             "RotationOption"                   : true,
             "CleanIndentationsOption"          : false,
+            "CleanIndentationsV2Option"        : false,                                       
             "RemoveBallsInEmbeddedOption"      : false,
             "RadiusExpansionOption"            : false,
             "RadiusExpansionRate"              : 0.0,
