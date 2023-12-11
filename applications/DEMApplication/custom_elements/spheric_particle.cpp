@@ -1000,6 +1000,20 @@ void SphericParticle::ComputeBallToRigidFaceContactForceAndMoment(SphericParticl
         if (ContactType == 1 || ContactType == 2 || ContactType == 3) {
 
             double indentation = -(DistPToB - GetInteractionRadius()) - ini_delta;
+
+            if (this->mIndentationInitialOption) {
+
+                if (data_buffer.mTime < (0.0 + 2.0 * data_buffer.mDt)){
+                    if (indentation > 0.0) {
+                        this->mIndentationInitialWall[static_cast<int>(rNeighbours[i]->Id())] = indentation;
+                    } 
+                }
+
+                if (this->mIndentationInitialWall.find(static_cast<int>(rNeighbours[i]->Id())) != this->mIndentationInitialWall.end()){
+                   indentation -= this->mIndentationInitialWall[static_cast<int>(rNeighbours[i]->Id())];
+                } 
+            }
+
             double DeltDisp[3] = {0.0};
             double DeltVel [3] = {0.0};
 
