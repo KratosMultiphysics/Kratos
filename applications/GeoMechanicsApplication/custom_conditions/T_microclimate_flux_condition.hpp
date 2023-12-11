@@ -79,6 +79,10 @@ private:
 
     void InitializeProperties();
 
+    double CalculateNetRadiation(double incomingRadiation,
+                                 double atmosphericTemperature,
+                                 double initialSoilTemperature);
+
     // Serialization
     friend class Serializer;
 

@@ -171,8 +171,6 @@ void TMicroClimateFluxCondition<TDim, TNumNodes>::CalculateNodalFluxes(
     constexpr double airHeatCapacity = 1004.67;
     constexpr double roughnessLayerResistance = 30.0;
     constexpr double latentEvaporationHeat = 2.45e6;
-    constexpr double boltzmannCoefficient = 5.67e-8;
-    constexpr double effectiveEmissivity = 0.95;
     constexpr double waterDensity = 1e3;
     constexpr double psychometricConstant = 0.63;
     constexpr double surfaceResistance = 30.0;
@@ -208,17 +206,7 @@ void TMicroClimateFluxCondition<TDim, TNumNodes>::CalculateNodalFluxes(
         // Eq 5.14
         const double actualVaporPressure = humidity / 100.0 * saturatedVaporPressure;
 
-        // Eq 5.16
-        const double shortWaveRadiation = (1.0 - mAlbedoCoefficient) * incomingRadiation;
-
-        // Eq 5.18
-        const double emittedLongWaveRadiation = boltzmannCoefficient * std::pow(initialSoilTemperature + 273.15, 4.0);
-
-        // Eq 5.17
-        const double absorbedLongWaveRadiation = effectiveEmissivity * boltzmannCoefficient * std::pow(atmosphericTemperature + 273.15, 4.0);
-
-        // Eq 5.15
-        const double netRadiation = shortWaveRadiation + absorbedLongWaveRadiation - emittedLongWaveRadiation;
+        const double netRadiation = CalculateNetRadiation(incomingRadiation, atmosphericTemperature, initialSoilTemperature);
 
         // Eq 5.20
         const double surfaceHeatStorage = mFirstCoverStorageCoefficient * netRadiation + mSecondCoverStorageCoefficient * (netRadiation - previous_radiation) /
@@ -329,6 +317,27 @@ void TMicroClimateFluxCondition<TDim, TNumNodes>::InitializeProperties()
     mNetRadiation = Geom[0].FastGetSolutionStepValue(SOLAR_RADIATION, 1);  // This value is not read correctly, initial value of the table
 
     KRATOS_CATCH("")
+}
+
+template<unsigned int TDim, unsigned int TNumNodes>
+double TMicroClimateFluxCondition<TDim, TNumNodes>::CalculateNetRadiation(double incomingRadiation,
+                                                                          double atmosphericTemperature,
+                                                                          double initialSoilTemperature)
+{
+    // Eq 5.16
+    const auto shortWaveRadiation = (1.0 - mAlbedoCoefficient) * incomingRadiation;
+
+    constexpr auto effectiveEmissivity = 0.95;
+    constexpr auto boltzmannCoefficient = 5.67e-8;
+
+    // Eq 5.17
+    const auto absorbedLongWaveRadiation = effectiveEmissivity * boltzmannCoefficient * std::pow(atmosphericTemperature + 273.15, 4.0);
+
+    // Eq 5.18
+    const auto emittedLongWaveRadiation = boltzmannCoefficient * std::pow(initialSoilTemperature + 273.15, 4.0);
+
+    // Eq 5.15
+    return shortWaveRadiation + absorbedLongWaveRadiation - emittedLongWaveRadiation;
 }
 
 template class TMicroClimateFluxCondition<2,2>;
