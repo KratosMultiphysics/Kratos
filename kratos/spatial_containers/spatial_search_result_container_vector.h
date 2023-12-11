@@ -236,6 +236,7 @@ public:
      */
     SpatialSearchResultContainerReferenceType operator[](const IndexType Index)
     {
+        KRATOS_DEBUG_ERROR_IF_NOT(HasResult(Index)) << "Index " << Index << " not available. Size: " << mPointResults.size() << std::endl;
         return *mPointResults[Index];
     }
 
@@ -246,6 +247,7 @@ public:
      */
     const SpatialSearchResultContainerType& operator[](const IndexType Index) const
     {
+        KRATOS_DEBUG_ERROR_IF_NOT(HasResult(Index)) << "Index " << Index << " not available. Size: " << mPointResults.size() << std::endl;
         return *mPointResults[Index];
     }
 
@@ -256,6 +258,7 @@ public:
      */
     SpatialSearchResultContainerPointerType operator()(const IndexType Index)
     {
+        KRATOS_DEBUG_ERROR_IF_NOT(HasResult(Index)) << "Index " << Index << " not available. Size: " << mPointResults.size() << std::endl;
         return mPointResults[Index];
     }
 
@@ -266,6 +269,7 @@ public:
      */
     const SpatialSearchResultContainerType* operator()(const IndexType Index) const
     {
+        KRATOS_DEBUG_ERROR_IF_NOT(HasResult(Index)) << "Index " << Index << " not available. Size: " << mPointResults.size() << std::endl;
         return mPointResults[Index];
     }
 
