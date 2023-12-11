@@ -444,8 +444,8 @@ std::unique_ptr<DEMRollingFrictionModel> mRollingFrictionModel;
 
 double mInitializationTime;
 double mIndentationInitialOption;
-//std::vector<double> mIndentationInitial;
 std::map<int, double> mIndentationInitial;
+std::map<int, double> mIndentationInitialWall;
 double mProgrammedDestructionTime=-1.0; // set to a negative value, so that when marked TO_ERASE, elimination is by default.
 double mRadius;
 double mSearchRadius;
