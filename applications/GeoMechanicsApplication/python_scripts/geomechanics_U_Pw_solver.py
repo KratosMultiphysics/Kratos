@@ -136,16 +136,16 @@ class UPwSolver(GeoSolver):
                 node.AddDof(KratosMultiphysics.ACCELERATION_X)
                 node.AddDof(KratosMultiphysics.ACCELERATION_Y)
                 node.AddDof(KratosMultiphysics.ACCELERATION_Z)
-            # if self.settings["rotation_dofs"].GetBool():
-            #     for node in self.main_model_part.Nodes:
-            #         # adding ANGULAR_VELOCITY as dofs
-            #         node.AddDof(KratosMultiphysics.ANGULAR_VELOCITY_X)
-            #         node.AddDof(KratosMultiphysics.ANGULAR_VELOCITY_Y)
-            #         node.AddDof(KratosMultiphysics.ANGULAR_VELOCITY_Z)
-            #         # adding ANGULAR_ACCELERATION as dofs
-            #         node.AddDof(KratosMultiphysics.ANGULAR_ACCELERATION_X)
-            #         node.AddDof(KratosMultiphysics.ANGULAR_ACCELERATION_Y)
-            #         node.AddDof(KratosMultiphysics.ANGULAR_ACCELERATION_Z)
+                if self.settings["rotation_dofs"].GetBool():
+                    # for node in self.main_model_part.Nodes:
+                        # adding ANGULAR_VELOCITY as dofs
+                    node.AddDof(KratosMultiphysics.ANGULAR_VELOCITY_X)
+                    node.AddDof(KratosMultiphysics.ANGULAR_VELOCITY_Y)
+                    node.AddDof(KratosMultiphysics.ANGULAR_VELOCITY_Z)
+                    # adding ANGULAR_ACCELERATION as dofs
+                    node.AddDof(KratosMultiphysics.ANGULAR_ACCELERATION_X)
+                    node.AddDof(KratosMultiphysics.ANGULAR_ACCELERATION_Y)
+                    node.AddDof(KratosMultiphysics.ANGULAR_ACCELERATION_Z)
 
         KratosMultiphysics.Logger.PrintInfo("GeoMechanics_U_Pw_Solver", "DOFs added correctly.")
 
