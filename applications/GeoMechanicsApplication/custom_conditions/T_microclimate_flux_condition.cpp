@@ -213,27 +213,21 @@ void TMicroClimateFluxCondition<TDim, TNumNodes>::CalculateNodalFluxes(
                 (1.0 + surface_resistance / atmospheric_resistance));   //Where is G (5.34)?
         latent_heat_flux = std::max(latent_heat_flux, 0.0);
 
-        auto actual_evaporation = 0.0;
-        auto actual_precipitation = 0.0;
-
         // Eq 5.36
         const auto potential_evaporation = latent_heat_flux / (water_density * latent_evaporation_heat);
         const auto potential_storage = previous_storage + time_step_size * (precipitation - potential_evaporation);
+
+        auto actual_evaporation = potential_evaporation;
+        auto actual_precipitation = precipitation;
         if (potential_storage > mMaximalStorage)
         {
-            actual_evaporation = potential_evaporation;
             actual_precipitation = (mMaximalStorage - previous_storage) / time_step_size + actual_evaporation;
         }
         else if (potential_storage < mMinimalStorage)
         {
-            actual_precipitation = precipitation;
             actual_evaporation = (previous_storage - mMinimalStorage) / time_step_size + actual_precipitation;
         }
-        else
-        {
-            actual_evaporation = potential_evaporation;
-            actual_precipitation = precipitation;
-        }
+
         const auto actual_storage = previous_storage + time_step_size * (actual_precipitation - actual_evaporation);
         latent_heat_flux = actual_evaporation * water_density * latent_evaporation_heat;
 
