@@ -27,7 +27,7 @@ namespace Kratos {
 
 namespace Testing {
 
-KRATOS_TEST_CASE_IN_SUITE(SecondShapeDerivativesInterpolation, FluidDynamicsApplicationFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(SecondShapeDerivativesInterpolation2D9N, FluidDynamicsApplicationFastSuite)
 {
     Model model;
     const double buffer_size = 2;
@@ -65,7 +65,8 @@ KRATOS_TEST_CASE_IN_SUITE(SecondShapeDerivativesInterpolation, FluidDynamicsAppl
         AlternativeQSVMSDEMCoupled<QSVMSDEMCoupledData<Dim, 9>>* p_element = dynamic_cast<AlternativeQSVMSDEMCoupled<QSVMSDEMCoupledData<Dim, 9>>*>(&rElement);
         const Geometry<Node>::IntegrationMethod integration_method = p_element->GetIntegrationMethod();
 
-        p_element->GetShapeSecondDerivatives(DDN_DDX);
+        GeometryUtils::ShapeFunctionsSecondDerivativesTransformOnAllIntegrationPoints(
+            DDN_DDX,rElement.GetGeometry(),rElement.GetIntegrationMethod());
 
         Matrix NContainer = p_element->GetGeometry().ShapeFunctionsValues(integration_method);
 

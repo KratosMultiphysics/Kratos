@@ -27,7 +27,7 @@ namespace Kratos {
 
 namespace Testing {
 
-KRATOS_TEST_CASE_IN_SUITE(SecondShapeDerivativesInterpolation3D, FluidDynamicsApplicationFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(SecondShapeDerivativesInterpolation3D27N, FluidDynamicsApplicationFastSuite)
 {
     Model model;
     const double buffer_size = 2;
@@ -61,13 +61,13 @@ KRATOS_TEST_CASE_IN_SUITE(SecondShapeDerivativesInterpolation3D, FluidDynamicsAp
     model_part.CreateNewNode(21, 0.1, 0.1, 0.0);
     model_part.CreateNewNode(22, 0.1, 0.0, 0.1);
     model_part.CreateNewNode(23, 0.0, 0.1, 0.1);
-    model_part.CreateNewNode(25, 0.1, 0.1, 0.05);
-    model_part.CreateNewNode(26, 0.05, 0.1, 0.1);
-    model_part.CreateNewNode(29, 0.1, 0.05, 0.1);
-    model_part.CreateNewNode(39, 0.1, 0.1, 0.1);
+    model_part.CreateNewNode(24, 0.1, 0.1, 0.05);
+    model_part.CreateNewNode(25, 0.05, 0.1, 0.1);
+    model_part.CreateNewNode(26, 0.1, 0.05, 0.1);
+    model_part.CreateNewNode(27, 0.1, 0.1, 0.1);
 
 
-    std::vector<ModelPart::IndexType> element_nodes {39, 23, 9, 21, 22, 10, 1, 11, 26, 13, 12, 25, 29, 14, 4, 17, 15, 2, 3, 16, 18, 19, 7, 6, 20, 5, 8};
+    std::vector<ModelPart::IndexType> element_nodes {27, 23, 9, 21, 22, 10, 1, 11, 25, 13, 12, 24, 26, 14, 4, 17, 15, 2, 3, 16, 18, 19, 7, 6, 20, 5, 8};
     model_part.CreateNewElement("AlternativeQSVMSDEMCoupled3D27N", 1, element_nodes, p_properties);
 
 
@@ -83,7 +83,8 @@ KRATOS_TEST_CASE_IN_SUITE(SecondShapeDerivativesInterpolation3D, FluidDynamicsAp
         AlternativeQSVMSDEMCoupled<QSVMSDEMCoupledData<Dim, 27>>* p_element = dynamic_cast<AlternativeQSVMSDEMCoupled<QSVMSDEMCoupledData<Dim, 27>>*>(&rElement);
         const Geometry<Node>::IntegrationMethod integration_method = p_element->GetIntegrationMethod();
 
-        p_element->GetShapeSecondDerivatives(DDN_DDX);
+        GeometryUtils::ShapeFunctionsSecondDerivativesTransformOnAllIntegrationPoints(
+            DDN_DDX,rElement.GetGeometry(),rElement.GetIntegrationMethod());
 
         Matrix NContainer = p_element->GetGeometry().ShapeFunctionsValues(integration_method);
 
