@@ -11,6 +11,7 @@
 #include <string>
 #include <iostream>
 #include <cmath>
+#include <map>
 
 #include <fstream>
 
@@ -190,6 +191,7 @@ void SphericParticle::Initialize(const ProcessInfo& r_process_info)
     KRATOS_TRY
 
     this->mInitializationTime = r_process_info[TIME];
+    this->mIndentationInitialOption = r_process_info[CLEAN_INDENT_V2_OPTION];
 
     SetValue(NEIGHBOUR_IDS, DenseVector<int>());
 
@@ -283,6 +285,7 @@ void SphericParticle::CalculateRightHandSide(const ProcessInfo& r_process_info, 
     NodeType& this_node = GetGeometry()[0];
 
     data_buffer.mDt = dt;
+    data_buffer.mTime = r_process_info[TIME];
     data_buffer.mMultiStageRHS = false;
 
     array_1d<double, 3> additional_forces = ZeroVector(3);
@@ -2079,7 +2082,7 @@ bool SphericParticle::CalculateRelativePositionsOrSkipContact(ParticleDataBuffer
     data_buffer.mOtherToMeVector[1] = data_buffer.mMyCoors[1] - data_buffer.mOtherCoors[1];
     data_buffer.mOtherToMeVector[2] = data_buffer.mMyCoors[2] - data_buffer.mOtherCoors[2];
 
-    data_buffer.mDistance    = DEM_MODULUS_3(data_buffer.mOtherToMeVector);
+    data_buffer.mDistance = DEM_MODULUS_3(data_buffer.mOtherToMeVector);
 
     must_skip_contact_calculation = data_buffer.mDistance < std::numeric_limits<double>::epsilon();
 
@@ -2090,6 +2093,19 @@ bool SphericParticle::CalculateRelativePositionsOrSkipContact(ParticleDataBuffer
     data_buffer.mOtherRadius = data_buffer.mpOtherParticle->GetInteractionRadius();
     data_buffer.mRadiusSum   = this->GetInteractionRadius() + data_buffer.mOtherRadius;
     data_buffer.mIndentation = data_buffer.mRadiusSum - data_buffer.mDistance;
+
+    if (this->mIndentationInitialOption) {
+
+        if (data_buffer.mTime < (0.0 + 2.0 * data_buffer.mDt)){
+            if (data_buffer.mIndentation > 0.0) {
+                this->mIndentationInitial[data_buffer.mpOtherParticle->Id()] = data_buffer.mIndentation;
+            } 
+        }
+
+        if (this->mIndentationInitial.find(data_buffer.mpOtherParticle->Id()) != this->mIndentationInitial.end()){
+            data_buffer.mIndentation -= this->mIndentationInitial[data_buffer.mpOtherParticle->Id()];
+        } 
+    }
 
     return data_buffer.mIndentation > 0.0;
 }

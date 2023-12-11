@@ -7,7 +7,7 @@ import KratosMultiphysics.DEMApplication.cluster_file_reader as cluster_file_rea
 
 class ExplicitStrategy():
 
-    #def __init__(self, all_model_parts, creator_destructor, dem_fem_search, scheme, DEM_parameters, procedures):
+    #def __init__(self, all_model_parts, creator_destructor, dem_fem_search,Logger scheme, DEM_parameters, procedures):
     def __init__(self, all_model_parts, creator_destructor, dem_fem_search, DEM_parameters, procedures):
         self.solver_settings = DEM_parameters["solver_settings"]
 
@@ -66,11 +66,17 @@ class ExplicitStrategy():
         #self.time_integration_scheme.SetRotationOption(self.rotation_option)
 
         self.clean_init_indentation_option = DEM_parameters["CleanIndentationsOption"].GetBool()
+        self.clean_init_indentation_v2_option = DEM_parameters["CleanIndentationsV2Option"].GetBool()
 
         if self.clean_init_indentation_option and self._GetInputType() == 'rest':
             Logger.PrintWarning("DEM", '\nWARNING!: \'clean_indentations_option\' is set to true in a restarted simulation. The particles\' radii could be modified before the first time step.\n' * 50)
 
-        self.contact_mesh_option           = 0
+        if self.clean_init_indentation_option and self.clean_init_indentation_v2_option:
+            Logger.PrintWarning("DEM", '\nWARNING!:  "CleanIndentationsOption" and "CleanIndentationsV2Option" can not both be "True" at the same time.\n')
+            from sys import exit
+            exit(0)
+        
+        self.contact_mesh_option = 0
         if "ContactMeshOption" in DEM_parameters.keys():
             self.contact_mesh_option      = DEM_parameters["ContactMeshOption"].GetBool()
         self.automatic_bounding_box_option = DEM_parameters["AutomaticBoundingBoxOption"].GetBool()
@@ -263,6 +269,7 @@ class ExplicitStrategy():
         self.spheres_model_part.ProcessInfo.SetValue(FIX_VELOCITIES_FLAG, self.fix_velocities_flag)
         self.spheres_model_part.ProcessInfo.SetValue(NEIGH_INITIALIZED, 0)
         self.spheres_model_part.ProcessInfo.SetValue(CLEAN_INDENT_OPTION, self.clean_init_indentation_option)
+        self.spheres_model_part.ProcessInfo.SetValue(CLEAN_INDENT_V2_OPTION, self.clean_init_indentation_v2_option)
         self.spheres_model_part.ProcessInfo.SetValue(BOUNDING_BOX_START_TIME, self.bounding_box_start_time)
         self.spheres_model_part.ProcessInfo.SetValue(BOUNDING_BOX_STOP_TIME, self.bounding_box_stop_time)
         self.spheres_model_part.ProcessInfo.SetValue(COMPUTE_STRESS_TENSOR_OPTION, self.compute_stress_tensor_option)
