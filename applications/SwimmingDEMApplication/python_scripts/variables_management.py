@@ -234,7 +234,7 @@ class VariablesManager:
             and parameters["add_each_hydro_force_option"].GetBool()):
             self.dem_vars += [Kratos.LIFT_FORCE]
 
-        if parameters["add_each_hydro_force_option"].GetBool() and parameters["properties"]["hydrodynamic_law_parameters"]["inviscid_force_parameters"]["name"].GetString() != "default":
+        if parameters["add_each_hydro_force_option"].GetBool() and parameters["properties"][0]["hydrodynamic_law_parameters"]["inviscid_force_parameters"]["name"].GetString() != "default":
             self.dem_vars += [Kratos.VIRTUAL_MASS_FORCE]
 
         # clusters variables
