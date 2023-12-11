@@ -70,7 +70,7 @@ private:
                             const Vector& rNodalTemperatures);
     void CalculateAndAddLHS(Matrix& rLeftHandSideMatrix);
 
-    double CalculateIntegrationCoefficient(const Matrix& Jacobian,
+    double CalculateIntegrationCoefficient(const Matrix& rJacobian,
                                            double Weight);
 
     void CalculateRoughness(const ProcessInfo& rCurrentProcessInfo);
