@@ -51,11 +51,8 @@ void TMicroClimateFluxCondition<TDim, TNumNodes>::CalculateAndAddRHS(
     GeoElementUtilities::
         AssemblePBlockVector<0, TNumNodes>(rRightHandSideVector, temporary_vector);
 
-    auto flux_matrix = Matrix{TNumNodes, TNumNodes, 0.0};
-    for (unsigned int i = 0; i < TNumNodes; ++i)
-    {
-        flux_matrix(i, i) = mVariables.leftHandSideFlux[i];
-    }
+    const auto flux_matrix = UBlasUtils::MakeDiagonalMatrix(mVariables.leftHandSideFlux.begin(),
+                                                            mVariables.leftHandSideFlux.end());
     temporary_matrix = prod(temporary_matrix, flux_matrix);
     temporary_vector = -prod(temporary_matrix, rNodalTemperatures);
     GeoElementUtilities::
@@ -70,11 +67,8 @@ void TMicroClimateFluxCondition<TDim, TNumNodes>::CalculateAndAddLHS(
 
     auto temporary_matrix = BoundedMatrix<double, TNumNodes, TNumNodes>{outer_prod(mVariables.Np, mVariables.Np) * mVariables.IntegrationCoefficient};
 
-    auto flux_matrix = Matrix{TNumNodes, TNumNodes, 0.0};
-    for (unsigned int i = 0; i < TNumNodes; ++i)
-    {
-        flux_matrix(i, i) = mVariables.leftHandSideFlux[i];
-    }
+    const auto flux_matrix = UBlasUtils::MakeDiagonalMatrix(mVariables.leftHandSideFlux.begin(),
+                                                            mVariables.leftHandSideFlux.end());
 
     temporary_matrix = prod(temporary_matrix, flux_matrix);
 

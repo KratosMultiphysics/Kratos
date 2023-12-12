@@ -22,6 +22,19 @@ class UBlasUtils
 {
 public:
     static Vector MakeVector(const std::initializer_list<double>& values);
+
+    template <typename InputIt>
+    static Matrix MakeDiagonalMatrix(InputIt BeginOfDiagonalEntries,
+                                     InputIt EndOfDiagonalEntries)
+    {
+        const auto size = static_cast<std::size_t>(EndOfDiagonalEntries - BeginOfDiagonalEntries);
+        Matrix result{size, size, 0.0};
+        for (auto i = std::size_t{0}; i < size; ++i) {
+            result(i, i) = *BeginOfDiagonalEntries;
+            ++BeginOfDiagonalEntries;
+        }
+        return result;
+    }
 };
 
 }
