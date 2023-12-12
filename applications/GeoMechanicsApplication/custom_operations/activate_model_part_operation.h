@@ -34,49 +34,49 @@ namespace Kratos
  * @author Vahid Galavi
  * @author Marjan Fathian
  * @author Ruben Zorrilla
- * @class ApplyExcavationOperation
+ * @class ActivateModelPartOperation
  * @ingroup GeoMechanicsApplication
  * @brief This operation emulate the effect of an excavation by deactivating some parts of the computational domain
  */
-class KRATOS_API(GEO_MECHANICS_APPLICATION) ApplyExcavationOperation : public Operation
+class KRATOS_API(GEO_MECHANICS_APPLICATION) ActivateModelPartOperation : public Operation
 {
 public:
     ///@name Type Definitions
     ///@{
 
-    /// Pointer definition of ApplyExcavationOperation
-    KRATOS_CLASS_POINTER_DEFINITION(ApplyExcavationOperation);
+    /// Pointer definition of ActivateModelPartOperation
+    KRATOS_CLASS_POINTER_DEFINITION(ActivateModelPartOperation);
 
     /// Registry current operation
-    KRATOS_REGISTRY_ADD_PROTOTYPE("Operations.KratosMultiphysics.GeoMechanicsApplication", Operation, ApplyExcavationOperation)
-    KRATOS_REGISTRY_ADD_PROTOTYPE("Operations.All", Operation, ApplyExcavationOperation)
+    KRATOS_REGISTRY_ADD_PROTOTYPE("Operations.KratosMultiphysics.GeoMechanicsApplication", Operation, ActivateModelPartOperation)
+    KRATOS_REGISTRY_ADD_PROTOTYPE("Operations.All", Operation, ActivateModelPartOperation)
 
     ///@}
     ///@name Life Cycle
     ///@{
 
     /// Default constructor.
-    ApplyExcavationOperation() : Operation() {}
+    ActivateModelPartOperation() : Operation() {}
 
     /// @brief Model-parameters constructor.
     /// @param rModel Reference to the model container
     /// @param rSettings Input settings
-    ApplyExcavationOperation(
+    ActivateModelPartOperation(
         Model& rModel,
         const Parameters rSettings);
 
     /// Destructor
-    ~ApplyExcavationOperation() override = default;
+    ~ActivateModelPartOperation() override = default;
 
     /// Copy constructor
-    ApplyExcavationOperation(const ApplyExcavationOperation&) = delete;
+    ActivateModelPartOperation(const ActivateModelPartOperation&) = delete;
 
     ///@}
     ///@name Operators
     ///@{
 
     /// Assignment operator.
-    ApplyExcavationOperation& operator=(const ApplyExcavationOperation&) = delete;
+    ActivateModelPartOperation& operator=(const ActivateModelPartOperation&) = delete;
 
     ///@}
     ///@name Operations
@@ -94,11 +94,10 @@ private:
     ///@name Member Variables
     ///@{
 
-    const bool mDeactivateSoilPart = true; // Auxiliary deactivation flag
     const ModelPart* mpModelPart = nullptr; // Reference to the model part to which the operation is applied
 
     ///@}
-}; // Class ApplyExcavationOperation
+}; // Class ActivateModelPartOperation
 
 ///@} addtogroup block
 
