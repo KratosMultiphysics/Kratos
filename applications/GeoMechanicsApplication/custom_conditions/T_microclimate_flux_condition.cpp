@@ -179,26 +179,26 @@ void TMicroClimateFluxCondition<TDim, TNumNodes>::CalculateNodalFluxes(
         // Eq 5.20
         const auto surface_heat_storage = mFirstCoverStorageCoefficient * net_radiation + mSecondCoverStorageCoefficient * (net_radiation - previous_radiation) /
                                                                                               time_step_size + mThirdCoverStorageCoefficient;
-        const auto tmp_latent_heat_flux = CalculateLatentHeatFlux(i, net_radiation, surface_heat_storage);
+        const auto potential_evaporation =
+            CalculatePotentialEvaporation(i, net_radiation, surface_heat_storage);
 
-        // Eq 5.36
-        const auto potential_evaporation = tmp_latent_heat_flux / (water_density * latent_evaporation_heat);
         const auto precipitation = r_geom[i].FastGetSolutionStepValue(PRECIPITATION);
         const auto potential_storage = previous_storage + time_step_size * (precipitation - potential_evaporation);
-
         auto actual_precipitation = precipitation;
+        auto actual_evaporation = potential_evaporation;
+
+        // Correct the precipitation and evaporation if the storage is out of bounds
         if (potential_storage > mMaximalStorage)
         {
-            actual_precipitation = (mMaximalStorage - previous_storage) / time_step_size + potential_evaporation;
+            actual_precipitation = (mMaximalStorage - previous_storage) / time_step_size + actual_evaporation;
         }
-
-        auto actual_evaporation = potential_evaporation;
-        if (potential_storage < mMinimalStorage)
+        else if (potential_storage < mMinimalStorage)
         {
-            actual_evaporation = (previous_storage - mMinimalStorage) / time_step_size + precipitation;
+            actual_evaporation = (previous_storage - mMinimalStorage) / time_step_size + actual_precipitation;
         }
 
-        SetActualStorage(time_step_size, previous_storage, actual_precipitation, actual_evaporation);
+        SetWaterStorage(time_step_size, previous_storage, actual_precipitation,
+                        actual_evaporation);
         SetRightHandSideFlux(i, net_radiation, surface_heat_storage, actual_evaporation);
         SetLeftHandSizeFlux(i);
     }
@@ -221,7 +221,7 @@ void TMicroClimateFluxCondition<TDim, TNumNodes>::SetRightHandSideFlux(
 }
 
 template<unsigned int TDim, unsigned int TNumNodes>
-void TMicroClimateFluxCondition<TDim, TNumNodes>::SetActualStorage(
+void TMicroClimateFluxCondition<TDim, TNumNodes>::SetWaterStorage(
     double time_step_size, double previous_storage, double actual_precipitation, double actual_evaporation)
 {
     const auto actual_storage = previous_storage + time_step_size * (actual_precipitation - actual_evaporation);
@@ -229,7 +229,7 @@ void TMicroClimateFluxCondition<TDim, TNumNodes>::SetActualStorage(
 }
 
 template<unsigned int TDim, unsigned int TNumNodes>
-double TMicroClimateFluxCondition<TDim, TNumNodes>::CalculateLatentHeatFlux(
+double TMicroClimateFluxCondition<TDim, TNumNodes>::CalculatePotentialEvaporation(
     unsigned int i, const double net_radiation, const double surface_heat_storage)
 {
     using namespace MicroClimateConstants;
@@ -251,13 +251,15 @@ double TMicroClimateFluxCondition<TDim, TNumNodes>::CalculateLatentHeatFlux(
     const auto actual_vapor_pressure = humidity / 100.0 * saturated_vapor_pressure;
 
     // Eq 5.34
-    const auto latent_heat_flux = (vapor_pressure_increment *
+    auto latent_heat_flux = (vapor_pressure_increment *
                             (net_radiation + mBuildEnvironmentRadiation - surface_heat_storage)
                         + air_heat_capacity * air_density * (saturated_vapor_pressure - actual_vapor_pressure)
                               / atmospheric_resistance) / (vapor_pressure_increment + psychometric_constant *
                                                        (1.0 + surface_resistance / atmospheric_resistance));
+    latent_heat_flux = std::max(latent_heat_flux, 0.0);
 
-    return std::max(latent_heat_flux, 0.0);
+    // Eq 5.36
+    return latent_heat_flux / (water_density * latent_evaporation_heat);
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>

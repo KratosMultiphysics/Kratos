@@ -108,10 +108,10 @@ private:
     ElementVariables mVariables;
 
     void SetLeftHandSizeFlux(unsigned int i);
-    double CalculateLatentHeatFlux(unsigned int i,
+    double CalculatePotentialEvaporation(unsigned int i,
                                    const double net_radiation,
                                    const double surface_heat_storage);
-    void SetActualStorage(double time_step_size,
+    void SetWaterStorage(double time_step_size,
                           double previous_storage,
                           double actual_precipitation,
                           double actual_evaporation);
