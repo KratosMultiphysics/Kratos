@@ -48,10 +48,11 @@ template<unsigned int TDim, unsigned int TNumNodes>
 void TMicroClimateFluxCondition<TDim, TNumNodes>::CalculateAndAddRHS(
     Vector& rRightHandSideVector,
     const array_1d<double, TNumNodes>& rN,
+    double IntegrationCoefficient,
     const Vector& rNodalTemperatures,
     const array_1d<double, TNumNodes>& rLeftHandSideFluxes)
 {
-    auto temporary_matrix = BoundedMatrix<double, TNumNodes, TNumNodes>{outer_prod(rN, rN) * mVariables.IntegrationCoefficient};
+    auto temporary_matrix = BoundedMatrix<double, TNumNodes, TNumNodes>{outer_prod(rN, rN) * IntegrationCoefficient};
     auto temporary_vector = array_1d<double,TNumNodes>{prod(temporary_matrix, mVariables.rightHandSideFlux)};
     GeoElementUtilities::
         AssemblePBlockVector<0, TNumNodes>(rRightHandSideVector, temporary_vector);
@@ -68,11 +69,12 @@ template<unsigned int TDim, unsigned int TNumNodes>
 void TMicroClimateFluxCondition<TDim, TNumNodes>::CalculateAndAddLHS(
     Matrix& rLeftHandSideMatrix,
     const array_1d<double, TNumNodes>& rN,
+    double IntegrationCoefficient,
     const array_1d<double, TNumNodes>& rLeftHandSideFluxes)
 {
     KRATOS_TRY
 
-    auto temporary_matrix = BoundedMatrix<double, TNumNodes, TNumNodes>{outer_prod(rN, rN) * mVariables.IntegrationCoefficient};
+    auto temporary_matrix = BoundedMatrix<double, TNumNodes, TNumNodes>{outer_prod(rN, rN) * IntegrationCoefficient};
 
     const auto flux_matrix = UBlasUtils::MakeDiagonalMatrix(
         rLeftHandSideFluxes.begin(), rLeftHandSideFluxes.end());
@@ -364,11 +366,11 @@ void TMicroClimateFluxCondition<TDim, TNumNodes>::CalculateLocalSystem(
         const auto N = array_1d<double, TNumNodes>{row(r_N_container, integration_point_index)};
 
         // Compute weighting coefficient for integration
-        mVariables.IntegrationCoefficient = this->CalculateIntegrationCoefficient(J_container[integration_point_index],
+        const auto IntegrationCoefficient = this->CalculateIntegrationCoefficient(J_container[integration_point_index],
                                                                                   r_integration_points[integration_point_index].Weight());
 
-        this->CalculateAndAddLHS(rLeftHandSideMatrix, N, left_hand_side_fluxes);
-        this->CalculateAndAddRHS(rRightHandSideVector, N, nodal_temperatures, left_hand_side_fluxes);
+        this->CalculateAndAddLHS(rLeftHandSideMatrix, N, IntegrationCoefficient, left_hand_side_fluxes);
+        this->CalculateAndAddRHS(rRightHandSideVector, N, IntegrationCoefficient, nodal_temperatures, left_hand_side_fluxes);
     }
 
     KRATOS_CATCH("")

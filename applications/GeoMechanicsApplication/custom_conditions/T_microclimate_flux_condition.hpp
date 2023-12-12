@@ -66,16 +66,17 @@ public:
 private:
     struct ElementVariables
     {
-        double IntegrationCoefficient;
         array_1d<double, TNumNodes> rightHandSideFlux;
     };
 
     void CalculateAndAddRHS(Vector& rRightHandSideVector,
                             const array_1d<double, TNumNodes>& rN,
+                            double IntegrationCoefficient,
                             const Vector& rNodalTemperatures,
                             const array_1d<double, TNumNodes>& rLeftHandSideFluxes);
     void CalculateAndAddLHS(Matrix& rLeftHandSideMatrix,
                             const array_1d<double, TNumNodes>& rN,
+                            double IntegrationCoefficient,
                             const array_1d<double, TNumNodes>& rLeftHandSideFluxes);
 
     double CalculateIntegrationCoefficient(const Matrix& rJacobian,
