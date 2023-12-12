@@ -21,6 +21,8 @@
 namespace Kratos
 {
 
+using namespace MicroClimateConstants;
+
 template<unsigned int TDim, unsigned int TNumNodes>
 Condition::Pointer TMicroClimateFluxCondition<TDim, TNumNodes>::Create(
     IndexType NewId,
@@ -147,58 +149,83 @@ void TMicroClimateFluxCondition<TDim, TNumNodes>::CalculateRoughness(
 }
 
 template<unsigned int TDim, unsigned int TNumNodes>
-void TMicroClimateFluxCondition<TDim, TNumNodes>::CalculateNodalFluxes(
-    const ProcessInfo& rCurrentProcessInfo)
+void TMicroClimateFluxCondition<TDim, TNumNodes>::SetRightHandSideFluxes(
+    const double time_step_size, const double previous_storage, const double previous_radiation)
 {
-    using namespace MicroClimateConstants;
-
-    const auto& r_geom = this->GetGeometry();
-    const auto time_step_size = rCurrentProcessInfo.GetValue(DELTA_TIME);
-
-    const auto previous_storage = mWaterStorage;
-    const auto previous_radiation = mNetRadiation;
-    mWaterStorage = 0.0;
-    mNetRadiation = 0.0;
-
-    SetNetRadiation();
-    SetLeftHandSideFluxes();
-
     for (unsigned int i = 0; i < TNumNodes; ++i)
     {
-        const auto net_radiation = CalculateNetRadiation(i);
+        const auto net_radiation = this->CalculateNetRadiation(i);
+        const auto surface_heat_storage = this->CalculateSurfaceHeatStorage(
+            time_step_size, previous_radiation, net_radiation);
+        const WaterFluxes water_fluxes = this->CalculateWaterFluxes(
+            i, time_step_size, previous_storage, net_radiation, surface_heat_storage);
 
-        // Eq 5.20
-        const auto surface_heat_storage =
-            mFirstCoverStorageCoefficient * net_radiation +
-            mSecondCoverStorageCoefficient * (net_radiation - previous_radiation) / time_step_size +
-            mThirdCoverStorageCoefficient;
-
-        const auto potential_evaporation =
-            CalculatePotentialEvaporation(i, net_radiation, surface_heat_storage);
-
-        const auto precipitation = r_geom[i].FastGetSolutionStepValue(PRECIPITATION);
-        const auto potential_storage =
-            previous_storage + time_step_size * (precipitation - potential_evaporation);
-
-        auto actual_precipitation = precipitation;
-        auto actual_evaporation = potential_evaporation;
-
-        // Correct the precipitation and evaporation if the storage is out of bounds
-        if (potential_storage > mMaximalStorage)
-        {
-            actual_precipitation =
-                (mMaximalStorage - previous_storage) / time_step_size + actual_evaporation;
-        }
-        else if (potential_storage < mMinimalStorage)
-        {
-            actual_evaporation =
-                (previous_storage - mMinimalStorage) / time_step_size + actual_precipitation;
-        }
-
-        SetWaterStorage(time_step_size, previous_storage, actual_precipitation,
-                        actual_evaporation);
-        SetRightHandSideFlux(i, net_radiation, surface_heat_storage, actual_evaporation);
+        this->SetRightHandSideFlux(i, net_radiation, surface_heat_storage, water_fluxes.evaporation);
     }
+}
+
+template<unsigned int TDim, unsigned int TNumNodes>
+void TMicroClimateFluxCondition<TDim, TNumNodes>::SetWaterStorage(
+    const double time_step_size, const double previous_storage, const double previous_radiation)
+{
+    for (unsigned int i = 0; i < TNumNodes; ++i)
+    {
+        const auto net_radiation = this->CalculateNetRadiation(i);
+        const auto surface_heat_storage = this->CalculateSurfaceHeatStorage(
+            time_step_size, previous_radiation, net_radiation);
+        const WaterFluxes water_fluxes = this->CalculateWaterFluxes(
+            i, time_step_size, previous_storage, net_radiation, surface_heat_storage);
+
+        this->SetWaterStorage(time_step_size, previous_storage,
+                        water_fluxes.precipitation, water_fluxes.evaporation);
+    }
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
+double TMicroClimateFluxCondition<TDim, TNumNodes>::CalculateSurfaceHeatStorage(
+    const double time_step_size, const double previous_radiation, const double net_radiation) const
+{
+    // Eq 5.20
+    return mFirstCoverStorageCoefficient * net_radiation +
+           mSecondCoverStorageCoefficient * (net_radiation - previous_radiation) / time_step_size +
+           mThirdCoverStorageCoefficient;
+}
+
+template<unsigned int TDim, unsigned int TNumNodes>
+WaterFluxes TMicroClimateFluxCondition<TDim, TNumNodes>::CalculateWaterFluxes(
+    unsigned int i,
+    const double time_step_size,
+    const double previous_storage,
+    const double net_radiation,
+    const double surface_heat_storage)
+{
+    const auto potential_evaporation =
+        CalculatePotentialEvaporation(i, net_radiation, surface_heat_storage);
+
+    auto& r_geom = this->GetGeometry();
+    const auto precipitation = r_geom[i].FastGetSolutionStepValue(PRECIPITATION);
+    const auto potential_storage =
+        previous_storage + time_step_size * (precipitation - potential_evaporation);
+
+    auto actual_precipitation = precipitation;
+    auto actual_evaporation = potential_evaporation;
+
+    // Correct the precipitation and evaporation if the storage is out of bounds
+    if (potential_storage > mMaximalStorage)
+    {
+        actual_precipitation =
+            (mMaximalStorage - previous_storage) / time_step_size + actual_evaporation;
+    }
+    else if (potential_storage < mMinimalStorage)
+    {
+        actual_evaporation =
+            (previous_storage - mMinimalStorage) / time_step_size + actual_precipitation;
+    }
+
+    WaterFluxes water_fluxes;
+    water_fluxes.evaporation = actual_evaporation;
+    water_fluxes.precipitation = actual_precipitation;
+    return water_fluxes;
 }
 
 template<unsigned int TDim, unsigned int TNumNodes>
@@ -312,7 +339,17 @@ void TMicroClimateFluxCondition<TDim, TNumNodes>::CalculateLocalSystem(
     auto nodal_temperatures = array_1d<double, TNumNodes>{};
     VariablesUtilities::GetNodalValues(this->GetGeometry(), TEMPERATURE, nodal_temperatures.begin());
 
-    this->CalculateNodalFluxes(rCurrentProcessInfo);
+    const auto time_step_size = rCurrentProcessInfo.GetValue(DELTA_TIME);
+
+    const auto previous_storage = mWaterStorage;
+    const auto previous_radiation = mNetRadiation;
+    mWaterStorage = 0.0;
+    mNetRadiation = 0.0;
+    SetNetRadiation();
+    SetWaterStorage(time_step_size, previous_storage, previous_radiation);
+
+    SetLeftHandSideFluxes();
+    SetRightHandSideFluxes(time_step_size, previous_storage, previous_radiation);
 
     // Loop over integration points
     for (unsigned int integration_point_index = 0; integration_point_index < number_of_integration_points; ++integration_point_index) {

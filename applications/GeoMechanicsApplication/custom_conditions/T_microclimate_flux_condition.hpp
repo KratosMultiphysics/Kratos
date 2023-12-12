@@ -25,6 +25,12 @@
 namespace Kratos
 {
 
+struct WaterFluxes
+{
+    double precipitation = 0.0;
+    double evaporation = 0.0;
+};
+
 template<unsigned int TDim, unsigned int TNumNodes>
 class KRATOS_API(GEO_MECHANICS_APPLICATION) TMicroClimateFluxCondition : public GeoTCondition<TDim,TNumNodes>
 {
@@ -75,8 +81,6 @@ private:
 
     void CalculateRoughness(const ProcessInfo& rCurrentProcessInfo);
 
-    void CalculateNodalFluxes(const ProcessInfo& rCurrentProcessInfo);
-
     void InitializeProperties();
 
     double CalculateNetRadiation(unsigned int index);
@@ -120,6 +124,20 @@ private:
                               const double surface_heat_storage,
                               double actual_evaporation);
     void SetNetRadiation();
+    WaterFluxes CalculateWaterFluxes(unsigned int i,
+                                     const double time_step_size,
+                                     const double previous_storage,
+                                     const double net_radiation,
+                                     const double surface_heat_storage);
+    double CalculateSurfaceHeatStorage(const double time_step_size,
+                                       const double previous_radiation,
+                                       const double net_radiation) const;
+    void SetWaterStorage(const double time_step_size,
+                         const double previous_storage,
+                         const double previous_radiation);
+    void SetRightHandSideFluxes(const double time_step_size,
+                                const double previous_storage,
+                                const double previous_radiation);
 }; // class TMicroClimateFluxCondition.
 
 } // namespace Kratos.
