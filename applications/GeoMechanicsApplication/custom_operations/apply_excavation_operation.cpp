@@ -14,12 +14,6 @@
 //                   Ruben Zorrilla
 //
 
-// System includes
-
-
-// External includes
-
-
 // Project includes
 #include "containers/model.h"
 #include "includes/element.h"

@@ -16,16 +16,8 @@
 
 #pragma once
 
-// System includes
-
-
-// External includes
-
-
 // Project includes
 #include "operations/operation.h"
-
-// Application includes
 
 namespace Kratos
 {
