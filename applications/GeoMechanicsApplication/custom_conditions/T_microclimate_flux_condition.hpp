@@ -79,9 +79,7 @@ private:
 
     void InitializeProperties();
 
-    double CalculateNetRadiation(double IncomingRadiation,
-                                 double AtmosphericTemperature,
-                                 double InitialSoilTemperature);
+    double CalculateNetRadiation(unsigned int index);
 
     // Serialization
     friend class Serializer;
@@ -110,6 +108,17 @@ private:
     ElementVariables mVariables;
 
     void SetLeftHandSizeFlux(unsigned int i);
+    double CalculateLatentHeatFlux(unsigned int i,
+                                   const double net_radiation,
+                                   const double surface_heat_storage);
+    void SetActualStorage(double time_step_size,
+                          double previous_storage,
+                          double actual_precipitation,
+                          double actual_evaporation);
+    void SetRightHandSideFlux(unsigned int i,
+                              const double net_radiation,
+                              const double surface_heat_storage,
+                              double actual_evaporation);
 }; // class TMicroClimateFluxCondition.
 
 } // namespace Kratos.
