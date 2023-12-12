@@ -355,12 +355,16 @@ void AxisymmetricEulerianConvectionDiffusionElement<TDim, TNumNodes>::CalculateO
         rOutput.resize( n_gauss, false );
     }
 
-    if(rVariable == THERMAL_ENERGY) {
-        // Initialize thermal_energy value
-        for (IndexType g = 0; g < n_gauss; ++g) {
+    // Initialize output value
+    for (IndexType g = 0; g < n_gauss; ++g) {
 
-            rOutput[g] = 0.0;
-        }
+        rOutput[g] = 0.0;
+    }
+
+    if(rVariable == THERMAL_ENERGY) {
+
+        // Initialize thermal_energy value
+        double thermal_energy = 0.0;
 
         // Initialize element data container
         typename BaseType::ElementVariables Variables;
@@ -394,7 +398,13 @@ void AxisymmetricEulerianConvectionDiffusionElement<TDim, TNumNodes>::CalculateO
             // Calculate axisymmetric integration weight
             const double w_g = 2.0 * Globals::Pi * Radius * integration_points[g].Weight() * det_J_vect[g];
 
-            rOutput[g] += T * Variables.specific_heat * Variables.density * w_g;
+            thermal_energy += T * Variables.specific_heat * Variables.density * w_g;
+        }
+
+        // Set elemental thermal_energy 
+        for (IndexType g = 0; g < n_gauss; ++g) {
+
+            rOutput[g] = thermal_energy; // This is an elemental variable, and thus it is constant for all GPs
         }
     }
 }
