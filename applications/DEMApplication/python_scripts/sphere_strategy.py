@@ -7,7 +7,7 @@ import KratosMultiphysics.DEMApplication.cluster_file_reader as cluster_file_rea
 
 class ExplicitStrategy():
 
-    #def __init__(self, all_model_parts, creator_destructor, dem_fem_search,Logger scheme, DEM_parameters, procedures):
+    #def __init__(self, all_model_parts, creator_destructor, dem_fem_search, scheme, DEM_parameters, procedures):
     def __init__(self, all_model_parts, creator_destructor, dem_fem_search, DEM_parameters, procedures):
         self.solver_settings = DEM_parameters["solver_settings"]
 
