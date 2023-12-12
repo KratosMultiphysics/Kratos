@@ -22,4 +22,13 @@ constexpr static double water_density = 1e3;
 constexpr static double psychometric_constant = 0.63;
 constexpr static double surface_resistance = 30.0;
 
+constexpr static double roughness_layer_height = 10.0;
+constexpr static double von_neuman_coefficient = 0.4;
+constexpr static double measurement_height = 10.0;
+constexpr static double roughness_height = 1.0;
+constexpr static double gravitational_acceleration = 9.81;
+
+constexpr auto effective_emissivity = 0.95;
+constexpr auto boltzmann_coefficient = 5.67e-8;
+
 } // namespace Kratos::MicroClimateConstants

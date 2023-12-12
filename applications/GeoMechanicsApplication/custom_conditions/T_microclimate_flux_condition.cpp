@@ -100,18 +100,13 @@ template<unsigned int TDim, unsigned int TNumNodes>
 void TMicroClimateFluxCondition<TDim, TNumNodes>::CalculateRoughness(
     const ProcessInfo& rCurrentProcessInfo)
 {
+    using namespace MicroClimateConstants;
+
     const auto time_step_size = rCurrentProcessInfo.GetValue(DELTA_TIME);
 
     const auto& r_geom = this->GetGeometry();
     const auto current_air_temperature = r_geom[0].FastGetSolutionStepValue(AIR_TEMPERATURE);
     const auto current_wind_speed = std::max(1.0e-3, r_geom[0].FastGetSolutionStepValue(WIND_SPEED));
-
-    constexpr auto roughness_layer_height = 10.0;
-    constexpr auto roughness_layer_resistance = 30.0;
-    constexpr auto von_neuman_coefficient = 0.4;
-    constexpr auto measurement_height = 10.0;
-    constexpr auto roughness_height = 1.0;
-    constexpr auto gravitational_acceleration = 9.81;
 
     const auto previous_roughness_temperature = mRoughnessTemperature;
     mRoughnessTemperature = 0.0;
@@ -229,19 +224,19 @@ double TMicroClimateFluxCondition<TDim, TNumNodes>::CalculatePotentialEvaporatio
     using namespace MicroClimateConstants;
     auto& r_geom = this->GetGeometry();
 
-    const auto wind_speed = r_geom[i].FastGetSolutionStepValue(WIND_SPEED);
     // Eq 5.35
+    const auto wind_speed = r_geom[i].FastGetSolutionStepValue(WIND_SPEED);
     const auto atmospheric_resistance = 1.0 / (0.007 + 0.0056 * wind_speed);
 
-    const auto atmospheric_temperature = r_geom[i].FastGetSolutionStepValue(AIR_TEMPERATURE);
     // Eq. 5.12
+    const auto atmospheric_temperature = r_geom[i].FastGetSolutionStepValue(AIR_TEMPERATURE);
     const auto saturated_vapor_pressure = 6.11 * std::exp(17.27 * atmospheric_temperature / (atmospheric_temperature + 237.3));
 
     // Eq 5.13
     const auto vapor_pressure_increment = 4098.0 * saturated_vapor_pressure / (std::pow((atmospheric_temperature + 237.3), 2.0));
 
-    const auto humidity = r_geom[i].FastGetSolutionStepValue(AIR_HUMIDITY);
     // Eq 5.14
+    const auto humidity = r_geom[i].FastGetSolutionStepValue(AIR_HUMIDITY);
     const auto actual_vapor_pressure = humidity / 100.0 * saturated_vapor_pressure;
 
     // Eq 5.34
@@ -336,14 +331,13 @@ void TMicroClimateFluxCondition<TDim, TNumNodes>::InitializeProperties()
 template<unsigned int TDim, unsigned int TNumNodes>
 double TMicroClimateFluxCondition<TDim, TNumNodes>::CalculateNetRadiation(unsigned int index)
 {
+    using namespace MicroClimateConstants;
+
     auto& r_geom = this->GetGeometry();
 
     // Eq 5.16
     const auto incoming_radiation = r_geom[index].FastGetSolutionStepValue(SOLAR_RADIATION);
     const auto short_wave_radiation = (1.0 - mAlbedoCoefficient) * incoming_radiation;
-
-    constexpr auto effective_emissivity = 0.95;
-    constexpr auto boltzmann_coefficient = 5.67e-8;
 
     // Eq 5.17
     const auto atmospheric_temperature = r_geom[index].FastGetSolutionStepValue(AIR_TEMPERATURE);
