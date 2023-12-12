@@ -108,6 +108,8 @@ private:
     double mNetRadiation = 0.0;
     double mWaterStorage = 0.0;
     ElementVariables mVariables;
+
+    void SetLeftHandSizeFlux(unsigned int i);
 }; // class TMicroClimateFluxCondition.
 
 } // namespace Kratos.

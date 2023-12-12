@@ -16,6 +16,7 @@
 #include "custom_conditions/T_microclimate_flux_condition.hpp"
 #include "custom_utilities/variables_utilities.hpp"
 #include "custom_utilities/ublas_utils.h"
+#include "micro_climate_constants.h"
 
 namespace Kratos
 {
@@ -160,16 +161,10 @@ template<unsigned int TDim, unsigned int TNumNodes>
 void TMicroClimateFluxCondition<TDim, TNumNodes>::CalculateNodalFluxes(
     const ProcessInfo& rCurrentProcessInfo)
 {
+    using namespace MicroClimateConstants;
+
     const auto& r_geom = this->GetGeometry();
     const auto time_step_size = rCurrentProcessInfo.GetValue(DELTA_TIME);
-
-    constexpr auto air_density = 1.18;
-    constexpr auto air_heat_capacity = 1004.67;
-    constexpr auto roughness_layer_resistance = 30.0;
-    constexpr auto latent_evaporation_heat = 2.45e6;
-    constexpr auto water_density = 1e3;
-    constexpr auto psychometric_constant = 0.63;
-    constexpr auto surface_resistance = 30.0;
 
     const auto previous_storage = mWaterStorage;
     const auto previous_radiation = mNetRadiation;
@@ -178,29 +173,23 @@ void TMicroClimateFluxCondition<TDim, TNumNodes>::CalculateNodalFluxes(
 
     for (unsigned int i = 0; i < TNumNodes; ++i)
     {
-        const auto atmospheric_temperature = r_geom[i].FastGetSolutionStepValue(AIR_TEMPERATURE);
-        const auto incoming_radiation = r_geom[i].FastGetSolutionStepValue(SOLAR_RADIATION);
-        const auto humidity = r_geom[i].FastGetSolutionStepValue(AIR_HUMIDITY);
-        const auto precipitation = r_geom[i].FastGetSolutionStepValue(PRECIPITATION);
         const auto wind_speed = r_geom[i].FastGetSolutionStepValue(WIND_SPEED);
-
-        // Eq 5.22
-        const auto sensible_heat_flux_left = air_heat_capacity * air_density / roughness_layer_resistance;
-        const auto sensible_heat_flux_right = -air_heat_capacity * air_density * mRoughnessTemperature / roughness_layer_resistance;
-
         // Eq 5.35
         const auto atmospheric_resistance = 1.0 / (0.007 + 0.0056 * wind_speed);
 
+        const auto atmospheric_temperature = r_geom[i].FastGetSolutionStepValue(AIR_TEMPERATURE);
         // Eq. 5.12
         const auto saturated_vapor_pressure = 6.11 * std::exp(17.27 * atmospheric_temperature / (atmospheric_temperature + 237.3));
 
         // Eq 5.13
         const auto vapor_pressure_increment = 4098.0 * saturated_vapor_pressure / (std::pow((atmospheric_temperature + 237.3), 2.0));
 
+        const auto humidity = r_geom[i].FastGetSolutionStepValue(AIR_HUMIDITY);
         // Eq 5.14
         const auto actual_vapor_pressure = humidity / 100.0 * saturated_vapor_pressure;
 
         const auto initial_soil_temperature = r_geom[i].FastGetSolutionStepValue(TEMPERATURE, 1);
+        const auto incoming_radiation = r_geom[i].FastGetSolutionStepValue(SOLAR_RADIATION);
         const auto net_radiation = CalculateNetRadiation(incoming_radiation, atmospheric_temperature, initial_soil_temperature);
 
         // Eq 5.20
@@ -213,6 +202,7 @@ void TMicroClimateFluxCondition<TDim, TNumNodes>::CalculateNodalFluxes(
                 (1.0 + surface_resistance / atmospheric_resistance));   //Where is G (5.34)?
         latent_heat_flux = std::max(latent_heat_flux, 0.0);
 
+        const auto precipitation = r_geom[i].FastGetSolutionStepValue(PRECIPITATION);
         // Eq 5.36
         const auto potential_evaporation = latent_heat_flux / (water_density * latent_evaporation_heat);
         const auto potential_storage = previous_storage + time_step_size * (precipitation - potential_evaporation);
@@ -231,14 +221,29 @@ void TMicroClimateFluxCondition<TDim, TNumNodes>::CalculateNodalFluxes(
         const auto actual_storage = previous_storage + time_step_size * (actual_precipitation - actual_evaporation);
         latent_heat_flux = actual_evaporation * water_density * latent_evaporation_heat;
 
+        // Eq 5.22
+        const auto sensible_heat_flux_right = -air_heat_capacity * air_density * mRoughnessTemperature / roughness_layer_resistance;
+
         // Eq 5.31
         const auto subsurface_heat_flux = net_radiation - sensible_heat_flux_right - latent_heat_flux + mBuildEnvironmentRadiation - surface_heat_storage;
 
         mNetRadiation += net_radiation / TNumNodes;
         mWaterStorage += actual_storage / TNumNodes;
-        mVariables.leftHandSideFlux[i] = sensible_heat_flux_left;
+
+        SetLeftHandSizeFlux(i);
+
         mVariables.rightHandSideFlux[i] = subsurface_heat_flux;
     }
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
+void TMicroClimateFluxCondition<TDim, TNumNodes>::SetLeftHandSizeFlux(unsigned int i)
+{
+    // Eq 5.22
+    const auto sensible_heat_flux_left =
+        MicroClimateConstants::air_heat_capacity * MicroClimateConstants::air_density /
+        MicroClimateConstants::roughness_layer_resistance;
+    mVariables.leftHandSideFlux[i] = sensible_heat_flux_left;
 }
 
 template<unsigned int TDim, unsigned int TNumNodes>
