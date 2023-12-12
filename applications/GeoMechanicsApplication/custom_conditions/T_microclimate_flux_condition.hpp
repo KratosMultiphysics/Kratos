@@ -68,13 +68,12 @@ private:
     {
         double IntegrationCoefficient;
         array_1d<double,TNumNodes> Np;
-        array_1d<double, TNumNodes> leftHandSideFlux;
         array_1d<double, TNumNodes> rightHandSideFlux;
     };
 
     void CalculateAndAddRHS(Vector& rRightHandSideVector,
-                            const Vector& rNodalTemperatures);
-    void CalculateAndAddLHS(Matrix& rLeftHandSideMatrix);
+                            const Vector& rNodalTemperatures, const array_1d<double, TNumNodes>& rLeftHandSideFluxes);
+    void CalculateAndAddLHS(Matrix& rLeftHandSideMatrix, const array_1d<double, TNumNodes>& rLeftHandSideFluxes);
 
     double CalculateIntegrationCoefficient(const Matrix& rJacobian,
                                            double Weight);
@@ -111,7 +110,7 @@ private:
     double mWaterStorage = 0.0;
     ElementVariables mVariables;
 
-    void SetLeftHandSideFluxes();
+    array_1d<double, TNumNodes> CalculateLeftHandSideFluxes();
     double CalculatePotentialEvaporation(unsigned int i,
                                    const double net_radiation,
                                    const double surface_heat_storage);

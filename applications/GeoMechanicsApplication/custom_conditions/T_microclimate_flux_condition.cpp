@@ -47,15 +47,16 @@ void TMicroClimateFluxCondition<TDim, TNumNodes>::InitializeSolutionStep(
 template<unsigned int TDim, unsigned int TNumNodes>
 void TMicroClimateFluxCondition<TDim, TNumNodes>::CalculateAndAddRHS(
     Vector& rRightHandSideVector,
-    const Vector& rNodalTemperatures)
+    const Vector& rNodalTemperatures,
+    const array_1d<double, TNumNodes>& rLeftHandSideFluxes)
 {
     auto temporary_matrix = BoundedMatrix<double, TNumNodes, TNumNodes>{outer_prod(mVariables.Np, mVariables.Np) * mVariables.IntegrationCoefficient};
     auto temporary_vector = array_1d<double,TNumNodes>{prod(temporary_matrix, mVariables.rightHandSideFlux)};
     GeoElementUtilities::
         AssemblePBlockVector<0, TNumNodes>(rRightHandSideVector, temporary_vector);
 
-    const auto flux_matrix = UBlasUtils::MakeDiagonalMatrix(mVariables.leftHandSideFlux.begin(),
-                                                            mVariables.leftHandSideFlux.end());
+    const auto flux_matrix = UBlasUtils::MakeDiagonalMatrix(
+        rLeftHandSideFluxes.begin(), rLeftHandSideFluxes.end());
     temporary_matrix = prod(temporary_matrix, flux_matrix);
     temporary_vector = -prod(temporary_matrix, rNodalTemperatures);
     GeoElementUtilities::
@@ -64,14 +65,15 @@ void TMicroClimateFluxCondition<TDim, TNumNodes>::CalculateAndAddRHS(
 
 template<unsigned int TDim, unsigned int TNumNodes>
 void TMicroClimateFluxCondition<TDim, TNumNodes>::CalculateAndAddLHS(
-    Matrix& rLeftHandSideMatrix)
+    Matrix& rLeftHandSideMatrix,
+    const array_1d<double, TNumNodes>& rLeftHandSideFluxes)
 {
     KRATOS_TRY
 
     auto temporary_matrix = BoundedMatrix<double, TNumNodes, TNumNodes>{outer_prod(mVariables.Np, mVariables.Np) * mVariables.IntegrationCoefficient};
 
-    const auto flux_matrix = UBlasUtils::MakeDiagonalMatrix(mVariables.leftHandSideFlux.begin(),
-                                                            mVariables.leftHandSideFlux.end());
+    const auto flux_matrix = UBlasUtils::MakeDiagonalMatrix(
+        rLeftHandSideFluxes.begin(), rLeftHandSideFluxes.end());
 
     temporary_matrix = prod(temporary_matrix, flux_matrix);
 
@@ -297,9 +299,11 @@ double TMicroClimateFluxCondition<TDim, TNumNodes>::CalculatePotentialEvaporatio
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void TMicroClimateFluxCondition<TDim, TNumNodes>::SetLeftHandSideFluxes()
+array_1d<double, TNumNodes> TMicroClimateFluxCondition<TDim, TNumNodes>::CalculateLeftHandSideFluxes()
 {
     using namespace MicroClimateConstants;
+
+    array_1d<double, TNumNodes> result;
 
     for (unsigned int i = 0; i < TNumNodes; ++i)
     {
@@ -307,8 +311,10 @@ void TMicroClimateFluxCondition<TDim, TNumNodes>::SetLeftHandSideFluxes()
         const auto sensible_heat_flux_left =
             air_heat_capacity * air_density /
             roughness_layer_resistance;
-        mVariables.leftHandSideFlux[i] = sensible_heat_flux_left;
+        result[i] = sensible_heat_flux_left;
     }
+
+    return result;
 }
 
 template<unsigned int TDim, unsigned int TNumNodes>
@@ -348,7 +354,7 @@ void TMicroClimateFluxCondition<TDim, TNumNodes>::CalculateLocalSystem(
     SetNetRadiation();
     SetWaterStorage(time_step_size, previous_storage, previous_radiation);
 
-    SetLeftHandSideFluxes();
+    const auto left_hand_side_fluxes = CalculateLeftHandSideFluxes();
     SetRightHandSideFluxes(time_step_size, previous_storage, previous_radiation);
 
     // Loop over integration points
@@ -359,8 +365,8 @@ void TMicroClimateFluxCondition<TDim, TNumNodes>::CalculateLocalSystem(
         mVariables.IntegrationCoefficient = this->CalculateIntegrationCoefficient(J_container[integration_point_index],
                                                                                   r_integration_points[integration_point_index].Weight());
 
-        this->CalculateAndAddLHS(rLeftHandSideMatrix);
-        this->CalculateAndAddRHS(rRightHandSideVector, nodal_temperatures);
+        this->CalculateAndAddLHS(rLeftHandSideMatrix, left_hand_side_fluxes);
+        this->CalculateAndAddRHS(rRightHandSideVector, nodal_temperatures, left_hand_side_fluxes);
     }
 
     KRATOS_CATCH("")
