@@ -22,6 +22,8 @@ public:
     explicit StubTimeLoopExecutor(size_t NumberOfExpectedProcesses = 0);
 
     void SetCancelDelegate(const std::function<bool()>& rCancelDelegate) override;
+
+    void SetProgressDelegate(const std::function<void(double)>& rProgressDelegate) override;
     
     void SetProcessObservables(const std::vector<std::weak_ptr<Process>>& rProcessObservables) override;
 
