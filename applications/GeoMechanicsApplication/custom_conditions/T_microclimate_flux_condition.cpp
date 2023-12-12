@@ -160,36 +160,54 @@ void TMicroClimateFluxCondition<TDim, TNumNodes>::CalculateNodalFluxes(
     mWaterStorage = 0.0;
     mNetRadiation = 0.0;
 
+    SetNetRadiation();
+    SetLeftHandSideFluxes();
+
     for (unsigned int i = 0; i < TNumNodes; ++i)
     {
         const auto net_radiation = CalculateNetRadiation(i);
-        mNetRadiation += net_radiation / TNumNodes;
 
         // Eq 5.20
-        const auto surface_heat_storage = mFirstCoverStorageCoefficient * net_radiation + mSecondCoverStorageCoefficient * (net_radiation - previous_radiation) /
-                                                                                              time_step_size + mThirdCoverStorageCoefficient;
+        const auto surface_heat_storage =
+            mFirstCoverStorageCoefficient * net_radiation +
+            mSecondCoverStorageCoefficient * (net_radiation - previous_radiation) / time_step_size +
+            mThirdCoverStorageCoefficient;
+
         const auto potential_evaporation =
             CalculatePotentialEvaporation(i, net_radiation, surface_heat_storage);
 
         const auto precipitation = r_geom[i].FastGetSolutionStepValue(PRECIPITATION);
-        const auto potential_storage = previous_storage + time_step_size * (precipitation - potential_evaporation);
+        const auto potential_storage =
+            previous_storage + time_step_size * (precipitation - potential_evaporation);
+
         auto actual_precipitation = precipitation;
         auto actual_evaporation = potential_evaporation;
 
         // Correct the precipitation and evaporation if the storage is out of bounds
         if (potential_storage > mMaximalStorage)
         {
-            actual_precipitation = (mMaximalStorage - previous_storage) / time_step_size + actual_evaporation;
+            actual_precipitation =
+                (mMaximalStorage - previous_storage) / time_step_size + actual_evaporation;
         }
         else if (potential_storage < mMinimalStorage)
         {
-            actual_evaporation = (previous_storage - mMinimalStorage) / time_step_size + actual_precipitation;
+            actual_evaporation =
+                (previous_storage - mMinimalStorage) / time_step_size + actual_precipitation;
         }
 
         SetWaterStorage(time_step_size, previous_storage, actual_precipitation,
                         actual_evaporation);
         SetRightHandSideFlux(i, net_radiation, surface_heat_storage, actual_evaporation);
-        SetLeftHandSizeFlux(i);
+    }
+}
+
+template<unsigned int TDim, unsigned int TNumNodes>
+void TMicroClimateFluxCondition<TDim, TNumNodes>::SetNetRadiation()
+{
+    for (unsigned int i = 0; i < TNumNodes; ++i)
+    {
+        const auto net_radiation = this->CalculateNetRadiation(i);
+        this->mNetRadiation += net_radiation / TNumNodes;
     }
 }
 
@@ -214,7 +232,7 @@ void TMicroClimateFluxCondition<TDim, TNumNodes>::SetWaterStorage(
     double time_step_size, double previous_storage, double actual_precipitation, double actual_evaporation)
 {
     const auto actual_storage = previous_storage + time_step_size * (actual_precipitation - actual_evaporation);
-    this->mWaterStorage += actual_storage / TNumNodes;
+    mWaterStorage += actual_storage / TNumNodes;
 }
 
 template<unsigned int TDim, unsigned int TNumNodes>
@@ -252,13 +270,18 @@ double TMicroClimateFluxCondition<TDim, TNumNodes>::CalculatePotentialEvaporatio
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void TMicroClimateFluxCondition<TDim, TNumNodes>::SetLeftHandSizeFlux(unsigned int i)
+void TMicroClimateFluxCondition<TDim, TNumNodes>::SetLeftHandSideFluxes()
 {
-    // Eq 5.22
-    const auto sensible_heat_flux_left =
-        MicroClimateConstants::air_heat_capacity * MicroClimateConstants::air_density /
-        MicroClimateConstants::roughness_layer_resistance;
-    mVariables.leftHandSideFlux[i] = sensible_heat_flux_left;
+    using namespace MicroClimateConstants;
+
+    for (unsigned int i = 0; i < TNumNodes; ++i)
+    {
+        // Eq 5.22
+        const auto sensible_heat_flux_left =
+            air_heat_capacity * air_density /
+            roughness_layer_resistance;
+        mVariables.leftHandSideFlux[i] = sensible_heat_flux_left;
+    }
 }
 
 template<unsigned int TDim, unsigned int TNumNodes>

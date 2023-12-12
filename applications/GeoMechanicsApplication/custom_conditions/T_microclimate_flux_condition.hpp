@@ -107,7 +107,7 @@ private:
     double mWaterStorage = 0.0;
     ElementVariables mVariables;
 
-    void SetLeftHandSizeFlux(unsigned int i);
+    void SetLeftHandSideFluxes();
     double CalculatePotentialEvaporation(unsigned int i,
                                    const double net_radiation,
                                    const double surface_heat_storage);
@@ -119,6 +119,7 @@ private:
                               const double net_radiation,
                               const double surface_heat_storage,
                               double actual_evaporation);
+    void SetNetRadiation();
 }; // class TMicroClimateFluxCondition.
 
 } // namespace Kratos.
