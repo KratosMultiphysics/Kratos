@@ -217,10 +217,10 @@ array_1d<double, TNumNodes> TMicroClimateFluxCondition<TDim, TNumNodes>::Calcula
     array_1d<double, TNumNodes> result;
     for (unsigned int i = 0; i < TNumNodes; ++i)
     {
-        const auto net_radiation = this->CalculateNetRadiation(i);
-        const auto surface_heat_storage = this->CalculateSurfaceHeatStorage(
+        const auto net_radiation = CalculateNetRadiation(i);
+        const auto surface_heat_storage = CalculateSurfaceHeatStorage(
             time_step_size, previous_radiation, net_radiation);
-        const WaterFluxes water_fluxes = this->CalculateWaterFluxes(
+        const WaterFluxes water_fluxes = CalculateWaterFluxes(
             i, time_step_size, previous_storage, net_radiation, surface_heat_storage);
 
         result[i] = CalculateRightHandSideFlux(
@@ -255,10 +255,10 @@ double TMicroClimateFluxCondition<TDim, TNumNodes>::CalculateCurrentWaterStorage
 
     for (unsigned int i = 0; i < TNumNodes; ++i)
     {
-        const auto net_radiation = this->CalculateNetRadiation(i);
-        const auto surface_heat_storage = this->CalculateSurfaceHeatStorage(
+        const auto net_radiation = CalculateNetRadiation(i);
+        const auto surface_heat_storage = CalculateSurfaceHeatStorage(
             time_step_size, previous_radiation, net_radiation);
-        const WaterFluxes water_fluxes = this->CalculateWaterFluxes(
+        const WaterFluxes water_fluxes = CalculateWaterFluxes(
             i, time_step_size, previous_storage, net_radiation, surface_heat_storage);
 
         const auto actual_storage =
