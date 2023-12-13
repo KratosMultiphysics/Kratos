@@ -18,8 +18,8 @@
 
 // Application includes
 #include "custom_conditions/T_condition.h"
-#include "custom_utilities/element_utilities.hpp"
 #include "custom_utilities/condition_utilities.hpp"
+#include "custom_utilities/element_utilities.hpp"
 #include "geo_mechanics_application_variables.h"
 
 namespace Kratos
@@ -31,12 +31,13 @@ struct WaterFluxes
     double evaporation = 0.0;
 };
 
-template<unsigned int TDim, unsigned int TNumNodes>
-class KRATOS_API(GEO_MECHANICS_APPLICATION) TMicroClimateFluxCondition : public GeoTCondition<TDim,TNumNodes>
+template <unsigned int TDim, unsigned int TNumNodes>
+class KRATOS_API(GEO_MECHANICS_APPLICATION) TMicroClimateFluxCondition
+    : public GeoTCondition<TDim, TNumNodes>
 {
 public:
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(TMicroClimateFluxCondition);
-    
+
     using IndexType = std::size_t;
     using GeometryType = Geometry<Node>;
     using NodesArrayType = GeometryType::PointsArrayType;
@@ -48,21 +49,23 @@ public:
     {
     }
 
-    TMicroClimateFluxCondition(IndexType NewId, GeometryType::Pointer pGeometry, Properties::Pointer pProperties)
+    TMicroClimateFluxCondition(IndexType NewId,
+                               GeometryType::Pointer pGeometry,
+                               Properties::Pointer pProperties)
         : GeoTCondition<TDim, TNumNodes>(NewId, pGeometry, pProperties)
     {
     }
 
     Condition::Pointer Create(IndexType NewId,
                               const NodesArrayType& rNodes,
-                              Properties::Pointer pProperties ) const override;
+                              Properties::Pointer pProperties) const override;
 
     void Initialize(const ProcessInfo& rCurrentProcessInfo) override;
 
     void InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
 
-    void CalculateLocalSystem(Matrix&            rLeftHandSideMatrix,
-                              Vector&            rRightHandSideVector,
+    void CalculateLocalSystem(Matrix& rLeftHandSideMatrix,
+                              Vector& rRightHandSideVector,
                               const ProcessInfo& rCurrentProcessInfo) override;
 
 private:
@@ -73,7 +76,6 @@ private:
                             double IntegrationCoefficient,
                             const array_1d<double, TNumNodes>& rLeftHandSideFluxes);
 
-
     void CalculateAndAddRHS(Vector& rRightHandSideVector,
                             const array_1d<double, TNumNodes>& rN,
                             double IntegrationCoefficient,
@@ -81,8 +83,7 @@ private:
                             const array_1d<double, TNumNodes>& rLeftHandSideFluxes,
                             const array_1d<double, TNumNodes>& rRightHandSideFluxes);
 
-    double CalculateIntegrationCoefficient(const Matrix& rJacobian,
-                                           double Weight) const;
+    double CalculateIntegrationCoefficient(const Matrix& rJacobian, double Weight) const;
 
     array_1d<double, TNumNodes> CalculateLeftHandSideFluxes() const;
     array_1d<double, TNumNodes> CalculateRightHandSideFluxes(double time_step_size,
