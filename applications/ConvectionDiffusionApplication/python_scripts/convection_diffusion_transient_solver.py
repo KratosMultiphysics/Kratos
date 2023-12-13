@@ -63,7 +63,7 @@ class ConvectionDiffusionTransientSolver(convection_diffusion_solver.ConvectionD
         material_settings = materials["properties"][0]["Material"]
 
         self.Q = 5e-10 #25e-6
-        self.R_far = 0.033 #0.04
+        self.R_far = 0.006666666 #0.04
         self.cp = material_settings['Variables']['SPECIFIC_HEAT'].GetDouble()
         self.conductivity = material_settings['Variables']['CONDUCTIVITY'].GetDouble()
         self.rho = material_settings['Variables']['DENSITY'].GetDouble()
@@ -73,30 +73,28 @@ class ConvectionDiffusionTransientSolver(convection_diffusion_solver.ConvectionD
         print("rho:", self.rho)
         print("T0:", self.T0)
 
+
         self.ImposeTemperatureDueToLaser()
         print('Initial energy: ', self.Q)
 
-        # print("Initial computed energy: ", self.MonitorEnergy())
+        self.initial_energy = self.MonitorEnergy()
+        print("Initial computed energy: ", self.initial_energy)
 
-        # for node in self.main_model_part.Nodes:
-        #     print('node: ', node.Id)
-        #     print('nodal temperature: ', node.GetSolutionStepValue(KratosMultiphysics.TEMPERATURE))
+        radius_2 = lambda node: node.X**2 + node.Y**2 + node.Z**2
 
-        # radius_2 = lambda node: node.X**2 + node.Y**2 + node.Z**2
-
-        # self.near_field_nodes = [node for node in  self.main_model_part.Nodes if radius_2(node) < self.R_far**2]
-        # self.radii = np.sqrt(np.array([radius_2(node) for node in self.near_field_nodes]))
-
-        # self.results_filename = 'results.h5'
-        # self.CreateResultsFile(self.results_filename)
-        # self.WriteResults(self.results_filename, self.main_model_part.ProcessInfo)
+        self.near_field_nodes = [node for node in self.main_model_part.Nodes if radius_2(node) < self.R_far**2]
+        self.radii = np.sqrt(np.array([radius_2(node) for node in self.near_field_nodes]))
+        self.results_filename = 'results.h5'
+        self.CreateResultsFile(self.results_filename)
+        self.temperature_increments = np.array([node.GetSolutionStepValue(KratosMultiphysics.TEMPERATURE) - self.T0 for node in self.near_field_nodes])
+        self.WriteResults(self.results_filename, self.main_model_part.ProcessInfo)
     
     def SolveSolutionStep(self):
         # for node in self.main_model_part.Nodes:
         #     print('node: ', node.Id)
         #     print('nodal temperature: ', node.GetSolutionStepValue(KratosMultiphysics.TEMPERATURE))
 
-        print("Initial computed energy: ", self.MonitorEnergy())
+        #print("Initial computed energy: ", self.MonitorEnergy())
 
         super(ConvectionDiffusionTransientSolver, self).SolveSolutionStep()
 
@@ -105,8 +103,8 @@ class ConvectionDiffusionTransientSolver(convection_diffusion_solver.ConvectionD
         #     print('nodal temperature: ', node.GetSolutionStepValue(KratosMultiphysics.TEMPERATURE))
 
         print("Current computed energy: ", self.MonitorEnergy())
-        # paraaa
-        # self.WriteResults(self.results_filename, self.main_model_part.ProcessInfo)
+        self.temperature_increments = np.array([node.GetSolutionStepValue(KratosMultiphysics.TEMPERATURE) - self.T0 for node in self.near_field_nodes])
+        self.WriteResults(self.results_filename, self.main_model_part.ProcessInfo)
 
     #### Private functions ####
     def _CreateScheme(self):
@@ -136,7 +134,7 @@ class ConvectionDiffusionTransientSolver(convection_diffusion_solver.ConvectionD
     def ImposeTemperatureDueToLaser(self):
 
         # Compute Q given C_L
-        self.C_L = 100.0
+        self.C_L = 1000.0
         t_ini = 1.0
         self.kappa = self.R_far ** 2 / (4.0 * t_ini)
 
@@ -163,44 +161,44 @@ class ConvectionDiffusionTransientSolver(convection_diffusion_solver.ConvectionD
             node.SetSolutionStepValue(KratosMultiphysics.TEMPERATURE, 1, temp)
 
         '''center_Id = self.FindCenterNodeId()
-        center_node_nodal_area = self.fluid_solver.main_model_part.Nodes[center_Id].GetSolutionStepValue(KratosMultiphysics.NODAL_AREA)
+        center_node_nodal_area = self.main_model_part.Nodes[center_Id].GetSolutionStepValue(KratosMultiphysics.NODAL_AREA)
 
         energy_to_temperature_change = 1.0 / (center_node_nodal_area * self.cp * self.rho)
-        for node in self.fluid_solver.main_model_part.Nodes:
+        for node in self.main_model_part.Nodes:
             if node.Id == center_Id:
                 initial_temp = self.T0 + energy_to_temperature_change * self.Q
                 node.SetSolutionStepValue(KratosMultiphysics.TEMPERATURE, initial_temp)
                 node.SetSolutionStepValue(KratosMultiphysics.TEMPERATURE, 1, initial_temp)'''
 
-    # def CreateResultsFile(self, filename):
-    #     if os.path.exists(self.results_filename):
-    #         os.remove(self.results_filename)
-    #     with h5py.File(filename, 'a') as f:
-    #         f.attrs['ambient_temperature'] = self.T0
-    #         f.attrs['pulse_energy'] = self.Q
-    #         f.attrs['specific_heat_capacity'] = self.cp
-    #         f.attrs['density'] = self.rho
-    #         f.attrs['conductivity'] = self.conductivity
+    def CreateResultsFile(self, filename):
+        if os.path.exists(self.results_filename):
+            os.remove(self.results_filename)
+        with h5py.File(filename, 'a') as f:
+            f.attrs['ambient_temperature'] = self.T0
+            f.attrs['pulse_energy'] = self.Q
+            f.attrs['specific_heat_capacity'] = self.cp
+            f.attrs['density'] = self.rho
+            f.attrs['conductivity'] = self.conductivity
 
-    #         # Create a dataset to store the radii
-    #         dataset = f.create_dataset('radii', (self.radii.shape), dtype=self.radii.dtype)
-    #         dataset[:] = self.radii[:]
-    #         f.create_group('temperature_increments')
+            # Create a dataset to store the radii
+            dataset = f.create_dataset('radii', (self.radii.shape), dtype=self.radii.dtype)
+            dataset[:] = self.radii[:]
+            f.create_group('temperature_increments')
 
-    # def WriteResults(self, filename, process_info):
+    def WriteResults(self, filename, process_info):
 
-    #     step = process_info[KratosMultiphysics.STEP]
-    #     time = step = process_info[KratosMultiphysics.TIME]
+        step = process_info[KratosMultiphysics.STEP]
+        time = step = process_info[KratosMultiphysics.TIME]
 
-    #     # Open the HDF5 file.
-    #     with h5py.File(filename, 'a') as f:
-    #         assert self.radii.shape  == self.temperature_increments.shape
+        # Open the HDF5 file.
+        with h5py.File(filename, 'a') as f:
+            assert self.radii.shape  == self.temperature_increments.shape
 
-    #         # Create a dataset to store the radii and temperatures data.
-    #         dataset = f['/temperature_increments'].create_dataset(str(step), self.temperature_increments.shape, dtype=self.temperature_increments.dtype)
+            # Create a dataset to store the radii and temperatures data.
+            dataset = f['/temperature_increments'].create_dataset(str(step), self.temperature_increments.shape, dtype=self.temperature_increments.dtype)
 
-    #         # Write the radii and temperatures data to the dataset.
-    #         dataset[:] = self.temperature_increments
+            # Write the radii and temperatures data to the dataset.
+            dataset[:] = self.temperature_increments
 
-    #         # Add a time label to the dataset.
-    #         dataset.attrs["time"] = time
+            # Add a time label to the dataset.
+            dataset.attrs["time"] = time
