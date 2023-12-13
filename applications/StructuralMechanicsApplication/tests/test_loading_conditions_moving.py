@@ -1,8 +1,3 @@
-
-import sys
-sys.path.append(r"D:\software_development\Kratos3\bin\Release")
-sys.path.append(r"D:\software_development\Kratos3\bin\Release\libs")
-
 import KratosMultiphysics
 
 import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication
