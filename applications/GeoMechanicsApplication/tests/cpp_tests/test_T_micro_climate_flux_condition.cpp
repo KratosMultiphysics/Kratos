@@ -11,7 +11,7 @@
 //  Main authors:    Anne van de Graaf
 
 #include "containers/model.h"
-#include "custom_conditions/T_microclimate_flux_condition.hpp"
+#include "custom_conditions/T_microclimate_flux_condition.h"
 #include "testing/testing.h"
 
 #include <boost/numeric/ublas/assignment.hpp>

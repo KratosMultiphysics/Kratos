@@ -13,7 +13,7 @@
 //
 
 // Application includes
-#include "custom_conditions/T_microclimate_flux_condition.hpp"
+#include "custom_conditions/T_microclimate_flux_condition.h"
 #include "custom_utilities/ublas_utils.h"
 #include "custom_utilities/variables_utilities.hpp"
 #include "micro_climate_constants.h"
