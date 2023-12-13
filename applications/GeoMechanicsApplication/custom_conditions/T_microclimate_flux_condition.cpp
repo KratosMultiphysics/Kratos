@@ -109,8 +109,6 @@ template<unsigned int TDim, unsigned int TNumNodes>
 void TMicroClimateFluxCondition<TDim, TNumNodes>::CalculateRoughness(
     const ProcessInfo& rCurrentProcessInfo)
 {
-    using namespace MicroClimateConstants;
-
     const auto time_step_size = rCurrentProcessInfo.GetValue(DELTA_TIME);
 
     const auto& r_geom = this->GetGeometry();
@@ -127,17 +125,18 @@ void TMicroClimateFluxCondition<TDim, TNumNodes>::CalculateRoughness(
         auto surface_roughness_factor = 0.0;
 
         // Eq 5.29
-        const auto richardson_bulk_modulus = 2.0 * gravitational_acceleration * measurement_height / (current_air_temperature +
+        const auto richardson_bulk_modulus = 2.0 * GravitationalAcceleration * MeasurementHeight / (current_air_temperature +
             previous_roughness_temperature + 546.3) * (current_air_temperature - previous_roughness_temperature) / (current_wind_speed * current_wind_speed);
 
         // Eq 5.25
-        const auto friction_drag_coefficient = von_neuman_coefficient / std::log(measurement_height / roughness_height);
+        const auto friction_drag_coefficient =
+            VonNeumannCoefficient / std::log(MeasurementHeight / RoughnessHeight);
 
         auto cof = 0.0;
         if (previous_roughness_temperature >= current_air_temperature) {
             // Eq 5.27
             cof = richardson_bulk_modulus / (1.0 + 75.0 * friction_drag_coefficient * friction_drag_coefficient *
-                std::sqrt(measurement_height / roughness_height * std::abs(richardson_bulk_modulus)));
+                std::sqrt(MeasurementHeight / RoughnessHeight * std::abs(richardson_bulk_modulus)));
             surface_roughness_factor = 1.0 - 15.0 * cof;
         }
         else {
@@ -146,10 +145,11 @@ void TMicroClimateFluxCondition<TDim, TNumNodes>::CalculateRoughness(
             surface_roughness_factor = 1.0 / (1.0 + 15.0 * richardson_bulk_modulus * cof);
         }
 
-        const auto c = roughness_layer_resistance * roughness_layer_height + time_step_size + time_step_size * current_wind_speed * roughness_layer_resistance *
+        const auto c = RoughnessLayerResistance * RoughnessLayerHeight + time_step_size + time_step_size * current_wind_speed *
+                           RoughnessLayerResistance *
             surface_roughness_factor * friction_drag_coefficient * friction_drag_coefficient;
-        const auto current_roughness_temperature = (roughness_layer_resistance * roughness_layer_height * previous_roughness_temperature + time_step_size *
-            initial_soil_temperature + time_step_size * current_wind_speed * roughness_layer_resistance * surface_roughness_factor *
+        const auto current_roughness_temperature = (RoughnessLayerResistance * RoughnessLayerHeight * previous_roughness_temperature + time_step_size *
+            initial_soil_temperature + time_step_size * current_wind_speed * RoughnessLayerResistance * surface_roughness_factor *
             friction_drag_coefficient * friction_drag_coefficient * current_air_temperature) / c;
         mRoughnessTemperature += current_roughness_temperature / TNumNodes;
     }
@@ -261,11 +261,11 @@ template<unsigned int TDim, unsigned int TNumNodes>
 double TMicroClimateFluxCondition<TDim, TNumNodes>::CalculateRightHandSideFlux(
     const double net_radiation, const double surface_heat_storage, double actual_evaporation)
 {
-    const auto latent_heat_flux = actual_evaporation * MicroClimateConstants::water_density * MicroClimateConstants::latent_evaporation_heat;
+    const auto latent_heat_flux = actual_evaporation * WaterDensity * LatentEvaporationHeat;
 
     // Eq 5.22
-    const auto sensible_heat_flux_right = -MicroClimateConstants::air_heat_capacity * MicroClimateConstants::air_density *
-        mRoughnessTemperature / MicroClimateConstants::roughness_layer_resistance;
+    const auto sensible_heat_flux_right = -AirHeatCapacity * AirDensity *
+        mRoughnessTemperature / RoughnessLayerResistance;
 
     // Eq 5.31
     const auto subsurface_heat_flux = net_radiation - sensible_heat_flux_right - latent_heat_flux +
@@ -277,7 +277,6 @@ template<unsigned int TDim, unsigned int TNumNodes>
 double TMicroClimateFluxCondition<TDim, TNumNodes>::CalculatePotentialEvaporation(
     unsigned int i, const double net_radiation, const double surface_heat_storage)
 {
-    using namespace MicroClimateConstants;
     auto& r_geom = this->GetGeometry();
 
     // Eq 5.35
@@ -298,28 +297,27 @@ double TMicroClimateFluxCondition<TDim, TNumNodes>::CalculatePotentialEvaporatio
     // Eq 5.34
     auto latent_heat_flux = (vapor_pressure_increment *
                             (net_radiation + mBuildEnvironmentRadiation - surface_heat_storage)
-                        + air_heat_capacity * air_density * (saturated_vapor_pressure - actual_vapor_pressure)
-                              / atmospheric_resistance) / (vapor_pressure_increment + psychometric_constant *
-                                                       (1.0 + surface_resistance / atmospheric_resistance));
+                        +
+         AirHeatCapacity * AirDensity * (saturated_vapor_pressure - actual_vapor_pressure)
+                              / atmospheric_resistance) / (vapor_pressure_increment +
+         PsychometricConstant *
+                                                       (1.0 + SurfaceResistance / atmospheric_resistance));
     latent_heat_flux = std::max(latent_heat_flux, 0.0);
 
     // Eq 5.36
-    return latent_heat_flux / (water_density * latent_evaporation_heat);
+    return latent_heat_flux / (WaterDensity * LatentEvaporationHeat);
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
 array_1d<double, TNumNodes> TMicroClimateFluxCondition<TDim, TNumNodes>::CalculateLeftHandSideFluxes()
 {
-    using namespace MicroClimateConstants;
-
     array_1d<double, TNumNodes> result;
 
     for (unsigned int i = 0; i < TNumNodes; ++i)
     {
         // Eq 5.22
         const auto sensible_heat_flux_left =
-            air_heat_capacity * air_density /
-            roughness_layer_resistance;
+            AirHeatCapacity * AirDensity / RoughnessLayerResistance;
         result[i] = sensible_heat_flux_left;
     }
 
@@ -405,8 +403,6 @@ void TMicroClimateFluxCondition<TDim, TNumNodes>::InitializeProperties()
 template<unsigned int TDim, unsigned int TNumNodes>
 double TMicroClimateFluxCondition<TDim, TNumNodes>::CalculateNetRadiation(unsigned int index)
 {
-    using namespace MicroClimateConstants;
-
     auto& r_geom = this->GetGeometry();
 
     // Eq 5.16
@@ -415,11 +411,13 @@ double TMicroClimateFluxCondition<TDim, TNumNodes>::CalculateNetRadiation(unsign
 
     // Eq 5.17
     const auto atmospheric_temperature = r_geom[index].FastGetSolutionStepValue(AIR_TEMPERATURE);
-    const auto absorbed_long_wave_radiation = effective_emissivity * boltzmann_coefficient * std::pow(atmospheric_temperature + 273.15, 4.0);
+    const auto absorbed_long_wave_radiation =
+        EffectiveEmissivity * BoltzmannCoefficient * std::pow(atmospheric_temperature + 273.15, 4.0);
 
     // Eq 5.18
     const auto initial_soil_temperature = r_geom[index].FastGetSolutionStepValue(TEMPERATURE, 1);
-    const auto emitted_long_wave_radiation = boltzmann_coefficient * std::pow(initial_soil_temperature + 273.15, 4.0);
+    const auto emitted_long_wave_radiation =
+        BoltzmannCoefficient * std::pow(initial_soil_temperature + 273.15, 4.0);
 
     // Eq 5.15
     return short_wave_radiation + absorbed_long_wave_radiation - emitted_long_wave_radiation;
