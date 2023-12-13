@@ -64,16 +64,12 @@ public:
                               const ProcessInfo& rCurrentProcessInfo) override;
 
 private:
-    struct ElementVariables
-    {
-        array_1d<double, TNumNodes> rightHandSideFlux;
-    };
-
     void CalculateAndAddRHS(Vector& rRightHandSideVector,
                             const array_1d<double, TNumNodes>& rN,
                             double IntegrationCoefficient,
                             const Vector& rNodalTemperatures,
-                            const array_1d<double, TNumNodes>& rLeftHandSideFluxes);
+                            const array_1d<double, TNumNodes>& rLeftHandSideFluxes,
+                            const array_1d<double, TNumNodes>& rRightHandSideFluxes);
     void CalculateAndAddLHS(Matrix& rLeftHandSideMatrix,
                             const array_1d<double, TNumNodes>& rN,
                             double IntegrationCoefficient,
@@ -112,7 +108,6 @@ private:
     double mRoughnessTemperature = 0.0;
     double mNetRadiation = 0.0;
     double mWaterStorage = 0.0;
-    ElementVariables mVariables;
 
     array_1d<double, TNumNodes> CalculateLeftHandSideFluxes();
     double CalculatePotentialEvaporation(unsigned int i,
@@ -122,10 +117,9 @@ private:
                           double previous_storage,
                           double actual_precipitation,
                           double actual_evaporation);
-    void SetRightHandSideFlux(unsigned int i,
-                              const double net_radiation,
-                              const double surface_heat_storage,
-                              double actual_evaporation);
+    double CalculateRightHandSideFlux(const double net_radiation,
+                                      const double surface_heat_storage,
+                                      double actual_evaporation);
     void SetNetRadiation();
     WaterFluxes CalculateWaterFluxes(unsigned int i,
                                      const double time_step_size,
@@ -138,9 +132,10 @@ private:
     void SetWaterStorage(const double time_step_size,
                          const double previous_storage,
                          const double previous_radiation);
-    void SetRightHandSideFluxes(const double time_step_size,
-                                const double previous_storage,
-                                const double previous_radiation);
+
+    array_1d<double, TNumNodes>  CalculateRightHandSideFluxes(const double time_step_size,
+                                                        const double previous_storage,
+                                                        const double previous_radiation);
 }; // class TMicroClimateFluxCondition.
 
 } // namespace Kratos.
