@@ -52,3 +52,4 @@ class AssignGravityToParticleProcess(KratosMultiphysics.Process):
             for element in self.model_part.Elements:
                 element.SetValuesOnIntegrationPoints(KratosParticle.MP_VOLUME_ACCELERATION,[self.gravity_acceleration],self.model_part.ProcessInfo)
                 element.SetValuesOnIntegrationPoints(KratosParticle.MP_ACCELERATION,[self.gravity_acceleration],self.model_part.ProcessInfo)
+        KratosMultiphysics.Logger.PrintInfo("::[MPMSolver]:: ", "Gravity assigned to elements.")

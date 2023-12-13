@@ -13,7 +13,7 @@
 
 
 // System includes
-
+#include <pybind11/stl.h>
 // External includes
 
 // Project includes
@@ -24,6 +24,7 @@
 #include "linear_solvers/linear_solver.h"
 #include "custom_utilities/mpm_search_element_utility.h"
 #include "custom_utilities/mpm_particle_generator_utility.cpp"
+
 
 
 namespace Kratos{
@@ -65,11 +66,26 @@ namespace Python{
             rBackgroundGridModelPart, rInitialModelPart, rMPMModelPart);
     }
 
+    void ImportMaterialPointElementAccordingToDimension(
+        ModelPart& rBackgroundGridModelPart,
+        ModelPart& rInitialModelPart,
+        ModelPart& rMPMModelPart,
+        std::vector<std::array<double, 3>>&  rXgCoordinates,
+        std::string& rSubModelPartName)
+    {
+        const auto dimension = rBackgroundGridModelPart.GetProcessInfo()[DOMAIN_SIZE];
+        if (dimension == 2) MPMParticleGeneratorUtility::ImportMaterialPointElement<2>(
+            rBackgroundGridModelPart, rInitialModelPart, rMPMModelPart, rXgCoordinates, rSubModelPartName);
+        else if (dimension == 3) MPMParticleGeneratorUtility::ImportMaterialPointElement<3>(
+            rBackgroundGridModelPart, rInitialModelPart, rMPMModelPart, rXgCoordinates, rSubModelPartName);
+    }
+
     void  AddCustomUtilitiesToPython(pybind11::module& m)
     {
         m.def("SearchElement", SearchElementAccordingToDimension);
         m.def("GenerateMaterialPointElement", GenerateMaterialPointElementAccordingToDimension);
         m.def("GenerateMaterialPointCondition", GenerateMaterialPointConditionAccordingToDimension);
+        m.def("ImportMaterialPointElement", ImportMaterialPointElementAccordingToDimension);
     }
 
 }  // namespace Python.

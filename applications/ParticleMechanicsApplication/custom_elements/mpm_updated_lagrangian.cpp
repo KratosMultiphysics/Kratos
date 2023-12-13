@@ -282,6 +282,10 @@ void MPMUpdatedLagrangian::CalculateElementalSystem(
 
     // Create constitutive law parameters:
     ConstitutiveLaw::Parameters Values(GetGeometry(),GetProperties(),rCurrentProcessInfo);
+    std::cout << "CalculateMaterialResponse: GetGeometry:"<< GetGeometry() << std::endl;
+    std::cout << "CalculateMaterialResponse: GetProperties:"<< GetProperties() << std::endl;
+    std::cout << "CalculateMaterialResponse: rCurrentProcessInfo:"<< rCurrentProcessInfo << std::endl;
+
 
     // Set constitutive law flags:
     Flags &ConstitutiveLawOptions=Values.GetOptions();
@@ -594,6 +598,7 @@ void MPMUpdatedLagrangian::CalculateExplicitStresses(const ProcessInfo& rCurrent
     /* NOTE:
     The function below will call CalculateMaterialResponseCauchy() by default and then (may)
     call CalculateMaterialResponseKirchhoff() in the constitutive_law.*/
+
     mConstitutiveLawVector->CalculateMaterialResponse(Values, rVariables.StressMeasure);
 
     KRATOS_CATCH("")
