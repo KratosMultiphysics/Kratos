@@ -62,8 +62,8 @@ class ConvectionDiffusionTransientSolver(convection_diffusion_solver.ConvectionD
 
         material_settings = materials["properties"][0]["Material"]
 
-        # self.Q = 20.011
-        # self.R_far = 0.33
+        self.Q = 5e-10 #25e-6
+        self.R_far = 0.033 #0.04
         self.cp = material_settings['Variables']['SPECIFIC_HEAT'].GetDouble()
         self.conductivity = material_settings['Variables']['CONDUCTIVITY'].GetDouble()
         self.rho = material_settings['Variables']['DENSITY'].GetDouble()
@@ -73,8 +73,8 @@ class ConvectionDiffusionTransientSolver(convection_diffusion_solver.ConvectionD
         print("rho:", self.rho)
         print("T0:", self.T0)
 
-        # self.ImposeTemperatureDueToLaser()
-        # print('Initial energy: ', self.Q)
+        self.ImposeTemperatureDueToLaser()
+        print('Initial energy: ', self.Q)
 
         # print("Initial computed energy: ", self.MonitorEnergy())
 
@@ -133,39 +133,44 @@ class ConvectionDiffusionTransientSolver(convection_diffusion_solver.ConvectionD
 
         return energy
 
-    # def ImposeTemperatureDueToLaser(self):
+    def ImposeTemperatureDueToLaser(self):
 
-    #     # Compute Q such that C_L is 100
-    #     # kappa = self.conductivity / (self.rho * self.cp)
-    #     self.C_L = 100
-    #     t_ini = 1.0
-    #     self.kappa = self.R_far * self.R_far / (4.0 * t_ini)
-    #     self.Q = 0.5 * self.C_L * 8.0 * self.cp * np.pi**1.5 * self.kappa**1.5 * self.rho
-    #     print("kappa:", self.kappa)
-    #     print("Q:", self.Q)
+        # Compute Q given C_L
+        self.C_L = 100.0
+        t_ini = 1.0
+        self.kappa = self.R_far ** 2 / (4.0 * t_ini)
 
-    #     def bell_curve(radius_squared):
-    #         t_ini = 0.00005
-    #         z = -radius_squared / (4.0 * self.kappa * t_ini)
-    #         bell_curve_value = (self.C_L / t_ini**1.5) * np.exp(z)
+        # Conductivity should be then:
+        self.conductivity = self.rho * self.cp * self.kappa
+        print("conductivity:", self.conductivity)
 
-    #         return bell_curve_value
+        self.Q = 0.5 * self.C_L * 8.0 * self.cp * np.pi**1.5 * self.kappa**1.5 * self.rho
+        print("kappa:", self.kappa)
+        print("Q:", self.Q)
 
-    #     # for node in self.fluid_solver.main_model_part.Nodes:
-    #     #     r_2 = node.X**2 + node.Y**2 + node.Z**2
-    #     #     temp = self.T0 + bell_curve(r_2)
-    #     #     node.SetSolutionStepValue(KratosMultiphysics.TEMPERATURE, temp)
-    #     #     node.SetSolutionStepValue(KratosMultiphysics.TEMPERATURE, 1, temp)
+        def bell_curve(t, radius_squared):
+            z = -radius_squared / (4.0 * self.kappa * t)
 
-    #     center_Id = self.FindCenterNodeId()
-    #     center_node_nodal_area = self.fluid_solver.main_model_part.Nodes[center_Id].GetSolutionStepValue(KratosMultiphysics.NODAL_AREA)
+            bell_curve_value = self.C_L / t**1.5 * np.exp(z)
 
-    #     energy_to_temperature_change = 1.0 / (center_node_nodal_area * self.cp * self.rho)
-    #     for node in self.fluid_solver.main_model_part.Nodes:
-    #         if node.Id == center_Id:
-    #             initial_temp = self.T0 + energy_to_temperature_change * self.Q
-    #             node.SetSolutionStepValue(KratosMultiphysics.TEMPERATURE, initial_temp)
-    #             node.SetSolutionStepValue(KratosMultiphysics.TEMPERATURE, 1, initial_temp)
+            return bell_curve_value
+
+        for node in self.main_model_part.Nodes:
+            t_ini = 1.0
+            r_2 = node.X**2 + node.Y**2 + node.Z**2
+            temp = self.T0 + bell_curve(t_ini, r_2)
+            node.SetSolutionStepValue(KratosMultiphysics.TEMPERATURE, temp)
+            node.SetSolutionStepValue(KratosMultiphysics.TEMPERATURE, 1, temp)
+
+        '''center_Id = self.FindCenterNodeId()
+        center_node_nodal_area = self.fluid_solver.main_model_part.Nodes[center_Id].GetSolutionStepValue(KratosMultiphysics.NODAL_AREA)
+
+        energy_to_temperature_change = 1.0 / (center_node_nodal_area * self.cp * self.rho)
+        for node in self.fluid_solver.main_model_part.Nodes:
+            if node.Id == center_Id:
+                initial_temp = self.T0 + energy_to_temperature_change * self.Q
+                node.SetSolutionStepValue(KratosMultiphysics.TEMPERATURE, initial_temp)
+                node.SetSolutionStepValue(KratosMultiphysics.TEMPERATURE, 1, initial_temp)'''
 
     # def CreateResultsFile(self, filename):
     #     if os.path.exists(self.results_filename):
