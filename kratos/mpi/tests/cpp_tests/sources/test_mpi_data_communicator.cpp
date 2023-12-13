@@ -23,6 +23,7 @@
 #include "mpi/includes/mpi_data_communicator.h"
 #include "mpi/testing/mpi_testing.h"
 #include "testing/testing.h"
+#include "testing/test_suite.h"
 
 
 namespace Kratos::Testing {
