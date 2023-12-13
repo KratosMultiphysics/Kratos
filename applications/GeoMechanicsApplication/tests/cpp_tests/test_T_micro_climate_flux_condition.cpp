@@ -167,18 +167,24 @@ namespace Kratos::Testing {
 KRATOS_TEST_CASE_IN_SUITE(NoThrowWhenInitializingThermalMicroClimateCondition, KratosGeoMechanicsFastSuite)
 {
     Model test_model;
-    constexpr auto buffer_size = Model::IndexType{2};
-    auto& r_model_part = test_model.CreateModelPart("dummy", buffer_size);
-
-    constexpr auto number_of_dimensions = 2u;
-    constexpr auto number_of_nodes = 2u;
-    auto condition = TMicroClimateFluxCondition<number_of_dimensions, number_of_nodes>{};
+    auto create_nodes_func = [](ModelPart& rModelPart)
+    {
+        constexpr auto number_of_nodes = std::size_t{2};
+        CreateNodesForLineCondition(rModelPart, number_of_nodes);
+    };
+    auto& r_model_part = CreateDummyModelPartWithNodes(test_model, create_nodes_func);
+    auto p_properties = CreateDummyConditionProperties(r_model_part);
+    constexpr auto dimension_size = std::size_t{2};
+    auto p_condition =
+        CreateMicroClimateCondition(r_model_part, p_properties, dimension_size);
 
     auto has_thrown = false;
-    try {
-        condition.Initialize(r_model_part.GetProcessInfo());
+    try
+    {
+        p_condition->Initialize(r_model_part.GetProcessInfo());
     }
-    catch (const Exception&) {
+    catch (const Exception&)
+    {
         has_thrown = true;
     }
 

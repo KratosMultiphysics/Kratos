@@ -32,16 +32,116 @@ Condition::Pointer TMicroClimateFluxCondition<TDim, TNumNodes>::Create(
     return make_intrusive<TMicroClimateFluxCondition>(NewId, this->GetGeometry().Create(rNodes), pProperties);
 }
 
+template <unsigned int TDim, unsigned int TNumNodes>
+void TMicroClimateFluxCondition<TDim, TNumNodes>::Initialize(const ProcessInfo& rCurrentProcessInfo)
+{
+    Condition::Initialize(rCurrentProcessInfo);
+    InitializeProperties();
+}
+
 template<unsigned int TDim, unsigned int TNumNodes>
 void TMicroClimateFluxCondition<TDim, TNumNodes>::InitializeSolutionStep(
     const ProcessInfo& rCurrentProcessInfo)
 {
-    if (!mIsInitialised)
-    {
-        this->InitializeProperties();
-        mIsInitialised = true;
+    CalculateRoughness(rCurrentProcessInfo);
+}
+
+template<unsigned int TDim, unsigned int TNumNodes>
+void TMicroClimateFluxCondition<TDim, TNumNodes>::CalculateLocalSystem(
+    Matrix& rLeftHandSideMatrix,
+    Vector& rRightHandSideVector,
+    const ProcessInfo& rCurrentProcessInfo)
+{
+    KRATOS_TRY
+
+    rLeftHandSideMatrix = Matrix{TNumNodes, TNumNodes, 0.0};
+    rRightHandSideVector = Vector{TNumNodes, 0.0};
+
+    // Previous definitions
+    const auto& r_geom = this->GetGeometry();
+    const auto& r_integration_points = r_geom.IntegrationPoints(this->GetIntegrationMethod());
+    const auto number_of_integration_points = static_cast<unsigned int>(r_integration_points.size());
+
+    // Containers of variables at all integration points
+    const auto local_dim = static_cast<unsigned int>(r_geom.LocalSpaceDimension());
+    GeometryType::JacobiansType J_container(number_of_integration_points);
+    for (unsigned int i = 0; i < number_of_integration_points; ++i)
+        J_container[i].resize(TDim, local_dim, false);
+    r_geom.Jacobian(J_container, this->GetIntegrationMethod());
+
+    const auto& r_N_container = this->GetGeometry().ShapeFunctionsValues(this->GetIntegrationMethod());
+
+    auto nodal_temperatures = array_1d<double, TNumNodes>{};
+    VariablesUtilities::GetNodalValues(this->GetGeometry(), TEMPERATURE, nodal_temperatures.begin());
+
+    const auto time_step_size = rCurrentProcessInfo.GetValue(DELTA_TIME);
+
+    const auto previous_storage = mWaterStorage;
+    const auto previous_radiation = mNetRadiation;
+    mWaterStorage = CalculateCurrentWaterStorage(
+        time_step_size, previous_storage, previous_radiation);
+    mNetRadiation = CalculateCurrentNetRadiation();
+
+    const auto left_hand_side_fluxes = CalculateLeftHandSideFluxes();
+    const auto right_hand_side_fluxes = CalculateRightHandSideFluxes(time_step_size, previous_storage, previous_radiation);
+
+    // Loop over integration points
+    for (unsigned int integration_point_index = 0; integration_point_index < number_of_integration_points; ++integration_point_index) {
+        const auto N = array_1d<double, TNumNodes>{row(r_N_container, integration_point_index)};
+
+        // Compute weighting coefficient for integration
+        const auto IntegrationCoefficient = this->CalculateIntegrationCoefficient(J_container[integration_point_index],
+                                                                                  r_integration_points[integration_point_index].Weight());
+
+        this->CalculateAndAddLHS(rLeftHandSideMatrix, N, IntegrationCoefficient, left_hand_side_fluxes);
+        this->CalculateAndAddRHS(rRightHandSideVector, N, IntegrationCoefficient, nodal_temperatures, left_hand_side_fluxes, right_hand_side_fluxes);
     }
-    this->CalculateRoughness(rCurrentProcessInfo);
+
+    KRATOS_CATCH("")
+}
+
+template<unsigned int TDim, unsigned int TNumNodes>
+void TMicroClimateFluxCondition<TDim, TNumNodes>::InitializeProperties()
+{
+    KRATOS_TRY
+
+        const auto& r_prop = this->GetProperties();
+
+        mAlbedoCoefficient = r_prop[ALPHA_COEFFICIENT];
+        mFirstCoverStorageCoefficient = r_prop[A1_COEFFICIENT];
+        mSecondCoverStorageCoefficient = r_prop[A2_COEFFICIENT];
+        mThirdCoverStorageCoefficient = r_prop[A3_COEFFICIENT];
+        mBuildEnvironmentRadiation = r_prop[QF_COEFFICIENT];
+        mMinimalStorage = r_prop[SMIN_COEFFICIENT];
+        mMaximalStorage = r_prop[SMAX_COEFFICIENT];
+
+        const GeometryType& Geom = this->GetGeometry();
+        mRoughnessTemperature = Geom[0].FastGetSolutionStepValue(AIR_TEMPERATURE, 1);
+        mNetRadiation = Geom[0].FastGetSolutionStepValue(SOLAR_RADIATION, 1);
+
+    KRATOS_CATCH("")
+}
+
+template<unsigned int TDim, unsigned int TNumNodes>
+void TMicroClimateFluxCondition<TDim, TNumNodes>::CalculateAndAddLHS(
+    Matrix& rLeftHandSideMatrix,
+    const array_1d<double, TNumNodes>& rN,
+    double IntegrationCoefficient,
+    const array_1d<double, TNumNodes>& rLeftHandSideFluxes)
+{
+    KRATOS_TRY
+
+        auto temporary_matrix = BoundedMatrix<double, TNumNodes, TNumNodes>{outer_prod(rN, rN) * IntegrationCoefficient};
+
+        const auto flux_matrix = UBlasUtils::MakeDiagonalMatrix(
+            rLeftHandSideFluxes.begin(), rLeftHandSideFluxes.end());
+
+        temporary_matrix = prod(temporary_matrix, flux_matrix);
+
+        GeoElementUtilities::
+        AssemblePBlockMatrix<0, TNumNodes>(rLeftHandSideMatrix, temporary_matrix);
+
+    KRATOS_CATCH("")
 }
 
 template<unsigned int TDim, unsigned int TNumNodes>
@@ -67,31 +167,9 @@ void TMicroClimateFluxCondition<TDim, TNumNodes>::CalculateAndAddRHS(
 }
 
 template<unsigned int TDim, unsigned int TNumNodes>
-void TMicroClimateFluxCondition<TDim, TNumNodes>::CalculateAndAddLHS(
-    Matrix& rLeftHandSideMatrix,
-    const array_1d<double, TNumNodes>& rN,
-    double IntegrationCoefficient,
-    const array_1d<double, TNumNodes>& rLeftHandSideFluxes)
-{
-    KRATOS_TRY
-
-    auto temporary_matrix = BoundedMatrix<double, TNumNodes, TNumNodes>{outer_prod(rN, rN) * IntegrationCoefficient};
-
-    const auto flux_matrix = UBlasUtils::MakeDiagonalMatrix(
-        rLeftHandSideFluxes.begin(), rLeftHandSideFluxes.end());
-
-    temporary_matrix = prod(temporary_matrix, flux_matrix);
-
-    GeoElementUtilities::
-        AssemblePBlockMatrix<0, TNumNodes>(rLeftHandSideMatrix, temporary_matrix);
-
-    KRATOS_CATCH("")
-}
-
-template<unsigned int TDim, unsigned int TNumNodes>
 double TMicroClimateFluxCondition<TDim, TNumNodes>::CalculateIntegrationCoefficient(
     const Matrix& rJacobian,
-    double Weight)
+    double Weight) const
 {
     if (TDim == 2)
     {
@@ -157,7 +235,7 @@ void TMicroClimateFluxCondition<TDim, TNumNodes>::CalculateRoughness(
 
 template<unsigned int TDim, unsigned int TNumNodes>
 array_1d<double, TNumNodes> TMicroClimateFluxCondition<TDim, TNumNodes>::CalculateRightHandSideFluxes(
-    const double time_step_size, const double previous_storage, const double previous_radiation)
+    double time_step_size, double previous_storage, double previous_radiation) const
 {
     array_1d<double, TNumNodes> result;
     for (unsigned int i = 0; i < TNumNodes; ++i)
@@ -175,9 +253,26 @@ array_1d<double, TNumNodes> TMicroClimateFluxCondition<TDim, TNumNodes>::Calcula
     return result;
 }
 
+
+template<unsigned int TDim, unsigned int TNumNodes>
+double TMicroClimateFluxCondition<TDim, TNumNodes>::CalculateRightHandSideFlux(
+    double net_radiation, double surface_heat_storage, double actual_evaporation) const
+{
+    const auto latent_heat_flux = actual_evaporation * WaterDensity * LatentEvaporationHeat;
+
+    // Eq 5.22
+    const auto sensible_heat_flux_right = -AirHeatCapacity * AirDensity *
+                                          mRoughnessTemperature / RoughnessLayerResistance;
+
+    // Eq 5.31
+    const auto subsurface_heat_flux = net_radiation - sensible_heat_flux_right - latent_heat_flux +
+                                      mBuildEnvironmentRadiation - surface_heat_storage;
+    return subsurface_heat_flux;
+}
+
 template<unsigned int TDim, unsigned int TNumNodes>
 double TMicroClimateFluxCondition<TDim, TNumNodes>::CalculateCurrentWaterStorage(
-    const double time_step_size, const double previous_storage, const double previous_radiation)
+    double time_step_size, double previous_storage, double previous_radiation) const
 {
     double result = 0.0;
 
@@ -198,7 +293,7 @@ double TMicroClimateFluxCondition<TDim, TNumNodes>::CalculateCurrentWaterStorage
 
 template <unsigned int TDim, unsigned int TNumNodes>
 double TMicroClimateFluxCondition<TDim, TNumNodes>::CalculateSurfaceHeatStorage(
-    const double time_step_size, const double previous_radiation, const double net_radiation) const
+    double time_step_size, double previous_radiation, double net_radiation) const
 {
     // Eq 5.20
     return mFirstCoverStorageCoefficient * net_radiation +
@@ -209,10 +304,10 @@ double TMicroClimateFluxCondition<TDim, TNumNodes>::CalculateSurfaceHeatStorage(
 template<unsigned int TDim, unsigned int TNumNodes>
 WaterFluxes TMicroClimateFluxCondition<TDim, TNumNodes>::CalculateWaterFluxes(
     unsigned int i,
-    const double time_step_size,
-    const double previous_storage,
-    const double net_radiation,
-    const double surface_heat_storage)
+    double time_step_size,
+    double previous_storage,
+    double net_radiation,
+    double surface_heat_storage) const
 {
     const auto potential_evaporation =
         CalculatePotentialEvaporation(i, net_radiation, surface_heat_storage);
@@ -244,13 +339,13 @@ WaterFluxes TMicroClimateFluxCondition<TDim, TNumNodes>::CalculateWaterFluxes(
 }
 
 template<unsigned int TDim, unsigned int TNumNodes>
-double TMicroClimateFluxCondition<TDim, TNumNodes>::CalculateCurrentNetRadiation()
+double TMicroClimateFluxCondition<TDim, TNumNodes>::CalculateCurrentNetRadiation() const
 {
     double result = 0.0;
 
     for (unsigned int i = 0; i < TNumNodes; ++i)
     {
-        const auto net_radiation = this->CalculateNetRadiation(i);
+        const auto net_radiation = CalculateNetRadiation(i);
         result += net_radiation / TNumNodes;
     }
 
@@ -258,24 +353,31 @@ double TMicroClimateFluxCondition<TDim, TNumNodes>::CalculateCurrentNetRadiation
 }
 
 template<unsigned int TDim, unsigned int TNumNodes>
-double TMicroClimateFluxCondition<TDim, TNumNodes>::CalculateRightHandSideFlux(
-    const double net_radiation, const double surface_heat_storage, double actual_evaporation)
+double TMicroClimateFluxCondition<TDim, TNumNodes>::CalculateNetRadiation(unsigned int index) const
 {
-    const auto latent_heat_flux = actual_evaporation * WaterDensity * LatentEvaporationHeat;
+    auto& r_geom = this->GetGeometry();
 
-    // Eq 5.22
-    const auto sensible_heat_flux_right = -AirHeatCapacity * AirDensity *
-        mRoughnessTemperature / RoughnessLayerResistance;
+    // Eq 5.16
+    const auto incoming_radiation = r_geom[index].FastGetSolutionStepValue(SOLAR_RADIATION);
+    const auto short_wave_radiation = (1.0 - mAlbedoCoefficient) * incoming_radiation;
 
-    // Eq 5.31
-    const auto subsurface_heat_flux = net_radiation - sensible_heat_flux_right - latent_heat_flux +
-        mBuildEnvironmentRadiation - surface_heat_storage;
-    return subsurface_heat_flux;
+    // Eq 5.17
+    const auto atmospheric_temperature = r_geom[index].FastGetSolutionStepValue(AIR_TEMPERATURE);
+    const auto absorbed_long_wave_radiation =
+        EffectiveEmissivity * BoltzmannCoefficient * std::pow(atmospheric_temperature + 273.15, 4.0);
+
+    // Eq 5.18
+    const auto initial_soil_temperature = r_geom[index].FastGetSolutionStepValue(TEMPERATURE, 1);
+    const auto emitted_long_wave_radiation =
+        BoltzmannCoefficient * std::pow(initial_soil_temperature + 273.15, 4.0);
+
+    // Eq 5.15
+    return short_wave_radiation + absorbed_long_wave_radiation - emitted_long_wave_radiation;
 }
 
 template<unsigned int TDim, unsigned int TNumNodes>
 double TMicroClimateFluxCondition<TDim, TNumNodes>::CalculatePotentialEvaporation(
-    unsigned int i, const double net_radiation, const double surface_heat_storage)
+    unsigned int i, double net_radiation, double surface_heat_storage) const
 {
     auto& r_geom = this->GetGeometry();
 
@@ -309,7 +411,7 @@ double TMicroClimateFluxCondition<TDim, TNumNodes>::CalculatePotentialEvaporatio
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-array_1d<double, TNumNodes> TMicroClimateFluxCondition<TDim, TNumNodes>::CalculateLeftHandSideFluxes()
+array_1d<double, TNumNodes> TMicroClimateFluxCondition<TDim, TNumNodes>::CalculateLeftHandSideFluxes() const
 {
     array_1d<double, TNumNodes> result;
 
@@ -322,105 +424,6 @@ array_1d<double, TNumNodes> TMicroClimateFluxCondition<TDim, TNumNodes>::Calcula
     }
 
     return result;
-}
-
-template<unsigned int TDim, unsigned int TNumNodes>
-void TMicroClimateFluxCondition<TDim, TNumNodes>::CalculateLocalSystem(
-    Matrix& rLeftHandSideMatrix,
-    Vector& rRightHandSideVector,
-    const ProcessInfo& rCurrentProcessInfo)
-{
-    KRATOS_TRY
-
-    rLeftHandSideMatrix = Matrix{TNumNodes, TNumNodes, 0.0};
-    rRightHandSideVector = Vector{TNumNodes, 0.0};
-
-    // Previous definitions
-    const auto& r_geom = this->GetGeometry();
-    const auto& r_integration_points = r_geom.IntegrationPoints(this->GetIntegrationMethod());
-    const auto number_of_integration_points = static_cast<unsigned int>(r_integration_points.size());
-
-    // Containers of variables at all integration points
-    const auto local_dim = static_cast<unsigned int>(r_geom.LocalSpaceDimension());
-    GeometryType::JacobiansType J_container(number_of_integration_points);
-    for (unsigned int i = 0; i < number_of_integration_points; ++i)
-        J_container[i].resize(TDim, local_dim, false);
-    r_geom.Jacobian(J_container, this->GetIntegrationMethod());
-
-    const auto& r_N_container = this->GetGeometry().ShapeFunctionsValues(this->GetIntegrationMethod());
-
-    auto nodal_temperatures = array_1d<double, TNumNodes>{};
-    VariablesUtilities::GetNodalValues(this->GetGeometry(), TEMPERATURE, nodal_temperatures.begin());
-
-    const auto time_step_size = rCurrentProcessInfo.GetValue(DELTA_TIME);
-
-    const auto previous_storage = mWaterStorage;
-    const auto previous_radiation = mNetRadiation;
-    mWaterStorage = CalculateCurrentWaterStorage(
-        time_step_size, previous_storage, previous_radiation);
-    mNetRadiation = CalculateCurrentNetRadiation();
-
-    const auto left_hand_side_fluxes = CalculateLeftHandSideFluxes();
-    const auto right_hand_side_fluxes = CalculateRightHandSideFluxes(time_step_size, previous_storage, previous_radiation);
-
-    // Loop over integration points
-    for (unsigned int integration_point_index = 0; integration_point_index < number_of_integration_points; ++integration_point_index) {
-        const auto N = array_1d<double, TNumNodes>{row(r_N_container, integration_point_index)};
-
-        // Compute weighting coefficient for integration
-        const auto IntegrationCoefficient = this->CalculateIntegrationCoefficient(J_container[integration_point_index],
-                                                                                  r_integration_points[integration_point_index].Weight());
-
-        this->CalculateAndAddLHS(rLeftHandSideMatrix, N, IntegrationCoefficient, left_hand_side_fluxes);
-        this->CalculateAndAddRHS(rRightHandSideVector, N, IntegrationCoefficient, nodal_temperatures, left_hand_side_fluxes, right_hand_side_fluxes);
-    }
-
-    KRATOS_CATCH("")
-}
-
-template<unsigned int TDim, unsigned int TNumNodes>
-void TMicroClimateFluxCondition<TDim, TNumNodes>::InitializeProperties()
-{
-    KRATOS_TRY
-
-    const auto& r_prop = this->GetProperties();
-
-    mAlbedoCoefficient = r_prop[ALPHA_COEFFICIENT];
-    mFirstCoverStorageCoefficient = r_prop[A1_COEFFICIENT];
-    mSecondCoverStorageCoefficient = r_prop[A2_COEFFICIENT];
-    mThirdCoverStorageCoefficient = r_prop[A3_COEFFICIENT];
-    mBuildEnvironmentRadiation = r_prop[QF_COEFFICIENT];
-    mMinimalStorage = r_prop[SMIN_COEFFICIENT];
-    mMaximalStorage = r_prop[SMAX_COEFFICIENT];
-
-    const GeometryType& Geom = this->GetGeometry();
-    mRoughnessTemperature = Geom[0].FastGetSolutionStepValue(AIR_TEMPERATURE, 1);
-    mNetRadiation = Geom[0].FastGetSolutionStepValue(SOLAR_RADIATION, 1);
-
-    KRATOS_CATCH("")
-}
-
-template<unsigned int TDim, unsigned int TNumNodes>
-double TMicroClimateFluxCondition<TDim, TNumNodes>::CalculateNetRadiation(unsigned int index)
-{
-    auto& r_geom = this->GetGeometry();
-
-    // Eq 5.16
-    const auto incoming_radiation = r_geom[index].FastGetSolutionStepValue(SOLAR_RADIATION);
-    const auto short_wave_radiation = (1.0 - mAlbedoCoefficient) * incoming_radiation;
-
-    // Eq 5.17
-    const auto atmospheric_temperature = r_geom[index].FastGetSolutionStepValue(AIR_TEMPERATURE);
-    const auto absorbed_long_wave_radiation =
-        EffectiveEmissivity * BoltzmannCoefficient * std::pow(atmospheric_temperature + 273.15, 4.0);
-
-    // Eq 5.18
-    const auto initial_soil_temperature = r_geom[index].FastGetSolutionStepValue(TEMPERATURE, 1);
-    const auto emitted_long_wave_radiation =
-        BoltzmannCoefficient * std::pow(initial_soil_temperature + 273.15, 4.0);
-
-    // Eq 5.15
-    return short_wave_radiation + absorbed_long_wave_radiation - emitted_long_wave_radiation;
 }
 
 template class TMicroClimateFluxCondition<2,2>;

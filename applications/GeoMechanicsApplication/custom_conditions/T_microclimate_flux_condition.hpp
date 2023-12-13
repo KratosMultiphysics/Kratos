@@ -57,6 +57,8 @@ public:
                               const NodesArrayType& rNodes,
                               Properties::Pointer pProperties ) const override;
 
+    void Initialize(const ProcessInfo& rCurrentProcessInfo) override;
+
     void InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
 
     void CalculateLocalSystem(Matrix&            rLeftHandSideMatrix,
@@ -64,25 +66,26 @@ public:
                               const ProcessInfo& rCurrentProcessInfo) override;
 
 private:
+    void InitializeProperties();
+
+    void CalculateAndAddLHS(Matrix& rLeftHandSideMatrix,
+                            const array_1d<double, TNumNodes>& rN,
+                            double IntegrationCoefficient,
+                            const array_1d<double, TNumNodes>& rLeftHandSideFluxes);
+
+
     void CalculateAndAddRHS(Vector& rRightHandSideVector,
                             const array_1d<double, TNumNodes>& rN,
                             double IntegrationCoefficient,
                             const Vector& rNodalTemperatures,
                             const array_1d<double, TNumNodes>& rLeftHandSideFluxes,
                             const array_1d<double, TNumNodes>& rRightHandSideFluxes);
-    void CalculateAndAddLHS(Matrix& rLeftHandSideMatrix,
-                            const array_1d<double, TNumNodes>& rN,
-                            double IntegrationCoefficient,
-                            const array_1d<double, TNumNodes>& rLeftHandSideFluxes);
 
     double CalculateIntegrationCoefficient(const Matrix& rJacobian,
-                                           double Weight);
+                                           double Weight) const;
 
     void CalculateRoughness(const ProcessInfo& rCurrentProcessInfo);
 
-    void InitializeProperties();
-
-    double CalculateNetRadiation(unsigned int index);
 
     // Serialization
     friend class Serializer;
@@ -97,7 +100,35 @@ private:
         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Condition)
     }
 
-    bool mIsInitialised = false;
+    array_1d<double, TNumNodes> CalculateLeftHandSideFluxes() const;
+    array_1d<double, TNumNodes>  CalculateRightHandSideFluxes(double time_step_size,
+                                                              double previous_storage,
+                                                              double previous_radiation) const;
+    double CalculateRightHandSideFlux(double net_radiation,
+                                      double surface_heat_storage,
+                                      double actual_evaporation) const;
+
+    double CalculatePotentialEvaporation(unsigned int i,
+                                         double net_radiation,
+                                         double surface_heat_storage) const;
+    double CalculateCurrentNetRadiation() const;
+    double CalculateNetRadiation(unsigned int index) const;
+
+
+    WaterFluxes CalculateWaterFluxes(unsigned int i,
+                                     double time_step_size,
+                                     double previous_storage,
+                                     double net_radiation,
+                                     double surface_heat_storage) const;
+    double CalculateSurfaceHeatStorage(double time_step_size,
+                                       double previous_radiation,
+                                       double net_radiation) const;
+    double CalculateCurrentWaterStorage(double time_step_size,
+                                        double previous_storage,
+                                        double previous_radiation) const;
+
+
+
     double mAlbedoCoefficient = 0.0;
     double mFirstCoverStorageCoefficient = 0.0;
     double mSecondCoverStorageCoefficient = 0.0;
@@ -108,31 +139,8 @@ private:
     double mRoughnessTemperature = 0.0;
     double mNetRadiation = 0.0;
     double mWaterStorage = 0.0;
+};
 
-    array_1d<double, TNumNodes> CalculateLeftHandSideFluxes();
-    double CalculatePotentialEvaporation(unsigned int i,
-                                   const double net_radiation,
-                                   const double surface_heat_storage);
-
-    double CalculateRightHandSideFlux(const double net_radiation,
-                                      const double surface_heat_storage,
-                                      double actual_evaporation);
-    double CalculateCurrentNetRadiation();
-    WaterFluxes CalculateWaterFluxes(unsigned int i,
-                                     const double time_step_size,
-                                     const double previous_storage,
-                                     const double net_radiation,
-                                     const double surface_heat_storage);
-    double CalculateSurfaceHeatStorage(const double time_step_size,
-                                       const double previous_radiation,
-                                       const double net_radiation) const;
-    double CalculateCurrentWaterStorage(const double time_step_size,
-                         const double previous_storage,
-                         const double previous_radiation);
-
-    array_1d<double, TNumNodes>  CalculateRightHandSideFluxes(const double time_step_size,
-                                                        const double previous_storage,
-                                                        const double previous_radiation);
-}; // class TMicroClimateFluxCondition.
+// class TMicroClimateFluxCondition.
 
 } // namespace Kratos.
