@@ -176,9 +176,11 @@ array_1d<double, TNumNodes> TMicroClimateFluxCondition<TDim, TNumNodes>::Calcula
 }
 
 template<unsigned int TDim, unsigned int TNumNodes>
-void TMicroClimateFluxCondition<TDim, TNumNodes>::SetWaterStorage(
+double TMicroClimateFluxCondition<TDim, TNumNodes>::CalculateCurrentWaterStorage(
     const double time_step_size, const double previous_storage, const double previous_radiation)
 {
+    double result = 0.0;
+
     for (unsigned int i = 0; i < TNumNodes; ++i)
     {
         const auto net_radiation = this->CalculateNetRadiation(i);
@@ -187,9 +189,11 @@ void TMicroClimateFluxCondition<TDim, TNumNodes>::SetWaterStorage(
         const WaterFluxes water_fluxes = this->CalculateWaterFluxes(
             i, time_step_size, previous_storage, net_radiation, surface_heat_storage);
 
-        this->SetWaterStorage(time_step_size, previous_storage,
-                        water_fluxes.precipitation, water_fluxes.evaporation);
+        const auto actual_storage = previous_storage + time_step_size * (water_fluxes.precipitation - water_fluxes.evaporation);
+        result += actual_storage / TNumNodes;
     }
+
+    return result;
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
@@ -240,13 +244,17 @@ WaterFluxes TMicroClimateFluxCondition<TDim, TNumNodes>::CalculateWaterFluxes(
 }
 
 template<unsigned int TDim, unsigned int TNumNodes>
-void TMicroClimateFluxCondition<TDim, TNumNodes>::SetNetRadiation()
+double TMicroClimateFluxCondition<TDim, TNumNodes>::CalculateCurrentNetRadiation()
 {
+    double result = 0.0;
+
     for (unsigned int i = 0; i < TNumNodes; ++i)
     {
         const auto net_radiation = this->CalculateNetRadiation(i);
-        this->mNetRadiation += net_radiation / TNumNodes;
+        result += net_radiation / TNumNodes;
     }
+
+    return result;
 }
 
 template<unsigned int TDim, unsigned int TNumNodes>
@@ -263,14 +271,6 @@ double TMicroClimateFluxCondition<TDim, TNumNodes>::CalculateRightHandSideFlux(
     const auto subsurface_heat_flux = net_radiation - sensible_heat_flux_right - latent_heat_flux +
         mBuildEnvironmentRadiation - surface_heat_storage;
     return subsurface_heat_flux;
-}
-
-template<unsigned int TDim, unsigned int TNumNodes>
-void TMicroClimateFluxCondition<TDim, TNumNodes>::SetWaterStorage(
-    double time_step_size, double previous_storage, double actual_precipitation, double actual_evaporation)
-{
-    const auto actual_storage = previous_storage + time_step_size * (actual_precipitation - actual_evaporation);
-    mWaterStorage += actual_storage / TNumNodes;
 }
 
 template<unsigned int TDim, unsigned int TNumNodes>
@@ -358,10 +358,9 @@ void TMicroClimateFluxCondition<TDim, TNumNodes>::CalculateLocalSystem(
 
     const auto previous_storage = mWaterStorage;
     const auto previous_radiation = mNetRadiation;
-    mWaterStorage = 0.0;
-    mNetRadiation = 0.0;
-    SetNetRadiation();
-    SetWaterStorage(time_step_size, previous_storage, previous_radiation);
+    mWaterStorage = CalculateCurrentWaterStorage(
+        time_step_size, previous_storage, previous_radiation);
+    mNetRadiation = CalculateCurrentNetRadiation();
 
     const auto left_hand_side_fluxes = CalculateLeftHandSideFluxes();
     const auto right_hand_side_fluxes = CalculateRightHandSideFluxes(time_step_size, previous_storage, previous_radiation);

@@ -113,14 +113,11 @@ private:
     double CalculatePotentialEvaporation(unsigned int i,
                                    const double net_radiation,
                                    const double surface_heat_storage);
-    void SetWaterStorage(double time_step_size,
-                          double previous_storage,
-                          double actual_precipitation,
-                          double actual_evaporation);
+
     double CalculateRightHandSideFlux(const double net_radiation,
                                       const double surface_heat_storage,
                                       double actual_evaporation);
-    void SetNetRadiation();
+    double CalculateCurrentNetRadiation();
     WaterFluxes CalculateWaterFluxes(unsigned int i,
                                      const double time_step_size,
                                      const double previous_storage,
@@ -129,7 +126,7 @@ private:
     double CalculateSurfaceHeatStorage(const double time_step_size,
                                        const double previous_radiation,
                                        const double net_radiation) const;
-    void SetWaterStorage(const double time_step_size,
+    double CalculateCurrentWaterStorage(const double time_step_size,
                          const double previous_storage,
                          const double previous_radiation);
 
