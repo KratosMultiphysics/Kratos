@@ -116,6 +116,11 @@ private:
 
     void CalculateRoughness(const ProcessInfo& rCurrentProcessInfo);
 
+    double CalculateSurfaceRoughnessFactor(double CurrentAirTemperature,
+                                           double PreviousRoughnessTemperature,
+                                           double RichardsonBulkModulus,
+                                           double FrictionDragCoefficient) const;
+
     // Serialization
     friend class Serializer;
 

@@ -408,8 +408,6 @@ void TMicroClimateFluxCondition<TDim, TNumNodes>::CalculateRoughness(const Proce
         const auto initial_soil_temperature =
             r_geom[i].FastGetSolutionStepValue(TEMPERATURE, 1);
 
-        auto surface_roughness_factor = 0.0;
-
         // Eq 5.29
         const auto richardson_bulk_modulus =
             2.0 * GravitationalAcceleration * MeasurementHeight /
@@ -421,22 +419,9 @@ void TMicroClimateFluxCondition<TDim, TNumNodes>::CalculateRoughness(const Proce
         const auto friction_drag_coefficient =
             VonNeumannCoefficient / std::log(MeasurementHeight / RoughnessHeight);
 
-        auto cof = 0.0;
-        if (previous_roughness_temperature >= current_air_temperature)
-        {
-            // Eq 5.27
-            cof = richardson_bulk_modulus /
-                  (1.0 + 75.0 * friction_drag_coefficient * friction_drag_coefficient *
-                             std::sqrt(MeasurementHeight / RoughnessHeight *
-                                       std::abs(richardson_bulk_modulus)));
-            surface_roughness_factor = 1.0 - 15.0 * cof;
-        }
-        else
-        {
-            // Eq 5.28
-            cof = std::sqrt(1.0 + 5.0 * richardson_bulk_modulus);
-            surface_roughness_factor = 1.0 / (1.0 + 15.0 * richardson_bulk_modulus * cof);
-        }
+        const auto surface_roughness_factor = CalculateSurfaceRoughnessFactor(
+            current_air_temperature, previous_roughness_temperature,
+            richardson_bulk_modulus, friction_drag_coefficient);
 
         const auto c = RoughnessLayerResistance * RoughnessLayerHeight + time_step_size +
                        time_step_size * current_wind_speed *
@@ -451,6 +436,28 @@ void TMicroClimateFluxCondition<TDim, TNumNodes>::CalculateRoughness(const Proce
             c;
         mRoughnessTemperature += current_roughness_temperature / TNumNodes;
     }
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
+double TMicroClimateFluxCondition<TDim, TNumNodes>::CalculateSurfaceRoughnessFactor(
+    double CurrentAirTemperature,
+    double PreviousRoughnessTemperature,
+    double RichardsonBulkModulus,
+    double FrictionDragCoefficient) const
+{
+    if (PreviousRoughnessTemperature >= CurrentAirTemperature)
+    {
+        // Eq 5.27
+        const auto cof = RichardsonBulkModulus /
+                         (1.0 + 75.0 * FrictionDragCoefficient * FrictionDragCoefficient *
+                                    std::sqrt(MeasurementHeight / RoughnessHeight *
+                                              std::abs(RichardsonBulkModulus)));
+        return 1.0 - 15.0 * cof;
+    }
+
+    // Eq 5.28
+    const auto cof = std::sqrt(1.0 + 5.0 * RichardsonBulkModulus);
+    return 1.0 / (1.0 + 15.0 * RichardsonBulkModulus * cof);
 }
 
 template class TMicroClimateFluxCondition<2, 2>;
