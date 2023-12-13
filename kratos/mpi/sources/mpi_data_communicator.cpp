@@ -483,11 +483,17 @@ const DataCommunicator& MPIDataCommunicator::GetSubDataCommunicator(
         const DataCommunicator& r_data_communicator = ParallelEnvironment::GetDataCommunicator(rNewCommunicatorName);
         const int rank = Rank();
         const auto it_find = std::find(rRanks.begin(), rRanks.end(), rank);
+        std::size_t number_of_active_ranks = 0;
         if (it_find != rRanks.end()) {
             KRATOS_ERROR_IF_NOT(r_data_communicator.IsDefinedOnThisRank()) << "The rank " << rank << " does not participate in the existing data communicator " << rNewCommunicatorName  << " despite being in the provided rank list" << std::endl;
         } else {
+            number_of_active_ranks = 1;
             KRATOS_ERROR_IF_NOT(r_data_communicator.IsNullOnThisRank()) << "The rank " << rank << " participates in the existing data communicator " << rNewCommunicatorName << " despite not being in the provided rank list" << std::endl;
+            const std::size_t world_size = static_cast<std::size_t >(r_data_communicator.Size());
+            KRATOS_ERROR_IF_NOT(rRanks.size() == world_size) << "Inconsistency between the communicator world size: " << world_size << " and the number of ranks required: " << rRanks.size() << std::endl;
         }
+        number_of_active_ranks = SumAll(number_of_active_ranks);
+        KRATOS_ERROR_IF_NOT(number_of_active_ranks == rRanks.size()) << "Inconsistency between the number of active ranks: " << number_of_active_ranks << " and the number of ranks required: " << rRanks.size() << std::endl;
         return r_data_communicator;
     } else {
         return DataCommunicatorFactory::CreateFromRanksAndRegister(*this, rRanks, rNewCommunicatorName);
