@@ -533,16 +533,16 @@ class RomManager(object):
                 f['projection_strategy']="galerkin"
                 f['train_hrom']=False
                 f['run_hrom']=False
-                ["rom_settings"]['rom_bns_settings'] = self._SetGalerkinBnSParameters()
+                f["rom_settings"]['rom_bns_settings'] = self._SetGalerkinBnSParameters()
             elif simulation_to_run=='trainHROMGalerkin':
                 f['train_hrom']=True
                 f['run_hrom']=False
-                ["rom_settings"]['rom_bns_settings'] = self._SetGalerkinBnSParameters()
+                f["rom_settings"]['rom_bns_settings'] = self._SetGalerkinBnSParameters()
             elif simulation_to_run=='runHROMGalerkin':
                 f['projection_strategy']="galerkin"
                 f['train_hrom']=False
                 f['run_hrom']=True
-                ["rom_settings"]['rom_bns_settings'] = self._SetGalerkinBnSParameters()
+                f["rom_settings"]['rom_bns_settings'] = self._SetGalerkinBnSParameters()
             elif simulation_to_run == 'lspg':
                 f['train_hrom'] = False
                 f['run_hrom'] = False
@@ -635,7 +635,7 @@ class RomManager(object):
         self._UpdateDefaultsWithRomParams(defaults, rom_params)
 
         return defaults
-    
+
     def _UpdateDefaultsWithRomParams(self, defaults, rom_params):
         for key, default_value in defaults.items():
             if rom_params.Has(key):
@@ -800,7 +800,7 @@ class RomManager(object):
     def _GetGalerkinBnSParameters(self):
         # Define the default settings in JSON format for Galerkin BnS
         rom_bns_settings = """{
-            'monotonicity_preserving': false
+            "monotonicity_preserving": false
         }"""
         return rom_bns_settings
 
