@@ -401,6 +401,10 @@ private:
             auto it_point = itPointBegin + index;
             auto& r_point_result = rResults[index];
 
+            // Set some values
+            r_point_result.SetRankSearch(0);
+            r_point_result.SetIndex(index);
+
             // Search
             std::vector<ResultType> results;
             LocalSearchInRadius(*it_point, Radius, results, allocation_size);
@@ -456,6 +460,10 @@ private:
             auto it_point = itPointBegin + index;
             auto& r_point_result = rResults[index];
 
+            // Set some values
+            r_point_result.SetRankSearch(0);
+            r_point_result.SetIndex(index);
+
             // Search
             ResultType result;
             LocalSearchNearestInRadius(*it_point, Radius, result, allocation_size);
@@ -502,6 +510,10 @@ private:
         IndexPartition<IndexType>(number_of_points).for_each([this, &itPointBegin, &rResults](std::size_t index) {
             auto it_point = itPointBegin + index;
             auto& r_point_result = rResults[index];
+
+            // Set some values
+            r_point_result.SetRankSearch(0);
+            r_point_result.SetIndex(index);
 
             // Search
             ResultType result;
@@ -552,6 +564,10 @@ private:
             auto it_point = itPointBegin + index;
             auto& r_point_result = rResults[index];
 
+            // Set some values
+            r_point_result.SetRankSearch(0);
+            r_point_result.SetIndex(index);
+
             // Search
             ResultType result;
             LocalSearchIsInside(*it_point, result);
@@ -590,6 +606,9 @@ private:
             rResults.Clear();
         }
 
+        // Some MPI data
+        const int rank = mrDataCommunicator.Rank();
+
         // Retrieving parameters
         const int allocation_size = mSettings["allocation_size"].GetInt();
 
@@ -608,11 +627,15 @@ private:
         struct TLS {
             Point point;
         };
-        IndexPartition<IndexType>(total_number_of_points).for_each(TLS(),[this, &search_info, &rResults, &Radius, &allocation_size](std::size_t i_point, TLS& rTLS) {
+        IndexPartition<IndexType>(total_number_of_points).for_each(TLS(),[this, &search_info, &rResults, &Radius, &allocation_size, &rank](std::size_t i_point, TLS& rTLS) {
             rTLS.point[0] = search_info.PointCoordinates[i_point * 3 + 0];
             rTLS.point[1] = search_info.PointCoordinates[i_point * 3 + 1];
             rTLS.point[2] = search_info.PointCoordinates[i_point * 3 + 2];
             auto& r_point_result = rResults[i_point];
+
+            // Set some values
+            r_point_result.SetRankSearch(rank);
+            r_point_result.SetIndex(i_point);
 
             // Search
             std::vector<ResultType> results;
@@ -654,6 +677,9 @@ private:
             rResults.Clear();
         }
 
+        // Some MPI data
+        const int rank = mrDataCommunicator.Rank();
+
         // Retrieving parameters
         const int allocation_size = mSettings["allocation_size"].GetInt();
 
@@ -672,11 +698,15 @@ private:
         struct TLS {
             Point point;
         };
-        IndexPartition<IndexType>(total_number_of_points).for_each(TLS(),[this, &search_info, &rResults, &Radius, &allocation_size](std::size_t i_point, TLS& rTLS) {
+        IndexPartition<IndexType>(total_number_of_points).for_each(TLS(),[this, &search_info, &rResults, &Radius, &allocation_size, &rank](std::size_t i_point, TLS& rTLS) {
             rTLS.point[0] = search_info.PointCoordinates[i_point * 3 + 0];
             rTLS.point[1] = search_info.PointCoordinates[i_point * 3 + 1];
             rTLS.point[2] = search_info.PointCoordinates[i_point * 3 + 2];
             auto& r_point_result = rResults[i_point];
+
+            // Set some values
+            r_point_result.SetRankSearch(rank);
+            r_point_result.SetIndex(i_point);
 
             // Result of search
             ResultType local_result;
@@ -716,6 +746,9 @@ private:
             rResults.Clear();
         }
 
+        // Some MPI data
+        const int rank = mrDataCommunicator.Rank();
+
         // Get the maximum radius
         const auto bb = GetBoundingBox();
         const array_1d<double, 3> box_size = bb.GetMaxPoint() - bb.GetMinPoint();
@@ -736,11 +769,15 @@ private:
         struct TLS {
             Point point;
         };
-        IndexPartition<IndexType>(total_number_of_points).for_each(TLS(),[this, &search_info, &rResults](std::size_t i_point, TLS& rTLS) {
+        IndexPartition<IndexType>(total_number_of_points).for_each(TLS(),[this, &search_info, &rResults, &rank](std::size_t i_point, TLS& rTLS) {
             rTLS.point[0] = search_info.PointCoordinates[i_point * 3 + 0];
             rTLS.point[1] = search_info.PointCoordinates[i_point * 3 + 1];
             rTLS.point[2] = search_info.PointCoordinates[i_point * 3 + 2];
             auto& r_point_result = rResults[i_point];
+
+            // Set some values
+            r_point_result.SetRankSearch(rank);
+            r_point_result.SetIndex(i_point);
 
             // Result of search
             ResultType local_result;
@@ -782,6 +819,9 @@ private:
             rResults.Clear();
         }
 
+        // Some MPI data
+        const int rank = mrDataCommunicator.Rank();
+
         // The local bounding box
         const auto& r_local_bb = mpSearchObject ? mpSearchObject->GetBoundingBox() : BoundingBox<PointType>();
 
@@ -797,11 +837,15 @@ private:
         struct TLS {
             Point point;
         };
-        IndexPartition<IndexType>(total_number_of_points).for_each(TLS(),[this, &search_info, &rResults](std::size_t i_point, TLS& rTLS) {
+        IndexPartition<IndexType>(total_number_of_points).for_each(TLS(),[this, &search_info, &rResults, &rank](std::size_t i_point, TLS& rTLS) {
             rTLS.point[0] = search_info.PointCoordinates[i_point * 3 + 0];
             rTLS.point[1] = search_info.PointCoordinates[i_point * 3 + 1];
             rTLS.point[2] = search_info.PointCoordinates[i_point * 3 + 2];
             auto& r_point_result = rResults[i_point];
+
+            // Set some values
+            r_point_result.SetRankSearch(rank);
+            r_point_result.SetIndex(i_point);
 
             // Result of search
             ResultType local_result;

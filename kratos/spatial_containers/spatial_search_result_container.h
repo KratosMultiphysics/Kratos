@@ -585,6 +585,42 @@ public:
         return mpGlobalPointerCommunicator;
     }
 
+    /**
+    * @brief Get the rank for searching.
+    * @return The rank for searching.
+    */
+    int GetRankSearch() const
+    {
+        return mRankSearch;
+    }
+
+    /**
+    * @brief Set the rank for searching.
+    * @param Rank The rank to set.
+    */
+    void SetRankSearch(const int Rank)
+    {
+        mRankSearch = Rank;
+    }
+
+    /**
+    * @brief Get the index value.
+    * @return The index value.
+    */
+    IndexType GetIndex() const
+    {
+        return mIndex;
+    }
+
+    /**
+    * @brief Set the index value.
+    * @param Index The index value to set.
+    */
+    void SetIndex(const IndexType Index)
+    {
+        mIndex = Index;
+    }
+
     ///@}
     ///@name Input and output
     ///@{
@@ -606,6 +642,9 @@ private:
     const DataCommunicator& mrDataCommunicator;                                 /// The data communicator
     LocalResultsVector mLocalResults;                                           /// Local results
     GlobalResultsVector mGlobalResults;                                         /// Global results
+
+    int mRankSearch = -1;                                                       /// Rank where the search is call
+    IndexType mIndex = std::numeric_limits<IndexType>::max();                   /// Some index considered for identification
 
     GlobalPointerCommunicatorPointerType mpGlobalPointerCommunicator = nullptr; /// Global pointer to the communicator
 
