@@ -102,6 +102,7 @@
 #include "custom_constitutive/thermal/small_strains/elastic/thermal_linear_plane_strain.h"
 #include "custom_constitutive/thermal/small_strains/elastic/thermal_linear_plane_stress.h"
 #include "custom_constitutive/thermal/small_strains/damage/generic_small_strain_thermal_isotropic_damage.h"
+#include "custom_constitutive/thermal/small_strains/damage/generic_small_strain_thermal_isotropic_damage_plane_stress.h"
 
 #include "custom_constitutive/thermal/auxiliary_files/thermal_yield_surfaces/thermal_von_mises_yield_surface.h"
 
@@ -1242,6 +1243,10 @@ void AddCustomConstitutiveLawsToPython(pybind11::module& m)
     // typename GenericSmallStrainThermalIsotropicDamage <GenericConstitutiveLawIntegratorDamage<ThermalRankineYieldSurface<RankinePlasticPotential<3>>>>::Pointer,
     // ConstitutiveLaw > (m,"SmallStrainThermalIsotropicDamagePlaneStrainRankine").def(py::init<>());
 
+
+    py::class_<  GenericSmallStrainThermalIsotropicDamagePlaneStress <GenericConstitutiveLawIntegratorDamage<ThermalVonMisesYieldSurface<VonMisesPlasticPotential<3>>>>,
+    typename GenericSmallStrainThermalIsotropicDamagePlaneStress <GenericConstitutiveLawIntegratorDamage<ThermalVonMisesYieldSurface<VonMisesPlasticPotential<3>>>>::Pointer,
+    ConstitutiveLaw > (m,"SmallStrainThermalIsotropicDamagePlaneStressVonMises").def(py::init<>());
 
 }
 

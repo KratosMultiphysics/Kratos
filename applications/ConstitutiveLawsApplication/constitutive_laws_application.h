@@ -603,6 +603,9 @@ private:
     // const GenericSmallStrainThermalIsotropicDamage <GenericConstitutiveLawIntegratorDamage<ThermalRankineYieldSurface<RankinePlasticPotential<3>>>> mSmallStrainThermalIsotropicDamagePlaneStrainRankine;
     // const GenericSmallStrainThermalIsotropicDamage <GenericConstitutiveLawIntegratorDamage<ThermalSimoJuYieldSurface<VonMisesPlasticPotential<3>>>> mSmallStrainThermalIsotropicDamagePlaneStrainSimoJu;
     // const GenericSmallStrainThermalIsotropicDamage <GenericConstitutiveLawIntegratorDamage<ThermalMohrCoulombYieldSurface<MohrCoulombPlasticPotential<3>>>> mSmallStrainThermalIsotropicDamagePlaneStrainMohrCoulomb;
+
+    const GenericSmallStrainThermalIsotropicDamagePlaneStress <GenericConstitutiveLawIntegratorDamage<ThermalVonMisesYieldSurface<VonMisesPlasticPotential<3>>>> mSmallStrainThermalIsotropicDamagePlaneStressVonMises;
+
     ///@}
     ///@name Private Operators
     ///@{

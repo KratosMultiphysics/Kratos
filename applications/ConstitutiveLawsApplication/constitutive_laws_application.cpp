@@ -368,6 +368,7 @@ void KratosConstitutiveLawsApplication::Register()
     // KRATOS_REGISTER_CONSTITUTIVE_LAW("SmallStrainThermalIsotropicDamagePlaneStrainSimoJu", mSmallStrainThermalIsotropicDamagePlaneStrainSimoJu);
     // KRATOS_REGISTER_CONSTITUTIVE_LAW("SmallStrainThermalIsotropicDamagePlaneStrainMohrCoulomb", mSmallStrainThermalIsotropicDamagePlaneStrainMohrCoulomb);
 
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("SmallStrainThermalIsotropicDamagePlaneStressVonMises", mSmallStrainThermalIsotropicDamagePlaneStressVonMises);
 
     // Constitutive laws variables
 
