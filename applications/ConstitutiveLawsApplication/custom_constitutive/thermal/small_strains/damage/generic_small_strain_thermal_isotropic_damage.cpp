@@ -154,50 +154,47 @@ void GenericSmallStrainThermalIsotropicDamage<TConstLawIntegratorType>::Finalize
         BaseType::CalculateCauchyGreenStrain(rValues, r_strain_vector);
     }
 
-    // We compute the stress
-    if (r_cl_options.Is(ConstitutiveLaw::COMPUTE_STRESS)) {
-        // Elastic Matrix
-        auto& r_constitutive_matrix = rValues.GetConstitutiveMatrix();
-        const double E = AdvCLutils::GetMaterialPropertyThroughAccessor(YOUNG_MODULUS, rValues);
-        const double poisson_ratio = AdvCLutils::GetMaterialPropertyThroughAccessor(POISSON_RATIO, rValues);
+    // Elastic Matrix
+    auto& r_constitutive_matrix = rValues.GetConstitutiveMatrix();
+    const double E = AdvCLutils::GetMaterialPropertyThroughAccessor(YOUNG_MODULUS, rValues);
+    const double poisson_ratio = AdvCLutils::GetMaterialPropertyThroughAccessor(POISSON_RATIO, rValues);
 
-        if constexpr (Dimension == 2) {
-            CLutils::CalculateElasticMatrixPlaneStrain(r_constitutive_matrix, E, poisson_ratio);
-            AdvCLutils::SubstractThermalStrain(r_strain_vector, mReferenceTemperature, rValues, true);
-        } else if constexpr (Dimension == 3) {
-            CLutils::CalculateElasticMatrix(r_constitutive_matrix, E, poisson_ratio);
-            AdvCLutils::SubstractThermalStrain(r_strain_vector, mReferenceTemperature, rValues);
-        }
+    if constexpr (Dimension == 2) {
+        CLutils::CalculateElasticMatrixPlaneStrain(r_constitutive_matrix, E, poisson_ratio);
+        AdvCLutils::SubstractThermalStrain(r_strain_vector, mReferenceTemperature, rValues, true);
+    } else if constexpr (Dimension == 3) {
+        CLutils::CalculateElasticMatrix(r_constitutive_matrix, E, poisson_ratio);
+        AdvCLutils::SubstractThermalStrain(r_strain_vector, mReferenceTemperature, rValues);
+    }
 
-        this->template AddInitialStrainVectorContribution<Vector>(r_strain_vector);
+    this->template AddInitialStrainVectorContribution<Vector>(r_strain_vector);
 
-        // S0 = C:(E-E0) + S0
-        BoundedArrayType predictive_stress_vector = prod(r_constitutive_matrix, r_strain_vector);
-        this->template AddInitialStressVectorContribution<BoundedArrayType>(predictive_stress_vector);
+    // S0 = C:(E-E0) + S0
+    BoundedArrayType predictive_stress_vector = prod(r_constitutive_matrix, r_strain_vector);
+    this->template AddInitialStressVectorContribution<BoundedArrayType>(predictive_stress_vector);
 
-        double uniaxial_stress;
-        TConstLawIntegratorType::YieldSurfaceType::CalculateEquivalentStress(predictive_stress_vector, r_strain_vector, uniaxial_stress, rValues);
+    double uniaxial_stress;
+    TConstLawIntegratorType::YieldSurfaceType::CalculateEquivalentStress(predictive_stress_vector, r_strain_vector, uniaxial_stress, rValues);
 
-        // NOTE: think about yield surfaces defined with tensile and compressive yields....
-        const double ref_yield = AdvCLutils::GetPropertyFromTemperatureTable(YIELD_STRESS, rValues, mReferenceTemperature);
-        const double current_yield = AdvCLutils::GetMaterialPropertyThroughAccessor(YIELD_STRESS, rValues);
-        const double temperature_reduction_factor = current_yield / ref_yield;
+    // NOTE: think about yield surfaces defined with tensile and compressive yields....
+    const double ref_yield = AdvCLutils::GetPropertyFromTemperatureTable(YIELD_STRESS, rValues, mReferenceTemperature);
+    const double current_yield = AdvCLutils::GetMaterialPropertyThroughAccessor(YIELD_STRESS, rValues);
+    const double temperature_reduction_factor = current_yield / ref_yield;
 
-        // We modify the references...
-        double &r_damage = this->GetDamage();
-        double &r_threshold = this->GetThreshold();
+    // We modify the references...
+    double &r_damage = this->GetDamage();
+    double &r_threshold = this->GetThreshold();
 
-        // We affect the stress by Temperature reduction factor
-        uniaxial_stress /=  temperature_reduction_factor;
-        const double F = uniaxial_stress - r_threshold;
+    // We affect the stress by Temperature reduction factor
+    uniaxial_stress /=  temperature_reduction_factor;
+    const double F = uniaxial_stress - r_threshold;
 
-        if (F > threshold_tolerance) {
-            const double characteristic_length = AdvCLutils::CalculateCharacteristicLengthOnReferenceConfiguration(rValues.GetElementGeometry());
+    if (F > threshold_tolerance) {
+        const double characteristic_length = AdvCLutils::CalculateCharacteristicLengthOnReferenceConfiguration(rValues.GetElementGeometry());
 
-            // This routine updates the PredictiveStress to verify the yield surf
-            TConstLawIntegratorType::IntegrateStressVector(predictive_stress_vector, uniaxial_stress, r_damage, r_threshold, rValues, characteristic_length);
-            r_threshold = uniaxial_stress;
-        }
+        // This routine updates the PredictiveStress to verify the yield surf
+        TConstLawIntegratorType::IntegrateStressVector(predictive_stress_vector, uniaxial_stress, r_damage, r_threshold, rValues, characteristic_length);
+        r_threshold = uniaxial_stress;
     }
 }
 
