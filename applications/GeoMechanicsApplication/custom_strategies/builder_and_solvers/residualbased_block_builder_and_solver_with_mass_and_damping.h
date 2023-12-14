@@ -500,12 +500,35 @@ protected:
                     rSecondDerivativeVector[id_x] = it->FastGetSolutionStepValue(ACCELERATION_X);
                     rSecondDerivativeVector[id_y] = it->FastGetSolutionStepValue(ACCELERATION_Y);
 
+                    if (it->HasDofFor(ROTATION_X))
+                    {
+						id_x = it->GetDof(ROTATION_X).EquationId();
+						
+						rFirstDerivativeVector[id_x] = it->FastGetSolutionStepValue(ANGULAR_VELOCITY_X);
+						rSecondDerivativeVector[id_x] = it->FastGetSolutionStepValue(ANGULAR_ACCELERATION_X);
+						
+					}
+
+                    if (it->HasDofFor(ROTATION_Y))
+                    {
+                        id_y = it->GetDof(ROTATION_Y).EquationId();
+                        rFirstDerivativeVector[id_y] = it->FastGetSolutionStepValue(ANGULAR_VELOCITY_Y);
+                        rSecondDerivativeVector[id_y] = it->FastGetSolutionStepValue(ANGULAR_ACCELERATION_Y);
+                    }
+
                     if (it->HasDofFor(DISPLACEMENT_Z))
                     {
                         id_z = it->GetDof(DISPLACEMENT_Z).EquationId();
 
                         rFirstDerivativeVector[id_z] = it->FastGetSolutionStepValue(VELOCITY_Z);
                         rSecondDerivativeVector[id_z] = it->FastGetSolutionStepValue(ACCELERATION_Z);
+                    }
+
+                    if (it->HasDofFor(ROTATION_Z))
+                    {
+                        id_z = it->GetDof(ROTATION_Z).EquationId();
+                        rFirstDerivativeVector[id_z] = it->FastGetSolutionStepValue(ANGULAR_VELOCITY_Z);
+                        rSecondDerivativeVector[id_z] = it->FastGetSolutionStepValue(ANGULAR_ACCELERATION_Z);
                     }
                 }
             }
