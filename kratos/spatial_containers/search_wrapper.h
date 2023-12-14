@@ -993,10 +993,7 @@ private:
                 const auto values = rLambda(r_partial_result);
 
                 // The indexes
-                std::vector<IndexType> indexes(number_of_global_results, 0);
-                for (std::size_t i = 1; i < number_of_global_results; ++i) {
-                    indexes[i] = i;
-                }
+                std::vector<IndexType> indexes = r_partial_result.GetResultIndices();
 
                 // Find the index of the minimum value
                 auto it_min_distance = std::min_element(values.begin(), values.end());
@@ -1004,7 +1001,10 @@ private:
                 // Check if the values vector is not empty
                 if (it_min_distance != values.end()) {
                     // Calculate the position
-                    const IndexType index_to_remove = std::distance(values.begin(), it_min_distance);
+                    const IndexType pos = std::distance(values.begin(), it_min_distance);
+
+                    // Retrieve the corresponding index from indexes vector
+                    const IndexType index_to_remove = indexes[pos];
 
                     // Remove the index from the indexes vector
                     indexes.erase(std::remove(indexes.begin(), indexes.end(), index_to_remove), indexes.end());
