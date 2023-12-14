@@ -150,12 +150,13 @@ public:
     /**
      * @brief This method takes a point and finds all of the objects in the given radius to it.
      * @details The result contains the object and also its distance to the point.
-     * @param itPointBegin The first point iterator
-     * @param itPointEnd The last point iterator
-     * @param Radius The radius to be checked
-     * @param rResults The results of the search
-     * @param ClearSolution Clear the current solution
-     * @tparam TPointIteratorType The type of the point iterator
+     * @param itPointBegin The first point iterator.
+     * @param itPointEnd The last point iterator.
+     * @param Radius The radius to be checked.
+     * @param rResults The results of the search.
+     * @param ClearSolution Clear the current solution.
+     * @param ConsiderGlobalDataCommunicator If a sub DataCommunicator or a global DataCommunicator is considered.
+     * @tparam TPointIteratorType The type of the point iterator.
      */
     template<class TPointIteratorType>
     void SearchInRadius(
@@ -163,12 +164,13 @@ public:
         TPointIteratorType itPointEnd,
         const double Radius,
         ResultContainerVectorType& rResults,
-        const bool ClearSolution = true
+        const bool ClearSolution = true,
+        const bool ConsiderGlobalDataCommunicator = false
         )
     {
         // Call distributed version
         if (mrDataCommunicator.IsDistributed()) {
-            DistributedSearchInRadius(itPointBegin, itPointEnd, Radius, rResults, ClearSolution);
+            DistributedSearchInRadius(itPointBegin, itPointEnd, Radius, rResults, ClearSolution, ConsiderGlobalDataCommunicator);
         } else { // Call serial version
             SerialSearchInRadius(itPointBegin, itPointEnd, Radius, rResults, ClearSolution);
         }
@@ -176,15 +178,16 @@ public:
 
     /**
      * @brief This method takes a point and finds the nearest object to it in a given radius.
-     * @details If there are more than one object in the same minimum distance only one is returned
+     * @details If there are more than one object in the same minimum distance only one is returned.
      * If there are no objects in that radius the result will be set to not found.
      * Result contains a flag is the object has been found or not.
-     * @param itPointBegin The first point iterator
-     * @param itPointEnd The last point iterator
-     * @param Radius The radius to be checked
-     * @param rResults The results of the search
-     * @param ClearSolution Clear the current solution
-     * @tparam TPointIteratorType The type of the point iterator
+     * @param itPointBegin The first point iterator.
+     * @param itPointEnd The last point iterator.
+     * @param Radius The radius to be checked.
+     * @param rResults The results of the search.
+     * @param ClearSolution Clear the current solution.
+     * @param ConsiderGlobalDataCommunicator If a sub DataCommunicator or a global DataCommunicator is considered.
+     * @tparam TPointIteratorType The type of the point iterator.
      */
     template<class TPointIteratorType>
     void SearchNearestInRadius(
@@ -192,12 +195,13 @@ public:
         TPointIteratorType itPointEnd,
         const double Radius,
         ResultContainerVectorType& rResults,
-        const bool ClearSolution = true
+        const bool ClearSolution = true,
+        const bool ConsiderGlobalDataCommunicator = false
         )
     {
         // Call distributed version
         if (mrDataCommunicator.IsDistributed()) {
-            DistributedSearchNearestInRadius(itPointBegin, itPointEnd, Radius, rResults, ClearSolution);
+            DistributedSearchNearestInRadius(itPointBegin, itPointEnd, Radius, rResults, ClearSolution, ConsiderGlobalDataCommunicator);
         } else { // Call serial version
             SerialSearchNearestInRadius(itPointBegin, itPointEnd, Radius, rResults, ClearSolution);
         }
@@ -205,12 +209,13 @@ public:
 
     /**
      * @brief This method takes a point and finds the nearest object to it.
-     * @details If there are more than one object in the same minimum distance only one is returned
+     * @details If there are more than one object in the same minimum distance only one is returned.
      * Result contains a flag is the object has been found or not.
-     * @param itPointBegin The first point iterator
-     * @param itPointEnd The last point iterator
-     * @param rResults The results of the search
-     * @param ClearSolution Clear the current solution
+     * @param itPointBegin The first point iterator.
+     * @param itPointEnd The last point iterator.
+     * @param rResults The results of the search.
+     * @param ClearSolution Clear the current solution.
+     * @param ConsiderGlobalDataCommunicator If a sub DataCommunicator or a global DataCommunicator is considered.
      * @tparam TPointIteratorType The type of the point iterator
      */
     template<class TPointIteratorType>
@@ -218,12 +223,13 @@ public:
         TPointIteratorType itPointBegin,
         TPointIteratorType itPointEnd,
         ResultContainerVectorType& rResults,
-        const bool ClearSolution = true
+        const bool ClearSolution = true,
+        const bool ConsiderGlobalDataCommunicator = false
         )
     {
         // Call distributed version
         if (mrDataCommunicator.IsDistributed()) {
-            DistributedSearchNearest(itPointBegin, itPointEnd, rResults, ClearSolution);
+            DistributedSearchNearest(itPointBegin, itPointEnd, rResults, ClearSolution, ConsiderGlobalDataCommunicator);
         } else { // Call serial version
             SerialSearchNearest(itPointBegin, itPointEnd, rResults, ClearSolution);
         }
@@ -235,23 +241,25 @@ public:
      * If there is no object, the result will be set to not found.
      * Result contains a flag is the object has been found or not.
      * This method is a simplified and faster method of SearchNearest.
-     * @param itPointBegin The first point iterator
-     * @param itPointEnd The last point iterator
-     * @param rResults The results of the search
-     * @param ClearSolution Clear the current solution
-     * @tparam TPointIteratorType The type of the point iterator
+     * @param itPointBegin The first point iterator.
+     * @param itPointEnd The last point iterator.
+     * @param rResults The results of the search.
+     * @param ClearSolution Clear the current solution.
+     * @param ConsiderGlobalDataCommunicator If a sub DataCommunicator or a global DataCommunicator is considered.
+     * @tparam TPointIteratorType The type of the point iterator.
      */
     template<class TPointIteratorType>
     void SearchIsInside(
         TPointIteratorType itPointBegin,
         TPointIteratorType itPointEnd,
         ResultContainerVectorType& rResults,
-        const bool ClearSolution = true
+        const bool ClearSolution = true,
+        const bool ConsiderGlobalDataCommunicator = false
         )
     {
         // Call distributed version
         if (mrDataCommunicator.IsDistributed()) {
-            DistributedSearchIsInside(itPointBegin, itPointEnd, rResults, ClearSolution);
+            DistributedSearchIsInside(itPointBegin, itPointEnd, rResults, ClearSolution, ConsiderGlobalDataCommunicator);
         } else { // Call serial version
             SerialSearchIsInside(itPointBegin, itPointEnd, rResults, ClearSolution);
         }
@@ -559,12 +567,13 @@ private:
     /**
      * @brief This method takes a point and finds all of the objects in the given radius to it (MPI version).
      * @details The result contains the object and also its distance to the point.
-     * @param itPointBegin The first point iterator
-     * @param itPointEnd The last point iterator
-     * @param Radius The radius to be checked
-     * @param rResults The results of the search
-     * @param ClearSolution Clear the current solution
-     * @tparam TPointIteratorType The type of the point iterator
+     * @param itPointBegin The first point iterator.
+     * @param itPointEnd The last point iterator.
+     * @param Radius The radius to be checked.
+     * @param rResults The results of the search.
+     * @param ClearSolution Clear the current solution.
+     * @param ConsiderGlobalDataCommunicator If a sub DataCommunicator or a global DataCommunicator is considered.
+     * @tparam TPointIteratorType The type of the point iterator.
      */
     template<class TPointIteratorType>
     void DistributedSearchInRadius(
@@ -572,7 +581,8 @@ private:
         TPointIteratorType itPointEnd,
         const double Radius,
         ResultContainerVectorType& rResults,
-        const bool ClearSolution = true
+        const bool ClearSolution = true,
+        const bool ConsiderGlobalDataCommunicator = false
         )
     {
         // Clear current solution
@@ -591,7 +601,7 @@ private:
         SearchUtilities::SynchronousPointSynchronizationWithBoundingBox(itPointBegin, itPointEnd, search_info, r_local_bb, Radius, mrDataCommunicator);
 
         // Initialize results
-        PrepareResultsInProperRanks(rResults, search_info);
+        PrepareResultsInProperRanks(rResults, search_info, ConsiderGlobalDataCommunicator);
 
         // Perform the corresponding searches
         const std::size_t total_number_of_points = search_info.Indexes.size();
@@ -618,15 +628,16 @@ private:
 
     /**
      * @brief This method takes a point and finds the nearest object to it in a given radius (MPI version).
-     * @details If there are more than one object in the same minimum distance only one is returned
+     * @details If there are more than one object in the same minimum distance only one is returned.
      * If there are no objects in that radius the result will be set to not found.
      * Result contains a flag is the object has been found or not.
-     * @param itPointBegin The first point iterator
-     * @param itPointEnd The last point iterator
-     * @param Radius The radius to be checked
-     * @param rResults The results of the search
-     * @param ClearSolution Clear the current solution
-     * @tparam TPointIteratorType The type of the point iterator
+     * @param itPointBegin The first point iterator.
+     * @param itPointEnd The last point iterator.
+     * @param Radius The radius to be checked.
+     * @param rResults The results of the search.
+     * @param ClearSolution Clear the current solution.
+     * @param ConsiderGlobalDataCommunicator If a sub DataCommunicator or a global DataCommunicator is considered.
+     * @tparam TPointIteratorType The type of the point iterator.
      */
     template<class TPointIteratorType>
     void DistributedSearchNearestInRadius(
@@ -634,7 +645,8 @@ private:
         TPointIteratorType itPointEnd,
         const double Radius,
         ResultContainerVectorType& rResults,
-        const bool ClearSolution = true
+        const bool ClearSolution = true,
+        const bool ConsiderGlobalDataCommunicator = false
         )
     {
         // Clear current solution
@@ -653,7 +665,7 @@ private:
         SearchUtilities::SynchronousPointSynchronizationWithBoundingBox(itPointBegin, itPointEnd, search_info, r_local_bb, Radius, mrDataCommunicator);
 
         // Initialize results
-        PrepareResultsInProperRanks(rResults, search_info);
+        PrepareResultsInProperRanks(rResults, search_info, ConsiderGlobalDataCommunicator);
 
         // Perform the corresponding searches
         const std::size_t total_number_of_points = search_info.Indexes.size();
@@ -681,20 +693,22 @@ private:
 
     /**
      * @brief This method takes a point and finds the nearest object to it (MPI version).
-     * @details If there are more than one object in the same minimum distance only one is returned
+     * @details If there are more than one object in the same minimum distance only one is returned.
      * Result contains a flag is the object has been found or not.
-     * @param itPointBegin The first point iterator
-     * @param itPointEnd The last point iterator
-     * @param rResults The results of the search
-     * @param ClearSolution Clear the current solution
-     * @tparam TPointIteratorType The type of the point iterator
+     * @param itPointBegin The first point iterator.
+     * @param itPointEnd The last point iterator.
+     * @param rResults The results of the search.
+     * @param ClearSolution Clear the current solution.
+     * @param ConsiderGlobalDataCommunicator If a sub DataCommunicator or a global DataCommunicator is considered.
+     * @tparam TPointIteratorType The type of the point iterator.
      */
     template<class TPointIteratorType>
     void DistributedSearchNearest(
         TPointIteratorType itPointBegin,
         TPointIteratorType itPointEnd,
         ResultContainerVectorType& rResults,
-        const bool ClearSolution = true
+        const bool ClearSolution = true,
+        const bool ConsiderGlobalDataCommunicator = false
         )
     {
         // Clear current solution
@@ -715,7 +729,7 @@ private:
         SearchUtilities::SynchronousPointSynchronizationWithBoundingBox(itPointBegin, itPointEnd, search_info, r_local_bb, max_radius, mrDataCommunicator);
 
         // Initialize results
-        PrepareResultsInProperRanks(rResults, search_info);
+        PrepareResultsInProperRanks(rResults, search_info, ConsiderGlobalDataCommunicator);
 
         // Perform the corresponding searches
         const std::size_t total_number_of_points = search_info.Indexes.size();
@@ -747,18 +761,20 @@ private:
      * If there is no object, the result will be set to not found.
      * Result contains a flag is the object has been found or not.
      * This method is a simplified and faster method of SearchNearest.
-     * @param itPointBegin The first point iterator
-     * @param itPointEnd The last point iterator
-     * @param rResults The results of the search
-     * @param ClearSolution Clear the current solution
-     * @tparam TPointIteratorType The type of the point iterator
+     * @param itPointBegin The first point iterator.
+     * @param itPointEnd The last point iterator.
+     * @param rResults The results of the search.
+     * @param ClearSolution Clear the current solution.
+     * @param ConsiderGlobalDataCommunicator If a sub DataCommunicator or a global DataCommunicator is considered.
+     * @tparam TPointIteratorType The type of the point iterator.
      */
     template<class TPointIteratorType>
     void DistributedSearchIsInside(
         TPointIteratorType itPointBegin,
         TPointIteratorType itPointEnd,
         ResultContainerVectorType& rResults,
-        const bool ClearSolution = true
+        const bool ClearSolution = true,
+        const bool ConsiderGlobalDataCommunicator = false
         )
     {
         // Clear current solution
@@ -774,7 +790,7 @@ private:
         SearchUtilities::SynchronousPointSynchronizationWithBoundingBox(itPointBegin, itPointEnd, search_info, r_local_bb, 0.0, mrDataCommunicator);
 
         // Initialize results
-        PrepareResultsInProperRanks(rResults, search_info);
+        PrepareResultsInProperRanks(rResults, search_info, ConsiderGlobalDataCommunicator);
 
         // Perform the corresponding searches
         const std::size_t total_number_of_points = search_info.Indexes.size();
@@ -807,7 +823,8 @@ private:
         TPointIteratorType itPointEnd,
         const double Radius,
         ResultContainerVectorType& rResults,
-        const bool ClearSolution = true
+        const bool ClearSolution = true,
+        const bool ConsiderGlobalDataCommunicator = false
         )
     {
         KRATOS_ERROR << "Running distributed method requires to compile with MPI support" << std::endl;
@@ -819,7 +836,8 @@ private:
         TPointIteratorType itPointEnd,
         const double Radius,
         ResultContainerVectorType& rResults,
-        const bool ClearSolution = true
+        const bool ClearSolution = true,
+        const bool ConsiderGlobalDataCommunicator = false
         )
     {
         KRATOS_ERROR << "Running distributed method requires to compile with MPI support" << std::endl;
@@ -830,7 +848,8 @@ private:
         TPointIteratorType itPointBegin,
         TPointIteratorType itPointEnd,
         ResultContainerVectorType& rResults,
-        const bool ClearSolution = true
+        const bool ClearSolution = true,
+        const bool ConsiderGlobalDataCommunicator = false
         )
     {
         KRATOS_ERROR << "Running distributed method requires to compile with MPI support" << std::endl;
@@ -841,7 +860,8 @@ private:
         TPointIteratorType itPointBegin,
         TPointIteratorType itPointEnd,
         ResultContainerVectorType& rResults,
-        const bool ClearSolution = true
+        const bool ClearSolution = true,
+        const bool ConsiderGlobalDataCommunicator = false
         )
     {
         KRATOS_ERROR << "Running distributed method requires to compile with MPI support" << std::endl;
@@ -985,10 +1005,12 @@ private:
      * @details This function prepares the search results in proper ranks based on the provided search information.
      * @param rResults The vector containing the search results to be prepared.
      * @param rSearchInfo The distributed search information to determine the proper ranks.
+     * @param ConsiderGlobalDataCommunicator If a sub DataCommunicator or a global DataCommunicator is considered.
      */
     void PrepareResultsInProperRanks(
         ResultContainerVectorType& rResults,
-        const DistributedSearchInformation& rSearchInfo
+        const DistributedSearchInformation& rSearchInfo,
+        const bool ConsiderGlobalDataCommunicator = false
         );
 
     /**

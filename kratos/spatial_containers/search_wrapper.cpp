@@ -350,28 +350,36 @@ struct VectorHash {
 template<class TSearchObject>
 void SearchWrapper<TSearchObject>::PrepareResultsInProperRanks(
     ResultContainerVectorType& rResults,
-    const DistributedSearchInformation& rSearchInfo
+    const DistributedSearchInformation& rSearchInfo,
+    const bool ConsiderGlobalDataCommunicator
     )
 {
-    // The base sub data communicator name
-    const std::string base_name = "SubCommunicator_";
+    // Get the ranks and prepare the data communicators
     const auto& r_ranks = rSearchInfo.Ranks;
-    std::vector<const DataCommunicator*> data_communicators(r_ranks.size(), nullptr);
-    std::unordered_map<std::vector<int>, const DataCommunicator*, VectorHash> data_communicators_database; // NOTE: WE use this to avoid the creating of strings concatenating integers and the seach of std::string that is expensive
-    for (std::size_t i = 0; i < r_ranks.size(); ++i) {
-        const auto& r_current_ranks = r_ranks[i];
-        auto it_find = data_communicators_database.find(r_current_ranks);
-        // Found
-        if (it_find != data_communicators_database.end()) {
-            data_communicators[i] = it_find->second;
-        } else { // Not found
-            // Generate the name
-            const std::string name = GenerateNameFromRanks(base_name, r_current_ranks);
-            const DataCommunicator& r_sub_communicator = mrDataCommunicator.GetSubDataCommunicator(r_current_ranks, name);
-            data_communicators[i] = &r_sub_communicator;
-            data_communicators_database.insert({r_current_ranks, &r_sub_communicator});
+    std::vector<const DataCommunicator*> data_communicators(r_ranks.size(), &mrDataCommunicator);
+
+    // If not considering global data communicator
+    if (!ConsiderGlobalDataCommunicator) {
+        // The base sub data communicator name
+        const std::string base_name = "SubCommunicator_";
+        std::unordered_map<std::vector<int>, const DataCommunicator*, VectorHash> data_communicators_database; // NOTE: WE use this to avoid the creating of strings concatenating integers and the seach of std::string that is expensive
+        for (std::size_t i = 0; i < r_ranks.size(); ++i) {
+            const auto& r_current_ranks = r_ranks[i];
+            auto it_find = data_communicators_database.find(r_current_ranks);
+            // Found
+            if (it_find != data_communicators_database.end()) {
+                data_communicators[i] = it_find->second;
+            } else { // Not found
+                // Generate the name
+                const std::string name = GenerateNameFromRanks(base_name, r_current_ranks);
+                const DataCommunicator& r_sub_communicator = mrDataCommunicator.GetSubDataCommunicator(r_current_ranks, name);
+                data_communicators[i] = &r_sub_communicator;
+                data_communicators_database.insert({r_current_ranks, &r_sub_communicator});
+            }
         }
     }
+
+    // Initialize results
     rResults.InitializeResults(data_communicators);
 }
 
