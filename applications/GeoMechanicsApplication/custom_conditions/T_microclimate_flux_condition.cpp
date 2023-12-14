@@ -15,9 +15,10 @@
 // Application includes
 #include "custom_conditions/T_microclimate_flux_condition.h"
 #include "custom_utilities/condition_utilities.hpp"
-#include "custom_utilities/ublas_utils.h"
 #include "custom_utilities/variables_utilities.hpp"
 #include "micro_climate_constants.h"
+
+#include <boost/numeric/ublas/vector_expression.hpp>
 
 namespace Kratos
 {
@@ -146,15 +147,10 @@ void TMicroClimateFluxCondition<TDim, TNumNodes>::CalculateAndAddLHS(
 {
     KRATOS_TRY
 
-    auto temporary_matrix = BoundedMatrix<double, TNumNodes, TNumNodes>{
-        outer_prod(rN, rN) * IntegrationCoefficient};
+    const auto flux_matrix = BoundedMatrix<double, TNumNodes, TNumNodes>{
+        outer_prod(rN, element_prod(rN, rLeftHandSideFluxes)) * IntegrationCoefficient};
 
-    const auto flux_matrix = UBlasUtils::MakeDiagonalMatrix(
-        rLeftHandSideFluxes.begin(), rLeftHandSideFluxes.end());
-
-    temporary_matrix = prod(temporary_matrix, flux_matrix);
-
-    GeoElementUtilities::AssemblePBlockMatrix<0, TNumNodes>(rLeftHandSideMatrix, temporary_matrix);
+    GeoElementUtilities::AssemblePBlockMatrix<0, TNumNodes>(rLeftHandSideMatrix, flux_matrix);
 
     KRATOS_CATCH("")
 }
@@ -175,9 +171,8 @@ void TMicroClimateFluxCondition<TDim, TNumNodes>::CalculateAndAddRHS(
     GeoElementUtilities::AssemblePBlockVector<0, TNumNodes>(
         rRightHandSideVector, temporary_vector);
 
-    const auto flux_matrix = UBlasUtils::MakeDiagonalMatrix(
-        rLeftHandSideFluxes.begin(), rLeftHandSideFluxes.end());
-    temporary_matrix = prod(temporary_matrix, flux_matrix);
+    temporary_matrix = BoundedMatrix<double, TNumNodes, TNumNodes>{
+        outer_prod(rN, element_prod(rN, rLeftHandSideFluxes)) * IntegrationCoefficient};
     temporary_vector = -prod(temporary_matrix, rNodalTemperatures);
     GeoElementUtilities::AssemblePBlockVector<0, TNumNodes>(
         rRightHandSideVector, temporary_vector);
