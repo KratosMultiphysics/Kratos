@@ -21,8 +21,6 @@ namespace Kratos
 class UBlasUtils
 {
 public:
-    static Vector MakeVector(const std::initializer_list<double>& values);
-
     template <typename InputIt>
     static Matrix MakeDiagonalMatrix(InputIt BeginOfDiagonalEntries,
                                      InputIt EndOfDiagonalEntries)

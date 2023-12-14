@@ -14,6 +14,7 @@
 
 // Application includes
 #include "custom_conditions/T_microclimate_flux_condition.h"
+#include "custom_utilities/condition_utilities.hpp"
 #include "custom_utilities/ublas_utils.h"
 #include "custom_utilities/variables_utilities.hpp"
 #include "micro_climate_constants.h"
@@ -105,9 +106,10 @@ void TMicroClimateFluxCondition<TDim, TNumNodes>::CalculateLocalSystem(
             array_1d<double, TNumNodes>{row(r_N_container, integration_point_index)};
 
         // Compute weighting coefficient for integration
-        const auto IntegrationCoefficient = CalculateIntegrationCoefficient(
-            J_container[integration_point_index],
-            r_integration_points[integration_point_index].Weight());
+        const auto IntegrationCoefficient =
+            ConditionUtilities::CalculateIntegrationCoefficient<TDim, TNumNodes>(
+                J_container[integration_point_index],
+                r_integration_points[integration_point_index].Weight());
 
         CalculateAndAddLHS(rLeftHandSideMatrix, N, IntegrationCoefficient, left_hand_side_fluxes);
         CalculateAndAddRHS(rRightHandSideVector, N, IntegrationCoefficient, nodal_temperatures,
@@ -179,26 +181,6 @@ void TMicroClimateFluxCondition<TDim, TNumNodes>::CalculateAndAddRHS(
     temporary_vector = -prod(temporary_matrix, rNodalTemperatures);
     GeoElementUtilities::AssemblePBlockVector<0, TNumNodes>(
         rRightHandSideVector, temporary_vector);
-}
-
-template <unsigned int TDim, unsigned int TNumNodes>
-double TMicroClimateFluxCondition<TDim, TNumNodes>::CalculateIntegrationCoefficient(
-    const Matrix& rJacobian, double Weight) const
-{
-    if (TDim == 2)
-    {
-        return MathUtils<>::Norm(
-                   UBlasUtils::MakeVector({rJacobian(0, 0), rJacobian(1, 0)})) *
-               Weight;
-    }
-    else if (TDim == 3)
-    {
-        const auto vec1 =
-            UBlasUtils::MakeVector({rJacobian(0, 0), rJacobian(1, 0), rJacobian(2, 0)});
-        const auto vec2 =
-            UBlasUtils::MakeVector({rJacobian(0, 1), rJacobian(1, 1), rJacobian(2, 1)});
-        return MathUtils<>::Norm(MathUtils<>::CrossProduct(vec1, vec2)) * Weight;
-    }
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>

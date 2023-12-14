@@ -83,8 +83,6 @@ private:
                             const array_1d<double, TNumNodes>& rLeftHandSideFluxes,
                             const array_1d<double, TNumNodes>& rRightHandSideFluxes);
 
-    double CalculateIntegrationCoefficient(const Matrix& rJacobian, double Weight) const;
-
     array_1d<double, TNumNodes> CalculateLeftHandSideFluxes() const;
     array_1d<double, TNumNodes> CalculateRightHandSideFluxes(double TimeStepSize,
                                                              double PreviousStorage,
