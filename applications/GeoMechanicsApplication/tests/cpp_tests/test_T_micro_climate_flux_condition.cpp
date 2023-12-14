@@ -365,7 +365,7 @@ KRATOS_TEST_CASE_IN_SUITE(CalculateLocalSystemForThermalMicroClimateCondition2D3
     KRATOS_EXPECT_MATRIX_RELATIVE_NEAR(expected_lhs_matrix, lhs_matrix, relative_tolerance)
 
     auto expected_rhs_vector = Vector{3, 0.0};
-    expected_rhs_vector <<= -114.828, -38.2761, -306.209;
+    expected_rhs_vector <<= -76.6356, -25.5452, -204.362;
     KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(expected_rhs_vector, rhs_vector, relative_tolerance)
 }
 
@@ -396,7 +396,7 @@ KRATOS_TEST_CASE_IN_SUITE(CalculateLocalSystemForThermalMicroClimateCondition3D6
     KRATOS_EXPECT_MATRIX_RELATIVE_NEAR(expected_lhs_matrix, lhs_matrix, relative_tolerance)
 
     auto expected_rhs_vector = Vector{6, 0.0};
-    expected_rhs_vector <<= 0.0, 0.0, 0.0, -79.0629, -79.0629, -79.0629;
+    expected_rhs_vector <<= 0.0, 0.0, 0.0, -52.7659, -52.7659, -52.7659;
     // To compare computed zeros (the first three elements of 'rhs_vector') use an absolute_tolerance
     KRATOS_EXPECT_VECTOR_NEAR(expected_rhs_vector, rhs_vector, absolute_tolerance)
 }
@@ -430,7 +430,7 @@ KRATOS_TEST_CASE_IN_SUITE(CalculateLocalSystemForThermalMicroClimateCondition3D8
     KRATOS_EXPECT_MATRIX_RELATIVE_NEAR(expected_lhs_matrix, lhs_matrix, relative_tolerance)
 
     auto expected_rhs_vector = Vector{8, 0.0};
-    expected_rhs_vector <<= 39.5314, 39.5314, 39.5314, 39.5314, -158.126, -158.126, -158.126, -158.126;
+    expected_rhs_vector <<= 26.383, 26.383, 26.383, 26.383, -105.532, -105.532, -105.532, -105.532;
     KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(expected_rhs_vector, rhs_vector, relative_tolerance)
 }
 

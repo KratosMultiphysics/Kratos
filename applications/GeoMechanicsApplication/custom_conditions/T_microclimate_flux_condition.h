@@ -134,6 +134,7 @@ private:
         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Condition)
     }
 
+    bool mIsInitialized = false;
     double mAlbedoCoefficient = 0.0;
     double mFirstCoverStorageCoefficient = 0.0;
     double mSecondCoverStorageCoefficient = 0.0;

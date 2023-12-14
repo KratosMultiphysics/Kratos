@@ -41,6 +41,17 @@ void TMicroClimateFluxCondition<TDim, TNumNodes>::Initialize(const ProcessInfo& 
 template <unsigned int TDim, unsigned int TNumNodes>
 void TMicroClimateFluxCondition<TDim, TNumNodes>::InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
 {
+    // Unfortunately, the roughness temperature and net radiation cannot be
+    // initialized in the Initialize() method because the values of the air
+    // temperature and solar radiation are not yet available.
+    if (!mIsInitialized)
+    {
+        const GeometryType& Geom = this->GetGeometry();
+        mRoughnessTemperature = Geom[0].FastGetSolutionStepValue(AIR_TEMPERATURE, 0);
+        mNetRadiation = Geom[0].FastGetSolutionStepValue(SOLAR_RADIATION, 0);
+        mIsInitialized = true;
+    }
+
     CalculateRoughness(rCurrentProcessInfo);
 }
 
@@ -120,10 +131,6 @@ void TMicroClimateFluxCondition<TDim, TNumNodes>::InitializeProperties()
     mBuildEnvironmentRadiation = r_prop[QF_COEFFICIENT];
     mMinimalStorage = r_prop[SMIN_COEFFICIENT];
     mMaximalStorage = r_prop[SMAX_COEFFICIENT];
-
-    const GeometryType& Geom = this->GetGeometry();
-    mRoughnessTemperature = Geom[0].FastGetSolutionStepValue(AIR_TEMPERATURE, 1);
-    mNetRadiation = Geom[0].FastGetSolutionStepValue(SOLAR_RADIATION, 1);
 
     KRATOS_CATCH("")
 }
