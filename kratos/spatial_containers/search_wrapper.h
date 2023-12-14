@@ -940,40 +940,38 @@ private:
     {
         // Retrieve th solution
         auto& r_results_vector = rResults.GetContainer();
-        block_for_each(r_results_vector, [&rLambda](auto& pPartialResult) {
-            // First must not be null
-            if (pPartialResult != nullptr) {
-                auto& r_partial_result = *pPartialResult;
-                // Then must have at least one solution
-                if (r_partial_result.NumberOfGlobalResults() > 0) {
-                    // The values
-                    const auto values = rLambda(r_partial_result);
+        for (auto& p_partial_result : r_results_vector) {
+            auto& r_partial_result = *p_partial_result;
+            // Then must have at least one solution, but just filter if at least 2
+            const std::size_t number_of_global_results = r_partial_result.NumberOfGlobalResults();
+            if (number_of_global_results > 1) {
+                // The values
+                const auto values = rLambda(r_partial_result);
 
-                    // The indexes
-                    std::vector<IndexType> indexes = r_partial_result.GetResultIndices();
+                // The indexes
+                std::vector<IndexType> indexes(number_of_global_results, 0);
+                for (std::size_t i = 1; i < number_of_global_results; ++i) {
+                    indexes[i] = i;
+                }
 
-                    // Find the index of the minimum value
-                    auto it_min_distance = std::min_element(values.begin(), values.end());
+                // Find the index of the minimum value
+                auto it_min_distance = std::min_element(values.begin(), values.end());
 
-                    // Check if the values vector is not empty
-                    if (it_min_distance != values.end()) {
-                        // Calculate the position
-                        const IndexType pos = std::distance(values.begin(), it_min_distance);
+                // Check if the values vector is not empty
+                if (it_min_distance != values.end()) {
+                    // Calculate the position
+                    const IndexType index_to_remove = std::distance(values.begin(), it_min_distance);
 
-                        // Retrieve the corresponding index from indexes vector
-                        const IndexType index_to_remove = indexes[pos];
+                    // Remove the index from the indexes vector
+                    indexes.erase(std::remove(indexes.begin(), indexes.end(), index_to_remove), indexes.end());
 
-                        // Remove the index from the indexes vector
-                        indexes.erase(std::remove(indexes.begin(), indexes.end(), index_to_remove), indexes.end());
-
-                        // Remove all results but the closest one
-                        r_partial_result.RemoveResultsFromIndexesList(indexes);
-                    } else {
-                        KRATOS_ERROR << "Distances vector is empty." << std::endl;
-                    }
+                    // Remove all results but the closest one
+                    r_partial_result.RemoveResultsFromIndexesList(indexes);
+                } else {
+                    KRATOS_ERROR << "Distances vector is empty." << std::endl;
                 }
             }
-        });
+        }
     }
 
     /**
