@@ -361,7 +361,7 @@ class KratosGeoMechanicsTransientThermalTests(KratosUnittest.TestCase):
         simulation = test_helper.run_kratos(file_path)
         temperature = test_helper.get_temperature(simulation)
         temp = temperature[4]
-        self.assertAlmostEqual(6.1263675349643965, temp)        
+        self.assertAlmostEqual(6.1263675349643965, temp)
 
 if __name__ == '__main__':
     KratosUnittest.main()
