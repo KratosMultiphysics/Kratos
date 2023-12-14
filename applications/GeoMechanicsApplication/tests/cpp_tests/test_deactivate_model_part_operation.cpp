@@ -22,12 +22,11 @@
 
 namespace Kratos::Testing {
 
-namespace {
-
-ModelPart& CreateTestModelPart(Model& rModel)
+KRATOS_TEST_CASE_IN_SUITE(DeactivateModelPartOperation, KratosGeoMechanicsFastSuite)
 {
     // Create the test model part
-    auto& r_test_model_part = rModel.CreateModelPart("TestModelPart");
+    Model test_model;
+    auto& r_test_model_part = test_model.CreateModelPart("TestModelPart");
 
     // Set up the test model part mesh
     auto p_point_1 = Kratos::make_intrusive<Node>(1, 0.0, 0.0, 0.0);
@@ -43,17 +42,6 @@ ModelPart& CreateTestModelPart(Model& rModel)
         "create_skin_sub_model_part": false
     })");
     StructuredMeshGeneratorProcess(domain_geometry, r_test_model_part, mesher_parameters).Execute();
-
-    return r_test_model_part;
-}
-
-}
-
-KRATOS_TEST_CASE_IN_SUITE(DeactivateModelPartOperation, KratosGeoMechanicsFastSuite)
-{
-    // Create the test model part
-    Model test_model;
-    auto& r_test_model_part = CreateTestModelPart(test_model);
 
     // Deactivate all the model part entities
     for (auto& r_node : r_test_model_part.Nodes()) {
