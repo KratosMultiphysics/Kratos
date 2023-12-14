@@ -75,7 +75,7 @@ namespace Kratos::Testing
         const bool InvertRoleAdditionalNode = false
         )
     {
-        // Set MPI coomunicator
+        // Set MPI communicator
         ModelPartCommunicatorUtilities::SetMPICommunicator(rModelPart, rDataCommunicator);
 
         // Add variables
@@ -204,7 +204,7 @@ namespace Kratos::Testing
             }
         }
 
-        // Compute communicaton plan and fill communicator meshes correctly
+        // Compute communication plan and fill communicator meshes correctly
         ParallelFillCommunicator(rModelPart, rDataCommunicator).Execute();
     }
 
@@ -537,7 +537,7 @@ namespace Kratos::Testing
         pBuilderAndSolver->Clear();
         pScheme->Clear();
 
-        TrilinosSparseSpaceType::VectorPointerType pDx; /// The incremement in the solution
+        TrilinosSparseSpaceType::VectorPointerType pDx; /// The increment in the solution
         TrilinosSparseSpaceType::VectorPointerType pb; /// The RHS vector of the system of equations
         TrilinosSparseSpaceType::MatrixPointerType pA; /// The LHS matrix of the system of equations
 
