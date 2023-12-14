@@ -38,8 +38,8 @@ KRATOS_TEST_CASE_IN_SUITE(DeactivateModelPartOperation, KratosGeoMechanicsFastSu
     Parameters mesher_parameters(R"({
         "number_of_divisions": 2,
         "element_name": "Element2D3N",
-        "condition_name": "LineCondition2D2N",
-        "create_skin_sub_model_part": false
+        "condition_name": "LineCondition",
+        "create_skin_sub_model_part": true
     })");
     StructuredMeshGeneratorProcess(domain_geometry, r_test_model_part, mesher_parameters).Execute();
 
