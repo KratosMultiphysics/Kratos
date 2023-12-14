@@ -371,7 +371,7 @@ void KratosConstitutiveLawsApplication::Register()
 
     // Constitutive laws variables
 
-    //Faituge variables
+    //Fatigue variables
     KRATOS_REGISTER_VARIABLE(TOTAL_OR_PLASTIC_STRAIN_SPACE)
     KRATOS_REGISTER_VARIABLE(TOTAL_STRAIN_VECTOR_PLASTICITY_POINT_CURVE)
     KRATOS_REGISTER_VARIABLE(IS_PRESTRESSED)
