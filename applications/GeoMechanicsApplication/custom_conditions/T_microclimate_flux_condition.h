@@ -86,33 +86,33 @@ private:
     double CalculateIntegrationCoefficient(const Matrix& rJacobian, double Weight) const;
 
     array_1d<double, TNumNodes> CalculateLeftHandSideFluxes() const;
-    array_1d<double, TNumNodes> CalculateRightHandSideFluxes(double time_step_size,
-                                                             double previous_storage,
-                                                             double previous_radiation) const;
-    double CalculateRightHandSideFlux(double net_radiation,
-                                      double surface_heat_storage,
-                                      double actual_evaporation) const;
+    array_1d<double, TNumNodes> CalculateRightHandSideFluxes(double TimeStepSize,
+                                                             double PreviousStorage,
+                                                             double PreviousRadiation) const;
+    double CalculateRightHandSideFlux(double NetRadiation,
+                                      double SurfaceHeatStorage,
+                                      double ActualEvaporation) const;
 
-    double CalculateCurrentWaterStorage(double time_step_size,
-                                        double previous_storage,
-                                        double previous_radiation) const;
+    double CalculateCurrentWaterStorage(double TimeStepSize,
+                                        double PreviousStorage,
+                                        double PreviousRadiation) const;
 
     double CalculateCurrentNetRadiation() const;
-    double CalculateNetRadiation(unsigned int index) const;
+    double CalculateNetRadiation(unsigned int NodeIndex) const;
 
-    double CalculateSurfaceHeatStorage(double time_step_size,
-                                       double previous_radiation,
-                                       double net_radiation) const;
+    double CalculateSurfaceHeatStorage(double TimeStepSize,
+                                       double PreviousRadiation,
+                                       double NetRadiation) const;
 
-    WaterFluxes CalculateWaterFluxes(unsigned int i,
-                                     double time_step_size,
-                                     double previous_storage,
-                                     double net_radiation,
-                                     double surface_heat_storage) const;
+    WaterFluxes CalculateWaterFluxes(unsigned int NodeIndex,
+                                     double TimeStepSize,
+                                     double PreviousStorage,
+                                     double NetRadiation,
+                                     double SurfaceHeatStorage) const;
 
-    double CalculatePotentialEvaporation(unsigned int i,
-                                         double net_radiation,
-                                         double surface_heat_storage) const;
+    double CalculatePotentialEvaporation(unsigned int NodeIndex,
+                                         double NetRadiation,
+                                         double SurfaceHeatStorage) const;
 
     void CalculateRoughness(const ProcessInfo& rCurrentProcessInfo);
 
