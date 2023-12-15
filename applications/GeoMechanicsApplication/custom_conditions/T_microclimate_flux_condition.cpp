@@ -250,11 +250,14 @@ double TMicroClimateFluxCondition<TDim, TNumNodes>::CalculateCurrentWaterStorage
 template <unsigned int TDim, unsigned int TNumNodes>
 double TMicroClimateFluxCondition<TDim, TNumNodes>::CalculateCurrentNetRadiation() const
 {
-    const auto& r_geom = this->GetGeometry();
-    return std::accumulate(r_geom.begin(), r_geom.end(), 0.0,
-                           [this](double sum, unsigned int i)
-                           { return sum + CalculateNetRadiation(i); }) /
-           TNumNodes;
+    std::vector<unsigned int> local_node_indices(TNumNodes);
+    std::iota(local_node_indices.begin(), local_node_indices.end(), 0u);
+    const auto result =
+        std::accumulate(local_node_indices.begin(), local_node_indices.end(), 0.0,
+                        [this](double sum, unsigned int i)
+                        { return sum + CalculateNetRadiation(i); }) /
+        TNumNodes;
+    return result;
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
