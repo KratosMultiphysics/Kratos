@@ -149,6 +149,22 @@ KRATOS_TEST_CASE_IN_SUITE(PointerCommunicatorPartialPartitions, KratosMPICoreFas
                 KRATOS_EXPECT_EQ(result.second[k], gp.GetRank());
         }
     }
+
+    // Extend checks
+    auto& r_partial_data_comm_again = r_default_comm.GetSubDataCommunicator(ranks, "SubDataComm");
+    if (current_rank < world_size - 1) {
+        KRATOS_EXPECT_TRUE(r_partial_data_comm_again.IsDefinedOnThisRank());
+    } else {
+        KRATOS_EXPECT_TRUE(r_partial_data_comm_again.IsNullOnThisRank());
+    }
+
+    std::vector<int> ranks_wrong(ranks);
+    ranks_wrong.push_back(world_size -1);
+    if (current_rank < world_size - 1) {
+        KRATOS_EXPECT_EXCEPTION_IS_THROWN(r_default_comm.GetSubDataCommunicator(ranks_wrong, "SubDataComm"), "Inconsistency between the communicator world size: " + std::to_string(world_size - 1) + " and the number of ranks required: " + std::to_string(world_size));
+    } else {
+        KRATOS_EXPECT_EXCEPTION_IS_THROWN(r_default_comm.GetSubDataCommunicator(ranks_wrong, "SubDataComm"), "The rank " + std::to_string(current_rank) + " does not participate in the existing data communicator SubDataComm despite being in the provided rank list");
+    }
 }
 
 KRATOS_TEST_CASE_IN_SUITE(PointerCommunicatorLocalRetrieveGlobalPointers, KratosMPICoreFastSuite)
@@ -373,8 +389,6 @@ KRATOS_TEST_CASE_IN_SUITE(PointerCommunicatorConstructByFunctor, KratosMPICoreFa
         KRATOS_EXPECT_EQ(temperature_proxy.Get(gp), gp.GetRank());
         KRATOS_EXPECT_EQ(temperature_proxy.Get(gp), indices[i]-1);
     }
-
-
 }
 
 KRATOS_TEST_CASE_IN_SUITE(PointerMapCommunicatorAssembly, KratosMPICoreFastSuite)
