@@ -322,11 +322,93 @@ public:
 
     /**
      * @brief This is a call to the linear system solver
-     * @param A The LHS matrix
-     * @param Dx The Unknowns vector
-     * @param b The RHS vector
+     * @param rA The LHS matrix
+     * @param rDx The Unknowns vector
+     * @param rb The RHS vector
+     */
+    void SystemSolve(
+        TSystemMatrixType& rA,
+        TSystemVectorType& rDx,
+        TSystemVectorType& rb
+        ) override
+    {
+        KRATOS_TRY
+        double norm_b;
+        if (TSparseSpace::Size(rb) != 0) {
+            norm_b = TSparseSpace::TwoNorm(rb);
+        } else {
+            norm_b = 0.0;
+        }
+
+        if (norm_b != 0.0) {
+            // Do solve
+            BaseType::mpLinearSystemSolver->Solve(rA, rDx, rb);
+        } else {
+            TSparseSpace::SetToZero(rDx);
+        }
+
+        // Reference to T
+        const TSystemMatrixType& r_T = GetConstraintRelationMatrix();
+
+        // If there are master-slave constraints
+        if(TSparseSpace::Size1(r_T) != 0) {
+            // Recover solution of the original problem
+            TSystemVectorType Dxmodified(rDx);
+
+            // Recover solution of the original problem
+            TSparseSpace::Mult(r_T, Dxmodified, rDx);
+        }
+
+        // Prints information about the current time
+        KRATOS_INFO_IF("TrilinosResidualBasedBlockBuilderAndSolver", this->GetEchoLevel() > 1) << *(BaseType::mpLinearSystemSolver) << std::endl;
+
+        KRATOS_CATCH("")
+    }
+
+    /**
+     * @brief This is a call to the linear system solver (taking into account some physical particularities of the problem)
+     * @param rA The LHS matrix
+     * @param rDx The Unknowns vector
+     * @param rb The RHS vector
+     * @param rModelPart The model part of the problem to solve
      */
     void SystemSolveWithPhysics(TSystemMatrixType& rA,
+                                TSystemVectorType& rDx,
+                                TSystemVectorType& rb,
+                                ModelPart& rModelPart
+                                )
+    {
+        KRATOS_TRY
+
+        // If considering MPC
+        if (rModelPart.GetCommunicator().GlobalNumberOfMasterSlaveConstraints() > 0) {
+            TSystemVectorType Dxmodified(rb);
+
+            // Initialize the vector
+            TSparseSpace::SetToZero(Dxmodified);
+
+            InternalSystemSolveWithPhysics(rA, Dxmodified, rb, rModelPart);
+
+            // Reference to T
+            const TSystemMatrixType& r_T = GetConstraintRelationMatrix();
+
+            // Recover solution of the original problem
+            TSparseSpace::Mult(r_T, Dxmodified, rDx);
+        } else {
+            InternalSystemSolveWithPhysics(rA, rDx, rb, rModelPart);
+        }
+
+        KRATOS_CATCH("")
+    }
+
+    /**
+     * @brief This is a call to the linear system solver (taking into account some physical particularities of the problem)
+     * @param rA The LHS matrix
+     * @param rDx The Unknowns vector
+     * @param rb The RHS vector
+     * @param rModelPart The model part of the problem to solve
+     */
+    void InternalSystemSolveWithPhysics(TSystemMatrixType& rA,
                                 TSystemVectorType& rDx,
                                 TSystemVectorType& rb,
                                 ModelPart& rModelPart)

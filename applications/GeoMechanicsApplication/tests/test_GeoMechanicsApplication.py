@@ -40,6 +40,7 @@ from test_column_changing_waterlevel import KratosGeoMechanicsChangingWaterLevel
 from test_set_multiple_moving_load_process import KratosGeoMechanicsSetMultipleMovingLoadProcessTests
 from test_strain_measures import KratosGeoMechanicsStrainMeasureTests
 from test_transient_thermal import KratosGeoMechanicsTransientThermalTests
+from test_rotation_with_moving_load import KratosGeoMechanicsRotationWithMovingLoadTests
 
 def AssembleTestSuites():
     ''' Populates the test suites to run.
@@ -77,7 +78,8 @@ def AssembleTestSuites():
                         KratosGeoMechanicsSolverTests,
                         KratosGeoMechanicsChangingWaterLevelTests,
                         KratosGeoMechanicsStrainMeasureTests,
-                        KratosGeoMechanicsSetMultipleMovingLoadProcessTests
+                        KratosGeoMechanicsSetMultipleMovingLoadProcessTests,
+                        KratosGeoMechanicsRotationWithMovingLoadTests
                         ]
 
     # Create an array with the selected tests
