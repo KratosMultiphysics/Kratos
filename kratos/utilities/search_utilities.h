@@ -280,15 +280,16 @@ public:
 
     /**
      * @brief SynchronousPointSynchronization prepares synchronously the coordinates of the points for MPI search.
-     * @param itPointBegin Iterator to the beginning of the points range
-     * @param itPointEnd Iterator to the end of the points range
-     * @param rSearchInfo The class containing the result of the search
-     * @param rBoundingBox The bounding box considered
-     * @param ThresholdBoundingBox The threshold for computing is inside bounding box considered
-     * @param rDataCommunicator The data communicator
-     * @tparam TPointIteratorType The type of the point iterator
-     * @tparam TBoundingBoxType The type of the bounding box
-     * @return The ids of all points
+     * @param itPointBegin Iterator to the beginning of the points range.
+     * @param itPointEnd Iterator to the end of the points range.
+     * @param rSearchInfo The class containing the result of the search.
+     * @param rBoundingBox The bounding box considered.
+     * @param ThresholdBoundingBox The threshold for computing is inside bounding box considered.
+     * @param rDataCommunicator The data communicator.
+     * @param IndexItIsJustCounter If the index considered it it just a counter.
+     * @tparam TPointIteratorType The type of the point iterator.
+     * @tparam TBoundingBoxType The type of the bounding box.
+     * @return The ids of all points.
      */
     template<typename TPointIteratorType, typename TBoundingBoxType>
     static std::vector<IndexType> SynchronousPointSynchronizationWithBoundingBox(
@@ -297,7 +298,8 @@ public:
         DistributedSearchInformation& rSearchInfo,
         const TBoundingBoxType& rBoundingBox,
         const double ThresholdBoundingBox,
-        const DataCommunicator& rDataCommunicator
+        const DataCommunicator& rDataCommunicator,
+        const bool IndexItIsJustCounter = false
         )
     {
         // First check that the points are the same in all processes
@@ -308,7 +310,7 @@ public:
         KRATOS_DEBUG_ERROR_IF(total_number_of_points < 0) << "The total number of points is negative" << std::endl;
 
         // We synchronize the points
-        return SynchronizePointsWithBoundingBox(itPointBegin, itPointEnd, rSearchInfo, rBoundingBox, ThresholdBoundingBox, rDataCommunicator, number_of_points, total_number_of_points);
+        return SynchronizePointsWithBoundingBox(itPointBegin, itPointEnd, rSearchInfo, rBoundingBox, ThresholdBoundingBox, rDataCommunicator, number_of_points, total_number_of_points, IndexItIsJustCounter);
     }
 
     /**
