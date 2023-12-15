@@ -2522,12 +2522,12 @@ class TestProcesses(KratosUnittest.TestCase):
         self.assertEqual(model_part.GetCondition(10).GetGeometry()[1].Id, 2)
         self.assertEqual(model_part.GetCondition(10).GetGeometry()[2].Id, 31)
     
-    def test_assign_mpcs_to_neighbours_process(self):
+    def test_assign_master_slave_constraints_to_neighbours_process(self):
         # Set up the model
         current_model = KratosMultiphysics.Model()
         model_part = current_model.CreateModelPart("Main")
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
-        model_part_io = KratosMultiphysics.ModelPartIO(GetFilePath("auxiliar_files_for_python_unittest/mdpa_files/test_assign_mpcs_to_neighbours_process"))
+        model_part_io = KratosMultiphysics.ModelPartIO(GetFilePath("auxiliar_files_for_python_unittest/mdpa_files/test_assign_master_slave_constraints_to_neighbours_process"))
         model_part_io.ReadModelPart(model_part)
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_X, model_part)
 
@@ -2535,31 +2535,22 @@ class TestProcesses(KratosUnittest.TestCase):
         settings = KratosMultiphysics.Parameters(
             """
             {
-                "process_list" : [
-                    {
-                        "python_module": "assign_mpcs_to_neighbours_process",
-                        "kratos_module": "KratosMultiphysics",
-                        "process_name": "AssignMPCsToNeighboursProcess",
-                        "Parameters": {
-                            "computing_model_part_name": "Main",
-                            "master_model_part_name": "Main.GENERIC_Master",
-                            "slave_model_part_name": "Main.GENERIC_Slave",
-                            "search_radius": 0.01,
-                            "minimum_number_of_neighbouring_nodes": 3,
-                            "assign_mpcs_every_time_step":  true,
-                            "variable_names": ["DISPLACEMENT_X"]
-                        }
-                    }
-                    ]
-                }
+                "model_part_name": "Main",
+                "master_model_part_name": "Main.GENERIC_Master",
+                "slave_model_part_name": "Main.GENERIC_Slave",
+                "search_radius": 0.01,
+                "minimum_number_of_neighbouring_nodes": 3,
+                "reform_constraints_at_each_step":  true,
+                "variable_names": ["DISPLACEMENT_X"]
+            }
             """
         )
 
-        # Create and execute processes
-        list_of_processes = process_factory.KratosProcessFactory(current_model).ConstructListOfProcesses(settings["process_list"])
-        for process in list_of_processes:
-            process.ExecuteInitialize()
-            process.ExecuteInitializeSolutionStep()
+        # Create and execute process
+        from KratosMultiphysics.assign_master_slave_constraints_to_neighbours_process import AssignMasterSlaveConstraintsToNeighboursProcess
+        process = AssignMasterSlaveConstraintsToNeighboursProcess(current_model, settings)
+        process.ExecuteInitialize()
+        process.ExecuteInitializeSolutionStep()
 
         # Define expected constraint weights
         expected_constraints_weights = [
@@ -2571,7 +2562,7 @@ class TestProcesses(KratosUnittest.TestCase):
         # Obtain constraint weights from the model
         obtained_constraints_weights = []
         contraints_to_validate = [1, 2, 3]
-        for i, id in enumerate(contraints_to_validate):
+        for id in contraints_to_validate:
             const = model_part.GetMasterSlaveConstraint(id)
             output_contraints_weights = KratosMultiphysics.Matrix()
             constants = KratosMultiphysics.Vector()
@@ -2590,13 +2581,12 @@ class TestProcesses(KratosUnittest.TestCase):
 
             for obtained_weights in obtained_constraints_weights:
                 if check_matching_weights(expected_weights, obtained_weights):
-                    for ew, ow in zip(expected_weights, obtained_weights):
-                        self.assertAlmostEqual(ew, ow, delta=1e-6)  # Assert the weights are equal within the specified tolerance
+                    self.assertVectorAlmostEqual(expected_weights, obtained_weights, delta=1e-6)  # Assert the vectors are equal within the specified tolerance
                     matching_found = True
                     break
 
-        # If no matching element is found for the expected_weights, the test fails
-        self.assertTrue(matching_found, "No matching element found for expected_weights: {}".format(expected_weights))
+            # If no matching element is found for the expected_weights, the test fails
+            self.assertTrue(matching_found, "No matching element found for expected_weights: {}".format(expected_weights))
 
     def test_assign_average_master_slave_constraints_process(self):
         # Set up the model

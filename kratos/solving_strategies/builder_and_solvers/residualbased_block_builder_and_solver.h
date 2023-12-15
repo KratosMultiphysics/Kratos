@@ -253,9 +253,9 @@ public:
             }
         }
 
-        KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolver", this->GetEchoLevel() >= 1) << "Build time: " << timer.ElapsedSeconds() << std::endl;
+        KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolver", this->GetEchoLevel() >= 1) << "Build time: " << timer << std::endl;
 
-        KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolver", (this->GetEchoLevel() > 2 && rModelPart.GetCommunicator().MyPID() == 0)) << "Finished parallel building" << std::endl;
+        KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolver", this->GetEchoLevel() > 2) << "Finished parallel building" << std::endl;
 
         KRATOS_CATCH("")
     }
@@ -328,7 +328,7 @@ public:
             }
         }
 
-        KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolver", this->GetEchoLevel() >= 1) << "Build time LHS: " << timer.ElapsedSeconds() << std::endl;
+        KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolver", this->GetEchoLevel() >= 1) << "Build time LHS: " << timer << std::endl;
 
         KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolver", this->GetEchoLevel() > 2) << "Finished parallel building LHS" << std::endl;
 
@@ -359,40 +359,40 @@ public:
 
     /**
      * @brief This is a call to the linear system solver
-     * @param A The LHS matrix
-     * @param Dx The Unknowns vector
-     * @param b The RHS vector
+     * @param rA The LHS matrix
+     * @param rDx The Unknowns vector
+     * @param rb The RHS vector
      */
     void SystemSolve(
-        TSystemMatrixType& A,
-        TSystemVectorType& Dx,
-        TSystemVectorType& b
-    ) override
+        TSystemMatrixType& rA,
+        TSystemVectorType& rDx,
+        TSystemVectorType& rb
+        ) override
     {
         KRATOS_TRY
         double norm_b;
-        if (TSparseSpace::Size(b) != 0)
-            norm_b = TSparseSpace::TwoNorm(b);
-        else
-            norm_b = 0.00;
-
-        if (norm_b != 0.00)
-        {
-            //do solve
-            BaseType::mpLinearSystemSolver->Solve(A, Dx, b);
-        }
-        else
-            TSparseSpace::SetToZero(Dx);
-
-        if(mT.size1() != 0) //if there are master-slave constraints
-        {
-            //recover solution of the original problem
-            TSystemVectorType Dxmodified = Dx;
-
-            TSparseSpace::Mult(mT, Dxmodified, Dx);
+        if (TSparseSpace::Size(rb) != 0) {
+            norm_b = TSparseSpace::TwoNorm(rb);
+        } else {
+            norm_b = 0.0;
         }
 
-        //prints information about the current time
+        if (norm_b != 0.0) {
+            // Do solve
+            BaseType::mpLinearSystemSolver->Solve(rA, rDx, rb);
+        } else {
+            TSparseSpace::SetToZero(rDx);
+        }
+
+        if(mT.size1() != 0) { // If there are master-slave constraints
+            // Recover solution of the original problem
+            TSystemVectorType Dxmodified = rDx;
+
+            // Recover solution of the original problem
+            TSparseSpace::Mult(mT, Dxmodified, rDx);
+        }
+
+        // Prints information about the current time
         KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolver", this->GetEchoLevel() > 1) << *(BaseType::mpLinearSystemSolver) << std::endl;
 
         KRATOS_CATCH("")
@@ -428,34 +428,34 @@ public:
     }
 
     /**
-      *@brief This is a call to the linear system solver (taking into account some physical particularities of the problem)
-     * @param A The LHS matrix
-     * @param Dx The Unknowns vector
-     * @param b The RHS vector
+     * @brief This is a call to the linear system solver (taking into account some physical particularities of the problem)
+     * @param rA The LHS matrix
+     * @param rDx The Unknowns vector
+     * @param rb The RHS vector
      * @param rModelPart The model part of the problem to solve
      */
     void InternalSystemSolveWithPhysics(
-        TSystemMatrixType& A,
-        TSystemVectorType& Dx,
-        TSystemVectorType& b,
+        TSystemMatrixType& rA,
+        TSystemVectorType& rDx,
+        TSystemVectorType& rb,
         ModelPart& rModelPart
     )
     {
         KRATOS_TRY
 
         double norm_b;
-        if (TSparseSpace::Size(b) != 0)
-            norm_b = TSparseSpace::TwoNorm(b);
+        if (TSparseSpace::Size(rb) != 0)
+            norm_b = TSparseSpace::TwoNorm(rb);
         else
             norm_b = 0.00;
 
         if (norm_b != 0.00) {
             //provide physical data as needed
             if(BaseType::mpLinearSystemSolver->AdditionalPhysicalDataIsNeeded() )
-                BaseType::mpLinearSystemSolver->ProvideAdditionalData(A, Dx, b, BaseType::mDofSet, rModelPart);
+                BaseType::mpLinearSystemSolver->ProvideAdditionalData(rA, rDx, rb, BaseType::mDofSet, rModelPart);
 
             //do solve
-            BaseType::mpLinearSystemSolver->Solve(A, Dx, b);
+            BaseType::mpLinearSystemSolver->Solve(rA, rDx, rb);
         } else {
             KRATOS_WARNING_IF("ResidualBasedBlockBuilderAndSolver", mOptions.IsNot(SILENT_WARNINGS)) << "ATTENTION! setting the RHS to zero!" << std::endl;
         }
@@ -496,7 +496,7 @@ public:
             Timer::Start("ApplyConstraints");
             ApplyConstraints(pScheme, rModelPart, A, b);
             Timer::Stop("ApplyConstraints");
-            KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolver", this->GetEchoLevel() >=1) << "Constraints build time: " << timer_constraints.ElapsedSeconds() << std::endl;
+            KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolver", this->GetEchoLevel() >=1) << "Constraints build time: " << timer_constraints << std::endl;
         }
 
         ApplyDirichletConditions(pScheme, rModelPart, A, Dx, b);
@@ -509,7 +509,7 @@ public:
         SystemSolveWithPhysics(A, Dx, b, rModelPart);
 
         Timer::Stop("Solve");
-        KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolver", this->GetEchoLevel() >=1) << "System solve time: " << timer.ElapsedSeconds() << std::endl;
+        KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolver", this->GetEchoLevel() >=1) << "System solve time: " << timer << std::endl;
 
         KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolver", ( this->GetEchoLevel() == 3)) << "After the solution of the system" << "\nSystem Matrix = " << A << "\nUnknowns vector = " << Dx << "\nRHS vector = " << b << std::endl;
 
@@ -608,7 +608,7 @@ public:
             Timer::Start("ApplyConstraints");
             this->ApplyConstraints(pScheme, rModelPart, rA, rb);
             Timer::Stop("ApplyConstraints");
-            KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolver", this->GetEchoLevel() >=1) << "Constraints build time: " << timer_constraints.ElapsedSeconds() << std::endl;
+            KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolver", this->GetEchoLevel() >=1) << "Constraints build time: " << timer_constraints << std::endl;
         }
         this->ApplyDirichletConditions(pScheme, rModelPart, rA, rDx, rb);
 
@@ -621,7 +621,7 @@ public:
         this->SystemSolveWithPhysics(rA, rDx, rb, rModelPart);
 
         Timer::Stop("Solve");
-        KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolver", this->GetEchoLevel() >=1) << "System solve time: " << timer.ElapsedSeconds() << std::endl;
+        KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolver", this->GetEchoLevel() >=1) << "System solve time: " << timer << std::endl;
 
         KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolver", ( this->GetEchoLevel() == 3)) << "After the solution of the system" << "\nSystem Matrix = " << rA << "\nUnknowns vector = " << rDx << "\nRHS vector = " << rb << std::endl;
     }
@@ -662,7 +662,7 @@ public:
         SystemSolveWithPhysics(rA, rDx, rb, rModelPart);
 
         Timer::Stop("Solve");
-        KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolver", this->GetEchoLevel() >=1) << "System solve time: " << timer.ElapsedSeconds() << std::endl;
+        KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolver", this->GetEchoLevel() >=1) << "System solve time: " << timer << std::endl;
 
         KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolver", ( this->GetEchoLevel() == 3)) << "After the solution of the system" << "\nSystem Matrix = " << rA << "\nUnknowns vector = " << rDx << "\nRHS vector = " << rb << std::endl;
 

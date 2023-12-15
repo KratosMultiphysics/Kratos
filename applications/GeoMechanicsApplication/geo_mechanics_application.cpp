@@ -9,11 +9,11 @@
 //
 //  Main authors:    Vahid Galavi,
 //                   Aron Noordam
+//                   Mohamed Nabi
 //
 
 // Application includes
 #include "geo_mechanics_application.h"
-
 
 namespace Kratos {
 // We define the node type
@@ -74,7 +74,7 @@ void KratosGeoMechanicsApplication::Register() {
 
     KRATOS_REGISTER_ELEMENT("SteadyStatePwPipingElement2D4N", mSteadyStatePwPipingElement2D4N)
     KRATOS_REGISTER_ELEMENT("SteadyStatePwPipingElement3D6N", mSteadyStatePwPipingElement3D6N)
-    KRATOS_REGISTER_ELEMENT("SteadyStatePwPipingElement3D8N", mSteadyStatePwPipingElement3D8N) 
+    KRATOS_REGISTER_ELEMENT("SteadyStatePwPipingElement3D8N", mSteadyStatePwPipingElement3D8N)
 
     // Small strain elements
     KRATOS_REGISTER_ELEMENT("UPwSmallStrainElement2D3N", mUPwSmallStrainElement2D3N)
@@ -206,6 +206,20 @@ void KratosGeoMechanicsApplication::Register() {
     KRATOS_REGISTER_ELEMENT("GeoCrBeamElementLinear3D2N", mGeoCrBeamElementLinear3D2N)
     KRATOS_REGISTER_ELEMENT("GeoCurvedBeamElement2D3N", mGeoCurvedBeamElement2D3N)
 
+    // Register thermal elements
+    KRATOS_REGISTER_ELEMENT("GeoTransientThermalElement2D3N", mTransientThermalElement2D3N)
+    KRATOS_REGISTER_ELEMENT("GeoTransientThermalElement2D4N", mTransientThermalElement2D4N)
+    KRATOS_REGISTER_ELEMENT("GeoTransientThermalElement3D4N", mTransientThermalElement3D4N)
+    KRATOS_REGISTER_ELEMENT("GeoTransientThermalElement3D8N", mTransientThermalElement3D8N)
+    KRATOS_REGISTER_ELEMENT("GeoTransientThermalElement2D6N", mTransientThermalElement2D6N)
+    KRATOS_REGISTER_ELEMENT("GeoTransientThermalElement2D8N", mTransientThermalElement2D8N)
+    KRATOS_REGISTER_ELEMENT("GeoTransientThermalElement2D9N", mTransientThermalElement2D9N)
+    KRATOS_REGISTER_ELEMENT("GeoTransientThermalElement2D10N", mTransientThermalElement2D10N)
+    KRATOS_REGISTER_ELEMENT("GeoTransientThermalElement2D15N", mTransientThermalElement2D15N)
+    KRATOS_REGISTER_ELEMENT("GeoTransientThermalElement3D10N", mTransientThermalElement3D10N)
+    KRATOS_REGISTER_ELEMENT("GeoTransientThermalElement3D20N", mTransientThermalElement3D20N)
+    KRATOS_REGISTER_ELEMENT("GeoTransientThermalElement3D27N", mTransientThermalElement3D27N)
+
     //Register Conditions
     KRATOS_REGISTER_CONDITION("UPwForceCondition2D1N", mUPwForceCondition2D1N)
     KRATOS_REGISTER_CONDITION("UPwForceCondition3D1N", mUPwForceCondition3D1N)
@@ -263,9 +277,19 @@ void KratosGeoMechanicsApplication::Register() {
     KRATOS_REGISTER_CONDITION("UPwLysmerAbsorbingCondition3D3N", mUPwLysmerAbsorbingCondition3D3N)
     KRATOS_REGISTER_CONDITION("UPwLysmerAbsorbingCondition3D4N", mUPwLysmerAbsorbingCondition3D4N)
 
+    KRATOS_REGISTER_CONDITION("GeoTNormalFluxCondition2D2N", mGeoTNormalFluxCondition2D2N)
+    KRATOS_REGISTER_CONDITION("GeoTNormalFluxCondition2D3N", mGeoTNormalFluxCondition2D3N)
+    KRATOS_REGISTER_CONDITION("GeoTNormalFluxCondition2D4N", mGeoTNormalFluxCondition2D4N)
+    KRATOS_REGISTER_CONDITION("GeoTNormalFluxCondition2D5N", mGeoTNormalFluxCondition2D5N)
+    KRATOS_REGISTER_CONDITION("GeoTNormalFluxCondition3D3N", mGeoTNormalFluxCondition3D3N)
+    KRATOS_REGISTER_CONDITION("GeoTNormalFluxCondition3D4N", mGeoTNormalFluxCondition3D4N)
+    KRATOS_REGISTER_CONDITION("GeoTNormalFluxCondition3D6N", mGeoTNormalFluxCondition3D6N)
+    KRATOS_REGISTER_CONDITION("GeoTNormalFluxCondition3D8N", mGeoTNormalFluxCondition3D8N)
+    KRATOS_REGISTER_CONDITION("GeoTNormalFluxCondition3D9N", mGeoTNormalFluxCondition3D9N)
+
     //Register Constitutive Laws
-    KRATOS_REGISTER_CONSTITUTIVE_LAW("BilinearCohesive3DLaw",           mBilinearCohesive3DLaw)
-    KRATOS_REGISTER_CONSTITUTIVE_LAW("BilinearCohesive2DLaw",           mBilinearCohesive2DLaw)
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("BilinearCohesive3DLaw", mBilinearCohesive3DLaw)
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("BilinearCohesive2DLaw", mBilinearCohesive2DLaw)
 
     KRATOS_REGISTER_CONSTITUTIVE_LAW("LinearElasticPlaneStrainK02DLaw",  mLinearPlaneStrainK0Law)
     KRATOS_REGISTER_CONSTITUTIVE_LAW("LinearElasticK03DLaw",             mElasticIsotropicK03DLaw)
@@ -288,6 +312,9 @@ void KratosGeoMechanicsApplication::Register() {
 
     KRATOS_REGISTER_CONSTITUTIVE_LAW("LinearElastic2DBeamLaw",        mLinearElastic2DBeamLaw)
 
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("GeoThermalDispersion2DLaw",     mGeoThermalDispersion2DLaw)
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("GeoThermalDispersion3DLaw",     mGeoThermalDispersion3DLaw)
+
     //Register Variables
     KRATOS_REGISTER_VARIABLE( VELOCITY_COEFFICIENT )
     KRATOS_REGISTER_VARIABLE( DT_PRESSURE_COEFFICIENT )
@@ -302,6 +329,31 @@ void KratosGeoMechanicsApplication::Register() {
     KRATOS_REGISTER_VARIABLE( DENSITY_SOLID )
     KRATOS_REGISTER_VARIABLE( BULK_MODULUS_SOLID )
     KRATOS_REGISTER_VARIABLE( BULK_MODULUS_FLUID )
+
+    KRATOS_REGISTER_VARIABLE( SPECIFIC_HEAT_CAPACITY_WATER )
+    KRATOS_REGISTER_VARIABLE( SPECIFIC_HEAT_CAPACITY_SOLID )
+    KRATOS_REGISTER_VARIABLE( THERMAL_CONDUCTIVITY_WATER )
+    KRATOS_REGISTER_SYMMETRIC_3D_TENSOR_VARIABLE_WITH_COMPONENTS( THERMAL_CONDUCTIVITY_SOLID )
+    KRATOS_REGISTER_VARIABLE( LONGITUDINAL_DISPERSIVITY )
+    KRATOS_REGISTER_VARIABLE( TRANSVERSE_DISPERSIVITY )
+    KRATOS_REGISTER_VARIABLE( SOLID_COMPRESSIBILITY )
+    KRATOS_REGISTER_VARIABLE( DT_TEMPERATURE_COEFFICIENT )
+    KRATOS_REGISTER_VARIABLE( DT_TEMPERATURE )
+    KRATOS_REGISTER_VARIABLE( NORMAL_HEAT_FLUX )
+
+    // Variables for Micro-Climate boundary
+    KRATOS_REGISTER_VARIABLE( AIR_TEMPERATURE )
+    KRATOS_REGISTER_VARIABLE( SOLAR_RADIATION )
+    KRATOS_REGISTER_VARIABLE( AIR_HUMIDITY )
+    KRATOS_REGISTER_VARIABLE( PRECIPITATION )
+    KRATOS_REGISTER_VARIABLE( WIND_SPEED )
+    KRATOS_REGISTER_VARIABLE( A1_COEFFICIENT )
+    KRATOS_REGISTER_VARIABLE( A2_COEFFICIENT )
+    KRATOS_REGISTER_VARIABLE( A3_COEFFICIENT )
+    KRATOS_REGISTER_VARIABLE( ALPHA_COEFFICIENT )
+    KRATOS_REGISTER_VARIABLE( QF_COEFFICIENT )
+    KRATOS_REGISTER_VARIABLE( SMIN_COEFFICIENT )
+    KRATOS_REGISTER_VARIABLE( SMAX_COEFFICIENT )
 
     KRATOS_REGISTER_VARIABLE( K0_MAIN_DIRECTION )
     KRATOS_REGISTER_VARIABLE( K0_VALUE_XX )
