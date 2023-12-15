@@ -181,17 +181,9 @@ void TMicroClimateFluxCondition<TDim, TNumNodes>::CalculateAndAddRHS(
 template <unsigned int TDim, unsigned int TNumNodes>
 array_1d<double, TNumNodes> TMicroClimateFluxCondition<TDim, TNumNodes>::CalculateLeftHandSideFluxes() const
 {
-    array_1d<double, TNumNodes> result;
-
-    for (unsigned int i = 0; i < TNumNodes; ++i)
-    {
-        // Eq 5.22
-        const auto sensible_heat_flux_left =
-            AirHeatCapacity * AirDensity / RoughnessLayerResistance;
-        result[i] = sensible_heat_flux_left;
-    }
-
-    return result;
+    // Eq 5.22
+    const auto sensible_heat_flux_left = AirHeatCapacity * AirDensity / RoughnessLayerResistance;
+    return array_1d<double, TNumNodes>(TNumNodes, sensible_heat_flux_left);
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
