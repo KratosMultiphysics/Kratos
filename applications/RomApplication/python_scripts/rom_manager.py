@@ -771,7 +771,6 @@ class RomManager(object):
         return rom_training_parameters
 
 
-
     def _GetDefaulHromTrainingParameters(self):
         hrom_training_parameters = KratosMultiphysics.Parameters("""{
                 "hrom_format": "numpy",
@@ -792,7 +791,6 @@ class RomManager(object):
         return hrom_training_parameters
 
 
-
     def _StoreSnapshotsMatrix(self, string_numpy_array_name, numpy_array):
 
         # Define the directory and file path
@@ -807,7 +805,6 @@ class RomManager(object):
         np.save(file_path, numpy_array)
 
 
-
     def SetUpQuantityOfInterestContainers(self):
         #TODO implement more options if the QoI is too large to keep in RAM
         self.QoI_Fit_FOM = []
@@ -819,14 +816,6 @@ class RomManager(object):
         self.QoI_Run_FOM = []
         self.QoI_Run_ROM = []
         self.QoI_Run_HROM = []
-
-
-
-
-
-
-
-
 
 
     def _GetGalerkinBnSParameters(self):
