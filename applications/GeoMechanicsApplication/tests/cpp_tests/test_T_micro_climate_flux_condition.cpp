@@ -32,6 +32,7 @@ std::shared_ptr<Properties> CreateDummyConditionProperties(ModelPart& rModelPart
     p_result->SetValue(QF_COEFFICIENT, 0.0);
     p_result->SetValue(SMIN_COEFFICIENT, 0.0);
     p_result->SetValue(SMAX_COEFFICIENT, 0.0);
+    p_result->SetValue(DENSITY_WATER, 1.0e3);
     return p_result;
 }
 
@@ -352,6 +353,7 @@ KRATOS_TEST_CASE_IN_SUITE(CalculateLocalSystemForThermalMicroClimateCondition2D3
     auto  p_properties = CreateDummyConditionProperties(r_model_part);
     constexpr auto dimension_size = std::size_t{2};
     auto  p_condition  = CreateMicroClimateCondition(r_model_part, p_properties, dimension_size);
+    p_condition->Initialize(r_model_part.GetProcessInfo());
     p_condition->InitializeSolutionStep(r_model_part.GetProcessInfo());
 
     Matrix lhs_matrix;
@@ -380,6 +382,7 @@ KRATOS_TEST_CASE_IN_SUITE(CalculateLocalSystemForThermalMicroClimateCondition3D6
     auto  p_properties = CreateDummyConditionProperties(r_model_part);
     constexpr auto dimension_size = std::size_t{3};
     auto  p_condition  = CreateMicroClimateCondition(r_model_part, p_properties, dimension_size);
+    p_condition->Initialize(r_model_part.GetProcessInfo());
     p_condition->InitializeSolutionStep(r_model_part.GetProcessInfo());
 
     Matrix lhs_matrix;
@@ -411,6 +414,7 @@ KRATOS_TEST_CASE_IN_SUITE(CalculateLocalSystemForThermalMicroClimateCondition3D8
     auto  p_properties = CreateDummyConditionProperties(r_model_part);
     constexpr auto dimension_size = std::size_t{3};
     auto  p_condition  = CreateMicroClimateCondition(r_model_part, p_properties, dimension_size);
+    p_condition->Initialize(r_model_part.GetProcessInfo());
     p_condition->InitializeSolutionStep(r_model_part.GetProcessInfo());
 
     Matrix lhs_matrix;

@@ -17,7 +17,6 @@ namespace Kratos::MicroClimateConstants
 constexpr static auto AirDensity = 1.18;
 constexpr static auto AirHeatCapacity = 1004.67;
 constexpr static auto LatentEvaporationHeat = 2.45e6;
-constexpr static auto WaterDensity = 1e3;
 constexpr static auto PsychometricConstant = 0.63;
 constexpr static auto EffectiveEmissivity = 0.95;
 constexpr static auto SurfaceResistance = 30.0;

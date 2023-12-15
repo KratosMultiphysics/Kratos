@@ -136,6 +136,7 @@ private:
         rSerializer.save("mRoughnessTemperature", mRoughnessTemperature);
         rSerializer.save("mNetRadiation", mNetRadiation);
         rSerializer.save("mWaterStorage", mWaterStorage);
+        rSerializer.save("mWaterDensity", mWaterDensity);
     }
 
     void load(Serializer& rSerializer) override
@@ -152,6 +153,7 @@ private:
         rSerializer.load("mRoughnessTemperature", mRoughnessTemperature);
         rSerializer.load("mNetRadiation", mNetRadiation);
         rSerializer.load("mWaterStorage", mWaterStorage);
+        rSerializer.load("mWaterDensity", mWaterDensity);
     }
 
     bool mIsInitialized = false;
@@ -165,6 +167,7 @@ private:
     double mRoughnessTemperature = 0.0;
     double mNetRadiation = 0.0;
     double mWaterStorage = 0.0;
+    double mWaterDensity = 0.0;
 };
 
 // class TMicroClimateFluxCondition.

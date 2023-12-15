@@ -134,6 +134,7 @@ void TMicroClimateFluxCondition<TDim, TNumNodes>::InitializeProperties()
     mBuildEnvironmentRadiation = r_prop[QF_COEFFICIENT];
     mMinimalStorage = r_prop[SMIN_COEFFICIENT];
     mMaximalStorage = r_prop[SMAX_COEFFICIENT];
+    mWaterDensity = r_prop[DENSITY_WATER];
 
     KRATOS_CATCH("")
 }
@@ -210,7 +211,7 @@ template <unsigned int TDim, unsigned int TNumNodes>
 double TMicroClimateFluxCondition<TDim, TNumNodes>::CalculateRightHandSideFlux(
     double NetRadiation, double SurfaceHeatStorage, double ActualEvaporation) const
 {
-    const auto latent_heat_flux = ActualEvaporation * WaterDensity * LatentEvaporationHeat;
+    const auto latent_heat_flux = ActualEvaporation * mWaterDensity * LatentEvaporationHeat;
 
     // Eq 5.22
     const auto sensible_heat_flux_right =
@@ -357,7 +358,7 @@ double TMicroClimateFluxCondition<TDim, TNumNodes>::CalculatePotentialEvaporatio
     latent_heat_flux = std::max(latent_heat_flux, 0.0);
 
     // Eq 5.36
-    return latent_heat_flux / (WaterDensity * LatentEvaporationHeat);
+    return latent_heat_flux / (mWaterDensity * LatentEvaporationHeat);
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
