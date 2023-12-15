@@ -198,6 +198,23 @@ public:
         }
     }
 
+    template <unsigned int TDim, unsigned int TNumNodes>
+    static double CalculateIntegrationCoefficient(const Matrix& rJacobian, double Weight)
+    {
+        auto normal_vector = Vector{TDim, 0.0};
+
+        if constexpr (TDim == 2)
+        {
+            normal_vector = column(rJacobian, 0);
+        }
+        else if constexpr (TDim == 3)
+        {
+            MathUtils<>::CrossProduct(normal_vector, column(rJacobian, 0),
+                                      column(rJacobian, 1));
+        }
+        return Weight * MathUtils<>::Norm(normal_vector);
+    }
+
 }; /* Class ConditionUtilities*/
 } /* namespace Kratos.*/
 
