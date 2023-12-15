@@ -18,8 +18,6 @@
         "THERMAL_CONDUCTIVITY_SOLID_YY"    : 1.700000e+00,
         "THERMAL_CONDUCTIVITY_SOLID_XY"    : 0.0,
         "THERMAL_CONDUCTIVITY_WATER"       : 0.6,
-        "LONGITUDINAL_DISPERSIVITY"        : 0.000000e+00,
-        "TRANSVERSE_DISPERSIVITY"          : 0.000000e+00,
         "SOLID_COMPRESSIBILITY"            : 1.0,
         "PERMEABILITY_XX"                  : 0.000000e+00,
         "PERMEABILITY_YY"                  : 0.000000e+00,
