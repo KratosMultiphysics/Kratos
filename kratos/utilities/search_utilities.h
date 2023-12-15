@@ -636,17 +636,18 @@ private:
     }
 
     /**
-     * @details Synchronizes points between different processes. 
-     * @details Synchonously
-     * @param itPointBegin Iterator pointing to the beginning of the range of points
-     * @param itPointEnd Iterator pointing to the end of the range of points
-     * @param rAllPointsCoordinates Vector to store the synchronized points' coordinates
-     * @param rAllPointsIds The ids of all the points (just a counter for points, and ids for nodes)
-     * @param rDataCommunicator Object for data communication between processes
-     * @param NumberOfPoints Local number of points to be synchronized
-     * @param TotalNumberOfPoints Total number of points across all processes
-     * @return A vector containing the ranks of each point
-     * @tparam TPointIteratorType The type of the point iterator
+     * @details Synchronizes points between different processes.
+     * @details Synchonously.
+     * @param itPointBegin Iterator pointing to the beginning of the range of points.
+     * @param itPointEnd Iterator pointing to the end of the range of points.
+     * @param rAllPointsCoordinates Vector to store the synchronized points' coordinates.
+     * @param rAllPointsIds The ids of all the points (just a counter for points, and ids for nodes).
+     * @param rDataCommunicator Object for data communication between processes.
+     * @param NumberOfPoints Local number of points to be synchronized.
+     * @param TotalNumberOfPoints Total number of points across all processes.
+     * @param IndexItIsJustCounter If the index considered it it just a counter.
+     * @return A vector containing the ranks of each point.
+     * @tparam TPointIteratorType The type of the point iterator.
      */
     template<typename TPointIteratorType>
     static std::vector<int> SynchronizePointsWithRanks(
@@ -771,20 +772,21 @@ private:
     }
 
     /**
-     * @details Synchronizes points between different processes.
-     * @details Synchonously
-     * @param itPointBegin Iterator pointing to the beginning of the range of points
-     * @param itPointEnd Iterator pointing to the end of the range of points
-     * @param rSearchInfo The class containing the result of the search
-     * @param rBoundingBox The bounding box considered
-     * @param ThresholdBoundingBox The threshold for computing is inside bounding box considered
-     * @param rDataCommunicator Object for data communication between processes
-     * @param NumberOfPoints Local number of points to be synchronized
-     * @param TotalNumberOfPoints Total number of points across all processes
-     * @return A vector containing the sizes of data for each process
-     * @tparam TPointIteratorType The type of the point iterator
-     * @tparam TBoundingBoxType The type of the bounding box
-     * @return The ids of all points
+     * @brief Synchronizes points between different processes.
+     * @details Synchonously.
+     * @param itPointBegin Iterator pointing to the beginning of the range of points.
+     * @param itPointEnd Iterator pointing to the end of the range of points.
+     * @param rSearchInfo The class containing the result of the search.
+     * @param rBoundingBox The bounding box considered.
+     * @param ThresholdBoundingBox The threshold for computing is inside bounding box considered.
+     * @param rDataCommunicator Object for data communication between processes.
+     * @param NumberOfPoints Local number of points to be synchronized.
+     * @param TotalNumberOfPoints Total number of points across all processes.
+     * @param IndexItIsJustCounter If the index considered it it just a counter.
+     * @return A vector containing the sizes of data for each process.
+     * @tparam TPointIteratorType The type of the point iterator.
+     * @tparam TBoundingBoxType The type of the bounding box.
+     * @return The ids of all points.
      */
     template<typename TPointIteratorType, typename TBoundingBoxType>
     static std::vector<IndexType> SynchronizePointsWithBoundingBox(
@@ -795,7 +797,8 @@ private:
         const double ThresholdBoundingBox,
         const DataCommunicator& rDataCommunicator,
         const int NumberOfPoints,
-        const int TotalNumberOfPoints
+        const int TotalNumberOfPoints,
+        const bool IndexItIsJustCounter = false
         )
     {
         // Initialize and resize vectors
@@ -804,7 +807,7 @@ private:
         std::vector<IndexType> all_points_ids(TotalNumberOfPoints);
 
         // Sync all points first
-        std::vector<int> all_points_ranks = SynchronizePointsWithRanks(itPointBegin, itPointEnd, all_points_coordinates, all_points_ids, rDataCommunicator, NumberOfPoints, TotalNumberOfPoints);
+        std::vector<int> all_points_ranks = SynchronizePointsWithRanks(itPointBegin, itPointEnd, all_points_coordinates, all_points_ids, rDataCommunicator, NumberOfPoints, TotalNumberOfPoints, IndexItIsJustCounter);
 
         // Some definitions
         IndexType i_coord = 0;
