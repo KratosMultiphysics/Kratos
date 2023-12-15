@@ -86,7 +86,7 @@ KRATOS_TEST_CASE_IN_SUITE(PointerCommunicator, KratosMPICoreFastSuite)
     }
 }
 
-KRATOS_TEST_CASE_IN_SUITE(PointerCommunicatorPartialPartitions, KratosMPICoreFastSuite)
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(PointerCommunicatorPartialPartitions, KratosMPICoreFastSuite)
 {
     DataCommunicator& r_default_comm = ParallelEnvironment::GetDefaultDataCommunicator();
     Model current_model;
