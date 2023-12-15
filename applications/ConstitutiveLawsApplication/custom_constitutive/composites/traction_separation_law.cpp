@@ -162,7 +162,9 @@ bool TractionSeparationLaw3D<TDim>::Has(const Variable<double>& rThisVariable)
         has = true;
     } else if (rThisVariable == WOHLER_STRESS) {
         has = true;
-    }else {
+    } else if (rThisVariable == AIT_CONTROL_COUNTER) {
+        has = true;
+    } else {
         BaseType::Has(rThisVariable);
     }
 
@@ -212,8 +214,8 @@ bool& TractionSeparationLaw3D<TDim>::GetValue(
 {
     if (rThisVariable == CYCLE_INDICATOR) {
 
-        rValue = mFatigueDataContainersModeTwo[0].GetNewCycleIndicator();
-        // rValue = mFatigueDataContainersModeOne[0].GetNewCycleIndicator();    //Change the loading mode here
+        // rValue = mFatigueDataContainersModeTwo[0].GetNewCycleIndicator();
+        rValue = mFatigueDataContainersModeOne[0].GetNewCycleIndicator();    //Change the loading mode here
         return rValue;
     } else {
         return BaseType::GetValue(rThisVariable, rValue);
@@ -231,13 +233,13 @@ int& TractionSeparationLaw3D<TDim>::GetValue(
 {
     if (rThisVariable == LOCAL_NUMBER_OF_CYCLES) {
 
-        rValue = mFatigueDataContainersModeTwo[0].GetLocalNumberOfCycles();
-        // rValue = mFatigueDataContainersModeOne[0].GetLocalNumberOfCycles();    //Change the loading mode here
+        // rValue = mFatigueDataContainersModeTwo[0].GetLocalNumberOfCycles();
+        rValue = mFatigueDataContainersModeOne[0].GetLocalNumberOfCycles();    //Change the loading mode here
         return rValue;
     } else if (rThisVariable == NUMBER_OF_CYCLES) {
 
-        rValue = mFatigueDataContainersModeTwo[0].GetGlobalNumberOfCycles();
-        // rValue = mFatigueDataContainersModeOne[0].GetGlobalNumberOfCycles();    //Change the loading mode here
+        // rValue = mFatigueDataContainersModeTwo[0].GetGlobalNumberOfCycles();
+        rValue = mFatigueDataContainersModeOne[0].GetGlobalNumberOfCycles();    //Change the loading mode here
         return rValue;
     } else {
         return BaseType::GetValue(rThisVariable, rValue);
@@ -255,48 +257,53 @@ double& TractionSeparationLaw3D<TDim>::GetValue(
 {
     if (rThisVariable == DAMAGE) {
 
-        rValue = mDelaminationDamageModeTwo[1];
-        // rValue = mDelaminationDamageModeOne[1];    //Change the loading mode here
+        // rValue = mDelaminationDamageModeTwo[1];
+        rValue = mDelaminationDamageModeOne[1];    //Change the loading mode here
         return rValue;
     } else if (rThisVariable == PREVIOUS_CYCLE) {
 
-        rValue = mFatigueDataContainersModeTwo[0].GetPreviousCycleTime();
-        // rValue = mFatigueDataContainersModeOne[0].GetPreviousCycleTime();    //Change the loading mode here
+        // rValue = mFatigueDataContainersModeTwo[0].GetPreviousCycleTime();
+        rValue = mFatigueDataContainersModeOne[0].GetPreviousCycleTime();    //Change the loading mode here
         return rValue;
     } else if (rThisVariable == CYCLE_PERIOD) {
 
-        rValue = mFatigueDataContainersModeTwo[0].GetCyclePeriod();
-        // rValue = mFatigueDataContainersModeOne[0].GetCyclePeriod();    //Change the loading mode here
+        // rValue = mFatigueDataContainersModeTwo[0].GetCyclePeriod();
+        rValue = mFatigueDataContainersModeOne[0].GetCyclePeriod();    //Change the loading mode here
         return rValue;
     } else if (rThisVariable == MAX_STRESS_RELATIVE_ERROR) {
 
-        rValue = mFatigueDataContainersModeTwo[0].GetMaxStressRelativeError();
-        // rValue = mFatigueDataContainersModeOne[0].GetMaxStressRelativeError();    //Change the loading mode here
+        // rValue = mFatigueDataContainersModeTwo[0].GetMaxStressRelativeError();
+        rValue = mFatigueDataContainersModeOne[0].GetMaxStressRelativeError();    //Change the loading mode here
         return rValue;
     } else if (rThisVariable == REVERSION_FACTOR_RELATIVE_ERROR) {
 
-        rValue = mFatigueDataContainersModeTwo[0].GetReversionFactorRelativeError();
-        // rValue = mFatigueDataContainersModeOne[0].GetReversionFactorRelativeError();    //Change the loading mode here
+        // rValue = mFatigueDataContainersModeTwo[0].GetReversionFactorRelativeError();
+        rValue = mFatigueDataContainersModeOne[0].GetReversionFactorRelativeError();    //Change the loading mode here
         return rValue;
     } else if (rThisVariable == THRESHOLD_STRESS) {
 
-        rValue = mFatigueDataContainersModeTwo[0].GetThresholdStress();
-        // rValue = mFatigueDataContainersModeOne[0].GetThresholdStress();    //Change the loading mode here
+        // rValue = mFatigueDataContainersModeTwo[0].GetThresholdStress();
+        rValue = mFatigueDataContainersModeOne[0].GetThresholdStress();    //Change the loading mode here
         return rValue;
     } else if (rThisVariable == MAX_STRESS) {
 
-        rValue = mFatigueDataContainersModeTwo[0].GetMaximumStress();
-        // rValue = mFatigueDataContainersModeOne[0].GetMaximumStress();    //Change the loading mode here
+        // rValue = mFatigueDataContainersModeTwo[0].GetMaximumStress();
+        rValue = mFatigueDataContainersModeOne[0].GetMaximumStress();    //Change the loading mode here
         return rValue;
     } else if (rThisVariable == CYCLES_TO_FAILURE) {
 
-        rValue = mFatigueDataContainersModeTwo[0].GetCyclesToFailure();
-        // rValue = mFatigueDataContainersModeOne[0].GetCyclesToFailure();    //Change the loading mode here
+        // rValue = mFatigueDataContainersModeTwo[0].GetCyclesToFailure();
+        rValue = mFatigueDataContainersModeOne[0].GetCyclesToFailure();    //Change the loading mode here
         return rValue;
     } else if (rThisVariable == WOHLER_STRESS) {
 
-        rValue = mFatigueDataContainersModeTwo[0].GetReversionFactor();
-        // rValue = mFatigueDataContainersModeOne[0].GetReversionFactor();    //Change the loading mode here
+        // rValue = mFatigueDataContainersModeTwo[0].GetReversionFactor();
+        rValue = mFatigueDataContainersModeOne[0].GetReversionFactor();    //Change the loading mode here
+        return rValue;
+    } else if (rThisVariable == AIT_CONTROL_COUNTER) {
+
+        // rValue = mFatigueDataContainersModeTwo[0].GetAITControlCounter();
+        rValue = mFatigueDataContainersModeOne[0].GetAITControlCounter();    //Change the loading mode here
         return rValue;
     } else {
         return BaseType::GetValue(rThisVariable, rValue);
@@ -330,14 +337,14 @@ Vector& TractionSeparationLaw3D<TDim>::GetValue(
         return rValue;
     } else if (rThisVariable == FATIGUE_REDUCTION_FACTOR_VECTOR_MODE_ONE) {
 
-        rValue.resize(r_combination_factors.size()-1, false);
+        rValue.resize(6, false); // Artificially changed to size 6 for printing purposes
         for (IndexType i = 0; i < r_combination_factors.size()-1; ++i) {
             rValue[i] = mFatigueDataContainersModeOne[i].GetFatigueReductionFactor();
         }
         return rValue;
     } else if (rThisVariable == FATIGUE_REDUCTION_FACTOR_VECTOR_MODE_TWO) {
 
-        rValue.resize(r_combination_factors.size()-1, false);
+        rValue.resize(6, false); // Artificially changed to size 6 for printing purposes
         for (IndexType i = 0; i < r_combination_factors.size()-1; ++i) {
             rValue[i] = mFatigueDataContainersModeTwo[i].GetFatigueReductionFactor();
         }
@@ -389,12 +396,12 @@ void TractionSeparationLaw3D<TDim>::SetValue(
 {
     if (rThisVariable == LOCAL_NUMBER_OF_CYCLES) {
 
-        mFatigueDataContainersModeTwo[0].SetLocalNumberOfCycles(rValue);
-        // mFatigueDataContainersModeOne[0].SetLocalNumberOfCycles(rValue);    //Change the loading mode here
+        // mFatigueDataContainersModeTwo[0].SetLocalNumberOfCycles(rValue);
+        mFatigueDataContainersModeOne[0].SetLocalNumberOfCycles(rValue);    //Change the loading mode here
     } else if (rThisVariable == NUMBER_OF_CYCLES) {
 
-        mFatigueDataContainersModeTwo[0].SetGlobalNumberOfCycles(rValue);
-        // mFatigueDataContainersModeOne[0].SetGlobalNumberOfCycles(rValue);    //Change the loading mode here
+        // mFatigueDataContainersModeTwo[0].SetGlobalNumberOfCycles(rValue);
+        mFatigueDataContainersModeOne[0].SetGlobalNumberOfCycles(rValue);    //Change the loading mode here
     } else {
         BaseType::SetValue(rThisVariable, rValue, rCurrentProcessInfo);
     }
@@ -412,12 +419,12 @@ void TractionSeparationLaw3D<TDim>::SetValue(
 {
     if (rThisVariable == PREVIOUS_CYCLE) {
 
-        mFatigueDataContainersModeTwo[0].SetPreviousCycleTime(rValue);
-        // mFatigueDataContainersModeOne[0].SetPreviousCycleTime(rValue);    //Change the loading mode here
+        // mFatigueDataContainersModeTwo[0].SetPreviousCycleTime(rValue);
+        mFatigueDataContainersModeOne[0].SetPreviousCycleTime(rValue);    //Change the loading mode here
     } else if (rThisVariable == CYCLE_PERIOD) {
 
-        mFatigueDataContainersModeTwo[0].SetCyclePeriod(rValue);
-        // mFatigueDataContainersModeOne[0].SetCyclePeriod(rValue);    //Change the loading mode here
+        // mFatigueDataContainersModeTwo[0].SetCyclePeriod(rValue);
+        mFatigueDataContainersModeOne[0].SetCyclePeriod(rValue);    //Change the loading mode here
     } else {
         BaseType::SetValue(rThisVariable, rValue, rCurrentProcessInfo);
     }

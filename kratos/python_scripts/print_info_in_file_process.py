@@ -140,12 +140,12 @@ class PrintInfoInFileProcess(KratosMultiphysics.OutputProcess):
         return float("{0:.12g}".format(self.model_part.ProcessInfo[KratosMultiphysics.TIME]))
 
     def PrintInFile(self, values):
-        self.ascii_writer.write("{0:.4e}".format(self.__GetTime()).rjust(11) + "\t")
+        self.ascii_writer.write("{0:.8e}".format(self.__GetTime()).rjust(11) + "\t")
         if not isinstance(values, (float, int)):
             for value in values:
-                self.ascii_writer.write("{0:.4e}".format(value).rjust(11) + "\t")
+                self.ascii_writer.write("{0:.8e}".format(value).rjust(11) + "\t")
         else:
-            self.ascii_writer.write("{0:.4e}".format(values).rjust(11) + "\t")
+            self.ascii_writer.write("{0:.8e}".format(values).rjust(11) + "\t")
         self.ascii_writer.write("\n")
 
     def ExecuteFinalize(self):

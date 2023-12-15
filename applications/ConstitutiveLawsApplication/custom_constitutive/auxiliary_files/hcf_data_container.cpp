@@ -231,9 +231,9 @@ void HCFDataContainer::FinalizeSolutionStep(HCFDataContainer::FatigueVariables &
     }
     uniaxial_stress *= sign_factor;
 
-    if (mAITControlParameter > 10.0) {
+    // if (mAITControlParameter > 10.0) {
     CalculateSminAndSmax(uniaxial_stress, rFatigueVariables);
-    }
+    // }
 
     rFatigueVariables.AdvanceStrategyApplied = rCurrentProcessInfo.Has(ADVANCE_STRATEGY_APPLIED) ? rCurrentProcessInfo[ADVANCE_STRATEGY_APPLIED] : false;
     rFatigueVariables.DamageActivation = rCurrentProcessInfo.Has(DAMAGE_ACTIVATION) ? rCurrentProcessInfo[DAMAGE_ACTIVATION] : false;

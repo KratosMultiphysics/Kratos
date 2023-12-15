@@ -251,6 +251,13 @@ public:
     }
 
     /**
+     * @brief This method returns AIT control counter
+     */
+    double GetAITControlCounter() {
+        return mAITControlParameter;
+    }
+
+    /**
      * @brief This method returns the global number of cycles
      */
     int GetGlobalNumberOfCycles() {
