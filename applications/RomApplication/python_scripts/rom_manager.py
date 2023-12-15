@@ -239,7 +239,7 @@ class RomManager(object):
             analysis_stage_class = self._GetAnalysisStageClass(parameters_copy)
             simulation = self.CustomizeSimulation(analysis_stage_class,model,parameters_copy)
             simulation.Run()
-            self.QoI_Fit_FOM.append(simulation.GetFinalData(Id))
+            self.QoI_Fit_FOM.append(simulation.GetFinalData())
             for process in simulation._GetListOfOutputProcesses():
                 if isinstance(process, CalculateRomBasisOutputProcess):
                     BasisOutputProcess = process
@@ -268,7 +268,7 @@ class RomManager(object):
             analysis_stage_class = type(SetUpSimulationInstance(model, parameters_copy))
             simulation = self.CustomizeSimulation(analysis_stage_class,model,parameters_copy)
             simulation.Run()
-            self.QoI_Fit_ROM.append(simulation.GetFinalData(Id))
+            self.QoI_Fit_ROM.append(simulation.GetFinalData())
             for process in simulation._GetListOfOutputProcesses():
                 if isinstance(process, CalculateRomBasisOutputProcess):
                     BasisOutputProcess = process
@@ -353,7 +353,7 @@ class RomManager(object):
             analysis_stage_class = type(SetUpSimulationInstance(model, parameters_copy))
             simulation = self.CustomizeSimulation(analysis_stage_class,model,parameters_copy)
             simulation.Run()
-            self.QoI_Fit_HROM.append(simulation.GetFinalData(Id))
+            self.QoI_Fit_HROM.append(simulation.GetFinalData())
             for process in simulation._GetListOfOutputProcesses():
                 if isinstance(process, CalculateRomBasisOutputProcess):
                     BasisOutputProcess = process
@@ -381,7 +381,7 @@ class RomManager(object):
             analysis_stage_class = self._GetAnalysisStageClass(parameters_copy)
             simulation = self.CustomizeSimulation(analysis_stage_class,model,parameters_copy)
             simulation.Run()
-            self.QoI_Test_FOM.append(simulation.GetFinalData(Id))
+            self.QoI_Test_FOM.append(simulation.GetFinalData())
             for process in simulation._GetListOfOutputProcesses():
                 if isinstance(process, CalculateRomBasisOutputProcess):
                     BasisOutputProcess = process
@@ -410,7 +410,7 @@ class RomManager(object):
             analysis_stage_class = type(SetUpSimulationInstance(model, parameters_copy))
             simulation = self.CustomizeSimulation(analysis_stage_class,model,parameters_copy)
             simulation.Run()
-            self.QoI_Test_ROM.append(simulation.GetFinalData(Id))
+            self.QoI_Test_ROM.append(simulation.GetFinalData())
             for process in simulation._GetListOfOutputProcesses():
                 if isinstance(process, CalculateRomBasisOutputProcess):
                     BasisOutputProcess = process
@@ -439,7 +439,7 @@ class RomManager(object):
             analysis_stage_class = type(SetUpSimulationInstance(model, parameters_copy))
             simulation = self.CustomizeSimulation(analysis_stage_class,model,parameters_copy)
             simulation.Run()
-            self.QoI_Test_HROM.append(simulation.GetFinalData(Id))
+            self.QoI_Test_HROM.append(simulation.GetFinalData())
             for process in simulation._GetListOfOutputProcesses():
                 if isinstance(process, CalculateRomBasisOutputProcess):
                     BasisOutputProcess = process
@@ -465,7 +465,7 @@ class RomManager(object):
             analysis_stage_class = self._GetAnalysisStageClass(parameters_copy)
             simulation = self.CustomizeSimulation(analysis_stage_class,model,parameters_copy)
             simulation.Run()
-            self.QoI_Run_FOM.append(simulation.GetFinalData(Id))
+            self.QoI_Run_FOM.append(simulation.GetFinalData())
 
 
     def __LaunchRunROM(self, mu_run):
@@ -484,7 +484,7 @@ class RomManager(object):
             analysis_stage_class = type(SetUpSimulationInstance(model, parameters_copy))
             simulation = self.CustomizeSimulation(analysis_stage_class,model,parameters_copy)
             simulation.Run()
-            self.QoI_Run_ROM.append(simulation.GetFinalData(Id))
+            self.QoI_Run_ROM.append(simulation.GetFinalData())
 
 
     def __LaunchRunHROM(self, mu_run, use_full_model_part):
@@ -506,7 +506,7 @@ class RomManager(object):
             analysis_stage_class = type(SetUpSimulationInstance(model, parameters_copy))
             simulation = self.CustomizeSimulation(analysis_stage_class,model,parameters_copy)
             simulation.Run()
-            self.QoI_Run_HROM.append(simulation.GetFinalData(Id))
+            self.QoI_Run_HROM.append(simulation.GetFinalData())
 
 
     def _AddHromParametersToRomParameters(self,f):
