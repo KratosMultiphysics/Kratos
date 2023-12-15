@@ -953,8 +953,9 @@ private:
             // First must not be null
             if (pPartialResult != nullptr) {
                 auto& r_partial_result = *pPartialResult;
-                // Then must have at least one solution
-                if (r_partial_result.NumberOfGlobalResults() > 0) {
+                // Then must have at least one solution, but just filter if at least 2
+                const std::size_t number_of_global_results = r_partial_result.NumberOfGlobalResults();
+                if (number_of_global_results > 1) {
                     // The values
                     const auto values = rLambda(r_partial_result);
 
