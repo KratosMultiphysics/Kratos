@@ -201,9 +201,11 @@ private:
     ///@{
 
     ModelPart* mpModelPart = nullptr;
-    NodePointerVectorType mSlaveNodes;
     std::vector<std::string> mComponents;
     std::vector<const Variable<double>*> mVariables;
+
+    NodesCloudMapType mCloudsMap;
+    NodesOffsetMapType mOffsetsMap;
 
     bool mConstraintsAreCalculated;
     bool mCheckAtEachStep;
@@ -234,14 +236,14 @@ private:
     void AddAveragedNodeClouds(
         NodesCloudMapType& rCloudsMap,
         NodesOffsetMapType& rOffsetsMap,
-        std::vector<NodeType::Pointer> neg_nodes_element,
-        std::vector<NodeType::Pointer> pos_nodes_element);
+        NodePointerVectorType neg_nodes_element,
+        NodePointerVectorType pos_nodes_element);
 
     void AddAveragedNodeCloudsIncludingBC(
         NodesCloudMapType& rCloudsMap,
         NodesOffsetMapType& rOffsetsMap,
-        std::vector<NodeType::Pointer> neg_nodes_element,
-        std::vector<NodeType::Pointer> pos_nodes_element);
+        NodePointerVectorType neg_nodes_element,
+        NodePointerVectorType pos_nodes_element);
 
     void SetNodalValues(NodesCloudMapType& rCloudsMap);
 
@@ -249,9 +251,9 @@ private:
         NodesCloudMapType& rCloudsMap,
         NodesOffsetMapType& rOffsetsMap);
 
-    void ApplyConstraints(
-        NodesCloudMapType& rCloudsMap,
-        NodesOffsetMapType& rOffsetsMap);
+    void UpdateConstrainedDofs();
+
+    void FreeConstrainedDofs();
 
     void DeactivateFullNegativeElements();
 
@@ -262,8 +264,6 @@ private:
     bool IsSplit(const GeometryType& rGeometry);
 
     bool IsSmallCut(const GeometryType& rGeometry);
-
-    bool IsNegative(const GeometryType& rGeometry);
 
     ///@}
     ///@name Private  Access

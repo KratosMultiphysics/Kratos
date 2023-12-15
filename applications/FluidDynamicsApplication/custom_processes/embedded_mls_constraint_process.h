@@ -206,9 +206,11 @@ private:
     ///@{
 
     ModelPart* mpModelPart = nullptr;
-    NodePointerVectorType mSlaveNodes;
     std::vector<std::string> mComponents;
     std::vector<const Variable<double>*> mVariables;
+
+    NodesCloudMapType mCloudsMap;
+    NodesOffsetMapType mOffsetsMap;
 
     bool mConstraintsAreCalculated;
     bool mCheckAtEachStep;
@@ -245,9 +247,9 @@ private:
         NodesCloudMapType& rCloudsMap,
         NodesOffsetMapType& rOffsetsMap);
 
-    void ApplyConstraints(
-        NodesCloudMapType& rCloudsMap,
-        NodesOffsetMapType& rOffsetsMap);
+    void UpdateConstrainedDofs();
+
+    void FreeConstrainedDofs();
 
     void SetInterfaceFlags();
 

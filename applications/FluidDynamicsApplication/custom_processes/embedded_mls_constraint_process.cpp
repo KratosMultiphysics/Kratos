@@ -90,12 +90,8 @@ void EmbeddedMLSConstraintProcess::Execute()
 void EmbeddedMLSConstraintProcess::ExecuteInitialize()
 {
     KRATOS_TRY;
-
     // Continuous distance modification historical variables check
     KRATOS_ERROR_IF_NOT(mpModelPart->HasNodalSolutionStepVariable(DISTANCE)) << "DISTANCE variable not found in solution step variables list in " << mpModelPart->FullName() << ".\n";
-
-    //TODO check for nodal variables (APPLY_EMBEDDED_CONSTRAINTS, EMBEDDED_CONSTRAINT_MASTERS, EMBEDDED_CONSTRAINT_MASTER_WEIGHTS)??
-
     KRATOS_CATCH("");
 }
 
@@ -136,8 +132,9 @@ void EmbeddedMLSConstraintProcess::ExecuteInitializeSolutionStep()
         // Fix the slave dofs and calculate their values based on their master weights and offset (Dirichlet BC)
         FixAndCalculateConstrainedDofs(clouds_map, offsets_map);
 
-        //OLD Apply a constraint to negative nodes of split elements
-        //ApplyConstraints(clouds_map, offsets_map);
+        // Store master nodes, weights and offsets for subsequent iterations
+        mCloudsMap = clouds_map;
+        mOffsetsMap = offsets_map;
         mConstraintsAreCalculated = true;
     }
 }
@@ -152,13 +149,11 @@ void EmbeddedMLSConstraintProcess::ExecuteFinalizeSolutionStep()
             // Recover the state previous to the element deactivation
             this->RecoverDeactivationPreviousState();
         }
-        // Free constrained dofs
-        for (const auto var : mVariables) {
-            block_for_each(mSlaveNodes,[&](NodeType::Pointer p_slave_node){
-                p_slave_node->Free(*var);
-            });
-        }
-        mSlaveNodes.clear();
+
+        FreeConstrainedDofs();
+
+        mCloudsMap.clear();
+        mOffsetsMap.clear();
     }
 }
 
@@ -333,9 +328,9 @@ void EmbeddedMLSConstraintProcess::CalculateNodeCloudsIncludingBC(
 
 void EmbeddedMLSConstraintProcess::SetNodalValues(NodesCloudMapType& rCloudsMap)
 {
-    // Set APPLY_EMBEDDED_CONSTRAINTS to false for all nodes
+    // Set flag APPLY_EMBEDDED_CONSTRAINTS to false for all nodes
     block_for_each(mpModelPart->Nodes(), [](NodeType& rNode){
-        rNode.SetValue(APPLY_EMBEDDED_CONSTRAINTS, false);
+        rNode.SetValue(APPLY_EMBEDDED_CONSTRAINTS, 0);
     });
 
     const std::size_t n_dim = mpModelPart->GetProcessInfo()[DOMAIN_SIZE];
@@ -372,7 +367,7 @@ void EmbeddedMLSConstraintProcess::SetNodalValues(NodesCloudMapType& rCloudsMap)
 
         // Set nodal variables
         //TODO Synchronize them?? //mrModelPart.GetCommunicator().AssembleNonHistoricalData(EMBEDDED_IS_ACTIVE);
-        p_slave_node->SetValue(APPLY_EMBEDDED_CONSTRAINTS, true);
+        p_slave_node->SetValue(APPLY_EMBEDDED_CONSTRAINTS, 1);
         p_slave_node->SetValue(EMBEDDED_CONSTRAINT_MASTERS, master_nodes);
         p_slave_node->SetValue(EMBEDDED_CONSTRAINT_MASTER_WEIGHTS, dof_relation_matrix);
     }
@@ -387,13 +382,13 @@ void EmbeddedMLSConstraintProcess::FixAndCalculateConstrainedDofs(
     for (const auto& r_slave : rCloudsMap) {
         const auto p_slave_node = r_slave.first;
         auto& r_ext_op_data = r_slave.second;
+        const double offset = rOffsetsMap[p_slave_node];
 
         // Fix velocity dofs of constrained node and calculate their values
         for (const auto var : mVariables) {
             p_slave_node->Fix(*var);
-            mSlaveNodes.push_back(p_slave_node);
 
-            double dof_value = 0.0;
+            double dof_value = offset;
             for (auto& r_cloud_data : r_ext_op_data) {
                 const auto p_cloud_node = r_cloud_data.first;
                 const double cloud_node_weight = r_cloud_data.second;
@@ -405,60 +400,40 @@ void EmbeddedMLSConstraintProcess::FixAndCalculateConstrainedDofs(
     }
 }
 
-void EmbeddedMLSConstraintProcess::ApplyConstraints(
-    NodesCloudMapType& rCloudsMap,
-    NodesOffsetMapType& rOffsetsMap)
+void EmbeddedMLSConstraintProcess::UpdateConstrainedDofs()
 {
-    // Initialize counter of master slave constraints
-    ModelPart::IndexType id = mpModelPart->NumberOfMasterSlaveConstraints()+1;
-
-    // Loop through all negative nodes of split elements (slave nodes)
-    for (const auto& r_slave : rCloudsMap) {
+    // Loop through all slave nodes | TODO: run parallel?
+    for (const auto& r_slave : mCloudsMap) {
         const auto p_slave_node = r_slave.first;
         auto& r_ext_op_data = r_slave.second;
-        double offset = rOffsetsMap[p_slave_node];
+        const double offset = mOffsetsMap[p_slave_node];
 
-        // Create vectors and relation matrix for the negative node
-        DofPointerVectorType slave_dofs;
-        DofPointerVectorType master_dofs;
-        MatrixType dof_relation_matrix;
-        VectorType dof_offset;
-
-        const std::size_t n_var = mVariables.size();
-        dof_offset.resize(n_var, false);
-        dof_relation_matrix.resize(n_var, r_ext_op_data.size()*n_var, false);
-        slave_dofs.reserve(n_var);
-        master_dofs.reserve(r_ext_op_data.size()*n_var);
-
-        // Get all dofs of the negative node and their constraint constants
-        std::size_t i_var = 0;
+        // Update the velocity values of the constrained node
         for (const auto var : mVariables) {
-            slave_dofs.push_back(p_slave_node->pGetDof(*var));
-            dof_offset(i_var++) = offset;
-        }
-
-        // Get all dofs of all cloud nodes of the negative node and their weights
-        std::size_t i_cloud = 0;
-        for (auto& r_cloud_data : r_ext_op_data) {
-            const auto p_cloud_node = r_cloud_data.first;
-            const double cloud_node_N = r_cloud_data.second;
-
-            std::size_t i_cloud_var = 0;
-            for (const auto var : mVariables) {
-                master_dofs.push_back(p_cloud_node->pGetDof(*var));
-
-                for (std::size_t i_var = 0; i_var < n_var; i_var++) {
-                    dof_relation_matrix(i_var, i_cloud*n_var+i_cloud_var) = (i_var == i_cloud_var) ? cloud_node_N : 0.0;
-                }
-                i_cloud_var++;
+            double dof_value = offset;
+            for (auto& r_cloud_data : r_ext_op_data) {
+                const auto p_cloud_node = r_cloud_data.first;
+                const double cloud_node_weight = r_cloud_data.second;
+                dof_value += cloud_node_weight * p_cloud_node->FastGetSolutionStepValue(*var);
             }
-            i_cloud++;
+            p_slave_node->FastGetSolutionStepValue(*var) = dof_value;
         }
+    }
+}
 
-        // Create new linear master-slave constraint for the negative node
-        // (It is faster to create constraints for all dofs of one node as one new constraint, instead of creating them all separately.)
-        mpModelPart->CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", id++,
-        master_dofs, slave_dofs, dof_relation_matrix, dof_offset);
+void EmbeddedMLSConstraintProcess::FreeConstrainedDofs()
+{
+    // Get all pointers to slave nodes as vector
+    NodePointerVectorType slave_nodes(mCloudsMap.size());
+    for (const auto& r_slave : mCloudsMap) {
+        slave_nodes.push_back(r_slave.first);
+    }
+
+    // Free constrained dofs of slave nodes
+    for (const auto var : mVariables) {
+        block_for_each(slave_nodes,[&](NodeType::Pointer p_slave_node){
+            p_slave_node->Free(*var);
+        });
     }
 }
 
