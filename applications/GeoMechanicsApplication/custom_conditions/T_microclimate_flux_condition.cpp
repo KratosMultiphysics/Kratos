@@ -36,7 +36,7 @@ Condition::Pointer GeoTMicroClimateFluxCondition<TDim, TNumNodes>::Create(
 template <unsigned int TDim, unsigned int TNumNodes>
 void GeoTMicroClimateFluxCondition<TDim, TNumNodes>::Initialize(const ProcessInfo& rCurrentProcessInfo)
 {
-    Condition::Initialize(rCurrentProcessInfo);
+    GeoTCondition::Initialize(rCurrentProcessInfo);
     InitializeProperties();
 }
 
