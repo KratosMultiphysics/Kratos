@@ -21,6 +21,7 @@
 #ifdef KRATOS_SMP_OPENMP
 #include <omp.h>
 #endif
+#include <iostream>
 
 /* Project includes */
 #include "includes/define.h"
@@ -223,18 +224,31 @@ public:
         // Assemble all elements
         const auto timer = BuiltinTimer();
 
-        #pragma omp parallel firstprivate(nelements,nconditions, LHS_Contribution, RHS_Contribution, EquationId )
+        # pragma omp parallel firstprivate(nelements,nconditions, LHS_Contribution, RHS_Contribution, EquationId )
         {
             # pragma omp for  schedule(guided, 512) nowait
             for (int k = 0; k < nelements; k++) {
                 auto it_elem = el_begin + k;
 
                 if (it_elem->IsActive()) {
+                    //KRATOS_WATCH("[BuilderAndSolver] Active element!")
                     // Calculate elemental contribution
+                    //TODO SOLVE PROBLEM: Speicherzugriffsfehler wenn RHS > LocalSize
                     pScheme->CalculateSystemContributions(*it_elem, LHS_Contribution, RHS_Contribution, EquationId, CurrentProcessInfo);
+                    //KRATOS_WATCH("[BuilderAndSolver] Calculated system contribution of element!")
 
+                    bool has_external_masters = false;
+                    if (EquationId.size() > 9) {
+                        has_external_masters = true;
+                        std::cout << "[BuilderAndSolver] LocalConstraintSize: " << EquationId.size();
+                        std::cin.get();
+                    }
                     // Assemble the elemental contribution
-                    Assemble(A, b, LHS_Contribution, RHS_Contribution, EquationId);
+                    //Assemble(A, b, LHS_Contribution, RHS_Contribution, EquationId);
+                    if (has_external_masters) {
+                        std::cout << "[BuilderAndSolver] Assembled system for element with external masters";
+                        std::cin.get();
+                    }
                 }
 
             }
@@ -1574,13 +1588,13 @@ protected:
         unsigned int local_size = LHS_Contribution.size1();
 
         for (unsigned int i_local = 0; i_local < local_size; i_local++) {
-            unsigned int i_global = EquationId[i_local];
+            /*unsigned int i_global = EquationId[i_local];
 
             double& r_a = b[i_global];
             const double& v_a = RHS_Contribution(i_local);
             AtomicAdd(r_a, v_a);
 
-            AssembleRowContribution(A, LHS_Contribution, i_global, i_local, EquationId);
+            AssembleRowContribution(A, LHS_Contribution, i_global, i_local, EquationId);*/
         }
     }
 
