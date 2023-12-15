@@ -75,10 +75,10 @@ void TMicroClimateFluxCondition<TDim, TNumNodes>::CalculateLocalSystem(
 
     // Containers of variables at all integration points
     const auto local_dim = static_cast<unsigned int>(r_geom.LocalSpaceDimension());
-    GeometryType::JacobiansType j_container(number_of_integration_points);
+    GeometryType::JacobiansType jacobians(number_of_integration_points);
     for (unsigned int i = 0; i < number_of_integration_points; ++i)
-        j_container[i].resize(TDim, local_dim, false);
-    r_geom.Jacobian(j_container, this->GetIntegrationMethod());
+        jacobians[i].resize(TDim, local_dim, false);
+    r_geom.Jacobian(jacobians, this->GetIntegrationMethod());
 
     const auto& r_N_container =
         this->GetGeometry().ShapeFunctionsValues(this->GetIntegrationMethod());
@@ -109,7 +109,7 @@ void TMicroClimateFluxCondition<TDim, TNumNodes>::CalculateLocalSystem(
         // Compute weighting coefficient for integration
         const auto IntegrationCoefficient =
             ConditionUtilities::CalculateIntegrationCoefficient<TDim, TNumNodes>(
-                j_container[integration_point_index],
+                jacobians[integration_point_index],
                 r_integration_points[integration_point_index].Weight());
 
         CalculateAndAddLHS(rLeftHandSideMatrix, N, IntegrationCoefficient, left_hand_side_fluxes);
