@@ -20,11 +20,27 @@
 #include "generalized_newmark_scheme.hpp"
 #include "geo_mechanics_application_variables.h"
 
-namespace Kratos {
+namespace Kratos
+{
+
+struct VariableWithTimeDerivatives
+{
+    Variable<array_1d<double, 3>> instance;
+    Variable<array_1d<double, 3>> first_time_derivative;
+    Variable<array_1d<double, 3>> second_time_derivative;
+
+    explicit VariableWithTimeDerivatives(const Variable<array_1d<double, 3>>& instance)
+        : instance(instance),
+          first_time_derivative(instance.GetTimeDerivative()),
+          second_time_derivative(first_time_derivative.GetTimeDerivative())
+    {
+    }
+};
 
 template <class TSparseSpace, class TDenseSpace>
 class NewmarkQuasistaticUPwScheme
-    : public GeneralizedNewmarkScheme<TSparseSpace, TDenseSpace> {
+    : public GeneralizedNewmarkScheme<TSparseSpace, TDenseSpace>
+{
 public:
     KRATOS_CLASS_POINTER_DEFINITION(NewmarkQuasistaticUPwScheme);
 
@@ -54,15 +70,15 @@ public:
     {
         KRATOS_TRY
 
-        if (rModelPart.GetProcessInfo()[NODAL_SMOOTHING]) {
-            unsigned int dim = rModelPart.GetProcessInfo()[DOMAIN_SIZE];
-
-            SizeType stress_tensor_size = STRESS_TENSOR_SIZE_2D;
-            if (dim == N_DIM_3D)
-                stress_tensor_size = STRESS_TENSOR_SIZE_3D;
+        if (rModelPart.GetProcessInfo()[NODAL_SMOOTHING])
+        {
+            const unsigned int dim = rModelPart.GetProcessInfo()[DOMAIN_SIZE];
+            const auto stress_tensor_size =
+                dim == N_DIM_3D ? STRESS_TENSOR_SIZE_3D : STRESS_TENSOR_SIZE_2D;
 
             // Clear nodal variables
-            block_for_each(rModelPart.Nodes(), [&stress_tensor_size](Node& rNode) {
+            block_for_each(rModelPart.Nodes(), [&stress_tensor_size](Node& rNode)
+            {
                 rNode.FastGetSolutionStepValue(NODAL_AREA) = 0.0;
                 Matrix& r_nodal_stress =
                     rNode.FastGetSolutionStepValue(NODAL_CAUCHY_STRESS_TENSOR);
@@ -78,30 +94,28 @@ public:
             this->FinalizeSolutionStepActiveEntities(rModelPart, A, Dx, b);
 
             // Compute smoothed nodal variables
-            block_for_each(rModelPart.Nodes(), [&](Node& rNode) {
+            block_for_each(rModelPart.Nodes(), [](Node& rNode)
+            {
                 if (const double& nodal_area = rNode.FastGetSolutionStepValue(NODAL_AREA);
-                    nodal_area > 1.0e-20) {
+                    nodal_area > 1.0e-20)
+                {
                     const double inv_nodal_area = 1.0 / nodal_area;
-                    Matrix& r_nodal_stress =
-                        rNode.FastGetSolutionStepValue(NODAL_CAUCHY_STRESS_TENSOR);
-                    for (unsigned int i = 0; i < r_nodal_stress.size1(); ++i) {
-                        for (unsigned int j = 0; j < r_nodal_stress.size2(); ++j) {
-                            r_nodal_stress(i, j) *= inv_nodal_area;
-                        }
-                    }
+                    rNode.FastGetSolutionStepValue(NODAL_CAUCHY_STRESS_TENSOR) *= inv_nodal_area;
                     rNode.FastGetSolutionStepValue(NODAL_DAMAGE_VARIABLE) *= inv_nodal_area;
                 }
 
                 if (const double& nodal_joint_area =
                         rNode.FastGetSolutionStepValue(NODAL_JOINT_AREA);
-                    nodal_joint_area > 1.0e-20) {
+                    nodal_joint_area > 1.0e-20)
+                {
                     const double inv_nodal_joint_area = 1.0 / nodal_joint_area;
                     rNode.FastGetSolutionStepValue(NODAL_JOINT_WIDTH) *= inv_nodal_joint_area;
                     rNode.FastGetSolutionStepValue(NODAL_JOINT_DAMAGE) *= inv_nodal_joint_area;
                 }
             });
         }
-        else {
+        else
+        {
             this->FinalizeSolutionStepActiveEntities(rModelPart, A, Dx, b);
         }
 
@@ -116,14 +130,26 @@ protected:
     {
         GeneralizedNewmarkScheme<TSparseSpace, TDenseSpace>::CheckAllocatedVariables(rModelPart);
 
-        for (const auto& r_node : rModelPart.Nodes()) {
-            this->CheckSolutionStepsData(r_node, DISPLACEMENT);
-            this->CheckSolutionStepsData(r_node, VELOCITY);
-            this->CheckSolutionStepsData(r_node, ACCELERATION);
+        for (const auto& r_node : rModelPart.Nodes())
+        {
+            for (const auto& variable_derivative : mVariableDerivatives)
+            {
+                if (!rModelPart.HasNodalSolutionStepVariable(variable_derivative.instance))
+                    continue;
 
-            this->CheckDof(r_node, DISPLACEMENT_X);
-            this->CheckDof(r_node, DISPLACEMENT_Y);
-            this->CheckDof(r_node, DISPLACEMENT_Z);
+                this->CheckSolutionStepsData(r_node, variable_derivative.instance);
+                this->CheckSolutionStepsData(r_node, variable_derivative.first_time_derivative);
+                this->CheckSolutionStepsData(r_node, variable_derivative.second_time_derivative);
+
+                // We don't check for "Z", since it is optional (in case of a 2D problem)
+                std::vector<std::string> components{"X", "Y"};
+                for (const auto& component : components)
+                {
+                    const auto& variable_component = GetComponentFromVectorVariable(
+                        variable_derivative.instance, component);
+                    this->CheckDof(r_node, variable_component);
+                }
+            }
         }
     }
 
@@ -142,8 +168,8 @@ protected:
     {
         KRATOS_TRY
 
-        // Update Acceleration, Velocity and DtPressure
-        block_for_each(rModelPart.Nodes(), [this](Node& rNode) {
+        block_for_each(rModelPart.Nodes(), [this](Node& rNode)
+        {
             UpdateVectorSecondTimeDerivative(rNode);
             UpdateVectorFirstTimeDerivative(rNode);
             this->UpdateScalarTimeDerivative(rNode, WATER_PRESSURE, DT_WATER_PRESSURE);
@@ -152,26 +178,60 @@ protected:
         KRATOS_CATCH("")
     }
 
+    const Variable<double>& GetComponentFromVectorVariable(
+        const Variable<array_1d<double, 3>>& rSource, const std::string& rComponent) const
+    {
+        return KratosComponents<Variable<double>>::Get(rSource.Name() + "_" + rComponent);
+    }
+
+    const std::vector<VariableWithTimeDerivatives>& GetVariableDerivatives() const
+    {
+        return mVariableDerivatives;
+    }
+
 private:
     void UpdateVectorFirstTimeDerivative(Node& rNode) const
     {
-        noalias(rNode.FastGetSolutionStepValue(VELOCITY, 0)) =
-            rNode.FastGetSolutionStepValue(VELOCITY, 1) +
-            (1.0 - mGamma) * this->GetDeltaTime() *
-                rNode.FastGetSolutionStepValue(ACCELERATION, 1) +
-            mGamma * this->GetDeltaTime() * rNode.FastGetSolutionStepValue(ACCELERATION, 0);
+        for (const auto& variable_derivative : mVariableDerivatives)
+        {
+            if (!rNode.SolutionStepsDataHas(variable_derivative.instance))
+                continue;
+
+            noalias(rNode.FastGetSolutionStepValue(
+                variable_derivative.first_time_derivative, 0)) =
+                rNode.FastGetSolutionStepValue(variable_derivative.first_time_derivative, 1) +
+                (1.0 - mGamma) * this->GetDeltaTime() *
+                    rNode.FastGetSolutionStepValue(
+                        variable_derivative.second_time_derivative, 1) +
+                mGamma * this->GetDeltaTime() *
+                    rNode.FastGetSolutionStepValue(
+                        variable_derivative.second_time_derivative, 0);
+        }
     }
 
     void UpdateVectorSecondTimeDerivative(Node& rNode) const
     {
-        noalias(rNode.FastGetSolutionStepValue(ACCELERATION, 0)) =
-            ((rNode.FastGetSolutionStepValue(DISPLACEMENT, 0) -
-              rNode.FastGetSolutionStepValue(DISPLACEMENT, 1)) -
-             this->GetDeltaTime() * rNode.FastGetSolutionStepValue(VELOCITY, 1) -
-             (0.5 - mBeta) * this->GetDeltaTime() * this->GetDeltaTime() *
-                 rNode.FastGetSolutionStepValue(ACCELERATION, 1)) /
-            (mBeta * this->GetDeltaTime() * this->GetDeltaTime());
+        for (const auto& variable_derivative : mVariableDerivatives)
+        {
+            if (!rNode.SolutionStepsDataHas(variable_derivative.instance))
+                continue;
+
+            noalias(rNode.FastGetSolutionStepValue(
+                variable_derivative.second_time_derivative, 0)) =
+                ((rNode.FastGetSolutionStepValue(variable_derivative.instance, 0) -
+                  rNode.FastGetSolutionStepValue(variable_derivative.instance, 1)) -
+                 this->GetDeltaTime() * rNode.FastGetSolutionStepValue(
+                                            variable_derivative.first_time_derivative, 1) -
+                 (0.5 - mBeta) * this->GetDeltaTime() * this->GetDeltaTime() *
+                     rNode.FastGetSolutionStepValue(
+                         variable_derivative.second_time_derivative, 1)) /
+                (mBeta * this->GetDeltaTime() * this->GetDeltaTime());
+        }
     }
+
+    std::vector<VariableWithTimeDerivatives> mVariableDerivatives{
+        VariableWithTimeDerivatives(DISPLACEMENT), VariableWithTimeDerivatives{ROTATION}};
+
 }; // Class NewmarkQuasistaticUPwScheme
 
 } // namespace Kratos
