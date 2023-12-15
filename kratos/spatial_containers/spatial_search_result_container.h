@@ -622,6 +622,19 @@ public:
     }
 
     ///@}
+    ///@name Inquiry
+    ///@{
+
+    /**
+     * @brief Check if the current rank is the same as the rank of the data communicator.
+     * @return true if the ranks match, false otherwise.
+     */
+    bool IsLocalSearch() const
+    {
+        return mRankSearch == mrDataCommunicator.Rank();
+    }
+
+    ///@}
     ///@name Input and output
     ///@{
 
