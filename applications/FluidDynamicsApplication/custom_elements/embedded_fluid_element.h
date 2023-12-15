@@ -179,7 +179,9 @@ public:
                             Properties::Pointer pProperties) const override;
 
     /// Set up the element for solution.
-    /** For EmbeddedFluidElement, this initializes the nodal imposed velocity (EMBEDDED_VELOCITY)
+    /** For EmbeddedFluidElement, this initializes the nodal imposed velocity (EMBEDDED_VELOCITY),
+     *  as well as the variables for multi-point constraints on negative nodes
+     *  (APPLY_EMBEDDEd_COSNTRAINT, EMBEDDED_CONSTRAINT_MASTERS, EMBEDDED_CONSTRAINT_MASTER_WEIGHTS)
      */
     void Initialize(const ProcessInfo &rCurrentProcessInfo) override;
 

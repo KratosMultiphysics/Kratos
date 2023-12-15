@@ -114,12 +114,13 @@ void InitializeBoundaryConditionData(const ProcessInfo &rProcessInfo)
  * @param rElement
  * @param rProcessInfo
  */
-void InitializeConstraintData(const Element& rElement, const std::size_t BlockSize)
+void InitializeConstraintData(const Element& rElement, const std::size_t BlockSize, const bool CalculateRelations)
 {
     // Clear vector of pointers to nodes of the element plus master nodes of constrained negative nodes
     ElementsNodesAndMasters.clear();
 
-    // Add nodes of the element to the nodes of the local system and check whether constraints need to be considered
+    // Add nodes of the element to the nodes of the local system and check whether constraints need to be considered,
+    // which is the case if one of the element's nodes has a negative distance value and is a slave node
     ApplyConstraints = false;
     for (auto &r_node : rElement.GetGeometry()) {
         ElementsNodesAndMasters.push_back(&r_node);
@@ -131,14 +132,14 @@ void InitializeConstraintData(const Element& rElement, const std::size_t BlockSi
 
     // If constraints need to be considered, add the corresponding master nodes to the local system and build relation matrix
     if (ApplyConstraints) {
-        // Get master nodes
+        // Get additional master nodes, which are not nodes of the element already
         for (auto &r_node : rElement.GetGeometry()) {
             if (r_node.GetValue(APPLY_EMBEDDED_CONSTRAINTS)) {
 
-                // Get vector of master node pointers for respective node
+                // Get vector of master node pointers for respective slave node
                 const NodePointerVectorType NegNodeConstraintMasters = r_node.GetValue(EMBEDDED_CONSTRAINT_MASTERS);
 
-                // Add master node if it was not already added (unique entries)
+                // Add master node if it was not already added because it is one of the element's nodes (unique entries)
                 for (auto p_master : NegNodeConstraintMasters) {
                     auto it = std::find(ElementsNodesAndMasters.begin(), ElementsNodesAndMasters.end(), p_master);
                     if (it == ElementsNodesAndMasters.end()) {
@@ -147,7 +148,12 @@ void InitializeConstraintData(const Element& rElement, const std::size_t BlockSi
                 }
             }
         }
-        BuildRelationMatrix(rElement, BlockSize);
+        KRATOS_WATCH("Adapting size of local system: " << ElementsNodesAndMasters.size());
+        // Build the multi-point constraint's relation matrix if needed
+        if (CalculateRelations) {
+            KRATOS_WATCH("Building constraint relation matrix ...");
+            BuildRelationMatrix(rElement, BlockSize);
+        }
     }
 
     // Calculate size of local system for resizing LHS and RHS, only differs from LocalSize
@@ -156,23 +162,22 @@ void InitializeConstraintData(const Element& rElement, const std::size_t BlockSi
 }
 
 /** @brief
- * This method builds the constraint relation matrix of the element's local system.
+ * This method builds the constraint relation matrix one of the cut element's negative nodes is constrained.
  * @param rElement
  * @param BlockSize
  */
 void BuildRelationMatrix(const Element& rElement, const std::size_t BlockSize)
 {
     // Initialize relation matrix as identity matrix (so unconstrained dofs are not changed)
-    LocalConstraintSize = ElementsNodesAndMasters.size() * BlockSize;
-    if (ConstraintsRelationMatrix.size1() != LocalConstraintSize)
-        ConstraintsRelationMatrix.resize(LocalConstraintSize, LocalConstraintSize, false);
-    noalias(ConstraintsRelationMatrix) = IdentityMatrix(LocalConstraintSize);
+    const std::size_t size = ElementsNodesAndMasters.size() * BlockSize;
+    if (ConstraintsRelationMatrix.size1() != size)
+        ConstraintsRelationMatrix.resize(size, size, false);
+    noalias(ConstraintsRelationMatrix) = IdentityMatrix(size);
 
-    //Initialize position of slave node
-    std::size_t pos_slave_node = 0;
+    //Initialize the element's node counter for the position of the slave node in the local system
+    std::size_t i_node = 0;
 
     // Fill relation matrix using constraints' master weights
-    // TODO run parallel?
     for (auto &r_node : rElement.GetGeometry()) {
         if (r_node.GetValue(APPLY_EMBEDDED_CONSTRAINTS)) {
             const std::size_t dim = BlockSize - 1;
@@ -180,37 +185,42 @@ void BuildRelationMatrix(const Element& rElement, const std::size_t BlockSize)
             // Get vector of master node pointers and master weights matrix for respective node
             const NodePointerVectorType NegNodeConstraintMasters = r_node.GetValue(EMBEDDED_CONSTRAINT_MASTERS);
             const Matrix NegNodeConstraintWeights = r_node.GetValue(EMBEDDED_CONSTRAINT_MASTER_WEIGHTS);
+
+            //KRATOS_WATCH(NegNodeConstraintWeights);
+            //KRATOS_WATCH(NegNodeConstraintMasters.size());
+
             KRATOS_ERROR_IF_NOT(NegNodeConstraintWeights.size1() == dim)
                 << "Size1 of master weights of an embedded constrained does not match the node's velocity dofs.";
             KRATOS_ERROR_IF_NOT(NegNodeConstraintWeights.size2() == NegNodeConstraintMasters.size()*dim)
                 << "Number of master nodes of an embedded constrained node and its master weights do not match.";
 
             // Get position of first dof of slave node (VELOCITY_X)
-            const std::size_t pos_slave_x = pos_slave_node * BlockSize;
+            const std::size_t slave_x_position = i_node * BlockSize;
 
             // Find position of each master node and add weights for velocities
-            std::size_t pos_master_node = 0;
+            std::size_t i_master_node = 0;
             for (auto p_master : NegNodeConstraintMasters) {
-                // Find entry iterator of master node
+                // Find entry iterator of master node in the local system
                 auto it = std::find(ElementsNodesAndMasters.begin(), ElementsNodesAndMasters.end(), p_master);
                 // Get position of first dof of master node (VELOCITY_X)
-                const std::size_t pos_master_x = (it - ElementsNodesAndMasters.begin()) * BlockSize;
+                const std::size_t master_x_position = (it - ElementsNodesAndMasters.begin()) * BlockSize;
                 // Add master weights of respective master dof (column) to slave dof (row)
                 for (std::size_t d1 = 0; d1 < dim; ++d1) {
                     for (std::size_t d2 = 0; d2 < dim; ++d2) {
-                        ConstraintsRelationMatrix(pos_slave_x+d1, pos_master_x+d2) = NegNodeConstraintWeights(d1, pos_master_node*dim+d2);
+                        ConstraintsRelationMatrix(slave_x_position+d1, master_x_position+d2) = NegNodeConstraintWeights(d1, i_master_node*dim+d2);
                     }
                 }
-                pos_master_node++;
+                i_master_node++;
             }
 
             // Set slave dofs diagonal values to zero (VELOCITY_X, VELOCITY_Y and if 3D VELOCITY_Z)
             for (std::size_t d = 0; d < dim; ++d) {
-                ConstraintsRelationMatrix(pos_slave_x+d, pos_slave_x+d) = 0.0;
+                ConstraintsRelationMatrix(slave_x_position+d, slave_x_position+d) = 0.0;
             }
         }
-        pos_slave_node++;
+        i_node++;
     }
+    //KRATOS_WATCH(ConstraintsRelationMatrix);
 }
 
 static int Check(const Element& rElement, const ProcessInfo& rProcessInfo)

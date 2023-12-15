@@ -70,7 +70,7 @@ void EmbeddedFluidElement<TBaseElement>::Initialize(const ProcessInfo& rCurrentP
     TBaseElement::Initialize(rCurrentProcessInfo);
 
     // Initialize the nodal EMBEDDED_VELOCITY variable (make it threadsafe)
-    // Initialize nodal variables for constraints of negative nodes in split elements
+    // Initialize nodal variables for constraints of negative nodes in split elements | TODO: necessary??
     const array_1d<double,3> zero_vel = ZeroVector(3);
     const std::vector<NodeType::Pointer> empty_masters;
     const MatrixType empty_relation_matrix;
@@ -80,7 +80,7 @@ void EmbeddedFluidElement<TBaseElement>::Initialize(const ProcessInfo& rCurrentP
             r_node.SetValue(EMBEDDED_VELOCITY, zero_vel);
         }
         if (!r_node.Has(APPLY_EMBEDDED_CONSTRAINTS)) {
-            r_node.SetValue(APPLY_EMBEDDED_CONSTRAINTS, false);
+            r_node.SetValue(APPLY_EMBEDDED_CONSTRAINTS, 0);
         }
         if (!r_node.Has(EMBEDDED_CONSTRAINT_MASTERS)) {
             r_node.SetValue(EMBEDDED_CONSTRAINT_MASTERS, empty_masters);
@@ -148,7 +148,7 @@ void EmbeddedFluidElement<TBaseElement>::CalculateLocalSystem(
             } else {
                 // First, compute and assemble the penalty level set BC imposition contribution
                 // Secondly, compute and assemble the modified Nitsche method level set BC imposition contribution (Codina and Baiges, 2009)
-                // Note that the Nitshe contribution has to be computed the last since it drops the outer nodes rows previous constributions
+                // Note that the Nitsche contribution has to be computed the last since it drops the outer nodes rows previous constributions
                 AddBoundaryConditionPenaltyContribution(rLeftHandSideMatrix, rRightHandSideVector, data);
                 DropOuterNodesVelocityContribution(rLeftHandSideMatrix, rRightHandSideVector, data);
                 AddBoundaryConditionModifiedNitscheContribution(rLeftHandSideMatrix, rRightHandSideVector, data);
@@ -157,28 +157,28 @@ void EmbeddedFluidElement<TBaseElement>::CalculateLocalSystem(
 
         // Because only negative nodes of cut elements are constrained only cut elements provide relevant stiffness contributions for their multi-point constraints
         // NOTE: Constraints have to be applied as the last step of the calculation of the local system
-        data.InitializeConstraintData(*this, BlockSize);
+        data.InitializeConstraintData(*this, BlockSize, true);
+        KRATOS_WATCH("[ELEMENT] Initialized (local system)!");
         if (data.ApplyConstraints) {
             // Extend LHS and RHS to contain master nodes of constrained negative nodes of the element
             ExtendLocalSystemWithMasterNodes(rLeftHandSideMatrix, rRightHandSideVector, data);
             // Use master weights in relation matrix to apply master-slave constraints of the interface to the local system
-            ApplyMasterSlaveConstraints(rLeftHandSideMatrix, rRightHandSideVector, data);
+            //TODO ApplyMasterSlaveConstraints(rLeftHandSideMatrix, rRightHandSideVector, data);
         }
     }
 }
 
+//TODO: not needed??!
 template <class TBaseElement>
 void EmbeddedFluidElement<TBaseElement>::CalculateLocalVelocityContribution(
     MatrixType& rDampMatrix, VectorType& rRightHandSideVector,
     const ProcessInfo& rCurrentProcessInfo)
 {
-    if (!BaseElementData::ElementManagesTimeIntegration) {
-        TBaseElement::CalculateLocalVelocityContribution(rDampMatrix, rRightHandSideVector, rCurrentProcessInfo);
-    } else {
+    if (BaseElementData::ElementManagesTimeIntegration) {
         // Resize element matrix to account for master nodes of constraints on the elements nodes and initialize
         // so that zero matrix can be added in solution scheme because time integration was already done in CalculateLocalSystem
         EmbeddedElementData data;
-        data.InitializeConstraintData(*this, BlockSize);
+        data.InitializeConstraintData(*this, BlockSize, false);
         const std::size_t size = data.LocalConstraintSize;
         if (rDampMatrix.size1() != size)
             rDampMatrix.resize(size, size, false);
@@ -186,25 +186,28 @@ void EmbeddedFluidElement<TBaseElement>::CalculateLocalVelocityContribution(
             rRightHandSideVector.resize(size, false);
         noalias(rDampMatrix) = ZeroMatrix(size, size);
         noalias(rRightHandSideVector) = ZeroVector(size);
+    } else {
+        TBaseElement::CalculateLocalVelocityContribution(rDampMatrix, rRightHandSideVector, rCurrentProcessInfo);
     }
 }
 
+//TODO: not needed??!
 template <class TBaseElement>
 void EmbeddedFluidElement<TBaseElement>::CalculateMassMatrix(
     MatrixType& rMassMatrix,
     const ProcessInfo& rCurrentProcessInfo)
 {
-    if (!BaseElementData::ElementManagesTimeIntegration) {
-        TBaseElement::CalculateMassMatrix(rMassMatrix, rCurrentProcessInfo);
-    } else {
+    if (BaseElementData::ElementManagesTimeIntegration) {
         // Resize element matrix to account for master nodes of constraints on the elements nodes and initialize
         // so that zero matrix can be added in solution scheme because time integration was already done in CalculateLocalSystem
         EmbeddedElementData data;
-        data.InitializeConstraintData(*this, BlockSize);
+        data.InitializeConstraintData(*this, BlockSize, false);
         const std::size_t size = data.LocalConstraintSize;
         if (rMassMatrix.size1() != size)
             rMassMatrix.resize(size, size, false);
         noalias(rMassMatrix) = ZeroMatrix(size, size);
+    } else {
+        TBaseElement::CalculateMassMatrix(rMassMatrix, rCurrentProcessInfo);
     }
 }
 
@@ -214,23 +217,27 @@ void EmbeddedFluidElement<TBaseElement>::EquationIdVector(
     const ProcessInfo &rCurrentProcessInfo) const
 {
     EmbeddedElementData data;
-    data.InitializeConstraintData(*this, BlockSize);
+    data.InitializeConstraintData(*this, BlockSize, false);
+    const std::size_t size = data.LocalConstraintSize;
 
     // Resize vector to account for master nodes of constraints on the elements nodes and initialize
-    if (rResult.size() != data.LocalConstraintSize)
-        rResult.resize(data.LocalConstraintSize, false);
+    if (rResult.size() != size)
+        rResult.resize(size, false);
 
-    // Get dof position for first node
+    // Get dof positions for first node (to accelerate search)
     const std::size_t xpos = data.ElementsNodesAndMasters[0]->GetDofPosition(VELOCITY_X);
     const std::size_t ppos = data.ElementsNodesAndMasters[0]->GetDofPosition(PRESSURE);
 
     // Add dof positions of the element's nodes and master nodes
     std::size_t LocalIndex = 0;
     for (auto p_node : data.ElementsNodesAndMasters) {
-        rResult[LocalIndex++] = p_node->GetDof(VELOCITY_X,xpos).EquationId();
-        rResult[LocalIndex++] = p_node->GetDof(VELOCITY_Y,xpos+1).EquationId();
-        if (Dim == 3) rResult[LocalIndex++] = p_node->GetDof(VELOCITY_Z,xpos+2).EquationId();
-        rResult[LocalIndex++] = p_node->GetDof(PRESSURE,ppos).EquationId();
+        rResult[LocalIndex++] = p_node->GetDof(VELOCITY_X, xpos).EquationId();
+        rResult[LocalIndex++] = p_node->GetDof(VELOCITY_Y, xpos+1).EquationId();
+        if (Dim == 3) rResult[LocalIndex++] = p_node->GetDof(VELOCITY_Z, xpos+2).EquationId();
+        rResult[LocalIndex++] = p_node->GetDof(PRESSURE, ppos).EquationId();
+    }
+    if (size > LocalSize) {
+        KRATOS_WATCH("[ELEMENT] Adapted EquationIDVector for element with external master nodes!");
     }
 }
 
@@ -363,7 +370,7 @@ const Parameters EmbeddedFluidElement<TBaseElement>::GetSpecifications() const
         },
         "required_variables"         : ["DISTANCE","VELOCITY","PRESSURE","MESH_VELOCITY","MESH_DISPLACEMENT"],
         "required_dofs"              : [],
-        "flags_used"                 : ["SLIP","APPLY_CONSTRAINTS"],
+        "flags_used"                 : ["SLIP"],
         "compatible_geometries"      : ["Triangle2D3","Tetrahedra3D4"],
         "element_integrates_in_time" : true,
         "compatible_constitutive_laws": {
@@ -1069,18 +1076,18 @@ void EmbeddedFluidElement<TBaseElement>::ExtendLocalSystemWithMasterNodes(
 
     // Resize local system matrix and vector
     const std::size_t size = rData.LocalConstraintSize;
-    rLHS.resize(size, size, false);
-    rRHS.resize(size, false);
-    noalias(rLHS) = ZeroMatrix(size, size);
-    noalias(rRHS) = ZeroVector(size);
+    rLHS.resize(size, size, true);
+    //rRHS.resize(size, false);
+    rLHS = ZeroMatrix(size, size);
+    //rRHS = ZeroVector(size);
 
     // Add entries back into the local system
-    for (std::size_t i=0; i<LocalSize; ++i) {
-        rRHS(i) = prev_RHS(i);
-        for (std::size_t j=0; j<LocalSize; ++j) {
-            rLHS(i,j) = prev_LHS(i,j);
-        }
-    }
+    //for (std::size_t i=0; i<LocalSize; ++i) {
+    //    //rRHS(i) = prev_RHS(i);
+    //    for (std::size_t j=0; j<LocalSize; ++j) {
+    //        rLHS(i,j) = prev_LHS(i,j);
+    //    }
+    //}
 }
 
 template <class TBaseElement>
