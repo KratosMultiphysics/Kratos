@@ -89,15 +89,15 @@
         }]
     },
     "print_output_process" : [{
-    	"python_module"   : "particle_json_output_process",
-	"kratos_module" : "KratosMultiphysics.ParticleMechanicsApplication",
-	"process_name"          : "ParticleJsonOutputProcess",
-	"Parameters"            : {
-	    "gauss_points_output_variables"  : ["MP_DISPLACEMENT"],
-	    "output_file_name"  : "cl_tests/fluid_cl/newtonian_fluid_test_results.json",
-	    "model_part_name"   : "MPM_Material",
-	    "time_frequency"    : 0.1
-	}
-	}],
+       "python_module"   : "particle_json_output_process",
+       "kratos_module" : "KratosMultiphysics.ParticleMechanicsApplication",
+       "process_name"          : "ParticleJsonOutputProcess",
+       "Parameters"            : {
+          "gauss_points_output_variables"  : ["MP_DISPLACEMENT"],
+          "output_file_name"  : "cl_tests/fluid_cl/newtonian_fluid_test_results.json",
+          "model_part_name"   : "MPM_Material",
+          "time_frequency"    : 0.1
+       }
+    }],
     "analysis_stage"   : "KratosMultiphysics.ParticleMechanicsApplication.particle_mechanics_analysis"
 }
