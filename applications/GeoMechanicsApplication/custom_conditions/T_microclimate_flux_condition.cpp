@@ -26,22 +26,22 @@ namespace Kratos
 using namespace MicroClimateConstants;
 
 template <unsigned int TDim, unsigned int TNumNodes>
-Condition::Pointer TMicroClimateFluxCondition<TDim, TNumNodes>::Create(
+Condition::Pointer GeoTMicroClimateFluxCondition<TDim, TNumNodes>::Create(
     IndexType NewId, const NodesArrayType& rNodes, Properties::Pointer pProperties) const
 {
-    return make_intrusive<TMicroClimateFluxCondition>(
+    return make_intrusive<GeoTMicroClimateFluxCondition>(
         NewId, this->GetGeometry().Create(rNodes), pProperties);
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void TMicroClimateFluxCondition<TDim, TNumNodes>::Initialize(const ProcessInfo& rCurrentProcessInfo)
+void GeoTMicroClimateFluxCondition<TDim, TNumNodes>::Initialize(const ProcessInfo& rCurrentProcessInfo)
 {
     Condition::Initialize(rCurrentProcessInfo);
     InitializeProperties();
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void TMicroClimateFluxCondition<TDim, TNumNodes>::InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
+void GeoTMicroClimateFluxCondition<TDim, TNumNodes>::InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
 {
     // Unfortunately, the roughness temperature and net radiation cannot be
     // initialized in the Initialize() method because the values of the air
@@ -58,7 +58,7 @@ void TMicroClimateFluxCondition<TDim, TNumNodes>::InitializeSolutionStep(const P
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void TMicroClimateFluxCondition<TDim, TNumNodes>::CalculateLocalSystem(
+void GeoTMicroClimateFluxCondition<TDim, TNumNodes>::CalculateLocalSystem(
     Matrix& rLeftHandSideMatrix, Vector& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
@@ -121,7 +121,7 @@ void TMicroClimateFluxCondition<TDim, TNumNodes>::CalculateLocalSystem(
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void TMicroClimateFluxCondition<TDim, TNumNodes>::InitializeProperties()
+void GeoTMicroClimateFluxCondition<TDim, TNumNodes>::InitializeProperties()
 {
     KRATOS_TRY
 
@@ -140,7 +140,7 @@ void TMicroClimateFluxCondition<TDim, TNumNodes>::InitializeProperties()
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void TMicroClimateFluxCondition<TDim, TNumNodes>::CalculateAndAddLHS(
+void GeoTMicroClimateFluxCondition<TDim, TNumNodes>::CalculateAndAddLHS(
     Matrix& rLeftHandSideMatrix,
     const array_1d<double, TNumNodes>& rN,
     double IntegrationCoefficient,
@@ -157,7 +157,7 @@ void TMicroClimateFluxCondition<TDim, TNumNodes>::CalculateAndAddLHS(
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void TMicroClimateFluxCondition<TDim, TNumNodes>::CalculateAndAddRHS(
+void GeoTMicroClimateFluxCondition<TDim, TNumNodes>::CalculateAndAddRHS(
     Vector& rRightHandSideVector,
     const array_1d<double, TNumNodes>& rN,
     double IntegrationCoefficient,
@@ -180,7 +180,7 @@ void TMicroClimateFluxCondition<TDim, TNumNodes>::CalculateAndAddRHS(
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-array_1d<double, TNumNodes> TMicroClimateFluxCondition<TDim, TNumNodes>::CalculateLeftHandSideFluxes() const
+array_1d<double, TNumNodes> GeoTMicroClimateFluxCondition<TDim, TNumNodes>::CalculateLeftHandSideFluxes() const
 {
     // Eq 5.22
     const auto sensible_heat_flux_left = AirHeatCapacity * AirDensity / RoughnessLayerResistance;
@@ -188,7 +188,7 @@ array_1d<double, TNumNodes> TMicroClimateFluxCondition<TDim, TNumNodes>::Calcula
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-array_1d<double, TNumNodes> TMicroClimateFluxCondition<TDim, TNumNodes>::CalculateRightHandSideFluxes(
+array_1d<double, TNumNodes> GeoTMicroClimateFluxCondition<TDim, TNumNodes>::CalculateRightHandSideFluxes(
     double TimeStepSize, double PreviousStorage, double PreviousRadiation) const
 {
     array_1d<double, TNumNodes> result;
@@ -208,7 +208,7 @@ array_1d<double, TNumNodes> TMicroClimateFluxCondition<TDim, TNumNodes>::Calcula
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-double TMicroClimateFluxCondition<TDim, TNumNodes>::CalculateRightHandSideFlux(
+double GeoTMicroClimateFluxCondition<TDim, TNumNodes>::CalculateRightHandSideFlux(
     double NetRadiation, double SurfaceHeatStorage, double ActualEvaporation) const
 {
     const auto latent_heat_flux = ActualEvaporation * mWaterDensity * LatentEvaporationHeat;
@@ -225,7 +225,7 @@ double TMicroClimateFluxCondition<TDim, TNumNodes>::CalculateRightHandSideFlux(
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-double TMicroClimateFluxCondition<TDim, TNumNodes>::CalculateCurrentWaterStorage(
+double GeoTMicroClimateFluxCondition<TDim, TNumNodes>::CalculateCurrentWaterStorage(
     double TimeStepSize, double PreviousStorage, double PreviousRadiation) const
 {
     double result = 0.0;
@@ -248,7 +248,7 @@ double TMicroClimateFluxCondition<TDim, TNumNodes>::CalculateCurrentWaterStorage
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-double TMicroClimateFluxCondition<TDim, TNumNodes>::CalculateCurrentNetRadiation() const
+double GeoTMicroClimateFluxCondition<TDim, TNumNodes>::CalculateCurrentNetRadiation() const
 {
     std::vector<unsigned int> local_node_indices(TNumNodes);
     std::iota(local_node_indices.begin(), local_node_indices.end(), 0u);
@@ -261,7 +261,7 @@ double TMicroClimateFluxCondition<TDim, TNumNodes>::CalculateCurrentNetRadiation
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-double TMicroClimateFluxCondition<TDim, TNumNodes>::CalculateNetRadiation(unsigned int NodeIndex) const
+double GeoTMicroClimateFluxCondition<TDim, TNumNodes>::CalculateNetRadiation(unsigned int NodeIndex) const
 {
     auto& r_geom = this->GetGeometry();
 
@@ -288,7 +288,7 @@ double TMicroClimateFluxCondition<TDim, TNumNodes>::CalculateNetRadiation(unsign
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-double TMicroClimateFluxCondition<TDim, TNumNodes>::CalculateSurfaceHeatStorage(
+double GeoTMicroClimateFluxCondition<TDim, TNumNodes>::CalculateSurfaceHeatStorage(
     double TimeStepSize, double PreviousRadiation, double NetRadiation) const
 {
     // Eq 5.20
@@ -298,7 +298,7 @@ double TMicroClimateFluxCondition<TDim, TNumNodes>::CalculateSurfaceHeatStorage(
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-WaterFluxes TMicroClimateFluxCondition<TDim, TNumNodes>::CalculateWaterFluxes(
+WaterFluxes GeoTMicroClimateFluxCondition<TDim, TNumNodes>::CalculateWaterFluxes(
     unsigned int NodeIndex, double TimeStepSize, double PreviousStorage, double NetRadiation, double SurfaceHeatStorage) const
 {
     const auto potential_evaporation =
@@ -327,7 +327,7 @@ WaterFluxes TMicroClimateFluxCondition<TDim, TNumNodes>::CalculateWaterFluxes(
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-double TMicroClimateFluxCondition<TDim, TNumNodes>::CalculatePotentialEvaporation(
+double GeoTMicroClimateFluxCondition<TDim, TNumNodes>::CalculatePotentialEvaporation(
     unsigned int NodeIndex, double NetRadiation, double SurfaceHeatStorage) const
 {
     auto& r_geom = this->GetGeometry();
@@ -365,7 +365,7 @@ double TMicroClimateFluxCondition<TDim, TNumNodes>::CalculatePotentialEvaporatio
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void TMicroClimateFluxCondition<TDim, TNumNodes>::CalculateRoughness(const ProcessInfo& rCurrentProcessInfo)
+void GeoTMicroClimateFluxCondition<TDim, TNumNodes>::CalculateRoughness(const ProcessInfo& rCurrentProcessInfo)
 {
     const auto time_step_size = rCurrentProcessInfo.GetValue(DELTA_TIME);
 
@@ -417,7 +417,7 @@ void TMicroClimateFluxCondition<TDim, TNumNodes>::CalculateRoughness(const Proce
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-double TMicroClimateFluxCondition<TDim, TNumNodes>::CalculateSurfaceRoughnessFactor(
+double GeoTMicroClimateFluxCondition<TDim, TNumNodes>::CalculateSurfaceRoughnessFactor(
     double CurrentAirTemperature,
     double PreviousRoughnessTemperature,
     double RichardsonBulkModulus,
@@ -439,14 +439,14 @@ double TMicroClimateFluxCondition<TDim, TNumNodes>::CalculateSurfaceRoughnessFac
     return 1.0 / (1.0 + 15.0 * RichardsonBulkModulus * coefficient);
 }
 
-template class TMicroClimateFluxCondition<2, 2>;
-template class TMicroClimateFluxCondition<2, 3>;
-template class TMicroClimateFluxCondition<2, 4>;
-template class TMicroClimateFluxCondition<2, 5>;
-template class TMicroClimateFluxCondition<3, 3>;
-template class TMicroClimateFluxCondition<3, 4>;
-template class TMicroClimateFluxCondition<3, 6>;
-template class TMicroClimateFluxCondition<3, 8>;
-template class TMicroClimateFluxCondition<3, 9>;
+template class GeoTMicroClimateFluxCondition<2, 2>;
+template class GeoTMicroClimateFluxCondition<2, 3>;
+template class GeoTMicroClimateFluxCondition<2, 4>;
+template class GeoTMicroClimateFluxCondition<2, 5>;
+template class GeoTMicroClimateFluxCondition<3, 3>;
+template class GeoTMicroClimateFluxCondition<3, 4>;
+template class GeoTMicroClimateFluxCondition<3, 6>;
+template class GeoTMicroClimateFluxCondition<3, 8>;
+template class GeoTMicroClimateFluxCondition<3, 9>;
 
 } // Namespace Kratos.

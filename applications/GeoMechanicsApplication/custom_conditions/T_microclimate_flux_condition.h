@@ -32,26 +32,26 @@ struct WaterFluxes
 };
 
 template <unsigned int TDim, unsigned int TNumNodes>
-class KRATOS_API(GEO_MECHANICS_APPLICATION) TMicroClimateFluxCondition
+class KRATOS_API(GEO_MECHANICS_APPLICATION) GeoTMicroClimateFluxCondition
     : public GeoTCondition<TDim, TNumNodes>
 {
 public:
-    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(TMicroClimateFluxCondition);
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(GeoTMicroClimateFluxCondition);
 
     using IndexType = std::size_t;
     using GeometryType = Geometry<Node>;
     using NodesArrayType = GeometryType::PointsArrayType;
 
-    TMicroClimateFluxCondition() : GeoTCondition<TDim, TNumNodes>() {}
+    GeoTMicroClimateFluxCondition() : GeoTCondition<TDim, TNumNodes>() {}
 
-    TMicroClimateFluxCondition(IndexType NewId, GeometryType::Pointer pGeometry)
+    GeoTMicroClimateFluxCondition(IndexType NewId, GeometryType::Pointer pGeometry)
         : GeoTCondition<TDim, TNumNodes>(NewId, pGeometry)
     {
     }
 
-    TMicroClimateFluxCondition(IndexType NewId,
-                               GeometryType::Pointer pGeometry,
-                               Properties::Pointer pProperties)
+    GeoTMicroClimateFluxCondition(IndexType NewId,
+                                  GeometryType::Pointer pGeometry,
+                                  Properties::Pointer pProperties)
         : GeoTCondition<TDim, TNumNodes>(NewId, pGeometry, pProperties)
     {
     }
