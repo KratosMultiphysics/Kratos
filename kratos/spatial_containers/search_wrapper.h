@@ -617,7 +617,7 @@ private:
 
         // Prepare MPI search
         DistributedSearchInformation search_info;
-        SearchUtilities::SynchronousPointSynchronizationWithBoundingBox(itPointBegin, itPointEnd, search_info, r_local_bb, Radius, mrDataCommunicator);
+        SearchUtilities::SynchronousPointSynchronizationWithBoundingBox(itPointBegin, itPointEnd, search_info, r_local_bb, Radius, mrDataCommunicator, true);
 
         // Initialize results
         PrepareResultsInProperRanks(rResults, search_info, ConsiderGlobalDataCommunicator);
@@ -632,10 +632,6 @@ private:
             rTLS.point[1] = search_info.PointCoordinates[i_point * 3 + 1];
             rTLS.point[2] = search_info.PointCoordinates[i_point * 3 + 2];
             auto& r_point_result = rResults[i_point];
-
-            // Set some values
-            r_point_result.SetRankSearch(rank);
-            r_point_result.SetIndex(i_point);
 
             // Search
             std::vector<ResultType> results;
@@ -688,7 +684,7 @@ private:
 
         // Prepare MPI search
         DistributedSearchInformation search_info;
-        SearchUtilities::SynchronousPointSynchronizationWithBoundingBox(itPointBegin, itPointEnd, search_info, r_local_bb, Radius, mrDataCommunicator);
+        SearchUtilities::SynchronousPointSynchronizationWithBoundingBox(itPointBegin, itPointEnd, search_info, r_local_bb, Radius, mrDataCommunicator, true);
 
         // Initialize results
         PrepareResultsInProperRanks(rResults, search_info, ConsiderGlobalDataCommunicator);
@@ -703,10 +699,6 @@ private:
             rTLS.point[1] = search_info.PointCoordinates[i_point * 3 + 1];
             rTLS.point[2] = search_info.PointCoordinates[i_point * 3 + 2];
             auto& r_point_result = rResults[i_point];
-
-            // Set some values
-            r_point_result.SetRankSearch(rank);
-            r_point_result.SetIndex(i_point);
 
             // Result of search
             ResultType local_result;
@@ -759,7 +751,7 @@ private:
 
         // Prepare MPI search
         DistributedSearchInformation search_info;
-        SearchUtilities::SynchronousPointSynchronizationWithBoundingBox(itPointBegin, itPointEnd, search_info, r_local_bb, max_radius, mrDataCommunicator);
+        SearchUtilities::SynchronousPointSynchronizationWithBoundingBox(itPointBegin, itPointEnd, search_info, r_local_bb, max_radius, mrDataCommunicator, true);
 
         // Initialize results
         PrepareResultsInProperRanks(rResults, search_info, ConsiderGlobalDataCommunicator);
@@ -774,10 +766,6 @@ private:
             rTLS.point[1] = search_info.PointCoordinates[i_point * 3 + 1];
             rTLS.point[2] = search_info.PointCoordinates[i_point * 3 + 2];
             auto& r_point_result = rResults[i_point];
-
-            // Set some values
-            r_point_result.SetRankSearch(rank);
-            r_point_result.SetIndex(i_point);
 
             // Result of search
             ResultType local_result;
@@ -827,7 +815,7 @@ private:
 
         // Prepare MPI search
         DistributedSearchInformation search_info;
-        SearchUtilities::SynchronousPointSynchronizationWithBoundingBox(itPointBegin, itPointEnd, search_info, r_local_bb, 0.0, mrDataCommunicator);
+        SearchUtilities::SynchronousPointSynchronizationWithBoundingBox(itPointBegin, itPointEnd, search_info, r_local_bb, 0.0, mrDataCommunicator, true);
 
         // Initialize results
         PrepareResultsInProperRanks(rResults, search_info, ConsiderGlobalDataCommunicator);
@@ -842,10 +830,6 @@ private:
             rTLS.point[1] = search_info.PointCoordinates[i_point * 3 + 1];
             rTLS.point[2] = search_info.PointCoordinates[i_point * 3 + 2];
             auto& r_point_result = rResults[i_point];
-
-            // Set some values
-            r_point_result.SetRankSearch(rank);
-            r_point_result.SetIndex(i_point);
 
             // Result of search
             ResultType local_result;

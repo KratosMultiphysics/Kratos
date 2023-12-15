@@ -381,6 +381,16 @@ void SearchWrapper<TSearchObject>::PrepareResultsInProperRanks(
 
     // Initialize results
     rResults.InitializeResults(data_communicators);
+
+    // Set some values
+    const auto& r_search_ranks = rSearchInfo.SearchRanks;
+    const auto& r_indexes = rSearchInfo.Indexes;
+    auto& r_results_vector = rResults.GetContainer();
+    IndexPartition<IndexType>(r_results_vector.size()).for_each([&r_results_vector, & r_search_ranks, &r_indexes](const IndexType Index) {
+        auto& r_point_result = *(r_results_vector[Index]);
+        r_point_result.SetRankSearch(r_search_ranks[Index]);
+        r_point_result.SetIndex(r_indexes[Index]);
+    });
 }
 
 /***********************************************************************************/
