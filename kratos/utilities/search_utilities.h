@@ -656,9 +656,23 @@ private:
         std::vector<IndexType>& rAllPointsIds,
         const DataCommunicator& rDataCommunicator,
         const int NumberOfPoints,
-        const int TotalNumberOfPoints
+        const int TotalNumberOfPoints,
+        const bool IndexItIsJustCounter = false
         )
     {
+        // Define lambda to retrieve Id
+        const auto GetIdNode = [](std::vector<IndexType>& rIds, TPointIteratorType& ItPoint, const std::size_t Counter, const std::size_t InitialId) {
+            if constexpr (std::is_same<TPointIteratorType, ModelPart::NodeIterator>::value || std::is_same<TPointIteratorType, ModelPart::NodeConstantIterator>::value) {
+                rIds[Counter] = ItPoint->Id();
+            } else {
+                rIds[Counter] = InitialId + Counter;
+            }
+        };
+        const auto GetIdJustCounter = [](std::vector<IndexType>& rIds, TPointIteratorType& ItPoint, const std::size_t Counter, const std::size_t InitialId) {
+            rIds[Counter] = Counter;
+        };
+        const auto GetId = IndexItIsJustCounter ? GetIdJustCounter : GetIdNode;
+
         // Get the World Size and rank in MPI
         const int world_size = rDataCommunicator.Size();
         const int rank = rDataCommunicator.Rank();
@@ -701,11 +715,7 @@ private:
                     }
                 }
                 noalias(coordinates) = it_point->Coordinates();
-                if constexpr (std::is_same<TPointIteratorType, ModelPart::NodeIterator>::value || std::is_same<TPointIteratorType, ModelPart::NodeConstantIterator>::value) {
-                    send_points_ids[counter] = it_point->Id();
-                } else {
-                    send_points_ids[counter] = initial_id + counter;
-                }
+                GetId(send_points_ids, it_point, counter, initial_id);
                 send_points_ranks[counter] = rank;
                 for (i_coord = 0; i_coord < 3; ++i_coord) {
                     send_points_coordinates[3 * counter + i_coord] = coordinates[i_coord];
