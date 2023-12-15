@@ -47,3 +47,4 @@ Cpp11BracedListStyle: true
 Standard: c++17
 TabWidth: 4
 UseTab: Never
+LambdaBodyIndentation: OuterScope
