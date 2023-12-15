@@ -316,7 +316,6 @@ void GetLowerOrderDofs(typename TSparseSpace::MatrixType& rA,
             // Mark each DoF of all nodes on the equivalent lower order element
             // unless they are constrained as slave dofs in multi-point constraints
             for (std::size_t i_node=0ul; i_node<coarse_node_count; ++i_node) {
-                //if (r_geometry[i_node].IsNot(SLAVE) /*&& r_geometry[i_node].IsNot(MASTER)*/) {
                     const auto& r_node_dofs = r_geometry[i_node].GetDofs();
                     for (const auto& rp_dof : r_node_dofs) {
                         const std::size_t i_fine_dof = rp_dof->EquationId();
@@ -325,7 +324,6 @@ void GetLowerOrderDofs(typename TSparseSpace::MatrixType& rA,
                         // Flag the DoF as part of the coarse system
                         rCoarseMask[i_fine_dof] = true;
                     }
-                //} // if node is not SLAVE
             }
         } // if (r_entity.IsActive())
     } // for entity in rModelPart
@@ -473,20 +471,23 @@ void GetNonzeroQuadraticCoefficients(GeometryData::KratosGeometryType Geometry,
 
 
 namespace Detail {
-struct MPCDoF
+struct MPCInfo
 {
-    std::size_t mCounterPartIndex;  // <== index of the MPC's other DoF (master or slave)
+    std::vector<std::pair<
+        std::size_t,    // <== indices of other DoFs connected to this one by linear MPCs
+        double          // <== coefficient of the linear MPC relationship
+    >> mCounterparts;
 
     std::vector<std::tuple<
-        const Element*,             // <== element that contains the MPC DoF's counterpart
-        std::size_t,                // <== index of the coarse node within the element that contains the MPC DoF's counterpart
-        std::size_t                 // <== index of the MPC DoF's counterpart within the coarse node
+        const Element*, // <== element that contains the MPC DoF
+        std::size_t,    // <== index of the coarse node within the element that contains the MPC DoF
+        std::size_t     // <== index of the MPC DoF within the coarse node
     >> mContainingElements;
-}; // struct MPCDoF
+}; // struct MPCInfo
 
 using MasterSlaveDofMap = std::unordered_map<
     std::size_t,            // <== equation ID of the MPC DoF
-    MPCDoF                  // <== additional info related to the MPC DoF
+    MPCInfo                 // <== additional info related to the MPC DoF
 >;
 } // namespace Detail
 
@@ -567,34 +568,50 @@ void MapHigherToLowerOrder(const ModelPart& rModelPart,
 
         // Loop over MPC DoFs and register their contributions
         if (rMasterSlaveDofMap.has_value()) {
+            const auto it_mpc_end = rMasterSlaveDofMap->end();
             for (const auto& r_mpc_pair : rMasterSlaveDofMap.value()) {
                 const std::size_t i_coarse_dof_in_fine_system = r_mpc_pair.first;
-                const std::size_t i_coarse_dof = rCoarseDofMap[i_coarse_dof_in_fine_system];
-                const auto& r_mpc_info = r_mpc_pair.second;
-                for (auto entry : r_mpc_info.mContainingElements) {
-                    const Geometry<Node>& r_fine_geometry = std::get<0>(entry)->GetGeometry();
-                    const std::size_t i_coarse_vertex = std::get<1>(entry);
-                    const std::size_t i_node_dof = std::get<2>(entry);
 
-                    std::vector<
-                        std::vector<std::pair<
-                            std::size_t,    // <== fine DoF index
-                            double          // <== fine DoF coefficient
-                        >>
-                    > restriction_coefficients;
-                    restriction_coefficients.reserve(4ul); // <== reserve assuming a tetrahedron (linear vertex count)
-                    GetNonzeroQuadraticCoefficients(r_fine_geometry.GetGeometryType(),
-                                                    std::back_inserter(restriction_coefficients));
-                    KRATOS_ERROR_IF_NOT(i_coarse_vertex < restriction_coefficients.size());
-
-                    const auto& r_restriction_terms = restriction_coefficients[i_coarse_vertex];
-                    for (const auto& r_fine_coefficient_pair : r_restriction_terms) {
-                        const std::size_t i_fine_vertex = r_fine_coefficient_pair.first;
-                        const std::size_t i_fine_dof = r_fine_geometry[i_fine_vertex].GetDofs()[i_node_dof]->EquationId();
-                        rRestrictionMap.emplace(std::make_pair(i_coarse_dof, i_fine_dof), r_fine_coefficient_pair.second);
-                        rInterpolationMap.emplace(std::make_pair(i_fine_dof, i_coarse_dof), r_fine_coefficient_pair.second);
-                    }
+                // Skip the DoF if it is not part of the coarse system
+                if (!rCoarseDofMask[i_coarse_dof_in_fine_system]) {
+                    continue;
                 }
+
+                const std::size_t i_coarse_dof = rCoarseDofMap[i_coarse_dof_in_fine_system];
+
+                for (auto counterpart_pair : r_mpc_pair.second.mCounterparts) {
+                    const auto mpc_coefficient = counterpart_pair.second;
+
+                    const auto it_counterpart_info = rMasterSlaveDofMap->find(counterpart_pair.first);
+                    KRATOS_ERROR_IF(it_counterpart_info == it_mpc_end);
+                    const auto& r_counterpart_info = it_counterpart_info->second;
+
+                    for (auto entry : r_counterpart_info.mContainingElements) {
+                        const Geometry<Node>& r_fine_geometry = std::get<0>(entry)->GetGeometry();
+                        const std::size_t i_coarse_vertex = std::get<1>(entry);
+                        const std::size_t i_node_dof = std::get<2>(entry);
+
+                        std::vector<
+                            std::vector<std::pair<
+                                std::size_t,    // <== fine DoF index
+                                double          // <== fine DoF coefficient
+                            >>
+                        > restriction_coefficients;
+                        restriction_coefficients.reserve(4ul); // <== reserve assuming a tetrahedron (linear vertex count)
+                        GetNonzeroQuadraticCoefficients(r_fine_geometry.GetGeometryType(),
+                                                        std::back_inserter(restriction_coefficients));
+                        KRATOS_ERROR_IF_NOT(i_coarse_vertex < restriction_coefficients.size());
+
+                        const auto& r_restriction_terms = restriction_coefficients[i_coarse_vertex];
+                        for (const auto& r_fine_coefficient_pair : r_restriction_terms) {
+                            const std::size_t i_fine_vertex = r_fine_coefficient_pair.first;
+                            const std::size_t i_fine_dof = r_fine_geometry[i_fine_vertex].GetDofs()[i_node_dof]->EquationId();
+                            const auto restriction_coefficient = mpc_coefficient * r_fine_coefficient_pair.second;
+                            rRestrictionMap.emplace(std::make_pair(i_coarse_dof, i_fine_dof), restriction_coefficient);
+                            rInterpolationMap.emplace(std::make_pair(i_fine_dof, i_coarse_dof), restriction_coefficient);
+                        }
+                    } // for entry in r_counterpart_info.mContainingElements
+                } // for counterpart_pair : r_mpc_pair.second.mCounterparts
             } // for r_mpc_pair in rMasterSlaveDofMap.value()
         } // if rMasterSlaveDofMap.has_value()
     } // for entity in rModelPart
@@ -700,13 +717,21 @@ void PolyHierarchicalSolver<TSparseSpace,TDenseSpace,TReorderer>::ProvideAdditio
                 const std::size_t master_id = r_constraint.GetMasterDofsVector().front()->EquationId();
                 const std::size_t slave_id = r_constraint.GetSlaveDofsVector().front()->EquationId();
 
-                KRATOS_ERROR_IF_NOT(!r_map.emplace(master_id, Detail::MasterSlaveDofMap::mapped_type {slave_id, {}}).second)
-                    << "DoF " << r_constraint.GetMasterDofsVector().front()->Id()
-                    << " appears in more than one multi-point constraint, which is not supported yet\n";
+                const double mpc_coefficient = 1.0; // @todo get the proper coefficient of the MPC relationship
 
-                KRATOS_ERROR_IF_NOT(!r_map.emplace(slave_id, Detail::MasterSlaveDofMap::mapped_type {master_id, {}}).second)
-                    << "DoF " << r_constraint.GetSlaveDofsVector().front()->Id()
-                    << " appears in more than one multi-point constraint, which is not supported yet\n";
+                if (mpc_coefficient) {
+                    auto emplace_result = r_map.emplace(master_id, Detail::MasterSlaveDofMap::mapped_type {{{slave_id, 1.0}}, {}});
+                    if (!emplace_result.second) {
+                        auto& r_mpc_info = emplace_result.first->second;
+                        r_mpc_info.mCounterparts.emplace_back(slave_id, mpc_coefficient);
+                    }
+
+                    emplace_result = r_map.emplace(slave_id, Detail::MasterSlaveDofMap::mapped_type {{{master_id, 1.0}}, {}});
+                    if (!emplace_result.second) {
+                        auto& r_mpc_info = emplace_result.first->second;
+                        r_mpc_info.mCounterparts.emplace_back(master_id, mpc_coefficient);
+                    }
+                } // if mpc_coefficient
             } // for r_constraint in MasterSlaveConstraints
         } // if not MasterSlaveConstraint.empty()
 
@@ -754,8 +779,8 @@ void PolyHierarchicalSolver<TSparseSpace,TDenseSpace,TReorderer>::ProvideAdditio
             for (auto pair : restriction_map) {
                 const std::size_t i_row = pair.first.first;
                 const std::size_t i_column = pair.first.second;
-                KRATOS_ERROR_IF_NOT(i_row < masked_count);
-                KRATOS_ERROR_IF_NOT(i_column < system_size);
+                KRATOS_ERROR_IF_NOT(i_row < masked_count) << i_row << " is out of range " << masked_count << "\n";
+                KRATOS_ERROR_IF_NOT(i_column < system_size) << i_column << " is out of range " << system_size << "\n";
                 const double value = pair.second;
                 r_restriction_operator.insert_element(i_row, i_column, value);
             }

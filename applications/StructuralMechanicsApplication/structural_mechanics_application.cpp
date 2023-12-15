@@ -93,6 +93,8 @@ KratosStructuralMechanicsApplication::KratosStructuralMechanicsApplication()
       mSurfaceMassElement3D3N(0, Element::GeometryType::Pointer(new Triangle3D3<NodeType >(Element::GeometryType::PointsArrayType(3)))),
       mSurfaceMassElement3D4N(0, Element::GeometryType::Pointer(new Quadrilateral3D4<NodeType >(Element::GeometryType::PointsArrayType(4)))),
       // Adding the kinematic linear elements
+      mSmallDisplacementTruss2D2N(0, Element::GeometryType::Pointer(new Line2D2<NodeType>(Element::GeometryType::PointsArrayType(2)))),
+      mSmallDisplacementTruss2D3N(0, Element::GeometryType::Pointer(new Line2D3<NodeType>(Element::GeometryType::PointsArrayType(3)))),
       mSmallDisplacement2D3N(0, Element::GeometryType::Pointer(new Triangle2D3<NodeType >(Element::GeometryType::PointsArrayType(3)))),
       mSmallDisplacement2D4N(0, Element::GeometryType::Pointer(new Quadrilateral2D4<NodeType >(Element::GeometryType::PointsArrayType(4)))),
       mSmallDisplacement2D6N(0, Element::GeometryType::Pointer(new Triangle2D6<NodeType >(Element::GeometryType::PointsArrayType(6)))),
@@ -532,6 +534,8 @@ void KratosStructuralMechanicsApplication::Register() {
 
     // SOLID ELEMENTS
     // Small displacement elements
+    KRATOS_REGISTER_ELEMENT("SmallDisplacementTrussElement2D2N", mSmallDisplacementTruss2D2N);
+    KRATOS_REGISTER_ELEMENT("SmallDisplacementTrussElement2D3N", mSmallDisplacementTruss2D3N);
     KRATOS_REGISTER_ELEMENT("SmallDisplacementElement2D3N", mSmallDisplacement2D3N)
     KRATOS_REGISTER_ELEMENT("SmallDisplacementElement2D4N", mSmallDisplacement2D4N)
     KRATOS_REGISTER_ELEMENT("SmallDisplacementElement2D6N", mSmallDisplacement2D6N)

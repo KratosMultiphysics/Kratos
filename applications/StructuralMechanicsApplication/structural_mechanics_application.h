@@ -291,6 +291,8 @@ private:
     const MassElement mSurfaceMassElement3D4N;
 
     // Linear kinematic elements
+    const SmallDisplacement mSmallDisplacementTruss2D2N;
+    const SmallDisplacement mSmallDisplacementTruss2D3N;
     const SmallDisplacement mSmallDisplacement2D3N;
     const SmallDisplacement mSmallDisplacement2D4N;
     const SmallDisplacement mSmallDisplacement2D6N;
