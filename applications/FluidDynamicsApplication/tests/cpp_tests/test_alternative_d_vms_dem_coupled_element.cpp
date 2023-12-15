@@ -77,7 +77,7 @@ KRATOS_TEST_CASE_IN_SUITE(AlternativeDVMSDEMCoupled2D4N, FluidDynamicsApplicatio
         Matrix& r_permeability = it_node->FastGetSolutionStepValue(PERMEABILITY);
         r_permeability = ZeroMatrix(Dim, Dim);
         for (unsigned int d = 0; d < Dim; ++d){
-            r_permeability(d,d) = 1.0e+30;
+            r_permeability(d,d) = 0.0;
         }
     }
 
@@ -115,20 +115,41 @@ KRATOS_TEST_CASE_IN_SUITE(AlternativeDVMSDEMCoupled2D4N, FluidDynamicsApplicatio
     Vector RHS = ZeroVector(12);
     Matrix LHS = ZeroMatrix(12,12);
 
-    std::vector<double> output = {6.28653,8.05611,-0.0592958,-6.10046,5.68718,-0.0474501,-8.28656,-7.63009,-0.0403475,5.07712,-9.13657,-0.0529065}; // DVMSDEMCoupled2D4N
+    std::vector<double> output = {2.885342223,3.817976395,-0.05954391544,-3.764678983,2.452222894,-0.04746809897,-5.675304236,-5.32981538,-0.04009093622,1.144992949,-6.350031955,-0.05289704936}; // AlternativeDVMSDEMCoupled2D4N
 
     for (ModelPart::ElementIterator i = model_part.ElementsBegin(); i != model_part.ElementsEnd(); i++) {
         const auto& r_process_info = model_part.GetProcessInfo();
         i->Initialize(r_process_info); // Initialize constitutive law
         const auto& rElem = *i;
         rElem.Check(r_process_info);
+        i->InitializeNonLinearIteration(r_process_info);
         i->CalculateLocalVelocityContribution(LHS, RHS, r_process_info);
-        //std::cout.precision(10);
-        //std::cout << i->Info() << RHS << std::endl;
-        //KRATOS_WATCH(RHS);
+
+        // std::cout << i->Info() << std::setprecision(10) << std::endl;
+        // KRATOS_WATCH(RHS);
 
         for (unsigned int j = 0; j < output.size(); j++) {
             KRATOS_EXPECT_NEAR(RHS[j], output[j], 1e-5);
+        }
+    }
+    double porosity = 0.5;
+    for (ModelPart::NodeIterator it_node=model_part.NodesBegin(); it_node<model_part.NodesEnd(); ++it_node){
+        double& r_fluid_fraction = it_node->FastGetSolutionStepValue(FLUID_FRACTION);
+        r_fluid_fraction = porosity;
+        Matrix& r_permeability = it_node->FastGetSolutionStepValue(PERMEABILITY);
+        r_permeability = ZeroMatrix(Dim, Dim);
+    }
+
+    for (ModelPart::ElementIterator i = model_part.ElementsBegin(); i != model_part.ElementsEnd(); i++) {
+        const auto& r_process_info = model_part.GetProcessInfo();
+        i->Initialize(r_process_info); // Initialize constitutive law
+        const auto& rElem = *i;
+        rElem.Check(r_process_info);
+        i->InitializeNonLinearIteration(r_process_info);
+        i->CalculateLocalVelocityContribution(LHS, RHS, r_process_info);
+
+        for (unsigned int j = 0; j < output.size(); j++) {
+            KRATOS_CHECK_NEAR(RHS[j], porosity*output[j], 1e-5);
         }
     }
 }

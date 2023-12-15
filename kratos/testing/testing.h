@@ -54,6 +54,6 @@ class KratosExternalLibrariesFastSuite : public KratosCoreFastSuite {};
 class KratosNonRectangularJacobianFastSuite : public KratosCoreFastSuite {};
 class KratosCoreStressSuite : public KratosCoreFastSuite {};
 
-DataCommunicator& GetDefaultDataCommunicator();
+KRATOS_API(KRATOS_CORE) DataCommunicator& GetDefaultDataCommunicator();
 
 }
