@@ -64,7 +64,8 @@ struct DistributedSearchInformation
     using SizeType = std::size_t;
 
     std::vector<double> PointCoordinates; /// Vector to store point coordinates.
-    std::vector<IndexType> Indexes;       /// Vector to store point indices. // NOTE: This could be removed in the future
+    std::vector<IndexType> Indexes;       /// Vector to store point indices.
+    std::vector<int> SearchRanks;         /// Ranks where search is invoked.
     std::vector<std::vector<int>> Ranks;  /// Vector of vectors to store ranks.
 
     /**
@@ -75,6 +76,7 @@ struct DistributedSearchInformation
     {
         PointCoordinates.reserve(Size * 3);
         Indexes.reserve(Size);
+        SearchRanks.reserve(Size);
         Ranks.reserve(Size);
     }
 
@@ -85,6 +87,7 @@ struct DistributedSearchInformation
     {
         PointCoordinates.shrink_to_fit();
         Indexes.shrink_to_fit();
+        SearchRanks.shrink_to_fit();
         Ranks.shrink_to_fit();
     }
 
@@ -95,6 +98,7 @@ struct DistributedSearchInformation
     {
         PointCoordinates.clear();
         Indexes.clear();
+        SearchRanks.clear();
         Ranks.clear();
     }
 };
@@ -811,7 +815,8 @@ private:
                 point_to_test[1] = all_points_coordinates[3 * i_point + 1];
                 point_to_test[2] = all_points_coordinates[3 * i_point + 2];
                 const bool is_inside = PointIsInsideBoundingBox(rBoundingBox, point_to_test, ThresholdBoundingBox);
-                const bool to_be_included = is_inside || all_points_ranks[i_point] == rank;
+                const int search_rank = all_points_ranks[i_point];
+                const bool to_be_included = is_inside || search_rank == rank;
                 inside_ranks.resize(world_size);
                 if (to_be_included) {
                     for (i_coord = 0; i_coord < 3; ++i_coord) {
@@ -836,6 +841,7 @@ private:
                 // Now adding // NOTE: Should be ordered, so a priori is not required to reorder
                 if (to_be_included) {
                      rSearchInfo.Ranks.push_back(inside_ranks);
+                     rSearchInfo.SearchRanks.push_back(search_rank);
                 }
             }
         } else { // Serial
