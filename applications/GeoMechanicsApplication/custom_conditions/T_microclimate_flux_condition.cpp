@@ -75,10 +75,10 @@ void TMicroClimateFluxCondition<TDim, TNumNodes>::CalculateLocalSystem(
 
     // Containers of variables at all integration points
     const auto local_dim = static_cast<unsigned int>(r_geom.LocalSpaceDimension());
-    GeometryType::JacobiansType J_container(number_of_integration_points);
+    GeometryType::JacobiansType j_container(number_of_integration_points);
     for (unsigned int i = 0; i < number_of_integration_points; ++i)
-        J_container[i].resize(TDim, local_dim, false);
-    r_geom.Jacobian(J_container, this->GetIntegrationMethod());
+        j_container[i].resize(TDim, local_dim, false);
+    r_geom.Jacobian(j_container, this->GetIntegrationMethod());
 
     const auto& r_N_container =
         this->GetGeometry().ShapeFunctionsValues(this->GetIntegrationMethod());
@@ -109,7 +109,7 @@ void TMicroClimateFluxCondition<TDim, TNumNodes>::CalculateLocalSystem(
         // Compute weighting coefficient for integration
         const auto IntegrationCoefficient =
             ConditionUtilities::CalculateIntegrationCoefficient<TDim, TNumNodes>(
-                J_container[integration_point_index],
+                j_container[integration_point_index],
                 r_integration_points[integration_point_index].Weight());
 
         CalculateAndAddLHS(rLeftHandSideMatrix, N, IntegrationCoefficient, left_hand_side_fluxes);
@@ -240,10 +240,10 @@ double TMicroClimateFluxCondition<TDim, TNumNodes>::CalculateCurrentWaterStorage
         const auto actual_storage =
             PreviousStorage +
             TimeStepSize * (water_fluxes.precipitation - water_fluxes.evaporation);
-        result += actual_storage / TNumNodes;
+        result += actual_storage;
     }
 
-    return result;
+    return result / TNumNodes;
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
@@ -319,10 +319,7 @@ WaterFluxes TMicroClimateFluxCondition<TDim, TNumNodes>::CalculateWaterFluxes(
         actual_evaporation = (PreviousStorage - mMinimalStorage) / TimeStepSize + actual_precipitation;
     }
 
-    WaterFluxes water_fluxes;
-    water_fluxes.evaporation = actual_evaporation;
-    water_fluxes.precipitation = actual_precipitation;
-    return water_fluxes;
+    return {actual_precipitation, actual_evaporation};
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
@@ -348,7 +345,7 @@ double TMicroClimateFluxCondition<TDim, TNumNodes>::CalculatePotentialEvaporatio
 
     // Eq 5.14
     const auto humidity = r_geom[NodeIndex].FastGetSolutionStepValue(AIR_HUMIDITY);
-    const auto actual_vapor_pressure = humidity / 100.0 * saturated_vapor_pressure;
+    const auto actual_vapor_pressure = (humidity / 100.0) * saturated_vapor_pressure;
 
     // Eq 5.34
     auto latent_heat_flux =
@@ -370,8 +367,9 @@ void TMicroClimateFluxCondition<TDim, TNumNodes>::CalculateRoughness(const Proce
 
     const auto& r_geom = this->GetGeometry();
     const auto current_air_temperature = r_geom[0].FastGetSolutionStepValue(AIR_TEMPERATURE);
+    const auto lower_bound = 1.0e-3;
     const auto current_wind_speed =
-        std::max(1.0e-3, r_geom[0].FastGetSolutionStepValue(WIND_SPEED));
+        std::max(lower_bound, r_geom[0].FastGetSolutionStepValue(WIND_SPEED));
 
     const auto previous_roughness_temperature = mRoughnessTemperature;
     mRoughnessTemperature = 0.0;
@@ -408,8 +406,10 @@ void TMicroClimateFluxCondition<TDim, TNumNodes>::CalculateRoughness(const Proce
                  surface_roughness_factor * friction_drag_coefficient *
                  friction_drag_coefficient * current_air_temperature) /
             denominator;
-        mRoughnessTemperature += current_roughness_temperature / TNumNodes;
+        mRoughnessTemperature += current_roughness_temperature;
     }
+
+    mRoughnessTemperature /= TNumNodes;
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>

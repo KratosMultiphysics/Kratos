@@ -546,7 +546,6 @@ private:
     const TMicroClimateFluxCondition<3, 8> mGeoTMicroClimateFluxCondition3D8N{0, Kratos::make_shared<Quadrilateral3D8<NodeType>>(Condition::GeometryType::PointsArrayType(8))};
     const TMicroClimateFluxCondition<3, 9> mGeoTMicroClimateFluxCondition3D9N{0, Kratos::make_shared<Quadrilateral3D9<NodeType>>(Condition::GeometryType::PointsArrayType(9))};
 
-
     // constitutive models
     const BilinearCohesive3DLaw             mBilinearCohesive3DLaw;
     const BilinearCohesive2DLaw             mBilinearCohesive2DLaw;
