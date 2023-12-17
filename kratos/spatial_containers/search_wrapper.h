@@ -627,7 +627,7 @@ private:
         struct TLS {
             Point point;
         };
-        IndexPartition<IndexType>(total_number_of_points).for_each(TLS(),[this, &search_info, &rResults, &Radius, &allocation_size, &rank](std::size_t i_point, TLS& rTLS) {
+        IndexPartition<IndexType>(total_number_of_points).for_each(TLS(),[this, &search_info, &rResults, &Radius, &allocation_size](std::size_t i_point, TLS& rTLS) {
             rTLS.point[0] = search_info.PointCoordinates[i_point * 3 + 0];
             rTLS.point[1] = search_info.PointCoordinates[i_point * 3 + 1];
             rTLS.point[2] = search_info.PointCoordinates[i_point * 3 + 2];
@@ -694,7 +694,7 @@ private:
         struct TLS {
             Point point;
         };
-        IndexPartition<IndexType>(total_number_of_points).for_each(TLS(),[this, &search_info, &rResults, &Radius, &allocation_size, &rank](std::size_t i_point, TLS& rTLS) {
+        IndexPartition<IndexType>(total_number_of_points).for_each(TLS(),[this, &search_info, &rResults, &Radius, &allocation_size](std::size_t i_point, TLS& rTLS) {
             rTLS.point[0] = search_info.PointCoordinates[i_point * 3 + 0];
             rTLS.point[1] = search_info.PointCoordinates[i_point * 3 + 1];
             rTLS.point[2] = search_info.PointCoordinates[i_point * 3 + 2];
@@ -761,7 +761,7 @@ private:
         struct TLS {
             Point point;
         };
-        IndexPartition<IndexType>(total_number_of_points).for_each(TLS(),[this, &search_info, &rResults, &rank](std::size_t i_point, TLS& rTLS) {
+        IndexPartition<IndexType>(total_number_of_points).for_each(TLS(),[this, &search_info, &rResults](std::size_t i_point, TLS& rTLS) {
             rTLS.point[0] = search_info.PointCoordinates[i_point * 3 + 0];
             rTLS.point[1] = search_info.PointCoordinates[i_point * 3 + 1];
             rTLS.point[2] = search_info.PointCoordinates[i_point * 3 + 2];
@@ -825,7 +825,7 @@ private:
         struct TLS {
             Point point;
         };
-        IndexPartition<IndexType>(total_number_of_points).for_each(TLS(),[this, &search_info, &rResults, &rank](std::size_t i_point, TLS& rTLS) {
+        IndexPartition<IndexType>(total_number_of_points).for_each(TLS(),[this, &search_info, &rResults](std::size_t i_point, TLS& rTLS) {
             rTLS.point[0] = search_info.PointCoordinates[i_point * 3 + 0];
             rTLS.point[1] = search_info.PointCoordinates[i_point * 3 + 1];
             rTLS.point[2] = search_info.PointCoordinates[i_point * 3 + 2];
