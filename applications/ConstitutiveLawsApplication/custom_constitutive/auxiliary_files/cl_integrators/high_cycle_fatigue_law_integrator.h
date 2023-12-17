@@ -269,6 +269,8 @@ public:
                                             double& rN_f)
 	{
 
+        const double yield_stress = rMaterialParameters.Has(YIELD_STRESS) ? rMaterialParameters[YIELD_STRESS] : rMaterialParameters[YIELD_STRESS_TENSION];
+
         const Vector& r_fatigue_coefficients = rMaterialParameters[HIGH_CYCLE_FATIGUE_COEFFICIENTS];
 
         //These variables have been defined following the model described by S. Oller et al. in A continuum mechanics model for mechanical fatigue analysis (2005), equation 13 on page 184.
@@ -297,6 +299,13 @@ public:
                 rN_f = std::pow(10.0,std::pow(-std::log((MaxStress - rSth) / (UltimateStress - rSth)) / rAlphat,(1.0 / BETAF)));
                 rB0 = -(std::log(MaxStress / UltimateStress) / std::pow((std::log10(rN_f)), FatigueReductionFactorSmoothness * square_betaf));
 
+                const int softening_type = rMaterialParameters[SOFTENING_TYPE];
+                const int curve_by_points = static_cast<int>(SofteningType::CurveFittingDamage);
+                
+                if (softening_type == curve_by_points) {
+                    rN_f = std::pow(rN_f, std::pow(std::log(MaxStress / yield_stress) / std::log(MaxStress / UltimateStress), 1.0 / (FatigueReductionFactorSmoothness * square_betaf)));
+                }
+
                 const double stress_relative_error = std::abs(MaxStress - UltimateStress) / UltimateStress;         
                 if (stress_relative_error <= 1.0e-3){
                     rN_f = ReferenceNumberOfCycles;
@@ -320,6 +329,13 @@ public:
                         
                         rN_f = std::pow(10.0,std::pow(-std::log((equivalent_max_stress - rSth) / (UltimateStress - rSth)) / rAlphat,(1.0 / BETAF)));
                         rB0 = -(std::log(equivalent_max_stress / UltimateStress) / std::pow((std::log10(rN_f)), FatigueReductionFactorSmoothness * square_betaf));
+
+                        const int softening_type = rMaterialParameters[SOFTENING_TYPE];
+                        const int curve_by_points = static_cast<int>(SofteningType::CurveFittingDamage);
+
+                        if (softening_type == curve_by_points) {
+                            rN_f = std::pow(rN_f, std::pow(std::log(MaxStress / yield_stress) / std::log(MaxStress / UltimateStress), 1.0 / (FatigueReductionFactorSmoothness * square_betaf)));
+                        }
                     }
                 }
         // }else {
