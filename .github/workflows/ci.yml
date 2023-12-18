@@ -285,8 +285,7 @@ jobs:
         -DTRILINOS_INCLUDE_DIR="/usr/include/trilinos" \
         -DTRILINOS_LIBRARY_DIR="/usr/lib/x86_64-linux-gnu" \
         -DTRILINOS_LIBRARY_PREFIX="trilinos_" \
-        -DKRATOS_USE_PCH=ON \
-        -DINSTALL_RUNKRATOS=OFF
+        -DKRATOS_USE_PCH=ON
 
         # Build
         cmake --build "${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}" --target install -- -j2
@@ -401,7 +400,6 @@ jobs:
           -H"%KRATOS_SOURCE%"                                 ^
           -B"%KRATOS_BUILD%\%KRATOS_BUILD_TYPE%"              ^
           -DBOOST_ROOT="%TEMP%\boost"                         ^
-          -DINSTALL_RUNKRATOS=OFF                             ^
           -DCMAKE_CXX_FLAGS="/Od /we4661 /we4804 /WX /wd4996" ^
           -DKRATOS_USE_PCH=ON                                 ^
           -DFORCE_LOCAL_ZLIB_COMPILATION=ON                   || goto :error
