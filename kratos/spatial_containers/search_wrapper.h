@@ -606,9 +606,6 @@ private:
             rResults.Clear();
         }
 
-        // Some MPI data
-        const int rank = mrDataCommunicator.Rank();
-
         // Retrieving parameters
         const int allocation_size = mSettings["allocation_size"].GetInt();
 
@@ -673,9 +670,6 @@ private:
             rResults.Clear();
         }
 
-        // Some MPI data
-        const int rank = mrDataCommunicator.Rank();
-
         // Retrieving parameters
         const int allocation_size = mSettings["allocation_size"].GetInt();
 
@@ -737,9 +731,6 @@ private:
         if (ClearSolution) {
             rResults.Clear();
         }
-
-        // Some MPI data
-        const int rank = mrDataCommunicator.Rank();
 
         // Get the maximum radius
         const auto bb = GetBoundingBox();
@@ -806,9 +797,6 @@ private:
         if (ClearSolution) {
             rResults.Clear();
         }
-
-        // Some MPI data
-        const int rank = mrDataCommunicator.Rank();
 
         // The local bounding box
         const auto& r_local_bb = mpSearchObject ? mpSearchObject->GetBoundingBox() : BoundingBox<PointType>();
