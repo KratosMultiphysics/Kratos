@@ -35,6 +35,11 @@ public :
         mCancelDelegate = rCancelDelegate;
     }
 
+    void SetProgressDelegate(const std::function<void(double)>& rProgressDelegate) override
+    {
+        mProgressDelegate = rProgressDelegate;
+    }
+
     void SetProcessObservables(const std::vector<std::weak_ptr<Process>>& rProcessObservables) override
     {
         mTimeStepExecutor->SetProcessObservables(rProcessObservables);
@@ -84,6 +89,7 @@ private:
 
         auto end_state = mTimeStepExecutor->Run(end_time);
         mTimeIncrementor->PostTimeStepExecution(end_state);
+        UpdateProgress(end_time);
         return end_state;
     }
 
@@ -106,8 +112,16 @@ private:
         return mCancelDelegate && mCancelDelegate();
     }
 
+    void UpdateProgress(double Time) const
+    {
+        if (mProgressDelegate) {
+            mProgressDelegate(Time);
+        }
+    }
+
     std::unique_ptr<TimeIncrementor>  mTimeIncrementor;
     std::function<bool()>             mCancelDelegate;
+    std::function<void(double)>       mProgressDelegate;
     std::unique_ptr<TimeStepExecutor> mTimeStepExecutor = std::make_unique<TimeStepExecutor>();
     std::shared_ptr<StrategyWrapper>  mStrategyWrapper;
 };
