@@ -80,6 +80,10 @@ if(${KRATOS_BUILD_TESTING} MATCHES ON)
     install(TARGETS KratosCoreTest)
 
     gtest_discover_tests(KratosCoreTest)
+    file(GLOB_RECURSE KRATOS_TEST_SOURCES
+        ${CMAKE_CURRENT_SOURCE_DIR}/tests/test_utilities/*.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/tests/cpp_tests/*.cpp
+    )
 endif(${KRATOS_BUILD_TESTING} MATCHES ON)
 
 ## Define KratosVersion object
