@@ -330,7 +330,7 @@ void GatherModelPartUtility::GatherEntityFromOtherPartitions(
     // Allocating the temporary entities to bring container
     ContainerType entities_to_bring;
     std::size_t counter = 0;
-    for (auto& r_bring : rEntitiesToBring) {
+    for (const auto& r_bring : rEntitiesToBring) {
         counter += r_bring.second.size();
     }
     entities_to_bring.reserve(counter);
