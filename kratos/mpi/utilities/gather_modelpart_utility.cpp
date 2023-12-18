@@ -326,6 +326,8 @@ void GatherModelPartUtility::GatherEntityFromOtherPartitions(
         typename TObjectType::Pointer,
         std::vector<typename TObjectType::Pointer>
     >;
+    
+    // Allocating the temporary entities to bring container
     ContainerType entities_to_bring;
     std::size_t counter = 0;
     for (auto& r_bring : rEntitiesToBring) {
