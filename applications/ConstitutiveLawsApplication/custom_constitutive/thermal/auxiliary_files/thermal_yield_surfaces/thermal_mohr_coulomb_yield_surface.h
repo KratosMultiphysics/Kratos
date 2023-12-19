@@ -119,7 +119,19 @@ public:
         ConstitutiveLaw::Parameters& rValues
         )
     {
-        BaseType::CalculateEquivalentStress(rStressVector, rStrainVector, rEquivalentStress, rValues);
+        double I1, J2, J3, lode_angle;
+        array_1d<double, VoigtSize> deviator = ZeroVector(VoigtSize);
+
+        AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateI1Invariant(rPredictiveStressVector, I1);
+        AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateJ2Invariant(rPredictiveStressVector, I1, deviator, J2);
+        AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateJ3Invariant(deviator, J3);
+        AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateLodeAngle(J2, J3, lode_angle);
+
+        const Properties& r_material_properties = rValues.GetMaterialProperties();
+        const double friction_angle = AdvCLutils::GetMaterialPropertyThroughAccessor(FRICTION_ANGLE, rValues) * Globals::Pi / 180.0;
+
+        rEquivalentStress = (std::cos(lode_angle) - std::sin(lode_angle) * std::sin(friction_angle) / std::sqrt(3.0)) * std::sqrt(J2) +
+            I1 * std::sin(friction_angle) / 3.0;
     }
 
     /**
@@ -163,8 +175,6 @@ public:
         const auto &r_N = rValues.GetShapeFunctionsValues();
         const auto &r_process_info = rValues.GetProcessInfo();
 
-        // const double fracture_energy = r_material_properties[FRACTURE_ENERGY];
-        // const double young_modulus = r_material_properties[YOUNG_MODULUS];
         const double fracture_energy = r_material_properties.GetValue(FRACTURE_ENERGY, r_geom, r_N, r_process_info);
         const double young_modulus   = r_material_properties.GetValue(YOUNG_MODULUS, r_geom, r_N, r_process_info);
 
@@ -173,7 +183,7 @@ public:
         if (r_material_properties[SOFTENING_TYPE] == static_cast<int>(SofteningType::Exponential)) {
             rAParameter = 1.00 / (fracture_energy * young_modulus / (CharacteristicLength * std::pow(equivalent_yield, 2)) - 0.5);
             KRATOS_ERROR_IF(rAParameter < 0.0) << "Fracture Energy is too low, increase FRACTURE_ENERGY..." << std::endl;
-        } else (r_material_properties[SOFTENING_TYPE] == static_cast<int>(SofteningType::Linear)) { // linear
+        } else if (r_material_properties[SOFTENING_TYPE] == static_cast<int>(SofteningType::Linear)) { // linear
             rAParameter = -std::pow(equivalent_yield, 2) / (2.0 * young_modulus * fracture_energy / CharacteristicLength);
         } else {
             rAParameter = 0.0;
