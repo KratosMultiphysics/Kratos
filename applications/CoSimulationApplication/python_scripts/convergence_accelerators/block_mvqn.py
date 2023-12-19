@@ -42,12 +42,12 @@ class BLOCKMVQNConvergenceAccelerator(CoSimulationConvergenceAccelerator):
         self.J_hat = {}
         self.coupl_data_names = {}
 
-        for solverData in settings["solver_sequence"].values():
-            self.X_tilde[solverData["data_name"].GetString()] = deque( maxlen = horizon )
-            self.X[solverData["data_name"].GetString()] = deque( maxlen = horizon )
-            self.J[solverData["data_name"].GetString()] = None # size will be determined when first time get the input vector
-            self.J_hat[solverData["data_name"].GetString()] = None
-            self.coupl_data_names[solverData["data_name"].GetString()] = solverData["coupled_data_name"].GetString()
+        for solver_data in settings["solver_sequence"].values():
+            self.X_tilde[solver_data["data_name"].GetString()] = deque( maxlen = horizon )
+            self.X[solver_data["data_name"].GetString()] = deque( maxlen = horizon )
+            self.J[solver_data["data_name"].GetString()] = None # size will be determined when first time get the input vector
+            self.J_hat[solver_data["data_name"].GetString()] = None
+            self.coupl_data_names[solver_data["data_name"].GetString()] = solver_data["coupled_data_name"].GetString()
 
     ## UpdateSolution(r, x, y, data_name, yResidual)
     # @param r residual r_k
@@ -84,13 +84,13 @@ class BLOCKMVQNConvergenceAccelerator(CoSimulationConvergenceAccelerator):
                 b = r - self.J[data_name] @ yResidual
                 return np.linalg.solve( blockJacobian, b )
 
-        ## Construct matrix W(differences of intermediate solutions x)
+        ## Construct matrix W(differences of intermediate solutions y)
         W = np.empty( shape = (col, rowY) ) # will be transposed later
         for i in range(0, col):
             W[i] = self.X[coupled_data_name][i] - self.X[coupled_data_name][i + 1]
         W = W.T
 
-        ## Construct matrix W(differences of intermediate solutions y~)
+        ## Construct matrix W(differences of intermediate solutions x~)
         V = np.empty( shape = (col, row) ) # will be transposed later
         for i in range(0, col):
             V[i] = self.X_tilde[data_name][i] - self.X_tilde[data_name][i + 1]
@@ -121,7 +121,7 @@ class BLOCKMVQNConvergenceAccelerator(CoSimulationConvergenceAccelerator):
         this_defaults = KM.Parameters("""{
             "horizon" : 15,
             "alpha"   : 1.0,
-            "epsilon" : 1e-7,
+            "epsilon" : 1e-9,
             "solver_sequence" : []
         }""")
         this_defaults.AddMissingParameters(super()._GetDefaultParameters())
