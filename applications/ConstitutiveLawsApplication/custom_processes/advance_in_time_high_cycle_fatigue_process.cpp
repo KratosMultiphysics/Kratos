@@ -38,7 +38,9 @@ void AdvanceInTimeHighCycleFatigueProcess::Execute()
     auto& process_info = mrModelPart.GetProcessInfo();
     bool cycle_found = false;
     std::vector<double> damage;
+    std::vector<double> AITControlCounter;
     process_info[ADVANCE_STRATEGY_APPLIED] = false;
+    process_info[AIT_CONTROL_PARAMETER] = true;
 
     if (!process_info[DAMAGE_ACTIVATION]) {
 
@@ -57,6 +59,23 @@ void AdvanceInTimeHighCycleFatigueProcess::Execute()
         }
     }
 
+    for (auto& r_elem : mrModelPart.Elements()) {
+        unsigned int number_of_ip = r_elem.GetGeometry().IntegrationPoints(r_elem.GetIntegrationMethod()).size();
+        r_elem.CalculateOnIntegrationPoints(AIT_CONTROL_COUNTER, AITControlCounter, process_info);
+
+        std::vector<ConstitutiveLaw::Pointer> constitutive_law_vector(number_of_ip);
+        r_elem.CalculateOnIntegrationPoints(CONSTITUTIVE_LAW,constitutive_law_vector,process_info);
+
+        const bool is_fatigue = constitutive_law_vector[0]->Has(CYCLE_INDICATOR);
+
+        for (unsigned int i = 0; i < number_of_ip; i++) {
+                if (is_fatigue && AITControlCounter[i] < 11.0) {
+                    process_info[AIT_CONTROL_PARAMETER] = false;
+                    break;
+                }
+        }
+    }
+
     this->CyclePeriodPerIntegrationPoint(cycle_found);  //This method detects if a cycle has finished somewhere in the model and
                                                         //computes the time period of the cycle that has just finished.
 
@@ -64,7 +83,7 @@ void AdvanceInTimeHighCycleFatigueProcess::Execute()
         bool advancing_strategy = false;
         this->StableConditionForAdvancingStrategy(advancing_strategy, process_info[DAMAGE_ACTIVATION]);  //Check if the conditions are optimal to apply the advancing strategy in
                                                                         //terms of max stress and reversion factor variation.
-        if (advancing_strategy) {
+        if (advancing_strategy && process_info[AIT_CONTROL_PARAMETER]) {
             double increment = 0.0;
             if (!process_info[DAMAGE_ACTIVATION]) {
                 this->TimeIncrement(increment);

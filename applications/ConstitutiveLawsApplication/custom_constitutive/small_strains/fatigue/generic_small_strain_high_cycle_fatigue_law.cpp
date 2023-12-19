@@ -162,6 +162,7 @@ void GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::InitializeM
                                                                                         alphat,
                                                                                         fatigue_reduction_factor,
                                                                                         wohler_stress);
+        mAITControlParameter = 0.0;
     }
     mNumberOfCyclesGlobal = global_number_of_cycles;
     mNumberOfCyclesLocal = local_number_of_cycles;
@@ -176,6 +177,7 @@ void GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::InitializeM
     mWohlerStress = wohler_stress;
     mNewCycleIndicator = new_cycle;
     mThresholdStress = s_th;
+    mAITControlParameter += 1.0;
 }
 
 
@@ -450,6 +452,8 @@ bool GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::Has(const V
         return true;
     } else if (rThisVariable == CYCLE_PERIOD) {
         return true;
+    } else if (rThisVariable == AIT_CONTROL_COUNTER) {
+        return true;
     } else {
         return BaseType::Has(rThisVariable);
     }
@@ -581,6 +585,8 @@ double& GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::GetValue
         rValue = mPreviousCycleTime;
     } else if (rThisVariable == CYCLE_PERIOD) {
         rValue = mPeriod;
+    } else if (rThisVariable == AIT_CONTROL_COUNTER) {
+        rValue = mAITControlParameter;
     } else {
         return BaseType::GetValue(rThisVariable, rValue);
     }
