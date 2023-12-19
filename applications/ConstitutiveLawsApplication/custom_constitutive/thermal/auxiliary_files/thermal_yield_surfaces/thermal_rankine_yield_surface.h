@@ -15,8 +15,9 @@
 // System includes
 
 // Project includes
-#include "custom_constitutive/auxiliary_files/yield_surfaces/tresca_yield_surface.h"
+#include "custom_constitutive/auxiliary_files/yield_surfaces/rankine_yield_surface.h"
 #include "thermal_von_mises_yield_surface.h"
+
 
 namespace Kratos
 {
@@ -39,14 +40,20 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 /**
- * @class TrescaYieldSurface
+ * @class RankineYieldSurface
  * @ingroup StructuralMechanicsApplication
- * @brief This class defines a yield surface according to Tresca theory with thermal effects
+ * @brief This class defines a yield surface according to Rankine theory
+ * @details The Rankine yield surface is formally similar to Mohr-Coulomb but limits the allowed  maximum principal stress. It is formed bt a tetrahedron
+ * The yield surface requires the definition of the following properties:
+ * - FRACTURE_ENERGY: A fracture energy-based function is used to describe strength degradation in post-peak regime
+ * - YOUNG_MODULUS: It defines the relationship between stress (force per unit area) and strain (proportional deformation) in a material in the linear elasticity regime of a uniaxial deformation.
+ * - YIELD_STRESS: Yield stress is the amount of stress that an object needs to experience for it to be permanently deformed. Does not require to be defined simmetrically, one YIELD_STRESS_COMPRESSION and other YIELD_STRESS_TENSION can be defined for not symmetric cases
+ * @see https://books.google.fr/books?id=zArcAwAAQBAJ&pg=PA42&lpg=PA42&dq=rankine+yield+surface&source=bl&ots=8nB5XPh-Tw&sig=xFhJ-F6cCj3b5ByDXWGRosSkGFQ&hl=es&sa=X&ved=2ahUKEwinr6bZ1rDdAhVG-YUKHRRADv4Q6AEwFnoECAcQAQ#v=onepage&q=rankine%20yield%20surface&f=false
  * @tparam TPlasticPotentialType The plastic potential considered
- * @author Alejandro Cornejo
+ * @author Alejandro Cornejo & Lucia Barbu
  */
 template <class TPlasticPotentialType>
-class ThermalTrescaYieldSurface
+class ThermalRankineYieldSurface
 {
 public:
     ///@name Type Definitions
@@ -55,7 +62,7 @@ public:
     /// The type of potential plasticity
     using PlasticPotentialType = TPlasticPotentialType;
 
-    using BaseType = TrescaYieldSurface<TPlasticPotentialType>;
+    using BaseType = RankineYieldSurface<TPlasticPotentialType>;
     using ThermalVonMisesType = ThermalVonMisesYieldSurface<TPlasticPotentialType>;
 
     /// The Plastic potential already defines the working simension size
@@ -64,10 +71,10 @@ public:
     /// The Plastic potential already defines the Voigt size
     static constexpr SizeType VoigtSize = PlasticPotentialType::VoigtSize;
 
-    /// Counted pointer of TrescaYieldSurface
-    KRATOS_CLASS_POINTER_DEFINITION(ThermalTrescaYieldSurface);
+    /// Counted pointer of ThermalRankineYieldSurface
+    KRATOS_CLASS_POINTER_DEFINITION(ThermalRankineYieldSurface);
 
-    /// The machine precision zero tolerance
+    /// The zero tolerance definition
     static constexpr double tolerance = std::numeric_limits<double>::epsilon();
 
     ///@}
@@ -75,28 +82,27 @@ public:
     ///@{
 
     /// Initialization constructor.
-    ThermalTrescaYieldSurface()
+    ThermalRankineYieldSurface()
     {
     }
 
     /// Copy constructor
-    ThermalTrescaYieldSurface(ThermalTrescaYieldSurface const &rOther)
+    ThermalRankineYieldSurface(ThermalRankineYieldSurface const &rOther)
     {
     }
 
     /// Assignment operator
-    ThermalTrescaYieldSurface &operator=(ThermalTrescaYieldSurface const &rOther)
+    ThermalRankineYieldSurface &operator=(ThermalRankineYieldSurface const &rOther)
     {
         return *this;
     }
 
     /// Destructor
-    virtual ~ThermalTrescaYieldSurface(){};
+    virtual ~ThermalRankineYieldSurface(){};
 
     ///@}
     ///@name Operators
     ///@{
-
     ///@}
     ///@name Operations
     ///@{
@@ -106,7 +112,6 @@ public:
      * @param rStressVector The predictive stress vector S = C:(E-Ep)
      * @param rStrainVector The StrainVector vector
      * @param rValues Parameters of the constitutive law
-     * @param rEquivalentStress The effective stress or equivalent uniaxial stress is a scalar. It is an invariant value which measures the “intensity” of a 3D stress state.
      */
     static void CalculateEquivalentStress(
         const array_1d<double, VoigtSize>& rStressVector,
@@ -123,10 +128,7 @@ public:
      * @param rThreshold The uniaxial stress threshold
      * @param rValues Parameters of the constitutive law
      */
-    static void GetInitialUniaxialThreshold(
-        ConstitutiveLaw::Parameters& rValues,
-        double& rThreshold
-        )
+    static void GetInitialUniaxialThreshold(ConstitutiveLaw::Parameters& rValues, double& rThreshold)
     {
         ThermalVonMisesType::GetInitialUniaxialThreshold(rValues, rThreshold);
     }
@@ -140,25 +142,24 @@ public:
     static void CalculateDamageParameter(
         ConstitutiveLaw::Parameters& rValues,
         double& rAParameter,
-        const double CharacteristicLength
-        )
+        const double CharacteristicLength)
     {
         ThermalVonMisesType::CalculateDamageParameter(rValues, rAParameter, CharacteristicLength);
     }
 
     /**
      * @brief This method calculates the derivative of the plastic potential DG/DS
-     * @param rStressVector The stress vector
+     * @param rStressVector The predictive stress vector S = C:(E-Ep)
      * @param rDeviator The deviatoric part of the stress vector
      * @param J2 The second invariant of the Deviator
-     * @param rDerivativePlasticPotential The derivative of the plastic potential
+     * @param rPlasticPotential The derivative of the plastic potential
      * @param rValues Parameters of the constitutive law
      */
     static void CalculatePlasticPotentialDerivative(
         const array_1d<double, VoigtSize>& rStressVector,
         const array_1d<double, VoigtSize>& rDeviator,
         const double J2,
-        array_1d<double, VoigtSize>& rDerivativePlasticPotential,
+        array_1d<double, VoigtSize>& rPlasticPotential,
         ConstitutiveLaw::Parameters& rValues
         )
     {
@@ -170,7 +171,7 @@ public:
     according   to   NAYAK-ZIENKIEWICZ   paper International
     journal for numerical methods in engineering vol 113-135 1972.
      As:            DF/DS = c1*V1 + c2*V2 + c3*V3
-     * @param rStressVector The stress vector
+     * @param rPredictiveStressVector The predictive stress vector S = C:(E-Ep)
      * @param rDeviator The deviatoric part of the stress vector
      * @param J2 The second invariant of the Deviator
      * @param rFFlux The derivative of the yield surface
@@ -289,7 +290,7 @@ private:
 
     ///@}
 
-}; // Class TrescaYieldSurface
+}; // Class RankineYieldSurface
 
 ///@}
 
