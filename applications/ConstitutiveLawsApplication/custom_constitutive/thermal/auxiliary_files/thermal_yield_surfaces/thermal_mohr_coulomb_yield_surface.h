@@ -1,8 +1,7 @@
-// KRATOS ___                _   _ _         _   _             __                       _
-//       / __\___  _ __  ___| |_(_) |_ _   _| |_(_)_   _____  / /  __ ___      _____   /_\  _ __  _ __
-//      / /  / _ \| '_ \/ __| __| | __| | | | __| \ \ / / _ \/ /  / _` \ \ /\ / / __| //_\\| '_ \| '_  |
-//     / /__| (_) | | | \__ \ |_| | |_| |_| | |_| |\ V /  __/ /__| (_| |\ V  V /\__ \/  _  \ |_) | |_) |
-//     \____/\___/|_| |_|___/\__|_|\__|\__,_|\__|_| \_/ \___\____/\__,_| \_/\_/ |___/\_/ \_/ .__/| .__/
+// KRATOS  ___|  |                   |                   |
+//       \___ \  __|  __| |   |  __| __| |   |  __| _` | |
+//             | |   |    |   | (    |   |   | |   (   | |
+//       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
 //
 //  License:         BSD License
 //                   license: structural_mechanics_application/license.txt
@@ -15,7 +14,8 @@
 // System includes
 
 // Project includes
-#include "custom_constitutive/auxiliary_files/yield_surfaces/von_mises_yield_surface.h"
+#include "custom_constitutive/auxiliary_files/yield_surfaces/mohr_coulomb_yield_surface.h"
+#include "thermal_von_mises_yield_surface.h"
 
 namespace Kratos
 {
@@ -25,9 +25,6 @@ namespace Kratos
 ///@}
 ///@name Type Definitions
 ///@{
-
-    // The size type definition
-    using SizeType = std::size_t;
 
 ///@}
 ///@name  Enum's
@@ -41,25 +38,28 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 /**
- * @class ThermalVonMisesYieldSurface
+ * @class ThermalMohrCoulombYieldSurface
  * @ingroup StructuralMechanicsApplication
  * @brief This class defines a yield surface according to Von-Mises theory
- * @details The von Mises yield criterion (also known as the maximum distortion energy criterion) suggests that yielding of a ductile material begins when the second deviatoric stress invariant J2 reaches a critical value. It is part of plasticity theory that applies best to ductile materials, such as some metals. Prior to yield, material response can be assumed to be of a nonlinear elastic, viscoelastic, or linear elastic behavior. Includes thermal effects
- * @see https://en.wikipedia.org/wiki/Von_Mises_yield_criterion
+ * @details The Mohr–Coulomb failure surface is a cone with a hexagonal cross section in deviatoric stress space
+ * The yield surface requires the definition of the following properties:
+ * - FRACTURE_ENERGY: A fracture energy-based function is used to describe strength degradation in post-peak regime
+ * - YOUNG_MODULUS: It defines the relationship between stress (force per unit area) and strain (proportional deformation) in a material in the linear elasticity regime of a uniaxial deformation.
+ * - YIELD_STRESS: Yield stress is the amount of stress that an object needs to experience for it to be permanently deformed. Does not require to be defined simmetrically, one YIELD_STRESS_COMPRESSION and other YIELD_STRESS_TENSION can be defined for not symmetric cases
+ * - COHESION: Is the intercept of the failure envelope with the tau axis
+ * @see https://en.wikipedia.org/wiki/Mohr%E2%80%93Coulomb_theory
  * @tparam TPlasticPotentialType The plastic potential considered
  * @author Alejandro Cornejo
  */
 template <class TPlasticPotentialType>
-class ThermalVonMisesYieldSurface
+class ThermalMohrCoulombYieldSurface
 {
 public:
     ///@name Type Definitions
     ///@{
 
     /// The type of potential plasticity
-    using PlasticPotentialType = TPlasticPotentialType;
-
-    using BaseType = VonMisesYieldSurface<TPlasticPotentialType>;
+    typedef TPlasticPotentialType PlasticPotentialType;
 
     /// The Plastic potential already defines the working simension size
     static constexpr SizeType Dimension = PlasticPotentialType::Dimension;
@@ -67,12 +67,8 @@ public:
     /// The Plastic potential already defines the Voigt size
     static constexpr SizeType VoigtSize = PlasticPotentialType::VoigtSize;
 
-    using AdvCLutils = AdvancedConstitutiveLawUtilities<VoigtSize>;
-
-    using BoundedVector = array_1d<double, VoigtSize>;
-
-    /// Counted pointer of ThermalVonMisesYieldSurface
-    KRATOS_CLASS_POINTER_DEFINITION(ThermalVonMisesYieldSurface);
+    /// Counted pointer of MohrCoulombYieldSurface
+    KRATOS_CLASS_POINTER_DEFINITION(ThermalMohrCoulombYieldSurface);
 
     /// The machine precision zero tolerance
     static constexpr double tolerance = std::numeric_limits<double>::epsilon();
@@ -82,23 +78,23 @@ public:
     ///@{
 
     /// Initialization constructor.
-    ThermalVonMisesYieldSurface()
+    ThermalMohrCoulombYieldSurface()
     {
     }
 
     /// Copy constructor
-    ThermalVonMisesYieldSurface(ThermalVonMisesYieldSurface const &rOther)
+    ThermalMohrCoulombYieldSurface(ThermalMohrCoulombYieldSurface const &rOther)
     {
     }
 
     /// Assignment operator
-    ThermalVonMisesYieldSurface &operator=(ThermalVonMisesYieldSurface const &rOther)
+    ThermalMohrCoulombYieldSurface &operator=(ThermalMohrCoulombYieldSurface const &rOther)
     {
         return *this;
     }
 
     /// Destructor
-    virtual ~ThermalVonMisesYieldSurface(){};
+    virtual ~ThermalMohrCoulombYieldSurface(){};
 
     ///@}
     ///@name Operators
@@ -109,13 +105,13 @@ public:
     ///@{
 
     /**
-     * @brief This method computes sqrt(3*J2)
-     * @param rStressVector The stress vector
+     * @brief This method the uniaxial equivalent stress
+     * @param rStressVector The predictive stress vector S = C:(E-Ep)
      * @param rStrainVector The StrainVector vector
      * @param rValues Parameters of the constitutive law
      */
     static void CalculateEquivalentStress(
-        const BoundedVector& rStressVector,
+        const array_1d<double, VoigtSize>& rStressVector,
         const Vector& rStrainVector,
         double& rEquivalentStress,
         ConstitutiveLaw::Parameters& rValues
@@ -134,15 +130,17 @@ public:
         double& rThreshold
         )
     {
-        const auto& r_props = rValues.GetMaterialProperties();
-        double yield_tension;
+        const auto& r_material_properties = rValues.GetMaterialProperties();
+        double friction_angle, cohesion;
         if (rValues.IsSetShapeFunctionsValues()) { // This is needed since at Initialize level the N are not set yet...
-            yield_tension = r_props.Has(YIELD_STRESS) ? AdvCLutils::GetMaterialPropertyThroughAccessor(YIELD_STRESS, rValues) : AdvCLutils::GetMaterialPropertyThroughAccessor(YIELD_STRESS_TENSION, rValues);
+            friction_angle = AdvCLutils::GetMaterialPropertyThroughAccessor(FRICTION_ANGLE, rValues);
+            cohesion = AdvCLutils::GetMaterialPropertyThroughAccessor(COHESION, rValues);
         } else {
             const double ref_temperature = r_props.Has(REFERENCE_TEMPERATURE) ? r_props[REFERENCE_TEMPERATURE] : rValues.GetElementGeometry().GetValue(REFERENCE_TEMPERATURE);
-            yield_tension = r_props.Has(YIELD_STRESS) ? AdvCLutils::GetPropertyFromTemperatureTable(YIELD_STRESS, rValues, ref_temperature) : AdvCLutils::GetPropertyFromTemperatureTable(YIELD_STRESS_TENSION, rValues, ref_temperature);
+            friction_angle = AdvCLutils::GetPropertyFromTemperatureTable(FRICTION_ANGLE, rValues, ref_temperature)
+            cohesion = AdvCLutils::GetPropertyFromTemperatureTable(COHESION, rValues, ref_temperature)
         }
-        rThreshold = std::abs(yield_tension);
+        rThreshold = cohesion * std::cos(friction_angle);
     }
 
     /**
@@ -163,16 +161,18 @@ public:
         const auto &r_N = rValues.GetShapeFunctionsValues();
         const auto &r_process_info = rValues.GetProcessInfo();
 
-        // In here we check the accessor
+        // const double fracture_energy = r_material_properties[FRACTURE_ENERGY];
+        // const double young_modulus = r_material_properties[YOUNG_MODULUS];
         const double fracture_energy = r_material_properties.GetValue(FRACTURE_ENERGY, r_geom, r_N, r_process_info);
         const double young_modulus   = r_material_properties.GetValue(YOUNG_MODULUS, r_geom, r_N, r_process_info);
-        const double yield_compression = r_material_properties.Has(YIELD_STRESS) ? r_material_properties.GetValue(YIELD_STRESS, r_geom, r_N, r_process_info) : r_material_properties.GetValue(YIELD_STRESS_COMPRESSION, r_geom, r_N, r_process_info);
 
+        double equivalent_yield;
+        GetInitialUniaxialThreshold(rValues, equivalent_yield);
         if (r_material_properties[SOFTENING_TYPE] == static_cast<int>(SofteningType::Exponential)) {
-            rAParameter = 1.0 / (fracture_energy * young_modulus / (CharacteristicLength * std::pow(yield_compression, 2)) - 0.5);
-            KRATOS_ERROR_IF(rAParameter < 0.0) << "Fracture energy is too low, increase FRACTURE_ENERGY..." << std::endl;
-        } else if (r_material_properties[SOFTENING_TYPE] == static_cast<int>(SofteningType::Linear)) { // linear
-            rAParameter = -std::pow(yield_compression, 2) / (2.0 * young_modulus * fracture_energy / CharacteristicLength);
+            rAParameter = 1.00 / (fracture_energy * young_modulus / (CharacteristicLength * std::pow(equivalent_yield, 2)) - 0.5);
+            KRATOS_ERROR_IF(rAParameter < 0.0) << "Fracture Energy is too low, increase FRACTURE_ENERGY..." << std::endl;
+        } else (r_material_properties[SOFTENING_TYPE] == static_cast<int>(SofteningType::Linear)) { // linear
+            rAParameter = -std::pow(equivalent_yield, 2) / (2.0 * young_modulus * fracture_energy / CharacteristicLength);
         } else {
             rAParameter = 0.0;
         }
@@ -187,10 +187,10 @@ public:
      * @param rValues Parameters of the constitutive law
      */
     static void CalculatePlasticPotentialDerivative(
-        const BoundedVector& rStressVector,
-        const BoundedVector& rDeviator,
+        const array_1d<double, VoigtSize>& rPredictiveStressVector,
+        const array_1d<double, VoigtSize>& rDeviator,
         const double J2,
-        BoundedVector& rDerivativePlasticPotential,
+        array_1d<double, VoigtSize>& rDerivativePlasticPotential,
         ConstitutiveLaw::Parameters& rValues
         )
     {
@@ -202,21 +202,48 @@ public:
     according   to   NAYAK-ZIENKIEWICZ   paper International
     journal for numerical methods in engineering vol 113-135 1972.
      As:            DF/DS = c1*V1 + c2*V2 + c3*V3
-     * @param rStressVector The stress vector
+     * @param rPredictiveStressVector The predictive stress vector S = C:(E-Ep)
      * @param rDeviator The deviatoric part of the stress vector
      * @param J2 The second invariant of the Deviator
      * @param rFFlux The derivative of the yield surface
      * @param rValues Parameters of the constitutive law
      */
     static void CalculateYieldSurfaceDerivative(
-        const BoundedVector& rStressVector,
-        const BoundedVector& rDeviator,
+        const array_1d<double, VoigtSize>& rPredictiveStressVector,
+        const array_1d<double, VoigtSize>& rDeviator,
         const double J2,
-        BoundedVector& rFFlux,
+        array_1d<double, VoigtSize>& rFFlux,
         ConstitutiveLaw::Parameters& rValues
         )
     {
-        BaseType::CalculateYieldSurfaceDerivative(rStressVector, rDeviator, J2, rFFlux, rValues);
+        array_1d<double, VoigtSize> first_vector, second_vector, third_vector;
+		const Properties& r_material_properties = rValues.GetMaterialProperties();
+        const double friction_angle = r_material_properties[FRICTION_ANGLE] * Globals::Pi / 180.0;
+
+        AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateFirstVector(first_vector);
+        AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateSecondVector(rDeviator, J2, second_vector);
+        AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateThirdVector(rDeviator, J2, third_vector);
+
+        double J3, lode_angle;
+        AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateJ3Invariant(rDeviator, J3);
+        AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateLodeAngle(J2, J3, lode_angle);
+
+        double c1, c3, c2;
+		double checker = std::abs(lode_angle * 180.0 / Globals::Pi);
+
+        if (std::abs(checker) < 29.0) { // If it is not the edge
+            c1 = std::sin(friction_angle) / 3.0;
+            c3 = (std::sqrt(3.0) * std::sin(lode_angle) + std::sin(friction_angle) * std::cos(lode_angle)) /
+                (2.0 * J2 * std::cos(3.0 * lode_angle));
+            c2 = 0.5 * std::cos(lode_angle)*(1.0 + std::tan(lode_angle) * std::sin(3.0 * lode_angle) +
+                std::sin(friction_angle) * (std::tan(3.0 * lode_angle) - std::tan(lode_angle)) / std::sqrt(3.0));
+        } else { // smoothing with drucker-praguer
+            c1 = 3.0 * (2.0 * std::sin(friction_angle) / (std::sqrt(3.0) * (3.0 - std::sin(friction_angle))));
+            c2 = 1.0;
+            c3 = 0.0;
+        }
+
+        noalias(rFFlux) = c1 * first_vector + c2 * second_vector + c3 * third_vector;
     }
 
     /**
@@ -225,7 +252,13 @@ public:
      */
     static int Check(const Properties& rMaterialProperties)
     {
-        return BaseType::Check(rMaterialProperties);
+        KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(COHESION)) << "COHESION is not a defined value" << std::endl;
+        KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(FRICTION_ANGLE)) << "FRICTION_ANGLE is not a defined value" << std::endl;
+        KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(FRACTURE_ENERGY)) << "FRACTURE_ENERGY is not a defined value" << std::endl;
+        KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(YOUNG_MODULUS)) << "YOUNG_MODULUS is not a defined value" << std::endl;
+        KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(YIELD_STRESS)) << "YIELD_STRESS is not a defined value" << std::endl;
+
+        return TPlasticPotentialType::Check(rMaterialProperties);
     }
 
     /**
@@ -233,7 +266,7 @@ public:
      */
     static bool IsWorkingWithTensionThreshold()
     {
-        return BaseType::IsWorkingWithTensionThreshold();
+        return true;
     }
 
     /**
@@ -241,7 +274,7 @@ public:
      */
     static double GetScaleFactorTension(const Properties& rMaterialProperties)
     {
-        return BaseType::GetScaleFactorTension(rMaterialProperties);
+        return 1.0;
     }
 
     ///@}
@@ -321,7 +354,7 @@ private:
 
     ///@}
 
-}; // Class ThermalVonMisesYieldSurface
+}; // Class MohrCoulombYieldSurface
 
 ///@}
 
