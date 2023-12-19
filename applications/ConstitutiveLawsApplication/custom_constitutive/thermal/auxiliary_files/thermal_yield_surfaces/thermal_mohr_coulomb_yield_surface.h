@@ -59,7 +59,9 @@ public:
     ///@{
 
     /// The type of potential plasticity
-    typedef TPlasticPotentialType PlasticPotentialType;
+    using PlasticPotentialType = TPlasticPotentialType;
+
+    using BaseType = MohrCoulombYieldSurface<TPlasticPotentialType>;
 
     /// The Plastic potential already defines the working simension size
     static constexpr SizeType Dimension = PlasticPotentialType::Dimension;
@@ -237,7 +239,7 @@ public:
                 (2.0 * J2 * std::cos(3.0 * lode_angle));
             c2 = 0.5 * std::cos(lode_angle)*(1.0 + std::tan(lode_angle) * std::sin(3.0 * lode_angle) +
                 std::sin(friction_angle) * (std::tan(3.0 * lode_angle) - std::tan(lode_angle)) / std::sqrt(3.0));
-        } else { // smoothing with drucker-praguer
+        } else { // smoothing with drucker-prager
             c1 = 3.0 * (2.0 * std::sin(friction_angle) / (std::sqrt(3.0) * (3.0 - std::sin(friction_angle))));
             c2 = 1.0;
             c3 = 0.0;
