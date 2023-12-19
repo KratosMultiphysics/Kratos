@@ -106,7 +106,7 @@ public:
 
     /**
      * @brief This method the uniaxial equivalent stress
-     * @param rPredictiveStressVector The predictive stress vector S = C:(E-Ep)
+     * @param rStressVector The predictive stress vector S = C:(E-Ep)
      * @param rStrainVector The StrainVector vector
      * @param rValues Parameters of the constitutive law
      * @param rEquivalentStress The effective stress or equivalent uniaxial stress is a scalar. It is an invariant value which measures the “intensity” of a 3D stress state.
@@ -151,7 +151,7 @@ public:
 
     /**
      * @brief This method calculates the derivative of the plastic potential DG/DS
-     * @param rPredictiveStressVector The stress vector
+     * @param rStressVector The stress vector
      * @param rDeviator The deviatoric part of the stress vector
      * @param J2 The second invariant of the Deviator
      * @param rDerivativePlasticPotential The derivative of the plastic potential
@@ -173,7 +173,7 @@ public:
     according   to   NAYAK-ZIENKIEWICZ   paper International
     journal for numerical methods in engineering vol 113-135 1972.
      As:            DF/DS = c1*V1 + c2*V2 + c3*V3
-     * @param rPredictiveStressVector The stress vector
+     * @param rStressVector The stress vector
      * @param rDeviator The deviatoric part of the stress vector
      * @param J2 The second invariant of the Deviator
      * @param rFFlux The derivative of the yield surface
