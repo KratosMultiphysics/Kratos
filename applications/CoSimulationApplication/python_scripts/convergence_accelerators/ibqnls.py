@@ -21,13 +21,13 @@ import scipy as sp
 
 def Create(settings):
     cs_tools.SettingsTypeCheck(settings)
-    return IBQNLSConvergenceAccelerator(settings)
+    return BLOCKIBQNLSConvergenceAccelerator(settings)
 
-## Class IBQNLSConvergenceAccelerator.
+## Class BLOCKIBQNLSConvergenceAccelerator.
 # This class contains the implementation of the IBQNLS method and helper functions.
 # Reference: Vierendeels J, Lanoye L, Degroote J, Verdonck PR - Implicit coupling of partitioned fluid–structure interaction
 #  problems with reduced order models. Comput Struct (2007)
-class IBQNLSConvergenceAccelerator(CoSimulationConvergenceAccelerator):
+class BLOCKIBQNLSConvergenceAccelerator(CoSimulationConvergenceAccelerator):
     def __init__( self, settings):
         super().__init__(settings)
 
