@@ -10,9 +10,9 @@ import KratosMultiphysics.CoSimulationApplication.co_simulation_tools as cs_tool
 import KratosMultiphysics.CoSimulationApplication.colors as colors
 
 def Create(settings, models, solver_name):
-    return BlockSolver(settings, models, solver_name)
+    return BlockGaussSeidelStrongCoupledSolver(settings, models, solver_name)
 
-class BlockSolver(GaussSeidelStrongCoupledSolver):
+class BlockGaussSeidelStrongCoupledSolver(GaussSeidelStrongCoupledSolver):
     def SolveSolutionStep(self):
         for k in range(self.num_coupling_iterations):
             self.process_info[KratosCoSim.COUPLING_ITERATION_NUMBER] += 1
