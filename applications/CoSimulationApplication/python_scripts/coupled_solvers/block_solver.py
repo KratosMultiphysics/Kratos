@@ -36,7 +36,7 @@ class BlockSolver(GaussSeidelStrongCoupledSolver):
 
                 # Apply relaxation for each solver output
                 for conv_acc in self.convergence_accelerators_list:
-                    conv_acc.ComputeAndApplyUpdate(solver_name)
+                    conv_acc.ComputeAndApplyUpdate()
 
             for coupling_op in self.coupling_operations_dict.values():
                 coupling_op.FinalizeCouplingIteration()

@@ -99,11 +99,9 @@ class BlockConvergenceAcceleratorWrapper:
                  interface_data_dict: "dict[str,CouplingInterfaceData]",
                  parent_coupled_solver_data_communicator: KratosMultiphysics.DataCommunicator):
         self.interface_data_dict = interface_data_dict
-        self.solver_names_sequence = []
+        self.current_solver_id = None
         self.coupl_data_names = {}
         self.input_data = {}
-        for data_name in self.interface_data_dict:
-            self.solver_names_sequence.append(self.interface_data_dict[data_name].solver_name)
         self.is_block_accelerator = True
         for solverData in settings["solver_sequence"].values():
             self.coupl_data_names[solverData["data_name"].GetString()] = solverData["coupled_data_name"].GetString()
@@ -132,6 +130,7 @@ class BlockConvergenceAcceleratorWrapper:
 
     def Initialize(self):
         self.conv_acc.Initialize()
+        self.current_solver_id = 0
         self.prev_input_data = {}
         self.output_data = {}
         for data_name in self.interface_data_dict:
@@ -159,14 +158,11 @@ class BlockConvergenceAcceleratorWrapper:
 
     def FinalizeNonLinearIteration(self):
         self.conv_acc.FinalizeNonLinearIteration()
+        self.current_solver_id = 0
 
-    def ComputeAndApplyUpdate(self, solver_name = None):
-        # Defaulting to the first solver in the sequence
-        if solver_name is None:
-            solver_name = self.solver_names_sequence[0]
-
+    def ComputeAndApplyUpdate(self):
         # Retrieving solver and data names
-        solver_id = self.solver_names_sequence.index(solver_name)
+        solver_id = self.current_solver_id
         data_name, interface_data = list(self.interface_data_dict.items())[solver_id]
         interface_data = self.interface_data_dict[data_name]
         coupled_data_name = self.coupl_data_names[data_name]
@@ -207,6 +203,7 @@ class BlockConvergenceAcceleratorWrapper:
 
         interface_data.SetData(updated_data)
         self.output_data[data_name] = updated_data
+        self.current_solver_id += 1
 
     def PrintInfo(self):
         self.conv_acc.PrintInfo()
