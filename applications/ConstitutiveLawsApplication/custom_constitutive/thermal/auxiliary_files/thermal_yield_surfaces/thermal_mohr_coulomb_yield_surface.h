@@ -187,14 +187,14 @@ public:
      * @param rValues Parameters of the constitutive law
      */
     static void CalculatePlasticPotentialDerivative(
-        const array_1d<double, VoigtSize>& rPredictiveStressVector,
+        const array_1d<double, VoigtSize>& rStressVector,
         const array_1d<double, VoigtSize>& rDeviator,
         const double J2,
         array_1d<double, VoigtSize>& rDerivativePlasticPotential,
         ConstitutiveLaw::Parameters& rValues
         )
     {
-        BaseType::CalculatePlasticPotentialDerivative(rStressVector, rDeviator, J2, rDerivativePlasticPotential, rValues);
+        TPlasticPotentialType::CalculatePlasticPotentialDerivative(rStressVector, rDeviator, J2, rDerivativePlasticPotential, rValues);
     }
 
     /**
@@ -217,8 +217,8 @@ public:
         )
     {
         array_1d<double, VoigtSize> first_vector, second_vector, third_vector;
-		const Properties& r_material_properties = rValues.GetMaterialProperties();
-        const double friction_angle = r_material_properties[FRICTION_ANGLE] * Globals::Pi / 180.0;
+		const auto& r_material_properties = rValues.GetMaterialProperties();
+        const double friction_angle = AdvCLutils::GetMaterialPropertyThroughAccessor(FRICTION_ANGLE, rValues) * Globals::Pi / 180.0;
 
         AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateFirstVector(first_vector);
         AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateSecondVector(rDeviator, J2, second_vector);
@@ -242,7 +242,6 @@ public:
             c2 = 1.0;
             c3 = 0.0;
         }
-
         noalias(rFFlux) = c1 * first_vector + c2 * second_vector + c3 * third_vector;
     }
 
@@ -252,13 +251,7 @@ public:
      */
     static int Check(const Properties& rMaterialProperties)
     {
-        KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(COHESION)) << "COHESION is not a defined value" << std::endl;
-        KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(FRICTION_ANGLE)) << "FRICTION_ANGLE is not a defined value" << std::endl;
-        KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(FRACTURE_ENERGY)) << "FRACTURE_ENERGY is not a defined value" << std::endl;
-        KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(YOUNG_MODULUS)) << "YOUNG_MODULUS is not a defined value" << std::endl;
-        KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(YIELD_STRESS)) << "YIELD_STRESS is not a defined value" << std::endl;
-
-        return TPlasticPotentialType::Check(rMaterialProperties);
+        return BaseType::Check(rMaterialProperties);
     }
 
     /**
@@ -266,7 +259,7 @@ public:
      */
     static bool IsWorkingWithTensionThreshold()
     {
-        return true;
+        return BaseType::IsWorkingWithTensionThreshold();
     }
 
     /**
@@ -274,7 +267,7 @@ public:
      */
     static double GetScaleFactorTension(const Properties& rMaterialProperties)
     {
-        return 1.0;
+        return BaseType::GetScaleFactorTension();
     }
 
     ///@}
