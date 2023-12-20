@@ -57,7 +57,7 @@ def print_ci_information() -> None:
     print(f"{are_only_python_files_changed()=}")
     print(f"{get_changed_applications()=}")
     print(f"{is_core_changed()=}")
-    print(f"{is_mpi_core_changed()=}")
+    print(f"{is_mpi_core_changed()=}\n")
 
 
 if __name__ == "__main__":
