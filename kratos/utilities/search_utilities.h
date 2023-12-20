@@ -694,7 +694,7 @@ private:
         if (rAllPointsCoordinates.size() != static_cast<std::size_t>(TotalNumberOfPoints * 3)) {
             rAllPointsCoordinates.resize(TotalNumberOfPoints * 3);
         }
-        if (rAllPointsIds.size() != static_cast<unsigned int>(TotalNumberOfPoints)) {
+        if (rAllPointsIds.size() != static_cast<std::size_t>(TotalNumberOfPoints)) {
             rAllPointsIds.resize(TotalNumberOfPoints);
         }
         std::vector<int> recv_sizes(world_size, 0);
