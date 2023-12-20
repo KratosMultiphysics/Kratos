@@ -220,11 +220,12 @@ void ConvectionDiffusionReactionResidualBasedFluxCorrectedElement<TDim, TNumNode
     BoundedMatrix<double, TNumNodes, TNumNodes> stabilization_diffusion_matrix;
     ConvectionDiffusionReactionStabilizationUtilities::CalculateDiscreteUpwindOperator<TNumNodes>(stabilization_diffusion_matrix, rDampingMatrix);
 
-    this->SetValue(ERROR_OVERALL, residual_factor);
-    this->SetValue(RANS_STABILIZATION_DISCRETE_UPWIND_OPERATOR_COEFFICIENT, norm_frobenius(stabilization_diffusion_matrix) * scaling_factor / domain_size);
-    this->SetValue(RANS_STABILIZATION_DIAGONAL_POSITIVITY_PRESERVING_COEFFICIENT, diagonal_coefficient * scaling_factor / domain_size);
+    this->SetValue(ERROR_OVERALL, scaling_factor);
+    this->SetValue(LAMBDA, residual_factor);
+    this->SetValue(RANS_STABILIZATION_DISCRETE_UPWIND_OPERATOR_COEFFICIENT, norm_frobenius(stabilization_diffusion_matrix) / domain_size);
+    this->SetValue(RANS_STABILIZATION_DIAGONAL_POSITIVITY_PRESERVING_COEFFICIENT, diagonal_coefficient / domain_size);
 
-    noalias(rDampingMatrix) += (stabilization_diffusion_matrix + IdentityMatrix(TNumNodes) * diagonal_coefficient) * scaling_factor;
+    noalias(rDampingMatrix) += (stabilization_diffusion_matrix + IdentityMatrix(TNumNodes) * diagonal_coefficient) * residual_factor;
 }
 
 template <IndexType TDim, IndexType TNumNodes, class TConvectionDiffusionReactionData>
