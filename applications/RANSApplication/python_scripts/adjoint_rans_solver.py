@@ -603,6 +603,7 @@ class AdjointRANSSolver(CoupledRANSSolver):
             drag_frequency_response_function_type = KratosCFD.DragFrequencyResponseFunction3D
             residual_response_function_type = KratosCFD.ResidualResponseFunction3D
             domain_integrated_3d_vector_magnitude_square_p_mean_response_function_type = KratosCFD.DomainIntegrated3DArrayMagnitudeSquarePMeanResponseFunction3D
+            moment_response_function_type = KratosCFD.MomentResponseFunction3D
         else:
             raise RuntimeError("Invalid DOMAIN_SIZE: " + str(domain_size))
 
@@ -628,6 +629,10 @@ class AdjointRANSSolver(CoupledRANSSolver):
                 self.main_model_part)
         elif response_type == "domain_integrated_3d_vector_magnitude_square_power_mean":
             response_function = domain_integrated_3d_vector_magnitude_square_p_mean_response_function_type(
+                self.adjoint_settings["response_function_settings"]["custom_settings"],
+                self.main_model_part)
+        elif response_type == "moment":
+            response_function = moment_response_function_type(
                 self.adjoint_settings["response_function_settings"]["custom_settings"],
                 self.main_model_part)
         else:
