@@ -25,7 +25,6 @@
 #include "response_functions/adjoint_response_function.h"
 #include "utilities/variable_utils.h"
 #include "utilities/parallel_utilities.h"
-#include "utilities/math_utils.h"
 
 namespace Kratos
 {
@@ -293,9 +292,11 @@ protected:
                 const auto& r_node = rNodes[i_node];
                 if (r_node.Is(STRUCTURE)) {
                     const array_1d<double, 3>& r = r_node.Coordinates() - mMomentPoint;
-                    col(moment_matrix, i_node * local_size + 0) = col(rDerivativesOfResidual, i_node * local_size + 2) * r[1]  - col(rDerivativesOfResidual, i_node * local_size + 1) * r[2];
-                    col(moment_matrix, i_node * local_size + 1) = col(rDerivativesOfResidual, i_node * local_size + 0) * r[2]  - col(rDerivativesOfResidual, i_node * local_size + 2) * r[0];
-                    col(moment_matrix, i_node * local_size + 2) = col(rDerivativesOfResidual, i_node * local_size + 1) * r[0]  - col(rDerivativesOfResidual, i_node * local_size + 0) * r[1];
+                    for (unsigned c = 0; c < rDerivativesOfResidual.size1(); ++c) {
+                        moment_matrix[c, i_node * local_size + 0] = rDerivativesOfResidual[c, i_node * local_size + 2] * r[1]  - rDerivativesOfResidual[c, i_node * local_size + 1] * r[2];
+                        moment_matrix[c, i_node * local_size + 1] = rDerivativesOfResidual[c, i_node * local_size + 0] * r[2]  - rDerivativesOfResidual[c, i_node * local_size + 2] * r[0];
+                        moment_matrix[c, i_node * local_size + 2] = rDerivativesOfResidual[c, i_node * local_size + 1] * r[0]  - rDerivativesOfResidual[c, i_node * local_size + 0] * r[1];
+                    }
 
                     for (unsigned d = 0; d < TDim; ++d) {
                         moment_flag_vector[i_node * local_size + d] = mMomentDirection[d];
@@ -338,9 +339,11 @@ protected:
                     const array_1d<double, 3>& r = r_node.Coordinates() - mMomentPoint;
                     const array_1d<double, 3>& reaction = rNode.FastGetSolutionStepValue(REACTION);
 
-                    col(moment_matrix, i_node * residual_local_size + 0) = col(rDerivativesOfResidual, i_node * residual_local_size + 2) * r[1]  - col(rDerivativesOfResidual, i_node * residual_local_size + 1) * r[2];
-                    col(moment_matrix, i_node * residual_local_size + 1) = col(rDerivativesOfResidual, i_node * residual_local_size + 0) * r[2]  - col(rDerivativesOfResidual, i_node * residual_local_size + 2) * r[0];
-                    col(moment_matrix, i_node * residual_local_size + 2) = col(rDerivativesOfResidual, i_node * residual_local_size + 1) * r[0]  - col(rDerivativesOfResidual, i_node * residual_local_size + 0) * r[1];
+                    for (unsigned c = 0; c < rDerivativesOfResidual.size1(); ++c) {
+                        moment_matrix[c, i_node * residual_local_size + 0] = rDerivativesOfResidual[c, i_node * residual_local_size + 2] * r[1]  - rDerivativesOfResidual[c, i_node * residual_local_size + 1] * r[2];
+                        moment_matrix[c, i_node * residual_local_size + 1] = rDerivativesOfResidual[c, i_node * residual_local_size + 0] * r[2]  - rDerivativesOfResidual[c, i_node * residual_local_size + 2] * r[0];
+                        moment_matrix[c, i_node * residual_local_size + 2] = rDerivativesOfResidual[c, i_node * residual_local_size + 1] * r[0]  - rDerivativesOfResidual[c, i_node * residual_local_size + 0] * r[1];
+                    }
 
                     moment_matrix(i_node * shape_local_size + 1, i_node * residual_local_size + 0) += reaction[2];
                     moment_matrix(i_node * shape_local_size + 2, i_node * residual_local_size + 0) -= reaction[1];
