@@ -628,7 +628,7 @@ public:
     }
 
     /**
-     * @brief This method gets the eqaution id corresponding to the current element
+     * @brief This method gets the equation id corresponding to the current element
      * @param rElement The element to compute
      * @param rEquationId The ID's of the element degrees of freedom
      * @param rCurrentProcessInfo The current process info instance

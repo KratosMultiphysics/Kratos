@@ -41,7 +41,7 @@ EmbeddedLocalConstraintProcess::EmbeddedLocalConstraintProcess(
     mpModelPart = &rModel.GetModelPart(model_part_name).GetSubModelPart("fluid_computational_model_part");
 
     // Set whether constraints need to be adapted at each time step (FSI)
-    mCheckAtEachStep = rParameters["check_at_each_time_step"].GetBool();
+    mCheckAtEachStep = rParameters["check_at_each_step"].GetBool();
     mConstraintsAreCalculated = false;
 
     // Set to which elements constraints are applied

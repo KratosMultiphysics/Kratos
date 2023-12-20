@@ -22,8 +22,8 @@ class EmbeddedFormulation(object):
         self.element_name = None
         self.apply_constraints = False
         self.constraints_type = None
-        self.apply_constraints_to_all_cut_elements = True
-        self.check_constraints_at_each_time_step = True
+        self.apply_constraints_to_all_cut_elements = False
+        self.check_constraints_at_each_step = False
         self.condition_name = None
         self.slip_length = 0.0
         self.process_info_data = {}
@@ -92,8 +92,8 @@ class EmbeddedFormulation(object):
             "level_set_type": "continuous",
             "apply_constraints": false,
             "constraints_type": "mls",
-            "apply_constraints_to_all_cut_elements": true,
-            "check_constraints_at_each_time_step": true,
+            "apply_constraints_to_all_cut_elements": false,
+            "check_constraints_at_each_step": false,
             "apply_nitsche_boundary_imposition": true
         }""")
         formulation_settings.ValidateAndAssignDefaults(default_settings)
@@ -105,7 +105,7 @@ class EmbeddedFormulation(object):
         self.apply_constraints = formulation_settings["apply_constraints"].GetBool()
         self.constraints_type = formulation_settings["constraints_type"].GetString()
         self.apply_constraints_to_all_cut_elements = formulation_settings["apply_constraints_to_all_cut_elements"].GetBool()
-        self.check_constraints_at_each_time_step = formulation_settings["check_constraints_at_each_time_step"].GetBool()
+        self.check_constraints_at_time_step = formulation_settings["check_constraints_at_each_step"].GetBool()
 
         self.element_integrates_in_time = True
         self.element_has_nodal_properties = True
@@ -352,7 +352,11 @@ class NavierStokesEmbeddedMonolithicSolver(FluidSolver):
         self.apply_constraints = self.embedded_formulation.apply_constraints
         self.constraints_type = self.embedded_formulation.constraints_type
         self.apply_constraints_to_all_cut_elements = self.embedded_formulation.apply_constraints_to_all_cut_elements
-        self.check_constraints_at_each_time_step = self.embedded_formulation.check_constraints_at_each_time_step
+        self.check_constraints_at_each_step = self.embedded_formulation.check_constraints_at_each_step
+        # If constraints are changed, then dofs need to be adapted accordingly
+        if (self.check_constraints_at_each_step):
+            self.settings["reform_dofs_at_each_step"] = True
+            KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Reforming dofs at each step as embedded constraints are checked at each step.")
 
         ## Set the distance reading filename
         #TODO: remove the manual "distance_file_name" set as soon as the problem type one has been tested.
@@ -478,6 +482,12 @@ class NavierStokesEmbeddedMonolithicSolver(FluidSolver):
         # Set the virtual mesh values from the background mesh
         self.__SetVirtualMeshValues()
 
+        # Calculate constraints, which sets the nodal variables:
+        # APPLY_EMBEDDED_CONSTRAINTS, EMBEDDED_CONSTRAINT_MASTERS and EMBEDDED_CONSTRAINT_MASTER_WEIGHTS
+        # needed here so that B&S can get correct EquationIDs from each element when initializing the strategy
+        if not self.apply_DistMod:
+            self.GetConstraintProcess().ExecuteInitializeSolutionStep()
+
         # Call the base solver InitializeSolutionStep()
         super(NavierStokesEmbeddedMonolithicSolver, self).InitializeSolutionStep()
 
@@ -487,10 +497,11 @@ class NavierStokesEmbeddedMonolithicSolver(FluidSolver):
         # It has to be done before each call to the Solve() in case an outer non-linear iteration is performed (FSI)
         if self.apply_DistMod:
             self.GetDistanceModificationProcess().ExecuteInitializeSolutionStep()
-        # Calculate constraints, which sets the nodal variables:
-        # APPLY_EMBEDDED_CONSTRAINTS, EMBEDDED_CONSTRAINT_MASTERS and EMBEDDED_CONSTRAINT_MASTER_WEIGHTS
-        else:
-            self.GetConstraintProcess().ExecuteInitializeSolutionStep()
+        # Constraints need to be recalculated here in case an outer non-linear iteration is performed (FSI)
+        #TODO FSI: problematic for FSI, because EquationIDs are changed by constraint process and are not checked again by B&S
+            #--> InitializeSolutionStep() of SolutionStrategy should be called here?? And FinalizeSolutionStep() before return?
+        #elif self.check_constraints_at_each_step:
+        #    self.GetConstraintProcess().ExecuteInitializeSolutionStep()
 
         # Perform the FM-ALE operations
         # Note that this also sets the EMBEDDED_VELOCITY from the MESH_VELOCITY
@@ -610,18 +621,18 @@ class NavierStokesEmbeddedMonolithicSolver(FluidSolver):
     def GetConstraintProcess(self):
         if not hasattr(self, '_constraint_process'):
             if self.constraints_type == "mls":
-                self._constraint_process = self.__CreateMLSConstraintProcess(apply_to_all=self.apply_constraints_to_all_cut_elements, check_at_each_time_step=self.check_constraints_at_each_time_step)
+                self._constraint_process = self.__CreateMLSConstraintProcess(apply_to_all=self.apply_constraints_to_all_cut_elements, check_at_each_step=self.check_constraints_at_each_step)
             elif self.constraints_type == "mls-bc":
-                self._constraint_process = self.__CreateMLSConstraintProcess(use_bc=True, apply_to_all=self.apply_constraints_to_all_cut_elements, check_at_each_time_step=self.check_constraints_at_each_time_step, slip_length=self.slip_length)
+                self._constraint_process = self.__CreateMLSConstraintProcess(use_bc=True, apply_to_all=self.apply_constraints_to_all_cut_elements, check_at_each_step=self.check_constraints_at_each_step, slip_length=self.slip_length)
             elif self.constraints_type == "local":
-                self._constraint_process = self.__CreateLocalConstraintProcess(apply_to_all=self.apply_constraints_to_all_cut_elements, check_at_each_time_step=self.check_constraints_at_each_time_step, slip_length=self.slip_length)
+                self._constraint_process = self.__CreateLocalConstraintProcess(apply_to_all=self.apply_constraints_to_all_cut_elements, check_at_each_step=self.check_constraints_at_each_step, slip_length=self.slip_length)
             elif self.constraints_type == "local-bc":
-                self._constraint_process = self.__CreateLocalConstraintProcess(use_bc=True, apply_to_all=self.apply_constraints_to_all_cut_elements, check_at_each_time_step=self.check_constraints_at_each_time_step, slip_length=self.slip_length)
+                self._constraint_process = self.__CreateLocalConstraintProcess(use_bc=True, apply_to_all=self.apply_constraints_to_all_cut_elements, check_at_each_step=self.check_constraints_at_each_step, slip_length=self.slip_length)
             else:
                 raise RuntimeError("Given \'constraint_type\' not found. Available types are: \'mls\', \'mls-bc\', \'local\' and \'local-bc\'")
         return self._constraint_process
 
-    def __CreateMLSConstraintProcess(self, mls_order=1, use_bc=False, apply_to_all=True, check_at_each_time_step=True, slip_length=0.0):
+    def __CreateMLSConstraintProcess(self, mls_order=1, use_bc=False, apply_to_all=True, check_at_each_step=True, slip_length=0.0):
         # Calculate the required neighbours
         nodal_neighbours_process = KratosMultiphysics.FindGlobalNodalNeighboursProcess(self.main_model_part)
         nodal_neighbours_process.Execute()
@@ -632,7 +643,7 @@ class NavierStokesEmbeddedMonolithicSolver(FluidSolver):
         # Create the MLS basis and multi-point constraints for negative nodes of intersected elements
         settings = KratosMultiphysics.Parameters("""{}""")
         settings.AddEmptyValue("apply_to_all_negative_cut_nodes").SetBool(apply_to_all)
-        settings.AddEmptyValue("check_at_each_time_step").SetBool(check_at_each_time_step)
+        settings.AddEmptyValue("check_at_each_step").SetBool(check_at_each_step)
         settings.AddEmptyValue("model_part_name").SetString(self.main_model_part.Name)
         settings.AddEmptyValue("mls_extension_operator_order").SetInt(mls_order)
         settings.AddEmptyValue("include_intersection_points").SetBool(use_bc)
@@ -642,11 +653,11 @@ class NavierStokesEmbeddedMonolithicSolver(FluidSolver):
         self._mls_constraint_process = KratosCFD.EmbeddedMLSConstraintProcess(self.model, settings)
         return self._mls_constraint_process
 
-    def __CreateLocalConstraintProcess(self, use_bc=False, apply_to_all=True, check_at_each_time_step=True , slip_length=0.0):
+    def __CreateLocalConstraintProcess(self, use_bc=False, apply_to_all=True, check_at_each_step=True , slip_length=0.0):
         # Create constraints weights and offsets for negative nodes of intersected elements
         settings = KratosMultiphysics.Parameters("""{}""")
         settings.AddEmptyValue("apply_to_all_negative_cut_nodes").SetBool(apply_to_all)
-        settings.AddEmptyValue("check_at_each_time_step").SetBool(check_at_each_time_step)
+        settings.AddEmptyValue("check_at_each_step").SetBool(check_at_each_step)
         settings.AddEmptyValue("include_intersection_points").SetBool(use_bc)
         settings.AddEmptyValue("model_part_name").SetString(self.main_model_part.Name)
         settings.AddEmptyValue("avoid_zero_distances").SetBool(True)

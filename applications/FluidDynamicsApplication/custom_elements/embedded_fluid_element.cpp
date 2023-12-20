@@ -225,7 +225,7 @@ void EmbeddedFluidElement<TBaseElement>::EquationIdVector(
         rResult.resize(size, false);
 
     // Get dof positions for first node (to accelerate search)
-    /*const std::size_t xpos = data.ElementsNodesAndMasters[0]->GetDofPosition(VELOCITY_X);
+    const std::size_t xpos = data.ElementsNodesAndMasters[0]->GetDofPosition(VELOCITY_X);
     const std::size_t ppos = data.ElementsNodesAndMasters[0]->GetDofPosition(PRESSURE);
 
     // Add dof positions of the element's nodes and master nodes
@@ -235,34 +235,6 @@ void EmbeddedFluidElement<TBaseElement>::EquationIdVector(
         rResult[LocalIndex++] = p_node->GetDof(VELOCITY_Y, xpos+1).EquationId();
         if (Dim == 3) rResult[LocalIndex++] = p_node->GetDof(VELOCITY_Z, xpos+2).EquationId();
         rResult[LocalIndex++] = p_node->GetDof(PRESSURE, ppos).EquationId();
-    }*/
-
-    //------------------------------------------
-
-    const GeometryType& r_geometry = this->GetGeometry();
-
-    unsigned int LocalIndex = 0;
-
-    const unsigned int xpos = this->GetGeometry()[0].GetDofPosition(VELOCITY_X);
-    const unsigned int ppos = this->GetGeometry()[0].GetDofPosition(PRESSURE);
-
-    for (unsigned int i = 0; i < NumNodes; ++i) {
-        rResult[LocalIndex++] = data.ElementsNodesAndMasters[i]->GetDof(VELOCITY_X,xpos).EquationId();
-        rResult[LocalIndex++] = data.ElementsNodesAndMasters[i]->GetDof(VELOCITY_Y,xpos+1).EquationId();
-        if (Dim == 3) rResult[LocalIndex++] = data.ElementsNodesAndMasters[i]->GetDof(VELOCITY_Z,xpos+2).EquationId();
-        rResult[LocalIndex++] = data.ElementsNodesAndMasters[i]->GetDof(PRESSURE,ppos).EquationId();
-    }
-    /*for (unsigned int i = NumNodes; i < data.ElementsNodesAndMasters.size(); ++i) {
-        rResult[LocalIndex++] = data.ElementsNodesAndMasters[i]->GetDof(VELOCITY_X).EquationId();
-        rResult[LocalIndex++] = data.ElementsNodesAndMasters[i]->GetDof(VELOCITY_Y).EquationId();
-        if (Dim == 3) rResult[LocalIndex++] = data.ElementsNodesAndMasters[i]->GetDof(VELOCITY_Z).EquationId();
-        rResult[LocalIndex++] = data.ElementsNodesAndMasters[i]->GetDof(PRESSURE).EquationId();
-    }*/
-    for (unsigned int i = NumNodes; i < data.ElementsNodesAndMasters.size(); ++i) {
-        rResult[LocalIndex++] = data.ElementsNodesAndMasters[i]->GetDof(VELOCITY_X).EquationId();
-        rResult[LocalIndex++] = data.ElementsNodesAndMasters[i]->GetDof(VELOCITY_Y).EquationId();
-        if (Dim == 3) rResult[LocalIndex++] = data.ElementsNodesAndMasters[i]->GetDof(VELOCITY_Z).EquationId();
-        rResult[LocalIndex++] = data.ElementsNodesAndMasters[i]->GetDof(PRESSURE).EquationId();
     }
 }
 

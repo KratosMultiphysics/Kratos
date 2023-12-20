@@ -235,20 +235,8 @@ public:
                     // Calculate elemental contribution
                     pScheme->CalculateSystemContributions(*it_elem, LHS_Contribution, RHS_Contribution, EquationId, CurrentProcessInfo);
 
-                    if (RHS_Contribution.size() > 9) {
-                        KRATOS_INFO("[BUILD] Calculated system contribution for element with external masters:");
-                        // KRATOS_WATCH(RHS_Contribution.size());
-                        // KRATOS_WATCH(LHS_Contribution.size1());
-                        // KRATOS_WATCH(LHS_Contribution.size2());
-                        KRATOS_WATCH(EquationId.size());
-                    }
-
                     // Assemble the elemental contribution
-                    //TODO find SegFault in Assemble!!!
                     Assemble(A, b, LHS_Contribution, RHS_Contribution, EquationId);
-                    if (RHS_Contribution.size() > 9) {
-                        KRATOS_INFO("[BUILD] Assembled element contribution\n\n");
-                    }
                 }
 
             }
@@ -1644,27 +1632,9 @@ protected:
         size_t left_limit = index1_vector[i];
         //size_t right_limit = index1_vector[i+1];
 
-        //KRATOS_WATCH(index1_vector[0]);
-        size_t i1_end = A.index1_data().end()-A.index1_data().begin();
-        //KRATOS_WATCH(index1_vector[i1_end]); //= 343 017 536
-        KRATOS_WATCH(i1_end-i);
-        KRATOS_WATCH(index2_vector[left_limit]);
-
-        //size_t i2_end = A.index2_data().end()-A.index2_data().begin();
-        //KRATOS_WATCH(index2_vector[i2_end]);  //=0
-        KRATOS_WATCH(index2_vector[6417916]);
-        //KRATOS_WATCH(index2_vector[6417917]); //=0
-        //KRATOS_WATCH(index2_vector[6417918]); //= Segmentation fault
-
         //find the first entry
-        //TODO: looping until the end - why never equal to id_to_find?? left_limit too high? How can that be???
-        //while(id_to_find != index_vector[pos]) pos++;
         size_t last_pos = ForwardFind(EquationId[0],left_limit,index2_vector);
         size_t last_found = EquationId[0];
-
-        KRATOS_WATCH(last_found);  //=
-        KRATOS_WATCH(left_limit);  //=
-        KRATOS_WATCH(last_pos);    // = SegFault
 
         double& r_a = values_vector[last_pos];
         const double& v_a = Alocal(i_local,0);
