@@ -10,8 +10,6 @@
 //  Main authors:    Jonathan Nuttall
 //
 
-#pragma once
-
 // System includes
 #include <limits>
 #include <map>
