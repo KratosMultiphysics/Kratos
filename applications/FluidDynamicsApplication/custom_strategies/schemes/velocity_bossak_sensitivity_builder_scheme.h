@@ -71,6 +71,8 @@ public:
         mMassMatrices.resize(number_of_threads);
         mDampingMatrices.resize(number_of_threads);
         mSecondDerivativesVectors.resize(number_of_threads);
+
+        KRATOS_INFO(this->Info()) << this->Info() << " created [ Dimensionality = " << Dimension << ", BlockSize = " << BlockSize << " ].\n";
     }
 
     /// Destructor.
