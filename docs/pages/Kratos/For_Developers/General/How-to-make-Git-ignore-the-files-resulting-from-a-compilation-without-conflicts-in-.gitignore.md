@@ -23,7 +23,7 @@ Add the following lines inside the file:
 ```sh
 KratosMultiphysics/
 applications/python_scripts/ 
-libpython3.8.so.1.0
+libpython2.7.so.1.0
 libs/
 ``` 
 

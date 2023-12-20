@@ -34,7 +34,7 @@ class Commander(object):
             detail will be.
 
         command: string
-            command to be used to call the tests. Ex: Python, Python3, etc...
+            command to be used to call the tests. Ex: Python, Python3
 
         timer: integer
             limit time considered to execute the tests

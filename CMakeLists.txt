@@ -445,12 +445,6 @@ if(${USE_CUDA} MATCHES ON)
   find_package(CUDA QUIET REQUIRED)
 endif(${USE_CUDA} MATCHES ON)
 
-# Clean the Module and libs install directories
-install(CODE "message(STATUS \"Deleting: ${CMAKE_INSTALL_PREFIX}/KratosMultiphysics\")")
-install(CODE "file(REMOVE_RECURSE \"${CMAKE_INSTALL_PREFIX}/KratosMultiphysics\")")
-install(CODE "message(STATUS \"Deleting: ${CMAKE_INSTALL_PREFIX}/libs\")")
-install(CODE "file(REMOVE_RECURSE \"${CMAKE_INSTALL_PREFIX}/libs\")")
-
 ##*****************************
 # Compiling the triangle library
 if(${USE_TRIANGLE_NONFREE_TPL} MATCHES ON )

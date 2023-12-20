@@ -32,8 +32,7 @@
 #include "custom_python/add_custom_utilities_to_python.h"
 
 
-namespace Kratos {
-namespace Python {
+namespace Kratos::Python {
 
 namespace py = pybind11;
 
@@ -62,6 +61,11 @@ PYBIND11_MODULE(KratosGeoMechanicsApplication,m)
 
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, DT_TEMPERATURE)
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, NORMAL_HEAT_FLUX)
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE( m, AIR_TEMPERATURE )
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE( m, SOLAR_RADIATION )
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE( m, AIR_HUMIDITY )
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE( m, PRECIPITATION )
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE( m, WIND_SPEED )
 
     KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS( m, FLUID_FLUX_VECTOR )
     KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS( m, LOCAL_FLUID_FLUX_VECTOR )
@@ -144,7 +148,6 @@ PYBIND11_MODULE(KratosGeoMechanicsApplication,m)
 
 }
 
-} // namespace Python.
-} // namespace Kratos.
+} // namespace Kratos::Python.
 
 #endif // KRATOS_PYTHON defined
