@@ -701,7 +701,6 @@ private:
 
         // Auxiliary variables
         std::size_t counter = 0;
-        array_1d<double, 3> coordinates;
         unsigned int i_coord;
 
         // If distributed
@@ -717,11 +716,11 @@ private:
                         continue; // Skip if not local
                     }
                 }
-                noalias(coordinates) = it_point->Coordinates();
+                const auto& r_coordinates = it_point->Coordinates();
                 GetId(send_points_ids, it_point, counter, initial_id);
                 send_points_ranks[counter] = rank;
                 for (i_coord = 0; i_coord < 3; ++i_coord) {
-                    send_points_coordinates[3 * counter + i_coord] = coordinates[i_coord];
+                    send_points_coordinates[3 * counter + i_coord] = r_coordinates[i_coord];
                 }
                 ++counter;
             }
@@ -756,14 +755,14 @@ private:
         } else { // Serial
             // Assign values
             for (auto it_point = itPointBegin ; it_point != itPointEnd ; ++it_point) {
-                noalias(coordinates) = it_point->Coordinates();
+                const auto& r_coordinates = it_point->Coordinates();
                 if constexpr (std::is_same<TPointIteratorType, ModelPart::NodeIterator>::value || std::is_same<TPointIteratorType, ModelPart::NodeConstantIterator>::value) {
                     rAllPointsIds[counter] = it_point->Id();
                 } else {
                     rAllPointsIds[counter] = initial_id + counter;
                 }
                 for (i_coord = 0; i_coord < 3; ++i_coord) {
-                    rAllPointsCoordinates[3 * counter + i_coord] = coordinates[i_coord];
+                    rAllPointsCoordinates[3 * counter + i_coord] = r_coordinates[i_coord];
                 }
                 ++counter;
             }
@@ -813,7 +812,6 @@ private:
 
         // Some definitions
         IndexType i_coord = 0;
-        array_1d<double, 3> coordinates;
 
         // If distributed
         if (rDataCommunicator.IsDistributed()) {
@@ -865,9 +863,9 @@ private:
             for (IndexType i_point = 0 ; i_point < total_number_of_points; ++i_point) {
                 auto it_point = itPointBegin + i_point;
                 if (PointIsInsideBoundingBox(rBoundingBox, *it_point, ThresholdBoundingBox)) {
-                    noalias(coordinates) = it_point->Coordinates();
+                    const auto& r_coordinates = it_point->Coordinates();
                     for (i_coord = 0; i_coord < 3; ++i_coord) {
-                        rSearchInfo.PointCoordinates.push_back(coordinates[i_coord]);
+                        rSearchInfo.PointCoordinates.push_back(r_coordinates[i_coord]);
                     }
                     rSearchInfo.Indexes.push_back(all_points_ids[i_point]);
                     rSearchInfo.Ranks.push_back({0});
