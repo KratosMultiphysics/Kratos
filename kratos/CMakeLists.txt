@@ -1,4 +1,5 @@
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
+set(USE_MPI OFF)
 
 if(${USE_TRIANGLE_NONFREE_TPL} MATCHES ON )
     include_directories( ${KRATOS_SOURCE_DIR}/external_libraries/triangle )
