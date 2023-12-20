@@ -91,11 +91,7 @@ template <class TObjectType>
 bool SpatialSearchResultContainerVector<TObjectType>::HasResult(const IndexType Index) const
 {
     // Check size
-    if (Index >= mPointResults.size()) {
-        return false;
-    } else {
-        return true;
-    }
+    return Index < mPointResults.size();
 }
 
 /***********************************************************************************/
