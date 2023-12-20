@@ -10,8 +10,6 @@
 //  Main authors:    Jonathan Nuttall
 //
 
-#pragma once
-
 #include <sstream>
 #include <iomanip>
 #include "dgeoflow.h"
