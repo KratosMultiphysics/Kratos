@@ -366,11 +366,21 @@ private:
             }
         }
 
+        /// MODIFIED
         std::ifstream infile("txt_files/true_points.txt");
         bool file_true_points_exists = true ;
         if (file_true_points_exists==true){
+            
+            // Get the name of the Snake file
+            std::ifstream inputfile("txt_files/input_data.txt");
+            std::string line;
+            std::getline(inputfile, line);  std::getline(inputfile, line); // Skip first and second lines
+            std::getline(inputfile, line); // Read the third line
+            std::string filename = line;
+            inputfile.close();
 
-            std::ifstream file("txt_files/Snake_coordinates.txt");
+            std::ifstream file("txt_files/" + filename + ".txt"); 
+
             double x, y;
             std::vector<double> coordinates_x;
             std::vector<double> coordinates_y;
@@ -484,12 +494,22 @@ private:
             ReadBrepEdge(rParameters[i], rModelPart, EchoLevel);
         }
 
+        /// MODIFIED
         std::ifstream infile("txt_files/true_points.txt");
         bool file_true_points_exists = true ; // infile.good(); 
         if (file_true_points_exists==true){
             
             // Leggo i control_points da file esterno, solo per coordinates_x.size() ??
-            std::ifstream file("txt_files/Snake_coordinates.txt");
+            // Get the name of the Snake file
+            std::ifstream inputfile("txt_files/input_data.txt");
+            std::string line;
+            std::getline(inputfile, line);  std::getline(inputfile, line); // Skip first and second lines
+            std::getline(inputfile, line); // Read the third line
+            std::string filename = line;
+            inputfile.close();
+
+            std::ifstream file("txt_files/" + filename + ".txt"); 
+
             double x, y;
             std::vector<double> coordinates_x;
             std::vector<double> coordinates_y;
@@ -617,6 +637,7 @@ private:
         rModelPart.AddGeometry(p_bre_edge_brep_curve_on_surface);
     }
 
+    //// MODIFIED
     static void ReadBrepEdgeBrepCurveOnSurface_Nico(
         Parameters & geometryParameters,
         ModelPart & rModelPart)
@@ -1094,6 +1115,7 @@ private:
     Parameters mCadJsonParameters;
     int mEchoLevel;
 
+    //// MODIFIED
     static typename NurbsCurveGeometry<2, PointerVector<Point>>::Pointer AddInternalTrimmingShiftedBoundary_Nico(
         Point::Pointer point1, Point::Pointer point2, Vector active_range_knot_vector)
         {

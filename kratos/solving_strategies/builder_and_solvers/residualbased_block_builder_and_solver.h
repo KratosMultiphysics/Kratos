@@ -36,6 +36,9 @@
 #include "utilities/atomic_utilities.h"
 #include "spaces/ublas_space.h"
 
+#include "utilities/nurbs_utilities/new_utility.h"
+#include "utilities/condition_number_utility.h"
+
 namespace Kratos
 {
 
@@ -125,6 +128,9 @@ public:
     typedef typename NodeType::DofType DofType;
     typedef typename DofType::Pointer DofPointerType;
 
+    // ConditionNumberUtilityPointerType pConditionNumberUtility = nullptr
+    using ConditionNumberUtilityPointerType = ConditionNumberUtility::Pointer;
+    
     ///@}
     ///@name Life Cycle
     ///@{
@@ -223,7 +229,12 @@ public:
         // Assemble all elements
         const auto timer = BuiltinTimer();
 
-        #pragma omp parallel firstprivate(nelements,nconditions, LHS_Contribution, RHS_Contribution, EquationId )
+        // NewUtility my_utility;
+        // std::vector<int> binary_array_elements = my_utility.CreateBinaryArray(A.size1());
+        // std::vector<int> binary_array_conditions = my_utility.CreateBinaryArray(A.size1());
+        // KRATOS_WATCH(A.size1())
+
+        #pragma omp parallel firstprivate(nelements,nconditions, LHS_Contribution, RHS_Contribution, EquationId)
         {
             # pragma omp for  schedule(guided, 512) nowait
             for (int k = 0; k < nelements; k++) {
@@ -252,6 +263,79 @@ public:
                 }
             }
         }
+        
+        // // KRATOS_WATCH(binary_array_elements)
+        // int number_dofs_fixed = 0;
+        // for(auto& r_dof : BaseType::mDofSet){
+        //     // if (binary_array_elements[r_dof.EquationId()] == 0 && binary_array_conditions[r_dof.EquationId()] == 0 ) {
+        //     if (binary_array_elements[r_dof.EquationId()] == 0 ) { // NEED TO ADD IN THE CASE OF BODY-FITTED OPTION
+        //         // r_dof.FixDof(); 
+        //         number_dofs_fixed++;
+        //         KRATOS_WATCH(r_dof.EquationId())
+        //         // for (int i = 0; i < A.size1(); i++){
+        //         //     KRATOS_WATCH(A(r_dof.EquationId(),i))
+        //         // }
+        //     }
+        // }
+
+        // KRATOS_WATCH('FIX MANUALLY THE FIXED DOFS')
+        // for(auto& r_dof : BaseType::mDofSet){
+        //     if(r_dof.IsFixed()){
+        //         // A(r_dof.EquationId(),r_dof.EquationId()) = 1.0;
+        //         int a = 0;
+        //     }
+        // }
+        // KRATOS_INFO_IF("NUMBER OF DOFS FIXED", this->GetEchoLevel() >= 0) << number_dofs_fixed << std::endl;
+
+        // // ADDITIONAL check for weird cases
+        // const double threshold = 1e-7;
+        // int number_zero_rows = 0;
+        // for(std::size_t i = 0; i < A.size1(); ++i){
+        //     bool is_all_zero = true;
+        //     for(std::size_t j = 0; j < A.size2(); ++j){
+        //         if(std::abs(A(i,j)) > threshold){
+        //             is_all_zero = false;
+        //             break;
+        //         }
+        //     }
+        //     if(is_all_zero){
+        //         A(i,i) = 1.0;
+        //         number_zero_rows++;
+        //         KRATOS_WATCH(i)
+        //     }
+        // }
+        // if (number_zero_rows > 0) { KRATOS_INFO_IF("NUMBER OF ZERO ROWS", this->GetEchoLevel() >= 0) << number_zero_rows << std::endl; }
+
+
+        // // COLUMNS 
+        // int number_zero_col = 0;
+        // for(std::size_t i = 0; i < A.size1(); ++i){
+        //     bool is_all_zero = true;
+        //     for(std::size_t j = 0; j < A.size2(); ++j){
+        //         if(std::abs(A(j,i)) > threshold){
+        //             is_all_zero = false;
+        //             break;
+        //         }
+        //     }
+        //     if(is_all_zero){
+        //         A(i,i) = 1.0;
+        //         number_zero_col++;
+        //     }
+        // }
+        // if (number_zero_col > 0) { KRATOS_INFO_IF("NUMBER OF ZERO COLUMNS", this->GetEchoLevel() >= 0) << number_zero_col << std::endl; }
+
+
+        // CONDITION NUMBER
+        // ConditionNumberUtility mpConditionNumberUtility;
+        // const double condition_number = mpConditionNumberUtility.GetConditionNumber(A);
+        // const double minimum_eigenvalue = mpConditionNumberUtility.GetMinimumEigenvalue(A);
+
+        // std::ofstream outputFile("txt_files/Condition_numbers.txt", std::ios::app);
+        // outputFile << minimum_eigenvalue << "  " << condition_number << "\n";
+        // outputFile.close();
+        // KRATOS_WATCH(minimum_eigenvalue)
+        // KRATOS_WATCH(condition_number)
+
 
         KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolver", this->GetEchoLevel() >= 1) << "Build time: " << timer.ElapsedSeconds() << std::endl;
 
@@ -499,46 +583,10 @@ public:
             KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolver", this->GetEchoLevel() >=1) << "Constraints build time: " << timer_constraints.ElapsedSeconds() << std::endl;
         }
 
-        KRATOS_WATCH('ApplyDirichletConditions1')
-
         ApplyDirichletConditions(pScheme, rModelPart, A, Dx, b);
 
         KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolver", ( this->GetEchoLevel() == 3)) << "Before the solution of the system" << "\nSystem Matrix = " << A << "\nUnknowns vector = " << Dx << "\nRHS vector = " << b << std::endl;
 
-        KRATOS_WATCH('ApplyDirichletConditions6 --> A(i,i) = 1.0 on the zero-lines')
-        // Check rows for near-zero entries and set diagonal to 1 if necessary
-        const double threshold = 1e-7;
-        int number_zero_rows = 0;
-        for(std::size_t i = 0; i < A.size1(); ++i)
-        {
-            bool is_all_zero = true;
-            for(std::size_t j = 0; j < A.size2(); ++j)
-            {
-                if(std::abs(A(i,j)) > threshold)
-                {
-                    is_all_zero = false;
-                    break;
-                }
-            }
-            if(is_all_zero)
-            {
-                A(i,i) = 1.0;
-                number_zero_rows++;
-                // // STAMPA quali righe
-                // std::ofstream outputFile2("zero_rows.txt", std::ios::app);
-                // outputFile2 << i << " ";
-                // outputFile2.close();
-            }
-        }
-        // // VAi a capo
-        // std::ofstream outputFile2("zero_rows.txt", std::ios::app);
-        // outputFile2 <<  "\n";
-        // outputFile2.close();
-
-        // KRATOS_WATCH(number_zero_rows)
-        // std::ofstream outputFile("number_of_zero_rows.txt", std::ios::app);
-        // outputFile << number_zero_rows <<"\n";
-        // outputFile.close();
 
         const auto timer = BuiltinTimer();
         Timer::Start("Solve");
@@ -984,7 +1032,6 @@ public:
     {
         const std::size_t system_size = rA.size1();
         Vector scaling_factors (system_size);
-        KRATOS_WATCH('ApplyDirichletConditions2')
 
         const auto it_dof_iterator_begin = BaseType::mDofSet.begin();
 
@@ -993,7 +1040,6 @@ public:
             auto it_dof_iterator = it_dof_iterator_begin + Index;
             if (it_dof_iterator->IsFixed()) {
                 scaling_factors[Index] = 0.0;
-                KRATOS_WATCH('ApplyDirichletConditions3') // it's not passing here
             } else {
                 scaling_factors[Index] = 1.0;
             }
@@ -1011,9 +1057,6 @@ public:
             const std::size_t col_end = Arow_indices[Index+1];
             const double k_factor = scaling_factors[Index];
             if (k_factor == 0.0) {
-                KRATOS_WATCH('ApplyDirichletConditions4')
-                KRATOS_WATCH(col_begin)
-                KRATOS_WATCH(col_end)
                 // Zero out the whole row, except the diagonal
                 for (std::size_t j = col_begin; j < col_end; ++j)
                     if (Acol_indices[j] != Index )
@@ -1028,7 +1071,6 @@ public:
                         Avalues[j] = 0.0;
             }
         });
-        KRATOS_WATCH('ApplyDirichletConditions5')
     }
 
     /**

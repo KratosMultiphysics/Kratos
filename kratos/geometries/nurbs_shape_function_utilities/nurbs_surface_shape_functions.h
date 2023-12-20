@@ -18,6 +18,7 @@
 // Project includes
 #include "geometries/nurbs_shape_function_utilities/nurbs_curve_shape_functions.h"
 #include "geometries/nurbs_shape_function_utilities/nurbs_utilities.h"
+#include <iomanip>
 
 namespace Kratos 
 {
@@ -263,13 +264,14 @@ public:
         mShapeFunctionsU.ComputeBSplineShapeFunctionValuesAtSpan(rKnotsU, SpanU, ParameterU);
         mShapeFunctionsV.ComputeBSplineShapeFunctionValuesAtSpan(rKnotsV, SpanV, ParameterV);
 
-
+        // MODIFIED for printing also boundary GPs
         std::ofstream outputFile("txt_files/Gauss_Point_coordinates.txt", std::ios::app);
         if (!outputFile.is_open())
         {
             std::cerr << "Failed to open the file for writing." << std::endl;
             return;
         }
+        outputFile << std::setprecision(14); // Set precision to 10^-14
         outputFile << ParameterU << "  " << ParameterV <<"\n";
         outputFile.close();
 
@@ -300,7 +302,7 @@ public:
             rKnotsU,
             rKnotsV,
             SpanU,
-            SpanV,
+            SpanU,
             ParameterU,
             ParameterV);
     }

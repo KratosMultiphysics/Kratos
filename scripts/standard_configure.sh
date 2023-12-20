@@ -26,19 +26,15 @@ export KRATOS_APP_DIR="${KRATOS_SOURCE}/applications"
 # export KRATOS_INSTALL_PYTHON_USING_LINKS=ON
 
 # Set basic configuration
-export KRATOS_BUILD_TYPE=${KRATOS_BUILD_TYPE:-"Release"}
-# export KRATOS_BUILD_TYPE=${KRATOS_BUILD_TYPE:-"FullDebug"}
+# export KRATOS_BUILD_TYPE=${KRATOS_BUILD_TYPE:-"Release"}
+export KRATOS_BUILD_TYPE=${KRATOS_BUILD_TYPE:-"FullDebug"}
 export PYTHON_EXECUTABLE=${PYTHON_EXECUTABLE:-"/usr/bin/python3"}
 
 # Set applications to compile
 export KRATOS_APPLICATIONS=
 add_app ${KRATOS_APP_DIR}/LinearSolversApplication
 add_app ${KRATOS_APP_DIR}/StructuralMechanicsApplication
-add_app ${KRATOS_APP_DIR}/FluidDynamicsApplication
-# add_app ${KRATOS_APP_DIR}/FSIApplication
-# add_app ${KRATOS_APP_DIR}/MeshMovingApplication
-# add_app ${KRATOS_APP_DIR}/MappingApplication
-add_app ${KRATOS_APP_DIR}/ConstitutiveLawsApplication
+# add_app ${KRATOS_APP_DIR}/ConstitutiveLawsApplication
 add_app ${KRATOS_APP_DIR}/ConvectionDiffusionApplication
 # add_app ${KRATOS_APP_DIR}/MeshingApplication
 # add_app ${KRATOS_APP_DIR}/ContactStructuralMechanicsApplication

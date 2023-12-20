@@ -213,13 +213,26 @@ namespace Kratos
             for (SizeType i = 0; i < rParameters["brep_ids"].size(); ++i) {
                 rGeometryList.push_back(rModelPart.pGetGeometry(rParameters["brep_ids"][i].GetInt()));
             }
+            KRATOS_WATCH(rParameters["iga_model_part"].GetString())
+            
+            // Get the name of the Snake file
+            std::ifstream file("txt_files/input_data.txt");
+            std::string line;
+            std::getline(file, line);  std::getline(file, line); // Skip first and second lines
+            std::getline(file, line); // Read the third line
+            std::string filename = line;
+            file.close();
+
+            /// MODIFIED
             if (rParameters["iga_model_part"].GetString() == "Support_2") {
                 // Read the control_points from the external file in order to know how many edge I have to add (need to improve this)
-                std::ifstream file("txt_files/Snake_coordinates.txt");
+                std::ifstream file("txt_files/" + filename + ".txt");
+                KRATOS_WATCH("txt_files/" + filename + ".txt")
                 double x, y;
                 std::vector<double> coordinates_x;
                 while (file >> x >> y) {coordinates_x.push_back(x);}
                 file.close();
+                KRATOS_WATCH(coordinates_x)
                 int starting_brep_ids = 8;
                 for (SizeType j = 0; j < coordinates_x.size()-1; ++j) {
                     // Add the brep_ids of the internal boundary for SBMLaplacianCondition

@@ -256,8 +256,6 @@ class ConvectionDiffusionSolver(PythonSolver):
         if _CheckIsDistributed():
             target_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.PARTITION_INDEX)
 
-        auxiliary_solver_utilities.AddVariables(self.main_model_part, self.settings["auxiliary_variables_list"])
-
         KratosMultiphysics.Logger.PrintInfo("::[ConvectionDiffusionSolver]:: ", "Variables ADDED")
 
     def GetMinimumBufferSize(self):
@@ -279,12 +277,6 @@ class ConvectionDiffusionSolver(PythonSolver):
 
         # Add the DOFs and reaction list to each node
         KratosMultiphysics.VariableUtils.AddDofsList(dofs_with_reactions_list, self.main_model_part)
-
-        # Append user-defined DOFs and reactions in the ProjectParameters
-        auxiliary_solver_utilities.AddAuxiliaryDofsToDofsWithReactionsList(
-            self.settings["auxiliary_dofs_list"],
-            self.settings["auxiliary_reaction_list"],
-            dofs_with_reactions_list)
 
         KratosMultiphysics.Logger.PrintInfo("::[ConvectionDiffusionSolver]:: ", "DOF's ADDED")
 

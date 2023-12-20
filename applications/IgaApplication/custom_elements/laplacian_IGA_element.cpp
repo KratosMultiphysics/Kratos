@@ -134,7 +134,7 @@ void LaplacianIGAElement<TDim>::CalculateLocalSystem(MatrixType& rLeftHandSideMa
         nodal_conductivity[node_element] = r_geometry[node_element].FastGetSolutionStepValue(r_diffusivity_var);
         // heat_flux_local[node_element] = -2.0*GP_parameter_coord[0]*(GP_parameter_coord[0]-2.0) - 2.0*GP_parameter_coord[1]*(GP_parameter_coord[1]-2.0) ;
         // heat_flux_local[node_element] = -6.0*GP_parameter_coord[0]-6.0*GP_parameter_coord[1] ;
-        // heat_flux_local[node_element] = - 9.0 * r_geometry.Center().X()- 9.0 * r_geometry.Center().Y() ;
+        // heat_flux_local[node_element] = -12.0*GP_parameter_coord[0]*GP_parameter_coord[0]-12.0*GP_parameter_coord[1]*GP_parameter_coord[1] ;
         heat_flux_local[node_element] = -0.0 ; 
 
         // NON FUNZIONA-> heat_flux_local[node_element] = r_geometry.Center().FastGetSolutionStepValue(r_volume_source_var);
@@ -178,9 +178,10 @@ void LaplacianIGAElement<TDim>::CalculateLocalSystem(MatrixType& rLeftHandSideMa
     for (unsigned int i = 0; i < number_of_points; i++) {
         // KRATOS_WATCH(r_geometry[i].GetId())
         temp[i] = r_geometry[i].GetSolutionStepValue(r_unknown_var);
-        // std::ofstream outputFile("Id_active_control_points.txt", std::ios::app);
-        // outputFile << r_geometry[i].GetId() <<"\n";
-        // outputFile.close();
+        std::ofstream outputFile("txt_files/Id_active_control_points.txt", std::ios::app);
+        outputFile << r_geometry[i].GetId() << "  " <<r_geometry[i].GetDof(r_unknown_var).EquationId() <<"\n";
+        outputFile.close();
+        // KRATOS_WATCH(r_geometry[i].GetDof(r_unknown_var).EquationId())
     }
 
     // RHS -= K*temp
@@ -331,16 +332,9 @@ void LaplacianIGAElement<TDim>::FinalizeSolutionStep(const ProcessInfo& rCurrent
     std::ofstream output_file("txt_files/output_results_GPs.txt", std::ios::app);
     if (output_file.is_open()) {
         output_file << std::scientific << std::setprecision(14); // Set precision to 10^-14
-        output_file << rOutput << " " << GP_parameter_coord[0] << " " << GP_parameter_coord[1] << std::endl;
+        output_file << rOutput << " " << GP_parameter_coord[0] << " " << GP_parameter_coord[1] << " " <<integration_points[0].Weight() << std::endl;
         output_file.close();
     }
-    // if (GP_parameter_coord[0] < 0.1 && GP_parameter_coord[1] > 1.9){
-    //     std::ofstream physical_space_file("physical_space.txt", std::ios::app);
-    //     if (physical_space_file.is_open()) {
-    //         physical_space_file << x_coord_gauss_point << " " << y_coord_gauss_point  << std::endl;
-    //         physical_space_file.close();
-    //     }
-    // }
 }
 
 template<std::size_t TDim>

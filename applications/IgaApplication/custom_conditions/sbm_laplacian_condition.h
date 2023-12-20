@@ -111,7 +111,7 @@ namespace Kratos
                 rRightHandSideVector.resize(mat_size);
             noalias(rRightHandSideVector) = ZeroVector(mat_size);
 
-            MatrixType left_hand_side_matrix;
+            MatrixType left_hand_side_matrix = ZeroMatrix(mat_size, mat_size);
 
             CalculateAll(left_hand_side_matrix, rRightHandSideVector,
                 rCurrentProcessInfo, false, true);

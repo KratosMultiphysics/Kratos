@@ -25,7 +25,7 @@ namespace Kratos
     {
         for (IndexType i_outer_loops = 0; i_outer_loops < rOuterLoops.size(); ++i_outer_loops) {
 
-            Clipper2Lib::Paths64 all_loops(1 + rInnerLoops.size()), solution;
+            Clipper2Lib::Paths64 all_loops(1 + rInnerLoops.size()), solution, solution_inner;
             const double factor = 1e-10;
 
             Clipper2Lib::Point64 int_point;
@@ -35,7 +35,7 @@ namespace Kratos
                 CurveTessellation<PointerVector<Node>> curve_tesselation;
                 auto geometry_outer = *(rOuterLoops[i_outer_loops][j].get());
                 curve_tesselation.Tessellate(
-                    geometry_outer, 0.001, 1, true);
+                    geometry_outer, 1e-6, 1, true); ////// Tolerance of the polygon
                 auto tesselation = curve_tesselation.GetTessellation();
                 for (IndexType u = 0; u < tesselation.size(); ++u) {
                     auto new_int_point = BrepTrimmingUtilities::ToIntPoint(std::get<1>(tesselation[u])[0], std::get<1>(tesselation[u])[1], factor);
@@ -80,7 +80,7 @@ namespace Kratos
                     solution = Clipper2Lib::RectClip(rectangle, all_loops);
 
                     const double span_area = std::abs(Clipper2Lib::Area(rectangle.AsPath()));
-                    double clip_area = std::abs(Clipper2Lib::Area(solution[0]));
+                    double clip_area = 0.0;  //if solution is empty, this crashes
                     if (solution.size() > 0)
                     {
                         clip_area = std::abs(Clipper2Lib::Area(solution[0]));
@@ -89,52 +89,99 @@ namespace Kratos
                         }
                     }
 
-                    if (solution.size() == 0 || clip_area == 0.0 ) {
-                        continue;
-                    }
-                    else if (std::abs(clip_area- span_area) < 1000) {
-                        const IndexType number_of_integration_points = rIntegrationInfo.GetNumberOfIntegrationPointsPerSpan(0) * rIntegrationInfo.GetNumberOfIntegrationPointsPerSpan(1);
+                    Clipper2Lib::Clipper64 d;
+                    d.AddSubject(solution); // Add all input paths as subject polygons
+                    d.Execute(Clipper2Lib::ClipType::Difference, Clipper2Lib::FillRule::NonZero, solution_inner);
 
-                        IndexType initial_integration_size = rIntegrationPoints.size();
 
-                        if (rIntegrationPoints.size() != initial_integration_size + number_of_integration_points) {
-                            rIntegrationPoints.resize(initial_integration_size + number_of_integration_points);
+                    // IN ORDER TO CHECK IF YOU ARE USING TRIM OR SBM APPROACH
+                    std::ifstream file("txt_files/input_data.txt");
+                    std::string line;
+                    int SBM_technique;
+                    std::getline(file, line);
+                    std::getline(file, line); // Read the second line
+                    SBM_technique = std::stoi(line);
+                    file.close();
+                    // (SBM_technique == 1) -> CLASSICAL TRIMMING
+
+                    if (SBM_technique == 1) {
+                        if (solution.size() == 0 || clip_area == 0.0 ) {
+                            continue;
                         }
+                        else if (std::abs(clip_area- span_area) < 1000) {
+                            const IndexType number_of_integration_points = rIntegrationInfo.GetNumberOfIntegrationPointsPerSpan(0) * rIntegrationInfo.GetNumberOfIntegrationPointsPerSpan(1);
 
-                        typename IntegrationPointsArrayType::iterator integration_point_iterator = rIntegrationPoints.begin();
-                        advance(integration_point_iterator, initial_integration_size);
+                            IndexType initial_integration_size = rIntegrationPoints.size();
 
-                        // Create the 2D Gauss Points within each knot span
-                        IntegrationPointUtilities::IntegrationPoints2D(
-                            integration_point_iterator,
-                            rIntegrationInfo.GetNumberOfIntegrationPointsPerSpan(0), rIntegrationInfo.GetNumberOfIntegrationPointsPerSpan(1),
-                            rSpansU[i], rSpansU[i + 1],
-                            rSpansV[j], rSpansV[j + 1]);
-                    }
-                    else {
-                        std::vector<Matrix> triangles;
-                        BrepTrimmingUtilities::Triangulate_OPT(solution[0], triangles, factor);
+                            if (rIntegrationPoints.size() != initial_integration_size + number_of_integration_points) {
+                                rIntegrationPoints.resize(initial_integration_size + number_of_integration_points);
+                            }
 
-                        const SizeType number_of_points = std::max(rIntegrationInfo.GetNumberOfIntegrationPointsPerSpan(0), rIntegrationInfo.GetNumberOfIntegrationPointsPerSpan(1));
+                            typename IntegrationPointsArrayType::iterator integration_point_iterator = rIntegrationPoints.begin();
+                            advance(integration_point_iterator, initial_integration_size);
 
-                        const IndexType number_of_integration_points = triangles.size() * IntegrationPointUtilities::s_gauss_triangle[number_of_points].size();
-
-                        IndexType initial_integration_size = rIntegrationPoints.size();
-
-                        if (rIntegrationPoints.size() != initial_integration_size + number_of_integration_points) {
-                            rIntegrationPoints.resize(initial_integration_size + number_of_integration_points);
-                        }
-
-                        typename IntegrationPointsArrayType::iterator integration_point_iterator = rIntegrationPoints.begin();
-                        advance(integration_point_iterator, initial_integration_size);
-
-                        for (IndexType i = 0; i < triangles.size(); ++i)
-                        {
-                            IntegrationPointUtilities::IntegrationPointsTriangle2D(
+                            IntegrationPointUtilities::IntegrationPoints2D(
                                 integration_point_iterator,
-                                number_of_points,
-                                triangles[i](0, 0), triangles[i](1, 0), triangles[i](2, 0),
-                                triangles[i](0, 1), triangles[i](1, 1), triangles[i](2, 1));
+                                rIntegrationInfo.GetNumberOfIntegrationPointsPerSpan(0), rIntegrationInfo.GetNumberOfIntegrationPointsPerSpan(1),
+                                rSpansU[i], rSpansU[i + 1],
+                                rSpansV[j], rSpansV[j + 1]);
+                        }
+                        else { // Here the actually cut the elements
+                            std::vector<Matrix> triangles;
+                            BrepTrimmingUtilities::Triangulate_OPT(solution_inner[0], triangles, factor);
+
+                            const SizeType number_of_points = std::max(rIntegrationInfo.GetNumberOfIntegrationPointsPerSpan(0), rIntegrationInfo.GetNumberOfIntegrationPointsPerSpan(1));
+
+                            const IndexType number_of_integration_points = triangles.size() * IntegrationPointUtilities::s_gauss_triangle[number_of_points].size();
+
+                            IndexType initial_integration_size = rIntegrationPoints.size();
+
+                            if (rIntegrationPoints.size() != initial_integration_size + number_of_integration_points) {
+                                rIntegrationPoints.resize(initial_integration_size + number_of_integration_points);
+                            }
+
+                            typename IntegrationPointsArrayType::iterator integration_point_iterator = rIntegrationPoints.begin();
+                            advance(integration_point_iterator, initial_integration_size);
+
+                            for (IndexType i = 0; i < triangles.size(); ++i)
+                            {
+                                IntegrationPointUtilities::IntegrationPointsTriangle2D(
+                                    integration_point_iterator,
+                                    number_of_points,
+                                    triangles[i](0, 0), triangles[i](1, 0), triangles[i](2, 0),
+                                    triangles[i](0, 1), triangles[i](1, 1), triangles[i](2, 1));
+                            }
+                        }
+                    }
+                    
+                    // SBM CASE
+                    // (SBM_technique == 0) -> SM
+                    else {
+                        // Artificiality for let SBM works
+                        if (clip_area/span_area <= 0.40) { 
+                            // The element is inside the hole
+                            // KRATOS_WATCH(clip_area)
+                            continue;
+                        }
+                        else {
+                            // if (clip_area > 0) {KRATOS_WATCH(clip_area/span_area)}
+                            const IndexType number_of_integration_points = rIntegrationInfo.GetNumberOfIntegrationPointsPerSpan(0) * rIntegrationInfo.GetNumberOfIntegrationPointsPerSpan(1);
+
+                            IndexType initial_integration_size = rIntegrationPoints.size();
+
+                            if (rIntegrationPoints.size() != initial_integration_size + number_of_integration_points) {
+                                rIntegrationPoints.resize(initial_integration_size + number_of_integration_points);
+                            }
+                            // KRATOS_WATCH(initial_integration_size)
+                            // KRATOS_WATCH(initial_integration_size + number_of_integration_points)
+                            typename IntegrationPointsArrayType::iterator integration_point_iterator = rIntegrationPoints.begin();
+                            advance(integration_point_iterator, initial_integration_size);
+
+                            IntegrationPointUtilities::IntegrationPoints2D(
+                                integration_point_iterator,
+                                rIntegrationInfo.GetNumberOfIntegrationPointsPerSpan(0), rIntegrationInfo.GetNumberOfIntegrationPointsPerSpan(1),
+                                rSpansU[i], rSpansU[i + 1],
+                                rSpansV[j], rSpansV[j + 1]);
                         }
                     }
                     c.Clear();

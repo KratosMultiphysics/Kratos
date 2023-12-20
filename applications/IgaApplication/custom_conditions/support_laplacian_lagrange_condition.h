@@ -8,8 +8,8 @@
 //                   Kratos default license: kratos/license.txt
 //
 
-#if !defined(KRATOS_SBM_SUPPORT_LAGRANGE_CONDITION_H_INCLUDED )
-#define  KRATOS_SBM_SUPPORT_LAGRANGE_CONDITION_H_INCLUDED
+#if !defined(KRATOS_SUPPORT_LAPLACIAN_LAGRANGE_CONDITION_H_INCLUDED )
+#define  KRATOS_SUPPORT_LAPLACIAN_LAGRANGE_CONDITION_H_INCLUDED
 
 // System includes
 #include "includes/define.h"
@@ -31,15 +31,15 @@ namespace Kratos
     *
     *   The aproach is described in https://doi.org/10.1186/s40323-018-0109-4
     */
-    class SBMSupportLagrangeCondition
+    class SupportLaplacianLagrangeCondition
         : public Condition
     {
     public:
         ///@name Type Definitions
         ///@{
 
-        /// Counted pointer of SBMSupportLagrangeCondition
-        KRATOS_CLASS_POINTER_DEFINITION(SBMSupportLagrangeCondition);
+        /// Counted pointer of SupportLaplacianLagrangeCondition
+        KRATOS_CLASS_POINTER_DEFINITION(SupportLaplacianLagrangeCondition);
 
         /// Size types
         typedef std::size_t SizeType;
@@ -50,14 +50,14 @@ namespace Kratos
         ///@{
 
         /// Constructor with Id and geometry
-        SBMSupportLagrangeCondition(
+        SupportLaplacianLagrangeCondition(
             IndexType NewId,
             GeometryType::Pointer pGeometry)
             : Condition(NewId, pGeometry)
         {};
 
         /// Constructor with Id, geometry and property
-        SBMSupportLagrangeCondition(
+        SupportLaplacianLagrangeCondition(
             IndexType NewId,
             GeometryType::Pointer pGeometry,
             PropertiesType::Pointer pProperties)
@@ -65,12 +65,12 @@ namespace Kratos
         {};
 
         /// Default constructor
-        SBMSupportLagrangeCondition()
+        SupportLaplacianLagrangeCondition()
             : Condition()
         {};
 
         /// Destructor.
-        virtual ~SBMSupportLagrangeCondition() = default;
+        virtual ~SupportLaplacianLagrangeCondition() = default;
 
         ///@}
         ///@name Life Cycle
@@ -83,7 +83,7 @@ namespace Kratos
             PropertiesType::Pointer pProperties
             ) const override
         {
-            return Kratos::make_intrusive<SBMSupportLagrangeCondition>(
+            return Kratos::make_intrusive<SupportLaplacianLagrangeCondition>(
                 NewId, pGeom, pProperties);
         };
 
@@ -94,7 +94,7 @@ namespace Kratos
             PropertiesType::Pointer pProperties
             ) const override
         {
-            return Kratos::make_intrusive< SBMSupportLagrangeCondition >(
+            return Kratos::make_intrusive< SupportLaplacianLagrangeCondition >(
                 NewId, GetGeometry().Create(ThisNodes), pProperties);
         };
 
@@ -206,14 +206,14 @@ namespace Kratos
         std::string Info() const override
         {
             std::stringstream buffer;
-            buffer << "\"SBMSupportLagrangeCondition\" #" << Id();
+            buffer << "\"SupportLaplacianLagrangeCondition\" #" << Id();
             return buffer.str();
         }
 
         /// Print information about this object.
         void PrintInfo(std::ostream& rOStream) const override
         {
-            rOStream << "\"SBMSupportLagrangeCondition\" #" << Id();
+            rOStream << "\"SupportLaplacianLagrangeCondition\" #" << Id();
         }
 
         /// Print object's data.
@@ -256,7 +256,7 @@ namespace Kratos
 
         ///@}
 
-    }; // Class SBMSupportLagrangeCondition
+    }; // Class SupportLaplacianLagrangeCondition
 
 }  // namespace Kratos.
 

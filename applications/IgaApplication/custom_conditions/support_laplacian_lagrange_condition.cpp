@@ -15,12 +15,12 @@
 // External includes
 
 // Project includes
-#include "custom_conditions/sbm_support_lagrange_condition.h"
+#include "custom_conditions/support_laplacian_lagrange_condition.h"
 
 
 namespace Kratos
 {
-    void SBMSupportLagrangeCondition::CalculateAll(
+    void SupportLaplacianLagrangeCondition::CalculateAll(
         MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
         const ProcessInfo& rCurrentProcessInfo,
@@ -33,6 +33,9 @@ namespace Kratos
         const auto& r_geometry = GetGeometry();
         const SizeType number_of_nodes = r_geometry.size();
         const SizeType number_of_non_zero_nodes = GetNumberOfNonZeroNodes();
+        
+        // KRATOS_WATCH(number_of_non_zero_nodes)
+
         const SizeType mat_size = number_of_non_zero_nodes * 2;
 
         Matrix LHS = ZeroMatrix(mat_size, mat_size);
@@ -54,60 +57,11 @@ namespace Kratos
         Vector GP_parameter_coord(2); 
         GP_parameter_coord = prod(r_geometry.Center(),J0[0]);
 
-
-        //__________________________________________________________________________________________________________________________________
-
-        // GENERAL COMPUTATION OF THE PROJECTION
-        std::ifstream file("txt_files/true_points.txt");    // Read the true points from the mdpa
-        std::vector<double> x_true_boundary;
-        std::vector<double> y_true_boundary;
-        double x, y;
-        while (file >> x >> y) { x_true_boundary.push_back(x); y_true_boundary.push_back(y); }
-        file.close();
-        int index_min_distance = 0; // Initialization of the index of the true node closest to the Gauss point.
-        double min_distance_squared = 1e14;
-        for (int i = 1; i < x_true_boundary.size(); i++) {
-            double current_distance_squared = (GP_parameter_coord[0]-x_true_boundary[i])*(GP_parameter_coord[0]-x_true_boundary[i]) +  
-                    (GP_parameter_coord[1]-y_true_boundary[i])*(GP_parameter_coord[1]-y_true_boundary[i]) ;
-            if ( current_distance_squared  <  min_distance_squared ) {
-                    min_distance_squared = current_distance_squared;
-                    index_min_distance = i ;
-                    }
-        }
-        Vector projection(2);
-        projection[0] = x_true_boundary[index_min_distance] ;
-        projection[1] = y_true_boundary[index_min_distance] ;
-        
         // Stampa su file esterno le coordinate (projection[0],projection[1])
-        std::ofstream outputFile("txt_files/Projection_Coordinates.txt", std::ios::app);
-        outputFile << projection[0] << " " << projection[1] << " "  << GP_parameter_coord[0] << " " << GP_parameter_coord[1] <<"\n";
+        std::ofstream outputFile("txt_files/boundary_GPs.txt", std::ios::app);
+        outputFile << std::setprecision(14); // Set precision to 10^-14
+        outputFile << GP_parameter_coord[0] << " " << GP_parameter_coord[1]  <<"\n";
         outputFile.close();
-
-        Vector d(2);
-        d[0] = projection[0] - GP_parameter_coord[0];
-        d[1] = projection[1] - GP_parameter_coord[1];
-
-        const unsigned int dim = 2;
-        Matrix InvJ0(dim,dim);
-        r_geometry.Jacobian(J0,this->GetIntegrationMethod());
-        double DetJ0;
-
-        const Matrix& N = r_geometry.ShapeFunctionsValues();
-
-        Matrix Jacobian = ZeroMatrix(2,2);
-        Jacobian(0,0) = J0[0](0,0);
-        Jacobian(0,1) = J0[0](0,1);
-        Jacobian(1,0) = J0[0](1,0);
-        Jacobian(1,1) = J0[0](1,1);
-
-        // Calculating inverse jacobian and jacobian determinant
-        MathUtils<double>::InvertMatrix(Jacobian,InvJ0,DetJ0);
-
-        const Matrix& DN_De = r_geometry.ShapeFunctionDerivatives(1, 0, this->GetIntegrationMethod());
-        const Matrix& DDN_DDe = r_geometry.ShapeFunctionDerivatives(2, 0, this->GetIntegrationMethod());
-        const Matrix& DDDN_DDDe = r_geometry.ShapeFunctionDerivatives(3, 0, this->GetIntegrationMethod());
-        //__________________________________________________________________________________________________________________________________
-        
         
         // non zero node counter for Lagrange Multipliers.
         IndexType counter_n = 0;
@@ -116,32 +70,15 @@ namespace Kratos
             // Differential area, being 1 for points.
             const double integration = integration_points[point_number].Weight() * determinant_jacobian_vector[point_number];
 
-            //__________________________________________________________________________________________________________________________________
-            
-            Matrix H = ZeroMatrix(1, number_of_nodes);
-            Matrix H_gradient_term = ZeroMatrix(1, number_of_nodes);
-            Matrix H_hessian_term = ZeroMatrix(1, number_of_nodes);
-            Matrix H_3rdTayor_term = ZeroMatrix(1, number_of_nodes);
-            
-            for (IndexType i = 0; i < number_of_nodes; ++i)
-            {
-                H(0, i)               = N(point_number, i);
-                // Taylor expansion in the parameter space
-                H_gradient_term(0, i) = DN_De(i,0) * d[0] + DN_De(i,1) * d[1] ; 
-                H_hessian_term(0, i) = 0.5 * ( d[0]*d[0]*DDN_DDe(i,0) + 2.0 * d[0]*d[1]*DDN_DDe(i,1) + d[1]*d[1]*DDN_DDe(i,2) ) ;
-                H_3rdTayor_term(0, i) = 1.0/6.0 * DDDN_DDDe(i,0) * d[0]*d[0]*d[0] + 3.0/6.0 * DDDN_DDDe(i,1)*d[0]*d[0]*d[1] + 3.0/6.0* DDDN_DDDe(i,2)*d[0]*d[1]*d[1] + 1.0/6.0 *DDDN_DDDe(i,3)*d[1]*d[1]*d[1] ;
-            }
-            //__________________________________________________________________________________________________________________________________
             // loop over Lagrange Multipliers
             for (IndexType i = 0; i < number_of_nodes; i++) {
                 // non zero node counter for for displacements.
                 IndexType counter_m = 0;
-                if (r_N(point_number, i) > shape_function_tolerance) { // || H_gradient_term(0, i) > shape_function_tolerance || H_hessian_term(0, i) > shape_function_tolerance || H_3rdTayor_term(0, i) > shape_function_tolerance) { 
+                if (r_N(point_number, i) > shape_function_tolerance) {
                     // loop over shape functions of displacements
                     for (IndexType j = 0; j < number_of_nodes; j++) {
-                        if (r_N(point_number, j) > shape_function_tolerance ) { // || H_gradient_term(0, j) > shape_function_tolerance || H_hessian_term(0, j) > shape_function_tolerance || H_3rdTayor_term(0, j) > shape_function_tolerance) {
-                            // const double NN = r_N(point_number, j) * r_N(point_number, i) * integration;
-                            const double NN = (r_N(point_number, j) + H_gradient_term(0, j) + H_hessian_term(0, j) + H_3rdTayor_term(0, j)) * (r_N(point_number, i) + H_gradient_term(0, i) + H_hessian_term(0, i) + H_3rdTayor_term(0, i)) * integration;
+                        if (r_N(point_number, j) > shape_function_tolerance) {
+                            const double NN = r_N(point_number, j) * r_N(point_number, i) * integration;
 
                             // indices in local stiffness matrix.
                             const IndexType ibase = counter_n * 1 + 1 * (number_of_non_zero_nodes);
@@ -170,25 +107,20 @@ namespace Kratos
                 // const double& displacement = (Has(TEMPERATURE))
                 //     ? this->GetValue(TEMPERATURE)
                 //     : 0.0;
-
-                // const double displacement = sin(GP_parameter_coord[0]) * sinh(GP_parameter_coord[1]);
-                const double displacement = sin(projection[0]) * sinh(projection[1]) ;
+                const double displacement = sin(GP_parameter_coord[0]) * sinh(GP_parameter_coord[1]);
                 // const double displacement = GP_parameter_coord[0] - GP_parameter_coord[1];
-                // const double displacement = projection[0] - projection[1] ;
-                // KRATOS_WATCH(displacement)
-                // KRATOS_WATCH(sin(GP_parameter_coord[0]) * sinh(GP_parameter_coord[1]))
 
                 IndexType counter = 0;
                 for (IndexType i = 0; i < number_of_nodes; i++) {
                     for (IndexType n = 0; n < r_N.size1(); ++n) {
                         if (r_N(n, i) > shape_function_tolerance) {
                             const double r_disp = r_geometry[i].FastGetSolutionStepValue(TEMPERATURE);
-                            
                             u[counter] = (r_disp - displacement);
                             counter++;
                         }
                     }
                 }
+                // KRATOS_WATCH(u)
                 for (IndexType i = 0; i < number_of_nodes; i++) {
                     for (IndexType n = 0; n < r_N.size1(); ++n) {
                         if (r_N(n, i) > shape_function_tolerance) {
@@ -198,14 +130,14 @@ namespace Kratos
                         }
                     }
                 }
-
+                // KRATOS_WATCH(prod(LHS, u))
                 noalias(rRightHandSideVector) -= prod(LHS, u);
             }
         }
         KRATOS_CATCH("")
     }
 
-    void SBMSupportLagrangeCondition::EquationIdVector(
+    void SupportLaplacianLagrangeCondition::EquationIdVector(
         EquationIdVectorType& rResult,
         const ProcessInfo& rCurrentProcessInfo
     ) const
@@ -240,7 +172,7 @@ namespace Kratos
         }
     }
 
-    void SBMSupportLagrangeCondition::GetDofList(
+    void SupportLaplacianLagrangeCondition::GetDofList(
         DofsVectorType& rElementalDofList,
         const ProcessInfo& rCurrentProcessInfo
     ) const
@@ -271,7 +203,7 @@ namespace Kratos
         }
     }
 
-    std::size_t SBMSupportLagrangeCondition::GetNumberOfNonZeroNodes() const {
+    std::size_t SupportLaplacianLagrangeCondition::GetNumberOfNonZeroNodes() const {
         const Matrix& r_N = GetGeometry().ShapeFunctionsValues();
 
         SizeType counter = 0;

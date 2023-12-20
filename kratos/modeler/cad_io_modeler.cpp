@@ -25,6 +25,7 @@ namespace Kratos
         // Read the refinements.iga.json
         const Parameters refinements_parameters = ReadParamatersFile("refinements.iga.json");
 
+        /// MODIFIED
         // Check if true boundary is present in the problem
         std::ifstream infile("txt_files/true_points.txt");
         bool file_true_points_exists = infile.good(); 
@@ -99,7 +100,7 @@ namespace Kratos
 
 
 
-
+    /// MODIFIED
     void CadIoModeler::CreateTheSnakeCoordinates(const Parameters refinements_parameters) {
         int insert_nb_per_span_u = refinements_parameters["refinements"][0]["parameters"]["insert_nb_per_span_u"].GetInt();
         int insert_nb_per_span_v = refinements_parameters["refinements"][0]["parameters"]["insert_nb_per_span_v"].GetInt();
@@ -183,7 +184,7 @@ namespace Kratos
 
             if (knot_span_u_1st_point != knot_span_u_2nd_point || knot_span_v_1st_point != knot_span_v_2nd_point) { // INTERSECTION BETWEEN TRUE AND SURROGATE BOUNDARY
                 // Compute the line connecting true_points (i, i+1) -> y = mx+q
-                double m = (y_true_boundary2-y_true_boundary1) / (x_true_boundary2-x_true_boundary1) ;
+                double m = (y_true_boundary2-y_true_boundary1) / (x_true_boundary2 - x_true_boundary1) ;
                 double q = y_true_boundary1 - m * x_true_boundary1 ;
                 // Check if the true boundary crosses an u or a v knot value
                 if (knot_span_u_1st_point != knot_span_u_2nd_point) { // u knot value is crossed
@@ -196,7 +197,7 @@ namespace Kratos
                     knot_spans_available[knot_span_v_1st_point][knot_span_u_1st_point] = 1;
                     knot_spans_available[knot_span_v_1st_point][knot_span_u_2nd_point] = 1;
                     // Save the candidate for the advanced_surrogate_boundary
-                    if (abs(y_intersection_value-knot_span_v_1st_point*knot_step_v) > abs(y_intersection_value-(knot_span_v_1st_point+1)*knot_step_v)) {
+                    if (std::abs(y_intersection_value-knot_span_v_1st_point*knot_step_v) > std::abs(y_intersection_value-(knot_span_v_1st_point+1)*knot_step_v)) {
                         x_candidate_advanced_surrogate_boundary = x_intersection_value ;
                         y_candidate_advanced_surrogate_boundary = (knot_span_v_1st_point+1)*knot_step_v ; 
                     }
@@ -209,15 +210,18 @@ namespace Kratos
                     // KRATOS_WATCH('// v knot value is crossed')
                     double y_intersection_value = std::max(knot_span_v_1st_point, knot_span_v_2nd_point) * knot_step_v ;
                     double x_intersection_value = 0; // Initialize
-                    if (m!= 0) {x_intersection_value = (y_intersection_value - q) / m ;}
-                    else {x_intersection_value = x_true_boundary1 ;} // m == 0, vertical intersection
+                    // m might be inf !! We need the following if statement
+                    if (x_true_boundary2 - x_true_boundary1 != 0)  {x_intersection_value = (y_intersection_value - q) / m ;}
+                    else {x_intersection_value = x_true_boundary1 ;}
                     y_intersection.push_back(y_intersection_value);
                     x_intersection.push_back(x_intersection_value);
-                    // Find the "knot_spans_available" using the intersection
+                    // KRATOS_WATCH(x_intersection_value)
+                    // KRATOS_WATCH(y_intersection_value)
+                    // Find the "knot_spans_available" using the intersection (Snake_coordinate classic -> External Boundary)
                     knot_spans_available[knot_span_v_1st_point][knot_span_u_1st_point] = 1;
                     knot_spans_available[knot_span_v_2nd_point][knot_span_u_1st_point] = 1;
                     // Save the closest knot value
-                    if (abs(x_intersection_value-knot_span_u_1st_point*knot_step_u) > abs(x_intersection_value-(knot_span_u_1st_point+1)*knot_step_u)) {
+                    if (std::abs(x_intersection_value-knot_span_u_1st_point*knot_step_u) > std::abs(x_intersection_value-(knot_span_u_1st_point+1)*knot_step_u)) {
                         x_candidate_advanced_surrogate_boundary = (knot_span_u_1st_point+1)*knot_step_u ;
                         y_candidate_advanced_surrogate_boundary = y_intersection_value ;
                     }
@@ -227,7 +231,7 @@ namespace Kratos
                     }
                 }
                 // Check if we are jumping some cut knot spans. If yes we have to take a finer grid. (We can improve here...)
-                if (abs(knot_span_v_1st_point-knot_span_v_2nd_point) > 1 || abs(knot_span_u_1st_point-knot_span_u_2nd_point) > 1 ) {
+                if (std::abs(knot_span_v_1st_point-knot_span_v_2nd_point) > 1 || std::abs(knot_span_u_1st_point-knot_span_u_2nd_point) > 1 ) {
                     KRATOS_WATCH('Your true boundary is too coarse, please take a finer one')
                     exit(0);
                 }
@@ -244,10 +248,14 @@ namespace Kratos
                         double y1_candidate = y_advanced_surrogate_boundary[y_advanced_surrogate_boundary.size()-1];
                         double x2_candidate = x_advanced_surrogate_boundary[x_advanced_surrogate_boundary.size()-1];
                         double y2_candidate = y_candidate_advanced_surrogate_boundary;
+                        // KRATOS_WATCH(x1_candidate)
+                        // KRATOS_WATCH(y1_candidate)
+                        // KRATOS_WATCH(x2_candidate)
+                        // KRATOS_WATCH(y2_candidate)
                         // Add the one which is closer to both the intersections : [x_intersection.size() - 1] and [x_intersection.size() - 2]
-                        if (      abs((x1_candidate)*(x1_candidate)-x_intersection[x_intersection.size() - 1]*x_intersection[x_intersection.size() - 1] + (y1_candidate)*(y1_candidate)-y_intersection[y_intersection.size() - 1]*y_intersection[y_intersection.size() - 1] 
+                        if (      std::abs((x1_candidate)*(x1_candidate)-x_intersection[x_intersection.size() - 1]*x_intersection[x_intersection.size() - 1] + (y1_candidate)*(y1_candidate)-y_intersection[y_intersection.size() - 1]*y_intersection[y_intersection.size() - 1] 
                                 + (x1_candidate)*(x1_candidate)-x_intersection[x_intersection.size() - 2]*x_intersection[x_intersection.size() - 2] + (y1_candidate)*(y1_candidate)-y_intersection[y_intersection.size() - 2]*y_intersection[y_intersection.size() - 2]  ) 
-                            <     abs((x2_candidate)*(x2_candidate)-x_intersection[x_intersection.size() - 1]*x_intersection[x_intersection.size() - 1] + (y2_candidate)*(y2_candidate)-y_intersection[y_intersection.size() - 1]*y_intersection[y_intersection.size() - 1] 
+                            <     std::abs((x2_candidate)*(x2_candidate)-x_intersection[x_intersection.size() - 1]*x_intersection[x_intersection.size() - 1] + (y2_candidate)*(y2_candidate)-y_intersection[y_intersection.size() - 1]*y_intersection[y_intersection.size() - 1] 
                                 + (x2_candidate)*(x2_candidate)-x_intersection[x_intersection.size() - 2]*x_intersection[x_intersection.size() - 2] + (y2_candidate)*(y2_candidate)-y_intersection[y_intersection.size() - 2]*y_intersection[y_intersection.size() - 2])    ) {
                             x_advanced_surrogate_boundary.push_back(x1_candidate) ;
                             y_advanced_surrogate_boundary.push_back(y1_candidate) ;
@@ -267,16 +275,16 @@ namespace Kratos
         // Case of diagonal surrogate boundary between last and first point of advanced_surrogate_boundary
         if (x_advanced_surrogate_boundary[1] != x_advanced_surrogate_boundary[x_advanced_surrogate_boundary.size()-1] &&
             y_advanced_surrogate_boundary[1] != y_advanced_surrogate_boundary[y_advanced_surrogate_boundary.size()-1] ) {
-            KRATOS_WATCH('Diagional surrogate boundary between last and first point')
+            // KRATOS_WATCH('Diagional surrogate boundary between last and first point')
             // Let's identify the two candidate points, only one will be added to the advanced_surrogate_boundary
             double x1_candidate = x_advanced_surrogate_boundary[1];
             double y1_candidate = y_advanced_surrogate_boundary[y_advanced_surrogate_boundary.size()-1];
             double x2_candidate = x_advanced_surrogate_boundary[x_advanced_surrogate_boundary.size()-1];
             double y2_candidate = y_advanced_surrogate_boundary[1];
             // Add the one which is closer to both the intersections : [x_intersection.size() - 1] and [x_intersection.size() - 2]
-            if (      abs((x1_candidate)*(x1_candidate)-x_intersection[x_intersection.size() - 1]*x_intersection[x_intersection.size() - 1] + (y1_candidate)*(y1_candidate)-y_intersection[y_intersection.size() - 1]*y_intersection[y_intersection.size() - 1] 
+            if (      std::abs((x1_candidate)*(x1_candidate)-x_intersection[x_intersection.size() - 1]*x_intersection[x_intersection.size() - 1] + (y1_candidate)*(y1_candidate)-y_intersection[y_intersection.size() - 1]*y_intersection[y_intersection.size() - 1] 
                     + (x1_candidate)*(x1_candidate)-x_intersection[0]*x_intersection[0] + (y1_candidate)*(y1_candidate)-y_intersection[0]*y_intersection[0]  ) 
-                <     abs((x2_candidate)*(x2_candidate)-x_intersection[x_intersection.size() - 1]*x_intersection[x_intersection.size() - 1] + (y2_candidate)*(y2_candidate)-y_intersection[y_intersection.size() - 1]*y_intersection[y_intersection.size() - 1] 
+                <     std::abs((x2_candidate)*(x2_candidate)-x_intersection[x_intersection.size() - 1]*x_intersection[x_intersection.size() - 1] + (y2_candidate)*(y2_candidate)-y_intersection[y_intersection.size() - 1]*y_intersection[y_intersection.size() - 1] 
                     + (x2_candidate)*(x2_candidate)-x_intersection[0]*x_intersection[0] + (y2_candidate)*(y2_candidate)-y_intersection[0]*y_intersection[0])    ) {
                 x_advanced_surrogate_boundary.push_back(x1_candidate) ;
                 y_advanced_surrogate_boundary.push_back(y1_candidate) ;
@@ -286,7 +294,7 @@ namespace Kratos
                 y_advanced_surrogate_boundary.push_back(y2_candidate) ;
             }
         }
-
+        // *Li scrivo al contrario* -> Convention IgaApplication
         // Print on an external file the new control points coordinate for creating the b_rep_trimming curves
         std::ofstream outputFileCoordinate("txt_files/Snake_coordinates2.txt");
         outputFileCoordinate << std::setprecision(16);
@@ -298,12 +306,28 @@ namespace Kratos
                 }
             }
         }
-        // *Li scrivo al contrario*
+        // *Li scrivo al contrario* -> Convention IgaApplication
         if (x_advanced_surrogate_boundary[x_advanced_surrogate_boundary.size()-1] != x_advanced_surrogate_boundary[1] || 
                 y_advanced_surrogate_boundary[y_advanced_surrogate_boundary.size()-1] != y_advanced_surrogate_boundary[1]) {
             outputFileCoordinate << x_advanced_surrogate_boundary[1] << " " << y_advanced_surrogate_boundary[1] << std::endl;
         }
 
+        // // Print on an external file the new control points coordinate for creating the b_rep_trimming curves
+        // std::ofstream outputFileCoordinate("txt_files/Snake_coordinates2.txt");
+        // outputFileCoordinate << std::setprecision(16);
+        // for (int i = 1  ; i < x_advanced_surrogate_boundary.size()-1 ; i++ ) { // *Li scrivo al contrario*
+        //     // Check is there are singularities along the surrogate boundary 
+        //     if (x_advanced_surrogate_boundary[i]!= x_advanced_surrogate_boundary[i+2] || y_advanced_surrogate_boundary[i]!=y_advanced_surrogate_boundary[i+2]) {
+        //         if (x_advanced_surrogate_boundary[i-1]!= x_advanced_surrogate_boundary[i+1] || y_advanced_surrogate_boundary[i-1]!=y_advanced_surrogate_boundary[i+1]) {
+        //             outputFileCoordinate << x_advanced_surrogate_boundary[i] << " " << y_advanced_surrogate_boundary[i] << std::endl; 
+        //         }
+        //     }
+        // }
+        // // *Li scrivo al contrario* -> Convention IgaApplication
+        // if (x_advanced_surrogate_boundary[x_advanced_surrogate_boundary.size()-1] != x_advanced_surrogate_boundary[1] || 
+        //         y_advanced_surrogate_boundary[y_advanced_surrogate_boundary.size()-1] != y_advanced_surrogate_boundary[1]) {
+        //     outputFileCoordinate << x_advanced_surrogate_boundary[x_advanced_surrogate_boundary.size()-1] << " " << y_advanced_surrogate_boundary[x_advanced_surrogate_boundary.size()-1] << std::endl;
+        // }
 
 
 
@@ -314,7 +338,6 @@ namespace Kratos
         int start_j = 0;
         for (int i = 0; i < (insert_nb_per_span_u+1); i++) {
             for (int j = 0; j < (insert_nb_per_span_v+1); j++ ) {
-                // KRATOS_WATCH(knot_spans_available[j][i])
                 if (knot_spans_available[j][i] == 1 ) {
                     start_i = i;
                     start_j = j;
@@ -334,7 +357,10 @@ namespace Kratos
         outputFile << knots_u[start_i] << " " << knots_v[start_j] << std::endl;
         // KRATOS_WATCH(knots_u[start_i])
         // KRATOS_WATCH(knots_v[start_j])
+        // KRATOS_WATCH(start_i)
+        // KRATOS_WATCH(start_j)
         // exit(0);
+        
         // Follow the clockwise loop
         int end = 0;
         // We are going orizontally
@@ -346,6 +372,7 @@ namespace Kratos
         int steps = 0;
         while (end == 0 && steps < 1000) {
             steps ++ ;
+            int is_special_case = 1; // Variable to check if we are in a super special case and we shouldn't go out of the while loop
             // KRATOS_WATCH(i)
             // KRATOS_WATCH(j)
             // KRATOS_WATCH(I)
@@ -410,7 +437,8 @@ namespace Kratos
                         if (direction == 4) {direction = 0;}
                     }
                     else { // Super special case of "isolated" knot span to be circumnavigated
-                        KRATOS_WATCH('Super special case of "isolated" knot span')
+                        // KRATOS_WATCH('Super special case of "isolated" knot span')
+                        is_special_case = 0;
                         // Resetto e muovo (I,J) "indietro"
                         if (direction == 0) {I-- ; J-- ;} 
                         if (direction == 1) {J++ ; I-- ;}
@@ -450,9 +478,7 @@ namespace Kratos
                 }
             }
             // Check if we have close the snake
-            if (I == start_i && J == start_j) {
-                // Write the last snake point
-                // outputFile << knots_u[i] << " " << knots_v[j] << std::endl;
+            if (I == start_i && J == start_j && is_special_case == 1 ) {
                 // End of the while loop
                 end = 1;
                 KRATOS_WATCH(steps)

@@ -7,8 +7,8 @@
 //  License:         BSD License
 //                   Kratos default license: kratos/license.txt
 //
-//  Main authors:    Ricky Aristio
-//                   Tobias Teschemacher
+//  Main authors:    Nicolò Antonelli
+//                  
 //
 
 // System includes
@@ -51,16 +51,15 @@ namespace Kratos
 
         // Compute the normals
         array_1d<double, 3> tangent_parameter_space;
-        array_1d<double, 3> normal_physical_space;
+        array_1d<double, 2> normal_physical_space;
+        array_1d<double, 3> normal_parameter_space;
 
         r_geometry.Calculate(LOCAL_TANGENT, tangent_parameter_space); // Gives the result in the parameter space !!
         double magnitude = std::sqrt(tangent_parameter_space[0] * tangent_parameter_space[0] + tangent_parameter_space[1] * tangent_parameter_space[1]);
         
-        // Only in this particular case!!! (NEED TO CHANGE!)
-        normal_physical_space[0] = - tangent_parameter_space[0] / magnitude;
-        normal_physical_space[1] = + tangent_parameter_space[1] / magnitude;  // By observations on the result of .Calculate(LOCAL_TANGENT
-        
-        // KRATOS_WATCH(normal_physical_space)
+        // NEW FOR GENERAL JACOBIAN
+        normal_parameter_space[0] = + tangent_parameter_space[1] / magnitude;
+        normal_parameter_space[1] = - tangent_parameter_space[0] / magnitude;  // By observations on the result of .Calculate(LOCAL_TANGENT
 
         const GeometryType::ShapeFunctionsGradientsType& DN_De = r_geometry.ShapeFunctionsLocalGradients(this->GetIntegrationMethod());
         r_geometry.Jacobian(J0,this->GetIntegrationMethod());
@@ -68,8 +67,15 @@ namespace Kratos
 
         Vector GP_parameter_coord(2); 
         GP_parameter_coord = prod(r_geometry.Center(),J0[0]);
-        // KRATOS_WATCH(GP_parameter_coord)
-        // KRATOS_WATCH(normal_physical_space)
+        
+        normal_physical_space = prod(trans(J0[0]),normal_parameter_space);
+
+        // Stampa su file esterno le coordinate (projection[0],projection[1])
+        std::ofstream outputFile("txt_files/boundary_GPs.txt", std::ios::app);
+        outputFile << std::setprecision(14); // Set precision to 10^-14
+        outputFile << GP_parameter_coord[0] << " " << GP_parameter_coord[1]  <<"\n";
+        outputFile.close();
+        
 
         for (IndexType point_number = 0; point_number < integration_points.size(); ++point_number)
         {
@@ -131,6 +137,7 @@ namespace Kratos
                 // double temperature = GP_parameter_coord[0]*GP_parameter_coord[0]+GP_parameter_coord[1]*GP_parameter_coord[1];
                 double temperature = sin(GP_parameter_coord[0]) * sinh(GP_parameter_coord[1]);
                 // double temperature = GP_parameter_coord[0]*GP_parameter_coord[0]*GP_parameter_coord[0] + GP_parameter_coord[1]*GP_parameter_coord[1]*GP_parameter_coord[1] ;
+                // double temperature = GP_parameter_coord[0]*GP_parameter_coord[0]*GP_parameter_coord[0]*GP_parameter_coord[0]  + GP_parameter_coord[1]*GP_parameter_coord[1]*GP_parameter_coord[1] *GP_parameter_coord[1] ;
                 
                 Vector u_D(number_of_nodes);
                 for (IndexType i = 0; i < number_of_nodes; ++i)
@@ -147,11 +154,18 @@ namespace Kratos
                 noalias(rRightHandSideVector) += prod(prod(trans(H), H), u_D) * penalty_integration;
                 // Of the Dirichlet BCs
                 noalias(rRightHandSideVector) += Guglielmo_innovation * prod(prod(trans(DN_dot_n), H), u_D) * integration_points[point_number].Weight() * fabs(determinant_jacobian_vector[point_number]);
-                // exit(0);
+
+
+                Vector temp(number_of_nodes);
+                // RHS = ExtForces - K*temp;
+                for (unsigned int i = 0; i < number_of_nodes; i++) {
+                    temp[i] = r_geometry[i].GetSolutionStepValue(TEMPERATURE);
+                }
+                // RHS -= K*temp
+                noalias(rRightHandSideVector) -= prod(rLeftHandSideMatrix,temp);
 
             }
         }
-        // exit(0);
         KRATOS_CATCH("")
     }
 

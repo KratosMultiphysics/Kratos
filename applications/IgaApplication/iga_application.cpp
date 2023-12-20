@@ -54,8 +54,10 @@ KratosIgaApplication::KratosIgaApplication()
         new Geometry<Node>(Condition::GeometryType::PointsArrayType(1))))
     , mSBMLaplacianCondition(0, Condition::GeometryType::Pointer(
         new Geometry<Node>(Condition::GeometryType::PointsArrayType(1))))
-    // , mSBMSupportLagrangeCondition(0, Condition::GeometryType::Pointer(
-    //     new Geometry<Node>(Condition::GeometryType::PointsArrayType(1))))
+    , mSBMSupportLagrangeCondition(0, Condition::GeometryType::Pointer(
+        new Geometry<Node>(Condition::GeometryType::PointsArrayType(1))))
+    , mSupportLaplacianLagrangeCondition(0, Condition::GeometryType::Pointer(
+        new Geometry<Node>(Condition::GeometryType::PointsArrayType(1))))
 {
 }
 
@@ -91,7 +93,8 @@ KRATOS_INFO("") << "    KRATOS  _____ _____\n"
     KRATOS_REGISTER_CONDITION("SupportNitscheCondition", mSupportNitscheCondition)
     KRATOS_REGISTER_CONDITION("SupportPenaltyLaplacianCondition", mSupportPenaltyLaplacianCondition)
     KRATOS_REGISTER_CONDITION("SBMLaplacianCondition", mSBMLaplacianCondition)
-    // KRATOS_REGISTER_CONDITION("SBMSupportLagrangeCondition", mSBMSupportLagrangeCondition)
+    KRATOS_REGISTER_CONDITION("SBMSupportLagrangeCondition", mSBMSupportLagrangeCondition)
+    KRATOS_REGISTER_CONDITION("SupportLaplacianLagrangeCondition", mSupportLaplacianLagrangeCondition)
 
     KRATOS_REGISTER_MODELER("IgaModeler", mIgaModeler);
     KRATOS_REGISTER_MODELER("RefinementModeler", mRefinementModeler);
@@ -155,6 +158,7 @@ KRATOS_INFO("") << "    KRATOS  _____ _____\n"
 
     KRATOS_REGISTER_VARIABLE(PENALTY_FACTOR)
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(VECTOR_LAGRANGE_MULTIPLIER_REACTION)
+    KRATOS_REGISTER_VARIABLE(SCALAR_LAGRANGE_MULTIPLIER)
 
     KRATOS_REGISTER_VARIABLE(NITSCHE_STABILIZATION_FACTOR)
     KRATOS_REGISTER_VARIABLE(EIGENVALUE_NITSCHE_STABILIZATION_SIZE)
