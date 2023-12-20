@@ -302,7 +302,7 @@ public:
             rKnotsU,
             rKnotsV,
             SpanU,
-            SpanU,
+            SpanV,
             ParameterU,
             ParameterV);
     }
