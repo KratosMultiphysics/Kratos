@@ -141,8 +141,8 @@ public:
           mrComm(rComm),
           mGuessRowSize(GuessRowSize)
     {
-    }    
-    
+    }
+
     /**
      * @brief Default constructor. (with parameters)
      */
@@ -241,7 +241,7 @@ public:
         rA.GlobalAssemble();
         rb.GlobalAssemble();
 
-        KRATOS_INFO_IF("TrilinosBlockBuilderAndSolver", BaseType::GetEchoLevel() >= 1) << "Build time: " << build_timer.ElapsedSeconds() << std::endl;
+        KRATOS_INFO_IF("TrilinosBlockBuilderAndSolver", BaseType::GetEchoLevel() >= 1) << "Build time: " << build_timer << std::endl;
 
         KRATOS_CATCH("")
     }
@@ -295,7 +295,7 @@ public:
         // Finalizing the assembly
         rA.GlobalAssemble();
 
-        KRATOS_INFO_IF("TrilinosBlockBuilderAndSolver", BaseType::GetEchoLevel() >= 1) << "Build time LHS: " << build_timer.ElapsedSeconds() << std::endl;
+        KRATOS_INFO_IF("TrilinosBlockBuilderAndSolver", BaseType::GetEchoLevel() >= 1) << "Build time LHS: " << build_timer << std::endl;
 
         KRATOS_CATCH("")
     }
@@ -322,11 +322,93 @@ public:
 
     /**
      * @brief This is a call to the linear system solver
-     * @param A The LHS matrix
-     * @param Dx The Unknowns vector
-     * @param b The RHS vector
+     * @param rA The LHS matrix
+     * @param rDx The Unknowns vector
+     * @param rb The RHS vector
+     */
+    void SystemSolve(
+        TSystemMatrixType& rA,
+        TSystemVectorType& rDx,
+        TSystemVectorType& rb
+        ) override
+    {
+        KRATOS_TRY
+        double norm_b;
+        if (TSparseSpace::Size(rb) != 0) {
+            norm_b = TSparseSpace::TwoNorm(rb);
+        } else {
+            norm_b = 0.0;
+        }
+
+        if (norm_b != 0.0) {
+            // Do solve
+            BaseType::mpLinearSystemSolver->Solve(rA, rDx, rb);
+        } else {
+            TSparseSpace::SetToZero(rDx);
+        }
+
+        // Reference to T
+        const TSystemMatrixType& r_T = GetConstraintRelationMatrix();
+
+        // If there are master-slave constraints
+        if(TSparseSpace::Size1(r_T) != 0) {
+            // Recover solution of the original problem
+            TSystemVectorType Dxmodified(rDx);
+
+            // Recover solution of the original problem
+            TSparseSpace::Mult(r_T, Dxmodified, rDx);
+        }
+
+        // Prints information about the current time
+        KRATOS_INFO_IF("TrilinosResidualBasedBlockBuilderAndSolver", this->GetEchoLevel() > 1) << *(BaseType::mpLinearSystemSolver) << std::endl;
+
+        KRATOS_CATCH("")
+    }
+
+    /**
+     * @brief This is a call to the linear system solver (taking into account some physical particularities of the problem)
+     * @param rA The LHS matrix
+     * @param rDx The Unknowns vector
+     * @param rb The RHS vector
+     * @param rModelPart The model part of the problem to solve
      */
     void SystemSolveWithPhysics(TSystemMatrixType& rA,
+                                TSystemVectorType& rDx,
+                                TSystemVectorType& rb,
+                                ModelPart& rModelPart
+                                )
+    {
+        KRATOS_TRY
+
+        // If considering MPC
+        if (rModelPart.GetCommunicator().GlobalNumberOfMasterSlaveConstraints() > 0) {
+            TSystemVectorType Dxmodified(rb);
+
+            // Initialize the vector
+            TSparseSpace::SetToZero(Dxmodified);
+
+            InternalSystemSolveWithPhysics(rA, Dxmodified, rb, rModelPart);
+
+            // Reference to T
+            const TSystemMatrixType& r_T = GetConstraintRelationMatrix();
+
+            // Recover solution of the original problem
+            TSparseSpace::Mult(r_T, Dxmodified, rDx);
+        } else {
+            InternalSystemSolveWithPhysics(rA, rDx, rb, rModelPart);
+        }
+
+        KRATOS_CATCH("")
+    }
+
+    /**
+     * @brief This is a call to the linear system solver (taking into account some physical particularities of the problem)
+     * @param rA The LHS matrix
+     * @param rDx The Unknowns vector
+     * @param rb The RHS vector
+     * @param rModelPart The model part of the problem to solve
+     */
+    void InternalSystemSolveWithPhysics(TSystemMatrixType& rA,
                                 TSystemVectorType& rDx,
                                 TSystemVectorType& rb,
                                 ModelPart& rModelPart)
@@ -385,7 +467,7 @@ public:
             START_TIMER("ApplyConstraints", 0)
             ApplyConstraints(pScheme, rModelPart, rA, rb);
             STOP_TIMER("ApplyConstraints", 0)
-            KRATOS_INFO_IF("TrilinosBlockBuilderAndSolver", BaseType::GetEchoLevel() >=1) << "Constraints build time: " << timer_constraints.ElapsedSeconds() << std::endl;
+            KRATOS_INFO_IF("TrilinosBlockBuilderAndSolver", BaseType::GetEchoLevel() >=1) << "Constraints build time: " << timer_constraints << std::endl;
         }
 
         // Apply dirichlet conditions
@@ -402,7 +484,7 @@ public:
 
         SystemSolveWithPhysics(rA, rDx, rb, rModelPart);
 
-        KRATOS_INFO_IF("TrilinosBlockBuilderAndSolver", BaseType::GetEchoLevel() >=1) << "System solve time: " << solve_timer.ElapsedSeconds() << std::endl;
+        KRATOS_INFO_IF("TrilinosBlockBuilderAndSolver", BaseType::GetEchoLevel() >=1) << "System solve time: " << solve_timer << std::endl;
 
         STOP_TIMER("Solve", 0)
 
@@ -445,7 +527,7 @@ public:
 
         STOP_TIMER("Solve", 0)
 
-        KRATOS_INFO_IF("TrilinosBlockBuilderAndSolver", BaseType::GetEchoLevel() >=1) << "System solve time: " << solve_timer.ElapsedSeconds() << std::endl;
+        KRATOS_INFO_IF("TrilinosBlockBuilderAndSolver", BaseType::GetEchoLevel() >=1) << "System solve time: " << solve_timer << std::endl;
 
         KRATOS_INFO_IF("TrilinosBlockBuilderAndSolver", ( this->GetEchoLevel() == 3)) << "After the solution of the system" << "\nSystem Matrix = " << rA << "\nUnknowns vector = " << rDx << "\nRHS vector = " << rb << std::endl;
 
@@ -514,7 +596,7 @@ public:
      * @param rModelPart The model part of the problem to solve
      */
     void SetUpDofSet(
-        typename TSchemeType::Pointer pScheme, 
+        typename TSchemeType::Pointer pScheme,
         ModelPart& rModelPart
         ) override
     {

@@ -15,7 +15,7 @@
 // External includes
 
 // Project includes
-#include "includes/checks.h"
+#include "includes/expect.h"
 #include "testing/testing.h"
 #include "containers/model.h"
 #include "utilities/qef_utility.h"
@@ -110,9 +110,9 @@ KRATOS_TEST_CASE_IN_SUITE(CalculateNormal, KratosCoreFastSuite)
     const array_1d<double,3> normal = QuadraticErrorFunction::CalculateNormal(*p_triangle);
 
     //Expected output of the function
-    KRATOS_CHECK_EQUAL(normal[0], 0.0);
-    KRATOS_CHECK_EQUAL(normal[1], 0.0);
-    KRATOS_CHECK_EQUAL(normal[2], 1.0);
+    KRATOS_EXPECT_EQ(normal[0], 0.0);
+    KRATOS_EXPECT_EQ(normal[1], 0.0);
+    KRATOS_EXPECT_EQ(normal[2], 1.0);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(QuadraticErrorFunction0dof, KratosCoreFastSuite) 
@@ -137,9 +137,9 @@ KRATOS_TEST_CASE_IN_SUITE(QuadraticErrorFunction0dof, KratosCoreFastSuite)
 
     const array_1d<double,3> point = QuadraticErrorFunction::QuadraticErrorFunctionPoint(*p_voxel,array1);
 
-    KRATOS_CHECK_NEAR(point[0], 0.75, 1e-8);
-    KRATOS_CHECK_NEAR(point[1], 0.5, 1e-8);
-    KRATOS_CHECK_NEAR(point[2], 0.0, 1e-8);        
+    KRATOS_EXPECT_NEAR(point[0], 0.75, 1e-8);
+    KRATOS_EXPECT_NEAR(point[1], 0.5, 1e-8);
+    KRATOS_EXPECT_NEAR(point[2], 0.0, 1e-8);        
 }
 
 KRATOS_TEST_CASE_IN_SUITE(QuadraticErrorFunction1dof, KratosCoreFastSuite) 
@@ -167,9 +167,9 @@ KRATOS_TEST_CASE_IN_SUITE(QuadraticErrorFunction1dof, KratosCoreFastSuite)
 
     const array_1d<double,3> point = QuadraticErrorFunction::QuadraticErrorFunctionPoint(*p_voxel,array1);
 
-    KRATOS_CHECK_NEAR(point[0], 0.0, 1e-8);
-    KRATOS_CHECK_NEAR(point[1], 0.5, 1e-8);
-    KRATOS_CHECK_NEAR(point[2], 0.0, 1e-8);        
+    KRATOS_EXPECT_NEAR(point[0], 0.0, 1e-8);
+    KRATOS_EXPECT_NEAR(point[1], 0.5, 1e-8);
+    KRATOS_EXPECT_NEAR(point[2], 0.0, 1e-8);        
 }
 
 KRATOS_TEST_CASE_IN_SUITE(QuadraticErrorFunction0dofExtremeCase, KratosCoreFastSuite) 
@@ -194,9 +194,9 @@ KRATOS_TEST_CASE_IN_SUITE(QuadraticErrorFunction0dofExtremeCase, KratosCoreFastS
 
     const array_1d<double,3> point = QuadraticErrorFunction::QuadraticErrorFunctionPoint(*p_voxel,array1);
 
-    KRATOS_CHECK_NEAR(point[0], 0.9999, 1e-8);
-    KRATOS_CHECK_NEAR(point[1], 0.5, 1e-8);
-    KRATOS_CHECK_NEAR(point[2], 0.0, 1e-8);        
+    KRATOS_EXPECT_NEAR(point[0], 0.9999, 1e-8);
+    KRATOS_EXPECT_NEAR(point[1], 0.5, 1e-8);
+    KRATOS_EXPECT_NEAR(point[2], 0.0, 1e-8);        
 }
 
 KRATOS_TEST_CASE_IN_SUITE(QuadraticErrorFunction1dofExtremeCase, KratosCoreFastSuite) 
@@ -224,9 +224,9 @@ KRATOS_TEST_CASE_IN_SUITE(QuadraticErrorFunction1dofExtremeCase, KratosCoreFastS
 
     const array_1d<double,3> point = QuadraticErrorFunction::QuadraticErrorFunctionPoint(*p_voxel,array1);
 
-    KRATOS_CHECK_NEAR(point[0], 0.0, 1e-8);
-    KRATOS_CHECK_NEAR(point[1], 0.5, 1e-8);
-    KRATOS_CHECK_NEAR(point[2], 0.9999, 1e-8);        
+    KRATOS_EXPECT_NEAR(point[0], 0.0, 1e-8);
+    KRATOS_EXPECT_NEAR(point[1], 0.5, 1e-8);
+    KRATOS_EXPECT_NEAR(point[2], 0.9999, 1e-8);        
 }
 
 KRATOS_TEST_CASE_IN_SUITE(QuadraticErrorFunction2dof, KratosCoreFastSuite) 
@@ -254,9 +254,9 @@ KRATOS_TEST_CASE_IN_SUITE(QuadraticErrorFunction2dof, KratosCoreFastSuite)
 
     const array_1d<double,3> point = QuadraticErrorFunction::QuadraticErrorFunctionPoint(*p_voxel,array1);
 
-    KRATOS_CHECK_NEAR(point[0], 0.0, 1e-8);
-    KRATOS_CHECK_NEAR(point[1], 0.5, 1e-8);
-    KRATOS_CHECK_NEAR(point[2], 0.0, 1e-8);        
+    KRATOS_EXPECT_NEAR(point[0], 0.0, 1e-8);
+    KRATOS_EXPECT_NEAR(point[1], 0.5, 1e-8);
+    KRATOS_EXPECT_NEAR(point[2], 0.0, 1e-8);        
 } 
 
 KRATOS_TEST_CASE_IN_SUITE(QuadraticErrorFunctiondoublePlain, KratosCoreFastSuite) 
@@ -297,9 +297,9 @@ KRATOS_TEST_CASE_IN_SUITE(QuadraticErrorFunctiondoublePlain, KratosCoreFastSuite
     // Call the point utility
     const array_1d<double,3> point = QuadraticErrorFunction::QuadraticErrorFunctionPoint(*p_voxel,array1);
 
-    KRATOS_CHECK_NEAR(point[0], 0.0, 1e-8);
-    KRATOS_CHECK_NEAR(point[1], 0.0, 1e-8);
-    KRATOS_CHECK_NEAR(point[2], 0.0, 1e-8);  
+    KRATOS_EXPECT_NEAR(point[0], 0.0, 1e-8);
+    KRATOS_EXPECT_NEAR(point[1], 0.0, 1e-8);
+    KRATOS_EXPECT_NEAR(point[2], 0.0, 1e-8);  
 } 
 
 KRATOS_TEST_CASE_IN_SUITE(QuadraticErrorFunction0dofmovedCenter, KratosCoreFastSuite) 
@@ -323,9 +323,9 @@ KRATOS_TEST_CASE_IN_SUITE(QuadraticErrorFunction0dofmovedCenter, KratosCoreFastS
 
     const array_1d<double,3> point = QuadraticErrorFunction::QuadraticErrorFunctionPoint(*p_voxel,array1);
 
-    KRATOS_CHECK_NEAR(point[0], 1.75, 1e-8);
-    KRATOS_CHECK_NEAR(point[1], 1.5, 1e-8);
-    KRATOS_CHECK_NEAR(point[2], 1.0, 1e-8);     
+    KRATOS_EXPECT_NEAR(point[0], 1.75, 1e-8);
+    KRATOS_EXPECT_NEAR(point[1], 1.5, 1e-8);
+    KRATOS_EXPECT_NEAR(point[2], 1.0, 1e-8);     
 }
 
 KRATOS_TEST_CASE_IN_SUITE(QuadraticErrorFunction2dofMovedCenter, KratosCoreFastSuite) 
@@ -351,9 +351,9 @@ KRATOS_TEST_CASE_IN_SUITE(QuadraticErrorFunction2dofMovedCenter, KratosCoreFastS
 
     const array_1d<double,3> point = QuadraticErrorFunction::QuadraticErrorFunctionPoint(*p_voxel,array1);
 
-    KRATOS_CHECK_NEAR(point[0], 1.0, 1e-8);
-    KRATOS_CHECK_NEAR(point[1], 1.5, 1e-8);
-    KRATOS_CHECK_NEAR(point[2], 1.0, 1e-8);  
+    KRATOS_EXPECT_NEAR(point[0], 1.0, 1e-8);
+    KRATOS_EXPECT_NEAR(point[1], 1.5, 1e-8);
+    KRATOS_EXPECT_NEAR(point[2], 1.0, 1e-8);  
 }
 
 }  // namespace Kratos::Testing.
