@@ -355,7 +355,7 @@ protected:
                     moment_matrix(i_node * shape_local_size + 1, i_node * residual_local_size + 2) -= reaction[0];
 
                     for (unsigned d = 0; d < TDim; ++d) {
-                        moment_flag_vector[i_node * local_size + d] = mMomentDirection[d];
+                        moment_flag_vector[i_node * residual_local_size + d] = mMomentDirection[d];
                     }
                 }
             }
