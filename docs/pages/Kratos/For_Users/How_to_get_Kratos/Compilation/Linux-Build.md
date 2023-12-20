@@ -21,9 +21,6 @@ To to tests the compilation, you can execute a simple python script containing t
 from KratosMultiphysics import *
 ```
 
-We strongly recommend you to run kratos scripts with the "runkratos" binary that will be generated inside your Kratos installation folder. You can also run them by using python (if you have compiled with python version 2.x.x), or python3 (if you have compiled with python version 3.x.x)
-
-* runkratos test.py
 * python test.py
 * python3 test.py
 
@@ -406,8 +403,6 @@ If you have enabled the embedded python option -DINSTALL_EMBEDDED_PYTHON=ON, you
 echo "export PATH=$PATH:/path/to/my/kratos/installation" >> $HOME/.bashrc
 ```
 
-In order to have the "runkratos" available as a regular command.
-
 Now each time you open a terminal these commands will be executed and the paths set automatically.
 If you don't want to reset your terminal the first time, just execute:
 
@@ -426,9 +421,6 @@ To to tests the compilation, you can execute a simple python script containing t
 from KratosMultiphysics import *
 ```
 
-We strongly recommend you to run kratos scripts with the "runkratos" binary that will be generated inside your Kratos installation folder. You can also run them by using python (if you have compiled with python version 2.x.x), or python3 (if you have compiled with python version 3.x.x)
-
-* runkratos test.py
 * python test.py
 * python3 test.py
 

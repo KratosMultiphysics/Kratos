@@ -29,7 +29,7 @@
 namespace Kratos::Testing
 {
 
-KRATOS_TEST_CASE_IN_SUITE(PointerCommunicator, KratosMPICoreFastSuite)
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(PointerCommunicator, KratosMPICoreFastSuite)
 {
     DataCommunicator& r_default_comm = ParallelEnvironment::GetDefaultDataCommunicator();
     Model current_model;
@@ -85,7 +85,7 @@ KRATOS_TEST_CASE_IN_SUITE(PointerCommunicator, KratosMPICoreFastSuite)
     }
 }
 
-KRATOS_TEST_CASE_IN_SUITE(PointerCommunicatorLocalRetrieveGlobalPointers, KratosMPICoreFastSuite)
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(PointerCommunicatorLocalRetrieveGlobalPointers, KratosMPICoreFastSuite)
 {
     DataCommunicator& r_default_comm = ParallelEnvironment::GetDefaultDataCommunicator();
     Model current_model;
@@ -144,7 +144,7 @@ KRATOS_TEST_CASE_IN_SUITE(PointerCommunicatorLocalRetrieveGlobalPointers, Kratos
     }
 }
 
-KRATOS_TEST_CASE_IN_SUITE(PointerCommunicatorGlobalRetrieveGlobalPointers, KratosMPICoreFastSuite)
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(PointerCommunicatorGlobalRetrieveGlobalPointers, KratosMPICoreFastSuite)
 {
     DataCommunicator& r_default_comm = ParallelEnvironment::GetDefaultDataCommunicator();
     Model current_model;
@@ -207,7 +207,7 @@ KRATOS_TEST_CASE_IN_SUITE(PointerCommunicatorGlobalRetrieveGlobalPointers, Krato
     }
 }
 
-KRATOS_TEST_CASE_IN_SUITE(PointerCommunicatorIndexConsistence, KratosMPICoreFastSuite)
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(PointerCommunicatorIndexConsistence, KratosMPICoreFastSuite)
 {
     DataCommunicator& r_default_comm = ParallelEnvironment::GetDefaultDataCommunicator();
     Model current_model;
@@ -256,7 +256,7 @@ KRATOS_TEST_CASE_IN_SUITE(PointerCommunicatorIndexConsistence, KratosMPICoreFast
     }
 }
 
-KRATOS_TEST_CASE_IN_SUITE(PointerCommunicatorConstructByFunctor, KratosMPICoreFastSuite)
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(PointerCommunicatorConstructByFunctor, KratosMPICoreFastSuite)
 {
     DataCommunicator& r_default_comm = ParallelEnvironment::GetDefaultDataCommunicator();
     Model current_model;
@@ -311,7 +311,7 @@ KRATOS_TEST_CASE_IN_SUITE(PointerCommunicatorConstructByFunctor, KratosMPICoreFa
 
 }
 
-KRATOS_TEST_CASE_IN_SUITE(PointerMapCommunicatorAssembly, KratosMPICoreFastSuite)
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(PointerMapCommunicatorAssembly, KratosMPICoreFastSuite)
 {
     DataCommunicator& r_default_comm = ParallelEnvironment::GetDefaultDataCommunicator();
     Model current_model;
