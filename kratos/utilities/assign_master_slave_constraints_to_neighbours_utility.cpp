@@ -272,22 +272,66 @@ void AssignMasterSlaveConstraintsToNeighboursUtility::InterpolateVelocityToNodes
             local_radius += Radius;
         }
 
-        // Get Dofs and Coordinates for the slave node and the cloud of nodes
-        GetDofsAndCoordinatesForSlaveNode(p_destination_node, rVariableList, r_destination_dofs, r_destination_coordinates);
-        GetDofsAndCoordinatesForCloudOfNodes(r_cloud_of_nodes, rVariableList, r_cloud_of_dofs, r_cloud_of_nodes_coordinates);
+        r_destination_coordinates = p_destination_node->Coordinates();
+
+        // Resize rCloudOfNodesCoordinates to match the size of the cloud of nodes
+        r_cloud_of_nodes_coordinates.resize(r_cloud_of_nodes.size(), 3);
+
+        for (std::size_t i = 0; i < r_cloud_of_nodes.size(); i++) {
+            auto p_cloud_node = r_cloud_of_nodes[i];
+
+            // Assign the coordinates of the slave node to the corresponding row in rCloudOfNodesCoordinates
+            noalias(row(r_cloud_of_nodes_coordinates, i)) = p_cloud_node->Coordinates();
+        }
+
+        // New part: Calculate weights using inverse distance
+        r_n_container.resize(r_cloud_of_nodes.size());
+        double weight_sum = 0.0;
+        bool is_exact_overlap = false;
+        std::size_t overlap_index = 0;
+
+        // Constants for modified IDW
+        const double epsilon = 1e-5;
+        const double p = 2.0;
+
+        // First, check for exact overlap
+        for (std::size_t i = 0; i < r_cloud_of_nodes.size(); i++) {
+            auto dist = norm_2(row(r_cloud_of_nodes_coordinates, i) - r_destination_coordinates);
+            if (dist < 1e-12) {  // A small threshold to consider as zero
+                is_exact_overlap = true;
+                overlap_index = i;
+                break;
+            }
+        }
+
+        if (is_exact_overlap) {
+            // Set the weight of the overlapping node to 1 and others to 0
+            r_n_container = ZeroVector(r_cloud_of_nodes.size());
+            r_n_container[overlap_index] = 1.0;
+        } else {
+            // Calculate weights using modified IDW
+            r_n_container.resize(r_cloud_of_nodes.size());
+            for (std::size_t i = 0; i < r_cloud_of_nodes.size(); i++) {
+                auto dist = norm_2(row(r_cloud_of_nodes_coordinates, i) - r_destination_coordinates);
+                r_n_container[i] = 1.0 / pow(dist + epsilon, p);  // Modified IDW
+                weight_sum += r_n_container[i];
+            }
+            // Normalize weights
+            for (auto& weight : r_n_container) {
+                weight /= weight_sum;
+            }
+        }
 
         // Calculate shape functions
-        RBFShapeFunctionsUtility::CalculateShapeFunctions(r_cloud_of_nodes_coordinates, r_destination_coordinates, r_n_container);
-
-        // IndexType it = i.fetch_add(1) * rVariableList.size(); // Atomically increment the counter and get the previous value
-
+        // RBFShapeFunctionsUtility::CalculateShapeFunctions(r_cloud_of_nodes_coordinates, r_destination_coordinates, r_n_container);
+        
         for (std::size_t j = 0; j < rVariableList.size(); ++j) {
             double interpolated_variable_value = 0.0;
             for (std::size_t k = 0; k < r_cloud_of_nodes.size(); ++k){
                 auto r_current_node = r_cloud_of_nodes[k];
                 interpolated_variable_value += r_current_node->FastGetSolutionStepValue(rVariableList[j].get()) * r_n_container[k];
             }
-            p_destination_node->FastGetSolutionStepValue(rVariableList[j].get(), interpolated_variable_value);
+            p_destination_node->FastGetSolutionStepValue(rVariableList[j].get()) = interpolated_variable_value;
         }
     });
     KRATOS_CATCH("");

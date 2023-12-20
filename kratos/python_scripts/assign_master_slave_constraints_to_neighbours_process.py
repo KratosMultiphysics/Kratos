@@ -112,8 +112,7 @@ class AssignMasterSlaveConstraintsToNeighboursProcess(KM.Process):
 
         # The user may only need to set up the MasterSlaveConstraints only once
         if not self.reform_constraints_at_each_step:
-            for variable in self.variables_list:
-                self.assign_mscs_utility.AssignMasterSlaveConstraintsToNodes(self.slave_model_part.Nodes,self.search_radius,self.computing_model_part, variable, self.minimum_number_of_neighbouring_nodes)
+            self.assign_mscs_utility.AssignMasterSlaveConstraintsToNodes(self.slave_model_part.Nodes,self.search_radius,self.computing_model_part, self.variables_list, self.minimum_number_of_neighbouring_nodes)
 
 
     def ExecuteInitializeSolutionStep(self):
