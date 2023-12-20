@@ -52,21 +52,15 @@ class ConstStep():
         else:
             raise RuntimeError("\"gradient_scaling\" has unknown type.")
 
-
-        # if not self.init_norm:
-        #     self.init_norm = norm
-
-        if not math.isclose(norm, 0.0, abs_tol=1e-20):
-            search_direction /= norm
-
-
-
         return norm
 
     @time_decorator()
     def ComputeStep(self) -> float:
         norm = self.ComputeScaleFactor()
-        self.step =  self._init_step
+        if not math.isclose(norm, 0.0, abs_tol=1e-20):
+            self.step = self._init_step / norm
+        else:
+            self.step =  self._init_step
 
         DictLogger("Line Search info",self.GetInfo())
 
@@ -100,6 +94,14 @@ class BBStep(ConstStep):
     def ComputeStep(self) -> KratosOA.CollectiveExpression:
         algorithm_buffered_data = ComponentDataView("algorithm", self._optimization_problem).GetBufferedData()
         norm = self.ComputeScaleFactor()
+        max_step = self._max_step / norm
+        # if math.isclose(norm, 0.0, abs_tol=1e-20):
+        #     max_step = self._max_step / norm
+        # else:
+        #     max_step = self._max_step
+
+        print(max_step)
+
         if self._optimization_problem.GetStep() == 0:
             self.step = self._init_step
         else:
@@ -112,11 +114,11 @@ class BBStep(ConstStep):
             if not math.isclose(dy, 0.0, abs_tol=1e-16):
                 self.step = abs( dd / dy )
             else:
-                self.step = self._max_step
+                self.step = max_step
 
 
-        if self.step > self._max_step:
-            self.step = self._max_step
+        if self.step > max_step:
+            self.step = max_step
 
         DictLogger("Line Search info",self.GetInfo())
 
@@ -135,6 +137,14 @@ class QNBBStep(BBStep):
     def ComputeStep(self) -> KratosOA.CollectiveExpression:
         algorithm_buffered_data = ComponentDataView("algorithm", self._optimization_problem).GetBufferedData()
         norm = self.ComputeScaleFactor()
+        max_step = self._max_step / norm
+        # print(norm)
+        # if math.isclose(norm, 0.0, abs_tol=1e-20):
+        #     print("gt")
+        #     max_step = self._max_step / norm
+        # else:
+        #     max_step = self._max_step
+        # print(norm, max_step)
         self.step = algorithm_buffered_data.GetValue("search_direction", 0).Clone()
         self.step *= 0.0
         if not algorithm_buffered_data.HasValue("step_size"):
@@ -154,14 +164,13 @@ class QNBBStep(BBStep):
                 yd = y[i] * d[i]
                 dd = d[i] * d[i]
                 dy = d[i] * y[i]
-                if math.isclose(dy, 0.0, abs_tol=1e-16):
-                    self.step_numpy[i] = self._max_step
+                if math.isclose(dy, 0.0, abs_tol=1e-20):
+                    self.step_numpy[i] = max_step
                 else:
                     self.step_numpy[i] = abs( dd / dy )
-                if self.step_numpy[i] > self._max_step:
-                    self.step_numpy[i] = self._max_step
+                if self.step_numpy[i] > max_step:
+                    self.step_numpy[i] = max_step
 
-        print(self.step_numpy)
         DictLogger("Line Search info",self.GetInfo())
 
         shape = [c.GetItemShape() for c in self.step.GetContainerExpressions()]

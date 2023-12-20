@@ -92,6 +92,15 @@ class AlgorithmNAG(Algorithm):
         # else:
         #     search_direction = - obj_grad
         search_direction = - obj_grad
+        youngs_modulus = self.__control_field.Evaluate()
+        search_direction_numpy = search_direction.Evaluate()
+        for i, value in enumerate(youngs_modulus):
+            if value >= 3e+10 and search_direction_numpy[i] > 0:
+                search_direction_numpy[i] = 0.0
+
+        shape = [c.GetItemShape() for c in search_direction.GetContainerExpressions()]
+        KratosOA.CollectiveExpressionIO.Read(search_direction, search_direction_numpy, shape)
+
         self.algorithm_data.GetBufferedData()["search_direction"] = search_direction.Clone()
         return search_direction
 
@@ -144,10 +153,6 @@ class AlgorithmNAG(Algorithm):
                 obj_grad = self.__objective.CalculateStandardizedGradient()
 
                 self.ComputeSearchDirection(obj_grad)
-
-                # if self.__obj_val / self.init_value < 0.01:
-                #     self.__line_search_method._max_step /= 10
-                #     self.init_value /= 10
 
                 alpha = self.__line_search_method.ComputeStep()
 
