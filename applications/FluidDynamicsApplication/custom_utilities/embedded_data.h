@@ -148,10 +148,8 @@ void InitializeConstraintData(const Element& rElement, const std::size_t BlockSi
                 }
             }
         }
-        KRATOS_WATCH("Adapting size of local system: " << ElementsNodesAndMasters.size());
         // Build the multi-point constraint's relation matrix if needed
         if (CalculateRelations) {
-            //KRATOS_WATCH("Building constraint relation matrix ...");
             BuildRelationMatrix(rElement, BlockSize);
         }
     }
@@ -186,8 +184,6 @@ void BuildRelationMatrix(const Element& rElement, const std::size_t BlockSize)
             const NodePointerVectorType NegNodeConstraintMasters = r_node.GetValue(EMBEDDED_CONSTRAINT_MASTERS);
             const Matrix NegNodeConstraintWeights = r_node.GetValue(EMBEDDED_CONSTRAINT_MASTER_WEIGHTS);
 
-            //KRATOS_WATCH(NegNodeConstraintWeights);
-
             KRATOS_ERROR_IF_NOT(NegNodeConstraintWeights.size1() == dim)
                 << "Size1 of master weights of an embedded constrained does not match the node's velocity dofs.";
             KRATOS_ERROR_IF_NOT(NegNodeConstraintWeights.size2() == NegNodeConstraintMasters.size()*dim)
@@ -219,7 +215,6 @@ void BuildRelationMatrix(const Element& rElement, const std::size_t BlockSize)
         }
         i_node++;
     }
-    //KRATOS_WATCH(ConstraintsRelationMatrix);
 }
 
 static int Check(const Element& rElement, const ProcessInfo& rProcessInfo)

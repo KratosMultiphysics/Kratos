@@ -120,7 +120,7 @@ public:
     {
         const Parameters default_parameters = Parameters(R"({
             "model_part_name"                   : "",
-            "check_at_each_time_step"           : true,
+            "check_at_each_step"                : true,
             "apply_to_all_negative_cut_nodes"   : true,
             "mls_extension_operator_order"      : 1,
             "include_intersection_points"       : false,

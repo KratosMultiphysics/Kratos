@@ -163,7 +163,8 @@ void EmbeddedFluidElement<TBaseElement>::CalculateLocalSystem(
             ExtendLocalSystemWithMasterNodes(rLeftHandSideMatrix, rRightHandSideVector, data);
             // Use master weights in relation matrix to apply master-slave constraints of the interface to the local system
             ApplyMasterSlaveConstraints(rLeftHandSideMatrix, rRightHandSideVector, data);
-            KRATOS_INFO("[ELEMENT] Applied constraints (local system)!");
+            //std::string msg_applied_constraints = "[EMBEDDED_FLUID_ELEMENT] Applied constraints - Number of external master nodes: " + std::to_string((data.LocalConstraintSize-LocalSize)/BlockSize);
+            //KRATOS_INFO(msg_applied_constraints);
         }
     }
 }
