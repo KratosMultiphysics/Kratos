@@ -19,7 +19,7 @@
 #include "mpi/testing/mpi_testing.h"
 #include "geometries/point.h"
 #include "utilities/search_utilities.h"
-#include "test_suit.h"
+#include "testing/test_suite.h"
 
 namespace Kratos::Testing 
 {
