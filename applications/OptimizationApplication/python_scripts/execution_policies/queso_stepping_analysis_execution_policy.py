@@ -78,6 +78,10 @@ class QuesoSteppingAnalysisExecutionPolicy(ExecutionPolicy):
         self.model_part = self.model.CreateModelPart(self.nurbs_model_part_name)
         for var_name in hist_var_list:
             self.model_part.AddNodalSolutionStepVariable(Kratos.KratosGlobals.GetVariable(var_name))
+            self.model_part.AddNodalSolutionStepVariable(KOA.AUXILIARY_FIELD)
+            self.model_part.AddNodalSolutionStepVariable(Kratos.NORMAL)
+            self.model_part.AddNodalSolutionStepVariable(Kratos.SOUND_VELOCITY)
+            self.model_part.AddNodalSolutionStepVariable(Kratos.NODAL_MASS)
         self.analysis: AnalysisStage = getattr(import_module(self.analysis_full_module), self.analysis_type)(self.model, self.analysis_settings.Clone())
 
     def Initialize(self):

@@ -16,6 +16,7 @@
 // ------------------------------------------------------------------------------
 // System includes
 // ------------------------------------------------------------------------------
+#include <limits>
 
 
 // ------------------------------------------------------------------------------
@@ -139,13 +140,16 @@ public:
         double volume_area = 0.0;
         const IntegrationMethod this_integration_method = r_this_geometry.GetDefaultIntegrationMethod();
         const GeometryType::IntegrationPointsArrayType& integration_points = r_this_geometry.IntegrationPoints(this_integration_method);
+
+        double volume_yz = 0.0;
         for(std::size_t i_point = 0; i_point<integration_points.size(); ++i_point)
         {
             Matrix J0;
+
             GeometryUtils::JacobianOnInitialConfiguration(r_this_geometry, integration_points[i_point], J0);
             volume_area += integration_points[i_point].Weight() * MathUtils<double>::GeneralizedDet(J0);
-        }
 
+        }
 
         double element_mass = 0;
         if (local_space_dimension == 2 && DomainSize == 3 && elem_i.GetProperties().Has(THICKNESS) && elem_i.GetProperties().Has(PT))
@@ -173,7 +177,7 @@ public:
             auto control_type = mrResponseSettings["control_types"][i].GetString();
             if(control_type=="shape"){
                 VariableUtils().SetHistoricalVariableToZero(D_MASS_D_X, controlled_model_part.Nodes());
-                VariableUtils().SetNonHistoricalVariableToZero(NODAL_MASS, controlled_model_part.Nodes());
+                VariableUtils().SetNonHistoricalVariableToZero(NORMAL, controlled_model_part.Nodes());
 
                 #pragma omp parallel
                 {
@@ -186,44 +190,51 @@ public:
                     auto p_new_parent = r_geometry_orig.Create(node_array);
                     const auto el_it_begin = controlled_model_part.ElementsBegin();
                     #pragma omp for
-                    for (int i = 0; i < static_cast<int>(controlled_model_part.NumberOfElements()); ++i) {
-                        auto el_it = (el_it_begin+i);
+                    for (int j = 0; j < static_cast<int>(controlled_model_part.NumberOfElements()); ++j) {
+                        auto el_it = (el_it_begin+j);
                         if(el_it->IsDefined(ACTIVE) ? el_it->Is(ACTIVE) : true) {
                             CalculateElementShapeGradients(*el_it,(p_new_parent.get()), domain_size,CurrentProcessInfo);
                         }
                     }
                 }
-
                 const auto el_it_begin = controlled_model_part.ElementsBegin();
-
                 #pragma omp parallel for
-                for (int i = 0; i < static_cast<int>(controlled_model_part.NumberOfElements()); ++i) {
-                    auto el_it = (el_it_begin+i);
-                    auto& r_this_geometry = el_it->GetGeometry();
-                    const std::size_t number_of_nodes = r_this_geometry.size();
-                    if(el_it->IsDefined(ACTIVE) ? el_it->Is(ACTIVE) : true) {
-                        MatrixType element_mass_matrix;
-                        el_it->CalculateMassMatrix(element_mass_matrix, CurrentProcessInfo);
+                for (int j = 0; j < static_cast<int>(controlled_model_part.NumberOfElements()); ++j) {
+                    auto el_it = (el_it_begin+j);
+                    auto& r_geometry = el_it->GetGeometry();
+                    Matrix& ips = el_it->GetValue(EMBEDDED_MESH);
+                    if(el_it->Is(TO_ERASE) ) {
 
-                        for (IndexType j = 0; j < number_of_nodes; ++j) {
-                            const IndexType index = 3*j;
-                            AtomicAdd(r_this_geometry[j].GetValue(NODAL_MASS), element_mass_matrix(index, index));
+                        IndexType num_points = ips.size1();
+                        for( IndexType k = 0; k < num_points; ++k){
+                            Vector sf_values;
+                            array_3d local_point;
+                            local_point[0] = ips(k,0);
+                            local_point[1] = ips(k,1);
+                            local_point[2] = ips(k,2);
+                            double w = ips(k,3);
+                            sf_values = r_geometry.ShapeFunctionsValues(sf_values, local_point);
+
+                            for( IndexType l = 0; l < r_geometry.size(); ++l){
+                                double integrand = sf_values(l)*w;
+                                AtomicAdd(r_geometry[l].FastGetSolutionStepValue(NODAL_MASS), integrand);
+                            }
                         }
                     }
                 }
 
                 #pragma omp parallel for
                 for (auto& r_node : controlled_model_part.Nodes()) {
-                    if( r_node.GetValue(NODAL_MASS) > 1e-10 ){
-                        auto r_value = r_node.GetSolutionStepValue(D_MASS_D_X) / r_node.GetValue(NODAL_MASS);
-                        auto& r_new_value = r_node.FastGetSolutionStepValue(D_MASS_D_X);
-                        r_new_value = r_value;
-                    }
-                    // else {
-                        // r_node.SetValue(D_MASS_D_X, [0.0, 0.0, 0.0]);
-                    // }
-                }
+                    array_1d<double, 3>& r_value = r_node.FastGetSolutionStepValue(D_MASS_D_X);
+                    double& mass = r_node.FastGetSolutionStepValue(NODAL_MASS);
 
+                    if( (mass) > 0.0 ){
+                        r_value /= (mass);
+                    } else {
+                        r_value = ZeroVector(3);
+                    }
+                    mass = 0.0;
+                }
             }
             else if(control_type=="material"){
                 VariableUtils().SetHistoricalVariableToZero(D_MASS_D_FD, controlled_model_part.Nodes());

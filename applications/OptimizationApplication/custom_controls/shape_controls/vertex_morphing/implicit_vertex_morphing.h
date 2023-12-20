@@ -431,8 +431,8 @@ private:
             const std::size_t domain_size = root_model_part.GetProcessInfo()[DOMAIN_SIZE];
 
             // check if control_obj has surface condition and root_model_part has elements
-            KRATOS_ERROR_IF_NOT(r_controlling_object.Conditions().size()>0)
-            <<"ImplicitVertexMorphing::CreateModelParts: controlling object "<<control_obj.GetString()<<" must have surface conditions !"<<std::endl;
+            // KRATOS_ERROR_IF_NOT(r_controlling_object.Conditions().size()>0)
+            // <<"ImplicitVertexMorphing::CreateModelParts: controlling object "<<control_obj.GetString()<<" must have surface conditions !"<<std::endl;
             KRATOS_ERROR_IF_NOT(root_model_part.Elements().size()>0)
             <<"ImplicitVertexMorphing::CreateModelParts: root model of controlling object "<<control_obj.GetString()<<" must have 3D elements !"<<std::endl;
             KRATOS_ERROR_IF_NOT(domain_size == 3)
@@ -568,16 +568,16 @@ private:
     void ProjectToNormal(const Variable<array_3d> &rDerivativeVariable){
         if(mTechniqueSettings["project_to_normal"].GetBool())
         {
-            for(auto& control_obj : mControlSettings["controlling_objects"]){
-                ModelPart& r_controlling_object = mrModel.GetModelPart(control_obj.GetString());
-                for (auto& node_i : r_controlling_object.Nodes())
-                {
-                    array_3d& r_nodal_variable1 = node_i.FastGetSolutionStepValue(rDerivativeVariable);
-                    const array_1d<double,3>& normal = node_i.FastGetSolutionStepValue(NORMAL);
-                    const double magnitude = inner_prod(r_nodal_variable1, normal);
-                    noalias(r_nodal_variable1) = magnitude * normal;
-                }
-            }
+            // for(auto& control_obj : mControlSettings["controlling_objects"]){
+            //     ModelPart& r_controlling_object = mrModel.GetModelPart(control_obj.GetString());
+            //     for (auto& node_i : r_controlling_object.Nodes())
+            //     {
+            //         array_3d& r_nodal_variable1 = node_i.FastGetSolutionStepValue(rDerivativeVariable);
+            //         const array_1d<double,3>& normal = node_i.FastGetSolutionStepValue(NORMAL);
+            //         const double magnitude = inner_prod(r_nodal_variable1, normal);
+            //         noalias(r_nodal_variable1) = magnitude * normal;
+            //     }
+            // }
         }
     }
 

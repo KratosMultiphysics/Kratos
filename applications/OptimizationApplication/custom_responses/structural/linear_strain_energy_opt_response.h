@@ -183,34 +183,43 @@ public:
                 }
 
                 const auto el_it_begin = controlled_model_part.ElementsBegin();
-
                 #pragma omp parallel for
-                for (int i = 0; i < static_cast<int>(controlled_model_part.NumberOfElements()); ++i) {
-                    auto el_it = (el_it_begin+i);
-                    auto& r_this_geometry = el_it->GetGeometry();
-                    const std::size_t number_of_nodes = r_this_geometry.size();
-                    if(el_it->IsDefined(ACTIVE) ? el_it->Is(ACTIVE) : true) {
-                        MatrixType element_mass_matrix;
-                        el_it->CalculateMassMatrix(element_mass_matrix, CurrentProcessInfo);
+                for (int j = 0; j < static_cast<int>(controlled_model_part.NumberOfElements()); ++j) {
+                    auto el_it = (el_it_begin+j);
+                    auto& r_geometry = el_it->GetGeometry();
+                    Matrix& ips = el_it->GetValue(EMBEDDED_MESH);
+                    if(el_it->Is(TO_ERASE) ) {
 
-                        for (IndexType j = 0; j < number_of_nodes; ++j) {
-                            const IndexType index = 3*j;
-                            AtomicAdd(r_this_geometry[j].GetValue(NODAL_MASS), element_mass_matrix(index, index));
+                        IndexType num_points = ips.size1();
+                        for( IndexType k = 0; k < num_points; ++k){
+                            Vector sf_values;
+                            array_3d local_point;
+                            local_point[0] = ips(k,0);
+                            local_point[1] = ips(k,1);
+                            local_point[2] = ips(k,2);
+                            double w = ips(k,3);
+                            sf_values = r_geometry.ShapeFunctionsValues(sf_values, local_point);
+
+                            for( IndexType l = 0; l < r_geometry.size(); ++l){
+                                double integrand = sf_values(l)*w;
+                                AtomicAdd(r_geometry[l].FastGetSolutionStepValue(NODAL_MASS), integrand);
+                            }
                         }
+
                     }
                 }
 
-
                 #pragma omp parallel for
                 for (auto& r_node : controlled_model_part.Nodes()) {
-                    if( r_node.GetValue(NODAL_MASS) > 1e-10 ){
-                        auto r_value = r_node.GetSolutionStepValue(KratosComponents<Variable<array_1d<double,3>>>::Get(grad_field_name)) / r_node.GetValue(NODAL_MASS);
-                        auto& r_new_value = r_node.FastGetSolutionStepValue(KratosComponents<Variable<array_1d<double,3>>>::Get(grad_field_name));
-                        r_new_value = r_value;
+                    array_1d<double, 3>& r_value = r_node.FastGetSolutionStepValue(KratosComponents<Variable<array_1d<double,3>>>::Get(grad_field_name));
+                    double& mass = r_node.FastGetSolutionStepValue(NODAL_MASS);
+
+                    if( (mass) > 0.0 ){
+                        r_value /= (mass);
+                    } else {
+                        r_value = ZeroVector(3);
                     }
-                    // else {
-                        // r_node.SetValue(D_MASS_D_X, [0.0, 0.0, 0.0]);
-                    // }
+                    mass = 0.0;
                 }
 
                 // for (auto& cond_i : controlled_model_part.Conditions())

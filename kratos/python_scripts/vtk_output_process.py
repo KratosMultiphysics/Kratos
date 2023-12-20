@@ -29,8 +29,8 @@ class VtkOutputProcess(KratosMultiphysics.OutputProcess):
         if settings["save_output_files_in_folder"].GetBool():
             if self.model_part.GetCommunicator().MyPID() == 0:
                 output_path = settings["output_path"].GetString()
-                if not self.model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED]:
-                    kratos_utils.DeleteDirectoryIfExisting(output_path)
+                # if not self.model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED]:
+                #     kratos_utils.DeleteDirectoryIfExisting(output_path)
             self.model_part.GetCommunicator().GetDataCommunicator().Barrier()
 
         self.output_interval = settings["output_interval"].GetDouble()
