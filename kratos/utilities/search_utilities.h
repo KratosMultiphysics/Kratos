@@ -870,8 +870,7 @@ private:
                         rSearchInfo.PointCoordinates.push_back(coordinates[i_coord]);
                     }
                     rSearchInfo.Indexes.push_back(all_points_ids[i_point]);
-                    std::vector<int> ranks(1, 0);
-                    rSearchInfo.Ranks.push_back(ranks);
+                    rSearchInfo.Ranks.push_back({0});
                 }
             }
         }
