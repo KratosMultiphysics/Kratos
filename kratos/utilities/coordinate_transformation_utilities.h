@@ -766,15 +766,15 @@ protected:
 		DenseVector<bool> NeedRotation( NumBlocks, false);
 
 		std::vector< BoundedMatrix<double,TBlockSize,TBlockSize> > rRot(NumBlocks);
-		for(unsigned int j = 0; j < NumBlocks; ++j)
+		for(unsigned int i_node = 0; i_node < rGeometry.PointsNumber(); ++i_node)
 		{
-			if( this->IsSlip(rGeometry[j]) )
+			if( this->IsSlip(rGeometry[i_node]) )
 			{
-				NeedRotation[j] = true;
+				NeedRotation[i_node] = true;
 				rotations_needed++;
 
-				if constexpr (TDim == 2) LocalRotationOperator2D<TBlockSize,TSkip>(rRot[j],rGeometry[j]);
-				else LocalRotationOperator3D<TBlockSize,TSkip>(rRot[j],rGeometry[j]);
+				if constexpr (TDim == 2) LocalRotationOperator2D<TBlockSize,TSkip>(rRot[i_node],rGeometry[i_node]);
+				else LocalRotationOperator3D<TBlockSize,TSkip>(rRot[i_node],rGeometry[i_node]);
 			}
 
 			//Index += TBlockSize;
