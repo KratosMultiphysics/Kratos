@@ -25,6 +25,7 @@
 #include "utilities/retrieve_global_pointers_by_index_functor.h"
 #include "utilities/get_value_functor.h"
 #include "mpi/testing/mpi_testing.h"
+#include "testing/test_suite.h"
 
 namespace Kratos::Testing
 {
