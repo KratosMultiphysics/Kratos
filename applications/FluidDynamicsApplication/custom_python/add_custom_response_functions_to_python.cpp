@@ -10,6 +10,7 @@
 #include "custom_response_functions/velocity_pressure_norm_square_response_function.h"
 #include "custom_python/add_custom_response_functions_to_python.h"
 #include "custom_response_functions/residual_response_function.h"
+#include "custom_response_functions/moment_response_function.h"
 #include "custom_response_functions/domain_integrated_response_function.h"
 #include "custom_response_functions/domain_integrated_3d_vector_magnitude_square_p_mean_response_function.h"
 
@@ -105,6 +106,20 @@ void AddCustomResponseFunctionsToPython(pybind11::module& m)
         ResidualResponseFunction<3>::Pointer,
         AdjointResponseFunction>(m,"ResidualResponseFunction3D")
         .def(py::init<Parameters, ModelPart&>());
+
+    py::class_<
+        MomentResponseFunction<2>,
+        MomentResponseFunction<2>::Pointer,
+        AdjointResponseFunction>(m,"MomentResponseFunction2D")
+        .def(py::init<Parameters, ModelPart&>())
+        ;
+
+    py::class_<
+        MomentResponseFunction<3>,
+        MomentResponseFunction<3>::Pointer,
+        AdjointResponseFunction>(m,"MomentResponseFunction3D")
+        .def(py::init<Parameters, ModelPart&>())
+        ;
 
 }
 
