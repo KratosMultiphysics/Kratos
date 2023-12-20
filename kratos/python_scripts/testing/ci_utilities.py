@@ -62,7 +62,7 @@ def are_only_python_files_changed() -> bool:
 
 def print_ci_information() -> None:
     """This function prints an overview of the CI related information"""
-    pprint(f"{sorted(changed_files())=}")
+    pprint(f"{sorted(map(str,changed_files()))=}")
     pprint(f"{ci_applications()=}")
     print(f"{get_changed_files_extensions()=}")
     print(f"{are_only_python_files_changed()=}")
