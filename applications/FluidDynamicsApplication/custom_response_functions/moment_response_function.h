@@ -219,7 +219,7 @@ public:
             const double local_moment = block_for_each<SumReduction<double>>(rModelPart.GetCommunicator().LocalMesh().Nodes(), [&](const ModelPart::NodeType &rNode) {
                 const double coeff = static_cast<double>(rNode.Is(STRUCTURE));
                 const array_1d<double, 3>& reaction = rNode.FastGetSolutionStepValue(REACTION);
-                const array_1d<double, 3>& r = r_node.Coordinates() - mMomentPoint;
+                const array_1d<double, 3>& r = rNode.Coordinates() - mMomentPoint;
 
                 array_1d<double, 3> moment;
                 moment[0] = r[1]*reaction[2] - r[2]*reaction[1];
@@ -327,7 +327,6 @@ protected:
             BoundedVector<double, max_size> moment_flag_vector(rDerivativesOfResidual.size2());
             moment_matrix.clear();
             moment_flag_vector.clear();
-            r_derivatives.clear();
 
             const unsigned num_nodes = rNodes.size();
             const unsigned residual_local_size = rDerivativesOfResidual.size2() / num_nodes;
@@ -337,7 +336,7 @@ protected:
                 const auto& r_node = rNodes[i_node];
                 if (r_node.Is(STRUCTURE)) {
                     const array_1d<double, 3>& r = r_node.Coordinates() - mMomentPoint;
-                    const array_1d<double, 3>& reaction = rNode.FastGetSolutionStepValue(REACTION);
+                    const array_1d<double, 3>& reaction = r_node.FastGetSolutionStepValue(REACTION);
 
                     for (unsigned c = 0; c < rDerivativesOfResidual.size1(); ++c) {
                         moment_matrix(c, i_node * residual_local_size + 0) = rDerivativesOfResidual(c, i_node * residual_local_size + 2) * r[1]  - rDerivativesOfResidual(c, i_node * residual_local_size + 1) * r[2];
