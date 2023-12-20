@@ -75,6 +75,8 @@ public:
     /// The machine precision zero tolerance
     static constexpr double tolerance = std::numeric_limits<double>::epsilon();
 
+    using AdvCLutils = AdvancedConstitutiveLawUtilities<VoigtSize>;
+
     ///@}
     ///@name Life Cycle
     ///@{
@@ -122,8 +124,8 @@ public:
         double I1, J2, J3, lode_angle;
         array_1d<double, VoigtSize> deviator = ZeroVector(VoigtSize);
 
-        AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateI1Invariant(rPredictiveStressVector, I1);
-        AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateJ2Invariant(rPredictiveStressVector, I1, deviator, J2);
+        AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateI1Invariant(rStressVector, I1);
+        AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateJ2Invariant(rStressVector, I1, deviator, J2);
         AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateJ3Invariant(deviator, J3);
         AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateLodeAngle(J2, J3, lode_angle);
 

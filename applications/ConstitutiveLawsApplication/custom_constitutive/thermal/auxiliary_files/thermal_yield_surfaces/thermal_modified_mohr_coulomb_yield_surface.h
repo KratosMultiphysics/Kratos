@@ -74,6 +74,8 @@ class ThermalModifiedMohrCoulombYieldSurface
     /// The machine precision zero tolerance
     static constexpr double tolerance = std::numeric_limits<double>::epsilon();
 
+    using AdvCLutils = AdvancedConstitutiveLawUtilities<VoigtSize>;
+
     ///@}
     ///@name Life Cycle
     ///@{

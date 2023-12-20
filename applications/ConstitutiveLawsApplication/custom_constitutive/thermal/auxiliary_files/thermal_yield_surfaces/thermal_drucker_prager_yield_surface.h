@@ -74,6 +74,8 @@ public:
     /// The machine precision zero tolerance
     static constexpr double tolerance = std::numeric_limits<double>::epsilon();
 
+    using AdvCLutils = AdvancedConstitutiveLawUtilities<VoigtSize>;
+
     ///@}
     ///@name Life Cycle
     ///@{
@@ -179,6 +181,10 @@ public:
         )
     {
         const auto& r_material_properties = rValues.GetMaterialProperties();
+
+        const auto &r_geom = rValues.GetElementGeometry();
+        const auto &r_N = rValues.GetShapeFunctionsValues();
+        const auto &r_process_info = rValues.GetProcessInfo();
 
         const double fracture_energy = r_material_properties.GetValue(FRACTURE_ENERGY, r_geom, r_N, r_process_info);
         const double young_modulus   = r_material_properties.GetValue(YOUNG_MODULUS, r_geom, r_N, r_process_info);
