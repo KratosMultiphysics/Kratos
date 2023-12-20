@@ -38,7 +38,8 @@ void AdvanceInTimeHighCycleFatigueProcess::Execute()
     auto& process_info = mrModelPart.GetProcessInfo();
     bool cycle_found = false;
     std::vector<double> damage;
-    std::vector<double> AITControlCounter;
+    std::vector<int> AITControlCounter;
+    std::vector<int>  local_number_of_cycles;
     process_info[ADVANCE_STRATEGY_APPLIED] = false;
     process_info[AIT_CONTROL_PARAMETER] = true;
 
@@ -62,8 +63,15 @@ void AdvanceInTimeHighCycleFatigueProcess::Execute()
     for (auto& r_elem : mrModelPart.Elements()) {
         unsigned int number_of_ip = r_elem.GetGeometry().IntegrationPoints(r_elem.GetIntegrationMethod()).size();
         r_elem.CalculateOnIntegrationPoints(AIT_CONTROL_COUNTER, AITControlCounter, process_info);
+        r_elem.CalculateOnIntegrationPoints(LOCAL_NUMBER_OF_CYCLES, local_number_of_cycles, process_info);
+
+        std::vector<ConstitutiveLaw::Pointer> constitutive_law_vector(number_of_ip);
+        r_elem.CalculateOnIntegrationPoints(CONSTITUTIVE_LAW,constitutive_law_vector,process_info);
+
+        const bool is_fatigue = constitutive_law_vector[0]->Has(CYCLE_INDICATOR);
+
         for (unsigned int i = 0; i < number_of_ip; i++) {
-                if (AITControlCounter[i] < 11.0) {
+                if (is_fatigue && (local_number_of_cycles[i] - AITControlCounter[i] < 3)) {
                     process_info[AIT_CONTROL_PARAMETER] = false;
                     break;
                 }

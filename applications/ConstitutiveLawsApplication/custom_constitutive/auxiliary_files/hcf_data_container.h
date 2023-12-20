@@ -253,7 +253,7 @@ public:
     /**
      * @brief This method returns AIT control counter
      */
-    double GetAITControlCounter() {
+    int GetAITControlCounter() {
         return mAITControlParameter;
     }
 
@@ -314,7 +314,7 @@ private:
     double mPreviousCycleTime = 0.0; // Instanced variable used in the advanciing process for the conversion between time and number of cycles.
     double mPeriod = 0.0; // Instanced variable used in the advanciing process for the conversion between time and number of cycles.
     double mReversionFactor = 0.0;
-    double mAITControlParameter = 0.0;
+    unsigned int mAITControlParameter = 0;
     ///@}
 
 friend class Serializer;

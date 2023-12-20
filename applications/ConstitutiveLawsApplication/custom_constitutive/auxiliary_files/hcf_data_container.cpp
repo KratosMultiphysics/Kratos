@@ -294,10 +294,11 @@ void HCFDataContainer::FinalizeSolutionStep(HCFDataContainer::FatigueVariables &
     if (rFatigueVariables.MaxStress > rFatigueVariables.Sth) {
         CalculateFatigueReductionFactorAndWohlerStress(rMaterialProperties, rFatigueVariables, rVariable);
     }
-    mAITControlParameter = 0.0;
+    mAITControlParameter = rFatigueVariables.LocalNumberOfCycles;
+    // KRATOS_WATCH(mAITControlParameter);
     }
 
-    mAITControlParameter += 1.0;
+    // mAITControlParameter += 1.0;
 }
 
 /***********************************************************************************/

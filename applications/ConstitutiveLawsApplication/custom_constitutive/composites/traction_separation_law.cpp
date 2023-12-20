@@ -129,6 +129,8 @@ bool TractionSeparationLaw3D<TDim>::Has(const Variable<int>& rThisVariable)
         has = true;
     } else if (rThisVariable == NUMBER_OF_CYCLES) {
         has = true;
+    } else if (rThisVariable == AIT_CONTROL_COUNTER) {
+        has = true;
     } else {
         BaseType::Has(rThisVariable);
     }
@@ -161,8 +163,6 @@ bool TractionSeparationLaw3D<TDim>::Has(const Variable<double>& rThisVariable)
     } else if (rThisVariable == CYCLES_TO_FAILURE) {
         has = true;
     } else if (rThisVariable == WOHLER_STRESS) {
-        has = true;
-    } else if (rThisVariable == AIT_CONTROL_COUNTER) {
         has = true;
     } else {
         BaseType::Has(rThisVariable);
@@ -241,6 +241,11 @@ int& TractionSeparationLaw3D<TDim>::GetValue(
         // rValue = mFatigueDataContainersModeTwo[0].GetGlobalNumberOfCycles();
         rValue = mFatigueDataContainersModeOne[0].GetGlobalNumberOfCycles();    //Change the loading mode here
         return rValue;
+    } else if (rThisVariable == AIT_CONTROL_COUNTER) {
+
+        // rValue = mFatigueDataContainersModeTwo[0].GetAITControlCounter();
+        rValue = mFatigueDataContainersModeOne[0].GetAITControlCounter();    //Change the loading mode here
+        return rValue;
     } else {
         return BaseType::GetValue(rThisVariable, rValue);
     }
@@ -299,11 +304,6 @@ double& TractionSeparationLaw3D<TDim>::GetValue(
 
         // rValue = mFatigueDataContainersModeTwo[0].GetReversionFactor();
         rValue = mFatigueDataContainersModeOne[0].GetReversionFactor();    //Change the loading mode here
-        return rValue;
-    } else if (rThisVariable == AIT_CONTROL_COUNTER) {
-
-        // rValue = mFatigueDataContainersModeTwo[0].GetAITControlCounter();
-        rValue = mFatigueDataContainersModeOne[0].GetAITControlCounter();    //Change the loading mode here
         return rValue;
     } else {
         return BaseType::GetValue(rThisVariable, rValue);
