@@ -15,7 +15,7 @@ def check_valid_environment_configuration_exists() -> None:
     if kratos_ci_applications == "ONLY_CORE":
         return
 
-    if kratos_ci_applications is None
+    if kratos_ci_applications is None:
         raise RuntimeError("Invalid CI-environment: KRATOS_CI_APPLICATIONS")
 
     if not Path(kratos_ci_applications).exists():
