@@ -16,8 +16,6 @@
 /* System includes */
 
 /* External includes */
-#include <iostream>
-#include <typeinfo>
 
 /* Project includes */
 #include "solving_strategies/schemes/scheme.h"
@@ -208,11 +206,6 @@ public:
         rCurrentElement.CalculateLocalSystem(rLHSContribution,rRHSContribution, rCurrentProcessInfo);
 
         rCurrentElement.EquationIdVector(rEquationId, rCurrentProcessInfo);
-        if (rEquationId.size() > 9) {
-            std::cout << "[SCHEME] Got EquationIDVector for element with external master nodes";
-            std::cin.get();
-            KRATOS_WATCH(rRHSContribution)
-        }
 
         KRATOS_CATCH("")
     }

@@ -151,7 +151,7 @@ void InitializeConstraintData(const Element& rElement, const std::size_t BlockSi
         KRATOS_WATCH("Adapting size of local system: " << ElementsNodesAndMasters.size());
         // Build the multi-point constraint's relation matrix if needed
         if (CalculateRelations) {
-            KRATOS_WATCH("Building constraint relation matrix ...");
+            //KRATOS_WATCH("Building constraint relation matrix ...");
             BuildRelationMatrix(rElement, BlockSize);
         }
     }
@@ -180,14 +180,13 @@ void BuildRelationMatrix(const Element& rElement, const std::size_t BlockSize)
     // Fill relation matrix using constraints' master weights
     for (auto &r_node : rElement.GetGeometry()) {
         if (r_node.GetValue(APPLY_EMBEDDED_CONSTRAINTS)) {
-            const std::size_t dim = BlockSize - 1;
+            const std::size_t dim = BlockSize - 1;  //TODO: safe?
 
             // Get vector of master node pointers and master weights matrix for respective node
             const NodePointerVectorType NegNodeConstraintMasters = r_node.GetValue(EMBEDDED_CONSTRAINT_MASTERS);
             const Matrix NegNodeConstraintWeights = r_node.GetValue(EMBEDDED_CONSTRAINT_MASTER_WEIGHTS);
 
             //KRATOS_WATCH(NegNodeConstraintWeights);
-            //KRATOS_WATCH(NegNodeConstraintMasters.size());
 
             KRATOS_ERROR_IF_NOT(NegNodeConstraintWeights.size1() == dim)
                 << "Size1 of master weights of an embedded constrained does not match the node's velocity dofs.";

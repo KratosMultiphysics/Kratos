@@ -158,12 +158,12 @@ void EmbeddedFluidElement<TBaseElement>::CalculateLocalSystem(
         // Because only negative nodes of cut elements are constrained only cut elements provide relevant stiffness contributions for their multi-point constraints
         // NOTE: Constraints have to be applied as the last step of the calculation of the local system
         data.InitializeConstraintData(*this, BlockSize, true);
-        KRATOS_WATCH("[ELEMENT] Initialized (local system)!");
         if (data.ApplyConstraints) {
             // Extend LHS and RHS to contain master nodes of constrained negative nodes of the element
             ExtendLocalSystemWithMasterNodes(rLeftHandSideMatrix, rRightHandSideVector, data);
             // Use master weights in relation matrix to apply master-slave constraints of the interface to the local system
-            //TODO ApplyMasterSlaveConstraints(rLeftHandSideMatrix, rRightHandSideVector, data);
+            ApplyMasterSlaveConstraints(rLeftHandSideMatrix, rRightHandSideVector, data);
+            KRATOS_INFO("[ELEMENT] Applied constraints (local system)!");
         }
     }
 }
@@ -225,7 +225,7 @@ void EmbeddedFluidElement<TBaseElement>::EquationIdVector(
         rResult.resize(size, false);
 
     // Get dof positions for first node (to accelerate search)
-    const std::size_t xpos = data.ElementsNodesAndMasters[0]->GetDofPosition(VELOCITY_X);
+    /*const std::size_t xpos = data.ElementsNodesAndMasters[0]->GetDofPosition(VELOCITY_X);
     const std::size_t ppos = data.ElementsNodesAndMasters[0]->GetDofPosition(PRESSURE);
 
     // Add dof positions of the element's nodes and master nodes
@@ -235,9 +235,34 @@ void EmbeddedFluidElement<TBaseElement>::EquationIdVector(
         rResult[LocalIndex++] = p_node->GetDof(VELOCITY_Y, xpos+1).EquationId();
         if (Dim == 3) rResult[LocalIndex++] = p_node->GetDof(VELOCITY_Z, xpos+2).EquationId();
         rResult[LocalIndex++] = p_node->GetDof(PRESSURE, ppos).EquationId();
+    }*/
+
+    //------------------------------------------
+
+    const GeometryType& r_geometry = this->GetGeometry();
+
+    unsigned int LocalIndex = 0;
+
+    const unsigned int xpos = this->GetGeometry()[0].GetDofPosition(VELOCITY_X);
+    const unsigned int ppos = this->GetGeometry()[0].GetDofPosition(PRESSURE);
+
+    for (unsigned int i = 0; i < NumNodes; ++i) {
+        rResult[LocalIndex++] = data.ElementsNodesAndMasters[i]->GetDof(VELOCITY_X,xpos).EquationId();
+        rResult[LocalIndex++] = data.ElementsNodesAndMasters[i]->GetDof(VELOCITY_Y,xpos+1).EquationId();
+        if (Dim == 3) rResult[LocalIndex++] = data.ElementsNodesAndMasters[i]->GetDof(VELOCITY_Z,xpos+2).EquationId();
+        rResult[LocalIndex++] = data.ElementsNodesAndMasters[i]->GetDof(PRESSURE,ppos).EquationId();
     }
-    if (size > LocalSize) {
-        KRATOS_WATCH("[ELEMENT] Adapted EquationIDVector for element with external master nodes!");
+    /*for (unsigned int i = NumNodes; i < data.ElementsNodesAndMasters.size(); ++i) {
+        rResult[LocalIndex++] = data.ElementsNodesAndMasters[i]->GetDof(VELOCITY_X).EquationId();
+        rResult[LocalIndex++] = data.ElementsNodesAndMasters[i]->GetDof(VELOCITY_Y).EquationId();
+        if (Dim == 3) rResult[LocalIndex++] = data.ElementsNodesAndMasters[i]->GetDof(VELOCITY_Z).EquationId();
+        rResult[LocalIndex++] = data.ElementsNodesAndMasters[i]->GetDof(PRESSURE).EquationId();
+    }*/
+    for (unsigned int i = NumNodes; i < data.ElementsNodesAndMasters.size(); ++i) {
+        rResult[LocalIndex++] = data.ElementsNodesAndMasters[i]->GetDof(VELOCITY_X).EquationId();
+        rResult[LocalIndex++] = data.ElementsNodesAndMasters[i]->GetDof(VELOCITY_Y).EquationId();
+        if (Dim == 3) rResult[LocalIndex++] = data.ElementsNodesAndMasters[i]->GetDof(VELOCITY_Z).EquationId();
+        rResult[LocalIndex++] = data.ElementsNodesAndMasters[i]->GetDof(PRESSURE).EquationId();
     }
 }
 
@@ -1076,18 +1101,16 @@ void EmbeddedFluidElement<TBaseElement>::ExtendLocalSystemWithMasterNodes(
 
     // Resize local system matrix and vector
     const std::size_t size = rData.LocalConstraintSize;
-    rLHS.resize(size, size, true);
-    //rRHS.resize(size, false);
     rLHS = ZeroMatrix(size, size);
-    //rRHS = ZeroVector(size);
+    rRHS = ZeroVector(size);
 
-    // Add entries back into the local system
-    //for (std::size_t i=0; i<LocalSize; ++i) {
-    //    //rRHS(i) = prev_RHS(i);
-    //    for (std::size_t j=0; j<LocalSize; ++j) {
-    //        rLHS(i,j) = prev_LHS(i,j);
-    //    }
-    //}
+    //Add entries back into the local system
+    for (std::size_t i=0; i<LocalSize; ++i) {
+       rRHS(i) = prev_RHS(i);
+       for (std::size_t j=0; j<LocalSize; ++j) {
+           rLHS(i,j) = prev_LHS(i,j);
+       }
+    }
 }
 
 template <class TBaseElement>
@@ -1101,9 +1124,7 @@ void EmbeddedFluidElement<TBaseElement>::ApplyMasterSlaveConstraints(
     const MatrixType& T_matrix = rData.ConstraintsRelationMatrix;
 
     // Initialize auxillary matrix
-    MatrixType aux_LHS;
-    aux_LHS.resize(size, size, false);
-    noalias(aux_LHS) = ZeroMatrix(size, size);
+    MatrixType aux_LHS = ZeroMatrix(size, size);
 
     // Multiply LHS and RHS by relation matrix T_matrix of element to apply constraints
     aux_LHS = prod(rLHS, T_matrix);

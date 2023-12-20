@@ -15,13 +15,14 @@
 #pragma once
 
 /* System includes */
+#include "includes/exception.h"
+#include <cstddef>
 #include <unordered_set>
 
 /* External includes */
 #ifdef KRATOS_SMP_OPENMP
 #include <omp.h>
 #endif
-#include <iostream>
 
 /* Project includes */
 #include "includes/define.h"
@@ -231,23 +232,22 @@ public:
                 auto it_elem = el_begin + k;
 
                 if (it_elem->IsActive()) {
-                    //KRATOS_WATCH("[BuilderAndSolver] Active element!")
                     // Calculate elemental contribution
-                    //TODO SOLVE PROBLEM: Speicherzugriffsfehler wenn RHS > LocalSize
                     pScheme->CalculateSystemContributions(*it_elem, LHS_Contribution, RHS_Contribution, EquationId, CurrentProcessInfo);
-                    //KRATOS_WATCH("[BuilderAndSolver] Calculated system contribution of element!")
 
-                    bool has_external_masters = false;
-                    if (EquationId.size() > 9) {
-                        has_external_masters = true;
-                        std::cout << "[BuilderAndSolver] LocalConstraintSize: " << EquationId.size();
-                        std::cin.get();
+                    if (RHS_Contribution.size() > 9) {
+                        KRATOS_INFO("[BUILD] Calculated system contribution for element with external masters:");
+                        // KRATOS_WATCH(RHS_Contribution.size());
+                        // KRATOS_WATCH(LHS_Contribution.size1());
+                        // KRATOS_WATCH(LHS_Contribution.size2());
+                        KRATOS_WATCH(EquationId.size());
                     }
+
                     // Assemble the elemental contribution
-                    //Assemble(A, b, LHS_Contribution, RHS_Contribution, EquationId);
-                    if (has_external_masters) {
-                        std::cout << "[BuilderAndSolver] Assembled system for element with external masters";
-                        std::cin.get();
+                    //TODO find SegFault in Assemble!!!
+                    Assemble(A, b, LHS_Contribution, RHS_Contribution, EquationId);
+                    if (RHS_Contribution.size() > 9) {
+                        KRATOS_INFO("[BUILD] Assembled element contribution\n\n");
                     }
                 }
 
@@ -1588,13 +1588,13 @@ protected:
         unsigned int local_size = LHS_Contribution.size1();
 
         for (unsigned int i_local = 0; i_local < local_size; i_local++) {
-            /*unsigned int i_global = EquationId[i_local];
+            unsigned int i_global = EquationId[i_local];
 
             double& r_a = b[i_global];
             const double& v_a = RHS_Contribution(i_local);
             AtomicAdd(r_a, v_a);
 
-            AssembleRowContribution(A, LHS_Contribution, i_global, i_local, EquationId);*/
+            AssembleRowContribution(A, LHS_Contribution, i_global, i_local, EquationId);
         }
     }
 
@@ -1642,11 +1642,29 @@ protected:
         std::size_t* index2_vector = A.index2_data().begin();
 
         size_t left_limit = index1_vector[i];
-//    size_t right_limit = index1_vector[i+1];
+        //size_t right_limit = index1_vector[i+1];
+
+        //KRATOS_WATCH(index1_vector[0]);
+        size_t i1_end = A.index1_data().end()-A.index1_data().begin();
+        //KRATOS_WATCH(index1_vector[i1_end]); //= 343 017 536
+        KRATOS_WATCH(i1_end-i);
+        KRATOS_WATCH(index2_vector[left_limit]);
+
+        //size_t i2_end = A.index2_data().end()-A.index2_data().begin();
+        //KRATOS_WATCH(index2_vector[i2_end]);  //=0
+        KRATOS_WATCH(index2_vector[6417916]);
+        //KRATOS_WATCH(index2_vector[6417917]); //=0
+        //KRATOS_WATCH(index2_vector[6417918]); //= Segmentation fault
 
         //find the first entry
+        //TODO: looping until the end - why never equal to id_to_find?? left_limit too high? How can that be???
+        //while(id_to_find != index_vector[pos]) pos++;
         size_t last_pos = ForwardFind(EquationId[0],left_limit,index2_vector);
         size_t last_found = EquationId[0];
+
+        KRATOS_WATCH(last_found);  //=
+        KRATOS_WATCH(left_limit);  //=
+        KRATOS_WATCH(last_pos);    // = SegFault
 
         double& r_a = values_vector[last_pos];
         const double& v_a = Alocal(i_local,0);
