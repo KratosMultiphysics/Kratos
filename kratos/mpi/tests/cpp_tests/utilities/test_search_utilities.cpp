@@ -19,11 +19,12 @@
 #include "mpi/testing/mpi_testing.h"
 #include "geometries/point.h"
 #include "utilities/search_utilities.h"
+#include "test_suit.h"
 
 namespace Kratos::Testing 
 {
 
-KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISynchronousPointSynchronization, KratosMPICoreFastSuite) 
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(SynchronousPointSynchronization, KratosMPICoreFastSuite)
 {
     // The data communicator
     const DataCommunicator& r_data_comm = Testing::GetDefaultDataCommunicator();
