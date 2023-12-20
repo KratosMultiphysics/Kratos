@@ -68,6 +68,7 @@ if(${KRATOS_BUILD_TESTING} MATCHES ON)
     file(GLOB_RECURSE KRATOS_TEST_UTILITIES_SOURCES 
         ${CMAKE_CURRENT_SOURCE_DIR}/tests/test_utilities/*.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/testing/*.cpp
+		${CMAKE_CURRENT_SOURCE_DIR}/tests/cpp_tests/*.cpp
     )
     file(GLOB_RECURSE KRATOS_TEST_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/tests/cpp_tests/*.cpp)
 
