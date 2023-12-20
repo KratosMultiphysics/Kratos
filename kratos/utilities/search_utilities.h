@@ -691,7 +691,7 @@ private:
         }
 
         // Initialize and resize vectors
-        if (rAllPointsCoordinates.size() != static_cast<unsigned int>(TotalNumberOfPoints * 3)) {
+        if (rAllPointsCoordinates.size() != static_cast<std::size_t>(TotalNumberOfPoints * 3)) {
             rAllPointsCoordinates.resize(TotalNumberOfPoints * 3);
         }
         if (rAllPointsIds.size() != static_cast<std::size_t>(TotalNumberOfPoints)) {
