@@ -25,6 +25,7 @@
 #include "response_functions/adjoint_response_function.h"
 #include "utilities/variable_utils.h"
 #include "utilities/parallel_utilities.h"
+#include "utilities/math_utils.h"
 
 namespace Kratos
 {
