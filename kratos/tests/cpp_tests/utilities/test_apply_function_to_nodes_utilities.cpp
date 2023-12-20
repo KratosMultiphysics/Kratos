@@ -19,7 +19,7 @@
 #include "testing/testing.h"
 #include "containers/model.h"
 #include "utilities/apply_function_to_nodes_utility.h"
-#include "utilities/cpp_tests_utilities.h"
+#include "tests/cpp_tests/utilities/cpp_tests_utilities.h"
 
 namespace Kratos {
 namespace Testing {

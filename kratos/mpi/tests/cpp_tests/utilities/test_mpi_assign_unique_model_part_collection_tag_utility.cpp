@@ -21,7 +21,7 @@
 #include "containers/model.h"
 #include "mpi/testing/mpi_testing.h"
 #include "includes/kratos_flags.h"
-#include "utilities/cpp_tests_utilities.h"
+#include "tests/cpp_tests/utilities/cpp_tests_utilities.h"
 #include "mpi/includes/mpi_communicator.h"
 
 /* Utilities */

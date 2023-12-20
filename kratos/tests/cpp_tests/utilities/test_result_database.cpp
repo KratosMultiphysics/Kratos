@@ -18,7 +18,7 @@
 // Project includes
 #include "containers/model.h"
 #include "testing/testing.h"
-#include "utilities/cpp_tests_utilities.h"
+#include "tests/cpp_tests/utilities/cpp_tests_utilities.h"
 #include "utilities/result_dabatase.h"
 
 namespace Kratos {

@@ -18,7 +18,7 @@
 #include "containers/model.h"
 #include "geometries/triangle_2d_3.h"
 #include "geometries/tetrahedra_3d_4.h"
-#include "utilities/cpp_tests_utilities.h"
+#include "tests/cpp_tests/utilities/cpp_tests_utilities.h"
 
 namespace Kratos
 {
