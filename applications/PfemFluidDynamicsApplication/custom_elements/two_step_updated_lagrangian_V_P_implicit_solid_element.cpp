@@ -111,24 +111,25 @@ namespace Kratos
     KRATOS_CATCH("");
   }
 
+    template <unsigned int TDim>
+    void TwoStepUpdatedLagrangianVPImplicitSolidElement<TDim>::InitializeSolutionStep(const ProcessInfo &rCurrentProcessInfo)
+    {
+        KRATOS_TRY;
 
-  // template <unsigned int TDim>
-  // void TwoStepUpdatedLagrangianVPImplicitSolidElement<TDim>::InitializeSolutionStep(const ProcessInfo &rCurrentProcessInfo)
-  // {
-  //   KRATOS_TRY;
+        KRATOS_WATCH("11111")
 
-  //   // Resetting the constitutive law after remeshing
-  //   if (mpConstitutiveLaw == nullptr)
-  //   {
-  //     const Properties &r_properties = this->GetProperties();
-  //     KRATOS_ERROR_IF_NOT(r_properties.Has(CONSTITUTIVE_LAW))
-  //         << "In initialization of Element " << this->Info() << ": No CONSTITUTIVE_LAW defined for property "
-  //         << r_properties.Id() << "." << std::endl;
-  //     mpConstitutiveLaw = r_properties[CONSTITUTIVE_LAW]->Clone();
-  //   }
+        // If we are restarting, the constitutive law will be already defined
+        if (mpConstitutiveLaw == nullptr)
+        {
+            const Properties &r_properties = this->GetProperties();
+            KRATOS_ERROR_IF_NOT(r_properties.Has(CONSTITUTIVE_LAW))
+                << "In initialization of Element " << this->Info() << ": No CONSTITUTIVE_LAW defined for property "
+                << r_properties.Id() << "." << std::endl;
+            mpConstitutiveLaw = r_properties[CONSTITUTIVE_LAW]->Clone();
+        }
 
-  //   KRATOS_CATCH("");
-  // }
+        KRATOS_CATCH("");
+    }
 
   template <unsigned int TDim>
   void TwoStepUpdatedLagrangianVPImplicitSolidElement<TDim>::InitializeNonLinearIteration(const ProcessInfo &rCurrentProcessInfo)
@@ -406,7 +407,7 @@ namespace Kratos
     rElementalVariables.CurrentTotalCauchyStress = this->mCurrentTotalCauchyStress[g];
     rElementalVariables.CurrentDeviatoricCauchyStress = this->mCurrentDeviatoricCauchyStress[g];
 
-    mpConstitutiveLaw = this->GetProperties().GetValue(CONSTITUTIVE_LAW);
+    // mpConstitutiveLaw = this->GetProperties().GetValue(CONSTITUTIVE_LAW);
     auto constitutive_law_values =
         ConstitutiveLaw::Parameters(this->GetGeometry(), this->GetProperties(), rCurrentProcessInfo);
 
@@ -456,7 +457,7 @@ namespace Kratos
     rElementalVariables.CurrentTotalCauchyStress = this->mCurrentTotalCauchyStress[g];
     rElementalVariables.CurrentDeviatoricCauchyStress = this->mCurrentDeviatoricCauchyStress[g];
 
-    mpConstitutiveLaw = this->GetProperties().GetValue(CONSTITUTIVE_LAW);
+    // mpConstitutiveLaw = this->GetProperties().GetValue(CONSTITUTIVE_LAW);
     auto constitutive_law_values =
         ConstitutiveLaw::Parameters(this->GetGeometry(), this->GetProperties(), rCurrentProcessInfo);
 
