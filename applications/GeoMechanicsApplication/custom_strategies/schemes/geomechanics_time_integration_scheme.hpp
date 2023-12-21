@@ -13,10 +13,12 @@
 
 #include "solving_strategies/schemes/scheme.h"
 
-namespace Kratos {
+namespace Kratos
+{
 
 template <class TSparseSpace, class TDenseSpace>
-class GeoMechanicsTimeIntegrationScheme : public Scheme<TSparseSpace, TDenseSpace> {
+class GeoMechanicsTimeIntegrationScheme : public Scheme<TSparseSpace, TDenseSpace>
+{
 public:
     using BaseType = Scheme<TSparseSpace, TDenseSpace>;
     using DofsArrayType = typename BaseType::DofsArrayType;
@@ -24,6 +26,15 @@ public:
     using TSystemMatrixType = typename BaseType::TSystemMatrixType;
     using LocalSystemVectorType = typename BaseType::LocalSystemVectorType;
     using LocalSystemMatrixType = typename BaseType::LocalSystemMatrixType;
+
+    GeoMechanicsTimeIntegrationScheme(const Variable<double>& rVariable,
+                                      const Variable<double>& rDeltaTimeVariable,
+                                      const Variable<double>& rDeltaTimeVariableCoefficient)
+        : mVariable(rVariable),
+          mDeltaTimeVariable(rDeltaTimeVariable),
+          mDeltaTimeVariableCoefficient(rDeltaTimeVariableCoefficient)
+    {
+    }
 
     int Check(const ModelPart& rModelPart) const final
     {
@@ -161,11 +172,13 @@ public:
     {
         const auto& r_current_process_info = rModelPart.GetProcessInfo();
         block_for_each(rModelPart.Elements(),
-                       [&r_current_process_info, pMemberFunction](auto& rElement) {
-                           if (IsActive(rElement)) {
-                               (rElement.*pMemberFunction)(r_current_process_info);
-                           }
-                       });
+                       [&r_current_process_info, pMemberFunction](auto& rElement)
+        {
+            if (IsActive(rElement))
+            {
+                (rElement.*pMemberFunction)(r_current_process_info);
+            }
+        });
     }
 
     template <typename MemFuncPtr>
@@ -173,10 +186,11 @@ public:
     {
         const auto& r_current_process_info = rModelPart.GetProcessInfo();
         block_for_each(rModelPart.Conditions(),
-                       [&r_current_process_info, pMemberFunction](Condition& rCondition) {
-                           if (IsActive(rCondition))
-                               (rCondition.*pMemberFunction)(r_current_process_info);
-                       });
+                       [&r_current_process_info, pMemberFunction](Condition& rCondition)
+        {
+            if (IsActive(rCondition))
+                (rCondition.*pMemberFunction)(r_current_process_info);
+        });
     }
 
     template <class T>
@@ -302,8 +316,10 @@ public:
     {
         KRATOS_TRY
 
-        block_for_each(rDofSet, [&Dx](auto& dof) {
-            if (dof.IsFree()) {
+        block_for_each(rDofSet, [&Dx](auto& dof)
+        {
+            if (dof.IsFree())
+            {
                 dof.GetSolutionStepValue() +=
                     TSparseSpace::GetValue(Dx, dof.EquationId());
             }
@@ -348,15 +364,13 @@ protected:
                                             const Variable<double>& rVariable,
                                             const Variable<double>& rDtVariable) const = 0;
 
-    [[nodiscard]] double GetDeltaTime() const
-    {
-        return mDeltaTime;
-    }
+    [[nodiscard]] double GetDeltaTime() const { return mDeltaTime; }
 
-    void SetDeltaTime(double DeltaTime)
-    {
-        mDeltaTime = DeltaTime;
-    }
+    void SetDeltaTime(double DeltaTime) { mDeltaTime = DeltaTime; }
+
+    Variable<double> mVariable;
+    Variable<double> mDeltaTimeVariable;
+    Variable<double> mDeltaTimeVariableCoefficient;
 
 private:
     double mDeltaTime = 1.0;

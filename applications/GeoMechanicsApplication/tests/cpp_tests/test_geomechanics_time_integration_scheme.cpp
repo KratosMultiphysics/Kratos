@@ -29,6 +29,13 @@ namespace Kratos::Testing {
 // abstract.
 class ConcreteGeoMechanicsTimeIntegrationScheme : public GeoMechanicsTimeIntegrationScheme<SparseSpaceType, LocalSpaceType>
 {
+public:
+    ConcreteGeoMechanicsTimeIntegrationScheme()
+        : GeoMechanicsTimeIntegrationScheme<SparseSpaceType, LocalSpaceType>(
+              WATER_PRESSURE, WATER_PRESSURE, WATER_PRESSURE)
+    {
+    }
+
 protected:
     void SetTimeFactors(ModelPart& rModelPart) override
     {
@@ -59,7 +66,6 @@ public:
     {
         mModel.Reset();
         mModel.CreateModelPart("dummy", 2);
-        mScheme = ConcreteGeoMechanicsTimeIntegrationScheme();
     }
 
     template <class T>

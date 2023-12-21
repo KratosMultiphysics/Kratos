@@ -25,11 +25,8 @@ public:
                              const Variable<double>& rVariable,
                              const Variable<double>& rDeltaTimeVariable,
                              const Variable<double>& rDeltaTimeVariableCoefficient)
-        : GeoMechanicsTimeIntegrationScheme<TSparseSpace, TDenseSpace>(),
-          mTheta(theta),
-          mVariable(rVariable),
-          mDeltaTimeVariable(rDeltaTimeVariable),
-          mDeltaTimeVariableCoefficient(rDeltaTimeVariableCoefficient)
+        : GeoMechanicsTimeIntegrationScheme<TSparseSpace, TDenseSpace>(rVariable, rDeltaTimeVariable, rDeltaTimeVariableCoefficient),
+          mTheta(theta)
     {
         KRATOS_ERROR_IF(this->mTheta <= 0)
             << "Theta must be larger than zero, but got " << this->mTheta << "\n";
@@ -40,9 +37,9 @@ protected:
     {
         for (const auto& r_node : rModelPart.Nodes())
         {
-            this->CheckSolutionStepsData(r_node, mVariable);
-            this->CheckSolutionStepsData(r_node, mDeltaTimeVariable);
-            this->CheckDof(r_node, mVariable);
+            this->CheckSolutionStepsData(r_node, this->mVariable);
+            this->CheckSolutionStepsData(r_node, this->mDeltaTimeVariable);
+            this->CheckDof(r_node, this->mVariable);
         }
     }
 
@@ -52,7 +49,7 @@ protected:
 
         const auto delta_time = rModelPart.GetProcessInfo()[DELTA_TIME];
         this->SetDeltaTime(delta_time);
-        rModelPart.GetProcessInfo()[mDeltaTimeVariableCoefficient] =
+        rModelPart.GetProcessInfo()[this->mDeltaTimeVariableCoefficient] =
             1.0 / (mTheta * delta_time);
 
         KRATOS_CATCH("")
@@ -64,7 +61,7 @@ protected:
 
         block_for_each(rModelPart.Nodes(),
                        [this](Node& rNode) {
-                           this->UpdateScalarTimeDerivative(rNode, mVariable, mDeltaTimeVariable);
+                           this->UpdateScalarTimeDerivative(rNode, this->mVariable, this->mDeltaTimeVariable);
                        });
 
         KRATOS_CATCH("")
@@ -85,9 +82,6 @@ protected:
 
 private:
     double mTheta = 1.0;
-    Variable<double> mVariable;
-    Variable<double> mDeltaTimeVariable;
-    Variable<double> mDeltaTimeVariableCoefficient;
 };
 
 } // namespace Kratos
