@@ -263,7 +263,7 @@ public:
      */
     static int Check(const Properties& rMaterialProperties)
     {
-        return Basetype::Check(rMaterialProperties);
+        return BaseType::Check(rMaterialProperties);
     }
 
 	/**
@@ -272,7 +272,7 @@ public:
      */
     static bool IsWorkingWithTensionThreshold()
     {
-        return Basetype::IsWorkingWithTensionThreshold();
+        return BaseType::IsWorkingWithTensionThreshold();
     }
 
 	/**
@@ -281,7 +281,7 @@ public:
      */
     static double GetScaleFactorTension(const Properties& rMaterialProperties)
     {
-        return Basetype::GetScaleFactorTension();
+        return BaseType::GetScaleFactorTension();
     }
 
     ///@}

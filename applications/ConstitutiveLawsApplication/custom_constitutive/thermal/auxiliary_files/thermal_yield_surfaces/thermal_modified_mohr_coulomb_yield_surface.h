@@ -321,7 +321,7 @@ class ThermalModifiedMohrCoulombYieldSurface
      */
     static int Check(const Properties& rMaterialProperties)
     {
-        BaseType::Check(rMaterialProperties);
+        return BaseType::Check(rMaterialProperties);
     }
 
 	/**

@@ -350,8 +350,15 @@ void KratosConstitutiveLawsApplication::Register()
 
    /// Damage
     /* Small strain */
-    KRATOS_REGISTER_CONSTITUTIVE_LAW("SmallStrainThermalIsotropicDamage3DVonMises", mSmallStrainThermalIsotropicDamage3DVonMises);
     KRATOS_REGISTER_CONSTITUTIVE_LAW("SmallStrainPseudoThermalIsotropicDamage3DVonMises", mSmallStrainPseudoThermalIsotropicDamage3DVonMises);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("SmallStrainPseudoThermalIsotropicDamage3DModifiedMohrCoulomb", mSmallStrainPseudoThermalIsotropicDamage3DModifiedMohrCoulomb);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("SmallStrainPseudoThermalIsotropicDamage3DTresca", mSmallStrainPseudoThermalIsotropicDamage3DTresca);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("SmallStrainPseudoThermalIsotropicDamage3DDruckerPrager", mSmallStrainPseudoThermalIsotropicDamage3DDruckerPrager);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("SmallStrainPseudoThermalIsotropicDamage3DRankine", mSmallStrainPseudoThermalIsotropicDamage3DRankine);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("SmallStrainPseudoThermalIsotropicDamage3DSimoJu", mSmallStrainPseudoThermalIsotropicDamage3DSimoJu);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("SmallStrainPseudoThermalIsotropicDamage3DMohrCoulomb", mSmallStrainPseudoThermalIsotropicDamage3DMohrCoulomb);
+
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("SmallStrainThermalIsotropicDamage3DVonMises", mSmallStrainThermalIsotropicDamage3DVonMises);
     // KRATOS_REGISTER_CONSTITUTIVE_LAW("SmallStrainThermalIsotropicDamage3DModifiedMohrCoulomb", mSmallStrainThermalIsotropicDamage3DModifiedMohrCoulomb);
     // KRATOS_REGISTER_CONSTITUTIVE_LAW("SmallStrainThermalIsotropicDamage3DTresca", mSmallStrainThermalIsotropicDamage3DTresca);
     // KRATOS_REGISTER_CONSTITUTIVE_LAW("SmallStrainThermalIsotropicDamage3DDruckerPrager", mSmallStrainThermalIsotropicDamage3DDruckerPrager);
@@ -359,8 +366,15 @@ void KratosConstitutiveLawsApplication::Register()
     // KRATOS_REGISTER_CONSTITUTIVE_LAW("SmallStrainThermalIsotropicDamage3DSimoJu", mSmallStrainThermalIsotropicDamage3DSimoJu);
     // KRATOS_REGISTER_CONSTITUTIVE_LAW("SmallStrainThermalIsotropicDamage3DMohrCoulomb", mSmallStrainThermalIsotropicDamage3DMohrCoulomb);
 
-    KRATOS_REGISTER_CONSTITUTIVE_LAW("SmallStrainThermalIsotropicDamagePlaneStrainVonMises", mSmallStrainThermalIsotropicDamagePlaneStrainVonMises);
     KRATOS_REGISTER_CONSTITUTIVE_LAW("SmallStrainPseudoThermalIsotropicDamagePlaneStrainVonMises", mSmallStrainPseudoThermalIsotropicDamagePlaneStrainVonMises);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("SmallStrainPseudoThermalIsotropicDamagePlaneStrainModifiedMohrCoulomb", mSmallStrainPseudoThermalIsotropicDamagePlaneStrainModifiedMohrCoulomb);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("SmallStrainPseudoThermalIsotropicDamagePlaneStrainTresca", mSmallStrainPseudoThermalIsotropicDamagePlaneStrainTresca);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("SmallStrainPseudoThermalIsotropicDamagePlaneStrainDruckerPrager", mSmallStrainPseudoThermalIsotropicDamagePlaneStrainDruckerPrager);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("SmallStrainPseudoThermalIsotropicDamagePlaneStrainRankine", mSmallStrainPseudoThermalIsotropicDamagePlaneStrainRankine);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("SmallStrainPseudoThermalIsotropicDamagePlaneStrainSimoJu", mSmallStrainPseudoThermalIsotropicDamagePlaneStrainSimoJu);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("SmallStrainPseudoThermalIsotropicDamagePlaneStrainMohrCoulomb", mSmallStrainPseudoThermalIsotropicDamagePlaneStrainMohrCoulomb);
+
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("SmallStrainThermalIsotropicDamagePlaneStrainVonMises", mSmallStrainThermalIsotropicDamagePlaneStrainVonMises);
     // KRATOS_REGISTER_CONSTITUTIVE_LAW("SmallStrainThermalIsotropicDamagePlaneStrainModifiedMohrCoulomb", mSmallStrainThermalIsotropicDamagePlaneStrainModifiedMohrCoulomb);
     // KRATOS_REGISTER_CONSTITUTIVE_LAW("SmallStrainThermalIsotropicDamagePlaneStrainTresca", mSmallStrainThermalIsotropicDamagePlaneStrainTresca);
     // KRATOS_REGISTER_CONSTITUTIVE_LAW("SmallStrainThermalIsotropicDamagePlaneStrainDruckerPrager", mSmallStrainThermalIsotropicDamagePlaneStrainDruckerPrager);
