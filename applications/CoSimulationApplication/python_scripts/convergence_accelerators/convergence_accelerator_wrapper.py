@@ -134,8 +134,9 @@ class BlockConvergenceAcceleratorWrapper:
         self.prev_input_data = {}
         self.output_data = {}
         for data_name in self.interface_data_dict:
-            self.prev_input_data[data_name] = self.interface_data_dict[data_name].GetData()
-            self.output_data[data_name] = self.interface_data_dict[data_name].GetData()
+            if self.interface_data_dict[data_name].IsDefinedOnThisRank():
+                self.prev_input_data[data_name] = self.interface_data_dict[data_name].GetData()
+                self.output_data[data_name] = self.interface_data_dict[data_name].GetData()
 
     def Finalize(self):
         self.conv_acc.Finalize()
@@ -167,6 +168,8 @@ class BlockConvergenceAcceleratorWrapper:
         interface_data = self.interface_data_dict[data_name]
         coupled_data_name = self.coupl_data_names[data_name]
 
+        if not interface_data.IsDefinedOnThisRank(): return
+
         # Data Comm
         executing_rank = self.executing_rank[data_name]
         gather_scatter_required = self.gather_scatter_required[data_name]
@@ -175,8 +178,6 @@ class BlockConvergenceAcceleratorWrapper:
         input_data = self.input_data[data_name]
         self.prev_input_data[data_name] = interface_data.GetData()
         prev_input_data = self.prev_input_data[coupled_data_name]
-
-        if not interface_data.IsDefinedOnThisRank(): return
 
         residual = self.residual_computation.ComputeResidual(input_data, data_name) #  = x~ - x
         yResidual = self.residual_computation.ComputeResidual(prev_input_data, coupled_data_name) # = y - y~
