@@ -383,6 +383,12 @@ void KratosConstitutiveLawsApplication::Register()
     KRATOS_REGISTER_CONSTITUTIVE_LAW("SmallStrainThermalIsotropicDamagePlaneStrainMohrCoulomb", mSmallStrainThermalIsotropicDamagePlaneStrainMohrCoulomb);
 
     KRATOS_REGISTER_CONSTITUTIVE_LAW("SmallStrainThermalIsotropicDamagePlaneStressVonMises", mSmallStrainThermalIsotropicDamagePlaneStressVonMises);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("SmallStrainThermalIsotropicDamagePlaneStressRankine", mSmallStrainThermalIsotropicDamagePlaneStressRankine);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("SmallStrainThermalIsotropicDamagePlaneStressTresca", mSmallStrainThermalIsotropicDamagePlaneStressTresca);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("SmallStrainThermalIsotropicDamagePlaneStressMohrCoulomb", mSmallStrainThermalIsotropicDamagePlaneStressMohrCoulomb);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("SmallStrainThermalIsotropicDamagePlaneStressModifiedMohrCoulomb", mSmallStrainThermalIsotropicDamagePlaneStressModifiedMohrCoulomb);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("SmallStrainThermalIsotropicDamagePlaneStressDruckerPrager", mSmallStrainThermalIsotropicDamagePlaneStressDruckerPrager);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("SmallStrainThermalIsotropicDamagePlaneStressSimoJu", mSmallStrainThermalIsotropicDamagePlaneStressSimoJu);
 
     // Constitutive laws variables
 
