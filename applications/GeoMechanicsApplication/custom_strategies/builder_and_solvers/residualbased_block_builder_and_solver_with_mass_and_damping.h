@@ -467,18 +467,6 @@ protected:
                                            TSystemVectorType& rSecondDerivativeVector,
                                            ModelPart& rModelPart)
     {
-        if (rFirstDerivativeVector.size() != BaseType::mEquationSystemSize)
-        {
-            rFirstDerivativeVector.resize(BaseType::mEquationSystemSize, false);
-        }
-        TSparseSpace::SetToZero(rFirstDerivativeVector);
-
-        if (rSecondDerivativeVector.size() != BaseType::mEquationSystemSize)
-        {
-            rSecondDerivativeVector.resize(BaseType::mEquationSystemSize, false);
-        }
-        TSparseSpace::SetToZero(rSecondDerivativeVector);
-
         block_for_each(rModelPart.Nodes(),
                        [&rFirstDerivativeVector, &rSecondDerivativeVector, this](Node& rNode)
         {
@@ -630,8 +618,8 @@ private:
     {
 
 		// Get first and second derivative vector
-        TSystemVectorType first_derivative_vector;
-        TSystemVectorType second_derivative_vector;
+        TSystemVectorType first_derivative_vector = ZeroVector(BaseType::mEquationSystemSize);
+        TSystemVectorType second_derivative_vector = ZeroVector(BaseType::mEquationSystemSize);
         GetFirstAndSecondDerivativeVector(first_derivative_vector, second_derivative_vector, rModelPart);
 
 		// calculate and add mass and damping contribution to rhs
