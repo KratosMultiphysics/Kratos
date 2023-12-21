@@ -10,19 +10,19 @@
 //  Main authors:    Anne van de Graaf
 //
 
-#pragma once
-
-#include "includes/constitutive_law.h"
+#include "linear_elastic_law.h"
 
 namespace Kratos
 {
 
-class KRATOS_API(GEO_MECHANICS_APPLICATION) GeoLinearElasticLaw : public ConstitutiveLaw
+void GeoLinearElasticLaw::save(Serializer& rSerializer) const
 {
-private:
-    friend class Serializer;
-    void save(Serializer& rSerializer) const override;
-    void load(Serializer& rSerializer) override;
-};
+    KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, ConstitutiveLaw)
+}
+
+void GeoLinearElasticLaw::load(Serializer& rSerializer)
+{
+    KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, ConstitutiveLaw)
+}
 
 } // namespace Kratos
