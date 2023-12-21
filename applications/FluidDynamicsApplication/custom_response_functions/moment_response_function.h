@@ -76,29 +76,22 @@ public:
         mStructureModelPartName = Settings["structure_model_part_name"].GetString();
         mStartTime = Settings["start_time"].GetDouble();
 
-        if (Settings["moment_direction"].IsArray() == false ||
-            Settings["moment_direction"].size() != 3)
-        {
+        if (Settings["moment_direction"].IsArray() == false || Settings["moment_direction"].size() != 3) {
             KRATOS_ERROR << "Invalid \"moment_direction\"." << std::endl;
         }
+        mMomentDirection = Settings["moment_direction"].GetVector();
 
-        for (unsigned int d = 0; d < TDim; ++d)
-            mMomentDirection[d] = Settings["moment_direction"][d].GetDouble();
-
-        if (std::abs(norm_2(mMomentDirection) - 1.0) > 1e-3)
-        {
+        if (std::abs(norm_2(mMomentDirection) - 1.0) > 1e-3) {
             const double magnitude = norm_2(mMomentDirection);
-            if (magnitude == 0.0)
-                KRATOS_ERROR << "\"moment_direction\" is zero." << std::endl;
-
-            KRATOS_WARNING("MomentResponseFunction")
-                << "Non unit magnitude in \"moment_direction\"." << std::endl;
+            KRATOS_ERROR_IF(magnitude == 0.0) << "\"moment_direction\" is zero." << std::endl;
+            KRATOS_WARNING("MomentResponseFunction") << "Non unit magnitude in \"moment_direction\"." << std::endl;
             KRATOS_WARNING("MomentResponseFunction") << "Normalizing ..." << std::endl;
-
-            for (unsigned int d = 0; d < TDim; ++d)
-                mMomentDirection[d] /= magnitude;
+            mMomentDirection /= magnitude;
         }
 
+        if (Settings["moment_point"].IsArray() == false || Settings["moment_point"].size() != 3) {
+            KRATOS_ERROR << "Invalid \"moment_point\"." << std::endl;
+        }
         mMomentPoint = Settings["moment_point"].GetVector();
 
         KRATOS_CATCH("");
@@ -124,17 +117,16 @@ public:
         Check();
 
         VariableUtils().SetFlag(STRUCTURE, false, mrModelPart.Nodes());
-        VariableUtils().SetFlag(
-            STRUCTURE, true,
-            mrModelPart.GetSubModelPart(mStructureModelPartName).Nodes());
+        VariableUtils().SetFlag(STRUCTURE, true, mrModelPart.GetSubModelPart(mStructureModelPartName).Nodes());
 
         KRATOS_CATCH("");
     }
 
-    void CalculateGradient(const Element& rAdjointElement,
-                           const Matrix& rResidualGradient,
-                           Vector& rResponseGradient,
-                           const ProcessInfo& rProcessInfo) override
+    void CalculateGradient(
+        const Element& rAdjointElement,
+        const Matrix& rResidualGradient,
+        Vector& rResponseGradient,
+        const ProcessInfo& rProcessInfo) override
     {
         CalculateMomentContribution(
             rResidualGradient, rAdjointElement.GetGeometry().Points(), rResponseGradient, rProcessInfo);
@@ -149,45 +141,50 @@ public:
         rResponseGradient.clear();
     }
 
-    void CalculateFirstDerivativesGradient(const Element& rAdjointElement,
-                                           const Matrix& rResidualGradient,
-                                           Vector& rResponseGradient,
-                                           const ProcessInfo& rProcessInfo) override
+    void CalculateFirstDerivativesGradient(
+        const Element& rAdjointElement,
+        const Matrix& rResidualGradient,
+        Vector& rResponseGradient,
+        const ProcessInfo& rProcessInfo) override
     {
         CalculateMomentContribution(
             rResidualGradient, rAdjointElement.GetGeometry().Points(), rResponseGradient, rProcessInfo);
     }
 
-    void CalculateFirstDerivativesGradient(const Condition& rAdjointCondition,
-                                           const Matrix& rResidualGradient,
-                                           Vector& rResponseGradient,
-                                           const ProcessInfo& rProcessInfo) override
+    void CalculateFirstDerivativesGradient(
+        const Condition& rAdjointCondition,
+        const Matrix& rResidualGradient,
+        Vector& rResponseGradient,
+        const ProcessInfo& rProcessInfo) override
     {
         rResponseGradient.clear();
     }
 
-    void CalculateSecondDerivativesGradient(const Element& rAdjointElement,
-                                            const Matrix& rResidualGradient,
-                                            Vector& rResponseGradient,
-                                            const ProcessInfo& rProcessInfo) override
+    void CalculateSecondDerivativesGradient(
+        const Element& rAdjointElement,
+        const Matrix& rResidualGradient,
+        Vector& rResponseGradient,
+        const ProcessInfo& rProcessInfo) override
     {
         CalculateMomentContribution(
             rResidualGradient, rAdjointElement.GetGeometry().Points(), rResponseGradient, rProcessInfo);
     }
 
-    void CalculateSecondDerivativesGradient(const Condition& rAdjointCondition,
-                                            const Matrix& rResidualGradient,
-                                            Vector& rResponseGradient,
-                                            const ProcessInfo& rProcessInfo) override
+    void CalculateSecondDerivativesGradient(
+        const Condition& rAdjointCondition,
+        const Matrix& rResidualGradient,
+        Vector& rResponseGradient,
+        const ProcessInfo& rProcessInfo) override
     {
         rResponseGradient.clear();
     }
 
-    void CalculatePartialSensitivity(Element& rAdjointElement,
-                                     const Variable<array_1d<double, 3>>& rVariable,
-                                     const Matrix& rSensitivityMatrix,
-                                     Vector& rSensitivityGradient,
-                                     const ProcessInfo& rProcessInfo) override
+    void CalculatePartialSensitivity(
+        Element& rAdjointElement,
+        const Variable<array_1d<double, 3>>& rVariable,
+        const Matrix& rSensitivityMatrix,
+        Vector& rSensitivityGradient,
+        const ProcessInfo& rProcessInfo) override
     {
         KRATOS_TRY;
 
@@ -197,11 +194,12 @@ public:
         KRATOS_CATCH("");
     }
 
-    void CalculatePartialSensitivity(Condition& rAdjointCondition,
-                                     const Variable<array_1d<double, 3>>& rVariable,
-                                     const Matrix& rSensitivityMatrix,
-                                     Vector& rSensitivityGradient,
-                                     const ProcessInfo& rProcessInfo) override
+    void CalculatePartialSensitivity(
+        Condition& rAdjointCondition,
+        const Variable<array_1d<double, 3>>& rVariable,
+        const Matrix& rSensitivityMatrix,
+        Vector& rSensitivityGradient,
+        const ProcessInfo& rProcessInfo) override
     {
         if (rSensitivityGradient.size() != rSensitivityMatrix.size1())
             rSensitivityGradient.resize(rSensitivityMatrix.size1(), false);
@@ -219,7 +217,7 @@ public:
             const double local_moment = block_for_each<SumReduction<double>>(rModelPart.GetCommunicator().LocalMesh().Nodes(), [&](const ModelPart::NodeType &rNode) {
                 const double coeff = static_cast<double>(rNode.Is(STRUCTURE));
                 const array_1d<double, 3>& reaction = rNode.FastGetSolutionStepValue(REACTION);
-                const array_1d<double, 3>& r = r_node.Coordinates() - mMomentPoint;
+                const array_1d<double, 3>& r = rNode.Coordinates() - mMomentPoint;
 
                 array_1d<double, 3> moment;
                 moment[0] = r[1]*reaction[2] - r[2]*reaction[1];
@@ -227,7 +225,7 @@ public:
                 moment[2] = r[0]*reaction[1] - r[1]*reaction[0];
 
                 double nodal_moment_contribution = 0.0;
-                for (unsigned int i = 0; i < TDim; ++i) {
+                for (unsigned int i = 0; i < 3; ++i) {
                     nodal_moment_contribution += mMomentDirection[i] * moment[i] * coeff;
                 }
 
@@ -248,7 +246,7 @@ protected:
 
     ModelPart& mrModelPart;
     std::string mStructureModelPartName;
-    array_1d<double, TDim> mMomentDirection;
+    array_1d<double, 3> mMomentDirection;
     array_1d<double, 3> mMomentPoint;
     double mStartTime;
 
@@ -280,26 +278,29 @@ protected:
         const double current_time = rProcessInfo[TIME];
 
         if (mStartTime <= current_time) {
-            BoundedMatrix<double, max_size, max_size> moment_matrix(rDerivativesOfResidual.size1(), rDerivativesOfResidual.size2());
-            BoundedVector<double, max_size> moment_flag_vector(rDerivativesOfResidual.size2());
-            moment_matrix.clear();
-            moment_flag_vector.clear();
-
             const unsigned num_nodes = rNodes.size();
             const unsigned local_size = rDerivativesOfResidual.size2() / num_nodes;
+            const unsigned modified_local_size = (TDim == 3) ? local_size : (local_size + 1);
+
+            BoundedMatrix<double, max_size, max_size> moment_matrix(rDerivativesOfResidual.size1(), modified_local_size * num_nodes);
+            BoundedVector<double, max_size> moment_flag_vector(modified_local_size * num_nodes);
+            moment_matrix.clear();
+            moment_flag_vector.clear();
 
             for (unsigned i_node = 0; i_node < num_nodes; ++i_node) {
                 const auto& r_node = rNodes[i_node];
                 if (r_node.Is(STRUCTURE)) {
                     const array_1d<double, 3>& r = r_node.Coordinates() - mMomentPoint;
                     for (unsigned c = 0; c < rDerivativesOfResidual.size1(); ++c) {
-                        moment_matrix[c, i_node * local_size + 0] = rDerivativesOfResidual[c, i_node * local_size + 2] * r[1]  - rDerivativesOfResidual[c, i_node * local_size + 1] * r[2];
-                        moment_matrix[c, i_node * local_size + 1] = rDerivativesOfResidual[c, i_node * local_size + 0] * r[2]  - rDerivativesOfResidual[c, i_node * local_size + 2] * r[0];
-                        moment_matrix[c, i_node * local_size + 2] = rDerivativesOfResidual[c, i_node * local_size + 1] * r[0]  - rDerivativesOfResidual[c, i_node * local_size + 0] * r[1];
+                        if constexpr(TDim == 3) {
+                            moment_matrix(c, i_node * modified_local_size + 0) = rDerivativesOfResidual(c, i_node * local_size + 2) * r[1]  - rDerivativesOfResidual(c, i_node * local_size + 1) * r[2];
+                            moment_matrix(c, i_node * modified_local_size + 1) = rDerivativesOfResidual(c, i_node * local_size + 0) * r[2]  - rDerivativesOfResidual(c, i_node * local_size + 2) * r[0];
+                        }
+                        moment_matrix(c, i_node * modified_local_size + 2) = rDerivativesOfResidual(c, i_node * local_size + 1) * r[0]  - rDerivativesOfResidual(c, i_node * local_size + 0) * r[1];
                     }
 
-                    for (unsigned d = 0; d < TDim; ++d) {
-                        moment_flag_vector[i_node * local_size + d] = mMomentDirection[d];
+                    for (unsigned d = 0; d < 3; ++d) {
+                        moment_flag_vector[i_node * modified_local_size + d] = mMomentDirection[d];
                     }
                 }
             }
@@ -323,39 +324,43 @@ protected:
         const double current_time = rProcessInfo[TIME];
 
         if (mStartTime <= current_time) {
-            BoundedMatrix<double, max_size, max_size> moment_matrix(rDerivativesOfResidual.size1(), rDerivativesOfResidual.size2());
-            BoundedVector<double, max_size> moment_flag_vector(rDerivativesOfResidual.size2());
-            moment_matrix.clear();
-            moment_flag_vector.clear();
-            r_derivatives.clear();
-
             const unsigned num_nodes = rNodes.size();
             const unsigned residual_local_size = rDerivativesOfResidual.size2() / num_nodes;
+            const unsigned modified_residual_local_size = (TDim == 3) ? residual_local_size : (residual_local_size + 1);
             const unsigned shape_local_size = rDerivativesOfResidual.size1() / num_nodes;
+
+            BoundedMatrix<double, max_size, max_size> moment_matrix(rDerivativesOfResidual.size1(), modified_residual_local_size * num_nodes);
+            BoundedVector<double, max_size> moment_flag_vector(modified_residual_local_size * num_nodes);
+            moment_matrix.clear();
+            moment_flag_vector.clear();
 
             for (unsigned i_node = 0; i_node < num_nodes; ++i_node) {
                 const auto& r_node = rNodes[i_node];
                 if (r_node.Is(STRUCTURE)) {
                     const array_1d<double, 3>& r = r_node.Coordinates() - mMomentPoint;
-                    const array_1d<double, 3>& reaction = rNode.FastGetSolutionStepValue(REACTION);
+                    const array_1d<double, 3>& reaction = r_node.FastGetSolutionStepValue(REACTION);
 
                     for (unsigned c = 0; c < rDerivativesOfResidual.size1(); ++c) {
-                        moment_matrix[c, i_node * residual_local_size + 0] = rDerivativesOfResidual[c, i_node * residual_local_size + 2] * r[1]  - rDerivativesOfResidual[c, i_node * residual_local_size + 1] * r[2];
-                        moment_matrix[c, i_node * residual_local_size + 1] = rDerivativesOfResidual[c, i_node * residual_local_size + 0] * r[2]  - rDerivativesOfResidual[c, i_node * residual_local_size + 2] * r[0];
-                        moment_matrix[c, i_node * residual_local_size + 2] = rDerivativesOfResidual[c, i_node * residual_local_size + 1] * r[0]  - rDerivativesOfResidual[c, i_node * residual_local_size + 0] * r[1];
+                        if constexpr(TDim == 3) {
+                            moment_matrix(c, i_node * modified_residual_local_size + 0) = rDerivativesOfResidual(c, i_node * residual_local_size + 2) * r[1]  - rDerivativesOfResidual(c, i_node * residual_local_size + 1) * r[2];
+                            moment_matrix(c, i_node * modified_residual_local_size + 1) = rDerivativesOfResidual(c, i_node * residual_local_size + 0) * r[2]  - rDerivativesOfResidual(c, i_node * residual_local_size + 2) * r[0];
+                        }
+                        moment_matrix(c, i_node * modified_residual_local_size + 2) = rDerivativesOfResidual(c, i_node * residual_local_size + 1) * r[0]  - rDerivativesOfResidual(c, i_node * residual_local_size + 0) * r[1];
                     }
 
-                    moment_matrix(i_node * shape_local_size + 1, i_node * residual_local_size + 0) += reaction[2];
-                    moment_matrix(i_node * shape_local_size + 2, i_node * residual_local_size + 0) -= reaction[1];
+                    if constexpr(TDim == 3) {
+                        moment_matrix(i_node * shape_local_size + 1, i_node * modified_residual_local_size + 0) -= reaction[2];
+                        moment_matrix(i_node * shape_local_size + 2, i_node * modified_residual_local_size + 0) += reaction[1];
 
-                    moment_matrix(i_node * shape_local_size + 2, i_node * residual_local_size + 1) += reaction[0];
-                    moment_matrix(i_node * shape_local_size + 0, i_node * residual_local_size + 1) -= reaction[2];
+                        moment_matrix(i_node * shape_local_size + 2, i_node * modified_residual_local_size + 1) -= reaction[0];
+                        moment_matrix(i_node * shape_local_size + 0, i_node * modified_residual_local_size + 1) += reaction[2];
+                    }
 
-                    moment_matrix(i_node * shape_local_size + 0, i_node * residual_local_size + 2) += reaction[1];
-                    moment_matrix(i_node * shape_local_size + 1, i_node * residual_local_size + 2) -= reaction[0];
+                    moment_matrix(i_node * shape_local_size + 0, i_node * modified_residual_local_size + 2) -= reaction[1];
+                    moment_matrix(i_node * shape_local_size + 1, i_node * modified_residual_local_size + 2) += reaction[0];
 
-                    for (unsigned d = 0; d < TDim; ++d) {
-                        moment_flag_vector[i_node * local_size + d] = mMomentDirection[d];
+                    for (unsigned d = 0; d < 3; ++d) {
+                        moment_flag_vector[i_node * modified_residual_local_size + d] = mMomentDirection[d];
                     }
                 }
             }
