@@ -359,12 +359,12 @@ void KratosConstitutiveLawsApplication::Register()
     KRATOS_REGISTER_CONSTITUTIVE_LAW("SmallStrainPseudoThermalIsotropicDamage3DMohrCoulomb", mSmallStrainPseudoThermalIsotropicDamage3DMohrCoulomb);
 
     KRATOS_REGISTER_CONSTITUTIVE_LAW("SmallStrainThermalIsotropicDamage3DVonMises", mSmallStrainThermalIsotropicDamage3DVonMises);
-    // KRATOS_REGISTER_CONSTITUTIVE_LAW("SmallStrainThermalIsotropicDamage3DModifiedMohrCoulomb", mSmallStrainThermalIsotropicDamage3DModifiedMohrCoulomb);
-    // KRATOS_REGISTER_CONSTITUTIVE_LAW("SmallStrainThermalIsotropicDamage3DTresca", mSmallStrainThermalIsotropicDamage3DTresca);
-    // KRATOS_REGISTER_CONSTITUTIVE_LAW("SmallStrainThermalIsotropicDamage3DDruckerPrager", mSmallStrainThermalIsotropicDamage3DDruckerPrager);
-    // KRATOS_REGISTER_CONSTITUTIVE_LAW("SmallStrainThermalIsotropicDamage3DRankine", mSmallStrainThermalIsotropicDamage3DRankine);
-    // KRATOS_REGISTER_CONSTITUTIVE_LAW("SmallStrainThermalIsotropicDamage3DSimoJu", mSmallStrainThermalIsotropicDamage3DSimoJu);
-    // KRATOS_REGISTER_CONSTITUTIVE_LAW("SmallStrainThermalIsotropicDamage3DMohrCoulomb", mSmallStrainThermalIsotropicDamage3DMohrCoulomb);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("SmallStrainThermalIsotropicDamage3DModifiedMohrCoulomb", mSmallStrainThermalIsotropicDamage3DModifiedMohrCoulomb);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("SmallStrainThermalIsotropicDamage3DTresca", mSmallStrainThermalIsotropicDamage3DTresca);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("SmallStrainThermalIsotropicDamage3DDruckerPrager", mSmallStrainThermalIsotropicDamage3DDruckerPrager);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("SmallStrainThermalIsotropicDamage3DRankine", mSmallStrainThermalIsotropicDamage3DRankine);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("SmallStrainThermalIsotropicDamage3DSimoJu", mSmallStrainThermalIsotropicDamage3DSimoJu);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("SmallStrainThermalIsotropicDamage3DMohrCoulomb", mSmallStrainThermalIsotropicDamage3DMohrCoulomb);
 
     KRATOS_REGISTER_CONSTITUTIVE_LAW("SmallStrainPseudoThermalIsotropicDamagePlaneStrainVonMises", mSmallStrainPseudoThermalIsotropicDamagePlaneStrainVonMises);
     KRATOS_REGISTER_CONSTITUTIVE_LAW("SmallStrainPseudoThermalIsotropicDamagePlaneStrainModifiedMohrCoulomb", mSmallStrainPseudoThermalIsotropicDamagePlaneStrainModifiedMohrCoulomb);
@@ -375,12 +375,12 @@ void KratosConstitutiveLawsApplication::Register()
     KRATOS_REGISTER_CONSTITUTIVE_LAW("SmallStrainPseudoThermalIsotropicDamagePlaneStrainMohrCoulomb", mSmallStrainPseudoThermalIsotropicDamagePlaneStrainMohrCoulomb);
 
     KRATOS_REGISTER_CONSTITUTIVE_LAW("SmallStrainThermalIsotropicDamagePlaneStrainVonMises", mSmallStrainThermalIsotropicDamagePlaneStrainVonMises);
-    // KRATOS_REGISTER_CONSTITUTIVE_LAW("SmallStrainThermalIsotropicDamagePlaneStrainModifiedMohrCoulomb", mSmallStrainThermalIsotropicDamagePlaneStrainModifiedMohrCoulomb);
-    // KRATOS_REGISTER_CONSTITUTIVE_LAW("SmallStrainThermalIsotropicDamagePlaneStrainTresca", mSmallStrainThermalIsotropicDamagePlaneStrainTresca);
-    // KRATOS_REGISTER_CONSTITUTIVE_LAW("SmallStrainThermalIsotropicDamagePlaneStrainDruckerPrager", mSmallStrainThermalIsotropicDamagePlaneStrainDruckerPrager);
-    // KRATOS_REGISTER_CONSTITUTIVE_LAW("SmallStrainThermalIsotropicDamagePlaneStrainRankine", mSmallStrainThermalIsotropicDamagePlaneStrainRankine);
-    // KRATOS_REGISTER_CONSTITUTIVE_LAW("SmallStrainThermalIsotropicDamagePlaneStrainSimoJu", mSmallStrainThermalIsotropicDamagePlaneStrainSimoJu);
-    // KRATOS_REGISTER_CONSTITUTIVE_LAW("SmallStrainThermalIsotropicDamagePlaneStrainMohrCoulomb", mSmallStrainThermalIsotropicDamagePlaneStrainMohrCoulomb);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("SmallStrainThermalIsotropicDamagePlaneStrainModifiedMohrCoulomb", mSmallStrainThermalIsotropicDamagePlaneStrainModifiedMohrCoulomb);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("SmallStrainThermalIsotropicDamagePlaneStrainTresca", mSmallStrainThermalIsotropicDamagePlaneStrainTresca);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("SmallStrainThermalIsotropicDamagePlaneStrainDruckerPrager", mSmallStrainThermalIsotropicDamagePlaneStrainDruckerPrager);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("SmallStrainThermalIsotropicDamagePlaneStrainRankine", mSmallStrainThermalIsotropicDamagePlaneStrainRankine);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("SmallStrainThermalIsotropicDamagePlaneStrainSimoJu", mSmallStrainThermalIsotropicDamagePlaneStrainSimoJu);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("SmallStrainThermalIsotropicDamagePlaneStrainMohrCoulomb", mSmallStrainThermalIsotropicDamagePlaneStrainMohrCoulomb);
 
     KRATOS_REGISTER_CONSTITUTIVE_LAW("SmallStrainThermalIsotropicDamagePlaneStressVonMises", mSmallStrainThermalIsotropicDamagePlaneStressVonMises);
 
