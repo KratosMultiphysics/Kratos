@@ -19,7 +19,7 @@
 
 // Project includes
 #include "includes/serializer.h"
-#include "includes/constitutive_law.h"
+#include "linear_elastic_law.h"
 
 // Application includes
 #include "geo_mechanics_application_variables.h"
@@ -53,15 +53,14 @@ namespace Kratos
  * @author Vahid Galavi
  */
 class KRATOS_API(GEO_MECHANICS_APPLICATION) ElasticIsotropicK03DLaw
-    : public ConstitutiveLaw
+    : public GeoLinearElasticLaw
 {
 public:
 
     ///@name Type Definitions
     ///@{
 
-    /// The base class ConstitutiveLaw type definition
-    using BaseType = ConstitutiveLaw;
+    using BaseType = GeoLinearElasticLaw;
 
     /// The size type definition
     using SizeType = std::size_t;
@@ -300,12 +299,12 @@ private:
 
     void save(Serializer& rSerializer) const override
     {
-        KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, ConstitutiveLaw )
+        KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, GeoLinearElasticLaw )
     }
 
     void load(Serializer& rSerializer) override
     {
-        KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, ConstitutiveLaw)
+        KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, GeoLinearElasticLaw)
     }
 }; // Class ElasticIsotropicK03DLaw
 }  // namespace Kratos.
