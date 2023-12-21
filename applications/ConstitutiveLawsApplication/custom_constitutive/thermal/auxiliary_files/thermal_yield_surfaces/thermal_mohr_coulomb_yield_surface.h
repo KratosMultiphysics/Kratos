@@ -152,9 +152,9 @@ public:
             friction_angle = AdvCLutils::GetMaterialPropertyThroughAccessor(FRICTION_ANGLE, rValues);
             cohesion = AdvCLutils::GetMaterialPropertyThroughAccessor(COHESION, rValues);
         } else {
-            const double ref_temperature = r_props.Has(REFERENCE_TEMPERATURE) ? r_props[REFERENCE_TEMPERATURE] : rValues.GetElementGeometry().GetValue(REFERENCE_TEMPERATURE);
-            friction_angle = AdvCLutils::GetPropertyFromTemperatureTable(FRICTION_ANGLE, rValues, ref_temperature)
-            cohesion = AdvCLutils::GetPropertyFromTemperatureTable(COHESION, rValues, ref_temperature)
+            const double ref_temperature = r_material_properties.Has(REFERENCE_TEMPERATURE) ? r_material_properties[REFERENCE_TEMPERATURE] : rValues.GetElementGeometry().GetValue(REFERENCE_TEMPERATURE);
+            friction_angle = AdvCLutils::GetPropertyFromTemperatureTable(FRICTION_ANGLE, rValues, ref_temperature);
+            cohesion = AdvCLutils::GetPropertyFromTemperatureTable(COHESION, rValues, ref_temperature);
         }
         rThreshold = cohesion * std::cos(friction_angle);
     }
