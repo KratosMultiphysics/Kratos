@@ -157,10 +157,10 @@ public:
 
         double yield_tension, friction_angle;
         if (rValues.IsSetShapeFunctionsValues()) { // This is needed since at Initialize level the N are not set yet...
-            yield_tension = = r_material_properties.Has(YIELD_STRESS) ? AdvCLutils::GetMaterialPropertyThroughAccessor(YIELD_STRESS, rValues) : AdvCLutils::GetMaterialPropertyThroughAccessor(YIELD_STRESS_TENSION, rValues);
+            yield_tension = r_material_properties.Has(YIELD_STRESS) ? AdvCLutils::GetMaterialPropertyThroughAccessor(YIELD_STRESS, rValues) : AdvCLutils::GetMaterialPropertyThroughAccessor(YIELD_STRESS_TENSION, rValues);
             friction_angle = AdvCLutils::GetMaterialPropertyThroughAccessor(FRICTION_ANGLE, rValues) * Globals::Pi / 180.0;
         } else {
-            const double ref_temperature = r_props.Has(REFERENCE_TEMPERATURE) ? r_props[REFERENCE_TEMPERATURE] : rValues.GetElementGeometry().GetValue(REFERENCE_TEMPERATURE);
+            const double ref_temperature = r_material_properties.Has(REFERENCE_TEMPERATURE) ? r_material_properties[REFERENCE_TEMPERATURE] : rValues.GetElementGeometry().GetValue(REFERENCE_TEMPERATURE);
             yield_tension = r_material_properties.Has(YIELD_STRESS) ? AdvCLutils::GetPropertyFromTemperatureTable(YIELD_STRESS, rValues, ref_temperature) : AdvCLutils::GetPropertyFromTemperatureTable(YIELD_STRESS_TENSION, rValues, ref_temperature);
             friction_angle = AdvCLutils::GetPropertyFromTemperatureTable(FRICTION_ANGLE, rValues, ref_temperature) * Globals::Pi / 180.0;
         }

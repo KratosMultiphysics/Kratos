@@ -169,10 +169,10 @@ class ThermalModifiedMohrCoulombYieldSurface
 
         double yield_compression;
         if (rValues.IsSetShapeFunctionsValues()) { // This is needed since at Initialize level the N are not set yet...
-            yield_compression = = r_material_properties.Has(YIELD_STRESS) ? AdvCLutils::GetMaterialPropertyThroughAccessor(YIELD_STRESS, rValues) : AdvCLutils::GetMaterialPropertyThroughAccessor(YIELD_STRESS_COMPRESSION, rValues);
+            yield_compression = r_material_properties.Has(YIELD_STRESS) ? AdvCLutils::GetMaterialPropertyThroughAccessor(YIELD_STRESS, rValues) : AdvCLutils::GetMaterialPropertyThroughAccessor(YIELD_STRESS_COMPRESSION, rValues);
         } else {
-            const double ref_temperature = r_props.Has(REFERENCE_TEMPERATURE) ? r_props[REFERENCE_TEMPERATURE] : rValues.GetElementGeometry().GetValue(REFERENCE_TEMPERATURE);
-            yield_compression = = r_material_properties.Has(YIELD_STRESS) ? AdvCLutils::GetPropertyFromTemperatureTable(YIELD_STRESS, rValues, ref_temperature) : AdvCLutils::GetPropertyFromTemperatureTable(YIELD_STRESS_COMPRESSION, rValues, ref_temperature);
+            const double ref_temperature = r_material_properties.Has(REFERENCE_TEMPERATURE) ? r_material_properties[REFERENCE_TEMPERATURE] : rValues.GetElementGeometry().GetValue(REFERENCE_TEMPERATURE);
+            yield_compression = r_material_properties.Has(YIELD_STRESS) ? AdvCLutils::GetPropertyFromTemperatureTable(YIELD_STRESS, rValues, ref_temperature) : AdvCLutils::GetPropertyFromTemperatureTable(YIELD_STRESS_COMPRESSION, rValues, ref_temperature);
         }
         rThreshold = std::abs(yield_compression);
     }

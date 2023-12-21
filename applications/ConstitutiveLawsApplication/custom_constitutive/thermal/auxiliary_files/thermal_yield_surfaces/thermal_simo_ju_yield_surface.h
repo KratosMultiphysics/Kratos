@@ -144,8 +144,7 @@ class ThermalSimoJuYieldSurface
             E = AdvCLutils::GetPropertyFromTemperatureTable(YOUNG_MODULUS, rValues, ref_temperature);
             yield_compression = r_props.Has(YIELD_STRESS) ? AdvCLutils::GetPropertyFromTemperatureTable(YIELD_STRESS, rValues, ref_temperature) : AdvCLutils::GetPropertyFromTemperatureTable(YIELD_STRESS_COMPRESSION, rValues, ref_temperature);
         }
-
-        return yield_compression / std::sqrt(E);
+        rThreshold = yield_compression / std::sqrt(E);
     }
 
     /**
