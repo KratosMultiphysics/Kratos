@@ -256,7 +256,7 @@ def CreateBlockResidualComputation(settings: KratosMultiphysics.Parameters,
     if residual_computation_type == "data_difference":
         return DataDifferenceBlockResidual(settings, interface_data_dict)
     else:
-        raise Exception('The specified residual computation "{}" is not available!'.format(residual_computation_type))
+        raise Exception(f'The specified residual computation "{residual_computation_type}" is not available!')
 
 def CreateResidualComputation(settings: KratosMultiphysics.Parameters,
                               interface_data_dict: "dict[str,CouplingInterfaceData]"):
@@ -269,4 +269,4 @@ def CreateResidualComputation(settings: KratosMultiphysics.Parameters,
     elif residual_computation_type == "different_data_difference":
         return DifferentDataDifferenceResidual(settings, interface_data_dict)
     else:
-        raise Exception('The specified residual computation "{}" is not available!'.format(residual_computation_type))
+        raise Exception(f'The specified residual computation "{residual_computation_type}" is not available!')
