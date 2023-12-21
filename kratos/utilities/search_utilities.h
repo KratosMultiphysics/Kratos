@@ -434,9 +434,14 @@ public:
     }
 
     /**
-     * @brief This method prepares the points for search
-     * @param rStructure The structure to be searched
-     * @tparam TContainer The container type
+     * @brief Prepares a vector of points for searching in a container.
+     * @details This function takes a container `rStructure` and creates a vector of points
+     * based on the elements in the container. Each element in the container is
+     * converted into a `PointObject` using `std::make_shared`, and the resulting
+     * `PointObject` is added to the vector of points.
+     * @tparam TContainer The type of the container.
+     * @param rStructure The container containing the elements.
+     * @return A vector of `PointObject` pointers representing the points.
      */
     template<class TContainer>
     static std::vector<typename PointObject<typename TContainer::value_type>::Pointer> PreparePointsSearch(const TContainer& rStructure)
@@ -449,12 +454,9 @@ public:
 
         // Creating the points
         PointVector points;
-        const std::size_t structure_size = rStructure.size();
-        points.reserve(structure_size);
-        const auto it_begin = rStructure.begin();
-        for (std::size_t i = 0; i < structure_size; ++i) {
-            auto it = it_begin + i;
-            points.push_back(PointTypePointer(new PointType(*(it.base()))));
+        point.reserve(rStructure.size());
+        for (const auto& r_element : rStructure) {
+            points.push_back(std::make_shared<PointType>(r_element));
         }
 
         return points;
