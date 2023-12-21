@@ -31,15 +31,6 @@ public:
     }
 
 protected:
-    void CheckAllocatedVariables(const ModelPart& rModelPart) const override
-    {
-        for (const auto& r_node : rModelPart.Nodes())
-        {
-            this->CheckSolutionStepsData(r_node, this->mVariable);
-            this->CheckSolutionStepsData(r_node, this->mDeltaTimeVariable);
-            this->CheckDof(r_node, this->mVariable);
-        }
-    }
 
     inline void SetTimeFactors(ModelPart& rModelPart) override
     {
@@ -47,19 +38,7 @@ protected:
 
         const auto delta_time = rModelPart.GetProcessInfo()[DELTA_TIME];
         this->SetDeltaTime(delta_time);
-        rModelPart.GetProcessInfo()[mDeltaTimeVariableCoefficient] = 1.0 / delta_time;
-
-        KRATOS_CATCH("")
-    }
-
-    inline void UpdateVariablesDerivatives(ModelPart& rModelPart) override
-    {
-        KRATOS_TRY
-
-        block_for_each(rModelPart.Nodes(), [this](Node& rNode)
-        {
-            this->UpdateScalarTimeDerivative(rNode, this->mVariable, this->mDeltaTimeVariable);
-        });
+        rModelPart.GetProcessInfo()[this->mDeltaTimeVariableCoefficient] = 1.0 / delta_time;
 
         KRATOS_CATCH("")
     }

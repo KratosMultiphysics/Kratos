@@ -357,9 +357,30 @@ protected:
             << std::endl;
     }
 
-    virtual void CheckAllocatedVariables(const ModelPart& rModelPart) const = 0;
+    virtual void CheckAllocatedVariables(const ModelPart& rModelPart) const
+    {
+        for (const auto& r_node : rModelPart.Nodes())
+        {
+            this->CheckSolutionStepsData(r_node, mVariable);
+            this->CheckSolutionStepsData(r_node, mDeltaTimeVariable);
+            this->CheckDof(r_node, mVariable);
+        }
+    }
+
     virtual inline void SetTimeFactors(ModelPart& rModelPart) = 0;
-    virtual inline void UpdateVariablesDerivatives(ModelPart& rModelPart) = 0;
+    virtual inline void UpdateVariablesDerivatives(ModelPart& rModelPart)
+    {
+        KRATOS_TRY
+
+        block_for_each(rModelPart.Nodes(),
+                       [this](Node& rNode) {
+            UpdateScalarTimeDerivative(rNode, mVariable, mDeltaTimeVariable);
+        });
+
+        KRATOS_CATCH("")
+    }
+
+
     virtual void UpdateScalarTimeDerivative(Node& rNode,
                                             const Variable<double>& rVariable,
                                             const Variable<double>& rDtVariable) const = 0;
