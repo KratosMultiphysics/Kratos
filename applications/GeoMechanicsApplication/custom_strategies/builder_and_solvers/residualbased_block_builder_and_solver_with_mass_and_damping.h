@@ -477,22 +477,22 @@ protected:
                 GetDerivativesForVariable(DISPLACEMENT_Y, rNode, rFirstDerivativeVector,
                                           rSecondDerivativeVector);
 
-                const std::vector<const Variable<double>*> conditional_variables = {
+                const std::vector<const Variable<double>*> optional_variables = {
                     &ROTATION_X, &ROTATION_Y, &ROTATION_Z, &DISPLACEMENT_Z};
 
-                for (const auto p_variable : conditional_variables)
+                for (const auto p_variable : optional_variables)
                 {
-                    GetDerivativesForConditionalVariable(
-                        *p_variable, rNode, rFirstDerivativeVector, rSecondDerivativeVector);
+                    GetDerivativesForOptionalVariable(*p_variable, rNode, rFirstDerivativeVector,
+                                                      rSecondDerivativeVector);
                 }
             }
         });
     }
 
-    void GetDerivativesForConditionalVariable(const Variable<double>& rVariable,
-                                              const Node& rNode,
-                                              TSystemVectorType& rFirstDerivativeVector,
-                                              TSystemVectorType& rSecondDerivativeVector) const
+    void GetDerivativesForOptionalVariable(const Variable<double>& rVariable,
+                                           const Node& rNode,
+                                           TSystemVectorType& rFirstDerivativeVector,
+                                           TSystemVectorType& rSecondDerivativeVector) const
     {
         if (rNode.HasDofFor(rVariable))
         {
