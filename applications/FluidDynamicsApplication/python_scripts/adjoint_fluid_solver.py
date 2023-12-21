@@ -143,10 +143,12 @@ class AdjointFluidSolver(FluidSolver):
             drag_response_function_type = KratosCFD.DragResponseFunction2D
             drag_frequency_response_function_type = KratosCFD.DragFrequencyResponseFunction2D
             domain_integrated_3d_vector_magnitude_square_power_mean_response_type = KratosCFD.DomainIntegrated3DArrayMagnitudeSquarePMeanResponseFunction2D
+            moment_response_type = KratosCFD.MomentResponseFunction2D
         elif domain_size == 3:
             drag_response_function_type = KratosCFD.DragResponseFunction3D
             drag_frequency_response_function_type = KratosCFD.DragFrequencyResponseFunction3D
             domain_integrated_3d_vector_magnitude_square_power_mean_response_type = KratosCFD.DomainIntegrated3DArrayMagnitudeSquarePMeanResponseFunction3D
+            moment_response_type = KratosCFD.MomentResponseFunction3D
         else:
             raise RuntimeError("Invalid DOMAIN_SIZE: " + str(domain_size))
 
@@ -164,6 +166,10 @@ class AdjointFluidSolver(FluidSolver):
                 self.main_model_part)
         elif response_type == "domain_integrated_3d_vector_magnitude_square_power_mean":
             response_function = domain_integrated_3d_vector_magnitude_square_power_mean_response_type(
+                self.settings["response_function_settings"]["custom_settings"],
+                self.main_model_part)
+        elif response_type == "moment":
+            response_function = moment_response_type(
                 self.settings["response_function_settings"]["custom_settings"],
                 self.main_model_part)
         else:
