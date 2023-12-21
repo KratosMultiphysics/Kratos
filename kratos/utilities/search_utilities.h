@@ -454,7 +454,7 @@ public:
 
         // Creating the points
         PointVector points;
-        point.reserve(rStructure.size());
+        points.reserve(rStructure.size());
         for (const auto& r_element : rStructure) {
             points.push_back(std::make_shared<PointType>(r_element));
         }
