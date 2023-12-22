@@ -237,9 +237,9 @@ protected:
      * @param rStressVector The stress vector in Voigt notation
      * @param rValues Parameters of the constitutive law
      */
-    virtual void CalculatePK2Stress(const Vector& rStrainVector,
-                                    Vector& rStressVector,
-                                    ConstitutiveLaw::Parameters& rValues);
+    void CalculatePK2Stress(const Vector& rStrainVector,
+                            Vector& rStressVector,
+                            ConstitutiveLaw::Parameters& rValues) override;
 
     /**
      * @brief It calculates the strain vector

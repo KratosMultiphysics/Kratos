@@ -25,6 +25,11 @@ public:
     StrainMeasure GetStrainMeasure() override;
     StressMeasure GetStressMeasure() override;
 
+protected:
+    virtual void CalculatePK2Stress(const Vector& rStrainVector,
+                                    Vector& rStressVector,
+                                    ConstitutiveLaw::Parameters& rValues) = 0;
+
 private:
     friend class Serializer;
     void save(Serializer& rSerializer) const override;
