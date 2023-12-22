@@ -539,8 +539,7 @@ public:
 
             if (last_id != node_id) {
                 mNodeMap[node_id] = {i, 1};
-            }
-            else {
+            } else {
                 mNodeMap[node_id].second += 1;
             }
             last_id = node_id;
