@@ -55,6 +55,8 @@ protected:
     {
         // Intentionally left empty
     }
+    void UpdateVectorFirstTimeDerivative(Node& rNode) const override {}
+    void UpdateVectorSecondTimeDerivative(Node& rNode) const override {}
 };
 
 class GeoMechanicsSchemeTester {

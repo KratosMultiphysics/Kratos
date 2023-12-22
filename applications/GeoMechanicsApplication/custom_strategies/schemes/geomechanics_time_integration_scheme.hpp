@@ -412,17 +412,24 @@ protected:
     }
 
     virtual inline void SetTimeFactors(ModelPart& rModelPart) = 0;
+
     virtual inline void UpdateVariablesDerivatives(ModelPart& rModelPart)
     {
         KRATOS_TRY
 
-        block_for_each(rModelPart.Nodes(),
-                       [this](Node& rNode) {
+        block_for_each(rModelPart.Nodes(), [this](Node& rNode)
+        {
+            UpdateVectorSecondTimeDerivative(rNode);
+            UpdateVectorFirstTimeDerivative(rNode);
             UpdateScalarTimeDerivative(rNode, mVariable, mDeltaTimeVariable);
         });
 
         KRATOS_CATCH("")
     }
+
+    virtual void UpdateVectorFirstTimeDerivative(Node& rNode) const = 0;
+    virtual void UpdateVectorSecondTimeDerivative(Node& rNode) const = 0;
+
 
 
     virtual void UpdateScalarTimeDerivative(Node& rNode,

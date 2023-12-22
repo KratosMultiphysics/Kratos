@@ -25,13 +25,60 @@ public:
                              const Variable<double>& rVariable,
                              const Variable<double>& rDeltaTimeVariable,
                              const Variable<double>& rDeltaTimeVariableCoefficient,
-                             const std::vector<VariableWithTimeDerivatives> rVariablesWithDerivatives)
-        : GeoMechanicsTimeIntegrationScheme<TSparseSpace, TDenseSpace>(rVariable, rDeltaTimeVariable, rDeltaTimeVariableCoefficient, rVariablesWithDerivatives),
-          mTheta(theta)
+                             const std::vector<VariableWithTimeDerivatives> rVariablesWithDerivatives,
+                             double beta = 0.25,
+                             double gamma = 0.5)
+        : GeoMechanicsTimeIntegrationScheme<TSparseSpace, TDenseSpace>(
+              rVariable, rDeltaTimeVariable, rDeltaTimeVariableCoefficient, rVariablesWithDerivatives),
+          mTheta(theta),
+          mBeta(beta),
+          mGamma(gamma)
     {
         KRATOS_ERROR_IF(this->mTheta <= 0)
             << "Theta must be larger than zero, but got " << this->mTheta << "\n";
     }
+
+protected:
+    void UpdateVectorFirstTimeDerivative(Node& rNode) const
+    {
+        for (const auto& variable_derivative : this->mVariableDerivatives)
+        {
+            if (!rNode.SolutionStepsDataHas(variable_derivative.instance))
+                continue;
+
+            noalias(rNode.FastGetSolutionStepValue(
+                variable_derivative.first_time_derivative, 0)) =
+                rNode.FastGetSolutionStepValue(variable_derivative.first_time_derivative, 1) +
+                (1.0 - mGamma) * this->GetDeltaTime() *
+                    rNode.FastGetSolutionStepValue(
+                        variable_derivative.second_time_derivative, 1) +
+                mGamma * this->GetDeltaTime() *
+                    rNode.FastGetSolutionStepValue(
+                        variable_derivative.second_time_derivative, 0);
+        }
+    }
+
+    void UpdateVectorSecondTimeDerivative(Node& rNode) const
+    {
+        for (const auto& variable_derivative : this->mVariableDerivatives)
+        {
+            if (!rNode.SolutionStepsDataHas(variable_derivative.instance))
+                continue;
+
+            noalias(rNode.FastGetSolutionStepValue(
+                variable_derivative.second_time_derivative, 0)) =
+                ((rNode.FastGetSolutionStepValue(variable_derivative.instance, 0) -
+                  rNode.FastGetSolutionStepValue(variable_derivative.instance, 1)) -
+                 this->GetDeltaTime() * rNode.FastGetSolutionStepValue(
+                                            variable_derivative.first_time_derivative, 1) -
+                 (0.5 - mBeta) * this->GetDeltaTime() * this->GetDeltaTime() *
+                     rNode.FastGetSolutionStepValue(
+                         variable_derivative.second_time_derivative, 1)) /
+                (mBeta * this->GetDeltaTime() * this->GetDeltaTime());
+        }
+    }
+    double mBeta = 0.25;
+    double mGamma = 0.5;
 
 protected:
     inline void SetTimeFactors(ModelPart& rModelPart) override

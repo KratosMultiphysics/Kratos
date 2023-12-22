@@ -44,9 +44,7 @@ public:
               DT_WATER_PRESSURE,
               DT_PRESSURE_COEFFICIENT,
               {VariableWithTimeDerivatives(DISPLACEMENT),
-               VariableWithTimeDerivatives{ROTATION}}),
-          mBeta(beta),
-          mGamma(gamma)
+               VariableWithTimeDerivatives{ROTATION}}, beta, gamma)
     {
         KRATOS_ERROR_IF(mBeta <= 0)
             << "Beta must be larger than zero, but got " << mBeta << "\n";
@@ -114,8 +112,7 @@ public:
     }
 
 protected:
-    double mBeta = 0.25;
-    double mGamma = 0.5;
+
 
     inline void SetTimeFactors(ModelPart& rModelPart) override
     {
@@ -123,64 +120,13 @@ protected:
 
         GeneralizedNewmarkScheme<TSparseSpace, TDenseSpace>::SetTimeFactors(rModelPart);
         rModelPart.GetProcessInfo()[VELOCITY_COEFFICIENT] =
-            mGamma / (mBeta * this->GetDeltaTime());
-
-        KRATOS_CATCH("")
-    }
-
-    inline void UpdateVariablesDerivatives(ModelPart& rModelPart) override
-    {
-        KRATOS_TRY
-
-        block_for_each(rModelPart.Nodes(), [this](Node& rNode)
-        {
-            UpdateVectorSecondTimeDerivative(rNode);
-            UpdateVectorFirstTimeDerivative(rNode);
-            this->UpdateScalarTimeDerivative(rNode, WATER_PRESSURE, DT_WATER_PRESSURE);
-        });
+            this->mGamma / (this->mBeta * this->GetDeltaTime());
 
         KRATOS_CATCH("")
     }
 
 private:
-    void UpdateVectorFirstTimeDerivative(Node& rNode) const
-    {
-        for (const auto& variable_derivative : this->mVariableDerivatives)
-        {
-            if (!rNode.SolutionStepsDataHas(variable_derivative.instance))
-                continue;
 
-            noalias(rNode.FastGetSolutionStepValue(
-                variable_derivative.first_time_derivative, 0)) =
-                rNode.FastGetSolutionStepValue(variable_derivative.first_time_derivative, 1) +
-                (1.0 - mGamma) * this->GetDeltaTime() *
-                    rNode.FastGetSolutionStepValue(
-                        variable_derivative.second_time_derivative, 1) +
-                mGamma * this->GetDeltaTime() *
-                    rNode.FastGetSolutionStepValue(
-                        variable_derivative.second_time_derivative, 0);
-        }
-    }
-
-    void UpdateVectorSecondTimeDerivative(Node& rNode) const
-    {
-        for (const auto& variable_derivative : this->mVariableDerivatives)
-        {
-            if (!rNode.SolutionStepsDataHas(variable_derivative.instance))
-                continue;
-
-            noalias(rNode.FastGetSolutionStepValue(
-                variable_derivative.second_time_derivative, 0)) =
-                ((rNode.FastGetSolutionStepValue(variable_derivative.instance, 0) -
-                  rNode.FastGetSolutionStepValue(variable_derivative.instance, 1)) -
-                 this->GetDeltaTime() * rNode.FastGetSolutionStepValue(
-                                            variable_derivative.first_time_derivative, 1) -
-                 (0.5 - mBeta) * this->GetDeltaTime() * this->GetDeltaTime() *
-                     rNode.FastGetSolutionStepValue(
-                         variable_derivative.second_time_derivative, 1)) /
-                (mBeta * this->GetDeltaTime() * this->GetDeltaTime());
-        }
-    }
 }; // Class NewmarkQuasistaticUPwScheme
 
 } // namespace Kratos
