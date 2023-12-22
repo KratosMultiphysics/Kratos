@@ -76,7 +76,7 @@ void LinearPlaneStrainK0Law::CalculateElasticMatrix(Matrix& C, ConstitutiveLaw::
     const double limit = 0.005;
     if (NU < (0.5 + limit) && NU > (0.5 - limit)) NU = 0.5 - limit;
 
-    this->CheckClearElasticMatrix(C);
+    C = ZeroMatrix(GetStrainSize(), GetStrainSize());
 
     const double c0 = E / ((1.0 + NU)*(1.0 - 2.0 * NU));
     const double c1 = (1.0 - NU)*c0;

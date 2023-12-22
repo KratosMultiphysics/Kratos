@@ -61,14 +61,6 @@ int ElasticIsotropicK03DLaw::Check(const Properties& rMaterialProperties,
     return 0;
 }
 
-void ElasticIsotropicK03DLaw::CheckClearElasticMatrix(Matrix& rConstitutiveMatrix) const
-{
-    const SizeType size_system = this->GetStrainSize();
-    if (rConstitutiveMatrix.size1() != size_system || rConstitutiveMatrix.size2() != size_system)
-        rConstitutiveMatrix.resize(size_system, size_system, false);
-    rConstitutiveMatrix.clear();
-}
-
 void ElasticIsotropicK03DLaw::CalculateElasticMatrix(Matrix& rConstitutiveMatrix,
                                                      ConstitutiveLaw::Parameters& rValues)
 {
@@ -100,7 +92,7 @@ void ElasticIsotropicK03DLaw::CalculateElasticMatrix(Matrix& rConstitutiveMatrix
     const double c3 = c1 * NU;
     const double c4 = c1 * 0.5 * ( 1.0 - 2.0 * NU );
 
-    this->CheckClearElasticMatrix(rConstitutiveMatrix);
+    rConstitutiveMatrix = ZeroMatrix(GetStrainSize(), GetStrainSize());
     rConstitutiveMatrix( 0, 0 ) = c2;
     rConstitutiveMatrix( 0, 1 ) = c3;
     rConstitutiveMatrix( 0, 2 ) = c3;
