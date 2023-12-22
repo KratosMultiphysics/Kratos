@@ -111,25 +111,6 @@ namespace Kratos
     KRATOS_CATCH("");
   }
 
-
-  // template <unsigned int TDim>
-  // void TwoStepUpdatedLagrangianVPImplicitSolidElement<TDim>::InitializeSolutionStep(const ProcessInfo &rCurrentProcessInfo)
-  // {
-  //   KRATOS_TRY;
-
-  //   // Resetting the constitutive law after remeshing
-  //   if (mpConstitutiveLaw == nullptr)
-  //   {
-  //     const Properties &r_properties = this->GetProperties();
-  //     KRATOS_ERROR_IF_NOT(r_properties.Has(CONSTITUTIVE_LAW))
-  //         << "In initialization of Element " << this->Info() << ": No CONSTITUTIVE_LAW defined for property "
-  //         << r_properties.Id() << "." << std::endl;
-  //     mpConstitutiveLaw = r_properties[CONSTITUTIVE_LAW]->Clone();
-  //   }
-
-  //   KRATOS_CATCH("");
-  // }
-
   template <unsigned int TDim>
   void TwoStepUpdatedLagrangianVPImplicitSolidElement<TDim>::InitializeNonLinearIteration(const ProcessInfo &rCurrentProcessInfo)
   {
