@@ -25,11 +25,6 @@ ConstitutiveLaw::Pointer ElasticIsotropicK03DLaw::Clone() const
     return Kratos::make_shared<ElasticIsotropicK03DLaw>(*this);
 }
 
-void ElasticIsotropicK03DLaw::CalculateMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues)
-{
-    CalculateMaterialResponsePK2(rValues);
-}
-
 bool ElasticIsotropicK03DLaw::RequiresFinalizeMaterialResponse()
 {
     return false;

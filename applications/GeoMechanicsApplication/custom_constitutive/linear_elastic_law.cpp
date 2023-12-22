@@ -72,6 +72,11 @@ void GeoLinearElasticLaw::CalculateMaterialResponseKirchhoff(ConstitutiveLaw::Pa
     CalculateMaterialResponsePK2(rValues);
 }
 
+void GeoLinearElasticLaw::CalculateMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues)
+{
+    CalculateMaterialResponsePK2(rValues);
+}
+
 void GeoLinearElasticLaw::save(Serializer& rSerializer) const
 {
     KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, ConstitutiveLaw)

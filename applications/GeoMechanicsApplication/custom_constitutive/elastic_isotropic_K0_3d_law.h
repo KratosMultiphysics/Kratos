@@ -113,14 +113,6 @@ public:
         return VoigtSize;
     };
 
-    /**
-     * @brief Computes the material response:
-     * @details Cauchy stresses and algorithmic ConstitutiveMatrix
-     * @param rValues The internal values of the law
-     * @see   Parameters
-     */
-    void CalculateMaterialResponseCauchy(ConstitutiveLaw::Parameters & rValues) override;
-
     bool RequiresFinalizeMaterialResponse() override;
 
     /**
