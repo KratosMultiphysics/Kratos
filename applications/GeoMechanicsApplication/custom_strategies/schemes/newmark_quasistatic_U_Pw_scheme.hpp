@@ -123,7 +123,7 @@ protected:
 
         for (const auto& r_node : rModelPart.Nodes())
         {
-            for (const auto& variable_derivative : mVariableDerivatives)
+            for (const auto& variable_derivative : this->mVariableDerivatives)
             {
                 if (!rModelPart.HasNodalSolutionStepVariable(variable_derivative.instance))
                     continue;
@@ -175,15 +175,10 @@ protected:
         return KratosComponents<Variable<double>>::Get(rSource.Name() + "_" + rComponent);
     }
 
-    const std::vector<VariableWithTimeDerivatives>& GetVariableDerivatives() const
-    {
-        return mVariableDerivatives;
-    }
-
 private:
     void UpdateVectorFirstTimeDerivative(Node& rNode) const
     {
-        for (const auto& variable_derivative : mVariableDerivatives)
+        for (const auto& variable_derivative : this->mVariableDerivatives)
         {
             if (!rNode.SolutionStepsDataHas(variable_derivative.instance))
                 continue;
@@ -202,7 +197,7 @@ private:
 
     void UpdateVectorSecondTimeDerivative(Node& rNode) const
     {
-        for (const auto& variable_derivative : mVariableDerivatives)
+        for (const auto& variable_derivative : this->mVariableDerivatives)
         {
             if (!rNode.SolutionStepsDataHas(variable_derivative.instance))
                 continue;

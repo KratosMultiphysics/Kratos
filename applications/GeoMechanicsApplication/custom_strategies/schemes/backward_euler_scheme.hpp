@@ -24,9 +24,10 @@ class BackwardEulerScheme
 public:
     BackwardEulerScheme(const Variable<double>& rVariable,
                         const Variable<double>& rDeltaTimeVariable,
-                        const Variable<double>& rDeltaTimeVariableCoefficient)
+                        const Variable<double>& rDeltaTimeVariableCoefficient,
+                        const std::vector<VariableWithTimeDerivatives>& rVariablesWithDerivatives)
         : GeoMechanicsTimeIntegrationScheme<TSparseSpace, TDenseSpace>(
-              rVariable, rDeltaTimeVariable, rDeltaTimeVariableCoefficient, {})
+              rVariable, rDeltaTimeVariable, rDeltaTimeVariableCoefficient, rVariablesWithDerivatives)
     {
     }
 

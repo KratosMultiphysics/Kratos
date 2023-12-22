@@ -405,6 +405,12 @@ protected:
 
     void SetDeltaTime(double DeltaTime) { mDeltaTime = DeltaTime; }
 
+    const std::vector<VariableWithTimeDerivatives>& GetVariableDerivatives() const
+    {
+        return mVariableDerivatives;
+    }
+
+
     Variable<double> mVariable;
     Variable<double> mDeltaTimeVariable;
     Variable<double> mDeltaTimeVariableCoefficient;
