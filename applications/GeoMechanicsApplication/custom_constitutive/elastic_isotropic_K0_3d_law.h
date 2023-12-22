@@ -247,7 +247,8 @@ protected:
      * @param rValues The internal values of the law
      * @param rStrainVector The strain vector in Voigt notation
      */
-    virtual void CalculateCauchyGreenStrain(ConstitutiveLaw::Parameters& rValues, Vector& rStrainVector);
+    void CalculateCauchyGreenStrain(ConstitutiveLaw::Parameters& rValues,
+                                    Vector& rStrainVector) override;
 
     ///@}
 
