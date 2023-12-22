@@ -36,6 +36,10 @@ public:
     {
         KRATOS_ERROR_IF(this->mTheta <= 0)
             << "Theta must be larger than zero, but got " << this->mTheta << "\n";
+        KRATOS_ERROR_IF(mBeta <= 0)
+            << "Beta must be larger than zero, but got " << mBeta << "\n";
+        KRATOS_ERROR_IF(mGamma <= 0)
+            << "Gamma must be larger than zero, but got " << mGamma << "\n";
     }
 
 protected:
@@ -80,7 +84,6 @@ protected:
     double mBeta = 0.25;
     double mGamma = 0.5;
 
-protected:
     inline void SetTimeFactors(ModelPart& rModelPart) override
     {
         KRATOS_TRY

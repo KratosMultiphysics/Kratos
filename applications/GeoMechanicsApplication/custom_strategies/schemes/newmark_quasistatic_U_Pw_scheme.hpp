@@ -46,10 +46,6 @@ public:
               {VariableWithTimeDerivatives(DISPLACEMENT),
                VariableWithTimeDerivatives{ROTATION}}, beta, gamma)
     {
-        KRATOS_ERROR_IF(mBeta <= 0)
-            << "Beta must be larger than zero, but got " << mBeta << "\n";
-        KRATOS_ERROR_IF(mGamma <= 0)
-            << "Gamma must be larger than zero, but got " << mGamma << "\n";
     }
 
     void FinalizeSolutionStep(ModelPart& rModelPart,
@@ -124,9 +120,6 @@ protected:
 
         KRATOS_CATCH("")
     }
-
-private:
-
 }; // Class NewmarkQuasistaticUPwScheme
 
 } // namespace Kratos
