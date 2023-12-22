@@ -19,6 +19,9 @@ namespace Kratos
 
 class KRATOS_API(GEO_MECHANICS_APPLICATION) GeoLinearElasticLaw : public ConstitutiveLaw
 {
+public:
+    bool RequiresInitializeMaterialResponse() override;
+
 private:
     friend class Serializer;
     void save(Serializer& rSerializer) const override;

@@ -97,7 +97,9 @@ protected:
                             Vector& rStressVector,
                             ConstitutiveLaw::Parameters& rValues) override;
 
-    void InitializeMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues) final;
+    bool RequiresInitializeMaterialResponse() override;
+    void InitializeMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues) override;
+
     void FinalizeMaterialResponseCauchy(ConstitutiveLaw::Parameters & rValues) final;
     void FinalizeMaterialResponsePK2(ConstitutiveLaw::Parameters& rValues) final;
 

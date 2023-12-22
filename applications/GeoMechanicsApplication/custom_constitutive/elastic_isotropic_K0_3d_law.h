@@ -91,8 +91,6 @@ public:
     ///@name Operations
     ///@{
 
-    void InitializeMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues) override;
-
     /**
      * @brief This function is designed to be called once to check compatibility with element
      * @param rFeatures The Features of the law

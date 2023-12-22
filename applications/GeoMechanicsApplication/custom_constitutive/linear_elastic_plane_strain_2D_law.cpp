@@ -114,6 +114,10 @@ void GeoLinearElasticPlaneStrain2DLaw::CalculatePK2Stress(const Vector& rStrainV
     KRATOS_CATCH("")
 }
 
+bool GeoLinearElasticPlaneStrain2DLaw::RequiresInitializeMaterialResponse()
+{
+    return true;
+}
 
 void GeoLinearElasticPlaneStrain2DLaw::InitializeMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues)
 {

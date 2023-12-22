@@ -15,6 +15,13 @@
 namespace Kratos
 {
 
+bool GeoLinearElasticLaw::RequiresInitializeMaterialResponse()
+{
+    // Avoid that `ConstitutiveLaw::InitializeMaterialResponseCauchy` throws
+    // an exception
+    return false;
+}
+
 void GeoLinearElasticLaw::save(Serializer& rSerializer) const
 {
     KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, ConstitutiveLaw)

@@ -157,8 +157,6 @@ void ElasticIsotropicK03DLaw::GetLawFeatures(Features& rFeatures)
     rFeatures.mSpaceDimension = WorkingSpaceDimension();
 }
 
-void ElasticIsotropicK03DLaw::InitializeMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues) {}
-
 int ElasticIsotropicK03DLaw::Check(const Properties& rMaterialProperties,
                                    const GeometryType& rElementGeometry,
                                    const ProcessInfo& rCurrentProcessInfo) const
