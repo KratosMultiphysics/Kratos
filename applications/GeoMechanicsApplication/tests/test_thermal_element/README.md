@@ -1,16 +1,18 @@
 # Test Cases for Thermal application.
 
-**Author:** [Marjan Fathian](https://github.com/indigocoral)
+**Author:** [Mohamed Nabi](https://github.com/mnabideltares)
 
 **Source files:** [Thermal element tests](https://github.com/KratosMultiphysics/Kratos/tree/master/applications/GeoMechanicsApplication/tests/test_thermal_element)
 
 
 ## Cases
-This folder contains the test cases:
+This folder contains the following test cases:
 
 - Thermal fixed temperature
 - Transient thermal fixed temperature
 
 - Thermal heat flux
-- Unsteady thermal heat flux
+- Transient thermal heat flux
+
+
 
