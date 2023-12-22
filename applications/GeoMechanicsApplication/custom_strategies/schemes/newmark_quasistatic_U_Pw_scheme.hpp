@@ -117,33 +117,6 @@ protected:
     double mBeta = 0.25;
     double mGamma = 0.5;
 
-    void CheckAllocatedVariables(const ModelPart& rModelPart) const override
-    {
-        GeneralizedNewmarkScheme<TSparseSpace, TDenseSpace>::CheckAllocatedVariables(rModelPart);
-
-        for (const auto& r_node : rModelPart.Nodes())
-        {
-            for (const auto& variable_derivative : this->mVariableDerivatives)
-            {
-                if (!rModelPart.HasNodalSolutionStepVariable(variable_derivative.instance))
-                    continue;
-
-                this->CheckSolutionStepsData(r_node, variable_derivative.instance);
-                this->CheckSolutionStepsData(r_node, variable_derivative.first_time_derivative);
-                this->CheckSolutionStepsData(r_node, variable_derivative.second_time_derivative);
-
-                // We don't check for "Z", since it is optional (in case of a 2D problem)
-                std::vector<std::string> components{"X", "Y"};
-                for (const auto& component : components)
-                {
-                    const auto& variable_component = GetComponentFromVectorVariable(
-                        variable_derivative.instance, component);
-                    this->CheckDof(r_node, variable_component);
-                }
-            }
-        }
-    }
-
     inline void SetTimeFactors(ModelPart& rModelPart) override
     {
         KRATOS_TRY
@@ -167,12 +140,6 @@ protected:
         });
 
         KRATOS_CATCH("")
-    }
-
-    const Variable<double>& GetComponentFromVectorVariable(
-        const Variable<array_1d<double, 3>>& rSource, const std::string& rComponent) const
-    {
-        return KratosComponents<Variable<double>>::Get(rSource.Name() + "_" + rComponent);
     }
 
 private:

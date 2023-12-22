@@ -381,6 +381,34 @@ protected:
             this->CheckSolutionStepsData(r_node, mDeltaTimeVariable);
             this->CheckDof(r_node, mVariable);
         }
+
+        for (const auto& r_node : rModelPart.Nodes())
+        {
+            for (const auto& variable_derivative : this->mVariableDerivatives)
+            {
+                if (!rModelPart.HasNodalSolutionStepVariable(variable_derivative.instance))
+                    continue;
+
+                this->CheckSolutionStepsData(r_node, variable_derivative.instance);
+                this->CheckSolutionStepsData(r_node, variable_derivative.first_time_derivative);
+                this->CheckSolutionStepsData(r_node, variable_derivative.second_time_derivative);
+
+                // We don't check for "Z", since it is optional (in case of a 2D problem)
+                std::vector<std::string> components{"X", "Y"};
+                for (const auto& component : components)
+                {
+                    const auto& variable_component = GetComponentFromVectorVariable(
+                        variable_derivative.instance, component);
+                    this->CheckDof(r_node, variable_component);
+                }
+            }
+        }
+    }
+
+    const Variable<double>& GetComponentFromVectorVariable(
+        const Variable<array_1d<double, 3>>& rSource, const std::string& rComponent) const
+    {
+        return KratosComponents<Variable<double>>::Get(rSource.Name() + "_" + rComponent);
     }
 
     virtual inline void SetTimeFactors(ModelPart& rModelPart) = 0;
