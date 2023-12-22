@@ -113,8 +113,6 @@ public:
         return VoigtSize;
     };
 
-    bool RequiresFinalizeMaterialResponse() override;
-
     /**
      * @brief It calculates the value of a specified variable (double case)
      * @param rParameterValues the needed parameters for the CL calculation

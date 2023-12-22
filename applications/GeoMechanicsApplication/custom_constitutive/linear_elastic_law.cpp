@@ -22,6 +22,11 @@ bool GeoLinearElasticLaw::RequiresInitializeMaterialResponse()
     return false;
 }
 
+bool GeoLinearElasticLaw::RequiresFinalizeMaterialResponse()
+{
+    return false;
+}
+
 ConstitutiveLaw::StrainMeasure GeoLinearElasticLaw::GetStrainMeasure()
 {
     return StrainMeasure_Infinitesimal;

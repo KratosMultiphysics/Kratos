@@ -25,11 +25,6 @@ ConstitutiveLaw::Pointer ElasticIsotropicK03DLaw::Clone() const
     return Kratos::make_shared<ElasticIsotropicK03DLaw>(*this);
 }
 
-bool ElasticIsotropicK03DLaw::RequiresFinalizeMaterialResponse()
-{
-    return false;
-}
-
 double& ElasticIsotropicK03DLaw::CalculateValue(ConstitutiveLaw::Parameters& rParameterValues,
                                                 const Variable<double>& rThisVariable,
                                                 double& rValue)

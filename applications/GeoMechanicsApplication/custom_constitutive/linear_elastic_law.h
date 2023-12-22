@@ -21,6 +21,7 @@ class KRATOS_API(GEO_MECHANICS_APPLICATION) GeoLinearElasticLaw : public Constit
 {
 public:
     bool RequiresInitializeMaterialResponse() override;
+    bool RequiresFinalizeMaterialResponse() override;
 
     StrainMeasure GetStrainMeasure() override;
     StressMeasure GetStressMeasure() override;
