@@ -1,0 +1,25 @@
+# Test Cases for Transient thermal fixed temperature
+
+**Author:** [Mohamed Nabi](https://github.com/mnabideltares)
+
+**Source files:** [Thermal element tests](https://github.com/KratosMultiphysics/Kratos/tree/master/applications/GeoMechanicsApplication/tests/test_thermal_element/test_transient_thermal_fixed_temperature)
+
+
+## Case Specification
+In this thermal test case, a 1 x 1 m soil is considered, with the left side set at 0 degrees and the right side set at 25 degrees. The simulation spans 1 day to specifically assess the unsteady or transient behavior, enabling a comprehensive understanding of the temperature profile transition between the two sides. This test is conducted for various configurations, including 2D3N, 2D4N, 2D6N, 2D8N, 2D9N, 2D10N, 2D15N, 3D4N, and 3D10N. The temperature distribution within the box is then evaluated with its own result.
+The boundary conditions are shown below:
+
+<img src="../documentation_data/test_fixed_temperature_boundary_conditions.png" width="500">
+
+_Visualization of the Boundary conditions[1]_
+
+
+## Results
+
+The animated figure below illustrates the temperature contours resulting from the simulation (as an example the 2D9N test is shown below).
+
+<img src="../documentation_data/test_transient_thermal_fixed_temperature_2D9N_result.gif" width="500">
+
+_Temperature contours[2]_
+
+
