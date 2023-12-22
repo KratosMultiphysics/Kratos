@@ -25,6 +25,8 @@ public:
     StrainMeasure GetStrainMeasure() override;
     StressMeasure GetStressMeasure() override;
 
+    void CalculateMaterialResponsePK2(ConstitutiveLaw::Parameters& rValues) override;
+
 protected:
     virtual void CalculateElasticMatrix(Matrix& rConstitutiveMatrix,
                                         ConstitutiveLaw::Parameters& rValues) = 0;
