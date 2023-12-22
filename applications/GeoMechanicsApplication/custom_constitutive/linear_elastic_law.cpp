@@ -22,6 +22,11 @@ bool GeoLinearElasticLaw::RequiresInitializeMaterialResponse()
     return false;
 }
 
+ConstitutiveLaw::StrainMeasure GeoLinearElasticLaw::GetStrainMeasure()
+{
+    return StrainMeasure_Infinitesimal;
+}
+
 void GeoLinearElasticLaw::save(Serializer& rSerializer) const
 {
     KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, ConstitutiveLaw)

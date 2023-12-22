@@ -22,6 +22,8 @@ class KRATOS_API(GEO_MECHANICS_APPLICATION) GeoLinearElasticLaw : public Constit
 public:
     bool RequiresInitializeMaterialResponse() override;
 
+    StrainMeasure GetStrainMeasure() override;
+
 private:
     friend class Serializer;
     void save(Serializer& rSerializer) const override;
