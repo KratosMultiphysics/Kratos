@@ -167,6 +167,8 @@ void HCFDataContainer::InitializeFatigueVariables(HCFDataContainer::FatigueVaria
     rFatigueVariables.CyclesToFailure = mCyclesToFailure;
     rFatigueVariables.DamageActivation = rValues.GetProcessInfo()[DAMAGE_ACTIVATION];
     rFatigueVariables.AdvanceStrategyApplied = rValues.GetProcessInfo()[ADVANCE_STRATEGY_APPLIED];
+    rFatigueVariables.current_load_type = rValues.GetProcessInfo()[CURRENT_LOAD_TYPE];
+    rFatigueVariables.new_model_part = rValues.GetProcessInfo()[NEW_MODEL_PART];
 }
 
 /***********************************************************************************/
@@ -205,6 +207,8 @@ void HCFDataContainer::FinalizeSolutionStep(HCFDataContainer::FatigueVariables &
                         const Variable<double>& rVariable,
                         const Variable<bool>& rMethodVariable)
 {
+    if (rFatigueVariables.current_load_type) {
+
     double ultimate_stress = 0.0;
 
     if (rVariable == YIELD_STRESS) {
@@ -231,10 +235,14 @@ void HCFDataContainer::FinalizeSolutionStep(HCFDataContainer::FatigueVariables &
     }
     uniaxial_stress *= sign_factor;
 
-    // if (mAITControlParameter > 10.0) {
-    CalculateSminAndSmax(uniaxial_stress, rFatigueVariables);
-    // }
+    if (rFatigueVariables.new_model_part) {
+        rFatigueVariables.MaxIndicator = false;
+        rFatigueVariables.MinIndicator = false;
+        rFatigueVariables.ReferenceDamage = damage;
+    }
 
+    CalculateSminAndSmax(uniaxial_stress, rFatigueVariables);
+    
     rFatigueVariables.AdvanceStrategyApplied = rCurrentProcessInfo.Has(ADVANCE_STRATEGY_APPLIED) ? rCurrentProcessInfo[ADVANCE_STRATEGY_APPLIED] : false;
     rFatigueVariables.DamageActivation = rCurrentProcessInfo.Has(DAMAGE_ACTIVATION) ? rCurrentProcessInfo[DAMAGE_ACTIVATION] : false;
 
@@ -244,9 +252,9 @@ void HCFDataContainer::FinalizeSolutionStep(HCFDataContainer::FatigueVariables &
 
         mReversionFactor = rFatigueVariables.ReversionFactor;
 
-        if (rFatigueVariables.LocalNumberOfCycles < 2.0 && std::abs(uniaxial_stress) > ultimate_stress) {
-            rFatigueVariables.ReferenceDamage = damage;
-        }
+        // if (rFatigueVariables.LocalNumberOfCycles < 2.0 && std::abs(uniaxial_stress) > ultimate_stress) {
+        //     rFatigueVariables.ReferenceDamage = damage;
+        // }
 
         CalculateFatigueParameters(rMaterialProperties, rFatigueVariables, rVariable);
 
@@ -299,6 +307,7 @@ void HCFDataContainer::FinalizeSolutionStep(HCFDataContainer::FatigueVariables &
     }
 
     // mAITControlParameter += 1.0;
+}
 }
 
 /***********************************************************************************/

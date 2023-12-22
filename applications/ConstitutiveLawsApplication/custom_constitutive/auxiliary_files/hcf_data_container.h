@@ -66,6 +66,8 @@ public:
         double ReversionFactor = 0.0;
         bool AdvanceStrategyApplied = false;
         bool DamageActivation = false;
+        bool current_load_type = false;
+        bool new_model_part = false;
     };
 
     static constexpr double tolerance = 1.0e-3;
