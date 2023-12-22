@@ -42,6 +42,9 @@ public:
                            Matrix& rValue) override;
     using ConstitutiveLaw::CalculateValue;
 
+    void SetValue(const Variable<double>&, const double&, const ProcessInfo&) override;
+    using ConstitutiveLaw::SetValue;
+
 protected:
     virtual void CalculateElasticMatrix(Matrix& rConstitutiveMatrix,
                                         ConstitutiveLaw::Parameters& rValues) = 0;
