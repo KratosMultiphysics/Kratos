@@ -34,6 +34,9 @@ public:
     double& CalculateValue(ConstitutiveLaw::Parameters& rParameterValues,
                            const Variable<double>& rThisVariable,
                            double& rValue) override;
+    Vector& CalculateValue(ConstitutiveLaw::Parameters& rParameterValues,
+                           const Variable<Vector>& rThisVariable,
+                           Vector& rValue) override;
     using ConstitutiveLaw::CalculateValue;
 
 protected:

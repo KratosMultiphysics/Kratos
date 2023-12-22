@@ -11,6 +11,7 @@
 //
 
 #include "linear_elastic_law.h"
+#include "includes/mat_variables.h"
 
 namespace Kratos
 {
@@ -91,6 +92,44 @@ double& GeoLinearElasticLaw::CalculateValue(ConstitutiveLaw::Parameters& rParame
         this->CalculatePK2Stress(r_strain_vector, r_stress_vector, rParameterValues);
 
         rValue = 0.5 * inner_prod(r_strain_vector, r_stress_vector); // Strain energy = 0.5*E:C:E
+    }
+
+    return rValue;
+}
+
+Vector& GeoLinearElasticLaw::CalculateValue(ConstitutiveLaw::Parameters& rParameterValues,
+                                            const Variable<Vector>& rThisVariable,
+                                            Vector& rValue)
+{
+    if (rThisVariable == STRAIN || rThisVariable == GREEN_LAGRANGE_STRAIN_VECTOR ||
+        rThisVariable == ALMANSI_STRAIN_VECTOR)
+    {
+        this->CalculateCauchyGreenStrain(rParameterValues, rValue);
+    }
+    else if (rThisVariable == STRESSES || rThisVariable == CAUCHY_STRESS_VECTOR ||
+             rThisVariable == KIRCHHOFF_STRESS_VECTOR || rThisVariable == PK2_STRESS_VECTOR)
+    {
+        // Get Values to compute the constitutive law:
+        Flags& r_flags = rParameterValues.GetOptions();
+
+        // Previous flags saved
+        const bool flag_strain = r_flags.Is(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
+        const bool flag_const_tensor =
+            r_flags.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
+        const bool flag_stress = r_flags.Is(ConstitutiveLaw::COMPUTE_STRESS);
+
+        r_flags.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, false);
+        r_flags.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
+        r_flags.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
+
+        // We compute the stress
+        CalculateMaterialResponseCauchy(rParameterValues);
+        rValue = rParameterValues.GetStressVector();
+
+        // Previous flags restored
+        r_flags.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, flag_strain);
+        r_flags.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, flag_const_tensor);
+        r_flags.Set(ConstitutiveLaw::COMPUTE_STRESS, flag_stress);
     }
 
     return rValue;
