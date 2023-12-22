@@ -34,8 +34,6 @@ public:
     }
 
 protected:
-
-
     inline void SetTimeFactors(ModelPart& rModelPart) override
     {
         KRATOS_TRY

@@ -15,7 +15,7 @@
 // Project includes
 #include "includes/define.h"
 #include "includes/model_part.h"
-#include "newmark_quasistatic_U_Pw_scheme.hpp"
+#include "backward_euler_scheme.hpp"
 #include "solving_strategies/schemes/scheme.h"
 #include "utilities/parallel_utilities.h"
 
@@ -27,13 +27,17 @@ namespace Kratos
 
 template <class TSparseSpace, class TDenseSpace>
 class BackwardEulerQuasistaticUPwScheme
-    : public NewmarkQuasistaticUPwScheme<TSparseSpace, TDenseSpace>
+    : public BackwardEulerScheme<TSparseSpace, TDenseSpace>
 {
 public:
     KRATOS_CLASS_POINTER_DEFINITION(BackwardEulerQuasistaticUPwScheme);
 
     BackwardEulerQuasistaticUPwScheme()
-        : NewmarkQuasistaticUPwScheme<TSparseSpace, TDenseSpace>(1.0, 1.0, 1.0)
+        : BackwardEulerScheme<TSparseSpace, TDenseSpace>(
+              WATER_PRESSURE,
+              DT_WATER_PRESSURE,
+              DT_PRESSURE_COEFFICIENT,
+              {VariableWithTimeDerivatives(DISPLACEMENT), VariableWithTimeDerivatives{ROTATION}})
     {
     }
 
