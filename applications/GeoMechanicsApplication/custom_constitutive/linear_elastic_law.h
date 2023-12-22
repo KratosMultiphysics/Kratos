@@ -31,6 +31,11 @@ public:
     void CalculateMaterialResponseKirchhoff(ConstitutiveLaw::Parameters& rValues) override;
     void CalculateMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues) override;
 
+    double& CalculateValue(ConstitutiveLaw::Parameters& rParameterValues,
+                           const Variable<double>& rThisVariable,
+                           double& rValue) override;
+    using ConstitutiveLaw::CalculateValue;
+
 protected:
     virtual void CalculateElasticMatrix(Matrix& rConstitutiveMatrix,
                                         ConstitutiveLaw::Parameters& rValues) = 0;

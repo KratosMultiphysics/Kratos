@@ -22,10 +22,7 @@ bool GeoLinearElasticLaw::RequiresInitializeMaterialResponse()
     return false;
 }
 
-bool GeoLinearElasticLaw::RequiresFinalizeMaterialResponse()
-{
-    return false;
-}
+bool GeoLinearElasticLaw::RequiresFinalizeMaterialResponse() { return false; }
 
 ConstitutiveLaw::StrainMeasure GeoLinearElasticLaw::GetStrainMeasure()
 {
@@ -80,6 +77,23 @@ void GeoLinearElasticLaw::CalculateMaterialResponseKirchhoff(ConstitutiveLaw::Pa
 void GeoLinearElasticLaw::CalculateMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues)
 {
     CalculateMaterialResponsePK2(rValues);
+}
+
+double& GeoLinearElasticLaw::CalculateValue(ConstitutiveLaw::Parameters& rParameterValues,
+                                            const Variable<double>& rThisVariable,
+                                            double& rValue)
+{
+    if (rThisVariable == STRAIN_ENERGY)
+    {
+        Vector& r_strain_vector = rParameterValues.GetStrainVector();
+        Vector& r_stress_vector = rParameterValues.GetStressVector();
+        this->CalculateCauchyGreenStrain(rParameterValues, r_strain_vector);
+        this->CalculatePK2Stress(r_strain_vector, r_stress_vector, rParameterValues);
+
+        rValue = 0.5 * inner_prod(r_strain_vector, r_stress_vector); // Strain energy = 0.5*E:C:E
+    }
+
+    return rValue;
 }
 
 void GeoLinearElasticLaw::save(Serializer& rSerializer) const

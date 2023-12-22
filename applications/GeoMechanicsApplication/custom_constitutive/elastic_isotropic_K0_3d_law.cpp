@@ -25,23 +25,6 @@ ConstitutiveLaw::Pointer ElasticIsotropicK03DLaw::Clone() const
     return Kratos::make_shared<ElasticIsotropicK03DLaw>(*this);
 }
 
-double& ElasticIsotropicK03DLaw::CalculateValue(ConstitutiveLaw::Parameters& rParameterValues,
-                                                const Variable<double>& rThisVariable,
-                                                double& rValue)
-{
-    Vector& r_strain_vector = rParameterValues.GetStrainVector();
-    Vector& r_stress_vector = rParameterValues.GetStressVector();
-
-    if (rThisVariable == STRAIN_ENERGY) {
-        this->CalculateCauchyGreenStrain(rParameterValues, r_strain_vector);
-        this->CalculatePK2Stress( r_strain_vector, r_stress_vector, rParameterValues);
-
-        rValue = 0.5 * inner_prod( r_strain_vector, r_stress_vector); // Strain energy = 0.5*E:C:E
-    }
-
-    return rValue;
-}
-
 Vector& ElasticIsotropicK03DLaw::CalculateValue(ConstitutiveLaw::Parameters& rParameterValues,
                                                 const Variable<Vector>& rThisVariable,
                                                 Vector& rValue)
