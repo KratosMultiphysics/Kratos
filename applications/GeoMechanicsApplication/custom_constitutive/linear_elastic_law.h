@@ -27,6 +27,7 @@ public:
 
     void CalculateMaterialResponsePK1(ConstitutiveLaw::Parameters& rValues) override;
     void CalculateMaterialResponsePK2(ConstitutiveLaw::Parameters& rValues) override;
+    void CalculateMaterialResponseKirchhoff(ConstitutiveLaw::Parameters& rValues) override;
 
 protected:
     virtual void CalculateElasticMatrix(Matrix& rConstitutiveMatrix,
