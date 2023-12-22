@@ -25,12 +25,6 @@ ConstitutiveLaw::Pointer ElasticIsotropicK03DLaw::Clone() const
     return Kratos::make_shared<ElasticIsotropicK03DLaw>(*this);
 }
 
-// NOTE: Since we are in the hypothesis of small strains we can use the same function for everything
-void ElasticIsotropicK03DLaw::CalculateMaterialResponsePK1(ConstitutiveLaw::Parameters& rValues)
-{
-    CalculateMaterialResponsePK2(rValues);
-}
-
 void ElasticIsotropicK03DLaw::CalculateMaterialResponseKirchhoff(ConstitutiveLaw::Parameters& rValues)
 {
     CalculateMaterialResponsePK2(rValues);

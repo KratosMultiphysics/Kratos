@@ -25,6 +25,7 @@ public:
     StrainMeasure GetStrainMeasure() override;
     StressMeasure GetStressMeasure() override;
 
+    void CalculateMaterialResponsePK1(ConstitutiveLaw::Parameters& rValues) override;
     void CalculateMaterialResponsePK2(ConstitutiveLaw::Parameters& rValues) override;
 
 protected:

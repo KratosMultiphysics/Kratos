@@ -32,6 +32,12 @@ ConstitutiveLaw::StressMeasure GeoLinearElasticLaw::GetStressMeasure()
     return StressMeasure_Cauchy;
 }
 
+// NOTE: Since we are in the hypothesis of small strains we can use the same function for everything
+void GeoLinearElasticLaw::CalculateMaterialResponsePK1(ConstitutiveLaw::Parameters& rValues)
+{
+    CalculateMaterialResponsePK2(rValues);
+}
+
 void GeoLinearElasticLaw::CalculateMaterialResponsePK2(ConstitutiveLaw::Parameters& rValues)
 {
     KRATOS_TRY

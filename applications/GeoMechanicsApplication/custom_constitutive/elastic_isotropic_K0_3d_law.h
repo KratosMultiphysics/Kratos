@@ -115,14 +115,6 @@ public:
 
     /**
      * @brief Computes the material response:
-     * @details PK1 stresses and algorithmic ConstitutiveMatrix
-     * @param rValues The internal values of the law
-     * @see   Parameters
-     */
-    void CalculateMaterialResponsePK1(ConstitutiveLaw::Parameters & rValues) override;
-
-    /**
-     * @brief Computes the material response:
      * @details Kirchhoff stresses and algorithmic ConstitutiveMatrix
      * @param rValues The internal values of the law
      * @see   Parameters
