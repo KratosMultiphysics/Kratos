@@ -361,6 +361,11 @@ class GeoMechanicalSolver(PythonSolver):
         self.main_model_part.AddNodalSolutionStepVariable(GeoMechanicsApplication.DT_TEMPERATURE)
         # Add variables for the heat conditions
         self.main_model_part.AddNodalSolutionStepVariable(GeoMechanicsApplication.NORMAL_HEAT_FLUX)
+        self.main_model_part.AddNodalSolutionStepVariable(GeoMechanicsApplication.AIR_TEMPERATURE)
+        self.main_model_part.AddNodalSolutionStepVariable(GeoMechanicsApplication.SOLAR_RADIATION)
+        self.main_model_part.AddNodalSolutionStepVariable(GeoMechanicsApplication.AIR_HUMIDITY)
+        self.main_model_part.AddNodalSolutionStepVariable(GeoMechanicsApplication.PRECIPITATION)
+        self.main_model_part.AddNodalSolutionStepVariable(GeoMechanicsApplication.WIND_SPEED)
 
     def _add_smoothing_variables(self):
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_AREA)
