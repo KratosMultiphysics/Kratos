@@ -1286,6 +1286,16 @@ public:
         KRATOS_CATCH("");
     }
 
+   /**
+    * @brief Check if the TrilinosSpace is distributed.
+    * @details This static member function checks whether the TrilinosSpace is distributed or not.
+    * @return True if the space is distributed, false otherwise.
+    */
+    static constexpr bool IsDistributedSpace()
+    {
+        return true;
+    }
+
     ///@}
     ///@name Access
     ///@{

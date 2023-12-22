@@ -39,7 +39,7 @@ GeometricalObjectsBins::CellType& GeometricalObjectsBins::GetCell(
 /***********************************************************************************/
 /***********************************************************************************/
 
-BoundingBox<Point> GeometricalObjectsBins::GetCellBoundingBox(
+BoundingBox<GeometricalObjectsBins::PointType> GeometricalObjectsBins::GetCellBoundingBox(
     const std::size_t I,
     const std::size_t J,
     const std::size_t K
@@ -49,7 +49,7 @@ BoundingBox<Point> GeometricalObjectsBins::GetCellBoundingBox(
     KRATOS_DEBUG_ERROR_IF(J > mNumberOfCells[1]) << "Index " << J << " is larger than number of cells in y direction : " << mNumberOfCells[1] << std::endl;
     KRATOS_DEBUG_ERROR_IF(K > mNumberOfCells[2]) << "Index " << K << " is larger than number of cells in z direction : " << mNumberOfCells[2] << std::endl;
 
-    BoundingBox<Point> result;
+    BoundingBox<PointType> result;
 
     result.GetMinPoint()[0] = mBoundingBox.GetMinPoint()[0] + I * mCellSizes[0];
     result.GetMinPoint()[1] = mBoundingBox.GetMinPoint()[1] + J * mCellSizes[1];
@@ -66,12 +66,12 @@ BoundingBox<Point> GeometricalObjectsBins::GetCellBoundingBox(
 /***********************************************************************************/
 
 void GeometricalObjectsBins::SearchInRadius(
-    const Point& rPoint,
+    const PointType& rPoint,
     const double Radius,
     std::vector<ResultType>& rResults
     )
 {
-    std::unordered_set<GeometricalObject*> results;
+    std::unordered_map<GeometricalObject*, double> results;
 
     array_1d<std::size_t, Dimension> min_position;
     array_1d<std::size_t, Dimension> max_position;
@@ -90,8 +90,10 @@ void GeometricalObjectsBins::SearchInRadius(
     }
 
     rResults.clear();
-    for(auto p_object : results){
-        rResults.push_back(ResultType(p_object));
+    rResults.reserve(results.size());
+    for(auto& object : results){
+        rResults.push_back(ResultType(object.first));
+        rResults.back().SetDistance(object.second);
     }
 }
 
@@ -99,7 +101,7 @@ void GeometricalObjectsBins::SearchInRadius(
 /***********************************************************************************/
 
 GeometricalObjectsBins::ResultType GeometricalObjectsBins::SearchNearestInRadius(
-    const Point& rPoint,
+    const PointType& rPoint,
     const double Radius
     )
 {
@@ -140,7 +142,7 @@ GeometricalObjectsBins::ResultType GeometricalObjectsBins::SearchNearestInRadius
 /***********************************************************************************/
 /***********************************************************************************/
 
-GeometricalObjectsBins::ResultType GeometricalObjectsBins::SearchNearest(const Point& rPoint)
+GeometricalObjectsBins::ResultType GeometricalObjectsBins::SearchNearest(const PointType& rPoint)
 {
     ResultType current_result;
 
@@ -153,7 +155,7 @@ GeometricalObjectsBins::ResultType GeometricalObjectsBins::SearchNearest(const P
 /***********************************************************************************/
 /***********************************************************************************/
 
-GeometricalObjectsBins::ResultType GeometricalObjectsBins::SearchIsInside(const Point& rPoint)
+GeometricalObjectsBins::ResultType GeometricalObjectsBins::SearchIsInside(const PointType& rPoint)
 {
     ResultType current_result;
     current_result.SetDistance(std::numeric_limits<double>::max());
@@ -268,9 +270,9 @@ std::size_t GeometricalObjectsBins::CalculatePosition(
 
 void GeometricalObjectsBins::SearchInRadiusInCell(
     const CellType& rCell,
-    const Point& rPoint,
+    const PointType& rPoint,
     const double Radius,
-    std::unordered_set<GeometricalObject*>& rResults
+    std::unordered_map<GeometricalObject*, double>& rResults
     )
 {
     double distance = 0.0;
@@ -278,7 +280,7 @@ void GeometricalObjectsBins::SearchInRadiusInCell(
         auto& r_geometry = p_geometrical_object->GetGeometry();
         distance = r_geometry.CalculateDistance(rPoint, mTolerance);
         if((Radius + mTolerance) > distance){
-            rResults.insert(p_geometrical_object);
+            rResults.insert({p_geometrical_object, distance});
         }
     }
 }
@@ -288,7 +290,7 @@ void GeometricalObjectsBins::SearchInRadiusInCell(
 
 void GeometricalObjectsBins::SearchNearestInCell(
     const CellType& rCell,
-    const Point& rPoint,
+    const PointType& rPoint,
     ResultType& rResult,
     const double MaxRadius
     )
@@ -309,7 +311,7 @@ void GeometricalObjectsBins::SearchNearestInCell(
 
 void GeometricalObjectsBins::SearchIsInsideInCell(
     const CellType& rCell,
-    const Point& rPoint,
+    const PointType& rPoint,
     ResultType& rResult
     )
 {

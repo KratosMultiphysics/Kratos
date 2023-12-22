@@ -470,7 +470,9 @@ Vector MovingLoadCondition< TDim, TNumNodes>::CalculateLoadPointDisplacementVect
             full_rotation_matrix(i, j) = rotation_matrix(i, j);
         }
     }
-
+    if constexpr (TDim == 2) {
+        full_rotation_matrix(2, 2) = 1;
+    }
 
     // Calculate local nodal rotation matrix
     bounded_matrix<double, 3, TNumNodes> local_nodal_rotation_matrix = prod(full_rotation_matrix, nodal_rotation_matrix);
@@ -615,6 +617,10 @@ Vector MovingLoadCondition< TDim, TNumNodes>::CalculateLoadPointRotationVector()
             full_rotation_matrix(i, j) = rotation_matrix(i, j);
         }
     }
+    if constexpr (TDim == 2) {
+        full_rotation_matrix(2, 2) = 1;
+    }
+
 
     // calculate local nodal rotation matrix
     bounded_matrix<double, 3, TNumNodes> local_nodal_rotation_matrix = prod(full_rotation_matrix, nodal_rotation_matrix);
