@@ -23,6 +23,7 @@ public:
     bool RequiresInitializeMaterialResponse() override;
 
     StrainMeasure GetStrainMeasure() override;
+    StressMeasure GetStressMeasure() override;
 
 private:
     friend class Serializer;

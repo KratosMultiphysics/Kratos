@@ -114,15 +114,6 @@ public:
     };
 
     /**
-     * @brief Returns the stress measure of this constitutive law (by default 2st Piola-Kirchhoff stress in voigt notation)
-     * @return the expected stress measure
-     */
-    StressMeasure GetStressMeasure() override
-    {
-        return StressMeasure_Cauchy;
-    }
-
-    /**
      * @brief Computes the material response:
      * @details PK1 stresses and algorithmic ConstitutiveMatrix
      * @param rValues The internal values of the law

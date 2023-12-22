@@ -27,6 +27,11 @@ ConstitutiveLaw::StrainMeasure GeoLinearElasticLaw::GetStrainMeasure()
     return StrainMeasure_Infinitesimal;
 }
 
+ConstitutiveLaw::StressMeasure GeoLinearElasticLaw::GetStressMeasure()
+{
+    return StressMeasure_Cauchy;
+}
+
 void GeoLinearElasticLaw::save(Serializer& rSerializer) const
 {
     KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, ConstitutiveLaw)
