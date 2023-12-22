@@ -43,6 +43,7 @@ public:
     using ConstitutiveLaw::CalculateValue;
 
     void SetValue(const Variable<double>&, const double&, const ProcessInfo&) override;
+    void SetValue(const Variable<Vector>&, const Vector&, const ProcessInfo&) override;
     using ConstitutiveLaw::SetValue;
 
 protected:

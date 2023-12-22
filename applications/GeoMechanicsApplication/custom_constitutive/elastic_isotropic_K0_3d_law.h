@@ -125,11 +125,6 @@ public:
               const GeometryType& rElementGeometry,
               const ProcessInfo& rCurrentProcessInfo) const override;
 
-    void SetValue( const Variable<Vector>& rVariable,
-                   const Vector& rValue,
-                   const ProcessInfo& rCurrentProcessInfo ) override {}
-
-
 protected:
 
     ///@name Protected static Member Variables

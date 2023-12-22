@@ -154,6 +154,12 @@ void GeoLinearElasticLaw::SetValue(const Variable<double>&, const double&, const
     // is required when that is undesired behavior
 }
 
+void GeoLinearElasticLaw::SetValue(const Variable<Vector>&, const Vector&, const ProcessInfo&)
+{
+    // Since `ConstitutiveLaw::SetValue` always throws an exception, an override
+    // is required when that is undesired behavior
+}
+
 void GeoLinearElasticLaw::save(Serializer& rSerializer) const
 {
     KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, ConstitutiveLaw)
