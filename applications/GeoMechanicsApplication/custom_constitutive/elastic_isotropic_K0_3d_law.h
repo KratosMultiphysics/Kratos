@@ -229,7 +229,8 @@ protected:
     * @param rConstitutiveMatrix The constitutive matrix
     * @param rValues Parameters of the constitutive law
     */
-    virtual void CalculateElasticMatrix(Matrix& rConstitutiveMatrix, ConstitutiveLaw::Parameters& rValues);
+    void CalculateElasticMatrix(Matrix& rConstitutiveMatrix,
+                                ConstitutiveLaw::Parameters& rValues) override;
 
     /**
      * @brief It calculates the stress vector
