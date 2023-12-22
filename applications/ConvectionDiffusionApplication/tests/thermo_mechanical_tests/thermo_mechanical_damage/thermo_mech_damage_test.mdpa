@@ -1084,3 +1084,17 @@ Begin SubModelPart plot_displ // Group displ // Subtree DISPLACEMENT
           150
     End SubModelPartNodes
 End SubModelPart
+
+
+Begin SubModelPart to_check
+  Begin SubModelPartTables
+  End SubModelPartTables
+  Begin SubModelPartNodes
+    25
+  End SubModelPartNodes
+  Begin SubModelPartElements
+  15
+  End SubModelPartElements
+  Begin SubModelPartConditions
+  End SubModelPartConditions
+End SubModelPart

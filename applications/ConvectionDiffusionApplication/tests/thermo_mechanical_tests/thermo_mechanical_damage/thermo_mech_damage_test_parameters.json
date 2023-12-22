@@ -122,7 +122,7 @@
 	//		"output_variables"              : ["DISPLACEMENT"],
 	//		"gauss_points_output_variables" : ["DAMAGE"],
 	//		"output_file_name"              : "thermo_mechanical_tests/thermo_mechanical_damage/coupled_damage_thermomech_test_results.json",
-	//		"model_part_name"               : "Structure.Parts_Solid_Solid_Auto1",
+	//		"model_part_name"               : "Structure.to_check",
 	//		"time_frequency"                : 0.25
 	//	}
 	//}]
@@ -135,7 +135,7 @@
 			"check_variables"              : ["DISPLACEMENT"],
 			"gauss_points_check_variables" : ["DAMAGE"],
 			"input_file_name"              : "thermo_mechanical_tests/thermo_mechanical_damage/coupled_damage_thermomech_test_results.json",
-			"model_part_name"               : "Structure.Parts_Solid_Solid_Auto1",
+			"model_part_name"               : "Structure.to_check",
 			"time_frequency"                : 0.25
 		}
 	}]
