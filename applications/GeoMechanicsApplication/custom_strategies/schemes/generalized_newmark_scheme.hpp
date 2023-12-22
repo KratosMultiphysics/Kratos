@@ -24,8 +24,9 @@ public:
     GeneralizedNewmarkScheme(double theta,
                              const Variable<double>& rVariable,
                              const Variable<double>& rDeltaTimeVariable,
-                             const Variable<double>& rDeltaTimeVariableCoefficient)
-        : GeoMechanicsTimeIntegrationScheme<TSparseSpace, TDenseSpace>(rVariable, rDeltaTimeVariable, rDeltaTimeVariableCoefficient),
+                             const Variable<double>& rDeltaTimeVariableCoefficient,
+                             const std::vector<VariableWithTimeDerivatives> rVariablesWithDerivatives)
+        : GeoMechanicsTimeIntegrationScheme<TSparseSpace, TDenseSpace>(rVariable, rDeltaTimeVariable, rDeltaTimeVariableCoefficient, rVariablesWithDerivatives),
           mTheta(theta)
     {
         KRATOS_ERROR_IF(this->mTheta <= 0)

@@ -26,7 +26,7 @@ public:
                         const Variable<double>& rDeltaTimeVariable,
                         const Variable<double>& rDeltaTimeVariableCoefficient)
         : GeoMechanicsTimeIntegrationScheme<TSparseSpace, TDenseSpace>(
-              rVariable, rDeltaTimeVariable, rDeltaTimeVariableCoefficient)
+              rVariable, rDeltaTimeVariable, rDeltaTimeVariableCoefficient, {})
     {
     }
 

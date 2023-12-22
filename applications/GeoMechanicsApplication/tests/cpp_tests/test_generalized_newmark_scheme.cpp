@@ -27,7 +27,7 @@ KRATOS_TEST_CASE_IN_SUITE(ForInvalidTheta_CheckNewmarkScheme_Throws, KratosGeoMe
     using SchemeType = GeneralizedNewmarkScheme<SparseSpaceType, LocalSpaceType>;
 
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
-        SchemeType scheme(invalid_theta, TEMPERATURE, DT_TEMPERATURE, DT_TEMPERATURE_COEFFICIENT),
+        SchemeType scheme(invalid_theta, TEMPERATURE, DT_TEMPERATURE, DT_TEMPERATURE_COEFFICIENT, {}),
         "Theta must be larger than zero, but got -2")
 }
 

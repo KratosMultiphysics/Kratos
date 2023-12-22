@@ -29,7 +29,7 @@ public:
 
     explicit NewmarkQuasistaticPwScheme(double theta)
         : GeneralizedNewmarkScheme<TSparseSpace, TDenseSpace>(
-              theta, WATER_PRESSURE, DT_WATER_PRESSURE, DT_PRESSURE_COEFFICIENT)
+              theta, WATER_PRESSURE, DT_WATER_PRESSURE, DT_PRESSURE_COEFFICIENT, {})
     {
     }
 

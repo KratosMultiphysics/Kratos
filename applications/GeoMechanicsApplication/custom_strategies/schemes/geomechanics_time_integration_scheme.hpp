@@ -16,6 +16,20 @@
 namespace Kratos
 {
 
+struct VariableWithTimeDerivatives
+{
+    Variable<array_1d<double, 3>> instance;
+    Variable<array_1d<double, 3>> first_time_derivative;
+    Variable<array_1d<double, 3>> second_time_derivative;
+
+    explicit VariableWithTimeDerivatives(const Variable<array_1d<double, 3>>& instance)
+        : instance(instance),
+          first_time_derivative(instance.GetTimeDerivative()),
+          second_time_derivative(first_time_derivative.GetTimeDerivative())
+    {
+    }
+};
+
 template <class TSparseSpace, class TDenseSpace>
 class GeoMechanicsTimeIntegrationScheme : public Scheme<TSparseSpace, TDenseSpace>
 {
@@ -29,10 +43,12 @@ public:
 
     GeoMechanicsTimeIntegrationScheme(const Variable<double>& rVariable,
                                       const Variable<double>& rDeltaTimeVariable,
-                                      const Variable<double>& rDeltaTimeVariableCoefficient)
+                                      const Variable<double>& rDeltaTimeVariableCoefficient,
+                                      const std::vector<VariableWithTimeDerivatives>& rVariableDerivatives)
         : mVariable(rVariable),
           mDeltaTimeVariable(rDeltaTimeVariable),
-          mDeltaTimeVariableCoefficient(rDeltaTimeVariableCoefficient)
+          mDeltaTimeVariableCoefficient(rDeltaTimeVariableCoefficient),
+          mVariableDerivatives(rVariableDerivatives)
     {
     }
 
@@ -392,6 +408,8 @@ protected:
     Variable<double> mVariable;
     Variable<double> mDeltaTimeVariable;
     Variable<double> mDeltaTimeVariableCoefficient;
+
+    std::vector<VariableWithTimeDerivatives> mVariableDerivatives;
 
 private:
     double mDeltaTime = 1.0;

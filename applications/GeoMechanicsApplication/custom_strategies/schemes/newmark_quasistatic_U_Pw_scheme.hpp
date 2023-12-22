@@ -23,20 +23,6 @@
 namespace Kratos
 {
 
-struct VariableWithTimeDerivatives
-{
-    Variable<array_1d<double, 3>> instance;
-    Variable<array_1d<double, 3>> first_time_derivative;
-    Variable<array_1d<double, 3>> second_time_derivative;
-
-    explicit VariableWithTimeDerivatives(const Variable<array_1d<double, 3>>& instance)
-        : instance(instance),
-          first_time_derivative(instance.GetTimeDerivative()),
-          second_time_derivative(first_time_derivative.GetTimeDerivative())
-    {
-    }
-};
-
 template <class TSparseSpace, class TDenseSpace>
 class NewmarkQuasistaticUPwScheme
     : public GeneralizedNewmarkScheme<TSparseSpace, TDenseSpace>
@@ -53,7 +39,12 @@ public:
 
     NewmarkQuasistaticUPwScheme(double beta, double gamma, double theta)
         : GeneralizedNewmarkScheme<TSparseSpace, TDenseSpace>(
-              theta, WATER_PRESSURE, DT_WATER_PRESSURE, DT_PRESSURE_COEFFICIENT),
+              theta,
+              WATER_PRESSURE,
+              DT_WATER_PRESSURE,
+              DT_PRESSURE_COEFFICIENT,
+              {VariableWithTimeDerivatives(DISPLACEMENT),
+               VariableWithTimeDerivatives{ROTATION}}),
           mBeta(beta),
           mGamma(gamma)
     {
@@ -228,10 +219,6 @@ private:
                 (mBeta * this->GetDeltaTime() * this->GetDeltaTime());
         }
     }
-
-    std::vector<VariableWithTimeDerivatives> mVariableDerivatives{
-        VariableWithTimeDerivatives(DISPLACEMENT), VariableWithTimeDerivatives{ROTATION}};
-
 }; // Class NewmarkQuasistaticUPwScheme
 
 } // namespace Kratos
