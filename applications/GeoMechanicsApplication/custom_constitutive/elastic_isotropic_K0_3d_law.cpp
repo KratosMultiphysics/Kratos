@@ -25,19 +25,6 @@ ConstitutiveLaw::Pointer ElasticIsotropicK03DLaw::Clone() const
     return Kratos::make_shared<ElasticIsotropicK03DLaw>(*this);
 }
 
-Matrix& ElasticIsotropicK03DLaw::CalculateValue(ConstitutiveLaw::Parameters& rParameterValues,
-                                                const Variable<Matrix>& rThisVariable,
-                                                Matrix& rValue)
-{
-    if (rThisVariable == CONSTITUTIVE_MATRIX ||
-        rThisVariable == CONSTITUTIVE_MATRIX_PK2 ||
-        rThisVariable == CONSTITUTIVE_MATRIX_KIRCHHOFF) {
-        this->CalculateElasticMatrix(rValue, rParameterValues);
-    }
-
-    return rValue;
-}
-
 void ElasticIsotropicK03DLaw::GetLawFeatures(Features& rFeatures)
 {
     //Set the type of law

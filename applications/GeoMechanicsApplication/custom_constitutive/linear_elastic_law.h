@@ -37,6 +37,9 @@ public:
     Vector& CalculateValue(ConstitutiveLaw::Parameters& rParameterValues,
                            const Variable<Vector>& rThisVariable,
                            Vector& rValue) override;
+    Matrix& CalculateValue(ConstitutiveLaw::Parameters& rParameterValues,
+                           const Variable<Matrix>& rThisVariable,
+                           Matrix& rValue) override;
     using ConstitutiveLaw::CalculateValue;
 
 protected:

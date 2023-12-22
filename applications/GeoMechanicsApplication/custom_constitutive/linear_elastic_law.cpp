@@ -135,6 +135,19 @@ Vector& GeoLinearElasticLaw::CalculateValue(ConstitutiveLaw::Parameters& rParame
     return rValue;
 }
 
+Matrix& GeoLinearElasticLaw::CalculateValue(ConstitutiveLaw::Parameters& rParameterValues,
+                                            const Variable<Matrix>& rThisVariable,
+                                            Matrix& rValue)
+{
+    if (rThisVariable == CONSTITUTIVE_MATRIX || rThisVariable == CONSTITUTIVE_MATRIX_PK2 ||
+        rThisVariable == CONSTITUTIVE_MATRIX_KIRCHHOFF)
+    {
+        CalculateElasticMatrix(rValue, rParameterValues);
+    }
+
+    return rValue;
+}
+
 void GeoLinearElasticLaw::save(Serializer& rSerializer) const
 {
     KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, ConstitutiveLaw)
