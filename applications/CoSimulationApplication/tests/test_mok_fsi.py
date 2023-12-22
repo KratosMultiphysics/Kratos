@@ -42,6 +42,31 @@ class TestMokFSI(co_simulation_test_case.CoSimulationTestCase):
             self.__DumpUpdatedCFDSettings()
             self._runTest()
 
+    def test_mok_fsi_block_mvqn(self):
+        self.accelerator_type = "block_mvqn"
+
+        with KratosUnittest.WorkFolderScope(".", __file__):
+            self._createTest("fsi_mok", "cosim_mok_fsi_block")
+            self.__ManipulateCFDSettings()
+            self.__RemoveOutputFromCFD() # comment to get output
+            self.__AddTestingToCFD()
+            self.__DumpUpdatedCFDSettings()
+            self._runTest()
+
+
+    def test_mok_fsi_block_ibqnls(self):
+        self.accelerator_type = "block_ibqnls"
+
+        with KratosUnittest.WorkFolderScope(".", __file__):
+            self._createTest("fsi_mok", "cosim_mok_fsi_block")
+            self.__ManipulateCFDSettings()
+            additional_accel_settings = KM.Parameters("""2""")
+            self.cosim_parameters["solver_settings"]["convergence_accelerators"][0].AddValue("timestep_horizon", additional_accel_settings)
+            self.__RemoveOutputFromCFD() # comment to get output
+            self.__AddTestingToCFD()
+            self.__DumpUpdatedCFDSettings()
+            self._runTest()
+
     def test_mok_fsi_mvqn_external_structure(self):
         self.accelerator_type = "mvqn"
 
