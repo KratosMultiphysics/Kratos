@@ -7,7 +7,7 @@
 ## Cases
 This folder contains the following test cases:
 
--  Thermal fixed temperature
--  Transient thermal fixed temperature
--  Thermal heat flux
--  Transient thermal heat flux
+-   Thermal fixed temperature
+-   Transient thermal fixed temperature
+-   Thermal heat flux
+-   Transient thermal heat flux
