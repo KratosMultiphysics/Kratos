@@ -19,7 +19,7 @@
 #include "factories/linear_solver_factory.h"
 #include "utilities/proxies.h"
 #include "utilities/sparse_matrix_multiplication_utility.h"
-#include "utilities/binbased_fast_point_locator.h" // BinBasedFastPointLocator
+#include "utilities/builtin_timer.h"
 
 // STL includes
 #include <type_traits> // remove_reference_t, remove_cv_t
@@ -185,9 +185,9 @@ bool PolyHierarchicalSolver<TSparseSpace,TDenseSpace,TReorderer>::Solve(SparseMa
     KRATOS_TRY
     KRATOS_PROFILE_SCOPE(KRATOS_CODE_LOCATION);
 
-    if (4 <= mpImpl->mVerbosity) {
-        KRATOS_ERROR << "verbosity >=4 prints system matrices and terminates\n";
-    }
+    //if (4 <= mpImpl->mVerbosity) {
+    //    KRATOS_ERROR << "verbosity >=4 prints system matrices and terminates\n";
+    //}
 
     // Declarations
     const std::size_t coarse_size = TSparseSpace::Size1(mpImpl->mRestrictionOperator);
@@ -207,27 +207,9 @@ bool PolyHierarchicalSolver<TSparseSpace,TDenseSpace,TReorderer>::Solve(SparseMa
 
     double residual_norm = 1.0;
     const std::size_t max_iterations = mpImpl->mMaxIterations;
-    for (std::size_t i_iteration=0ul; i_iteration<max_iterations; ++i_iteration) {
-        // Perform a few smoothing passes on the fine system
-        // A_fine * d_fine = r_fine
-        KRATOS_TRY
-        TSparseSpace::SetToZero(fine_delta);
-        mpImpl->mpFineSolver->Solve(rA, fine_delta, fine_residual);
-        KRATOS_CATCH("")
-
-        // Update the fine residual
-        // r_fine -= A_fine * d_fine
-        TSparseSpace::Mult(rA, fine_delta, fine_tmp);
-        //fine_residual -= fine_tmp;
-        TSparseSpace::UnaliasedAdd(fine_residual, -1.0, fine_tmp);
-
-        KRATOS_INFO_IF("PolyHierarchicalSolver", 3 <= mpImpl->mVerbosity)
-            << "iteration " << i_iteration
-            << " residual after smoothing "
-            << TSparseSpace::TwoNorm(fine_residual) / rhs_norm
-            << "\n";
-
-        // Restrict the updated residual
+    std::size_t i_iteration = 0ul;
+    while (true) {
+        // Restrict the residual
         // r_coarse = R * r_fine
         TSparseSpace::Mult(mpImpl->mRestrictionOperator,
                            fine_residual,
@@ -240,20 +222,36 @@ bool PolyHierarchicalSolver<TSparseSpace,TDenseSpace,TReorderer>::Solve(SparseMa
         mpImpl->mCoarseSystem.mpSolver->Solve(mpImpl->mCoarseSystem.mA,
                                               coarse_delta,
                                               coarse_residual);
+        TSparseSpace::Mult(mpImpl->mInterpolationOperator, coarse_delta, fine_delta);
+        TSparseSpace::UnaliasedAdd(rX, 1.0, fine_delta);
+        //KRATOS_INFO("after preconditioning: ") << rX << "\n";
         KRATOS_CATCH("")
 
-        // Update solution
-        // x_fine += d_fine + d_coarse
-        TSparseSpace::Mult(mpImpl->mInterpolationOperator, coarse_delta, fine_tmp);
-        //rX += fine_delta + fine_tmp;
-        TSparseSpace::UnaliasedAdd(fine_delta, 1.0, fine_tmp);
+        // Update the fine residual
+        // r_fine -= A_fine * d_fine
+        TSparseSpace::Mult(rA, fine_delta, fine_tmp);
+        //fine_residual -= fine_tmp;
+        TSparseSpace::UnaliasedAdd(fine_residual, -1.0, fine_tmp);
+
+        KRATOS_INFO_IF("PolyHierarchicalSolver", 3 <= mpImpl->mVerbosity)
+            << "iteration " << i_iteration
+            << " residual after coarse preconditioning "
+            << TSparseSpace::TwoNorm(fine_residual) / rhs_norm
+            << "\n";
+
+        // Perform a few smoothing passes on the fine system
+        // A_fine * d_fine = r_fine
+        KRATOS_TRY
+        TSparseSpace::SetToZero(fine_delta);
+        mpImpl->mpFineSolver->Solve(rA, fine_delta, fine_residual);
         TSparseSpace::UnaliasedAdd(rX, 1.0, fine_delta);
+        //KRATOS_INFO("after smoothing: ") << rX << "\n";
+        KRATOS_CATCH("")
 
         // Update the fine residual
         // r_fine = b_fine - A_fine * x_fine
-        TSparseSpace::Mult(rA, rX, fine_tmp);
+        TSparseSpace::Mult(rA, fine_delta, fine_tmp);
         //fine_residual = rB - fine_tmp;
-        TSparseSpace::Assign(fine_residual, 1.0, rB);
         TSparseSpace::UnaliasedAdd(fine_residual, -1.0, fine_tmp);
 
         // Update status
@@ -263,7 +261,7 @@ bool PolyHierarchicalSolver<TSparseSpace,TDenseSpace,TReorderer>::Solve(SparseMa
             << " residual " << residual_norm << "\n";
 
         // Early exit if converged
-        if (residual_norm < mpImpl->mTolerance) {
+        if (residual_norm < mpImpl->mTolerance || max_iterations <= ++i_iteration) {
             break;
         }
     }
@@ -316,6 +314,7 @@ void GetLowerOrderDofs(typename TSparseSpace::MatrixType& rA,
             // Mark each DoF of all nodes on the equivalent lower order element
             // unless they are constrained as slave dofs in multi-point constraints
             for (std::size_t i_node=0ul; i_node<coarse_node_count; ++i_node) {
+                //if (!r_geometry[i_node].Is(SLAVE)) {
                     const auto& r_node_dofs = r_geometry[i_node].GetDofs();
                     for (const auto& rp_dof : r_node_dofs) {
                         const std::size_t i_fine_dof = rp_dof->EquationId();
@@ -324,6 +323,7 @@ void GetLowerOrderDofs(typename TSparseSpace::MatrixType& rA,
                         // Flag the DoF as part of the coarse system
                         rCoarseMask[i_fine_dof] = true;
                     }
+                //} // if the node is not flagged SLAVE
             }
         } // if (r_entity.IsActive())
     } // for entity in rModelPart
@@ -398,27 +398,33 @@ void GetNonzeroQuadraticCoefficients(GeometryData::KratosGeometryType Geometry,
             break;
         }
         case G::Kratos_Line2D2: {
-            *itOutput = PairVector {{0ul, 1.0}};
-            *itOutput = PairVector {{1ul, 1.0}};
+            *itOutput++ = PairVector {{0ul, 1.0}};
+            *itOutput = PairVector   {{1ul, 1.0}};
             break;
         }
         case G::Kratos_Line2D3: {
-            *itOutput = PairVector {{0ul, 1.0},
-                                    {2ul, 0.5}};
-            *itOutput = PairVector {{1ul, 1.0},
-                                    {2ul, 0.5}};
+            *itOutput++ = PairVector {{0ul, 1.0},
+                                      {2ul, 0.5}};
+            *itOutput = PairVector   {{1ul, 1.0},
+                                      {2ul, 0.5}};
             break;
         }
         case G::Kratos_Line3D2: {
-            *itOutput = PairVector {{0ul, 1.0}};
-            *itOutput = PairVector {{1ul, 1.0}};
+            *itOutput++ = PairVector {{0ul, 1.0}};
+            *itOutput = PairVector   {{1ul, 1.0}};
             break;
         }
         case G::Kratos_Line3D3: {
-            *itOutput = PairVector {{0ul, 1.0},
-                                    {2ul, 0.5}};
-            *itOutput = PairVector {{1ul, 1.0},
-                                    {2ul, 0.5}};
+            *itOutput++ = PairVector {{0ul, 1.0},
+                                      {2ul, 0.5}};
+            *itOutput = PairVector   {{1ul, 1.0},
+                                      {2ul, 0.5}};
+            break;
+        }
+        case G::Kratos_Triangle2D3: {
+            *itOutput++ = PairVector {{0ul, 1.0}};
+            *itOutput++ = PairVector {{1ul, 1.0}};
+            *itOutput = PairVector   {{2ul, 1.0}};
             break;
         }
         case G::Kratos_Triangle2D6: {
@@ -428,7 +434,7 @@ void GetNonzeroQuadraticCoefficients(GeometryData::KratosGeometryType Geometry,
             *itOutput++ = PairVector {{1ul, 1.0},
                                       {3ul, 0.5},
                                       {4ul, 0.5}};
-            *itOutput++ = PairVector {{2ul, 1.0},
+            *itOutput = PairVector   {{2ul, 1.0},
                                       {4ul, 0.5},
                                       {5ul, 0.5}};
             break;
@@ -440,7 +446,7 @@ void GetNonzeroQuadraticCoefficients(GeometryData::KratosGeometryType Geometry,
             *itOutput++ = PairVector {{1ul, 1.0},
                                       {3ul, 0.5},
                                       {4ul, 0.5}};
-            *itOutput++ = PairVector {{2ul, 1.0},
+            *itOutput = PairVector   {{2ul, 1.0},
                                       {4ul, 0.5},
                                       {5ul, 0.5}};
             break;
@@ -458,7 +464,7 @@ void GetNonzeroQuadraticCoefficients(GeometryData::KratosGeometryType Geometry,
                                       {5ul, 0.5},
                                       {6ul, 0.5},
                                       {9ul, 0.5}};
-            *itOutput++ = PairVector {{3ul, 1.0},
+            *itOutput = PairVector   {{3ul, 1.0},
                                       {7ul, 0.5},
                                       {8ul, 0.5},
                                       {9ul, 0.5}};
@@ -476,7 +482,7 @@ struct MPCInfo
     std::vector<std::pair<
         std::size_t,    // <== indices of other DoFs connected to this one by linear MPCs
         double          // <== coefficient of the linear MPC relationship
-    >> mCounterparts;
+    >> mSlaves;
 
     std::vector<std::tuple<
         const Element*, // <== element that contains the MPC DoF
@@ -512,6 +518,10 @@ void MapHigherToLowerOrder(const ModelPart& rModelPart,
     KRATOS_PROFILE_SCOPE(KRATOS_CODE_LOCATION);
     KRATOS_TRY
 
+    // Assume all nodes have the same number of DoFs
+    const std::size_t dofs_per_node = rModelPart.Nodes().empty() ?
+        0 : rModelPart.Nodes().front().GetDofs().size();
+
     for (auto proxy : MakeProxy<TEntityLocation>(rModelPart)) {
         const auto& r_entity = proxy.GetEntity();
 
@@ -535,86 +545,129 @@ void MapHigherToLowerOrder(const ModelPart& rModelPart,
                 const auto& r_restriction_terms = restriction_coefficients[i_coarse_vertex];
                 const auto& r_coarse_node_dofs = r_fine_geometry[i_coarse_vertex].GetDofs();
 
-                for (const auto& r_fine_coefficient_pair : r_restriction_terms) {
-                    const std::size_t i_fine_vertex = r_fine_coefficient_pair.first;
-                    const auto& r_fine_node_dofs = r_fine_geometry[i_fine_vertex].GetDofs();
-                    KRATOS_ERROR_IF_NOT(r_fine_node_dofs.size() == r_coarse_node_dofs.size());
-                    const std::size_t dofs_per_node = r_fine_node_dofs.size();
+                for (std::size_t i_node_dof=0ul; i_node_dof<dofs_per_node; ++i_node_dof) {
+                    const std::size_t i_coarse_dof_in_fine_system = r_coarse_node_dofs[i_node_dof]->EquationId();
 
-                    for (std::size_t i_node_dof=0ul; i_node_dof<dofs_per_node; ++i_node_dof) {
-                        const std::size_t i_coarse_dof_in_fine_system = r_coarse_node_dofs[i_node_dof]->EquationId();
+                    // If the coarse DoF is constrained by a Dirichlet condition,
+                    // no fine vertices should be added to the restiction operator.
+                    const std::size_t i_term_end = r_coarse_node_dofs[i_node_dof]->IsFixed() || r_fine_geometry[i_coarse_vertex].Is(SLAVE) ? 1 : r_restriction_terms.size();
+                    //const std::size_t i_term_end = r_restriction_terms.size();
+
+                    for (std::size_t i_term=0ul; i_term<i_term_end; ++i_term) {
+                        const auto& r_fine_coefficient_pair = r_restriction_terms[i_term];
+                        const std::size_t i_fine_vertex = r_fine_coefficient_pair.first;
+                        const auto& r_fine_node_dofs = r_fine_geometry[i_fine_vertex].GetDofs();
+                        KRATOS_ERROR_IF_NOT(r_fine_node_dofs.size() == r_coarse_node_dofs.size());
 
                         if (rCoarseDofMask[i_coarse_dof_in_fine_system]) { // <== ignore DoF if not in the coarse set
                             const std::size_t i_coarse_dof = rCoarseDofMap[i_coarse_dof_in_fine_system];
                             const std::size_t i_fine_dof = r_fine_node_dofs[i_node_dof]->EquationId();
                             rRestrictionMap.emplace(std::make_pair(i_coarse_dof, i_fine_dof), r_fine_coefficient_pair.second);
                             rInterpolationMap.emplace(std::make_pair(i_fine_dof, i_coarse_dof), r_fine_coefficient_pair.second);
-
-                            // Check whether the coarse DoF participates in an MPC, and record
-                            // data about its connectivities if it does.
-                            if (rMasterSlaveDofMap.has_value()) {
-                                const auto it_mpc_dof = rMasterSlaveDofMap->find(i_coarse_dof_in_fine_system);
-                                if (it_mpc_dof != rMasterSlaveDofMap->end()) {
-                                    it_mpc_dof->second.mContainingElements.emplace_back(&r_entity,
-                                                                                        i_coarse_vertex,
-                                                                                        i_node_dof);
-                                } // if it_mpc_dof != rMasterSlaveDofMap->end
-                            } // rMasterSlaveDofMap.has_value()
                         } // if rCoarseDofMask[i_coarse_dof_in_fine_system]
+
+                        // Check whether the coarse DoF participates in an MPC, and record
+                        // data about its connectivities if it does.
+                        if (rMasterSlaveDofMap.has_value()) {
+                            const auto it_mpc_dof = rMasterSlaveDofMap->find(i_coarse_dof_in_fine_system);
+                            if (it_mpc_dof != rMasterSlaveDofMap->end()) {
+                                it_mpc_dof->second.mContainingElements.emplace_back(&r_entity,
+                                                                                    i_coarse_vertex,
+                                                                                    i_node_dof);
+                            } // if it_mpc_dof != rMasterSlaveDofMap->end
+                        } // rMasterSlaveDofMap.has_value()
                     } // for i_node_dof in range(dofs_per_node)
                 } // for coefficient_pair in restriction_terms
-            }
+            } // for i_coarse_vertex in restriction_coefficients.size()
+
+            // Loop over the rest of the fine vertices to fill the master-slave map
+            if (rMasterSlaveDofMap.has_value()) {
+                for (std::size_t i_fine_vertex=restriction_coefficients.size(); i_fine_vertex<r_fine_geometry.size(); ++i_fine_vertex) {
+                    const Node& r_fine_node = r_fine_geometry[i_fine_vertex];
+                    const std::size_t dofs_per_node = r_fine_node.GetDofs().size();
+                    for (std::size_t i_node_dof=0ul; i_node_dof<dofs_per_node; ++i_node_dof) {
+                        const std::size_t i_dof = r_fine_node.GetDofs()[i_node_dof]->EquationId();
+                        const auto it_mpc_dof = rMasterSlaveDofMap->find(i_dof);
+                        if (it_mpc_dof != rMasterSlaveDofMap->end()) {
+                            it_mpc_dof->second.mContainingElements.emplace_back(&r_entity,
+                                                                                i_fine_vertex,
+                                                                                i_node_dof);
+                        } // if it_mpc_dof != rMasterSlaveDofMap->end
+                    } // for i_node_dof in range(dofs_per_node)
+                } // for i_fine_vertex in range(coarse_vertex_count, fine_vertex_count)
+            } // if MasterSlaveDofMap.has_value()
+
         } // if (r_entity.IsActive())
+    } // for entity in rModelPart
 
-        // Loop over MPC DoFs and register their contributions
-        if (rMasterSlaveDofMap.has_value()) {
-            const auto it_mpc_end = rMasterSlaveDofMap->end();
-            for (const auto& r_mpc_pair : rMasterSlaveDofMap.value()) {
-                const std::size_t i_coarse_dof_in_fine_system = r_mpc_pair.first;
+    // Loop over MPC DoFs and register their contributions
+    if (rMasterSlaveDofMap.has_value()) {
+        const auto it_mpc_end = rMasterSlaveDofMap->end();
+        for (const auto& r_mpc_pair : rMasterSlaveDofMap.value()) {
+            const std::size_t i_coarse_dof_in_fine_system = r_mpc_pair.first;
 
-                // Skip the DoF if it is not part of the coarse system
-                if (!rCoarseDofMask[i_coarse_dof_in_fine_system]) {
-                    continue;
-                }
+            // Skip the DoF if it is not part of the coarse system
+            if (!rCoarseDofMask[i_coarse_dof_in_fine_system]) {
+                continue;
+            }
 
-                const std::size_t i_coarse_dof = rCoarseDofMap[i_coarse_dof_in_fine_system];
+            const std::size_t i_coarse_dof = rCoarseDofMap[i_coarse_dof_in_fine_system];
 
-                for (auto counterpart_pair : r_mpc_pair.second.mCounterparts) {
-                    const auto mpc_coefficient = counterpart_pair.second;
+            for (auto slave_pair : r_mpc_pair.second.mSlaves) {
+                const auto mpc_coefficient = slave_pair.second;
+                const std::size_t i_slave = slave_pair.first;
 
-                    const auto it_counterpart_info = rMasterSlaveDofMap->find(counterpart_pair.first);
-                    KRATOS_ERROR_IF(it_counterpart_info == it_mpc_end);
-                    const auto& r_counterpart_info = it_counterpart_info->second;
+                const auto it_slave_info = rMasterSlaveDofMap->find(i_slave);
+                KRATOS_ERROR_IF(it_slave_info == it_mpc_end);
+                const auto& r_slave_info = it_slave_info->second;
 
-                    for (auto entry : r_counterpart_info.mContainingElements) {
-                        const Geometry<Node>& r_fine_geometry = std::get<0>(entry)->GetGeometry();
-                        const std::size_t i_coarse_vertex = std::get<1>(entry);
-                        const std::size_t i_node_dof = std::get<2>(entry);
+                for (auto entry : r_slave_info.mContainingElements) {
+                    const Geometry<Node>& r_fine_geometry = std::get<0>(entry)->GetGeometry();
+                    const std::size_t i_vertex = std::get<1>(entry);
+                    const std::size_t i_node_dof = std::get<2>(entry);
 
-                        std::vector<
-                            std::vector<std::pair<
-                                std::size_t,    // <== fine DoF index
-                                double          // <== fine DoF coefficient
-                            >>
-                        > restriction_coefficients;
-                        restriction_coefficients.reserve(4ul); // <== reserve assuming a tetrahedron (linear vertex count)
-                        GetNonzeroQuadraticCoefficients(r_fine_geometry.GetGeometryType(),
-                                                        std::back_inserter(restriction_coefficients));
-                        KRATOS_ERROR_IF_NOT(i_coarse_vertex < restriction_coefficients.size());
+                    std::vector<
+                        std::vector<std::pair<
+                            std::size_t,    // <== fine DoF index
+                            double          // <== fine DoF coefficient
+                        >>
+                    > restriction_coefficients;
+                    restriction_coefficients.reserve(4ul); // <== reserve assuming a tetrahedron (linear vertex count)
+                    GetNonzeroQuadraticCoefficients(r_fine_geometry.GetGeometryType(),
+                                                    std::back_inserter(restriction_coefficients));
+                    if (i_vertex < restriction_coefficients.size()) {
+                        KRATOS_ERROR_IF_NOT(i_vertex < restriction_coefficients.size());
 
-                        const auto& r_restriction_terms = restriction_coefficients[i_coarse_vertex];
-                        for (const auto& r_fine_coefficient_pair : r_restriction_terms) {
+                        const auto& r_restriction_terms = restriction_coefficients[i_vertex];
+
+                        // The first term always corresponds to the linear equivalent of the vertex,
+                        // which would not have an impact on the restricted stiffness under normal
+                        // circumstances, but Kratos takes a dangerous approach to enforcing MPCs.
+                        // Instead of removing rows and columns related to slave DoFs from the system,
+                        // an arbitrary nonzero value is placed on the main diagonal. If the first term
+                        // of slave DoFs is included in the restriction operator, this arbitrary nonzero
+                        // value will completely destroy the rows of the coarse system matrix related to
+                        // master DoFs.
+                        // ==> these first terms must be omitted from the restriction operator.
+                        std::size_t i_term = 1ul;
+
+                        for (; i_term<r_restriction_terms.size(); ++i_term) {
+                            const auto& r_fine_coefficient_pair = r_restriction_terms[i_term];
                             const std::size_t i_fine_vertex = r_fine_coefficient_pair.first;
                             const std::size_t i_fine_dof = r_fine_geometry[i_fine_vertex].GetDofs()[i_node_dof]->EquationId();
                             const auto restriction_coefficient = mpc_coefficient * r_fine_coefficient_pair.second;
                             rRestrictionMap.emplace(std::make_pair(i_coarse_dof, i_fine_dof), restriction_coefficient);
                             rInterpolationMap.emplace(std::make_pair(i_fine_dof, i_coarse_dof), restriction_coefficient);
                         }
-                    } // for entry in r_counterpart_info.mContainingElements
-                } // for counterpart_pair : r_mpc_pair.second.mCounterparts
-            } // for r_mpc_pair in rMasterSlaveDofMap.value()
-        } // if rMasterSlaveDofMap.has_value()
-    } // for entity in rModelPart
+                    } /* if (i_vertex < restriction_coefficients.size()) */ else {
+                        const auto restriction_coefficient = 0.5 * mpc_coefficient;
+                        rRestrictionMap.emplace(std::make_pair(i_coarse_dof, i_slave), restriction_coefficient);
+                        rInterpolationMap.emplace(std::make_pair(i_slave, i_coarse_dof), restriction_coefficient);
+                    }
+                } // for entry in r_slave_info.mContainingElements
+            } // for slave_pair : r_mpc_pair.second.mSlaves
+        } // for r_mpc_pair in rMasterSlaveDofMap.value()
+    } // if rMasterSlaveDofMap.has_value()
     KRATOS_CATCH("")
 }
 
@@ -631,15 +684,17 @@ void PolyHierarchicalSolver<TSparseSpace,TDenseSpace,TReorderer>::ProvideAdditio
 {
     KRATOS_TRY
     KRATOS_PROFILE_SCOPE(KRATOS_CODE_LOCATION);
+    const auto timer = BuiltinTimer();
 
     if (4 <= mpImpl->mVerbosity) {
+        KRATOS_INFO("PolyHierarchicalSolver") << "write system_matrix.mm\n";
         TSparseSpace::WriteMatrixMarketMatrix("system_matrix.mm", rA, false);
     }
 
     const std::size_t system_size = TSparseSpace::Size1(rA);
 
     // Construct restriction operator
-    KRATOS_INFO_IF("PolyhierarchicalSolver", 3 <= mpImpl->mVerbosity)
+    KRATOS_INFO_IF("PolyHierarchicalSolver", 3 <= mpImpl->mVerbosity)
         << ((!TSparseSpace::Size1(mpImpl->mRestrictionOperator) || !TSparseSpace::Size2(mpImpl->mRestrictionOperator)) ? "construct" : "reconstruct")
         << " restriction operator\n";
 
@@ -702,6 +757,21 @@ void PolyHierarchicalSolver<TSparseSpace,TDenseSpace,TReorderer>::ProvideAdditio
     typename TSparseSpace::MatrixType& r_interpolation_operator = mpImpl->mInterpolationOperator;
 
     {
+        // The restriction and interpolation operators are linear, so they can be stored in
+        // matrix format. In this case they are stored as sparse matrices, which compicates
+        // their construction somewhat. Entries are calculated by looping over elements and
+        // their nodes, which does not guarantee that DoFs are iterated in sorted order of
+        // their equation IDs (row indices of the restriction operator), and each DoF may
+        // be iterated over more than once. This poses a problem for the efficiency of
+        // filling the sparse matrices, so the construction is broken down into two stages:
+        // 1) collect the sparse matrix entries in a set, sorted in row-major order
+        // 2) insert entries to the sparse matrix from the set
+        std::map<
+            std::pair<std::size_t,std::size_t>,
+            double,
+            Detail::IndexPairTraits::IsLess
+        > restriction_map, interpolation_map;
+
         // Construct a map relating slave DoFs to their masters,
         // which effectively couples the corresponding basis functions'
         // support.
@@ -717,38 +787,32 @@ void PolyHierarchicalSolver<TSparseSpace,TDenseSpace,TReorderer>::ProvideAdditio
                 const std::size_t master_id = r_constraint.GetMasterDofsVector().front()->EquationId();
                 const std::size_t slave_id = r_constraint.GetSlaveDofsVector().front()->EquationId();
 
-                const double mpc_coefficient = 1.0; // @todo get the proper coefficient of the MPC relationship
+                MasterSlaveConstraint::MatrixType relation_matrix;
+                MasterSlaveConstraint::VectorType constants;
+                r_constraint.GetLocalSystem(relation_matrix, constants, rModelPart.GetProcessInfo());
+                const double mpc_coefficient = relation_matrix(0, 0);
+                //const double mpc_coefficient = 1.0; // @todo compute proper coefficient
 
                 if (mpc_coefficient) {
                     auto emplace_result = r_map.emplace(master_id, Detail::MasterSlaveDofMap::mapped_type {{{slave_id, 1.0}}, {}});
                     if (!emplace_result.second) {
                         auto& r_mpc_info = emplace_result.first->second;
-                        r_mpc_info.mCounterparts.emplace_back(slave_id, mpc_coefficient);
+                        KRATOS_ERROR_IF(r_mpc_info.mSlaves.empty())
+                            << "MPC " << r_constraint.Id() << " defines DoF "
+                            << master_id << " as a master, but another MPC already defined it as a slave\n";
+                        r_mpc_info.mSlaves.emplace_back(slave_id, mpc_coefficient);
                     }
 
-                    emplace_result = r_map.emplace(slave_id, Detail::MasterSlaveDofMap::mapped_type {{{master_id, 1.0}}, {}});
+                    emplace_result = r_map.emplace(slave_id, Detail::MasterSlaveDofMap::mapped_type());
                     if (!emplace_result.second) {
                         auto& r_mpc_info = emplace_result.first->second;
-                        r_mpc_info.mCounterparts.emplace_back(master_id, mpc_coefficient);
+                        KRATOS_ERROR_IF_NOT(r_mpc_info.mSlaves.empty())
+                            << "MPC " << r_constraint.Id() << " defines DoF "
+                            << slave_id << " as a slave, but another MPC already defined it as a master\n";
                     }
                 } // if mpc_coefficient
             } // for r_constraint in MasterSlaveConstraints
         } // if not MasterSlaveConstraint.empty()
-
-        // The restriction and interpolation operators are linear, so they can be stored in
-        // matrix format. In this case they are stored as sparse matrices, which compicates
-        // their construction somewhat. Entries are calculated by looping over elements and
-        // their nodes, which does not guarantee that DoFs are iterated in sorted order of
-        // their equation IDs (row indices of the restriction operator), and each DoF may
-        // be iterated over more than once. This poses a problem for the efficiency of
-        // filling the sparse matrices, so the construction is broken down into two stages:
-        // 1) collect the sparse matrix entries in a set, sorted in row-major order
-        // 2) insert entries to the sparse matrix from the set
-        std::map<
-            std::pair<std::size_t,std::size_t>,
-            double,
-            Detail::IndexPairTraits::IsLess
-        > restriction_map, interpolation_map;
 
         // Collect entries of the restriction operator's sparse matrix
         // from elements
@@ -800,7 +864,10 @@ void PolyHierarchicalSolver<TSparseSpace,TDenseSpace,TReorderer>::ProvideAdditio
     } // destruct restriction_map and interpolation_map
 
     if (4 <= mpImpl->mVerbosity) {
+        KRATOS_INFO("PolyHierarchicalSolver") << "write restriction_operator.mm\n";
         TSparseSpace::WriteMatrixMarketMatrix("restriction_operator.mm", mpImpl->mRestrictionOperator, false);
+
+        KRATOS_INFO("PolyHierarchicalSolver") << "write interpolation_operator.mm\n";
         TSparseSpace::WriteMatrixMarketMatrix("interpolation_operator.mm", mpImpl->mInterpolationOperator, false);
     }
 
@@ -825,7 +892,13 @@ void PolyHierarchicalSolver<TSparseSpace,TDenseSpace,TReorderer>::ProvideAdditio
                                                                 mpImpl->mCoarseSystem.mA);
 
         if (4 <= mpImpl->mVerbosity) {
+            KRATOS_INFO("PolyHierarchicalSolver") << "write coarse_system_matrix.mm\n";
             TSparseSpace::WriteMatrixMarketMatrix("coarse_system_matrix.mm", mpImpl->mCoarseSystem.mA, false);
+
+            KRATOS_INFO("PolyHierarchicalSolver") << "write coarse_rhs.mm\n";
+            typename TSparseSpace::VectorType coarse_rhs(masked_count);
+            TSparseSpace::Mult(mpImpl->mRestrictionOperator, rB, coarse_rhs);
+            TSparseSpace::WriteMatrixMarketVector("coarse_rhs.mm", coarse_rhs);
         }
     } // end profiling
 
@@ -870,6 +943,8 @@ void PolyHierarchicalSolver<TSparseSpace,TDenseSpace,TReorderer>::ProvideAdditio
                                                     rModelPart);
     }
 
+    KRATOS_INFO_IF("PolyHierarchicalSolver", 2 <= mpImpl->mVerbosity)
+        << "constructing coarse system took " << timer << "\n";
     KRATOS_CATCH("")
 }
 
