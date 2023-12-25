@@ -30,11 +30,9 @@
 #include "linear_solvers/direct_solver.h"
 #include "linear_solvers/skyline_lu_factorization_solver.h"
 #include "linear_solvers/skyline_lu_custom_scalar_solver.h"
-#include "linear_solvers/poly_hierarchical_solver.h"
 #include "linear_solvers/gauss_seidel_relaxation.h"
 #include "linear_solvers/scaling_solver.h"
 #include "linear_solvers/gcr_solver.h"
-#include "linear_solvers/hierarchical_solver.h"
 
 #include "linear_solvers/preconditioner.h"
 #include "linear_solvers/diagonal_preconditioner.h"
@@ -72,11 +70,9 @@ void  AddLinearSolversToPython(pybind11::module& m)
     typedef TFQMRSolver<SpaceType,  LocalSpaceType> TFQMRSolverType;
     typedef ScalingSolver<SpaceType,  LocalSpaceType> ScalingSolverType;
     typedef GcrSolver<SpaceType,  LocalSpaceType> GcrSolverType;
-    typedef HierarchicalSolver<SpaceType,  LocalSpaceType> HierarchicalSolverType;
     typedef PowerIterationEigenvalueSolver<SpaceType, LocalSpaceType, LinearSolverType> PowerIterationEigenvalueSolverType;
     typedef PowerIterationHighestEigenvalueSolver<SpaceType, LocalSpaceType, LinearSolverType> PowerIterationHighestEigenvalueSolverType;
     typedef RayleighQuotientIterationEigenvalueSolver<SpaceType, LocalSpaceType, LinearSolverType> RayleighQuotientIterationEigenvalueSolverType;
-    typedef PolyHierarchicalSolver<SpaceType,LocalSpaceType> PolyHierarchicalSolverType;
     typedef GaussSeidelRelaxation<SpaceType,LocalSpaceType> GaussSeidelSolverType;
 
     typedef TLinearSolverType<std::complex<double>, std::complex<double>> ComplexLinearSolverType;
@@ -188,12 +184,6 @@ void  AddLinearSolversToPython(pybind11::module& m)
     .def(py::init<Parameters>())
     ;
 
-    py::class_<HierarchicalSolverType, HierarchicalSolverType::Pointer,IterativeSolverType>(m,"HierarchicalSolver")
-    //.def("__str__", PrintObject<HierarchicalSolverType>)
-    //.def(py::init<Parameters>())
-    //.def("SetTolerance",&HierarchicalSolverType::SetTolerance)
-    ;
-
     py::class_<PowerIterationEigenvalueSolverType, PowerIterationEigenvalueSolverType::Pointer, LinearSolverType>(m,"PowerIterationEigenvalueSolver")
     .def(py::init<double, unsigned int, unsigned int, LinearSolverType::Pointer>())
     .def(py::init<Parameters, LinearSolverType::Pointer>())
@@ -208,10 +198,6 @@ void  AddLinearSolversToPython(pybind11::module& m)
     .def(py::init<double, unsigned int, unsigned int, LinearSolverType::Pointer, double>())
     .def(py::init<Parameters, LinearSolverType::Pointer>())
     ;
-
-    py::class_<PolyHierarchicalSolverType, PolyHierarchicalSolverType::Pointer, LinearSolverType>(m, "PolyHierarchicalSolver")
-        .def(py::init<Parameters>())
-        ;
 
     py::class_<GaussSeidelSolverType, GaussSeidelSolverType::Pointer, LinearSolverType>(m, "GaussSeidelRelaxation")
         .def(py::init<Parameters>())

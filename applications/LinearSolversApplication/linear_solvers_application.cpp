@@ -16,11 +16,12 @@
 #include "factories/standard_linear_solver_factory.h"
 #include "custom_factories/dense_linear_solver_factory.h"
 
+#include "custom_solvers/amgcl_raw_solver.h"
 #include "custom_solvers/eigen_sparse_cg_solver.h"
 #include "custom_solvers/eigen_sparse_lu_solver.h"
 #include "custom_solvers/eigen_sparse_qr_solver.h"
 #include "custom_solvers/eigen_direct_solver.h"
-#include "custom_solvers/amgcl_raw_solver.h"
+#include "custom_solvers/hierarchical_solver.h"
 
 #if defined USE_EIGEN_MKL
 #include "custom_solvers/eigen_pardiso_lu_solver.h"
@@ -70,6 +71,13 @@ void KratosLinearSolversApplication::Register()
         TUblasDenseSpace<double>,
         AMGCLRawSolver<TUblasSparseSpace<double>,TUblasDenseSpace<double>>>();
     KRATOS_REGISTER_LINEAR_SOLVER("amgcl_raw", AMGCLRawSolverFactory);
+
+    // Sparse hierarchical solver
+    static auto HierarchicalSolverFactory = StandardLinearSolverFactory<
+        TUblasSparseSpace<double>,
+        TUblasDenseSpace<double>,
+        HierarchicalSolver<TUblasSparseSpace<double>,TUblasDenseSpace<double>>>();
+    KRATOS_REGISTER_LINEAR_SOLVER("hierarchical", HierarchicalSolverFactory);
 
 #if defined USE_EIGEN_MKL
 

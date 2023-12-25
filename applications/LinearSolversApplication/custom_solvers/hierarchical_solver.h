@@ -26,12 +26,12 @@ namespace Kratos {
 template<class TSparseSpace,
          class TDenseSpace,
          class TReorderer = Reorderer<TSparseSpace, TDenseSpace> >
-class PolyHierarchicalSolver final : public LinearSolver<TSparseSpace,
-                                                       TDenseSpace,
-                                                       TReorderer>
+class HierarchicalSolver final : public LinearSolver<TSparseSpace,
+                                                     TDenseSpace,
+                                                     TReorderer>
 {
 public:
-    KRATOS_CLASS_POINTER_DEFINITION(PolyHierarchicalSolver);
+    KRATOS_CLASS_POINTER_DEFINITION(HierarchicalSolver);
 
     using Base =  LinearSolver<TSparseSpace, TDenseSpace, TReorderer>;
 
@@ -41,11 +41,13 @@ public:
 
     using DenseMatrix = typename TDenseSpace::MatrixType;
 
-    PolyHierarchicalSolver(Parameters rParameters);
+    HierarchicalSolver();
 
-    PolyHierarchicalSolver(PolyHierarchicalSolver&&) noexcept = default;
+    HierarchicalSolver(Parameters rParameters);
 
-    ~PolyHierarchicalSolver() override;
+    HierarchicalSolver(HierarchicalSolver&&) noexcept = default;
+
+    ~HierarchicalSolver() override;
 
     /// @copydoc LinearSolver::Solve
     bool Solve(SparseMatrix& rA, Vector& rX, Vector& rB) override;
@@ -77,33 +79,32 @@ public:
     static Parameters GetDefaultParameters();
 
 private:
-    PolyHierarchicalSolver(const PolyHierarchicalSolver& Other) = delete;
+    HierarchicalSolver(const HierarchicalSolver& Other) = delete;
 
     struct Impl;
     std::unique_ptr<Impl> mpImpl;
-}; // class PolyHierarchicalSolver
+}; // class HierarchicalSolver
 
 
 template<class TSparseSpace, class TDenseSpace,class TReorderer>
-inline std::istream& operator >> (std::istream& rIStream, PolyHierarchicalSolver< TSparseSpace,
-                                  TDenseSpace, TReorderer>& rThis)
+std::istream& operator >> (std::istream& rStream,
+                           HierarchicalSolver< TSparseSpace,TDenseSpace,TReorderer>& rSolver)
 {
-    return rIStream;
+    KRATOS_ERROR << "deserializing a HierarchicalSolver from a string stream is not supported";
+    return rStream;
 }
 
 /**
  * output stream function
  */
 template<class TSparseSpace, class TDenseSpace, class TReorderer>
-inline std::ostream& operator << (std::ostream& rOStream,
-                                  const PolyHierarchicalSolver<TSparseSpace,
-                                  TDenseSpace, TReorderer>& rThis)
+std::ostream& operator << (std::ostream& rStream,
+                           const HierarchicalSolver<TSparseSpace,TDenseSpace,TReorderer>& rSolver)
 {
-    rThis.PrintInfo(rOStream);
-    rOStream << std::endl;
-    rThis.PrintData(rOStream);
-
-    return rOStream;
+    rSolver.PrintInfo(rStream);
+    rStream << "\n";
+    rSolver.PrintData(rStream);
+    return rStream;
 }
 
 }  // namespace Kratos

@@ -28,10 +28,8 @@
 #include "linear_solvers/scaling_solver.h"
 #include "linear_solvers/monotonicity_preserving_solver.h"
 #include "linear_solvers/skyline_lu_custom_scalar_solver.h"
-#include "linear_solvers/poly_hierarchical_solver.h"
 #include "linear_solvers/gauss_seidel_relaxation.h"
 #include "linear_solvers/gcr_solver.h"
-#include "linear_solvers/hierarchical_solver.h"
 #include "spaces/ublas_space.h"
 
 namespace Kratos
@@ -52,14 +50,12 @@ namespace Kratos
         typedef AMGCLSolver<SpaceType,  LocalSpaceType> AMGCLSolverType;
         typedef AMGCL_NS_Solver<SpaceType,  LocalSpaceType> AMGCL_NS_SolverType;
         typedef SkylineLUCustomScalarSolver<ComplexSpaceType, ComplexLocalSpaceType> SkylineLUComplexSolverType;
-        typedef PolyHierarchicalSolver<SpaceType,LocalSpaceType> PolyHierarchicalSolverType;
         typedef GaussSeidelRelaxation<SpaceType,LocalSpaceType> GaussSeidelSolverType;
 
         typedef ScalingSolver<SpaceType,  LocalSpaceType> ScalingSolverType;
         typedef MonotonicityPreservingSolver<SpaceType,  LocalSpaceType> MonotonicityPreservingSolverType;
 
         typedef GcrSolver<SpaceType,  LocalSpaceType> GcrSolverType;
-        typedef HierarchicalSolver<SpaceType,  LocalSpaceType> HierarchicalSolverType;
 
         //NOTE: here we must create persisting objects for the linear solvers
         static auto CGSolverFactory = StandardLinearSolverFactory<SpaceType,LocalSpaceType,CGSolverType>();
@@ -71,11 +67,9 @@ namespace Kratos
         static auto AMGCL_NS_SolverFactory= StandardLinearSolverFactory<SpaceType,LocalSpaceType,AMGCL_NS_SolverType>();
         static auto ScalingSolverFactory= StandardLinearSolverFactory<SpaceType,LocalSpaceType,ScalingSolverType>();
         static auto MonotonicityPreservingSolverFactory= StandardLinearSolverFactory<SpaceType,LocalSpaceType,MonotonicityPreservingSolverType>();
-        static auto PolyHierarchicalSolverFactory = StandardLinearSolverFactory<SpaceType,LocalSpaceType,PolyHierarchicalSolverType>();
         static auto GaussSeidelSolverFactory = StandardLinearSolverFactory<SpaceType,LocalSpaceType,GaussSeidelSolverType>();
         static auto SkylineLUComplexSolverFactory = StandardLinearSolverFactory<ComplexSpaceType, ComplexLocalSpaceType, SkylineLUComplexSolverType>();
         const static auto GcrLinearSolverFactory = StandardLinearSolverFactory<SpaceType, LocalSpaceType, GcrSolverType>();
-        const static auto HierarchicalLinearSolverFactory = StandardLinearSolverFactory<SpaceType, LocalSpaceType, HierarchicalSolverType>();
 
         //registration of linear solvers
 //         KRATOS_REGISTER_LINEAR_SOLVER("LinearSolver", StandardLinearSolverFactory<SpaceType,LocalSpaceType,LinearSolverType>());
@@ -88,10 +82,8 @@ namespace Kratos
         KRATOS_REGISTER_LINEAR_SOLVER("amgcl_ns",AMGCL_NS_SolverFactory );
         KRATOS_REGISTER_LINEAR_SOLVER("scaling",ScalingSolverFactory );
         KRATOS_REGISTER_LINEAR_SOLVER("monotonicity_preserving",MonotonicityPreservingSolverFactory );
-        KRATOS_REGISTER_LINEAR_SOLVER("poly_hierarchical", PolyHierarchicalSolverFactory);
         KRATOS_REGISTER_LINEAR_SOLVER("gauss_seidel", GaussSeidelSolverFactory);
         KRATOS_REGISTER_LINEAR_SOLVER("gcr", GcrLinearSolverFactory);
-        KRATOS_REGISTER_LINEAR_SOLVER("hierarchical_solver", HierarchicalLinearSolverFactory);
         KRATOS_REGISTER_COMPLEX_LINEAR_SOLVER("skyline_lu_complex", SkylineLUComplexSolverFactory);
 
     };

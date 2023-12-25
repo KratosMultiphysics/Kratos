@@ -11,7 +11,7 @@
 //
 
 // Project includes
-#include "poly_hierarchical_solver.h"
+#include "hierarchical_solver.h"
 #include "includes/code_location.h"
 #include "includes/global_variables.h"
 #include "spaces/ublas_space.h"
@@ -111,7 +111,7 @@ private:
 template <class TSparseSpace,
           class TDenseSpace,
           class TReorderer>
-struct PolyHierarchicalSolver<TSparseSpace,TDenseSpace,TReorderer>::Impl
+struct HierarchicalSolver<TSparseSpace,TDenseSpace,TReorderer>::Impl
 {
     double mTolerance;
 
@@ -130,34 +130,44 @@ struct PolyHierarchicalSolver<TSparseSpace,TDenseSpace,TReorderer>::Impl
 
         typename LinearSolver<TSparseSpace,TDenseSpace/*reorderer is omitted on purpose*/>::Pointer mpSolver;
     } mCoarseSystem;
-}; // struct PolyHierarchicalSolver::Impl
+}; // struct HierarchicalSolver::Impl
 
 
 
 template<class TSparseSpace,
          class TDenseSpace,
          class TReorderer>
-PolyHierarchicalSolver<TSparseSpace,TDenseSpace,TReorderer>::PolyHierarchicalSolver(Parameters parameters)
+HierarchicalSolver<TSparseSpace,TDenseSpace,TReorderer>::HierarchicalSolver()
+    : HierarchicalSolver(HierarchicalSolver::GetDefaultParameters())
+{
+}
+
+
+
+template<class TSparseSpace,
+         class TDenseSpace,
+         class TReorderer>
+HierarchicalSolver<TSparseSpace,TDenseSpace,TReorderer>::HierarchicalSolver(Parameters parameters)
     : mpImpl(new Impl)
 {
     KRATOS_TRY
-    Parameters default_parameters = this->GetDefaultParameters();
+    Parameters default_parameters = HierarchicalSolver::GetDefaultParameters();
     parameters.ValidateAndAssignDefaults(default_parameters);
 
-    KRATOS_ERROR_IF_NOT(parameters["solver_type"].GetString() == "poly_hierarchical")
+    KRATOS_ERROR_IF_NOT(parameters["solver_type"].GetString() == "hierarchical")
         << "Requested a(n) '" << parameters["solver_type"].GetString() << "' solver,"
-        << " but constructing an PolyHierarchicalSolver";
+        << " but constructing a HierarchicalSolver";
 
     detail::ParametersWithDefaults safe_parameters(parameters, default_parameters);
     mpImpl->mTolerance = safe_parameters["tolerance"].Get<double>();
     mpImpl->mVerbosity = safe_parameters["verbosity"].Get<int>();
     mpImpl->mMaxIterations = safe_parameters["max_iterations"].Get<int>();
 
-    // Construct subsolvers
+    // Construct nested solvers
     KRATOS_TRY
     LinearSolverFactory<TSparseSpace,TDenseSpace> solver_factory;
-    mpImpl->mCoarseSystem.mpSolver = solver_factory.Create(safe_parameters["coarse_settings"].GetInput());
-    mpImpl->mpFineSolver = solver_factory.Create(safe_parameters["fine_settings"].GetInput());
+    mpImpl->mCoarseSystem.mpSolver = solver_factory.Create(safe_parameters["coarse_solver_settings"].GetInput());
+    mpImpl->mpFineSolver = solver_factory.Create(safe_parameters["fine_solver_settings"].GetInput());
     KRATOS_CATCH("")
 
     KRATOS_CATCH("")
@@ -169,7 +179,7 @@ PolyHierarchicalSolver<TSparseSpace,TDenseSpace,TReorderer>::PolyHierarchicalSol
 template<class TSparseSpace,
          class TDenseSpace,
          class TReorderer>
-PolyHierarchicalSolver<TSparseSpace,TDenseSpace,TReorderer>::~PolyHierarchicalSolver()
+HierarchicalSolver<TSparseSpace,TDenseSpace,TReorderer>::~HierarchicalSolver()
 {
 }
 
@@ -178,16 +188,12 @@ PolyHierarchicalSolver<TSparseSpace,TDenseSpace,TReorderer>::~PolyHierarchicalSo
 template<class TSparseSpace,
          class TDenseSpace,
          class TReorderer>
-bool PolyHierarchicalSolver<TSparseSpace,TDenseSpace,TReorderer>::Solve(SparseMatrix& rA,
-                                                                        Vector& rX,
-                                                                        Vector& rB)
+bool HierarchicalSolver<TSparseSpace,TDenseSpace,TReorderer>::Solve(SparseMatrix& rA,
+                                                                    Vector& rX,
+                                                                    Vector& rB)
 {
     KRATOS_TRY
     KRATOS_PROFILE_SCOPE(KRATOS_CODE_LOCATION);
-
-    //if (4 <= mpImpl->mVerbosity) {
-    //    KRATOS_ERROR << "verbosity >=4 prints system matrices and terminates\n";
-    //}
 
     // Declarations
     const std::size_t coarse_size = TSparseSpace::Size1(mpImpl->mRestrictionOperator);
@@ -233,7 +239,7 @@ bool PolyHierarchicalSolver<TSparseSpace,TDenseSpace,TReorderer>::Solve(SparseMa
         //fine_residual -= fine_tmp;
         TSparseSpace::UnaliasedAdd(fine_residual, -1.0, fine_tmp);
 
-        KRATOS_INFO_IF("PolyHierarchicalSolver", 3 <= mpImpl->mVerbosity)
+        KRATOS_INFO_IF("HierarchicalSolver", 3 <= mpImpl->mVerbosity)
             << "iteration " << i_iteration
             << " residual after coarse preconditioning "
             << TSparseSpace::TwoNorm(fine_residual) / rhs_norm
@@ -256,7 +262,7 @@ bool PolyHierarchicalSolver<TSparseSpace,TDenseSpace,TReorderer>::Solve(SparseMa
 
         // Update status
         residual_norm = TSparseSpace::TwoNorm(fine_residual) / rhs_norm;
-        KRATOS_INFO_IF("PolyHierarchicalSolver", 1 <= mpImpl->mVerbosity)
+        KRATOS_INFO_IF("HierarchicalSolver", 1 <= mpImpl->mVerbosity)
             << "iteration " << i_iteration
             << " residual " << residual_norm << "\n";
 
@@ -264,7 +270,7 @@ bool PolyHierarchicalSolver<TSparseSpace,TDenseSpace,TReorderer>::Solve(SparseMa
         if (residual_norm < mpImpl->mTolerance || max_iterations <= ++i_iteration) {
             break;
         }
-    }
+    } // while (true)
 
     return residual_norm < mpImpl->mTolerance;
     KRATOS_CATCH("")
@@ -649,7 +655,7 @@ void MapHigherToLowerOrder(const ModelPart& rModelPart,
                             const auto& r_fine_coefficient_pair = r_restriction_terms[i_term];
                             const std::size_t i_fine_vertex = r_fine_coefficient_pair.first;
                             const std::size_t i_fine_dof = r_fine_geometry[i_fine_vertex].GetDofs()[i_node_dof]->EquationId();
-                            const auto restriction_coefficient = mpc_coefficient * r_fine_coefficient_pair.second;
+                            const auto restriction_coefficient = r_fine_coefficient_pair.second / mpc_coefficient;
                             rRestrictionMap.emplace(std::make_pair(i_coarse_dof, i_fine_dof), restriction_coefficient);
                         }
                     } /* if (i_vertex < restriction_coefficients.size()) */ else {
@@ -668,7 +674,7 @@ void MapHigherToLowerOrder(const ModelPart& rModelPart,
 template<class TSparseSpace,
          class TDenseSpace,
          class TReorderer>
-void PolyHierarchicalSolver<TSparseSpace,TDenseSpace,TReorderer>::ProvideAdditionalData(SparseMatrix& rA,
+void HierarchicalSolver<TSparseSpace,TDenseSpace,TReorderer>::ProvideAdditionalData(SparseMatrix& rA,
                                                                                         Vector& rX,
                                                                                         Vector& rB,
                                                                                         ModelPart::DofsArrayType& rDofs,
@@ -679,14 +685,14 @@ void PolyHierarchicalSolver<TSparseSpace,TDenseSpace,TReorderer>::ProvideAdditio
     const auto timer = BuiltinTimer();
 
     if (4 <= mpImpl->mVerbosity) {
-        KRATOS_INFO("PolyHierarchicalSolver") << "write system_matrix.mm\n";
+        KRATOS_INFO("HierarchicalSolver") << "write system_matrix.mm\n";
         TSparseSpace::WriteMatrixMarketMatrix("system_matrix.mm", rA, false);
     }
 
     const std::size_t system_size = TSparseSpace::Size1(rA);
 
     // Construct restriction operator
-    KRATOS_INFO_IF("PolyHierarchicalSolver", 3 <= mpImpl->mVerbosity)
+    KRATOS_INFO_IF("HierarchicalSolver", 3 <= mpImpl->mVerbosity)
         << ((!TSparseSpace::Size1(mpImpl->mRestrictionOperator) || !TSparseSpace::Size2(mpImpl->mRestrictionOperator)) ? "construct" : "reconstruct")
         << " restriction operator\n";
 
@@ -732,7 +738,7 @@ void PolyHierarchicalSolver<TSparseSpace,TDenseSpace,TReorderer>::ProvideAdditio
                 coarse_dof_indices[i_mask] = masked_count++;
             }
         }
-    } else {
+    } /* if CoarseSolver.AdditionalPhysicalDataIsNeeded */ else {
         // Fill the fine => coarse DoF index map
         for (std::size_t i_mask=0; i_mask<system_size; ++i_mask) {
             if (coarse_mask[i_mask]) {
@@ -741,7 +747,7 @@ void PolyHierarchicalSolver<TSparseSpace,TDenseSpace,TReorderer>::ProvideAdditio
         }
     }
 
-    KRATOS_INFO_IF("PolyHierarchicalSolver", 1 <= mpImpl->mVerbosity)
+    KRATOS_INFO_IF("HierarchicalSolver", 1 <= mpImpl->mVerbosity)
         << "coarse system size: " << masked_count << "\n";
 
     // Compute the restriction operator and the interpolation operator (transpose of the restriction)
@@ -750,7 +756,7 @@ void PolyHierarchicalSolver<TSparseSpace,TDenseSpace,TReorderer>::ProvideAdditio
 
     {
         // The restriction and interpolation operators are linear, so they can be stored in
-        // matrix format. In this case they are stored as sparse matrices, which compicates
+        // matrix format. In this case they are stored as sparse matrices, which complicates
         // their construction somewhat. Entries are calculated by looping over elements and
         // their nodes, which does not guarantee that DoFs are iterated in sorted order of
         // their equation IDs (row indices of the restriction operator), and each DoF may
@@ -846,10 +852,10 @@ void PolyHierarchicalSolver<TSparseSpace,TDenseSpace,TReorderer>::ProvideAdditio
     } // destroy restriction_map
 
     if (4 <= mpImpl->mVerbosity) {
-        KRATOS_INFO("PolyHierarchicalSolver") << "write restriction_operator.mm\n";
+        KRATOS_INFO("HierarchicalSolver") << "write restriction_operator.mm\n";
         TSparseSpace::WriteMatrixMarketMatrix("restriction_operator.mm", mpImpl->mRestrictionOperator, false);
 
-        KRATOS_INFO("PolyHierarchicalSolver") << "write interpolation_operator.mm\n";
+        KRATOS_INFO("HierarchicalSolver") << "write interpolation_operator.mm\n";
         TSparseSpace::WriteMatrixMarketMatrix("interpolation_operator.mm", mpImpl->mInterpolationOperator, false);
     }
 
@@ -874,10 +880,10 @@ void PolyHierarchicalSolver<TSparseSpace,TDenseSpace,TReorderer>::ProvideAdditio
                                                                 mpImpl->mCoarseSystem.mA);
 
         if (4 <= mpImpl->mVerbosity) {
-            KRATOS_INFO("PolyHierarchicalSolver") << "write coarse_system_matrix.mm\n";
+            KRATOS_INFO("HierarchicalSolver") << "write coarse_system_matrix.mm\n";
             TSparseSpace::WriteMatrixMarketMatrix("coarse_system_matrix.mm", mpImpl->mCoarseSystem.mA, false);
 
-            KRATOS_INFO("PolyHierarchicalSolver") << "write coarse_rhs.mm\n";
+            KRATOS_INFO("HierarchicalSolver") << "write coarse_rhs.mm\n";
             typename TSparseSpace::VectorType coarse_rhs(masked_count);
             TSparseSpace::Mult(mpImpl->mRestrictionOperator, rB, coarse_rhs);
             TSparseSpace::WriteMatrixMarketVector("coarse_rhs.mm", coarse_rhs);
@@ -925,7 +931,7 @@ void PolyHierarchicalSolver<TSparseSpace,TDenseSpace,TReorderer>::ProvideAdditio
                                                     rModelPart);
     }
 
-    KRATOS_INFO_IF("PolyHierarchicalSolver", 2 <= mpImpl->mVerbosity)
+    KRATOS_INFO_IF("HierarchicalSolver", 2 <= mpImpl->mVerbosity)
         << "constructing coarse system took " << timer << "\n";
     KRATOS_CATCH("")
 }
@@ -936,16 +942,23 @@ template<class TSparseSpace,
          class TDenseSpace,
          class TReorderer>
 Parameters
-PolyHierarchicalSolver<TSparseSpace,TDenseSpace,TReorderer>::GetDefaultParameters()
+HierarchicalSolver<TSparseSpace,TDenseSpace,TReorderer>::GetDefaultParameters()
 {
     return Parameters(R"(
 {
-    "solver_type" : "poly_hierarchical",
+    "solver_type" : "hierarchical",
     "verbosity" : 0,
     "max_iterations" : 50,
     "tolerance" : 1e-6,
-    "coarse_settings" : {},
-    "fine_settings" : {}
+    "coarse_solver_settings" : {
+        "solver_type" : "cg",
+        "max_iteration" : 50,
+        "tolerance" : 2e-1
+    },
+    "fine_solver_settings" : {
+        "solver_type" : "gauss_seidel",
+        "max_iterations" : 3
+    }
 }
     )");
 }
@@ -954,7 +967,7 @@ PolyHierarchicalSolver<TSparseSpace,TDenseSpace,TReorderer>::GetDefaultParameter
 template<class TSparseSpace,
          class TDenseSpace,
          class TReorderer>
-bool PolyHierarchicalSolver<TSparseSpace,TDenseSpace,TReorderer>::Solve(SparseMatrix& rA,
+bool HierarchicalSolver<TSparseSpace,TDenseSpace,TReorderer>::Solve(SparseMatrix& rA,
                                                                         DenseMatrix& rX,
                                                                         DenseMatrix& rB)
 {
@@ -965,16 +978,16 @@ bool PolyHierarchicalSolver<TSparseSpace,TDenseSpace,TReorderer>::Solve(SparseMa
 template<class TSparseSpace,
          class TDenseSpace,
          class TReorderer>
-void PolyHierarchicalSolver<TSparseSpace,TDenseSpace,TReorderer>::PrintInfo(std::ostream& rStream) const
+void HierarchicalSolver<TSparseSpace,TDenseSpace,TReorderer>::PrintInfo(std::ostream& rStream) const
 {
-    rStream << "PolyHierarchicalSolver";
+    rStream << "HierarchicalSolver";
 }
 
 
 template<class TSparseSpace,
          class TDenseSpace,
          class TReorderer>
-void PolyHierarchicalSolver<TSparseSpace,TDenseSpace,TReorderer>::PrintData(std::ostream& rStream) const
+void HierarchicalSolver<TSparseSpace,TDenseSpace,TReorderer>::PrintData(std::ostream& rStream) const
 {
     rStream
         << "tolerance     : " << mpImpl->mTolerance << "\n"
@@ -986,7 +999,7 @@ void PolyHierarchicalSolver<TSparseSpace,TDenseSpace,TReorderer>::PrintData(std:
 
 
 template
-class PolyHierarchicalSolver<
+class HierarchicalSolver<
     TUblasSparseSpace<double>,
     TUblasDenseSpace<double>,
     Reorderer<
