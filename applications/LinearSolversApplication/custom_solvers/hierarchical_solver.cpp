@@ -272,6 +272,11 @@ bool HierarchicalSolver<TSparseSpace,TDenseSpace,TReorderer>::Solve(SparseMatrix
         }
     } // while (true)
 
+    if (4 <= mpImpl->mVerbosity) {
+        KRATOS_INFO("HierarchicalSolver") << "writing solution.mm\n";
+        TSparseSpace::WriteMatrixMarketVector("solution.mm", rX);
+    }
+
     return residual_norm < mpImpl->mTolerance;
     KRATOS_CATCH("")
 }
@@ -655,7 +660,7 @@ void MapHigherToLowerOrder(const ModelPart& rModelPart,
                             const auto& r_fine_coefficient_pair = r_restriction_terms[i_term];
                             const std::size_t i_fine_vertex = r_fine_coefficient_pair.first;
                             const std::size_t i_fine_dof = r_fine_geometry[i_fine_vertex].GetDofs()[i_node_dof]->EquationId();
-                            const auto restriction_coefficient = r_fine_coefficient_pair.second / mpc_coefficient;
+                            const auto restriction_coefficient = r_fine_coefficient_pair.second * mpc_coefficient;
                             rRestrictionMap.emplace(std::make_pair(i_coarse_dof, i_fine_dof), restriction_coefficient);
                         }
                     } /* if (i_vertex < restriction_coefficients.size()) */ else {
@@ -687,6 +692,9 @@ void HierarchicalSolver<TSparseSpace,TDenseSpace,TReorderer>::ProvideAdditionalD
     if (4 <= mpImpl->mVerbosity) {
         KRATOS_INFO("HierarchicalSolver") << "write system_matrix.mm\n";
         TSparseSpace::WriteMatrixMarketMatrix("system_matrix.mm", rA, false);
+
+        KRATOS_INFO("HierarchicalSolver") << "write rhs.mm\n";
+        TSparseSpace::WriteMatrixMarketVector("rhs.mm", rB);
     }
 
     const std::size_t system_size = TSparseSpace::Size1(rA);
@@ -792,7 +800,7 @@ void HierarchicalSolver<TSparseSpace,TDenseSpace,TReorderer>::ProvideAdditionalD
                 //const double mpc_coefficient = 1.0; // @todo compute proper coefficient
 
                 if (mpc_coefficient) {
-                    auto emplace_result = r_map.emplace(master_id, Detail::MasterSlaveDofMap::mapped_type {{{slave_id, 1.0}}, {}});
+                    auto emplace_result = r_map.emplace(master_id, Detail::MasterSlaveDofMap::mapped_type {{{slave_id, mpc_coefficient}}, {}});
                     if (!emplace_result.second) {
                         auto& r_mpc_info = emplace_result.first->second;
                         KRATOS_ERROR_IF(r_mpc_info.mSlaves.empty())
@@ -968,8 +976,8 @@ template<class TSparseSpace,
          class TDenseSpace,
          class TReorderer>
 bool HierarchicalSolver<TSparseSpace,TDenseSpace,TReorderer>::Solve(SparseMatrix& rA,
-                                                                        DenseMatrix& rX,
-                                                                        DenseMatrix& rB)
+                                                                    DenseMatrix& rX,
+                                                                    DenseMatrix& rB)
 {
     return false;
 }
