@@ -314,7 +314,7 @@ void GetLowerOrderDofs(typename TSparseSpace::MatrixType& rA,
             // Mark each DoF of all nodes on the equivalent lower order element
             // unless they are constrained as slave dofs in multi-point constraints
             for (std::size_t i_node=0ul; i_node<coarse_node_count; ++i_node) {
-                //if (!r_geometry[i_node].Is(SLAVE)) {
+                if (!r_geometry[i_node].Is(SLAVE)) {
                     const auto& r_node_dofs = r_geometry[i_node].GetDofs();
                     for (const auto& rp_dof : r_node_dofs) {
                         const std::size_t i_fine_dof = rp_dof->EquationId();
@@ -323,7 +323,7 @@ void GetLowerOrderDofs(typename TSparseSpace::MatrixType& rA,
                         // Flag the DoF as part of the coarse system
                         rCoarseMask[i_fine_dof] = true;
                     }
-                //} // if the node is not flagged SLAVE
+                } // if the node is not flagged SLAVE
             }
         } // if (r_entity.IsActive())
     } // for entity in rModelPart
@@ -508,12 +508,7 @@ void MapHigherToLowerOrder(const ModelPart& rModelPart,
                                 std::pair<std::size_t,std::size_t>,
                                 double,
                                 Detail::IndexPairTraits::IsLess
-                           >& rRestrictionMap,
-                           std::map<
-                                std::pair<std::size_t,std::size_t>,
-                                double,
-                                Detail::IndexPairTraits::IsLess
-                           >& rInterpolationMap)
+                           >& rRestrictionMap)
 {
     KRATOS_PROFILE_SCOPE(KRATOS_CODE_LOCATION);
     KRATOS_TRY
@@ -563,7 +558,6 @@ void MapHigherToLowerOrder(const ModelPart& rModelPart,
                             const std::size_t i_coarse_dof = rCoarseDofMap[i_coarse_dof_in_fine_system];
                             const std::size_t i_fine_dof = r_fine_node_dofs[i_node_dof]->EquationId();
                             rRestrictionMap.emplace(std::make_pair(i_coarse_dof, i_fine_dof), r_fine_coefficient_pair.second);
-                            rInterpolationMap.emplace(std::make_pair(i_fine_dof, i_coarse_dof), r_fine_coefficient_pair.second);
                         } // if rCoarseDofMask[i_coarse_dof_in_fine_system]
 
                         // Check whether the coarse DoF participates in an MPC, and record
@@ -657,12 +651,10 @@ void MapHigherToLowerOrder(const ModelPart& rModelPart,
                             const std::size_t i_fine_dof = r_fine_geometry[i_fine_vertex].GetDofs()[i_node_dof]->EquationId();
                             const auto restriction_coefficient = mpc_coefficient * r_fine_coefficient_pair.second;
                             rRestrictionMap.emplace(std::make_pair(i_coarse_dof, i_fine_dof), restriction_coefficient);
-                            rInterpolationMap.emplace(std::make_pair(i_fine_dof, i_coarse_dof), restriction_coefficient);
                         }
                     } /* if (i_vertex < restriction_coefficients.size()) */ else {
                         const auto restriction_coefficient = 0.5 * mpc_coefficient;
                         rRestrictionMap.emplace(std::make_pair(i_coarse_dof, i_slave), restriction_coefficient);
-                        rInterpolationMap.emplace(std::make_pair(i_slave, i_coarse_dof), restriction_coefficient);
                     }
                 } // for entry in r_slave_info.mContainingElements
             } // for slave_pair : r_mpc_pair.second.mSlaves
@@ -770,7 +762,7 @@ void PolyHierarchicalSolver<TSparseSpace,TDenseSpace,TReorderer>::ProvideAdditio
             std::pair<std::size_t,std::size_t>,
             double,
             Detail::IndexPairTraits::IsLess
-        > restriction_map, interpolation_map;
+        > restriction_map;
 
         // Construct a map relating slave DoFs to their masters,
         // which effectively couples the corresponding basis functions'
@@ -820,8 +812,7 @@ void PolyHierarchicalSolver<TSparseSpace,TDenseSpace,TReorderer>::ProvideAdditio
                                                               master_slave_dof_map,
                                                               coarse_mask,
                                                               coarse_dof_indices,
-                                                              restriction_map,
-                                                              interpolation_map);
+                                                              restriction_map);
 
         // Conditions shouldn't introduce coarse DoFs, but I'll leave this
         // here for the time being in case I'm missing some exotic boundary
@@ -831,8 +822,7 @@ void PolyHierarchicalSolver<TSparseSpace,TDenseSpace,TReorderer>::ProvideAdditio
         //MapHigherToLowerOrder<Globals::DataLocation::Condition>(rModelPart,
         //                                                        master_slave_dof_map,
         //                                                        coarse_dof_indices,
-        //                                                        restriction_map,
-        //                                                        interpolation_map);
+        //                                                        restriction_map);
 
         {
             KRATOS_PROFILE_SCOPE(KRATOS_CODE_LOCATION);
@@ -850,18 +840,10 @@ void PolyHierarchicalSolver<TSparseSpace,TDenseSpace,TReorderer>::ProvideAdditio
             }
             r_restriction_operator.complete_index1_data();
 
-            TSparseSpace::Resize(r_interpolation_operator,
-                                 system_size,
-                                 masked_count);
-            for (auto pair : interpolation_map) {
-                const std::size_t i_row = pair.first.first;
-                const std::size_t i_column = pair.first.second;
-                const double value = pair.second;
-                r_interpolation_operator.insert_element(i_row, i_column, value);
-            }
-            r_interpolation_operator.complete_index1_data();
+            // The (approximate) interpolation operator is the transpose of the restriction operator
+            SparseMatrixMultiplicationUtility::TransposeMatrix(r_interpolation_operator, r_restriction_operator, 1.0);
         } // end profiling
-    } // destruct restriction_map and interpolation_map
+    } // destroy restriction_map
 
     if (4 <= mpImpl->mVerbosity) {
         KRATOS_INFO("PolyHierarchicalSolver") << "write restriction_operator.mm\n";
