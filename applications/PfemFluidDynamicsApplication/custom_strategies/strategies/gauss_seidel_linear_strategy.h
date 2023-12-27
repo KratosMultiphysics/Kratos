@@ -549,7 +549,6 @@ namespace Kratos
             pBuilderAndSolver->InitializeSolutionStep(BaseType::GetModelPart(), mA, mDx, mb);
 
             //initial operations ... things that are constant over the Solution Step
-            KRATOS_WATCH("AAAAAA")
             pScheme->InitializeSolutionStep(BaseType::GetModelPart(), mA, mDx, mb);
 
             KRATOS_CATCH("")

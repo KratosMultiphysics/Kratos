@@ -278,8 +278,6 @@ public:
     {
         KRATOS_TRY
 
-        KRATOS_WATCH("Base scheme InitializeSolutionStep")
-
         // Initializes solution step for all of the elements, conditions and constraints
         EntitiesUtilities::InitializeSolutionStepAllEntities(rModelPart);
 
