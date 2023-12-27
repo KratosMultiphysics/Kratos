@@ -28,9 +28,6 @@ namespace Kratos
 ///@name Type Definitions
 ///@{
 
-    // The size type definition
-    typedef std::size_t SizeType;
-
 ///@}
 ///@name  Enum's
 ///@{
@@ -103,12 +100,12 @@ public:
     {
     }
 
-    // /**
-    // * Destructor.
-    // */
-    // ~GenericSmallStrainThermalIsotropicDamagePlaneStress() override
-    // {
-    // }
+    /**
+    * Destructor.
+    */
+    ~GenericSmallStrainThermalIsotropicDamagePlaneStress() override
+    {
+    }
 
     ///@}
     ///@name Operators
