@@ -167,7 +167,6 @@ class ThermalSimoJuYieldSurface
         const auto &r_process_info = rValues.GetProcessInfo();
 
         const double fracture_energy = r_material_properties.GetValue(FRACTURE_ENERGY, r_geom, r_N, r_process_info);
-        const double young_modulus   = r_material_properties.GetValue(YOUNG_MODULUS, r_geom, r_N, r_process_info);
         const double yield_compression = r_material_properties.Has(YIELD_STRESS) ? r_material_properties.GetValue(YIELD_STRESS, r_geom, r_N, r_process_info) : r_material_properties.GetValue(YIELD_STRESS_COMPRESSION, r_geom, r_N, r_process_info);
         const double yield_tension   = r_material_properties.Has(YIELD_STRESS) ? r_material_properties.GetValue(YIELD_STRESS, r_geom, r_N, r_process_info) : r_material_properties.GetValue(YIELD_STRESS_TENSION, r_geom, r_N, r_process_info);
         const double n = yield_compression / yield_tension;

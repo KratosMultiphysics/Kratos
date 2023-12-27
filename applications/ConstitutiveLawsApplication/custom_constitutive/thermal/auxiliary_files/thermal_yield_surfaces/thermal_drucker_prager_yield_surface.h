@@ -121,7 +121,6 @@ public:
         ConstitutiveLaw::Parameters& rValues
         )
     {
-        const auto& r_material_properties = rValues.GetMaterialProperties();
 
         double friction_angle = AdvCLutils::GetMaterialPropertyThroughAccessor(FRICTION_ANGLE, rValues) * Globals::Pi / 180.0; // In radians!
         const double sin_phi = std::sin(friction_angle);

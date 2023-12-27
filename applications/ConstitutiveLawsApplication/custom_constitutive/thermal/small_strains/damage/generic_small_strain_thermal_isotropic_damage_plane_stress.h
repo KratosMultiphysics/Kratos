@@ -72,6 +72,13 @@ public:
     using CLutils    = ConstitutiveLawUtilities<VoigtSize>;
     using AdvCLutils = AdvancedConstitutiveLawUtilities<VoigtSize>;
 
+    /// Bounded vector for stresses/strains
+    using BoundedArrayType = array_1d<double, VoigtSize>;
+
+    /// Definition of the machine precision tolerance
+    static constexpr double tolerance = std::numeric_limits<double>::epsilon();
+    static constexpr double threshold_tolerance = 1.0e-5;
+
 
     ///@}
     ///@name Life Cycle

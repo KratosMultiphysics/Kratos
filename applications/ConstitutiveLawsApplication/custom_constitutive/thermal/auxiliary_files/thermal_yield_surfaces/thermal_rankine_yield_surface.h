@@ -163,7 +163,7 @@ public:
         ConstitutiveLaw::Parameters& rValues
         )
     {
-        BaseType::CalculatePlasticPotentialDerivative(rStressVector, rDeviator, J2, rDerivativePlasticPotential, rValues);
+        BaseType::CalculatePlasticPotentialDerivative(rStressVector, rDeviator, J2, rPlasticPotential, rValues);
     }
 
     /**
