@@ -62,8 +62,6 @@ public:
     /// Definition of the base class
     using BaseType = GenericSmallStrainThermalIsotropicDamage<TConstLawIntegratorType>;
 
-    // using BoundedArrayType = array_1d<double, VoigtSize>;
-
     /// The define the working dimension size, already defined in the integrator
     static constexpr SizeType Dimension = BaseType::Dimension;
 
@@ -73,6 +71,7 @@ public:
     /// Counted pointer of GenericYieldSurface
     KRATOS_CLASS_POINTER_DEFINITION(GenericSmallStrainThermalIsotropicDamagePlaneStress);
 
+    /// Advanced and basic contitutive laws utilities for the corresponding Voigt size
     using CLutils    = ConstitutiveLawUtilities<VoigtSize>;
     using AdvCLutils = AdvancedConstitutiveLawUtilities<VoigtSize>;
 

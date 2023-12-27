@@ -75,6 +75,7 @@ public:
     /// The machine precision zero tolerance
     static constexpr double tolerance = std::numeric_limits<double>::epsilon();
 
+    /// Advanced contitutive laws utilities for the corresponding Voigt size
     using AdvCLutils = AdvancedConstitutiveLawUtilities<VoigtSize>;
 
     ///@}
@@ -231,7 +232,7 @@ public:
         )
     {
         array_1d<double, VoigtSize> first_vector, second_vector, third_vector;
-		const auto& r_material_properties = rValues.GetMaterialProperties();
+        const auto& r_material_properties = rValues.GetMaterialProperties();
         const double friction_angle = AdvCLutils::GetMaterialPropertyThroughAccessor(FRICTION_ANGLE, rValues) * Globals::Pi / 180.0;
 
         AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateFirstVector(first_vector);
@@ -243,7 +244,7 @@ public:
         AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateLodeAngle(J2, J3, lode_angle);
 
         double c1, c3, c2;
-		double checker = std::abs(lode_angle * 180.0 / Globals::Pi);
+        double checker = std::abs(lode_angle * 180.0 / Globals::Pi);
 
         if (std::abs(checker) < 29.0) { // If it is not the edge
             c1 = std::sin(friction_angle) / 3.0;

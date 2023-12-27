@@ -64,8 +64,10 @@ public:
     /// The Plastic potential already defines the Voigt size
     static constexpr SizeType VoigtSize = PlasticPotentialType::VoigtSize;
 
+    /// Advanced contitutive laws utilities for the corresponding Voigt size
     using AdvCLutils = AdvancedConstitutiveLawUtilities<VoigtSize>;
 
+    /// Bounded vector for stresses/strains
     using BoundedVector = array_1d<double, VoigtSize>;
 
     /// Counted pointer of ThermalVonMisesYieldSurface

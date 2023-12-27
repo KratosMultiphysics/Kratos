@@ -69,6 +69,7 @@ public:
     /// Definition of the base class
     using BaseType = GenericSmallStrainIsotropicDamage<TConstLawIntegratorType>;
 
+    /// Bounded vector for stresses/strains
     using BoundedArrayType = array_1d<double, VoigtSize>;
 
     /// Counted pointer of GenericYieldSurface
@@ -80,6 +81,7 @@ public:
     /// The geometry definition
     using GeometryType = Geometry<NodeType>;
 
+    /// Advanced and basic contitutive laws utilities for the corresponding Voigt size
     using CLutils    = ConstitutiveLawUtilities<VoigtSize>;
     using AdvCLutils = AdvancedConstitutiveLawUtilities<VoigtSize>;
 
