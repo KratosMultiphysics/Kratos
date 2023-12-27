@@ -75,11 +75,8 @@ public:
     /// Counted pointer of GenericYieldSurface
     KRATOS_CLASS_POINTER_DEFINITION(GenericSmallStrainThermalIsotropicDamage);
 
-    /// The node definition
-    using NodeType = Node;
-
     /// The geometry definition
-    using GeometryType = Geometry<NodeType>;
+    using GeometryType = Geometry<Node>;
 
     /// Advanced and basic contitutive laws utilities for the corresponding Voigt size
     using CLutils    = ConstitutiveLawUtilities<VoigtSize>;
