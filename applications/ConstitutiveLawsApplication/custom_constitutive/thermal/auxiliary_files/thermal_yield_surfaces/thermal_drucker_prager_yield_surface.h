@@ -240,8 +240,6 @@ public:
         ConstitutiveLaw::Parameters& rValues
         )
     {
-        const auto& r_material_properties = rValues.GetMaterialProperties();
-
         array_1d<double, VoigtSize> first_vector, second_vector, third_vector;
         AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateFirstVector(first_vector);
         AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateSecondVector(rDeviator, J2, second_vector);
