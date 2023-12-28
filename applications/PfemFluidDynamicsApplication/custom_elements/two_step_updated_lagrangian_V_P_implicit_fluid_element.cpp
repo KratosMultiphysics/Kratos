@@ -57,8 +57,6 @@ namespace Kratos
     {
         KRATOS_TRY;
 
-        KRATOS_WATCH("111111111")
-
         // If we are restarting, the constitutive law will be already defined
         if (mpConstitutiveLaw == nullptr)
         {
@@ -626,7 +624,7 @@ namespace Kratos
 
   template <>
   void TwoStepUpdatedLagrangianVPImplicitFluidElement<3>::CalcElasticPlasticCauchySplitted(
-      ElementalVariables &rElementalVariables, 
+      ElementalVariables &rElementalVariables,
       const unsigned int g,
       const Vector& rN,
       const ProcessInfo &rCurrentProcessInfo,
