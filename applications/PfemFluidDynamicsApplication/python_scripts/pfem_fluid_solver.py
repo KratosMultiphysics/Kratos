@@ -239,12 +239,6 @@ class PfemFluidSolver(PythonSolver):
     #     self.fluid_solver.Initialize()
 
     def InitializeSolutionStep(self):
-        print("##############")
-        print("##############")
-        print("InitializeSolutionStep of the Python Solver...")
-        print("##############")
-        print("##############")
-
         self.fluid_solver.InitializeSolutionStep()
         # if self._TimeBufferIsInitialized():
         #     self.fluid_solver.InitializeSolutionStep()

@@ -57,14 +57,9 @@ namespace Kratos
     {
         KRATOS_TRY;
 
-        // If we are restarting, the constitutive law will be already defined
-        if (mpConstitutiveLaw == nullptr)
-        {
-            const Properties &r_properties = this->GetProperties();
-            KRATOS_ERROR_IF_NOT(r_properties.Has(CONSTITUTIVE_LAW))
-                << "In initialization of Element " << this->Info() << ": No CONSTITUTIVE_LAW defined for property "
-                << r_properties.Id() << "." << std::endl;
-            mpConstitutiveLaw = r_properties[CONSTITUTIVE_LAW]->Clone();
+        // TODO: Temporary solution until the mesher calls the Initialize() after the elements creation
+        if (!mpConstitutiveLaw) {
+            this->Initialize(rCurrentProcessInfo);
         }
 
         KRATOS_CATCH("");
