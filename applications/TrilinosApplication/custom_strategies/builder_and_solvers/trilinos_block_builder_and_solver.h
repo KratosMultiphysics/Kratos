@@ -1343,7 +1343,7 @@ protected:
     {
         KRATOS_TRY
 
-        // Reference of the matrix and vectpr
+        // Reference of the matrix and vector
         auto& r_T = GetConstraintRelationMatrix();
         auto& r_constant_vector = GetConstraintConstantVector();
 
