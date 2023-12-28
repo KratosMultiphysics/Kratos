@@ -90,6 +90,7 @@ set( KRATOS_SWIMMING_DEM_APPLICATION_CORE_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/non_divergence_free_transient_porosity_solution_transient_body_force_process.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/porosity_solution_and_body_force_process.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/flow_past_cylinder_porosity_field_process.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/plateau_linear_porosity_field_process.cpp
 
     ## Elements
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/monolithic_dem_coupled.cpp
