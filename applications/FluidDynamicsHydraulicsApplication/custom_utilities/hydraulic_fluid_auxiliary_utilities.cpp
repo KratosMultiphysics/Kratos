@@ -30,8 +30,7 @@
 
 namespace Kratos
 {
-double HydraulicFluidAuxiliaryUtilities::CalculateWettedPetimeter
-(
+double HydraulicFluidAuxiliaryUtilities::CalculateWettedPetimeter(
     ModelPart &rModelPart,
     const Flags &rSkinFlag,
     const Variable<double>& rDistanceVariable,
