@@ -136,7 +136,7 @@ double HydraulicFluidAuxiliaryUtilities::CalculateWettedPetimeter(
         }
     }
 
-return wedded_perimeter;
+    return wedded_perimeter;
 }
 
 double HydraulicFluidAuxiliaryUtilities::CalculateWettedArea(
