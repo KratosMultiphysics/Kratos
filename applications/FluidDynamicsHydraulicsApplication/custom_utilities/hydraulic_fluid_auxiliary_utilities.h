@@ -20,8 +20,8 @@
 #include "includes/node.h"
 #include "includes/model_part.h"
 #include "includes/ublas_interface.h"
-#include "modified_shape_functions/modified_shape_functions.h"
 #include "includes/global_pointer_variables.h"
+#include "modified_shape_functions/modified_shape_functions.h"
 
 // Application includes
 #include "hydraulic_fluid_auxiliary_utilities.h"
