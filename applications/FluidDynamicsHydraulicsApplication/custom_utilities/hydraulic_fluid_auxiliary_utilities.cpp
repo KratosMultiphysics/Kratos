@@ -7,7 +7,7 @@
 //  License:         BSD License
 //                   Kratos default license: kratos/license.txt
 //
-//  Main authors:   Uxue Chasco
+//  Main authors:    Uxue Chasco
 //
 
 // System includes
