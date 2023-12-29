@@ -134,11 +134,13 @@ public:
      * @param  rDistancesVariable Variable name of the inlet distance.
      */
     static void SetInletFreeSurface(ModelPart &rModelPart, const Flags &rSkinFlag, const Variable<double> &rDistanceVariable);
-     private :
+     
 
-        ///@}
+    ///@}
 
-        struct EdgeDataContainer
+private :
+
+    struct EdgeDataContainer
     {
         NodeType::Pointer pNodeI = nullptr;
         NodeType::Pointer pNodeJ = nullptr;
