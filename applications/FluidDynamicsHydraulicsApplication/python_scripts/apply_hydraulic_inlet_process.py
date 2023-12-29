@@ -76,7 +76,6 @@ class ApplyHydraulicInletProcess(KratosMultiphysics.Process):
             "inlet_model_part_name" : "",
             "value":{},
             "interval"        : [0.0,"End"],
-            "type":"",
             "water_depth_variable": "AUX_DISTANCE",
             "water_depth_tolerance":1e-8,
             "critical_depth_tolerance":1e-8,
