@@ -302,7 +302,7 @@ void HydraulicFluidAuxiliaryUtilities::FreeInletVelocity(ModelPart& rModelPart)
         rNode.Free(VELOCITY_Y);
         rNode.Free(VELOCITY_Z);
         rNode.Free(DISTANCE);
-        });
+    });
 }
 void HydraulicFluidAuxiliaryUtilities::SetInletFreeSurface(ModelPart &rModelPart, const Flags &rSkinFlag,  const Variable<double> &rDistanceVariable)
 {
