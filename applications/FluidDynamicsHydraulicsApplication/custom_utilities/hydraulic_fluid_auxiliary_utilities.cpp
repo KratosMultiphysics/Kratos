@@ -233,7 +233,7 @@ double HydraulicFluidAuxiliaryUtilities::InitialWaterDepth(ModelPart &rModelPart
 
    //Determine the initial estimate for water depth by considering the average of the maximum and minimum coordinates.
     KRATOS_WARNING("HydraulicFluidAuxiliaryUtilities") << "The water depth is assumed to be in the Z direction" << std::endl;
-    double max_value = -1e9;
+    double max_value = std::numeric_limits<double>::lowest();
     double min_value = 1e9;
     for (auto &r_node : rModelPart.Nodes())
     {
