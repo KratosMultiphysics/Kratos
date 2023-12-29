@@ -64,7 +64,6 @@ class ApplyHydraulicInletProcess(KratosMultiphysics.Process):
 
         # Get and check domain size
         self.domain_size = self.inlet_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
-        print(self.domain_size)
         if self.domain_size not in [2,3]:
             raise ValueError(f"Wrong 'DOMAIN_SIZE' value {self.domain_size} in ProcessInfo container.")
 
