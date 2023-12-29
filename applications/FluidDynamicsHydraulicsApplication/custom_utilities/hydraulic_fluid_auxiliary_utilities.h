@@ -147,4 +147,3 @@ public:
 
 }; // namespace Kratos
 }
-#endif // KRATOS_HYDRAULIC_FLUID_AUXILIARY_UTILITIES_H
