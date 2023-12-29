@@ -74,7 +74,6 @@ class ApplyHydraulicInletProcessTest(UnitTest.TestCase):
         }""")
         process = apply_hydraulic_inlet_process.Factory(settings, self.model)
 
-
         test_model_part = self.model.GetModelPart("TestModelPart")
         # Use inlet midpoint node as reference node
         test_node = test_model_part.GetSubModelPart("Inlet").GetNode(2)
