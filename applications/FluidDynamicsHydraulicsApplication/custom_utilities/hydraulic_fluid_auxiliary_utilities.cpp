@@ -307,13 +307,12 @@ void HydraulicFluidAuxiliaryUtilities::FreeInletVelocity(ModelPart& rModelPart)
 void HydraulicFluidAuxiliaryUtilities::SetInletFreeSurface(ModelPart &rModelPart, const Flags &rSkinFlag,  const Variable<double> &rDistanceVariable)
 {
     // Assign the water depth (DISTANCE) to all nodes within the inlet model part to be equal to the water depth corresponding to a Froude number of 1 (&rDistanceVariable).
-    block_for_each(rModelPart.Nodes(), [&](NodeType& rNode)
-    {
-    if (rNode.Is(rSkinFlag)){
-        double inlet_dist = rNode.GetValue(rDistanceVariable);
-        rNode.FastGetSolutionStepValue(DISTANCE) = inlet_dist;
-        rNode.Fix(DISTANCE);
-    }
+    block_for_each(rModelPart.Nodes(), [&](NodeType& rNode){
+        if (rNode.Is(rSkinFlag)){
+            double inlet_dist = rNode.GetValue(rDistanceVariable);
+            rNode.FastGetSolutionStepValue(DISTANCE) = inlet_dist;
+            rNode.Fix(DISTANCE);
+        }
     });
 }
 
