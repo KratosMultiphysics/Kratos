@@ -9,8 +9,7 @@
 //
 //  Main authors:    Uxue Chasco
 
-#if !defined(KRATOS_HYDRAULIC_FLUID_AUXILIARY_UTILITIES_H)
-#define KRATOS_HYDRAULIC_FLUID_AUXILIARY_UTILITIES_H
+#pragma once
 
 // System includes
 
