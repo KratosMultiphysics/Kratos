@@ -69,7 +69,6 @@ class ApplyHydraulicInletProcessTest(UnitTest.TestCase):
                 "inlet_model_part_name" : "TestModelPart.Inlet",
                 "value":1.808314132,
                 "interval"        : [0.0,"End"],
-                "type":"",
                 "water_depth_variable":"AUX_DISTANCE"
             }
         }""")
