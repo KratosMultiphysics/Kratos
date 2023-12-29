@@ -297,8 +297,7 @@ void HydraulicFluidAuxiliaryUtilities::SetInletVelocity(
 void HydraulicFluidAuxiliaryUtilities::FreeInletVelocity(ModelPart& rModelPart)
 {
     // Free the velocity.
-    block_for_each(rModelPart.Nodes(), [](NodeType &rNode)
-        {
+    block_for_each(rModelPart.Nodes(), [](NodeType &rNode){
         rNode.Free(VELOCITY_X);
         rNode.Free(VELOCITY_Y);
         rNode.Free(VELOCITY_Z);
