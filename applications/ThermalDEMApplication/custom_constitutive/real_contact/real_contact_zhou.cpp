@@ -34,6 +34,17 @@ namespace Kratos {
     //particle->mNeighborSeparationAdjusted = particle->ComputeSeparationToNeighborAdjusted();
 
     // Porposed
+    
+    // Get collision time
+    typename ThermalSphericParticle::ContactParams contact_params = particle->GetContactParameters();
+    const double col_time_max      = particle->ComputeMaxCollisionTime();
+    const double col_time_max_real = particle->ComputeMaxCollisionTimeReal();
+    const double col_time          = r_process_info[TIME] - contact_params.impact_time;
+
+    double correction_area = 1.0;
+    double correction_time = 1.0;
+
+    // Area correction
     if (particle->mNeighborType & PARTICLE_NEIGHBOR) {
       const double r1           = particle->GetParticleRadius();
       const double r2           = particle->GetNeighborRadius();
@@ -51,7 +62,14 @@ namespace Kratos {
       const double d_real       = r1 - overlap_real;
       particle->mContactRadiusAdjusted = sqrt(r1 * r1 - d_real * d_real);
     }
+
+    // Time correction
+    if (col_time < col_time_max) {
+      correction_time = pow(col_time_max_real / col_time_max, 2.0 / 3.0);
+      particle->mContactRadiusAdjusted *= correction_time;
+    }
     
+    // Compute adjusted distance/separation from adjusted contact radius
     particle->mNeighborDistanceAdjusted   = particle->ComputeDistanceToNeighborAdjusted();
     particle->mNeighborSeparationAdjusted = particle->ComputeSeparationToNeighborAdjusted();
 
