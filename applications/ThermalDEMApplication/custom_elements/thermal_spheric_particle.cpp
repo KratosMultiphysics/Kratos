@@ -141,7 +141,11 @@ namespace Kratos
     SetNumericalIntegrationMethod(numerical_integration_method);
 
     // Set flags
-    mStoreContactParam = r_process_info[HEAT_GENERATION_OPTION];    
+    mHasMotion = r_process_info[MOTION_OPTION];
+    mStoreContactParam = mHasMotion &&
+                        (r_process_info[HEAT_GENERATION_OPTION]  ||
+                        (r_process_info[DIRECT_CONDUCTION_OPTION] && r_process_info[DIRECT_CONDUCTION_MODEL_NAME].compare("collisional") == 0) || 
+                        (r_process_info[REAL_CONTACT_OPTION]));
     
     // Clear maps
     mContactParamsParticle.clear();
@@ -166,7 +170,8 @@ namespace Kratos
     KRATOS_TRY
 
     // Initialize base class
-    SphericParticle::InitializeSolutionStep(r_process_info);
+    if (mHasMotion)
+      SphericParticle::InitializeSolutionStep(r_process_info);
 
     // Check if it is time to evaluate thermal problem
     const int step = r_process_info[TIME_STEPS];
@@ -190,7 +195,8 @@ namespace Kratos
     KRATOS_TRY
 
     // Force components
-    SphericParticle::CalculateRightHandSide(r_process_info, dt, gravity);
+    if (mHasMotion)
+      SphericParticle::CalculateRightHandSide(r_process_info, dt, gravity);
     
     // Heat flux components
     if (mIsTimeToSolve)
@@ -313,40 +319,43 @@ namespace Kratos
       ContactParams params;
       mContactParamsParticle[neighbor] = params;
       mContactParamsParticle[neighbor].impact_time         = r_process_info[TIME];
+      mContactParamsParticle[neighbor].impact_velocity     = { data_buffer.mLocalRelVel[2], sqrt(data_buffer.mLocalRelVel[0] * data_buffer.mLocalRelVel[0] + data_buffer.mLocalRelVel[1] * data_buffer.mLocalRelVel[1]) }; // local components of relavive velocity (normal and tangential)
       mContactParamsParticle[neighbor].viscodamping_energy = 0.0;
       mContactParamsParticle[neighbor].frictional_energy   = 0.0;
       mContactParamsParticle[neighbor].rollresist_energy   = 0.0;
     }
 
-    // If thermal problem was solved in previous step, reset dissipated energies accumulated for this interaction
-    if ((r_process_info[TIME_STEPS] - 2) % r_process_info[THERMAL_FREQUENCY] == 0) {
-      mContactParamsParticle[neighbor].viscodamping_energy = 0.0;
-      mContactParamsParticle[neighbor].frictional_energy   = 0.0;
-      mContactParamsParticle[neighbor].rollresist_energy   = 0.0;
-    }
+    if (r_process_info[HEAT_GENERATION_OPTION]) {
+      // If thermal problem was solved in previous step, reset dissipated energies accumulated for this interaction
+      if ((r_process_info[TIME_STEPS] - 2) % r_process_info[THERMAL_FREQUENCY] == 0) {
+        mContactParamsParticle[neighbor].viscodamping_energy = 0.0;
+        mContactParamsParticle[neighbor].frictional_energy   = 0.0;
+        mContactParamsParticle[neighbor].rollresist_energy   = 0.0;
+      }
 
-    // Update energy dissipated in this interaction (since last thermal solution) with the difference between
-    // current and previous accumulated dissipations
-    // ATTENTION: Energy increment is multiplied by the inverse of the partition factor used during energy calculation (0.5 to each particle)
-    if (r_process_info[GENERATION_DAMPING_OPTION]) {
-      const double current_viscodamping_energy   = GetInelasticViscodampingEnergy();
-      const double increment_viscodamping_energy = 2.0 * (current_viscodamping_energy - mPreviousViscodampingEnergy);
-      mPreviousViscodampingEnergy                = current_viscodamping_energy;
-      mContactParamsParticle[neighbor].viscodamping_energy += increment_viscodamping_energy;
-    }
+      // Update energy dissipated in this interaction (since last thermal solution) with the difference between
+      // current and previous accumulated dissipations
+      // ATTENTION: Energy increment is multiplied by the inverse of the partition factor used during energy calculation (0.5 to each particle)
+      if (r_process_info[GENERATION_DAMPING_OPTION]) {
+        const double current_viscodamping_energy   = GetInelasticViscodampingEnergy();
+        const double increment_viscodamping_energy = 2.0 * (current_viscodamping_energy - mPreviousViscodampingEnergy);
+        mPreviousViscodampingEnergy                = current_viscodamping_energy;
+        mContactParamsParticle[neighbor].viscodamping_energy += increment_viscodamping_energy;
+      }
 
-    if (r_process_info[GENERATION_SLIDING_OPTION]) {
-      const double current_frictional_energy   = GetInelasticFrictionalEnergy();
-      const double increment_frictional_energy = 2.0 * (current_frictional_energy - mPreviousFrictionalEnergy);
-      mPreviousFrictionalEnergy                = current_frictional_energy;
-      mContactParamsParticle[neighbor].frictional_energy += increment_frictional_energy;
-    }
+      if (r_process_info[GENERATION_SLIDING_OPTION]) {
+        const double current_frictional_energy   = GetInelasticFrictionalEnergy();
+        const double increment_frictional_energy = 2.0 * (current_frictional_energy - mPreviousFrictionalEnergy);
+        mPreviousFrictionalEnergy                = current_frictional_energy;
+        mContactParamsParticle[neighbor].frictional_energy += increment_frictional_energy;
+      }
 
-    if (r_process_info[GENERATION_ROLLING_OPTION] && this->Is(DEMFlags::HAS_ROLLING_FRICTION)) {
-      const double current_rollingresistance_energy   = GetInelasticRollingResistanceEnergy();
-      const double increment_rollingresistance_energy = 2.0 * (current_rollingresistance_energy - mPreviousRollResistEnergy);
-      mPreviousRollResistEnergy                       = current_rollingresistance_energy;
-      mContactParamsParticle[neighbor].rollresist_energy += increment_rollingresistance_energy;
+      if (r_process_info[GENERATION_ROLLING_OPTION] && this->Is(DEMFlags::HAS_ROTATION) && this->Is(DEMFlags::HAS_ROLLING_FRICTION)) {
+        const double current_rollingresistance_energy   = GetInelasticRollingResistanceEnergy();
+        const double increment_rollingresistance_energy = 2.0 * (current_rollingresistance_energy - mPreviousRollResistEnergy);
+        mPreviousRollResistEnergy                       = current_rollingresistance_energy;
+        mContactParamsParticle[neighbor].rollresist_energy += increment_rollingresistance_energy;
+      }
     }
 
     // Update time step
@@ -375,40 +384,43 @@ namespace Kratos
       ContactParams params;
       mContactParamsWall[neighbor] = params;
       mContactParamsWall[neighbor].impact_time         = r_process_info[TIME];
+      mContactParamsWall[neighbor].impact_velocity     = { data_buffer.mLocalRelVel[2], sqrt(data_buffer.mLocalRelVel[0] * data_buffer.mLocalRelVel[0] + data_buffer.mLocalRelVel[1] * data_buffer.mLocalRelVel[1]) }; // local components of relavive velocity (normal and tangential)
       mContactParamsWall[neighbor].viscodamping_energy = 0.0;
       mContactParamsWall[neighbor].frictional_energy   = 0.0;
       mContactParamsWall[neighbor].rollresist_energy   = 0.0;
     }
 
-    // If thermal problem was solved in previous step, reset dissipated energies accumulated for this interaction
-    if ((r_process_info[TIME_STEPS] - 2) % r_process_info[THERMAL_FREQUENCY] == 0) {
-      mContactParamsWall[neighbor].viscodamping_energy = 0.0;
-      mContactParamsWall[neighbor].frictional_energy   = 0.0;
-      mContactParamsWall[neighbor].rollresist_energy   = 0.0;
-    }
+    if (r_process_info[HEAT_GENERATION_OPTION]) {
+      // If thermal problem was solved in previous step, reset dissipated energies accumulated for this interaction
+      if ((r_process_info[TIME_STEPS] - 2) % r_process_info[THERMAL_FREQUENCY] == 0) {
+        mContactParamsWall[neighbor].viscodamping_energy = 0.0;
+        mContactParamsWall[neighbor].frictional_energy   = 0.0;
+        mContactParamsWall[neighbor].rollresist_energy   = 0.0;
+      }
 
-    // Update energy dissipated in this interaction (since last thermal solution) with the difference between
-    // current and previous accumulated dissipations
-    // ATTENTION: Energy increment is multiplied by the inverse of the partition factor used during energy calculation (1.0 to the particle)
-    if (r_process_info[GENERATION_DAMPING_OPTION]) {
-      const double current_viscodamping_energy   = GetInelasticViscodampingEnergy();
-      const double increment_viscodamping_energy = current_viscodamping_energy - mPreviousViscodampingEnergy;
-      mPreviousViscodampingEnergy                = current_viscodamping_energy;
-      mContactParamsWall[neighbor].viscodamping_energy += increment_viscodamping_energy;
-    }
+      // Update energy dissipated in this interaction (since last thermal solution) with the difference between
+      // current and previous accumulated dissipations
+      // ATTENTION: Energy increment is multiplied by the inverse of the partition factor used during energy calculation (1.0 to the particle)
+      if (r_process_info[GENERATION_DAMPING_OPTION]) {
+        const double current_viscodamping_energy   = GetInelasticViscodampingEnergy();
+        const double increment_viscodamping_energy = current_viscodamping_energy - mPreviousViscodampingEnergy;
+        mPreviousViscodampingEnergy                = current_viscodamping_energy;
+        mContactParamsWall[neighbor].viscodamping_energy += increment_viscodamping_energy;
+      }
 
-    if (r_process_info[GENERATION_SLIDING_OPTION]) {
-      const double current_frictional_energy   = GetInelasticFrictionalEnergy();
-      const double increment_frictional_energy = current_frictional_energy - mPreviousFrictionalEnergy;
-      mPreviousFrictionalEnergy                = current_frictional_energy;
-      mContactParamsWall[neighbor].frictional_energy += increment_frictional_energy;
-    }
+      if (r_process_info[GENERATION_SLIDING_OPTION]) {
+        const double current_frictional_energy   = GetInelasticFrictionalEnergy();
+        const double increment_frictional_energy = current_frictional_energy - mPreviousFrictionalEnergy;
+        mPreviousFrictionalEnergy                = current_frictional_energy;
+        mContactParamsWall[neighbor].frictional_energy += increment_frictional_energy;
+      }
 
-    if (r_process_info[GENERATION_ROLLING_OPTION] && this->Is(DEMFlags::HAS_ROLLING_FRICTION)) {
-      const double current_rollingresistance_energy   = GetInelasticRollingResistanceEnergy();
-      const double increment_rollingresistance_energy = current_rollingresistance_energy - mPreviousRollResistEnergy;
-      mPreviousRollResistEnergy                       = current_rollingresistance_energy;
-      mContactParamsWall[neighbor].rollresist_energy += increment_rollingresistance_energy;
+      if (r_process_info[GENERATION_ROLLING_OPTION] && this->Is(DEMFlags::HAS_ROTATION) && this->Is(DEMFlags::HAS_ROLLING_FRICTION)) {
+        const double current_rollingresistance_energy   = GetInelasticRollingResistanceEnergy();
+        const double increment_rollingresistance_energy = current_rollingresistance_energy - mPreviousRollResistEnergy;
+        mPreviousRollResistEnergy                       = current_rollingresistance_energy;
+        mContactParamsWall[neighbor].rollresist_energy += increment_rollingresistance_energy;
+      }
     }
 
     // Update time step
@@ -420,7 +432,8 @@ namespace Kratos
   //------------------------------------------------------------------------------------------------------------
   void ThermalSphericParticle::Move(const double delta_t, const bool rotation_option, const double force_reduction_factor, const int StepFlag) {
     // Time integration of motion
-    SphericParticle::Move(delta_t, rotation_option, force_reduction_factor, StepFlag);
+    if (mHasMotion)
+      SphericParticle::Move(delta_t, rotation_option, force_reduction_factor, StepFlag);
 
     // Time integration of temperature
     if (mIsTimeToSolve && !mHasFixedTemperature && !this->Is(DEMThermalFlags::IS_ADIABATIC)) {
@@ -435,10 +448,12 @@ namespace Kratos
   void ThermalSphericParticle::FinalizeSolutionStep(const ProcessInfo& r_process_info) {
     KRATOS_TRY
 
-    SphericParticle::FinalizeSolutionStep(r_process_info);
+    if (mHasMotion) {
+      SphericParticle::FinalizeSolutionStep(r_process_info);
 
-    // Remove non-contacting neighbors from maps of contact parameters
-    if (mStoreContactParam) CleanContactParameters(r_process_info);
+      if (mStoreContactParam) // Remove non-contacting neighbors from maps of contact parameters
+        CleanContactParameters(r_process_info);
+    }
 
     KRATOS_CATCH("")
   }
@@ -589,6 +604,23 @@ namespace Kratos
     const double particle_radius = GetParticleRadius();
     const double neighbor_radius = GetNeighborRadius(); // must be zero for walls
     return mNeighborDistanceAdjusted - particle_radius - neighbor_radius;
+
+    KRATOS_CATCH("")
+  }
+
+  //------------------------------------------------------------------------------------------------------------
+  double ThermalSphericParticle::ComputeMaxCollisionTime(void) {
+    KRATOS_TRY
+
+    const double eff_radius             = ComputeEffectiveRadius();
+    const double eff_mass               = ComputeEffectiveMass();
+    const double eff_young              = ComputeEffectiveYoung();
+    const double impact_normal_velocity = fabs(GetContactParameters().impact_velocity[0]);
+
+    if (impact_normal_velocity != 0.0)
+      return 2.87 * pow(eff_mass * eff_mass / (eff_radius * eff_young * eff_young * impact_normal_velocity), 0.2);
+    else
+      return 0.0;
 
     KRATOS_CATCH("")
   }
@@ -1152,6 +1184,7 @@ namespace Kratos
       null_param.viscodamping_energy = 0.0;
       null_param.frictional_energy   = 0.0;
       null_param.rollresist_energy   = 0.0;
+      null_param.impact_velocity.assign(2, 0.0);
       return null_param;
     }
   }

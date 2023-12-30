@@ -103,7 +103,7 @@ namespace Kratos
       double ComputeSeparationToNeighbor         (void);
       double ComputeSeparationToNeighborAdjusted (void);
       double ComputeFourierNumber                (void) {return 0.0;};
-      double ComputeMaxCollisionTime             (void) {return 0.0;};
+      double ComputeMaxCollisionTime             (void);
       double ComputeMaxContactRadius             (void) {return 0.0;};
       double ComputeContactRadius                (void);
       double ComputeEffectiveRadius              (void);
