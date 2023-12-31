@@ -62,14 +62,14 @@ KRATOS_TEST_CASE_IN_SUITE(DeactivateModelPartOperation, KratosGeoMechanicsFastSu
     test_operation.Execute();
 
     // Check that all model part entities are now active
-    for (auto& r_node : r_test_model_part.Nodes()) {
-        KRATOS_EXPECT_FALSE(r_node.Is(ACTIVE));
+    for (const auto& r_node : r_test_model_part.Nodes()) {
+        KRATOS_EXPECT_FALSE(r_node.Is(ACTIVE))
     }
-    for (auto& r_element : r_test_model_part.Elements()) {
-        KRATOS_EXPECT_FALSE(r_element.Is(ACTIVE));
+    for (const auto& r_element : r_test_model_part.Elements()) {
+        KRATOS_EXPECT_FALSE(r_element.Is(ACTIVE))
     }
-    for (auto& r_condition : r_test_model_part.Conditions()) {
-        KRATOS_EXPECT_FALSE(r_condition.Is(ACTIVE));
+    for (const auto& r_condition : r_test_model_part.Conditions()) {
+        KRATOS_EXPECT_FALSE(r_condition.Is(ACTIVE))
     }
 }
 
