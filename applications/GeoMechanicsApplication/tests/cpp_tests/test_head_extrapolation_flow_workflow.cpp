@@ -10,7 +10,6 @@
 //  Main authors:    Jonathan Nuttall
 //
 
-#pragma once
 #include <string>
 #include <iostream>
 
