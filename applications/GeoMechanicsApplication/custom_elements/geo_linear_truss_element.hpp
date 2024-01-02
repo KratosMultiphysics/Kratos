@@ -10,8 +10,8 @@
 //  Main authors:    Vahid Galavi
 //
 
-#if !defined(KRATOS_GEO_LINEAR_TRUSS_ELEMENT_H_INCLUDED )
-#define  KRATOS_GEO_LINEAR_TRUSS_ELEMENT_H_INCLUDED
+#if !defined(KRATOS_GEO_LINEAR_TRUSS_ELEMENT_H_INCLUDED)
+#define KRATOS_GEO_LINEAR_TRUSS_ELEMENT_H_INCLUDED
 
 // System includes
 
@@ -30,12 +30,12 @@ namespace Kratos
  * @author Vahid Galavi
  */
 
-template< unsigned int TDim, unsigned int TNumNodes >
+template <unsigned int TDim, unsigned int TNumNodes>
 class KRATOS_API(GEO_MECHANICS_APPLICATION) GeoLinearTrussElement
-    : public GeoTrussElementLinearBase<TDim,TNumNodes>
+    : public GeoTrussElementLinearBase<TDim, TNumNodes>
 {
 protected:
-    //const values
+    // const values
     static constexpr int mStressVectorSize = 1;
     Vector mInternalStresses = ZeroVector(mStressVectorSize);
     Vector mInternalStressesFinalized = ZeroVector(mStressVectorSize);
@@ -55,15 +55,13 @@ public:
     using FullDofMatrixType = typename GeoTrussElementBase<TDim, TNumNodes>::FullDofMatrixType;
     using FullDofVectorType = typename GeoTrussElementBase<TDim, TNumNodes>::FullDofVectorType;
 
-    using GeoTrussElementBase<TDim,TNumNodes>::mpConstitutiveLaw;
+    using GeoTrussElementBase<TDim, TNumNodes>::mpConstitutiveLaw;
 
-    GeoLinearTrussElement() {};
+    GeoLinearTrussElement(){};
+    GeoLinearTrussElement(IndexType NewId, GeometryType::Pointer pGeometry);
     GeoLinearTrussElement(IndexType NewId,
-                    GeometryType::Pointer pGeometry);
-    GeoLinearTrussElement(IndexType NewId,
-                    GeometryType::Pointer pGeometry,
-                    PropertiesType::Pointer pProperties);
-
+                          GeometryType::Pointer pGeometry,
+                          PropertiesType::Pointer pProperties);
 
     ~GeoLinearTrussElement() override;
 
@@ -74,9 +72,9 @@ public:
      * @param pProperties The pointer to property
      * @return The pointer to the created element
      */
-    Element::Pointer Create( IndexType NewId,
-                             GeometryType::Pointer pGeom,
-                             PropertiesType::Pointer pProperties ) const override;
+    Element::Pointer Create(IndexType NewId,
+                            GeometryType::Pointer pGeom,
+                            PropertiesType::Pointer pProperties) const override;
 
     /**
      * @brief Creates a new element
@@ -85,9 +83,9 @@ public:
      * @param pProperties The pointer to property
      * @return The pointer to the created element
      */
-    Element::Pointer Create( IndexType NewId,
-                             NodesArrayType const& ThisNodes,
-                             PropertiesType::Pointer pProperties ) const override;
+    Element::Pointer Create(IndexType NewId,
+                            NodesArrayType const& ThisNodes,
+                            PropertiesType::Pointer pProperties) const override;
 
     void Initialize(const ProcessInfo& rCurrentProcessInfo) override;
 
@@ -98,17 +96,15 @@ public:
     void UpdateInternalForces(FullDofVectorType& rInternalForces,
                               const ProcessInfo& rCurrentProcessInfo) override;
 
-    void CalculateOnIntegrationPoints(const Variable<array_1d<double, 3 > >& rVariable,
-                                    std::vector< array_1d<double, 3 > >& rOutput,
-                                    const ProcessInfo& rCurrentProcessInfo) override;
-
+    void CalculateOnIntegrationPoints(const Variable<array_1d<double, 3>>& rVariable,
+                                      std::vector<array_1d<double, 3>>& rOutput,
+                                      const ProcessInfo& rCurrentProcessInfo) override;
 
     void FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
 
     void ResetConstitutiveLaw() override;
 
 private:
-
     friend class Serializer;
     void save(Serializer& rSerializer) const override
     {
@@ -126,7 +122,6 @@ private:
         rSerializer.load("InternalStressesFinalizedPrevious", mInternalStressesFinalizedPrevious);
     }
 };
-}
-
+} // namespace Kratos
 
 #endif

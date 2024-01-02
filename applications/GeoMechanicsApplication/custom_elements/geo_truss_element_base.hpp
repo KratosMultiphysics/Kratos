@@ -11,18 +11,16 @@
 //                   Vahid Galavi
 //
 
-
-
-#if !defined(KRATOS_GEO_TRUSS_ELEMENT_BASE_H_INCLUDED )
-#define  KRATOS_GEO_TRUSS_ELEMENT_BASE_H_INCLUDED
+#if !defined(KRATOS_GEO_TRUSS_ELEMENT_BASE_H_INCLUDED)
+#define KRATOS_GEO_TRUSS_ELEMENT_BASE_H_INCLUDED
 
 // System includes
 
 // External includes
 
 // Project includes
-#include "includes/element.h"
 #include "includes/define.h"
+#include "includes/element.h"
 #include "includes/variables.h"
 
 namespace Kratos
@@ -34,11 +32,10 @@ namespace Kratos
  *
  * @author Vahid Galavi
  */
-template< unsigned int TDim, unsigned int TNumNodes >
+template <unsigned int TDim, unsigned int TNumNodes>
 class KRATOS_API(GEO_MECHANICS_APPLICATION) GeoTrussElementBase : public Element
 {
 protected:
-
     ConstitutiveLaw::Pointer mpConstitutiveLaw = nullptr;
     static constexpr SizeType NDof = TDim * TNumNodes;
     static constexpr SizeType DIM = TDim;
@@ -57,17 +54,14 @@ public:
     using VectorType = BaseType::VectorType;
     using EquationIdVectorType = BaseType::EquationIdVectorType;
     using DofsVectorType = BaseType::DofsVectorType;
-    using FullDofMatrixType = BoundedMatrix<double, TDim*TNumNodes, TDim*TNumNodes>;
-    using FullDofVectorType = BoundedVector<double, TDim*TNumNodes>;
+    using FullDofMatrixType = BoundedMatrix<double, TDim * TNumNodes, TDim * TNumNodes>;
+    using FullDofVectorType = BoundedVector<double, TDim * TNumNodes>;
 
-
-    GeoTrussElementBase() {};
-    GeoTrussElementBase(IndexType NewId,
-                        GeometryType::Pointer pGeometry);
+    GeoTrussElementBase(){};
+    GeoTrussElementBase(IndexType NewId, GeometryType::Pointer pGeometry);
     GeoTrussElementBase(IndexType NewId,
                         GeometryType::Pointer pGeometry,
                         PropertiesType::Pointer pProperties);
-
 
     ~GeoTrussElementBase() override;
 
@@ -78,11 +72,9 @@ public:
      * @param pProperties The pointer to property
      * @return The pointer to the created element
      */
-    Element::Pointer Create(
-        IndexType NewId,
-        GeometryType::Pointer pGeom,
-        PropertiesType::Pointer pProperties
-        ) const override;
+    Element::Pointer Create(IndexType NewId,
+                            GeometryType::Pointer pGeom,
+                            PropertiesType::Pointer pProperties) const override;
 
     /**
      * @brief Creates a new element
@@ -91,19 +83,15 @@ public:
      * @param pProperties The pointer to property
      * @return The pointer to the created element
      */
-    Element::Pointer Create(
-        IndexType NewId,
-        NodesArrayType const& ThisNodes,
-        PropertiesType::Pointer pProperties
-        ) const override;
+    Element::Pointer Create(IndexType NewId,
+                            NodesArrayType const& ThisNodes,
+                            PropertiesType::Pointer pProperties) const override;
 
-    void EquationIdVector(
-        EquationIdVectorType& rResult,
-        const ProcessInfo& rCurrentProcessInfo) const override;
+    void EquationIdVector(EquationIdVectorType& rResult,
+                          const ProcessInfo& rCurrentProcessInfo) const override;
 
-    void GetDofList(
-        DofsVectorType& rElementalDofList,
-        const ProcessInfo& rCurrentProcessInfo) const override;
+    void GetDofList(DofsVectorType& rElementalDofList,
+                    const ProcessInfo& rCurrentProcessInfo) const override;
 
     void Initialize(const ProcessInfo& rCurrentProcessInfo) override;
 
@@ -113,24 +101,25 @@ public:
     virtual void CreateElementStiffnessMatrix(MatrixType& rLocalStiffnessMatrix,
                                               const ProcessInfo& rCurrentProcessInfo);
 
-    void Calculate(const Variable<Matrix>& rVariable, Matrix& rOutput, const ProcessInfo& rCurrentProcessInfo) override;
+    void Calculate(const Variable<Matrix>& rVariable,
+                   Matrix& rOutput,
+                   const ProcessInfo& rCurrentProcessInfo) override;
 
-    void Calculate(const Variable<double>& rVariable, double& rOutput, const ProcessInfo& rCurrentProcessInfo) override;
+    void Calculate(const Variable<double>& rVariable,
+                   double& rOutput,
+                   const ProcessInfo& rCurrentProcessInfo) override;
 
-    void CalculateOnIntegrationPoints(
-        const Variable<double>& rVariable,
-        std::vector<double>& rOutput,
-        const ProcessInfo& rCurrentProcessInfo) override;
+    void CalculateOnIntegrationPoints(const Variable<double>& rVariable,
+                                      std::vector<double>& rOutput,
+                                      const ProcessInfo& rCurrentProcessInfo) override;
 
-    void CalculateOnIntegrationPoints(
-        const Variable<array_1d<double, 3 > >& rVariable,
-        std::vector< array_1d<double, 3 > >& rOutput,
-        const ProcessInfo& rCurrentProcessInfo) override;
+    void CalculateOnIntegrationPoints(const Variable<array_1d<double, 3>>& rVariable,
+                                      std::vector<array_1d<double, 3>>& rOutput,
+                                      const ProcessInfo& rCurrentProcessInfo) override;
 
-    void CalculateOnIntegrationPoints(
-        const Variable<Vector>& rVariable,
-        std::vector<Vector>& rOutput,
-        const ProcessInfo& rCurrentProcessInfo) override;
+    void CalculateOnIntegrationPoints(const Variable<Vector>& rVariable,
+                                      std::vector<Vector>& rOutput,
+                                      const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
      * @brief This function updates the internal normal force w.r.t. the current deformations
@@ -143,33 +132,26 @@ public:
      * @brief This function calculates the transformation matrix to globalize vectors and/or matrices
      * @param rRotationMatrix The transformation matrix
      */
-    void CreateTransformationMatrix(BoundedMatrix<double,TDim*TNumNodes,TDim*TNumNodes>& rRotationMatrix);
+    void CreateTransformationMatrix(BoundedMatrix<double, TDim * TNumNodes, TDim * TNumNodes>& rRotationMatrix);
 
-    void CalculateLocalSystem(
-        MatrixType& rLeftHandSideMatrix,
-        VectorType& rRightHandSideVector,
-        const ProcessInfo& rCurrentProcessInfo) override;
+    void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
+                              VectorType& rRightHandSideVector,
+                              const ProcessInfo& rCurrentProcessInfo) override;
 
-    void CalculateRightHandSide(
-        VectorType& rRightHandSideVector,
-        const ProcessInfo& rCurrentProcessInfo) override;
+    void CalculateRightHandSide(VectorType& rRightHandSideVector,
+                                const ProcessInfo& rCurrentProcessInfo) override;
 
-    void CalculateLeftHandSide(
-        MatrixType& rLeftHandSideMatrix,
-        const ProcessInfo& rCurrentProcessInfo) override;
+    void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
+                               const ProcessInfo& rCurrentProcessInfo) override;
 
-    void CalculateMassMatrix(
-        MatrixType& rMassMatrix,
-        const ProcessInfo& rCurrentProcessInfo) override;
+    void CalculateMassMatrix(MatrixType& rMassMatrix,
+                             const ProcessInfo& rCurrentProcessInfo) override;
 
-    void CalculateConsistentMassMatrix(
-        MatrixType& rMassMatrix,
-        const ProcessInfo& rCurrentProcessInfo) const;
+    void CalculateConsistentMassMatrix(MatrixType& rMassMatrix,
+                                       const ProcessInfo& rCurrentProcessInfo) const;
 
-    void CalculateDampingMatrix(
-        MatrixType& rDampingMatrix,
-        const ProcessInfo& rCurrentProcessInfo) override;
-
+    void CalculateDampingMatrix(MatrixType& rDampingMatrix,
+                                const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
      * @brief This function is designed to make the element to assemble an rRHS vector identified by a variable rRHSVariable by assembling it to the nodes on the variable rDestinationVariable (double version)
@@ -180,12 +162,10 @@ public:
      * @param rDestinationVariable variable in the database to which the rRHSVector will be assembled
      * @param rCurrentProcessInfo the current process info instance
      */
-    void AddExplicitContribution(
-        const VectorType& rRHSVector,
-        const Variable<VectorType>& rRHSVariable,
-        const Variable<double >& rDestinationVariable,
-        const ProcessInfo& rCurrentProcessInfo
-        ) override;
+    void AddExplicitContribution(const VectorType& rRHSVector,
+                                 const Variable<VectorType>& rRHSVariable,
+                                 const Variable<double>& rDestinationVariable,
+                                 const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
      * @brief This function is designed to make the element to assemble an rRHS vector identified by a variable rRHSVariable by assembling it to the nodes on the variable (array_1d<double, 3>) version rDestinationVariable.
@@ -197,11 +177,9 @@ public:
      * @param rCurrentProcessInfo the current process info instance
      */
     void AddExplicitContribution(const VectorType& rRHSVector,
-        const Variable<VectorType>& rRHSVariable,
-        const Variable<array_1d<double, 3> >& rDestinationVariable,
-        const ProcessInfo& rCurrentProcessInfo
-        ) override;
-
+                                 const Variable<VectorType>& rRHSVariable,
+                                 const Variable<array_1d<double, 3>>& rDestinationVariable,
+                                 const ProcessInfo& rCurrentProcessInfo) override;
 
     void GetValuesVector(Vector& rValues, int Step = 0) const override;
 
@@ -214,7 +192,7 @@ public:
     /**
      * @brief This function calculates the current Green-Lagrange strain
      */
-    double CalculateGreenLagrangeStrain()const;
+    double CalculateGreenLagrangeStrain() const;
 
     /**
      * @brief This function calculates self-weight forces
@@ -226,8 +204,8 @@ public:
      * @param rGeometricStiffnessMatrix The geometric stiffness matrix
      * @param rCurrentProcessInfo The current process information
      */
-    void CalculateGeometricStiffnessMatrix(BoundedMatrix<double,TDim*TNumNodes,TDim*TNumNodes>& rGeometricStiffnessMatrix,
-        const ProcessInfo& rCurrentProcessInfo);
+    void CalculateGeometricStiffnessMatrix(BoundedMatrix<double, TDim * TNumNodes, TDim * TNumNodes>& rGeometricStiffnessMatrix,
+                                           const ProcessInfo& rCurrentProcessInfo);
 
     /**
      * @brief This function assembles the elastic stiffness part of the total stiffness matrix
@@ -252,16 +230,14 @@ private:
      * @brief This method computes directly the lumped mass vector
      * @param rMassVector The lumped mass vector
      */
-    void CalculateLumpedMassVector(
-        VectorType& rMassVector,
-        const ProcessInfo& rCurrentProcessInfo) const override;
+    void CalculateLumpedMassVector(VectorType& rMassVector,
+                                   const ProcessInfo& rCurrentProcessInfo) const override;
 
     friend class Serializer;
     void save(Serializer& rSerializer) const override;
     void load(Serializer& rSerializer) override;
 };
 
-}
-
+} // namespace Kratos
 
 #endif

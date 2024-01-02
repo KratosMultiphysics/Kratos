@@ -11,9 +11,8 @@
 //                   Vahid Galavi
 //
 
-
-#if !defined(KRATOS_GEO_TRUSS_ELEMENT_LINEAR_BASE_H_INCLUDED )
-#define  KRATOS_GEO_TRUSS_ELEMENT_LINEAR_BASE_H_INCLUDED
+#if !defined(KRATOS_GEO_TRUSS_ELEMENT_LINEAR_BASE_H_INCLUDED)
+#define KRATOS_GEO_TRUSS_ELEMENT_LINEAR_BASE_H_INCLUDED
 
 // System includes
 
@@ -24,7 +23,8 @@
 #include "includes/define.h"
 #include "includes/variables.h"
 
-namespace Kratos {
+namespace Kratos
+{
 /**
  * @class GeoTrussElementLinearBase
  *
@@ -33,9 +33,9 @@ namespace Kratos {
  * @author Klaus B Sautter, Vahid Galavi
  */
 
-template< unsigned int TDim, unsigned int TNumNodes >
+template <unsigned int TDim, unsigned int TNumNodes>
 class KRATOS_API(GEO_MECHANICS_APPLICATION) GeoTrussElementLinearBase
-    : public GeoTrussElementBase<TDim,TNumNodes>
+    : public GeoTrussElementBase<TDim, TNumNodes>
 {
 public:
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(GeoTrussElementLinearBase);
@@ -51,15 +51,13 @@ public:
     using FullDofMatrixType = typename GeoTrussElementBase<TDim, TNumNodes>::FullDofMatrixType;
     using FullDofVectorType = typename GeoTrussElementBase<TDim, TNumNodes>::FullDofVectorType;
 
-    using GeoTrussElementBase<TDim,TNumNodes>::mpConstitutiveLaw;
+    using GeoTrussElementBase<TDim, TNumNodes>::mpConstitutiveLaw;
 
-    GeoTrussElementLinearBase() {};
+    GeoTrussElementLinearBase(){};
+    GeoTrussElementLinearBase(IndexType NewId, GeometryType::Pointer pGeometry);
     GeoTrussElementLinearBase(IndexType NewId,
-                           GeometryType::Pointer pGeometry);
-    GeoTrussElementLinearBase(IndexType NewId,
-                           GeometryType::Pointer pGeometry,
-                           PropertiesType::Pointer pProperties);
-
+                              GeometryType::Pointer pGeometry,
+                              PropertiesType::Pointer pProperties);
 
     ~GeoTrussElementLinearBase() override;
 
@@ -97,8 +95,8 @@ public:
      */
     void AddPrestressLinear(VectorType& rRightHandSideVector);
 
-    void CalculateOnIntegrationPoints(const Variable<array_1d<double, 3 > >& rVariable,
-                                      std::vector< array_1d<double, 3 > >& rOutput,
+    void CalculateOnIntegrationPoints(const Variable<array_1d<double, 3>>& rVariable,
+                                      std::vector<array_1d<double, 3>>& rOutput,
                                       const ProcessInfo& rCurrentProcessInfo) override;
 
     void CalculateOnIntegrationPoints(const Variable<Vector>& rVariable,
@@ -133,7 +131,6 @@ public:
     void FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
 
 private:
-
     friend class Serializer;
     void save(Serializer& rSerializer) const override
     {
@@ -146,8 +143,6 @@ private:
     }
 };
 
-
-}
-
+} // namespace Kratos
 
 #endif

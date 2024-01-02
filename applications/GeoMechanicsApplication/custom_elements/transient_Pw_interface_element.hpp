@@ -21,14 +21,12 @@
 namespace Kratos
 {
 
-template< unsigned int TDim, unsigned int TNumNodes >
-class KRATOS_API(GEO_MECHANICS_APPLICATION) TransientPwInterfaceElement :
-    public UPwSmallStrainInterfaceElement<TDim,TNumNodes>
+template <unsigned int TDim, unsigned int TNumNodes>
+class KRATOS_API(GEO_MECHANICS_APPLICATION) TransientPwInterfaceElement
+    : public UPwSmallStrainInterfaceElement<TDim, TNumNodes>
 {
-
 public:
-
-    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( TransientPwInterfaceElement );
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(TransientPwInterfaceElement);
 
     using BaseType = UPwSmallStrainInterfaceElement<TDim, TNumNodes>;
 
@@ -40,36 +38,44 @@ public:
     using VectorType = Vector;
     using MatrixType = Matrix;
 
-    using DofsVectorType       = Element::DofsVectorType;
+    using DofsVectorType = Element::DofsVectorType;
     using EquationIdVectorType = Element::EquationIdVectorType;
 
     /// The definition of the sizetype
     using SizeType = std::size_t;
 
+    using BaseType::CalculateRetentionResponse;
     using BaseType::mRetentionLawVector;
     using BaseType::mThisIntegrationMethod;
-    using BaseType::CalculateRetentionResponse;
 
     using InterfaceElementVariables = typename BaseType::InterfaceElementVariables;
-    using SFGradAuxVariables        = typename BaseType::SFGradAuxVariables;
+    using SFGradAuxVariables = typename BaseType::SFGradAuxVariables;
 
     /// Default Constructor
-    TransientPwInterfaceElement(IndexType NewId = 0) : UPwSmallStrainInterfaceElement<TDim,TNumNodes>( NewId ) {}
+    TransientPwInterfaceElement(IndexType NewId = 0)
+        : UPwSmallStrainInterfaceElement<TDim, TNumNodes>(NewId)
+    {
+    }
 
     /// Constructor using an array of nodes
-    TransientPwInterfaceElement(IndexType NewId,
-                                const NodesArrayType& ThisNodes) : UPwSmallStrainInterfaceElement<TDim,TNumNodes>(NewId, ThisNodes) {}
+    TransientPwInterfaceElement(IndexType NewId, const NodesArrayType& ThisNodes)
+        : UPwSmallStrainInterfaceElement<TDim, TNumNodes>(NewId, ThisNodes)
+    {
+    }
 
     /// Constructor using Geometry
-    TransientPwInterfaceElement(IndexType NewId,
-                                GeometryType::Pointer pGeometry) : UPwSmallStrainInterfaceElement<TDim,TNumNodes>(NewId, pGeometry) {}
+    TransientPwInterfaceElement(IndexType NewId, GeometryType::Pointer pGeometry)
+        : UPwSmallStrainInterfaceElement<TDim, TNumNodes>(NewId, pGeometry)
+    {
+    }
 
     /// Constructor using Properties
     TransientPwInterfaceElement(IndexType NewId,
                                 GeometryType::Pointer pGeometry,
                                 PropertiesType::Pointer pProperties)
-                                : UPwSmallStrainInterfaceElement<TDim,TNumNodes>( NewId, pGeometry, pProperties )
-    {}
+        : UPwSmallStrainInterfaceElement<TDim, TNumNodes>(NewId, pGeometry, pProperties)
+    {
+    }
 
     ~TransientPwInterfaceElement() override = default;
     TransientPwInterfaceElement(const TransientPwInterfaceElement&) = delete;
@@ -87,11 +93,11 @@ public:
 
     int Check(const ProcessInfo& rCurrentProcessInfo) const override;
 
-    void GetDofList(DofsVectorType& rElementalDofList, 
+    void GetDofList(DofsVectorType& rElementalDofList,
                     const ProcessInfo& rCurrentProcessInfo) const override;
 
-    void EquationIdVector( EquationIdVectorType& rResult,
-                           const ProcessInfo& rCurrentProcessInfo ) const override;
+    void EquationIdVector(EquationIdVectorType& rResult,
+                          const ProcessInfo& rCurrentProcessInfo) const override;
 
     void GetValuesVector(Vector& rValues, int Step = 0) const override;
 
@@ -112,28 +118,27 @@ public:
                                       const ProcessInfo& rCurrentProcessInfo) override;
 
     void CalculateOnIntegrationPoints(const Variable<double>& rVariable,
-                                     std::vector<double>& rValues,
-                                     const ProcessInfo& rCurrentProcessInfo) override;
+                                      std::vector<double>& rValues,
+                                      const ProcessInfo& rCurrentProcessInfo) override;
 
-    void CalculateOnIntegrationPoints(const Variable<array_1d<double,3>>& rVariable,
-                                      std::vector<array_1d<double,3>>& rValues,
+    void CalculateOnIntegrationPoints(const Variable<array_1d<double, 3>>& rVariable,
+                                      std::vector<array_1d<double, 3>>& rValues,
                                       const ProcessInfo& rCurrentProcessInfo) override;
 
 protected:
-
-    void CalculateOnLobattoIntegrationPoints(const Variable<array_1d<double,3>>& rVariable,
-                                            std::vector<array_1d<double,3>>& rOutput,
-                                            const ProcessInfo& rCurrentProcessInfo) override;
+    void CalculateOnLobattoIntegrationPoints(const Variable<array_1d<double, 3>>& rVariable,
+                                             std::vector<array_1d<double, 3>>& rOutput,
+                                             const ProcessInfo& rCurrentProcessInfo) override;
 
     void CalculateOnLobattoIntegrationPoints(const Variable<Matrix>& rVariable,
                                              std::vector<Matrix>& rOutput,
                                              const ProcessInfo& rCurrentProcessInfo) override;
 
-    void CalculateAll( MatrixType& rLeftHandSideMatrix,
-                       VectorType& rRightHandSideVector,
-                       const ProcessInfo& CurrentProcessInfo,
-                       const bool CalculateStiffnessMatrixFlag,
-                       const bool CalculateResidualVectorFlag) override;
+    void CalculateAll(MatrixType& rLeftHandSideMatrix,
+                      VectorType& rRightHandSideVector,
+                      const ProcessInfo& CurrentProcessInfo,
+                      const bool CalculateStiffnessMatrixFlag,
+                      const bool CalculateResidualVectorFlag) override;
 
     void InitializeElementVariables(InterfaceElementVariables& rVariables,
                                     const GeometryType& Geom,
@@ -170,14 +175,14 @@ private:
 
     void save(Serializer& rSerializer) const override
     {
-        KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, Element )
+        KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Element)
     }
 
     void load(Serializer& rSerializer) override
     {
-        KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, Element )
+        KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element)
     }
 
 }; // Class TransientPwInterfaceElement
 
-}
+} // namespace Kratos
