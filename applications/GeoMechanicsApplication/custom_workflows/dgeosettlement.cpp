@@ -69,6 +69,11 @@ double GetIncreaseFactorFrom(const Parameters& rProjectParameters)
     return rProjectParameters["solver_settings"]["increase_factor"].GetDouble();
 }
 
+double GetMaxDeltaTimeFactorFrom(const Parameters& rProjectParameters)
+{
+   return rProjectParameters["solver_settings"]["time_stepping"]["max_delta_time_factor"].GetDouble();
+}
+
 std::size_t GetMinNumberOfIterationsFrom(const Parameters& rProjectParameters)
 {
     return static_cast<std::size_t>(rProjectParameters["solver_settings"]["min_iterations"].GetInt());
@@ -150,9 +155,9 @@ void KratosGeoSettlement::InitializeProcessFactory()
 int KratosGeoSettlement::RunStage(const std::filesystem::path&            rWorkingDirectory,
                                   const std::filesystem::path&            rProjectParametersFile,
                                   const std::function<void(const char*)>& rLogCallback,
-                                  const std::function<void(double)>&      ,
+                                  const std::function<void(double)>&      rProgressDelegate,
                                   const std::function<void(const char*)>& ,
-                                  const std::function<bool()>&            )
+                                  const std::function<bool()>&            rShouldCancel)
 {
     std::stringstream kratos_log_buffer;
     LoggerOutput::Pointer logger_output = CreateLoggingOutput(kratos_log_buffer);
@@ -197,6 +202,8 @@ int KratosGeoSettlement::RunStage(const std::filesystem::path&            rWorki
 
         if (mpTimeLoopExecutor)
         {
+            mpTimeLoopExecutor->SetCancelDelegate(rShouldCancel);
+            mpTimeLoopExecutor->SetProgressDelegate(rProgressDelegate);
             mpTimeLoopExecutor->SetProcessObservables(process_observables);
             mpTimeLoopExecutor->SetTimeIncrementor(MakeTimeIncrementor(project_parameters));
             mpTimeLoopExecutor->SetSolverStrategyWrapper(MakeStrategyWrapper(project_parameters,
@@ -318,6 +325,7 @@ std::unique_ptr<TimeIncrementor> KratosGeoSettlement::MakeTimeIncrementor(const 
                                                      GetMaxNumberOfCyclesFrom(rProjectParameters),
                                                      GetReductionFactorFrom(rProjectParameters),
                                                      GetIncreaseFactorFrom(rProjectParameters),
+                                                     GetMaxDeltaTimeFactorFrom(rProjectParameters),
                                                      GetMinNumberOfIterationsFrom(rProjectParameters),
                                                      GetMaxNumberOfIterationsFrom(rProjectParameters));
 }
@@ -402,6 +410,7 @@ void KratosGeoSettlement::PrepareModelPart(const Parameters& rSolverSettings)
     }
     GetComputationalModelPart().AddElements(std::vector<IndexedObject::IndexType>{element_id_set.begin(), element_id_set.end()});
 
+    GetComputationalModelPart().Conditions().clear();
     const auto processes_sub_model_part_list = rSolverSettings["processes_sub_model_part_list"];
     std::vector<std::string> domain_condition_names;
     for (const auto& sub_model_part : processes_sub_model_part_list) {
