@@ -37,9 +37,9 @@ namespace Kratos {
     
     // Get collision time
     typename ThermalSphericParticle::ContactParams contact_params = particle->GetContactParameters();
-    const double col_time_max      = particle->ComputeMaxCollisionTime();
-    const double col_time_max_real = particle->ComputeMaxCollisionTimeReal();
-    const double col_time          = r_process_info[TIME] - contact_params.impact_time;
+    const double col_dur          = r_process_info[TIME] - contact_params.impact_time;
+    const double col_dur_max      = contact_params.impact_duration_max;
+    const double col_dur_max_real = contact_params.impact_duration_max_real;
 
     double correction_area = 1.0;
     double correction_time = 1.0;
@@ -64,8 +64,8 @@ namespace Kratos {
     }
 
     // Time correction
-    if (col_time < col_time_max) {
-      correction_time = pow(col_time_max_real / col_time_max, 2.0 / 3.0);
+    if (col_dur < col_dur_max) {
+      correction_time = pow(col_dur_max_real / col_dur_max, 2.0 / 3.0);
       particle->mContactRadiusAdjusted *= correction_time;
     }
     
