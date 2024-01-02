@@ -9,11 +9,11 @@
 //
 //  Main authors:    Vahid Galavi,
 //                   Aron Noordam
+//                   Mohamed Nabi
 //
 
 // Application includes
 #include "geo_mechanics_application.h"
-
 
 namespace Kratos {
 // We define the node type
@@ -74,7 +74,7 @@ void KratosGeoMechanicsApplication::Register() {
 
     KRATOS_REGISTER_ELEMENT("SteadyStatePwPipingElement2D4N", mSteadyStatePwPipingElement2D4N)
     KRATOS_REGISTER_ELEMENT("SteadyStatePwPipingElement3D6N", mSteadyStatePwPipingElement3D6N)
-    KRATOS_REGISTER_ELEMENT("SteadyStatePwPipingElement3D8N", mSteadyStatePwPipingElement3D8N) 
+    KRATOS_REGISTER_ELEMENT("SteadyStatePwPipingElement3D8N", mSteadyStatePwPipingElement3D8N)
 
     // Small strain elements
     KRATOS_REGISTER_ELEMENT("UPwSmallStrainElement2D3N", mUPwSmallStrainElement2D3N)
@@ -277,9 +277,29 @@ void KratosGeoMechanicsApplication::Register() {
     KRATOS_REGISTER_CONDITION("UPwLysmerAbsorbingCondition3D3N", mUPwLysmerAbsorbingCondition3D3N)
     KRATOS_REGISTER_CONDITION("UPwLysmerAbsorbingCondition3D4N", mUPwLysmerAbsorbingCondition3D4N)
 
+    KRATOS_REGISTER_CONDITION("GeoTNormalFluxCondition2D2N", mGeoTNormalFluxCondition2D2N)
+    KRATOS_REGISTER_CONDITION("GeoTNormalFluxCondition2D3N", mGeoTNormalFluxCondition2D3N)
+    KRATOS_REGISTER_CONDITION("GeoTNormalFluxCondition2D4N", mGeoTNormalFluxCondition2D4N)
+    KRATOS_REGISTER_CONDITION("GeoTNormalFluxCondition2D5N", mGeoTNormalFluxCondition2D5N)
+    KRATOS_REGISTER_CONDITION("GeoTNormalFluxCondition3D3N", mGeoTNormalFluxCondition3D3N)
+    KRATOS_REGISTER_CONDITION("GeoTNormalFluxCondition3D4N", mGeoTNormalFluxCondition3D4N)
+    KRATOS_REGISTER_CONDITION("GeoTNormalFluxCondition3D6N", mGeoTNormalFluxCondition3D6N)
+    KRATOS_REGISTER_CONDITION("GeoTNormalFluxCondition3D8N", mGeoTNormalFluxCondition3D8N)
+    KRATOS_REGISTER_CONDITION("GeoTNormalFluxCondition3D9N", mGeoTNormalFluxCondition3D9N)
+
+    KRATOS_REGISTER_CONDITION("GeoTMicroClimateFluxCondition2D2N", mGeoTMicroClimateFluxCondition2D2N)
+    KRATOS_REGISTER_CONDITION("GeoTMicroClimateFluxCondition2D3N", mGeoTMicroClimateFluxCondition2D3N)
+    KRATOS_REGISTER_CONDITION("GeoTMicroClimateFluxCondition2D4N", mGeoTMicroClimateFluxCondition2D4N)
+    KRATOS_REGISTER_CONDITION("GeoTMicroClimateFluxCondition2D5N", mGeoTMicroClimateFluxCondition2D5N)
+    KRATOS_REGISTER_CONDITION("GeoTMicroClimateFluxCondition3D3N", mGeoTMicroClimateFluxCondition3D3N)
+    KRATOS_REGISTER_CONDITION("GeoTMicroClimateFluxCondition3D4N", mGeoTMicroClimateFluxCondition3D4N)
+    KRATOS_REGISTER_CONDITION("GeoTMicroClimateFluxCondition3D6N", mGeoTMicroClimateFluxCondition3D6N)
+    KRATOS_REGISTER_CONDITION("GeoTMicroClimateFluxCondition3D8N", mGeoTMicroClimateFluxCondition3D8N)
+    KRATOS_REGISTER_CONDITION("GeoTMicroClimateFluxCondition3D9N", mGeoTMicroClimateFluxCondition3D9N)
+
     //Register Constitutive Laws
-    KRATOS_REGISTER_CONSTITUTIVE_LAW("BilinearCohesive3DLaw",           mBilinearCohesive3DLaw)
-    KRATOS_REGISTER_CONSTITUTIVE_LAW("BilinearCohesive2DLaw",           mBilinearCohesive2DLaw)
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("BilinearCohesive3DLaw", mBilinearCohesive3DLaw)
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("BilinearCohesive2DLaw", mBilinearCohesive2DLaw)
 
     KRATOS_REGISTER_CONSTITUTIVE_LAW("LinearElasticPlaneStrainK02DLaw",  mLinearPlaneStrainK0Law)
     KRATOS_REGISTER_CONSTITUTIVE_LAW("LinearElasticK03DLaw",             mElasticIsotropicK03DLaw)
@@ -301,6 +321,9 @@ void KratosGeoMechanicsApplication::Register() {
     KRATOS_REGISTER_CONSTITUTIVE_LAW("LinearElastic3DInterfaceLaw",   mLinearElastic3DInterfaceLaw)
 
     KRATOS_REGISTER_CONSTITUTIVE_LAW("LinearElastic2DBeamLaw",        mLinearElastic2DBeamLaw)
+
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("GeoThermalDispersion2DLaw",     mGeoThermalDispersion2DLaw)
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("GeoThermalDispersion3DLaw",     mGeoThermalDispersion3DLaw)
 
     //Register Variables
     KRATOS_REGISTER_VARIABLE( VELOCITY_COEFFICIENT )
@@ -327,6 +350,20 @@ void KratosGeoMechanicsApplication::Register() {
     KRATOS_REGISTER_VARIABLE( DT_TEMPERATURE_COEFFICIENT )
     KRATOS_REGISTER_VARIABLE( DT_TEMPERATURE )
     KRATOS_REGISTER_VARIABLE( NORMAL_HEAT_FLUX )
+
+    // Variables for Micro-Climate boundary
+    KRATOS_REGISTER_VARIABLE( AIR_TEMPERATURE )
+    KRATOS_REGISTER_VARIABLE( SOLAR_RADIATION )
+    KRATOS_REGISTER_VARIABLE( AIR_HUMIDITY )
+    KRATOS_REGISTER_VARIABLE( PRECIPITATION )
+    KRATOS_REGISTER_VARIABLE( WIND_SPEED )
+    KRATOS_REGISTER_VARIABLE( A1_COEFFICIENT )
+    KRATOS_REGISTER_VARIABLE( A2_COEFFICIENT )
+    KRATOS_REGISTER_VARIABLE( A3_COEFFICIENT )
+    KRATOS_REGISTER_VARIABLE( ALPHA_COEFFICIENT )
+    KRATOS_REGISTER_VARIABLE( QF_COEFFICIENT )
+    KRATOS_REGISTER_VARIABLE( SMIN_COEFFICIENT )
+    KRATOS_REGISTER_VARIABLE( SMAX_COEFFICIENT )
 
     KRATOS_REGISTER_VARIABLE( K0_MAIN_DIRECTION )
     KRATOS_REGISTER_VARIABLE( K0_VALUE_XX )
