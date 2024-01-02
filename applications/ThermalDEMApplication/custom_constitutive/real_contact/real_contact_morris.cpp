@@ -28,9 +28,9 @@ namespace Kratos {
     const double eff_young_real    = particle->ComputeEffectiveYoungReal();
     const double eff_radius        = particle->ComputeEffectiveRadius();
     const double identation        = std::max(-1.0 * particle->mNeighborSeparation, 0.0);
-    const double col_dur          = r_process_info[TIME] - contact_params.impact_time;
-    const double col_dur_max      = contact_params.impact_duration_max;
-    const double col_dur_max_real = contact_params.impact_duration_max_real;
+    const double col_time_max      = particle->ComputeMaxCollisionTime();
+    const double col_time_max_real = particle->ComputeMaxCollisionTimeReal();
+    const double col_time          = r_process_info[TIME] - contact_params.impact_time;
 
     // Contact force with simulation parameters (using Hertz theory)
     const double hertz_force = 4.0 * eff_young * sqrt(eff_radius) * pow(identation, 3.0 / 2.0) / 3.0;
@@ -40,8 +40,8 @@ namespace Kratos {
 
     // Time correction
     double correction_time = 1.0;
-    if (col_dur < col_dur_max)
-      correction_time = pow(col_dur_max_real / col_dur_max, 2.0 / 3.0);
+    if (col_time < col_time_max)
+      correction_time = pow(col_time_max_real / col_time_max, 2.0 / 3.0);
 
     // Adjusted value of contact radius
     particle->mContactRadiusAdjusted = correction_area * correction_time;

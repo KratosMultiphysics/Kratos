@@ -318,13 +318,11 @@ namespace Kratos
     if (!mContactParamsParticle.count(neighbor)) {
       ContactParams params;
       mContactParamsParticle[neighbor] = params;
-      mContactParamsParticle[neighbor].impact_time              = r_process_info[TIME];
-      mContactParamsParticle[neighbor].impact_velocity          = { data_buffer.mLocalRelVel[2], sqrt(data_buffer.mLocalRelVel[0] * data_buffer.mLocalRelVel[0] + data_buffer.mLocalRelVel[1] * data_buffer.mLocalRelVel[1]) }; // local components of relavive velocity (normal and tangential)
-      mContactParamsParticle[neighbor].viscodamping_energy      = 0.0;
-      mContactParamsParticle[neighbor].frictional_energy        = 0.0;
-      mContactParamsParticle[neighbor].rollresist_energy        = 0.0;
-      mContactParamsParticle[neighbor].impact_duration_max      = ComputeMaxCollisionTime();
-      mContactParamsParticle[neighbor].impact_duration_max_real = ComputeMaxCollisionTimeReal();
+      mContactParamsParticle[neighbor].impact_time         = r_process_info[TIME];
+      mContactParamsParticle[neighbor].impact_velocity     = { data_buffer.mLocalRelVel[2], sqrt(data_buffer.mLocalRelVel[0] * data_buffer.mLocalRelVel[0] + data_buffer.mLocalRelVel[1] * data_buffer.mLocalRelVel[1]) }; // local components of relavive velocity (normal and tangential)
+      mContactParamsParticle[neighbor].viscodamping_energy = 0.0;
+      mContactParamsParticle[neighbor].frictional_energy   = 0.0;
+      mContactParamsParticle[neighbor].rollresist_energy   = 0.0;
     }
 
     if (r_process_info[HEAT_GENERATION_OPTION]) {
@@ -385,13 +383,11 @@ namespace Kratos
     if (!mContactParamsWall.count(neighbor)) {
       ContactParams params;
       mContactParamsWall[neighbor] = params;
-      mContactParamsWall[neighbor].impact_time              = r_process_info[TIME];
-      mContactParamsWall[neighbor].impact_velocity          = { data_buffer.mLocalRelVel[2], sqrt(data_buffer.mLocalRelVel[0] * data_buffer.mLocalRelVel[0] + data_buffer.mLocalRelVel[1] * data_buffer.mLocalRelVel[1]) }; // local components of relavive velocity (normal and tangential)
-      mContactParamsWall[neighbor].viscodamping_energy      = 0.0;
-      mContactParamsWall[neighbor].frictional_energy        = 0.0;
-      mContactParamsWall[neighbor].rollresist_energy        = 0.0;
-      mContactParamsWall[neighbor].impact_duration_max      = ComputeMaxCollisionTime();
-      mContactParamsWall[neighbor].impact_duration_max_real = ComputeMaxCollisionTimeReal();
+      mContactParamsWall[neighbor].impact_time         = r_process_info[TIME];
+      mContactParamsWall[neighbor].impact_velocity     = { data_buffer.mLocalRelVel[2], sqrt(data_buffer.mLocalRelVel[0] * data_buffer.mLocalRelVel[0] + data_buffer.mLocalRelVel[1] * data_buffer.mLocalRelVel[1]) }; // local components of relavive velocity (normal and tangential)
+      mContactParamsWall[neighbor].viscodamping_energy = 0.0;
+      mContactParamsWall[neighbor].frictional_energy   = 0.0;
+      mContactParamsWall[neighbor].rollresist_energy   = 0.0;
     }
 
     if (r_process_info[HEAT_GENERATION_OPTION]) {
@@ -1200,13 +1196,11 @@ namespace Kratos
     }
     else {
       ContactParams null_param;
-      null_param.updated_step             = 0;
-      null_param.impact_time              = 0.0;
-      null_param.impact_duration_max      = 0.0;
-      null_param.impact_duration_max_real = 0.0;
-      null_param.viscodamping_energy      = 0.0;
-      null_param.frictional_energy        = 0.0;
-      null_param.rollresist_energy        = 0.0;
+      null_param.updated_step        = 0;
+      null_param.impact_time         = 0.0;
+      null_param.viscodamping_energy = 0.0;
+      null_param.frictional_energy   = 0.0;
+      null_param.rollresist_energy   = 0.0;
       null_param.impact_velocity.assign(2, 0.0);
       return null_param;
     }

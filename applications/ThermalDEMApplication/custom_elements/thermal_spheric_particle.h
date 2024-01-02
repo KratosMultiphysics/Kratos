@@ -53,8 +53,6 @@ namespace Kratos
       {
         int                 updated_step;
         double              impact_time;
-        double              impact_duration_max;
-        double              impact_duration_max_real;
         double              viscodamping_energy;
         double              frictional_energy;
         double              rollresist_energy;
