@@ -94,9 +94,9 @@ int UPwSmallStrainInterfaceElement<TDim, TNumNodes>::Check(const ProcessInfo& rC
         // Check constitutive law
         ierr = Prop[CONSTITUTIVE_LAW]->Check(Prop, this->GetGeometry(), rCurrentProcessInfo);
     } else
-        KRATOS_ERROR
-            << "A constitutive law needs to be specified for the element "
-            << this->Id() << std::endl;
+        KRATOS_ERROR << "A constitutive law needs to be specified for the "
+                        "element "
+                     << this->Id() << std::endl;
 
     const SizeType strain_size =
         this->GetProperties().GetValue(CONSTITUTIVE_LAW)->GetStrainSize();

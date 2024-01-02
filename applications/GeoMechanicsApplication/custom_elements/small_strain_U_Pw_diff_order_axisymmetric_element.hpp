@@ -83,20 +83,20 @@ public:
     std::string Info() const override
     {
         std::stringstream buffer;
-        buffer
-            << "Small strain axisymmetric U-Pw Element with different order #"
-            << this->Id()
-            << "\nConstitutive law: " << mConstitutiveLawVector[0]->Info();
+        buffer << "Small strain axisymmetric U-Pw Element with different order "
+                  "#"
+               << this->Id()
+               << "\nConstitutive law: " << mConstitutiveLawVector[0]->Info();
         return buffer.str();
     }
 
     // Print information about this object.
     void PrintInfo(std::ostream& rOStream) const override
     {
-        rOStream
-            << "Small strain axisymmetric U-Pw Element with different order #"
-            << this->Id()
-            << "\nConstitutive law: " << mConstitutiveLawVector[0]->Info();
+        rOStream << "Small strain axisymmetric U-Pw Element with different "
+                    "order #"
+                 << this->Id()
+                 << "\nConstitutive law: " << mConstitutiveLawVector[0]->Info();
     }
 
     ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------

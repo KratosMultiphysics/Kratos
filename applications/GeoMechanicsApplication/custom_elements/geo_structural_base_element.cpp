@@ -79,9 +79,9 @@ int GeoStructuralBaseElement<TDim, TNumNodes>::Check(const ProcessInfo& rCurrent
         if (rGeom[i].HasDofFor(ROTATION_X) == false ||
             rGeom[i].HasDofFor(ROTATION_Y) == false ||
             rGeom[i].HasDofFor(ROTATION_Z) == false)
-            KRATOS_ERROR
-                << "missing one of the dofs for the variable ROTATION on node "
-                << rGeom[i].Id() << std::endl;
+            KRATOS_ERROR << "missing one of the dofs for the variable ROTATION "
+                            "on node "
+                         << rGeom[i].Id() << std::endl;
     }
 
     // Verify ProcessInfo variables
@@ -93,9 +93,9 @@ int GeoStructuralBaseElement<TDim, TNumNodes>::Check(const ProcessInfo& rCurrent
 
     if (rProp.Has(YOUNG_MODULUS) == false) {
         if (rProp.Has(UDSM_NAME) == false) {
-            KRATOS_ERROR
-                << "YOUNG_MODULUS has Key zero or is not defined at element "
-                << this->Id() << std::endl;
+            KRATOS_ERROR << "YOUNG_MODULUS has Key zero or is not defined at "
+                            "element "
+                         << this->Id() << std::endl;
         }
     } else {
         if (rProp[YOUNG_MODULUS] <= 0.0)
@@ -105,9 +105,9 @@ int GeoStructuralBaseElement<TDim, TNumNodes>::Check(const ProcessInfo& rCurrent
 
     if (rProp.Has(POISSON_RATIO) == false) {
         if (rProp.Has(UDSM_NAME) == false) {
-            KRATOS_ERROR
-                << "POISSON_RATIO has Key zero or is not defined at element"
-                << this->Id() << std::endl;
+            KRATOS_ERROR << "POISSON_RATIO has Key zero or is not defined at "
+                            "element"
+                         << this->Id() << std::endl;
         }
     } else {
         const double& PoissonRatio = rProp[POISSON_RATIO];

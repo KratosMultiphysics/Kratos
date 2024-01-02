@@ -90,9 +90,9 @@ int UPwBaseElement<TDim, TNumNodes>::Check(const ProcessInfo& rCurrentProcessInf
                          << rGeom[i].Id() << std::endl;
 
         if (rGeom[i].HasDofFor(WATER_PRESSURE) == false)
-            KRATOS_ERROR
-                << "missing the dof for the variable WATER_PRESSURE on node "
-                << rGeom[i].Id() << std::endl;
+            KRATOS_ERROR << "missing the dof for the variable WATER_PRESSURE "
+                            "on node "
+                         << rGeom[i].Id() << std::endl;
     }
 
     // Verify ProcessInfo variables
@@ -110,9 +110,9 @@ int UPwBaseElement<TDim, TNumNodes>::Check(const ProcessInfo& rCurrentProcessInf
 
     if (rProp.Has(YOUNG_MODULUS) == false) {
         if (rProp.Has(UDSM_NAME) == false)
-            KRATOS_ERROR
-                << "YOUNG_MODULUS has Key zero or is not defined at element"
-                << this->Id() << std::endl;
+            KRATOS_ERROR << "YOUNG_MODULUS has Key zero or is not defined at "
+                            "element"
+                         << this->Id() << std::endl;
     } else {
         if (rProp[YOUNG_MODULUS] <= 0.0)
             KRATOS_ERROR << "YOUNG_MODULUS has an invalid value at element"
@@ -121,9 +121,9 @@ int UPwBaseElement<TDim, TNumNodes>::Check(const ProcessInfo& rCurrentProcessInf
 
     if (rProp.Has(POISSON_RATIO) == false) {
         if (rProp.Has(UDSM_NAME) == false)
-            KRATOS_ERROR
-                << "POISSON_RATIO has Key zero or is not defined at element"
-                << this->Id() << std::endl;
+            KRATOS_ERROR << "POISSON_RATIO has Key zero or is not defined at "
+                            "element"
+                         << this->Id() << std::endl;
     } else {
         const double& PoissonRatio = rProp[POISSON_RATIO];
         if (PoissonRatio < 0.0 || PoissonRatio >= 0.5)
@@ -262,9 +262,9 @@ void UPwBaseElement<TDim, TNumNodes>::GetDofList(DofsVectorType& rElementalDofLi
             rElementalDofList[index++] = rGeom[i].pGetDof(WATER_PRESSURE);
         }
     } else {
-        KRATOS_ERROR
-            << "undefined dimension in GetDofList... illegal operation!!"
-            << this->Id() << std::endl;
+        KRATOS_ERROR << "undefined dimension in GetDofList... illegal "
+                        "operation!!"
+                     << this->Id() << std::endl;
     }
 
     KRATOS_CATCH("")
@@ -398,9 +398,9 @@ void UPwBaseElement<TDim, TNumNodes>::EquationIdVector(EquationIdVectorType& rRe
             rResult[index++] = rGeom[i].GetDof(WATER_PRESSURE).EquationId();
         }
     } else {
-        KRATOS_ERROR
-            << "undefined dimension in EquationIdVector... illegal operation!!"
-            << this->Id() << std::endl;
+        KRATOS_ERROR << "undefined dimension in EquationIdVector... illegal "
+                        "operation!!"
+                     << this->Id() << std::endl;
     }
 
     KRATOS_CATCH("")
@@ -488,9 +488,9 @@ void UPwBaseElement<TDim, TNumNodes>::GetValuesVector(Vector& rValues, int Step)
             rValues[index++] = 0.0;
         }
     } else {
-        KRATOS_ERROR
-            << "undefined dimension in GetValuesVector... illegal operation!!"
-            << this->Id() << std::endl;
+        KRATOS_ERROR << "undefined dimension in GetValuesVector... illegal "
+                        "operation!!"
+                     << this->Id() << std::endl;
     }
 
     KRATOS_CATCH("")

@@ -563,10 +563,11 @@ int GeoTrussElementBase<TDim, TNumNodes>::Check(const ProcessInfo& rCurrentProce
     }
 
     if (dimension != TDim || number_of_nodes != TNumNodes) {
-        KRATOS_ERROR
-            << "Wrong dimension or number of nodes in the truss element." << std::endl
-            << "This element works with dimension: " << TDim << std::endl
-            << "and number of nodes: " << TNumNodes << std::endl;
+        KRATOS_ERROR << "Wrong dimension or number of nodes in the truss "
+                        "element."
+                     << std::endl
+                     << "This element works with dimension: " << TDim << std::endl
+                     << "and number of nodes: " << TNumNodes << std::endl;
     }
 
     // Check that the element's nodes contain all required SolutionStepData and Degrees of freedom

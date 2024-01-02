@@ -55,9 +55,9 @@ int SteadyStatePwElement<TDim, TNumNodes>::Check(const ProcessInfo& rCurrentProc
                          << Geom[i].Id() << std::endl;
 
         if (Geom[i].HasDofFor(WATER_PRESSURE) == false)
-            KRATOS_ERROR
-                << "missing the dof for the variable WATER_PRESSURE on node "
-                << Geom[i].Id() << std::endl;
+            KRATOS_ERROR << "missing the dof for the variable WATER_PRESSURE "
+                            "on node "
+                         << Geom[i].Id() << std::endl;
     }
 
     // Verify ProcessInfo variables

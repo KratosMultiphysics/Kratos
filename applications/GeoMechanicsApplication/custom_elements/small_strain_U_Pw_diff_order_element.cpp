@@ -128,9 +128,9 @@ int SmallStrainUPwDiffOrderElement::Check(const ProcessInfo& rCurrentProcessInfo
                          << rGeom[i].Id() << std::endl;
 
         if (!rGeom[i].HasDofFor(WATER_PRESSURE))
-            KRATOS_ERROR
-                << "missing the dof for the variable WATER_PRESSURE on node "
-                << rGeom[i].Id() << std::endl;
+            KRATOS_ERROR << "missing the dof for the variable WATER_PRESSURE "
+                            "on node "
+                         << rGeom[i].Id() << std::endl;
     }
 
     // Verify that the constitutive law exists

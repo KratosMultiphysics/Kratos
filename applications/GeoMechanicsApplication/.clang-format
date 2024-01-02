@@ -31,7 +31,7 @@ NamespaceIndentation: None
 PenaltyBreakBeforeFirstCallParameter: 1
 PenaltyBreakComment: 300
 PenaltyBreakString: 1000
-PenaltyBreakFirstLessLess: 120
+PenaltyBreakFirstLessLess: 300
 PenaltyExcessCharacter: 1
 PenaltyReturnTypeOnItsOwnLine: 1000
 PointerAlignment: Left
