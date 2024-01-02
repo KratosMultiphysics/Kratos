@@ -89,8 +89,8 @@ void ApplyNormalLoadTableProcess::MakeProcessForNormalComponent(const Parameters
 void ApplyNormalLoadTableProcess::MakeProcessForUniformFluidPressureType(const Parameters& rProcessSettings,
                                                                          const std::vector<std::string>& NamesOfSettingsToCopy)
 {  
-    auto normal_parameters = ParametersUtilities::ExtractParameters(rProcessSettings,
-                                                                      NamesOfSettingsToCopy);
+    auto normal_parameters = ParametersUtilities::CopyRequiredParameters(
+        rProcessSettings, NamesOfSettingsToCopy);
     normal_parameters.AddValue("value", rProcessSettings["value"][normalComponentNumber]);
 
     if (ParametersUtilities::HasTableAttached(rProcessSettings, normalComponentNumber)) {
@@ -110,15 +110,15 @@ void ApplyNormalLoadTableProcess::MakeProcessForHydrostaticFluidPressureType(con
                                                                "reference_coordinate",
                                                                "specific_weight" });
     if (ParametersUtilities::HasTableAttached(rProcessSettings, normalComponentNumber)) {
-        auto normal_parameters = ParametersUtilities::ExtractParameters(rProcessSettings,
-                                                                          NamesOfSettingsToCopy);
+        auto normal_parameters = ParametersUtilities::CopyRequiredParameters(
+            rProcessSettings, NamesOfSettingsToCopy);
         normal_parameters.AddValue("table", rProcessSettings["table"][normalComponentNumber]);
         mProcesses.push_back(std::make_unique <ApplyBoundaryHydrostaticPressureTableProcess>(mrModelPart, 
                                                                                              normal_parameters));
     }
     else {
-        mProcesses.push_back(std::make_unique <ApplyConstantBoundaryHydrostaticPressureProcess>(mrModelPart, 
-                                                                                                ParametersUtilities::ExtractParameters(rProcessSettings,NamesOfSettingsToCopy)));
+        mProcesses.push_back(std::make_unique <ApplyConstantBoundaryHydrostaticPressureProcess>(mrModelPart, ParametersUtilities::CopyRequiredParameters(
+                             rProcessSettings, NamesOfSettingsToCopy)));
     }
 }
 
@@ -132,12 +132,12 @@ void ApplyNormalLoadTableProcess::MakeProcessForPhreaticLineFluidPressureType(co
                                                                "specific_weight"});
     if (ParametersUtilities::HasTableAttached(rProcessSettings)) {
         NamesOfSettingsToCopy.emplace_back("table");
-        mProcesses.push_back(std::make_unique <ApplyBoundaryPhreaticLinePressureTableProcess>(mrModelPart, 
-                                                                                              ParametersUtilities::ExtractParameters(rProcessSettings, NamesOfSettingsToCopy)));
+        mProcesses.push_back(std::make_unique <ApplyBoundaryPhreaticLinePressureTableProcess>(mrModelPart, ParametersUtilities::CopyRequiredParameters(
+                             rProcessSettings, NamesOfSettingsToCopy)));
     }
     else {
-        mProcesses.push_back(std::make_unique <ApplyConstantBoundaryPhreaticLinePressureProcess>(mrModelPart, 
-                                                                                                 ParametersUtilities::ExtractParameters(rProcessSettings, NamesOfSettingsToCopy)));
+        mProcesses.push_back(std::make_unique <ApplyConstantBoundaryPhreaticLinePressureProcess>(mrModelPart, ParametersUtilities::CopyRequiredParameters(
+                             rProcessSettings, NamesOfSettingsToCopy)));
     }
 }
 
@@ -151,12 +151,12 @@ void ApplyNormalLoadTableProcess::MakeProcessForPhreaticSurfaceFluidPressureType
                                                                 "specific_weight" });
     if (ParametersUtilities::HasTableAttached(rProcessSettings)) {
         NamesOfSettingsToCopy.emplace_back("table");
-        mProcesses.push_back(std::make_unique <ApplyBoundaryPhreaticSurfacePressureTableProcess>(mrModelPart, 
-                                                                                                 ParametersUtilities::ExtractParameters(rProcessSettings, NamesOfSettingsToCopy)));
+        mProcesses.push_back(std::make_unique <ApplyBoundaryPhreaticSurfacePressureTableProcess>(mrModelPart, ParametersUtilities::CopyRequiredParameters(
+                             rProcessSettings, NamesOfSettingsToCopy)));
     }
     else {
-        mProcesses.push_back(std::make_unique <ApplyConstantBoundaryPhreaticSurfacePressureProcess>(mrModelPart, 
-                                                                                                    ParametersUtilities::ExtractParameters(rProcessSettings, NamesOfSettingsToCopy)));
+        mProcesses.push_back(std::make_unique <ApplyConstantBoundaryPhreaticSurfacePressureProcess>(mrModelPart, ParametersUtilities::CopyRequiredParameters(
+                             rProcessSettings, NamesOfSettingsToCopy)));
     }
 }
 
