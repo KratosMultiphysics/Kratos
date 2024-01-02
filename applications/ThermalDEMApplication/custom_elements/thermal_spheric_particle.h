@@ -183,7 +183,6 @@ namespace Kratos
       void               SetThermalIntegrationScheme          (ThermalDEMIntegrationScheme::Pointer& scheme);
       void               SetNumericalIntegrationMethod        (NumericalIntegrationMethod::Pointer& method);
       void               SetParticleTemperature               (const double temperature);
-      void               SetParticleHeatFlux                  (const double heat_flux);
       void               SetParticlePrescribedHeatFluxSurface (const double heat_flux);
       void               SetParticlePrescribedHeatFluxVolume  (const double heat_flux);
       void               SetParticleRadius                    (const double radius);

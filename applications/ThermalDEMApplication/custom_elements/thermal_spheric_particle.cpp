@@ -247,7 +247,7 @@ namespace Kratos
 
     // Sum up heat fluxes contributions
     mTotalHeatFlux = mConductionDirectHeatFlux + mGenerationHeatFlux;
-    SetParticleHeatFlux(mTotalHeatFlux);
+    GetGeometry()[0].FastGetSolutionStepValue(HEATFLUX) = mTotalHeatFlux;
 
     KRATOS_CATCH("")
   }
@@ -1249,11 +1249,6 @@ namespace Kratos
   //------------------------------------------------------------------------------------------------------------
   void ThermalSphericParticle::SetParticleTemperature(const double temperature) {
     GetGeometry()[0].FastGetSolutionStepValue(TEMPERATURE) = temperature;
-  }
-
-  //------------------------------------------------------------------------------------------------------------
-  void ThermalSphericParticle::SetParticleHeatFlux(const double heat_flux) {
-    GetGeometry()[0].FastGetSolutionStepValue(HEATFLUX) = heat_flux;
   }
 
   //------------------------------------------------------------------------------------------------------------
