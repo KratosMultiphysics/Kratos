@@ -158,8 +158,7 @@ public:
     //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 protected:
-    struct ElementVariables
-    {
+    struct ElementVariables {
         // Variables at all integration points
         Matrix NuContainer;
         Matrix NpContainer;

@@ -63,8 +63,7 @@ public:
         KRATOS_TRY
 
         rElementalDofList.resize(TNumNodes);
-        for (unsigned int i = 0; i < TNumNodes; ++i)
-        {
+        for (unsigned int i = 0; i < TNumNodes; ++i) {
             rElementalDofList[i] = GetGeometry()[i].pGetDof(TEMPERATURE);
         }
 
@@ -76,8 +75,7 @@ public:
         KRATOS_TRY
 
         rResult.resize(TNumNodes, false);
-        for (unsigned int i = 0; i < TNumNodes; ++i)
-        {
+        for (unsigned int i = 0; i < TNumNodes; ++i) {
             rResult[i] = GetGeometry()[i].GetDof(TEMPERATURE).EquationId();
         }
 
@@ -110,8 +108,7 @@ public:
 
     GeometryData::IntegrationMethod GetIntegrationMethod() const override
     {
-        switch (TNumNodes)
-        {
+        switch (TNumNodes) {
         case 3:
         case 4:
         case 6:
@@ -158,8 +155,7 @@ private:
 
     void CheckHasSolutionStepsDataFor(const Variable<double>& rVariable) const
     {
-        for (const auto& node : GetGeometry())
-        {
+        for (const auto& node : GetGeometry()) {
             KRATOS_ERROR_IF_NOT(node.SolutionStepsDataHas(rVariable))
                 << "Missing variable " << rVariable.Name() << " on node "
                 << node.Id() << std::endl;
@@ -168,8 +164,7 @@ private:
 
     void CheckHasDofsFor(const Variable<double>& rVariable) const
     {
-        for (const auto& node : GetGeometry())
-        {
+        for (const auto& node : GetGeometry()) {
             KRATOS_ERROR_IF_NOT(node.HasDofFor(rVariable))
                 << "Missing degree of freedom for " << rVariable.Name()
                 << " on node " << node.Id() << std::endl;
@@ -190,8 +185,7 @@ private:
         CheckProperty(THERMAL_CONDUCTIVITY_SOLID_YY);
         CheckProperty(THERMAL_CONDUCTIVITY_SOLID_XY);
 
-        if constexpr (TDim == 3)
-        {
+        if constexpr (TDim == 3) {
             CheckProperty(THERMAL_CONDUCTIVITY_SOLID_ZZ);
             CheckProperty(THERMAL_CONDUCTIVITY_SOLID_YZ);
             CheckProperty(THERMAL_CONDUCTIVITY_SOLID_XZ);
@@ -221,8 +215,7 @@ private:
 
     void CheckForNonZeroZCoordinateIn2D() const
     {
-        if constexpr (TDim == 2)
-        {
+        if constexpr (TDim == 2) {
             const auto& r_geometry = GetGeometry();
             auto pos =
                 std::find_if(r_geometry.begin(), r_geometry.end(),
@@ -263,8 +256,8 @@ private:
 
         auto result = Vector{r_integration_points.size()};
         for (unsigned int integration_point_index = 0;
-             integration_point_index < r_integration_points.size(); ++integration_point_index)
-        {
+             integration_point_index < r_integration_points.size();
+             ++integration_point_index) {
             result[integration_point_index] =
                 r_integration_points[integration_point_index].Weight() *
                 rDetJContainer[integration_point_index];
@@ -287,8 +280,7 @@ private:
         for (unsigned int integration_point_index = 0;
              integration_point_index <
              GetGeometry().IntegrationPointsNumber(GetIntegrationMethod());
-             ++integration_point_index)
-        {
+             ++integration_point_index) {
             BoundedMatrix<double, TDim, TNumNodes> Temp =
                 prod(constitutive_matrix,
                      trans(rShapeFunctionGradients[integration_point_index]));
@@ -319,8 +311,7 @@ private:
         for (unsigned int integration_point_index = 0;
              integration_point_index <
              GetGeometry().IntegrationPointsNumber(GetIntegrationMethod());
-             ++integration_point_index)
-        {
+             ++integration_point_index) {
             const auto N = Vector{row(r_N_container, integration_point_index)};
             result += (c_water + c_solid) * outer_prod(N, N) *
                       rIntegrationCoefficients[integration_point_index];
@@ -334,8 +325,9 @@ private:
         auto result = array_1d<double, TNumNodes>{};
         const auto& r_geometry = GetGeometry();
         std::transform(r_geometry.begin(), r_geometry.end(), result.begin(),
-                       [&rNodalVariable](const auto& node)
-        { return node.FastGetSolutionStepValue(rNodalVariable); });
+                       [&rNodalVariable](const auto& node) {
+            return node.FastGetSolutionStepValue(rNodalVariable);
+        });
         return result;
     }
 

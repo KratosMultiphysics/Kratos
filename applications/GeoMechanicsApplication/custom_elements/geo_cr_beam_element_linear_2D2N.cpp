@@ -119,8 +119,7 @@ void GeoCrBeamElementLinear2D2N::CalculateOnIntegrationPoints(
     // element with two nodes can only represent results at one node
     const unsigned int& write_points_number = GetGeometry().IntegrationPointsNumber(
         Kratos::GeometryData::IntegrationMethod::GI_GAUSS_3);
-    if (rOutput.size() != write_points_number)
-    {
+    if (rOutput.size() != write_points_number) {
         rOutput.resize(write_points_number);
     }
 
@@ -135,12 +134,10 @@ void GeoCrBeamElementLinear2D2N::CalculateOnIntegrationPoints(
     nodal_deformation = prod((trans(transformation_matrix)), nodal_deformation);
 
     //// start static back condensation
-    if (Has(CONDENSED_DOF_LIST))
-    {
+    if (Has(CONDENSED_DOF_LIST)) {
         Vector dof_list_input = GetValue(CONDENSED_DOF_LIST);
         std::vector<int> dofList(dof_list_input.size());
-        for (SizeType i = 0; i < dof_list_input.size(); ++i)
-        {
+        for (SizeType i = 0; i < dof_list_input.size(); ++i) {
             dofList[i] = dof_list_input[i];
         }
         Vector nodal_deformation_temp = nodal_deformation;
@@ -154,8 +151,7 @@ void GeoCrBeamElementLinear2D2N::CalculateOnIntegrationPoints(
 
     // rOutput[GP 1,2,3][x,y,z]
 
-    if (rVariable == MOMENT)
-    {
+    if (rVariable == MOMENT) {
         rOutput[0][0] = 0.00;
         rOutput[1][0] = 0.00;
         rOutput[2][0] = 0.00;
@@ -168,8 +164,7 @@ void GeoCrBeamElementLinear2D2N::CalculateOnIntegrationPoints(
         rOutput[1][2] = 1.0 * stress[2] * 0.50 - stress[5] * 0.50;
         rOutput[2][2] = 1.0 * stress[2] * 0.25 - stress[5] * 0.75;
     }
-    if (rVariable == FORCE)
-    {
+    if (rVariable == FORCE) {
         rOutput[0][0] = -1.0 * stress[0] * 0.75 + stress[3] * 0.25;
         rOutput[1][0] = -1.0 * stress[0] * 0.50 + stress[3] * 0.50;
         rOutput[2][0] = -1.0 * stress[0] * 0.25 + stress[3] * 0.75;
@@ -191,17 +186,13 @@ void GeoCrBeamElementLinear2D2N::InitializeSolutionStep(const ProcessInfo& rCurr
 {
     KRATOS_TRY
 
-    if (mIsInitialization)
-    {
-        if (rCurrentProcessInfo.Has(RESET_DISPLACEMENTS))
-        {
+    if (mIsInitialization) {
+        if (rCurrentProcessInfo.Has(RESET_DISPLACEMENTS)) {
             if (rCurrentProcessInfo[RESET_DISPLACEMENTS])
                 noalias(mInternalGlobalForcesFinalizedPrevious) = mInternalGlobalForcesFinalized;
             else
                 noalias(mInternalGlobalForcesFinalized) = mInternalGlobalForcesFinalizedPrevious;
-        }
-        else
-        {
+        } else {
             noalias(mInternalGlobalForcesFinalized) = ZeroVector(msElementSize);
             noalias(mInternalGlobalForcesFinalizedPrevious) = ZeroVector(msElementSize);
         }

@@ -109,15 +109,13 @@ void GeoCrBeamElement3D2N::CalculateOnIntegrationPoints(
     // element with two nodes can only represent results at one node
     const unsigned int& write_points_number = GetGeometry().IntegrationPointsNumber(
         Kratos::GeometryData::IntegrationMethod::GI_GAUSS_3);
-    if (rOutput.size() != write_points_number)
-    {
+    if (rOutput.size() != write_points_number) {
         rOutput.resize(write_points_number);
     }
 
     // rOutput[GP 1,2,3][x,y,z]
 
-    if (rVariable == MOMENT)
-    {
+    if (rVariable == MOMENT) {
         Vector nodal_forces_local_qe = CalculateLocalNodalForces();
         nodal_forces_local_qe += mLocalForcesFinalizedPrevious;
         rOutput[0][0] =
@@ -140,9 +138,7 @@ void GeoCrBeamElement3D2N::CalculateOnIntegrationPoints(
             1.0 * nodal_forces_local_qe[5] * 0.50 - nodal_forces_local_qe[11] * 0.50;
         rOutput[2][2] =
             1.0 * nodal_forces_local_qe[5] * 0.25 - nodal_forces_local_qe[11] * 0.75;
-    }
-    else if (rVariable == FORCE)
-    {
+    } else if (rVariable == FORCE) {
         Vector nodal_forces_local_qe = CalculateLocalNodalForces();
         nodal_forces_local_qe += mLocalForcesFinalizedPrevious;
         rOutput[0][0] =
@@ -165,31 +161,22 @@ void GeoCrBeamElement3D2N::CalculateOnIntegrationPoints(
             -1.0 * nodal_forces_local_qe[2] * 0.50 + nodal_forces_local_qe[8] * 0.50;
         rOutput[2][2] =
             -1.0 * nodal_forces_local_qe[2] * 0.25 + nodal_forces_local_qe[8] * 0.75;
-    }
-    else if (rVariable == LOCAL_AXIS_1)
-    {
+    } else if (rVariable == LOCAL_AXIS_1) {
         BoundedMatrix<double, msElementSize, msElementSize> rotation_matrix =
             GetTransformationMatrixGlobal();
-        for (SizeType i = 0; i < msDimension; ++i)
-        {
+        for (SizeType i = 0; i < msDimension; ++i) {
             rOutput[1][i] = column(rotation_matrix, 0)[i];
         }
-    }
-    else if (rVariable == LOCAL_AXIS_2)
-    {
+    } else if (rVariable == LOCAL_AXIS_2) {
         BoundedMatrix<double, msElementSize, msElementSize> rotation_matrix =
             GetTransformationMatrixGlobal();
-        for (SizeType i = 0; i < msDimension; ++i)
-        {
+        for (SizeType i = 0; i < msDimension; ++i) {
             rOutput[1][i] = column(rotation_matrix, 1)[i];
         }
-    }
-    else if (rVariable == LOCAL_AXIS_3)
-    {
+    } else if (rVariable == LOCAL_AXIS_3) {
         BoundedMatrix<double, msElementSize, msElementSize> rotation_matrix =
             GetTransformationMatrixGlobal();
-        for (SizeType i = 0; i < msDimension; ++i)
-        {
+        for (SizeType i = 0; i < msDimension; ++i) {
             rOutput[1][i] = column(rotation_matrix, 2)[i];
         }
     }
@@ -202,17 +189,13 @@ void GeoCrBeamElement3D2N::InitializeSolutionStep(const ProcessInfo& rCurrentPro
 {
     KRATOS_TRY
 
-    if (mIsInitialization)
-    {
-        if (rCurrentProcessInfo.Has(RESET_DISPLACEMENTS))
-        {
+    if (mIsInitialization) {
+        if (rCurrentProcessInfo.Has(RESET_DISPLACEMENTS)) {
             if (rCurrentProcessInfo[RESET_DISPLACEMENTS])
                 noalias(mLocalForcesFinalizedPrevious) = mLocalForcesFinalized;
             else
                 noalias(mLocalForcesFinalized) = mLocalForcesFinalizedPrevious;
-        }
-        else
-        {
+        } else {
             noalias(mLocalForcesFinalized) = ZeroVector(msElementSize);
             noalias(mLocalForcesFinalizedPrevious) = ZeroVector(msElementSize);
         }

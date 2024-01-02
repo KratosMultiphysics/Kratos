@@ -86,8 +86,7 @@ void GeoTrussElementLinearBase<TDim, TNumNodes>::AddPrestressLinear(VectorType& 
     this->CreateTransformationMatrix(transformation_matrix);
 
     double prestress = 0.00;
-    if (this->GetProperties().Has(TRUSS_PRESTRESS_PK2))
-    {
+    if (this->GetProperties().Has(TRUSS_PRESTRESS_PK2)) {
         prestress = this->GetProperties()[TRUSS_PRESTRESS_PK2];
     }
     const double A = this->GetProperties()[CROSS_AREA];
@@ -151,19 +150,16 @@ void GeoTrussElementLinearBase<TDim, TNumNodes>::CalculateOnIntegrationPoints(
     const GeometryType::IntegrationPointsArrayType& integration_points =
         this->GetGeometry().IntegrationPoints();
 
-    if (rOutput.size() != integration_points.size())
-    {
+    if (rOutput.size() != integration_points.size()) {
         rOutput.resize(integration_points.size());
     }
 
-    if (rVariable == FORCE)
-    {
+    if (rVariable == FORCE) {
         BoundedVector<double, TDim> truss_forces = ZeroVector(TDim);
         const double A = this->GetProperties()[CROSS_AREA];
 
         double prestress = 0.00;
-        if (this->GetProperties().Has(TRUSS_PRESTRESS_PK2))
-        {
+        if (this->GetProperties().Has(TRUSS_PRESTRESS_PK2)) {
             prestress = this->GetProperties()[TRUSS_PRESTRESS_PK2];
         }
 
@@ -191,12 +187,10 @@ void GeoTrussElementLinearBase<TDim, TNumNodes>::CalculateOnIntegrationPoints(
 
     const GeometryType::IntegrationPointsArrayType& integration_points =
         this->GetGeometry().IntegrationPoints();
-    if (rOutput.size() != integration_points.size())
-    {
+    if (rOutput.size() != integration_points.size()) {
         rOutput.resize(integration_points.size());
     }
-    if (rVariable == STRAIN)
-    {
+    if (rVariable == STRAIN) {
         Vector Strain = ZeroVector(TDim);
         Strain[0] = CalculateLinearStrain();
         rOutput[0] = Strain;
@@ -256,18 +250,13 @@ double GeoTrussElementLinearBase<TDim, TNumNodes>::CalculateLinearStrain()
     current_disp = prod(Matrix(trans(transformation_matrix)), current_disp);
 
     double length_0;
-    if constexpr (TDim == 2)
-    {
+    if constexpr (TDim == 2) {
         length_0 =
             GeoStructuralMechanicsElementUtilities::CalculateReferenceLength2D2N(*this);
-    }
-    else if constexpr (TDim == 3)
-    {
+    } else if constexpr (TDim == 3) {
         length_0 =
             GeoStructuralMechanicsElementUtilities::CalculateReferenceLength3D2N(*this);
-    }
-    else
-    {
+    } else {
         KRATOS_ERROR << "Dimension of truss element should be either 2D or 3D" << std::endl;
     }
 

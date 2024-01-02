@@ -67,15 +67,12 @@ int UndrainedUPwSmallStrainElement<TDim, TNumNodes>::Check(const ProcessInfo& rC
     // Verify that the constitutive law has the correct dimension
     const SizeType strain_size =
         this->GetProperties().GetValue(CONSTITUTIVE_LAW)->GetStrainSize();
-    if (TDim == 2)
-    {
+    if (TDim == 2) {
         KRATOS_ERROR_IF(strain_size < 3 || strain_size > 4)
             << "Wrong constitutive law used. This is a 2D element! expected "
                "strain size is 3 or 4 (el id = ) "
             << this->Id() << std::endl;
-    }
-    else
-    {
+    } else {
         KRATOS_ERROR_IF_NOT(strain_size == 6)
             << "Wrong constitutive law used. This is a 3D element! expected "
                "strain size is 6 (el id = ) "
@@ -83,8 +80,7 @@ int UndrainedUPwSmallStrainElement<TDim, TNumNodes>::Check(const ProcessInfo& rC
     }
 
     // Check constitutive law
-    if (mConstitutiveLawVector.size() > 0)
-    {
+    if (mConstitutiveLawVector.size() > 0) {
         return mConstitutiveLawVector[0]->Check(Prop, Geom, rCurrentProcessInfo);
     }
 

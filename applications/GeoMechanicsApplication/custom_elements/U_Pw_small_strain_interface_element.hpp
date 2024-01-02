@@ -110,8 +110,7 @@ public:
                                       const ProcessInfo& rCurrentProcessInfo) override;
 
 protected:
-    struct SFGradAuxVariables
-    {
+    struct SFGradAuxVariables {
         array_1d<double, TDim> GlobalCoordinatesGradients;
         array_1d<double, TDim> LocalCoordinatesGradients;
 
@@ -121,8 +120,7 @@ protected:
         BoundedMatrix<double, TNumNodes, TDim - 1> ShapeFunctionsGradientsMatrix;
     };
 
-    struct InterfaceElementVariables
-    {
+    struct InterfaceElementVariables {
         /// Properties variables
         bool IgnoreUndrained;
         double DynamicViscosityInverse;

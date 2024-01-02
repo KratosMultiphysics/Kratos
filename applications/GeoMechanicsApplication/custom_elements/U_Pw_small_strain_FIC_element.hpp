@@ -126,8 +126,7 @@ public:
     ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 protected:
-    struct FICElementVariables
-    {
+    struct FICElementVariables {
         /// Properties variables
         double ShearModulus;
 

@@ -49,8 +49,7 @@ int SteadyStatePwInterfaceElement<TDim, TNumNodes>::Check(const ProcessInfo& rCu
                      << std::endl;
 
     // Verify dof variables
-    for (unsigned int i = 0; i < TNumNodes; ++i)
-    {
+    for (unsigned int i = 0; i < TNumNodes; ++i) {
         if (Geom[i].SolutionStepsDataHas(WATER_PRESSURE) == false)
             KRATOS_ERROR << "missing variable WATER_PRESSURE on node "
                          << Geom[i].Id() << std::endl;
@@ -101,12 +100,10 @@ int SteadyStatePwInterfaceElement<TDim, TNumNodes>::Check(const ProcessInfo& rCu
             << "CONSTITUTIVE_LAW has Key zero or is not defined at element "
             << this->Id() << std::endl;
 
-    if (Prop[CONSTITUTIVE_LAW] != NULL)
-    {
+    if (Prop[CONSTITUTIVE_LAW] != NULL) {
         // Check constitutive law
         ierr = Prop[CONSTITUTIVE_LAW]->Check(Prop, this->GetGeometry(), rCurrentProcessInfo);
-    }
-    else
+    } else
         KRATOS_ERROR
             << "A constitutive law needs to be specified for the element "
             << this->Id() << std::endl;
@@ -159,8 +156,7 @@ void SteadyStatePwInterfaceElement<TDim, TNumNodes>::CalculateAll(
     RetentionLaw::Parameters RetentionParameters(this->GetProperties(), CurrentProcessInfo);
 
     // Loop over integration points
-    for (unsigned int GPoint = 0; GPoint < NumGPoints; ++GPoint)
-    {
+    for (unsigned int GPoint = 0; GPoint < NumGPoints; ++GPoint) {
         // Compute Np, StrainVector, JointWidth, GradNpT
         noalias(Variables.Np) = row(NContainer, GPoint);
 

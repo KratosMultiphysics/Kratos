@@ -60,17 +60,13 @@ void GeoCrBeamElement2D2N::InitializeSolutionStep(const ProcessInfo& rCurrentPro
 {
     KRATOS_TRY
 
-    if (mIsInitialization)
-    {
-        if (rCurrentProcessInfo.Has(RESET_DISPLACEMENTS))
-        {
+    if (mIsInitialization) {
+        if (rCurrentProcessInfo.Has(RESET_DISPLACEMENTS)) {
             if (rCurrentProcessInfo[RESET_DISPLACEMENTS])
                 noalias(mInternalGlobalForcesFinalizedPrevious) = mInternalGlobalForcesFinalized;
             else
                 noalias(mInternalGlobalForcesFinalized) = mInternalGlobalForcesFinalizedPrevious;
-        }
-        else
-        {
+        } else {
             noalias(mInternalGlobalForcesFinalized) = ZeroVector(msElementSize);
             noalias(mInternalGlobalForcesFinalizedPrevious) = ZeroVector(msElementSize);
         }
@@ -172,8 +168,7 @@ void GeoCrBeamElement2D2N::CalculateOnIntegrationPoints(
     const GeometryType::IntegrationPointsArrayType& r_integration_points =
         r_geometry.IntegrationPoints(Kratos::GeometryData::IntegrationMethod::GI_GAUSS_3);
     const SizeType write_points_number = r_integration_points.size();
-    if (rOutput.size() != write_points_number)
-    {
+    if (rOutput.size() != write_points_number) {
         rOutput.resize(write_points_number);
     }
 
@@ -184,8 +179,7 @@ void GeoCrBeamElement2D2N::CalculateOnIntegrationPoints(
 
     // rOutput[GP 1,2,3][x,y,z]
 
-    if (rVariable == MOMENT)
-    {
+    if (rVariable == MOMENT) {
         rOutput[0][0] = 0.00;
         rOutput[1][0] = 0.00;
         rOutput[2][0] = 0.00;
@@ -197,9 +191,7 @@ void GeoCrBeamElement2D2N::CalculateOnIntegrationPoints(
         rOutput[0][2] = 1.0 * stress[2] * 0.75 - stress[5] * 0.25;
         rOutput[1][2] = 1.0 * stress[2] * 0.50 - stress[5] * 0.50;
         rOutput[2][2] = 1.0 * stress[2] * 0.25 - stress[5] * 0.75;
-    }
-    else if (rVariable == FORCE)
-    {
+    } else if (rVariable == FORCE) {
         rOutput[0][0] = -1.0 * stress[0] * 0.75 + stress[3] * 0.25;
         rOutput[1][0] = -1.0 * stress[0] * 0.50 + stress[3] * 0.50;
         rOutput[2][0] = -1.0 * stress[0] * 0.25 + stress[3] * 0.75;
@@ -211,12 +203,9 @@ void GeoCrBeamElement2D2N::CalculateOnIntegrationPoints(
         rOutput[0][2] = 0.00;
         rOutput[1][2] = 0.00;
         rOutput[2][2] = 0.00;
-    }
-    else if (rVariable == INTEGRATION_COORDINATES)
-    {
+    } else if (rVariable == INTEGRATION_COORDINATES) {
         Point global_point;
-        for (IndexType point_number = 0; point_number < write_points_number; ++point_number)
-        {
+        for (IndexType point_number = 0; point_number < write_points_number; ++point_number) {
             r_geometry.GlobalCoordinates(global_point, r_integration_points[point_number]);
             rOutput[point_number] = global_point.Coordinates();
         }

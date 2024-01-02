@@ -52,8 +52,7 @@ int GeoStructuralBaseElement<TDim, TNumNodes>::Check(const ProcessInfo& rCurrent
     const GeometryType& rGeom = this->GetGeometry();
 
     // verify nodal variables and dofs
-    for (unsigned int i = 0; i < TNumNodes; ++i)
-    {
+    for (unsigned int i = 0; i < TNumNodes; ++i) {
         if (rGeom[i].SolutionStepsDataHas(DISPLACEMENT) == false)
             KRATOS_ERROR << "missing variable DISPLACEMENT on node "
                          << rGeom[i].Id() << std::endl;
@@ -92,33 +91,25 @@ int GeoStructuralBaseElement<TDim, TNumNodes>::Check(const ProcessInfo& rCurrent
                         "invalid value at element "
                      << this->Id() << std::endl;
 
-    if (rProp.Has(YOUNG_MODULUS) == false)
-    {
-        if (rProp.Has(UDSM_NAME) == false)
-        {
+    if (rProp.Has(YOUNG_MODULUS) == false) {
+        if (rProp.Has(UDSM_NAME) == false) {
             KRATOS_ERROR
                 << "YOUNG_MODULUS has Key zero or is not defined at element "
                 << this->Id() << std::endl;
         }
-    }
-    else
-    {
+    } else {
         if (rProp[YOUNG_MODULUS] <= 0.0)
             KRATOS_ERROR << "YOUNG_MODULUS has an invalid value at element "
                          << this->Id() << std::endl;
     }
 
-    if (rProp.Has(POISSON_RATIO) == false)
-    {
-        if (rProp.Has(UDSM_NAME) == false)
-        {
+    if (rProp.Has(POISSON_RATIO) == false) {
+        if (rProp.Has(UDSM_NAME) == false) {
             KRATOS_ERROR
                 << "POISSON_RATIO has Key zero or is not defined at element"
                 << this->Id() << std::endl;
         }
-    }
-    else
-    {
+    } else {
         const double& PoissonRatio = rProp[POISSON_RATIO];
         if (PoissonRatio < 0.0 || PoissonRatio >= 0.5)
             KRATOS_ERROR << "POISSON_RATIO has an invalid value at element"
@@ -126,10 +117,8 @@ int GeoStructuralBaseElement<TDim, TNumNodes>::Check(const ProcessInfo& rCurrent
     }
 
     // If this is a 2D problem, check that nodes are in XY plane
-    if (TDim == 2)
-    {
-        for (unsigned int i = 0; i < TNumNodes; ++i)
-        {
+    if (TDim == 2) {
+        for (unsigned int i = 0; i < TNumNodes; ++i) {
             if (rGeom[i].Z() != 0.0)
                 KRATOS_ERROR << " Node with non-zero Z coordinate found. Id: "
                              << rGeom[i].Id() << std::endl;
@@ -155,11 +144,9 @@ void GeoStructuralBaseElement<TDim, TNumNodes>::Initialize(const ProcessInfo& rC
         mConstitutiveLawVector.resize(NumGPoints);
 
     for (unsigned int GPointAlong = 0;
-         GPointAlong < GetAlongNumberIntegrationPoints(); ++GPointAlong)
-    {
+         GPointAlong < GetAlongNumberIntegrationPoints(); ++GPointAlong) {
         for (unsigned int GPointCross = 0;
-             GPointCross < GetCrossNumberIntegrationPoints(); ++GPointCross)
-        {
+             GPointCross < GetCrossNumberIntegrationPoints(); ++GPointCross) {
             unsigned int GPoint = GPointAlong * GetCrossNumberIntegrationPoints() + GPointCross;
             mConstitutiveLawVector[GPoint] = rProp[CONSTITUTIVE_LAW]->Clone();
             mConstitutiveLawVector[GPoint]->InitializeMaterial(
@@ -169,11 +156,9 @@ void GeoStructuralBaseElement<TDim, TNumNodes>::Initialize(const ProcessInfo& rC
     }
 
     // resize mStressVector:
-    if (mStressVector.size() != NumGPoints)
-    {
+    if (mStressVector.size() != NumGPoints) {
         mStressVector.resize(NumGPoints);
-        for (unsigned int i = 0; i < mStressVector.size(); ++i)
-        {
+        for (unsigned int i = 0; i < mStressVector.size(); ++i) {
             mStressVector[i].resize(VoigtSize);
         }
     }
@@ -194,19 +179,14 @@ void GeoStructuralBaseElement<TDim, TNumNodes>::GetDofList(DofsVectorType& rElem
         rElementalDofList.resize(N_DOF_ELEMENT);
 
     unsigned int index = 0;
-    if constexpr (TDim == 2)
-    {
-        for (unsigned int i = 0; i < TNumNodes; ++i)
-        {
+    if constexpr (TDim == 2) {
+        for (unsigned int i = 0; i < TNumNodes; ++i) {
             rElementalDofList[index++] = rGeom[i].pGetDof(DISPLACEMENT_X);
             rElementalDofList[index++] = rGeom[i].pGetDof(DISPLACEMENT_Y);
             rElementalDofList[index++] = rGeom[i].pGetDof(ROTATION_Z);
         }
-    }
-    else if constexpr (TDim == 3)
-    {
-        for (unsigned int i = 0; i < TNumNodes; ++i)
-        {
+    } else if constexpr (TDim == 3) {
+        for (unsigned int i = 0; i < TNumNodes; ++i) {
             rElementalDofList[index++] = rGeom[i].pGetDof(DISPLACEMENT_X);
             rElementalDofList[index++] = rGeom[i].pGetDof(DISPLACEMENT_Y);
             rElementalDofList[index++] = rGeom[i].pGetDof(DISPLACEMENT_Z);
@@ -214,9 +194,7 @@ void GeoStructuralBaseElement<TDim, TNumNodes>::GetDofList(DofsVectorType& rElem
             rElementalDofList[index++] = rGeom[i].pGetDof(ROTATION_Y);
             rElementalDofList[index++] = rGeom[i].pGetDof(ROTATION_Z);
         }
-    }
-    else
-    {
+    } else {
         KRATOS_ERROR << " Unspecified dimension in GetDofList: " << this->Id() << std::endl;
     }
 
@@ -309,19 +287,14 @@ void GeoStructuralBaseElement<TDim, TNumNodes>::EquationIdVector(
     if (rResult.size() != N_DOF_ELEMENT) rResult.resize(N_DOF_ELEMENT, false);
 
     unsigned int index = 0;
-    if constexpr (TDim == 2)
-    {
-        for (unsigned int i = 0; i < TNumNodes; ++i)
-        {
+    if constexpr (TDim == 2) {
+        for (unsigned int i = 0; i < TNumNodes; ++i) {
             rResult[index++] = rGeom[i].GetDof(DISPLACEMENT_X).EquationId();
             rResult[index++] = rGeom[i].GetDof(DISPLACEMENT_Y).EquationId();
             rResult[index++] = rGeom[i].GetDof(ROTATION_Z).EquationId();
         }
-    }
-    else if constexpr (TDim == 3)
-    {
-        for (unsigned int i = 0; i < TNumNodes; ++i)
-        {
+    } else if constexpr (TDim == 3) {
+        for (unsigned int i = 0; i < TNumNodes; ++i) {
             rResult[index++] = rGeom[i].GetDof(DISPLACEMENT_X).EquationId();
             rResult[index++] = rGeom[i].GetDof(DISPLACEMENT_Y).EquationId();
             rResult[index++] = rGeom[i].GetDof(DISPLACEMENT_Z).EquationId();
@@ -329,9 +302,7 @@ void GeoStructuralBaseElement<TDim, TNumNodes>::EquationIdVector(
             rResult[index++] = rGeom[i].GetDof(ROTATION_Y).EquationId();
             rResult[index++] = rGeom[i].GetDof(ROTATION_Z).EquationId();
         }
-    }
-    else
-    {
+    } else {
         KRATOS_ERROR << "undefined dimension in EquationIdVector... illegal "
                         "operation!! element: "
                      << this->Id() << std::endl;
@@ -395,19 +366,14 @@ void GeoStructuralBaseElement<TDim, TNumNodes>::GetValuesVector(Vector& rValues,
     if (rValues.size() != N_DOF_ELEMENT) rValues.resize(N_DOF_ELEMENT, false);
 
     unsigned int index = 0;
-    if constexpr (TDim == 2)
-    {
-        for (unsigned int i = 0; i < TNumNodes; ++i)
-        {
+    if constexpr (TDim == 2) {
+        for (unsigned int i = 0; i < TNumNodes; ++i) {
             rValues[index++] = rGeom[i].FastGetSolutionStepValue(DISPLACEMENT_X, Step);
             rValues[index++] = rGeom[i].FastGetSolutionStepValue(DISPLACEMENT_Y, Step);
             rValues[index++] = rGeom[i].FastGetSolutionStepValue(ROTATION_Z, Step);
         }
-    }
-    else if constexpr (TDim == 3)
-    {
-        for (unsigned int i = 0; i < TNumNodes; ++i)
-        {
+    } else if constexpr (TDim == 3) {
+        for (unsigned int i = 0; i < TNumNodes; ++i) {
             rValues[index++] = rGeom[i].FastGetSolutionStepValue(DISPLACEMENT_X, Step);
             rValues[index++] = rGeom[i].FastGetSolutionStepValue(DISPLACEMENT_Y, Step);
             rValues[index++] = rGeom[i].FastGetSolutionStepValue(DISPLACEMENT_Z, Step);
@@ -415,9 +381,7 @@ void GeoStructuralBaseElement<TDim, TNumNodes>::GetValuesVector(Vector& rValues,
             rValues[index++] = rGeom[i].FastGetSolutionStepValue(ROTATION_Y, Step);
             rValues[index++] = rGeom[i].FastGetSolutionStepValue(ROTATION_Z, Step);
         }
-    }
-    else
-    {
+    } else {
         KRATOS_ERROR << " Unspecified dimension in GetValuesVector: " << this->Id()
                      << std::endl;
     }
@@ -437,19 +401,14 @@ void GeoStructuralBaseElement<TDim, TNumNodes>::GetFirstDerivativesVector(Vector
     if (rValues.size() != N_DOF_ELEMENT) rValues.resize(N_DOF_ELEMENT, false);
 
     unsigned int index = 0;
-    if constexpr (TDim == 2)
-    {
-        for (unsigned int i = 0; i < TNumNodes; ++i)
-        {
+    if constexpr (TDim == 2) {
+        for (unsigned int i = 0; i < TNumNodes; ++i) {
             rValues[index++] = rGeom[i].FastGetSolutionStepValue(VELOCITY_X, Step);
             rValues[index++] = rGeom[i].FastGetSolutionStepValue(VELOCITY_Y, Step);
             rValues[index++] = rGeom[i].FastGetSolutionStepValue(ANGULAR_VELOCITY_Z, Step);
         }
-    }
-    else if constexpr (TDim == 3)
-    {
-        for (unsigned int i = 0; i < TNumNodes; ++i)
-        {
+    } else if constexpr (TDim == 3) {
+        for (unsigned int i = 0; i < TNumNodes; ++i) {
             rValues[index++] = rGeom[i].FastGetSolutionStepValue(VELOCITY_X, Step);
             rValues[index++] = rGeom[i].FastGetSolutionStepValue(VELOCITY_Y, Step);
             rValues[index++] = rGeom[i].FastGetSolutionStepValue(VELOCITY_Z, Step);
@@ -457,9 +416,7 @@ void GeoStructuralBaseElement<TDim, TNumNodes>::GetFirstDerivativesVector(Vector
             rValues[index++] = rGeom[i].FastGetSolutionStepValue(ANGULAR_VELOCITY_Y, Step);
             rValues[index++] = rGeom[i].FastGetSolutionStepValue(ANGULAR_VELOCITY_Z, Step);
         }
-    }
-    else
-    {
+    } else {
         KRATOS_ERROR << " Unspecified dimension in GetFirstDerivativesVector: "
                      << this->Id() << std::endl;
     }
@@ -479,20 +436,15 @@ void GeoStructuralBaseElement<TDim, TNumNodes>::GetSecondDerivativesVector(Vecto
     if (rValues.size() != N_DOF_ELEMENT) rValues.resize(N_DOF_ELEMENT, false);
 
     unsigned int index = 0;
-    if constexpr (TDim == 2)
-    {
-        for (unsigned int i = 0; i < TNumNodes; ++i)
-        {
+    if constexpr (TDim == 2) {
+        for (unsigned int i = 0; i < TNumNodes; ++i) {
             rValues[index++] = rGeom[i].FastGetSolutionStepValue(ACCELERATION_X, Step);
             rValues[index++] = rGeom[i].FastGetSolutionStepValue(ACCELERATION_Y, Step);
             rValues[index++] =
                 rGeom[i].FastGetSolutionStepValue(ANGULAR_ACCELERATION_Z, Step);
         }
-    }
-    else if constexpr (TDim == 3)
-    {
-        for (unsigned int i = 0; i < TNumNodes; ++i)
-        {
+    } else if constexpr (TDim == 3) {
+        for (unsigned int i = 0; i < TNumNodes; ++i) {
             rValues[index++] = rGeom[i].FastGetSolutionStepValue(ACCELERATION_X, Step);
             rValues[index++] = rGeom[i].FastGetSolutionStepValue(ACCELERATION_Y, Step);
             rValues[index++] = rGeom[i].FastGetSolutionStepValue(ACCELERATION_Z, Step);
@@ -504,9 +456,7 @@ void GeoStructuralBaseElement<TDim, TNumNodes>::GetSecondDerivativesVector(Vecto
             rValues[index++] =
                 rGeom[i].FastGetSolutionStepValue(ANGULAR_ACCELERATION_Z, Step);
         }
-    }
-    else
-    {
+    } else {
         KRATOS_ERROR << " Unspecified dimension in GetSecondDerivativesVector: "
                      << this->Id() << std::endl;
     }
@@ -621,10 +571,8 @@ void GeoStructuralBaseElement<TDim, TNumNodes>::GetNodalDofValuesVector(
     KRATOS_TRY
 
     unsigned int index = 0;
-    if constexpr (TDim == 2)
-    {
-        for (unsigned int i = 0; i < TNumNodes; ++i)
-        {
+    if constexpr (TDim == 2) {
+        for (unsigned int i = 0; i < TNumNodes; ++i) {
             rNodalVariableVector[index++] =
                 rGeom[i].FastGetSolutionStepValue(DISPLACEMENT_X, SolutionStepIndex);
             rNodalVariableVector[index++] =
@@ -632,11 +580,8 @@ void GeoStructuralBaseElement<TDim, TNumNodes>::GetNodalDofValuesVector(
             rNodalVariableVector[index++] =
                 rGeom[i].FastGetSolutionStepValue(ROTATION_Z, SolutionStepIndex);
         }
-    }
-    else if constexpr (TDim == 3)
-    {
-        for (unsigned int i = 0; i < TNumNodes; ++i)
-        {
+    } else if constexpr (TDim == 3) {
+        for (unsigned int i = 0; i < TNumNodes; ++i) {
             rNodalVariableVector[index++] =
                 rGeom[i].FastGetSolutionStepValue(DISPLACEMENT_X, SolutionStepIndex);
             rNodalVariableVector[index++] =
@@ -650,9 +595,7 @@ void GeoStructuralBaseElement<TDim, TNumNodes>::GetNodalDofValuesVector(
             rNodalVariableVector[index++] =
                 rGeom[i].FastGetSolutionStepValue(ROTATION_Z, SolutionStepIndex);
         }
-    }
-    else
-    {
+    } else {
         KRATOS_ERROR << " Unspecified dimension in GetNodalDofValuesVector: "
                      << this->Id() << std::endl;
     }

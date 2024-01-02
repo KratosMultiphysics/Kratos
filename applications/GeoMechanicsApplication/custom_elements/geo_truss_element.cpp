@@ -84,15 +84,11 @@ void GeoTrussElement<TDim, TNumNodes>::Initialize(const ProcessInfo& rCurrentPro
 
     GeoTrussElementBase<TDim, TNumNodes>::Initialize(rCurrentProcessInfo);
 
-    if (rCurrentProcessInfo.Has(RESET_DISPLACEMENTS))
-    {
+    if (rCurrentProcessInfo.Has(RESET_DISPLACEMENTS)) {
         bool ResetDisplacement = rCurrentProcessInfo[RESET_DISPLACEMENTS];
-        if (ResetDisplacement)
-        {
+        if (ResetDisplacement) {
             mInternalStressesFinalizedPrevious = mInternalStressesFinalized;
-        }
-        else
-        {
+        } else {
             mInternalStressesFinalized = mInternalStressesFinalizedPrevious;
         }
     }
@@ -110,19 +106,16 @@ void GeoTrussElement<TDim, TNumNodes>::CalculateOnIntegrationPoints(
     const GeometryType::IntegrationPointsArrayType& integration_points =
         this->GetGeometry().IntegrationPoints();
 
-    if (rOutput.size() != integration_points.size())
-    {
+    if (rOutput.size() != integration_points.size()) {
         rOutput.resize(integration_points.size());
     }
 
-    if (rVariable == GREEN_LAGRANGE_STRAIN_VECTOR)
-    {
+    if (rVariable == GREEN_LAGRANGE_STRAIN_VECTOR) {
         Vector strain = ZeroVector(TDim);
         strain[0] = this->CalculateGreenLagrangeStrain();
         rOutput[0] = strain;
     }
-    if (rVariable == PK2_STRESS_VECTOR)
-    {
+    if (rVariable == PK2_STRESS_VECTOR) {
         ConstitutiveLaw::Parameters Values(
             this->GetGeometry(), this->GetProperties(), rCurrentProcessInfo);
         Vector temp_strain = ZeroVector(1);
@@ -137,8 +130,7 @@ void GeoTrussElement<TDim, TNumNodes>::CalculateOnIntegrationPoints(
 
         rOutput[0] = temp_internal_stresses;
     }
-    if (rVariable == CAUCHY_STRESS_VECTOR)
-    {
+    if (rVariable == CAUCHY_STRESS_VECTOR) {
         ProcessInfo temp_process_information;
 
         ConstitutiveLaw::Parameters Values(
@@ -174,19 +166,16 @@ void GeoTrussElement<TDim, TNumNodes>::CalculateOnIntegrationPoints(
 
     const GeometryType::IntegrationPointsArrayType& integration_points =
         this->GetGeometry().IntegrationPoints();
-    if (rOutput.size() != integration_points.size())
-    {
+    if (rOutput.size() != integration_points.size()) {
         rOutput.resize(integration_points.size());
     }
 
-    if (rVariable == FORCE)
-    {
+    if (rVariable == FORCE) {
         BoundedVector<double, TDim> truss_forces = ZeroVector(TDim);
         const double A = this->GetProperties()[CROSS_AREA];
 
         double prestress = 0.00;
-        if (this->GetProperties().Has(TRUSS_PRESTRESS_PK2))
-        {
+        if (this->GetProperties().Has(TRUSS_PRESTRESS_PK2)) {
             prestress = this->GetProperties()[TRUSS_PRESTRESS_PK2];
         }
 
@@ -234,8 +223,7 @@ void GeoTrussElement<TDim, TNumNodes>::UpdateInternalForces(
     const double A = this->GetProperties()[CROSS_AREA];
 
     double prestress = 0.00;
-    if (this->GetProperties().Has(TRUSS_PRESTRESS_PK2))
-    {
+    if (this->GetProperties().Has(TRUSS_PRESTRESS_PK2)) {
         prestress = this->GetProperties()[TRUSS_PRESTRESS_PK2];
     }
 

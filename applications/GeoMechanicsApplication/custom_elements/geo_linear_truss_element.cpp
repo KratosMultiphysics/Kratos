@@ -86,15 +86,11 @@ void GeoLinearTrussElement<TDim, TNumNodes>::Initialize(const ProcessInfo& rCurr
 
     GeoTrussElementLinearBase<TDim, TNumNodes>::Initialize(rCurrentProcessInfo);
 
-    if (rCurrentProcessInfo.Has(RESET_DISPLACEMENTS))
-    {
+    if (rCurrentProcessInfo.Has(RESET_DISPLACEMENTS)) {
         bool ResetDisplacement = rCurrentProcessInfo[RESET_DISPLACEMENTS];
-        if (ResetDisplacement)
-        {
+        if (ResetDisplacement) {
             mInternalStressesFinalizedPrevious = mInternalStressesFinalized;
-        }
-        else
-        {
+        } else {
             mInternalStressesFinalized = mInternalStressesFinalizedPrevious;
         }
     }
@@ -113,19 +109,16 @@ void GeoLinearTrussElement<TDim, TNumNodes>::CalculateOnIntegrationPoints(
 
     const GeometryType::IntegrationPointsArrayType& integration_points =
         this->GetGeometry().IntegrationPoints();
-    if (rOutput.size() != integration_points.size())
-    {
+    if (rOutput.size() != integration_points.size()) {
         rOutput.resize(integration_points.size());
     }
 
-    if (rVariable == FORCE)
-    {
+    if (rVariable == FORCE) {
         BoundedVector<double, 3> truss_forces = ZeroVector(3);
         const double A = this->GetProperties()[CROSS_AREA];
 
         double prestress = 0.00;
-        if (this->GetProperties().Has(TRUSS_PRESTRESS_PK2))
-        {
+        if (this->GetProperties().Has(TRUSS_PRESTRESS_PK2)) {
             prestress = this->GetProperties()[TRUSS_PRESTRESS_PK2];
         }
 

@@ -35,8 +35,7 @@ void UPwSmallStrainLinkInterfaceElement<TDim, TNumNodes>::CalculateOnIntegration
 {
     KRATOS_TRY
 
-    if (rVariable == FLUID_FLUX_VECTOR)
-    {
+    if (rVariable == FLUID_FLUX_VECTOR) {
         const PropertiesType& Prop = this->GetProperties();
         const GeometryType& Geom = this->GetGeometry();
         const unsigned int NumGPoints = Geom.IntegrationPointsNumber(mThisIntegrationMethod);
@@ -77,8 +76,7 @@ void UPwSmallStrainLinkInterfaceElement<TDim, TNumNodes>::CalculateOnIntegration
         SFGradAuxVariables SFGradAuxVars;
 
         // Loop over integration points
-        for (unsigned int GPoint = 0; GPoint < NumGPoints; ++GPoint)
-        {
+        for (unsigned int GPoint = 0; GPoint < NumGPoints; ++GPoint) {
             InterfaceElementUtilities::CalculateNuMatrix(Nu, NContainer, GPoint);
 
             noalias(RelDispVector) = prod(Nu, DisplacementVector);
@@ -109,20 +107,15 @@ void UPwSmallStrainLinkInterfaceElement<TDim, TNumNodes>::CalculateOnIntegration
 
             GeoElementUtilities::FillArray1dOutput(rOutput[GPoint], FluidFlux);
         }
-    }
-    else if (rVariable == LOCAL_STRESS_VECTOR)
-    {
+    } else if (rVariable == LOCAL_STRESS_VECTOR) {
         array_1d<double, TDim> LocalStressVector;
 
         // Loop over integration points
-        for (unsigned int GPoint = 0; GPoint < mConstitutiveLawVector.size(); ++GPoint)
-        {
+        for (unsigned int GPoint = 0; GPoint < mConstitutiveLawVector.size(); ++GPoint) {
             noalias(LocalStressVector) = mStressVector[GPoint];
             GeoElementUtilities::FillArray1dOutput(rOutput[GPoint], LocalStressVector);
         }
-    }
-    else if (rVariable == LOCAL_RELATIVE_DISPLACEMENT_VECTOR)
-    {
+    } else if (rVariable == LOCAL_RELATIVE_DISPLACEMENT_VECTOR) {
         // Defining necessary variables
         const GeometryType& Geom = this->GetGeometry();
         const Matrix& NContainer = Geom.ShapeFunctionsValues(mThisIntegrationMethod);
@@ -137,8 +130,7 @@ void UPwSmallStrainLinkInterfaceElement<TDim, TNumNodes>::CalculateOnIntegration
         array_1d<double, TDim> RelDispVector;
 
         // Loop over integration points
-        for (unsigned int GPoint = 0; GPoint < mConstitutiveLawVector.size(); ++GPoint)
-        {
+        for (unsigned int GPoint = 0; GPoint < mConstitutiveLawVector.size(); ++GPoint) {
             InterfaceElementUtilities::CalculateNuMatrix(Nu, NContainer, GPoint);
 
             noalias(RelDispVector) = prod(Nu, DisplacementVector);
@@ -147,9 +139,7 @@ void UPwSmallStrainLinkInterfaceElement<TDim, TNumNodes>::CalculateOnIntegration
 
             GeoElementUtilities::FillArray1dOutput(rOutput[GPoint], LocalRelDispVector);
         }
-    }
-    else if (rVariable == LOCAL_FLUID_FLUX_VECTOR)
-    {
+    } else if (rVariable == LOCAL_FLUID_FLUX_VECTOR) {
         const PropertiesType& Prop = this->GetProperties();
         const GeometryType& Geom = this->GetGeometry();
         const unsigned int NumGPoints = Geom.IntegrationPointsNumber(mThisIntegrationMethod);
@@ -189,8 +179,7 @@ void UPwSmallStrainLinkInterfaceElement<TDim, TNumNodes>::CalculateOnIntegration
         SFGradAuxVariables SFGradAuxVars;
 
         // Loop over integration points
-        for (unsigned int GPoint = 0; GPoint < NumGPoints; ++GPoint)
-        {
+        for (unsigned int GPoint = 0; GPoint < NumGPoints; ++GPoint) {
             InterfaceElementUtilities::CalculateNuMatrix(Nu, NContainer, GPoint);
 
             noalias(RelDispVector) = prod(Nu, DisplacementVector);
@@ -232,8 +221,7 @@ void UPwSmallStrainLinkInterfaceElement<TDim, TNumNodes>::CalculateOnIntegration
 {
     KRATOS_TRY
 
-    if (rVariable == PERMEABILITY_MATRIX)
-    {
+    if (rVariable == PERMEABILITY_MATRIX) {
         const GeometryType& Geom = this->GetGeometry();
         const PropertiesType& Prop = this->GetProperties();
 
@@ -256,8 +244,7 @@ void UPwSmallStrainLinkInterfaceElement<TDim, TNumNodes>::CalculateOnIntegration
         BoundedMatrix<double, TDim, TDim> PermeabilityMatrix;
 
         // Loop over integration points
-        for (unsigned int GPoint = 0; GPoint < mConstitutiveLawVector.size(); ++GPoint)
-        {
+        for (unsigned int GPoint = 0; GPoint < mConstitutiveLawVector.size(); ++GPoint) {
             InterfaceElementUtilities::CalculateNuMatrix(Nu, NContainer, GPoint);
 
             noalias(RelDispVector) = prod(Nu, DisplacementVector);
@@ -277,9 +264,7 @@ void UPwSmallStrainLinkInterfaceElement<TDim, TNumNodes>::CalculateOnIntegration
             rOutput[GPoint].resize(TDim, TDim, false);
             noalias(rOutput[GPoint]) = PermeabilityMatrix;
         }
-    }
-    else if (rVariable == LOCAL_PERMEABILITY_MATRIX)
-    {
+    } else if (rVariable == LOCAL_PERMEABILITY_MATRIX) {
         const GeometryType& Geom = this->GetGeometry();
         const PropertiesType& Prop = this->GetProperties();
 
@@ -301,8 +286,7 @@ void UPwSmallStrainLinkInterfaceElement<TDim, TNumNodes>::CalculateOnIntegration
         BoundedMatrix<double, TDim, TDim> LocalPermeabilityMatrix = ZeroMatrix(TDim, TDim);
 
         // Loop over integration points
-        for (unsigned int GPoint = 0; GPoint < mConstitutiveLawVector.size(); ++GPoint)
-        {
+        for (unsigned int GPoint = 0; GPoint < mConstitutiveLawVector.size(); ++GPoint) {
             InterfaceElementUtilities::CalculateNuMatrix(Nu, NContainer, GPoint);
 
             noalias(RelDispVector) = prod(Nu, DisplacementVector);
@@ -376,8 +360,7 @@ void UPwSmallStrainLinkInterfaceElement<TDim, TNumNodes>::CalculateAll(
     const bool hasBiotCoefficient = Prop.Has(BIOT_COEFFICIENT);
 
     // Loop over integration points
-    for (unsigned int GPoint = 0; GPoint < NumGPoints; ++GPoint)
-    {
+    for (unsigned int GPoint = 0; GPoint < NumGPoints; ++GPoint) {
         // Compute Np, StrainVector, JointWidth, GradNpT
         noalias(Variables.Np) = row(NContainer, GPoint);
         InterfaceElementUtilities::CalculateNuMatrix(Variables.Nu, NContainer, GPoint);

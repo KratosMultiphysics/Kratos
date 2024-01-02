@@ -43,8 +43,7 @@ void UPwUpdatedLagrangianAxisymmetricFICElement<TDim, TNumNodes>::CalculateBMatr
 
     const double radius = GeoElementUtilities::CalculateRadius(Np, this->GetGeometry());
 
-    for (IndexType i = 0; i < TNumNodes; ++i)
-    {
+    for (IndexType i = 0; i < TNumNodes; ++i) {
         const IndexType index = TDim * i;
 
         rB(INDEX_2D_PLANE_STRAIN_XX, index + INDEX_X) = GradNpT(i, INDEX_X);

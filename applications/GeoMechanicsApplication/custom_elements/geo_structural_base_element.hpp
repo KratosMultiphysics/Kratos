@@ -122,8 +122,7 @@ protected:
         (TDim == 3 ? VOIGT_SIZE_3D : VOIGT_SIZE_2D_PLANE_STRESS);
 
     /// Member Variables
-    struct ElementVariables
-    {
+    struct ElementVariables {
         /// Properties variables
 
         /// ProcessInfo variables

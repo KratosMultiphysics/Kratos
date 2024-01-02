@@ -73,8 +73,7 @@ void UPwUpdatedLagrangianFICElement<TDim, TNumNodes>::CalculateAll(
     const bool hasBiotCoefficient = Prop.Has(BIOT_COEFFICIENT);
 
     // Computing in all integrations points
-    for (IndexType GPoint = 0; GPoint < IntegrationPoints.size(); ++GPoint)
-    {
+    for (IndexType GPoint = 0; GPoint < IntegrationPoints.size(); ++GPoint) {
         // Compute element kinematics B, F, GradNpT ...
         this->CalculateKinematics(Variables, GPoint);
 
@@ -116,8 +115,7 @@ void UPwUpdatedLagrangianFICElement<TDim, TNumNodes>::CalculateAll(
             this->CalculateIntegrationCoefficient(
                 IntegrationPoints, GPoint, Variables.detJInitialConfiguration);
 
-        if (CalculateStiffnessMatrixFlag)
-        {
+        if (CalculateStiffnessMatrixFlag) {
             // Contributions to stiffness matrix calculated on the reference config
             /* Material stiffness matrix */
             this->CalculateAndAddLHS(rLeftHandSideMatrix, Variables);
@@ -129,8 +127,7 @@ void UPwUpdatedLagrangianFICElement<TDim, TNumNodes>::CalculateAll(
                     rLeftHandSideMatrix, Variables, GPoint);
         }
 
-        if (CalculateResidualVectorFlag)
-        {
+        if (CalculateResidualVectorFlag) {
             // Contributions to the right hand side
             this->CalculateAndAddRHS(rRightHandSideVector, Variables, GPoint);
             this->CalculateAndAddRHSStabilization(rRightHandSideVector, Variables, FICVariables);
@@ -145,8 +142,7 @@ template <unsigned int TDim, unsigned int TNumNodes>
 void UPwUpdatedLagrangianFICElement<TDim, TNumNodes>::CalculateOnIntegrationPoints(
     const Variable<double>& rVariable, std::vector<double>& rOutput, const ProcessInfo& rCurrentProcessInfo)
 {
-    if (rVariable == REFERENCE_DEFORMATION_GRADIENT_DETERMINANT)
-    {
+    if (rVariable == REFERENCE_DEFORMATION_GRADIENT_DETERMINANT) {
         if (rOutput.size() != mConstitutiveLawVector.size())
             rOutput.resize(mConstitutiveLawVector.size());
 
@@ -154,14 +150,11 @@ void UPwUpdatedLagrangianFICElement<TDim, TNumNodes>::CalculateOnIntegrationPoin
         this->InitializeElementVariables(Variables, rCurrentProcessInfo);
 
         // Loop over integration points
-        for (unsigned int GPoint = 0; GPoint < mConstitutiveLawVector.size(); ++GPoint)
-        {
+        for (unsigned int GPoint = 0; GPoint < mConstitutiveLawVector.size(); ++GPoint) {
             this->CalculateDeformationGradient(Variables, GPoint);
             rOutput[GPoint] = Variables.detF;
         }
-    }
-    else
-    {
+    } else {
         UPwSmallStrainFICElement<TDim, TNumNodes>::CalculateOnIntegrationPoints(
             rVariable, rOutput, rCurrentProcessInfo);
     }
@@ -178,30 +171,25 @@ void UPwUpdatedLagrangianFICElement<TDim, TNumNodes>::CalculateOnIntegrationPoin
 
     if (rOutput.size() != NumGPoints) rOutput.resize(NumGPoints);
 
-    if (rVariable == REFERENCE_DEFORMATION_GRADIENT)
-    {
+    if (rVariable == REFERENCE_DEFORMATION_GRADIENT) {
         ElementVariables Variables;
         this->InitializeElementVariables(Variables, rCurrentProcessInfo);
 
         // Loop over integration points
-        for (unsigned int GPoint = 0; GPoint < mConstitutiveLawVector.size(); ++GPoint)
-        {
+        for (unsigned int GPoint = 0; GPoint < mConstitutiveLawVector.size(); ++GPoint) {
             this->CalculateDeformationGradient(Variables, GPoint);
 
             if (rOutput[GPoint].size2() != TDim)
                 rOutput[GPoint].resize(TDim, TDim, false);
             rOutput[GPoint] = Variables.F;
         }
-    }
-    else if (rVariable == GREEN_LAGRANGE_STRAIN_TENSOR)
-    {
+    } else if (rVariable == GREEN_LAGRANGE_STRAIN_TENSOR) {
         // Definition of variables
         ElementVariables Variables;
         this->InitializeElementVariables(Variables, rCurrentProcessInfo);
 
         // Loop over integration points
-        for (unsigned int GPoint = 0; GPoint < mConstitutiveLawVector.size(); ++GPoint)
-        {
+        for (unsigned int GPoint = 0; GPoint < mConstitutiveLawVector.size(); ++GPoint) {
             // compute element kinematics (Np, gradNpT, |J|, B, strains)
             this->CalculateKinematics(Variables, GPoint);
 
@@ -215,9 +203,7 @@ void UPwUpdatedLagrangianFICElement<TDim, TNumNodes>::CalculateOnIntegrationPoin
             rOutput[GPoint] =
                 MathUtils<double>::StrainVectorToTensor(Variables.StrainVector);
         }
-    }
-    else
-    {
+    } else {
         UPwSmallStrainFICElement<TDim, TNumNodes>::CalculateOnIntegrationPoints(
             rVariable, rOutput, rCurrentProcessInfo);
     }

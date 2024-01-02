@@ -69,8 +69,7 @@ void UpdatedLagrangianUPwDiffOrderElement::CalculateAll(MatrixType& rLeftHandSid
     const bool hasBiotCoefficient = rProp.Has(BIOT_COEFFICIENT);
 
     // Computing in all integrations points
-    for (IndexType GPoint = 0; GPoint < IntegrationPoints.size(); ++GPoint)
-    {
+    for (IndexType GPoint = 0; GPoint < IntegrationPoints.size(); ++GPoint) {
         // Compute element kinematics B, F, DNu_DX ...
         this->CalculateKinematics(Variables, GPoint);
 
@@ -97,8 +96,7 @@ void UpdatedLagrangianUPwDiffOrderElement::CalculateAll(MatrixType& rLeftHandSid
             this->CalculateIntegrationCoefficient(
                 IntegrationPoints, GPoint, Variables.detJInitialConfiguration);
 
-        if (CalculateStiffnessMatrixFlag)
-        {
+        if (CalculateStiffnessMatrixFlag) {
             // Contributions to stiffness matrix calculated on the reference config
             /* Material stiffness matrix */
             this->CalculateAndAddLHS(rLeftHandSideMatrix, Variables);
@@ -109,8 +107,7 @@ void UpdatedLagrangianUPwDiffOrderElement::CalculateAll(MatrixType& rLeftHandSid
                     rLeftHandSideMatrix, Variables, GPoint);
         }
 
-        if (CalculateResidualVectorFlag)
-        {
+        if (CalculateResidualVectorFlag) {
             // Contributions to the right hand side
             this->CalculateAndAddRHS(rRightHandSideVector, Variables, GPoint);
         }
@@ -149,8 +146,7 @@ void UpdatedLagrangianUPwDiffOrderElement::CalculateAndAddGeometricStiffnessMatr
 void UpdatedLagrangianUPwDiffOrderElement::CalculateOnIntegrationPoints(
     const Variable<double>& rVariable, std::vector<double>& rOutput, const ProcessInfo& rCurrentProcessInfo)
 {
-    if (rVariable == REFERENCE_DEFORMATION_GRADIENT_DETERMINANT)
-    {
+    if (rVariable == REFERENCE_DEFORMATION_GRADIENT_DETERMINANT) {
         if (rOutput.size() != mConstitutiveLawVector.size())
             rOutput.resize(mConstitutiveLawVector.size());
 
@@ -158,14 +154,11 @@ void UpdatedLagrangianUPwDiffOrderElement::CalculateOnIntegrationPoints(
         this->InitializeElementVariables(Variables, rCurrentProcessInfo);
 
         // Loop over integration points
-        for (unsigned int GPoint = 0; GPoint < mConstitutiveLawVector.size(); ++GPoint)
-        {
+        for (unsigned int GPoint = 0; GPoint < mConstitutiveLawVector.size(); ++GPoint) {
             this->CalculateDeformationGradient(Variables, GPoint);
             rOutput[GPoint] = Variables.detF;
         }
-    }
-    else
-    {
+    } else {
         SmallStrainUPwDiffOrderElement::CalculateOnIntegrationPoints(
             rVariable, rOutput, rCurrentProcessInfo);
     }
@@ -184,15 +177,13 @@ void UpdatedLagrangianUPwDiffOrderElement::CalculateOnIntegrationPoints(
     if (rOutput.size() != IntegrationPointsNumber)
         rOutput.resize(IntegrationPointsNumber);
 
-    if (rVariable == GREEN_LAGRANGE_STRAIN_VECTOR)
-    {
+    if (rVariable == GREEN_LAGRANGE_STRAIN_VECTOR) {
         // Definition of variables
         ElementVariables Variables;
         this->InitializeElementVariables(Variables, rCurrentProcessInfo);
 
         // Loop over integration points
-        for (unsigned int GPoint = 0; GPoint < mConstitutiveLawVector.size(); ++GPoint)
-        {
+        for (unsigned int GPoint = 0; GPoint < mConstitutiveLawVector.size(); ++GPoint) {
             this->CalculateDeformationGradient(Variables, GPoint);
             this->CalculateCauchyGreenStrain(Variables);
 
@@ -201,9 +192,7 @@ void UpdatedLagrangianUPwDiffOrderElement::CalculateOnIntegrationPoints(
 
             rOutput[GPoint] = Variables.StrainVector;
         }
-    }
-    else
-    {
+    } else {
         SmallStrainUPwDiffOrderElement::CalculateOnIntegrationPoints(
             rVariable, rOutput, rCurrentProcessInfo);
     }
@@ -221,14 +210,12 @@ void UpdatedLagrangianUPwDiffOrderElement::CalculateOnIntegrationPoints(
     if (rOutput.size() != mConstitutiveLawVector.size())
         rOutput.resize(mConstitutiveLawVector.size());
 
-    if (rVariable == REFERENCE_DEFORMATION_GRADIENT)
-    {
+    if (rVariable == REFERENCE_DEFORMATION_GRADIENT) {
         ElementVariables Variables;
         this->InitializeElementVariables(Variables, rCurrentProcessInfo);
 
         // Loop over integration points
-        for (unsigned int GPoint = 0; GPoint < mConstitutiveLawVector.size(); ++GPoint)
-        {
+        for (unsigned int GPoint = 0; GPoint < mConstitutiveLawVector.size(); ++GPoint) {
             this->CalculateDeformationGradient(Variables, GPoint);
 
             if (rOutput[GPoint].size2() != Dim)
@@ -236,9 +223,7 @@ void UpdatedLagrangianUPwDiffOrderElement::CalculateOnIntegrationPoints(
 
             rOutput[GPoint] = Variables.F;
         }
-    }
-    else
-    {
+    } else {
         SmallStrainUPwDiffOrderElement::CalculateOnIntegrationPoints(
             rVariable, rOutput, rCurrentProcessInfo);
     }

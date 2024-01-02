@@ -73,12 +73,9 @@ void GeoCableElement<TDim, TNumNodes>::CreateElementStiffnessMatrix(
 {
     KRATOS_TRY
 
-    if (mIsCompressed)
-    {
+    if (mIsCompressed) {
         rLocalStiffnessMatrix = ZeroMatrix(TDim * TNumNodes, TDim * TNumNodes);
-    }
-    else
-    {
+    } else {
         this->CalculateElasticStiffnessMatrix(rLocalStiffnessMatrix, rCurrentProcessInfo);
 
         FullDofMatrixType K_geo;
@@ -101,8 +98,7 @@ void GeoCableElement<TDim, TNumNodes>::CalculateRightHandSide(VectorType& rRight
     BoundedVector<double, TDim * TNumNodes> internal_forces = ZeroVector(TDim * TNumNodes);
     UpdateInternalForces(internal_forces, rCurrentProcessInfo);
 
-    if (!mIsCompressed)
-    {
+    if (!mIsCompressed) {
         noalias(rRightHandSideVector) -= internal_forces;
     }
 
@@ -132,8 +128,7 @@ void GeoCableElement<TDim, TNumNodes>::UpdateInternalForces(
     const double A = this->GetProperties()[CROSS_AREA];
 
     double prestress = 0.00;
-    if (this->GetProperties().Has(TRUSS_PRESTRESS_PK2))
-    {
+    if (this->GetProperties().Has(TRUSS_PRESTRESS_PK2)) {
         prestress = this->GetProperties()[TRUSS_PRESTRESS_PK2];
     }
 
@@ -152,8 +147,7 @@ void GeoCableElement<TDim, TNumNodes>::UpdateInternalForces(
     const double normal_force = ((temp_stress[0] + prestress) * l * A) / L0;
 
     mIsCompressed = false;
-    if ((normal_force < 0.00) && (std::abs(l - L0) > numerical_limit))
-    {
+    if ((normal_force < 0.00) && (std::abs(l - L0) > numerical_limit)) {
         mIsCompressed = true;
     }
 
@@ -173,12 +167,10 @@ void GeoCableElement<TDim, TNumNodes>::CalculateOnIntegrationPoints(
     std::vector<array_1d<double, 3>>& rOutput,
     const ProcessInfo& rCurrentProcessInfo)
 {
-    if (rVariable == FORCE)
-    {
+    if (rVariable == FORCE) {
         GeoTrussElement<TDim, TNumNodes>::CalculateOnIntegrationPoints(
             rVariable, rOutput, rCurrentProcessInfo);
-        if (rOutput[0][0] < 0.0)
-        {
+        if (rOutput[0][0] < 0.0) {
             rOutput[0] = ZeroVector(3);
         }
     }
@@ -190,12 +182,10 @@ void GeoCableElement<TDim, TNumNodes>::CalculateOnIntegrationPoints(
     const Variable<Vector>& rVariable, std::vector<Vector>& rOutput, const ProcessInfo& rCurrentProcessInfo)
 {
     if (rVariable == GREEN_LAGRANGE_STRAIN_VECTOR ||
-        rVariable == CAUCHY_STRESS_VECTOR || rVariable == PK2_STRESS_VECTOR)
-    {
+        rVariable == CAUCHY_STRESS_VECTOR || rVariable == PK2_STRESS_VECTOR) {
         GeoTrussElement<TDim, TNumNodes>::CalculateOnIntegrationPoints(
             rVariable, rOutput, rCurrentProcessInfo);
-        if (rOutput[0][0] < 0.0)
-        {
+        if (rOutput[0][0] < 0.0) {
             rOutput[0] = ZeroVector(TDim);
         }
     }

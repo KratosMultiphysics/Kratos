@@ -57,8 +57,7 @@ int UPwBaseElement<TDim, TNumNodes>::Check(const ProcessInfo& rCurrentProcessInf
     const GeometryType& rGeom = this->GetGeometry();
 
     // verify nodal variables and dofs
-    for (unsigned int i = 0; i < TNumNodes; ++i)
-    {
+    for (unsigned int i = 0; i < TNumNodes; ++i) {
         if (rGeom[i].SolutionStepsDataHas(DISPLACEMENT) == false)
             KRATOS_ERROR << "missing variable DISPLACEMENT on node "
                          << rGeom[i].Id() << std::endl;
@@ -109,29 +108,23 @@ int UPwBaseElement<TDim, TNumNodes>::Check(const ProcessInfo& rCurrentProcessInf
                         "invalid value at element"
                      << this->Id() << std::endl;
 
-    if (rProp.Has(YOUNG_MODULUS) == false)
-    {
+    if (rProp.Has(YOUNG_MODULUS) == false) {
         if (rProp.Has(UDSM_NAME) == false)
             KRATOS_ERROR
                 << "YOUNG_MODULUS has Key zero or is not defined at element"
                 << this->Id() << std::endl;
-    }
-    else
-    {
+    } else {
         if (rProp[YOUNG_MODULUS] <= 0.0)
             KRATOS_ERROR << "YOUNG_MODULUS has an invalid value at element"
                          << this->Id() << std::endl;
     }
 
-    if (rProp.Has(POISSON_RATIO) == false)
-    {
+    if (rProp.Has(POISSON_RATIO) == false) {
         if (rProp.Has(UDSM_NAME) == false)
             KRATOS_ERROR
                 << "POISSON_RATIO has Key zero or is not defined at element"
                 << this->Id() << std::endl;
-    }
-    else
-    {
+    } else {
         const double& PoissonRatio = rProp[POISSON_RATIO];
         if (PoissonRatio < 0.0 || PoissonRatio >= 0.5)
             KRATOS_ERROR << "POISSON_RATIO has an invalid value at element"
@@ -148,11 +141,9 @@ int UPwBaseElement<TDim, TNumNodes>::Check(const ProcessInfo& rCurrentProcessInf
                         "invalid value at element"
                      << this->Id() << std::endl;
 
-    if (TDim == 2)
-    {
+    if (TDim == 2) {
         // If this is a 2D problem, nodes must be in XY plane
-        for (unsigned int i = 0; i < TNumNodes; ++i)
-        {
+        for (unsigned int i = 0; i < TNumNodes; ++i) {
             if (rGeom[i].Z() != 0.0)
                 KRATOS_ERROR << " Node with non-zero Z coordinate found. Id: "
                              << rGeom[i].Id() << std::endl;
@@ -178,21 +169,18 @@ void UPwBaseElement<TDim, TNumNodes>::Initialize(const ProcessInfo& rCurrentProc
     if (mConstitutiveLawVector.size() != NumGPoints)
         mConstitutiveLawVector.resize(NumGPoints);
 
-    for (unsigned int i = 0; i < mConstitutiveLawVector.size(); ++i)
-    {
+    for (unsigned int i = 0; i < mConstitutiveLawVector.size(); ++i) {
         mConstitutiveLawVector[i] = rProp[CONSTITUTIVE_LAW]->Clone();
         mConstitutiveLawVector[i]->InitializeMaterial(
             rProp, rGeom, row(rGeom.ShapeFunctionsValues(mThisIntegrationMethod), i));
     }
 
     // resize mStressVector:
-    if (mStressVector.size() != NumGPoints)
-    {
+    if (mStressVector.size() != NumGPoints) {
         unsigned int VoigtSize = VOIGT_SIZE_3D;
         if constexpr (TDim == 2) VoigtSize = VOIGT_SIZE_2D_PLANE_STRAIN;
         mStressVector.resize(NumGPoints);
-        for (unsigned int i = 0; i < mStressVector.size(); ++i)
-        {
+        for (unsigned int i = 0; i < mStressVector.size(); ++i) {
             mStressVector[i].resize(VoigtSize);
             std::fill(mStressVector[i].begin(), mStressVector[i].end(), 0.0);
         }
@@ -201,13 +189,11 @@ void UPwBaseElement<TDim, TNumNodes>::Initialize(const ProcessInfo& rCurrentProc
     // resizing and setting state variables
     if (mStateVariablesFinalized.size() != NumGPoints)
         mStateVariablesFinalized.resize(NumGPoints);
-    for (unsigned int i = 0; i < mConstitutiveLawVector.size(); ++i)
-    {
+    for (unsigned int i = 0; i < mConstitutiveLawVector.size(); ++i) {
         int nStateVariables = 0;
         nStateVariables = mConstitutiveLawVector[i]->GetValue(
             NUMBER_OF_UMAT_STATE_VARIABLES, nStateVariables);
-        if (nStateVariables > 0)
-        {
+        if (nStateVariables > 0) {
             // ProcessInfo rCurrentProcessInfo;
             mConstitutiveLawVector[i]->SetValue(
                 STATE_VARIABLES, mStateVariablesFinalized[i], rCurrentProcessInfo);
@@ -216,8 +202,7 @@ void UPwBaseElement<TDim, TNumNodes>::Initialize(const ProcessInfo& rCurrentProc
 
     if (mRetentionLawVector.size() != NumGPoints)
         mRetentionLawVector.resize(NumGPoints);
-    for (unsigned int i = 0; i < mRetentionLawVector.size(); ++i)
-    {
+    for (unsigned int i = 0; i < mRetentionLawVector.size(); ++i) {
         // RetentionLawFactory::Pointer pRetentionFactory;
         mRetentionLawVector[i] = RetentionLawFactory::Clone(rProp);
         mRetentionLawVector[i]->InitializeMaterial(
@@ -236,14 +221,12 @@ void UPwBaseElement<TDim, TNumNodes>::ResetConstitutiveLaw()
     KRATOS_TRY
 
     // erasing stress vectors
-    for (unsigned int i = 0; i < mStressVector.size(); ++i)
-    {
+    for (unsigned int i = 0; i < mStressVector.size(); ++i) {
         mStressVector[i].clear();
     }
     mStressVector.clear();
 
-    for (unsigned int i = 0; i < mStateVariablesFinalized.size(); ++i)
-    {
+    for (unsigned int i = 0; i < mStateVariablesFinalized.size(); ++i) {
         mStateVariablesFinalized[i].clear();
     }
     mStateVariablesFinalized.clear();
@@ -263,29 +246,22 @@ void UPwBaseElement<TDim, TNumNodes>::GetDofList(DofsVectorType& rElementalDofLi
 
     if (rElementalDofList.size() != N_DOF) rElementalDofList.resize(N_DOF);
 
-    if constexpr (TDim == 3)
-    {
+    if constexpr (TDim == 3) {
         unsigned int index = 0;
-        for (unsigned int i = 0; i < TNumNodes; ++i)
-        {
+        for (unsigned int i = 0; i < TNumNodes; ++i) {
             rElementalDofList[index++] = rGeom[i].pGetDof(DISPLACEMENT_X);
             rElementalDofList[index++] = rGeom[i].pGetDof(DISPLACEMENT_Y);
             rElementalDofList[index++] = rGeom[i].pGetDof(DISPLACEMENT_Z);
             rElementalDofList[index++] = rGeom[i].pGetDof(WATER_PRESSURE);
         }
-    }
-    else if constexpr (TDim == 2)
-    {
+    } else if constexpr (TDim == 2) {
         unsigned int index = 0;
-        for (unsigned int i = 0; i < TNumNodes; ++i)
-        {
+        for (unsigned int i = 0; i < TNumNodes; ++i) {
             rElementalDofList[index++] = rGeom[i].pGetDof(DISPLACEMENT_X);
             rElementalDofList[index++] = rGeom[i].pGetDof(DISPLACEMENT_Y);
             rElementalDofList[index++] = rGeom[i].pGetDof(WATER_PRESSURE);
         }
-    }
-    else
-    {
+    } else {
         KRATOS_ERROR
             << "undefined dimension in GetDofList... illegal operation!!"
             << this->Id() << std::endl;
@@ -300,8 +276,7 @@ GeometryData::IntegrationMethod UPwBaseElement<TDim, TNumNodes>::GetIntegrationM
 {
     GeometryData::IntegrationMethod GI_GAUSS;
     //
-    switch (TNumNodes)
-    {
+    switch (TNumNodes) {
     case 3:
         GI_GAUSS = GeometryData::IntegrationMethod::GI_GAUSS_2;
         break;
@@ -407,29 +382,22 @@ void UPwBaseElement<TDim, TNumNodes>::EquationIdVector(EquationIdVectorType& rRe
 
     if (rResult.size() != N_DOF) rResult.resize(N_DOF, false);
 
-    if constexpr (TDim == 2)
-    {
+    if constexpr (TDim == 2) {
         unsigned int index = 0;
-        for (unsigned int i = 0; i < TNumNodes; ++i)
-        {
+        for (unsigned int i = 0; i < TNumNodes; ++i) {
             rResult[index++] = rGeom[i].GetDof(DISPLACEMENT_X).EquationId();
             rResult[index++] = rGeom[i].GetDof(DISPLACEMENT_Y).EquationId();
             rResult[index++] = rGeom[i].GetDof(WATER_PRESSURE).EquationId();
         }
-    }
-    else if constexpr (TDim == 3)
-    {
+    } else if constexpr (TDim == 3) {
         unsigned int index = 0;
-        for (unsigned int i = 0; i < TNumNodes; ++i)
-        {
+        for (unsigned int i = 0; i < TNumNodes; ++i) {
             rResult[index++] = rGeom[i].GetDof(DISPLACEMENT_X).EquationId();
             rResult[index++] = rGeom[i].GetDof(DISPLACEMENT_Y).EquationId();
             rResult[index++] = rGeom[i].GetDof(DISPLACEMENT_Z).EquationId();
             rResult[index++] = rGeom[i].GetDof(WATER_PRESSURE).EquationId();
         }
-    }
-    else
-    {
+    } else {
         KRATOS_ERROR
             << "undefined dimension in EquationIdVector... illegal operation!!"
             << this->Id() << std::endl;
@@ -504,29 +472,22 @@ void UPwBaseElement<TDim, TNumNodes>::GetValuesVector(Vector& rValues, int Step)
 
     if (rValues.size() != N_DOF) rValues.resize(N_DOF, false);
 
-    if (TDim == 2)
-    {
+    if (TDim == 2) {
         unsigned int index = 0;
-        for (unsigned int i = 0; i < TNumNodes; ++i)
-        {
+        for (unsigned int i = 0; i < TNumNodes; ++i) {
             rValues[index++] = rGeom[i].FastGetSolutionStepValue(DISPLACEMENT_X, Step);
             rValues[index++] = rGeom[i].FastGetSolutionStepValue(DISPLACEMENT_Y, Step);
             rValues[index++] = 0.0;
         }
-    }
-    else if (TDim == 3)
-    {
+    } else if (TDim == 3) {
         unsigned int index = 0;
-        for (unsigned int i = 0; i < TNumNodes; ++i)
-        {
+        for (unsigned int i = 0; i < TNumNodes; ++i) {
             rValues[index++] = rGeom[i].FastGetSolutionStepValue(DISPLACEMENT_X, Step);
             rValues[index++] = rGeom[i].FastGetSolutionStepValue(DISPLACEMENT_Y, Step);
             rValues[index++] = rGeom[i].FastGetSolutionStepValue(DISPLACEMENT_Z, Step);
             rValues[index++] = 0.0;
         }
-    }
-    else
-    {
+    } else {
         KRATOS_ERROR
             << "undefined dimension in GetValuesVector... illegal operation!!"
             << this->Id() << std::endl;
@@ -546,29 +507,22 @@ void UPwBaseElement<TDim, TNumNodes>::GetFirstDerivativesVector(Vector& rValues,
 
     if (rValues.size() != N_DOF) rValues.resize(N_DOF, false);
 
-    if (TDim == 2)
-    {
+    if (TDim == 2) {
         unsigned int index = 0;
-        for (unsigned int i = 0; i < TNumNodes; ++i)
-        {
+        for (unsigned int i = 0; i < TNumNodes; ++i) {
             rValues[index++] = rGeom[i].FastGetSolutionStepValue(VELOCITY_X, Step);
             rValues[index++] = rGeom[i].FastGetSolutionStepValue(VELOCITY_Y, Step);
             rValues[index++] = 0.0;
         }
-    }
-    else if constexpr (TDim == 3)
-    {
+    } else if constexpr (TDim == 3) {
         unsigned int index = 0;
-        for (unsigned int i = 0; i < TNumNodes; ++i)
-        {
+        for (unsigned int i = 0; i < TNumNodes; ++i) {
             rValues[index++] = rGeom[i].FastGetSolutionStepValue(VELOCITY_X, Step);
             rValues[index++] = rGeom[i].FastGetSolutionStepValue(VELOCITY_Y, Step);
             rValues[index++] = rGeom[i].FastGetSolutionStepValue(VELOCITY_Z, Step);
             rValues[index++] = 0.0;
         }
-    }
-    else
-    {
+    } else {
         KRATOS_ERROR << "undefined dimension in GetFirstDerivativesVector... "
                         "illegal operation!!"
                      << this->Id() << std::endl;
@@ -588,29 +542,22 @@ void UPwBaseElement<TDim, TNumNodes>::GetSecondDerivativesVector(Vector& rValues
 
     if (rValues.size() != N_DOF) rValues.resize(N_DOF, false);
 
-    if (TDim == 2)
-    {
+    if (TDim == 2) {
         unsigned int index = 0;
-        for (unsigned int i = 0; i < TNumNodes; ++i)
-        {
+        for (unsigned int i = 0; i < TNumNodes; ++i) {
             rValues[index++] = rGeom[i].FastGetSolutionStepValue(ACCELERATION_X, Step);
             rValues[index++] = rGeom[i].FastGetSolutionStepValue(ACCELERATION_Y, Step);
             rValues[index++] = 0.0;
         }
-    }
-    else if constexpr (TDim == 3)
-    {
+    } else if constexpr (TDim == 3) {
         unsigned int index = 0;
-        for (unsigned int i = 0; i < TNumNodes; ++i)
-        {
+        for (unsigned int i = 0; i < TNumNodes; ++i) {
             rValues[index++] = rGeom[i].FastGetSolutionStepValue(ACCELERATION_X, Step);
             rValues[index++] = rGeom[i].FastGetSolutionStepValue(ACCELERATION_Y, Step);
             rValues[index++] = rGeom[i].FastGetSolutionStepValue(ACCELERATION_Z, Step);
             rValues[index++] = 0.0;
         }
-    }
-    else
-    {
+    } else {
         KRATOS_ERROR << "undefined dimension in GetSecondDerivativesVector... "
                         "illegal operation!!"
                      << this->Id() << std::endl;
@@ -667,8 +614,7 @@ void UPwBaseElement<TDim, TNumNodes>::CalculateOnIntegrationPoints(
 {
     KRATOS_TRY
 
-    if (rVariable == CONSTITUTIVE_LAW)
-    {
+    if (rVariable == CONSTITUTIVE_LAW) {
         if (rValues.size() != mConstitutiveLawVector.size())
             rValues.resize(mConstitutiveLawVector.size());
 

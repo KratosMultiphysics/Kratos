@@ -86,8 +86,7 @@ void SteadyStatePwPipingElement<TDim, TNumNodes>::Initialize(const ProcessInfo& 
     this->CalculateLength(this->GetGeometry());
 
     // initialse pipe parameters if not initalised, (important for staged analysis.
-    if (!this->pipe_initialised)
-    {
+    if (!this->pipe_initialised) {
         this->pipe_initialised = true;
         this->SetValue(PIPE_EROSION, false);
 
@@ -135,16 +134,14 @@ void SteadyStatePwPipingElement<TDim, TNumNodes>::CalculateOnIntegrationPoints(
 {
     KRATOS_TRY;
 
-    if (rVariable == PIPE_ACTIVE)
-    {
+    if (rVariable == PIPE_ACTIVE) {
         const GeometryType& Geom = this->GetGeometry();
         const unsigned int OutputGPoints =
             Geom.IntegrationPointsNumber(this->GetIntegrationMethod());
         if (rValues.size() != OutputGPoints) rValues.resize(OutputGPoints);
 
         bool pipe_active = this->GetValue(rVariable);
-        for (unsigned int GPoint = 0; GPoint < OutputGPoints; ++GPoint)
-        {
+        for (unsigned int GPoint = 0; GPoint < OutputGPoints; ++GPoint) {
             rValues[GPoint] = pipe_active;
         }
     }
@@ -158,21 +155,17 @@ void SteadyStatePwPipingElement<TDim, TNumNodes>::CalculateOnIntegrationPoints(
 {
     KRATOS_TRY;
 
-    if (rVariable == PIPE_HEIGHT)
-    {
+    if (rVariable == PIPE_HEIGHT) {
         const GeometryType& Geom = this->GetGeometry();
         const unsigned int OutputGPoints =
             Geom.IntegrationPointsNumber(this->GetIntegrationMethod());
         if (rValues.size() != OutputGPoints) rValues.resize(OutputGPoints);
 
         double pipe_height = this->GetValue(rVariable);
-        for (unsigned int GPoint = 0; GPoint < OutputGPoints; ++GPoint)
-        {
+        for (unsigned int GPoint = 0; GPoint < OutputGPoints; ++GPoint) {
             rValues[GPoint] = pipe_height;
         }
-    }
-    else
-    {
+    } else {
         TransientPwInterfaceElement<TDim, TNumNodes>::CalculateOnIntegrationPoints(
             rVariable, rValues, rCurrentProcessInfo);
     }
@@ -221,8 +214,7 @@ void SteadyStatePwPipingElement<TDim, TNumNodes>::CalculateAll(
     RetentionLaw::Parameters RetentionParameters(this->GetProperties(), CurrentProcessInfo);
 
     // Loop over integration points
-    for (unsigned int GPoint = 0; GPoint < NumGPoints; ++GPoint)
-    {
+    for (unsigned int GPoint = 0; GPoint < NumGPoints; ++GPoint) {
         // Compute Np, StrainVector, JointWidth, GradNpT
         noalias(Variables.Np) = row(NContainer, GPoint);
 
@@ -329,8 +321,7 @@ double SteadyStatePwPipingElement<TDim, TNumNodes>::CalculateEquilibriumPipeHeig
     const double pipeSlope = 0;
 
     // return infinite when dhdx is 0
-    if (dhdx < std::numeric_limits<double>::epsilon())
-    {
+    if (dhdx < std::numeric_limits<double>::epsilon()) {
         return 1e10;
     }
 

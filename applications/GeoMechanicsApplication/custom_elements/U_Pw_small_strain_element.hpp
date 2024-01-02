@@ -137,8 +137,7 @@ protected:
     static constexpr SizeType StressTensorSize =
         (TDim == N_DIM_3D ? STRESS_TENSOR_SIZE_3D : STRESS_TENSOR_SIZE_2D);
 
-    struct ElementVariables
-    {
+    struct ElementVariables {
         /// Properties variables
         bool IgnoreUndrained;
         bool UseHenckyStrain;
