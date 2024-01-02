@@ -92,6 +92,8 @@ protected:
         this->SetDeltaTime(delta_time);
         rModelPart.GetProcessInfo()[this->mDeltaTimeVariableCoefficient] =
             1.0 / (mTheta * delta_time);
+        rModelPart.GetProcessInfo()[VELOCITY_COEFFICIENT] =
+            mGamma / (mBeta * this->GetDeltaTime());
 
         KRATOS_CATCH("")
     }

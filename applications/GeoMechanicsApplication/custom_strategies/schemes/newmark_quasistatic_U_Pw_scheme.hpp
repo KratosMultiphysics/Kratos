@@ -106,20 +106,6 @@ public:
 
         KRATOS_CATCH("")
     }
-
-protected:
-
-
-    inline void SetTimeFactors(ModelPart& rModelPart) override
-    {
-        KRATOS_TRY
-
-        GeneralizedNewmarkScheme<TSparseSpace, TDenseSpace>::SetTimeFactors(rModelPart);
-        rModelPart.GetProcessInfo()[VELOCITY_COEFFICIENT] =
-            this->mGamma / (this->mBeta * this->GetDeltaTime());
-
-        KRATOS_CATCH("")
-    }
 }; // Class NewmarkQuasistaticUPwScheme
 
 } // namespace Kratos
