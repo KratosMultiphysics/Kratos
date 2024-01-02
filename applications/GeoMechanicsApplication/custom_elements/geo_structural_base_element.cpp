@@ -306,8 +306,7 @@ void GeoStructuralBaseElement<TDim, TNumNodes>::EquationIdVector(
 
     const GeometryType& rGeom = this->GetGeometry();
 
-    if (rResult.size() != N_DOF_ELEMENT)
-        rResult.resize(N_DOF_ELEMENT, false);
+    if (rResult.size() != N_DOF_ELEMENT) rResult.resize(N_DOF_ELEMENT, false);
 
     unsigned int index = 0;
     if constexpr (TDim == 2)
@@ -393,8 +392,7 @@ void GeoStructuralBaseElement<TDim, TNumNodes>::GetValuesVector(Vector& rValues,
 
     const GeometryType& rGeom = this->GetGeometry();
 
-    if (rValues.size() != N_DOF_ELEMENT)
-        rValues.resize(N_DOF_ELEMENT, false);
+    if (rValues.size() != N_DOF_ELEMENT) rValues.resize(N_DOF_ELEMENT, false);
 
     unsigned int index = 0;
     if constexpr (TDim == 2)
@@ -436,8 +434,7 @@ void GeoStructuralBaseElement<TDim, TNumNodes>::GetFirstDerivativesVector(Vector
 
     const GeometryType& rGeom = this->GetGeometry();
 
-    if (rValues.size() != N_DOF_ELEMENT)
-        rValues.resize(N_DOF_ELEMENT, false);
+    if (rValues.size() != N_DOF_ELEMENT) rValues.resize(N_DOF_ELEMENT, false);
 
     unsigned int index = 0;
     if constexpr (TDim == 2)
@@ -479,8 +476,7 @@ void GeoStructuralBaseElement<TDim, TNumNodes>::GetSecondDerivativesVector(Vecto
 
     const GeometryType& rGeom = this->GetGeometry();
 
-    if (rValues.size() != N_DOF_ELEMENT)
-        rValues.resize(N_DOF_ELEMENT, false);
+    if (rValues.size() != N_DOF_ELEMENT) rValues.resize(N_DOF_ELEMENT, false);
 
     unsigned int index = 0;
     if constexpr (TDim == 2)

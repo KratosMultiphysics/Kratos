@@ -39,8 +39,7 @@ int TransientPwInterfaceElement<TDim, TNumNodes>::Check(const ProcessInfo& rCurr
     KRATOS_TRY
 
     int ierr = Element::Check(rCurrentProcessInfo);
-    if (ierr != 0)
-        return ierr;
+    if (ierr != 0) return ierr;
 
     const PropertiesType& Prop = this->GetProperties();
     const GeometryType& Geom = this->GetGeometry();
@@ -135,8 +134,7 @@ void TransientPwInterfaceElement<TDim, TNumNodes>::CalculateMassMatrix(
     const unsigned int N_DOF = this->GetNumberOfDOF();
 
     // Resizing mass matrix
-    if (rMassMatrix.size1() != N_DOF)
-        rMassMatrix.resize(N_DOF, N_DOF, false);
+    if (rMassMatrix.size1() != N_DOF) rMassMatrix.resize(N_DOF, N_DOF, false);
     noalias(rMassMatrix) = ZeroMatrix(N_DOF, N_DOF);
 
     KRATOS_CATCH("")
@@ -206,8 +204,7 @@ void TransientPwInterfaceElement<TDim, TNumNodes>::CalculateOnIntegrationPoints(
         // Printed on standard GiD Gauss points
         const unsigned int OutputGPoints =
             Geom.IntegrationPointsNumber(this->GetIntegrationMethod());
-        if (rValues.size() != OutputGPoints)
-            rValues.resize(OutputGPoints);
+        if (rValues.size() != OutputGPoints) rValues.resize(OutputGPoints);
 
         this->InterpolateOutputDoubles(rValues, GPValues);
     }
@@ -243,8 +240,7 @@ void TransientPwInterfaceElement<TDim, TNumNodes>::CalculateOnIntegrationPoints(
         // Printed on standard GiD Gauss points
         const unsigned int OutputGPoints =
             Geom.IntegrationPointsNumber(this->GetIntegrationMethod());
-        if (rValues.size() != OutputGPoints)
-            rValues.resize(OutputGPoints);
+        if (rValues.size() != OutputGPoints) rValues.resize(OutputGPoints);
 
         this->template InterpolateOutputValues<array_1d<double, 3>>(rValues, GPValues);
     }
@@ -268,8 +264,7 @@ void TransientPwInterfaceElement<TDim, TNumNodes>::CalculateOnIntegrationPoints(
         // Printed on standard GiD Gauss points
         const unsigned int OutputGPoints =
             this->GetGeometry().IntegrationPointsNumber(this->GetIntegrationMethod());
-        if (rValues.size() != OutputGPoints)
-            rValues.resize(OutputGPoints);
+        if (rValues.size() != OutputGPoints) rValues.resize(OutputGPoints);
 
         for (unsigned int i = 0; i < OutputGPoints; ++i)
         {
@@ -752,8 +747,7 @@ void TransientPwInterfaceElement<TDim, TNumNodes>::GetDofList(DofsVectorType& rE
     const GeometryType& rGeom = this->GetGeometry();
     const unsigned int N_DOF = this->GetNumberOfDOF();
 
-    if (rElementalDofList.size() != N_DOF)
-        rElementalDofList.resize(N_DOF);
+    if (rElementalDofList.size() != N_DOF) rElementalDofList.resize(N_DOF);
 
     unsigned int index = 0;
     for (unsigned int i = 0; i < TNumNodes; ++i)
@@ -773,8 +767,7 @@ void TransientPwInterfaceElement<TDim, TNumNodes>::EquationIdVector(
     const GeometryType& rGeom = this->GetGeometry();
     const unsigned int N_DOF = this->GetNumberOfDOF();
 
-    if (rResult.size() != N_DOF)
-        rResult.resize(N_DOF, false);
+    if (rResult.size() != N_DOF) rResult.resize(N_DOF, false);
 
     unsigned int index = 0;
     for (unsigned int i = 0; i < TNumNodes; ++i)
@@ -792,8 +785,7 @@ void TransientPwInterfaceElement<TDim, TNumNodes>::GetValuesVector(Vector& rValu
 
     const unsigned int N_DOF = this->GetNumberOfDOF();
 
-    if (rValues.size() != N_DOF)
-        rValues.resize(N_DOF, false);
+    if (rValues.size() != N_DOF) rValues.resize(N_DOF, false);
 
     unsigned int index = 0;
     for (unsigned int i = 0; i < TNumNodes; ++i)
@@ -812,8 +804,7 @@ void TransientPwInterfaceElement<TDim, TNumNodes>::GetFirstDerivativesVector(Vec
 
     const unsigned int N_DOF = this->GetNumberOfDOF();
 
-    if (rValues.size() != N_DOF)
-        rValues.resize(N_DOF, false);
+    if (rValues.size() != N_DOF) rValues.resize(N_DOF, false);
 
     unsigned int index = 0;
     for (unsigned int i = 0; i < TNumNodes; ++i)
@@ -832,8 +823,7 @@ void TransientPwInterfaceElement<TDim, TNumNodes>::GetSecondDerivativesVector(Ve
 
     const unsigned int N_DOF = this->GetNumberOfDOF();
 
-    if (rValues.size() != N_DOF)
-        rValues.resize(N_DOF, false);
+    if (rValues.size() != N_DOF) rValues.resize(N_DOF, false);
 
     unsigned int index = 0;
     for (unsigned int i = 0; i < TNumNodes; ++i)

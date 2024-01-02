@@ -46,8 +46,7 @@ int UPwSmallStrainInterfaceElement<TDim, TNumNodes>::Check(const ProcessInfo& rC
 
     // Verify generic variables
     int ierr = UPwBaseElement<TDim, TNumNodes>::Check(rCurrentProcessInfo);
-    if (ierr != 0)
-        return ierr;
+    if (ierr != 0) return ierr;
 
     // Verify specific properties
     if (Prop.Has(MINIMUM_JOINT_WIDTH) == false || Prop[MINIMUM_JOINT_WIDTH] <= 0.0)
@@ -163,8 +162,7 @@ void UPwSmallStrainInterfaceElement<TDim, TNumNodes>::CalculateMassMatrix(
     const unsigned int N_DOF = this->GetNumberOfDOF();
 
     // Resizing mass matrix
-    if (rMassMatrix.size1() != N_DOF)
-        rMassMatrix.resize(N_DOF, N_DOF, false);
+    if (rMassMatrix.size1() != N_DOF) rMassMatrix.resize(N_DOF, N_DOF, false);
     noalias(rMassMatrix) = ZeroMatrix(N_DOF, N_DOF);
 
     const PropertiesType& Prop = this->GetProperties();
@@ -565,8 +563,7 @@ void UPwSmallStrainInterfaceElement<TDim, TNumNodes>::CalculateOnIntegrationPoin
     // Printed on standard GiD Gauss points
     const unsigned int OutputGPoints =
         rGeom.IntegrationPointsNumber(this->GetIntegrationMethod());
-    if (rValues.size() != OutputGPoints)
-        rValues.resize(OutputGPoints);
+    if (rValues.size() != OutputGPoints) rValues.resize(OutputGPoints);
 
     if (rVariable == VON_MISES_STRESS)
     {
@@ -809,8 +806,7 @@ void UPwSmallStrainInterfaceElement<TDim, TNumNodes>::CalculateOnIntegrationPoin
         // Printed on standard GiD Gauss points
         const unsigned int nOutputGPoints =
             Geom.IntegrationPointsNumber(this->GetIntegrationMethod());
-        if (rValues.size() != nOutputGPoints)
-            rValues.resize(nOutputGPoints);
+        if (rValues.size() != nOutputGPoints) rValues.resize(nOutputGPoints);
 
         this->InterpolateOutputValues<array_1d<double, 3>>(rValues, GPValues);
     }
@@ -827,8 +823,7 @@ void UPwSmallStrainInterfaceElement<TDim, TNumNodes>::CalculateOnIntegrationPoin
         // Printed on standard GiD Gauss points
         const unsigned int OutputGPoints =
             Geom.IntegrationPointsNumber(this->GetIntegrationMethod());
-        if (rValues.size() != OutputGPoints)
-            rValues.resize(OutputGPoints);
+        if (rValues.size() != OutputGPoints) rValues.resize(OutputGPoints);
 
         this->InterpolateOutputValues<array_1d<double, 3>>(rValues, GPValues);
     }
@@ -854,8 +849,7 @@ void UPwSmallStrainInterfaceElement<TDim, TNumNodes>::CalculateOnIntegrationPoin
         // Printed on standard GiD Gauss points
         const unsigned int OutputGPoints =
             Geom.IntegrationPointsNumber(this->GetIntegrationMethod());
-        if (rValues.size() != OutputGPoints)
-            rValues.resize(OutputGPoints);
+        if (rValues.size() != OutputGPoints) rValues.resize(OutputGPoints);
 
         for (unsigned int GPoint = 0; GPoint < OutputGPoints; ++GPoint)
             rValues[GPoint].resize(TDim, TDim, false);
@@ -867,8 +861,7 @@ void UPwSmallStrainInterfaceElement<TDim, TNumNodes>::CalculateOnIntegrationPoin
         // Printed on standard GiD Gauss points
         const unsigned int OutputGPoints =
             this->GetGeometry().IntegrationPointsNumber(this->GetIntegrationMethod());
-        if (rValues.size() != OutputGPoints)
-            rValues.resize(OutputGPoints);
+        if (rValues.size() != OutputGPoints) rValues.resize(OutputGPoints);
 
         for (unsigned int i = 0; i < OutputGPoints; ++i)
         {
@@ -1088,8 +1081,7 @@ void UPwSmallStrainInterfaceElement<TDim, TNumNodes>::CalculateOnLobattoIntegrat
     const IndexType NumGPoints = rGeom.IntegrationPointsNumber(mThisIntegrationMethod);
 
     // calculated on Lobatto points
-    if (rValues.size() != NumGPoints)
-        rValues.resize(NumGPoints);
+    if (rValues.size() != NumGPoints) rValues.resize(NumGPoints);
 
     if (rVariable == TOTAL_STRESS_VECTOR)
     {

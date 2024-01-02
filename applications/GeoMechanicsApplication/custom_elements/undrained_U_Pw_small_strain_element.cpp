@@ -44,16 +44,14 @@ int UndrainedUPwSmallStrainElement<TDim, TNumNodes>::Check(const ProcessInfo& rC
 
     // Base class checks for positive area and Id > 0
     int ierr = Element::Check(rCurrentProcessInfo);
-    if (ierr != 0)
-        return ierr;
+    if (ierr != 0) return ierr;
 
     if (Geom.DomainSize() < 1.0e-15)
         KRATOS_ERROR << "DomainSize < 1.0e-15 for the element " << this->Id() << std::endl;
 
     // Verify generic variables
     ierr = UPwBaseElement<TDim, TNumNodes>::Check(rCurrentProcessInfo);
-    if (ierr != 0)
-        return ierr;
+    if (ierr != 0) return ierr;
 
     // Verify specific properties
     if (Prop.Has(BULK_MODULUS_FLUID) == false || Prop[BULK_MODULUS_FLUID] < 0.0)

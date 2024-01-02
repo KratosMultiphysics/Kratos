@@ -51,8 +51,7 @@ int UPwBaseElement<TDim, TNumNodes>::Check(const ProcessInfo& rCurrentProcessInf
 
     // Base class checks for positive area and Id > 0
     int ierr = Element::Check(rCurrentProcessInfo);
-    if (ierr != 0)
-        return ierr;
+    if (ierr != 0) return ierr;
 
     const PropertiesType& rProp = this->GetProperties();
     const GeometryType& rGeom = this->GetGeometry();
@@ -190,8 +189,7 @@ void UPwBaseElement<TDim, TNumNodes>::Initialize(const ProcessInfo& rCurrentProc
     if (mStressVector.size() != NumGPoints)
     {
         unsigned int VoigtSize = VOIGT_SIZE_3D;
-        if constexpr (TDim == 2)
-            VoigtSize = VOIGT_SIZE_2D_PLANE_STRAIN;
+        if constexpr (TDim == 2) VoigtSize = VOIGT_SIZE_2D_PLANE_STRAIN;
         mStressVector.resize(NumGPoints);
         for (unsigned int i = 0; i < mStressVector.size(); ++i)
         {
@@ -263,8 +261,7 @@ void UPwBaseElement<TDim, TNumNodes>::GetDofList(DofsVectorType& rElementalDofLi
     const GeometryType& rGeom = this->GetGeometry();
     const unsigned int N_DOF = this->GetNumberOfDOF();
 
-    if (rElementalDofList.size() != N_DOF)
-        rElementalDofList.resize(N_DOF);
+    if (rElementalDofList.size() != N_DOF) rElementalDofList.resize(N_DOF);
 
     if constexpr (TDim == 3)
     {
@@ -408,8 +405,7 @@ void UPwBaseElement<TDim, TNumNodes>::EquationIdVector(EquationIdVectorType& rRe
     const GeometryType& rGeom = this->GetGeometry();
     const unsigned int N_DOF = this->GetNumberOfDOF();
 
-    if (rResult.size() != N_DOF)
-        rResult.resize(N_DOF, false);
+    if (rResult.size() != N_DOF) rResult.resize(N_DOF, false);
 
     if constexpr (TDim == 2)
     {
@@ -506,8 +502,7 @@ void UPwBaseElement<TDim, TNumNodes>::GetValuesVector(Vector& rValues, int Step)
     const GeometryType& rGeom = this->GetGeometry();
     const unsigned int N_DOF = this->GetNumberOfDOF();
 
-    if (rValues.size() != N_DOF)
-        rValues.resize(N_DOF, false);
+    if (rValues.size() != N_DOF) rValues.resize(N_DOF, false);
 
     if (TDim == 2)
     {
@@ -549,8 +544,7 @@ void UPwBaseElement<TDim, TNumNodes>::GetFirstDerivativesVector(Vector& rValues,
     const GeometryType& rGeom = this->GetGeometry();
     const unsigned int N_DOF = this->GetNumberOfDOF();
 
-    if (rValues.size() != N_DOF)
-        rValues.resize(N_DOF, false);
+    if (rValues.size() != N_DOF) rValues.resize(N_DOF, false);
 
     if (TDim == 2)
     {
@@ -592,8 +586,7 @@ void UPwBaseElement<TDim, TNumNodes>::GetSecondDerivativesVector(Vector& rValues
     const GeometryType& rGeom = this->GetGeometry();
     const unsigned int N_DOF = this->GetNumberOfDOF();
 
-    if (rValues.size() != N_DOF)
-        rValues.resize(N_DOF, false);
+    if (rValues.size() != N_DOF) rValues.resize(N_DOF, false);
 
     if (TDim == 2)
     {

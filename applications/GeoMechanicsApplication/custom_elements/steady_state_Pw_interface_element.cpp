@@ -39,8 +39,7 @@ int SteadyStatePwInterfaceElement<TDim, TNumNodes>::Check(const ProcessInfo& rCu
     KRATOS_TRY
 
     int ierr = Element::Check(rCurrentProcessInfo);
-    if (ierr != 0)
-        return ierr;
+    if (ierr != 0) return ierr;
 
     const PropertiesType& Prop = this->GetProperties();
     const GeometryType& Geom = this->GetGeometry();

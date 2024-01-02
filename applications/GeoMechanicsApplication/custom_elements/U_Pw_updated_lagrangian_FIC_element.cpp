@@ -176,8 +176,7 @@ void UPwUpdatedLagrangianFICElement<TDim, TNumNodes>::CalculateOnIntegrationPoin
     const GeometryType& rGeom = this->GetGeometry();
     const unsigned int NumGPoints = rGeom.IntegrationPointsNumber(mThisIntegrationMethod);
 
-    if (rOutput.size() != NumGPoints)
-        rOutput.resize(NumGPoints);
+    if (rOutput.size() != NumGPoints) rOutput.resize(NumGPoints);
 
     if (rVariable == REFERENCE_DEFORMATION_GRADIENT)
     {

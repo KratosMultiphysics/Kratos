@@ -38,8 +38,7 @@ template <unsigned int TDim, unsigned int TNumNodes>
 int SteadyStatePwPipingElement<TDim, TNumNodes>::Check(const ProcessInfo& rCurrentProcessInfo) const
 {
     int ierr = SteadyStatePwInterfaceElement<TDim, TNumNodes>::Check(rCurrentProcessInfo);
-    if (ierr != 0)
-        return ierr;
+    if (ierr != 0) return ierr;
 
     KRATOS_TRY
     const PropertiesType& rProp = this->GetProperties();
@@ -141,8 +140,7 @@ void SteadyStatePwPipingElement<TDim, TNumNodes>::CalculateOnIntegrationPoints(
         const GeometryType& Geom = this->GetGeometry();
         const unsigned int OutputGPoints =
             Geom.IntegrationPointsNumber(this->GetIntegrationMethod());
-        if (rValues.size() != OutputGPoints)
-            rValues.resize(OutputGPoints);
+        if (rValues.size() != OutputGPoints) rValues.resize(OutputGPoints);
 
         bool pipe_active = this->GetValue(rVariable);
         for (unsigned int GPoint = 0; GPoint < OutputGPoints; ++GPoint)
@@ -165,8 +163,7 @@ void SteadyStatePwPipingElement<TDim, TNumNodes>::CalculateOnIntegrationPoints(
         const GeometryType& Geom = this->GetGeometry();
         const unsigned int OutputGPoints =
             Geom.IntegrationPointsNumber(this->GetIntegrationMethod());
-        if (rValues.size() != OutputGPoints)
-            rValues.resize(OutputGPoints);
+        if (rValues.size() != OutputGPoints) rValues.resize(OutputGPoints);
 
         double pipe_height = this->GetValue(rVariable);
         for (unsigned int GPoint = 0; GPoint < OutputGPoints; ++GPoint)

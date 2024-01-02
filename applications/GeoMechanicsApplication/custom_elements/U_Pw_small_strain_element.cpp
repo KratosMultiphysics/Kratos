@@ -40,8 +40,7 @@ int UPwSmallStrainElement<TDim, TNumNodes>::Check(const ProcessInfo& rCurrentPro
     // Base class checks for positive area and Id > 0
     // Verify generic variables
     int ierr = UPwBaseElement<TDim, TNumNodes>::Check(rCurrentProcessInfo);
-    if (ierr != 0)
-        return ierr;
+    if (ierr != 0) return ierr;
 
     const PropertiesType& rProp = this->GetProperties();
     const GeometryType& rGeom = this->GetGeometry();
@@ -139,8 +138,7 @@ void UPwSmallStrainElement<TDim, TNumNodes>::InitializeSolutionStep(const Proces
 {
     KRATOS_TRY
 
-    if (!mIsInitialised)
-        this->Initialize(rCurrentProcessInfo);
+    if (!mIsInitialised) this->Initialize(rCurrentProcessInfo);
 
     // Defining necessary variables
     const GeometryType& rGeom = this->GetGeometry();
@@ -478,8 +476,7 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateOnIntegrationPoints(
     const IndexType NumGPoints = rGeom.IntegrationPointsNumber(mThisIntegrationMethod);
 
     auto& r_prop = this->GetProperties();
-    if (rOutput.size() != NumGPoints)
-        rOutput.resize(NumGPoints);
+    if (rOutput.size() != NumGPoints) rOutput.resize(NumGPoints);
 
     if (rVariable == VON_MISES_STRESS)
     {
@@ -705,8 +702,7 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateOnIntegrationPoints(
 
     const GeometryType& rGeom = this->GetGeometry();
     const IndexType NumGPoints = rGeom.IntegrationPointsNumber(mThisIntegrationMethod);
-    if (rOutput.size() != NumGPoints)
-        rOutput.resize(NumGPoints);
+    if (rOutput.size() != NumGPoints) rOutput.resize(NumGPoints);
 
     if (rVariable == FLUID_FLUX_VECTOR)
     {
@@ -780,8 +776,7 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateOnIntegrationPoints(
     const IndexType NumGPoints = rGeom.IntegrationPointsNumber(mThisIntegrationMethod);
     const PropertiesType& rProp = this->GetProperties();
 
-    if (rOutput.size() != NumGPoints)
-        rOutput.resize(NumGPoints);
+    if (rOutput.size() != NumGPoints) rOutput.resize(NumGPoints);
 
     if (rVariable == CAUCHY_STRESS_VECTOR)
     {
@@ -921,8 +916,7 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateOnIntegrationPoints(
     const GeometryType& rGeom = this->GetGeometry();
     const IndexType NumGPoints = rGeom.IntegrationPointsNumber(mThisIntegrationMethod);
 
-    if (rOutput.size() != NumGPoints)
-        rOutput.resize(NumGPoints);
+    if (rOutput.size() != NumGPoints) rOutput.resize(NumGPoints);
 
     if (rVariable == CAUCHY_STRESS_TENSOR)
     {
@@ -1091,8 +1085,7 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateMassMatrix(MatrixType& rMa
 
     const IndexType N_DOF = this->GetNumberOfDOF();
 
-    if (rMassMatrix.size1() != N_DOF)
-        rMassMatrix.resize(N_DOF, N_DOF, false);
+    if (rMassMatrix.size1() != N_DOF) rMassMatrix.resize(N_DOF, N_DOF, false);
     noalias(rMassMatrix) = ZeroMatrix(N_DOF, N_DOF);
 
     const GeometryType& rGeom = this->GetGeometry();

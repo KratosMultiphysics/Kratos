@@ -325,8 +325,7 @@ void SmallStrainUPwDiffOrderElement::InitializeSolutionStep(const ProcessInfo& r
 {
     KRATOS_TRY
 
-    if (!mIsInitialised)
-        this->Initialize(rCurrentProcessInfo);
+    if (!mIsInitialised) this->Initialize(rCurrentProcessInfo);
 
     // Definition of variables
     ElementVariables Variables;
@@ -638,8 +637,7 @@ void SmallStrainUPwDiffOrderElement::EquationIdVector(EquationIdVectorType& rRes
 
     const SizeType ElementSize = NumUNodes * Dim + NumPNodes;
 
-    if (rResult.size() != ElementSize)
-        rResult.resize(ElementSize, false);
+    if (rResult.size() != ElementSize) rResult.resize(ElementSize, false);
 
     SizeType Index = 0;
 
@@ -674,8 +672,7 @@ void SmallStrainUPwDiffOrderElement::GetFirstDerivativesVector(Vector& rValues, 
     const SizeType NumPNodes = mpPressureGeometry->PointsNumber();
     const SizeType ElementSize = NumUNodes * Dim + NumPNodes;
 
-    if (rValues.size() != ElementSize)
-        rValues.resize(ElementSize, false);
+    if (rValues.size() != ElementSize) rValues.resize(ElementSize, false);
 
     SizeType Index = 0;
 
@@ -706,8 +703,7 @@ void SmallStrainUPwDiffOrderElement::GetSecondDerivativesVector(Vector& rValues,
     const SizeType NumPNodes = mpPressureGeometry->PointsNumber();
     const SizeType ElementSize = NumUNodes * Dim + NumPNodes;
 
-    if (rValues.size() != ElementSize)
-        rValues.resize(ElementSize, false);
+    if (rValues.size() != ElementSize) rValues.resize(ElementSize, false);
 
     SizeType Index = 0;
 
@@ -768,8 +764,7 @@ void SmallStrainUPwDiffOrderElement::FinalizeSolutionStep(const ProcessInfo& rCu
     }
 
     // Assign pressure values to the intermediate nodes for post-processing
-    if (!GetProperties()[IGNORE_UNDRAINED])
-        AssignPressureToIntermediateNodes();
+    if (!GetProperties()[IGNORE_UNDRAINED]) AssignPressureToIntermediateNodes();
 
     KRATOS_CATCH("")
 }
@@ -1244,8 +1239,7 @@ void SmallStrainUPwDiffOrderElement::CalculateOnIntegrationPoints(
             }
         }
 
-        if (rOutput.size() != NumGPoints)
-            rOutput.resize(NumGPoints);
+        if (rOutput.size() != NumGPoints) rOutput.resize(NumGPoints);
 
         // Loop over integration points
         for (unsigned int GPoint = 0; GPoint < NumGPoints; GPoint++)
@@ -1333,8 +1327,7 @@ void SmallStrainUPwDiffOrderElement::CalculateOnIntegrationPoints(
             for (unsigned int idim = 0; idim < Dim; ++idim)
                 FluidFlux[idim] = AuxFluidFlux[idim];
 
-            if (rOutput[GPoint].size() != 3)
-                rOutput[GPoint].resize(3, false);
+            if (rOutput[GPoint].size() != 3) rOutput[GPoint].resize(3, false);
 
             rOutput[GPoint] = FluidFlux;
         }

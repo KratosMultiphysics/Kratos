@@ -46,8 +46,7 @@ void TransientPwElement<TDim, TNumNodes>::GetDofList(DofsVectorType& rElementalD
     const unsigned int N_DOF = this->GetNumberOfDOF();
     unsigned int index = 0;
 
-    if (rElementalDofList.size() != N_DOF)
-        rElementalDofList.resize(N_DOF);
+    if (rElementalDofList.size() != N_DOF) rElementalDofList.resize(N_DOF);
 
     for (unsigned int i = 0; i < TNumNodes; ++i)
     {
@@ -68,8 +67,7 @@ void TransientPwElement<TDim, TNumNodes>::EquationIdVector(EquationIdVectorType&
     const unsigned int N_DOF = this->GetNumberOfDOF();
     unsigned int index = 0;
 
-    if (rResult.size() != N_DOF)
-        rResult.resize(N_DOF, false);
+    if (rResult.size() != N_DOF) rResult.resize(N_DOF, false);
 
     for (unsigned int i = 0; i < TNumNodes; ++i)
     {
@@ -89,8 +87,7 @@ void TransientPwElement<TDim, TNumNodes>::CalculateMassMatrix(MatrixType& rMassM
     const unsigned int N_DOF = this->GetNumberOfDOF();
 
     // Resizing mass matrix
-    if (rMassMatrix.size1() != N_DOF)
-        rMassMatrix.resize(N_DOF, N_DOF, false);
+    if (rMassMatrix.size1() != N_DOF) rMassMatrix.resize(N_DOF, N_DOF, false);
     noalias(rMassMatrix) = ZeroMatrix(N_DOF, N_DOF);
 
     KRATOS_CATCH("")
@@ -123,8 +120,7 @@ void TransientPwElement<TDim, TNumNodes>::GetValuesVector(Vector& rValues, int S
 
     const unsigned int N_DOF = this->GetNumberOfDOF();
 
-    if (rValues.size() != N_DOF)
-        rValues.resize(N_DOF, false);
+    if (rValues.size() != N_DOF) rValues.resize(N_DOF, false);
 
     for (unsigned int i = 0; i < TNumNodes; ++i)
     {
@@ -142,8 +138,7 @@ void TransientPwElement<TDim, TNumNodes>::GetFirstDerivativesVector(Vector& rVal
 
     const unsigned int N_DOF = this->GetNumberOfDOF();
 
-    if (rValues.size() != N_DOF)
-        rValues.resize(N_DOF, false);
+    if (rValues.size() != N_DOF) rValues.resize(N_DOF, false);
 
     for (unsigned int i = 0; i < TNumNodes; ++i)
     {
@@ -161,8 +156,7 @@ void TransientPwElement<TDim, TNumNodes>::GetSecondDerivativesVector(Vector& rVa
 
     const unsigned int N_DOF = this->GetNumberOfDOF();
 
-    if (rValues.size() != N_DOF)
-        rValues.resize(N_DOF, false);
+    if (rValues.size() != N_DOF) rValues.resize(N_DOF, false);
 
     for (unsigned int i = 0; i < TNumNodes; ++i)
     {
@@ -335,8 +329,7 @@ void TransientPwElement<TDim, TNumNodes>::InitializeSolutionStep(const ProcessIn
 {
     KRATOS_TRY;
 
-    if (!mIsInitialised)
-        this->Initialize(rCurrentProcessInfo);
+    if (!mIsInitialised) this->Initialize(rCurrentProcessInfo);
 
     // Defining necessary variables
     const GeometryType& Geom = this->GetGeometry();

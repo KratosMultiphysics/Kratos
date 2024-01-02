@@ -44,8 +44,7 @@ int GeoCurvedBeamElement<TDim, TNumNodes>::Check(const ProcessInfo& rCurrentProc
 
     // Base class checks for positive area and Id > 0
     int ierr = GeoStructuralBaseElement<TDim, TNumNodes>::Check(rCurrentProcessInfo);
-    if (ierr != 0)
-        return ierr;
+    if (ierr != 0) return ierr;
 
     const PropertiesType& rProp = this->GetProperties();
 
@@ -760,8 +759,7 @@ void GeoCurvedBeamElement<TDim, TNumNodes>::CalculateOnIntegrationPoints(
     const GeometryType& rGeom = this->GetGeometry();
     const unsigned int NumGPoints = rGeom.IntegrationPointsNumber(mThisIntegrationMethod);
 
-    if (rOutput.size() != NumGPoints)
-        rOutput.resize(NumGPoints);
+    if (rOutput.size() != NumGPoints) rOutput.resize(NumGPoints);
 
     if (rVariable == CAUCHY_STRESS_TENSOR)
     {
@@ -1005,8 +1003,7 @@ void GeoCurvedBeamElement<TDim, TNumNodes>::CalculateOnIntegrationPoints(
 
     const GeometryType& rGeom = this->GetGeometry();
     const unsigned int NumGPoints = rGeom.IntegrationPointsNumber(mThisIntegrationMethod);
-    if (rOutput.size() != NumGPoints)
-        rOutput.resize(NumGPoints);
+    if (rOutput.size() != NumGPoints) rOutput.resize(NumGPoints);
 
     if (rVariable == FORCE || rVariable == MOMENT)
     {
