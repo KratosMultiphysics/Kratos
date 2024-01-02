@@ -290,14 +290,16 @@ void UPwSmallStrainFICElement<2, 3>::ExtrapolateGPConstitutiveTensor(
                 column(AuxNodalConstitutiveTensor, j);
     }
 
+    // clang-format off
     /* INFO:
      *
-     *                            [ ( |D00-0|   |D01-0|   |D02-0| )   ( |D10-0| |D11-0|   |D12-0| ) ]
-     * mNodalConstitutiveTensor = [ ( |D00-1|   |D01-1|   |D02-1| )   ( |D10-1| |D11-1|   |D12-1| ) ]
+     *                            [ ( |D00-0|   |D01-0|   |D02-0| )   ( |D10-0|   |D11-0|   |D12-0| ) ]
+     * mNodalConstitutiveTensor = [ ( |D00-1|   |D01-1|   |D02-1| )   ( |D10-1|   |D11-1|   |D12-1| ) ]
      *                            [ ( |D00-2| , |D01-2| , |D02-2| ) , ( |D10-2| , |D11-2| , |D12-2| ) ]
      *
      * D00-0 = D(0,0) at node 0
      */
+    // clang-format on
 
     KRATOS_CATCH("")
 }
@@ -862,14 +864,17 @@ void UPwSmallStrainFICElement<2, 4>::CalculateShapeFunctionsSecondOrderGradients
             rFICVariables.StrainGradients(0, index + 1);
     }
 
+    // clang-format off
     /* INFO:
      *
-     *                                                    ( |N0xx|   |N1xx|
-     * |N2xx|   |N3xx| ) rFICVariables.ShapeFunctionsSecondOrderGradients = (
-     * |N0yy|   |N1yy|   |N2yy|   |N3yy| ) ( |N0xy| , |N1xy| , |N2xy| , |N3xy| )
+     *                                                    ( |N0xx|   |N1xx|   |N2xx|   |N3xx| )
+     * rFICVariables.ShapeFunctionsSecondOrderGradients = ( |N0yy|   |N1yy|   |N2yy|   |N3yy| )
+     *                                                    ( |N0xy| , |N1xy| , |N2xy| , |N3xy| )
      *
      * N0xx = a2N0/ax2 at current GP
      */
+    // clang-format on
+
     KRATOS_CATCH("")
 }
 
