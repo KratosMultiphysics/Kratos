@@ -35,8 +35,6 @@ public:
     using TSystemVectorType = typename BaseType::TSystemVectorType;
     using LocalSystemVectorType = typename BaseType::LocalSystemVectorType;
     using LocalSystemMatrixType = typename BaseType::LocalSystemMatrixType;
-    using NewmarkQuasistaticUPwScheme<TSparseSpace, TDenseSpace>::mBeta;
-    using NewmarkQuasistaticUPwScheme<TSparseSpace, TDenseSpace>::mGamma;
 
     NewmarkDynamicUPwScheme(double beta, double gamma, double theta)
         : NewmarkQuasistaticUPwScheme<TSparseSpace, TDenseSpace>(beta, gamma, theta)
@@ -111,15 +109,15 @@ public:
                 rNode.FastGetSolutionStepValue(instance_component) =
                     previous_variable + this->GetDeltaTime() * previous_first_time_derivative +
                     this->GetDeltaTime() * this->GetDeltaTime() *
-                        ((0.5 - mBeta) * previous_second_time_derivative +
-                         mBeta * current_second_time_derivative);
+                        ((0.5 - this->GetBeta()) * previous_second_time_derivative +
+                         this->GetBeta() * current_second_time_derivative);
             }
             else if (rNode.IsFixed(first_time_derivative_component))
             {
                 rNode.FastGetSolutionStepValue(instance_component) =
                     previous_variable +
                     this->GetDeltaTime() *
-                        ((mBeta / mGamma) * (current_first_time_derivative - previous_first_time_derivative) +
+                        ((this->GetBeta() / this->GetGamma()) * (current_first_time_derivative - previous_first_time_derivative) +
                          previous_first_time_derivative);
             }
             else if (!rNode.IsFixed(instance_component))
@@ -290,11 +288,11 @@ protected:
         // adding mass contribution
         if (M.size1() != 0)
             noalias(LHS_Contribution) +=
-                (1.0 / (mBeta * this->GetDeltaTime() * this->GetDeltaTime())) * M;
+                (1.0 / (this->GetBeta() * this->GetDeltaTime() * this->GetDeltaTime())) * M;
 
         // adding damping contribution
         if (C.size1() != 0)
-            noalias(LHS_Contribution) += (mGamma / (mBeta * this->GetDeltaTime())) * C;
+            noalias(LHS_Contribution) += (this->GetGamma() / (this->GetBeta() * this->GetDeltaTime())) * C;
 
         KRATOS_CATCH("")
     }

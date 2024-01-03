@@ -450,10 +450,9 @@ protected:
     Variable<double> mDeltaTimeVariable;
     Variable<double> mDeltaTimeVariableCoefficient;
 
-    std::vector<VariableWithTimeDerivatives> mVariableDerivatives;
-
 private:
     double mDeltaTime = 1.0;
+    std::vector<VariableWithTimeDerivatives> mVariableDerivatives;
 };
 
 } // namespace Kratos

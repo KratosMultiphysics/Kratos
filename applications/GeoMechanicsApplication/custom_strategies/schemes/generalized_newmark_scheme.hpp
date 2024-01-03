@@ -43,9 +43,9 @@ public:
     }
 
 protected:
-    void UpdateVectorFirstTimeDerivative(Node& rNode) const
+    void UpdateVectorFirstTimeDerivative(Node& rNode) const override
     {
-        for (const auto& variable_derivative : this->mVariableDerivatives)
+        for (const auto& variable_derivative : this->GetVariableDerivatives())
         {
             if (!rNode.SolutionStepsDataHas(variable_derivative.instance))
                 continue;
@@ -62,9 +62,9 @@ protected:
         }
     }
 
-    void UpdateVectorSecondTimeDerivative(Node& rNode) const
+    void UpdateVectorSecondTimeDerivative(Node& rNode) const override
     {
-        for (const auto& variable_derivative : this->mVariableDerivatives)
+        for (const auto& variable_derivative : this->GetVariableDerivatives())
         {
             if (!rNode.SolutionStepsDataHas(variable_derivative.instance))
                 continue;
@@ -81,8 +81,6 @@ protected:
                 (mBeta * this->GetDeltaTime() * this->GetDeltaTime());
         }
     }
-    double mBeta = 0.25;
-    double mGamma = 0.5;
 
     inline void SetTimeFactors(ModelPart& rModelPart) override
     {
@@ -111,8 +109,20 @@ protected:
             (mTheta * this->GetDeltaTime());
     }
 
+    double GetBeta() const
+    {
+        return mBeta;
+    }
+
+    double GetGamma() const
+    {
+        return mGamma;
+    }
+
 private:
     double mTheta = 1.0;
+    double mBeta = 0.25;
+    double mGamma = 0.5;
 };
 
 } // namespace Kratos
