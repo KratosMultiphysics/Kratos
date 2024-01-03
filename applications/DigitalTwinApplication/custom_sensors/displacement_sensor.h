@@ -149,7 +149,7 @@ private:
 
     const IndexType mElementId;
 
-    const array_1d<double, 3> mDirection;
+    array_1d<double, 3> mDirection;
 
     Point mLocalPoint;
 

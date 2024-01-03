@@ -36,10 +36,16 @@ DisplacementSensor::DisplacementSensor(
       mElementId(rElement.Id()),
       mDirection(rDirection)
 {
-    KRATOS_ERROR_IF(std::abs(norm_2(mDirection) - 1) > 1e-6)
-        << "The direction should be a non zero unit vector [ direction = " << mDirection << " ].\n";
+    const auto direction_norm = norm_2(mDirection);
 
-    rElement.GetGeometry().PointLocalCoordinates(mLocalPoint, this->GetLocation());
+    if (std::abs(norm_2(mDirection) - 1) > 1e-6) {
+        mDirection /= direction_norm;
+    }
+
+    KRATOS_ERROR_IF_NOT(rElement.GetGeometry().IsInside(this->GetLocation(), mLocalPoint))
+        << "The point " << this->GetLocation() << " is not inside or on the boundary of the geometry of element with id "
+        << mElementId << ".";
+
     this->SetValue(SENSOR_ELEMENT_ID, static_cast<int>(mElementId));
 }
 
