@@ -23,6 +23,7 @@
 
 // Application includes
 #include "custom_utilities/control_utils.h"
+#include "custom_utilities/mask_utils.h"
 #include "custom_utilities/sensor_utils.h"
 #include "custom_utilities/domain_sensor_view_cluster_data.h"
 #include "custom_utilities/sensor_view_cluster.h"
@@ -77,6 +78,29 @@ void AddSensorClusterUtilsToPython(
         ;
 }
 
+template<class TContainerType>
+void AddMaskUtilsToPython(
+    pybind11::module& m)
+{
+    namespace py = pybind11;
+
+    std::string lower_prefix;
+    if constexpr(std::is_same_v<TContainerType, ModelPart::NodesContainerType>) {
+        lower_prefix = "nodal";
+    } else if constexpr(std::is_same_v<TContainerType, ModelPart::ConditionsContainerType>) {
+        lower_prefix = "condition";
+    } else if constexpr(std::is_same_v<TContainerType, ModelPart::ElementsContainerType>) {
+        lower_prefix = "element";
+    }
+
+    m.def("GetMaskSize", &MaskUtils::GetMaskSize<TContainerType>, py::arg((lower_prefix + "_mask_expression").c_str()), py::arg("required_minimum_redundancy") = 1);
+    m.def("GetMask", py::overload_cast<const ContainerExpression<TContainerType>&>(&MaskUtils::GetMask<TContainerType>), py::arg((lower_prefix + "scalar_expression").c_str()));
+    m.def("GetMask", py::overload_cast<const ContainerExpression<TContainerType>&, const double>(&MaskUtils::GetMask<TContainerType>), py::arg((lower_prefix + "scalar_expression").c_str()), py::arg("threshold"));
+    m.def("Union", &MaskUtils::Union<TContainerType>, py::arg((lower_prefix + "_mask_1_expression").c_str()), py::arg((lower_prefix + "_mask_2_expression").c_str()), py::arg("required_minimum_redundancy") = 1);
+    m.def("Intersect", &MaskUtils::Intersect<TContainerType>, py::arg((lower_prefix + "_mask_1_expression").c_str()), py::arg((lower_prefix + "_mask_2_expression").c_str()), py::arg("required_minimum_redundancy") = 1);
+    m.def("Substract", &MaskUtils::Substract<TContainerType>, py::arg((lower_prefix + "_mask_1_expression").c_str()), py::arg((lower_prefix + "_mask_2_expression").c_str()), py::arg("required_minimum_redundancy") = 1);
+}
+
 void AddCustomUtilitiesToPython(pybind11::module& m)
 {
     namespace py = pybind11;
@@ -127,6 +151,11 @@ void AddCustomUtilitiesToPython(pybind11::module& m)
     AddSensorClusterUtilsToPython<ModelPart::NodesContainerType>(cluster_utils);
     AddSensorClusterUtilsToPython<ModelPart::ConditionsContainerType>(cluster_utils);
     AddSensorClusterUtilsToPython<ModelPart::ElementsContainerType>(cluster_utils);
+
+    auto mask_utils = m.def_submodule("MaskUtils");
+    AddMaskUtilsToPython<ModelPart::NodesContainerType>(mask_utils);
+    AddMaskUtilsToPython<ModelPart::ConditionsContainerType>(mask_utils);
+    AddMaskUtilsToPython<ModelPart::ElementsContainerType>(mask_utils);
 
 }
 
