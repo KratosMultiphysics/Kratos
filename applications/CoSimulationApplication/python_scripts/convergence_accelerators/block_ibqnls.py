@@ -51,16 +51,17 @@ class BLOCKIBQNLSConvergenceAccelerator(CoSimulationConvergenceAccelerator):
         self.previous_V = None
         self.previous_Q = None
         self.previous_R = None
+        self.previous_V_is_V_old = False
 
         for solver_data in settings["solver_sequence"].values():
             self.X_tilde[solver_data["data_name"].GetString()] = deque( maxlen = horizon )
             self.X[solver_data["data_name"].GetString()] = deque( maxlen = horizon )
             self.v_old_matrices[solver_data["data_name"].GetString()] = deque( maxlen = self.q )
             self.w_old_matrices[solver_data["data_name"].GetString()] = deque( maxlen = self.q )
-            self.V_old[solver_data["data_name"].GetString()] = []
-            self.W_old[solver_data["data_name"].GetString()] = []
-            self.V_new[solver_data["data_name"].GetString()] = []
-            self.W_new[solver_data["data_name"].GetString()] = []
+            self.V_old[solver_data["data_name"].GetString()] = None
+            self.W_old[solver_data["data_name"].GetString()] = None
+            self.V_new[solver_data["data_name"].GetString()] = None
+            self.W_new[solver_data["data_name"].GetString()] = None
             self.coupl_data_names[solver_data["data_name"].GetString()] = solver_data["coupled_data_name"].GetString()
 
     ## UpdateSolution(r, x, y, data_name, yResidual)
@@ -83,7 +84,7 @@ class BLOCKIBQNLSConvergenceAccelerator(CoSimulationConvergenceAccelerator):
         if self.echo_level > 3:
             cs_tools.cs_print_info(self._ClassName(), "Number of new modes: ", col )
 
-        is_first_dt = (self.V_old[data_name] == [] and self.W_old [data_name] == [])
+        is_first_dt = (self.V_old[data_name] is None and self.W_old [data_name] is None)
         is_first_iter = (k == 0)
         # ================== First time step ==================================================
         if is_first_dt:
@@ -122,15 +123,17 @@ class BLOCKIBQNLSConvergenceAccelerator(CoSimulationConvergenceAccelerator):
             if self.previous_V is not None:
                 previous_V = self.previous_V
             else:
-                if is_first_dt:
-                    previous_V = self.V_new[coupled_data_name].copy()
+                if self.previous_V_is_V_old:
+                    previous_V = self.V_old[coupled_data_name].copy()
+                    self.previous_V_is_V_old = False
                 else:
-                    previous_V = np.hstack((self.V_new[coupled_data_name].copy(), self.V_old[coupled_data_name].copy()))
+                    previous_V = self._augmented_matrix(self.V_new[coupled_data_name], self.V_old[coupled_data_name], is_first_dt)
 
             ## Matrix-free implementation of the linear solver (and the pseudoinverse) -------------------------------------
             block_oper = lambda vec: vec - self.pinv_product(V, Q, R, self.pinv_product(previous_V, previous_Q, previous_R, vec))
             block_x = sp.sparse.linalg.LinearOperator((row, row), block_oper)
             delta_x, _ = sp.sparse.linalg.gmres( block_x, b, atol=self.gmres_abs_tol, tol=self.gmres_rel_tol )
+            # delta_x = np.linalg.solve(np.eye(row, row) - V @ np.linalg.inv(R) @ Q.T @ previous_V @ np.linalg.inv(previous_R) @ previous_Q.T, b)
         else:
             ## Using J = 0 if a previous approximate Jacobian is not available
             delta_x = b
@@ -138,10 +141,10 @@ class BLOCKIBQNLSConvergenceAccelerator(CoSimulationConvergenceAccelerator):
         ## Saving data for the approximate jacobian for the next iteration
         self.previous_Q = Q.copy()
         self.previous_R = R.copy()
-        if is_first_iter: # V only needs to be saved completely on the first iteration
-            self.previous_V = V.copy()
-        else: # Otherwise it can be retrieved from V_new and V_old and memory is freed
-            self.previous_V = None
+        if is_first_iter: # Indicate that the next iteration V_old is to be used
+            self.previous_V_is_V_old = True
+        # Memory is freed
+        self.previous_V = None
 
         return delta_x
 
@@ -153,7 +156,7 @@ class BLOCKIBQNLSConvergenceAccelerator(CoSimulationConvergenceAccelerator):
 
     def pinv_product(self, LHS, Q, R, x):
         rhs = Q.T @ x
-        return LHS @ sp.linalg.solve_triangular(R, rhs)
+        return LHS @ sp.linalg.solve_triangular(R, rhs, check_finite = False)
 
     def FinalizeSolutionStep( self ):
 
@@ -161,12 +164,12 @@ class BLOCKIBQNLSConvergenceAccelerator(CoSimulationConvergenceAccelerator):
 
             if data_name == list(self.W_new.keys())[-1]: ## Check if last solver in the sequence
                 # Saving the V matrix for the next (first) iteration to recover the approximate jacobian
-                if self.V_old[data_name] != []:
-                    self.previous_V = np.hstack((self.V_new[data_name].copy(), self.V_old[data_name].copy()))
+                if self.V_old[data_name] is not None:
+                    self.previous_V = np.hstack((self.V_new[data_name], self.V_old[data_name]))
                 else:
                     self.previous_V = self.V_new[data_name].copy()
 
-            if self.V_new[data_name] != [] and self.W_new[data_name] != []:
+            if self.V_new[data_name] is not None and self.W_new[data_name] is not None:
                 self.v_old_matrices[data_name].appendleft( self.V_new[data_name] )
                 self.w_old_matrices[data_name].appendleft( self.W_new[data_name] )
 

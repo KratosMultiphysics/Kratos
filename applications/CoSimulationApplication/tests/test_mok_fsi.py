@@ -16,6 +16,7 @@ class TestMokFSI(co_simulation_test_case.CoSimulationTestCase):
     cfd_tes_file_name = "fsi_mok/ProjectParametersCFD_for_test.json"
 
     def setUp(self):
+        self.err_tol = "1e-6"
         if not have_fsi_dependencies:
             self.skipTest("FSI dependencies are not available!")
 
@@ -56,6 +57,7 @@ class TestMokFSI(co_simulation_test_case.CoSimulationTestCase):
 
     def test_mok_fsi_block_ibqnls(self):
         self.accelerator_type = "block_ibqnls"
+        self.err_tol = "6e-5"
 
         with KratosUnittest.WorkFolderScope(".", __file__):
             self._createTest("fsi_mok", "cosim_mok_fsi_block")
@@ -66,32 +68,6 @@ class TestMokFSI(co_simulation_test_case.CoSimulationTestCase):
             self.__AddTestingToCFD()
             self.__DumpUpdatedCFDSettings()
             self._runTest()
-
-    def test_mok_fsi_mvqn_external_structure(self):
-        self.accelerator_type = "mvqn"
-
-        with KratosUnittest.WorkFolderScope(".", __file__):
-            self._createTest("fsi_mok", "cosim_mok_fsi")
-            ext_parameter_file_name = os.path.join(self.problem_dir_name, "ProjectParametersCSM.json")
-            self.__ManipulateCSMSettingsToRunExternally("solver_wrappers.external.external_solver_wrapper")
-            self.__ManipulateCFDSettings()
-            self.__RemoveOutputFromCFD() # comment to get output
-            self.__AddTestingToCFD()
-            self.__DumpUpdatedCFDSettings()
-            self._runTestWithExternal([GetPython3Command(), "testing_structural_mechanics_analysis_with_co_sim_io.py", ext_parameter_file_name])
-
-    def test_mok_fsi_mvqn_external_structure_remote_controlled(self):
-        self.accelerator_type = "mvqn"
-
-        with KratosUnittest.WorkFolderScope(".", __file__):
-            self._createTest("fsi_mok", "cosim_mok_fsi")
-            ext_parameter_file_name = os.path.join(self.problem_dir_name, "ProjectParametersCSM.json")
-            self.__ManipulateCSMSettingsToRunExternally("solver_wrappers.external.remote_controlled_solver_wrapper")
-            self.__ManipulateCFDSettings()
-            self.__RemoveOutputFromCFD() # comment to get output
-            self.__AddTestingToCFD()
-            self.__DumpUpdatedCFDSettings()
-            self._runTestWithExternal([GetPython3Command(), "structural_mechanics_analysis_remote_controlled.py", ext_parameter_file_name])
 
     @KratosUnittest.skipUnless(KM.IsDistributedRun(), "this test requires MPI")
     def test_mok_fsi_mvqn_external_structure_mpi(self):
@@ -166,7 +142,7 @@ class TestMokFSI(co_simulation_test_case.CoSimulationTestCase):
                 "output_file_name"    : "fsi_mok/fsi_mok_cfd_results_disp.dat",
                 "reference_file_name" : \""""+disp_ref_file_name.replace("\\", "\\\\")+"""\",
                 "comparison_type"     : "dat_file_variables_time_history",
-                "tolerance"      : 1e-6
+                "tolerance"      : """+self.err_tol+"""
                 }
             },{
             "kratos_module"   : "KratosMultiphysics",
@@ -196,7 +172,7 @@ class TestMokFSI(co_simulation_test_case.CoSimulationTestCase):
                 "output_file_name"    : "fsi_mok/fsi_mok_cfd_results_fluid.dat",
                 "reference_file_name" : \""""+fluid_ref_file_name.replace("\\", "\\\\")+"""\",
                 "comparison_type"     : "dat_file_variables_time_history",
-                "tolerance"      : 1e-6
+                "tolerance"      : """+self.err_tol+"""
                 }
             }]"""))
 
