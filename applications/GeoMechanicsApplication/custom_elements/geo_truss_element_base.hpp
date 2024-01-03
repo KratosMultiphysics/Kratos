@@ -37,23 +37,23 @@ class KRATOS_API(GEO_MECHANICS_APPLICATION) GeoTrussElementBase : public Element
 {
 protected:
     ConstitutiveLaw::Pointer mpConstitutiveLaw = nullptr;
-    static constexpr SizeType NDof = TDim * TNumNodes;
-    static constexpr SizeType DIM = TDim;
-    static constexpr SizeType NUM_NODES = TNumNodes;
+    static constexpr SizeType NDof             = TDim * TNumNodes;
+    static constexpr SizeType DIM              = TDim;
+    static constexpr SizeType NUM_NODES        = TNumNodes;
 
 public:
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(GeoTrussElementBase);
 
-    using BaseType = Element;
-    using GeometryType = BaseType::GeometryType;
-    using NodesArrayType = BaseType::NodesArrayType;
-    using PropertiesType = BaseType::PropertiesType;
-    using IndexType = BaseType::IndexType;
-    using SizeType = BaseType::SizeType;
-    using MatrixType = BaseType::MatrixType;
-    using VectorType = BaseType::VectorType;
+    using BaseType             = Element;
+    using GeometryType         = BaseType::GeometryType;
+    using NodesArrayType       = BaseType::NodesArrayType;
+    using PropertiesType       = BaseType::PropertiesType;
+    using IndexType            = BaseType::IndexType;
+    using SizeType             = BaseType::SizeType;
+    using MatrixType           = BaseType::MatrixType;
+    using VectorType           = BaseType::VectorType;
     using EquationIdVectorType = BaseType::EquationIdVectorType;
-    using DofsVectorType = BaseType::DofsVectorType;
+    using DofsVectorType       = BaseType::DofsVectorType;
     using FullDofMatrixType = BoundedMatrix<double, TDim * TNumNodes, TDim * TNumNodes>;
     using FullDofVectorType = BoundedVector<double, TDim * TNumNodes>;
 

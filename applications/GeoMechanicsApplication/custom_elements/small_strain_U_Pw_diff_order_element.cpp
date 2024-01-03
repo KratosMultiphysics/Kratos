@@ -211,7 +211,7 @@ void SmallStrainUPwDiffOrderElement::Initialize(const ProcessInfo& rCurrentProce
     }
 
     const SizeType NumUNodes = rGeom.PointsNumber();
-    const SizeType NumDim = rGeom.WorkingSpaceDimension();
+    const SizeType NumDim    = rGeom.WorkingSpaceDimension();
 
     switch (NumUNodes) {
     case 6: // 2D T6P3
@@ -272,7 +272,7 @@ void SmallStrainUPwDiffOrderElement::Initialize(const ProcessInfo& rCurrentProce
 
     for (unsigned int i = 0; i < mConstitutiveLawVector.size(); ++i) {
         int nStateVariables = 0;
-        nStateVariables = mConstitutiveLawVector[i]->GetValue(
+        nStateVariables     = mConstitutiveLawVector[i]->GetValue(
             NUMBER_OF_UMAT_STATE_VARIABLES, nStateVariables);
         if (nStateVariables > 0) {
             mConstitutiveLawVector[i]->SetValue(
@@ -354,9 +354,9 @@ void SmallStrainUPwDiffOrderElement::GetDofList(DofsVectorType& rElementalDofLis
     KRATOS_TRY
 
     const GeometryType& rGeom = GetGeometry();
-    const SizeType Dim = rGeom.WorkingSpaceDimension();
-    const SizeType NumUNodes = rGeom.PointsNumber();
-    const SizeType NumPNodes = mpPressureGeometry->PointsNumber();
+    const SizeType Dim        = rGeom.WorkingSpaceDimension();
+    const SizeType NumUNodes  = rGeom.PointsNumber();
+    const SizeType NumPNodes  = mpPressureGeometry->PointsNumber();
 
     const SizeType ElementSize = NumUNodes * Dim + NumPNodes;
 
@@ -388,9 +388,9 @@ void SmallStrainUPwDiffOrderElement::CalculateLocalSystem(MatrixType& rLeftHandS
     KRATOS_TRY
 
     const GeometryType& rGeom = GetGeometry();
-    const SizeType Dim = rGeom.WorkingSpaceDimension();
-    const SizeType NumUNodes = rGeom.PointsNumber();
-    const SizeType NumPNodes = mpPressureGeometry->PointsNumber();
+    const SizeType Dim        = rGeom.WorkingSpaceDimension();
+    const SizeType NumUNodes  = rGeom.PointsNumber();
+    const SizeType NumPNodes  = mpPressureGeometry->PointsNumber();
 
     const SizeType ElementSize = NumUNodes * Dim + NumPNodes;
 
@@ -406,7 +406,7 @@ void SmallStrainUPwDiffOrderElement::CalculateLocalSystem(MatrixType& rLeftHandS
 
     // calculation flags
     bool CalculateStiffnessMatrixFlag = true;
-    bool CalculateResidualVectorFlag = true;
+    bool CalculateResidualVectorFlag  = true;
 
     CalculateAll(rLeftHandSideMatrix, rRightHandSideVector, rCurrentProcessInfo,
                  CalculateStiffnessMatrixFlag, CalculateResidualVectorFlag);
@@ -420,9 +420,9 @@ void SmallStrainUPwDiffOrderElement::CalculateLeftHandSide(MatrixType& rLeftHand
     KRATOS_TRY
 
     const GeometryType& rGeom = GetGeometry();
-    const SizeType Dim = rGeom.WorkingSpaceDimension();
-    const SizeType NumUNodes = rGeom.PointsNumber();
-    const SizeType NumPNodes = mpPressureGeometry->PointsNumber();
+    const SizeType Dim        = rGeom.WorkingSpaceDimension();
+    const SizeType NumUNodes  = rGeom.PointsNumber();
+    const SizeType NumPNodes  = mpPressureGeometry->PointsNumber();
 
     const SizeType ElementSize = NumUNodes * Dim + NumPNodes;
 
@@ -433,7 +433,7 @@ void SmallStrainUPwDiffOrderElement::CalculateLeftHandSide(MatrixType& rLeftHand
 
     // calculation flags
     bool CalculateStiffnessMatrixFlag = true;
-    bool CalculateResidualVectorFlag = false;
+    bool CalculateResidualVectorFlag  = false;
     VectorType tempRightHandSideVector;
 
     CalculateAll(rLeftHandSideMatrix, tempRightHandSideVector, rCurrentProcessInfo,
@@ -448,9 +448,9 @@ void SmallStrainUPwDiffOrderElement::CalculateRightHandSide(VectorType& rRightHa
     KRATOS_TRY
 
     const GeometryType& rGeom = GetGeometry();
-    const SizeType Dim = rGeom.WorkingSpaceDimension();
-    const SizeType NumUNodes = rGeom.PointsNumber();
-    const SizeType NumPNodes = mpPressureGeometry->PointsNumber();
+    const SizeType Dim        = rGeom.WorkingSpaceDimension();
+    const SizeType NumUNodes  = rGeom.PointsNumber();
+    const SizeType NumPNodes  = mpPressureGeometry->PointsNumber();
 
     const SizeType ElementSize = NumUNodes * Dim + NumPNodes;
 
@@ -461,8 +461,8 @@ void SmallStrainUPwDiffOrderElement::CalculateRightHandSide(VectorType& rRightHa
 
     // calculation flags
     bool CalculateStiffnessMatrixFlag = false;
-    bool CalculateResidualVectorFlag = true;
-    auto temp = Matrix();
+    bool CalculateResidualVectorFlag  = true;
+    auto temp                         = Matrix();
 
     CalculateAll(temp, rRightHandSideVector, rCurrentProcessInfo,
                  CalculateStiffnessMatrixFlag, CalculateResidualVectorFlag);
@@ -475,9 +475,9 @@ void SmallStrainUPwDiffOrderElement::CalculateMassMatrix(MatrixType& rMassMatrix
 {
     KRATOS_TRY
 
-    const GeometryType& rGeom = GetGeometry();
-    const SizeType Dim = rGeom.WorkingSpaceDimension();
-    const SizeType NumUNodes = rGeom.PointsNumber();
+    const GeometryType& rGeom       = GetGeometry();
+    const SizeType Dim              = rGeom.WorkingSpaceDimension();
+    const SizeType NumUNodes        = rGeom.PointsNumber();
     const SizeType BlockElementSize = NumUNodes * Dim;
     const GeometryType::IntegrationPointsArrayType& IntegrationPoints =
         rGeom.IntegrationPoints(this->GetIntegrationMethod());
@@ -493,9 +493,9 @@ void SmallStrainUPwDiffOrderElement::CalculateMassMatrix(MatrixType& rMassMatrix
     // Defining shape functions and the determinant of the jacobian at all integration points
 
     // Loop over integration points
-    Matrix Nu = ZeroMatrix(Dim, NumUNodes * Dim);
+    Matrix Nu               = ZeroMatrix(Dim, NumUNodes * Dim);
     Matrix AuxDensityMatrix = ZeroMatrix(Dim, NumUNodes * Dim);
-    Matrix DensityMatrix = ZeroMatrix(Dim, Dim);
+    Matrix DensityMatrix    = ZeroMatrix(Dim, Dim);
 
     for (unsigned int GPoint = 0; GPoint < IntegrationPoints.size(); ++GPoint) {
         // compute element kinematics (Np, gradNpT, |J|, B)
@@ -560,9 +560,9 @@ void SmallStrainUPwDiffOrderElement::CalculateDampingMatrix(MatrixType& rDamping
 
     // Rayleigh Method (Damping Matrix = alpha*M + beta*K)
     const GeometryType& rGeom = GetGeometry();
-    const SizeType Dim = rGeom.WorkingSpaceDimension();
-    const SizeType NumUNodes = rGeom.PointsNumber();
-    const SizeType NumPNodes = mpPressureGeometry->PointsNumber();
+    const SizeType Dim        = rGeom.WorkingSpaceDimension();
+    const SizeType NumUNodes  = rGeom.PointsNumber();
+    const SizeType NumPNodes  = mpPressureGeometry->PointsNumber();
 
     const SizeType ElementSize = NumUNodes * Dim + NumPNodes;
 
@@ -602,9 +602,9 @@ void SmallStrainUPwDiffOrderElement::EquationIdVector(EquationIdVectorType& rRes
     KRATOS_TRY
 
     const GeometryType& rGeom = GetGeometry();
-    const SizeType Dim = rGeom.WorkingSpaceDimension();
-    const SizeType NumUNodes = rGeom.PointsNumber();
-    const SizeType NumPNodes = mpPressureGeometry->PointsNumber();
+    const SizeType Dim        = rGeom.WorkingSpaceDimension();
+    const SizeType NumUNodes  = rGeom.PointsNumber();
+    const SizeType NumPNodes  = mpPressureGeometry->PointsNumber();
 
     const SizeType ElementSize = NumUNodes * Dim + NumPNodes;
 
@@ -634,10 +634,10 @@ void SmallStrainUPwDiffOrderElement::GetFirstDerivativesVector(Vector& rValues, 
 {
     KRATOS_TRY
 
-    const GeometryType& rGeom = GetGeometry();
-    const SizeType Dim = rGeom.WorkingSpaceDimension();
-    const SizeType NumUNodes = rGeom.PointsNumber();
-    const SizeType NumPNodes = mpPressureGeometry->PointsNumber();
+    const GeometryType& rGeom  = GetGeometry();
+    const SizeType Dim         = rGeom.WorkingSpaceDimension();
+    const SizeType NumUNodes   = rGeom.PointsNumber();
+    const SizeType NumPNodes   = mpPressureGeometry->PointsNumber();
     const SizeType ElementSize = NumUNodes * Dim + NumPNodes;
 
     if (rValues.size() != ElementSize) rValues.resize(ElementSize, false);
@@ -663,10 +663,10 @@ void SmallStrainUPwDiffOrderElement::GetSecondDerivativesVector(Vector& rValues,
 {
     KRATOS_TRY
 
-    const GeometryType& rGeom = GetGeometry();
-    const SizeType Dim = rGeom.WorkingSpaceDimension();
-    const SizeType NumUNodes = rGeom.PointsNumber();
-    const SizeType NumPNodes = mpPressureGeometry->PointsNumber();
+    const GeometryType& rGeom  = GetGeometry();
+    const SizeType Dim         = rGeom.WorkingSpaceDimension();
+    const SizeType NumUNodes   = rGeom.PointsNumber();
+    const SizeType NumPNodes   = mpPressureGeometry->PointsNumber();
     const SizeType ElementSize = NumUNodes * Dim + NumPNodes;
 
     if (rValues.size() != ElementSize) rValues.resize(ElementSize, false);
@@ -737,9 +737,9 @@ void SmallStrainUPwDiffOrderElement::AssignPressureToIntermediateNodes()
     // Assign pressure values to the intermediate nodes for post-processing
     KRATOS_TRY
 
-    GeometryType& rGeom = GetGeometry();
+    GeometryType& rGeom      = GetGeometry();
     const SizeType NumUNodes = rGeom.PointsNumber();
-    const SizeType NumDim = rGeom.WorkingSpaceDimension();
+    const SizeType NumDim    = rGeom.WorkingSpaceDimension();
 
     switch (NumUNodes) {
     case 6: // 2D T6P3
@@ -815,16 +815,16 @@ void SmallStrainUPwDiffOrderElement::AssignPressureToIntermediateNodes()
     case 15: // 2D T15P10
     {
         constexpr double c1 = 0.0390625;
-        const double p0 = rGeom[0].FastGetSolutionStepValue(WATER_PRESSURE);
-        const double p1 = rGeom[1].FastGetSolutionStepValue(WATER_PRESSURE);
-        const double p2 = rGeom[2].FastGetSolutionStepValue(WATER_PRESSURE);
-        const double p3 = rGeom[3].FastGetSolutionStepValue(WATER_PRESSURE);
-        const double p4 = rGeom[4].FastGetSolutionStepValue(WATER_PRESSURE);
-        const double p5 = rGeom[5].FastGetSolutionStepValue(WATER_PRESSURE);
-        const double p6 = rGeom[6].FastGetSolutionStepValue(WATER_PRESSURE);
-        const double p7 = rGeom[7].FastGetSolutionStepValue(WATER_PRESSURE);
-        const double p8 = rGeom[8].FastGetSolutionStepValue(WATER_PRESSURE);
-        const double p9 = rGeom[9].FastGetSolutionStepValue(WATER_PRESSURE);
+        const double p0     = rGeom[0].FastGetSolutionStepValue(WATER_PRESSURE);
+        const double p1     = rGeom[1].FastGetSolutionStepValue(WATER_PRESSURE);
+        const double p2     = rGeom[2].FastGetSolutionStepValue(WATER_PRESSURE);
+        const double p3     = rGeom[3].FastGetSolutionStepValue(WATER_PRESSURE);
+        const double p4     = rGeom[4].FastGetSolutionStepValue(WATER_PRESSURE);
+        const double p5     = rGeom[5].FastGetSolutionStepValue(WATER_PRESSURE);
+        const double p6     = rGeom[6].FastGetSolutionStepValue(WATER_PRESSURE);
+        const double p7     = rGeom[7].FastGetSolutionStepValue(WATER_PRESSURE);
+        const double p8     = rGeom[8].FastGetSolutionStepValue(WATER_PRESSURE);
+        const double p9     = rGeom[9].FastGetSolutionStepValue(WATER_PRESSURE);
         ThreadSafeNodeWrite(rGeom[0], WATER_PRESSURE, p0);
         ThreadSafeNodeWrite(rGeom[1], WATER_PRESSURE, p1);
         ThreadSafeNodeWrite(rGeom[2], WATER_PRESSURE, p2);
@@ -1204,11 +1204,11 @@ void SmallStrainUPwDiffOrderElement::CalculateOnIntegrationPoints(
             this->CalculateKinematics(Variables, GPoint);
 
             // Compute FluidFlux vector q [m/s]
-            const SizeType Dim = rGeom.WorkingSpaceDimension();
+            const SizeType Dim       = rGeom.WorkingSpaceDimension();
             const SizeType NumUNodes = rGeom.PointsNumber();
 
             Vector BodyAcceleration = ZeroVector(Dim);
-            SizeType Index = 0;
+            SizeType Index          = 0;
             for (SizeType i = 0; i < NumUNodes; ++i) {
                 for (unsigned int idim = 0; idim < Dim; ++idim)
                     BodyAcceleration[idim] +=
@@ -1328,7 +1328,7 @@ void SmallStrainUPwDiffOrderElement::CalculateOnIntegrationPoints(
         const PropertiesType& rProp = this->GetProperties();
 
         const SizeType VoigtSize = mStressVector[0].size();
-        Vector VoigtVector = ZeroVector(VoigtSize);
+        Vector VoigtVector       = ZeroVector(VoigtSize);
         const SizeType StressTensorSize =
             (Dim == N_DIM_3D ? STRESS_TENSOR_SIZE_3D : STRESS_TENSOR_SIZE_2D);
         for (unsigned int i = 0; i < StressTensorSize; ++i)
@@ -1463,7 +1463,7 @@ void SmallStrainUPwDiffOrderElement::CalculateAll(MatrixType& rLeftHandSideMatri
 {
     KRATOS_TRY
 
-    const GeometryType& rGeom = GetGeometry();
+    const GeometryType& rGeom   = GetGeometry();
     const PropertiesType& rProp = this->GetProperties();
 
     // Definition of variables
@@ -1590,8 +1590,8 @@ void SmallStrainUPwDiffOrderElement::InitializeElementVariables(ElementVariables
     KRATOS_TRY
 
     const GeometryType& rGeom = GetGeometry();
-    const SizeType NumUNodes = rGeom.PointsNumber();
-    const SizeType NumPNodes = mpPressureGeometry->PointsNumber();
+    const SizeType NumUNodes  = rGeom.PointsNumber();
+    const SizeType NumPNodes  = mpPressureGeometry->PointsNumber();
     const SizeType NumGPoints =
         rGeom.IntegrationPointsNumber(this->GetIntegrationMethod());
     const SizeType Dim = rGeom.WorkingSpaceDimension();
@@ -1680,11 +1680,11 @@ void SmallStrainUPwDiffOrderElement::InitializeElementVariables(ElementVariables
     rVariables.DtPressureCoefficient = rCurrentProcessInfo[DT_PRESSURE_COEFFICIENT];
 
     // Retention law
-    rVariables.FluidPressure = 0.0;
-    rVariables.DegreeOfSaturation = 1.0;
+    rVariables.FluidPressure          = 0.0;
+    rVariables.DegreeOfSaturation     = 1.0;
     rVariables.DerivativeOfSaturation = 0.0;
-    rVariables.RelativePermeability = 1.0;
-    rVariables.BishopCoefficient = 1.0;
+    rVariables.RelativePermeability   = 1.0;
+    rVariables.BishopCoefficient      = 1.0;
 
     // permeability change
     rVariables.PermeabilityUpdateFactor = 1.0;
@@ -1697,9 +1697,9 @@ void SmallStrainUPwDiffOrderElement::InitializeNodalVariables(ElementVariables& 
     KRATOS_TRY
 
     const GeometryType& rGeom = GetGeometry();
-    const SizeType Dim = rGeom.WorkingSpaceDimension();
-    const SizeType NumUNodes = rGeom.PointsNumber();
-    const SizeType NumPNodes = mpPressureGeometry->PointsNumber();
+    const SizeType Dim        = rGeom.WorkingSpaceDimension();
+    const SizeType NumUNodes  = rGeom.PointsNumber();
+    const SizeType NumPNodes  = mpPressureGeometry->PointsNumber();
 
     Vector BodyAccelerationAux = ZeroVector(3);
     rVariables.BodyAcceleration.resize(NumUNodes * Dim, false);
@@ -1799,7 +1799,7 @@ void SmallStrainUPwDiffOrderElement::CalculatePermeabilityUpdateFactor(ElementVa
         const double InverseCK = rProp[PERMEABILITY_CHANGE_INVERSE_FACTOR];
         const double epsV = StressStrainUtilities::CalculateTrace(rVariables.StrainVector);
         const double ePrevious = rProp[POROSITY] / (1.0 - rProp[POROSITY]);
-        const double eCurrent = (1.0 + ePrevious) * std::exp(epsV) - 1.0;
+        const double eCurrent  = (1.0 + ePrevious) * std::exp(epsV) - 1.0;
         const double permLog10 = (eCurrent - ePrevious) * InverseCK;
         rVariables.PermeabilityUpdateFactor = pow(10.0, permLog10);
     } else {
@@ -1813,7 +1813,7 @@ void SmallStrainUPwDiffOrderElement::InitializeProperties(ElementVariables& rVar
 {
     KRATOS_TRY
 
-    const SizeType dimension = GetGeometry().WorkingSpaceDimension();
+    const SizeType dimension    = GetGeometry().WorkingSpaceDimension();
     const PropertiesType& rProp = this->GetProperties();
 
     rVariables.IgnoreUndrained = rProp[IGNORE_UNDRAINED];
@@ -1895,8 +1895,8 @@ void SmallStrainUPwDiffOrderElement::CalculateBMatrix(Matrix& rB,
     KRATOS_TRY
 
     const GeometryType& rGeom = GetGeometry();
-    const SizeType Dim = rGeom.WorkingSpaceDimension();
-    const SizeType NumUNodes = rGeom.PointsNumber();
+    const SizeType Dim        = rGeom.WorkingSpaceDimension();
+    const SizeType NumUNodes  = rGeom.PointsNumber();
 
     unsigned int index;
 
@@ -1991,8 +1991,8 @@ void SmallStrainUPwDiffOrderElement::AssembleUBlockMatrix(Matrix& rLeftHandSideM
     KRATOS_TRY
 
     const GeometryType& rGeom = GetGeometry();
-    const SizeType Dim = rGeom.WorkingSpaceDimension();
-    const SizeType NumUNodes = rGeom.PointsNumber();
+    const SizeType Dim        = rGeom.WorkingSpaceDimension();
+    const SizeType NumUNodes  = rGeom.PointsNumber();
     SizeType Index_i, Index_j;
 
     for (SizeType i = 0; i < NumUNodes; ++i) {
@@ -2019,7 +2019,7 @@ void SmallStrainUPwDiffOrderElement::CalculateAndAddCouplingMatrix(MatrixType& r
     KRATOS_TRY
 
     const GeometryType& rGeom = GetGeometry();
-    const SizeType Dim = rGeom.WorkingSpaceDimension();
+    const SizeType Dim        = rGeom.WorkingSpaceDimension();
     const SizeType VoigtSize =
         (Dim == N_DIM_3D ? VOIGT_SIZE_3D : VOIGT_SIZE_2D_PLANE_STRAIN);
     const SizeType StressTensorSize =
@@ -2081,9 +2081,9 @@ void SmallStrainUPwDiffOrderElement::CalculateAndAddCompressibilityMatrix(
 
     // Distribute compressibility block matrix into the elemental matrix
     const GeometryType& rGeom = GetGeometry();
-    const SizeType Dim = rGeom.WorkingSpaceDimension();
-    const SizeType NumUNodes = rGeom.PointsNumber();
-    const SizeType NumPNodes = mpPressureGeometry->PointsNumber();
+    const SizeType Dim        = rGeom.WorkingSpaceDimension();
+    const SizeType NumUNodes  = rGeom.PointsNumber();
+    const SizeType NumPNodes  = mpPressureGeometry->PointsNumber();
 
     for (SizeType i = 0; i < NumPNodes; ++i) {
         for (SizeType j = 0; j < NumPNodes; ++j) {
@@ -2109,9 +2109,9 @@ void SmallStrainUPwDiffOrderElement::CalculateAndAddPermeabilityMatrix(
 
     // Distribute permeability block matrix into the elemental matrix
     const GeometryType& rGeom = GetGeometry();
-    const SizeType Dim = rGeom.WorkingSpaceDimension();
-    const SizeType NumUNodes = rGeom.PointsNumber();
-    const SizeType NumPNodes = mpPressureGeometry->PointsNumber();
+    const SizeType Dim        = rGeom.WorkingSpaceDimension();
+    const SizeType NumUNodes  = rGeom.PointsNumber();
+    const SizeType NumPNodes  = mpPressureGeometry->PointsNumber();
 
     for (SizeType i = 0; i < NumPNodes; ++i) {
         for (SizeType j = 0; j < NumPNodes; ++j) {
@@ -2152,7 +2152,7 @@ void SmallStrainUPwDiffOrderElement::CalculateAndAddStiffnessForce(
     KRATOS_TRY
 
     const GeometryType& rGeom = GetGeometry();
-    const SizeType Dim = rGeom.WorkingSpaceDimension();
+    const SizeType Dim        = rGeom.WorkingSpaceDimension();
 
     Vector StiffnessForce = prod(trans(rVariables.B), mStressVector[GPoint]) *
                             rVariables.IntegrationCoefficient;
@@ -2176,13 +2176,13 @@ void SmallStrainUPwDiffOrderElement::CalculateAndAddMixBodyForce(VectorType& rRi
     KRATOS_TRY
 
     const GeometryType& rGeom = GetGeometry();
-    const SizeType Dim = rGeom.WorkingSpaceDimension();
-    const SizeType NumUNodes = rGeom.PointsNumber();
+    const SizeType Dim        = rGeom.WorkingSpaceDimension();
+    const SizeType NumUNodes  = rGeom.PointsNumber();
 
     this->CalculateSoilDensity(rVariables);
 
     Vector BodyAcceleration = ZeroVector(Dim);
-    SizeType Index = 0;
+    SizeType Index          = 0;
     for (SizeType i = 0; i < NumUNodes; ++i) {
         for (SizeType idim = 0; idim < Dim; ++idim) {
             BodyAcceleration[idim] +=
@@ -2221,7 +2221,7 @@ void SmallStrainUPwDiffOrderElement::CalculateAndAddCouplingTerms(VectorType& rR
     KRATOS_TRY
 
     const GeometryType& rGeom = GetGeometry();
-    const SizeType Dim = rGeom.WorkingSpaceDimension();
+    const SizeType Dim        = rGeom.WorkingSpaceDimension();
     const SizeType VoigtSize =
         (Dim == N_DIM_3D ? VOIGT_SIZE_3D : VOIGT_SIZE_2D_PLANE_STRAIN);
     const SizeType StressTensorSize =
@@ -2277,9 +2277,9 @@ void SmallStrainUPwDiffOrderElement::CalculateAndAddCompressibilityFlow(
 
     // Distribute compressibility block vector into the elemental vector
     const GeometryType& rGeom = GetGeometry();
-    const SizeType Dim = rGeom.WorkingSpaceDimension();
-    const SizeType NumUNodes = rGeom.PointsNumber();
-    const SizeType NumPNodes = mpPressureGeometry->PointsNumber();
+    const SizeType Dim        = rGeom.WorkingSpaceDimension();
+    const SizeType NumUNodes  = rGeom.PointsNumber();
+    const SizeType NumPNodes  = mpPressureGeometry->PointsNumber();
 
     for (SizeType i = 0; i < NumPNodes; ++i) {
         rRightHandSideVector[NumUNodes * Dim + i] += CompressibilityFlow[i];
@@ -2304,9 +2304,9 @@ void SmallStrainUPwDiffOrderElement::CalculateAndAddPermeabilityFlow(VectorType&
 
     // Distribute permeability block vector into the elemental vector
     const GeometryType& rGeom = GetGeometry();
-    const SizeType Dim = rGeom.WorkingSpaceDimension();
-    const SizeType NumUNodes = rGeom.PointsNumber();
-    const SizeType NumPNodes = mpPressureGeometry->PointsNumber();
+    const SizeType Dim        = rGeom.WorkingSpaceDimension();
+    const SizeType NumUNodes  = rGeom.PointsNumber();
+    const SizeType NumPNodes  = mpPressureGeometry->PointsNumber();
 
     for (SizeType i = 0; i < NumPNodes; ++i) {
         rRightHandSideVector[NumUNodes * Dim + i] += PermeabilityFlow[i];
@@ -2327,9 +2327,9 @@ void SmallStrainUPwDiffOrderElement::CalculateAndAddFluidBodyFlow(VectorType& rR
         rVariables.IntegrationCoefficient;
 
     const GeometryType& rGeom = GetGeometry();
-    const SizeType Dim = rGeom.WorkingSpaceDimension();
-    const SizeType NumUNodes = rGeom.PointsNumber();
-    const SizeType NumPNodes = mpPressureGeometry->PointsNumber();
+    const SizeType Dim        = rGeom.WorkingSpaceDimension();
+    const SizeType NumUNodes  = rGeom.PointsNumber();
+    const SizeType NumPNodes  = mpPressureGeometry->PointsNumber();
 
     Vector BodyAcceleration = ZeroVector(Dim);
 
@@ -2353,7 +2353,7 @@ GeometryData::IntegrationMethod SmallStrainUPwDiffOrderElement::GetIntegrationMe
 {
     GeometryData::IntegrationMethod GI_GAUSS;
     const GeometryType& rGeom = GetGeometry();
-    const SizeType TNumNodes = rGeom.PointsNumber();
+    const SizeType TNumNodes  = rGeom.PointsNumber();
     //
     switch (TNumNodes) {
     case 3:
@@ -2401,7 +2401,7 @@ void SmallStrainUPwDiffOrderElement::CalculateCauchyGreenStrain(ElementVariables
     KRATOS_TRY
 
     const GeometryType& rGeom = GetGeometry();
-    const SizeType Dim = rGeom.WorkingSpaceDimension();
+    const SizeType Dim        = rGeom.WorkingSpaceDimension();
 
     //-Compute total deformation gradient
     const Matrix& F = rVariables.F;
@@ -2452,7 +2452,7 @@ void SmallStrainUPwDiffOrderElement::CalculateDeformationGradient(ElementVariabl
 
     // Deformation gradient
     noalias(rVariables.F) = prod(J, InvJ0);
-    rVariables.detF = MathUtils<double>::Det(rVariables.F);
+    rVariables.detF       = MathUtils<double>::Det(rVariables.F);
 
     KRATOS_CATCH("")
 }
@@ -2462,7 +2462,7 @@ void SmallStrainUPwDiffOrderElement::CalculateCauchyAlmansiStrain(ElementVariabl
     KRATOS_TRY
 
     const GeometryType& rGeom = GetGeometry();
-    const SizeType Dim = rGeom.WorkingSpaceDimension();
+    const SizeType Dim        = rGeom.WorkingSpaceDimension();
 
     //-Compute total deformation gradient
     const Matrix& F = rVariables.F;

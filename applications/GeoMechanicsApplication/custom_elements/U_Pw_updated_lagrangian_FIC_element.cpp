@@ -48,7 +48,7 @@ void UPwUpdatedLagrangianFICElement<TDim, TNumNodes>::CalculateAll(
     KRATOS_TRY;
 
     const PropertiesType& Prop = this->GetProperties();
-    const GeometryType& Geom = this->GetGeometry();
+    const GeometryType& Geom   = this->GetGeometry();
     const GeometryType::IntegrationPointsArrayType& IntegrationPoints =
         Geom.IntegrationPoints(mThisIntegrationMethod);
 

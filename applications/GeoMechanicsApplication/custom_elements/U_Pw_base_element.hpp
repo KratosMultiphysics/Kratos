@@ -61,10 +61,10 @@ public:
         mThisIntegrationMethod = this->GetIntegrationMethod();
     }
 
-    ~UPwBaseElement() override = default;
-    UPwBaseElement(const UPwBaseElement&) = delete;
-    UPwBaseElement& operator=(const UPwBaseElement&) = delete;
-    UPwBaseElement(UPwBaseElement&&) noexcept = delete;
+    ~UPwBaseElement() override                           = default;
+    UPwBaseElement(const UPwBaseElement&)                = delete;
+    UPwBaseElement& operator=(const UPwBaseElement&)     = delete;
+    UPwBaseElement(UPwBaseElement&&) noexcept            = delete;
     UPwBaseElement& operator=(UPwBaseElement&&) noexcept = delete;
 
     Element::Pointer Create(IndexType NewId,

@@ -41,7 +41,7 @@ void SmallStrainUPwDiffOrderAxisymmetricElement::CalculateBMatrix(Matrix& rB,
 
     const double radius = GeoElementUtilities::CalculateRadius(Np, this->GetGeometry());
 
-    const SizeType Dim = this->GetGeometry().WorkingSpaceDimension();
+    const SizeType Dim      = this->GetGeometry().WorkingSpaceDimension();
     const SizeType NumNodes = this->GetGeometry().size();
 
     for (IndexType i = 0; i < NumNodes; ++i) {

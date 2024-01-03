@@ -40,7 +40,7 @@ int UndrainedUPwSmallStrainElement<TDim, TNumNodes>::Check(const ProcessInfo& rC
     KRATOS_TRY
 
     const PropertiesType& Prop = this->GetProperties();
-    const GeometryType& Geom = this->GetGeometry();
+    const GeometryType& Geom   = this->GetGeometry();
 
     // Base class checks for positive area and Id > 0
     int ierr = Element::Check(rCurrentProcessInfo);

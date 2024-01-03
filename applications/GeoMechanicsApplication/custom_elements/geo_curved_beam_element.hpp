@@ -39,13 +39,13 @@ class KRATOS_API(GEO_MECHANICS_APPLICATION) GeoCurvedBeamElement
     : public GeoStructuralBaseElement<TDim, TNumNodes>
 {
 public:
-    using IndexType = std::size_t;
+    using IndexType      = std::size_t;
     using PropertiesType = Properties;
-    using NodeType = Node;
-    using GeometryType = Geometry<NodeType>;
+    using NodeType       = Node;
+    using GeometryType   = Geometry<NodeType>;
     using NodesArrayType = GeometryType::PointsArrayType;
-    using VectorType = Vector;
-    using MatrixType = Matrix;
+    using VectorType     = Vector;
+    using MatrixType     = Matrix;
     using ShapeFunctionsGradientsType = GeometryData::ShapeFunctionsGradientsType;
 
     /// The definition of the sizetype
@@ -212,8 +212,8 @@ private:
 
     // const values
     static constexpr SizeType N_DOF_NODE_DISP = TDim;
-    static constexpr SizeType N_DOF_NODE_ROT = (TDim == 2 ? 1 : 3);
-    static constexpr SizeType N_DOF_NODE = N_DOF_NODE_DISP + N_DOF_NODE_ROT;
+    static constexpr SizeType N_DOF_NODE_ROT  = (TDim == 2 ? 1 : 3);
+    static constexpr SizeType N_DOF_NODE    = N_DOF_NODE_DISP + N_DOF_NODE_ROT;
     static constexpr SizeType N_POINT_CROSS = 2;
 
 }; // Class GeoCurvedBeamElement

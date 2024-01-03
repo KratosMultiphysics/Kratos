@@ -116,7 +116,7 @@ public:
     ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 protected:
-    static constexpr SizeType N_DOF_NODE = (TDim == 2 ? 3 : 6);
+    static constexpr SizeType N_DOF_NODE    = (TDim == 2 ? 3 : 6);
     static constexpr SizeType N_DOF_ELEMENT = N_DOF_NODE * TNumNodes;
     static constexpr SizeType VoigtSize =
         (TDim == 3 ? VOIGT_SIZE_3D : VOIGT_SIZE_2D_PLANE_STRESS);

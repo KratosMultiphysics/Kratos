@@ -32,13 +32,13 @@ class KRATOS_API(GEO_MECHANICS_APPLICATION) UndrainedUPwSmallStrainElement
 public:
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(UndrainedUPwSmallStrainElement);
 
-    using IndexType = std::size_t;
+    using IndexType      = std::size_t;
     using PropertiesType = Properties;
-    using NodeType = Node;
-    using GeometryType = Geometry<NodeType>;
+    using NodeType       = Node;
+    using GeometryType   = Geometry<NodeType>;
     using NodesArrayType = GeometryType::PointsArrayType;
-    using VectorType = Vector;
-    using MatrixType = Matrix;
+    using VectorType     = Vector;
+    using MatrixType     = Matrix;
     /// The definition of the sizetype
     using SizeType = std::size_t;
     using UPwSmallStrainElement<TDim, TNumNodes>::mConstitutiveLawVector;
@@ -47,7 +47,7 @@ public:
     using UPwSmallStrainElement<TDim, TNumNodes>::mStateVariablesFinalized;
     using ElementVariables = typename UPwSmallStrainElement<TDim, TNumNodes>::ElementVariables;
     using EquationIdVectorType = Element::EquationIdVectorType;
-    using DofsVectorType = Element::DofsVectorType;
+    using DofsVectorType       = Element::DofsVectorType;
 
     ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 

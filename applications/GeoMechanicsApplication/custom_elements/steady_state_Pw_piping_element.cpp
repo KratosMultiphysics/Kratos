@@ -184,7 +184,7 @@ void SteadyStatePwPipingElement<TDim, TNumNodes>::CalculateAll(
     KRATOS_TRY
     // Previous definitions
     const PropertiesType& Prop = this->GetProperties();
-    const GeometryType& Geom = this->GetGeometry();
+    const GeometryType& Geom   = this->GetGeometry();
     const GeometryType::IntegrationPointsArrayType& IntegrationPoints =
         Geom.IntegrationPoints(mThisIntegrationMethod);
     const unsigned int NumGPoints = IntegrationPoints.size();
@@ -305,9 +305,9 @@ template <unsigned int TDim, unsigned int TNumNodes>
 double SteadyStatePwPipingElement<TDim, TNumNodes>::CalculateEquilibriumPipeHeight(
     const PropertiesType& Prop, const GeometryType& Geom, double pipe_length)
 {
-    const double modelFactor = Prop[PIPE_MODEL_FACTOR];
-    const double eta = Prop[PIPE_ETA];
-    const double theta = Prop[PIPE_THETA];
+    const double modelFactor  = Prop[PIPE_MODEL_FACTOR];
+    const double eta          = Prop[PIPE_ETA];
+    const double theta        = Prop[PIPE_THETA];
     const double SolidDensity = Prop[DENSITY_SOLID];
     const double FluidDensity = Prop[DENSITY_WATER];
 

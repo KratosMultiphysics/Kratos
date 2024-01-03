@@ -82,7 +82,7 @@ void GeoCrBeamElement2D2N::ResetConstitutiveLaw()
 {
     KRATOS_TRY
 
-    mInternalGlobalForcesFinalized = ZeroVector(msElementSize);
+    mInternalGlobalForcesFinalized         = ZeroVector(msElementSize);
     mInternalGlobalForcesFinalizedPrevious = ZeroVector(msElementSize);
 
     KRATOS_CATCH("")
@@ -109,7 +109,7 @@ void GeoCrBeamElement2D2N::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
 
     // qe
     Vector nodal_forces = ZeroVector(msElementSize);
-    nodal_forces = ReturnElementForces_Local();
+    nodal_forces        = ReturnElementForces_Local();
 
     // q
     GlobalizeVector(nodal_forces);
@@ -138,7 +138,7 @@ void GeoCrBeamElement2D2N::CalculateRightHandSide(VectorType& rRightHandSideVect
 
     // qe
     Vector nodal_forces = ZeroVector(msElementSize);
-    nodal_forces = ReturnElementForces_Local();
+    nodal_forces        = ReturnElementForces_Local();
 
     // q
     GlobalizeVector(nodal_forces);

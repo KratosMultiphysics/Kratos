@@ -71,8 +71,8 @@ void GeoLinearTrussElement<TDim, TNumNodes>::ResetConstitutiveLaw()
 {
     KRATOS_TRY
 
-    mInternalStresses = ZeroVector(mStressVectorSize);
-    mInternalStressesFinalized = ZeroVector(mStressVectorSize);
+    mInternalStresses                  = ZeroVector(mStressVectorSize);
+    mInternalStressesFinalized         = ZeroVector(mStressVectorSize);
     mInternalStressesFinalizedPrevious = ZeroVector(mStressVectorSize);
 
     KRATOS_CATCH("")
@@ -126,7 +126,7 @@ void GeoLinearTrussElement<TDim, TNumNodes>::CalculateOnIntegrationPoints(
             this->GetGeometry(), this->GetProperties(), rCurrentProcessInfo);
         Vector temp_strain = ZeroVector(mStressVectorSize);
         Vector temp_stress = ZeroVector(mStressVectorSize);
-        temp_strain[0] = this->CalculateLinearStrain();
+        temp_strain[0]     = this->CalculateLinearStrain();
         Values.SetStrainVector(temp_strain);
         Values.SetStressVector(temp_stress);
         mpConstitutiveLaw->CalculateMaterialResponse(Values, ConstitutiveLaw::StressMeasure_PK2);
@@ -153,7 +153,7 @@ void GeoLinearTrussElement<TDim, TNumNodes>::UpdateInternalForces(
 
     Vector temp_strain = ZeroVector(mStressVectorSize);
     Vector temp_stress = ZeroVector(mStressVectorSize);
-    temp_strain[0] = this->CalculateLinearStrain();
+    temp_strain[0]     = this->CalculateLinearStrain();
     Values.SetStrainVector(temp_strain);
     Values.SetStressVector(temp_stress);
     mpConstitutiveLaw->CalculateMaterialResponse(Values, ConstitutiveLaw::StressMeasure_PK2);
@@ -163,8 +163,8 @@ void GeoLinearTrussElement<TDim, TNumNodes>::UpdateInternalForces(
     temp_stress += mInternalStressesFinalizedPrevious;
 
     Vector temp_internal_stresses = ZeroVector(TDim * TNumNodes);
-    temp_internal_stresses[0] = -1.0 * temp_stress[0];
-    temp_internal_stresses[TDim] = temp_stress[0];
+    temp_internal_stresses[0]     = -1.0 * temp_stress[0];
+    temp_internal_stresses[TDim]  = temp_stress[0];
 
     rInternalForces = temp_internal_stresses * this->GetProperties()[CROSS_AREA];
 

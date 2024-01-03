@@ -43,7 +43,7 @@ int UPwSmallStrainElement<TDim, TNumNodes>::Check(const ProcessInfo& rCurrentPro
     if (ierr != 0) return ierr;
 
     const PropertiesType& rProp = this->GetProperties();
-    const GeometryType& rGeom = this->GetGeometry();
+    const GeometryType& rGeom   = this->GetGeometry();
 
     KRATOS_ERROR_IF(rGeom.DomainSize() < 1.0e-15)
         << "DomainSize < 1.0e-15 for the element " << this->Id() << std::endl;
@@ -213,7 +213,7 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateHydraulicDischarge(const P
     // Loop over integration points
     for (unsigned int GPoint = 0; GPoint < NumGPoints; ++GPoint) {
         noalias(Variables.GradNpT) = Variables.DN_DXContainer[GPoint];
-        Variables.detJ = Variables.detJContainer[GPoint];
+        Variables.detJ             = Variables.detJContainer[GPoint];
 
         // Compute weighting coefficient for integration
         Variables.IntegrationCoefficient = this->CalculateIntegrationCoefficient(
@@ -374,7 +374,7 @@ void UPwSmallStrainElement<TDim, TNumNodes>::ExtrapolateGPValues(const Matrix& S
     }
 
     GeometryType& rGeom = this->GetGeometry();
-    const double& Area = rGeom.Area();             // In 3D this is volume
+    const double& Area  = rGeom.Area();            // In 3D this is volume
     array_1d<Vector, TNumNodes> NodalStressVector; // List with stresses at each node
     array_1d<Matrix, TNumNodes> NodalStressTensor;
 
@@ -910,7 +910,7 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateMaterialStiffnessMatrix(
 
     // Previous definitions
     const PropertiesType& rProp = this->GetProperties();
-    const GeometryType& rGeom = this->GetGeometry();
+    const GeometryType& rGeom   = this->GetGeometry();
     const GeometryType::IntegrationPointsArrayType& IntegrationPoints =
         rGeom.IntegrationPoints(mThisIntegrationMethod);
     const IndexType NumGPoints = IntegrationPoints.size();
@@ -1042,7 +1042,7 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateAll(MatrixType& rLeftHandS
 
     // Previous definitions
     const PropertiesType& rProp = this->GetProperties();
-    const GeometryType& rGeom = this->GetGeometry();
+    const GeometryType& rGeom   = this->GetGeometry();
     const GeometryType::IntegrationPointsArrayType& IntegrationPoints =
         rGeom.IntegrationPoints(this->mThisIntegrationMethod);
     const IndexType NumGPoints = IntegrationPoints.size();
@@ -1169,7 +1169,7 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculatePermeabilityUpdateFactor(E
         StressStrainUtilities EquivalentStress;
         const double epsV = EquivalentStress.CalculateTrace(rVariables.StrainVector);
         const double ePrevious = rProp[POROSITY] / (1.0 - rProp[POROSITY]);
-        const double eCurrent = (1.0 + ePrevious) * std::exp(epsV) - 1.0;
+        const double eCurrent  = (1.0 + ePrevious) * std::exp(epsV) - 1.0;
         const double permLog10 = (eCurrent - ePrevious) * InverseCK;
         rVariables.PermeabilityUpdateFactor = pow(10.0, permLog10);
     } else {
@@ -1243,11 +1243,11 @@ void UPwSmallStrainElement<TDim, TNumNodes>::InitializeElementVariables(
     rVariables.UVoigtMatrix.resize(TNumNodes * TDim, VoigtSize, false);
 
     // Retention law
-    rVariables.FluidPressure = 0.0;
-    rVariables.DegreeOfSaturation = 1.0;
+    rVariables.FluidPressure          = 0.0;
+    rVariables.DegreeOfSaturation     = 1.0;
     rVariables.DerivativeOfSaturation = 0.0;
-    rVariables.RelativePermeability = 1.0;
-    rVariables.BishopCoefficient = 1.0;
+    rVariables.RelativePermeability   = 1.0;
+    rVariables.BishopCoefficient      = 1.0;
 
     KRATOS_CATCH("")
 }
@@ -1740,7 +1740,7 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateDeformationGradient(
 
     // Deformation gradient
     noalias(rVariables.F) = prod(J, InvJ0);
-    rVariables.detF = MathUtils<double>::Det(rVariables.F);
+    rVariables.detF       = MathUtils<double>::Det(rVariables.F);
 
     KRATOS_CATCH("")
 }
@@ -1809,9 +1809,9 @@ void UPwSmallStrainElement<TDim, TNumNodes>::InitializeProperties(ElementVariabl
         rVariables.ConsiderGeometricStiffness = rProp[CONSIDER_GEOMETRIC_STIFFNESS];
 
     rVariables.DynamicViscosityInverse = 1.0 / rProp[DYNAMIC_VISCOSITY];
-    rVariables.FluidDensity = rProp[DENSITY_WATER];
-    rVariables.SolidDensity = rProp[DENSITY_SOLID];
-    rVariables.Porosity = rProp[POROSITY];
+    rVariables.FluidDensity            = rProp[DENSITY_WATER];
+    rVariables.SolidDensity            = rProp[DENSITY_SOLID];
+    rVariables.Porosity                = rProp[POROSITY];
     GeoElementUtilities::FillPermeabilityMatrix(rVariables.PermeabilityMatrix, rProp);
 
     rVariables.PermeabilityUpdateFactor = 1.0;
@@ -1826,7 +1826,7 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateKinematics(ElementVariable
     KRATOS_TRY
 
     // Setting the vector of shape functions and the matrix of the shape functions global gradients
-    noalias(rVariables.Np) = row(rVariables.NContainer, GPoint);
+    noalias(rVariables.Np)      = row(rVariables.NContainer, GPoint);
     noalias(rVariables.GradNpT) = rVariables.DN_DXContainer[GPoint];
 
     rVariables.detJ = rVariables.detJContainer[GPoint];

@@ -43,8 +43,8 @@ void TransientPwElement<TDim, TNumNodes>::GetDofList(DofsVectorType& rElementalD
     KRATOS_TRY
 
     const GeometryType& rGeom = this->GetGeometry();
-    const unsigned int N_DOF = this->GetNumberOfDOF();
-    unsigned int index = 0;
+    const unsigned int N_DOF  = this->GetNumberOfDOF();
+    unsigned int index        = 0;
 
     if (rElementalDofList.size() != N_DOF) rElementalDofList.resize(N_DOF);
 
@@ -63,8 +63,8 @@ void TransientPwElement<TDim, TNumNodes>::EquationIdVector(EquationIdVectorType&
     KRATOS_TRY
 
     const GeometryType& rGeom = this->GetGeometry();
-    const unsigned int N_DOF = this->GetNumberOfDOF();
-    unsigned int index = 0;
+    const unsigned int N_DOF  = this->GetNumberOfDOF();
+    unsigned int index        = 0;
 
     if (rResult.size() != N_DOF) rResult.resize(N_DOF, false);
 
@@ -168,7 +168,7 @@ void TransientPwElement<TDim, TNumNodes>::Initialize(const ProcessInfo& rCurrent
     KRATOS_TRY
 
     const PropertiesType& Prop = this->GetProperties();
-    const GeometryType& Geom = this->GetGeometry();
+    const GeometryType& Geom   = this->GetGeometry();
     const unsigned int NumGPoints =
         Geom.IntegrationPointsNumber(this->GetIntegrationMethod());
 
@@ -201,7 +201,7 @@ int TransientPwElement<TDim, TNumNodes>::Check(const ProcessInfo& rCurrentProces
     KRATOS_TRY
 
     const PropertiesType& Prop = this->GetProperties();
-    const GeometryType& Geom = this->GetGeometry();
+    const GeometryType& Geom   = this->GetGeometry();
 
     if (Geom.DomainSize() < 1.0e-15)
         KRATOS_ERROR << "DomainSize < 1.0e-15 for the element " << this->Id() << std::endl;
@@ -465,7 +465,7 @@ void TransientPwElement<TDim, TNumNodes>::CalculateAll(MatrixType& rLeftHandSide
 
     // Previous definitions
     const PropertiesType& Prop = this->GetProperties();
-    const GeometryType& Geom = this->GetGeometry();
+    const GeometryType& Geom   = this->GetGeometry();
     const GeometryType::IntegrationPointsArrayType& IntegrationPoints =
         Geom.IntegrationPoints(this->GetIntegrationMethod());
     const unsigned int NumGPoints = IntegrationPoints.size();
@@ -550,11 +550,11 @@ void TransientPwElement<TDim, TNumNodes>::InitializeElementVariables(
                                                   this->GetIntegrationMethod());
 
     // Retention law
-    rVariables.FluidPressure = 0.0;
-    rVariables.DegreeOfSaturation = 1.0;
+    rVariables.FluidPressure          = 0.0;
+    rVariables.DegreeOfSaturation     = 1.0;
     rVariables.DerivativeOfSaturation = 0.0;
-    rVariables.RelativePermeability = 1.0;
-    rVariables.BishopCoefficient = 1.0;
+    rVariables.RelativePermeability   = 1.0;
+    rVariables.BishopCoefficient      = 1.0;
 
     KRATOS_CATCH("")
 }
@@ -677,7 +677,7 @@ void TransientPwElement<TDim, TNumNodes>::CalculateKinematics(ElementVariables& 
     KRATOS_TRY
 
     // Setting the vector of shape functions and the matrix of the shape functions global gradients
-    noalias(rVariables.Np) = row(rVariables.NContainer, PointNumber);
+    noalias(rVariables.Np)      = row(rVariables.NContainer, PointNumber);
     noalias(rVariables.GradNpT) = rVariables.DN_DXContainer[PointNumber];
 
     rVariables.detJ = rVariables.detJContainer[PointNumber];

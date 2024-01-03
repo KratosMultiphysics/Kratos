@@ -402,7 +402,7 @@ void GeoTrussElementBase<TDim, TNumNodes>::Calculate(const Variable<double>& rVa
         // material strain energy
         double strain_energy(0.00);
         Vector strain_vector = ZeroVector(mpConstitutiveLaw->GetStrainSize());
-        strain_vector[0] = CalculateGreenLagrangeStrain();
+        strain_vector[0]     = CalculateGreenLagrangeStrain();
         ConstitutiveLaw::Parameters Values(GetGeometry(), GetProperties(), rCurrentProcessInfo);
         Values.SetStrainVector(strain_vector);
         mpConstitutiveLaw->CalculateValue(Values, STRAIN_ENERGY, strain_energy);
@@ -490,8 +490,8 @@ void GeoTrussElementBase<TDim, TNumNodes>::CalculateOnIntegrationPoints(
 
     if (rVariable == GREEN_LAGRANGE_STRAIN_VECTOR) {
         Vector strain = ZeroVector(TDim);
-        strain[0] = CalculateGreenLagrangeStrain();
-        rOutput[0] = strain;
+        strain[0]     = CalculateGreenLagrangeStrain();
+        rOutput[0]    = strain;
     }
 
     if ((rVariable == CAUCHY_STRESS_VECTOR) || (rVariable == PK2_STRESS_VECTOR)) {
@@ -502,7 +502,7 @@ void GeoTrussElementBase<TDim, TNumNodes>::CalculateOnIntegrationPoints(
         ConstitutiveLaw::Parameters Values(GetGeometry(), GetProperties(), rCurrentProcessInfo);
         Vector temp_strain = ZeroVector(1);
         Vector temp_stress = ZeroVector(1);
-        temp_strain[0] = CalculateGreenLagrangeStrain();
+        temp_strain[0]     = CalculateGreenLagrangeStrain();
         Values.SetStrainVector(temp_strain);
         Values.SetStressVector(temp_stress);
         mpConstitutiveLaw->CalculateMaterialResponse(Values, ConstitutiveLaw::StressMeasure_PK2);
@@ -542,7 +542,7 @@ void GeoTrussElementBase<TDim, TNumNodes>::CalculateOnIntegrationPoints(
         CalculateOnIntegrationPoints(CAUCHY_STRESS_VECTOR, array_output, rCurrentProcessInfo);
 
         array_1d<double, 3> temp_internal_stresses = ZeroVector(3);
-        temp_internal_stresses[0] = array_output[0][0];
+        temp_internal_stresses[0]                  = array_output[0][0];
 
         rOutput[0] = temp_internal_stresses * GetProperties()[CROSS_AREA];
     }
@@ -554,9 +554,9 @@ int GeoTrussElementBase<TDim, TNumNodes>::Check(const ProcessInfo& rCurrentProce
 {
     KRATOS_TRY
 
-    const double numerical_limit = std::numeric_limits<double>::epsilon();
+    const double numerical_limit   = std::numeric_limits<double>::epsilon();
     const SizeType number_of_nodes = GetGeometry().size();
-    const SizeType dimension = GetGeometry().WorkingSpaceDimension();
+    const SizeType dimension       = GetGeometry().WorkingSpaceDimension();
 
     if (mpConstitutiveLaw != nullptr) {
         mpConstitutiveLaw->Check(GetProperties(), GetGeometry(), rCurrentProcessInfo);
@@ -657,7 +657,7 @@ void GeoTrussElementBase<TDim, TNumNodes>::UpdateInternalForces(FullDofVectorTyp
     ConstitutiveLaw::Parameters Values(GetGeometry(), GetProperties(), rCurrentProcessInfo);
     Vector temp_strain = ZeroVector(1);
     Vector temp_stress = ZeroVector(1);
-    temp_strain[0] = CalculateGreenLagrangeStrain();
+    temp_strain[0]     = CalculateGreenLagrangeStrain();
     Values.SetStrainVector(temp_strain);
     Values.SetStressVector(temp_stress);
     mpConstitutiveLaw->CalculateMaterialResponse(Values, ConstitutiveLaw::StressMeasure_PK2);
@@ -666,10 +666,10 @@ void GeoTrussElementBase<TDim, TNumNodes>::UpdateInternalForces(FullDofVectorTyp
 
     // internal force vectors
     FullDofVectorType f_local = ZeroVector(TDim * TNumNodes);
-    f_local[0] = -1.00 * normal_force;
-    f_local[TDim] = 1.00 * normal_force;
-    rInternalForces = ZeroVector(TDim * TNumNodes);
-    noalias(rInternalForces) = prod(transformation_matrix, f_local);
+    f_local[0]                = -1.00 * normal_force;
+    f_local[TDim]             = 1.00 * normal_force;
+    rInternalForces           = ZeroVector(TDim * TNumNodes);
+    noalias(rInternalForces)  = prod(transformation_matrix, f_local);
 
     KRATOS_CATCH("")
 }
@@ -715,13 +715,13 @@ void GeoTrussElementBase<3, 2>::CreateTransformationMatrix(FullDofMatrixType& rR
     KRATOS_TRY
 
     // 1st calculate transformation matrix
-    using arraydim = BoundedVector<double, DIM>;
-    arraydim direction_vector_x = ZeroVector(DIM);
-    arraydim direction_vector_y = ZeroVector(DIM);
-    arraydim direction_vector_z = ZeroVector(DIM);
+    using arraydim                          = BoundedVector<double, DIM>;
+    arraydim direction_vector_x             = ZeroVector(DIM);
+    arraydim direction_vector_y             = ZeroVector(DIM);
+    arraydim direction_vector_z             = ZeroVector(DIM);
     FullDofVectorType reference_coordinates = ZeroVector(DIM * NUM_NODES);
-    arraydim global_z_vector = ZeroVector(DIM);
-    global_z_vector[2] = 1.0;
+    arraydim global_z_vector                = ZeroVector(DIM);
+    global_z_vector[2]                      = 1.0;
 
     this->WriteTransformationCoordinates(reference_coordinates);
 
@@ -811,8 +811,8 @@ void GeoTrussElementBase<2, 2>::CreateTransformationMatrix(FullDofMatrixType& rR
     }
 
     BoundedVector<double, DIM_3D> direction_vector_y_3D = ZeroVector(DIM_3D);
-    BoundedVector<double, DIM_3D> global_z_vector_3D = ZeroVector(DIM_3D);
-    global_z_vector_3D[INDEX_Z] = 1.0;
+    BoundedVector<double, DIM_3D> global_z_vector_3D    = ZeroVector(DIM_3D);
+    global_z_vector_3D[INDEX_Z]                         = 1.0;
     MathUtils<double>::UnitCrossProduct(
         direction_vector_y_3D, direction_vector_x_3D, global_z_vector_3D);
 
@@ -856,7 +856,7 @@ void GeoTrussElementBase<TDim, TNumNodes>::AddExplicitContribution(
 
         for (SizeType i = 0; i < TNumNodes; ++i) {
             double& r_nodal_mass = r_geom[i].GetValue(NODAL_MASS);
-            int index = i * TDim;
+            int index            = i * TDim;
 
             AtomicAdd(r_nodal_mass, element_mass_vector(index));
         }
@@ -901,7 +901,7 @@ void GeoTrussElementBase<TDim, TNumNodes>::AddExplicitContribution(
 
         for (unsigned int i = 0; i < TNumNodes; ++i) {
             double& r_nodal_mass = GetGeometry()[i].GetValue(NODAL_MASS);
-            int index = i * TDim;
+            int index            = i * TDim;
 
             AtomicAdd(r_nodal_mass, mass_vector[index]);
         }
@@ -917,7 +917,7 @@ void GeoTrussElementBase<3, 2>::CalculateGeometricStiffnessMatrix(
 {
     KRATOS_TRY
 
-    double E = ReturnTangentModulus1D(rCurrentProcessInfo);
+    double E       = ReturnTangentModulus1D(rCurrentProcessInfo);
     const double A = GetProperties()[CROSS_AREA];
 
     double prestress = 0.00;
@@ -947,11 +947,11 @@ void GeoTrussElementBase<3, 2>::CalculateGeometricStiffnessMatrix(
         GeoStructuralMechanicsElementUtilities::CalculateReferenceLength3D2N(*this);
     const double l =
         GeoStructuralMechanicsElementUtilities::CalculateCurrentLength3D2N(*this);
-    double e_gL = (l * l - L * L) / (2.00 * L * L);
+    double e_gL     = (l * l - L * L) / (2.00 * L * L);
     const double L3 = L * L * L;
 
     const double K_sigma = ((E * A * e_gL) / L) + ((prestress * A) / L);
-    const double K_uij = (E * A) / L3;
+    const double K_uij   = (E * A) / L3;
 
     rGeometricStiffnessMatrix(0, 0) = K_sigma + K_uij * (2 * du * dx + du * du);
     rGeometricStiffnessMatrix(3, 3) = rGeometricStiffnessMatrix(0, 0);
@@ -1017,7 +1017,7 @@ void GeoTrussElementBase<2, 2>::CalculateGeometricStiffnessMatrix(
 {
     KRATOS_TRY
 
-    double E = ReturnTangentModulus1D(rCurrentProcessInfo);
+    double E       = ReturnTangentModulus1D(rCurrentProcessInfo);
     const double A = GetProperties()[CROSS_AREA];
 
     double prestress = 0.00;
@@ -1044,11 +1044,11 @@ void GeoTrussElementBase<2, 2>::CalculateGeometricStiffnessMatrix(
         GeoStructuralMechanicsElementUtilities::CalculateReferenceLength3D2N(*this);
     const double l =
         GeoStructuralMechanicsElementUtilities::CalculateCurrentLength3D2N(*this);
-    double e_gL = (l * l - L * L) / (2.00 * L * L);
+    double e_gL     = (l * l - L * L) / (2.00 * L * L);
     const double L3 = L * L * L;
 
     const double K_sigma = ((E * A * e_gL) / L) + ((prestress * A) / L);
-    const double K_uij = (E * A) / L3;
+    const double K_uij   = (E * A) / L3;
 
     rGeometricStiffnessMatrix(0, 0) = K_sigma + K_uij * (2 * du * dx + du * du);
     rGeometricStiffnessMatrix(DIM, DIM) = rGeometricStiffnessMatrix(0, 0);
@@ -1176,10 +1176,10 @@ void GeoTrussElementBase<2, 2>::CalculateElasticStiffnessMatrix(MatrixType& rEla
 
     const double EA = E * A;
 
-    rElasticStiffnessMatrix(0, 0) = (EA * dx * dx) / L3;
+    rElasticStiffnessMatrix(0, 0)     = (EA * dx * dx) / L3;
     rElasticStiffnessMatrix(DIM, DIM) = rElasticStiffnessMatrix(0, 0);
 
-    rElasticStiffnessMatrix(1, 1) = (EA * dy * dy) / L3;
+    rElasticStiffnessMatrix(1, 1)             = (EA * dy * dy) / L3;
     rElasticStiffnessMatrix(DIM + 1, DIM + 1) = rElasticStiffnessMatrix(1, 1);
 
     rElasticStiffnessMatrix(0, 1) = (EA * dx * dy) / L3;
@@ -1212,7 +1212,7 @@ void GeoTrussElementBase<TDim, TNumNodes>::FinalizeSolutionStep(const ProcessInf
     ConstitutiveLaw::Parameters Values(GetGeometry(), GetProperties(), rCurrentProcessInfo);
     Vector temp_strain = ZeroVector(1);
     Vector temp_stress = ZeroVector(1);
-    temp_strain[0] = CalculateGreenLagrangeStrain();
+    temp_strain[0]     = CalculateGreenLagrangeStrain();
     Values.SetStrainVector(temp_strain);
     Values.SetStressVector(temp_stress);
     mpConstitutiveLaw->FinalizeMaterialResponse(Values, ConstitutiveLaw::StressMeasure_PK2);
@@ -1274,7 +1274,7 @@ double GeoTrussElementBase<TDim, TNumNodes>::ReturnTangentModulus1D(const Proces
     double tangent_modulus(0.00);
 
     Vector strain_vector = ZeroVector(mpConstitutiveLaw->GetStrainSize());
-    strain_vector[0] = CalculateGreenLagrangeStrain();
+    strain_vector[0]     = CalculateGreenLagrangeStrain();
 
     ConstitutiveLaw::Parameters Values(GetGeometry(), GetProperties(), rCurrentProcessInfo);
     Values.SetStrainVector(strain_vector);

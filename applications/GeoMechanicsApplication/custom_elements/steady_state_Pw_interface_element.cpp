@@ -42,7 +42,7 @@ int SteadyStatePwInterfaceElement<TDim, TNumNodes>::Check(const ProcessInfo& rCu
     if (ierr != 0) return ierr;
 
     const PropertiesType& Prop = this->GetProperties();
-    const GeometryType& Geom = this->GetGeometry();
+    const GeometryType& Geom   = this->GetGeometry();
 
     if (this->Id() < 1)
         KRATOS_ERROR << "Element found with Id 0 or negative, element: " << this->Id()
@@ -126,7 +126,7 @@ void SteadyStatePwInterfaceElement<TDim, TNumNodes>::CalculateAll(
 
     // Previous definitions
     const PropertiesType& Prop = this->GetProperties();
-    const GeometryType& Geom = this->GetGeometry();
+    const GeometryType& Geom   = this->GetGeometry();
     const GeometryType::IntegrationPointsArrayType& IntegrationPoints =
         Geom.IntegrationPoints(mThisIntegrationMethod);
     const unsigned int NumGPoints = IntegrationPoints.size();

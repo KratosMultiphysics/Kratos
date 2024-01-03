@@ -1,5 +1,6 @@
 Language: Cpp
 AccessModifierOffset: -4
+AlignConsecutiveAssignments: Consecutive
 AlignEscapedNewlines: Left
 AlignTrailingComments: true
 AllowAllParametersOfDeclarationOnNextLine: true

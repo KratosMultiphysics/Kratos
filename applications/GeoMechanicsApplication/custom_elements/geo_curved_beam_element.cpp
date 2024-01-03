@@ -86,7 +86,7 @@ void GeoCurvedBeamElement<3, 3>::SetRotationalInertiaVector(const PropertiesType
     if (rRotationalInertia.size() != N_DOF_NODE_ROT)
         rRotationalInertia.resize(N_DOF_NODE_ROT, false);
 
-    unsigned int index = 0;
+    unsigned int index          = 0;
     rRotationalInertia[index++] = rProp[TORSIONAL_INERTIA];
     rRotationalInertia[index++] = rProp[I22];
     rRotationalInertia[index++] = rProp[I33];
@@ -122,7 +122,7 @@ void GeoCurvedBeamElement<TDim, TNumNodes>::CalculateMassMatrix(MatrixType& rMas
     noalias(rMassMatrix) = ZeroMatrix(N_DOF_ELEMENT, N_DOF_ELEMENT);
 
     const PropertiesType& rProp = this->GetProperties();
-    const GeometryType& rGeom = this->GetGeometry();
+    const GeometryType& rGeom   = this->GetGeometry();
     const GeometryType::IntegrationPointsArrayType& IntegrationPoints =
         rGeom.IntegrationPoints(mThisIntegrationMethod);
 
@@ -177,7 +177,7 @@ void GeoCurvedBeamElement<TDim, TNumNodes>::CalculateAll(MatrixType& rLeftHandSi
 
     // Previous definitions
     const PropertiesType& rProp = this->GetProperties();
-    const GeometryType& rGeom = this->GetGeometry();
+    const GeometryType& rGeom   = this->GetGeometry();
     const GeometryType::IntegrationPointsArrayType& IntegrationPointsAlong =
         rGeom.IntegrationPoints(mThisIntegrationMethod);
 
@@ -206,7 +206,7 @@ void GeoCurvedBeamElement<TDim, TNumNodes>::CalculateAll(MatrixType& rLeftHandSi
          GPointAlong < IntegrationPointsAlong.size(); ++GPointAlong) {
         // Compute Nu, GradNe, B and StrainVector
         noalias(Variables.GradNe) = DN_De[GPointAlong];
-        noalias(Variables.Nu) = row(NContainer, GPointAlong);
+        noalias(Variables.Nu)     = row(NContainer, GPointAlong);
 
         GeoElementUtilities::CalculateNuMatrix<TDim, TNumNodes>(
             Variables.NuTot, NContainer, GPointAlong);
@@ -350,7 +350,7 @@ void GeoCurvedBeamElement<TDim, TNumNodes>::CalculateAndAddBodyForce(
     KRATOS_TRY
 
     const PropertiesType& rProp = this->GetProperties();
-    const double& density = rProp[DENSITY];
+    const double& density       = rProp[DENSITY];
 
     // Distribute body force block vector into elemental vector
     noalias(rVariables.UVector) =
@@ -506,7 +506,7 @@ void GeoCurvedBeamElement<TDim, TNumNodes>::CalculateJacobianMatrix(
     // elements" Eqs.(1), (20) - (22)
 
     const GeometryType& rGeom = this->GetGeometry();
-    const double& t = rVariables.HalfThickness;
+    const double& t           = rVariables.HalfThickness;
     const std::vector<double> CrossEta{-1.0 / sqrt(3), 1.0 / sqrt(3)};
 
     noalias(JacobianMatrix) = ZeroMatrix(TDim, TDim);
@@ -574,7 +574,7 @@ void GeoCurvedBeamElement<TDim, TNumNodes>::CalculateLocalBMatrix(
     const double& t = rVariables.HalfThickness;
     const std::vector<double> CrossEta{-1.0 / sqrt(3), 1.0 / sqrt(3)};
 
-    noalias(B) = ZeroMatrix(VoigtSize, N_DOF_ELEMENT);
+    noalias(B)        = ZeroMatrix(VoigtSize, N_DOF_ELEMENT);
     const double& A11 = InvJ(0, 0);
     const double& A21 = InvJ(1, 0);
     const double& A12 = InvJ(0, 1);
@@ -582,7 +582,7 @@ void GeoCurvedBeamElement<TDim, TNumNodes>::CalculateLocalBMatrix(
     const double& eta = CrossEta[GPointCross];
 
     for (unsigned int node = 0; node < TNumNodes; ++node) {
-        const unsigned int index = N_DOF_NODE * node;
+        const unsigned int index   = N_DOF_NODE * node;
         const unsigned int index_x = index + INDEX_2D_BEAM_X;
         const unsigned int index_y = index + INDEX_2D_BEAM_Y;
         const double& Fjx = -rVariables.NodalCrossDirection(node, INDEX_Y);
@@ -658,7 +658,7 @@ void GeoCurvedBeamElement<TDim, TNumNodes>::CalculateLocalInternalForce(
 
     // Previous definitions
     const PropertiesType& rProp = this->GetProperties();
-    const GeometryType& rGeom = this->GetGeometry();
+    const GeometryType& rGeom   = this->GetGeometry();
     const GeometryType::IntegrationPointsArrayType& IntegrationPointsAlong =
         rGeom.IntegrationPoints(mThisIntegrationMethod);
 
@@ -684,7 +684,7 @@ void GeoCurvedBeamElement<TDim, TNumNodes>::CalculateLocalInternalForce(
          GPointAlong < IntegrationPointsAlong.size(); ++GPointAlong) {
         // Compute Nu, GradNe, B and StrainVector
         noalias(Variables.GradNe) = DN_De[GPointAlong];
-        noalias(Variables.Nu) = row(NContainer, GPointAlong);
+        noalias(Variables.Nu)     = row(NContainer, GPointAlong);
 
         this->CalculateTransformationMatrix(Variables.TransformationMatrix,
                                             Variables.GradNe);
@@ -784,7 +784,7 @@ void GeoCurvedBeamElement<TDim, TNumNodes>::CalculateOnIntegrationPoints(
              GPointAlong < IntegrationPointsAlong.size(); ++GPointAlong) {
             // Compute Nu, GradNe, B and StrainVector
             noalias(Variables.GradNe) = DN_De[GPointAlong];
-            noalias(Variables.Nu) = row(NContainer, GPointAlong);
+            noalias(Variables.Nu)     = row(NContainer, GPointAlong);
 
             this->CalculateTransformationMatrix(Variables.TransformationMatrix,
                                                 Variables.GradNe);
@@ -827,7 +827,7 @@ void GeoCurvedBeamElement<TDim, TNumNodes>::CalculateOnIntegrationPoints(
                 rOutput[GPointAlong].resize(TDim, TDim, false);
 
             Vector AverageStressVector = ZeroVector(VoigtSize);
-            AverageStressVector = column(AverageStresses, GPointAlong);
+            AverageStressVector        = column(AverageStresses, GPointAlong);
 
             rOutput[GPointAlong] =
                 MathUtils<double>::StrainVectorToTensor(AverageStressVector);
@@ -863,7 +863,7 @@ void GeoCurvedBeamElement<TDim, TNumNodes>::CalculateOnIntegrationPoints(
              GPointAlong < IntegrationPointsAlong.size(); ++GPointAlong) {
             // Compute Nu, GradNe, B and StrainVector
             noalias(Variables.GradNe) = DN_De[GPointAlong];
-            noalias(Variables.Nu) = row(NContainer, GPointAlong);
+            noalias(Variables.Nu)     = row(NContainer, GPointAlong);
 
             this->CalculateTransformationMatrix(Variables.TransformationMatrix,
                                                 Variables.GradNe);
@@ -901,7 +901,7 @@ void GeoCurvedBeamElement<TDim, TNumNodes>::CalculateOnIntegrationPoints(
                 rOutput[GPointAlong].resize(TDim, TDim, false);
 
             Vector AverageStrainVector = ZeroVector(VoigtSize);
-            AverageStrainVector = column(AverageStrains, GPointAlong);
+            AverageStrainVector        = column(AverageStrains, GPointAlong);
 
             rOutput[GPointAlong] =
                 MathUtils<double>::StrainVectorToTensor(AverageStrainVector);

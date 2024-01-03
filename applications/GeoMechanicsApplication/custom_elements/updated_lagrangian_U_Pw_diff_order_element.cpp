@@ -43,7 +43,7 @@ void UpdatedLagrangianUPwDiffOrderElement::CalculateAll(MatrixType& rLeftHandSid
 {
     KRATOS_TRY
 
-    const GeometryType& rGeom = GetGeometry();
+    const GeometryType& rGeom   = GetGeometry();
     const PropertiesType& rProp = this->GetProperties();
 
     // Definition of variables
@@ -123,8 +123,8 @@ void UpdatedLagrangianUPwDiffOrderElement::CalculateAndAddGeometricStiffnessMatr
     KRATOS_TRY
 
     const GeometryType& rGeom = GetGeometry();
-    const SizeType NumUNodes = rGeom.PointsNumber();
-    const SizeType Dim = rGeom.WorkingSpaceDimension();
+    const SizeType NumUNodes  = rGeom.PointsNumber();
+    const SizeType Dim        = rGeom.WorkingSpaceDimension();
 
     Matrix StressTensor = MathUtils<double>::StressVectorToTensor(mStressVector[GPoint]);
 
@@ -205,7 +205,7 @@ void UpdatedLagrangianUPwDiffOrderElement::CalculateOnIntegrationPoints(
     const Variable<Matrix>& rVariable, std::vector<Matrix>& rOutput, const ProcessInfo& rCurrentProcessInfo)
 {
     const GeometryType& rGeom = GetGeometry();
-    const SizeType Dim = rGeom.WorkingSpaceDimension();
+    const SizeType Dim        = rGeom.WorkingSpaceDimension();
 
     if (rOutput.size() != mConstitutiveLawVector.size())
         rOutput.resize(mConstitutiveLawVector.size());

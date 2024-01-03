@@ -49,7 +49,7 @@ int GeoStructuralBaseElement<TDim, TNumNodes>::Check(const ProcessInfo& rCurrent
     KRATOS_TRY
 
     const PropertiesType& rProp = this->GetProperties();
-    const GeometryType& rGeom = this->GetGeometry();
+    const GeometryType& rGeom   = this->GetGeometry();
 
     // verify nodal variables and dofs
     for (unsigned int i = 0; i < TNumNodes; ++i) {
@@ -136,8 +136,8 @@ void GeoStructuralBaseElement<TDim, TNumNodes>::Initialize(const ProcessInfo& rC
 {
     KRATOS_TRY
 
-    const PropertiesType& rProp = this->GetProperties();
-    const GeometryType& rGeom = this->GetGeometry();
+    const PropertiesType& rProp   = this->GetProperties();
+    const GeometryType& rGeom     = this->GetGeometry();
     const unsigned int NumGPoints = GetTotalNumberIntegrationPoints();
 
     if (mConstitutiveLawVector.size() != NumGPoints)
@@ -227,7 +227,7 @@ void GeoStructuralBaseElement<TDim, TNumNodes>::CalculateLocalSystem(
     noalias(rRightHandSideVector) = ZeroVector(N_DOF_ELEMENT);
 
     const bool CalculateStiffnessMatrixFlag = true;
-    const bool CalculateResidualVectorFlag = true;
+    const bool CalculateResidualVectorFlag  = true;
 
     CalculateAll(rLeftHandSideMatrix, rRightHandSideVector, rCurrentProcessInfo,
                  CalculateStiffnessMatrixFlag, CalculateResidualVectorFlag);
@@ -244,7 +244,7 @@ void GeoStructuralBaseElement<TDim, TNumNodes>::CalculateLeftHandSide(
 
     // Calculation flags
     const bool CalculateStiffnessMatrixFlag = true;
-    const bool CalculateResidualVectorFlag = false;
+    const bool CalculateResidualVectorFlag  = false;
     VectorType TempVector;
 
     CalculateAll(rLeftHandSideMatrix, TempVector, rCurrentProcessInfo,
@@ -266,8 +266,8 @@ void GeoStructuralBaseElement<TDim, TNumNodes>::CalculateRightHandSide(
     noalias(rRightHandSideVector) = ZeroVector(N_DOF_ELEMENT);
 
     const bool CalculateStiffnessMatrixFlag = false;
-    const bool CalculateResidualVectorFlag = true;
-    MatrixType TempMatrix = Matrix();
+    const bool CalculateResidualVectorFlag  = true;
+    MatrixType TempMatrix                   = Matrix();
 
     CalculateAll(TempMatrix, rRightHandSideVector, rCurrentProcessInfo,
                  CalculateStiffnessMatrixFlag, CalculateResidualVectorFlag);
@@ -490,7 +490,7 @@ void GeoStructuralBaseElement<TDim, TNumNodes>::CalculateStiffnessMatrix(
     noalias(rStiffnessMatrix) = ZeroMatrix(N_DOF_ELEMENT, N_DOF_ELEMENT);
 
     const bool CalculateStiffnessMatrixFlag = true;
-    const bool CalculateResidualVectorFlag = false;
+    const bool CalculateResidualVectorFlag  = false;
     VectorType TempVector;
 
     CalculateAll(rStiffnessMatrix, TempVector, rCurrentProcessInfo,

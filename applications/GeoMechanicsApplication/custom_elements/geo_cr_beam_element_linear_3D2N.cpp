@@ -64,7 +64,7 @@ void GeoCrBeamElementLinear3D2N::ResetConstitutiveLaw()
 {
     KRATOS_TRY
 
-    mInternalGlobalForcesFinalized = ZeroVector(msElementSize);
+    mInternalGlobalForcesFinalized         = ZeroVector(msElementSize);
     mInternalGlobalForcesFinalizedPrevious = ZeroVector(msElementSize);
 
     KRATOS_CATCH("")

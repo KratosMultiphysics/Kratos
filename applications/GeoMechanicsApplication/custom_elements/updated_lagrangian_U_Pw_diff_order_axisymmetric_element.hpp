@@ -31,13 +31,13 @@ class KRATOS_API(GEO_MECHANICS_APPLICATION) UpdatedLagrangianUPwDiffOrderAxisymm
 public:
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(UpdatedLagrangianUPwDiffOrderAxisymmetricElement);
 
-    using IndexType = std::size_t;
+    using IndexType      = std::size_t;
     using PropertiesType = Properties;
-    using NodeType = Node;
-    using GeometryType = Geometry<NodeType>;
+    using NodeType       = Node;
+    using GeometryType   = Geometry<NodeType>;
     using NodesArrayType = GeometryType::PointsArrayType;
-    using VectorType = Vector;
-    using MatrixType = Matrix;
+    using VectorType     = Vector;
+    using MatrixType     = Matrix;
     /// The definition of the sizetype
     using SizeType = std::size_t;
     using UpdatedLagrangianUPwDiffOrderElement::mConstitutiveLawVector;

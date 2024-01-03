@@ -273,7 +273,7 @@ void UPwSmallStrainFICElement<2, 3>::ExtrapolateGPConstitutiveTensor(
     // Triangle_2d_3 with GI_GAUSS_2
     KRATOS_TRY
 
-    const SizeType Dim = 2;
+    const SizeType Dim      = 2;
     const SizeType NumNodes = 3;
 
     BoundedMatrix<double, NumNodes, NumNodes> ExtrapolationMatrix;
@@ -313,7 +313,7 @@ void UPwSmallStrainFICElement<2, 4>::ExtrapolateGPConstitutiveTensor(
     KRATOS_TRY
 
     // Quadrilateral_2d_4 with GI_GAUSS_2
-    const SizeType Dim = 2;
+    const SizeType Dim      = 2;
     const SizeType NumNodes = 4;
 
     BoundedMatrix<double, NumNodes, NumNodes> ExtrapolationMatrix;
@@ -342,7 +342,7 @@ void UPwSmallStrainFICElement<3, 4>::ExtrapolateGPConstitutiveTensor(
     // Tetrahedra_3d_4 with GI_GAUSS_2
     KRATOS_TRY
 
-    const SizeType Dim = 3;
+    const SizeType Dim      = 3;
     const SizeType NumNodes = 4;
 
     BoundedMatrix<double, NumNodes, NumNodes> ExtrapolationMatrix;
@@ -370,7 +370,7 @@ void UPwSmallStrainFICElement<3, 8>::ExtrapolateGPConstitutiveTensor(
     // Hexahedra_3d_8 with GI_GAUSS_2
     KRATOS_TRY
 
-    const SizeType Dim = 3;
+    const SizeType Dim      = 3;
     const SizeType NumNodes = 8;
 
     BoundedMatrix<double, NumNodes, NumNodes> ExtrapolationMatrix;
@@ -430,7 +430,7 @@ void UPwSmallStrainFICElement<TDim, TNumNodes>::CalculateAll(
 
     // Previous definitions
     const PropertiesType& Prop = this->GetProperties();
-    const GeometryType& Geom = this->GetGeometry();
+    const GeometryType& Geom   = this->GetGeometry();
     const GeometryType::IntegrationPointsArrayType& IntegrationPoints =
         Geom.IntegrationPoints(mThisIntegrationMethod);
     const SizeType NumGPoints = IntegrationPoints.size();
@@ -760,15 +760,15 @@ template <>
 void UPwSmallStrainFICElement<2, 4>::InitializeSecondOrderTerms(FICElementVariables& rFICVariables)
 {
     KRATOS_TRY
-    const SizeType Dim = 2;
+    const SizeType Dim      = 2;
     const SizeType NumNodes = 4;
 
     // Voigt identity matrix
     rFICVariables.VoigtMatrix.resize(VoigtSize, VoigtSize, false);
     noalias(rFICVariables.VoigtMatrix) = ZeroMatrix(VoigtSize, VoigtSize);
-    rFICVariables.VoigtMatrix(0, 0) = 1.0;
-    rFICVariables.VoigtMatrix(1, 1) = 1.0;
-    rFICVariables.VoigtMatrix(2, 2) = 0.5;
+    rFICVariables.VoigtMatrix(0, 0)    = 1.0;
+    rFICVariables.VoigtMatrix(1, 1)    = 1.0;
+    rFICVariables.VoigtMatrix(2, 2)    = 0.5;
 
     for (unsigned int i = 0; i < NumNodes; ++i)
         rFICVariables.ShapeFunctionsSecondOrderGradients[i].resize(VoigtSize, false);
@@ -803,18 +803,18 @@ void UPwSmallStrainFICElement<3, 8>::InitializeSecondOrderTerms(FICElementVariab
 {
     KRATOS_TRY
 
-    const SizeType Dim = 3;
+    const SizeType Dim      = 3;
     const SizeType NumNodes = 8;
 
     // Voigt identity matrix
     rFICVariables.VoigtMatrix.resize(VoigtSize, VoigtSize, false);
     noalias(rFICVariables.VoigtMatrix) = ZeroMatrix(VoigtSize, VoigtSize);
-    rFICVariables.VoigtMatrix(0, 0) = 1.0;
-    rFICVariables.VoigtMatrix(1, 1) = 1.0;
-    rFICVariables.VoigtMatrix(2, 2) = 1.0;
-    rFICVariables.VoigtMatrix(3, 3) = 0.5;
-    rFICVariables.VoigtMatrix(4, 4) = 0.5;
-    rFICVariables.VoigtMatrix(5, 5) = 0.5;
+    rFICVariables.VoigtMatrix(0, 0)    = 1.0;
+    rFICVariables.VoigtMatrix(1, 1)    = 1.0;
+    rFICVariables.VoigtMatrix(2, 2)    = 1.0;
+    rFICVariables.VoigtMatrix(3, 3)    = 0.5;
+    rFICVariables.VoigtMatrix(4, 4)    = 0.5;
+    rFICVariables.VoigtMatrix(5, 5)    = 0.5;
 
     for (unsigned int i = 0; i < NumNodes; ++i)
         rFICVariables.ShapeFunctionsSecondOrderGradients[i].resize(VoigtSize, false);
@@ -1038,7 +1038,7 @@ void UPwSmallStrainFICElement<2, 3>::CalculateConstitutiveTensorGradients(
 {
     KRATOS_TRY
 
-    const SizeType Dim = 2;
+    const SizeType Dim      = 2;
     const SizeType NumNodes = 3;
 
     for (unsigned int i = 0; i < Dim; ++i) {
@@ -1087,7 +1087,7 @@ void UPwSmallStrainFICElement<2, 4>::CalculateConstitutiveTensorGradients(
 {
     KRATOS_TRY
 
-    const SizeType Dim = 2;
+    const SizeType Dim      = 2;
     const SizeType NumNodes = 4;
 
     for (unsigned int i = 0; i < Dim; ++i) {
@@ -1153,7 +1153,7 @@ void UPwSmallStrainFICElement<3, 4>::CalculateConstitutiveTensorGradients(
 {
     KRATOS_TRY
 
-    const SizeType Dim = 3;
+    const SizeType Dim      = 3;
     const SizeType NumNodes = 4;
 
     for (unsigned int i = 0; i < Dim; ++i) {
@@ -1191,7 +1191,7 @@ void UPwSmallStrainFICElement<3, 8>::CalculateConstitutiveTensorGradients(
 {
     KRATOS_TRY
 
-    const SizeType Dim = 3;
+    const SizeType Dim      = 3;
     const SizeType NumNodes = 8;
 
     for (unsigned int i = 0; i < Dim; ++i) {

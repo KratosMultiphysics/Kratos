@@ -54,7 +54,7 @@ int UPwBaseElement<TDim, TNumNodes>::Check(const ProcessInfo& rCurrentProcessInf
     if (ierr != 0) return ierr;
 
     const PropertiesType& rProp = this->GetProperties();
-    const GeometryType& rGeom = this->GetGeometry();
+    const GeometryType& rGeom   = this->GetGeometry();
 
     // verify nodal variables and dofs
     for (unsigned int i = 0; i < TNumNodes; ++i) {
@@ -162,7 +162,7 @@ void UPwBaseElement<TDim, TNumNodes>::Initialize(const ProcessInfo& rCurrentProc
     KRATOS_TRY
 
     const PropertiesType& rProp = this->GetProperties();
-    const GeometryType& rGeom = this->GetGeometry();
+    const GeometryType& rGeom   = this->GetGeometry();
     const unsigned int NumGPoints = rGeom.IntegrationPointsNumber(mThisIntegrationMethod);
 
     // pointer to constitutive laws
@@ -191,7 +191,7 @@ void UPwBaseElement<TDim, TNumNodes>::Initialize(const ProcessInfo& rCurrentProc
         mStateVariablesFinalized.resize(NumGPoints);
     for (unsigned int i = 0; i < mConstitutiveLawVector.size(); ++i) {
         int nStateVariables = 0;
-        nStateVariables = mConstitutiveLawVector[i]->GetValue(
+        nStateVariables     = mConstitutiveLawVector[i]->GetValue(
             NUMBER_OF_UMAT_STATE_VARIABLES, nStateVariables);
         if (nStateVariables > 0) {
             // ProcessInfo rCurrentProcessInfo;
@@ -242,7 +242,7 @@ void UPwBaseElement<TDim, TNumNodes>::GetDofList(DofsVectorType& rElementalDofLi
     KRATOS_TRY
 
     const GeometryType& rGeom = this->GetGeometry();
-    const unsigned int N_DOF = this->GetNumberOfDOF();
+    const unsigned int N_DOF  = this->GetNumberOfDOF();
 
     if (rElementalDofList.size() != N_DOF) rElementalDofList.resize(N_DOF);
 
@@ -320,7 +320,7 @@ void UPwBaseElement<TDim, TNumNodes>::CalculateLocalSystem(MatrixType& rLeftHand
 
     // calculation flags
     const bool CalculateStiffnessMatrixFlag = true;
-    const bool CalculateResidualVectorFlag = true;
+    const bool CalculateResidualVectorFlag  = true;
 
     CalculateAll(rLeftHandSideMatrix, rRightHandSideVector, rCurrentProcessInfo,
                  CalculateStiffnessMatrixFlag, CalculateResidualVectorFlag);
@@ -337,7 +337,7 @@ void UPwBaseElement<TDim, TNumNodes>::CalculateLeftHandSide(MatrixType& rLeftHan
 
     // Calculation flags
     const bool CalculateStiffnessMatrixFlag = true;
-    const bool CalculateResidualVectorFlag = false;
+    const bool CalculateResidualVectorFlag  = false;
     VectorType TempVector;
 
     CalculateAll(rLeftHandSideMatrix, TempVector, rCurrentProcessInfo,
@@ -361,8 +361,8 @@ void UPwBaseElement<TDim, TNumNodes>::CalculateRightHandSide(VectorType& rRightH
     noalias(rRightHandSideVector) = ZeroVector(N_DOF);
 
     const bool CalculateStiffnessMatrixFlag = false;
-    const bool CalculateResidualVectorFlag = true;
-    MatrixType TempMatrix = Matrix();
+    const bool CalculateResidualVectorFlag  = true;
+    MatrixType TempMatrix                   = Matrix();
 
     CalculateAll(TempMatrix, rRightHandSideVector, rCurrentProcessInfo,
                  CalculateStiffnessMatrixFlag, CalculateResidualVectorFlag);
@@ -378,7 +378,7 @@ void UPwBaseElement<TDim, TNumNodes>::EquationIdVector(EquationIdVectorType& rRe
     KRATOS_TRY
 
     const GeometryType& rGeom = this->GetGeometry();
-    const unsigned int N_DOF = this->GetNumberOfDOF();
+    const unsigned int N_DOF  = this->GetNumberOfDOF();
 
     if (rResult.size() != N_DOF) rResult.resize(N_DOF, false);
 
@@ -468,7 +468,7 @@ void UPwBaseElement<TDim, TNumNodes>::GetValuesVector(Vector& rValues, int Step)
     KRATOS_TRY
 
     const GeometryType& rGeom = this->GetGeometry();
-    const unsigned int N_DOF = this->GetNumberOfDOF();
+    const unsigned int N_DOF  = this->GetNumberOfDOF();
 
     if (rValues.size() != N_DOF) rValues.resize(N_DOF, false);
 
@@ -503,7 +503,7 @@ void UPwBaseElement<TDim, TNumNodes>::GetFirstDerivativesVector(Vector& rValues,
     KRATOS_TRY
 
     const GeometryType& rGeom = this->GetGeometry();
-    const unsigned int N_DOF = this->GetNumberOfDOF();
+    const unsigned int N_DOF  = this->GetNumberOfDOF();
 
     if (rValues.size() != N_DOF) rValues.resize(N_DOF, false);
 
@@ -538,7 +538,7 @@ void UPwBaseElement<TDim, TNumNodes>::GetSecondDerivativesVector(Vector& rValues
     KRATOS_TRY
 
     const GeometryType& rGeom = this->GetGeometry();
-    const unsigned int N_DOF = this->GetNumberOfDOF();
+    const unsigned int N_DOF  = this->GetNumberOfDOF();
 
     if (rValues.size() != N_DOF) rValues.resize(N_DOF, false);
 

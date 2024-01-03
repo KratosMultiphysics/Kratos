@@ -33,15 +33,15 @@ public:
 
     using BaseType = SteadyStatePwInterfaceElement<TDim, TNumNodes>;
 
-    using IndexType = std::size_t;
+    using IndexType      = std::size_t;
     using PropertiesType = Properties;
-    using NodeType = Node;
-    using GeometryType = Geometry<NodeType>;
+    using NodeType       = Node;
+    using GeometryType   = Geometry<NodeType>;
     using NodesArrayType = GeometryType::PointsArrayType;
-    using VectorType = Vector;
-    using MatrixType = Matrix;
+    using VectorType     = Vector;
+    using MatrixType     = Matrix;
 
-    using DofsVectorType = Element::DofsVectorType;
+    using DofsVectorType       = Element::DofsVectorType;
     using EquationIdVectorType = Element::EquationIdVectorType;
 
     /// The definition of the sizetype

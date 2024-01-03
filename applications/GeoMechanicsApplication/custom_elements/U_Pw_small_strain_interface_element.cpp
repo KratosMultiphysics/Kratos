@@ -132,7 +132,7 @@ void UPwSmallStrainInterfaceElement<TDim, TNumNodes>::Initialize(const ProcessIn
     const GeometryType::IntegrationPointsArrayType& IntegrationPoints =
         Geom.IntegrationPoints(mThisIntegrationMethod);
     const unsigned int NumGPoints = IntegrationPoints.size();
-    const unsigned int VoigtSize = TDim;
+    const unsigned int VoigtSize  = TDim;
     if ((mStressVector.size() != NumGPoints) || (mStressVector[0].size() != VoigtSize)) {
         mStressVector.resize(NumGPoints);
         for (unsigned int i = 0; i < mStressVector.size(); ++i) {
@@ -157,7 +157,7 @@ void UPwSmallStrainInterfaceElement<TDim, TNumNodes>::CalculateMassMatrix(
     noalias(rMassMatrix) = ZeroMatrix(N_DOF, N_DOF);
 
     const PropertiesType& Prop = this->GetProperties();
-    const GeometryType& Geom = this->GetGeometry();
+    const GeometryType& Geom   = this->GetGeometry();
     const GeometryType::IntegrationPointsArrayType& IntegrationPoints =
         Geom.IntegrationPoints(mThisIntegrationMethod);
     const unsigned int NumGPoints = IntegrationPoints.size();
@@ -227,7 +227,7 @@ void UPwSmallStrainInterfaceElement<TDim, TNumNodes>::InitializeSolutionStep(con
 
     // Defining necessary variables
     const PropertiesType& Prop = this->GetProperties();
-    const GeometryType& Geom = this->GetGeometry();
+    const GeometryType& Geom   = this->GetGeometry();
     const Matrix& NContainer = Geom.ShapeFunctionsValues(mThisIntegrationMethod);
     array_1d<double, TNumNodes * TDim> DisplacementVector;
     GeoElementUtilities::GetNodalVariableVector<TDim, TNumNodes>(
@@ -243,7 +243,7 @@ void UPwSmallStrainInterfaceElement<TDim, TNumNodes>::InitializeSolutionStep(con
     Matrix ConstitutiveMatrix(TDim, TDim);
     Vector Np(TNumNodes);
     Matrix GradNpT(TNumNodes, TDim);
-    Matrix F = identity_matrix<double>(TDim);
+    Matrix F    = identity_matrix<double>(TDim);
     double detF = 1.0;
     ConstitutiveLaw::Parameters ConstitutiveParameters(Geom, Prop, rCurrentProcessInfo);
     ConstitutiveParameters.SetConstitutiveMatrix(ConstitutiveMatrix);
@@ -288,7 +288,7 @@ void UPwSmallStrainInterfaceElement<TDim, TNumNodes>::FinalizeSolutionStep(const
 
     // Defining necessary variables
     const PropertiesType& Prop = this->GetProperties();
-    const GeometryType& Geom = this->GetGeometry();
+    const GeometryType& Geom   = this->GetGeometry();
     const Matrix& NContainer = Geom.ShapeFunctionsValues(mThisIntegrationMethod);
     array_1d<double, TNumNodes * TDim> DisplacementVector;
     GeoElementUtilities::GetNodalVariableVector<TDim, TNumNodes>(
@@ -306,7 +306,7 @@ void UPwSmallStrainInterfaceElement<TDim, TNumNodes>::FinalizeSolutionStep(const
     Matrix ConstitutiveMatrix(TDim, TDim);
     Vector Np(TNumNodes);
     Matrix GradNpT(TNumNodes, TDim);
-    Matrix F = identity_matrix<double>(TDim);
+    Matrix F    = identity_matrix<double>(TDim);
     double detF = 1.0;
     ConstitutiveLaw::Parameters ConstitutiveParameters(Geom, Prop, rCurrentProcessInfo);
     ConstitutiveParameters.SetConstitutiveMatrix(ConstitutiveMatrix);
@@ -366,7 +366,7 @@ void UPwSmallStrainInterfaceElement<TDim, TNumNodes>::ModifyInactiveElementStres
 {
     KRATOS_TRY
 
-    const PropertiesType& Prop = this->GetProperties();
+    const PropertiesType& Prop      = this->GetProperties();
     const double& MinimumJointWidth = Prop[MINIMUM_JOINT_WIDTH];
 
     if (JointWidth > MinimumJointWidth) {
@@ -374,7 +374,7 @@ void UPwSmallStrainInterfaceElement<TDim, TNumNodes>::ModifyInactiveElementStres
             Prop.Has(CONSIDER_GAP_CLOSURE) ? Prop[CONSIDER_GAP_CLOSURE] : false;
         if (ConsiderGapClosure) {
             const double decayFactor = 1.0;
-            const double x = (JointWidth / MinimumJointWidth) - 1.0;
+            const double x           = (JointWidth / MinimumJointWidth) - 1.0;
             StressVector *= std::max(0.01, exp(-x * decayFactor));
         }
     }
@@ -396,7 +396,7 @@ void UPwSmallStrainInterfaceElement<2, 4>::ExtrapolateGPValues(const std::vector
     }
 
     GeometryType& rGeom = this->GetGeometry();
-    const double& Area = rGeom.Area();
+    const double& Area  = rGeom.Area();
 
     array_1d<double, 4> NodalJointWidth;
     NodalJointWidth[0] = JointWidthContainer[0] * Area;
@@ -436,7 +436,7 @@ void UPwSmallStrainInterfaceElement<3, 6>::ExtrapolateGPValues(const std::vector
     }
 
     GeometryType& rGeom = this->GetGeometry();
-    const double& Area = rGeom.Area();
+    const double& Area  = rGeom.Area();
 
     array_1d<double, 6> NodalJointWidth;
     NodalJointWidth[0] = JointWidthContainer[0] * Area;
@@ -481,7 +481,7 @@ void UPwSmallStrainInterfaceElement<3, 8>::ExtrapolateGPValues(const std::vector
     }
 
     GeometryType& rGeom = this->GetGeometry();
-    const double& Area = rGeom.Area();
+    const double& Area  = rGeom.Area();
 
     array_1d<double, 8> NodalJointWidth;
     NodalJointWidth[0] = JointWidthContainer[0] * Area;
@@ -820,7 +820,7 @@ void UPwSmallStrainInterfaceElement<TDim, TNumNodes>::CalculateOnLobattoIntegrat
 
     if (rVariable == FLUID_FLUX_VECTOR) {
         const PropertiesType& Prop = this->GetProperties();
-        const GeometryType& Geom = this->GetGeometry();
+        const GeometryType& Geom   = this->GetGeometry();
         const unsigned int NumGPoints = Geom.IntegrationPointsNumber(mThisIntegrationMethod);
 
         // Defining the shape functions, the Jacobian and the shape functions local gradients Containers
@@ -923,7 +923,7 @@ void UPwSmallStrainInterfaceElement<TDim, TNumNodes>::CalculateOnLobattoIntegrat
         }
     } else if (rVariable == LOCAL_FLUID_FLUX_VECTOR) {
         const PropertiesType& Prop = this->GetProperties();
-        const GeometryType& Geom = this->GetGeometry();
+        const GeometryType& Geom   = this->GetGeometry();
         const unsigned int NumGPoints = Geom.IntegrationPointsNumber(mThisIntegrationMethod);
 
         // Defining the shape functions, the Jacobian and the shape functions local gradients Containers
@@ -956,7 +956,7 @@ void UPwSmallStrainInterfaceElement<TDim, TNumNodes>::CalculateOnLobattoIntegrat
         const double& TransversalPermeability = Prop[TRANSVERSAL_PERMEABILITY];
         BoundedMatrix<double, TDim, TDim> LocalPermeabilityMatrix = ZeroMatrix(TDim, TDim);
         const double DynamicViscosityInverse = 1.0 / Prop[DYNAMIC_VISCOSITY];
-        const double& FluidDensity = Prop[DENSITY_WATER];
+        const double& FluidDensity           = Prop[DENSITY_WATER];
         array_1d<double, TDim> LocalFluidFlux;
         array_1d<double, TDim> GradPressureTerm;
         SFGradAuxVariables SFGradAuxVars;
@@ -1096,7 +1096,7 @@ void UPwSmallStrainInterfaceElement<TDim, TNumNodes>::CalculateOnLobattoIntegrat
     KRATOS_TRY
 
     if (rVariable == PERMEABILITY_MATRIX) {
-        const GeometryType& Geom = this->GetGeometry();
+        const GeometryType& Geom   = this->GetGeometry();
         const PropertiesType& Prop = this->GetProperties();
 
         // Defining the shape functions container
@@ -1140,7 +1140,7 @@ void UPwSmallStrainInterfaceElement<TDim, TNumNodes>::CalculateOnLobattoIntegrat
             noalias(rOutput[GPoint]) = PermeabilityMatrix;
         }
     } else if (rVariable == LOCAL_PERMEABILITY_MATRIX) {
-        const GeometryType& Geom = this->GetGeometry();
+        const GeometryType& Geom   = this->GetGeometry();
         const PropertiesType& Prop = this->GetProperties();
 
         // Defining the shape functions container
@@ -1194,10 +1194,10 @@ void UPwSmallStrainInterfaceElement<2, 4>::CalculateInitialGap(const GeometryTyp
     mIsOpen.resize(2);
 
     array_1d<double, 3> Vx;
-    noalias(Vx) = Geom.GetPoint(3) - Geom.GetPoint(0);
+    noalias(Vx)    = Geom.GetPoint(3) - Geom.GetPoint(0);
     mInitialGap[0] = norm_2(Vx);
 
-    noalias(Vx) = Geom.GetPoint(2) - Geom.GetPoint(1);
+    noalias(Vx)    = Geom.GetPoint(2) - Geom.GetPoint(1);
     mInitialGap[1] = norm_2(Vx);
 
     for (unsigned i = 0; i < mIsOpen.size(); ++i) {
@@ -1218,13 +1218,13 @@ void UPwSmallStrainInterfaceElement<3, 6>::CalculateInitialGap(const GeometryTyp
     mIsOpen.resize(3);
 
     array_1d<double, 3> Vx;
-    noalias(Vx) = Geom.GetPoint(3) - Geom.GetPoint(0);
+    noalias(Vx)    = Geom.GetPoint(3) - Geom.GetPoint(0);
     mInitialGap[0] = norm_2(Vx);
 
-    noalias(Vx) = Geom.GetPoint(4) - Geom.GetPoint(1);
+    noalias(Vx)    = Geom.GetPoint(4) - Geom.GetPoint(1);
     mInitialGap[1] = norm_2(Vx);
 
-    noalias(Vx) = Geom.GetPoint(5) - Geom.GetPoint(2);
+    noalias(Vx)    = Geom.GetPoint(5) - Geom.GetPoint(2);
     mInitialGap[2] = norm_2(Vx);
 
     for (unsigned i = 0; i < mIsOpen.size(); ++i) {
@@ -1245,16 +1245,16 @@ void UPwSmallStrainInterfaceElement<3, 8>::CalculateInitialGap(const GeometryTyp
     mIsOpen.resize(4);
 
     array_1d<double, 3> Vx;
-    noalias(Vx) = Geom.GetPoint(4) - Geom.GetPoint(0);
+    noalias(Vx)    = Geom.GetPoint(4) - Geom.GetPoint(0);
     mInitialGap[0] = norm_2(Vx);
 
-    noalias(Vx) = Geom.GetPoint(5) - Geom.GetPoint(1);
+    noalias(Vx)    = Geom.GetPoint(5) - Geom.GetPoint(1);
     mInitialGap[1] = norm_2(Vx);
 
-    noalias(Vx) = Geom.GetPoint(6) - Geom.GetPoint(2);
+    noalias(Vx)    = Geom.GetPoint(6) - Geom.GetPoint(2);
     mInitialGap[2] = norm_2(Vx);
 
-    noalias(Vx) = Geom.GetPoint(7) - Geom.GetPoint(3);
+    noalias(Vx)    = Geom.GetPoint(7) - Geom.GetPoint(3);
     mInitialGap[3] = norm_2(Vx);
 
     for (unsigned i = 0; i < mIsOpen.size(); ++i) {
@@ -1279,7 +1279,7 @@ void UPwSmallStrainInterfaceElement<TDim, TNumNodes>::CalculateMaterialStiffness
 
     // Previous definitions
     const PropertiesType& Prop = this->GetProperties();
-    const GeometryType& Geom = this->GetGeometry();
+    const GeometryType& Geom   = this->GetGeometry();
     const GeometryType::IntegrationPointsArrayType& IntegrationPoints =
         Geom.IntegrationPoints(mThisIntegrationMethod);
     const unsigned int NumGPoints = IntegrationPoints.size();
@@ -1352,7 +1352,7 @@ void UPwSmallStrainInterfaceElement<TDim, TNumNodes>::CalculateAll(
 
     // Previous definitions
     const PropertiesType& Prop = this->GetProperties();
-    const GeometryType& Geom = this->GetGeometry();
+    const GeometryType& Geom   = this->GetGeometry();
     const GeometryType::IntegrationPointsArrayType& IntegrationPoints =
         Geom.IntegrationPoints(mThisIntegrationMethod);
     const unsigned int NumGPoints = IntegrationPoints.size();
@@ -1381,7 +1381,7 @@ void UPwSmallStrainInterfaceElement<TDim, TNumNodes>::CalculateAll(
     this->SetConstitutiveParameters(Variables, ConstitutiveParameters);
 
     // Auxiliary variables
-    const double& MinimumJointWidth = Prop[MINIMUM_JOINT_WIDTH];
+    const double& MinimumJointWidth       = Prop[MINIMUM_JOINT_WIDTH];
     const double& TransversalPermeability = Prop[TRANSVERSAL_PERMEABILITY];
     array_1d<double, TDim> RelDispVector;
     SFGradAuxVariables SFGradAuxVars;
@@ -1456,9 +1456,9 @@ void UPwSmallStrainInterfaceElement<TDim, TNumNodes>::InitializeElementVariables
     rVariables.IgnoreUndrained = Prop[IGNORE_UNDRAINED];
 
     rVariables.DynamicViscosityInverse = 1.0 / Prop[DYNAMIC_VISCOSITY];
-    rVariables.FluidDensity = Prop[DENSITY_WATER];
-    rVariables.SolidDensity = Prop[DENSITY_SOLID];
-    rVariables.Porosity = Prop[POROSITY];
+    rVariables.FluidDensity            = Prop[DENSITY_WATER];
+    rVariables.SolidDensity            = Prop[DENSITY_SOLID];
+    rVariables.Porosity                = Prop[POROSITY];
 
     // ProcessInfo variables
     rVariables.VelocityCoefficient = CurrentProcessInfo[VELOCITY_COEFFICIENT];
@@ -1496,11 +1496,11 @@ void UPwSmallStrainInterfaceElement<TDim, TNumNodes>::InitializeElementVariables
     noalias(rVariables.LocalPermeabilityMatrix) = ZeroMatrix(TDim, TDim);
 
     // Retention law
-    rVariables.FluidPressure = 0.0;
-    rVariables.DegreeOfSaturation = 1.0;
+    rVariables.FluidPressure          = 0.0;
+    rVariables.DegreeOfSaturation     = 1.0;
     rVariables.DerivativeOfSaturation = 0.0;
-    rVariables.RelativePermeability = 1.0;
-    rVariables.BishopCoefficient = 1.0;
+    rVariables.RelativePermeability   = 1.0;
+    rVariables.BishopCoefficient      = 1.0;
 
     KRATOS_CATCH("")
 }
@@ -1535,7 +1535,7 @@ void UPwSmallStrainInterfaceElement<2, 4>::CalculateRotationMatrix(
 
     // Unitary vector in local x direction
     array_1d<double, 3> Vx;
-    noalias(Vx) = pmid1 - pmid0;
+    noalias(Vx)       = pmid1 - pmid0;
     double inv_norm_x = 1.0 / norm_2(Vx);
     Vx[0] *= inv_norm_x;
     Vx[1] *= inv_norm_x;
@@ -1590,7 +1590,7 @@ void UPwSmallStrainInterfaceElement<3, 6>::CalculateRotationMatrix(
 
     // Unitary vector in local x direction
     array_1d<double, 3> Vx;
-    noalias(Vx) = pmid1 - pmid0;
+    noalias(Vx)     = pmid1 - pmid0;
     double inv_norm = 1.0 / norm_2(Vx);
     Vx[0] *= inv_norm;
     Vx[1] *= inv_norm;
@@ -1641,7 +1641,7 @@ void UPwSmallStrainInterfaceElement<3, 8>::CalculateRotationMatrix(
 
     // Unitary vector in local x direction
     array_1d<double, 3> Vx;
-    noalias(Vx) = pmid1 - pmid0;
+    noalias(Vx)     = pmid1 - pmid0;
     double inv_norm = 1.0 / norm_2(Vx);
     Vx[0] *= inv_norm;
     Vx[1] *= inv_norm;
@@ -1711,7 +1711,7 @@ void UPwSmallStrainInterfaceElement<TDim, TNumNodes>::CheckAndCalculateJointWidt
             // consider contact between interfaces
             rConstitutiveParameters.Reset(ConstitutiveLaw::COMPUTE_STRAIN_ENERGY);
             rNormalRelDisp = rJointWidth - MinimumJointWidth;
-            rJointWidth = MinimumJointWidth;
+            rJointWidth    = MinimumJointWidth;
         }
     } else {
         // Initially closed joint
@@ -1719,7 +1719,7 @@ void UPwSmallStrainInterfaceElement<TDim, TNumNodes>::CheckAndCalculateJointWidt
             // consider contact between interfaces
             rConstitutiveParameters.Reset(ConstitutiveLaw::COMPUTE_STRAIN_ENERGY);
             rNormalRelDisp = rJointWidth;
-            rJointWidth = MinimumJointWidth;
+            rJointWidth    = MinimumJointWidth;
         } else if (rJointWidth < MinimumJointWidth) {
             rJointWidth = MinimumJointWidth;
         }
@@ -2261,8 +2261,8 @@ double UPwSmallStrainInterfaceElement<TDim, TNumNodes>::CalculateBulkModulus(con
     KRATOS_TRY
 
     const int IndexM = ConstitutiveMatrix.size1() - 1;
-    const double M = ConstitutiveMatrix(IndexM, IndexM);
-    const double G = ConstitutiveMatrix(0, 0);
+    const double M   = ConstitutiveMatrix(IndexM, IndexM);
+    const double G   = ConstitutiveMatrix(0, 0);
 
     return M - (4.0 / 3.0) * G;
 

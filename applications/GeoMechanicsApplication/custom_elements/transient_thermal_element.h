@@ -243,7 +243,7 @@ private:
     {
         const auto capacity_vector = array_1d<double, TNumNodes>{
             -prod(rCapacityMatrix, GetNodalValuesOf(DT_TEMPERATURE))};
-        rRightHandSideVector = capacity_vector;
+        rRightHandSideVector           = capacity_vector;
         const auto conductivity_vector = array_1d<double, TNumNodes>{
             -prod(rConductivityMatrix, GetNodalValuesOf(TEMPERATURE))};
         rRightHandSideVector += conductivity_vector;
@@ -322,7 +322,7 @@ private:
 
     array_1d<double, TNumNodes> GetNodalValuesOf(const Variable<double>& rNodalVariable) const
     {
-        auto result = array_1d<double, TNumNodes>{};
+        auto result            = array_1d<double, TNumNodes>{};
         const auto& r_geometry = GetGeometry();
         std::transform(r_geometry.begin(), r_geometry.end(), result.begin(),
                        [&rNodalVariable](const auto& node) {

@@ -37,7 +37,7 @@ void UPwSmallStrainLinkInterfaceElement<TDim, TNumNodes>::CalculateOnIntegration
 
     if (rVariable == FLUID_FLUX_VECTOR) {
         const PropertiesType& Prop = this->GetProperties();
-        const GeometryType& Geom = this->GetGeometry();
+        const GeometryType& Geom   = this->GetGeometry();
         const unsigned int NumGPoints = Geom.IntegrationPointsNumber(mThisIntegrationMethod);
 
         // Defining the shape functions, the jacobian and the shape functions local gradients Containers
@@ -69,7 +69,7 @@ void UPwSmallStrainLinkInterfaceElement<TDim, TNumNodes>::CalculateOnIntegration
         double JointWidth;
         BoundedMatrix<double, TDim, TDim> LocalPermeabilityMatrix = ZeroMatrix(TDim, TDim);
         const double& DynamicViscosityInverse = 1.0 / Prop[DYNAMIC_VISCOSITY];
-        const double& FluidDensity = Prop[DENSITY_WATER];
+        const double& FluidDensity            = Prop[DENSITY_WATER];
         array_1d<double, TDim> LocalFluidFlux;
         array_1d<double, TDim> GradPressureTerm;
         array_1d<double, TDim> FluidFlux;
@@ -141,7 +141,7 @@ void UPwSmallStrainLinkInterfaceElement<TDim, TNumNodes>::CalculateOnIntegration
         }
     } else if (rVariable == LOCAL_FLUID_FLUX_VECTOR) {
         const PropertiesType& Prop = this->GetProperties();
-        const GeometryType& Geom = this->GetGeometry();
+        const GeometryType& Geom   = this->GetGeometry();
         const unsigned int NumGPoints = Geom.IntegrationPointsNumber(mThisIntegrationMethod);
 
         // Defining the shape functions, the jacobian and the shape functions local gradients Containers
@@ -173,7 +173,7 @@ void UPwSmallStrainLinkInterfaceElement<TDim, TNumNodes>::CalculateOnIntegration
         double JointWidth;
         BoundedMatrix<double, TDim, TDim> LocalPermeabilityMatrix = ZeroMatrix(TDim, TDim);
         const double& DynamicViscosityInverse = 1.0 / Prop[DYNAMIC_VISCOSITY];
-        const double& FluidDensity = Prop[DENSITY_WATER];
+        const double& FluidDensity            = Prop[DENSITY_WATER];
         array_1d<double, TDim> LocalFluidFlux;
         array_1d<double, TDim> GradPressureTerm;
         SFGradAuxVariables SFGradAuxVars;
@@ -222,7 +222,7 @@ void UPwSmallStrainLinkInterfaceElement<TDim, TNumNodes>::CalculateOnIntegration
     KRATOS_TRY
 
     if (rVariable == PERMEABILITY_MATRIX) {
-        const GeometryType& Geom = this->GetGeometry();
+        const GeometryType& Geom   = this->GetGeometry();
         const PropertiesType& Prop = this->GetProperties();
 
         // Defining the shape functions container
@@ -265,7 +265,7 @@ void UPwSmallStrainLinkInterfaceElement<TDim, TNumNodes>::CalculateOnIntegration
             noalias(rOutput[GPoint]) = PermeabilityMatrix;
         }
     } else if (rVariable == LOCAL_PERMEABILITY_MATRIX) {
-        const GeometryType& Geom = this->GetGeometry();
+        const GeometryType& Geom   = this->GetGeometry();
         const PropertiesType& Prop = this->GetProperties();
 
         // Defining the shape functions container
@@ -321,7 +321,7 @@ void UPwSmallStrainLinkInterfaceElement<TDim, TNumNodes>::CalculateAll(
 
     // Previous definitions
     const PropertiesType& Prop = this->GetProperties();
-    const GeometryType& Geom = this->GetGeometry();
+    const GeometryType& Geom   = this->GetGeometry();
     const GeometryType::IntegrationPointsArrayType& IntegrationPoints =
         Geom.IntegrationPoints(mThisIntegrationMethod);
     const unsigned int NumGPoints = IntegrationPoints.size();

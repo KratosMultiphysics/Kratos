@@ -36,9 +36,9 @@ class KRATOS_API(GEO_MECHANICS_APPLICATION) GeoTrussElement
 {
 protected:
     // const values
-    static constexpr int mStressVectorSize = 1;
-    Vector mInternalStresses = ZeroVector(mStressVectorSize);
-    Vector mInternalStressesFinalized = ZeroVector(mStressVectorSize);
+    static constexpr int mStressVectorSize    = 1;
+    Vector mInternalStresses                  = ZeroVector(mStressVectorSize);
+    Vector mInternalStressesFinalized         = ZeroVector(mStressVectorSize);
     Vector mInternalStressesFinalizedPrevious = ZeroVector(mStressVectorSize);
 
 public:

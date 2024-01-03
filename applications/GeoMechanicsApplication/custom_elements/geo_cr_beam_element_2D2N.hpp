@@ -40,16 +40,16 @@ class KRATOS_API(GEO_MECHANICS_APPLICATION) GeoCrBeamElement2D2N : public CrBeam
 public:
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(GeoCrBeamElement2D2N);
 
-    using BaseType = CrBeamElement2D2N;
-    using GeometryType = BaseType::GeometryType;
-    using NodesArrayType = BaseType::NodesArrayType;
-    using PropertiesType = BaseType::PropertiesType;
-    using IndexType = BaseType::IndexType;
-    using SizeType = BaseType::SizeType;
-    using MatrixType = BaseType::MatrixType;
-    using VectorType = BaseType::VectorType;
+    using BaseType             = CrBeamElement2D2N;
+    using GeometryType         = BaseType::GeometryType;
+    using NodesArrayType       = BaseType::NodesArrayType;
+    using PropertiesType       = BaseType::PropertiesType;
+    using IndexType            = BaseType::IndexType;
+    using SizeType             = BaseType::SizeType;
+    using MatrixType           = BaseType::MatrixType;
+    using VectorType           = BaseType::VectorType;
     using EquationIdVectorType = BaseType::EquationIdVectorType;
-    using DofsVectorType = BaseType::DofsVectorType;
+    using DofsVectorType       = BaseType::DofsVectorType;
 
     GeoCrBeamElement2D2N(){};
     GeoCrBeamElement2D2N(IndexType NewId, GeometryType::Pointer pGeometry);
@@ -104,7 +104,7 @@ public:
     void ResetConstitutiveLaw() override;
 
 protected:
-    Vector mInternalGlobalForcesFinalized = ZeroVector(msElementSize);
+    Vector mInternalGlobalForcesFinalized         = ZeroVector(msElementSize);
     Vector mInternalGlobalForcesFinalizedPrevious = ZeroVector(msElementSize);
 
 private:

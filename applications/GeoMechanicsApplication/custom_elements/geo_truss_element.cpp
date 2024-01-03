@@ -69,8 +69,8 @@ void GeoTrussElement<TDim, TNumNodes>::ResetConstitutiveLaw()
 {
     KRATOS_TRY
 
-    mInternalStresses = ZeroVector(mStressVectorSize);
-    mInternalStressesFinalized = ZeroVector(mStressVectorSize);
+    mInternalStresses                  = ZeroVector(mStressVectorSize);
+    mInternalStressesFinalized         = ZeroVector(mStressVectorSize);
     mInternalStressesFinalizedPrevious = ZeroVector(mStressVectorSize);
 
     KRATOS_CATCH("")
@@ -112,14 +112,14 @@ void GeoTrussElement<TDim, TNumNodes>::CalculateOnIntegrationPoints(
 
     if (rVariable == GREEN_LAGRANGE_STRAIN_VECTOR) {
         Vector strain = ZeroVector(TDim);
-        strain[0] = this->CalculateGreenLagrangeStrain();
-        rOutput[0] = strain;
+        strain[0]     = this->CalculateGreenLagrangeStrain();
+        rOutput[0]    = strain;
     }
     if (rVariable == PK2_STRESS_VECTOR) {
         ConstitutiveLaw::Parameters Values(
             this->GetGeometry(), this->GetProperties(), rCurrentProcessInfo);
         Vector temp_strain = ZeroVector(1);
-        temp_strain[0] = this->CalculateGreenLagrangeStrain();
+        temp_strain[0]     = this->CalculateGreenLagrangeStrain();
         Values.SetStrainVector(temp_strain);
 
         array_1d<double, 3> temp_internal_stresses = ZeroVector(3);
@@ -136,7 +136,7 @@ void GeoTrussElement<TDim, TNumNodes>::CalculateOnIntegrationPoints(
         ConstitutiveLaw::Parameters Values(
             this->GetGeometry(), this->GetProperties(), temp_process_information);
         Vector temp_strain = ZeroVector(1);
-        temp_strain[0] = this->CalculateGreenLagrangeStrain();
+        temp_strain[0]     = this->CalculateGreenLagrangeStrain();
         Values.SetStrainVector(temp_strain);
         array_1d<double, 3> temp_internal_stresses = ZeroVector(3);
         mpConstitutiveLaw->CalculateValue(Values, FORCE, temp_internal_stresses);
@@ -189,7 +189,7 @@ void GeoTrussElement<TDim, TNumNodes>::CalculateOnIntegrationPoints(
             this->GetGeometry(), this->GetProperties(), temp_process_information);
 
         Vector temp_strain = ZeroVector(1);
-        temp_strain[0] = this->CalculateGreenLagrangeStrain();
+        temp_strain[0]     = this->CalculateGreenLagrangeStrain();
         Values.SetStrainVector(temp_strain);
         array_1d<double, 3> temp_internal_stresses = ZeroVector(3);
         mpConstitutiveLaw->CalculateValue(Values, FORCE, temp_internal_stresses);
@@ -231,7 +231,7 @@ void GeoTrussElement<TDim, TNumNodes>::UpdateInternalForces(
         this->GetGeometry(), this->GetProperties(), rCurrentProcessInfo);
     Vector temp_strain = ZeroVector(1);
     Vector temp_stress = ZeroVector(1);
-    temp_strain[0] = this->CalculateGreenLagrangeStrain();
+    temp_strain[0]     = this->CalculateGreenLagrangeStrain();
     Values.SetStrainVector(temp_strain);
     Values.SetStressVector(temp_stress);
     mpConstitutiveLaw->CalculateMaterialResponse(Values, ConstitutiveLaw::StressMeasure_PK2);
@@ -244,9 +244,9 @@ void GeoTrussElement<TDim, TNumNodes>::UpdateInternalForces(
 
     // internal force vectors
     BoundedVector<double, TDim * TNumNodes> f_local = ZeroVector(TDim * TNumNodes);
-    f_local[0] = -1.00 * normal_force;
-    f_local[TDim] = 1.00 * normal_force;
-    rInternalForces = ZeroVector(TDim * TNumNodes);
+    f_local[0]               = -1.00 * normal_force;
+    f_local[TDim]            = 1.00 * normal_force;
+    rInternalForces          = ZeroVector(TDim * TNumNodes);
     noalias(rInternalForces) = prod(transformation_matrix, f_local);
     KRATOS_CATCH("");
 }

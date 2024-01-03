@@ -69,7 +69,7 @@ void GeoCrBeamElement3D2N::ResetConstitutiveLaw()
 {
     KRATOS_TRY
 
-    mLocalForcesFinalized = ZeroVector(msElementSize);
+    mLocalForcesFinalized         = ZeroVector(msElementSize);
     mLocalForcesFinalizedPrevious = ZeroVector(msElementSize);
 
     KRATOS_CATCH("")
@@ -196,7 +196,7 @@ void GeoCrBeamElement3D2N::InitializeSolutionStep(const ProcessInfo& rCurrentPro
             else
                 noalias(mLocalForcesFinalized) = mLocalForcesFinalizedPrevious;
         } else {
-            noalias(mLocalForcesFinalized) = ZeroVector(msElementSize);
+            noalias(mLocalForcesFinalized)         = ZeroVector(msElementSize);
             noalias(mLocalForcesFinalizedPrevious) = ZeroVector(msElementSize);
         }
     }

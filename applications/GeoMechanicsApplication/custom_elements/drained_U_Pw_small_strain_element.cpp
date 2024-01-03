@@ -55,7 +55,7 @@ int DrainedUPwSmallStrainElement<TDim, TNumNodes>::Check(const ProcessInfo& rCur
     if (ierr != 0) return ierr;
 
     const PropertiesType& Prop = this->GetProperties();
-    const GeometryType& Geom = this->GetGeometry();
+    const GeometryType& Geom   = this->GetGeometry();
 
     if (Geom.DomainSize() < 1.0e-15)
         KRATOS_ERROR << "DomainSize < 1.0e-15 for the element " << this->Id() << std::endl;
