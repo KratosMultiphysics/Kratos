@@ -11,15 +11,15 @@
 // External includes
 
 // Project includes
-#include "real_contact_morris.h"
+#include "real_contact_morris_area_time.h"
 
 namespace Kratos {
   //-----------------------------------------------------------------------------------------------------------------------
-  RealContactMorris::RealContactMorris() {}
-  RealContactMorris::~RealContactMorris() {}
+  RealContactMorrisAreaTime::RealContactMorrisAreaTime() {}
+  RealContactMorrisAreaTime::~RealContactMorrisAreaTime() {}
 
   //------------------------------------------------------------------------------------------------------------
-  void RealContactMorris::AdjustContact(const ProcessInfo& r_process_info, ThermalSphericParticle* particle) {
+  void RealContactMorrisAreaTime::AdjustContact(const ProcessInfo& r_process_info, ThermalSphericParticle* particle) {
     KRATOS_TRY
 
     // Parameters
