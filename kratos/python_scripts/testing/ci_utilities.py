@@ -72,11 +72,14 @@ def print_ci_information() -> None:
     print(f"{is_mpi_core_changed()=}\n")
 
 
-def add_compiled_apps_to_env() -> None:
+def write_compiled_apps_to_file() -> None:
     """This function add the applications that are to be compiled to the environment
     For now this adds everything, but in the future this will be depending on the actual changes of the PR
     """
-    environ["KRATOS_APPLICATIONS"] = ";".join(map(lambda a: "applications/" + a, ci_applications()))
+
+    with open("ci_apps.txt", "w") as ci_apps_file:
+        for app in ["app1", "app_2", "ppaa3"]:
+            ci_apps_file.write(f"applications/{app}\n")
 
 
 if __name__ == "__main__":
@@ -93,7 +96,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     if args.compilation:
-        add_compiled_apps_to_env()
+        write_compiled_apps_to_file()
     elif args.testing:
         # not yet implemented
         pass
