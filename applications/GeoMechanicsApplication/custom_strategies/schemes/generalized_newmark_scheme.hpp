@@ -21,24 +21,49 @@ class GeneralizedNewmarkScheme
     : public GeoMechanicsTimeIntegrationScheme<TSparseSpace, TDenseSpace>
 {
 public:
-    GeneralizedNewmarkScheme(double theta,
-                             const std::vector<FirstOrderScalarVariable>& rFirstOrderScalarVariables,
+    GeneralizedNewmarkScheme(const std::vector<FirstOrderScalarVariable>& rFirstOrderScalarVariables,
                              const std::vector<SecondOrderVectorVariable>& rSecondOrderVectorVariables,
-                             double beta = 0.25,
-                             double gamma = 0.5)
+                             double theta,
+                             double beta,
+                             double gamma)
         : GeoMechanicsTimeIntegrationScheme<TSparseSpace, TDenseSpace>(
               rFirstOrderScalarVariables, rSecondOrderVectorVariables),
           mTheta(theta),
           mBeta(beta),
           mGamma(gamma)
     {
-        KRATOS_ERROR_IF(this->mTheta <= 0)
-            << "Theta must be larger than zero, but got " << this->mTheta << "\n";
+        KRATOS_ERROR_IF(mTheta <= 0)
+            << "Theta must be larger than zero, but got " << mTheta << "\n";
         KRATOS_ERROR_IF(mBeta <= 0)
             << "Beta must be larger than zero, but got " << mBeta << "\n";
         KRATOS_ERROR_IF(mGamma <= 0)
             << "Gamma must be larger than zero, but got " << mGamma << "\n";
     }
+
+    GeneralizedNewmarkScheme(const std::vector<FirstOrderScalarVariable>& rFirstOrderScalarVariables,
+                             double theta)
+        : GeoMechanicsTimeIntegrationScheme<TSparseSpace, TDenseSpace>(
+              rFirstOrderScalarVariables, {}),
+          mTheta(theta)
+    {
+        KRATOS_ERROR_IF(mTheta <= 0)
+            << "Theta must be larger than zero, but got " << mTheta << "\n";
+    }
+
+    GeneralizedNewmarkScheme(const std::vector<SecondOrderVectorVariable>& rSecondOrderVectorVariables,
+                             double beta,
+                             double gamma)
+        : GeoMechanicsTimeIntegrationScheme<TSparseSpace, TDenseSpace>(
+              {}, rSecondOrderVectorVariables),
+          mBeta(beta),
+          mGamma(gamma)
+    {
+        KRATOS_ERROR_IF(mBeta <= 0)
+            << "Beta must be larger than zero, but got " << mBeta << "\n";
+        KRATOS_ERROR_IF(mGamma <= 0)
+            << "Gamma must be larger than zero, but got " << mGamma << "\n";
+    }
+
 
 protected:
     void UpdateVectorFirstTimeDerivative(Node& rNode) const override
@@ -115,7 +140,6 @@ protected:
     }
 
     double GetBeta() const { return mBeta; }
-
     double GetGamma() const { return mGamma; }
 
 private:

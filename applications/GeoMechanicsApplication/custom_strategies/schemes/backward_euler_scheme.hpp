@@ -39,12 +39,12 @@ protected:
         for (const auto& r_first_order_variable : this->GetFirstOrderScalarVariables())
         {
             rModelPart.GetProcessInfo()[r_first_order_variable.delta_time_coefficient] =
-                1.0 / delta_time;
+                1.0 / this->GetDeltaTime();
         }
 
         if (!this->GetSecondOrderVectorVariables().empty())
         {
-            rModelPart.GetProcessInfo()[VELOCITY_COEFFICIENT] = 1.0 / delta_time;
+            rModelPart.GetProcessInfo()[VELOCITY_COEFFICIENT] = 1.0 / this->GetDeltaTime();
         }
 
         KRATOS_CATCH("")
