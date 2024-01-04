@@ -12,6 +12,6 @@ The boundary conditions are shown below:
 
 ## Results
 
-The animated figure below illustrates the temperature contours resulting from the simulation (as an example the 2D9N test is shown below).
+The picture below illustrates the temperature contours resulting from the simulation (as an example the 2D9N test is shown below).
 
 <img src="../documentation_data/test_thermal_fixed_temperature_2D9N_result.png" alt="Temperature within the box width at the last time step" title="Temperature within the box width at the last time step" width="600">

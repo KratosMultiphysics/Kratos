@@ -12,6 +12,6 @@ The boundary conditions are shown below:
 
 ## Results
 
-The animated figure below illustrates the temperature contours resulting from the simulation (as an example the 2D9N test is shown below).
+The animated figure below illustrates the temperature contours resulting from the simulation (as an example the 2D9N test is shown below). You may notice temperatures that drop below the initial condition. These are physically unrealistic but a result of the time integration scheme.
 
 <img src="../documentation_data/test_transient_thermal_heat_flux_2D9N_result.gif" alt="Temperature contours over time" title="Temperature contours over time" width="600">
