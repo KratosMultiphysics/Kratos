@@ -99,7 +99,6 @@ protected:
                 mGamma / (mBeta * this->GetDeltaTime());
         }
 
-
         KRATOS_CATCH("")
     }
 
@@ -116,15 +115,9 @@ protected:
             (mTheta * this->GetDeltaTime());
     }
 
-    double GetBeta() const
-    {
-        return mBeta;
-    }
+    double GetBeta() const { return mBeta; }
 
-    double GetGamma() const
-    {
-        return mGamma;
-    }
+    double GetGamma() const { return mGamma; }
 
 private:
     double mTheta = 1.0;

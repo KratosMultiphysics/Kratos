@@ -41,7 +41,9 @@ public:
         : GeneralizedNewmarkScheme<TSparseSpace, TDenseSpace>(
               theta,
               {FirstOrderScalarVariable(WATER_PRESSURE, DT_WATER_PRESSURE, DT_PRESSURE_COEFFICIENT)},
-              {SecondOrderVectorVariable(DISPLACEMENT), SecondOrderVectorVariable{ROTATION}}, beta, gamma)
+              {SecondOrderVectorVariable(DISPLACEMENT), SecondOrderVectorVariable{ROTATION}},
+              beta,
+              gamma)
     {
     }
 

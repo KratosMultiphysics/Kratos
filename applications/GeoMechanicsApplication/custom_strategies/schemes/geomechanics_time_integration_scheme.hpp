@@ -37,8 +37,8 @@ struct FirstOrderScalarVariable
     Variable<double> delta_time_coefficient;
 
     FirstOrderScalarVariable(const Variable<double>& instance,
-                       const Variable<double>& first_time_derivative,
-                       const Variable<double>& delta_time_coefficient)
+                             const Variable<double>& first_time_derivative,
+                             const Variable<double>& delta_time_coefficient)
         : instance(instance),
           first_time_derivative(first_time_derivative),
           delta_time_coefficient(delta_time_coefficient)
@@ -449,8 +449,6 @@ protected:
 
     virtual void UpdateVectorFirstTimeDerivative(Node& rNode) const = 0;
     virtual void UpdateVectorSecondTimeDerivative(Node& rNode) const = 0;
-
-
 
     virtual void UpdateScalarTimeDerivative(Node& rNode,
                                             const Variable<double>& rVariable,

@@ -118,7 +118,8 @@ public:
                 rNode.FastGetSolutionStepValue(instance_component) =
                     previous_variable +
                     this->GetDeltaTime() *
-                        ((this->GetBeta() / this->GetGamma()) * (current_first_time_derivative - previous_first_time_derivative) +
+                        ((this->GetBeta() / this->GetGamma()) *
+                             (current_first_time_derivative - previous_first_time_derivative) +
                          previous_first_time_derivative);
             }
             else if (!rNode.IsFixed(instance_component))
@@ -293,7 +294,8 @@ protected:
 
         // adding damping contribution
         if (C.size1() != 0)
-            noalias(LHS_Contribution) += (this->GetGamma() / (this->GetBeta() * this->GetDeltaTime())) * C;
+            noalias(LHS_Contribution) +=
+                (this->GetGamma() / (this->GetBeta() * this->GetDeltaTime())) * C;
 
         KRATOS_CATCH("")
     }
