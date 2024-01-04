@@ -3,7 +3,7 @@ from functools import lru_cache
 from os import getenv
 from pathlib import Path
 from pprint import pprint
-from typing import List, Set
+from typing import List, Set, Optional
 
 
 def check_valid_environment_configuration_exists() -> None:
