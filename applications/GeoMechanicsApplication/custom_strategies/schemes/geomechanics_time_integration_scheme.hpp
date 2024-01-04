@@ -379,10 +379,10 @@ protected:
             UpdateVectorSecondTimeDerivative(rNode);
             UpdateVectorFirstTimeDerivative(rNode);
 
-            for (const auto& first_order_variable : mFirstOrderScalarVariables)
+            for (const auto& r_first_order_scalar_variable : mFirstOrderScalarVariables)
             {
-                UpdateScalarTimeDerivative(rNode, first_order_variable.instance,
-                                           first_order_variable.first_time_derivative);
+                UpdateScalarTimeDerivative(rNode, r_first_order_scalar_variable.instance,
+                    r_first_order_scalar_variable.first_time_derivative);
             }
         });
 
@@ -412,31 +412,32 @@ private:
     {
         for (const auto& r_node : rModelPart.Nodes())
         {
-            for (const auto& r_first_order_variable : mFirstOrderScalarVariables)
+            for (const auto& r_first_order_scalar_variable : mFirstOrderScalarVariables)
             {
-                this->CheckSolutionStepsData(r_node, r_first_order_variable.instance);
-                this->CheckSolutionStepsData(r_node, r_first_order_variable.first_time_derivative);
-                this->CheckDof(r_node, r_first_order_variable.instance);
+                this->CheckSolutionStepsData(r_node, r_first_order_scalar_variable.instance);
+                this->CheckSolutionStepsData(r_node, r_first_order_scalar_variable.first_time_derivative);
+                this->CheckDof(r_node, r_first_order_scalar_variable.instance);
             }
         }
 
         for (const auto& r_node : rModelPart.Nodes())
         {
-            for (const auto& variable_derivative : this->mSecondOrderVectorVariables)
+            for (const auto& r_second_order_vector_variable : this->mSecondOrderVectorVariables)
             {
-                if (!rModelPart.HasNodalSolutionStepVariable(variable_derivative.instance))
+                if (!rModelPart.HasNodalSolutionStepVariable(
+                        r_second_order_vector_variable.instance))
                     continue;
 
-                this->CheckSolutionStepsData(r_node, variable_derivative.instance);
-                this->CheckSolutionStepsData(r_node, variable_derivative.first_time_derivative);
-                this->CheckSolutionStepsData(r_node, variable_derivative.second_time_derivative);
+                this->CheckSolutionStepsData(r_node, r_second_order_vector_variable.instance);
+                this->CheckSolutionStepsData(r_node, r_second_order_vector_variable.first_time_derivative);
+                this->CheckSolutionStepsData(r_node, r_second_order_vector_variable.second_time_derivative);
 
                 // We don't check for "Z", since it is optional (in case of a 2D problem)
                 std::vector<std::string> components{"X", "Y"};
                 for (const auto& component : components)
                 {
                     const auto& variable_component = GetComponentFromVectorVariable(
-                        variable_derivative.instance, component);
+                        r_second_order_vector_variable.instance, component);
                     this->CheckDof(r_node, variable_component);
                 }
             }
