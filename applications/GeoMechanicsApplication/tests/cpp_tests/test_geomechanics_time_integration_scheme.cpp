@@ -22,12 +22,14 @@ using namespace Kratos;
 using SparseSpaceType = UblasSpace<double, CompressedMatrix, Vector>;
 using LocalSpaceType = UblasSpace<double, Matrix, Vector>;
 
-namespace Kratos::Testing {
+namespace Kratos::Testing
+{
 
-// We need this class to test all non-abstract functions of the GeoMechanicsTimeIntegrationScheme
-// class. We cannot use the GeoMechanicsTimeIntegrationScheme class directly, because it is
-// abstract.
-class ConcreteGeoMechanicsTimeIntegrationScheme : public GeoMechanicsTimeIntegrationScheme<SparseSpaceType, LocalSpaceType>
+// We need this class to test all non-abstract functions of the
+// GeoMechanicsTimeIntegrationScheme class. We cannot use the
+// GeoMechanicsTimeIntegrationScheme class directly, because it is abstract.
+class ConcreteGeoMechanicsTimeIntegrationScheme
+    : public GeoMechanicsTimeIntegrationScheme<SparseSpaceType, LocalSpaceType>
 {
 public:
     ConcreteGeoMechanicsTimeIntegrationScheme()
@@ -54,11 +56,18 @@ protected:
     {
         // Intentionally left empty
     }
-    void UpdateVectorFirstTimeDerivative(Node& rNode) const override {}
-    void UpdateVectorSecondTimeDerivative(Node& rNode) const override {}
+    void UpdateVectorFirstTimeDerivative(Node& rNode) const override
+    {
+        // Intentionally left empty
+    }
+    void UpdateVectorSecondTimeDerivative(Node& rNode) const override
+    {
+        // Intentionally left empty
+    }
 };
 
-class GeoMechanicsSchemeTester {
+class GeoMechanicsSchemeTester
+{
 public:
     Model mModel;
     ConcreteGeoMechanicsTimeIntegrationScheme mScheme;
@@ -80,7 +89,8 @@ public:
             r_equation_id_vector, r_process_info, r_dofs_vector);
 
         for (const auto& [function_on_component, function_has_been_called_on_component] :
-             functions_and_checks) {
+             functions_and_checks)
+        {
             Setup();
             auto active_component = Kratos::make_intrusive<T>();
             active_component->SetId(0);
@@ -109,7 +119,8 @@ public:
             CreateFunctionsAndChecksCalledOnAllComponents<T>(A, Dx, b);
 
         for (const auto& [function_on_all_elements, function_has_been_called_on_element] :
-             functions_and_checks) {
+             functions_and_checks)
+        {
             Setup();
             auto active_component = Kratos::make_intrusive<T>();
             active_component->Set(ACTIVE, true);
@@ -136,38 +147,29 @@ public:
         std::vector<std::pair<std::function<void()>, std::function<bool(const Kratos::intrusive_ptr<T> rElement)>>> functions_and_checks;
 
         // Create functions that need to be called in the test
-        auto finalize_solution_step = [this, &A, &Dx, &b]() {
-            mScheme.FinalizeSolutionStep(GetModelPart(), A, Dx, b);
-        };
+        auto finalize_solution_step = [this, &A, &Dx, &b]()
+        { mScheme.FinalizeSolutionStep(GetModelPart(), A, Dx, b); };
 
-        auto initialize_function = [this, &A, &Dx, &b]() {
-            mScheme.InitializeSolutionStep(GetModelPart(), A, Dx, b);
-        };
-        auto initialize_non_linear_iteration = [this, &A, &Dx, &b]() {
-            mScheme.InitializeNonLinIteration(GetModelPart(), A, Dx, b);
-        };
+        auto initialize_function = [this, &A, &Dx, &b]()
+        { mScheme.InitializeSolutionStep(GetModelPart(), A, Dx, b); };
+        auto initialize_non_linear_iteration = [this, &A, &Dx, &b]()
+        { mScheme.InitializeNonLinIteration(GetModelPart(), A, Dx, b); };
 
-        auto finalize_non_linear_iteration = [this, &A, &Dx, &b]() {
-            mScheme.FinalizeNonLinIteration(GetModelPart(), A, Dx, b);
-        };
+        auto finalize_non_linear_iteration = [this, &A, &Dx, &b]()
+        { mScheme.FinalizeNonLinIteration(GetModelPart(), A, Dx, b); };
 
         // Create functions that check if the previously mentioned functions have been called
-        auto finalize_function_check = [](const Kratos::intrusive_ptr<T> rElement) {
-            return rElement->IsSolutionStepFinalized();
-        };
+        auto finalize_function_check = [](const Kratos::intrusive_ptr<T> rElement)
+        { return rElement->IsSolutionStepFinalized(); };
 
-        auto initialize_function_check = [](const Kratos::intrusive_ptr<T> rElement) {
-            return rElement->IsSolutionStepInitialized();
-        };
+        auto initialize_function_check = [](const Kratos::intrusive_ptr<T> rElement)
+        { return rElement->IsSolutionStepInitialized(); };
 
-        auto initialize_non_linear_iteration_check =
-            [](const Kratos::intrusive_ptr<T> rCondition) {
-                return rCondition->IsNonLinIterationInitialized();
-            };
+        auto initialize_non_linear_iteration_check = [](const Kratos::intrusive_ptr<T> rCondition)
+        { return rCondition->IsNonLinIterationInitialized(); };
 
-        auto finalize_non_linear_iteration_check = [](const Kratos::intrusive_ptr<T> rCondition) {
-            return rCondition->IsNonLinIterationFinalized();
-        };
+        auto finalize_non_linear_iteration_check = [](const Kratos::intrusive_ptr<T> rCondition)
+        { return rCondition->IsNonLinIterationFinalized(); };
 
         functions_and_checks.push_back({finalize_solution_step, finalize_function_check});
         functions_and_checks.push_back({initialize_function, initialize_function_check});
@@ -194,18 +196,15 @@ public:
             mScheme.EquationId(*Component.get(), rEquationIdVector, rProcessInfo);
         };
 
-        auto equation_id_check = [](const Kratos::intrusive_ptr<T> Component) {
-            return Component->IsEquationIdRetrieved();
-        };
+        auto equation_id_check = [](const Kratos::intrusive_ptr<T> Component)
+        { return Component->IsEquationIdRetrieved(); };
 
-        auto get_dofs_list = [this, &rDofsVector, &rProcessInfo](
-                                 const Kratos::intrusive_ptr<T> Component) {
-            mScheme.GetDofList(*Component.get(), rDofsVector, rProcessInfo);
-        };
+        auto get_dofs_list = [this, &rDofsVector,
+                              &rProcessInfo](const Kratos::intrusive_ptr<T> Component)
+        { mScheme.GetDofList(*Component.get(), rDofsVector, rProcessInfo); };
 
-        auto get_dofs_list_check = [](const Kratos::intrusive_ptr<T> Component) {
-            return Component->IsGetDofListCalled();
-        };
+        auto get_dofs_list_check = [](const Kratos::intrusive_ptr<T> Component)
+        { return Component->IsGetDofListCalled(); };
 
         functions_and_checks.push_back({equation_id, equation_id_check});
         functions_and_checks.push_back({get_dofs_list, get_dofs_list_check});
@@ -222,10 +221,7 @@ public:
         GetModelPart().AddCondition(condition);
     }
 
-    ModelPart& GetModelPart()
-    {
-        return mModel.GetModelPart("dummy");
-    }
+    ModelPart& GetModelPart() { return mModel.GetModelPart("dummy"); }
 };
 
 KRATOS_TEST_CASE_IN_SUITE(FunctionCallsOnAllElements_AreOnlyCalledForActiveElements,
@@ -311,7 +307,8 @@ void TestUpdateForNumberOfThreads(int NumberOfThreads)
 
     tester.mScheme.Update(tester.GetModelPart(), dofs_array, A, Dx, b);
 
-    KRATOS_EXPECT_DOUBLE_EQ(dofs_array.begin()->GetSolutionStepValue(WATER_PRESSURE, 0), 43.0);
+    KRATOS_EXPECT_DOUBLE_EQ(
+        dofs_array.begin()->GetSolutionStepValue(WATER_PRESSURE, 0), 43.0);
     KRATOS_EXPECT_DOUBLE_EQ(
         (dofs_array.begin() + 1)->GetSolutionStepValue(DISPLACEMENT_X, 0), 9.14);
     KRATOS_EXPECT_DOUBLE_EQ(
