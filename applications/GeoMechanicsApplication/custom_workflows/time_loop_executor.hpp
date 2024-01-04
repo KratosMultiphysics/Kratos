@@ -28,8 +28,18 @@ namespace Kratos
 
 class Process;
 
-class TimeLoopExecutor : public TimeLoopExecutorInterface{
+class TimeLoopExecutor : public TimeLoopExecutorInterface {
 public :
+    void SetCancelDelegate(const std::function<bool()>& rCancelDelegate) override
+    {
+        mCancelDelegate = rCancelDelegate;
+    }
+
+    void SetProgressDelegate(const std::function<void(double)>& rProgressDelegate) override
+    {
+        mProgressDelegate = rProgressDelegate;
+    }
+
     void SetProcessObservables(const std::vector<std::weak_ptr<Process>>& rProcessObservables) override
     {
         mTimeStepExecutor->SetProcessObservables(rProcessObservables);
@@ -52,7 +62,7 @@ public :
         mStrategyWrapper->SaveTotalDisplacementFieldAtStartOfTimeLoop();
         std::vector<TimeStepEndState> result;
         TimeStepEndState NewEndState = EndState;
-        while (mTimeIncrementor->WantNextStep(NewEndState)) {
+        while (mTimeIncrementor->WantNextStep(NewEndState) && !IsCancelled()) {
             mStrategyWrapper->IncrementStepNumber();
             // clone without end time, the end time is overwritten anyway
             mStrategyWrapper->CloneTimeStep();
@@ -79,6 +89,7 @@ private:
 
         auto end_state = mTimeStepExecutor->Run(end_time);
         mTimeIncrementor->PostTimeStepExecution(end_state);
+        UpdateProgress(end_time);
         return end_state;
     }
 
@@ -86,7 +97,7 @@ private:
     {
         auto cycle_number = 0;
         auto end_state = previous_state;
-        while (mTimeIncrementor->WantRetryStep(cycle_number, end_state)) {
+        while (mTimeIncrementor->WantRetryStep(cycle_number, end_state) && !IsCancelled()) {
             if (cycle_number > 0) mStrategyWrapper->RestorePositionsAndDOFVectorToStartOfStep();
             end_state = RunCycle(previous_state.time);
             ++cycle_number;
@@ -96,7 +107,21 @@ private:
         return end_state;
     }
 
+    bool IsCancelled() const
+    {
+        return mCancelDelegate && mCancelDelegate();
+    }
+
+    void UpdateProgress(double Time) const
+    {
+        if (mProgressDelegate) {
+            mProgressDelegate(Time);
+        }
+    }
+
     std::unique_ptr<TimeIncrementor>  mTimeIncrementor;
+    std::function<bool()>             mCancelDelegate;
+    std::function<void(double)>       mProgressDelegate;
     std::unique_ptr<TimeStepExecutor> mTimeStepExecutor = std::make_unique<TimeStepExecutor>();
     std::shared_ptr<StrategyWrapper>  mStrategyWrapper;
 };
