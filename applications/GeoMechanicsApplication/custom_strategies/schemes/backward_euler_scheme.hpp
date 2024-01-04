@@ -23,9 +23,9 @@ class BackwardEulerScheme
 {
 public:
     BackwardEulerScheme(const std::vector<FirstOrderVariable>& rFirstOrderVariables,
-                        const std::vector<VariableWithTimeDerivatives>& rVariablesWithDerivatives)
+                        const std::vector<SecondOrderVariable>& rSecondOrderVariables)
         : GeoMechanicsTimeIntegrationScheme<TSparseSpace, TDenseSpace>(
-              rFirstOrderVariables, rVariablesWithDerivatives)
+              rFirstOrderVariables, rSecondOrderVariables)
     {
     }
 

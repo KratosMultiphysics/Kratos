@@ -35,7 +35,7 @@ public:
     BackwardEulerQuasistaticUPwScheme()
         : BackwardEulerScheme<TSparseSpace, TDenseSpace>(
               {FirstOrderVariable(WATER_PRESSURE, DT_WATER_PRESSURE, DT_PRESSURE_COEFFICIENT)},
-              {VariableWithTimeDerivatives(DISPLACEMENT), VariableWithTimeDerivatives{ROTATION}})
+              {SecondOrderVariable(DISPLACEMENT), SecondOrderVariable{ROTATION}})
     {
     }
 

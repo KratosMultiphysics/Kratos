@@ -77,21 +77,21 @@ public:
         }
     }
 
-    void PredictVariableForNode(Node& rNode, const VariableWithTimeDerivatives& rVariableWithDerivatives)
+    void PredictVariableForNode(Node& rNode, const SecondOrderVariable& rSecondOrderVariables)
     {
         std::vector<std::string> components = {"X", "Y"};
         if (rNode.HasDofFor(this->GetComponentFromVectorVariable(
-                rVariableWithDerivatives.instance, "Z")))
+                rSecondOrderVariables.instance, "Z")))
             components.emplace_back("Z");
 
         for (const auto& component : components)
         {
             const auto& instance_component = this->GetComponentFromVectorVariable(
-                rVariableWithDerivatives.instance, component);
+                rSecondOrderVariables.instance, component);
             const auto& first_time_derivative_component = this->GetComponentFromVectorVariable(
-                rVariableWithDerivatives.first_time_derivative, component);
+                rSecondOrderVariables.first_time_derivative, component);
             const auto& second_time_derivative_component = this->GetComponentFromVectorVariable(
-                rVariableWithDerivatives.second_time_derivative, component);
+                rSecondOrderVariables.second_time_derivative, component);
 
             const double previous_variable =
                 rNode.FastGetSolutionStepValue(instance_component, 1);

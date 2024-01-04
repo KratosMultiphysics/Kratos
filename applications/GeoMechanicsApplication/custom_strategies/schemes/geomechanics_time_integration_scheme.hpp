@@ -16,13 +16,13 @@
 namespace Kratos
 {
 
-struct VariableWithTimeDerivatives
+struct SecondOrderVariable
 {
     Variable<array_1d<double, 3>> instance;
     Variable<array_1d<double, 3>> first_time_derivative;
     Variable<array_1d<double, 3>> second_time_derivative;
 
-    explicit VariableWithTimeDerivatives(const Variable<array_1d<double, 3>>& instance)
+    explicit SecondOrderVariable(const Variable<array_1d<double, 3>>& instance)
         : instance(instance),
           first_time_derivative(instance.GetTimeDerivative()),
           second_time_derivative(first_time_derivative.GetTimeDerivative())
@@ -58,9 +58,9 @@ public:
     using LocalSystemMatrixType = typename BaseType::LocalSystemMatrixType;
 
     GeoMechanicsTimeIntegrationScheme(const std::vector<FirstOrderVariable>& rFirstOrderVariables,
-                                      const std::vector<VariableWithTimeDerivatives>& rVariableDerivatives)
+                                      const std::vector<SecondOrderVariable>& rSecondOrderVariables)
         : mFirstOrderVariables(rFirstOrderVariables),
-          mSecondOrderVariables(rVariableDerivatives)
+          mSecondOrderVariables(rSecondOrderVariables)
     {
     }
 
@@ -460,7 +460,7 @@ protected:
 
     void SetDeltaTime(double DeltaTime) { mDeltaTime = DeltaTime; }
 
-    const std::vector<VariableWithTimeDerivatives>& GetSecondOrderVariables() const
+    const std::vector<SecondOrderVariable>& GetSecondOrderVariables() const
     {
         return mSecondOrderVariables;
     }
@@ -473,7 +473,7 @@ protected:
 private:
     double mDeltaTime = 1.0;
     std::vector<FirstOrderVariable> mFirstOrderVariables;
-    std::vector<VariableWithTimeDerivatives> mSecondOrderVariables;
+    std::vector<SecondOrderVariable> mSecondOrderVariables;
 };
 
 } // namespace Kratos

@@ -23,11 +23,11 @@ class GeneralizedNewmarkScheme
 public:
     GeneralizedNewmarkScheme(double theta,
                              const std::vector<FirstOrderVariable>& rFirstOrderVariables,
-                             const std::vector<VariableWithTimeDerivatives> rVariablesWithDerivatives,
+                             const std::vector<SecondOrderVariable> rSecondOrderVariables,
                              double beta = 0.25,
                              double gamma = 0.5)
         : GeoMechanicsTimeIntegrationScheme<TSparseSpace, TDenseSpace>(
-              rFirstOrderVariables, rVariablesWithDerivatives),
+              rFirstOrderVariables, rSecondOrderVariables),
           mTheta(theta),
           mBeta(beta),
           mGamma(gamma)
