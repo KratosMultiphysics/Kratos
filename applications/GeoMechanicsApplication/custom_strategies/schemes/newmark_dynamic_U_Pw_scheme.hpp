@@ -69,11 +69,11 @@ public:
 
     void PredictVariablesForNode(Node& rNode)
     {
-        for (const auto& variable_derivative : this->GetSecondOrderVectorVariables())
+        for (const auto& r_second_order_vector_variable : this->GetSecondOrderVectorVariables())
         {
-            if (!rNode.SolutionStepsDataHas(variable_derivative.instance))
+            if (!rNode.SolutionStepsDataHas(r_second_order_vector_variable.instance))
                 continue;
-            PredictVariableForNode(rNode, variable_derivative);
+            PredictVariableForNode(rNode, r_second_order_vector_variable);
         }
     }
 

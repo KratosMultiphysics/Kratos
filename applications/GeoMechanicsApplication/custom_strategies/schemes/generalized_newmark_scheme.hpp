@@ -68,39 +68,40 @@ public:
 protected:
     void UpdateVectorFirstTimeDerivative(Node& rNode) const override
     {
-        for (const auto& variable_derivative : this->GetSecondOrderVectorVariables())
+        for (const auto& r_second_order_vector_variable : this->GetSecondOrderVectorVariables())
         {
-            if (!rNode.SolutionStepsDataHas(variable_derivative.instance))
+            if (!rNode.SolutionStepsDataHas(r_second_order_vector_variable.instance))
                 continue;
 
             noalias(rNode.FastGetSolutionStepValue(
-                variable_derivative.first_time_derivative, 0)) =
-                rNode.FastGetSolutionStepValue(variable_derivative.first_time_derivative, 1) +
+                r_second_order_vector_variable.first_time_derivative, 0)) =
+                rNode.FastGetSolutionStepValue(
+                    r_second_order_vector_variable.first_time_derivative, 1) +
                 (1.0 - mGamma) * this->GetDeltaTime() *
                     rNode.FastGetSolutionStepValue(
-                        variable_derivative.second_time_derivative, 1) +
+                        r_second_order_vector_variable.second_time_derivative, 1) +
                 mGamma * this->GetDeltaTime() *
                     rNode.FastGetSolutionStepValue(
-                        variable_derivative.second_time_derivative, 0);
+                        r_second_order_vector_variable.second_time_derivative, 0);
         }
     }
 
     void UpdateVectorSecondTimeDerivative(Node& rNode) const override
     {
-        for (const auto& variable_derivative : this->GetSecondOrderVectorVariables())
+        for (const auto& r_second_order_vector_variable : this->GetSecondOrderVectorVariables())
         {
-            if (!rNode.SolutionStepsDataHas(variable_derivative.instance))
+            if (!rNode.SolutionStepsDataHas(r_second_order_vector_variable.instance))
                 continue;
 
             noalias(rNode.FastGetSolutionStepValue(
-                variable_derivative.second_time_derivative, 0)) =
-                ((rNode.FastGetSolutionStepValue(variable_derivative.instance, 0) -
-                  rNode.FastGetSolutionStepValue(variable_derivative.instance, 1)) -
+                r_second_order_vector_variable.second_time_derivative, 0)) =
+                ((rNode.FastGetSolutionStepValue(r_second_order_vector_variable.instance, 0) -
+                  rNode.FastGetSolutionStepValue(r_second_order_vector_variable.instance, 1)) -
                  this->GetDeltaTime() * rNode.FastGetSolutionStepValue(
-                                            variable_derivative.first_time_derivative, 1) -
+                         r_second_order_vector_variable.first_time_derivative, 1) -
                  (0.5 - mBeta) * this->GetDeltaTime() * this->GetDeltaTime() *
                      rNode.FastGetSolutionStepValue(
-                         variable_derivative.second_time_derivative, 1)) /
+                         r_second_order_vector_variable.second_time_derivative, 1)) /
                 (mBeta * this->GetDeltaTime() * this->GetDeltaTime());
         }
     }
@@ -111,9 +112,9 @@ protected:
 
         GeoMechanicsTimeIntegrationScheme<TSparseSpace, TDenseSpace>::SetTimeFactors(rModelPart);
 
-        for (const auto& r_first_order_variable : this->GetFirstOrderScalarVariables())
+        for (const auto& r_first_order_scalar_variable : this->GetFirstOrderScalarVariables())
         {
-            rModelPart.GetProcessInfo()[r_first_order_variable.delta_time_coefficient] =
+            rModelPart.GetProcessInfo()[r_first_order_scalar_variable.delta_time_coefficient] =
                 1.0 / (mTheta * this->GetDeltaTime());
         }
 

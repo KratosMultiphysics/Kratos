@@ -36,9 +36,9 @@ protected:
 
         GeoMechanicsTimeIntegrationScheme<TSparseSpace, TDenseSpace>::SetTimeFactors(rModelPart);
 
-        for (const auto& r_first_order_variable : this->GetFirstOrderScalarVariables())
+        for (const auto& r_first_order_scalar_variable : this->GetFirstOrderScalarVariables())
         {
-            rModelPart.GetProcessInfo()[r_first_order_variable.delta_time_coefficient] =
+            rModelPart.GetProcessInfo()[r_first_order_scalar_variable.delta_time_coefficient] =
                 1.0 / this->GetDeltaTime();
         }
 
@@ -52,21 +52,21 @@ protected:
 
     void UpdateVectorFirstTimeDerivative(Node& rNode) const override
     {
-        for (const auto& r_variable_with_derivative : this->GetSecondOrderVectorVariables())
+        for (const auto& r_second_order_vector_variable : this->GetSecondOrderVectorVariables())
         {
-            SetDerivative(r_variable_with_derivative.first_time_derivative,
-                          r_variable_with_derivative.instance, rNode);
+            SetDerivative(r_second_order_vector_variable.first_time_derivative,
+                          r_second_order_vector_variable.instance, rNode);
         }
     }
 
     void UpdateVectorSecondTimeDerivative(Node& rNode) const override
     {
-        for (const auto& r_variable_with_derivative : this->GetSecondOrderVectorVariables())
+        for (const auto& r_second_order_vector_variable : this->GetSecondOrderVectorVariables())
         {
             // Make sure that setting the second_time_derivative is done
             // after setting the first_time_derivative.
-            SetDerivative(r_variable_with_derivative.second_time_derivative,
-                          r_variable_with_derivative.first_time_derivative, rNode);
+            SetDerivative(r_second_order_vector_variable.second_time_derivative,
+                          r_second_order_vector_variable.first_time_derivative, rNode);
         }
     }
 
