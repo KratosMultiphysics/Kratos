@@ -370,30 +370,7 @@ protected:
         mDeltaTime = rModelPart.GetProcessInfo()[DELTA_TIME];
     }
 
-    inline void UpdateVariablesDerivatives(ModelPart& rModelPart)
-    {
-        KRATOS_TRY
-
-        block_for_each(rModelPart.Nodes(), [this](Node& rNode)
-        {
-            UpdateVectorSecondTimeDerivative(rNode);
-            UpdateVectorFirstTimeDerivative(rNode);
-
-            for (const auto& r_first_order_scalar_variable : mFirstOrderScalarVariables)
-            {
-                UpdateScalarTimeDerivative(rNode, r_first_order_scalar_variable.instance,
-                    r_first_order_scalar_variable.first_time_derivative);
-            }
-        });
-
-        KRATOS_CATCH("")
-    }
-
-    virtual void UpdateVectorFirstTimeDerivative(Node& rNode) const = 0;
-    virtual void UpdateVectorSecondTimeDerivative(Node& rNode) const = 0;
-    virtual void UpdateScalarTimeDerivative(Node& rNode,
-                                            const Variable<double>& rVariable,
-                                            const Variable<double>& rDtVariable) const = 0;
+    virtual inline void UpdateVariablesDerivatives(ModelPart& rModelPart) = 0;
 
     [[nodiscard]] double GetDeltaTime() const { return mDeltaTime; }
 

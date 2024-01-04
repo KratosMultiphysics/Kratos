@@ -38,17 +38,7 @@ public:
     }
 
 protected:
-    void UpdateScalarTimeDerivative(Node& rNode,
-                                    const Variable<double>& variable,
-                                    const Variable<double>& dt_variable) const override
-    {
-        // Intentionally left empty
-    }
-    void UpdateVectorFirstTimeDerivative(Node& rNode) const override
-    {
-        // Intentionally left empty
-    }
-    void UpdateVectorSecondTimeDerivative(Node& rNode) const override
+    void UpdateVariablesDerivatives(ModelPart& rModelPart) override
     {
         // Intentionally left empty
     }

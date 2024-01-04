@@ -64,46 +64,27 @@ public:
             << "Gamma must be larger than zero, but got " << mGamma << "\n";
     }
 
-
 protected:
-    void UpdateVectorFirstTimeDerivative(Node& rNode) const override
+    inline void UpdateVariablesDerivatives(ModelPart& rModelPart) override
     {
-        for (const auto& r_second_order_vector_variable : this->GetSecondOrderVectorVariables())
+        KRATOS_TRY
+
+        block_for_each(rModelPart.Nodes(), [this](Node& rNode)
         {
-            if (!rNode.SolutionStepsDataHas(r_second_order_vector_variable.instance))
-                continue;
+            // For the Newmark schemes the second derivatives should be updated before calculating the first derivatives
+            UpdateVectorSecondTimeDerivative(rNode);
+            UpdateVectorFirstTimeDerivative(rNode);
 
-            noalias(rNode.FastGetSolutionStepValue(
-                r_second_order_vector_variable.first_time_derivative, 0)) =
-                rNode.FastGetSolutionStepValue(
-                    r_second_order_vector_variable.first_time_derivative, 1) +
-                (1.0 - mGamma) * this->GetDeltaTime() *
-                    rNode.FastGetSolutionStepValue(
-                        r_second_order_vector_variable.second_time_derivative, 1) +
-                mGamma * this->GetDeltaTime() *
-                    rNode.FastGetSolutionStepValue(
-                        r_second_order_vector_variable.second_time_derivative, 0);
-        }
-    }
+            for (const auto& r_first_order_scalar_variable :
+                 this->GetFirstOrderScalarVariables())
+            {
+                UpdateScalarTimeDerivative(
+                    rNode, r_first_order_scalar_variable.instance,
+                    r_first_order_scalar_variable.first_time_derivative);
+            }
+        });
 
-    void UpdateVectorSecondTimeDerivative(Node& rNode) const override
-    {
-        for (const auto& r_second_order_vector_variable : this->GetSecondOrderVectorVariables())
-        {
-            if (!rNode.SolutionStepsDataHas(r_second_order_vector_variable.instance))
-                continue;
-
-            noalias(rNode.FastGetSolutionStepValue(
-                r_second_order_vector_variable.second_time_derivative, 0)) =
-                ((rNode.FastGetSolutionStepValue(r_second_order_vector_variable.instance, 0) -
-                  rNode.FastGetSolutionStepValue(r_second_order_vector_variable.instance, 1)) -
-                 this->GetDeltaTime() * rNode.FastGetSolutionStepValue(
-                         r_second_order_vector_variable.first_time_derivative, 1) -
-                 (0.5 - mBeta) * this->GetDeltaTime() * this->GetDeltaTime() *
-                     rNode.FastGetSolutionStepValue(
-                         r_second_order_vector_variable.second_time_derivative, 1)) /
-                (mBeta * this->GetDeltaTime() * this->GetDeltaTime());
-        }
+        KRATOS_CATCH("")
     }
 
     inline void SetTimeFactors(ModelPart& rModelPart) override
@@ -127,9 +108,13 @@ protected:
         KRATOS_CATCH("")
     }
 
+    double GetBeta() const { return mBeta; }
+    double GetGamma() const { return mGamma; }
+
+private:
     void UpdateScalarTimeDerivative(Node& rNode,
                                     const Variable<double>& variable,
-                                    const Variable<double>& dt_variable) const override
+                                    const Variable<double>& dt_variable) const
     {
         const auto delta_variable = rNode.FastGetSolutionStepValue(variable, 0) -
                                     rNode.FastGetSolutionStepValue(variable, 1);
@@ -140,10 +125,49 @@ protected:
             (mTheta * this->GetDeltaTime());
     }
 
-    double GetBeta() const { return mBeta; }
-    double GetGamma() const { return mGamma; }
+    void UpdateVectorFirstTimeDerivative(Node& rNode) const
+    {
+        for (const auto& r_second_order_vector_variable :
+             this->GetSecondOrderVectorVariables())
+        {
+            if (!rNode.SolutionStepsDataHas(r_second_order_vector_variable.instance))
+                continue;
 
-private:
+            noalias(rNode.FastGetSolutionStepValue(
+                r_second_order_vector_variable.first_time_derivative, 0)) =
+                rNode.FastGetSolutionStepValue(
+                    r_second_order_vector_variable.first_time_derivative, 1) +
+                (1.0 - mGamma) * this->GetDeltaTime() *
+                    rNode.FastGetSolutionStepValue(
+                        r_second_order_vector_variable.second_time_derivative, 1) +
+                mGamma * this->GetDeltaTime() *
+                    rNode.FastGetSolutionStepValue(
+                        r_second_order_vector_variable.second_time_derivative, 0);
+        }
+    }
+
+    void UpdateVectorSecondTimeDerivative(Node& rNode) const
+    {
+        for (const auto& r_second_order_vector_variable :
+             this->GetSecondOrderVectorVariables())
+        {
+            if (!rNode.SolutionStepsDataHas(r_second_order_vector_variable.instance))
+                continue;
+
+            noalias(rNode.FastGetSolutionStepValue(
+                r_second_order_vector_variable.second_time_derivative, 0)) =
+                ((rNode.FastGetSolutionStepValue(r_second_order_vector_variable.instance, 0) -
+                  rNode.FastGetSolutionStepValue(r_second_order_vector_variable.instance, 1)) -
+                 this->GetDeltaTime() *
+                     rNode.FastGetSolutionStepValue(
+                         r_second_order_vector_variable.first_time_derivative, 1) -
+                 (0.5 - mBeta) * this->GetDeltaTime() * this->GetDeltaTime() *
+                     rNode.FastGetSolutionStepValue(
+                         r_second_order_vector_variable.second_time_derivative, 1)) /
+                (mBeta * this->GetDeltaTime() * this->GetDeltaTime());
+        }
+    }
+
     double mTheta = 1.0;
     double mBeta = 0.25;
     double mGamma = 0.5;

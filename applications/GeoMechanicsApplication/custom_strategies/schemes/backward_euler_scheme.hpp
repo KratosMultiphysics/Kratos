@@ -44,25 +44,42 @@ protected:
 
         if (!this->GetSecondOrderVectorVariables().empty())
         {
-            rModelPart.GetProcessInfo()[VELOCITY_COEFFICIENT] = 1.0 / this->GetDeltaTime();
+            rModelPart.GetProcessInfo()[VELOCITY_COEFFICIENT] =
+                1.0 / this->GetDeltaTime();
         }
 
         KRATOS_CATCH("")
     }
 
-    void UpdateVectorFirstTimeDerivative(Node& rNode) const override
+    inline void UpdateVariablesDerivatives(ModelPart& rModelPart) override
     {
-        for (const auto& r_second_order_vector_variable : this->GetSecondOrderVectorVariables())
+        KRATOS_TRY
+
+        block_for_each(rModelPart.Nodes(), [this](Node& rNode)
+        {
+            // For the Backward Euler schemes the first derivatives should be
+            // updated before calculating the second derivatives
+            UpdateVectorTimeDerivatives(rNode);
+
+            for (const auto& r_first_order_scalar_variable :
+                 this->GetFirstOrderScalarVariables())
+            {
+                SetDerivative(r_first_order_scalar_variable.first_time_derivative,
+                              r_first_order_scalar_variable.instance, rNode);
+            }
+        });
+
+        KRATOS_CATCH("")
+    }
+
+    void UpdateVectorTimeDerivatives(Node& rNode) const
+    {
+        for (const auto& r_second_order_vector_variable :
+             this->GetSecondOrderVectorVariables())
         {
             SetDerivative(r_second_order_vector_variable.first_time_derivative,
                           r_second_order_vector_variable.instance, rNode);
-        }
-    }
 
-    void UpdateVectorSecondTimeDerivative(Node& rNode) const override
-    {
-        for (const auto& r_second_order_vector_variable : this->GetSecondOrderVectorVariables())
-        {
             // Make sure that setting the second_time_derivative is done
             // after setting the first_time_derivative.
             SetDerivative(r_second_order_vector_variable.second_time_derivative,
@@ -83,7 +100,7 @@ protected:
 
     void UpdateScalarTimeDerivative(Node& rNode,
                                     const Variable<double>& variable,
-                                    const Variable<double>& dt_variable) const override
+                                    const Variable<double>& dt_variable) const
     {
         SetDerivative(dt_variable, variable, rNode);
     }
