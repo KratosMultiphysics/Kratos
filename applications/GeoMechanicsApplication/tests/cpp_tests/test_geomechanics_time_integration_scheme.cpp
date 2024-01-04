@@ -38,18 +38,6 @@ public:
     }
 
 protected:
-    void SetTimeFactors(ModelPart& rModelPart) override
-    {
-        // Intentionally left empty
-    }
-    void UpdateVariablesDerivatives(ModelPart& rModelPart) override
-    {
-        // Intentionally left empty
-    }
-    void CheckAllocatedVariables(const ModelPart& rModelPart) const override
-    {
-        // Intentionally left empty
-    }
     void UpdateScalarTimeDerivative(Node& rNode,
                                     const Variable<double>& variable,
                                     const Variable<double>& dt_variable) const override

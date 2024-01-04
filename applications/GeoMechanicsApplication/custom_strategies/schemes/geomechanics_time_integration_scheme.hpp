@@ -353,39 +353,62 @@ public:
             }
         });
 
-        this->UpdateVariablesDerivatives(rModelPart);
+        UpdateVariablesDerivatives(rModelPart);
 
         KRATOS_CATCH("")
     }
 
 protected:
-    void CheckBufferSize(const ModelPart& rModelPart) const
+    const Variable<double>& GetComponentFromVectorVariable(
+        const Variable<array_1d<double, 3>>& rSource, const std::string& rComponent) const
     {
-        constexpr auto minimum_buffer_size = ModelPart::IndexType{2};
-        KRATOS_ERROR_IF(rModelPart.GetBufferSize() < minimum_buffer_size)
-            << "insufficient buffer size. Buffer size should be "
-               "greater than or equal to "
-            << minimum_buffer_size << ". Current size is "
-            << rModelPart.GetBufferSize() << std::endl;
+        return KratosComponents<Variable<double>>::Get(rSource.Name() + "_" + rComponent);
     }
 
-    template <class T>
-    void CheckSolutionStepsData(const Node& rNode, const Variable<T>& rVariable) const
+    virtual inline void SetTimeFactors(ModelPart& rModelPart)
     {
-        KRATOS_ERROR_IF_NOT(rNode.SolutionStepsDataHas(rVariable))
-            << rVariable.Name() << " variable is not allocated for node "
-            << rNode.Id() << std::endl;
+        mDeltaTime = rModelPart.GetProcessInfo()[DELTA_TIME];
     }
 
-    template <class T>
-    void CheckDof(const Node& rNode, const Variable<T>& rVariable) const
+    inline void UpdateVariablesDerivatives(ModelPart& rModelPart)
     {
-        KRATOS_ERROR_IF_NOT(rNode.HasDofFor(rVariable))
-            << "missing " << rVariable.Name() << " dof on node " << rNode.Id()
-            << std::endl;
+        KRATOS_TRY
+
+        block_for_each(rModelPart.Nodes(), [this](Node& rNode)
+        {
+            UpdateVectorSecondTimeDerivative(rNode);
+            UpdateVectorFirstTimeDerivative(rNode);
+
+            for (const auto& first_order_variable : mFirstOrderScalarVariables)
+            {
+                UpdateScalarTimeDerivative(rNode, first_order_variable.instance,
+                                           first_order_variable.first_time_derivative);
+            }
+        });
+
+        KRATOS_CATCH("")
     }
 
-    virtual void CheckAllocatedVariables(const ModelPart& rModelPart) const
+    virtual void UpdateVectorFirstTimeDerivative(Node& rNode) const = 0;
+    virtual void UpdateVectorSecondTimeDerivative(Node& rNode) const = 0;
+    virtual void UpdateScalarTimeDerivative(Node& rNode,
+                                            const Variable<double>& rVariable,
+                                            const Variable<double>& rDtVariable) const = 0;
+
+    [[nodiscard]] double GetDeltaTime() const { return mDeltaTime; }
+
+    [[nodiscard]] const std::vector<SecondOrderVectorVariable>& GetSecondOrderVectorVariables() const
+    {
+        return mSecondOrderVectorVariables;
+    }
+
+    [[nodiscard]] const std::vector<FirstOrderScalarVariable>& GetFirstOrderScalarVariables() const
+    {
+        return mFirstOrderScalarVariables;
+    }
+
+private:
+    void CheckAllocatedVariables(const ModelPart& rModelPart) const
     {
         for (const auto& r_node : rModelPart.Nodes())
         {
@@ -420,55 +443,32 @@ protected:
         }
     }
 
-    const Variable<double>& GetComponentFromVectorVariable(
-        const Variable<array_1d<double, 3>>& rSource, const std::string& rComponent) const
+    void CheckBufferSize(const ModelPart& rModelPart) const
     {
-        return KratosComponents<Variable<double>>::Get(rSource.Name() + "_" + rComponent);
+        constexpr auto minimum_buffer_size = ModelPart::IndexType{2};
+        KRATOS_ERROR_IF(rModelPart.GetBufferSize() < minimum_buffer_size)
+            << "insufficient buffer size. Buffer size should be "
+               "greater than or equal to "
+            << minimum_buffer_size << ". Current size is "
+            << rModelPart.GetBufferSize() << std::endl;
     }
 
-    virtual inline void SetTimeFactors(ModelPart& rModelPart) = 0;
-
-    virtual inline void UpdateVariablesDerivatives(ModelPart& rModelPart)
+    template <class T>
+    void CheckSolutionStepsData(const Node& rNode, const Variable<T>& rVariable) const
     {
-        KRATOS_TRY
-
-        block_for_each(rModelPart.Nodes(), [this](Node& rNode)
-        {
-            UpdateVectorSecondTimeDerivative(rNode);
-            UpdateVectorFirstTimeDerivative(rNode);
-
-            for (const auto& first_order_variable : mFirstOrderScalarVariables)
-            {
-                UpdateScalarTimeDerivative(rNode, first_order_variable.instance,
-                                           first_order_variable.first_time_derivative);
-            }
-        });
-
-        KRATOS_CATCH("")
+        KRATOS_ERROR_IF_NOT(rNode.SolutionStepsDataHas(rVariable))
+            << rVariable.Name() << " variable is not allocated for node "
+            << rNode.Id() << std::endl;
     }
 
-    virtual void UpdateVectorFirstTimeDerivative(Node& rNode) const = 0;
-    virtual void UpdateVectorSecondTimeDerivative(Node& rNode) const = 0;
-
-    virtual void UpdateScalarTimeDerivative(Node& rNode,
-                                            const Variable<double>& rVariable,
-                                            const Variable<double>& rDtVariable) const = 0;
-
-    [[nodiscard]] double GetDeltaTime() const { return mDeltaTime; }
-
-    void SetDeltaTime(double DeltaTime) { mDeltaTime = DeltaTime; }
-
-    const std::vector<SecondOrderVectorVariable>& GetSecondOrderVectorVariables() const
+    template <class T>
+    void CheckDof(const Node& rNode, const Variable<T>& rVariable) const
     {
-        return mSecondOrderVectorVariables;
+        KRATOS_ERROR_IF_NOT(rNode.HasDofFor(rVariable))
+            << "missing " << rVariable.Name() << " dof on node " << rNode.Id()
+            << std::endl;
     }
 
-    const std::vector<FirstOrderScalarVariable>& GetFirstOrderScalarVariables() const
-    {
-        return mFirstOrderScalarVariables;
-    }
-
-private:
     double mDeltaTime = 1.0;
     std::vector<FirstOrderScalarVariable> mFirstOrderScalarVariables;
     std::vector<SecondOrderVectorVariable> mSecondOrderVectorVariables;

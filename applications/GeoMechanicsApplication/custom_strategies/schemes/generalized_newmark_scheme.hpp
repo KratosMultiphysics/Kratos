@@ -84,13 +84,12 @@ protected:
     {
         KRATOS_TRY
 
-        const auto delta_time = rModelPart.GetProcessInfo()[DELTA_TIME];
-        this->SetDeltaTime(delta_time);
+        GeoMechanicsTimeIntegrationScheme<TSparseSpace, TDenseSpace>::SetTimeFactors(rModelPart);
 
         for (const auto& r_first_order_variable : this->GetFirstOrderScalarVariables())
         {
             rModelPart.GetProcessInfo()[r_first_order_variable.delta_time_coefficient] =
-                1.0 / (mTheta * delta_time);
+                1.0 / (mTheta * this->GetDeltaTime());
         }
 
         if (!this->GetSecondOrderVectorVariables().empty())
