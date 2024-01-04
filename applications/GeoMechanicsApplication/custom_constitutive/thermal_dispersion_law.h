@@ -30,6 +30,8 @@ public:
     /// Counted pointer of GeoThermalDispersionLaw
     KRATOS_CLASS_POINTER_DEFINITION(GeoThermalDispersionLaw);
 
+    GeoThermalDispersionLaw();
+
     explicit GeoThermalDispersionLaw(SizeType NumberOfDimensions);
 
     ConstitutiveLaw::Pointer Clone() const override;

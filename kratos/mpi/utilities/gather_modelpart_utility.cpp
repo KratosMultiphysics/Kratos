@@ -318,6 +318,23 @@ void GatherModelPartUtility::GatherEntityFromOtherPartitions(
         KRATOS_ERROR << "Entity type not supported" << std::endl;
     }
 
+    /// Type alias for the container of entities.
+    using ContainerType = PointerVectorSet<TObjectType,
+        IndexedObject,
+        std::less<typename IndexedObject::result_type>,
+        std::equal_to<typename IndexedObject::result_type>,
+        typename TObjectType::Pointer,
+        std::vector<typename TObjectType::Pointer>
+    >;
+    
+    // Allocating the temporary entities to bring container
+    ContainerType entities_to_bring;
+    std::size_t counter = 0;
+    for (const auto& r_bring : rEntitiesToBring) {
+        counter += r_bring.second.size();
+    }
+    entities_to_bring.reserve(counter);
+
     // Retrieve MPI data
     const auto& r_data_communicator = rModelPart.GetCommunicator().GetDataCommunicator();
     const int rank = r_data_communicator.Rank();
@@ -378,23 +395,23 @@ void GatherModelPartUtility::GatherEntityFromOtherPartitions(
                     std::string recv_buffer;
                     r_data_communicator.Recv(recv_buffer, origin_rank, static_cast<int>(index));
                     StreamSerializer serializer;
-                    const auto p_serializer_buffer = dynamic_cast<std::stringstream*>(serializer.pGetBuffer());     
+                    const auto p_serializer_buffer = dynamic_cast<std::stringstream*>(serializer.pGetBuffer());
                     p_serializer_buffer->write(recv_buffer.data(), recv_buffer.size());
                     if constexpr (std::is_same<TObjectType, Node>::value) {
                         Node::Pointer p_new_node;
                         serializer.load("bring_node_" + std::to_string(index), p_new_node);
                         KRATOS_DEBUG_ERROR_IF(rModelPart.HasNode(p_new_node->Id())) << "The node " << p_new_node->Id() << " from rank: " << origin_rank << " already exists in rank: " << rank << std::endl;
-                        rModelPart.AddNode(p_new_node);
+                        entities_to_bring.push_back(p_new_node);
                     } else if constexpr (std::is_same<TObjectType, Element>::value) {
                         Element::Pointer p_new_element;
                         serializer.load("bring_element_" + std::to_string(index), p_new_element);
                         KRATOS_DEBUG_ERROR_IF(rModelPart.HasElement(p_new_element->Id())) << "The element " << p_new_element->Id() << " from rank: " << origin_rank << " already exists in rank: " << rank << std::endl;
-                        rModelPart.AddElement(p_new_element);
+                        entities_to_bring.push_back(p_new_element);
                     } else if constexpr (std::is_same<TObjectType, Condition>::value) {
                         Condition::Pointer p_new_condition;
                         serializer.load("bring_condition_" + std::to_string(index), p_new_condition);
                         KRATOS_DEBUG_ERROR_IF(rModelPart.HasCondition(p_new_condition->Id())) << "The condition " << p_new_condition->Id() << " from rank: " << origin_rank << " already exists in rank: " << rank << std::endl;
-                        rModelPart.AddCondition(p_new_condition);
+                        entities_to_bring.push_back(p_new_condition);
                     } else {
                         KRATOS_ERROR << "Entity type not supported" << std::endl;
                     }
@@ -426,6 +443,17 @@ void GatherModelPartUtility::GatherEntityFromOtherPartitions(
                 }
             }
         }
+    }
+
+    // Add to model part
+    if constexpr (std::is_same<TObjectType, Node>::value) {
+        rModelPart.AddNodes(entities_to_bring.begin(), entities_to_bring.end());
+    } else if constexpr (std::is_same<TObjectType, Element>::value) {
+        rModelPart.AddElements(entities_to_bring.begin(), entities_to_bring.end());
+    } else if constexpr (std::is_same<TObjectType, Condition>::value) {
+        rModelPart.AddConditions(entities_to_bring.begin(), entities_to_bring.end());
+    } else {
+        KRATOS_ERROR << "Entity type not supported" << std::endl;
     }
 }
 
