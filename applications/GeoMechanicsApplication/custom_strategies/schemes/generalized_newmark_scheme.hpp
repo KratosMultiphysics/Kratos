@@ -22,12 +22,12 @@ class GeneralizedNewmarkScheme
 {
 public:
     GeneralizedNewmarkScheme(double theta,
-                             const std::vector<FirstOrderVariable>& rFirstOrderVariables,
-                             const std::vector<SecondOrderVariable> rSecondOrderVariables,
+                             const std::vector<FirstOrderScalarVariable>& rFirstOrderScalarVariables,
+                             const std::vector<SecondOrderVectorVariable> rSecondOrderVectorVariables,
                              double beta = 0.25,
                              double gamma = 0.5)
         : GeoMechanicsTimeIntegrationScheme<TSparseSpace, TDenseSpace>(
-              rFirstOrderVariables, rSecondOrderVariables),
+              rFirstOrderScalarVariables, rSecondOrderVectorVariables),
           mTheta(theta),
           mBeta(beta),
           mGamma(gamma)
@@ -43,7 +43,7 @@ public:
 protected:
     void UpdateVectorFirstTimeDerivative(Node& rNode) const override
     {
-        for (const auto& variable_derivative : this->GetSecondOrderVariables())
+        for (const auto& variable_derivative : this->GetSecondOrderVectorVariables())
         {
             if (!rNode.SolutionStepsDataHas(variable_derivative.instance))
                 continue;
@@ -62,7 +62,7 @@ protected:
 
     void UpdateVectorSecondTimeDerivative(Node& rNode) const override
     {
-        for (const auto& variable_derivative : this->GetSecondOrderVariables())
+        for (const auto& variable_derivative : this->GetSecondOrderVectorVariables())
         {
             if (!rNode.SolutionStepsDataHas(variable_derivative.instance))
                 continue;
@@ -87,13 +87,13 @@ protected:
         const auto delta_time = rModelPart.GetProcessInfo()[DELTA_TIME];
         this->SetDeltaTime(delta_time);
 
-        for (const auto& r_first_order_variable : this->GetFirstOrderVariables())
+        for (const auto& r_first_order_variable : this->GetFirstOrderScalarVariables())
         {
             rModelPart.GetProcessInfo()[r_first_order_variable.delta_time_coefficient] =
                 1.0 / (mTheta * delta_time);
         }
 
-        if (!this->GetSecondOrderVariables().empty())
+        if (!this->GetSecondOrderVectorVariables().empty())
         {
             rModelPart.GetProcessInfo()[VELOCITY_COEFFICIENT] =
                 mGamma / (mBeta * this->GetDeltaTime());

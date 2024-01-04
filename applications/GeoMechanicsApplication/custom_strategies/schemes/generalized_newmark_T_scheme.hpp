@@ -31,7 +31,7 @@ public:
 
     explicit GeneralizedNewmarkTScheme(double theta)
         : GeneralizedNewmarkScheme<TSparseSpace, TDenseSpace>(
-              theta, {FirstOrderVariable(TEMPERATURE, DT_TEMPERATURE, DT_TEMPERATURE_COEFFICIENT)}, {})
+              theta, {FirstOrderScalarVariable(TEMPERATURE, DT_TEMPERATURE, DT_TEMPERATURE_COEFFICIENT)}, {})
     {
     }
 

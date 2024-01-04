@@ -16,13 +16,13 @@
 namespace Kratos
 {
 
-struct SecondOrderVariable
+struct SecondOrderVectorVariable
 {
     Variable<array_1d<double, 3>> instance;
     Variable<array_1d<double, 3>> first_time_derivative;
     Variable<array_1d<double, 3>> second_time_derivative;
 
-    explicit SecondOrderVariable(const Variable<array_1d<double, 3>>& instance)
+    explicit SecondOrderVectorVariable(const Variable<array_1d<double, 3>>& instance)
         : instance(instance),
           first_time_derivative(instance.GetTimeDerivative()),
           second_time_derivative(first_time_derivative.GetTimeDerivative())
@@ -30,13 +30,13 @@ struct SecondOrderVariable
     }
 };
 
-struct FirstOrderVariable
+struct FirstOrderScalarVariable
 {
     Variable<double> instance;
     Variable<double> first_time_derivative;
     Variable<double> delta_time_coefficient;
 
-    FirstOrderVariable(const Variable<double>& instance,
+    FirstOrderScalarVariable(const Variable<double>& instance,
                        const Variable<double>& first_time_derivative,
                        const Variable<double>& delta_time_coefficient)
         : instance(instance),
@@ -57,10 +57,10 @@ public:
     using LocalSystemVectorType = typename BaseType::LocalSystemVectorType;
     using LocalSystemMatrixType = typename BaseType::LocalSystemMatrixType;
 
-    GeoMechanicsTimeIntegrationScheme(const std::vector<FirstOrderVariable>& rFirstOrderVariables,
-                                      const std::vector<SecondOrderVariable>& rSecondOrderVariables)
-        : mFirstOrderVariables(rFirstOrderVariables),
-          mSecondOrderVariables(rSecondOrderVariables)
+    GeoMechanicsTimeIntegrationScheme(const std::vector<FirstOrderScalarVariable>& rFirstOrderVectorVariables,
+                                      const std::vector<SecondOrderVectorVariable>& rSecondOrderVectorVariables)
+        : mFirstOrderScalarVariables(rFirstOrderVectorVariables),
+          mSecondOrderVectorVariables(rSecondOrderVectorVariables)
     {
     }
 
@@ -389,7 +389,7 @@ protected:
     {
         for (const auto& r_node : rModelPart.Nodes())
         {
-            for (const auto& r_first_order_variable : mFirstOrderVariables)
+            for (const auto& r_first_order_variable : mFirstOrderScalarVariables)
             {
                 this->CheckSolutionStepsData(r_node, r_first_order_variable.instance);
                 this->CheckSolutionStepsData(r_node, r_first_order_variable.first_time_derivative);
@@ -399,7 +399,7 @@ protected:
 
         for (const auto& r_node : rModelPart.Nodes())
         {
-            for (const auto& variable_derivative : this->mSecondOrderVariables)
+            for (const auto& variable_derivative : this->mSecondOrderVectorVariables)
             {
                 if (!rModelPart.HasNodalSolutionStepVariable(variable_derivative.instance))
                     continue;
@@ -437,7 +437,7 @@ protected:
             UpdateVectorSecondTimeDerivative(rNode);
             UpdateVectorFirstTimeDerivative(rNode);
 
-            for (const auto& first_order_variable : mFirstOrderVariables)
+            for (const auto& first_order_variable : mFirstOrderScalarVariables)
             {
                 UpdateScalarTimeDerivative(rNode, first_order_variable.instance,
                                            first_order_variable.first_time_derivative);
@@ -460,20 +460,20 @@ protected:
 
     void SetDeltaTime(double DeltaTime) { mDeltaTime = DeltaTime; }
 
-    const std::vector<SecondOrderVariable>& GetSecondOrderVariables() const
+    const std::vector<SecondOrderVectorVariable>& GetSecondOrderVectorVariables() const
     {
-        return mSecondOrderVariables;
+        return mSecondOrderVectorVariables;
     }
 
-    const std::vector<FirstOrderVariable>& GetFirstOrderVariables() const
+    const std::vector<FirstOrderScalarVariable>& GetFirstOrderScalarVariables() const
     {
-        return mFirstOrderVariables;
+        return mFirstOrderScalarVariables;
     }
 
 private:
     double mDeltaTime = 1.0;
-    std::vector<FirstOrderVariable> mFirstOrderVariables;
-    std::vector<SecondOrderVariable> mSecondOrderVariables;
+    std::vector<FirstOrderScalarVariable> mFirstOrderScalarVariables;
+    std::vector<SecondOrderVectorVariable> mSecondOrderVectorVariables;
 };
 
 } // namespace Kratos

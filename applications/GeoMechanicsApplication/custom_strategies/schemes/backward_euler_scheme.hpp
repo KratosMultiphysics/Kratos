@@ -22,10 +22,10 @@ class BackwardEulerScheme
     : public GeoMechanicsTimeIntegrationScheme<TSparseSpace, TDenseSpace>
 {
 public:
-    BackwardEulerScheme(const std::vector<FirstOrderVariable>& rFirstOrderVariables,
-                        const std::vector<SecondOrderVariable>& rSecondOrderVariables)
+    BackwardEulerScheme(const std::vector<FirstOrderScalarVariable>& rFirstOrderScalarVariables,
+                        const std::vector<SecondOrderVectorVariable>& rSecondOrderVectorVariables)
         : GeoMechanicsTimeIntegrationScheme<TSparseSpace, TDenseSpace>(
-              rFirstOrderVariables, rSecondOrderVariables)
+              rFirstOrderScalarVariables, rSecondOrderVectorVariables)
     {
     }
 
@@ -37,13 +37,13 @@ protected:
         const auto delta_time = rModelPart.GetProcessInfo()[DELTA_TIME];
         this->SetDeltaTime(delta_time);
 
-        for (const auto& r_first_order_variable : this->GetFirstOrderVariables())
+        for (const auto& r_first_order_variable : this->GetFirstOrderScalarVariables())
         {
             rModelPart.GetProcessInfo()[r_first_order_variable.delta_time_coefficient] =
                 1.0 / delta_time;
         }
 
-        if (!this->GetSecondOrderVariables().empty())
+        if (!this->GetSecondOrderVectorVariables().empty())
         {
             rModelPart.GetProcessInfo()[VELOCITY_COEFFICIENT] = 1.0 / delta_time;
         }
@@ -53,7 +53,7 @@ protected:
 
     void UpdateVectorFirstTimeDerivative(Node& rNode) const override
     {
-        for (const auto& r_variable_with_derivative : this->GetSecondOrderVariables())
+        for (const auto& r_variable_with_derivative : this->GetSecondOrderVectorVariables())
         {
             SetDerivative(r_variable_with_derivative.first_time_derivative,
                           r_variable_with_derivative.instance, rNode);
@@ -62,7 +62,7 @@ protected:
 
     void UpdateVectorSecondTimeDerivative(Node& rNode) const override
     {
-        for (const auto& r_variable_with_derivative : this->GetSecondOrderVariables())
+        for (const auto& r_variable_with_derivative : this->GetSecondOrderVectorVariables())
         {
             // Make sure that setting the second_time_derivative is done
             // after setting the first_time_derivative.

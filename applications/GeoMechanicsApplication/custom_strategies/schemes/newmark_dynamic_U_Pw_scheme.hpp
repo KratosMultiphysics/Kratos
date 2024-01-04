@@ -69,7 +69,7 @@ public:
 
     void PredictVariablesForNode(Node& rNode)
     {
-        for (const auto& variable_derivative : this->GetSecondOrderVariables())
+        for (const auto& variable_derivative : this->GetSecondOrderVectorVariables())
         {
             if (!rNode.SolutionStepsDataHas(variable_derivative.instance))
                 continue;
@@ -77,7 +77,7 @@ public:
         }
     }
 
-    void PredictVariableForNode(Node& rNode, const SecondOrderVariable& rSecondOrderVariables)
+    void PredictVariableForNode(Node& rNode, const SecondOrderVectorVariable& rSecondOrderVariables)
     {
         const std::vector<std::string> components = {"X", "Y", "Z"};
 
