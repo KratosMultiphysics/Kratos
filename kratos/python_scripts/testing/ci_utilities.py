@@ -1,6 +1,7 @@
 import json
+from argparse import ArgumentParser
 from functools import lru_cache
-from os import getenv
+from os import environ, getenv
 from pathlib import Path
 from pprint import pprint
 from typing import List, Set, Optional
@@ -62,7 +63,7 @@ def are_only_python_files_changed() -> bool:
 
 def print_ci_information() -> None:
     """This function prints an overview of the CI related information"""
-    pprint(sorted(map(lambda p : p.as_posix(), changed_files())))
+    pprint(sorted(map(lambda p: p.as_posix(), changed_files())))
     pprint(sorted(ci_applications()))
     print(f"{sorted(get_changed_files_extensions())=}")
     print(f"{are_only_python_files_changed()=}")
@@ -71,5 +72,30 @@ def print_ci_information() -> None:
     print(f"{is_mpi_core_changed()=}\n")
 
 
+def add_compiled_apps_to_env() -> None:
+    """This function add the applications that are to be compiled to the environment
+    For now this adds everything, but in the future this will be depending on the actual changes of the PR
+    """
+    environ["KRATOS_APPLICATIONS"] = ";".join(map(lambda a: "applications/" + a, ci_applications()))
+
+
 if __name__ == "__main__":
-    print_ci_information()
+    parser: ArgumentParser = ArgumentParser(description="Utilities for the continuous integration")
+
+    option_groups = parser.add_mutually_exclusive_group(required=True)
+
+    option_groups.add_argument(
+        "--compilation", action="store_true", help="Set the environment for the apps to be compiled"
+    )
+    option_groups.add_argument("--testing", action="store_true", help="Set the environment for the apps to be tested")
+    option_groups.add_argument("--info", action="store_true", help="Print information about this CI run")
+
+    args = parser.parse_args()
+
+    if args.compilation:
+        add_compiled_apps_to_env()
+    elif args.testing:
+        # not yet implemented
+        pass
+    elif args.info:
+        print_ci_information()
