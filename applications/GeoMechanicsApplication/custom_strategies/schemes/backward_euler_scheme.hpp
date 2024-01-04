@@ -13,6 +13,7 @@
 #pragma once
 
 #include "geomechanics_time_integration_scheme.hpp"
+#include "geo_mechanics_application_variables.h"
 
 namespace Kratos
 {
