@@ -73,9 +73,11 @@ namespace Kratos
        */
       ConstitutiveLaw::Pointer Clone() const override;
 
+      using SmallStrainUDSM3DLaw::GetValue;
       Vector& GetValue(const Variable<Vector> &rThisVariable, Vector &rValue) override;
 
-      void SetValue(const Variable<Vector>& rVariable,
+       using SmallStrainUDSM3DLaw::SetValue;
+       void SetValue(const Variable<Vector>& rVariable,
                     const Vector& rValue,
                     const ProcessInfo& rCurrentProcessInfo) override;
 
@@ -108,7 +110,7 @@ namespace Kratos
        * returns the stress measure of this constitutive law (by default 1st Piola-Kirchhoff stress in voigt notation)
        * @return the expected stress measure
        */
-      virtual StressMeasure GetStressMeasure() override
+      StressMeasure GetStressMeasure() override
       {
          return StressMeasure_Cauchy;
       }
@@ -191,7 +193,7 @@ namespace Kratos
       ///@name Static Member Variables
       ///@{
 
-      indexStress3D getIndex3D(indexStress2DInterface index2D);
+      indexStress3D getIndex3D(const indexStress2DInterface index2D) const;
 
       ///@}
       ///@name Member Variables

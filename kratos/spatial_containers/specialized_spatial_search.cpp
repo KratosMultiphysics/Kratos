@@ -15,19 +15,12 @@
 // External includes
 
 // Project includes
+#include "utilities/search_utilities.h"
 #include "spatial_containers/specialized_spatial_search.h"
 #include "spatial_containers/spatial_containers.h"
 
 namespace Kratos
 {
-
-template class PointObject<Node>;
-template class PointObject<GeometricalObject>;
-template class PointObject<Condition>;
-template class PointObject<Element>;
-
-/***********************************************************************************/
-/***********************************************************************************/
 
 template<SpatialContainer TSearchBackend>
 void SpecializedSpatialSearch<TSearchBackend>::SearchElementsInRadiusExclusive(
@@ -43,7 +36,10 @@ void SpecializedSpatialSearch<TSearchBackend>::SearchElementsInRadiusExclusive(
     using PointVector = std::vector<PointType::Pointer>;
 
     // Defining the PointVector
-    PointVector points = PrepareSearch(rStructureElements, rInputElements, rResults, rResultsDistance);
+    PointVector points = SearchUtilities::PrepareSearch(rStructureElements, rInputElements, rResults, rResultsDistance);
+
+    // Retrieving parameters
+    const int allocation_size = mParameters["allocation_size"].GetInt();
 
     // Defining the search structure
     if constexpr (TSearchBackend == SpatialContainer::KDTree) {
@@ -57,7 +53,7 @@ void SpecializedSpatialSearch<TSearchBackend>::SearchElementsInRadiusExclusive(
         KDTree kd_tree(points.begin(), points.end(), bucket_size);
 
         // Performing search
-        ParallelSearch(rInputElements, rRadius, kd_tree, rResults, rResultsDistance);
+        SearchUtilities::ParallelSearch(rInputElements, rRadius, kd_tree, rResults, rResultsDistance, allocation_size);
     } else if constexpr (TSearchBackend == SpatialContainer::Octree) {
         // Retrieving parameters
         const int bucket_size = mParameters["bucket_size"].GetInt();
@@ -69,7 +65,7 @@ void SpecializedSpatialSearch<TSearchBackend>::SearchElementsInRadiusExclusive(
         Octree octree(points.begin(), points.end(), bucket_size);
 
         // Performing search
-        ParallelSearch(rInputElements, rRadius, octree, rResults, rResultsDistance);
+        SearchUtilities::ParallelSearch(rInputElements, rRadius, octree, rResults, rResultsDistance, allocation_size);
     } else if constexpr (TSearchBackend == SpatialContainer::BinsStatic) {
         // Retrieving parameters
         const int bucket_size = mParameters["bucket_size"].GetInt();
@@ -81,7 +77,7 @@ void SpecializedSpatialSearch<TSearchBackend>::SearchElementsInRadiusExclusive(
         StaticBinsTree static_bins_tree(points.begin(), points.end(), bucket_size);
 
         // Performing search
-        ParallelSearch(rInputElements, rRadius, static_bins_tree, rResults, rResultsDistance);
+        SearchUtilities::ParallelSearch(rInputElements, rRadius, static_bins_tree, rResults, rResultsDistance, allocation_size);
     } else if constexpr (TSearchBackend == SpatialContainer::BinsDynamic) {
         /// BinsDynamic definitions
         using DynamicBins = BinsDynamic<3ul, PointType, PointVector>;
@@ -90,7 +86,7 @@ void SpecializedSpatialSearch<TSearchBackend>::SearchElementsInRadiusExclusive(
         DynamicBins dynamic_bins(points.begin(), points.end());
 
         // Performing search
-        ParallelSearch(rInputElements, rRadius, dynamic_bins, rResults, rResultsDistance);
+        SearchUtilities::ParallelSearch(rInputElements, rRadius, dynamic_bins, rResults, rResultsDistance, allocation_size);
     } else {
         static_assert(TSearchBackend == SpatialContainer::KDTree || TSearchBackend == SpatialContainer::Octree || TSearchBackend == SpatialContainer::BinsStatic || TSearchBackend == SpatialContainer::BinsDynamic, "Unknown search backend");
     }
@@ -128,7 +124,10 @@ void SpecializedSpatialSearch<TSearchBackend>::SearchNodesInRadiusExclusive(
     using PointVector = std::vector<PointType::Pointer>;
 
     // Defining the PointVector
-    PointVector points = PrepareSearch(rStructureNodes, rInputNodes, rResults, rResultsDistance);
+    PointVector points = SearchUtilities::PrepareSearch(rStructureNodes, rInputNodes, rResults, rResultsDistance);
+
+    // Retrieving parameters
+    const int allocation_size = mParameters["allocation_size"].GetInt();
 
     // Defining the search structure
     if constexpr (TSearchBackend == SpatialContainer::KDTree) {
@@ -142,7 +141,7 @@ void SpecializedSpatialSearch<TSearchBackend>::SearchNodesInRadiusExclusive(
         KDTree kd_tree(points.begin(), points.end(), bucket_size);
 
         // Performing search
-        ParallelSearch(rInputNodes, rRadius, kd_tree, rResults, rResultsDistance);
+        SearchUtilities::ParallelSearch(rInputNodes, rRadius, kd_tree, rResults, rResultsDistance, allocation_size);
     } else if constexpr (TSearchBackend == SpatialContainer::Octree) {
         // Retrieving parameters
         const int bucket_size = mParameters["bucket_size"].GetInt();
@@ -154,7 +153,7 @@ void SpecializedSpatialSearch<TSearchBackend>::SearchNodesInRadiusExclusive(
         Octree octree(points.begin(), points.end(), bucket_size);
 
         // Performing search
-        ParallelSearch(rInputNodes, rRadius, octree, rResults, rResultsDistance);
+        SearchUtilities::ParallelSearch(rInputNodes, rRadius, octree, rResults, rResultsDistance, allocation_size);
     } else if constexpr (TSearchBackend == SpatialContainer::BinsStatic) {
         // Retrieving parameters
         const int bucket_size = mParameters["bucket_size"].GetInt();
@@ -166,7 +165,7 @@ void SpecializedSpatialSearch<TSearchBackend>::SearchNodesInRadiusExclusive(
         StaticBinsTree static_bins_tree(points.begin(), points.end(), bucket_size);
 
         // Performing search
-        ParallelSearch(rInputNodes, rRadius, static_bins_tree, rResults, rResultsDistance);
+        SearchUtilities::ParallelSearch(rInputNodes, rRadius, static_bins_tree, rResults, rResultsDistance, allocation_size);
     } else if constexpr (TSearchBackend == SpatialContainer::BinsDynamic) {
         /// BinsDynamic definitions
         using DynamicBins = BinsDynamic<3ul, PointType, PointVector>;
@@ -175,7 +174,7 @@ void SpecializedSpatialSearch<TSearchBackend>::SearchNodesInRadiusExclusive(
         DynamicBins dynamic_bins(points.begin(), points.end());
 
         // Performing search
-        ParallelSearch(rInputNodes, rRadius, dynamic_bins, rResults, rResultsDistance);
+        SearchUtilities::ParallelSearch(rInputNodes, rRadius, dynamic_bins, rResults, rResultsDistance, allocation_size);
     } else {
         static_assert(TSearchBackend == SpatialContainer::KDTree || TSearchBackend == SpatialContainer::Octree || TSearchBackend == SpatialContainer::BinsStatic || TSearchBackend == SpatialContainer::BinsDynamic, "Unknown search backend");
     }
@@ -213,7 +212,10 @@ void SpecializedSpatialSearch<TSearchBackend>::SearchConditionsInRadiusExclusive
     using PointVector = std::vector<PointType::Pointer>;
 
     // Defining the PointVector
-    PointVector points = PrepareSearch(rStructureConditions, rInputConditions, rResults, rResultsDistance);
+    PointVector points = SearchUtilities::PrepareSearch(rStructureConditions, rInputConditions, rResults, rResultsDistance);
+
+    // Retrieving parameters
+    const int allocation_size = mParameters["allocation_size"].GetInt();
 
     // Defining the search structure
     if constexpr (TSearchBackend == SpatialContainer::KDTree) {
@@ -227,7 +229,7 @@ void SpecializedSpatialSearch<TSearchBackend>::SearchConditionsInRadiusExclusive
         KDTree kd_tree(points.begin(), points.end(), bucket_size);
 
         // Performing search
-        ParallelSearch(rInputConditions, rRadius, kd_tree, rResults, rResultsDistance);
+        SearchUtilities::ParallelSearch(rInputConditions, rRadius, kd_tree, rResults, rResultsDistance, allocation_size);
     } else if constexpr (TSearchBackend == SpatialContainer::Octree) {
         // Retrieving parameters
         const int bucket_size = mParameters["bucket_size"].GetInt();
@@ -239,7 +241,7 @@ void SpecializedSpatialSearch<TSearchBackend>::SearchConditionsInRadiusExclusive
         Octree octree(points.begin(), points.end(), bucket_size);
 
         // Performing search
-        ParallelSearch(rInputConditions, rRadius, octree, rResults, rResultsDistance);
+        SearchUtilities::ParallelSearch(rInputConditions, rRadius, octree, rResults, rResultsDistance, allocation_size);
     } else if constexpr (TSearchBackend == SpatialContainer::BinsStatic) {
         // Retrieving parameters
         const int bucket_size = mParameters["bucket_size"].GetInt();
@@ -251,7 +253,7 @@ void SpecializedSpatialSearch<TSearchBackend>::SearchConditionsInRadiusExclusive
         StaticBinsTree static_bins_tree(points.begin(), points.end(), bucket_size);
 
         // Performing search
-        ParallelSearch(rInputConditions, rRadius, static_bins_tree, rResults, rResultsDistance);
+        SearchUtilities::ParallelSearch(rInputConditions, rRadius, static_bins_tree, rResults, rResultsDistance, allocation_size);
     } else if constexpr (TSearchBackend == SpatialContainer::BinsDynamic) {
         /// BinsDynamic definitions
         using DynamicBins = BinsDynamic<3ul, PointType, PointVector>;
@@ -260,7 +262,7 @@ void SpecializedSpatialSearch<TSearchBackend>::SearchConditionsInRadiusExclusive
         DynamicBins dynamic_bins(points.begin(), points.end());
 
         // Performing search
-        ParallelSearch(rInputConditions, rRadius, dynamic_bins, rResults, rResultsDistance);
+        SearchUtilities::ParallelSearch(rInputConditions, rRadius, dynamic_bins, rResults, rResultsDistance, allocation_size);
     } else {
         static_assert(TSearchBackend == SpatialContainer::KDTree || TSearchBackend == SpatialContainer::Octree || TSearchBackend == SpatialContainer::BinsStatic || TSearchBackend == SpatialContainer::BinsDynamic, "Unknown search backend");
     }

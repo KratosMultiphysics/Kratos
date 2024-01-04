@@ -6,6 +6,7 @@ from glob import glob
 
 # Importing the Kratos Library
 import KratosMultiphysics
+import KratosMultiphysics.scipy_conversion_tools
 
 # Import applications
 import KratosMultiphysics.RomApplication as KratosROM
@@ -21,19 +22,21 @@ class PetrovGalerkinTrainingUtility(object):
 
     def __init__(self, solver, custom_settings):
         # Validate and assign the HROM training settings
-        settings = custom_settings["train_petrov_galerkin"]
+        settings = custom_settings["rom_settings"]["rom_bns_settings"]
         settings.ValidateAndAssignDefaults(self.__GetPetrovGalerkinTrainingDefaultSettings())
 
         # Auxiliary member variables
         self.solver = solver
         self.time_step_snapshots_matrix_container = [] ## J@Phi or R
         self.echo_level = settings["echo_level"].GetInt()
-        self.rom_settings = custom_settings["rom_settings"]
+        self.rom_settings = custom_settings["rom_settings"].Clone()
+        self.rom_settings.RemoveValue("rom_bns_settings") #Removing because the inner rom settings are specific for each builder and solver.
         self.basis_strategy = settings["basis_strategy"].GetString()
         self.include_phi = settings["include_phi"].GetBool()
         self.svd_truncation_tolerance = settings["svd_truncation_tolerance"].GetDouble()
         self.rom_basis_output_name = Path(custom_settings["rom_basis_output_name"].GetString())
         self.rom_basis_output_folder = Path(custom_settings["rom_basis_output_folder"].GetString())
+        self.num_of_right_rom_dofs = self.rom_settings["number_of_rom_dofs"].GetInt()
 
         self.rom_format =  custom_settings["rom_format"].GetString()
         available_rom_format = ["json", "numpy"]
@@ -59,16 +62,19 @@ class PetrovGalerkinTrainingUtility(object):
 
         # Generate the matrix of residuals or projected Jacobians.
         if self.basis_strategy=="jacobian":
-            snapshots_matrix = self.__rom_residuals_utility.GetProjectedGlobalLHS()
+            snapshots_matrix = self.GetJacobianPhiMultiplication(computing_model_part)
             if self.echo_level > 0 : KratosMultiphysics.Logger.PrintInfo("PetrovGalerkinTrainingUtility","Generated matrix of projected Jacobian.")
-        elif self.basis_strategy=="residuals":
+        elif self.basis_strategy=="residuals" or self.basis_strategy=="reactions":
             snapshots_matrix = []
             files_to_read_and_delete = glob('*.res.mm')#TODO: Stop writing to disk.
             for to_erase_file in files_to_read_and_delete:
                 non_converged_iteration_snapshot = KratosMultiphysics.Vector()
                 KratosMultiphysics.ReadMatrixMarketVector(to_erase_file, non_converged_iteration_snapshot)
                 snapshots_matrix.append(non_converged_iteration_snapshot)
-            snapshots_matrix = np.array(snapshots_matrix).T
+            if self.basis_strategy == "residuals":
+                snapshots_matrix = np.array(snapshots_matrix).T
+            elif self.basis_strategy == "reactions":
+                snapshots_matrix = -np.array(snapshots_matrix).T # Negate for 'reactions' as they are residuals with opposite sign.
             if self.echo_level > 0 : KratosMultiphysics.Logger.PrintInfo("PetrovGalerkinTrainingUtility","Generating matrix of residuals.")
         else:
             err_msg = "\'self.basis_strategy\' is not available. Select either 'jacobian' or 'residuals'."
@@ -76,6 +82,22 @@ class PetrovGalerkinTrainingUtility(object):
 
         np_snapshots_matrix = np.array(snapshots_matrix, copy=False)
         self.time_step_snapshots_matrix_container.append(np_snapshots_matrix)
+
+    def GetJacobianPhiMultiplication(self, computing_model_part):
+        jacobian_matrix = KratosMultiphysics.CompressedMatrix()
+        residual_vector = KratosMultiphysics.Vector(self.solver._GetBuilderAndSolver().GetEquationSystemSize())
+        delta_x_vector = KratosMultiphysics.Vector(self.solver._GetBuilderAndSolver().GetEquationSystemSize())
+
+        self.solver._GetBuilderAndSolver().BuildAndApplyDirichletConditions(self.solver._GetScheme(), computing_model_part, jacobian_matrix, residual_vector, delta_x_vector)
+
+        right_rom_basis = KratosMultiphysics.Matrix(self.solver._GetBuilderAndSolver().GetEquationSystemSize(), self.num_of_right_rom_dofs)
+        self.solver._GetBuilderAndSolver().GetRightROMBasis(computing_model_part, right_rom_basis)
+
+        jacobian_scipy_format = KratosMultiphysics.scipy_conversion_tools.to_csr(jacobian_matrix)
+        jacobian_phi_product = jacobian_scipy_format @ right_rom_basis
+
+        return jacobian_phi_product
+
 
     def CalculateAndSaveBasis(self, snapshots_matrix = None):
         # Calculate the new basis and save
@@ -86,10 +108,12 @@ class PetrovGalerkinTrainingUtility(object):
     @classmethod
     def __GetPetrovGalerkinTrainingDefaultSettings(cls):
         default_settings = KratosMultiphysics.Parameters("""{
-                "train": false,
+                "train_petrov_galerkin": false,
                 "basis_strategy": "residuals",
                 "include_phi": false,
                 "svd_truncation_tolerance": 1.0e-6,
+                "solving_technique": "normal_equations",
+                "monotonicity_preserving": false,
                 "echo_level": 0
         }""")
         return default_settings

@@ -462,8 +462,8 @@ typedef void(*pF_UserMod) (int    *, int     *, int    *,
       int GetNumberOfStateVariablesFromUDSM(const Properties& rMaterialProperties);
 
       // get number of MaterialParameters
-      int GetNumberOfMaterialParametersFromUDSM(const Properties& rMaterialProperties);
-      int GetStateVariableIndex(const Variable<double>& rThisVariable);
+      SizeType GetNumberOfMaterialParametersFromUDSM(const Properties& rMaterialProperties);
+      int GetStateVariableIndex(const Variable<double>& rThisVariable) const;
 
       ///@}
       ///@name Serialization
