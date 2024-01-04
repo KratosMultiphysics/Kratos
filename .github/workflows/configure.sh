@@ -23,7 +23,7 @@ export KRATOS_INSTALL_PYTHON_USING_LINKS=ON
 input="ci_apps.txt"
 while IFS= read -r line
 do
-  add_app ${KRATOS_APP_DIR}/$line;
+  add_app ${KRATOS_APP_DIR}/${line};
 done < "$input"
 # add_app ${KRATOS_APP_DIR}/ConvectionDiffusionApplication;
 

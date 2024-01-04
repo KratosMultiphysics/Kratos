@@ -1,7 +1,7 @@
 import json
 from argparse import ArgumentParser
 from functools import lru_cache
-from os import environ, getenv
+from os import getenv
 from pathlib import Path
 from pprint import pprint
 from typing import List, Set, Optional
@@ -78,8 +78,8 @@ def write_compiled_apps_to_file() -> None:
     """
 
     with open("ci_apps.txt", "w") as ci_apps_file:
-        for app in ["app1", "app_2", "ppaa3"]:
-            ci_apps_file.write(f"applications/{app}\n")
+        for app in ci_applications():
+            ci_apps_file.write(f"{app}\n")
 
 
 if __name__ == "__main__":
