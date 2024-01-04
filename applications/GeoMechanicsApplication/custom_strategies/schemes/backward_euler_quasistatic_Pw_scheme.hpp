@@ -29,7 +29,7 @@ public:
 
     BackwardEulerQuasistaticPwScheme()
         : BackwardEulerScheme<TSparseSpace, TDenseSpace>(
-              WATER_PRESSURE, DT_WATER_PRESSURE, DT_PRESSURE_COEFFICIENT, {})
+              {FirstOrderVariable(WATER_PRESSURE, DT_WATER_PRESSURE, DT_PRESSURE_COEFFICIENT)}, {})
     {
     }
 }; // Class BackwardEulerQuasistaticPwScheme

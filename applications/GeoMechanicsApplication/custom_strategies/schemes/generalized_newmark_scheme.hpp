@@ -22,14 +22,12 @@ class GeneralizedNewmarkScheme
 {
 public:
     GeneralizedNewmarkScheme(double theta,
-                             const Variable<double>& rVariable,
-                             const Variable<double>& rDeltaTimeVariable,
-                             const Variable<double>& rDeltaTimeVariableCoefficient,
+                             const std::vector<FirstOrderVariable>& rFirstOrderVariables,
                              const std::vector<VariableWithTimeDerivatives> rVariablesWithDerivatives,
                              double beta = 0.25,
                              double gamma = 0.5)
         : GeoMechanicsTimeIntegrationScheme<TSparseSpace, TDenseSpace>(
-              rVariable, rDeltaTimeVariable, rDeltaTimeVariableCoefficient, rVariablesWithDerivatives),
+              rFirstOrderVariables, rVariablesWithDerivatives),
           mTheta(theta),
           mBeta(beta),
           mGamma(gamma)
@@ -88,8 +86,13 @@ protected:
 
         const auto delta_time = rModelPart.GetProcessInfo()[DELTA_TIME];
         this->SetDeltaTime(delta_time);
-        rModelPart.GetProcessInfo()[this->mFirstOrderVariableDeltaTimeCoefficient] =
-            1.0 / (mTheta * delta_time);
+
+        for (const auto& r_first_order_variable : this->GetFirstOrderVariables())
+        {
+            rModelPart.GetProcessInfo()[r_first_order_variable.delta_time_coefficient] =
+                1.0 / (mTheta * delta_time);
+        }
+
         rModelPart.GetProcessInfo()[VELOCITY_COEFFICIENT] =
             mGamma / (mBeta * this->GetDeltaTime());
 

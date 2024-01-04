@@ -22,12 +22,10 @@ class BackwardEulerScheme
     : public GeoMechanicsTimeIntegrationScheme<TSparseSpace, TDenseSpace>
 {
 public:
-    BackwardEulerScheme(const Variable<double>& rVariable,
-                        const Variable<double>& rDeltaTimeVariable,
-                        const Variable<double>& rDeltaTimeVariableCoefficient,
+    BackwardEulerScheme(const std::vector<FirstOrderVariable>& rFirstOrderVariables,
                         const std::vector<VariableWithTimeDerivatives>& rVariablesWithDerivatives)
         : GeoMechanicsTimeIntegrationScheme<TSparseSpace, TDenseSpace>(
-              rVariable, rDeltaTimeVariable, rDeltaTimeVariableCoefficient, rVariablesWithDerivatives)
+              rFirstOrderVariables, rVariablesWithDerivatives)
     {
     }
 
@@ -38,7 +36,12 @@ protected:
 
         const auto delta_time = rModelPart.GetProcessInfo()[DELTA_TIME];
         this->SetDeltaTime(delta_time);
-        rModelPart.GetProcessInfo()[this->mDeltaTimeVariableCoefficient] = 1.0 / delta_time;
+
+        for (const auto& r_first_order_variable : this->GetFirstOrderVariables())
+        {
+            rModelPart.GetProcessInfo()[r_first_order_variable.delta_time_coefficient] =
+                1.0 / delta_time;
+        }
 
         KRATOS_CATCH("")
     }

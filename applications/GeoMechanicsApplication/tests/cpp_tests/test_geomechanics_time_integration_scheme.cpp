@@ -31,8 +31,7 @@ class ConcreteGeoMechanicsTimeIntegrationScheme : public GeoMechanicsTimeIntegra
 {
 public:
     ConcreteGeoMechanicsTimeIntegrationScheme()
-        : GeoMechanicsTimeIntegrationScheme<SparseSpaceType, LocalSpaceType>(
-              WATER_PRESSURE, WATER_PRESSURE, WATER_PRESSURE, {})
+        : GeoMechanicsTimeIntegrationScheme<SparseSpaceType, LocalSpaceType>({}, {})
     {
     }
 

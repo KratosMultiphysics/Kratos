@@ -40,9 +40,7 @@ public:
     NewmarkQuasistaticUPwScheme(double beta, double gamma, double theta)
         : GeneralizedNewmarkScheme<TSparseSpace, TDenseSpace>(
               theta,
-              WATER_PRESSURE,
-              DT_WATER_PRESSURE,
-              DT_PRESSURE_COEFFICIENT,
+              {FirstOrderVariable(WATER_PRESSURE, DT_WATER_PRESSURE, DT_PRESSURE_COEFFICIENT)},
               {VariableWithTimeDerivatives(DISPLACEMENT),
                VariableWithTimeDerivatives{ROTATION}}, beta, gamma)
     {

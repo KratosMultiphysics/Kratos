@@ -30,6 +30,22 @@ struct VariableWithTimeDerivatives
     }
 };
 
+struct FirstOrderVariable
+{
+    Variable<double> instance;
+    Variable<double> first_time_derivative;
+    Variable<double> delta_time_coefficient;
+
+    FirstOrderVariable(const Variable<double>& instance,
+                       const Variable<double>& first_time_derivative,
+                       const Variable<double>& delta_time_coefficient)
+        : instance(instance),
+          first_time_derivative(first_time_derivative),
+          delta_time_coefficient(delta_time_coefficient)
+    {
+    }
+};
+
 template <class TSparseSpace, class TDenseSpace>
 class GeoMechanicsTimeIntegrationScheme : public Scheme<TSparseSpace, TDenseSpace>
 {
@@ -41,13 +57,9 @@ public:
     using LocalSystemVectorType = typename BaseType::LocalSystemVectorType;
     using LocalSystemMatrixType = typename BaseType::LocalSystemMatrixType;
 
-    GeoMechanicsTimeIntegrationScheme(const Variable<double>& rVariable,
-                                      const Variable<double>& rDeltaTimeVariable,
-                                      const Variable<double>& rDeltaTimeVariableCoefficient,
+    GeoMechanicsTimeIntegrationScheme(const std::vector<FirstOrderVariable>& rFirstOrderVariables,
                                       const std::vector<VariableWithTimeDerivatives>& rVariableDerivatives)
-        : mFirstOrderVariable(rVariable),
-          mFirstOrderVariableTimeDerivative(rDeltaTimeVariable),
-          mFirstOrderVariableDeltaTimeCoefficient(rDeltaTimeVariableCoefficient),
+        : mFirstOrderVariables(rFirstOrderVariables),
           mSecondOrderVariables(rVariableDerivatives)
     {
     }
@@ -377,9 +389,12 @@ protected:
     {
         for (const auto& r_node : rModelPart.Nodes())
         {
-            this->CheckSolutionStepsData(r_node, mFirstOrderVariable);
-            this->CheckSolutionStepsData(r_node, mFirstOrderVariableTimeDerivative);
-            this->CheckDof(r_node, mFirstOrderVariable);
+            for (const auto& r_first_order_variable : mFirstOrderVariables)
+            {
+                this->CheckSolutionStepsData(r_node, r_first_order_variable.instance);
+                this->CheckSolutionStepsData(r_node, r_first_order_variable.first_time_derivative);
+                this->CheckDof(r_node, r_first_order_variable.instance);
+            }
         }
 
         for (const auto& r_node : rModelPart.Nodes())
@@ -421,8 +436,12 @@ protected:
         {
             UpdateVectorSecondTimeDerivative(rNode);
             UpdateVectorFirstTimeDerivative(rNode);
-            UpdateScalarTimeDerivative(rNode, mFirstOrderVariable,
-                                       mFirstOrderVariableTimeDerivative);
+
+            for (const auto& first_order_variable : mFirstOrderVariables)
+            {
+                UpdateScalarTimeDerivative(rNode, first_order_variable.instance,
+                                           first_order_variable.first_time_derivative);
+            }
         });
 
         KRATOS_CATCH("")
@@ -446,13 +465,14 @@ protected:
         return mSecondOrderVariables;
     }
 
-
-    Variable<double> mFirstOrderVariable;
-    Variable<double> mFirstOrderVariableTimeDerivative;
-    Variable<double> mFirstOrderVariableDeltaTimeCoefficient;
+    const std::vector<FirstOrderVariable>& GetFirstOrderVariables() const
+    {
+        return mFirstOrderVariables;
+    }
 
 private:
     double mDeltaTime = 1.0;
+    std::vector<FirstOrderVariable> mFirstOrderVariables;
     std::vector<VariableWithTimeDerivatives> mSecondOrderVariables;
 };
 

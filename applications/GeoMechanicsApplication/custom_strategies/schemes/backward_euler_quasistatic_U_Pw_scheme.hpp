@@ -13,9 +13,9 @@
 #pragma once
 
 // Project includes
+#include "backward_euler_scheme.hpp"
 #include "includes/define.h"
 #include "includes/model_part.h"
-#include "backward_euler_scheme.hpp"
 #include "solving_strategies/schemes/scheme.h"
 #include "utilities/parallel_utilities.h"
 
@@ -34,9 +34,7 @@ public:
 
     BackwardEulerQuasistaticUPwScheme()
         : BackwardEulerScheme<TSparseSpace, TDenseSpace>(
-              WATER_PRESSURE,
-              DT_WATER_PRESSURE,
-              DT_PRESSURE_COEFFICIENT,
+              {FirstOrderVariable(WATER_PRESSURE, DT_WATER_PRESSURE, DT_PRESSURE_COEFFICIENT)},
               {VariableWithTimeDerivatives(DISPLACEMENT), VariableWithTimeDerivatives{ROTATION}})
     {
     }
