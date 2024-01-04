@@ -45,7 +45,7 @@ public:
 protected:
     void UpdateVectorFirstTimeDerivative(Node& rNode) const override
     {
-        for (const auto& variable_derivative : this->GetVariableDerivatives())
+        for (const auto& variable_derivative : this->GetSecondOrderVariables())
         {
             if (!rNode.SolutionStepsDataHas(variable_derivative.instance))
                 continue;
@@ -64,7 +64,7 @@ protected:
 
     void UpdateVectorSecondTimeDerivative(Node& rNode) const override
     {
-        for (const auto& variable_derivative : this->GetVariableDerivatives())
+        for (const auto& variable_derivative : this->GetSecondOrderVariables())
         {
             if (!rNode.SolutionStepsDataHas(variable_derivative.instance))
                 continue;
@@ -88,7 +88,7 @@ protected:
 
         const auto delta_time = rModelPart.GetProcessInfo()[DELTA_TIME];
         this->SetDeltaTime(delta_time);
-        rModelPart.GetProcessInfo()[this->mDeltaTimeVariableCoefficient] =
+        rModelPart.GetProcessInfo()[this->mFirstOrderVariableDeltaTimeCoefficient] =
             1.0 / (mTheta * delta_time);
         rModelPart.GetProcessInfo()[VELOCITY_COEFFICIENT] =
             mGamma / (mBeta * this->GetDeltaTime());

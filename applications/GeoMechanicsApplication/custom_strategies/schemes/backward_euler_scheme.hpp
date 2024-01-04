@@ -45,7 +45,7 @@ protected:
 
     void UpdateVectorFirstTimeDerivative(Node& rNode) const override
     {
-        for (const auto& r_variable_with_derivative : this->GetVariableDerivatives())
+        for (const auto& r_variable_with_derivative : this->GetSecondOrderVariables())
         {
             SetDerivative(r_variable_with_derivative.first_time_derivative,
                           r_variable_with_derivative.instance, rNode);
@@ -54,7 +54,7 @@ protected:
 
     void UpdateVectorSecondTimeDerivative(Node& rNode) const override
     {
-        for (const auto& r_variable_with_derivative : this->GetVariableDerivatives())
+        for (const auto& r_variable_with_derivative : this->GetSecondOrderVariables())
         {
             // Make sure that setting the second_time_derivative is done
             // after setting the first_time_derivative.

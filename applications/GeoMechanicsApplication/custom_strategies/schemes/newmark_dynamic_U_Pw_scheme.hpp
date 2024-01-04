@@ -69,7 +69,7 @@ public:
 
     void PredictVariablesForNode(Node& rNode)
     {
-        for (const auto& variable_derivative : this->GetVariableDerivatives())
+        for (const auto& variable_derivative : this->GetSecondOrderVariables())
         {
             if (!rNode.SolutionStepsDataHas(variable_derivative.instance))
                 continue;

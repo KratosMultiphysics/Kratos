@@ -45,10 +45,10 @@ public:
                                       const Variable<double>& rDeltaTimeVariable,
                                       const Variable<double>& rDeltaTimeVariableCoefficient,
                                       const std::vector<VariableWithTimeDerivatives>& rVariableDerivatives)
-        : mVariable(rVariable),
-          mDeltaTimeVariable(rDeltaTimeVariable),
-          mDeltaTimeVariableCoefficient(rDeltaTimeVariableCoefficient),
-          mVariableDerivatives(rVariableDerivatives)
+        : mFirstOrderVariable(rVariable),
+          mFirstOrderVariableTimeDerivative(rDeltaTimeVariable),
+          mFirstOrderVariableDeltaTimeCoefficient(rDeltaTimeVariableCoefficient),
+          mSecondOrderVariables(rVariableDerivatives)
     {
     }
 
@@ -377,14 +377,14 @@ protected:
     {
         for (const auto& r_node : rModelPart.Nodes())
         {
-            this->CheckSolutionStepsData(r_node, mVariable);
-            this->CheckSolutionStepsData(r_node, mDeltaTimeVariable);
-            this->CheckDof(r_node, mVariable);
+            this->CheckSolutionStepsData(r_node, mFirstOrderVariable);
+            this->CheckSolutionStepsData(r_node, mFirstOrderVariableTimeDerivative);
+            this->CheckDof(r_node, mFirstOrderVariable);
         }
 
         for (const auto& r_node : rModelPart.Nodes())
         {
-            for (const auto& variable_derivative : this->mVariableDerivatives)
+            for (const auto& variable_derivative : this->mSecondOrderVariables)
             {
                 if (!rModelPart.HasNodalSolutionStepVariable(variable_derivative.instance))
                     continue;
@@ -421,7 +421,8 @@ protected:
         {
             UpdateVectorSecondTimeDerivative(rNode);
             UpdateVectorFirstTimeDerivative(rNode);
-            UpdateScalarTimeDerivative(rNode, mVariable, mDeltaTimeVariable);
+            UpdateScalarTimeDerivative(rNode, mFirstOrderVariable,
+                                       mFirstOrderVariableTimeDerivative);
         });
 
         KRATOS_CATCH("")
@@ -440,19 +441,19 @@ protected:
 
     void SetDeltaTime(double DeltaTime) { mDeltaTime = DeltaTime; }
 
-    const std::vector<VariableWithTimeDerivatives>& GetVariableDerivatives() const
+    const std::vector<VariableWithTimeDerivatives>& GetSecondOrderVariables() const
     {
-        return mVariableDerivatives;
+        return mSecondOrderVariables;
     }
 
 
-    Variable<double> mVariable;
-    Variable<double> mDeltaTimeVariable;
-    Variable<double> mDeltaTimeVariableCoefficient;
+    Variable<double> mFirstOrderVariable;
+    Variable<double> mFirstOrderVariableTimeDerivative;
+    Variable<double> mFirstOrderVariableDeltaTimeCoefficient;
 
 private:
     double mDeltaTime = 1.0;
-    std::vector<VariableWithTimeDerivatives> mVariableDerivatives;
+    std::vector<VariableWithTimeDerivatives> mSecondOrderVariables;
 };
 
 } // namespace Kratos
