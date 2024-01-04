@@ -93,8 +93,12 @@ protected:
                 1.0 / (mTheta * delta_time);
         }
 
-        rModelPart.GetProcessInfo()[VELOCITY_COEFFICIENT] =
-            mGamma / (mBeta * this->GetDeltaTime());
+        if (!this->GetSecondOrderVariables().empty())
+        {
+            rModelPart.GetProcessInfo()[VELOCITY_COEFFICIENT] =
+                mGamma / (mBeta * this->GetDeltaTime());
+        }
+
 
         KRATOS_CATCH("")
     }

@@ -43,6 +43,11 @@ protected:
                 1.0 / delta_time;
         }
 
+        if (!this->GetSecondOrderVariables().empty())
+        {
+            rModelPart.GetProcessInfo()[VELOCITY_COEFFICIENT] = 1.0 / delta_time;
+        }
+
         KRATOS_CATCH("")
     }
 

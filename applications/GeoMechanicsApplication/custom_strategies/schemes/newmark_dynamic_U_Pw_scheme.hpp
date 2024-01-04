@@ -79,15 +79,16 @@ public:
 
     void PredictVariableForNode(Node& rNode, const SecondOrderVariable& rSecondOrderVariables)
     {
-        std::vector<std::string> components = {"X", "Y"};
-        if (rNode.HasDofFor(this->GetComponentFromVectorVariable(
-                rSecondOrderVariables.instance, "Z")))
-            components.emplace_back("Z");
+        const std::vector<std::string> components = {"X", "Y", "Z"};
 
         for (const auto& component : components)
         {
             const auto& instance_component = this->GetComponentFromVectorVariable(
                 rSecondOrderVariables.instance, component);
+
+            if (!rNode.HasDofFor(instance_component))
+                continue;
+
             const auto& first_time_derivative_component = this->GetComponentFromVectorVariable(
                 rSecondOrderVariables.first_time_derivative, component);
             const auto& second_time_derivative_component = this->GetComponentFromVectorVariable(

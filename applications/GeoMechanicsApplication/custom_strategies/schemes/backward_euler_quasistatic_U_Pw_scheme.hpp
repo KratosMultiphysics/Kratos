@@ -40,17 +40,6 @@ public:
     }
 
 protected:
-    inline void SetTimeFactors(ModelPart& rModelPart) override
-    {
-        KRATOS_TRY
-
-        this->SetDeltaTime(rModelPart.GetProcessInfo()[DELTA_TIME]);
-        rModelPart.GetProcessInfo()[VELOCITY_COEFFICIENT] = 1.0 / this->GetDeltaTime();
-        rModelPart.GetProcessInfo()[DT_PRESSURE_COEFFICIENT] = 1.0 / this->GetDeltaTime();
-
-        KRATOS_CATCH("")
-    }
-
     std::string Info() const override
     {
         return "BackwardEulerQuasistaticUPwScheme";
