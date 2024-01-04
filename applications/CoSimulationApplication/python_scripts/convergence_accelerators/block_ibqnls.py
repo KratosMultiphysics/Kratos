@@ -163,11 +163,12 @@ class BLOCKIBQNLSConvergenceAccelerator(CoSimulationConvergenceAccelerator):
         for data_name in self.W_new:
 
             if data_name == list(self.W_new.keys())[-1]: ## Check if last solver in the sequence
-                # Saving the V matrix for the next (first) iteration to recover the approximate jacobian
-                if self.V_old[data_name] is not None:
-                    self.previous_V = np.hstack((self.V_new[data_name], self.V_old[data_name]))
-                else:
-                    self.previous_V = self.V_new[data_name].copy()
+                if self.V_new[data_name] is not None:
+                    # Saving the V matrix for the next (first) iteration to recover the approximate jacobian
+                    if self.V_old[data_name] is not None:
+                        self.previous_V = np.hstack((self.V_new[data_name], self.V_old[data_name]))
+                    else:
+                        self.previous_V = self.V_new[data_name].copy()
 
             if self.V_new[data_name] is not None and self.W_new[data_name] is not None:
                 self.v_old_matrices[data_name].appendleft( self.V_new[data_name] )
@@ -182,8 +183,8 @@ class BLOCKIBQNLSConvergenceAccelerator(CoSimulationConvergenceAccelerator):
             self.X[data_name].clear()
 
         for data_name in self.W_new:
-            self.W_new[data_name] = []
-            self.V_new[data_name] = []
+            self.W_new[data_name] = None
+            self.V_new[data_name] = None
 
     @classmethod
     def _GetDefaultParameters(cls):
