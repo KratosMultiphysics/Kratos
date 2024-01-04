@@ -61,6 +61,7 @@ public:
 
         KRATOS_CATCH("")
     }
+
     void PredictVariables(const ModelPart& rModelPart)
     {
         block_for_each(rModelPart.Nodes(),

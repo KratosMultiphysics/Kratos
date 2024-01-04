@@ -97,13 +97,6 @@ protected:
              rNode.FastGetSolutionStepValue(instance_variable, 1)) /
             this->GetDeltaTime();
     }
-
-    void UpdateScalarTimeDerivative(Node& rNode,
-                                    const Variable<double>& variable,
-                                    const Variable<double>& dt_variable) const
-    {
-        SetDerivative(dt_variable, variable, rNode);
-    }
 };
 
 } // namespace Kratos
