@@ -740,15 +740,15 @@ void DEM_parallel_bond::CalculateMoments(SphericContinuumParticle* element,
                                     LocalElasticContactForce);
     }
                             
-    double LocalUnbondElasticContactForce[3] = {0.0};
-    double GlobalUnbondElasticContactForce[3] = {0.0};
-    LocalUnbondElasticContactForce[0] = (1 - mBondedScalingFactor[0]) * LocalElasticContactForce[0];
-    LocalUnbondElasticContactForce[1] = (1 - mBondedScalingFactor[1]) * LocalElasticContactForce[1];
-    LocalUnbondElasticContactForce[2] = (1 - mBondedScalingFactor[2]) * LocalElasticContactForce[2];
-    GeometryFunctions::VectorLocal2Global(LocalCoordSystem, LocalUnbondElasticContactForce, GlobalUnbondElasticContactForce);
+    //double LocalUnbondElasticContactForce[3] = {0.0};
+    //double GlobalUnbondElasticContactForce[3] = {0.0};
+    //LocalUnbondElasticContactForce[0] = (1 - mBondedScalingFactor[0]) * LocalElasticContactForce[0];
+    //LocalUnbondElasticContactForce[1] = (1 - mBondedScalingFactor[1]) * LocalElasticContactForce[1];
+    //LocalUnbondElasticContactForce[2] = (1 - mBondedScalingFactor[2]) * LocalElasticContactForce[2];
+    //GeometryFunctions::VectorLocal2Global(LocalCoordSystem, LocalUnbondElasticContactForce, GlobalUnbondElasticContactForce);
 
     DemContact::ComputeParticleContactMoments(normalLocalContactForce,
-                                             GlobalUnbondElasticContactForce,
+                                             GlobalElasticContactForces,
                                              LocalCoordSystem_2,
                                              element,
                                              neighbor,
