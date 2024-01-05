@@ -9,7 +9,7 @@
     },
     "solver_settings" :
     {
-        "type" : "coupled_solvers.block_iterative_strong",
+        "type" : "coupled_solvers.block_strong",
         "echo_level" : 0,
         "num_coupling_iterations" : 12,
         "predictors" : [
