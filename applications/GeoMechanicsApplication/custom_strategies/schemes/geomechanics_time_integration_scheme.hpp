@@ -12,6 +12,7 @@
 #pragma once
 
 #include "solving_strategies/schemes/scheme.h"
+#include "geo_mechanics_application_variables.h"
 
 namespace Kratos
 {

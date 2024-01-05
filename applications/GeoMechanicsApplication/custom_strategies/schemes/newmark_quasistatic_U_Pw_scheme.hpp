@@ -18,7 +18,6 @@
 #include "utilities/parallel_utilities.h"
 
 #include "generalized_newmark_scheme.hpp"
-#include "geo_mechanics_application_variables.h"
 
 namespace Kratos
 {
