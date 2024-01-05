@@ -78,6 +78,9 @@ protected:
         for (const auto& r_second_order_vector_variable :
              this->GetSecondOrderVectorVariables())
         {
+            if (!rNode.SolutionStepsDataHas(r_second_order_vector_variable.instance))
+                continue;
+
             SetDerivative(r_second_order_vector_variable.first_time_derivative,
                           r_second_order_vector_variable.instance, rNode);
 
