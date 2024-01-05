@@ -286,19 +286,22 @@ public:
 
         Timer::Stop("Build");
 
+        TSystemVectorType dummy_b(rA.size1(), 0.0);
+        TSystemVectorType dummy_rDx(rA.size1(), 0.0);
+
         if(!rModelPart.MasterSlaveConstraints().empty()) {
             const auto timer_constraints = BuiltinTimer();
             Timer::Start("ApplyConstraints");
             BaseType::ApplyConstraints(pScheme, rModelPart, rA, rb);
-            BaseType::ApplyConstraints(pScheme, rModelPart, mMassMatrix, rb);
-            BaseType::ApplyConstraints(pScheme, rModelPart, mDampingMatrix, rb);
+            BaseType::ApplyConstraints(pScheme, rModelPart, mMassMatrix, dummy_b);
+            BaseType::ApplyConstraints(pScheme, rModelPart, mDampingMatrix, dummy_b);
             Timer::Stop("ApplyConstraints");
             KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolverWithMassAndDamping", this->GetEchoLevel() >=1) << "Constraints build time: " << timer_constraints.ElapsedSeconds() << std::endl;
         }
 
         BaseType::ApplyDirichletConditions(pScheme, rModelPart, rA, rDx, rb);
-        BaseType::ApplyDirichletConditions(pScheme, rModelPart, mMassMatrix, rDx, rb);
-        BaseType::ApplyDirichletConditions(pScheme, rModelPart, mDampingMatrix, rDx, rb);
+        BaseType::ApplyDirichletConditions(pScheme, rModelPart, mMassMatrix, dummy_rDx, dummy_b);
+        BaseType::ApplyDirichletConditions(pScheme, rModelPart, mDampingMatrix, dummy_rDx, dummy_b);
 
         KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolverWithMassAndDamping", this->GetEchoLevel() == 3) << "Before the solution of the system" << "\nSystem Matrix = " << rA << "\nUnknowns vector = " << rDx << "\nRHS vector = " << rb << std::endl;
 
