@@ -32,7 +32,7 @@ class AssignInitialVelocityToParticleProcess(KratosMultiphysics.Process):
             if(settings["direction"].IsString()):
                 default_settings["direction"].SetString("Automatic")
 
-        # Detect if variable_name is MP_VELOCITY
+        # Detect if variable_name is MP_VELOCITY or MP_ACCELERATION
         if(settings.Has("variable_name")):
             if settings["variable_name"].GetString() == "MP_VELOCITY":
                 self.variable = KratosParticle.MP_VELOCITY

@@ -1003,6 +1003,7 @@ void MPMUpdatedLagrangian::UpdateGaussPoint( GeneralVariables & rVariables, cons
     /* NOTE: The following interpolation techniques have been tried:
         MP_acceleration = 4/(delta_time * delta_time) * delta_xg - 4/delta_time * MP_PreviousVelocity;
         MP_velocity = 2.0/delta_time * delta_xg - MP_PreviousVelocity;
+        MP_velocity = MP_PreviousVelocity + 0.5 * delta_time * (MP_acceleration + MP_PreviousAcceleration);
     */
 
     // Update the MP Position

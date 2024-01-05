@@ -131,21 +131,6 @@ public:
 		this->Rotate(rLocalVector,rGeometry);
 	}
 
-    // Auxiliary function to clear friction-related flags --
-    // MUST be called before (re-)building the RHS in a given non-linear iteration
-    static void ClearFrictionFlag(const ModelPart &rModelPart) {
-        KRATOS_TRY
-        // Loop over the grid nodes performed to clear OUTLET flag for indicating that nodal friction has alr been set
-        // and remove the accumulated normal forces
-        for(NodeType &curr_node : rModelPart.Nodes()){
-            curr_node.SetLock();
-            curr_node.Reset(OUTLET);
-            curr_node.FastGetSolutionStepValue(FRICTION_CONTACT_FORCE, 0).clear();
-            curr_node.UnSetLock();
-        }
-        KRATOS_CATCH( "" )
-    }
-
 	/// Apply roler type boundary conditions to the rotated local contributions.
 	/** This function takes the rotated local system contributions so each
 	 node's displacement are expressed using a base oriented with its normal
@@ -436,6 +421,21 @@ public:
         // rotate back to global coordinates
         this->RotateVector(rCurrentVelocity, rNode, true);
         this->RotateVector(rCurrentAcceleration, rNode, true);
+    }
+
+    // Auxiliary function to clear friction-related flags --
+    // MUST be called before (re-)building the RHS in a given non-linear iteration
+    static void ClearFrictionFlag(const ModelPart &rModelPart) {
+        KRATOS_TRY
+        // Loop over the grid nodes performed to clear OUTLET flag for indicating that nodal friction has alr been set
+        // and remove the accumulated normal forces
+        for(NodeType &curr_node : rModelPart.Nodes()){
+            curr_node.SetLock();
+            curr_node.Reset(OUTLET);
+            curr_node.FastGetSolutionStepValue(FRICTION_CONTACT_FORCE, 0).clear();
+            curr_node.UnSetLock();
+        }
+        KRATOS_CATCH( "" )
     }
 
     // Sets FRICTION_STATE for each friction node to indicate its stick/sliding state.

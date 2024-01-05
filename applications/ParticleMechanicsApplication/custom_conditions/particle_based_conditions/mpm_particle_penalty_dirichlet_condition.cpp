@@ -19,9 +19,8 @@
 #include "includes/define.h"
 #include "custom_conditions/particle_based_conditions/mpm_particle_penalty_dirichlet_condition.h"
 #include "includes/kratos_flags.h"
-#include "utilities/math_utils.h"
-#include "custom_utilities/particle_mechanics_math_utilities.h"
-#include "includes/checks.h"
+
+
 
 namespace Kratos
 {
@@ -87,8 +86,8 @@ void MPMParticlePenaltyDirichletCondition::InitializeSolutionStep( const Process
         {
             r_geometry[i].SetLock();
             r_geometry[i].Set(SLIP);
-            r_geometry[i].FastGetSolutionStepValue(IS_STRUCTURE) = 2.0; // flag for penalty-based slip cond
-            r_geometry[i].FastGetSolutionStepValue(NORMAL) += Variables.N[i] * m_unit_normal;
+            r_geometry[i].FastGetSolutionStepValue(IS_STRUCTURE) = 2.0; // flag for penalty-based slip condition
+            r_geometry[i].FastGetSolutionStepValue(NORMAL) += Variables.N[i] * m_normal;
             r_geometry[i].FastGetSolutionStepValue(FRICTION_CONTACT_FORCE, 1) += Variables.N[i] * m_friction_contact_force;
             r_geometry[i].UnSetLock();
         }
@@ -154,26 +153,26 @@ void MPMParticlePenaltyDirichletCondition::CalculateAll(
         // NOTE: the unit_normal_vector is assumed always pointing outside the boundary
         array_1d<double, 3 > field_displacement = ZeroVector(3);
         for ( unsigned int i = 0; i < number_of_nodes; i++ )
-        {  
+        {
             for ( unsigned int j = 0; j < dimension; j++)
                 field_displacement[j] += Variables.N[i] * Variables.CurrentDisp(i,j);
         }
 
-        const double penetration = MathUtils<double>::Dot((field_displacement - m_imposed_displacement), m_unit_normal);
+        const double penetration = MathUtils<double>::Dot((field_displacement - m_imposed_displacement), m_normal);
 
         // If penetrates, apply constraint, otherwise no
         if (penetration >= 0.0)
             apply_constraints = false;
-        
+
     }
 
     if (apply_constraints)
     {
-        // Matrix H (eq 44)
         // Arrange shape function
         Matrix shape_function = ZeroMatrix(block_size, matrix_size);
         for (unsigned int i = 0; i < number_of_nodes; i++)
         {
+            // constrain only the movement of the nodes which are conntected to the body
             if (r_geometry[i].FastGetSolutionStepValue(NODAL_MASS, 0) >= std::numeric_limits<double>::epsilon() )
             {
                 for (unsigned int j = 0; j < dimension; j++)
@@ -189,7 +188,7 @@ void MPMParticlePenaltyDirichletCondition::CalculateAll(
         {
             for ( unsigned int j = 0; j < dimension; j++)
                 gap_function[block_size * i + j] = (Variables.CurrentDisp(i,j) - m_imposed_displacement[j]);
-            
+
         }
 
         // Calculate LHS Matrix and RHS Vector
@@ -197,7 +196,6 @@ void MPMParticlePenaltyDirichletCondition::CalculateAll(
         {
             noalias(rLeftHandSideMatrix)  += prod(trans(shape_function), shape_function);
             rLeftHandSideMatrix  *= m_penalty * this->GetIntegrationWeight();
-            // note: integration weight (area assoc. with boundary particle is set on its creation)
         }
 
         if ( CalculateResidualVectorFlag == true )
@@ -245,14 +243,10 @@ void MPMParticlePenaltyDirichletCondition::AccumulateReactionToNodes(const Proce
         for (unsigned int j = 0; j < dimension; j++)
             nodal_force[j] = rRightHandSideVector[block_size * i + j];
 
-        // Check whether there nodes are active and associated to material point elements
-        const double& nodal_mass = r_geometry[i].FastGetSolutionStepValue(NODAL_MASS, 0);
-        if (nodal_mass > std::numeric_limits<double>::epsilon())
-        {
-            r_geometry[i].SetLock();
-            r_geometry[i].FastGetSolutionStepValue(REACTION) += nodal_force;
-            r_geometry[i].UnSetLock();
-        }
+        r_geometry[i].SetLock();
+        r_geometry[i].FastGetSolutionStepValue(REACTION) += nodal_force;
+        r_geometry[i].UnSetLock();
+
 
     }
 
@@ -308,9 +302,9 @@ void MPMParticlePenaltyDirichletCondition::FinalizeSolutionStep( const ProcessIn
     KRATOS_CATCH( "" )
 }
 
-void MPMParticlePenaltyDirichletCondition::CalculateInterfaceContactForce(array_1d<double, 3 >& rVariable, const ProcessInfo& rCurrentProcessInfo )
+void MPMParticlePenaltyDirichletCondition::CalculateInterfaceContactForce(const ProcessInfo& rCurrentProcessInfo )
 {
-    GeometryType& r_geometry = GetGeometry();  
+    GeometryType& r_geometry = GetGeometry();
     const unsigned int number_of_nodes = r_geometry.PointsNumber();
 
     // Prepare variables
@@ -319,20 +313,18 @@ void MPMParticlePenaltyDirichletCondition::CalculateInterfaceContactForce(array_
     MPMShapeFunctionPointValues(Variables.N);
 
     // Interpolate the force to mpc_force assuming linear shape function
-    rVariable = ZeroVector(3);
+    array_1d<double, 3 > mpc_force = ZeroVector(3);
     for (unsigned int i = 0; i < number_of_nodes; i++)
     {
-        // Check whether there is material point inside the node
-        const double& nodal_mass = r_geometry[i].FastGetSolutionStepValue(NODAL_MASS, 0);
-        double nodal_area  = 0.0;        
+        double nodal_area  = 0.0;
         if (r_geometry[i].SolutionStepsDataHas(NODAL_AREA))
             nodal_area= r_geometry[i].FastGetSolutionStepValue(NODAL_AREA, 0);
 
         const Vector nodal_force = r_geometry[i].FastGetSolutionStepValue(REACTION);
 
-        if (nodal_mass > std::numeric_limits<double>::epsilon() && nodal_area > std::numeric_limits<double>::epsilon())
+        if (nodal_area > std::numeric_limits<double>::epsilon())
         {
-            rVariable += Variables.N[i] * nodal_force * r_mpc_area / nodal_area;
+            mpc_force += Variables.N[i] * nodal_force * r_mpc_area / nodal_area;
         }
     }
 
@@ -340,18 +332,21 @@ void MPMParticlePenaltyDirichletCondition::CalculateInterfaceContactForce(array_
     if (Is(CONTACT))
     {
         // Apply only in the normal direction
-        const double normal_force = MathUtils<double>::Dot(rVariable, m_unit_normal);
+        const double normal_force = MathUtils<double>::Dot(mpc_force, m_normal);
 
         // This check is done to avoid sticking forces
         if (normal_force > 0.0)
-            rVariable = -1.0 * normal_force * m_unit_normal;
+            mpc_force = -1.0 * normal_force * m_normal;
         else
-            rVariable = ZeroVector(3);
+            mpc_force = ZeroVector(3);
     }
     // Apply a sticking contact
     else{
-        rVariable *= -1.0;
+        mpc_force *= -1.0;
     }
+
+    // Set Contact Force
+    m_contact_force = mpc_force;
 }
 
 void MPMParticlePenaltyDirichletCondition::CalculateOnIntegrationPoints(const Variable<double>& rVariable,
@@ -363,28 +358,6 @@ void MPMParticlePenaltyDirichletCondition::CalculateOnIntegrationPoints(const Va
 
     if (rVariable == PENALTY_FACTOR) {
         rValues[0] = m_penalty;
-    }
-    else {
-        MPMParticleBaseDirichletCondition::CalculateOnIntegrationPoints(
-            rVariable, rValues, rCurrentProcessInfo);
-    }
-}
-
-void MPMParticlePenaltyDirichletCondition::CalculateOnIntegrationPoints(const Variable<array_1d<double, 3 > >& rVariable,
-    std::vector<array_1d<double, 3 > >& rValues,
-    const ProcessInfo& rCurrentProcessInfo)
-{
-    if (rValues.size() != 1)
-        rValues.resize(1);
-
-    if (rVariable == MPC_IMPOSED_DISPLACEMENT) {
-        rValues[0] = m_imposed_displacement;
-    }
-    else if (rVariable == MPC_NORMAL) {
-        rValues[0] = m_unit_normal;
-    }
-    else if (rVariable == MPC_CONTACT_FORCE) {
-        this->CalculateInterfaceContactForce(rValues[0], rCurrentProcessInfo);
     }
     else {
         MPMParticleBaseDirichletCondition::CalculateOnIntegrationPoints(
@@ -409,48 +382,6 @@ void MPMParticlePenaltyDirichletCondition::SetValuesOnIntegrationPoints(const Va
     }
 }
 
-void MPMParticlePenaltyDirichletCondition::SetValuesOnIntegrationPoints(
-    const Variable<array_1d<double, 3 > >& rVariable,
-    const std::vector<array_1d<double, 3 > >& rValues,
-    const ProcessInfo& rCurrentProcessInfo)
-{
-    KRATOS_ERROR_IF(rValues.size() > 1)
-        << "Only 1 value per integration point allowed! Passed values vector size: "
-        << rValues.size() << std::endl;
-
-    if (rVariable == MPC_IMPOSED_DISPLACEMENT) {
-        m_imposed_displacement = rValues[0];
-    }
-    else if (rVariable == MPC_NORMAL) {
-        m_unit_normal = rValues[0];
-        ParticleMechanicsMathUtilities<double>::Normalize(m_unit_normal);
-    }
-    else {
-        MPMParticleBaseDirichletCondition::SetValuesOnIntegrationPoints(
-            rVariable, rValues, rCurrentProcessInfo);
-    }
-}
-
-int MPMParticlePenaltyDirichletCondition::Check( const ProcessInfo& rCurrentProcessInfo ) const
-{
-    MPMParticleBaseDirichletCondition::Check(rCurrentProcessInfo);
-
-    // Verify that the dofs exist
-    for (const auto& r_node : this->GetGeometry().Points()){
-        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(NORMAL,r_node)
-        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(NODAL_AREA,r_node)
-    }
-
-    // for friction
-    if (Is(SLIP) && m_friction_coefficient > 0) {
-        for (const auto& r_node : this->GetGeometry().Points()){
-            KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(FRICTION_CONTACT_FORCE,r_node)
-            KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(FRICTION_STATE,r_node)
-        }
-    }
-
-    return 0;
-}
 
 } // Namespace Kratos
 

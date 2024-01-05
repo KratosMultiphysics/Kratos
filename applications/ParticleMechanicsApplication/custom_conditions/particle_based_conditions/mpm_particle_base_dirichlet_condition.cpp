@@ -17,6 +17,7 @@
 
 // Project includes
 #include "custom_conditions/particle_based_conditions/mpm_particle_base_dirichlet_condition.h"
+#include "includes/checks.h"
 
 namespace Kratos
 {
@@ -99,6 +100,9 @@ void MPMParticleBaseDirichletCondition::CalculateOnIntegrationPoints(
     else if (rVariable == MPC_IMPOSED_ACCELERATION) {
         rValues[0] = m_imposed_acceleration;
     }
+    else if (rVariable == MPC_CONTACT_FORCE) {
+        rValues[0] = m_contact_force;
+    }
     else if (rVariable == FRICTION_CONTACT_FORCE) {
         rValues[0] = m_friction_contact_force;
     }
@@ -141,6 +145,9 @@ void MPMParticleBaseDirichletCondition::SetValuesOnIntegrationPoints(
     }
     else if (rVariable == MPC_IMPOSED_ACCELERATION) {
         m_imposed_acceleration = rValues[0];
+    }
+    else if (rVariable == MPC_CONTACT_FORCE) {
+        m_contact_force = rValues[0];
     }
     else if (rVariable == FRICTION_CONTACT_FORCE) {
         m_friction_contact_force = rValues[0];
@@ -191,6 +198,27 @@ void MPMParticleBaseDirichletCondition::MPMShapeFunctionPointValues( Vector& rRe
     rResult = rResult / denominator;
 
     KRATOS_CATCH( "" )
+}
+
+int MPMParticleBaseDirichletCondition::Check( const ProcessInfo& rCurrentProcessInfo ) const
+{
+    MPMParticleBaseCondition::Check(rCurrentProcessInfo);
+
+    // Verify that the dofs exist
+    for (const auto& r_node : this->GetGeometry().Points()){
+        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(NORMAL,r_node)
+        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(NODAL_AREA,r_node)
+    }
+
+    // for friction
+    if (Is(SLIP)) {
+        for (const auto& r_node : this->GetGeometry().Points()){
+            KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(FRICTION_CONTACT_FORCE,r_node)
+            KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(FRICTION_STATE,r_node)
+        }
+    }
+
+    return 0;
 }
 
 } // Namespace Kratos
