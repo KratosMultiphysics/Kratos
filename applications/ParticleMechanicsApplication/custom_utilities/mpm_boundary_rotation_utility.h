@@ -425,15 +425,14 @@ public:
 
     // Auxiliary function to clear friction-related flags --
     // MUST be called before (re-)building the RHS in a given non-linear iteration
-    static void ClearFrictionFlag(const ModelPart &rModelPart) {
+    static void ClearFrictionFlag(const ModelPart& rModelPart) {
         KRATOS_TRY
         // Loop over the grid nodes performed to clear OUTLET flag for indicating that nodal friction has alr been set
         // and remove the accumulated normal forces
         for(NodeType &curr_node : rModelPart.Nodes()){
-            curr_node.SetLock();
             curr_node.Reset(OUTLET);
+            curr_node.GetValue(FRICTION_CONTACT_FORCE).clear();
             curr_node.FastGetSolutionStepValue(FRICTION_CONTACT_FORCE, 0).clear();
-            curr_node.UnSetLock();
         }
         KRATOS_CATCH( "" )
     }
