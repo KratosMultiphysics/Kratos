@@ -67,6 +67,10 @@ void  AddCustomSensorsToPython(pybind11::module& m)
         .def(py::init<Sensor::Pointer, const std::string&>(), py::arg("sensor"), py::arg("expression_name"))
         .def("GetSensor", &nodal_sensor_view::GetSensor)
         .def("GetContainerExpression", &nodal_sensor_view::GetContainerExpression)
+        .def("GetExpressionName", &nodal_sensor_view::GetExpressionName)
+        .def("AddAuxiliaryExpression", &nodal_sensor_view::AddAuxiliaryExpression, py::arg("suffix"), py::arg("nodal_expression"))
+        .def("GetAuxiliaryExpression", &nodal_sensor_view::GetAuxiliaryExpression, py::arg("suffix"))
+        .def("GetAuxiliarySuffixes", &nodal_sensor_view::GetAuxiliarySuffixes)
         .def("__str__", PrintObject<nodal_sensor_view>);
         ;
 
@@ -75,6 +79,10 @@ void  AddCustomSensorsToPython(pybind11::module& m)
         .def(py::init<Sensor::Pointer, const std::string&>(), py::arg("sensor"), py::arg("expression_name"))
         .def("GetSensor", &condition_sensor_view::GetSensor)
         .def("GetContainerExpression", &condition_sensor_view::GetContainerExpression)
+        .def("GetExpressionName", &condition_sensor_view::GetExpressionName)
+        .def("AddAuxiliaryExpression", &condition_sensor_view::AddAuxiliaryExpression, py::arg("suffix"), py::arg("condition_expression"))
+        .def("GetAuxiliaryExpression", &condition_sensor_view::GetAuxiliaryExpression, py::arg("suffix"))
+        .def("GetAuxiliarySuffixes", &condition_sensor_view::GetAuxiliarySuffixes)
         .def("__str__", PrintObject<condition_sensor_view>);
         ;
 
@@ -83,6 +91,10 @@ void  AddCustomSensorsToPython(pybind11::module& m)
         .def(py::init<Sensor::Pointer, const std::string&>(), py::arg("sensor"), py::arg("expression_name"))
         .def("GetSensor", &element_sensor_view::GetSensor)
         .def("GetContainerExpression", &element_sensor_view::GetContainerExpression)
+        .def("GetExpressionName", &element_sensor_view::GetExpressionName)
+        .def("AddAuxiliaryExpression", &element_sensor_view::AddAuxiliaryExpression, py::arg("suffix"), py::arg("element_expression"))
+        .def("GetAuxiliaryExpression", &element_sensor_view::GetAuxiliaryExpression, py::arg("suffix"))
+        .def("GetAuxiliarySuffixes", &element_sensor_view::GetAuxiliarySuffixes)
         .def("__str__", PrintObject<element_sensor_view>);
         ;
 

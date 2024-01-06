@@ -27,6 +27,7 @@
 #include "custom_utilities/sensor_utils.h"
 #include "custom_utilities/domain_sensor_view_cluster_data.h"
 #include "custom_utilities/sensor_view_cluster.h"
+#include "custom_utilities/sensor_distance_matrix.h"
 
 // Include base h
 #include "custom_python/add_custom_utilities_to_python.h"
@@ -94,11 +95,14 @@ void AddMaskUtilsToPython(
     }
 
     m.def("GetMaskSize", &MaskUtils::GetMaskSize<TContainerType>, py::arg((lower_prefix + "_mask_expression").c_str()), py::arg("required_minimum_redundancy") = 1);
-    m.def("GetMask", py::overload_cast<const ContainerExpression<TContainerType>&>(&MaskUtils::GetMask<TContainerType>), py::arg((lower_prefix + "scalar_expression").c_str()));
-    m.def("GetMask", py::overload_cast<const ContainerExpression<TContainerType>&, const double>(&MaskUtils::GetMask<TContainerType>), py::arg((lower_prefix + "scalar_expression").c_str()), py::arg("threshold"));
+    m.def("GetMask", py::overload_cast<const ContainerExpression<TContainerType>&>(&MaskUtils::GetMask<TContainerType>), py::arg((lower_prefix + "_scalar_expression").c_str()));
+    m.def("GetMask", py::overload_cast<const ContainerExpression<TContainerType>&, const double>(&MaskUtils::GetMask<TContainerType>), py::arg((lower_prefix + "_scalar_expression").c_str()), py::arg("threshold"));
     m.def("Union", &MaskUtils::Union<TContainerType>, py::arg((lower_prefix + "_mask_1_expression").c_str()), py::arg((lower_prefix + "_mask_2_expression").c_str()), py::arg("required_minimum_redundancy") = 1);
     m.def("Intersect", &MaskUtils::Intersect<TContainerType>, py::arg((lower_prefix + "_mask_1_expression").c_str()), py::arg((lower_prefix + "_mask_2_expression").c_str()), py::arg("required_minimum_redundancy") = 1);
     m.def("Substract", &MaskUtils::Substract<TContainerType>, py::arg((lower_prefix + "_mask_1_expression").c_str()), py::arg((lower_prefix + "_mask_2_expression").c_str()), py::arg("required_minimum_redundancy") = 1);
+    m.def("Scale", &MaskUtils::Scale<TContainerType>, py::arg((lower_prefix + "_scalar_expression").c_str()), py::arg((lower_prefix + "_mask_expression").c_str()), py::arg("required_minimum_redundancy") = 1);
+    m.def("ClusterMasks", &MaskUtils::ClusterMasks<TContainerType>, py::arg(("list_of_" + lower_prefix + "_mask_expressions").c_str()), py::arg("required_minimum_redundancy") = 1);
+    m.def("GetMasksDividingReferenceMask", &MaskUtils::GetMasksDividingReferenceMask<TContainerType>, py::arg(("reference_" + lower_prefix + "_mask_expression").c_str()), py::arg(("list_of_" + lower_prefix + "_mask_expressions").c_str()), py::arg("required_minimum_redundancy") = 1);
 }
 
 void AddCustomUtilitiesToPython(pybind11::module& m)
@@ -146,6 +150,11 @@ void AddCustomUtilitiesToPython(pybind11::module& m)
     sensor_utils.def("ClusterBasedOnCoverageMasks", py::overload_cast<const std::vector<ContainerExpression<ModelPart::NodesContainerType>::Pointer>&>(&SensorUtils::ClusterBasedOnCoverageMasks<ModelPart::NodesContainerType>), py::arg("list_of_nodal_mask_expression"));
     sensor_utils.def("ClusterBasedOnCoverageMasks", py::overload_cast<const std::vector<ContainerExpression<ModelPart::ConditionsContainerType>::Pointer>&>(&SensorUtils::ClusterBasedOnCoverageMasks<ModelPart::ConditionsContainerType>), py::arg("list_of_condition_mask_expression"));
     sensor_utils.def("ClusterBasedOnCoverageMasks", py::overload_cast<const std::vector<ContainerExpression<ModelPart::ElementsContainerType>::Pointer>&>(&SensorUtils::ClusterBasedOnCoverageMasks<ModelPart::ElementsContainerType>), py::arg("list_of_element_mask_expression"));
+    sensor_utils.def("AssignConsecutiveSensorIds", &SensorUtils::AssignConsecutiveSensorIds, py::arg("list_of_sensors"), py::arg("integer_variable"));
+    sensor_utils.def("AssignSensorNeighbours", &SensorUtils::AssignSensorNeighbours, py::arg("list_of_sensors"), py::arg("search_radius"), py::arg("maximum_number_of_neighbours"), py::arg("neighbour_ids_vector_variable"), py::arg("sensor_id_integer_variable"));
+    sensor_utils.def("ComputeSensorRobustness", &SensorUtils::ComputeSensorRobustness<ModelPart::NodesContainerType>, py::arg("sensors_list"), py::arg("nodal_expressions_list"), py::arg("neighbour_ids_vector_variable"), py::arg("sensor_id_integer_variable"), py::arg("output_double_variable"));
+    sensor_utils.def("ComputeSensorRobustness", &SensorUtils::ComputeSensorRobustness<ModelPart::ConditionsContainerType>, py::arg("sensors_list"), py::arg("condition_expressions_list"), py::arg("neighbour_ids_vector_variable"), py::arg("sensor_id_integer_variable"), py::arg("output_double_variable"));
+    sensor_utils.def("ComputeSensorRobustness", &SensorUtils::ComputeSensorRobustness<ModelPart::ElementsContainerType>, py::arg("sensors_list"), py::arg("element_expressions_list"), py::arg("neighbour_ids_vector_variable"), py::arg("sensor_id_integer_variable"), py::arg("output_double_variable"));
 
     auto cluster_utils = m.def_submodule("ClusterUtils");
     AddSensorClusterUtilsToPython<ModelPart::NodesContainerType>(cluster_utils);
@@ -156,6 +165,13 @@ void AddCustomUtilitiesToPython(pybind11::module& m)
     AddMaskUtilsToPython<ModelPart::NodesContainerType>(mask_utils);
     AddMaskUtilsToPython<ModelPart::ConditionsContainerType>(mask_utils);
     AddMaskUtilsToPython<ModelPart::ElementsContainerType>(mask_utils);
+
+    py::class_<SensorDistanceMatrix, SensorDistanceMatrix::Pointer>(m, "SensorDistanceMatrix")
+        .def(py::init<const std::vector<Sensor::Pointer>&>(), py::arg("sensors_list"))
+        .def("GetDistance", py::overload_cast<const Sensor&, const Sensor&>(&SensorDistanceMatrix::GetDistance, py::const_), py::arg("sensor_1"), py::arg("sensor_2"))
+        .def("GetDistance", py::overload_cast<const std::vector<Sensor::Pointer>&, const std::vector<Sensor::Pointer>&>(&SensorDistanceMatrix::GetDistance, py::const_), py::arg("sensors_list_1"), py::arg("sensors_list_2"))
+        .def_static("MaxDistances", &SensorDistanceMatrix::MaxDistances, py::arg("distance_matrix_1"), py::arg("distance_matrix_2"))
+        ;
 
 }
 

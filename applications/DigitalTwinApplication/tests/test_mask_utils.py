@@ -1,6 +1,9 @@
+import numpy as np
+
 import KratosMultiphysics as Kratos
 import KratosMultiphysics.KratosUnittest as UnitTest
 import KratosMultiphysics.DigitalTwinApplication as KratosDT
+from KratosMultiphysics.DigitalTwinApplication.utilities.expression_utils import ExpressionUnionType
 
 class TestMaskUtils(UnitTest.TestCase):
     @classmethod
@@ -8,8 +11,8 @@ class TestMaskUtils(UnitTest.TestCase):
         cls.model = Kratos.Model()
         cls.model_part = cls.model.CreateModelPart("test")
 
-        n = 100
-        for i in range(n):
+        cls.n = 10
+        for i in range(cls.n):
             node: Kratos.Node = cls.model_part.CreateNewNode(i+1, i, i+1, i+2)
             node.SetValue(Kratos.PRESSURE, node.Id % 3)
             node.SetValue(Kratos.DENSITY, node.Id % 5)
@@ -64,9 +67,9 @@ class TestMaskUtils(UnitTest.TestCase):
        mask = Kratos.Expression.NodalExpression(self.model_part)
        Kratos.Expression.VariableExpressionIO.Read(mask, Kratos.DENSITY, False)
 
-       self.assertEqual(KratosDT.MaskUtils.GetMaskSize(mask), 80)
-       self.assertEqual(KratosDT.MaskUtils.GetMaskSize(mask, 2), 60)
-       self.assertEqual(KratosDT.MaskUtils.GetMaskSize(mask, 3), 40)
+       self.assertEqual(KratosDT.MaskUtils.GetMaskSize(mask), self.n - self.n // 5)
+       self.assertEqual(KratosDT.MaskUtils.GetMaskSize(mask, 2), self.n - 2 * self.n // 5)
+       self.assertEqual(KratosDT.MaskUtils.GetMaskSize(mask, 3), self.n - 3 * self.n // 5)
 
     def test_GetMaskNoThreshold(self):
         values = Kratos.Expression.NodalExpression(self.model_part)
@@ -87,6 +90,62 @@ class TestMaskUtils(UnitTest.TestCase):
 
         for node in self.model_part.Nodes:
             self.assertEqual(node.GetValue(Kratos.TEMPERATURE), node.Id % 2)
+
+    def test_Scale(self):
+        values = Kratos.Expression.NodalExpression(self.model_part)
+        Kratos.Expression.VariableExpressionIO.Read(values, Kratos.HEAT_FLUX, False)
+
+        float_exp_np = np.arange(0, self.n, dtype=np.float64)
+        float_exp = Kratos.Expression.NodalExpression(self.model_part)
+        Kratos.Expression.CArrayExpressionIO.Read(float_exp, float_exp_np)
+        scaled_exp_sum = np.sum(KratosDT.MaskUtils.Scale(float_exp, values).Evaluate())
+        self.assertEqual(scaled_exp_sum, (self.n // 2 - 1) * (self.n // 2))
+
+    def test_ClusterMasks(self):
+        masks_list: 'list[Kratos.Expression.NodalExpression]' = []
+        number_of_masks = 5
+        for i in range(number_of_masks):
+            mask = np.zeros((self.n), dtype=np.int32)
+            for j in range(self.n):
+                mask[j] = j % (i + 1)
+            mask_exp = Kratos.Expression.NodalExpression(self.model_part)
+            Kratos.Expression.CArrayExpressionIO.Read(mask_exp, mask)
+            masks_list.append(mask_exp)
+
+        cluster_data: 'list[tuple[list[int], ExpressionUnionType]]' = KratosDT.MaskUtils.ClusterMasks(masks_list)
+        reference_cluster_indices = [[], [1,2,3,4], [2,3,4], [1,3,4], [2,4], [1,2,3], [3,4]]
+        reference_cluster_masks = np.array([
+            [1,0,0,0,0,0,0,0,0,0],
+            [0,1,0,0,0,0,0,1,0,0],
+            [0,0,1,0,0,0,0,0,0,0],
+            [0,0,0,1,0,0,0,0,0,1],
+            [0,0,0,0,1,0,0,0,1,0],
+            [0,0,0,0,0,1,0,0,0,0],
+            [0,0,0,0,0,0,1,0,0,0]
+        ])
+
+        for i, (cluster_indices, cluster_mask) in enumerate(cluster_data):
+            self.assertEqual(cluster_indices, reference_cluster_indices[i])
+            self.assertAlmostEqual(np.linalg.norm(cluster_mask.Evaluate() - reference_cluster_masks[i, :]), 0.0, 12)
+
+    def test_GetMasksDividingReferenceMask(self):
+        masks_list: 'list[Kratos.Expression.NodalExpression]' = []
+        number_of_masks = 5
+        for i in range(number_of_masks):
+            mask = np.zeros((self.n), dtype=np.int32)
+            for j in range(self.n):
+                mask[j] = j % (i + 1)
+            mask_exp = Kratos.Expression.NodalExpression(self.model_part)
+            Kratos.Expression.CArrayExpressionIO.Read(mask_exp, mask)
+            masks_list.append(mask_exp)
+
+        ref_mask = np.zeros((self.n), dtype=np.int32)
+        ref_mask[3:5] = 1
+        ref_mask_exp = Kratos.Expression.NodalExpression(self.model_part)
+        Kratos.Expression.CArrayExpressionIO.Read(ref_mask_exp, ref_mask)
+        indices = KratosDT.MaskUtils.GetMasksDividingReferenceMask(ref_mask_exp, masks_list)
+
+        self.assertEqual(indices, [1,2,3])
 
 if __name__ == '__main__':
     UnitTest.main()

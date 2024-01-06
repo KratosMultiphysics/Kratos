@@ -96,6 +96,25 @@ public:
         const ContainerExpression<TContainerType>& rMainMask,
         const ContainerExpression<TContainerType>& rSubMask);
 
+    static void AssignConsecutiveSensorIds(
+        std::vector<Sensor::Pointer>& rSensorsList,
+        const Variable<int>& rIdVariable);
+
+    static void AssignSensorNeighbours(
+        std::vector<Sensor::Pointer>& rSensorsList,
+        const double SearchRadius,
+        const IndexType MaxNumberOfNeighbours,
+        const Variable<Vector>& rNeighbourIdsVariable,
+        const Variable<int>& rSensorIdVariable);
+
+    template<class TContainerType>
+    static void ComputeSensorRobustness(
+        std::vector<Sensor::Pointer>& rSensorsList,
+        const std::vector<typename ContainerExpression<TContainerType>::Pointer>& rExpressionsList,
+        const Variable<Vector>& rNeighbourIdsVariable,
+        const Variable<int>& rSensorIdVariable,
+        const Variable<double>& rOutputVariable);
+
     ///@}
 };
 

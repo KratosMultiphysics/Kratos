@@ -203,6 +203,85 @@ class RedundancyCoverageImprovementSensorPlacementAlgorithm(SensorPlacementAlgor
             # compute area of each cluster and find the clusters which needs to be divided further
             iteration += 1
 
+        # now the phase 3. Try to remove sensors and check whether we can keep the same overall coverage and
+        # largest cluster size
+        overall_coverage_mask_exp = overall_coverage_mask.Clone()
+        KratosDT.ControlUtils.ClipContainerExpression(overall_coverage_mask_exp, 0, 1.0)
+        overall_coverage = KratosDT.SensorUtils.Sum(domain_size_exp.Scale(overall_coverage_mask_exp))
+        max_cluster_size = max([KratosDT.SensorUtils.Sum(domain_size_exp.Scale(mask)) for _, mask in clusters.items()])
+
+        iteration = 0
+        while True:
+            iteration += 1
+            # first find all possible sensors to remove
+            Kratos.Logger.PrintInfo(self.__class__.__name__, f"Iteration {iteration}: Try to remove sensors...")
+            list_of_sensor_indices_to_remove: 'list[int]' = []
+            index = 0
+            while (index < len(list_of_selected_views)):
+                temp_selected_views = list(list_of_selected_views)
+                temp_selected_masks = list(list_of_selected_coverage_masks)
+
+                # remove the index
+                del temp_selected_views[index]
+                del temp_selected_masks[index]
+
+                #now check the clustering
+                potential_cluster_mask_indices_mask_expressions_list: 'list[tuple[list[int], ExpressionUnionType]]' = KratosDT.SensorUtils.ClusterBasedOnCoverageMasks(temp_selected_masks)
+
+                # now check if current clusters are within the bounds
+                current_max_cluster_size = max([KratosDT.SensorUtils.Sum(domain_size_exp.Scale(mask)) for _, mask in potential_cluster_mask_indices_mask_expressions_list])
+                current_coverage_exp = dummy_exp * 0.0
+                for _, mask in potential_cluster_mask_indices_mask_expressions_list:
+                    current_coverage_exp += mask
+                KratosDT.ControlUtils.ClipContainerExpression(current_coverage_exp, 0, 1)
+                current_coverage = KratosDT.SensorUtils.Sum(domain_size_exp.Scale(current_coverage_exp))
+
+                if current_coverage >= overall_coverage and current_max_cluster_size <= max_cluster_size:
+                    list_of_sensor_indices_to_remove.append(index)
+                index += 1
+
+            # if there are no more sensors to be removed, exit the loop
+            if len(list_of_sensor_indices_to_remove) == 0:
+                break
+
+            # now remove the most insignificant sensor from the potential sensors to remove.
+            # which will be the most closest one to existing sensors
+            min_distance = 1e+9
+            min_distance_index = -1
+            for i in list_of_sensor_indices_to_remove:
+                max_distance = 0.0
+                for sensor_view in list_of_selected_views:
+                    current_distance = sensor_view.GetSensor().GetLocation() - list_of_selected_views[i].GetSensor().GetLocation()
+                    max_distance = max(max_distance, current_distance[0]**2 + current_distance[1]**2 + current_distance[2]**2)
+                if min_distance > max_distance:
+                    min_distance = max_distance
+                    min_distance_index = i
+
+            if min_distance_index != -1:
+                Kratos.Logger.PrintInfo(self.__class__.__name__, f"--- Removing {list_of_selected_views[min_distance_index].GetSensor().GetName()}.")
+                removal_mask = list_of_selected_coverage_masks[min_distance_index]
+                overall_coverage_mask -= list_of_selected_coverage_masks[min_distance_index]
+                del list_of_selected_views[min_distance_index]
+                del list_of_selected_coverage_masks[min_distance_index]
+
+                self.UpdateClusters(clusters, KratosDT.SensorUtils.ClusterBasedOnCoverageMasks(list_of_selected_coverage_masks))
+
+                if self.is_vtu_output:
+                    vtu_output.ClearCellContainerExpressions()
+                    vtu_output.ClearNodalContainerExpressions()
+                    cluster_mask = dummy_exp * 0.0
+                    for cluster_id, mask_expression in clusters.items():
+                        cluster_mask += mask_expression * cluster_id
+                    vtu_output.AddContainerExpression(f"clusters_overall", cluster_mask)
+                    vtu_output.AddContainerExpression("redundancy", overall_coverage_mask.Clone())
+                    vtu_output.AddContainerExpression("sensor_coverage", removal_mask.Clone())
+                    vtu_output.PrintOutput(str(output_path / f"removal_iteration_{iteration:05d}"))
+
+                # now csv output of the current clustering
+                if self.is_csv_output:
+                    PrintSensorListToCSV(output_path / f"removal_iteration_{iteration:05d}.csv", [sensor_view.GetSensor() for sensor_view in list_of_selected_views], ["type", "name", "location", "value"])
+                    PrintSensorListToJson(output_path / f"removal_iteration_{iteration:05d}.json", [sensor_view.GetSensor() for sensor_view in list_of_selected_views])
+
         Kratos.Logger.PrintInfo(self.__class__.__name__, f"Found {len(list_of_selected_views)} sensors.")
         list_of_best_sensors = [sensor_view.GetSensor() for sensor_view in list_of_selected_views]
         PrintSensorListToJson(output_path / "best_sensor_data.json", list_of_best_sensors)

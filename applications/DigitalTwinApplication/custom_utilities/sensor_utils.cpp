@@ -23,13 +23,62 @@
 #include "utilities/reduction_utilities.h"
 #include "utilities/parallel_utilities.h"
 #include "expression/literal_flat_expression.h"
+#include "spatial_containers/spatial_containers.h"
 
 // Application includes
+#include "digital_twin_application_variables.h"
 
 // Include base h
 #include "sensor_utils.h"
 
 namespace Kratos {
+
+namespace SensorHelperUtils
+{
+class SensorPoint : public Point {
+public:
+    ///@name Type definitions
+    ///@{
+
+    KRATOS_CLASS_POINTER_DEFINITION(SensorPoint);
+
+    ///@}
+    ///@name Life cycle
+    ///@{
+
+    SensorPoint()
+        : Point(),
+          mpSensor(nullptr)
+    {
+    }
+
+    SensorPoint(
+        Sensor::Pointer pSensor)
+        : Point(pSensor->GetLocation()[0], pSensor->GetLocation()[1], pSensor->GetLocation()[2]),
+          mpSensor(pSensor)
+    {
+    }
+
+    ///@}
+    ///@name Public operations
+    ///@{
+
+    Sensor::Pointer GetSensor() const
+    {
+        return mpSensor;
+    }
+
+    ///@}
+
+private:
+    ///@name Private member variables
+    ///@{
+
+    Sensor::Pointer mpSensor;
+
+    ///@}
+};
+} // namespace SensorHelperUtils
 
 template<class TContainerType>
 ModelPart& SensorUtils::GetSensorViewsModelPart(const std::vector<typename SensorView<TContainerType>::Pointer>& rSensorViews)
@@ -218,10 +267,10 @@ std::pair<IndexType, typename ContainerExpression<TContainerType>::Pointer> Sens
 
     // now find the coverage
     const auto& r_data = IndexPartition<IndexType>(number_of_entities).for_each<MaxReduction<Data>>([&index_value_pairs_vector](const auto Index){
-        const double current_sum = std::accumulate(index_value_pairs_vector.begin(), index_value_pairs_vector.begin() + Index, 0.0, [](const auto& rValue, const auto& rIndexValuePair) {
+        const double current_sum = std::accumulate(index_value_pairs_vector.begin(), index_value_pairs_vector.begin() + Index + 1, 0.0, [](const auto& rValue, const auto& rIndexValuePair) {
                                                 return rValue + rIndexValuePair.mValue;
                                             });
-        return Data{Index, current_sum / std::sqrt(Index)};
+        return Data{Index, current_sum / std::sqrt(Index + 1)};
     });
 
     auto p_expression = LiteralFlatExpression<int>::Create(number_of_entities, {});
@@ -402,6 +451,110 @@ bool SensorUtils::IsSubMask(
     KRATOS_CATCH("");
 }
 
+void SensorUtils::AssignConsecutiveSensorIds(
+    std::vector<Sensor::Pointer>& rSensorsList,
+    const Variable<int>& rIdVariable)
+{
+    KRATOS_TRY
+
+    IndexPartition<IndexType>(rSensorsList.size()).for_each([&rSensorsList, &rIdVariable](const auto Index) {
+        rSensorsList[Index]->SetValue(rIdVariable, static_cast<int>(Index + 1));
+    });
+
+    KRATOS_CATCH("");
+}
+
+void SensorUtils::AssignSensorNeighbours(
+    std::vector<Sensor::Pointer>& rSensorsList,
+    const double SearchRadius,
+    const IndexType MaxNumberOfNeighbours,
+    const Variable<Vector>& rNeighbourIdsVariable,
+    const Variable<int>& rSensorIdVariable)
+{
+    KRATOS_TRY
+
+    using PointType = SensorHelperUtils::SensorPoint;
+
+    using PointVectorType = std::vector<SensorHelperUtils::SensorPoint::Pointer>;
+
+    using BucketType = Bucket<3, PointType, PointVectorType>;
+
+    using KDTree = Tree<KDTreePartition<BucketType>>;
+
+    PointVectorType sensor_points(rSensorsList.size());
+    IndexPartition<IndexType>(rSensorsList.size()).for_each([&sensor_points, &rSensorsList](const auto Index) {
+        sensor_points[Index] = Kratos::make_shared<SensorHelperUtils::SensorPoint>(rSensorsList[Index]);
+    });
+
+    KDTree search_tree(sensor_points.begin(), sensor_points.end(), 100);
+
+    block_for_each(sensor_points, PointVectorType(MaxNumberOfNeighbours), [&search_tree, &rNeighbourIdsVariable, &rSensorIdVariable, SearchRadius, MaxNumberOfNeighbours](auto& rPoint, auto& rTLS) {
+        const auto number_of_neighbors = search_tree.SearchInRadius(
+                                            *rPoint,
+                                            SearchRadius,
+                                            rTLS.begin(),
+                                            MaxNumberOfNeighbours);
+
+        Vector neighbour_ids(number_of_neighbors);
+        for (IndexType i = 0; i < number_of_neighbors; ++i) {
+            const auto& r_neighbour_sensor = *(rTLS[i]->GetSensor());
+            neighbour_ids[i] = static_cast<double>(r_neighbour_sensor.GetValue(rSensorIdVariable));
+        }
+        rPoint->GetSensor()->SetValue(rNeighbourIdsVariable, neighbour_ids);
+    });
+
+    KRATOS_CATCH("");
+}
+
+template<class TContainerType>
+void SensorUtils::ComputeSensorRobustness(
+    std::vector<Sensor::Pointer>& rSensorsList,
+    const std::vector<typename ContainerExpression<TContainerType>::Pointer>& rExpressionsList,
+    const Variable<Vector>& rNeighbourIdsVariable,
+    const Variable<int>& rSensorIdVariable,
+    const Variable<double>& rOutputVariable)
+{
+    KRATOS_TRY
+
+    KRATOS_ERROR_IF_NOT(rSensorsList.size() == rExpressionsList.size())
+        << "Size mismatch between sensor list and expressions list [ rSensorList.size() = "
+        << rSensorsList.size() << ", rExpressionsList.size() = " << rExpressionsList.size() << " ].\n";
+
+    for (IndexType Index = 0; Index < rSensorsList.size(); ++Index) {
+        const auto& r_neighbour_ids = rSensorsList[Index]->GetValue(rNeighbourIdsVariable);
+
+        // now compute the cosine distances bertween neighbour expressions
+        double total_cosine_distance = 0.0;
+
+        const auto& r_point_expression = rExpressionsList[Index]->GetExpression();
+        const double point_expression_magnitude = std::sqrt(IndexPartition<IndexType>(r_point_expression.NumberOfEntities()).for_each<SumReduction<double>>([&r_point_expression](const auto Index) {
+            return std::pow(r_point_expression.Evaluate(Index, Index, 0), 2);
+        }));
+
+        for (IndexType i = 0; i < r_neighbour_ids.size(); ++i) {
+            const int neighbour_id = static_cast<int>(r_neighbour_ids[i]);
+            auto p_itr = std::find_if(rSensorsList.begin(), rSensorsList.end(), [&rSensorIdVariable, neighbour_id](const auto& rSensor) { return rSensor->GetValue(rSensorIdVariable) == neighbour_id;});
+
+            KRATOS_ERROR_IF(p_itr == rSensorsList.end()) << "Neighbour sensor id " << neighbour_id << " not found.";
+
+            const auto neighbour_index = std::distance(rSensorsList.begin(), p_itr);
+
+            const auto& r_neighbour_expresion = rExpressionsList[neighbour_index]->GetExpression();
+            double inner_product, magnitude_square;
+            std::tie(inner_product, magnitude_square) = IndexPartition<IndexType>(r_point_expression.NumberOfEntities()).for_each<CombinedReduction<SumReduction<double>, SumReduction<double>>>([&r_point_expression, &r_neighbour_expresion](const auto Index){
+                const double neighbour_value = r_neighbour_expresion.Evaluate(Index, Index, 0);
+                return std::make_tuple(r_point_expression.Evaluate(Index, Index, 0) * neighbour_value, std::pow(neighbour_value, 2));
+            });
+
+            total_cosine_distance += inner_product / (std::sqrt(magnitude_square) * point_expression_magnitude);
+        }
+
+        rSensorsList[Index]->SetValue(rOutputVariable, (total_cosine_distance - 1.0) / r_neighbour_ids.size());
+    }
+
+    KRATOS_CATCH("");
+}
+
 // template instantiations
 #ifndef KRATOS_SENSOR_UTILS
 #define KRATOS_SENSOR_UTILS(CONTAINER_TYPE)                                                                        \
@@ -434,7 +587,11 @@ bool SensorUtils::IsSubMask(
         const ContainerExpression<CONTAINER_TYPE>&);                                                               \
     template std::vector<std::pair<std::vector<IndexType>, typename ContainerExpression<CONTAINER_TYPE>::Pointer>> \
     SensorUtils::ClusterBasedOnCoverageMasks<CONTAINER_TYPE>(                                                      \
-        const std::vector<typename ContainerExpression<CONTAINER_TYPE>::Pointer>&);
+        const std::vector<typename ContainerExpression<CONTAINER_TYPE>::Pointer>&);                                \
+    template void SensorUtils::ComputeSensorRobustness<CONTAINER_TYPE>(                                            \
+        std::vector<Sensor::Pointer>&,                                                                             \
+        const std::vector<typename ContainerExpression<CONTAINER_TYPE>::Pointer>&,                                 \
+        const Variable<Vector>&, const Variable<int>&, const Variable<double>&);
 
 #endif
 

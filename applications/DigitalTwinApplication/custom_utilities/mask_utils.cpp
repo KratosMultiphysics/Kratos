@@ -12,12 +12,15 @@
 
 // System includes
 #include <numeric>
+#include <tuple>
+#include <algorithm>
 
 // External includes
 
 // Project includes
 #include "utilities/parallel_utilities.h"
 #include "utilities/reduction_utilities.h"
+#include "expression/literal_expression.h"
 #include "expression/literal_flat_expression.h"
 
 // Application includes
@@ -238,27 +241,160 @@ ContainerExpression<TContainerType> MaskUtils::Substract(
     KRATOS_CATCH("");
 }
 
+template<class TContainerType>
+ContainerExpression<TContainerType> MaskUtils::Scale(
+    const ContainerExpression<TContainerType>& rScalarExpression,
+    const ContainerExpression<TContainerType>& rMask,
+    const IndexType RequiredMinimumRedundancy)
+{
+    KRATOS_TRY
+
+    CheckCompatibility(rScalarExpression, rMask);
+
+    const auto& r_scalar_expression = rScalarExpression.GetExpression();
+    const auto& r_mask = rMask.GetExpression();
+    const auto number_of_entities = r_scalar_expression.NumberOfEntities();
+
+    auto p_expression = LiteralFlatExpression<double>::Create(number_of_entities, {});
+    IndexPartition<IndexType>(number_of_entities).for_each([&p_expression, &r_scalar_expression, &r_mask, RequiredMinimumRedundancy](const auto Index) {
+        *(p_expression->begin() + Index) = (r_mask.Evaluate(Index, Index, 0) >= RequiredMinimumRedundancy)
+                                                ? r_scalar_expression.Evaluate(Index, Index, 0)
+                                                : 0;
+    });
+
+    auto result = rScalarExpression;
+    result.SetExpression(p_expression);
+    return result;
+
+    KRATOS_CATCH("");
+}
+
+template<class TContainerType>
+std::vector<std::tuple<std::vector<IndexType>, typename ContainerExpression<TContainerType>::Pointer>> MaskUtils::ClusterMasks(
+    const std::vector<ContainerExpression<TContainerType>>& rMasksList,
+    const IndexType RequiredMinimumRedundancy)
+{
+    KRATOS_TRY
+
+    std::vector<std::tuple<std::vector<IndexType>, typename ContainerExpression<TContainerType>::Pointer>> cluster_data;
+    if (rMasksList.size() == 0) {
+        return cluster_data;
+    }
+
+    const auto& r_front_cexp = rMasksList.front();
+    const IndexType number_of_entities = r_front_cexp.GetExpression().NumberOfEntities();
+
+    // Check if all the masks are compatible
+    for (const auto& r_mask : rMasksList) {
+        KRATOS_ERROR_IF_NOT(number_of_entities == r_mask.GetExpression().NumberOfEntities())
+            << "Mismatch in mask size [required mask size = " << number_of_entities << ", "
+            << " found one mask with size = " << r_mask.GetExpression().NumberOfEntities() << " ].\n";
+
+        KRATOS_ERROR_IF_NOT(r_mask.GetExpression().GetItemComponentCount() == 1)
+            << "Found a mask with a non scalar dimensionality which is not allowed [ requried mask shape = {}, found shape = "
+            << r_mask.GetExpression().GetItemShape() << " ].\n";
+    }
+
+    std::vector<std::vector<IndexType>> domain_mask_indices(number_of_entities);
+    IndexPartition<IndexType>(number_of_entities).for_each([&domain_mask_indices, &rMasksList, RequiredMinimumRedundancy](const auto Index) {
+        auto& r_indices_list = domain_mask_indices[Index];
+        for (IndexType i = 0; i < rMasksList.size(); ++i) {
+            if (rMasksList[i].GetExpression().Evaluate(Index, Index, 0) >= RequiredMinimumRedundancy) {
+                r_indices_list.push_back(i);
+            }
+        }
+    });
+
+    // now find unique list of cluster indices
+    std::vector<LiteralFlatExpression<int>::Pointer> cluster_mask_exps;
+    for (IndexType i = 0; i < number_of_entities; ++i) {
+        const auto& mask_indices = domain_mask_indices[i];
+
+        /// check against existing mask indices
+        auto p_itr = std::find_if(cluster_data.begin(), cluster_data.end(), [&mask_indices](const auto& rData){ return std::get<0>(rData) == mask_indices; });
+        if (p_itr == cluster_data.end()) {
+            auto p_expression = LiteralFlatExpression<int>::Create(number_of_entities, {});
+            IndexPartition<IndexType>(number_of_entities).for_each([&p_expression](const auto Index){
+                *(p_expression->begin() + Index) = 0;
+            });
+
+            auto p_container_exp = Kratos::make_shared<ContainerExpression<TContainerType>>(*r_front_cexp.pGetModelPart());
+            p_container_exp->SetExpression(p_expression);
+
+            cluster_data.push_back(std::make_tuple(mask_indices, p_container_exp));
+            cluster_mask_exps.push_back(p_expression);
+        }
+    }
+
+    // now fill in the cluster masks
+    IndexPartition<IndexType>(number_of_entities).for_each([&cluster_data, &domain_mask_indices, &cluster_mask_exps](const auto Index) {
+        const auto& mask_indices = domain_mask_indices[Index];
+        auto p_itr = std::find_if(cluster_data.begin(), cluster_data.end(), [&mask_indices](const auto& rData){ return std::get<0>(rData) == mask_indices; });
+        const auto cluster_index = std::distance(cluster_data.begin(), p_itr);
+        *(cluster_mask_exps[cluster_index]->begin() + Index) = 1;
+    });
+
+    return cluster_data;
+
+    KRATOS_CATCH("");
+}
+
+template<class TContainerType>
+std::vector<IndexType> MaskUtils::GetMasksDividingReferenceMask(
+    const ContainerExpression<TContainerType>& rReferenceMask,
+    const std::vector<typename ContainerExpression<TContainerType>::Pointer>& rMasksList,
+    const IndexType RequiredMinimumRedundancy)
+{
+    KRATOS_TRY
+
+    const auto reference_mask_coverage = GetMaskSize(rReferenceMask, RequiredMinimumRedundancy);
+
+    std::vector<IndexType> indices;
+    for (IndexType i = 0; i < rMasksList.size(); ++i) {
+        const auto& r_intersected_exp = Intersect(rReferenceMask, *rMasksList[i], RequiredMinimumRedundancy);
+        const auto intesection_coverage = GetMaskSize(r_intersected_exp, RequiredMinimumRedundancy);
+
+        if (intesection_coverage > 0 && intesection_coverage < reference_mask_coverage) {
+            indices.push_back(i);
+        }
+    }
+
+    return indices;
+
+    KRATOS_CATCH("");
+}
+
 // template instantiations
 #ifndef KRATOS_DT_APP_MASK_UTILS_INSTANTIATION
-#define KRATOS_DT_APP_MASK_UTILS_INSTANTIATION(CONTAINER_TYPE)         \
-    template void MaskUtils::CheckCompatibility(                       \
-        const ContainerExpression<CONTAINER_TYPE>&,                    \
-        const ContainerExpression<CONTAINER_TYPE>&);                   \
-    template std::size_t MaskUtils::GetMaskSize(                       \
-        const ContainerExpression<CONTAINER_TYPE>&, const IndexType);  \
-    template ContainerExpression<CONTAINER_TYPE> MaskUtils::GetMask(   \
-        const ContainerExpression<CONTAINER_TYPE>&);                   \
-    template ContainerExpression<CONTAINER_TYPE> MaskUtils::GetMask(   \
-        const ContainerExpression<CONTAINER_TYPE>&, const double);     \
-    template ContainerExpression<CONTAINER_TYPE> MaskUtils::Union(     \
-        const ContainerExpression<CONTAINER_TYPE>&,                    \
-        const ContainerExpression<CONTAINER_TYPE>&, const IndexType);  \
-    template ContainerExpression<CONTAINER_TYPE> MaskUtils::Intersect( \
-        const ContainerExpression<CONTAINER_TYPE>&,                    \
-        const ContainerExpression<CONTAINER_TYPE>&, const IndexType);  \
-    template ContainerExpression<CONTAINER_TYPE> MaskUtils::Substract( \
-        const ContainerExpression<CONTAINER_TYPE>&,                    \
-        const ContainerExpression<CONTAINER_TYPE>&, const IndexType);
+#define KRATOS_DT_APP_MASK_UTILS_INSTANTIATION(CONTAINER_TYPE)                                                                               \
+    template void MaskUtils::CheckCompatibility(                                                                                             \
+        const ContainerExpression<CONTAINER_TYPE>&,                                                                                          \
+        const ContainerExpression<CONTAINER_TYPE>&);                                                                                         \
+    template std::size_t MaskUtils::GetMaskSize(                                                                                             \
+        const ContainerExpression<CONTAINER_TYPE>&, const IndexType);                                                                        \
+    template ContainerExpression<CONTAINER_TYPE> MaskUtils::GetMask(                                                                         \
+        const ContainerExpression<CONTAINER_TYPE>&);                                                                                         \
+    template ContainerExpression<CONTAINER_TYPE> MaskUtils::GetMask(                                                                         \
+        const ContainerExpression<CONTAINER_TYPE>&, const double);                                                                           \
+    template ContainerExpression<CONTAINER_TYPE> MaskUtils::Union(                                                                           \
+        const ContainerExpression<CONTAINER_TYPE>&,                                                                                          \
+        const ContainerExpression<CONTAINER_TYPE>&, const IndexType);                                                                        \
+    template ContainerExpression<CONTAINER_TYPE> MaskUtils::Intersect(                                                                       \
+        const ContainerExpression<CONTAINER_TYPE>&,                                                                                          \
+        const ContainerExpression<CONTAINER_TYPE>&, const IndexType);                                                                        \
+    template ContainerExpression<CONTAINER_TYPE> MaskUtils::Substract(                                                                       \
+        const ContainerExpression<CONTAINER_TYPE>&,                                                                                          \
+        const ContainerExpression<CONTAINER_TYPE>&, const IndexType);                                                                        \
+    template ContainerExpression<CONTAINER_TYPE> MaskUtils::Scale(                                                                           \
+        const ContainerExpression<CONTAINER_TYPE>&,                                                                                          \
+        const ContainerExpression<CONTAINER_TYPE>&, const IndexType);                                                                        \
+    template std::vector<std::tuple<std::vector<IndexType>, typename ContainerExpression<CONTAINER_TYPE>::Pointer>> MaskUtils::ClusterMasks( \
+        const std::vector<ContainerExpression<CONTAINER_TYPE>>&, const IndexType);                                                           \
+    template std::vector<IndexType> MaskUtils::GetMasksDividingReferenceMask(                                                                \
+        const ContainerExpression<CONTAINER_TYPE>&,                                                                                          \
+        const std::vector<typename ContainerExpression<CONTAINER_TYPE>::Pointer>&,                                                           \
+        const IndexType);
+
 #endif
 
 KRATOS_DT_APP_MASK_UTILS_INSTANTIATION(ModelPart::NodesContainerType)

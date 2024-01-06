@@ -13,6 +13,8 @@
 #pragma once
 
 // System includes
+#include <vector>
+#include <tuple>
 
 // External includes
 
@@ -132,6 +134,59 @@ public:
     static ContainerExpression<TContainerType> Substract(
         const ContainerExpression<TContainerType>& rMask1,
         const ContainerExpression<TContainerType>& rMask2,
+        const IndexType RequiredMinimumRedundancy = 1);
+
+
+    /**
+     * @brief Scale the scalar expression with a mask.
+     *
+     * This method scales the rScalarExpression with a mask of [0, 1] where mask will
+     * have 1 if that corresponding entity in rMask has a value equal or greater than the
+     * RequiredMinimumRedundancy otherwise 0.
+     *
+     * @tparam TContainerType                           Container type.
+     * @param rScalarExpression                         Input scalar expression.
+     * @param rMask                                     Mask to be used.
+     * @param RequiredMinimumRedundancy                 Required minimum redundancy.
+     * @return ContainerExpression<TContainerType>      Scaled scalar expression with the mask.
+     */
+    template<class TContainerType>
+    static ContainerExpression<TContainerType> Scale(
+        const ContainerExpression<TContainerType>& rScalarExpression,
+        const ContainerExpression<TContainerType>& rMask,
+        const IndexType RequiredMinimumRedundancy = 1);
+
+    /**
+     * @brief Returns list of indices list each list for each cluster
+     *
+     * This method returns a list of tuples having indices list and a mask. Each indices list is a cluster
+     * The mask for that specific cluster is stored in the 2nd element of the tuple.
+     *
+     * @tparam TContainerType                           Container type.
+     * @param rMasksList                                List of masks.
+     * @param RequiredMinimumRedundancy                 Required minimum redundancy.
+     * @return std::vector<std::tuple<std::vector<IndexType>, typename ContainerExpression<TContainerType>::Pointer>> Tuple having list of mask indices and masks for each cluster.
+     */
+    template<class TContainerType>
+    static std::vector<std::tuple<std::vector<IndexType>, typename ContainerExpression<TContainerType>::Pointer>> ClusterMasks(
+        const std::vector<ContainerExpression<TContainerType>>& rMasksList,
+        const IndexType RequiredMinimumRedundancy = 1);
+
+    /**
+     * @brief Get the Masks Dividing Reference Mask.
+     *
+     * This method returns indices of masks which can divide the given rReferenceMask.
+     *
+     * @tparam TContainerType                           Container type.
+     * @param rReferenceMask                            Reference mask.
+     * @param rMasksList                                List of masks.
+     * @param RequiredMinimumRedundancy                 Required minimum redundancy.
+     * @return std::vector<IndexType>                   List of indices.
+     */
+    template<class TContainerType>
+    static std::vector<IndexType> GetMasksDividingReferenceMask(
+        const ContainerExpression<TContainerType>& rReferenceMask,
+        const std::vector<typename ContainerExpression<TContainerType>::Pointer>& rMasksList,
         const IndexType RequiredMinimumRedundancy = 1);
 
     ///@}

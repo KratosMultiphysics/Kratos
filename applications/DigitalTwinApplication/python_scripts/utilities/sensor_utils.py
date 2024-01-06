@@ -424,3 +424,34 @@ def GetMostDistancedMin(relaxation: float, list_of_values: 'list[float]', potent
                 break
     return max_distanced_index
 
+def GetSmoothenedAbsoluteSensitivityFieldSensorViews(list_of_sensors: 'list[KratosDT.Sensors.Sensor]', field_name: str, field_location: Kratos.Globals.DataLocation, filter_params: Kratos.Parameters) -> 'list[SensorViewUnionType]':
+    if field_location in [Kratos.Globals.DataLocation.NodeHistorical, Kratos.Globals.DataLocation.NodeNonHistorical]:
+        sensor_view_type = KratosDT.Sensors.NodalSensorView
+    elif field_location == Kratos.Globals.DataLocation.Condition:
+        sensor_view_type = KratosDT.Sensors.ConditionSensorView
+    elif field_location == Kratos.Globals.DataLocation.Element:
+        sensor_view_type = KratosDT.Sensors.ElementSensorView
+    else:
+        raise RuntimeError(f"Unsupported {field_location.name} requested.")
+
+    list_of_sensor_views: 'list[SensorViewUnionType]' = []
+
+    def get_sensor_view(sensor: KratosDT.Sensors.Sensor, expression_filter: ExpressionFilterUnionType):
+        sensor_view = sensor_view_type(sensor, field_name)
+        filtered_field = expression_filter.FilterIntegratedField(sensor_view.GetContainerExpression().Abs())
+        sensor_view.AddAuxiliaryExpression("filtered", filtered_field)
+        return sensor_view
+
+    if len(list_of_sensors) > 0:
+        sensor = list_of_sensors[0]
+        model_part = sensor_view_type(sensor, field_name).GetContainerExpression().GetModelPart()
+        expression_filter = GetFilter(model_part, field_location, filter_params)
+        list_of_sensor_views.append(get_sensor_view(sensor, expression_filter))
+
+        for sensor in list_of_sensors[1:]:
+            list_of_sensor_views.append(get_sensor_view(sensor, expression_filter))
+
+    return list_of_sensor_views
+
+
+

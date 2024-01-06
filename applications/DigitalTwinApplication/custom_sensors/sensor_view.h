@@ -14,6 +14,7 @@
 
 // System includes
 #include <string>
+#include <vector>
 
 // External includes
 
@@ -54,6 +55,16 @@ public:
 
     typename ContainerExpression<TContainerType>::Pointer GetContainerExpression() const;
 
+    std::string GetExpressionName() const;
+
+    void  AddAuxiliaryExpression(
+        const std::string& rSuffix,
+        typename ContainerExpression<TContainerType>::Pointer pContainerExpression);
+
+    typename ContainerExpression<TContainerType>::Pointer GetAuxiliaryExpression(const std::string& rSuffix) const;
+
+    std::vector<std::string> GetAuxiliarySuffixes() const;
+
     ///@}
     ///@name Input and output
     ///@{
@@ -71,6 +82,8 @@ private:
     ///@{
 
     Sensor::Pointer mpSensor;
+
+    const std::string mExpressionName;
 
     typename ContainerExpression<TContainerType>::Pointer mpContainerExpression;
 
