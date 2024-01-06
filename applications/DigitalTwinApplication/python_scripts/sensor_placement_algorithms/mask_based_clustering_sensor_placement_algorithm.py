@@ -3,12 +3,17 @@ from pathlib import Path
 import KratosMultiphysics as Kratos
 import KratosMultiphysics.DigitalTwinApplication as KratosDT
 from KratosMultiphysics.DigitalTwinApplication.sensor_placement_algorithms.sensor_placement_algorithm import SensorPlacementAlgorithm
+from KratosMultiphysics.DigitalTwinApplication.utilities.expression_utils import ExpressionUnionType
 from KratosMultiphysics.DigitalTwinApplication.utilities.sensor_utils import PrintSensorListToCSV
 from KratosMultiphysics.DigitalTwinApplication.utilities.sensor_utils import PrintSensorListToJson
 from KratosMultiphysics.DigitalTwinApplication.utilities.sensor_utils import GetSmoothenedAbsoluteSensitivityFieldSensorViews
 from KratosMultiphysics.DigitalTwinApplication.utilities.data_utils import SensorViewUnionType
 from KratosMultiphysics.DigitalTwinApplication.utilities.data_utils import SensorViewUnionType
-from KratosMultiphysics.DigitalTwinApplication.utilities.expression_utils import ExpressionUnionType
+from KratosMultiphysics.DigitalTwinApplication.sensor_placement_algorithms.sensor_placement_utils import AddSensorViewMasks
+from KratosMultiphysics.DigitalTwinApplication.sensor_placement_algorithms.sensor_placement_utils import UpdateClusters
+from KratosMultiphysics.DigitalTwinApplication.sensor_placement_algorithms.sensor_placement_utils import OutputSensorViewExpressions
+from KratosMultiphysics.DigitalTwinApplication.sensor_placement_algorithms.sensor_placement_utils import PrintSensorViewsListToCSV
+
 
 class RobustDistancedSensorSelection:
     def __init__(self, params: Kratos.Parameters) -> None:
@@ -184,7 +189,7 @@ class MaskBasedClusteringSensorPlacementAlgorithm(SensorPlacementAlgorithm):
             vtu_output = Kratos.VtuOutput(dummy_exp.GetModelPart())
 
         # add the masks lists for the sensor views
-        self.__AddSensorViewMasks(list_of_sensor_views)
+        AddSensorViewMasks(self.parameters["masking"], list_of_sensor_views)
 
         self.sensor_selection_method.Initialize(list_of_sensor_views)
 
@@ -199,12 +204,12 @@ class MaskBasedClusteringSensorPlacementAlgorithm(SensorPlacementAlgorithm):
 
             if self.vtu_output_sensor_data:
                 for sensor_view in list_of_sensor_views:
-                    self.__OutputSensorViewExpressions(sensor_data_output_path / f"{sensor_view.GetSensor().GetName()}", vtu_output, sensor_view)
+                    OutputSensorViewExpressions(sensor_data_output_path / f"{sensor_view.GetSensor().GetName()}", vtu_output, sensor_view)
 
             if self.csv_output_sensor_data:
                 for sensor_view in list_of_sensor_views:
                     sensor_view.GetSensor().SetValue(KratosDT.SENSOR_COVERAGE, KratosDT.SensorUtils.Sum(domain_size_exp.Scale(sensor_view.GetAuxiliaryExpression("mask"))))
-                self.__PrintSensorViewsListToCSV(sensor_data_output_path / "sensor_mask_coverage.csv", list_of_sensor_views, ["type", "name", "location", "value", "SENSOR_COVERAGE"])
+                PrintSensorViewsListToCSV(sensor_data_output_path / "sensor_mask_coverage.csv", list_of_sensor_views, ["type", "name", "location", "value", "SENSOR_COVERAGE"])
 
         # create iteration folder structure
         if self.vtu_output_iteration_data or self.csv_output_iteration_data:
@@ -221,7 +226,12 @@ class MaskBasedClusteringSensorPlacementAlgorithm(SensorPlacementAlgorithm):
             list_of_selected_sensor_views.append(sensor_view)
 
             sensor_redundancy = (sensor_redundancy + sensor_view.GetAuxiliaryExpression("mask")).Flatten()
-            self.__OutputIteration(iteration, iteration_data_output_path, vtu_output, sensor_redundancy, list_of_selected_sensor_views)
+            clustering_exp = UpdateClusters(self.cluster_details, list_of_selected_sensor_views)
+
+            if self.vtu_output_iteration_data:
+                OutputSensorViewExpressions(iteration_data_output_path / f"sensor_placement_iteration_{iteration:05d}", vtu_output, sensor_view, [("sensor_redundancy", sensor_redundancy), ("cluster", clustering_exp)])
+            if self.csv_output_iteration_data:
+                PrintSensorViewsListToCSV(iteration_data_output_path / f"sensor_placement_iteration_{iteration:05d}.csv", list_of_selected_sensor_views, ["type", "name", "location", "value"])
 
             max_coverage_ratio = KratosDT.SensorUtils.Sum(KratosDT.MaskUtils.Scale(domain_size_exp, sensor_redundancy)) / total_domain_size
             Kratos.Logger.PrintInfo(self.__class__.__name__, f"Iteration: {iteration} - Found sensor {sensor_view.GetSensor().GetName()} increasing coverage to {max_coverage_ratio * 100.0:6.3f}%.")
@@ -264,7 +274,12 @@ class MaskBasedClusteringSensorPlacementAlgorithm(SensorPlacementAlgorithm):
                 list_of_selected_sensor_views.append(sensor_view)
 
                 sensor_redundancy = (sensor_redundancy + sensor_view.GetAuxiliaryExpression("mask")).Flatten()
-                self.__OutputIteration(iteration, iteration_data_output_path, vtu_output, sensor_redundancy, list_of_selected_sensor_views)
+                clustering_exp = UpdateClusters(self.cluster_details, list_of_selected_sensor_views)
+
+                if self.vtu_output_iteration_data:
+                    OutputSensorViewExpressions(iteration_data_output_path / f"sensor_placement_iteration_{iteration:05d}", vtu_output, sensor_view, [("sensor_redundancy", sensor_redundancy), ("cluster", clustering_exp)])
+                if self.csv_output_iteration_data:
+                    PrintSensorViewsListToCSV(iteration_data_output_path / f"sensor_placement_iteration_{iteration:05d}.csv", list_of_selected_sensor_views, ["type", "name", "location", "value"])
 
                 Kratos.Logger.PrintInfo(self.__class__.__name__, f"\tFound {sensor_view.GetSensor().GetName()} dividing cluster {max_cluster_id} resulting with {len(self.cluster_details.keys())} clusters.")
                 iteration += 1
@@ -276,80 +291,4 @@ class MaskBasedClusteringSensorPlacementAlgorithm(SensorPlacementAlgorithm):
         list_of_best_sensors = [sensor_view.GetSensor() for sensor_view in list_of_selected_sensor_views]
         PrintSensorListToJson(output_path / "best_sensor_data.json", list_of_best_sensors)
         PrintSensorListToCSV(output_path / "best_sensor_data.csv", list_of_best_sensors, ["type", "name", "location", "value"])
-
-    def __AddSensorViewMasks(self, list_of_sensor_views: 'list[SensorViewUnionType]') -> None:
-        masking_type = self.parameters["masking"]["masking_type"].GetString()
-        if masking_type == "automatic":
-            for sensor_view in list_of_sensor_views:
-                sensor_view.AddAuxiliaryExpression("mask", KratosDT.MaskUtils.GetMask(sensor_view.GetAuxiliaryExpression("filtered")))
-        else:
-            raise RuntimeError(f"Unsupported masking_type={masking_type} requested.")
-
-    def __UpdateClusters(self, list_of_sensor_views: 'list[SensorViewUnionType]') -> ExpressionUnionType:
-        list_of_masks = [sensor_view.GetAuxiliaryExpression("mask") for sensor_view in list_of_sensor_views]
-        cluster_data: 'list[tuple[list[int], ExpressionUnionType]]' = KratosDT.MaskUtils.ClusterMasks(list_of_masks)
-        new_cluster_sensor_ids_list: 'list[list[int]]' = [[list_of_sensor_views[i].GetSensor().GetValue(KratosDT.SENSOR_ID) for i in indices_list] for indices_list, _ in cluster_data]
-
-        list_of_cluster_ids_to_delete: 'list[int]' = list(self.cluster_details.keys())
-
-        # first add ll new clusters
-        for i, current_cluster_sensor_ids in enumerate(new_cluster_sensor_ids_list):
-            old_cluster_id = -1
-            for cluster_id, (cluster_sensor_ids, _) in self.cluster_details.items():
-                if cluster_sensor_ids == current_cluster_sensor_ids:
-                    old_cluster_id = cluster_id
-                    del list_of_cluster_ids_to_delete[list_of_cluster_ids_to_delete.index(cluster_id)]
-                    break
-
-            if old_cluster_id == -1:
-                self.cluster_details[max(self.cluster_details.keys(), default=0) + 1] = (current_cluster_sensor_ids, cluster_data[i][1])
-            else:
-                self.cluster_details[old_cluster_id][1].SetExpression(cluster_data[i][1].GetExpression())
-
-        # now remove clusters which are not anymore valid
-        for k in list_of_cluster_ids_to_delete:
-            del self.cluster_details[k]
-
-        clustering_exp = list_of_masks[0] * 0.0
-        for cluster_id, (_, cluster_mask_exp) in self.cluster_details.items():
-            clustering_exp += cluster_mask_exp * cluster_id
-        return clustering_exp
-
-    def __OutputIteration(self, iteration: int, output_path: Path, vtu_output: Kratos.VtuOutput, sensor_redundancy: ExpressionUnionType, list_of_selected_sensor_views: 'list[SensorViewUnionType]') -> None:
-        last_sensor_view = list_of_selected_sensor_views[-1]
-        clustering_exp = self.__UpdateClusters(list_of_selected_sensor_views)
-
-        if self.vtu_output_iteration_data:
-            self.__OutputSensorViewExpressions(
-                        output_path / f"sensor_placement_iteration_{iteration:05d}",
-                        vtu_output, last_sensor_view,
-                        [
-                            ("sensor_redundancy", sensor_redundancy),
-                            ("cluster", clustering_exp)
-                        ])
-
-        if self.csv_output_iteration_data:
-            self.__PrintSensorViewsListToCSV(output_path / f"sensor_placement_iteration_{iteration:05d}.csv", list_of_selected_sensor_views, ["type", "name", "location", "value"])
-
-    @staticmethod
-    def __OutputSensorViewExpressions(output_path: Path, vtu_output: Kratos.VtuOutput, sensor_view: SensorViewUnionType, additional_expressions: 'list[tuple[str, ExpressionUnionType]]' = []) -> None:
-        vtu_output.ClearCellContainerExpressions()
-        vtu_output.ClearNodalContainerExpressions()
-
-        # add the main expression
-        vtu_output.AddContainerExpression(sensor_view.GetExpressionName(), sensor_view.GetContainerExpression())
-
-        # now add the auxiliary expression
-        for auxiliary_name in sensor_view.GetAuxiliarySuffixes():
-            vtu_output.AddContainerExpression(f"{sensor_view.GetExpressionName()}_{auxiliary_name}", sensor_view.GetAuxiliaryExpression(auxiliary_name))
-
-        # now add the additional expressions
-        for exp_name, exp in additional_expressions:
-            vtu_output.AddContainerExpression(exp_name, exp)
-
-        vtu_output.PrintOutput(str(output_path))
-
-    @staticmethod
-    def __PrintSensorViewsListToCSV(output_file_name: Path, list_of_sensor_views: 'list[SensorViewUnionType]', list_of_sensor_properties: 'list[str]') -> None:
-        PrintSensorListToCSV(output_file_name, [sensor_view.GetSensor() for sensor_view in list_of_sensor_views], list_of_sensor_properties)
 
