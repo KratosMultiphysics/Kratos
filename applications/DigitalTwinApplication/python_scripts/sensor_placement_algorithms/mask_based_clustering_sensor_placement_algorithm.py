@@ -226,7 +226,8 @@ class MaskBasedClusteringSensorPlacementAlgorithm(SensorPlacementAlgorithm):
             list_of_selected_sensor_views.append(sensor_view)
 
             sensor_redundancy = (sensor_redundancy + sensor_view.GetAuxiliaryExpression("mask")).Flatten()
-            clustering_exp = UpdateClusters(self.cluster_details, list_of_selected_sensor_views)
+            cluster_data: 'list[tuple[list[int], ExpressionUnionType]]' = KratosDT.MaskUtils.ClusterMasks([sensor_view.GetAuxiliaryExpression("mask") for sensor_view in list_of_selected_sensor_views])
+            clustering_exp = UpdateClusters(self.cluster_details, list_of_selected_sensor_views, cluster_data)
 
             if self.vtu_output_iteration_data:
                 OutputSensorViewExpressions(iteration_data_output_path / f"sensor_placement_iteration_{iteration:05d}", vtu_output, sensor_view, [("sensor_redundancy", sensor_redundancy), ("cluster", clustering_exp)])
@@ -274,7 +275,8 @@ class MaskBasedClusteringSensorPlacementAlgorithm(SensorPlacementAlgorithm):
                 list_of_selected_sensor_views.append(sensor_view)
 
                 sensor_redundancy = (sensor_redundancy + sensor_view.GetAuxiliaryExpression("mask")).Flatten()
-                clustering_exp = UpdateClusters(self.cluster_details, list_of_selected_sensor_views)
+                cluster_data: 'list[tuple[list[int], ExpressionUnionType]]' = KratosDT.MaskUtils.ClusterMasks([sensor_view.GetAuxiliaryExpression("mask") for sensor_view in list_of_selected_sensor_views])
+                clustering_exp = UpdateClusters(self.cluster_details, list_of_selected_sensor_views, cluster_data)
 
                 if self.vtu_output_iteration_data:
                     OutputSensorViewExpressions(iteration_data_output_path / f"sensor_placement_iteration_{iteration:05d}", vtu_output, sensor_view, [("sensor_redundancy", sensor_redundancy), ("cluster", clustering_exp)])

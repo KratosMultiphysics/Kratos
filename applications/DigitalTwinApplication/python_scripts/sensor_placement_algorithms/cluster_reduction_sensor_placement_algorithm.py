@@ -3,36 +3,33 @@ from pathlib import Path
 import KratosMultiphysics as Kratos
 import KratosMultiphysics.DigitalTwinApplication as KratosDT
 from KratosMultiphysics.DigitalTwinApplication.sensor_placement_algorithms.sensor_placement_algorithm import SensorPlacementAlgorithm
+from KratosMultiphysics.DigitalTwinApplication.utilities.expression_utils import ExpressionUnionType
 from KratosMultiphysics.DigitalTwinApplication.utilities.sensor_utils import PrintSensorListToCSV
 from KratosMultiphysics.DigitalTwinApplication.utilities.sensor_utils import PrintSensorListToJson
 from KratosMultiphysics.DigitalTwinApplication.utilities.sensor_utils import GetSmoothenedAbsoluteSensitivityFieldSensorViews
 from KratosMultiphysics.DigitalTwinApplication.utilities.data_utils import SensorViewUnionType
 from KratosMultiphysics.DigitalTwinApplication.utilities.data_utils import SensorViewUnionType
-from KratosMultiphysics.DigitalTwinApplication.utilities.expression_utils import ExpressionUnionType
+from KratosMultiphysics.DigitalTwinApplication.sensor_placement_algorithms.sensor_placement_utils import AddSensorViewMasks
+from KratosMultiphysics.DigitalTwinApplication.sensor_placement_algorithms.sensor_placement_utils import UpdateClusters
+from KratosMultiphysics.DigitalTwinApplication.sensor_placement_algorithms.sensor_placement_utils import OutputSensorViewExpressions
+from KratosMultiphysics.DigitalTwinApplication.sensor_placement_algorithms.sensor_placement_utils import PrintSensorViewsListToCSV
 
-class RobustDistancedSensorSelection:
+
+class LeastRobustSensorSelection:
     def __init__(self, params: Kratos.Parameters) -> None:
         default_params = Kratos.Parameters("""{
-            "sensor_selection_method" : "robust_distanced",
-            "distancing_coefficient"  : 0.5,
-            "robustness_coefficient"  : 0.5,
+            "sensor_selection_method" : "least_robust",
             "sensor_group_id_varaible": "SENSOR_GROUP_ID",
-            "robustness_settings"    : {
-                "search_radius"           : 10.0,
-                "max_number_of_neighbours": 1000
-            }
+            "search_radius"           : 10.0,
+            "max_number_of_neighbours": 1000
         }""")
         params.RecursivelyValidateAndAssignDefaults(default_params)
 
-        robustness_settings = params["robustness_settings"]
-        self.search_radius = robustness_settings["search_radius"].GetDouble()
-        self.max_number_of_neighbours = robustness_settings["max_number_of_neighbours"].GetInt()
-        self.coeff_robustness = params["robustness_coefficient"].GetDouble()
-        self.coeff_distancing = params["distancing_coefficient"].GetDouble()
+        self.search_radius = params["search_radius"].GetDouble()
+        self.max_number_of_neighbours = params["max_number_of_neighbours"].GetInt()
         self.sensor_group_id_var = Kratos.KratosGlobals.GetVariable(params["sensor_group_id_varaible"].GetString())
 
         self.sensor_groups: 'dict[int, tuple[list[KratosDT.Sensors.Sensor], list[ExpressionUnionType]]]' = {}
-        self.sensor_distance_matrices: 'dict[int, KratosDT.SensorDistanceMatrix]' = {}
 
     def Initialize(self, list_of_sensor_views: 'list[SensorViewUnionType]') -> None:
         # first identify the different sensor groups / types
@@ -50,69 +47,20 @@ class RobustDistancedSensorSelection:
 
             Kratos.Logger.PrintInfo(self.__class__.__name__, "Sensor location based robustness values computed.")
 
-            # now compute distance matrix
-            self.sensor_distance_matrices[group_id] = KratosDT.SensorDistanceMatrix(sensors_list)
-            Kratos.Logger.PrintInfo(self.__class__.__name__, "Sensor distances computed.")
-
     def Select(self, potential_sensor_views: 'list[SensorViewUnionType]', selected_sensor_views: 'list[SensorViewUnionType]') -> SensorViewUnionType:
-        potential_sensors = [sensor_view.GetSensor() for sensor_view in potential_sensor_views]
-        selected_sensors = [sensor_view.GetSensor() for sensor_view in selected_sensor_views]
+        # now get the least robustness sensor view
+        return min(potential_sensor_views, key=lambda x: x.GetSensor().GetValue(KratosDT.SENSOR_LOCATION_ROBUSTNESS))
 
-        # compute the distances of potential and current sensor views
-        distances = Kratos.Matrix(len(potential_sensor_views), len(selected_sensor_views), -1.0)
-        for _, sensor_distance_matrix in self.sensor_distance_matrices.items():
-            current_distance_matrix = sensor_distance_matrix.GetDistance(potential_sensors, selected_sensors)
-            for i in range(distances.Size1()):
-                for j in range(distances.Size2()):
-                    distances[i, j] = max(distances[i, j], current_distance_matrix[i, j])
-
-        # now compute the minimum distances for each potential sensor
-        potential_sensor_minimum_distances: 'list[float]' = []
-        for i in range(distances.Size1()):
-            min_distance = 1e+100
-            for j in range(distances.Size2()):
-                if min_distance > distances[i, j] and distances[i, j] >= 0.0:
-                    min_distance = distances[i, j]
-
-            if min_distance == 1e+100:
-                potential_sensor_minimum_distances.append(-1)
-            else:
-                potential_sensor_minimum_distances.append(min_distance)
-
-        # now normalize the minimum distances
-        max_minimum_distance = max(potential_sensor_minimum_distances)
-        potential_sensor_minimum_distances = [d / max_minimum_distance for d in  potential_sensor_minimum_distances]
-
-        # now get the robustness values
-        potential_sensor_robustness = [sensor_view.GetSensor().GetValue(KratosDT.SENSOR_LOCATION_ROBUSTNESS) for sensor_view in potential_sensor_views]
-        max_robustness = max(potential_sensor_robustness)
-        potential_sensor_robustness = [d / max_robustness for d in  potential_sensor_robustness]
-
-        # now compute the ranking
-        ranking: 'list[tuple[SensorViewUnionType, float]]' = []
-        for i, sensor_view in enumerate(potential_sensor_views):
-            min_distance = potential_sensor_minimum_distances[i]
-            robustness = potential_sensor_robustness[i]
-
-            if min_distance > 0.0:
-                ranking.append((sensor_view, self.coeff_distancing * min_distance + self.coeff_robustness * robustness))
-            else:
-                ranking.append((sensor_view, self.coeff_distancing + self.coeff_robustness * robustness))
-
-        sensor_view, _  = max(ranking, key=lambda x: x[1])
-        return sensor_view
-
-class MaskBasedClusteringSensorPlacementAlgorithm(SensorPlacementAlgorithm):
+class ClusterReductionSensorPlacementAlgorithm(SensorPlacementAlgorithm):
     @classmethod
     def GetDefaultParameters(cls) -> Kratos.Parameters:
         return Kratos.Parameters("""{
-            "type"                                   : "mask_based_clustering_sensor_placement_algorithm",
+            "type"                                   : "cluster_reduction_sensor_placement_algorithm",
             "output_folder"                          : "output",
-            "required_maximum_overall_coverage_ratio": 0.9,
             "required_maximum_cluster_coverage_ratio": 0.1,
             "maximum_number_of_iterations"           : 100,
             "filtering"                              : {},
-            "sensor_selection_settings"              : {},
+            "sensor_removal_settings"                : {},
             "masking": {
                 "masking_type": "automatic"
             },
@@ -131,7 +79,6 @@ class MaskBasedClusteringSensorPlacementAlgorithm(SensorPlacementAlgorithm):
         self.parameters = parameters
         self.parameters.ValidateAndAssignDefaults(self.GetDefaultParameters())
 
-        self.required_maximum_overall_coverage_ratio = self.parameters["required_maximum_overall_coverage_ratio"].GetDouble()
         self.required_maximum_cluster_coverage_ratio = self.parameters["required_maximum_cluster_coverage_ratio"].GetDouble()
         self.maximum_number_of_iterations = self.parameters["maximum_number_of_iterations"].GetInt()
 
@@ -148,9 +95,9 @@ class MaskBasedClusteringSensorPlacementAlgorithm(SensorPlacementAlgorithm):
         self.list_of_sensors:'list[KratosDT.Sensors.Sensor]' = []
         self.cluster_details: 'dict[int, tuple[list[int], ExpressionUnionType]]' = {}
 
-        sensor_selection_method = self.parameters["sensor_selection_settings"]["sensor_selection_method"].GetString()
-        if sensor_selection_method == "robust_distanced":
-            self.sensor_selection_method = RobustDistancedSensorSelection(self.parameters["sensor_selection_settings"])
+        sensor_removal_method = self.parameters["sensor_removal_settings"]["sensor_selection_method"].GetString()
+        if sensor_removal_method == "least_robust":
+            self.sensor_selection_method = LeastRobustSensorSelection(self.parameters["sensor_removal_settings"])
         else:
             raise RuntimeError("Unsupported sensor selection method")
 
@@ -184,7 +131,7 @@ class MaskBasedClusteringSensorPlacementAlgorithm(SensorPlacementAlgorithm):
             vtu_output = Kratos.VtuOutput(dummy_exp.GetModelPart())
 
         # add the masks lists for the sensor views
-        self.__AddSensorViewMasks(list_of_sensor_views)
+        AddSensorViewMasks(self.parameters["masking"], list_of_sensor_views)
 
         self.sensor_selection_method.Initialize(list_of_sensor_views)
 
@@ -199,157 +146,112 @@ class MaskBasedClusteringSensorPlacementAlgorithm(SensorPlacementAlgorithm):
 
             if self.vtu_output_sensor_data:
                 for sensor_view in list_of_sensor_views:
-                    self.__OutputSensorViewExpressions(sensor_data_output_path / f"{sensor_view.GetSensor().GetName()}", vtu_output, sensor_view)
+                    OutputSensorViewExpressions(sensor_data_output_path / f"{sensor_view.GetSensor().GetName()}", vtu_output, sensor_view)
 
             if self.csv_output_sensor_data:
                 for sensor_view in list_of_sensor_views:
                     sensor_view.GetSensor().SetValue(KratosDT.SENSOR_COVERAGE, KratosDT.SensorUtils.Sum(domain_size_exp.Scale(sensor_view.GetAuxiliaryExpression("mask"))))
-                self.__PrintSensorViewsListToCSV(sensor_data_output_path / "sensor_mask_coverage.csv", list_of_sensor_views, ["type", "name", "location", "value", "SENSOR_COVERAGE"])
+                PrintSensorViewsListToCSV(sensor_data_output_path / "sensor_mask_coverage.csv", list_of_sensor_views, ["type", "name", "location", "value", "SENSOR_COVERAGE"])
 
         # create iteration folder structure
         if self.vtu_output_iteration_data or self.csv_output_iteration_data:
             iteration_data_output_path = Path(self.parameters["output_folder"].GetString()) / f"{name}/iteration_data"
             iteration_data_output_path.mkdir(parents=True, exist_ok=True)
 
-        # stage 1: Find the sensors which covers up to the required_maximum_overall_coverage_ratio
+        # first compute the clustering with all the sensors
+        cluster_data: 'list[tuple[list[int], ExpressionUnionType]]' = KratosDT.MaskUtils.ClusterMasks([sensor_view.GetAuxiliaryExpression("mask") for sensor_view in list_of_sensor_views])
+        _ = UpdateClusters(self.cluster_details, list_of_sensor_views, cluster_data)
+
+        # now we have potential list of sensors which can be removed. Try removing one by one and computing
+        # clusters sizes
         iteration = 1
-        max_coverage_ratio = 0.0
-        sensor_redundancy = (dummy_exp * 0.0).Flatten()
-        list_of_selected_sensor_views: 'list[SensorViewUnionType]' = []
-        while (max_coverage_ratio < self.required_maximum_overall_coverage_ratio and iteration <= self.maximum_number_of_iterations):
-            sensor_view: SensorViewUnionType = max(list_of_sensor_views, key=lambda x: KratosDT.SensorUtils.Sum(KratosDT.MaskUtils.Scale(domain_size_exp, sensor_redundancy + x.GetAuxiliaryExpression("mask"))))
-            list_of_selected_sensor_views.append(sensor_view)
+        cluster_domain_size_ratios = self.__ComputeClusterDomainSizeRatios([mask for _, (_, mask) in self.cluster_details.items()], total_domain_size, domain_size_exp)
+        while (True):
+            # now find potential sensor views for removal
+            potential_sensor_ids_to_remove: 'list[int]' = []
+            for _, (sensor_ids, mask) in self.cluster_details.items():
+                cluster_domain_size_ratio = KratosDT.SensorUtils.Sum(KratosDT.MaskUtils.Scale(domain_size_exp, mask)) / total_domain_size
+                if cluster_domain_size_ratio < self.required_maximum_cluster_coverage_ratio:
+                    potential_sensor_ids_to_remove.extend(sensor_ids)
+            # now make the potential sensor view ids unique
+            potential_sensor_ids_to_remove = list(set(potential_sensor_ids_to_remove))
 
-            sensor_redundancy = (sensor_redundancy + sensor_view.GetAuxiliaryExpression("mask")).Flatten()
-            self.__OutputIteration(iteration, iteration_data_output_path, vtu_output, sensor_redundancy, list_of_selected_sensor_views)
+            # now remove the potential sensor views which has uniquearea of coverage. Removing
+            # these sensors will reduce the overall coverage.
+            for _, (sensor_ids, mask) in self.cluster_details.items():
+                if len(sensor_ids) == 1:
+                    if sensor_ids[0] in potential_sensor_ids_to_remove:
+                        del potential_sensor_ids_to_remove[potential_sensor_ids_to_remove.index(sensor_ids[0])]
 
-            max_coverage_ratio = KratosDT.SensorUtils.Sum(KratosDT.MaskUtils.Scale(domain_size_exp, sensor_redundancy)) / total_domain_size
-            Kratos.Logger.PrintInfo(self.__class__.__name__, f"Iteration: {iteration} - Found sensor {sensor_view.GetSensor().GetName()} increasing coverage to {max_coverage_ratio * 100.0:6.3f}%.")
+            potential_sensor_views_to_remove: 'list[SensorViewUnionType]' = KratosDT.SensorUtils.GetSensorViewsFromIds(potential_sensor_ids_to_remove, list_of_sensor_views, KratosDT.SENSOR_ID)
 
-            del list_of_sensor_views[list_of_sensor_views.index(sensor_view)]
+            sensors_which_do_not_degrade_clustering_if_removed: 'list[SensorViewUnionType]' = []
+            # try removing one by one
+            for test_sensor_view in potential_sensor_views_to_remove:
+                masks: 'list[ExpressionUnionType]' = []
+                for sensor_view in potential_sensor_views_to_remove:
+                    if sensor_view != test_sensor_view:
+                        masks.append(sensor_view.GetAuxiliaryExpression("mask"))
+
+                # now cluster again
+                cluster_data: 'list[tuple[list[int], ExpressionUnionType]]' = KratosDT.MaskUtils.ClusterMasks(masks)
+
+                # now calculate cluster domain size ratios
+                current_cluster_domain_size_ratios = self.__ComputeClusterDomainSizeRatios([mask for _, mask in cluster_data], total_domain_size, domain_size_exp)
+
+                # now check whether clusters have become larger
+                if len(current_cluster_domain_size_ratios) <= len(cluster_domain_size_ratios):
+                    # new clustering has found either similar number of clusters
+                    # or fewer clusters which are above the threshold.
+
+                    # now checking whether the cluster domain sizes has degraded.
+                    is_domain_size_ratios_degraded = False
+                    for i, p_v in current_cluster_domain_size_ratios:
+                        if cluster_domain_size_ratios[i] < p_v:
+                            is_domain_size_ratios_degraded = True
+                            break
+
+                    if not is_domain_size_ratios_degraded:
+                        sensors_which_do_not_degrade_clustering_if_removed.append(test_sensor_view)
+                        Kratos.Logger.PrintInfo(self.__class__.__name__, f"        Found sensor {test_sensor_view.GetSensor().GetName()} for potential removal.")
+
+            if len(sensors_which_do_not_degrade_clustering_if_removed) == 0:
+                break
+
+            # now we found list of sensors which can be safely removed.
+            sensor_to_remove = self.sensor_selection_method.Select(sensors_which_do_not_degrade_clustering_if_removed, list_of_sensor_views)
+            index = list_of_sensor_views.index(sensor_to_remove)
+            del list_of_sensor_views[index]
+
+            cluster_masks = [sensor_view.GetAuxiliaryExpression("mask") for sensor_view in list_of_sensor_views]
+            cluster_data: 'list[tuple[list[int], ExpressionUnionType]]' = KratosDT.MaskUtils.ClusterMasks(cluster_masks)
+            clustering_exp = UpdateClusters(self.cluster_details, list_of_sensor_views, cluster_data)
+            cluster_domain_size_ratios = self.__ComputeClusterDomainSizeRatios(cluster_masks, total_domain_size, domain_size_exp)
+
+            if self.vtu_output_iteration_data:
+                sensor_redundancy = list_of_sensor_views[0].GetAuxiliaryExpression("mask")
+                for sensor_view in list_of_sensor_views[1:]:
+                    sensor_redundancy += sensor_view.GetAuxiliaryExpression("mask")
+                OutputSensorViewExpressions(iteration_data_output_path / f"sensor_placement_iteration_{iteration:05d}", vtu_output, sensor_to_remove, [("sensor_redundancy", sensor_redundancy), ("cluster", clustering_exp)])
+            if self.csv_output_iteration_data:
+                PrintSensorViewsListToCSV(iteration_data_output_path / f"sensor_placement_iteration_{iteration:05d}.csv", list_of_sensor_views, ["type", "name", "location", "value"])
+
+            Kratos.Logger.PrintInfo(self.__class__.__name__, f"Iteration: {iteration} - Removed {sensor_to_remove.GetSensor().GetName()} resulting with {len(self.cluster_details.keys())} clusters.")
             iteration += 1
-
-        Kratos.Logger.PrintInfo(self.__class__.__name__, "Finished searching sensors to maximize coverage.")
-
-        # stage 2: Find sensors which reduces the max cluster size
-        list_of_cluster_ids_not_divisible: 'list[int]' = []
-        while (iteration <= self.maximum_number_of_iterations):
-            max_cluster_id = -1
-            max_cluster_size_ratio = 0.0
-            for cluster_id, (_, mask) in self.cluster_details.items():
-                if cluster_id not in list_of_cluster_ids_not_divisible:
-                    cluster_size_ratio = KratosDT.SensorUtils.Sum(KratosDT.MaskUtils.Scale(domain_size_exp, mask)) / total_domain_size
-                    if cluster_size_ratio > max_cluster_size_ratio:
-                        max_cluster_size_ratio = cluster_size_ratio
-                        max_cluster_id = cluster_id
-
-            if max_cluster_size_ratio < self.required_maximum_cluster_coverage_ratio:
-                Kratos.Logger.PrintInfo(self.__class__.__name__, "Finished dividing clusters.")
-                break
-
-            if max_cluster_id == -1:
-                Kratos.Logger.PrintInfo(self.__class__.__name__, "Clusters are not divisible further.")
-                break
-
-            Kratos.Logger.PrintInfo(self.__class__.__name__, f"Iteration: {iteration} - Cluser {max_cluster_id} size ratio is above threshold ({max_cluster_size_ratio * 100.0:6.3f}% > {self.required_maximum_cluster_coverage_ratio * 100.0:6.3f}%). Trying to divide it...")
-
-            potential_masks = [sensor_view.GetAuxiliaryExpression("mask") for sensor_view in list_of_sensor_views]
-            potential_indices = KratosDT.MaskUtils.GetMasksDividingReferenceMask(self.cluster_details[max_cluster_id][1], potential_masks)
-
-            if len(potential_indices) == 0:
-                list_of_cluster_ids_not_divisible.append(max_cluster_id)
-                Kratos.Logger.PrintInfo(self.__class__.__name__, f"\tCluster {max_cluster_id} is not divisible.")
-            else:
-                sensor_view = self.sensor_selection_method.Select([list_of_sensor_views[i] for i in potential_indices], list_of_selected_sensor_views)
-                list_of_selected_sensor_views.append(sensor_view)
-
-                sensor_redundancy = (sensor_redundancy + sensor_view.GetAuxiliaryExpression("mask")).Flatten()
-                self.__OutputIteration(iteration, iteration_data_output_path, vtu_output, sensor_redundancy, list_of_selected_sensor_views)
-
-                Kratos.Logger.PrintInfo(self.__class__.__name__, f"\tFound {sensor_view.GetSensor().GetName()} dividing cluster {max_cluster_id} resulting with {len(self.cluster_details.keys())} clusters.")
-                iteration += 1
-
-        Kratos.Logger.PrintInfo(self.__class__.__name__, f"Found {len(list_of_selected_sensor_views)} sensors.")
 
         output_path = Path(self.parameters["output_folder"].GetString())
         output_path.mkdir(parents=True, exist_ok=True)
-        list_of_best_sensors = [sensor_view.GetSensor() for sensor_view in list_of_selected_sensor_views]
+        list_of_best_sensors = [sensor_view.GetSensor() for sensor_view in list_of_sensor_views]
         PrintSensorListToJson(output_path / "best_sensor_data.json", list_of_best_sensors)
         PrintSensorListToCSV(output_path / "best_sensor_data.csv", list_of_best_sensors, ["type", "name", "location", "value"])
 
-    def __AddSensorViewMasks(self, list_of_sensor_views: 'list[SensorViewUnionType]') -> None:
-        masking_type = self.parameters["masking"]["masking_type"].GetString()
-        if masking_type == "automatic":
-            for sensor_view in list_of_sensor_views:
-                sensor_view.AddAuxiliaryExpression("mask", KratosDT.MaskUtils.GetMask(sensor_view.GetAuxiliaryExpression("filtered")))
-        else:
-            raise RuntimeError(f"Unsupported masking_type={masking_type} requested.")
+    def __ComputeClusterDomainSizeRatios(self, cluster_masks: 'list[ExpressionUnionType]', total_domain_size: float, domain_size_exp: ExpressionUnionType) -> 'list[float]':
+        cluster_domain_size_ratios = [KratosDT.SensorUtils.Sum(KratosDT.MaskUtils.Scale(domain_size_exp, mask)) / total_domain_size for mask in cluster_masks]
+        cluster_domain_size_ratios = sorted(cluster_domain_size_ratios, reverse=True)
 
-    def __UpdateClusters(self, list_of_sensor_views: 'list[SensorViewUnionType]') -> ExpressionUnionType:
-        list_of_masks = [sensor_view.GetAuxiliaryExpression("mask") for sensor_view in list_of_sensor_views]
-        cluster_data: 'list[tuple[list[int], ExpressionUnionType]]' = KratosDT.MaskUtils.ClusterMasks(list_of_masks)
-        new_cluster_sensor_ids_list: 'list[list[int]]' = [[list_of_sensor_views[i].GetSensor().GetValue(KratosDT.SENSOR_ID) for i in indices_list] for indices_list, _ in cluster_data]
+        for i, v in enumerate(cluster_domain_size_ratios):
+            if v <= self.required_maximum_cluster_coverage_ratio:
+                return cluster_domain_size_ratios[:i]
 
-        list_of_cluster_ids_to_delete: 'list[int]' = list(self.cluster_details.keys())
-
-        # first add ll new clusters
-        for i, current_cluster_sensor_ids in enumerate(new_cluster_sensor_ids_list):
-            old_cluster_id = -1
-            for cluster_id, (cluster_sensor_ids, _) in self.cluster_details.items():
-                if cluster_sensor_ids == current_cluster_sensor_ids:
-                    old_cluster_id = cluster_id
-                    del list_of_cluster_ids_to_delete[list_of_cluster_ids_to_delete.index(cluster_id)]
-                    break
-
-            if old_cluster_id == -1:
-                self.cluster_details[max(self.cluster_details.keys(), default=0) + 1] = (current_cluster_sensor_ids, cluster_data[i][1])
-            else:
-                self.cluster_details[old_cluster_id][1].SetExpression(cluster_data[i][1].GetExpression())
-
-        # now remove clusters which are not anymore valid
-        for k in list_of_cluster_ids_to_delete:
-            del self.cluster_details[k]
-
-        clustering_exp = list_of_masks[0] * 0.0
-        for cluster_id, (_, cluster_mask_exp) in self.cluster_details.items():
-            clustering_exp += cluster_mask_exp * cluster_id
-        return clustering_exp
-
-    def __OutputIteration(self, iteration: int, output_path: Path, vtu_output: Kratos.VtuOutput, sensor_redundancy: ExpressionUnionType, list_of_selected_sensor_views: 'list[SensorViewUnionType]') -> None:
-        last_sensor_view = list_of_selected_sensor_views[-1]
-        clustering_exp = self.__UpdateClusters(list_of_selected_sensor_views)
-
-        if self.vtu_output_iteration_data:
-            self.__OutputSensorViewExpressions(
-                        output_path / f"sensor_placement_iteration_{iteration:05d}",
-                        vtu_output, last_sensor_view,
-                        [
-                            ("sensor_redundancy", sensor_redundancy),
-                            ("cluster", clustering_exp)
-                        ])
-
-        if self.csv_output_iteration_data:
-            self.__PrintSensorViewsListToCSV(output_path / f"sensor_placement_iteration_{iteration:05d}.csv", list_of_selected_sensor_views, ["type", "name", "location", "value"])
-
-    @staticmethod
-    def __OutputSensorViewExpressions(output_path: Path, vtu_output: Kratos.VtuOutput, sensor_view: SensorViewUnionType, additional_expressions: 'list[tuple[str, ExpressionUnionType]]' = []) -> None:
-        vtu_output.ClearCellContainerExpressions()
-        vtu_output.ClearNodalContainerExpressions()
-
-        # add the main expression
-        vtu_output.AddContainerExpression(sensor_view.GetExpressionName(), sensor_view.GetContainerExpression())
-
-        # now add the auxiliary expression
-        for auxiliary_name in sensor_view.GetAuxiliarySuffixes():
-            vtu_output.AddContainerExpression(f"{sensor_view.GetExpressionName()}_{auxiliary_name}", sensor_view.GetAuxiliaryExpression(auxiliary_name))
-
-        # now add the additional expressions
-        for exp_name, exp in additional_expressions:
-            vtu_output.AddContainerExpression(exp_name, exp)
-
-        vtu_output.PrintOutput(str(output_path))
-
-    @staticmethod
-    def __PrintSensorViewsListToCSV(output_file_name: Path, list_of_sensor_views: 'list[SensorViewUnionType]', list_of_sensor_properties: 'list[str]') -> None:
-        PrintSensorListToCSV(output_file_name, [sensor_view.GetSensor() for sensor_view in list_of_sensor_views], list_of_sensor_properties)
+        return cluster_domain_size_ratios
 

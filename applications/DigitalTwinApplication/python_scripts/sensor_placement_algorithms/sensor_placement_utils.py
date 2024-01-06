@@ -15,9 +15,7 @@ def AddSensorViewMasks(parameters: Kratos.Parameters, list_of_sensor_views: 'lis
     else:
         raise RuntimeError(f"Unsupported masking_type={masking_type} requested.")
 
-def UpdateClusters(cluster_details: 'dict[int, tuple[list[int], ExpressionUnionType]]', list_of_sensor_views: 'list[SensorViewUnionType]') -> ExpressionUnionType:
-    list_of_masks = [sensor_view.GetAuxiliaryExpression("mask") for sensor_view in list_of_sensor_views]
-    cluster_data: 'list[tuple[list[int], ExpressionUnionType]]' = KratosDT.MaskUtils.ClusterMasks(list_of_masks)
+def UpdateClusters(cluster_details: 'dict[int, tuple[list[int], ExpressionUnionType]]', list_of_sensor_views: 'list[SensorViewUnionType]', cluster_data: 'list[tuple[list[int], ExpressionUnionType]]') -> ExpressionUnionType:
     new_cluster_sensor_ids_list: 'list[list[int]]' = [[list_of_sensor_views[i].GetSensor().GetValue(KratosDT.SENSOR_ID) for i in indices_list] for indices_list, _ in cluster_data]
 
     list_of_cluster_ids_to_delete: 'list[int]' = list(cluster_details.keys())
@@ -40,7 +38,7 @@ def UpdateClusters(cluster_details: 'dict[int, tuple[list[int], ExpressionUnionT
     for k in list_of_cluster_ids_to_delete:
         del cluster_details[k]
 
-    clustering_exp = list_of_masks[0] * 0.0
+    clustering_exp = list_of_sensor_views[0].GetAuxiliaryExpression("mask") * 0.0
     for cluster_id, (_, cluster_mask_exp) in cluster_details.items():
         clustering_exp += cluster_mask_exp * cluster_id
     return clustering_exp
