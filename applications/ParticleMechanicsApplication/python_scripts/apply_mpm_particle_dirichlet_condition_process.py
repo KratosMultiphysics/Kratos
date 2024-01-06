@@ -19,7 +19,6 @@ class ApplyMPMParticleDirichletConditionProcess(KratosMultiphysics.Process):
                 "penalty_factor"            : 0,
                 "friction_coefficient"      : 0,
                 "variable_name"             : "DISPLACEMENT",
-                "modulus"                   : 1.0,
                 "constrained"               : "fixed",
                 "value"                     : [0.0, "0*t", 0.0],
                 "interval"                  : [0.0, 1e30],
@@ -41,8 +40,8 @@ class ApplyMPMParticleDirichletConditionProcess(KratosMultiphysics.Process):
         self.is_neumann_boundary = False
         self.option = settings["option"].GetString()
 
-        #is_equal_distributed = false (particle conditions at Gauss Point Positions) 
-        #is_equal_distributed = true (particle conditions equally distributed; also at nodes; only 2D) 
+        #is_equal_distributed = false (particle conditions at Gauss Point Positions)
+        #is_equal_distributed = true (particle conditions equally distributed; also at nodes; only 2D)
         self.is_equal_distributed = settings["is_equal_distributed"].GetBool()
 
         """
@@ -110,7 +109,6 @@ class ApplyMPMParticleDirichletConditionProcess(KratosMultiphysics.Process):
                 self.function_string = settings["value"][i].GetString()
                 self.aux_function[i] = KratosMultiphysics.GenericFunctionUtility(self.function_string, settings["local_axes"])
 
-        self.modulus = settings["modulus"].GetDouble()
 
         # Compute the normal on the nodes of interest
         KratosMultiphysics.NormalCalculationUtils().CalculateOnSimplex(self.model_part, self.model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE])
@@ -161,7 +159,7 @@ class ApplyMPMParticleDirichletConditionProcess(KratosMultiphysics.Process):
         Keyword arguments:
         self -- It signifies an instance of a class.
         """
-        
+
         for mpc in self.model_part.Conditions:
             current_time = self.model_part.ProcessInfo[KratosMultiphysics.TIME]
             mpc_coord = mpc.CalculateOnIntegrationPoints(KratosParticle.MPC_COORD,self.model_part.ProcessInfo)[0]
@@ -169,7 +167,7 @@ class ApplyMPMParticleDirichletConditionProcess(KratosMultiphysics.Process):
             if self.interval.IsInInterval(current_time):
 
                 self.step_is_active = True
-                
+
                 # Loop over components X, Y and Z
                 for i in range(3):
                     self.variable = self.name[i]
@@ -178,6 +176,6 @@ class ApplyMPMParticleDirichletConditionProcess(KratosMultiphysics.Process):
                             self.value[i] = self.aux_function[i].CallFunction(0.0,0.0,0.0,current_time,0.0,0.0,0.0)
                         else: #most general case - space varying function (possibly also time varying)
                             self.value[i] = self.aux_function[i].CallFunction(mpc_coord[0],mpc_coord[1],mpc_coord[2],current_time,0.0,0.0,0.0)
-                            
-                        
+
+
                 mpc.SetValuesOnIntegrationPoints(KratosParticle.MPC_IMPOSED_DISPLACEMENT,[self.value],self.model_part.ProcessInfo)

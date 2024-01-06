@@ -44,7 +44,10 @@ THE SOFTWARE.
 #include <vexcl/vector_view.hpp>
 
 #if defined(VEXCL_BACKEND_CUDA)
-#  include <vexcl/backend/cuda/cusparse.hpp>
+#  include <cuda.h>
+#  if (CUDA_VERSION > 10010) && defined(VEXCL_USE_CUSPARSE)
+#    undef VEXCL_USE_CUSPARSE
+#  endif
 #endif
 
 namespace vex {
@@ -257,6 +260,7 @@ class SpMat {
 #  include <vexcl/spmat/hybrid_ell.inl>
 #  include <vexcl/spmat/csr.inl>
 #else
+#  include <vexcl/backend/cuda/cusparse.hpp>
 #  include <vexcl/backend/cuda/hybrid_ell.inl>
 #  include <vexcl/backend/cuda/csr.inl>
 #endif

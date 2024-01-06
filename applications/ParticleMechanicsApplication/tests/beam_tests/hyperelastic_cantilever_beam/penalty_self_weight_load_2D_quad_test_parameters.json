@@ -55,7 +55,7 @@
             "kratos_module" : "KratosMultiphysics.ParticleMechanicsApplication",
             "Parameters"    : {
                 "model_part_name" : "Background_Grid.PENALTY_Condition_Auto1",
-                "particles_per_condition" : 7,
+                "particles_per_condition" : 5,
                 "penalty_factor"  : 1e10,
                 "constrained"     : "fixed"
             }

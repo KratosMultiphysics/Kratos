@@ -82,7 +82,7 @@ namespace MPMParticleGeneratorUtility
                     else {
                         std::string warning_msg = "PARTICLES_PER_ELEMENT is not specified in Properties, ";
                         warning_msg += "1 Particle per element is assumed.";
-                        KRATOS_WARNING("MPMParticleGeneratorUtility") << "WARNING: " << warning_msg << std::endl;
+                        KRATOS_WARNING("MPMParticleGeneratorUtility") << warning_msg << std::endl;
                         particles_per_element = 1;
                     }
 
@@ -228,13 +228,14 @@ namespace MPMParticleGeneratorUtility
         const unsigned int number_conditions = rBackgroundGridModelPart.NumberOfConditions();
         const unsigned int number_elements = rBackgroundGridModelPart.NumberOfElements() + rInitialModelPart.NumberOfElements() + rMPMModelPart.NumberOfElements();
         const unsigned int number_nodes = rBackgroundGridModelPart.NumberOfNodes();
-        unsigned int last_condition_id;
+        unsigned int condition_id;
         if (number_elements > number_nodes && number_elements > number_conditions)
-            last_condition_id = number_elements;
+            condition_id = number_elements+1;
         else if (number_nodes > number_elements && number_nodes > number_conditions)
-            last_condition_id = number_nodes;
+            condition_id = number_nodes+1;
         else
-            last_condition_id = number_conditions;
+            condition_id = number_conditions+1;
+
 
         BinBasedFastPointLocator<TDimension> SearchStructure(rBackgroundGridModelPart);
         SearchStructure.UpdateSearchDatabase();
@@ -274,17 +275,13 @@ namespace MPMParticleGeneratorUtility
                         const bool is_neumann_condition = i->GetValue(MPC_IS_NEUMANN);
                         const int boundary_condition_type = i->GetValue(MPC_BOUNDARY_CONDITION_TYPE);
 
-
-
                         // Check number of particles per condition to be created
                         unsigned int particles_per_condition = 0; // Default zero
                         if (i->Has( PARTICLES_PER_CONDITION )){
                             particles_per_condition = i->GetValue(PARTICLES_PER_CONDITION);
                         }
                         else{
-                            std::string warning_msg = "PARTICLES_PER_CONDITION is not specified, ";
-                            warning_msg += "Only one particle is assumed";
-                            KRATOS_WARNING("MPMParticleGeneratorUtility") << "WARNING: " << warning_msg << std::endl;
+                            KRATOS_WARNING("MPMParticleGeneratorUtility") << "PARTICLES_PER_CONDITION is not specified. Only one particle is assumed." << std::endl;
                         }
 
                         // Get condition variables:
@@ -304,7 +301,6 @@ namespace MPMParticleGeneratorUtility
                         std::vector<IntegrationPoint<3>> integration_points;
                         IndexType number_of_points_per_span;
                         array_1d<double, 3> local_coordinates;
-                        array_1d<double, 3> xg;
 
                         const GeometryData::KratosGeometryType geo_type = r_geometry.GetGeometryType();
                         IntegrationMethod integration_method = r_geometry.GetDefaultIntegrationMethod();
@@ -314,34 +310,30 @@ namespace MPMParticleGeneratorUtility
                             {
                                 number_of_points_per_span = particles_per_condition;
                                 std::vector<double> spans = {-1, 1};
-                                
+
                                 auto integration_info = IntegrationInfo(r_geometry.LocalSpaceDimension(), number_of_points_per_span, IntegrationInfo::QuadratureMethod::GRID);
-                                
+
                                 IntegrationPointUtilities::CreateIntegrationPoints1D(
                                             integration_points, spans, integration_info);
 
                                 integration_method = integration_info.GetIntegrationMethod(0);
                             }
                             else{
-                                std::string warning_msg = "Equal distribution of particle conditions only available for line segments: ";
-                                KRATOS_INFO("MPMParticleGeneratorUtility") << "WARNING: " << warning_msg << std::endl;
-
+                                KRATOS_WARNING("MPMParticleGeneratorUtility") << "Equal distribution of particle conditions only available for line segments:  "  << std::endl;
                             }
                         }
                         else{
-
                             if (geo_type != GeometryData::KratosGeometryType::Kratos_Point2D  && geo_type != GeometryData::KratosGeometryType::Kratos_Point3D)
                             {
                                 DetermineGeometryIntegrationMethod(r_geometry, particles_per_condition,
                                 number_of_points_per_span);
-                            
+
                                 auto integration_info = IntegrationInfo(r_geometry.LocalSpaceDimension(), number_of_points_per_span, IntegrationInfo::QuadratureMethod::GAUSS);
                                 r_geometry.CreateIntegrationPoints(integration_points,integration_info);
                                 integration_method = integration_info.GetIntegrationMethod(0);
                             }
-
                         }
-                        
+
                         // Check condition variables
                         if (i->Has(DISPLACEMENT))
                             mpc_imposed_displacement[0] = i->GetValue(DISPLACEMENT);
@@ -363,8 +355,8 @@ namespace MPMParticleGeneratorUtility
                         std::string condition_type_name;
 
                         // If dirichlet boundary or coupling interface
-                        if (!is_neumann_condition){  
-                            condition_type_name = "MPMParticlePenaltyDirichletCondition"; 
+                        if (!is_neumann_condition){
+                            condition_type_name = "MPMParticlePenaltyDirichletCondition";
                         }
                         else{
                             if( i->Has( POINT_LOAD ) ){
@@ -381,16 +373,11 @@ namespace MPMParticleGeneratorUtility
                         // Check Normal direction
                         if (flip_normal_direction) mpc_normal *= -1.0;
 
-                        unsigned int new_condition_id = 0;
-
                         // Create Particle Point Load Condition
                         if (condition_type_name == "MPMParticlePointLoadCondition" ){
                             // create point load condition
-                            mpc_area[0] = 1;                            
+                            mpc_area[0] = 1;
 
-
-                            // Create new material point condition
-                            new_condition_id = last_condition_id + 1;
 
                             mpc_xg[0].clear();
 
@@ -402,7 +389,6 @@ namespace MPMParticleGeneratorUtility
                             Element::Pointer pelem;
                             Vector N;
 
-
                             // FindPointOnMesh find the background element in which a given point falls and the relative shape functions
                             bool is_found = SearchStructure.FindPointOnMesh(mpc_xg[0], N, pelem, result_begin);
                             if (!is_found) KRATOS_WARNING("MPM particle generator utility") << "::search failed." << std::endl;
@@ -412,15 +398,12 @@ namespace MPMParticleGeneratorUtility
                                 mpc_area[0]);
 
                             Condition::Pointer p_condition = new_condition.Create(
-                                new_condition_id, p_new_geometry, properties);
+                                condition_id, p_new_geometry, properties);
 
 
                             ProcessInfo process_info = ProcessInfo();
-                            if (is_interface)
-                            {
+                            if (is_interface){
                                 p_condition->Set(INTERFACE);
-                                p_condition->SetValuesOnIntegrationPoints(POINT_LOAD,  mpc_contact_force , process_info);
-                                
                             }
 
                             // Setting particle condition's initial condition
@@ -436,7 +419,7 @@ namespace MPMParticleGeneratorUtility
 
                             // Add the MP Condition to the model part
                             rMPMModelPart.GetSubModelPart(submodelpart_name).AddCondition(p_condition);
-                            last_condition_id +=1;
+                            condition_id +=1;
 
                         }
                         // Loop over the conditions to create inner particle condition (except point load condition)
@@ -446,23 +429,21 @@ namespace MPMParticleGeneratorUtility
                             for ( IndexType i_integration_point = 0; i_integration_point < integration_points.size(); ++i_integration_point )
                             {
                                 local_coordinates = integration_points[i_integration_point];
-                                
-                                r_geometry.GlobalCoordinates(xg, local_coordinates);
-                                
+
+                                r_geometry.GlobalCoordinates(mpc_xg[0], local_coordinates);
+
                                 mpc_area[0] = integration_points[i_integration_point].Weight() * r_geometry.DeterminantOfJacobian(i_integration_point, integration_method);
-                                
+
                                 typename BinBasedFastPointLocator<TDimension>::ResultIteratorType result_begin = results.begin();
                                 Element::Pointer pelem;
                                 Vector N;
-                                bool is_found = SearchStructure.FindPointOnMesh(xg, N, pelem, result_begin);
+                                bool is_found = SearchStructure.FindPointOnMesh(mpc_xg[0], N, pelem, result_begin);
                                 if (!is_found) KRATOS_WARNING("MPM particle generator utility") << "::MPC search failed." << std::endl;
-                                
+
                                 pelem->Set(ACTIVE);
                                 auto p_quadrature_point_geometry = CreateQuadraturePointsUtility<Node>::CreateFromCoordinates(
-                                    pelem->pGetGeometry(), xg,
+                                    pelem->pGetGeometry(), mpc_xg[0],
                                     mpc_area[0]);
-                                
-
 
                                 // Particle condition are not created twice
                                 bool create_condition = true;
@@ -471,43 +452,39 @@ namespace MPMParticleGeneratorUtility
                                     for(auto it=ParticleConditions.begin(); it!=ParticleConditions.end(); ++it)
                                     {
                                         it->CalculateOnIntegrationPoints(MPC_COORD, xg_tmp, rMPMModelPart.GetProcessInfo());
-                                        
-                                        if (xg[0] == xg_tmp[0][0] && xg[1] == xg_tmp[0][1]  && xg[2] == xg_tmp[0][2] )
+
+                                        if (mpc_xg[0][0] == xg_tmp[0][0] && mpc_xg[0][1] == xg_tmp[0][1]  && mpc_xg[0][2] == xg_tmp[0][2] )
                                         {
                                             create_condition = false;
                                             it->CalculateOnIntegrationPoints(MPC_AREA, area_temp, rMPMModelPart.GetProcessInfo());
                                             area_temp[0] += mpc_area[0];
                                             it->SetValuesOnIntegrationPoints(MPC_AREA, area_temp, rMPMModelPart.GetProcessInfo());
-                                            
                                         }
                                     }
                                 }
 
                                 if (create_condition){
 
-                                    // Create new material point condition
-                                    new_condition_id = last_condition_id + 1 ;
-                                    
                                     Condition::Pointer p_condition = new_condition.Create(
-                                        new_condition_id, p_quadrature_point_geometry, properties);
-                                
+                                        condition_id, p_quadrature_point_geometry, properties);
+
                                     ParticleConditions.push_back(p_condition);
-                                    
+
                                     ProcessInfo process_info = ProcessInfo();
 
                                     // Setting particle condition's initial condition
                                     //p_condition->SetValuesOnIntegrationPoints(MPC_CONDITION_ID, mpc_condition_id, process_info);
-                                    p_condition->SetValuesOnIntegrationPoints(MPC_COORD, {xg} , process_info);
+                                    p_condition->SetValuesOnIntegrationPoints(MPC_COORD, mpc_xg , process_info);
                                     p_condition->SetValuesOnIntegrationPoints(MPC_AREA,  mpc_area  , process_info);
                                     p_condition->SetValuesOnIntegrationPoints(MPC_NORMAL, { mpc_normal }, process_info);
-
-
                                     p_condition->SetValuesOnIntegrationPoints(MPC_DISPLACEMENT, { mpc_displacement }, process_info);
                                     p_condition->SetValuesOnIntegrationPoints(MPC_IMPOSED_DISPLACEMENT, { mpc_imposed_displacement }, process_info);
                                     p_condition->SetValuesOnIntegrationPoints(MPC_VELOCITY, { mpc_velocity }, process_info);
                                     p_condition->SetValuesOnIntegrationPoints(MPC_IMPOSED_VELOCITY, { mpc_imposed_velocity }, process_info);
                                     p_condition->SetValuesOnIntegrationPoints(MPC_ACCELERATION, { mpc_acceleration }, process_info);
                                     p_condition->SetValuesOnIntegrationPoints(MPC_IMPOSED_ACCELERATION, { mpc_imposed_acceleration }, process_info);
+                                    p_condition->SetValuesOnIntegrationPoints(MPC_CONTACT_FORCE,  mpc_contact_force , process_info);
+
                                     // Mark as boundary condition
                                     p_condition->Set(BOUNDARY, true);
 
@@ -516,22 +493,19 @@ namespace MPMParticleGeneratorUtility
                                         p_condition->SetValuesOnIntegrationPoints(PENALTY_FACTOR, mpc_penalty_factor , process_info);
                                     }
 
-
                                     if (is_slip)
                                         p_condition->Set(SLIP);
                                     if (is_contact)
                                         p_condition->Set(CONTACT);
                                     if (is_interface)
-                                    {
                                         p_condition->Set(INTERFACE);
-                                    }
 
                                     // Set friction parameter
                                     p_condition->SetValuesOnIntegrationPoints(FRICTION_COEFFICIENT, {friction_coefficient}, process_info);
 
                                     // Add the MP Condition to the model part
                                     rMPMModelPart.GetSubModelPart(submodelpart_name).AddCondition(p_condition);
-                                    last_condition_id +=1;
+                                    condition_id +=1;
                                 }
 
                             }
@@ -849,16 +823,15 @@ namespace MPMParticleGeneratorUtility
             case 16:
                 if (domain_size == 2) {
                     IsEqualVolumes = true;
-                    KRATOS_INFO("MPMParticleGeneratorUtility") << "WARNING: "
-                        << "16 particles per triangle element is only valid for undistorted triangles." << std::endl;
+
+                    KRATOS_WARNING("MPMParticleGeneratorUtility") << "16 particles per triangle element is only valid for undistorted triangles." << std::endl;
                     rN = MP16ShapeFunctions();
                     break;
                 }
             case 33:
                 if (domain_size == 2) {
                     IsEqualVolumes = true;
-                    KRATOS_INFO("MPMParticleGeneratorUtility") << "WARNING: "
-                        << "33 particles per triangle element is only valid for undistorted triangles." << std::endl;
+                    KRATOS_WARNING("MPMParticleGeneratorUtility") << "33 particles per triangle element is only valid for undistorted triangles." << std::endl;
                     rN = MP33ShapeFunctions();
                     break;
                 }
@@ -869,7 +842,7 @@ namespace MPMParticleGeneratorUtility
                 warning_msg += " is not available for Triangular" + std::to_string(domain_size) + "D.\n";
                 warning_msg += "Available options are: 1, 3, 6, 12, 16 (only 2D), and 33 (only 2D).\n";
                 warning_msg += "The default number of particle: 3 is currently assumed.";
-                KRATOS_INFO("MPMParticleGeneratorUtility") << "WARNING: " << warning_msg << std::endl;
+                KRATOS_WARNING("MPMParticleGeneratorUtility") <<  warning_msg << std::endl;
                 break;
             }
         }
@@ -896,7 +869,7 @@ namespace MPMParticleGeneratorUtility
                 warning_msg += " is not available for Quadrilateral" + std::to_string(domain_size) + "D.\n";
                 warning_msg += "Available options are: 1, 4, 9, 16.\n";
                 warning_msg += "The default number of particle: 4 is currently assumed.";
-                KRATOS_INFO("MPMParticleGeneratorUtility") << "WARNING: " << warning_msg << std::endl;
+                KRATOS_WARNING("MPMParticleGeneratorUtility") <<  warning_msg << std::endl;
                 break;
             }
         }
@@ -921,9 +894,9 @@ namespace MPMParticleGeneratorUtility
                 warning_msg += " is not available for Line" + std::to_string(domain_size) + "D.\n";
                 warning_msg += "Available options are: 1 (default), 2, 3, 4, 5.\n";
                 warning_msg += "The default number of particle: 1 is currently assumed.";
-                KRATOS_INFO("MPMParticleGeneratorUtility") << "WARNING: " << warning_msg << std::endl;
+                KRATOS_WARNING("MPMParticleGeneratorUtility") <<  warning_msg << std::endl;
             }
-            
+
         }
         else if (geo_type == GeometryData::KratosGeometryType::Kratos_Triangle3D3)
         {
@@ -947,7 +920,7 @@ namespace MPMParticleGeneratorUtility
                 warning_msg += " is not available for Triangular" + std::to_string(domain_size) + "D.\n";
                 warning_msg += "Available options are: 1 (default), 3, 6 and 12.\n";
                 warning_msg += "The default number of particle: 1 is currently assumed.";
-                KRATOS_INFO("MPMParticleGeneratorUtility") << "WARNING: " << warning_msg << std::endl;
+                KRATOS_WARNING("MPMParticleGeneratorUtility") << warning_msg << std::endl;
                 break;
             }
 
@@ -974,7 +947,7 @@ namespace MPMParticleGeneratorUtility
                 warning_msg += " is not available for Triangular" + std::to_string(domain_size) + "D.\n";
                 warning_msg += "Available options are: 1 (default), 4, 9 and 16.\n";
                 warning_msg += "The default number of particle: 1 is currently assumed.";
-                KRATOS_INFO("MPMParticleGeneratorUtility") << "WARNING: " << warning_msg << std::endl;
+                KRATOS_WARNING("MPMParticleGeneratorUtility") <<  warning_msg << std::endl;
                 break;
             }
 

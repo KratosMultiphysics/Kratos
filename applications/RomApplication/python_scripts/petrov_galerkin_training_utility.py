@@ -64,14 +64,17 @@ class PetrovGalerkinTrainingUtility(object):
         if self.basis_strategy=="jacobian":
             snapshots_matrix = self.GetJacobianPhiMultiplication(computing_model_part)
             if self.echo_level > 0 : KratosMultiphysics.Logger.PrintInfo("PetrovGalerkinTrainingUtility","Generated matrix of projected Jacobian.")
-        elif self.basis_strategy=="residuals":
+        elif self.basis_strategy=="residuals" or self.basis_strategy=="reactions":
             snapshots_matrix = []
             files_to_read_and_delete = glob('*.res.mm')#TODO: Stop writing to disk.
             for to_erase_file in files_to_read_and_delete:
                 non_converged_iteration_snapshot = KratosMultiphysics.Vector()
                 KratosMultiphysics.ReadMatrixMarketVector(to_erase_file, non_converged_iteration_snapshot)
                 snapshots_matrix.append(non_converged_iteration_snapshot)
-            snapshots_matrix = np.array(snapshots_matrix).T
+            if self.basis_strategy == "residuals":
+                snapshots_matrix = np.array(snapshots_matrix).T
+            elif self.basis_strategy == "reactions":
+                snapshots_matrix = -np.array(snapshots_matrix).T # Negate for 'reactions' as they are residuals with opposite sign.
             if self.echo_level > 0 : KratosMultiphysics.Logger.PrintInfo("PetrovGalerkinTrainingUtility","Generating matrix of residuals.")
         else:
             err_msg = "\'self.basis_strategy\' is not available. Select either 'jacobian' or 'residuals'."
@@ -84,12 +87,12 @@ class PetrovGalerkinTrainingUtility(object):
         jacobian_matrix = KratosMultiphysics.CompressedMatrix()
         residual_vector = KratosMultiphysics.Vector(self.solver._GetBuilderAndSolver().GetEquationSystemSize())
         delta_x_vector = KratosMultiphysics.Vector(self.solver._GetBuilderAndSolver().GetEquationSystemSize())
-        
+
         self.solver._GetBuilderAndSolver().BuildAndApplyDirichletConditions(self.solver._GetScheme(), computing_model_part, jacobian_matrix, residual_vector, delta_x_vector)
-        
+
         right_rom_basis = KratosMultiphysics.Matrix(self.solver._GetBuilderAndSolver().GetEquationSystemSize(), self.num_of_right_rom_dofs)
-        self.solver._GetBuilderAndSolver().GetRightRomBasis(computing_model_part, right_rom_basis)
-        
+        self.solver._GetBuilderAndSolver().GetRightROMBasis(computing_model_part, right_rom_basis)
+
         jacobian_scipy_format = KratosMultiphysics.scipy_conversion_tools.to_csr(jacobian_matrix)
         jacobian_phi_product = jacobian_scipy_format @ right_rom_basis
 

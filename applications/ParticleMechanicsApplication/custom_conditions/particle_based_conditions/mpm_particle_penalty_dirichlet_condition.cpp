@@ -298,6 +298,7 @@ void MPMParticlePenaltyDirichletCondition::FinalizeSolutionStep( const ProcessIn
             }
         }
     }
+    this->CalculateInterfaceContactForce( rCurrentProcessInfo);
 
     KRATOS_CATCH( "" )
 }

@@ -59,8 +59,8 @@ namespace MPMParticleGeneratorUtility
     void DetermineIntegrationMethodAndShapeFunctionValues(const GeometryType& rGeom, const SizeType ParticlesPerElement,
         IntegrationMethod& rIntegrationMethod, Matrix& rN, bool& IsEqualVolumes);
 
-    /// Get integration method and shape function values for the given element
-    void DetermineGeometryIntegrationMethod(const GeometryType& rGeom, const SizeType ParticlesPerElement,
+    /// Get integration method and shape function values for the given condition
+    void DetermineGeometryIntegrationMethod(const GeometryType& rGeom, const SizeType ParticlesPerCondition,
         IndexType& rNumPointsPerSpan);
 
     /**
@@ -71,7 +71,7 @@ namespace MPMParticleGeneratorUtility
     void GenerateMaterialPointElement(  ModelPart& rBackgroundGridModelPart,
                                         ModelPart& rInitialModelPart,
                                         ModelPart& rMPMModelPart,
-                                        bool IsMixedFormulation=false); 
+                                        bool IsMixedFormulation=false);
     /**
      * @brief Function to Initiate material point condition.
      * @details Generating particle condition using a designated shape functions

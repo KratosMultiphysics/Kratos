@@ -1,4 +1,5 @@
 import sys,os
+import math
 
 sys.path.append(os.path.join('..','..','..'))
 
@@ -126,6 +127,14 @@ def get_velocity(simulation):
 
     return get_nodal_variable(simulation, Kratos.VELOCITY)
 
+def get_temperature(simulation):
+    """
+    Gets the temperature from kratos simulation
+ 
+    :param simulation:
+    :return:
+    """
+    return get_nodal_variable(simulation, Kratos.TEMPERATURE)
 
 def get_water_pressure(simulation):
     """
@@ -159,7 +168,6 @@ def get_nodal_variable(simulation, variable, node_ids=None):
         nodes = [node for node in nodes if node.Id in node_ids]
     return [node.GetSolutionStepValue(variable) for node in nodes]
 
-
 def get_nodal_variable_from_ascii(filename: str, variable: str):
     """
     Reads data of Kratos variable from ascii output GID file
@@ -172,53 +180,51 @@ def get_nodal_variable_from_ascii(filename: str, variable: str):
 
     # read data
     with open(filename, "r") as f:
-        all_data = f.readlines()
+        all_lines = f.readlines()
 
+    time_step = None
     add_var = False
-
-    data = []
-    time_steps = []
-    all_var_data = []
+    res = {}
 
     # read all data at each time step of variable
-    for line in all_data:
+    for line in all_lines:
 
         if "End Values" in line and add_var:
             add_var = False
-            all_var_data.append(data)
-            data = []
+
         if add_var:
-            data.append(line)
+            if line.startswith("Values"):
+                continue
+            if time_step is not None:
+                add_line_data_to_dictionary(line, res, time_step)
 
         if r'"' + variable + r'"' in line:
             time_step = float(line.split()[3])
-
-            time_steps.append(time_step)
+            res[time_step] = {}
             add_var=True
 
-    # initialise results dictionary
-    res = {"time": time_steps}
-
-    for var_data in all_var_data:
-        var_data.pop(0)
-
-        # convert var data to floats
-        for i, _ in enumerate(var_data):
-            line = var_data[i].split()
-            line[1] = float(line[1])
-            line[2] = float(line[2])
-            line[3] = float(line[3])
-            var_data[i] = line
-
-    # add node numbers as dict keys
-    for line in var_data:
-        res[line[0]] = []
-
-    for var_data in all_var_data:
-        for line in var_data:
-            res[line[0]].append(line[1:])
-
     return res
+
+def add_line_data_to_dictionary(line, dictionary, main_index):
+    """
+    Adds the data from a GiD Ascii line to a dictionary structure
+    :param line: line with data from a GiD Ascii File
+    :param dictionary: dictionary to input data (main index already initialized)
+    :param main_index: this is the main index under which to store the data
+                       (usually time series), i.e. dictionary[main_index] = {}
+    """
+    if main_index not in dictionary.keys():
+        raise KeyError(f"The key '{main_index}' is not in the dictionary.")
+    if not isinstance(dictionary[main_index], dict):
+        raise TypeError(f"The value for key '{main_index}' is not a dictionary.")
+    line_split = line.split()
+    line_split[0] = int(line_split[0])
+    for ind, str_value in enumerate(line_split[1:]):
+        line_split[ind + 1] = float(str_value)
+    if (len(line_split[1:]) == 1):
+        dictionary[main_index][line_split[0]] = line_split[1]
+    else:
+        dictionary[main_index][line_split[0]] = line_split[1:]
 
 
 def get_gauss_coordinates(simulation):
@@ -389,7 +395,6 @@ def compute_distance(point1, point2):
     :param point2:
     :return: distance
     """
-    import math
     return math.sqrt((point1[0] - point2[0])**2 + (point1[1] - point2[1])**2)
 
 
@@ -528,3 +533,36 @@ class GiDOutputFileReader:
         assert(quoted_string[0] == '"')
         assert(quoted_string[-1] == '"')
         return quoted_string[1:-1]
+
+    @staticmethod
+    def get_values_at_time(time, property_results):
+        for time_results in property_results:
+            if math.isclose(time_results["time"], time):
+                return time_results["values"]
+
+    @staticmethod
+    def get_value_at_node(node, time_results):
+        for node_results in time_results:
+            if node_results["node"] == node:
+                return node_results["value"]
+
+    @staticmethod
+    def nodal_values_at_time(result_item_name, time, output_data, node_ids=None):
+        if node_ids and node_ids != sorted(node_ids):
+            raise RuntimeError("Node IDs must be sorted")
+
+        matching_item = None
+        for item in output_data["results"][result_item_name]:
+            if math.isclose(item["time"], time):
+                matching_item = item
+                break
+        if matching_item is None:
+            raise RuntimeError(f"'{result_item_name}' does not have results at time {time}")
+
+        if matching_item["location"] != "OnNodes":
+            raise RuntimeError(f"'{result_item_name}' is not a nodal result")
+
+        if not node_ids: # return all values
+            return [item["value"] for item in matching_item["values"]]
+
+        return [item["value"] for item in matching_item["values"] if item["node"] in node_ids]

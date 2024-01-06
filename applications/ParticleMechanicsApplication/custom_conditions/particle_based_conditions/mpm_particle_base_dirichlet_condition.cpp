@@ -210,14 +210,6 @@ int MPMParticleBaseDirichletCondition::Check( const ProcessInfo& rCurrentProcess
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(NODAL_AREA,r_node)
     }
 
-    // for friction
-    if (Is(SLIP)) {
-        for (const auto& r_node : this->GetGeometry().Points()){
-            KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(FRICTION_CONTACT_FORCE,r_node)
-            KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(FRICTION_STATE,r_node)
-        }
-    }
-
     return 0;
 }
 
