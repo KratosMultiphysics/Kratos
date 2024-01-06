@@ -115,6 +115,12 @@ public:
         const Variable<int>& rSensorIdVariable,
         const Variable<double>& rOutputVariable);
 
+    template<class TContainerType>
+    static std::vector<typename SensorView<TContainerType>::Pointer> GetSensorViewsFromIds(
+        const std::vector<IndexType>& rSensorIdsList,
+        const std::vector<typename SensorView<TContainerType>::Pointer>& rSensorViewsList,
+        const Variable<int>& rSensorIdVariable);
+
     ///@}
 };
 

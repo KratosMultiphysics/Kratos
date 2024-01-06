@@ -155,6 +155,9 @@ void AddCustomUtilitiesToPython(pybind11::module& m)
     sensor_utils.def("ComputeSensorRobustness", &SensorUtils::ComputeSensorRobustness<ModelPart::NodesContainerType>, py::arg("sensors_list"), py::arg("nodal_expressions_list"), py::arg("neighbour_ids_vector_variable"), py::arg("sensor_id_integer_variable"), py::arg("output_double_variable"));
     sensor_utils.def("ComputeSensorRobustness", &SensorUtils::ComputeSensorRobustness<ModelPart::ConditionsContainerType>, py::arg("sensors_list"), py::arg("condition_expressions_list"), py::arg("neighbour_ids_vector_variable"), py::arg("sensor_id_integer_variable"), py::arg("output_double_variable"));
     sensor_utils.def("ComputeSensorRobustness", &SensorUtils::ComputeSensorRobustness<ModelPart::ElementsContainerType>, py::arg("sensors_list"), py::arg("element_expressions_list"), py::arg("neighbour_ids_vector_variable"), py::arg("sensor_id_integer_variable"), py::arg("output_double_variable"));
+    sensor_utils.def("GetSensorViewsFromIds", &SensorUtils::GetSensorViewsFromIds<ModelPart::NodesContainerType>, py::arg("list_of_sensor_ids"), py::arg("list_of_nodal_sensor_views"), py::arg("sensor_id_integer_variable"));
+    sensor_utils.def("GetSensorViewsFromIds", &SensorUtils::GetSensorViewsFromIds<ModelPart::ConditionsContainerType>, py::arg("list_of_sensor_ids"), py::arg("list_of_condition_sensor_views"), py::arg("sensor_id_integer_variable"));
+    sensor_utils.def("GetSensorViewsFromIds", &SensorUtils::GetSensorViewsFromIds<ModelPart::ElementsContainerType>, py::arg("list_of_sensor_ids"), py::arg("list_of_element_sensor_views"), py::arg("sensor_id_integer_variable"));
 
     auto cluster_utils = m.def_submodule("ClusterUtils");
     AddSensorClusterUtilsToPython<ModelPart::NodesContainerType>(cluster_utils);

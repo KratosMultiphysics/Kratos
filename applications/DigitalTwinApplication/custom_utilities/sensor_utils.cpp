@@ -555,43 +555,71 @@ void SensorUtils::ComputeSensorRobustness(
     KRATOS_CATCH("");
 }
 
+template<class TContainerType>
+std::vector<typename SensorView<TContainerType>::Pointer> SensorUtils::GetSensorViewsFromIds(
+    const std::vector<IndexType>& rSensorIdsList,
+    const std::vector<typename SensorView<TContainerType>::Pointer>& rSensorViewsList,
+    const Variable<int>& rSensorIdVariable)
+{
+    KRATOS_TRY
+
+    std::vector<typename SensorView<TContainerType>::Pointer> result(rSensorIdsList.size());
+    IndexPartition<IndexType>(result.size()).for_each([&result, &rSensorIdsList, &rSensorViewsList, &rSensorIdVariable](const auto Index){
+        const int sensor_id = rSensorIdsList[Index];
+        auto p_itr = std::find_if(rSensorViewsList.begin(), rSensorViewsList.end(), [&rSensorIdVariable, sensor_id](const auto& rSensorView) { return rSensorView->GetSensor()->GetValue(rSensorIdVariable) == sensor_id; });
+
+        KRATOS_ERROR_IF(p_itr == rSensorViewsList.end())
+            << "The sensor with id = " << sensor_id << " not found.";
+
+        result[Index] = *p_itr;
+    });
+
+    return result;
+
+    KRATOS_CATCH("");
+}
+
 // template instantiations
 #ifndef KRATOS_SENSOR_UTILS
-#define KRATOS_SENSOR_UTILS(CONTAINER_TYPE)                                                                        \
-    template void SensorUtils::IdentifyBestSensorViewForEveryEntity<CONTAINER_TYPE>(                               \
-        std::vector<SensorView<CONTAINER_TYPE>::Pointer>&,                                                         \
-        const std::vector<SensorView<CONTAINER_TYPE>::Pointer>&);                                                  \
-    template ModelPart& SensorUtils::GetSensorViewsModelPart<CONTAINER_TYPE>(                                      \
-        const std::vector<SensorView<CONTAINER_TYPE>::Pointer>&);                                                  \
-    template double SensorUtils::GetDomainSize<CONTAINER_TYPE>(                                                    \
-        const CONTAINER_TYPE&, const DataCommunicator&);                                                           \
-    template void SensorUtils::AssignEntitiesToClustersBasedOnOptimalSensor<CONTAINER_TYPE>(                       \
-        const std::vector<typename SensorViewCluster<CONTAINER_TYPE>::Pointer>&,                                   \
-        const std::vector<typename ContainerExpression<CONTAINER_TYPE>::Pointer>&);                                \
-    template void SensorUtils::GetThresholdSensorViews<CONTAINER_TYPE>(                                            \
-        const double, const std::string&,                                                                          \
-        std::vector<typename SensorView<CONTAINER_TYPE>::Pointer>&,                                                \
-        const std::vector<typename SensorView<CONTAINER_TYPE>::Pointer>&);                                         \
-    template std::pair<IndexType, typename ContainerExpression<CONTAINER_TYPE>::Pointer>                           \
-    SensorUtils::GetEntityCoverageMask<CONTAINER_TYPE>(const SensorView<CONTAINER_TYPE>&);                         \
-    template std::pair<IndexType, typename ContainerExpression<CONTAINER_TYPE>::Pointer>                           \
-    SensorUtils::GetEntityCoverageMaskWithThreshold<CONTAINER_TYPE>(                                               \
-        const double, const SensorView<CONTAINER_TYPE>&);                                                          \
-    template IndexType SensorUtils::CountWithInBounds<CONTAINER_TYPE>(                                             \
-        const ContainerExpression<CONTAINER_TYPE>&, const double, const double);                                   \
-    template double SensorUtils::Min<CONTAINER_TYPE>(                                                              \
-        const ContainerExpression<CONTAINER_TYPE>&);                                                               \
-    template double SensorUtils::Max<CONTAINER_TYPE>(                                                              \
-        const ContainerExpression<CONTAINER_TYPE>&);                                                               \
-    template double SensorUtils::Sum<CONTAINER_TYPE>(                                                              \
-        const ContainerExpression<CONTAINER_TYPE>&);                                                               \
-    template std::vector<std::pair<std::vector<IndexType>, typename ContainerExpression<CONTAINER_TYPE>::Pointer>> \
-    SensorUtils::ClusterBasedOnCoverageMasks<CONTAINER_TYPE>(                                                      \
-        const std::vector<typename ContainerExpression<CONTAINER_TYPE>::Pointer>&);                                \
-    template void SensorUtils::ComputeSensorRobustness<CONTAINER_TYPE>(                                            \
-        std::vector<Sensor::Pointer>&,                                                                             \
-        const std::vector<typename ContainerExpression<CONTAINER_TYPE>::Pointer>&,                                 \
-        const Variable<Vector>&, const Variable<int>&, const Variable<double>&);
+#define KRATOS_SENSOR_UTILS(CONTAINER_TYPE)                                                                                \
+    template void SensorUtils::IdentifyBestSensorViewForEveryEntity<CONTAINER_TYPE>(                                       \
+        std::vector<SensorView<CONTAINER_TYPE>::Pointer>&,                                                                 \
+        const std::vector<SensorView<CONTAINER_TYPE>::Pointer>&);                                                          \
+    template ModelPart& SensorUtils::GetSensorViewsModelPart<CONTAINER_TYPE>(                                              \
+        const std::vector<SensorView<CONTAINER_TYPE>::Pointer>&);                                                          \
+    template double SensorUtils::GetDomainSize<CONTAINER_TYPE>(                                                            \
+        const CONTAINER_TYPE&, const DataCommunicator&);                                                                   \
+    template void SensorUtils::AssignEntitiesToClustersBasedOnOptimalSensor<CONTAINER_TYPE>(                               \
+        const std::vector<typename SensorViewCluster<CONTAINER_TYPE>::Pointer>&,                                           \
+        const std::vector<typename ContainerExpression<CONTAINER_TYPE>::Pointer>&);                                        \
+    template void SensorUtils::GetThresholdSensorViews<CONTAINER_TYPE>(                                                    \
+        const double, const std::string&,                                                                                  \
+        std::vector<typename SensorView<CONTAINER_TYPE>::Pointer>&,                                                        \
+        const std::vector<typename SensorView<CONTAINER_TYPE>::Pointer>&);                                                 \
+    template std::pair<IndexType, typename ContainerExpression<CONTAINER_TYPE>::Pointer>                                   \
+    SensorUtils::GetEntityCoverageMask<CONTAINER_TYPE>(const SensorView<CONTAINER_TYPE>&);                                 \
+    template std::pair<IndexType, typename ContainerExpression<CONTAINER_TYPE>::Pointer>                                   \
+    SensorUtils::GetEntityCoverageMaskWithThreshold<CONTAINER_TYPE>(                                                       \
+        const double, const SensorView<CONTAINER_TYPE>&);                                                                  \
+    template IndexType SensorUtils::CountWithInBounds<CONTAINER_TYPE>(                                                     \
+        const ContainerExpression<CONTAINER_TYPE>&, const double, const double);                                           \
+    template double SensorUtils::Min<CONTAINER_TYPE>(                                                                      \
+        const ContainerExpression<CONTAINER_TYPE>&);                                                                       \
+    template double SensorUtils::Max<CONTAINER_TYPE>(                                                                      \
+        const ContainerExpression<CONTAINER_TYPE>&);                                                                       \
+    template double SensorUtils::Sum<CONTAINER_TYPE>(                                                                      \
+        const ContainerExpression<CONTAINER_TYPE>&);                                                                       \
+    template std::vector<std::pair<std::vector<IndexType>, typename ContainerExpression<CONTAINER_TYPE>::Pointer>>         \
+    SensorUtils::ClusterBasedOnCoverageMasks<CONTAINER_TYPE>(                                                              \
+        const std::vector<typename ContainerExpression<CONTAINER_TYPE>::Pointer>&);                                        \
+    template void SensorUtils::ComputeSensorRobustness<CONTAINER_TYPE>(                                                    \
+        std::vector<Sensor::Pointer>&,                                                                                     \
+        const std::vector<typename ContainerExpression<CONTAINER_TYPE>::Pointer>&,                                         \
+        const Variable<Vector>&, const Variable<int>&, const Variable<double>&);                                           \
+    template std::vector<typename SensorView<CONTAINER_TYPE>::Pointer> SensorUtils::GetSensorViewsFromIds<CONTAINER_TYPE>( \
+        const std::vector<IndexType>&,                                                                                     \
+        const std::vector<typename SensorView<CONTAINER_TYPE>::Pointer>&,                                                  \
+        const Variable<int>& rSensorIdVariable);
 
 #endif
 

@@ -105,5 +105,19 @@ class TestSensorUtils(UnitTest.TestCase):
                     avg_cosine_distance += numpy.inner(i_np_exp, j_np_exp) / (numpy.linalg.norm(i_np_exp) * numpy.linalg.norm(j_np_exp))
             self.assertAlmostEqual(avg_cosine_distance / n, sensor.GetValue(Kratos.PRESSURE))
 
+    def test_GetSensorViewsFromIds(self):
+        n = 10
+        sensor_views_list: 'list[KratosDT.Sensors.NodalSensorView]' = []
+        for i in range(n):
+            sensor = KratosDT.Sensors.DisplacementSensor(f"{i}", Kratos.Point(i, i+1, i+2), [1, 0, 0], self.element, 1.0)
+            exp = Kratos.Expression.NodalExpression(self.model_part)
+            sensor.AddContainerExpression("test", exp)
+            sensor_view = KratosDT.Sensors.NodalSensorView(sensor, "test")
+            sensor_views_list.append(sensor_view)
+
+        KratosDT.SensorUtils.AssignConsecutiveSensorIds([sensor_view.GetSensor() for sensor_view in sensor_views_list], KratosDT.SENSOR_ID)
+
+        self.assertEqual([sensor_views_list[3], sensor_views_list[5]], KratosDT.SensorUtils.GetSensorViewsFromIds([4, 6], sensor_views_list, KratosDT.SENSOR_ID))
+
 if __name__ == '__main__':
     UnitTest.main()
