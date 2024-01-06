@@ -31,7 +31,7 @@ class LeastRobustSensorSelection:
 
         self.sensor_groups: 'dict[int, tuple[list[KratosDT.Sensors.Sensor], list[ExpressionUnionType]]]' = {}
 
-    def Initialize(self, list_of_sensor_views: 'list[SensorViewUnionType]') -> None:
+    def Initialize(self, list_of_sensor_views: 'list[SensorViewUnionType]') -> 'list[SensorViewUnionType]':
         # first identify the different sensor groups / types
         for sensor_view in list_of_sensor_views:
             group_id = sensor_view.GetSensor().GetValue(self.sensor_group_id_var)
@@ -46,6 +46,8 @@ class LeastRobustSensorSelection:
             KratosDT.SensorUtils.ComputeSensorRobustness(sensors_list, exp_list, KratosDT.SENSOR_NEIGHBOUR_IDS, KratosDT.SENSOR_ID, KratosDT.SENSOR_LOCATION_ROBUSTNESS)
 
             Kratos.Logger.PrintInfo(self.__class__.__name__, "Sensor location based robustness values computed.")
+
+        return sorted(list_of_sensor_views, key=lambda x: x.GetSensor().GetValue(KratosDT.SENSOR_LOCATION_ROBUSTNESS))
 
     def Select(self, potential_sensor_views: 'list[SensorViewUnionType]', selected_sensor_views: 'list[SensorViewUnionType]') -> SensorViewUnionType:
         # now get the least robustness sensor view
@@ -133,7 +135,7 @@ class ClusterReductionSensorPlacementAlgorithm(SensorPlacementAlgorithm):
         # add the masks lists for the sensor views
         AddSensorViewMasks(self.parameters["masking"], list_of_sensor_views)
 
-        self.sensor_selection_method.Initialize(list_of_sensor_views)
+        list_of_sensor_views = self.sensor_selection_method.Initialize(list_of_sensor_views)
 
         # get the total domain size
         domain_size_exp = dummy_exp.Clone()
@@ -167,59 +169,51 @@ class ClusterReductionSensorPlacementAlgorithm(SensorPlacementAlgorithm):
         iteration = 1
         cluster_domain_size_ratios = self.__ComputeClusterDomainSizeRatios([mask for _, (_, mask) in self.cluster_details.items()], total_domain_size, domain_size_exp)
         while (True):
-            # now find potential sensor views for removal
-            potential_sensor_ids_to_remove: 'list[int]' = []
-            for _, (sensor_ids, mask) in self.cluster_details.items():
-                cluster_domain_size_ratio = KratosDT.SensorUtils.Sum(KratosDT.MaskUtils.Scale(domain_size_exp, mask)) / total_domain_size
-                if cluster_domain_size_ratio < self.required_maximum_cluster_coverage_ratio:
-                    potential_sensor_ids_to_remove.extend(sensor_ids)
-            # now make the potential sensor view ids unique
-            potential_sensor_ids_to_remove = list(set(potential_sensor_ids_to_remove))
 
-            # now remove the potential sensor views which has uniquearea of coverage. Removing
-            # these sensors will reduce the overall coverage.
-            for _, (sensor_ids, mask) in self.cluster_details.items():
-                if len(sensor_ids) == 1:
-                    if sensor_ids[0] in potential_sensor_ids_to_remove:
-                        del potential_sensor_ids_to_remove[potential_sensor_ids_to_remove.index(sensor_ids[0])]
+            found_sensor_to_remove = False
+            for index, test_sensor_view in enumerate(list_of_sensor_views):
+                is_domain_size_ratios_degraded = False
 
-            potential_sensor_views_to_remove: 'list[SensorViewUnionType]' = KratosDT.SensorUtils.GetSensorViewsFromIds(potential_sensor_ids_to_remove, list_of_sensor_views, KratosDT.SENSOR_ID)
+                # first check if this sensor covers some uniue areas. If so skip from removal
+                for _, (sensor_ids, _) in self.cluster_details.items():
+                    if len(sensor_ids) == 1 and sensor_ids[0] == test_sensor_view.GetSensor().GetValue(KratosDT.SENSOR_ID):
+                        is_domain_size_ratios_degraded = True
+                        break
 
-            sensors_which_do_not_degrade_clustering_if_removed: 'list[SensorViewUnionType]' = []
-            # try removing one by one
-            for test_sensor_view in potential_sensor_views_to_remove:
-                masks: 'list[ExpressionUnionType]' = []
-                for sensor_view in potential_sensor_views_to_remove:
-                    if sensor_view != test_sensor_view:
-                        masks.append(sensor_view.GetAuxiliaryExpression("mask"))
+                # now check whether removal of this sensor degrades the clustering
+                if not is_domain_size_ratios_degraded:
+                    masks: 'list[ExpressionUnionType]' = []
+                    for sensor_view in list_of_sensor_views:
+                        if sensor_view != test_sensor_view:
+                            masks.append(sensor_view.GetAuxiliaryExpression("mask"))
 
-                # now cluster again
-                cluster_data: 'list[tuple[list[int], ExpressionUnionType]]' = KratosDT.MaskUtils.ClusterMasks(masks)
+                    # now cluster again
+                    cluster_data: 'list[tuple[list[int], ExpressionUnionType]]' = KratosDT.MaskUtils.ClusterMasks(masks)
 
-                # now calculate cluster domain size ratios
-                current_cluster_domain_size_ratios = self.__ComputeClusterDomainSizeRatios([mask for _, mask in cluster_data], total_domain_size, domain_size_exp)
+                    # now calculate cluster domain size ratios
+                    current_cluster_domain_size_ratios = self.__ComputeClusterDomainSizeRatios([mask for _, mask in cluster_data], total_domain_size, domain_size_exp)
 
-                # now check whether clusters have become larger
-                if len(current_cluster_domain_size_ratios) <= len(cluster_domain_size_ratios):
-                    # new clustering has found either similar number of clusters
-                    # or fewer clusters which are above the threshold.
+                    # now check whether clusters have become larger
+                    if len(current_cluster_domain_size_ratios) <= len(cluster_domain_size_ratios):
+                        # new clustering has found either similar number of clusters
+                        # or fewer clusters which are above the threshold.
 
-                    # now checking whether the cluster domain sizes has degraded.
-                    is_domain_size_ratios_degraded = False
-                    for i, p_v in current_cluster_domain_size_ratios:
-                        if cluster_domain_size_ratios[i] < p_v:
-                            is_domain_size_ratios_degraded = True
-                            break
+                        # now checking whether the cluster domain sizes has degraded.
+                        for i, p_v in current_cluster_domain_size_ratios:
+                            if cluster_domain_size_ratios[i] < p_v:
+                                is_domain_size_ratios_degraded = True
+                                break
 
-                    if not is_domain_size_ratios_degraded:
-                        sensors_which_do_not_degrade_clustering_if_removed.append(test_sensor_view)
-                        Kratos.Logger.PrintInfo(self.__class__.__name__, f"        Found sensor {test_sensor_view.GetSensor().GetName()} for potential removal.")
+                if not is_domain_size_ratios_degraded:
+                    # found a sensor which can be removed.
+                    sensor_to_remove = test_sensor_view
+                    found_sensor_to_remove = True
+                    break
 
-            if len(sensors_which_do_not_degrade_clustering_if_removed) == 0:
+            if not found_sensor_to_remove:
                 break
 
             # now we found list of sensors which can be safely removed.
-            sensor_to_remove = self.sensor_selection_method.Select(sensors_which_do_not_degrade_clustering_if_removed, list_of_sensor_views)
             index = list_of_sensor_views.index(sensor_to_remove)
             del list_of_sensor_views[index]
 
@@ -236,7 +230,8 @@ class ClusterReductionSensorPlacementAlgorithm(SensorPlacementAlgorithm):
             if self.csv_output_iteration_data:
                 PrintSensorViewsListToCSV(iteration_data_output_path / f"sensor_placement_iteration_{iteration:05d}.csv", list_of_sensor_views, ["type", "name", "location", "value"])
 
-            Kratos.Logger.PrintInfo(self.__class__.__name__, f"Iteration: {iteration} - Removed {sensor_to_remove.GetSensor().GetName()} resulting with {len(self.cluster_details.keys())} clusters.")
+            cluster_sizes = [KratosDT.SensorUtils.Sum(KratosDT.MaskUtils.Scale(domain_size_exp, mask)) / total_domain_size for _, (_, mask) in self.cluster_details.items()]
+            Kratos.Logger.PrintInfo(self.__class__.__name__, f"Iteration: {iteration} - Removed {sensor_to_remove.GetSensor().GetName()} resulting with {len(self.cluster_details.keys())} clusters having domain size ratios between [ {min(cluster_sizes) * 100.0:6.3f}%, {max(cluster_sizes)*100.0:6.3f}% ].")
             iteration += 1
 
         output_path = Path(self.parameters["output_folder"].GetString())

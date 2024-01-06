@@ -113,8 +113,9 @@ class MaskBasedClusteringSensorPlacementAlgorithm(SensorPlacementAlgorithm):
         return Kratos.Parameters("""{
             "type"                                   : "mask_based_clustering_sensor_placement_algorithm",
             "output_folder"                          : "output",
-            "required_maximum_overall_coverage_ratio": 0.9,
-            "required_maximum_cluster_coverage_ratio": 0.1,
+            "required_maximum_overall_coverage_ratio": 0.95,
+            "required_maximum_cluster_coverage_ratio": 0.01,
+            "top_percentile"                         : 10,
             "maximum_number_of_iterations"           : 100,
             "filtering"                              : {},
             "sensor_selection_settings"              : {},
@@ -138,6 +139,7 @@ class MaskBasedClusteringSensorPlacementAlgorithm(SensorPlacementAlgorithm):
 
         self.required_maximum_overall_coverage_ratio = self.parameters["required_maximum_overall_coverage_ratio"].GetDouble()
         self.required_maximum_cluster_coverage_ratio = self.parameters["required_maximum_cluster_coverage_ratio"].GetDouble()
+        self.top_percentile = self.parameters["top_percentile"].GetInt()
         self.maximum_number_of_iterations = self.parameters["maximum_number_of_iterations"].GetInt()
 
         vtu_output_settings = self.parameters["vtu_output_settings"]
@@ -222,7 +224,13 @@ class MaskBasedClusteringSensorPlacementAlgorithm(SensorPlacementAlgorithm):
         sensor_redundancy = (dummy_exp * 0.0).Flatten()
         list_of_selected_sensor_views: 'list[SensorViewUnionType]' = []
         while (max_coverage_ratio < self.required_maximum_overall_coverage_ratio and iteration <= self.maximum_number_of_iterations):
-            sensor_view: SensorViewUnionType = max(list_of_sensor_views, key=lambda x: KratosDT.SensorUtils.Sum(KratosDT.MaskUtils.Scale(domain_size_exp, sensor_redundancy + x.GetAuxiliaryExpression("mask"))))
+            potential_sensor_views: 'list[tuple[SensorViewUnionType, float]]' = []
+            for sensor_view in list_of_sensor_views:
+                new_coverage_ratio = KratosDT.SensorUtils.Sum(KratosDT.MaskUtils.Scale(domain_size_exp, KratosDT.MaskUtils.Union(sensor_redundancy, sensor_view.GetAuxiliaryExpression("mask")))) / total_domain_size
+                if new_coverage_ratio > max_coverage_ratio:
+                    potential_sensor_views.append((sensor_view, new_coverage_ratio))
+
+            sensor_view = self.sensor_selection_method.Select(self.__GetTopPercentile(potential_sensor_views), list_of_selected_sensor_views)
             list_of_selected_sensor_views.append(sensor_view)
 
             sensor_redundancy = (sensor_redundancy + sensor_view.GetAuxiliaryExpression("mask")).Flatten()
@@ -245,33 +253,35 @@ class MaskBasedClusteringSensorPlacementAlgorithm(SensorPlacementAlgorithm):
         # stage 2: Find sensors which reduces the max cluster size
         list_of_cluster_ids_not_divisible: 'list[int]' = []
         while (iteration <= self.maximum_number_of_iterations):
-            max_cluster_id = -1
-            max_cluster_size_ratio = 0.0
+            max_cluster_ids: 'list[int]' = []
             for cluster_id, (_, mask) in self.cluster_details.items():
                 if cluster_id not in list_of_cluster_ids_not_divisible:
                     cluster_size_ratio = KratosDT.SensorUtils.Sum(KratosDT.MaskUtils.Scale(domain_size_exp, mask)) / total_domain_size
-                    if cluster_size_ratio > max_cluster_size_ratio:
-                        max_cluster_size_ratio = cluster_size_ratio
-                        max_cluster_id = cluster_id
+                    if cluster_size_ratio > self.required_maximum_cluster_coverage_ratio:
+                        max_cluster_ids.append(cluster_id)
 
-            if max_cluster_size_ratio < self.required_maximum_cluster_coverage_ratio:
-                Kratos.Logger.PrintInfo(self.__class__.__name__, "Finished dividing clusters.")
+            if len(max_cluster_ids) == 0:
+                Kratos.Logger.PrintInfo(self.__class__.__name__, f"Finished dividing clusters.")
                 break
 
-            if max_cluster_id == -1:
-                Kratos.Logger.PrintInfo(self.__class__.__name__, "Clusters are not divisible further.")
-                break
-
-            Kratos.Logger.PrintInfo(self.__class__.__name__, f"Iteration: {iteration} - Cluser {max_cluster_id} size ratio is above threshold ({max_cluster_size_ratio * 100.0:6.3f}% > {self.required_maximum_cluster_coverage_ratio * 100.0:6.3f}%). Trying to divide it...")
+            Kratos.Logger.PrintInfo(self.__class__.__name__, f"Iteration: {iteration} - Found {len(max_cluster_ids)} clusters above threshold. Trying to divide them...")
 
             potential_masks = [sensor_view.GetAuxiliaryExpression("mask") for sensor_view in list_of_sensor_views]
-            potential_indices = KratosDT.MaskUtils.GetMasksDividingReferenceMask(self.cluster_details[max_cluster_id][1], potential_masks)
+            potential_sensor_ranking: 'dict[int, int]' = {}
+            for max_cluster_id in max_cluster_ids:
+                potential_indices = KratosDT.MaskUtils.GetMasksDividingReferenceMask(self.cluster_details[max_cluster_id][1], potential_masks)
+                for potential_index in potential_indices:
+                    if potential_index not in potential_sensor_ranking.keys():
+                        potential_sensor_ranking[potential_index] = 0
+                    potential_sensor_ranking[potential_index] += 1
 
-            if len(potential_indices) == 0:
-                list_of_cluster_ids_not_divisible.append(max_cluster_id)
-                Kratos.Logger.PrintInfo(self.__class__.__name__, f"\tCluster {max_cluster_id} is not divisible.")
+            potential_sensor_views: 'list[tuple[SensorViewUnionType, float]]' = [(list_of_sensor_views[k], v) for k, v in potential_sensor_ranking.items()]
+
+            if len(potential_sensor_views) == 0:
+                list_of_cluster_ids_not_divisible.extend(max_cluster_ids)
+                Kratos.Logger.PrintInfo(self.__class__.__name__, f"\tFound {len(max_cluster_ids)} cluster not divisible.")
             else:
-                sensor_view = self.sensor_selection_method.Select([list_of_sensor_views[i] for i in potential_indices], list_of_selected_sensor_views)
+                sensor_view = self.sensor_selection_method.Select(self.__GetTopPercentile(potential_sensor_views), list_of_selected_sensor_views)
                 list_of_selected_sensor_views.append(sensor_view)
 
                 sensor_redundancy = (sensor_redundancy + sensor_view.GetAuxiliaryExpression("mask")).Flatten()
@@ -286,7 +296,67 @@ class MaskBasedClusteringSensorPlacementAlgorithm(SensorPlacementAlgorithm):
                 Kratos.Logger.PrintInfo(self.__class__.__name__, f"\tFound {sensor_view.GetSensor().GetName()} dividing cluster {max_cluster_id} resulting with {len(self.cluster_details.keys())} clusters.")
                 iteration += 1
 
-        Kratos.Logger.PrintInfo(self.__class__.__name__, f"Found {len(list_of_selected_sensor_views)} sensors.")
+        # stage 3: remove some unnecessary sensors
+        # first compute the current coverage and clustering.
+        overall_coverage_ratio = KratosDT.SensorUtils.Sum(KratosDT.MaskUtils.Scale(domain_size_exp, sensor_redundancy)) / total_domain_size
+        max_cluster_size_ratio = max([KratosDT.SensorUtils.Sum(KratosDT.MaskUtils.Scale(domain_size_exp, mask)) for _, (_, mask) in self.cluster_details.items()]) / total_domain_size
+
+        while (iteration <= self.maximum_number_of_iterations):
+            # find sensors which does not affect current clustering or the overall coverage
+
+            if len(list_of_selected_sensor_views) == 1:
+                # at least one sensor is required.
+                break
+
+            potential_sensor_views: 'list[SensorViewUnionType]' = []
+            for test_sensor_view in reversed(list_of_selected_sensor_views):
+                masks_list: 'list[ExpressionUnionType]' = []
+                for sensor_view in list_of_selected_sensor_views:
+                    if sensor_view != test_sensor_view:
+                        masks_list.append(sensor_view.GetAuxiliaryExpression("mask"))
+
+                current_redundancy = sensor_redundancy * 0.0
+                for mask in masks_list:
+                    current_redundancy += mask
+
+                current_coverage_ratio = KratosDT.SensorUtils.Sum(KratosDT.MaskUtils.Scale(domain_size_exp, current_redundancy)) / total_domain_size
+                if current_coverage_ratio >= overall_coverage_ratio:
+                    # the coverage is not reduced. Hence check for the clustering
+                    cluster_data: 'list[tuple[list[int], ExpressionUnionType]]' = KratosDT.MaskUtils.ClusterMasks(masks_list)
+                    current_max_cluster_size_ratio = max([KratosDT.SensorUtils.Sum(KratosDT.MaskUtils.Scale(domain_size_exp, mask)) for _, mask in cluster_data]) / total_domain_size
+
+                    if current_max_cluster_size_ratio <= max_cluster_size_ratio:
+                        # the clustering is also ok. Then this sensor can be removed safely without degrading
+                        # current sensor positioning
+                        potential_sensor_views.append(test_sensor_view)
+
+            if len(potential_sensor_views) == 0:
+                break
+
+            select_sensor_view = min(potential_sensor_views, key=lambda x: x.GetSensor().GetValue(KratosDT.SENSOR_LOCATION_ROBUSTNESS))
+            del list_of_selected_sensor_views[list_of_selected_sensor_views.index(select_sensor_view)]
+
+            sensor_redundancy = (sensor_redundancy - select_sensor_view.GetAuxiliaryExpression("mask")).Flatten()
+            cluster_data: 'list[tuple[list[int], ExpressionUnionType]]' = KratosDT.MaskUtils.ClusterMasks([sensor_view.GetAuxiliaryExpression("mask") for sensor_view in list_of_selected_sensor_views])
+            clustering_exp = UpdateClusters(self.cluster_details, list_of_selected_sensor_views, cluster_data)
+
+            if self.vtu_output_iteration_data:
+                OutputSensorViewExpressions(iteration_data_output_path / f"sensor_placement_iteration_{iteration:05d}", vtu_output, select_sensor_view, [("sensor_redundancy", sensor_redundancy), ("cluster", clustering_exp)])
+            if self.csv_output_iteration_data:
+                PrintSensorViewsListToCSV(iteration_data_output_path / f"sensor_placement_iteration_{iteration:05d}.csv", list_of_selected_sensor_views, ["type", "name", "location", "value"])
+
+            Kratos.Logger.PrintInfo(self.__class__.__name__, f"Iteration: {iteration} - Removed {select_sensor_view.GetSensor().GetName()}.")
+            iteration += 1
+
+        Kratos.Logger.PrintInfo(self.__class__.__name__, f"Summary:")
+
+        total_coverage = domain_size_exp * 0.0
+        for cluster_id, (_, mask) in self.cluster_details.items():
+            Kratos.Logger.PrintInfo(self.__class__.__name__, f"\t\tCluster id: {cluster_id} with coverage ratio = {KratosDT.SensorUtils.Sum(KratosDT.MaskUtils.Scale(domain_size_exp, mask)) * 100.0 / total_domain_size:6.3f}%")
+            total_coverage += mask
+
+        Kratos.Logger.PrintInfo(self.__class__.__name__, f"\t\tTotal coverage ratio = {KratosDT.SensorUtils.Sum(KratosDT.MaskUtils.Scale(domain_size_exp, total_coverage)) * 100.0 / total_domain_size:6.3f}%")
+        Kratos.Logger.PrintInfo(self.__class__.__name__, f"\t\tFound {len(list_of_selected_sensor_views)} sensors.")
 
         output_path = Path(self.parameters["output_folder"].GetString())
         output_path.mkdir(parents=True, exist_ok=True)
@@ -294,3 +364,17 @@ class MaskBasedClusteringSensorPlacementAlgorithm(SensorPlacementAlgorithm):
         PrintSensorListToJson(output_path / "best_sensor_data.json", list_of_best_sensors)
         PrintSensorListToCSV(output_path / "best_sensor_data.csv", list_of_best_sensors, ["type", "name", "location", "value"])
 
+    def __GetTopPercentile(self, potential_sensor_view_values: 'list[tuple[SensorViewUnionType, float]]') -> 'list[SensorViewUnionType]':
+        potential_sensor_view_values = sorted(potential_sensor_view_values, reverse=True, key=lambda x: x[1])
+        upper_bound = min(len(potential_sensor_view_values), self.top_percentile)
+        result: 'list[SensorViewUnionType]' = []
+        for i, (sensor_view, value) in enumerate(potential_sensor_view_values):
+            if i < upper_bound:
+                latest_value = value
+                result.append(sensor_view)
+            else:
+                if value == latest_value:
+                    result.append(sensor_view)
+                else:
+                    break
+        return result
