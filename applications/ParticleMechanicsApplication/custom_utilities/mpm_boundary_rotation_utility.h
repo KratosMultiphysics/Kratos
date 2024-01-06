@@ -407,6 +407,75 @@ public:
 		}
 	}
 
+    // Computes reaction forces and assigns FRICTION_STATE accordingly
+	void CalculateReactionForces(ModelPart& rModelPart)
+	{
+		TLocalVectorType global_reaction(this->GetDomainSize());
+		TLocalVectorType local_reaction(this->GetDomainSize());
+		TLocalVectorType reaction(this->GetDomainSize());
+
+        const bool is_initial_loop = (rModelPart.GetProcessInfo()[FLAG_VARIABLE] > 0);
+
+		ModelPart::NodeIterator it_begin = rModelPart.NodesBegin();
+
+		#pragma omp parallel for firstprivate(reaction,local_reaction,global_reaction)
+		for(int iii=0; iii<static_cast<int>(rModelPart.Nodes().size()); iii++)
+		{
+			ModelPart::NodeIterator itNode = it_begin+iii;
+			const double nodal_mass = itNode->FastGetSolutionStepValue(NODAL_MASS, 0);
+
+			if( this->IsSlip(*itNode) && nodal_mass > std::numeric_limits<double>::epsilon())
+			{
+				if(this->GetDomainSize() == 3)
+				{
+					BoundedMatrix<double,3,3> rRot;
+					this->LocalRotationOperatorPure(rRot,*itNode);
+
+					array_1d<double,3>& rReaction = itNode->FastGetSolutionStepValue(REACTION);
+					// rotate reaction to local frame
+					for(unsigned int i = 0; i < 3; i++) reaction[i] = rReaction[i];
+					noalias(local_reaction) = prod(rRot,reaction);
+
+                    // determine friction state and tangential force
+                    AssignFrictionState(local_reaction, *itNode, is_initial_loop);
+
+					// set the correct forces in the tangential directions
+                    if(itNode->GetSolutionStepValue(FRICTION_STATE) == SLIDING) {
+                        local_reaction[1] = itNode->GetValue(FRICTION_CONTACT_FORCE_Y);
+                        local_reaction[2] = itNode->GetValue(FRICTION_CONTACT_FORCE_Z);
+                    }
+
+                    // rotate reaction to global frame
+					noalias(global_reaction) = prod(trans(rRot),local_reaction);
+					// save values
+					for(unsigned int i = 0; i < 3; i++) rReaction[i] = global_reaction[i];
+				}
+				else
+				{
+					BoundedMatrix<double,2,2> rRot;
+					this->LocalRotationOperatorPure(rRot,*itNode);
+
+					array_1d<double,3>& rReaction = itNode->FastGetSolutionStepValue(REACTION);
+					// rotate reaction to local frame
+					for(unsigned int i = 0; i < 2; i++) reaction[i] = rReaction[i];
+					noalias(local_reaction) = prod(rRot,reaction);
+
+                    // determine friction state and tangential force
+                    AssignFrictionState(local_reaction, *itNode, is_initial_loop);
+
+					// set the correct force in the tangential direction
+                    if(itNode->GetSolutionStepValue(FRICTION_STATE) == SLIDING)
+					    local_reaction[1]=itNode->GetValue(FRICTION_CONTACT_FORCE_Y);
+
+					// rotate reaction to global frame
+					noalias(global_reaction) = prod(trans(rRot),local_reaction);
+					// save values
+					for(unsigned int i = 0; i < 2; i++) rReaction[i] = global_reaction[i];
+				}
+			}
+		}
+	}
+
     // Constraints velocities and accelerations normal to SLIP condition to zero
     void ConstraintDerivatives(array_1d<double, 3>& rCurrentVelocity,
                                array_1d<double, 3>& rCurrentAcceleration,
@@ -437,98 +506,72 @@ public:
         KRATOS_CATCH( "" )
     }
 
-    // Sets FRICTION_STATE for each friction node to indicate its stick/sliding state.
-    // Also stores the maximum tangent force allowed in each direction.
-    void AssignFrictionState(ModelPart& rModelPart){
-        ModelPart::NodeIterator it_begin = rModelPart.NodesBegin();
+    // Sets FRICTION_STATE for a SLIP node to indicate its stick/sliding state and stores the maximum tangent force
+    // allowed in each direction.
+    // NOTE: it is presumed that the rNode is a SLIP node and rLocalReaction is in the normal-tangential frame
+    void AssignFrictionState(const TLocalVectorType& rLocalReaction, Node& rNode, const bool isInitialLoop){
+        int& r_friction_state = rNode.FastGetSolutionStepValue(FRICTION_STATE, 0);
+        const double mu = rNode.GetValue(FRICTION_COEFFICIENT);
+        const double nodal_mass = rNode.FastGetSolutionStepValue(NODAL_MASS, 0);
+        const unsigned int domain_size = this->GetDomainSize();
 
-        bool isInitialLoop = (rModelPart.GetProcessInfo()[FLAG_VARIABLE] > 0);
+        // Limit/zero out tangential forces for friction/slip case resp.
+        if ( mu > 0 && nodal_mass > std::numeric_limits<double>::epsilon() ) {
+            // update nodal normal & tangent forces assoc. with current timestep
+            // [note: no friction if normal component < 0 [direction chosen to be consistent with contact algo]]
+            // [since normal point away from the boundary/interface, a normal component < 0 indicates a force
+            //  pulling towards the normal (i.e. tensile force)]
+            rNode.FastGetSolutionStepValue(FRICTION_CONTACT_FORCE_X, 0) = fmax(rLocalReaction[0], 0.0);
+            rNode.FastGetSolutionStepValue(FRICTION_CONTACT_FORCE_Y, 0) = rLocalReaction[1];
+            rNode.FastGetSolutionStepValue(FRICTION_CONTACT_FORCE_Z, 0) = domain_size == 3 ? rLocalReaction[2] : 0.0;
 
-        for(int iii=0; iii<static_cast<int>(rModelPart.Nodes().size()); iii++)
-        {
-            ModelPart::NodeIterator itNode = it_begin+iii;
+            // obtain normal and tangent forces assoc. with node at the desired timestep
+            // [ currently: normal forces from prev timestep, tangent forces current timestep ]
+            const double normal_force_norm = rNode.FastGetSolutionStepValue(FRICTION_CONTACT_FORCE_X, 1);
+            const double tangent_force1 = rNode.FastGetSolutionStepValue(FRICTION_CONTACT_FORCE_Y, 0);
+            const double tangent_force2 = rNode.FastGetSolutionStepValue(FRICTION_CONTACT_FORCE_Z, 0);
 
-            const double mu = itNode->GetValue(FRICTION_COEFFICIENT);
-            const double nodal_mass = itNode->FastGetSolutionStepValue(NODAL_MASS, 0);
+            const double tangent_force_norm = sqrt(tangent_force1 * tangent_force1 + tangent_force2 * tangent_force2);
+            const double max_tangent_force_norm = normal_force_norm * mu;
 
-            // for all SLIP nodes
-            if( this->IsSlip(*itNode) )
-            {
-                // Rotate REACTION to normal-tangential frame of reference
-                array_1d<double,3>& r_reaction = itNode->FastGetSolutionStepValue(REACTION);
-                this->RotateVector(r_reaction, *itNode);
-
-                int& r_friction_state = itNode->FastGetSolutionStepValue(FRICTION_STATE, 0);
-
-                // Limit/zero out tangential forces for friction/slip case resp.
-                if ( mu > 0  && nodal_mass > std::numeric_limits<double>::epsilon() ) {
-                    // update nodal normal & tangent forces assoc. with current timestep
-                    // [note: no friction if normal component < 0 [direction chosen to be consistent with contact algo]]
-                    // [since normal point away from the boundary/interface, a normal component < 0 indicates a force
-                    //  pulling towards the normal (i.e. tensile force)]
-                    itNode->FastGetSolutionStepValue(FRICTION_CONTACT_FORCE_X, 0) = fmax(r_reaction[0], 0.0);
-                    itNode->FastGetSolutionStepValue(FRICTION_CONTACT_FORCE_Y, 0) = r_reaction[1];
-                    itNode->FastGetSolutionStepValue(FRICTION_CONTACT_FORCE_Z, 0) = r_reaction[2];
-
-                    // obtain normal and tangent forces assoc. with node at the desired timestep
-                    // [ currently: normal forces from prev timestep, tangent forces current timestep ]
-                    const double normal_force_norm = itNode->FastGetSolutionStepValue(FRICTION_CONTACT_FORCE_X, 1);
-                    const double tangent_force1 = itNode->FastGetSolutionStepValue(FRICTION_CONTACT_FORCE_Y, 0);
-                    const double tangent_force2 = itNode->FastGetSolutionStepValue(FRICTION_CONTACT_FORCE_Z, 0);
-
-                    const double tangent_force_norm = sqrt(tangent_force1 * tangent_force1 + tangent_force2 * tangent_force2);
-                    const double max_tangent_force_norm = normal_force_norm * mu;
-
-                    // special treatment for initial loop
-                    if (isInitialLoop) {
-                        if (itNode->Is(INLET)) { // used to mark nodes with non-zero momentum in the initial timestep
-                            r_friction_state = SLIDING;
-                        }
-                        else {
-                            r_friction_state = STICK;
-                        }
-                    }
-                    else {
-                        r_friction_state = (tangent_force_norm >= max_tangent_force_norm) ? SLIDING : STICK;
-                    }
-
-                    if (r_friction_state == SLIDING) {
-                        double tangent_force_dir1 = 0.0;
-                        double tangent_force_dir2 = 0.0;
-
-                        if (tangent_force_norm > std::numeric_limits<double>::epsilon()) {
-                            tangent_force_dir1 = tangent_force1 / tangent_force_norm;
-                            tangent_force_dir2 = tangent_force2 / tangent_force_norm;
-                        }
-
-                        // SLIDING -> sets max tangent forces for use in ConditionApplyCondition and modify r_reaction
-                        // [ note the use of SetValue instead of FastGetSolutionStepValue ]
-                        itNode->SetValue(FRICTION_CONTACT_FORCE_Y, tangent_force_dir1 * max_tangent_force_norm);
-                        itNode->SetValue(FRICTION_CONTACT_FORCE_Z, tangent_force_dir2 * max_tangent_force_norm);
-
-                        r_reaction[1] = itNode->GetValue(FRICTION_CONTACT_FORCE_Y);
-                        r_reaction[2] = itNode->GetValue(FRICTION_CONTACT_FORCE_Z);
-                    }
+            // special treatment for initial loop
+            if (isInitialLoop) {
+                if (rNode.Is(INLET)) { // used to mark nodes with non-zero momentum in the initial timestep
+                    r_friction_state = SLIDING;
                 }
                 else {
-                    // If friction not active OR node contains no material, set FRICTION_STATE to SLIDING
-                    // and treat as pure slip case
-                    r_friction_state = SLIDING;
-                    itNode->SetValue(FRICTION_CONTACT_FORCE_Y, 0.0);
-                    itNode->SetValue(FRICTION_CONTACT_FORCE_Z, 0.0);
+                    r_friction_state = STICK;
+                }
+            }
+            else {
+                r_friction_state = (tangent_force_norm >= max_tangent_force_norm) ? SLIDING : STICK;
+            }
 
-                    r_reaction[1] = itNode->GetValue(FRICTION_CONTACT_FORCE_Y);
-                    r_reaction[2] = itNode->GetValue(FRICTION_CONTACT_FORCE_Z);
+            if (r_friction_state == SLIDING) {
+                double tangent_force_dir1 = 0.0;
+                double tangent_force_dir2 = 0.0;
+
+                if (tangent_force_norm > std::numeric_limits<double>::epsilon()) {
+                    tangent_force_dir1 = tangent_force1 / tangent_force_norm;
+                    tangent_force_dir2 = tangent_force2 / tangent_force_norm;
                 }
 
-                // Rotate REACTION back to global frame of reference
-                this->RotateVector(r_reaction, *itNode, true);
+                // SLIDING -> sets max tangent forces for use in ConditionApplyCondition and modify r_reaction
+                // [ note the use of SetValue instead of FastGetSolutionStepValue ]
+                rNode.SetValue(FRICTION_CONTACT_FORCE_Y, tangent_force_dir1 * max_tangent_force_norm);
+                rNode.SetValue(FRICTION_CONTACT_FORCE_Z, tangent_force_dir2 * max_tangent_force_norm);
             }
+        }
+        else {
+            // If friction not active OR node contains no material, set FRICTION_STATE to SLIDING
+            // and treat as pure slip case
+            r_friction_state = SLIDING;
+            rNode.SetValue(FRICTION_CONTACT_FORCE_Y, 0.0);
+            rNode.SetValue(FRICTION_CONTACT_FORCE_Z, 0.0);
         }
     }
 
-
-	///@}
+    ///@}
 	///@name Access
 	///@{
 

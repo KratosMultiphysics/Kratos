@@ -285,23 +285,28 @@ public:
     // Clear friction-related flags & variables
     void InitializeNonLinIteration(ModelPart &rModelPart, TSystemMatrixType &rA, TSystemVectorType &rDx,
                                    TSystemVectorType &rb) override {
+        // clear nodal reaction values here, since they might be assigned a value outside from the condition
         ClearReaction();
 
         BossakBaseType::InitializeNonLinIteration(rModelPart, rA, rDx, rb);
 
+        // Determine updated reaction forces and friction state for particle slip conditions (Penalty)
         mRotationTool.ClearFrictionFlag(mGridModelPart);
-        mRotationTool.AssignFrictionState(mGridModelPart);
+        mRotationTool.CalculateReactionForces(mGridModelPart);
     }
 
     // Clear friction-related flags so that RHS can be properly constructed for current iteration
     void FinalizeNonLinIteration(ModelPart &rModelPart, TSystemMatrixType &rA, TSystemVectorType &rDx,
                                    TSystemVectorType &rb) override {
+
+        // clear nodal reaction values here, since they might be assigned a value outside from the condition
         ClearReaction();
 
         BossakBaseType::FinalizeNonLinIteration(rModelPart, rA, rDx, rb);
 
+        // Determine updated reaction forces and friction state for particle slip conditions (Penalty)
         mRotationTool.ClearFrictionFlag(mGridModelPart);
-        mRotationTool.AssignFrictionState(mGridModelPart);
+        mRotationTool.CalculateReactionForces(mGridModelPart);
     }
 
     /**
@@ -605,16 +610,12 @@ protected:
     unsigned int mBlockSize;
     MPMBoundaryRotationUtility<LocalSystemMatrixType,LocalSystemVectorType> mRotationTool;
 
-
-    // Loop over the grid nodes performed to clear all REACTION values
     void ClearReaction() const
     {
         #pragma omp parallel for
         for (int iter = 0; iter < static_cast<int>(mGridModelPart.Nodes().size()); ++iter) {
             auto i = mGridModelPart.NodesBegin() + iter;
-            (i)->SetLock();
             (i)->FastGetSolutionStepValue(REACTION).clear();
-            (i)->UnSetLock();
         }
     }
 
