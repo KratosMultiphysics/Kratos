@@ -46,6 +46,12 @@ class FluidSolver(PythonSolver):
         self.condition_name = None
         self.min_buffer_size = 3
 
+        # Check if MPC-based slip boundary conditions are supported
+        if self.settings.Has("consider_mpc_slip_conditions"):
+            self.consider_mpc_slip_conditions = self.settings["consider_mpc_slip_conditions"].GetBool()
+        else:
+            self.consider_mpc_slip_conditions = False
+
         # Either retrieve the model part from the model or create a new one
         model_part_name = self.settings["model_part_name"].GetString()
 
@@ -113,7 +119,9 @@ class FluidSolver(PythonSolver):
         return self.min_buffer_size
 
     def Initialize(self):
-        raise Exception("Calling FluidSolver.Initialize() base method. Please implement a custom Initialize() method for your solver.")
+        # Create the slip boundary condition MPCs
+        if self.consider_mpc_slip_conditions:
+            self._CreateSlipBoundaryConditionMPCs()
 
     def AdvanceInTime(self, current_time):
         dt = self._ComputeDeltaTime()
@@ -305,15 +313,35 @@ class FluidSolver(PythonSolver):
 
         return estimate_dt_utility
 
+    def _CreateSlipBoundaryConditionMPCs(self):
+        KratosMultiphysics.FluidDynamicsApplication.FluidAuxiliaryUtilities.CreateSlipMultiPointConstraints(
+            self.GetComputingModelPart(),
+            KratosMultiphysics.VELOCITY,
+            KratosMultiphysics.MESH_VELOCITY,
+            KratosMultiphysics.SLIP)
+
     def _CreateScheme(self):
         domain_size = self.GetComputingModelPart().ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
+
+        # Check if the rotation tool is to be applied in the schemes
+        if self.consider_mpc_slip_conditions:
+            perform_rotation = False
+        else:
+            perform_rotation = True
+
         # Cases in which the element manages the time integration
         if self.element_integrates_in_time:
             # "Fake" scheme for those cases in where the element manages the time integration
             # It is required to perform the nodal update once the current time step is solved
-            scheme = KratosMultiphysics.ResidualBasedIncrementalUpdateStaticSchemeSlip(
-                domain_size,
-                domain_size + 1)
+            if perform_rotation:
+                # If the slip BCs are applied through system matrix coordinates transformation the scheme with rotation tools is used
+                scheme = KratosMultiphysics.ResidualBasedIncrementalUpdateStaticSchemeSlip(
+                    domain_size,
+                    domain_size + 1)
+            else:
+                # If the slip BCs are applied with MPCs the standard scheme is used
+                scheme = KratosMultiphysics.ResidualBasedIncrementalUpdateStaticScheme()
+
             # In case the BDF2 scheme is used inside the element, the BDF time discretization utility is required to update the BDF coefficients
             if (self.settings["time_scheme"].GetString() == "bdf2"):
                 time_order = 2
@@ -331,21 +359,24 @@ class FluidSolver(PythonSolver):
                     scheme = KratosCFD.ResidualBasedPredictorCorrectorVelocityBossakSchemeTurbulent(
                         self.settings["alpha"].GetDouble(),
                         domain_size,
-                        KratosCFD.PATCH_INDEX)
+                        KratosCFD.PATCH_INDEX,
+                        perform_rotation)
                 else:
                     scheme = KratosCFD.ResidualBasedPredictorCorrectorVelocityBossakSchemeTurbulent(
                         self.settings["alpha"].GetDouble(),
                         self.settings["move_mesh_strategy"].GetInt(),
-                        domain_size)
+                        domain_size,
+                        perform_rotation)
             # BDF2 time integration scheme
             elif self.settings["time_scheme"].GetString() == "bdf2":
-                scheme = KratosCFD.BDF2TurbulentScheme()
+                scheme = KratosCFD.BDF2TurbulentScheme(perform_rotation)
             # Time scheme for steady state fluid solver
             elif self.settings["time_scheme"].GetString() == "steady":
                 scheme = KratosCFD.ResidualBasedSimpleSteadyScheme(
                         self.settings["velocity_relaxation"].GetDouble(),
                         self.settings["pressure_relaxation"].GetDouble(),
-                        domain_size)
+                        domain_size,
+                        perform_rotation)
             else:
                 if  (self.settings["time_scheme"].GetString()!= "crank_nicolson"):
                     err_msg = "Requested time scheme " + self.settings["time_scheme"].GetString() + " is not available.\n"

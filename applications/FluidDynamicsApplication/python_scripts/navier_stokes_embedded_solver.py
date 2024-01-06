@@ -263,6 +263,7 @@ class NavierStokesEmbeddedMonolithicSolver(FluidSolver):
             "compute_reactions": false,
             "analysis_type": "non_linear",
             "reform_dofs_at_each_step": false,
+            "consider_mpc_slip_conditions": false,
             "consider_periodic_conditions": false,
             "assign_neighbour_elements_to_conditions": true,
             "relative_velocity_tolerance": 1e-3,
@@ -389,6 +390,9 @@ class NavierStokesEmbeddedMonolithicSolver(FluidSolver):
             self.__SetDistanceFunction()
 
     def Initialize(self):
+        # Call base solver initialize
+        super().Initialize()
+
         # If the solver requires an instance of the stabilized embedded_formulation class, set the process info variables
         if hasattr(self, 'embedded_formulation'):
             self.embedded_formulation.SetProcessInfo(self.GetComputingModelPart())

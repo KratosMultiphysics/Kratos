@@ -126,7 +126,9 @@ void AddCustomStrategiesToPython(pybind11::module &m)
     .def(py::init<double, double, unsigned int, Process::Pointer>())
     .def(py::init<double, double, unsigned int, double, Process::Pointer>())
     .def(py::init<double, double, unsigned int>())                        // constructor without a turbulence model
+    .def(py::init<double, double, unsigned int, const bool>()) // constructor without a turbulence model and optional slip rotation
     .def(py::init<double, unsigned int, const Kratos::Variable<int> &>()) // constructor without a turbulence model for periodic boundary conditions
+    .def(py::init<double, unsigned int, const Kratos::Variable<int>&, const bool>()) // constructor without a turbulence model for periodic boundary conditions and optional slip rotation
     ;
 
     typedef ResidualBasedSimpleSteadyScheme<SparseSpaceType, LocalSpaceType> ResidualBasedSimpleSteadySchemeType;
@@ -136,6 +138,7 @@ void AddCustomStrategiesToPython(pybind11::module &m)
         BaseSchemeType>(m, "ResidualBasedSimpleSteadyScheme")
     .def(py::init<double, double, unsigned int, Process::Pointer>())
     .def(py::init<double, double, unsigned int>()) // constructor without a turbulence model
+    .def(py::init<double, double, unsigned int, const bool>()) // constructor without a turbulence model and optional slip rotation
     .def("GetVelocityRelaxationFactor", &ResidualBasedSimpleSteadySchemeType::GetVelocityRelaxationFactor)
     .def("SetVelocityRelaxationFactor", &ResidualBasedSimpleSteadySchemeType::SetVelocityRelaxationFactor)
     .def("GetPressureRelaxationFactor", &ResidualBasedSimpleSteadySchemeType::GetPressureRelaxationFactor)
@@ -147,6 +150,7 @@ void AddCustomStrategiesToPython(pybind11::module &m)
         typename BDF2TurbulentScheme<SparseSpaceType, LocalSpaceType>::Pointer,
         BaseSchemeType>(m, "BDF2TurbulentScheme")
     .def(py::init<>())                 // default constructor
+    .def(py::init<const bool>())       // constructor with optional slip rotation
     .def(py::init<Process::Pointer>()) // constructor passing a turbulence model
     ;
 

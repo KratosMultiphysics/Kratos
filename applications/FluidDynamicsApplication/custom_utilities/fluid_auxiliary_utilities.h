@@ -48,11 +48,49 @@ public:
 
     using GeometryType = Geometry<NodeType>;
 
+    using MatrixType = ModelPart::MatrixType;
+
+    using VectorType = ModelPart::VectorType;
+
+    using DofPointerVectorType = MasterSlaveConstraint::DofPointerVectorType;
+
     using ModifiedShapeFunctionsFactoryType = std::function<ModifiedShapeFunctions::UniquePointer(const GeometryType::Pointer, const Vector&)>;
 
     ///@}
     ///@name Static Operations
     ///@{
+
+    /**
+     * @brief Create MPCs required for the slip BC imposition
+     * This method create a collection of nodal Multi-Point Constraints to impose a pure slip condition
+     * The constraint is imposed as $\v_{k}=-\sum_{i\neqk}^{n_{n}}v_{i}n_{i}/n_{k}$ being "k" the
+     * slave velocity component, which we take as the largest unit normal component. Note that this version
+     * assumes null movement of the wall.
+     * @param rModelPart Model part containing the slip nodes
+     * @param rUnknownVar Velocity variable used as DOF
+     * @param rSlipFlag Flag used to check if the model part nodes are wether slip or not
+     */
+    static void CreateSlipMultiPointConstraints(
+        ModelPart& rModelPart,
+        const Variable<array_1d<double,3>>& rUnknownVar,
+        const Flags& rSlipFlag);
+
+    /**
+     * @brief Create MPCs required for the slip BC imposition
+     * This method create a collection of nodal Multi-Point Constraints to impose a pure slip condition
+     * The constraint is imposed as $\v_{k}=b/n_{k}-\sum_{i\neqk}^{n_{n}}v_{i}n_{i}/n_{k}$ being "k" the
+     * slave velocity component, which we take as the largest unit normal component. Note that this version
+     * includes the wall movement through the normal projection of the mesh velocity "b".
+     * @param rModelPart Model part containing the slip nodes
+     * @param rUnknownVar Velocity variable used as DOF
+     * @param rWallVelocityVar Velocity variable containing the wall velocity
+     * @param rSlipFlag Flag used to check if the model part nodes are wether slip or not
+     */
+    static void CreateSlipMultiPointConstraints(
+        ModelPart& rModelPart,
+        const Variable<array_1d<double,3>>& rUnknownVar,
+        const Variable<array_1d<double,3>>& rWallVelocityVar,
+        const Flags& rSlipFlag);
 
     /**
      * @brief Checks if an element is split
@@ -202,6 +240,12 @@ public:
 
     ///@}
 private:
+
+    static void InternalCreateSlipMultiPointConstraints(
+        ModelPart& rModelPart,
+        const Variable<array_1d<double,3>>& rUnknownVar,
+        const Flags& rSlipFlag,
+        const std::function<double(const NodeType&, const array_1d<double,3>&)>& rWallNormalVelocityCalculator);
 
     /**
      * @brief Calculate one condition flow rate

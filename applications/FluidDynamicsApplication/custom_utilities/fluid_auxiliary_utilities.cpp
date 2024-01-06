@@ -18,6 +18,7 @@
 
 
 // Project includes
+#include "constraints/linear_master_slave_constraint.h"
 #include "modified_shape_functions/triangle_2d_3_modified_shape_functions.h"
 #include "modified_shape_functions/tetrahedra_3d_4_modified_shape_functions.h"
 #include "processes/find_global_nodal_neighbours_process.h"
@@ -31,6 +32,35 @@
 
 namespace Kratos
 {
+
+void FluidAuxiliaryUtilities::CreateSlipMultiPointConstraints(
+    ModelPart& rModelPart,
+    const Variable<array_1d<double,3>>& rUnknownVar,
+    const Flags& rSlipFlag)
+{
+    // Set the normal wall velocity calculation function
+    auto wall_normal_v_func = [](const NodeType& rNode, const array_1d<double,3>& rUnitNormal){
+        return 0.0;
+    };
+
+    // Call internal function to create the slip MPCs
+    InternalCreateSlipMultiPointConstraints(rModelPart, rUnknownVar, rSlipFlag, wall_normal_v_func);
+}
+
+void FluidAuxiliaryUtilities::CreateSlipMultiPointConstraints(
+    ModelPart& rModelPart,
+    const Variable<array_1d<double,3>>& rUnknownVar,
+    const Variable<array_1d<double,3>>& rWallVelocityVar,
+    const Flags& rSlipFlag)
+{
+    // Set the normal wall velocity calculation function
+    auto wall_normal_v_func = [&](const NodeType& rNode, const array_1d<double,3>& rUnitNormal){
+        return inner_prod(rNode.FastGetSolutionStepValue(rWallVelocityVar), rUnitNormal);
+    };
+
+    // Call internal function to create the slip MPCs
+    InternalCreateSlipMultiPointConstraints(rModelPart, rUnknownVar, rSlipFlag, wall_normal_v_func);
+}
 
 bool FluidAuxiliaryUtilities::IsSplit(const Vector& rElementDistancesVector)
 {
@@ -343,6 +373,113 @@ FluidAuxiliaryUtilities::ModifiedShapeFunctionsFactoryType FluidAuxiliaryUtiliti
                 return Kratos::make_unique<Tetrahedra3D4ModifiedShapeFunctions>(pGeometry, rNodalDistances);};
         default:
             KRATOS_ERROR << "Asking for a non-implemented modified shape functions geometry.";
+    }
+}
+
+void FluidAuxiliaryUtilities::InternalCreateSlipMultiPointConstraints(
+    ModelPart& rModelPart,
+    const Variable<array_1d<double,3>>& rUnknownVar,
+    const Flags& rSlipFlag,
+    const std::function<double(const NodeType&, const array_1d<double,3>&)>& rWallNormalVelocityCalculator)
+{
+// Get MPI communicators
+    const auto& r_comm = rModelPart.GetCommunicator();
+    const auto& r_data_comm = r_comm.GetDataCommunicator();
+    KRATOS_ERROR_IF(r_comm.IsDistributed()) << "Slip boundary condition through MPCs is not fully MPI-compatible yet." << std::endl;
+
+    // Remove all the MPCs tagged with the slip flag
+    rModelPart.RemoveMasterSlaveConstraints(rSlipFlag);
+
+    // Get the maximum MPCs id
+    int max_id(0);
+    if (r_comm.LocalMesh().NumberOfMasterSlaveConstraints() != 0) {
+        max_id = block_for_each<MaxReduction<IndexType>>(r_comm.LocalMesh().MasterSlaveConstraints(), [](MasterSlaveConstraint& rMPC){
+            return rMPC.Id();
+        });
+    }
+    max_id = r_data_comm.MaxAll(max_id);
+
+    // Create the slip nodal MPCs
+    //TODO: We should make the id increment MPI compatible
+    if (r_comm.LocalMesh().NumberOfNodes() != 0) {
+        const IndexType dim = rModelPart.GetProcessInfo()[DOMAIN_SIZE];
+
+        // Create a map with the component unknowns
+        // Note that this is done in order to access the KratosComponents once
+        std::map<IndexType, const Variable<double>*> unknowns_map;
+        unknowns_map[0] = &KratosComponents<Variable<double>>::Get(rUnknownVar.Name()+"_X");
+        unknowns_map[1] = &KratosComponents<Variable<double>>::Get(rUnknownVar.Name()+"_Y");
+        if (dim == 3) {
+            unknowns_map[2] = &KratosComponents<Variable<double>>::Get(rUnknownVar.Name()+"_Z");
+        }
+
+        // Allocate auxiliary containers
+        array_1d<double,3> unit_normal;
+        DofPointerVectorType slave_dofs;
+        DofPointerVectorType master_dofs;
+        VectorType constant_vector(1);
+        MatrixType relation_matrix(1,dim-1);
+        ModelPart::MasterSlaveConstraintContainerType mpcs_container;
+        slave_dofs.reserve(1);
+        master_dofs.reserve(dim-1);
+        mpcs_container.reserve(rModelPart.NumberOfNodes());
+
+        // Loop nodes to create the slip MPCs
+        for (auto& r_node : rModelPart.Nodes()) {
+            if (r_node.Is(rSlipFlag)) {
+                // Calculate the nodal unit normal
+                unit_normal = r_node.FastGetSolutionStepValue(NORMAL);
+                const double norm = norm_2(unit_normal);
+                if (norm > 1.0e-12) {
+                    unit_normal /= norm;
+                } else {
+                    KRATOS_WARNING("CreateSlipMultiPointConstraints") << "Node " << r_node.Id() << " norm " << norm << " is close to zero." << std::endl;
+                }
+
+                // Find the slave DOF
+                // Note that we consider as slave DOF the one corresponding to the largest normal component
+                double max_n = 0.0;
+                IndexType slave_component;
+                for (IndexType d = 0; d < dim; ++d) {
+                    if (std::abs(unit_normal[d]) > max_n) {
+                        slave_component = d;
+                        max_n = std::abs(unit_normal[d]);
+                    }
+                }
+
+                // Set the MPC data
+                IndexType aux_j = 0;
+                slave_dofs.push_back(r_node.pGetDof(*(unknowns_map[slave_component])));
+                const double wall_normal_v = rWallNormalVelocityCalculator(r_node, unit_normal);
+                constant_vector(0) = wall_normal_v/unit_normal(slave_component);
+                for (IndexType d = 0; d < dim; ++d) {
+                    if (d != slave_component) {
+                        relation_matrix(0,aux_j) = -(unit_normal(d)/unit_normal(slave_component));
+                        master_dofs.push_back(r_node.pGetDof(*(unknowns_map[d])));
+                        aux_j++;
+                    }
+                }
+
+                // Create the slip MPC
+                auto p_new_mpc = Kratos::make_shared<LinearMasterSlaveConstraint>(
+                    ++max_id,
+                    master_dofs,
+                    slave_dofs,
+                    relation_matrix,
+                    constant_vector);
+                mpcs_container.push_back(p_new_mpc);
+
+                // Mark the new MPC with the corresponding flag
+                p_new_mpc->Set(rSlipFlag, true);
+
+                // Clear the DOFs vectors for the next MPC
+                slave_dofs.clear();
+                master_dofs.clear();
+            }
+        }
+
+        // Add the MPCs to the slip model part
+        rModelPart.AddMasterSlaveConstraints(mpcs_container.begin(), mpcs_container.end());
     }
 }
 

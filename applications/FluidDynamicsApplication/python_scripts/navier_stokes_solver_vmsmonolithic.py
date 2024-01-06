@@ -212,6 +212,7 @@ class NavierStokesSolverMonolithic(FluidSolver):
             },
             "maximum_iterations": 10,
             "echo_level": 0,
+            "consider_mpc_slip_conditions": false,
             "consider_periodic_conditions": false,
             "compute_reactions": false,
             "analysis_type": "non_linear",
@@ -332,6 +333,9 @@ class NavierStokesSolverMonolithic(FluidSolver):
         KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Fluid solver variables added correctly.")
 
     def Initialize(self):
+        # Call base solver initialize
+        super().Initialize()
+
         # If the solver requires an instance of the stabilized formulation class, set the process info variables
         if hasattr(self, 'formulation'):
             self.formulation.SetProcessInfo(self.GetComputingModelPart())
@@ -347,6 +351,11 @@ class NavierStokesSolverMonolithic(FluidSolver):
         # If required, compute the BDF coefficients
         if hasattr(self, 'time_discretization'):
             (self.time_discretization).ComputeAndSaveBDFCoefficients(self.GetComputingModelPart().ProcessInfo)
+
+        # If the mesh is deformed, update the slip MPCs with the new normals
+        if self.consider_mpc_slip_conditions and self.settings["move_mesh_flag"].GetBool():
+            self._CreateSlipBoundaryConditionMPCs()
+
         # Perform the solver InitializeSolutionStep
         self._GetSolutionStrategy().InitializeSolutionStep()
 

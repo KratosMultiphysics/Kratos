@@ -92,6 +92,13 @@ public:
     , mrPeriodicIdVar(Kratos::Variable<int>::StaticObject())
     {}
 
+    /// Constructor with optional rotation (to be use in the rotation-based to MPC-based slip BCs transition)
+    BDF2TurbulentScheme(const bool ApplySlipRotation)
+    : Scheme<TSparseSpace, TDenseSpace>()
+    , mApplySlipRotation(ApplySlipRotation)
+    , mrPeriodicIdVar(Kratos::Variable<int>::StaticObject())
+    {}
+
     /// Constructor to use the formulation combined with a turbulence model.
     /**
      * The turbulence model is assumed to be implemented as a Kratos::Process.
@@ -157,8 +164,10 @@ public:
         // Set up the rotation tool pointer
         const auto& r_proces_info = rModelPart.GetProcessInfo();
         const unsigned int domain_size = r_proces_info[DOMAIN_SIZE];
-        auto p_aux = Kratos::make_unique<RotationToolType>(domain_size, domain_size + 1, SLIP);
-        mpRotationTool.swap(p_aux);
+        if (mApplySlipRotation) {
+            auto p_aux = Kratos::make_unique<RotationToolType>(domain_size, domain_size + 1, SLIP);
+            mpRotationTool.swap(p_aux);
+        }
 
         // Base initialize call
         BaseType::Initialize(rModelPart);
@@ -279,11 +288,15 @@ public:
     {
         KRATOS_TRY
 
-        mpRotationTool->RotateVelocities(rModelPart);
+        if (mpRotationTool) {
+            mpRotationTool->RotateVelocities(rModelPart);
+        }
 
         mpDofUpdater->UpdateDofs(rDofSet,Dx);
 
-        mpRotationTool->RecoverVelocities(rModelPart);
+        if (mpRotationTool) {
+            mpRotationTool->RecoverVelocities(rModelPart);
+        }
 
         const Vector& BDFCoefs = rModelPart.GetProcessInfo()[BDF_COEFFICIENTS];
         this->UpdateAcceleration(rModelPart,BDFCoefs);
@@ -316,8 +329,10 @@ public:
         this->AddDynamicRHSContribution<Kratos::Element>(rCurrentElement,RHS_Contribution,Mass,rCurrentProcessInfo);
 
         // Apply slip condition
-        mpRotationTool->Rotate(LHS_Contribution, RHS_Contribution, rCurrentElement.GetGeometry());
-        mpRotationTool->ApplySlipCondition(LHS_Contribution, RHS_Contribution, rCurrentElement.GetGeometry());
+        if (mpRotationTool) {
+            mpRotationTool->Rotate(LHS_Contribution, RHS_Contribution, rCurrentElement.GetGeometry());
+            mpRotationTool->ApplySlipCondition(LHS_Contribution, RHS_Contribution, rCurrentElement.GetGeometry());
+        }
 
         KRATOS_CATCH("")
     }
@@ -345,8 +360,10 @@ public:
         this->AddDynamicRHSContribution<Kratos::Element>(rCurrentElement,RHS_Contribution,Mass,rCurrentProcessInfo);
 
         // Apply slip condition
-        mpRotationTool->Rotate(RHS_Contribution, rCurrentElement.GetGeometry());
-        mpRotationTool->ApplySlipCondition(RHS_Contribution, rCurrentElement.GetGeometry());
+        if (mpRotationTool) {
+            mpRotationTool->Rotate(RHS_Contribution, rCurrentElement.GetGeometry());
+            mpRotationTool->ApplySlipCondition(RHS_Contribution, rCurrentElement.GetGeometry());
+        }
 
         KRATOS_CATCH("")
     }
@@ -376,8 +393,10 @@ public:
         this->AddDynamicRHSContribution<Kratos::Condition>(rCurrentCondition,RHS_Contribution,Mass,rCurrentProcessInfo);
 
         // Apply slip condition
-        mpRotationTool->Rotate(LHS_Contribution, RHS_Contribution, rCurrentCondition.GetGeometry());
-        mpRotationTool->ApplySlipCondition(LHS_Contribution, RHS_Contribution, rCurrentCondition.GetGeometry());
+        if (mpRotationTool) {
+            mpRotationTool->Rotate(LHS_Contribution, RHS_Contribution, rCurrentCondition.GetGeometry());
+            mpRotationTool->ApplySlipCondition(LHS_Contribution, RHS_Contribution, rCurrentCondition.GetGeometry());
+        }
 
         KRATOS_CATCH("")
     }
@@ -405,8 +424,10 @@ public:
         this->AddDynamicRHSContribution<Kratos::Condition>(rCurrentCondition,RHS_Contribution,Mass,rCurrentProcessInfo);
 
         // Apply slip condition
-        mpRotationTool->Rotate(RHS_Contribution, rCurrentCondition.GetGeometry());
-        mpRotationTool->ApplySlipCondition(RHS_Contribution, rCurrentCondition.GetGeometry());
+        if (mpRotationTool) {
+            mpRotationTool->Rotate(RHS_Contribution, rCurrentCondition.GetGeometry());
+            mpRotationTool->ApplySlipCondition(RHS_Contribution, rCurrentCondition.GetGeometry());
+        }
 
         KRATOS_CATCH("")
     }
@@ -849,6 +870,8 @@ private:
     RotationToolPointerType mpRotationTool = nullptr;
 
     typename TSparseSpace::DofUpdaterPointerType mpDofUpdater = TSparseSpace::CreateDofUpdater();
+
+    const bool mApplySlipRotation = true;
 
     const Kratos::Variable<int>& mrPeriodicIdVar;
 

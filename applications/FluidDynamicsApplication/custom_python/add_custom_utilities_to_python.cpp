@@ -168,6 +168,8 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
 
     // Auxiliary utilities
     py::class_<FluidAuxiliaryUtilities>(m, "FluidAuxiliaryUtilities")
+        .def_static("CreateSlipMultiPointConstraints", [](ModelPart& rModelPart, Variable<array_1d<double,3>>& rUnknownVar, const Flags& rSlipFlag){return FluidAuxiliaryUtilities::CreateSlipMultiPointConstraints(rModelPart, rUnknownVar, rSlipFlag);})
+        .def_static("CreateSlipMultiPointConstraints", [](ModelPart& rModelPart, Variable<array_1d<double,3>>& rUnknownVar, Variable<array_1d<double,3>>& rWallVelocityVar, const Flags& rSlipFlag){return FluidAuxiliaryUtilities::CreateSlipMultiPointConstraints(rModelPart, rUnknownVar, rWallVelocityVar, rSlipFlag);})
         .def_static("CalculateFlowRate", &FluidAuxiliaryUtilities::CalculateFlowRate)
         .def_static("CalculateFlowRatePositiveSkin", [](const ModelPart& rModelPart){return FluidAuxiliaryUtilities::CalculateFlowRatePositiveSkin(rModelPart);})
         .def_static("CalculateFlowRatePositiveSkin", [](const ModelPart& rModelPart, const Flags& rSkinFlag){return FluidAuxiliaryUtilities::CalculateFlowRatePositiveSkin(rModelPart, rSkinFlag);})

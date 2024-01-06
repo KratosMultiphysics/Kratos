@@ -110,6 +110,9 @@ class NavierStokesCompressibleExplicitSolver(FluidSolver):
         KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Fluid solver DOFs added correctly.")
 
     def Initialize(self):
+        # Call base solver initialize
+        super().Initialize()
+
         self.GetComputingModelPart().ProcessInfo[KratosMultiphysics.OSS_SWITCH] = int(self.settings["use_oss"].GetBool())
         self._ReadShockCapturingSettings()
 

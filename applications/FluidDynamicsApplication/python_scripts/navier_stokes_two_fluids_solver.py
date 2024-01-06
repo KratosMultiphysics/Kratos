@@ -46,6 +46,7 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
             "compute_reactions": false,
             "analysis_type": "non_linear",
             "reform_dofs_at_each_step": false,
+            "consider_mpc_slip_conditions": false,
             "consider_periodic_conditions": false,
             "relative_velocity_tolerance": 1e-3,
             "absolute_velocity_tolerance": 1e-5,
@@ -193,6 +194,9 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
         super(NavierStokesTwoFluidsSolver, self).PrepareModelPart()
 
     def Initialize(self):
+        # Call base solver initialize
+        super().Initialize()
+
         computing_model_part = self.GetComputingModelPart()
         # Calculate boundary normals
         KratosMultiphysics.NormalCalculationUtils().CalculateOnSimplex(

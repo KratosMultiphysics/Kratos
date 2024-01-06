@@ -134,6 +134,32 @@ namespace Kratos {
             maccold.resize(NumThreads);
         }
 
+        ResidualBasedPredictorCorrectorVelocityBossakSchemeTurbulent(
+            double NewAlphaBossak,
+            double MoveMeshStrategy,
+            unsigned int DomainSize,
+            const bool ApplySlipRotation)
+        : Scheme<TSparseSpace, TDenseSpace>()
+        , mRotationTool(DomainSize,DomainSize+1,SLIP) // Second argument is number of matrix rows per node: monolithic elements have velocity and pressure dofs.
+        , mrPeriodicIdVar(Kratos::Variable<int>::StaticObject())
+        , mApplySlipRotation(ApplySlipRotation)
+          {
+            //default values for the Newmark Scheme
+            mAlphaBossak = NewAlphaBossak;
+            mBetaNewmark = 0.25 * pow((1.00 - mAlphaBossak), 2);
+            mGammaNewmark = 0.5 - mAlphaBossak;
+            mMeshVelocity = MoveMeshStrategy;
+
+
+            //Allocate auxiliary memory
+            int NumThreads = ParallelUtilities::GetNumThreads();
+            mMass.resize(NumThreads);
+            mDamp.resize(NumThreads);
+            mvel.resize(NumThreads);
+            macc.resize(NumThreads);
+            maccold.resize(NumThreads);
+        }
+
 
         /** Constructor without a turbulence model with periodic conditions
          */
@@ -145,6 +171,34 @@ namespace Kratos {
           Scheme<TSparseSpace, TDenseSpace>(),
           mRotationTool(DomainSize,DomainSize+1,SLIP), // Second argument is number of matrix rows per node: monolithic elements have velocity and pressure dofs.
           mrPeriodicIdVar(rPeriodicIdVar)
+          {
+            //default values for the Newmark Scheme
+            mAlphaBossak = NewAlphaBossak;
+            mBetaNewmark = 0.25 * pow((1.00 - mAlphaBossak), 2);
+            mGammaNewmark = 0.5 - mAlphaBossak;
+            mMeshVelocity = 0.0;
+
+
+            //Allocate auxiliary memory
+            int NumThreads = ParallelUtilities::GetNumThreads();
+            mMass.resize(NumThreads);
+            mDamp.resize(NumThreads);
+            mvel.resize(NumThreads);
+            macc.resize(NumThreads);
+            maccold.resize(NumThreads);
+        }
+
+        /** Constructor without a turbulence model with periodic conditions
+         */
+        ResidualBasedPredictorCorrectorVelocityBossakSchemeTurbulent(
+            double NewAlphaBossak,
+            unsigned int DomainSize,
+            const Variable<int>& rPeriodicIdVar,
+            const bool ApplySlipRotation)
+        : Scheme<TSparseSpace, TDenseSpace>()
+        , mRotationTool(DomainSize,DomainSize+1,SLIP) // Second argument is number of matrix rows per node: monolithic elements have velocity and pressure dofs.
+        , mrPeriodicIdVar(rPeriodicIdVar)
+        , mApplySlipRotation(ApplySlipRotation)
           {
             //default values for the Newmark Scheme
             mAlphaBossak = NewAlphaBossak;
@@ -275,13 +329,17 @@ namespace Kratos {
         {
             KRATOS_TRY;
 
-            mRotationTool.RotateVelocities(r_model_part);
+            if (mApplySlipRotation) {
+                mRotationTool.RotateVelocities(r_model_part);
+            }
 
             TSparseSpace::InplaceMult(Dv, mRelaxationFactor);
 
             mpDofUpdater->UpdateDofs(rDofSet,Dv);
 
-            mRotationTool.RecoverVelocities(r_model_part);
+            if (mApplySlipRotation) {
+                mRotationTool.RecoverVelocities(r_model_part);
+            }
 
             AdditionalUpdateOperations(r_model_part, rDofSet, A, Dv, b);
 
@@ -463,8 +521,10 @@ namespace Kratos {
             AddDynamicsToRHS(rCurrentElement, RHS_Contribution, mDamp[k], mMass[k], CurrentProcessInfo);
 
             // If there is a slip condition, apply it on a rotated system of coordinates
-            mRotationTool.Rotate(LHS_Contribution,RHS_Contribution,rCurrentElement.GetGeometry());
-            mRotationTool.ApplySlipCondition(LHS_Contribution,RHS_Contribution,rCurrentElement.GetGeometry());
+            if (mApplySlipRotation) {
+                mRotationTool.Rotate(LHS_Contribution,RHS_Contribution,rCurrentElement.GetGeometry());
+                mRotationTool.ApplySlipCondition(LHS_Contribution,RHS_Contribution,rCurrentElement.GetGeometry());
+            }
 
             KRATOS_CATCH("")
         }
@@ -490,8 +550,10 @@ namespace Kratos {
             AddDynamicsToRHS(rCurrentElement, RHS_Contribution, mDamp[k], mMass[k], CurrentProcessInfo);
 
             // If there is a slip condition, apply it on a rotated system of coordinates
-            mRotationTool.Rotate(RHS_Contribution,rCurrentElement.GetGeometry());
-            mRotationTool.ApplySlipCondition(RHS_Contribution,rCurrentElement.GetGeometry());
+            if (mApplySlipRotation) {
+                mRotationTool.Rotate(RHS_Contribution,rCurrentElement.GetGeometry());
+                mRotationTool.ApplySlipCondition(RHS_Contribution,rCurrentElement.GetGeometry());
+            }
         }
 
         /** functions totally analogous to the precedent but applied to
@@ -519,8 +581,10 @@ namespace Kratos {
             AddDynamicsToRHS(rCurrentCondition, RHS_Contribution, mDamp[k], mMass[k], CurrentProcessInfo);
 
             // Rotate contributions (to match coordinates for slip conditions)
-            mRotationTool.Rotate(LHS_Contribution,RHS_Contribution,rCurrentCondition.GetGeometry());
-            mRotationTool.ApplySlipCondition(LHS_Contribution,RHS_Contribution,rCurrentCondition.GetGeometry());
+            if (mApplySlipRotation) {
+                mRotationTool.Rotate(LHS_Contribution,RHS_Contribution,rCurrentCondition.GetGeometry());
+                mRotationTool.ApplySlipCondition(LHS_Contribution,RHS_Contribution,rCurrentCondition.GetGeometry());
+            }
 
             KRATOS_CATCH("")
         }
@@ -547,8 +611,10 @@ namespace Kratos {
             AddDynamicsToRHS(rCurrentCondition, RHS_Contribution, mDamp[k], mMass[k],rCurrentProcessInfo);
 
             // Rotate contributions (to match coordinates for slip conditions)
-            mRotationTool.Rotate(RHS_Contribution,rCurrentCondition.GetGeometry());
-            mRotationTool.ApplySlipCondition(RHS_Contribution,rCurrentCondition.GetGeometry());
+            if (mApplySlipRotation) {
+                mRotationTool.Rotate(RHS_Contribution,rCurrentCondition.GetGeometry());
+                mRotationTool.ApplySlipCondition(RHS_Contribution,rCurrentCondition.GetGeometry());
+            }
 
             KRATOS_CATCH("");
         }
@@ -1027,6 +1093,8 @@ namespace Kratos {
         Process::Pointer mpTurbulenceModel;
 
         typename TSparseSpace::DofUpdaterPointerType mpDofUpdater = TSparseSpace::CreateDofUpdater();
+
+        const double mApplySlipRotation = true;
 
         /*@} */
         /**@name Private Operators*/

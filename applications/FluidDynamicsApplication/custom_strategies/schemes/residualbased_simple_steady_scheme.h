@@ -66,6 +66,18 @@ public:
   {}
 
   ResidualBasedSimpleSteadyScheme(
+    double VelocityRelaxationFactor,
+    double PressureRelaxationFactor,
+    unsigned int DomainSize,
+    const bool ApplySlipRotation)
+    : Scheme<TSparseSpace, TDenseSpace>()
+    , mVelocityRelaxationFactor(VelocityRelaxationFactor)
+    , mPressureRelaxationFactor(PressureRelaxationFactor)
+    , mRotationTool(DomainSize,DomainSize+1,SLIP)
+    , mApplySlipRotation(ApplySlipRotation)
+  {}
+
+  ResidualBasedSimpleSteadyScheme(
       double VelocityRelaxationFactor,
       double PressureRelaxationFactor,
       unsigned int DomainSize,
@@ -112,13 +124,17 @@ public:
   {
     KRATOS_TRY;
 
-    mRotationTool.RotateVelocities(rModelPart);
+    if (mApplySlipRotation) {
+        mRotationTool.RotateVelocities(rModelPart);
+    }
 
     TSparseSpace::InplaceMult(rDx, mVelocityRelaxationFactor);
 
     mpDofUpdater->UpdateDofs(rDofSet,rDx);
 
-    mRotationTool.RecoverVelocities(rModelPart);
+    if (mApplySlipRotation) {
+        mRotationTool.RecoverVelocities(rModelPart);
+    }
 
     KRATOS_CATCH("");
   }
@@ -142,8 +158,10 @@ public:
       noalias(LHS_Contribution) += SteadyLHS;
 
     // apply slip condition
-    mRotationTool.Rotate(LHS_Contribution,RHS_Contribution,rCurrentElement.GetGeometry());
-    mRotationTool.ApplySlipCondition(LHS_Contribution,RHS_Contribution,rCurrentElement.GetGeometry());
+    if (mApplySlipRotation) {
+        mRotationTool.Rotate(LHS_Contribution,RHS_Contribution,rCurrentElement.GetGeometry());
+        mRotationTool.ApplySlipCondition(LHS_Contribution,RHS_Contribution,rCurrentElement.GetGeometry());
+    }
 
     KRATOS_CATCH("");
   }
@@ -167,8 +185,10 @@ public:
       noalias(LHS_Contribution) += SteadyLHS;
 
     // apply slip condition
-    mRotationTool.Rotate(LHS_Contribution,RHS_Contribution,rCurrentCondition.GetGeometry());
-    mRotationTool.ApplySlipCondition(LHS_Contribution,RHS_Contribution,rCurrentCondition.GetGeometry());
+    if (mApplySlipRotation) {
+        mRotationTool.Rotate(LHS_Contribution,RHS_Contribution,rCurrentCondition.GetGeometry());
+        mRotationTool.ApplySlipCondition(LHS_Contribution,RHS_Contribution,rCurrentCondition.GetGeometry());
+    }
 
     KRATOS_CATCH("");
   }
@@ -326,6 +346,7 @@ private:
   CoordinateTransformationUtils<LocalSystemMatrixType,LocalSystemVectorType,double> mRotationTool;
   Process::Pointer mpTurbulenceModel;
   typename TSparseSpace::DofUpdaterPointerType mpDofUpdater = TSparseSpace::CreateDofUpdater();
+  const bool mApplySlipRotation = true;
 
   ///@}
 };
