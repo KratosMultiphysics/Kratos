@@ -212,10 +212,15 @@ void ConvectionDiffusionReactionResidualBasedFluxCorrectedElement<TDim, TNumNode
     const ProcessInfo& rCurrentProcessInfo)
 {
     const double residual_factor = this->CalculatePrimalDampingMatrix(rDampingMatrix, rCurrentProcessInfo);
-    const double diagonal_coefficient = ConvectionDiffusionReactionStabilizationUtilities::CalculatePositivityPreservingMatrix(rDampingMatrix);
+    double diagonal_coefficient = ConvectionDiffusionReactionStabilizationUtilities::CalculatePositivityPreservingMatrix(rDampingMatrix);
     const double acceleration_factor = rCurrentProcessInfo[RANS_RESIDUAL_BASED_FLUX_CORRECTED_ACCELERATON_FACTOR];
     const double scaling_factor = acceleration_factor * std::log(residual_factor + 1);
     const double domain_size = this->GetGeometry().DomainSize();
+
+    const double discrete_upwind_operator_coefficient =
+        rCurrentProcessInfo[RANS_STABILIZATION_DISCRETE_UPWIND_OPERATOR_COEFFICIENT];
+    const double diagonal_positivity_preserving_coefficient =
+        rCurrentProcessInfo[RANS_STABILIZATION_DIAGONAL_POSITIVITY_PRESERVING_COEFFICIENT];
 
     BoundedMatrix<double, TNumNodes, TNumNodes> stabilization_diffusion_matrix;
     ConvectionDiffusionReactionStabilizationUtilities::CalculateDiscreteUpwindOperator<TNumNodes>(stabilization_diffusion_matrix, rDampingMatrix);
@@ -225,7 +230,13 @@ void ConvectionDiffusionReactionResidualBasedFluxCorrectedElement<TDim, TNumNode
     this->SetValue(RANS_STABILIZATION_DISCRETE_UPWIND_OPERATOR_COEFFICIENT, norm_frobenius(stabilization_diffusion_matrix) / domain_size);
     this->SetValue(RANS_STABILIZATION_DIAGONAL_POSITIVITY_PRESERVING_COEFFICIENT, diagonal_coefficient / domain_size);
 
-    noalias(rDampingMatrix) += (stabilization_diffusion_matrix + IdentityMatrix(TNumNodes) * diagonal_coefficient) * residual_factor;
+    diagonal_coefficient *= diagonal_positivity_preserving_coefficient * residual_factor;
+
+    noalias(rDampingMatrix) += stabilization_diffusion_matrix *
+                             (discrete_upwind_operator_coefficient * residual_factor);
+    noalias(rDampingMatrix) += IdentityMatrix(TNumNodes) * (diagonal_coefficient);
+
+    // noalias(rDampingMatrix) += (stabilization_diffusion_matrix + IdentityMatrix(TNumNodes) * diagonal_coefficient) * residual_factor;
 }
 
 template <IndexType TDim, IndexType TNumNodes, class TConvectionDiffusionReactionData>
