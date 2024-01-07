@@ -2,7 +2,10 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 message("**** configuring KratosFluidDynamicsApplication ****")
 
+kratos_add_dependency(${KRATOS_SOURCE_DIR}/applications/MeshingApplication)
+
 include_directories( ${KRATOS_SOURCE_DIR}/kratos )
+include_directories( ${KRATOS_SOURCE_DIR}/applications/MeshingApplication )
 
 ## define application core sources (pure C++ parts)
 set( KRATOS_FLUID_DYNAMICS_APPLICATION_CORE_SOURCES
@@ -26,6 +29,10 @@ set( KRATOS_FLUID_DYNAMICS_APPLICATION_CORE_SOURCES
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/fluid_test_utilities.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/fluid_adjoint_test_utilities.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/fluid_adjoint_slip_utilities.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/fluid_fft_utilities.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/fluid_lss_variable_utilities.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/fluid_lss_shape_sensitivity.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/fluid_model_part_preprocessing_utilities.cpp
 
   # elements
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/vms.cpp
@@ -100,7 +107,14 @@ set( KRATOS_FLUID_DYNAMICS_APPLICATION_CORE_SOURCES
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/two_fluids_inlet_process.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/shock_capturing_entropy_viscosity_process.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/shock_capturing_physics_based_process.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/calculate_sensitivity_metric_process.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/compute_y_plus_process.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/element_refinement_process.cpp
+
+  # response functions
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_response_functions/drag_frequency_response_function.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_response_functions/residual_response_function.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_response_functions/domain_integrated_3d_vector_magnitude_square_p_mean_response_function.cpp
 )
 
 ## define python interface sources
@@ -121,7 +135,7 @@ endif(${KRATOS_BUILD_TESTING} MATCHES ON)
 ###############################################################################
 ## FluidDynamicsApplication core library (C++ parts)
 add_library( KratosFluidDynamicsCore SHARED ${KRATOS_FLUID_DYNAMICS_APPLICATION_CORE_SOURCES} ${KRATOS_FLUID_DYNAMICS_TESTING_SOURCES} )
-target_link_libraries( KratosFluidDynamicsCore PUBLIC KratosCore)
+target_link_libraries( KratosFluidDynamicsCore PUBLIC KratosCore KratosMeshingCore)
 set_target_properties( KratosFluidDynamicsCore PROPERTIES COMPILE_DEFINITIONS "FLUID_DYNAMICS_APPLICATION=EXPORT,API")
 
 ## FluidDynamicsApplication python module

@@ -20,6 +20,8 @@
 
 // Project includes
 #include "containers/variable.h"
+#include "geometries/geometry.h"
+#include "includes/node.h"
 
 // Application includes
 
@@ -40,6 +42,10 @@ public:
 
     using IndexType = std::size_t;
 
+    using NodeType = Node<3>;
+
+    using GeometryType = Geometry<NodeType>;
+
     ///@}
     ///@name Static Operations
     ///@{
@@ -55,6 +61,27 @@ public:
         const IndexType DirectionIndex,
         const Variable<TDataType>& rVariable,
         const std::array<const Variable<double>*, TGradientVariableTotalDimensionality>& rAllGradientVariableComponents);
+
+    static double CalculateTriangleAreaDerivative(
+        const GeometryType& rGeometry,
+        const unsigned int DerivativeNodeIndex,
+        const unsigned int DerivativeDirectionIndex);
+
+    ///@}
+
+private:
+    ///@name Private member functions
+    ///@{
+
+    static inline double EdgeLengthDerivative(
+        const unsigned int DerivativeNodeIndex,
+        const unsigned int DerivativeDirectionIndex,
+        const unsigned int NodeIndexA,
+        const unsigned int NodeIndexB,
+        const unsigned int EdgeDirection)
+    {
+        return ((DerivativeNodeIndex == NodeIndexA) - (DerivativeNodeIndex == NodeIndexB)) * (DerivativeDirectionIndex == EdgeDirection);
+    }
 
     ///@}
 };

@@ -58,6 +58,42 @@ def Factory(settings, Model):
         [
             "ComputeReactionsProcess",
             KratosRANS.RansComputeReactionsProcess
+        ],
+        [
+            "VariableDataTransferProcess",
+            KratosRANS.RansVariableDataTransferProcess
+        ],
+        [
+            "InitializeBossakPreviousStepVariableDerivatives",
+            KratosRANS.RansInitializeBossakPreviousStepVariableDerivatives
+        ],
+        [
+            "OmegaViscousLogWallProcess",
+            KratosRANS.RansOmegaViscousLogWallProcess
+        ],
+        [
+            "OmegaViscousLogBinomialWallProcess",
+            KratosRANS.RansOmegaViscousLogBinomialWallProcess
+        ],
+        [
+            "WallPropertiesUpdateProcess",
+            KratosRANS.RansWallPropertiesUpdateProcess
+        ],
+        [
+            "ComputeYPlusProcess",
+            KratosRANS.RansComputeYPlusProcess
+        ],
+        [
+            "VTKOutputProcess",
+            KratosRANS.RansVTKOutputProcess
+        ],
+        [
+            "OmegaAutomaticInletProcess",
+            KratosRANS.RansOmegaAutomaticInletProcess
+        ],
+        [
+            "SmoothClipScalarVariableProcess",
+            KratosRANS.RansSmoothClipScalarVariableProcess
         ]
     ]
 

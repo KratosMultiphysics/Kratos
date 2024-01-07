@@ -114,7 +114,7 @@ array_1d<double, 3> CalculateWallVelocity(
     const ConditionType& rCondition);
 
 bool IsWallFunctionActive(
-    const ConditionType& rCondition);
+    const GeometryType& rCondition);
 
 bool IsInlet(
     const ConditionType& rCondition);

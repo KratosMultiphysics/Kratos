@@ -1,0 +1,304 @@
+Begin Properties 0
+End Properties
+
+Begin Nodes
+	1	1	2.2	1
+	2	1	1.6	1
+	3	1.55	2.25	1
+	4	1.16667	1.93333	1.5
+	5	1	1	1
+	6	1.55	1.65	1
+	7	1.16667	1.33333	1.5
+	8	2.1	2.3	1
+	9	1.71667	1.98333	1.5
+	10	1.33333	1.66667	2
+End Nodes
+
+Begin Elements	Element3D4N
+	1	0	1	2	3	4	
+	2	0	2	5	6	7	
+	3	0	3	6	8	9	
+	4	0	4	7	9	10	
+	5	0	6	4	3	2	
+	6	0	4	7	2	6	
+	7	0	4	9	6	3	
+	8	0	6	4	7	9	
+End Elements
+
+Begin Conditions	SurfaceCondition3D3N
+	1	0	1	2	4	
+	2	0	1	4	3	
+	3	0	2	1	3	
+	4	0	2	5	7	
+	5	0	7	5	6	
+	6	0	5	2	6	
+	7	0	9	6	8	
+	8	0	3	9	8	
+	9	0	6	3	8	
+	10	0	4	7	10	
+	11	0	10	7	9	
+	12	0	4	10	9	
+	13	0	6	2	3	
+	14	0	7	4	2	
+	15	0	4	9	3	
+	16	0	6	9	7	
+End Conditions
+
+Begin NodalData	PRESSURE
+1	0	200
+2	0	150
+3	0	250
+4	0	300
+5	0	100
+6	0	200
+7	0	250
+8	0	300
+9	0	350
+10	0	400
+End NodalData
+
+Begin NodalData	VELOCITY_X
+1	0	10
+2	0	5.5
+3	0	15
+4	0	20
+5	0	1
+6	0	10.5
+7	0	15.5
+8	0	20
+9	0	25
+10	0	30
+End NodalData
+
+Begin NodalData	VELOCITY_Y
+1	0	0
+2	0	0
+3	0	0
+4	0	0
+5	0	0
+6	0	0
+7	0	0
+8	0	0
+9	0	0
+10	0	0
+End NodalData
+
+Begin NodalData	VELOCITY_Z
+1	0	0
+2	0	0
+3	0	0
+4	0	0
+5	0	0
+6	0	0
+7	0	0
+8	0	0
+9	0	0
+10	0	0
+End NodalData
+
+Begin NodalData	NORMAL_X
+1	0	-0.751809
+2	0	-0.793606
+3	0	-0.0764719
+4	0	-0.654897
+5	0	0.0789485
+6	0	0.654897
+7	0	0.0764719
+8	0	0.948683
+9	0	0.793606
+10	0	0
+End NodalData
+
+Begin NodalData	NORMAL_Y
+1	0	0.636146
+2	0	0
+3	0	0.841191
+4	0	0.554144
+5	0	-0.868433
+6	0	-0.554144
+7	0	-0.841191
+8	0	0
+9	0	0
+10	0	0
+End NodalData
+
+Begin NodalData	NORMAL_Z
+1	0	-0.173494
+2	0	-0.608432
+3	0	-0.535303
+4	0	0.513842
+5	0	-0.48948
+6	0	-0.513842
+7	0	0.535303
+8	0	-0.316228
+9	0	0.608432
+10	0	1
+End NodalData
+
+Begin ElementalData SCALE
+1	1
+2	2
+3	3
+4	4
+5	5
+6	6
+7	7
+8	8
+End ElementalData
+
+Begin ConditionalData NORMAL
+1	[3](-0.15,0,0.05)
+2	[3](-0.0125,0.1375,0.0775)
+3	[3](0,0,-0.165)
+4	[3](-0.15,0,0.05)
+5	[3](0.1625,-0.1375,0.0375)
+6	[3](0,0,-0.165)
+7	[3](0.1625,-0.1375,0.0375)
+8	[3](-0.0125,0.1375,0.0775)
+9	[3](0,0,-0.165)
+10	[3](-0.15,0,0.05)
+11	[3](0.1625,-0.1375,0.0375)
+12	[3](-0.0125,0.1375,0.0775)
+13	[3](-0,0,-0.165)
+14	[3](-0.15,0,0.05)
+15	[3](-0.0125,0.1375,0.0775)
+16	[3](0.1625,-0.1375,0.0375)
+End ConditionalData
+
+Begin ConditionalData SCALE
+1	1
+2	2
+3	3
+4	4
+5	5
+6	6
+7	7
+8	8
+9	9
+10	10
+11	11
+12	12
+13	13
+14	14
+15	15
+16	16
+End ConditionalData
+
+Begin ConditionalData FIRST_TIME_STEP
+1	1
+2	1
+3	1
+4	2
+5	2
+6	2
+7	3
+8	3
+9	3
+10	4
+11	4
+12	4
+13	5
+14	6
+15	7
+16	8
+End ConditionalData
+
+Begin ConditionalData DISTANCE
+5	10
+7	10
+11	10
+16	10
+End ConditionalData
+
+Begin SubModelPart	Surface_4
+	Begin SubModelPartData
+	End SubModelPartData
+	Begin SubModelPartTables
+	End SubModelPartTables
+	Begin SubModelPartNodes
+		1
+		2
+		3
+		5
+		6
+		8
+	End SubModelPartNodes
+	Begin SubModelPartElements
+	End SubModelPartElements
+	Begin SubModelPartConditions
+		3
+		6
+		9
+		13
+	End SubModelPartConditions
+End SubModelPart	
+
+Begin SubModelPart	Surface_3
+	Begin SubModelPartData
+	End SubModelPartData
+	Begin SubModelPartTables
+	End SubModelPartTables
+	Begin SubModelPartNodes
+		1
+		3
+		4
+		8
+		9
+		10
+	End SubModelPartNodes
+	Begin SubModelPartElements
+	End SubModelPartElements
+	Begin SubModelPartConditions
+		2
+		8
+		12
+		15
+	End SubModelPartConditions
+End SubModelPart	
+
+Begin SubModelPart	Surface_2
+	Begin SubModelPartData
+	End SubModelPartData
+	Begin SubModelPartTables
+	End SubModelPartTables
+	Begin SubModelPartNodes
+		5
+		6
+		7
+		8
+		9
+		10
+	End SubModelPartNodes
+	Begin SubModelPartElements
+	End SubModelPartElements
+	Begin SubModelPartConditions
+		5
+		7
+		11
+		16
+	End SubModelPartConditions
+End SubModelPart	
+
+Begin SubModelPart	Surface_1
+	Begin SubModelPartData
+	End SubModelPartData
+	Begin SubModelPartTables
+	End SubModelPartTables
+	Begin SubModelPartNodes
+		1
+		2
+		4
+		5
+		7
+		10
+	End SubModelPartNodes
+	Begin SubModelPartElements
+	End SubModelPartElements
+	Begin SubModelPartConditions
+		1
+		4
+		10
+		14
+	End SubModelPartConditions
+End SubModelPart	
+

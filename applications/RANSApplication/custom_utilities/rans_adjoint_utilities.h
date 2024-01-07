@@ -39,6 +39,8 @@ public:
 
     using GeometryType = Geometry<NodeType>;
 
+    using ElementType = ModelPart::ElementType;
+
     using ConditionType = ModelPart::ConditionType;
 
     using IndexType = std::size_t;
@@ -83,6 +85,17 @@ public:
         const double Kappa,
         const double Beta,
         const double YPlusLimit);
+
+    static void CopyAdjointSolutionToNonHistorical(ModelPart& rModelPart);
+
+    static void RescaleAdjointSolution(ModelPart& rModelPart);
+
+    static void RescaleShapeSensitivity(ModelPart& rModelPart);
+
+    static void CalculateTransientReponseFunctionInterpolationError(
+        ModelPart& rModelPart,
+        const double Gamma,
+        const double DeltaTime);
 
     ///@}
     ///@name Classes

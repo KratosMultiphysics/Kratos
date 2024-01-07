@@ -6,6 +6,7 @@ from KratosMultiphysics.analysis_stage import AnalysisStage
 from KratosMultiphysics.process_factory import KratosProcessFactory
 from KratosMultiphysics.FluidDynamicsApplication import python_solvers_wrapper_adjoint_fluid
 from KratosMultiphysics.FluidDynamicsApplication.fluid_dynamics_analysis import FluidDynamicsAnalysis
+from KratosMultiphysics.FluidDynamicsApplication.adjoint_stabilization_utilities import ComputeStabilizationCoefficient
 
 class AdjointFluidAnalysis(AnalysisStage):
     '''Main script for adjoint sensitivity optimization in fluid dynamics simulations.'''
@@ -42,6 +43,20 @@ class AdjointFluidAnalysis(AnalysisStage):
         self.project_parameters["problem_data"]["end_time"].SetDouble(self.start_time)
 
     def Initialize(self):
+        scheme_settings = self.project_parameters["solver_settings"]["scheme_settings"]
+        if scheme_settings.Has("stabilization_coefficient"):
+            if scheme_settings["stabilization_coefficient"].IsString():
+                if scheme_settings["stabilization_coefficient"].GetString() == "computed":
+                    if not scheme_settings.Has("stabilization_computation_settings"):
+                        scheme_settings.AddEmptyValue("stabilization_computation_settings")
+                    stabilization_coefficient = ComputeStabilizationCoefficient(type(self), scheme_settings["stabilization_computation_settings"])
+
+                    # now remove stabilization computation settings
+                    scheme_settings["stabilization_coefficient"].SetDouble(stabilization_coefficient)
+                    scheme_settings.RemoveValue("stabilization_computation_settings")
+                else:
+                    raise Exception("Unsupported stabilization_coefficient given. Supported are double values and \"computed\"")
+
         super(AdjointFluidAnalysis, self).Initialize()
 
         # dummy time step to correctly calculate DELTA_TIME

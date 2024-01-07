@@ -66,7 +66,7 @@ int VMSMonolithicKBasedWallCondition<TDim, TNumNodes>::Check(
         << ", rElementProperties.Id() = " << r_element_properties.Id()
         << ", DYNAMIC_VISCOSITY = " << r_element_properties[DYNAMIC_VISCOSITY] << " ].\n";
 
-    if (RansCalculationUtilities::IsWallFunctionActive(*this)) {
+    if (RansCalculationUtilities::IsWallFunctionActive(this->GetGeometry())) {
 
         KRATOS_ERROR_IF_NOT(this->Has(NEIGHBOUR_ELEMENTS))
             << "NEIGHBOUR_ELEMENTS are not found in condition [ rCondition.Id() = "
@@ -104,6 +104,7 @@ int VMSMonolithicKBasedWallCondition<TDim, TNumNodes>::Check(
 
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(TURBULENT_KINETIC_ENERGY, r_node);
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(VELOCITY, r_node);
+        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(MESH_VELOCITY, r_node);
     }
 
     return check;
@@ -116,16 +117,8 @@ void VMSMonolithicKBasedWallCondition<TDim, TNumNodes>::Initialize(const Process
 {
     KRATOS_TRY;
 
-    if (RansCalculationUtilities::IsWallFunctionActive(*this)) {
-        const array_1d<double, 3>& r_normal = this->GetValue(NORMAL);
-
-        mWallHeight = RansCalculationUtilities::CalculateWallHeight(*this, r_normal);
-
+    if (RansCalculationUtilities::IsWallFunctionActive(this->GetGeometry())) {
         this->SetValue(GAUSS_RANS_Y_PLUS, Vector(this->GetGeometry().IntegrationPointsNumber(this->GetIntegrationMethod())));
-
-        this->SetValue(DISTANCE, mWallHeight);
-
-        KRATOS_ERROR_IF(mWallHeight == 0.0) << this->Info() << " has zero wall height.\n";
     }
 
     KRATOS_CATCH("");
@@ -359,7 +352,7 @@ void VMSMonolithicKBasedWallCondition<TDim, TNumNodes>::ApplyWallLaw(
 
     using namespace RansCalculationUtilities;
 
-    if (IsWallFunctionActive(*this)) {
+    if (IsWallFunctionActive(this->GetGeometry())) {
         const auto& r_geometry = this->GetGeometry();
         // Get Shape function data
         Vector gauss_weights;
@@ -389,9 +382,10 @@ void VMSMonolithicKBasedWallCondition<TDim, TNumNodes>::ApplyWallLaw(
         const double inv_kappa = 1.0 / kappa;
 
         double tke;
-        array_1d<double, 3> wall_velocity;
+        array_1d<double, 3> wall_velocity, fluid_velocity, mesh_velocity;
 
         auto& gauss_y_plus = this->GetValue(GAUSS_RANS_Y_PLUS);
+        const double wall_height = this->GetValue(DISTANCE);
 
         for (size_t g = 0; g < num_gauss_points; ++g) {
             const Vector& gauss_shape_functions = row(shape_functions, g);
@@ -400,13 +394,16 @@ void VMSMonolithicKBasedWallCondition<TDim, TNumNodes>::ApplyWallLaw(
             FluidCalculationUtilities::EvaluateInPoint(
                 r_geometry, gauss_shape_functions,
                 std::tie(tke, TURBULENT_KINETIC_ENERGY),
-                std::tie(wall_velocity, VELOCITY));
+                std::tie(fluid_velocity, VELOCITY),
+                std::tie(mesh_velocity, MESH_VELOCITY));
+
+            noalias(wall_velocity) = fluid_velocity - mesh_velocity;
 
             const double wall_velocity_magnitude = norm_2(wall_velocity);
 
             double u_tau{0.0};
             CalculateYPlusAndUtau(y_plus, u_tau, wall_velocity_magnitude,
-                                  mWallHeight, nu, kappa, beta);
+                                  wall_height, nu, kappa, beta);
             y_plus = std::max(y_plus, y_plus_limit);
 
             if (wall_velocity_magnitude > eps) {

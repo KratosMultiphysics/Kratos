@@ -2,7 +2,7 @@
 This module contains an interface to the available response functions
 """
 import time as timer
-import os
+import os, shutil
 from pathlib import Path
 
 import KratosMultiphysics as Kratos
@@ -115,7 +115,10 @@ class Drag(ResponseFunctionInterface):
             "response_type"       : "drag",
             "problem_setup_settings" : {
                 "primal_problem_solving_type"     : "solved"
-            }
+            },
+            "clean_primal_solution": false,
+            "primal_solution_folder_name": "PLEASE_SPECIFY_PRIMAL_SOLUTION_FOLDER_NAME",
+            "start_time": 0.0
         }
         """)
         self.identifier = identifier
@@ -155,7 +158,7 @@ class Drag(ResponseFunctionInterface):
         primal_parameters = SolvePrimalProblem(self.drag_configuration.GetPrimalProjectParametersFileName())
 
         # calculate drag
-        self.drag = CalculateTimeAveragedDrag(primal_parameters, self.drag_configuration.GetDragModelPartName(), self.drag_configuration.GetDragDirection())
+        self.drag = CalculateTimeAveragedDrag(primal_parameters, self.drag_configuration.GetDragModelPartName(), self.drag_configuration.GetDragDirection(), self.response_settings["start_time"].GetDouble())
 
         Kratos.Logger.PrintInfo(self._GetLabel(), "Time needed for calculating the response value = ",round(timer.time() - startTime,2),"s")
 
@@ -163,11 +166,20 @@ class Drag(ResponseFunctionInterface):
         # solve adjoint drag problem
         drag_start_time = timer.time()
 
-        self.drag_adjoint_model = Kratos.Model()
-        self.drag_adjoint_simulation = SolveAdjointProblem(
-                self.drag_adjoint_model,
+        self.gradient = {}
+
+        drag_adjoint_model = Kratos.Model()
+        _ = SolveAdjointProblem(
+                drag_adjoint_model,
                 self.drag_configuration.GetAdjointProjectParametersFileName(),
                 self.identifier + ".log")
+
+        drag_adjoint_model_part = drag_adjoint_model[self.drag_configuration.GetMainModelPartName()]
+        for drag_node in drag_adjoint_model_part.Nodes:
+            self.gradient[drag_node.Id] = drag_node.GetSolutionStepValue(Kratos.SHAPE_SENSITIVITY)
+
+        if self.response_settings["clean_primal_solution"].GetBool():
+            shutil.rmtree(self.response_settings["primal_solution_folder_name"].GetString())
 
         Kratos.Logger.PrintInfo(self._GetLabel(), "Time needed for solving the drag adjoint analysis = ",round(timer.time() - drag_start_time,2),"s")
 
@@ -182,13 +194,7 @@ class Drag(ResponseFunctionInterface):
         if variable != Kratos.SHAPE_SENSITIVITY:
             raise RuntimeError("GetNodalGradient: No gradient for {}!".format(variable.Name))
 
-        gradient = {}
-        drag_adjoint_model_part = self.drag_adjoint_model[self.drag_configuration.GetMainModelPartName()]
-        for drag_node in drag_adjoint_model_part.Nodes:
-            gradient[drag_node.Id] = drag_node.GetSolutionStepValue(variable)
-
-        del self.drag_adjoint_model
-        return gradient
+        return self.gradient
 
     def FinalizeSolutionStep(self):
         self.drag_configuration.FinalizeSolutionStep()

@@ -103,8 +103,7 @@
                     "absolute_tolerance": 1e-5,
                     "max_iterations": 1
                 },
-                "wall_distance_calculation_settings":
-                {
+                "wall_distance_calculation_settings": {
                     "max_levels": 10
                 },
                 "auxiliar_process_list": []

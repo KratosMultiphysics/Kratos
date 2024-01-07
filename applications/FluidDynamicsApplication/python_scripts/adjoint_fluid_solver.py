@@ -40,7 +40,8 @@ class AdjointFluidSolver(FluidSolver):
     def InitializeSolutionStep(self):
         self._GetSolutionStrategy().InitializeSolutionStep()
         self.GetResponseFunction().InitializeSolutionStep()
-        self.GetSensitivityBuilder().InitializeSolutionStep()
+        if self.GetSensitivityBuilder() is not None:
+            self.GetSensitivityBuilder().InitializeSolutionStep()
 
     def Predict(self):
         self._GetSolutionStrategy().Predict()
@@ -52,8 +53,9 @@ class AdjointFluidSolver(FluidSolver):
         self._GetSolutionStrategy().FinalizeSolutionStep()
         self.GetResponseFunction().FinalizeSolutionStep()
 
-        self.GetSensitivityBuilder().UpdateSensitivities()
-        self.GetSensitivityBuilder().FinalizeSolutionStep()
+        if self.GetSensitivityBuilder() is not None:
+            self.GetSensitivityBuilder().UpdateSensitivities()
+            self.GetSensitivityBuilder().FinalizeSolutionStep()
 
     def Check(self):
         self._GetSolutionStrategy().Check()
@@ -136,31 +138,50 @@ class AdjointFluidSolver(FluidSolver):
     def __CreateResponseFunction(self):
         domain_size = self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
         response_type = self.settings["response_function_settings"]["response_type"].GetString()
+
+        if domain_size == 2:
+            drag_response_function_type = KratosCFD.DragResponseFunction2D
+            drag_frequency_response_function_type = KratosCFD.DragFrequencyResponseFunction2D
+            domain_integrated_3d_vector_magnitude_square_power_mean_response_type = KratosCFD.DomainIntegrated3DArrayMagnitudeSquarePMeanResponseFunction2D
+            moment_response_type = KratosCFD.MomentResponseFunction2D
+        elif domain_size == 3:
+            drag_response_function_type = KratosCFD.DragResponseFunction3D
+            drag_frequency_response_function_type = KratosCFD.DragFrequencyResponseFunction3D
+            domain_integrated_3d_vector_magnitude_square_power_mean_response_type = KratosCFD.DomainIntegrated3DArrayMagnitudeSquarePMeanResponseFunction3D
+            moment_response_type = KratosCFD.MomentResponseFunction3D
+        else:
+            raise RuntimeError("Invalid DOMAIN_SIZE: " + str(domain_size))
+
         if response_type == "drag":
-            if domain_size == 2:
-                response_function = KratosCFD.DragResponseFunction2D(
-                    self.settings["response_function_settings"]["custom_settings"],
-                    self.main_model_part)
-            elif domain_size == 3:
-                response_function = KratosCFD.DragResponseFunction3D(
-                    self.settings["response_function_settings"]["custom_settings"],
-                    self.main_model_part)
-            else:
-                raise Exception("Invalid DOMAIN_SIZE: " + str(domain_size))
+            response_function = drag_response_function_type(
+                self.settings["response_function_settings"]["custom_settings"],
+                self.main_model_part)
         elif response_type == "norm_square":
             response_function = KratosCFD.VelocityPressureNormSquareResponseFunction(
                 self.settings["response_function_settings"]["custom_settings"],
                 self.model)
+        elif response_type == "drag_frequency":
+            response_function = drag_frequency_response_function_type(
+                self.settings["response_function_settings"]["custom_settings"],
+                self.main_model_part)
+        elif response_type == "domain_integrated_3d_vector_magnitude_square_power_mean":
+            response_function = domain_integrated_3d_vector_magnitude_square_power_mean_response_type(
+                self.settings["response_function_settings"]["custom_settings"],
+                self.main_model_part)
+        elif response_type == "moment":
+            response_function = moment_response_type(
+                self.settings["response_function_settings"]["custom_settings"],
+                self.main_model_part)
         else:
             raise Exception("Invalid response_type: " + response_type + ". Available response functions: \'drag\'.")
         return response_function
 
     def GetSensitivityBuilder(self):
         if not hasattr(self, '_sensitivity_builder'):
-            self._sensitivity_builder = self.__CreateSensitivityBuilder()
+            self._sensitivity_builder = self._CreateSensitivityBuilder()
         return self._sensitivity_builder
 
-    def __CreateSensitivityBuilder(self):
+    def _CreateSensitivityBuilder(self):
         response_function = self.GetResponseFunction()
         time_scheme_settings = self.settings["scheme_settings"]
         time_scheme_type = time_scheme_settings["scheme_type"].GetString()

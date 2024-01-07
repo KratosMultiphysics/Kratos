@@ -115,6 +115,94 @@ double GetMaximumScalarValue(
     KRATOS_CATCH("");
 }
 
+void AssignMinimumVectorComponents(
+    const ModelPart& rModelPart,
+    const Variable<Vector>& rOutputVariable,
+    const Variable<Vector>& rInputVariable1,
+    const Variable<Vector>& rInputVariable2)
+{
+    KRATOS_TRY
+
+    block_for_each(rModelPart.Nodes(), [&](ModelPart::NodeType& rNode) {
+        KRATOS_DEBUG_ERROR_IF_NOT(rNode.Has(rOutputVariable))
+            << "Output " << rOutputVariable.Name()
+            << " is not found in non-historical variables list at node with id "
+            << rNode.Id() << ".\n";
+        auto& r_output = rNode.GetValue(rOutputVariable);
+
+        KRATOS_DEBUG_ERROR_IF_NOT(rNode.Has(rInputVariable1))
+            << "Input " << rInputVariable1.Name()
+            << " is not found in non-historical variables list at node with id "
+            << rNode.Id() << ".\n";
+        const auto& r_input_var_1 = rNode.GetValue(rInputVariable1);
+
+        KRATOS_DEBUG_ERROR_IF_NOT(rNode.Has(rInputVariable2))
+            << "Input " << rInputVariable2.Name()
+            << " is not found in non-historical variables list at node with id "
+            << rNode.Id() << ".\n";
+        const auto& r_input_var_2 = rNode.GetValue(rInputVariable2);
+
+        KRATOS_DEBUG_ERROR_IF(r_input_var_1.size() != r_input_var_2.size())
+            << "The vector size of " << rInputVariable1.Name() << " is not equal to "
+            << rInputVariable1.Name() << " at node with id " << rNode.Id() << ".\n";
+
+        KRATOS_DEBUG_ERROR_IF(r_input_var_1.size() != r_output.size())
+            << "The vector size of " << rInputVariable1.Name() << " is not equal to "
+            << rOutputVariable.Name() << " at node with id " << rNode.Id() << ".\n";
+
+        const IndexType n = r_output.size();
+        for (IndexType i = 0; i < n; ++i) {
+            r_output[i] = std::min(r_input_var_1[i], r_input_var_2[i]);
+        }
+    });
+
+    KRATOS_CATCH("");
+}
+
+void AssignMaximumVectorComponents(
+    const ModelPart& rModelPart,
+    const Variable<Vector>& rOutputVariable,
+    const Variable<Vector>& rInputVariable1,
+    const Variable<Vector>& rInputVariable2)
+{
+    KRATOS_TRY
+
+    block_for_each(rModelPart.Nodes(), [&](ModelPart::NodeType& rNode) {
+        KRATOS_DEBUG_ERROR_IF_NOT(rNode.Has(rOutputVariable))
+            << "Output " << rOutputVariable.Name()
+            << " is not found in non-historical variables list at node with id "
+            << rNode.Id() << ".\n";
+        auto& r_output = rNode.GetValue(rOutputVariable);
+
+        KRATOS_DEBUG_ERROR_IF_NOT(rNode.Has(rInputVariable1))
+            << "Input " << rInputVariable1.Name()
+            << " is not found in non-historical variables list at node with id "
+            << rNode.Id() << ".\n";
+        const auto& r_input_var_1 = rNode.GetValue(rInputVariable1);
+
+        KRATOS_DEBUG_ERROR_IF_NOT(rNode.Has(rInputVariable2))
+            << "Input " << rInputVariable2.Name()
+            << " is not found in non-historical variables list at node with id "
+            << rNode.Id() << ".\n";
+        const auto& r_input_var_2 = rNode.GetValue(rInputVariable2);
+
+        KRATOS_DEBUG_ERROR_IF(r_input_var_1.size() != r_input_var_2.size())
+            << "The vector size of " << rInputVariable1.Name() << " is not equal to "
+            << rInputVariable1.Name() << " at node with id " << rNode.Id() << ".\n";
+
+        KRATOS_DEBUG_ERROR_IF(r_input_var_1.size() != r_output.size())
+            << "The vector size of " << rInputVariable1.Name() << " is not equal to "
+            << rOutputVariable.Name() << " at node with id " << rNode.Id() << ".\n";
+
+        const IndexType n = r_output.size();
+        for (IndexType i = 0; i < n; ++i) {
+            r_output[i] = std::max(r_input_var_1[i], r_input_var_2[i]);
+        }
+    });
+
+    KRATOS_CATCH("");
+}
+
 void GetNodalVariablesVector(
     Vector& rValues,
     const ModelPart::NodesContainerType& rNodes,
@@ -331,6 +419,17 @@ void SetElementConstitutiveLaws(ModelPart::ElementsContainerType& rElements)
     KRATOS_CATCH("");
 }
 
+template<class TContainerType>
+void KRATOS_API(RANS_APPLICATION)
+    InitializeContainerEntities(
+        TContainerType& rEntities,
+        const ProcessInfo& rProcessInfo)
+{
+    block_for_each(rEntities, [&](typename TContainerType::value_type& rEntity){
+        rEntity.Initialize(rProcessInfo);
+    });
+}
+
 void KRATOS_API(RANS_APPLICATION)
     CalculateNodalNormal(
         ModelPart& rModelPart)
@@ -354,6 +453,22 @@ void KRATOS_API(RANS_APPLICATION)
     rModelPart.GetCommunicator().AssembleCurrentData(NORMAL);
 }
 
+std::vector<std::string> KRATOS_API(RANS_APPLICATION)
+    GetSolutionstepVariableNamesList(
+        const ModelPart& rModelPart)
+{
+    KRATOS_TRY
+
+    std::vector<std::string> variable_names_list;
+    for (const auto& r_variable : rModelPart.GetNodalSolutionStepVariablesList()) {
+        variable_names_list.push_back(r_variable.Name());
+    }
+
+    return variable_names_list;
+
+    KRATOS_CATCH("");
+}
+
 // template instantiations
 template KRATOS_API(RANS_APPLICATION) void AssignConditionVariableValuesToNodes<double>(
     ModelPart&, const Variable<double>&, const Flags&, const bool);
@@ -367,6 +482,12 @@ template KRATOS_API(RANS_APPLICATION) std::tuple<double, double> CalculateTransi
 template KRATOS_API(RANS_APPLICATION)
     std::tuple<double, double> CalculateTransientVariableConvergence<array_1d<double, 3>>(
         const ModelPart&, const Variable<array_1d<double, 3>>&);
+
+template KRATOS_API(RANS_APPLICATION)
+    void InitializeContainerEntities<ModelPart::ConditionsContainerType>(ModelPart::ConditionsContainerType&, const ProcessInfo&);
+
+template KRATOS_API(RANS_APPLICATION)
+    void InitializeContainerEntities<ModelPart::ElementsContainerType>(ModelPart::ElementsContainerType&, const ProcessInfo&);
 
 } // namespace RansVariableUtilities
 

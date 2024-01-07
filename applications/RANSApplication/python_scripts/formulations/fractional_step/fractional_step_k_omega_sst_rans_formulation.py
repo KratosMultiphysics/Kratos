@@ -12,7 +12,7 @@ from KratosMultiphysics.RANSApplication.formulations.fractional_step.fractional_
 
 class FractionalStepKOmegaSSTRansFormulation(RansFormulation):
     def __init__(self, model_part, settings, deprecated_settings_dict):
-        super().__init__(model_part, settings, deprecated_settings_dict)
+        super().__init__(model_part, settings)
 
         settings.ValidateAndAssignDefaults(self.GetDefaultParameters())
 
@@ -36,6 +36,7 @@ class FractionalStepKOmegaSSTRansFormulation(RansFormulation):
             "incompressible_potential_flow_initialization_settings": {},
             "fractional_step_flow_solver_settings": {},
             "k_omega_sst_solver_settings": {},
+            "auxiliar_process_list": [],
             "max_iterations": 1
         }''')
 
@@ -43,6 +44,8 @@ class FractionalStepKOmegaSSTRansFormulation(RansFormulation):
         self.k_omega_sst_formulation.SetConstants(settings)
 
     def Initialize(self):
+        self.AddProcessesList(self.GetParameters()["auxiliar_process_list"])
+
         # do not change the order of the initialization. This order is required
         # to add nut_nodal_update_process after nu_t update process. Otherwise
         # nut_nodal_update process (which is responsible for distributing element and condition gauss nut to nodes for old

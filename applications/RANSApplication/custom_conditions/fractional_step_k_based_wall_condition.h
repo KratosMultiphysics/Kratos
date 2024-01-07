@@ -329,22 +329,8 @@ public:
     {
         KRATOS_TRY;
 
-        if (RansCalculationUtilities::IsWallFunctionActive(*this)) {
-            const array_1d<double, 3>& r_normal = this->GetValue(NORMAL);
-            KRATOS_ERROR_IF(norm_2(r_normal) == 0.0)
-                << "NORMAL must be calculated before using this "
-                << this->Info() << "\n";
-
-            KRATOS_ERROR_IF(this->GetValue(NEIGHBOUR_ELEMENTS).size() == 0)
-                << this->Info() << " cannot find parent element\n";
-
-            mWallHeight = RansCalculationUtilities::CalculateWallHeight(*this, r_normal);
-
+        if (RansCalculationUtilities::IsWallFunctionActive(this->GetGeometry())) {
             this->SetValue(GAUSS_RANS_Y_PLUS, Vector(this->GetGeometry().IntegrationPointsNumber(this->GetIntegrationMethod())));
-
-            this->SetValue(DISTANCE, mWallHeight);
-
-            KRATOS_ERROR_IF(mWallHeight == 0.0) << this->Info() << " has zero wall height.\n";
         }
 
         KRATOS_CATCH("");
@@ -510,7 +496,7 @@ protected:
     {
         using namespace RansCalculationUtilities;
 
-        if (IsWallFunctionActive(*this)) {
+        if (IsWallFunctionActive(this->GetGeometry())) {
             const auto& r_geometry = this->GetGeometry();
             // Get Shape function data
             Vector gauss_weights;
@@ -537,7 +523,8 @@ protected:
             const double inv_kappa = 1.0 / kappa;
 
             double tke;
-            array_1d<double, 3> wall_velocity;
+            array_1d<double, 3> wall_velocity, fluid_velocity, mesh_velocity;
+            const double wall_height = this->GetValue(DISTANCE);
 
             for (size_t g = 0; g < num_gauss_points; ++g)
             {
@@ -546,13 +533,16 @@ protected:
                 FluidCalculationUtilities::EvaluateInPoint(
                     r_geometry, gauss_shape_functions,
                     std::tie(tke, TURBULENT_KINETIC_ENERGY),
-                    std::tie(wall_velocity, VELOCITY));
+                    std::tie(fluid_velocity, VELOCITY),
+                    std::tie(mesh_velocity, MESH_VELOCITY));
+
+                noalias(wall_velocity) = fluid_velocity - mesh_velocity;
 
                 const double wall_velocity_magnitude = norm_2(wall_velocity);
 
                 double y_plus{0.0}, u_tau{0.0};
                 CalculateYPlusAndUtau(y_plus, u_tau, wall_velocity_magnitude,
-                                      mWallHeight, nu, kappa, beta);
+                                      wall_height, nu, kappa, beta);
                 y_plus = std::max(y_plus, y_plus_limit);
 
                 u_tau = std::max(c_mu_25 * std::sqrt(std::max(tke, 0.0)),
@@ -593,8 +583,6 @@ protected:
 private:
     ///@name Member Variables
     ///@{
-
-    double mWallHeight;
 
     ///@}
     ///@name Serialization

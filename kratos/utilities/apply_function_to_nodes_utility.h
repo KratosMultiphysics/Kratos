@@ -91,7 +91,8 @@ public:
      */
     void ApplyFunction(
         const Variable<double>& rVariable,
-        const double t
+        const double t,
+        const IndexType Step = 0
         );
 
     /**

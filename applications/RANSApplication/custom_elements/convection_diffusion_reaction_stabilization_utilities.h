@@ -142,7 +142,6 @@ inline void CalculateCrossWindDiffusionParameters(
 
 template <unsigned int TSize>
 inline void CalculateDiscreteUpwindOperator(
-    double& rScalarCoeff,
     BoundedMatrix<double, TSize, TSize>& rDiffusionMatrix,
     const BoundedMatrix<double, TSize, TSize>& rInputMatrix)
 {
@@ -165,7 +164,7 @@ inline void CalculateDiscreteUpwindOperator(
         rDiffusionMatrix(a, a) = -row_sum;
     }
 
-    rScalarCoeff = norm_frobenius(rDiffusionMatrix);
+    // rScalarCoeff = norm_frobenius(rDiffusionMatrix);
 }
 
 inline double CalculatePositivityPreservingMatrix(

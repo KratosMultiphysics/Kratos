@@ -169,6 +169,17 @@ void VariableUtilsSetVariable(
     rVariableUtils.SetVariable(rVariable, rValue, rNodes);
 }
 
+template<class TDataType, class TVarType = Variable<TDataType>>
+void VariableUtilsSetVariableWithStep(
+    VariableUtils &rVariableUtils,
+    const TVarType &rVariable,
+    const TDataType &rValue,
+    ModelPart::NodesContainerType &rNodes,
+    const unsigned int Step)
+{
+    rVariableUtils.SetVariable(rVariable, rValue, rNodes, Step);
+}
+
 /**
  * @brief Auxiliary set variable export function
  * This function is required to export the SetVariable with flag overloaded method with a unique name
@@ -267,28 +278,28 @@ void AddVariableUtilsToPython(pybind11::module &m)
         .def("CopyModelPartElementalVar", &VariableUtils::CopyModelPartElementalVar<Variable<Vector>>)
         .def("CopyModelPartElementalVar", &VariableUtils::CopyModelPartElementalVar<Variable<Matrix>>)
         .def("SetVectorVar", VariableUtilsSetVariable<array_1d<double,3>>)
-        .def("SetVectorVar", [](VariableUtils& rVariableUtils, const Variable<array_1d<double, 3>>& rVariable, const array_1d<double, 3>& rValue, ModelPart::NodesContainerType& rNodes, const unsigned int Step){rVariableUtils.SetVariable(rVariable, rValue, rNodes, Step);})
+        .def("SetVectorVar", VariableUtilsSetVariableWithStep<array_1d<double,3>>)
         .def("SetVectorVar", VariableUtilsSetVariableForFlag<array_1d<double, 3>>)
         .def("SetScalarVar", VariableUtilsSetVariable<double>)
-        .def("SetScalarVar", [](VariableUtils& rVariableUtils, const Variable<double>& rVariable, const double& rValue, ModelPart::NodesContainerType& rNodes, const unsigned int Step){rVariableUtils.SetVariable(rVariable, rValue, rNodes, Step);})
+        .def("SetScalarVar", VariableUtilsSetVariableWithStep<double>)
         .def("SetScalarVar", VariableUtilsSetVariableForFlag<double>)
         .def("SetNonHistoricalScalarVar", VariableUtilsSetNonHistoricalVariable<int, ModelPart::NodesContainerType>)
         .def("SetNonHistoricalScalarVar", VariableUtilsSetNonHistoricalVariable<double, ModelPart::NodesContainerType>)
         .def("SetNonHistoricalVectorVar", VariableUtilsSetNonHistoricalVariable<array_1d<double, 3>, ModelPart::NodesContainerType>)
         .def("SetVariable", VariableUtilsSetVariable<int>)
+        .def("SetVariable", VariableUtilsSetVariableWithStep<int>)
         .def("SetVariable", VariableUtilsSetVariable<bool>)
+        .def("SetVariable", VariableUtilsSetVariableWithStep<bool>)
         .def("SetVariable", VariableUtilsSetVariable<double>)
+        .def("SetVariable", VariableUtilsSetVariableWithStep<double>)
         .def("SetVariable", VariableUtilsSetVariable<array_1d<double, 3>>)
+        .def("SetVariable", VariableUtilsSetVariableWithStep<array_1d<double, 3>>)
         .def("SetVariable", VariableUtilsSetVariable<Vector>)
+        .def("SetVariable", VariableUtilsSetVariableWithStep<Vector>)
         .def("SetVariable", VariableUtilsSetVariable<Matrix>)
+        .def("SetVariable", VariableUtilsSetVariableWithStep<Matrix>)
         .def("SetVariable", VariableUtilsSetVariable<Quaternion<double>>)
-        .def("SetVariable", [](VariableUtils& rVariableUtils, const Variable<int>& rVariable, const int& rValue, ModelPart::NodesContainerType& rNodes, const unsigned int Step){rVariableUtils.SetVariable(rVariable, rValue, rNodes, Step);})
-        .def("SetVariable", [](VariableUtils& rVariableUtils, const Variable<bool>& rVariable, const bool& rValue, ModelPart::NodesContainerType& rNodes, const unsigned int Step){rVariableUtils.SetVariable(rVariable, rValue, rNodes, Step);})
-        .def("SetVariable", [](VariableUtils& rVariableUtils, const Variable<double>& rVariable, const double& rValue, ModelPart::NodesContainerType& rNodes, const unsigned int Step){rVariableUtils.SetVariable(rVariable, rValue, rNodes, Step);})
-        .def("SetVariable", [](VariableUtils& rVariableUtils, const Variable<array_1d<double, 3>>& rVariable, const array_1d<double, 3>& rValue, ModelPart::NodesContainerType& rNodes, const unsigned int Step){rVariableUtils.SetVariable(rVariable, rValue, rNodes, Step);})
-        .def("SetVariable", [](VariableUtils& rVariableUtils, const Variable<Vector>& rVariable, const Vector& rValue, ModelPart::NodesContainerType& rNodes, const unsigned int Step){rVariableUtils.SetVariable(rVariable, rValue, rNodes, Step);})
-        .def("SetVariable", [](VariableUtils& rVariableUtils, const Variable<Matrix>& rVariable, const Matrix& rValue, ModelPart::NodesContainerType& rNodes, const unsigned int Step){rVariableUtils.SetVariable(rVariable, rValue, rNodes, Step);})
-        .def("SetVariable", [](VariableUtils& rVariableUtils, const Variable<Quaternion<double>>& rVariable, const Quaternion<double>& rValue, ModelPart::NodesContainerType& rNodes, const unsigned int Step){rVariableUtils.SetVariable(rVariable, rValue, rNodes, Step);})
+        .def("SetVariable", VariableUtilsSetVariableWithStep<Quaternion<double>>)
         .def("SetVariable", VariableUtilsSetVariableForFlag<bool>)
         .def("SetVariable", VariableUtilsSetVariableForFlag<double>)
         .def("SetVariable", VariableUtilsSetVariableForFlag<array_1d<double, 3>>)

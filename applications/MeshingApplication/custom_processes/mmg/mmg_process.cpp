@@ -476,6 +476,7 @@ void MmgProcess<TMMGLibrary>::ExecuteRemeshing()
     ////////* EMPTY AND BACKUP THE MODEL PART *////////
     Model& r_owner_model = mrThisModelPart.GetModel();
     ModelPart& r_old_model_part = r_owner_model.CreateModelPart(mrThisModelPart.Name()+"_Old", mrThisModelPart.GetBufferSize());
+    r_old_model_part.GetNodalSolutionStepVariablesList() = mrThisModelPart.GetNodalSolutionStepVariablesList();
 
     const bool collapse_prisms_elements = mThisParameters["collapse_prisms_elements"].GetBool();
     if (collapse_prisms_elements) {
@@ -689,7 +690,9 @@ void MmgProcess<TMMGLibrary>::ExecuteRemeshing()
         SetToZeroEntityData(mrThisModelPart.Elements(), r_old_model_part.Elements());
 
     // Finally remove old model part
-    r_owner_model.DeleteModelPart(mrThisModelPart.Name()+"_Old");
+    if (!mThisParameters["preserve_old_model_part"].GetBool()) {
+        r_owner_model.DeleteModelPart(mrThisModelPart.Name()+"_Old");
+    }
 
     /* We clean conditions with duplicated geometries (this is an error on fluid simulations) */
     if (mFramework == FrameworkEulerLagrange::EULERIAN) {
@@ -1390,7 +1393,8 @@ const Parameters MmgProcess<TMMGLibrary>::GetDefaultParameters() const
         "step_data_size"                       : 0,
         "initialize_entities"                  : true,
         "remesh_at_non_linear_iteration"       : false,
-        "buffer_size"                          : 0
+        "buffer_size"                          : 0,
+        "preserve_old_model_part"              : false
     })" );
 
     return default_parameters;

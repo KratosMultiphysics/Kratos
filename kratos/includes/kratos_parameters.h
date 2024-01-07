@@ -814,6 +814,14 @@ public:
         ) const;
 
     /**
+     * @brief Checks if the names and values are the same, no importance to the order and whether this is a subset of the rParameters.
+     * @details Lists have to be ordered, though! Take into account that in Kratos some physical vectors are represented with a list.
+     * @param rParameters The parameters which are equal or larger set
+     * @return True if it has, false othersise
+     */
+    bool IsKeysSubSetWithEquivalentValuesTo(const Parameters& rParameters) const;
+
+    /**
      * @brief Checks if the names and values are the same, no importance to the order.
      * @details Lists have to be ordered, though! Take into account that in Kratos some physical vectors are represented with a list.
      * @param rParameters The parameters to be checked

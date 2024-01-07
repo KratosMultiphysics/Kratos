@@ -186,8 +186,8 @@ KRATOS_TEST_CASE_IN_SUITE(RansKOmegaSSTOmegaUBasedWall2D2N_CalculateLocalSystem,
     r_condition.SetValue(RANS_IS_WALL_FUNCTION_ACTIVE, 1);
     r_condition.CalculateLocalSystem(LHS, RHS, r_process_info);
     // setting reference values
-    ref_RHS[0] =  3.9380156777284995e+01;
-    ref_RHS[1] =  1.0665990118522528e+01;
+    ref_RHS[0] =  9.1647200741582899e+04;
+    ref_RHS[1] =  2.4628247077288721e+04;
     ref_LHS = ZeroMatrix(2, 2);
 
     KRATOS_CHECK_VECTOR_NEAR(RHS, ref_RHS, 1e-12);
@@ -218,8 +218,8 @@ KRATOS_TEST_CASE_IN_SUITE(RansKOmegaSSTOmegaUBasedWall2D2N_CalculateRightHandSid
     r_condition.SetValue(RANS_IS_WALL_FUNCTION_ACTIVE, 1);
     r_condition.CalculateRightHandSide(RHS, r_process_info);
     // setting reference values
-    ref_RHS[0] =  3.9380156777284995e+01;
-    ref_RHS[1] =  1.0665990118522528e+01;
+    ref_RHS[0] =  9.1647200741582899e+04;
+    ref_RHS[1] =  2.4628247077288721e+04;
 
     KRATOS_CHECK_VECTOR_NEAR(RHS, ref_RHS, 1e-12);
 }

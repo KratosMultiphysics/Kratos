@@ -22,6 +22,11 @@
 
 // Application includes
 
+// stabilization validaton elements
+#include "custom_elements/data_containers/stabilization_validation/circular_convection_element_data.h"
+#include "custom_elements/data_containers/stabilization_validation/body_force_governed_cdr_element_data.h"
+#include "custom_elements/data_containers/stabilization_validation/diffusion_element_data.h"
+
 // incompressible potential flow elements
 #include "custom_elements/incompressible_potential_flow_velocity_element.h"
 
@@ -56,12 +61,14 @@
 #include "custom_conditions/scalar_wall_flux_condition.h"
 
 // k-epsilon turbulence model condition data
+#include "custom_conditions/data_containers/k_epsilon/k_vis_based_wall_condition_data.h"
 #include "custom_conditions/data_containers/k_epsilon/epsilon_k_based_wall_condition_data.h"
 #include "custom_conditions/data_containers/k_epsilon/epsilon_u_based_wall_condition_data.h"
 
 // k-omega turbulence model condition data
 #include "custom_conditions/data_containers/k_omega/omega_k_based_wall_condition_data.h"
 #include "custom_conditions/data_containers/k_omega/omega_u_based_wall_condition_data.h"
+#include "custom_conditions/data_containers/k_omega/omega_vis_log_law_based_wall_condition_data.h"
 
 // k-omega-sst turbulence model condition data
 #include "custom_conditions/data_containers/k_omega_sst/omega_k_based_wall_condition_data.h"
@@ -73,17 +80,22 @@
 #include "custom_constitutive/rans_k_epsilon_newtonian_law.h"
 #include "custom_constitutive/rans_k_omega_newtonian_law.h"
 #include "custom_constitutive/rans_k_omega_sst_newtonian_law.h"
+#include "custom_constitutive/rans_frozen_turbulence_newtonian_law.h"
 
 // adjoint elements
+#include "custom_elements/scalar_equation_adjoint_element.h"
 #include "custom_elements/two_equation_turbulence_model_adjoint_element.h"
 
 // adjoint element data containers
+#include "custom_elements/data_containers/stabilization_validation/circular_convection_rfc_adjoint_element_data.h"
+#include "custom_elements/data_containers/stabilization_validation/diffusion_rfc_adjoint_element_data.h"
 #include "custom_elements/data_containers/k_epsilon/qsvms_rfc_adjoint_element_data.h"
 #include "custom_elements/data_containers/k_omega/qsvms_rfc_adjoint_element_data.h"
 #include "custom_elements/data_containers/k_omega_sst/qsvms_rfc_adjoint_element_data.h"
 
 // adjoint conditions
 #include "custom_conditions/two_equation_turbulence_model_adjoint_condition.h"
+#include "custom_conditions/scalar_equation_adjoint_condition.h"
 
 // adjoint condition data containers
 // k-epsilon condition data containers
@@ -167,6 +179,19 @@ public:
 private:
     ///@name Member Variables
     ///@{
+
+    /// stabilization validation elements
+    const ConvectionDiffusionReactionElement<2, 3, StabilizationValidationElementData::CircularConvectionElementData> mRansCircularConvectionAFC2D;
+    const ConvectionDiffusionReactionCrossWindStabilizedElement<2, 3, StabilizationValidationElementData::CircularConvectionElementData> mRansCircularConvectionCWD2D;
+    const ConvectionDiffusionReactionResidualBasedFluxCorrectedElement<2, 3, StabilizationValidationElementData::CircularConvectionElementData> mRansCircularConvectionRFC2D;
+
+    const ConvectionDiffusionReactionElement<2, 3, StabilizationValidationElementData::BodyForceGovernedCDRElementData> mRansBodyForceGovernedCDRAFC2D;
+    const ConvectionDiffusionReactionCrossWindStabilizedElement<2, 3, StabilizationValidationElementData::BodyForceGovernedCDRElementData> mRansBodyForceGovernedCDRCWD2D;
+    const ConvectionDiffusionReactionResidualBasedFluxCorrectedElement<2, 3, StabilizationValidationElementData::BodyForceGovernedCDRElementData> mRansBodyForceGovernedCDRRFC2D;
+
+    const ConvectionDiffusionReactionElement<2, 3, StabilizationValidationElementData::DiffusionElementData> mRansDiffusionAFC2D;
+    const ConvectionDiffusionReactionCrossWindStabilizedElement<2, 3, StabilizationValidationElementData::DiffusionElementData> mRansDiffusionCWD2D;
+    const ConvectionDiffusionReactionResidualBasedFluxCorrectedElement<2, 3, StabilizationValidationElementData::DiffusionElementData> mRansDiffusionRFC2D;
 
     /// incompressible potential flow elements
     const IncompressiblePotentialFlowVelocityElement<2, 3> mIncompressiblePotentialFlowVelocity2D;
@@ -254,6 +279,9 @@ private:
     const IncompressiblePotentialFlowVelocityInletCondition<3, 3> mIncompressiblePotentialFlowVelocityInlet3D3N;
 
     // k-epsilon turbulence model conditions
+    const ScalarWallFluxCondition<2, 2, KEpsilonWallConditionData::KVisBasedWallConditionData> mRansKEpsilonKVisBasedWall2D2N;
+    const ScalarWallFluxCondition<3, 3, KEpsilonWallConditionData::KVisBasedWallConditionData> mRansKEpsilonKVisBasedWall3D3N;
+
     const ScalarWallFluxCondition<2, 2, KEpsilonWallConditionData::EpsilonKBasedWallConditionData> mRansKEpsilonEpsilonKBasedWall2D2N;
     const ScalarWallFluxCondition<3, 3, KEpsilonWallConditionData::EpsilonKBasedWallConditionData> mRansKEpsilonEpsilonKBasedWall3D3N;
 
@@ -266,6 +294,9 @@ private:
 
     const ScalarWallFluxCondition<2, 2, KOmegaWallConditionData::OmegaUBasedWallConditionData> mRansKOmegaOmegaUBasedWall2D2N;
     const ScalarWallFluxCondition<3, 3, KOmegaWallConditionData::OmegaUBasedWallConditionData> mRansKOmegaOmegaUBasedWall3D3N;
+
+    const ScalarWallFluxCondition<2, 2, KOmegaWallConditionData::OmegaVisLogBasedWallConditionData> mRansKOmegaOmegaVisLogBasedWall2D2N;
+    const ScalarWallFluxCondition<3, 3, KOmegaWallConditionData::OmegaVisLogBasedWallConditionData> mRansKOmegaOmegaVisLogBasedWall3D3N;
 
     // k-omega-sst turbulence model conditions
     const ScalarWallFluxCondition<2, 2, KOmegaSSTWallConditionData::OmegaKBasedWallConditionData> mRansKOmegaSSTOmegaKBasedWall2D2N;
@@ -283,6 +314,22 @@ private:
 
     const RansKOmegaSSTNewtonianLaw<2, Newtonian2DLaw> mRansKOmegaSSTNewtonian2DLaw;
     const RansKOmegaSSTNewtonianLaw<3, Newtonian3DLaw> mRansKOmegaSSTNewtonian3DLaw;
+
+    const RansFrozenTurbulenceNewtonianLaw<RansKEpsilonNewtonianLaw<Newtonian2DLaw>> mRansFrozenTurbulenceKEpsilonNewtonian2DLaw;
+    const RansFrozenTurbulenceNewtonianLaw<RansKEpsilonNewtonianLaw<Newtonian3DLaw>> mRansFrozenTurbulenceKEpsilonNewtonian3DLaw;
+
+    const RansFrozenTurbulenceNewtonianLaw<RansKOmegaNewtonianLaw<Newtonian2DLaw>> mRansFrozenTurbulenceKOmegaNewtonian2DLaw;
+    const RansFrozenTurbulenceNewtonianLaw<RansKOmegaNewtonianLaw<Newtonian3DLaw>> mRansFrozenTurbulenceKOmegaNewtonian3DLaw;
+
+    const RansFrozenTurbulenceNewtonianLaw<RansKOmegaSSTNewtonianLaw<2, Newtonian2DLaw>> mRansFrozenTurbulenceKOmegaSSTNewtonian2DLaw;
+    const RansFrozenTurbulenceNewtonianLaw<RansKOmegaSSTNewtonianLaw<3, Newtonian3DLaw>> mRansFrozenTurbulenceKOmegaSSTNewtonian3DLaw;
+
+    // stabilization validation adjoint elements
+    const ScalarEquationAdjointElement<2, 3, StabilizationValidationElementData::CircularConvectionRFCAdjointElementData> mRansCircularConvectionRFCAdjoint2D3N;
+    const ScalarEquationAdjointElement<2, 3, StabilizationValidationElementData::DiffusionRFCAdjointElementData> mRansDiffusionRFCAdjoint2D3N;
+
+    // stabilization validation adjoint conditions
+    const ScalarEquationAdjointCondition<2, 2> mRansScalarEquationAdjoint2D2N;
 
     // k-epsilon turbulence model adjoint elements
     const TwoEquationTurbulenceModelAdjointElement<2, 3, KEpsilonElementData::QSVMSRFCAdjointElementData<2, 3>> mRansKEpsilonQSVMSRFCAdjoint2D3N;

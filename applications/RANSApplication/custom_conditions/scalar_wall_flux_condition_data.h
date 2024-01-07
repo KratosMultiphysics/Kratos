@@ -26,6 +26,7 @@
 #include "includes/ublas_interface.h"
 
 // Application includes
+#include "custom_utilities/rans_calculation_utilities.h"
 
 namespace Kratos
 {
@@ -72,6 +73,10 @@ public:
     ///@}
     ///@name Access
     ///@{
+
+    const static bool IsWallFluxComputed(const GeometryType& rGeometry) {
+        return RansCalculationUtilities::IsWallFunctionActive(rGeometry);
+    }
 
     const GeometryType& GetGeometry() const
     {

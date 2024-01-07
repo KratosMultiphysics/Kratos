@@ -11,7 +11,7 @@ from KratosMultiphysics.RANSApplication import RansNutUtility
 
 class TwoEquationTurbulenceModelRansFormulation(RansFormulation):
     def __init__(self, model_part, settings, deprecated_settings_dict, formulation_1, formulation_2):
-        super().__init__(model_part, settings, deprecated_settings_dict)
+        super().__init__(model_part, settings)
 
         self.stabilization_method = settings["stabilization_method"].GetString()
 
@@ -26,8 +26,6 @@ class TwoEquationTurbulenceModelRansFormulation(RansFormulation):
         self.echo_level = settings["echo_level"].GetInt()
         self.nu_t_convergence_utility = RansNutUtility(
             self.GetBaseModelPart(),
-            self.formulation_1.GetSolvingVariable(),
-            self.formulation_2.GetSolvingVariable(),
             settings["coupling_settings"]["relative_tolerance"].GetDouble(),
             settings["coupling_settings"]["absolute_tolerance"].GetDouble(),
             self.echo_level)
@@ -49,11 +47,21 @@ class TwoEquationTurbulenceModelRansFormulation(RansFormulation):
         for process in self.auxiliar_process_list:
             self.AddProcess(process)
 
+        # adding this process as the last process to copy historical turbulence nodal data to non historical
+        # container so user can have custom processes to assign historical nodal turbulence data.
+        turbulence_data_copy_process = KratosRANS.RansVariableDataTransferProcess(
+            self.GetBaseModelPart().GetModel(),
+            self.GetBaseModelPart().Name,
+            self.GetBaseModelPart().Name,
+            ["initialize", "after_coupling_solve_step"],
+            [(self.formulation_1.GetSolvingVariable().Name(), True, 0, self.formulation_1.GetSolvingVariable().Name(), False, 0),
+             (self.formulation_2.GetSolvingVariable().Name(), True, 0, self.formulation_2.GetSolvingVariable().Name(), False, 0)],
+            self.echo_level
+        )
+        self.AddProcess(turbulence_data_copy_process)
+
         super().Initialize()
 
-        # set formulation initialized historical solving variables to non historical nodal containers
-        # this is run after super().Initialize() so user can use initialization processes via
-        # json to initialize historical variables, and it will be copied here.
         self.nu_t_convergence_utility.Initialize()
 
     def SetTimeSchemeSettings(self, settings):
@@ -81,29 +89,35 @@ class TwoEquationTurbulenceModelRansFormulation(RansFormulation):
         max_iterations = self.GetMaxCouplingIterations()
 
         for iteration in range(max_iterations):
+            self.ExecuteBeforeCouplingSolveStep()
+
             self.nu_t_convergence_utility.InitializeCalculation()
 
-            self.ExecuteBeforeCouplingSolveStep()
             for formulation in self.GetRansFormulationsList():
                 formulation.SolveCouplingStep()
-            self.ExecuteAfterCouplingSolveStep()
 
             Kratos.Logger.PrintInfo(self.__class__.__name__, "Solved coupling itr. {:d}/{:d}.".format(iteration + 1, max_iterations))
-            is_converged = self.nu_t_convergence_utility.CheckConvergence()
-            if (is_converged):
+            self.is_converged = self.nu_t_convergence_utility.CheckConvergence()
+
+            self.ExecuteAfterCouplingSolveStep()
+            if (self.is_converged):
                 return True
 
-        return True
+        return False
+
+    def IsConverged(self):
+        is_converged = super().IsConverged()
+
+        if hasattr(self, "is_converged"):
+            return is_converged and self.is_converged
+        else:
+            return is_converged
 
     def ExecuteAfterCouplingSolveStep(self):
         super().ExecuteAfterCouplingSolveStep()
-
-        # In here we transfer turbulence model variables to non-historical
-        # data value container of nodes so, nu_t can be calculated on those values
-        # this is done in order to achieve easier convergence.
-        self.nu_t_convergence_utility.UpdateTurbulenceData()
 
         # It is required to update nut here for old FractionalStep and
         # VMS formulations, so this nut can be distributed via rans_nut_nodal_update process
         # otherwise, this can be moved to FinalizeSolvingStep method
         self.nu_t_convergence_utility.UpdateTurbulentViscosity()
+

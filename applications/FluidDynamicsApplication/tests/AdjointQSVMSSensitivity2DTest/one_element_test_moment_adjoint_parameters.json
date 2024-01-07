@@ -1,0 +1,158 @@
+{
+    "problem_data": {
+        "problem_name": "one_element",
+        "start_time": 0.0,
+        "end_time": 3.0,
+        "echo_level": 0,
+        "parallel_type": "OpenMP"
+    },
+    "solver_settings": {
+        "solver_type": "Monolithic",
+        "scheme_settings": {
+            "scheme_type": "bossak",
+            "alpha_bossak": -0.3
+        },
+        "response_function_settings": {
+            "response_type": "moment",
+            "custom_settings": {
+                "structure_model_part_name": "Structure",
+                "moment_direction": [
+                    0.0,
+                    0.0,
+                    1.0
+                ],
+                "moment_point": [
+                    1.0,
+                    1.0,
+                    0.0
+                ]
+            }
+        },
+        "sensitivity_settings": {
+            "sensitivity_model_part_name": "Boundary",
+            "nodal_solution_step_sensitivity_variables": [
+                "SHAPE_SENSITIVITY"
+            ],
+            "build_mode": "integrate",
+            "nodal_solution_step_sensitivity_calculation_is_thread_safe": true
+        },
+        "domain_size": 2,
+        "echo_level": 0,
+        "model_part_name": "MainModelPart",
+        "volume_model_part_name": "Parts_Fluid",
+        "skin_parts": [
+            "Inlet",
+            "Outlet",
+            "Boundary",
+            "Structure"
+        ],
+        "linear_solver_settings": {
+            "solver_type": "skyline_lu_factorization"
+        },
+        "model_import_settings": {
+            "input_type": "mdpa",
+            "input_filename": "AdjointVMSSensitivity2DTest/one_element_test"
+        },
+        "material_import_settings": {
+            "materials_filename": "AdjointQSVMSSensitivity2DTest/one_element_test_materials.json"
+        },
+        "time_stepping": {
+            "automatic_time_step": false,
+            "time_step": 1.0
+        },
+        "formulation": {
+            "element_type": "qsvms",
+            "use_orthogonal_subscales": false,
+            "dynamic_tau": 1.0
+        }
+    },
+    "processes": {
+        "initial_conditions_process_list": [],
+        "boundary_conditions_process_list": [
+            {
+                "python_module": "assign_vector_variable_process",
+                "kratos_module": "KratosMultiphysics",
+                "process_name": "AssignVectorVariableProcess",
+                "Parameters": {
+                    "model_part_name": "MainModelPart.Inlet",
+                    "variable_name": "ADJOINT_FLUID_VECTOR_1",
+                    "value": [
+                        0.0,
+                        0.0,
+                        0.0
+                    ]
+                }
+            },
+            {
+                "python_module": "assign_scalar_variable_process",
+                "kratos_module": "KratosMultiphysics",
+                "process_name": "AssignScalarVariableProcess",
+                "Parameters": {
+                    "model_part_name": "MainModelPart.Outlet",
+                    "variable_name": "ADJOINT_FLUID_SCALAR_1",
+                    "value": 0
+                }
+            },
+            {
+                "python_module": "assign_vector_variable_process",
+                "kratos_module": "KratosMultiphysics",
+                "process_name": "AssignVectorVariableProcess",
+                "Parameters": {
+                    "model_part_name": "MainModelPart.Boundary",
+                    "variable_name": "ADJOINT_FLUID_VECTOR_1",
+                    "value": [
+                        0.0,
+                        0.0,
+                        0.0
+                    ]
+                }
+            },
+            {
+                "python_module": "assign_vector_variable_process",
+                "kratos_module": "KratosMultiphysics",
+                "process_name": "AssignVectorVariableProcess",
+                "Parameters": {
+                    "model_part_name": "MainModelPart.Outlet",
+                    "variable_name": "ADJOINT_FLUID_VECTOR_1",
+                    "constrained": [
+                        false,
+                        true,
+                        true
+                    ],
+                    "value": [
+                        0.0,
+                        0.0,
+                        0.0
+                    ]
+                }
+            }
+        ],
+        "gravity": [],
+        "auxiliar_process_list": [
+            {
+                "kratos_module": "KratosMultiphysics.HDF5Application",
+                "python_module": "single_mesh_temporal_input_process",
+                "help": "",
+                "process_name": "",
+                "Parameters": {
+                    "model_part_name": "MainModelPart",
+                    "file_settings": {
+                        "file_access_mode": "read_only"
+                    },
+                    "nodal_solution_step_data_settings": {
+                        "list_of_variables": [
+                            "VELOCITY",
+                            "PRESSURE",
+                            "REACTION"
+                        ]
+                    },
+                    "nodal_data_value_settings": {
+                        "list_of_variables": [
+                            "RELAXED_ACCELERATION"
+                        ]
+                    }
+                }
+            }
+        ]
+    }
+}

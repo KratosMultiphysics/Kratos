@@ -13,6 +13,7 @@
 
 
 // System includes
+#include "pybind11/stl.h"
 
 // External includes
 #ifdef KRATOS_USE_AMATRIX
@@ -39,6 +40,12 @@
 #include "custom_utilities/compressible_element_rotation_utility.h"
 #include "custom_utilities/acceleration_limitation_utilities.h"
 #include "custom_utilities/fluid_test_utilities.h"
+#include "custom_utilities/fluid_adjoint_utilities.h"
+#include "custom_utilities/fluid_fft_utilities.h"
+#include "custom_utilities/fluid_lss_variable_utilities.h"
+#include "custom_utilities/fluid_lss_sensitivity.h"
+#include "custom_utilities/fluid_lss_shape_sensitivity.h"
+#include "custom_utilities/fluid_model_part_preprocessing_utilities.h"
 
 #include "utilities/split_tetrahedra.h"
 
@@ -192,6 +199,66 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
         .def_static("RandomFillNonHistoricalVariable", [](ModelPart::ElementsContainerType& rElementsContainer, const Variable<double>& rVariable, const IndexType DomainSize, const double MinValue, const double MaxValue) { FluidTestUtilities::RandomFillNonHistoricalVariable(rElementsContainer, rVariable, DomainSize, MinValue, MaxValue);})
         .def_static("RandomFillNonHistoricalVariable", [](ModelPart::ElementsContainerType& rElementsContainer, const Variable<array_1d<double, 3>>& rVariable, const IndexType DomainSize, const double MinValue, const double MaxValue) { FluidTestUtilities::RandomFillNonHistoricalVariable(rElementsContainer, rVariable, DomainSize, MinValue, MaxValue);})
         ;
+
+    py::class_<FluidAdjointUtilities<2>>(m, "FluidAdjointUtilities2D")
+        .def_static("CalculateTriangleAreaDerivative", &FluidAdjointUtilities<2>::CalculateTriangleAreaDerivative)
+        ;
+
+    py::class_<FluidAdjointUtilities<3>>(m, "FluidAdjointUtilities3D")
+        .def_static("CalculateTriangleAreaDerivative", &FluidAdjointUtilities<3>::CalculateTriangleAreaDerivative)
+        ;
+
+    py::class_<FluidFFTUtilities>(m,"FluidFFTUtilities")
+        .def(py::init<const double, const double, const double>())
+        .def("CalculateFFTFrequencyDistribution",&FluidFFTUtilities::CalculateFFTFrequencyDistribution)
+        .def("IsWithinWindowingRange",&FluidFFTUtilities::IsWithinWindowingRange)
+        .def("CalculateHannWindowCoefficient",&FluidFFTUtilities::CalculateHannWindowCoefficient)
+        .def("CalculateFFTRealCoefficient",&FluidFFTUtilities::CalculateFFTRealCoefficient)
+        .def("CalculateFFTImagCoefficient",&FluidFFTUtilities::CalculateFFTImagCoefficient)
+        .def("CalculateFFTAmplitudeSquare",&FluidFFTUtilities::CalculateFFTAmplitudeSquare)
+        .def("CalculateFFTAmplitudeSquareDerivative",&FluidFFTUtilities::CalculateFFTAmplitudeSquareDerivative)
+        .def("GetFrequencyResolution",&FluidFFTUtilities::GetFrequencyResolution)
+        .def("GetFrequency",&FluidFFTUtilities::GetFrequency)
+        .def("GetMaximumFrequency",&FluidFFTUtilities::GetMaximumFrequency)
+        .def("GetTotalNumberOfSteps",&FluidFFTUtilities::GetTotalNumberOfSteps)
+        .def("GetNumberOfWindowingSteps",&FluidFFTUtilities::GetNumberOfWindowingSteps)
+        ;
+
+    py::class_<FluidLSSVariableUtilities, FluidLSSVariableUtilities::Pointer>(m, "FluidLSSVariableUtilities")
+        .def(py::init<const std::vector<const Variable<double>*>&, const std::vector<const Variable<double>*>&, const std::vector<const Variable<double>*>&, const std::vector<const Variable<double>*>&, const std::vector<const Variable<double>*>&, const std::vector<const Variable<double>*>&>())
+        .def("GetPrimalValues", &FluidLSSVariableUtilities::GetPrimalValues<ModelPart::ConditionType>)
+        .def("GetPrimalFirstDerivativeValues", &FluidLSSVariableUtilities::GetPrimalFirstDerivativeValues<ModelPart::ConditionType>)
+        .def("GetAdjointValues", &FluidLSSVariableUtilities::GetAdjointValues<ModelPart::ConditionType>)
+        .def("GetAdjointFirstDerivativeValues", &FluidLSSVariableUtilities::GetAdjointFirstDerivativeValues<ModelPart::ConditionType>)
+        .def("GetLSSValues", &FluidLSSVariableUtilities::GetLSSValues<ModelPart::ConditionType>)
+        .def("GetLSSFirstDerivativeValues", &FluidLSSVariableUtilities::GetLSSFirstDerivativeValues<ModelPart::ConditionType>)
+        .def("GetPrimalValues", &FluidLSSVariableUtilities::GetPrimalValues<ModelPart::ElementType>)
+        .def("GetPrimalFirstDerivativeValues", &FluidLSSVariableUtilities::GetPrimalFirstDerivativeValues<ModelPart::ElementType>)
+        .def("GetAdjointValues", &FluidLSSVariableUtilities::GetAdjointValues<ModelPart::ElementType>)
+        .def("GetAdjointFirstDerivativeValues", &FluidLSSVariableUtilities::GetAdjointFirstDerivativeValues<ModelPart::ElementType>)
+        .def("GetLSSValues", &FluidLSSVariableUtilities::GetLSSValues<ModelPart::ElementType>)
+        .def("GetLSSFirstDerivativeValues", &FluidLSSVariableUtilities::GetLSSFirstDerivativeValues<ModelPart::ElementType>)
+        ;
+
+    py::class_<FluidLSSSensitivity, FluidLSSSensitivity::Pointer>(m, "FluidLSSSensitivity")
+        .def(py::init<>())
+        .def("GetDerivativeVariable", &FluidLSSSensitivity::GetDerivativeVariable)
+        .def("CalculateResidualSensitivity", (void(FluidLSSSensitivity::*)(Vector&, ModelPart::ConditionType&, const FluidAdjointSlipUtilities&, const ProcessInfo&))(&FluidLSSSensitivity::CalculateResidualSensitivity))
+        .def("CalculateResidualSensitivity", (void(FluidLSSSensitivity::*)(Vector&, ModelPart::ElementType&, const FluidAdjointSlipUtilities&, const ProcessInfo&))(&FluidLSSSensitivity::CalculateResidualSensitivity))
+        .def("CalculateResponseSensitivity", (double(FluidLSSSensitivity::*)(ModelPart::ConditionType&, AdjointResponseFunction&,const FluidAdjointSlipUtilities&, const ProcessInfo&))(&FluidLSSSensitivity::CalculateResponseSensitivity))
+        .def("CalculateResponseSensitivity", (double(FluidLSSSensitivity::*)(ModelPart::ElementType&, AdjointResponseFunction&, const FluidAdjointSlipUtilities&, const ProcessInfo&))(&FluidLSSSensitivity::CalculateResponseSensitivity))
+        ;
+
+    py::class_<FluidLSSShapeSensitivity, FluidLSSShapeSensitivity::Pointer, FluidLSSSensitivity>(m, "FluidLSSShapeSensitivity")
+        .def(py::init<Parameters, const std::size_t>())
+        ;
+
+    py::class_<FluidModelPartPreProcessingUtilities>(m, "FluidModelPartPreProcessingUtilities")
+        .def_static("CreateModelPartForCommenInterface", &FluidModelPartPreProcessingUtilities::CreateModelPartForCommenInterface)
+        .def_static("GetElementIdsWithAllNodesOnBoundaries", &FluidModelPartPreProcessingUtilities::GetElementIdsWithAllNodesOnBoundaries)
+        .def_static("BreakElements", &FluidModelPartPreProcessingUtilities::BreakElements)
+        ;
+
 
 }
 

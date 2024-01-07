@@ -80,7 +80,8 @@ RansWallDistanceCalculationProcess::RansWallDistanceCalculationProcess(
     mWallModelPartName = rParameters["wall_model_part_name"].GetString();
     mDistanceVariableName = rParameters["distance_variable_name"].GetString();
     mNodalAreaVariableName = rParameters["nodal_area_variable_name"].GetString();
-    mRecalculateAtEachTimeStep = rParameters["re_calculate_at_each_time_step"].GetBool();
+
+    this->UpdateExecutionPointsList(rParameters["wall_distance_update_execution_points"].GetStringArray());
 
     KRATOS_CATCH("");
 }
@@ -109,24 +110,12 @@ int RansWallDistanceCalculationProcess::Check()
     KRATOS_CATCH("");
 }
 
-void RansWallDistanceCalculationProcess::ExecuteInitialize()
-{
-    CalculateWallDistances();
-}
-
-void RansWallDistanceCalculationProcess::ExecuteInitializeSolutionStep()
-{
-    if (mRecalculateAtEachTimeStep) {
-        CalculateWallDistances();
-    }
-}
-
 std::string RansWallDistanceCalculationProcess::Info() const
 {
     return std::string("RansWallDistanceCalculationProcess");
 }
 
-void RansWallDistanceCalculationProcess::CalculateWallDistances()
+void RansWallDistanceCalculationProcess::ExecuteOperation()
 {
     KRATOS_TRY
 
@@ -269,14 +258,14 @@ const Parameters RansWallDistanceCalculationProcess::GetDefaultParameters() cons
 {
     const auto default_parameters = Parameters(R"(
         {
-            "main_model_part_name"             : "PLEASE_SPECIFY_MAIN_MODEL_PART_NAME",
-            "wall_model_part_name"             : "PLEASE_SPECIFY_WALL_MODEL_PART_NAME",
-            "max_levels"                       : 100,
-            "max_distance"                     : 1e+30,
-            "echo_level"                       : 0,
-            "distance_variable_name"           : "DISTANCE",
-            "nodal_area_variable_name"         : "NODAL_AREA",
-            "re_calculate_at_each_time_step"   : false
+            "main_model_part_name"                 : "PLEASE_SPECIFY_MAIN_MODEL_PART_NAME",
+            "wall_model_part_name"                 : "PLEASE_SPECIFY_WALL_MODEL_PART_NAME",
+            "max_levels"                           : 100,
+            "max_distance"                         : 1e+30,
+            "echo_level"                           : 0,
+            "distance_variable_name"               : "DISTANCE",
+            "nodal_area_variable_name"             : "NODAL_AREA",
+            "wall_distance_update_execution_points": ["initialize"]
         })");
 
     return default_parameters;

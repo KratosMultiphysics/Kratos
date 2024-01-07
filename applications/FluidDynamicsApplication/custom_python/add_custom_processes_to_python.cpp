@@ -44,6 +44,8 @@
 #include "custom_processes/spalart_allmaras_turbulence_model.h"
 #include "custom_processes/stokes_initialization_process.h"
 #include "custom_processes/compute_y_plus_process.h"
+#include "custom_processes/calculate_sensitivity_metric_process.h"
+#include "custom_processes/element_refinement_process.h"
 
 #include "spaces/ublas_space.h"
 
@@ -185,6 +187,19 @@ void AddCustomProcessesToPython(pybind11::module& m)
 
     py::class_<ComputeYPlusProcess, ComputeYPlusProcess::Pointer, Process>(m, "ComputeYPlusProcess")
     .def(py::init<Model&, Parameters>())
+    ;
+
+    py::class_<CalculateSensitivityMetricProcess, CalculateSensitivityMetricProcess::Pointer, Process>(m,"CalculateSensitivityMetricProcess")
+    .def(py::init< Model&, Parameters >())
+    ;
+
+    py::class_<ElementRefinementProcess, ElementRefinementProcess::Pointer, Process>(m, "ElementRefinementProcess")
+    .def(py::init<Model&, Parameters>())
+    .def("InterpolateAllRefinedMeshesFromCoarseElement", &ElementRefinementProcess::InterpolateAllRefinedMeshesFromCoarseElement)
+    .def("InterpolateThreadLocalRefinedMeshFromCoarseElement", &ElementRefinementProcess::InterpolateThreadLocalRefinedMeshFromCoarseElement)
+    .def("SetEntityIds", &ElementRefinementProcess::SetEntityIds)
+    .def("SetConditionParentIds", &ElementRefinementProcess::SetConditionParentIds)
+    .def("GetThreadLocalModelPart", &ElementRefinementProcess::GetThreadLocalModelPart, py::return_value_policy::reference_internal)
     ;
 }
 

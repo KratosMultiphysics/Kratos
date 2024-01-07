@@ -33,6 +33,8 @@
 #include "utilities/dof_updater.h"
 #include "utilities/coordinate_transformation_utilities.h"
 #include "processes/process.h"
+#include "utilities/parallel_utilities.h"
+#include "utilities/variable_utils.h"
 
 namespace Kratos {
 
@@ -643,18 +645,10 @@ namespace Kratos {
 
         void FinalizeSolutionStep(ModelPart &rModelPart, TSystemMatrixType &A, TSystemVectorType &Dx, TSystemVectorType &b) override
         {
-            Element::EquationIdVectorType EquationId;
-            LocalSystemVectorType RHS_Contribution;
-            LocalSystemMatrixType LHS_Contribution;
-            const ProcessInfo& CurrentProcessInfo = rModelPart.GetProcessInfo();
-
-            //for (ModelPart::NodeIterator itNode = rModelPart.NodesBegin(); itNode != rModelPart.NodesEnd(); ++itNode)
-
             #pragma omp parallel for
             for(int k = 0; k<static_cast<int>(rModelPart.Nodes().size()); k++)
             {
                 auto itNode = rModelPart.NodesBegin() + k;
-                (itNode->FastGetSolutionStepValue(REACTION)).clear();
 
                 // calculating relaxed acceleration
                 const array_1d<double, 3 > & CurrentAcceleration = (itNode)->FastGetSolutionStepValue(ACCELERATION, 0);
@@ -664,65 +658,85 @@ namespace Kratos {
                 (itNode)->SetValue(RELAXED_ACCELERATION, relaxed_acceleration);
             }
 
-            //for (ModelPart::ElementsContainerType::ptr_iterator itElem = rModelPart.Elements().ptr_begin(); itElem != rModelPart.Elements().ptr_end(); ++itElem)
+            this->CalculateReactions(rModelPart);
 
-            #pragma omp parallel for firstprivate(EquationId,RHS_Contribution,LHS_Contribution)
-            for(int k = 0; k<static_cast<int>(rModelPart.Elements().size()); k++)
-            {
-                auto itElem = rModelPart.Elements().ptr_begin()+k;
-                int thread_id = OpenMPUtils::ThisThread();
+            // Base scheme calls FinalizeSolutionStep method of elements and conditions
+            Scheme<TSparseSpace, TDenseSpace>::FinalizeSolutionStep(rModelPart, A, Dx, b);
+        }
 
-                //KRATOS_WATCH(LHS_Contribution);
-                //basic operations for the element considered
-                (*itElem)->CalculateLocalSystem(LHS_Contribution, RHS_Contribution, CurrentProcessInfo);
+        //************************************************************************************************
+        //************************************************************************************************
 
-                //std::cout << rCurrentElement->Id() << " RHS = " << RHS_Contribution << std::endl;
-                (*itElem)->CalculateMassMatrix(mMass[thread_id], CurrentProcessInfo);
-                (*itElem)->CalculateLocalVelocityContribution(mDamp[thread_id], RHS_Contribution, CurrentProcessInfo);
+        void CalculateReactions(ModelPart& rModelPart)
+        {
+            KRATOS_TRY
 
-                (*itElem)->EquationIdVector(EquationId, CurrentProcessInfo);
+            using tls_type = std::tuple<
+                Element::EquationIdVectorType,
+                LocalSystemVectorType,
+                LocalSystemMatrixType,
+                LocalSystemMatrixType,
+                LocalSystemMatrixType>;
+
+            const auto& r_process_info = rModelPart.GetProcessInfo();
+
+            VariableUtils().SetHistoricalVariableToZero(REACTION, rModelPart.Nodes());
+
+            block_for_each(rModelPart.Elements(), tls_type(), [&](Element& rElement, tls_type& rTLS) {
+                auto& r_equation_ids = std::get<0>(rTLS);
+                auto& r_rhs_contributions = std::get<1>(rTLS);
+                auto& r_lhs_contributions = std::get<2>(rTLS);
+                auto& r_damping = std::get<3>(rTLS);
+                auto& r_mass = std::get<4>(rTLS);
+
+
+                rElement.InitializeNonLinearIteration(r_process_info);
+                rElement.CalculateLocalSystem(r_lhs_contributions, r_rhs_contributions, r_process_info);
+
+                rElement.CalculateMassMatrix(r_mass, r_process_info);
+                rElement.CalculateLocalVelocityContribution(r_damping, r_rhs_contributions, r_process_info);
+
+                rElement.EquationIdVector(r_equation_ids, r_process_info);
 
                 //adding the dynamic contributions (statics is already included)
-                AddDynamicsToLHS(LHS_Contribution, mDamp[thread_id], mMass[thread_id], CurrentProcessInfo);
-                AddDynamicsToRHS(**itElem, RHS_Contribution, mDamp[thread_id], mMass[thread_id], CurrentProcessInfo);
+                AddDynamicsToLHS(r_lhs_contributions, r_damping, r_mass, r_process_info);
+                AddDynamicsToRHS(rElement, r_rhs_contributions, r_damping, r_mass, r_process_info);
 
-                GeometryType& rGeom = (*itElem)->GetGeometry();
-                unsigned int NumNodes = rGeom.PointsNumber();
-                unsigned int Dimension = rGeom.WorkingSpaceDimension();
+                auto& r_geometry = rElement.GetGeometry();
+                unsigned int number_of_nodes = r_geometry.PointsNumber();
+                unsigned int dimension = r_geometry.WorkingSpaceDimension();
 
                 unsigned int index = 0;
-                for (unsigned int i = 0; i < NumNodes; i++)
-                {
-                    auto& reaction = rGeom[i].FastGetSolutionStepValue(REACTION);
+                for (unsigned int i = 0; i < number_of_nodes; i++) {
+                    auto& reaction = r_geometry[i].FastGetSolutionStepValue(REACTION);
 
                     double& target_value0 = reaction[0];
-                    const double& origin_value0 = RHS_Contribution[index++];
+                    const double& origin_value0 = r_rhs_contributions[index++];
+
                     #pragma omp atomic
                     target_value0 -= origin_value0;
 
                     double& target_value1 = reaction[1];
-                    const double& origin_value1 = RHS_Contribution[index++];
+                    const double& origin_value1 = r_rhs_contributions[index++];
+
                     #pragma omp atomic
                     target_value1 -= origin_value1;
 
-                    if (Dimension == 3)
-                    {
-                      double& target_value2 = reaction[2];
-                      const double& origin_value2 = RHS_Contribution[index++];
-                      #pragma omp atomic
-                      target_value2 -= origin_value2;
+                    if (dimension == 3) {
+                        double& target_value2 = reaction[2];
+                        const double& origin_value2 = r_rhs_contributions[index++];
+
+                        #pragma omp atomic
+                        target_value2 -= origin_value2;
                     }
-            //        rGeom[i].FastGetSolutionStepValue(REACTION_X,0) -= RHS_Contribution[index++];
-             //          rGeom[i].FastGetSolutionStepValue(REACTION_Y,0) -= RHS_Contribution[index++];
-            //        if (Dimension == 3) rGeom[i].FastGetSolutionStepValue(REACTION_Z,0) -= RHS_Contribution[index++];
+
                     index++; // skip pressure dof
                 }
-            }
+            });
 
             rModelPart.GetCommunicator().AssembleCurrentData(REACTION);
 
-            // Base scheme calls FinalizeSolutionStep method of elements and conditions
-            Scheme<TSparseSpace, TDenseSpace>::FinalizeSolutionStep(rModelPart, A, Dx, b);
+            KRATOS_CATCH("");
         }
 
         //************************************************************************************************

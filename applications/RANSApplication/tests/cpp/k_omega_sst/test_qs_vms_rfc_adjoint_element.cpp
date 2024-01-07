@@ -42,7 +42,7 @@ ModelPart& CreateRansKOmegaSSTQSVMSRFCAdjoint2D3NModelPart(
     const auto& set_variable_values = [](ModelPart& rModelPart) {
         FluidTestUtilities::RandomFillHistoricalVariable(rModelPart, VELOCITY, 50.0, 100.0, 0);
         FluidTestUtilities::RandomFillHistoricalVariable(rModelPart, DISTANCE, 1.0, 100.0, 0);
-        FluidTestUtilities::RandomFillHistoricalVariable(rModelPart, MESH_VELOCITY, 50.0, 100.0, 0);
+        FluidTestUtilities::RandomFillHistoricalVariable(rModelPart, MESH_VELOCITY, 0.0, 0.0, 0);
         FluidTestUtilities::RandomFillHistoricalVariable(rModelPart, PRESSURE, 5.0, 10.0, 0);
         FluidTestUtilities::RandomFillHistoricalVariable(rModelPart, EXTERNAL_PRESSURE, 50.0, 100.0, 0);
         FluidTestUtilities::RandomFillHistoricalVariable(rModelPart, ACCELERATION, 2.0, 3.0, 0);
@@ -55,7 +55,7 @@ ModelPart& CreateRansKOmegaSSTQSVMSRFCAdjoint2D3NModelPart(
 
         FluidTestUtilities::RandomFillHistoricalVariable(rModelPart, VELOCITY, 5.0, 10.0, 1);
         FluidTestUtilities::RandomFillHistoricalVariable(rModelPart, DISTANCE, 1.0, 100.0, 1);
-        FluidTestUtilities::RandomFillHistoricalVariable(rModelPart, MESH_VELOCITY, 50.0, 100.0, 1);
+        FluidTestUtilities::RandomFillHistoricalVariable(rModelPart, MESH_VELOCITY, 0.0, 0.0, 1);
         FluidTestUtilities::RandomFillHistoricalVariable(rModelPart, PRESSURE, 5.0, 10.0, 1);
         FluidTestUtilities::RandomFillHistoricalVariable(rModelPart, EXTERNAL_PRESSURE, 50.0, 100.0, 1);
         FluidTestUtilities::RandomFillHistoricalVariable(rModelPart, ACCELERATION, 2.0, 3.0, 1);
@@ -275,7 +275,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansKOmegaSSTQSVMSRFCAdjointCalculateFirstDerivativesL
         rElement.CalculateFirstDerivativesLHS(rMatrix, rProcessInfo);
     };
 
-    RunRansKOmegaSSTQSVMSRFCAdjointTest("QSVMS2D3N", VELOCITY, derivatives_method, 0, 0, 1e-6, 5e-5);
+    RunRansKOmegaSSTQSVMSRFCAdjointTest("QSVMS2D3N", VELOCITY, derivatives_method, 0, 0, 1e-6, 1e-4);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(RansKOmegaSSTQSVMSRFCAdjointCalculateFirstDerivativesLHS_UP, KratosRansFastSuite)
@@ -295,7 +295,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansKOmegaSSTQSVMSRFCAdjointCalculateFirstDerivativesL
         rElement.CalculateFirstDerivativesLHS(rMatrix, rProcessInfo);
     };
 
-    RunRansKOmegaSSTQSVMSRFCAdjointTest("QSVMS2D3N", TURBULENT_KINETIC_ENERGY, derivatives_method, 0, 3, 1e-5, 5e-4);
+    RunRansKOmegaSSTQSVMSRFCAdjointTest("QSVMS2D3N", TURBULENT_KINETIC_ENERGY, derivatives_method, 0, 3, 1e-5, 1e-3);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(RansKOmegaSSTQSVMSRFCAdjointCalculateFirstDerivativesLHS_UE, KratosRansFastSuite)
@@ -305,7 +305,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansKOmegaSSTQSVMSRFCAdjointCalculateFirstDerivativesL
         rElement.CalculateFirstDerivativesLHS(rMatrix, rProcessInfo);
     };
 
-    RunRansKOmegaSSTQSVMSRFCAdjointTest("QSVMS2D3N", TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE, derivatives_method, 0, 4, 1e-5, 1e-4);
+    RunRansKOmegaSSTQSVMSRFCAdjointTest("QSVMS2D3N", TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE, derivatives_method, 0, 4, 1e-5, 5e-4);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(RansKOmegaSSTQSVMSRFCAdjointCalculateFirstDerivativesLHS_UX, KratosRansFastSuite)

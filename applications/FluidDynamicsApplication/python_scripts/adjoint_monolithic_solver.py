@@ -145,6 +145,7 @@ class AdjointMonolithicSolver(AdjointFluidSolver):
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.EXTERNAL_PRESSURE)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.SHAPE_SENSITIVITY)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NORMAL_SENSITIVITY)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.REACTION)
 
         if self.settings["consider_periodic_conditions"].GetBool() == True:
             self.main_model_part.AddNodalSolutionStepVariable(KratosCFD.PATCH_INDEX)
@@ -168,7 +169,8 @@ class AdjointMonolithicSolver(AdjointFluidSolver):
         # Initialize the strategy and adjoint utilities
         solution_strategy.Initialize()
         self.GetResponseFunction().Initialize()
-        self.GetSensitivityBuilder().Initialize()
+        if self.GetSensitivityBuilder() is not None:
+            self.GetSensitivityBuilder().Initialize()
 
         domain_size = self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
         KratosMultiphysics.NormalCalculationUtils().CalculateOnSimplex(self.main_model_part.Conditions, domain_size)

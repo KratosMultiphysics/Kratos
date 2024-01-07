@@ -136,8 +136,12 @@
                     "is_fixed_x": false,
                     "is_fixed_y": false,
                     "is_fixed_z": false,
-                    "modulus" : 474.0,
-                    "direction": [1.0, 0.0, 0.0]
+                    "modulus": 474.0,
+                    "direction": [
+                        1.0,
+                        0.0,
+                        0.0
+                    ]
                 }
             }
         ],
@@ -218,11 +222,11 @@
                 "process_name": "FromJsonCheckResultProcess",
                 "Parameters": {
                     "check_variables": [
-                            "VELOCITY_X",
-                            "VELOCITY_Y",
-                            "PRESSURE",
-                            "TURBULENT_KINETIC_ENERGY",
-                            "TURBULENT_ENERGY_DISSIPATION_RATE"
+                        "VELOCITY_X",
+                        "VELOCITY_Y",
+                        "PRESSURE",
+                        "TURBULENT_KINETIC_ENERGY",
+                        "TURBULENT_ENERGY_DISSIPATION_RATE"
                     ],
                     "input_file_name": "channel_flow_mon_ke_flow_<FLOW_SOLVER_FORMULATION>_<SHORT_STABILIZATION_METHOD>_<SHORT_WALL_FRICTION_VELOCITY_CALCULATION_METHOD>_results.json",
                     "model_part_name": "FluidModelPart.Parts_fluid",
@@ -241,11 +245,11 @@
             "process_name": "FromJsonCheckResultProcess",
             "Parameters": {
                 "check_variables": [
-                        "VELOCITY_X",
-                        "VELOCITY_Y",
-                        "PRESSURE",
-                        "TURBULENT_KINETIC_ENERGY",
-                        "TURBULENT_ENERGY_DISSIPATION_RATE"
+                    "VELOCITY_X",
+                    "VELOCITY_Y",
+                    "PRESSURE",
+                    "TURBULENT_KINETIC_ENERGY",
+                    "TURBULENT_ENERGY_DISSIPATION_RATE"
                 ],
                 "input_file_name": "channel_flow_mon_ke_flow_<FLOW_SOLVER_FORMULATION>_<SHORT_STABILIZATION_METHOD>_<SHORT_WALL_FRICTION_VELOCITY_CALCULATION_METHOD>_results.json",
                 "model_part_name": "FluidModelPart.Parts_fluid",
@@ -261,11 +265,11 @@
             "process_name": "JsonOutputProcess",
             "Parameters": {
                 "output_variables": [
-                        "VELOCITY_X",
-                        "VELOCITY_Y",
-                        "PRESSURE",
-                        "TURBULENT_KINETIC_ENERGY",
-                        "TURBULENT_ENERGY_DISSIPATION_RATE"
+                    "VELOCITY_X",
+                    "VELOCITY_Y",
+                    "PRESSURE",
+                    "TURBULENT_KINETIC_ENERGY",
+                    "TURBULENT_ENERGY_DISSIPATION_RATE"
                 ],
                 "output_file_name": "channel_flow_mon_ke_flow_<FLOW_SOLVER_FORMULATION>_<SHORT_STABILIZATION_METHOD>_<SHORT_WALL_FRICTION_VELOCITY_CALCULATION_METHOD>_results.json",
                 "model_part_name": "FluidModelPart.Parts_fluid",
