@@ -178,6 +178,7 @@ class HRomTrainingUtility(object):
 
         if self.hrom_output_format == "numpy":
             hrom_info = KratosMultiphysics.Parameters(json.JSONEncoder().encode(self.__CreateDictionaryWithRomElementsAndWeights()))
+            element_ids, element_weights, condition_ids, condition_weights = self.__CreateNumpyArrayWithRomElementsAndWeights()
         elif self.hrom_output_format == "json":
             with (self.rom_basis_output_folder / self.rom_basis_output_name).with_suffix('.json').open('r') as f:
                 rom_parameters = KratosMultiphysics.Parameters(f.read())
@@ -187,7 +188,15 @@ class HRomTrainingUtility(object):
         if (self.projection_strategy=="lspg"):
             KratosROM.RomAuxiliaryUtilities.SetHRomComputingModelPartWithNeighbours(hrom_info,computing_model_part,hrom_main_model_part)
         else:
-            KratosROM.RomAuxiliaryUtilities.SetHRomComputingModelPart(hrom_info,computing_model_part,hrom_main_model_part)
+            # Convert NumPy arrays to Python lists, ensuring that IDs are integers
+            element_ids_list = element_ids.astype(int).tolist()
+            element_weights_list = element_weights.tolist()
+            condition_ids_list = condition_ids.astype(int).tolist()
+            condition_weights_list = condition_weights.tolist()
+
+            # Call the C++ function with the converted lists
+            KratosROM.RomAuxiliaryUtilities.SetHRomComputingModelPartWithNumpy(element_ids_list, element_weights_list, condition_ids_list, condition_weights_list, computing_model_part, hrom_main_model_part)
+            # KratosROM.RomAuxiliaryUtilities.SetHRomComputingModelPart(hrom_info,computing_model_part,hrom_main_model_part)
         if self.echo_level > 0:
             KratosMultiphysics.Logger.PrintInfo("HRomTrainingUtility","HROM computing model part \'{}\' created.".format(hrom_main_model_part.FullName()))
 
@@ -283,7 +292,6 @@ class HRomTrainingUtility(object):
 
                 # Call the GetConditionIdsNotInHRomModelPart function
                 new_conditions = KratosROM.RomAuxiliaryUtilities.GetConditionIdsNotInHRomModelPart(
-                    root_model_part, # The complete model part
                     conditions_to_include_model_part, # The model part containing the conditions to be included
                     hrom_weights)
 
@@ -320,6 +328,7 @@ class HRomTrainingUtility(object):
 
                 # Call the GetNodalNeighbouringElementIdsNotInHRom function
                 new_nodal_neighbours = KratosROM.RomAuxiliaryUtilities.GetNodalNeighbouringElementIdsNotInHRom(
+                    root_model_part, # The complete model part
                     nodal_neighbours_model_part, # The model part containing the nodal neighbouring elements to be included
                     hrom_weights)
 
@@ -419,5 +428,25 @@ class HRomTrainingUtility(object):
                     hrom_weights["Conditions"][int(indexes[j])-number_of_elements] = float(weights[j])
 
         return hrom_weights
+
+    def __CreateNumpyArrayWithRomElementsAndWeights(self):
+        number_of_elements = self.solver.GetComputingModelPart().NumberOfElements()
+
+        # Load combined indexes and weights
+        combined_indexes = np.load(self.rom_basis_output_folder / "HROM_ElementIds.npy")
+        combined_weights = np.load(self.rom_basis_output_folder / "HROM_ElementWeights.npy")
+
+        # Determine which indexes are for elements and which are for conditions
+        element_mask = combined_indexes < number_of_elements
+        condition_mask = ~element_mask
+
+        # Separate element and condition indexes and weights
+        element_ids = combined_indexes[element_mask]
+        element_weights = combined_weights[element_mask]
+        condition_ids = combined_indexes[condition_mask] - number_of_elements
+        condition_weights = combined_weights[condition_mask]
+
+        return element_ids, element_weights, condition_ids, condition_weights
+
 
 

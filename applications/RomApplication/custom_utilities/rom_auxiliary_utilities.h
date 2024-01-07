@@ -82,6 +82,13 @@ public:
         const ModelPart& rOriginModelPart,
         ModelPart& rHRomComputingModelPart);
 
+    static void SetHRomComputingModelPartWithNumpy(const std::vector<int>& elementIds,
+                                        const std::vector<double>& elementWeights,
+                                        const std::vector<int>& conditionIds,
+                                        const std::vector<double>& conditionWeights,
+                                        ModelPart& rOriginModelPart,
+                                        ModelPart& rHRomComputingModelPart);
+
     /**
      * @brief Sets the HROM model part including neighboring entities based on the nodal weights
      *
@@ -266,20 +273,20 @@ public:
         const std::unordered_map<Kratos::VariableData::KeyType, Matrix::size_type>& rVarToRowMapping);
 
     /**
-     * @brief Obtain the JPhi elemental matrix for a particular element. 
+     * @brief Obtain the JPhi elemental matrix for a particular element.
      * JPhi represents the projection of the Jacobian onto the ROM_BASIS.
      * @param rJPhiElemental The matrix to store the result in. Must have the appropriate size already.
      * @param rDofs The set of degrees of freedom (DoFs) of the element.
      * @param rJPhi The JPhi matrix, from which rows are extracted according to the equation ID of each DoF.
-     * 
-     * This function loops over all the DoFs for the given element. For each DoF, it uses its equation ID to extract a 
+     *
+     * This function loops over all the DoFs for the given element. For each DoF, it uses its equation ID to extract a
      * corresponding row from the rJPhi matrix, which is then stored in the corresponding row of rJPhiElemental.
      */
     static void GetJPhiElemental(
         Matrix &rJPhiElemental,
         const Element::DofsVectorType& rDofs,
         const Matrix &rJPhi);
-        
+
     ///@}
 
     private:

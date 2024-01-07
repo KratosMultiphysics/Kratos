@@ -25,6 +25,8 @@
 #include "rom_application_variables.h"
 #include "rom_auxiliary_utilities.h"
 
+#include <chrono>
+
 namespace Kratos
 {
 
@@ -54,49 +56,51 @@ void RomAuxiliaryUtilities::SetHRomComputingModelPart(
     std::vector<Element::Pointer> hrom_elems_vect;
     std::vector<Condition::Pointer> hrom_conds_vect;
 
+    auto start = std::chrono::high_resolution_clock::now();
+
     const auto& r_elem_weights = HRomWeights["Elements"];
     hrom_elems_vect.reserve(rOriginModelPart.NumberOfElements());
-    for (auto it = r_elem_weights.begin(); it != r_elem_weights.end(); ++it) {
-        // Get element from origin mesh
-        const IndexType elem_id = stoi(it.name());
-        const auto p_elem = rOriginModelPart.pGetElement(elem_id + 1); //FIXME: WHY THIS +1?
+    std::set<IndexType> unique_node_ids; // Set to store unique node IDs
 
-        // Add the element to the auxiliary container and to the main HROM model part
+    // Step 1: Collect unique node IDs and add elements
+    for (auto it = r_elem_weights.begin(); it != r_elem_weights.end(); ++it) {
+        const IndexType elem_id = stoi(it.name());
+        const auto p_elem = rOriginModelPart.pGetElement(elem_id + 1);
+        KRATOS_WATCH(elem_id + 1)
+
         hrom_elems_vect.push_back(p_elem);
         rHRomComputingModelPart.AddElement(p_elem);
 
-        // Add the element nodes to the auxiliary set and to the main HROM model part
         const auto& r_geom = p_elem->GetGeometry();
-        const SizeType n_nodes = r_geom.PointsNumber();
-        for (IndexType i_node = 0; i_node < n_nodes; ++i_node) {
-            NodeType::Pointer p_node = r_geom(i_node);
-            hrom_nodes_set.insert(hrom_nodes_set.end(), p_node);
-            rHRomComputingModelPart.AddNode(p_node);
+        for (IndexType i_node = 0; i_node < r_geom.PointsNumber(); ++i_node) {
+            unique_node_ids.insert(r_geom[i_node].Id()); // Collect unique node IDs
         }
     }
     hrom_elems_vect.shrink_to_fit();
 
     const auto& r_cond_weights = HRomWeights["Conditions"];
     hrom_conds_vect.reserve(rOriginModelPart.NumberOfConditions());
-    for (auto it = r_cond_weights.begin(); it != r_cond_weights.end(); ++it) {
-        // Get the condition from origin mesh
-        const IndexType cond_id = stoi(it.name());
-        auto p_cond = rOriginModelPart.pGetCondition(cond_id + 1); //FIXME: WHY THIS +1?
 
-        // Add the condition to the auxiliary container and to the main HROM model part
+    // Process conditions and collect unique node IDs
+    for (auto it = r_cond_weights.begin(); it != r_cond_weights.end(); ++it) {
+        const IndexType cond_id = stoi(it.name());
+        auto p_cond = rOriginModelPart.pGetCondition(cond_id + 1); // The +1 might be due to indexing differences
+
         hrom_conds_vect.push_back(p_cond);
         rHRomComputingModelPart.AddCondition(p_cond);
 
-        // Add the condition nodes to the auxiliary set and to the main HROM model part
         const auto& r_geom = p_cond->GetGeometry();
-        const SizeType n_nodes = r_geom.PointsNumber();
-        for (IndexType i_node = 0; i_node < n_nodes; ++i_node) {
-            auto p_node = r_geom(i_node);
-            hrom_nodes_set.insert(hrom_nodes_set.end(), p_node);
-            rHRomComputingModelPart.AddNode(p_node);
+        for (IndexType i_node = 0; i_node < r_geom.PointsNumber(); ++i_node) {
+            unique_node_ids.insert(r_geom[i_node].Id()); // Collect unique node IDs
         }
     }
     hrom_conds_vect.shrink_to_fit();
+
+    // Step 2: Add unique nodes to the HROM model part using their IDs
+    for (auto node_id : unique_node_ids) {
+        auto p_node = rOriginModelPart.pGetNode(node_id); // Retrieve node by ID
+        rHRomComputingModelPart.AddNode(p_node);
+    }
 
     //TODO: ADD MPC'S
 
@@ -112,6 +116,98 @@ void RomAuxiliaryUtilities::SetHRomComputingModelPart(
     for (auto& r_orig_sub_mp : rOriginModelPart.SubModelParts()) {
         RecursiveHRomModelPartCreation(hrom_nodes_set, hrom_elems_vect, hrom_conds_vect, r_orig_sub_mp, rHRomComputingModelPart);
     }
+
+    auto stop = std::chrono::high_resolution_clock::now();
+    auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(stop - start);
+    std::cout << "Time taken: " << duration.count() << " milliseconds" << std::endl;
+}
+
+void RomAuxiliaryUtilities::SetHRomComputingModelPartWithNumpy(const std::vector<int>& elementIds,
+                                        const std::vector<double>& elementWeights,
+                                        const std::vector<int>& conditionIds,
+                                        const std::vector<double>& conditionWeights,
+                                        ModelPart& rOriginModelPart,
+                                        ModelPart& rHRomComputingModelPart) {
+
+    // Ensure that the provided destination model part is empty
+    rHRomComputingModelPart.Clear();
+
+    // Auxiliary containers to save the entities involved in the HROM mesh
+    // Note that we use a set for the nodes to make sure that the same node is not added by more than one element/condition
+    NodesPointerSetType hrom_nodes_set;
+    std::vector<Element::Pointer> hrom_elems_vect;
+    std::vector<Condition::Pointer> hrom_conds_vect;
+    std::set<IndexType> unique_node_ids; // Set to store unique node IDs
+
+    auto start = std::chrono::high_resolution_clock::now();
+
+    // Reserve space in the vector to improve performance
+    hrom_elems_vect.reserve(rOriginModelPart.NumberOfElements());
+
+    for (size_t i = 0; i < elementIds.size(); ++i) {
+        int elem_id = elementIds[i];
+
+        // Get the element from the origin model part (assuming IDs start from 1)
+        auto p_elem = rOriginModelPart.pGetElement(elem_id + 1);
+        KRATOS_WATCH(elem_id + 1)
+
+        // Add the element to the auxiliary container and to the main HROM model part
+        hrom_elems_vect.push_back(p_elem);
+        rHRomComputingModelPart.AddElement(p_elem);
+
+        const auto& r_geom = p_elem->GetGeometry();
+        for (IndexType i_node = 0; i_node < r_geom.PointsNumber(); ++i_node) {
+            unique_node_ids.insert(r_geom[i_node].Id()); // Collect unique node IDs
+        }
+    }
+    hrom_elems_vect.shrink_to_fit();
+
+    //Reserve space for conditions (if needed)
+    hrom_conds_vect.reserve(rOriginModelPart.NumberOfConditions());
+
+    // Iterate over the condition IDs and their weights
+    for (size_t i = 0; i < conditionIds.size(); ++i) {
+        int cond_id = conditionIds[i];
+        // double weight = conditionWeights[i]; // Uncomment if weight is needed
+
+        // Get the condition from the origin model part (assuming IDs start from 1)
+        auto p_cond = rOriginModelPart.pGetCondition(cond_id + 1);
+
+        // Add the condition to the auxiliary container and to the main HROM model part
+        hrom_conds_vect.push_back(p_cond);
+        rHRomComputingModelPart.AddCondition(p_cond);
+
+        const auto& r_geom = p_cond->GetGeometry();
+        for (IndexType i_node = 0; i_node < r_geom.PointsNumber(); ++i_node) {
+            unique_node_ids.insert(r_geom[i_node].Id()); // Collect unique node IDs
+        }
+    }
+    hrom_conds_vect.shrink_to_fit();
+
+    // Step 2: Add unique nodes to the HROM model part using their IDs
+    for (auto node_id : unique_node_ids) {
+        auto p_node = rOriginModelPart.pGetNode(node_id); // Retrieve node by ID
+        rHRomComputingModelPart.AddNode(p_node);
+    }
+
+    //TODO: ADD MPC'S
+
+    // Add properties to the HROM mesh
+    // Note that we add all the properties although some of them might note be used in the HROM mesh
+    auto& r_root_model_part = const_cast<ModelPart&>(rOriginModelPart).GetRootModelPart();
+    auto& r_properties = r_root_model_part.rProperties();
+    for (auto it_p_prop = r_properties.ptr_begin(); it_p_prop < r_properties.ptr_end(); ++it_p_prop) {
+        rHRomComputingModelPart.AddProperties(*it_p_prop);
+    }
+
+    // Create and fill the HROM calculation sub model parts
+    for (auto& r_orig_sub_mp : rOriginModelPart.SubModelParts()) {
+        RecursiveHRomModelPartCreation(hrom_nodes_set, hrom_elems_vect, hrom_conds_vect, r_orig_sub_mp, rHRomComputingModelPart);
+    }
+
+    auto stop = std::chrono::high_resolution_clock::now();
+    auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(stop - start);
+    std::cout << "Time taken: " << duration.count() << " milliseconds" << std::endl;
 }
 
 void RomAuxiliaryUtilities::RecursiveHRomModelPartCreation(
@@ -185,7 +281,7 @@ void RomAuxiliaryUtilities::SetHRomComputingModelPartWithNeighbours(
 
     const auto& r_elem_weights = HRomWeights["Elements"];
     const auto& r_cond_weights = HRomWeights["Conditions"];
-    
+
     hrom_elems_vect.reserve(rOriginModelPart.NumberOfElements());
     hrom_conds_vect.reserve(rOriginModelPart.NumberOfConditions());
 
@@ -254,7 +350,7 @@ void RomAuxiliaryUtilities::SetHRomComputingModelPartWithNeighbours(
             }
         }
     }
-    
+
     for (auto it = r_cond_weights.begin(); it != r_cond_weights.end(); ++it) {
         // Get the condition from origin mesh
         const IndexType cond_id = stoi(it.name());
