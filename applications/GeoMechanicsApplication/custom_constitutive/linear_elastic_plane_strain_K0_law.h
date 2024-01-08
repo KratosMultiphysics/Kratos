@@ -50,9 +50,6 @@ public:
     ///@name Type Definitions
     ///@{
 
-    /// The base class ConstitutiveLaw type definition
-    using CLBaseType = ConstitutiveLaw;
-
     /// The base class ElasticIsotropicK03DLaw type definition
     using BaseType = ElasticIsotropicK03DLaw;
 
