@@ -178,7 +178,7 @@ class HRomTrainingUtility(object):
 
         if self.hrom_output_format == "numpy":
             hrom_info = KratosMultiphysics.Parameters(json.JSONEncoder().encode(self.__CreateDictionaryWithRomElementsAndWeights()))
-            element_ids, element_weights, condition_ids, condition_weights = self.__CreateNumpyArrayWithRomElementsAndWeights()
+            element_ids_list, element_weights_list, condition_ids_list, condition_weights_list = self.__CreateListsWithRomElementsAndWeights()
         elif self.hrom_output_format == "json":
             with (self.rom_basis_output_folder / self.rom_basis_output_name).with_suffix('.json').open('r') as f:
                 rom_parameters = KratosMultiphysics.Parameters(f.read())
@@ -188,15 +188,10 @@ class HRomTrainingUtility(object):
         if (self.projection_strategy=="lspg"):
             KratosROM.RomAuxiliaryUtilities.SetHRomComputingModelPartWithNeighbours(hrom_info,computing_model_part,hrom_main_model_part)
         else:
-            # Convert NumPy arrays to Python lists, ensuring that IDs are integers
-            element_ids_list = element_ids.astype(int).tolist()
-            element_weights_list = element_weights.tolist()
-            condition_ids_list = condition_ids.astype(int).tolist()
-            condition_weights_list = condition_weights.tolist()
-
-            # Call the C++ function with the converted lists
-            KratosROM.RomAuxiliaryUtilities.SetHRomComputingModelPartWithNumpy(element_ids_list, element_weights_list, condition_ids_list, condition_weights_list, computing_model_part, hrom_main_model_part)
-            # KratosROM.RomAuxiliaryUtilities.SetHRomComputingModelPart(hrom_info,computing_model_part,hrom_main_model_part)
+            if self.hrom_output_format == "numpy":
+                KratosROM.RomAuxiliaryUtilities.SetHRomComputingModelPartWithLists(element_ids_list, element_weights_list, condition_ids_list, condition_weights_list, computing_model_part, hrom_main_model_part)
+            elif self.hrom_output_format == "json":
+                KratosROM.RomAuxiliaryUtilities.SetHRomComputingModelPart(hrom_info,computing_model_part,hrom_main_model_part)
         if self.echo_level > 0:
             KratosMultiphysics.Logger.PrintInfo("HRomTrainingUtility","HROM computing model part \'{}\' created.".format(hrom_main_model_part.FullName()))
 
@@ -429,7 +424,7 @@ class HRomTrainingUtility(object):
 
         return hrom_weights
 
-    def __CreateNumpyArrayWithRomElementsAndWeights(self):
+    def __CreateListsWithRomElementsAndWeights(self):
         number_of_elements = self.solver.GetComputingModelPart().NumberOfElements()
 
         # Load combined indexes and weights
@@ -446,7 +441,13 @@ class HRomTrainingUtility(object):
         condition_ids = combined_indexes[condition_mask] - number_of_elements
         condition_weights = combined_weights[condition_mask]
 
-        return element_ids, element_weights, condition_ids, condition_weights
+        # Convert NumPy arrays to Python lists, ensuring that IDs are integers
+        element_ids_list = element_ids.astype(int).tolist()
+        element_weights_list = element_weights.tolist()
+        condition_ids_list = condition_ids.astype(int).tolist()
+        condition_weights_list = condition_weights.tolist()
+
+        return element_ids_list, element_weights_list, condition_ids_list, condition_weights_list
 
 
 

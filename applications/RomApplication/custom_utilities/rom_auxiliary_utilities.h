@@ -82,12 +82,28 @@ public:
         const ModelPart& rOriginModelPart,
         ModelPart& rHRomComputingModelPart);
 
-    static void SetHRomComputingModelPartWithNumpy(const std::vector<int>& elementIds,
-                                        const std::vector<double>& elementWeights,
-                                        const std::vector<int>& conditionIds,
-                                        const std::vector<double>& conditionWeights,
-                                        ModelPart& rOriginModelPart,
-                                        ModelPart& rHRomComputingModelPart);
+    /**
+     * @brief Sets the HROM model part using lists of element and condition IDs and weights
+     * This function constructs the HROM model part by directly using lists of element and
+     * condition IDs along with their corresponding weights. It processes the given IDs to
+     * retrieve the respective elements and conditions from the origin model part and then
+     * adds them to the destination model part. Unique node IDs are also extracted and managed
+     * efficiently to avoid duplication. This approach is more direct and efficient, especially
+     * when dealing with large datasets.
+     * @param elementIds Vector of integers representing the IDs of elements to be included in the HROM model part
+     * @param elementWeights Vector of doubles representing the weights of the corresponding elements
+     * @param conditionIds Vector of integers representing the IDs of conditions to be included in the HROM model part
+     * @param conditionWeights Vector of doubles representing the weights of the corresponding conditions
+     * @param rOriginModelPart Reference to the origin model part (usually the computing model part)
+     * @param rHRomComputingModelPart Reference to the destination model part where the HROM mesh will be stored
+     */
+    static void SetHRomComputingModelPartWithLists(
+        const std::vector<int>& elementIds,
+        const std::vector<double>& elementWeights,
+        const std::vector<int>& conditionIds,
+        const std::vector<double>& conditionWeights,
+        ModelPart& rOriginModelPart,
+        ModelPart& rHRomComputingModelPart);
 
     /**
      * @brief Sets the HROM model part including neighboring entities based on the nodal weights

@@ -122,7 +122,7 @@ void RomAuxiliaryUtilities::SetHRomComputingModelPart(
     std::cout << "Time taken: " << duration.count() << " milliseconds" << std::endl;
 }
 
-void RomAuxiliaryUtilities::SetHRomComputingModelPartWithNumpy(const std::vector<int>& elementIds,
+void RomAuxiliaryUtilities::SetHRomComputingModelPartWithLists(const std::vector<int>& elementIds,
                                         const std::vector<double>& elementWeights,
                                         const std::vector<int>& conditionIds,
                                         const std::vector<double>& conditionWeights,
