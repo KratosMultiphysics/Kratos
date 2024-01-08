@@ -65,7 +65,7 @@ void RomAuxiliaryUtilities::SetHRomComputingModelPart(
     // Step 1: Collect unique node IDs and add elements
     for (auto it = r_elem_weights.begin(); it != r_elem_weights.end(); ++it) {
         const IndexType elem_id = stoi(it.name());
-        const auto p_elem = rOriginModelPart.pGetElement(elem_id + 1);
+        const auto p_elem = rOriginModelPart.pGetElement(elem_id + 1); //FIXME: WHY THIS +1?
         KRATOS_WATCH(elem_id + 1)
 
         hrom_elems_vect.push_back(p_elem);
@@ -84,7 +84,7 @@ void RomAuxiliaryUtilities::SetHRomComputingModelPart(
     // Process conditions and collect unique node IDs
     for (auto it = r_cond_weights.begin(); it != r_cond_weights.end(); ++it) {
         const IndexType cond_id = stoi(it.name());
-        auto p_cond = rOriginModelPart.pGetCondition(cond_id + 1); // The +1 might be due to indexing differences
+        auto p_cond = rOriginModelPart.pGetCondition(cond_id + 1); //FIXME: WHY THIS +1?
 
         hrom_conds_vect.push_back(p_cond);
         rHRomComputingModelPart.AddCondition(p_cond);
@@ -148,7 +148,7 @@ void RomAuxiliaryUtilities::SetHRomComputingModelPartWithLists(const std::vector
         int elem_id = elementIds[i];
 
         // Get the element from the origin model part (assuming IDs start from 1)
-        auto p_elem = rOriginModelPart.pGetElement(elem_id + 1);
+        auto p_elem = rOriginModelPart.pGetElement(elem_id + 1); //FIXME: WHY THIS +1?
         KRATOS_WATCH(elem_id + 1)
 
         // Add the element to the auxiliary container and to the main HROM model part
@@ -171,7 +171,7 @@ void RomAuxiliaryUtilities::SetHRomComputingModelPartWithLists(const std::vector
         // double weight = conditionWeights[i]; // Uncomment if weight is needed
 
         // Get the condition from the origin model part (assuming IDs start from 1)
-        auto p_cond = rOriginModelPart.pGetCondition(cond_id + 1);
+        auto p_cond = rOriginModelPart.pGetCondition(cond_id + 1); //FIXME: WHY THIS +1?
 
         // Add the condition to the auxiliary container and to the main HROM model part
         hrom_conds_vect.push_back(p_cond);
