@@ -1006,16 +1006,18 @@ void UPwSmallStrainFICElement<2, 3>::CalculateConstitutiveTensorGradients(FICEle
 
     noalias(rFICVariables.DimUMatrix) = prod(rFICVariables.DimVoigtMatrix, Variables.B);
 
+    // clang-format off
     /* INFO:
      *
-     * rFICVariables.ConstitutiveTensorGradients = [ ( |D00x|   |D01x|   |D02x| )   ( |D10x| |D11x|
-     * |D12x| ) ] [ ( |D00y| , |D01y| , |D02y| ) , ( |D10y| , |D11y| , |D12y| ) ]
+     * rFICVariables.ConstitutiveTensorGradients = [ ( |D00x|   |D01x|   |D02x| )   ( |D10x|   |D11x|   |D12x| ) ]
+     *                                             [ ( |D00y| , |D01y| , |D02y| ) , ( |D10y| , |D11y| , |D12y| ) ]
      *
      * rFICVariables.DimVoigtMatrix = |D00x+D10x D01x+D11x D02x+D12x|
      *                                |D00y+D10y D01y+D11y D02y+D12y|
      *
      * D00x = aD(0,0)/ax at current GP
      */
+    // clang-format on
 
     KRATOS_CATCH("")
 }
