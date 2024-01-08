@@ -50,6 +50,13 @@ public:
      */
     ConstitutiveLaw::Pointer Clone() const override;
 
+    bool RequiresInitializeMaterialResponse() override;
+    void InitializeMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues) override;
+
+    bool RequiresFinalizeMaterialResponse() override;
+    void FinalizeMaterialResponseCauchy(ConstitutiveLaw::Parameters & rValues) override;
+    void FinalizeMaterialResponsePK2(ConstitutiveLaw::Parameters& rValues) override;
+
     /**
      * @brief This function is designed to be called once to check compatibility with element
      * @param rFeatures: The Features of the law
@@ -97,11 +104,7 @@ protected:
                             Vector& rStressVector,
                             ConstitutiveLaw::Parameters& rValues) override;
 
-    bool RequiresInitializeMaterialResponse() override;
-    void InitializeMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues) override;
 
-    void FinalizeMaterialResponseCauchy(ConstitutiveLaw::Parameters & rValues) final;
-    void FinalizeMaterialResponsePK2(ConstitutiveLaw::Parameters& rValues) final;
 
     ///@}
 

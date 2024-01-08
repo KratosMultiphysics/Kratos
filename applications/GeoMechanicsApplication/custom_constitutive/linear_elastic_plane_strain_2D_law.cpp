@@ -133,6 +133,11 @@ void GeoLinearElasticPlaneStrain2DLaw::InitializeMaterialResponseCauchy(Constitu
     KRATOS_CATCH("")
 }
 
+bool GeoLinearElasticPlaneStrain2DLaw::RequiresFinalizeMaterialResponse()
+{
+    return true;
+}
+
 void GeoLinearElasticPlaneStrain2DLaw::FinalizeMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues)
 {
     mStrainVectorFinalized = rValues.GetStrainVector();
