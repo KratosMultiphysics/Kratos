@@ -427,15 +427,11 @@ void UPwBaseElement<TDim, TNumNodes>::CalculateDampingMatrix(MatrixType& rDampin
 
     const PropertiesType& rProp = this->GetProperties();
 
-    if (rProp.Has(RAYLEIGH_ALPHA))
-        noalias(rDampingMatrix) += rProp[RAYLEIGH_ALPHA] * MassMatrix;
-    else
-        noalias(rDampingMatrix) += rCurrentProcessInfo[RAYLEIGH_ALPHA] * MassMatrix;
+    if (rProp.Has(RAYLEIGH_ALPHA)) noalias(rDampingMatrix) += rProp[RAYLEIGH_ALPHA] * MassMatrix;
+    else noalias(rDampingMatrix) += rCurrentProcessInfo[RAYLEIGH_ALPHA] * MassMatrix;
 
-    if (rProp.Has(RAYLEIGH_BETA))
-        noalias(rDampingMatrix) += rProp[RAYLEIGH_BETA] * StiffnessMatrix;
-    else
-        noalias(rDampingMatrix) += rCurrentProcessInfo[RAYLEIGH_BETA] * StiffnessMatrix;
+    if (rProp.Has(RAYLEIGH_BETA)) noalias(rDampingMatrix) += rProp[RAYLEIGH_BETA] * StiffnessMatrix;
+    else noalias(rDampingMatrix) += rCurrentProcessInfo[RAYLEIGH_BETA] * StiffnessMatrix;
 
     KRATOS_CATCH("")
 }

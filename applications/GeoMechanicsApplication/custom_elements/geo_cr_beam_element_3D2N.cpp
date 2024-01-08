@@ -167,8 +167,7 @@ void GeoCrBeamElement3D2N::InitializeSolutionStep(const ProcessInfo& rCurrentPro
         if (rCurrentProcessInfo.Has(RESET_DISPLACEMENTS)) {
             if (rCurrentProcessInfo[RESET_DISPLACEMENTS])
                 noalias(mLocalForcesFinalizedPrevious) = mLocalForcesFinalized;
-            else
-                noalias(mLocalForcesFinalized) = mLocalForcesFinalizedPrevious;
+            else noalias(mLocalForcesFinalized) = mLocalForcesFinalizedPrevious;
         } else {
             noalias(mLocalForcesFinalized)         = ZeroVector(msElementSize);
             noalias(mLocalForcesFinalizedPrevious) = ZeroVector(msElementSize);

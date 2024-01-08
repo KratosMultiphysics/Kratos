@@ -283,10 +283,8 @@ double SteadyStatePwPipingElement<TDim, TNumNodes>::CalculateParticleDiameter(co
 {
     double diameter;
 
-    if (Prop[PIPE_MODIFIED_D])
-        diameter = 2.08e-4 * pow((Prop[PIPE_D_70] / 2.08e-4), 0.4);
-    else
-        diameter = Prop[PIPE_D_70];
+    if (Prop[PIPE_MODIFIED_D]) diameter = 2.08e-4 * pow((Prop[PIPE_D_70] / 2.08e-4), 0.4);
+    else diameter = Prop[PIPE_D_70];
     return diameter;
 }
 
