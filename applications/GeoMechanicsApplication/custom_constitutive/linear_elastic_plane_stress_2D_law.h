@@ -13,7 +13,7 @@
 #pragma once
 
 // Project includes
-#include "custom_constitutive/elastic_isotropic_K0_3d_law.h"
+#include "linear_elastic_law.h"
 
 namespace Kratos
 {
@@ -43,14 +43,13 @@ namespace Kratos
  * @author Riccardo Rossi
  */
 class KRATOS_API(GEO_MECHANICS_APPLICATION) GeoLinearElasticPlaneStress2DLaw
-    : public ElasticIsotropicK03DLaw
+    : public GeoLinearElasticLaw
 {
 public:
     ///@name Type Definitions
     ///@{
 
-    /// The base class ElasticIsotropicK03DLaw type definition
-    using BaseType = ElasticIsotropicK03DLaw;
+    using BaseType = GeoLinearElasticLaw;
 
     /// The size type definition
     using SizeType = std::size_t;
@@ -202,15 +201,13 @@ private:
 
     void save(Serializer& rSerializer) const override
     {
-        KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, ElasticIsotropicK03DLaw)
+        KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, BaseType)
     }
 
     void load(Serializer& rSerializer) override
     {
-        KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, ElasticIsotropicK03DLaw)
+        KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, BaseType)
     }
-
-
 }; // Class GeoLinearElasticPlaneStress2DLaw
 
 }
