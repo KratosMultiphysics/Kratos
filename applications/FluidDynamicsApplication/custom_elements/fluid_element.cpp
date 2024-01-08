@@ -15,6 +15,7 @@
 #include "includes/checks.h"
 
 #include "data_containers/axisymmetric_navier_stokes/axisymmetric_navier_stokes_data.h"
+#include "data_containers/two_fluid_navier_stokes/two_fluid_navier_stokes_alpha_method_discontinuous_data.h"
 #include "custom_utilities/qsvms_data.h"
 #include "custom_utilities/time_integrated_qsvms_data.h"
 #include "custom_utilities/qsvms_dem_coupled_data.h"
@@ -948,6 +949,9 @@ template class FluidElement< TwoFluidNavierStokesData<3, 4> >;
 
 template class FluidElement<TwoFluidNavierStokesAlphaMethodData<2, 3>>;
 template class FluidElement< TwoFluidNavierStokesAlphaMethodData<3, 4> >;
+
+template class FluidElement<TwoFluidNavierStokesAlphaMethodDiscontinuousData<2, 3>>;
+template class FluidElement< TwoFluidNavierStokesAlphaMethodDiscontinuousData<3, 4> >;
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
 }

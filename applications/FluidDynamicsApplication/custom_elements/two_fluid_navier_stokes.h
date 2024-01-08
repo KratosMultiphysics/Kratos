@@ -379,6 +379,27 @@ protected:
      */
     void CalculateStrainRate(TElementData& rData) const override;
 
+    /**
+     * @brief Condense the enrichment
+     * This method performs the static condensation of the enrichment terms, by adding
+     * its local contributions to both the LHS and RHS elemental matrices.
+     * @param rData Element data container
+     * @param rLeftHandSideMatrix Reference to the element Left Hand Side matrix
+     * @param rRightHandSideVector Reference to the element Right Hand Side vector
+     * @param rVTot Common N-S equations term associated to pressure enrichment DOFs
+     * @param rHTot Pressure enrichment contribution related to velocity and pressure DOFs
+     * @param rKeeTot Pressure enrichment contribution related to pressure enrichment DOFs
+     * @param rRHSeeTot Right Hand Side vector associated to the pressure enrichment DOFs
+     */
+	void CondenseEnrichmentWithContinuity(
+		const TElementData& rData,
+		Matrix& rLeftHandSideMatrix,
+		VectorType& rRightHandSideVector,
+		const MatrixType& rVTot,
+		const MatrixType& rHTot,
+		MatrixType& rKeeTot,
+		const VectorType& rRHSeeTot);
+
     ///@}
     ///@name Protected  Access
     ///@{
@@ -495,28 +516,6 @@ private:
         const Matrix& rInterfaceShapeFunctions,
         const std::vector<array_1d<double,3>>& rInterfaceNormalsNeg,
         VectorType& rRHS);
-
-
-    /**
-     * @brief Condense the enrichment
-     * This method performs the static condensation of the enrichment terms, by adding
-     * its local contributions to both the LHS and RHS elemental matrices.
-     * @param rData Element data container
-     * @param rLeftHandSideMatrix Reference to the element Left Hand Side matrix
-     * @param rRightHandSideVector Reference to the element Right Hand Side vector
-     * @param rVTot Common N-S equations term associated to pressure enrichment DOFs
-     * @param rHTot Pressure enrichment contribution related to velocity and pressure DOFs
-     * @param rKeeTot Pressure enrichment contribution related to pressure enrichment DOFs
-     * @param rRHSeeTot Right Hand Side vector associated to the pressure enrichment DOFs
-     */
-	void CondenseEnrichmentWithContinuity(
-		const TElementData& rData,
-		Matrix& rLeftHandSideMatrix,
-		VectorType& rRightHandSideVector,
-		const MatrixType& rVTot,
-		const MatrixType& rHTot,
-		MatrixType& rKeeTot,
-		const VectorType& rRHSeeTot);
 
     /**
      * @brief Condense the enrichment without penalty

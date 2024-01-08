@@ -77,8 +77,10 @@
 #include "custom_elements/compressible_navier_stokes_explicit.h"
 #include "custom_elements/two_fluid_navier_stokes.h"
 #include "custom_elements/two_fluid_navier_stokes_alpha_method.h"
+#include "custom_elements/two_fluid_navier_stokes_alpha_method_discontinuous.h"
 
 #include "custom_elements/data_containers/axisymmetric_navier_stokes/axisymmetric_navier_stokes_data.h"
+#include "custom_elements/data_containers/two_fluid_navier_stokes/two_fluid_navier_stokes_alpha_method_discontinuous_data.h"
 #include "custom_utilities/qsvms_data.h"
 #include "custom_utilities/time_integrated_qsvms_data.h"
 #include "custom_utilities/qsvms_dem_coupled_data.h"
@@ -444,6 +446,8 @@ private:
     const TwoFluidNavierStokes< TwoFluidNavierStokesData<3, 4> > mTwoFluidNavierStokes3D4N;
     const TwoFluidNavierStokesAlphaMethod< TwoFluidNavierStokesAlphaMethodData<2, 3> > mTwoFluidNavierStokesAlphaMethod2D3N;
     const TwoFluidNavierStokesAlphaMethod< TwoFluidNavierStokesAlphaMethodData<3, 4> > mTwoFluidNavierStokesAlphaMethod3D4N;
+    const TwoFluidNavierStokesAlphaMethodDiscontinuous< TwoFluidNavierStokesAlphaMethodDiscontinuousData<2, 3> > mTwoFluidNavierStokesAlphaMethodDiscontinuous2D3N;
+    const TwoFluidNavierStokesAlphaMethodDiscontinuous< TwoFluidNavierStokesAlphaMethodDiscontinuousData<3, 4> > mTwoFluidNavierStokesAlphaMethodDiscontinuous3D4N;
     const TwoFluidNavierStokesWallCondition<2,2> mTwoFluidNavierStokesWallCondition2D;
     const TwoFluidNavierStokesWallCondition<3,3> mTwoFluidNavierStokesWallCondition3D;
 

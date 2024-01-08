@@ -107,7 +107,8 @@ class NavierStokesTwoFluidsHydraulicSolver(FluidSolver):
     def __init__(self, model, custom_settings):
         super().__init__(model,custom_settings)
 
-        self.element_name = "TwoFluidNavierStokesAlphaMethod"
+        # self.element_name = "TwoFluidNavierStokesAlphaMethod"
+        self.element_name = "TwoFluidNavierStokesAlphaMethodDiscontinuous"
         self.rho_inf = 0.0
         self.main_model_part.ProcessInfo.SetValue(KratosCFD.SPECTRAL_RADIUS_LIMIT, self.rho_inf)
         self.condition_name = "TwoFluidNavierStokesWallCondition"
@@ -129,7 +130,7 @@ class NavierStokesTwoFluidsHydraulicSolver(FluidSolver):
 
         self.eulerian_fm_ale = self.settings["eulerian_fm_ale"].GetBool()
         if self.eulerian_fm_ale:
-            self.fm_ale_variable = KratosCFD.CONVECTION_SCALAR 
+            self.fm_ale_variable = KratosCFD.CONVECTION_SCALAR
             self.eulerian_gradient = KratosCFD.CONVECTION_SCALAR_GRADIENT
             self.eulerian_convection_var = KratosCFD.CONVECTION_VELOCITY
             self.settings["eulerian_fm_ale_settings"].AddEmptyValue("levelset_variable_name").SetString("CONVECTION_SCALAR")
@@ -658,9 +659,9 @@ class NavierStokesTwoFluidsHydraulicSolver(FluidSolver):
             domain_size + 1)
 
         return scheme
-    
+
     def _HydraulicBoundaryConditionCheck(self,boundary,name):
-        # Check if the inlet and outl 
+        # Check if the inlet and outl
         computing_model_part = self.GetComputingModelPart()
         not_boundary_nodes=any([node.Is(boundary) for node in computing_model_part.Nodes])
         if not not_boundary_nodes:

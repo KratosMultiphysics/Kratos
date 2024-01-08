@@ -11,6 +11,14 @@
 //  Co-authors:      Ruben Zorrilla
 //
 
+// System includes
+
+// External includes
+
+// Project includes
+
+// Application includes
+#include "data_containers/two_fluid_navier_stokes/two_fluid_navier_stokes_alpha_method_discontinuous_data.h"
 #include "two_fluid_navier_stokes.h"
 #include "custom_utilities/two_fluid_navier_stokes_data.h"
 #include "custom_utilities/two_fluid_navier_stokes_alpha_method_data.h"
@@ -867,6 +875,22 @@ ModifiedShapeFunctions::UniquePointer TwoFluidNavierStokes< TwoFluidNavierStokes
     return Kratos::make_unique<Tetrahedra3D4ModifiedShapeFunctions>(pGeometry, rDistances);
 }
 
+template <>
+ModifiedShapeFunctions::UniquePointer TwoFluidNavierStokes< TwoFluidNavierStokesAlphaMethodDiscontinuousData<2, 3> >::pGetModifiedShapeFunctionsUtility(
+    const GeometryType::Pointer pGeometry,
+    const Vector& rDistances)
+{
+    return Kratos::make_unique<Triangle2D3ModifiedShapeFunctions>(pGeometry, rDistances);
+}
+
+template <>
+ModifiedShapeFunctions::UniquePointer TwoFluidNavierStokes< TwoFluidNavierStokesAlphaMethodDiscontinuousData<3, 4> >::pGetModifiedShapeFunctionsUtility(
+        const GeometryType::Pointer pGeometry,
+        const Vector& rDistances)
+{
+    return Kratos::make_unique<Tetrahedra3D4ModifiedShapeFunctions>(pGeometry, rDistances);
+}
+
 template <class TElementData>
 void TwoFluidNavierStokes<TElementData>::CalculateCurvatureOnInterfaceGaussPoints(
         const Matrix& rInterfaceShapeFunctions,
@@ -1234,8 +1258,24 @@ void TwoFluidNavierStokes<TwoFluidNavierStokesAlphaMethodData<2, 3>>::ComputeGau
 }
 
 template <>
+void TwoFluidNavierStokes<TwoFluidNavierStokesAlphaMethodDiscontinuousData<2, 3>>::ComputeGaussPointLHSContribution(
+    TwoFluidNavierStokesAlphaMethodDiscontinuousData<2, 3> &rData,
+    MatrixType &rLHS)
+{
+    KRATOS_ERROR << "This function should never be called. It is only to enable the explicit template instantiation." << std::endl;
+}
+
+template <>
 void TwoFluidNavierStokes<TwoFluidNavierStokesAlphaMethodData<3, 4>>::ComputeGaussPointLHSContribution(
     TwoFluidNavierStokesAlphaMethodData<3, 4> &rData,
+    MatrixType &rLHS)
+{
+    KRATOS_ERROR << "This function should never be called. It is only to enable the explicit template instantiation." << std::endl;
+}
+
+template <>
+void TwoFluidNavierStokes<TwoFluidNavierStokesAlphaMethodDiscontinuousData<3, 4>>::ComputeGaussPointLHSContribution(
+    TwoFluidNavierStokesAlphaMethodDiscontinuousData<3, 4> &rData,
     MatrixType &rLHS)
 {
     KRATOS_ERROR << "This function should never be called. It is only to enable the explicit template instantiation." << std::endl;
@@ -1250,6 +1290,14 @@ void TwoFluidNavierStokes<TwoFluidNavierStokesAlphaMethodData<2, 3>>::ComputeGau
 }
 
 template <>
+void TwoFluidNavierStokes<TwoFluidNavierStokesAlphaMethodDiscontinuousData<2, 3>>::ComputeGaussPointRHSContribution(
+    TwoFluidNavierStokesAlphaMethodDiscontinuousData<2, 3> &rData,
+    VectorType &rRHS)
+{
+    KRATOS_ERROR << "This function should never be called. It is only to enable the explicit template instantiation." << std::endl;
+}
+
+template <>
 void TwoFluidNavierStokes<TwoFluidNavierStokesAlphaMethodData<3, 4>>::ComputeGaussPointRHSContribution(
     TwoFluidNavierStokesAlphaMethodData<3, 4> &rData,
     VectorType &RLHS)
@@ -1258,8 +1306,27 @@ void TwoFluidNavierStokes<TwoFluidNavierStokesAlphaMethodData<3, 4>>::ComputeGau
 }
 
 template <>
+void TwoFluidNavierStokes<TwoFluidNavierStokesAlphaMethodDiscontinuousData<3, 4>>::ComputeGaussPointRHSContribution(
+    TwoFluidNavierStokesAlphaMethodDiscontinuousData<3, 4> &rData,
+    VectorType &RLHS)
+{
+    KRATOS_ERROR << "This function should never be called. It is only to enable the explicit template instantiation." << std::endl;
+}
+
+template <>
 void TwoFluidNavierStokes<TwoFluidNavierStokesAlphaMethodData<2, 3>>::ComputeGaussPointEnrichmentContributions(
     TwoFluidNavierStokesAlphaMethodData<2, 3> &rData,
+    MatrixType &rV,
+    MatrixType &rH,
+    MatrixType &rKee,
+    VectorType &rRHS_ee)
+{
+    KRATOS_ERROR << "This function should never be called. It is only to enable the explicit template instantiation." << std::endl;
+}
+
+template <>
+void TwoFluidNavierStokes<TwoFluidNavierStokesAlphaMethodDiscontinuousData<2, 3>>::ComputeGaussPointEnrichmentContributions(
+    TwoFluidNavierStokesAlphaMethodDiscontinuousData<2, 3> &rData,
     MatrixType &rV,
     MatrixType &rH,
     MatrixType &rKee,
@@ -1279,6 +1346,17 @@ void TwoFluidNavierStokes<TwoFluidNavierStokesAlphaMethodData<3, 4>>::ComputeGau
     KRATOS_ERROR << "This function should never be called. It is only to enable the explicit template instantiation." << std::endl;
 }
 
+template <>
+void TwoFluidNavierStokes<TwoFluidNavierStokesAlphaMethodDiscontinuousData<3, 4>>::ComputeGaussPointEnrichmentContributions(
+    TwoFluidNavierStokesAlphaMethodDiscontinuousData<3, 4> &rData,
+    MatrixType &rV,
+    MatrixType &rH,
+    MatrixType &rKee,
+    VectorType &rRHS_ee)
+{
+    KRATOS_ERROR << "This function should never be called. It is only to enable the explicit template instantiation." << std::endl;
+}
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Class template instantiation
 
@@ -1287,5 +1365,8 @@ template class TwoFluidNavierStokes<TwoFluidNavierStokesData<3, 4>>;
 
 template class TwoFluidNavierStokes<TwoFluidNavierStokesAlphaMethodData<2, 3>>;
 template class TwoFluidNavierStokes<TwoFluidNavierStokesAlphaMethodData<3, 4>>;
+
+template class TwoFluidNavierStokes<TwoFluidNavierStokesAlphaMethodDiscontinuousData<2, 3>>;
+template class TwoFluidNavierStokes<TwoFluidNavierStokesAlphaMethodDiscontinuousData<3, 4>>;
 
 } // namespace Kratos

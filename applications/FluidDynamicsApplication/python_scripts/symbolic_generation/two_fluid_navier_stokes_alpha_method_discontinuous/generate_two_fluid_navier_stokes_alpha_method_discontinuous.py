@@ -15,7 +15,8 @@ from KratosMultiphysics.sympy_fe_utilities import *
 
 ## Symbolic generation settings
 do_simplifications = False
-dim_to_compute = "Both"             # Spatial dimensions to compute. Options:  "2D","3D","Both"
+# dim_to_compute = "Both"             # Spatial dimensions to compute. Options:  "2D","3D","Both"
+dim_to_compute = "2D"             # Spatial dimensions to compute. Options:  "2D","3D","Both"
 linearisation = "Picard"            # Iteration type. Options: "Picard", "FullNR"
 divide_by_rho = True                # Divide by density in mass conservation equation
 ASGS_stabilization = True           # Consider ASGS stabilization terms
@@ -29,11 +30,11 @@ else:
     err_msg = f"Wrong time_integration. Given \'{time_integration}\'. Available option is \'alpha_method\'."
     raise Exception(err_msg)
 
-if (dim_to_compute == "2D"):
+if dim_to_compute == "2D":
     dim_vector = [2]
-elif (dim_to_compute == "3D"):
+elif dim_to_compute == "3D":
     dim_vector = [3]
-elif (dim_to_compute == "Both"):
+elif dim_to_compute == "Both":
     dim_vector = [2,3]
 
 ## Read the template file
@@ -100,7 +101,11 @@ for dim in dim_vector:
     stab_c1 = sympy.Symbol('stab_c1', positive = True)
     stab_c2 = sympy.Symbol('stab_c2', positive = True)
     volume_error_ratio = sympy.Symbol('volume_error_ratio')
-    art_dyn_visc_coeff = sympy.Symbol('art_dyn_visc_coeff')
+    art_dyn_visc_coeff = sympy.Symbol('art_dyn_visc_coeff', positive = True)
+
+    ## Gauss weight symbol definition
+    # Note that it is required to output the LHS and RHS already multiplied by the Gauss to avoid the auxiliary assembly array
+    gauss_weight = sympy.Symbol('gauss_weight', positive = True)
 
     ## Convective velocity definition
     if linearisation == "Picard":
@@ -216,7 +221,7 @@ for dim in dim_vector:
     # For the RHS computation one wants the residual of the previous iteration (residual based formulation). By this reason the stress is
     # included as a symbolic variable, which is assumed to be passed as an argument from the previous iteration database.
     rhs = Compute_RHS(rv.copy(), testfunc, do_simplifications)
-    rhs_out = OutputVector_CollectingFactors(rhs, "rhs", mode)
+    rhs_out = OutputVector_CollectingFactors(gauss_weight*rhs, "rRHS", mode, indentation_level=2, assignment_op="+=")
 
     # Compute LHS (RHS(residual) differenctiation w.r.t. the DOFs)
     # Note that the 'stress' (symbolic variable) is substituted by 'C*grad_sym_v_voigt' for the LHS differenctiation. Otherwise the velocity terms
@@ -224,7 +229,7 @@ for dim in dim_vector:
     # a velocity independent constant in the LHS.
     SubstituteMatrixValue(rhs, stress, C*grad_sym_v_voigt)
     lhs = Compute_LHS(rhs, testfunc, dofs, do_simplifications) # Compute the LHS (considering stress as C*(B*v) to derive w.r.t. v)
-    lhs_out = OutputMatrix_CollectingFactors(lhs, "lhs", mode)
+    lhs_out = OutputMatrix_CollectingFactors(gauss_weight*lhs, "rLHS", mode, indentation_level=2, assignment_op="+=")
 
     #Enrichment Functional
     ##  K V   x    =  b + rhs_eV
