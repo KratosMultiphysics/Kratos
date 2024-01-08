@@ -813,7 +813,6 @@ void UPwSmallStrainFICElement<2, 4>::CalculateShapeFunctionsSecondOrderGradients
         rFICVariables.StrainGradients(1, index) = rFICVariables.StrainGradients(0, index + 1);
     }
 
-    // clang-format off
     /* INFO:
      *
      *                                                    ( |N0xx|   |N1xx|   |N2xx|   |N3xx| )
@@ -822,7 +821,6 @@ void UPwSmallStrainFICElement<2, 4>::CalculateShapeFunctionsSecondOrderGradients
      *
      * N0xx = a2N0/ax2 at current GP
      */
-    // clang-format on
 
     KRATOS_CATCH("")
 }
