@@ -24,19 +24,16 @@ namespace Kratos
 
 class ApplyConstantPhreaticSurfacePressureProcess : public Process
 {
-
 public:
-
     KRATOS_CLASS_POINTER_DEFINITION(ApplyConstantPhreaticSurfacePressureProcess);
 
-    ApplyConstantPhreaticSurfacePressureProcess(ModelPart& model_part,
-                                                Parameters rParameters
-                                                ) : Process(Flags()) , mrModelPart(model_part)
+    ApplyConstantPhreaticSurfacePressureProcess(ModelPart& model_part, Parameters rParameters)
+        : Process(Flags()), mrModelPart(model_part)
     {
         KRATOS_TRY
 
-        //only include validation with c++11 since raw_literals do not exist in c++03
-        Parameters default_parameters( R"(
+        // only include validation with c++11 since raw_literals do not exist in c++03
+        Parameters default_parameters(R"(
             {
                 "model_part_name":"PLEASE_CHOOSE_MODEL_PART_NAME",
                 "variable_name": "PLEASE_PRESCRIBE_VARIABLE_NAME",
@@ -49,10 +46,10 @@ public:
                 "specific_weight" : 10000.0,
                 "pressure_tension_cut_off" : 0.0,
                 "table" : [0,1,2]
-            }  )" );
+            }  )");
 
-        // Some values need to be mandatorily prescribed since no meaningful default value exist. For this reason try accessing to them
-        // So that an error is thrown if they don't exist
+        // Some values need to be mandatorily prescribed since no meaningful default value exist.
+        // For this reason try accessing to them So that an error is thrown if they don't exist
         rParameters["first_reference_coordinate"];
         rParameters["second_reference_coordinate"];
         rParameters["third_reference_coordinate"];
@@ -91,15 +88,15 @@ public:
     {
         KRATOS_TRY
 
-        const Variable<double> &var = KratosComponents< Variable<double> >::Get(mVariableName);
-        Vector3 direction = ZeroVector(3);
+        const Variable<double>& var  = KratosComponents<Variable<double>>::Get(mVariableName);
+        Vector3 direction            = ZeroVector(3);
         direction[mGravityDirection] = 1.0;
 
         block_for_each(mrModelPart.Nodes(), [&var, &direction, this](Node& rNode) {
-            double distance = inner_prod(mNormalVector, rNode.Coordinates());
-            const double d  = inner_prod(mNormalVector, direction);
-            distance = -(distance - mEqRHS) / d;
-            const double pressure = - PORE_PRESSURE_SIGN_FACTOR * mSpecificWeight * distance;
+            double distance       = inner_prod(mNormalVector, rNode.Coordinates());
+            const double d        = inner_prod(mNormalVector, direction);
+            distance              = -(distance - mEqRHS) / d;
+            const double pressure = -PORE_PRESSURE_SIGN_FACTOR * mSpecificWeight * distance;
             if (mIsSeepage) {
                 if (pressure < PORE_PRESSURE_SIGN_FACTOR * mPressureTensionCutOff) {
                     rNode.FastGetSolutionStepValue(var) = pressure;
@@ -108,9 +105,12 @@ public:
                     if (mIsFixedProvided) rNode.Free(var);
                 }
             } else {
-                if (mIsFixed) rNode.Fix(var);
-                else if (mIsFixedProvided) rNode.Free(var);
-                rNode.FastGetSolutionStepValue(var) = std::min(pressure, PORE_PRESSURE_SIGN_FACTOR * mPressureTensionCutOff);
+                if (mIsFixed)
+                    rNode.Fix(var);
+                else if (mIsFixedProvided)
+                    rNode.Free(var);
+                rNode.FastGetSolutionStepValue(var) =
+                    std::min(pressure, PORE_PRESSURE_SIGN_FACTOR * mPressureTensionCutOff);
             }
         });
 
@@ -118,10 +118,7 @@ public:
     }
 
     /// Turn back information as a string.
-    std::string Info() const override
-    {
-        return "ApplyConstantPhreaticSurfacePressureProcess";
-    }
+    std::string Info() const override { return "ApplyConstantPhreaticSurfacePressureProcess"; }
 
 protected:
     /// Member Variables
@@ -140,19 +137,16 @@ protected:
     double mPressureTensionCutOff;
 
 private:
-
     void calculateEquationParameters()
     {
         const Vector3 v1 = mSecondReferenceCoordinate - mFirstReferenceCoordinate;
-        const Vector3 v2 = mThirdReferenceCoordinate  - mFirstReferenceCoordinate;
-        mNormalVector = MathUtils<double>::CrossProduct(v1, v2);
+        const Vector3 v2 = mThirdReferenceCoordinate - mFirstReferenceCoordinate;
+        mNormalVector    = MathUtils<double>::CrossProduct(v1, v2);
         if (norm_2(mNormalVector) == 0.0)
-            KRATOS_ERROR << "Normal vector to phreatic surface has zero size!"
-                         << std::endl;
+            KRATOS_ERROR << "Normal vector to phreatic surface has zero size!" << std::endl;
 
         mEqRHS = inner_prod(mNormalVector, mFirstReferenceCoordinate);
     }
-
 };
 
-}
+} // namespace Kratos

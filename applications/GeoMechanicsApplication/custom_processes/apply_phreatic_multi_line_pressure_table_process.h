@@ -19,11 +19,10 @@
 namespace Kratos
 {
 
-class KRATOS_API(GEO_MECHANICS_APPLICATION) ApplyPhreaticMultiLinePressureTableProcess : public ApplyConstantPhreaticMultiLinePressureProcess
+class KRATOS_API(GEO_MECHANICS_APPLICATION) ApplyPhreaticMultiLinePressureTableProcess
+    : public ApplyConstantPhreaticMultiLinePressureProcess
 {
-
 public:
-
     KRATOS_CLASS_POINTER_DEFINITION(ApplyPhreaticMultiLinePressureTableProcess);
 
     ApplyPhreaticMultiLinePressureTableProcess(ModelPart& model_part, Parameters rParameters);
@@ -43,12 +42,10 @@ private:
 }; // Class ApplyPhreaticMultiLinePressureTableProcess
 
 /// input stream function
-inline std::istream& operator >> (std::istream& rIStream,
-                                  ApplyPhreaticMultiLinePressureTableProcess& rThis);
+inline std::istream& operator>>(std::istream& rIStream, ApplyPhreaticMultiLinePressureTableProcess& rThis);
 
 /// output stream function
-inline std::ostream& operator << (std::ostream& rOStream,
-                                  const ApplyPhreaticMultiLinePressureTableProcess& rThis)
+inline std::ostream& operator<<(std::ostream& rOStream, const ApplyPhreaticMultiLinePressureTableProcess& rThis)
 {
     rThis.PrintInfo(rOStream);
     rOStream << std::endl;
@@ -57,6 +54,4 @@ inline std::ostream& operator << (std::ostream& rOStream,
     return rOStream;
 }
 
-
 } // namespace Kratos.
-

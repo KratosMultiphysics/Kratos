@@ -12,10 +12,10 @@
 
 #pragma once
 
-#include <algorithm>
 #include "includes/kratos_flags.h"
 #include "includes/kratos_parameters.h"
 #include "processes/process.h"
+#include <algorithm>
 
 #include "geo_mechanics_application_variables.h"
 
@@ -24,7 +24,6 @@ namespace Kratos
 
 class KRATOS_API(GEO_MECHANICS_APPLICATION) ApplyConstantPhreaticMultiLinePressureProcess : public Process
 {
-
 public:
     KRATOS_CLASS_POINTER_DEFINITION(ApplyConstantPhreaticMultiLinePressureProcess);
 
@@ -76,20 +75,18 @@ private:
     double mPressureTensionCutOff;
 
     void InitializeHorizontalDirection();
-    void InitializeGravityDirection(const Parameters &rParameters);
-    void InitializeCoordinates(const Parameters &rParameters);
-    void ValidateCoordinates(const Parameters &rParameters) const;
+    void InitializeGravityDirection(const Parameters& rParameters);
+    void InitializeCoordinates(const Parameters& rParameters);
+    void ValidateCoordinates(const Parameters& rParameters) const;
 
-    void InitializeParameters(Parameters &rParameters) const;
+    void InitializeParameters(Parameters& rParameters) const;
 }; // Class ApplyConstantPhreaticMultiLinePressureProcess
 
 /// input stream function
-inline std::istream& operator >> (std::istream& rIStream,
-                                  ApplyConstantPhreaticMultiLinePressureProcess& rThis);
+inline std::istream& operator>>(std::istream& rIStream, ApplyConstantPhreaticMultiLinePressureProcess& rThis);
 
 /// output stream function
-inline std::ostream& operator << (std::ostream& rOStream,
-                                  const ApplyConstantPhreaticMultiLinePressureProcess& rThis)
+inline std::ostream& operator<<(std::ostream& rOStream, const ApplyConstantPhreaticMultiLinePressureProcess& rThis)
 {
     rThis.PrintInfo(rOStream);
     rOStream << std::endl;

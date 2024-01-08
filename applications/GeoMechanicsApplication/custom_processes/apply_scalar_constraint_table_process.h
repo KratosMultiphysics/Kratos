@@ -20,18 +20,16 @@ namespace Kratos
 class ModelPart;
 class Parameters;
 
-
 class KRATOS_API(GEO_MECHANICS_APPLICATION) ApplyScalarConstraintTableProcess : public Process
 {
 public:
     KRATOS_CLASS_POINTER_DEFINITION(ApplyScalarConstraintTableProcess);
 
-    ApplyScalarConstraintTableProcess(ModelPart&        rModelPart,
-                                      const Parameters& rProcessSettings);
+    ApplyScalarConstraintTableProcess(ModelPart& rModelPart, const Parameters& rProcessSettings);
 
     ~ApplyScalarConstraintTableProcess() override;
 
-    ApplyScalarConstraintTableProcess(const ApplyScalarConstraintTableProcess&) = delete;
+    ApplyScalarConstraintTableProcess(const ApplyScalarConstraintTableProcess&)            = delete;
     ApplyScalarConstraintTableProcess& operator=(const ApplyScalarConstraintTableProcess&) = delete;
 
     using ProcessUniquePointer = std::unique_ptr<Process>;
@@ -43,23 +41,23 @@ public:
 
 private:
     void MakeInternalProcess(const Parameters& rProcessSettings);
-    void MakeProcessForFluidPressureType(const Parameters&        rProcessSettings,
+    void MakeProcessForFluidPressureType(const Parameters& rProcessSettings,
                                          std::vector<std::string> NamesOfSettingsToCopy);
-    void MakeScalarConstraintProcess(const Parameters&        rProcessSettings,
+    void MakeScalarConstraintProcess(const Parameters& rProcessSettings,
                                      std::vector<std::string> NamesOfSettingsToCopy);
-    void MakeProcessForHydrostaticFluidPressure(const Parameters&        rProcessSettings,
+    void MakeProcessForHydrostaticFluidPressure(const Parameters& rProcessSettings,
                                                 std::vector<std::string> NamesOfSettingsToCopy);
-    void MakeProcessForPhreaticLine(const Parameters&        rProcessSettings,
+    void MakeProcessForPhreaticLine(const Parameters& rProcessSettings,
                                     std::vector<std::string> NamesOfSettingsToCopy);
-    void MakeProcessForPhreaticMultiLine(const Parameters&        rProcessSettings,
+    void MakeProcessForPhreaticMultiLine(const Parameters& rProcessSettings,
                                          std::vector<std::string> NamesOfSettingsToCopy);
-    void MakeProcessForPhreaticSurface(const Parameters&        rProcessSettings,
+    void MakeProcessForPhreaticSurface(const Parameters& rProcessSettings,
                                        std::vector<std::string> NamesOfSettingsToCopy);
-    void MakeProcessForInterpolatedLine(const Parameters&        rProcessSettings,
+    void MakeProcessForInterpolatedLine(const Parameters& rProcessSettings,
                                         std::vector<std::string> NamesOfSettingsToCopy);
 
     ModelPart& mrModelPart;
     ProcessUniquePointer mProcess;
 };
 
-}
+} // namespace Kratos
