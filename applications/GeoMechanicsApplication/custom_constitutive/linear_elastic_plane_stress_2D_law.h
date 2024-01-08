@@ -52,10 +52,6 @@ public:
     /// The base class ElasticIsotropicK03DLaw type definition
     using BaseType = ElasticIsotropicK03DLaw;
 
-    // Adding the respective using to avoid overload conflicts
-    using BaseType::Has;
-    using BaseType::GetValue;
-
     /// The size type definition
     using SizeType = std::size_t;
 
@@ -126,6 +122,7 @@ public:
      * @param rValue output: the value of the specified variable
      */
     bool& GetValue(const Variable<bool>& rThisVariable, bool& rValue) override;
+    using BaseType::GetValue;
 
     ///@}
 
