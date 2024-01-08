@@ -29,6 +29,11 @@ from test_co_sim_io_py_exposure import TestCoSimIOPyExposure
 from test_co_sim_io_py_exposure import TestCoSimIOPyExposure_aux_tests
 from test_kratos_co_sim_io import TestKratosCoSimIO
 
+from rbs_test_factory import TestRBSStandalone
+from rbs_test_factory import TestRBSRBS
+from rbs_test_factory import TestBarc2DRigidBody
+from test_rigid_body_solver import TestRigidBodySolver
+
 
 def AssembleTestSuites():
     ''' Populates the test suites to run.
@@ -65,7 +70,10 @@ def AssembleTestSuites():
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestConvergenceAcceleratorWrapper]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestTinyFetiCoSimulationCases]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestThermalRomCoSim]))
-
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestRBSStandalone]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestRBSRBS]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestBarc2DRigidBody]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestRigidBodySolver]))
 
     ################################################################################
     nightSuite = suites['nightly'] # These tests are executed in the nightly build
