@@ -58,9 +58,9 @@ public:
     using LocalSystemVectorType = typename BaseType::LocalSystemVectorType;
     using LocalSystemMatrixType = typename BaseType::LocalSystemMatrixType;
 
-    GeoMechanicsTimeIntegrationScheme(const std::vector<FirstOrderScalarVariable>& rFirstOrderVectorVariables,
+    GeoMechanicsTimeIntegrationScheme(const std::vector<FirstOrderScalarVariable>& rFirstOrderScalarVariables,
                                       const std::vector<SecondOrderVectorVariable>& rSecondOrderVectorVariables)
-        : mFirstOrderScalarVariables(rFirstOrderVectorVariables),
+        : mFirstOrderScalarVariables(rFirstOrderScalarVariables),
           mSecondOrderVectorVariables(rSecondOrderVectorVariables)
     {
     }
