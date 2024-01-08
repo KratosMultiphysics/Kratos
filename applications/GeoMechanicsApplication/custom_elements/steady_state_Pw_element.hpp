@@ -26,8 +26,7 @@ namespace Kratos
 {
 
 template <unsigned int TDim, unsigned int TNumNodes>
-class KRATOS_API(GEO_MECHANICS_APPLICATION) SteadyStatePwElement
-    : public TransientPwElement<TDim, TNumNodes>
+class KRATOS_API(GEO_MECHANICS_APPLICATION) SteadyStatePwElement : public TransientPwElement<TDim, TNumNodes>
 {
 public:
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(SteadyStatePwElement);
@@ -71,9 +70,7 @@ public:
     }
 
     /// Constructor using Properties
-    SteadyStatePwElement(IndexType NewId,
-                         GeometryType::Pointer pGeometry,
-                         PropertiesType::Pointer pProperties)
+    SteadyStatePwElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
         : BaseType(NewId, pGeometry, pProperties)
     {
     }
@@ -87,9 +84,7 @@ public:
                             NodesArrayType const& ThisNodes,
                             PropertiesType::Pointer pProperties) const override;
 
-    Element::Pointer Create(IndexType NewId,
-                            GeometryType::Pointer pGeom,
-                            PropertiesType::Pointer pProperties) const override;
+    Element::Pointer Create(IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties) const override;
 
     ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     int Check(const ProcessInfo& rCurrentProcessInfo) const override;
@@ -124,12 +119,9 @@ protected:
                       const bool CalculateStiffnessMatrixFlag,
                       const bool CalculateResidualVectorFlag) override;
 
-    void CalculateAndAddLHS(MatrixType& rLeftHandSideMatrix,
-                            ElementVariables& rVariables) override;
+    void CalculateAndAddLHS(MatrixType& rLeftHandSideMatrix, ElementVariables& rVariables) override;
 
-    void CalculateAndAddRHS(VectorType& rRightHandSideVector,
-                            ElementVariables& rVariables,
-                            unsigned int GPoint) override;
+    void CalculateAndAddRHS(VectorType& rRightHandSideVector, ElementVariables& rVariables, unsigned int GPoint) override;
 
     ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -147,8 +139,7 @@ private:
         KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Element)
     }
 
-    void load(Serializer& rSerializer) override{
-        KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element)}
+    void load(Serializer& rSerializer) override{KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element)}
 
     // Assignment operator.
     SteadyStatePwElement&

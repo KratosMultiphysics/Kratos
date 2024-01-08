@@ -22,8 +22,7 @@
 
 namespace Kratos
 {
-GeoCrBeamElementLinear2D2N::GeoCrBeamElementLinear2D2N(IndexType NewId,
-                                                       GeometryType::Pointer pGeometry)
+GeoCrBeamElementLinear2D2N::GeoCrBeamElementLinear2D2N(IndexType NewId, GeometryType::Pointer pGeometry)
     : CrBeamElementLinear2D2N(NewId, pGeometry)
 {
 }
@@ -42,8 +41,7 @@ Element::Pointer GeoCrBeamElementLinear2D2N::Create(IndexType NewId,
                                                     PropertiesType::Pointer pProperties) const
 {
     const GeometryType& rGeom = GetGeometry();
-    return Kratos::make_intrusive<GeoCrBeamElementLinear2D2N>(
-        NewId, rGeom.Create(rThisNodes), pProperties);
+    return Kratos::make_intrusive<GeoCrBeamElementLinear2D2N>(NewId, rGeom.Create(rThisNodes), pProperties);
 }
 
 //-------------------------------------------------------------------------------------------------
@@ -79,11 +77,10 @@ void GeoCrBeamElementLinear2D2N::CalculateLocalSystem(MatrixType& rLeftHandSideM
     Vector nodal_deformation = ZeroVector(msElementSize);
     GetValuesVector(nodal_deformation);
 
-    rRightHandSideVector = ZeroVector(msElementSize);
+    rRightHandSideVector           = ZeroVector(msElementSize);
     noalias(mInternalGlobalForces) = prod(rLeftHandSideMatrix, nodal_deformation);
 
-    noalias(rRightHandSideVector) -=
-        (mInternalGlobalForces + mInternalGlobalForcesFinalizedPrevious);
+    noalias(rRightHandSideVector) -= (mInternalGlobalForces + mInternalGlobalForcesFinalizedPrevious);
 
     noalias(rRightHandSideVector) += CalculateBodyForces();
 
@@ -100,8 +97,7 @@ void GeoCrBeamElementLinear2D2N::CalculateRightHandSide(VectorType& rRightHandSi
     rRightHandSideVector           = ZeroVector(msElementSize);
     noalias(mInternalGlobalForces) = prod(mK_Master, nodal_deformation);
 
-    noalias(rRightHandSideVector) -=
-        (mInternalGlobalForces + mInternalGlobalForcesFinalizedPrevious);
+    noalias(rRightHandSideVector) -= (mInternalGlobalForces + mInternalGlobalForcesFinalizedPrevious);
     noalias(rRightHandSideVector) += CalculateBodyForces();
     KRATOS_CATCH("")
 }
@@ -110,15 +106,14 @@ void GeoCrBeamElementLinear2D2N::CalculateRightHandSide(VectorType& rRightHandSi
 ///////////// CUSTOM FUNCTIONS --->>
 /////////////////////////////////////////////////
 
-void GeoCrBeamElementLinear2D2N::CalculateOnIntegrationPoints(
-    const Variable<array_1d<double, 3>>& rVariable,
-    std::vector<array_1d<double, 3>>& rOutput,
-    const ProcessInfo& rCurrentProcessInfo)
+void GeoCrBeamElementLinear2D2N::CalculateOnIntegrationPoints(const Variable<array_1d<double, 3>>& rVariable,
+                                                              std::vector<array_1d<double, 3>>& rOutput,
+                                                              const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
     // element with two nodes can only represent results at one node
-    const unsigned int& write_points_number = GetGeometry().IntegrationPointsNumber(
-        Kratos::GeometryData::IntegrationMethod::GI_GAUSS_3);
+    const unsigned int& write_points_number =
+        GetGeometry().IntegrationPointsNumber(Kratos::GeometryData::IntegrationMethod::GI_GAUSS_3);
     if (rOutput.size() != write_points_number) {
         rOutput.resize(write_points_number);
     }
@@ -128,8 +123,7 @@ void GeoCrBeamElementLinear2D2N::CalculateOnIntegrationPoints(
     Vector nodal_deformation = ZeroVector(msElementSize);
     GetValuesVector(nodal_deformation);
 
-    BoundedMatrix<double, msElementSize, msElementSize> transformation_matrix =
-        CreateRotationMatrix();
+    BoundedMatrix<double, msElementSize, msElementSize> transformation_matrix = CreateRotationMatrix();
     // calculate local displacements
     nodal_deformation = prod((trans(transformation_matrix)), nodal_deformation);
 
@@ -193,7 +187,7 @@ void GeoCrBeamElementLinear2D2N::InitializeSolutionStep(const ProcessInfo& rCurr
             else
                 noalias(mInternalGlobalForcesFinalized) = mInternalGlobalForcesFinalizedPrevious;
         } else {
-            noalias(mInternalGlobalForcesFinalized) = ZeroVector(msElementSize);
+            noalias(mInternalGlobalForcesFinalized)         = ZeroVector(msElementSize);
             noalias(mInternalGlobalForcesFinalizedPrevious) = ZeroVector(msElementSize);
         }
     }
@@ -217,8 +211,7 @@ void GeoCrBeamElementLinear2D2N::FinalizeSolutionStep(const ProcessInfo& rCurren
 {
     KRATOS_TRY
 
-    noalias(mInternalGlobalForcesFinalized) =
-        mInternalGlobalForces + mInternalGlobalForcesFinalizedPrevious;
+    noalias(mInternalGlobalForcesFinalized) = mInternalGlobalForces + mInternalGlobalForcesFinalizedPrevious;
 
     KRATOS_CATCH("")
 }
@@ -228,16 +221,14 @@ void GeoCrBeamElementLinear2D2N::save(Serializer& rSerializer) const
 {
     KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, CrBeamElementLinear2D2N)
     rSerializer.save("InternalGlobalForcesFinalized", mInternalGlobalForcesFinalized);
-    rSerializer.save("InternalGlobalForcesFinalizedPrevious",
-                     mInternalGlobalForcesFinalizedPrevious);
+    rSerializer.save("InternalGlobalForcesFinalizedPrevious", mInternalGlobalForcesFinalizedPrevious);
 }
 
 void GeoCrBeamElementLinear2D2N::load(Serializer& rSerializer)
 {
     KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, CrBeamElementLinear2D2N)
     rSerializer.load("InternalGlobalForcesFinalized", mInternalGlobalForcesFinalized);
-    rSerializer.load("InternalGlobalForcesFinalizedPrevious",
-                     mInternalGlobalForcesFinalizedPrevious);
+    rSerializer.load("InternalGlobalForcesFinalizedPrevious", mInternalGlobalForcesFinalizedPrevious);
 }
 
 } // namespace Kratos.

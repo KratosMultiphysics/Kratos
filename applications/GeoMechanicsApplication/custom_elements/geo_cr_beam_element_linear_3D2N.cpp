@@ -24,8 +24,7 @@
 
 namespace Kratos
 {
-GeoCrBeamElementLinear3D2N::GeoCrBeamElementLinear3D2N(IndexType NewId,
-                                                       GeometryType::Pointer pGeometry)
+GeoCrBeamElementLinear3D2N::GeoCrBeamElementLinear3D2N(IndexType NewId, GeometryType::Pointer pGeometry)
     : CrBeamElement3D2N(NewId, pGeometry)
 {
 }
@@ -44,8 +43,7 @@ Element::Pointer GeoCrBeamElementLinear3D2N::Create(IndexType NewId,
                                                     PropertiesType::Pointer pProperties) const
 {
     const GeometryType& rGeom = GetGeometry();
-    return Kratos::make_intrusive<GeoCrBeamElementLinear3D2N>(
-        NewId, rGeom.Create(rThisNodes), pProperties);
+    return Kratos::make_intrusive<GeoCrBeamElementLinear3D2N>(NewId, rGeom.Create(rThisNodes), pProperties);
 }
 
 //-------------------------------------------------------------------------------------------------
@@ -110,15 +108,14 @@ void GeoCrBeamElementLinear3D2N::CalculateRightHandSide(VectorType& rRightHandSi
 }
 
 //-------------------------------------------------------------------------------------------------
-void GeoCrBeamElementLinear3D2N::CalculateOnIntegrationPoints(
-    const Variable<array_1d<double, 3>>& rVariable,
-    std::vector<array_1d<double, 3>>& rOutput,
-    const ProcessInfo& rCurrentProcessInfo)
+void GeoCrBeamElementLinear3D2N::CalculateOnIntegrationPoints(const Variable<array_1d<double, 3>>& rVariable,
+                                                              std::vector<array_1d<double, 3>>& rOutput,
+                                                              const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
     // element with two nodes can only represent results at one node
-    const unsigned int& write_points_number = GetGeometry().IntegrationPointsNumber(
-        Kratos::GeometryData::IntegrationMethod::GI_GAUSS_3);
+    const unsigned int& write_points_number =
+        GetGeometry().IntegrationPointsNumber(Kratos::GeometryData::IntegrationMethod::GI_GAUSS_3);
     if (rOutput.size() != write_points_number) {
         rOutput.resize(write_points_number);
     }
@@ -128,8 +125,7 @@ void GeoCrBeamElementLinear3D2N::CalculateOnIntegrationPoints(
     Vector nodal_deformation = ZeroVector(msElementSize);
     GetValuesVector(nodal_deformation);
 
-    BoundedMatrix<double, msElementSize, msElementSize> transformation_matrix =
-        CalculateInitialLocalCS();
+    BoundedMatrix<double, msElementSize, msElementSize> transformation_matrix = CalculateInitialLocalCS();
     nodal_deformation = prod(Matrix(trans(transformation_matrix)), nodal_deformation);
 
     //// start static back condensation
@@ -184,16 +180,14 @@ void GeoCrBeamElementLinear3D2N::save(Serializer& rSerializer) const
 {
     KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, CrBeamElement3D2N)
     rSerializer.save("InternalGlobalForcesFinalized", mInternalGlobalForcesFinalized);
-    rSerializer.save("InternalGlobalForcesFinalizedPrevious",
-                     mInternalGlobalForcesFinalizedPrevious);
+    rSerializer.save("InternalGlobalForcesFinalizedPrevious", mInternalGlobalForcesFinalizedPrevious);
 }
 
 void GeoCrBeamElementLinear3D2N::load(Serializer& rSerializer)
 {
     KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, CrBeamElement3D2N)
     rSerializer.load("InternalGlobalForcesFinalized", mInternalGlobalForcesFinalized);
-    rSerializer.load("InternalGlobalForcesFinalizedPrevious",
-                     mInternalGlobalForcesFinalizedPrevious);
+    rSerializer.load("InternalGlobalForcesFinalizedPrevious", mInternalGlobalForcesFinalizedPrevious);
 }
 
 } // namespace Kratos.

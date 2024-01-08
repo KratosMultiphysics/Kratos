@@ -50,9 +50,7 @@ public:
     }
 
     /// Constructor using Properties
-    GeoStructuralBaseElement(IndexType NewId,
-                             GeometryType::Pointer pGeometry,
-                             PropertiesType::Pointer pProperties)
+    GeoStructuralBaseElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
         : Element(NewId, pGeometry, pProperties)
     {
         mThisIntegrationMethod = this->GetIntegrationMethod();
@@ -67,16 +65,13 @@ public:
                             NodesArrayType const& ThisNodes,
                             PropertiesType::Pointer pProperties) const override;
 
-    Element::Pointer Create(IndexType NewId,
-                            GeometryType::Pointer pGeom,
-                            PropertiesType::Pointer pProperties) const override;
+    Element::Pointer Create(IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties) const override;
 
     int Check(const ProcessInfo& rCurrentProcessInfo) const override;
 
     void Initialize(const ProcessInfo& rCurrentProcessInfo) override;
 
-    void GetDofList(DofsVectorType& rElementalDofList,
-                    const ProcessInfo& rCurrentProcessInfo) const override;
+    void GetDofList(DofsVectorType& rElementalDofList, const ProcessInfo& rCurrentProcessInfo) const override;
 
     GeometryData::IntegrationMethod GetIntegrationMethod() const override;
 
@@ -86,20 +81,15 @@ public:
                               VectorType& rRightHandSideVector,
                               const ProcessInfo& rCurrentProcessInfo) override;
 
-    void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
-                               const ProcessInfo& rCurrentProcessInfo) override;
+    void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, const ProcessInfo& rCurrentProcessInfo) override;
 
-    void CalculateRightHandSide(VectorType& rRightHandSideVector,
-                                const ProcessInfo& rCurrentProcessInfo) override;
+    void CalculateRightHandSide(VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo) override;
 
-    void EquationIdVector(EquationIdVectorType& rResult,
-                          const ProcessInfo& rCurrentProcessInfo) const override;
+    void EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo& rCurrentProcessInfo) const override;
 
-    void CalculateMassMatrix(MatrixType& rMassMatrix,
-                             const ProcessInfo& rCurrentProcessInfo) override;
+    void CalculateMassMatrix(MatrixType& rMassMatrix, const ProcessInfo& rCurrentProcessInfo) override;
 
-    void CalculateDampingMatrix(MatrixType& rDampingMatrix,
-                                const ProcessInfo& rCurrentProcessInfo) override;
+    void CalculateDampingMatrix(MatrixType& rDampingMatrix, const ProcessInfo& rCurrentProcessInfo) override;
 
     void GetValuesVector(Vector& rValues, int Step = 0) const override;
 
@@ -118,8 +108,7 @@ public:
 protected:
     static constexpr SizeType N_DOF_NODE    = (TDim == 2 ? 3 : 6);
     static constexpr SizeType N_DOF_ELEMENT = N_DOF_NODE * TNumNodes;
-    static constexpr SizeType VoigtSize =
-        (TDim == 3 ? VOIGT_SIZE_3D : VOIGT_SIZE_2D_PLANE_STRESS);
+    static constexpr SizeType VoigtSize = (TDim == 3 ? VOIGT_SIZE_3D : VOIGT_SIZE_2D_PLANE_STRESS);
 
     /// Member Variables
     struct ElementVariables {
@@ -180,8 +169,7 @@ protected:
 
     ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    virtual void CalculateStiffnessMatrix(MatrixType& rStiffnessMatrix,
-                                          const ProcessInfo& rCurrentProcessInfo);
+    virtual void CalculateStiffnessMatrix(MatrixType& rStiffnessMatrix, const ProcessInfo& rCurrentProcessInfo);
 
     virtual void CalculateAll(MatrixType& rLeftHandSideMatrix,
                               VectorType& rRightHandSideVector,
@@ -189,8 +177,7 @@ protected:
                               const bool CalculateStiffnessMatrixFlag,
                               const bool CalculateResidualVectorFlag);
 
-    virtual void CalculateRHS(VectorType& rRightHandSideVector,
-                              const ProcessInfo& rCurrentProcessInfo);
+    virtual void CalculateRHS(VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo);
 
     virtual void CalculateNodalCrossDirection(Matrix& NodalCrossDirection) const;
 
@@ -206,8 +193,7 @@ private:
         KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Element)
     }
 
-    void load(Serializer& rSerializer) override{
-        KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element)}
+    void load(Serializer& rSerializer) override{KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element)}
 
     /// Assignment operator.
     GeoStructuralBaseElement&

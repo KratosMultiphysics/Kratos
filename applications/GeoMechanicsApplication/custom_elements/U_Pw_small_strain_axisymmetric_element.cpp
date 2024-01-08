@@ -18,8 +18,9 @@ namespace Kratos
 
 //----------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
-Element::Pointer UPwSmallStrainAxisymmetricElement<TDim, TNumNodes>::Create(
-    IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const
+Element::Pointer UPwSmallStrainAxisymmetricElement<TDim, TNumNodes>::Create(IndexType NewId,
+                                                                            NodesArrayType const& ThisNodes,
+                                                                            PropertiesType::Pointer pProperties) const
 {
     return Element::Pointer(new UPwSmallStrainAxisymmetricElement(
         NewId, this->GetGeometry().Create(ThisNodes), pProperties));
@@ -27,16 +28,18 @@ Element::Pointer UPwSmallStrainAxisymmetricElement<TDim, TNumNodes>::Create(
 
 //----------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
-Element::Pointer UPwSmallStrainAxisymmetricElement<TDim, TNumNodes>::Create(
-    IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties) const
+Element::Pointer UPwSmallStrainAxisymmetricElement<TDim, TNumNodes>::Create(IndexType NewId,
+                                                                            GeometryType::Pointer pGeom,
+                                                                            PropertiesType::Pointer pProperties) const
 {
     return Element::Pointer(new UPwSmallStrainAxisymmetricElement(NewId, pGeom, pProperties));
 }
 
 //----------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
-void UPwSmallStrainAxisymmetricElement<TDim, TNumNodes>::CalculateBMatrix(
-    Matrix& rB, const Matrix& GradNpT, const Vector& Np)
+void UPwSmallStrainAxisymmetricElement<TDim, TNumNodes>::CalculateBMatrix(Matrix& rB,
+                                                                          const Matrix& GradNpT,
+                                                                          const Vector& Np)
 {
     KRATOS_TRY
 
@@ -58,14 +61,11 @@ void UPwSmallStrainAxisymmetricElement<TDim, TNumNodes>::CalculateBMatrix(
 //----------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
 double UPwSmallStrainAxisymmetricElement<TDim, TNumNodes>::CalculateIntegrationCoefficient(
-    const GeometryType::IntegrationPointsArrayType& IntegrationPoints,
-    unsigned int PointNumber,
-    double detJ)
+    const GeometryType::IntegrationPointsArrayType& IntegrationPoints, unsigned int PointNumber, double detJ)
 
 {
     Vector N;
-    N = this->GetGeometry().ShapeFunctionsValues(
-        N, IntegrationPoints[PointNumber].Coordinates());
+    N = this->GetGeometry().ShapeFunctionsValues(N, IntegrationPoints[PointNumber].Coordinates());
     const double radiusWeight =
         GeoElementUtilities::CalculateAxisymmetricCircumference(N, this->GetGeometry());
 

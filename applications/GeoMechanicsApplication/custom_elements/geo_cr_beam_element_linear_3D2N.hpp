@@ -51,9 +51,7 @@ public:
 
     GeoCrBeamElementLinear3D2N(){};
     GeoCrBeamElementLinear3D2N(IndexType NewId, GeometryType::Pointer pGeometry);
-    GeoCrBeamElementLinear3D2N(IndexType NewId,
-                               GeometryType::Pointer pGeometry,
-                               PropertiesType::Pointer pProperties);
+    GeoCrBeamElementLinear3D2N(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties);
 
     ~GeoCrBeamElementLinear3D2N() override;
 
@@ -64,9 +62,7 @@ public:
      * @param pProperties The pointer to property
      * @return The pointer to the created element
      */
-    Element::Pointer Create(IndexType NewId,
-                            GeometryType::Pointer pGeom,
-                            PropertiesType::Pointer pProperties) const override;
+    Element::Pointer Create(IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties) const override;
 
     /**
      * @brief Creates a new element
@@ -83,8 +79,7 @@ public:
                               VectorType& rRightHandSideVector,
                               const ProcessInfo& rCurrentProcessInfo) override;
 
-    void CalculateRightHandSide(VectorType& rRightHandSideVector,
-                                const ProcessInfo& rCurrentProcessInfo) override;
+    void CalculateRightHandSide(VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo) override;
 
     void CalculateOnIntegrationPoints(const Variable<array_1d<double, 3>>& rVariable,
                                       std::vector<array_1d<double, 3>>& rOutput,

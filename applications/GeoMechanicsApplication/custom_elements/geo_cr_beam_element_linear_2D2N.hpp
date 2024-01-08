@@ -50,9 +50,7 @@ public:
     using DofsVectorType       = BaseType::DofsVectorType;
 
     GeoCrBeamElementLinear2D2N(IndexType NewId, GeometryType::Pointer pGeometry);
-    GeoCrBeamElementLinear2D2N(IndexType NewId,
-                               GeometryType::Pointer pGeometry,
-                               PropertiesType::Pointer pProperties);
+    GeoCrBeamElementLinear2D2N(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties);
 
     /**
      * @brief Creates a new element
@@ -61,9 +59,7 @@ public:
      * @param pProperties The pointer to property
      * @return The pointer to the created element
      */
-    Element::Pointer Create(IndexType NewId,
-                            GeometryType::Pointer pGeom,
-                            PropertiesType::Pointer pProperties) const override;
+    Element::Pointer Create(IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties) const override;
 
     /**
      * @brief Creates a new element
@@ -88,8 +84,7 @@ public:
                               VectorType& rRightHandSideVector,
                               const ProcessInfo& rCurrentProcessInfo) override;
 
-    void CalculateRightHandSide(VectorType& rRightHandSideVector,
-                                const ProcessInfo& rCurrentProcessInfo) override;
+    void CalculateRightHandSide(VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo) override;
 
     /////////////////////////////////////////////////
     ///////////// CUSTOM FUNCTIONS --->>

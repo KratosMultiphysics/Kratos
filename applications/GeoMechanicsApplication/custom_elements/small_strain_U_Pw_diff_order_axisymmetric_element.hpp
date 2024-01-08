@@ -25,8 +25,7 @@
 namespace Kratos
 {
 
-class KRATOS_API(GEO_MECHANICS_APPLICATION) SmallStrainUPwDiffOrderAxisymmetricElement
-    : public SmallStrainUPwDiffOrderElement
+class KRATOS_API(GEO_MECHANICS_APPLICATION) SmallStrainUPwDiffOrderAxisymmetricElement : public SmallStrainUPwDiffOrderElement
 {
 public:
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(SmallStrainUPwDiffOrderAxisymmetricElement);
@@ -45,10 +44,7 @@ public:
     ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     /// Default Constructor
-    SmallStrainUPwDiffOrderAxisymmetricElement()
-        : SmallStrainUPwDiffOrderElement()
-    {
-    }
+    SmallStrainUPwDiffOrderAxisymmetricElement() : SmallStrainUPwDiffOrderElement() {}
 
     /// Constructor using Geometry
     SmallStrainUPwDiffOrderAxisymmetricElement(IndexType NewId, GeometryType::Pointer pGeometry)
@@ -73,9 +69,7 @@ public:
                             NodesArrayType const& ThisNodes,
                             PropertiesType::Pointer pProperties) const override;
 
-    Element::Pointer Create(IndexType NewId,
-                            GeometryType::Pointer pGeom,
-                            PropertiesType::Pointer pProperties) const override;
+    Element::Pointer Create(IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties) const override;
 
     ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -85,8 +79,7 @@ public:
         std::stringstream buffer;
         buffer << "Small strain axisymmetric U-Pw Element with different order "
                   "#"
-               << this->Id()
-               << "\nConstitutive law: " << mConstitutiveLawVector[0]->Info();
+               << this->Id() << "\nConstitutive law: " << mConstitutiveLawVector[0]->Info();
         return buffer.str();
     }
 
@@ -95,8 +88,7 @@ public:
     {
         rOStream << "Small strain axisymmetric U-Pw Element with different "
                     "order #"
-                 << this->Id()
-                 << "\nConstitutive law: " << mConstitutiveLawVector[0]->Info();
+                 << this->Id() << "\nConstitutive law: " << mConstitutiveLawVector[0]->Info();
     }
 
     ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -128,8 +120,7 @@ private:
         KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Element)
     }
 
-    void load(Serializer& rSerializer) override{
-        KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element)}
+    void load(Serializer& rSerializer) override{KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element)}
 
     // Assignment operator.
     SmallStrainUPwDiffOrderAxisymmetricElement&
@@ -141,9 +132,7 @@ private:
     // Private Operations
 
     template <class TValueType>
-    inline void ThreadSafeNodeWrite(NodeType& rNode,
-                                    const Variable<TValueType>& Var,
-                                    const TValueType Value)
+    inline void ThreadSafeNodeWrite(NodeType& rNode, const Variable<TValueType>& Var, const TValueType Value)
     {
         rNode.SetLock();
         rNode.FastGetSolutionStepValue(Var) = Value;

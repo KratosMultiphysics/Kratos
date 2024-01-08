@@ -55,10 +55,7 @@ public:
     ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     /// Default Constructor
-    UPwSmallStrainFICElement(IndexType NewId = 0)
-        : UPwSmallStrainElement<TDim, TNumNodes>(NewId)
-    {
-    }
+    UPwSmallStrainFICElement(IndexType NewId = 0) : UPwSmallStrainElement<TDim, TNumNodes>(NewId) {}
 
     /// Constructor using an array of nodes
     UPwSmallStrainFICElement(IndexType NewId, const NodesArrayType& ThisNodes)
@@ -73,9 +70,7 @@ public:
     }
 
     /// Constructor using Properties
-    UPwSmallStrainFICElement(IndexType NewId,
-                             GeometryType::Pointer pGeometry,
-                             PropertiesType::Pointer pProperties)
+    UPwSmallStrainFICElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
         : UPwSmallStrainElement<TDim, TNumNodes>(NewId, pGeometry, pProperties)
     {
     }
@@ -89,9 +84,7 @@ public:
                             NodesArrayType const& ThisNodes,
                             PropertiesType::Pointer pProperties) const override;
 
-    Element::Pointer Create(IndexType NewId,
-                            GeometryType::Pointer pGeom,
-                            PropertiesType::Pointer pProperties) const override;
+    Element::Pointer Create(IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties) const override;
 
     int Check(const ProcessInfo& rCurrentProcessInfo) const override;
 
@@ -161,9 +154,7 @@ protected:
                                   const Matrix& ConstitutiveMatrix,
                                   const unsigned int& GPoint);
 
-    void SaveGPDtStress(Matrix& rDtStressContainer,
-                        const Vector& StressVector,
-                        const unsigned int& GPoint);
+    void SaveGPDtStress(Matrix& rDtStressContainer, const Vector& StressVector, const unsigned int& GPoint);
 
     void ExtrapolateGPConstitutiveTensor(const array_1d<Matrix, TDim>& ConstitutiveTensorContainer);
 
@@ -181,9 +172,8 @@ protected:
                                        const PropertiesType& Prop,
                                        const ProcessInfo& CurrentProcessInfo);
 
-    void ExtrapolateShapeFunctionsGradients(
-        array_1d<array_1d<double, TDim * TNumNodes>, TNumNodes>& rNodalShapeFunctionsGradients,
-        const GeometryType::ShapeFunctionsGradientsType& DN_DXContainer);
+    void ExtrapolateShapeFunctionsGradients(array_1d<array_1d<double, TDim * TNumNodes>, TNumNodes>& rNodalShapeFunctionsGradients,
+                                            const GeometryType::ShapeFunctionsGradientsType& DN_DXContainer);
 
     void CalculateElementLength(double& rElementLength, const GeometryType& Geom);
 
@@ -223,8 +213,7 @@ protected:
                                              ElementVariables& rVariables,
                                              FICElementVariables& rFICVariables);
 
-    void CalculateDtStressGradients(FICElementVariables& rFICVariables,
-                                    const ElementVariables& Variables);
+    void CalculateDtStressGradients(FICElementVariables& rFICVariables, const ElementVariables& Variables);
 
     void CalculateAndAddPressureGradientFlow(VectorType& rRightHandSideVector,
                                              ElementVariables& rVariables,
@@ -246,8 +235,7 @@ private:
         KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Element)
     }
 
-    void load(Serializer& rSerializer) override{
-        KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element)}
+    void load(Serializer& rSerializer) override{KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element)}
 
     /// Assignment operator.
     UPwSmallStrainFICElement&

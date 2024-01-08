@@ -32,8 +32,7 @@ namespace Kratos
  * @author Vahid Galavi
  */
 template <unsigned int TDim, unsigned int TNumNodes>
-class KRATOS_API(GEO_MECHANICS_APPLICATION) GeoCableElement
-    : public GeoTrussElement<TDim, TNumNodes>
+class KRATOS_API(GEO_MECHANICS_APPLICATION) GeoCableElement : public GeoTrussElement<TDim, TNumNodes>
 {
 public:
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(GeoCableElement);
@@ -57,9 +56,7 @@ public:
 
     GeoCableElement(){};
     GeoCableElement(IndexType NewId, GeometryType::Pointer pGeometry);
-    GeoCableElement(IndexType NewId,
-                    GeometryType::Pointer pGeometry,
-                    PropertiesType::Pointer pProperties);
+    GeoCableElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties);
 
     ~GeoCableElement() override;
 
@@ -70,9 +67,7 @@ public:
      * @param pProperties The pointer to property
      * @return The pointer to the created element
      */
-    Element::Pointer Create(IndexType NewId,
-                            GeometryType::Pointer pGeom,
-                            PropertiesType::Pointer pProperties) const override;
+    Element::Pointer Create(IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties) const override;
 
     /**
      * @brief Creates a new element
@@ -88,8 +83,7 @@ public:
     void CreateElementStiffnessMatrix(MatrixType& rLocalStiffnessMatrix,
                                       const ProcessInfo& rCurrentProcessInfo) override;
 
-    void CalculateRightHandSide(VectorType& rRightHandSideVector,
-                                const ProcessInfo& rCurrentProcessInfo) override;
+    void CalculateRightHandSide(VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
      * @brief This function updates the internal normal force w.r.t. the current deformations

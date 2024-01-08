@@ -18,18 +18,19 @@ namespace Kratos
 {
 
 template <unsigned int TDim, unsigned int TNumNodes>
-Element::Pointer UPwSmallStrainFICElement<TDim, TNumNodes>::Create(
-    IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const
+Element::Pointer UPwSmallStrainFICElement<TDim, TNumNodes>::Create(IndexType NewId,
+                                                                   NodesArrayType const& ThisNodes,
+                                                                   PropertiesType::Pointer pProperties) const
 {
-    return Element::Pointer(new UPwSmallStrainFICElement(
-        NewId, this->GetGeometry().Create(ThisNodes), pProperties));
+    return Element::Pointer(new UPwSmallStrainFICElement(NewId, this->GetGeometry().Create(ThisNodes), pProperties));
 }
 
 //----------------------------------------------------------------------------------------
 
 template <unsigned int TDim, unsigned int TNumNodes>
-Element::Pointer UPwSmallStrainFICElement<TDim, TNumNodes>::Create(
-    IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties) const
+Element::Pointer UPwSmallStrainFICElement<TDim, TNumNodes>::Create(IndexType NewId,
+                                                                   GeometryType::Pointer pGeom,
+                                                                   PropertiesType::Pointer pProperties) const
 {
     return Element::Pointer(new UPwSmallStrainFICElement(NewId, pGeom, pProperties));
 }
@@ -111,12 +112,11 @@ void UPwSmallStrainFICElement<TDim, TNumNodes>::InitializeNonLinearIteration(con
     KRATOS_TRY;
 
     // Defining necessary variables
-    const GeometryType& Geom = this->GetGeometry();
+    const GeometryType& Geom  = this->GetGeometry();
     const SizeType NumGPoints = Geom.IntegrationPointsNumber(mThisIntegrationMethod);
 
     // Create constitutive law parameters:
-    ConstitutiveLaw::Parameters ConstitutiveParameters(
-        Geom, this->GetProperties(), rCurrentProcessInfo);
+    ConstitutiveLaw::Parameters ConstitutiveParameters(Geom, this->GetProperties(), rCurrentProcessInfo);
     ConstitutiveParameters.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
     ConstitutiveParameters.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
     ConstitutiveParameters.Set(ConstitutiveLaw::INITIALIZE_MATERIAL_RESPONSE); // Note: this is for nonlocal damage
@@ -128,8 +128,7 @@ void UPwSmallStrainFICElement<TDim, TNumNodes>::InitializeNonLinearIteration(con
     // Extrapolation variables
     array_1d<Matrix, TDim> ConstitutiveTensorContainer;
     for (unsigned int i = 0; i < TDim; ++i) {
-        ConstitutiveTensorContainer[i].resize(
-            NumGPoints, Variables.ConstitutiveMatrix.size1(), false);
+        ConstitutiveTensorContainer[i].resize(NumGPoints, Variables.ConstitutiveMatrix.size1(), false);
     }
     Matrix DtStressContainer(NumGPoints, TDim);
 
@@ -147,8 +146,7 @@ void UPwSmallStrainFICElement<TDim, TNumNodes>::InitializeNonLinearIteration(con
 
         ConstitutiveParameters.SetStressVector(mStressVector[GPoint]);
         mConstitutiveLawVector[GPoint]->CalculateMaterialResponseCauchy(ConstitutiveParameters);
-        this->SaveGPConstitutiveTensor(ConstitutiveTensorContainer,
-                                       Variables.ConstitutiveMatrix, GPoint);
+        this->SaveGPConstitutiveTensor(ConstitutiveTensorContainer, Variables.ConstitutiveMatrix, GPoint);
 
         // Compute DtStress
         noalias(Variables.StrainVector) = prod(Variables.B, Variables.VelocityVector);
@@ -170,11 +168,10 @@ void UPwSmallStrainFICElement<TDim, TNumNodes>::FinalizeNonLinearIteration(const
     KRATOS_TRY;
 
     // Defining necessary variables
-    const GeometryType& Geom = this->GetGeometry();
+    const GeometryType& Geom  = this->GetGeometry();
     const SizeType NumGPoints = Geom.IntegrationPointsNumber(mThisIntegrationMethod);
 
-    ConstitutiveLaw::Parameters ConstitutiveParameters(
-        Geom, this->GetProperties(), rCurrentProcessInfo);
+    ConstitutiveLaw::Parameters ConstitutiveParameters(Geom, this->GetProperties(), rCurrentProcessInfo);
     ConstitutiveParameters.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
     ConstitutiveParameters.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
     ConstitutiveParameters.Set(ConstitutiveLaw::INITIALIZE_MATERIAL_RESPONSE); // Note: this is for nonlocal damage
@@ -215,10 +212,9 @@ void UPwSmallStrainFICElement<TDim, TNumNodes>::FinalizeNonLinearIteration(const
 
 //----------------------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
-void UPwSmallStrainFICElement<TDim, TNumNodes>::SaveGPConstitutiveTensor(
-    array_1d<Matrix, TDim>& rConstitutiveTensorContainer,
-    const Matrix& ConstitutiveMatrix,
-    const unsigned int& GPoint)
+void UPwSmallStrainFICElement<TDim, TNumNodes>::SaveGPConstitutiveTensor(array_1d<Matrix, TDim>& rConstitutiveTensorContainer,
+                                                                         const Matrix& ConstitutiveMatrix,
+                                                                         const unsigned int& GPoint)
 {
     KRATOS_TRY;
 
@@ -267,8 +263,7 @@ void UPwSmallStrainFICElement<TDim, TNumNodes>::SaveGPDtStress(Matrix& rDtStress
 
 //----------------------------------------------------------------------------------------
 template <>
-void UPwSmallStrainFICElement<2, 3>::ExtrapolateGPConstitutiveTensor(
-    const array_1d<Matrix, 2>& ConstitutiveTensorContainer)
+void UPwSmallStrainFICElement<2, 3>::ExtrapolateGPConstitutiveTensor(const array_1d<Matrix, 2>& ConstitutiveTensorContainer)
 {
     // Triangle_2d_3 with GI_GAUSS_2
     KRATOS_TRY
@@ -282,12 +277,10 @@ void UPwSmallStrainFICElement<2, 3>::ExtrapolateGPConstitutiveTensor(
     BoundedMatrix<double, NumNodes, VoigtSize> AuxNodalConstitutiveTensor;
 
     for (unsigned int i = 0; i < Dim; ++i) {
-        noalias(AuxNodalConstitutiveTensor) =
-            prod(ExtrapolationMatrix, ConstitutiveTensorContainer[i]);
+        noalias(AuxNodalConstitutiveTensor) = prod(ExtrapolationMatrix, ConstitutiveTensorContainer[i]);
 
         for (unsigned int j = 0; j < VoigtSize; j++)
-            noalias(mNodalConstitutiveTensor[i][j]) =
-                column(AuxNodalConstitutiveTensor, j);
+            noalias(mNodalConstitutiveTensor[i][j]) = column(AuxNodalConstitutiveTensor, j);
     }
 
     // clang-format off
@@ -307,8 +300,7 @@ void UPwSmallStrainFICElement<2, 3>::ExtrapolateGPConstitutiveTensor(
 //----------------------------------------------------------------------------------------
 
 template <>
-void UPwSmallStrainFICElement<2, 4>::ExtrapolateGPConstitutiveTensor(
-    const array_1d<Matrix, 2>& ConstitutiveTensorContainer)
+void UPwSmallStrainFICElement<2, 4>::ExtrapolateGPConstitutiveTensor(const array_1d<Matrix, 2>& ConstitutiveTensorContainer)
 {
     KRATOS_TRY
 
@@ -322,12 +314,10 @@ void UPwSmallStrainFICElement<2, 4>::ExtrapolateGPConstitutiveTensor(
     BoundedMatrix<double, NumNodes, VoigtSize> AuxNodalConstitutiveTensor;
 
     for (unsigned int i = 0; i < Dim; ++i) {
-        noalias(AuxNodalConstitutiveTensor) =
-            prod(ExtrapolationMatrix, ConstitutiveTensorContainer[i]);
+        noalias(AuxNodalConstitutiveTensor) = prod(ExtrapolationMatrix, ConstitutiveTensorContainer[i]);
 
         for (unsigned int j = 0; j < VoigtSize; j++)
-            noalias(mNodalConstitutiveTensor[i][j]) =
-                column(AuxNodalConstitutiveTensor, j);
+            noalias(mNodalConstitutiveTensor[i][j]) = column(AuxNodalConstitutiveTensor, j);
     }
 
     KRATOS_CATCH("")
@@ -336,8 +326,7 @@ void UPwSmallStrainFICElement<2, 4>::ExtrapolateGPConstitutiveTensor(
 //----------------------------------------------------------------------------------------
 
 template <>
-void UPwSmallStrainFICElement<3, 4>::ExtrapolateGPConstitutiveTensor(
-    const array_1d<Matrix, 3>& ConstitutiveTensorContainer)
+void UPwSmallStrainFICElement<3, 4>::ExtrapolateGPConstitutiveTensor(const array_1d<Matrix, 3>& ConstitutiveTensorContainer)
 {
     // Tetrahedra_3d_4 with GI_GAUSS_2
     KRATOS_TRY
@@ -351,12 +340,10 @@ void UPwSmallStrainFICElement<3, 4>::ExtrapolateGPConstitutiveTensor(
     BoundedMatrix<double, NumNodes, VoigtSize> AuxNodalConstitutiveTensor;
 
     for (unsigned int i = 0; i < Dim; ++i) {
-        noalias(AuxNodalConstitutiveTensor) =
-            prod(ExtrapolationMatrix, ConstitutiveTensorContainer[i]);
+        noalias(AuxNodalConstitutiveTensor) = prod(ExtrapolationMatrix, ConstitutiveTensorContainer[i]);
 
         for (unsigned int j = 0; j < VoigtSize; j++)
-            noalias(mNodalConstitutiveTensor[i][j]) =
-                column(AuxNodalConstitutiveTensor, j);
+            noalias(mNodalConstitutiveTensor[i][j]) = column(AuxNodalConstitutiveTensor, j);
     }
 
     KRATOS_CATCH("")
@@ -364,8 +351,7 @@ void UPwSmallStrainFICElement<3, 4>::ExtrapolateGPConstitutiveTensor(
 
 //----------------------------------------------------------------------------------------
 template <>
-void UPwSmallStrainFICElement<3, 8>::ExtrapolateGPConstitutiveTensor(
-    const array_1d<Matrix, 3>& ConstitutiveTensorContainer)
+void UPwSmallStrainFICElement<3, 8>::ExtrapolateGPConstitutiveTensor(const array_1d<Matrix, 3>& ConstitutiveTensorContainer)
 {
     // Hexahedra_3d_8 with GI_GAUSS_2
     KRATOS_TRY
@@ -379,12 +365,10 @@ void UPwSmallStrainFICElement<3, 8>::ExtrapolateGPConstitutiveTensor(
     BoundedMatrix<double, NumNodes, VoigtSize> AuxNodalConstitutiveTensor;
 
     for (unsigned int i = 0; i < Dim; ++i) {
-        noalias(AuxNodalConstitutiveTensor) =
-            prod(ExtrapolationMatrix, ConstitutiveTensorContainer[i]);
+        noalias(AuxNodalConstitutiveTensor) = prod(ExtrapolationMatrix, ConstitutiveTensorContainer[i]);
 
         for (unsigned int j = 0; j < VoigtSize; j++)
-            noalias(mNodalConstitutiveTensor[i][j]) =
-                column(AuxNodalConstitutiveTensor, j);
+            noalias(mNodalConstitutiveTensor[i][j]) = column(AuxNodalConstitutiveTensor, j);
     }
 
     KRATOS_CATCH("")
@@ -419,12 +403,11 @@ void UPwSmallStrainFICElement<TDim, TNumNodes>::ExtrapolateGPDtStress(const Matr
 
 //----------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
-void UPwSmallStrainFICElement<TDim, TNumNodes>::CalculateAll(
-    MatrixType& rLeftHandSideMatrix,
-    VectorType& rRightHandSideVector,
-    const ProcessInfo& CurrentProcessInfo,
-    const bool CalculateStiffnessMatrixFlag,
-    const bool CalculateResidualVectorFlag)
+void UPwSmallStrainFICElement<TDim, TNumNodes>::CalculateAll(MatrixType& rLeftHandSideMatrix,
+                                                             VectorType& rRightHandSideVector,
+                                                             const ProcessInfo& CurrentProcessInfo,
+                                                             const bool CalculateStiffnessMatrixFlag,
+                                                             const bool CalculateResidualVectorFlag)
 {
     KRATOS_TRY
 
@@ -438,8 +421,7 @@ void UPwSmallStrainFICElement<TDim, TNumNodes>::CalculateAll(
     // Constitutive Law parameters
     ConstitutiveLaw::Parameters ConstitutiveParameters(Geom, Prop, CurrentProcessInfo);
     ConstitutiveParameters.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
-    if (CalculateResidualVectorFlag)
-        ConstitutiveParameters.Set(ConstitutiveLaw::COMPUTE_STRESS);
+    if (CalculateResidualVectorFlag) ConstitutiveParameters.Set(ConstitutiveLaw::COMPUTE_STRESS);
     ConstitutiveParameters.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
 
     // Element variables
@@ -447,8 +429,7 @@ void UPwSmallStrainFICElement<TDim, TNumNodes>::CalculateAll(
     this->InitializeElementVariables(Variables, CurrentProcessInfo);
 
     FICElementVariables FICVariables;
-    this->InitializeFICElementVariables(FICVariables, Variables.DN_DXContainer,
-                                        Geom, Prop, CurrentProcessInfo);
+    this->InitializeFICElementVariables(FICVariables, Variables.DN_DXContainer, Geom, Prop, CurrentProcessInfo);
 
     // create general parameters of retention law
     RetentionLaw::Parameters RetentionParameters(this->GetProperties(), CurrentProcessInfo);
@@ -466,11 +447,9 @@ void UPwSmallStrainFICElement<TDim, TNumNodes>::CalculateAll(
         // set gauss points variables to constitutivelaw parameters
         this->SetConstitutiveParameters(Variables, ConstitutiveParameters);
 
-        GeoElementUtilities::CalculateNuMatrix<TDim, TNumNodes>(
-            Variables.Nu, Variables.NContainer, GPoint);
+        GeoElementUtilities::CalculateNuMatrix<TDim, TNumNodes>(Variables.Nu, Variables.NContainer, GPoint);
         GeoElementUtilities::InterpolateVariableWithComponents<TDim, TNumNodes>(
-            Variables.BodyAcceleration, Variables.NContainer,
-            Variables.VolumeAcceleration, GPoint);
+            Variables.BodyAcceleration, Variables.NContainer, Variables.VolumeAcceleration, GPoint);
 
         // Compute ShapeFunctionsSecondOrderGradients
         this->CalculateShapeFunctionsSecondOrderGradients(FICVariables, Variables);
@@ -488,12 +467,11 @@ void UPwSmallStrainFICElement<TDim, TNumNodes>::CalculateAll(
         this->InitializeBiotCoefficients(Variables, hasBiotCoefficient);
 
         // Compute weighting coefficient for integration
-        Variables.IntegrationCoefficient = this->CalculateIntegrationCoefficient(
-            IntegrationPoints, GPoint, Variables.detJ);
+        Variables.IntegrationCoefficient =
+            this->CalculateIntegrationCoefficient(IntegrationPoints, GPoint, Variables.detJ);
 
-        Variables.IntegrationCoefficientInitialConfiguration =
-            this->CalculateIntegrationCoefficient(
-                IntegrationPoints, GPoint, Variables.detJInitialConfiguration);
+        Variables.IntegrationCoefficientInitialConfiguration = this->CalculateIntegrationCoefficient(
+            IntegrationPoints, GPoint, Variables.detJInitialConfiguration);
 
         if (CalculateStiffnessMatrixFlag) {
             // Contributions to the left hand side
@@ -531,8 +509,7 @@ void UPwSmallStrainFICElement<TDim, TNumNodes>::InitializeFICElementVariables(
     KRATOS_TRY
 
     // Nodal Variables
-    this->ExtrapolateShapeFunctionsGradients(
-        rFICVariables.NodalShapeFunctionsGradients, DN_DXContainer);
+    this->ExtrapolateShapeFunctionsGradients(rFICVariables.NodalShapeFunctionsGradients, DN_DXContainer);
 
     // General Variables
     this->CalculateElementLength(rFICVariables.ElementLength, Geom);
@@ -571,7 +548,7 @@ void UPwSmallStrainFICElement<2, 4>::ExtrapolateShapeFunctionsGradients(
         {
             index = j * 2;
 
-            ShapeFunctionsGradientsContainer(i, index) = DN_DXContainer[i](j, 0);
+            ShapeFunctionsGradientsContainer(i, index)     = DN_DXContainer[i](j, 0);
             ShapeFunctionsGradientsContainer(i, index + 1) = DN_DXContainer[i](j, 1);
         }
     }
@@ -580,25 +557,20 @@ void UPwSmallStrainFICElement<2, 4>::ExtrapolateShapeFunctionsGradients(
     this->CalculateExtrapolationMatrix(ExtrapolationMatrix);
 
     BoundedMatrix<double, 4, 8> AuxNodalShapeFunctionsGradients;
-    noalias(AuxNodalShapeFunctionsGradients) =
-        prod(ExtrapolationMatrix, ShapeFunctionsGradientsContainer);
+    noalias(AuxNodalShapeFunctionsGradients) = prod(ExtrapolationMatrix, ShapeFunctionsGradientsContainer);
 
     for (unsigned int i = 0; i < 4; ++i) // TNumNodes
     {
         index = i * 2;
 
         rNodalShapeFunctionsGradients[i][0] = AuxNodalShapeFunctionsGradients(0, index);
-        rNodalShapeFunctionsGradients[i][1] =
-            AuxNodalShapeFunctionsGradients(0, index + 1);
+        rNodalShapeFunctionsGradients[i][1] = AuxNodalShapeFunctionsGradients(0, index + 1);
         rNodalShapeFunctionsGradients[i][2] = AuxNodalShapeFunctionsGradients(1, index);
-        rNodalShapeFunctionsGradients[i][3] =
-            AuxNodalShapeFunctionsGradients(1, index + 1);
+        rNodalShapeFunctionsGradients[i][3] = AuxNodalShapeFunctionsGradients(1, index + 1);
         rNodalShapeFunctionsGradients[i][4] = AuxNodalShapeFunctionsGradients(2, index);
-        rNodalShapeFunctionsGradients[i][5] =
-            AuxNodalShapeFunctionsGradients(2, index + 1);
+        rNodalShapeFunctionsGradients[i][5] = AuxNodalShapeFunctionsGradients(2, index + 1);
         rNodalShapeFunctionsGradients[i][6] = AuxNodalShapeFunctionsGradients(3, index);
-        rNodalShapeFunctionsGradients[i][7] =
-            AuxNodalShapeFunctionsGradients(3, index + 1);
+        rNodalShapeFunctionsGradients[i][7] = AuxNodalShapeFunctionsGradients(3, index + 1);
     }
 
     /* INFO:
@@ -645,7 +617,7 @@ void UPwSmallStrainFICElement<3, 8>::ExtrapolateShapeFunctionsGradients(
         {
             index = j * 3;
 
-            ShapeFunctionsGradientsContainer(i, index) = DN_DXContainer[i](j, 0);
+            ShapeFunctionsGradientsContainer(i, index)     = DN_DXContainer[i](j, 0);
             ShapeFunctionsGradientsContainer(i, index + 1) = DN_DXContainer[i](j, 1);
             ShapeFunctionsGradientsContainer(i, index + 2) = DN_DXContainer[i](j, 2);
         }
@@ -655,53 +627,36 @@ void UPwSmallStrainFICElement<3, 8>::ExtrapolateShapeFunctionsGradients(
     this->CalculateExtrapolationMatrix(ExtrapolationMatrix);
 
     BoundedMatrix<double, 8, 24> AuxNodalShapeFunctionsGradients;
-    noalias(AuxNodalShapeFunctionsGradients) =
-        prod(ExtrapolationMatrix, ShapeFunctionsGradientsContainer);
+    noalias(AuxNodalShapeFunctionsGradients) = prod(ExtrapolationMatrix, ShapeFunctionsGradientsContainer);
 
     for (unsigned int i = 0; i < 8; ++i) // TNumNodes
     {
         index = i * 3;
 
-        rNodalShapeFunctionsGradients[i][0] = AuxNodalShapeFunctionsGradients(0, index);
-        rNodalShapeFunctionsGradients[i][1] =
-            AuxNodalShapeFunctionsGradients(0, index + 1);
-        rNodalShapeFunctionsGradients[i][2] =
-            AuxNodalShapeFunctionsGradients(0, index + 2);
-        rNodalShapeFunctionsGradients[i][3] = AuxNodalShapeFunctionsGradients(1, index);
-        rNodalShapeFunctionsGradients[i][4] =
-            AuxNodalShapeFunctionsGradients(1, index + 1);
-        rNodalShapeFunctionsGradients[i][5] =
-            AuxNodalShapeFunctionsGradients(1, index + 2);
-        rNodalShapeFunctionsGradients[i][6] = AuxNodalShapeFunctionsGradients(2, index);
-        rNodalShapeFunctionsGradients[i][7] =
-            AuxNodalShapeFunctionsGradients(2, index + 1);
-        rNodalShapeFunctionsGradients[i][8] =
-            AuxNodalShapeFunctionsGradients(2, index + 2);
-        rNodalShapeFunctionsGradients[i][9] = AuxNodalShapeFunctionsGradients(3, index);
-        rNodalShapeFunctionsGradients[i][10] =
-            AuxNodalShapeFunctionsGradients(3, index + 1);
-        rNodalShapeFunctionsGradients[i][11] =
-            AuxNodalShapeFunctionsGradients(3, index + 2);
+        rNodalShapeFunctionsGradients[i][0]  = AuxNodalShapeFunctionsGradients(0, index);
+        rNodalShapeFunctionsGradients[i][1]  = AuxNodalShapeFunctionsGradients(0, index + 1);
+        rNodalShapeFunctionsGradients[i][2]  = AuxNodalShapeFunctionsGradients(0, index + 2);
+        rNodalShapeFunctionsGradients[i][3]  = AuxNodalShapeFunctionsGradients(1, index);
+        rNodalShapeFunctionsGradients[i][4]  = AuxNodalShapeFunctionsGradients(1, index + 1);
+        rNodalShapeFunctionsGradients[i][5]  = AuxNodalShapeFunctionsGradients(1, index + 2);
+        rNodalShapeFunctionsGradients[i][6]  = AuxNodalShapeFunctionsGradients(2, index);
+        rNodalShapeFunctionsGradients[i][7]  = AuxNodalShapeFunctionsGradients(2, index + 1);
+        rNodalShapeFunctionsGradients[i][8]  = AuxNodalShapeFunctionsGradients(2, index + 2);
+        rNodalShapeFunctionsGradients[i][9]  = AuxNodalShapeFunctionsGradients(3, index);
+        rNodalShapeFunctionsGradients[i][10] = AuxNodalShapeFunctionsGradients(3, index + 1);
+        rNodalShapeFunctionsGradients[i][11] = AuxNodalShapeFunctionsGradients(3, index + 2);
         rNodalShapeFunctionsGradients[i][12] = AuxNodalShapeFunctionsGradients(4, index);
-        rNodalShapeFunctionsGradients[i][13] =
-            AuxNodalShapeFunctionsGradients(4, index + 1);
-        rNodalShapeFunctionsGradients[i][14] =
-            AuxNodalShapeFunctionsGradients(4, index + 2);
+        rNodalShapeFunctionsGradients[i][13] = AuxNodalShapeFunctionsGradients(4, index + 1);
+        rNodalShapeFunctionsGradients[i][14] = AuxNodalShapeFunctionsGradients(4, index + 2);
         rNodalShapeFunctionsGradients[i][15] = AuxNodalShapeFunctionsGradients(5, index);
-        rNodalShapeFunctionsGradients[i][16] =
-            AuxNodalShapeFunctionsGradients(5, index + 1);
-        rNodalShapeFunctionsGradients[i][17] =
-            AuxNodalShapeFunctionsGradients(5, index + 2);
+        rNodalShapeFunctionsGradients[i][16] = AuxNodalShapeFunctionsGradients(5, index + 1);
+        rNodalShapeFunctionsGradients[i][17] = AuxNodalShapeFunctionsGradients(5, index + 2);
         rNodalShapeFunctionsGradients[i][18] = AuxNodalShapeFunctionsGradients(6, index);
-        rNodalShapeFunctionsGradients[i][19] =
-            AuxNodalShapeFunctionsGradients(6, index + 1);
-        rNodalShapeFunctionsGradients[i][20] =
-            AuxNodalShapeFunctionsGradients(6, index + 2);
+        rNodalShapeFunctionsGradients[i][19] = AuxNodalShapeFunctionsGradients(6, index + 1);
+        rNodalShapeFunctionsGradients[i][20] = AuxNodalShapeFunctionsGradients(6, index + 2);
         rNodalShapeFunctionsGradients[i][21] = AuxNodalShapeFunctionsGradients(7, index);
-        rNodalShapeFunctionsGradients[i][22] =
-            AuxNodalShapeFunctionsGradients(7, index + 1);
-        rNodalShapeFunctionsGradients[i][23] =
-            AuxNodalShapeFunctionsGradients(7, index + 2);
+        rNodalShapeFunctionsGradients[i][22] = AuxNodalShapeFunctionsGradients(7, index + 1);
+        rNodalShapeFunctionsGradients[i][23] = AuxNodalShapeFunctionsGradients(7, index + 2);
     }
 
     KRATOS_CATCH("")
@@ -709,32 +664,28 @@ void UPwSmallStrainFICElement<3, 8>::ExtrapolateShapeFunctionsGradients(
 
 //----------------------------------------------------------------------------------------
 template <>
-void UPwSmallStrainFICElement<2, 3>::CalculateElementLength(double& rElementLength,
-                                                            const GeometryType& Geom)
+void UPwSmallStrainFICElement<2, 3>::CalculateElementLength(double& rElementLength, const GeometryType& Geom)
 {
     rElementLength = sqrt(4.0 * Geom.Area() / Globals::Pi);
 }
 
 //----------------------------------------------------------------------------------------
 template <>
-void UPwSmallStrainFICElement<2, 4>::CalculateElementLength(double& rElementLength,
-                                                            const GeometryType& Geom)
+void UPwSmallStrainFICElement<2, 4>::CalculateElementLength(double& rElementLength, const GeometryType& Geom)
 {
     rElementLength = sqrt(4.0 * Geom.Area() / Globals::Pi);
 }
 
 //----------------------------------------------------------------------------------------
 template <>
-void UPwSmallStrainFICElement<3, 4>::CalculateElementLength(double& rElementLength,
-                                                            const GeometryType& Geom)
+void UPwSmallStrainFICElement<3, 4>::CalculateElementLength(double& rElementLength, const GeometryType& Geom)
 {
     rElementLength = pow((6.0 * Geom.Volume() / Globals::Pi), (1.0 / 3.0));
 }
 
 //----------------------------------------------------------------------------------------
 template <>
-void UPwSmallStrainFICElement<3, 8>::CalculateElementLength(double& rElementLength,
-                                                            const GeometryType& Geom)
+void UPwSmallStrainFICElement<3, 8>::CalculateElementLength(double& rElementLength, const GeometryType& Geom)
 {
     rElementLength = pow((6.0 * Geom.Volume() / Globals::Pi), (1.0 / 3.0));
 }
@@ -829,16 +780,16 @@ void UPwSmallStrainFICElement<3, 8>::InitializeSecondOrderTerms(FICElementVariab
 
 //----------------------------------------------------------------------------------------
 template <>
-void UPwSmallStrainFICElement<2, 3>::CalculateShapeFunctionsSecondOrderGradients(
-    FICElementVariables& rFICVariables, ElementVariables& rVariables)
+void UPwSmallStrainFICElement<2, 3>::CalculateShapeFunctionsSecondOrderGradients(FICElementVariables& rFICVariables,
+                                                                                 ElementVariables& rVariables)
 {
     // Not necessary
 }
 
 //----------------------------------------------------------------------------------------
 template <>
-void UPwSmallStrainFICElement<2, 4>::CalculateShapeFunctionsSecondOrderGradients(
-    FICElementVariables& rFICVariables, ElementVariables& rVariables)
+void UPwSmallStrainFICElement<2, 4>::CalculateShapeFunctionsSecondOrderGradients(FICElementVariables& rFICVariables,
+                                                                                 ElementVariables& rVariables)
 {
     KRATOS_TRY
 
@@ -849,8 +800,7 @@ void UPwSmallStrainFICElement<2, 4>::CalculateShapeFunctionsSecondOrderGradients
         index = 2 * i;
 
         noalias(rFICVariables.ShapeFunctionsSecondOrderGradients[i]) =
-            prod(trans(rVariables.UVoigtMatrix),
-                 rFICVariables.NodalShapeFunctionsGradients[i]);
+            prod(trans(rVariables.UVoigtMatrix), rFICVariables.NodalShapeFunctionsGradients[i]);
 
         rFICVariables.StrainGradients(0, index) =
             rFICVariables.ShapeFunctionsSecondOrderGradients[i][0] +
@@ -860,8 +810,7 @@ void UPwSmallStrainFICElement<2, 4>::CalculateShapeFunctionsSecondOrderGradients
             rFICVariables.ShapeFunctionsSecondOrderGradients[i][1];
         rFICVariables.StrainGradients(0, index + 1) =
             0.5 * rFICVariables.ShapeFunctionsSecondOrderGradients[i][2];
-        rFICVariables.StrainGradients(1, index) =
-            rFICVariables.StrainGradients(0, index + 1);
+        rFICVariables.StrainGradients(1, index) = rFICVariables.StrainGradients(0, index + 1);
     }
 
     // clang-format off
@@ -880,16 +829,16 @@ void UPwSmallStrainFICElement<2, 4>::CalculateShapeFunctionsSecondOrderGradients
 
 //----------------------------------------------------------------------------------------
 template <>
-void UPwSmallStrainFICElement<3, 4>::CalculateShapeFunctionsSecondOrderGradients(
-    FICElementVariables& rFICVariables, ElementVariables& rVariables)
+void UPwSmallStrainFICElement<3, 4>::CalculateShapeFunctionsSecondOrderGradients(FICElementVariables& rFICVariables,
+                                                                                 ElementVariables& rVariables)
 {
     // No necessary
 }
 
 //----------------------------------------------------------------------------------------
 template <>
-void UPwSmallStrainFICElement<3, 8>::CalculateShapeFunctionsSecondOrderGradients(
-    FICElementVariables& rFICVariables, ElementVariables& rVariables)
+void UPwSmallStrainFICElement<3, 8>::CalculateShapeFunctionsSecondOrderGradients(FICElementVariables& rFICVariables,
+                                                                                 ElementVariables& rVariables)
 {
     KRATOS_TRY
 
@@ -900,8 +849,7 @@ void UPwSmallStrainFICElement<3, 8>::CalculateShapeFunctionsSecondOrderGradients
         index = 3 * i;
 
         noalias(rFICVariables.ShapeFunctionsSecondOrderGradients[i]) =
-            prod(trans(rVariables.UVoigtMatrix),
-                 rFICVariables.NodalShapeFunctionsGradients[i]);
+            prod(trans(rVariables.UVoigtMatrix), rFICVariables.NodalShapeFunctionsGradients[i]);
 
         rFICVariables.StrainGradients(0, index) =
             rFICVariables.ShapeFunctionsSecondOrderGradients[i][0] +
@@ -917,16 +865,13 @@ void UPwSmallStrainFICElement<3, 8>::CalculateShapeFunctionsSecondOrderGradients
             rFICVariables.ShapeFunctionsSecondOrderGradients[i][2];
         rFICVariables.StrainGradients(0, index + 1) =
             0.5 * rFICVariables.ShapeFunctionsSecondOrderGradients[i][3];
-        rFICVariables.StrainGradients(1, index) =
-            rFICVariables.StrainGradients(0, index + 1);
+        rFICVariables.StrainGradients(1, index) = rFICVariables.StrainGradients(0, index + 1);
         rFICVariables.StrainGradients(1, index + 2) =
             0.5 * rFICVariables.ShapeFunctionsSecondOrderGradients[i][4];
-        rFICVariables.StrainGradients(2, index + 1) =
-            rFICVariables.StrainGradients(1, index + 2);
+        rFICVariables.StrainGradients(2, index + 1) = rFICVariables.StrainGradients(1, index + 2);
         rFICVariables.StrainGradients(0, index + 2) =
             0.5 * rFICVariables.ShapeFunctionsSecondOrderGradients[i][5];
-        rFICVariables.StrainGradients(2, index) =
-            rFICVariables.StrainGradients(0, index + 2);
+        rFICVariables.StrainGradients(2, index) = rFICVariables.StrainGradients(0, index + 2);
     }
 
     KRATOS_CATCH("")
@@ -951,28 +896,28 @@ void UPwSmallStrainFICElement<TDim, TNumNodes>::CalculateAndAddLHSStabilization(
 
 //----------------------------------------------------------------------------------------
 template <>
-void UPwSmallStrainFICElement<2, 3>::CalculateAndAddStrainGradientMatrix(
-    MatrixType& rLeftHandSideMatrix, ElementVariables& rVariables, FICElementVariables& rFICVariables)
+void UPwSmallStrainFICElement<2, 3>::CalculateAndAddStrainGradientMatrix(MatrixType& rLeftHandSideMatrix,
+                                                                         ElementVariables& rVariables,
+                                                                         FICElementVariables& rFICVariables)
 {
     // No necessary
 }
 
 //----------------------------------------------------------------------------------------
 template <>
-void UPwSmallStrainFICElement<2, 4>::CalculateAndAddStrainGradientMatrix(
-    MatrixType& rLeftHandSideMatrix, ElementVariables& rVariables, FICElementVariables& rFICVariables)
+void UPwSmallStrainFICElement<2, 4>::CalculateAndAddStrainGradientMatrix(MatrixType& rLeftHandSideMatrix,
+                                                                         ElementVariables& rVariables,
+                                                                         FICElementVariables& rFICVariables)
 {
     KRATOS_TRY
 
     noalias(rVariables.PUMatrix) =
         PORE_PRESSURE_SIGN_FACTOR * rVariables.VelocityCoefficient * 0.25 *
         rFICVariables.ElementLength * rFICVariables.ElementLength * rVariables.BiotCoefficient *
-        prod(rVariables.GradNpT, rFICVariables.StrainGradients) *
-        rVariables.IntegrationCoefficient;
+        prod(rVariables.GradNpT, rFICVariables.StrainGradients) * rVariables.IntegrationCoefficient;
 
     // Distribute strain gradient matrix into the elemental matrix
-    GeoElementUtilities::AssemblePUBlockMatrix<2, 4>(rLeftHandSideMatrix,
-                                                     rVariables.PUMatrix);
+    GeoElementUtilities::AssemblePUBlockMatrix<2, 4>(rLeftHandSideMatrix, rVariables.PUMatrix);
 
     KRATOS_CATCH("")
 }
@@ -980,28 +925,28 @@ void UPwSmallStrainFICElement<2, 4>::CalculateAndAddStrainGradientMatrix(
 //----------------------------------------------------------------------------------------
 
 template <>
-void UPwSmallStrainFICElement<3, 4>::CalculateAndAddStrainGradientMatrix(
-    MatrixType& rLeftHandSideMatrix, ElementVariables& rVariables, FICElementVariables& rFICVariables)
+void UPwSmallStrainFICElement<3, 4>::CalculateAndAddStrainGradientMatrix(MatrixType& rLeftHandSideMatrix,
+                                                                         ElementVariables& rVariables,
+                                                                         FICElementVariables& rFICVariables)
 {
     // No necessary
 }
 
 //----------------------------------------------------------------------------------------
 template <>
-void UPwSmallStrainFICElement<3, 8>::CalculateAndAddStrainGradientMatrix(
-    MatrixType& rLeftHandSideMatrix, ElementVariables& rVariables, FICElementVariables& rFICVariables)
+void UPwSmallStrainFICElement<3, 8>::CalculateAndAddStrainGradientMatrix(MatrixType& rLeftHandSideMatrix,
+                                                                         ElementVariables& rVariables,
+                                                                         FICElementVariables& rFICVariables)
 {
     KRATOS_TRY
 
     noalias(rVariables.PUMatrix) =
         PORE_PRESSURE_SIGN_FACTOR * rVariables.VelocityCoefficient * 0.25 *
         rFICVariables.ElementLength * rFICVariables.ElementLength * rVariables.BiotCoefficient *
-        prod(rVariables.GradNpT, rFICVariables.StrainGradients) *
-        rVariables.IntegrationCoefficient;
+        prod(rVariables.GradNpT, rFICVariables.StrainGradients) * rVariables.IntegrationCoefficient;
 
     // Distribute strain gradient matrix into the elemental matrix
-    GeoElementUtilities::AssemblePUBlockMatrix<3, 8>(rLeftHandSideMatrix,
-                                                     rVariables.PUMatrix);
+    GeoElementUtilities::AssemblePUBlockMatrix<3, 8>(rLeftHandSideMatrix, rVariables.PUMatrix);
 
     KRATOS_CATCH("")
 }
@@ -1016,25 +961,24 @@ void UPwSmallStrainFICElement<TDim, TNumNodes>::CalculateAndAddDtStressGradientM
 
     this->CalculateConstitutiveTensorGradients(rFICVariables, rVariables);
 
-    double StabilizationParameter =
-        -PORE_PRESSURE_SIGN_FACTOR * rFICVariables.ElementLength * rFICVariables.ElementLength *
-        rVariables.BiotCoefficient / (8.0 * rFICVariables.ShearModulus);
+    double StabilizationParameter = -PORE_PRESSURE_SIGN_FACTOR * rFICVariables.ElementLength *
+                                    rFICVariables.ElementLength * rVariables.BiotCoefficient /
+                                    (8.0 * rFICVariables.ShearModulus);
 
-    noalias(rVariables.PUMatrix) =
-        -rVariables.VelocityCoefficient * StabilizationParameter / 3.0 *
-        prod(rVariables.GradNpT, rFICVariables.DimUMatrix) * rVariables.IntegrationCoefficient;
+    noalias(rVariables.PUMatrix) = -rVariables.VelocityCoefficient * StabilizationParameter / 3.0 *
+                                   prod(rVariables.GradNpT, rFICVariables.DimUMatrix) *
+                                   rVariables.IntegrationCoefficient;
 
     // Distribute DtStressGradient Matrix into the elemental matrix
-    GeoElementUtilities::AssemblePUBlockMatrix<TDim, TNumNodes>(
-        rLeftHandSideMatrix, rVariables.PUMatrix);
+    GeoElementUtilities::AssemblePUBlockMatrix<TDim, TNumNodes>(rLeftHandSideMatrix, rVariables.PUMatrix);
 
     KRATOS_CATCH("")
 }
 
 //----------------------------------------------------------------------------------------
 template <>
-void UPwSmallStrainFICElement<2, 3>::CalculateConstitutiveTensorGradients(
-    FICElementVariables& rFICVariables, const ElementVariables& Variables)
+void UPwSmallStrainFICElement<2, 3>::CalculateConstitutiveTensorGradients(FICElementVariables& rFICVariables,
+                                                                          const ElementVariables& Variables)
 {
     KRATOS_TRY
 
@@ -1058,18 +1002,16 @@ void UPwSmallStrainFICElement<2, 3>::CalculateConstitutiveTensorGradients(
             rFICVariables.DimVoigtMatrix(i, j) = 0.0;
 
             for (unsigned int k = 0; k < Dim; k++)
-                rFICVariables.DimVoigtMatrix(i, j) +=
-                    rFICVariables.ConstitutiveTensorGradients[k][j][i];
+                rFICVariables.DimVoigtMatrix(i, j) += rFICVariables.ConstitutiveTensorGradients[k][j][i];
         }
     }
 
-    noalias(rFICVariables.DimUMatrix) =
-        prod(rFICVariables.DimVoigtMatrix, Variables.B);
+    noalias(rFICVariables.DimUMatrix) = prod(rFICVariables.DimVoigtMatrix, Variables.B);
 
     /* INFO:
      *
-     * rFICVariables.ConstitutiveTensorGradients = [ ( |D00x|   |D01x|   |D02x| )   ( |D10x|   |D11x|   |D12x| ) ]
-     *                                             [ ( |D00y| , |D01y| , |D02y| ) , ( |D10y| , |D11y| , |D12y| ) ]
+     * rFICVariables.ConstitutiveTensorGradients = [ ( |D00x|   |D01x|   |D02x| )   ( |D10x| |D11x|
+     * |D12x| ) ] [ ( |D00y| , |D01y| , |D02y| ) , ( |D10y| , |D11y| , |D12y| ) ]
      *
      * rFICVariables.DimVoigtMatrix = |D00x+D10x D01x+D11x D02x+D12x|
      *                                |D00y+D10y D01y+D11y D02y+D12y|
@@ -1082,8 +1024,8 @@ void UPwSmallStrainFICElement<2, 3>::CalculateConstitutiveTensorGradients(
 
 //----------------------------------------------------------------------------------------
 template <>
-void UPwSmallStrainFICElement<2, 4>::CalculateConstitutiveTensorGradients(
-    FICElementVariables& rFICVariables, const ElementVariables& Variables)
+void UPwSmallStrainFICElement<2, 4>::CalculateConstitutiveTensorGradients(FICElementVariables& rFICVariables,
+                                                                          const ElementVariables& Variables)
 {
     KRATOS_TRY
 
@@ -1107,13 +1049,11 @@ void UPwSmallStrainFICElement<2, 4>::CalculateConstitutiveTensorGradients(
             rFICVariables.DimVoigtMatrix(i, j) = 0.0;
 
             for (unsigned int k = 0; k < Dim; k++)
-                rFICVariables.DimVoigtMatrix(i, j) +=
-                    rFICVariables.ConstitutiveTensorGradients[k][j][i];
+                rFICVariables.DimVoigtMatrix(i, j) += rFICVariables.ConstitutiveTensorGradients[k][j][i];
         }
     }
 
-    noalias(rFICVariables.DimUMatrix) =
-        prod(rFICVariables.DimVoigtMatrix, Variables.B);
+    noalias(rFICVariables.DimUMatrix) = prod(rFICVariables.DimVoigtMatrix, Variables.B);
 
     // Adding ShapeFunctionsSecondOrderGradients terms
     unsigned int index;
@@ -1148,8 +1088,8 @@ void UPwSmallStrainFICElement<2, 4>::CalculateConstitutiveTensorGradients(
 
 //----------------------------------------------------------------------------------------
 template <>
-void UPwSmallStrainFICElement<3, 4>::CalculateConstitutiveTensorGradients(
-    FICElementVariables& rFICVariables, const ElementVariables& Variables)
+void UPwSmallStrainFICElement<3, 4>::CalculateConstitutiveTensorGradients(FICElementVariables& rFICVariables,
+                                                                          const ElementVariables& Variables)
 {
     KRATOS_TRY
 
@@ -1173,21 +1113,19 @@ void UPwSmallStrainFICElement<3, 4>::CalculateConstitutiveTensorGradients(
             rFICVariables.DimVoigtMatrix(i, j) = 0.0;
 
             for (unsigned int k = 0; k < Dim; k++)
-                rFICVariables.DimVoigtMatrix(i, j) +=
-                    rFICVariables.ConstitutiveTensorGradients[k][j][i];
+                rFICVariables.DimVoigtMatrix(i, j) += rFICVariables.ConstitutiveTensorGradients[k][j][i];
         }
     }
 
-    noalias(rFICVariables.DimUMatrix) =
-        prod(rFICVariables.DimVoigtMatrix, Variables.B);
+    noalias(rFICVariables.DimUMatrix) = prod(rFICVariables.DimVoigtMatrix, Variables.B);
 
     KRATOS_CATCH("")
 }
 
 //----------------------------------------------------------------------------------------
 template <>
-void UPwSmallStrainFICElement<3, 8>::CalculateConstitutiveTensorGradients(
-    FICElementVariables& rFICVariables, const ElementVariables& Variables)
+void UPwSmallStrainFICElement<3, 8>::CalculateConstitutiveTensorGradients(FICElementVariables& rFICVariables,
+                                                                          const ElementVariables& Variables)
 {
     KRATOS_TRY
 
@@ -1211,13 +1149,11 @@ void UPwSmallStrainFICElement<3, 8>::CalculateConstitutiveTensorGradients(
             rFICVariables.DimVoigtMatrix(i, j) = 0.0;
 
             for (unsigned int k = 0; k < Dim; k++)
-                rFICVariables.DimVoigtMatrix(i, j) +=
-                    rFICVariables.ConstitutiveTensorGradients[k][j][i];
+                rFICVariables.DimVoigtMatrix(i, j) += rFICVariables.ConstitutiveTensorGradients[k][j][i];
         }
     }
 
-    noalias(rFICVariables.DimUMatrix) =
-        prod(rFICVariables.DimVoigtMatrix, Variables.B);
+    noalias(rFICVariables.DimUMatrix) = prod(rFICVariables.DimVoigtMatrix, Variables.B);
 
     // Adding ShapeFunctionsSecondOrderGradients terms
     unsigned int index;
@@ -1329,9 +1265,8 @@ void UPwSmallStrainFICElement<TDim, TNumNodes>::CalculateAndAddPressureGradientM
 
     const double SignBiotCoefficient = -PORE_PRESSURE_SIGN_FACTOR * rVariables.BiotCoefficient;
 
-    const double StabilizationParameter =
-        rFICVariables.ElementLength * rFICVariables.ElementLength *
-        SignBiotCoefficient / (8.0 * rFICVariables.ShearModulus);
+    const double StabilizationParameter = rFICVariables.ElementLength * rFICVariables.ElementLength *
+                                          SignBiotCoefficient / (8.0 * rFICVariables.ShearModulus);
 
     noalias(rVariables.PMatrix) =
         rVariables.DtPressureCoefficient * StabilizationParameter *
@@ -1340,8 +1275,7 @@ void UPwSmallStrainFICElement<TDim, TNumNodes>::CalculateAndAddPressureGradientM
         prod(rVariables.GradNpT, trans(rVariables.GradNpT)) * rVariables.IntegrationCoefficient;
 
     // Distribute pressure gradient block matrix into the elemental matrix
-    GeoElementUtilities::AssemblePBlockMatrix<TDim, TNumNodes>(
-        rLeftHandSideMatrix, rVariables.PMatrix);
+    GeoElementUtilities::AssemblePBlockMatrix<TDim, TNumNodes>(rLeftHandSideMatrix, rVariables.PMatrix);
 
     KRATOS_CATCH("")
 }
@@ -1365,60 +1299,60 @@ void UPwSmallStrainFICElement<TDim, TNumNodes>::CalculateAndAddRHSStabilization(
 
 //----------------------------------------------------------------------------------------
 template <>
-void UPwSmallStrainFICElement<2, 3>::CalculateAndAddStrainGradientFlow(
-    VectorType& rRightHandSideVector, ElementVariables& rVariables, FICElementVariables& rFICVariables)
+void UPwSmallStrainFICElement<2, 3>::CalculateAndAddStrainGradientFlow(VectorType& rRightHandSideVector,
+                                                                       ElementVariables& rVariables,
+                                                                       FICElementVariables& rFICVariables)
 {
     // No necessary
 }
 
 //----------------------------------------------------------------------------------------
 template <>
-void UPwSmallStrainFICElement<2, 4>::CalculateAndAddStrainGradientFlow(
-    VectorType& rRightHandSideVector, ElementVariables& rVariables, FICElementVariables& rFICVariables)
+void UPwSmallStrainFICElement<2, 4>::CalculateAndAddStrainGradientFlow(VectorType& rRightHandSideVector,
+                                                                       ElementVariables& rVariables,
+                                                                       FICElementVariables& rFICVariables)
 {
     KRATOS_TRY
 
-    noalias(rVariables.PUMatrix) =
-        0.25 * rFICVariables.ElementLength * rFICVariables.ElementLength *
-        rVariables.BiotCoefficient * (-PORE_PRESSURE_SIGN_FACTOR) *
-        prod(rVariables.GradNpT, rFICVariables.StrainGradients) *
-        rVariables.IntegrationCoefficient;
+    noalias(rVariables.PUMatrix) = 0.25 * rFICVariables.ElementLength * rFICVariables.ElementLength *
+                                   rVariables.BiotCoefficient * (-PORE_PRESSURE_SIGN_FACTOR) *
+                                   prod(rVariables.GradNpT, rFICVariables.StrainGradients) *
+                                   rVariables.IntegrationCoefficient;
 
     noalias(rVariables.PVector) = prod(rVariables.PUMatrix, rVariables.VelocityVector);
 
     // Distribute Strain Gradient vector into elemental vector
-    GeoElementUtilities::AssemblePBlockVector<2, 4>(rRightHandSideVector,
-                                                    rVariables.PVector);
+    GeoElementUtilities::AssemblePBlockVector<2, 4>(rRightHandSideVector, rVariables.PVector);
 
     KRATOS_CATCH("")
 }
 
 //----------------------------------------------------------------------------------------
 template <>
-void UPwSmallStrainFICElement<3, 4>::CalculateAndAddStrainGradientFlow(
-    VectorType& rRightHandSideVector, ElementVariables& rVariables, FICElementVariables& rFICVariables)
+void UPwSmallStrainFICElement<3, 4>::CalculateAndAddStrainGradientFlow(VectorType& rRightHandSideVector,
+                                                                       ElementVariables& rVariables,
+                                                                       FICElementVariables& rFICVariables)
 {
     // Not necessary
 }
 
 //----------------------------------------------------------------------------------------
 template <>
-void UPwSmallStrainFICElement<3, 8>::CalculateAndAddStrainGradientFlow(
-    VectorType& rRightHandSideVector, ElementVariables& rVariables, FICElementVariables& rFICVariables)
+void UPwSmallStrainFICElement<3, 8>::CalculateAndAddStrainGradientFlow(VectorType& rRightHandSideVector,
+                                                                       ElementVariables& rVariables,
+                                                                       FICElementVariables& rFICVariables)
 {
     KRATOS_TRY
 
-    noalias(rVariables.PUMatrix) =
-        0.25 * rFICVariables.ElementLength * rFICVariables.ElementLength *
-        rVariables.BiotCoefficient * (-PORE_PRESSURE_SIGN_FACTOR) *
-        prod(rVariables.GradNpT, rFICVariables.StrainGradients) *
-        rVariables.IntegrationCoefficient;
+    noalias(rVariables.PUMatrix) = 0.25 * rFICVariables.ElementLength * rFICVariables.ElementLength *
+                                   rVariables.BiotCoefficient * (-PORE_PRESSURE_SIGN_FACTOR) *
+                                   prod(rVariables.GradNpT, rFICVariables.StrainGradients) *
+                                   rVariables.IntegrationCoefficient;
 
     noalias(rVariables.PVector) = prod(rVariables.PUMatrix, rVariables.VelocityVector);
 
     // Distribute Strain Gradient vector into elemental vector
-    GeoElementUtilities::AssemblePBlockVector<3, 8>(rRightHandSideVector,
-                                                    rVariables.PVector);
+    GeoElementUtilities::AssemblePBlockVector<3, 8>(rRightHandSideVector, rVariables.PVector);
 
     KRATOS_CATCH("")
 }
@@ -1432,26 +1366,24 @@ void UPwSmallStrainFICElement<TDim, TNumNodes>::CalculateAndAddDtStressGradientF
 
     this->CalculateDtStressGradients(rFICVariables, rVariables);
 
-    double StabilizationParameter =
-        rFICVariables.ElementLength * rFICVariables.ElementLength *
-        (rVariables.BiotCoefficient * (-PORE_PRESSURE_SIGN_FACTOR)) /
-        (8.0 * rFICVariables.ShearModulus);
+    double StabilizationParameter = rFICVariables.ElementLength * rFICVariables.ElementLength *
+                                    (rVariables.BiotCoefficient * (-PORE_PRESSURE_SIGN_FACTOR)) /
+                                    (8.0 * rFICVariables.ShearModulus);
 
     noalias(rVariables.PVector) = StabilizationParameter / 3.0 *
                                   prod(rVariables.GradNpT, rFICVariables.DimVector) *
                                   rVariables.IntegrationCoefficient;
 
     // Distribute DtStressGradient block vector into elemental vector
-    GeoElementUtilities::AssemblePBlockVector<TDim, TNumNodes>(
-        rRightHandSideVector, rVariables.PVector);
+    GeoElementUtilities::AssemblePBlockVector<TDim, TNumNodes>(rRightHandSideVector, rVariables.PVector);
 
     KRATOS_CATCH("")
 }
 
 //----------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
-void UPwSmallStrainFICElement<TDim, TNumNodes>::CalculateDtStressGradients(
-    FICElementVariables& rFICVariables, const ElementVariables& Variables)
+void UPwSmallStrainFICElement<TDim, TNumNodes>::CalculateDtStressGradients(FICElementVariables& rFICVariables,
+                                                                           const ElementVariables& Variables)
 {
     KRATOS_TRY;
 
@@ -1460,8 +1392,7 @@ void UPwSmallStrainFICElement<TDim, TNumNodes>::CalculateDtStressGradients(
             rFICVariables.DtStressGradients[i][j] = 0.0;
 
             for (unsigned int k = 0; k < TNumNodes; k++)
-                rFICVariables.DtStressGradients[i][j] +=
-                    Variables.GradNpT(k, j) * mNodalDtStress[i][k];
+                rFICVariables.DtStressGradients[i][j] += Variables.GradNpT(k, j) * mNodalDtStress[i][k];
         }
     }
 
@@ -1493,10 +1424,9 @@ void UPwSmallStrainFICElement<TDim, TNumNodes>::CalculateAndAddPressureGradientF
 {
     KRATOS_TRY;
 
-    double SignBiotCoefficient = -PORE_PRESSURE_SIGN_FACTOR * rVariables.BiotCoefficient;
-    double StabilizationParameter =
-        rFICVariables.ElementLength * rFICVariables.ElementLength *
-        SignBiotCoefficient / (8.0 * rFICVariables.ShearModulus);
+    double SignBiotCoefficient    = -PORE_PRESSURE_SIGN_FACTOR * rVariables.BiotCoefficient;
+    double StabilizationParameter = rFICVariables.ElementLength * rFICVariables.ElementLength *
+                                    SignBiotCoefficient / (8.0 * rFICVariables.ShearModulus);
 
     noalias(rVariables.PMatrix) =
         StabilizationParameter *
@@ -1504,12 +1434,10 @@ void UPwSmallStrainFICElement<TDim, TNumNodes>::CalculateAndAddPressureGradientF
                                    (3.0 * SignBiotCoefficient)) *
         prod(rVariables.GradNpT, trans(rVariables.GradNpT)) * rVariables.IntegrationCoefficient;
 
-    noalias(rVariables.PVector) =
-        -1.0 * prod(rVariables.PMatrix, rVariables.DtPressureVector);
+    noalias(rVariables.PVector) = -1.0 * prod(rVariables.PMatrix, rVariables.DtPressureVector);
 
     // Distribute PressureGradient block vector into elemental vector
-    GeoElementUtilities::AssemblePBlockVector<TDim, TNumNodes>(
-        rRightHandSideVector, rVariables.PVector);
+    GeoElementUtilities::AssemblePBlockVector<TDim, TNumNodes>(rRightHandSideVector, rVariables.PVector);
 
     KRATOS_CATCH("")
 }

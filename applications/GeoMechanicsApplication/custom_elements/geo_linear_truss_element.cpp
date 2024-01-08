@@ -26,8 +26,7 @@ namespace Kratos
 
 //----------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
-GeoLinearTrussElement<TDim, TNumNodes>::GeoLinearTrussElement(IndexType NewId,
-                                                              GeometryType::Pointer pGeometry)
+GeoLinearTrussElement<TDim, TNumNodes>::GeoLinearTrussElement(IndexType NewId, GeometryType::Pointer pGeometry)
     : GeoTrussElementLinearBase<TDim, TNumNodes>(NewId, pGeometry)
 {
 }
@@ -43,18 +42,19 @@ GeoLinearTrussElement<TDim, TNumNodes>::GeoLinearTrussElement(IndexType NewId,
 
 //----------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
-Element::Pointer GeoLinearTrussElement<TDim, TNumNodes>::Create(
-    IndexType NewId, NodesArrayType const& rThisNodes, PropertiesType::Pointer pProperties) const
+Element::Pointer GeoLinearTrussElement<TDim, TNumNodes>::Create(IndexType NewId,
+                                                                NodesArrayType const& rThisNodes,
+                                                                PropertiesType::Pointer pProperties) const
 {
     const GeometryType& rGeom = this->GetGeometry();
-    return Kratos::make_intrusive<GeoLinearTrussElement>(
-        NewId, rGeom.Create(rThisNodes), pProperties);
+    return Kratos::make_intrusive<GeoLinearTrussElement>(NewId, rGeom.Create(rThisNodes), pProperties);
 }
 
 //----------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
-Element::Pointer GeoLinearTrussElement<TDim, TNumNodes>::Create(
-    IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties) const
+Element::Pointer GeoLinearTrussElement<TDim, TNumNodes>::Create(IndexType NewId,
+                                                                GeometryType::Pointer pGeom,
+                                                                PropertiesType::Pointer pProperties) const
 {
     return Kratos::make_intrusive<GeoLinearTrussElement>(NewId, pGeom, pProperties);
 }
@@ -101,9 +101,7 @@ void GeoLinearTrussElement<TDim, TNumNodes>::Initialize(const ProcessInfo& rCurr
 //----------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
 void GeoLinearTrussElement<TDim, TNumNodes>::CalculateOnIntegrationPoints(
-    const Variable<array_1d<double, 3>>& rVariable,
-    std::vector<array_1d<double, 3>>& rOutput,
-    const ProcessInfo& rCurrentProcessInfo)
+    const Variable<array_1d<double, 3>>& rVariable, std::vector<array_1d<double, 3>>& rOutput, const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
@@ -115,15 +113,14 @@ void GeoLinearTrussElement<TDim, TNumNodes>::CalculateOnIntegrationPoints(
 
     if (rVariable == FORCE) {
         BoundedVector<double, 3> truss_forces = ZeroVector(3);
-        const double A = this->GetProperties()[CROSS_AREA];
+        const double A                        = this->GetProperties()[CROSS_AREA];
 
         double prestress = 0.00;
         if (this->GetProperties().Has(TRUSS_PRESTRESS_PK2)) {
             prestress = this->GetProperties()[TRUSS_PRESTRESS_PK2];
         }
 
-        ConstitutiveLaw::Parameters Values(
-            this->GetGeometry(), this->GetProperties(), rCurrentProcessInfo);
+        ConstitutiveLaw::Parameters Values(this->GetGeometry(), this->GetProperties(), rCurrentProcessInfo);
         Vector temp_strain = ZeroVector(mStressVectorSize);
         Vector temp_stress = ZeroVector(mStressVectorSize);
         temp_strain[0]     = this->CalculateLinearStrain();
@@ -143,13 +140,12 @@ void GeoLinearTrussElement<TDim, TNumNodes>::CalculateOnIntegrationPoints(
 
 //----------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
-void GeoLinearTrussElement<TDim, TNumNodes>::UpdateInternalForces(
-    FullDofVectorType& rInternalForces, const ProcessInfo& rCurrentProcessInfo)
+void GeoLinearTrussElement<TDim, TNumNodes>::UpdateInternalForces(FullDofVectorType& rInternalForces,
+                                                                  const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY;
 
-    ConstitutiveLaw::Parameters Values(
-        this->GetGeometry(), this->GetProperties(), rCurrentProcessInfo);
+    ConstitutiveLaw::Parameters Values(this->GetGeometry(), this->GetProperties(), rCurrentProcessInfo);
 
     Vector temp_strain = ZeroVector(mStressVectorSize);
     Vector temp_stress = ZeroVector(mStressVectorSize);

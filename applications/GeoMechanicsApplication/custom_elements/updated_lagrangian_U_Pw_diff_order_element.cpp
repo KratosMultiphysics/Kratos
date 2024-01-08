@@ -20,16 +20,18 @@ namespace Kratos
 {
 
 //----------------------------------------------------------------------------------------
-Element::Pointer UpdatedLagrangianUPwDiffOrderElement::Create(
-    IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const
+Element::Pointer UpdatedLagrangianUPwDiffOrderElement::Create(IndexType NewId,
+                                                              NodesArrayType const& ThisNodes,
+                                                              PropertiesType::Pointer pProperties) const
 {
     return Element::Pointer(new UpdatedLagrangianUPwDiffOrderElement(
         NewId, this->GetGeometry().Create(ThisNodes), pProperties));
 }
 
 //----------------------------------------------------------------------------------------
-Element::Pointer UpdatedLagrangianUPwDiffOrderElement::Create(
-    IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties) const
+Element::Pointer UpdatedLagrangianUPwDiffOrderElement::Create(IndexType NewId,
+                                                              GeometryType::Pointer pGeom,
+                                                              PropertiesType::Pointer pProperties) const
 {
     return Element::Pointer(new UpdatedLagrangianUPwDiffOrderElement(NewId, pGeom, pProperties));
 }
@@ -89,12 +91,11 @@ void UpdatedLagrangianUPwDiffOrderElement::CalculateAll(MatrixType& rLeftHandSid
         this->InitializeBiotCoefficients(Variables, hasBiotCoefficient);
 
         // Calculating weights for integration on the reference configuration
-        Variables.IntegrationCoefficient = this->CalculateIntegrationCoefficient(
-            IntegrationPoints, GPoint, Variables.detJ);
+        Variables.IntegrationCoefficient =
+            this->CalculateIntegrationCoefficient(IntegrationPoints, GPoint, Variables.detJ);
 
-        Variables.IntegrationCoefficientInitialConfiguration =
-            this->CalculateIntegrationCoefficient(
-                IntegrationPoints, GPoint, Variables.detJInitialConfiguration);
+        Variables.IntegrationCoefficientInitialConfiguration = this->CalculateIntegrationCoefficient(
+            IntegrationPoints, GPoint, Variables.detJInitialConfiguration);
 
         if (CalculateStiffnessMatrixFlag) {
             // Contributions to stiffness matrix calculated on the reference config
@@ -103,8 +104,7 @@ void UpdatedLagrangianUPwDiffOrderElement::CalculateAll(MatrixType& rLeftHandSid
 
             /* Geometric stiffness matrix */
             if (Variables.ConsiderGeometricStiffness)
-                this->CalculateAndAddGeometricStiffnessMatrix(
-                    rLeftHandSideMatrix, Variables, GPoint);
+                this->CalculateAndAddGeometricStiffnessMatrix(rLeftHandSideMatrix, Variables, GPoint);
         }
 
         if (CalculateResidualVectorFlag) {
@@ -117,8 +117,9 @@ void UpdatedLagrangianUPwDiffOrderElement::CalculateAll(MatrixType& rLeftHandSid
 }
 
 //----------------------------------------------------------------------------------------
-void UpdatedLagrangianUPwDiffOrderElement::CalculateAndAddGeometricStiffnessMatrix(
-    MatrixType& rLeftHandSideMatrix, ElementVariables& rVariables, unsigned int GPoint)
+void UpdatedLagrangianUPwDiffOrderElement::CalculateAndAddGeometricStiffnessMatrix(MatrixType& rLeftHandSideMatrix,
+                                                                                   ElementVariables& rVariables,
+                                                                                   unsigned int GPoint)
 {
     KRATOS_TRY
 
@@ -128,9 +129,9 @@ void UpdatedLagrangianUPwDiffOrderElement::CalculateAndAddGeometricStiffnessMatr
 
     Matrix StressTensor = MathUtils<double>::StressVectorToTensor(mStressVector[GPoint]);
 
-    Matrix ReducedKgMatrix = prod(
-        rVariables.DNu_DX, rVariables.IntegrationCoefficient *
-                               Matrix(prod(StressTensor, trans(rVariables.DNu_DX)))); // to be optimized
+    Matrix ReducedKgMatrix =
+        prod(rVariables.DNu_DX,
+             rVariables.IntegrationCoefficient * Matrix(prod(StressTensor, trans(rVariables.DNu_DX)))); // to be optimized
 
     Matrix UMatrix(NumUNodes * Dim, NumUNodes * Dim);
     noalias(UMatrix) = ZeroMatrix(NumUNodes * Dim, NumUNodes * Dim);
@@ -143,8 +144,9 @@ void UpdatedLagrangianUPwDiffOrderElement::CalculateAndAddGeometricStiffnessMatr
 }
 
 //----------------------------------------------------------------------------------------
-void UpdatedLagrangianUPwDiffOrderElement::CalculateOnIntegrationPoints(
-    const Variable<double>& rVariable, std::vector<double>& rOutput, const ProcessInfo& rCurrentProcessInfo)
+void UpdatedLagrangianUPwDiffOrderElement::CalculateOnIntegrationPoints(const Variable<double>& rVariable,
+                                                                        std::vector<double>& rOutput,
+                                                                        const ProcessInfo& rCurrentProcessInfo)
 {
     if (rVariable == REFERENCE_DEFORMATION_GRADIENT_DETERMINANT) {
         if (rOutput.size() != mConstitutiveLawVector.size())
@@ -159,14 +161,14 @@ void UpdatedLagrangianUPwDiffOrderElement::CalculateOnIntegrationPoints(
             rOutput[GPoint] = Variables.detF;
         }
     } else {
-        SmallStrainUPwDiffOrderElement::CalculateOnIntegrationPoints(
-            rVariable, rOutput, rCurrentProcessInfo);
+        SmallStrainUPwDiffOrderElement::CalculateOnIntegrationPoints(rVariable, rOutput, rCurrentProcessInfo);
     }
 }
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-void UpdatedLagrangianUPwDiffOrderElement::CalculateOnIntegrationPoints(
-    const Variable<Vector>& rVariable, std::vector<Vector>& rOutput, const ProcessInfo& rCurrentProcessInfo)
+void UpdatedLagrangianUPwDiffOrderElement::CalculateOnIntegrationPoints(const Variable<Vector>& rVariable,
+                                                                        std::vector<Vector>& rOutput,
+                                                                        const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
@@ -174,8 +176,7 @@ void UpdatedLagrangianUPwDiffOrderElement::CalculateOnIntegrationPoints(
     const unsigned int& IntegrationPointsNumber =
         rGeom.IntegrationPointsNumber(this->GetIntegrationMethod());
 
-    if (rOutput.size() != IntegrationPointsNumber)
-        rOutput.resize(IntegrationPointsNumber);
+    if (rOutput.size() != IntegrationPointsNumber) rOutput.resize(IntegrationPointsNumber);
 
     if (rVariable == GREEN_LAGRANGE_STRAIN_VECTOR) {
         // Definition of variables
@@ -193,16 +194,16 @@ void UpdatedLagrangianUPwDiffOrderElement::CalculateOnIntegrationPoints(
             rOutput[GPoint] = Variables.StrainVector;
         }
     } else {
-        SmallStrainUPwDiffOrderElement::CalculateOnIntegrationPoints(
-            rVariable, rOutput, rCurrentProcessInfo);
+        SmallStrainUPwDiffOrderElement::CalculateOnIntegrationPoints(rVariable, rOutput, rCurrentProcessInfo);
     }
 
     KRATOS_CATCH("")
 }
 
 //----------------------------------------------------------------------------------------
-void UpdatedLagrangianUPwDiffOrderElement::CalculateOnIntegrationPoints(
-    const Variable<Matrix>& rVariable, std::vector<Matrix>& rOutput, const ProcessInfo& rCurrentProcessInfo)
+void UpdatedLagrangianUPwDiffOrderElement::CalculateOnIntegrationPoints(const Variable<Matrix>& rVariable,
+                                                                        std::vector<Matrix>& rOutput,
+                                                                        const ProcessInfo& rCurrentProcessInfo)
 {
     const GeometryType& rGeom = GetGeometry();
     const SizeType Dim        = rGeom.WorkingSpaceDimension();
@@ -218,14 +219,12 @@ void UpdatedLagrangianUPwDiffOrderElement::CalculateOnIntegrationPoints(
         for (unsigned int GPoint = 0; GPoint < mConstitutiveLawVector.size(); ++GPoint) {
             this->CalculateDeformationGradient(Variables, GPoint);
 
-            if (rOutput[GPoint].size2() != Dim)
-                rOutput[GPoint].resize(Dim, Dim, false);
+            if (rOutput[GPoint].size2() != Dim) rOutput[GPoint].resize(Dim, Dim, false);
 
             rOutput[GPoint] = Variables.F;
         }
     } else {
-        SmallStrainUPwDiffOrderElement::CalculateOnIntegrationPoints(
-            rVariable, rOutput, rCurrentProcessInfo);
+        SmallStrainUPwDiffOrderElement::CalculateOnIntegrationPoints(rVariable, rOutput, rCurrentProcessInfo);
     }
 }
 

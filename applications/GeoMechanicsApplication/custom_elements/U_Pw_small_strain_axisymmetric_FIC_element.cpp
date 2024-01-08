@@ -35,8 +35,9 @@ Element::Pointer UPwSmallStrainAxisymmetricFICElement<TDim, TNumNodes>::Create(
 
 //----------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
-void UPwSmallStrainAxisymmetricFICElement<TDim, TNumNodes>::CalculateBMatrix(
-    Matrix& rB, const Matrix& GradNpT, const Vector& Np)
+void UPwSmallStrainAxisymmetricFICElement<TDim, TNumNodes>::CalculateBMatrix(Matrix& rB,
+                                                                             const Matrix& GradNpT,
+                                                                             const Vector& Np)
 {
     KRATOS_TRY
 
@@ -58,14 +59,11 @@ void UPwSmallStrainAxisymmetricFICElement<TDim, TNumNodes>::CalculateBMatrix(
 //----------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
 double UPwSmallStrainAxisymmetricFICElement<TDim, TNumNodes>::CalculateIntegrationCoefficient(
-    const GeometryType::IntegrationPointsArrayType& IntegrationPoints,
-    unsigned int PointNumber,
-    double detJ)
+    const GeometryType::IntegrationPointsArrayType& IntegrationPoints, unsigned int PointNumber, double detJ)
 
 {
     Vector N;
-    N = this->GetGeometry().ShapeFunctionsValues(
-        N, IntegrationPoints[PointNumber].Coordinates());
+    N = this->GetGeometry().ShapeFunctionsValues(N, IntegrationPoints[PointNumber].Coordinates());
     const double radiusWeight =
         GeoElementUtilities::CalculateAxisymmetricCircumference(N, this->GetGeometry());
 

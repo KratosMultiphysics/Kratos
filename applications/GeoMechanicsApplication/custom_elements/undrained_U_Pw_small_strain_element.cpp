@@ -17,8 +17,9 @@ namespace Kratos
 {
 
 template <unsigned int TDim, unsigned int TNumNodes>
-Element::Pointer UndrainedUPwSmallStrainElement<TDim, TNumNodes>::Create(
-    IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const
+Element::Pointer UndrainedUPwSmallStrainElement<TDim, TNumNodes>::Create(IndexType NewId,
+                                                                         NodesArrayType const& ThisNodes,
+                                                                         PropertiesType::Pointer pProperties) const
 {
     return Element::Pointer(new UndrainedUPwSmallStrainElement(
         NewId, this->GetGeometry().Create(ThisNodes), pProperties));
@@ -27,8 +28,9 @@ Element::Pointer UndrainedUPwSmallStrainElement<TDim, TNumNodes>::Create(
 //----------------------------------------------------------------------------------------
 
 template <unsigned int TDim, unsigned int TNumNodes>
-Element::Pointer UndrainedUPwSmallStrainElement<TDim, TNumNodes>::Create(
-    IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties) const
+Element::Pointer UndrainedUPwSmallStrainElement<TDim, TNumNodes>::Create(IndexType NewId,
+                                                                         GeometryType::Pointer pGeom,
+                                                                         PropertiesType::Pointer pProperties) const
 {
     return Element::Pointer(new UndrainedUPwSmallStrainElement(NewId, pGeom, pProperties));
 }
@@ -61,12 +63,10 @@ int UndrainedUPwSmallStrainElement<TDim, TNumNodes>::Check(const ProcessInfo& rC
 
     // Verify that the constitutive law exists
     KRATOS_ERROR_IF_NOT(this->GetProperties().Has(CONSTITUTIVE_LAW))
-        << "Constitutive law not provided for property "
-        << this->GetProperties().Id() << std::endl;
+        << "Constitutive law not provided for property " << this->GetProperties().Id() << std::endl;
 
     // Verify that the constitutive law has the correct dimension
-    const SizeType strain_size =
-        this->GetProperties().GetValue(CONSTITUTIVE_LAW)->GetStrainSize();
+    const SizeType strain_size = this->GetProperties().GetValue(CONSTITUTIVE_LAW)->GetStrainSize();
     if (TDim == 2) {
         KRATOS_ERROR_IF(strain_size < 3 || strain_size > 4)
             << "Wrong constitutive law used. This is a 2D element! expected "
@@ -91,41 +91,36 @@ int UndrainedUPwSmallStrainElement<TDim, TNumNodes>::Check(const ProcessInfo& rC
 
 //----------------------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
-void UndrainedUPwSmallStrainElement<TDim, TNumNodes>::CalculateAndAddLHS(
-    MatrixType& rLeftHandSideMatrix, ElementVariables& rVariables)
+void UndrainedUPwSmallStrainElement<TDim, TNumNodes>::CalculateAndAddLHS(MatrixType& rLeftHandSideMatrix,
+                                                                         ElementVariables& rVariables)
 {
     KRATOS_TRY;
 
-    UPwSmallStrainElement<TDim, TNumNodes>::CalculateAndAddStiffnessMatrix(
-        rLeftHandSideMatrix, rVariables);
+    UPwSmallStrainElement<TDim, TNumNodes>::CalculateAndAddStiffnessMatrix(rLeftHandSideMatrix, rVariables);
 
-    UPwSmallStrainElement<TDim, TNumNodes>::CalculateAndAddCouplingMatrix(
-        rLeftHandSideMatrix, rVariables);
+    UPwSmallStrainElement<TDim, TNumNodes>::CalculateAndAddCouplingMatrix(rLeftHandSideMatrix, rVariables);
 
-    UPwSmallStrainElement<TDim, TNumNodes>::CalculateAndAddCompressibilityMatrix(
-        rLeftHandSideMatrix, rVariables);
+    UPwSmallStrainElement<TDim, TNumNodes>::CalculateAndAddCompressibilityMatrix(rLeftHandSideMatrix, rVariables);
 
     KRATOS_CATCH("");
 }
 
 //----------------------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
-void UndrainedUPwSmallStrainElement<TDim, TNumNodes>::CalculateAndAddRHS(
-    VectorType& rRightHandSideVector, ElementVariables& rVariables, unsigned int GPoint)
+void UndrainedUPwSmallStrainElement<TDim, TNumNodes>::CalculateAndAddRHS(VectorType& rRightHandSideVector,
+                                                                         ElementVariables& rVariables,
+                                                                         unsigned int GPoint)
 {
     KRATOS_TRY;
 
-    UPwSmallStrainElement<TDim, TNumNodes>::CalculateAndAddStiffnessForce(
-        rRightHandSideVector, rVariables, GPoint);
+    UPwSmallStrainElement<TDim, TNumNodes>::CalculateAndAddStiffnessForce(rRightHandSideVector,
+                                                                          rVariables, GPoint);
 
-    UPwSmallStrainElement<TDim, TNumNodes>::CalculateAndAddMixBodyForce(
-        rRightHandSideVector, rVariables);
+    UPwSmallStrainElement<TDim, TNumNodes>::CalculateAndAddMixBodyForce(rRightHandSideVector, rVariables);
 
-    UPwSmallStrainElement<TDim, TNumNodes>::CalculateAndAddCouplingTerms(
-        rRightHandSideVector, rVariables);
+    UPwSmallStrainElement<TDim, TNumNodes>::CalculateAndAddCouplingTerms(rRightHandSideVector, rVariables);
 
-    UPwSmallStrainElement<TDim, TNumNodes>::CalculateAndAddCompressibilityFlow(
-        rRightHandSideVector, rVariables);
+    UPwSmallStrainElement<TDim, TNumNodes>::CalculateAndAddCompressibilityFlow(rRightHandSideVector, rVariables);
 
     KRATOS_CATCH("");
 }

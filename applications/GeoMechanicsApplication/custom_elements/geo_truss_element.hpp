@@ -31,8 +31,7 @@ namespace Kratos
  */
 
 template <unsigned int TDim, unsigned int TNumNodes>
-class KRATOS_API(GEO_MECHANICS_APPLICATION) GeoTrussElement
-    : public GeoTrussElementBase<TDim, TNumNodes>
+class KRATOS_API(GEO_MECHANICS_APPLICATION) GeoTrussElement : public GeoTrussElementBase<TDim, TNumNodes>
 {
 protected:
     // const values
@@ -59,9 +58,7 @@ public:
 
     GeoTrussElement(){};
     GeoTrussElement(IndexType NewId, GeometryType::Pointer pGeometry);
-    GeoTrussElement(IndexType NewId,
-                    GeometryType::Pointer pGeometry,
-                    PropertiesType::Pointer pProperties);
+    GeoTrussElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties);
 
     ~GeoTrussElement() override;
 
@@ -72,9 +69,7 @@ public:
      * @param pProperties The pointer to property
      * @return The pointer to the created element
      */
-    Element::Pointer Create(IndexType NewId,
-                            GeometryType::Pointer pGeom,
-                            PropertiesType::Pointer pProperties) const override;
+    Element::Pointer Create(IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties) const override;
 
     /**
      * @brief Creates a new element

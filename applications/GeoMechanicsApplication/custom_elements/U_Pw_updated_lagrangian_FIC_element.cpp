@@ -21,8 +21,9 @@ namespace Kratos
 
 //----------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
-Element::Pointer UPwUpdatedLagrangianFICElement<TDim, TNumNodes>::Create(
-    IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const
+Element::Pointer UPwUpdatedLagrangianFICElement<TDim, TNumNodes>::Create(IndexType NewId,
+                                                                         NodesArrayType const& ThisNodes,
+                                                                         PropertiesType::Pointer pProperties) const
 {
     return Element::Pointer(new UPwUpdatedLagrangianFICElement(
         NewId, this->GetGeometry().Create(ThisNodes), pProperties));
@@ -30,20 +31,20 @@ Element::Pointer UPwUpdatedLagrangianFICElement<TDim, TNumNodes>::Create(
 
 //----------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
-Element::Pointer UPwUpdatedLagrangianFICElement<TDim, TNumNodes>::Create(
-    IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties) const
+Element::Pointer UPwUpdatedLagrangianFICElement<TDim, TNumNodes>::Create(IndexType NewId,
+                                                                         GeometryType::Pointer pGeom,
+                                                                         PropertiesType::Pointer pProperties) const
 {
     return Element::Pointer(new UPwUpdatedLagrangianFICElement(NewId, pGeom, pProperties));
 }
 
 //----------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
-void UPwUpdatedLagrangianFICElement<TDim, TNumNodes>::CalculateAll(
-    MatrixType& rLeftHandSideMatrix,
-    VectorType& rRightHandSideVector,
-    const ProcessInfo& rCurrentProcessInfo,
-    const bool CalculateStiffnessMatrixFlag,
-    const bool CalculateResidualVectorFlag)
+void UPwUpdatedLagrangianFICElement<TDim, TNumNodes>::CalculateAll(MatrixType& rLeftHandSideMatrix,
+                                                                   VectorType& rRightHandSideVector,
+                                                                   const ProcessInfo& rCurrentProcessInfo,
+                                                                   const bool CalculateStiffnessMatrixFlag,
+                                                                   const bool CalculateResidualVectorFlag)
 {
     KRATOS_TRY;
 
@@ -55,8 +56,7 @@ void UPwUpdatedLagrangianFICElement<TDim, TNumNodes>::CalculateAll(
     // Constitutive Law parameters
     ConstitutiveLaw::Parameters ConstitutiveParameters(Geom, Prop, rCurrentProcessInfo);
     ConstitutiveParameters.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
-    if (CalculateResidualVectorFlag)
-        ConstitutiveParameters.Set(ConstitutiveLaw::COMPUTE_STRESS);
+    if (CalculateResidualVectorFlag) ConstitutiveParameters.Set(ConstitutiveLaw::COMPUTE_STRESS);
     ConstitutiveParameters.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
 
     // Element variables
@@ -64,8 +64,7 @@ void UPwUpdatedLagrangianFICElement<TDim, TNumNodes>::CalculateAll(
     this->InitializeElementVariables(Variables, rCurrentProcessInfo);
 
     FICElementVariables FICVariables;
-    this->InitializeFICElementVariables(FICVariables, Variables.DN_DXContainer,
-                                        Geom, Prop, rCurrentProcessInfo);
+    this->InitializeFICElementVariables(FICVariables, Variables.DN_DXContainer, Geom, Prop, rCurrentProcessInfo);
 
     // create general parameters of retention law
     RetentionLaw::Parameters RetentionParameters(this->GetProperties(), rCurrentProcessInfo);
@@ -85,12 +84,10 @@ void UPwUpdatedLagrangianFICElement<TDim, TNumNodes>::CalculateAll(
         this->SetConstitutiveParameters(Variables, ConstitutiveParameters);
 
         // Compute Np, Nu and BodyAcceleration
-        GeoElementUtilities::CalculateNuMatrix<TDim, TNumNodes>(
-            Variables.Nu, Variables.NContainer, GPoint);
+        GeoElementUtilities::CalculateNuMatrix<TDim, TNumNodes>(Variables.Nu, Variables.NContainer, GPoint);
 
         GeoElementUtilities::InterpolateVariableWithComponents<TDim, TNumNodes>(
-            Variables.BodyAcceleration, Variables.NContainer,
-            Variables.VolumeAcceleration, GPoint);
+            Variables.BodyAcceleration, Variables.NContainer, Variables.VolumeAcceleration, GPoint);
 
         // Compute ShapeFunctionsSecondOrderGradients
         this->CalculateShapeFunctionsSecondOrderGradients(FICVariables, Variables);
@@ -108,12 +105,11 @@ void UPwUpdatedLagrangianFICElement<TDim, TNumNodes>::CalculateAll(
         this->InitializeBiotCoefficients(Variables, hasBiotCoefficient);
 
         // Compute weighting coefficient for integration
-        Variables.IntegrationCoefficient = this->CalculateIntegrationCoefficient(
-            IntegrationPoints, GPoint, Variables.detJ);
+        Variables.IntegrationCoefficient =
+            this->CalculateIntegrationCoefficient(IntegrationPoints, GPoint, Variables.detJ);
 
-        Variables.IntegrationCoefficientInitialConfiguration =
-            this->CalculateIntegrationCoefficient(
-                IntegrationPoints, GPoint, Variables.detJInitialConfiguration);
+        Variables.IntegrationCoefficientInitialConfiguration = this->CalculateIntegrationCoefficient(
+            IntegrationPoints, GPoint, Variables.detJInitialConfiguration);
 
         if (CalculateStiffnessMatrixFlag) {
             // Contributions to stiffness matrix calculated on the reference config
@@ -123,8 +119,7 @@ void UPwUpdatedLagrangianFICElement<TDim, TNumNodes>::CalculateAll(
 
             /* Geometric stiffness matrix */
             if (Variables.ConsiderGeometricStiffness)
-                this->CalculateAndAddGeometricStiffnessMatrix(
-                    rLeftHandSideMatrix, Variables, GPoint);
+                this->CalculateAndAddGeometricStiffnessMatrix(rLeftHandSideMatrix, Variables, GPoint);
         }
 
         if (CalculateResidualVectorFlag) {
@@ -166,7 +161,7 @@ void UPwUpdatedLagrangianFICElement<TDim, TNumNodes>::CalculateOnIntegrationPoin
     const Variable<Matrix>& rVariable, std::vector<Matrix>& rOutput, const ProcessInfo& rCurrentProcessInfo)
 {
     // Defining necessary variables
-    const GeometryType& rGeom = this->GetGeometry();
+    const GeometryType& rGeom     = this->GetGeometry();
     const unsigned int NumGPoints = rGeom.IntegrationPointsNumber(mThisIntegrationMethod);
 
     if (rOutput.size() != NumGPoints) rOutput.resize(NumGPoints);
@@ -179,8 +174,7 @@ void UPwUpdatedLagrangianFICElement<TDim, TNumNodes>::CalculateOnIntegrationPoin
         for (unsigned int GPoint = 0; GPoint < mConstitutiveLawVector.size(); ++GPoint) {
             this->CalculateDeformationGradient(Variables, GPoint);
 
-            if (rOutput[GPoint].size2() != TDim)
-                rOutput[GPoint].resize(TDim, TDim, false);
+            if (rOutput[GPoint].size2() != TDim) rOutput[GPoint].resize(TDim, TDim, false);
             rOutput[GPoint] = Variables.F;
         }
     } else if (rVariable == GREEN_LAGRANGE_STRAIN_TENSOR) {
@@ -197,11 +191,9 @@ void UPwUpdatedLagrangianFICElement<TDim, TNumNodes>::CalculateOnIntegrationPoin
             this->CalculateDeformationGradient(Variables, GPoint);
             this->CalculateCauchyGreenStrain(Variables);
 
-            if (rOutput[GPoint].size2() != TDim)
-                rOutput[GPoint].resize(TDim, TDim, false);
+            if (rOutput[GPoint].size2() != TDim) rOutput[GPoint].resize(TDim, TDim, false);
 
-            rOutput[GPoint] =
-                MathUtils<double>::StrainVectorToTensor(Variables.StrainVector);
+            rOutput[GPoint] = MathUtils<double>::StrainVectorToTensor(Variables.StrainVector);
         }
     } else {
         UPwSmallStrainFICElement<TDim, TNumNodes>::CalculateOnIntegrationPoints(

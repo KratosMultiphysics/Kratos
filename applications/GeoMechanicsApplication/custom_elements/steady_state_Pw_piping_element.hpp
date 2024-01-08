@@ -52,7 +52,7 @@ public:
     using BaseType::mThisIntegrationMethod;
 
     using InterfaceElementVariables = typename BaseType::InterfaceElementVariables;
-    using SFGradAuxVariables = typename BaseType::SFGradAuxVariables;
+    using SFGradAuxVariables        = typename BaseType::SFGradAuxVariables;
 
     ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -75,9 +75,7 @@ public:
     }
 
     /// Constructor using Properties
-    SteadyStatePwPipingElement(IndexType NewId,
-                               GeometryType::Pointer pGeometry,
-                               PropertiesType::Pointer pProperties)
+    SteadyStatePwPipingElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
         : SteadyStatePwInterfaceElement<TDim, TNumNodes>(NewId, pGeometry, pProperties)
     {
     }
@@ -91,9 +89,7 @@ public:
                             NodesArrayType const& ThisNodes,
                             PropertiesType::Pointer pProperties) const override;
 
-    Element::Pointer Create(IndexType NewId,
-                            GeometryType::Pointer pGeom,
-                            PropertiesType::Pointer pProperties) const override;
+    Element::Pointer Create(IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties) const override;
 
     void Initialize(const ProcessInfo& rCurrentProcessInfo) override;
 
@@ -101,13 +97,9 @@ public:
 
     bool InEquilibrium(const PropertiesType& Prop, const GeometryType& Geom);
 
-    double CalculateHeadGradient(const PropertiesType& Prop,
-                                 const GeometryType& Geom,
-                                 double pipe_length);
+    double CalculateHeadGradient(const PropertiesType& Prop, const GeometryType& Geom, double pipe_length);
 
-    double CalculateEquilibriumPipeHeight(const PropertiesType& Prop,
-                                          const GeometryType& Geom,
-                                          double dx);
+    double CalculateEquilibriumPipeHeight(const PropertiesType& Prop, const GeometryType& Geom, double dx);
 
     void CalculateLength(const GeometryType& Geom);
 
@@ -147,8 +139,7 @@ private:
         KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Element)
     }
 
-    void load(Serializer& rSerializer) override{
-        KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element)}
+    void load(Serializer& rSerializer) override{KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element)}
 
     /// Assignment operator.
     SteadyStatePwPipingElement&

@@ -18,17 +18,18 @@ namespace Kratos
 
 //----------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
-Element::Pointer SteadyStatePwElement<TDim, TNumNodes>::Create(
-    IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const
+Element::Pointer SteadyStatePwElement<TDim, TNumNodes>::Create(IndexType NewId,
+                                                               NodesArrayType const& ThisNodes,
+                                                               PropertiesType::Pointer pProperties) const
 {
-    return Element::Pointer(new SteadyStatePwElement(
-        NewId, this->GetGeometry().Create(ThisNodes), pProperties));
+    return Element::Pointer(new SteadyStatePwElement(NewId, this->GetGeometry().Create(ThisNodes), pProperties));
 }
 
 //----------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
-Element::Pointer SteadyStatePwElement<TDim, TNumNodes>::Create(
-    IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties) const
+Element::Pointer SteadyStatePwElement<TDim, TNumNodes>::Create(IndexType NewId,
+                                                               GeometryType::Pointer pGeom,
+                                                               PropertiesType::Pointer pProperties) const
 {
     return Element::Pointer(new SteadyStatePwElement(NewId, pGeom, pProperties));
 }
@@ -47,12 +48,10 @@ int SteadyStatePwElement<TDim, TNumNodes>::Check(const ProcessInfo& rCurrentProc
 
     for (unsigned int i = 0; i < TNumNodes; ++i) {
         if (Geom[i].SolutionStepsDataHas(WATER_PRESSURE) == false)
-            KRATOS_ERROR << "missing variable WATER_PRESSURE on node "
-                         << Geom[i].Id() << std::endl;
+            KRATOS_ERROR << "missing variable WATER_PRESSURE on node " << Geom[i].Id() << std::endl;
 
         if (Geom[i].SolutionStepsDataHas(VOLUME_ACCELERATION) == false)
-            KRATOS_ERROR << "missing VOLUME_ACCELERATION variable on node "
-                         << Geom[i].Id() << std::endl;
+            KRATOS_ERROR << "missing VOLUME_ACCELERATION variable on node " << Geom[i].Id() << std::endl;
 
         if (Geom[i].HasDofFor(WATER_PRESSURE) == false)
             KRATOS_ERROR << "missing the dof for the variable WATER_PRESSURE "
@@ -77,8 +76,7 @@ int SteadyStatePwElement<TDim, TNumNodes>::Check(const ProcessInfo& rCurrentProc
         // If this is a 2D problem, nodes must be in XY plane
         for (unsigned int i = 0; i < TNumNodes; ++i) {
             if (Geom[i].Z() != 0.0)
-                KRATOS_ERROR << " Node with non-zero Z coordinate found. Id: "
-                             << Geom[i].Id() << std::endl;
+                KRATOS_ERROR << " Node with non-zero Z coordinate found. Id: " << Geom[i].Id() << std::endl;
         }
     }
 
@@ -161,21 +159,18 @@ void SteadyStatePwElement<TDim, TNumNodes>::CalculateAll(MatrixType& rLeftHandSi
         this->CalculateKinematics(Variables, GPoint);
 
         // Compute Nu and BodyAcceleration
-        GeoElementUtilities::CalculateNuMatrix<TDim, TNumNodes>(
-            Variables.Nu, Variables.NContainer, GPoint);
+        GeoElementUtilities::CalculateNuMatrix<TDim, TNumNodes>(Variables.Nu, Variables.NContainer, GPoint);
         GeoElementUtilities::InterpolateVariableWithComponents<TDim, TNumNodes>(
-            Variables.BodyAcceleration, Variables.NContainer,
-            Variables.VolumeAcceleration, GPoint);
+            Variables.BodyAcceleration, Variables.NContainer, Variables.VolumeAcceleration, GPoint);
 
         CalculateRetentionResponse(Variables, RetentionParameters, GPoint);
 
         // Compute weighting coefficient for integration
-        Variables.IntegrationCoefficient = this->CalculateIntegrationCoefficient(
-            IntegrationPoints, GPoint, Variables.detJ);
+        Variables.IntegrationCoefficient =
+            this->CalculateIntegrationCoefficient(IntegrationPoints, GPoint, Variables.detJ);
 
         // Contributions to the left hand side
-        if (CalculateStiffnessMatrixFlag)
-            this->CalculateAndAddLHS(rLeftHandSideMatrix, Variables);
+        if (CalculateStiffnessMatrixFlag) this->CalculateAndAddLHS(rLeftHandSideMatrix, Variables);
 
         // Contributions to the right hand side
         if (CalculateResidualVectorFlag)

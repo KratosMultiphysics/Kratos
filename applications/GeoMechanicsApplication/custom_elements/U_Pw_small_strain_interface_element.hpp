@@ -46,10 +46,7 @@ public:
     using UPwBaseElement<TDim, TNumNodes>::mThisIntegrationMethod;
 
     /// Default Constructor
-    UPwSmallStrainInterfaceElement(IndexType NewId = 0)
-        : UPwBaseElement<TDim, TNumNodes>(NewId)
-    {
-    }
+    UPwSmallStrainInterfaceElement(IndexType NewId = 0) : UPwBaseElement<TDim, TNumNodes>(NewId) {}
 
     /// Constructor using an array of nodes
     UPwSmallStrainInterfaceElement(IndexType NewId, const NodesArrayType& ThisNodes)
@@ -64,35 +61,30 @@ public:
     }
 
     /// Constructor using Properties
-    UPwSmallStrainInterfaceElement(IndexType NewId,
-                                   GeometryType::Pointer pGeometry,
-                                   PropertiesType::Pointer pProperties)
+    UPwSmallStrainInterfaceElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
         : UPwBaseElement<TDim, TNumNodes>(NewId, pGeometry, pProperties)
     {
         /// Lobatto integration method with the integration points located at the "mid plane nodes" of the interface
         mThisIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_1;
     }
 
-    ~UPwSmallStrainInterfaceElement() override = default;
-    UPwSmallStrainInterfaceElement(const UPwSmallStrainInterfaceElement&) = delete;
+    ~UPwSmallStrainInterfaceElement() override                                       = default;
+    UPwSmallStrainInterfaceElement(const UPwSmallStrainInterfaceElement&)            = delete;
     UPwSmallStrainInterfaceElement& operator=(const UPwSmallStrainInterfaceElement&) = delete;
-    UPwSmallStrainInterfaceElement(UPwSmallStrainInterfaceElement&&) = delete;
-    UPwSmallStrainInterfaceElement& operator=(UPwSmallStrainInterfaceElement&&) = delete;
+    UPwSmallStrainInterfaceElement(UPwSmallStrainInterfaceElement&&)                 = delete;
+    UPwSmallStrainInterfaceElement& operator=(UPwSmallStrainInterfaceElement&&)      = delete;
 
     Element::Pointer Create(IndexType NewId,
                             NodesArrayType const& ThisNodes,
                             PropertiesType::Pointer pProperties) const override;
 
-    Element::Pointer Create(IndexType NewId,
-                            GeometryType::Pointer pGeom,
-                            PropertiesType::Pointer pProperties) const override;
+    Element::Pointer Create(IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties) const override;
 
     int Check(const ProcessInfo& rCurrentProcessInfo) const override;
 
     void Initialize(const ProcessInfo& rCurrentProcessInfo) override;
 
-    void CalculateMassMatrix(MatrixType& rMassMatrix,
-                             const ProcessInfo& rCurrentProcessInfo) override;
+    void CalculateMassMatrix(MatrixType& rMassMatrix, const ProcessInfo& rCurrentProcessInfo) override;
 
     void InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
     void FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
@@ -189,10 +181,9 @@ protected:
 
     void ModifyInactiveElementStress(const double& JointWidth, Vector& StressVector);
 
-    virtual void CalculateOnLobattoIntegrationPoints(
-        const Variable<array_1d<double, 3>>& rVariable,
-        std::vector<array_1d<double, 3>>& rOutput,
-        const ProcessInfo& rCurrentProcessInfo);
+    virtual void CalculateOnLobattoIntegrationPoints(const Variable<array_1d<double, 3>>& rVariable,
+                                                     std::vector<array_1d<double, 3>>& rOutput,
+                                                     const ProcessInfo& rCurrentProcessInfo);
 
     virtual void CalculateOnLobattoIntegrationPoints(const Variable<Matrix>& rVariable,
                                                      std::vector<Matrix>& rOutput,
@@ -220,8 +211,7 @@ protected:
                                             const PropertiesType& Prop,
                                             const ProcessInfo& CurrentProcessInfo);
 
-    void CalculateRotationMatrix(BoundedMatrix<double, TDim, TDim>& rRotationMatrix,
-                                 const GeometryType& Geom);
+    void CalculateRotationMatrix(BoundedMatrix<double, TDim, TDim>& rRotationMatrix, const GeometryType& Geom);
 
     void CalculateJointWidth(double& rJointWidth,
                              const double& NormalRelDisp,
@@ -244,14 +234,11 @@ protected:
                                           const double& JointWidth,
                                           const unsigned int& GPoint);
 
-    virtual void CalculateAndAddLHS(MatrixType& rLeftHandSideMatrix,
-                                    InterfaceElementVariables& rVariables);
+    virtual void CalculateAndAddLHS(MatrixType& rLeftHandSideMatrix, InterfaceElementVariables& rVariables);
 
-    void CalculateAndAddStiffnessMatrix(MatrixType& rLeftHandSideMatrix,
-                                        InterfaceElementVariables& rVariables);
+    void CalculateAndAddStiffnessMatrix(MatrixType& rLeftHandSideMatrix, InterfaceElementVariables& rVariables);
 
-    void CalculateAndAddCouplingMatrix(MatrixType& rLeftHandSideMatrix,
-                                       InterfaceElementVariables& rVariables);
+    void CalculateAndAddCouplingMatrix(MatrixType& rLeftHandSideMatrix, InterfaceElementVariables& rVariables);
 
     virtual void CalculateAndAddCompressibilityMatrix(MatrixType& rLeftHandSideMatrix,
                                                       InterfaceElementVariables& rVariables);
@@ -267,11 +254,9 @@ protected:
                                        InterfaceElementVariables& rVariables,
                                        unsigned int GPoint);
 
-    void CalculateAndAddMixBodyForce(VectorType& rRightHandSideVector,
-                                     InterfaceElementVariables& rVariables);
+    void CalculateAndAddMixBodyForce(VectorType& rRightHandSideVector, InterfaceElementVariables& rVariables);
 
-    void CalculateAndAddCouplingTerms(VectorType& rRightHandSideVector,
-                                      InterfaceElementVariables& rVariables);
+    void CalculateAndAddCouplingTerms(VectorType& rRightHandSideVector, InterfaceElementVariables& rVariables);
 
     virtual void CalculateAndAddCompressibilityFlow(VectorType& rRightHandSideVector,
                                                     InterfaceElementVariables& rVariables);
@@ -282,12 +267,10 @@ protected:
     virtual void CalculateAndAddFluidBodyFlow(VectorType& rRightHandSideVector,
                                               InterfaceElementVariables& rVariables);
 
-    void InterpolateOutputDoubles(std::vector<double>& rOutput,
-                                  const std::vector<double>& GPValues);
+    void InterpolateOutputDoubles(std::vector<double>& rOutput, const std::vector<double>& GPValues);
 
     template <class TValueType>
-    void InterpolateOutputValues(std::vector<TValueType>& rOutput,
-                                 const std::vector<TValueType>& GPValues);
+    void InterpolateOutputValues(std::vector<TValueType>& rOutput, const std::vector<TValueType>& GPValues);
 
     void SetRetentionParameters(const InterfaceElementVariables& rVariables,
                                 RetentionLaw::Parameters& rRetentionParameters);
@@ -296,8 +279,7 @@ protected:
 
     double CalculateBulkModulus(const Matrix& ConstitutiveMatrix);
 
-    void InitializeBiotCoefficients(InterfaceElementVariables& rVariables,
-                                    const bool& hasBiotCoefficient = false);
+    void InitializeBiotCoefficients(InterfaceElementVariables& rVariables, const bool& hasBiotCoefficient = false);
 
     void CalculateRetentionResponse(InterfaceElementVariables& rVariables,
                                     RetentionLaw::Parameters& rRetentionParameters,

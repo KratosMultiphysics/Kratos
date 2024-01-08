@@ -46,18 +46,14 @@ public:
     using UPwBaseElement<TDim, TNumNodes>::mStressVector;
     using UPwBaseElement<TDim, TNumNodes>::mThisIntegrationMethod;
 
-    using SFGradAuxVariables =
-        typename UPwSmallStrainInterfaceElement<TDim, TNumNodes>::SFGradAuxVariables;
+    using SFGradAuxVariables = typename UPwSmallStrainInterfaceElement<TDim, TNumNodes>::SFGradAuxVariables;
     using InterfaceElementVariables =
         typename UPwSmallStrainInterfaceElement<TDim, TNumNodes>::InterfaceElementVariables;
 
     //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     // Default constructor
-    UPwSmallStrainLinkInterfaceElement()
-        : UPwSmallStrainInterfaceElement<TDim, TNumNodes>()
-    {
-    }
+    UPwSmallStrainLinkInterfaceElement() : UPwSmallStrainInterfaceElement<TDim, TNumNodes>() {}
 
     // Constructor 1
     UPwSmallStrainLinkInterfaceElement(IndexType NewId, GeometryType::Pointer pGeometry)
@@ -66,9 +62,7 @@ public:
     }
 
     // Constructor 2
-    UPwSmallStrainLinkInterfaceElement(IndexType NewId,
-                                       GeometryType::Pointer pGeometry,
-                                       PropertiesType::Pointer pProperties)
+    UPwSmallStrainLinkInterfaceElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
         : UPwSmallStrainInterfaceElement<TDim, TNumNodes>(NewId, pGeometry, pProperties)
     {
     }

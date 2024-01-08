@@ -79,8 +79,7 @@ public:
     using UPwSmallStrainElement<TDim, TNumNodes>::CalculateBulkModulus;
 
     using ElementVariables = typename UPwSmallStrainElement<TDim, TNumNodes>::ElementVariables;
-    using FICElementVariables =
-        typename UPwSmallStrainFICElement<TDim, TNumNodes>::FICElementVariables;
+    using FICElementVariables = typename UPwSmallStrainFICElement<TDim, TNumNodes>::FICElementVariables;
 
     /// Counted pointer of UPwUpdatedLagrangianFICElement
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(UPwUpdatedLagrangianFICElement);
@@ -106,9 +105,7 @@ public:
     }
 
     /// Constructor using Properties
-    UPwUpdatedLagrangianFICElement(IndexType NewId,
-                                   GeometryType::Pointer pGeometry,
-                                   PropertiesType::Pointer pProperties)
+    UPwUpdatedLagrangianFICElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
         : UPwSmallStrainFICElement<TDim, TNumNodes>(NewId, pGeometry, pProperties)
     {
     }
@@ -123,9 +120,7 @@ public:
      * @param pProperties The pointer to property
      * @return The pointer to the created element
      */
-    Element::Pointer Create(IndexType NewId,
-                            GeometryType::Pointer pGeom,
-                            PropertiesType::Pointer pProperties) const override;
+    Element::Pointer Create(IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties) const override;
 
     /**
      * @brief Creates a new element

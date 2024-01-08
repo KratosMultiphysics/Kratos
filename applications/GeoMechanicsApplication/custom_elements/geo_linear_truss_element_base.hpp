@@ -40,14 +40,14 @@ class KRATOS_API(GEO_MECHANICS_APPLICATION) GeoTrussElementLinearBase
 public:
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(GeoTrussElementLinearBase);
 
-    using BaseType       = GeoTrussElementBase<TDim, TNumNodes>;
-    using GeometryType   = Element::GeometryType;
-    using NodesArrayType = Element::NodesArrayType;
-    using PropertiesType = Element::PropertiesType;
-    using IndexType      = Element::IndexType;
-    using SizeType       = Element::SizeType;
-    using MatrixType     = Element::MatrixType;
-    using VectorType     = Element::VectorType;
+    using BaseType          = GeoTrussElementBase<TDim, TNumNodes>;
+    using GeometryType      = Element::GeometryType;
+    using NodesArrayType    = Element::NodesArrayType;
+    using PropertiesType    = Element::PropertiesType;
+    using IndexType         = Element::IndexType;
+    using SizeType          = Element::SizeType;
+    using MatrixType        = Element::MatrixType;
+    using VectorType        = Element::VectorType;
     using FullDofMatrixType = typename GeoTrussElementBase<TDim, TNumNodes>::FullDofMatrixType;
     using FullDofVectorType = typename GeoTrussElementBase<TDim, TNumNodes>::FullDofVectorType;
 
@@ -55,9 +55,7 @@ public:
 
     GeoTrussElementLinearBase(){};
     GeoTrussElementLinearBase(IndexType NewId, GeometryType::Pointer pGeometry);
-    GeoTrussElementLinearBase(IndexType NewId,
-                              GeometryType::Pointer pGeometry,
-                              PropertiesType::Pointer pProperties);
+    GeoTrussElementLinearBase(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties);
 
     ~GeoTrussElementLinearBase() override;
 
@@ -68,9 +66,7 @@ public:
      * @param pProperties The pointer to property
      * @return The pointer to the created element
      */
-    Element::Pointer Create(IndexType NewId,
-                            GeometryType::Pointer pGeom,
-                            PropertiesType::Pointer pProperties) const override;
+    Element::Pointer Create(IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties) const override;
 
     /**
      * @brief Creates a new element
@@ -83,11 +79,9 @@ public:
                             NodesArrayType const& ThisNodes,
                             PropertiesType::Pointer pProperties) const override;
 
-    void CalculateRightHandSide(VectorType& rRightHandSideVector,
-                                const ProcessInfo& rCurrentProcessInfo) override;
+    void CalculateRightHandSide(VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo) override;
 
-    void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
-                               const ProcessInfo& rCurrentProcessInfo) override;
+    void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
      * @brief This function adds forces from prestressing to the force vector
@@ -125,8 +119,7 @@ public:
      * @param rinternalForces The internal forces
      */
 
-    void UpdateInternalForces(FullDofVectorType& rInternalForces,
-                              const ProcessInfo& rCurrentProcessInfo) override;
+    void UpdateInternalForces(FullDofVectorType& rInternalForces, const ProcessInfo& rCurrentProcessInfo) override;
 
     void FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
 

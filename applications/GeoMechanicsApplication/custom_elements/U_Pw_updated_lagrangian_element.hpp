@@ -86,8 +86,7 @@ public:
     ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     /// Default Constructor
-    UPwUpdatedLagrangianElement(IndexType NewId = 0)
-        : UPwSmallStrainElement<TDim, TNumNodes>(NewId)
+    UPwUpdatedLagrangianElement(IndexType NewId = 0) : UPwSmallStrainElement<TDim, TNumNodes>(NewId)
     {
     }
 
@@ -104,9 +103,7 @@ public:
     }
 
     /// Constructor using Properties
-    UPwUpdatedLagrangianElement(IndexType NewId,
-                                GeometryType::Pointer pGeometry,
-                                PropertiesType::Pointer pProperties)
+    UPwUpdatedLagrangianElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
         : UPwSmallStrainElement<TDim, TNumNodes>(NewId, pGeometry, pProperties)
     {
     }
@@ -123,9 +120,7 @@ public:
      * @param pProperties The pointer to property
      * @return The pointer to the created element
      */
-    Element::Pointer Create(IndexType NewId,
-                            GeometryType::Pointer pGeom,
-                            PropertiesType::Pointer pProperties) const override;
+    Element::Pointer Create(IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties) const override;
 
     /**
      * @brief Creates a new element

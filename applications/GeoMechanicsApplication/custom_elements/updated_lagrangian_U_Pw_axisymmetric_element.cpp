@@ -30,14 +30,14 @@ template <unsigned int TDim, unsigned int TNumNodes>
 Element::Pointer UPwUpdatedLagrangianAxisymmetricElement<TDim, TNumNodes>::Create(
     IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties) const
 {
-    return Element::Pointer(
-        new UPwUpdatedLagrangianAxisymmetricElement(NewId, pGeom, pProperties));
+    return Element::Pointer(new UPwUpdatedLagrangianAxisymmetricElement(NewId, pGeom, pProperties));
 }
 
 //----------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
-void UPwUpdatedLagrangianAxisymmetricElement<TDim, TNumNodes>::CalculateBMatrix(
-    Matrix& rB, const Matrix& GradNpT, const Vector& Np)
+void UPwUpdatedLagrangianAxisymmetricElement<TDim, TNumNodes>::CalculateBMatrix(Matrix& rB,
+                                                                                const Matrix& GradNpT,
+                                                                                const Vector& Np)
 {
     KRATOS_TRY
 
@@ -59,14 +59,11 @@ void UPwUpdatedLagrangianAxisymmetricElement<TDim, TNumNodes>::CalculateBMatrix(
 //----------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
 double UPwUpdatedLagrangianAxisymmetricElement<TDim, TNumNodes>::CalculateIntegrationCoefficient(
-    const GeometryType::IntegrationPointsArrayType& IntegrationPoints,
-    unsigned int PointNumber,
-    double detJ)
+    const GeometryType::IntegrationPointsArrayType& IntegrationPoints, unsigned int PointNumber, double detJ)
 
 {
     Vector N;
-    N = this->GetGeometry().ShapeFunctionsValues(
-        N, IntegrationPoints[PointNumber].Coordinates());
+    N = this->GetGeometry().ShapeFunctionsValues(N, IntegrationPoints[PointNumber].Coordinates());
     const double radiusWeight =
         GeoElementUtilities::CalculateAxisymmetricCircumference(N, this->GetGeometry());
 

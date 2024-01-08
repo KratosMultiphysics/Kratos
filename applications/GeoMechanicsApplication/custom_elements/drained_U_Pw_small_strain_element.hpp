@@ -44,7 +44,7 @@ public:
     using UPwSmallStrainElement<TDim, TNumNodes>::mConstitutiveLawVector;
     using UPwSmallStrainElement<TDim, TNumNodes>::mStressVector;
     using UPwSmallStrainElement<TDim, TNumNodes>::mStateVariablesFinalized;
-    using ElementVariables = typename UPwSmallStrainElement<TDim, TNumNodes>::ElementVariables;
+    using ElementVariables     = typename UPwSmallStrainElement<TDim, TNumNodes>::ElementVariables;
     using EquationIdVectorType = Element::EquationIdVectorType;
     using DofsVectorType       = Element::DofsVectorType;
 
@@ -69,9 +69,7 @@ public:
     }
 
     /// Constructor using Properties
-    DrainedUPwSmallStrainElement(IndexType NewId,
-                                 GeometryType::Pointer pGeometry,
-                                 PropertiesType::Pointer pProperties)
+    DrainedUPwSmallStrainElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
         : UPwSmallStrainElement<TDim, TNumNodes>(NewId, pGeometry, pProperties)
     {
     }
@@ -84,9 +82,7 @@ public:
                             NodesArrayType const& ThisNodes,
                             PropertiesType::Pointer pProperties) const override;
 
-    Element::Pointer Create(IndexType NewId,
-                            GeometryType::Pointer pGeom,
-                            PropertiesType::Pointer pProperties) const override;
+    Element::Pointer Create(IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties) const override;
 
     int Check(const ProcessInfo& rCurrentProcessInfo) const override;
 
@@ -98,12 +94,9 @@ public:
 
 protected:
     /// Member Variables
-    void CalculateAndAddLHS(MatrixType& rLeftHandSideMatrix,
-                            ElementVariables& rVariables) override;
+    void CalculateAndAddLHS(MatrixType& rLeftHandSideMatrix, ElementVariables& rVariables) override;
 
-    void CalculateAndAddRHS(VectorType& rRightHandSideVector,
-                            ElementVariables& rVariables,
-                            unsigned int GPoint) override;
+    void CalculateAndAddRHS(VectorType& rRightHandSideVector, ElementVariables& rVariables, unsigned int GPoint) override;
 
     ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 

@@ -42,16 +42,10 @@ public:
     explicit UPwBaseElement(IndexType NewId = 0) : Element(NewId) {}
 
     /// Constructor using an array of nodes
-    UPwBaseElement(IndexType NewId, const NodesArrayType& ThisNodes)
-        : Element(NewId, ThisNodes)
-    {
-    }
+    UPwBaseElement(IndexType NewId, const NodesArrayType& ThisNodes) : Element(NewId, ThisNodes) {}
 
     /// Constructor using Geometry
-    UPwBaseElement(IndexType NewId, GeometryType::Pointer pGeometry)
-        : Element(NewId, pGeometry)
-    {
-    }
+    UPwBaseElement(IndexType NewId, GeometryType::Pointer pGeometry) : Element(NewId, pGeometry) {}
 
     /// Constructor using Properties
     UPwBaseElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
@@ -71,16 +65,13 @@ public:
                             NodesArrayType const& ThisNodes,
                             PropertiesType::Pointer pProperties) const override;
 
-    Element::Pointer Create(IndexType NewId,
-                            GeometryType::Pointer pGeom,
-                            PropertiesType::Pointer pProperties) const override;
+    Element::Pointer Create(IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties) const override;
 
     int Check(const ProcessInfo& rCurrentProcessInfo) const override;
 
     void Initialize(const ProcessInfo& rCurrentProcessInfo) override;
 
-    void GetDofList(DofsVectorType& rElementalDofList,
-                    const ProcessInfo& rCurrentProcessInfo) const override;
+    void GetDofList(DofsVectorType& rElementalDofList, const ProcessInfo& rCurrentProcessInfo) const override;
 
     void ResetConstitutiveLaw() override;
 
@@ -90,20 +81,15 @@ public:
                               VectorType& rRightHandSideVector,
                               const ProcessInfo& rCurrentProcessInfo) override;
 
-    void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
-                               const ProcessInfo& rCurrentProcessInfo) override;
+    void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, const ProcessInfo& rCurrentProcessInfo) override;
 
-    void CalculateRightHandSide(VectorType& rRightHandSideVector,
-                                const ProcessInfo& rCurrentProcessInfo) override;
+    void CalculateRightHandSide(VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo) override;
 
-    void EquationIdVector(EquationIdVectorType& rResult,
-                          const ProcessInfo& rCurrentProcessInfo) const override;
+    void EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo& rCurrentProcessInfo) const override;
 
-    void CalculateMassMatrix(MatrixType& rMassMatrix,
-                             const ProcessInfo& rCurrentProcessInfo) override;
+    void CalculateMassMatrix(MatrixType& rMassMatrix, const ProcessInfo& rCurrentProcessInfo) override;
 
-    void CalculateDampingMatrix(MatrixType& rDampingMatrix,
-                                const ProcessInfo& rCurrentProcessInfo) override;
+    void CalculateDampingMatrix(MatrixType& rDampingMatrix, const ProcessInfo& rCurrentProcessInfo) override;
 
     void GetValuesVector(Vector& rValues, int Step = 0) const override;
 
@@ -153,10 +139,7 @@ public:
                "\nConstitutive law: " + mConstitutiveLawVector[0]->Info();
     }
 
-    void PrintInfo(std::ostream& rOStream) const override
-    {
-        rOStream << Info();
-    }
+    void PrintInfo(std::ostream& rOStream) const override { rOStream << Info(); }
 
 protected:
     /// Member Variables
@@ -169,8 +152,7 @@ protected:
     std::vector<Vector> mStateVariablesFinalized;
     bool mIsInitialised = false;
 
-    virtual void CalculateMaterialStiffnessMatrix(MatrixType& rStiffnessMatrix,
-                                                  const ProcessInfo& CurrentProcessInfo);
+    virtual void CalculateMaterialStiffnessMatrix(MatrixType& rStiffnessMatrix, const ProcessInfo& CurrentProcessInfo);
 
     virtual void CalculateAll(MatrixType& rLeftHandSideMatrix,
                               VectorType& rRightHandSideVector,
@@ -182,16 +164,10 @@ protected:
                                                    unsigned int PointNumber,
                                                    double detJ);
 
-    void CalculateDerivativesOnInitialConfiguration(double& detJ,
-                                                    Matrix& J0,
-                                                    Matrix& InvJ0,
-                                                    Matrix& DN_DX,
-                                                    unsigned int PointNumber) const;
+    void CalculateDerivativesOnInitialConfiguration(
+        double& detJ, Matrix& J0, Matrix& InvJ0, Matrix& DN_DX, unsigned int PointNumber) const;
 
-    void CalculateJacobianOnCurrentConfiguration(double& detJ,
-                                                 Matrix& rJ,
-                                                 Matrix& rInvJ,
-                                                 unsigned int GPoint) const;
+    void CalculateJacobianOnCurrentConfiguration(double& detJ, Matrix& rJ, Matrix& rInvJ, unsigned int GPoint) const;
 
     /**
      * @brief This functions calculate the derivatives in the reference frame
@@ -202,11 +178,8 @@ protected:
      * @param ThisIntegrationMethod The integration method considered
      * @return The determinant of the jacobian in the reference configuration
      */
-    void CalculateJacobianOnCurrentConfiguration(double& detJ,
-                                                 Matrix& J0,
-                                                 Matrix& InvJ0,
-                                                 Matrix& DN_DX,
-                                                 unsigned int PointNumber) const;
+    void CalculateJacobianOnCurrentConfiguration(
+        double& detJ, Matrix& J0, Matrix& InvJ0, Matrix& DN_DX, unsigned int PointNumber) const;
 
     /**
      * @brief This functions calculate the derivatives in the current frame

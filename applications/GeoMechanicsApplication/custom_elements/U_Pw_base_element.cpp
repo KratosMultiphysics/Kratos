@@ -26,8 +26,7 @@ Element::Pointer UPwBaseElement<TDim, TNumNodes>::Create(IndexType NewId,
                     "element ... illegal operation!!"
                  << this->Id() << std::endl;
 
-    return Element::Pointer(new UPwBaseElement(
-        NewId, this->GetGeometry().Create(ThisNodes), pProperties));
+    return Element::Pointer(new UPwBaseElement(NewId, this->GetGeometry().Create(ThisNodes), pProperties));
 }
 
 //----------------------------------------------------------------------------------------
@@ -59,32 +58,25 @@ int UPwBaseElement<TDim, TNumNodes>::Check(const ProcessInfo& rCurrentProcessInf
     // verify nodal variables and dofs
     for (unsigned int i = 0; i < TNumNodes; ++i) {
         if (rGeom[i].SolutionStepsDataHas(DISPLACEMENT) == false)
-            KRATOS_ERROR << "missing variable DISPLACEMENT on node "
-                         << rGeom[i].Id() << std::endl;
+            KRATOS_ERROR << "missing variable DISPLACEMENT on node " << rGeom[i].Id() << std::endl;
 
         if (rGeom[i].SolutionStepsDataHas(VELOCITY) == false)
-            KRATOS_ERROR << "missing variable VELOCITY on node "
-                         << rGeom[i].Id() << std::endl;
+            KRATOS_ERROR << "missing variable VELOCITY on node " << rGeom[i].Id() << std::endl;
 
         if (rGeom[i].SolutionStepsDataHas(ACCELERATION) == false)
-            KRATOS_ERROR << "missing variable ACCELERATION on node "
-                         << rGeom[i].Id() << std::endl;
+            KRATOS_ERROR << "missing variable ACCELERATION on node " << rGeom[i].Id() << std::endl;
 
         if (rGeom[i].SolutionStepsDataHas(WATER_PRESSURE) == false)
-            KRATOS_ERROR << "missing variable WATER_PRESSURE on node "
-                         << rGeom[i].Id() << std::endl;
+            KRATOS_ERROR << "missing variable WATER_PRESSURE on node " << rGeom[i].Id() << std::endl;
 
         if (rGeom[i].SolutionStepsDataHas(DT_WATER_PRESSURE) == false)
-            KRATOS_ERROR << "missing variable DT_WATER_PRESSURE on node "
-                         << rGeom[i].Id() << std::endl;
+            KRATOS_ERROR << "missing variable DT_WATER_PRESSURE on node " << rGeom[i].Id() << std::endl;
 
         if (rGeom[i].SolutionStepsDataHas(VOLUME_ACCELERATION) == false)
-            KRATOS_ERROR << "missing variable VOLUME_ACCELERATION on node "
-                         << rGeom[i].Id() << std::endl;
+            KRATOS_ERROR << "missing variable VOLUME_ACCELERATION on node " << rGeom[i].Id() << std::endl;
 
         if (rGeom[i].HasDofFor(DISPLACEMENT_X) == false ||
-            rGeom[i].HasDofFor(DISPLACEMENT_Y) == false ||
-            rGeom[i].HasDofFor(DISPLACEMENT_Z) == false)
+            rGeom[i].HasDofFor(DISPLACEMENT_Y) == false || rGeom[i].HasDofFor(DISPLACEMENT_Z) == false)
             KRATOS_ERROR << "missing one of the dofs for the variable "
                             "DISPLACEMENT on node "
                          << rGeom[i].Id() << std::endl;
@@ -115,8 +107,7 @@ int UPwBaseElement<TDim, TNumNodes>::Check(const ProcessInfo& rCurrentProcessInf
                          << this->Id() << std::endl;
     } else {
         if (rProp[YOUNG_MODULUS] <= 0.0)
-            KRATOS_ERROR << "YOUNG_MODULUS has an invalid value at element"
-                         << this->Id() << std::endl;
+            KRATOS_ERROR << "YOUNG_MODULUS has an invalid value at element" << this->Id() << std::endl;
     }
 
     if (rProp.Has(POISSON_RATIO) == false) {
@@ -127,8 +118,7 @@ int UPwBaseElement<TDim, TNumNodes>::Check(const ProcessInfo& rCurrentProcessInf
     } else {
         const double& PoissonRatio = rProp[POISSON_RATIO];
         if (PoissonRatio < 0.0 || PoissonRatio >= 0.5)
-            KRATOS_ERROR << "POISSON_RATIO has an invalid value at element"
-                         << this->Id() << std::endl;
+            KRATOS_ERROR << "POISSON_RATIO has an invalid value at element" << this->Id() << std::endl;
     }
 
     if (rProp.Has(BULK_MODULUS_SOLID) == false || rProp[BULK_MODULUS_SOLID] < 0.0)
@@ -145,8 +135,7 @@ int UPwBaseElement<TDim, TNumNodes>::Check(const ProcessInfo& rCurrentProcessInf
         // If this is a 2D problem, nodes must be in XY plane
         for (unsigned int i = 0; i < TNumNodes; ++i) {
             if (rGeom[i].Z() != 0.0)
-                KRATOS_ERROR << " Node with non-zero Z coordinate found. Id: "
-                             << rGeom[i].Id() << std::endl;
+                KRATOS_ERROR << " Node with non-zero Z coordinate found. Id: " << rGeom[i].Id() << std::endl;
         }
     }
 
@@ -161,13 +150,12 @@ void UPwBaseElement<TDim, TNumNodes>::Initialize(const ProcessInfo& rCurrentProc
 {
     KRATOS_TRY
 
-    const PropertiesType& rProp = this->GetProperties();
-    const GeometryType& rGeom   = this->GetGeometry();
+    const PropertiesType& rProp   = this->GetProperties();
+    const GeometryType& rGeom     = this->GetGeometry();
     const unsigned int NumGPoints = rGeom.IntegrationPointsNumber(mThisIntegrationMethod);
 
     // pointer to constitutive laws
-    if (mConstitutiveLawVector.size() != NumGPoints)
-        mConstitutiveLawVector.resize(NumGPoints);
+    if (mConstitutiveLawVector.size() != NumGPoints) mConstitutiveLawVector.resize(NumGPoints);
 
     for (unsigned int i = 0; i < mConstitutiveLawVector.size(); ++i) {
         mConstitutiveLawVector[i] = rProp[CONSTITUTIVE_LAW]->Clone();
@@ -187,21 +175,17 @@ void UPwBaseElement<TDim, TNumNodes>::Initialize(const ProcessInfo& rCurrentProc
     }
 
     // resizing and setting state variables
-    if (mStateVariablesFinalized.size() != NumGPoints)
-        mStateVariablesFinalized.resize(NumGPoints);
+    if (mStateVariablesFinalized.size() != NumGPoints) mStateVariablesFinalized.resize(NumGPoints);
     for (unsigned int i = 0; i < mConstitutiveLawVector.size(); ++i) {
         int nStateVariables = 0;
-        nStateVariables     = mConstitutiveLawVector[i]->GetValue(
-            NUMBER_OF_UMAT_STATE_VARIABLES, nStateVariables);
+        nStateVariables = mConstitutiveLawVector[i]->GetValue(NUMBER_OF_UMAT_STATE_VARIABLES, nStateVariables);
         if (nStateVariables > 0) {
             // ProcessInfo rCurrentProcessInfo;
-            mConstitutiveLawVector[i]->SetValue(
-                STATE_VARIABLES, mStateVariablesFinalized[i], rCurrentProcessInfo);
+            mConstitutiveLawVector[i]->SetValue(STATE_VARIABLES, mStateVariablesFinalized[i], rCurrentProcessInfo);
         }
     }
 
-    if (mRetentionLawVector.size() != NumGPoints)
-        mRetentionLawVector.resize(NumGPoints);
+    if (mRetentionLawVector.size() != NumGPoints) mRetentionLawVector.resize(NumGPoints);
     for (unsigned int i = 0; i < mRetentionLawVector.size(); ++i) {
         // RetentionLawFactory::Pointer pRetentionFactory;
         mRetentionLawVector[i] = RetentionLawFactory::Clone(rProp);
@@ -309,13 +293,11 @@ void UPwBaseElement<TDim, TNumNodes>::CalculateLocalSystem(MatrixType& rLeftHand
     const unsigned int N_DOF = this->GetNumberOfDOF();
 
     // Resetting the LHS
-    if (rLeftHandSideMatrix.size1() != N_DOF)
-        rLeftHandSideMatrix.resize(N_DOF, N_DOF, false);
+    if (rLeftHandSideMatrix.size1() != N_DOF) rLeftHandSideMatrix.resize(N_DOF, N_DOF, false);
     noalias(rLeftHandSideMatrix) = ZeroMatrix(N_DOF, N_DOF);
 
     // Resetting the RHS
-    if (rRightHandSideVector.size() != N_DOF)
-        rRightHandSideVector.resize(N_DOF, false);
+    if (rRightHandSideVector.size() != N_DOF) rRightHandSideVector.resize(N_DOF, false);
     noalias(rRightHandSideVector) = ZeroVector(N_DOF);
 
     // calculation flags
@@ -340,8 +322,8 @@ void UPwBaseElement<TDim, TNumNodes>::CalculateLeftHandSide(MatrixType& rLeftHan
     const bool CalculateResidualVectorFlag  = false;
     VectorType TempVector;
 
-    CalculateAll(rLeftHandSideMatrix, TempVector, rCurrentProcessInfo,
-                 CalculateStiffnessMatrixFlag, CalculateResidualVectorFlag);
+    CalculateAll(rLeftHandSideMatrix, TempVector, rCurrentProcessInfo, CalculateStiffnessMatrixFlag,
+                 CalculateResidualVectorFlag);
 
     KRATOS_CATCH("");
 }
@@ -356,8 +338,7 @@ void UPwBaseElement<TDim, TNumNodes>::CalculateRightHandSide(VectorType& rRightH
     const unsigned int N_DOF = this->GetNumberOfDOF();
 
     // Resetting the RHS
-    if (rRightHandSideVector.size() != N_DOF)
-        rRightHandSideVector.resize(N_DOF, false);
+    if (rRightHandSideVector.size() != N_DOF) rRightHandSideVector.resize(N_DOF, false);
     noalias(rRightHandSideVector) = ZeroVector(N_DOF);
 
     const bool CalculateStiffnessMatrixFlag = false;
@@ -408,8 +389,7 @@ void UPwBaseElement<TDim, TNumNodes>::EquationIdVector(EquationIdVectorType& rRe
 
 //----------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
-void UPwBaseElement<TDim, TNumNodes>::CalculateMassMatrix(MatrixType& rMassMatrix,
-                                                          const ProcessInfo& rCurrentProcessInfo)
+void UPwBaseElement<TDim, TNumNodes>::CalculateMassMatrix(MatrixType& rMassMatrix, const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
@@ -442,8 +422,7 @@ void UPwBaseElement<TDim, TNumNodes>::CalculateDampingMatrix(MatrixType& rDampin
     this->CalculateMaterialStiffnessMatrix(StiffnessMatrix, rCurrentProcessInfo);
 
     // Compute Damping Matrix
-    if (rDampingMatrix.size1() != N_DOF)
-        rDampingMatrix.resize(N_DOF, N_DOF, false);
+    if (rDampingMatrix.size1() != N_DOF) rDampingMatrix.resize(N_DOF, N_DOF, false);
     noalias(rDampingMatrix) = ZeroMatrix(N_DOF, N_DOF);
 
     const PropertiesType& rProp = this->GetProperties();
@@ -568,8 +547,9 @@ void UPwBaseElement<TDim, TNumNodes>::GetSecondDerivativesVector(Vector& rValues
 
 //-------------------------------------------------------------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
-void UPwBaseElement<TDim, TNumNodes>::SetValuesOnIntegrationPoints(
-    const Variable<Vector>& rVariable, const std::vector<Vector>& rValues, const ProcessInfo& rCurrentProcessInfo)
+void UPwBaseElement<TDim, TNumNodes>::SetValuesOnIntegrationPoints(const Variable<Vector>& rVariable,
+                                                                   const std::vector<Vector>& rValues,
+                                                                   const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
@@ -581,8 +561,9 @@ void UPwBaseElement<TDim, TNumNodes>::SetValuesOnIntegrationPoints(
 
 //-------------------------------------------------------------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
-void UPwBaseElement<TDim, TNumNodes>::SetValuesOnIntegrationPoints(
-    const Variable<Matrix>& rVariable, const std::vector<Matrix>& rValues, const ProcessInfo& rCurrentProcessInfo)
+void UPwBaseElement<TDim, TNumNodes>::SetValuesOnIntegrationPoints(const Variable<Matrix>& rVariable,
+                                                                   const std::vector<Matrix>& rValues,
+                                                                   const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
@@ -594,8 +575,9 @@ void UPwBaseElement<TDim, TNumNodes>::SetValuesOnIntegrationPoints(
 
 //-------------------------------------------------------------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
-void UPwBaseElement<TDim, TNumNodes>::SetValuesOnIntegrationPoints(
-    const Variable<double>& rVariable, const std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo)
+void UPwBaseElement<TDim, TNumNodes>::SetValuesOnIntegrationPoints(const Variable<double>& rVariable,
+                                                                   const std::vector<double>& rValues,
+                                                                   const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
@@ -607,10 +589,9 @@ void UPwBaseElement<TDim, TNumNodes>::SetValuesOnIntegrationPoints(
 
 //----------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
-void UPwBaseElement<TDim, TNumNodes>::CalculateOnIntegrationPoints(
-    const Variable<ConstitutiveLaw::Pointer>& rVariable,
-    std::vector<ConstitutiveLaw::Pointer>& rValues,
-    const ProcessInfo& rCurrentProcessInfo)
+void UPwBaseElement<TDim, TNumNodes>::CalculateOnIntegrationPoints(const Variable<ConstitutiveLaw::Pointer>& rVariable,
+                                                                   std::vector<ConstitutiveLaw::Pointer>& rValues,
+                                                                   const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
@@ -626,25 +607,24 @@ void UPwBaseElement<TDim, TNumNodes>::CalculateOnIntegrationPoints(
 }
 //----------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
-void UPwBaseElement<TDim, TNumNodes>::CalculateOnIntegrationPoints(
-    const Variable<array_1d<double, 3>>& rVariable,
-    std::vector<array_1d<double, 3>>& rValues,
-    const ProcessInfo& rCurrentProcessInfo)
+void UPwBaseElement<TDim, TNumNodes>::CalculateOnIntegrationPoints(const Variable<array_1d<double, 3>>& rVariable,
+                                                                   std::vector<array_1d<double, 3>>& rValues,
+                                                                   const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
-    KRATOS_ERROR
-        << "calling the default CalculateOnIntegrationPoints (array_1d<double, "
-           "3>) method for a particular element ... illegal operation!!"
-        << this->Id() << std::endl;
+    KRATOS_ERROR << "calling the default CalculateOnIntegrationPoints (array_1d<double, "
+                    "3>) method for a particular element ... illegal operation!!"
+                 << this->Id() << std::endl;
 
     KRATOS_CATCH("")
 }
 
 //----------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
-void UPwBaseElement<TDim, TNumNodes>::CalculateOnIntegrationPoints(
-    const Variable<Matrix>& rVariable, std::vector<Matrix>& rValues, const ProcessInfo& rCurrentProcessInfo)
+void UPwBaseElement<TDim, TNumNodes>::CalculateOnIntegrationPoints(const Variable<Matrix>& rVariable,
+                                                                   std::vector<Matrix>& rValues,
+                                                                   const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
@@ -657,8 +637,9 @@ void UPwBaseElement<TDim, TNumNodes>::CalculateOnIntegrationPoints(
 
 //----------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
-void UPwBaseElement<TDim, TNumNodes>::CalculateOnIntegrationPoints(
-    const Variable<Vector>& rVariable, std::vector<Vector>& rValues, const ProcessInfo& rCurrentProcessInfo)
+void UPwBaseElement<TDim, TNumNodes>::CalculateOnIntegrationPoints(const Variable<Vector>& rVariable,
+                                                                   std::vector<Vector>& rValues,
+                                                                   const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
@@ -671,8 +652,9 @@ void UPwBaseElement<TDim, TNumNodes>::CalculateOnIntegrationPoints(
 
 //----------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
-void UPwBaseElement<TDim, TNumNodes>::CalculateOnIntegrationPoints(
-    const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo)
+void UPwBaseElement<TDim, TNumNodes>::CalculateOnIntegrationPoints(const Variable<double>& rVariable,
+                                                                   std::vector<double>& rValues,
+                                                                   const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
@@ -684,8 +666,8 @@ void UPwBaseElement<TDim, TNumNodes>::CalculateOnIntegrationPoints(
 }
 //----------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
-void UPwBaseElement<TDim, TNumNodes>::CalculateMaterialStiffnessMatrix(
-    MatrixType& rStiffnessMatrix, const ProcessInfo& CurrentProcessInfo)
+void UPwBaseElement<TDim, TNumNodes>::CalculateMaterialStiffnessMatrix(MatrixType& rStiffnessMatrix,
+                                                                       const ProcessInfo& CurrentProcessInfo)
 {
     KRATOS_TRY
 
@@ -717,9 +699,7 @@ void UPwBaseElement<TDim, TNumNodes>::CalculateAll(MatrixType& rLeftHandSideMatr
 //----------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
 double UPwBaseElement<TDim, TNumNodes>::CalculateIntegrationCoefficient(
-    const GeometryType::IntegrationPointsArrayType& IntegrationPoints,
-    unsigned int PointNumber,
-    double detJ)
+    const GeometryType::IntegrationPointsArrayType& IntegrationPoints, unsigned int PointNumber, double detJ)
 
 {
     return IntegrationPoints[PointNumber].Weight() * detJ;
@@ -737,8 +717,7 @@ void UPwBaseElement<TDim, TNumNodes>::CalculateDerivativesOnInitialConfiguration
         rGeom.IntegrationPoints(mThisIntegrationMethod);
 
     GeometryUtils::JacobianOnInitialConfiguration(rGeom, IntegrationPoints[GPoint], J0);
-    const Matrix& DN_De =
-        rGeom.ShapeFunctionsLocalGradients(mThisIntegrationMethod)[GPoint];
+    const Matrix& DN_De = rGeom.ShapeFunctionsLocalGradients(mThisIntegrationMethod)[GPoint];
     MathUtils<double>::InvertMatrix(J0, InvJ0, detJ);
     GeometryUtils::ShapeFunctionsGradients(DN_De, InvJ0, DNu_DX0);
 
@@ -747,13 +726,15 @@ void UPwBaseElement<TDim, TNumNodes>::CalculateDerivativesOnInitialConfiguration
 
 //----------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
-void UPwBaseElement<TDim, TNumNodes>::CalculateJacobianOnCurrentConfiguration(
-    double& detJ, Matrix& rJ, Matrix& rInvJ, unsigned int GPoint) const
+void UPwBaseElement<TDim, TNumNodes>::CalculateJacobianOnCurrentConfiguration(double& detJ,
+                                                                              Matrix& rJ,
+                                                                              Matrix& rInvJ,
+                                                                              unsigned int GPoint) const
 {
     KRATOS_TRY
 
     const GeometryType& rGeom = this->GetGeometry();
-    rJ = rGeom.Jacobian(rJ, GPoint, mThisIntegrationMethod);
+    rJ                        = rGeom.Jacobian(rJ, GPoint, mThisIntegrationMethod);
     MathUtils<double>::InvertMatrix(rJ, rInvJ, detJ);
 
     KRATOS_CATCH("")
@@ -768,16 +749,14 @@ void UPwBaseElement<TDim, TNumNodes>::CalculateJacobianOnCurrentConfiguration(
 
     const GeometryType& rGeom = this->GetGeometry();
     Matrix DisplacementMatrix;
-    GeoElementUtilities::GetNodalVariableMatrix<TDim, TNumNodes>(
-        DisplacementMatrix, rGeom, DISPLACEMENT);
+    GeoElementUtilities::GetNodalVariableMatrix<TDim, TNumNodes>(DisplacementMatrix, rGeom, DISPLACEMENT);
 
     J.clear();
     J = this->GetGeometry().Jacobian(J, GPoint, mThisIntegrationMethod, DisplacementMatrix);
 
     MathUtils<double>::InvertMatrix(J, InvJ, detJ);
 
-    const Matrix& DN_De =
-        this->GetGeometry().ShapeFunctionsLocalGradients(mThisIntegrationMethod)[GPoint];
+    const Matrix& DN_De = this->GetGeometry().ShapeFunctionsLocalGradients(mThisIntegrationMethod)[GPoint];
     noalias(GradNpT) = prod(DN_De, InvJ);
 
     KRATOS_CATCH("")
@@ -790,8 +769,7 @@ double UPwBaseElement<TDim, TNumNodes>::CalculateDerivativesOnCurrentConfigurati
 {
     double detJ;
     rJ = this->GetGeometry().Jacobian(rJ, PointNumber, ThisIntegrationMethod);
-    const Matrix& DN_De =
-        this->GetGeometry().ShapeFunctionsLocalGradients(ThisIntegrationMethod)[PointNumber];
+    const Matrix& DN_De = this->GetGeometry().ShapeFunctionsLocalGradients(ThisIntegrationMethod)[PointNumber];
     MathUtils<double>::InvertMatrix(rJ, rInvJ, detJ);
     GeometryUtils::ShapeFunctionsGradients(DN_De, rInvJ, rDN_DX);
     return detJ;

@@ -26,8 +26,7 @@ namespace Kratos
 {
 
 template <unsigned int TDim, unsigned int TNumNodes>
-class KRATOS_API(GEO_MECHANICS_APPLICATION) TransientPwElement
-    : public UPwSmallStrainElement<TDim, TNumNodes>
+class KRATOS_API(GEO_MECHANICS_APPLICATION) TransientPwElement : public UPwSmallStrainElement<TDim, TNumNodes>
 {
 public:
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(TransientPwElement);
@@ -85,9 +84,7 @@ public:
                             NodesArrayType const& ThisNodes,
                             PropertiesType::Pointer pProperties) const override;
 
-    Element::Pointer Create(IndexType NewId,
-                            GeometryType::Pointer pGeom,
-                            PropertiesType::Pointer pProperties) const override;
+    Element::Pointer Create(IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties) const override;
 
     ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     int Check(const ProcessInfo& rCurrentProcessInfo) const override;
@@ -102,17 +99,13 @@ public:
 
     void FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
 
-    void GetDofList(DofsVectorType& rElementalDofList,
-                    const ProcessInfo& rCurrentProcessInfo) const override;
+    void GetDofList(DofsVectorType& rElementalDofList, const ProcessInfo& rCurrentProcessInfo) const override;
 
-    void EquationIdVector(EquationIdVectorType& rResult,
-                          const ProcessInfo& rCurrentProcessInfo) const override;
+    void EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo& rCurrentProcessInfo) const override;
 
-    void CalculateMassMatrix(MatrixType& rMassMatrix,
-                             const ProcessInfo& rCurrentProcessInfo) override;
+    void CalculateMassMatrix(MatrixType& rMassMatrix, const ProcessInfo& rCurrentProcessInfo) override;
 
-    void CalculateDampingMatrix(MatrixType& rDampingMatrix,
-                                const ProcessInfo& rCurrentProcessInfo) override;
+    void CalculateDampingMatrix(MatrixType& rDampingMatrix, const ProcessInfo& rCurrentProcessInfo) override;
 
     void GetValuesVector(Vector& rValues, int Step = 0) const override;
 
@@ -163,28 +156,19 @@ protected:
                       const bool CalculateStiffnessMatrixFlag,
                       const bool CalculateResidualVectorFlag) override;
 
-    void InitializeElementVariables(ElementVariables& rVariables,
-                                    const ProcessInfo& CurrentProcessInfo) override;
+    void InitializeElementVariables(ElementVariables& rVariables, const ProcessInfo& CurrentProcessInfo) override;
 
-    void CalculateAndAddLHS(MatrixType& rLeftHandSideMatrix,
-                            ElementVariables& rVariables) override;
+    void CalculateAndAddLHS(MatrixType& rLeftHandSideMatrix, ElementVariables& rVariables) override;
 
-    void CalculateAndAddRHS(VectorType& rRightHandSideVector,
-                            ElementVariables& rVariables,
-                            unsigned int GPoint) override;
+    void CalculateAndAddRHS(VectorType& rRightHandSideVector, ElementVariables& rVariables, unsigned int GPoint) override;
 
     void CalculateKinematics(ElementVariables& rVariables, unsigned int PointNumber) override;
 
-    void CalculateAndAddCompressibilityMatrix(MatrixType& rLeftHandSideMatrix,
-                                              ElementVariables& rVariables) override;
-    void CalculateAndAddPermeabilityFlow(VectorType& rRightHandSideVector,
-                                         ElementVariables& rVariables) override;
-    void CalculateAndAddFluidBodyFlow(VectorType& rRightHandSideVector,
-                                      ElementVariables& rVariables) override;
-    void CalculateAndAddPermeabilityMatrix(MatrixType& rLeftHandSideMatrix,
-                                           ElementVariables& rVariables) override;
-    void CalculateAndAddCompressibilityFlow(VectorType& rRightHandSideVector,
-                                            ElementVariables& rVariables) override;
+    void CalculateAndAddCompressibilityMatrix(MatrixType& rLeftHandSideMatrix, ElementVariables& rVariables) override;
+    void CalculateAndAddPermeabilityFlow(VectorType& rRightHandSideVector, ElementVariables& rVariables) override;
+    void CalculateAndAddFluidBodyFlow(VectorType& rRightHandSideVector, ElementVariables& rVariables) override;
+    void CalculateAndAddPermeabilityMatrix(MatrixType& rLeftHandSideMatrix, ElementVariables& rVariables) override;
+    void CalculateAndAddCompressibilityFlow(VectorType& rRightHandSideVector, ElementVariables& rVariables) override;
 
     unsigned int GetNumberOfDOF() const override;
     ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -203,8 +187,7 @@ private:
         KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Element)
     }
 
-    void load(Serializer& rSerializer) override{
-        KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element)}
+    void load(Serializer& rSerializer) override{KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element)}
 
     // Assignment operator.
     TransientPwElement&

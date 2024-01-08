@@ -44,14 +44,14 @@ protected:
 public:
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(GeoLinearTrussElement);
 
-    using BaseType       = GeoTrussElementLinearBase<TDim, TNumNodes>;
-    using GeometryType   = Element::GeometryType;
-    using NodesArrayType = Element::NodesArrayType;
-    using PropertiesType = Element::PropertiesType;
-    using IndexType      = Element::IndexType;
-    using SizeType       = Element::SizeType;
-    using MatrixType     = Element::MatrixType;
-    using VectorType     = Element::VectorType;
+    using BaseType          = GeoTrussElementLinearBase<TDim, TNumNodes>;
+    using GeometryType      = Element::GeometryType;
+    using NodesArrayType    = Element::NodesArrayType;
+    using PropertiesType    = Element::PropertiesType;
+    using IndexType         = Element::IndexType;
+    using SizeType          = Element::SizeType;
+    using MatrixType        = Element::MatrixType;
+    using VectorType        = Element::VectorType;
     using FullDofMatrixType = typename GeoTrussElementBase<TDim, TNumNodes>::FullDofMatrixType;
     using FullDofVectorType = typename GeoTrussElementBase<TDim, TNumNodes>::FullDofVectorType;
 
@@ -59,9 +59,7 @@ public:
 
     GeoLinearTrussElement(){};
     GeoLinearTrussElement(IndexType NewId, GeometryType::Pointer pGeometry);
-    GeoLinearTrussElement(IndexType NewId,
-                          GeometryType::Pointer pGeometry,
-                          PropertiesType::Pointer pProperties);
+    GeoLinearTrussElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties);
 
     ~GeoLinearTrussElement() override;
 
@@ -72,9 +70,7 @@ public:
      * @param pProperties The pointer to property
      * @return The pointer to the created element
      */
-    Element::Pointer Create(IndexType NewId,
-                            GeometryType::Pointer pGeom,
-                            PropertiesType::Pointer pProperties) const override;
+    Element::Pointer Create(IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties) const override;
 
     /**
      * @brief Creates a new element
@@ -93,8 +89,7 @@ public:
      * @brief This function updates the internal normal force w.r.t. the current deformations
      * @param rinternalForces The current updated internal forces
      */
-    void UpdateInternalForces(FullDofVectorType& rInternalForces,
-                              const ProcessInfo& rCurrentProcessInfo) override;
+    void UpdateInternalForces(FullDofVectorType& rInternalForces, const ProcessInfo& rCurrentProcessInfo) override;
 
     void CalculateOnIntegrationPoints(const Variable<array_1d<double, 3>>& rVariable,
                                       std::vector<array_1d<double, 3>>& rOutput,

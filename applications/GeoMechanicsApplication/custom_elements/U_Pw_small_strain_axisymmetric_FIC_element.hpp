@@ -64,9 +64,7 @@ public:
     }
 
     /// Constructor using Properties
-    UPwSmallStrainAxisymmetricFICElement(IndexType NewId,
-                                         GeometryType::Pointer pGeometry,
-                                         PropertiesType::Pointer pProperties)
+    UPwSmallStrainAxisymmetricFICElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
         : UPwSmallStrainFICElement<TDim, TNumNodes>(NewId, pGeometry, pProperties)
     {
     }
@@ -80,9 +78,7 @@ public:
                             NodesArrayType const& ThisNodes,
                             PropertiesType::Pointer pProperties) const override;
 
-    Element::Pointer Create(IndexType NewId,
-                            GeometryType::Pointer pGeom,
-                            PropertiesType::Pointer pProperties) const override;
+    Element::Pointer Create(IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties) const override;
 
     ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -131,8 +127,7 @@ private:
         KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Element)
     }
 
-    void load(Serializer& rSerializer) override{
-        KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element)}
+    void load(Serializer& rSerializer) override{KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element)}
 
     // Assignment operator.
     UPwSmallStrainAxisymmetricFICElement&
@@ -144,9 +139,7 @@ private:
     // Private Operations
 
     template <class TValueType>
-    inline void ThreadSafeNodeWrite(NodeType& rNode,
-                                    const Variable<TValueType>& Var,
-                                    const TValueType Value)
+    inline void ThreadSafeNodeWrite(NodeType& rNode, const Variable<TValueType>& Var, const TValueType Value)
     {
         rNode.SetLock();
         rNode.FastGetSolutionStepValue(Var) = Value;

@@ -52,7 +52,7 @@ public:
     using BaseType::mThisIntegrationMethod;
 
     using InterfaceElementVariables = typename BaseType::InterfaceElementVariables;
-    using SFGradAuxVariables = typename BaseType::SFGradAuxVariables;
+    using SFGradAuxVariables        = typename BaseType::SFGradAuxVariables;
 
     ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -75,9 +75,7 @@ public:
     }
 
     /// Constructor using Properties
-    SteadyStatePwInterfaceElement(IndexType NewId,
-                                  GeometryType::Pointer pGeometry,
-                                  PropertiesType::Pointer pProperties)
+    SteadyStatePwInterfaceElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
         : TransientPwInterfaceElement<TDim, TNumNodes>(NewId, pGeometry, pProperties)
     {
     }
@@ -91,9 +89,7 @@ public:
                             NodesArrayType const& ThisNodes,
                             PropertiesType::Pointer pProperties) const override;
 
-    Element::Pointer Create(IndexType NewId,
-                            GeometryType::Pointer pGeom,
-                            PropertiesType::Pointer pProperties) const override;
+    Element::Pointer Create(IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties) const override;
 
     int Check(const ProcessInfo& rCurrentProcessInfo) const override;
 
@@ -104,8 +100,7 @@ protected:
                       const bool CalculateStiffnessMatrixFlag,
                       const bool CalculateResidualVectorFlag) override;
 
-    void CalculateAndAddLHS(MatrixType& rLeftHandSideMatrix,
-                            InterfaceElementVariables& rVariables) override;
+    void CalculateAndAddLHS(MatrixType& rLeftHandSideMatrix, InterfaceElementVariables& rVariables) override;
 
     void CalculateAndAddRHS(VectorType& rRightHandSideVector,
                             InterfaceElementVariables& rVariables,
@@ -127,8 +122,7 @@ private:
         KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Element)
     }
 
-    void load(Serializer& rSerializer) override{
-        KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element)}
+    void load(Serializer& rSerializer) override{KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element)}
 
     /// Assignment operator.
     SteadyStatePwInterfaceElement&

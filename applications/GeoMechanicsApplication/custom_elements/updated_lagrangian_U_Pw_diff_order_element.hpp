@@ -48,8 +48,7 @@ namespace Kratos
  * @details Implements an Updated Lagrangian definition for different order U-P elements. This works for arbitrary geometries in 2D and 3D
  * @author Vahid Galavi (Geomechanics)
  */
-class KRATOS_API(GEO_MECHANICS_APPLICATION) UpdatedLagrangianUPwDiffOrderElement
-    : public SmallStrainUPwDiffOrderElement
+class KRATOS_API(GEO_MECHANICS_APPLICATION) UpdatedLagrangianUPwDiffOrderElement : public SmallStrainUPwDiffOrderElement
 {
 public:
     ///@name Type Definitions
@@ -93,9 +92,7 @@ public:
     }
 
     /// Constructor using Properties
-    UpdatedLagrangianUPwDiffOrderElement(IndexType NewId,
-                                         GeometryType::Pointer pGeometry,
-                                         PropertiesType::Pointer pProperties)
+    UpdatedLagrangianUPwDiffOrderElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
         : SmallStrainUPwDiffOrderElement(NewId, pGeometry, pProperties)
     {
     }
@@ -110,9 +107,7 @@ public:
      * @param pProperties The pointer to property
      * @return The pointer to the created element
      */
-    Element::Pointer Create(IndexType NewId,
-                            GeometryType::Pointer pGeom,
-                            PropertiesType::Pointer pProperties) const override;
+    Element::Pointer Create(IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties) const override;
 
     /**
      * @brief Creates a new element

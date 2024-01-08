@@ -54,14 +54,12 @@ public:
     using VectorType           = BaseType::VectorType;
     using EquationIdVectorType = BaseType::EquationIdVectorType;
     using DofsVectorType       = BaseType::DofsVectorType;
-    using FullDofMatrixType = BoundedMatrix<double, TDim * TNumNodes, TDim * TNumNodes>;
-    using FullDofVectorType = BoundedVector<double, TDim * TNumNodes>;
+    using FullDofMatrixType    = BoundedMatrix<double, TDim * TNumNodes, TDim * TNumNodes>;
+    using FullDofVectorType    = BoundedVector<double, TDim * TNumNodes>;
 
     GeoTrussElementBase(){};
     GeoTrussElementBase(IndexType NewId, GeometryType::Pointer pGeometry);
-    GeoTrussElementBase(IndexType NewId,
-                        GeometryType::Pointer pGeometry,
-                        PropertiesType::Pointer pProperties);
+    GeoTrussElementBase(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties);
 
     ~GeoTrussElementBase() override;
 
@@ -72,9 +70,7 @@ public:
      * @param pProperties The pointer to property
      * @return The pointer to the created element
      */
-    Element::Pointer Create(IndexType NewId,
-                            GeometryType::Pointer pGeom,
-                            PropertiesType::Pointer pProperties) const override;
+    Element::Pointer Create(IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties) const override;
 
     /**
      * @brief Creates a new element
@@ -87,11 +83,9 @@ public:
                             NodesArrayType const& ThisNodes,
                             PropertiesType::Pointer pProperties) const override;
 
-    void EquationIdVector(EquationIdVectorType& rResult,
-                          const ProcessInfo& rCurrentProcessInfo) const override;
+    void EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo& rCurrentProcessInfo) const override;
 
-    void GetDofList(DofsVectorType& rElementalDofList,
-                    const ProcessInfo& rCurrentProcessInfo) const override;
+    void GetDofList(DofsVectorType& rElementalDofList, const ProcessInfo& rCurrentProcessInfo) const override;
 
     void Initialize(const ProcessInfo& rCurrentProcessInfo) override;
 
@@ -101,13 +95,9 @@ public:
     virtual void CreateElementStiffnessMatrix(MatrixType& rLocalStiffnessMatrix,
                                               const ProcessInfo& rCurrentProcessInfo);
 
-    void Calculate(const Variable<Matrix>& rVariable,
-                   Matrix& rOutput,
-                   const ProcessInfo& rCurrentProcessInfo) override;
+    void Calculate(const Variable<Matrix>& rVariable, Matrix& rOutput, const ProcessInfo& rCurrentProcessInfo) override;
 
-    void Calculate(const Variable<double>& rVariable,
-                   double& rOutput,
-                   const ProcessInfo& rCurrentProcessInfo) override;
+    void Calculate(const Variable<double>& rVariable, double& rOutput, const ProcessInfo& rCurrentProcessInfo) override;
 
     void CalculateOnIntegrationPoints(const Variable<double>& rVariable,
                                       std::vector<double>& rOutput,
@@ -125,8 +115,7 @@ public:
      * @brief This function updates the internal normal force w.r.t. the current deformations
      * @param rinternalForces The current updated internal forces
      */
-    virtual void UpdateInternalForces(FullDofVectorType& rInternalForces,
-                                      const ProcessInfo& rCurrentProcessInfo);
+    virtual void UpdateInternalForces(FullDofVectorType& rInternalForces, const ProcessInfo& rCurrentProcessInfo);
 
     /**
      * @brief This function calculates the transformation matrix to globalize vectors and/or matrices
@@ -138,20 +127,15 @@ public:
                               VectorType& rRightHandSideVector,
                               const ProcessInfo& rCurrentProcessInfo) override;
 
-    void CalculateRightHandSide(VectorType& rRightHandSideVector,
-                                const ProcessInfo& rCurrentProcessInfo) override;
+    void CalculateRightHandSide(VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo) override;
 
-    void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
-                               const ProcessInfo& rCurrentProcessInfo) override;
+    void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, const ProcessInfo& rCurrentProcessInfo) override;
 
-    void CalculateMassMatrix(MatrixType& rMassMatrix,
-                             const ProcessInfo& rCurrentProcessInfo) override;
+    void CalculateMassMatrix(MatrixType& rMassMatrix, const ProcessInfo& rCurrentProcessInfo) override;
 
-    void CalculateConsistentMassMatrix(MatrixType& rMassMatrix,
-                                       const ProcessInfo& rCurrentProcessInfo) const;
+    void CalculateConsistentMassMatrix(MatrixType& rMassMatrix, const ProcessInfo& rCurrentProcessInfo) const;
 
-    void CalculateDampingMatrix(MatrixType& rDampingMatrix,
-                                const ProcessInfo& rCurrentProcessInfo) override;
+    void CalculateDampingMatrix(MatrixType& rDampingMatrix, const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
      * @brief This function is designed to make the element to assemble an rRHS vector identified by a variable rRHSVariable by assembling it to the nodes on the variable rDestinationVariable (double version)
@@ -212,8 +196,7 @@ public:
      * @param rElasticStiffnessMatrix The elastic stiffness matrix
      * @param rCurrentProcessInfo The current process information
      */
-    void CalculateElasticStiffnessMatrix(MatrixType& rElasticStiffnessMatrix,
-                                         const ProcessInfo& rCurrentProcessInfo);
+    void CalculateElasticStiffnessMatrix(MatrixType& rElasticStiffnessMatrix, const ProcessInfo& rCurrentProcessInfo);
 
     /**
      * @brief This function calculates the current nodal postion for the transformation matrix
@@ -230,8 +213,7 @@ private:
      * @brief This method computes directly the lumped mass vector
      * @param rMassVector The lumped mass vector
      */
-    void CalculateLumpedMassVector(VectorType& rMassVector,
-                                   const ProcessInfo& rCurrentProcessInfo) const override;
+    void CalculateLumpedMassVector(VectorType& rMassVector, const ProcessInfo& rCurrentProcessInfo) const override;
 
     friend class Serializer;
     void save(Serializer& rSerializer) const override;

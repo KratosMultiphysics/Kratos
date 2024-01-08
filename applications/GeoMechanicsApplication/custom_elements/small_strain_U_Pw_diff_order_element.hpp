@@ -45,9 +45,7 @@ public:
     SmallStrainUPwDiffOrderElement(IndexType NewId, GeometryType::Pointer pGeometry);
 
     // Constructor 2
-    SmallStrainUPwDiffOrderElement(IndexType NewId,
-                                   GeometryType::Pointer pGeometry,
-                                   PropertiesType::Pointer pProperties);
+    SmallStrainUPwDiffOrderElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties);
 
     // Destructor
     ~SmallStrainUPwDiffOrderElement() override;
@@ -57,14 +55,11 @@ public:
                             NodesArrayType const& ThisNodes,
                             PropertiesType::Pointer pProperties) const override;
 
-    Element::Pointer Create(IndexType NewId,
-                            GeometryType::Pointer pGeom,
-                            PropertiesType::Pointer pProperties) const override;
+    Element::Pointer Create(IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties) const override;
 
     int Check(const ProcessInfo& rCurrentProcessInfo) const override;
 
-    void GetDofList(DofsVectorType& rElementalDofList,
-                    const ProcessInfo& rCurrentProcessInfo) const override;
+    void GetDofList(DofsVectorType& rElementalDofList, const ProcessInfo& rCurrentProcessInfo) const override;
 
     GeometryData::IntegrationMethod GetIntegrationMethod() const override;
 
@@ -82,23 +77,18 @@ public:
                               VectorType& rRightHandSideVector,
                               const ProcessInfo& rCurrentProcessInfo) override;
 
-    void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
-                               const ProcessInfo& rCurrentProcessInfo) override;
+    void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, const ProcessInfo& rCurrentProcessInfo) override;
 
-    void CalculateRightHandSide(VectorType& rRightHandSideVector,
-                                const ProcessInfo& rCurrentProcessInfo) override;
+    void CalculateRightHandSide(VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo) override;
 
-    void CalculateMassMatrix(MatrixType& rMassMatrix,
-                             const ProcessInfo& rCurrentProcessInfo) override;
+    void CalculateMassMatrix(MatrixType& rMassMatrix, const ProcessInfo& rCurrentProcessInfo) override;
 
-    void EquationIdVector(EquationIdVectorType& rResult,
-                          const ProcessInfo& rCurrentProcessInfo) const override;
+    void EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo& rCurrentProcessInfo) const override;
 
     void GetFirstDerivativesVector(Vector& rValues, int Step = 0) const override;
     void GetSecondDerivativesVector(Vector& rValues, int Step = 0) const override;
 
-    void CalculateDampingMatrix(MatrixType& rDampingMatrix,
-                                const ProcessInfo& rCurrentProcessInfo) override;
+    void CalculateDampingMatrix(MatrixType& rDampingMatrix, const ProcessInfo& rCurrentProcessInfo) override;
 
     //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -167,8 +157,8 @@ protected:
         Vector detJuContainer;
 
         // Variables at each integration point
-        Vector Nu; // Contains the displacement shape functions at every node
-        Vector Np; // Contains the pressure shape functions at every node
+        Vector Nu;     // Contains the displacement shape functions at every node
+        Vector Np;     // Contains the pressure shape functions at every node
         Matrix DNu_DX; // Contains the global derivatives of the displacement shape functions
         Matrix DNu_DXInitialConfiguration; // Contains the global derivatives of the displacement shape functions
 
@@ -230,8 +220,7 @@ protected:
     bool mIsInitialised = false;
 
     //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-    virtual void CalculateMaterialStiffnessMatrix(MatrixType& rStiffnessMatrix,
-                                                  const ProcessInfo& CurrentProcessInfo);
+    virtual void CalculateMaterialStiffnessMatrix(MatrixType& rStiffnessMatrix, const ProcessInfo& CurrentProcessInfo);
 
     virtual void CalculateAll(MatrixType& rLeftHandSideMatrix,
                               VectorType& rRightHandSideVector,
@@ -239,25 +228,20 @@ protected:
                               bool CalculateStiffnessMatrixFlag,
                               bool CalculateResidualVectorFlag);
 
-    void InitializeElementVariables(ElementVariables& rVariables,
-                                    const ProcessInfo& rCurrentProcessInfo);
+    void InitializeElementVariables(ElementVariables& rVariables, const ProcessInfo& rCurrentProcessInfo);
 
     void InitializeNodalVariables(ElementVariables& rVariables);
 
     void InitializeProperties(ElementVariables& rVariables);
 
-    void InitializeBiotCoefficients(ElementVariables& rVariables,
-                                    const bool& hasBiotCoefficient = false);
+    void InitializeBiotCoefficients(ElementVariables& rVariables, const bool& hasBiotCoefficient = false);
 
     void CalculatePermeabilityUpdateFactor(ElementVariables& rVariables);
 
     virtual void CalculateKinematics(ElementVariables& rVariables, unsigned int GPoint);
 
-    void CalculateDerivativesOnInitialConfiguration(double& detJ,
-                                                    Matrix& J0,
-                                                    Matrix& InvJ0,
-                                                    Matrix& DN_DX,
-                                                    unsigned int PointNumber) const;
+    void CalculateDerivativesOnInitialConfiguration(
+        double& detJ, Matrix& J0, Matrix& InvJ0, Matrix& DN_DX, unsigned int PointNumber) const;
 
     void SetConstitutiveParameters(ElementVariables& rVariables,
                                    ConstitutiveLaw::Parameters& rConstitutiveParameters) const;
@@ -268,44 +252,32 @@ protected:
 
     void CalculateAndAddLHS(MatrixType& rLeftHandSideMatrix, ElementVariables& rVariables);
 
-    void CalculateAndAddStiffnessMatrix(MatrixType& rLeftHandSideMatrix,
-                                        ElementVariables& rVariables) const;
+    void CalculateAndAddStiffnessMatrix(MatrixType& rLeftHandSideMatrix, ElementVariables& rVariables) const;
 
-    void CalculateAndAddCouplingMatrix(MatrixType& rLeftHandSideMatrix,
-                                       ElementVariables& rVariables);
+    void CalculateAndAddCouplingMatrix(MatrixType& rLeftHandSideMatrix, ElementVariables& rVariables);
 
-    void CalculateAndAddCompressibilityMatrix(MatrixType& rLeftHandSideMatrix,
-                                              ElementVariables& rVariables);
+    void CalculateAndAddCompressibilityMatrix(MatrixType& rLeftHandSideMatrix, ElementVariables& rVariables);
 
-    void CalculateAndAddPermeabilityMatrix(MatrixType& rLeftHandSideMatrix,
-                                           ElementVariables& rVariables);
+    void CalculateAndAddPermeabilityMatrix(MatrixType& rLeftHandSideMatrix, ElementVariables& rVariables);
 
-    void CalculateAndAddRHS(VectorType& rRightHandSideVector,
-                            ElementVariables& rVariables,
-                            unsigned int GPoint);
+    void CalculateAndAddRHS(VectorType& rRightHandSideVector, ElementVariables& rVariables, unsigned int GPoint);
 
     void CalculateAndAddStiffnessForce(VectorType& rRightHandSideVector,
                                        ElementVariables& rVariables,
                                        unsigned int GPoint);
 
-    void CalculateAndAddMixBodyForce(VectorType& rRightHandSideVector,
-                                     ElementVariables& rVariables);
+    void CalculateAndAddMixBodyForce(VectorType& rRightHandSideVector, ElementVariables& rVariables);
 
-    void CalculateAndAddCouplingTerms(VectorType& rRightHandSideVector,
-                                      ElementVariables& rVariables);
+    void CalculateAndAddCouplingTerms(VectorType& rRightHandSideVector, ElementVariables& rVariables);
 
-    void CalculateAndAddCompressibilityFlow(VectorType& rRightHandSideVector,
-                                            ElementVariables& rVariables);
+    void CalculateAndAddCompressibilityFlow(VectorType& rRightHandSideVector, ElementVariables& rVariables);
 
-    void CalculateAndAddPermeabilityFlow(VectorType& rRightHandSideVector,
-                                         ElementVariables& rVariables);
+    void CalculateAndAddPermeabilityFlow(VectorType& rRightHandSideVector, ElementVariables& rVariables);
 
-    void CalculateAndAddFluidBodyFlow(VectorType& rRightHandSideVector,
-                                      ElementVariables& rVariables);
+    void CalculateAndAddFluidBodyFlow(VectorType& rRightHandSideVector, ElementVariables& rVariables);
 
     double CalculateBulkModulus(const Matrix& ConstitutiveMatrix) const;
-    double CalculateBiotCoefficient(const ElementVariables& rVariables,
-                                    const bool& hasBiotCoefficient) const;
+    double CalculateBiotCoefficient(const ElementVariables& rVariables, const bool& hasBiotCoefficient) const;
 
     virtual void CalculateBMatrix(Matrix& rB, const Matrix& DNu_DX, const Vector& Np);
 
@@ -318,8 +290,7 @@ protected:
     virtual void CalculateCauchyStrain(ElementVariables& rVariables);
     virtual void CalculateStrain(ElementVariables& rVariables, unsigned int GPoint);
 
-    virtual void CalculateDeformationGradient(ElementVariables& rVariables,
-                                              unsigned int GPoint);
+    virtual void CalculateDeformationGradient(ElementVariables& rVariables, unsigned int GPoint);
 
     double CalculateFluidPressure(const ElementVariables& rVariables) const;
 
@@ -332,10 +303,7 @@ protected:
 
     void CalculateSoilDensity(ElementVariables& rVariables);
 
-    void CalculateJacobianOnCurrentConfiguration(double& detJ,
-                                                 Matrix& rJ,
-                                                 Matrix& rInvJ,
-                                                 unsigned int GPoint) const;
+    void CalculateJacobianOnCurrentConfiguration(double& detJ, Matrix& rJ, Matrix& rInvJ, unsigned int GPoint) const;
 
     //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -357,9 +325,7 @@ private:
     // Private Operations
 
     template <class TValueType>
-    inline void ThreadSafeNodeWrite(NodeType& rNode,
-                                    const Variable<TValueType>& Var,
-                                    const TValueType Value)
+    inline void ThreadSafeNodeWrite(NodeType& rNode, const Variable<TValueType>& Var, const TValueType Value)
     {
         rNode.SetLock();
         rNode.FastGetSolutionStepValue(Var) = Value;

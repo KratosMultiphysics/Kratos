@@ -98,8 +98,9 @@ void GeoTrussElement<TDim, TNumNodes>::Initialize(const ProcessInfo& rCurrentPro
 
 //----------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
-void GeoTrussElement<TDim, TNumNodes>::CalculateOnIntegrationPoints(
-    const Variable<Vector>& rVariable, std::vector<Vector>& rOutput, const ProcessInfo& rCurrentProcessInfo)
+void GeoTrussElement<TDim, TNumNodes>::CalculateOnIntegrationPoints(const Variable<Vector>& rVariable,
+                                                                    std::vector<Vector>& rOutput,
+                                                                    const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
@@ -116,8 +117,7 @@ void GeoTrussElement<TDim, TNumNodes>::CalculateOnIntegrationPoints(
         rOutput[0]    = strain;
     }
     if (rVariable == PK2_STRESS_VECTOR) {
-        ConstitutiveLaw::Parameters Values(
-            this->GetGeometry(), this->GetProperties(), rCurrentProcessInfo);
+        ConstitutiveLaw::Parameters Values(this->GetGeometry(), this->GetProperties(), rCurrentProcessInfo);
         Vector temp_strain = ZeroVector(1);
         temp_strain[0]     = this->CalculateGreenLagrangeStrain();
         Values.SetStrainVector(temp_strain);
@@ -133,8 +133,7 @@ void GeoTrussElement<TDim, TNumNodes>::CalculateOnIntegrationPoints(
     if (rVariable == CAUCHY_STRESS_VECTOR) {
         ProcessInfo temp_process_information;
 
-        ConstitutiveLaw::Parameters Values(
-            this->GetGeometry(), this->GetProperties(), temp_process_information);
+        ConstitutiveLaw::Parameters Values(this->GetGeometry(), this->GetProperties(), temp_process_information);
         Vector temp_strain = ZeroVector(1);
         temp_strain[0]     = this->CalculateGreenLagrangeStrain();
         Values.SetStrainVector(temp_strain);
@@ -144,10 +143,8 @@ void GeoTrussElement<TDim, TNumNodes>::CalculateOnIntegrationPoints(
         for (unsigned int i = 0; i < TDim; ++i)
             temp_internal_stresses[i] += mInternalStressesFinalizedPrevious[i];
 
-        const double l =
-            GeoStructuralMechanicsElementUtilities::CalculateCurrentLength3D2N(*this);
-        const double L0 =
-            GeoStructuralMechanicsElementUtilities::CalculateReferenceLength3D2N(*this);
+        const double l = GeoStructuralMechanicsElementUtilities::CalculateCurrentLength3D2N(*this);
+        const double L0 = GeoStructuralMechanicsElementUtilities::CalculateReferenceLength3D2N(*this);
 
         rOutput[0] = temp_internal_stresses * l / L0;
     }
@@ -157,10 +154,9 @@ void GeoTrussElement<TDim, TNumNodes>::CalculateOnIntegrationPoints(
 
 //----------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
-void GeoTrussElement<TDim, TNumNodes>::CalculateOnIntegrationPoints(
-    const Variable<array_1d<double, 3>>& rVariable,
-    std::vector<array_1d<double, 3>>& rOutput,
-    const ProcessInfo& rCurrentProcessInfo)
+void GeoTrussElement<TDim, TNumNodes>::CalculateOnIntegrationPoints(const Variable<array_1d<double, 3>>& rVariable,
+                                                                    std::vector<array_1d<double, 3>>& rOutput,
+                                                                    const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
@@ -172,21 +168,18 @@ void GeoTrussElement<TDim, TNumNodes>::CalculateOnIntegrationPoints(
 
     if (rVariable == FORCE) {
         BoundedVector<double, TDim> truss_forces = ZeroVector(TDim);
-        const double A = this->GetProperties()[CROSS_AREA];
+        const double A                           = this->GetProperties()[CROSS_AREA];
 
         double prestress = 0.00;
         if (this->GetProperties().Has(TRUSS_PRESTRESS_PK2)) {
             prestress = this->GetProperties()[TRUSS_PRESTRESS_PK2];
         }
 
-        const double L0 =
-            GeoStructuralMechanicsElementUtilities::CalculateReferenceLength3D2N(*this);
-        const double l =
-            GeoStructuralMechanicsElementUtilities::CalculateCurrentLength3D2N(*this);
+        const double L0 = GeoStructuralMechanicsElementUtilities::CalculateReferenceLength3D2N(*this);
+        const double l = GeoStructuralMechanicsElementUtilities::CalculateCurrentLength3D2N(*this);
 
         ProcessInfo temp_process_information;
-        ConstitutiveLaw::Parameters Values(
-            this->GetGeometry(), this->GetProperties(), temp_process_information);
+        ConstitutiveLaw::Parameters Values(this->GetGeometry(), this->GetProperties(), temp_process_information);
 
         Vector temp_strain = ZeroVector(1);
         temp_strain[0]     = this->CalculateGreenLagrangeStrain();
@@ -207,8 +200,8 @@ void GeoTrussElement<TDim, TNumNodes>::CalculateOnIntegrationPoints(
 
 //----------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
-void GeoTrussElement<TDim, TNumNodes>::UpdateInternalForces(
-    BoundedVector<double, TDim * TNumNodes>& rInternalForces, const ProcessInfo& rCurrentProcessInfo)
+void GeoTrussElement<TDim, TNumNodes>::UpdateInternalForces(BoundedVector<double, TDim * TNumNodes>& rInternalForces,
+                                                            const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
     BoundedMatrix<double, TDim * TNumNodes, TDim * TNumNodes> transformation_matrix =
@@ -216,19 +209,16 @@ void GeoTrussElement<TDim, TNumNodes>::UpdateInternalForces(
 
     this->CreateTransformationMatrix(transformation_matrix);
 
-    const double l =
-        GeoStructuralMechanicsElementUtilities::CalculateCurrentLength3D2N(*this);
-    const double L0 =
-        GeoStructuralMechanicsElementUtilities::CalculateReferenceLength3D2N(*this);
-    const double A = this->GetProperties()[CROSS_AREA];
+    const double l  = GeoStructuralMechanicsElementUtilities::CalculateCurrentLength3D2N(*this);
+    const double L0 = GeoStructuralMechanicsElementUtilities::CalculateReferenceLength3D2N(*this);
+    const double A  = this->GetProperties()[CROSS_AREA];
 
     double prestress = 0.00;
     if (this->GetProperties().Has(TRUSS_PRESTRESS_PK2)) {
         prestress = this->GetProperties()[TRUSS_PRESTRESS_PK2];
     }
 
-    ConstitutiveLaw::Parameters Values(
-        this->GetGeometry(), this->GetProperties(), rCurrentProcessInfo);
+    ConstitutiveLaw::Parameters Values(this->GetGeometry(), this->GetProperties(), rCurrentProcessInfo);
     Vector temp_strain = ZeroVector(1);
     Vector temp_stress = ZeroVector(1);
     temp_strain[0]     = this->CalculateGreenLagrangeStrain();
@@ -244,10 +234,10 @@ void GeoTrussElement<TDim, TNumNodes>::UpdateInternalForces(
 
     // internal force vectors
     BoundedVector<double, TDim * TNumNodes> f_local = ZeroVector(TDim * TNumNodes);
-    f_local[0]               = -1.00 * normal_force;
-    f_local[TDim]            = 1.00 * normal_force;
-    rInternalForces          = ZeroVector(TDim * TNumNodes);
-    noalias(rInternalForces) = prod(transformation_matrix, f_local);
+    f_local[0]                                      = -1.00 * normal_force;
+    f_local[TDim]                                   = 1.00 * normal_force;
+    rInternalForces                                 = ZeroVector(TDim * TNumNodes);
+    noalias(rInternalForces)                        = prod(transformation_matrix, f_local);
     KRATOS_CATCH("");
 }
 

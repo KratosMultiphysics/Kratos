@@ -39,13 +39,13 @@ class KRATOS_API(GEO_MECHANICS_APPLICATION) GeoCurvedBeamElement
     : public GeoStructuralBaseElement<TDim, TNumNodes>
 {
 public:
-    using IndexType      = std::size_t;
-    using PropertiesType = Properties;
-    using NodeType       = Node;
-    using GeometryType   = Geometry<NodeType>;
-    using NodesArrayType = GeometryType::PointsArrayType;
-    using VectorType     = Vector;
-    using MatrixType     = Matrix;
+    using IndexType                   = std::size_t;
+    using PropertiesType              = Properties;
+    using NodeType                    = Node;
+    using GeometryType                = Geometry<NodeType>;
+    using NodesArrayType              = GeometryType::PointsArrayType;
+    using VectorType                  = Vector;
+    using MatrixType                  = Matrix;
     using ShapeFunctionsGradientsType = GeometryData::ShapeFunctionsGradientsType;
 
     /// The definition of the sizetype
@@ -64,10 +64,7 @@ public:
     ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     /// Default Constructor
-    GeoCurvedBeamElement(IndexType NewId = 0)
-        : GeoStructuralBaseElement<TDim, TNumNodes>(NewId)
-    {
-    }
+    GeoCurvedBeamElement(IndexType NewId = 0) : GeoStructuralBaseElement<TDim, TNumNodes>(NewId) {}
 
     /// Constructor using an array of nodes
     GeoCurvedBeamElement(IndexType NewId, const NodesArrayType& ThisNodes)
@@ -82,9 +79,7 @@ public:
     }
 
     /// Constructor using Properties
-    GeoCurvedBeamElement(IndexType NewId,
-                         GeometryType::Pointer pGeometry,
-                         PropertiesType::Pointer pProperties)
+    GeoCurvedBeamElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
         : GeoStructuralBaseElement<TDim, TNumNodes>(NewId, pGeometry, pProperties)
     {
         mThisIntegrationMethod = this->GetIntegrationMethod();
@@ -99,16 +94,13 @@ public:
                             NodesArrayType const& ThisNodes,
                             PropertiesType::Pointer pProperties) const override;
 
-    Element::Pointer Create(IndexType NewId,
-                            GeometryType::Pointer pGeom,
-                            PropertiesType::Pointer pProperties) const override;
+    Element::Pointer Create(IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties) const override;
 
     int Check(const ProcessInfo& rCurrentProcessInfo) const override;
 
     ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    void CalculateMassMatrix(MatrixType& rMassMatrix,
-                             const ProcessInfo& rCurrentProcessInfo) override;
+    void CalculateMassMatrix(MatrixType& rMassMatrix, const ProcessInfo& rCurrentProcessInfo) override;
 
     void CalculateOnIntegrationPoints(const Variable<Matrix>& rVariable,
                                       std::vector<Matrix>& rOutput,
@@ -147,18 +139,15 @@ protected:
                               const bool CalculateStiffnessMatrixFlag,
                               const bool CalculateResidualVectorFlag) override;
 
-    virtual void CalculateAndAddLHS(MatrixType& rLeftHandSideMatrix,
-                                    ElementVariables& rVariables) const;
+    virtual void CalculateAndAddLHS(MatrixType& rLeftHandSideMatrix, ElementVariables& rVariables) const;
 
     virtual void CalculateAndAddRHS(VectorType& rRightHandSideVector,
                                     ElementVariables& rVariables,
                                     unsigned int GPoint) const;
 
-    virtual void CalculateLocalInternalForce(VectorType& rRightHandSideVector,
-                                             const ProcessInfo& rCurrentProcessInfo);
+    virtual void CalculateLocalInternalForce(VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo);
 
-    virtual void CalculateTransformationMatrix(Matrix& TransformationMatrix,
-                                               const Matrix& GradNe) const;
+    virtual void CalculateTransformationMatrix(Matrix& TransformationMatrix, const Matrix& GradNe) const;
 
     virtual void CalculateNodalCrossDirection(Matrix& NodalCrossDirection) const override;
 
@@ -171,8 +160,7 @@ protected:
                                          const ElementVariables& rVariables,
                                          BoundedMatrix<double, TDim, TDim>& DeterminantJacobian) const;
 
-    void CalculateAndAddBodyForce(VectorType& rRightHandSideVector,
-                                  ElementVariables& rVariables) const;
+    void CalculateAndAddBodyForce(VectorType& rRightHandSideVector, ElementVariables& rVariables) const;
 
     void CalculateAndAddStiffnessForce(VectorType& rRightHandSideVector,
                                        ElementVariables& rVariables,
@@ -200,8 +188,7 @@ private:
         KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Element)
     }
 
-    void load(Serializer& rSerializer) override{
-        KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element)}
+    void load(Serializer& rSerializer) override{KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element)}
 
     /// Assignment operator.
     GeoCurvedBeamElement&
@@ -213,8 +200,8 @@ private:
     // const values
     static constexpr SizeType N_DOF_NODE_DISP = TDim;
     static constexpr SizeType N_DOF_NODE_ROT  = (TDim == 2 ? 1 : 3);
-    static constexpr SizeType N_DOF_NODE    = N_DOF_NODE_DISP + N_DOF_NODE_ROT;
-    static constexpr SizeType N_POINT_CROSS = 2;
+    static constexpr SizeType N_DOF_NODE      = N_DOF_NODE_DISP + N_DOF_NODE_ROT;
+    static constexpr SizeType N_POINT_CROSS   = 2;
 
 }; // Class GeoCurvedBeamElement
 

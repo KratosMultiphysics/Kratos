@@ -64,9 +64,7 @@ public:
     }
 
     /// Constructor using Properties
-    UPwUpdatedLagrangianAxisymmetricElement(IndexType NewId,
-                                            GeometryType::Pointer pGeometry,
-                                            PropertiesType::Pointer pProperties)
+    UPwUpdatedLagrangianAxisymmetricElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
         : UPwUpdatedLagrangianElement<TDim, TNumNodes>(NewId, pGeometry, pProperties)
     {
     }
@@ -80,9 +78,7 @@ public:
                             NodesArrayType const& ThisNodes,
                             PropertiesType::Pointer pProperties) const override;
 
-    Element::Pointer Create(IndexType NewId,
-                            GeometryType::Pointer pGeom,
-                            PropertiesType::Pointer pProperties) const override;
+    Element::Pointer Create(IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties) const override;
 
     ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -131,8 +127,7 @@ private:
         KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Element)
     }
 
-    void load(Serializer& rSerializer) override{
-        KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element)}
+    void load(Serializer& rSerializer) override{KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element)}
 
     // Assignment operator.
     UPwUpdatedLagrangianAxisymmetricElement&

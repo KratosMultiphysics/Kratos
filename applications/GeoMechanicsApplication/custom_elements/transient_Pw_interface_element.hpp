@@ -49,7 +49,7 @@ public:
     using BaseType::mThisIntegrationMethod;
 
     using InterfaceElementVariables = typename BaseType::InterfaceElementVariables;
-    using SFGradAuxVariables = typename BaseType::SFGradAuxVariables;
+    using SFGradAuxVariables        = typename BaseType::SFGradAuxVariables;
 
     /// Default Constructor
     TransientPwInterfaceElement(IndexType NewId = 0)
@@ -70,34 +70,28 @@ public:
     }
 
     /// Constructor using Properties
-    TransientPwInterfaceElement(IndexType NewId,
-                                GeometryType::Pointer pGeometry,
-                                PropertiesType::Pointer pProperties)
+    TransientPwInterfaceElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
         : UPwSmallStrainInterfaceElement<TDim, TNumNodes>(NewId, pGeometry, pProperties)
     {
     }
 
-    ~TransientPwInterfaceElement() override                         = default;
-    TransientPwInterfaceElement(const TransientPwInterfaceElement&) = delete;
+    ~TransientPwInterfaceElement() override                                    = default;
+    TransientPwInterfaceElement(const TransientPwInterfaceElement&)            = delete;
     TransientPwInterfaceElement& operator=(const TransientPwInterfaceElement&) = delete;
-    TransientPwInterfaceElement(TransientPwInterfaceElement&&) = delete;
-    TransientPwInterfaceElement& operator=(TransientPwInterfaceElement&&) = delete;
+    TransientPwInterfaceElement(TransientPwInterfaceElement&&)                 = delete;
+    TransientPwInterfaceElement& operator=(TransientPwInterfaceElement&&)      = delete;
 
     Element::Pointer Create(IndexType NewId,
                             NodesArrayType const& ThisNodes,
                             PropertiesType::Pointer pProperties) const override;
 
-    Element::Pointer Create(IndexType NewId,
-                            GeometryType::Pointer pGeom,
-                            PropertiesType::Pointer pProperties) const override;
+    Element::Pointer Create(IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties) const override;
 
     int Check(const ProcessInfo& rCurrentProcessInfo) const override;
 
-    void GetDofList(DofsVectorType& rElementalDofList,
-                    const ProcessInfo& rCurrentProcessInfo) const override;
+    void GetDofList(DofsVectorType& rElementalDofList, const ProcessInfo& rCurrentProcessInfo) const override;
 
-    void EquationIdVector(EquationIdVectorType& rResult,
-                          const ProcessInfo& rCurrentProcessInfo) const override;
+    void EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo& rCurrentProcessInfo) const override;
 
     void GetValuesVector(Vector& rValues, int Step = 0) const override;
 
@@ -107,8 +101,7 @@ public:
 
     void Initialize(const ProcessInfo& rCurrentProcessInfo) override;
 
-    void CalculateMassMatrix(MatrixType& rMassMatrix,
-                             const ProcessInfo& rCurrentProcessInfo) override;
+    void CalculateMassMatrix(MatrixType& rMassMatrix, const ProcessInfo& rCurrentProcessInfo) override;
 
     void InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
     void FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
@@ -145,8 +138,7 @@ protected:
                                     const PropertiesType& Prop,
                                     const ProcessInfo& CurrentProcessInfo) override;
 
-    void CalculateAndAddLHS(MatrixType& rLeftHandSideMatrix,
-                            InterfaceElementVariables& rVariables) override;
+    void CalculateAndAddLHS(MatrixType& rLeftHandSideMatrix, InterfaceElementVariables& rVariables) override;
 
     void CalculateAndAddCompressibilityMatrix(MatrixType& rLeftHandSideMatrix,
                                               InterfaceElementVariables& rVariables) override;
