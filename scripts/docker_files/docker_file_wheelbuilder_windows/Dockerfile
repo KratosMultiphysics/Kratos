@@ -40,7 +40,7 @@ RUN powershell.exe -Command \
 #download and extract boost
 RUN powershell.exe -Command \
     [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; \
-    wget https://boostorg.jfrog.io/artifactory/main/release/1.71.0/source/boost_1_71_0.zip -OutFile c:\TEMP\boost.zip; \
+    wget https://archives.boost.io/release/1.74.0/source/boost_1_74_0.zip -OutFile c:\TEMP\boost.zip; \
     mkdir c:\boost; \
     7z x c:\TEMP\boost.zip -o"c:\boost"
 
