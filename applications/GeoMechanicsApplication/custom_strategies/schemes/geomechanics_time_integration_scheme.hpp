@@ -17,20 +17,6 @@
 namespace Kratos
 {
 
-struct SecondOrderVectorVariable
-{
-    Variable<array_1d<double, 3>> instance;
-    Variable<array_1d<double, 3>> first_time_derivative;
-    Variable<array_1d<double, 3>> second_time_derivative;
-
-    explicit SecondOrderVectorVariable(const Variable<array_1d<double, 3>>& instance)
-        : instance(instance),
-          first_time_derivative(instance.GetTimeDerivative()),
-          second_time_derivative(first_time_derivative.GetTimeDerivative())
-    {
-    }
-};
-
 struct FirstOrderScalarVariable
 {
     Variable<double> instance;
@@ -43,6 +29,20 @@ struct FirstOrderScalarVariable
         : instance(instance),
           first_time_derivative(first_time_derivative),
           delta_time_coefficient(delta_time_coefficient)
+    {
+    }
+};
+
+struct SecondOrderVectorVariable
+{
+    Variable<array_1d<double, 3>> instance;
+    Variable<array_1d<double, 3>> first_time_derivative;
+    Variable<array_1d<double, 3>> second_time_derivative;
+
+    explicit SecondOrderVectorVariable(const Variable<array_1d<double, 3>>& instance)
+        : instance(instance),
+          first_time_derivative(instance.GetTimeDerivative()),
+          second_time_derivative(first_time_derivative.GetTimeDerivative())
     {
     }
 };

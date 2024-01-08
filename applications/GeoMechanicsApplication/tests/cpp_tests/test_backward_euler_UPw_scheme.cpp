@@ -26,15 +26,9 @@ class BackwardEulerUPwSchemeTester
 {
 public:
     Model mModel;
-    BackwardEulerQuasistaticUPwScheme<SparseSpaceType, LocalSpaceType> mScheme =
-        CreateValidScheme();
+    BackwardEulerQuasistaticUPwScheme<SparseSpaceType, LocalSpaceType> mScheme;
 
     BackwardEulerUPwSchemeTester() { CreateValidModelPart(); }
-
-    BackwardEulerQuasistaticUPwScheme<SparseSpaceType, LocalSpaceType> CreateValidScheme() const
-    {
-        return BackwardEulerQuasistaticUPwScheme<SparseSpaceType, LocalSpaceType>();
-    }
 
     void CreateValidModelPart()
     {
@@ -52,12 +46,12 @@ public:
         p_node->AddDof(WATER_PRESSURE);
         result.GetProcessInfo()[DELTA_TIME] = 4.0;
 
+        p_node->FastGetSolutionStepValue(DISPLACEMENT, 1) =
+            Kratos::array_1d<double, 3>{7.0, 8.0, 9.0};
         p_node->FastGetSolutionStepValue(VELOCITY, 1) =
             Kratos::array_1d<double, 3>{1.0, 2.0, 3.0};
         p_node->FastGetSolutionStepValue(ACCELERATION, 1) =
             Kratos::array_1d<double, 3>{4.0, 5.0, 6.0};
-        p_node->FastGetSolutionStepValue(DISPLACEMENT, 1) =
-            Kratos::array_1d<double, 3>{7.0, 8.0, 9.0};
 
         p_node->FastGetSolutionStepValue(WATER_PRESSURE, 1) = 1.0;
         p_node->FastGetSolutionStepValue(WATER_PRESSURE, 0) = 2.0;
@@ -66,11 +60,27 @@ public:
     ModelPart& GetModelPart() { return mModel.GetModelPart("dummy"); }
 };
 
-KRATOS_TEST_CASE_IN_SUITE(CheckBackwardEulerUPwScheme_ReturnsZeroForValidScheme,
+KRATOS_TEST_CASE_IN_SUITE(CheckBackwardEulerUPwScheme_ReturnsZeroForValidModelPart,
                           KratosGeoMechanicsFastSuite)
 {
     BackwardEulerUPwSchemeTester tester;
     KRATOS_EXPECT_EQ(tester.mScheme.Check(tester.GetModelPart()), 0);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(InitializeBackwardEulerUPwScheme_SetsTimeFactors, KratosGeoMechanicsFastSuite)
+{
+    BackwardEulerUPwSchemeTester tester;
+
+    tester.mScheme.Initialize(tester.GetModelPart());
+
+    // These are the expected numbers according to the SetTimeFactors function
+    constexpr double expected_dt_pressure_coefficient = 1.0 / 4.0;
+    constexpr double expected_velocity_coefficient = 1.0 / 4.0;
+    KRATOS_EXPECT_TRUE(tester.mScheme.SchemeIsInitialized())
+    KRATOS_EXPECT_DOUBLE_EQ(tester.GetModelPart().GetProcessInfo()[DT_PRESSURE_COEFFICIENT],
+                            expected_dt_pressure_coefficient);
+    KRATOS_EXPECT_DOUBLE_EQ(tester.GetModelPart().GetProcessInfo()[VELOCITY_COEFFICIENT],
+                            expected_velocity_coefficient);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(BackwardEulerUPwSchemePredict_UpdatesVariablesDerivatives,
@@ -103,22 +113,6 @@ KRATOS_TEST_CASE_IN_SUITE(BackwardEulerUPwSchemePredict_UpdatesVariablesDerivati
     KRATOS_EXPECT_DOUBLE_EQ(
         tester.GetModelPart().Nodes()[0].FastGetSolutionStepValue(DT_WATER_PRESSURE, 0),
         expected_dt_water_pressure);
-}
-
-KRATOS_TEST_CASE_IN_SUITE(InitializeBackwardEulerUPwScheme_SetsTimeFactors, KratosGeoMechanicsFastSuite)
-{
-    BackwardEulerUPwSchemeTester tester;
-
-    tester.mScheme.Initialize(tester.GetModelPart());
-
-    // These are the expected numbers according to the SetTimeFactors function
-    constexpr double expected_dt_pressure_coefficient = 1.0 / 4.0;
-    constexpr double expected_velocity_coefficient = 1.0 / 4.0;
-    KRATOS_EXPECT_TRUE(tester.mScheme.SchemeIsInitialized())
-    KRATOS_EXPECT_DOUBLE_EQ(tester.GetModelPart().GetProcessInfo()[DT_PRESSURE_COEFFICIENT],
-                            expected_dt_pressure_coefficient);
-    KRATOS_EXPECT_DOUBLE_EQ(tester.GetModelPart().GetProcessInfo()[VELOCITY_COEFFICIENT],
-                            expected_velocity_coefficient);
 }
 
 } // namespace Kratos::Testing

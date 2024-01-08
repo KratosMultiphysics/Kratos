@@ -12,6 +12,7 @@
 #pragma once
 
 #include "geomechanics_time_integration_scheme.hpp"
+#include <optional>
 
 namespace Kratos
 {
@@ -23,45 +24,27 @@ class GeneralizedNewmarkScheme
 public:
     GeneralizedNewmarkScheme(const std::vector<FirstOrderScalarVariable>& rFirstOrderScalarVariables,
                              const std::vector<SecondOrderVectorVariable>& rSecondOrderVectorVariables,
-                             double theta,
-                             double beta,
-                             double gamma)
-        : GeoMechanicsTimeIntegrationScheme<TSparseSpace, TDenseSpace>(
-              rFirstOrderScalarVariables, rSecondOrderVectorVariables),
+                             std::optional<double> theta,
+                             std::optional<double> beta,
+                             std::optional<double> gamma)
+        : GeoMechanicsTimeIntegrationScheme<TSparseSpace, TDenseSpace>(rFirstOrderScalarVariables,
+                                                                       rSecondOrderVectorVariables),
           mTheta(theta),
           mBeta(beta),
           mGamma(gamma)
     {
-        KRATOS_ERROR_IF(mTheta <= 0)
-            << "Theta must be larger than zero, but got " << mTheta << "\n";
-        KRATOS_ERROR_IF(mBeta <= 0)
-            << "Beta must be larger than zero, but got " << mBeta << "\n";
-        KRATOS_ERROR_IF(mGamma <= 0)
-            << "Gamma must be larger than zero, but got " << mGamma << "\n";
+        KRATOS_ERROR_IF(mTheta.has_value() && mTheta.value() <= 0)
+            << "Theta must be larger than zero, but got " << mTheta.value() << "\n";
+        KRATOS_ERROR_IF(mBeta.has_value() && mBeta.value() <= 0)
+            << "Beta must be larger than zero, but got " << mBeta.value() << "\n";
+        KRATOS_ERROR_IF(mGamma.has_value() && mGamma.value() <= 0)
+            << "Gamma must be larger than zero, but got " << mGamma.value() << "\n";
     }
 
-    GeneralizedNewmarkScheme(const std::vector<FirstOrderScalarVariable>& rFirstOrderScalarVariables,
-                             double theta)
-        : GeoMechanicsTimeIntegrationScheme<TSparseSpace, TDenseSpace>(
-              rFirstOrderScalarVariables, {}),
-          mTheta(theta)
+    GeneralizedNewmarkScheme(const std::vector<FirstOrderScalarVariable>& rFirstOrderScalarVariables, double theta)
+        : GeneralizedNewmarkScheme<TSparseSpace, TDenseSpace>(
+              rFirstOrderScalarVariables, {}, theta, std::nullopt, std::nullopt)
     {
-        KRATOS_ERROR_IF(mTheta <= 0)
-            << "Theta must be larger than zero, but got " << mTheta << "\n";
-    }
-
-    GeneralizedNewmarkScheme(const std::vector<SecondOrderVectorVariable>& rSecondOrderVectorVariables,
-                             double beta,
-                             double gamma)
-        : GeoMechanicsTimeIntegrationScheme<TSparseSpace, TDenseSpace>(
-              {}, rSecondOrderVectorVariables),
-          mBeta(beta),
-          mGamma(gamma)
-    {
-        KRATOS_ERROR_IF(mBeta <= 0)
-            << "Beta must be larger than zero, but got " << mBeta << "\n";
-        KRATOS_ERROR_IF(mGamma <= 0)
-            << "Gamma must be larger than zero, but got " << mGamma << "\n";
     }
 
 protected:
@@ -96,20 +79,37 @@ protected:
         for (const auto& r_first_order_scalar_variable : this->GetFirstOrderScalarVariables())
         {
             rModelPart.GetProcessInfo()[r_first_order_scalar_variable.delta_time_coefficient] =
-                1.0 / (mTheta * this->GetDeltaTime());
+                1.0 / (GetTheta() * this->GetDeltaTime());
         }
 
         if (!this->GetSecondOrderVectorVariables().empty())
         {
             rModelPart.GetProcessInfo()[VELOCITY_COEFFICIENT] =
-                mGamma / (mBeta * this->GetDeltaTime());
+                GetGamma() / (GetBeta() * this->GetDeltaTime());
         }
 
         KRATOS_CATCH("")
     }
 
-    double GetBeta() const { return mBeta; }
-    double GetGamma() const { return mGamma; }
+    double GetBeta() const
+    {
+        KRATOS_ERROR_IF_NOT(mBeta.has_value()) << "Beta is requested but was not set\n";
+        return mBeta.value();
+    }
+
+    double GetGamma() const
+    {
+        KRATOS_ERROR_IF_NOT(mGamma.has_value()) << "Gamma is requested but was not set\n";
+        return mGamma.value();
+    }
+
+    double GetTheta() const
+    {
+        KRATOS_ERROR_IF_NOT(mTheta.has_value()) << "Theta is requested but was not set\n";
+        return mTheta.value();
+    }
+
+
 
 private:
     void UpdateScalarTimeDerivative(Node& rNode,
@@ -121,8 +121,8 @@ private:
         const auto previous_dt_variable = rNode.FastGetSolutionStepValue(dt_variable, 1);
 
         rNode.FastGetSolutionStepValue(dt_variable, 0) =
-            (delta_variable - (1.0 - mTheta) * this->GetDeltaTime() * previous_dt_variable) /
-            (mTheta * this->GetDeltaTime());
+            (delta_variable - (1.0 - GetTheta()) * this->GetDeltaTime() * previous_dt_variable) /
+            (GetTheta() * this->GetDeltaTime());
     }
 
     void UpdateVectorFirstTimeDerivative(Node& rNode) const
@@ -137,10 +137,10 @@ private:
                 r_second_order_vector_variable.first_time_derivative, 0)) =
                 rNode.FastGetSolutionStepValue(
                     r_second_order_vector_variable.first_time_derivative, 1) +
-                (1.0 - mGamma) * this->GetDeltaTime() *
+                (1.0 - GetGamma()) * this->GetDeltaTime() *
                     rNode.FastGetSolutionStepValue(
                         r_second_order_vector_variable.second_time_derivative, 1) +
-                mGamma * this->GetDeltaTime() *
+                GetGamma() * this->GetDeltaTime() *
                     rNode.FastGetSolutionStepValue(
                         r_second_order_vector_variable.second_time_derivative, 0);
         }
@@ -161,16 +161,16 @@ private:
                  this->GetDeltaTime() *
                      rNode.FastGetSolutionStepValue(
                          r_second_order_vector_variable.first_time_derivative, 1) -
-                 (0.5 - mBeta) * this->GetDeltaTime() * this->GetDeltaTime() *
+                 (0.5 - GetBeta()) * this->GetDeltaTime() * this->GetDeltaTime() *
                      rNode.FastGetSolutionStepValue(
                          r_second_order_vector_variable.second_time_derivative, 1)) /
-                (mBeta * this->GetDeltaTime() * this->GetDeltaTime());
+                (GetBeta() * this->GetDeltaTime() * this->GetDeltaTime());
         }
     }
 
-    double mTheta = 1.0;
-    double mBeta = 0.25;
-    double mGamma = 0.5;
+    std::optional<double> mTheta;
+    std::optional<double> mBeta;
+    std::optional<double> mGamma;
 };
 
 } // namespace Kratos
