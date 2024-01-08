@@ -160,6 +160,25 @@ void GeoLinearElasticLaw::SetValue(const Variable<Vector>&, const Vector&, const
     // is required when that is undesired behavior
 }
 
+int GeoLinearElasticLaw::Check(const Properties& rMaterialProperties,
+                               const GeometryType& rElementGeometry,
+                               const ProcessInfo& rCurrentProcessInfo) const
+{
+    KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(YOUNG_MODULUS))
+        << "YOUNG_MODULUS is not available in material parameters" << std::endl;
+    KRATOS_ERROR_IF(rMaterialProperties[YOUNG_MODULUS] <= 0.0)
+        << "YOUNG_MODULUS is invalid value " << std::endl;
+
+    KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(POISSON_RATIO))
+        << "POISSON_RATIO is not available in material parameters" << std::endl;
+
+    const double& nu = rMaterialProperties[POISSON_RATIO];
+    KRATOS_ERROR_IF((nu > 0.499 && nu < 0.501) || (nu < -0.999 && nu > -1.01))
+        << "POISSON_RATIO has invalid value " << std::endl;
+
+    return 0;
+}
+
 void GeoLinearElasticLaw::save(Serializer& rSerializer) const
 {
     KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, ConstitutiveLaw)

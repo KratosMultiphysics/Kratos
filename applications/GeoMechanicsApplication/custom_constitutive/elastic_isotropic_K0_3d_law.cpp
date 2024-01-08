@@ -43,24 +43,6 @@ void ElasticIsotropicK03DLaw::GetLawFeatures(Features& rFeatures)
     rFeatures.mSpaceDimension = WorkingSpaceDimension();
 }
 
-int ElasticIsotropicK03DLaw::Check(const Properties& rMaterialProperties,
-                                   const GeometryType& rElementGeometry,
-                                   const ProcessInfo& rCurrentProcessInfo) const
-{
-    KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(YOUNG_MODULUS))
-                        << "YOUNG_MODULUS is not available in material parameters" << std::endl;
-    KRATOS_ERROR_IF(rMaterialProperties[YOUNG_MODULUS] <= 0.0) << "YOUNG_MODULUS is invalid value " << std::endl;
-
-    KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(POISSON_RATIO))
-                        << "POISSON_RATIO is not available in material parameters" << std::endl;
-
-    const double& nu = rMaterialProperties[POISSON_RATIO];
-    KRATOS_ERROR_IF((nu > 0.499 && nu < 0.501) || (nu < -0.999 && nu > -1.01))
-                    << "POISSON_RATIO has invalid value " << std::endl;
-
-    return 0;
-}
-
 void ElasticIsotropicK03DLaw::CalculateElasticMatrix(Matrix& rConstitutiveMatrix,
                                                      ConstitutiveLaw::Parameters& rValues)
 {

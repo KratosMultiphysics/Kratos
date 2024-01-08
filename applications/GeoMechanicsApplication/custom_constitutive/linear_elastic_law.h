@@ -46,6 +46,10 @@ public:
     void SetValue(const Variable<Vector>&, const Vector&, const ProcessInfo&) override;
     using ConstitutiveLaw::SetValue;
 
+    int Check(const Properties& rMaterialProperties,
+              const GeometryType& rElementGeometry,
+              const ProcessInfo& rCurrentProcessInfo) const override;
+
 protected:
     virtual void CalculateElasticMatrix(Matrix& rConstitutiveMatrix,
                                         ConstitutiveLaw::Parameters& rValues) = 0;
