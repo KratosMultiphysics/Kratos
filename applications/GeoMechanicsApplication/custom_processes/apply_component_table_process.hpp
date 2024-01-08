@@ -87,10 +87,8 @@ public:
         boost::to_upper(variable_name_1);
         if (variable_name_1 == "TIME") {
             block_for_each(mrModelPart.Nodes(), [&var, this](Node& rNode) {
-                if (mIsFixed)
-                    rNode.Fix(var);
-                else if (mIsFixedProvided)
-                    rNode.Free(var);
+                if (mIsFixed) rNode.Fix(var);
+                else if (mIsFixedProvided) rNode.Free(var);
                 rNode.FastGetSolutionStepValue(var) = mInitialValue;
             });
         } else if (variable_name_1 == "X") {

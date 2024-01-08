@@ -89,10 +89,8 @@ public:
         direction[mGravityDirection] = 1.0;
 
         block_for_each(mrModelPart.Nodes(), [&var, &direction, this](Node& rNode) {
-            if (mIsFixed)
-                rNode.Fix(var);
-            else if (mIsFixedProvided)
-                rNode.Free(var);
+            if (mIsFixed) rNode.Fix(var);
+            else if (mIsFixedProvided) rNode.Free(var);
 
             double distance                     = inner_prod(mNormalVector, rNode.Coordinates());
             const double d                      = inner_prod(mNormalVector, direction);

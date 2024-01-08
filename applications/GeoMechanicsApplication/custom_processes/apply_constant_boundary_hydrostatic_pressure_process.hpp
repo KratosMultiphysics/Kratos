@@ -76,10 +76,8 @@ public:
         const Variable<double>& var = KratosComponents<Variable<double>>::Get(mVariableName);
 
         block_for_each(mrModelPart.Nodes(), [&var, this](Node& rNode) {
-            if (mIsFixed)
-                rNode.Fix(var);
-            else if (mIsFixedProvided)
-                rNode.Free(var);
+            if (mIsFixed) rNode.Fix(var);
+            else if (mIsFixedProvided) rNode.Free(var);
 
             const double pressure =
                 mSpecificWeight * (mReferenceCoordinate - rNode.Coordinates()[mGravityDirection]);

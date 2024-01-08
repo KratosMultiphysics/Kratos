@@ -147,10 +147,8 @@ void ApplyConstantPhreaticMultiLinePressureProcess::ExecuteInitialize()
                 if (IsFixedProvided()) rNode.Free(var);
             }
         } else {
-            if (IsFixed())
-                rNode.Fix(var);
-            else if (IsFixedProvided())
-                rNode.Free(var);
+            if (IsFixed()) rNode.Fix(var);
+            else if (IsFixedProvided()) rNode.Free(var);
             rNode.FastGetSolutionStepValue(var) =
                 std::min(pressure, PORE_PRESSURE_SIGN_FACTOR * PressureTensionCutOff());
         }

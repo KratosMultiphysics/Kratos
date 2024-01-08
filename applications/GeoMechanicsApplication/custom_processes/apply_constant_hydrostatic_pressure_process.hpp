@@ -92,10 +92,8 @@ public:
             } else {
                 rNode.FastGetSolutionStepValue(var) =
                     std::min(pressure, PORE_PRESSURE_SIGN_FACTOR * mPressureTensionCutOff);
-                if (mIsFixed)
-                    rNode.Fix(var);
-                else if (mIsFixedProvided)
-                    rNode.Free(var);
+                if (mIsFixed) rNode.Fix(var);
+                else if (mIsFixedProvided) rNode.Free(var);
             }
         });
 
