@@ -141,15 +141,22 @@ class GeoMechanicsAnalysis(GeoMechanicsAnalysisBase):
         self._GetSolver().solver.SetRebuildLevel(self.rebuild_level)
 
         while self.KeepAdvancingSolutionLoop():
-            # check against max_delta_time should only be necessary when trying to scale up
+            # check against max_delta_time should only be necessary here when the very first increment exceeds the maximum increment.
             if (self.delta_time > self.max_delta_time):
                 self.delta_time = self.max_delta_time
-                KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(), "reducing delta_time to max_delta_time: ", self.max_delta_time)
+                KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(), "Reducing delta_time to max_delta_time: ", self.max_delta_time)
 
             # maximize delta_time to avoid exceeding the end_time
             t               = self._GetSolver().GetComputingModelPart().ProcessInfo[KratosMultiphysics.TIME]
-            self.delta_time = min( self.delta_time, self.end_time - t )
+            self.delta_time = min(self.delta_time, self.end_time - t)
             new_time        = t + self.delta_time
+
+            # avoid very small remaining time steps
+            small_time_increment = 1.E-3 * self.delta_time
+            if (self.end_time - new_time < small_time_increment):
+                new_time = self.end_time
+                self.delta_time = new_time - t
+                KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(), "Up-scaling to reach end_time without small increments: ", self.delta_time)
 
             # start the new step
             self._GetSolver().GetComputingModelPart().ProcessInfo[KratosMultiphysics.STEP] += 1
@@ -165,7 +172,8 @@ class GeoMechanicsAnalysis(GeoMechanicsAnalysisBase):
                 KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(), "cycle: ", number_cycle)
 
                 # set new_time and delta_time in the nonlinear solver
-                new_time = t + self.delta_time
+                if (number_cycle > 0):
+                    new_time = t + self.delta_time
                 self._GetSolver().GetComputingModelPart().ProcessInfo[KratosMultiphysics.TIME]       = new_time
                 self._GetSolver().GetComputingModelPart().ProcessInfo[KratosMultiphysics.DELTA_TIME] = self.delta_time
 
@@ -180,11 +188,11 @@ class GeoMechanicsAnalysis(GeoMechanicsAnalysisBase):
                     if (new_time < self.end_time):
                         if (self._GetSolver().GetComputingModelPart().ProcessInfo[KratosMultiphysics.NL_ITERATION_NUMBER] < self.min_iterations):
                             # scale up next step
-                            self.delta_time = min( self.increase_factor * self.delta_time, self.max_delta_time )
-                            if ( new_time + self.delta_time <= self.end_time ):
+                            self.delta_time = min(self.increase_factor * self.delta_time, self.max_delta_time)
+                            if (new_time + self.delta_time <= self.end_time):
                                 KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(), "Up-scaling to delta time: ", self.delta_time)
                             else:
-                                KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(), "Up-scaling to reach end_time: ", self.end_time)
+                                KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(), "Up-scaling to reach end_time: ", self.delta_time)
                                 self.delta_time = self.end_time - new_time
                         elif (self._GetSolver().GetComputingModelPart().ProcessInfo[KratosMultiphysics.NL_ITERATION_NUMBER] == self.max_iterations):
                             # converged, but max_iterations reached, scale down next step
