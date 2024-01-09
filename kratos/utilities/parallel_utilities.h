@@ -281,6 +281,41 @@ public:
         return global_reducer.GetValue();
     }
 
+    template <class TThreadLocalStorage,
+              class TFunction,
+              class TThreadLocalReduction,
+              std::enable_if_t<std::is_same_v<std::invoke_result_t<TThreadLocalReduction,TThreadLocalStorage&,TThreadLocalStorage&>,void>,bool> = true>
+    void for_each(TThreadLocalStorage& rTls,
+                  TFunction&& rFunction,
+                  TThreadLocalReduction&& rTLSReducer)
+    {
+        // Check type requirements
+        static_assert(std::is_copy_constructible<TThreadLocalStorage>::value, "TThreadLocalStorage must be copy constructible!");
+
+        KRATOS_PREPARE_CATCH_THREAD_EXCEPTION
+
+        #pragma omp parallel
+        {
+            TThreadLocalStorage tls(rTls);
+
+            #pragma omp for
+            for (int i=0; i<mNchunks; ++i) {
+                KRATOS_TRY
+                for (auto it = mBlockPartition[i]; it != mBlockPartition[i+1]; ++it){
+                    f(*it, tls); // note that we pass the value to the function, not the iterator
+                } // for it in mBlockPartition[i]
+                KRATOS_CATCH_THREAD_EXCEPTION
+            } // for i in range(mNchunks)
+
+            #pragma omp critical
+            {
+                rTLSReducer(tls, rTls);
+            } // pragma omp critical
+        } // pragma omp parallel
+
+        KRATOS_CHECK_AND_THROW_THREAD_EXCEPTION
+    }
+
 private:
     int mNchunks;
     std::array<TIterator, MaxThreads> mBlockPartition;
