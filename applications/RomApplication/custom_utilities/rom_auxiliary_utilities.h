@@ -91,17 +91,13 @@ public:
      * efficiently to avoid duplication. This approach is more direct and efficient, especially
      * when dealing with large datasets.
      * @param elementIds Vector of integers representing the IDs of elements to be included in the HROM model part
-     * @param elementWeights Vector of doubles representing the weights of the corresponding elements
      * @param conditionIds Vector of integers representing the IDs of conditions to be included in the HROM model part
-     * @param conditionWeights Vector of doubles representing the weights of the corresponding conditions
      * @param rOriginModelPart Reference to the origin model part (usually the computing model part)
      * @param rHRomComputingModelPart Reference to the destination model part where the HROM mesh will be stored
      */
     static void SetHRomComputingModelPartWithLists(
         const std::vector<int>& elementIds,
-        const std::vector<double>& elementWeights,
         const std::vector<int>& conditionIds,
-        const std::vector<double>& conditionWeights,
         ModelPart& rOriginModelPart,
         ModelPart& rHRomComputingModelPart);
 
@@ -314,6 +310,13 @@ public:
         const NodesPointerSetType& rNodesSet,
         const std::vector<Element::Pointer>& rElementsVector,
         const std::vector<Condition::Pointer>& rConditionsVector,
+        const ModelPart& rOriginModelPart,
+        ModelPart& rDestinationModelPart);
+
+    static void RecursiveHRomModelPartCreationVector(
+        const std::vector<IndexType>& rNodeIds,
+        const std::vector<IndexType>& rElementIds,
+        const std::vector<IndexType>& rConditionIds,
         const ModelPart& rOriginModelPart,
         ModelPart& rDestinationModelPart);
 

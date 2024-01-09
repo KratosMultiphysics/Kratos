@@ -178,7 +178,8 @@ class HRomTrainingUtility(object):
 
         if self.hrom_output_format == "numpy":
             hrom_info = KratosMultiphysics.Parameters(json.JSONEncoder().encode(self.__CreateDictionaryWithRomElementsAndWeights()))
-            element_ids_list, element_weights_list, condition_ids_list, condition_weights_list = self.__CreateListsWithRomElementsAndWeights()
+            element_ids_list, condition_ids_list = self.__CreateListsWithRomElements()
+            # unique_element_ids_list, unique_element_weights_list, unique_condition_ids_list, unique_condition_weights_list = self.__CreateListsWithRomElementsAndWeightsNonZero()
         elif self.hrom_output_format == "json":
             with (self.rom_basis_output_folder / self.rom_basis_output_name).with_suffix('.json').open('r') as f:
                 rom_parameters = KratosMultiphysics.Parameters(f.read())
@@ -189,7 +190,11 @@ class HRomTrainingUtility(object):
             KratosROM.RomAuxiliaryUtilities.SetHRomComputingModelPartWithNeighbours(hrom_info,computing_model_part,hrom_main_model_part)
         else:
             if self.hrom_output_format == "numpy":
-                KratosROM.RomAuxiliaryUtilities.SetHRomComputingModelPartWithLists(element_ids_list, element_weights_list, condition_ids_list, condition_weights_list, computing_model_part, hrom_main_model_part)
+                print("Inside of SetHRomComputingModelPartWithLists")
+                KratosROM.RomAuxiliaryUtilities.SetHRomComputingModelPartWithLists(element_ids_list, condition_ids_list, computing_model_part, hrom_main_model_part)
+                # KratosROM.RomAuxiliaryUtilities.SetHRomComputingModelPartWithLists(unique_element_ids_list, unique_condition_ids_list, computing_model_part, hrom_main_model_part)
+                # KratosROM.RomAuxiliaryUtilities.SetHRomComputingModelPart(hrom_info,computing_model_part,hrom_main_model_part)
+                print("Out of SetHRomComputingModelPartWithLists")
             elif self.hrom_output_format == "json":
                 KratosROM.RomAuxiliaryUtilities.SetHRomComputingModelPart(hrom_info,computing_model_part,hrom_main_model_part)
         if self.echo_level > 0:
@@ -424,30 +429,69 @@ class HRomTrainingUtility(object):
 
         return hrom_weights
 
-    def __CreateListsWithRomElementsAndWeights(self):
+    def __CreateListsWithRomElements(self):
         number_of_elements = self.solver.GetComputingModelPart().NumberOfElements()
 
-        # Load combined indexes and weights
-        combined_indexes = np.load(self.rom_basis_output_folder / "HROM_ElementIds.npy")
-        combined_weights = np.load(self.rom_basis_output_folder / "HROM_ElementWeights.npy")
+        # Load combined indexes for elements and conditions
+        element_ids = np.load(self.rom_basis_output_folder / "HROM_ElementIds.npy")
+        condition_ids = np.load(self.rom_basis_output_folder / "HROM_ConditionIds.npy") + number_of_elements
 
-        # Determine which indexes are for elements and which are for conditions
+        # Combine element and condition IDs
+        combined_indexes = np.r_[element_ids, condition_ids]
+
+        # Separate element and condition indexes
         element_mask = combined_indexes < number_of_elements
         condition_mask = ~element_mask
 
-        # Separate element and condition indexes and weights
-        element_ids = combined_indexes[element_mask]
-        element_weights = combined_weights[element_mask]
-        condition_ids = combined_indexes[condition_mask] - number_of_elements
-        condition_weights = combined_weights[condition_mask]
+        # Extract unique element and condition indexes
+        unique_element_ids = np.unique(combined_indexes[element_mask], return_inverse=False)
+        unique_condition_ids = np.unique(combined_indexes[condition_mask] - number_of_elements, return_inverse=False)
 
-        # Convert NumPy arrays to Python lists, ensuring that IDs are integers
-        element_ids_list = element_ids.astype(int).tolist()
-        element_weights_list = element_weights.tolist()
-        condition_ids_list = condition_ids.astype(int).tolist()
-        condition_weights_list = condition_weights.tolist()
+        # Convert to Python lists
+        unique_element_ids_list = unique_element_ids.astype(int).tolist()
+        unique_condition_ids_list = unique_condition_ids.astype(int).tolist()
 
-        return element_ids_list, element_weights_list, condition_ids_list, condition_weights_list
+        return unique_element_ids_list, unique_condition_ids_list
+
+    def __CreateListsWithRomElementsAndWeightsNonZero(self):
+        number_of_elements = self.solver.GetComputingModelPart().NumberOfElements()
+
+        # Load combined indexes for elements and conditions
+        element_ids = np.load(self.rom_basis_output_folder / "HROM_ElementIds.npy")
+        element_weights = np.load(self.rom_basis_output_folder / "HROM_ElementWeights.npy")
+        condition_ids = np.load(self.rom_basis_output_folder / "HROM_ConditionIds.npy") + number_of_elements
+        condition_weights = np.load(self.rom_basis_output_folder / "HROM_ConditionWeights.npy")
+
+        # Combine element and condition IDs and weights
+        combined_indexes = np.r_[element_ids, condition_ids]
+        combined_weights = np.r_[element_weights, condition_weights]
+
+        # Separate unique element and condition indexes and weights
+        unique_element_ids, element_idx = np.unique(combined_indexes[combined_indexes < number_of_elements], return_index=True)
+        unique_condition_ids, condition_idx = np.unique(combined_indexes[combined_indexes >= number_of_elements] - number_of_elements, return_index=True)
+        unique_element_weights = combined_weights[element_idx]
+        unique_condition_weights = combined_weights[condition_idx]
+
+        # Filter out the IDs and weights where weights are different from 0.0
+        nonzero_element_mask = unique_element_weights != 0.0
+        nonzero_condition_mask = unique_condition_weights != 0.0
+
+        nonzero_unique_element_ids = unique_element_ids[nonzero_element_mask]
+        nonzero_unique_element_weights = unique_element_weights[nonzero_element_mask]
+        nonzero_unique_condition_ids = unique_condition_ids[nonzero_condition_mask]
+        nonzero_unique_condition_weights = unique_condition_weights[nonzero_condition_mask]
+
+        # Convert to Python lists
+        nonzero_unique_element_ids_list = nonzero_unique_element_ids.astype(int).tolist()
+        nonzero_unique_element_weights_list = nonzero_unique_element_weights.tolist()
+        nonzero_unique_condition_ids_list = nonzero_unique_condition_ids.astype(int).tolist()
+        nonzero_unique_condition_weights_list = nonzero_unique_condition_weights.tolist()
+
+        return nonzero_unique_element_ids_list, nonzero_unique_element_weights_list,nonzero_unique_condition_ids_list, nonzero_unique_condition_weights_list
+
+
+
+
 
 
 

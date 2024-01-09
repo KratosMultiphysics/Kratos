@@ -66,7 +66,6 @@ void RomAuxiliaryUtilities::SetHRomComputingModelPart(
     for (auto it = r_elem_weights.begin(); it != r_elem_weights.end(); ++it) {
         const IndexType elem_id = stoi(it.name());
         const auto p_elem = rOriginModelPart.pGetElement(elem_id + 1); //FIXME: WHY THIS +1?
-        KRATOS_WATCH(elem_id + 1)
 
         hrom_elems_vect.push_back(p_elem);
         rHRomComputingModelPart.AddElement(p_elem);
@@ -123,9 +122,7 @@ void RomAuxiliaryUtilities::SetHRomComputingModelPart(
 }
 
 void RomAuxiliaryUtilities::SetHRomComputingModelPartWithLists(const std::vector<int>& elementIds,
-                                        const std::vector<double>& elementWeights,
                                         const std::vector<int>& conditionIds,
-                                        const std::vector<double>& conditionWeights,
                                         ModelPart& rOriginModelPart,
                                         ModelPart& rHRomComputingModelPart) {
 
@@ -137,33 +134,74 @@ void RomAuxiliaryUtilities::SetHRomComputingModelPartWithLists(const std::vector
     NodesPointerSetType hrom_nodes_set;
     std::vector<Element::Pointer> hrom_elems_vect;
     std::vector<Condition::Pointer> hrom_conds_vect;
-    std::set<IndexType> unique_node_ids; // Set to store unique node IDs
+    std::vector<Node::Pointer> hrom_nodes_vect;
+    std::set<IndexType> unique_node_ids;
+    std::unordered_map<IndexType, bool> unique_nodes_map; // Using unordered_map for unique node IDs
+    ModelPart::ElementsContainerType::Pointer elements_container = Kratos::make_shared<ModelPart::ElementsContainerType>();
+    ModelPart::ConditionsContainerType::Pointer conditions_container = Kratos::make_shared<ModelPart::ConditionsContainerType>();
+    ModelPart::NodesContainerType::Pointer nodes_container = Kratos::make_shared<ModelPart::NodesContainerType>();
+    std::vector<IndexType> node_ids; // Set to store unique node IDs
+    std::vector<IndexType> element_ids; // Set to store unique element IDs
+    std::vector<IndexType> condition_ids; // Set to store unique element IDs
 
     auto start = std::chrono::high_resolution_clock::now();
 
     // Reserve space in the vector to improve performance
     hrom_elems_vect.reserve(rOriginModelPart.NumberOfElements());
+    hrom_nodes_vect.reserve(rOriginModelPart.NumberOfNodes());
+
+    // Preallocate memory for the elements
+    elements_container->reserve(rOriginModelPart.NumberOfElements());
+    node_ids.reserve(rOriginModelPart.NumberOfNodes());
+    element_ids.reserve(rOriginModelPart.NumberOfElements());
+    condition_ids.reserve(rOriginModelPart.NumberOfConditions());
+
 
     for (size_t i = 0; i < elementIds.size(); ++i) {
+
         int elem_id = elementIds[i];
 
         // Get the element from the origin model part (assuming IDs start from 1)
         auto p_elem = rOriginModelPart.pGetElement(elem_id + 1); //FIXME: WHY THIS +1?
-        KRATOS_WATCH(elem_id + 1)
 
         // Add the element to the auxiliary container and to the main HROM model part
         hrom_elems_vect.push_back(p_elem);
-        rHRomComputingModelPart.AddElement(p_elem);
+        elements_container->push_back(p_elem);
+        element_ids.push_back(elem_id + 1);
+        // rHRomComputingModelPart.AddElement(p_elem);
+
+        // // Collect unique node IDs using unordered_map
+        // const auto& r_geom = p_elem->GetGeometry();
+        // for (IndexType i_node = 0; i_node < r_geom.PointsNumber(); ++i_node) {
+        //     unique_nodes_map[r_geom[i_node].Id()] = true;
+        // }
+
+        // const auto& r_geom = p_elem->GetGeometry();
+        // for (IndexType i_node = 0; i_node < r_geom.PointsNumber(); ++i_node) {
+        //     unique_node_ids.insert(r_geom[i_node].Id()); // Collect unique node IDs
+        // }
+
+        // const auto& r_geom = p_elem->GetGeometry();
+        // const SizeType n_nodes = r_geom.PointsNumber();
+        // for (IndexType i_node = 0; i_node < n_nodes; ++i_node) {
+        //     NodeType::Pointer p_node = r_geom(i_node);
+        //     hrom_nodes_set.insert(hrom_nodes_set.end(), p_node);
+        //     rHRomComputingModelPart.AddNode(p_node);
+        // }
 
         const auto& r_geom = p_elem->GetGeometry();
         for (IndexType i_node = 0; i_node < r_geom.PointsNumber(); ++i_node) {
-            unique_node_ids.insert(r_geom[i_node].Id()); // Collect unique node IDs
+            node_ids.push_back(r_geom[i_node].Id());
         }
     }
     hrom_elems_vect.shrink_to_fit();
+    element_ids.shrink_to_fit();
 
     //Reserve space for conditions (if needed)
     hrom_conds_vect.reserve(rOriginModelPart.NumberOfConditions());
+
+    // Preallocate memory for the conditions
+    conditions_container->reserve(rOriginModelPart.NumberOfConditions());
 
     // Iterate over the condition IDs and their weights
     for (size_t i = 0; i < conditionIds.size(); ++i) {
@@ -175,20 +213,69 @@ void RomAuxiliaryUtilities::SetHRomComputingModelPartWithLists(const std::vector
 
         // Add the condition to the auxiliary container and to the main HROM model part
         hrom_conds_vect.push_back(p_cond);
-        rHRomComputingModelPart.AddCondition(p_cond);
+        conditions_container->push_back(p_cond);
+        condition_ids.push_back(cond_id + 1);
+        // rHRomComputingModelPart.AddCondition(p_cond);
+
+        // // Collect unique node IDs using unordered_map
+        // const auto& r_geom = p_cond->GetGeometry();
+        // for (IndexType i_node = 0; i_node < r_geom.PointsNumber(); ++i_node) {
+        //     unique_nodes_map[r_geom[i_node].Id()] = true;
+        // }
+
+        // const auto& r_geom = p_cond->GetGeometry();
+        // for (IndexType i_node = 0; i_node < r_geom.PointsNumber(); ++i_node) {
+        //     unique_node_ids.insert(r_geom[i_node].Id()); // Collect unique node IDs
+        // }
+
+        // const auto& r_geom = p_cond->GetGeometry();
+        // const SizeType n_nodes = r_geom.PointsNumber();
+        // for (IndexType i_node = 0; i_node < n_nodes; ++i_node) {
+        //     auto p_node = r_geom(i_node);
+        //     hrom_nodes_set.insert(hrom_nodes_set.end(), p_node);
+        //     rHRomComputingModelPart.AddNode(p_node);
+        // }
 
         const auto& r_geom = p_cond->GetGeometry();
         for (IndexType i_node = 0; i_node < r_geom.PointsNumber(); ++i_node) {
-            unique_node_ids.insert(r_geom[i_node].Id()); // Collect unique node IDs
+            node_ids.push_back(r_geom[i_node].Id());
         }
     }
     hrom_conds_vect.shrink_to_fit();
+    condition_ids.shrink_to_fit();
+    node_ids.shrink_to_fit();
 
-    // Step 2: Add unique nodes to the HROM model part using their IDs
-    for (auto node_id : unique_node_ids) {
-        auto p_node = rOriginModelPart.pGetNode(node_id); // Retrieve node by ID
-        rHRomComputingModelPart.AddNode(p_node);
+    // // Step 2: Add unique nodes to the HROM model part
+    // for (const auto& node_entry : unique_nodes_map) {
+    //     auto p_node = rOriginModelPart.pGetNode(node_entry.first); // Retrieve node by ID
+    //     rHRomComputingModelPart.AddNode(p_node);
+    // }
+
+    // Set the elements in the HROM model part
+    rHRomComputingModelPart.SetElements(elements_container);
+
+    // Set the conditions in the HROM model part
+    rHRomComputingModelPart.SetConditions(conditions_container);
+
+    std::sort(node_ids.begin(), node_ids.end());
+    auto last = std::unique(node_ids.begin(), node_ids.end());
+    node_ids.erase(last, node_ids.end());
+
+    nodes_container->reserve(node_ids.size());
+    for (auto node_id : node_ids) {
+        auto p_node = rOriginModelPart.pGetNode(node_id);
+        hrom_nodes_vect.push_back(p_node);
+        nodes_container->push_back(p_node);
     }
+    hrom_nodes_vect.shrink_to_fit();
+
+    rHRomComputingModelPart.SetNodes(nodes_container);
+
+    // // Step 2: Add unique nodes to the HROM model part using their IDs
+    // for (auto node_id : unique_node_ids) {
+    //     auto p_node = rOriginModelPart.pGetNode(node_id); // Retrieve node by ID
+    //     rHRomComputingModelPart.AddNode(p_node);
+    // }
 
     //TODO: ADD MPC'S
 
@@ -202,8 +289,10 @@ void RomAuxiliaryUtilities::SetHRomComputingModelPartWithLists(const std::vector
 
     // Create and fill the HROM calculation sub model parts
     for (auto& r_orig_sub_mp : rOriginModelPart.SubModelParts()) {
-        RecursiveHRomModelPartCreation(hrom_nodes_set, hrom_elems_vect, hrom_conds_vect, r_orig_sub_mp, rHRomComputingModelPart);
+        RecursiveHRomModelPartCreationVector(node_ids, element_ids, condition_ids, r_orig_sub_mp, rHRomComputingModelPart);
     }
+
+    KRATOS_WATCH(rHRomComputingModelPart)
 
     auto stop = std::chrono::high_resolution_clock::now();
     auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(stop - start);
@@ -263,6 +352,95 @@ void RomAuxiliaryUtilities::RecursiveHRomModelPartCreation(
     // Recursive addition
     for (auto& r_orig_sub_mp : rOriginModelPart.SubModelParts()) {
         RecursiveHRomModelPartCreation(rNodesSet, rElementsVector, rConditionsVector, r_orig_sub_mp, r_hrom_sub_mp);
+    }
+}
+
+void RomAuxiliaryUtilities::RecursiveHRomModelPartCreationVector(
+    const std::vector<IndexType>& rNodeIds,
+    const std::vector<IndexType>& rElementIds,
+    const std::vector<IndexType>& rConditionIds,
+    const ModelPart& rOriginModelPart,
+    ModelPart& rDestinationModelPart)
+{
+    KRATOS_WATCH("HELLO 1")
+    // Emulate the origin submodelpart hierarchy
+    auto& r_hrom_sub_mp = rDestinationModelPart.CreateSubModelPart(rOriginModelPart.Name());
+
+    // Create an unordered_set of node IDs from rNodesVector
+    std::unordered_set<IndexType> node_id_set;
+    for (IndexType id : rNodeIds) {
+        node_id_set.insert(id);
+    }
+
+    // Initialize aux_node_ids
+    std::vector<IndexType> aux_node_ids;
+
+    // Iterate through nodes in rOriginModelPart
+    for (const auto& r_node : rOriginModelPart.Nodes()) {
+        // Check if the node's ID is in the set
+        if (node_id_set.find(r_node.Id()) != node_id_set.end()) {
+            aux_node_ids.push_back(r_node.Id());
+        }
+    }
+
+    // Add nodes to r_hrom_sub_mp
+    r_hrom_sub_mp.AddNodes(aux_node_ids);
+
+    KRATOS_WATCH("HELLO 2")
+    // Create an unordered_set of element IDs from rElementsVector
+    std::unordered_set<IndexType> element_id_set;
+    for (IndexType id : rElementIds) {
+        element_id_set.insert(id);
+    }
+
+    // Initialize aux_elem_ids
+    std::vector<IndexType> aux_elem_ids;
+
+    // Iterate through elements in rOriginModelPart
+    for (const auto& r_elem : rOriginModelPart.Elements()) {
+        // Check if the element's ID is in the set
+        if (element_id_set.find(r_elem.Id()) != element_id_set.end()) {
+            aux_elem_ids.push_back(r_elem.Id());
+        }
+    }
+
+    // Add elements to r_hrom_sub_mp
+    r_hrom_sub_mp.AddElements(aux_elem_ids);
+
+
+    KRATOS_WATCH("HELLO 3")
+    // Create an unordered_set of condition IDs from rConditionsVector
+    std::unordered_set<IndexType> condition_id_set;
+    for (IndexType id : rConditionIds) {
+        condition_id_set.insert(id);
+    }
+
+    // Initialize aux_cond_ids
+    std::vector<IndexType> aux_cond_ids;
+
+    // Iterate through conditions in rOriginModelPart
+    for (const auto& r_cond : rOriginModelPart.Conditions()) {
+        // Check if the condition's ID is in the set
+        if (condition_id_set.find(r_cond.Id()) != condition_id_set.end()) {
+            aux_cond_ids.push_back(r_cond.Id());
+        }
+    }
+
+    // Add conditions to r_hrom_sub_mp
+    r_hrom_sub_mp.AddConditions(aux_cond_ids);
+
+
+    // Add properties
+    auto& r_properties = const_cast<ModelPart&>(rOriginModelPart).rProperties();
+    for (auto it_p_prop = r_properties.ptr_begin(); it_p_prop < r_properties.ptr_end(); ++it_p_prop) {
+        r_hrom_sub_mp.AddProperties(*it_p_prop);
+    }
+
+    //TODO: ADD MPCs
+
+    // Recursive addition
+    for (auto& r_orig_sub_mp : rOriginModelPart.SubModelParts()) {
+        RecursiveHRomModelPartCreationVector(rNodeIds, rElementIds, rConditionIds, r_orig_sub_mp, r_hrom_sub_mp);
     }
 }
 
