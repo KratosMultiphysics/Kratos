@@ -1310,8 +1310,12 @@ protected:
             for (IndexType i = 0; i < number_of_local_rows; ++i) {
                 temp_master_ids.insert(mFirstMyId + i);
             }
-            for (auto id_slave : mSlaveIds) {
-                temp_master_ids.erase(id_slave);
+
+            // Remove ids
+            for (auto id_slave_vector : auxiliary_slave_ids) {
+                for (auto id_slave : id_slave_vector) {
+                    temp_master_ids.erase(id_slave);
+                }
             }
             mMasterIds = std::vector<IndexType>(temp_master_ids.begin(), temp_master_ids.end());
 
