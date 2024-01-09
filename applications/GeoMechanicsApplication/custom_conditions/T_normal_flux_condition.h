@@ -53,9 +53,6 @@ protected:
     void CalculateRHS(Vector& rRightHandSideVector,
                       const ProcessInfo& CurrentProcessInfo) override;
 
-    double CalculateIntegrationCoefficient(const Matrix& rJacobian,
-                                           double Weight);
-
 private:
     friend class Serializer;
 
