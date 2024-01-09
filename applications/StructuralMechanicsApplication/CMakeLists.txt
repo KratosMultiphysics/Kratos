@@ -1,10 +1,5 @@
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
-message("**** configuring KratosStructuralMechanicsApplication ****")
-
-################### PYBIND11
-include(pybind11Tools)
-
 include_directories( ${KRATOS_SOURCE_DIR}/kratos )
 
 ## StructuralMechanics Core sources
@@ -27,14 +22,22 @@ file(GLOB_RECURSE KRATOS_STRUCTURAL_MECHANICS_APPLICATION_PYTHON_INTERFACE ${CMA
 list(REMOVE_ITEM KRATOS_STRUCTURAL_MECHANICS_APPLICATION_CORE ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/constitutive_law_utilities.cpp)
 list(INSERT KRATOS_STRUCTURAL_MECHANICS_APPLICATION_CORE 0 ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/constitutive_law_utilities.cpp)
 
-# StructuralMechanics testing sources
-if(${KRATOS_BUILD_TESTING} MATCHES ON)
-    file(GLOB_RECURSE KRATOS_STRUCTURAL_MECHANICS_APPLICATION_TESTING_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/tests/cpp_tests/*.cpp)
-endif(${KRATOS_BUILD_TESTING} MATCHES ON)
-
-add_library(KratosStructuralMechanicsCore SHARED ${KRATOS_STRUCTURAL_MECHANICS_APPLICATION_CORE} ${KRATOS_STRUCTURAL_MECHANICS_APPLICATION_TESTING_SOURCES})
+add_library(KratosStructuralMechanicsCore SHARED ${KRATOS_STRUCTURAL_MECHANICS_APPLICATION_CORE})
 target_link_libraries(KratosStructuralMechanicsCore PUBLIC KratosCore)
 set_target_properties(KratosStructuralMechanicsCore PROPERTIES COMPILE_DEFINITIONS "STRUCTURAL_MECHANICS_APPLICATION=EXPORT,API")
+
+if (${KRATOS_BUILD_TESTING} MATCHES ON)
+    file(GLOB_RECURSE KRATOS_STRUCTURAL_MECHANICS_APPLICATION_TESTING_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/tests/cpp_tests/*.cpp)
+
+    add_executable(KratosStructuralMechanicsTests ${KRATOS_STRUCTURAL_MECHANICS_APPLICATION_TESTING_SOURCES})
+
+    target_link_libraries(KratosStructuralMechanicsTests PUBLIC KratosStructuralMechanicsCore KratosCoreTestUtilities GTest::gtest_main)
+
+    install(TARGETS KratosStructuralMechanicsTests)
+
+    include(GoogleTest)
+    gtest_discover_tests(KratosStructuralMechanicsTests)
+endif (${KRATOS_BUILD_TESTING} MATCHES ON)
 
 # Define library Kratos which defines the basic python interface
 pybind11_add_module(KratosStructuralMechanicsApplication MODULE THIN_LTO ${KRATOS_STRUCTURAL_MECHANICS_APPLICATION_PYTHON_INTERFACE})

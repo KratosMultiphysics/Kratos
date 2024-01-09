@@ -222,7 +222,7 @@ protected:
  * @brief This class stores the results of a variable
  * @author Vicente Mataix Ferrandiz
 */
-class VariableDatabase
+class KRATOS_API(KRATOS_CORE) VariableDatabase
 {
 public:
     ///@name Type Definitions
@@ -399,7 +399,7 @@ protected:
  * @note If the table could store N columns without requiring a template argument the vector would not be required, saving NvariablesxNColumnsxNsteps doubles of memory
  * @author Vicente Mataix Ferrandiz
 */
-class ResultDatabase
+class KRATOS_API(KRATOS_CORE) ResultDatabase
 {
 public:
     ///@name Type Definitions

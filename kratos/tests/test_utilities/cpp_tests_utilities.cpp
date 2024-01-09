@@ -18,7 +18,7 @@
 #include "containers/model.h"
 #include "geometries/triangle_2d_3.h"
 #include "geometries/tetrahedra_3d_4.h"
-#include "tests/cpp_tests/utilities/cpp_tests_utilities.h"
+#include "tests/test_utilities/cpp_tests_utilities.h"
 
 namespace Kratos
 {
@@ -27,8 +27,8 @@ namespace CppTestsUtilities
 void Create2DGeometry(
     ModelPart& rModelPart,
     const std::string& rEntityName,
-    const bool Initialize,
-    const bool Elements
+    bool Initialize,
+    bool Elements
     )
 {
     Properties::Pointer p_prop = rModelPart.HasProperties(0) ? rModelPart.pGetProperties(0) : rModelPart.CreateNewProperties(0);

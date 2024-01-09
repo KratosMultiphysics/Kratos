@@ -34,7 +34,7 @@ namespace Kratos
 ///@{
 
 /// Exception type used to signal that a test should be skipped.
-class KRATOS_API(KRATOS_CORE) TestSkippedException : public Exception
+class TestSkippedException : public Exception
 {
 public:
     ///@name Type Definitions

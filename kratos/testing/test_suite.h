@@ -44,7 +44,7 @@ class AddThisTestToTestSuite {
     TestCase to be run. The Run and Profile methods are overridden to call the corresponidng methods
     of the TestCases.
 */
-class KRATOS_API(KRATOS_CORE) TestSuite : public TestCase {
+class TestSuite : public TestCase {
    public:
     ///@name Type Definitions
     ///@{

@@ -15,7 +15,7 @@
 // External includes
 
 // Project includes
-#include "tests/test_utilities/test_constitutive_law.h"
+#include "tests/cpp_tests/utilities/test_constitutive_law.h"
 #include "includes/checks.h"
 
 

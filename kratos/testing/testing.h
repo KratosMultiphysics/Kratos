@@ -53,6 +53,9 @@ class KratosCoreCouplingGeometriesFastSuite : public KratosCoreFastSuite {};
 class KratosExternalLibrariesFastSuite : public KratosCoreFastSuite {};
 class KratosNonRectangularJacobianFastSuite : public KratosCoreFastSuite {};
 class KratosCoreStressSuite : public KratosCoreFastSuite {};
+class KratosStructuralMechanicsFastSuite : public KratosCoreFastSuite {};
+class KratosGeoMechanicsFastSuite : public KratosCoreFastSuite {};
+class KratosGeoMechanicsIntegrationSuite : public KratosCoreFastSuite {};
 
 KRATOS_API(KRATOS_CORE) DataCommunicator& GetDefaultDataCommunicator();
 

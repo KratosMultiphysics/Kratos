@@ -1,10 +1,10 @@
-cmake_minimum_required (VERSION 3.14.0)
+cmake_minimum_required (VERSION 3.22.0)
 
 project (KratosMultiphysics)
 set (CMAKE_CXX_STANDARD 17)
 set (CMAKE_CXX_STANDARD_REQUIRED ON)
 set (CMAKE_CXX_EXTENSIONS OFF)
-set (USE_MPI ON)
+set (USE_MPI OFF)
 
 # Setting some policies
 # No recursive dereferencing

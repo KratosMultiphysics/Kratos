@@ -33,7 +33,7 @@ namespace Kratos::Testing
 /// The test case base class.
 /** Defines the interface for all the test cases and also fixtures
 */
-class KRATOS_API(KRATOS_CORE) TestCaseResult
+class TestCaseResult
 {
 public:
     ///@name Type Definitions

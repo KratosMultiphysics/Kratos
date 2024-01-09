@@ -18,7 +18,7 @@
 // Project includes
 #include "testing/testing.h"
 #include "includes/kratos_parameters.h"
-#include "testing/scoped_file.h"
+#include "tests/cpp_tests/testing/scoped_file.h"
 
 namespace Kratos {
 namespace Testing {
