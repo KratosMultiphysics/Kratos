@@ -2,12 +2,6 @@
 Begin Properties 1
 End Properties
 
-Begin Table 1 TIME DISPLACEMENT
-    0.0   0.0
-  100.0 -10.0
-End Table
-
-
 Begin Nodes
   1     0.0000000000    0.0000000000 0.0000000000
   2  2000.0000000000    0.0000000000 0.0000000000
@@ -64,7 +58,6 @@ End SubModelPart
 
 Begin SubModelPart ZsupportLoadPoint
   Begin SubModelPartTables
-    1
   End SubModelPartTables
   Begin SubModelPartNodes
     3

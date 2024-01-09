@@ -131,7 +131,7 @@ class KratosGeoMechanicsResetDisplacementTests(KratosUnittest.TestCase):
         Verifies that the prescribed displacement is not erased by reset_displacement.
         load is applied / reset displacement is true, prescribed Z displacement -20 on node 3
         """
-        test_name  = 'shell_wtih_reset_displacement'
+        test_name  = 'shell_with_reset_displacement'
         file_path  = test_helper.get_file_path(os.path.join('.', test_name))
         simulation = test_helper.run_kratos(file_path)
         displacement = test_helper.get_displacement(simulation)
