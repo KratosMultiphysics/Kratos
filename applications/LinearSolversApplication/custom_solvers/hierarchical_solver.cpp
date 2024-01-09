@@ -490,11 +490,14 @@ namespace Detail {
 
 using SlaveMap = std::unordered_map<
     std::size_t,    // <== equation ID of the slave DoF
-    std::vector<std::tuple<
-        const Element*, // <== element that contains the MPC DoF
-        std::size_t,    // <== index of the coarse node within the element that contains the MPC DoF
-        std::size_t     // <== index of the MPC DoF within the coarse node
-    >>
+    std::pair<
+        std::size_t,            // <== equation ID of the master DoF
+        std::vector<std::tuple<
+            const Element*,     // <== element that contains the MPC DoF
+            std::size_t,        // <== index of the coarse node within the element that contains the MPC DoF
+            std::size_t         // <== index of the MPC DoF within the coarse node
+        >>
+    >
 >;
 
 using MasterMap = std::unordered_map<
@@ -569,9 +572,12 @@ void MapHigherToLowerOrder(const ModelPart& rModelPart,
                         if (rCoarseDofMask[i_coarse_dof_in_fine_system]) { // <== ignore DoF if not in the coarse set
                             const std::size_t i_coarse_dof = rCoarseDofMap[i_coarse_dof_in_fine_system];
                             const std::size_t i_fine_dof = r_fine_node_dofs[i_node_dof]->EquationId();
-                            const bool is_slave = rSlaveMap.find(i_fine_dof) != rSlaveMap.end();
+                            const auto it_slave = rSlaveMap.find(i_fine_dof);
+                            const bool is_slave = it_slave != rSlaveMap.end();
                             if (!is_slave) {
                                 rRestrictionMap.emplace(std::make_pair(i_coarse_dof, i_fine_dof), r_fine_coefficient_pair.second);
+                            } else {
+                                rRestrictionMap.emplace(std::make_pair(i_coarse_dof, it_slave->second.first), r_fine_coefficient_pair.second);
                             }
                         } // if rCoarseDofMask[i_coarse_dof_in_fine_system]
 
@@ -579,9 +585,9 @@ void MapHigherToLowerOrder(const ModelPart& rModelPart,
                         // data about its connectivities if it does.
                         const auto it_slave_dof = rSlaveMap.find(i_coarse_dof_in_fine_system);
                         if (it_slave_dof != it_slave_end) {
-                            it_slave_dof->second.emplace_back(&r_entity,
-                                                              i_coarse_vertex,
-                                                              i_node_dof);
+                            it_slave_dof->second.second.emplace_back(&r_entity,
+                                                                     i_coarse_vertex,
+                                                                     i_node_dof);
                         } // if it_slave_dof != rMasterMap.end
                     } // for i_node_dof in range(dofs_per_node)
                 } // for coefficient_pair in restriction_terms
@@ -596,9 +602,9 @@ void MapHigherToLowerOrder(const ModelPart& rModelPart,
                         const std::size_t i_dof = r_fine_node.GetDofs()[i_node_dof]->EquationId();
                         const auto it_slave_info = rSlaveMap.find(i_dof);
                         if (it_slave_info != it_slave_end) {
-                            it_slave_info->second.emplace_back(&r_entity,
-                                                               i_fine_vertex,
-                                                               i_node_dof);
+                            it_slave_info->second.second.emplace_back(&r_entity,
+                                                                      i_fine_vertex,
+                                                                      i_node_dof);
                         } // if it_slave_info != rMasterMap.end
                     } // for i_node_dof in range(dofs_per_node)
                 } // for i_fine_vertex in range(coarse_vertex_count, fine_vertex_count)
@@ -626,7 +632,7 @@ void MapHigherToLowerOrder(const ModelPart& rModelPart,
             KRATOS_ERROR_IF(it_slave_info == it_slave_end);
             const auto& r_slave_info = it_slave_info->second;
 
-            for (auto entry : r_slave_info) {
+            for (auto entry : r_slave_info.second) {
                 const Geometry<Node>& r_fine_geometry = std::get<0>(entry)->GetGeometry();
                 const std::size_t i_vertex = std::get<1>(entry);
                 const std::size_t i_node_dof = std::get<2>(entry);
@@ -660,11 +666,15 @@ void MapHigherToLowerOrder(const ModelPart& rModelPart,
                         const auto& r_fine_coefficient_pair = r_restriction_terms[i_term];
                         const std::size_t i_fine_vertex = r_fine_coefficient_pair.first;
                         const std::size_t i_fine_dof = r_fine_geometry[i_fine_vertex].GetDofs()[i_node_dof]->EquationId();
-                        const bool is_slave = rSlaveMap.find(i_fine_dof) != it_slave_end;
+                        const auto it_slave = rSlaveMap.find(i_fine_dof);
+                        const bool is_slave = it_slave != it_slave_end;
                         if (!is_slave) {
                             const auto restriction_coefficient = r_fine_coefficient_pair.second * mpc_coefficient;
                             rRestrictionMap.emplace(std::make_pair(i_coarse_dof, i_fine_dof), restriction_coefficient);
                             //rRestrictionMap.emplace(std::make_pair(i_coarse_dof, i_fine_dof), 0.0).first->second += restriction_coefficient;
+                        } else {
+                            const auto restriction_coefficient = r_fine_coefficient_pair.second * mpc_coefficient;
+                            rRestrictionMap.emplace(std::make_pair(i_coarse_dof, it_slave->second.first), restriction_coefficient);
                         }
                     }
                 } /* if (i_vertex < restriction_coefficients.size()) */ else {
@@ -788,7 +798,7 @@ void HierarchicalSolver<TSparseSpace,TDenseSpace,TReorderer>::ProvideAdditionalD
         // ==> collect slaves
         for (const auto& r_constraint : rModelPart.MasterSlaveConstraints()) {
             for (const auto* p_slave : r_constraint.GetSlaveDofsVector()) {
-                slave_map.emplace(p_slave->EquationId(), Detail::SlaveMap::mapped_type {});
+                slave_map.emplace(p_slave->EquationId(), Detail::SlaveMap::mapped_type {r_constraint.GetMasterDofsVector()[0]->EquationId(), {}});
             } // for p_slave in r_constraint.GetSlaveDofsVector
         } // for r_constraint in rModelPart.MasterSlaveConstraints
 
