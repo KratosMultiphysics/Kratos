@@ -33,6 +33,13 @@ public:
           mBeta(beta),
           mGamma(gamma)
     {
+        KRATOS_ERROR_IF(!rFirstOrderScalarVariables.empty() && !mTheta.has_value())
+            << "Theta must be set when first order scalar variables are used\n";
+        KRATOS_ERROR_IF(!rSecondOrderVectorVariables.empty() && !mBeta.has_value())
+            << "Beta must be set when second order vector variables are used\n";
+        KRATOS_ERROR_IF(!rSecondOrderVectorVariables.empty() && !mGamma.has_value())
+            << "Gamma must be set when second order vector variables are used\n";
+
         KRATOS_ERROR_IF(mTheta.has_value() && mTheta.value() <= 0)
             << "Theta must be larger than zero, but got " << mTheta.value() << "\n";
         KRATOS_ERROR_IF(mBeta.has_value() && mBeta.value() <= 0)
@@ -93,19 +100,16 @@ protected:
 
     double GetBeta() const
     {
-        KRATOS_ERROR_IF_NOT(mBeta.has_value()) << "Beta is requested but was not set\n";
         return mBeta.value();
     }
 
     double GetGamma() const
     {
-        KRATOS_ERROR_IF_NOT(mGamma.has_value()) << "Gamma is requested but was not set\n";
         return mGamma.value();
     }
 
     double GetTheta() const
     {
-        KRATOS_ERROR_IF_NOT(mTheta.has_value()) << "Theta is requested but was not set\n";
         return mTheta.value();
     }
 
