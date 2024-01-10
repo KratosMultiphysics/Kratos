@@ -1,8 +1,6 @@
 import os
-import json
 
 import KratosMultiphysics.KratosUnittest as KratosUnittest
-import KratosMultiphysics.GeoMechanicsApplication as KratosGeo
 import test_helper
 
 
@@ -31,7 +29,7 @@ class KratosGeoMechanicsTimeIntegrationTests(KratosUnittest.TestCase):
 
         reader = test_helper.GiDOutputFileReader()
         simulation_output = reader.read_output_from(os.path.join(file_path, "test_time_integration.post.res"))
-        
+
         number_of_steps_taken = len(simulation_output["results"]["DISPLACEMENT"])
 
         self.assertEqual(number_of_steps_taken, 26)
