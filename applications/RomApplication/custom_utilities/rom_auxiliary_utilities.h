@@ -182,6 +182,33 @@ public:
         ModelPart& rGivenModelPart);
 
     /**
+     * @brief Retrieve the IDs of elements and conditions neighboring specified nodes in a given model part.
+     *
+     * This function iterates over a list of node IDs and collects the IDs of elements and conditions that
+     * neighbor these nodes. The neighboring elements and conditions are determined using the 'NEIGHBOUR_ELEMENTS'
+     * and 'NEIGHBOUR_CONDITIONS' values attached to each node. The function ensures that each entity ID
+     * (elements and conditions) is unique, thus avoiding duplicates in the returned vector. It's important to note
+     * that this function assumes that the 'NEIGHBOUR_ELEMENTS' and 'NEIGHBOUR_CONDITIONS' values are already
+     * computed for the nodes in the model part.
+     *
+     * The function is particularly useful in scenarios where it's necessary to find all elements and conditions
+     * that are directly connected to a certain subset of nodes within a model part. This can be essential in
+     * ROM (Reduced Order Modelling) applications or any other application requiring localized information around
+     * a set of nodes.
+     *
+     * @param rModelPart The model part which contains all the elements and conditions.
+     * @param rNodeIds A vector of node IDs for which neighboring elements and conditions should be fetched.
+     * @return std::vector<IndexType> A list of unique IDs of neighboring elements and conditions.
+     */
+    static std::vector<IndexType> GetNeighbouringElementIds(
+        ModelPart& rModelPart,
+        const std::vector<IndexType>& rNodeIds);
+
+    static std::vector<IndexType> GetNeighbouringConditionIds(
+        ModelPart& rModelPart,
+        const std::vector<IndexType>& rNodeIds);
+
+    /**
      * @brief Identifies condition decremented (-1 to account for numpy indexing) IDs from a given ModelPart that are not in the HROM weights
      * This function iterates through the conditions in the provided ModelPart, checks if their IDs exist in the HROM weights,
      * and includes them in a list if they are missing. The decremented (-1 to account for numpy indexing) IDs of the absent conditions are returned.

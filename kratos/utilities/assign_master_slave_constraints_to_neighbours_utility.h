@@ -155,6 +155,20 @@ class KRATOS_API(KRATOS_CORE) AssignMasterSlaveConstraintsToNeighboursUtility
           double const MinNumOfNeighNodes
       );
 
+      /**
+         * @brief Find the nearest neighboring nodes for a given set of nodes.
+         * @details This function searches for the nearest neighboring nodes within a specified radius for each node in a given set. It uses a dynamic search radius, which is increased incrementally until at least the minimum number of neighboring nodes is found. The function ensures the uniqueness of each neighboring node's ID.
+         * @param nodesVector The set of nodes for which the nearest neighbors are to be found.
+         * @param initialRadius The initial search radius.
+         * @param minNumOfNeighNodes The minimum number of neighboring nodes required.
+         * @return std::unordered_set<int> A set containing the unique IDs of the nearest neighboring nodes.
+         */
+        std::unordered_set<int> FindNearestNeighbors(
+            std::vector<Node::Pointer> nodesVector,
+            double initialRadius,
+            std::size_t minNumOfNeighNodes
+        );
+
       ///@}
       ///@name Input and output
       ///@{

@@ -235,5 +235,39 @@ void AssignMasterSlaveConstraintsToNeighboursUtility::AssignMasterSlaveConstrain
     KRATOS_INFO("AssignMasterSlaveConstraintsToNeighboursUtility") << "Build and Assign Master-Slave Constraints Time: " << build_and_assign_mscs << std::endl;
     KRATOS_CATCH("");
 }
+
+// Function to find nearest neighbors for a list of nodes using unordered_set for uniqueness
+std::unordered_set<int> AssignMasterSlaveConstraintsToNeighboursUtility::FindNearestNeighbors(
+    std::vector<Node::Pointer> nodesVector,
+    double initialRadius,
+    std::size_t minNumOfNeighNodes)
+{
+    KRATOS_TRY;
+
+    std::unordered_set<int> nearestNodeIds; // Using unordered_set for unique node IDs
+
+    for (auto& p_current_node : nodesVector) {
+        double searchRadius = initialRadius;
+        ResultNodesContainerType foundNodes;
+        ResultNodesContainerType r_local_results(mMaxNumberOfNodes); // Local results container
+
+        while (foundNodes.size() < minNumOfNeighNodes) {
+            foundNodes.clear();
+            SearchNodesInRadiusForNode(p_current_node, searchRadius, foundNodes, r_local_results);  // Search for nodes in the radius
+            searchRadius += initialRadius;
+        }
+
+        // Add the found node IDs to the nearestNodeIds set
+        for (auto& foundNode : foundNodes) {
+            nearestNodeIds.insert(foundNode->Id()); // Automatically ensures uniqueness
+        }
+    }
+
+    return nearestNodeIds;
+
+    KRATOS_CATCH("");
+}
+
+
 }  // namespace Kratos.
 
