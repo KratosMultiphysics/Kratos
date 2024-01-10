@@ -75,6 +75,7 @@
 #include "custom_elements/axisym_updated_lagrangian.h"
 #include "custom_elements/small_displacement_bbar.h"
 #include "custom_elements/small_displacement_non_local_hex.h"
+#include "custom_elements/small_displacement_hex_two_non_local_variables.h"
 
 /* Adding the mixed solid elements */
 #include "custom_elements/small_displacement_mixed_volumetric_strain_element.h"
@@ -318,6 +319,7 @@ private:
     const SmallDisplacement mSmallDisplacement3D27N;
 
     const SmallDisplacementNonLocalHex mSmallDisplacementNonLocalHex3D8N;
+    const SmallDisplacementHexTwoNonLocalVariables mSmallDisplacementHexTwoNonLocalVariables3D8N;
 
     const SmallDisplacementBbar mSmallDisplacementBbar2D4N;
     const SmallDisplacementBbar mSmallDisplacementBbar3D8N;

@@ -101,6 +101,7 @@ KratosStructuralMechanicsApplication::KratosStructuralMechanicsApplication()
       mSmallDisplacement3D27N(0, Element::GeometryType::Pointer(new Hexahedra3D27<NodeType >(Element::GeometryType::PointsArrayType(27)))),
 
       mSmallDisplacementNonLocalHex3D8N(0, Element::GeometryType::Pointer(new Hexahedra3D8<NodeType >(Element::GeometryType::PointsArrayType(8)))),
+      mSmallDisplacementHexTwoNonLocalVariables3D8N(0, Element::GeometryType::Pointer(new Hexahedra3D8<NodeType >(Element::GeometryType::PointsArrayType(8)))),
 
       mSmallDisplacementBbar2D4N(0, Element::GeometryType::Pointer(new Quadrilateral2D4<NodeType>(Element::GeometryType::PointsArrayType(4)))),
       mSmallDisplacementBbar3D8N(0, Element::GeometryType::Pointer(new Hexahedra3D8<NodeType>(Element::GeometryType::PointsArrayType(8)))),
@@ -454,6 +455,8 @@ void KratosStructuralMechanicsApplication::Register() {
     // non_local variable
     KRATOS_REGISTER_VARIABLE( NON_LOCAL_VARIABLE );
     KRATOS_REGISTER_VARIABLE( NON_LOCAL_VARIABLE_NAME );
+    KRATOS_REGISTER_VARIABLE( NON_LOCAL_EQUIVALENT_STRAIN_TENSION );
+    KRATOS_REGISTER_VARIABLE( NON_LOCAL_EQUIVALENT_STRAIN_COMPRESSION );
 
     //Register the truss element
     KRATOS_REGISTER_ELEMENT("TrussElement3D2N", mTrussElement3D2N)
@@ -509,6 +512,7 @@ void KratosStructuralMechanicsApplication::Register() {
     KRATOS_REGISTER_ELEMENT("SmallDisplacementElement3D27N", mSmallDisplacement3D27N)
 
     KRATOS_REGISTER_ELEMENT("SmallDisplacementNonLocalHexElement3D8N", mSmallDisplacementNonLocalHex3D8N)
+    KRATOS_REGISTER_ELEMENT("SmallDisplacementHexElementTwoNonLocalVariables3D8N",mSmallDisplacementHexTwoNonLocalVariables3D8N)
 
     KRATOS_REGISTER_ELEMENT("SmallDisplacementMixedVolumetricStrainElement2D3N", mSmallDisplacementMixedVolumetricStrainElement2D3N)
     KRATOS_REGISTER_ELEMENT("SmallDisplacementMixedVolumetricStrainElement2D4N", mSmallDisplacementMixedVolumetricStrainElement2D4N)

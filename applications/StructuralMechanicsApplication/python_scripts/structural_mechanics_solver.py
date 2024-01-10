@@ -152,8 +152,10 @@ class MechanicalSolver(PythonSolver):
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.REACTION)
         self.main_model_part.AddNodalSolutionStepVariable(StructuralMechanicsApplication.NON_LOCAL_VARIABLE)
+        self.main_model_part.AddNodalSolutionStepVariable(StructuralMechanicsApplication.NON_LOCAL_EQUIVALENT_STRAIN_TENSION)
+        self.main_model_part.AddNodalSolutionStepVariable(StructuralMechanicsApplication.NON_LOCAL_EQUIVALENT_STRAIN_COMPRESSION)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NEWMARK_BETA)
-        
+
         # Add specific variables for the problem conditions.
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.POSITIVE_FACE_PRESSURE)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NEGATIVE_FACE_PRESSURE)
@@ -197,6 +199,8 @@ class MechanicalSolver(PythonSolver):
             dofs_and_reactions_to_add.append(["LOAD_FACTOR", "PRESCRIBED_DISPLACEMENT"])
 
         dofs_and_reactions_to_add.append(["NON_LOCAL_VARIABLE", "NEWMARK_BETA"])
+        dofs_and_reactions_to_add.append(["NON_LOCAL_EQUIVALENT_STRAIN_TENSION", "POSITIVE_FACE_PRESSURE"])
+        dofs_and_reactions_to_add.append(["NON_LOCAL_EQUIVALENT_STRAIN_COMPRESSION", "NEGATIVE_FACE_PRESSURE"])
 
         # Append user-defined DOFs and reactions in the ProjectParameters
         auxiliary_solver_utilities.AddAuxiliaryDofsToDofsWithReactionsList(
