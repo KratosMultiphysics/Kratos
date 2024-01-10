@@ -129,7 +129,7 @@ public:
      * @param rValue output: the value of the specified variable
      */
     bool& GetValue(const Variable<bool>& rThisVariable, bool& rValue) override;
-    using ConstitutiveLaw::GetValue;
+    using BaseType::GetValue;
 
     ///@}
 
