@@ -98,6 +98,7 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
     .def("SetNumberOfNNLayers", &AnnPromGlobalROMBuilderAndSolverType::SetNumberOfNNLayers)
     .def("SetNNLayer", &AnnPromGlobalROMBuilderAndSolverType::SetNNLayer)
     .def("SetPhiMatrices", &AnnPromGlobalROMBuilderAndSolverType::SetPhiMatrices)
+    .def("InitializeLastItDecoderOutAndGradientsAndAuxiliaries", &AnnPromGlobalROMBuilderAndSolverType::InitializeLastItDecoderOutAndGradientsAndAuxiliaries)
     .def("SetTestMatrix", &AnnPromGlobalROMBuilderAndSolverType::SetTestMatrix)
     .def("SetTestVector", &AnnPromGlobalROMBuilderAndSolverType::SetTestVector)
     ;
