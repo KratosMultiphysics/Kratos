@@ -2,6 +2,8 @@
 import KratosMultiphysics as KM
 import KratosMultiphysics.CoSimulationApplication as KMC
 import KratosMultiphysics.MeshMovingApplication as KMM
+import KratosMultiphysics.FSIApplication as KMFSI
+
 from KratosMultiphysics.kratos_utilities import CheckIfApplicationsAvailable
 
 # Importing the base class
@@ -24,7 +26,7 @@ def Create(settings, model, solver_name):
     return FluidDynamicsEmbeddedWrapper(settings, model, solver_name)
 
 class FluidDynamicsEmbeddedWrapper(kratos_base_wrapper.KratosBaseWrapper):
-    """This class is the interface to the FluidDynamicsApplication of Kratos"""
+    """This class is the interface to the FluidDynamicsApplication of Kratos. NOTE: only 2D! for continuous level set! weak coupling!"""
 
     def __init__(self, settings, model, solver_name):
         super().__init__(settings, model, solver_name)
@@ -38,8 +40,14 @@ class FluidDynamicsEmbeddedWrapper(kratos_base_wrapper.KratosBaseWrapper):
 
         super().Initialize()
 
+        # Set domain size of interface model part to the same as fluid
+        self._interface_model_part.ProcessInfo[KM.DOMAIN_SIZE] = self.__GetFluidComputingModelPart().ProcessInfo[KM.DOMAIN_SIZE]
+
         KM.CalculateNodalAreaProcess(self.__GetFluidComputingModelPart(), self.__GetFluidComputingModelPart().ProcessInfo[KM.DOMAIN_SIZE]).Execute()
         self.__UpdateLevelSet(True)
+
+        # Create fsi utility for pressure interpolation from fluid background mesh to interface
+        self._partitioned_fsi_utility = KMFSI.PartitionedFSIUtilitiesArray2D()
 
     def Predict(self):
         # Update level set before predicting the embedded fluid 
@@ -154,6 +162,7 @@ class FluidDynamicsEmbeddedWrapper(kratos_base_wrapper.KratosBaseWrapper):
         #     displacement)         # translation
 
         # NOTE Only meant for weak coupling, otherwise this is done multiple times per timestep
+        # Advance interface model part in time
         t = self.__GetFluidComputingModelPart().ProcessInfo[KM.TIME]
         model_part.CloneTimeStep(t)
         model_part.ProcessInfo[KM.STEP] = self.__GetFluidComputingModelPart().ProcessInfo[KM.STEP]
@@ -176,12 +185,20 @@ class FluidDynamicsEmbeddedWrapper(kratos_base_wrapper.KratosBaseWrapper):
         model_part = self._interface_model_part
         reference_point = [0.0, 0.0, 0.0]
 
-        #NOTE TESTING
-        # print("TESTING")
-        # for node in model_part.Nodes:
-        #     print(node.GetSolutionStepValue(KM.REACTION))
-        #     print(node.GetSolutionStepValue(KM.POSITIVE_FACE_PRESSURE))
-        #     break
+        # Pressure interpolation from fluid background mesh to interface
+        #TODO Move to Co-Sim?!
+        self._partitioned_fsi_utility.EmbeddedPressureToPositiveFacePressureInterpolator(
+            self.__GetFluidComputingModelPart(),
+            model_part)
+        
+        # Calculate REACTION and REACTION_MOMENT from POSITIVE_FACE_PRESSURE
+        #TODO Move to Co-Sim?!
+        self._partitioned_fsi_utility.CalculateTractionFromPressureValues(
+            model_part,
+            KM.POSITIVE_FACE_PRESSURE,
+            KM.REACTION, 
+            True
+        )
 
         # Calculate the total reaction
         reaction_force, reaction_moment = KM.ForceAndTorqueUtils.ComputeEquivalentForceAndTorque(
