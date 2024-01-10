@@ -282,7 +282,7 @@ Begin Conditions SmallDisplacementSurfaceLoadCondition3D3N// GUI group identifie
     115 0 19 26 17
 End Conditions
 
-Begin SubModelPart Parts_Membrane_Membrane_Auto1 // Group Membrane Auto1 // Subtree Parts_Membrane
+Begin SubModelPart Parts_Membrane_Membrane_All_Elements // Group Membrane Auto1 // Subtree Parts_Membrane
     Begin SubModelPartNodes
             1
             2
@@ -445,12 +445,12 @@ Begin SubModelPart Parts_Membrane_Membrane_Auto1 // Group Membrane Auto1 // Subt
            96
     End SubModelPartElements
 End SubModelPart
-Begin SubModelPart DISPLACEMENT_Displacement_Auto1 // Group Displacement Auto1 // Subtree DISPLACEMENT
+Begin SubModelPart DISPLACEMENT_Displacement_XSYMM_Node_Left // Group Displacement Auto1 // Subtree DISPLACEMENT
     Begin SubModelPartNodes
             2
     End SubModelPartNodes
 End SubModelPart
-Begin SubModelPart DISPLACEMENT_Displacement_Auto2 // Group Displacement Auto2 // Subtree DISPLACEMENT
+Begin SubModelPart DISPLACEMENT_Displacement_Node_Center // Group Displacement Auto2 // Subtree DISPLACEMENT
     Begin SubModelPartNodes
            26
     End SubModelPartNodes

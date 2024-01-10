@@ -27,7 +27,7 @@ Begin Conditions SmallDisplacementSurfaceLoadCondition3D3N// GUI group identifie
        40          0     6     2     3
 End Conditions
 
-Begin SubModelPart Parts_Membrane_Membrane_Auto1 // Group Membrane Auto1 // Subtree Parts_Membrane
+Begin SubModelPart Parts_Membrane_Membrane_All_Elements // Group Membrane Auto1 // Subtree Parts_Membrane
     Begin SubModelPartNodes
             1
             2

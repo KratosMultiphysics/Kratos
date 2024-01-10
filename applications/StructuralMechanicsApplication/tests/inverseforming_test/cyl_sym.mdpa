@@ -263,12 +263,12 @@ Begin SubModelPart DISPLACEMENT_Displacement_XSYMM_Node_Right // Group Displacem
            32
     End SubModelPartNodes
 End SubModelPart
-Begin SubModelPart DISPLACEMENT_Displacement_YSYMM_Node_Up // Group Displacement_YSYMM_Node_Up // Subtree DISPLACEMENT
+Begin SubModelPart DISPLACEMENT_Displacement_CenterUp // Group Displacement_YSYMM_Node_Up // Subtree DISPLACEMENT
     Begin SubModelPartNodes
            16
     End SubModelPartNodes
 End SubModelPart
-Begin SubModelPart DISPLACEMENT_Displacement_YSYMM_Node_Down // Group Displacement_YSYMM_Node_Down // Subtree DISPLACEMENT
+Begin SubModelPart DISPLACEMENT_Displacement_CenterDown // Group Displacement_YSYMM_Node_Down // Subtree DISPLACEMENT
     Begin SubModelPartNodes
            18
     End SubModelPartNodes
