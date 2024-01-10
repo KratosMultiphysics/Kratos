@@ -1,8 +1,6 @@
 # Importing the Kratos Library
 import KratosMultiphysics as KM
 import KratosMultiphysics.CoSimulationApplication as KMC
-import KratosMultiphysics.MeshMovingApplication as KMM
-import KratosMultiphysics.FSIApplication as KMFSI
 
 from KratosMultiphysics.kratos_utilities import CheckIfApplicationsAvailable
 
@@ -14,10 +12,13 @@ if not CheckIfApplicationsAvailable("FluidDynamicsApplication"):
     raise ImportError("The FluidDynamicsApplication is not available!")
 from KratosMultiphysics.FluidDynamicsApplication.fluid_dynamics_analysis import FluidDynamicsAnalysis
 
-# Importing FluidDynamics
+# Importing MeshMoving
+#import KratosMultiphysics.MeshMovingApplication as KMM
+
+# Importing FSI
 if not CheckIfApplicationsAvailable("FSIApplication"):
     raise ImportError("The FSIApplication is not available!")
-from KratosMultiphysics.FSIApplication.fsi_coupling_interface import FSICouplingInterface
+from KratosMultiphysics.FSIApplication import PartitionedFSIUtilitiesArray2D
 
 # Other imports
 from KratosMultiphysics.CoSimulationApplication.utilities import data_communicator_utilities
@@ -26,13 +27,17 @@ def Create(settings, model, solver_name):
     return FluidDynamicsEmbeddedWrapper(settings, model, solver_name)
 
 class FluidDynamicsEmbeddedWrapper(kratos_base_wrapper.KratosBaseWrapper):
-    """This class is the interface to the FluidDynamicsApplication of Kratos. NOTE: only 2D! for continuous level set! weak coupling!"""
+    """This class is the interface to the FluidDynamicsApplication of Kratos whenn using the navier_stokes_embedded_solver.
+        NOTE: The skin/ interface model part is hard-coded here as an example. It only works in 2D, for a continuous level set!
+        and weak coupling!
+    """
 
     def __init__(self, settings, model, solver_name):
         super().__init__(settings, model, solver_name)
         self.interface_name = "FSICouplingInterfaceFluid"
         self.structure_interface_submodelpart_name = "Structure.StructureInterface2D_StructureInterface"
         self.previous_displacement = [0.0, 0.0, 0.0]
+        self.previous_time = 0.0
 
     def Initialize(self):
         # Create interface model part for embedded fluid solver (distance calculation and FM_ALE)
@@ -47,7 +52,7 @@ class FluidDynamicsEmbeddedWrapper(kratos_base_wrapper.KratosBaseWrapper):
         self.__UpdateLevelSet(True)
 
         # Create fsi utility for pressure interpolation from fluid background mesh to interface
-        self._partitioned_fsi_utility = KMFSI.PartitionedFSIUtilitiesArray2D()
+        self._partitioned_fsi_utility = PartitionedFSIUtilitiesArray2D()
 
     def Predict(self):
         # Update level set before predicting the embedded fluid 
@@ -134,7 +139,6 @@ class FluidDynamicsEmbeddedWrapper(kratos_base_wrapper.KratosBaseWrapper):
         # Add variable needed for convergence accelerator  
         structure_model_part.AddNodalSolutionStepVariable(KM.REACTION)
         structure_model_part.AddNodalSolutionStepVariable(KM.REACTION_MOMENT)
-        #TODO calculate REACTION, POSITIVE_FACE_PRESSURE, REACTION_MOMENT
 
         # Read the square geometry
         KM.ModelPartIO('square', KM.ModelPartIO.READ | KM.ModelPartIO.SKIP_TIMER).ReadModelPart(structure_model_part)
@@ -167,12 +171,14 @@ class FluidDynamicsEmbeddedWrapper(kratos_base_wrapper.KratosBaseWrapper):
         model_part.CloneTimeStep(t)
         model_part.ProcessInfo[KM.STEP] = self.__GetFluidComputingModelPart().ProcessInfo[KM.STEP]
 
-        # Move the interface model part  # NOTE the time difference is hard-coded here
+        # Move the interface model part
+        #TODO Rotate model part as well
         #displacement = [0.25*t, 0.0, 0.0]  
         displacement = model_part[KMC.GLOBAL_DISPLACEMENT]  
-        dt = 0.05
+        dt = t - self.previous_time
         velocity = [(u_n-u_nn)/dt for u_n, u_nn in zip(displacement, self.previous_displacement)]
         self.previous_displacement = displacement
+        self.previous_time = t
         for node in model_part.Nodes:
             node.X = node.X0 + displacement[0]
             node.Y = node.Y0 + displacement[1]
@@ -192,7 +198,9 @@ class FluidDynamicsEmbeddedWrapper(kratos_base_wrapper.KratosBaseWrapper):
             model_part)
         
         # Calculate REACTION and REACTION_MOMENT from POSITIVE_FACE_PRESSURE
-        #TODO Move to Co-Sim?!
+        # NOTE shear is neglected here!
+        #TODO Move to Co-Sim?! --> use expressions (Suneth && Máté)
+        #TODO Calculate REACTION_MOMENT as well
         self._partitioned_fsi_utility.CalculateTractionFromPressureValues(
             model_part,
             KM.POSITIVE_FACE_PRESSURE,
