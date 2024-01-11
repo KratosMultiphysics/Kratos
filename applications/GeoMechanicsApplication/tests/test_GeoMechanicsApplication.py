@@ -80,8 +80,7 @@ def AssembleTestSuites():
                         KratosGeoMechanicsChangingWaterLevelTests,
                         KratosGeoMechanicsStrainMeasureTests,
                         KratosGeoMechanicsSetMultipleMovingLoadProcessTests,
-                        KratosGeoMechanicsRotationWithMovingLoadTests,
-                        KratosGeoMechanicsTimeIntegrationTests
+                        KratosGeoMechanicsRotationWithMovingLoadTests
                         ]
 
     # Create an array with the selected tests
@@ -96,7 +95,8 @@ def AssembleTestSuites():
                         KratosGeoMechanicsAbsorbingBoundaryColumnTests,
                         TestSellmeijersRule,
                         TestElementaryGroundWaterFlow,
-                        KratosGeoMechanicsTransientThermalTests
+                        KratosGeoMechanicsTransientThermalTests,
+                        KratosGeoMechanicsTimeIntegrationTests
                         ]
     night_test_cases.extend(small_test_cases)
 
