@@ -17,7 +17,7 @@
 #include "custom_processes/apply_normal_load_table_process.h"
 #include "custom_processes/apply_vector_constraint_table_process.h"
 #include "custom_processes/set_parameter_field_process.hpp"
-#include "custom_processes/apply_k0_procedure_process.hpp"
+#include "custom_processes/apply_k0_procedure_process.h"
 #include "custom_processes/apply_excavation_process.h"
 
 #include "custom_utilities/input_utility.h"

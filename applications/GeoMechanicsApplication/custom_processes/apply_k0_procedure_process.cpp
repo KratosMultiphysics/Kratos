@@ -10,7 +10,7 @@
 //  Main authors:    Wijtze Pieter Kikstra
 //
 
-#include "apply_k0_procedure_process.hpp"
+#include "apply_k0_procedure_process.h"
 
 namespace Kratos
 {
