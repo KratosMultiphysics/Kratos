@@ -8,6 +8,16 @@ class KratosGeoMechanicsK0ProcedureProcessTests(KratosUnittest.TestCase):
     """
     This class contains tests which check the result of a K0 Procedure Process
     """
+    def assert_stresses_are_close(self, cauchy_stress_tensors, integration_points, expected_horizontal_stress, expected_vertical_stress, rel_tol):
+        """
+        Verifies whether the computed stresses are (nearly) equal to some expected values.
+        Note that this function assumes there are no shear stresses!
+        """
+        for element_id, integration_point_index in integration_points:
+            stress_tensor = cauchy_stress_tensors[element_id-1][integration_point_index]
+            self.assertIsClose(stress_tensor[0, 0], expected_horizontal_stress, rel_tol=rel_tol, msg=f"horizontal stress at integration point {integration_point_index} of element {element_id}")
+            self.assertIsClose(stress_tensor[1, 1], expected_vertical_stress, rel_tol=rel_tol, msg=f"vertical stress at integration point {integration_point_index} of element {element_id}")
+            self.assertAlmostEqual(stress_tensor[0, 1], 0.0, msg=f"shear stress at integration point {integration_point_index} of element {element_id}")
 
     def test_k0_procedure_k0_nc(self):
         """
@@ -259,6 +269,37 @@ class KratosGeoMechanicsK0ProcedureProcessTests(KratosUnittest.TestCase):
         self.assertIsClose( sig_yy_2, sig_yy_1, rel_tol=0.02 )
         sig_xy_2 = sig_stage2_element1562_integrationpoint1[0,1]
         self.assertIsClose( sig_xy_2, sig_xy_1, abs_tol=1.0E01 )
+
+    def test_k0_procedure_for_horizontal_layers(self):
+        """
+        Test to check whether the effective stress distribution is in line with results from
+        Plaxis.  To this end, we test the horizontal, vertical and shear stresses at a selection
+        of integration points (defined as pairs of element IDs and integration point indices).
+        There shouldn't be any significant variations in stress when querying integration points
+        that are located at the same depth.
+        """
+        test_path = test_helper.get_file_path(os.path.join("test_k0_procedure_process", "test_k0_procedure_with_horizontal_layers"))
+        simulation = test_helper.run_kratos(test_path)
+
+        cauchy_stress_tensors = test_helper.get_on_integration_points(simulation, Kratos.CAUCHY_STRESS_TENSOR)
+
+        # Check the stresses at a few integration points near the bottom of the _bottom_ layer
+        integration_points = [(234, 0),  # far left
+                              (170, 0),  # middle
+                              (237, 0)]  # far right
+        self.assert_stresses_are_close(cauchy_stress_tensors, integration_points, expected_vertical_stress=-61000, expected_horizontal_stress=-30500, rel_tol=0.02)
+
+        # Check the stresses at a few integration points near the bottom of the _middle_ layer
+        integration_points = [(154, 0),  # far left
+                              (90, 0),   # middle
+                              (157, 0)]  # far right
+        self.assert_stresses_are_close(cauchy_stress_tensors, integration_points, expected_vertical_stress=-42667, expected_horizontal_stress=-21333, rel_tol=0.02)
+
+        # Check the stresses at a few integration points near the bottom of the _top_ layer
+        integration_points = [(74, 0),  # far left
+                              (10, 0),  # middle
+                              (77, 0)]  # far right
+        self.assert_stresses_are_close(cauchy_stress_tensors, integration_points, expected_vertical_stress=-18889, expected_horizontal_stress=-9444, rel_tol=0.02)
 
 if __name__ == '__main__':
     KratosUnittest.main()
