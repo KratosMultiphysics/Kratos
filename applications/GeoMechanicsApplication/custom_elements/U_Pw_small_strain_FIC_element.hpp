@@ -226,6 +226,12 @@ private:
 
     ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
+    /// Assignment operator.
+    UPwSmallStrainFICElement& operator=(UPwSmallStrainFICElement const& rOther);
+
+    /// Copy constructor.
+    UPwSmallStrainFICElement(UPwSmallStrainFICElement const& rOther);
+
     /// Serialization
 
     friend class Serializer;
@@ -236,13 +242,6 @@ private:
     }
 
     void load(Serializer& rSerializer) override{KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element)}
-
-    /// Assignment operator.
-    UPwSmallStrainFICElement&
-    operator=(UPwSmallStrainFICElement const& rOther);
-
-    /// Copy constructor.
-    UPwSmallStrainFICElement(UPwSmallStrainFICElement const& rOther);
 
 }; // Class UPwSmallStrainFICElement
 

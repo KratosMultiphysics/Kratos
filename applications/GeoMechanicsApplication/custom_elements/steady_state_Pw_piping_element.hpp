@@ -130,6 +130,12 @@ private:
 
     ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
+    /// Assignment operator.
+    SteadyStatePwPipingElement& operator=(SteadyStatePwPipingElement const& rOther);
+
+    /// Copy constructor.
+    SteadyStatePwPipingElement(SteadyStatePwPipingElement const& rOther);
+
     /// Serialization
 
     friend class Serializer;
@@ -140,13 +146,6 @@ private:
     }
 
     void load(Serializer& rSerializer) override{KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element)}
-
-    /// Assignment operator.
-    SteadyStatePwPipingElement&
-    operator=(SteadyStatePwPipingElement const& rOther);
-
-    /// Copy constructor.
-    SteadyStatePwPipingElement(SteadyStatePwPipingElement const& rOther);
 
 }; // Class SteadyStatePwInterfaceElement
 

@@ -179,6 +179,12 @@ protected:
     ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 private:
+    /// Assignment operator.
+    GeoCurvedBeamElement& operator=(GeoCurvedBeamElement const& rOther);
+
+    /// Copy constructor.
+    GeoCurvedBeamElement(GeoCurvedBeamElement const& rOther);
+
     /// Serialization
 
     friend class Serializer;
@@ -189,13 +195,6 @@ private:
     }
 
     void load(Serializer& rSerializer) override{KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element)}
-
-    /// Assignment operator.
-    GeoCurvedBeamElement&
-    operator=(GeoCurvedBeamElement const& rOther);
-
-    /// Copy constructor.
-    GeoCurvedBeamElement(GeoCurvedBeamElement const& rOther);
 
     // const values
     static constexpr SizeType N_DOF_NODE_DISP = TDim;

@@ -184,6 +184,12 @@ protected:
     ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 private:
+    /// Assignment operator.
+    GeoStructuralBaseElement& operator=(GeoStructuralBaseElement const& rOther);
+
+    /// Copy constructor.
+    GeoStructuralBaseElement(GeoStructuralBaseElement const& rOther);
+
     /// Serialization
 
     friend class Serializer;
@@ -194,13 +200,6 @@ private:
     }
 
     void load(Serializer& rSerializer) override{KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element)}
-
-    /// Assignment operator.
-    GeoStructuralBaseElement&
-    operator=(GeoStructuralBaseElement const& rOther);
-
-    /// Copy constructor.
-    GeoStructuralBaseElement(GeoStructuralBaseElement const& rOther);
 
 }; // Class GeoStructuralBaseElement
 

@@ -68,7 +68,7 @@ int SmallStrainUPwDiffOrderElement::Check(const ProcessInfo& rCurrentProcessInfo
         KRATOS_ERROR << "DomainSize < 1.0e-15 for the element " << this->Id() << std::endl;
 
     // verify that the variables are correctly initialized
-    //  Verify specific properties
+    // Verify specific properties
     const PropertiesType& rProp = this->GetProperties();
 
     if (!rProp.Has(IGNORE_UNDRAINED))
