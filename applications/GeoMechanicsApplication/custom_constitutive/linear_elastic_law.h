@@ -50,6 +50,11 @@ public:
               const GeometryType& rElementGeometry,
               const ProcessInfo& rCurrentProcessInfo) const override;
 
+    enum class Coupling{Yes, No};
+
+    void SetCoupledBehavior(Coupling WantCoupling);
+    [[nodiscard]] Coupling GetCouplingBehavior() const;
+
 protected:
     virtual void CalculateElasticMatrix(Matrix& rConstitutiveMatrix,
                                         ConstitutiveLaw::Parameters& rValues) = 0;
@@ -63,6 +68,8 @@ private:
     friend class Serializer;
     void save(Serializer& rSerializer) const override;
     void load(Serializer& rSerializer) override;
+
+    Coupling mCoupling = Coupling::Yes;
 };
 
 } // namespace Kratos

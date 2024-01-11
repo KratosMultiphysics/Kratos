@@ -29,6 +29,9 @@ public:
     ApplyK0ProcedureProcess(ModelPart& model_part, const Parameters&);
     ~ApplyK0ProcedureProcess() override = default;
 
+    void ExecuteInitialize() override;
+    void ExecuteFinalize() override;
+
     void ExecuteFinalizeSolutionStep() override;
     std::string Info() const override;
 

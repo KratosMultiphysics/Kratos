@@ -189,4 +189,14 @@ void GeoLinearElasticLaw::load(Serializer& rSerializer)
     KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, ConstitutiveLaw)
 }
 
+void GeoLinearElasticLaw::SetCoupledBehavior(GeoLinearElasticLaw::Coupling WantCoupling)
+{
+    mCoupling = WantCoupling;
+}
+
+GeoLinearElasticLaw::Coupling GeoLinearElasticLaw::GetCouplingBehavior() const
+{
+    return mCoupling;
+}
+
 } // namespace Kratos

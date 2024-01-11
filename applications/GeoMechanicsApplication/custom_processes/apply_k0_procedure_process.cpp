@@ -22,9 +22,28 @@
 #include "utilities/math_utils.h"
 
 // Application includes
+#include "custom_constitutive/linear_elastic_law.h"
 #include "geo_mechanics_application_variables.h"
 #include "includes/kratos_flags.h"
 #include "includes/kratos_parameters.h"
+
+namespace
+{
+
+using namespace Kratos;
+
+void SetCoupledBehavior(ModelPart::ElementsContainerType& rElements, GeoLinearElasticLaw::Coupling WantCoupled)
+{
+    block_for_each(rElements, [WantCoupled](Element& rElement) {
+        auto pLinearElasticLaw =
+            dynamic_cast<GeoLinearElasticLaw*>(rElement.GetProperties().GetValue(CONSTITUTIVE_LAW).get());
+        if (pLinearElasticLaw) {
+            pLinearElasticLaw->SetCoupledBehavior(WantCoupled);
+        }
+    });
+}
+
+} // namespace
 
 namespace Kratos
 {
@@ -32,6 +51,18 @@ namespace Kratos
 ApplyK0ProcedureProcess::ApplyK0ProcedureProcess(ModelPart& model_part, const Parameters&)
     : Process(Flags()), mrModelPart(model_part)
 {
+}
+
+void ApplyK0ProcedureProcess::ExecuteInitialize()
+{
+    // Start mimicking Plaxis' behavior
+    SetCoupledBehavior(mrModelPart.Elements(), GeoLinearElasticLaw::Coupling::No);
+}
+
+void ApplyK0ProcedureProcess::ExecuteFinalize()
+{
+    // End mimicking Plaxis' behavior
+    SetCoupledBehavior(mrModelPart.Elements(), GeoLinearElasticLaw::Coupling::Yes);
 }
 
 void ApplyK0ProcedureProcess::ExecuteFinalizeSolutionStep()
