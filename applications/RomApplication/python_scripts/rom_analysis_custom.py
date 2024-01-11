@@ -241,7 +241,7 @@ def CreateCustomRomAnalysisInstance(cls, global_model, parameters):
             self._GetSolver()._GetBuilderAndSolver().SetNumberOfNNLayers(len(NNLayers))
             for i, layer in enumerate(NNLayers):
                 self._GetSolver()._GetBuilderAndSolver().SetNNLayer(i, layer)
-            self._GetSolver()._GetBuilderAndSolver().InitializeLastItDecoderOutAndGradientsAndAuxiliaries()
+            # self._GetSolver()._GetBuilderAndSolver().InitializeLastItDecoderOutAndGradientsAndAuxiliaries()
             self._GetSolver()._GetBuilderAndSolver().SetPhiMatrices(SVDPhiMatrices[0], SVDPhiMatrices[1])
             
             computing_model_part = self._GetSolver().GetComputingModelPart().GetRootModelPart()
