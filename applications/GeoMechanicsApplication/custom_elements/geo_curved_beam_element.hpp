@@ -194,7 +194,10 @@ private:
         KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Element)
     }
 
-    void load(Serializer& rSerializer) override{KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element)}
+    void load(Serializer& rSerializer) override
+    {
+        KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element)
+    }
 
     // const values
     static constexpr SizeType N_DOF_NODE_DISP = TDim;
