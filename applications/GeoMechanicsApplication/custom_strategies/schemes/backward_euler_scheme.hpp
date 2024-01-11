@@ -12,21 +12,19 @@
 
 #pragma once
 
-#include "geomechanics_time_integration_scheme.hpp"
 #include "geo_mechanics_application_variables.h"
+#include "geomechanics_time_integration_scheme.hpp"
 
 namespace Kratos
 {
 
 template <class TSparseSpace, class TDenseSpace>
-class BackwardEulerScheme
-    : public GeoMechanicsTimeIntegrationScheme<TSparseSpace, TDenseSpace>
+class BackwardEulerScheme : public GeoMechanicsTimeIntegrationScheme<TSparseSpace, TDenseSpace>
 {
 public:
     BackwardEulerScheme(const std::vector<FirstOrderScalarVariable>& rFirstOrderScalarVariables,
                         const std::vector<SecondOrderVectorVariable>& rSecondOrderVectorVariables)
-        : GeoMechanicsTimeIntegrationScheme<TSparseSpace, TDenseSpace>(
-              rFirstOrderScalarVariables, rSecondOrderVectorVariables)
+        : GeoMechanicsTimeIntegrationScheme<TSparseSpace, TDenseSpace>(rFirstOrderScalarVariables, rSecondOrderVectorVariables)
     {
     }
 
@@ -37,16 +35,13 @@ protected:
 
         GeoMechanicsTimeIntegrationScheme<TSparseSpace, TDenseSpace>::SetTimeFactors(rModelPart);
 
-        for (const auto& r_first_order_scalar_variable : this->GetFirstOrderScalarVariables())
-        {
+        for (const auto& r_first_order_scalar_variable : this->GetFirstOrderScalarVariables()) {
             rModelPart.GetProcessInfo()[r_first_order_scalar_variable.delta_time_coefficient] =
                 1.0 / this->GetDeltaTime();
         }
 
-        if (!this->GetSecondOrderVectorVariables().empty())
-        {
-            rModelPart.GetProcessInfo()[VELOCITY_COEFFICIENT] =
-                1.0 / this->GetDeltaTime();
+        if (!this->GetSecondOrderVectorVariables().empty()) {
+            rModelPart.GetProcessInfo()[VELOCITY_COEFFICIENT] = 1.0 / this->GetDeltaTime();
         }
 
         KRATOS_CATCH("")
@@ -56,15 +51,12 @@ protected:
     {
         KRATOS_TRY
 
-        block_for_each(rModelPart.Nodes(), [this](Node& rNode)
-        {
+        block_for_each(rModelPart.Nodes(), [this](Node& rNode) {
             // For the Backward Euler schemes the first derivatives should be
             // updated before calculating the second derivatives
             UpdateVectorTimeDerivatives(rNode);
 
-            for (const auto& r_first_order_scalar_variable :
-                 this->GetFirstOrderScalarVariables())
-            {
+            for (const auto& r_first_order_scalar_variable : this->GetFirstOrderScalarVariables()) {
                 SetDerivative(r_first_order_scalar_variable.first_time_derivative,
                               r_first_order_scalar_variable.instance, rNode);
             }
@@ -75,11 +67,8 @@ protected:
 
     void UpdateVectorTimeDerivatives(Node& rNode) const
     {
-        for (const auto& r_second_order_vector_variable :
-             this->GetSecondOrderVectorVariables())
-        {
-            if (!rNode.SolutionStepsDataHas(r_second_order_vector_variable.instance))
-                continue;
+        for (const auto& r_second_order_vector_variable : this->GetSecondOrderVectorVariables()) {
+            if (!rNode.SolutionStepsDataHas(r_second_order_vector_variable.instance)) continue;
 
             SetDerivative(r_second_order_vector_variable.first_time_derivative,
                           r_second_order_vector_variable.instance, rNode);
@@ -92,9 +81,7 @@ protected:
     }
 
     template <class T>
-    void SetDerivative(const Variable<T>& derivative_variable,
-                       const Variable<T>& instance_variable,
-                       Node& rNode) const
+    void SetDerivative(const Variable<T>& derivative_variable, const Variable<T>& instance_variable, Node& rNode) const
     {
         rNode.FastGetSolutionStepValue(derivative_variable) =
             (rNode.FastGetSolutionStepValue(instance_variable, 0) -
