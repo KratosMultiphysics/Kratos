@@ -22,6 +22,7 @@
 #include "includes/element.h"
 
 // Application includes
+#include "geo_mechanics_application_variables.h"
 #include "includes/kratos_flags.h"
 #include "includes/kratos_parameters.h"
 #include "processes/process.h"
