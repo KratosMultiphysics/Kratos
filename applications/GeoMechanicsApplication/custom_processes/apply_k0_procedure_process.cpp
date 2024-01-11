@@ -12,6 +12,20 @@
 
 #include "apply_k0_procedure_process.h"
 
+// System includes
+#include <cmath>
+#include <iostream>
+
+// Project includes
+#include "includes/element.h"
+#include "includes/model_part.h"
+#include "utilities/math_utils.h"
+
+// Application includes
+#include "geo_mechanics_application_variables.h"
+#include "includes/kratos_flags.h"
+#include "includes/kratos_parameters.h"
+
 namespace Kratos
 {
 

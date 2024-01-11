@@ -12,23 +12,14 @@
 
 #pragma once
 
-// System includes
-#include <cmath>
-#include <iostream>
-
-// Project includes
-#include "includes/element.h"
-#include "includes/model_part.h"
-#include "utilities/math_utils.h"
-
-// Application includes
-#include "geo_mechanics_application_variables.h"
-#include "includes/kratos_flags.h"
-#include "includes/kratos_parameters.h"
 #include "processes/process.h"
 
 namespace Kratos
 {
+
+class Element;
+class Parameters;
+class ModelPart;
 
 class KRATOS_API(GEO_MECHANICS_APPLICATION) ApplyK0ProcedureProcess : public Process
 {
