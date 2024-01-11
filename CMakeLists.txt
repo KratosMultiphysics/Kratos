@@ -45,7 +45,7 @@ endif(NOT DEFINED KRATOS_SOURCE_DIR)
 
 if(NOT DEFINED KRATOS_BINARY_DIR)
   message("-- No KRATOS_BINARY_DIR is defined, using: ${CMAKE_BINARY_DIR}")
-  set(KRATOS_BINARY_DIR ${CMAKE_BINARY_DIR})
+  set(KRATOS_BINARY_DIR "${CMAKE_BINARY_DIR}")
 endif(NOT DEFINED KRATOS_BINARY_DIR)
 
 option(REMOVE_INSTALL_DIRECTORIES "Remove the install directories to achieve a clean compilation" ON)

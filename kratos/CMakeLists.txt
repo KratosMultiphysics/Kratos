@@ -68,20 +68,24 @@ if(${KRATOS_BUILD_TESTING} MATCHES ON)
     file(GLOB_RECURSE KRATOS_TEST_UTILITIES_SOURCES 
         ${CMAKE_CURRENT_SOURCE_DIR}/tests/test_utilities/*.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/testing/*.cpp
-		##${CMAKE_CURRENT_SOURCE_DIR}/tests/cpp_tests/*.cpp
     )
-    file(GLOB_RECURSE KRATOS_TEST_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/tests/cpp_tests/*.cpp)
+    file(GLOB_RECURSE KRATOS_TEST_SOURCES 
+	    ${CMAKE_CURRENT_SOURCE_DIR}/tests/cpp_tests/*.cpp
+	)
 
     add_library(KratosCoreTestUtilities SHARED ${KRATOS_TEST_UTILITIES_SOURCES})
     add_executable(KratosCoreTest ${KRATOS_TEST_SOURCES})
 
     target_link_libraries(KratosCoreTestUtilities KratosCore GTest::gtest_main GTest::gmock_main)
-    target_link_libraries(KratosCoreTest KratosCoreTestUtilities)
+    target_link_libraries(KratosCoreTest KratosCoreTestUtilities
+		${CMAKE_BINARY_DIR}/kratos/CMakeFiles/KratosCoreTestUtilities.dir/tests/test_utilities/test_bar_element.cpp.obj
+	)
 
     install(TARGETS KratosCoreTestUtilities DESTINATION libs)
     install(TARGETS KratosCoreTest)
 
     gtest_discover_tests(KratosCoreTest)
+	#gtest_add_tests(KratosCoreTest DISCOVERY_MODE PRE_TEST)
 endif(${KRATOS_BUILD_TESTING} MATCHES ON)
 
 ## Define KratosVersion object

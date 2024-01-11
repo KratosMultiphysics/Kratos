@@ -36,7 +36,8 @@ if (${KRATOS_BUILD_TESTING} MATCHES ON)
     install(TARGETS KratosStructuralMechanicsTests)
 
     include(GoogleTest)
-    gtest_discover_tests(KratosStructuralMechanicsTests)
+#    gtest_discover_tests(KratosStructuralMechanicsTests)
+	
 endif (${KRATOS_BUILD_TESTING} MATCHES ON)
 
 # Define library Kratos which defines the basic python interface

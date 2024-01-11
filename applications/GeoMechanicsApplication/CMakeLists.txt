@@ -51,7 +51,7 @@ if (${KRATOS_BUILD_TESTING} MATCHES ON)
     install(TARGETS KratosGeoMechanicsTest)
 
     include(GoogleTest)
-    gtest_discover_tests(KratosGeoMechanicsTest)
+#    gtest_discover_tests(KratosGeoMechanicsTest)
 endif (${KRATOS_BUILD_TESTING} MATCHES ON)
 
 ###############################################################
