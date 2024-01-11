@@ -235,5 +235,105 @@ void AssignMasterSlaveConstraintsToNeighboursUtility::AssignMasterSlaveConstrain
     KRATOS_INFO("AssignMasterSlaveConstraintsToNeighboursUtility") << "Build and Assign Master-Slave Constraints Time: " << build_and_assign_mscs << std::endl;
     KRATOS_CATCH("");
 }
-}  // namespace Kratos.
 
+void AssignMasterSlaveConstraintsToNeighboursUtility::InterpolateVelocityToNodes(
+    NodesContainerType pDestinationNodes,
+    double const Radius,
+    const std::vector<std::reference_wrapper<const Kratos::Variable<double>>>& rVariableList,
+    double const MinNumOfNeighNodes
+    )
+{
+    KRATOS_TRY;
+
+    BuiltinTimer build_and_assign_mscs;
+
+    // Declare thread-local storage (TLS) variables
+    thread_local std::vector<DofPointerVectorType> r_cloud_of_dofs;           // The DOFs of the cloud of nodes
+    thread_local std::vector<DofPointerVectorType> r_destination_dofs;              // The DOFs of the destination node
+    thread_local Matrix r_cloud_of_nodes_coordinates;                          // The coordinates of the cloud of nodes
+    thread_local array_1d<double, 3> r_destination_coordinates;                      // The coordinates of the destination node
+    thread_local Vector r_n_container;                                         // Container for shape functions
+
+    auto& p_nodes_array = pDestinationNodes.GetContainer();  // Get the container of destination nodes
+
+    // Declare a counter variable outside the loop as std::atomic<int>
+    std::atomic<int> i(0);
+
+    block_for_each(p_nodes_array, [&](Node::Pointer& p_destination_node) {
+
+        double local_radius = Radius;
+
+        ResultNodesContainerType r_cloud_of_nodes(0);  // Container for the cloud of nodes
+        ResultNodesContainerType r_local_results(mMaxNumberOfNodes);  // Container for node search results
+
+        while (r_cloud_of_nodes.size() < MinNumOfNeighNodes) {
+            r_cloud_of_nodes.clear();
+            SearchNodesInRadiusForNode(p_destination_node, local_radius, r_cloud_of_nodes, r_local_results);  // Search for nodes in the radius
+            local_radius += Radius;
+        }
+
+        r_destination_coordinates = p_destination_node->Coordinates();
+
+        // Resize rCloudOfNodesCoordinates to match the size of the cloud of nodes
+        r_cloud_of_nodes_coordinates.resize(r_cloud_of_nodes.size(), 3);
+
+        for (std::size_t i = 0; i < r_cloud_of_nodes.size(); i++) {
+            auto p_cloud_node = r_cloud_of_nodes[i];
+
+            // Assign the coordinates of the slave node to the corresponding row in rCloudOfNodesCoordinates
+            noalias(row(r_cloud_of_nodes_coordinates, i)) = p_cloud_node->Coordinates();
+        }
+
+        // New part: Calculate weights using inverse distance
+        r_n_container.resize(r_cloud_of_nodes.size());
+        double weight_sum = 0.0;
+        bool is_exact_overlap = false;
+        std::size_t overlap_index = 0;
+
+        // Constants for modified IDW
+        const double epsilon = 1e-5;
+        const double p = 2.0;
+
+        // First, check for exact overlap
+        for (std::size_t i = 0; i < r_cloud_of_nodes.size(); i++) {
+            auto dist = norm_2(row(r_cloud_of_nodes_coordinates, i) - r_destination_coordinates);
+            if (dist < 1e-12) {  // A small threshold to consider as zero
+                is_exact_overlap = true;
+                overlap_index = i;
+                break;
+            }
+        }
+
+        if (is_exact_overlap) {
+            // Set the weight of the overlapping node to 1 and others to 0
+            r_n_container = ZeroVector(r_cloud_of_nodes.size());
+            r_n_container[overlap_index] = 1.0;
+        } else {
+            // Calculate weights using modified IDW
+            r_n_container.resize(r_cloud_of_nodes.size());
+            for (std::size_t i = 0; i < r_cloud_of_nodes.size(); i++) {
+                auto dist = norm_2(row(r_cloud_of_nodes_coordinates, i) - r_destination_coordinates);
+                r_n_container[i] = 1.0 / pow(dist + epsilon, p);  // Modified IDW
+                weight_sum += r_n_container[i];
+            }
+            // Normalize weights
+            for (auto& weight : r_n_container) {
+                weight /= weight_sum;
+            }
+        }
+
+        // Calculate shape functions
+        // RBFShapeFunctionsUtility::CalculateShapeFunctions(r_cloud_of_nodes_coordinates, r_destination_coordinates, r_n_container);
+        
+        for (std::size_t j = 0; j < rVariableList.size(); ++j) {
+            double interpolated_variable_value = 0.0;
+            for (std::size_t k = 0; k < r_cloud_of_nodes.size(); ++k){
+                auto r_current_node = r_cloud_of_nodes[k];
+                interpolated_variable_value += r_current_node->FastGetSolutionStepValue(rVariableList[j].get()) * r_n_container[k];
+            }
+            p_destination_node->FastGetSolutionStepValue(rVariableList[j].get()) = interpolated_variable_value;
+        }
+    });
+    KRATOS_CATCH("");
+}  // namespace Kratos.
+}
