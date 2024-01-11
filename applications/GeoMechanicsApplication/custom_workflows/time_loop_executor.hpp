@@ -14,22 +14,23 @@
 
 #pragma once
 
-#include <vector>
 #include <memory>
+#include <vector>
 
+#include "strategy_wrapper.hpp"
+#include "time_incrementor.h"
 #include "time_loop_executor_interface.h"
 #include "time_step_end_state.hpp"
-#include "time_incrementor.h"
 #include "time_step_executor.h"
-#include "strategy_wrapper.hpp"
 
 namespace Kratos
 {
 
 class Process;
 
-class TimeLoopExecutor : public TimeLoopExecutorInterface {
-public :
+class TimeLoopExecutor : public TimeLoopExecutorInterface
+{
+public:
     void SetCancelDelegate(const std::function<bool()>& rCancelDelegate) override
     {
         mCancelDelegate = rCancelDelegate;
@@ -96,7 +97,7 @@ private:
     TimeStepEndState RunCycleLoop(const TimeStepEndState& previous_state)
     {
         auto cycle_number = 0;
-        auto end_state = previous_state;
+        auto end_state    = previous_state;
         while (mTimeIncrementor->WantRetryStep(cycle_number, end_state) && !IsCancelled()) {
             if (cycle_number > 0) mStrategyWrapper->RestorePositionsAndDOFVectorToStartOfStep();
             end_state = RunCycle(previous_state.time);
@@ -107,10 +108,7 @@ private:
         return end_state;
     }
 
-    bool IsCancelled() const
-    {
-        return mCancelDelegate && mCancelDelegate();
-    }
+    bool IsCancelled() const { return mCancelDelegate && mCancelDelegate(); }
 
     void UpdateProgress(double Time) const
     {
@@ -119,11 +117,11 @@ private:
         }
     }
 
-    std::unique_ptr<TimeIncrementor>  mTimeIncrementor;
-    std::function<bool()>             mCancelDelegate;
-    std::function<void(double)>       mProgressDelegate;
+    std::unique_ptr<TimeIncrementor> mTimeIncrementor;
+    std::function<bool()> mCancelDelegate;
+    std::function<void(double)> mProgressDelegate;
     std::unique_ptr<TimeStepExecutor> mTimeStepExecutor = std::make_unique<TimeStepExecutor>();
-    std::shared_ptr<StrategyWrapper>  mStrategyWrapper;
+    std::shared_ptr<StrategyWrapper> mStrategyWrapper;
 };
 
-}
+} // namespace Kratos

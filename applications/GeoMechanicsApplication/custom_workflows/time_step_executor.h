@@ -14,8 +14,8 @@
 #pragma once
 
 #include "processes/process.h"
-#include "time_step_end_state.hpp"
 #include "strategy_wrapper.hpp"
+#include "time_step_end_state.hpp"
 
 #include <functional>
 #include <memory>
@@ -38,4 +38,4 @@ private:
     std::vector<std::weak_ptr<Process>> mProcessObservables;
 };
 
-}
+} // namespace Kratos
