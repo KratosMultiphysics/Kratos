@@ -229,6 +229,8 @@ namespace Kratos {
 
         virtual bool CheckRequirementsOfStressTensor();
 
+        virtual double GetTangentialStiffness();
+
     protected:
         Properties::Pointer mpProperties;
 

@@ -68,4 +68,8 @@ namespace Kratos{
         mKn = equiv_young * Globals::Pi * effective_radius;
         mKt = mKn / (2.0 * (equiv_poisson + 1.0));
     }
+
+    double DEM_D_Linear_classic::GetTangentialStiffness() {
+        return mKt;
+    }
 } // namespace Kratos
