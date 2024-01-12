@@ -208,6 +208,10 @@ public:
         ModelPart& rModelPart,
         const std::vector<IndexType>& rNodeIds);
 
+    static std::vector<IndexType> GetHRomConditionParentsIdsForList(
+        ModelPart& rModelPart,
+        const std::vector<IndexType>& rConditionIds);
+
     /**
      * @brief Identifies condition decremented (-1 to account for numpy indexing) IDs from a given ModelPart that are not in the HROM weights
      * This function iterates through the conditions in the provided ModelPart, checks if their IDs exist in the HROM weights,

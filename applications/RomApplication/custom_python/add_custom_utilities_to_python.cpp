@@ -62,6 +62,7 @@ void AddCustomUtilitiesToPython(pybind11::module& m)
         .def_static("GetConditionIdsInModelPart", &RomAuxiliaryUtilities::GetConditionIdsInModelPart)
         .def_static("GetNeighbouringElementIds", &RomAuxiliaryUtilities::GetNeighbouringElementIds)
         .def_static("GetNeighbouringConditionIds", &RomAuxiliaryUtilities::GetNeighbouringConditionIds)
+        .def_static("GetHRomConditionParentsIdsForList", &RomAuxiliaryUtilities::GetHRomConditionParentsIdsForList)
         ;
 }
 

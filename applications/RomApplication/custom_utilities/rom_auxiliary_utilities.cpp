@@ -1123,5 +1123,38 @@ std::vector<IndexType> RomAuxiliaryUtilities::GetNeighbouringConditionIds(
     return new_condition_ids;
 }
 
+std::vector<IndexType> RomAuxiliaryUtilities::GetHRomConditionParentsIdsForList(
+    ModelPart& rModelPart,
+    const std::vector<IndexType>& rConditionIds)
+{
+
+    FindGlobalNodalEntityNeighboursProcess<ModelPart::ElementsContainerType> find_nodal_elements_neighbours_process(rModelPart);
+    find_nodal_elements_neighbours_process.Execute();
+
+    std::unordered_set<IndexType> parent_ids_set;
+    // Iterate over the given node IDs
+    for (const auto condId : rConditionIds) {
+        auto& r_cond = rModelPart.GetCondition(condId + 1);
+        if ((condId + 1)==28347){
+            KRATOS_WATCH("HERE")
+        }
+        // Add neighboring elements' IDs to the set
+        const auto& r_neigh_elements = r_cond.GetValue(NEIGHBOUR_ELEMENTS);
+        // Add the neighbour elements to new_element_ids_set
+        for (size_t i = 0; i < r_neigh_elements.size(); ++i) {
+            const auto& r_elem = r_neigh_elements[i];
+            parent_ids_set.insert(r_elem.Id() - 1);
+            if ((condId + 1)==28347){
+                KRATOS_WATCH(r_elem.Id() - 1)
+            }
+        }
+    }
+
+    // Convert the unordered_set to a vector
+    std::vector<IndexType> parent_ids(parent_ids_set.begin(), parent_ids_set.end());
+
+    return parent_ids;
+}
+
 
 } // namespace Kratos

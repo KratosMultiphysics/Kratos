@@ -2,6 +2,7 @@
 import json
 import numpy as np
 from pathlib import Path
+import random
 
 # Importing the Kratos Library
 import KratosMultiphysics
@@ -87,6 +88,19 @@ class HRomTrainingUtility(object):
             if not self.solver.model.HasModelPart(model_part_name):
                 raise Exception('The model part named "' + model_part_name + '" does not exist in the model')
             this_modelpart_condition_ids = KratosROM.RomAuxiliaryUtilities.GetConditionIdsInModelPart(self.solver.model.GetModelPart(model_part_name))
+            # TODO: REMOVE - Temporary sampling for ECM interface testing
+            # ---------------------------------------------------------
+            # Selects a random 10% sample from 'this_modelpart_condition_ids' 
+            # for varied condition testing in the ECM interface.
+
+            # Calculate 10% of the length of the list
+            sample_size = int(len(this_modelpart_condition_ids) * 0.10)
+
+            # Get a well-distributed sample
+            this_modelpart_condition_ids = random.sample(this_modelpart_condition_ids, sample_size)
+
+            # ---------------------------------------------------------
+
             if len(this_modelpart_condition_ids)>0:
                 candidate_ids = np.r_[candidate_ids, np.array(this_modelpart_condition_ids)+number_of_elements]
 
@@ -370,6 +384,16 @@ class HRomTrainingUtility(object):
         if self.hrom_output_format=="numpy":
             element_indexes = np.where(indexes < number_of_elements)[0]
             condition_indexes = np.where(indexes >= number_of_elements)[0]
+            # TODO: REMOVE - Temporary save for HROM creation post-ROM training
+            # ---------------------------------------------------------
+            # Saving 'weights' and 'indexes' as 'aux_w' and 'aux_z'. These are the ids (indexes)
+            # and weights (weights) selected from the ECM, used for creating HROM after training ROM.
+
+            np.save(self.rom_basis_output_folder / 'aux_w.npy', weights)
+            np.save(self.rom_basis_output_folder / 'aux_z.npy', indexes)
+
+            # ---------------------------------------------------------
+
             np.save(self.rom_basis_output_folder / "HROM_ElementWeights.npy", weights[element_indexes])
             np.save(self.rom_basis_output_folder / "HROM_ConditionWeights.npy", weights[condition_indexes])
             np.save(self.rom_basis_output_folder / "HROM_ElementIds.npy", indexes[element_indexes])  # FIXME fix the -1 in the indexes of numpy and ids of Kratos
