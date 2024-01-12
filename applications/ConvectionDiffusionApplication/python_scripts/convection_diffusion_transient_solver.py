@@ -62,8 +62,8 @@ class ConvectionDiffusionTransientSolver(convection_diffusion_solver.ConvectionD
 
         material_settings = materials["properties"][0]["Material"]
 
-        self.Q = 5e-10 #25e-6
-        self.R_far = 0.006666666 #0.04
+        self.Q = 25E-06
+        self.R_far = 0.025 * 0.5
         self.cp = material_settings['Variables']['SPECIFIC_HEAT'].GetDouble()
         self.conductivity = material_settings['Variables']['CONDUCTIVITY'].GetDouble()
         self.rho = material_settings['Variables']['DENSITY'].GetDouble()
@@ -72,7 +72,6 @@ class ConvectionDiffusionTransientSolver(convection_diffusion_solver.ConvectionD
         print("conductivity (lambda):", self.conductivity)
         print("rho:", self.rho)
         print("T0:", self.T0)
-
 
         self.ImposeTemperatureDueToLaser()
         print('Initial energy: ', self.Q)
@@ -133,18 +132,14 @@ class ConvectionDiffusionTransientSolver(convection_diffusion_solver.ConvectionD
 
     def ImposeTemperatureDueToLaser(self):
 
-        # Compute Q given C_L
-        self.C_L = 1000.0
-        t_ini = 1.0
-        self.kappa = self.R_far ** 2 / (4.0 * t_ini)
-
-        # Conductivity should be then:
-        self.conductivity = self.rho * self.cp * self.kappa
-        print("conductivity:", self.conductivity)
-
-        self.Q = 0.5 * self.C_L * 8.0 * self.cp * np.pi**1.5 * self.kappa**1.5 * self.rho
+        t_ini = 5e-3
+        self.kappa = self.conductivity / (self.rho * self.cp)
         print("kappa:", self.kappa)
+
+        self.C_L = 2.0 * self.Q / (8.0 * self.cp * (np.pi * self.kappa)**1.5 * self.rho)
+
         print("Q:", self.Q)
+        print("C_L:", self.C_L)
 
         def bell_curve(t, radius_squared):
             z = -radius_squared / (4.0 * self.kappa * t)
@@ -154,11 +149,24 @@ class ConvectionDiffusionTransientSolver(convection_diffusion_solver.ConvectionD
             return bell_curve_value
 
         for node in self.main_model_part.Nodes:
-            t_ini = 1.0
+            t_ini = 5e-3
             r_2 = node.X**2 + node.Y**2 + node.Z**2
             temp = self.T0 + bell_curve(t_ini, r_2)
             node.SetSolutionStepValue(KratosMultiphysics.TEMPERATURE, temp)
             node.SetSolutionStepValue(KratosMultiphysics.TEMPERATURE, 1, temp)
+        
+        T_max_ini = self.C_L / t_ini**1.5
+        print("T_max_ini:", T_max_ini)
+
+        total_energy = 0.0
+        for node in self.main_model_part.Nodes:
+            nodal_area = node.GetSolutionStepValue(KratosMultiphysics.NODAL_AREA)
+            nodal_temperature = node.GetSolutionStepValue(KratosMultiphysics.TEMPERATURE)
+            #print(nodal_area)
+            nodal_energy = nodal_temperature * self.cp * self.rho * nodal_area
+            total_energy += nodal_energy
+
+        print('total_energy =', total_energy)
 
         '''center_Id = self.FindCenterNodeId()
         center_node_nodal_area = self.main_model_part.Nodes[center_Id].GetSolutionStepValue(KratosMultiphysics.NODAL_AREA)

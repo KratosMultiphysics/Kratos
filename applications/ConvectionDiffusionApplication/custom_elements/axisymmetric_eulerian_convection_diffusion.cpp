@@ -350,9 +350,9 @@ void AxisymmetricEulerianConvectionDiffusionElement<TDim, TNumNodes>::CalculateO
     const auto integration_points = r_geom.IntegrationPoints(mIntegrationMethod);
     const SizeType n_gauss = integration_points.size();
 
-    if ( rOutput.size() != n_gauss ) {
+    if (rOutput.size() != n_gauss) {
 
-        rOutput.resize( n_gauss, false );
+        rOutput.resize(n_gauss, false);
     }
 
     // Initialize output value
@@ -361,7 +361,7 @@ void AxisymmetricEulerianConvectionDiffusionElement<TDim, TNumNodes>::CalculateO
         rOutput[g] = 0.0;
     }
 
-    if(rVariable == THERMAL_ENERGY) {
+    if (rVariable == THERMAL_ENERGY) {
 
         // Initialize thermal_energy value
         double thermal_energy = 0.0;

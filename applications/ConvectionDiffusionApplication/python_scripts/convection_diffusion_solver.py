@@ -245,7 +245,7 @@ class ConvectionDiffusionSolver(PythonSolver):
             raise Exception("The provided target_model_part does not have CONVECTION_DIFFUSION_SETTINGS defined.")
 
         # Adding nodal area variable (some solvers use it. TODO: Ask)
-        #target_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_AREA)
+        target_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_AREA)
         # If LaplacianElement is used
         if (self.settings["element_replace_settings"]["element_name"].GetString() == "LaplacianElement"):
             target_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NORMAL)
