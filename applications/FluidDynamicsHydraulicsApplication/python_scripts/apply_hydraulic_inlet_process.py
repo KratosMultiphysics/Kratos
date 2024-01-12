@@ -85,6 +85,7 @@ class ApplyHydraulicInletProcess(KratosMultiphysics.Process):
         return default_settings
 
     def ExecuteBeforeSolutionLoop(self):
+        # Note that this is not required at all but we do it just in case any other class needs the inlet distance and velocity
         self.ExecuteInitializeSolutionStep()
 
     def ExecuteInitializeSolutionStep(self):
