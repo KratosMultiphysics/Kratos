@@ -6,7 +6,6 @@ kratos_add_dependency(${KRATOS_SOURCE_DIR}/applications/FluidDynamicsApplication
 
 include_directories( ${CMAKE_SOURCE_DIR}/kratos )
 include_directories( ${CMAKE_SOURCE_DIR}/kratos/applications/FluidDynamicsApplication)
-include_directories( ${CMAKE_SOURCE_DIR}/kratos/applications/FluidDynamicsBiomedicalApplication)
 
 ## define application core sources (pure C++ parts)
 file(GLOB_RECURSE KRATOS_FLUID_DYNAMICS_BIOMEDICAL_APPLICATION_CORE_SOURCES
