@@ -1,0 +1,32 @@
+@startuml
+'https://plantuml.com/class-diagram
+
+abstract class Scheme
+class GeoMechanicsTimeIntegrationScheme
+Scheme <|-- GeoMechanicsTimeIntegrationScheme
+
+class BackwardEulerScheme
+class BackwardEulerQuasistaticPwScheme
+class BackwardEulerQuasistaticUPwScheme
+class BackwardEulerQuasistaticTScheme
+
+GeoMechanicsTimeIntegrationScheme <|-- BackwardEulerScheme
+BackwardEulerScheme <|-- BackwardEulerQuasistaticPwScheme
+BackwardEulerScheme <|-- BackwardEulerQuasistaticUPwScheme
+BackwardEulerScheme <|-- BackwardEulerQuasistaticTScheme
+
+class GeneralizedNewmarkScheme
+class NewmarkQuasistaticPwScheme
+class GeneralizedNewmarkTScheme
+class NewmarkQuasistaticUPwScheme
+class NewmarkDynamicUPwScheme
+class NewmarkQuasistaticDampedUPwScheme
+
+GeoMechanicsTimeIntegrationScheme <|-- GeneralizedNewmarkScheme
+GeneralizedNewmarkScheme <|-- NewmarkQuasistaticPwScheme
+GeneralizedNewmarkScheme <|-- GeneralizedNewmarkTScheme
+GeneralizedNewmarkScheme <|-- NewmarkQuasistaticUPwScheme
+NewmarkQuasistaticUPwScheme <|-- NewmarkDynamicUPwScheme
+NewmarkQuasistaticUPwScheme <|-- NewmarkQuasistaticDampedUPwScheme
+
+@enduml

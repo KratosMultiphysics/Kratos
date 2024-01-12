@@ -218,6 +218,7 @@ void StructuredMeshGeneratorProcess::GenerateTriangularElements()
 
     Properties::Pointer p_properties = mrOutputModelPart.CreateNewProperties(mElementPropertiesId);
     std::vector<ModelPart::IndexType> element_connectivity(3);
+    mrOutputModelPart.GetProperties
 
     for (std::size_t j = 0; j < mNumberOfDivisions; j++) {
         for (std::size_t i = 0; i < mNumberOfDivisions; i++) {
