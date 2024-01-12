@@ -48,15 +48,17 @@ void SetCoupledBehavior(ModelPart::ElementsContainerType& rElements, GeoLinearEl
 namespace Kratos
 {
 
-ApplyK0ProcedureProcess::ApplyK0ProcedureProcess(ModelPart& model_part, const Parameters&)
-    : Process(Flags()), mrModelPart(model_part)
+ApplyK0ProcedureProcess::ApplyK0ProcedureProcess(ModelPart& model_part, const Parameters& rK0Settings)
+    : Process(Flags()), mrModelPart(model_part), mSettings(rK0Settings)
 {
 }
 
 void ApplyK0ProcedureProcess::ExecuteInitialize()
 {
-    // Start mimicking Plaxis' behavior
-    SetCoupledBehavior(mrModelPart.Elements(), GeoLinearElasticLaw::Coupling::No);
+    if (mSettings.Has("force_plaxis_compatibility")) {
+        // Start mimicking Plaxis' behavior
+        SetCoupledBehavior(mrModelPart.Elements(), GeoLinearElasticLaw::Coupling::No);
+    }
 }
 
 void ApplyK0ProcedureProcess::ExecuteFinalize()
