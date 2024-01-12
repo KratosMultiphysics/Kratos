@@ -221,7 +221,11 @@ void DEM_parallel_bond::GetContactArea(const double radius, const double other_r
 
 // Here we calculate the mKn and mKt
 void DEM_parallel_bond::InitializeContact(SphericParticle* const element1, SphericParticle* const element2, const double indentation) {
+    KRATOS_ERROR << "This function shouldn't be accessed here, use basic contact model instead."<<std::endl;
+}
 
+double DEM_parallel_bond::GetTangentialStiffness() {
+    KRATOS_ERROR << "This function shouldn't be accessed here, use basic contact model instead."<<std::endl;
 }
 
 // TODO: In this function, it is better to replace 'kn_el' with 'kn_bond' and 'kt_el' with 'kt_bond'.
@@ -236,6 +240,8 @@ void DEM_parallel_bond::CalculateElasticConstants(double& kn_el, double& kt_el, 
     kt_el = kn_el / (*mpProperties)[BOND_KNKS_RATIO];
 
     InitializeContact(element1, element2, indentation);
+
+    mKt = GetTangentialStiffness();
 
     KRATOS_CATCH("")
 
@@ -413,7 +419,7 @@ void DEM_parallel_bond::CalculateNormalForces(double LocalElasticContactForce[3]
     if (!failure_type){ //if the bond is not broken
         BondedLocalElasticContactForce2 = kn_el * bonded_indentation;
     } else { //else the bond is broken
-        //if the bond is broken, we still calculate the normal compressive force but not the normal tensile force
+        //if the bond is broken, we still calculate the normal compressive force but not the normal tensile force //TODO:If the bond disappears, this will not work
         if (bonded_indentation > 0.0){
             BondedLocalElasticContactForce2 = kn_el * bonded_indentation;
         } else {
@@ -807,10 +813,10 @@ void DEM_parallel_bond::ComputeParticleRotationalMoments(SphericContinuumParticl
     const double& damping_gamma = (*mpProperties)[DAMPING_GAMMA];
 
     //Viscous parameter taken from Olmedo et al., 'Discrete element model of the dynamic response of fresh wood stems to impact'
-    array_1d<double, 3> visc_param;
-    visc_param[0] = 2.0 * damping_gamma * std::sqrt(equiv_mass * bond_equiv_young * Inertia_I / distance); // OLMEDO
-    visc_param[1] = 2.0 * damping_gamma * std::sqrt(equiv_mass * bond_equiv_young * Inertia_I / distance); // OLMEDO
-    visc_param[2] = 2.0 * damping_gamma * std::sqrt(equiv_mass * bond_equiv_young * Inertia_J / distance); // OLMEDO
+    //array_1d<double, 3> visc_param;
+    //visc_param[0] = 2.0 * damping_gamma * std::sqrt(equiv_mass * bond_equiv_young * Inertia_I / distance); // OLMEDO
+    //visc_param[1] = 2.0 * damping_gamma * std::sqrt(equiv_mass * bond_equiv_young * Inertia_I / distance); // OLMEDO
+    //visc_param[2] = 2.0 * damping_gamma * std::sqrt(equiv_mass * bond_equiv_young * Inertia_J / distance); // OLMEDO
 
     double aux = (element->GetRadius() + neighbor->GetRadius()) / distance; // This is necessary because if spheres are not tangent the DeltaAngularVelocity has to be interpolated
  
@@ -828,16 +834,16 @@ void DEM_parallel_bond::ComputeParticleRotationalMoments(SphericContinuumParticl
     ElasticLocalRotationalMoment[1] = -kn_el / calculation_area * Inertia_I * LocalEffDeltaRotatedAngle[1];
     ElasticLocalRotationalMoment[2] = -kt_el / calculation_area * Inertia_J * LocalEffDeltaRotatedAngle[2];
 
-    ViscoLocalRotationalMoment[0] = -visc_param[0] * LocalEffDeltaAngularVelocity[0];
-    ViscoLocalRotationalMoment[1] = -visc_param[1] * LocalEffDeltaAngularVelocity[1];
-    ViscoLocalRotationalMoment[2] = -visc_param[2] * LocalEffDeltaAngularVelocity[2];
+    //ViscoLocalRotationalMoment[0] = -visc_param[0] * LocalEffDeltaAngularVelocity[0];
+    //ViscoLocalRotationalMoment[1] = -visc_param[1] * LocalEffDeltaAngularVelocity[1];
+    //ViscoLocalRotationalMoment[2] = -visc_param[2] * LocalEffDeltaAngularVelocity[2];
 
     //DEM_MULTIPLY_BY_SCALAR_3(ElasticLocalRotationalMoment, rotational_moment_coeff);
     //DEM_MULTIPLY_BY_SCALAR_3(ViscoLocalRotationalMoment, rotational_moment_coeff);
 
     // Bond rotational 'friction' based on particle rolling fricton 
     //Not damping but simple implementation to help energy dissipation
-    /*
+    
     double LocalElement1AngularVelocity[3] = {0.0};
     array_1d<double, 3> GlobalElement1AngularVelocity;
     noalias(GlobalElement1AngularVelocity) = element->GetGeometry()[0].FastGetSolutionStepValue(ANGULAR_VELOCITY);
@@ -876,8 +882,7 @@ void DEM_parallel_bond::ComputeParticleRotationalMoments(SphericContinuumParticl
         ViscoLocalRotationalMoment[0] = 0.0;
         ViscoLocalRotationalMoment[1] = 0.0;
         ViscoLocalRotationalMoment[2] = 0.0;
-    }
-    */
+    } 
      
     KRATOS_CATCH("")
 }//ComputeParticleRotationalMoments

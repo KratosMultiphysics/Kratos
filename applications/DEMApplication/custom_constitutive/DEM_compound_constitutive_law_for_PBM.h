@@ -41,6 +41,10 @@ public:
         return mCCL.CalculateViscoDampingForce(LocalRelVel, UnbondedViscoDampingLocalContactForce, element1, element2);                                            
     }
 
+    double GetTangentialStiffness() override {
+        return mCCL.GetTangentialStiffness();
+    }
+
 private:
 
     UnbondCL mCCL;

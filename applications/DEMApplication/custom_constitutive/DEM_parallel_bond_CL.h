@@ -179,6 +179,7 @@ namespace Kratos{
                                                     SphericContinuumParticle* element1,
                                                     SphericContinuumParticle* element2);
 
+        double GetTangentialStiffness() override;
 
         double mUnbondedLocalElasticContactForce2 = 0.0;
         double mUnbondedNormalElasticConstant = 0.0;

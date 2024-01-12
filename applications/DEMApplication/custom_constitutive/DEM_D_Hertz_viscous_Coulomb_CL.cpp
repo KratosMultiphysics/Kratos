@@ -392,4 +392,8 @@ namespace Kratos {
         inelastic_viscodamping_energy += viscodamping_energy;
     }
 
+    double DEM_D_Hertz_viscous_Coulomb::GetTangentialStiffness() {
+        return mKt;
+    }
+
 } // namespace Kratos

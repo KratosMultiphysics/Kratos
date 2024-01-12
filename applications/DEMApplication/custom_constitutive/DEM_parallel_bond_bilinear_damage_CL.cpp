@@ -125,7 +125,7 @@ void DEM_parallel_bond_bilinear_damage::CalculateForces(const ProcessInfo& r_pro
     const double delta_at_undamaged_peak_normal = bond_sigma_max * calculation_area / kn_el;
     const double delta_at_failure_point_normal = (2.0 * fracture_energy_normal) / bond_sigma_max;
 
-    if (std::abs(delta_at_failure_point_normal) < std::abs(delta_at_undamaged_peak_normal)){
+    if (std::abs(delta_at_failure_point_normal) < std::abs(delta_at_undamaged_peak_normal) && fracture_energy_normal){
         double suggested_fracture_energy = delta_at_undamaged_peak_normal * bond_sigma_max / 2.0;
         KRATOS_INFO("DEM") << "The [Fracture_energy_normal] is too small! It shouble be bigger than " << suggested_fracture_energy << std::endl;
         KRATOS_ERROR<< "The [Fracture_energy_normal] is too small!" << std::endl;
@@ -250,7 +250,7 @@ void DEM_parallel_bond_bilinear_damage::CalculateForces(const ProcessInfo& r_pro
             double max_tau_peak = bond_tau_zero + current_sigma * tan(internal_friction * Globals::Pi / 180.0);
             double delta_at_undamaged_peak_tangential = max_tau_peak * calculation_area / kt_el;
 
-            if (std::abs(delta_at_failure_point_tangential) < std::abs(delta_at_undamaged_peak_tangential)){
+            if (std::abs(delta_at_failure_point_tangential) < std::abs(delta_at_undamaged_peak_tangential) && fracture_energy_tangential){
                 double suggested_fracture_energy = delta_at_undamaged_peak_tangential * bond_tau_zero / 2.0;
                 KRATOS_INFO("DEM") << "The [Fracture_energy_tangential] is too small! It shouble be bigger than " << suggested_fracture_energy << std::endl;
                 KRATOS_ERROR<< "The [Fracture_energy_tangential] is too small!" << std::endl;

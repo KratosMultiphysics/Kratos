@@ -333,6 +333,13 @@ void SphericParticle::CalculateRightHandSide(const ProcessInfo& r_process_info, 
     total_moment[1] = mContactMoment[1] + additionally_applied_moment[1];
     total_moment[2] = mContactMoment[2] + additionally_applied_moment[2];
 
+    //for debug
+    //if (r_process_info[TIME] > 0.009394579999960167 && this->Id() == 12) {
+    //    KRATOS_WATCH(total_forces[0])
+    //    KRATOS_WATCH(total_forces[1])
+    //    KRATOS_WATCH(total_forces[2])
+    //}
+
     ApplyGlobalDampingToContactForcesAndMoments(total_forces, total_moment);
 
     #ifdef KRATOS_DEBUG
