@@ -2,27 +2,25 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 message("**** configuring KratosFluidDynamicsBiomedicalApplication ****")
 
+kratos_add_dependency(${KRATOS_SOURCE_DIR}/applications/FluidDynamicsApplication)
+
 include_directories( ${CMAKE_SOURCE_DIR}/kratos )
 include_directories( ${CMAKE_SOURCE_DIR}/kratos/applications/FluidDynamicsApplication)
 
 ## define application core sources (pure C++ parts)
-set( KRATOS_FLUID_DYNAMICS_BIOMEDICAL_APPLICATION_CORE_SOURCES
+file(GLOB_RECURSE KRATOS_FLUID_DYNAMICS_BIOMEDICAL_APPLICATION_CORE_SOURCES
 
   # application class and variables
   ${CMAKE_CURRENT_SOURCE_DIR}/fluid_dynamics_biomedical_application.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/fluid_dynamics_biomedical_application_variables.cpp
 
   # utilities
-  ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/parabolic_profile_utilities.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/wss_statistics_utilities.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/*.cpp
 
 )
 
 ## define python interface sources
-set( KRATOS_FLUID_DYNAMICS_BIOMEDICAL_PYTHON_INTERFACE_SOURCES
-  ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_utilities_to_python.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/fluid_dynamics_biomedical_python_application.cpp
-)
+file(GLOB_RECURSE KRATOS_FLUID_DYNAMICS_BIOMEDICAL_PYTHON_INTERFACE_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/*.cpp)
 
 ## define fluid dynamics biomedical test sources
 if(${KRATOS_BUILD_TESTING} MATCHES ON)
