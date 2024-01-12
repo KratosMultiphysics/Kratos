@@ -151,7 +151,7 @@ class ApplyHydraulicInletProcess(KratosMultiphysics.Process):
     def ExecuteFinalizeSolutionStep(self):
         # Here we free all of the nodes in the inlet
         if self.step_is_active:
-            KratosFluidHydraulics.HydraulicFluidAuxiliaryUtilities.FreeInletVelocity(
+            KratosFluidHydraulics.HydraulicFluidAuxiliaryUtilities.FreeInlet(
                 self.inlet_model_part)
         self.step_is_active = False
 

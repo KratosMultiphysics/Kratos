@@ -72,7 +72,7 @@ class ApplyHydraulicInletProcessTest(UnitTest.TestCase):
                 "water_depth_variable":"AUX_DISTANCE"
             }
         }""")
-        process = apply_hydraulic_inlet_process.Factory(settings, self.model)
+        process = apply_hydraulic_inlet_process.ApplyHydraulicInletProcess(self.model, settings["Parameters"])
 
         test_model_part = self.model.GetModelPart("TestModelPart")
         # Use inlet midpoint node as reference node
@@ -101,11 +101,10 @@ class ApplyHydraulicInletProcessTest(UnitTest.TestCase):
                 "inlet_model_part_name" : "TestModelPart.Inlet",
                 "value":"0.5+0.2*t",
                 "interval"        : [0.0,"End"],
-                "type":"",
                 "water_depth_variable":"AUX_DISTANCE"
             }
         }""")
-        process = apply_hydraulic_inlet_process.Factory(settings, self.model)
+        process = apply_hydraulic_inlet_process.ApplyHydraulicInletProcess(self.model, settings["Parameters"])
 
         test_model_part = self.model.GetModelPart("TestModelPart")
 
@@ -147,11 +146,10 @@ class ApplyHydraulicInletProcessTest(UnitTest.TestCase):
                     "filename": "aux_table.csv"
                 },
                 "interval"        : [0.0,"End"],
-                "type":"",
                 "water_depth_variable":"AUX_DISTANCE"
             }
         }""")
-        process = apply_hydraulic_inlet_process.Factory(settings, self.model)
+        process = apply_hydraulic_inlet_process.ApplyHydraulicInletProcess(self.model, settings["Parameters"])
 
         test_model_part = self.model.GetModelPart("TestModelPart")
 

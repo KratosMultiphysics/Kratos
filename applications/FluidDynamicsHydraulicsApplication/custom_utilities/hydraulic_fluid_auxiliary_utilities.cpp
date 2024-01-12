@@ -240,14 +240,13 @@ void HydraulicFluidAuxiliaryUtilities::SetInletVelocity(
     {
         array_1d<double,3> InletNorm;
         array_1d<double,3> InletVelocity;
-    }
+    };
 
-    auto aux_tls = AuxTLS(); 
-    block_for_each(rModelPart.Nodes(), aux_tls, [&](NodeType &rNode)
+    block_for_each(rModelPart.Nodes(), AuxTLS(), [&](NodeType &rNode, AuxTLS &rTLS)
     {
         // Get TLS variables
-        auto& inlet_norm = aux_tls.InletNorm;
-        auto& inlet_velocity = aux_tls.InletVelocity;
+        auto& inlet_norm = rTLS.InletNorm;
+        auto& inlet_velocity = rTLS.InletVelocity;
 
         // TODO: The normal of the inlet conditions is currently assigned to the DISPLACEMENT variable, but it should be associated with another variable to prevent data superimposition
         inlet_norm = rNode.GetValue(DISPLACEMENT);
