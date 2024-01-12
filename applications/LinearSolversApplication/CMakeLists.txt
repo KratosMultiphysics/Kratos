@@ -146,8 +146,8 @@ if(${INSTALL_TESTING_FILES} MATCHES ON )
 endif(${INSTALL_TESTING_FILES} MATCHES ON)
 
 # Install targets
-install( TARGETS KratosLinearSolversCore DESTINATION libs )
-install( TARGETS KratosLinearSolversApplication DESTINATION libs )
+install( TARGETS KratosLinearSolversCore DESTINATION lib )
+install( TARGETS KratosLinearSolversApplication DESTINATION lib )
 
 # Define custom targets
 set(KRATOS_KERNEL "${KRATOS_KERNEL};KratosLinearSolversCore" PARENT_SCOPE)

@@ -29,14 +29,14 @@ set_target_properties(KratosStructuralMechanicsCore PROPERTIES COMPILE_DEFINITIO
 if (${KRATOS_BUILD_TESTING} MATCHES ON)
     file(GLOB_RECURSE KRATOS_STRUCTURAL_MECHANICS_APPLICATION_TESTING_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/tests/cpp_tests/*.cpp)
 
-    add_executable(KratosStructuralMechanicsTests ${KRATOS_STRUCTURAL_MECHANICS_APPLICATION_TESTING_SOURCES})
+    add_executable(KratosStructuralMechanicsTest ${KRATOS_STRUCTURAL_MECHANICS_APPLICATION_TESTING_SOURCES})
 
-    target_link_libraries(KratosStructuralMechanicsTests PUBLIC KratosStructuralMechanicsCore KratosCoreTestUtilities GTest::gtest_main)
+    target_link_libraries(KratosStructuralMechanicsTest PUBLIC KratosStructuralMechanicsCore KratosCoreTestUtilities GTest::gtest_main)
 
-    install(TARGETS KratosStructuralMechanicsTests)
+    install(TARGETS KratosStructuralMechanicsTest)
 
     include(GoogleTest)
-#    gtest_discover_tests(KratosStructuralMechanicsTests)
+#    gtest_discover_tests(KratosStructuralMechanicsTest)
 	
 endif (${KRATOS_BUILD_TESTING} MATCHES ON)
 
@@ -79,8 +79,8 @@ install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/tests DESTINATION applications/${C
 )
 
 # Install targets
-install(TARGETS KratosStructuralMechanicsCore DESTINATION libs )
-install(TARGETS KratosStructuralMechanicsApplication DESTINATION libs )
+install(TARGETS KratosStructuralMechanicsCore DESTINATION lib)
+install(TARGETS KratosStructuralMechanicsApplication DESTINATION lib)
 
 # Define custom targets
 set(KRATOS_KERNEL "${KRATOS_KERNEL};KratosStructuralMechanicsCore" PARENT_SCOPE)

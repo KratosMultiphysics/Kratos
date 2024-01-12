@@ -651,8 +651,8 @@ kratos_python_install(${INSTALL_PYTHON_USING_LINKS} "${KRATOS_SOURCE_DIR}/kratos
 kratos_python_install(${INSTALL_PYTHON_USING_LINKS} "${KRATOS_SOURCE_DIR}/kratos/python_interface/python_registry_utilities.py" "KratosMultiphysics/python_registry_utilities.py" )
 
 # Install the libraries in the libs folder
-install(FILES ${Boost_LIBRARIES} DESTINATION libs)
-install(FILES ${EXTRA_INSTALL_LIBS} DESTINATION libs)
+install(FILES ${Boost_LIBRARIES} DESTINATION lib)
+install(FILES ${EXTRA_INSTALL_LIBS} DESTINATION lib)
 
 # Perform post-install tasks (add_subdirectory commands are guaranteed to be executed in order)
 add_subdirectory("scripts/post_install")
