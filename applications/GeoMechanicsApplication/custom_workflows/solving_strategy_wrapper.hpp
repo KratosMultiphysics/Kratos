@@ -137,6 +137,7 @@ public:
     }
 
     void FinalizeSolutionStep() override { return mpStrategy->FinalizeSolutionStep(); }
+
     void FinalizeOutput() override
     {
         if (mWriter) {

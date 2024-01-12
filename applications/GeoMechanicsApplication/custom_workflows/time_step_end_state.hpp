@@ -32,6 +32,7 @@ struct TimeStepEndState {
     {
         return convergence_state == ConvergenceState::converged;
     }
+
     [[nodiscard]] bool NonConverged() const
     {
         return convergence_state == ConvergenceState::non_converged;

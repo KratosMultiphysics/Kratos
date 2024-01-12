@@ -36,6 +36,7 @@ PenaltyBreakFirstLessLess: 300
 PenaltyExcessCharacter: 1
 PenaltyReturnTypeOnItsOwnLine: 1000
 PointerAlignment: Left
+SeparateDefinitionBlocks: Always
 SpaceBeforeAssignmentOperators: true
 SpaceBeforeParens: ControlStatements
 SpaceInEmptyParentheses: false
