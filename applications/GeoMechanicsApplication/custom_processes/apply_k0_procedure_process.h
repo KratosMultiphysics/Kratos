@@ -36,10 +36,11 @@ public:
     std::string Info() const override;
 
 private:
+    [[nodiscard]] bool ForcePlaxisCompatibility() const;
+    void CalculateK0Stresses(Element& rElement);
+
     ModelPart& mrModelPart;
     const Parameters mSettings;
-
-    void CalculateK0Stresses(Element& rElement);
 };
 
 } // namespace Kratos

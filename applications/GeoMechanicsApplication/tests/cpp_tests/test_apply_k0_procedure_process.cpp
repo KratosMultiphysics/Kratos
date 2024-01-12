@@ -18,13 +18,12 @@
 
 using namespace Kratos;
 
-namespace Kratos::Testing
+namespace
 {
 
-KRATOS_TEST_CASE_IN_SUITE(ExpectCouplingTermsWhenNotCompatibleWithPlaxis, KratosGeoMechanicsFastSuite)
+ModelPart& PrepareTestModelPart(Model& rModel)
 {
-    Model model;
-    auto& r_model_part = model.CreateModelPart("dummy");
+    auto& result = rModel.CreateModelPart("dummy");
 
     // Set up the test model part mesh
     auto p_point_1 = Kratos::make_intrusive<Node>(1, 0.0, 0.0, 0.0);
@@ -39,22 +38,68 @@ KRATOS_TEST_CASE_IN_SUITE(ExpectCouplingTermsWhenNotCompatibleWithPlaxis, Kratos
         "condition_name": "LineCondition",
         "create_skin_sub_model_part": true
     })");
-    StructuredMeshGeneratorProcess(domain_geometry, r_model_part, mesher_parameters).Execute();
+    StructuredMeshGeneratorProcess(domain_geometry, result, mesher_parameters).Execute();
 
-    auto p_dummy_law              = std::make_shared<StubLinearElasticLaw>();
-    auto& r_model_part_properties = r_model_part.GetProperties(0);
+    auto p_dummy_law              = std::make_shared<Testing::StubLinearElasticLaw>();
+    auto& r_model_part_properties = result.GetProperties(0);
     r_model_part_properties.SetValue(CONSTITUTIVE_LAW, p_dummy_law);
+
+    return result;
+}
+
+bool AllElementsHaveSameCouplingOption(const ModelPart::ElementsContainerType& rElements,
+                                       GeoLinearElasticLaw::Coupling ExpectedCouplingOption)
+{
+    return std::all_of(rElements.begin(), rElements.end(), [ExpectedCouplingOption](const auto& rElement) {
+        auto p_constitutive_law = dynamic_cast<const GeoLinearElasticLaw*>(
+            rElement.GetProperties().GetValue(CONSTITUTIVE_LAW).get());
+        return p_constitutive_law->GetCouplingBehavior() == ExpectedCouplingOption;
+    });
+}
+
+} // namespace
+
+namespace Kratos::Testing
+{
+
+KRATOS_TEST_CASE_IN_SUITE(ExpectCouplingTermsWhenForcePlaxisCompatibilityFlagIsNotDefined, KratosGeoMechanicsFastSuite)
+{
+    Model model;
+    auto& r_model_part = PrepareTestModelPart(model);
 
     Parameters k0_settings;
 
     ApplyK0ProcedureProcess process{r_model_part, k0_settings};
     process.ExecuteInitialize();
 
-    const auto& r_elements = r_model_part.Elements();
-    KRATOS_EXPECT_TRUE(std::all_of(r_elements.begin(), r_elements.end(), [](const auto& rElement) {
-        auto p_constitutive_law =
-            dynamic_cast<GeoLinearElasticLaw*>(rElement.GetProperties().GetValue(CONSTITUTIVE_LAW).get());
-        return p_constitutive_law->GetCouplingBehavior() == GeoLinearElasticLaw::Coupling::Yes;
-    }))
+    KRATOS_EXPECT_TRUE(AllElementsHaveSameCouplingOption(r_model_part.Elements(),
+                                                         GeoLinearElasticLaw::Coupling::Yes))
 }
+KRATOS_TEST_CASE_IN_SUITE(ExpectCouplingTermsWhenForcePlaxisCompatibilityFlagIsOff, KratosGeoMechanicsFastSuite)
+{
+    Model model;
+    auto& r_model_part = PrepareTestModelPart(model);
+
+    Parameters k0_settings{R"({"force_plaxis_compatibility": false})"};
+
+    ApplyK0ProcedureProcess process{r_model_part, k0_settings};
+    process.ExecuteInitialize();
+
+    KRATOS_EXPECT_TRUE(AllElementsHaveSameCouplingOption(r_model_part.Elements(),
+                                                         GeoLinearElasticLaw::Coupling::Yes))
+}
+
+KRATOS_TEST_CASE_IN_SUITE(ExpectNoCouplingTermsWhenForcePlaxisCompatibilityFlagIsOn, KratosGeoMechanicsFastSuite)
+{
+    Model model;
+    auto& r_model_part = PrepareTestModelPart(model);
+
+    Parameters k0_settings{R"({"force_plaxis_compatibility": true})"};
+
+    ApplyK0ProcedureProcess process{r_model_part, k0_settings};
+    process.ExecuteInitialize();
+
+    KRATOS_EXPECT_TRUE(AllElementsHaveSameCouplingOption(r_model_part.Elements(), GeoLinearElasticLaw::Coupling::No))
+}
+
 } // namespace Kratos::Testing

@@ -55,16 +55,16 @@ ApplyK0ProcedureProcess::ApplyK0ProcedureProcess(ModelPart& model_part, const Pa
 
 void ApplyK0ProcedureProcess::ExecuteInitialize()
 {
-    if (mSettings.Has("force_plaxis_compatibility")) {
-        // Start mimicking Plaxis' behavior
+    if (ForcePlaxisCompatibility()) {
         SetCoupledBehavior(mrModelPart.Elements(), GeoLinearElasticLaw::Coupling::No);
     }
 }
 
 void ApplyK0ProcedureProcess::ExecuteFinalize()
 {
-    // End mimicking Plaxis' behavior
-    SetCoupledBehavior(mrModelPart.Elements(), GeoLinearElasticLaw::Coupling::Yes);
+    if (ForcePlaxisCompatibility()) {
+        SetCoupledBehavior(mrModelPart.Elements(), GeoLinearElasticLaw::Coupling::Yes);
+    }
 }
 
 void ApplyK0ProcedureProcess::ExecuteFinalizeSolutionStep()
@@ -80,11 +80,17 @@ void ApplyK0ProcedureProcess::ExecuteFinalizeSolutionStep()
 
 std::string ApplyK0ProcedureProcess::Info() const { return "ApplyK0ProcedureProcess"; }
 
+bool ApplyK0ProcedureProcess::ForcePlaxisCompatibility() const
+{
+    const auto setting_name = std::string{"force_plaxis_compatibility"};
+    return mSettings.Has(setting_name) && mSettings[setting_name].GetBool();
+}
+
 void ApplyK0ProcedureProcess::CalculateK0Stresses(Element& rElement)
 {
     // Get K0 material parameters of this element ( probably there is something more efficient )
-    const Element::PropertiesType& rProp      = rElement.GetProperties();
-    const int k0_main_direction               = rProp[K0_MAIN_DIRECTION];
+    const Element::PropertiesType& rProp = rElement.GetProperties();
+    const int k0_main_direction          = rProp[K0_MAIN_DIRECTION];
     if (k0_main_direction < 0 || k0_main_direction > 1) {
         KRATOS_ERROR << "undefined K0_MAIN_DIRECTION in ApplyK0ProcedureProcess: " << k0_main_direction
                      << std::endl;
