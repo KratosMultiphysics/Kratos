@@ -24,6 +24,7 @@
 #include "spatial_containers/bins_dynamic.h"
 #include "utilities/rbf_shape_functions_utility.h"
 #include "utilities/divide_triangle_3d_3.h"
+#include "../../FluidDynamicsApplication/custom_utilities/fluid_auxiliary_utilities.h"
 
 // Application includes
 #include "hydraulic_fluid_auxiliary_utilities.h"
@@ -113,13 +114,15 @@ double HydraulicFluidAuxiliaryUtilities::CalculateWettedPetimeter(
             }
         }
         // Calculate de distance of each edge belonging to the perimeter.
-        for (auto it = edges_map.begin(); it != edges_map.end(); ++it) {
+        array_1d<double, 3> edge_vector;
+        for (auto it = edges_map.begin(); it != edges_map.end(); ++it)
+        {
             const auto& r_edge_data = it->second;
             const double distance_value_j = distance_getter(*(r_edge_data.pNodeJ), rDistanceVariable);
             const double distance_value_i = distance_getter(*(r_edge_data.pNodeI), rDistanceVariable);
             // Case 1: The edge is completly wetted
             if ((distance_value_i<0.0) && (distance_value_j<0.0) ){
-                const array_1d<double, 3> edge_vector = r_edge_data.pNodeJ->Coordinates() - r_edge_data.pNodeI->Coordinates();
+                edge_vector = r_edge_data.pNodeJ->Coordinates() - r_edge_data.pNodeI->Coordinates();
                 const double edge_length = norm_2(edge_vector);
                 wedded_perimeter += edge_length;
             }
@@ -129,7 +132,7 @@ double HydraulicFluidAuxiliaryUtilities::CalculateWettedPetimeter(
                 const double phi_neg = distance_value_i<0? distance_value_i: distance_value_j;
                 const double phi_pos = distance_value_i>0? distance_value_i: distance_value_j;
                 const double distance_int = std::abs(phi_neg)/ (std::abs(phi_neg)+  std::abs(phi_pos));
-                const array_1d<double, 3> edge_vector = r_edge_data.pNodeJ->Coordinates() - r_edge_data.pNodeI->Coordinates();
+                edge_vector = r_edge_data.pNodeJ->Coordinates() - r_edge_data.pNodeI->Coordinates();
                 const double edge_length = norm_2(edge_vector);
                 wedded_perimeter += distance_int*edge_length;
             }
@@ -181,7 +184,7 @@ double HydraulicFluidAuxiliaryUtilities::CalculateWettedArea(
                 // aux_distances[i_nodes] =distance_getter;
             }
             // Calculate the water area (wetted area) of the cut conditions
-            if (IsSplit(aux_distances))
+            if (FluidAuxiliaryUtilities::IsSplit(aux_distances))
             {
                 auto p_splitting_util = Kratos::make_unique<DivideTriangle3D3<NodeType>>(r_geom, aux_distances);
                 p_splitting_util->GenerateDivision();
@@ -191,7 +194,7 @@ double HydraulicFluidAuxiliaryUtilities::CalculateWettedArea(
                 }
             }
             // Calculate the water area (wetted area)
-            else if (IsNegative(aux_distances))
+            else if (FluidAuxiliaryUtilities::IsNegative(aux_distances))
             {
                 wetted_area += r_geom.Area();
             }
@@ -201,53 +204,31 @@ double HydraulicFluidAuxiliaryUtilities::CalculateWettedArea(
     return wetted_area;
 }
 
-bool HydraulicFluidAuxiliaryUtilities::IsSplit(const Vector &rConditionDistancesVector)
-{
-    std::size_t n_pos(0);
-    std::size_t n_neg(0);
-    const std::size_t pts_number = rConditionDistancesVector.size();
-    for (std::size_t i_node = 0; i_node < pts_number; ++i_node)
-    {
-        if (rConditionDistancesVector[i_node] > 0.0)
-            n_pos++;
-        else
-            n_neg++;
-    }
-    return (n_pos > 0 && n_neg > 0) ? true : false;
-}
-
-bool HydraulicFluidAuxiliaryUtilities::IsNegative(const Vector &rConditionDistancesVector)
-{
-    std::size_t n_neg(0);
-    const std::size_t pts_number = rConditionDistancesVector.size();
-    for (std::size_t i_node = 0; i_node < pts_number; ++i_node)
-    {
-        if (rConditionDistancesVector[i_node] < 0.0)
-            n_neg++;
-    }
-    return n_neg == pts_number;
-}
-
 double HydraulicFluidAuxiliaryUtilities::InitialWaterDepth(ModelPart &rModelPart)
 {
 
    //Determine the initial estimate for water depth by considering the average of the maximum and minimum coordinates.
-    KRATOS_WARNING("HydraulicFluidAuxiliaryUtilities") << "The water depth is assumed to be in the Z direction" << std::endl;
-    double max_value = std::numeric_limits<double>::lowest();
-    double min_value = std::numeric_limits<double>::max();
-    for (auto &r_node : rModelPart.Nodes())
-    {
-        if (r_node.Z() > max_value)
-        {
-            max_value = r_node.Z();
-        }
-        if (r_node.Z() < min_value)
-        {
-            min_value = r_node.Z();
-        }
-    }
-    double initial_water_depth = 0.5*std::abs(max_value-min_value);
-    return initial_water_depth;
+    KRATOS_INFO("HydraulicFluidAuxiliaryUtilities") << "The water depth is assumed to be in the Z direction" << std::endl;
+    // double max_value = std::numeric_limits<double>::lowest();
+    // double min_value = std::numeric_limits<double>::max();
+    // for (auto &r_node : rModelPart.Nodes())
+    // {
+    //     if (r_node.Z() > max_value)
+    //     {
+    //         max_value = r_node.Z();
+    //     }
+    //     if (r_node.Z() < min_value)
+    //     {
+    //         min_value = r_node.Z();
+    //     }
+    // }
+
+    double min_value, max_value;
+    std::tie(min_value, max_value) = block_for_each<CombinedReduction<MinReduction<double>,MaxReduction<double>>>(rModelPart.Nodes(), [](NodeType& rNode){
+        return std::make_tuple(rNode.Z(), rNode.Z());
+    });
+
+    return 0.5 * std::abs(max_value - min_value);
 }
 
 void HydraulicFluidAuxiliaryUtilities::SetInletVelocity(
@@ -255,10 +236,21 @@ void HydraulicFluidAuxiliaryUtilities::SetInletVelocity(
     double InletVelocity,
     const Variable<double> &rDistanceVariable)
 {
-    block_for_each(rModelPart.Nodes(), [&](NodeType &rNode)
+    struct AuxTLS
     {
+        array_1d<double,3> InletNorm;
+        array_1d<double,3> InletVelocity;
+    }
+
+    auto aux_tls = AuxTLS(); 
+    block_for_each(rModelPart.Nodes(), aux_tls, [&](NodeType &rNode)
+    {
+        // Get TLS variables
+        auto& inlet_norm = aux_tls.InletNorm;
+        auto& inlet_velocity = aux_tls.InletVelocity;
+
         // TODO: The normal of the inlet conditions is currently assigned to the DISPLACEMENT variable, but it should be associated with another variable to prevent data superimposition
-        array_1d<double,3> inlet_norm = rNode.GetValue(DISPLACEMENT);
+        inlet_norm = rNode.GetValue(DISPLACEMENT);
 
         const double n_norm = norm_2(inlet_norm);
         // Orient the velocity vector in the opposite direction of the outer normal to ensure it is directed inwards.
@@ -273,7 +265,7 @@ void HydraulicFluidAuxiliaryUtilities::SetInletVelocity(
             inlet_norm /= -1.0;
         }
         //  Inlet velocity vector.
-        array_1d<double,3> inlet_velocity = inlet_norm * InletVelocity;
+        inlet_velocity = inlet_norm * InletVelocity;
 
         //  Assign the velocity vector to each node representing water in the inlet condition and fix its value
         if (rNode.GetValue(rDistanceVariable) < 0.0)
@@ -294,7 +286,7 @@ void HydraulicFluidAuxiliaryUtilities::SetInletVelocity(
         }
     });
 }
-void HydraulicFluidAuxiliaryUtilities::FreeInletVelocity(ModelPart& rModelPart)
+void HydraulicFluidAuxiliaryUtilities::FreeInlet(ModelPart& rModelPart)
 {
     // Free the velocity.
     block_for_each(rModelPart.Nodes(), [](NodeType &rNode){

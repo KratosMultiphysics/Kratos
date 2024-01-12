@@ -4,10 +4,10 @@ import KratosMultiphysics.FluidDynamicsHydraulicsApplication as KratosFluidHydra
 from KratosMultiphysics.read_csv_table_utility import ReadCsvTableUtility
 import KratosMultiphysics.kratos_utilities as KratosUtils
 
-def Factory(settings, Model):
-    if(type(settings) != KratosMultiphysics.Parameters):
-        raise Exception("expected input shall be a Parameters object, encapsulating a json string")
-    return ApplyHydraulicInletProcess(Model, settings["Parameters"])
+# def Factory(settings, Model):
+#     if(type(settings) != KratosMultiphysics.Parameters):
+#         raise Exception("expected input shall be a Parameters object, encapsulating a json string")
+#     return ApplyHydraulicInletProcess(Model, settings["Parameters"])
 
 
 class ApplyHydraulicInletProcess(KratosMultiphysics.Process):
@@ -35,7 +35,7 @@ class ApplyHydraulicInletProcess(KratosMultiphysics.Process):
         self.inlet_model_part = Model[settings["inlet_model_part_name"].GetString()]
         variable_name =settings["water_depth_variable"].GetString()
         self.water_depth_variable = KratosMultiphysics.KratosGlobals.GetVariable(variable_name)
-        self.bisection_tolerance = settings["critical_depth_tolerance"].GetDouble()
+        self.critical_depth_tolerance = settings["critical_depth_tolerance"].GetDouble()
         self.water_depth_tolerance = settings["water_depth_tolerance"].GetDouble()
         self.maximum_iterations = settings["maximum_iterations"].GetDouble()
 
@@ -121,7 +121,7 @@ class ApplyHydraulicInletProcess(KratosMultiphysics.Process):
 
         #  Bisection method.
         iter_count = 0
-        while (abs(froude_number_c - 1) > self.bisection_tolerance) and iter_count < self.maximum_iterations:
+        while (abs(froude_number_c - 1) > self.critical_depth_tolerance) and iter_count < self.maximum_iterations:
             water_depth_c = 0.5*(water_depth_a+water_depth_b)
             froude_number_c = self.CalculateFroudeNumber(water_depth_c)
             if (froude_number_c-1)*(froude_number_a-1)<0:

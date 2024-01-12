@@ -22,6 +22,7 @@
 #include "includes/ublas_interface.h"
 #include "includes/global_pointer_variables.h"
 #include "modified_shape_functions/modified_shape_functions.h"
+#include "../../FluidDynamicsApplication/custom_utilities/fluid_auxiliary_utilities.h"
 
 // Application includes
 #include "hydraulic_fluid_auxiliary_utilities.h"
@@ -62,7 +63,7 @@ public:
      * @param rSkinFlag Flag that marks the conditions to be included in the calculation
      * @param rDistanceVariable Reference to the variable containing the distance
      * @param IsHistorical True if the distance is in the historical database, false otherwise
-     * @return
+     * @return Wetted perimeter 
      */
     static double CalculateWettedPetimeter(
         ModelPart &rModelPart,
@@ -78,32 +79,13 @@ public:
      * @param rSkinFlag Flag that marks the conditions to be included in the calculation
      * @param rDistanceVariable Reference to the variable containing the distance
      * @param IsHistorical True if the distance is in the historical database, false otherwise
-     * @return
+     * @return Wetted area
      */
     static double CalculateWettedArea(
         ModelPart &rModelPart,
         const Flags &rSkinFlag,
         const Variable<double> &rDistanceVariable,
         const bool IsHistorical);
-    ///@}
-    ///@{
-    /**
-     * @brief Checks if an element is split
-     * From the given vector containing the distance in each node, this method checks if the element is split
-     * @param rConditionDistancesVector Vector containing the distance values at each node
-     * @return true The element is split
-     * @return false The element is not split
-     */
-    static inline bool IsSplit(const Vector &rConditionDistancesVector);
-
-    /**
-     * @brief Checks if an element is negative
-     * From the given vector containing the distance in each node, this method checks if the element is negative
-     * @param rConditionDistancesVector Vector containing the distance values at each node
-     * @return true The element is negative
-     * @return false The element is not negative
-     */
-    static inline bool IsNegative(const Vector &rConditionDistancesVector);
 
     /**
      * @brief Calculates initial water depth guess by taking the average between the maximum and minimum coordinates.
@@ -125,7 +107,7 @@ public:
      * @brief Free the inlet velocity in the nodes belonging to inlet model part.
      * @param  rModelPart Inlet Model Part
      */
-    static void FreeInletVelocity(ModelPart& rModelPart);
+    static void FreeInlet(ModelPart& rModelPart);
 
     /**
      * @brief  Set the free surface (DISTANCE) in the rModelPart equal to the water depth corresponding to Froude 1

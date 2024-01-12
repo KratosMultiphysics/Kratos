@@ -48,14 +48,6 @@ class HydraulicFluidAuxiliaryUtilitiesTest(UnitTest.TestCase):
         inlet_model_part.CreateNewCondition("SurfaceCondition3D3N", 7, [5, 6, 8], prop_0)
         inlet_model_part.CreateNewCondition("SurfaceCondition3D3N", 8, [6, 9, 8], prop_0)
 
-        # Add velocity DOFs
-        for node in test_model_part.Nodes:
-            node.AddDof(Kratos.VELOCITY_X)
-            node.AddDof(Kratos.VELOCITY_Y)
-            node.AddDof(Kratos.VELOCITY_Z)
-            node.AddDof(Kratos.DISTANCE)
-
-
     def testCalculateWettedPerimeter(self):
 
         inlet_skin_model_part = self.model.GetModelPart("TestModelPart.Inlet")
