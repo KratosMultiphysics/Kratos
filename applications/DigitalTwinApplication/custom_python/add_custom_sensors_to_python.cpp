@@ -23,6 +23,7 @@
 #include "custom_sensors/sensor_view.h"
 #include "custom_sensors/measurement_residual_response_function.h"
 #include "custom_sensors/displacement_sensor.h"
+#include "custom_sensors/strain_sensor.h"
 
 // Include base h
 #include "custom_python/add_custom_sensors_to_python.h"
@@ -113,6 +114,27 @@ void  AddCustomSensorsToPython(pybind11::module& m)
             py::arg("direction"),
             py::arg("element"),
             py::arg("weight"))
+        .def_static("GetDefaultParameters", &DisplacementSensor::GetDefaultParameters)
+        ;
+
+    auto strain_sensor = py::class_<StrainSensor, StrainSensor::Pointer, Sensor>(sensor_module, "StrainSensor");
+    py::enum_<StrainSensor::StrainType>(strain_sensor, "StrainType")
+        .value("STRAIN_XX", StrainSensor::StrainType::STRAIN_XX)
+        .value("STRAIN_YY", StrainSensor::StrainType::STRAIN_YY)
+        .value("STRAIN_ZZ", StrainSensor::StrainType::STRAIN_ZZ)
+        .value("STRAIN_XY", StrainSensor::StrainType::STRAIN_XY)
+        .value("STRAIN_XZ", StrainSensor::StrainType::STRAIN_XZ)
+        .value("STRAIN_YZ", StrainSensor::StrainType::STRAIN_YZ)
+        .export_values();
+    strain_sensor
+        .def(py::init<const std::string&,const Point&, const Variable<Matrix>&, const StrainSensor::StrainType&, const Element&,const double>(),
+            py::arg("name"),
+            py::arg("location"),
+            py::arg("strain_variable"),
+            py::arg("strain_type"),
+            py::arg("element"),
+            py::arg("weight"))
+        .def_static("GetDefaultParameters", &StrainSensor::GetDefaultParameters)
         ;
 }
 
