@@ -63,6 +63,8 @@ public:
     ///@name Operations
     ///@{
 
+    static Parameters GetDefaultParameters();
+
     const Parameters GetSensorParameters() const override;
 
     double CalculateValue(ModelPart& rModelPart) override;

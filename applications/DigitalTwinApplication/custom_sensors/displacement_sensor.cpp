@@ -68,6 +68,20 @@ const Parameters DisplacementSensor::GetSensorParameters() const
     return parameters;
 }
 
+Parameters DisplacementSensor::GetDefaultParameters()
+{
+    return Parameters(R"(
+    {
+        "type"         : "displacement_sensor",
+        "name"         : "",
+        "value"        : 0,
+        "location"     : [0.0, 0.0, 0.0],
+        "direction"    : [0.0, 0.0, 0.0],
+        "weight"       : 1.0,
+        "variable_data": {}
+    })" );
+}
+
 double DisplacementSensor::CalculateValue(ModelPart& rModelPart)
 {
     double directional_displacement = 0.0;
