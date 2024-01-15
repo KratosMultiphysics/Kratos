@@ -673,7 +673,7 @@ public:
     }
 
     /**
-     * @brief Organises the dofset in order to speed up the building phase
+     * @brief Organizes the DoF set in order to speed up the building phase
      *          Sets equation id for degrees of freedom
      * @param rModelPart The model part of the problem to solve
      */
@@ -694,14 +694,14 @@ public:
         int free_offset;
         int global_size;
 
-        // The correspounding offset by the sum of the sizes in thread with
+        // The corresponding offset by the sum of the sizes in thread with
         // inferior current_rank
         free_offset = r_data_comm.ScanSum(free_size);
 
         // The total size by the sum of all size in all threads
         global_size = r_data_comm.SumAll(free_size);
 
-        // Finding the offset for the begining of the partition
+        // Finding the offset for the beginning of the partition
         free_offset -= free_size;
 
         // Now setting the equation id with .
@@ -733,7 +733,7 @@ public:
     /**
      * @brief Resizes the system matrix and the vector according to the number
      * of dos in the current rModelPart. This function also decides on the
-     * sparsity pattern and the graph of the trilinos csr matrix
+     * sparsity pattern and the graph of the Trilinos csr matrix
      * @param pScheme The integration scheme considered
      * @param rpA The LHS matrix
      * @param rpDx The Unknowns vector
@@ -774,7 +774,7 @@ public:
      * @param pScheme The pointer to the integration scheme
      * @param rModelPart The model part to compute
      * @param rA The LHS matrix of the system of equations
-     * @param rDx The vector of unkowns
+     * @param rDx The vector of unknowns
      * @param rb The RHS vector of the system of equations
      */
     void CalculateReactions(
