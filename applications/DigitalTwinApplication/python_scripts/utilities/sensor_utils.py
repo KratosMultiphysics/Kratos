@@ -31,31 +31,24 @@ def GetSensors(model_part: Kratos.ModelPart, list_of_parameters: 'list[Kratos.Pa
     """
     point_locator = Kratos.BruteForcePointLocator(model_part)
 
-    defaults_map:'dict[str, Kratos.Parameters]' = {
-            "displacement_sensor": Kratos.Parameters(
-                                        """{
-                                                "type"         : "displacement_sensor",
-                                                "name"         : "",
-                                                "value"        : 0,
-                                                "location"     : [0.0, 0.0, 0.0],
-                                                "direction"    : [0.0, 0.0, 0.0],
-                                                "weight"       : 1.0,
-                                                "variable_data": {}
-                                        }""")
-    }
+    dict_of_sensor_types: 'dict[str, typing.Type[KratosDT.Sensors.Sensor]]' = {}
+    for sensor_type_name in dir(KratosDT.Sensors):
+        sensor_type = getattr(KratosDT.Sensors, sensor_type_name)
+        if sensor_type_name.endswith("Sensor") and issubclass(sensor_type, KratosDT.Sensors.Sensor):
+            dict_of_sensor_types[Kratos.StringUtilities.ConvertCamelCaseToSnakeCase(sensor_type_name)] = sensor_type
 
     list_of_sensors: 'list[KratosDT.Sensors.Sensor]' = []
     shape_funcs = Kratos.Vector()
     for parameters in list_of_parameters:
         if not parameters.Has("type"):
             raise RuntimeError(f"The sensor parameters does not contain \"type\".")
-        sensor_type = parameters["type"].GetString()
+        sensor_type_name = parameters["type"].GetString()
 
-        if not sensor_type in defaults_map.keys():
-            raise RuntimeError(f"Unsupported sensor type = \"{sensor_type}\" requested. Followings are supported:\n\t" + "\n\t".join(defaults_map.keys()))
-        parameters.ValidateAndAssignDefaults(defaults_map[sensor_type])
+        if not sensor_type_name in dict_of_sensor_types.keys():
+            raise RuntimeError(f"Unsupported sensor type = \"{sensor_type_name}\" requested. Followings are supported:\n\t" + "\n\t".join(dict_of_sensor_types.keys()))
+        parameters.ValidateAndAssignDefaults(dict_of_sensor_types[sensor_type_name].GetDefaultParameters())
 
-        if sensor_type == "displacement_sensor":
+        if sensor_type_name == "displacement_sensor":
             name = parameters["name"].GetString()
             loc = parameters["location"].GetVector()
             loc = Kratos.Point(loc[0], loc[1], loc[2])
@@ -63,6 +56,29 @@ def GetSensors(model_part: Kratos.ModelPart, list_of_parameters: 'list[Kratos.Pa
             direction = parameters["direction"].GetVector()
             elem_id = point_locator.FindElement(loc, shape_funcs, Kratos.Configuration.Initial, 1e-8)
             sensor = KratosDT.Sensors.DisplacementSensor(name, loc, direction, model_part.GetElement(elem_id), weight)
+            AddSensorVariableData(sensor, parameters["variable_data"])
+            list_of_sensors.append(sensor)
+        elif sensor_type_name == "strain_sensor":
+            name = parameters["name"].GetString()
+            loc = parameters["location"].GetVector()
+            loc = Kratos.Point(loc[0], loc[1], loc[2])
+            weight = parameters["weight"].GetDouble()
+            strain_variable: Kratos.MatrixVariable = Kratos.KratosGlobals.GetVariable(parameters["strain_variable"].GetString())
+            strain_type = parameters["strain_type"].GetString()
+            if strain_type == "strain_xx":
+                strain_type_value = KratosDT.Sensors.StrainSensor.STRAIN_XX
+            elif strain_type == "strain_yy":
+                strain_type_value = KratosDT.Sensors.StrainSensor.STRAIN_YY
+            elif strain_type == "strain_zz":
+                strain_type_value = KratosDT.Sensors.StrainSensor.STRAIN_ZZ
+            elif strain_type == "strain_xy":
+                strain_type_value = KratosDT.Sensors.StrainSensor.STRAIN_XY
+            elif strain_type == "strain_xz":
+                strain_type_value = KratosDT.Sensors.StrainSensor.STRAIN_XZ
+            elif strain_type == "strain_yz":
+                strain_type_value = KratosDT.Sensors.StrainSensor.STRAIN_YZ
+            elem_id = point_locator.FindElement(loc, shape_funcs, Kratos.Configuration.Initial, 1e-8)
+            sensor = KratosDT.Sensors.StrainSensor(name, loc, strain_variable, strain_type_value, model_part.GetElement(elem_id), weight)
             AddSensorVariableData(sensor, parameters["variable_data"])
             list_of_sensors.append(sensor)
     return list_of_sensors
