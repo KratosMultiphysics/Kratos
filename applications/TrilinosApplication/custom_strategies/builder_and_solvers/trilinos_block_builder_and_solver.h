@@ -1232,7 +1232,7 @@ protected:
                 KRATOS_ERROR_IF(ierr < 0) << ": Epetra failure in Graph.InsertGlobalIndices. Error code: " << ierr << std::endl;
             }
 
-            // Vector containing indices belonging to slave DoFs, not used for graph, but for master/slave index identifiaction
+            // Vector containing indices belonging to slave DoFs, not used for graph, but for master/slave index identification
             std::unordered_set<std::size_t> indices;
 
             // TODO: Check if these should be local constraints
