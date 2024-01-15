@@ -50,12 +50,12 @@ public:
 
     enum StrainType
     {
-        STRAIN_XX,
-        STRAIN_YY,
-        STRAIN_ZZ,
-        STRAIN_XY,
-        STRAIN_XZ,
-        STRAIN_YZ
+        STRAIN_XX = 0,
+        STRAIN_YY = 4,
+        STRAIN_ZZ = 8,
+        STRAIN_XY = 1,
+        STRAIN_XZ = 2,
+        STRAIN_YZ = 5
     };
 
     ///@}
@@ -185,7 +185,6 @@ private:
         const Variable<double>& rPerturbationVariable,
         ModelPart::NodeType& rNode,
         ModelPart::ElementType& rElement,
-        Matrix& rStrainSensitivities,
         std::vector<Matrix>& rPerturbedStrains,
         const std::vector<Matrix>& rRefStrains,
         const ProcessInfo& rProcessInfo) const;
