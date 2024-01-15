@@ -3,6 +3,10 @@
 
 abstract class Scheme
 class GeoMechanicsTimeIntegrationScheme
+{
+    std::vector<FirstOrderScalarVariable> firstOrderScalarVariables;
+    std::vector<SecondOrderVectorVariable> secondOrderVectorVariables;
+}
 Scheme <|-- GeoMechanicsTimeIntegrationScheme
 
 class BackwardEulerScheme
