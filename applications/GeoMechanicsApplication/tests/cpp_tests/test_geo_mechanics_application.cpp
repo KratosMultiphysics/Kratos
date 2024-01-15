@@ -34,8 +34,6 @@ KRATOS_TEST_CASE_IN_SUITE(ThermalAnalysisVariablesExistAfterRegistration, Kratos
                                                          "THERMAL_CONDUCTIVITY_SOLID_XY",
                                                          "THERMAL_CONDUCTIVITY_SOLID_YZ",
                                                          "THERMAL_CONDUCTIVITY_SOLID_XZ",
-                                                         "LONGITUDINAL_DISPERSIVITY",
-                                                         "TRANSVERSE_DISPERSIVITY",
                                                          "SOLID_COMPRESSIBILITY",
                                                          "DT_TEMPERATURE_COEFFICIENT",
                                                          "DT_TEMPERATURE",
