@@ -611,10 +611,207 @@ namespace Kratos::Testing
                 auto pnode2 = rModelPart.pGetNode(2);
                 rModelPart.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", 1, *pnode1, DISPLACEMENT_Y, *pnode2, DISPLACEMENT_Y, 1.0, 0.0);
             }
-
-            // Compute communication plan and fill communicator meshes correctly
-            ParallelFillCommunicator(rModelPart, rDataCommunicator).Execute();
         }
+
+        // Compute communication plan and fill communicator meshes correctly
+        ParallelFillCommunicator(rModelPart, rDataCommunicator).Execute();
+    }
+
+    /**
+    * @brief It generates a truss structure with an expected solution
+    */
+    static inline bool StructuralTestBuilderAndSolverDisplacement(
+        ModelPart& rModelPart,
+        const DataCommunicator& rDataCommunicator,
+        const bool InvertLocationConstraint = false
+        )
+    {
+        // Check structural app is compiled
+        if (!KratosComponents<Element>::Has("SmallDisplacementElement3D8N")) {
+            return false;
+        }
+
+        // Add variables
+        rModelPart.AddNodalSolutionStepVariable(DISPLACEMENT);
+        rModelPart.AddNodalSolutionStepVariable(VELOCITY);
+        rModelPart.AddNodalSolutionStepVariable(ACCELERATION);
+        rModelPart.AddNodalSolutionStepVariable(REACTION);
+        rModelPart.AddNodalSolutionStepVariable(VOLUME_ACCELERATION);
+        rModelPart.AddNodalSolutionStepVariable(PARTITION_INDEX);
+
+        // MPI data
+        const int rank = rDataCommunicator.Rank();
+        const int world_size = rDataCommunicator.Size();
+
+        // Fill model part
+        const double length_cube = 1.0;
+        auto& r_sub_model_part_1 = rModelPart.CreateSubModelPart("1");
+        auto& r_sub_model_part_2 = rModelPart.CreateSubModelPart("2");
+        if (rank == 0) {
+            // Create nodes
+            r_sub_model_part_1.CreateNewNode(1, 0.0, length_cube, length_cube);
+            r_sub_model_part_1.CreateNewNode(2, 0.0, length_cube, 0.0);
+            r_sub_model_part_1.CreateNewNode(3, 0.0, 0.0, length_cube);
+            r_sub_model_part_1.CreateNewNode(4, length_cube, length_cube, length_cube);
+            r_sub_model_part_1.CreateNewNode(5, 0.0, 0.0, 0.0);
+            r_sub_model_part_1.CreateNewNode(6, length_cube, length_cube, 0.0);
+            r_sub_model_part_1.CreateNewNode(7, length_cube, 0.0, length_cube);
+            r_sub_model_part_1.CreateNewNode(8, length_cube, 0.0, 0.0);
+            r_sub_model_part_1.CreateNewNode(9, 2 * length_cube, length_cube, length_cube);
+            r_sub_model_part_1.CreateNewNode(10, 2 * length_cube, length_cube, 0.0);
+            r_sub_model_part_1.CreateNewNode(11, 2 * length_cube, 0.0, length_cube);
+            r_sub_model_part_1.CreateNewNode(12, 2 * length_cube, 0.0, 0.0);
+
+            /// Add PARTITION_INDEX
+            for (auto& r_node : rModelPart.Nodes()) {
+                r_node.FastGetSolutionStepValue(PARTITION_INDEX) = rank;
+            }
+
+            // Other nodes
+            if (!InvertLocationConstraint || world_size == 1) {
+                const int other_nodes_rank = world_size == 1 ? 0 : 1;
+                r_sub_model_part_2.CreateNewNode(13, 0.0, length_cube, length_cube)->FastGetSolutionStepValue(PARTITION_INDEX) = other_nodes_rank;
+                r_sub_model_part_2.CreateNewNode(14, 0.0, 0.0, length_cube)->FastGetSolutionStepValue(PARTITION_INDEX) = other_nodes_rank;
+                r_sub_model_part_2.CreateNewNode(15, length_cube, length_cube, length_cube)->FastGetSolutionStepValue(PARTITION_INDEX) = other_nodes_rank;
+                r_sub_model_part_2.CreateNewNode(16, length_cube, 0.0, length_cube)->FastGetSolutionStepValue(PARTITION_INDEX) = other_nodes_rank;
+                r_sub_model_part_2.CreateNewNode(17, 2 * length_cube, length_cube, length_cube)->FastGetSolutionStepValue(PARTITION_INDEX) = other_nodes_rank;
+                r_sub_model_part_2.CreateNewNode(18, 2 * length_cube, 0.0, length_cube)->FastGetSolutionStepValue(PARTITION_INDEX) = other_nodes_rank;
+            }
+        } else if (rank == 1) {
+            // Create nodes
+            r_sub_model_part_2.CreateNewNode(13, 0.0, length_cube, length_cube);
+            r_sub_model_part_2.CreateNewNode(14, 0.0, 0.0, length_cube);
+            r_sub_model_part_2.CreateNewNode(15, length_cube, length_cube, length_cube);
+            r_sub_model_part_2.CreateNewNode(16, length_cube, 0.0, length_cube);
+            r_sub_model_part_2.CreateNewNode(17, 2 * length_cube, length_cube, length_cube);
+            r_sub_model_part_2.CreateNewNode(18, 2 * length_cube, 0.0, length_cube);
+
+            /// Add PARTITION_INDEX
+            for (auto& r_node : r_sub_model_part_2.Nodes()) {
+                r_node.FastGetSolutionStepValue(PARTITION_INDEX) = rank;
+            }
+
+            // Other nodes
+            if (InvertLocationConstraint) {
+                const int other_nodes_rank = 0;
+                r_sub_model_part_1.CreateNewNode(1, 0.0, length_cube, length_cube)->FastGetSolutionStepValue(PARTITION_INDEX) = other_nodes_rank;
+                r_sub_model_part_1.CreateNewNode(3, 0.0, 0.0, length_cube)->FastGetSolutionStepValue(PARTITION_INDEX) = other_nodes_rank;
+                r_sub_model_part_1.CreateNewNode(4, length_cube, length_cube, length_cube)->FastGetSolutionStepValue(PARTITION_INDEX) = other_nodes_rank;
+                r_sub_model_part_1.CreateNewNode(7, length_cube, 0.0, length_cube)->FastGetSolutionStepValue(PARTITION_INDEX) = other_nodes_rank;
+                r_sub_model_part_1.CreateNewNode(9, 2 * length_cube, length_cube, length_cube)->FastGetSolutionStepValue(PARTITION_INDEX) = other_nodes_rank;
+                r_sub_model_part_1.CreateNewNode(11, 2 * length_cube, 0.0, length_cube)->FastGetSolutionStepValue(PARTITION_INDEX) = other_nodes_rank;
+            }
+        }
+
+        /// Add dof
+        for (auto& r_node : rModelPart.Nodes()) {
+            r_node.AddDof(DISPLACEMENT_X, REACTION_X);
+            r_node.AddDof(DISPLACEMENT_Y, REACTION_Y);
+            r_node.AddDof(DISPLACEMENT_Z, REACTION_Z);
+        }
+
+        // Add elements
+        auto p_prop0 = rModelPart.CreateNewProperties(0);
+        auto p_prop1 = rModelPart.CreateNewProperties(1);
+        if (rank == 0) {
+            // Create properties
+            p_prop0->SetValue(YOUNG_MODULUS,1.0e6);
+            p_prop0->SetValue(POISSON_RATIO,0.0);
+            p_prop0->SetValue(DENSITY,1.0);
+            const auto& r_clone_cl = KratosComponents<ConstitutiveLaw>::Get("LinearElastic3DLaw");
+            p_prop0->SetValue(CONSTITUTIVE_LAW, r_clone_cl.Clone());
+
+            // Create elements
+            rModelPart.CreateNewElement("SmallDisplacementElement3D8N", 1, {5,8,6,2,3,7,4,1}, p_prop0);
+            rModelPart.CreateNewElement("SmallDisplacementElement3D8N", 2, {8,12,10,6,7,11,9,4}, p_prop0);
+        }
+
+        if (rank == 1 || world_size == 1) {
+            // Create properties
+            p_prop1->SetValue(YOUNG_MODULUS,1.0e6);
+            p_prop1->SetValue(POISSON_RATIO,0.0);
+            p_prop1->SetValue(DENSITY,1.0);
+            p_prop1->SetValue(THICKNESS,0.01);
+            const auto& r_clone_cl = KratosComponents<ConstitutiveLaw>::Get("LinearElasticPlaneStress2DLaw");
+            p_prop1->SetValue(CONSTITUTIVE_LAW, r_clone_cl.Clone());
+
+            // Create elements
+            rModelPart.CreateNewElement("MembraneElement3D4N", 3, {14,16,15,13}, p_prop1);
+            rModelPart.CreateNewElement("MembraneElement3D4N", 4, {16,18,17,15}, p_prop1);
+        }
+
+        /// Initialize elements
+        const auto& r_process_info = rModelPart.GetProcessInfo();
+        for (auto& elem : rModelPart.Elements()) {
+            elem.Initialize(r_process_info);
+            elem.InitializeSolutionStep(r_process_info);
+        }
+
+        // Set initial solution
+        for (auto& r_node : rModelPart.Nodes()) {
+            (r_node.FastGetSolutionStepValue(DISPLACEMENT)).clear();
+            (r_node.FastGetSolutionStepValue(DISPLACEMENT, 1)).clear();
+            (r_node.FastGetSolutionStepValue(DISPLACEMENT, 2)).clear();
+        }
+
+        // Fix dofs
+        for (auto& r_node : r_sub_model_part_1.Nodes()) {
+            if (r_node.X() < 0.01) {
+                r_node.Fix(DISPLACEMENT_X);
+                r_node.Fix(DISPLACEMENT_Y);
+                r_node.Fix(DISPLACEMENT_Z);
+            } else if (r_node.X() > 2 * length_cube - 0.01) {
+                r_node.Fix(DISPLACEMENT_X);
+                r_node.FastGetSolutionStepValue(DISPLACEMENT_X) = 0.01;
+                r_node.Fix(DISPLACEMENT_Y);
+                r_node.Fix(DISPLACEMENT_Z);
+            }
+        }
+
+        // Adding constraint
+        bool add_constraint = false;
+        if (InvertLocationConstraint) {
+            add_constraint = (rank == 1) || (world_size == 1);
+        } else {
+            add_constraint = (rank == 0) || (world_size == 1);
+        }
+        if (add_constraint) {
+            auto pnode1 = rModelPart.pGetNode(1);
+            auto pnode13 = rModelPart.pGetNode(13);
+            rModelPart.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", 1, *pnode1, DISPLACEMENT_X, *pnode13, DISPLACEMENT_X, 1.0, 0.0);
+            rModelPart.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", 2, *pnode1, DISPLACEMENT_Y, *pnode13, DISPLACEMENT_Y, 1.0, 0.0);
+            rModelPart.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", 3, *pnode1, DISPLACEMENT_Z, *pnode13, DISPLACEMENT_Z, 1.0, 0.0);
+            auto pnode3 = rModelPart.pGetNode(3);
+            auto pnode14 = rModelPart.pGetNode(14);
+            rModelPart.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", 4, *pnode3, DISPLACEMENT_X, *pnode14, DISPLACEMENT_X, 1.0, 0.0);
+            rModelPart.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", 5, *pnode3, DISPLACEMENT_Y, *pnode14, DISPLACEMENT_Y, 1.0, 0.0);
+            rModelPart.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", 6, *pnode3, DISPLACEMENT_Z, *pnode14, DISPLACEMENT_Z, 1.0, 0.0);
+            auto pnode4 = rModelPart.pGetNode(4);
+            auto pnode15 = rModelPart.pGetNode(15);
+            rModelPart.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", 7, *pnode4, DISPLACEMENT_X, *pnode15, DISPLACEMENT_X, 1.0, 0.0);
+            rModelPart.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", 8, *pnode4, DISPLACEMENT_Y, *pnode15, DISPLACEMENT_Y, 1.0, 0.0);
+            rModelPart.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", 9, *pnode4, DISPLACEMENT_Z, *pnode15, DISPLACEMENT_Z, 1.0, 0.0);
+            auto pnode7 = rModelPart.pGetNode(7);
+            auto pnode16 = rModelPart.pGetNode(16);
+            rModelPart.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", 10, *pnode7, DISPLACEMENT_X, *pnode16, DISPLACEMENT_X, 1.0, 0.0);
+            rModelPart.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", 11, *pnode7, DISPLACEMENT_Y, *pnode16, DISPLACEMENT_Y, 1.0, 0.0);
+            rModelPart.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", 12, *pnode7, DISPLACEMENT_Z, *pnode16, DISPLACEMENT_Z, 1.0, 0.0);
+            auto pnode9 = rModelPart.pGetNode(9);
+            auto pnode17 = rModelPart.pGetNode(17);
+            rModelPart.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", 13, *pnode9, DISPLACEMENT_X, *pnode17, DISPLACEMENT_X, 1.0, 0.0);
+            rModelPart.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", 14, *pnode9, DISPLACEMENT_Y, *pnode17, DISPLACEMENT_Y, 1.0, 0.0);
+            rModelPart.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", 15, *pnode9, DISPLACEMENT_Z, *pnode17, DISPLACEMENT_Z, 1.0, 0.0);
+            auto pnode11 = rModelPart.pGetNode(11);
+            auto pnode18 = rModelPart.pGetNode(18);
+            rModelPart.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", 16, *pnode11, DISPLACEMENT_X, *pnode18, DISPLACEMENT_X, 1.0, 0.0);
+            rModelPart.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", 17, *pnode11, DISPLACEMENT_Y, *pnode18, DISPLACEMENT_Y, 1.0, 0.0);
+            rModelPart.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", 18, *pnode11, DISPLACEMENT_Z, *pnode18, DISPLACEMENT_Z, 1.0, 0.0);
+        }
+
+        // Compute communication plan and fill communicator meshes correctly
+        ParallelFillCommunicator(rModelPart, rDataCommunicator).Execute();
+
+        return true;
     }
 
     static TrilinosSparseSpaceType::MatrixType BuildSystem(
@@ -652,13 +849,13 @@ namespace Kratos::Testing
         return rA;
     }
 
-    // static void DebugLHS(const TrilinosSparseSpaceType::MatrixType& rA)
-    // {
-    //     std::vector<int> row_indexes;
-    //     std::vector<int> column_indexes;
-    //     std::vector<double> values;
-    //     TrilinosCPPTestUtilities::GenerateSparseMatrixIndexAndValuesVectors(rA, row_indexes, column_indexes, values, true, 0.99);
-    // }
+    static void DebugLHS(const TrilinosSparseSpaceType::MatrixType& rA)
+    {
+        std::vector<int> row_indexes;
+        std::vector<int> column_indexes;
+        std::vector<double> values;
+        TrilinosCPPTestUtilities::GenerateSparseMatrixIndexAndValuesVectors(rA, row_indexes, column_indexes, values, true, 0.99);
+    }
 
     /**
     * Checks if the block builder and solver performs correctly the assemble of the system
@@ -1656,5 +1853,165 @@ namespace Kratos::Testing
     //     // Check assembly
     //     TrilinosCPPTestUtilities::CheckSparseMatrix(rA, row_indexes, column_indexes, values);
     // }
+
+    /**
+    * Checks if the block builder and solver performs correctly the assemble of the extended system with constraints
+    */
+    KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(TrilinosStructuralDisplacementBlockBuilderAndSolver, KratosTrilinosApplicationMPITestSuite)
+    {
+        // The base model part
+        Model current_model;
+        ModelPart& r_model_part = current_model.CreateModelPart("Main", 3);
+
+        // The data communicator
+        const DataCommunicator& r_comm = Testing::GetDefaultDataCommunicator();
+
+        // Generate Epetra communicator
+        KRATOS_ERROR_IF_NOT(r_comm.IsDistributed()) << "Only distributed DataCommunicators can be used!" << std::endl;
+        auto raw_mpi_comm = MPIDataCommunicator::GetMPICommunicator(r_comm);
+        Epetra_MpiComm epetra_comm(raw_mpi_comm);
+
+        // Extended build
+        const bool check = StructuralTestBuilderAndSolverDisplacement(r_model_part, r_comm);
+        if (!check) {
+            return void();
+        }
+
+        // Create the solvers and things required
+        auto p_scheme = TrilinosSchemeType::Pointer( new TrilinosResidualBasedIncrementalUpdateStaticSchemeType() );
+        auto p_solver = TrilinosLinearSolverType::Pointer( new AmgclMPISolverType() );
+        Parameters parameters = Parameters(R"(
+        {
+            "diagonal_values_for_dirichlet_dofs" : "no_scaling",
+            "guess_row_size"                     : 15,
+            "silent_warnings"                    : false
+        })" );
+        auto p_builder_and_solver = TrilinosBuilderAndSolverType::Pointer( new TrilinosBlockBuilderAndSolverType(epetra_comm, p_solver, parameters) );
+
+        const auto& rA = BuildSystem(r_model_part, p_scheme, p_builder_and_solver);
+
+        // // To create the solution of reference
+        // DebugLHS(rA);
+
+        // The solution check
+        KRATOS_EXPECT_EQ(rA.NumGlobalRows(), 54);
+        KRATOS_EXPECT_EQ(rA.NumGlobalCols(), 54);
+        KRATOS_EXPECT_EQ(rA.NumGlobalNonzeros(), 1522);
+
+        // Values to check
+        std::vector<int> row_indexes = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 9, 9, 9, 10, 10, 10, 10, 10, 10, 10, 10, 11, 11, 11, 11, 11, 11, 11, 11, 12, 13, 14, 15, 15, 15, 15, 16, 16, 16, 16, 16, 16, 16, 16, 17, 17, 17, 17, 17, 17, 17, 17, 18, 18, 18, 18, 19, 19, 19, 19, 19, 19, 19, 19, 20, 20, 20, 20, 20, 20, 20, 20, 21, 21, 21, 21, 22, 22, 22, 22, 22, 22, 22, 22, 23, 23, 23, 23, 23, 23, 23, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53};
+        std::vector<int> column_indexes = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 15, 18, 21, 10, 11, 16, 17, 19, 20, 22, 23, 10, 11, 16, 17, 19, 20, 22, 23, 12, 13, 14, 9, 15, 18, 21, 10, 11, 16, 17, 19, 20, 22, 23, 10, 11, 16, 17, 19, 20, 22, 23, 9, 15, 18, 21, 10, 11, 16, 17, 19, 20, 22, 23, 10, 11, 16, 17, 19, 20, 22, 23, 9, 15, 18, 21, 10, 11, 16, 17, 19, 20, 22, 23, 10, 11, 16, 17, 19, 20, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53};
+        const double const0 = 111111.111111;
+        const double const1 = 222222.222222;
+        const double const2 = 83333.3333333;
+        const double const3 = 138888.8888888;
+        const double const4 = 55555.55555555;
+        const double const5 = 444444.4444444;
+        const double const6 = 227222.2222222;
+        const double const7 = 454444.4444444;
+        const double const8 = 116111.1111111;
+        std::vector<double> values = {const6, const6, const1, const1, const1, const1, const6, const6, const1, const7, const4, const4, -const4, const7, const2, const4, const2, -const8, -const2, -const3, -const2, const2, const5, -const2, -const0, const2, const4, -const2, -const3, const1, const1, const1, const4, const5, -const4, const4, const4, -const2, const5, -const2, -const3, const2, -const0, const2, const2, -const0, -const2, const5, const2, -const3, -const2, const4, const4, -const4, const7, const4, -const8, const2, -const3, const2, const7, -const2, const4, -const2, -const2, const4, const2, -const3, -const2, const5, const2, -const0, -const4, const4, const4, const5, -const3, -const2, -const0, -const2, const4, const2, const5, const2, -const2, -const3, const2, const4, -const2, -const0, const2, const5, const6, const6, const1, const1, const1, const1, const6, const6, const1, const1, const1, const1, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0};
+
+        // Check assembly
+        TrilinosCPPTestUtilities::CheckSparseMatrix(rA, row_indexes, column_indexes, values);
+
+        // Now checking relation T matrix
+        const auto& r_T = p_builder_and_solver->GetConstraintRelationMatrix();
+
+        // // To create the solution of reference
+        // DebugLHS(r_T);
+
+        KRATOS_EXPECT_EQ(r_T.NumGlobalRows(), 54);
+        KRATOS_EXPECT_EQ(r_T.NumGlobalCols(), 54);
+        KRATOS_EXPECT_EQ(r_T.NumGlobalNonzeros(), 72);
+
+        // Values to check
+        row_indexes = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53};
+        column_indexes = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 0, 1, 2, 6, 7, 8, 9, 10, 11, 18, 19, 20, 24, 25, 26, 30, 31, 32};
+        values = {1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0};
+
+        // Check assembly T matrix
+        TrilinosCPPTestUtilities::CheckSparseMatrix(r_T, row_indexes, column_indexes, values);
+    }
+
+    /**
+    * Checks if the block builder and solver performs correctly the assemble of the extended system with constraints
+    */
+    KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(TrilinosStructuralDisplacementBlockBuilderAndSolverInverted, KratosTrilinosApplicationMPITestSuite)
+    {
+        // The base model part
+        Model current_model;
+        ModelPart& r_model_part = current_model.CreateModelPart("Main", 3);
+
+        // The data communicator
+        const DataCommunicator& r_comm = Testing::GetDefaultDataCommunicator();
+
+        // Generate Epetra communicator
+        KRATOS_ERROR_IF_NOT(r_comm.IsDistributed()) << "Only distributed DataCommunicators can be used!" << std::endl;
+        auto raw_mpi_comm = MPIDataCommunicator::GetMPICommunicator(r_comm);
+        Epetra_MpiComm epetra_comm(raw_mpi_comm);
+
+        // Extended build
+        const bool check = StructuralTestBuilderAndSolverDisplacement(r_model_part, r_comm, true);
+        if (!check) {
+            return void();
+        }
+
+        // Create the solvers and things required
+        auto p_scheme = TrilinosSchemeType::Pointer( new TrilinosResidualBasedIncrementalUpdateStaticSchemeType() );
+        auto p_solver = TrilinosLinearSolverType::Pointer( new AmgclMPISolverType() );
+        Parameters parameters = Parameters(R"(
+        {
+            "diagonal_values_for_dirichlet_dofs" : "no_scaling",
+            "guess_row_size"                     : 15,
+            "silent_warnings"                    : false
+        })" );
+        auto p_builder_and_solver = TrilinosBuilderAndSolverType::Pointer( new TrilinosBlockBuilderAndSolverType(epetra_comm, p_solver, parameters) );
+
+        const auto& rA = BuildSystem(r_model_part, p_scheme, p_builder_and_solver);
+
+        // // To create the solution of reference
+        // DebugLHS(rA);
+
+        // The solution check
+        KRATOS_EXPECT_EQ(rA.NumGlobalRows(), 54);
+        KRATOS_EXPECT_EQ(rA.NumGlobalCols(), 54);
+        KRATOS_EXPECT_EQ(rA.NumGlobalNonzeros(), 1522);
+
+        // Values to check
+        std::vector<int> row_indexes = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 9, 9, 9, 10, 10, 10, 10, 10, 10, 10, 10, 11, 11, 11, 11, 11, 11, 11, 11, 12, 13, 14, 15, 15, 15, 15, 16, 16, 16, 16, 16, 16, 16, 16, 17, 17, 17, 17, 17, 17, 17, 17, 18, 18, 18, 18, 19, 19, 19, 19, 19, 19, 19, 19, 20, 20, 20, 20, 20, 20, 20, 20, 21, 21, 21, 21, 22, 22, 22, 22, 22, 22, 22, 22, 23, 23, 23, 23, 23, 23, 23, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53};
+        std::vector<int> column_indexes = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 15, 18, 21, 10, 11, 16, 17, 19, 20, 22, 23, 10, 11, 16, 17, 19, 20, 22, 23, 12, 13, 14, 9, 15, 18, 21, 10, 11, 16, 17, 19, 20, 22, 23, 10, 11, 16, 17, 19, 20, 22, 23, 9, 15, 18, 21, 10, 11, 16, 17, 19, 20, 22, 23, 10, 11, 16, 17, 19, 20, 22, 23, 9, 15, 18, 21, 10, 11, 16, 17, 19, 20, 22, 23, 10, 11, 16, 17, 19, 20, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53};
+        const double const0 = 111111.111111;
+        const double const1 = 222222.222222;
+        const double const2 = 83333.3333333;
+        const double const3 = 138888.8888888;
+        const double const4 = 55555.55555555;
+        const double const5 = 444444.4444444;
+        const double const6 = 227222.2222222;
+        const double const7 = 454444.4444444;
+        const double const8 = 116111.1111111;
+        std::vector<double> values = {const6, const6, const1, const1, const1, const1, const6, const6, const1, const7, const4, const4, -const4, const7, const2, const4, const2, -const8, -const2, -const3, -const2, const2, const5, -const2, -const0, const2, const4, -const2, -const3, const1, const1, const1, const4, const5, -const4, const4, const4, -const2, const5, -const2, -const3, const2, -const0, const2, const2, -const0, -const2, const5, const2, -const3, -const2, const4, const4, -const4, const7, const4, -const8, const2, -const3, const2, const7, -const2, const4, -const2, -const2, const4, const2, -const3, -const2, const5, const2, -const0, -const4, const4, const4, const5, -const3, -const2, -const0, -const2, const4, const2, const5, const2, -const2, -const3, const2, const4, -const2, -const0, const2, const5, const6, const6, const1, const1, const1, const1, const6, const6, const1, const1, const1, const1, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0};
+
+        // Check assembly
+        TrilinosCPPTestUtilities::CheckSparseMatrix(rA, row_indexes, column_indexes, values);
+
+        // Now checking relation T matrix
+        const auto& r_T = p_builder_and_solver->GetConstraintRelationMatrix();
+
+        // // To create the solution of reference
+        // DebugLHS(r_T);
+
+        KRATOS_EXPECT_EQ(r_T.NumGlobalRows(), 54);
+        KRATOS_EXPECT_EQ(r_T.NumGlobalCols(), 54);
+        KRATOS_EXPECT_EQ(r_T.NumGlobalNonzeros(), 72);
+
+        // Values to check
+        row_indexes = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53};
+        column_indexes = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 0, 1, 2, 6, 7, 8, 9, 10, 11, 18, 19, 20, 24, 25, 26, 30, 31, 32};
+        values = {1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0};
+
+        // Check assembly T matrix
+        TrilinosCPPTestUtilities::CheckSparseMatrix(r_T, row_indexes, column_indexes, values);
+    }
 
 }  // namespace Kratos::Testing.
