@@ -167,6 +167,8 @@ class PotentialFlowSolver(FluidSolver):
             "skin_parts":[""],
             "assign_neighbour_elements_to_conditions": false,
             "no_skin_parts": [""],
+            "scheme_settings" :{
+            },                                             
             "time_stepping"                : {
                 "automatic_time_step" : false,
                 "CFL_number"          : 1,
@@ -254,8 +256,13 @@ class PotentialFlowSolver(FluidSolver):
         return KratosMultiphysics.ResidualBasedBlockBuilderAndSolver(linear_solver)
 
     def _CreateScheme(self):
-        # Fake scheme creation to do the solution update
-        scheme = KratosMultiphysics.ResidualBasedIncrementalUpdateStaticScheme()
+        strategy_type = self._GetStrategyType()
+        if strategy_type == "linear":
+            # Fake scheme creation to do the solution update
+            scheme = KratosMultiphysics.ResidualBasedIncrementalUpdateStaticScheme()
+        elif strategy_type == "non_linear":
+            # Custom Scheme for transonic cases
+            scheme = KCPFApp.ResidualBasedIncrementalUpdateStaticSchemeMod(self.settings["scheme_settings"])
         return scheme
 
     def _CreateConvergenceCriterion(self):
