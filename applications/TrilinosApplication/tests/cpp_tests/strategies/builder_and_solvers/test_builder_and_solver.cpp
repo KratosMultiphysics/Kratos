@@ -849,13 +849,13 @@ namespace Kratos::Testing
         return rA;
     }
 
-    static void DebugLHS(const TrilinosSparseSpaceType::MatrixType& rA)
-    {
-        std::vector<int> row_indexes;
-        std::vector<int> column_indexes;
-        std::vector<double> values;
-        TrilinosCPPTestUtilities::GenerateSparseMatrixIndexAndValuesVectors(rA, row_indexes, column_indexes, values, true, 0.99);
-    }
+    // static void DebugLHS(const TrilinosSparseSpaceType::MatrixType& rA)
+    // {
+    //     std::vector<int> row_indexes;
+    //     std::vector<int> column_indexes;
+    //     std::vector<double> values;
+    //     TrilinosCPPTestUtilities::GenerateSparseMatrixIndexAndValuesVectors(rA, row_indexes, column_indexes, values, true, 0.99);
+    // }
 
     /**
     * Checks if the block builder and solver performs correctly the assemble of the system
