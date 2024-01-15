@@ -103,4 +103,19 @@ KRATOS_TEST_CASE_IN_SUITE(ExpectNoCouplingTermsWhenForcePlaxisCompatibilityFlagI
                                                          GeoLinearElasticLaw::IsCouplingWanted::No))
 }
 
+KRATOS_TEST_CASE_IN_SUITE(ForcePlaxisCompatibilityFlagIsInEffectDuringProcessExecutionOnly, KratosGeoMechanicsFastSuite)
+{
+    Model model;
+    auto& r_model_part = PrepareTestModelPart(model);
+
+    Parameters k0_settings{R"({"force_plaxis_compatibility": true})"};
+
+    ApplyK0ProcedureProcess process{r_model_part, k0_settings};
+    process.ExecuteInitialize(); // starts Plaxis compatibility mode
+    process.ExecuteFinalize(); // ends Plaxis compatibility mode
+
+    KRATOS_EXPECT_TRUE(AllElementsHaveSameCouplingOption(r_model_part.Elements(),
+                                                         GeoLinearElasticLaw::IsCouplingWanted::Yes))
+}
+
 } // namespace Kratos::Testing
