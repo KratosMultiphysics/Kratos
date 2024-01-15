@@ -79,8 +79,8 @@ install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/tests DESTINATION applications/${C
 )
 
 # Install targets
-install(TARGETS KratosStructuralMechanicsCore DESTINATION lib)
-install(TARGETS KratosStructuralMechanicsApplication DESTINATION lib)
+install(TARGETS KratosStructuralMechanicsCore DESTINATION libs)
+install(TARGETS KratosStructuralMechanicsApplication DESTINATION libs)
 
 # Define custom targets
 set(KRATOS_KERNEL "${KRATOS_KERNEL};KratosStructuralMechanicsCore" PARENT_SCOPE)

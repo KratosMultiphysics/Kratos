@@ -81,7 +81,7 @@ if(${KRATOS_BUILD_TESTING} MATCHES ON)
 		${CMAKE_BINARY_DIR}/kratos/CMakeFiles/KratosCoreTestUtilities.dir/tests/test_utilities/test_bar_element.cpp.obj
 	)
 
-    install(TARGETS KratosCoreTestUtilities DESTINATION lib)
+    install(TARGETS KratosCoreTestUtilities DESTINATION libs)
     install(TARGETS KratosCoreTest)
 
     gtest_discover_tests(KratosCoreTest)
@@ -206,8 +206,8 @@ if(${INSTALL_TESTING_FILES} MATCHES ON )
 endif(${INSTALL_TESTING_FILES} MATCHES ON)
 
 # Install targets
-install(TARGETS Kratos DESTINATION lib)
-install(TARGETS KratosCore DESTINATION lib)
+install(TARGETS Kratos DESTINATION libs)
+install(TARGETS KratosCore DESTINATION libs)
 
 # Mpi
 if(${USE_MPI} MATCHES ON )
