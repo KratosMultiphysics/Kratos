@@ -16,7 +16,7 @@ from KratosMultiphysics.DigitalTwinApplication.sensor_placement_algorithms.senso
 
 
 class RobustDistancedSensorSelection:
-    def __init__(self, params: Kratos.Parameters) -> None:
+    def __init__(self, , params: Kratos.Parameters) -> None:
         default_params = Kratos.Parameters("""{
             "sensor_selection_method" : "robust_distanced",
             "distancing_coefficient"  : 0.5,
@@ -38,8 +38,11 @@ class RobustDistancedSensorSelection:
 
         self.sensor_groups: 'dict[int, tuple[list[KratosDT.Sensors.Sensor], list[ExpressionUnionType]]]' = {}
         self.sensor_distance_matrices: 'dict[int, KratosDT.SensorDistanceMatrix]' = {}
+        self.list_of_selected_sensor_views: 'list[SensorViewUnionType]' = []
 
-    def Initialize(self, list_of_sensor_views: 'list[SensorViewUnionType]') -> None:
+    def Initialize(self, list_of_sensor_views: 'list[SensorViewUnionType]', list_of_selected_sensor_views: 'list[SensorViewUnionType]') -> None:
+        self.list_of_selected_sensor_views = list_of_selected_sensor_views
+
         # first identify the different sensor groups / types
         for sensor_view in list_of_sensor_views:
             group_id = sensor_view.GetSensor().GetValue(self.sensor_group_id_var)
@@ -59,12 +62,12 @@ class RobustDistancedSensorSelection:
             self.sensor_distance_matrices[group_id] = KratosDT.SensorDistanceMatrix(sensors_list)
             Kratos.Logger.PrintInfo(self.__class__.__name__, "Sensor distances computed.")
 
-    def Select(self, potential_sensor_views: 'list[SensorViewUnionType]', selected_sensor_views: 'list[SensorViewUnionType]') -> SensorViewUnionType:
+    def Sort(self, potential_sensor_views: 'list[SensorViewUnionType]') -> 'list[SensorViewUnionType]':
         potential_sensors = [sensor_view.GetSensor() for sensor_view in potential_sensor_views]
-        selected_sensors = [sensor_view.GetSensor() for sensor_view in selected_sensor_views]
+        selected_sensors = [sensor_view.GetSensor() for sensor_view in self.list_of_selected_sensor_views]
 
         # compute the distances of potential and current sensor views
-        distances = Kratos.Matrix(len(potential_sensor_views), len(selected_sensor_views), -1.0)
+        distances = Kratos.Matrix(len(potential_sensor_views), len(self.list_of_selected_sensor_views), -1.0)
         for _, sensor_distance_matrix in self.sensor_distance_matrices.items():
             current_distance_matrix = sensor_distance_matrix.GetDistance(potential_sensors, selected_sensors)
             for i in range(distances.Size1()):
@@ -104,8 +107,8 @@ class RobustDistancedSensorSelection:
             else:
                 ranking.append((sensor_view, self.coeff_distancing + self.coeff_robustness * robustness))
 
-        sensor_view, _  = max(ranking, key=lambda x: x[1])
-        return sensor_view
+        sorted_ranks = sorted(ranking, key=lambda x: x[1])
+        return [sensor_view for sensor_view, _ in sorted_ranks]
 
 class MaskBasedClusteringSensorPlacementAlgorithm(SensorPlacementAlgorithm):
     @classmethod
@@ -193,7 +196,8 @@ class MaskBasedClusteringSensorPlacementAlgorithm(SensorPlacementAlgorithm):
         # add the masks lists for the sensor views
         AddSensorViewMasks(self.parameters["masking"], list_of_sensor_views)
 
-        self.sensor_selection_method.Initialize(list_of_sensor_views)
+        list_of_selected_sensor_views: 'list[SensorViewUnionType]' = []
+        self.sensor_selection_method.Initialize(list_of_sensor_views, list_of_selected_sensor_views)
 
         # get the total domain size
         domain_size_exp = dummy_exp.Clone()
@@ -222,7 +226,6 @@ class MaskBasedClusteringSensorPlacementAlgorithm(SensorPlacementAlgorithm):
         iteration = 1
         max_coverage_ratio = 0.0
         sensor_redundancy = (dummy_exp * 0.0).Flatten()
-        list_of_selected_sensor_views: 'list[SensorViewUnionType]' = []
         while (max_coverage_ratio < self.required_maximum_overall_coverage_ratio and iteration <= self.maximum_number_of_iterations):
             potential_sensor_views: 'list[tuple[SensorViewUnionType, float]]' = []
             for sensor_view in list_of_sensor_views:
@@ -230,8 +233,8 @@ class MaskBasedClusteringSensorPlacementAlgorithm(SensorPlacementAlgorithm):
                 if new_coverage_ratio > max_coverage_ratio:
                     potential_sensor_views.append((sensor_view, new_coverage_ratio))
 
-            sensor_view = self.sensor_selection_method.Select(self.__GetTopPercentile(potential_sensor_views), list_of_selected_sensor_views)
-            list_of_selected_sensor_views.append(sensor_view)
+            potential_sensor_views = self.sensor_selection_method.GetSorted(potential_sensor_views, list_of_selected_sensor_views)
+            list_of_selected_sensor_views.append(max(sensor_view))
 
             sensor_redundancy = (sensor_redundancy + sensor_view.GetAuxiliaryExpression("mask")).Flatten()
             cluster_data: 'list[tuple[list[int], ExpressionUnionType]]' = KratosDT.MaskUtils.ClusterMasks([sensor_view.GetAuxiliaryExpression("mask") for sensor_view in list_of_selected_sensor_views])
