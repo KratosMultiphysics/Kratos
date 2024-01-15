@@ -80,9 +80,9 @@ void LinearPlaneStrainK0Law::CalculateElasticMatrix(Matrix& C, ConstitutiveLaw::
 
     const double c0 = E / ((1.0 + NU)*(1.0 - 2.0 * NU));
     const double c1 = (1.0 - NU)*c0;
-    const auto want_coupling = this->GetCouplingBehavior();
-    const double c2 = (want_coupling == Coupling::Yes) ? c0 * NU : 0.0;
-    const double c3 = (want_coupling == Coupling::Yes) ? (0.5 - NU)*c0 : 0.0;
+    const auto want_coupling = this->GetCouplingOption();
+    const double c2 = (want_coupling == IsCouplingWanted::Yes) ? c0 * NU : 0.0;
+    const double c3 = (want_coupling == IsCouplingWanted::Yes) ? (0.5 - NU)*c0 : 0.0;
 
     C(INDEX_2D_PLANE_STRAIN_XX, INDEX_2D_PLANE_STRAIN_XX) = c1;
     C(INDEX_2D_PLANE_STRAIN_XX, INDEX_2D_PLANE_STRAIN_YY) = c2;

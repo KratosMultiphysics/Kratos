@@ -48,12 +48,12 @@ ModelPart& PrepareTestModelPart(Model& rModel)
 }
 
 bool AllElementsHaveSameCouplingOption(const ModelPart::ElementsContainerType& rElements,
-                                       GeoLinearElasticLaw::Coupling ExpectedCouplingOption)
+                                       GeoLinearElasticLaw::IsCouplingWanted ExpectedCouplingOption)
 {
     return std::all_of(rElements.begin(), rElements.end(), [ExpectedCouplingOption](const auto& rElement) {
         auto p_constitutive_law = dynamic_cast<const GeoLinearElasticLaw*>(
             rElement.GetProperties().GetValue(CONSTITUTIVE_LAW).get());
-        return p_constitutive_law->GetCouplingBehavior() == ExpectedCouplingOption;
+        return p_constitutive_law->GetCouplingOption() == ExpectedCouplingOption;
     });
 }
 
@@ -72,8 +72,8 @@ KRATOS_TEST_CASE_IN_SUITE(ExpectCouplingTermsWhenForcePlaxisCompatibilityFlagIsN
     ApplyK0ProcedureProcess process{r_model_part, k0_settings};
     process.ExecuteInitialize();
 
-    KRATOS_EXPECT_TRUE(AllElementsHaveSameCouplingOption(r_model_part.Elements(),
-                                                         GeoLinearElasticLaw::Coupling::Yes))
+    KRATOS_EXPECT_TRUE(AllElementsHaveSameCouplingOption(
+        r_model_part.Elements(), GeoLinearElasticLaw::IsCouplingWanted::Yes))
 }
 KRATOS_TEST_CASE_IN_SUITE(ExpectCouplingTermsWhenForcePlaxisCompatibilityFlagIsOff, KratosGeoMechanicsFastSuite)
 {
@@ -85,8 +85,8 @@ KRATOS_TEST_CASE_IN_SUITE(ExpectCouplingTermsWhenForcePlaxisCompatibilityFlagIsO
     ApplyK0ProcedureProcess process{r_model_part, k0_settings};
     process.ExecuteInitialize();
 
-    KRATOS_EXPECT_TRUE(AllElementsHaveSameCouplingOption(r_model_part.Elements(),
-                                                         GeoLinearElasticLaw::Coupling::Yes))
+    KRATOS_EXPECT_TRUE(AllElementsHaveSameCouplingOption(
+        r_model_part.Elements(), GeoLinearElasticLaw::IsCouplingWanted::Yes))
 }
 
 KRATOS_TEST_CASE_IN_SUITE(ExpectNoCouplingTermsWhenForcePlaxisCompatibilityFlagIsOn, KratosGeoMechanicsFastSuite)
@@ -99,7 +99,8 @@ KRATOS_TEST_CASE_IN_SUITE(ExpectNoCouplingTermsWhenForcePlaxisCompatibilityFlagI
     ApplyK0ProcedureProcess process{r_model_part, k0_settings};
     process.ExecuteInitialize();
 
-    KRATOS_EXPECT_TRUE(AllElementsHaveSameCouplingOption(r_model_part.Elements(), GeoLinearElasticLaw::Coupling::No))
+    KRATOS_EXPECT_TRUE(AllElementsHaveSameCouplingOption(r_model_part.Elements(),
+                                                         GeoLinearElasticLaw::IsCouplingWanted::No))
 }
 
 } // namespace Kratos::Testing

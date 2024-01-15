@@ -10,6 +10,8 @@
 //  Main authors:    Anne van de Graaf
 //
 
+#pragma once
+
 #include "custom_constitutive/linear_elastic_law.h"
 
 namespace Kratos::Testing

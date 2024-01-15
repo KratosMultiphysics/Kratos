@@ -32,13 +32,13 @@ namespace
 
 using namespace Kratos;
 
-void SetCoupledBehavior(ModelPart::ElementsContainerType& rElements, GeoLinearElasticLaw::Coupling WantCoupled)
+void SetCouplingOption(ModelPart::ElementsContainerType& rElements, GeoLinearElasticLaw::IsCouplingWanted WantCoupling)
 {
-    block_for_each(rElements, [WantCoupled](Element& rElement) {
+    block_for_each(rElements, [WantCoupling](Element& rElement) {
         auto pLinearElasticLaw =
             dynamic_cast<GeoLinearElasticLaw*>(rElement.GetProperties().GetValue(CONSTITUTIVE_LAW).get());
         if (pLinearElasticLaw) {
-            pLinearElasticLaw->SetCoupledBehavior(WantCoupled);
+            pLinearElasticLaw->SetCouplingOption(WantCoupling);
         }
     });
 }
@@ -56,14 +56,14 @@ ApplyK0ProcedureProcess::ApplyK0ProcedureProcess(ModelPart& model_part, const Pa
 void ApplyK0ProcedureProcess::ExecuteInitialize()
 {
     if (ForcePlaxisCompatibility()) {
-        SetCoupledBehavior(mrModelPart.Elements(), GeoLinearElasticLaw::Coupling::No);
+        SetCouplingOption(mrModelPart.Elements(), GeoLinearElasticLaw::IsCouplingWanted::No);
     }
 }
 
 void ApplyK0ProcedureProcess::ExecuteFinalize()
 {
     if (ForcePlaxisCompatibility()) {
-        SetCoupledBehavior(mrModelPart.Elements(), GeoLinearElasticLaw::Coupling::Yes);
+        SetCouplingOption(mrModelPart.Elements(), GeoLinearElasticLaw::IsCouplingWanted::Yes);
     }
 }
 
