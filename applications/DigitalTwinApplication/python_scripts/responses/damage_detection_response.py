@@ -154,6 +154,7 @@ class DamageDetectionResponse(ResponseFunction):
 
             # run a single adjoint for each test scenario
             self.adjoint_analysis._GetSolver().GetComputingModelPart().ProcessInfo[KratosDT.TEST_ANALYSIS_NAME] = exec_policy.GetName()
+            self.adjoint_analysis._GetSolver().GetComputingModelPart().ProcessInfo[Kratos.STEP] = self.optimization_problem.GetStep()
             data_io.Read()
             self.adjoint_analysis.RunSolutionLoop()
             sensitivities = self.adjoint_analysis.GetSensitivities()
