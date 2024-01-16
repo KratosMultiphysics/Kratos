@@ -8,22 +8,14 @@ The bulk of the functionality is implemented in the `GeoMechanicsTimeIntegration
 
 The functions that the `GeoMechanicsTimeIntegrationScheme` class implements are mostly dictated by the `Scheme` interface and include functionality like checking if all variables are allocated in the modelpart, getting DofLists, EquationIds and calling different flavors of the Initialize/Finalize/CalculateSystemContributions functions on elements and conditions.
 
-It also has a general `Update` step, which calls the `UpdateVariablesDerivatives` function. This is a purely virtual function that has to be implemented by the derived classed, since how the derivatives are actually updated, defines a time integration scheme. The derived classes then use the lists of variables to update the derivatives. In our structure (see the class diagram), only the `BackwardEulerScheme` and the `GeneralizedNewmarkScheme` classes implement this function.
+It also has a general `Update` step, which calls the `UpdateVariablesDerivatives` function. This is a purely virtual function that has to be implemented by the derived classed, since how the derivatives are actually updated, defines a time integration scheme. The derived classes then use the lists of variables to update the derivatives. In our structure (see the class diagram), only the `BackwardEulerScheme` and the `GeneralizedNewmarkScheme` classes implement this function. Similarly the `SetTimeFactors` function, updates the delta time, but also the time coefficients, for which the overrides are found in the derived classes. For the specific equations, see sections [Backward Euler](#backward-euler) and [Generalized Newmark](#generalized-newmark).
 
 ![SchemeStructure.svg](SchemeStructure.svg)
 *Class structure of the schemes generated using the SchemeStructure.puml file with PlantUML. Note that the class diagram is simplified and only shows the functions that need emphasis.*
 
-Updating the time derivatives is done in the following three functions:
-- `UpdateScalarTimeDerivative`
-- `UpdateVectorFirstTimeDerivative`
-- `UpdateVectorSecondTimeDerivative`
-
-These functions are purely virtual in the `GeoMechanicsTimeIntegrationScheme` class, and are implemented in the derived classes for the Backward Euler and Generalized Newmark time integration methods. The same holds for the `SetTimeFactors` function. For the specific equations, see sections [Backward Euler](#backward-euler) and [Generalized Newmark](#generalized-newmark).
-
 The child classes which actually specify which variables are used in the time integration scheme (e.g. the `BackwardEulerUPwScheme` or the `GeneralizedNewmarkTScheme), only fill the lists of first/second order variables. 
 
 The exceptions are the `NewmarkQuasistaticUPwScheme`, which has functionality for nodal smoothing (this should be moved to another location) and the damped and dynamic UPw schemes. More info on these can be found in the [Dynamic and damped schemes](#dynamic-and-damped-schemes) section. 
-
 
 ## Backward Euler
 The most straight-forward scheme type is called Backward Euler. The functionality described in this section can be found in the `BackwardEulerScheme` class. The first and second time derivatives are simply calculated by dividing the difference in their integrated variables by the time step. This results in the following equations for the scalar and vector derivatives. 
@@ -41,6 +33,8 @@ The order of calculating the first and second time derivatives is important, sin
 
 In these equations $\dot{x}$ and $\ddot{x}$ are the first time derivative and second time derivatives of variable $x$, respectively. The subscript $t + \Delta t$ refers to the end of the current time step, while the subscript $t$ refers to the start. The magnitude of the time step is denoted by $\Delta t$.
 
+The time factors are set in the `SetTimeFactors` function, which sets the coefficient for both the vector and scalar variables to $1/\Delta t$.
+
 ## Generalized Newmark
 A bit more involved are the Generalized Newmark schemes. This includes more parameters to tweak and has a more complex set of equations. The functionality described in this section can be found in the `GeneralizedNewmarkScheme` class. This results in the following three equations for updating the scalar and vector derivatives.
 
@@ -56,6 +50,8 @@ $$\dot{x}\_{t + \Delta t} = \dot{x}\_{t} + (1 - \gamma)\Delta t \ddot{x}\_{t} + 
 Note that the order here is the other reversed with respect to the Backward Euler scheme. This is because $\ddot{x}\_{t + \Delta t}$ is used in the equation for $\dot{x}\_{t + \Delta t}$.
 
 For these functions, identically to the Backward Euler scheme, $\ddot{x}$ and $\dot{x}$ refer to the first and second derivatives of $x$, while subscripts $t + \Delta t$ and $t$ refer to the end and start of the current time step. The magnitude of the time step is denoted by $\Delta t$. The parameters $\theta$, $\gamma$ and $\beta$ are the parameters of the Generalized Newmark scheme, with the following conditions: $0\le\theta\le 1$, and $0\le\gamma\le 1$ and $0\le\beta\le 0.5$.
+
+For setting the time factors (done in the `SetTimeFactors` override), the following equations are used. For the scalar variables, the time coefficient is set to $1/\theta\Delta t$, while for the vector variables, the time coefficients are set to $\gamma / (\beta \Delta t)$.
 
 ## Dynamic and damped schemes
 The dynamic and damped schemes are both Generalized Newmark schemes (as seen in the class diagrams) and therefore update the derivatives using the same equations, using the same `UpdateVariablesDerivatives` function.
