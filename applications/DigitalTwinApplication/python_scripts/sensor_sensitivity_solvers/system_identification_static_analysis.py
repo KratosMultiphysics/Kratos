@@ -1,3 +1,4 @@
+from pathlib import Path
 import typing
 import KratosMultiphysics as Kratos
 import KratosMultiphysics.DigitalTwinApplication as KratosDT
@@ -20,7 +21,11 @@ class SystemIdentificationStaticAnalysis(AnalysisStage):
         default_sensor_settings = Kratos.Parameters("""{
             "perturbation_size"            : 1e-8,
             "adapt_perturbation_size"      : true,
-            "list_of_sensors"              : []
+            "list_of_sensors"              : [],
+            "output_settings"              : {
+                "output_sensor_sensitivity_fields": false,
+                "output_folder"                   : "Optimization_Results/sensor_sensitivity_fields"
+            }
         }""")
 
         sensor_settings = self.project_parameters["sensor_settings"]
@@ -44,6 +49,11 @@ class SystemIdentificationStaticAnalysis(AnalysisStage):
 
         self._GetSolver().SetSensor(self.measurement_residual_response_function)
 
+        output_settings = sensor_settings["output_settings"]
+        output_settings.ValidateAndAssignDefaults(default_sensor_settings["output_settings"])
+        self.output_sensor_sensitivity_fields = output_settings["output_sensor_sensitivity_fields"].GetBool()
+        self.output_sensor_sensitivity_path = output_settings["output_folder"].GetString()
+
     def _CreateSolver(self) -> SensorSensitivityAdjointStaticSolver:
         return SensorSensitivityAdjointStaticSolver(self.model, self.project_parameters["solver_settings"])
 
@@ -51,12 +61,35 @@ class SystemIdentificationStaticAnalysis(AnalysisStage):
         return "::[SystemIdentificationAnalysis]:: "
 
     def RunSolutionLoop(self):
+        process_info = self._GetSolver().GetComputingModelPart().ProcessInfo
+        process_info[KratosDT.SENSOR_NAME] = "for aggregated MeasurementResidualResponseFunction"
         self.InitializeSolutionStep()
         self.measurement_residual_response_function.InitializeSolutionStep()
         self._GetSolver().SolveSolutionStep()
         self.measurement_residual_response_function.FinalizeSolutionStep()
         self.FinalizeSolutionStep()
         self.OutputSolutionStep()
+
+        if self.output_sensor_sensitivity_fields:
+            for sensor in self.listof_sensors:
+                process_info[KratosDT.SENSOR_NAME] = f"sensor \"{sensor.GetName()}\""
+                self._GetSolver().SetSensor(sensor)
+                self.InitializeSolutionStep()
+                sensor.InitializeSolutionStep()
+                self._GetSolver().SolveSolutionStep()
+                sensor.FinalizeSolutionStep()
+                self.FinalizeSolutionStep()
+
+                # now output
+                vtu_output = Kratos.VtuOutput(self._GetSolver().GetSensitivityModelPart())
+                sensitivities = self.GetSensitivities()
+                for var, cexp in sensitivities.items():
+                    vtu_output.AddContainerExpression(var.Name(), cexp)
+
+                output_path = Path(self.output_sensor_sensitivity_path) / f"{sensor.GetName()}/iteration_{process_info[Kratos.STEP]:05d}"
+                output_path.parent.mkdir(parents=True, exist_ok=True)
+                vtu_output.PrintOutput(str(output_path))
+            self._GetSolver().SetSensor(self.measurement_residual_response_function)
 
     def GetListOfSensors(self) -> 'list[KratosDT.Sensors.Sensor]':
         return self.listof_sensors
@@ -66,7 +99,7 @@ class SystemIdentificationStaticAnalysis(AnalysisStage):
 
     def PrintAnalysisStageProgressInformation(self):
         process_info = self._GetSolver().GetComputingModelPart().ProcessInfo
-        Kratos.Logger.PrintInfo(self._GetSimulationName(), f"Computed sensitivities for \"{process_info[KratosDT.TEST_ANALYSIS_NAME]}\".")
+        Kratos.Logger.PrintInfo(self._GetSimulationName(), f"Computed sensitivities for {process_info[KratosDT.SENSOR_NAME]} using \"{process_info[KratosDT.TEST_ANALYSIS_NAME]}\" analysis.")
 
     def GetSensitivities(self) -> 'dict[typing.Union[Kratos.DoubleVariable, Kratos.Array1DVariable3], ExpressionUnionType]':
         sensitivity_model_part: Kratos.ModelPart = self._GetSolver().GetSensitivityModelPart()
