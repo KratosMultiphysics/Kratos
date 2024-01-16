@@ -52,9 +52,6 @@ class ConvectionDiffusionTransientSolver(convection_diffusion_solver.ConvectionD
     def Initialize(self):
         super(ConvectionDiffusionTransientSolver, self).Initialize()
 
-        # for elem in self.main_model_part.Elements:
-        #     elem.SetValue(ConvectionDiffusionApplication.THERMAL_ENERGY, 0.0)
-
         materials_filename = self.settings["material_import_settings"]["materials_filename"].GetString()
 
         with open(materials_filename, 'r') as parameter_file:
@@ -63,21 +60,33 @@ class ConvectionDiffusionTransientSolver(convection_diffusion_solver.ConvectionD
         material_settings = materials["properties"][0]["Material"]
 
         self.Q = 25E-06
-        self.R_far = 0.025 * 0.5
+        residual_heat_fraction = 0.05
+        self.Q *= residual_heat_fraction
+        mask_aperture_diameter = 0.025
+        self.R_far = mask_aperture_diameter * 0.5
+        self.T_e = 693.0
         self.cp = material_settings['Variables']['SPECIFIC_HEAT'].GetDouble()
         self.conductivity = material_settings['Variables']['CONDUCTIVITY'].GetDouble()
         self.rho = material_settings['Variables']['DENSITY'].GetDouble()
         self.T0 = self.settings['ambient_temperature'].GetDouble()
+        self.kappa = self.conductivity / (self.rho * self.cp)
         print("cp:", self.cp)
         print("conductivity (lambda):", self.conductivity)
         print("rho:", self.rho)
         print("T0:", self.T0)
 
-        self.ImposeTemperatureDueToLaser()
-        print('Initial energy: ', self.Q)
+        self.ImposeTemperatureDistributionDueToLaser1D()
+        print('Initial given energy: ', self.Q)
 
-        self.initial_energy = self.MonitorEnergy()
-        print("Initial computed energy: ", self.initial_energy)
+        computed_energy = self.MonitorEnergy()
+        print("Initial computed energy: ", computed_energy)
+
+        temperature_factor = self.Q / computed_energy
+
+        self.AdjustTemperatureField(temperature_factor)
+
+        initial_energy_after_scaling = self.MonitorEnergy()
+        print("Initial computed energy after scaling: ", initial_energy_after_scaling)
 
         radius_2 = lambda node: node.X**2 + node.Y**2 + node.Z**2
 
@@ -85,27 +94,60 @@ class ConvectionDiffusionTransientSolver(convection_diffusion_solver.ConvectionD
         self.radii = np.sqrt(np.array([radius_2(node) for node in self.near_field_nodes]))
         self.results_filename = 'results.h5'
         self.CreateResultsFile(self.results_filename)
+
         self.temperature_increments = np.array([node.GetSolutionStepValue(KratosMultiphysics.TEMPERATURE) - self.T0 for node in self.near_field_nodes])
         self.WriteResults(self.results_filename, self.main_model_part.ProcessInfo)
-    
-    def SolveSolutionStep(self):
-        # for node in self.main_model_part.Nodes:
-        #     print('node: ', node.Id)
-        #     print('nodal temperature: ', node.GetSolutionStepValue(KratosMultiphysics.TEMPERATURE))
 
-        #print("Initial computed energy: ", self.MonitorEnergy())
+    def ImposeTemperatureDistributionDueToLaser1D(self):
+        for node in self.main_model_part.Nodes:
+            radius = node.Y
+            z = node.X
+            if radius <= self.R_far:
+                temp = self.TemperatureVariationInZDueToLaser1D(radius, z)
+            else:
+                temp = 0.0
+            node.SetSolutionStepValue(KratosMultiphysics.TEMPERATURE, temp)
+            node.SetSolutionStepValue(KratosMultiphysics.TEMPERATURE, 1, temp)
+
+    def AdjustTemperatureField(self, temperature_factor):
+
+        for node in self.main_model_part.Nodes:
+            temp = node.GetSolutionStepValue(KratosMultiphysics.TEMPERATURE)
+            temp *= temperature_factor
+            node.SetSolutionStepValue(KratosMultiphysics.TEMPERATURE, temp)
+            node.SetSolutionStepValue(KratosMultiphysics.TEMPERATURE, 1, temp)
+
+    def EnergyPerUnitArea1D(self, radius):
+
+        sigma = 0.5 * self.R_far
+        C = self.Q / (2 * np.pi * sigma**2 * (1 - np.exp(-self.R_far**2 / (2 * sigma**2))))       
+        q =  C * np.exp(-0.5 * (radius / self.R_far)**2)
+
+        return q
+
+    def TimeToAchieveEvaporationTemperature(self, radius):
+
+        C = 1.0 / (4.0 * np.pi * self.rho**2 * self.kappa * self.cp**2 * self.T_e**2)
+        t = C * self.EnergyPerUnitArea1D(radius)**2
+        return t
+
+    def TemperatureVariationInZDueToLaser1D(self, radius, z):
+
+        q = self.EnergyPerUnitArea1D(radius)
+        t_evap = self.TimeToAchieveEvaporationTemperature(radius)
+        C = q / (self.rho * self.cp * 2.0 * np.sqrt(np.pi * self.kappa * t_evap))
+        delta_temp = C * np.exp(- z**2 / (4.0 * self.kappa * t_evap))
+
+        return delta_temp
+
+    def SolveSolutionStep(self):
 
         super(ConvectionDiffusionTransientSolver, self).SolveSolutionStep()
-
-        # for node in self.main_model_part.Nodes:
-        #     print('node: ', node.Id)
-        #     print('nodal temperature: ', node.GetSolutionStepValue(KratosMultiphysics.TEMPERATURE))
 
         print("Current computed energy: ", self.MonitorEnergy())
         self.temperature_increments = np.array([node.GetSolutionStepValue(KratosMultiphysics.TEMPERATURE) - self.T0 for node in self.near_field_nodes])
         self.WriteResults(self.results_filename, self.main_model_part.ProcessInfo)
 
-    #### Private functions ####
     def _CreateScheme(self):
         # Variable defining the temporal scheme (0: Forward Euler, 1: Backward Euler, 0.5: Crank-Nicolson)
         self.GetComputingModelPart().ProcessInfo[KratosMultiphysics.TIME_INTEGRATION_THETA] = self.settings["transient_parameters"]["theta"].GetDouble()
@@ -120,11 +162,10 @@ class ConvectionDiffusionTransientSolver(convection_diffusion_solver.ConvectionD
         return convection_diffusion_scheme
 
     def MonitorEnergy(self):
-        energy = 0.0
 
+        energy = 0.0
         for elem in self.main_model_part.Elements:
             out = elem.CalculateOnIntegrationPoints(ConvectionDiffusionApplication.THERMAL_ENERGY, self.main_model_part.ProcessInfo)
-            # elem.SetValue(ConvectionDiffusionApplication.THERMAL_ENERGY, out[0])
             # NOTE: Here out is an std::vector with all components containing the same elemental thermal energy
             energy += out[0]
 
@@ -133,7 +174,6 @@ class ConvectionDiffusionTransientSolver(convection_diffusion_solver.ConvectionD
     def ImposeTemperatureDueToLaser(self):
 
         t_ini = 5e-3
-        self.kappa = self.conductivity / (self.rho * self.cp)
         print("kappa:", self.kappa)
 
         self.C_L = 2.0 * self.Q / (8.0 * self.cp * (np.pi * self.kappa)**1.5 * self.rho)
@@ -154,29 +194,9 @@ class ConvectionDiffusionTransientSolver(convection_diffusion_solver.ConvectionD
             temp = self.T0 + bell_curve(t_ini, r_2)
             node.SetSolutionStepValue(KratosMultiphysics.TEMPERATURE, temp)
             node.SetSolutionStepValue(KratosMultiphysics.TEMPERATURE, 1, temp)
-        
+
         T_max_ini = self.C_L / t_ini**1.5
         print("T_max_ini:", T_max_ini)
-
-        total_energy = 0.0
-        for node in self.main_model_part.Nodes:
-            nodal_area = node.GetSolutionStepValue(KratosMultiphysics.NODAL_AREA)
-            nodal_temperature = node.GetSolutionStepValue(KratosMultiphysics.TEMPERATURE)
-            #print(nodal_area)
-            nodal_energy = nodal_temperature * self.cp * self.rho * nodal_area
-            total_energy += nodal_energy
-
-        print('total_energy =', total_energy)
-
-        '''center_Id = self.FindCenterNodeId()
-        center_node_nodal_area = self.main_model_part.Nodes[center_Id].GetSolutionStepValue(KratosMultiphysics.NODAL_AREA)
-
-        energy_to_temperature_change = 1.0 / (center_node_nodal_area * self.cp * self.rho)
-        for node in self.main_model_part.Nodes:
-            if node.Id == center_Id:
-                initial_temp = self.T0 + energy_to_temperature_change * self.Q
-                node.SetSolutionStepValue(KratosMultiphysics.TEMPERATURE, initial_temp)
-                node.SetSolutionStepValue(KratosMultiphysics.TEMPERATURE, 1, initial_temp)'''
 
     def CreateResultsFile(self, filename):
         if os.path.exists(self.results_filename):

@@ -26,20 +26,6 @@ class ConvectionDiffusionAnalysis(AnalysisStage):
 
         super(ConvectionDiffusionAnalysis, self).__init__(model, project_parameters)
 
-    # def Initialize(self):
-    #     super(ConvectionDiffusionAnalysis, self).Initialize()
-    #     self._GetSolver().ImposeTemperatureDueToLaser()
-    #     for node in self._GetSolver().main_model_part.Nodes:
-    #         print(node.GetSolutionStepValue(KratosMultiphysics.TEMPERATURE))
-    #         node.SetSolutionStepValue(KratosMultiphysics.TEMPERATURE, 500.0)
-    #         print(node.GetSolutionStepValue(KratosMultiphysics.TEMPERATURE))
-    #         break
-    #     print(self._GetSolver())
-    #     lele
-    #     self.OutputSolutionStep()
-    #     lele
-
-    #### Internal functions ####
     def _CreateSolver(self):
         """ Create the Solver (and create and import the ModelPart if it is not alread in the model) """
         ## Solver construction
