@@ -84,16 +84,16 @@ class HRomTrainingUtility(object):
         np_res_mat = np.array(res_mat, copy=False)
         self.time_step_residual_matrix_container.append(np_res_mat)
         self.projected_residuals_counter += 1
-        if self.projected_residuals_counter==5:
-            self.projected_residuals_counter = 0
-            self.projected_residuals_file_counter += 1
-            residuals_snapshot_matrix = self._GetResidualsProjectedMatrix()
-            # I am doing this for my revision
-            #################################
-            print("HERE")
-            folder_path = "TrainningPhaseHROM"
-            np.save(f"{folder_path}/ProjectedResidualsSnapshots_{self.projected_residuals_file_counter}.npy",residuals_snapshot_matrix)
-            self.time_step_residual_matrix_container = []
+        # if self.projected_residuals_counter==5:
+        #     self.projected_residuals_counter = 0
+        #     self.projected_residuals_file_counter += 1
+        #     residuals_snapshot_matrix = self._GetResidualsProjectedMatrix()
+        #     # I am doing this for my revision
+        #     #################################
+        #     print("HERE")
+        #     folder_path = "TrainningPhaseHROM"
+        #     np.save(f"{folder_path}/ProjectedResidualsSnapshots_{self.projected_residuals_file_counter}.npy",residuals_snapshot_matrix)
+        #     self.time_step_residual_matrix_container = []
             #################################
 
     def CalculateAndSaveHRomWeights(self):

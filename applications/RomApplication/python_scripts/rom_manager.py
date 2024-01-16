@@ -52,7 +52,7 @@ class RomManager(object):
                 hrom_snapshots = self.__LaunchHROM(mu_train)
                 if store_all_snapshots or store_hrom_snapshots:
                     self._StoreSnapshotsMatrix('hrom_snapshots', hrom_snapshots)
-                # self.ROMvsHROM_train = np.linalg.norm(rom_snapshots - hrom_snapshots) / np.linalg.norm(rom_snapshots)
+                self.ROMvsHROM_train = np.linalg.norm(rom_snapshots - hrom_snapshots) / np.linalg.norm(rom_snapshots)
         #######################
 
         #######################################
@@ -76,7 +76,7 @@ class RomManager(object):
                 hrom_snapshots = self.__LaunchHROM(mu_train)
                 if store_all_snapshots or store_hrom_snapshots:
                     self._StoreSnapshotsMatrix('hrom_snapshots', hrom_snapshots)
-                # self.ROMvsHROM_train = np.linalg.norm(rom_snapshots - hrom_snapshots) / np.linalg.norm(rom_snapshots)
+                self.ROMvsHROM_train = np.linalg.norm(rom_snapshots - hrom_snapshots) / np.linalg.norm(rom_snapshots)
         #######################################
 
         ##########################
@@ -101,7 +101,7 @@ class RomManager(object):
                 hrom_snapshots = self.__LaunchHROM(mu_train)
                 if store_all_snapshots or store_hrom_snapshots:
                     self._StoreSnapshotsMatrix('hrom_snapshots', hrom_snapshots)
-                # self.ROMvsHROM_train = np.linalg.norm(rom_snapshots - hrom_snapshots) / np.linalg.norm(rom_snapshots)
+                self.ROMvsHROM_train = np.linalg.norm(rom_snapshots - hrom_snapshots) / np.linalg.norm(rom_snapshots)
         ##########################
         else:
             err_msg = f'Provided projection strategy {chosen_projection_strategy} is not supported. Available options are \'galerkin\', \'lspg\' and \'petrov_galerkin\'.'
@@ -140,7 +140,7 @@ class RomManager(object):
                 #FIXME there will be an error if we only train HROM, but not ROM
                 self._ChangeRomFlags(simulation_to_run = "runHROMLeastSquaresPetrovGalerkin")
                 hrom_snapshots = self.__LaunchHROM(mu_test)
-                # self.ROMvsHROM_train = np.linalg.norm(rom_snapshots - hrom_snapshots) / np.linalg.norm(rom_snapshots)
+                self.ROMvsHROM_train = np.linalg.norm(rom_snapshots - hrom_snapshots) / np.linalg.norm(rom_snapshots)
         #######################################
 
 
@@ -196,7 +196,7 @@ class RomManager(object):
         #######################################
         ##  Least-Squares Petrov Galerkin   ###
         elif chosen_projection_strategy == "lspg":
-            raise Exception('Sorry, Hyper Reduction not yet implemented for lspg')
+            self._ChangeRomFlags(simulation_to_run = "runHROMLeastSquaresPetrovGalerkin")
         ##########################
         ###  Petrov Galerkin   ###
         elif chosen_projection_strategy == "petrov_galerkin":
@@ -214,8 +214,8 @@ class RomManager(object):
         testing_stages = self.general_rom_manager_parameters["rom_stages_to_test"].GetStringArray()
         if any(item == "ROM" for item in training_stages):
             print("approximation error in train set FOM vs ROM: ", self.ROMvsFOM_train)
-        # if any(item == "HROM" for item in training_stages):
-            # print("approximation error in train set ROM vs HROM: ", self.ROMvsHROM_train)
+        if any(item == "HROM" for item in training_stages):
+            print("approximation error in train set ROM vs HROM: ", self.ROMvsHROM_train)
         if any(item == "ROM" for item in testing_stages):
             print("approximation error in test set FOM vs ROM: ", self.ROMvsFOM_test)
         # if any(item == "HROM" for item in testing_stages):
@@ -341,9 +341,9 @@ class RomManager(object):
         with open(self.project_parameters_name,'r') as parameter_file:
             parameters = KratosMultiphysics.Parameters(parameter_file.read())
 
-        mdpa_name  = parameters["solver_settings"]["model_import_settings"]["input_filename"].GetString()
-        hrom_mdpa_name = f"{mdpa_name}HROM"
-        parameters["solver_settings"]["model_import_settings"]["input_filename"].SetString(hrom_mdpa_name)
+        # mdpa_name  = parameters["solver_settings"]["model_import_settings"]["input_filename"].GetString()
+        # hrom_mdpa_name = f"{mdpa_name}HROM"
+        # parameters["solver_settings"]["model_import_settings"]["input_filename"].SetString(hrom_mdpa_name)
         SnapshotsMatrix = []
         for Id, mu in enumerate(mu_train):
             parameters = self.UpdateProjectParameters(parameters, mu)
