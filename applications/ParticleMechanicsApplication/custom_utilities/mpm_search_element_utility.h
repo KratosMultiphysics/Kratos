@@ -1102,10 +1102,10 @@ namespace MPMSearchElementUtility
 
                         
                     }
-                }
+                } //Choose geometry
 
 
-                
+            }    
             
 
             KRATOS_WATCH(mpc_inactive_elements.size())
