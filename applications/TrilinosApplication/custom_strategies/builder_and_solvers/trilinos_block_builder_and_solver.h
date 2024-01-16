@@ -1564,7 +1564,7 @@ protected:
             }
             // Second adding pure master dofs
             if (num_active_master_indices > 0) {
-                int index[1];
+                int index[1] = {0};
                 for (IndexType i = 0; i < num_active_master_indices; ++i) {
                     index[0] = temp_secondary[i];
                     ierr = Agraph.InsertGlobalIndices(1, index, 1, index);
