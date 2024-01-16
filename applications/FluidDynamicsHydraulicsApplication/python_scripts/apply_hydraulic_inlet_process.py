@@ -39,6 +39,7 @@ class ApplyHydraulicInletProcess(KratosMultiphysics.Process):
         self.critical_depth_tolerance = settings["critical_depth_tolerance"].GetDouble()
         self.water_depth_tolerance = settings["water_depth_tolerance"].GetDouble()
         self.maximum_iterations = settings["maximum_iterations"].GetDouble()
+        self.gravity = settings["gravity"].GetDouble()
 
         # Set the input vale type data
         self.discharge_value_is_constant= False
@@ -159,8 +160,6 @@ class ApplyHydraulicInletProcess(KratosMultiphysics.Process):
 
     def CalculateFroudeNumber(self, water_depth):
         #The Froude number is computed, and this value will be included into the objective function for the bisection method.
-        gravity = 9.81
-
         # Assing the inlet free surface
         for node in self.inlet_model_part.Nodes:
             aux_distance = node.Z-water_depth
@@ -175,7 +174,7 @@ class ApplyHydraulicInletProcess(KratosMultiphysics.Process):
             self.inlet_model_part, KratosMultiphysics.INLET, self.water_depth_variable, False)
 
         # Calculate froude number.
-        froude_number = self.inlet_discharge/self.wetted_area /(sqrt(gravity * self.wetted_area / self.wetted_perimeter))
+        froude_number = self.inlet_discharge/self.wetted_area /(sqrt(self.gravity * self.wetted_area / self.wetted_perimeter))
         return froude_number
 
 
