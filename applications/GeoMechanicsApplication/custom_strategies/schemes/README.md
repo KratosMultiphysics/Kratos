@@ -3,19 +3,15 @@
 ## Introduction
 The `Scheme` class in Kratos is used to create time integration schemes. It is an abstract class, for which Geomechanics has implemented a number of flavors, subdivided in the Backward Euler and the Generalized Newmark families.
 
-
 ## Code Structure
-The bulk of the functionality is in the `GeoMechanicsTimeIntegrationScheme` class. It contains two lists of variables that are used in the time integration schemes. A list of first order scalar variables (such as water pressure or temperature) and a list of second order vector variables (such as displacements or rotations). For the first order time derivatives, only the first time derivative is taken into account, while for the second order time derivatives, both the first and the second time derivatives are considered. These list are filled in the constructor by derived classes that specify which variables are used in the time integration scheme.
+The bulk of the functionality is implemented in the `GeoMechanicsTimeIntegrationScheme` class. It contains two lists of variables that are used in the time integration schemes. A list of first order scalar variables (such as water pressure or temperature) and a list of second order vector variables (such as displacements or rotations). For the first order time derivatives, only the first time derivative is taken into account, while for the second order time derivatives, both the first and the second time derivatives are considered. These list are filled in the constructor by derived classes that specify which variables are used in the time integration scheme.
 
 The functions that the `GeoMechanicsTimeIntegrationScheme` class implements are mostly dictated by the `Scheme` interface and include functionality like checking if all variables are allocated in the modelpart, getting DofLists, EquationIds and calling different flavors of the Initialize/Finalize/CalculateSystemContributions functions on elements and conditions.
 
 It also has a general `Update` step, which calls the `UpdateVariablesDerivatives` function. This is a purely virtual function that has to be implemented by the derived classed, since how the derivatives are actually updated, defines a time integration scheme. The derived classes then use the lists of variables to update the derivatives. In our structure (see the class diagram), only the `BackwardEulerScheme` and the `GeneralizedNewmarkScheme` classes implement this function.
 
-
-![img.png](img.png)
-
-_Note that the class diagram is simplified and only shows the functions that need emphasis._
-
+![SchemeStructure.svg](SchemeStructure.svg)
+*Class structure of the schemes generated using the SchemeStructure.puml file with PlantUML. Note that the class diagram is simplified and only shows the functions that need emphasis.*
 
 Updating the time derivatives is done in the following three functions:
 - `UpdateScalarTimeDerivative`
@@ -41,7 +37,7 @@ $$\dot{x}\_{t + \Delta t} = (x\_{t + \Delta t} - x\_{t} ) / \Delta t$$
 Second time derivative for vector variables in `UpdateVectorSecondTimeDerivative`:
 $$\ddot{x}\_{t + \Delta t} = (\dot{x}\_{t + \Delta t} - \dot{x}\_{t} ) / \Delta t$$
 
-TODO Note the order
+The order of calculating the first and second time derivatives is important, since $\ddot{x}\_{t+\Delta t}$ depends on $\dot{x}\_{t + \Delta t}$.
 
 In these equations $\dot{x}$ and $\ddot{x}$ are the first time derivative and second time derivatives of variable $x$, respectively. The subscript $t + \Delta t$ refers to the end of the current time step, while the subscript $t$ refers to the start. The magnitude of the time step is denoted by $\Delta t$.
 
@@ -57,9 +53,13 @@ $$\ddot{x}\_{t + \Delta t} = \frac{x\_{t + \Delta t} - x\_{t} - \Delta t \dot{x}
 First time derivative for vector variables in `UpdateVectorFirstTimeDerivative`:
 $$\dot{x}\_{t + \Delta t} = \dot{x}\_{t} + (1 - \gamma)\Delta t \ddot{x}\_{t} + \gamma \Delta t \ddot{x}\_{t + \Delta t}$$
 
-TODO Note the order
+Note that the order here is the other reversed with respect to the Backward Euler scheme. This is because $\ddot{x}\_{t + \Delta t}$ is used in the equation for $\dot{x}\_{t + \Delta t}$.
 
 For these functions, identically to the Backward Euler scheme, $\ddot{x}$ and $\dot{x}$ refer to the first and second derivatives of $x$, while subscripts $t + \Delta t$ and $t$ refer to the end and start of the current time step. The magnitude of the time step is denoted by $\Delta t$. The parameters $\theta$, $\gamma$ and $\beta$ are the parameters of the Generalized Newmark scheme, with the following conditions: $0\le\theta\le 1$, and $0\le\gamma\le 1$ and $0\le\beta\le 0.5$.
 
 ## Dynamic and damped schemes
-TODO mention mass/damping matrices shortly
+The dynamic and damped schemes are both Generalized Newmark schemes (as seen in the class diagrams) and therefore update the derivatives using the same equations, using the same `UpdateVariablesDerivatives` function.
+
+However, `CalculateSystemContributions`, `CalculateRHSContribution` and `CalculateLHSContribution` are overridden and add extra terms to the system matrix and right hand side vector. The damped scheme only adds damping terms, while the dynamic scheme adds both damping and mass terms, to also take into account the inertia of the system.
+
+One more anomaly is the `Predict` function, currently found in the `NewmarkDynamicUPwScheme` class. This functionality should move to the `GeneralizedNewmarkScheme` class, since it is not specific to the dynamic scheme.
