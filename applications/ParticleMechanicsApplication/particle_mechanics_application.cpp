@@ -216,7 +216,8 @@ namespace Kratos
 
         // Mesh variables
         KRATOS_REGISTER_VARIABLE( GEOMETRY_NEIGHBOURS )
-        KRATOS_REGISTER_VARIABLE( GEOMETRY_NEIGHBOURS_ALIGNED )
+        KRATOS_REGISTER_VARIABLE( GEOMETRY_NEIGHBOURS_EDGE_ALIGNED )
+        KRATOS_REGISTER_VARIABLE( GEOMETRY_NEIGHBOURS_SURFACE_ALIGNED )
 
         // Registering condition variables
         // Essential Boundary Conditions

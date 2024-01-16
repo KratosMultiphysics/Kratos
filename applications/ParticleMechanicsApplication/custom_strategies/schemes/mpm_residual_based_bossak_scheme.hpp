@@ -321,12 +321,8 @@ public:
                 r_nodal_mpressure = 0.0;
             }
             if(i->SolutionStepsDataHas(VECTOR_LAGRANGE_MULTIPLIER)) {
-                array_1d<double, 3 > & r_lagrange_multiplier  = i->FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER);
-
-                for ( unsigned int j = 0; j < 3; j++ )
-                {
-                    r_lagrange_multiplier[j] *= 0.0;
-                }
+                array_1d<double, 3 > & r_lagrange_multiplier  = (i)->FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER);
+                r_lagrange_multiplier.clear();
             }
 		}
 

@@ -24,6 +24,7 @@
 #include "linear_solvers/linear_solver.h"
 #include "custom_utilities/mpm_search_element_utility.h"
 #include "custom_utilities/mpm_particle_generator_utility.cpp"
+#include "custom_utilities/mpm_energy_calculation_utility.h"
 
 
 namespace Kratos{
@@ -65,6 +66,31 @@ namespace Python{
             rBackgroundGridModelPart, rInitialModelPart, rMPMModelPart);
     }
 
+    
+    double CalculateKineticEnergy(
+        ModelPart& rModelPart)
+    {
+        return(MPMEnergyCalculationUtility::CalculateKineticEnergy(rModelPart));
+    }
+
+    double CalculateStrainEnergy(
+        ModelPart& rModelPart)
+    {
+        return(MPMEnergyCalculationUtility::CalculateStrainEnergy(rModelPart));
+    }
+
+    double CalculateTotalEnergy(
+        ModelPart& rModelPart)
+    {
+        return(MPMEnergyCalculationUtility::CalculateTotalEnergy(rModelPart));
+    }
+
+    double CalculatePotentialEnergy(
+        ModelPart& rModelPart)
+    {
+        return(MPMEnergyCalculationUtility::CalculatePotentialEnergy(rModelPart));
+    }
+
     void GenerateLagrangeNodes(
         ModelPart& rBackgroundGridModelPart)
     {
@@ -86,6 +112,10 @@ namespace Python{
         m.def("GenerateMaterialPointCondition", GenerateMaterialPointConditionAccordingToDimension);
         m.def("GenerateLagrangeNodes", GenerateLagrangeNodes);
         m.def("SearchSuperfluousConstraints", SearchSuperfluousConstraints);
+        m.def("CalculateKineticEnergy", CalculateKineticEnergy);
+        m.def("CalculateStrainEnergy", CalculateStrainEnergy);
+        m.def("CalculatePotentialEnergy", CalculatePotentialEnergy);
+        m.def("CalculateTotalEnergy", CalculateTotalEnergy);
     }
 
 }  // namespace Python.

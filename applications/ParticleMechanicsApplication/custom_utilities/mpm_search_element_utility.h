@@ -57,7 +57,8 @@ namespace MPMSearchElementUtility
     inline void ConstructNeighbourRelations(GeometryType& rGeom, const ModelPart& rBackgroundGridModelPart)
     {
         std::vector<typename Geometry<Node<3>>::Pointer> geometry_neighbours;
-        std::vector<typename Geometry<Node<3>>::Pointer> geometry_neighbours_aligned;
+        std::vector<typename Geometry<Node<3>>::Pointer> geometry_neighbours_edge_aligned;
+        std::vector<typename Geometry<Node<3>>::Pointer> geometry_neighbours_surface_aligned;
         for (IndexType j = 0; j < rBackgroundGridModelPart.NumberOfElements(); j++)
         {
             auto p_geometry_neighbour = (rBackgroundGridModelPart.ElementsBegin() + j)->pGetGeometry();
@@ -104,17 +105,22 @@ namespace MPMSearchElementUtility
 
                 }
             }
-            if (counter>= rGeom.WorkingSpaceDimension()){
-            // if (counter>= 2){
+            if (counter==2){
                 
-                geometry_neighbours_aligned.push_back(geometry_neighbours[j]);
+                geometry_neighbours_edge_aligned.push_back(geometry_neighbours[j]);
             }
+            else if (counter>2)
+                geometry_neighbours_surface_aligned.push_back(geometry_neighbours[j]);
         }
 
  
         #pragma omp critical
-        rGeom.SetValue(GEOMETRY_NEIGHBOURS, geometry_neighbours);
-        rGeom.SetValue(GEOMETRY_NEIGHBOURS_ALIGNED, geometry_neighbours_aligned);
+        {
+            rGeom.SetValue(GEOMETRY_NEIGHBOURS, geometry_neighbours);
+            rGeom.SetValue(GEOMETRY_NEIGHBOURS_EDGE_ALIGNED, geometry_neighbours_edge_aligned);
+            rGeom.SetValue(GEOMETRY_NEIGHBOURS_SURFACE_ALIGNED, geometry_neighbours_surface_aligned);
+        }
+        
     }
 
 
@@ -498,325 +504,637 @@ namespace MPMSearchElementUtility
         PointerVector<Condition> mpc_active_elements;
         PointerVector<Condition> mpc_modify_elements;
         PointerVector<Condition> mpc_edge_elements;
-        PointerVector<Condition> mpc_slip_elements;
+        PointerVector<Condition> mpc_forced_active_elements;
+        PointerVector<Condition> mpc_perspective_forced_active_elements;
+        PointerVector<Condition> mpc_perspective_forced_active_elements2;
+        PointerVector<Condition> mpc_checked_elements;
+        PointerVector<Condition> mpc_not_inactive_elements;
+        PointerVector<Condition> mpc_principal_inactive_elements;
+
 
         mpc_active_elements.clear();
         mpc_inactive_elements.clear();
         mpc_edge_elements.clear();
+        mpc_forced_active_elements.clear();
         mpc_modify_elements.clear();
-        mpc_slip_elements.clear();
+        mpc_perspective_forced_active_elements.clear();
+        mpc_perspective_forced_active_elements2.clear();
+        mpc_checked_elements.clear();
+        mpc_not_inactive_elements.clear();
 
-        // create a list of elements which contain at least one boundary particle
-        for (int i_cond = 0; i_cond < static_cast<int>(rConditionModelPart.Conditions().size()); ++i_cond) {
-            auto condition_itr = rConditionModelPart.Conditions().begin() + i_cond;
+        #pragma omp critical
+        {
+            // create a list of elements which contain at least one boundary particle
+            
+            for (int i_cond = 0; i_cond < static_cast<int>(rConditionModelPart.Conditions().size()); ++i_cond) {
+                auto condition_itr = rConditionModelPart.Conditions().begin() + i_cond;
 
-            
-            
                 bool add = true;
                 for(auto i=mpc_active_elements.begin(); i!=mpc_active_elements.end(); ++i)
                 {
                     if (i->GetGeometry().GetGeometryParent(0).Id() == condition_itr->GetGeometry().GetGeometryParent(0).Id())
                         add = false;
                 }
+
+                // consider only conditions which are connected to the material and have at least one node with mass
+                if (add){
+                    int counter=0;
+                    for (unsigned int i = 0; i < condition_itr->GetGeometry().size(); i++)
+                    {
+                        if (condition_itr->GetGeometry()[i].FastGetSolutionStepValue(NODAL_MASS, 0)< std::numeric_limits<double>::epsilon())
+                            counter+=1;
+                    }
+                    // UNDO ONLY REQUIRED FOR CONTACT IF THIS IS ACTIVE SET ONLY IF PARTICLE IS INSIDE!!!
+                    if(counter>0)
+                        add = false;
+                    
+                    // if(counter== condition_itr->GetGeometry().size())
+                    //     add = false;
+                }
                 
                 // add only one condition per background grid element
-                if (add){
+                if (add){               
                     mpc_active_elements.push_back(*(condition_itr.base()));
                     // construct neighbour relations
                     if (!condition_itr->GetGeometry().GetGeometryParent(0).Has(GEOMETRY_NEIGHBOURS))
                         ConstructNeighbourRelations(condition_itr->GetGeometry().GetGeometryParent(0), rBackgroundGridModelPart);
                 }
-        }
-
-        // Edge Elements should be constrained twice!
-        int count_edge_element =0;
-        for(auto i=mpc_active_elements.begin(); i!=mpc_active_elements.end(); ++i)
-        {
-            auto& geometry_neighbours_aligned = i->GetGeometry().GetGeometryParent(0).GetValue(GEOMETRY_NEIGHBOURS_ALIGNED);
-            int counter=0;
-
-            for (IndexType k = 0; k < geometry_neighbours_aligned.size(); ++k) {
-
-                for(auto active=mpc_active_elements.begin(); active!=mpc_active_elements.end(); ++active)
-                {
-                    if (geometry_neighbours_aligned[k]->Id() == active->GetGeometry().GetGeometryParent(0).Id()){
-                        
-                        counter +=1;   
-                    }
-                }
             }
-            if (counter ==1){
-                
-                count_edge_element+=1;
-                // Fix just the start of the boundary condition
-                // if (count_edge_element & 1)
-                    mpc_edge_elements.push_back(*i.base());
-                
-            }
-                
-        }
-        
 
-        // // SMALL CUT MODIFICATIONS
-        // // ##############################################################################################################
-        // // modify shape function values if elements are small cut parallel to one edge
-        // for(auto i=mpc_active_elements.begin(); i!=mpc_active_elements.end(); ++i)
-        // {
-        //     int counter=0;
-        //     for (int i_cond = 0; i_cond < static_cast<int>(rConditionModelPart.Conditions().size()); ++i_cond) {
-        //         auto condition_itr = rConditionModelPart.Conditions().begin() + i_cond;
-           
-        //         if (i->GetGeometry().GetGeometryParent(0).Id() == condition_itr->GetGeometry().GetGeometryParent(0).Id()){
-        //             auto rResult = row(condition_itr->GetGeometry().ShapeFunctionsValues(), 0);
-        //             for (unsigned int n_nodes = 0; n_nodes < condition_itr->GetGeometry().size(); n_nodes++)
-        //             {   
-        //                 if (rResult[n_nodes]<0.01){
-        //                     counter+=1;
-        //                 }
-        //             }        
-        //         }
-
-        //     }
-        //     auto mpc_counter = i->GetGeometry().GetGeometryParent(0).GetValue(MPC_COUNTER);
-        //     if (counter >= mpc_counter) {
-        //         mpc_modify_elements.push_back(*i.base());
-        //         KRATOS_WATCH("SMALL CUT MODIFICATION")
-        //     }
-                
-        // }
-
-        // // deactivate small cut elements which are cut nearby a vertex
-        // for(auto i=mpc_active_elements.begin(); i!=mpc_active_elements.end(); ++i)
-        // {
-        //     auto mpc_counter = i->GetGeometry().GetGeometryParent(0).GetValue(MPC_COUNTER);
-        //     std::vector<double> area(1);
-        //     i->CalculateOnIntegrationPoints(MPC_AREA, area, rMPMModelPart.GetProcessInfo());
-        //     if (mpc_counter * area[0] < i->GetGeometry().GetGeometryParent(0).Length()/10){
-        //         auto rResult = row(i->GetGeometry().ShapeFunctionsValues(), 0);
-        //         for (unsigned int n_nodes = 0; n_nodes < i->GetGeometry().size(); n_nodes++)
-        //         {   
-        //             if (rResult[n_nodes]<0.01){
-        //                 mpc_modify_elements.push_back(*i.base());
-        //                 // mpc_inactive_elements.push_back(*i.base());
-        //                 // auto& geometry_neighbours_aligned = i->GetGeometry().GetGeometryParent(0).GetValue(GEOMETRY_NEIGHBOURS_ALIGNED);
-        //                 KRATOS_WATCH("SMALL CUT")
-        //                 // for (IndexType k = 0; k < geometry_neighbours_aligned.size(); ++k) {
-        //                 //     checked_elements.push_back(geometry_neighbours_aligned[k]->Id());
-        //                 // }
-        //             }
-        //         }
-        //     }
-            
-        // }
-        // // ##############################################################################################################
-
-        
-
-        
-        // search elements which should be deactivated
-        for(auto i=mpc_active_elements.begin(); i!=mpc_active_elements.end(); ++i)
-        {
-            auto max_aligned_elements = i->GetGeometry().WorkingSpaceDimension()+1;
-            if (i->Is(SLIP))
-                max_aligned_elements =3;
-            const GeometryData::KratosGeometryType geo_type = i->GetGeometry().GetGeometryParent(0).GetGeometryType();
-            if (geo_type == GeometryData::KratosGeometryType::Kratos_Tetrahedra3D4 || geo_type == GeometryData::KratosGeometryType::Kratos_Triangle2D3){
-                // max_aligned_elements = i->GetGeometry().WorkingSpaceDimension();
-                max_aligned_elements = 2;   
-                if (i->Is(SLIP))
-                    max_aligned_elements = 1;  
-            }
-                
-                    auto& geometry_neighbours_aligned = i->GetGeometry().GetGeometryParent(0).GetValue(GEOMETRY_NEIGHBOURS_ALIGNED);
-                    auto& geometry_neighbours = i->GetGeometry().GetGeometryParent(0).GetValue(GEOMETRY_NEIGHBOURS);
+            // Edge Elements should be constrained twice!
+            int count_edge_element =0;
+            for(auto i=mpc_active_elements.begin(); i!=mpc_active_elements.end(); ++i)
+            {
+                if (i->GetGeometry().WorkingSpaceDimension()==2){
+                    auto& geometry_neighbours_edge_aligned = i->GetGeometry().GetGeometryParent(0).GetValue(GEOMETRY_NEIGHBOURS_EDGE_ALIGNED);
                     int counter=0;
 
-                    bool deactivate = true;
-                    for(auto inactive=mpc_inactive_elements.begin(); inactive!=mpc_inactive_elements.end(); ++inactive)
-                    {
-                        if (i->GetGeometry().GetGeometryParent(0).Id() == inactive->GetGeometry().GetGeometryParent(0).Id())
-                            deactivate=false;      
+                    for (IndexType k = 0; k < geometry_neighbours_edge_aligned.size(); ++k) {
+                        if (geometry_neighbours_edge_aligned[k]->GetValue(MPC_COUNTER) > 0)
+                            counter +=1;     
                     }
-                    
-                    if (deactivate){
-                        int count_neigh = 0;
-                        for (IndexType k = 0; k < geometry_neighbours_aligned.size(); ++k) {
-                            bool count = true;
-                            for(auto inactive=mpc_inactive_elements.begin(); inactive!=mpc_inactive_elements.end(); ++inactive)
-                            {
-                                if (geometry_neighbours_aligned[k]->Id() == inactive->GetGeometry().GetGeometryParent(0).Id()){
-                                    count=false;
-                                }
-                            }
-                            if (count){
-                                for(auto active=mpc_active_elements.begin(); active!=mpc_active_elements.end(); ++active)
-                                {   
-                                
-                                    if (geometry_neighbours_aligned[k]->Id() == active->GetGeometry().GetGeometryParent(0).Id()){
-                                        bool abc=true;
-                                        count_neigh +=1;
-                                        for(auto edge=mpc_edge_elements.begin(); edge!=mpc_edge_elements.end(); ++edge)
-                                        {
-                                            if (active->GetGeometry().GetGeometryParent(0).Id() == edge->GetGeometry().GetGeometryParent(0).Id())
-                                                abc=false;      
-                                        }
-                                        
-                                        
-                                        if (abc && count_neigh>=max_aligned_elements)
-                                            mpc_inactive_elements.push_back(*active.base());
-                                    }
-                                }   
-                            }
-                        }
-
-                        // delete also not aligned neighbors 
-                        for (IndexType k = 0; k < geometry_neighbours.size(); ++k) {
-                            bool aligned_neighbor=false;
-                            for (IndexType aligned = 0; aligned < geometry_neighbours_aligned.size(); ++aligned) {
-                                if (geometry_neighbours[k]->Id() == geometry_neighbours_aligned[aligned]->Id()){
-                                    aligned_neighbor =true;
-                                }
-
-                            }
-                            if (aligned_neighbor == false){
-
-                                bool count = true;
-                                for(auto inactive=mpc_inactive_elements.begin(); inactive!=mpc_inactive_elements.end(); ++inactive)
-                                {
-                                    if (geometry_neighbours[k]->Id() == inactive->GetGeometry().GetGeometryParent(0).Id()){
-                                        count=false;
-                                    }
-                                }
-                                if (count){
-
-                                    for(auto active=mpc_active_elements.begin(); active!=mpc_active_elements.end(); ++active)
-                                    {   
-                                    
-                                        if (geometry_neighbours[k]->Id() == active->GetGeometry().GetGeometryParent(0).Id()){
-                                            count_neigh +=1;
-                                            
-                                            if (count_neigh>=max_aligned_elements)
-                                                mpc_inactive_elements.push_back(*active.base());
-                                        }
-                                    } 
-                                }  
-
-                            }
-
-
-                        }
+                    if (counter ==1){
                         
-                    }
+                        count_edge_element+=1;
                         
-
-
-                    
-                    // else{
-                    //     for (IndexType k = 0; k < geometry_neighbours_aligned.size(); ++k) {
-
-                    //         for(auto active=mpc_active_elements.begin(); active!=mpc_active_elements.end(); ++active)
-                    //         {
+                        // Fix just the start of the boundary condition
+                        if (count_edge_element & 1)
+                        {
+                            mpc_edge_elements.push_back(*i.base());
+                        }
                                 
-                    //             if (geometry_neighbours_aligned[k]->Id() == active->GetGeometry().GetGeometryParent(0).Id()){
-                    //                 bool count = true;
-                    //                 for(auto inactive=mpc_inactive_elements.begin(); inactive!=mpc_inactive_elements.end(); ++inactive)
-                    //                 {
-                    //                     if (geometry_neighbours_aligned[k]->Id() == inactive->GetGeometry().GetGeometryParent(0).Id()){
-                    //                         count=false;
-                    //                     }
-                    //                 }
-                    //                 for(auto edge=mpc_edge_elements.begin(); edge!=mpc_edge_elements.end(); ++edge)
-                    //                 {
-                    //                     if (geometry_neighbours_aligned[k]->Id() == edge->GetGeometry().GetGeometryParent(0).Id()){
-                    //                         count=false;
-                    //                     }
-                    //                 }
-                    //                 // for(auto slip=mpc_slip_elements.begin(); slip!=mpc_slip_elements.end(); ++slip)
-                    //                 // {
-                    //                 //     if (geometry_neighbours_aligned[k]->Id() == slip->GetGeometry().GetGeometryParent(0).Id()){
-                    //                 //         count=false;
-                    //                 //     }
-                    //                 // }
-                                
-                
-                    //                 if (count)
-                    //                     counter +=1; 
-                                        
-                                        
-                                        
                             
-                    //             }
-                    //         }
-                    //     }
-                    //     // deactivate the element only if neighbouring elements are also constrained ->important for edge elements
-                    //     if (counter>=max_aligned_elements)
-                    //         mpc_inactive_elements.push_back(*i.base());
+                    }
+                }
+                else {
+                    auto& geometry_neighbours_surface_aligned = i->GetGeometry().GetGeometryParent(0).GetValue(GEOMETRY_NEIGHBOURS_SURFACE_ALIGNED);
+                    int counter=0;
 
-                    //     // if (geo_type == GeometryData::KratosGeometryType::Kratos_Quadrilateral2D4 || geo_type == GeometryData::KratosGeometryType::Kratos_Hexahedra3D8){
-                    //     //     if (counter>=max_aligned_elements-1){
-                    //     //         mpc_slip_elements.push_back(*i.base());
-                    //     //     }
-                    //     // }
+                    for (IndexType k = 0; k < geometry_neighbours_surface_aligned.size(); ++k) {
 
-                    // }
-
-                    
-
-
-
-        }
-
-
-
-        
-        KRATOS_WATCH(mpc_modify_elements.size())
-        KRATOS_WATCH(mpc_inactive_elements.size())
-        KRATOS_WATCH(mpc_edge_elements.size())
-        KRATOS_WATCH(mpc_active_elements.size())
-
-        // for(auto i=mpc_inactive_elements.begin(); i!=mpc_inactive_elements.end(); ++i)
-        // {
-        //     KRATOS_WATCH(i->GetGeometry().GetGeometryParent(0))
-                
-        // }
-        // deactivate conditions which are in the inactive defined elements
-        int counterb =0;
-        KRATOS_WATCH(rConditionModelPart.Conditions().size())
-        for (int i_cond = 0; i_cond < static_cast<int>(rConditionModelPart.Conditions().size()); ++i_cond) {
-            auto condition_itr = rConditionModelPart.Conditions().begin() + i_cond;
-
-            for(auto i=mpc_inactive_elements.begin(); i!=mpc_inactive_elements.end(); ++i)
-            {
-                if (i->GetGeometry().GetGeometryParent(0).Id() == condition_itr->GetGeometry().GetGeometryParent(0).Id()){
-                    condition_itr->Reset(ACTIVE);
-                    counterb +=1;
-                    
+                        if (geometry_neighbours_surface_aligned[k]->GetValue(MPC_COUNTER) > 0)
+                            counter +=1;  
+                    }
+                    const GeometryData::KratosGeometryType geo_type = i->GetGeometry().GetGeometryParent(0).GetGeometryType();
+                    int min_surfaces=2;
+                    if (geo_type == GeometryData::KratosGeometryType::Kratos_Hexahedra3D8){
+                        min_surfaces = 3;
+                    }
+                    if (counter < min_surfaces){
+                        mpc_edge_elements.push_back(*i.base());       
+                    }
                 }
                     
             }
-
-            // for(auto i=mpc_slip_elements.begin(); i!=mpc_slip_elements.end(); ++i)
-            // {
-            //     if (i->GetGeometry().GetGeometryParent(0).Id() == condition_itr->GetGeometry().GetGeometryParent(0).Id())
-            //         condition_itr->Set(MODIFIED);
-            // }
-
-            // for(auto i=mpc_edge_elements.begin(); i!=mpc_edge_elements.end(); ++i)
-            // {
-            //     if (i->GetGeometry().GetGeometryParent(0).Id() == condition_itr->GetGeometry().GetGeometryParent(0).Id())
-            //         condition_itr->Set(SLIP);
-            // }
-
-            // shape function values should be modified for elements cut parallel to an edge
-            for(auto i=mpc_modify_elements.begin(); i!=mpc_modify_elements.end(); ++i)
-            {
-                if (i->GetGeometry().GetGeometryParent(0).Id() == condition_itr->GetGeometry().GetGeometryParent(0).Id())
-                    condition_itr->Set(MODIFIED);
-            }
             
+
+            // // SMALL CUT MODIFICATIONS
+            // // ##############################################################################################################
+            // // modify shape function values if elements are small cut parallel to one edge
+            // for(auto i=mpc_active_elements.begin(); i!=mpc_active_elements.end(); ++i)
+            // {
+            //     int counter=0;
+            //     for (int i_cond = 0; i_cond < static_cast<int>(rConditionModelPart.Conditions().size()); ++i_cond) {
+            //         auto condition_itr = rConditionModelPart.Conditions().begin() + i_cond;
+            
+            //         if (i->GetGeometry().GetGeometryParent(0).Id() == condition_itr->GetGeometry().GetGeometryParent(0).Id()){
+            //             auto rResult = row(condition_itr->GetGeometry().ShapeFunctionsValues(), 0);
+            //             for (unsigned int n_nodes = 0; n_nodes < condition_itr->GetGeometry().size(); n_nodes++)
+            //             {   
+            //                 if (rResult[n_nodes]<0.01){
+            //                     counter+=1;
+            //                 }
+            //             }        
+            //         }
+
+            //     }
+            //     auto mpc_counter = i->GetGeometry().GetGeometryParent(0).GetValue(MPC_COUNTER);
+            //     if (counter >= mpc_counter) {
+            //         mpc_modify_elements.push_back(*i.base());
+            //         KRATOS_WATCH("SMALL CUT MODIFICATION")
+            //     }
+                    
+            // }
+
+            // // deactivate small cut elements which are cut nearby a vertex
+            // for(auto i=mpc_active_elements.begin(); i!=mpc_active_elements.end(); ++i)
+            // {
+            //     auto mpc_counter = i->GetGeometry().GetGeometryParent(0).GetValue(MPC_COUNTER);
+            //     std::vector<double> area(1);
+            //     i->CalculateOnIntegrationPoints(MPC_AREA, area, rMPMModelPart.GetProcessInfo());
+            //     if (mpc_counter * area[0] < i->GetGeometry().GetGeometryParent(0).Length()/10){
+            //         auto rResult = row(i->GetGeometry().ShapeFunctionsValues(), 0);
+            //         for (unsigned int n_nodes = 0; n_nodes < i->GetGeometry().size(); n_nodes++)
+            //         {   
+            //             if (rResult[n_nodes]<0.01){
+            //                 mpc_modify_elements.push_back(*i.base());
+            //                 // mpc_inactive_elements.push_back(*i.base());
+            //                 // auto& geometry_neighbours_aligned = i->GetGeometry().GetGeometryParent(0).GetValue(GEOMETRY_NEIGHBOURS_ALIGNED);
+            //                 KRATOS_WATCH("SMALL CUT")
+            //                 // for (IndexType k = 0; k < geometry_neighbours_aligned.size(); ++k) {
+            //                 //     checked_elements.push_back(geometry_neighbours_aligned[k]->Id());
+            //                 // }
+            //             }
+            //         }
+            //     }
+                
+            // }
+            // // ##############################################################################################################
+            
+            // search elements which should be deactivated
+            for(auto i=mpc_active_elements.begin(); i!=mpc_active_elements.end(); ++i){
+                const GeometryData::KratosGeometryType geo_type = i->GetGeometry().GetGeometryParent(0).GetGeometryType();
+
+                // ##############################################################################################################
+                // 2D triangular elements
+                // ##############################################################################################################
+                if (geo_type == GeometryData::KratosGeometryType::Kratos_Triangle2D3){
+                    const int max_aligned_edge_neighbors = 2;
+
+                    auto& geometry_neighbours_edge_aligned = i->GetGeometry().GetGeometryParent(0).GetValue(GEOMETRY_NEIGHBOURS_EDGE_ALIGNED);
+                    int counter=0;
+
+                    for (IndexType k = 0; k < geometry_neighbours_edge_aligned.size(); ++k) {
+                        
+                        // check if neighbor contains boundary particles
+                        bool active_element=false;
+                        for(auto active=mpc_active_elements.begin(); active!=mpc_active_elements.end(); ++active)
+                        {
+                            if (geometry_neighbours_edge_aligned[k]->Id() == active->GetGeometry().GetGeometryParent(0).Id()){
+                                active_element=true;
+                                break;
+                            }
+                        }
+
+                        if (active_element){
+                            bool count = true;
+                            // check if they are already deactivated
+                            for(auto inactive=mpc_inactive_elements.begin(); inactive!=mpc_inactive_elements.end(); ++inactive)
+                            {
+                                if (geometry_neighbours_edge_aligned[k]->Id() == inactive->GetGeometry().GetGeometryParent(0).Id()){
+                                    count=false;
+                                    break;
+                                }
+                            }
+                            // check if they are an edge element
+                            for(auto edge=mpc_edge_elements.begin(); edge!=mpc_edge_elements.end(); ++edge)
+                            {
+                                if (geometry_neighbours_edge_aligned[k]->Id() == edge->GetGeometry().GetGeometryParent(0).Id()){
+                                    count=false;
+                                    break;
+                                }
+                            }
+                            
+                            if (count)
+                                counter +=1; 
+                            
+                        }
+                    }
+                    // deactivate the element only if neighbouring elements are also constrained 
+                    if (counter>=max_aligned_edge_neighbors)
+                        mpc_inactive_elements.push_back(*i.base());
+                }
+                // ##############################################################################################################
+                // 2D quadrilateral elements
+                // ##############################################################################################################
+                else if (geo_type == GeometryData::KratosGeometryType::Kratos_Quadrilateral2D4){
+                    const int max_aligned_edge_neighbors = 3;
+
+                    auto& geometry_neighbours_edge_aligned = i->GetGeometry().GetGeometryParent(0).GetValue(GEOMETRY_NEIGHBOURS_EDGE_ALIGNED);
+                    int counter=0;
+
+                    for (IndexType k = 0; k < geometry_neighbours_edge_aligned.size(); ++k) {
+                        
+                        bool active_element=false;
+                        for(auto active=mpc_active_elements.begin(); active!=mpc_active_elements.end(); ++active)
+                        {
+                            if (geometry_neighbours_edge_aligned[k]->Id() == active->GetGeometry().GetGeometryParent(0).Id()){
+                                active_element=true;
+                                break;
+                            }
+                        }
+
+                        if (active_element){
+                            bool count = true;
+                            // check if they are already deactivated
+                            for(auto inactive=mpc_inactive_elements.begin(); inactive!=mpc_inactive_elements.end(); ++inactive)
+                            {
+                                if (geometry_neighbours_edge_aligned[k]->Id() == inactive->GetGeometry().GetGeometryParent(0).Id()){
+                                    count=false;
+                                    break;
+                                }
+                            }
+                            // check if they are an edge element
+                            for(auto edge=mpc_edge_elements.begin(); edge!=mpc_edge_elements.end(); ++edge)
+                            {
+                                if (geometry_neighbours_edge_aligned[k]->Id() == edge->GetGeometry().GetGeometryParent(0).Id()){
+                                    count=false;
+                                    break;
+                                }
+                            }
+                            
+                            if (count)
+                                counter +=1; 
+                                
+                        }
+                    }
+                    // deactivate the element only if neighbouring elements are also constrained 
+                    if (counter>=max_aligned_edge_neighbors)
+                        mpc_inactive_elements.push_back(*i.base());
+                }
+                // ##############################################################################################################
+                // 3D tetrahedra elements
+                // ##############################################################################################################
+                else if (geo_type == GeometryData::KratosGeometryType::Kratos_Tetrahedra3D4){
+                    const int max_aligned_surface_neighbors = 2;
+
+                    auto& geometry_neighbours_surface_aligned = i->GetGeometry().GetGeometryParent(0).GetValue(GEOMETRY_NEIGHBOURS_SURFACE_ALIGNED);
+                    int counter=0;
+                    bool check = true;
+
+                    for(auto checked=mpc_checked_elements.begin(); checked!=mpc_checked_elements.end(); ++checked)
+                    {
+                        if (checked->Id() == i->GetGeometry().GetGeometryParent(0).Id()){
+                            check = false;
+                            break;
+                        }
+                    }
+
+                    if (check){
+                        mpc_checked_elements.push_back(*i.base());
+                        int count_forced_active=0;
+                        mpc_perspective_forced_active_elements.clear();
+
+                        for (IndexType k = 0; k < geometry_neighbours_surface_aligned.size(); ++k) {
+                            // if neighbors contain boundary particles
+                            bool active_element=false;
+                            for(auto active=mpc_active_elements.begin(); active!=mpc_active_elements.end(); ++active)
+                            {
+                                if (geometry_neighbours_surface_aligned[k]->Id() == active->GetGeometry().GetGeometryParent(0).Id()){
+                                    active_element=true;
+                                    break;
+                                }
+                            }
+
+                            if (active_element){
+                                bool count = true;
+                                // check if they are already deactivated
+                                for(auto inactive=mpc_inactive_elements.begin(); inactive!=mpc_inactive_elements.end(); ++inactive)
+                                {
+                                    if (geometry_neighbours_surface_aligned[k]->Id() == inactive->GetGeometry().GetGeometryParent(0).Id()){
+                                        count=false;
+                                        break;
+                                    }
+                                }
+                                // check if they are an edge element
+                                for(auto edge=mpc_edge_elements.begin(); edge!=mpc_edge_elements.end(); ++edge)
+                                {
+                                    if (geometry_neighbours_surface_aligned[k]->Id() == edge->GetGeometry().GetGeometryParent(0).Id()){
+                                        count=false;
+                                        break;
+                                    }
+                                }
+                                
+                                if (count){
+                                    counter +=1; 
+
+                                    // count neighbors which are forced active and search neighbors which could be set forced active, too such that the element is sufficiently constrained 
+                                    bool deactivate = true;
+                                    for(auto forced_active=mpc_forced_active_elements.begin(); forced_active!=mpc_forced_active_elements.end(); ++forced_active)
+                                    {
+                                        if (geometry_neighbours_surface_aligned[k]->Id() == forced_active->GetGeometry().GetGeometryParent(0).Id()){
+                                            deactivate = false;
+                                            count_forced_active+=1;
+                                            break;
+                                        }
+                                    }
+                                    if (deactivate){
+                                        for(auto active=mpc_active_elements.begin(); active!=mpc_active_elements.end(); ++active)
+                                        {   
+                                            if (geometry_neighbours_surface_aligned[k]->Id() == active->GetGeometry().GetGeometryParent(0).Id()){
+                                                mpc_perspective_forced_active_elements.push_back(*active.base());
+                                                break;
+                                            }
+                                        }
+                                    }
+                                }
+                                    
+                            }
+                        }
+
+                        // check if the condition within the element can be deactivated
+                        if (counter>=max_aligned_surface_neighbors){
+                            mpc_inactive_elements.push_back(*i.base());
+
+                            for(auto perspective_forced_active=mpc_perspective_forced_active_elements.begin(); perspective_forced_active!=mpc_perspective_forced_active_elements.end(); ++perspective_forced_active){
+                                if (count_forced_active<max_aligned_surface_neighbors){
+                                    mpc_forced_active_elements.push_back(*perspective_forced_active.base());
+                                    count_forced_active+=1;
+                                    mpc_checked_elements.push_back(*perspective_forced_active.base());
+                                }
+                                
+                            }
+                        }
+                        else{
+                            mpc_forced_active_elements.push_back(*i.base());
+                        }
+
+                        
+                    }
+                }
+                
+                // ##############################################################################################################
+                // 3D hexahedra elements
+                // ##############################################################################################################
+                else if (geo_type == GeometryData::KratosGeometryType::Kratos_Hexahedra3D8){
+                    const int max_aligned_surface_neighbors = 5;
+                    
+
+                    auto& geometry_neighbours_surface_aligned = i->GetGeometry().GetGeometryParent(0).GetValue(GEOMETRY_NEIGHBOURS_SURFACE_ALIGNED);
+                    // auto& geometry_neighbours_edge_aligned = i->GetGeometry().GetGeometryParent(0).GetValue(GEOMETRY_NEIGHBOURS_EDGE_ALIGNED);
+                    int counter=0;
+                    bool check = true;
+
+                    for(auto checked=mpc_checked_elements.begin(); checked!=mpc_checked_elements.end(); ++checked)
+                    {
+                        if (checked->Id() == i->GetGeometry().GetGeometryParent(0).Id()){
+                            check = false;
+                            break;
+                        }
+                    }
+
+                    if (check){
+                        mpc_checked_elements.push_back(*i.base());
+                        int count_forced_active=0;
+                        mpc_perspective_forced_active_elements.clear();
+
+                        for (IndexType k = 0; k < geometry_neighbours_surface_aligned.size(); ++k) {
+                            // if neighbors contain boundary particles
+                            bool active_element=false;
+                            for(auto active=mpc_active_elements.begin(); active!=mpc_active_elements.end(); ++active)
+                            {
+                                if (geometry_neighbours_surface_aligned[k]->Id() == active->GetGeometry().GetGeometryParent(0).Id()){
+                                    active_element=true;
+                                    break;
+                                }
+                            }
+
+                            if (active_element){
+                                bool count = true;
+                                // check if they are already deactivated
+                                for(auto inactive=mpc_inactive_elements.begin(); inactive!=mpc_inactive_elements.end(); ++inactive)
+                                {
+                                    if (geometry_neighbours_surface_aligned[k]->Id() == inactive->GetGeometry().GetGeometryParent(0).Id()){
+                                        count=false;
+                                        break;
+                                    }
+                                }
+                                // check if they are an edge element
+                                for(auto edge=mpc_edge_elements.begin(); edge!=mpc_edge_elements.end(); ++edge)
+                                {
+                                    if (geometry_neighbours_surface_aligned[k]->Id() == edge->GetGeometry().GetGeometryParent(0).Id()){
+                                        count=false;
+                                        break;
+                                    }
+                                }
+                                
+                                if (count){
+                                    counter +=1; 
+
+                                    // count neighbors which are forced active and search neighbors which could be set forced active, too such that the element is sufficiently constrained 
+                                    bool deactivate = true;
+                                    for(auto forced_active=mpc_forced_active_elements.begin(); forced_active!=mpc_forced_active_elements.end(); ++forced_active)
+                                    {
+                                        if (geometry_neighbours_surface_aligned[k]->Id() == forced_active->GetGeometry().GetGeometryParent(0).Id()){
+                                            deactivate = false;
+                                            count_forced_active+=1;
+                                            break;
+                                        }
+                                    }
+                                    if (deactivate){
+                                        for(auto active=mpc_active_elements.begin(); active!=mpc_active_elements.end(); ++active)
+                                        {   
+                                            if (geometry_neighbours_surface_aligned[k]->Id() == active->GetGeometry().GetGeometryParent(0).Id()){
+                                                mpc_perspective_forced_active_elements.push_back(*active.base());
+                                                break;
+                                            }
+                                        }
+                                    }
+                                }
+                                    
+                            }
+                        }
+
+                        // check if the condition within the element can be deactivated
+                        if (counter>=max_aligned_surface_neighbors){
+                            mpc_inactive_elements.push_back(*i.base());
+
+                            // check if the neighbors have enough active neighbors such that they could be deactivated
+                            mpc_not_inactive_elements.clear();
+                            mpc_principal_inactive_elements.clear();
+                            for(auto perspective_forced_active=mpc_perspective_forced_active_elements.begin(); perspective_forced_active!=mpc_perspective_forced_active_elements.end(); ++perspective_forced_active){
+                                auto& geometry_neighbours_surface_aligned_of_neighbors = perspective_forced_active->GetGeometry().GetGeometryParent(0).GetValue(GEOMETRY_NEIGHBOURS_SURFACE_ALIGNED);
+
+                                int counter2 = 0;
+                                for (IndexType m = 0; m < geometry_neighbours_surface_aligned_of_neighbors.size(); ++m) {
+                                    bool active_element=false;
+                                    for(auto active=mpc_active_elements.begin(); active!=mpc_active_elements.end(); ++active)
+                                    {
+                                        if (geometry_neighbours_surface_aligned_of_neighbors[m]->Id() == active->GetGeometry().GetGeometryParent(0).Id()){
+                                            active_element=true;
+                                            break;
+                                        }
+                                    }
+
+                                    if (active_element){
+                                        bool count = true;
+                                        // check if they are already deactivated
+                                        for(auto inactive=mpc_inactive_elements.begin(); inactive!=mpc_inactive_elements.end(); ++inactive)
+                                        {
+                                            if (geometry_neighbours_surface_aligned_of_neighbors[m]->Id() == inactive->GetGeometry().GetGeometryParent(0).Id()){
+                                                count=false;
+                                                break;
+                                            }
+                                        }
+                                        if (count)
+                                            counter2 +=1;
+                                    }
+                                }
+                                if (counter2<max_aligned_surface_neighbors){
+                                    mpc_not_inactive_elements.push_back(*perspective_forced_active.base());
+                                }
+                                else{
+                                    mpc_principal_inactive_elements.push_back(*perspective_forced_active.base());
+                                }
+                            }
+
+                            // force active those elements which could not be deleted
+                            for(auto principal_forced_active=mpc_not_inactive_elements.begin(); principal_forced_active!=mpc_not_inactive_elements.end(); ++principal_forced_active){
+                                if (count_forced_active<max_aligned_surface_neighbors){
+                                    mpc_forced_active_elements.push_back(*principal_forced_active.base());
+                                    count_forced_active+=1;
+                                    mpc_checked_elements.push_back(*principal_forced_active.base());
+                                }
+                            }
+
+                            for(auto perspective_forced_active=mpc_principal_inactive_elements.begin(); perspective_forced_active!=mpc_principal_inactive_elements.end(); ++perspective_forced_active){
+                                if (count_forced_active<max_aligned_surface_neighbors){
+                                    mpc_forced_active_elements.push_back(*perspective_forced_active.base());
+                                    count_forced_active+=1;
+                                    mpc_checked_elements.push_back(*perspective_forced_active.base());
+                                }
+                                else{
+                                    mpc_inactive_elements.push_back(*perspective_forced_active.base());
+                                    mpc_checked_elements.push_back(*perspective_forced_active.base());
+
+                                    // for constraints which are set inactive sufficient forced active elements are needed
+                                    auto& inactive_geometry_neighbours_surface_aligned = perspective_forced_active->GetGeometry().GetGeometryParent(0).GetValue(GEOMETRY_NEIGHBOURS_SURFACE_ALIGNED);
+                                    mpc_perspective_forced_active_elements2.clear();
+                                    int count_forced_active2 = 0;
+                                    int counter2 = 0;
+                                    for (IndexType n = 0; n < inactive_geometry_neighbours_surface_aligned.size(); ++n) {
+                                        bool active_element=false;
+                                        for(auto active=mpc_active_elements.begin(); active!=mpc_active_elements.end(); ++active)
+                                        {
+                                            if (inactive_geometry_neighbours_surface_aligned[n]->Id() == active->GetGeometry().GetGeometryParent(0).Id()){
+                                                active_element=true;
+                                                break;
+                                            }
+                                        }
+
+                                        if (active_element){
+                                            bool count = true;
+                                            // check if they are already deactivated
+                                            for(auto inactive=mpc_inactive_elements.begin(); inactive!=mpc_inactive_elements.end(); ++inactive)
+                                            {
+                                                if (inactive_geometry_neighbours_surface_aligned[n]->Id() == inactive->GetGeometry().GetGeometryParent(0).Id()){
+                                                    count=false;
+                                                    break;
+                                                }
+                                            }
+                                            
+                                            if (count){
+                                                // count neighbors which are forced active and search neighbors which could be set forced active, too such that the element is sufficiently constrained 
+                                                bool is_forced_active = false;
+                                                for(auto forced_active=mpc_forced_active_elements.begin(); forced_active!=mpc_forced_active_elements.end(); ++forced_active)
+                                                {
+                                                    if (inactive_geometry_neighbours_surface_aligned[n]->Id() == forced_active->GetGeometry().GetGeometryParent(0).Id()){
+                                                        is_forced_active = true;
+                                                        count_forced_active2+=1;
+                                                        break;
+                                                    }
+                                                }
+                                                if (is_forced_active == false){
+                                                    for(auto active=mpc_active_elements.begin(); active!=mpc_active_elements.end(); ++active)
+                                                    {   
+                                                        if (inactive_geometry_neighbours_surface_aligned[n]->Id() == active->GetGeometry().GetGeometryParent(0).Id()){
+                                                            mpc_perspective_forced_active_elements2.push_back(*active.base());
+                                                            break;
+                                                        }
+                                                    }
+                                                }
+
+                                            } 
+                                        }
+                                    }
+                                    
+                                    for(auto perspective_forced_active2=mpc_perspective_forced_active_elements2.begin(); perspective_forced_active2!=mpc_perspective_forced_active_elements2.end(); ++perspective_forced_active2){
+                                        if (count_forced_active2<max_aligned_surface_neighbors){
+                                            mpc_forced_active_elements.push_back(*perspective_forced_active2.base());
+                                            count_forced_active2+=1;
+                                            mpc_checked_elements.push_back(*perspective_forced_active2.base());
+                                        }
+                                        else{
+                                            KRATOS_WATCH("I AM HERE")
+                                        }
+                                    }
+
+                                }
+                            }
+
+                            // // deactivate all edge aligned active neighbors
+                            // for (IndexType k = 0; k < geometry_neighbours_edge_aligned.size(); ++k) 
+                            // {
+                            //     bool deactivate = true;
+                            //     for(auto checked=mpc_checked_elements.begin(); checked!=mpc_checked_elements.end(); ++checked)
+                            //     {
+                            //         if (geometry_neighbours_edge_aligned[k]->Id() == checked->GetGeometry().GetGeometryParent(0).Id())
+                            //             deactivate=false;
+                            //     }  
+                            //     if (deactivate){
+                            //         for(auto active=mpc_active_elements.begin(); active!=mpc_active_elements.end(); ++active)
+                            //         {   
+                            //             if (geometry_neighbours_edge_aligned[k]->Id() == active->GetGeometry().GetGeometryParent(0).Id()){
+                            //                 mpc_inactive_elements.push_back(*active.base());
+                            //                 mpc_checked_elements.push_back(*active.base());
+                            //             }
+                            //         }
+                            //     } 
+
+                            // }
+
+                            
+
+                        }
+                        else{
+                            mpc_forced_active_elements.push_back(*i.base());
+                        }
+
+                        
+                    }
+                }
+
+
+                
+            
+
+            KRATOS_WATCH(mpc_inactive_elements.size())
+            KRATOS_WATCH(mpc_edge_elements.size())
+            KRATOS_WATCH(mpc_active_elements.size())
+            KRATOS_WATCH(mpc_forced_active_elements.size())
+
+            // deactivate conditions which are in the inactive defined elements
+            for (int i_cond = 0; i_cond < static_cast<int>(rConditionModelPart.Conditions().size()); ++i_cond) {
+                auto condition_itr = rConditionModelPart.Conditions().begin() + i_cond;
+
+                for(auto i=mpc_inactive_elements.begin(); i!=mpc_inactive_elements.end(); ++i)
+                {
+                    if (i->GetGeometry().GetGeometryParent(0).Id() == condition_itr->GetGeometry().GetGeometryParent(0).Id()){
+                        condition_itr->Reset(ACTIVE);  
+                    }
+                        
+                }
+
+                // shape function values should be modified for elements cut parallel to an edge
+                for(auto i=mpc_modify_elements.begin(); i!=mpc_modify_elements.end(); ++i)
+                {
+                    if (i->GetGeometry().GetGeometryParent(0).Id() == condition_itr->GetGeometry().GetGeometryParent(0).Id())
+                        condition_itr->Set(MODIFIED);
+                }
+                
+            }
+        
         }
-        KRATOS_WATCH(counterb)
- 
     }
 
 

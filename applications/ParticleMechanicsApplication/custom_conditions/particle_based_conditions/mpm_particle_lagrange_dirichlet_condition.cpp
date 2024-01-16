@@ -196,34 +196,35 @@ void MPMParticleLagrangeDirichletCondition::CalculateAll(
     bool apply_constraints = true;
 
     if (Is(CONTACT))
-    {   
-        // NOTE: the unit_normal_vector is assumed always pointing outside the boundary
-        array_1d<double, 3 > field_displacement = ZeroVector(3);
-        for ( unsigned int i = 0; i < number_of_nodes; i++ )
+    {
+        auto pBoundaryParticle = r_geometry.GetGeometryParent(0).GetValue(MPC_LAGRANGE_NODE);
+        const array_1d<double, 3>& r_lagrange_multiplier = pBoundaryParticle->FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER);   
+
+        if (r_lagrange_multiplier[2] > 0.0)
         {
-            for ( unsigned int j = 0; j < dimension; j++)
-            {
-                field_displacement[j] += Variables.N[i] * Variables.CurrentDisp(i,j);
-            }
+            this->Reset(ACTIVE);
         }
-            
-        const double penetration = MathUtils<double>::Dot((field_displacement - m_imposed_displacement), m_unit_normal);
-        // If penetrates, apply constraint, otherwise no
-        if (penetration > 0.0)
-        {
-            apply_constraints = false;
-            
-        }
+
+        // if (r_lagrange_multiplier[0] < 0.0)
+        // {
+        //     this->Reset(ACTIVE);
+        // }
     }
 
+    // reset active if condition is not connected to the body
     int counter = 0;
     for (unsigned int i = 0; i < number_of_nodes; i++)
     {
         if (r_geometry[i].FastGetSolutionStepValue(NODAL_MASS, 0) <std::numeric_limits<double>::epsilon() )
             counter+=1;
     }
-    if (counter == number_of_nodes)
+
+    if (counter > 0)
         this->Reset(ACTIVE);
+
+
+    // if (counter == number_of_nodes)
+    //     this->Reset(ACTIVE);
     
     if (apply_constraints && this->Is(ACTIVE))    
     {
@@ -231,21 +232,25 @@ void MPMParticleLagrangeDirichletCondition::CalculateAll(
         
         for (unsigned int i = 0; i < number_of_nodes; i++)
         {
-            const unsigned int ibase = dimension * number_of_nodes; 
-            for (unsigned int k = 0; k < dimension; k++)
-            {
-                lagrange_matrix(i* dimension+k, ibase+k) = Variables.N[i];
-                lagrange_matrix(ibase+k, i*dimension + k) = Variables.N[i];
-            }
-            auto mp_counter = r_geometry.GetGeometryParent(0).GetValue(MP_COUNTER);
-            if (mp_counter < 1 ){
-                auto mpc_counter = r_geometry.GetGeometryParent(0).GetValue(MPC_COUNTER);
-                auto volume = r_geometry.GetGeometryParent(0).Area();
+                const unsigned int ibase = dimension * number_of_nodes; 
                 for (unsigned int k = 0; k < dimension; k++)
                 {
-                    lagrange_matrix(i* dimension+k, i* dimension+k) = m_penalty/mpc_counter /  this->GetIntegrationWeight() * volume ; 
+                    lagrange_matrix(i* dimension+k, ibase+k) = Variables.N[i];
+                    lagrange_matrix(ibase+k, i*dimension + k) = Variables.N[i];
+
+                    // // augmented Penalty
+                    // lagrange_matrix(ibase + k, ibase + k) = -1/m_penalty;
                 }
-            }
+                // auto mp_counter = r_geometry.GetGeometryParent(0).GetValue(MP_COUNTER);
+                // if (mp_counter < 1 ){
+                //     auto mpc_counter = r_geometry.GetGeometryParent(0).GetValue(MPC_COUNTER);
+                //     auto volume = r_geometry.GetGeometryParent(0).Area();
+                //     for (unsigned int k = 0; k < dimension; k++)
+                //     {
+                //         lagrange_matrix(i* dimension+k, i* dimension+k) = 21600000/mpc_counter /  this->GetIntegrationWeight() * volume ; 
+                //     }
+                // }
+
         }
 
         // Calculate LHS Matrix and RHS Vector
@@ -313,7 +318,8 @@ void MPMParticleLagrangeDirichletCondition::FinalizeNonLinearIteration(const Pro
     array_1d<double, 3 > mpc_force = ZeroVector(3);
     auto pBoundaryParticle = r_geometry.GetGeometryParent(0).GetValue(MPC_LAGRANGE_NODE);
 
-    mpc_force = pBoundaryParticle->FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER);
+    if (this->Is(ACTIVE))
+        mpc_force = pBoundaryParticle->FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER);
 
     // Calculating shape function
     MPMShapeFunctionPointValues(Variables.N);
@@ -388,18 +394,11 @@ void MPMParticleLagrangeDirichletCondition::CalculateContactForce( const Process
         }
     }
 
-    // Apply in the normal contact direction and allow releasing motion
-    if (Is(CONTACT))
-    {
-        // Apply only in the normal direction
-        const double normal_force = MathUtils<double>::Dot(mpc_force, m_unit_normal);
-
-        // This check is done to avoid sticking forces
-        if (normal_force > 0.0)
-            mpc_force = 1.0 * normal_force * m_unit_normal;
-        else
-            mpc_force = ZeroVector(3);
-    }
+    // // Apply in the normal contact direction and allow releasing motion
+    // if (Is(CONTACT))
+    // {
+    //     mpc_force[1] = 0.0;
+    // }
     
     m_contact_force = mpc_force;
 
