@@ -33,29 +33,33 @@ The exceptions are the `NewmarkQuasistaticUPwScheme`, which has functionality fo
 The most straight-forward scheme type is called Backward Euler. The functionality described in this section can be found in the `BackwardEulerScheme` class. The first and second time derivatives are simply calculated by dividing the difference in their integrated variables by the time step. This results in the following equations for the scalar and vector derivatives. 
 
 First order scalar derivatives, in `UpdateScalarTimeDerivative`:
-$$\dot{x}\_{current} = (x\_{current} - x\_{previous} ) / \Delta t$$
-
-Second time derivative for vector variables in `UpdateVectorSecondTimeDerivative`:
-$$\ddot{x}\_{current} = (\dot{x}\_{current} - \dot{x}\_{previous} ) / \Delta t$$
+$$\dot{x}\_{t + \Delta t} = (x\_{t + \Delta t} - x\_{t} ) / \Delta t$$
 
 First time derivative for vector variables in `UpdateVectorFirstTimeDerivative`:
-$$\dot{x}\_{current} = (x\_{current} - x\_{previous} ) / \Delta t$$
+$$\dot{x}\_{t + \Delta t} = (x\_{t + \Delta t} - x\_{t} ) / \Delta t$$
 
-In these equations $\dot{x}$ and $\ddot{x}$ are the first time derivative and second time derivatives of variable $x$, respectively. The subscript $current$ refers to the current time step, while $previous$ refers to the previous time step. The magnitude of the time step is denoted by $\Delta t$.
+Second time derivative for vector variables in `UpdateVectorSecondTimeDerivative`:
+$$\ddot{x}\_{t + \Delta t} = (\dot{x}\_{t + \Delta t} - \dot{x}\_{t} ) / \Delta t$$
+
+TODO Note the order
+
+In these equations $\dot{x}$ and $\ddot{x}$ are the first time derivative and second time derivatives of variable $x$, respectively. The subscript $t + \Delta t$ refers to the end of the current time step, while the subscript $t$ refers to the start. The magnitude of the time step is denoted by $\Delta t$.
 
 ## Generalized Newmark
 A bit more involved are the Generalized Newmark schemes. This includes more parameters to tweak and has a more complex set of equations. The functionality described in this section can be found in the `GeneralizedNewmarkScheme` class. This results in the following three equations for updating the scalar and vector derivatives.
 
 First time derivative for scalar variables in `UpdateScalarTimeDerivative`:
-$$\dot{x}\_{current} = \frac{x\_{current} - x\_{previous} - (1 - \theta) \Delta t \dot{x}\_{previous}}{\theta \Delta t}$$
-
-First time derivative for vector variables in `UpdateVectorFirstTimeDerivative`:
-$$\dot{x}\_{current} = \dot{x}\_{previous} + (1 - \gamma)\Delta t \ddot{x}\_{previous} + \gamma \Delta t \ddot{x}\_{current}$$
+$$\dot{x}\_{t + \Delta t} = \frac{x\_{t + \Delta t} - x\_{t} - (1 - \theta) \Delta t \dot{x}\_{t}}{\theta \Delta t}$$
 
 Second time derivative for vector variables in `UpdateVectorSecondTimeDerivative`:
-$$\ddot{x}\_{current} = \frac{x\_{current} - x\_{previous} - \Delta t \dot{x}\_{previous} - (0.5 - \beta)(\Delta t)^{2}\ddot{x}\_{previous}}{\beta(\Delta t)^{2}}$$
+$$\ddot{x}\_{t + \Delta t} = \frac{x\_{t + \Delta t} - x\_{t} - \Delta t \dot{x}\_{t} - (0.5 - \beta)(\Delta t)^{2}\ddot{x}\_{t}}{\beta(\Delta t)^{2}}$$
 
-For these functions, identically to the Backward Euler scheme, $\ddot{x}$ and $\dot{x}$ refer to the first and second derivatives of $x$, while subscripts $current$ and $previous$ refer to the current/previous time steps. The magnitude of the time step is denoted by $\Delta t$. The parameters $\theta$, $\gamma$ and $\beta$ are the parameters of the Generalized Newmark scheme, and should all be larger than 0. 
+First time derivative for vector variables in `UpdateVectorFirstTimeDerivative`:
+$$\dot{x}\_{t + \Delta t} = \dot{x}\_{t} + (1 - \gamma)\Delta t \ddot{x}\_{t} + \gamma \Delta t \ddot{x}\_{t + \Delta t}$$
+
+TODO Note the order
+
+For these functions, identically to the Backward Euler scheme, $\ddot{x}$ and $\dot{x}$ refer to the first and second derivatives of $x$, while subscripts $t + \Delta t$ and $t$ refer to the end and start of the current time step. The magnitude of the time step is denoted by $\Delta t$. The parameters $\theta$, $\gamma$ and $\beta$ are the parameters of the Generalized Newmark scheme, with the following conditions: $0\le\theta\le 1$, and $0\le\gamma\le 1$ and $0\le\beta\le 0.5$.
 
 ## Dynamic and damped schemes
-To be investigated in further detail.
+TODO mention mass/damping matrices shortly
