@@ -131,16 +131,16 @@ void MPMParticleBaseDirichletCondition::MPMShapeFunctionPointValues( Vector& rRe
     double denominator = 1.0;
     const double small_cut_instability_tolerance = 0.01;
 
-    if (this->Is(MODIFIED))
-    {
-        for ( unsigned int i = 0; i < number_of_nodes; i++ )
-        {
-            if (rResult[i] < small_cut_instability_tolerance){
-                    denominator += (small_cut_instability_tolerance - rResult[i]);
-                    rResult[i] = small_cut_instability_tolerance;      
-            }
-        }
-    } 
+    // if (this->Is(MODIFIED))
+    // {
+    //     for ( unsigned int i = 0; i < number_of_nodes; i++ )
+    //     {
+    //         if (rResult[i] < small_cut_instability_tolerance){
+    //                 denominator += (small_cut_instability_tolerance - rResult[i]);
+    //                 rResult[i] = small_cut_instability_tolerance;      
+    //         }
+    //     }
+    // } 
 
     rResult = rResult / denominator;
 

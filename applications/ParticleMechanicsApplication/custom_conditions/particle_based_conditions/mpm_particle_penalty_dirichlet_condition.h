@@ -95,6 +95,8 @@ public:
      */
     void FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
 
+    void FinalizeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo) override;
+
     ///@}
     ///@name Operations
     ///@{
@@ -152,6 +154,7 @@ protected:
     ///@{
 
     array_1d<double, 3> m_unit_normal;
+    array_1d<double, 3> m_contact_force;
 
     ///@}
     ///@name Protected Operators
@@ -177,6 +180,8 @@ protected:
         bool CalculateStiffnessMatrixFlag,
         bool CalculateResidualVectorFlag
         ) override;
+
+    virtual void CalculateContactForce( const ProcessInfo& rCurrentProcessInfo );
 
     ///@}
     ///@name Protected  Access
@@ -235,6 +240,7 @@ private:
         KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, MPMParticleBaseDirichletCondition );
         rSerializer.save("unit_normal", m_unit_normal);
         rSerializer.save("penalty", m_penalty);
+        rSerializer.save("ContactForce", m_contact_force);
     }
 
     void load( Serializer& rSerializer ) override
@@ -242,6 +248,7 @@ private:
         KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, MPMParticleBaseDirichletCondition );
         rSerializer.load("unit_normal", m_unit_normal);
         rSerializer.load("penalty", m_penalty);
+        rSerializer.load("ContactForce", m_contact_force);
     }
 
 
