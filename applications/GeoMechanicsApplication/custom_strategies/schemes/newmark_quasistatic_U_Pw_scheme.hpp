@@ -18,24 +18,9 @@
 #include "utilities/parallel_utilities.h"
 
 #include "generalized_newmark_scheme.hpp"
-#include "geo_mechanics_application_variables.h"
 
 namespace Kratos
 {
-
-struct VariableWithTimeDerivatives
-{
-    Variable<array_1d<double, 3>> instance;
-    Variable<array_1d<double, 3>> first_time_derivative;
-    Variable<array_1d<double, 3>> second_time_derivative;
-
-    explicit VariableWithTimeDerivatives(const Variable<array_1d<double, 3>>& instance)
-        : instance(instance),
-          first_time_derivative(instance.GetTimeDerivative()),
-          second_time_derivative(first_time_derivative.GetTimeDerivative())
-    {
-    }
-};
 
 template <class TSparseSpace, class TDenseSpace>
 class NewmarkQuasistaticUPwScheme
@@ -53,14 +38,12 @@ public:
 
     NewmarkQuasistaticUPwScheme(double beta, double gamma, double theta)
         : GeneralizedNewmarkScheme<TSparseSpace, TDenseSpace>(
-              theta, WATER_PRESSURE, DT_WATER_PRESSURE, DT_PRESSURE_COEFFICIENT),
-          mBeta(beta),
-          mGamma(gamma)
+              {FirstOrderScalarVariable(WATER_PRESSURE, DT_WATER_PRESSURE, DT_PRESSURE_COEFFICIENT)},
+              {SecondOrderVectorVariable(DISPLACEMENT), SecondOrderVectorVariable(ROTATION)},
+              theta,
+              beta,
+              gamma)
     {
-        KRATOS_ERROR_IF(mBeta <= 0)
-            << "Beta must be larger than zero, but got " << mBeta << "\n";
-        KRATOS_ERROR_IF(mGamma <= 0)
-            << "Gamma must be larger than zero, but got " << mGamma << "\n";
     }
 
     void FinalizeSolutionStep(ModelPart& rModelPart,
@@ -121,117 +104,6 @@ public:
 
         KRATOS_CATCH("")
     }
-
-protected:
-    double mBeta = 0.25;
-    double mGamma = 0.5;
-
-    void CheckAllocatedVariables(const ModelPart& rModelPart) const override
-    {
-        GeneralizedNewmarkScheme<TSparseSpace, TDenseSpace>::CheckAllocatedVariables(rModelPart);
-
-        for (const auto& r_node : rModelPart.Nodes())
-        {
-            for (const auto& variable_derivative : mVariableDerivatives)
-            {
-                if (!rModelPart.HasNodalSolutionStepVariable(variable_derivative.instance))
-                    continue;
-
-                this->CheckSolutionStepsData(r_node, variable_derivative.instance);
-                this->CheckSolutionStepsData(r_node, variable_derivative.first_time_derivative);
-                this->CheckSolutionStepsData(r_node, variable_derivative.second_time_derivative);
-
-                // We don't check for "Z", since it is optional (in case of a 2D problem)
-                std::vector<std::string> components{"X", "Y"};
-                for (const auto& component : components)
-                {
-                    const auto& variable_component = GetComponentFromVectorVariable(
-                        variable_derivative.instance, component);
-                    this->CheckDof(r_node, variable_component);
-                }
-            }
-        }
-    }
-
-    inline void SetTimeFactors(ModelPart& rModelPart) override
-    {
-        KRATOS_TRY
-
-        GeneralizedNewmarkScheme<TSparseSpace, TDenseSpace>::SetTimeFactors(rModelPart);
-        rModelPart.GetProcessInfo()[VELOCITY_COEFFICIENT] =
-            mGamma / (mBeta * this->GetDeltaTime());
-
-        KRATOS_CATCH("")
-    }
-
-    inline void UpdateVariablesDerivatives(ModelPart& rModelPart) override
-    {
-        KRATOS_TRY
-
-        block_for_each(rModelPart.Nodes(), [this](Node& rNode)
-        {
-            UpdateVectorSecondTimeDerivative(rNode);
-            UpdateVectorFirstTimeDerivative(rNode);
-            this->UpdateScalarTimeDerivative(rNode, WATER_PRESSURE, DT_WATER_PRESSURE);
-        });
-
-        KRATOS_CATCH("")
-    }
-
-    const Variable<double>& GetComponentFromVectorVariable(
-        const Variable<array_1d<double, 3>>& rSource, const std::string& rComponent) const
-    {
-        return KratosComponents<Variable<double>>::Get(rSource.Name() + "_" + rComponent);
-    }
-
-    const std::vector<VariableWithTimeDerivatives>& GetVariableDerivatives() const
-    {
-        return mVariableDerivatives;
-    }
-
-private:
-    void UpdateVectorFirstTimeDerivative(Node& rNode) const
-    {
-        for (const auto& variable_derivative : mVariableDerivatives)
-        {
-            if (!rNode.SolutionStepsDataHas(variable_derivative.instance))
-                continue;
-
-            noalias(rNode.FastGetSolutionStepValue(
-                variable_derivative.first_time_derivative, 0)) =
-                rNode.FastGetSolutionStepValue(variable_derivative.first_time_derivative, 1) +
-                (1.0 - mGamma) * this->GetDeltaTime() *
-                    rNode.FastGetSolutionStepValue(
-                        variable_derivative.second_time_derivative, 1) +
-                mGamma * this->GetDeltaTime() *
-                    rNode.FastGetSolutionStepValue(
-                        variable_derivative.second_time_derivative, 0);
-        }
-    }
-
-    void UpdateVectorSecondTimeDerivative(Node& rNode) const
-    {
-        for (const auto& variable_derivative : mVariableDerivatives)
-        {
-            if (!rNode.SolutionStepsDataHas(variable_derivative.instance))
-                continue;
-
-            noalias(rNode.FastGetSolutionStepValue(
-                variable_derivative.second_time_derivative, 0)) =
-                ((rNode.FastGetSolutionStepValue(variable_derivative.instance, 0) -
-                  rNode.FastGetSolutionStepValue(variable_derivative.instance, 1)) -
-                 this->GetDeltaTime() * rNode.FastGetSolutionStepValue(
-                                            variable_derivative.first_time_derivative, 1) -
-                 (0.5 - mBeta) * this->GetDeltaTime() * this->GetDeltaTime() *
-                     rNode.FastGetSolutionStepValue(
-                         variable_derivative.second_time_derivative, 1)) /
-                (mBeta * this->GetDeltaTime() * this->GetDeltaTime());
-        }
-    }
-
-    std::vector<VariableWithTimeDerivatives> mVariableDerivatives{
-        VariableWithTimeDerivatives(DISPLACEMENT), VariableWithTimeDerivatives{ROTATION}};
-
 }; // Class NewmarkQuasistaticUPwScheme
 
 } // namespace Kratos
