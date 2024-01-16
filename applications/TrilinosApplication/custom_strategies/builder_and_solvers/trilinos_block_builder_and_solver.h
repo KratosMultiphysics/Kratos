@@ -1550,7 +1550,7 @@ protected:
 
             // First adding the pure slave dofs
             if (num_active_slave_indices > 0) {
-                int index[1];
+                int index[1] = {0};
                 for (IndexType i = 0; i < num_active_slave_indices; ++i) {
                     index[0] = temp_primary[i];
                     ierr = Agraph.InsertGlobalIndices(1, index, 1, index);
