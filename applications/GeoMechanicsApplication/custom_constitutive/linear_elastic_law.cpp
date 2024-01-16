@@ -49,7 +49,7 @@ void GeoLinearElasticLaw::CalculateMaterialResponsePK1(ConstitutiveLaw::Paramete
 void GeoLinearElasticLaw::CalculateMaterialResponsePK2(ConstitutiveLaw::Parameters& rValues)
 {
     KRATOS_TRY
-    // b.- Get Values to compute the constitutive law:
+
     const Flags& r_options = rValues.GetOptions();
 
     Vector& r_strain_vector = rValues.GetStrainVector();

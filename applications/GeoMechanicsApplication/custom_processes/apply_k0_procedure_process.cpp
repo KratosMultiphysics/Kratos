@@ -25,7 +25,6 @@
 #include "custom_constitutive/linear_elastic_law.h"
 #include "geo_mechanics_application_variables.h"
 #include "includes/kratos_flags.h"
-#include "includes/kratos_parameters.h"
 
 namespace
 {
@@ -37,9 +36,7 @@ void SetCouplingOption(ModelPart::ElementsContainerType& rElements, GeoLinearEla
     block_for_each(rElements, [WantCoupling](Element& rElement) {
         auto pLinearElasticLaw =
             dynamic_cast<GeoLinearElasticLaw*>(rElement.GetProperties().GetValue(CONSTITUTIVE_LAW).get());
-        if (pLinearElasticLaw) {
-            pLinearElasticLaw->SetCouplingOption(WantCoupling);
-        }
+        if (pLinearElasticLaw) pLinearElasticLaw->SetCouplingOption(WantCoupling);
     });
 }
 
@@ -55,14 +52,14 @@ ApplyK0ProcedureProcess::ApplyK0ProcedureProcess(ModelPart& model_part, const Pa
 
 void ApplyK0ProcedureProcess::ExecuteInitialize()
 {
-    if (ForcePlaxisCompatibility()) {
+    if (ForceDecoupledElasticity()) {
         SetCouplingOption(mrModelPart.Elements(), GeoLinearElasticLaw::IsCouplingWanted::No);
     }
 }
 
 void ApplyK0ProcedureProcess::ExecuteFinalize()
 {
-    if (ForcePlaxisCompatibility()) {
+    if (ForceDecoupledElasticity()) {
         SetCouplingOption(mrModelPart.Elements(), GeoLinearElasticLaw::IsCouplingWanted::Yes);
     }
 }
@@ -80,9 +77,9 @@ void ApplyK0ProcedureProcess::ExecuteFinalizeSolutionStep()
 
 std::string ApplyK0ProcedureProcess::Info() const { return "ApplyK0ProcedureProcess"; }
 
-bool ApplyK0ProcedureProcess::ForcePlaxisCompatibility() const
+bool ApplyK0ProcedureProcess::ForceDecoupledElasticity() const
 {
-    const auto setting_name = std::string{"force_plaxis_compatibility"};
+    const auto setting_name = std::string{"force_decoupled_elasticity"};
     return mSettings.Has(setting_name) && mSettings[setting_name].GetBool();
 }
 

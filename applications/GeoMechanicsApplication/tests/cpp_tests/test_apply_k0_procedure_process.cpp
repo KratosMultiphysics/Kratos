@@ -62,12 +62,12 @@ bool AllElementsHaveSameCouplingOption(const ModelPart::ElementsContainerType& r
 namespace Kratos::Testing
 {
 
-KRATOS_TEST_CASE_IN_SUITE(ExpectCouplingTermsWhenForcePlaxisCompatibilityFlagIsNotDefined, KratosGeoMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(ExpectCouplingTermsWhenForceDecoupledElasticityFlagIsNotDefined, KratosGeoMechanicsFastSuite)
 {
     Model model;
     auto& r_model_part = PrepareTestModelPart(model);
 
-    Parameters k0_settings;
+    Parameters k0_settings; // 'force_decoupled_elasticity' is not defined
 
     ApplyK0ProcedureProcess process{r_model_part, k0_settings};
     process.ExecuteInitialize();
@@ -75,12 +75,12 @@ KRATOS_TEST_CASE_IN_SUITE(ExpectCouplingTermsWhenForcePlaxisCompatibilityFlagIsN
     KRATOS_EXPECT_TRUE(AllElementsHaveSameCouplingOption(
         r_model_part.Elements(), GeoLinearElasticLaw::IsCouplingWanted::Yes))
 }
-KRATOS_TEST_CASE_IN_SUITE(ExpectCouplingTermsWhenForcePlaxisCompatibilityFlagIsOff, KratosGeoMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(ExpectCouplingTermsWhenForceDecoupledElasticityFlagIsOff, KratosGeoMechanicsFastSuite)
 {
     Model model;
     auto& r_model_part = PrepareTestModelPart(model);
 
-    Parameters k0_settings{R"({"force_plaxis_compatibility": false})"};
+    Parameters k0_settings{R"({"force_decoupled_elasticity": false})"};
 
     ApplyK0ProcedureProcess process{r_model_part, k0_settings};
     process.ExecuteInitialize();
@@ -89,12 +89,12 @@ KRATOS_TEST_CASE_IN_SUITE(ExpectCouplingTermsWhenForcePlaxisCompatibilityFlagIsO
         r_model_part.Elements(), GeoLinearElasticLaw::IsCouplingWanted::Yes))
 }
 
-KRATOS_TEST_CASE_IN_SUITE(ExpectNoCouplingTermsWhenForcePlaxisCompatibilityFlagIsOn, KratosGeoMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(ExpectNoCouplingTermsWhenForceDecoupledElasticityFlagIsOn, KratosGeoMechanicsFastSuite)
 {
     Model model;
     auto& r_model_part = PrepareTestModelPart(model);
 
-    Parameters k0_settings{R"({"force_plaxis_compatibility": true})"};
+    Parameters k0_settings{R"({"force_decoupled_elasticity": true})"};
 
     ApplyK0ProcedureProcess process{r_model_part, k0_settings};
     process.ExecuteInitialize();
@@ -103,16 +103,16 @@ KRATOS_TEST_CASE_IN_SUITE(ExpectNoCouplingTermsWhenForcePlaxisCompatibilityFlagI
                                                          GeoLinearElasticLaw::IsCouplingWanted::No))
 }
 
-KRATOS_TEST_CASE_IN_SUITE(ForcePlaxisCompatibilityFlagIsInEffectDuringProcessExecutionOnly, KratosGeoMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(ForceDecoupledElasticityFlagIsInEffectDuringProcessExecutionOnly, KratosGeoMechanicsFastSuite)
 {
     Model model;
     auto& r_model_part = PrepareTestModelPart(model);
 
-    Parameters k0_settings{R"({"force_plaxis_compatibility": true})"};
+    Parameters k0_settings{R"({"force_decoupled_elasticity": true})"};
 
     ApplyK0ProcedureProcess process{r_model_part, k0_settings};
-    process.ExecuteInitialize(); // starts Plaxis compatibility mode
-    process.ExecuteFinalize(); // ends Plaxis compatibility mode
+    process.ExecuteInitialize(); // all coupling terms are wiped out
+    process.ExecuteFinalize(); // all coupling terms are restored
 
     KRATOS_EXPECT_TRUE(AllElementsHaveSameCouplingOption(r_model_part.Elements(),
                                                          GeoLinearElasticLaw::IsCouplingWanted::Yes))
