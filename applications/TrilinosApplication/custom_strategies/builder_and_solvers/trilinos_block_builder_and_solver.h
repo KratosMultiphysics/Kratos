@@ -686,9 +686,11 @@ public:
         const int world_size = r_data_comm.Size();
 
         // Calculating number of fixed and free dofs
-        for (const auto& r_dof : BaseType::mDofSet)
-            if (r_dof.GetSolutionStepValue(PARTITION_INDEX) == current_rank)
+        for (const auto& r_dof : BaseType::mDofSet) {
+            if (r_dof.GetSolutionStepValue(PARTITION_INDEX) == current_rank) {
                 free_size++;
+            }
+        }
 
         // Calculating the total size and required offset
         int free_offset;
@@ -705,9 +707,11 @@ public:
         free_offset -= free_size;
 
         // Now setting the equation id with .
-        for (auto& r_dof : BaseType::mDofSet)
-            if (r_dof.GetSolutionStepValue(PARTITION_INDEX) == current_rank)
+        for (auto& r_dof : BaseType::mDofSet) {
+            if (r_dof.GetSolutionStepValue(PARTITION_INDEX) == current_rank) {
                 r_dof.SetEquationId(free_offset++);
+            }
+        }
 
         BaseType::mEquationSystemSize = global_size;
         mLocalSystemSize = free_size;
@@ -1225,10 +1229,10 @@ protected:
 
             // Adding diagonal values
             int ierr;
-            std::vector<int> index_diagonal(1, 0);
+            int index_diagonal[1] = {0};
             for (IndexType i = 0; i < number_of_local_rows; ++i) {
                 index_diagonal[0] = mFirstMyId + i;
-                ierr = Tgraph.InsertGlobalIndices(1, index_diagonal.data(), 1, index_diagonal.data());
+                ierr = Tgraph.InsertGlobalIndices(1, index_diagonal, 1, index_diagonal);
                 KRATOS_ERROR_IF(ierr < 0) << ": Epetra failure in Graph.InsertGlobalIndices. Error code: " << ierr << std::endl;
             }
 
@@ -1257,17 +1261,35 @@ protected:
 
                 // Adding cross master-slave dofs
                 if (num_active_slave_indices > 0 && num_active_master_indices > 0) {
-                    std::vector<int> slave_index(1, 0);
+                    int slave_index[1] = {0};
                     for (IndexType i = 0; i < num_active_slave_indices; ++i) {
                         slave_index[0] = temp_primary[i];
                         indices.insert(temp_primary[i]);
-                        ierr = Tgraph.InsertGlobalIndices(1, slave_index.data(), num_active_master_indices, temp_secondary.data());
+                        ierr = Tgraph.InsertGlobalIndices(1, slave_index, num_active_master_indices, temp_secondary.data());
                         KRATOS_ERROR_IF(ierr < 0) << ": Epetra failure in Graph.InsertGlobalIndices. Error code: " << ierr << std::endl;
                     }
                 }
                 std::fill(temp_primary.begin(), temp_primary.begin() + num_active_slave_indices, 0);
                 std::fill(temp_secondary.begin(), temp_secondary.begin() + num_active_master_indices, 0);
             }
+
+            // Finalizing graph construction
+            ierr = Tgraph.GlobalAssemble();
+            KRATOS_ERROR_IF(ierr < 0) << ": Epetra failure in Epetra_FECrsGraph.GlobalAssemble. Error code: " << ierr << std::endl;
+            ierr = Tgraph.FillComplete();
+            KRATOS_ERROR_IF(ierr < 0) << ": Epetra failure in Epetra_FECrsGraph.FillComplete. Error code: " << ierr << std::endl;
+            ierr = Tgraph.OptimizeStorage();
+            KRATOS_ERROR_IF(ierr < 0) << ": Epetra failure in Epetra_FECrsGraph.OptimizeStorage. Error code: " << ierr << std::endl;
+
+            // Generate a new matrix pointer according to this non-zero values
+            TSystemMatrixPointerType p_new_T = TSystemMatrixPointerType(new TSystemMatrixType(Copy, Tgraph));
+
+            // Swap matrix
+            mpT.swap(p_new_T);
+
+            // Generate the constant vector equivalent
+            TSystemVectorPointerType p_new_constant_vector = TSystemVectorPointerType(new TSystemVectorType(r_map));
+            mpConstantVector.swap(p_new_constant_vector);
 
             /* Fill ids for master/slave */
 
@@ -1318,22 +1340,6 @@ protected:
                 }
             }
             mMasterIds = std::vector<IndexType>(temp_master_ids.begin(), temp_master_ids.end());
-
-            // Finalizing graph construction
-            ierr = Tgraph.GlobalAssemble();
-            KRATOS_ERROR_IF(ierr < 0) << ": Epetra failure in Epetra_FECrsGraph.GlobalAssemble. Error code: " << ierr << std::endl;
-            ierr = Tgraph.FillComplete();
-            KRATOS_ERROR_IF(ierr < 0) << ": Epetra failure in Epetra_FECrsGraph.FillComplete. Error code: " << ierr << std::endl;
-
-            // Generate a new matrix pointer according to this non-zero values
-            TSystemMatrixPointerType p_new_T = TSystemMatrixPointerType(new TSystemMatrixType(Copy, Tgraph));
-
-            // Swap matrix
-            mpT.swap(p_new_T);
-
-            // Generate the constant vector equivalent
-            TSystemVectorPointerType p_new_constant_vector = TSystemVectorPointerType(new TSystemVectorType(r_map));
-            mpConstantVector.swap(p_new_constant_vector);
 
             STOP_TIMER("ConstraintsRelationMatrixStructure", 0)
         }
@@ -1544,10 +1550,10 @@ protected:
 
             // First adding the pure slave dofs
             if (num_active_slave_indices > 0) {
-                std::vector<int> index(1, 0);
+                int index[1] = {0};
                 for (IndexType i = 0; i < num_active_slave_indices; ++i) {
                     index[0] = temp_primary[i];
-                    ierr = Agraph.InsertGlobalIndices(1, index.data(), 1, index.data());
+                    ierr = Agraph.InsertGlobalIndices(1, index, 1, index);
                     KRATOS_ERROR_IF(ierr < 0) << ": Epetra failure in Graph.InsertGlobalIndices. Error code: " << ierr << std::endl;
                 }
                 // Now adding cross master-slave dofs
@@ -1558,10 +1564,10 @@ protected:
             }
             // Second adding pure master dofs
             if (num_active_master_indices > 0) {
-                std::vector<int> index(1, 0);
+                int index[1] = {0};
                 for (IndexType i = 0; i < num_active_master_indices; ++i) {
                     index[0] = temp_secondary[i];
-                    ierr = Agraph.InsertGlobalIndices(1, index.data(), 1, index.data());
+                    ierr = Agraph.InsertGlobalIndices(1, index, 1, index);
                     KRATOS_ERROR_IF(ierr < 0) << ": Epetra failure in Graph.InsertGlobalIndices. Error code: " << ierr << std::endl;
                 }
             }
@@ -1574,6 +1580,8 @@ protected:
         KRATOS_ERROR_IF(ierr < 0) << ": Epetra failure in Epetra_FECrsGraph.GlobalAssemble. Error code: " << ierr << std::endl;
         ierr = Agraph.FillComplete();
         KRATOS_ERROR_IF(ierr < 0) << ": Epetra failure in Epetra_FECrsGraph.FillComplete. Error code: " << ierr << std::endl;
+        ierr = Agraph.OptimizeStorage();
+        KRATOS_ERROR_IF(ierr < 0) << ": Epetra failure in Epetra_FECrsGraph.OptimizeStorage. Error code: " << ierr << std::endl;
 
         // Generate a new matrix pointer according to this graph
         TSystemMatrixPointerType p_new_A = TSystemMatrixPointerType(new TSystemMatrixType(Copy, Agraph));
