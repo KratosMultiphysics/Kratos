@@ -62,6 +62,40 @@ class SystemIdentificationStaticAnalysis(AnalysisStage):
 
     def RunSolutionLoop(self):
         process_info = self._GetSolver().GetComputingModelPart().ProcessInfo
+
+        # first we calculate sensor specific distribution if required because, at the end
+        # of this function we should return the residual sensitivities
+        if self.output_sensor_sensitivity_fields:
+            import KratosMultiphysics.HDF5Application as KratosHDF5
+            from KratosMultiphysics.HDF5Application.core.file_io import OpenHDF5File
+
+            output_path = Path(self.output_sensor_sensitivity_path) / f"iteration_{process_info[Kratos.STEP]:05d}.h5"
+            output_path.parent.mkdir(parents=True, exist_ok=True)
+
+            hdf5_params = Kratos.Parameters("""{
+                "file_name"       : "",
+                "file_access_mode": "truncate"
+            }""")
+            hdf5_params["file_name"].SetString(str(output_path))
+            with OpenHDF5File(hdf5_params, self._GetSolver().GetSensitivityModelPart()) as h5_file:
+                exp_io = KratosHDF5.ExpressionIO(Kratos.Parameters("""{"prefix": "/SensitivityFieldData/"}"""), h5_file)
+
+                for sensor in self.listof_sensors:
+                    process_info[KratosDT.SENSOR_NAME] = f"sensor \"{sensor.GetName()}\""
+                    self._GetSolver().SetSensor(sensor)
+                    self.InitializeSolutionStep()
+                    sensor.InitializeSolutionStep()
+                    self._GetSolver().SolveSolutionStep()
+                    sensor.FinalizeSolutionStep()
+                    self.FinalizeSolutionStep()
+
+                    sensitivities = self.GetSensitivities()
+                    for var, cexp in sensitivities.items():
+                        exp_io.Write(f"{sensor.GetName()}_{var.Name()}", cexp)
+
+            self._GetSolver().SetSensor(self.measurement_residual_response_function)
+
+        # now we calculate the residual sensitivities to be used in the optimization algorithm
         process_info[KratosDT.SENSOR_NAME] = "for aggregated MeasurementResidualResponseFunction"
         self.InitializeSolutionStep()
         self.measurement_residual_response_function.InitializeSolutionStep()
@@ -69,27 +103,6 @@ class SystemIdentificationStaticAnalysis(AnalysisStage):
         self.measurement_residual_response_function.FinalizeSolutionStep()
         self.FinalizeSolutionStep()
         self.OutputSolutionStep()
-
-        if self.output_sensor_sensitivity_fields:
-            for sensor in self.listof_sensors:
-                process_info[KratosDT.SENSOR_NAME] = f"sensor \"{sensor.GetName()}\""
-                self._GetSolver().SetSensor(sensor)
-                self.InitializeSolutionStep()
-                sensor.InitializeSolutionStep()
-                self._GetSolver().SolveSolutionStep()
-                sensor.FinalizeSolutionStep()
-                self.FinalizeSolutionStep()
-
-                # now output
-                vtu_output = Kratos.VtuOutput(self._GetSolver().GetSensitivityModelPart())
-                sensitivities = self.GetSensitivities()
-                for var, cexp in sensitivities.items():
-                    vtu_output.AddContainerExpression(var.Name(), cexp)
-
-                output_path = Path(self.output_sensor_sensitivity_path) / f"{sensor.GetName()}/iteration_{process_info[Kratos.STEP]:05d}"
-                output_path.parent.mkdir(parents=True, exist_ok=True)
-                vtu_output.PrintOutput(str(output_path))
-            self._GetSolver().SetSensor(self.measurement_residual_response_function)
 
     def GetListOfSensors(self) -> 'list[KratosDT.Sensors.Sensor]':
         return self.listof_sensors
