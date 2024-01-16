@@ -40,7 +40,7 @@ In these equations $\dot{x}$ and $\ddot{x} are the first time derivative and sec
 A bit more involved are the Generalized Newmark schemes. This includes more parameters to tweak and has a more complex set of equations. The functionality described in this section can be found in the `GeneralizedNewmarkScheme` class. This results in the following three equations for updating the scalar and vector derivatives.
 
 First time derivative for scalar variables in `UpdateScalarTimeDerivative`:
-$$\dot{x}\_{current} = \frac{(x\_{current} - x\_{previous} - (1 - \theta)) \Delta t}{\theta \Delta t}$$
+$$\dot{x}\_{current} = \frac{x\_{current} - x\_{previous} - (1 - \theta) \Delta t \dot{x}\_{previous}}{\theta \Delta t}$$
 
 First time derivative for vector variables in `UpdateVectorFirstTimeDerivative`:
 $$\dot{x}\_{current} = \dot{x}\_{previous} + (1 - \gamma)\Delta t \ddot{x}\_{previous} + \gamma \Delta t \ddot{x}\_{current}$$
