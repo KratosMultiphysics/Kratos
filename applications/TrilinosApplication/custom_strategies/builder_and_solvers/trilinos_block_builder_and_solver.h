@@ -1229,7 +1229,7 @@ protected:
 
             // Adding diagonal values
             int ierr;
-            int index_diagonal[1];
+            int index_diagonal[1] = {0};
             for (IndexType i = 0; i < number_of_local_rows; ++i) {
                 index_diagonal[0] = mFirstMyId + i;
                 ierr = Tgraph.InsertGlobalIndices(1, index_diagonal, 1, index_diagonal);
