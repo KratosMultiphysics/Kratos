@@ -14,16 +14,15 @@ It also has a general `Update` step, which calls the `UpdateVariablesDerivatives
 *Class structure of the schemes generated using the SchemeStructure.puml file with PlantUML. Note that the class diagram is simplified and only shows the functions that need emphasis.*
 
 Updating the time derivatives is done in the following three functions:
-- `UpdateScalarTimeDerivative`
-- `UpdateVectorFirstTimeDerivative`
-- `UpdateVectorSecondTimeDerivative`
+-   `UpdateScalarTimeDerivative`
+-   `UpdateVectorFirstTimeDerivative`
+-   `UpdateVectorSecondTimeDerivative`
 
 These functions are purely virtual in the `GeoMechanicsTimeIntegrationScheme` class, and are implemented in the derived classes for the Backward Euler and Generalized Newmark time integration methods. The same holds for the `SetTimeFactors` function. For the specific equations, see sections [Backward Euler](#backward-euler) and [Generalized Newmark](#generalized-newmark).
 
 The child classes which actually specify which variables are used in the time integration scheme (e.g. the `BackwardEulerUPwScheme` or the `GeneralizedNewmarkTScheme), only fill the lists of first/second order variables. 
 
 The exceptions are the `NewmarkQuasistaticUPwScheme`, which has functionality for nodal smoothing (this should be moved to another location) and the damped and dynamic UPw schemes. More info on these can be found in the [Dynamic and damped schemes](#dynamic-and-damped-schemes) section. 
-
 
 ## Backward Euler
 The most straight-forward scheme type is called Backward Euler. The functionality described in this section can be found in the `BackwardEulerScheme` class. The first and second time derivatives are simply calculated by dividing the difference in their integrated variables by the time step. This results in the following equations for the scalar and vector derivatives. 
