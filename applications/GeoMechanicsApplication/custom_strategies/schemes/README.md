@@ -34,7 +34,7 @@ $$\ddot{x}\_{current} = (\dot{x}\_{current} - \dot{x}\_{previous} ) / \Delta t$$
 First time derivative for vector variables in `UpdateVectorFirstTimeDerivative`:
 $$\dot{x}\_{current} = (x\_{current} - x\_{previous} ) / \Delta t$$
 
-In these equations $\dot{x}$ and $\ddot{x} are the first time derivative and second time derivatives of variable $x$, respectively. The subscript $current$ refers to the current time step, while $previous$ refers to the previous time step. The magnitude of the time step is denoted by $\Delta t$.
+In these equations $\dot{x}$ and $\ddot{x}$ are the first time derivative and second time derivatives of variable $x$, respectively. The subscript $current$ refers to the current time step, while $previous$ refers to the previous time step. The magnitude of the time step is denoted by $\Delta t$.
 
 ## Generalized Newmark
 A bit more involved are the Generalized Newmark schemes. This includes more parameters to tweak and has a more complex set of equations. The functionality described in this section can be found in the `GeneralizedNewmarkScheme` class. This results in the following three equations for updating the scalar and vector derivatives.
