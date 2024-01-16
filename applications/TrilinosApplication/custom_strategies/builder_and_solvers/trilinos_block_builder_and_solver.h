@@ -1261,7 +1261,7 @@ protected:
 
                 // Adding cross master-slave dofs
                 if (num_active_slave_indices > 0 && num_active_master_indices > 0) {
-                    int slave_index[1];
+                    int slave_index[1] = {0};
                     for (IndexType i = 0; i < num_active_slave_indices; ++i) {
                         slave_index[0] = temp_primary[i];
                         indices.insert(temp_primary[i]);
