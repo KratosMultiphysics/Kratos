@@ -1310,8 +1310,12 @@ protected:
             for (IndexType i = 0; i < number_of_local_rows; ++i) {
                 temp_master_ids.insert(mFirstMyId + i);
             }
-            for (auto id_slave : mSlaveIds) {
-                temp_master_ids.erase(id_slave);
+
+            // Remove ids
+            for (auto id_slave_vector : auxiliary_slave_ids) {
+                for (auto id_slave : id_slave_vector) {
+                    temp_master_ids.erase(id_slave);
+                }
             }
             mMasterIds = std::vector<IndexType>(temp_master_ids.begin(), temp_master_ids.end());
 
@@ -1343,7 +1347,7 @@ protected:
     {
         KRATOS_TRY
 
-        // Reference of the matrix and vectpr
+        // Reference of the matrix and vector
         auto& r_T = GetConstraintRelationMatrix();
         auto& r_constant_vector = GetConstraintConstantVector();
 
@@ -1371,6 +1375,7 @@ protected:
 
         // We clear the set
         mInactiveSlaveDofs.clear();
+        std::size_t num_inactive_slave_dofs_other_partitions = 0;
 
         // Iterate over the constraints
         for (auto& r_const : rModelPart.MasterSlaveConstraints()) {
@@ -1389,24 +1394,30 @@ protected:
                         mInactiveSlaveDofs.insert(slave_id);
                     } else {
                         auxiliary_inactive_slave_ids[index_rank].insert(slave_id);
+                        ++num_inactive_slave_dofs_other_partitions;
                     }
                 }
             }
         }
 
+        // Compute total number of inactive slave dofs in other partitions
+        num_inactive_slave_dofs_other_partitions = r_data_comm.SumAll(num_inactive_slave_dofs_other_partitions);
+
         // Now we pass the info between partitions
-        const int tag_sync_inactive_slave_id = 0;
-        for (int i_rank = 0; i_rank < world_size; ++i_rank) {
-            if (i_rank != current_rank) {
-                std::vector<IndexType> receive_inactive_slave_ids_vector;
-                r_data_comm.Recv(receive_inactive_slave_ids_vector, i_rank, tag_sync_inactive_slave_id);
-                mInactiveSlaveDofs.insert(receive_inactive_slave_ids_vector.begin(), receive_inactive_slave_ids_vector.end());
-            } else {
-                for (int j_rank = 0; j_rank < world_size; ++j_rank) {
-                    if (j_rank != current_rank) {
-                        const auto& r_inactive_slave_ids = auxiliary_inactive_slave_ids[j_rank];
-                        std::vector<IndexType> send_inactive_slave_ids_vector(r_inactive_slave_ids.begin(), r_inactive_slave_ids.end());
-                        r_data_comm.Send(send_inactive_slave_ids_vector, j_rank, tag_sync_inactive_slave_id);
+        if (num_inactive_slave_dofs_other_partitions > 0) {
+            const int tag_sync_inactive_slave_id = 0;
+            for (int i_rank = 0; i_rank < world_size; ++i_rank) {
+                if (i_rank != current_rank) {
+                    std::vector<IndexType> receive_inactive_slave_ids_vector;
+                    r_data_comm.Recv(receive_inactive_slave_ids_vector, i_rank, tag_sync_inactive_slave_id);
+                    mInactiveSlaveDofs.insert(receive_inactive_slave_ids_vector.begin(), receive_inactive_slave_ids_vector.end());
+                } else {
+                    for (int j_rank = 0; j_rank < world_size; ++j_rank) {
+                        if (j_rank != current_rank) {
+                            const auto& r_inactive_slave_ids = auxiliary_inactive_slave_ids[j_rank];
+                            std::vector<IndexType> send_inactive_slave_ids_vector(r_inactive_slave_ids.begin(), r_inactive_slave_ids.end());
+                            r_data_comm.Send(send_inactive_slave_ids_vector, j_rank, tag_sync_inactive_slave_id);
+                        }
                     }
                 }
             }

@@ -106,70 +106,74 @@ Additionaly, Visual Studio is required to compile in *Windows*.
         Extract boost, and note the path as it will be needed in the configure stage to set the environmental variable `BOOST_ROOT`.
 
 - #### MinGW
-
-  *MinGW* means minimal GNU for *Windows*. There are different manners of installing, the simplest one using *MSYS2*.
-
-  - MSYS2
-
-      First, we download *MSYS2* in the following [link](https://www.msys2.org/). This will install *MinGW*, which allows to easiy install packages *a la* Arch-Linux (Pacman package manager). We install it, and with it the first thing we do is to update as follows ([in the *MSYS2* bash](https://www.msys2.org/docs/terminals/)):
-      ![](https://www.msys2.org/docs/mintty.png) ![](https://www.msys2.org/docs/launchers.png)
-
-      ```Shell
-      pacman -Syu
-      ```
-
-      It is very relevant to add to the *Windows* `PATH` your `msys64\mingw64\bin` folder in order that the system locates the binaries.
-
-  - Git
-
-      The first thing you will need is the *Kratos* Multiphysics source code. To download the code you will have to use a git. You can install the default git by using this command:
-
-      ```Shell
-      pacman -S git
-      ```
-
-      Once git is installed you can fetch the code by using these commands:
-
-      ```Shell
-      git clone https://github.com/KratosMultiphysics/Kratos Kratos
-      ```
-  - Dev Packages
-
-      You will need a series of packages with some *Kratos* dependencies. These include the compilers (*GCC*,*Clang/LLVM*), *CMake*, *Blas and Lapack* libraries and the *OpenMP* support. The command below will install all the packages needed. The command below will install all the packages needed.
-
-      ```Shell
-      pacman -S mingw64/mingw-w64-x86_64-lapack mingw64/mingw-w64-x86_64-openblas mingw64/mingw-w64-x86_64-cmake mingw64/mingw-w64-x86_64-clang mingw64/mingw-w64-x86_64-gcc mingw64/mingw-w64-x86_64-gcc-fortran mingw-w64-x86_64-make mingw64/mingw-w64-x86_64-openmp mingw64/mingw-w64-x86_64-dlfcn
-      ```
-
-  - Python 
-      You will need at least *Python* 3.8 (recommended 3.8/3.9/3.10) in your computer in order to compile *Kratos*. You can download python from its official webpage:
-
-      * [Download Python](http://www.python.org/downloads/)
-
-      Please, take special care to download a installer that suits your desired architecture **x86 for 32 bits**  compilations and **x86_64 for 64 bits**  compilations. Otherwise it won't work.
-
-      Unfortunately, we cannot use right now *MSYS2* directly, as the development files are not available (`python3-dev` equivalent to *GNU/Linux*).
-
-  - Boost
-      The next step will consist in obtain Boost. *Kratos Multiphysics* needs *Boost* libraries to support some of its functions. You can use any version from `version 1.67` onward. For that, we will use `pacman` again:
-
-      ```Shell
-      pacman -S mingw64/mingw-w64-x86_64-boost
-      ```
-
-  ##### Using UCRT64
-
-  UCRT (Universal C Runtime) is a newer version which is also used by Microsoft Visual Studio by default, see https://www.msys2.org/docs/environments/. It should work and behave as if the code was compiled with MSVC.
-
-  - Better compatibility with MSVC, both at build time and at run time.
-  - It only ships by default on Windows 10 and for older versions you have to provide it yourself or depend on the user having it installed.
-
-  If using UCRT64 the dependencies will be like:
-
-  ```Shell
-  pacman -S ucrt64/mingw-w64-ucrt-x86_64-lapack ucrt64/mingw-w64-ucrt-x86_64-openblas ucrt64/mingw-w64-ucrt-x86_64-cmake ucrt64/mingw-w64-ucrt-x86_64-clang ucrt64/mingw-w64-ucrt-x86_64-gcc ucrt64/mingw-w64-ucrt-x86_64-gcc-fortran mingw-w64-ucrt-x86_64-make ucrt64/mingw-w64-ucrt-x86_64-openmp ucrt64/mingw-w64-ucrt-x86_64-dlfcn ucrt64/mingw-w64-ucrt-x86_64-boost
-  ```
-
+  MingGw compilation details are hidden by default to avoid confusion, please click the button below to show them.
+  <details>
+    <summary>Show MinGW compilation details</summary>
+  
+    *MinGW* means minimal GNU for *Windows*. There are different manners of installing, the simplest one using *MSYS2*.
+  
+    - MSYS2
+  
+        First, we download *MSYS2* in the following [link](https://www.msys2.org/). This will install *MinGW*, which allows to easiy install packages *a la* Arch-Linux (Pacman package manager). We install it, and with it the first thing we do is to update as follows ([in the *MSYS2* bash](https://www.msys2.org/docs/terminals/)):
+        ![](https://www.msys2.org/docs/mintty.png) ![](https://www.msys2.org/docs/launchers.png)
+  
+        ```Shell
+        pacman -Syu
+        ```
+  
+        It is very relevant to add to the *Windows* `PATH` your `msys64\mingw64\bin` folder in order that the system locates the binaries.
+  
+    - Git
+  
+        The first thing you will need is the *Kratos* Multiphysics source code. To download the code you will have to use a git. You can install the default git by using this command:
+  
+        ```Shell
+        pacman -S git
+        ```
+  
+        Once git is installed you can fetch the code by using these commands:
+  
+        ```Shell
+        git clone https://github.com/KratosMultiphysics/Kratos Kratos
+        ```
+    - Dev Packages
+  
+        You will need a series of packages with some *Kratos* dependencies. These include the compilers (*GCC*,*Clang/LLVM*), *CMake*, *Blas and Lapack* libraries and the *OpenMP* support. The command below will install all the packages needed. The command below will install all the packages needed.
+  
+        ```Shell
+        pacman -S mingw64/mingw-w64-x86_64-lapack mingw64/mingw-w64-x86_64-openblas mingw64/mingw-w64-x86_64-cmake mingw64/mingw-w64-x86_64-clang mingw64/mingw-w64-x86_64-gcc mingw64/mingw-w64-x86_64-gcc-fortran mingw-w64-x86_64-make mingw64/mingw-w64-x86_64-openmp mingw64/mingw-w64-x86_64-dlfcn
+        ```
+  
+    - Python 
+        You will need at least *Python* 3.8 (recommended 3.8/3.9/3.10) in your computer in order to compile *Kratos*. You can download python from its official webpage:
+  
+        * [Download Python](http://www.python.org/downloads/)
+  
+        Please, take special care to download a installer that suits your desired architecture **x86 for 32 bits**  compilations and **x86_64 for 64 bits**  compilations. Otherwise it won't work.
+  
+        Unfortunately, we cannot use right now *MSYS2* directly, as the development files are not available (`python3-dev` equivalent to *GNU/Linux*).
+  
+    - Boost
+        The next step will consist in obtain Boost. *Kratos Multiphysics* needs *Boost* libraries to support some of its functions. You can use any version from `version 1.67` onward. For that, we will use `pacman` again:
+  
+        ```Shell
+        pacman -S mingw64/mingw-w64-x86_64-boost
+        ```
+  
+    ##### Using UCRT64
+  
+    UCRT (Universal C Runtime) is a newer version which is also used by Microsoft Visual Studio by default, see https://www.msys2.org/docs/environments/. It should work and behave as if the code was compiled with MSVC.
+  
+    - Better compatibility with MSVC, both at build time and at run time.
+    - It only ships by default on Windows 10 and for older versions you have to provide it yourself or depend on the user having it installed.
+  
+    If using UCRT64 the dependencies will be like:
+  
+    ```Shell
+    pacman -S ucrt64/mingw-w64-ucrt-x86_64-lapack ucrt64/mingw-w64-ucrt-x86_64-openblas ucrt64/mingw-w64-ucrt-x86_64-cmake ucrt64/mingw-w64-ucrt-x86_64-clang ucrt64/mingw-w64-ucrt-x86_64-gcc ucrt64/mingw-w64-ucrt-x86_64-gcc-fortran mingw-w64-ucrt-x86_64-make ucrt64/mingw-w64-ucrt-x86_64-openmp ucrt64/mingw-w64-ucrt-x86_64-dlfcn ucrt64/mingw-w64-ucrt-x86_64-boost
+    ```
+  </details>
+  
 ### Specific Application Dependencies
 
 Some applications have additional dependencies. Please check the `README` files of the applications that are compiled

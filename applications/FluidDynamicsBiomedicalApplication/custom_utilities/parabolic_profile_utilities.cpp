@@ -20,6 +20,7 @@
 #include "utilities/parallel_utilities.h"
 #include "utilities/reduction_utilities.h"
 #include "utilities/variable_utils.h"
+#include "../FluidDynamicsApplication/fluid_dynamics_application_variables.h"
 
 // Application includes
 #include "fluid_dynamics_biomedical_application_variables.h"
