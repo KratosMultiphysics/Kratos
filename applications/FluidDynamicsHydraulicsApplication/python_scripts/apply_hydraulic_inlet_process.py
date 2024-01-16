@@ -1,6 +1,7 @@
 from math import sqrt
 import KratosMultiphysics
 import KratosMultiphysics.FluidDynamicsHydraulicsApplication as KratosFluidHydraulics
+import KratosMultiphysics.FluidDynamicsApplication as KratosFluidDynamics
 from KratosMultiphysics.read_csv_table_utility import ReadCsvTableUtility
 import KratosMultiphysics.kratos_utilities as KratosUtils
 
@@ -79,7 +80,9 @@ class ApplyHydraulicInletProcess(KratosMultiphysics.Process):
             "water_depth_variable": "AUX_DISTANCE",
             "water_depth_tolerance":1e-8,
             "critical_depth_tolerance":1e-8,
-            "maximum_iterations":100
+            "maximum_iterations":100,
+            "gravity"      : 9.81
+                                    
         }
         """)
         return default_settings
@@ -138,8 +141,7 @@ class ApplyHydraulicInletProcess(KratosMultiphysics.Process):
         inlet_velocity = self.inlet_discharge/self.wetted_area
 
         # Assing the inlet velocity to inlet nodes and fix it.
-        # TODO: Create a variable in kratos por Inlet normal, now it the variable uses for that is DISPLACEMENT.
-        KratosMultiphysics.NormalCalculationUtils().CalculateOnSimplexNonHistorical(self.inlet_model_part,self.domain_size,KratosMultiphysics.DISPLACEMENT)
+        KratosMultiphysics.NormalCalculationUtils().CalculateOnSimplexNonHistorical(self.inlet_model_part,self.domain_size,KratosFluidDynamics.INLET_NORMAL)
         KratosFluidHydraulics.HydraulicFluidAuxiliaryUtilities.SetInletVelocity(
             self.inlet_model_part, inlet_velocity, self.water_depth_variable)
 

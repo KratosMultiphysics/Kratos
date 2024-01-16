@@ -25,6 +25,7 @@
 #include "utilities/rbf_shape_functions_utility.h"
 #include "utilities/divide_triangle_3d_3.h"
 #include "../../FluidDynamicsApplication/custom_utilities/fluid_auxiliary_utilities.h"
+#include "../../FluidDynamicsApplication/fluid_dynamics_application_variables.h"
 
 // Application includes
 #include "hydraulic_fluid_auxiliary_utilities.h"
@@ -248,8 +249,7 @@ void HydraulicFluidAuxiliaryUtilities::SetInletVelocity(
         auto& inlet_norm = rTLS.InletNorm;
         auto& inlet_velocity = rTLS.InletVelocity;
 
-        // TODO: The normal of the inlet conditions is currently assigned to the DISPLACEMENT variable, but it should be associated with another variable to prevent data superimposition
-        inlet_norm = rNode.GetValue(DISPLACEMENT);
+        inlet_norm = rNode.GetValue(INLET_NORMAL);
 
         const double n_norm = norm_2(inlet_norm);
         // Orient the velocity vector in the opposite direction of the outer normal to ensure it is directed inwards.
