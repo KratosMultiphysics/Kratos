@@ -5,9 +5,16 @@ The `Scheme` class in Kratos is used to create time integration schemes. It is a
 
 
 ## Code Structure
-The bulk of the functionality is in the `GeoMechanicsTimeIntegrationScheme` class. It contains two lists of variables that are used in the time integration schemes. A list of first order scalar variables (such as water pressure or temperature) and a list of second order vector variables (such as displacements or rotations). For the first order time derivatives, only the first time derivative is taken into account, while for the second order time derivatives, both the first and the second time derivatives are considered. 
+The bulk of the functionality is in the `GeoMechanicsTimeIntegrationScheme` class. It contains two lists of variables that are used in the time integration schemes. A list of first order scalar variables (such as water pressure or temperature) and a list of second order vector variables (such as displacements or rotations). For the first order time derivatives, only the first time derivative is taken into account, while for the second order time derivatives, both the first and the second time derivatives are considered. These list are filled in the constructor by derived classes that specify which variables are used in the time integration scheme.
+
+The functions that the `GeoMechanicsTimeIntegrationScheme` class implements are mostly dictated by the `Scheme` interface and include functionality like checking if all variables are allocated in the modelpart, getting DofLists, EquationIds and calling different flavors of the Initialize/Finalize/CalculateSystemContributions functions on elements and conditions.
+
+It also has a general `Update` step, which calls the `UpdateVariablesDerivatives` function. This is a purely virtual function that has to be implemented by the derived classed, since how the derivatives are actually updated, defines a time integration scheme. The derived classes then use the lists of variables to update the derivatives. In our structure (see the class diagram), only the `BackwardEulerScheme` and the `GeneralizedNewmarkScheme` classes implement this function.
+
 
 ![img.png](img.png)
+
+_Note that the class diagram is simplified and only shows the functions that need emphasis._
 
 
 Updating the time derivatives is done in the following three functions:

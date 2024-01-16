@@ -4,12 +4,17 @@
 abstract class Scheme
 class GeoMechanicsTimeIntegrationScheme
 {
-    std::vector<FirstOrderScalarVariable> firstOrderScalarVariables;
-    std::vector<SecondOrderVectorVariable> secondOrderVectorVariables;
+    - std::vector<FirstOrderScalarVariable> firstOrderScalarVariables;
+    - std::vector<SecondOrderVectorVariable> secondOrderVectorVariables;
+
+    virtual void UpdateVariablesDerivatives() = 0;
 }
 Scheme <|-- GeoMechanicsTimeIntegrationScheme
 
 class BackwardEulerScheme
+{
+    void UpdateVariablesDerivatives() override;
+}
 class BackwardEulerQuasistaticPwScheme
 class BackwardEulerQuasistaticUPwScheme
 class BackwardEulerQuasistaticTScheme
@@ -20,6 +25,9 @@ BackwardEulerScheme <|-- BackwardEulerQuasistaticUPwScheme
 BackwardEulerScheme <|-- BackwardEulerQuasistaticTScheme
 
 class GeneralizedNewmarkScheme
+{
+    void UpdateVariablesDerivatives() override;
+}
 class NewmarkQuasistaticPwScheme
 class GeneralizedNewmarkTScheme
 class NewmarkQuasistaticUPwScheme
