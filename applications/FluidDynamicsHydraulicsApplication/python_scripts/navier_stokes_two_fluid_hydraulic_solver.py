@@ -129,7 +129,7 @@ class NavierStokesTwoFluidsHydraulicSolver(FluidSolver):
 
         self.eulerian_fm_ale = self.settings["eulerian_fm_ale"].GetBool()
         if self.eulerian_fm_ale:
-            self.fm_ale_variable = KratosCFD.CONVECTION_SCALAR 
+            self.fm_ale_variable = KratosCFD.CONVECTION_SCALAR
             self.eulerian_gradient = KratosCFD.CONVECTION_SCALAR_GRADIENT
             self.eulerian_convection_var = KratosCFD.CONVECTION_VELOCITY
             self.settings["eulerian_fm_ale_settings"].AddEmptyValue("levelset_variable_name").SetString("CONVECTION_SCALAR")
@@ -274,6 +274,28 @@ class NavierStokesTwoFluidsHydraulicSolver(FluidSolver):
         # Note that this is required as the convection processes may set a different value (this is the one to be used in the Navier-Stokes element)
         dynamic_tau = self.settings["formulation"]["dynamic_tau"].GetDouble()
         self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DYNAMIC_TAU, dynamic_tau)
+
+    # TODO:This is a test for do nothing outlet condition.
+
+    # def SolveSolutionStep(self):
+    #     n_it =5
+
+    #     for k in range(n_it):
+    #         is_converged = self._GetSolutionStrategy().SolveSolutionStep()
+    #         for node in self.GetComputingModelPart().Nodes:
+    #             if node.Is(KratosMultiphysics.OUTLET):
+    #                 p=node.GetSolutionStepValue(KratosMultiphysics.PRESSURE)
+    #                 node.SetSolutionStepValue(KratosMultiphysics.EXTERNAL_PRESSURE,p)
+    #         if not is_converged:
+    #             msg = "Fluid solver did not converge for step " + \
+    #                 str(
+    #                     self.main_model_part.ProcessInfo[KratosMultiphysics.STEP]) + "\n"
+    #             msg += "corresponding to time " + \
+    #                 str(
+    #                     self.main_model_part.ProcessInfo[KratosMultiphysics.TIME]) + "\n"
+    #             KratosMultiphysics.Logger.PrintWarning(
+    #                 self.__class__.__name__, msg)
+    #         return is_converged
 
     def FinalizeSolutionStep(self):
         KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Mass and momentum conservation equations are solved.")
@@ -658,9 +680,9 @@ class NavierStokesTwoFluidsHydraulicSolver(FluidSolver):
             domain_size + 1)
 
         return scheme
-    
+
     def _HydraulicBoundaryConditionCheck(self,boundary,name):
-        # Check if the inlet and outl 
+        # Check if the inlet and outl
         computing_model_part = self.GetComputingModelPart()
         not_boundary_nodes=any([node.Is(boundary) for node in computing_model_part.Nodes])
         if not not_boundary_nodes:
