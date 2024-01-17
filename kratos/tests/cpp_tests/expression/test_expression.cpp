@@ -350,7 +350,7 @@ void ExecuteWriteTest(
         r_entity.CalculateOnIntegrationPoints(NORMAL_SHAPE_DERIVATIVE, matrix_values, rModelPart.GetProcessInfo());
         KRATOS_EXPECT_EQ(matrix_values.size(), ref_matrix_values.size());
         for (IndexType i = 0; i < number_of_integration_points; ++i) {
-            KRATOS_EXPECT_MATRIX_EQUAL(matrix_values[i], ref_matrix_values[i]);
+            KRATOS_EXPECT_MATRIX_EQ(matrix_values[i], ref_matrix_values[i]);
         }
     }
 }
