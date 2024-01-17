@@ -117,8 +117,8 @@ using ShapeFunctionsGradientsType = typename BaseType::ShapeFunctionsGradientsTy
 // size_t NumNegativeNodes;
 // unsigned int NumberOfDivisions;
 
-ShapeFunctionsType N_vel;
-ShapeDerivativesType DN_DX_vel;
+double N_enr_vel;
+array_1d<double,TDim> DN_DX_enr_vel;
 
 ///@}
 ///@name Public Operations
@@ -215,10 +215,10 @@ void UpdateGeometryValues(
     double NewWeight,
     const MatrixRowType& rN,
     const BoundedMatrix<double, TNumNodes, TDim>& rDN_DX,
-    const MatrixRowType& rNvel,
-    const BoundedMatrix<double, TNumNodes, TDim>& rDN_DXvel,
     const MatrixRowType& rNenr,
-    const BoundedMatrix<double, TNumNodes, TDim>& rDN_DXenr)
+    const BoundedMatrix<double, TNumNodes, TDim>& rDN_DXenr,
+    const double rNenrVelocity,
+    const array_1d<double,TDim> rDN_DXenrVelocity)
 {
     // BaseType::UpdateGeometryValues(IntegrationPointIndex, NewWeight, rN, rDN_DX, rNenr, rDN_DXenr);
     // ElementSize = ElementSizeCalculator<TDim, TNumNodes>::GradientsElementSize(rDN_DX);
@@ -227,8 +227,8 @@ void UpdateGeometryValues(
     // CalculateDensityAtGaussPoint();
 
     UpdateGeometryValues(IntegrationPointIndex, NewWeight, rN, rDN_DX, rNenr, rDN_DXenr);
-    noalias(this->N_vel) = rNvel;
-    noalias(this->DN_DX_vel) = rDN_DXvel;
+    this->N_enr_vel = rNenrVelocity;
+    noalias(this->DN_DX_enr_vel) = rDN_DXenrVelocity;
 }
 
 // static int Check(const Element& rElement, const ProcessInfo& rProcessInfo)

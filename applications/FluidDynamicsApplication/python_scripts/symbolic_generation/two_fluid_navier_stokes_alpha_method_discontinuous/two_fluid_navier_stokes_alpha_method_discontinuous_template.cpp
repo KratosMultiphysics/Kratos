@@ -72,27 +72,27 @@ void TwoFluidNavierStokesAlphaMethodDiscontinuous<TElementData>::CalculateLocalS
         data.Initialize(*this, rCurrentProcessInfo);
 
         if (data.IsCut()) {
-            Matrix shape_functions_pos, shape_functions_neg;
-            Matrix shape_functions_ausas_pos, shape_functions_ausas_neg;
-            Matrix shape_functions_enr_pos, shape_functions_enr_neg;
+            MatrixType shape_functions_pos, shape_functions_neg;
+            MatrixType shape_functions_enr_pos, shape_functions_enr_neg;
+            VectorType shape_functions_bubble_pos, shape_functions_bubble_neg;
             GeometryType::ShapeFunctionsGradientsType shape_derivatives_pos, shape_derivatives_neg;
-            GeometryType::ShapeFunctionsGradientsType shape_derivatives_ausas_pos, shape_derivatives_ausas_neg;
             GeometryType::ShapeFunctionsGradientsType shape_derivatives_enr_pos, shape_derivatives_enr_neg;
+            DenseVector<array_1d<double,Dim>> shape_derivatives_bubble_pos, shape_derivatives_bubble_neg;
 
             ComputeSplitting(
                 data,
                 shape_functions_pos,
                 shape_functions_neg,
-                shape_functions_ausas_pos,
-                shape_functions_ausas_neg,
                 shape_functions_enr_pos,
                 shape_functions_enr_neg,
+                shape_functions_bubble_pos,
+                shape_functions_bubble_neg,
                 shape_derivatives_pos,
                 shape_derivatives_neg,
-                shape_derivatives_ausas_pos,
-                shape_derivatives_ausas_neg,
                 shape_derivatives_enr_pos,
-                shape_derivatives_enr_neg);
+                shape_derivatives_enr_neg,
+                shape_derivatives_bubble_pos,
+                shape_derivatives_bubble_neg);
 
             if (data.NumberOfDivisions == 1){
                 // Cases exist when the element is not subdivided due to the characteristics of the provided distance
@@ -106,10 +106,11 @@ void TwoFluidNavierStokesAlphaMethodDiscontinuous<TElementData>::CalculateLocalS
                     this->AddTimeIntegratedSystem(data, rLeftHandSideMatrix, rRightHandSideVector);
                 }
             } else {
-                MatrixType Vtot = ZeroMatrix(LocalSize, NumNodes);
-                MatrixType Htot = ZeroMatrix(NumNodes, LocalSize);
-                MatrixType Kee_tot = ZeroMatrix(NumNodes, NumNodes);
+                //TODO: I think we can do all these bounded
                 VectorType rhs_ee_tot = ZeroVector(NumNodes);
+                MatrixType Vtot = ZeroMatrix(LocalSize, NumNodes + Dim);
+                MatrixType Htot = ZeroMatrix(NumNodes + Dim, LocalSize);
+                MatrixType Kee_tot = ZeroMatrix(NumNodes + Dim, NumNodes + Dim);
 
                 for (unsigned int g_pos = 0; g_pos < data.w_gauss_pos_side.size(); ++g_pos){
                     this->UpdateIntegrationPointDataDiscontinuous(
@@ -118,10 +119,10 @@ void TwoFluidNavierStokesAlphaMethodDiscontinuous<TElementData>::CalculateLocalS
                         data.w_gauss_pos_side[g_pos],
                         row(shape_functions_pos, g_pos),
                         shape_derivatives_pos[g_pos],
-                        row(shape_functions_ausas_pos, g_pos),
-                        shape_derivatives_ausas_pos[g_pos],
                         row(shape_functions_enr_pos, g_pos),
-                        shape_derivatives_enr_pos[g_pos]);
+                        shape_derivatives_enr_pos[g_pos],
+                        shape_functions_bubble_pos[g_pos],
+                        shape_derivatives_bubble_pos[g_pos]);
                     this->AddTimeIntegratedSystem(data, rLeftHandSideMatrix, rRightHandSideVector);
                     this->ComputeGaussPointEnrichmentContributions(data, Vtot, Htot, Kee_tot, rhs_ee_tot);
                 }
@@ -133,10 +134,10 @@ void TwoFluidNavierStokesAlphaMethodDiscontinuous<TElementData>::CalculateLocalS
                         data.w_gauss_neg_side[g_neg],
                         row(shape_functions_neg, g_neg),
                         shape_derivatives_neg[g_neg],
-                        row(shape_functions_ausas_neg, g_neg),
-                        shape_derivatives_ausas_neg[g_neg],
                         row(shape_functions_enr_neg, g_neg),
-                        shape_derivatives_enr_neg[g_neg]);
+                        shape_derivatives_enr_neg[g_neg],
+                        shape_functions_bubble_neg[g_neg],
+                        shape_derivatives_bubble_neg[g_neg]);
                     this->AddTimeIntegratedSystem(data, rLeftHandSideMatrix, rRightHandSideVector);
                     this->ComputeGaussPointEnrichmentContributions(data, Vtot, Htot, Kee_tot, rhs_ee_tot);
                 }
@@ -187,8 +188,6 @@ double TwoFluidNavierStokesAlphaMethodDiscontinuous<TwoFluidNavierStokesAlphaMet
     const BoundedMatrix<double, 3, 2> vconv = (vn - vmeshn) + alpha_f * ((v - vmesh) - (vn - vmeshn));
     const auto &N = rData.N;
     const auto &DN = rData.DN_DX;
-    const auto &N_vel = rData.N_vel;
-    const auto &DN_vel = rData.DN_DX_vel;
     const double art_dyn_visc_coeff = 0.8;
 
     double grad_v_norm;
@@ -224,8 +223,6 @@ double TwoFluidNavierStokesAlphaMethodDiscontinuous<TwoFluidNavierStokesAlphaMet
     const BoundedMatrix<double, 4, 3> vconv = (vn - vmeshn) + alpha_f * ((v - vmesh) - (vn - vmeshn));
     const auto &N = rData.N;
     const auto &DN = rData.DN_DX;
-    const auto &N_vel = rData.N_vel;
-    const auto &DN_vel = rData.DN_DX_vel;
     const double art_dyn_visc_coeff = 0.8;
 
     double grad_v_norm;
@@ -243,9 +240,10 @@ double TwoFluidNavierStokesAlphaMethodDiscontinuous<TwoFluidNavierStokesAlphaMet
 template <>
 void TwoFluidNavierStokesAlphaMethodDiscontinuous<TwoFluidNavierStokesAlphaMethodDiscontinuousData<2, 3>>::CalculateStrainRate(TwoFluidNavierStokesAlphaMethodDiscontinuousData<2, 3>& rData) const
 {
+    //FIXME: In here I think we should use the enrichment
     const double alpha_f = 1/(1+rData.MaxSpectralRadius);
     const BoundedMatrix<double,3,2> velocity_alpha = rData.Velocity_OldStep1+ alpha_f*(rData.Velocity-rData.Velocity_OldStep1);
-    auto& r_DN_DX_vel = rData.DN_DX_vel;
+    auto& r_DN_DX_vel = rData.DN_DX;
     auto& r_strain_rate = rData.StrainRate;
     noalias(r_strain_rate) = ZeroVector(3);
     for (unsigned int i = 0; i < 3; i++) {
@@ -258,9 +256,10 @@ void TwoFluidNavierStokesAlphaMethodDiscontinuous<TwoFluidNavierStokesAlphaMetho
 template <>
 void TwoFluidNavierStokesAlphaMethodDiscontinuous<TwoFluidNavierStokesAlphaMethodDiscontinuousData<3, 4>>::CalculateStrainRate(TwoFluidNavierStokesAlphaMethodDiscontinuousData<3, 4>& rData) const
 {
+    //FIXME: In here I think we should use the enrichment
     const double alpha_f = 1/(1+rData.MaxSpectralRadius);
     const BoundedMatrix<double,4,3> velocity_alpha = rData.Velocity_OldStep1+ alpha_f*(rData.Velocity-rData.Velocity_OldStep1);
-    auto& r_DN_DX_vel = rData.DN_DX_vel;
+    auto& r_DN_DX_vel = rData.DN_DX;
     auto& r_strain_rate = rData.StrainRate;
     noalias(r_strain_rate) = ZeroVector(6);
     for (unsigned int i = 0; i < 4; i++) {
@@ -301,10 +300,6 @@ void TwoFluidNavierStokesAlphaMethodDiscontinuous<TwoFluidNavierStokesAlphaMetho
     const auto &N = rData.N;
     const auto &DN = rData.DN_DX;
 
-    // Get discontinuous shape functions values if the element is intersected
-    const auto &N_vel = rData.IsCut() ? rData.N_vel : rData.N;
-    const auto &DN_vel = rData.IsCut() ? rData.DN_DX_vel : rData.DN_DX;
-
     // Stabilization parameters
     constexpr double stab_c1 = 4.0;
     constexpr double stab_c2 = 2.0;
@@ -342,10 +337,6 @@ void TwoFluidNavierStokesAlphaMethodDiscontinuous<TwoFluidNavierStokesAlphaMetho
     // Get standard shape function values
     const auto &N = rData.N;
     const auto &DN = rData.DN_DX;
-
-    // Get discontinuous shape functions values if the element is intersected
-    const auto &N_vel = rData.IsCut() ? rData.N_vel : rData.N;
-    const auto &DN_vel = rData.IsCut() ? rData.DN_DX_vel : rData.DN_DX;
 
     // Stabilization parameters
     constexpr double stab_c1 = 4.0;
@@ -388,10 +379,6 @@ void TwoFluidNavierStokesAlphaMethodDiscontinuous<TwoFluidNavierStokesAlphaMetho
     const auto &N = rData.N;
     const auto &DN = rData.DN_DX;
 
-    // Get discontinuous shape functions values if the element is intersected
-    const auto &N_vel = rData.IsCut() ? rData.N_vel : rData.N;
-    const auto &DN_vel = rData.IsCut() ? rData.DN_DX_vel : rData.DN_DX;
-
     // Stabilization parameters
     constexpr double stab_c1 = 4.0;
     constexpr double stab_c2 = 2.0;
@@ -433,10 +420,6 @@ void TwoFluidNavierStokesAlphaMethodDiscontinuous<TwoFluidNavierStokesAlphaMetho
     const auto &N = rData.N;
     const auto &DN = rData.DN_DX;
 
-    // Get discontinuous shape functions values if the element is intersected
-    const auto &N_vel = rData.IsCut() ? rData.N_vel : rData.N;
-    const auto &DN_vel = rData.IsCut() ? rData.DN_DX_vel : rData.DN_DX;
-
     // Stabilization parameters
     constexpr double stab_c1 = 4.0;
     constexpr double stab_c2 = 2.0;
@@ -455,7 +438,7 @@ void TwoFluidNavierStokesAlphaMethodDiscontinuous<TwoFluidNavierStokesAlphaMetho
     MatrixType &rV,
     MatrixType &rH,
     MatrixType &rKee,
-    VectorType &rRHS_ee)
+    VectorType &rRHSee)
 {
     const double rho = rData.Density;
     const double mu = rData.EffectiveViscosity;
@@ -478,17 +461,20 @@ void TwoFluidNavierStokesAlphaMethodDiscontinuous<TwoFluidNavierStokesAlphaMetho
 
     const BoundedMatrix<double,3,2> vconv = (vn-vmeshn)+ alpha_f*((v-vmesh)-(vn-vmeshn));
 
+    // Get constitutive matrix
+    const Matrix &C = rData.C;
+
     // Get standard shape function values
     const auto &N = rData.N;
     const auto &DN = rData.DN_DX;
 
-    // Get discontinuous shape functions values if the element is intersected
-    const auto &N_vel = rData.IsCut() ? rData.N_vel : rData.N;
-    const auto &DN_vel = rData.IsCut() ? rData.DN_DX_vel : rData.DN_DX;
-
     // Get pressure enrichment shape function values
-    const auto &N_enr = rData.Nenr;
-    const auto &DN_enr = rData.DN_DXenr;
+    const auto &N_enr_p = rData.Nenr;
+    const auto &DN_enr_p = rData.DN_DXenr;
+
+    // Get velocity enrichment bubble function values
+    const auto &N_enr_vel = rData.N_enr_vel;
+    const auto &DN_enr_vel = rData.DN_DX_enr_vel;
 
     // Stabilization parameters
     constexpr double stab_c1 = 4.0;
@@ -497,13 +483,13 @@ void TwoFluidNavierStokesAlphaMethodDiscontinuous<TwoFluidNavierStokesAlphaMetho
     // Mass correction term
     const double volume_error_ratio = rData.VolumeErrorRate;
 
-    auto &V = rData.V;
-    auto &H = rData.H;
-    auto &Kee = rData.Kee;
-    auto &rhs_ee = rData.rhs_ee;
+    // Initialize enrichment DOFs appearing in the enrichment RHS to zero
+    // Note that we always initialize them to zero as we do not want to store them
+    array_1d<double, Dim> v_enr = ZeroVector(Dim);
+    array_1d<double, NumNodes> penr = ZeroVector(NumNodes);
 
-    array_1d<double, NumNodes> penr = ZeroVector(NumNodes); //penriched is considered to be zero as we do not want to store it
-    array_1d<double, NumNodes> penr_cn = ZeroVector(NumNodes); //penriched is considered to be zero as we do not want to store it
+    // Add current Gauss point enrichment contribution
+    const double gauss_weight = rData.Weight;
 
     //substitute_enrichment_V_2D
 
@@ -512,11 +498,6 @@ void TwoFluidNavierStokesAlphaMethodDiscontinuous<TwoFluidNavierStokesAlphaMetho
     //substitute_enrichment_Kee_2D
 
     //substitute_enrichment_rhs_ee_2D
-
-    noalias(rV) += rData.Weight * V;
-    noalias(rH) += rData.Weight * H;
-    noalias(rKee) += rData.Weight * Kee;
-    noalias(rRHS_ee) += rData.Weight * rhs_ee;
 }
 
 template <>
@@ -525,7 +506,7 @@ void TwoFluidNavierStokesAlphaMethodDiscontinuous<TwoFluidNavierStokesAlphaMetho
     MatrixType &rV,
     MatrixType &rH,
     MatrixType &rKee,
-    VectorType &rRHS_ee)
+    VectorType &rRHSee)
 {
     const double rho = rData.Density;
     const double mu = rData.EffectiveViscosity;
@@ -548,17 +529,20 @@ void TwoFluidNavierStokesAlphaMethodDiscontinuous<TwoFluidNavierStokesAlphaMetho
 
     const BoundedMatrix<double,4,3> vconv = (vn-vmeshn)+ alpha_f*((v-vmesh)-(vn-vmeshn));
 
+    // Get constitutive matrix
+    const Matrix &C = rData.C;
+
     // Get standard shape function values
     const auto &N = rData.N;
     const auto &DN = rData.DN_DX;
 
-    // Get discontinuous shape functions values if the element is intersected
-    const auto &N_vel = rData.IsCut() ? rData.N_vel : rData.N;
-    const auto &DN_vel = rData.IsCut() ? rData.DN_DX_vel : rData.DN_DX;
-
     // Get pressure enrichment shape function values
-    const auto &N_enr = rData.Nenr;
-    const auto &DN_enr = rData.DN_DXenr;
+    const auto &N_enr_p = rData.Nenr;
+    const auto &DN_enr_p = rData.DN_DXenr;
+
+    // Get velocity enrichment bubble function values
+    const auto &N_enr_vel = rData.N_enr_vel;
+    const auto &DN_enr_vel = rData.DN_DX_enr_vel;
 
     // Stabilization parameters
     constexpr double stab_c1 = 4.0;
@@ -567,13 +551,13 @@ void TwoFluidNavierStokesAlphaMethodDiscontinuous<TwoFluidNavierStokesAlphaMetho
     // Mass correction term
     const double volume_error_ratio = rData.VolumeErrorRate;
 
-    auto &V = rData.V;
-    auto &H = rData.H;
-    auto &Kee = rData.Kee;
-    auto &rhs_ee = rData.rhs_ee;
+    // Initialize enrichment DOFs appearing in the enrichment RHS to zero
+    // Note that we always initialize them to zero as we do not want to store them
+    array_1d<double, Dim> v_enr = ZeroVector(Dim);
+    array_1d<double, NumNodes> penr = ZeroVector(NumNodes);
 
-    array_1d<double, NumNodes> penr = ZeroVector(NumNodes); //penriched is considered to be zero as we do not want to store it
-    array_1d<double, NumNodes> penr_cn = ZeroVector(NumNodes); //penriched is considered to be zero as we do not want to store it
+    // Add current Gauss point enrichment contribution
+    const double gauss_weight = rData.Weight;
 
     //substitute_enrichment_V_3D
 
@@ -582,11 +566,6 @@ void TwoFluidNavierStokesAlphaMethodDiscontinuous<TwoFluidNavierStokesAlphaMetho
     //substitute_enrichment_Kee_3D
 
     //substitute_enrichment_rhs_ee_3D
-
-    noalias(rV) += rData.Weight * V;
-    noalias(rH) += rData.Weight * H;
-    noalias(rKee) += rData.Weight * Kee;
-    noalias(rRHS_ee) += rData.Weight * rhs_ee;
 }
 
 template <class TElementData>
@@ -594,16 +573,16 @@ void TwoFluidNavierStokesAlphaMethodDiscontinuous<TElementData>::ComputeSplittin
     TElementData &rData,
     MatrixType &rStandardShapeFunctionsPos,
     MatrixType &rStandardShapeFunctionsNeg,
-    MatrixType &rAusasShapeFunctionsPos,
-    MatrixType &rAusasShapeFunctionsNeg,
     MatrixType &rEnrichedShapeFunctionsPos,
     MatrixType &rEnrichedShapeFunctionsNeg,
+    VectorType &rBubbleShapeFunctionsPos,
+    VectorType &rBubbleShapeFunctionsNeg,
     GeometryType::ShapeFunctionsGradientsType &rStandardShapeDerivativesPos,
     GeometryType::ShapeFunctionsGradientsType &rStandardShapeDerivativesNeg,
-    GeometryType::ShapeFunctionsGradientsType &rAusasShapeDerivativesPos,
-    GeometryType::ShapeFunctionsGradientsType &rAusasShapeDerivativesNeg,
     GeometryType::ShapeFunctionsGradientsType &rEnrichedShapeDerivativesPos,
-    GeometryType::ShapeFunctionsGradientsType &rEnrichedShapeDerivativesNeg)
+    GeometryType::ShapeFunctionsGradientsType &rEnrichedShapeDerivativesNeg,
+    DenseVector<array_1d<double,Dim>> & rBubbleShapeDerivativesPos,
+    DenseVector<array_1d<double,Dim>> & rBubbleShapeDerivativesNeg)
 {
     // Set the positive and negative enrichment interpolation matrices
     // Note that the enrichment is constructed using the standard shape functions such that:
@@ -623,16 +602,13 @@ void TwoFluidNavierStokesAlphaMethodDiscontinuous<TElementData>::ComputeSplittin
         }
     }
 
-    // Set the standard and Ausas modified shape functions pointers
+    // Set the standard modified shape functions pointer
     auto p_geom = this->pGetGeometry();
     ModifiedShapeFunctions::UniquePointer p_stand_mod_sh_funcs;
-    ModifiedShapeFunctions::UniquePointer p_ausas_mod_sh_funcs;
     if constexpr (TElementData::Dim == 2 && TElementData::NumNodes == 3) {
         p_stand_mod_sh_funcs = Kratos::make_unique<Triangle2D3ModifiedShapeFunctions>(p_geom, rData.Distance);
-        p_ausas_mod_sh_funcs = Kratos::make_unique<Triangle2D3AusasModifiedShapeFunctions>(p_geom, rData.Distance);
     } else if (TElementData::Dim == 3 && TElementData::NumNodes == 4) {
         p_stand_mod_sh_funcs = Kratos::make_unique<Tetrahedra3D4ModifiedShapeFunctions>(p_geom, rData.Distance);
-        p_ausas_mod_sh_funcs = Kratos::make_unique<Tetrahedra3D4AusasModifiedShapeFunctions>(p_geom, rData.Distance);
     } else {
         KRATOS_ERROR << "This formulation only supports simplicial elements." << std::endl;
     }
@@ -651,22 +627,6 @@ void TwoFluidNavierStokesAlphaMethodDiscontinuous<TElementData>::ComputeSplittin
         rData.w_gauss_neg_side,
         GeometryData::IntegrationMethod::GI_GAUSS_2);
 
-    // Call the positive side Ausas modified shape functions calculator
-    // Note that we overwrite the previously computed weights as these are the same
-    p_ausas_mod_sh_funcs->ComputePositiveSideShapeFunctionsAndGradientsValues(
-        rAusasShapeFunctionsPos,
-        rAusasShapeDerivativesPos,
-        rData.w_gauss_pos_side,
-        GeometryData::IntegrationMethod::GI_GAUSS_2);
-
-    // Call the negative side Ausas modified shape functions calculator
-    // Note that we overwrite the previously computed weights as these are the same
-    p_ausas_mod_sh_funcs->ComputeNegativeSideShapeFunctionsAndGradientsValues(
-        rAusasShapeFunctionsNeg,
-        rAusasShapeDerivativesNeg,
-        rData.w_gauss_neg_side,
-        GeometryData::IntegrationMethod::GI_GAUSS_2);
-
     // Compute the enrichment shape function values using the enrichment interpolation matrices
     rEnrichedShapeFunctionsPos = prod(rStandardShapeFunctionsPos, enr_pos_interp);
     rEnrichedShapeFunctionsNeg = prod(rStandardShapeFunctionsNeg, enr_neg_interp);
@@ -682,6 +642,75 @@ void TwoFluidNavierStokesAlphaMethodDiscontinuous<TElementData>::ComputeSplittin
         rEnrichedShapeDerivativesNeg[i] = prod(enr_neg_interp, rStandardShapeDerivativesNeg[i]);
     }
 
+    // Compute the bubble shape function values
+    double abs_dist;
+    array_1d<double,Dim> abs_dist_grad;
+    const double bubble_scaling = 1.0;
+
+    const SizeType n_pos_gauss = rStandardShapeFunctionsPos.size2();
+    rBubbleShapeFunctionsPos.resize(n_pos_gauss);
+    rBubbleShapeDerivativesPos.resize(n_pos_gauss);
+    for (IndexType g_pos = 0; g_pos < n_pos_gauss; ++g_pos) {
+        // Get standard shape functions values at current positive Gauss point
+        const auto& r_N_g_pos = row(rStandardShapeFunctionsPos, g_pos);
+        const auto& r_DN_g_pos = rStandardShapeDerivativesPos[g_pos];
+
+        // Compute absolute distance interpolation and gradient
+        abs_dist = 0.0;
+        noalias(abs_dist_grad) = ZeroVector(Dim);
+        for (IndexType i_node = 0; i_node < NumNodes; ++i_node) {
+            abs_dist += r_N_g_pos(i_node) * std::abs(rData.Distance[i_node]);
+            for (IndexType d = 0; d < Dim; ++d) {
+                abs_dist_grad[d] += r_DN_g_pos(i_node, d) * std::abs(rData.Distance[i_node]);
+            }
+        }
+
+        // Initialize and calculate the current positive Gauss point bubble function values
+        rBubbleShapeFunctionsPos(g_pos) = bubble_scaling * abs_dist;
+        for (IndexType d = 0; d < Dim; ++d) {
+            rBubbleShapeDerivativesPos(g_pos)[d] = bubble_scaling * abs_dist_grad[d];
+        }
+
+        for (IndexType i_node = 0; i_node < NumNodes; ++i_node) {
+            rBubbleShapeFunctionsPos(g_pos) *= r_N_g_pos(i_node);
+            for (IndexType d = 0; d < Dim; ++d) {
+                rBubbleShapeDerivativesPos(g_pos)[d] *= r_DN_g_pos(i_node, d);
+            }
+        }
+    }
+
+    const SizeType n_neg_gauss = rStandardShapeFunctionsNeg.size2();
+    rBubbleShapeFunctionsNeg.resize(n_neg_gauss);
+    rBubbleShapeDerivativesNeg.resize(n_neg_gauss);
+    for (IndexType g_neg = 0; g_neg < n_neg_gauss; ++g_neg) {
+        // Get standard shape functions values at current negative Gauss point
+        const auto& r_N_g_neg = row(rStandardShapeFunctionsNeg, g_neg);
+        const auto& r_DN_g_neg = rStandardShapeDerivativesNeg[g_neg];
+
+        // Compute absolute distance interpolation and gradient
+        abs_dist = 0.0;
+        noalias(abs_dist_grad) = ZeroVector(Dim);
+        for (IndexType i_node = 0; i_node < NumNodes; ++i_node) {
+            abs_dist += r_N_g_neg(i_node) * std::abs(rData.Distance[i_node]);
+            for (IndexType d = 0; d < Dim; ++d) {
+                abs_dist_grad[d] += r_DN_g_neg(i_node, d) * std::abs(rData.Distance[i_node]);
+            }
+        }
+
+        // Initialize and calculate the current negitive Gauss point bubble function values
+        rBubbleShapeFunctionsNeg(g_neg) = bubble_scaling * abs_dist;
+        for (IndexType d = 0; d < Dim; ++d) {
+            rBubbleShapeDerivativesNeg(g_neg)[d] = bubble_scaling * abs_dist_grad[d];
+        }
+
+        for (IndexType i_node = 0; i_node < NumNodes; ++i_node) {
+            rBubbleShapeFunctionsNeg(g_neg) *= r_N_g_neg(i_node);
+            for (IndexType d = 0; d < Dim; ++d) {
+                rBubbleShapeDerivativesNeg(g_neg)[d] *= r_DN_g_neg(i_node, d);
+            }
+        }
+    }
+
     // Get number of splitting divisions from the standard modified shape functions utility
     rData.NumberOfDivisions = (p_stand_mod_sh_funcs->pGetSplittingUtil())->mDivisionsNumber;
 }
@@ -693,10 +722,10 @@ void TwoFluidNavierStokesAlphaMethodDiscontinuous<TElementData>::UpdateIntegrati
     double IntegrationPointWeight,
     const typename TElementData::MatrixRowType& rStandardShapeFunctions,
     const typename TElementData::ShapeDerivativesType& rStandardShapeFunctionsGradients,
-    const typename TElementData::MatrixRowType& rAusasShapeFunctions,
-    const typename TElementData::ShapeDerivativesType& rAusasShapeFunctionsGradients,
     const typename TElementData::MatrixRowType& rEnrichedShapeFunctions,
-    const typename TElementData::ShapeDerivativesType& rEnrichedShapeFunctionsGradients) const
+    const typename TElementData::ShapeDerivativesType& rEnrichedShapeFunctionsGradients,
+    const double rBubbleShapeFunction,
+    const array_1d<double, Dim>& rBubbleShapeFunctionGradients) const
 {
     // Update Gauss point current values
     rData.UpdateGeometryValues(
@@ -704,10 +733,10 @@ void TwoFluidNavierStokesAlphaMethodDiscontinuous<TElementData>::UpdateIntegrati
         IntegrationPointWeight,
         rStandardShapeFunctions,
         rStandardShapeFunctionsGradients,
-        rAusasShapeFunctions,
-        rAusasShapeFunctionsGradients,
         rEnrichedShapeFunctions,
-        rEnrichedShapeFunctionsGradients);
+        rEnrichedShapeFunctionsGradients,
+        rBubbleShapeFunction,
+        rBubbleShapeFunctionGradients);
 
     // Calculate material response
     const double d_gauss = inner_prod(rData.Distance, rStandardShapeFunctions);

@@ -242,31 +242,31 @@ private:
      * @param rData Element data container
      * @param rStandardShapeFunctionsPos Positive side standard shape functions values
      * @param rStandardShapeFunctionsNeg Negative side standard shape functions values
-     * @param rAusasShapeFunctionsPos Positive side Ausas shape functions values
-     * @param rAusasShapeFunctionsNeg Negative side Ausas shape functions values
      * @param rEnrichedShapeFunctionsPos Positive side enrichment shape functions values
      * @param rEnrichedShapeFunctionsNeg Negative side enrichment shape functions values
+     * @param rBubbleShapeFunctionsPos Positive side enrichment bubble shape functions values
+     * @param rBubbleShapeFunctionsNeg Negative side enrichment bubble shape functions values
      * @param rStandardShapeDerivativesPos  Positive side standard shape functions derivatives values
      * @param rStandardShapeDerivativesNeg  Negative side standard shape functions derivatives values
-     * @param rAusasShapeDerivativesPos  Positive side Ausas shape functions derivatives values
-     * @param rAusasShapeDerivativesNeg  Negative side Ausas shape functions derivatives values
      * @param rEnrichedShapeDerivativesPos Positive side enrichment shape functions derivatives values
      * @param rEnrichedShapeDerivativesNeg Negative side enrichment shape functions derivatives values
+     * @param rBubbleShapeDerivativesPos  Positive side enrichment bubble shape functions derivatives values
+     * @param rBubbleShapeDerivativesNeg  Negative side enrichment bubble shape functions derivatives values
      */
     void ComputeSplitting(
-		TElementData& rData,
-		MatrixType& rStandardShapeFunctionsPos,
-        MatrixType& rStandardShapeFunctionsNeg,
-		MatrixType& rAusasShapeFunctionsPos,
-        MatrixType& rAusasShapeFunctionsNeg,
-        MatrixType& rEnrichedShapeFunctionsPos,
-        MatrixType& rEnrichedShapeFunctionsNeg,
-        GeometryType::ShapeFunctionsGradientsType& rStandardShapeDerivativesPos,
-        GeometryType::ShapeFunctionsGradientsType& rStandardShapeDerivativesNeg,
-        GeometryType::ShapeFunctionsGradientsType& rAusasShapeDerivativesPos,
-        GeometryType::ShapeFunctionsGradientsType& rAusasShapeDerivativesNeg,
-        GeometryType::ShapeFunctionsGradientsType& rEnrichedShapeDerivativesPos,
-        GeometryType::ShapeFunctionsGradientsType& rEnrichedShapeDerivativesNeg);
+        TElementData &rData,
+        MatrixType &rStandardShapeFunctionsPos,
+        MatrixType &rStandardShapeFunctionsNeg,
+        MatrixType &rEnrichedShapeFunctionsPos,
+        MatrixType &rEnrichedShapeFunctionsNeg,
+        VectorType &rBubbleShapeFunctionsPos,
+        VectorType &rBubbleShapeFunctionsNeg,
+        GeometryType::ShapeFunctionsGradientsType &rStandardShapeDerivativesPos,
+        GeometryType::ShapeFunctionsGradientsType &rStandardShapeDerivativesNeg,
+        GeometryType::ShapeFunctionsGradientsType &rEnrichedShapeDerivativesPos,
+        GeometryType::ShapeFunctionsGradientsType &rEnrichedShapeDerivativesNeg,
+        DenseVector<array_1d<double,Dim>> & rBubbleShapeDerivativesPos,
+        DenseVector<array_1d<double,Dim>> & rBubbleShapeDerivativesNeg);
 
     /**
      * @brief Set up the element's data for a cut element and constitutive law for the current integration point
@@ -276,10 +276,10 @@ private:
      * @param IntegrationPointWeight Weight of current integration point
      * @param rStandardShapeFunctions Values of standard shape functions at integration point
      * @param rStandardShapeFunctionsGradients Values of standard shape functions gradients at integration point
-     * @param rAusasShapeFunctions Values of Ausas shape functions at integration point
-     * @param rAusasShapeFunctionsGradients Values of Ausas shape functions gradients at integration point
      * @param rEnrichedShapeFunctions Values of enrichment shape functions at integration point
      * @param rEnrichedShapeFunctionsGradients Values of enrichment shape functions gradients at integration point
+     * @param rBubbleShapeFunction Value of the enrichment bubble function at integration point
+     * @param rBubbleShapeFunctionGradients Value of the enrichment bubble function gradients at integration point
      */
     void UpdateIntegrationPointDataDiscontinuous(
         TElementData& rData,
@@ -287,10 +287,15 @@ private:
         double IntegrationPointWeight,
         const typename TElementData::MatrixRowType& rStandardShapeFunctions,
         const typename TElementData::ShapeDerivativesType& rStandardShapeFunctionsGradients,
-        const typename TElementData::MatrixRowType& rAusasShapeFunctions,
-        const typename TElementData::ShapeDerivativesType& rAusasShapeFunctionsGradients,
         const typename TElementData::MatrixRowType& rEnrichedShapeFunctions,
-        const typename TElementData::ShapeDerivativesType& rEnrichedShapeFunctionsGradients) const;
+        const typename TElementData::ShapeDerivativesType& rEnrichedShapeFunctionsGradients,
+        const double rBubbleShapeFunction,
+        const array_1d<double, Dim>& rBubbleShapeFunctionGradients) const;
+
+    void AddNormalVelocityContinuityPenalization(
+        TElementData& rData,
+        MatrixType& rLHS,
+        VectorType& rRHS);
 
     ///@}
     ///@name Private  Access
