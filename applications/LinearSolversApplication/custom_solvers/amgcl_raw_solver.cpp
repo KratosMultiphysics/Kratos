@@ -651,6 +651,15 @@ void AMGCLRawSolver<TSparseSpace,TDenseSpace,TReorderer>::ProvideAdditionalData(
     #undef KRATOS_CONSTRUCT_AMGCL_SOLVER_BUNDLE
     #undef KRATOS_CONSTRUCT_AMGCL_SOLVER_BUNDLE_WITH_BLOCK_SIZE
 
+    if (4 <= mpImpl->mVerbosity) {
+        const std::string step_name = std::to_string(rModelPart.GetProcessInfo()[STEP]);
+        const std::string system_matrix_name = "system_matrix_" + step_name + ".mm";
+        TSparseSpace::WriteMatrixMarketMatrix(system_matrix_name.c_str(), rA, false);
+
+        const std::string rhs_name = "rhs_" + step_name + ".mm";
+        TSparseSpace::WriteMatrixMarketVector(rhs_name.c_str(), rB);
+    } // if 4 <= verbosity
+
     KRATOS_INFO_IF("AMGCLRawSolver", 1 < mpImpl->mVerbosity)
         << "Block DoFs: " << mpImpl->mDoFCount << "\n";
     KRATOS_CATCH("")
