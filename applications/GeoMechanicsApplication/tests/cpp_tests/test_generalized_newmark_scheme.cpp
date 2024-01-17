@@ -13,7 +13,7 @@
 #include "custom_strategies/schemes/generalized_newmark_scheme.hpp"
 #include "geo_mechanics_application_variables.h"
 #include "spaces/ublas_space.h"
-#include "testing/testing.h"
+#include "geo_testing.h"
 
 using namespace Kratos;
 using SparseSpaceType = UblasSpace<double, CompressedMatrix, Vector>;

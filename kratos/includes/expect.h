@@ -79,7 +79,6 @@ if(!(std::abs(b) <= std::numeric_limits<double>::epsilon())) {                  
     EXPECT_THAT(a, Pointwise(DoubleNear(tolerance), b));                        \
 }
 
-// TODO: I don't know how to represent the relative error test in terms of Gtest
 #define KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(a,b,tolerance) {                     \
     EXPECT_TRUE(a.size() == b.size())                                           \
     << "Check failed because vector arguments do not have the same size:"       \
@@ -88,7 +87,7 @@ if(!(std::abs(b) <= std::numeric_limits<double>::epsilon())) {                  
     << "second argument has size " << b.size() << "." << std::endl;             \
     for (std::size_t _i = 0; _i < a.size(); _i++) {                             \
         if (std::abs(b[_i]) > std::numeric_limits<double>::epsilon()) {         \
-        KRATOS_ERROR_IF((std::abs((a[_i] - b[_i])/b[_i]) <= tolerance) )        \
+        EXPECT_TRUE((std::abs((a[_i]-b[_i])/b[_i]) <=tolerance))                \
         << "Check failed because vector " << #a << " with values" << std::endl  \
         << (a) << std::endl                                                     \
         << "Is not near vector " << #b << " with values" << std::endl           \
@@ -97,7 +96,7 @@ if(!(std::abs(b) <= std::numeric_limits<double>::epsilon())) {                  
         << a[_i] << " not near " << b[_i]                                       \
         << " within relative tolerance " << tolerance << "." << std::endl;      \
         } else {                                                                \
-        KRATOS_ERROR_IF((std::abs(a[_i] - b[_i]) <= tolerance) )                \
+        EXPECT_TRUE((std::abs(a[_i]-b[_i])<=tolerance))                         \
         << "Check failed because vector " << #a << " with values" << std::endl  \
         << (a) << std::endl                                                     \
         << "Is not near vector " << #b << " with values" << std::endl           \

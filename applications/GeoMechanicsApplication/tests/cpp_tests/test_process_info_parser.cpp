@@ -11,7 +11,7 @@
 //
 
 #include "custom_utilities/json_process_info_parser.h"
-#include "testing/testing.h"
+#include "geo_testing.h"
 
 using namespace Kratos;
 

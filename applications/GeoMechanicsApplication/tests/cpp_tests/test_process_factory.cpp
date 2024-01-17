@@ -11,7 +11,7 @@
 //                   Anne van de Graaf
 //
 
-#include "testing/testing.h"
+#include "geo_testing.h"
 #include "custom_utilities/process_factory.hpp"
 
 using namespace Kratos;

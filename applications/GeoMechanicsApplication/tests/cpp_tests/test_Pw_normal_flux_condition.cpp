@@ -15,7 +15,7 @@
 
 // Project includes
 #include "containers/model.h"
-#include "testing/testing.h"
+#include "geo_testing.h"
 #include "custom_conditions/Pw_normal_flux_condition.hpp"
 
 namespace Kratos
@@ -38,6 +38,7 @@ namespace Kratos
 
             // set constitutive law
             const auto &r_clone_cl = KratosComponents<ConstitutiveLaw>::Get("LinearElastic2DInterfaceLaw");
+
             cond_prop->SetValue(CONSTITUTIVE_LAW, r_clone_cl.Clone());
 
             // Create the test piping element nodes

@@ -10,7 +10,7 @@
 //  Main authors:    Richard Faasse
 //
 
-#include "testing/testing.h"
+#include "geo_testing.h"
 #include "custom_utilities/convergence_criteria_factory.hpp"
 #include "spaces/ublas_space.h"
 

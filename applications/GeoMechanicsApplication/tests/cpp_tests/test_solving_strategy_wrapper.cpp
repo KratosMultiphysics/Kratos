@@ -10,7 +10,7 @@
 //  Main authors:    Richard Faasse
 //
 
-#include "testing/testing.h"
+#include "geo_testing.h"
 #include "containers/model.h"
 #include "spaces/ublas_space.h"
 #include "custom_workflows/solving_strategy_wrapper.hpp"

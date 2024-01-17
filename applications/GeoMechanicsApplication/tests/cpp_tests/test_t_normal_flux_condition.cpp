@@ -14,7 +14,7 @@
 #include "custom_conditions/T_normal_flux_condition.h"
 #include "geo_mechanics_application_variables.h"
 #include "includes/condition.h"
-#include "testing/testing.h"
+#include "geo_testing.h"
 
 using namespace Kratos;
 

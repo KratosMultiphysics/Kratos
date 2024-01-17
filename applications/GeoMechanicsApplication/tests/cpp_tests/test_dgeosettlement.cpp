@@ -10,7 +10,7 @@
 //  Main authors:    Richard Faasse
 //
 
-#include "testing/testing.h"
+#include "geo_testing.h"
 #include "custom_workflows/dgeosettlement.h"
 #include "stub_input_utility.h"
 #include "stub_process_info_parser.h"
