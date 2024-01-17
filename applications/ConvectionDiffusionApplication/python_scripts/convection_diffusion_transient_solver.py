@@ -1,3 +1,4 @@
+
 # Importing the Kratos Library
 import KratosMultiphysics
 
@@ -44,6 +45,7 @@ class ConvectionDiffusionTransientSolver(convection_diffusion_solver.ConvectionD
         this_defaults.AddMissingParameters(super().GetDefaultParameters())
         return this_defaults
 
+    #### Private functions ####
     def _CreateScheme(self):
         # Variable defining the temporal scheme (0: Forward Euler, 1: Backward Euler, 0.5: Crank-Nicolson)
         self.GetComputingModelPart().ProcessInfo[KratosMultiphysics.TIME_INTEGRATION_THETA] = self.settings["transient_parameters"]["theta"].GetDouble()
