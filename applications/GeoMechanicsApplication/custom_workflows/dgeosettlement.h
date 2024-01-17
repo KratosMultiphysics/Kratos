@@ -23,11 +23,11 @@
 #include "linear_solvers_application.h"
 #include "structural_mechanics_application.h"
 #include "utilities/variable_utils.h"
+#include "custom_utilities/process_factory.hpp"
 
 namespace Kratos
 {
 
-class ProcessFactory;
 class InputUtility;
 class ProcessInfoParser;
 class Process;
@@ -84,6 +84,16 @@ private:
                        [&rVariable, SourceIndex, DestinationIndex](auto& node) {
             node.GetSolutionStepValue(rVariable, DestinationIndex) = node.GetSolutionStepValue(rVariable, SourceIndex);
         });
+    }
+
+    template <typename ProcessType>
+    std::function<ProcessFactory::ProductType(const Parameters&)> MakeCreatorFor()
+    {
+        return [&model = mModel](const Parameters& rProcessSettings)
+        {
+            auto& model_part = model.GetModelPart(rProcessSettings["model_part_name"].GetString());
+            return std::make_unique<ProcessType>(model_part, rProcessSettings);
+        };
     }
 
     Kernel mKernel;

@@ -8,7 +8,7 @@
 //                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Pooyan Dadvand
-//                  
+//
 
 #pragma once
 
@@ -35,7 +35,7 @@ namespace Kratos
  * @author Pooyan Dadvand
  */
 template <typename TPointType>
-class BoundingBox 
+class BoundingBox
 {
 public:
     ///@name Type Definitions
@@ -56,10 +56,10 @@ public:
     };
 
     /// Constructor with min and max points
-    BoundingBox(TPointType const& MinPoint, TPointType const& MaxPoint) :
-		mMinMaxPoints{MinPoint,MaxPoint} 
+    BoundingBox(TPointType const& MinPoint, TPointType const& MaxPoint)
     {
-
+        noalias(GetMinPoint().Coordinates()) = MinPoint.Coordinates();
+        noalias(GetMaxPoint().Coordinates()) = MaxPoint.Coordinates();
     }
 
     /// Copy constructor
@@ -176,7 +176,7 @@ public:
      * @details This function returns a reference to the minimum point stored in the object.
      * @return A reference to the minimum point.
      */
-    TPointType& GetMinPoint() 
+    TPointType& GetMinPoint()
     {
         return mMinMaxPoints[0];
     }
@@ -186,7 +186,7 @@ public:
      * @details This function returns a constant reference to the minimum point stored in the object. It allows you to access the minimum point without modifying it.
      * @return A constant reference to the minimum point.
      */
-    TPointType const& GetMinPoint() const 
+    TPointType const& GetMinPoint() const
     {
         return mMinMaxPoints[0];
     }
@@ -196,7 +196,7 @@ public:
      * @details This function returns a reference to the maximum point stored in the object.
      * @return A reference to the maximum point.
      */
-    TPointType& GetMaxPoint() 
+    TPointType& GetMaxPoint()
     {
         return mMinMaxPoints[1];
     }
@@ -244,9 +244,9 @@ public:
 private:
     ///@name Static Member Variables
     ///@{
-    
+
     static constexpr unsigned int Dimension = 3;
-    
+
     ///@}
     ///@name Member Variables
     ///@{

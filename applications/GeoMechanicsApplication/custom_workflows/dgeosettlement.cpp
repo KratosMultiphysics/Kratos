@@ -17,11 +17,10 @@
 #include "custom_processes/apply_normal_load_table_process.h"
 #include "custom_processes/apply_vector_constraint_table_process.h"
 #include "custom_processes/set_parameter_field_process.hpp"
-#include "custom_processes/apply_k0_procedure_process.hpp"
+#include "custom_processes/apply_k0_procedure_process.h"
 #include "custom_processes/apply_excavation_process.h"
 
 #include "custom_utilities/input_utility.h"
-#include "custom_utilities/process_factory.hpp"
 #include "custom_utilities/process_info_parser.h"
 #include "custom_utilities/solving_strategy_factory.hpp"
 #include "spaces/ublas_space.h"
@@ -68,6 +67,11 @@ double GetReductionFactorFrom(const Parameters& rProjectParameters)
 double GetIncreaseFactorFrom(const Parameters& rProjectParameters)
 {
     return rProjectParameters["solver_settings"]["increase_factor"].GetDouble();
+}
+
+double GetMaxDeltaTimeFactorFrom(const Parameters& rProjectParameters)
+{
+   return rProjectParameters["solver_settings"]["time_stepping"]["max_delta_time_factor"].GetDouble();
 }
 
 std::size_t GetMinNumberOfIterationsFrom(const Parameters& rProjectParameters)
@@ -130,51 +134,17 @@ KratosGeoSettlement::KratosGeoSettlement(std::unique_ptr<InputUtility> pInputUti
 void KratosGeoSettlement::InitializeProcessFactory()
 {
     mProcessFactory->AddCreator("ApplyScalarConstraintTableProcess",
-                                [&model = mModel](const Parameters& rParameters)
-                                {
-                                    auto& model_part = model.GetModelPart(rParameters["model_part_name"].GetString());
-                                    return std::make_unique<ApplyScalarConstraintTableProcess>(model_part,
-                                                                                               rParameters);
-                                });
-
+                                MakeCreatorFor<ApplyScalarConstraintTableProcess>());
     mProcessFactory->AddCreator("ApplyNormalLoadTableProcess",
-                                [this](const Parameters& rParameters)
-                                {
-                                      return std::make_unique<ApplyNormalLoadTableProcess>(GetMainModelPart(),
-                                                                                           rParameters);
-                                });
-
+                                MakeCreatorFor<ApplyNormalLoadTableProcess>());
     mProcessFactory->AddCreator("ApplyVectorConstraintTableProcess",
-                                [&model = mModel](const Parameters& rParameters)
-                                {
-                                    auto& model_part = model.GetModelPart(rParameters["model_part_name"].GetString());
-                                    return std::make_unique<ApplyVectorConstraintTableProcess>(model_part,
-                                                                                               rParameters);
-                                });
-
+                                MakeCreatorFor<ApplyVectorConstraintTableProcess>());
     mProcessFactory->AddCreator("SetParameterFieldProcess",
-                                [&model = mModel](const Parameters& rParameters)
-                                {
-                                    auto& model_part = model.GetModelPart(rParameters["model_part_name"].GetString());
-                                    return std::make_unique<SetParameterFieldProcess>(model_part,
-                                                                                      rParameters);
-                                });
-
+                                MakeCreatorFor<SetParameterFieldProcess>());
     mProcessFactory->AddCreator("ApplyExcavationProcess",
-                                [&model = mModel](const Parameters& rParameters)
-                                {
-                                    auto& model_part = model.GetModelPart(rParameters["model_part_name"].GetString());
-                                    return std::make_unique<ApplyExcavationProcess>(model_part,
-                                                                                    rParameters);
-                                });
-
+                                MakeCreatorFor<ApplyExcavationProcess>());
     mProcessFactory->AddCreator("ApplyK0ProcedureProcess",
-                                [&model = mModel](const Parameters& rParameters)
-                                {
-                                    auto& model_part = model.GetModelPart(rParameters["model_part_name"].GetString());
-                                    return std::make_unique<ApplyK0ProcedureProcess>(model_part,
-                                                                                     rParameters);
-                                });
+                                MakeCreatorFor<ApplyK0ProcedureProcess>());
 
     mProcessFactory->SetCallBackWhenProcessIsUnknown([](const std::string& rProcessName)
     {
@@ -185,9 +155,9 @@ void KratosGeoSettlement::InitializeProcessFactory()
 int KratosGeoSettlement::RunStage(const std::filesystem::path&            rWorkingDirectory,
                                   const std::filesystem::path&            rProjectParametersFile,
                                   const std::function<void(const char*)>& rLogCallback,
-                                  const std::function<void(double)>&      ,
+                                  const std::function<void(double)>&      rProgressDelegate,
                                   const std::function<void(const char*)>& ,
-                                  const std::function<bool()>&            )
+                                  const std::function<bool()>&            rShouldCancel)
 {
     std::stringstream kratos_log_buffer;
     LoggerOutput::Pointer logger_output = CreateLoggingOutput(kratos_log_buffer);
@@ -222,6 +192,15 @@ int KratosGeoSettlement::RunStage(const std::filesystem::path&            rWorki
         std::vector<std::shared_ptr<Process>> processes = GetProcesses(project_parameters);
         std::vector<std::weak_ptr<Process>> process_observables(processes.begin(), processes.end());
 
+        if (mpTimeLoopExecutor) {
+            mpTimeLoopExecutor->SetCancelDelegate(rShouldCancel);
+            mpTimeLoopExecutor->SetProgressDelegate(rProgressDelegate);
+            mpTimeLoopExecutor->SetProcessObservables(process_observables);
+            mpTimeLoopExecutor->SetTimeIncrementor(MakeTimeIncrementor(project_parameters));
+            mpTimeLoopExecutor->SetSolverStrategyWrapper(MakeStrategyWrapper(project_parameters,
+                                                                             rWorkingDirectory));
+        }
+
         for (const auto& process : processes) {
             process->ExecuteInitialize();
         }
@@ -230,12 +209,7 @@ int KratosGeoSettlement::RunStage(const std::filesystem::path&            rWorki
             process->ExecuteBeforeSolutionLoop();
         }
 
-        if (mpTimeLoopExecutor)
-        {
-            mpTimeLoopExecutor->SetProcessObservables(process_observables);
-            mpTimeLoopExecutor->SetTimeIncrementor(MakeTimeIncrementor(project_parameters));
-            mpTimeLoopExecutor->SetSolverStrategyWrapper(MakeStrategyWrapper(project_parameters,
-                                                                             rWorkingDirectory));
+        if (mpTimeLoopExecutor) {
             // For now, pass a dummy state. THIS PROBABLY NEEDS TO BE REFINED AT SOME POINT!
             TimeStepEndState start_of_loop_state;
             start_of_loop_state.convergence_state = TimeStepEndState::ConvergenceState::converged;
@@ -353,6 +327,7 @@ std::unique_ptr<TimeIncrementor> KratosGeoSettlement::MakeTimeIncrementor(const 
                                                      GetMaxNumberOfCyclesFrom(rProjectParameters),
                                                      GetReductionFactorFrom(rProjectParameters),
                                                      GetIncreaseFactorFrom(rProjectParameters),
+                                                     GetMaxDeltaTimeFactorFrom(rProjectParameters),
                                                      GetMinNumberOfIterationsFrom(rProjectParameters),
                                                      GetMaxNumberOfIterationsFrom(rProjectParameters));
 }
@@ -437,6 +412,7 @@ void KratosGeoSettlement::PrepareModelPart(const Parameters& rSolverSettings)
     }
     GetComputationalModelPart().AddElements(std::vector<IndexedObject::IndexType>{element_id_set.begin(), element_id_set.end()});
 
+    GetComputationalModelPart().Conditions().clear();
     const auto processes_sub_model_part_list = rSolverSettings["processes_sub_model_part_list"];
     std::vector<std::string> domain_condition_names;
     for (const auto& sub_model_part : processes_sub_model_part_list) {

@@ -1,0 +1,9 @@
+[
+    "FluidDynamicsApplication",
+    "MappingApplication",
+    "StructuralMechanicsApplication",
+    "MeshingApplication",
+    "LinearSolversApplication",
+    "ConstitutiveLawsApplication",
+    "CoSimulationApplication"
+]

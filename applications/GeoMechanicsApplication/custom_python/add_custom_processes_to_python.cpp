@@ -37,7 +37,7 @@
 #include "custom_processes/apply_boundary_phreatic_surface_pressure_table_process.hpp"
 #include "custom_processes/apply_excavation_process.h"
 #include "custom_processes/apply_write_result_scalar_process.hpp"
-#include "custom_processes/apply_k0_procedure_process.hpp"
+#include "custom_processes/apply_k0_procedure_process.h"
 #include "custom_processes/find_neighbour_elements_of_conditions_process.hpp"
 #include "custom_processes/deactivate_conditions_on_inactive_elements_process.hpp"
 #include "custom_processes/set_absorbing_boundary_parameters_process.hpp"

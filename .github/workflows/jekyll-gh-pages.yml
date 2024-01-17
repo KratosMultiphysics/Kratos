@@ -41,7 +41,7 @@ jobs:
         shell: bash
         run: cp -r statik_content/Page_files/* main/docs/
       - name: Setup Pages
-        uses: actions/configure-pages@v3
+        uses: actions/configure-pages@v4
       - name: Create navigation menus
         shell: bash
         run: cd main/docs && python3 process_pages.py -t web
@@ -51,7 +51,7 @@ jobs:
           source: ./main/docs
           destination: ./main/docs/_site
       - name: Upload artifact
-        uses: actions/upload-pages-artifact@v2
+        uses: actions/upload-pages-artifact@v3
         with:
           path: ./main/docs/_site
 
@@ -65,4 +65,4 @@ jobs:
     steps:
       - name: Deploy to GitHub Pages
         id: deployment
-        uses: actions/deploy-pages@v2
+        uses: actions/deploy-pages@v4
