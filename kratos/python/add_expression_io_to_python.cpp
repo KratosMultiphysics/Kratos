@@ -20,6 +20,7 @@
 #include "add_expression_io_to_python.h"
 #include "expression/arithmetic_operators.h"
 #include "expression/c_array_expression_io.h"
+#include "expression/entity_domain_size_expression_io.h"
 #include "expression/expression.h"
 #include "expression/expression_io.h"
 #include "expression/literal_expression.h"
@@ -373,6 +374,17 @@ void AddExpressionIOToPython(pybind11::module& rModule)
         ;
     nodal_expression_io.def("Read", &NodalPositionExpressionIO::Read<MeshType::Local>, pybind11::arg("nodal_expression"), pybind11::arg("configuration"));
     nodal_expression_io.def("Write", &NodalPositionExpressionIO::Write<MeshType::Local>, pybind11::arg("nodal_expression"), pybind11::arg("configuration"));
+
+    auto entity_domain_size_expression_io = rModule.def_submodule("EntityDomainSizeExpressionIO");
+    pybind11::class_<EntityDomainSizeExpressionIO::EntityDomainSizeExpressionInput, EntityDomainSizeExpressionIO::EntityDomainSizeExpressionInput::Pointer, ExpressionInput>(
+        entity_domain_size_expression_io, "Input")
+        .def(pybind11::init<const ModelPart&,
+                            const ContainerType&>(),
+             pybind11::arg("model_part"),
+             pybind11::arg("container_type"))
+        ;
+    entity_domain_size_expression_io.def("Read", &EntityDomainSizeExpressionIO::Read<ModelPart::ConditionsContainerType, MeshType::Local>, pybind11::arg("condition_container_expression"));
+    entity_domain_size_expression_io.def("Read", &EntityDomainSizeExpressionIO::Read<ModelPart::ElementsContainerType, MeshType::Local>, pybind11::arg("element_container_expression"));
 }
 
 
