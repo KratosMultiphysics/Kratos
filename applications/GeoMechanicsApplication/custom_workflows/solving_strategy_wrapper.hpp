@@ -16,14 +16,16 @@
 #include <memory>
 
 #include "geo_mechanics_application_variables.h"
+#include "geo_output_writer.h"
 #include "includes/variables.h"
 #include "solving_strategies/strategies/solving_strategy.h"
-#include "write_output.h"
 
-namespace Kratos {
+namespace Kratos
+{
 
 template <class TSparseSpace, class TDenseSpace>
-class SolvingStrategyWrapper : public StrategyWrapper {
+class SolvingStrategyWrapper : public StrategyWrapper
+{
 public:
     explicit SolvingStrategyWrapper(
         std::unique_ptr<SolvingStrategy<TSparseSpace, TDenseSpace>> strategy,
@@ -40,13 +42,6 @@ public:
 
     ~SolvingStrategyWrapper() override = default;
 
-    TimeStepEndState::ConvergenceState GetConvergenceState() const override
-    {
-        return mpStrategy->IsConverged()
-                   ? TimeStepEndState::ConvergenceState::converged
-                   : TimeStepEndState::ConvergenceState::non_converged;
-    }
-
     size_t GetNumberOfIterations() const override
     {
         return mrModelPart.GetProcessInfo()[NL_ITERATION_NUMBER];
@@ -60,8 +55,11 @@ public:
     void Initialize() override
     {
         mpStrategy->Initialize();
-        const auto gid_output_settings = mProjectParameters["output_processes"]["gid_output"][0]["Parameters"];
-        mWriter = std::make_unique<GeoOutputWriter>(gid_output_settings, mWorkingDirectory.generic_string(), mrModelPart);
+        const auto gid_output_settings =
+            mProjectParameters["output_processes"]["gid_output"][0]
+                              ["Parameters"];
+        mWriter = std::make_unique<GeoOutputWriter>(
+            gid_output_settings, mWorkingDirectory.generic_string(), mrModelPart);
     }
 
     void InitializeSolutionStep() override
@@ -69,10 +67,7 @@ public:
         mpStrategy->InitializeSolutionStep();
     }
 
-    void Predict() override
-    {
-        mpStrategy->Predict();
-    }
+    void Predict() override { mpStrategy->Predict(); }
 
     void SetEndTime(double EndTime) override
     {
@@ -119,9 +114,11 @@ public:
 
     void SaveTotalDisplacementFieldAtStartOfTimeLoop() override
     {
-        if (mResetDisplacements) {
+        if (mResetDisplacements)
+        {
             mOldTotalDisplacements.clear();
-            for (const auto& node : mrModelPart.Nodes()) {
+            for (const auto& node : mrModelPart.Nodes())
+            {
                 mOldTotalDisplacements.emplace_back(node.GetSolutionStepValue(TOTAL_DISPLACEMENT));
             }
         }
@@ -129,14 +126,16 @@ public:
 
     void AccumulateTotalDisplacementField() override
     {
-        if (mResetDisplacements) {
+        if (mResetDisplacements)
+        {
             KRATOS_ERROR_IF_NOT(mrModelPart.Nodes().size() ==
                                 mOldTotalDisplacements.size())
                 << "The number of old displacements (" << mOldTotalDisplacements.size()
                 << ") does not match the current number of nodes ("
                 << mrModelPart.Nodes().size() << ").";
             std::size_t count = 0;
-            for (auto& node : mrModelPart.Nodes()) {
+            for (auto& node : mrModelPart.Nodes())
+            {
                 node.GetSolutionStepValue(TOTAL_DISPLACEMENT) =
                     mOldTotalDisplacements[count] + node.GetSolutionStepValue(DISPLACEMENT);
                 ++count;
@@ -149,15 +148,20 @@ public:
         if (mWriter)
         {
             const auto write_hydraulic_head_to_nodes = false;
-            const auto gid_output_settings = mProjectParameters["output_processes"]["gid_output"][0]["Parameters"];
+            const auto gid_output_settings =
+                mProjectParameters["output_processes"]["gid_output"][0]
+                                  ["Parameters"];
             mWriter->WriteGiDOutput(mrModelPart, gid_output_settings,
                                     write_hydraulic_head_to_nodes);
         }
     }
 
-    bool SolveSolutionStep() override
+    TimeStepEndState::ConvergenceState SolveSolutionStep() override
     {
-        return mpStrategy->SolveSolutionStep();
+        return mpStrategy->SolveSolutionStep()
+                   ? TimeStepEndState::ConvergenceState::converged
+                   : TimeStepEndState::ConvergenceState::non_converged;
+        ;
     }
 
     void FinalizeSolutionStep() override
@@ -181,7 +185,8 @@ private:
         if (!mrModelPart.HasNodalSolutionStepVariable(rVariable))
             return;
 
-        for (auto& node : mrModelPart.Nodes()) {
+        for (auto& node : mrModelPart.Nodes())
+        {
             node.GetSolutionStepValue(rVariable, DestinationIndex) =
                 node.GetSolutionStepValue(rVariable, SourceIndex);
         }
