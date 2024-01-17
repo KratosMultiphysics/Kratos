@@ -114,13 +114,13 @@ void DistributedComputeActiveDofs(
         for (const auto& r_mpc : rModelPart.MasterSlaveConstraints()) {
             for (const auto& r_dof : r_mpc.GetMasterDofsVector()) {
                 if (r_dof->GetSolutionStepValue(PARTITION_INDEX) == rank) {
-                    KRATOS_DEBUG_ERROR_IF(r_dof->EquationId() - InitialDofId < 0) << "In master DoFs EquationId() > InitialDofId. EquationId: " << r_dof->EquationId() << ". InitialDofId: " << InitialDofId << std::endl;
+                    KRATOS_DEBUG_ERROR_IF(r_dof->EquationId() < InitialDofId) << "In master DoFs EquationId() < InitialDofId. EquationId: " << r_dof->EquationId() << ". InitialDofId: " << InitialDofId << std::endl;
                     rActiveDofs[r_dof->EquationId() - InitialDofId] = 0;
                 }
             }
             for (const auto& r_dof : r_mpc.GetSlaveDofsVector()) {
                 if (r_dof->GetSolutionStepValue(PARTITION_INDEX) == rank) {
-                    KRATOS_DEBUG_ERROR_IF(r_dof->EquationId() - InitialDofId < 0) << "In slave DoFs EquationId() > InitialDofId. EquationId: " << r_dof->EquationId() << ". InitialDofId: " << InitialDofId << std::endl;
+                    KRATOS_DEBUG_ERROR_IF(r_dof->EquationId() < InitialDofId) << "In slave DoFs EquationId() < InitialDofId. EquationId: " << r_dof->EquationId() << ". InitialDofId: " << InitialDofId << std::endl;
                     rActiveDofs[r_dof->EquationId() - InitialDofId] = 0;
                 }
             }
