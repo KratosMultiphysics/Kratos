@@ -45,7 +45,8 @@ public:
         Parameters default_parameters( R"(
             {
                 "model_part_name":"PLEASE_CHOOSE_MODEL_PART_NAME",
-                "thermal_energy_threshold": 1.0e20
+                "thermal_energy_per_volume_threshold": 1.0e20,
+                "thermal_counter_threshold": 0
             }  )" );
 
         // Some values need to be mandatorily prescribed since no meaningful default value exist. For this reason try accessing to them
@@ -55,7 +56,8 @@ public:
         // Now validate agains defaults -- this also ensures no type mismatch
         rParameters.ValidateAndAssignDefaults(default_parameters);
 
-        mthermal_energy_threshold = rParameters["thermal_energy_threshold"].GetDouble();
+        mthermal_energy_per_volume_threshold = rParameters["thermal_energy_per_volume_threshold"].GetDouble();
+        mthermal_counter_threshold = rParameters["thermal_counter_threshold"].GetInt();
 
         KRATOS_CATCH("");
     }
@@ -95,12 +97,17 @@ public:
             // const unsigned int NumNodes = rGeom.PointsNumber();
             GeometryData::IntegrationMethod MyIntegrationMethod = itElem->GetIntegrationMethod();
             unsigned int NumGPoints = rGeom.IntegrationPoints(MyIntegrationMethod).size();
-            std::vector<double> ThermalEnergyVector(NumGPoints); // All components in this vector contain the same elemental thermal energy
+            std::vector<double> ThermalEnergyPerVolumeVector(NumGPoints); // All components in this vector contain the same elemental thermal energy
 
-            itElem->CalculateOnIntegrationPoints(THERMAL_ENERGY,ThermalEnergyVector,CurrentProcessInfo);
+            itElem->CalculateOnIntegrationPoints(THERMAL_ENERGY_PER_VOLUME,ThermalEnergyPerVolumeVector,CurrentProcessInfo);
             
-            if(ThermalEnergyVector[0] > mthermal_energy_threshold){
-              itElem->Set(ACTIVE, false);
+            if(ThermalEnergyPerVolumeVector[0] > mthermal_energy_per_volume_threshold){
+                int& r_thermal_counter = itElem->GetValue(THERMAL_COUNTER);
+                r_thermal_counter += 1;
+                // TODO: replace by real criterion
+                if(r_thermal_counter > mthermal_counter_threshold){
+                    itElem->Set(ACTIVE, false);
+                }
             }
         }
         KRATOS_CATCH("");
@@ -130,7 +137,8 @@ protected:
     /// Member Variables
 
     ModelPart& mr_model_part;
-    double mthermal_energy_threshold;
+    double mthermal_energy_per_volume_threshold;
+    int mthermal_counter_threshold;
 
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 

@@ -52,6 +52,10 @@ class ConvectionDiffusionTransientSolver(convection_diffusion_solver.ConvectionD
     def Initialize(self):
         super(ConvectionDiffusionTransientSolver, self).Initialize()
 
+        # Set element counter variable to zero
+        for elem in self.main_model_part.Elements:
+            elem.SetValue(ConvectionDiffusionApplication.THERMAL_COUNTER, 0)
+            
         materials_filename = self.settings["material_import_settings"]["materials_filename"].GetString()
 
         with open(materials_filename, 'r') as parameter_file:

@@ -20,7 +20,8 @@ class ElementDeactivationProcess(KratosMultiphysics.Process):
         default_settings = KratosMultiphysics.Parameters(r'''{
             "model_part_name"          : "please_specify_model_part_name",
             "interval"                 : [0.0, 1e30],
-            "thermal_energy_threshold" : 1.0e20
+            "thermal_energy_per_volume_threshold" : 1.0e20,
+            "thermal_counter_threshold": 0
         }''')
 
         # Assign this here since it will change the "interval" prior to validation
@@ -33,7 +34,8 @@ class ElementDeactivationProcess(KratosMultiphysics.Process):
         # Set parameters of the processes
         params = KratosMultiphysics.Parameters("{}")
         params.AddValue("model_part_name", settings["model_part_name"])
-        params.AddValue("thermal_energy_threshold", settings["thermal_energy_threshold"])
+        params.AddValue("thermal_energy_per_volume_threshold", settings["thermal_energy_per_volume_threshold"])
+        params.AddValue("thermal_counter_threshold", settings["thermal_counter_threshold"])
 
         # Set process
         self.process = KratosConvDiff.ElementDeactivationProcess(self.model_part, params)
