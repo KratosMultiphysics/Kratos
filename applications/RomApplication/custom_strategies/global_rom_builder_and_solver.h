@@ -8,7 +8,7 @@
 //                  Kratos default license: kratos/license.txt
 //
 //  Main authors:   Sebastian Ares de Parga
-//                  
+//
 //
 
 #pragma once
@@ -233,7 +233,7 @@ public:
     SizeType GetNumberOfROMModes() const noexcept
     {
         return mNumberOfRomModes;
-    } 
+    }
 
     bool GetMonotonicityPreservingFlag() const noexcept
     {
@@ -257,7 +257,7 @@ public:
 
     void BuildRightROMBasis(
         const ModelPart& rModelPart,
-        Matrix& rPhiGlobal) 
+        Matrix& rPhiGlobal)
     {
         const auto& r_dof_set = BaseBuilderAndSolverType::GetDofSet();
         block_for_each(r_dof_set, [&](const DofType& r_dof)
@@ -278,7 +278,7 @@ public:
     void MonotonicityPreserving(
         TSystemMatrixType& rA,
         TSystemVectorType& rB
-    ) 
+    )
     {
         const auto& r_dof_set = BaseType::GetDofSet();
         Vector dofs_values = ZeroVector(r_dof_set.size());
@@ -334,7 +334,7 @@ public:
         r_root_mp.GetValue(ROM_SOLUTION_INCREMENT) = ZeroVector(GetNumberOfROMModes());
     }
 
-    
+
     void BuildAndSolve(
         typename TSchemeType::Pointer pScheme,
         ModelPart &rModelPart,
@@ -345,7 +345,7 @@ public:
         KRATOS_TRY
 
         BuildAndProjectROM(pScheme, rModelPart, A, b, Dx);
-        
+
         SolveROM(rModelPart, mEigenRomA, mEigenRomB, Dx);
 
         KRATOS_CATCH("")
@@ -542,7 +542,7 @@ protected:
 
         KRATOS_CATCH("")
     }
-    
+
     static DofQueue ExtractDofSet(
         typename TSchemeType::Pointer pScheme,
         ModelPart& rModelPart)
@@ -623,7 +623,7 @@ protected:
     }
 
     /**
-     * Builds and projects the reduced system of equations 
+     * Builds and projects the reduced system of equations
      */
     virtual void BuildAndProjectROM(
         typename TSchemeType::Pointer pScheme,
@@ -659,7 +659,7 @@ protected:
     }
 
     /**
-     * @brief Function to perform the build of the LHS and RHS multiplied by its corresponding hrom weight. 
+     * @brief Function to perform the build of the LHS and RHS multiplied by its corresponding hrom weight.
      * @param pScheme The integration scheme considered
      * @param rModelPart The model part of the problem to solve
      * @param A The LHS matrix
@@ -744,7 +744,7 @@ protected:
     }
 
     /**
-     * Projects the reduced system of equations 
+     * Projects the reduced system of equations
      */
     virtual void ProjectROM(
         ModelPart &rModelPart,
@@ -764,13 +764,13 @@ protected:
         const auto& eigen_rA = a_wrapper.matrix();
         Eigen::Map<EigenDynamicVector> eigen_rb(rb.data().begin(), rb.size());
         Eigen::Map<EigenDynamicMatrix> eigen_mPhiGlobal(mPhiGlobal.data().begin(), mPhiGlobal.size1(), mPhiGlobal.size2());
-        
+
         EigenDynamicMatrix eigen_rA_times_mPhiGlobal = eigen_rA * eigen_mPhiGlobal; //TODO: Make it in parallel.
 
         // Compute the matrix multiplication
         mEigenRomA = eigen_mPhiGlobal.transpose() * eigen_rA_times_mPhiGlobal; //TODO: Make it in parallel.
         mEigenRomB = eigen_mPhiGlobal.transpose() * eigen_rb; //TODO: Make it in parallel.
-        
+
         KRATOS_CATCH("")
     }
 
@@ -786,13 +786,13 @@ protected:
         KRATOS_TRY
 
         RomSystemVectorType dxrom(GetNumberOfROMModes());
-        
+
         const auto solving_timer = BuiltinTimer();
 
         using EigenDynamicVector = Eigen::Matrix<double, Eigen::Dynamic, 1>;
         Eigen::Map<EigenDynamicVector> dxrom_eigen(dxrom.data().begin(), dxrom.size());
         dxrom_eigen = rEigenRomA.colPivHouseholderQr().solve(rEigenRomB);
-        
+
         double time = solving_timer.ElapsedSeconds();
         KRATOS_INFO_IF("GlobalROMBuilderAndSolver", (this->GetEchoLevel() > 0)) << "Solve reduced system time: " << time << std::endl;
 
@@ -820,9 +820,9 @@ protected:
     ///@name Protected life cycle
     ///@{
 private:
-    ///@name Private member variables 
+    ///@name Private member variables
     ///@{
-        
+
     SizeType mNumberOfRomModes;
     EigenDynamicMatrix mEigenRomA;
     EigenDynamicVector mEigenRomB;
@@ -830,7 +830,7 @@ private:
     bool mMonotonicityPreservingFlag;
 
     ///@}
-    ///@name Private operations 
+    ///@name Private operations
     ///@{
 
     ///@}

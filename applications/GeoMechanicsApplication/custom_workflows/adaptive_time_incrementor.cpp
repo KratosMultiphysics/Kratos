@@ -85,6 +85,12 @@ void AdaptiveTimeIncrementor::PostTimeStepExecution(const TimeStepEndState& rRes
 
     // Avoid incrementing the time beyond the end time
     mDeltaTime = std::min(mDeltaTime, mEndTime - rResultantState.time);
+
+    // Avoid very small remaining time steps
+    const auto small_time_increment = 1.E-3 * mDeltaTime;
+    if ((mEndTime - (rResultantState.time + mDeltaTime)) < small_time_increment) {
+        mDeltaTime = mEndTime - rResultantState.time;
+    }
 }
 
 }

@@ -287,6 +287,16 @@ void KratosGeoMechanicsApplication::Register() {
     KRATOS_REGISTER_CONDITION("GeoTNormalFluxCondition3D8N", mGeoTNormalFluxCondition3D8N)
     KRATOS_REGISTER_CONDITION("GeoTNormalFluxCondition3D9N", mGeoTNormalFluxCondition3D9N)
 
+    KRATOS_REGISTER_CONDITION("GeoTMicroClimateFluxCondition2D2N", mGeoTMicroClimateFluxCondition2D2N)
+    KRATOS_REGISTER_CONDITION("GeoTMicroClimateFluxCondition2D3N", mGeoTMicroClimateFluxCondition2D3N)
+    KRATOS_REGISTER_CONDITION("GeoTMicroClimateFluxCondition2D4N", mGeoTMicroClimateFluxCondition2D4N)
+    KRATOS_REGISTER_CONDITION("GeoTMicroClimateFluxCondition2D5N", mGeoTMicroClimateFluxCondition2D5N)
+    KRATOS_REGISTER_CONDITION("GeoTMicroClimateFluxCondition3D3N", mGeoTMicroClimateFluxCondition3D3N)
+    KRATOS_REGISTER_CONDITION("GeoTMicroClimateFluxCondition3D4N", mGeoTMicroClimateFluxCondition3D4N)
+    KRATOS_REGISTER_CONDITION("GeoTMicroClimateFluxCondition3D6N", mGeoTMicroClimateFluxCondition3D6N)
+    KRATOS_REGISTER_CONDITION("GeoTMicroClimateFluxCondition3D8N", mGeoTMicroClimateFluxCondition3D8N)
+    KRATOS_REGISTER_CONDITION("GeoTMicroClimateFluxCondition3D9N", mGeoTMicroClimateFluxCondition3D9N)
+
     //Register Constitutive Laws
     KRATOS_REGISTER_CONSTITUTIVE_LAW("BilinearCohesive3DLaw", mBilinearCohesive3DLaw)
     KRATOS_REGISTER_CONSTITUTIVE_LAW("BilinearCohesive2DLaw", mBilinearCohesive2DLaw)
@@ -334,8 +344,6 @@ void KratosGeoMechanicsApplication::Register() {
     KRATOS_REGISTER_VARIABLE( SPECIFIC_HEAT_CAPACITY_SOLID )
     KRATOS_REGISTER_VARIABLE( THERMAL_CONDUCTIVITY_WATER )
     KRATOS_REGISTER_SYMMETRIC_3D_TENSOR_VARIABLE_WITH_COMPONENTS( THERMAL_CONDUCTIVITY_SOLID )
-    KRATOS_REGISTER_VARIABLE( LONGITUDINAL_DISPERSIVITY )
-    KRATOS_REGISTER_VARIABLE( TRANSVERSE_DISPERSIVITY )
     KRATOS_REGISTER_VARIABLE( SOLID_COMPRESSIBILITY )
     KRATOS_REGISTER_VARIABLE( DT_TEMPERATURE_COEFFICIENT )
     KRATOS_REGISTER_VARIABLE( DT_TEMPERATURE )
