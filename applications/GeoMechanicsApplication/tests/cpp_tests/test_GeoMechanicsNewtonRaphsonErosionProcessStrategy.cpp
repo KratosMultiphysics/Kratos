@@ -10,8 +10,6 @@
 //  Main authors:    Jonathan Nuttall
 //
 
-#pragma once
-
 // System includes
 #include <limits>
 #include <map>
@@ -34,9 +32,14 @@ KRATOS_TEST_CASE_IN_SUITE(ErosionProcessStrategy, KratosGeoMechanicsIntegrationS
     auto projectFile = "ProjectParameters.json";
 
     auto execute = KratosExecute();
-    int status = execute.ExecuteFlowAnalysis(workingDirectory, projectFile, 3, 4, 0.1, "PorousDomain.Left_head",
-                                             &flow_stubs::emptyLog, &flow_stubs::emptyProgress,
-                                             &flow_stubs::emptyLog, &flow_stubs::emptyCancel);
+    const Kratos::KratosExecute::CriticalHeadInfo critical_head_info(3, 4, 0.1);
+    const Kratos::KratosExecute::CallBackFunctions call_back_functions(&flow_stubs::emptyLog,
+                                                                 &flow_stubs::emptyProgress,
+                                                                 &flow_stubs::emptyLog,
+                                                                 &flow_stubs::emptyCancel);
+
+    const int status = execute.ExecuteFlowAnalysis(workingDirectory, projectFile, critical_head_info, "PorousDomain.Left_head", call_back_functions);
+
 
     KRATOS_EXPECT_EQ(status, 0);
 }
@@ -66,9 +69,13 @@ KRATOS_TEST_CASE_IN_SUITE(ErosionProcessStrategyTextualProgressReport, KratosGeo
         }
     };
 
-    int status = execute.ExecuteFlowAnalysis(workingDirectory, projectFile, 3, 4, 0.1, "PorousDomain.Left_head",
-                                             &flow_stubs::emptyLog, &flow_stubs::emptyProgress,
-                                             reportTextualProgress, &flow_stubs::emptyCancel);
+    const Kratos::KratosExecute::CriticalHeadInfo critical_head_info(3, 4, 0.1);
+    const Kratos::KratosExecute::CallBackFunctions call_back_functions(&flow_stubs::emptyLog,
+                                                                 &flow_stubs::emptyProgress,
+                                                                 reportTextualProgress,
+                                                                 &flow_stubs::emptyCancel);
+
+    const int status = execute.ExecuteFlowAnalysis(workingDirectory, projectFile, critical_head_info, "PorousDomain.Left_head", call_back_functions);
 
     KRATOS_EXPECT_EQ(status, 0);
     KRATOS_EXPECT_EQ(firstMessageFound, true);
@@ -101,9 +108,14 @@ KRATOS_TEST_CASE_IN_SUITE(ErosionProcessStrategyProgressReport, KratosGeoMechani
         }
     };
 
-    int status = execute.ExecuteFlowAnalysis(workingDirectory, projectFile, 3, 4, 0.1, "PorousDomain.Left_head",
-                                             &flow_stubs::emptyLog, reportProgress, &flow_stubs::emptyLog,
-                                             &flow_stubs::emptyCancel);
+    const Kratos::KratosExecute::CriticalHeadInfo critical_head_info(3, 4, 0.1);
+    const Kratos::KratosExecute::CallBackFunctions call_back_functions(&flow_stubs::emptyLog,
+                                                                 reportProgress,
+                                                                 &flow_stubs::emptyLog,
+                                                                 &flow_stubs::emptyCancel);
+
+    const int status = execute.ExecuteFlowAnalysis(workingDirectory, projectFile, critical_head_info, "PorousDomain.Left_head", call_back_functions);
+
 
     KRATOS_EXPECT_EQ(status, 0);
     KRATOS_EXPECT_EQ(startProgressFound, true);
