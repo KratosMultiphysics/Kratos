@@ -28,6 +28,7 @@ public:
                             std::size_t MaxNumOfCycles     = 10,
                             double      ReductionFactor    = 0.5,
                             double      IncreaseFactor     = 2.0,
+                            double      MaxTimeStepFactor  = 1000.0,
                             std::size_t MinNumOfIterations = 3,
                             std::size_t MaxNumOfIterations = 15);
 
@@ -43,6 +44,7 @@ private:
     std::size_t mMaxNumOfCycles;
     double      mReductionFactor;
     double      mIncreaseFactor;
+    double      mMaxDeltaTime;
     std::size_t mMinNumOfIterations;
     std::size_t mMaxNumOfIterations;
 };

@@ -47,6 +47,7 @@ class HRomTrainingUtility(object):
         self.include_minimum_condition = settings["include_minimum_condition"].GetBool()
         self.include_condition_parents = settings["include_condition_parents"].GetBool()
         self.num_of_right_rom_dofs = self.rom_settings["number_of_rom_dofs"].GetInt()
+        self.constraint_sum_weights =  settings["constraint_sum_weights"].GetBool()
 
         # Retrieve list of model parts from settings
         self.include_conditions_model_parts_list = settings["include_conditions_model_parts_list"].GetStringArray()
@@ -148,12 +149,12 @@ class HRomTrainingUtility(object):
         # Calculate the residuals basis and compute the HROM weights from it
         residual_basis = self.__CalculateResidualBasis()
         n_conditions = self.solver.GetComputingModelPart().NumberOfConditions() # Conditions must be included as an extra restriction to enforce ECM to capture all BC's regions.
-        self.hyper_reduction_element_selector.SetUp(residual_basis, InitialCandidatesSet = self.candidate_ids, constrain_sum_of_weights=True, constrain_conditions = False, number_of_conditions = n_conditions)
+        self.hyper_reduction_element_selector.SetUp(residual_basis, InitialCandidatesSet = self.candidate_ids, constrain_sum_of_weights=self.constraint_sum_weights, constrain_conditions = False, number_of_conditions = n_conditions)
         self.hyper_reduction_element_selector.Run()
         if not self.hyper_reduction_element_selector.success:
             KratosMultiphysics.Logger.PrintWarning("HRomTrainingUtility", "The Empirical Cubature Method did not converge using the initial set of candidates. Launching again without initial candidates.")
             #Imposing an initial candidate set can lead to no convergence. Restart without imposing the initial candidate set
-            self.hyper_reduction_element_selector.SetUp(residual_basis, InitialCandidatesSet = None, constrain_sum_of_weights=True, constrain_conditions = False, number_of_conditions = n_conditions)
+            self.hyper_reduction_element_selector.SetUp(residual_basis, InitialCandidatesSet = None, constrain_sum_of_weights=self.constraint_sum_weights, constrain_conditions = False, number_of_conditions = n_conditions)
             self.hyper_reduction_element_selector.Run()
         # Save the HROM weights in the RomParameters.json
         # Note that in here we are assuming this naming convention for the ROM json file
@@ -234,7 +235,8 @@ class HRomTrainingUtility(object):
             "initial_candidate_conditions_model_part_list" : [],
             "include_nodal_neighbouring_elements_model_parts_list":[],
             "include_minimum_condition": false,
-            "include_condition_parents": false
+            "include_condition_parents": false,
+            "constraint_sum_weights": true
         }""")
         return default_settings
 
@@ -417,4 +419,5 @@ class HRomTrainingUtility(object):
                     hrom_weights["Conditions"][int(indexes[j])-number_of_elements] = float(weights[j])
 
         return hrom_weights
+
 

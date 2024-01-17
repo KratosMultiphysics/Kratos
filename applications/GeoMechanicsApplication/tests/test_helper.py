@@ -1,4 +1,5 @@
 import sys,os
+import math
 
 sys.path.append(os.path.join('..','..','..'))
 
@@ -126,6 +127,14 @@ def get_velocity(simulation):
 
     return get_nodal_variable(simulation, Kratos.VELOCITY)
 
+def get_temperature(simulation):
+    """
+    Gets the temperature from kratos simulation
+ 
+    :param simulation:
+    :return:
+    """
+    return get_nodal_variable(simulation, Kratos.TEMPERATURE)
 
 def get_water_pressure(simulation):
     """
@@ -386,7 +395,6 @@ def compute_distance(point1, point2):
     :param point2:
     :return: distance
     """
-    import math
     return math.sqrt((point1[0] - point2[0])**2 + (point1[1] - point2[1])**2)
 
 
@@ -529,7 +537,7 @@ class GiDOutputFileReader:
     @staticmethod
     def get_values_at_time(time, property_results):
         for time_results in property_results:
-            if time_results["time"] == time:
+            if math.isclose(time_results["time"], time):
                 return time_results["values"]
 
     @staticmethod
@@ -537,3 +545,24 @@ class GiDOutputFileReader:
         for node_results in time_results:
             if node_results["node"] == node:
                 return node_results["value"]
+
+    @staticmethod
+    def nodal_values_at_time(result_item_name, time, output_data, node_ids=None):
+        if node_ids and node_ids != sorted(node_ids):
+            raise RuntimeError("Node IDs must be sorted")
+
+        matching_item = None
+        for item in output_data["results"][result_item_name]:
+            if math.isclose(item["time"], time):
+                matching_item = item
+                break
+        if matching_item is None:
+            raise RuntimeError(f"'{result_item_name}' does not have results at time {time}")
+
+        if matching_item["location"] != "OnNodes":
+            raise RuntimeError(f"'{result_item_name}' is not a nodal result")
+
+        if not node_ids: # return all values
+            return [item["value"] for item in matching_item["values"]]
+
+        return [item["value"] for item in matching_item["values"] if item["node"] in node_ids]
