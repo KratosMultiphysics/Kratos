@@ -302,6 +302,7 @@ std::size_t GetLinearGeometryVertexCount(GeometryData::KratosGeometryFamily Geom
 template <Globals::DataLocation TEntityLocation, class TSparseSpace>
 void GetLowerOrderDofs(typename TSparseSpace::MatrixType& rA,
                        const ModelPart& rModelPart,
+                       const ModelPart::DofsArrayType& rDofs,
                        std::vector<bool>& rCoarseMask)
 {
     KRATOS_TRY
@@ -331,12 +332,30 @@ void GetLowerOrderDofs(typename TSparseSpace::MatrixType& rA,
                         KRATOS_DEBUG_ERROR_IF_NOT(i_fine_dof < TSparseSpace::Size1(rA));
 
                         // Flag the DoF as part of the coarse system
-                        rCoarseMask[i_fine_dof] = true;
+                        if (rp_dof->IsFree()) rCoarseMask[i_fine_dof] = true;
                     }
                 } // if the node is not flagged SLAVE
             }
         } // if (r_entity.IsActive())
     } // for entity in rModelPart
+
+    // Loop through the active DoFs and remove any
+    // slave or dirichlet DoFs from the coarse system.
+    for (const Dof<double>& r_dof : rDofs) {
+        if (r_dof.IsFixed()) {
+            rCoarseMask[r_dof.EquationId()] = false;
+        } else {
+            const auto node_id = r_dof.Id();
+            const auto it_node = rModelPart.Nodes().find(node_id);
+            KRATOS_ERROR_IF(it_node == rModelPart.Nodes().end())
+                << "DoF " << r_dof.EquationId() << " has no corresponding node in model part "
+                << rModelPart.Name() << std::endl;
+
+            if (it_node->Is(SLAVE)) {
+                rCoarseMask[r_dof.EquationId()] = false;
+            }
+        }
+    }
     KRATOS_CATCH("")
 }
 
@@ -531,6 +550,8 @@ void MapHigherToLowerOrder(const ModelPart& rModelPart,
     const std::size_t dofs_per_node = rModelPart.Nodes().empty() ?
         0 : rModelPart.Nodes().front().GetDofs().size();
 
+    // The entries in rSlaveMap are extended, but no entry is removed or added
+    // to the map itself, so its sentinel can be safely used throughout the function.
     const auto it_slave_end = rSlaveMap.end();
 
     for (auto proxy : MakeProxy<TEntityLocation>(rModelPart)) {
@@ -561,7 +582,8 @@ void MapHigherToLowerOrder(const ModelPart& rModelPart,
 
                     // If the coarse DoF is constrained by a Dirichlet condition,
                     // no fine vertices should be added to the restiction operator.
-                    const std::size_t i_term_end = r_coarse_node_dofs[i_node_dof]->IsFixed() || r_fine_geometry[i_coarse_vertex].Is(SLAVE) ? 1 : r_restriction_terms.size();
+                    const std::size_t i_term_end = r_coarse_node_dofs[i_node_dof]->IsFixed() || r_fine_geometry[i_coarse_vertex].Is(SLAVE)
+                                                   ? 1 : r_restriction_terms.size();
 
                     for (std::size_t i_term=0ul; i_term<i_term_end; ++i_term) {
                         const auto& r_fine_coefficient_pair = r_restriction_terms[i_term];
@@ -575,8 +597,10 @@ void MapHigherToLowerOrder(const ModelPart& rModelPart,
                             const auto it_slave = rSlaveMap.find(i_fine_dof);
                             const bool is_slave = it_slave != rSlaveMap.end();
                             if (!is_slave) {
+                                // The DoF is not a slave, so it can be added to the restriction map
                                 rRestrictionMap.emplace(std::make_pair(i_coarse_dof, i_fine_dof), r_fine_coefficient_pair.second);
                             } else {
+                                // The DoF is a slave, so its master should be added to the restriction map instead
                                 rRestrictionMap.emplace(std::make_pair(i_coarse_dof, it_slave->second.first), r_fine_coefficient_pair.second);
                             }
                         } // if rCoarseDofMask[i_coarse_dof_in_fine_system]
@@ -717,6 +741,7 @@ void HierarchicalSolver<TSparseSpace,TDenseSpace,TReorderer>::ProvideAdditionalD
     std::vector<bool> coarse_mask(system_size, false); // <== yes, an intentional vector<bool>
     GetLowerOrderDofs<Globals::DataLocation::Element,TSparseSpace>(rA,
                                                                    rModelPart,
+                                                                   rDofs,
                                                                    coarse_mask);
 
     // Conditions shouldn't introduce coarse DoFs, but I'll leave this
@@ -724,6 +749,7 @@ void HierarchicalSolver<TSparseSpace,TDenseSpace,TReorderer>::ProvideAdditionalD
     // condition implementations @matekelemen.
     //GetLowerOrderDofs<Globals::DataLocation::Condition,TSparseSpace>(rA,
     //                                                                 rModelPart,
+    //                                                                 rDofs,
     //                                                                 coarse_mask);
 
     // Compute an index map associating fine DoF indices with coarse ones
