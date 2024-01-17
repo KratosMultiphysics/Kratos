@@ -2,33 +2,49 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 message("**** configuring KratosLaserDrillingApplication ****")
 
+kratos_add_dependency(${KRATOS_SOURCE_DIR}/applications/ConvectionDiffusionApplication)
+
+################### PYBIND11
+include(pybind11Tools)
+
 include_directories( ${KRATOS_SOURCE_DIR}/kratos )
+include_directories( ${KRATOS_SOURCE_DIR}/applications/ConvectionDiffusionApplication )
+include_directories( ${KRATOS_SOURCE_DIR}/applications/LaserDrillingApplication )
 
 ## generate variables with the sources
-set( KRATOS_LASERDRILLING_APPLICATION_CORE_SOURCES
+set( KRATOS_LASER_DRILLING_APPLICATION_CORE_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/laserdrilling_application.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/laserdrilling_application_variables.cpp
+
+    # Utilities
+
+    # Processes
+
+    # Elements
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/laser_axisymmetric_eulerian_convection_diffusion.cpp
+
+    # Conditions
 )
 
 ## define python interface sources
-set( KRATOS_LASERDRILLING_PYTHON_INTERFACE_SOURCES
+set( KRATOS_LASER_DRILLING_PYTHON_INTERFACE_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_processes_to_python.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/kratos_laserdrilling_python_application.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/laserdrilling_python_application.cpp
 )
 
 ## define test sources
 if(${KRATOS_BUILD_TESTING} MATCHES ON)
-     file(GLOB_RECURSE KRATOS_LASERDRILLING_TESTING_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/tests/cpp_tests/*.cpp)
+     file(GLOB_RECURSE KRATOS_LASER_DRILLING_TESTING_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/tests/cpp_tests/*.cpp)
 endif(${KRATOS_BUILD_TESTING} MATCHES ON)
 
 ###############################################################
 ## LaserDrillingApplication core library (C++ parts)
-add_library( KratosLaserDrillingCore SHARED ${KRATOS_LASERDRILLING_APPLICATION_CORE_SOURCES} ${KRATOS_LASERDRILLING_TESTING_SOURCES} )
-target_link_libraries( KratosLaserDrillingCore PUBLIC KratosCore)
-set_target_properties( KratosLaserDrillingCore PROPERTIES COMPILE_DEFINITIONS "LASERDRILLING_APPLICATION=EXPORT,API")
+add_library( KratosLaserDrillingCore SHARED ${KRATOS_LASER_DRILLING_APPLICATION_CORE_SOURCES} ${KRATOS_LASER_DRILLING_TESTING_SOURCES} )
+target_link_libraries( KratosLaserDrillingCore PUBLIC KratosCore KratosConvectionDiffusionCore)
+set_target_properties( KratosLaserDrillingCore PROPERTIES COMPILE_DEFINITIONS "LASER_DRILLING_APPLICATION=EXPORT,API")
 
 ## LaserDrillingApplication python module
-pybind11_add_module( KratosLaserDrillingApplication MODULE THIN_LTO ${KRATOS_LASERDRILLING_PYTHON_INTERFACE_SOURCES} )
+pybind11_add_module( KratosLaserDrillingApplication MODULE THIN_LTO ${KRATOS_LASER_DRILLING_PYTHON_INTERFACE_SOURCES} )
 target_link_libraries( KratosLaserDrillingApplication PRIVATE KratosLaserDrillingCore)
 set_target_properties( KratosLaserDrillingApplication PROPERTIES PREFIX "")
 
@@ -70,3 +86,7 @@ endif(${INSTALL_TESTING_FILES} MATCHES ON)
 # Install Targets
 install(TARGETS KratosLaserDrillingCore DESTINATION libs )
 install(TARGETS KratosLaserDrillingApplication DESTINATION libs )
+
+# Define custom targets
+set(KRATOS_KERNEL "${KRATOS_KERNEL};KratosLaserDrillingCore" PARENT_SCOPE)
+set(KRATOS_PYTHON_INTERFACE "${KRATOS_PYTHON_INTERFACE};KratosLaserDrillingApplication" PARENT_SCOPE)

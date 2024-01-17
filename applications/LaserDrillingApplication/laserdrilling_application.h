@@ -11,8 +11,8 @@
 //
 
 
-#if !defined(KRATOS_KRATOS_LASERDRILLING_APPLICATION_H_INCLUDED )
-#define  KRATOS_KRATOS_LASERDRILLING_APPLICATION_H_INCLUDED
+#if !defined(KRATOS_KRATOS_LASER_DRILLING_APPLICATION_H_INCLUDED )
+#define  KRATOS_KRATOS_LASER_DRILLING_APPLICATION_H_INCLUDED
 
 
 // System includes
@@ -26,8 +26,7 @@
 #include "includes/kratos_application.h"
 #include "laserdrilling_application_variables.h"
 
-// #include "custom_elements/conv_diff_2d.h"
-// #include "custom_elements/d_laserdrilling_explicit.h"
+#include "custom_elements/laser_axisymmetric_eulerian_convection_diffusion.hpp"
 
 #include "includes/variables.h"
 #include "includes/condition.h"
@@ -58,7 +57,7 @@ namespace Kratos
 /**
  * @class KratosLaserDrillingApplication
 */
-class KRATOS_API(LASERDRILLING_APPLICATION) KratosLaserDrillingApplication : public KratosApplication
+class KRATOS_API(LASER_DRILLING_APPLICATION) KratosLaserDrillingApplication : public KratosApplication
 {
 public:
     ///@name Type Definitions
@@ -187,8 +186,9 @@ private:
     ///@name Member Variables
     ///@{
 
-    // const EulerianLaserDrillingElement<2,3>  mEulerianConvDiff2D;
-    // const DLaserDrillingExplicit<3,4> mDLaserDrillingExplicit3D4N;
+    const LaserAxisymmetricEulerianConvectionDiffusionElement<2,3>  mLaserAxisymmetricEulerianConvectionDiffusion2D3N;
+    const LaserAxisymmetricEulerianConvectionDiffusionElement<2,4>  mLaserAxisymmetricEulerianConvectionDiffusion2D4N;
+
 
     ///@}
     ///@name Private Operators
@@ -241,4 +241,4 @@ private:
 
 }  // namespace Kratos.
 
-#endif // KRATOS_KRATOS_LASERDRILLING_APPLICATION_H_INCLUDED  defined
+#endif // KRATOS_KRATOS_LASER_DRILLING_APPLICATION_H_INCLUDED  defined

@@ -7,34 +7,30 @@ import KratosMultiphysics
 
 # Import applications
 import KratosMultiphysics.ConvectionDiffusionApplication as ConvectionDiffusionApplication
+import KratosMultiphysics.LaserDrillingApplication as LaserDrillingApplication
 if KratosMultiphysics.ParallelEnvironment.GetDefaultDataCommunicator().IsDistributed():
     import KratosMultiphysics.mpi as KratosMPI
     import KratosMultiphysics.MetisApplication as KratosMetis
     import KratosMultiphysics.TrilinosApplication as KratosTrilinos
 
 # Import base class file
-from KratosMultiphysics.ConvectionDiffusionApplication import convection_diffusion_solver
+from KratosMultiphysics.ConvectionDiffusionApplication import convection_diffusion_transient_solver
 
 def CreateSolver(model, custom_settings):
-    return ConvectionDiffusionTransientSolver(model, custom_settings)
+    return LaserDrillingTransientSolver(model, custom_settings)
 
-class ConvectionDiffusionTransientSolver(convection_diffusion_solver.ConvectionDiffusionSolver):
-    """The transient class for convection-diffusion solvers.
+class LaserDrillingTransientSolver(convection_diffusion_transient_solver.ConvectionDiffusionTransientSolver):
+    """The transient class for laser convection-diffusion solvers.
 
     Public member variables:
     transient_settings -- settings for the implicit dynamic solvers.
 
-    See convection_diffusion_solver.py for more information.
+    See convection_diffusion_transient_solver.py for more information.
     """
 
     def __init__(self, model, custom_settings):
         # Construct the base solver and validate the settings in base class
         super().__init__(model, custom_settings)
-
-        # Overwrite the base solver minimum buffer size
-        self.min_buffer_size = 2
-
-        KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Construction finished")
 
     @classmethod
     def GetDefaultParameters(cls):
@@ -50,11 +46,11 @@ class ConvectionDiffusionTransientSolver(convection_diffusion_solver.ConvectionD
         return this_defaults
 
     def Initialize(self):
-        super(ConvectionDiffusionTransientSolver, self).Initialize()
+        super(convection_diffusion_transient_solver.ConvectionDiffusionTransientSolver, self).Initialize()
 
         # Set element counter variable to zero
         for elem in self.main_model_part.Elements:
-            elem.SetValue(ConvectionDiffusionApplication.THERMAL_COUNTER, 0)
+            elem.SetValue(LaserDrillingApplication.THERMAL_COUNTER, 0)
             
         materials_filename = self.settings["material_import_settings"]["materials_filename"].GetString()
 
@@ -146,30 +142,17 @@ class ConvectionDiffusionTransientSolver(convection_diffusion_solver.ConvectionD
 
     def SolveSolutionStep(self):
 
-        super(ConvectionDiffusionTransientSolver, self).SolveSolutionStep()
+        super(convection_diffusion_transient_solver.ConvectionDiffusionTransientSolver, self).SolveSolutionStep()
 
         print("Current computed energy: ", self.MonitorEnergy())
         self.temperature_increments = np.array([node.GetSolutionStepValue(KratosMultiphysics.TEMPERATURE) - self.T0 for node in self.near_field_nodes])
         self.WriteResults(self.results_filename, self.main_model_part.ProcessInfo)
 
-    def _CreateScheme(self):
-        # Variable defining the temporal scheme (0: Forward Euler, 1: Backward Euler, 0.5: Crank-Nicolson)
-        self.GetComputingModelPart().ProcessInfo[KratosMultiphysics.TIME_INTEGRATION_THETA] = self.settings["transient_parameters"]["theta"].GetDouble()
-        self.GetComputingModelPart().ProcessInfo[KratosMultiphysics.DYNAMIC_TAU] = self.settings["transient_parameters"]["dynamic_tau"].GetDouble()
-
-        # As the time integration is managed by the element, we set a "fake" scheme to perform the solution update
-        if not self.main_model_part.IsDistributed():
-            convection_diffusion_scheme = KratosMultiphysics.ResidualBasedIncrementalUpdateStaticScheme()
-        else:
-            convection_diffusion_scheme = KratosTrilinos.TrilinosResidualBasedIncrementalUpdateStaticScheme()
-
-        return convection_diffusion_scheme
-
     def MonitorEnergy(self):
 
         energy = 0.0
         for elem in self.main_model_part.Elements:
-            out = elem.CalculateOnIntegrationPoints(ConvectionDiffusionApplication.THERMAL_ENERGY, self.main_model_part.ProcessInfo)
+            out = elem.CalculateOnIntegrationPoints(LaserDrillingApplication.THERMAL_ENERGY, self.main_model_part.ProcessInfo)
             # NOTE: Here out is an std::vector with all components containing the same elemental thermal energy
             energy += out[0]
 
@@ -234,3 +217,50 @@ class ConvectionDiffusionTransientSolver(convection_diffusion_solver.ConvectionD
 
             # Add a time label to the dataset.
             dataset.attrs["time"] = time
+
+    def _get_element_condition_replace_settings(self):
+        ## Get and check domain size
+        domain_size = self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
+        if domain_size not in [2,3]:
+            raise Exception("DOMAIN_SIZE is not set in ProcessInfo container.")
+
+        ## Validate the replace settings
+        default_replace_settings = self.GetDefaultParameters()["element_replace_settings"]
+        self.settings["element_replace_settings"].ValidateAndAssignDefaults(default_replace_settings)
+
+        ## Elements
+        ## Note that we check for the elements that require substitution to allow for custom elements
+        element_name = self.settings["element_replace_settings"]["element_name"].GetString()
+        element_list = ["EulerianConvDiff","LaplacianElement","MixedLaplacianElement","AdjointHeatDiffusionElement","QSConvectionDiffusionExplicit","DConvectionDiffusionExplicit","LaserAxisymmetricEulerianConvectionDiffusion"]
+        if element_name in element_list:
+            num_nodes_elements = 0
+            if (len(self.main_model_part.Elements) > 0):
+                for elem in self.main_model_part.Elements:
+                    num_nodes_elements = len(elem.GetNodes())
+                    break
+
+            num_nodes_elements = self.main_model_part.GetCommunicator().GetDataCommunicator().MaxAll(num_nodes_elements)
+            if not num_nodes_elements:
+                num_nodes_elements = domain_size + 1
+
+            name_string = f"{element_name}{domain_size}D{num_nodes_elements}N"
+            self.settings["element_replace_settings"]["element_name"].SetString(name_string)
+
+        ## Conditions
+        condition_name = self.settings["element_replace_settings"]["condition_name"].GetString()
+        condition_list = ["FluxCondition","ThermalFace","AxisymmetricThermalFace","LineCondition","SurfaceCondition"]
+        if condition_name in condition_list:
+            num_nodes_conditions = 0
+            if (len(self.main_model_part.Conditions) > 0):
+                for cond in self.main_model_part.Conditions:
+                    num_nodes_conditions = len(cond.GetNodes())
+                    break
+
+            num_nodes_conditions = self.main_model_part.GetCommunicator().GetDataCommunicator().MaxAll(num_nodes_conditions)
+            if not num_nodes_conditions:
+                num_nodes_conditions = domain_size
+
+            name_string = f"{condition_name}{domain_size}D{num_nodes_conditions}N"
+            self.settings["element_replace_settings"]["condition_name"].SetString(name_string)
+
+        return self.settings["element_replace_settings"]

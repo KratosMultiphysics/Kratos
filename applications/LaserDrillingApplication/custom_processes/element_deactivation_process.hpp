@@ -19,7 +19,7 @@
 #include "includes/kratos_parameters.h"
 #include "processes/process.h"
 
-#include "convection_diffusion_application_variables.h"
+#include "laserdrilling_application_variables.h"
 
 namespace Kratos
 {

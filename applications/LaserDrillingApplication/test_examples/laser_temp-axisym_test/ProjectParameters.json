@@ -1,11 +1,11 @@
 {
     "analysis_stage"   : "KratosMultiphysics.LaserDrillingApplication.laserdrilling_analysis",
     "problem_data"     : {
-        "problem_name"  : "punctual_temp-axisym_test",
+        "problem_name"  : "laser_temp-axisym_test",
         "parallel_type" : "OpenMP",
-        "time_step"     : 5.0e-4,
+        "time_step"     : 1e-6,
         "start_time"    : 0.0,
-        "end_time"      : 0.03,
+        "end_time"      : 5e-5,
         "echo_level"    : 0
     },
     "solver_settings"  : {
@@ -15,7 +15,7 @@
         "domain_size"                        : 2,
         "model_import_settings"              : {
             "input_type"     : "mdpa",
-            "input_filename" : "punctual_temp-axisym_test"
+            "input_filename" : "laser_temp-axisym_test"
         },
         "material_import_settings"           : {
             "materials_filename" : "LaserDrillingMaterials.json"
@@ -37,7 +37,7 @@
         },
         "ambient_temperature" : 0.0,
         "time_stepping"                      : {
-            "time_step" : 5.0e-4
+            "time_step" : 1e-6
         },
         "linear_solver_settings":             {
             "solver_type":   "LinearSolversApplication.sparse_lu"
@@ -57,7 +57,7 @@
                 "variable_name"   : "TEMPERATURE",
                 "interval"        : [0.0,0.0],
                 "constrained"     : false,
-                "value"           : 1.52872779e8
+                "value"           : 31.033315214678513
             }
         }],
         "constraints_process_list"        : [],
@@ -78,8 +78,8 @@
             "Parameters"    : {
                 "model_part_name" : "ThermalModelPart.CNVDFFParts_Body",
                 "interval"        : [0.0,1e30],
-                "thermal_energy_per_volume_threshold" : 1.0e5,
-                "thermal_counter_threshold" : 10
+                "thermal_energy_per_volume_threshold" : 1.25,
+                "thermal_counter_threshold" : 5
             }
         }]
     },
@@ -111,7 +111,7 @@
                     },
                     "point_data_configuration"  : []
                 },
-                "output_name"            : "gid_output/punctual_temp-axisym_test"
+                "output_name"            : "gid_output/laser_temp-axisym_test"
             }
         }],
         "vtk_output" : []
