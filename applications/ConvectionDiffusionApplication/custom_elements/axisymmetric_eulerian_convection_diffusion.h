@@ -152,10 +152,6 @@ public:
     ///@name Access
     ///@{
 
-    void CalculateOnIntegrationPoints(
-        const Variable<double>& rVariable,
-        std::vector<double>& rOutput,
-        const ProcessInfo& rCurrentProcessInfo) override;
 
 
     ///@}

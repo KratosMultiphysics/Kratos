@@ -26,6 +26,7 @@ class ConvectionDiffusionAnalysis(AnalysisStage):
 
         super(ConvectionDiffusionAnalysis, self).__init__(model, project_parameters)
 
+    #### Internal functions ####
     def _CreateSolver(self):
         """ Create the Solver (and create and import the ModelPart if it is not alread in the model) """
         ## Solver construction

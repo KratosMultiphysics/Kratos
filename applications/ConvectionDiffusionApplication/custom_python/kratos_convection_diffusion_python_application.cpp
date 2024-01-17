@@ -19,7 +19,6 @@
 #include "convection_diffusion_application.h"
 #include "custom_python/add_custom_strategies_to_python.h"
 #include "custom_python/add_custom_utilities_to_python.h"
-#include "custom_python/add_custom_processes_to_python.h"
 #include "custom_python/add_custom_response_functions_to_python.h"
 
 namespace Kratos
@@ -40,7 +39,6 @@ PYBIND11_MODULE(KratosConvectionDiffusionApplication,m)
            ;
     AddCustomStrategiesToPython(m);
     AddCustomUtilitiesToPython(m);
-    AddCustomProcessesToPython(m);
     AddCustomResponseFunctionsToPython(m);
 
     // Registering variables in python
@@ -60,9 +58,6 @@ PYBIND11_MODULE(KratosConvectionDiffusionApplication,m)
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, TRANSFER_COEFFICIENT)
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, ADJOINT_HEAT_TRANSFER)
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, SCALAR_PROJECTION)
-    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, THERMAL_ENERGY)
-    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, THERMAL_ENERGY_PER_VOLUME)
-    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, THERMAL_COUNTER)
 
     KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m,CONVECTION_VELOCITY)
 }
