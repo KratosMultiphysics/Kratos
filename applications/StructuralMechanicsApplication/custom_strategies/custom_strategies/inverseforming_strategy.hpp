@@ -24,7 +24,7 @@ namespace Kratos
 {
 template <class TSparseSpace,
 class TDenseSpace,  // = DenseSpace<double>,
-class TLinearSolver //= LinearSolver<TSparseSpace,TDenseSpace>
+class TLinearSolver // = LinearSolver<TSparseSpace,TDenseSpace>
 >
 class InverseFormingStrategy
 : public ResidualBasedNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver>
@@ -54,21 +54,16 @@ public:
 
    // Constructor with Builder and Solver
    InverseFormingStrategy(
-    ModelPart& model_part,
+    ModelPart& rModelPart,
     typename TSchemeType::Pointer pScheme,
     typename TConvergenceCriteriaType::Pointer pNewConvergenceCriteria,
     typename TBuilderAndSolverType::Pointer pNewBuilderAndSolver,
-    ModelPart& rInverseFormingModelPart,    // maybe not needed (?)
-    const std::string& rPrintingFormat,     // may not be needed, used in formfinding for output files format
     int MaxIterations = 30,
     bool CalculateReactions = false,
     bool ReformDofSetAtEachStep = false,
-    bool MoveMeshFlag = false
-   )
-   : ResidualBasedNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(model_part, pScheme,
-   pNewConvergenceCriteria, pNewBuilderAndSolver, MaxIterations, CalculateReactions, ReformDofSetAtEachStep, MoveMeshFlag),
-   mrInverseFormingModelPart(rInverseFormingModelPart), // maybe not needed (?)
-   mPrintingFormat(rPrintingFormat)                     // may not be needed
+    bool MoveMeshFlag = false)
+   : ResidualBasedNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(rModelPart, pScheme,
+   pNewConvergenceCriteria, pNewBuilderAndSolver, MaxIterations, CalculateReactions, ReformDofSetAtEachStep, MoveMeshFlag)
    {}
 
    // Destructor
@@ -79,10 +74,11 @@ private:
         TSystemMatrixType& A,
         TSystemVectorType& Dx,
         TSystemVectorType& b,
-        const bool MoveMesh) override
+        const bool MoveMesh,
+        ModelPart& rModelPart)
     {
-        BaseType::UpdateDatabase(A, Dx, b, MoveMesh);
-        for (auto& r_node : mrInverseFormingModelPart.Nodes()) {
+        // maybe displacement needs to be changed/implemented adjusted here so that solution is visible. Maybe relevant 'mrInverseFormingModelPart' in loop
+        for (auto& r_node : rModelPart.Nodes()) {
             // Updating reference
             const array_1d<double, 3>& disp = r_node.FastGetSolutionStepValue(DISPLACEMENT);
             array_1d<double, 3>& disp_non_historical = r_node.GetValue(DISPLACEMENT);
@@ -90,12 +86,9 @@ private:
             disp_non_historical = disp_non_historical + disp;
             r_node.GetInitialPosition() += disp;
 
-            r_node.FastGetSolutionStepValue(DISPLACEMENT) = ZeroVector(3);
+            r_node.FastGetSolutionStepValue(DISPLACEMENT) = ZeroVector(3);  // needed for us?
         }
     }
-
-    ModelPart& mrInverseFormingModelPart;
-    std::string mPrintingFormat;
     
 };  /* Class InverseFormingStrategy */
 }   /* namespace Kratos. */
