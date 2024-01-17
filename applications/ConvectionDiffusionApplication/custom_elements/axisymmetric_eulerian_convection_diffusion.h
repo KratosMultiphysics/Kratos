@@ -153,8 +153,6 @@ public:
     ///@{
 
 
-
-
     ///@}
     ///@name Inquiry
     ///@{
