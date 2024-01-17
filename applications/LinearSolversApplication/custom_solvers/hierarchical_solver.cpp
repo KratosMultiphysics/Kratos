@@ -332,7 +332,8 @@ void GetLowerOrderDofs(typename TSparseSpace::MatrixType& rA,
                         KRATOS_DEBUG_ERROR_IF_NOT(i_fine_dof < TSparseSpace::Size1(rA));
 
                         // Flag the DoF as part of the coarse system
-                        if (rp_dof->IsFree()) rCoarseMask[i_fine_dof] = true;
+                        //if (rp_dof->IsFree())
+                            rCoarseMask[i_fine_dof] = true;
                     }
                 } // if the node is not flagged SLAVE
             }
@@ -343,7 +344,7 @@ void GetLowerOrderDofs(typename TSparseSpace::MatrixType& rA,
     // slave or dirichlet DoFs from the coarse system.
     for (const Dof<double>& r_dof : rDofs) {
         if (r_dof.IsFixed()) {
-            rCoarseMask[r_dof.EquationId()] = false;
+            //rCoarseMask[r_dof.EquationId()] = false;
         } else {
             const auto node_id = r_dof.Id();
             const auto it_node = rModelPart.Nodes().find(node_id);
