@@ -682,7 +682,7 @@ class NavierStokesTwoFluidsHydraulicSolver(FluidSolver):
         return scheme
 
     def _HydraulicBoundaryConditionCheck(self,boundary,name):
-        # Check if the inlet and outl
+        # Check if there are inlet and outlet
         computing_model_part = self.GetComputingModelPart()
         not_boundary_nodes=any([node.Is(boundary) for node in computing_model_part.Nodes])
         if not not_boundary_nodes:
