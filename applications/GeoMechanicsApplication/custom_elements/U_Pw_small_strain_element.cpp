@@ -1942,6 +1942,16 @@ void UPwSmallStrainElement<3, 8>::CalculateExtrapolationMatrix(BoundedMatrix<dou
     rExtrapolationMatrix(7, 7) = 2.549038105676658;
 }
 
+template <unsigned int TDim, unsigned int TNumNodes>
+double UPwSmallStrainElement<TDim, TNumNodes>::CalculateIntegrationCoefficient(
+    const Geometry<Kratos::GeometricalObject::NodeType>::IntegrationPointsArrayType& IntegrationPoints,
+    unsigned int PointNumber,
+    double detJ)
+{
+    return mpStressStateStrategy->CalculateIntegrationCoefficient(IntegrationPoints, PointNumber,
+                                                                  detJ, this->GetGeometry());
+}
+
 template class UPwSmallStrainElement<2, 3>;
 template class UPwSmallStrainElement<2, 4>;
 template class UPwSmallStrainElement<3, 4>;

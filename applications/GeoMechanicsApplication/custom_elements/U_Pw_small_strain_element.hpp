@@ -23,8 +23,8 @@
 #include "element_strategies/stress_state_strategy.h"
 #include "geo_mechanics_application_variables.h"
 
-#include "element_strategies/three_d_stress_state.h"
 #include "element_strategies/plane_strain_stress_state.h"
+#include "element_strategies/three_d_stress_state.h"
 
 namespace Kratos
 {
@@ -131,6 +131,12 @@ public:
                                       std::vector<Matrix>& rOutput,
                                       const ProcessInfo& rCurrentProcessInfo) override;
 
+protected:
+    double CalculateIntegrationCoefficient(const Geometry<Kratos::GeometricalObject::NodeType>::IntegrationPointsArrayType& IntegrationPoints,
+                                           unsigned int PointNumber,
+                                           double detJ) override;
+
+public:
     std::string Info() const override
     {
         return "U-Pw small strain Element #" + std::to_string(this->Id()) +
@@ -326,7 +332,6 @@ protected:
 
     std::unique_ptr<StressStateStrategy> mpStressStateStrategy;
 
-
 private:
     friend class Serializer;
 
@@ -347,8 +352,9 @@ private:
         rNode.FastGetSolutionStepValue(Var) = Value;
         rNode.UnSetLock();
     }
+};
 
 
-}; // Class UPwSmallStrainElement
+// Class UPwSmallStrainElement
 
 } // namespace Kratos

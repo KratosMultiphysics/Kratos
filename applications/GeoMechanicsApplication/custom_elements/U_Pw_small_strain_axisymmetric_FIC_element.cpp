@@ -35,20 +35,6 @@ Element::Pointer UPwSmallStrainAxisymmetricFICElement<TDim, TNumNodes>::Create(
     return Element::Pointer(new UPwSmallStrainAxisymmetricFICElement(NewId, pGeom, pProperties));
 }
 
-//----------------------------------------------------------------------------------------
-template <unsigned int TDim, unsigned int TNumNodes>
-double UPwSmallStrainAxisymmetricFICElement<TDim, TNumNodes>::CalculateIntegrationCoefficient(
-    const GeometryType::IntegrationPointsArrayType& IntegrationPoints, unsigned int PointNumber, double detJ)
-
-{
-    Vector N;
-    N = this->GetGeometry().ShapeFunctionsValues(N, IntegrationPoints[PointNumber].Coordinates());
-    const double radiusWeight =
-        GeoElementUtilities::CalculateAxisymmetricCircumference(N, this->GetGeometry());
-
-    return IntegrationPoints[PointNumber].Weight() * detJ * radiusWeight;
-}
-
 //----------------------------------------------------------------------------------------------------
 
 template class UPwSmallStrainAxisymmetricFICElement<2, 3>;
