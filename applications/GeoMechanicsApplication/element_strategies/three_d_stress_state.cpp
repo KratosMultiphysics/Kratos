@@ -38,4 +38,12 @@ void ThreeDStressState::CalculateBMatrix(Matrix& rB, const Matrix& GradNpT, cons
         rB(INDEX_3D_XZ, index + INDEX_Z) = GradNpT(i, INDEX_X);
     }
 }
+
+double ThreeDStressState::CalculateIntegrationCoefficient(Geometry<Node>::IntegrationPointsArrayType& IntegrationPoints,
+                                                        unsigned int PointNumber,
+                                                        double detJ,
+                                                        const Geometry<Node>& rGeometry)
+{
+    return IntegrationPoints[PointNumber].Weight() * detJ;
+}
 } // namespace Kratos

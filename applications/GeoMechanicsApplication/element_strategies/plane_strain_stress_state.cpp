@@ -33,4 +33,12 @@ void PlaneStrainStressState::CalculateBMatrix(Matrix& rB,
     }
 }
 
+double PlaneStrainStressState::CalculateIntegrationCoefficient(Geometry<Node>::IntegrationPointsArrayType& IntegrationPoints,
+                                                             unsigned int PointNumber,
+                                                             double detJ,
+                                                             const Geometry<Node>& rGeometry)
+{
+    return IntegrationPoints[PointNumber].Weight() * detJ;
+}
+
 } // namespace Kratos

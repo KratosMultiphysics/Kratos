@@ -21,6 +21,10 @@ class PlaneStrainStressState : public StressStateStrategy
 {
 public:
     void CalculateBMatrix(Matrix& rB, const Matrix& GradNpT, const Vector& Np, const Geometry<Node>& rGeometry) override;
+    double CalculateIntegrationCoefficient(Geometry<Node>::IntegrationPointsArrayType& IntegrationPoints,
+                                         unsigned int PointNumber,
+                                         double detJ,
+                                         const Geometry<Node>& rGeometry) override;
 };
 
 } // namespace Kratos

@@ -20,6 +20,12 @@ namespace Kratos
 class ThreeDStressState : public StressStateStrategy
 {
 public:
+    double CalculateIntegrationCoefficient(Geometry<Node>::IntegrationPointsArrayType& IntegrationPoints,
+                                         unsigned int PointNumber,
+                                         double detJ,
+                                         const Geometry<Node>& rGeometry) override;
+
+public:
     void CalculateBMatrix(Matrix& rB, const Matrix& GradNpT, const Vector&, const Geometry<Node>& rGeometry) override;
 };
 

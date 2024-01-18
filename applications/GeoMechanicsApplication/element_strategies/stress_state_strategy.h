@@ -23,6 +23,11 @@ class StressStateStrategy
 {
 public:
     virtual void CalculateBMatrix(Matrix& rB, const Matrix& GradNpT, const Vector& Np, const Geometry<Node>& rGeometry) = 0;
+    virtual double CalculateIntegrationCoefficient(Geometry<Node>::IntegrationPointsArrayType& IntegrationPoints,
+                                                 unsigned int PointNumber,
+                                                 double detJ,
+                                                 const Geometry<Node>& rGeometry) = 0;
+
     virtual ~StressStateStrategy() = default;
 };
 
