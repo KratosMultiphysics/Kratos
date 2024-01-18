@@ -20,6 +20,7 @@
 #include "custom_elements/U_Pw_updated_lagrangian_element.hpp"
 #include "custom_utilities/element_utilities.hpp"
 #include "custom_utilities/stress_strain_utilities.hpp"
+#include "element_strategies/axisymmetric_stress_state.h"
 #include "geo_mechanics_application_variables.h"
 
 namespace Kratos
@@ -49,24 +50,28 @@ public:
     UPwUpdatedLagrangianAxisymmetricElement(IndexType NewId = 0)
         : UPwUpdatedLagrangianElement<TDim, TNumNodes>(NewId)
     {
+        this->mpStressStateStrategy = std::make_unique<AxisymmetricStressState>();
     }
 
     /// Constructor using an array of nodes
     UPwUpdatedLagrangianAxisymmetricElement(IndexType NewId, const NodesArrayType& ThisNodes)
         : UPwUpdatedLagrangianElement<TDim, TNumNodes>(NewId, ThisNodes)
     {
+        this->mpStressStateStrategy = std::make_unique<AxisymmetricStressState>();
     }
 
     /// Constructor using Geometry
     UPwUpdatedLagrangianAxisymmetricElement(IndexType NewId, GeometryType::Pointer pGeometry)
         : UPwUpdatedLagrangianElement<TDim, TNumNodes>(NewId, pGeometry)
     {
+        this->mpStressStateStrategy = std::make_unique<AxisymmetricStressState>();
     }
 
     /// Constructor using Properties
     UPwUpdatedLagrangianAxisymmetricElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
         : UPwUpdatedLagrangianElement<TDim, TNumNodes>(NewId, pGeometry, pProperties)
     {
+        this->mpStressStateStrategy = std::make_unique<AxisymmetricStressState>();
     }
 
     /// Destructor

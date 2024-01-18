@@ -41,8 +41,7 @@ void UPwSmallStrainAxisymmetricFICElement<TDim, TNumNodes>::CalculateBMatrix(Mat
                                                                              const Matrix& GradNpT,
                                                                              const Vector& Np)
 {
-    AxisymmetricStressState stressState;
-    stressState.CalculateBMatrix(rB, GradNpT, Np, this->GetGeometry());
+    this->mpStressStateStrategy->CalculateBMatrix(rB, GradNpT, Np, this->GetGeometry());
 }
 
 //----------------------------------------------------------------------------------------

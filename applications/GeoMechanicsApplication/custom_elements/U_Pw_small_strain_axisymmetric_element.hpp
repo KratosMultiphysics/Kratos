@@ -20,6 +20,7 @@
 #include "custom_elements/U_Pw_small_strain_element.hpp"
 #include "custom_utilities/element_utilities.hpp"
 #include "custom_utilities/stress_strain_utilities.hpp"
+#include "element_strategies/axisymmetric_stress_state.h"
 #include "geo_mechanics_application_variables.h"
 
 namespace Kratos
@@ -49,24 +50,28 @@ public:
     UPwSmallStrainAxisymmetricElement(IndexType NewId = 0)
         : UPwSmallStrainElement<TDim, TNumNodes>(NewId)
     {
+        this->mpStressStateStrategy = std::make_unique<AxisymmetricStressState>();
     }
 
     /// Constructor using an array of nodes
     UPwSmallStrainAxisymmetricElement(IndexType NewId, const NodesArrayType& ThisNodes)
         : UPwSmallStrainElement<TDim, TNumNodes>(NewId, ThisNodes)
     {
+        this->mpStressStateStrategy = std::make_unique<AxisymmetricStressState>();
     }
 
     /// Constructor using Geometry
     UPwSmallStrainAxisymmetricElement(IndexType NewId, GeometryType::Pointer pGeometry)
         : UPwSmallStrainElement<TDim, TNumNodes>(NewId, pGeometry)
     {
+        this->mpStressStateStrategy = std::make_unique<AxisymmetricStressState>();
     }
 
     /// Constructor using Properties
     UPwSmallStrainAxisymmetricElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
         : UPwSmallStrainElement<TDim, TNumNodes>(NewId, pGeometry, pProperties)
     {
+        this->mpStressStateStrategy = std::make_unique<AxisymmetricStressState>();
     }
 
     /// Destructor

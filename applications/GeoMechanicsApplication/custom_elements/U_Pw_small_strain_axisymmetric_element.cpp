@@ -12,7 +12,6 @@
 
 // Application includes
 #include "custom_elements/U_Pw_small_strain_axisymmetric_element.hpp"
-#include "element_strategies/axisymmetric_stress_state.h"
 
 namespace Kratos
 {
@@ -44,9 +43,7 @@ void UPwSmallStrainAxisymmetricElement<TDim, TNumNodes>::CalculateBMatrix(Matrix
 {
     KRATOS_TRY
 
-    AxisymmetricStressState stressState;
-    stressState.CalculateBMatrix(rB, GradNpT, Np, this->GetGeometry());
-
+    this->mpStressStateStrategy->CalculateBMatrix(rB, GradNpT, Np, this->GetGeometry());
 
     KRATOS_CATCH("")
 }

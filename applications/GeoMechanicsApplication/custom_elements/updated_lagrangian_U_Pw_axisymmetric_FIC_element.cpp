@@ -40,9 +40,7 @@ void UPwUpdatedLagrangianAxisymmetricFICElement<TDim, TNumNodes>::CalculateBMatr
                                                                                    const Matrix& GradNpT,
                                                                                    const Vector& Np)
 {
-
-    AxisymmetricStressState stressState;
-    stressState.CalculateBMatrix(rB, GradNpT, Np, this->GetGeometry());
+    this->mpStressStateStrategy->CalculateBMatrix(rB, GradNpT, Np, this->GetGeometry());
 }
 
 //----------------------------------------------------------------------------------------
