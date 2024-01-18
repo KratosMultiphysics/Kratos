@@ -48,25 +48,25 @@ public:
     ///@name Public classes
     ///@{
 
-    class KRATOS_API(KRATOS_CORE) IntegrationPointExpressionInput : public ExpressionInput
+    class KRATOS_API(KRATOS_CORE) Input : public ExpressionInput
     {
     public:
         ///@name Type definitions
         ///@{
 
-        KRATOS_CLASS_POINTER_DEFINITION(IntegrationPointExpressionInput);
+        KRATOS_CLASS_POINTER_DEFINITION(Input);
 
         ///@}
         ///@name Life cycle
         ///@{
 
-        IntegrationPointExpressionInput(
+        Input(
             ModelPart& rModelPart,
             const VariableType& rVariable,
             const ContainerType& rContainerType,
             const MeshType& rMeshType = MeshType::Local);
 
-        ~IntegrationPointExpressionInput() override = default;
+        ~Input() override = default;
 
         ///@}
         ///@name Public operations
@@ -82,9 +82,9 @@ public:
 
         ModelPart* mpModelPart;
 
-        const VariableType mpVariable;
+        VariableType mpVariable;
 
-        const ContainerType mContainerType;
+        ContainerType mContainerType;
 
         const MeshType mMeshType;
 
@@ -92,25 +92,25 @@ public:
 
     };
 
-    class KRATOS_API(KRATOS_CORE) IntegrationPointExpressionOutput : public ExpressionOutput
+    class KRATOS_API(KRATOS_CORE) Output : public ExpressionOutput
     {
     public:
         ///@name Type definitions
         ///@{
 
-        KRATOS_CLASS_POINTER_DEFINITION(IntegrationPointExpressionOutput);
+        KRATOS_CLASS_POINTER_DEFINITION(Output);
 
         ///@}
         ///@name Life cycle
         ///@{
 
-        IntegrationPointExpressionOutput(
+        Output(
             ModelPart& rModelPart,
             const VariableType& rVariable,
             const ContainerType& rContainerType,
             MeshType rMeshType = MeshType::Local);
 
-        ~IntegrationPointExpressionOutput() override = default;
+        ~Output() override = default;
 
         ///@}
         ///@name Public operations
@@ -124,13 +124,13 @@ public:
         ///@name Private member variables
         ///@{
 
-        ModelPart& mrModelPart;
+        ModelPart* mpModelPart;
 
-        const VariableType mpVariable;
+        VariableType mpVariable;
 
-        const ContainerType mContainerType;
+        ContainerType mContainerType;
 
-        const MeshType mMeshType;
+        MeshType mMeshType;
 
         ///@}
 

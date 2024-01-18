@@ -61,6 +61,7 @@ static Expression::Pointer ReadToExpression(
         // get the shape
         std::vector<IndexType> shape;
         for (const auto& r_shape_info_in_rank : r_shapes_info_in_ranks) {
+            KRATOS_ERROR_IF(r_shape_info_in_rank.empty()) << "Shape info needs to have minimum one dimension.";
             if (r_shape_info_in_rank[0] != 0) {
                 shape.resize(r_shape_info_in_rank.size() - 1);
                 std::transform(r_shape_info_in_rank.begin() + 1, r_shape_info_in_rank.end(), shape.begin(), [](const auto v) -> IndexType { return v;});
@@ -68,7 +69,8 @@ static Expression::Pointer ReadToExpression(
             }
         }
 
-        // remove number of entities for check
+        // first entry in shape_info contains the number of entities in the rContainer.
+        // therefore, remove number of entities for check
         shape_info.erase(shape_info.begin());
 
         // cross check between all ranks the shape is the same
@@ -131,7 +133,7 @@ static void WriteFromExpression(
 }
 } // IntegrationPointExpressionIOUtils
 
-IntegrationPointExpressionIO::IntegrationPointExpressionInput::IntegrationPointExpressionInput(
+IntegrationPointExpressionIO::Input::Input(
     ModelPart& rModelPart,
     const VariableType& rVariable,
     const ContainerType& rContainerType,
@@ -143,7 +145,7 @@ IntegrationPointExpressionIO::IntegrationPointExpressionInput::IntegrationPointE
 {
 }
 
-Expression::Pointer IntegrationPointExpressionIO::IntegrationPointExpressionInput::Execute() const
+Expression::Pointer IntegrationPointExpressionIO::Input::Execute() const
 {
     auto& r_mesh = ExpressionIOUtils::GetMesh(mpModelPart->GetCommunicator(), mMeshType);
     const auto& r_data_communicator = mpModelPart->GetCommunicator().GetDataCommunicator();
@@ -160,30 +162,30 @@ Expression::Pointer IntegrationPointExpressionIO::IntegrationPointExpressionInpu
     return nullptr;
 }
 
-IntegrationPointExpressionIO::IntegrationPointExpressionOutput::IntegrationPointExpressionOutput(
+IntegrationPointExpressionIO::Output::Output(
     ModelPart& rModelPart,
     const VariableType& rVariable,
     const ContainerType& rContainerType,
     MeshType  rMeshType)
-    : mrModelPart(rModelPart),
+    : mpModelPart(&rModelPart),
       mpVariable(rVariable),
       mContainerType(rContainerType),
       mMeshType(rMeshType)
 {
 }
 
-void IntegrationPointExpressionIO::IntegrationPointExpressionOutput::Execute(const Expression& rExpression)
+void IntegrationPointExpressionIO::Output::Execute(const Expression& rExpression)
 {
     KRATOS_TRY
-    auto& r_communicator = mrModelPart.GetCommunicator();
+    auto& r_communicator = mpModelPart->GetCommunicator();
     auto& r_mesh = ExpressionIOUtils::GetMesh(r_communicator, mMeshType);
 
     switch (mContainerType) {
         case ContainerType::ConditionNonHistorical:
-            IntegrationPointExpressionIOUtils::WriteFromExpression<ModelPart::ConditionsContainerType, const VariableType>(r_mesh.Conditions(), r_communicator, rExpression, mrModelPart.GetProcessInfo(), mpVariable);
+            IntegrationPointExpressionIOUtils::WriteFromExpression<ModelPart::ConditionsContainerType, const VariableType>(r_mesh.Conditions(), r_communicator, rExpression, mpModelPart->GetProcessInfo(), mpVariable);
             break;
         case ContainerType::ElementNonHistorical:
-            IntegrationPointExpressionIOUtils::WriteFromExpression<ModelPart::ElementsContainerType, const VariableType>(r_mesh.Elements(), r_communicator, rExpression, mrModelPart.GetProcessInfo(), mpVariable);
+            IntegrationPointExpressionIOUtils::WriteFromExpression<ModelPart::ElementsContainerType, const VariableType>(r_mesh.Elements(), r_communicator, rExpression, mpModelPart->GetProcessInfo(), mpVariable);
             break;
         default:
             KRATOS_ERROR << "Invalid container type";
@@ -197,7 +199,7 @@ void IntegrationPointExpressionIO::Read(
     const VariableType& rVariable)
 {
     auto p_expression =
-        IntegrationPointExpressionInput(rContainerExpression.GetModelPart(), rVariable,
+        Input(rContainerExpression.GetModelPart(), rVariable,
                                 std::is_same_v<TContainerType, ModelPart::ConditionsContainerType>
                                     ? ContainerType::ConditionNonHistorical
                                     : ContainerType::ElementNonHistorical,
@@ -212,7 +214,7 @@ void IntegrationPointExpressionIO::Write(
     const ContainerExpression<TContainerType, TMeshType>& rContainerExpression,
     const VariableType& rVariable)
 {
-    IntegrationPointExpressionOutput(*rContainerExpression.pGetModelPart(), rVariable,
+    Output(*rContainerExpression.pGetModelPart(), rVariable,
                              std::is_same_v<TContainerType, ModelPart::ConditionsContainerType>
                                  ? ContainerType::ConditionNonHistorical
                                  : ContainerType::ElementNonHistorical,

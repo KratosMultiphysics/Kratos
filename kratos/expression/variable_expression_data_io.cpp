@@ -70,13 +70,17 @@ void AssignVector(
     std::index_sequence<TIndex...>)
 {
     const auto& r_shape = rExpression.GetItemShape();
+
+    KRATOS_DEBUG_ERROR_IF_NOT(r_shape.size() == 1)
+        << "Invalid shape provided. Required shape should have only one dimension. "
+        << "Expression dimensions = " << r_shape.size() << ".";
+
     if (rValue.size() != r_shape[0]) {
         rValue.resize(r_shape[0]);
     }
 
     IndexType local_index = 0;
-    for (IndexType i = 0; i < rValue.size(); ++i) {
-        auto& r_value = rValue[i];
+    for (auto& r_value : rValue) {
         (r_value.insert_element(TIndex, rExpression.Evaluate(EntityIndex, EntityDataBeginIndex, local_index++)), ...);
     }
 }
@@ -86,9 +90,7 @@ void AssignVector(
 template<class TDataType>
 VariableExpressionDataIO<TDataType>::VariableExpressionDataIO(const TDataType& SampleValue)
 {
-    if constexpr(std::is_same_v<TDataType, int>) {
-        mShape.clear();
-    } else if constexpr(std::is_same_v<TDataType, double>) {
+    if constexpr(std::is_same_v<TDataType, int> || std::is_same_v<TDataType, double>) {
         mShape.clear();
     } else if constexpr(std::is_same_v<TDataType, Vector>) {
         mShape.push_back(SampleValue.size());
@@ -128,7 +130,7 @@ VariableExpressionDataIO<TDataType>::VariableExpressionDataIO(const TDataType& S
         mShape.push_back(SampleValue.size());
         mShape.push_back(std::tuple_size_v<typename TDataType::value_type::array_type>);
     } else {
-        static_assert(std::is_same_v<TDataType, TDataType>, "Unsupported data type.");
+        static_assert(!std::is_same_v<TDataType, TDataType>, "Unsupported data type.");
     }
 }
 
@@ -198,7 +200,7 @@ VariableExpressionDataIO<TDataType>::VariableExpressionDataIO(const std::vector<
                "shape. [ shape = "
             << rShape << " ] for array of size " << std::tuple_size_v<typename TDataType::value_type::array_type> << ".";
     } else {
-        static_assert(std::is_same_v<TDataType, TDataType>, "Unsupported data type.");
+        static_assert(!std::is_same_v<TDataType, TDataType>, "Unsupported data type.");
     }
 }
 
@@ -233,7 +235,7 @@ void VariableExpressionDataIO<TDataType>::Assign(
         constexpr IndexType N = std::tuple_size_v<typename TDataType::value_type::array_type>;
         VariableExpressionDataIOHelperUtilities::AssignVector(rExpression, EntityIndex, EntityIndex * N * rExpression.GetItemShape()[0], rOutput, std::make_index_sequence<N>{});
     } else {
-        static_assert(std::is_same_v<TDataType, TDataType>, "Unsupported type.");
+        static_assert(!std::is_same_v<TDataType, TDataType>, "Unsupported type.");
     }
 }
 
@@ -256,7 +258,7 @@ void VariableExpressionDataIO<TDataType>::Read(
         constexpr IndexType N = std::tuple_size_v<typename TDataType::value_type::array_type>;
         VariableExpressionDataIOHelperUtilities::ReadVector(rExpression, EntityIndex * N * Value.size(), Value, std::make_index_sequence<N>{});
     } else {
-        static_assert(std::is_same_v<TDataType, TDataType>, "Unsupported type.");
+        static_assert(!std::is_same_v<TDataType, TDataType>, "Unsupported type.");
     }
 }
 
@@ -382,6 +384,10 @@ void VariableExpressionDataIO<std::vector<Vector>>::Assign(
 {
     const auto& r_shape = rExpression.GetItemShape();
 
+    KRATOS_DEBUG_ERROR_IF_NOT(r_shape.size() == 2)
+        << "Invalid expression size. Requires shape with 2 dimensions. "
+        << "Expression dimensions = " << r_shape.size() << ".";
+
     if (rOutput.size() != r_shape[0]) {
         rOutput.resize(r_shape[0], Vector(r_shape[1]));
     }
@@ -417,6 +423,10 @@ void VariableExpressionDataIO<std::vector<Vector>>::Read(
 {
     const auto& r_shape = rExpression.GetItemShape();
 
+    KRATOS_DEBUG_ERROR_IF_NOT(r_shape.size() == 2)
+        << "Invalid expression size. Requires shape with 2 dimensions. "
+        << "Expression dimensions = " << r_shape.size() << ".";
+
     const IndexType entity_data_begin_index = EntityIndex * r_shape[0] * r_shape[1];
     IndexType local_index = 0;
     for (IndexType i = 0; i < r_shape[0]; ++i) {
@@ -433,6 +443,10 @@ void VariableExpressionDataIO<Matrix>::Assign(
     const IndexType EntityIndex) const
 {
     const auto& r_shape = rExpression.GetItemShape();
+
+    KRATOS_DEBUG_ERROR_IF_NOT(r_shape.size() == 2)
+        << "Invalid expression size. Requires shape with 2 dimensions. "
+        << "Expression dimensions = " << r_shape.size() << ".";
 
     if (rOutput.size1() != r_shape[0] || rOutput.size2() != r_shape[1]) {
         rOutput.resize(r_shape[0], r_shape[1], false);
@@ -454,6 +468,10 @@ void VariableExpressionDataIO<std::vector<Matrix>>::Assign(
 {
     const auto& r_shape = rExpression.GetItemShape();
 
+    KRATOS_DEBUG_ERROR_IF_NOT(r_shape.size() == 3)
+        << "Invalid expression size. Requires shape with 3 dimensions. "
+        << "Expression dimensions = " << r_shape.size() << ".";
+
     if (rOutput.size() != r_shape[0]) {
         rOutput.resize(r_shape[0], Matrix(r_shape[1], r_shape[2]));
     }
@@ -462,9 +480,9 @@ void VariableExpressionDataIO<std::vector<Matrix>>::Assign(
     const IndexType entity_data_begin_index = EntityIndex * r_shape[0] * matrix_size;
 
     IndexType local_index = 0;
-    for (IndexType i = 0; i < r_shape[0]; ++i) {
-        for (IndexType j = 0; j < matrix_size; ++j) {
-            rOutput[i].data()[j] = rExpression.Evaluate(EntityIndex, entity_data_begin_index, local_index++);
+    for (IndexType i_matrix = 0; i_matrix < r_shape[0]; ++i_matrix) {
+        for (IndexType i_component = 0; i_component < matrix_size; ++i_component) {
+            rOutput[i_matrix].data()[i_component] = rExpression.Evaluate(EntityIndex, entity_data_begin_index, local_index++);
         }
     }
 }
@@ -490,13 +508,18 @@ void VariableExpressionDataIO<std::vector<Matrix>>::Read(
     const std::vector<Matrix>& Value) const
 {
     const auto& r_shape = rExpression.GetItemShape();
+
+    KRATOS_DEBUG_ERROR_IF_NOT(r_shape.size() == 3)
+        << "Invalid expression size. Requires shape with 3 dimensions. "
+        << "Expression dimensions = " << r_shape.size() << ".";
+
     const IndexType matrix_size = r_shape[1] * r_shape[2];
     const IndexType entity_data_begin_index = EntityIndex * r_shape[0] * matrix_size;
 
     IndexType local_index = 0;
-    for (IndexType i = 0; i < r_shape[0]; ++i) {
-        for (IndexType j = 0; j < matrix_size; ++j) {
-            rExpression.SetData(entity_data_begin_index, local_index++, Value[i].data()[j]);
+    for (IndexType i_matrix = 0; i_matrix < r_shape[0]; ++i_matrix) {
+        for (IndexType i_component = 0; i_component < matrix_size; ++i_component) {
+            rExpression.SetData(entity_data_begin_index, local_index++, Value[i_matrix].data()[i_component]);
         }
     }
 }

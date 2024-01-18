@@ -335,7 +335,7 @@ void AddExpressionIOToPython(pybind11::module& rModule)
              pybind11::arg("container_type"))
         ;
 
-    pybind11::class_<IntegrationPointExpressionIO::IntegrationPointExpressionInput, IntegrationPointExpressionIO::IntegrationPointExpressionInput::Pointer, ExpressionInput>(integration_point_expression_io, "Input")
+    pybind11::class_<IntegrationPointExpressionIO::Input, IntegrationPointExpressionIO::Input::Pointer, ExpressionInput>(integration_point_expression_io, "Input")
         .def(pybind11::init<ModelPart&,
                             const IntegrationPointExpressionIO::VariableType&,
                             const ContainerType&>(),
@@ -344,7 +344,7 @@ void AddExpressionIOToPython(pybind11::module& rModule)
              pybind11::arg("container_type"))
         ;
 
-    pybind11::class_<IntegrationPointExpressionIO::IntegrationPointExpressionOutput, IntegrationPointExpressionIO::IntegrationPointExpressionOutput::Pointer, ExpressionOutput>(integration_point_expression_io, "Output")
+    pybind11::class_<IntegrationPointExpressionIO::Output, IntegrationPointExpressionIO::Output::Pointer, ExpressionOutput>(integration_point_expression_io, "Output")
         .def(pybind11::init<ModelPart&,
                             const IntegrationPointExpressionIO::VariableType&,
                             const ContainerType&>(),
