@@ -39,6 +39,8 @@ public:
     void ExecuteInitialize() override;
     void ExecuteInitializeSolutionStep() override;
 
+    std::string Info() const override;
+
 private:
     static std::vector<Parameters> CreateParametersForActiveComponents(const Parameters& rSettings);
     static std::vector<char> ActiveComponents(const Parameters& rSettings);

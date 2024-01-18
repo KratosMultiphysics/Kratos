@@ -169,6 +169,9 @@ class GeoMechanicalSolver(PythonSolver):
         ## Fluid Variables
         self._add_water_variables()
 
+        # Add temperature variables
+        self._add_temperature_variables()
+
         ## smoothing variables
         self._add_smoothing_variables()
 
@@ -226,7 +229,7 @@ class GeoMechanicalSolver(PythonSolver):
         self.linear_solver = self._ConstructLinearSolver()
 
         # Builder and solver creation
-        builder_and_solver = self._ConstructBuilderAndSolver(self.settings["block_builder"].GetBool())
+        self.builder_and_solver = self._CreateBuilderAndSolver()
 
         # Solution scheme creation
         self.scheme = self._ConstructScheme(self.settings["scheme_type"].GetString(),
@@ -236,7 +239,7 @@ class GeoMechanicalSolver(PythonSolver):
         self.convergence_criterion = self._ConstructConvergenceCriterion(self.settings["convergence_criterion"].GetString())
 
         # Solver creation
-        self.solver = self._ConstructSolver(builder_and_solver,
+        self.solver = self._ConstructSolver(self.builder_and_solver,
                                             self.settings["strategy_type"].GetString())
 
         # Set echo_level
@@ -248,8 +251,14 @@ class GeoMechanicalSolver(PythonSolver):
 
         self.solver.Initialize()
 
+        self.find_neighbour_elements_of_conditions_process = GeoMechanicsApplication.FindNeighbourElementsOfConditionsProcess(self.computing_model_part)
+        self.find_neighbour_elements_of_conditions_process.Execute()
+
+        self.deactivate_conditions_on_inactive_elements_process = GeoMechanicsApplication.DeactivateConditionsOnInactiveElements(self.computing_model_part)
+        self.deactivate_conditions_on_inactive_elements_process.Execute()
+
     def InitializeSolutionStep(self):
-        self.solver.InitializeSolutionStep()
+            self.solver.InitializeSolutionStep()
 
     def Predict(self):
         self.solver.Predict()
@@ -346,6 +355,18 @@ class GeoMechanicalSolver(PythonSolver):
         # Add variables for the water conditions
         self.main_model_part.AddNodalSolutionStepVariable(GeoMechanicsApplication.HYDRAULIC_DISCHARGE)
 
+    def _add_temperature_variables(self):
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.TEMPERATURE)
+        # Add dynamic variables
+        self.main_model_part.AddNodalSolutionStepVariable(GeoMechanicsApplication.DT_TEMPERATURE)
+        # Add variables for the heat conditions
+        self.main_model_part.AddNodalSolutionStepVariable(GeoMechanicsApplication.NORMAL_HEAT_FLUX)
+        self.main_model_part.AddNodalSolutionStepVariable(GeoMechanicsApplication.AIR_TEMPERATURE)
+        self.main_model_part.AddNodalSolutionStepVariable(GeoMechanicsApplication.SOLAR_RADIATION)
+        self.main_model_part.AddNodalSolutionStepVariable(GeoMechanicsApplication.AIR_HUMIDITY)
+        self.main_model_part.AddNodalSolutionStepVariable(GeoMechanicsApplication.PRECIPITATION)
+        self.main_model_part.AddNodalSolutionStepVariable(GeoMechanicsApplication.WIND_SPEED)
+
     def _add_smoothing_variables(self):
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_AREA)
         self.main_model_part.AddNodalSolutionStepVariable(GeoMechanicsApplication.NODAL_CAUCHY_STRESS_TENSOR)
@@ -369,6 +390,9 @@ class GeoMechanicalSolver(PythonSolver):
             KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.ANGULAR_ACCELERATION_X,self.main_model_part)
             KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.ANGULAR_ACCELERATION_Y,self.main_model_part)
             KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.ANGULAR_ACCELERATION_Z,self.main_model_part)
+
+    def _GetLinearSolver(self):
+        return self.linear_solver
 
     def _ExecuteCheckAndPrepare(self):
 
@@ -437,7 +461,8 @@ class GeoMechanicalSolver(PythonSolver):
         import KratosMultiphysics.python_linear_solver_factory as linear_solver_factory
         return linear_solver_factory.ConstructSolver(self.settings["linear_solver_settings"])
 
-    def _ConstructBuilderAndSolver(self, block_builder):
+    def _CreateBuilderAndSolver(self):
+        block_builder = self.settings["block_builder"].GetBool()
 
         # Creating the builder and solver
         if (block_builder):
@@ -498,7 +523,6 @@ class GeoMechanicalSolver(PythonSolver):
             self.strategy_params.AddValue("max_alpha",                  self.settings["max_alpha"])
             self.strategy_params.AddValue("line_search_tolerance",      self.settings["line_search_tolerance"])
             self.strategy_params.AddValue("move_mesh_flag",             self.settings["move_mesh_flag"])
-            self.strategy_params.AddValue("move_mesh_flag",             self.settings["move_mesh_flag"])
             self.strategy_params.AddValue("reform_dofs_at_each_step",   self.settings["reform_dofs_at_each_step"])
             self.strategy_params.AddValue("echo_level",                 self.settings["echo_level"])
 
@@ -542,3 +566,12 @@ class GeoMechanicalSolver(PythonSolver):
             raise RuntimeError(f"Undefined strategy type '{strategy_type}'")
 
         return solving_strategy
+
+    def _MakeResidualCriterion(self):
+        relative_tolerance = self.settings["residual_relative_tolerance"].GetDouble()
+        absolute_tolerance = self.settings["residual_absolute_tolerance"].GetDouble()
+        residual_criterion = KratosMultiphysics.ResidualCriteria(relative_tolerance, absolute_tolerance)
+        residual_criterion.SetEchoLevel(self.settings["echo_level"].GetInt())
+
+        return residual_criterion
+

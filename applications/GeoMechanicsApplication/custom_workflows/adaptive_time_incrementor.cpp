@@ -26,6 +26,7 @@ AdaptiveTimeIncrementor::AdaptiveTimeIncrementor(double      StartTime,
                                                  std::size_t MaxNumOfCycles,
                                                  double      ReductionFactor,
                                                  double      IncreaseFactor,
+                                                 double      MaxTimeStepFactor,
                                                  std::size_t MinNumOfIterations,
                                                  std::size_t MaxNumOfIterations) :
     TimeIncrementor(),
@@ -34,6 +35,7 @@ AdaptiveTimeIncrementor::AdaptiveTimeIncrementor(double      StartTime,
     mMaxNumOfCycles(MaxNumOfCycles),
     mReductionFactor(ReductionFactor),
     mIncreaseFactor(IncreaseFactor),
+    mMaxDeltaTime(MaxTimeStepFactor*mDeltaTime),
     mMinNumOfIterations(MinNumOfIterations),
     mMaxNumOfIterations(MaxNumOfIterations)
 {
@@ -44,9 +46,10 @@ AdaptiveTimeIncrementor::AdaptiveTimeIncrementor(double      StartTime,
                                                                 << mMinNumOfIterations
                                                                 << ") is not less than maximum number of iterations ("
                                                                 << mMaxNumOfIterations << ")";
-    KRATOS_ERROR_IF(mReductionFactor >  1.0) << "Reduction factor must not be greater than 1, but got " << mReductionFactor;
-    KRATOS_ERROR_IF(mReductionFactor <= 0.0) << "Reduction factor must be positive, but got " << mReductionFactor;
-    KRATOS_ERROR_IF(mIncreaseFactor  <  1.0) << "Increase factor must be greater than or equal to 1, but got " << mIncreaseFactor;
+    KRATOS_ERROR_IF(mReductionFactor  >  1.0) << "Reduction factor must not be greater than 1, but got " << mReductionFactor;
+    KRATOS_ERROR_IF(mReductionFactor  <= 0.0) << "Reduction factor must be positive, but got " << mReductionFactor;
+    KRATOS_ERROR_IF(mIncreaseFactor   <  1.0) << "Increase factor must be greater than or equal to 1, but got " << mIncreaseFactor;
+    KRATOS_ERROR_IF(MaxTimeStepFactor <  1.0) << "Max_delta_time_factor must be greater than or equal to 1, but got " << MaxTimeStepFactor;
 }
 
 bool AdaptiveTimeIncrementor::WantNextStep(const TimeStepEndState& rPreviousState) const
@@ -77,11 +80,17 @@ void AdaptiveTimeIncrementor::PostTimeStepExecution(const TimeStepEndState& rRes
     }
     else if (rResultantState.Converged() &&
              (rResultantState.num_of_iterations < mMinNumOfIterations)) {
-        mDeltaTime *= mIncreaseFactor;
+        mDeltaTime = std::min(mDeltaTime * mIncreaseFactor, mMaxDeltaTime);
     }
 
     // Avoid incrementing the time beyond the end time
     mDeltaTime = std::min(mDeltaTime, mEndTime - rResultantState.time);
+
+    // Avoid very small remaining time steps
+    const auto small_time_increment = 1.E-3 * mDeltaTime;
+    if ((mEndTime - (rResultantState.time + mDeltaTime)) < small_time_increment) {
+        mDeltaTime = mEndTime - rResultantState.time;
+    }
 }
 
 }

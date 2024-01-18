@@ -29,17 +29,14 @@ public:
     using BaseType              = Scheme<TSparseSpace,TDenseSpace>;
     using LocalSystemVectorType = typename BaseType::LocalSystemVectorType;
     using LocalSystemMatrixType = typename BaseType::LocalSystemMatrixType;
-    using NewmarkQuasistaticUPwScheme<TSparseSpace,TDenseSpace>::mDeltaTime;
-    using NewmarkQuasistaticUPwScheme<TSparseSpace,TDenseSpace>::mBeta;
-    using NewmarkQuasistaticUPwScheme<TSparseSpace,TDenseSpace>::mGamma;
 
     NewmarkQuasistaticDampedUPwScheme(double beta, double gamma, double theta)
         : NewmarkQuasistaticUPwScheme<TSparseSpace,TDenseSpace>(beta, gamma, theta)
     {
         //Allocate auxiliary memory
-        int NumThreads = ParallelUtilities::GetNumThreads();
-        mDampingMatrix.resize(NumThreads);
-        mVelocityVector.resize(NumThreads);
+        const auto num_threads = ParallelUtilities::GetNumThreads();
+        mDampingMatrix.resize(num_threads);
+        mVelocityVector.resize(num_threads);
     }
 
     void CalculateSystemContributions(
@@ -109,16 +106,12 @@ public:
     }
 
 protected:
-    /// Member Variables
-    std::vector< Matrix > mDampingMatrix;
-    std::vector< Vector > mVelocityVector;
-
     void AddDampingToLHS(LocalSystemMatrixType& LHS_Contribution,
                          LocalSystemMatrixType& C,
                          const ProcessInfo& CurrentProcessInfo)
     {
         // adding damping contribution
-        if (C.size1() != 0) noalias(LHS_Contribution) += (mGamma/(mBeta*mDeltaTime))*C;
+        if (C.size1() != 0) noalias(LHS_Contribution) += (this->GetGamma()/(this->GetBeta()*this->GetDeltaTime()))*C;
     }
 
     void AddDampingToRHS(Element &rCurrentElement,
@@ -135,6 +128,10 @@ protected:
             noalias(RHS_Contribution) -= prod(C, mVelocityVector[thread]);
         }
     }
+
+private:
+    std::vector< Matrix > mDampingMatrix;
+    std::vector< Vector > mVelocityVector;
 }; // Class NewmarkQuasistaticDampedUPwScheme
 
 }
