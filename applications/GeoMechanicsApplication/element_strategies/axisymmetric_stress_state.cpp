@@ -41,7 +41,7 @@ void AxisymmetricStressState::CalculateBMatrix(Matrix& rB,
     KRATOS_CATCH("")
 }
 
-double AxisymmetricStressState::CalculateIntegrationCoefficient(Geometry<Node>::IntegrationPointsArrayType& IntegrationPoints,
+double AxisymmetricStressState::CalculateIntegrationCoefficient(const Geometry<Node>::IntegrationPointsArrayType& IntegrationPoints,
                                                               unsigned int PointNumber,
                                                               double detJ,
                                                               const Geometry<Node>& rGeometry)

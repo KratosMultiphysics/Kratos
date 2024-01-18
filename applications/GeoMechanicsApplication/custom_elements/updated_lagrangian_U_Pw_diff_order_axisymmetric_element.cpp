@@ -34,18 +34,6 @@ Element::Pointer UpdatedLagrangianUPwDiffOrderAxisymmetricElement::Create(IndexT
     return Element::Pointer(new UpdatedLagrangianUPwDiffOrderAxisymmetricElement(NewId, pGeom, pProperties));
 }
 
-//----------------------------------------------------------------------------------------
-double UpdatedLagrangianUPwDiffOrderAxisymmetricElement::CalculateIntegrationCoefficient(
-    const GeometryType::IntegrationPointsArrayType& IntegrationPoints, unsigned int PointNumber, double detJ)
-{
-    Vector N;
-    N = this->GetGeometry().ShapeFunctionsValues(N, IntegrationPoints[PointNumber].Coordinates());
-    const double radiusWeight =
-        GeoElementUtilities::CalculateAxisymmetricCircumference(N, this->GetGeometry());
-
-    return IntegrationPoints[PointNumber].Weight() * detJ * radiusWeight;
-}
-
 //----------------------------------------------------------------------------------------------------
 
 } // Namespace Kratos

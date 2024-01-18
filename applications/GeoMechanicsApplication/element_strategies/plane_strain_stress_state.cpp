@@ -33,7 +33,7 @@ void PlaneStrainStressState::CalculateBMatrix(Matrix& rB,
     }
 }
 
-double PlaneStrainStressState::CalculateIntegrationCoefficient(Geometry<Node>::IntegrationPointsArrayType& IntegrationPoints,
+double PlaneStrainStressState::CalculateIntegrationCoefficient(const Geometry<Node>::IntegrationPointsArrayType& IntegrationPoints,
                                                              unsigned int PointNumber,
                                                              double detJ,
                                                              const Geometry<Node>& rGeometry)

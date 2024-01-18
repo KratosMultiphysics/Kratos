@@ -1840,7 +1840,7 @@ void SmallStrainUPwDiffOrderElement::SetConstitutiveParameters(ElementVariables&
 double SmallStrainUPwDiffOrderElement::CalculateIntegrationCoefficient(
     const GeometryType::IntegrationPointsArrayType& IntegrationPoints, unsigned int GPoint, double detJ)
 {
-    return IntegrationPoints[GPoint].Weight() * detJ;
+    return mpStressStateStrategy->CalculateIntegrationCoefficient(IntegrationPoints, GPoint, detJ, this->GetGeometry());
 }
 
 void SmallStrainUPwDiffOrderElement::CalculateAndAddLHS(MatrixType& rLeftHandSideMatrix, ElementVariables& rVariables)

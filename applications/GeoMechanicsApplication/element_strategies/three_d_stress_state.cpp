@@ -39,7 +39,7 @@ void ThreeDStressState::CalculateBMatrix(Matrix& rB, const Matrix& GradNpT, cons
     }
 }
 
-double ThreeDStressState::CalculateIntegrationCoefficient(Geometry<Node>::IntegrationPointsArrayType& IntegrationPoints,
+double ThreeDStressState::CalculateIntegrationCoefficient(const Geometry<Node>::IntegrationPointsArrayType& IntegrationPoints,
                                                         unsigned int PointNumber,
                                                         double detJ,
                                                         const Geometry<Node>& rGeometry)
