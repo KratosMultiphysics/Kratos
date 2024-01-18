@@ -43,6 +43,8 @@ class MassResponseFunction(ResponseFunction):
         self.model_part = self.model_part_operation.GetModelPart()
 
     def Check(self) -> None:
+        if self.model_part is None:
+            raise RuntimeError("Please call MassResponseFunction::Initialize first.")
         KratosOA.ResponseUtils.MassResponseUtils.Check(self.model_part)
 
     def Finalize(self) -> None:
