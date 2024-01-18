@@ -16,13 +16,16 @@
 namespace Kratos
 {
 
-void AxisymmetricStressState::CalculateBMatrix(Matrix& rB, const Matrix& GradNpT, const Vector& Np, const Geometry<Node>& rGeometry)
+void AxisymmetricStressState::CalculateBMatrix(Matrix& rB,
+                                               const Matrix& GradNpT,
+                                               const Vector& Np,
+                                               const Geometry<Node>& rGeometry)
 {
     KRATOS_TRY
 
     const double radius = GeoElementUtilities::CalculateRadius(Np, rGeometry);
 
-    const SizeType dimension = rGeometry.WorkingSpaceDimension();
+    const SizeType dimension       = rGeometry.WorkingSpaceDimension();
     const SizeType number_of_nodes = rGeometry.size();
 
     for (IndexType i = 0; i < number_of_nodes; ++i) {
@@ -36,7 +39,6 @@ void AxisymmetricStressState::CalculateBMatrix(Matrix& rB, const Matrix& GradNpT
     }
 
     KRATOS_CATCH("")
-
 }
 
 } // namespace Kratos
