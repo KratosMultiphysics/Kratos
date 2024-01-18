@@ -13,8 +13,6 @@
 // Application includes
 #include "custom_elements/U_Pw_small_strain_axisymmetric_FIC_element.hpp"
 
-#include "element_strategies/axisymmetric_stress_state.h"
-
 namespace Kratos
 {
 

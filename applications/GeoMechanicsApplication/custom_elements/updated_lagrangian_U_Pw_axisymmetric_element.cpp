@@ -12,7 +12,6 @@
 
 // Application includes
 #include "custom_elements/updated_lagrangian_U_Pw_axisymmetric_element.hpp"
-#include "element_strategies/axisymmetric_stress_state.h"
 
 namespace Kratos
 {
