@@ -666,6 +666,8 @@ private:
 
             const Geometry<Node>& r_linear_geometry = LinearEquivalent(r_geom);
 
+            constexpr double zero_tolerance = 1e-12;
+
             for (IndexType n = 0; n < r_linear_geometry.PointsNumber(); ++n) {
                 for (IndexType b = 0; b < block_size; ++b) {
                     IndexType fine_eq_id = equation_ids[n*block_size+b];
@@ -682,6 +684,9 @@ private:
                 for (IndexType b = 0; b < block_size; ++b) {
                     IndexType fine_eq_id = equation_ids[n*block_size+b];
                     for (IndexType i = 0; i < shape_functions.size(); ++i) {
+                        // Drop close to zero values
+                        if (std::abs(shape_functions[i]) < zero_tolerance) continue;
+
                         IndexType coarse_eq_id = equation_ids[i*block_size+b];
                         rMatrixMap.insert({{fine_eq_id, mLinearRowMap[coarse_eq_id]}, shape_functions[i]});
                     }
