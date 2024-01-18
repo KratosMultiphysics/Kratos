@@ -236,46 +236,67 @@ ModelPart& SetUpModelPart(Model& rModel)
     return r_model_part;
 }
 
+ModelPart& SetUpEmptyModelPart(Model& rModel)
+{
+    auto& r_model_part = rModel.CreateModelPart("test");
+    return r_model_part;
+}
+
 template<class TContainerType>
 void ExecuteReadTest(
     TContainerType& rContainer,
-    ModelPart& rModelPart)
+    ModelPart& rModelPart,
+    const IndexType NumberOfIntegrationPoints)
 {
-    IndexType number_of_integration_points = 10;
-
-    std::vector<std::size_t> double_size = {number_of_integration_points};
     ContainerExpression<TContainerType> double_exp(rModelPart);
     IntegrationPointExpressionIO::Read(double_exp, &PRESSURE);
-    KRATOS_EXPECT_EQ(double_exp.GetItemShape(), double_size);
+    if (NumberOfIntegrationPoints > 0) {
+        std::vector<std::size_t> double_size = {NumberOfIntegrationPoints};
+        KRATOS_EXPECT_EQ(double_exp.GetItemShape(), double_size);
+    } else {
+        KRATOS_EXPECT_EQ(double_exp.GetItemShape().size(), 0);
+    }
 
-    std::vector<std::size_t> array3_size = {number_of_integration_points, 3};
     ContainerExpression<TContainerType> array3_exp(rModelPart);
     IntegrationPointExpressionIO::Read(array3_exp, &VELOCITY);
-    KRATOS_EXPECT_EQ(array3_exp.GetItemShape(), array3_size);
+    if (NumberOfIntegrationPoints > 0) {
+        std::vector<std::size_t> array3_size = {NumberOfIntegrationPoints, 3};
+        KRATOS_EXPECT_EQ(array3_exp.GetItemShape(), array3_size);
+    } else {
+        KRATOS_EXPECT_EQ(array3_exp.GetItemShape().size(), 0);
+    }
 
-    std::vector<std::size_t> vector_size = {number_of_integration_points, 12};
     ContainerExpression<TContainerType> vector_exp(rModelPart);
     IntegrationPointExpressionIO::Read(vector_exp, &INITIAL_STRAIN);
-    KRATOS_EXPECT_EQ(vector_exp.GetItemShape(), vector_size);
+    if (NumberOfIntegrationPoints > 0) {
+        std::vector<std::size_t> vector_size = {NumberOfIntegrationPoints, 12};
+        KRATOS_EXPECT_EQ(vector_exp.GetItemShape(), vector_size);
+    } else {
+        KRATOS_EXPECT_EQ(vector_exp.GetItemShape().size(), 0);
+    }
 
-    std::vector<std::size_t> matrix_size = {number_of_integration_points, 4, 3};
     ContainerExpression<TContainerType> matrix_exp(rModelPart);
     IntegrationPointExpressionIO::Read(matrix_exp, &NORMAL_SHAPE_DERIVATIVE);
-    KRATOS_EXPECT_EQ(matrix_exp.GetItemShape(), matrix_size);
+    if (NumberOfIntegrationPoints > 0) {
+        std::vector<std::size_t> matrix_size = {NumberOfIntegrationPoints, 4, 3};
+        KRATOS_EXPECT_EQ(matrix_exp.GetItemShape(), matrix_size);
+    } else {
+        KRATOS_EXPECT_EQ(matrix_exp.GetItemShape().size(), 0);
+    }
 
     for (IndexType entity_index = 0; entity_index < rContainer.size(); ++entity_index) {
         const auto& r_entity = *(rContainer.begin() + entity_index);
         const auto entity_id = r_entity.Id();
-        for (IndexType i_gauss = 0; i_gauss < number_of_integration_points; ++i_gauss) {
-            KRATOS_EXPECT_EQ(double_exp.GetExpression().Evaluate(entity_index, entity_index * number_of_integration_points, i_gauss), entity_id + i_gauss + 1);
+        for (IndexType i_gauss = 0; i_gauss < NumberOfIntegrationPoints; ++i_gauss) {
+            KRATOS_EXPECT_EQ(double_exp.GetExpression().Evaluate(entity_index, entity_index * NumberOfIntegrationPoints, i_gauss), entity_id + i_gauss + 1);
 
-            KRATOS_EXPECT_EQ(array3_exp.GetExpression().Evaluate(entity_index, entity_index * number_of_integration_points * 3, i_gauss * 3 + 0), entity_id + i_gauss + 1);
-            KRATOS_EXPECT_EQ(array3_exp.GetExpression().Evaluate(entity_index, entity_index * number_of_integration_points * 3, i_gauss * 3 + 1), entity_id + i_gauss + 2);
-            KRATOS_EXPECT_EQ(array3_exp.GetExpression().Evaluate(entity_index, entity_index * number_of_integration_points * 3, i_gauss * 3 + 2), entity_id + i_gauss + 3);
+            KRATOS_EXPECT_EQ(array3_exp.GetExpression().Evaluate(entity_index, entity_index * NumberOfIntegrationPoints * 3, i_gauss * 3 + 0), entity_id + i_gauss + 1);
+            KRATOS_EXPECT_EQ(array3_exp.GetExpression().Evaluate(entity_index, entity_index * NumberOfIntegrationPoints * 3, i_gauss * 3 + 1), entity_id + i_gauss + 2);
+            KRATOS_EXPECT_EQ(array3_exp.GetExpression().Evaluate(entity_index, entity_index * NumberOfIntegrationPoints * 3, i_gauss * 3 + 2), entity_id + i_gauss + 3);
 
             for (IndexType i_comp = 0; i_comp < 12; ++i_comp) {
-                KRATOS_EXPECT_EQ(vector_exp.GetExpression().Evaluate(entity_index, entity_index * number_of_integration_points * 12, i_gauss * 12 + i_comp), entity_id + i_gauss + i_comp);
-                KRATOS_EXPECT_EQ(matrix_exp.GetExpression().Evaluate(entity_index, entity_index * number_of_integration_points * 12, i_gauss * 12 + i_comp), entity_id + i_gauss + i_comp);
+                KRATOS_EXPECT_EQ(vector_exp.GetExpression().Evaluate(entity_index, entity_index * NumberOfIntegrationPoints * 12, i_gauss * 12 + i_comp), entity_id + i_gauss + i_comp);
+                KRATOS_EXPECT_EQ(matrix_exp.GetExpression().Evaluate(entity_index, entity_index * NumberOfIntegrationPoints * 12, i_gauss * 12 + i_comp), entity_id + i_gauss + i_comp);
             }
         }
     }
@@ -361,14 +382,28 @@ KRATOS_TEST_CASE_IN_SUITE(ExpressionIntegrationPointIOReadConditions, KratosCore
 {
     Model model;
     auto& r_model_part = ExpressionIntegrationPointIOTestUtilities::SetUpModelPart(model);
-    ExpressionIntegrationPointIOTestUtilities::ExecuteReadTest(r_model_part.Conditions(), r_model_part);
+    ExpressionIntegrationPointIOTestUtilities::ExecuteReadTest(r_model_part.Conditions(), r_model_part, 10);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(ExpressionIntegrationPointIOReadElements, KratosCoreFastSuite)
 {
     Model model;
     auto& r_model_part = ExpressionIntegrationPointIOTestUtilities::SetUpModelPart(model);
-    ExpressionIntegrationPointIOTestUtilities::ExecuteReadTest(r_model_part.Elements(), r_model_part);
+    ExpressionIntegrationPointIOTestUtilities::ExecuteReadTest(r_model_part.Elements(), r_model_part, 10);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(ExpressionIntegrationPointIOReadEmptyConditions, KratosCoreFastSuite)
+{
+    Model model;
+    auto& r_model_part = ExpressionIntegrationPointIOTestUtilities::SetUpEmptyModelPart(model);
+    ExpressionIntegrationPointIOTestUtilities::ExecuteReadTest(r_model_part.Conditions(), r_model_part, 0);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(ExpressionIntegrationPointIOReadEmptyElements, KratosCoreFastSuite)
+{
+    Model model;
+    auto& r_model_part = ExpressionIntegrationPointIOTestUtilities::SetUpEmptyModelPart(model);
+    ExpressionIntegrationPointIOTestUtilities::ExecuteReadTest(r_model_part.Elements(), r_model_part, 0);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(ExpressionIntegrationPointIOWriteConditions, KratosCoreFastSuite)
@@ -382,6 +417,20 @@ KRATOS_TEST_CASE_IN_SUITE(ExpressionIntegrationPointIOWriteElements, KratosCoreF
 {
     Model model;
     auto& r_model_part = ExpressionIntegrationPointIOTestUtilities::SetUpModelPart(model);
+    ExpressionIntegrationPointIOTestUtilities::ExecuteWriteTest(r_model_part.Elements(), r_model_part);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(ExpressionIntegrationPointIOWriteEmptyConditions, KratosCoreFastSuite)
+{
+    Model model;
+    auto& r_model_part = ExpressionIntegrationPointIOTestUtilities::SetUpEmptyModelPart(model);
+    ExpressionIntegrationPointIOTestUtilities::ExecuteWriteTest(r_model_part.Conditions(), r_model_part);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(ExpressionIntegrationPointIOWriteEmptyElements, KratosCoreFastSuite)
+{
+    Model model;
+    auto& r_model_part = ExpressionIntegrationPointIOTestUtilities::SetUpEmptyModelPart(model);
     ExpressionIntegrationPointIOTestUtilities::ExecuteWriteTest(r_model_part.Elements(), r_model_part);
 }
 
