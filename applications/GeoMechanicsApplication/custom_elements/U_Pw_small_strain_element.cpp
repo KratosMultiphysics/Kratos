@@ -1209,32 +1209,7 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateBMatrix(Matrix& rB, const 
 {
     KRATOS_TRY
 
-    unsigned int index;
-    if constexpr (TDim > 2) {
-        for (unsigned int i = 0; i < TNumNodes; ++i) {
-            index = TDim * i;
-
-            rB(INDEX_3D_XX, index + INDEX_X) = GradNpT(i, INDEX_X);
-            rB(INDEX_3D_YY, index + INDEX_Y) = GradNpT(i, INDEX_Y);
-            rB(INDEX_3D_ZZ, index + INDEX_Z) = GradNpT(i, INDEX_Z);
-            rB(INDEX_3D_XY, index + INDEX_X) = GradNpT(i, INDEX_Y);
-            rB(INDEX_3D_XY, index + INDEX_Y) = GradNpT(i, INDEX_X);
-            rB(INDEX_3D_YZ, index + INDEX_Y) = GradNpT(i, INDEX_Z);
-            rB(INDEX_3D_YZ, index + INDEX_Z) = GradNpT(i, INDEX_Y);
-            rB(INDEX_3D_XZ, index + INDEX_X) = GradNpT(i, INDEX_Z);
-            rB(INDEX_3D_XZ, index + INDEX_Z) = GradNpT(i, INDEX_X);
-        }
-    } else {
-        // 2D plane strain
-        for (unsigned int i = 0; i < TNumNodes; ++i) {
-            index = TDim * i;
-
-            rB(INDEX_2D_PLANE_STRAIN_XX, index + INDEX_X) = GradNpT(i, INDEX_X);
-            rB(INDEX_2D_PLANE_STRAIN_YY, index + INDEX_Y) = GradNpT(i, INDEX_Y);
-            rB(INDEX_2D_PLANE_STRAIN_XY, index + INDEX_X) = GradNpT(i, INDEX_Y);
-            rB(INDEX_2D_PLANE_STRAIN_XY, index + INDEX_Y) = GradNpT(i, INDEX_X);
-        }
-    }
+    mpStressStateStrategy->CalculateBMatrix(rB, GradNpT, Np, this->GetGeometry());
 
     KRATOS_CATCH("")
 }

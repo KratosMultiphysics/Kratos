@@ -21,6 +21,8 @@
 // Application includes
 #include "custom_elements/small_strain_U_Pw_diff_order_element.hpp"
 #include "custom_utilities/element_utilities.hpp"
+#include "element_strategies/plane_strain_stress_state.h"
+#include "element_strategies/three_d_stress_state.h"
 
 namespace Kratos
 {
@@ -1797,36 +1799,15 @@ void SmallStrainUPwDiffOrderElement::CalculateBMatrix(Matrix& rB, const Matrix& 
 {
     KRATOS_TRY
 
-    const GeometryType& rGeom = GetGeometry();
-    const SizeType Dim        = rGeom.WorkingSpaceDimension();
-    const SizeType NumUNodes  = rGeom.PointsNumber();
-
-    unsigned int index;
-
+    const SizeType Dim        = this->GetGeometry().WorkingSpaceDimension();
     if (Dim > 2) {
-        for (unsigned int i = 0; i < NumUNodes; ++i) {
-            index = Dim * i;
+        ThreeDStressState stressState;
+        stressState.CalculateBMatrix(rB, DNp_DX, Np, this->GetGeometry());
 
-            rB(INDEX_3D_XX, index + INDEX_X) = DNp_DX(i, INDEX_X);
-            rB(INDEX_3D_YY, index + INDEX_Y) = DNp_DX(i, INDEX_Y);
-            rB(INDEX_3D_ZZ, index + INDEX_Z) = DNp_DX(i, INDEX_Z);
-            rB(INDEX_3D_XY, index + INDEX_X) = DNp_DX(i, INDEX_Y);
-            rB(INDEX_3D_XY, index + INDEX_Y) = DNp_DX(i, INDEX_X);
-            rB(INDEX_3D_YZ, index + INDEX_Y) = DNp_DX(i, INDEX_Z);
-            rB(INDEX_3D_YZ, index + INDEX_Z) = DNp_DX(i, INDEX_Y);
-            rB(INDEX_3D_XZ, index + INDEX_X) = DNp_DX(i, INDEX_Z);
-            rB(INDEX_3D_XZ, index + INDEX_Z) = DNp_DX(i, INDEX_X);
-        }
     } else {
         // 2D plane strain
-        for (unsigned int i = 0; i < NumUNodes; ++i) {
-            index = Dim * i;
-
-            rB(INDEX_2D_PLANE_STRAIN_XX, index + INDEX_X) = DNp_DX(i, INDEX_X);
-            rB(INDEX_2D_PLANE_STRAIN_YY, index + INDEX_Y) = DNp_DX(i, INDEX_Y);
-            rB(INDEX_2D_PLANE_STRAIN_XY, index + INDEX_X) = DNp_DX(i, INDEX_Y);
-            rB(INDEX_2D_PLANE_STRAIN_XY, index + INDEX_Y) = DNp_DX(i, INDEX_X);
-        }
+        PlaneStrainStressState stressState;
+        stressState.CalculateBMatrix(rB, DNp_DX, Np, this->GetGeometry());
     }
 
     KRATOS_CATCH("")

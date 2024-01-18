@@ -20,7 +20,11 @@
 #include "custom_elements/U_Pw_base_element.hpp"
 #include "custom_utilities/element_utilities.hpp"
 #include "custom_utilities/stress_strain_utilities.hpp"
+#include "element_strategies/stress_state_strategy.h"
 #include "geo_mechanics_application_variables.h"
+
+#include "element_strategies/three_d_stress_state.h"
+#include "element_strategies/plane_strain_stress_state.h"
 
 namespace Kratos
 {
@@ -54,18 +58,33 @@ public:
     UPwSmallStrainElement(IndexType NewId, const NodesArrayType& ThisNodes)
         : UPwBaseElement<TDim, TNumNodes>(NewId, ThisNodes)
     {
+        if constexpr (TDim > 2) {
+            mpStressStateStrategy = std::make_unique<ThreeDStressState>();
+        } else {
+            mpStressStateStrategy = std::make_unique<PlaneStrainStressState>();
+        }
     }
 
     /// Constructor using Geometry
     UPwSmallStrainElement(IndexType NewId, GeometryType::Pointer pGeometry)
         : UPwBaseElement<TDim, TNumNodes>(NewId, pGeometry)
     {
+        if constexpr (TDim > 2) {
+            mpStressStateStrategy = std::make_unique<ThreeDStressState>();
+        } else {
+            mpStressStateStrategy = std::make_unique<PlaneStrainStressState>();
+        }
     }
 
     /// Constructor using Properties
     UPwSmallStrainElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
         : UPwBaseElement<TDim, TNumNodes>(NewId, pGeometry, pProperties)
     {
+        if constexpr (TDim > 2) {
+            mpStressStateStrategy = std::make_unique<ThreeDStressState>();
+        } else {
+            mpStressStateStrategy = std::make_unique<PlaneStrainStressState>();
+        }
     }
 
     ~UPwSmallStrainElement() override                              = default;
@@ -305,6 +324,9 @@ protected:
                                                          ElementVariables& rVariables,
                                                          unsigned int GPoint);
 
+    std::unique_ptr<StressStateStrategy> mpStressStateStrategy;
+
+
 private:
     friend class Serializer;
 
@@ -325,6 +347,7 @@ private:
         rNode.FastGetSolutionStepValue(Var) = Value;
         rNode.UnSetLock();
     }
+
 
 }; // Class UPwSmallStrainElement
 
