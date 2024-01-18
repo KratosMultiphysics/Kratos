@@ -354,7 +354,6 @@ private:
     }
 };
 
-
 // Class UPwSmallStrainElement
 
 } // namespace Kratos

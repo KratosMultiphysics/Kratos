@@ -20,8 +20,8 @@
 #include "custom_elements/small_strain_U_Pw_diff_order_element.hpp"
 #include "custom_utilities/element_utilities.hpp"
 #include "custom_utilities/stress_strain_utilities.hpp"
-#include "geo_mechanics_application_variables.h"
 #include "element_strategies/axisymmetric_stress_state.h"
+#include "geo_mechanics_application_variables.h"
 
 namespace Kratos
 {
@@ -45,14 +45,16 @@ public:
     ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     /// Default Constructor
-    SmallStrainUPwDiffOrderAxisymmetricElement() : SmallStrainUPwDiffOrderElement() {        this->mpStressStateStrategy = std::make_unique<AxisymmetricStressState>();
+    SmallStrainUPwDiffOrderAxisymmetricElement() : SmallStrainUPwDiffOrderElement()
+    {
+        this->mpStressStateStrategy = std::make_unique<AxisymmetricStressState>();
     }
 
     /// Constructor using Geometry
     SmallStrainUPwDiffOrderAxisymmetricElement(IndexType NewId, GeometryType::Pointer pGeometry)
         : SmallStrainUPwDiffOrderElement(NewId, pGeometry)
-    {        this->mpStressStateStrategy = std::make_unique<AxisymmetricStressState>();
-
+    {
+        this->mpStressStateStrategy = std::make_unique<AxisymmetricStressState>();
     }
 
     /// Constructor using Properties
@@ -60,8 +62,8 @@ public:
                                                GeometryType::Pointer pGeometry,
                                                PropertiesType::Pointer pProperties)
         : SmallStrainUPwDiffOrderElement(NewId, pGeometry, pProperties)
-    {        this->mpStressStateStrategy = std::make_unique<AxisymmetricStressState>();
-
+    {
+        this->mpStressStateStrategy = std::make_unique<AxisymmetricStressState>();
     }
 
     /// Destructor

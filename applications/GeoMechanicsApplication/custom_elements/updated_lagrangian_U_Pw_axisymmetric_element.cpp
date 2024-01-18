@@ -33,7 +33,6 @@ Element::Pointer UPwUpdatedLagrangianAxisymmetricElement<TDim, TNumNodes>::Creat
     return Element::Pointer(new UPwUpdatedLagrangianAxisymmetricElement(NewId, pGeom, pProperties));
 }
 
-
 //----------------------------------------------------------------------------------------------------
 
 template class UPwUpdatedLagrangianAxisymmetricElement<2, 3>;
