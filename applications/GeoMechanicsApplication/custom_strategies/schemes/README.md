@@ -11,7 +11,7 @@ The functions that the `GeoMechanicsTimeIntegrationScheme` class implements are 
 It also has a general `Update` step, which calls the `UpdateVariablesDerivatives` function. This is a purely virtual function that has to be implemented by the derived classes. This is because the actual updating of the derivatives, defines a time integration scheme. The derived classes then use the lists of variables to update the derivatives. In our structure (see the class diagram), only the `BackwardEulerScheme` and the `GeneralizedNewmarkScheme` classes implement this function. Similarly the `SetTimeFactors` function, updates the delta time, but also the time coefficients, for which the overrides are found in the derived classes. For the specific equations, see sections [Backward Euler](#backward-euler) and [Generalized Newmark](#generalized-newmark).
 
 ![SchemeStructure.svg](SchemeStructure.svg)
-*Class structure of the schemes generated using the SchemeStructure.puml file with PlantUML. Note that the class diagram is simplified and only shows the functions that need emphasis.*
+_Class structure of the schemes generated using the SchemeStructure.puml file with PlantUML. Note that the class diagram is simplified and only shows the functions that need emphasis._
 
 The child classes which actually specify which variables are used in the time integration scheme (e.g. the `BackwardEulerUPwScheme` or the `GeneralizedNewmarkTScheme), only fill the lists of first/second order variables. 
 
