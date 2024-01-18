@@ -14,7 +14,7 @@
 namespace Kratos
 {
 
-void PlaneStrainStressState::CalculateBMatrix(Matrix& rB, const Matrix& GradNpT, const Vector& Np)
+void PlaneStrainStressState::CalculateBMatrix(Matrix& rB, const Matrix& GradNpT, const Vector& Np, const Geometry<Node>& rGeometry)
 {
 }
 

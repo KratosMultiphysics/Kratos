@@ -14,5 +14,7 @@
 namespace Kratos
 {
 
-void ThreeDStressState::CalculateBMatrix(Matrix& rB, const Matrix& GradNpT, const Vector& Np) {}
+void ThreeDStressState::CalculateBMatrix(Matrix& rB, const Matrix& GradNpT, const Vector& Np, const Geometry<Node>& rGeometry)
+{
+}
 } // namespace Kratos

@@ -12,6 +12,7 @@
 
 // Application includes
 #include "custom_elements/updated_lagrangian_U_Pw_diff_order_axisymmetric_element.hpp"
+#include "element_strategies/axisymmetric_stress_state.h"
 
 namespace Kratos
 {
@@ -38,30 +39,13 @@ void UpdatedLagrangianUPwDiffOrderAxisymmetricElement::CalculateBMatrix(Matrix& 
                                                                         const Matrix& GradNpT,
                                                                         const Vector& Np)
 {
-    KRATOS_TRY
-
-    const double radius = GeoElementUtilities::CalculateRadius(Np, this->GetGeometry());
-
-    const SizeType Dim      = this->GetGeometry().WorkingSpaceDimension();
-    const SizeType NumNodes = this->GetGeometry().size();
-
-    for (IndexType i = 0; i < NumNodes; ++i) {
-        const IndexType index = Dim * i;
-
-        rB(INDEX_2D_PLANE_STRAIN_XX, index + INDEX_X) = GradNpT(i, INDEX_X);
-        rB(INDEX_2D_PLANE_STRAIN_YY, index + INDEX_Y) = GradNpT(i, INDEX_Y);
-        rB(INDEX_2D_PLANE_STRAIN_ZZ, index + INDEX_X) = Np[i] / radius;
-        rB(INDEX_2D_PLANE_STRAIN_XY, index + INDEX_X) = GradNpT(i, INDEX_Y);
-        rB(INDEX_2D_PLANE_STRAIN_XY, index + INDEX_Y) = GradNpT(i, INDEX_X);
-    }
-
-    KRATOS_CATCH("")
+    AxisymmetricStressState stressState;
+    stressState.CalculateBMatrix(rB, GradNpT, Np, this->GetGeometry());
 }
 
 //----------------------------------------------------------------------------------------
 double UpdatedLagrangianUPwDiffOrderAxisymmetricElement::CalculateIntegrationCoefficient(
     const GeometryType::IntegrationPointsArrayType& IntegrationPoints, unsigned int PointNumber, double detJ)
-
 {
     Vector N;
     N = this->GetGeometry().ShapeFunctionsValues(N, IntegrationPoints[PointNumber].Coordinates());

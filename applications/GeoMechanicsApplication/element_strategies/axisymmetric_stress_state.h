@@ -20,7 +20,7 @@ namespace Kratos
 class AxisymmetricStressState : public StressStateStrategy
 {
 public:
-    void CalculateBMatrix(Matrix& rB, const Matrix& GradNpT, const Vector& Np) override;
+    void CalculateBMatrix(Matrix& rB, const Matrix& GradNpT, const Vector& Np, const Geometry<Node>& rGeometry) override;
 };
 
 } // namespace Kratos

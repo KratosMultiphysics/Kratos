@@ -12,6 +12,7 @@
 
 // Application includes
 #include "custom_elements/updated_lagrangian_U_Pw_axisymmetric_FIC_element.hpp"
+#include "element_strategies/axisymmetric_stress_state.h"
 
 namespace Kratos
 {
@@ -39,21 +40,9 @@ void UPwUpdatedLagrangianAxisymmetricFICElement<TDim, TNumNodes>::CalculateBMatr
                                                                                    const Matrix& GradNpT,
                                                                                    const Vector& Np)
 {
-    KRATOS_TRY
 
-    const double radius = GeoElementUtilities::CalculateRadius(Np, this->GetGeometry());
-
-    for (IndexType i = 0; i < TNumNodes; ++i) {
-        const IndexType index = TDim * i;
-
-        rB(INDEX_2D_PLANE_STRAIN_XX, index + INDEX_X) = GradNpT(i, INDEX_X);
-        rB(INDEX_2D_PLANE_STRAIN_YY, index + INDEX_Y) = GradNpT(i, INDEX_Y);
-        rB(INDEX_2D_PLANE_STRAIN_ZZ, index + INDEX_X) = Np[i] / radius;
-        rB(INDEX_2D_PLANE_STRAIN_XY, index + INDEX_X) = GradNpT(i, INDEX_Y);
-        rB(INDEX_2D_PLANE_STRAIN_XY, index + INDEX_Y) = GradNpT(i, INDEX_X);
-    }
-
-    KRATOS_CATCH("")
+    AxisymmetricStressState stressState;
+    stressState.CalculateBMatrix(rB, GradNpT, Np, this->GetGeometry());
 }
 
 //----------------------------------------------------------------------------------------

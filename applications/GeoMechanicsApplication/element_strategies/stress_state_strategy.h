@@ -12,8 +12,9 @@
 
 #pragma once
 
-class Matrix;
-class Vector;
+#include "geometries/geometry.h"
+#include "includes/node.h"
+#include "includes/ublas_interface.h"
 
 namespace Kratos
 {
@@ -21,8 +22,8 @@ namespace Kratos
 class StressStateStrategy
 {
 public:
-    virtual void CalculateBMatrix(Matrix& rB, const Matrix& GradNpT, const Vector& Np) = 0;
-    virtual ~StressStateStrategy()                                                     = default;
+    virtual void CalculateBMatrix(Matrix& rB, const Matrix& GradNpT, const Vector& Np, const Geometry<Node>& rGeometry) = 0;
+    virtual ~StressStateStrategy() = default;
 };
 
 } // namespace Kratos
