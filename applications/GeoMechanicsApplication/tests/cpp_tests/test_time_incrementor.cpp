@@ -410,4 +410,16 @@ KRATOS_TEST_CASE_IN_SUITE(ReduceUpscaledIncrementToAvoidExceedingMaxDeltaTimeFac
     KRATOS_EXPECT_DOUBLE_EQ(settings.MaxDeltaTimeFactor * settings.StartIncrement, time_incrementor.GetIncrement());
 }
 
+KRATOS_TEST_CASE_IN_SUITE(ScaleIncrementToAvoidExtraSmallTimeStep, KratosGeoMechanicsFastSuite)
+{
+    AdaptiveTimeIncrementorSettings settings; // with EndTime = 8.0
+    settings.StartIncrement = 7.9999;
+    auto time_incrementor = MakeAdaptiveTimeIncrementor(settings);
+    auto previous_state   = TimeStepEndState{};
+    previous_state.convergence_state = TimeStepEndState::ConvergenceState::converged;
+
+    time_incrementor.PostTimeStepExecution(previous_state);
+    KRATOS_EXPECT_DOUBLE_EQ(8.0, time_incrementor.GetIncrement());
+}
+
 }
