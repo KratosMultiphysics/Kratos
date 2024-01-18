@@ -26,6 +26,7 @@
 
 // Application includes
 #include "entity_point.h"
+#include "filter.h"
 #include "filter_function.h"
 #include "damping_function.h"
 
@@ -35,7 +36,7 @@ namespace Kratos {
 ///@{
 
 template<class TContainerType>
-class KRATOS_API(OPTIMIZATION_APPLICATION) ExplicitFilter
+class KRATOS_API(OPTIMIZATION_APPLICATION) ExplicitFilter: public Filter<TContainerType>
 {
 public:
     ///@name Type definitions
@@ -69,20 +70,22 @@ public:
         const std::string& rDampingFunctionType,
         const IndexType MaxNumberOfNeighbours);
 
+    ~ExplicitFilter() override = default;
+
     ///@}
     ///@name Public operations
 
     void SetFilterRadius(const ContainerExpression<TContainerType>& rContainerExpression);
 
-    void Update();
+    void Update() override;
 
-    ContainerExpression<TContainerType> FilterField(const ContainerExpression<TContainerType>& rContainerExpression) const;
+    ContainerExpression<TContainerType> FilterField(const ContainerExpression<TContainerType>& rContainerExpression) const override;
 
-    ContainerExpression<TContainerType> FilterIntegratedField(const ContainerExpression<TContainerType>& rContainerExpression) const;
+    ContainerExpression<TContainerType> FilterIntegratedField(const ContainerExpression<TContainerType>& rContainerExpression) const override;
 
     void GetIntegrationWeights(ContainerExpression<TContainerType>& rContainerExpression) const;
 
-    std::string Info() const;
+    std::string Info() const override;
 
     ///@}
 private:
@@ -122,20 +125,6 @@ private:
 
     ///@}
 };
-
-///@name Input and output
-///@{
-
-/// output stream function
-template<class TContainerType>
-inline std::ostream& operator<<(
-    std::ostream& rOStream,
-    const ExplicitFilter<TContainerType>& rThis)
-{
-    return rOStream << rThis.Info();
-}
-
-///@}
 
 ///@}
 } // namespace Kratos
