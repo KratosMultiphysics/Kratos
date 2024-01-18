@@ -42,14 +42,13 @@ void AxisymmetricStressState::CalculateBMatrix(Matrix& rB,
 }
 
 double AxisymmetricStressState::CalculateIntegrationCoefficient(const Geometry<Node>::IntegrationPointsArrayType& IntegrationPoints,
-                                                              unsigned int PointNumber,
-                                                              double detJ,
-                                                              const Geometry<Node>& rGeometry)
+                                                                unsigned int PointNumber,
+                                                                double detJ,
+                                                                const Geometry<Node>& rGeometry)
 {
     Vector N;
     N = rGeometry.ShapeFunctionsValues(N, IntegrationPoints[PointNumber].Coordinates());
-    const double radiusWeight =
-        GeoElementUtilities::CalculateAxisymmetricCircumference(N, rGeometry);
+    const double radiusWeight = GeoElementUtilities::CalculateAxisymmetricCircumference(N, rGeometry);
 
     return IntegrationPoints[PointNumber].Weight() * detJ * radiusWeight;
 }
