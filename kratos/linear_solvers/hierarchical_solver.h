@@ -14,6 +14,7 @@
 
 #include "geometries/register_kratos_components_for_geometry.h"
 #include "linear_solvers/iterative_solver.h"
+#include "linear_solvers/skyline_lu_factorization_solver.h"
 #include "factories/linear_solver_factory.h"
 #include "utilities/sparse_matrix_multiplication_utility.h"
 
@@ -203,6 +204,13 @@ public:
 
             mC.reserve(mStoredDirections);
         }
+        mUseDeflatedCg = Settings["deflated_cg"].GetBool();
+        KRATOS_ERROR_IF(mUseDeflatedCg && mUseFlexibleGcr) \
+            << "Options flexible_gcr and deflated_cg both enabled, but they are mutually exclusive" << std::endl;
+        if (mUseDeflatedCg) {
+            BaseType::SetPreconditioner(
+                PreconditionerFactory<TSparseSpaceType,TDenseSpaceType>().Create(Settings["deflated_cg_preconditioner_type"].GetString()));
+        }
 
         KRATOS_CATCH("");
     }
@@ -310,6 +318,9 @@ public:
         if (mUseFlexibleGcr) {
             return HierarchicalGcrSolve(rA, rX, rB);
         }
+        else if (mUseDeflatedCg) {
+            return this->DeflatedSolve(rA, rX, rB);
+        }
 
         return HierarchicalIterativeSolve(rA, rX, rB);
     }
@@ -342,7 +353,10 @@ private:
     VectorPointerType mpDelta;
 
     // Flexible GCR mode switch
-    bool mUseFlexibleGcr;
+    bool mUseFlexibleGcr = false;
+
+    // Deflated CG mode switch
+    bool mUseDeflatedCg = false;
 
     // Update strategy data
     IndexType mOldestDirection = 0;
@@ -363,7 +377,9 @@ private:
             },
             "flexible_gcr": false,
             "gcr_stored_directions": 50,
-            "gcr_preconditioner_type": "none"
+            "gcr_preconditioner_type": "none",
+            "deflated_cg": false,
+            "deflated_cg_preconditioner_type": "diagonal"
         })");
     }
 
@@ -505,6 +521,122 @@ private:
         mU.clear();
         mC.clear();
         mpAr.reset();
+    }
+
+
+    bool DeflatedSolve(SparseMatrixType& rA, VectorType& rX, VectorType& rB)
+    {
+        LUSkylineFactorization<SparseSpace, DenseSpace> factorization;
+        factorization.copyFromCSRMatrix(*mpCoarseA);
+        factorization.factorize();
+        //KRATOS_WATCH(mpCoarseSolver->Info())
+        //mpCoarseSolver->InitializeSolutionStep(*mpCoarseA, *mpCoarseX, *mpCoarseB);
+
+        SparseMatrixType a_z;
+        SparseMatrixMultiplicationUtility::MatrixMultiplication(rA, *mpInterpolationMatrix, a_z);
+
+
+        auto projected = [&, a_z](const VectorType& rVector) {
+            const size_t coarse_size = this->mpCoarseA->size1();
+            VectorType r_x = ZeroVector(coarse_size);
+            axpy(*(this->mpRestrictionMatrix), rVector, r_x, this->no_init);
+            VectorType tmp = ZeroVector(coarse_size);
+            //this->mpCoarseSolver->PerformSolutionStep(*(this->mpCoarseA), tmp, r_x);
+            factorization.backForwardSolve(coarse_size, r_x, tmp);
+            VectorType result(rVector);
+            axpy(a_z, -tmp, result, this->no_init);
+            return result;
+        };
+
+        VectorType proj_b = projected(rB);
+
+        auto& r_preconditioner = *BaseType::GetPreconditioner();
+        r_preconditioner.Initialize(rA, rX, proj_b);
+        r_preconditioner.ApplyInverseRight(rX);
+        r_preconditioner.ApplyLeft(proj_b);
+
+        // CG proper starts here
+        const SizeType size = rX.size();
+        IndexType iter = 0;
+        this->SetIterationsNumber(iter);
+
+        VectorType raw_Ax(size);
+        VectorType r(size);
+        // TODO: add preconditioning
+        VectorType temp(rX);
+        r_preconditioner.ApplyRight(temp);
+        axpy(rA, temp, raw_Ax, init);
+        VectorType proj_Ax = projected(raw_Ax);
+        r_preconditioner.ApplyLeft(proj_Ax);
+        noalias(r) = proj_b - proj_Ax;
+
+        BaseType::mBNorm = TSparseSpaceType::TwoNorm(proj_b);
+        this->SetResidualNorm(this->mBNorm);
+
+        VectorType p(r);
+        VectorType q(size);
+
+        double roh0 = dot(r, r);
+        double roh1 = roh0;
+        double beta = 0;
+
+        if(std::abs(roh0) < 1.0e-30)
+            return false;
+
+        do
+        {
+            // TODO: add preconditioning
+            noalias(temp) = p;
+            r_preconditioner.ApplyRight(temp);
+            axpy(rA, temp, raw_Ax, init);
+            VectorType q = projected(raw_Ax);
+            r_preconditioner.ApplyLeft(q);
+
+            double pq = dot(p,q);
+
+            if(std::abs(pq) <= 1.0e-30)
+                break;
+
+            double alpha = roh0 / pq;
+
+            add_scaled(alpha, p, rX);
+            add_scaled(-alpha, q, r);
+
+            roh1 = dot(r,r);
+
+            beta = (roh1 / roh0);
+            TSparseSpaceType::ScaleAndAdd(1.00, r, beta, p);
+
+            roh0 = roh1;
+
+            BaseType::mResidualNorm = sqrt(roh1);
+            //KRATOS_WATCH(BaseType::mResidualNorm)
+            BaseType::mIterationsNumber++;
+        }
+        while(BaseType::IterationNeeded() && (std::abs(roh0) > 1.0e-30)/*(roh0 != 0.00)*/);
+
+        r_preconditioner.Finalize(rX);
+        r_preconditioner.ApplyInverseRight(proj_b);
+
+        // Correct solution
+        //VectorType tmp(proj_b);
+        //VectorType z(proj_b.size());
+        //axpy(rA, rX, z, init);
+        //z = projected(z);
+        //add_scaled(-1.0, z, tmp);
+        //KRATOS_WATCH(SparseSpace::TwoNorm(tmp))
+
+        VectorType residual(rB);
+        axpy(rA, -rX, residual, no_init);
+        const size_t coarse_size = this->mpCoarseA->size1();
+        VectorType restricted = ZeroVector(coarse_size);
+        axpy(*mpRestrictionMatrix, residual, restricted, init);
+        VectorType inverse = ZeroVector(coarse_size);
+        factorization.backForwardSolve(coarse_size, restricted, inverse);
+        //mpCoarseSolver->PerformSolutionStep(*mpCoarseA, restricted, inverse);
+        axpy(*mpInterpolationMatrix, inverse, rX, no_init);
+
+        return BaseType::IsConverged();
     }
 
 
