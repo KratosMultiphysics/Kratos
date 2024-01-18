@@ -13,7 +13,7 @@ from KratosMultiphysics.OptimizationApplication.execution_policies.execution_pol
 from KratosMultiphysics.OptimizationApplication.utilities.optimization_problem import OptimizationProblem
 from KratosMultiphysics.DigitalTwinApplication.sensor_sensitivity_solvers.system_identification_static_analysis import SystemIdentificationStaticAnalysis
 from KratosMultiphysics.DigitalTwinApplication.utilities.data_io import GetDataIO, DataIO
-from KratosMultiphysics.DigitalTwinApplication.utilities.sensor_utils import PrintSensorListToCSV
+from KratosMultiphysics.OptimizationApplication.utilities.component_data_view import ComponentDataView
 
 def Factory(model: Kratos.Model, parameters: Kratos.Parameters, optimization_problem: OptimizationProblem) -> ResponseFunction:
     if not parameters.Has("name"):
@@ -86,6 +86,8 @@ class DamageDetectionResponse(ResponseFunction):
 
         self.adjoint_analysis.Initialize()
         self.list_of_sensors = self.adjoint_analysis.GetListOfSensors()
+
+        ComponentDataView(self, self.optimization_problem).GetUnBufferedData().SetValue("sensors", self.list_of_sensors)
         for sensor in self.list_of_sensors:
             self.sensor_name_dict[sensor.GetName()] = sensor
 
@@ -129,8 +131,6 @@ class DamageDetectionResponse(ResponseFunction):
 
             for sensor in list_of_sensors:
                 sensor.SetValue(KratosDT.SENSOR_ERROR, abs(sensor.GetValue(KratosDT.SENSOR_MEASURED_VALUE) - sensor.GetSensorValue()))
-
-            PrintSensorListToCSV(Path(f"Optimization_Results/sensor_output_iteration_{self.optimization_problem.GetStep():05d}.csv"), list_of_sensors, ["type", "name", "location", "value", "SENSOR_MEASURED_VALUE", "SENSOR_ERROR"])
 
         return result
 

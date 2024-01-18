@@ -2,7 +2,8 @@ import KratosMultiphysics as Kratos
 import KratosMultiphysics.StructuralMechanicsApplication
 import KratosMultiphysics.KratosUnittest as UnitTest
 from KratosMultiphysics.testing.utilities import ReadModelPart
-from KratosMultiphysics.DigitalTwinApplication.processes.sensor_output_processs import SensorOutputProcess
+from KratosMultiphysics.DigitalTwinApplication.processes.sensor_output_process import SensorOutputProcess
+from KratosMultiphysics.kratos_utilities import DeleteFileIfExisting
 
 class TestSensorOutputProcess(UnitTest.TestCase):
     @classmethod
@@ -61,6 +62,7 @@ class TestSensorOutputProcess(UnitTest.TestCase):
             node.SetSolutionStepValue(Kratos.DISPLACEMENT, Kratos.Array3([node.Id, node.Id + 1, node.Id + 2]))
 
     def test_PrintOutput(self):
+        self.addCleanup(DeleteFileIfExisting, "auxiliary_files/measured_data.csv")
         self.sensor_output_process.PrintOutput()
 
         with open("auxiliary_files/measured_data.csv", "r") as file_input:
