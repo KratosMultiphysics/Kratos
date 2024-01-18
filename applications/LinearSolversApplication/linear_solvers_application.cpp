@@ -44,7 +44,7 @@ void KratosLinearSolversApplication::Register()
     mkl_get_version(&mkl_version);
     KRATOS_INFO("") << "Using Intel MKL version "
                     << mkl_version.MajorVersion << "." << mkl_version.MinorVersion << "." << mkl_version.UpdateVersion
-                    << " build: " << mkl_version.Build << std::endl
+                    << " build " << mkl_version.Build << std::endl
                     << "MKL processor: " << mkl_version.Processor << std::endl;
     #endif
 
