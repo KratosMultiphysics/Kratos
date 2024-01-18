@@ -112,8 +112,6 @@ protected:
 
     ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    void CalculateBMatrix(Matrix& rB, const Matrix& GradNpT, const Vector& Np) override;
-
     double CalculateIntegrationCoefficient(const GeometryType::IntegrationPointsArrayType& IntegrationPoints,
                                            unsigned int PointNumber,
                                            double detJ) override;

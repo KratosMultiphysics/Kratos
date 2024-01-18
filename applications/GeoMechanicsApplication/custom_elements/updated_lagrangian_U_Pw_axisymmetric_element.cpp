@@ -36,15 +36,6 @@ Element::Pointer UPwUpdatedLagrangianAxisymmetricElement<TDim, TNumNodes>::Creat
 
 //----------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
-void UPwUpdatedLagrangianAxisymmetricElement<TDim, TNumNodes>::CalculateBMatrix(Matrix& rB,
-                                                                                const Matrix& GradNpT,
-                                                                                const Vector& Np)
-{
-    this->mpStressStateStrategy->CalculateBMatrix(rB, GradNpT, Np, this->GetGeometry());
-}
-
-//----------------------------------------------------------------------------------------
-template <unsigned int TDim, unsigned int TNumNodes>
 double UPwUpdatedLagrangianAxisymmetricElement<TDim, TNumNodes>::CalculateIntegrationCoefficient(
     const GeometryType::IntegrationPointsArrayType& IntegrationPoints, unsigned int PointNumber, double detJ)
 

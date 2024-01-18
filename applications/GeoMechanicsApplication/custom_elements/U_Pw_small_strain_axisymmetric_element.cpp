@@ -37,19 +37,6 @@ Element::Pointer UPwSmallStrainAxisymmetricElement<TDim, TNumNodes>::Create(Inde
 
 //----------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
-void UPwSmallStrainAxisymmetricElement<TDim, TNumNodes>::CalculateBMatrix(Matrix& rB,
-                                                                          const Matrix& GradNpT,
-                                                                          const Vector& Np)
-{
-    KRATOS_TRY
-
-    this->mpStressStateStrategy->CalculateBMatrix(rB, GradNpT, Np, this->GetGeometry());
-
-    KRATOS_CATCH("")
-}
-
-//----------------------------------------------------------------------------------------
-template <unsigned int TDim, unsigned int TNumNodes>
 double UPwSmallStrainAxisymmetricElement<TDim, TNumNodes>::CalculateIntegrationCoefficient(
     const GeometryType::IntegrationPointsArrayType& IntegrationPoints, unsigned int PointNumber, double detJ)
 

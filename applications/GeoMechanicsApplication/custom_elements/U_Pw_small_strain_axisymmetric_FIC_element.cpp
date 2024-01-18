@@ -37,15 +37,6 @@ Element::Pointer UPwSmallStrainAxisymmetricFICElement<TDim, TNumNodes>::Create(
 
 //----------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
-void UPwSmallStrainAxisymmetricFICElement<TDim, TNumNodes>::CalculateBMatrix(Matrix& rB,
-                                                                             const Matrix& GradNpT,
-                                                                             const Vector& Np)
-{
-    this->mpStressStateStrategy->CalculateBMatrix(rB, GradNpT, Np, this->GetGeometry());
-}
-
-//----------------------------------------------------------------------------------------
-template <unsigned int TDim, unsigned int TNumNodes>
 double UPwSmallStrainAxisymmetricFICElement<TDim, TNumNodes>::CalculateIntegrationCoefficient(
     const GeometryType::IntegrationPointsArrayType& IntegrationPoints, unsigned int PointNumber, double detJ)
 
