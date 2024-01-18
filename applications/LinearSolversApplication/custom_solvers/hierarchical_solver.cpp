@@ -232,6 +232,11 @@ bool HierarchicalSolver<TSparseSpace,TDenseSpace,TReorderer>::Solve(SparseMatrix
         //KRATOS_INFO("after preconditioning: ") << rX << "\n";
         KRATOS_CATCH("")
 
+        if (5 <= mpImpl->mVerbosity) {
+            const std::string interpolated_delta_name = "interpolated_delta_" + std::to_string(i_iteration) + ".mm";
+            TSparseSpace::WriteMatrixMarketVector(interpolated_delta_name.c_str(), fine_delta);
+        }
+
         // Update the fine residual
         // r_fine -= A_fine * d_fine
         TSparseSpace::Mult(rA, fine_delta, fine_tmp);
@@ -250,13 +255,15 @@ bool HierarchicalSolver<TSparseSpace,TDenseSpace,TReorderer>::Solve(SparseMatrix
         TSparseSpace::SetToZero(fine_delta);
         mpImpl->mpFineSolver->Solve(rA, fine_delta, fine_residual);
         TSparseSpace::UnaliasedAdd(rX, 1.0, fine_delta);
-        //KRATOS_INFO("after smoothing: ") << rX << "\n";
         KRATOS_CATCH("")
+        if (5 <= mpImpl->mVerbosity) {
+            const std::string relaxed_delta = "relaxed_delta_" + std::to_string(i_iteration) + ".mm";
+            TSparseSpace::WriteMatrixMarketVector(relaxed_delta.c_str(), fine_delta);
+        }
 
         // Update the fine residual
         // r_fine = b_fine - A_fine * x_fine
         TSparseSpace::Mult(rA, fine_delta, fine_tmp);
-        //fine_residual = rB - fine_tmp;
         TSparseSpace::UnaliasedAdd(fine_residual, -1.0, fine_tmp);
 
         // Update status
@@ -264,6 +271,11 @@ bool HierarchicalSolver<TSparseSpace,TDenseSpace,TReorderer>::Solve(SparseMatrix
         KRATOS_INFO_IF("HierarchicalSolver", 1 <= mpImpl->mVerbosity)
             << "iteration " << i_iteration
             << " residual " << residual_norm << "\n";
+
+        if (5 <= mpImpl->mVerbosity) {
+            const std::string solution_name = "solution_" + std::to_string(i_iteration) + ".mm";
+            TSparseSpace::WriteMatrixMarketVector(solution_name.c_str(), rX);
+        }
 
         // Early exit if converged
         if (residual_norm < mpImpl->mTolerance || max_iterations <= ++i_iteration) {
