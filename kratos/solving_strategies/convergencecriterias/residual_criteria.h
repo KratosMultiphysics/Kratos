@@ -15,6 +15,7 @@
 // System includes
 
 // External includes
+#include <limits>
 
 // Project includes
 #include "includes/model_part.h"
@@ -141,6 +142,8 @@ public:
       ,mCurrentResidualNorm(rOther.mCurrentResidualNorm)
       ,mAlwaysConvergedNorm(rOther.mAlwaysConvergedNorm)
       ,mReferenceDispNorm(rOther.mReferenceDispNorm)
+      ,mActiveDofs(rOther.mActiveDofs)
+      ,mInitialDoFId(rOther.mInitialDoFId)
     {
         this->mActualizeRHSIsNeeded = true;
     }
@@ -218,16 +221,6 @@ public:
         } else {
             return true;
         }
-    }
-
-    /**
-     * @brief This function initialize the convergence criteria
-     * @param rModelPart Reference to the ModelPart containing the problem. (unused)
-     */
-    void Initialize(ModelPart& rModelPart) override
-    {
-        BaseType::Initialize(rModelPart);
-        KRATOS_ERROR_IF(rModelPart.IsDistributed() && rModelPart.NumberOfMasterSlaveConstraints() > 0) << "This Criteria does not yet support constraints in MPI!" << std::endl;
     }
 
     /**
@@ -347,17 +340,19 @@ protected:
     ///@name Protected member Variables
     ///@{
 
-    TDataType mRatioTolerance{};      /// The ratio threshold for the norm of the residual
+    TDataType mRatioTolerance{};                                     /// The ratio threshold for the norm of the residual
 
-    TDataType mInitialResidualNorm{}; /// The reference norm of the residual
+    TDataType mInitialResidualNorm{};                                /// The reference norm of the residual
 
-    TDataType mCurrentResidualNorm{}; /// The current norm of the residual
+    TDataType mCurrentResidualNorm{};                                /// The current norm of the residual
 
-    TDataType mAlwaysConvergedNorm{}; /// The absolute value threshold for the norm of the residual
+    TDataType mAlwaysConvergedNorm{};                                /// The absolute value threshold for the norm of the residual
 
-    TDataType mReferenceDispNorm{};   /// The norm at the beginning of the iterations
+    TDataType mReferenceDispNorm{};                                  /// The norm at the beginning of the iterations
 
-    std::vector<int> mActiveDofs;     /// This vector contains the dofs that are active
+    std::vector<int> mActiveDofs;                                    /// This vector contains the dofs that are active
+
+    IndexType mInitialDoFId = std::numeric_limits<IndexType>::max(); /// The initial DoF Id
 
     ///@}
     ///@name Protected Operators
@@ -384,32 +379,43 @@ protected:
     /**
      * @brief Check if a Degree of Freedom (Dof) is active
      * @details This function checks if a given Degree of Freedom (Dof) is active.
+     * The reason why PARTITION_INDEX is considered in distributed runs is to avoid adding twice (or even more times) the same value into the norm
      * @param rDof The Degree of Freedom to check.
      * @param Rank The rank of the Dof.
      * @return True if the Dof is free, false otherwise.
      */
-    virtual bool IsActiveDof(
+    bool IsActiveAndLocalDof(
         const DofType& rDof,
         const int Rank
         )
     {
         const IndexType dof_id = rDof.EquationId();
-        return mActiveDofs[dof_id] == 1;
+        if constexpr (!TSparseSpace::IsDistributedSpace()) {
+            return mActiveDofs[dof_id] == 1;
+        } else {
+            KRATOS_DEBUG_ERROR_IF((dof_id - mInitialDoFId) >= mActiveDofs.size() && (rDof.GetSolutionStepValue(PARTITION_INDEX) == Rank)) << "DofId is greater than the size of the active Dofs vector. DofId: " << dof_id << "\tInitialDoFId: " << mInitialDoFId << "\tActiveDofs size: " << mActiveDofs.size() << std::endl;
+            return (mActiveDofs[dof_id - mInitialDoFId] == 1 && (rDof.GetSolutionStepValue(PARTITION_INDEX) == Rank));
+        }
     }
 
     /**
      * @brief Check if a Degree of Freedom (Dof) is free.
      * @details This function checks if a given Degree of Freedom (Dof) is free.
+     * The reason why PARTITION_INDEX is considered in distributed runs is to avoid adding twice (or even more times) the same value into the norm
      * @param rDof The Degree of Freedom to check.
      * @param Rank The rank of the Dof.
      * @return True if the Dof is free, false otherwise.
      */
-    virtual bool IsFreeDof(
+    bool IsFreeAndLocalDof(
         const DofType& rDof,
         const int Rank
         )
     {
-        return rDof.IsFree();
+        if constexpr (!TSparseSpace::IsDistributedSpace()) {
+            return rDof.IsFree();
+        } else {
+            return (rDof.IsFree() && (rDof.GetSolutionStepValue(PARTITION_INDEX) == Rank));
+        }
     }
 
     /**
@@ -448,7 +454,7 @@ protected:
         // Loop over Dofs
         if (rModelPart.NumberOfMasterSlaveConstraints() > 0) {
             std::tie(residual_solution_norm, dof_num) = block_for_each<CustomReduction>(rDofSet, TLS(), [this, &rb, &rank](auto& rDof, TLS& rTLS) {
-                if (this->IsActiveDof(rDof, rank)) {
+                if (this->IsActiveAndLocalDof(rDof, rank)) {
                     rTLS.residual_dof_value = TSparseSpace::GetValue(rb, rDof.EquationId());
                     return std::make_tuple(std::pow(rTLS.residual_dof_value, 2), 1);
                 } else {
@@ -457,7 +463,7 @@ protected:
             });
         } else {
             std::tie(residual_solution_norm, dof_num) = block_for_each<CustomReduction>(rDofSet, TLS(), [this, &rb, &rank](auto& rDof, TLS& rTLS) {
-                if(this->IsFreeDof(rDof, rank)) {
+                if (this->IsFreeAndLocalDof(rDof, rank)) {
                     rTLS.residual_dof_value = TSparseSpace::GetValue(rb, rDof.EquationId());
                     return std::make_tuple(std::pow(rTLS.residual_dof_value, 2), 1);
                 } else {
@@ -480,47 +486,6 @@ protected:
         mAlwaysConvergedNorm = ThisParameters["residual_absolute_tolerance"].GetDouble();
         mRatioTolerance = ThisParameters["residual_relative_tolerance"].GetDouble();
     }
-
-    ///@}
-    ///@name Protected  Access
-    ///@{
-
-    ///@}
-    ///@name Protected Inquiry
-    ///@{
-
-    ///@}
-    ///@name Protected LifeCycle
-    ///@{
-
-    ///@}
-private:
-    ///@name Static Member Variables
-    ///@{
-
-    ///@}
-    ///@name Member Variables
-    ///@{
-
-    ///@}
-    ///@name Private Operators
-    ///@{
-
-    ///@}
-    ///@name Private Operations
-    ///@{
-
-    ///@}
-    ///@name Private  Access
-    ///@{
-
-    ///@}
-    ///@name Private Inquiry
-    ///@{
-
-    ///@}
-    ///@name Un accessible methods
-    ///@{
 
     ///@}
 

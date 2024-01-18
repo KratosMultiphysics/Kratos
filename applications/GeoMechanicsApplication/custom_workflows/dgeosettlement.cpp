@@ -17,7 +17,7 @@
 #include "custom_processes/apply_normal_load_table_process.h"
 #include "custom_processes/apply_vector_constraint_table_process.h"
 #include "custom_processes/set_parameter_field_process.hpp"
-#include "custom_processes/apply_k0_procedure_process.hpp"
+#include "custom_processes/apply_k0_procedure_process.h"
 #include "custom_processes/apply_excavation_process.h"
 
 #include "custom_utilities/input_utility.h"
@@ -155,7 +155,7 @@ void KratosGeoSettlement::InitializeProcessFactory()
 int KratosGeoSettlement::RunStage(const std::filesystem::path&            rWorkingDirectory,
                                   const std::filesystem::path&            rProjectParametersFile,
                                   const std::function<void(const char*)>& rLogCallback,
-                                  const std::function<void(double)>&      ,
+                                  const std::function<void(double)>&      rProgressDelegate,
                                   const std::function<void(const char*)>& ,
                                   const std::function<bool()>&            rShouldCancel)
 {
@@ -192,6 +192,15 @@ int KratosGeoSettlement::RunStage(const std::filesystem::path&            rWorki
         std::vector<std::shared_ptr<Process>> processes = GetProcesses(project_parameters);
         std::vector<std::weak_ptr<Process>> process_observables(processes.begin(), processes.end());
 
+        if (mpTimeLoopExecutor) {
+            mpTimeLoopExecutor->SetCancelDelegate(rShouldCancel);
+            mpTimeLoopExecutor->SetProgressDelegate(rProgressDelegate);
+            mpTimeLoopExecutor->SetProcessObservables(process_observables);
+            mpTimeLoopExecutor->SetTimeIncrementor(MakeTimeIncrementor(project_parameters));
+            mpTimeLoopExecutor->SetSolverStrategyWrapper(MakeStrategyWrapper(project_parameters,
+                                                                             rWorkingDirectory));
+        }
+
         for (const auto& process : processes) {
             process->ExecuteInitialize();
         }
@@ -200,13 +209,7 @@ int KratosGeoSettlement::RunStage(const std::filesystem::path&            rWorki
             process->ExecuteBeforeSolutionLoop();
         }
 
-        if (mpTimeLoopExecutor)
-        {
-            mpTimeLoopExecutor->SetCancelDelegate(rShouldCancel);
-            mpTimeLoopExecutor->SetProcessObservables(process_observables);
-            mpTimeLoopExecutor->SetTimeIncrementor(MakeTimeIncrementor(project_parameters));
-            mpTimeLoopExecutor->SetSolverStrategyWrapper(MakeStrategyWrapper(project_parameters,
-                                                                             rWorkingDirectory));
+        if (mpTimeLoopExecutor) {
             // For now, pass a dummy state. THIS PROBABLY NEEDS TO BE REFINED AT SOME POINT!
             TimeStepEndState start_of_loop_state;
             start_of_loop_state.convergence_state = TimeStepEndState::ConvergenceState::converged;
