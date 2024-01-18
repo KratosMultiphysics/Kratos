@@ -130,7 +130,7 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
         ;
     // Inverse Forming Strategy
     py::class_< InverseFormingStrategyType, typename InverseFormingStrategyType::Pointer, ResidualBasedNewtonRaphsonStrategyType >(m,"InverseFormingStrategy")
-        .def(py::init<ModelPart&, BaseSchemeType::Pointer, ConvergenceCriteriaPointer, BuilderAndSolverPointer, int, bool, bool, bool>())
+        .def(py::init<ModelPart&, BaseSchemeType::Pointer, ConvergenceCriteriaPointer, BuilderAndSolverPointer, ModelPart&, int, bool, bool, bool>())
         ;
 
 

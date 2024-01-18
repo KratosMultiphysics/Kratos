@@ -38,11 +38,13 @@ class InverseFormingMechanicalSolver(MechanicalSolver):
         mechanical_scheme = self._GetScheme()
         mechanical_convergence_criterion = self._GetConvergenceCriterion()
         builder_and_solver = self._GetBuilderAndSolver()
+        inverseforming_model_part = self.GetComputingModelPart()
         return StructuralMechanicsApplication.InverseFormingStrategy(
                                                                     computing_model_part,
                                                                     mechanical_scheme,
                                                                     mechanical_convergence_criterion,
                                                                     builder_and_solver,
+                                                                    inverseforming_model_part,
                                                                     self.settings["max_iteration"].GetInt(),
                                                                     self.settings["compute_reactions"].GetBool(),
                                                                     self.settings["reform_dofs_at_each_step"].GetBool(),

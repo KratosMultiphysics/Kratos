@@ -58,12 +58,14 @@ public:
     typename TSchemeType::Pointer pScheme,
     typename TConvergenceCriteriaType::Pointer pNewConvergenceCriteria,
     typename TBuilderAndSolverType::Pointer pNewBuilderAndSolver,
+    ModelPart& rInverseFormingPart,
     int MaxIterations = 30,
     bool CalculateReactions = false,
     bool ReformDofSetAtEachStep = false,
     bool MoveMeshFlag = false)
    : ResidualBasedNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(rModelPart, pScheme,
-   pNewConvergenceCriteria, pNewBuilderAndSolver, MaxIterations, CalculateReactions, ReformDofSetAtEachStep, MoveMeshFlag)
+   pNewConvergenceCriteria, pNewBuilderAndSolver, MaxIterations, CalculateReactions, ReformDofSetAtEachStep, MoveMeshFlag),
+   mrInverseFormingPart(rInverseFormingPart)
    {}
 
    // Destructor
@@ -74,21 +76,43 @@ private:
         TSystemMatrixType& A,
         TSystemVectorType& Dx,
         TSystemVectorType& b,
-        const bool MoveMesh,
-        ModelPart& rModelPart)
+        const bool MoveMesh) override
     {
+        // call Update from scheme to apply DofUpdate of solution
+        typename TSchemeType::Pointer p_scheme = BaseType::GetScheme();
+        typename TBuilderAndSolverType::Pointer p_builder_and_solver = BaseType::GetBuilderAndSolver();
+        p_scheme->Update(BaseType::GetModelPart(), p_builder_and_solver->GetDofSet(), A, Dx, b);
+
         // maybe displacement needs to be changed/implemented adjusted here so that solution is visible. Maybe relevant 'mrInverseFormingModelPart' in loop
-        for (auto& r_node : rModelPart.Nodes()) {
+        for (auto& r_node : mrInverseFormingPart.Nodes()) {
             // Updating reference
             const array_1d<double, 3>& disp = r_node.FastGetSolutionStepValue(DISPLACEMENT);
             array_1d<double, 3>& disp_non_historical = r_node.GetValue(DISPLACEMENT);
 
             disp_non_historical = disp_non_historical + disp;
-            r_node.GetInitialPosition() += disp;
+            KRATOS_INFO("UpdateDatabase") << "Hello, inside function" << std::endl;
+            std::cout << "disp: " << disp << std::endl;
+
+            array_1d<double, 3> CurrentCoords;
+            CurrentCoords[0] = r_node.X();
+            CurrentCoords[1] = r_node.Y();
+            CurrentCoords[2] = r_node.Z();
+            std::cout << "CurrentCoords: " << CurrentCoords << std::endl;
+
+            array_1d<double, 3> InitCoords = (CurrentCoords - disp);
+            std::cout << "InitCoords: " << InitCoords << std::endl;
+            r_node.SetInitialPosition(InitCoords[0], InitCoords[1], InitCoords[2]);
+            // r_node.GetInitialPosition() += disp;
+            // double X0_new = r_node.X0() + disp[0];
+            // double Y0_new = r_node.Y0() + disp[1];
+            // double Z0_new = r_node.Z0() + disp[2];
+            // r_node.SetInitialPosition(X0_new, Y0_new, Z0_new);
 
             r_node.FastGetSolutionStepValue(DISPLACEMENT) = ZeroVector(3);  // needed for us?
         }
     }
+
+    ModelPart& mrInverseFormingPart;
     
 };  /* Class InverseFormingStrategy */
 }   /* namespace Kratos. */
