@@ -28,6 +28,7 @@
 // Application includes
 #include "custom_utilities/stress_strain_utilities.hpp"
 #include "geo_mechanics_application_variables.h"
+#include "element_strategies/stress_state_strategy.h"
 
 namespace Kratos
 {
@@ -304,6 +305,9 @@ protected:
     void CalculateSoilDensity(ElementVariables& rVariables);
 
     void CalculateJacobianOnCurrentConfiguration(double& detJ, Matrix& rJ, Matrix& rInvJ, unsigned int GPoint) const;
+
+
+    std::unique_ptr<StressStateStrategy> mpStressStateStrategy;
 
     //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 

@@ -21,6 +21,7 @@
 #include "custom_utilities/element_utilities.hpp"
 #include "custom_utilities/stress_strain_utilities.hpp"
 #include "geo_mechanics_application_variables.h"
+#include "element_strategies/axisymmetric_stress_state.h"
 
 namespace Kratos
 {
@@ -44,12 +45,14 @@ public:
     ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     /// Default Constructor
-    SmallStrainUPwDiffOrderAxisymmetricElement() : SmallStrainUPwDiffOrderElement() {}
+    SmallStrainUPwDiffOrderAxisymmetricElement() : SmallStrainUPwDiffOrderElement() {        this->mpStressStateStrategy = std::make_unique<AxisymmetricStressState>();
+    }
 
     /// Constructor using Geometry
     SmallStrainUPwDiffOrderAxisymmetricElement(IndexType NewId, GeometryType::Pointer pGeometry)
         : SmallStrainUPwDiffOrderElement(NewId, pGeometry)
-    {
+    {        this->mpStressStateStrategy = std::make_unique<AxisymmetricStressState>();
+
     }
 
     /// Constructor using Properties
@@ -57,7 +60,8 @@ public:
                                                GeometryType::Pointer pGeometry,
                                                PropertiesType::Pointer pProperties)
         : SmallStrainUPwDiffOrderElement(NewId, pGeometry, pProperties)
-    {
+    {        this->mpStressStateStrategy = std::make_unique<AxisymmetricStressState>();
+
     }
 
     /// Destructor
@@ -97,8 +101,6 @@ protected:
     /// Member Variables
 
     ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-    void CalculateBMatrix(Matrix& rB, const Matrix& GradNpT, const Vector& Np) override;
 
     double CalculateIntegrationCoefficient(const GeometryType::IntegrationPointsArrayType& IntegrationPoints,
                                            unsigned int PointNumber,

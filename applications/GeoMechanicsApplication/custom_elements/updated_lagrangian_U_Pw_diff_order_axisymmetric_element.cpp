@@ -35,15 +35,6 @@ Element::Pointer UpdatedLagrangianUPwDiffOrderAxisymmetricElement::Create(IndexT
 }
 
 //----------------------------------------------------------------------------------------
-void UpdatedLagrangianUPwDiffOrderAxisymmetricElement::CalculateBMatrix(Matrix& rB,
-                                                                        const Matrix& GradNpT,
-                                                                        const Vector& Np)
-{
-    AxisymmetricStressState stressState;
-    stressState.CalculateBMatrix(rB, GradNpT, Np, this->GetGeometry());
-}
-
-//----------------------------------------------------------------------------------------
 double UpdatedLagrangianUPwDiffOrderAxisymmetricElement::CalculateIntegrationCoefficient(
     const GeometryType::IntegrationPointsArrayType& IntegrationPoints, unsigned int PointNumber, double detJ)
 {

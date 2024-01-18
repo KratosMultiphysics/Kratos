@@ -21,6 +21,7 @@
 #include "custom_utilities/element_utilities.hpp"
 #include "custom_utilities/stress_strain_utilities.hpp"
 #include "geo_mechanics_application_variables.h"
+#include "element_strategies/axisymmetric_stress_state.h"
 
 namespace Kratos
 {
@@ -45,12 +46,16 @@ public:
     ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     /// Default Constructor
-    UpdatedLagrangianUPwDiffOrderAxisymmetricElement() : UpdatedLagrangianUPwDiffOrderElement() {}
+    UpdatedLagrangianUPwDiffOrderAxisymmetricElement() : UpdatedLagrangianUPwDiffOrderElement()
+    {
+        this->mpStressStateStrategy = std::make_unique<AxisymmetricStressState>();
+    }
 
     /// Constructor using Geometry
     UpdatedLagrangianUPwDiffOrderAxisymmetricElement(IndexType NewId, GeometryType::Pointer pGeometry)
         : UpdatedLagrangianUPwDiffOrderElement(NewId, pGeometry)
     {
+        this->mpStressStateStrategy = std::make_unique<AxisymmetricStressState>();
     }
 
     /// Constructor using Properties
@@ -59,6 +64,7 @@ public:
                                                      PropertiesType::Pointer pProperties)
         : UpdatedLagrangianUPwDiffOrderElement(NewId, pGeometry, pProperties)
     {
+        this->mpStressStateStrategy = std::make_unique<AxisymmetricStressState>();
     }
 
     /// Destructor
@@ -98,8 +104,6 @@ protected:
     /// Member Variables
 
     ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-    void CalculateBMatrix(Matrix& rB, const Matrix& GradNpT, const Vector& Np) override;
 
     double CalculateIntegrationCoefficient(const GeometryType::IntegrationPointsArrayType& IntegrationPoints,
                                            unsigned int PointNumber,

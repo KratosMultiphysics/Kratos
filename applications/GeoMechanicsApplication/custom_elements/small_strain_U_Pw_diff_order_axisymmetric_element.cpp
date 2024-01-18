@@ -35,17 +35,6 @@ Element::Pointer SmallStrainUPwDiffOrderAxisymmetricElement::Create(IndexType Ne
 }
 
 //----------------------------------------------------------------------------------------
-void SmallStrainUPwDiffOrderAxisymmetricElement::CalculateBMatrix(Matrix& rB, const Matrix& GradNpT, const Vector& Np)
-{
-    KRATOS_TRY
-
-    AxisymmetricStressState stressState;
-    stressState.CalculateBMatrix(rB, GradNpT, Np, this->GetGeometry());
-
-    KRATOS_CATCH("")
-}
-
-//----------------------------------------------------------------------------------------
 double SmallStrainUPwDiffOrderAxisymmetricElement::CalculateIntegrationCoefficient(
     const GeometryType::IntegrationPointsArrayType& IntegrationPoints, unsigned int PointNumber, double detJ)
 

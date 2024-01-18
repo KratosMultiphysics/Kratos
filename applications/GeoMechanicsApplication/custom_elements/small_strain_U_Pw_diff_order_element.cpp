@@ -28,12 +28,24 @@ namespace Kratos
 {
 
 // Default Constructor
-SmallStrainUPwDiffOrderElement::SmallStrainUPwDiffOrderElement() : Element() {}
+SmallStrainUPwDiffOrderElement::SmallStrainUPwDiffOrderElement() : Element()
+{
+    if (this->GetGeometry().WorkingSpaceDimension() > 2) {
+        mpStressStateStrategy = std::make_unique<ThreeDStressState>();
+    } else {
+        mpStressStateStrategy = std::make_unique<PlaneStrainStressState>();
+    }
+}
 
 // Constructor 1
 SmallStrainUPwDiffOrderElement::SmallStrainUPwDiffOrderElement(IndexType NewId, GeometryType::Pointer pGeometry)
     : Element(NewId, pGeometry)
 {
+    if (this->GetGeometry().WorkingSpaceDimension() > 2) {
+        mpStressStateStrategy = std::make_unique<ThreeDStressState>();
+    } else {
+        mpStressStateStrategy = std::make_unique<PlaneStrainStressState>();
+    }
 }
 
 // Constructor 2
@@ -42,6 +54,11 @@ SmallStrainUPwDiffOrderElement::SmallStrainUPwDiffOrderElement(IndexType NewId,
                                                                PropertiesType::Pointer pProperties)
     : Element(NewId, pGeometry, pProperties)
 {
+    if (this->GetGeometry().WorkingSpaceDimension() > 2) {
+        mpStressStateStrategy = std::make_unique<ThreeDStressState>();
+    } else {
+        mpStressStateStrategy = std::make_unique<PlaneStrainStressState>();
+    }
 }
 
 SmallStrainUPwDiffOrderElement::~SmallStrainUPwDiffOrderElement() = default;
@@ -1798,18 +1815,7 @@ void SmallStrainUPwDiffOrderElement::CalculateDerivativesOnInitialConfiguration(
 void SmallStrainUPwDiffOrderElement::CalculateBMatrix(Matrix& rB, const Matrix& DNp_DX, const Vector& Np)
 {
     KRATOS_TRY
-
-    const SizeType Dim        = this->GetGeometry().WorkingSpaceDimension();
-    if (Dim > 2) {
-        ThreeDStressState stressState;
-        stressState.CalculateBMatrix(rB, DNp_DX, Np, this->GetGeometry());
-
-    } else {
-        // 2D plane strain
-        PlaneStrainStressState stressState;
-        stressState.CalculateBMatrix(rB, DNp_DX, Np, this->GetGeometry());
-    }
-
+    mpStressStateStrategy->CalculateBMatrix(rB, DNp_DX, Np, this->GetGeometry());
     KRATOS_CATCH("")
 }
 
