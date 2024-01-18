@@ -67,7 +67,8 @@ ContainerExpression<TContainerType> EntityNodeEntityFilter<TContainerType>::Filt
 {
     // first divide by the entity area
     if constexpr(std::is_same_v<TContainerType, ModelPart::ConditionsContainerType> || std::is_same_v<TContainerType, ModelPart::ElementsContainerType>) {
-        return FilterField(rContainerExpression / mEntityDomainSize);
+        auto copy = rContainerExpression;
+        return FilterField(copy.Scale(1 / mEntityDomainSize));
     } else {
         static_assert(std::is_same_v<TContainerType, TContainerType>, "Unsupported TContainerType");
     }

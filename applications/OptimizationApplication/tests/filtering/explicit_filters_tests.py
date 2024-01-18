@@ -53,6 +53,32 @@ class TestExplicitFilter(kratos_unittest.TestCase):
         vm_filter = KratosOA.ElementExplicitFilter(self.model_part, "linear", 1000)
         self.__RunConsistencyTest(vm_filter, self.model_part.Elements, self.model_part)
 
+    def test_ConditionNodeConditionFilter(self):
+        constant_field_value = Kratos.Array3([2.0, 2.0, 2.0])
+        element_expression = Kratos.Expression.ConditionExpression(self.model_part)
+        Kratos.Expression.LiteralExpressionIO.SetData(element_expression, constant_field_value)
+        ene_filter = KratosOA.ConditionNodeConditionFilter(self.model_part)
+
+        filtered_field = ene_filter.FilterField(element_expression)
+        self.assertAlmostEqual(KratosOA.ExpressionUtils.NormL2(filtered_field - element_expression), 1e-9, 8)
+
+        filtered_field = ene_filter.FilterIntegratedField(element_expression).Evaluate()
+        for i, entity in enumerate(self.model_part.Conditions):
+            self.assertVectorAlmostEqual(filtered_field[i, :], Kratos.Array3([2.0, 2.0, 2.0]) / entity.GetGeometry().DomainSize())
+
+    def test_ElementNodeElementFilter(self):
+        constant_field_value = Kratos.Array3([2.0, 2.0, 2.0])
+        element_expression = Kratos.Expression.ElementExpression(self.model_part)
+        Kratos.Expression.LiteralExpressionIO.SetData(element_expression, constant_field_value)
+        ene_filter = KratosOA.ElementNodeElementFilter(self.model_part)
+
+        filtered_field = ene_filter.FilterField(element_expression)
+        self.assertAlmostEqual(KratosOA.ExpressionUtils.NormL2(filtered_field - element_expression), 1e-9, 8)
+
+        filtered_field = ene_filter.FilterIntegratedField(element_expression).Evaluate()
+        for i, entity in enumerate(self.model_part.Elements):
+            self.assertVectorAlmostEqual(filtered_field[i, :], Kratos.Array3([2.0, 2.0, 2.0]) / entity.GetGeometry().DomainSize())
+
     def __RunConsistencyTest(self, vm_filter, entities, model_part):
         if isinstance(entities, Kratos.NodesArray):
             container_expression_type = Kratos.Expression.NodalExpression
