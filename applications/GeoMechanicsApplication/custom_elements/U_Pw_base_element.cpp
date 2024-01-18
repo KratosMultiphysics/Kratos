@@ -601,7 +601,6 @@ void UPwBaseElement<TDim, TNumNodes>::CalculateOnIntegrationPoints(const Variabl
 
     KRATOS_CATCH("")
 }
-
 //----------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
 void UPwBaseElement<TDim, TNumNodes>::CalculateOnIntegrationPoints(const Variable<array_1d<double, 3>>& rVariable,
@@ -661,7 +660,6 @@ void UPwBaseElement<TDim, TNumNodes>::CalculateOnIntegrationPoints(const Variabl
 
     KRATOS_CATCH("")
 }
-
 //----------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
 void UPwBaseElement<TDim, TNumNodes>::CalculateMaterialStiffnessMatrix(MatrixType& rStiffnessMatrix,

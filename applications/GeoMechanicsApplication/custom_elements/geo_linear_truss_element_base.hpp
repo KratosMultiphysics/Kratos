@@ -125,7 +125,6 @@ public:
 
 private:
     friend class Serializer;
-
     void save(Serializer& rSerializer) const override
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, BaseType);
