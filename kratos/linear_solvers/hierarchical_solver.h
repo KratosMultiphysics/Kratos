@@ -14,7 +14,7 @@
 
 #include "geometries/register_kratos_components_for_geometry.h"
 #include "linear_solvers/iterative_solver.h"
-#include "linear_solvers/skyline_lu_factorization_solver.h"
+//#include "linear_solvers/skyline_lu_factorization_solver.h"
 #include "factories/linear_solver_factory.h"
 #include "utilities/sparse_matrix_multiplication_utility.h"
 
@@ -178,21 +178,6 @@ public:
         BaseType::SetTolerance(Settings["tolerance"].GetDouble());
         BaseType::SetMaxIterationsNumber(Settings["max_iteration"].GetInt());
 
-        auto factory = LinearSolverFactory<SparseSpace, DenseSpace>();
-        mpCoarseSolver = factory.Create(Settings["coarse_solver_settings"]);
-
-        KRATOS_ERROR_IF(mpCoarseSolver->AdditionalPhysicalDataIsNeeded())
-            << "Solvers that require physical data are not supported as coarse solver" << std::endl;
-
-        if (Settings["fine_solver_settings"]["solver_type"].GetString() == "gauss_seidel_smoothing") {
-            mpFineSolver = Kratos::make_shared<
-                GaussSeidelIteration<SparseSpace, DenseSpace, ReordererType>
-            >(Settings["fine_solver_settings"]);
-        }
-        else {
-            mpFineSolver = factory.Create(Settings["fine_solver_settings"]);
-        }
-
         mUseFlexibleGcr = Settings["flexible_gcr"].GetBool();
         if (mUseFlexibleGcr) {
             BaseType::SetPreconditioner(
@@ -210,7 +195,27 @@ public:
         if (mUseDeflatedCg) {
             BaseType::SetPreconditioner(
                 PreconditionerFactory<TSparseSpaceType,TDenseSpaceType>().Create(Settings["deflated_cg_preconditioner_type"].GetString()));
+            // The Deflated CG solver requires a direct solver, use Pardiso LDLT by default
+            if (!Settings["coarse_solver_settings"].Has("solver_type")) {
+                Settings["coarse_solver_settings"].AddString("solver_type", "pardiso_ldlt");
+            }
         }
+
+        auto factory = LinearSolverFactory<SparseSpace, DenseSpace>();
+        mpCoarseSolver = factory.Create(Settings["coarse_solver_settings"]);
+
+        KRATOS_ERROR_IF(mpCoarseSolver->AdditionalPhysicalDataIsNeeded())
+            << "Solvers that require physical data are not supported as coarse solver" << std::endl;
+
+        if (Settings["fine_solver_settings"]["solver_type"].GetString() == "gauss_seidel_smoothing") {
+            mpFineSolver = Kratos::make_shared<
+                GaussSeidelIteration<SparseSpace, DenseSpace, ReordererType>
+            >(Settings["fine_solver_settings"]);
+        }
+        else {
+            mpFineSolver = factory.Create(Settings["fine_solver_settings"]);
+        }
+
 
         KRATOS_CATCH("");
     }
@@ -526,11 +531,10 @@ private:
 
     bool DeflatedSolve(SparseMatrixType& rA, VectorType& rX, VectorType& rB)
     {
-        LUSkylineFactorization<SparseSpace, DenseSpace> factorization;
-        factorization.copyFromCSRMatrix(*mpCoarseA);
-        factorization.factorize();
-        //KRATOS_WATCH(mpCoarseSolver->Info())
-        //mpCoarseSolver->InitializeSolutionStep(*mpCoarseA, *mpCoarseX, *mpCoarseB);
+        //LUSkylineFactorization<SparseSpace, DenseSpace> factorization;
+        //factorization.copyFromCSRMatrix(*mpCoarseA);
+        //factorization.factorize();
+        mpCoarseSolver->InitializeSolutionStep(*mpCoarseA, *mpCoarseX, *mpCoarseB);
 
         SparseMatrixType a_z;
         SparseMatrixMultiplicationUtility::MatrixMultiplication(rA, *mpInterpolationMatrix, a_z);
@@ -541,8 +545,8 @@ private:
             VectorType r_x = ZeroVector(coarse_size);
             axpy(*(this->mpRestrictionMatrix), rVector, r_x, this->no_init);
             VectorType tmp = ZeroVector(coarse_size);
-            //this->mpCoarseSolver->PerformSolutionStep(*(this->mpCoarseA), tmp, r_x);
-            factorization.backForwardSolve(coarse_size, r_x, tmp);
+            this->mpCoarseSolver->PerformSolutionStep(*(this->mpCoarseA), tmp, r_x);
+            //factorization.backForwardSolve(coarse_size, r_x, tmp);
             VectorType result(rVector);
             axpy(a_z, -tmp, result, this->no_init);
             return result;
@@ -632,8 +636,8 @@ private:
         VectorType restricted = ZeroVector(coarse_size);
         axpy(*mpRestrictionMatrix, residual, restricted, init);
         VectorType inverse = ZeroVector(coarse_size);
-        factorization.backForwardSolve(coarse_size, restricted, inverse);
-        //mpCoarseSolver->PerformSolutionStep(*mpCoarseA, restricted, inverse);
+        //factorization.backForwardSolve(coarse_size, restricted, inverse);
+        mpCoarseSolver->PerformSolutionStep(*mpCoarseA, inverse, restricted);
         axpy(*mpInterpolationMatrix, inverse, rX, no_init);
 
         return BaseType::IsConverged();
