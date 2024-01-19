@@ -22,10 +22,17 @@
 namespace Kratos::Testing
 {
 
+std::string WorkingDirectoryExtrapolation()
+{
+    auto projectDirectory = "./applications/GeoMechanicsApplication/tests/test_head_extrapolation_custom_workflow_flow";
+    auto kratos_source_directory = std::getenv("KRATOS_SOURCE");
+    return (std::string)kratos_source_directory + "/" + (std::string)projectDirectory;
+}
+
 KRATOS_TEST_CASE_IN_SUITE(CalculateExtrapolatedHeadFlow_1, KratosGeoMechanicsIntegrationSuite)
 {
-    auto workingDirectory = "./applications/GeoMechanicsApplication/tests/test_head_extrapolation_custom_workflow_flow";
     auto projectFile = "ProjectParameters_1.json";
+    auto workingDirectory = WorkingDirectoryExtrapolation();
 
     auto execute = Kratos::KratosExecute();
 
@@ -40,16 +47,16 @@ KRATOS_TEST_CASE_IN_SUITE(CalculateExtrapolatedHeadFlow_1, KratosGeoMechanicsInt
     KRATOS_EXPECT_EQ(status, 0);
 
     // output_files
-    std::string original = (std::string) workingDirectory + "/test_head_extrapolate_1.orig.res";
-    std::string result = (std::string) workingDirectory + "/test_head_extrapolate_1.post.res";
+    std::string original = workingDirectory + "/test_head_extrapolate_1.orig.res";
+    std::string result   = workingDirectory + "/test_head_extrapolate_1.post.res";
 
     KRATOS_EXPECT_TRUE(TestUtilities::CompareFiles(original, result))
 }
 
  KRATOS_TEST_CASE_IN_SUITE(CalculateExtrapolatedHeadFlow_2, KratosGeoMechanicsIntegrationSuite)
 {
-    auto workingDirectory = "./applications/GeoMechanicsApplication/tests/test_head_extrapolation_custom_workflow_flow";
     auto projectFile = "ProjectParameters_2.json";
+    auto workingDirectory = WorkingDirectoryExtrapolation();
 
     auto execute = Kratos::KratosExecute();
 
@@ -64,16 +71,16 @@ KRATOS_TEST_CASE_IN_SUITE(CalculateExtrapolatedHeadFlow_1, KratosGeoMechanicsInt
     KRATOS_EXPECT_EQ(status, 0);
 
     // output_files
-    std::string original = (std::string) workingDirectory + "/test_head_extrapolate_2.orig.res";
-    std::string result = (std::string) workingDirectory + "/test_head_extrapolate_2.post.res";
+    std::string original = workingDirectory + "/test_head_extrapolate_2.orig.res";
+    std::string result   = workingDirectory + "/test_head_extrapolate_2.post.res";
 
     KRATOS_EXPECT_TRUE(TestUtilities::CompareFiles(original, result))
 }
 
 KRATOS_TEST_CASE_IN_SUITE(CalculateExtrapolatedHeadFlow_3, KratosGeoMechanicsIntegrationSuite)
 {
-    auto workingDirectory = "./applications/GeoMechanicsApplication/tests/test_head_extrapolation_custom_workflow_flow";
     auto projectFile = "ProjectParameters_3.json";
+    auto workingDirectory = WorkingDirectoryExtrapolation();
 
     auto execute = Kratos::KratosExecute();
 
@@ -88,16 +95,16 @@ KRATOS_TEST_CASE_IN_SUITE(CalculateExtrapolatedHeadFlow_3, KratosGeoMechanicsInt
     KRATOS_EXPECT_EQ(status, 0);
 
     // output_files
-    std::string original = (std::string) workingDirectory + "/test_head_extrapolate_3.orig.res";
-    std::string result = (std::string) workingDirectory + "/test_head_extrapolate_3.post.res";
+    std::string original = workingDirectory + "/test_head_extrapolate_3.orig.res";
+    std::string result   = workingDirectory + "/test_head_extrapolate_3.post.res";
 
     KRATOS_EXPECT_TRUE(TestUtilities::CompareFiles(original, result))
 }
 
 KRATOS_TEST_CASE_IN_SUITE(CalculateExtrapolatedHeadFlow_4, KratosGeoMechanicsIntegrationSuite)
 {
-    auto workingDirectory = "./applications/GeoMechanicsApplication/tests/test_head_extrapolation_custom_workflow_flow";
     auto projectFile = "ProjectParameters_4.json";
+    auto workingDirectory = WorkingDirectoryExtrapolation();
 
     auto execute = Kratos::KratosExecute();
 
@@ -112,8 +119,8 @@ KRATOS_TEST_CASE_IN_SUITE(CalculateExtrapolatedHeadFlow_4, KratosGeoMechanicsInt
     KRATOS_EXPECT_EQ(status, 0);
 
     // output_files
-    std::string original = (std::string) workingDirectory + "/test_head_extrapolate_4.orig.res";
-    std::string result = (std::string) workingDirectory + "/test_head_extrapolate_4.post.res";
+    std::string original = workingDirectory + "/test_head_extrapolate_4.orig.res";
+    std::string result   = workingDirectory + "/test_head_extrapolate_4.post.res";
 
     KRATOS_EXPECT_TRUE(TestUtilities::CompareFiles(original, result))
 }
