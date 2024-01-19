@@ -187,6 +187,15 @@ public:
      */
     IndexType GetItemComponentCount() const;
 
+    /**
+     * @brief Get the Max Depth of the lazy expression tree.
+     *
+     * Returns the maximum depth of the lazy expression tree.
+     *
+     * @return IndexType Max depth of the lazy expression tree.
+     */
+    virtual IndexType GetMaxDepth() const = 0;
+
     ///@}
     ///@name Input and output
     ///@{

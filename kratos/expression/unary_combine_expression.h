@@ -113,6 +113,16 @@ public:
         return mStrides.size() == 1 && mStrides.back() == 1 ? std::vector<IndexType> {} : std::vector<IndexType> {mStrides.back()};
     }
 
+    IndexType GetMaxDepth() const override
+    {
+        return (*std::max_element(
+                        mSourceExpressions.begin(),
+                        mSourceExpressions.end(),
+                        [](const auto& rV1, const auto& rV2) {
+                            return rV1->GetMaxDepth() < rV2->GetMaxDepth();
+                        }))->GetMaxDepth();
+    }
+
     std::string Info() const override
     {
         std::stringstream msg;
