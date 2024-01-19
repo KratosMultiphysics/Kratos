@@ -116,6 +116,10 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(PointerCommunicatorPartialPartitions, Krat
     if (current_rank < world_size - 1) {
         auto& r_partial_data_comm = r_default_comm.GetSubDataCommunicator(ranks, "SubDataComm");
         auto gp_list = GlobalPointerUtilities::RetrieveGlobalIndexedPointers(mp.Nodes(), indices, r_partial_data_comm );
+        std::vector<int> rank_list = r_partial_data_comm.RanksList();
+        KRATOS_EXPECT_EQ(rank_list.size(), static_cast<std::size_t>(world_size - 1));
+        auto it_find = std::find(rank_list.begin(), rank_list.end(), current_rank);
+        KRATOS_EXPECT_FALSE(it_find == rank_list.end());
 
         GlobalPointerCommunicator< Node> pointer_comm(r_partial_data_comm, gp_list.ptr_begin(), gp_list.ptr_end());
 
