@@ -66,6 +66,15 @@ public:
         );
     }
 
+    IndexType GetMaxDepth() const override
+    {
+        PYBIND11_OVERRIDE_PURE(
+            IndexType,                      /*return type*/
+            Expression,                     /*base type*/
+            GetMaxDepth                     /*function name*/
+        );
+    }
+
     std::string Info() const override
     {
         PYBIND11_OVERRIDE_PURE(
