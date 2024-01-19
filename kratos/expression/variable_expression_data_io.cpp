@@ -71,9 +71,23 @@ void AssignVector(
 {
     const auto& r_shape = rExpression.GetItemShape();
 
-    KRATOS_DEBUG_ERROR_IF_NOT(r_shape.size() == 1)
-        << "Invalid shape provided. Required shape should have only one dimension. "
-        << "Expression dimensions = " << r_shape.size() << ".";
+    if constexpr(std::is_same_v<TDataType, array_1d<double, 3>> ||
+                 std::is_same_v<TDataType, array_1d<double, 4>> ||
+                 std::is_same_v<TDataType, array_1d<double, 6>> ||
+                 std::is_same_v<TDataType, array_1d<double, 9>>) {
+        KRATOS_DEBUG_ERROR_IF_NOT(r_shape.size() == 1)
+            << "Invalid shape provided. Required shape should have only one dimension. "
+            << "Expression dimensions = " << r_shape.size() << ".";
+    } else if constexpr(std::is_same_v<TDataType, std::vector<array_1d<double, 3>>> ||
+                        std::is_same_v<TDataType, std::vector<array_1d<double, 4>>> ||
+                        std::is_same_v<TDataType, std::vector<array_1d<double, 6>>> ||
+                        std::is_same_v<TDataType, std::vector<array_1d<double, 9>>>) {
+        KRATOS_DEBUG_ERROR_IF_NOT(r_shape.size() == 2)
+            << "Invalid shape provided. Required shape should have only 2 dimensions. "
+            << "Expression dimensions = " << r_shape.size() << ".";
+    } else {
+        static_assert(!std::is_same_v<TDataType, TDataType>, "Unsupported data type.");
+    }
 
     if (rValue.size() != r_shape[0]) {
         rValue.resize(r_shape[0]);
