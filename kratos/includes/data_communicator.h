@@ -381,8 +381,18 @@ class KRATOS_API(KRATOS_CORE) DataCommunicator
         return Kratos::make_unique<DataCommunicator>();
     }
 
-    /// Pause program execution until all threads reach this call.
-    /** Wrapper for MPI_Barrier. */
+    /**
+     * @brief Initializes the rank list.
+     * @details This function is responsible for initializing the rank list. You should call this function before using any ranking-related operations.
+     */
+    virtual void InitializeRanksList() const
+    {
+    }
+
+    /**
+     * @brief Pause program execution until all threads reach this call.
+     * @details This function serves as a wrapper for MPI_Barrier, which ensures synchronization among all threads before proceeding further in the program.
+     */
     virtual void Barrier() const {}
 
     // Complete interface for basic types
@@ -578,6 +588,17 @@ class KRATOS_API(KRATOS_CORE) DataCommunicator
     ///@}
     ///@name Inquiry
     ///@{
+
+    /**
+     * @brief Retrieves a list of ranks.
+     * @brief This method returns a list of integer ranks. The current implementation simply returns a list containing a single element, 0. This method is virtual and can be overridden in derived classes to provide more complex behavior.
+     * @return std::vector<int> A vector of integers representing the ranks.
+     *         By default, it returns a vector with a single element: 0.
+     */
+    virtual std::vector<int> RanksList() const
+    {
+        return {0};
+    }
 
     /**
      * @brief Get the parallel rank for this DataCommunicator.
