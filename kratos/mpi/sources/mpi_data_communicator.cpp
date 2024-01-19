@@ -316,6 +316,14 @@ MPIDataCommunicator::UniquePointer MPIDataCommunicator::Create(MPI_Comm Comm)
     return Kratos::make_unique<MPIDataCommunicator>(Comm);
 }
 
+// Rank list
+void MPIDataCommunicator::InitializeRanksList() const
+{
+    std::vector<int> this_rank = {Rank()};
+    mRanksList.resize(Size());
+    AllGather(this_rank, mRanksList);
+}
+
 // Barrier wrapper
 
 void MPIDataCommunicator::Barrier() const
@@ -443,6 +451,12 @@ MPI_Comm MPIDataCommunicator::GetMPICommunicator(const DataCommunicator& rDataCo
 
 // Inquiry
 
+std::vector<int> MPIDataCommunicator::RanksList() const
+{
+    KRATOS_ERROR_IF_NOT(mRanksList.size() == Size()) << "Rank list not initialized" << std::endl;
+    return mRanksList;
+}
+
 int MPIDataCommunicator::Rank() const
 {
     int rank;
@@ -485,7 +499,13 @@ const DataCommunicator& MPIDataCommunicator::GetSubDataCommunicator(
     KRATOS_ERROR_IF_NOT(rRanks.size() <= static_cast<std::size_t>(total_size)) << "Inconsistency between the communicator total world size: " << total_size << " and the number of ranks required: " << rRanks.size() << std::endl;
 
     // Retrieve data communicator
-    const DataCommunicator& r_data_communicator = ParallelEnvironment::HasDataCommunicator(rNewCommunicatorName) ? ParallelEnvironment::GetDataCommunicator(rNewCommunicatorName) : DataCommunicatorFactory::CreateFromRanksAndRegister(*this, rRanks, rNewCommunicatorName);
+    const bool already_existing_data_communicator = ParallelEnvironment::HasDataCommunicator(rNewCommunicatorName);
+    const DataCommunicator& r_data_communicator = already_existing_data_communicator ? ParallelEnvironment::GetDataCommunicator(rNewCommunicatorName) : DataCommunicatorFactory::CreateFromRanksAndRegister(*this, rRanks, rNewCommunicatorName);
+    // If new one, initialize the rank list
+    if (!already_existing_data_communicator) {
+        r_data_communicator.InitializeRanksList();
+    }
+    // Some additional checks
     const auto it_find = std::find(rRanks.begin(), rRanks.end(), rank);
     if (it_find != rRanks.end()) {
         KRATOS_ERROR_IF_NOT(r_data_communicator.IsDefinedOnThisRank()) << "The rank " << rank << " does not participate in the existing data communicator " << rNewCommunicatorName  << " despite being in the provided rank list" << std::endl;

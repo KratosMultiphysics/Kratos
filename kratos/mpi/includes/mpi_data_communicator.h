@@ -209,6 +209,16 @@ class KRATOS_API(KRATOS_MPI_CORE) MPIDataCommunicator: public DataCommunicator
      */
     static MPIDataCommunicator::UniquePointer Create(MPI_Comm MPIComm);
 
+    /**
+     * @brief Initializes the rank list.
+     * @details This function is responsible for initializing the rank list. You should call this function before using some ranking-related operations with sub-DataCommunicator.
+     */
+    void InitializeRanksList() const override;
+
+    /**
+     * @brief Pause program execution until all threads reach this call.
+     * @details This function serves as a wrapper for MPI_Barrier, which ensures synchronization among all threads before proceeding further in the program.
+     */
     void Barrier() const override;
 
     KRATOS_MPI_DATA_COMMUNICATOR_DECLARE_PUBLIC_INTERFACE_FOR_TYPE(char)
@@ -273,6 +283,12 @@ class KRATOS_API(KRATOS_MPI_CORE) MPIDataCommunicator: public DataCommunicator
     ///@}
     ///@name Inquiry
     ///@{
+
+    /**
+     * @brief Get the list of ranks involved in this DataCommunicator.
+     * @return A vector containing the ranks involved in this DataCommunicator.
+     */
+    std::vector<int> RanksList() const override;
 
     /**
      * @brief Get the parallel rank for this DataCommunicator.
@@ -383,7 +399,8 @@ class KRATOS_API(KRATOS_MPI_CORE) MPIDataCommunicator: public DataCommunicator
     ///@name Member Variables
     ///@{
 
-    MPI_Comm mComm;
+    MPI_Comm mComm;                      /// The MPI communicator
+    mutable std::vector<int> mRanksList; /// The list of ranks involved in this DataCommunicator
 
     ///@}
     ///@name Operations
