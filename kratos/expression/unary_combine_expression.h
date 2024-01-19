@@ -120,7 +120,7 @@ public:
                         mSourceExpressions.end(),
                         [](const auto& rV1, const auto& rV2) {
                             return rV1->GetMaxDepth() < rV2->GetMaxDepth();
-                        }))->GetMaxDepth();
+                        }))->GetMaxDepth() + 1;
     }
 
     std::string Info() const override
