@@ -463,7 +463,13 @@ class EmbeddedStrainEnergyResponseFunction(BaseResponseFunction):
         for node in self.model.GetModelPart(self.embedded_model_part_name).Nodes:
             sens = node.GetSolutionStepValue(KM.KratosGlobals.GetVariable(self.gradients_variables["shape"]))
             nodal_area = node.GetSolutionStepValue(KM.NODAL_AREA)
+            node.SetSolutionStepValue(KM.KratosGlobals.GetVariable(self.gradients_variables["shape"]), sens)
             node.SetSolutionStepValue(KM.KratosGlobals.GetVariable(self.gradients_variables["shape"]),nodal_area * sens)
+            # if( node.Z0 > 9.5 ):
+            #     node.SetSolutionStepValue(KM.KratosGlobals.GetVariable(self.gradients_variables["shape"]), 0.0*sens)
+        # for node in self.model.GetModelPart("Parts_Shell_part.GENERIC_non_design").Nodes:
+        #     sens = node.GetSolutionStepValue(KM.KratosGlobals.GetVariable(self.gradients_variables["shape"]))
+        #     node.SetSolutionStepValue(KM.KratosGlobals.GetVariable(self.gradients_variables["shape"]), 0.0*sens)
 
         Logger.PrintInfo("EmbeddedStrainEnergyResponseFunction", "Time needed for calculating gradients ",round(timer.time() - startTime,2),"s")
 
@@ -521,6 +527,20 @@ class EmbeddedMassResponseFunction(BaseResponseFunction):
         self.embedded_response_settings = self.response_settings.Clone()
         self.embedded_response_settings["controlled_objects"][0].SetString(self.embedded_response_settings["evaluated_objects"][0].GetString())
         self.response_function = KOA.MassOptResponse(response_name,model,self.embedded_response_settings)
+
+    def ComputeNodalNorm(self, kratos_nodal_vector):
+        return np.sqrt(kratos_nodal_vector[0]*kratos_nodal_vector[0]+kratos_nodal_vector[1]*kratos_nodal_vector[1]+kratos_nodal_vector[2]*kratos_nodal_vector[2])
+
+    def NormalizeField(self, mp, variable_name):
+        max_value = 0.0
+        for node in mp.Nodes:
+            values = node.GetSolutionStepValue(variable_name)
+            max_value = max(max_value, self.ComputeNodalNorm(values))
+
+        if(max_value > 1e-10):
+            for node in mp.Nodes:
+                normalized_values = 1.0/max_value * node.GetSolutionStepValue(variable_name)
+                node.SetSolutionStepValue(variable_name, normalized_values)
 
     def GetVariableName(self):
         return  self.variable
@@ -588,7 +608,58 @@ class EmbeddedMassResponseFunction(BaseResponseFunction):
         for node in self.model.GetModelPart(self.embedded_model_part_name).Nodes:
             sens = node.GetSolutionStepValue(KOA.D_MASS_D_X)
             nodal_area = node.GetSolutionStepValue(KM.NODAL_AREA)
-            node.SetSolutionStepValue(KOA.D_MASS_D_X,nodal_area * sens)
+            node.SetSolutionStepValue(KOA.D_MASS_D_X, nodal_area*sens)
+
+
+
+        # self.NormalizeField(self.model.GetModelPart(self.embedded_model_part_name), KOA.D_MASS_D_X)
+        # l2_error = 0.0
+        # l2_norm = 0.0
+        # l1_error = 0.0
+        # l1_norm = 0.0
+        # inf_norm = 0.0
+        # for node in self.model.GetModelPart(self.embedded_model_part_name).Nodes:
+        #     sens = node.GetSolutionStepValue(KOA.D_MASS_D_X)
+        #     normal = [0, 0, 0]
+        #     length = np.sqrt( node.X0*node.X0 +  node.Y0*node.Y0 +  node.Z0*node.Z0)
+        #     normal[0] = 1.0/length*node.X0
+        #     normal[1] = 1.0/length*node.Y0
+        #     normal[2] = 1.0/length*node.Z0
+
+        #     diff = [0, 0, 0]
+        #     diff[0] = abs(normal[0]-sens[0])
+        #     diff[1] = abs(normal[1]-sens[1])
+        #     diff[2] = abs(normal[2]-sens[2])
+        #     error_1 = diff[0] +  diff[1] + diff[2]
+        #     error_2 = diff[0]*diff[0] +  diff[1]*diff[1] + diff[2]*diff[2]
+        #     l2_error += error_2
+        #     l2_norm += normal[0]*normal[0] + normal[1]*normal[1] + normal[2]*normal[2]
+
+        #     l1_error += error_1
+        #     l1_norm += abs(normal[0]) + abs(normal[1]) + abs(normal[2])
+        #     if( np.sqrt(error_2) > inf_norm ):
+        #         inf_norm = np.sqrt(error_2)
+
+        #     node.SetSolutionStepValue(KOA.D_MASS_D_X, sens)
+
+        # rel_l2_norm = np.sqrt(l2_error/l2_norm)
+        # rel_l1_norm = l1_error/l1_norm
+        # print("L1 Error: ", rel_l1_norm)
+        # print("L2 Error: ", rel_l2_norm)
+        # print("Inf Error: ", inf_norm)
+        # mp = self.model.GetModelPart(self.nurbs_model_part_name)
+
+        # KM.VariableUtils().SetFlag(KM.ACTIVE, False, mp.Nodes)
+        # for el in mp.Elements:
+        #     for node in el.GetGeometry():
+        #         node.Set(KM.ACTIVE, True)
+        # n_active_nodes = 0
+        # for node in mp.Nodes:
+        #     if( node.Is(KM.ACTIVE) ):
+        #         n_active_nodes += 1
+
+        # print("Active nodes:", n_active_nodes)
+
 
         Logger.PrintInfo("EmbeddedMassResponseFunction", "Time needed for calculating gradients ",round(timer.time() - startTime,2),"s")
 
@@ -657,7 +728,7 @@ class SelfIntersectionResponseFunction(BaseResponseFunction):
         except ImportError:
             raise Exception("QuESo python library is not available")
 
-        pyqueso = PyQuESo("QUESOParameters.json")
+        pyqueso = PyQuESo("QUESOParameters_tmp.json")
 
         nodes = QuESoApp.PointVector()
         directions = QuESoApp.PointVector()

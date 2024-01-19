@@ -612,7 +612,7 @@ void BaseSolidElement::CalculateMassMatrix(
     KRATOS_ERROR_IF_NOT(r_prop.Has(DENSITY)) << "DENSITY has to be provided for the calculation of the MassMatrix!" << std::endl;
 
     // Checking if computing lumped mass matrix
-    const bool compute_lumped_mass_matrix = StructuralMechanicsElementUtilities::ComputeLumpedMassMatrix(r_prop, rCurrentProcessInfo);
+    const bool compute_lumped_mass_matrix = false; //StructuralMechanicsElementUtilities::ComputeLumpedMassMatrix(r_prop, rCurrentProcessInfo);
 
     // LUMPED MASS MATRIX
     if (compute_lumped_mass_matrix) {
@@ -626,10 +626,12 @@ void BaseSolidElement::CalculateMassMatrix(
 
         Matrix J0(dimension, dimension);
 
-        const IntegrationMethod integration_method = UseGeometryIntegrationMethod() ? IntegrationUtilities::GetIntegrationMethodForExactMassMatrixEvaluation(r_geom) : mThisIntegrationMethod ;
+        const IntegrationMethod integration_method = GeometryData::IntegrationMethod::GI_GAUSS_1; //UseGeometryIntegrationMethod() ? IntegrationUtilities::GetIntegrationMethodForExactMassMatrixEvaluation(r_geom) : mThisIntegrationMethod ;
+
         const GeometryType::IntegrationPointsArrayType& integration_points = this->IntegrationPoints( integration_method );
         const Matrix& Ncontainer = this->ShapeFunctionsValues(integration_method);
 
+        double volume = 0.0;
         for ( IndexType point_number = 0; point_number < integration_points.size(); ++point_number ) {
             GeometryUtils::JacobianOnInitialConfiguration(
                 r_geom, integration_points[point_number], J0);
@@ -637,6 +639,8 @@ void BaseSolidElement::CalculateMassMatrix(
             const double integration_weight =
                 GetIntegrationWeight(integration_points, point_number, detJ0) * thickness;
             const Vector& rN = row(Ncontainer,point_number);
+
+            volume += integration_weight;
 
             for ( IndexType i = 0; i < number_of_nodes; ++i ) {
                 const SizeType index_i = i * dimension;
@@ -1140,7 +1144,6 @@ void BaseSolidElement::CalculateOnIntegrationPoints(
         } else {
             CalculateOnConstitutiveLaw(rVariable, rOutput, rCurrentProcessInfo);
         }
-        
 
     }
 }

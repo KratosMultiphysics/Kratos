@@ -234,7 +234,7 @@ public:
             if(constraint["is_active"].GetBool()){
                 auto const_type = constraint["type"].GetString();
                 double current_violation = (constraint["value"].GetDouble()-constraint["ref_value"].GetDouble())/constraint["ref_value"].GetDouble();
-                if(100 * std::abs(current_violation)>0.5)
+                if(100 * std::abs(current_violation)>0.25)
                     current_is_feasible = false;
                 double previous_violation = (constraint["prev_itr_value"].GetDouble()-constraint["ref_value"].GetDouble())/constraint["ref_value"].GetDouble();
                 double relative_change = (constraint["value"].GetDouble()-constraint["prev_itr_value"].GetDouble())/constraint["prev_itr_value"].GetDouble();
@@ -247,9 +247,9 @@ public:
                         //first check the oscill
                         if((100 * std::abs(previous_violation)>1) && (100 * std::abs(current_violation)>1) && (((current_violation>0.0) && (previous_violation<0)) || ((current_violation<0.0) && (previous_violation>0))))
                             weight *= 0.95;
-                        else if((std::abs(current_violation)>std::abs(previous_violation)) && (100 * std::abs(previous_violation)>0.5))
+                        else if((std::abs(current_violation)>std::abs(previous_violation)) && (100 * std::abs(previous_violation)>0.25))
                             weight *= 1.25;
-                        else if((std::abs(current_violation)<std::abs(previous_violation)) && (100 * std::abs(current_violation)>0.5) && (100 * std::abs(relative_change)<1.0))
+                        else if((std::abs(current_violation)<std::abs(previous_violation)) && (100 * std::abs(current_violation)>0.25) && (100 * std::abs(relative_change)<1.0))
                             weight *= 1.25;
                         else if((100 * std::abs(previous_violation)<0.1) && (100 * std::abs(current_violation)<0.1))
                             weight *= 0.95;
@@ -331,20 +331,20 @@ public:
         if(opt_itr>1 && update_coefficients){
 
             double scale = 1.0;
-            double ratio = mSumObjectivesImprovements/abs(sum_obj_improvement);
-            if(ratio>1.0 && sum_obj_improvement<0.0 && sum_obj_improvement_prev<0.0 && current_is_feasible && prev_is_feasible)
-                scale = ratio;
+            // double ratio = mSumObjectivesImprovements/abs(sum_obj_improvement);
+            // if(ratio>1.0 && sum_obj_improvement<0.0 && sum_obj_improvement_prev<0.0 && current_is_feasible && prev_is_feasible)
+            //     scale = ratio;
 
-            if(ratio<1.0 && sum_obj_improvement<0.0 && sum_obj_improvement_prev<0.0 && current_is_feasible && prev_is_feasible)
-                scale = ratio;
+            // if(ratio<1.0 && sum_obj_improvement<0.0 && sum_obj_improvement_prev<0.0 && current_is_feasible && prev_is_feasible)
+            //     scale = ratio;
 
-            if(scale>1.2)
-                scale = 1.2;
-            if(scale<0.8)
-                scale = 0.8;
+            // if(scale>1.2)
+            //     scale = 1.2;
+            // if(scale<0.8)
+            //     scale = 0.8;
 
-            if(sum_obj_improvement>0.0 && current_is_feasible && prev_is_feasible)
-                scale = 0.8;
+            // if(sum_obj_improvement>0.0 && current_is_feasible && prev_is_feasible)
+            //     scale = 0.8;
 
             projection_step_size *= scale;
             mrSettings["projection_step_size"].SetDouble(projection_step_size);

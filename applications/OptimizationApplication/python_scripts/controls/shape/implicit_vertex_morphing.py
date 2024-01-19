@@ -255,62 +255,84 @@ class ImplicitVertexMorphing(ShapeControl):
 
         pos_active = self.positive_intersection_normals_active
         neg_active = self.negative_intersection_normals_active or self.construction_space_constraint_active
+        bc_active = self.bc_normal_active
 
         self.NormalizeField(KOA.FILTERED_ACTIVE_POSITIVE_INTERSECTION_NORMAL)
         self.NormalizeField(KOA.FILTERED_ACTIVE_NEGATIVE_INTERSECTION_NORMAL)
-        for node in self.model.GetModelPart(self.controlling_objects[0]).Nodes:
-            if pos_active:
-                avg_value_pos = node.GetSolutionStepValue(KOA.FILTERED_ACTIVE_POSITIVE_INTERSECTION_NORMAL)
-                norm = self.ComputeNodalNorm(avg_value_pos)
-                if(norm > 0.02):
-                    node.SetSolutionStepValue(field_variable_name, [0.0, 0.0, 0.0])
-
-            if neg_active:
-                avg_value_pos = node.GetSolutionStepValue(KOA.FILTERED_ACTIVE_NEGATIVE_INTERSECTION_NORMAL)
-                norm = self.ComputeNodalNorm(avg_value_pos)
-                if(norm > 0.02):
-                    node.SetSolutionStepValue(field_variable_name, [0.0, 0.0, 0.0])
-
 
         # for node in self.model.GetModelPart(self.controlling_objects[0]).Nodes:
-        #     nodal_field_variable = node.GetSolutionStepValue(field_variable_name)
-
-        #     C = np.empty((0, 3))
-        #     variable_vector = np.zeros(3)
-
-        #     variable_vector[0] = nodal_field_variable[0]
-        #     variable_vector[1] = nodal_field_variable[1]
-        #     variable_vector[2] = nodal_field_variable[2]
-
-        #     if pos_active or neg_active:
-        #         raw_value_pos = node.GetSolutionStepValue(KOA.ACTIVE_POSITIVE_INTERSECTION_NORMAL)
-        #         raw_value_neg = node.GetSolutionStepValue(KOA.ACTIVE_NEGATIVE_INTERSECTION_NORMAL)
-        #         if self.ComputeNodalNorm(raw_value_pos)>1e-10 or self.ComputeNodalNorm(raw_value_neg)>1e-10:
-        #             remove_direction = node.GetSolutionStepValue(KM.NORMAL)
-        #             C = np.append(C, np.array([remove_direction]), axis=0)
-
         #     if pos_active:
         #         avg_value_pos = node.GetSolutionStepValue(KOA.FILTERED_ACTIVE_POSITIVE_INTERSECTION_NORMAL)
         #         norm = self.ComputeNodalNorm(avg_value_pos)
         #         if(norm > 0.02):
-        #             avg_value_pos /= norm
-        #             C = np.append(C, np.array([avg_value_pos]), axis=0)
+        #             node.SetSolutionStepValue(field_variable_name, [0.0, 0.0, 0.0])
 
         #     if neg_active:
-        #         avg_value_neg = node.GetSolutionStepValue(KOA.FILTERED_ACTIVE_NEGATIVE_INTERSECTION_NORMAL)
-        #         norm = self.ComputeNodalNorm(avg_value_neg)
+        #         avg_value_pos = node.GetSolutionStepValue(KOA.FILTERED_ACTIVE_NEGATIVE_INTERSECTION_NORMAL)
+        #         norm = self.ComputeNodalNorm(avg_value_pos)
         #         if(norm > 0.02):
-        #             avg_value_neg /= norm
-        #             C = np.append(C, np.array([avg_value_neg]), axis=0)
+        #             node.SetSolutionStepValue(field_variable_name, [0.0, 0.0, 0.0])
 
-        #     if C.shape[0] > 0:
-        #         if np.linalg.cond(C) < 1e12:
-        #             inverse = np.linalg.inv( np.matmul(C, (np.transpose(C))) )
-        #             A = np.matmul( np.transpose(C), inverse)
-        #             B = np.matmul( C, variable_vector )
-        #             C = A @ B
-        #             new_field = variable_vector - C
-        #             node.SetSolutionStepValue(field_variable_name, [new_field[0], new_field[1], new_field[2]])
+        # norm_avg_value_pos = 0.0
+        # if( pos_active ):
+        #     avg_value_pos = node.GetSolutionStepValue(KOA.FILTERED_ACTIVE_POSITIVE_INTERSECTION_NORMAL)
+        #     value_pos = node.GetSolutionStepValue(KOA.ACTIVE_POSITIVE_INTERSECTION_NORMAL)
+        #     dot_prod = value_pos[0]*avg_value_pos[0] + value_pos[2]*avg_value_pos[1] + value_pos[2]*avg_value_pos[2]
+        #     if dot_prod < 0.8:
+        #         C = np.append(C, np.array([normal_direction]), axis=0)
+        #     norm_avg_value_pos = self.ComputeNodalNorm(avg_value_pos)
+
+        # norm_avg_value_neg = 0.0
+        # if( neg_active ):
+        #     avg_value_neg = node.GetSolutionStepValue(KOA.FILTERED_ACTIVE_NEGATIVE_INTERSECTION_NORMAL)
+        #     norm_avg_value_neg = self.ComputeNodalNorm(avg_value_neg)
+
+        # norm_avg_value_bc = 0.0
+        # if( bc_active ):
+        #     avg_value_bc = node.GetSolutionStepValue(KOA.FILTERED_ACTIVE_BC_NORMAL)
+        #     norm_avg_value_bc = self.ComputeNodalNorm(avg_value_bc)
+
+        # if norm_avg_value_pos>1e-10 or norm_avg_value_neg>1e-10 or norm_avg_value_bc>1e-10:
+        #     C = np.append(C, np.array([normal_direction]), axis=0)
+
+        for node in self.model.GetModelPart(self.controlling_objects[0]).Nodes:
+            nodal_field_variable = node.GetSolutionStepValue(field_variable_name)
+
+            C = np.empty((0, 3))
+            variable_vector = np.zeros(3)
+
+            variable_vector[0] = nodal_field_variable[0]
+            variable_vector[1] = nodal_field_variable[1]
+            variable_vector[2] = nodal_field_variable[2]
+
+            if pos_active or neg_active:
+                raw_value_pos = node.GetSolutionStepValue(KOA.ACTIVE_POSITIVE_INTERSECTION_NORMAL)
+                raw_value_neg = node.GetSolutionStepValue(KOA.ACTIVE_NEGATIVE_INTERSECTION_NORMAL)
+                if self.ComputeNodalNorm(raw_value_pos)>1e-10 or self.ComputeNodalNorm(raw_value_neg)>1e-10:
+                    node.SetSolutionStepValue(field_variable_name, [0.0, 0.0, 0.0])
+                else:
+                    if pos_active:
+                        avg_value_pos = node.GetSolutionStepValue(KOA.FILTERED_ACTIVE_POSITIVE_INTERSECTION_NORMAL)
+                        norm = self.ComputeNodalNorm(avg_value_pos)
+                        if(norm > 0.01):
+                            avg_value_pos /= norm
+                            C = np.append(C, np.array([avg_value_pos]), axis=0)
+
+                    if neg_active:
+                        avg_value_neg = node.GetSolutionStepValue(KOA.FILTERED_ACTIVE_NEGATIVE_INTERSECTION_NORMAL)
+                        norm = self.ComputeNodalNorm(avg_value_neg)
+                        if(norm > 0.01):
+                            avg_value_neg /= norm
+                            C = np.append(C, np.array([avg_value_neg]), axis=0)
+
+                    if C.shape[0] > 0:
+                        if np.linalg.cond(C) < 1e12:
+                            inverse = np.linalg.inv( np.matmul(C, (np.transpose(C))) )
+                            A = np.matmul( np.transpose(C), inverse)
+                            B = np.matmul( C, variable_vector )
+                            C = A @ B
+                            new_field = variable_vector - C
+                            node.SetSolutionStepValue(field_variable_name, [new_field[0], new_field[1], new_field[2]])
 
 
 
@@ -325,6 +347,7 @@ class ImplicitVertexMorphing(ShapeControl):
             node.SetSolutionStepValue(KOA.ADJACENT_TRIANGLE_COUNT, 0)
             node.SetSolutionStepValue(KOA.FILTERED_ACTIVE_BC_NORMAL, [0.0, 0.0, 0.0])
 
+        is_active = False
         for el in self.model.GetModelPart(self.controlling_objects[0]).Elements:
             count_fixed = 0
             count_not_fixed = 0
@@ -337,6 +360,7 @@ class ImplicitVertexMorphing(ShapeControl):
             for node in el.GetGeometry():
                 if( node.IsFixed(KOA.HELMHOLTZ_VARS_SHAPE_X) ):
                     node.SetSolutionStepValue(KOA.ADJACENT_TRIANGLE_COUNT, 1)
+                    is_active = True
                     node.SetSolutionStepValue(KOA.ACTIVE_BC_NORMAL, [1.0, 0.0, 0.0])
 
         for model_part_name, fixed_x, fixed_y, fixed_z in zip(fixed_model_parts, fixed_model_parts_X, fixed_model_parts_Y, fixed_model_parts_Z):
@@ -348,9 +372,9 @@ class ImplicitVertexMorphing(ShapeControl):
                 if(fixed_z):
                     node.Free(KOA.HELMHOLTZ_VARS_SHAPE_Z)
 
-        self.implicit_vertex_morphing.SetFilterRadius(4)
+        self.implicit_vertex_morphing.SetFilterRadius(4.0)
         self.implicit_vertex_morphing.MapControlUpdate(KOA.ACTIVE_BC_NORMAL, KOA.FILTERED_ACTIVE_BC_NORMAL)
-        self.implicit_vertex_morphing.SetFilterRadius(4)
+        self.implicit_vertex_morphing.SetFilterRadius(4.0)
 
         for model_part_name, fixed_x, fixed_y, fixed_z in zip(fixed_model_parts, fixed_model_parts_X, fixed_model_parts_Y, fixed_model_parts_Z):
             for node in self.model.GetModelPart(model_part_name.GetString()).Nodes:
@@ -364,26 +388,28 @@ class ImplicitVertexMorphing(ShapeControl):
                     node.SetSolutionStepValue(KOA.FILTERED_ACTIVE_BC_NORMAL, [0.0, 0.0, 0.0])
 
         self.NormalizeField(KOA.FILTERED_ACTIVE_BC_NORMAL)
+        return is_active
 
 
     def RemoveActiveFilteredBCNormals(self, field_variable):
         for node in self.model.GetModelPart(self.controlling_objects[0]).Nodes:
             filtered_active_bc_normal = node.GetSolutionStepValue(KOA.FILTERED_ACTIVE_BC_NORMAL)
             norm_filtered_active_bc_normal = self.ComputeNodalNorm(filtered_active_bc_normal)
-            if norm_filtered_active_bc_normal>0.02:
-                node.SetSolutionStepValue(field_variable, [0.0, 0.0, 0.0])
+            # if norm_filtered_active_bc_normal>0.01:
+            #     node.SetSolutionStepValue(field_variable, [0.0, 0.0, 0.0])
 
     def ComputeConstrainingFields(self):
-        min_distance = 7
+        min_distance = 1.27
 
-        self.nodal_max_control_update = 0.1
+        self.nodal_max_control_update = 0.25
         for node in self.model.GetModelPart(self.controlling_objects[0]).Nodes:
             control_update = node.GetSolutionStepValue(KOA.D_X)
             self.nodal_max_control_update = max(self.nodal_max_control_update, self.ComputeNodalNorm(control_update))
 
+        self.nodal_max_control_update *= 2.0
         self.positive_intersection_normals_active = self.ComputeActiveIntersectionNormal(min_distance,  True)
         self.negative_intersection_normals_active = self.ComputeActiveIntersectionNormal(min_distance, False)
-        self.construction_space_constraint_active = False #self.ComputeConstructionSpaceConstraint()
+        self.construction_space_constraint_active = self.ComputeConstructionSpaceConstraint()
 
         active_bcs = True
         if self.positive_intersection_normals_active:
@@ -391,7 +417,8 @@ class ImplicitVertexMorphing(ShapeControl):
         if self.negative_intersection_normals_active or self.construction_space_constraint_active:
             self.MapField(KOA.ACTIVE_NEGATIVE_INTERSECTION_NORMAL, KOA.FILTERED_ACTIVE_NEGATIVE_INTERSECTION_NORMAL, active_bcs)
 
-        self.ComputeFilteredActiveBCNormals()
+        #self.implicit_vertex_morphing.SetFilterRadius(5.0)
+        self.bc_normal_active = False #self.ComputeFilteredActiveBCNormals()
 
     def Compute(self):
 
