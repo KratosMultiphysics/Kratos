@@ -93,8 +93,8 @@
                     "node_output": false,
                     "skin_output": false,
                     "plane_output": [],
-                    "nodal_results": [ "DISPLACEMENT", "TOTAL_DISPLACEMENT", "WATER_PRESSURE", "LINE_LOAD", "NORMAL_CONTACT_STRESS", "VOLUME_ACCELERATION" ],
-                    "gauss_point_results": [ "GREEN_LAGRANGE_STRAIN_TENSOR", "ENGINEERING_STRAIN_TENSOR", "CAUCHY_STRESS_TENSOR", "TOTAL_STRESS_TENSOR", "VON_MISES_STRESS", "MEAN_EFFECTIVE_STRESS", "MEAN_STRESS", "ENGINEERING_VON_MISES_STRAIN", "ENGINEERING_VOLUMETRIC_STRAIN" ]
+                    "nodal_results": [],
+                    "gauss_point_results": ["CAUCHY_STRESS_TENSOR"]
                     },
                     "point_data_configuration":  []
                 }
@@ -143,18 +143,6 @@
         "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
         "process_name":  "ApplyVectorConstraintTableProcess",
         "Parameters":    {
-            "model_part_name": "PorousDomain.Fixity_right",
-            "variable_name":   "DISPLACEMENT",
-            "active":          [false,false,false],
-            "is_fixed":        [false,false,false],
-            "value":           [0.0,0.0,0.0],
-            "table":           [0,0,0]
-        }
-    },{
-        "python_module": "apply_vector_constraint_table_process",
-        "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
-        "process_name":  "ApplyVectorConstraintTableProcess",
-        "Parameters":    {
             "model_part_name": "PorousDomain.Fixed_Point_XY",
             "variable_name":   "DISPLACEMENT",
             "active":          [true,true,false],
@@ -173,21 +161,6 @@
             "active":               [true,false],
             "value":                [0.0,0.0],
             "table":                [2,0],
-            "fluid_pressure_type": "Uniform",
-            "gravity_direction":    1,
-            "reference_coordinate": 0.0,
-            "specific_weight":      9.81
-        }
-    },{
-        "python_module": "apply_normal_load_table_process",
-        "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
-        "process_name":  "ApplyNormalLoadTableProcess",
-        "Parameters":    {
-            "model_part_name":      "PorousDomain.Top_load",
-            "variable_name":        "NORMAL_CONTACT_STRESS",
-            "active":               [false,false],
-            "value":                [0.0,0.0],
-            "table":                [3,0],
             "fluid_pressure_type": "Uniform",
             "gravity_direction":    1,
             "reference_coordinate": 0.0,
