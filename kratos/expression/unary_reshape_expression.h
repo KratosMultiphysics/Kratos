@@ -17,6 +17,7 @@
 #include <iterator>
 
 // Project includes
+#include "input_output/logger.h"
 #include "expression/expression.h"
 
 namespace Kratos {
@@ -54,6 +55,16 @@ public:
             << this->GetItemComponentCount() << " ].\n"
             << "Source expression:\n"
             << *mpSourceExpression << "\n";
+
+        if (mpSourceExpression->GetMaxDepth() >= MAX_SHRINKING_DEPTH) {
+            // expression reached the max shrinking depth. Hence
+            // it will shirnked.
+            KRATOS_WARNING("UnaryReshapeExpression")
+                << "The expression: \"" << *this
+                << "\" is shrunk because it reached the lazy expression tree max shrinking depth of "
+                << MAX_SHRINKING_DEPTH << ".\n";
+            mpSourceExpression = mpSourceExpression->GetShrinkedExpression();
+        }
     }
 
     ///@}
@@ -82,6 +93,17 @@ public:
         return mShape;
     }
 
+    IndexType GetMaxDepth() const override
+    {
+        return mpSourceExpression->GetMaxDepth() + 1;
+    }
+
+    void FillUtilizedExpressions(std::set<Expression::ConstPointer>& rExpressions) const override
+    {
+        rExpressions.insert(this);
+        mpSourceExpression->FillUtilizedExpressions(rExpressions);
+    }
+
     std::string Info() const override
     {
         std::stringstream msg;
@@ -98,7 +120,7 @@ protected:
     ///@name Private member variables
     ///@{
 
-    const Expression::ConstPointer mpSourceExpression;
+    Expression::ConstPointer mpSourceExpression;
 
     const std::vector<IndexType> mShape;
 

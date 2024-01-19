@@ -15,6 +15,7 @@
 #include <vector>
 
 // Project includes
+#include "input_output/logger.h"
 
 // Include base h
 #include "binary_expression.h"
@@ -74,6 +75,26 @@ BinaryExpression<TOperationType>::BinaryExpression(
     KRATOS_ERROR_IF_NOT(mpRight.get())
         << "Binary operation is provided with uninitialized right hand side "
            "expression.\n";
+
+    if (mpLeft->GetMaxDepth() >= MAX_SHRINKING_DEPTH) {
+        // Left expression reached the max shrinking depth. Hence
+        // it will shirnked.
+        KRATOS_WARNING("BinaryExpression")
+            << "The left expression: \"" << *this
+            << "\" is shrunk because it reached the lazy expression tree max shrinking depth of "
+            << MAX_SHRINKING_DEPTH << ".\n";
+        mpLeft = mpLeft->GetShrinkedExpression();
+    }
+
+    if (mpRight->GetMaxDepth() >= MAX_SHRINKING_DEPTH) {
+        // Right expression reached the max shrinking depth. Hence
+        // it will shirnked.
+        KRATOS_WARNING("BinaryExpression")
+            << "The right expression: \"" << *this
+            << "\" is shrunk because it reached the lazy expression tree max shrinking depth of "
+            << MAX_SHRINKING_DEPTH << ".\n";
+        mpRight = mpRight->GetShrinkedExpression();
+    }
 }
 
 template <class TOperationType>
@@ -99,6 +120,20 @@ template <class TOperationType>
 const std::vector<std::size_t> BinaryExpression<TOperationType>::GetItemShape() const
 {
     return this->mpLeft->GetItemShape();
+}
+
+template <class TOperationType>
+std::size_t BinaryExpression<TOperationType>::GetMaxDepth() const
+{
+    return std::max(this->mpLeft->GetMaxDepth(), this->mpRight->GetMaxDepth()) + 1;
+}
+
+template <class TOperationType>
+void BinaryExpression<TOperationType>::FillUtilizedExpressions(std::set<Expression::ConstPointer>& rExpressions) const
+{
+    rExpressions.insert(this);
+    mpLeft->FillUtilizedExpressions(rExpressions);
+    mpRight->FillUtilizedExpressions(rExpressions);
 }
 
 template <class TOperationType>

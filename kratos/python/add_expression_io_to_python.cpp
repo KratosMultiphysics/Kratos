@@ -57,6 +57,25 @@ public:
         );
     }
 
+    IndexType GetMaxDepth() const override
+    {
+        PYBIND11_OVERRIDE_PURE(
+            IndexType,             /*return type*/
+            Expression,            /*base type*/
+            GetMaxDepth            /*function name*/
+        );
+    }
+
+    void FillUtilizedExpressions(std::set<Expression::ConstPointer>& rExpressions) const override
+    {
+        PYBIND11_OVERRIDE_PURE(
+            void,                   /*return type*/
+            Expression,             /*base type*/
+            FillUtilizedExpressions,/*function name*/
+            rExpressions
+        );
+    }
+
     const std::vector<IndexType> GetItemShape() const override
     {
         PYBIND11_OVERRIDE_PURE(
@@ -209,6 +228,9 @@ void AddExpressionIOToPython(pybind11::module& rModule)
         .def("GetItemShape", &Expression::GetItemShape)
         .def("NumberOfEntities", &Expression::NumberOfEntities)
         .def("GetItemComponentCount", &Expression::GetItemComponentCount)
+        .def("GetMaxDepth", &Expression::GetMaxDepth)
+        .def("GetShrinkedExpression", &Expression::GetShrinkedExpression)
+        .def("GetUtilizedExpressions", [](const Expression& rSelf) { std::set<Expression::ConstPointer> exps; rSelf.FillUtilizedExpressions(exps); return exps;} )
         .def("__add__", [](Expression::Pointer pLeft, double Right) {return pLeft + Right;})
         //.def("__add__", [](double Left, Expression::Pointer pRight) {return Left + pRight;})
         .def("__add__", [](Expression::Pointer pLeft, Expression::Pointer pRight) {return pLeft + pRight;})

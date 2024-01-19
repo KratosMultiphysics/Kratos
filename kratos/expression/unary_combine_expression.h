@@ -17,6 +17,7 @@
 #include <vector>
 
 // Project includes
+#include "input_output/logger.h"
 #include "expression/expression.h"
 
 namespace Kratos {
@@ -74,6 +75,18 @@ public:
         // Corner case: empty expression range provided
         KRATOS_ERROR_IF(this->GetItemComponentCount() == 0)
             << "No expressions were given.\n";
+
+        for (auto& p_expression : mSourceExpressions) {
+            if (p_expression->GetMaxDepth() >= MAX_SHRINKING_DEPTH) {
+                // expression reached the max shrinking depth. Hence
+                // it will shirnked.
+                KRATOS_WARNING("UnaryCombineExpression")
+                    << "The expression: \"" << *this
+                    << "\" is shrunk because it reached the lazy expression tree max shrinking depth of "
+                    << MAX_SHRINKING_DEPTH << ".\n";
+                p_expression = p_expression->GetShrinkedExpression();
+            }
+        }
     }
 
     ///@}
@@ -113,6 +126,23 @@ public:
         return mStrides.size() == 1 && mStrides.back() == 1 ? std::vector<IndexType> {} : std::vector<IndexType> {mStrides.back()};
     }
 
+    IndexType GetMaxDepth() const override
+    {
+        IndexType max_depth = 0;
+        for (const auto& p_expression : mSourceExpressions) {
+            max_depth = std::max(max_depth, p_expression->GetMaxDepth());
+        }
+        return max_depth + 1;
+    }
+
+    void FillUtilizedExpressions(std::set<Expression::ConstPointer>& rExpressions) const override
+    {
+        rExpressions.insert(this);
+        for (const auto& p_expression : mSourceExpressions) {
+            p_expression->FillUtilizedExpressions(rExpressions);
+        }
+    }
+
     std::string Info() const override
     {
         std::stringstream msg;
@@ -131,7 +161,7 @@ protected:
     ///@name Private member variables
     ///@{
 
-    const std::vector<Expression::ConstPointer> mSourceExpressions;
+    std::vector<Expression::ConstPointer> mSourceExpressions;
 
     std::vector<IndexType> mStrides;
 

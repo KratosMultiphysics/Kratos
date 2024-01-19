@@ -38,6 +38,18 @@ const std::vector<std::size_t> LiteralExpression<TDataType>::GetItemShape() cons
 }
 
 template <class TDataType>
+std::size_t LiteralExpression<TDataType>::GetMaxDepth() const
+{
+    return 1;
+}
+
+template <class TDataType>
+void LiteralExpression<TDataType>::FillUtilizedExpressions(std::set<Expression::ConstPointer>& rExpressions) const
+{
+    rExpressions.insert(this);
+}
+
+template <class TDataType>
 Expression::Pointer LiteralExpression<TDataType>::Create(
     const TDataType& Value,
     const IndexType NumberOfEntities)

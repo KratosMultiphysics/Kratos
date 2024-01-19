@@ -201,6 +201,16 @@ std::size_t ContainerExpression<TContainerType, TMeshType>::GetItemComponentCoun
 }
 
 template <class TContainerType, MeshType TMeshType>
+std::size_t ContainerExpression<TContainerType, TMeshType>::GetExpressionMaxDepth() const
+{
+    if (this->HasExpression()) {
+        return this->GetExpression().GetMaxDepth();
+    } else {
+        return 0;
+    }
+}
+
+template <class TContainerType, MeshType TMeshType>
 ModelPart* ContainerExpression<TContainerType, TMeshType>::pGetModelPart() const
 {
     return this->mpModelPart;
@@ -259,6 +269,17 @@ std::string ContainerExpression<TContainerType, TMeshType>::PrintData() const
     return msg.str();
 }
 
+template <class TContainer, MeshType TMesh>
+ContainerExpression<TContainer, TMesh> ContainerExpression<TContainer,TMesh>::Shrink() const
+{
+    KRATOS_TRY
+
+    auto copy = *this;
+    copy.SetExpression(this->GetExpression().GetShrinkedExpression());
+    return copy;
+
+    KRATOS_CATCH("");
+}
 
 template <class TContainer, MeshType TMesh>
 ContainerExpression<TContainer, TMesh> ContainerExpression<TContainer,TMesh>::Slice(IndexType Offset, IndexType Stride) const
