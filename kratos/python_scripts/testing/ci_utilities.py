@@ -78,15 +78,15 @@ def write_compiled_apps_to_file() -> None:
     For now this adds everything, but in the future this will be depending on the actual changes of the PR
     """
     # TODO add path only if app is not an absolute path
-    with open("ci_compiled_apps.txt", "w") as ci_apps_file:
-        kratos_path: Path = Path(__file__).resolve().parent.parent.parent.parent
+    kratos_path: Path = Path(__file__).resolve().parent.parent.parent.parent
+    with open(kratos_path / "ci_compiled_apps.txt", "w") as ci_apps_file:
         for app in ci_applications():
             ci_apps_file.write(f"{kratos_path / 'applications' / app}\;")
 
 
 def write_tested_apps_to_file() -> None:
-    with open("ci_tested_apps.txt", "w") as ci_apps_file:
-        kratos_path: Path = Path(__file__).resolve().parent.parent.parent.parent
+    kratos_path: Path = Path(__file__).resolve().parent.parent.parent.parent
+    with open(kratos_path / "ci_tested_apps.txt", "w") as ci_apps_file:
         for app in ci_applications():
             ci_apps_file.write(f"{kratos_path / 'applications' / app}\;")
 
