@@ -1,10 +1,11 @@
 import json
-from argparse import ArgumentParser
 from functools import lru_cache
 from os import getenv
 from pathlib import Path
 from pprint import pprint
 from typing import List, Set, Optional
+
+# Note: this file cannot contain any Kratos imports, since it is used before Kratos is compiled!
 
 
 def check_valid_environment_configuration_exists() -> None:
@@ -95,24 +96,6 @@ def prepare_ci():
     write_compiled_apps_to_file()
     write_tested_apps_to_file()
 
+
 if __name__ == "__main__":
     prepare_ci()
-    # parser: ArgumentParser = ArgumentParser(description="Utilities for the continuous integration")
-
-    # option_groups = parser.add_mutually_exclusive_group(required=True)
-
-    # option_groups.add_argument(
-    #     "--compilation", action="store_true", help="Set the environment for the apps to be compiled"
-    # )
-    # option_groups.add_argument("--testing", action="store_true", help="Set the environment for the apps to be tested")
-    # option_groups.add_argument("--info", action="store_true", help="Print information about this CI run")
-
-    # args = parser.parse_args()
-
-    # if args.compilation:
-    #     write_compiled_apps_to_file()
-    # elif args.testing:
-    #     # not yet implemented
-    #     pass
-    # elif args.info:
-    #     print_ci_information()
