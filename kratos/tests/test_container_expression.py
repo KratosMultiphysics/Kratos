@@ -709,6 +709,7 @@ class TestContainerExpression(ABC):
         self._Read(a, Kratos.GREEN_LAGRANGE_STRAIN_TENSOR)
         b = Kratos.Expression.Utils.EntityMin(a)
 
+        self.assertEqual(b.Evaluate().shape, (len(self._GetContainer()), ))
         for v1, v2 in zip(a.Evaluate(), b.Evaluate()):
             self.assertEqual(numpy.min(v1), v2)
 
@@ -717,6 +718,7 @@ class TestContainerExpression(ABC):
         self._Read(a, Kratos.GREEN_LAGRANGE_STRAIN_TENSOR)
         b = Kratos.Expression.Utils.EntityMax(a * -1)
 
+        self.assertEqual(b.Evaluate().shape, (len(self._GetContainer()), ))
         for v1, v2 in zip(a.Evaluate(), b.Evaluate()):
             self.assertEqual(numpy.max(-v1), v2)
 
@@ -725,6 +727,7 @@ class TestContainerExpression(ABC):
         self._Read(a, Kratos.GREEN_LAGRANGE_STRAIN_TENSOR)
         b = Kratos.Expression.Utils.EntitySum(a)
 
+        self.assertEqual(b.Evaluate().shape, (len(self._GetContainer()), ))
         for v1, v2 in zip(a.Evaluate(), b.Evaluate()):
             self.assertEqual(numpy.sum(v1), v2)
 
