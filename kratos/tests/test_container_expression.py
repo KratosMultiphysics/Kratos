@@ -280,7 +280,7 @@ class TestContainerExpression(ABC):
         self._Read(a, Kratos.VELOCITY)
         self._Read(b, Kratos.PRESSURE)
 
-        c = a.Scale(b)
+        c = Kratos.Expression.Utils.Scale(a, b)
         self._Evaluate(c, Kratos.ACCELERATION)
 
         for entity in a.GetContainer():
@@ -493,7 +493,7 @@ class TestContainerExpression(ABC):
         a = self._GetContainerExpression()
         self._Read(a, Kratos.INITIAL_STRAIN)
 
-        sliced = a.Slice(2, 3)
+        sliced = Kratos.Expression.Utils.Slice(a, 2, 3)
         sliced *= 2.0
         self._Evaluate(sliced, Kratos.ACCELERATION)
 
@@ -506,7 +506,7 @@ class TestContainerExpression(ABC):
         a = self._GetContainerExpression()
         self._Read(a, Kratos.INITIAL_STRAIN)
 
-        reshaped = a.Reshape([2, 3])
+        reshaped = Kratos.Expression.Utils.Reshape(a, [2, 3])
         reshaped *= 2.0
         self._Evaluate(reshaped, Kratos.PK2_STRESS_TENSOR)
 
@@ -525,7 +525,7 @@ class TestContainerExpression(ABC):
         # Reshape a single scalar expression to itself
         input_expression = self._GetContainerExpression()
         self._Read(input_expression, Kratos.PRESSURE)
-        combed = input_expression.Reshape([])
+        combed = Kratos.Expression.Utils.Reshape(input_expression, [])
         array = Kratos.Vector(input_expression.GetExpression().NumberOfEntities() * input_expression.GetItemComponentCount())
         Kratos.Expression.CArrayExpressionIO.Write(combed, array)
         for i_entity, entity in enumerate(combed.GetContainer()):
@@ -537,7 +537,7 @@ class TestContainerExpression(ABC):
         b = self._GetContainerExpression()
         self._Read(b, Kratos.VELOCITY)
 
-        combed = a.Comb(b)
+        combed = Kratos.Expression.Utils.Comb([a, b])
         combed *= 2.0
         self._Evaluate(combed, Kratos.PENALTY)
 
@@ -551,7 +551,7 @@ class TestContainerExpression(ABC):
             new_vector[3] = original_v[2]
             self.assertVectorAlmostEqual(self._GetValue(entity, Kratos.PENALTY), new_vector * 2, 12)
 
-        combed = a.Comb([b, a])
+        combed = Kratos.Expression.Utils.Comb([a, b, a])
         combed *= 2.0
         self._Evaluate(combed, Kratos.PENALTY)
 
@@ -570,7 +570,7 @@ class TestContainerExpression(ABC):
         # Comb from a single scalar expression
         input_expression = self._GetContainerExpression()
         self._Read(input_expression, Kratos.PRESSURE)
-        combed = input_expression.Comb([])
+        combed = Kratos.Expression.Utils.Comb([input_expression])
         array = Kratos.Vector(input_expression.GetExpression().NumberOfEntities() * input_expression.GetItemComponentCount())
         Kratos.Expression.CArrayExpressionIO.Write(combed, array)
         for i_entity, entity in enumerate(combed.GetContainer()):
@@ -580,7 +580,10 @@ class TestContainerExpression(ABC):
         a = self._GetContainerExpression()
         self._Read(a, Kratos.INITIAL_STRAIN)
 
-        self._Evaluate((a.Comb([a.Slice(2, 2), a.Slice(3, 2)]) * 2).Reshape([5, 2]), Kratos.PK2_STRESS_TENSOR)
+        comb = Kratos.Expression.Utils.Comb
+        slice = Kratos.Expression.Utils.Slice
+        reshape = Kratos.Expression.Utils.Reshape
+        self._Evaluate(reshape(comb([a, slice(a, 2, 2), slice(a, 3, 2)]) * 2, [5, 2]), Kratos.PK2_STRESS_TENSOR)
 
         for entity in a.GetContainer():
             original_value = self._GetValue(entity, Kratos.INITIAL_STRAIN)
@@ -672,10 +675,10 @@ class TestContainerExpression(ABC):
         b = a + 10
         c = b * 2 + a
         d = c ** 2
-        e = d.Comb([a, d])
-        f = e.Reshape([6, 2])
-        g = f.Slice(2, 4)
-        h = g.Reshape([2, 2])
+        e = Kratos.Expression.Utils.Comb([a, a, d])
+        f = Kratos.Expression.Utils.Reshape(e, [6, 2])
+        g = Kratos.Expression.Utils.Slice(f, 2, 4)
+        h = Kratos.Expression.Utils.Reshape(g, [2, 2])
         i = h - a
         self.assertEqual(i.GetMaxDepth(), 10)
 

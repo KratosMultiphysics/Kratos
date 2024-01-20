@@ -25,8 +25,6 @@
 #include "expression/unary_reshape_expression.h"
 #include "expression/unary_combine_expression.h"
 
-// Application includes
-
 namespace Kratos
 {
 
