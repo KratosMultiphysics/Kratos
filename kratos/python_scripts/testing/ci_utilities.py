@@ -6,6 +6,8 @@ from pathlib import Path
 from pprint import pprint
 from typing import List, Set, Optional
 
+from KratosMultiphysics.kratos_utilities import GetKratosMultiphysicsPath
+
 
 def check_valid_environment_configuration_exists() -> None:
     if not getenv("KRATOS_CI_CHANGED_FILES"):
@@ -77,14 +79,16 @@ def write_compiled_apps_to_file() -> None:
     For now this adds everything, but in the future this will be depending on the actual changes of the PR
     """
     with open("ci_compiled_apps.txt", "w") as ci_apps_file:
+        kratos_path = Path(GetKratosMultiphysicsPath())
         for app in ci_applications():
-            ci_apps_file.write(f"{app}\;")
+            ci_apps_file.write(f"{kratos_path / 'applications' / app}\;")
 
 
 def write_tested_apps_to_file() -> None:
     with open("ci_tested_apps.txt", "w") as ci_apps_file:
+        kratos_path = Path(GetKratosMultiphysicsPath())
         for app in ci_applications():
-            ci_apps_file.write(f"{app}\;")
+            ci_apps_file.write(f"{kratos_path / 'applications' / app}\;")
 
 
 def prepare_ci():
