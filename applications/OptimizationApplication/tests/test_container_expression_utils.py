@@ -42,7 +42,7 @@ class TestContainerExpressionUtils(kratos_unittest.TestCase):
         Kratos.Expression.VariableExpressionIO.Read(a, Kratos.PRESSURE, True)
         Kratos.Expression.VariableExpressionIO.Read(b, Kratos.DENSITY, True)
 
-        self.assertEqual(KratosOA.ExpressionUtils.InnerProduct(a, b), 8100.0)
+        self.assertEqual(Kratos.Expression.Utils.InnerProduct(a, b), 8100.0)
 
     def test_ComputeNumberOfNeighbourConditions(self):
         neighbour_conditions = Kratos.Expression.NodalExpression(self.model_part)
@@ -234,7 +234,7 @@ class TestContainerExpressionUtils(kratos_unittest.TestCase):
         sparse_b = Kratos.Expression.NodalExpression(self.model_part)
         KratosOA.ExpressionUtils.ProductWithEntityMatrix(sparse_b, sparse_m, a)
 
-        self.assertEqual(KratosOA.ExpressionUtils.InnerProduct(dense_b - sparse_b, dense_b - sparse_b), 0)
+        self.assertEqual(Kratos.Expression.Utils.InnerProduct(dense_b - sparse_b, dense_b - sparse_b), 0)
 
     def test_Transpose(self):
         matrix_size = 10
@@ -357,7 +357,7 @@ class TestContainerExpressionUtils(kratos_unittest.TestCase):
         KratosOA.PropertiesVariableExpressionIO.Read(b, Kratos.PRESSURE)
 
         collective_1 = KratosOA.CollectiveExpression([a, b])
-        self.assertEqual(KratosOA.ExpressionUtils.InnerProduct(collective_1, collective_1), KratosOA.ExpressionUtils.InnerProduct(a, a) + KratosOA.ExpressionUtils.InnerProduct(b, b))
+        self.assertEqual(KratosOA.ExpressionUtils.InnerProduct(collective_1, collective_1), Kratos.Expression.Utils.InnerProduct(a, a) + Kratos.Expression.Utils.InnerProduct(b, b))
 
 if __name__ == "__main__":
     Kratos.Tester.SetVerbosity(Kratos.Tester.Verbosity.PROGRESS)  # TESTS_OUTPUTS

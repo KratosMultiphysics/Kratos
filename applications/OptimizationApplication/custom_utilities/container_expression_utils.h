@@ -64,24 +64,6 @@ public:
     /**
      * @brief Computes inner product between two container expressions by evaluating
      * both expressions for each entity in their containers, hence this is an
-     * expensive operation. Both containers should have the same model part,
-     * therefore they will have the same containers.
-     *
-     * This method is optimized and compatible with OpenMP and MPI.
-     *
-     * @tparam TContainerType
-     * @param rContainer1               Container variable data 1
-     * @param rContainer2               Container variable data 2
-     * @return double                   Output of the inner product.
-     */
-    template<class TContainerType>
-    static double InnerProduct(
-        const ContainerExpression<TContainerType>& rContainer1,
-        const ContainerExpression<TContainerType>& rContainer2);
-
-    /**
-     * @brief Computes inner product between two container expressions by evaluating
-     * both expressions for each entity in their containers, hence this is an
      * expensive operation. Both container expressions should have the same types of containe expressions,
      * therefore they may have the same container expressions lists.
      *
