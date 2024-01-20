@@ -115,12 +115,11 @@ public:
 
     IndexType GetMaxDepth() const override
     {
-        return (*std::max_element(
-                        mSourceExpressions.begin(),
-                        mSourceExpressions.end(),
-                        [](const auto& rV1, const auto& rV2) {
-                            return rV1->GetMaxDepth() < rV2->GetMaxDepth();
-                        }))->GetMaxDepth() + 1;
+        IndexType max_depth = 0;
+        for (const auto& p_expression : mSourceExpressions) {
+            max_depth = std::max(max_depth, p_expression->GetMaxDepth());
+        }
+        return max_depth + 1;
     }
 
     std::string Info() const override
