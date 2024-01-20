@@ -76,29 +76,40 @@ def write_compiled_apps_to_file() -> None:
     """This function add the applications that are to be compiled to the environment
     For now this adds everything, but in the future this will be depending on the actual changes of the PR
     """
-
-    with open("ci_apps.txt", "w") as ci_apps_file:
+    with open("ci_compiled_apps.txt", "w") as ci_apps_file:
         for app in ci_applications():
-            ci_apps_file.write(f"{app}\n")
+            ci_apps_file.write(f"{app}\;")
 
+
+def write_tested_apps_to_file() -> None:
+    with open("ci_tested_apps.txt", "w") as ci_apps_file:
+        for app in ci_applications():
+            ci_apps_file.write(f"{app}\;")
+
+
+def prepare_ci():
+    print_ci_information()
+    write_compiled_apps_to_file()
+    write_tested_apps_to_file()
 
 if __name__ == "__main__":
-    parser: ArgumentParser = ArgumentParser(description="Utilities for the continuous integration")
+    prepare_ci()
+    # parser: ArgumentParser = ArgumentParser(description="Utilities for the continuous integration")
 
-    option_groups = parser.add_mutually_exclusive_group(required=True)
+    # option_groups = parser.add_mutually_exclusive_group(required=True)
 
-    option_groups.add_argument(
-        "--compilation", action="store_true", help="Set the environment for the apps to be compiled"
-    )
-    option_groups.add_argument("--testing", action="store_true", help="Set the environment for the apps to be tested")
-    option_groups.add_argument("--info", action="store_true", help="Print information about this CI run")
+    # option_groups.add_argument(
+    #     "--compilation", action="store_true", help="Set the environment for the apps to be compiled"
+    # )
+    # option_groups.add_argument("--testing", action="store_true", help="Set the environment for the apps to be tested")
+    # option_groups.add_argument("--info", action="store_true", help="Print information about this CI run")
 
-    args = parser.parse_args()
+    # args = parser.parse_args()
 
-    if args.compilation:
-        write_compiled_apps_to_file()
-    elif args.testing:
-        # not yet implemented
-        pass
-    elif args.info:
-        print_ci_information()
+    # if args.compilation:
+    #     write_compiled_apps_to_file()
+    # elif args.testing:
+    #     # not yet implemented
+    #     pass
+    # elif args.info:
+    #     print_ci_information()

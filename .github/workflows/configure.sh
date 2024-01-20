@@ -8,10 +8,6 @@
 # You can find a list with all the compilation options in INSTALL.md or here:
 #   - https://github.com/KratosMultiphysics/Kratos/wiki/Compilation-options
 
-add_app () {
-    export KRATOS_APPLICATIONS="${KRATOS_APPLICATIONS}$1;"
-}
-
 # Set variables
 export KRATOS_SOURCE="${KRATOS_SOURCE:-${PWD}}"
 export KRATOS_BUILD="${KRATOS_SOURCE}/build"
@@ -20,12 +16,7 @@ export PYTHON_EXECUTABLE="/usr/bin/python3.8"
 export KRATOS_INSTALL_PYTHON_USING_LINKS=ON
 
 # Set applications to compile .. see "ci_apps_linux.json"
-input="ci_apps.txt"
-while IFS= read -r line
-do
-  add_app ${KRATOS_APP_DIR}/${line};
-done < "$input"
-# add_app ${KRATOS_APP_DIR}/ConvectionDiffusionApplication;
+export KRATOS_APPLICATIONS_FILE="${KRATOS_SOURCE}/ci_compiled_apps.txt"
 
 # Clean
 clear
