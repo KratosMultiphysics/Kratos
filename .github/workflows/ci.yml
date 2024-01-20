@@ -92,7 +92,6 @@ jobs:
         fi
         source /opt/intel/oneapi/setvars.sh
         cp .github/workflows/configure.sh configure.sh
-        python3 kratos/python_scripts/testing/ci_utilities.py
         bash configure.sh
 
     - name: Running python tests
@@ -200,7 +199,6 @@ jobs:
       shell: cmd
       run: |
         copy .\.github\workflows\configure.cmd
-        python kratos/python_scripts/testing/ci_utilities.py
         configure.cmd
 
     - name: Running python tests
