@@ -115,6 +115,15 @@ Expression::ConstPointer ExpressionUtils::Scale(
     const Expression::ConstPointer& rpExpression,
     const Expression::ConstPointer& rpScaleExpression)
 {
+    KRATOS_ERROR_IF_NOT(rpExpression->NumberOfEntities() == rpScaleExpression->NumberOfEntities())
+        << "Operand size mismatch in binary operator: Scale!\n"
+        << "Expression operand: " << *rpExpression << '\n'
+        << "Scale operand: " << *rpScaleExpression;
+    KRATOS_ERROR_IF_NOT(rpExpression->GetItemComponentCount() == rpScaleExpression->GetItemComponentCount() || rpScaleExpression->GetItemComponentCount() == 1)
+        << "Incompatible operand item component sizes in binary operator: Scale!\n"
+        << "Expression operand: " << *rpExpression << '\n'
+        << "Scale operand: " << *rpScaleExpression;
+
     return BinaryExpression<BinaryOperations::Multiplication>::Create(rpExpression, rpScaleExpression);
 }
 
