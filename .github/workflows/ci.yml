@@ -71,7 +71,7 @@ jobs:
 
     - name: CI configuration
       shell: bash
-      run: python3 kratos/python_scripts/testing/ci_utilities.py --info
+      run: python3 kratos/python_scripts/testing/ci_utilities.py
 
     - name: Build
       shell: bash
@@ -92,7 +92,7 @@ jobs:
         fi
         source /opt/intel/oneapi/setvars.sh
         cp .github/workflows/configure.sh configure.sh
-        python3 kratos/python_scripts/testing/ci_utilities.py --compilation
+        python3 kratos/python_scripts/testing/ci_utilities.py
         bash configure.sh
 
     - name: Running python tests
@@ -101,7 +101,6 @@ jobs:
         source /opt/intel/oneapi/setvars.sh
         export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}
         export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}/libs
-        python3 kratos/python_scripts/testing/ci_utilities.py --testing
         python3 kratos/python_scripts/testing/run_tests.py -v 2 -l nightly -c python3
 
     - name: Prepare Parallel Env
@@ -179,7 +178,7 @@ jobs:
 
     - name: CI configuration
       shell: bash
-      run: python3 kratos/python_scripts/testing/ci_utilities.py --info
+      run: python3 kratos/python_scripts/testing/ci_utilities.py
 
     - name: Download boost
       run: |
@@ -201,6 +200,7 @@ jobs:
       shell: cmd
       run: |
         copy .\.github\workflows\configure.cmd
+        python kratos/python_scripts/testing/ci_utilities.py
         configure.cmd
 
     - name: Running python tests
@@ -230,7 +230,7 @@ jobs:
 
     - name: CI configuration
       shell: bash
-      run: python3.8 kratos/python_scripts/testing/ci_utilities.py --info
+      run: python3.8 kratos/python_scripts/testing/ci_utilities.py
 
     - name: Build
       run: |
@@ -269,7 +269,7 @@ jobs:
 
     - name: CI configuration
       shell: bash
-      run: python3 kratos/python_scripts/testing/ci_utilities.py --info
+      run: python3 kratos/python_scripts/testing/ci_utilities.py
 
     - name: Cache Build
       id: cache-build
@@ -390,11 +390,11 @@ jobs:
 
     - name: CI configuration
       shell: bash
-      run: python3 kratos/python_scripts/testing/ci_utilities.py --info
+      run: python3 kratos/python_scripts/testing/ci_utilities.py
 
     - name: Download boost
       run: |
-        $url = "https://boostorg.jfrog.io/artifactory/main/release/1.74.0/source/boost_1_74_0.tar.gz"
+        $url = "https://archives.boost.io/release/1.74.0/source/boost_1_74_0.tar.gz"
         (New-Object System.Net.WebClient).DownloadFile($url, "$env:TEMP\boost.tar.gz")
         7z.exe x "$env:TEMP\boost.tar.gz" -o"$env:TEMP\boostArchive" -y | Out-Null
         7z.exe x "$env:TEMP\boostArchive" -o"$env:TEMP\boost" -y | Out-Null
@@ -564,7 +564,7 @@ jobs:
 
     - name: CI configuration
       shell: bash
-      run: python3 kratos/python_scripts/testing/ci_utilities.py --info
+      run: python3 kratos/python_scripts/testing/ci_utilities.py
 
     - name: Build
       shell: bash
