@@ -14,6 +14,7 @@
 
 // System includes
 #include <string>
+#include <limits>
 
 // Project includes
 #include "expression/expression.h"
@@ -25,9 +26,9 @@ namespace Kratos {
 
 namespace UnaryStatisticOperations
 {
-    struct Min { static inline constexpr double Evaluate(const double V1, const double V2) { return std::min(V1, V2); } };
-    struct Max { static inline constexpr double Evaluate(const double V1, const double V2) { return std::max(V1, V2); } };
-    struct Sum { static inline constexpr double Evaluate(const double V1, const double V2) { return V1 + V2; } };
+    struct Min { static inline constexpr double mInitial = std::numeric_limits<double>::max();  static inline constexpr double Evaluate(const double V1, const double V2) { return std::min(V1, V2); } };
+    struct Max { static inline constexpr double mInitial = std::numeric_limits<double>::lowest(); static inline constexpr double Evaluate(const double V1, const double V2) { return std::max(V1, V2); } };
+    struct Sum { static inline constexpr double mInitial = 0.0; static inline constexpr double Evaluate(const double V1, const double V2) { return V1 + V2; } };
 }
 
 /**

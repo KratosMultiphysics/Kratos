@@ -680,7 +680,79 @@ class TestContainerExpression(ABC):
         g = Kratos.Expression.Utils.Slice(f, 2, 4)
         h = Kratos.Expression.Utils.Reshape(g, [2, 2])
         i = h - a
-        self.assertEqual(i.GetMaxDepth(), 10)
+        j = Kratos.Expression.Utils.Abs(i)
+        k = Kratos.Expression.Utils.EntitySum(j)
+        self.assertEqual(k.GetMaxDepth(), 12)
+
+    def test_Collapse(self):
+        a = self._GetContainerExpression()
+        self._Read(a, Kratos.GREEN_LAGRANGE_STRAIN_TENSOR)
+        b = a + 10
+        c = b * 2 + a
+        d = c ** 2
+        e = Kratos.Expression.Utils.Collapse(d)
+        self.assertEqual(d.GetMaxDepth(), 5)
+        self.assertEqual(e.GetMaxDepth(), 1)
+        self.assertEqual(Kratos.Expression.Utils.NormInf(e-d), 0.0)
+
+    def test_Abs(self):
+        a = self._GetContainerExpression()
+        self._Read(a, Kratos.PRESSURE)
+        b = a * -1
+        c = Kratos.Expression.Utils.Abs(b)
+        for v1, v2, v3 in zip(a.Evaluate(), b.Evaluate(), c.Evaluate()):
+            self.assertEqual(v1, -v2)
+            self.assertEqual(v3, abs(v2))
+
+    def test_EntityMin(self):
+        a = self._GetContainerExpression()
+        self._Read(a, Kratos.GREEN_LAGRANGE_STRAIN_TENSOR)
+        b = Kratos.Expression.Utils.EntityMin(a)
+
+        for v1, v2 in zip(a.Evaluate(), b.Evaluate()):
+            self.assertEqual(numpy.min(v1), v2)
+
+    def test_EntityMax(self):
+        a = self._GetContainerExpression()
+        self._Read(a, Kratos.GREEN_LAGRANGE_STRAIN_TENSOR)
+        b = Kratos.Expression.Utils.EntityMax(a * -1)
+
+        for v1, v2 in zip(a.Evaluate(), b.Evaluate()):
+            self.assertEqual(numpy.max(-v1), v2)
+
+    def test_EntitySum(self):
+        a = self._GetContainerExpression()
+        self._Read(a, Kratos.GREEN_LAGRANGE_STRAIN_TENSOR)
+        b = Kratos.Expression.Utils.EntitySum(a)
+
+        for v1, v2 in zip(a.Evaluate(), b.Evaluate()):
+            self.assertEqual(numpy.sum(v1), v2)
+
+    def test_NormInf(self):
+        a = self._GetContainerExpression()
+        self._Read(a, Kratos.VELOCITY)
+        a *= -1
+        c = a.Evaluate().reshape([len(self._GetContainer()) * 3])
+        self.assertAlmostEqual(Kratos.Expression.Utils.NormInf(a), numpy.linalg.norm(c, ord=numpy.inf), 9)
+
+    def test_NormL2(self):
+        a = self._GetContainerExpression()
+        self._Read(a, Kratos.VELOCITY)
+        a *= -1
+        c = a.Evaluate().reshape([len(self._GetContainer()) * 3])
+        self.assertAlmostEqual(Kratos.Expression.Utils.NormL2(a), numpy.linalg.norm(c, ord=2), 9)
+
+    def test_NormP(self):
+        a = self._GetContainerExpression()
+        self._Read(a, Kratos.VELOCITY)
+        a *= -1
+        c = a.Evaluate().reshape([len(self._GetContainer()) * 3])
+        self.assertAlmostEqual(Kratos.Expression.Utils.NormP(a, 3), numpy.linalg.norm(c, ord=3), 9)
+
+    def test_InnerProduct(self):
+        a = self._GetContainerExpression()
+        self._Read(a, Kratos.VELOCITY)
+        self.assertAlmostEqual(Kratos.Expression.Utils.InnerProduct(a, a), numpy.linalg.norm(a.Evaluate()) ** 2, 9)
 
     @abstractmethod
     def _GetContainerExpression(self) -> ExpressionUnionType:

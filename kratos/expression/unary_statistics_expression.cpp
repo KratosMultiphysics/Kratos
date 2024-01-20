@@ -41,7 +41,7 @@ double UnaryStatisticsExpression<TOperationType>::Evaluate(
     const IndexType ComponentIndex) const
 {
     const auto source_entity_begin_index = EntityIndex * mItemComponentCount;
-    double norm_value = 0.0;
+    double norm_value = TOperationType::mInitial;
     for (IndexType ComponentIndex = 0; ComponentIndex < mItemComponentCount; ++ComponentIndex) {
         norm_value = TOperationType::Evaluate(norm_value, mpSourceExpression->Evaluate(EntityIndex, source_entity_begin_index, ComponentIndex));
     }
