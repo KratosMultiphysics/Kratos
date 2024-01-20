@@ -562,7 +562,9 @@ add_subdirectory(kratos)
 message(STATUS "Configuring applications (ENV):")
 set_property(GLOBAL PROPERTY LIST_OF_APPLICATIONS_ADDED_THROUGH_DEPENDENCIES)
 
-
+# The apps that are to be compiled can be specified in a file and set with env-var "KRATOS_APPLICATIONS_FILE"
+# The applications are expected to be separated with escaped semicolons: "\;" (escaping is required by CMake)
+# e.g. "apps/app1\;other_folder/app2\;apps/new_app"
 if(DEFINED ENV{KRATOS_APPLICATIONS_FILE})
   # first some checks
   if(NOT EXISTS $ENV{KRATOS_APPLICATIONS_FILE})
