@@ -328,10 +328,10 @@ public:
     #define KRATOS_EXPRESSION_UTILS_CEXP_METHOD_1(METHOD_NAME)                      \
         template <class TContainerType>                                             \
         static ContainerExpression<TContainerType> METHOD_NAME(                     \
-            const ContainerExpression<TContainerType>& rContainerEXpression)        \
+            const ContainerExpression<TContainerType>& rContainerExpression)        \
         {                                                                           \
-            auto copy = rContainerEXpression;                                       \
-            copy.SetExpression(METHOD_NAME(rContainerEXpression.pGetExpression())); \
+            auto copy = rContainerExpression;                                       \
+            copy.SetExpression(METHOD_NAME(rContainerExpression.pGetExpression())); \
             return copy;                                                            \
         }
     #endif

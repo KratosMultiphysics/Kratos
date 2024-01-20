@@ -177,63 +177,6 @@ double ContainerExpressionUtils::EntityMaxNormL2(const ContainerExpression<TCont
 }
 
 template<class TContainerType>
-double ContainerExpressionUtils::NormInf(const ContainerExpression<TContainerType>& rContainer)
-{
-    const auto& r_expression = rContainer.GetExpression();
-    const IndexType local_size = rContainer.GetItemComponentCount();
-    const IndexType number_of_entities = rContainer.GetContainer().size();
-
-    return rContainer.GetModelPart().GetCommunicator().GetDataCommunicator().MaxAll(IndexPartition<IndexType>(number_of_entities).for_each<MaxReduction<double>>([&r_expression, local_size](const IndexType EntityIndex) {
-        const IndexType local_data_begin_index = EntityIndex * local_size;
-        double value = std::numeric_limits<double>::lowest();
-        for (IndexType i = 0; i < local_size; ++i) {
-            value = std::max(value, std::abs(r_expression.Evaluate(EntityIndex, local_data_begin_index, i)));
-        }
-        return value;
-    }));
-}
-
-double ContainerExpressionUtils::NormInf(
-    const CollectiveExpression& rContainer)
-{
-    double max_norm = std::numeric_limits<double>::lowest();
-    for (const auto& p_variable_data_container : rContainer.GetContainerExpressions()) {
-        std::visit([&max_norm](const auto& v) { max_norm = std::max(max_norm, NormInf(*v));}, p_variable_data_container);
-    }
-    return max_norm;
-}
-
-template<class TContainerType>
-double ContainerExpressionUtils::NormL2(
-    const ContainerExpression<TContainerType>& rContainer)
-{
-    const auto& r_expression = rContainer.GetExpression();
-    const IndexType local_size = rContainer.GetItemComponentCount();
-    const IndexType number_of_entities = rContainer.GetContainer().size();
-
-    const double local_l2_norm_square = IndexPartition<IndexType>(number_of_entities).for_each<SumReduction<double>>([&r_expression, local_size](const IndexType EntityIndex) {
-        const IndexType local_data_begin_index = EntityIndex * local_size;
-        double value = 0.0;
-        for (IndexType i = 0; i < local_size; ++i) {
-            value += std::pow(r_expression.Evaluate(EntityIndex, local_data_begin_index, i), 2);
-        }
-        return value;
-    });
-
-    return std::sqrt(rContainer.GetModelPart().GetCommunicator().GetDataCommunicator().SumAll(local_l2_norm_square));
-}
-
-double ContainerExpressionUtils::NormL2(
-    const CollectiveExpression& rContainer)
-{
-    double l2_norm_square = 0.0;
-    for (const auto& p_variable_data_container : rContainer.GetContainerExpressions()) {
-        std::visit([&l2_norm_square](const auto& v) { l2_norm_square += std::pow(NormL2(*v), 2);}, p_variable_data_container);
-    }
-    return std::sqrt(l2_norm_square);
-}
-
-template<class TContainerType>
 double ContainerExpressionUtils::InnerProduct(
     const ContainerExpression<TContainerType>& rContainer1,
     const ContainerExpression<TContainerType>& rContainer2)
@@ -652,8 +595,6 @@ void ContainerExpressionUtils::ComputeNodalVariableProductWithEntityMatrix(
 // template instantiations
 #define KRATOS_INSTANTIATE_UTILITY_METHOD_FOR_CONTAINER_TYPE(ContainerType)                                                                                                                                                      \
     template KRATOS_API(OPTIMIZATION_APPLICATION) double ContainerExpressionUtils::EntityMaxNormL2(const ContainerExpression<ContainerType>&);                                                                                                                        \
-    template KRATOS_API(OPTIMIZATION_APPLICATION) double ContainerExpressionUtils::NormInf(const ContainerExpression<ContainerType>&);                                                                                                                                \
-    template KRATOS_API(OPTIMIZATION_APPLICATION) double ContainerExpressionUtils::NormL2(const ContainerExpression<ContainerType>&);                                                                                                                                 \
     template KRATOS_API(OPTIMIZATION_APPLICATION) double ContainerExpressionUtils::InnerProduct(const ContainerExpression<ContainerType>&, const ContainerExpression<ContainerType>&);                                                                                \
     template KRATOS_API(OPTIMIZATION_APPLICATION) void ContainerExpressionUtils::ProductWithEntityMatrix(ContainerExpression<ContainerType>&, const typename UblasSpace<double, CompressedMatrix, Vector>::MatrixType&, const ContainerExpression<ContainerType>&);   \
     template KRATOS_API(OPTIMIZATION_APPLICATION) void ContainerExpressionUtils::ProductWithEntityMatrix(ContainerExpression<ContainerType>&, const Matrix&, const ContainerExpression<ContainerType>&);
