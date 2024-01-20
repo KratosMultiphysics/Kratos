@@ -22,6 +22,7 @@
 #include "expression/c_array_expression_io.h"
 #include "expression/expression.h"
 #include "expression/expression_io.h"
+#include "expression/integration_point_expression_io.h"
 #include "expression/literal_expression.h"
 #include "expression/literal_expression_input.h"
 #include "expression/literal_flat_expression.h"
@@ -277,6 +278,24 @@ void AddExpressionIOToPython(pybind11::module& rModule)
                                pybind11::arg("element_container_expression"),
                                pybind11::arg("variable"));
 
+    auto integration_point_expression_io = rModule.def_submodule("IntegrationPointExpressionIO");
+    integration_point_expression_io.def("Read",
+                               &IntegrationPointExpressionIO::Read<ModelPart::ConditionsContainerType, MeshType::Local>,
+                               pybind11::arg("condition_container_expression"),
+                               pybind11::arg("variable"));
+    integration_point_expression_io.def("Read",
+                               &IntegrationPointExpressionIO::Read<ModelPart::ElementsContainerType, MeshType::Local>,
+                               pybind11::arg("element_container_expression"),
+                               pybind11::arg("variable"));
+    integration_point_expression_io.def("Write",
+                               &IntegrationPointExpressionIO::Write<ModelPart::ConditionsContainerType, MeshType::Local>,
+                               pybind11::arg("condition_container_expression"),
+                               pybind11::arg("variable"));
+    integration_point_expression_io.def("Write",
+                               &IntegrationPointExpressionIO::Write<ModelPart::ElementsContainerType, MeshType::Local>,
+                               pybind11::arg("element_container_expression"),
+                               pybind11::arg("variable"));
+
     pybind11::class_<ExpressionInput, Detail::ExpressionInputTrampoline, ExpressionInput::Pointer>(variable_expression_io, "ExpressionInput")
         .def("Execute", &ExpressionInput::Execute)
         ;
@@ -310,6 +329,24 @@ void AddExpressionIOToPython(pybind11::module& rModule)
     pybind11::class_<VariableExpressionIO::VariableExpressionOutput, VariableExpressionIO::VariableExpressionOutput::Pointer, ExpressionOutput>(variable_expression_io, "Output")
         .def(pybind11::init<ModelPart&,
                             const VariableExpressionIO::VariableType&,
+                            const ContainerType&>(),
+             pybind11::arg("model_part"),
+             pybind11::arg("variable"),
+             pybind11::arg("container_type"))
+        ;
+
+    pybind11::class_<IntegrationPointExpressionIO::Input, IntegrationPointExpressionIO::Input::Pointer, ExpressionInput>(integration_point_expression_io, "Input")
+        .def(pybind11::init<ModelPart&,
+                            const IntegrationPointExpressionIO::VariableType&,
+                            const ContainerType&>(),
+             pybind11::arg("model_part"),
+             pybind11::arg("variable"),
+             pybind11::arg("container_type"))
+        ;
+
+    pybind11::class_<IntegrationPointExpressionIO::Output, IntegrationPointExpressionIO::Output::Pointer, ExpressionOutput>(integration_point_expression_io, "Output")
+        .def(pybind11::init<ModelPart&,
+                            const IntegrationPointExpressionIO::VariableType&,
                             const ContainerType&>(),
              pybind11::arg("model_part"),
              pybind11::arg("variable"),

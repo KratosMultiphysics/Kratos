@@ -546,6 +546,7 @@ void AddOtherUtilitiesToPython(pybind11::module &m)
         .def("UpdateSensitivities", &SensitivityBuilder::UpdateSensitivities)
         .def("FinalizeSolutionStep", &SensitivityBuilder::FinalizeSolutionStep)
         .def("Finalize", &SensitivityBuilder::Finalize)
+        .def("SetResponseFunction", &SensitivityBuilder::SetResponseFunction, py::arg("new_response_function"))
         ;
 
     //Sensitivity utilities
