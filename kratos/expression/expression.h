@@ -192,6 +192,9 @@ public:
      *
      * Returns the maximum depth of the lazy expression tree.
      *
+     * @warning This is a recursive computation, hence this should not
+     *          be done repeatedly unless necessary.
+     *
      * @return IndexType Max depth of the lazy expression tree.
      */
     virtual IndexType GetMaxDepth() const = 0;
