@@ -53,6 +53,8 @@ class TestContainerExpression(ABC):
             element.SetValue(Kratos.INITIAL_STRAIN, Kratos.Vector([id+3, id+4, id+5, id+6, id+7, id+8]))
             element.SetValue(Kratos.GREEN_LAGRANGE_STRAIN_TENSOR, Kratos.Matrix([[id+3, id+4], [id+5, id+6]]))
 
+        cls.data_comm: Kratos.DataCommunicator = cls.model_part.GetCommunicator().GetDataCommunicator()
+
     def test_ContainerExpressionAdd(self):
         a = self._GetContainerExpression()
         b = self._GetContainerExpression()
@@ -736,26 +738,26 @@ class TestContainerExpression(ABC):
         self._Read(a, Kratos.VELOCITY)
         a *= -1
         c = a.Evaluate().reshape([len(self._GetContainer()) * 3])
-        self.assertAlmostEqual(Kratos.Expression.Utils.NormInf(a), numpy.linalg.norm(c, ord=numpy.inf), 9)
+        self.assertAlmostEqual(Kratos.Expression.Utils.NormInf(a), self.data_comm.MaxAll(numpy.linalg.norm(c, ord=numpy.inf)), 9)
 
     def test_NormL2(self):
         a = self._GetContainerExpression()
         self._Read(a, Kratos.VELOCITY)
         a *= -1
         c = a.Evaluate().reshape([len(self._GetContainer()) * 3])
-        self.assertAlmostEqual(Kratos.Expression.Utils.NormL2(a), numpy.linalg.norm(c, ord=2), 9)
+        self.assertAlmostEqual(Kratos.Expression.Utils.NormL2(a), self.data_comm.SumAll(numpy.linalg.norm(c, ord=2) ** 2) ** 0.5, 9)
 
     def test_NormP(self):
         a = self._GetContainerExpression()
         self._Read(a, Kratos.VELOCITY)
         a *= -1
         c = a.Evaluate().reshape([len(self._GetContainer()) * 3])
-        self.assertAlmostEqual(Kratos.Expression.Utils.NormP(a, 3), numpy.linalg.norm(c, ord=3), 9)
+        self.assertAlmostEqual(Kratos.Expression.Utils.NormP(a, 3), self.data_comm.SumAll(numpy.linalg.norm(c, ord=3) ** 3) ** (1/3), 9)
 
     def test_InnerProduct(self):
         a = self._GetContainerExpression()
         self._Read(a, Kratos.VELOCITY)
-        self.assertAlmostEqual(Kratos.Expression.Utils.InnerProduct(a, a), numpy.linalg.norm(a.Evaluate()) ** 2, 9)
+        self.assertAlmostEqual(Kratos.Expression.Utils.InnerProduct(a, a), self.data_comm.SumAll(numpy.linalg.norm(a.Evaluate()) ** 2), 9)
 
     @abstractmethod
     def _GetContainerExpression(self) -> ExpressionUnionType:
