@@ -582,10 +582,10 @@ class TestContainerExpression(ABC):
         a = self._GetContainerExpression()
         self._Read(a, Kratos.INITIAL_STRAIN)
 
-        comb = Kratos.Expression.Utils.Comb
-        slice = Kratos.Expression.Utils.Slice
-        reshape = Kratos.Expression.Utils.Reshape
-        self._Evaluate(reshape(comb([a, slice(a, 2, 2), slice(a, 3, 2)]) * 2, [5, 2]), Kratos.PK2_STRESS_TENSOR)
+        km_comb = Kratos.Expression.Utils.Comb
+        km_slice = Kratos.Expression.Utils.Slice
+        km_reshape = Kratos.Expression.Utils.Reshape
+        self._Evaluate(km_reshape(km_comb([a, km_slice(a, 2, 2), km_slice(a, 3, 2)]) * 2, [5, 2]), Kratos.PK2_STRESS_TENSOR)
 
         for entity in a.GetContainer():
             original_value = self._GetValue(entity, Kratos.INITIAL_STRAIN)
