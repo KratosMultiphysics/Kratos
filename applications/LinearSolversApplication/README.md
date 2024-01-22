@@ -138,7 +138,7 @@ In case you have installed [MKL](https://software.intel.com/en-us/mkl) (see belo
     **Linux:**
 
     ```bash
-    source /opt/intel/mkl/bin/mklvars.sh intel64 lp64
+    source /opt/intel/oneapi/setvars.sh
     ```
 
 2. Add the following flag to CMake to your configure script:
@@ -182,30 +182,23 @@ In case you have installed [MKL](https://software.intel.com/en-us/mkl) (see belo
 
 ## Install MKL on Ubuntu with apt
 
-Intel MKL can be installed with apt on Ubuntu. A guide can be found in https://software.intel.com/en-us/articles/installing-intel-free-libs-and-python-apt-repo.
-For example to install the MKL 2020 version
+Intel MKL can be installed with apt on Ubuntu. A guide can be found in https://www.intel.com/content/www/us/en/developer/tools/oneapi/onemkl-download.html?operatingsystem=linux&distributions=aptpackagemanager.
+For example to install the MKL 2024 version
 
 ```bash
-sudo bash
-# <type your user password when prompted.  this will put you in a root shell>
-# cd to /tmp where this shell has write permission
-cd /tmp
-# now get the key:
-wget https://apt.repos.intel.com/intel-gpg-keys/GPG-PUB-KEY-INTEL-SW-PRODUCTS-2019.PUB
-# now install that key
-apt-key add GPG-PUB-KEY-INTEL-SW-PRODUCTS-2019.PUB
-# now remove the public key file exit the root shell
-rm GPG-PUB-KEY-INTEL-SW-PRODUCTS-2019.PUB
-# add the repository for mkl only (other packages are not needed here)
-sh -c 'echo deb https://apt.repos.intel.com/mkl all main > /etc/apt/sources.list.d/intel-mkl.list'
-apt-get update -y
-# install specific version of intel-mkl
-apt-get install -y intel-mkl-2020.0-088
-exit
+# 1. Set up the repository. To do this, download the key to the system keyring:
+wget -O- https://apt.repos.intel.com/intel-gpg-keys/GPG-PUB-KEY-INTEL-SW-PRODUCTS.PUB \
+| gpg --dearmor | sudo tee /usr/share/keyrings/oneapi-archive-keyring.gpg > /dev/null
+# 2. Add the signed entry to APT sources and configure the APT client to use the Intel repository:
+echo "deb [signed-by=/usr/share/keyrings/oneapi-archive-keyring.gpg] https://apt.repos.intel.com/oneapi all main" | sudo tee /etc/apt/sources.list.d/oneAPI.list
+# 3. Update the packages list and repository index.
+sudo apt update
+# 4. Install Intel® oneAPI Math Kernel Library (devel to get include files):
+sudo apt install intel-oneapi-mkl-devel
 ```
 
 To enable the MKL environment (needs to be done before build/run) use
 
 ```bash
-source /opt/intel/mkl/bin/mklvars.sh intel64 lp64
+source /opt/intel/oneapi/setvars.sh
 ```
