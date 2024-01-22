@@ -29,7 +29,7 @@ namespace Kratos
 
 /// Delete particle elements and conditions with flag TO_ERASE
 
-class ParticleEraseProcess
+class MaterialPointEraseProcess
         : public Process
 {
 public:
@@ -38,14 +38,14 @@ public:
     ///@{
 
     /// Pointer definition of NodeAndElementEraseProcess
-    KRATOS_CLASS_POINTER_DEFINITION(ParticleEraseProcess);
+    KRATOS_CLASS_POINTER_DEFINITION(MaterialPointEraseProcess);
 
     ///@}
     ///@name Life Cycle
     ///@{
 
     /// Default constructor.
-    ParticleEraseProcess(ModelPart& model_part)
+    MaterialPointEraseProcess(ModelPart& model_part)
         : mr_model_part(model_part)
     {
     }
@@ -71,13 +71,13 @@ public:
         mr_model_part.RemoveElements( TO_ERASE );
         const int num_removed_elements = initial_num_element - mr_model_part.NumberOfElements();
 
-        KRATOS_WARNING_IF("ParticleEraseProcess", num_removed_elements > 0) << num_removed_elements << " particle elements have been erased.\n";
+        KRATOS_WARNING_IF("MaterialPointEraseProcess", num_removed_elements > 0) << num_removed_elements << " particle elements have been erased.\n";
 
         const int initial_num_condition = mr_model_part.NumberOfConditions();
         mr_model_part.RemoveConditions( TO_ERASE );
         const int num_removed_condition = initial_num_condition - mr_model_part.NumberOfConditions();
 
-        KRATOS_WARNING_IF("ParticleEraseProcess", num_removed_condition > 0) << num_removed_condition << " particle conditions have been erased.\n";
+        KRATOS_WARNING_IF("MaterialPointEraseProcess", num_removed_condition > 0) << num_removed_condition << " particle conditions have been erased.\n";
 
         KRATOS_CATCH("");
     }
@@ -89,13 +89,13 @@ public:
     /// Turn back information as a string.
     std::string Info() const override
     {
-        return "ParticleEraseProcess";
+        return "MaterialPointEraseProcess";
     }
 
     /// Print information about this object.
     void PrintInfo(std::ostream& rOStream) const override
     {
-        rOStream << "ParticleEraseProcess";
+        rOStream << "MaterialPointEraseProcess";
     }
 
     /// Print object's data.
@@ -123,11 +123,11 @@ private:
 
 /// input stream function
 inline std::istream& operator >> (std::istream& rIStream,
-                                  ParticleEraseProcess& rThis);
+                                  MaterialPointEraseProcess& rThis);
 
 /// output stream function
 inline std::ostream& operator << (std::ostream& rOStream,
-                                  const ParticleEraseProcess& rThis)
+                                  const MaterialPointEraseProcess& rThis)
 {
     rThis.PrintInfo(rOStream);
     rOStream << std::endl;
