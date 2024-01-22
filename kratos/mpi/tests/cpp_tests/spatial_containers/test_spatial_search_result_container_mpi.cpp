@@ -108,6 +108,54 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISpatialSearchResultContainerSynchronize
     KRATOS_EXPECT_EQ(r_global_pointers.size(), container.NumberOfGlobalResults());
 }
 
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISpatialSearchResultContainerBarrier, KratosMPICoreFastSuite)
+{
+    // The data communicator
+    const DataCommunicator& r_data_comm = Testing::GetDefaultDataCommunicator();
+
+    // MPI data
+    const int world_size = r_data_comm.Size();
+    const int current_rank = r_data_comm.Rank();
+
+    // We will gather on every node the global pointers of the nodes with index from current_rank(+1) to world_size
+    std::vector<int> ranks;
+    ranks.reserve(world_size - 1);
+    for(int i = 1; i < world_size; ++i) {
+        ranks.push_back(i);
+    }
+
+    // Create a test object
+    if (current_rank > 0) {
+        auto& r_partial_data_comm = r_data_comm.GetSubDataCommunicator(ranks, "SubDataComm");
+
+        // Create a test object
+        SpatialSearchResultContainer<GeometricalObject> container(r_partial_data_comm);
+
+        // Create a test result
+        GeometricalObject object = GeometricalObject(1);
+        SpatialSearchResult<GeometricalObject> result(&object);
+
+        // Add the result to the container
+        container.AddResult(result);
+
+        // Synchronize the container between partitions
+        container.SynchronizeAll();
+
+        // Using Barrier
+        container.Barrier();
+
+        // Check that the result was added correctly
+        auto& r_local_pointers = container.GetLocalResults();
+        KRATOS_EXPECT_EQ(r_local_pointers.size(), 1);
+        KRATOS_EXPECT_EQ(r_local_pointers.size(), container.NumberOfLocalResults());
+
+        // Check global pointers
+        auto& r_global_pointers = container.GetGlobalResults();
+        KRATOS_EXPECT_EQ(static_cast<int>(r_global_pointers.size()), r_partial_data_comm.Size());
+        KRATOS_EXPECT_EQ(r_global_pointers.size(), container.NumberOfGlobalResults());
+    }
+}
+
 KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISpatialSearchResultContainerSynchronizeAllPartialPartitions, KratosMPICoreFastSuite)
 {
     // The data communicator

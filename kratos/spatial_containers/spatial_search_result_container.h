@@ -55,6 +55,9 @@ public:
     /// The index type
     using IndexType = std::size_t;
 
+    /// Defining signed index type
+    using SignedIndexType = std::ptrdiff_t;
+
     /// Spatial search result type
     using SpatialSearchResultType = SpatialSearchResult<TObjectType>;
 
@@ -428,16 +431,19 @@ public:
 
     /**
      * @brief Generate the global pointer communicator
-     * @param rDataCommunicator The data communicator
      */
     void GenerateGlobalPointerCommunicator();
 
     /**
      * @brief Synchronize the container between partitions
      * @details This method synchronizes the container between partitions
-     * @param rDataCommunicator The data communicator
      */
     void SynchronizeAll();
+
+    /**
+     * @brief Enforces a barrier, waiting for other partitions
+     */
+    void Barrier();
 
     /**
      * @brief Applies a user-provided function to the global pointers and return a proxy to the results.
@@ -604,21 +610,41 @@ public:
     }
 
     /**
-    * @brief Get the index value.
-    * @return The index value.
+    * @brief Retrieve the global index value.
+    * @return The global index value.
     */
-    IndexType GetIndex() const
+    IndexType GetGlobalIndex() const
     {
-        return mIndex;
+        return mGlobalIndex;
     }
 
     /**
-    * @brief Set the index value.
-    * @param Index The index value to set.
+    * @brief Update the global index value.
+    * @param Index The global index value to assign.
     */
-    void SetIndex(const IndexType Index)
+    void SetGlobalIndex(const IndexType GlobalIndex)
     {
-        mIndex = Index;
+        // Assign the global index
+        mGlobalIndex = GlobalIndex;
+    }
+
+    /**
+    * @brief Get the local index value.
+    * @return The local index value.
+    */
+    SignedIndexType GetLocalIndex() const
+    {
+        return mLocalIndex;
+    }
+
+    /**
+    * @brief Set the local index value.
+    * @param Index The local index value to set.
+    */
+    void SetLocalIndex(const SignedIndexType LocalIndex)
+    {
+        // Assign index
+        mLocalIndex = LocalIndex;
     }
 
     ///@}
@@ -626,7 +652,16 @@ public:
     ///@{
 
     /**
-     * @brief Check if the current rank is the same as the rank of the data communicator.
+     * @brief Check if the point of the search is local.
+     * @return true if the ranks match, false otherwise.
+     */
+    bool IsLocalPoint() const
+    {
+        return mLocalIndex >= 0;
+    }
+
+    /**
+     * @brief Check if the search rank is the same as the rank of the data communicator.
      * @return true if the ranks match, false otherwise.
      */
     bool IsLocalSearch() const
@@ -657,7 +692,8 @@ private:
     GlobalResultsVector mGlobalResults;                                         /// Global results
 
     int mRankSearch = -1;                                                       /// Rank where the search is call
-    IndexType mIndex = std::numeric_limits<IndexType>::max();                   /// Some index considered for identification
+    SignedIndexType mLocalIndex = -1;                                           /// Some index considered for identification (local)
+    IndexType mGlobalIndex = 0;                                                 /// Some index considered for identification (global)
 
     GlobalPointerCommunicatorPointerType mpGlobalPointerCommunicator = nullptr; /// Global pointer to the communicator
 
