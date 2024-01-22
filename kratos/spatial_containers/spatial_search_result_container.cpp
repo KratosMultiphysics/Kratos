@@ -117,15 +117,6 @@ void SpatialSearchResultContainer<TObjectType>::Barrier()
         const int rank = mrDataCommunicator.Rank();
         const int current_world_size = mrDataCommunicator.Size();
 
-        // Get the current rank and put it into a vector
-        std::vector<int> this_rank = {rank};
-
-        // Create a vector to store the rank list with the size of the system
-        std::vector<int> rank_list(mrDataCommunicator.Size());
-
-        // Use MPI's AllGather function to gather the ranks of all processes into rank_list
-        mrDataCommunicator.AllGather(this_rank, rank_list);
-
         // Using the global Id as tag
         KRATOS_DEBUG_ERROR_IF(mGlobalIndex > std::numeric_limits<int>::max()) << "Global index is greater than integer. Error may happen" << std::endl;
         const int tag = static_cast<int>(mGlobalIndex);
@@ -135,12 +126,12 @@ void SpatialSearchResultContainer<TObjectType>::Barrier()
         int recv = 0;
 
         // Main rank
-        const int main_rank = rank_list[0];
+        const int main_rank = 0;
 
         // If rank search, send to other partitions
         if (rank == main_rank) {
             for (int i_rank = 1; i_rank < current_world_size; ++i_rank) {
-                mrDataCommunicator.Send(send, rank_list[i_rank], tag);
+                mrDataCommunicator.Send(send, i_rank, tag);
             }
         } else { // Otherwise receive
             mrDataCommunicator.Recv(recv, main_rank, tag);
