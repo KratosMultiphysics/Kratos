@@ -25,7 +25,7 @@ template <typename VariableType>
 NodalResultWriter MakeNodalResultWriterFor(const VariableType& rVariable)
 {
     return [&rVariable](GidIO<>& rGidIO, const ModelPart& rModelPart) {
-        const auto Time      = rModelPart.GetProcessInfo()[TIME];
+        const auto     Time  = rModelPart.GetProcessInfo()[TIME];
         constexpr auto Index = 0;
         rGidIO.WriteNodalResults(rVariable, rModelPart.Nodes(), Time, Index);
     };
@@ -37,7 +37,7 @@ template <typename VariableType>
 IntegrationPointResultWriter MakeIntegrationPointResultWriterFor(const VariableType& rVariable)
 {
     return [&rVariable](GidIO<>& rGidIO, const ModelPart& rModelPart) {
-        const auto Time      = rModelPart.GetProcessInfo()[TIME];
+        const auto     Time  = rModelPart.GetProcessInfo()[TIME];
         constexpr auto Index = 0;
         rGidIO.PrintOnGaussPoints(rVariable, rModelPart, Time, Index);
     };
@@ -81,9 +81,9 @@ WriteConditionsFlag GetWriteConditionsFlagFrom(const Parameters& rGiDPostFlags)
 namespace Kratos
 {
 
-GeoOutputWriter::GeoOutputWriter(const Parameters& rGidOutputSettings,
+GeoOutputWriter::GeoOutputWriter(const Parameters&  rGidOutputSettings,
                                  const std::string& rWorkingDirectory,
-                                 ModelPart& rModelPart)
+                                 ModelPart&         rModelPart)
     : mGidIO{MakeGidIO(rWorkingDirectory, rGidOutputSettings)}
 {
     mGidIO.InitializeMesh(0.0);
@@ -133,7 +133,7 @@ void GeoOutputWriter::WriteNodalOutput(const std::vector<std::string>& rOutputIt
 }
 
 void GeoOutputWriter::WriteIntegrationPointOutput(const std::vector<std::string>& rOutputItemNames,
-                                                  const ModelPart& rModelPart)
+                                                  const ModelPart&                rModelPart)
 {
     const auto output_writer_map = std::map<std::string, IntegrationPointResultWriter, std::less<>>{
         {"FLUID_FLUX_VECTOR", MakeIntegrationPointResultWriterFor(FLUID_FLUX_VECTOR)},
@@ -166,9 +166,9 @@ void GeoOutputWriter::CalculateNodalHydraulicHead(ModelPart& rModelPart)
     const auto& element_var = KratosComponents<Variable<double>>::Get("HYDRAULIC_HEAD");
 
     for (Element element : rModelPart.Elements()) {
-        auto& rGeom       = element.GetGeometry();
+        auto&       rGeom = element.GetGeometry();
         const auto& rProp = element.GetProperties();
-        const auto NodalHydraulicHead =
+        const auto  NodalHydraulicHead =
             GeoElementUtilities::CalculateNodalHydraulicHeadFromWaterPressures(rGeom, rProp);
 
         for (unsigned int node = 0; node < rGeom.PointsNumber(); ++node) {

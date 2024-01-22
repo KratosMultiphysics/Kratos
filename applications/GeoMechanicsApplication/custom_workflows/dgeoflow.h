@@ -71,7 +71,7 @@ public:
     using result_type = SetIdentityFunction<Dof<double>>;
 
     static ConvergenceCriteriaType::Pointer setup_criteria_dgeoflow();
-    static LinearSolverType::Pointer setup_solver_dgeoflow();
+    static LinearSolverType::Pointer        setup_solver_dgeoflow();
     static GeoMechanicsNewtonRaphsonErosionProcessStrategyType::Pointer setup_strategy_dgeoflow(ModelPart& rModelPart);
     void ParseProcesses(ModelPart& rModelPart, Parameters projFile);
 
@@ -88,14 +88,14 @@ public:
 
     struct CallBackFunctions {
         std::function<void(const char*)> LogCallback;
-        std::function<void(double)> ReportProgress;
+        std::function<void(double)>      ReportProgress;
         std::function<void(const char*)> ReportTextualProgress;
-        std::function<bool()> ShouldCancel;
+        std::function<bool()>            ShouldCancel;
 
         CallBackFunctions(std::function<void(const char*)> LogCallback,
-                          std::function<void(double)> ReportProgress,
+                          std::function<void(double)>      ReportProgress,
                           std::function<void(const char*)> ReportTextualProgress,
-                          std::function<bool()> ShouldCancel)
+                          std::function<bool()>            ShouldCancel)
             : LogCallback(std::move(LogCallback)),
               ReportProgress(std::move(ReportProgress)),
               ReportTextualProgress(std::move(ReportTextualProgress)),
@@ -104,31 +104,31 @@ public:
         }
     };
 
-    int ExecuteFlowAnalysis(std::string_view WorkingDirectory,
-                            const std::string& rProjectParamsFileName,
-                            const CriticalHeadInfo& rCriticalHeadInfo,
-                            std::string_view CriticalHeadBoundaryModelPartName,
+    int ExecuteFlowAnalysis(std::string_view         WorkingDirectory,
+                            const std::string&       rProjectParamsFileName,
+                            const CriticalHeadInfo&  rCriticalHeadInfo,
+                            std::string_view         CriticalHeadBoundaryModelPartName,
                             const CallBackFunctions& rCallBackFunctions);
 
-    void ExecuteWithoutPiping(ModelPart& rModelPart,
+    void ExecuteWithoutPiping(ModelPart&                rModelPart,
                               const Kratos::Parameters& rGidOutputSettings,
                               const GeoMechanicsNewtonRaphsonErosionProcessStrategyType::Pointer pSolvingStrategy) const;
 
-    int ExecuteWithPiping(ModelPart& rModelPart,
+    int ExecuteWithPiping(ModelPart&                rModelPart,
                           const Kratos::Parameters& rGidOutputSettings,
-                          const CriticalHeadInfo& rCriticalHeadInfo,
-                          LoggerOutput::Pointer pOutput,
-                          const CallBackFunctions& rCallBackFunctions,
+                          const CriticalHeadInfo&   rCriticalHeadInfo,
+                          LoggerOutput::Pointer     pOutput,
+                          const CallBackFunctions&  rCallBackFunctions,
                           const GeoMechanicsNewtonRaphsonErosionProcessStrategyType::Pointer pSolvingStrategy);
 
     void WriteCriticalHeadResultToFile() const;
 
     void AddNodalSolutionStepVariables(ModelPart& rModelPart) const;
 
-    int FindCriticalHead(ModelPart& rModelPart,
-                         const Kratos::Parameters& rGidOutputSettings,
-                         const CriticalHeadInfo& rCriticalHeadInfo,
-                         LoggerOutput::Pointer pOutput,
+    int FindCriticalHead(ModelPart&                 rModelPart,
+                         const Kratos::Parameters&  rGidOutputSettings,
+                         const CriticalHeadInfo&    rCriticalHeadInfo,
+                         LoggerOutput::Pointer      pOutput,
                          const shared_ptr<Process>& pRiverBoundary,
                          const GeoMechanicsNewtonRaphsonErosionProcessStrategyType::Pointer pSolvingStrategy,
                          const CallBackFunctions& rCallBackFunctions);
@@ -139,16 +139,16 @@ public:
 
 private:
     // Initial Setup
-    Model mCurrentModel;
-    Kernel mKernel;
+    Model                                  mCurrentModel;
+    Kernel                                 mKernel;
     KratosGeoMechanicsApplication::Pointer mpGeoApp;
-    std::string mWorkingDirectory;
-    std::string mCriticalHeadBoundaryModelPartName;
-    bool mPipingSuccess  = false;
-    double mCriticalHead = 0.0;
-    double mCurrentHead  = 0.0;
-    std::vector<std::shared_ptr<Process>> mProcesses;
-    int mEchoLevel = 1;
+    std::string                            mWorkingDirectory;
+    std::string                            mCriticalHeadBoundaryModelPartName;
+    bool                                   mPipingSuccess = false;
+    double                                 mCriticalHead  = 0.0;
+    double                                 mCurrentHead   = 0.0;
+    std::vector<std::shared_ptr<Process>>  mProcesses;
+    int                                    mEchoLevel = 1;
 
     void ResetModelParts();
 
@@ -163,8 +163,8 @@ private:
 
     int MainExecution(ModelPart& rModelPart,
                       const GeoMechanicsNewtonRaphsonErosionProcessStrategyType::Pointer rpSolvingStrategy,
-                      double Time,
-                      double DeltaTime,
+                      double       Time,
+                      double       DeltaTime,
                       unsigned int NumberOfIterations) const;
 
     bool AreExceedingMaxCriticalHead(double CurrentHead, double MaxCriticalHead) const;

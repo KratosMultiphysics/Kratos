@@ -23,10 +23,10 @@ namespace Kratos
 struct TimeStepEndState {
     enum class ConvergenceState { converged, non_converged };
 
-    double time                        = 0.0;
+    double           time              = 0.0;
     ConvergenceState convergence_state = ConvergenceState::non_converged;
-    std::size_t num_of_cycles          = 0;
-    std::size_t num_of_iterations      = 0;
+    std::size_t      num_of_cycles     = 0;
+    std::size_t      num_of_iterations = 0;
 
     [[nodiscard]] bool Converged() const
     {

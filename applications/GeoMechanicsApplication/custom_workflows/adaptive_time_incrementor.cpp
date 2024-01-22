@@ -19,13 +19,13 @@
 namespace Kratos
 {
 
-AdaptiveTimeIncrementor::AdaptiveTimeIncrementor(double StartTime,
-                                                 double EndTime,
-                                                 double StartIncrement,
+AdaptiveTimeIncrementor::AdaptiveTimeIncrementor(double      StartTime,
+                                                 double      EndTime,
+                                                 double      StartIncrement,
                                                  std::size_t MaxNumOfCycles,
-                                                 double ReductionFactor,
-                                                 double IncreaseFactor,
-                                                 double MaxTimeStepFactor,
+                                                 double      ReductionFactor,
+                                                 double      IncreaseFactor,
+                                                 double      MaxTimeStepFactor,
                                                  std::size_t MinNumOfIterations,
                                                  std::size_t MaxNumOfIterations)
     : TimeIncrementor(),

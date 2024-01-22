@@ -24,11 +24,11 @@
 class GeoFlowApplyConstantScalarValueProcess : public Kratos::ApplyConstantScalarValueProcess
 {
 public:
-    GeoFlowApplyConstantScalarValueProcess(Kratos::ModelPart& rModelPart,
+    GeoFlowApplyConstantScalarValueProcess(Kratos::ModelPart&              rModelPart,
                                            const Kratos::Variable<double>& rVariable,
-                                           double DoubleValue,
-                                           std::size_t MeshId,
-                                           const Flags& rOptions)
+                                           double                          DoubleValue,
+                                           std::size_t                     MeshId,
+                                           const Flags&                    rOptions)
         : Kratos::ApplyConstantScalarValueProcess(rModelPart, rVariable, DoubleValue, MeshId, rOptions)
     {
     }
@@ -87,8 +87,8 @@ void KratosExecute::ResetModelParts()
 
 KratosExecute::ConvergenceCriteriaType::Pointer KratosExecute::setup_criteria_dgeoflow()
 {
-    const double rel_tol       = 1.0e-4;
-    const double abs_tol       = 1.0e-9;
+    const double  rel_tol      = 1.0e-4;
+    const double  abs_tol      = 1.0e-9;
     VariableData* p_water_pres = &WATER_PRESSURE;
     KratosExecute::ConvergenceVariableListType convergence_settings{std::make_tuple(p_water_pres, rel_tol, abs_tol)};
     return std::make_shared<KratosExecute::MixedGenericCriteriaType>(convergence_settings);
@@ -131,7 +131,7 @@ KratosExecute::GeoMechanicsNewtonRaphsonErosionProcessStrategyType::Pointer Krat
         "loads_variable_list" : []
     }  )");
 
-    int MaxIterations           = 15;
+    int  MaxIterations          = 15;
     bool CalculateReactions     = true;
     bool ReformDofSetAtEachStep = false;
     bool MoveMeshFlag           = false;
@@ -176,10 +176,10 @@ void KratosExecute::ParseProcesses(ModelPart& rModelPart, Parameters projFile)
 
     auto loads_processes = projFile["processes"]["loads_process_list"];
     // Should only have one.
-    auto name = loads_processes.GetArrayItem(0)["Parameters"]["model_part_name"].GetString();
+    auto        name = loads_processes.GetArrayItem(0)["Parameters"]["model_part_name"].GetString();
     std::size_t found   = name.find_last_of('.');
     std::string subname = name.substr(found + 1);
-    ModelPart& part     = rModelPart.GetSubModelPart(subname);
+    ModelPart&  part    = rModelPart.GetSubModelPart(subname);
     mProcesses.push_back(make_shared<ApplyConstantScalarValueProcess>(
         part, VOLUME_ACCELERATION_X, 0.0, 0, ApplyConstantScalarValueProcess::VARIABLE_IS_FIXED));
 
@@ -192,8 +192,8 @@ void KratosExecute::ParseProcesses(ModelPart& rModelPart, Parameters projFile)
 
 int KratosExecute::MainExecution(ModelPart& rModelPart,
                                  const GeoMechanicsNewtonRaphsonErosionProcessStrategyType::Pointer rpSolvingStrategy,
-                                 double Time,
-                                 double DeltaTime,
+                                 double       Time,
+                                 double       DeltaTime,
                                  unsigned int NumberOfIterations) const
 {
     // Initialize
@@ -232,10 +232,10 @@ int KratosExecute::MainExecution(ModelPart& rModelPart,
     return 0;
 }
 
-int KratosExecute::ExecuteFlowAnalysis(std::string_view WorkingDirectory,
-                                       const std::string& rProjectParamsFileName,
-                                       const CriticalHeadInfo& rCriticalHeadInfo,
-                                       std::string_view CriticalHeadBoundaryModelPartName,
+int KratosExecute::ExecuteFlowAnalysis(std::string_view         WorkingDirectory,
+                                       const std::string&       rProjectParamsFileName,
+                                       const CriticalHeadInfo&  rCriticalHeadInfo,
+                                       std::string_view         CriticalHeadBoundaryModelPartName,
                                        const CallBackFunctions& rCallBackFunctions)
 {
     mWorkingDirectory                  = WorkingDirectory;
@@ -244,15 +244,15 @@ int KratosExecute::ExecuteFlowAnalysis(std::string_view WorkingDirectory,
     this->SetEchoLevel(1);
 
     std::stringstream kratos_log_buffer;
-    auto pOutput = std::make_shared<LoggerOutput>(kratos_log_buffer);
+    auto              pOutput = std::make_shared<LoggerOutput>(kratos_log_buffer);
     Logger::AddOutput(pOutput);
 
     try {
         rCallBackFunctions.ReportProgress(0.0);
 
-        std::string projectpath = mWorkingDirectory + "/" + rProjectParamsFileName;
+        std::string            projectpath = mWorkingDirectory + "/" + rProjectParamsFileName;
         const FileInputUtility input_utility;
-        auto projectfile = input_utility.ProjectParametersFromFile(projectpath);
+        auto                   projectfile = input_utility.ProjectParametersFromFile(projectpath);
 
         auto materialname =
             projectfile["solver_settings"]["material_import_settings"]["materials_filename"].GetString();
@@ -282,7 +282,7 @@ int KratosExecute::ExecuteFlowAnalysis(std::string_view WorkingDirectory,
         // appended by the constructor of class ModelPartIO
         const auto mesh_file_name =
             projectfile["solver_settings"]["model_import_settings"]["input_filename"].GetString();
-        const auto mesh_file_path = mWorkingDirectory + "/" + mesh_file_name;
+        const auto  mesh_file_path = mWorkingDirectory + "/" + mesh_file_name;
         ModelPartIO reader{mesh_file_path};
         reader.ReadModelPart(rModelPart);
 
@@ -334,7 +334,7 @@ int KratosExecute::ExecuteFlowAnalysis(std::string_view WorkingDirectory,
     }
 }
 
-void KratosExecute::ExecuteWithoutPiping(ModelPart& rModelPart,
+void KratosExecute::ExecuteWithoutPiping(ModelPart&                rModelPart,
                                          const Kratos::Parameters& rGidOutputSettings,
                                          const GeoMechanicsNewtonRaphsonErosionProcessStrategyType::Pointer pSolvingStrategy) const
 {
@@ -344,11 +344,11 @@ void KratosExecute::ExecuteWithoutPiping(ModelPart& rModelPart,
     writer.WriteGiDOutput(rModelPart, rGidOutputSettings);
 }
 
-int KratosExecute::ExecuteWithPiping(ModelPart& rModelPart,
+int KratosExecute::ExecuteWithPiping(ModelPart&                rModelPart,
                                      const Kratos::Parameters& rGidOutputSettings,
-                                     const CriticalHeadInfo& rCriticalHeadInfo,
-                                     LoggerOutput::Pointer pOutput,
-                                     const CallBackFunctions& rCallBackFunctions,
+                                     const CriticalHeadInfo&   rCriticalHeadInfo,
+                                     LoggerOutput::Pointer     pOutput,
+                                     const CallBackFunctions&  rCallBackFunctions,
                                      const GeoMechanicsNewtonRaphsonErosionProcessStrategyType::Pointer pSolvingStrategy)
 {
     KRATOS_INFO_IF("GeoFlowKernel", this->GetEchoLevel() > 0) << "Critical head search started." << std::endl;
@@ -433,10 +433,10 @@ void KratosExecute::AddNodalSolutionStepVariables(ModelPart& rModelPart) const
     rModelPart.AddNodalSolutionStepVariable(NODAL_JOINT_DAMAGE);
 }
 
-int KratosExecute::FindCriticalHead(ModelPart& rModelPart,
-                                    const Kratos::Parameters& rGidOutputSettings,
-                                    const CriticalHeadInfo& rCriticalHeadInfo,
-                                    LoggerOutput::Pointer pOutput,
+int KratosExecute::FindCriticalHead(ModelPart&                 rModelPart,
+                                    const Kratos::Parameters&  rGidOutputSettings,
+                                    const CriticalHeadInfo&    rCriticalHeadInfo,
+                                    LoggerOutput::Pointer      pOutput,
                                     const shared_ptr<Process>& pRiverBoundary,
                                     const GeoMechanicsNewtonRaphsonErosionProcessStrategyType::Pointer pSolvingStrategy,
                                     const CallBackFunctions& rCallBackFunctions)
@@ -454,7 +454,7 @@ int KratosExecute::FindCriticalHead(ModelPart& rModelPart,
     pipe_elements             = pSolvingStrategy->GetPipingElements();
     const auto noPipeElements = pipe_elements.size();
 
-    int step = 1;
+    int        step = 1;
     const auto max_steps =
         static_cast<int>(std::ceil((rCriticalHeadInfo.maxCriticalHead - rCriticalHeadInfo.minCriticalHead) /
                                    rCriticalHeadInfo.stepCriticalHead)) +

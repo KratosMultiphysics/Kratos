@@ -34,7 +34,7 @@ public:
     TimeStepEndState Run(double Time);
 
 private:
-    std::shared_ptr<StrategyWrapper> mStrategyWrapper;
+    std::shared_ptr<StrategyWrapper>    mStrategyWrapper;
     std::vector<std::weak_ptr<Process>> mProcessObservables;
 };
 

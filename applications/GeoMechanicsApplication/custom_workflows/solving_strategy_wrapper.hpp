@@ -28,9 +28,9 @@ class SolvingStrategyWrapper : public StrategyWrapper
 {
 public:
     explicit SolvingStrategyWrapper(std::unique_ptr<SolvingStrategy<TSparseSpace, TDenseSpace>> strategy,
-                                    bool ResetDisplacements                        = false,
-                                    const std::filesystem::path& rWorkingDirectory = "",
-                                    const Parameters& rProjectParameters           = {})
+                                    bool                         ResetDisplacements = false,
+                                    const std::filesystem::path& rWorkingDirectory  = "",
+                                    const Parameters&            rProjectParameters = {})
         : mpStrategy(std::move(strategy)),
           mrModelPart(mpStrategy->GetModelPart()),
           mResetDisplacements{ResetDisplacements},
@@ -158,12 +158,12 @@ private:
     }
 
     std::unique_ptr<SolvingStrategy<TSparseSpace, TDenseSpace>> mpStrategy;
-    ModelPart& mrModelPart;
-    bool mResetDisplacements;
-    std::vector<array_1d<double, 3>> mOldTotalDisplacements;
-    Parameters mProjectParameters;
-    std::filesystem::path mWorkingDirectory;
-    std::unique_ptr<GeoOutputWriter> mWriter;
+    ModelPart&                                                  mrModelPart;
+    bool                                                        mResetDisplacements;
+    std::vector<array_1d<double, 3>>                            mOldTotalDisplacements;
+    Parameters                                                  mProjectParameters;
+    std::filesystem::path                                       mWorkingDirectory;
+    std::unique_ptr<GeoOutputWriter>                            mWriter;
 };
 
 } // namespace Kratos

@@ -62,7 +62,7 @@ public:
         mStrategyWrapper->Initialize();
         mStrategyWrapper->SaveTotalDisplacementFieldAtStartOfTimeLoop();
         std::vector<TimeStepEndState> result;
-        TimeStepEndState NewEndState = EndState;
+        TimeStepEndState              NewEndState = EndState;
         while (mTimeIncrementor->WantNextStep(NewEndState) && !IsCancelled()) {
             mStrategyWrapper->IncrementStepNumber();
             // clone without end time, the end time is overwritten anyway
@@ -117,11 +117,11 @@ private:
         }
     }
 
-    std::unique_ptr<TimeIncrementor> mTimeIncrementor;
-    std::function<bool()> mCancelDelegate;
-    std::function<void(double)> mProgressDelegate;
+    std::unique_ptr<TimeIncrementor>  mTimeIncrementor;
+    std::function<bool()>             mCancelDelegate;
+    std::function<void(double)>       mProgressDelegate;
     std::unique_ptr<TimeStepExecutor> mTimeStepExecutor = std::make_unique<TimeStepExecutor>();
-    std::shared_ptr<StrategyWrapper> mStrategyWrapper;
+    std::shared_ptr<StrategyWrapper>  mStrategyWrapper;
 };
 
 } // namespace Kratos
