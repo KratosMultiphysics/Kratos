@@ -10,6 +10,7 @@ from KratosMultiphysics.testing.utilities import ReadModelPart
 import KratosMultiphysics.KratosUnittest as kratos_unittest
 
 class TestContainerExpression(ABC):
+    ExpressionUnionType = Union[Kratos.Expression.NodalExpression, Kratos.Expression.ConditionExpression, Kratos.Expression.ElementExpression]
     @classmethod
     def CreateEntities(cls):
         cls.model =  Kratos.Model()
@@ -665,8 +666,21 @@ class TestContainerExpression(ABC):
             velocity = Kratos.Array3([vector[i * 3], vector[i * 3 + 1], vector[i * 3 + 2]])
             self.assertVectorAlmostEqual(velocity, self._GetValue(entity, Kratos.VELOCITY))
 
+    def test_GetMaxDepth(self):
+        a = self._GetContainerExpression()
+        self._Read(a, Kratos.GREEN_LAGRANGE_STRAIN_TENSOR)
+        b = a + 10
+        c = b * 2 + a
+        d = c ** 2
+        e = d.Comb([a, d])
+        f = e.Reshape([6, 2])
+        g = f.Slice(2, 4)
+        h = g.Reshape([2, 2])
+        i = h - a
+        self.assertEqual(i.GetMaxDepth(), 10)
+
     @abstractmethod
-    def _GetContainerExpression(self) -> Union[Kratos.Expression.NodalExpression, Kratos.Expression.ElementExpression, Kratos.Expression.ConditionExpression]:
+    def _GetContainerExpression(self) -> ExpressionUnionType:
         pass
 
     @abstractmethod

@@ -231,6 +231,12 @@ const TContainerType& ContainerExpression<TContainerType, TMeshType>::GetContain
 }
 
 template <class TContainerType, MeshType TMeshType>
+std::size_t ContainerExpression<TContainerType, TMeshType>::GetMaxDepth() const
+{
+    return this->GetExpression().GetMaxDepth();
+}
+
+template <class TContainerType, MeshType TMeshType>
 std::string ContainerExpression<TContainerType, TMeshType>::Info() const
 {
     std::stringstream msg;

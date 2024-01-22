@@ -67,6 +67,15 @@ public:
         );
     }
 
+    IndexType GetMaxDepth() const override
+    {
+        PYBIND11_OVERRIDE_PURE(
+            IndexType,                      /*return type*/
+            Expression,                     /*base type*/
+            GetMaxDepth                     /*function name*/
+        );
+    }
+
     std::string Info() const override
     {
         PYBIND11_OVERRIDE_PURE(
@@ -210,6 +219,7 @@ void AddExpressionIOToPython(pybind11::module& rModule)
         .def("GetItemShape", &Expression::GetItemShape)
         .def("NumberOfEntities", &Expression::NumberOfEntities)
         .def("GetItemComponentCount", &Expression::GetItemComponentCount)
+        .def("GetMaxDepth", &Expression::GetMaxDepth)
         .def("__add__", [](Expression::Pointer pLeft, double Right) {return pLeft + Right;})
         //.def("__add__", [](double Left, Expression::Pointer pRight) {return Left + pRight;})
         .def("__add__", [](Expression::Pointer pLeft, Expression::Pointer pRight) {return pLeft + pRight;})

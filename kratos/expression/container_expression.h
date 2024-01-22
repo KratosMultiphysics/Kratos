@@ -223,6 +223,15 @@ public:
     const TContainerType& GetContainer() const;
 
     /**
+     * @brief Get the Max Depth of the lazy expression tree.
+     *
+     * Returns the maximum depth of the lazy expression tree.
+     *
+     * @return IndexType Max depth of the lazy expression tree.
+     */
+    IndexType GetMaxDepth() const;
+
+    /**
      * @brief Get the info string
      *
      * @return std::string
