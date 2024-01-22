@@ -294,9 +294,13 @@ MPIDataCommunicator::MPIDataCommunicator(MPI_Comm MPIComm):
     DataCommunicator(),
     mComm(MPIComm)
 {
-    if (!ParallelEnvironment::MPIIsInitialized())
-    {
+    if (!ParallelEnvironment::MPIIsInitialized()) {
         ParallelEnvironment::SetUpMPIEnvironment(MPIManager::Create());
+    }
+
+    // Ranks cannot be assigned until initialized the MPI
+    if (IsDefinedOnThisRank()) {
+        mRanksList = GenerateRankList();
     }
 }
 
@@ -314,14 +318,6 @@ MPIDataCommunicator::~MPIDataCommunicator()
 MPIDataCommunicator::UniquePointer MPIDataCommunicator::Create(MPI_Comm Comm)
 {
     return Kratos::make_unique<MPIDataCommunicator>(Comm);
-}
-
-// Rank list
-void MPIDataCommunicator::InitializeRanksList() const
-{
-    std::vector<int> this_rank = {Rank()};
-    mRanksList.resize(Size());
-    AllGather(this_rank, mRanksList);
 }
 
 // Barrier wrapper
@@ -453,7 +449,7 @@ MPI_Comm MPIDataCommunicator::GetMPICommunicator(const DataCommunicator& rDataCo
 
 std::vector<int> MPIDataCommunicator::RanksList() const
 {
-    KRATOS_ERROR_IF_NOT(mRanksList.size() == Size()) << "Rank list not initialized" << std::endl;
+    KRATOS_ERROR_IF_NOT(mRanksList.size() == static_cast<std::size_t>(Size())) << "Rank list not initialized" << std::endl;
     return mRanksList;
 }
 
@@ -501,10 +497,6 @@ const DataCommunicator& MPIDataCommunicator::GetSubDataCommunicator(
     // Retrieve data communicator
     const bool already_existing_data_communicator = ParallelEnvironment::HasDataCommunicator(rNewCommunicatorName);
     const DataCommunicator& r_data_communicator = already_existing_data_communicator ? ParallelEnvironment::GetDataCommunicator(rNewCommunicatorName) : DataCommunicatorFactory::CreateFromRanksAndRegister(*this, rRanks, rNewCommunicatorName);
-    // If new one, initialize the rank list
-    if (!already_existing_data_communicator) {
-        r_data_communicator.InitializeRanksList();
-    }
     // Some additional checks
     const auto it_find = std::find(rRanks.begin(), rRanks.end(), rank);
     if (it_find != rRanks.end()) {
@@ -537,6 +529,22 @@ void MPIDataCommunicator::PrintInfo(std::ostream &rOStream) const
 void MPIDataCommunicator::PrintData(std::ostream &rOStream) const
 {
     rOStream << "This is rank " << Rank() << " of " << Size() << "." << std::endl;
+}
+
+// Rank generation
+
+std::vector<int> MPIDataCommunicator::GenerateRankList() const
+{
+    // Get the current rank and put it into a vector
+    std::vector<int> this_rank = {Rank()};
+
+    // Create a vector to store the rank list with the size of the system
+    std::vector<int> rank_list(Size());
+
+    // Use MPI's AllGather function to gather the ranks of all processes into rank_list
+    AllGather(this_rank, rank_list);
+
+    return rank_list;
 }
 
 // Error checking

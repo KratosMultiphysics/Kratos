@@ -382,14 +382,6 @@ class KRATOS_API(KRATOS_CORE) DataCommunicator
     }
 
     /**
-     * @brief Initializes the rank list.
-     * @details This function is responsible for initializing the rank list. You should call this function before using any ranking-related operations.
-     */
-    virtual void InitializeRanksList() const
-    {
-    }
-
-    /**
      * @brief Pause program execution until all threads reach this call.
      * @details This function serves as a wrapper for MPI_Barrier, which ensures synchronization among all threads before proceeding further in the program.
      */
