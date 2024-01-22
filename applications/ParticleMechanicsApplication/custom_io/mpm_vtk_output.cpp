@@ -22,7 +22,7 @@
 namespace Kratos
 {
 
-Parameters ParticleVtkOutput::GetDefaultParameters()
+Parameters MPMVtkOutput::GetDefaultParameters()
 {
     // IMPORTANT: when "output_control_type" is "time", then paraview will not be able to group them
     Parameters default_parameters = Parameters(R"(
@@ -50,7 +50,7 @@ Parameters ParticleVtkOutput::GetDefaultParameters()
 ///***********************************************************************************/
 ///***********************************************************************************/
 
-ParticleVtkOutput::ParticleVtkOutput(
+MPMVtkOutput::MPMVtkOutput(
     ModelPart& rModelPart,
     Parameters ThisParameters
     ) : VtkOutput(rModelPart, ThisParameters)
@@ -60,7 +60,7 @@ ParticleVtkOutput::ParticleVtkOutput(
 ///***********************************************************************************/
 ///***********************************************************************************/
 
-void ParticleVtkOutput::WriteNodesToFile(
+void MPMVtkOutput::WriteNodesToFile(
     const ModelPart& rModelPart,
     std::ofstream& rFileStream
     ) const
@@ -73,7 +73,7 @@ void ParticleVtkOutput::WriteNodesToFile(
             std::vector<array_1d<double, 3>> mp_coord = { ZeroVector(3) };
             itr_element->CalculateOnIntegrationPoints(MP_COORD, mp_coord, rModelPart.GetProcessInfo());
             WriteVectorDataToFile(mp_coord[0], rFileStream);
-            if (mFileFormat == ParticleVtkOutput::FileFormat::VTK_ASCII) rFileStream << "\n";
+            if (mFileFormat == MPMVtkOutput::FileFormat::VTK_ASCII) rFileStream << "\n";
         }
     } else if (GetEntityType(rModelPart) == EntityType::CONDITION) {
         rFileStream << "POINTS " << r_local_mesh.NumberOfConditions() << " float\n";
@@ -81,7 +81,7 @@ void ParticleVtkOutput::WriteNodesToFile(
             std::vector<array_1d<double, 3>> mpc_coord = { ZeroVector(3) };
             itr_condition->CalculateOnIntegrationPoints(MPC_COORD, mpc_coord, rModelPart.GetProcessInfo());
             WriteVectorDataToFile(mpc_coord[0], rFileStream);
-            if (mFileFormat == ParticleVtkOutput::FileFormat::VTK_ASCII) rFileStream << "\n";
+            if (mFileFormat == MPMVtkOutput::FileFormat::VTK_ASCII) rFileStream << "\n";
         }
     } else if (GetEntityType(rModelPart) == EntityType::NONE) {
         rFileStream << "POINTS 0 float\n";
@@ -91,7 +91,7 @@ void ParticleVtkOutput::WriteNodesToFile(
 ///***********************************************************************************/
 ///***********************************************************************************/
 
-void ParticleVtkOutput::WriteConditionsAndElementsToFile(const ModelPart& rModelPart, std::ofstream& rFileStream) const
+void MPMVtkOutput::WriteConditionsAndElementsToFile(const ModelPart& rModelPart, std::ofstream& rFileStream) const
 {
     const auto& r_local_mesh = rModelPart.GetCommunicator().LocalMesh();
     const auto entity_type = GetEntityType(rModelPart);
@@ -119,7 +119,7 @@ void ParticleVtkOutput::WriteConditionsAndElementsToFile(const ModelPart& rModel
 ///***********************************************************************************/
 
 template <typename TContainerType>
-void ParticleVtkOutput::WriteCellType(
+void MPMVtkOutput::WriteCellType(
     const TContainerType& rContainer,
     std::ofstream& rFileStream
     ) const
@@ -127,7 +127,7 @@ void ParticleVtkOutput::WriteCellType(
     // Write entity types
     for (IndexType itr_entity = 0; itr_entity < rContainer.size(); ++itr_entity) {
         WriteScalarDataToFile((unsigned int)1, rFileStream);
-        if (mFileFormat == ParticleVtkOutput::FileFormat::VTK_ASCII) rFileStream << "\n";
+        if (mFileFormat == MPMVtkOutput::FileFormat::VTK_ASCII) rFileStream << "\n";
     }
 }
 
@@ -135,23 +135,23 @@ void ParticleVtkOutput::WriteCellType(
 ///***********************************************************************************/
 
 template <typename TContainerType>
-void ParticleVtkOutput::WriteConnectivity(
+void MPMVtkOutput::WriteConnectivity(
     const TContainerType& rContainer,
     std::ofstream& rFileStream
     ) const
 {
     for (IndexType itr_entity = 0; itr_entity < rContainer.size(); ++itr_entity) {
         WriteScalarDataToFile((unsigned int)1, rFileStream);
-        if (mFileFormat == ParticleVtkOutput::FileFormat::VTK_ASCII) rFileStream << " ";
+        if (mFileFormat == MPMVtkOutput::FileFormat::VTK_ASCII) rFileStream << " ";
         WriteScalarDataToFile((int)itr_entity, rFileStream);
-        if (mFileFormat == ParticleVtkOutput::FileFormat::VTK_ASCII) rFileStream << "\n";
+        if (mFileFormat == MPMVtkOutput::FileFormat::VTK_ASCII) rFileStream << "\n";
     }
 }
 
 ///***********************************************************************************/
 ///***********************************************************************************/
 
-void ParticleVtkOutput::WriteNodalResultsToFile(
+void MPMVtkOutput::WriteNodalResultsToFile(
     const ModelPart& rModelPart,
     std::ofstream& rFileStream
     )

@@ -23,11 +23,11 @@
 
 namespace Kratos
 {
-/** \brief ParticleVtkOutput
+/** \brief MPMVtkOutput
 * A simple class that has functionality to write vtk output
 * @see : https://www.vtk.org/wp-content/uploads/2015/04/file-formats.pdf
 */
-class KRATOS_API(PARTICLE_MECHANICS_APPLICATION) ParticleVtkOutput : public VtkOutput
+class KRATOS_API(MPM_APPLICATION) MPMVtkOutput : public VtkOutput
 {
 public:
 
@@ -37,8 +37,8 @@ public:
     /// Definition of the index type
     using IndexType = std::size_t;
 
-    /// Pointer definition of ParticleVtkOutput
-    KRATOS_CLASS_POINTER_DEFINITION(ParticleVtkOutput);
+    /// Pointer definition of MPMVtkOutput
+    KRATOS_CLASS_POINTER_DEFINITION(MPMVtkOutput);
 
     ///@name Life Cycle
     ///@{
@@ -48,7 +48,7 @@ public:
      * @param rModelPart The modelpart which is used for output
      * @param Parameters Parameters including settings for the output
      */
-    explicit ParticleVtkOutput(
+    explicit MPMVtkOutput(
         ModelPart& rModelPart,
         Parameters ThisParameters = Parameters(R"({})" )
         );
@@ -67,7 +67,7 @@ public:
     /// Turn back information as a string.
     std::string Info() const override
     {
-        return " ParticleVtkOutput object ";
+        return " MPMVtkOutput object ";
     }
 
     /**
@@ -76,7 +76,7 @@ public:
      */
     void PrintInfo(std::ostream& rOStream) const override
     {
-        rOStream << " ParticleVtkOutput object " << std::endl;
+        rOStream << " MPMVtkOutput object " << std::endl;
     }
 
     /// Print object's data.
