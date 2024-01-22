@@ -21,7 +21,7 @@
 // Project includes
 #include "includes/define.h"
 #include "custom_conditions/particle_based_conditions/mpm_particle_base_condition.h"
-#include "particle_mechanics_application_variables.h"
+#include "mpm_application_variables.h"
 
 namespace Kratos
 {
