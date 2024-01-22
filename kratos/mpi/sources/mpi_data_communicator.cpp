@@ -533,7 +533,7 @@ void MPIDataCommunicator::PrintData(std::ostream &rOStream) const
 
 // Rank generation
 
-std::vector<int> MPIDataCommunicator::GenerateRankList() const
+std::vector<int> MPIDataCommunicator::GenerateRankList()
 {
     // Get the current rank and put it into a vector
     std::vector<int> this_rank = {Rank()};

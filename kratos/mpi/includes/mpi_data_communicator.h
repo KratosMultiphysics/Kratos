@@ -397,7 +397,7 @@ class KRATOS_API(KRATOS_MPI_CORE) MPIDataCommunicator: public DataCommunicator
     MPI_Comm mComm;
 
     /// The list of ranks involved in this DataCommunicator
-    mutable std::vector<int> mRanksList;
+    std::vector<int> mRanksList;
 
     ///@}
     ///@name Operations
@@ -410,7 +410,7 @@ class KRATOS_API(KRATOS_MPI_CORE) MPIDataCommunicator: public DataCommunicator
      * processes into a vector.
      * @return A std::vector<int> containing the rank list of all processes.
      */
-    std::vector<int> GenerateRankList() const;
+    std::vector<int> GenerateRankList();
 
     void CheckMPIErrorCode(const int ierr, const std::string& MPICallName) const;
 
