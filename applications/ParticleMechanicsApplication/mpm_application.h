@@ -12,15 +12,15 @@
 //
 
 
-#if !defined(KRATOS_PARTICLE_MECHANICS_APPLICATION_H_INCLUDED )
-#define  KRATOS_PARTICLE_MECHANICS_APPLICATION_H_INCLUDED
+#if !defined(KRATOS_MPM_APPLICATION_H_INCLUDED )
+#define  KRATOS_MPM_APPLICATION_H_INCLUDED
 
 // System includes
 #include <string>
 #include <iostream>
 
 // External includes
-#include "particle_mechanics_application_variables.h"
+#include "mpm_application_variables.h"
 
 // Project includes
 #include "includes/define.h"
@@ -96,27 +96,27 @@ namespace Kratos
 /// Short class definition.
 /**
  * This application features Elements, Conditions, Constitutive laws and Utilities
- * for particle mechanics problems.
+ * for MPM problems.
  * Currently developed methods are: (1) Material Point Method
  */
-class KRATOS_API(PARTICLE_MECHANICS_APPLICATION) KratosParticleMechanicsApplication : public KratosApplication
+class KRATOS_API(MPM_APPLICATION) KratosMPMApplication : public KratosApplication
 {
 public:
     ///@name Type Definitions
     ///@{
 
-    /// Pointer definition of KratosParticleMechanicsApplication
-    KRATOS_CLASS_POINTER_DEFINITION(KratosParticleMechanicsApplication);
+    /// Pointer definition of KratosMPMApplication
+    KRATOS_CLASS_POINTER_DEFINITION(KratosMPMApplication);
 
     ///@}
     ///@name Life Cycle
     ///@{
 
     /// Default constructor.
-    KratosParticleMechanicsApplication();
+    KratosMPMApplication();
 
     /// Destructor.
-    ~KratosParticleMechanicsApplication() override {}
+    ~KratosMPMApplication() override {}
 
 
     ///@}
@@ -147,7 +147,7 @@ public:
     /// Turn back information as a string.
     std::string Info() const override
     {
-        return "KratosParticleMechanicsApplication";
+        return "KratosMPMApplication";
     }
 
     /// Print information about this object.
@@ -252,7 +252,7 @@ private:
     const MPMGridAxisymLineLoadCondition2D mMPMGridAxisymLineLoadCondition2D2N;
     const MPMGridSurfaceLoadCondition3D mMPMGridSurfaceLoadCondition3D3N;
     const MPMGridSurfaceLoadCondition3D mMPMGridSurfaceLoadCondition3D4N;
-    // Particle Conditions:
+    // MPM Conditions:
     const MPMParticlePenaltyDirichletCondition mMPMParticlePenaltyDirichletCondition;
     const MPMParticlePointLoadCondition mMPMParticlePointLoadCondition;
 
@@ -338,15 +338,15 @@ private:
     ///@{
 
     /// Assignment operator.
-    KratosParticleMechanicsApplication& operator=(KratosParticleMechanicsApplication const& rOther);
+    KratosMPMApplication& operator=(KratosMPMApplication const& rOther);
 
     /// Copy constructor.
-    KratosParticleMechanicsApplication(KratosParticleMechanicsApplication const& rOther);
+    KratosMPMApplication(KratosMPMApplication const& rOther);
 
 
     ///@}
 
-}; // Class KratosParticleMechanicsApplication
+}; // Class KratosMPMApplication
 
 ///@}
 
@@ -364,6 +364,6 @@ private:
 
 }  // namespace Kratos.
 
-#endif // KRATOS_PARTICLE_MECHANICS_APPLICATION_H_INCLUDED  defined
+#endif // KRATOS_MPM_APPLICATION_H_INCLUDED  defined
 
 

@@ -52,13 +52,13 @@
 #include "includes/variables.h"
 #include "includes/serializer.h"
 
-#include "particle_mechanics_application.h"
+#include "mpm_application.h"
 
 namespace Kratos
 {
 
-    KratosParticleMechanicsApplication::KratosParticleMechanicsApplication():
-        KratosApplication("ParticleMechanicsApplication"),
+    KratosMPMApplication::KratosMPMApplication():
+        KratosApplication("MPMApplication"),
         /// Elements, using QuadraturePointGeometries:
         mMPMUpdatedLagrangian(0, Element::GeometryType::Pointer(new GeometryType(Element::GeometryType::PointsArrayType(0)))),
         mMPMUpdatedLagrangianUP(0, Element::GeometryType::Pointer(new GeometryType(Element::GeometryType::PointsArrayType(0)))),
@@ -85,7 +85,7 @@ namespace Kratos
         mMPMGridAxisymLineLoadCondition2D2N(0, Condition::GeometryType::Pointer(new Line2D2<Node>(Condition::GeometryType::PointsArrayType(2)))),
         mMPMGridSurfaceLoadCondition3D3N(0, Condition::GeometryType::Pointer(new Triangle3D3<Node>(Condition::GeometryType::PointsArrayType(3)))),
         mMPMGridSurfaceLoadCondition3D4N(0, Condition::GeometryType::Pointer(new Quadrilateral3D4<Node>(Condition::GeometryType::PointsArrayType(4)))),
-        // Particle Conditions
+        // MPM Conditions
         /// Conditions, using QuadraturePointGeometries:
         mMPMParticlePenaltyDirichletCondition(0, Condition::GeometryType::Pointer(new GeometryType(Condition::GeometryType::PointsArrayType(0)))),
         mMPMParticlePointLoadCondition(0, Condition::GeometryType::Pointer(new GeometryType(Condition::GeometryType::PointsArrayType(0)))),
@@ -101,13 +101,13 @@ namespace Kratos
         mMPMParticlePointLoadCondition3D8N(0, Condition::GeometryType::Pointer(new Hexahedra3D8<Node>(Condition::GeometryType::PointsArrayType(8))))
     {}
 
-    void KratosParticleMechanicsApplication::Register()
+    void KratosMPMApplication::Register()
     {
         KRATOS_INFO("") << "    KRATOS  ____ __   ____ _____ _  ___ _   ____\n"
                         << "           |  _ |  \\ |  _ |_   _| |/   | | | ___|\n"
                         << "           |   _| \\ \\|    | | | | |   (  |_| _|_\n"
                         << "           |__|__/ \\_\\_|\\_\\ |_| |_|\\___|___|____|MECHANICS\n"
-                        << "Initializing KratosParticleMechanicsApplication..." << std::endl;
+                        << "Initializing KratosMPMApplication..." << std::endl;
 
         // Registering elements
         KRATOS_REGISTER_ELEMENT("MPMUpdatedLagrangian", mMPMUpdatedLagrangian)
@@ -134,7 +134,7 @@ namespace Kratos
         KRATOS_REGISTER_CONDITION( "MPMGridAxisymLineLoadCondition2D2N", mMPMGridAxisymLineLoadCondition2D2N)
         KRATOS_REGISTER_CONDITION( "MPMGridSurfaceLoadCondition3D3N", mMPMGridSurfaceLoadCondition3D3N)
         KRATOS_REGISTER_CONDITION( "MPMGridSurfaceLoadCondition3D4N", mMPMGridSurfaceLoadCondition3D4N)
-        // Particle Conditions
+        // MPM Conditions
         KRATOS_REGISTER_CONDITION( "MPMParticlePenaltyDirichletCondition", mMPMParticlePenaltyDirichletCondition)
         KRATOS_REGISTER_CONDITION( "MPMParticlePointLoadCondition", mMPMParticlePointLoadCondition)
 
