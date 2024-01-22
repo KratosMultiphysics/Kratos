@@ -403,7 +403,12 @@ private:
 
             // Set some values
             r_point_result.SetRankSearch(0);
-            r_point_result.SetIndex(index);
+            r_point_result.SetLocalIndex(index);
+            if constexpr (std::is_same<TPointIteratorType, ModelPart::NodeIterator>::value || std::is_same<TPointIteratorType, ModelPart::NodeConstantIterator>::value) {
+                r_point_result.SetGlobalIndex(it_point->Id());
+            } else {
+                r_point_result.SetGlobalIndex(index);
+            }
 
             // Search
             std::vector<ResultType> results;
@@ -462,7 +467,12 @@ private:
 
             // Set some values
             r_point_result.SetRankSearch(0);
-            r_point_result.SetIndex(index);
+            r_point_result.SetLocalIndex(index);
+            if constexpr (std::is_same<TPointIteratorType, ModelPart::NodeIterator>::value || std::is_same<TPointIteratorType, ModelPart::NodeConstantIterator>::value) {
+                r_point_result.SetGlobalIndex(it_point->Id());
+            } else {
+                r_point_result.SetGlobalIndex(index);
+            }
 
             // Search
             ResultType result;
@@ -513,7 +523,12 @@ private:
 
             // Set some values
             r_point_result.SetRankSearch(0);
-            r_point_result.SetIndex(index);
+            r_point_result.SetLocalIndex(index);
+            if constexpr (std::is_same<TPointIteratorType, ModelPart::NodeIterator>::value || std::is_same<TPointIteratorType, ModelPart::NodeConstantIterator>::value) {
+                r_point_result.SetGlobalIndex(it_point->Id());
+            } else {
+                r_point_result.SetGlobalIndex(index);
+            }
 
             // Search
             ResultType result;
@@ -566,7 +581,12 @@ private:
 
             // Set some values
             r_point_result.SetRankSearch(0);
-            r_point_result.SetIndex(index);
+            r_point_result.SetLocalIndex(index);
+            if constexpr (std::is_same<TPointIteratorType, ModelPart::NodeIterator>::value || std::is_same<TPointIteratorType, ModelPart::NodeConstantIterator>::value) {
+                r_point_result.SetGlobalIndex(it_point->Id());
+            } else {
+                r_point_result.SetGlobalIndex(index);
+            }
 
             // Search
             ResultType result;
@@ -620,7 +640,7 @@ private:
         PrepareResultsInProperRanks(rResults, search_info, ConsiderGlobalDataCommunicator);
 
         // Perform the corresponding searches
-        const std::size_t total_number_of_points = search_info.Indexes.size();
+        const std::size_t total_number_of_points = search_info.LocalIndices.size();
         struct TLS {
             Point point;
         };
@@ -684,7 +704,7 @@ private:
         PrepareResultsInProperRanks(rResults, search_info, ConsiderGlobalDataCommunicator);
 
         // Perform the corresponding searches
-        const std::size_t total_number_of_points = search_info.Indexes.size();
+        const std::size_t total_number_of_points = search_info.LocalIndices.size();
         struct TLS {
             Point point;
         };
@@ -748,7 +768,7 @@ private:
         PrepareResultsInProperRanks(rResults, search_info, ConsiderGlobalDataCommunicator);
 
         // Perform the corresponding searches
-        const std::size_t total_number_of_points = search_info.Indexes.size();
+        const std::size_t total_number_of_points = search_info.LocalIndices.size();
         struct TLS {
             Point point;
         };
@@ -809,7 +829,7 @@ private:
         PrepareResultsInProperRanks(rResults, search_info, ConsiderGlobalDataCommunicator);
 
         // Perform the corresponding searches
-        const std::size_t total_number_of_points = search_info.Indexes.size();
+        const std::size_t total_number_of_points = search_info.LocalIndices.size();
         struct TLS {
             Point point;
         };

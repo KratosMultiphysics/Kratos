@@ -362,7 +362,7 @@ void SearchWrapper<TSearchObject>::PrepareResultsInProperRanks(
     if (!ConsiderGlobalDataCommunicator) {
         // The base sub data communicator name
         const std::string base_name = "SubCommunicator_";
-        std::unordered_map<std::vector<int>, const DataCommunicator*, VectorHash> data_communicators_database; // NOTE: WE use this to avoid the creating of strings concatenating integers and the seach of std::string that is expensive
+        std::unordered_map<std::vector<int>, const DataCommunicator*, VectorHash> data_communicators_database; // NOTE: WE use this to avoid the creating of strings concatenating integers and the search of std::string that is expensive
         for (std::size_t i = 0; i < r_ranks.size(); ++i) {
             const auto& r_current_ranks = r_ranks[i];
             auto it_find = data_communicators_database.find(r_current_ranks);
@@ -384,12 +384,14 @@ void SearchWrapper<TSearchObject>::PrepareResultsInProperRanks(
 
     // Set some values
     const auto& r_search_ranks = rSearchInfo.SearchRanks;
-    const auto& r_indexes = rSearchInfo.Indexes;
+    const auto& r_local_indices = rSearchInfo.LocalIndices;
+    const auto& r_global_indices = rSearchInfo.GlobalIndices;
     auto& r_results_vector = rResults.GetContainer();
-    IndexPartition<IndexType>(r_results_vector.size()).for_each([&r_results_vector, &r_search_ranks, &r_indexes](const IndexType Index) {
+    IndexPartition<IndexType>(r_results_vector.size()).for_each([&r_results_vector, &r_search_ranks, &r_local_indices, &r_global_indices](const IndexType Index) {
         auto& r_point_result = *(r_results_vector[Index]);
         r_point_result.SetRankSearch(r_search_ranks[Index]);
-        r_point_result.SetIndex(r_indexes[Index]);
+        r_point_result.SetLocalIndex(r_local_indices[Index]);
+        r_point_result.SetGlobalIndex(r_global_indices[Index]);
     });
 }
 
