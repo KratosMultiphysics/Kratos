@@ -14,7 +14,6 @@
 
 // System includes
 #include <string>
-#include <vector>
 
 // Project includes
 #include "expression/expression.h"
@@ -25,26 +24,26 @@ namespace Kratos {
 ///@{
 
 /**
- * @brief Expression to hold a literal value
- *
+ * @brief Unary abs expression used to get the absolute values of a given input expression.
  */
-template <class TDataType>
-class KRATOS_API(KRATOS_CORE) LiteralExpression : public Expression {
+class KRATOS_API(KRATOS_CORE) UnaryAbsExpression : public Expression {
 public:
+    ///@name Type definitions
+    ///@{
+
+    using IndexType = std::size_t;
+
+    ///@}
     ///@name Life cycle
     ///@{
 
-    LiteralExpression(
-        const TDataType& Value,
-        const IndexType NumberOfEntities);
+    UnaryAbsExpression(Expression::ConstPointer pExpression);
 
     ///@}
     ///@name Public operations
     ///@{
 
-    static Expression::Pointer Create(
-        const TDataType& Value,
-        const IndexType NumberOfEntities);
+    static Expression::Pointer Create(Expression::ConstPointer pExpression);
 
     double Evaluate(
         const IndexType EntityIndex,
@@ -53,18 +52,16 @@ public:
 
     const std::vector<IndexType> GetItemShape() const override;
 
-    IndexType GetMaxDepth() const override { return 1; }
+    IndexType GetMaxDepth() const override;
 
     std::string Info() const override;
 
     ///@}
-private:
+protected:
     ///@name Private member variables
     ///@{
 
-    const TDataType mValue;
-
-    std::vector<IndexType> mShape;
+    const Expression::ConstPointer mpSourceExpression;
 
     ///@}
 };
