@@ -4,19 +4,26 @@ This test is a Drained compression triaxial test on Mohr-Coulomb model with axis
 
 ![img.png](img.png)
 
-The test consists of two stages:
-- Stage 1: Apply a confining stress of -100 kPa
-  - Constraints:
-    - The displacement in the bottom nodes (5, 7, 9) are fixed in the y direction
-    - The displacement in the left nodes (1, 3, 5) are fixed in the x direction.
-    - The bottom left node (5) is fixed in the x and y direction (seems redundant to me)
-  - Loads:
-    - A normal load is applied to the right side of the cube (nodes 6, 8, 9), ramping up from 0 to 100 in the time interval [0, 1]
-    - A normal load is applied to the top side of the cube (nodes 1, 2, 6), ramping up from 0 to 100 in the time interval [0, 1]
-  - Material:
-    - The material is described using the Mohr-Coulomb model
-  - Conditions:
-    - An AxisymmetricLineNormalLoadDiffOrderCondition2D3N is added to both the top and right side of the cube (nodes 1, 2, 6 and 6, 8, 9 respectively).
+### Setup
+The test is performed in two stages, with the following common conditions for both stages:
+- Constraints:
+  - The displacement in the bottom nodes (5, 7, 9) are fixed in the y direction
+  - The displacement in the left nodes (1, 3, 5) are fixed in the x direction.
+- Material:
+  - The material is described using the Mohr-Coulomb model
+- Conditions:
+  - An AxisymmetricLineNormalLoadDiffOrderCondition2D3N is added to both the top and right side of the cube (nodes 1, 2, 6 and 6, 8, 9 respectively).
+
+### Stage 1 - Apply a confining stress of -100 kPa, time interval [0, 1]
+  - A normal load is applied to the right side of the cube (nodes 6, 8, 9), linearly ramping up from 0 to 100 in the time interval [0, 1].
+  - A normal load is applied to the top side of the cube (nodes 1, 2, 6), linearly ramping up from 0 to 100 in the time interval [0, 1].
+
+### Stage 2 - Apply a deviatoric stress of 200 kPa, time interval [1, 1.25]:
+  - A constant normal load of 100 is applied to the right side of the cube (nodes 6, 8, 9), during the interval [1.0, 1.25].
+  - The displacement of the top nodes (1, 2, 6) is specified in the y direction during the interval [1.0, 2.0] to linearly change from 0.0 to -1.0.
+
+
+
   
 
     
