@@ -17,7 +17,7 @@
 
 // Project includes
 #include "custom_conditions/grid_based_conditions/mpm_grid_axisym_line_load_condition_2d.h"
-#include "custom_utilities/particle_mechanics_math_utilities.h"
+#include "custom_utilities/mpm_math_utilities.h"
 
 namespace Kratos
 {
@@ -93,7 +93,7 @@ double MPMGridAxisymLineLoadCondition2D::GetIntegrationWeight(
     for (unsigned int i = 0; i < N.size(); ++i) {
         N_matrix(0, i) = N[i];
     }
-    const double radius = ParticleMechanicsMathUtilities<double>::CalculateRadius(N_matrix, GetGeometry());
+    const double radius = MPMMathUtilities<double>::CalculateRadius(N_matrix, GetGeometry());
     const double thickness = (GetProperties().Has( THICKNESS ) == true) ? this->GetProperties()[THICKNESS] : 1.0;
     const double axis_symmetric_weight = 2.0 * Globals::Pi * radius/thickness;
 
