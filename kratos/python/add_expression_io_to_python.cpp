@@ -22,13 +22,13 @@
 #include "expression/c_array_expression_io.h"
 #include "expression/expression.h"
 #include "expression/expression_io.h"
+#include "expression/expression_utils.h"
 #include "expression/integration_point_expression_io.h"
 #include "expression/literal_expression.h"
 #include "expression/literal_expression_input.h"
 #include "expression/literal_flat_expression.h"
 #include "expression/nodal_position_expression_io.h"
 #include "expression/variable_expression_io.h"
-#include "expression/view_operators.h"
 #include "includes/define_python.h"
 
 namespace Kratos::Python {
@@ -232,8 +232,8 @@ void AddExpressionIOToPython(pybind11::module& rModule)
         .def("__truediv__", [](Expression::Pointer pLeft, double Right) {return pLeft / Right;})
         //.def("__truediv__", [](double Left, Expression::Pointer pRight) {return Left / pRight;})
         .def("__truediv__", [](Expression::Pointer pLeft, Expression::Pointer pRight) {return pLeft / pRight;})
-        .def("__pow__", [](Expression::Pointer pLeft, double Right) {return Power(pLeft, Right);})
-        .def("__pow__", [](Expression::Pointer pLeft, Expression::Pointer pRight) {return Power(pLeft, pRight);})
+        .def("__pow__", [](Expression::Pointer pLeft, double Right) {return ExpressionUtils::Pow(pLeft, Right);})
+        .def("__pow__", [](Expression::Pointer pLeft, Expression::Pointer pRight) {return ExpressionUtils::Pow(pLeft, pRight);})
         .def("__neg__", [](Expression::Pointer pOperand) {return -1.0 * pOperand;})
         .def("__str__", &Expression::Info)
         ;
