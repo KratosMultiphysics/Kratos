@@ -239,7 +239,7 @@ namespace Kratos
         double step = rSimulationTime / mMeasurementDeltaTime;
         IndexType lower_step = int(step);
         double lower_weight = int(step) + 1 - step;
-        if (lower_step < mMeasurementTimeSteps){
+        if (lower_step > 0 && lower_step < mMeasurementTimeSteps){
             IndexType upper_step = int(step) + 1;
             double upper_weight = step - int(step);
 
@@ -250,13 +250,15 @@ namespace Kratos
             rNodalMeasuredDisplacement[2] = lower_weight * mMeasurementData["NODE_"+ std::to_string(rNodeId)]["DISPLACEMENT_Z"][lower_step-1].GetDouble() +
                                             upper_weight * mMeasurementData["NODE_"+ std::to_string(rNodeId)]["DISPLACEMENT_Z"][upper_step-1].GetDouble();
         }
+        else if (lower_step == 0){
+            rNodalMeasuredDisplacement[0] = mMeasurementData["NODE_"+ std::to_string(rNodeId)]["DISPLACEMENT_X"][lower_step].GetDouble();
+            rNodalMeasuredDisplacement[1] = mMeasurementData["NODE_"+ std::to_string(rNodeId)]["DISPLACEMENT_Y"][lower_step].GetDouble();
+            rNodalMeasuredDisplacement[2] = mMeasurementData["NODE_"+ std::to_string(rNodeId)]["DISPLACEMENT_Z"][lower_step].GetDouble();
+        }
         else{
-
             rNodalMeasuredDisplacement[0] = mMeasurementData["NODE_"+ std::to_string(rNodeId)]["DISPLACEMENT_X"][lower_step-1].GetDouble();
             rNodalMeasuredDisplacement[1] = mMeasurementData["NODE_"+ std::to_string(rNodeId)]["DISPLACEMENT_Y"][lower_step-1].GetDouble();
             rNodalMeasuredDisplacement[2] = mMeasurementData["NODE_"+ std::to_string(rNodeId)]["DISPLACEMENT_Z"][lower_step-1].GetDouble();
-
-
         }
 
     }
