@@ -400,7 +400,8 @@ class KRATOS_API(KRATOS_MPI_CORE) MPIDataCommunicator: public DataCommunicator
     ///@{
 
     MPI_Comm mComm;                      /// The MPI communicator
-    mutable std::vector<int> mRanksList; /// The list of ranks involved in this DataCommunicator
+    /// The list of ranks involved in this DataCommunicator
+    mutable std::vector<int> mRanksList;
 
     ///@}
     ///@name Operations
