@@ -86,7 +86,7 @@ protected:
     struct MaterialPointVariables
     {
     public:
-        // Particle Position
+        // Material Point Position
         CoordinatesArrayType xg;
         // MP_MASS
         double mass;

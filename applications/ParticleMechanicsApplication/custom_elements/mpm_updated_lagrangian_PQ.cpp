@@ -22,12 +22,12 @@
 #include "custom_elements/mpm_updated_lagrangian_PQ.hpp"
 #include "utilities/math_utils.h"
 #include "includes/constitutive_law.h"
-#include "particle_mechanics_application_variables.h"
+#include "mpm_application_variables.h"
 #include "includes/checks.h"
 
 
 #include "custom_utilities/mpm_explicit_utilities.h"
-#include "custom_utilities/particle_mechanics_math_utilities.h"
+#include "custom_utilities/mpm_math_utilities.h"
 #include "custom_utilities/mpm_energy_calculation_utility.h"
 
 
@@ -129,7 +129,7 @@ void MPMUpdatedLagrangianPQ::InitializeSolutionStep(const ProcessInfo& rCurrentP
 
                 // Add in the predictor velocity increment for central difference explicit
                 // This is the 'previous grid acceleration', which is actually
-                // be the initial particle acceleration mapped to the grid.
+                // be the initial material point acceleration mapped to the grid.
                 if (rCurrentProcessInfo.Has(IS_EXPLICIT_CENTRAL_DIFFERENCE)) {
                     if (rCurrentProcessInfo.GetValue(IS_EXPLICIT_CENTRAL_DIFFERENCE)) {
                         const double& delta_time = rCurrentProcessInfo[DELTA_TIME];

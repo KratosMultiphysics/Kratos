@@ -22,11 +22,11 @@
 #include "custom_elements/mpm_updated_lagrangian.hpp"
 #include "utilities/math_utils.h"
 #include "includes/constitutive_law.h"
-#include "particle_mechanics_application_variables.h"
+#include "mpm_application_variables.h"
 #include "includes/checks.h"
 #include "custom_utilities/mpm_energy_calculation_utility.h"
 #include "custom_utilities/mpm_explicit_utilities.h"
-#include "custom_utilities/particle_mechanics_math_utilities.h"
+#include "custom_utilities/mpm_math_utilities.h"
 
 namespace Kratos
 {
@@ -381,8 +381,8 @@ void MPMUpdatedLagrangian::CalculateKinematics(GeneralVariables& rVariables, con
     const Matrix& r_N = GetGeometry().ShapeFunctionsValues();
 
     if (is_axisymmetric) {
-        rVariables.CurrentRadius = ParticleMechanicsMathUtilities<double>::CalculateRadius(r_N, GetGeometry());
-        rVariables.ReferenceRadius = ParticleMechanicsMathUtilities<double>::CalculateRadius(r_N, GetGeometry(), Initial);
+        rVariables.CurrentRadius = MPMMathUtilities<double>::CalculateRadius(r_N, GetGeometry());
+        rVariables.ReferenceRadius = MPMMathUtilities<double>::CalculateRadius(r_N, GetGeometry(), Initial);
     }
 
     // Determinant of the previous Deformation Gradient F_n
@@ -408,7 +408,7 @@ void MPMUpdatedLagrangian::CalculateDeformationMatrix(Matrix& rB,
 
     if (IsAxisymmetric)
     {
-        const double radius = ParticleMechanicsMathUtilities<double>::CalculateRadius(rN, GetGeometry());
+        const double radius = MPMMathUtilities<double>::CalculateRadius(rN, GetGeometry());
 
         for (unsigned int i = 0; i < number_of_nodes; i++)
         {
@@ -658,7 +658,7 @@ void MPMUpdatedLagrangian::CalculateAndAddKuug(MatrixType& rLeftHandSideMatrix,
 
         const unsigned int number_of_nodes = GetGeometry().size();
         unsigned int index_i = 0;
-        const double radius = ParticleMechanicsMathUtilities<double>::CalculateRadius(r_N, GetGeometry());
+        const double radius = MPMMathUtilities<double>::CalculateRadius(r_N, GetGeometry());
 
         for (unsigned int i = 0; i < number_of_nodes; i++)
         {
@@ -713,8 +713,8 @@ void MPMUpdatedLagrangian::CalculateDeformationGradient(const Matrix& rDN_DX, Ma
     if (IsAxisymmetric)
     {
         // Compute radius
-        const double current_radius = ParticleMechanicsMathUtilities<double>::CalculateRadius(GetGeometry().ShapeFunctionsValues(), GetGeometry());
-        const double initial_radius = ParticleMechanicsMathUtilities<double>::CalculateRadius(GetGeometry().ShapeFunctionsValues(), GetGeometry(), Initial);
+        const double current_radius = MPMMathUtilities<double>::CalculateRadius(GetGeometry().ShapeFunctionsValues(), GetGeometry());
+        const double initial_radius = MPMMathUtilities<double>::CalculateRadius(GetGeometry().ShapeFunctionsValues(), GetGeometry(), Initial);
 
         rF = IdentityMatrix(3);
 
@@ -852,7 +852,7 @@ void MPMUpdatedLagrangian::InitializeSolutionStep(const ProcessInfo& rCurrentPro
 
         // Add in the predictor velocity increment for central difference explicit
         // This is the 'previous grid acceleration', which is actually
-        // be the initial particle acceleration mapped to the grid.
+        // be the initial material point acceleration mapped to the grid.
         if (is_explicit_central_difference) {
             const double& delta_time = rCurrentProcessInfo[DELTA_TIME];
             for (unsigned int j = 0; j < dimension; j++) {
