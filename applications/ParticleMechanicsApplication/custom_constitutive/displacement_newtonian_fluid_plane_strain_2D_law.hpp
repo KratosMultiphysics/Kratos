@@ -9,7 +9,7 @@
 //
 //  Main authors:    Contri Alessandro
 //
-//  References:      This class is adapted from applications/ParticleMechanicsApplication/custom_constitutive/hyperelastic_plane_strain_2D_law.hpp
+//  References:      This class is adapted from applications/MPMApplication/custom_constitutive/hyperelastic_plane_strain_2D_law.hpp
 
 
 #if !defined (KRATOS_DISPLACEMENT_NEWTONIAN_PLANE_STRAIN_2D_LAW_H_INCLUDED)
@@ -36,7 +36,7 @@ namespace Kratos
  * to large displacements.
  */
 
-class KRATOS_API(PARTICLE_MECHANICS_APPLICATION) DispNewtonianFluidPlaneStrain2DLaw
+class KRATOS_API(MPM_MECHANICS_APPLICATION) DispNewtonianFluidPlaneStrain2DLaw
     : public DispNewtonianFluid3DLaw
 {
 public:

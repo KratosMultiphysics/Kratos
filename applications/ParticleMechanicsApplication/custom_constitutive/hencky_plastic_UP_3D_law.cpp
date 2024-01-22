@@ -20,8 +20,8 @@
 // Project includes
 #include "includes/properties.h"
 #include "custom_constitutive/hencky_plastic_UP_3D_law.hpp"
-#include "custom_utilities/particle_mechanics_math_utilities.h"
-#include "particle_mechanics_application_variables.h"
+#include "custom_utilities/mpm_math_utilities.h"
+#include "mpm_application_variables.h"
 
 namespace Kratos
 {
@@ -80,7 +80,7 @@ HenckyElasticPlasticUP3DLaw::~HenckyElasticPlasticUP3DLaw()
 
 //*****************************MATERIAL RESPONSES*************************************
 //************************************************************************************
-void HenckyElasticPlasticUP3DLaw::CalculatePrincipalStressTrial(const MaterialResponseVariables & rElasticVariables, Parameters& rValues, const ParticleFlowRule::RadialReturnVariables & rReturnMappingVariables, Matrix& rNewElasticLeftCauchyGreen, Matrix& rStressMatrix)
+void HenckyElasticPlasticUP3DLaw::CalculatePrincipalStressTrial(const MaterialResponseVariables & rElasticVariables, Parameters& rValues, const MPMFlowRule::RadialReturnVariables & rReturnMappingVariables, Matrix& rNewElasticLeftCauchyGreen, Matrix& rStressMatrix)
 {
 
     const Properties& material_properties  = rValues.GetMaterialProperties();
@@ -132,7 +132,7 @@ void HenckyElasticPlasticUP3DLaw::CalculatePrincipalStressTrial(const MaterialRe
 
     double tol = 1e-9;
     int iter = 100;
-    ParticleMechanicsMathUtilities<double>::EigenVectors(rStressMatrix, eigen_vectors, eigen_values, tol, iter);
+    MPMMathUtilities<double>::EigenVectors(rStressMatrix, eigen_vectors, eigen_values, tol, iter);
 
     rStressMatrix.clear();
     for(unsigned int i=0; i<3; i++)
@@ -178,7 +178,7 @@ void HenckyElasticPlasticUP3DLaw::GetDomainPressure( double& rPressure, const Ma
 
 }
 
-void HenckyElasticPlasticUP3DLaw::CalculateElastoPlasticTangentMatrix( const ParticleFlowRule::RadialReturnVariables & rReturnMappingVariables, const Matrix& rNewElasticLeftCauchyGreen, const double& rAlpha, Matrix& rElastoPlasticTangentMatrix, const MaterialResponseVariables& rElasticVariables, const Properties& rProperties )
+void HenckyElasticPlasticUP3DLaw::CalculateElastoPlasticTangentMatrix( const MPMFlowRule::RadialReturnVariables & rReturnMappingVariables, const Matrix& rNewElasticLeftCauchyGreen, const double& rAlpha, Matrix& rElastoPlasticTangentMatrix, const MaterialResponseVariables& rElasticVariables, const Properties& rProperties )
 {
     mpMPMFlowRule->ComputeElastoPlasticTangentMatrix( rReturnMappingVariables,  rNewElasticLeftCauchyGreen, rAlpha, rElastoPlasticTangentMatrix, rProperties);
 

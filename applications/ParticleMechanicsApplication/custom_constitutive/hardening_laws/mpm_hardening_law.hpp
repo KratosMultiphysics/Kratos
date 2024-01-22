@@ -54,7 +54,7 @@ namespace Kratos
 /// Short class definition.
 /** Detail class definition.
 */
-class KRATOS_API(PARTICLE_MECHANICS_APPLICATION) ParticleHardeningLaw
+class KRATOS_API(MPM_MECHANICS_APPLICATION) MPMHardeningLaw
 {
 public:
 
@@ -78,8 +78,8 @@ public:
 
           void print() const
           {
-            KRATOS_INFO("ParticleHardeningLaw.Parameters") << " RateFactor " << mRateFactor  << std::endl;
-            KRATOS_INFO("ParticleHardeningLaw.Parameters") << " DeltaTime  " << *mpDeltaTime << std::endl;
+            KRATOS_INFO("MPMHardeningLaw.Parameters") << " RateFactor " << mRateFactor  << std::endl;
+            KRATOS_INFO("MPMHardeningLaw.Parameters") << " DeltaTime  " << *mpDeltaTime << std::endl;
           }
 
     };
@@ -90,28 +90,28 @@ public:
     typedef const Properties*   PropertiesPointer;
 
 
-    /// Pointer definition of ParticleHardeningLaw
-    KRATOS_CLASS_POINTER_DEFINITION( ParticleHardeningLaw );
+    /// Pointer definition of MPMHardeningLaw
+    KRATOS_CLASS_POINTER_DEFINITION( MPMHardeningLaw );
 
     ///@}
     ///@name Life Cycle
     ///@{
 
     /// Default constructor.
-    ParticleHardeningLaw(){};
+    MPMHardeningLaw(){};
 
     /// Copy constructor.
-    ParticleHardeningLaw(ParticleHardeningLaw const& rOther)
+    MPMHardeningLaw(MPMHardeningLaw const& rOther)
     {};
 
     /// Assignment operator.
-    ParticleHardeningLaw& operator=(ParticleHardeningLaw const& rOther)
+    MPMHardeningLaw& operator=(MPMHardeningLaw const& rOther)
     {
       return *this;
     };
 
     /// Destructor.
-    virtual ~ParticleHardeningLaw() {};
+    virtual ~MPMHardeningLaw() {};
 
 
     ///@}
@@ -122,9 +122,9 @@ public:
      * Clone function (has to be implemented by any derived class)
      * @return a pointer to a new instance of this hardening law
      */
-    virtual ParticleHardeningLaw::Pointer Clone() const
+    virtual MPMHardeningLaw::Pointer Clone() const
     {
-      return Kratos::make_shared<ParticleHardeningLaw>(*this);
+      return Kratos::make_shared<MPMHardeningLaw>(*this);
     }
 
 
@@ -253,7 +253,7 @@ private:
 
     ///@}
 
-}; // Class ParticleHardeningLaw
+}; // Class MPMHardeningLaw
 
 ///@}
 
@@ -268,11 +268,11 @@ private:
 
 // /// input stream function
 // inline std::istream& operator >> (std::istream& rIStream,
-//                                   ParticleHardeningLaw& rThis);
+//                                   MPMHardeningLaw& rThis);
 
 // /// output stream function
 // inline std::ostream& operator << (std::ostream& rOStream,
-//                                   const ParticleHardeningLaw& rThis)
+//                                   const MPMHardeningLaw& rThis)
 // {
 //     rThis.PrintInfo(rOStream);
 //     rOStream << std::endl;

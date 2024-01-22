@@ -51,7 +51,7 @@ namespace Kratos
 /// Short class definition.
 /** Detail class definition.
  */
-class KRATOS_API(PARTICLE_MECHANICS_APPLICATION) MCStrainSofteningPlasticFlowRule
+class KRATOS_API(MPM_MECHANICS_APPLICATION) MCStrainSofteningPlasticFlowRule
     :public MCPlasticFlowRule
 {
 
@@ -81,7 +81,7 @@ public:
     MCStrainSofteningPlasticFlowRule& operator=(MCStrainSofteningPlasticFlowRule const& rOther);
 
     // CLONE
-    ParticleFlowRule::Pointer Clone() const override;
+    MPMFlowRule::Pointer Clone() const override;
 
     /// Destructor.
     ~MCStrainSofteningPlasticFlowRule() override;

@@ -20,7 +20,7 @@
 // External includes
 
 // Project includes
-#include "custom_constitutive/flow_rules/particle_flow_rule.hpp"
+#include "custom_constitutive/flow_rules/mpm_flow_rule.hpp"
 
 
 namespace Kratos
@@ -64,8 +64,8 @@ namespace Kratos
 /// Short class definition.
 /** Detail class definition.
  */
-class KRATOS_API(PARTICLE_MECHANICS_APPLICATION) MCPlasticFlowRule
-    :public ParticleFlowRule
+class KRATOS_API(MPM_MECHANICS_APPLICATION) MCPlasticFlowRule
+    :public MPMFlowRule
 {
 
 
@@ -87,9 +87,9 @@ public:
     public:
         void PrintInfo()
         {
-            KRATOS_INFO("ParticleFlowRule.MaterialParameters") << "Cohesion       = " << Cohesion       << std::endl;
-            KRATOS_INFO("ParticleFlowRule.MaterialParameters") << "FrictionAngle  = " << FrictionAngle  << std::endl;
-            KRATOS_INFO("ParticleFlowRule.MaterialParameters") << "DilatancyAngle = " << DilatancyAngle << std::endl;
+            KRATOS_INFO("MPMFlowRule.MaterialParameters") << "Cohesion       = " << Cohesion       << std::endl;
+            KRATOS_INFO("MPMFlowRule.MaterialParameters") << "FrictionAngle  = " << FrictionAngle  << std::endl;
+            KRATOS_INFO("MPMFlowRule.MaterialParameters") << "DilatancyAngle = " << DilatancyAngle << std::endl;
         }
 
     private:
@@ -130,7 +130,7 @@ public:
     MCPlasticFlowRule& operator=(MCPlasticFlowRule const& rOther);
 
     // CLONE
-    ParticleFlowRule::Pointer Clone() const override;
+    MPMFlowRule::Pointer Clone() const override;
 
     /// Destructor.
     ~MCPlasticFlowRule() override;

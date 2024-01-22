@@ -20,7 +20,7 @@
 // Project includes
 #include "includes/properties.h"
 #include "custom_constitutive/hencky_borja_cam_clay_axisym_2D_law.hpp"
-#include "particle_mechanics_application_variables.h"
+#include "mpm_application_variables.h"
 
 namespace Kratos
 {
@@ -31,9 +31,9 @@ namespace Kratos
 HenckyBorjaCamClayPlasticAxisym2DLaw::HenckyBorjaCamClayPlasticAxisym2DLaw()
     : HenckyElasticPlasticAxisym2DLaw()
 {
-    mpHardeningLaw   = ParticleHardeningLaw::Pointer( new CamClayHardeningLaw() );
-    mpYieldCriterion = ParticleYieldCriterion::Pointer( new ModifiedCamClayYieldCriterion(mpHardeningLaw) );
-    mpMPMFlowRule    = ParticleFlowRule::Pointer( new BorjaCamClayPlasticFlowRule(mpYieldCriterion) );
+    mpHardeningLaw   = MPMHardeningLaw::Pointer( new CamClayHardeningLaw() );
+    mpYieldCriterion = MPMYieldCriterion::Pointer( new ModifiedCamClayYieldCriterion(mpHardeningLaw) );
+    mpMPMFlowRule    = MPMFlowRule::Pointer( new BorjaCamClayPlasticFlowRule(mpYieldCriterion) );
 }
 
 
@@ -43,7 +43,7 @@ HenckyBorjaCamClayPlasticAxisym2DLaw::HenckyBorjaCamClayPlasticAxisym2DLaw()
 HenckyBorjaCamClayPlasticAxisym2DLaw::HenckyBorjaCamClayPlasticAxisym2DLaw(FlowRulePointer pMPMFlowRule, YieldCriterionPointer pYieldCriterion, HardeningLawPointer pHardeningLaw)
 {
     mpHardeningLaw    =  pHardeningLaw;
-    mpYieldCriterion  =  ParticleYieldCriterion::Pointer( new ModifiedCamClayYieldCriterion(mpHardeningLaw) );
+    mpYieldCriterion  =  MPMYieldCriterion::Pointer( new ModifiedCamClayYieldCriterion(mpHardeningLaw) );
     mpMPMFlowRule     =  pMPMFlowRule;
 }
 

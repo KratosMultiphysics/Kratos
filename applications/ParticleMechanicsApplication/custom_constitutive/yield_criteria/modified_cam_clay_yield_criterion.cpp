@@ -30,7 +30,7 @@ namespace Kratos
 //*******************************CONSTRUCTOR******************************************
 //************************************************************************************
 ModifiedCamClayYieldCriterion::ModifiedCamClayYieldCriterion()
-    :ParticleYieldCriterion()
+    :MPMYieldCriterion()
 {
 
 }
@@ -39,7 +39,7 @@ ModifiedCamClayYieldCriterion::ModifiedCamClayYieldCriterion()
 //************************************************************************************
 
 ModifiedCamClayYieldCriterion::ModifiedCamClayYieldCriterion(HardeningLawPointer pHardeningLaw)
-    :ParticleYieldCriterion(pHardeningLaw)
+    :MPMYieldCriterion(pHardeningLaw)
 {
 
 }
@@ -50,7 +50,7 @@ ModifiedCamClayYieldCriterion::ModifiedCamClayYieldCriterion(HardeningLawPointer
 
 ModifiedCamClayYieldCriterion& ModifiedCamClayYieldCriterion::operator=(ModifiedCamClayYieldCriterion const& rOther)
 {
-    ParticleYieldCriterion::operator=(rOther);
+    MPMYieldCriterion::operator=(rOther);
     return *this;
 }
 
@@ -58,7 +58,7 @@ ModifiedCamClayYieldCriterion& ModifiedCamClayYieldCriterion::operator=(Modified
 //************************************************************************************
 
 ModifiedCamClayYieldCriterion::ModifiedCamClayYieldCriterion(ModifiedCamClayYieldCriterion const& rOther)
-    :ParticleYieldCriterion(rOther)
+    :MPMYieldCriterion(rOther)
 {
 
 }
@@ -132,12 +132,12 @@ void ModifiedCamClayYieldCriterion::CalculateYieldFunctionSecondDerivative(const
 
 void ModifiedCamClayYieldCriterion::save( Serializer& rSerializer ) const
 {
-    KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, ParticleYieldCriterion )
+    KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, MPMYieldCriterion )
 }
 
 void ModifiedCamClayYieldCriterion::load( Serializer& rSerializer )
 {
-    KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, ParticleYieldCriterion )
+    KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, MPMYieldCriterion )
 }
 
 

@@ -21,7 +21,7 @@
 // Project includes
 #include "custom_constitutive/flow_rules/mc_strain_softening_plastic_flow_rule.hpp"
 
-#include "particle_mechanics_application_variables.h"
+#include "mpm_application_variables.h"
 
 namespace Kratos
 {
@@ -60,9 +60,9 @@ MCStrainSofteningPlasticFlowRule::MCStrainSofteningPlasticFlowRule(MCStrainSofte
 }
 
 //*******   CLONE ********
-ParticleFlowRule::Pointer MCStrainSofteningPlasticFlowRule::Clone() const
+MPMFlowRule::Pointer MCStrainSofteningPlasticFlowRule::Clone() const
 {
-    ParticleFlowRule::Pointer p_clone(new MCStrainSofteningPlasticFlowRule(*this));
+    MPMFlowRule::Pointer p_clone(new MCStrainSofteningPlasticFlowRule(*this));
     return p_clone;
 }
 

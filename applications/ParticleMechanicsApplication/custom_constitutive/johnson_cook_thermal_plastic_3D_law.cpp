@@ -18,7 +18,7 @@
 
 #include "custom_constitutive/johnson_cook_thermal_plastic_3D_law.hpp"
 #include "custom_utilities/mpm_stress_principal_invariants_utility.h"
-#include "particle_mechanics_application_variables.h"
+#include "mpm_application_variables.h"
 
 namespace Kratos
 {

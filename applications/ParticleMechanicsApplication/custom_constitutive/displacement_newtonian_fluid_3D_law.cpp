@@ -9,7 +9,7 @@
 //
 //  Main authors:    Contri Alessandro
 //
-//  References:    This class is adapted from applications/ParticleMechanicsApplication/custom_constitutive/hyperelastic_3D_law.cpp
+//  References:    This class is adapted from applications/MPMApplication/custom_constitutive/hyperelastic_3D_law.cpp
 
 
 // System includes
@@ -19,7 +19,7 @@
 // Project includes
 #include "custom_constitutive/displacement_newtonian_fluid_3D_law.hpp"
 
-#include "particle_mechanics_application_variables.h"
+#include "mpm_application_variables.h"
 #include "includes/cfd_variables.h"
 
 namespace Kratos

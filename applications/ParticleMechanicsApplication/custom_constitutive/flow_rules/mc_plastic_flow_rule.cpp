@@ -21,7 +21,7 @@
 // Project includes
 #include "custom_constitutive/flow_rules/mc_plastic_flow_rule.hpp"
 
-#include "particle_mechanics_application_variables.h"
+#include "mpm_application_variables.h"
 #include "custom_utilities/mpm_stress_principal_invariants_utility.h"
 
 namespace Kratos
@@ -31,7 +31,7 @@ namespace Kratos
 
 //************ CONSTRUCTOR ***********
 MCPlasticFlowRule::MCPlasticFlowRule()
-    :ParticleFlowRule()
+    :MPMFlowRule()
 {
 }
 
@@ -39,7 +39,7 @@ MCPlasticFlowRule::MCPlasticFlowRule()
 //************************************************************************************
 
 MCPlasticFlowRule::MCPlasticFlowRule(YieldCriterionPointer pYieldCriterion)
-    :ParticleFlowRule(pYieldCriterion)
+    :MPMFlowRule(pYieldCriterion)
 {
 
 }
@@ -47,7 +47,7 @@ MCPlasticFlowRule::MCPlasticFlowRule(YieldCriterionPointer pYieldCriterion)
 //********* ASSIGMENT OPERATOR
 MCPlasticFlowRule& MCPlasticFlowRule::operator=(MCPlasticFlowRule const& rOther)
 {
-    ParticleFlowRule::operator=(rOther);
+    MPMFlowRule::operator=(rOther);
     return *this;
 
 }
@@ -56,14 +56,14 @@ MCPlasticFlowRule& MCPlasticFlowRule::operator=(MCPlasticFlowRule const& rOther)
 
 //********** COPY CONSTRUCTOR *********
 MCPlasticFlowRule::MCPlasticFlowRule(MCPlasticFlowRule const& rOther)
-    :ParticleFlowRule(rOther)
+    :MPMFlowRule(rOther)
 {
 }
 
 //*******   CLONE ********
-ParticleFlowRule::Pointer MCPlasticFlowRule::Clone() const
+MPMFlowRule::Pointer MCPlasticFlowRule::Clone() const
 {
-    ParticleFlowRule::Pointer p_clone(new MCPlasticFlowRule(*this));
+    MPMFlowRule::Pointer p_clone(new MCPlasticFlowRule(*this));
     return p_clone;
 }
 
@@ -76,7 +76,7 @@ MCPlasticFlowRule::~MCPlasticFlowRule()
 
 void MCPlasticFlowRule::InitializeMaterial(YieldCriterionPointer& pYieldCriterionPointer, HardeningLawPointer& pHardeningPointer, const Properties& rProp)
 {
-    ParticleFlowRule::InitializeMaterial(pYieldCriterionPointer, pHardeningPointer, rProp);
+    MPMFlowRule::InitializeMaterial(pYieldCriterionPointer, pHardeningPointer, rProp);
 
     mElasticPrincipalStrain = ZeroVector(3);
     mPlasticPrincipalStrain = ZeroVector(3);
@@ -567,7 +567,7 @@ void MCPlasticFlowRule::CalculateTransformationMatrix(const BoundedMatrix<double
 void MCPlasticFlowRule::ComputeElastoPlasticTangentMatrix(const RadialReturnVariables& rReturnMappingVariables, const Matrix& rNewElasticLeftCauchyGreen, const double& alfa, Matrix& rConsistMatrix, const Properties& rProp)
 {
     // Elastoplastic constitutive matrix
-    if (rReturnMappingVariables.Options.Is(ParticleFlowRule::PLASTIC_REGION))
+    if (rReturnMappingVariables.Options.Is(MPMFlowRule::PLASTIC_REGION))
     {
         BoundedMatrix<double,6,6> t = IdentityMatrix(6);
         BoundedMatrix<double,3,3> aux_T = ZeroMatrix(3,3);
@@ -806,7 +806,7 @@ void MCPlasticFlowRule::ComputePlasticHardeningParameter(const BoundedVector<dou
 
 void MCPlasticFlowRule::save( Serializer& rSerializer) const
 {
-    KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, ParticleFlowRule )
+    KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, MPMFlowRule )
 
     rSerializer.save("mElasticPricipalStrain",mElasticPrincipalStrain);
     rSerializer.save("mPlasticPrincipalStrain",mPlasticPrincipalStrain);
@@ -823,7 +823,7 @@ void MCPlasticFlowRule::save( Serializer& rSerializer) const
 
 void MCPlasticFlowRule::load( Serializer& rSerializer)
 {
-    KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, ParticleFlowRule )
+    KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, MPMFlowRule )
 
     rSerializer.load("mElasticPricipalStrain",mElasticPrincipalStrain);
     rSerializer.load("mPlasticPrincipalStrain",mPlasticPrincipalStrain);

@@ -27,8 +27,8 @@
 #include "utilities/math_utils.h"
 #include "input_output/logger.h"
 
-#include "custom_constitutive/yield_criteria/particle_yield_criterion.hpp"
-#include "custom_constitutive/hardening_laws/particle_hardening_law.hpp"
+#include "custom_constitutive/yield_criteria/mpm_yield_criterion.hpp"
+#include "custom_constitutive/hardening_laws/mpm_hardening_law.hpp"
 
 namespace Kratos
 {
@@ -57,15 +57,15 @@ namespace Kratos
 /// Short class definition.
 /** Detail class definition.
  */
-class KRATOS_API(PARTICLE_MECHANICS_APPLICATION) ParticleFlowRule
+class KRATOS_API(MPM_MECHANICS_APPLICATION) MPMFlowRule
 {
 public:
     ///@name Type Definitions
     ///@{
 
-    typedef ParticleYieldCriterion::Pointer    YieldCriterionPointer;
+    typedef MPMYieldCriterion::Pointer    YieldCriterionPointer;
 
-    typedef ParticleHardeningLaw::Pointer        HardeningLawPointer;
+    typedef MPMHardeningLaw::Pointer        HardeningLawPointer;
 
     typedef const Properties*              PropertiesPointer;
 
@@ -102,8 +102,8 @@ public:
 
         void print()
         {
-            KRATOS_INFO("ParticleFlowRule.ThermalVariables") << "PlasticDissipation      = " << PlasticDissipation      <<std::endl;
-            KRATOS_INFO("ParticleFlowRule.ThermalVariables") << "DeltaPlasticDissipation = " << DeltaPlasticDissipation <<std::endl;
+            KRATOS_INFO("MPMFlowRule.ThermalVariables") << "PlasticDissipation      = " << PlasticDissipation      <<std::endl;
+            KRATOS_INFO("MPMFlowRule.ThermalVariables") << "DeltaPlasticDissipation = " << DeltaPlasticDissipation <<std::endl;
         }
 
     private:
@@ -225,13 +225,13 @@ public:
 
         void print()
         {
-            KRATOS_INFO("ParticleFlowRule.InternalVariables") << " EquivalentPlasticStrain: "<<EquivalentPlasticStrain<<std::endl;
-            KRATOS_INFO("ParticleFlowRule.InternalVariables") << " DeltaPlasticStrain: "<<DeltaPlasticStrain<<std::endl;
-            KRATOS_INFO("ParticleFlowRule.InternalVariables") << " AccumulatedPlasticVolumetricStrain: "<<AccumulatedPlasticVolumetricStrain<<std::endl;
-            KRATOS_INFO("ParticleFlowRule.InternalVariables") << " DeltaPlasticVolumetricStrain: "<<DeltaPlasticVolumetricStrain<<std::endl;
-            KRATOS_INFO("ParticleFlowRule.InternalVariables") << " AccumulatedPlasticDeviatoricStrain: "<<AccumulatedPlasticDeviatoricStrain<<std::endl;
-            KRATOS_INFO("ParticleFlowRule.InternalVariables") << " DeltaPlasticDeviatoricStrain: "<<DeltaPlasticDeviatoricStrain<<std::endl;
-            KRATOS_INFO("ParticleFlowRule.InternalVariables") << " EquivalentPlasticStrainOld: "<<EquivalentPlasticStrainOld<<std::endl;
+            KRATOS_INFO("MPMFlowRule.InternalVariables") << " EquivalentPlasticStrain: "<<EquivalentPlasticStrain<<std::endl;
+            KRATOS_INFO("MPMFlowRule.InternalVariables") << " DeltaPlasticStrain: "<<DeltaPlasticStrain<<std::endl;
+            KRATOS_INFO("MPMFlowRule.InternalVariables") << " AccumulatedPlasticVolumetricStrain: "<<AccumulatedPlasticVolumetricStrain<<std::endl;
+            KRATOS_INFO("MPMFlowRule.InternalVariables") << " DeltaPlasticVolumetricStrain: "<<DeltaPlasticVolumetricStrain<<std::endl;
+            KRATOS_INFO("MPMFlowRule.InternalVariables") << " AccumulatedPlasticDeviatoricStrain: "<<AccumulatedPlasticDeviatoricStrain<<std::endl;
+            KRATOS_INFO("MPMFlowRule.InternalVariables") << " DeltaPlasticDeviatoricStrain: "<<DeltaPlasticDeviatoricStrain<<std::endl;
+            KRATOS_INFO("MPMFlowRule.InternalVariables") << " EquivalentPlasticStrainOld: "<<EquivalentPlasticStrainOld<<std::endl;
         }
 
     private:
@@ -264,25 +264,25 @@ public:
 
 
     /// Pointer definition of FlowRule
-    KRATOS_CLASS_POINTER_DEFINITION(ParticleFlowRule);
+    KRATOS_CLASS_POINTER_DEFINITION(MPMFlowRule);
 
     ///@}
     ///@name Life Cycle
     ///@{
 
     /// Default constructor.
-    ParticleFlowRule()
+    MPMFlowRule()
     {
     };
 
     /// Initialization constructor.
-    ParticleFlowRule(YieldCriterionPointer pYieldCriterion)
+    MPMFlowRule(YieldCriterionPointer pYieldCriterion)
         :mpYieldCriterion(pYieldCriterion)
     {
     };
 
     /// Copy constructor.
-    ParticleFlowRule(ParticleFlowRule const& rOther)
+    MPMFlowRule(MPMFlowRule const& rOther)
         :mInternalVariables(rOther.mInternalVariables)
         ,mThermalVariables(rOther.mThermalVariables)
         ,mpYieldCriterion(rOther.mpYieldCriterion)
@@ -293,7 +293,7 @@ public:
 
 
     /// Assignment operator.
-    ParticleFlowRule& operator=(ParticleFlowRule const& rOther)
+    MPMFlowRule& operator=(MPMFlowRule const& rOther)
     {
         mInternalVariables = rOther.mInternalVariables;
         mThermalVariables  = rOther.mThermalVariables;
@@ -305,7 +305,7 @@ public:
     };
 
     /// Destructor.
-    virtual ~ParticleFlowRule() {};
+    virtual ~MPMFlowRule() {};
 
 
     ///@}
@@ -317,9 +317,9 @@ public:
      * Clone function (has to be implemented by any derived class)
      * @return a pointer to a new instance of this flow rule
      */
-    virtual ParticleFlowRule::Pointer Clone() const
+    virtual MPMFlowRule::Pointer Clone() const
     {
-        ParticleFlowRule::Pointer p_clone(new ParticleFlowRule(*this));
+        MPMFlowRule::Pointer p_clone(new MPMFlowRule(*this));
         return p_clone;
     }
 
@@ -523,14 +523,14 @@ private:
     {
         rSerializer.save("InternalVariables",mInternalVariables);
         rSerializer.save("ThermalVariables",mThermalVariables);
-        rSerializer.save("ParticleYieldCriterion",mpYieldCriterion);
+        rSerializer.save("MPMYieldCriterion",mpYieldCriterion);
     };
 
     virtual void load(Serializer& rSerializer)
     {
         rSerializer.load("InternalVariables",mInternalVariables);
         rSerializer.load("ThermalVariables",mThermalVariables);
-        rSerializer.load("ParticleYieldCriterion",mpYieldCriterion);
+        rSerializer.load("MPMYieldCriterion",mpYieldCriterion);
     };
 
     ///@}

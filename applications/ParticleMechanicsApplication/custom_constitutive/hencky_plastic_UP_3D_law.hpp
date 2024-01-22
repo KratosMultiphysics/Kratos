@@ -31,7 +31,7 @@ namespace Kratos
  */
 
 
-class KRATOS_API(PARTICLE_MECHANICS_APPLICATION) HenckyElasticPlasticUP3DLaw : public HenckyElasticPlastic3DLaw
+class KRATOS_API(MPM_MECHANICS_APPLICATION) HenckyElasticPlasticUP3DLaw : public HenckyElasticPlastic3DLaw
 {
 //protected:
 
@@ -50,9 +50,9 @@ public:
     typedef ConstitutiveLaw         BaseType;
     typedef std::size_t             SizeType;
 
-    typedef ParticleFlowRule::Pointer                MPMFlowRulePointer;
-    typedef ParticleYieldCriterion::Pointer    YieldCriterionPointer;
-    typedef ParticleHardeningLaw::Pointer        HardeningLawPointer;
+    typedef MPMFlowRule::Pointer                MPMFlowRulePointer;
+    typedef MPMYieldCriterion::Pointer    YieldCriterionPointer;
+    typedef MPMHardeningLaw::Pointer        HardeningLawPointer;
     typedef Properties::Pointer            PropertiesPointer;
 
     /**
@@ -159,7 +159,7 @@ protected:
 
     void GetDomainPressure( double& rPressure, const MaterialResponseVariables& rElasticVariables);
 
-    void CalculateElastoPlasticTangentMatrix( const ParticleFlowRule::RadialReturnVariables & rReturnMappingVariables, const Matrix& rNewElasticLeftCauchyGreen,const double& rAlpha, Matrix& rElastoPlasticTangentMatrix, const MaterialResponseVariables& rElasticVariables, const Properties& rProperties) override;
+    void CalculateElastoPlasticTangentMatrix( const MPMFlowRule::RadialReturnVariables & rReturnMappingVariables, const Matrix& rNewElasticLeftCauchyGreen,const double& rAlpha, Matrix& rElastoPlasticTangentMatrix, const MaterialResponseVariables& rElasticVariables, const Properties& rProperties) override;
 
     /**
     * Calculates the GreenLagrange strains
@@ -179,7 +179,7 @@ protected:
                                  Vector& rStrainVector ) override;
 
     void CalculatePrincipalStressTrial(const MaterialResponseVariables & rElasticVariables,Parameters & rValues,
-                                       const ParticleFlowRule::RadialReturnVariables& rReturnMappingVariables,
+                                       const MPMFlowRule::RadialReturnVariables& rReturnMappingVariables,
                                        Matrix& rNewElasticLeftCauchyGreen, Matrix& rStressMatrix) override;
 
 private:

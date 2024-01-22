@@ -20,8 +20,8 @@
 // Project includes
 #include "includes/properties.h"
 #include "custom_constitutive/hencky_plastic_plane_strain_2D_law.hpp"
-#include "custom_utilities/particle_mechanics_math_utilities.h"
-#include "particle_mechanics_application_variables.h"
+#include "custom_utilities/mpm_math_utilities.h"
+#include "mpm_application_variables.h"
 
 namespace Kratos
 {
@@ -142,7 +142,7 @@ Matrix HenckyElasticPlasticPlaneStrain2DLaw::SetConstitutiveMatrixToAppropiateDi
 
 
 void HenckyElasticPlasticPlaneStrain2DLaw::CalculateHenckyMainStrain(const Matrix& rCauchyGreenMatrix,
-        ParticleFlowRule::RadialReturnVariables& rReturnMappingVariables,
+        MPMFlowRule::RadialReturnVariables& rReturnMappingVariables,
         Vector& rMainStrain)
 {
     Matrix Auxiliar = ZeroMatrix(3,3);
@@ -153,7 +153,7 @@ void HenckyElasticPlasticPlaneStrain2DLaw::CalculateHenckyMainStrain(const Matri
     Auxiliar(2,2) = 1.0;
     Matrix AuxEigenVectors = ZeroMatrix(3,3);
     Vector AuxEigenValues  = ZeroVector(3);
-    ParticleMechanicsMathUtilities<double>::EigenVectors(Auxiliar, AuxEigenVectors, AuxEigenValues);
+    MPMMathUtilities<double>::EigenVectors(Auxiliar, AuxEigenVectors, AuxEigenValues);
 
 
     Matrix EigenVectors = ZeroMatrix(3,3);

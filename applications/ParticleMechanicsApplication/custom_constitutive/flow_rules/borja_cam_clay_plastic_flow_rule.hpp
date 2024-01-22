@@ -20,7 +20,7 @@
 // External includes
 
 // Project includes
-#include "custom_constitutive/flow_rules/particle_flow_rule.hpp"
+#include "custom_constitutive/flow_rules/mpm_flow_rule.hpp"
 
 
 namespace Kratos
@@ -64,8 +64,8 @@ namespace Kratos
 /// Short class definition.
 /** Detail class definition.
  */
-class KRATOS_API(PARTICLE_MECHANICS_APPLICATION) BorjaCamClayPlasticFlowRule
-    :public ParticleFlowRule
+class KRATOS_API(MPM_MECHANICS_APPLICATION) BorjaCamClayPlasticFlowRule
+    :public MPMFlowRule
 {
 
 
@@ -86,9 +86,9 @@ public:
     public:
         void PrintInfo()
         {
-            KRATOS_INFO("ParticleFlowRule.MaterialParameters") << "PreconsolidationPressure = " <<  PreconsolidationPressure  << std::endl;
-            KRATOS_INFO("ParticleFlowRule.MaterialParameters") << "PlasticHardeningModulus  = " <<  PlasticHardeningModulus   << std::endl;
-            KRATOS_INFO("ParticleFlowRule.MaterialParameters") << "ConsistencyParameter     = " <<  ConsistencyParameter      << std::endl;
+            KRATOS_INFO("MPMFlowRule.MaterialParameters") << "PreconsolidationPressure = " <<  PreconsolidationPressure  << std::endl;
+            KRATOS_INFO("MPMFlowRule.MaterialParameters") << "PlasticHardeningModulus  = " <<  PlasticHardeningModulus   << std::endl;
+            KRATOS_INFO("MPMFlowRule.MaterialParameters") << "ConsistencyParameter     = " <<  ConsistencyParameter      << std::endl;
         }
 
     private:
@@ -129,7 +129,7 @@ public:
     BorjaCamClayPlasticFlowRule& operator=(BorjaCamClayPlasticFlowRule const& rOther);
 
     // CLONE
-    ParticleFlowRule::Pointer Clone() const override;
+    MPMFlowRule::Pointer Clone() const override;
 
     /// Destructor.
     ~BorjaCamClayPlasticFlowRule() override;

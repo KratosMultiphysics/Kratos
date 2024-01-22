@@ -32,7 +32,7 @@ namespace Kratos
  * The functionality is limited to large displacements
  */
 
-class KRATOS_API(PARTICLE_MECHANICS_APPLICATION) HenckyElasticPlasticAxisym2DLaw : public HenckyElasticPlastic3DLaw
+class KRATOS_API(MPM_MECHANICS_APPLICATION) HenckyElasticPlasticAxisym2DLaw : public HenckyElasticPlastic3DLaw
 {
 public:
     /**
@@ -42,9 +42,9 @@ public:
     typedef ConstitutiveLaw         BaseType;
     typedef std::size_t             SizeType;
 
-    typedef ParticleFlowRule::Pointer                FlowRulePointer;
-    typedef ParticleYieldCriterion::Pointer    YieldCriterionPointer;
-    typedef ParticleHardeningLaw::Pointer        HardeningLawPointer;
+    typedef MPMFlowRule::Pointer                FlowRulePointer;
+    typedef MPMYieldCriterion::Pointer    YieldCriterionPointer;
+    typedef MPMHardeningLaw::Pointer        HardeningLawPointer;
     typedef Properties::Pointer               PropertiesPointer;
 
     /**

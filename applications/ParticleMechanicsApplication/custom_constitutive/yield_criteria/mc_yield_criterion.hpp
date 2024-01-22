@@ -19,7 +19,7 @@
 // External includes
 
 // Project includes
-#include "custom_constitutive/yield_criteria/particle_yield_criterion.hpp"
+#include "custom_constitutive/yield_criteria/mpm_yield_criterion.hpp"
 
 namespace Kratos
 {
@@ -47,8 +47,8 @@ namespace Kratos
 /// Short class definition.
 /** Detail class definition.
 */
-class KRATOS_API(PARTICLE_MECHANICS_APPLICATION) MCYieldCriterion
-    : public ParticleYieldCriterion
+class KRATOS_API(MPM_MECHANICS_APPLICATION) MCYieldCriterion
+    : public MPMYieldCriterion
 {
 public:
     ///@name Type Definitions

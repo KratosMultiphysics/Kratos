@@ -18,7 +18,7 @@
 
 // Project includes
 #include "custom_constitutive/hyperelastic_axisym_2D_law.hpp"
-#include "particle_mechanics_application_variables.h"
+#include "mpm_application_variables.h"
 
 namespace Kratos
 {

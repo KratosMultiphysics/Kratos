@@ -9,7 +9,7 @@
 //
 //  Main authors:    Contri Alessandro
 //
-//  References:      This class is based on the file applications/ParticleMechanicsApplication/custom_constitutive/hyperelastic_3D_law.hpp
+//  References:      This class is based on the file applications/MPMApplication/custom_constitutive/hyperelastic_3D_law.hpp
 
 
 #if !defined (KRATOS_DISPLACEMENT_NEWTONIAN_3D_LAW_H_INCLUDED)
@@ -36,7 +36,7 @@ namespace Kratos
  * to large displacements.
  */
 
-class KRATOS_API(PARTICLE_MECHANICS_APPLICATION) DispNewtonianFluid3DLaw
+class KRATOS_API(MPM_MECHANICS_APPLICATION) DispNewtonianFluid3DLaw
     : public ConstitutiveLaw
 {
 protected:
