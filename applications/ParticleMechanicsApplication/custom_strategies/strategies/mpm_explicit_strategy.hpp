@@ -27,14 +27,14 @@
 #include "solving_strategies/strategies/implicit_solving_strategy.h"
 
 // Application includes
-#include "particle_mechanics_application_variables.h"
+#include "mpm_application_variables.h"
 
 namespace Kratos
 {
 /// Short class definition.
 /**
  * @class MPMExplicitStrategy
- * @ingroup ParticleMechanicsApplciation
+ * @ingroup MPMApplciation
  * @brief This strategy is used for the explicit time integration
  * @author Peter Wilson (based on the work of Klaus B Sautter)
  */

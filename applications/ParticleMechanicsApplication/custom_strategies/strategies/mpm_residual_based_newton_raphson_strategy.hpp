@@ -21,7 +21,7 @@
 #include "solving_strategies/strategies/residualbased_newton_raphson_strategy.h"
 
 // Application includes
-#include "particle_mechanics_application_variables.h"
+#include "mpm_application_variables.h"
 
 namespace Kratos
 {
@@ -55,7 +55,7 @@ namespace Kratos
 
 /**
  * @class MPMResidualBasedNewtonRaphsonStrategy
- * @ingroup KratosParticle
+ * @ingroup KratosMPM
  * @brief Newton Raphson strategy suited for MPM simulations
  * @details This strategy iterates until the convergence is achieved (or the maximum number of iterations is achieved) using a Newton Raphson algorithm
  */

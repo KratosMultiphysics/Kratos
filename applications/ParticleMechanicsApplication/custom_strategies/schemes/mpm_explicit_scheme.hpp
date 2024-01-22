@@ -29,7 +29,7 @@
 namespace Kratos {
     /**
      * @class MPMExplicitScheme
-     * @ingroup KratosParticle
+     * @ingroup KratosMPM
      * @brief A MPM explicit scheme
      * @details Scheme options include Forward Euler or Central Difference.
      * Stress update options include Update Stress First (USF), Update Stress Last (USL) and Modified Update Stress Last (MUSL).
@@ -410,7 +410,7 @@ namespace Kratos {
                 }
                 else if (rCurrentProcessInfo.GetValue(EXPLICIT_STRESS_UPDATE_OPTION) == 2)
                 {
-                    // MUSL stress update. This works by projecting the updated particle
+                    // MUSL stress update. This works by projecting the updated material point
                     // velocity back to the nodes. The nodal velocity field is then
                     // used for stress computations.
 

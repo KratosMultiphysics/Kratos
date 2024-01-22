@@ -35,7 +35,7 @@ namespace Kratos
 
 /**
  * @class MPMResidualBasedBossakScheme
- * @ingroup KratosParticle
+ * @ingroup KratosMPM
  * @brief Bossak integration scheme (for linear and nonlinear dynamic problems) for displacements adjusted for Material Point Method
  * @details This is an implicit scheme based of the Bossak algorithm for displacements suitable for quasi-static and dynamic problems.
  * Furthermore, this scheme has been adjusted for mixed formulation where pressure is also solved as one of the DoFs.
@@ -273,7 +273,7 @@ public:
 
         BossakBaseType::FinalizeNonLinIteration(rModelPart, rA, rDx, rb);
 
-        // modify reaction forces for particle slip conditions (Penalty)
+        // modify reaction forces for material point particle slip conditions (Penalty)
         mRotationTool.CalculateReactionForces(mGridModelPart);
     }
 
