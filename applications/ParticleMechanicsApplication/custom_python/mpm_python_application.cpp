@@ -28,18 +28,18 @@
 #ifdef KRATOS_USING_MPI // MPI-parallel compilation
 #include "custom_python/mpi/add_custom_mpi_utilities_to_python.h"
 #endif
-#include "particle_mechanics_application.h"
+#include "mpm_application.h"
 
 namespace Kratos{
 namespace Python{
 
     namespace py = pybind11;
 
-    PYBIND11_MODULE(KratosParticleMechanicsApplication, m)
+    PYBIND11_MODULE(KratosMPMApplication, m)
     {
-        py::class_<KratosParticleMechanicsApplication,
-            KratosParticleMechanicsApplication::Pointer,
-            KratosApplication >(m, "KratosParticleMechanicsApplication")
+        py::class_<KratosMPMApplication,
+            KratosMPMApplication::Pointer,
+            KratosApplication >(m, "KratosMPMApplication")
             .def(py::init<>())
             ;
 
@@ -73,7 +73,7 @@ namespace Python{
         KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, MP_TEMPERATURE);
         KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, MP_HARDENING_RATIO);
         KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, MP_MATERIAL_ID);
-        KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, PARTICLES_PER_ELEMENT);
+        KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, MATERIAL_POINTS_PER_ELEMENT);
         KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, MP_SUB_POINTS);
         KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, IGNORE_GEOMETRIC_STIFFNESS);
         KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, IS_AXISYMMETRIC);
@@ -96,7 +96,7 @@ namespace Python{
         KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, MPC_ACCELERATION);
         KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, MPC_IMPOSED_ACCELERATION);
         KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, MPC_CONTACT_FORCE);
-        KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, PARTICLES_PER_CONDITION);
+        KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, MATERIAL_POINTS_PER_CONDITION);
         KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, IS_EQUAL_DISTRIBUTED);
 
         KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, MP_DISPLACEMENT);

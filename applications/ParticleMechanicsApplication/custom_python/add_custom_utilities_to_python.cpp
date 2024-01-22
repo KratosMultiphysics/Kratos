@@ -23,7 +23,7 @@
 #include "spaces/ublas_space.h"
 #include "linear_solvers/linear_solver.h"
 #include "custom_utilities/mpm_search_element_utility.h"
-#include "custom_utilities/mpm_particle_generator_utility.cpp"
+#include "custom_utilities/material_point_generator_utility.cpp"
 
 
 namespace Kratos{
@@ -47,9 +47,9 @@ namespace Python{
         bool IsMixedFormulation)
     {
         const auto dimension = rBackgroundGridModelPart.GetProcessInfo()[DOMAIN_SIZE];
-        if (dimension == 2) MPMParticleGeneratorUtility::GenerateMaterialPointElement<2>(
+        if (dimension == 2) MaterialPointGeneratorUtility::GenerateMaterialPointElement<2>(
             rBackgroundGridModelPart, rInitialModelPart, rMPMModelPart, IsMixedFormulation);
-        else if (dimension == 3) MPMParticleGeneratorUtility::GenerateMaterialPointElement<3>(
+        else if (dimension == 3) MaterialPointGeneratorUtility::GenerateMaterialPointElement<3>(
             rBackgroundGridModelPart, rInitialModelPart, rMPMModelPart, IsMixedFormulation);
     }
 
@@ -59,9 +59,9 @@ namespace Python{
         ModelPart& rMPMModelPart)
     {
         const auto dimension = rBackgroundGridModelPart.GetProcessInfo()[DOMAIN_SIZE];
-        if (dimension == 2) MPMParticleGeneratorUtility::GenerateMaterialPointCondition<2>(
+        if (dimension == 2) MaterialPointGeneratorUtility::GenerateMaterialPointCondition<2>(
             rBackgroundGridModelPart, rInitialModelPart, rMPMModelPart);
-        else if (dimension == 3) MPMParticleGeneratorUtility::GenerateMaterialPointCondition<3>(
+        else if (dimension == 3) MaterialPointGeneratorUtility::GenerateMaterialPointCondition<3>(
             rBackgroundGridModelPart, rInitialModelPart, rMPMModelPart);
     }
 

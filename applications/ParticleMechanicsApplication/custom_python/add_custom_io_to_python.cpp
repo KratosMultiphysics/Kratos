@@ -20,7 +20,7 @@
 #include "custom_python/add_custom_io_to_python.h"
 #include "includes/define.h"
 #include "processes/process.h"
-#include "custom_io/particle_vtk_output.h"
+#include "custom_io/mpm_vtk_output.h"
 
 namespace Kratos::Python{
 
@@ -28,10 +28,10 @@ namespace Kratos::Python{
     {
         namespace py = pybind11;
 
-        py::class_<ParticleVtkOutput, ParticleVtkOutput::Pointer, IO>(m, "ParticleVtkOutput")
+        py::class_<MPMVtkOutput, MPMVtkOutput::Pointer, IO>(m, "MPMVtkOutput")
             .def(py::init< ModelPart&, Parameters >())
-            .def("PrintOutput", &ParticleVtkOutput::PrintOutput, py::arg("output_filename")="")
-            .def_static("GetDefaultParameters", &ParticleVtkOutput::GetDefaultParameters);
+            .def("PrintOutput", &MPMVtkOutput::PrintOutput, py::arg("output_filename")="")
+            .def_static("GetDefaultParameters", &MPMVtkOutput::GetDefaultParameters);
     }
 
 }  // namespace Kratos::Python.
