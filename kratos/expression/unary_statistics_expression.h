@@ -14,6 +14,7 @@
 
 // System includes
 #include <string>
+#include <limits>
 
 // Project includes
 #include "expression/expression.h"
@@ -23,13 +24,20 @@ namespace Kratos {
 ///@name Kratos Classes
 ///@{
 
+namespace UnaryStatisticOperations
+{
+    struct Min { static inline constexpr double mInitial = std::numeric_limits<double>::max();  static inline constexpr double Evaluate(const double V1, const double V2) { return std::min(V1, V2); } };
+    struct Max { static inline constexpr double mInitial = std::numeric_limits<double>::lowest(); static inline constexpr double Evaluate(const double V1, const double V2) { return std::max(V1, V2); } };
+    struct Sum { static inline constexpr double mInitial = 0.0; static inline constexpr double Evaluate(const double V1, const double V2) { return V1 + V2; } };
+}
+
 /**
- * @brief Unary slice expression used to represent a slicing lazy expression of a given input expression.
- *
- * @details This expression slices the input expression's entity values with an offset and stride (length of components).
+ * @brief Used to create lazy expression to get statistical quantities of entity values.
  *
  */
-class KRATOS_API(KRATOS_CORE) UnarySliceExpression : public Expression {
+
+template<class TOperationType>
+class UnaryStatisticsExpression : public Expression {
 public:
     ///@name Type definitions
     ///@{
@@ -40,19 +48,13 @@ public:
     ///@name Life cycle
     ///@{
 
-    UnarySliceExpression(
-        Expression::ConstPointer pExpression,
-        const IndexType Offset,
-        const IndexType Stride);
+    UnaryStatisticsExpression(Expression::ConstPointer pExpression);
 
     ///@}
     ///@name Public operations
     ///@{
 
-    static Expression::Pointer Create(
-        Expression::ConstPointer pExpression,
-        const IndexType Offset,
-        const IndexType Stride);
+    static Expression::Pointer Create(Expression::ConstPointer pExpression);
 
     double Evaluate(
         const IndexType EntityIndex,
@@ -66,17 +68,14 @@ public:
     std::string Info() const override;
 
     ///@}
-protected:
+
+private:
     ///@name Private member variables
     ///@{
 
+    const IndexType mItemComponentCount;
+
     const Expression::ConstPointer mpSourceExpression;
-
-    const IndexType mOffset;
-
-    const IndexType mStride;
-
-    const IndexType mSourceStride;
 
     ///@}
 };
