@@ -67,7 +67,7 @@
         "scaling": true
       },
         "problem_domain_sub_model_part_list": ["Soil"],
-        "processes_sub_model_part_list":      ["Fixed_Based_Y","Fixed_Symmetry_X","Fixed_Point_XY","Top_Displacement","Fixity_right","Lateral_load","Top_load"],
+        "processes_sub_model_part_list":      ["Fixed_Based_Y","Fixed_Symmetry_X","Top_Displacement","Fixity_right","Lateral_load","Top_load"],
         "body_domain_sub_model_part_list":    ["Soil"]
     },
     "output_processes": {
@@ -123,18 +123,6 @@
             "variable_name":   "DISPLACEMENT",
             "active":          [true,false,false],
             "is_fixed":        [true,false,false],
-            "value":           [0.0,0.0,0.0],
-            "table":           [0,0,0]
-        }
-    },{
-        "python_module": "apply_vector_constraint_table_process",
-        "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
-        "process_name":  "ApplyVectorConstraintTableProcess",
-        "Parameters":    {
-            "model_part_name": "PorousDomain.Fixed_Point_XY",
-            "variable_name":   "DISPLACEMENT",
-            "active":          [true,true,false],
-            "is_fixed":        [true,true,false],
             "value":           [0.0,0.0,0.0],
             "table":           [0,0,0]
         }
