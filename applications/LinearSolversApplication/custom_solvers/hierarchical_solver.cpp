@@ -492,6 +492,13 @@ void GetNonzeroQuadraticCoefficients(GeometryData::KratosGeometryType Geometry,
                                       {5ul, 0.5}};
             break;
         }
+        case G::Kratos_Tetrahedra3D4: {
+            *itOutput++ = PairVector {{0ul, 1.0}};
+            *itOutput++ = PairVector {{1ul, 1.0}};
+            *itOutput++ = PairVector {{2ul, 1.0}};
+            *itOutput = PairVector   {{3ul, 1.0}};
+            break;
+        }
         case G::Kratos_Tetrahedra3D10: {
             *itOutput++ = PairVector {{0ul, 1.0},
                                       {4ul, 0.5},
