@@ -13,7 +13,7 @@
 #include "custom_constitutive/thermal_dispersion_law.h"
 #include "geo_mechanics_application.h"
 #include "includes/ublas_interface.h"
-#include "testing/testing.h"
+#include "geo_testing.h"
 
 namespace Kratos::Testing {
 

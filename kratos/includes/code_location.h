@@ -105,7 +105,7 @@ namespace Kratos
        ///@{
 
     /// output stream function
-    std::ostream & operator <<(std::ostream& rOStream,
+    KRATOS_API(KRATOS_CORE) std::ostream & operator <<(std::ostream& rOStream,
         const CodeLocation& rThis);
     ///@}
 

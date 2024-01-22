@@ -156,7 +156,7 @@ array_1d<double, 3> GetBodyForce(
  * @param rCurrentProcessInfo The ProcessInfo where it is specified
  * @return whether to compute the lumped mass-matrix
  */
-bool ComputeLumpedMassMatrix(
+KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) bool ComputeLumpedMassMatrix(
     const Properties& rProperties,
     const ProcessInfo& rCurrentProcessInfo);
 
@@ -166,7 +166,7 @@ bool ComputeLumpedMassMatrix(
  * @param rCurrentProcessInfo The ProcessInfo where it is specified
  * @return whether rayleigh-damping was specified
  */
-bool HasRayleighDamping(
+KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) bool HasRayleighDamping(
     const Properties& rProperties,
     const ProcessInfo& rCurrentProcessInfo);
 
@@ -176,7 +176,7 @@ bool HasRayleighDamping(
  * @param rCurrentProcessInfo The ProcessInfo where it is specified
  * @return rayleigh-alpha
  */
-double GetRayleighAlpha(
+KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) double GetRayleighAlpha(
     const Properties& rProperties,
     const ProcessInfo& rCurrentProcessInfo);
 
@@ -186,7 +186,7 @@ double GetRayleighAlpha(
  * @param rCurrentProcessInfo The ProcessInfo where it is specified
  * @return rayleigh-beta
  */
-double GetRayleighBeta(
+KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) double GetRayleighBeta(
     const Properties& rProperties,
     const ProcessInfo& rCurrentProcessInfo);
 

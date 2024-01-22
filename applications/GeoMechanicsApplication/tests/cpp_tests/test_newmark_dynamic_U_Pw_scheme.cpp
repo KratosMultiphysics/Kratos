@@ -12,7 +12,7 @@
 
 #include "custom_strategies/schemes/newmark_dynamic_U_Pw_scheme.hpp"
 #include "spaces/ublas_space.h"
-#include "testing/testing.h"
+#include "geo_testing.h"
 
 namespace Kratos::Testing
 {

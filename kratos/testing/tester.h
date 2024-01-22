@@ -40,7 +40,7 @@ class TestSuite; // Forward declaration of TestSuite class
     test suits and gives interface to register test cases and run all
     or some of them.
 */
-class KRATOS_API(KRATOS_CORE) Tester
+class Tester
 {
 public:
     ///@name Type Definitions

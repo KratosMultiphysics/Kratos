@@ -200,7 +200,7 @@ protected:
 };
 
 template<class TRawDataType = double>
-class LiteralScalarFlatExpression : public LiteralFlatExpression<TRawDataType>
+class KRATOS_API(KRATOS_CORE) LiteralScalarFlatExpression : public LiteralFlatExpression<TRawDataType>
 {
 public:
 
@@ -216,7 +216,7 @@ public:
 };
 
 template<class TRawDataType = double>
-class LiteralNonScalarFlatExpression : public LiteralFlatExpression<TRawDataType>
+class KRATOS_API(KRATOS_CORE) LiteralNonScalarFlatExpression : public LiteralFlatExpression<TRawDataType>
 {
 public:
 

@@ -1,8 +1,10 @@
-cmake_minimum_required (VERSION 2.8.6)
+cmake_minimum_required (VERSION 3.22.0)
+
 project (KratosMultiphysics)
 set (CMAKE_CXX_STANDARD 17)
 set (CMAKE_CXX_STANDARD_REQUIRED ON)
 set (CMAKE_CXX_EXTENSIONS OFF)
+set (USE_MPI OFF)
 
 # Setting some policies
 # No recursive dereferencing
@@ -25,6 +27,11 @@ if(POLICY CMP0057)
   cmake_policy(SET CMP0057 NEW)
 endif(POLICY CMP0057)
 
+# Timestamp for extracted files
+if(POLICY CMP0135)
+  cmake_policy(SET CMP0135 NEW)
+endif(POLICY CMP0135)
+
 # Set here the version number **** only update upon tagging a release!
 set (KratosMultiphysics_MAJOR_VERSION 9)
 set (KratosMultiphysics_MINOR_VERSION 4)
@@ -38,11 +45,11 @@ endif(NOT DEFINED KRATOS_SOURCE_DIR)
 
 if(NOT DEFINED KRATOS_BINARY_DIR)
   message("-- No KRATOS_BINARY_DIR is defined, using: ${CMAKE_BINARY_DIR}")
-  set(KRATOS_BINARY_DIR ${CMAKE_BINARY_DIR})
+  set(KRATOS_BINARY_DIR "${CMAKE_BINARY_DIR}")
 endif(NOT DEFINED KRATOS_BINARY_DIR)
 
-option(REMOVE_INSTALL_DIRECTORIES "Remove the install directories to achieve a clean compilation" ON)
-
+# Remove the install directories to achieve a clean compilation
+set(REMOVE_INSTALL_DIRECTORIES OFF)
 
 # Link on install
 if(NOT DEFINED ENV{KRATOS_INSTALL_PYTHON_USING_LINKS})
@@ -275,11 +282,24 @@ SET(INSTALL_PYTHON_FILES ON)        # To be removed when all applications are po
 #include the file with custom installation properties
 include(install_function)
 include(KratosDependencies)
+include(FetchContent)
 
 # Logger configuration
 if(KRATOS_COLORED_OUTPUT MATCHES ON)
   add_definitions(-DKRATOS_COLORED_OUTPUT)
 endif(KRATOS_COLORED_OUTPUT MATCHES ON)
+
+# Testing
+if(KRATOS_BUILD_TESTING MATCHES ON)   
+  FetchContent_Declare(
+    googletest
+    URL https://github.com/google/googletest/archive/03597a01ee50ed33e9dfd640b249b4be3799d395.zip
+  )
+  # For Windows: Prevent overriding the parent project's compiler/linker settings
+  set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
+  FetchContent_MakeAvailable(googletest)
+  enable_testing()
+endif(KRATOS_BUILD_TESTING MATCHES ON) 
 
 ################### PYBIND11
 
@@ -617,14 +637,12 @@ endif(${USE_TRIANGLE_NONFREE_TPL} MATCHES ON )
 # Compiling the tinyexpr library
 add_subdirectory(${KRATOS_SOURCE_DIR}/external_libraries/tinyexpr)
 
-# Clean the Module and libs install directories
 if(${REMOVE_INSTALL_DIRECTORIES} MATCHES ON )
     install(CODE "message(STATUS \"Deleting: ${CMAKE_INSTALL_PREFIX}/KratosMultiphysics\")")
     install(CODE "file(REMOVE_RECURSE \"${CMAKE_INSTALL_PREFIX}/KratosMultiphysics\")")
     install(CODE "message(STATUS \"Deleting: ${CMAKE_INSTALL_PREFIX}/libs\")")
     install(CODE "file(REMOVE_RECURSE \"${CMAKE_INSTALL_PREFIX}/libs\")")
 endif(${REMOVE_INSTALL_DIRECTORIES} MATCHES ON )
-
 # Install core files for the KratosMultiphysics python module
 kratos_python_install(${INSTALL_PYTHON_USING_LINKS} "${KRATOS_SOURCE_DIR}/kratos/python_interface/__init__.py" "KratosMultiphysics/__init__.py" )
 kratos_python_install(${INSTALL_PYTHON_USING_LINKS} "${KRATOS_SOURCE_DIR}/kratos/python_interface/kratos_globals.py" "KratosMultiphysics/kratos_globals.py" )

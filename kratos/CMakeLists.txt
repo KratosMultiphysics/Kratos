@@ -1,4 +1,5 @@
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
+set(USE_MPI OFF)
 
 if(${USE_TRIANGLE_NONFREE_TPL} MATCHES ON )
     include_directories( ${KRATOS_SOURCE_DIR}/external_libraries/triangle )
@@ -46,7 +47,7 @@ if(${USE_TRIANGLE_NONFREE_TPL} MATCHES ON )
 endif(${USE_TRIANGLE_NONFREE_TPL} MATCHES ON )
 
 ## Kratos python interface code
-FILE(GLOB_RECURSE KRATOS_PYTHON_SOURCES "python/*.cpp") #all .cpp
+FILE(GLOB_RECURSE KRATOS_PYTHON_SOURCES "python/*.cpp")
 
 ## Kratos Version
 set( KRATOS_VERSION_SOURCES
@@ -62,10 +63,29 @@ file(GLOB KRATOS_EXPRESSION_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/expression/*.cpp
 
 ## Kratos tests sources. Enabled by default
 if(${KRATOS_BUILD_TESTING} MATCHES ON)
-    file(GLOB_RECURSE KRATOS_TEST_SOURCES
+    include(GoogleTest)
+
+    file(GLOB_RECURSE KRATOS_TEST_UTILITIES_SOURCES 
         ${CMAKE_CURRENT_SOURCE_DIR}/tests/test_utilities/*.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/tests/cpp_tests/*.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/testing/*.cpp
     )
+    file(GLOB_RECURSE KRATOS_TEST_SOURCES 
+	    ${CMAKE_CURRENT_SOURCE_DIR}/tests/cpp_tests/*.cpp
+	)
+
+    add_library(KratosCoreTestUtilities SHARED ${KRATOS_TEST_UTILITIES_SOURCES})
+    add_executable(KratosCoreTest ${KRATOS_TEST_SOURCES})
+
+    target_link_libraries(KratosCoreTestUtilities KratosCore GTest::gtest_main GTest::gmock_main)
+    target_link_libraries(KratosCoreTest KratosCoreTestUtilities
+		${CMAKE_BINARY_DIR}/kratos/CMakeFiles/KratosCoreTestUtilities.dir/tests/test_utilities/test_bar_element.cpp.obj
+	)
+
+    install(TARGETS KratosCoreTestUtilities DESTINATION libs)
+    install(TARGETS KratosCoreTest)
+
+    gtest_discover_tests(KratosCoreTest)
+	#gtest_add_tests(KratosCoreTest DISCOVERY_MODE PRE_TEST)
 endif(${KRATOS_BUILD_TESTING} MATCHES ON)
 
 ## Define KratosVersion object
@@ -81,7 +101,7 @@ target_compile_definitions(KratosVersion PRIVATE
 )
 
 ## Define library KratosCore to be included in all of the others
-add_library(KratosCore SHARED ${KRATOS_CORE_SOURCES} ${KRATOS_CORE_TESTING_ENGINE_SOURCES} ${KRATOS_CORE_INPUT_OUTPUT_SOURCES} ${KRATOS_EXPRESSION_SOURCES} ${KRATOS_TEST_SOURCES} ${KRATOS_TPL_SOURCES} $<TARGET_OBJECTS:KratosVersion>)
+add_library(KratosCore SHARED ${KRATOS_CORE_SOURCES} ${KRATOS_CORE_INPUT_OUTPUT_SOURCES} ${KRATOS_EXPRESSION_SOURCES} ${KRATOS_TPL_SOURCES} $<TARGET_OBJECTS:KratosVersion>)
 
 # Set the shared external libraries for kratos (gidpost, tyniexpr, json, etc...)
 set(KRATOS_EXTERNAL_LIBRARIES gidpost tinyexpr clipper)
@@ -186,7 +206,7 @@ if(${INSTALL_TESTING_FILES} MATCHES ON )
 endif(${INSTALL_TESTING_FILES} MATCHES ON)
 
 # Install targets
-install(TARGETS Kratos DESTINATION libs )
+install(TARGETS Kratos DESTINATION libs)
 install(TARGETS KratosCore DESTINATION libs)
 
 # Mpi

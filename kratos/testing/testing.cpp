@@ -21,8 +21,10 @@
 
 namespace Kratos::Testing 
 {
+
 DataCommunicator& GetDefaultDataCommunicator()
 {
     return ParallelEnvironment::GetDefaultDataCommunicator();
 }
+
 }

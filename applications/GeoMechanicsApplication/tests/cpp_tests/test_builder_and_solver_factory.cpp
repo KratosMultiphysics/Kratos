@@ -10,7 +10,7 @@
 //  Main authors:    Richard Faasse
 //
 
-#include "testing/testing.h"
+#include "geo_testing.h"
 #include "custom_utilities/builder_and_solver_factory.hpp"
 #include "spaces/ublas_space.h"
 #include "linear_solvers/linear_solver.h"

@@ -14,7 +14,7 @@
 #include "custom_workflows/strategy_wrapper.hpp"
 #include "custom_workflows/time_step_executor.h"
 #include "solving_strategies/strategies/solving_strategy.h"
-#include "testing/testing.h"
+#include "geo_testing.h"
 
 using namespace Kratos;
 

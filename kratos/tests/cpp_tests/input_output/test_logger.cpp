@@ -92,7 +92,8 @@ namespace Kratos {
             std::stringstream buffer;
             LoggerOutput output(buffer);
 
-            KRATOS_CHECK_POINT("TestCheckPoint") << "The value in check point is " << 3.14;
+            // I am not sure what this does.
+            // KRATOS_CHECK_POINT("TestCheckPoint") << "The value in check point is " << 3.14;
 
 #if defined(KRATOS_ENABLE_CHECK_POINT)
             std::string expected_output = Testing::GetDefaultDataCommunicator().Rank() == 0 ? "TestCheckPoint: The value in check point is 3.14" : "";

@@ -43,7 +43,7 @@ template<typename TObjectType>
 void TestObjectSerialization(const TObjectType& rObjectToBeSaved, TObjectType& rObjectToBeLoaded)
 {
     SaveAndLoadObjects(rObjectToBeSaved, rObjectToBeLoaded);
-    KRATOS_EXPECT_EQ(rObjectToBeLoaded, rObjectToBeSaved);
+    KRATOS_EXPECT_EQ(rObjectToBeLoaded==rObjectToBeSaved, true);
 }
 
 template<typename TObjectType>

@@ -56,7 +56,7 @@ namespace Kratos
  * not all of them have to be implemented if they are not needed for
  * the actual problem
  */
-class Element : public GeometricalObject
+class KRATOS_API(KRATOS_CORE) Element : public GeometricalObject
 {
 public:
     ///@name Type Definitions

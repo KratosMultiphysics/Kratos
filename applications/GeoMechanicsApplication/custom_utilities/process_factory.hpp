@@ -25,7 +25,7 @@ namespace Kratos
 
 class Parameters;
 
-class ProcessFactory
+class KRATOS_API(GEO_MECHANICS_APPLICATION) ProcessFactory
 {
 public:
     using ProductType = std::unique_ptr<Process>;

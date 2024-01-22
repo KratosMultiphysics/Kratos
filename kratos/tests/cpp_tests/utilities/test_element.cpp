@@ -18,7 +18,7 @@
 #include "includes/define.h"
 #include "includes/expect.h"
 #include "includes/variables.h"
-#include "tests/test_utilities/test_element.h"
+#include "tests/cpp_tests/utilities/test_element.h"
 
 namespace Kratos::Testing
 {

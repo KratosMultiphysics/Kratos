@@ -20,7 +20,7 @@
 #include "geometries/triangle_2d_3.h"
 #include "geometries/quadrilateral_2d_4.h"
 #include "elements/distance_calculation_element_simplex.h"
-#include "utilities/cpp_tests_utilities.h"
+#include "tests/test_utilities/cpp_tests_utilities.h"
 
 /* Processes */
 #include "processes/replace_elements_and_condition_process.h"

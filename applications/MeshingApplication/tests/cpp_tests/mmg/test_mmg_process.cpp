@@ -20,7 +20,7 @@
 // #include "includes/gid_io.h"
 #include "containers/model.h"
 #include "meshing_application_variables.h"
-#include "utilities/cpp_tests_utilities.h"
+#include "tests/test_utilities/cpp_tests_utilities.h"
 
 /* Processes */
 #include "custom_processes/mmg/mmg_process.h"

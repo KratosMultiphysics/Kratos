@@ -29,7 +29,7 @@ namespace BinaryOperations
 {
     struct Addition       { static inline constexpr double Evaluate(const double V1, const double V2) { return V1 + V2; } };
     struct Substraction   { static inline constexpr double Evaluate(const double V1, const double V2) { return V1 - V2; } };
-    struct Multiplication { static inline constexpr double Evaluate(const double V1, const double V2) { return V1 * V2; } };
+    struct KRATOS_API(KRATOS_CORE) Multiplication { static inline constexpr double Evaluate(const double V1, const double V2) { return V1 * V2; } };
     struct Division       { static inline constexpr double Evaluate(const double V1, const double V2) { return V1 / V2; } };
     struct Power          { static inline           double Evaluate(const double V1, const double V2) { return std::pow(V1, V2); } };
 }

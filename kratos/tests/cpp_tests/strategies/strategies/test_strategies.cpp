@@ -26,8 +26,8 @@
 #include "spaces/ublas_space.h"
 
 /* Element include */
-#include "tests/test_utilities/test_element.h"
-#include "tests/test_utilities/test_constitutive_law.h"
+#include "tests/cpp_tests/utilities/test_element.h"
+#include "tests/cpp_tests/utilities/test_constitutive_law.h"
 
 // Linear solvers
 #include "linear_solvers/reorderer.h"

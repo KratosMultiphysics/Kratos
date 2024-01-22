@@ -18,7 +18,7 @@
 #include "testing/testing.h"
 #include "containers/model.h"
 #include "custom_utilities/interface_preprocess.h"
-#include "utilities/cpp_tests_utilities.h"
+#include "tests/test_utilities/cpp_tests_utilities.h"
 
 namespace Kratos::Testing 
 {

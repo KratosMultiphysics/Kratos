@@ -12,7 +12,7 @@
 
 #include "custom_strategies/schemes/backward_euler_T_scheme.hpp"
 #include "spaces/ublas_space.h"
-#include "testing/testing.h"
+#include "geo_testing.h"
 
 namespace Kratos::Testing {
 

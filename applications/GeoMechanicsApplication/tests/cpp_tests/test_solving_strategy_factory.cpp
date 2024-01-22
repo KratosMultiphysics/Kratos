@@ -10,7 +10,7 @@
 //  Main authors:    Richard Faasse
 //
 
-#include "testing/testing.h"
+#include "geo_testing.h"
 #include "custom_utilities/solving_strategy_factory.hpp"
 #include "containers/model.h"
 

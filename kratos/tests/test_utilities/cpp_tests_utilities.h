@@ -64,8 +64,8 @@ namespace CppTestsUtilities
     void KRATOS_API(KRATOS_CORE) Create2DGeometry(
         ModelPart& rModelPart,
         const std::string& rEntityName = "Element2D3N",
-        const bool Initialize = true,
-        const bool Elements = true
+        bool Initialize = true,
+        bool Elements = true
         );
 
     /**

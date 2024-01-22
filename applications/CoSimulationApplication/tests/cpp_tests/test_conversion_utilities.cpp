@@ -21,7 +21,7 @@
 #include "custom_utilities/conversion_utilities.h"
 
 // Utilities
-#include "utilities/cpp_tests_utilities.h"
+#include "tests/test_utilities/cpp_tests_utilities.h"
 
 namespace Kratos {
 namespace Testing {
