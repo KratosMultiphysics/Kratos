@@ -48,10 +48,10 @@ CollectiveExpression::CollectiveExpression(const CollectiveExpression& rOther)
 CollectiveExpression& CollectiveExpression::operator=(const CollectiveExpression& rOther)
 {
     mExpressionPointersList.clear();
-    for (const auto& p_container_variable_data_holder : rOther.mExpressionPointersList) {
-        std::visit([&](const auto& v) {
+    for (const auto& r_container_variable_data_holder : rOther.mExpressionPointersList) {
+        std::visit([this](const auto& v) {
             mExpressionPointersList.push_back(v);
-        }, p_container_variable_data_holder);
+        }, r_container_variable_data_holder);
     }
     return *this;
 }
