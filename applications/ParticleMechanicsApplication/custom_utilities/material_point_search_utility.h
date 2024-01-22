@@ -21,7 +21,7 @@
 #include "includes/define.h"
 #include "utilities/binbased_fast_point_locator.h"
 #include "utilities/quadrature_points_utility.h"
-#include "particle_mechanics_application_variables.h"
+#include "mpm_application_variables.h"
 #include "geometries/geometry.h"
 #include "includes/model_part.h"
 #include "pqmpm_partition_utilities.h"
@@ -406,7 +406,7 @@ namespace Kratos::MPMSearchElementUtility
 
 
     /**
-     * @brief Search element connectivity for each particle
+     * @brief Search element connectivity for each material point
      * @details A search is performed to know in which grid element the material point falls.
      * If one or more material points fall in the grid element, the grid element is
      * set to be active and its connectivity is associated to the material point

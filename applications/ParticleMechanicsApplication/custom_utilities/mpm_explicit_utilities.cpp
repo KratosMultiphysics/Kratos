@@ -68,7 +68,7 @@ namespace Kratos
                         nodal_force_internal_normal[0] = rMPVolume * weight *
                             (rMPStress[0] * DN_DX_vec[int_p](active_node_counter, 0) +
                                 rMPStress[2] * rGeom.ShapeFunctionValue(int_p, i) /
-                                ParticleMechanicsMathUtilities<double>::CalculateRadius(rGeom.ShapeFunctionsValues(), rGeom, Current, int_p) +
+                                MPMMathUtilities<double>::CalculateRadius(rGeom.ShapeFunctionsValues(), rGeom, Current, int_p) +
                                 rMPStress[3] * DN_DX_vec[int_p](active_node_counter, 1));
 
                         nodal_force_internal_normal[1] = rMPVolume * weight *
@@ -304,7 +304,7 @@ namespace Kratos
                     if (is_axisym) // axisymmetric case
                     {
                         velocityGradient(2, 2) += nodal_velocity[0] * rGeom.ShapeFunctionValue(int_p, nodeIndex) /
-                            ParticleMechanicsMathUtilities<double>::CalculateRadius(rGeom.ShapeFunctionsValues(), rGeom, Current) * weight;
+                            MPMMathUtilities<double>::CalculateRadius(rGeom.ShapeFunctionsValues(), rGeom, Current) * weight;
                     }
                     active_node_counter += 1;
                 }

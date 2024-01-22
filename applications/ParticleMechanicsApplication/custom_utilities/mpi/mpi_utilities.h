@@ -22,7 +22,7 @@
 
 namespace Kratos {
 
-///@addtogroup ParticleMechanicsApplication
+///@addtogroup MPMApplication
 ///@{
 
 ///@name Kratos Classes
@@ -30,10 +30,10 @@ namespace Kratos {
 
 /**
  * @class MPM_MPI_Utilities
- * @ingroup ParticleMechanicsApplication
+ * @ingroup MPMApplication
  * @brief Provides place to add mpi related utility functions.
  */
-class KRATOS_API(PARTICLE_MECHANICS_APPLICATION) MPM_MPI_Utilities
+class KRATOS_API(MPM_APPLICATION) MPM_MPI_Utilities
 {
 public:
     ///@name Type Definitions

@@ -17,8 +17,8 @@
 #include "includes/model_part.h"
 #include "includes/element.h"
 #include "includes/variables.h"
-#include "particle_mechanics_application_variables.h"
-#include "custom_utilities/particle_mechanics_math_utilities.h"
+#include "mpm_application_variables.h"
+#include "custom_utilities/mpm_math_utilities.h"
 
 namespace Kratos
 {
@@ -26,7 +26,7 @@ namespace Kratos
     ///@{
     /**
      * @namespace MPMExplicitUtilities
-     * @ingroup ParticleMechanicsApplication
+     * @ingroup MPMApplication
      * @brief This namespace includes several utilities necessaries for the computation of the explicit integration
      * @author Peter Wilson
      */
@@ -44,17 +44,17 @@ namespace Kratos
         typedef Node NodeType;
         typedef Geometry<NodeType> GeometryType;
 
-        void KRATOS_API(PARTICLE_MECHANICS_APPLICATION) CalculateAndAddExplicitInternalForce(const ProcessInfo& rProcessInfo,
+        void KRATOS_API(MPM_APPLICATION) CalculateAndAddExplicitInternalForce(const ProcessInfo& rProcessInfo,
             Element& rElement, const Vector& rMPStress, const double rMPVolume,
             const SizeType StrainSize, Vector& rRightHandSideVector);
 
-        void KRATOS_API(PARTICLE_MECHANICS_APPLICATION) UpdateGaussPointExplicit(const ProcessInfo& rCurrentProcessInfo,
+        void KRATOS_API(MPM_APPLICATION) UpdateGaussPointExplicit(const ProcessInfo& rCurrentProcessInfo,
             Element& rElement);
 
-        void KRATOS_API(PARTICLE_MECHANICS_APPLICATION) CalculateMUSLGridVelocity(const ProcessInfo& rCurrentProcessInfo,
+        void KRATOS_API(MPM_APPLICATION) CalculateMUSLGridVelocity(const ProcessInfo& rCurrentProcessInfo,
             Element& rElement);
 
-        void KRATOS_API(PARTICLE_MECHANICS_APPLICATION) CalculateExplicitKinematics(const ProcessInfo& rCurrentProcessInfo,
+        void KRATOS_API(MPM_APPLICATION) CalculateExplicitKinematics(const ProcessInfo& rCurrentProcessInfo,
             Element& rElement, Vector& rMPStrain, Matrix& rDeformationGradient,
             const SizeType StrainSize);
 

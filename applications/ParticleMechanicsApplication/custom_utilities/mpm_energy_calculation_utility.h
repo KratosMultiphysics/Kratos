@@ -20,7 +20,7 @@
 
 // Project includes
 #include "includes/define.h"
-#include "particle_mechanics_application_variables.h"
+#include "mpm_application_variables.h"
 #include "containers/model.h"
 #include "includes/element.h"
 
@@ -35,20 +35,20 @@ namespace MPMEnergyCalculationUtility
     typedef Element::Pointer ElementPointerType;
 
     //compute potential energy
-    double KRATOS_API(PARTICLE_MECHANICS_APPLICATION) CalculatePotentialEnergy(Element& rElement);
-    double KRATOS_API(PARTICLE_MECHANICS_APPLICATION) CalculatePotentialEnergy(ModelPart& rModelPart);
+    double KRATOS_API(MPM_APPLICATION) CalculatePotentialEnergy(Element& rElement);
+    double KRATOS_API(MPM_APPLICATION) CalculatePotentialEnergy(ModelPart& rModelPart);
 
      //compute kinetic energy
-    double KRATOS_API(PARTICLE_MECHANICS_APPLICATION) CalculateKineticEnergy(Element& rElement);
-    double KRATOS_API(PARTICLE_MECHANICS_APPLICATION) CalculateKineticEnergy(ModelPart& rModelPart);
+    double KRATOS_API(MPM_APPLICATION) CalculateKineticEnergy(Element& rElement);
+    double KRATOS_API(MPM_APPLICATION) CalculateKineticEnergy(ModelPart& rModelPart);
 
      //compute strain energy
-    double KRATOS_API(PARTICLE_MECHANICS_APPLICATION) CalculateStrainEnergy(Element& rElement);
-    double KRATOS_API(PARTICLE_MECHANICS_APPLICATION) CalculateStrainEnergy(ModelPart& rModelPart);
+    double KRATOS_API(MPM_APPLICATION) CalculateStrainEnergy(Element& rElement);
+    double KRATOS_API(MPM_APPLICATION) CalculateStrainEnergy(ModelPart& rModelPart);
 
     //compute total energy
-    double KRATOS_API(PARTICLE_MECHANICS_APPLICATION) CalculateTotalEnergy(Element& rElement);
-    double KRATOS_API(PARTICLE_MECHANICS_APPLICATION) CalculateTotalEnergy(ModelPart& rModelPart);
+    double KRATOS_API(MPM_APPLICATION) CalculateTotalEnergy(Element& rElement);
+    double KRATOS_API(MPM_APPLICATION) CalculateTotalEnergy(ModelPart& rModelPart);
 
 } // end namespace MPMEnergyCalculationUtility
 

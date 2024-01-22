@@ -14,7 +14,7 @@
 #define KRATOS_PQMPM_PARTITION_UTILITIES
 
 // Project includes
-#include "particle_mechanics_application_variables.h"
+#include "mpm_application_variables.h"
 #include "geometries/geometry_shape_function_container.h"
 #include "custom_geometries/quadrature_point_partitioned_geometry.h"
 
@@ -29,11 +29,11 @@ namespace Kratos
     ///@{
     /**
      * @class PQMPMPartitionUtilities
-     * @ingroup ParticleMechanicsApplication
+     * @ingroup MPMApplication
      * @brief This class includes several utilities necessaries for the PQMPM
      * @author Peter Wilson
      */
-    class KRATOS_API(PARTICLE_MECHANICS_APPLICATION) PQMPMPartitionUtilities
+    class KRATOS_API(MPM_APPLICATION) PQMPMPartitionUtilities
     {
     public:
         // Standard types

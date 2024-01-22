@@ -12,9 +12,7 @@
 //  References:      This class is adapted from applications/SolidMechanicsApplication/custom_utilities/solid_mechanics_math_utilities.hpp
 
 
-#if !defined(KRATOS_PARTICLE_MECHANICS_MATH_UTILITIES_H_INCLUDED)
-#define      KRATOS_PARTICLE_MECHANICS_MATH_UTILITIES_H_INCLUDED
-
+#pragma once
 
 #ifdef FIND_MAX
 #undef FIND_MAX
@@ -32,7 +30,7 @@
 #include "geometries/point.h"
 #include "geometries/geometry.h"
 #include "includes/node.h"
-#include "particle_mechanics_application_variables.h"
+#include "mpm_application_variables.h"
 
 #if !defined(INITIAL_CURRENT)
 #define INITIAL_CURRENT
@@ -42,7 +40,7 @@
 namespace Kratos
 {
 template<class TDataType>
-class ParticleMechanicsMathUtilities
+class MPMMathUtilities
 {
 public:
     /**
@@ -133,7 +131,7 @@ public:
             rT1[0] -= dot*rRotationMatrix(0,0);
             rT1[1] -= dot*rRotationMatrix(0,1);
             rT1[2] -= dot*rRotationMatrix(0,2);
-            ParticleMechanicsMathUtilities<double>::Normalize(rT1);
+            MPMMathUtilities<double>::Normalize(rT1);
 
             rRotationMatrix(1,0) = rT1[0];
             rRotationMatrix(1,0) = rT1[1];
@@ -380,7 +378,7 @@ public:
                 HelpA(i,i) = HelpA(i,i)- shift;
             }
 
-            ParticleMechanicsMathUtilities<double>::QRFactorization(HelpA, HelpQ, HelpR);
+            MPMMathUtilities<double>::QRFactorization(HelpA, HelpQ, HelpR);
 
             HelpA= ZeroMatrix(dimension, dimension);
 
@@ -640,9 +638,9 @@ public:
 
         if(!(is_converged))
         {
-            KRATOS_WARNING("ParticleMechanicsMathUtilities")<<"########################################################"<<std::endl;
-            KRATOS_WARNING("ParticleMechanicsMathUtilities")<<"rMaxIteration exceed in Jacobi-Seidel-Iteration (eigenvectors)"<<std::endl;
-            KRATOS_WARNING("ParticleMechanicsMathUtilities")<<"########################################################"<<std::endl;
+            KRATOS_WARNING("MPMMathUtilities")<<"########################################################"<<std::endl;
+            KRATOS_WARNING("MPMMathUtilities")<<"rMaxIteration exceed in Jacobi-Seidel-Iteration (eigenvectors)"<<std::endl;
+            KRATOS_WARNING("MPMMathUtilities")<<"########################################################"<<std::endl;
         }
 
         for(unsigned int i=0; i< Help.size1(); i++)
@@ -989,8 +987,5 @@ public:
 
     }
 
-
-private:
-};// class ParticleMechanicsMathUtilities
+};// class MPMMathUtilities
 }
-#endif /* KRATOS_PARTICLE_MECHANICS_MATH_UTILITIES_H_INCLUDED defined */

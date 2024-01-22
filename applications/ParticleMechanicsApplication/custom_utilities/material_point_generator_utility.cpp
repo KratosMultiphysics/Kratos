@@ -15,15 +15,13 @@
 // External includes
 
 // Project includes
-#include "custom_utilities/mpm_particle_generator_utility.h"
-#include "custom_utilities/particle_mechanics_math_utilities.h"
+#include "custom_utilities/material_point_generator_utility.h"
+#include "custom_utilities/mpm_math_utilities.h"
 #include "integration/integration_point_utilities.h"
 #include "utilities/quadrature_points_utility.h"
 
 
-namespace Kratos
-{
-namespace MPMParticleGeneratorUtility
+namespace Kratos::MaterialPointGeneratorUtility
 {
 
     template<SizeType TDimension>
@@ -74,16 +72,16 @@ namespace MPMParticleGeneratorUtility
                     Properties::Pointer properties = i->pGetProperties();
                     const double density = i->GetProperties()[DENSITY];
 
-                    // Check number of particles per element to be created
-                    unsigned int particles_per_element;
-                    if (i->GetProperties().Has(PARTICLES_PER_ELEMENT)) {
-                        particles_per_element = i->GetProperties()[PARTICLES_PER_ELEMENT];
+                    // Check number of material point per element to be created
+                    unsigned int material_points_per_element;
+                    if (i->GetProperties().Has(MATERIAL_POINTS_PER_ELEMENT)) {
+                        material_points_per_element = i->GetProperties()[MATERIAL_POINTS_PER_ELEMENT];
                     }
                     else {
-                        std::string warning_msg = "PARTICLES_PER_ELEMENT is not specified in Properties, ";
-                        warning_msg += "1 Particle per element is assumed.";
-                        KRATOS_WARNING("MPMParticleGeneratorUtility") << warning_msg << std::endl;
-                        particles_per_element = 1;
+                        std::string warning_msg = "MATERIAL_POINTS_PER_ELEMENT is not specified in Properties, ";
+                        warning_msg += "1 material point per element is assumed.";
+                        KRATOS_WARNING("MaterialPointGeneratorUtility") << warning_msg << std::endl;
+                        material_points_per_element = 1;
                     }
 
                     // Get geometry and dimension of the background grid
@@ -95,7 +93,7 @@ namespace MPMParticleGeneratorUtility
                     IntegrationMethod int_method = GeometryData::IntegrationMethod::GI_GAUSS_1;
                     Matrix shape_functions_values;
                     bool is_equal_int_volumes = false;
-                    DetermineIntegrationMethodAndShapeFunctionValues(r_geometry, particles_per_element,
+                    DetermineIntegrationMethodAndShapeFunctionValues(r_geometry, material_points_per_element,
                         int_method, shape_functions_values, is_equal_int_volumes);
 
                     // Get volumes of the material points
@@ -156,7 +154,7 @@ namespace MPMParticleGeneratorUtility
 
                         // FindPointOnMesh find the background element in which a given point falls and the relative shape functions
                         bool is_found = SearchStructure.FindPointOnMesh(xg[0], N, pelem, result_begin);
-                        if (!is_found) KRATOS_WARNING("MPM particle generator utility") << "::search failed." << std::endl;
+                        if (!is_found) KRATOS_WARNING("MaterialPointGeneratorUtility") << "::search failed." << std::endl;
 
                         pelem->Set(ACTIVE);
                         auto p_new_geometry = CreateQuadraturePointsUtility<Node>::CreateFromCoordinates(
@@ -170,7 +168,7 @@ namespace MPMParticleGeneratorUtility
 
                         const ProcessInfo process_info = ProcessInfo();
 
-                        // Setting particle element's initial condition
+                        // Setting material point element initial condition
                         p_element->SetValuesOnIntegrationPoints(MP_DENSITY, MP_density, process_info);
                         p_element->SetValuesOnIntegrationPoints(MP_MASS, mp_mass, process_info);
                         p_element->SetValuesOnIntegrationPoints(MP_VOLUME, mp_volume, process_info);
@@ -199,7 +197,7 @@ namespace MPMParticleGeneratorUtility
     }
     /**
      * @brief Function to Initiate material point condition.
-     * @details Generating particle condition using a designated shape functions
+     * @details Generating material point condition using a designated shape functions
      */
 
     template <SizeType TDimension>
@@ -221,7 +219,7 @@ namespace MPMParticleGeneratorUtility
 
         std::vector<double> mpc_area(1);
         std::vector<double> mpc_penalty_factor(1);
-        PointerVector<Condition> ParticleConditions;
+        PointerVector<Condition> MaterialPointConditions;
 
         // Determine condition index: This convention is done in order for the purpose of visualization in GiD
         const unsigned int number_conditions = rBackgroundGridModelPart.NumberOfConditions();
@@ -260,10 +258,10 @@ namespace MPMParticleGeneratorUtility
                         rMPMModelPart.SetConditions(submodelpart.pConditions());
                     }
                 }
-                 // For boundary conditions: create particle conditions for all the necessary conditions
+                 // For boundary conditions: create material point conditions for all the necessary conditions
                 else{
-                    ParticleConditions.clear();
-                    // NOTE: To create Particle Condition, we consider both the nodal position as well as the position of integration point
+                    MaterialPointConditions.clear();
+                    // NOTE: To create material point Condition, we consider both the nodal position as well as the position of integration point
                     // Loop over the conditions of submodelpart and generate mpm condition to be appended to the rMPMModelPart
                     rMPMModelPart.CreateSubModelPart(submodelpart_name);
                     for (ModelPart::ConditionIterator i = submodelpart.ConditionsBegin();
@@ -274,24 +272,24 @@ namespace MPMParticleGeneratorUtility
                         const bool is_neumann_condition = i->GetValue(MPC_IS_NEUMANN);
                         const int boundary_condition_type = i->GetValue(MPC_BOUNDARY_CONDITION_TYPE);
 
-                        // Check number of particles per condition to be created
-                        unsigned int particles_per_condition = 0; // Default zero
-                        if (i->Has( PARTICLES_PER_CONDITION )){
-                            particles_per_condition = i->GetValue(PARTICLES_PER_CONDITION);
+                        // Check number of material points per condition to be created
+                        unsigned int material_points_per_condition = 0; // Default zero
+                        if (i->Has( MATERIAL_POINTS_PER_CONDITION )){
+                            material_points_per_condition = i->GetValue(MATERIAL_POINTS_PER_CONDITION);
                         }
                         else{
-                            KRATOS_WARNING("MPMParticleGeneratorUtility") << "PARTICLES_PER_CONDITION is not specified. Only one particle is assumed." << std::endl;
+                            KRATOS_WARNING("MaterialPointGeneratorUtility") << "MATERIAL_POINTS_PER_CONDITION is not specified. Only one material point is assumed." << std::endl;
                         }
 
                         // Get condition variables:
                         // Normal vector
                         if (i->Has(NORMAL)) mpc_normal = i->GetValue(NORMAL);
-                        ParticleMechanicsMathUtilities<double>::Normalize(mpc_normal);
+                        MPMMathUtilities<double>::Normalize(mpc_normal);
 
-                        // Get shape_function_values from defined particle_per_condition
+                        // Get shape_function_values from defined material_points_per_condition
                         const Geometry< Node >& r_geometry = i->GetGeometry(); // current condition's geometry
 
-                        // Check number of particles per condition to be created
+                        // Check number of material points per condition to be created
                         bool is_equal_int_volumes = false; // default GAUSS
                         if (i->Has( IS_EQUAL_DISTRIBUTED )){
                             is_equal_int_volumes = i->GetValue(IS_EQUAL_DISTRIBUTED);
@@ -307,7 +305,7 @@ namespace MPMParticleGeneratorUtility
                         if (is_equal_int_volumes){
                             if (geo_type == GeometryData::KratosGeometryType::Kratos_Line2D2  || geo_type == GeometryData::KratosGeometryType::Kratos_Line3D2)
                             {
-                                number_of_points_per_span = particles_per_condition;
+                                number_of_points_per_span = material_points_per_condition;
                                 std::vector<double> spans = {-1, 1};
 
                                 auto integration_info = IntegrationInfo(r_geometry.LocalSpaceDimension(), number_of_points_per_span, IntegrationInfo::QuadratureMethod::GRID);
@@ -318,13 +316,13 @@ namespace MPMParticleGeneratorUtility
                                 integration_method = integration_info.GetIntegrationMethod(0);
                             }
                             else{
-                                KRATOS_WARNING("MPMParticleGeneratorUtility") << "Equal distribution of particle conditions only available for line segments:  "  << std::endl;
+                                KRATOS_WARNING("MaterialPointGeneratorUtility") << "Equal distribution of material point conditions only available for line segments:  "  << std::endl;
                             }
                         }
                         else{
                             if (geo_type != GeometryData::KratosGeometryType::Kratos_Point2D  && geo_type != GeometryData::KratosGeometryType::Kratos_Point3D)
                             {
-                                DetermineGeometryIntegrationMethod(r_geometry, particles_per_condition,
+                                DetermineGeometryIntegrationMethod(r_geometry, material_points_per_condition,
                                 number_of_points_per_span);
 
                                 auto integration_info = IntegrationInfo(r_geometry.LocalSpaceDimension(), number_of_points_per_span, IntegrationInfo::QuadratureMethod::GAUSS);
@@ -360,7 +358,7 @@ namespace MPMParticleGeneratorUtility
                                 condition_type_name = "MPMParticlePointLoadCondition";
                             }
                             else{
-                                KRATOS_ERROR << "Particle line load / surface load condition is not yet implemented." << std::endl;
+                                KRATOS_ERROR << "Material Point line load / surface load condition is not yet implemented." << std::endl;
                             }
                         }
                         // Get new condition
@@ -369,7 +367,7 @@ namespace MPMParticleGeneratorUtility
                         // Check Normal direction
                         if (flip_normal_direction) mpc_normal *= -1.0;
 
-                        // Create Particle Point Load Condition
+                        // Create Material Point Point Load Condition
                         if (condition_type_name == "MPMParticlePointLoadCondition" ){
                             // create point load condition
                             mpc_area[0] = 1;
@@ -387,7 +385,7 @@ namespace MPMParticleGeneratorUtility
 
                             // FindPointOnMesh find the background element in which a given point falls and the relative shape functions
                             bool is_found = SearchStructure.FindPointOnMesh(mpc_xg[0], N, pelem, result_begin);
-                            if (!is_found) KRATOS_WARNING("MPM particle generator utility") << "::search failed." << std::endl;
+                            if (!is_found) KRATOS_WARNING("MaterialPointGeneratorUtility") << "::search failed." << std::endl;
 
                             auto p_new_geometry = CreateQuadraturePointsUtility<Node>::CreateFromCoordinates(
                                 pelem->pGetGeometry(), mpc_xg[0],
@@ -402,7 +400,7 @@ namespace MPMParticleGeneratorUtility
                                 p_condition->Set(INTERFACE);
                             }
 
-                            // Setting particle condition's initial condition
+                            // Setting material point condition's initial condition
                             p_condition->SetValuesOnIntegrationPoints(MPC_COORD, mpc_xg , process_info);
                             p_condition->SetValuesOnIntegrationPoints(MPC_AREA, mpc_area, process_info);
                             p_condition->SetValuesOnIntegrationPoints(POINT_LOAD, { point_load }, process_info);
@@ -418,7 +416,7 @@ namespace MPMParticleGeneratorUtility
                             condition_id +=1;
 
                         }
-                        // Loop over the conditions to create inner particle condition (except point load condition)
+                        // Loop over the conditions to create inner material point condition (except point load condition)
                         else{
                             std::vector<array_1d<double, 3>> xg_tmp;
                             std::vector<double> area_temp(1);
@@ -434,18 +432,18 @@ namespace MPMParticleGeneratorUtility
                                 Element::Pointer pelem;
                                 Vector N;
                                 bool is_found = SearchStructure.FindPointOnMesh(mpc_xg[0], N, pelem, result_begin);
-                                if (!is_found) KRATOS_WARNING("MPM particle generator utility") << "::MPC search failed." << std::endl;
+                                if (!is_found) KRATOS_WARNING("MaterialPointGeneratorUtility") << "::MPC search failed." << std::endl;
 
                                 pelem->Set(ACTIVE);
                                 auto p_quadrature_point_geometry = CreateQuadraturePointsUtility<Node>::CreateFromCoordinates(
                                     pelem->pGetGeometry(), mpc_xg[0],
                                     mpc_area[0]);
 
-                                // Particle condition are not created twice
+                                // Material point condition are not created twice
                                 bool create_condition = true;
-                                // loop only necessary for equal particle distribution to avoid doubled conditions
+                                // loop only necessary for equal material points distribution to avoid doubled conditions
                                 if (is_equal_int_volumes){
-                                    for(auto it=ParticleConditions.begin(); it!=ParticleConditions.end(); ++it)
+                                    for(auto it=MaterialPointConditions.begin(); it!=MaterialPointConditions.end(); ++it)
                                     {
                                         it->CalculateOnIntegrationPoints(MPC_COORD, xg_tmp, rMPMModelPart.GetProcessInfo());
 
@@ -464,11 +462,11 @@ namespace MPMParticleGeneratorUtility
                                     Condition::Pointer p_condition = new_condition.Create(
                                         condition_id, p_quadrature_point_geometry, properties);
 
-                                    ParticleConditions.push_back(p_condition);
+                                    MaterialPointConditions.push_back(p_condition);
 
                                     ProcessInfo process_info = ProcessInfo();
 
-                                    // Setting particle condition's initial condition
+                                    // Setting material points condition's initial condition
                                     //p_condition->SetValuesOnIntegrationPoints(MPC_CONDITION_ID, mpc_condition_id, process_info);
                                     p_condition->SetValuesOnIntegrationPoints(MPC_COORD, mpc_xg , process_info);
                                     p_condition->SetValuesOnIntegrationPoints(MPC_AREA,  mpc_area  , process_info);
@@ -791,7 +789,7 @@ namespace MPMParticleGeneratorUtility
     }
 
 
-    void DetermineIntegrationMethodAndShapeFunctionValues(const GeometryType& rGeom, const SizeType ParticlesPerElement,
+    void DetermineIntegrationMethodAndShapeFunctionValues(const GeometryType& rGeom, const SizeType MaterialPointsPerElement,
         IntegrationMethod& rIntegrationMethod, Matrix& rN, bool& IsEqualVolumes)
     {
         const GeometryData::KratosGeometryType geo_type = rGeom.GetGeometryType();
@@ -799,7 +797,7 @@ namespace MPMParticleGeneratorUtility
 
         if (geo_type == GeometryData::KratosGeometryType::Kratos_Tetrahedra3D4 || geo_type == GeometryData::KratosGeometryType::Kratos_Triangle2D3)
         {
-            switch (ParticlesPerElement)
+            switch (MaterialPointsPerElement)
             {
             case 1:
                 rIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_1;
@@ -817,31 +815,31 @@ namespace MPMParticleGeneratorUtility
                 if (domain_size == 2) {
                     IsEqualVolumes = true;
 
-                    KRATOS_WARNING("MPMParticleGeneratorUtility") << "16 particles per triangle element is only valid for undistorted triangles." << std::endl;
+                    KRATOS_WARNING("MaterialPointGeneratorUtility") << "16 material points per triangle element is only valid for undistorted triangles." << std::endl;
                     rN = MP16ShapeFunctions();
                     break;
                 }
             case 33:
                 if (domain_size == 2) {
                     IsEqualVolumes = true;
-                    KRATOS_WARNING("MPMParticleGeneratorUtility") << "33 particles per triangle element is only valid for undistorted triangles." << std::endl;
+                    KRATOS_WARNING("MaterialPointGeneratorUtility") << "33 material points per triangle element is only valid for undistorted triangles." << std::endl;
                     rN = MP33ShapeFunctions();
                     break;
                 }
             default:
-                rIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_2; // default to 3 particles per tri
+                rIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_2; // default to 3 material points per tri
 
-                std::string warning_msg = "The input number of PARTICLES_PER_ELEMENT: " + std::to_string(ParticlesPerElement);
+                std::string warning_msg = "The input number of MATERIAL_POINTS_PER_ELEMENT: " + std::to_string(MaterialPointsPerElement);
                 warning_msg += " is not available for Triangular" + std::to_string(domain_size) + "D.\n";
                 warning_msg += "Available options are: 1, 3, 6, 12, 16 (only 2D), and 33 (only 2D).\n";
-                warning_msg += "The default number of particle: 3 is currently assumed.";
-                KRATOS_WARNING("MPMParticleGeneratorUtility") <<  warning_msg << std::endl;
+                warning_msg += "The default number of material points: 3 is currently assumed.";
+                KRATOS_WARNING("MaterialPointGeneratorUtility") <<  warning_msg << std::endl;
                 break;
             }
         }
         else if (geo_type == GeometryData::KratosGeometryType::Kratos_Hexahedra3D8 || geo_type == GeometryData::KratosGeometryType::Kratos_Quadrilateral2D4)
         {
-            switch (ParticlesPerElement)
+            switch (MaterialPointsPerElement)
             {
             case 1:
                 rIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_1;
@@ -856,13 +854,13 @@ namespace MPMParticleGeneratorUtility
                 rIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_4;
                 break;
             default:
-                rIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_2; // default to 4 particles per quad
+                rIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_2; // default to 4 material points per quad
 
-                std::string warning_msg = "The input number of PARTICLES_PER_ELEMENT: " + std::to_string(ParticlesPerElement);
+                std::string warning_msg = "The input number of MATERIAL_POINTS_PER_ELEMENT: " + std::to_string(MaterialPointsPerElement);
                 warning_msg += " is not available for Quadrilateral" + std::to_string(domain_size) + "D.\n";
                 warning_msg += "Available options are: 1, 4, 9, 16.\n";
-                warning_msg += "The default number of particle: 4 is currently assumed.";
-                KRATOS_WARNING("MPMParticleGeneratorUtility") <<  warning_msg << std::endl;
+                warning_msg += "The default number of material points: 4 is currently assumed.";
+                KRATOS_WARNING("MaterialPointGeneratorUtility") <<  warning_msg << std::endl;
                 break;
             }
         }
@@ -871,7 +869,7 @@ namespace MPMParticleGeneratorUtility
         if (!IsEqualVolumes) rN = rGeom.ShapeFunctionsValues(rIntegrationMethod);
     }
 
-    void DetermineGeometryIntegrationMethod(const GeometryType& rGeom, const SizeType ParticlesPerCondition,
+    void DetermineGeometryIntegrationMethod(const GeometryType& rGeom, const SizeType MaterialPointsPerCondition,
         IndexType& rNumPointsPerSpan)
     {
         const GeometryData::KratosGeometryType geo_type = rGeom.GetGeometryType();
@@ -879,21 +877,21 @@ namespace MPMParticleGeneratorUtility
 
         if (geo_type == GeometryData::KratosGeometryType::Kratos_Line2D2  || geo_type == GeometryData::KratosGeometryType::Kratos_Line3D2)
         {
-            if (ParticlesPerCondition>0 && ParticlesPerCondition<6)
-                rNumPointsPerSpan = ParticlesPerCondition;
+            if (MaterialPointsPerCondition>0 && MaterialPointsPerCondition<6)
+                rNumPointsPerSpan = MaterialPointsPerCondition;
             else{
                 rNumPointsPerSpan = 1;
-                std::string warning_msg = "The input number of PARTICLES_PER_CONDITION: " + std::to_string(ParticlesPerCondition);
+                std::string warning_msg = "The input number of MATERIAL_POINTS_PER_CONDITION: " + std::to_string(MaterialPointsPerCondition);
                 warning_msg += " is not available for Line" + std::to_string(domain_size) + "D.\n";
                 warning_msg += "Available options are: 1 (default), 2, 3, 4, 5.\n";
-                warning_msg += "The default number of particle: 1 is currently assumed.";
-                KRATOS_WARNING("MPMParticleGeneratorUtility") <<  warning_msg << std::endl;
+                warning_msg += "The default number of material points: 1 is currently assumed.";
+                KRATOS_WARNING("MaterialPointGeneratorUtility") <<  warning_msg << std::endl;
             }
 
         }
         else if (geo_type == GeometryData::KratosGeometryType::Kratos_Triangle3D3)
         {
-            switch (ParticlesPerCondition)
+            switch (MaterialPointsPerCondition)
             {
             case 1:
                 rNumPointsPerSpan = 1;
@@ -909,18 +907,18 @@ namespace MPMParticleGeneratorUtility
                 break;
             default:
                 rNumPointsPerSpan = 1;
-                std::string warning_msg = "The input number of PARTICLES_PER_CONDITION: " + std::to_string(ParticlesPerCondition);
+                std::string warning_msg = "The input number of MATERIAL_POINTS_PER_CONDITION: " + std::to_string(MaterialPointsPerCondition);
                 warning_msg += " is not available for Triangular" + std::to_string(domain_size) + "D.\n";
                 warning_msg += "Available options are: 1 (default), 3, 6 and 12.\n";
-                warning_msg += "The default number of particle: 1 is currently assumed.";
-                KRATOS_WARNING("MPMParticleGeneratorUtility") << warning_msg << std::endl;
+                warning_msg += "The default number of material points: 1 is currently assumed.";
+                KRATOS_WARNING("MaterialPointGeneratorUtility") << warning_msg << std::endl;
                 break;
             }
 
         }
         else if (geo_type == GeometryData::KratosGeometryType::Kratos_Quadrilateral3D4)
         {
-            switch (ParticlesPerCondition)
+            switch (MaterialPointsPerCondition)
             {
             case 1:
                 rNumPointsPerSpan = 1;
@@ -936,11 +934,11 @@ namespace MPMParticleGeneratorUtility
                 break;
             default:
                 rNumPointsPerSpan = 1;
-                std::string warning_msg = "The input number of PARTICLES_PER_CONDITION: " + std::to_string(ParticlesPerCondition);
+                std::string warning_msg = "The input number of MATERIAL_POINTS_PER_CONDITION: " + std::to_string(MaterialPointsPerCondition);
                 warning_msg += " is not available for Triangular" + std::to_string(domain_size) + "D.\n";
                 warning_msg += "Available options are: 1 (default), 4, 9 and 16.\n";
-                warning_msg += "The default number of particle: 1 is currently assumed.";
-                KRATOS_WARNING("MPMParticleGeneratorUtility") <<  warning_msg << std::endl;
+                warning_msg += "The default number of material points: 1 is currently assumed.";
+                KRATOS_WARNING("MaterialPointGeneratorUtility") <<  warning_msg << std::endl;
                 break;
             }
 
@@ -968,5 +966,4 @@ namespace MPMParticleGeneratorUtility
                                             ModelPart& rInitialModelPart,
                                             ModelPart& rMPMModelPart);
 
-} // end namespace MPMParticleGeneratorUtility
-} // end namespace Kratos
+} // end namespace Kratos::MaterialPointGeneratorUtility

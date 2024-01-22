@@ -11,8 +11,7 @@
 //
 
 
-#ifndef KRATOS_MPM_PARTICLE_GENERATOR_UTILITY
-#define KRATOS_MPM_PARTICLE_GENERATOR_UTILITY
+#pragma once
 
 // System includes
 
@@ -22,13 +21,11 @@
 #include "includes/model_part.h"
 #include "utilities/binbased_fast_point_locator.h"
 #include "utilities/quadrature_points_utility.h"
-#include "particle_mechanics_application_variables.h"
-#include "custom_utilities/particle_mechanics_math_utilities.h"
+#include "mpm_application_variables.h"
+#include "custom_utilities/mpm_math_utilities.h"
 
 
-namespace Kratos
-{
-namespace MPMParticleGeneratorUtility
+namespace Kratos::MaterialPointGeneratorUtility
 {
 
     typedef std::size_t IndexType;
@@ -40,14 +37,14 @@ namespace MPMParticleGeneratorUtility
     typedef GeometryData::IntegrationMethod IntegrationMethod;
 
     /**
-     * @brief Function that return matrix of shape function value for 16 particles.
+     * @brief Function that return matrix of shape function value for 16 material points.
      * @details It is only possible to be used in 2D Triangular.
      */
     Matrix MP16ShapeFunctions();
 
 
     /**
-     * @brief Function that return matrix of shape function value for 33 particles.
+     * @brief Function that return matrix of shape function value for 33 material points.
      * @details It is only possible to be used in 2D Triangular.
      */
     Matrix MP33ShapeFunctions();
@@ -56,16 +53,16 @@ namespace MPMParticleGeneratorUtility
     void GetIntegrationPointVolumes(const GeometryType& rGeom, const IntegrationMethod IntegrationMethod, Vector& rIntVolumes);
 
     /// Get integration method and shape function values for the given element
-    void DetermineIntegrationMethodAndShapeFunctionValues(const GeometryType& rGeom, const SizeType ParticlesPerElement,
+    void DetermineIntegrationMethodAndShapeFunctionValues(const GeometryType& rGeom, const SizeType MaterialPointsPerElement,
         IntegrationMethod& rIntegrationMethod, Matrix& rN, bool& IsEqualVolumes);
 
     /// Get integration method and shape function values for the given condition
-    void DetermineGeometryIntegrationMethod(const GeometryType& rGeom, const SizeType ParticlesPerCondition,
+    void DetermineGeometryIntegrationMethod(const GeometryType& rGeom, const SizeType MaterialPointsPerCondition,
         IndexType& rNumPointsPerSpan);
 
     /**
-     * @brief Construct material points or particles from given initial mesh
-     * @details Generating particles using a designated shape functions
+     * @brief Construct material points from given initial mesh
+     * @details Generating material points using a designated shape functions
      */
     template<SizeType TDimension>
     void GenerateMaterialPointElement(  ModelPart& rBackgroundGridModelPart,
@@ -74,25 +71,19 @@ namespace MPMParticleGeneratorUtility
                                         bool IsMixedFormulation=false);
     /**
      * @brief Function to Initiate material point condition.
-     * @details Generating particle condition using a designated shape functions
+     * @details Generating material point condition using a designated shape functions
      */
-
     template<SizeType TDimension>
     void GenerateMaterialPointCondition(ModelPart& rBackgroundGridModelPart,
                                             ModelPart& rInitialModelPart,
                                             ModelPart& rMPMModelPart);
     /**
      * @brief Function to Initiate material point condition.
-     * @details Generating particle condition using a designated shape functions
+     * @details Generating material point condition using a designated shape functions
      */
-    void KRATOS_API(PARTICLE_MECHANICS_APPLICATION) GenerateMaterialPointCondition(
+    void KRATOS_API(MPM_APPLICATION) GenerateMaterialPointCondition(
                                             ModelPart& rBackgroundGridModelPart,
                                             ModelPart& rInitialModelPart,
                                             ModelPart& rMPMModelPart);
 
-}; // end namespace MPMParticleGeneratorUtility
-} // end namespace Kratos
-
-#endif // KRATOS_MPM_PARTICLE_GENERATOR_UTILITY
-
-
+} // end namespace Kratos::MaterialPointGeneratorUtility

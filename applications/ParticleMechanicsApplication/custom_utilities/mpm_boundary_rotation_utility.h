@@ -27,7 +27,7 @@
 
 namespace Kratos {
 
-///@addtogroup ParticleMechanicsApplication
+///@addtogroup MPMApplication
 ///@{
 
 ///@name Kratos Globals

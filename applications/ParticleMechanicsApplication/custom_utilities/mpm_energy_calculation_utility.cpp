@@ -121,7 +121,7 @@ namespace MPMEnergyCalculationUtility
 
     /**
      * @brief Assign and compute total energy
-     * @details Compute total energy inside particle, summing potential, kinetic and strain energy
+     * @details Compute total energy inside material point, summing potential, kinetic and strain energy
      *
      */
     double CalculateTotalEnergy(Element& rElement)
