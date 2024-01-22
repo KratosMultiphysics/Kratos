@@ -37,7 +37,7 @@ namespace Testing
         Properties::Pointer p_elem_prop = rModelPart.CreateNewProperties(0);
 
         // Elements
-        auto pElement = rModelPart.CreateNewElement("UpdatedLagrangian3D4N", 1, {{1, 2, 3, 4}}, p_elem_prop);
+        auto pElement = rModelPart.CreateNewElement("MPMUpdatedLagrangian3D4N", 1, {{1, 2, 3, 4}}, p_elem_prop);
 
         // For potential energy
         array_1d<double, 3> mp_coordinate;
@@ -115,10 +115,10 @@ namespace Testing
         std::vector<double> r_MP_TotalEnergy(1);
         r_model_part.pGetElement(element_id)->CalculateOnIntegrationPoints(MP_TOTAL_ENERGY, r_MP_TotalEnergy, r_current_process_info);
 
-        KRATOS_CHECK_NEAR(r_MP_PotentialEnergy[0], 7.35  , 1e-6);
-        KRATOS_CHECK_NEAR(r_MP_KineticEnergy[0]  , 10.50 , 1e-6);
-        KRATOS_CHECK_NEAR(r_MP_StrainEnergy[0]   , 11.375, 1e-6);
-        KRATOS_CHECK_NEAR(r_MP_TotalEnergy[0]    , 29.225, 1e-6);
+        KRATOS_EXPECT_NEAR(r_MP_PotentialEnergy[0], 7.35  , 1e-6);
+        KRATOS_EXPECT_NEAR(r_MP_KineticEnergy[0]  , 10.50 , 1e-6);
+        KRATOS_EXPECT_NEAR(r_MP_StrainEnergy[0]   , 11.375, 1e-6);
+        KRATOS_EXPECT_NEAR(r_MP_TotalEnergy[0]    , 29.225, 1e-6);
     }
 
 } // namespace Testing

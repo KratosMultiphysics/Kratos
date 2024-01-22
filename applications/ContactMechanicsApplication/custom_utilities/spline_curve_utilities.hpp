@@ -51,7 +51,7 @@ namespace Kratos
 
     //definitions for spatial search
     typedef array_1d<double, 3>                             PointType;
-    typedef Node<3>                                          NodeType;
+    typedef Node                                          NodeType;
     typedef NodeType::Pointer                         NodePointerType;
     typedef std::vector<NodePointerType>        NodePointerTypeVector;
     typedef std::vector<NodeType>                      NodeTypeVector;

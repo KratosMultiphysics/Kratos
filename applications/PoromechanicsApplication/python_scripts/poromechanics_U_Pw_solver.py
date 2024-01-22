@@ -133,6 +133,7 @@ class UPwSolver(PythonSolver):
         self.main_model_part.AddNodalSolutionStepVariable(KratosPoro.DT_WATER_PRESSURE)
         # Add variables for the water conditions
         self.main_model_part.AddNodalSolutionStepVariable(KratosPoro.NORMAL_FLUID_FLUX)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosPoro.DISCHARGE)
         ## Other variables
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VOLUME_ACCELERATION)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.PERIODIC_PAIR_INDEX)
@@ -432,11 +433,11 @@ class UPwSolver(PythonSolver):
             self.main_model_part.ProcessInfo.SetValue(KratosStructural.RAYLEIGH_BETA,rayleigh_beta)
             if(solution_type == "implicit_quasi_static"):
                 if(rayleigh_alpha<1.0e-20 and rayleigh_beta<1.0e-20):
-                    scheme = KratosPoro.NewmarkQuasistaticUPwScheme(beta,gamma,theta)
+                    scheme = KratosPoro.PoroNewmarkQuasistaticUPwScheme(beta,gamma,theta)
                 else:
-                    scheme = KratosPoro.NewmarkQuasistaticDampedUPwScheme(beta,gamma,theta)
+                    scheme = KratosPoro.PoroNewmarkQuasistaticDampedUPwScheme(beta,gamma,theta)
             else:
-                scheme = KratosPoro.NewmarkDynamicUPwScheme(beta,gamma,theta)
+                scheme = KratosPoro.PoroNewmarkDynamicUPwScheme(beta,gamma,theta)
         else:
             raise Exception("Apart from Newmark, other scheme_type are not available.")
 

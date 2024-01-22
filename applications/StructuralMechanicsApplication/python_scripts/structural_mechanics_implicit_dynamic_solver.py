@@ -7,7 +7,7 @@ import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsA
 # Import base class file
 from KratosMultiphysics.StructuralMechanicsApplication.structural_mechanics_solver import MechanicalSolver
 
-from KratosMultiphysics.StructuralMechanicsApplication import auxiliar_methods_solvers
+from KratosMultiphysics.StructuralMechanicsApplication import auxiliary_methods_solvers
 
 def CreateSolver(model, custom_settings):
     return ImplicitMechanicalSolver(model, custom_settings)
@@ -43,7 +43,7 @@ class ImplicitMechanicalSolver(MechanicalSolver):
 
         scheme_type = self.settings["scheme_type"].GetString()
         if "bdf" in scheme_type or scheme_type == "backward_euler":
-            return max(base_min_buffer_size, auxiliar_methods_solvers.GetBDFIntegrationOrder(scheme_type)+1)
+            return max(base_min_buffer_size, auxiliary_methods_solvers.GetBDFIntegrationOrder(scheme_type)+1)
         else:
             return base_min_buffer_size
 
@@ -89,7 +89,7 @@ class ImplicitMechanicalSolver(MechanicalSolver):
         elif(scheme_type == "pseudo_static"):
             mechanical_scheme = KratosMultiphysics.ResidualBasedPseudoStaticDisplacementScheme(StructuralMechanicsApplication.RAYLEIGH_BETA)
         elif(scheme_type.startswith("bdf") or scheme_type == "backward_euler"):
-            order = auxiliar_methods_solvers.GetBDFIntegrationOrder(scheme_type)
+            order = auxiliary_methods_solvers.GetBDFIntegrationOrder(scheme_type)
             # In case of rotation dof we declare the dynamic variables
             if self.settings["rotation_dofs"].GetBool():
                 bdf_parameters = KratosMultiphysics.Parameters(""" {

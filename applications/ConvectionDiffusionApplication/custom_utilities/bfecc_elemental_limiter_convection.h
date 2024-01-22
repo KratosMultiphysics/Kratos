@@ -99,7 +99,7 @@ public:
                 elem_backward(i) = pelement;
                 Ns[i] = N;
 
-                Geometry< Node < 3 > >& geom = pelement->GetGeometry();
+                Geometry< Node >& geom = pelement->GetGeometry();
                 double phi1 = N[0] * ( geom[0].FastGetSolutionStepValue(rVar,1));
                 for (unsigned int k = 1; k < geom.size(); k++) {
                     phi1 += N[k] * ( geom[k].FastGetSolutionStepValue(rVar,1) );
@@ -124,7 +124,7 @@ public:
             foundf[i] = is_found;
 
             if(is_found) {
-                Geometry< Node < 3 > >& geom = pelement->GetGeometry();
+                Geometry< Node >& geom = pelement->GetGeometry();
                 double phi_old = N[0] * ( geom[0].FastGetSolutionStepValue(rVar));
 
                 for (unsigned int k = 1; k < geom.size(); k++) {
@@ -144,7 +144,7 @@ public:
             bool is_found = found[i];
             if(is_found) {
                 Vector N = Ns[i];
-                Geometry< Node < 3 > >& geom = elem_backward[i].GetGeometry();
+                Geometry< Node >& geom = elem_backward[i].GetGeometry();
                 double phi1 = N[0] * ( geom[0].GetValue(rVar));
                 for (unsigned int k = 1; k < geom.size(); k++) {
                     phi1 += N[k] * ( geom[k].GetValue(rVar) );
@@ -187,7 +187,7 @@ public:
             double e2 = e1;
             if(is_found) {
                 //Forward with
-                Geometry< Node < 3 > >& geom = pelement->GetGeometry();
+                Geometry< Node >& geom = pelement->GetGeometry();
                 double phi2 = N[0] * ( geom[0].FastGetSolutionStepValue(rVar));
                 for (unsigned int k = 1; k < geom.size(); k++) {
                     phi2 += N[k] * ( geom[k].FastGetSolutionStepValue(rVar) );
@@ -225,7 +225,7 @@ public:
             bool is_found = found[i];
             if(is_found) {
                 Vector N = Ns[i];
-                Geometry< Node < 3 > >& geom = elem_backward[i].GetGeometry();
+                Geometry< Node >& geom = elem_backward[i].GetGeometry();
                 double phi1 = N[0] * ( geom[0].GetValue(rVar));
                 for (unsigned int k = 1; k < geom.size(); k++) {
                     phi1 += N[k] * ( geom[k].GetValue(rVar) );
@@ -274,7 +274,7 @@ public:
 
                 if (is_found == true)
                 {
-                    Geometry< Node < 3 > >& geom = pelement->GetGeometry();
+                    Geometry< Node >& geom = pelement->GetGeometry();
 
                     const double new_step_factor = static_cast<double>(substep)/subdivisions;
                     const double old_step_factor = (1.0 - new_step_factor);
@@ -301,7 +301,7 @@ public:
 
                 if (is_found == true)
                 {
-                    Geometry< Node < 3 > >& geom = pelement->GetGeometry();
+                    Geometry< Node >& geom = pelement->GetGeometry();
 
                     //this factors get inverted from the other case
                    const double old_step_factor = static_cast<double>(substep)/subdivisions;

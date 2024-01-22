@@ -31,25 +31,25 @@ namespace Kratos
     KratosShallowWaterApplication::KratosShallowWaterApplication():
         KratosApplication("ShallowWaterApplication"),
 
-        mWaveElement2D3N(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3>>(Element::GeometryType::PointsArrayType(3)))),
-        mWaveElement2D6N(0, Element::GeometryType::Pointer(new Triangle2D6<Node<3>>(Element::GeometryType::PointsArrayType(6)))),
-        mWaveElement2D4N(0, Element::GeometryType::Pointer(new Quadrilateral2D4<Node<3>>(Element::GeometryType::PointsArrayType(4)))),
-        mWaveElement2D8N(0, Element::GeometryType::Pointer(new Quadrilateral2D8<Node<3>>(Element::GeometryType::PointsArrayType(8)))),
-        mWaveElement2D9N(0, Element::GeometryType::Pointer(new Quadrilateral2D9<Node<3>>(Element::GeometryType::PointsArrayType(9)))),
-        mPrimitiveElement2D3N(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3>>(Element::GeometryType::PointsArrayType(3)))),
-        mPrimitiveElement2D4N(0, Element::GeometryType::Pointer(new Quadrilateral2D4<Node<3>>(Element::GeometryType::PointsArrayType(4)))),
-        mCrankNicolsonWaveElement2D3N(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3>>(Element::GeometryType::PointsArrayType(3)))),
-        mBoussinesqElement2D3N(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3>>(Element::GeometryType::PointsArrayType(3)))),
-        mBoussinesqElement2D4N(0, Element::GeometryType::Pointer(new Quadrilateral2D4<Node<3>>(Element::GeometryType::PointsArrayType(4)))),
-        mConservativeElementGJ2D3N(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3>>(Element::GeometryType::PointsArrayType(3)))),
-        mConservativeElementRV2D3N(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3>>(Element::GeometryType::PointsArrayType(3)))),
-        mConservativeElementFC2D3N(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3>>(Element::GeometryType::PointsArrayType(3)))),
+        mWaveElement2D3N(0, Element::GeometryType::Pointer(new Triangle2D3<Node>(Element::GeometryType::PointsArrayType(3)))),
+        mWaveElement2D6N(0, Element::GeometryType::Pointer(new Triangle2D6<Node>(Element::GeometryType::PointsArrayType(6)))),
+        mWaveElement2D4N(0, Element::GeometryType::Pointer(new Quadrilateral2D4<Node>(Element::GeometryType::PointsArrayType(4)))),
+        mWaveElement2D8N(0, Element::GeometryType::Pointer(new Quadrilateral2D8<Node>(Element::GeometryType::PointsArrayType(8)))),
+        mWaveElement2D9N(0, Element::GeometryType::Pointer(new Quadrilateral2D9<Node>(Element::GeometryType::PointsArrayType(9)))),
+        mPrimitiveElement2D3N(0, Element::GeometryType::Pointer(new Triangle2D3<Node>(Element::GeometryType::PointsArrayType(3)))),
+        mPrimitiveElement2D4N(0, Element::GeometryType::Pointer(new Quadrilateral2D4<Node>(Element::GeometryType::PointsArrayType(4)))),
+        mCrankNicolsonWaveElement2D3N(0, Element::GeometryType::Pointer(new Triangle2D3<Node>(Element::GeometryType::PointsArrayType(3)))),
+        mBoussinesqElement2D3N(0, Element::GeometryType::Pointer(new Triangle2D3<Node>(Element::GeometryType::PointsArrayType(3)))),
+        mBoussinesqElement2D4N(0, Element::GeometryType::Pointer(new Quadrilateral2D4<Node>(Element::GeometryType::PointsArrayType(4)))),
+        mConservativeElementGJ2D3N(0, Element::GeometryType::Pointer(new Triangle2D3<Node>(Element::GeometryType::PointsArrayType(3)))),
+        mConservativeElementRV2D3N(0, Element::GeometryType::Pointer(new Triangle2D3<Node>(Element::GeometryType::PointsArrayType(3)))),
+        mConservativeElementFC2D3N(0, Element::GeometryType::Pointer(new Triangle2D3<Node>(Element::GeometryType::PointsArrayType(3)))),
 
-        mWaveCondition2D2N(0, Element::GeometryType::Pointer(new Line2D2<Node<3>>(Element::GeometryType::PointsArrayType(2)))),
-        mWaveCondition2D3N(0, Element::GeometryType::Pointer(new Line2D3<Node<3>>(Element::GeometryType::PointsArrayType(3)))),
-        mPrimitiveCondition2D2N(0, Element::GeometryType::Pointer(new Line2D2<Node<3>>(Element::GeometryType::PointsArrayType(2)))),
-        mBoussinesqCondition2D2N(0, Element::GeometryType::Pointer(new Line2D2<Node<3>>(Element::GeometryType::PointsArrayType(2)))),
-        mConservativeCondition2D2N(0, Element::GeometryType::Pointer(new Line2D2<Node<3>>(Element::GeometryType::PointsArrayType(2))))
+        mWaveCondition2D2N(0, Element::GeometryType::Pointer(new Line2D2<Node>(Element::GeometryType::PointsArrayType(2)))),
+        mWaveCondition2D3N(0, Element::GeometryType::Pointer(new Line2D3<Node>(Element::GeometryType::PointsArrayType(3)))),
+        mPrimitiveCondition2D2N(0, Element::GeometryType::Pointer(new Line2D2<Node>(Element::GeometryType::PointsArrayType(2)))),
+        mBoussinesqCondition2D2N(0, Element::GeometryType::Pointer(new Line2D2<Node>(Element::GeometryType::PointsArrayType(2)))),
+        mConservativeCondition2D2N(0, Element::GeometryType::Pointer(new Line2D2<Node>(Element::GeometryType::PointsArrayType(2))))
     {}
 
     void KratosShallowWaterApplication::Register()

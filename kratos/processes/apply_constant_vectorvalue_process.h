@@ -369,7 +369,7 @@ private:
                 KRATOS_THROW_ERROR(std::runtime_error, " Trying to fix a dofs which was not allocated. Variable is --> ",rVar.Name() );
             }
 
-            block_for_each(mr_model_part.GetMesh(mmesh_id).Nodes(), [&](Node<3>& rNode){
+            block_for_each(mr_model_part.GetMesh(mmesh_id).Nodes(), [&](Node& rNode){
                 if(to_be_fixed)
                 {
                     rNode.Fix(rVar);

@@ -10,13 +10,10 @@
 //  Main authors:    Vahid Galavi
 //
 
-#if !defined(KRATOS_SMALL_STRAIN_UMAT_3D_INTERFACE_LAW_H_INCLUDED )
-#define  KRATOS_SMALL_STRAIN_UMAT_3D_INTERFACE_LAW_H_INCLUDED
+#pragma once
 
 // System includes
 #include "includes/define.h"
-
-// External includes
 
 // Project includes
 #include "small_strain_umat_3D_law.hpp"
@@ -52,59 +49,39 @@ namespace Kratos
    {
    public:
       // The process info type definition
-      typedef ProcessInfo            ProcessInfoType;
+      using ProcessInfoType = ProcessInfo;
 
       // The base class ConstitutiveLaw type definition
-      typedef ConstitutiveLaw        BaseType;
+      using BaseType = ConstitutiveLaw;
 
       /// The size type definition
-      typedef std::size_t            SizeType;
+      using SizeType = std::size_t;
 
       /// Static definition of the dimension
       static constexpr SizeType Dimension = N_DIM_3D;
 
-      /// Static definition of the VoigtSize
+      /// Static definition of the Voigt Size
       static constexpr SizeType VoigtSize = VOIGT_SIZE_3D_INTERFACE;
 
       /// Pointer definition of SmallStrainUMAT3DInterfaceLaw
       KRATOS_CLASS_POINTER_DEFINITION( SmallStrainUMAT3DInterfaceLaw );
 
-
       //@}
       //@name Life Cycle
       //@{
-
-      //----------------------------------------------------------------------------------------
-      /**
-       * @brief Default constructor.
-       */
-      SmallStrainUMAT3DInterfaceLaw();
 
       /**
        * @brief Clone method
        */
       ConstitutiveLaw::Pointer Clone() const override;
+      using SmallStrainUMAT3DLaw::GetValue;
+      Vector& GetValue(const Variable<Vector> &rThisVariable, Vector &rValue) override;
 
-      /**
-       * Copy constructor.
-       */
-      SmallStrainUMAT3DInterfaceLaw(SmallStrainUMAT3DInterfaceLaw const& rOther);
-
-      /**
-       * @brief Destructor.
-       */
-      virtual ~SmallStrainUMAT3DInterfaceLaw();
-
-      // Assignment operator:
-      SmallStrainUMAT3DInterfaceLaw& operator=(SmallStrainUMAT3DInterfaceLaw const& rOther);
-
-      Vector& GetValue( const Variable<Vector> &rThisVariable, Vector &rValue ) override;
-
-      void SetValue( const Variable<Vector>& rVariable,
+       using SmallStrainUMAT3DLaw::SetValue;
+       void SetValue(const Variable<Vector>& rVariable,
                      const Vector& rValue,
-                     const ProcessInfo& rCurrentProcessInfo ) override;
+                     const ProcessInfo& rCurrentProcessInfo) override;
 
-      //----------------------------------------------------------------------------------------
       /**
        * @brief Dimension of the law:
        */
@@ -134,7 +111,7 @@ namespace Kratos
        * returns the stress measure of this constitutive law (by default 1st Piola-Kirchhoff stress in voigt notation)
        * @return the expected stress measure
        */
-      virtual StressMeasure GetStressMeasure() override
+      StressMeasure GetStressMeasure() override
       {
          return StressMeasure_Cauchy;
       }
@@ -157,21 +134,19 @@ namespace Kratos
       ///@{
 
       /// Turn back information as a string.
-      virtual std::string Info() const override
+      std::string Info() const override
       {
-         std::stringstream buffer;
-         buffer << "SmallStrainUMAT3DInterfaceLaw";
-         return buffer.str();
+         return "SmallStrainUMAT3DInterfaceLaw";
       }
 
       /// Print information about this object.
-      virtual void PrintInfo(std::ostream& rOStream) const override
+      void PrintInfo(std::ostream& rOStream) const override
       {
-         rOStream << "SmallStrainUMAT3DInterfaceLaw";
+         rOStream << Info();
       }
 
       /// Print object's data.
-      virtual void PrintData(std::ostream& rOStream) const override
+      void PrintData(std::ostream& rOStream) const override
       {
          rOStream << "SmallStrainUMAT3DInterfaceLaw Data";
       }
@@ -227,7 +202,7 @@ namespace Kratos
       ///@name Static Member Variables
       ///@{
 
-      indexStress3D getIndex3D(indexStress3DInterface index3D);
+      indexStress3D getIndex3D(indexStress3DInterface index3D) const;
 
       ///@}
       ///@name Member Variables
@@ -254,12 +229,12 @@ namespace Kratos
       ///@{
       friend class Serializer;
 
-      virtual void save(Serializer& rSerializer) const override
+      void save(Serializer& rSerializer) const override
       {
          KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, ConstitutiveLaw)
       }
 
-      virtual void load(Serializer& rSerializer) override
+      void load(Serializer& rSerializer) override
       {
          KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, ConstitutiveLaw)
       }
@@ -291,8 +266,4 @@ namespace Kratos
 
    ///@} addtogroup block
 
-}  // namespace Kratos.
-
-#endif // KRATOS_SMALL_STRAIN_UMAT_3D_INTERFACE_LAW_H_INCLUDED  defined
-
-
+}

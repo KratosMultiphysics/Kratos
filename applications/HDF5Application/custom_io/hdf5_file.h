@@ -4,14 +4,14 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 license: HDF5Application/license.txt
+//  License:        BSD License
+//                  license: HDF5Application/license.txt
 //
 //  Main author:    Michael Andre, https://github.com/msandre
+//                  Suneth Warnakulasuriya
 //
 
-#if !defined(KRATOS_HDF5_FILE_H_INCLUDED)
-#define KRATOS_HDF5_FILE_H_INCLUDED
+#pragma once
 
 // System includes
 #include <vector>
@@ -20,16 +20,16 @@
 // External includes
 
 // Project includes
-#include "includes/define.h"
 #include "containers/array_1d.h"
+#include "includes/data_communicator.h"
+#include "includes/define.h"
+#include "includes/kratos_parameters.h"
 
 // Application includes
 #include "hdf5_application_define.h"
 
 namespace Kratos
 {
-
-class Parameters;
 
 namespace HDF5
 {
@@ -39,7 +39,7 @@ namespace HDF5
 ///@name Kratos Classes
 ///@{
 
-/// Stores information about a data set written to HDF5.
+/// Stores information about a dataset written to HDF5.
 struct WriteInfo
 {
     std::size_t StartIndex = -1;
@@ -53,8 +53,20 @@ struct WriteInfo
  * meta data. Reading and writing data sets is the responsibility of the derived
  * class.
  */
-class File
+class KRATOS_API(HDF5_APPLICATION) File
 {
+private:
+    ///@name Private enums
+    ///@{
+
+    enum class DataTransferMode
+    {
+        Independent,
+        Collective
+    };
+
+    ///@}
+
 public:
     ///@name Type Definitions
     ///@{
@@ -72,7 +84,9 @@ public:
     ///@name Life Cycle
     ///@{
 
-    explicit File(Parameters Settings);
+    explicit File(
+        const DataCommunicator& rDataCommunicator,
+        Parameters Settings);
 
     File(const File& rOther) = delete;
 
@@ -85,91 +99,235 @@ public:
     File& operator=(File&& rOther);
 
     ///@}
-    ///@name Operations
+    ///@name Public operations
     ///@{
 
-    /// Check if path exists in HDF5 file.
+    /**
+     * @brief Checks if the given @a rPath exists.
+     *
+     * @throws If a string with invalid characters is given.
+     *
+     * @param rPath     Path to be checked.
+     * @return true     True if @a rPath exists, otherwise false.
+     */
     bool HasPath(const std::string& rPath) const;
 
+    /**
+     * @brief Checks if @a rPath contains a group.
+     *
+     * @param rPath     Path to be checked for.
+     * @return true     True if @a rPath exists and it is a group., otherwise false.
+     */
     bool IsGroup(const std::string& rPath) const;
 
+    /**
+     * @brief Checks if @a rPath is a dataset.
+     *
+     * @param rPath     Path to be checked for.
+     * @return true     True if @a rPath exists and it is a dataset, otherwise false.
+     */
     bool IsDataSet(const std::string& rPath) const;
 
-    bool HasAttribute(const std::string& rObjectPath, const std::string& rName) const;
+    /**
+     * @brief Checks if the given @a rName attribute exists in @a rObjectPath.
+     *
+     * @param rObjectPath       Path of a dataset or a group.
+     * @param rName             Attribute name.
+     * @return true             True if attribute exists in the dataset or group, otherwise false.
+     */
+    bool HasAttribute(
+        const std::string& rObjectPath,
+        const std::string& rName) const;
 
-    void DeleteAttribute(const std::string& rObjectPath, const std::string& rName);
+    /**
+     * @brief Checks if the attribute is of the specified type.
+     *
+     * @tparam TDataType        Data type to check.
+     * @param rObjectPath       Dataset or group path.
+     * @param rName             Attribute name.
+     * @return true             If the attribute has data of type @a TDataType.
+     * @return false            If the attribute does not has the data of type @a TDataType.
+     */
+    template<class TDataType>
+    bool HasAttributeType(
+        const std::string& rObjectPath,
+        const std::string& rName) const;
 
+    /**
+     * @brief Get the Attribute Dimensions.
+     *
+     * @param rObjectPath               Dataset or group path.
+     * @param rName                     Attribute name.
+     * @return std::vector<hsize_t>     Size in each dimension.
+     */
+    std::vector<hsize_t> GetAttributeDimensions(
+        const std::string& rObjectPath,
+        const std::string& rName) const;
+
+    /**
+     * @brief Deletes the specified attribute from the dataset or group.
+     *
+     * @param rObjectPath       Path of a dataset or group.
+     * @param rName             Attribute name to be deleted.
+     */
+    void DeleteAttribute(
+        const std::string& rObjectPath,
+        const std::string& rName);
+
+    /**
+     * @brief Get the Attributes' Names list.
+     *
+     * @param rObjectPath                   Path of a dataset or group.
+     * @return std::vector<std::string>     List of attribute names.
+     */
     std::vector<std::string> GetAttributeNames(const std::string& rObjectPath) const;
 
+    /**
+     * @brief Create a Group.
+     *
+     * @param rPath     Path of the group to be created.
+     */
     void CreateGroup(const std::string& rPath);
 
+    /**
+     * @brief Get the link names under a group.
+     *
+     * @param rGroupPath                    Group path.
+     * @return std::vector<std::string>     List of link names.
+     */
     std::vector<std::string> GetLinkNames(const std::string& rGroupPath) const;
 
+    /**
+     * @brief Get the sub group names under a group.
+     *
+     * @param rGroupPath                    Group path.
+     * @return std::vector<std::string>     List of sub group names.
+     */
     std::vector<std::string> GetGroupNames(const std::string& rGroupPath) const;
 
+    /**
+     * @brief Get the dataset names under a group.
+     *
+     * @param rGroupPath                    Group path.
+     * @return std::vector<std::string>     List of sub dataset names.
+     */
     std::vector<std::string> GetDataSetNames(const std::string& rGroupPath) const;
 
+    /**
+     * @brief Add a group to the path recursively.
+     *
+     * This method creates all the parent groups to create the final @a rPath.
+     *
+     * @throws If any of the parents in the @a rPath is not a group.
+     *
+     * @param rPath     Path to be created.
+     */
     void AddPath(const std::string& rPath);
 
-    template<class TScalar>
-    void WriteAttribute(const std::string& rObjectPath, const std::string& rName, TScalar Value);
-
-    template<class TScalar>
-    void WriteAttribute(const std::string& rObjectPath, const std::string& rName, const Vector<TScalar>& rValue);
-
-    template<class TScalar>
-    void WriteAttribute(const std::string& rObjectPath, const std::string& rName, const Matrix<TScalar>& rValue);
-
-    void WriteAttribute(const std::string& rObjectPath, const std::string& rName, const std::string& rValue);
-
-    void WriteAttribute(const std::string& rObjectPath, const std::string& rName, const array_1d<double, 3>& rValue);
-
-    /// Write a data set to the HDF5 file.
     /**
-     *  Performs collective write in MPI. The data is written blockwise according to
-     *  processor rank.
+     * @brief Write attributes to specified group or dataset.
      *
-     * @param[out] rInfo Information about the written data set.
+     * @tparam TDataType            Data type of the attribute.
+     * @param rObjectPath           Group or dataset path.
+     * @param rName                 Attribute name.
+     * @param rValue                Atribute data.
      */
-    virtual void WriteDataSet(const std::string& rPath, const Vector<int>& rData, WriteInfo& rInfo);
+    template<class TDataType>
+    void WriteAttribute(
+        const std::string& rObjectPath,
+        const std::string& rName,
+        const TDataType& rValue);
 
-    virtual void WriteDataSet(const std::string& rPath, const Vector<double>& rData, WriteInfo& rInfo);
-
-    virtual void WriteDataSet(const std::string& rPath, const Vector<array_1d<double, 3>>& rData, WriteInfo& rInfo);
-
-    virtual void WriteDataSet(const std::string& rPath, const Matrix<int>& rData, WriteInfo& rInfo);
-
-    virtual void WriteDataSet(const std::string& rPath, const Matrix<double>& rData, WriteInfo& rInfo);
-
-    /// Independently write data set to the HDF5 file.
     /**
+     * @brief Write attributes in a @ref Parameters object to dataset or group.
+     *
+     * @param rObjectPath           Dataset or group path.
+     * @param Attributes            Attributes to be written to.
+     */
+    void WriteAttribute(
+        const std::string& rObjectPath,
+        const Parameters Attributes);
+
+    /**
+     * @brief Write a dataset to the hDF5 file.
+     *
+     * Performs collective write in MPI. The data is written blockwise according to
+     * processor rank.
+     *
+     * @tparam TDataType    Data type of the provided data.
+     * @param rPath         Path to which the data is written.
+     * @param rData         Data to be written.
+     * @param rInfo         Information about the written data (output).
+     */
+    template<class TDataType>
+    void WriteDataSet(
+        const std::string& rPath,
+        const TDataType& rData,
+        WriteInfo& rInfo);
+
+    /**
+     * @brief Independently write dataset to the HDF5 file.
+     *
      * Performs independent write in MPI. Must be called collectively. Throws
      * if more than one process has non-empty data.
      *
-     * @param[out] rInfo Information about the written data set.
+     * @tparam TDataType    Data type of the Data.
+     * @param rPath         Path to which the data is written.
+     * @param rData         Data to be written.
+     * @param rInfo         Information about the written data (output).
      */
-    virtual void WriteDataSetIndependent(const std::string& rPath, const Vector<int>& rData, WriteInfo& rInfo);
+    template<class TDataType>
+    void WriteDataSetIndependent(
+        const std::string& rPath,
+        const TDataType& rData,
+        WriteInfo& rInfo);
 
-    virtual void WriteDataSetIndependent(const std::string& rPath, const Vector<double>& rData, WriteInfo& rInfo);
-
-    virtual void WriteDataSetIndependent(const std::string& rPath,
-                                         const Vector<array_1d<double, 3>>& rData, WriteInfo& rInfo);
-
-    virtual void WriteDataSetIndependent(const std::string& rPath, const Matrix<int>& rData, WriteInfo& rInfo);
-
-    virtual void WriteDataSetIndependent(const std::string& rPath, const Matrix<double>& rData, WriteInfo& rInfo);
-
+    /**
+     * @brief Get the shape of the dataset stored at the specified path.
+     *
+     * @param rPath                     Dataset path.
+     * @return std::vector<unsigned>    Dimensions of the dataset.
+     */
     std::vector<unsigned> GetDataDimensions(const std::string& rPath) const;
 
+    /**
+     * @brief Checks if the dataset at path is of int type.
+     *
+     * @param rPath                     Dataset path.
+     * @return true                     If dataset of int type.
+     * @return false                    If dataset is not of int type.
+     */
     bool HasIntDataType(const std::string& rPath) const;
 
+    /**
+     * @brief Checks if the dataset at path is of double type.
+     *
+     * @param rPath                     Dataset path.
+     * @return true                     If dataset of double type.
+     * @return false                    If dataset is not of double type.
+     */
     bool HasFloatDataType(const std::string& rPath) const;
 
+    /**
+     * @brief Checks the datast at path is of @a TDataType.
+     *
+     * @tparam TDataType                Datatype to check against.
+     * @param rPath                     Dataset path.
+     * @return true                     If dataset is of TDataType.
+     * @return false                    If dataset is not of TDataType.
+     */
+    template<class TDataType>
+    bool HasDataType(const std::string& rPath) const;
+
+    /// @brief Flush the content to HDF5 file.
     void Flush();
 
-    /// Terminate access to the HDF5 file.
-    /*
-     *  @throws If the underlying HDF5 call fails.
+    /**
+     * @brief Terminate access to the HDF5 file.
+     *
+     * @throws If the underlying HDF5 call fails.
+     *
+     * @return * void
      */
     void Close();
 
@@ -181,120 +339,117 @@ public:
 
     void SetEchoLevel(int Level);
 
-    // Return this process Id with file access.
-    virtual unsigned GetPID() const;
+    const DataCommunicator& GetDataCommunicator() const;
 
-    // Return the total number of processes with file access.
-    virtual unsigned GetTotalProcesses() const;
+    /// @brief Get the process rank.
+    unsigned GetPID() const;
 
-    template<class TScalar>
-    void ReadAttribute(const std::string& rObjectPath, const std::string& rName, TScalar& rValue);
+    /// @brief Get the Total number of processes with file access.
+    unsigned GetTotalProcesses() const;
 
-    template<class TScalar>
-    void ReadAttribute(const std::string& rObjectPath, const std::string& rName, Vector<TScalar>& rValue);
-
-    template<class TScalar>
-    void ReadAttribute(const std::string& rObjectPath, const std::string& rName, Matrix<TScalar>& rValue);
-
-    void ReadAttribute(const std::string& rObjectPath, const std::string& rName, std::string& rValue);
-
-    void ReadAttribute(const std::string& rObjectPath, const std::string& rName, array_1d<double, 3>& rValue);
-
-    /// Read a data set from the HDF5 file.
     /**
+     * @brief Read attribute from a group or dataset.
+     *
+     * @tparam TDataType            Datatype of the attribute.
+     * @param rObjectPath           Group or dataset path.
+     * @param rName                 Attribute name.
+     * @param rValue                Attribute value to be written to.
+     */
+    template<class TDataType>
+    void ReadAttribute(
+        const std::string& rObjectPath,
+        const std::string& rName,
+        TDataType& rValue) const;
+
+    /**
+     * @brief Read attributes from a dataset or group to a @ref Parameters object.
+     *
+     * @param rObjectPath           Dataset or group path.
+     * @return Parameters           Parameters object containing attribute name, value pairs.
+     */
+    Parameters ReadAttribute(const std::string& rObjectPath) const;
+
+    /**
+     * @brief Read a dataset from the HDF5 file.
+     *
      * Performs collective read in MPI. Throws if out of range.
+     *
+     * @throws if out of range.
+     *
+     * @tparam TDataType        Datatype of the read data.
+     * @param rPath             Path of the dataset.
+     * @param rData             Data to be written to.
+     * @param StartIndex        Starting offset of data for this rank.
+     * @param BlockSize         Number of data points for this rank.
      */
-    virtual void ReadDataSet(const std::string& rPath,
-                             Vector<int>& rData,
-                             unsigned StartIndex,
-                             unsigned BlockSize);
+    template<class TDataType>
+    void ReadDataSet(
+        const std::string& rPath,
+        TDataType& rData,
+        const unsigned StartIndex,
+        const unsigned BlockSize) const;
 
-    virtual void ReadDataSet(const std::string& rPath,
-                             Vector<double>& rData,
-                             unsigned StartIndex,
-                             unsigned BlockSize);
-
-    virtual void ReadDataSet(const std::string& rPath,
-                             Vector<array_1d<double, 3>>& rData,
-                             unsigned StartIndex,
-                             unsigned BlockSize);
-
-    virtual void ReadDataSet(const std::string& rPath,
-                             Matrix<int>& rData,
-                             unsigned StartIndex,
-                             unsigned BlockSize);
-
-    virtual void ReadDataSet(const std::string& rPath,
-                             Matrix<double>& rData,
-                             unsigned StartIndex,
-                             unsigned BlockSize);
-
-    // Independently read data set from the HDF5 file.
     /**
-     *  Performs independent read in MPI. Throws if out of range.
+     * @brief Independently read a dataset from the HDF5 file.
+     *
+     * Performs independent read in MPI. Throws if out of range.
+     *
+     * @tparam TDataType        Datatype of the read data.
+     * @param rPath             Path of the dataset.
+     * @param rData             Data to be written to.
+     * @param StartIndex        Starting offset of data for this rank.
+     * @param BlockSize         Number of data points for this rank.
      */
-    virtual void ReadDataSetIndependent(const std::string& rPath,
-                                       Vector<int>& rData,
-                                       unsigned StartIndex,
-                                       unsigned BlockSize);
-
-    virtual void ReadDataSetIndependent(const std::string& rPath,
-                                       Vector<double>& rData,
-                                       unsigned StartIndex,
-                                       unsigned BlockSize);
-
-    virtual void ReadDataSetIndependent(const std::string& rPath,
-                                       Vector<array_1d<double, 3>>& rData,
-                                       unsigned StartIndex,
-                                       unsigned BlockSize);
-
-    virtual void ReadDataSetIndependent(const std::string& rPath,
-                                       Matrix<int>& rData,
-                                       unsigned StartIndex,
-                                       unsigned BlockSize);
-
-    virtual void ReadDataSetIndependent(const std::string& rPath,
-                                       Matrix<double>& rData,
-                                       unsigned StartIndex,
-                                       unsigned BlockSize);
+    template<class TDataType>
+    void ReadDataSetIndependent(
+        const std::string& rPath,
+        TDataType& rData,
+        const unsigned StartIndex,
+        const unsigned BlockSize) const;
 
     unsigned GetOpenObjectsCount() const;
-    ///@}
-
-protected:
-    ///@name Protected Operations
-    ///@{
-    hid_t GetFileId() const;
     ///@}
 
 private:
     ///@name Member Variables
     ///@{
-    std::string m_file_name;
-    hid_t m_file_id = -1; // Default invalid file id.
-    int m_echo_level = 0;
+
+    DataCommunicator const * mpDataCommunicator;
+
+    std::string mFileName;
+
+    hid_t mFileId = -1; // Default invalid file id.
+
+    int mEchoLevel = 0;
+
     ///@}
 
     ///@name Private Operations
     ///@{
-    void SetFileDriver(const std::string& rDriver, hid_t FileAccessPropertyListId) const;
+
+    void SetFileDriver(
+        const std::string& rDriver,
+        hid_t FileAccessPropertyListId) const;
+
+    hid_t GetFileId() const;
+
+    hid_t OpenExistingDataSet(const std::string& rPath);
+
+    template<class TDataType, DataTransferMode TDataTransferMode>
+    void WriteDataSetImpl(
+        const std::string& rPath,
+        const TDataType& rData,
+        WriteInfo& rInfo);
+
+    template<class TDataType, DataTransferMode TDataTransferMode>
+    void ReadDataSetImpl(
+        const std::string& rPath,
+        TDataType& rData,
+        const unsigned StartIndex,
+        const unsigned BlockSize) const;
+
     ///@}
-
 };
-
-extern template void File::WriteAttribute(const std::string& rObjectPath, const std::string& rName, int Value);
-extern template void File::WriteAttribute(const std::string& rObjectPath, const std::string& rName, double Value);
-extern template void File::WriteAttribute(const std::string& rObjectPath, const std::string& rName, const Vector<int>& rValue);
-extern template void File::WriteAttribute(const std::string& rObjectPath, const std::string& rName, const Vector<double>& rValue);
-extern template void File::WriteAttribute(const std::string& rObjectPath, const std::string& rName, const Matrix<int>& rValue);
-extern template void File::WriteAttribute(const std::string& rObjectPath, const std::string& rName, const Matrix<double>& rValue);
-
-extern template void File::ReadAttribute(const std::string& rObjectPath, const std::string& rName, int& rValue);
-extern template void File::ReadAttribute(const std::string& rObjectPath, const std::string& rName, double& rValue);
-extern template void File::ReadAttribute(const std::string& rObjectPath, const std::string& rName, Vector<int>& rValue);
-extern template void File::ReadAttribute(const std::string& rObjectPath, const std::string& rName, Vector<double>& rValue);
-extern template void File::ReadAttribute(const std::string& rObjectPath, const std::string& rName, Matrix<int>& rValue);
-extern template void File::ReadAttribute(const std::string& rObjectPath, const std::string& rName, Matrix<double>& rValue);
 
 ///@} // Kratos Classes
 
@@ -310,14 +465,6 @@ bool IsPath(const std::string& rPath);
 /// Return vector of non-empty substrings separated by a delimiter.
 std::vector<std::string> Split(const std::string& rPath, char Delimiter);
 
-hid_t GetScalarDataType(const Vector<int>&);
-hid_t GetScalarDataType(const Vector<double>&);
-hid_t GetScalarDataType(const Vector<array_1d<double, 3>>&);
-hid_t GetScalarDataType(const Matrix<int>&);
-hid_t GetScalarDataType(const Matrix<double>&);
-hid_t GetScalarDataType(int);
-hid_t GetScalarDataType(double);
-
 std::vector<hsize_t> GetDataDimensions(const Vector<int>& rData);
 std::vector<hsize_t> GetDataDimensions(const Vector<double>& rData);
 std::vector<hsize_t> GetDataDimensions(const Vector<array_1d<double, 3>>& rData);
@@ -329,5 +476,3 @@ std::vector<hsize_t> GetDataDimensions(const File& rFile, const std::string& rPa
 ///@} addtogroup
 } // namespace HDF5.
 } // namespace Kratos.
-
-#endif // KRATOS_HDF5_FILE_H_INCLUDED defined

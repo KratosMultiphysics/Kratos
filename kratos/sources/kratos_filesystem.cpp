@@ -12,9 +12,9 @@
 
 // System includes
 #include <algorithm>
-#include <thread>
 #include <chrono>
 #include <set>
+#include <thread>
 
 // External includes
 
@@ -84,14 +84,12 @@ std::string filename(const std::string& rPath)
 } // namespace filesystem
 
 
-namespace FilesystemExtensions {
-
-std::string CurrentWorkingDirectory()
+std::string FilesystemExtensions::CurrentWorkingDirectory()
 {
     return std::filesystem::current_path().string();
 }
 
-std::string JoinPaths(const std::vector<std::string>& rPaths)
+std::string FilesystemExtensions::JoinPaths(const std::vector<std::string>& rPaths)
 {
     auto paths(rPaths); // create local copy
 
@@ -114,16 +112,16 @@ std::string JoinPaths(const std::vector<std::string>& rPaths)
     return full_path;
 }
 
-std::vector<std::string> ListDirectory(const std::string& rPath)
+std::vector<std::filesystem::path> FilesystemExtensions::ListDirectory(const std::filesystem::path& rPath)
 {
-    std::vector<std::string> result;
+    std::vector<std::filesystem::path> result;
     for (const auto& current_directory : std::filesystem::directory_iterator(rPath)) {
-        result.push_back(current_directory.path().string());
+        result.push_back(current_directory.path());
     }
     return result;
 }
 
-void MPISafeCreateDirectories(const std::string& rPath)
+void FilesystemExtensions::MPISafeCreateDirectories(const std::filesystem::path& rPath)
 {
     if (!std::filesystem::exists(rPath)) {
         std::filesystem::create_directories(rPath);
@@ -134,7 +132,7 @@ void MPISafeCreateDirectories(const std::string& rPath)
 }
 
 
-std::filesystem::path ResolveSymlinks(const std::filesystem::path& rPath)
+std::filesystem::path FilesystemExtensions::ResolveSymlinks(const std::filesystem::path& rPath)
 {
     auto status = std::filesystem::symlink_status(rPath);
     KRATOS_ERROR_IF(status.type() == std::filesystem::file_type::not_found) << "File not found: " << rPath;
@@ -152,5 +150,4 @@ std::filesystem::path ResolveSymlinks(const std::filesystem::path& rPath)
     return path;
 }
 
-} // namespace FilesystemExtensions
 } // namespace Kratos

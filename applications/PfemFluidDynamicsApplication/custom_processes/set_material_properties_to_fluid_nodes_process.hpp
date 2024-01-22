@@ -118,9 +118,6 @@ namespace Kratos
       double grain_diameter = 0;
       double grain_density = 0;
       double regularization_coefficient = 0;
-      double infinite_friction = 0;
-      double inertial_number_one = 0;
-      double alpha_parameter = 0;
       double friction_angle = 0;
       double cohesion = 0;
 
@@ -128,7 +125,7 @@ namespace Kratos
       double bulk_modulus = elemProperties[BULK_MODULUS];
       double viscosity = elemProperties[DYNAMIC_VISCOSITY];
       unsigned int elem_property_id = elemProperties.Id();
-      
+
       if (elemProperties.Has(YIELD_SHEAR)) // Bingham model
       {
         flow_index = elemProperties[FLOW_INDEX];
@@ -148,21 +145,10 @@ namespace Kratos
         inertial_number_zero = elemProperties[INERTIAL_NUMBER_ZERO];
         grain_diameter = elemProperties[GRAIN_DIAMETER];
         grain_density = elemProperties[GRAIN_DENSITY];
-
-        if (elemProperties.Has(INERTIAL_NUMBER_ONE))
-        {
-          inertial_number_one = elemProperties[INERTIAL_NUMBER_ONE];
-          infinite_friction = elemProperties[INFINITE_FRICTION];
-          alpha_parameter = elemProperties[ALPHA_PARAMETER];
-        }
-
-        if (elemProperties.Has(REGULARIZATION_COEFFICIENT))
-        {
-          regularization_coefficient = elemProperties[REGULARIZATION_COEFFICIENT];
-        }
+        regularization_coefficient = elemProperties[REGULARIZATION_COEFFICIENT];
       }
 
-      Geometry<Node<3>> &rGeom = itElem->GetGeometry();
+      Geometry<Node> &rGeom = itElem->GetGeometry();
       const SizeType NumNodes = rGeom.PointsNumber();
       for (SizeType i = 0; i < NumNodes; ++i)
       {
@@ -214,56 +200,8 @@ namespace Kratos
         if (mrModelPart.GetNodalSolutionStepVariablesList().Has(GRAIN_DENSITY))
           rGeom[i].FastGetSolutionStepValue(GRAIN_DENSITY) = grain_density;
 
-        if (mrModelPart.GetNodalSolutionStepVariablesList().Has(INERTIAL_NUMBER_ONE))
-          rGeom[i].FastGetSolutionStepValue(INERTIAL_NUMBER_ONE) = inertial_number_one;
-
-        if (mrModelPart.GetNodalSolutionStepVariablesList().Has(INFINITE_FRICTION))
-          rGeom[i].FastGetSolutionStepValue(INFINITE_FRICTION) = infinite_friction;
-
-        if (mrModelPart.GetNodalSolutionStepVariablesList().Has(ALPHA_PARAMETER))
-          rGeom[i].FastGetSolutionStepValue(ALPHA_PARAMETER) = alpha_parameter;
-
         if (mrModelPart.GetNodalSolutionStepVariablesList().Has(REGULARIZATION_COEFFICIENT))
           rGeom[i].FastGetSolutionStepValue(REGULARIZATION_COEFFICIENT) = regularization_coefficient;
-
-        // rGeom[i].FastGetSolutionStepValue(BULK_MODULUS) = bulk_modulus;
-        // rGeom[i].FastGetSolutionStepValue(DENSITY) = density;
-        // rGeom[i].FastGetSolutionStepValue(DYNAMIC_VISCOSITY) = viscosity;
-        // rGeom[i].FastGetSolutionStepValue(PROPERTY_ID) = elem_property_id;
-
-        // if (elemProperties.Has(YIELD_SHEAR)) //Bingham model
-        // {
-        //   rGeom[i].FastGetSolutionStepValue(FLOW_INDEX) = flow_index;
-        //   rGeom[i].FastGetSolutionStepValue(YIELD_SHEAR) = yield_shear;
-        //   rGeom[i].FastGetSolutionStepValue(ADAPTIVE_EXPONENT) = adaptive_exponent;
-        // }
-        // else if (elemProperties.Has(INTERNAL_FRICTION_ANGLE)) //Frictional Viscoplastic model
-        // {
-        //   rGeom[i].FastGetSolutionStepValue(INTERNAL_FRICTION_ANGLE) = friction_angle;
-        //   rGeom[i].FastGetSolutionStepValue(COHESION) = cohesion;
-        //   rGeom[i].FastGetSolutionStepValue(ADAPTIVE_EXPONENT) = adaptive_exponent;
-        // }
-        // else if (elemProperties.Has(STATIC_FRICTION)) //Mu(I)-rheology
-        // {
-        //   rGeom[i].FastGetSolutionStepValue(STATIC_FRICTION) = static_friction;
-        //   rGeom[i].FastGetSolutionStepValue(DYNAMIC_FRICTION) = dynamic_friction;
-        //   rGeom[i].FastGetSolutionStepValue(INERTIAL_NUMBER_ZERO) = inertial_number_zero;
-        //   rGeom[i].FastGetSolutionStepValue(GRAIN_DIAMETER) = grain_diameter;
-        //   rGeom[i].FastGetSolutionStepValue(GRAIN_DENSITY) = grain_density;
-
-        //   if (elemProperties.Has(INERTIAL_NUMBER_ONE))
-        //   {
-
-        //     rGeom[i].FastGetSolutionStepValue(INERTIAL_NUMBER_ONE) = inertial_number_one;
-        //     rGeom[i].FastGetSolutionStepValue(INFINITE_FRICTION) = infinite_friction;
-        //     rGeom[i].FastGetSolutionStepValue(ALPHA_PARAMETER) = alpha_parameter;
-        //   }
-
-        //   if (elemProperties.Has(REGULARIZATION_COEFFICIENT))
-        //   {
-        //     rGeom[i].FastGetSolutionStepValue(REGULARIZATION_COEFFICIENT) = regularization_coefficient;
-        //   }
-        // }
       }
     }
 

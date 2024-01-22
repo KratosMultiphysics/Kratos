@@ -55,7 +55,7 @@ class FlowOutputProcess(KratosMultiphysics.Process):
         model_part_name_list = self.params["model_part_name_list"]
 
         out = str(time)
-        for model_part_name_param in model_part_name_list:
+        for model_part_name_param in model_part_name_list.values():
             model_part_name = model_part_name_param.GetString()
             model_part = self.model[model_part_name]
             flow_value = self.CalculateFlow(model_part)
@@ -74,7 +74,7 @@ class FlowOutputProcess(KratosMultiphysics.Process):
         model_part_name_list = self.params["model_part_name_list"]
         header  = '# Flow results ' + '\n'
         header += '# time '
-        for model_part_name_param in model_part_name_list:
+        for model_part_name_param in model_part_name_list.values():
             model_part_name = model_part_name_param.GetString()
             model_part = self.model[model_part_name]
             header += model_part.Name

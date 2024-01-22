@@ -18,7 +18,7 @@
 
 // Project includes
 #include "testing/testing.h"
-#include "includes/checks.h"
+#include "includes/expect.h"
 #include "includes/kratos_filesystem.h"
 #include "includes/kratos_flags.h"
 #include "containers/model.h"
@@ -75,11 +75,11 @@ namespace Kratos
 
             mmg_io.ReadModelPart(r_aux_model_part);
 
-            KRATOS_CHECK_EQUAL(r_model_part.NumberOfNodes(), r_aux_model_part.NumberOfNodes());
-            KRATOS_CHECK_EQUAL(r_model_part.NumberOfElements(), r_aux_model_part.NumberOfElements());
+            KRATOS_EXPECT_EQ(r_model_part.NumberOfNodes(), r_aux_model_part.NumberOfNodes());
+            KRATOS_EXPECT_EQ(r_model_part.NumberOfElements(), r_aux_model_part.NumberOfElements());
 
             for (auto& r_sub_model_part_name : r_model_part.GetSubModelPartNames()) {
-                KRATOS_CHECK(r_aux_model_part.HasSubModelPart(r_sub_model_part_name));
+                KRATOS_EXPECT_TRUE(r_aux_model_part.HasSubModelPart(r_sub_model_part_name));
             }
 
             Kratos::filesystem::remove((FilesystemExtensions::JoinPaths({FilesystemExtensions::CurrentWorkingDirectory(), "mmg_output_2d.mesh"})).c_str());
@@ -138,11 +138,11 @@ namespace Kratos
 
             mmg_io.ReadModelPart(r_aux_model_part);
 
-            KRATOS_CHECK_EQUAL(r_model_part.NumberOfNodes(), r_aux_model_part.NumberOfNodes());
-            KRATOS_CHECK_EQUAL(r_model_part.NumberOfElements(), r_aux_model_part.NumberOfElements());
+            KRATOS_EXPECT_EQ(r_model_part.NumberOfNodes(), r_aux_model_part.NumberOfNodes());
+            KRATOS_EXPECT_EQ(r_model_part.NumberOfElements(), r_aux_model_part.NumberOfElements());
 
             for (auto& r_sub_model_part_name : r_model_part.GetSubModelPartNames()) {
-                KRATOS_CHECK(r_aux_model_part.HasSubModelPart(r_sub_model_part_name));
+                KRATOS_EXPECT_TRUE(r_aux_model_part.HasSubModelPart(r_sub_model_part_name));
             }
 
             Kratos::filesystem::remove((FilesystemExtensions::JoinPaths({FilesystemExtensions::CurrentWorkingDirectory(), "mmg_output_3d.mesh"})).c_str());

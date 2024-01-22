@@ -23,7 +23,7 @@
 #include "includes/model_part.h"
 #include "geometries/triangle_2d_3.h"
 #include "meshing_application_variables.h"
-#include "processes/node_erase_process.h"
+#include "processes/entity_erase_process.h"
 #include "spatial_containers/spatial_containers.h"
 #include "utilities/timer.h"
 
@@ -65,8 +65,8 @@ public:
 
     /// Pointer definition of TriGenModeler
     KRATOS_CLASS_POINTER_DEFINITION(TriGenDropletModeler);
-    typedef Node<3> PointType;
-    typedef Node<3>::Pointer PointPointerType;
+    typedef Node PointType;
+    typedef Node::Pointer PointPointerType;
     typedef std::vector<PointType::Pointer>           PointVector;
     typedef PointVector::iterator PointIterator;
     typedef std::vector<double>               DistanceVector;
@@ -106,7 +106,7 @@ public:
         ModelPart& ThisModelPart ,
         Element const& rReferenceElement,
         Condition const& rReferenceBoundaryCondition,
-        NodeEraseProcess& node_erase, bool rem_nodes = true, bool add_nodes=true,
+        EntitiesEraseProcess<Node>& node_erase, bool rem_nodes = true, bool add_nodes=true,
         double my_alpha = 1.4, double h_factor=0.5)
     {
 
@@ -222,7 +222,7 @@ public:
 			nodal_h*=0.5;
 			//if the edge of the segment (condition) is too long, we split it into two by adding a node in the middle
 
-			Node<3>::DofsContainerType& reference_dofs = (ThisModelPart.NodesBegin())->GetDofs();
+			Node::DofsContainerType& reference_dofs = (ThisModelPart.NodesBegin())->GetDofs();
 
 
 			double factor=2.0;
@@ -232,20 +232,20 @@ public:
 			    double x = 0.5*(x0+x1);
 			    double y = 0.5*(y0+y1);;
 			    double z = 0.0;
-			    Node<3>::Pointer pnode = ThisModelPart.CreateNewNode(id,x,y,z);
+			    Node::Pointer pnode = ThisModelPart.CreateNewNode(id,x,y,z);
 
 			    //putting the new node also in an auxiliary list
 			    //KRATOS_WATCH("adding nodes to list")
 
 			    //std::cout << "new node id = " << pnode->Id() << std::endl;
 			    //generating the dofs
-			    for(Node<3>::DofsContainerType::iterator iii = reference_dofs.begin(); iii != reference_dofs.end(); iii++)
+			    for(Node::DofsContainerType::iterator iii = reference_dofs.begin(); iii != reference_dofs.end(); iii++)
 			    {
-				Node<3>::DofType& rDof = **iii;
-				Node<3>::DofType::Pointer p_new_dof = pnode->pAddDof( rDof );
+				Node::DofType& rDof = **iii;
+				Node::DofType::Pointer p_new_dof = pnode->pAddDof( rDof );
 				(p_new_dof)->FreeDof();
 			    }
-			    Geometry<Node<3> >& geom = ic->GetGeometry();
+			    Geometry<Node >& geom = ic->GetGeometry();
 
 			    InterpolateOnEdge(geom, 0, 1, step_data_size, pnode);
 			    const array_1d<double,3>& disp = pnode->FastGetSolutionStepValue(DISPLACEMENT);
@@ -279,7 +279,7 @@ public:
         //NodeIterator res(max_results);
         PointVector res(max_results);
         DistanceVector res_distances(max_results);
-        Node<3> work_point(0,0.0,0.0,0.0);
+        Node work_point(0,0.0,0.0,0.0);
         //if the remove_node switch is activated, we check if the nodes got too close
 
         if (rem_nodes==true)
@@ -460,8 +460,8 @@ public:
 
         //and now we shall find out where the new nodes belong to
         //defintions for spatial search
-        typedef Node<3> PointType;
-        typedef Node<3>::Pointer PointPointerType;
+        typedef Node PointType;
+        typedef Node::Pointer PointPointerType;
         typedef std::vector<PointType::Pointer>           PointVector;
         //typedef std::vector<PointType::Pointer>::iterator PointIterator;
         typedef PointVector::iterator PointIterator;
@@ -479,7 +479,7 @@ public:
         PointVector list_of_new_nodes;
 
         //node to get the DOFs from
-        Node<3>::DofsContainerType& reference_dofs = (ThisModelPart.NodesBegin())->GetDofs();
+        Node::DofsContainerType& reference_dofs = (ThisModelPart.NodesBegin())->GetDofs();
 
         double z = 0.0;
         int n_points_before_refinement = in2.numberofpoints;
@@ -493,7 +493,7 @@ public:
                 double& x= out2.pointlist[base];
                 double& y= out2.pointlist[base+1];
 
-                Node<3>::Pointer pnode = ThisModelPart.CreateNewNode(id,x,y,z);
+                Node::Pointer pnode = ThisModelPart.CreateNewNode(id,x,y,z);
 
                 pnode->SetBufferSize(ThisModelPart.NodesBegin()->GetBufferSize() );
 
@@ -501,10 +501,10 @@ public:
 
                 //std::cout << "new node id = " << pnode->Id() << std::endl;
                 //generating the dofs
-                for(Node<3>::DofsContainerType::iterator iii = reference_dofs.begin();    iii != reference_dofs.end(); iii++)
+                for(Node::DofsContainerType::iterator iii = reference_dofs.begin();    iii != reference_dofs.end(); iii++)
                 {
-                    Node<3>::DofType& rDof = **iii;
-                    Node<3>::DofType::Pointer p_new_dof = pnode->pAddDof( rDof );
+                    Node::DofType& rDof = **iii;
+                    Node::DofType::Pointer p_new_dof = pnode->pAddDof( rDof );
 
                     (p_new_dof)->FreeDof();
 //                                                (p_new_dof)->EquationId() = -1;
@@ -528,7 +528,7 @@ public:
 
         int point_base;
         //WHAT ARE THOSE????
-// 			Node<3> work_point(0,0.0,0.0,0.0);
+// 			Node work_point(0,0.0,0.0,0.0);
         unsigned int MaximumNumberOfResults = list_of_new_nodes.size();
         PointVector Results(MaximumNumberOfResults);
         DistanceVector ResultsDistances(MaximumNumberOfResults);
@@ -574,7 +574,7 @@ public:
                 number_of_points_in_radius = nodes_tree2.SearchInRadius(work_point, radius*1.01, Results.begin(),
                                              ResultsDistances.begin(),  MaximumNumberOfResults);
 
-                Triangle2D3<Node<3> > geom(
+                Triangle2D3<Node > geom(
                     *( (nodes_begin +  in2.trianglelist[base]-1).base() 	),
                     *( (nodes_begin +  in2.trianglelist[base+1]-1).base() 	),
                     *( (nodes_begin +  in2.trianglelist[base+2]-1).base() 	)
@@ -623,7 +623,7 @@ public:
         {
             int id = iii + 1;
             int base = iii * 3;
-            Triangle2D3<Node<3> > geom(
+            Triangle2D3<Node > geom(
                 *( (nodes_begin +  out2.trianglelist[base]-1).base() 	),
                 *( (nodes_begin +  out2.trianglelist[base+1]-1).base() 	),
                 *( (nodes_begin +  out2.trianglelist[base+2]-1).base() 	)
@@ -652,7 +652,7 @@ public:
         for(ModelPart::ElementsContainerType::const_iterator iii = ThisModelPart.ElementsBegin();
                 iii != ThisModelPart.ElementsEnd(); iii++)
         {
-            //Geometry< Node<3> >& geom = iii->GetGeometry();
+            //Geometry< Node >& geom = iii->GetGeometry();
             int base = ( iii->Id() - 1 )*3;
 
             (iii->GetValue(NEIGHBOUR_ELEMENTS)).resize(3);
@@ -765,13 +765,13 @@ private:
     boost::numeric::ublas::bounded_matrix<double,2,2> mJinv; //inverse jacobian
     array_1d<double,2> mC; //center pos
     array_1d<double,2> mRhs; //center pos
-    //NodeEraseProcess* mpNodeEraseProcess;
+    //EntitiesEraseProcess<Node>* mpNodeEraseProcess;
 
 
     ///@}
     ///@name Private Operators
     ///@{
-    void RemoveCloseNodes(ModelPart& ThisModelPart, KdtreeType& nodes_tree1, NodeEraseProcess& node_erase, double& h_factor)
+    void RemoveCloseNodes(ModelPart& ThisModelPart, KdtreeType& nodes_tree1, EntitiesEraseProcess<Node>& node_erase, double& h_factor)
     {
         //unsigned int bucket_size = 20;
 
@@ -781,7 +781,7 @@ private:
         //NodeIterator res(max_results);
         PointVector res(max_results);
         DistanceVector res_distances(max_results);
-        Node<3> work_point(0,0.0,0.0,0.0);
+        Node work_point(0,0.0,0.0,0.0);
 
         unsigned int n_points_in_radius;
         //radius means the distance, closer than which no node shall be allowd. if closer -> mark for erasing
@@ -871,7 +871,7 @@ private:
             x3[1] = out_mid.pointlist[point_base+1];
 
             //here we shall temporarily save the elements and pass them afterwards to the alpha shape
-            Geometry<Node<3> > temp;
+            Geometry<Node > temp;
 
             temp.push_back( *((ThisModelPart.Nodes()).find( out_mid.trianglelist[base]).base()	) );
             temp.push_back( *((ThisModelPart.Nodes()).find( out_mid.trianglelist[base+1]).base()	) );
@@ -996,7 +996,7 @@ private:
                 temp1.push_back(iii->GetGeometry()(1));
                 temp1.push_back(iii->GetGeometry()(2));
 
-                Geometry< Node<3> >::Pointer cond = Geometry< Node<3> >::Pointer(new Geometry< Node<3> >(temp1) );
+                Geometry< Node >::Pointer cond = Geometry< Node >::Pointer(new Geometry< Node >(temp1) );
                 int id = (iii->Id()-1)*3;
                 Condition::Pointer p_cond = rReferenceBoundaryCondition.Create(id, temp1, properties);
                 ThisModelPart.Conditions().push_back(p_cond);
@@ -1019,7 +1019,7 @@ private:
                 temp1.push_back(iii->GetGeometry()(2));
                 temp1.push_back(iii->GetGeometry()(0));
 
-                Geometry< Node<3> >::Pointer cond = Geometry< Node<3> >::Pointer(new Geometry< Node<3> >(temp1) );
+                Geometry< Node >::Pointer cond = Geometry< Node >::Pointer(new Geometry< Node >(temp1) );
                 int id = (iii->Id()-1)*3+1;
                 Condition::Pointer p_cond = rReferenceBoundaryCondition.Create(id, temp1, properties);
                 ThisModelPart.Conditions().push_back(p_cond);
@@ -1042,7 +1042,7 @@ private:
                 temp1.push_back(iii->GetGeometry()(0));
                 temp1.push_back(iii->GetGeometry()(1));
 
-                Geometry< Node<3> >::Pointer cond = Geometry< Node<3> >::Pointer(new Geometry< Node<3> >(temp1) );
+                Geometry< Node >::Pointer cond = Geometry< Node >::Pointer(new Geometry< Node >(temp1) );
                 int id = (iii->Id()-1)*3+2;
                 Condition::Pointer p_cond = rReferenceBoundaryCondition.Create(id, temp1, properties);
                 ThisModelPart.Conditions().push_back(p_cond);
@@ -1055,8 +1055,8 @@ private:
 
 
     //returns false if it should be removed
-    bool AlphaShape(double alpha_param, Geometry<Node<3> >& pgeom)
-    //bool AlphaShape(double alpha_param, Triangle2D<Node<3> >& pgeom)
+    bool AlphaShape(double alpha_param, Geometry<Node >& pgeom)
+    //bool AlphaShape(double alpha_param, Triangle2D<Node >& pgeom)
     {
         KRATOS_TRY
 
@@ -1198,9 +1198,9 @@ private:
         return false;
     }
 
-    void Interpolate( Triangle2D3<Node<3> >& geom, const array_1d<double,3>& N,
+    void Interpolate( Triangle2D3<Node >& geom, const array_1d<double,3>& N,
                       unsigned int step_data_size,
-                      Node<3>::Pointer pnode)
+                      Node::Pointer pnode)
     {
         unsigned int buffer_size = pnode->GetBufferSize();
         //KRATOS_WATCH("Buffer size")
@@ -1303,7 +1303,7 @@ private:
         if(tr.normlist != NULL) free(tr.normlist  );
     };
 
-    void InterpolateOnEdge( Geometry<Node<3> >& geom, int point1, int point2, unsigned int step_data_size, Node<3>::Pointer pnode)
+    void InterpolateOnEdge( Geometry<Node >& geom, int point1, int point2, unsigned int step_data_size, Node::Pointer pnode)
     {
 		unsigned int buffer_size = pnode->GetBufferSize();
 		KRATOS_INFO("TriGenDropletModeler") << "buffer_size: " << buffer_size << std::endl;

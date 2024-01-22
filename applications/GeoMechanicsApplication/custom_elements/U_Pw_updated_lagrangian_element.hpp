@@ -10,23 +10,19 @@
 //  Main authors:    Vahid Galavi
 //
 
-
 #if !defined(KRATOS_GEO_U_PW_UPDATED_LAGRANGIAN_ELEMENT_H_INCLUDED)
-#define  KRATOS_GEO_U_PW_UPDATED_LAGRANGIAN_ELEMENT_H_INCLUDED
-
+#define KRATOS_GEO_U_PW_UPDATED_LAGRANGIAN_ELEMENT_H_INCLUDED
 
 // System includes
-
 
 // External includes
 
 // Project includes
 #include "custom_elements/U_Pw_base_element.hpp"
 #include "custom_elements/U_Pw_small_strain_element.hpp"
-#include "custom_utilities/stress_strain_utilities.hpp"
 #include "custom_utilities/element_utilities.hpp"
+#include "custom_utilities/stress_strain_utilities.hpp"
 #include "geo_mechanics_application_variables.h"
-
 
 namespace Kratos
 {
@@ -54,63 +50,66 @@ namespace Kratos
  * @author Vicente Mataix Ferrandiz (StructuralMechanics)
  * @author Vahid Galavi (Geomechanics)
  */
-template< unsigned int TDim, unsigned int TNumNodes >
+template <unsigned int TDim, unsigned int TNumNodes>
 class KRATOS_API(GEO_MECHANICS_APPLICATION) UPwUpdatedLagrangianElement
-    : public UPwSmallStrainElement<TDim,TNumNodes>
+    : public UPwSmallStrainElement<TDim, TNumNodes>
 {
 public:
     ///@name Type Definitions
     ///@{
-    typedef std::size_t IndexType;
-    typedef Properties PropertiesType;
-    typedef Node <3> NodeType;
-    typedef Geometry<NodeType> GeometryType;
-    typedef Geometry<NodeType>::PointsArrayType NodesArrayType;
-    typedef Vector VectorType;
-    typedef Matrix MatrixType;
+    using IndexType      = std::size_t;
+    using PropertiesType = Properties;
+    using NodeType       = Node;
+    using GeometryType   = Geometry<NodeType>;
+    using NodesArrayType = GeometryType::PointsArrayType;
+    using VectorType     = Vector;
+    using MatrixType     = Matrix;
 
     /// Type definition for integration methods
-    typedef GeometryData::IntegrationMethod IntegrationMethod;
+    using IntegrationMethod = GeometryData::IntegrationMethod;
 
     /// The definition of the sizetype
-    typedef std::size_t SizeType;
-    using UPwBaseElement<TDim,TNumNodes>::mConstitutiveLawVector;
-    using UPwBaseElement<TDim,TNumNodes>::mRetentionLawVector;
-    using UPwBaseElement<TDim,TNumNodes>::mStressVector;
-    using UPwBaseElement<TDim,TNumNodes>::mStateVariablesFinalized;
-    using UPwBaseElement<TDim,TNumNodes>::CalculateDerivativesOnInitialConfiguration;
-    using UPwBaseElement<TDim,TNumNodes>::mThisIntegrationMethod;
+    using SizeType = std::size_t;
+    using UPwBaseElement<TDim, TNumNodes>::mConstitutiveLawVector;
+    using UPwBaseElement<TDim, TNumNodes>::mRetentionLawVector;
+    using UPwBaseElement<TDim, TNumNodes>::mStressVector;
+    using UPwBaseElement<TDim, TNumNodes>::mStateVariablesFinalized;
+    using UPwBaseElement<TDim, TNumNodes>::CalculateDerivativesOnInitialConfiguration;
+    using UPwBaseElement<TDim, TNumNodes>::mThisIntegrationMethod;
 
-    typedef typename UPwSmallStrainElement<TDim,TNumNodes>::ElementVariables ElementVariables;
-    using UPwSmallStrainElement<TDim,TNumNodes>::CalculateBulkModulus;
+    using ElementVariables = typename UPwSmallStrainElement<TDim, TNumNodes>::ElementVariables;
+    using UPwSmallStrainElement<TDim, TNumNodes>::CalculateBulkModulus;
 
     /// Counted pointer of UPwUpdatedLagrangianElement
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(UPwUpdatedLagrangianElement);
 
-///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     /// Default Constructor
-    UPwUpdatedLagrangianElement(IndexType NewId = 0) : UPwSmallStrainElement<TDim,TNumNodes>( NewId ) {}
+    UPwUpdatedLagrangianElement(IndexType NewId = 0) : UPwSmallStrainElement<TDim, TNumNodes>(NewId)
+    {
+    }
 
     /// Constructor using an array of nodes
-    UPwUpdatedLagrangianElement(IndexType NewId,
-                                const NodesArrayType& ThisNodes)
-                                : UPwSmallStrainElement<TDim,TNumNodes>(NewId, ThisNodes) {}
+    UPwUpdatedLagrangianElement(IndexType NewId, const NodesArrayType& ThisNodes)
+        : UPwSmallStrainElement<TDim, TNumNodes>(NewId, ThisNodes)
+    {
+    }
 
     /// Constructor using Geometry
-    UPwUpdatedLagrangianElement(IndexType NewId,
-                                GeometryType::Pointer pGeometry)
-                                : UPwSmallStrainElement<TDim,TNumNodes>(NewId, pGeometry) {}
+    UPwUpdatedLagrangianElement(IndexType NewId, GeometryType::Pointer pGeometry)
+        : UPwSmallStrainElement<TDim, TNumNodes>(NewId, pGeometry)
+    {
+    }
 
     /// Constructor using Properties
-    UPwUpdatedLagrangianElement(IndexType NewId,
-                                GeometryType::Pointer pGeometry,
-                                PropertiesType::Pointer pProperties)
-                                : UPwSmallStrainElement<TDim,TNumNodes>( NewId, pGeometry, pProperties ) {}
+    UPwUpdatedLagrangianElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
+        : UPwSmallStrainElement<TDim, TNumNodes>(NewId, pGeometry, pProperties)
+    {
+    }
 
     /// Destructor
     ~UPwUpdatedLagrangianElement() override {}
-
 
     int Check(const ProcessInfo& rCurrentProcessInfo) const override;
 
@@ -121,9 +120,7 @@ public:
      * @param pProperties The pointer to property
      * @return The pointer to the created element
      */
-    Element::Pointer Create(IndexType NewId,
-                            GeometryType::Pointer pGeom,
-                            PropertiesType::Pointer pProperties) const override;
+    Element::Pointer Create(IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties) const override;
 
     /**
      * @brief Creates a new element
@@ -152,8 +149,8 @@ public:
      * @param rOutput The values obtained int the integration points
      * @param rCurrentProcessInfo The current process info instance
      */
-    void CalculateOnIntegrationPoints(const Variable<Matrix >& rVariable,
-                                      std::vector< Matrix >& rOutput,
+    void CalculateOnIntegrationPoints(const Variable<Matrix>& rVariable,
+                                      std::vector<Matrix>& rOutput,
                                       const ProcessInfo& rCurrentProcessInfo) override;
 
     ///@}
@@ -171,14 +168,16 @@ public:
     std::string Info() const override
     {
         std::stringstream buffer;
-        buffer << "Updated Lagrangian U-Pw Element #" << this->Id() << "\nConstitutive law: " << mConstitutiveLawVector[0]->Info();
+        buffer << "Updated Lagrangian U-Pw Element #" << this->Id()
+               << "\nConstitutive law: " << mConstitutiveLawVector[0]->Info();
         return buffer.str();
     }
 
     /// Print information about this object.
     void PrintInfo(std::ostream& rOStream) const override
     {
-        rOStream << "Updated Lagrangian U-Pw Element #" << this->Id() << "\nConstitutive law: " << mConstitutiveLawVector[0]->Info();
+        rOStream << "Updated Lagrangian U-Pw Element #" << this->Id()
+                 << "\nConstitutive law: " << mConstitutiveLawVector[0]->Info();
     }
 
     /// Print object's data.
@@ -204,7 +203,6 @@ protected:
     ///@name Protected Operators
     ///@{
 
-
     /**
      * @brief This functions calculates both the RHS and the LHS
      * @param rLeftHandSideMatrix The LHS
@@ -218,7 +216,6 @@ protected:
                       const ProcessInfo& rCurrentProcessInfo,
                       const bool CalculateStiffnessMatrixFlag,
                       const bool CalculateResidualVectorFlag) override;
-
 
     ///@}
     ///@name Protected Operations
@@ -246,14 +243,12 @@ private:
     ///@name Private Operators
     ///@{
 
-
     // Copy constructor
     UPwUpdatedLagrangianElement(UPwUpdatedLagrangianElement const& rOther);
 
     ///@}
     ///@name Private Operations
     ///@{
-
 
     ///@}
     ///@name Private  Access
@@ -269,16 +264,15 @@ private:
 
     void save(Serializer& rSerializer) const override
     {
-        typedef UPwSmallStrainElement<TDim,TNumNodes> BaseClass;
-        KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, BaseClass );
+        typedef UPwSmallStrainElement<TDim, TNumNodes> BaseClass;
+        KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, BaseClass);
     }
 
     void load(Serializer& rSerializer) override
     {
-        typedef UPwSmallStrainElement<TDim,TNumNodes> BaseClass;
-        KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, BaseClass );
+        typedef UPwSmallStrainElement<TDim, TNumNodes> BaseClass;
+        KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, BaseClass);
     }
-
 
     ///@name Private Inquiry
     ///@{
@@ -286,9 +280,9 @@ private:
     ///@name Un accessible methods
     ///@{
     /// Assignment operator.
-    //UPwUpdatedLagrangianElement& operator=(const UPwUpdatedLagrangianElement& rOther);
+    // UPwUpdatedLagrangianElement& operator=(const UPwUpdatedLagrangianElement& rOther);
     /// Copy constructor.
-    //UPwUpdatedLagrangianElement(const UPwUpdatedLagrangianElement& rOther);
+    // UPwUpdatedLagrangianElement(const UPwUpdatedLagrangianElement& rOther);
     ///@}
 
 }; // Class UPwUpdatedLagrangianElement

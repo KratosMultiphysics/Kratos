@@ -4,12 +4,6 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 from KratosMultiphysics.ShallowWaterApplication.shallow_water_analysis import ShallowWaterAnalysis
 
 try:
-    import numpy
-    numpy_available = True
-except ImportError:
-    numpy_available = False
-
-try:
     import scipy
     scipy_available = True
 except ImportError:
@@ -19,8 +13,6 @@ class ShallowWaterTestFactory(KratosUnittest.TestCase):
     need_numpy = False
     need_scipy = False
     def test_execution(self):
-        if self.need_numpy and not numpy_available:
-            self.skipTest("numpy not available")
         if self.need_scipy and not scipy_available:
             self.skipTest("scipy not available")
         with KratosUnittest.WorkFolderScope(self.execution_directory, __file__):

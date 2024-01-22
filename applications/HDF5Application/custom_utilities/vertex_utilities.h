@@ -30,18 +30,18 @@ namespace HDF5
 
 
 #define KRATOS_DECLARE_VIRTUAL_VARIABLE_GETTER(TValue)   \
-    virtual TValue GetValue(const Node<3>& rNode, const Variable<TValue>& rVariable) const = 0
+    virtual TValue GetValue(const Node& rNode, const Variable<TValue>& rVariable) const = 0
 
 
 #define KRATOS_DEFINE_HISTORICAL_VARIABLE_GETTER(TValue)                                          \
-    TValue GetValue(const Node<3>& rNode, const Variable<TValue>& rVariable) const override final \
+    TValue GetValue(const Node& rNode, const Variable<TValue>& rVariable) const override final \
     {                                                                                             \
         return rNode.GetSolutionStepValue(rVariable);                                             \
     }
 
 
 #define KRATOS_DEFINE_NON_HISTORICAL_VARIABLE_GETTER(TValue)                                      \
-    TValue GetValue(const Node<3>& rNode, const Variable<TValue>& rVariable) const override final \
+    TValue GetValue(const Node& rNode, const Variable<TValue>& rVariable) const override final \
     {                                                                                             \
         return rNode.GetValue(rVariable);                                                         \
     }
@@ -127,7 +127,7 @@ struct NonHistoricalVariableGetter : public NodalVariableGetter
 /** Interface for point locators
  *  @details narrow down the scope of a locator's tasks (eg.: find element containing a point)
  */
-struct KRATOS_API(HDF5Application) PointLocatorAdaptor
+struct KRATOS_API(HDF5_APPLICATION) PointLocatorAdaptor
 {
     KRATOS_CLASS_POINTER_DEFINITION(PointLocatorAdaptor);
 
@@ -138,7 +138,7 @@ struct KRATOS_API(HDF5Application) PointLocatorAdaptor
 
 
 /// BruteForcePointLocator with configuration and tolerance persistence
-class KRATOS_API(HDF5Application) BruteForcePointLocatorAdaptor final : public PointLocatorAdaptor
+class KRATOS_API(HDF5_APPLICATION) BruteForcePointLocatorAdaptor final : public PointLocatorAdaptor
 {
 public:
     KRATOS_CLASS_POINTER_DEFINITION(BruteForcePointLocatorAdaptor);

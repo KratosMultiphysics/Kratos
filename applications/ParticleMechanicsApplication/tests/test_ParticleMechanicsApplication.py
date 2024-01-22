@@ -16,12 +16,14 @@ from particle_mechanics_test_factory import BeamCantileverStaticLinearElasticSur
 from particle_mechanics_test_factory import BeamCantileverStaticHyperelasticSelfWeightLoad2DQuadTest as TBeamCantileverStaticHyperelasticSelfWeightLoad2DQuadTest
 from particle_mechanics_test_factory import BeamCantileverLinearStaticHyperelasticSelfWeightLoad2DQuadTest as TBeamCantileverLinearStaticHyperelasticSelfWeightLoad2DQuadTest
 from particle_mechanics_test_factory import BeamCantileverDynamicConsistentMassTest as TBeamCantileverDynamicConsistentMassTest
+from particle_mechanics_test_factory import BeamCantileverDynamicHyperelasticUPTest as TBeamCantileverDynamicHyperelasticUPTest
 
 from particle_mechanics_test_factory import CooksMembraneCompressibleTest as TCooksMembraneCompressibleTest
 from particle_mechanics_test_factory import CooksMembraneUPCompressibleTest as TCooksMembraneUPCompressibleTest
 from particle_mechanics_test_factory import CooksMembraneUPIncompressibleTest as TCooksMembraneUPIncompressibleTest
 
 from particle_mechanics_test_factory import CLLinearElastic3DQuadTest as TCLLinearElastic3DQuadTest
+from particle_mechanics_test_factory import CLDispNewtonianFluidTest as TCLDispNewtonianFluidTest
 
 from particle_mechanics_test_factory import GravityApplicationTest as TGravityApplicationTest
 from particle_mechanics_test_factory import GravityTimeStepTableTest as TGravityTimeStepTableTest
@@ -46,6 +48,10 @@ from particle_mechanics_test_factory import PQMPMExplicitQuadTest as TPQMPMExpli
 from particle_mechanics_test_factory import PQMPMExplicitTriTest as TPQMPMExplicitTriTest
 from particle_mechanics_test_factory import PQMPMExplicitHexTest as TPQMPMExplicitHexTest
 
+##### RESTART TESTS #####
+from restart_tests import MPMRestartTestBeamStaticLineLoad2D  as TMPMRestartTestBeamStaticLineLoad2D
+from restart_tests import MPMRestartTestDynamicCantilever2D    as TMPMRestartTestDynamicCantilever2D
+
 
 
 # Import from Test Factories (with different analysis flows)
@@ -54,6 +60,7 @@ from test_generate_mpm_particle_condition   import TestGenerateMPMParticleCondit
 from test_particle_erase_process            import TestParticleEraseProcess           as TTestParticleEraseProcess
 from test_search_mpm_particle               import TestSearchMPMParticle              as TTestSearchMPMParticle
 from test_search_mpm_particle_condition     import TestSearchMPMParticleCondition     as TTestSearchMPMParticleCondition
+from test_particle_vtk_output_process       import TestParticleVtkOutputProcess       as TTestParticleVtkOutputProcess
 from test_static_loading_conditions_point   import TestStaticLoadingConditionsPoint   as TTestStaticLoadingConditionsPoint
 from test_static_loading_conditions_line    import TestStaticLoadingConditionsLine    as TTestStaticLoadingConditionsLine
 from test_static_loading_conditions_surface import TestStaticLoadingConditionsSurface as TTestStaticLoadingConditionsSurface
@@ -86,6 +93,7 @@ def AssembleTestSuites():
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestParticleEraseProcess]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestSearchMPMParticle]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestSearchMPMParticleCondition]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestParticleVtkOutputProcess]))
 
     # TODO: Look further into these three tests as they are still failing for AMatrix
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestStaticLoadingConditionsPoint]))    # FIXME:
@@ -93,6 +101,7 @@ def AssembleTestSuites():
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestStaticLoadingConditionsSurface]))  # FIXME:
 
     smallSuite.addTest(TCLLinearElastic3DQuadTest('test_execution'))
+    smallSuite.addTest(TCLDispNewtonianFluidTest('test_execution'))
     smallSuite.addTest(TGravityApplicationTest('test_execution'))
     smallSuite.addTest(TGravityTimeStepTableTest('test_execution'))
 
@@ -114,7 +123,9 @@ def AssembleTestSuites():
     nightSuite.addTest(TPenaltyImpositionBeamCantileverStaticHyperelasticSelfWeightLoad2DQuadTest('test_execution'))
     nightSuite.addTest(TBeamCantileverLinearStaticHyperelasticSelfWeightLoad2DQuadTest('test_execution'))
     nightSuite.addTest(TBeamCantileverDynamicConsistentMassTest('test_execution'))
-    
+    nightSuite.addTest(TBeamCantileverDynamicHyperelasticUPTest('test_execution'))
+
+
     nightSuite.addTest(TExplicitOscillatingPointUSLTest('test_execution'))
     nightSuite.addTest(TExplicitOscillatingPointUSFTest('test_execution'))
     nightSuite.addTest(TExplicitOscillatingPointMUSLTest('test_execution'))
@@ -130,6 +141,9 @@ def AssembleTestSuites():
     nightSuite.addTest(TPQMPMExplicitQuadTest('test_execution'))
     nightSuite.addTest(TPQMPMExplicitTriTest('test_execution'))
     nightSuite.addTest(TPQMPMExplicitHexTest('test_execution'))
+
+    nightSuite.addTest(TMPMRestartTestBeamStaticLineLoad2D('test_execution'))
+    nightSuite.addTest(TMPMRestartTestDynamicCantilever2D('test_execution'))
 
     ### Adding Validation Tests
     ## For very long tests that should not be in nighly and you can use to validate

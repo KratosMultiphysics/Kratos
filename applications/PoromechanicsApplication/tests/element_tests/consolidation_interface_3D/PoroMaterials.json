@@ -46,18 +46,20 @@
                 "POROSITY": 0.3,
                 "BULK_MODULUS_SOLID": 1.0e12,
                 "BULK_MODULUS_FLUID": 2.0e9,
-                "TRANSVERSAL_PERMEABILITY": 1.0e-10,
+                "TRANSVERSAL_PERMEABILITY_COEFFICIENT": 1.0e-10,
                 "DYNAMIC_VISCOSITY": 1.0e-3,
                 "THICKNESS": 1.0,
                 "DAMAGE_THRESHOLD": 0.04,
-                "MINIMUM_JOINT_WIDTH": 1.0e-3,
+                "INITIAL_JOINT_WIDTH": 1.0e-3,
                 "CRITICAL_DISPLACEMENT": 0.05,
                 "YIELD_STRESS": 3.5e6,
                 "FRICTION_COEFFICIENT": 0.4,
                 "FRACTURE_ENERGY": 100.0,
                 "SHEAR_FRACTURE_ENERGY": 100.0,
                 "STATE_VARIABLE": 1.0e-12,
-                "BIOT_COEFFICIENT": 0.9999994444444444
+                "BIOT_COEFFICIENT": 0.9999994444444444,
+                "TAU": 1.0,
+                "CURVE_FITTING_ETA": 1.0
             },
             "Tables": {}
         }

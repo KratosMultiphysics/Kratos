@@ -4,14 +4,13 @@
 //        / /___/ /_/ / / / / /_/ /_/ / /__/ /_ ___/ / /_/ /  / /_/ / /__/ /_/ /_/ / /  / /_/ / /  
 //        \____/\____/_/ /_/\__/\__,_/\___/\__//____/\__/_/   \__,_/\___/\__/\__,_/_/   \__,_/_/  MECHANICS
 //
-//  License:		 BSD License
-//					 license: ContactStructuralMechanicsApplication/license.txt
+//  License:         BSD License
+//                   license: ContactStructuralMechanicsApplication/license.txt
 //
 //  Main authors:    Vicente Mataix Ferrandiz
 //
 
-#if !defined(KRATOS_DERIVATIVES_UTILITIES)
-#define KRATOS_DERIVATIVES_UTILITIES
+#pragma once
 
 // System includes
 
@@ -38,7 +37,7 @@ namespace Kratos
 ///@{
 
     /// The definition of the size type
-    typedef std::size_t SizeType;
+    using SizeType = std::size_t;
 
 ///@}
 ///@name  Enum's
@@ -67,75 +66,58 @@ public:
     ///@{
 
     /// The index type
-    typedef std::size_t                                                                                                  IndexType;
+    using IndexType = std::size_t;
 
     /// The geometry of nodes
-    typedef Geometry<NodeType>                                                                                        GeometryType;
+    using GeometryType = Geometry<Node>;
 
     /// The array of nodes contained in a geometry
-    typedef Geometry<NodeType>::PointsArrayType                                                                     NodesArrayType;
+    using NodesArrayType = Geometry<Node>::PointsArrayType;
 
     /// The belong type (for derivatives definition)
-    typedef typename std::conditional<TNumNodes == 2, PointBelongsLine2D2N, typename std::conditional<TNumNodes == 3, typename std::conditional<TNumNodesMaster == 3, PointBelongsTriangle3D3N, PointBelongsTriangle3D3NQuadrilateral3D4N>::type, typename std::conditional<TNumNodesMaster == 3, PointBelongsQuadrilateral3D4NTriangle3D3N, PointBelongsQuadrilateral3D4N>::type>::type>::type BelongType;
+    using BelongType = typename std::conditional<TNumNodes == 2, PointBelongsLine2D2N, typename std::conditional<TNumNodes == 3, typename std::conditional<TNumNodesMaster == 3, PointBelongsTriangle3D3N, PointBelongsTriangle3D3NQuadrilateral3D4N>::type, typename std::conditional<TNumNodesMaster == 3, PointBelongsQuadrilateral3D4NTriangle3D3N, PointBelongsQuadrilateral3D4N>::type>::type>::type;
 
     /// The points used for derivatives definition
-    typedef PointBelong<TNumNodes, TNumNodesMaster>                                                                PointBelongType;
+    using PointBelongType = PointBelong<TNumNodes, TNumNodesMaster>;
 
     /// A geometry defined by the point belongs (the points used for derivatives definition)
-    typedef Geometry<PointBelongType>                                                                      GeometryPointBelongType;
+    using  GeometryPointBelongType = Geometry<PointBelongType>;
 
     /// An array of belong point to define the geometries of belong points
-    typedef array_1d<PointBelongType,TDim>                                                                      ConditionArrayType;
+    using ConditionArrayType = array_1d<PointBelongType,TDim>;
 
     /// The definition of an array pf conditions
-    typedef typename std::vector<ConditionArrayType>                                                        ConditionArrayListType;
+    using ConditionArrayListType = typename std::vector<ConditionArrayType>;
 
     /// The line definition
-    typedef Line2D2<PointType>                                                                                            LineType;
+    using LineType = Line2D2<PointType>;
 
     /// The triangle definition
-    typedef Triangle3D3<PointType>                                                                                    TriangleType;
+    using TriangleType = Triangle3D3<PointType>;
 
     /// The geometry for decomposition (line in 2D and triangle for 3D)
-    typedef typename std::conditional<TDim == 2, LineType, TriangleType >::type                                  DecompositionType;
+    using DecompositionType = typename std::conditional<TDim == 2, LineType, TriangleType >::type;
 
     /// The derivative data type
-    typedef typename std::conditional<TFrictional, DerivativeDataFrictional<TDim, TNumNodes, TNumNodesMaster>, DerivativeData<TDim, TNumNodes, TNumNodesMaster> >::type DerivativeDataType;
+    using DerivativeDataType = typename std::conditional<TFrictional, DerivativeDataFrictional<TDim, TNumNodes, TNumNodesMaster>, DerivativeData<TDim, TNumNodes, TNumNodesMaster> >::type;
 
     /// The kinematic variables
-    typedef MortarKinematicVariablesWithDerivatives<TDim, TNumNodes, TNumNodesMaster>                             GeneralVariables;
+    using GeneralVariables = MortarKinematicVariablesWithDerivatives<TDim, TNumNodes, TNumNodesMaster>;
 
     /// The dual LM operators
-    typedef DualLagrangeMultiplierOperatorsWithDerivatives<TDim, TNumNodes, TFrictional, TNumNodesMaster>                   AeData;
+    using AeData = DualLagrangeMultiplierOperatorsWithDerivatives<TDim, TNumNodes, TFrictional, TNumNodesMaster>;
 
     /// The mortar operators
-    typedef MortarOperatorWithDerivatives<TDim, TNumNodes, TFrictional, TNumNodesMaster>                   MortarConditionMatrices;
+    using MortarConditionMatrices = MortarOperatorWithDerivatives<TDim, TNumNodes, TFrictional, TNumNodesMaster>;
+
+    // The threshold coefficient considered for checking
+    static constexpr double CheckThresholdCoefficient = 1.0e-12;
 
     /// Definition of epsilon
     static constexpr double ZeroTolerance = std::numeric_limits<double>::epsilon();
 
     /// Pointer definition of DerivativesUtilities
     KRATOS_CLASS_POINTER_DEFINITION( DerivativesUtilities );
-
-    ///@}
-    ///@name Life Cycle
-    ///@{
-
-    ///@}
-    ///@name Access
-    ///@{
-
-    ///@}
-    ///@name Inquiry
-    ///@{
-
-    ///@}
-    ///@name Input and output
-    ///@{
-
-    ///@}
-    ///@name Friends
-    ///@{
 
     ///@}
     ///@name Operations
@@ -260,7 +242,7 @@ public:
         const DecompositionType& rDecompGeom,
         const PointType& rLocalPointDecomp,
         const PointType& rLocalPointParent,
-        const NormalDerivativesComputation ConsiderNormalVariation = NO_DERIVATIVES_COMPUTATION
+        const NormalDerivativesComputation ConsiderNormalVariation = NormalDerivativesComputation::NO_DERIVATIVES_COMPUTATION
         );
 
     /**
@@ -287,7 +269,7 @@ public:
         const DecompositionType& rDecompGeom,
         const PointType& rLocalPointDecomp,
         const PointType& rLocalPointParent,
-        const NormalDerivativesComputation ConsiderNormalVariation = NO_DERIVATIVES_COMPUTATION,
+        const NormalDerivativesComputation ConsiderNormalVariation = NormalDerivativesComputation::NO_DERIVATIVES_COMPUTATION,
         const bool DualLM = false
         );
 
@@ -422,27 +404,14 @@ private:
         );
 
     /**
-     * @brief This method computes the auxiliar matrix used to keep unitary the normal
-     * @param rDiffVector The auxiliar vector of difference of two normal vectors
+     * @brief This method computes the auxiliary matrix used to keep unitary the normal
+     * @param rDiffVector The auxiliary vector of difference of two normal vectors
      * @param rDeltaNormal The vector containing the delta normal
-     * @return The auxiliar matrix computed
+     * @return The auxiliary matrix computed
      */
     static inline BoundedMatrix<double, 3, 3> ComputeRenormalizerMatrix(
         const array_1d<double, 3>& rDiffVector,
         const array_1d<double, 3>& rDeltaNormal
-        );
-
-    /**
-     * @brief This method computes the auxiliar matrix used to keep unitary the normal
-     * @param rDiffMatrix The auxiliar matrix of difference of two normal matrices
-     * @param rDeltaNormal The matrix containing the delta normal
-     * @param iGeometry The index of the node of the geometry computed
-     * @return The auxiliar matrix computed
-     */
-    static inline BoundedMatrix<double, 3, 3> ComputeRenormalizerMatrix(
-        const BoundedMatrix<double, TNumNodes, TDim>& rDiffMatrix,
-        const BoundedMatrix<double, TNumNodes, TDim>& rDeltaNormal,
-        const IndexType iGeometry
         );
 
     /**
@@ -457,8 +426,8 @@ private:
         );
 
     /**
-     * @brief This method computes the equivalent indexes to the auxiliar hash
-     * @param AuxIndex The auxiliar index to decompose
+     * @brief This method computes the equivalent indexes to the auxiliary hash
+     * @param AuxIndex The auxiliary index to decompose
      * @param riBelongSlaveStart The index of the first/slave segment and first node
      * @param riBelongSlaveEnd The index of the first/slave segment and end node
      * @param riBelongMasterStart The index of the second/master segment and first node
@@ -558,22 +527,76 @@ private:
          );
 
     ///@}
-    ///@name Private  Access
-    ///@{
-    ///@}
-
-    ///@}
-    ///@name Serialization
-    ///@{
-
-    ///@name Private Inquiry
-    ///@{
-    ///@}
-
-    ///@name Unaccessible methods
-    ///@{
-    ///@}
 };// class DerivativesUtilities
 
-}
-#endif /* KRATOS_DERIVATIVES_UTILITIES defined */
+/**
+ * @class ImplementationDerivativesUtilities
+ * @brief Auxiliary implementation for DerivativesUtilities
+ * @ingroup ContactStructuralMechanicsApplication
+ * @details This class is an auxiliary class for DerivativesUtilities
+ * @see DerivativesUtilities
+ * @author Vicente Mataix Ferrandiz
+ */
+class ImplementationDerivativesUtilities
+{
+public:
+    ///@name Type Definitions
+    ///@{
+
+    /// Definition of epsilon
+    static constexpr double ZeroTolerance = std::numeric_limits<double>::epsilon();
+
+    ///@}
+    ///@name Operations
+    ///@{
+
+    /**
+     * @brief This method computes the auxiliary matrix used to keep unitary the normal
+     * @param rDiffMatrix The auxiliary matrix of difference of two normal matrices
+     * @param rDeltaNormal The matrix containing the delta normal
+     * @param iGeometry The index of the node of the geometry computed
+     * @return The auxiliary matrix computed
+     */
+    template<const SizeType TNumNodes1, const SizeType TNumNodes2>
+    static inline BoundedMatrix<double, 3, 3> ComputeRenormalizerMatrix(
+        const BoundedMatrix<double, TNumNodes1, 3>& rDiffMatrix,
+        const BoundedMatrix<double, TNumNodes2, 3>& rDeltaNormal,
+        const IndexType iGeometry
+        )
+    {
+        KRATOS_TRY
+
+        BoundedMatrix<double, 3, 3> aux_matrix;
+        for (IndexType itry = 0; itry < 3; ++itry) {
+            if (rDeltaNormal(iGeometry, itry) > ZeroTolerance) {
+
+                const IndexType aux_index_1 = itry == 2 ? 0 : itry + 1;
+                const IndexType aux_index_2 = itry == 2 ? 1 : (itry == 1 ? 0 : 2);
+
+                const double diff = rDeltaNormal(iGeometry, aux_index_1) + rDeltaNormal(iGeometry, aux_index_2);
+                const double coeff = rDeltaNormal(iGeometry, itry);
+
+                aux_matrix(0, aux_index_1) = 1.0;
+                aux_matrix(0, aux_index_2) = 1.0;
+                aux_matrix(1, aux_index_1) = 1.0;
+                aux_matrix(1, aux_index_2) = 1.0;
+                aux_matrix(2, aux_index_1) = 1.0;
+                aux_matrix(2, aux_index_2) = 1.0;
+
+                aux_matrix(0, itry) = (rDiffMatrix(iGeometry, 0) - diff)/coeff;
+                aux_matrix(1, itry) = (rDiffMatrix(iGeometry, 1) - diff)/coeff;
+                aux_matrix(2, itry) = (rDiffMatrix(iGeometry, 2) - diff)/coeff;
+
+                return aux_matrix;
+            }
+        }
+
+        return IdentityMatrix(3, 3);
+
+        KRATOS_CATCH("")
+    }
+
+    ///@}
+}; // class ImplementationDerivativesUtilities
+
+} // namespace Kratos

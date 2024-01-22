@@ -10,12 +10,7 @@
 //  Main authors:    Vahid Galavi
 //
 
-#if !defined (KRATOS_LINEAR_PLANE_STRAIN_K0_LAW_H_INCLUDED)
-#define  KRATOS_LINEAR_PLANE_STRAIN_K0_LAW_H_INCLUDED
-
-// System includes
-
-// External includes
+#pragma once
 
 // Project includes
 #include "custom_constitutive/elastic_isotropic_K0_3d_law.h"
@@ -56,13 +51,13 @@ public:
     ///@{
 
     /// The base class ConstitutiveLaw type definition
-    typedef ConstitutiveLaw       CLBaseType;
+    using CLBaseType = ConstitutiveLaw;
 
     /// The base class ElasticIsotropicK03DLaw type definition
-    typedef ElasticIsotropicK03DLaw      BaseType;
+    using BaseType = ElasticIsotropicK03DLaw;
 
     /// The size type definition
-    typedef std::size_t             SizeType;
+    using SizeType = std::size_t;
 
     /// Static definition of the dimension
     static constexpr SizeType Dimension = N_DIM_2D;
@@ -78,25 +73,9 @@ public:
     ///@{
 
     /**
-     * @brief Default constructor.
-     */
-    LinearPlaneStrainK0Law();
-
-    /**
      * @brief The clone operation
      */
     ConstitutiveLaw::Pointer Clone() const override;
-
-    /**
-     * Copy constructor.
-     */
-    LinearPlaneStrainK0Law (const LinearPlaneStrainK0Law& rOther);
-
-
-    /**
-     * @brief Destructor.
-     */
-    ~LinearPlaneStrainK0Law() override;
 
     ///@}
     ///@name Operators
@@ -236,11 +215,6 @@ private:
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, ElasticIsotropicK03DLaw)
     }
-
-    // stress vector indices
-    const int VOIGT_INDEX_XX = 0;
-    const int VOIGT_INDEX_YY = 1;
-
 }; // Class LinearPlaneStrainK0Law
-}  // namespace Kratos.
-#endif // KRATOS_LINEAR_PLANE_STRAIN_K0_LAW_H_INCLUDED  defined
+
+}
