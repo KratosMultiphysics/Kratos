@@ -1,5 +1,5 @@
 import KratosMultiphysics
-import KratosMultiphysics.ParticleMechanicsApplication as KratosParticle
+import KratosMultiphysics.MPMApplication as KratosMPM
 
 def Factory(settings, Model):
     if(not isinstance(settings, KratosMultiphysics.Parameters)):
@@ -14,7 +14,7 @@ class ApplyMPMParticleNeumannConditionProcess(KratosMultiphysics.Process):
         default_parameters = KratosMultiphysics.Parameters( """
             {
                 "model_part_name"           : "PLEASE_SPECIFY_MODEL_PART_NAME",
-                "particles_per_condition"   : 0,
+                "material_points_per_condition"   : 0,
                 "variable_name"             : "PLEASE_SPECIFY_LOADING_CONDITION",
                 "modulus"                   : 1.0,
                 "constrained"               : "fixed",
@@ -41,7 +41,7 @@ class ApplyMPMParticleNeumannConditionProcess(KratosMultiphysics.Process):
         self.model_part = Model[settings["model_part_name"].GetString()]
         self.model_part_name = settings["model_part_name"].GetString()
         self.model = Model
-        self.particles_per_condition = settings["particles_per_condition"].GetInt()
+        self.material_points_per_condition = settings["material_points_per_condition"].GetInt()
         self.is_neumann_boundary = True
         self.option = settings["option"].GetString()
         
@@ -94,20 +94,20 @@ class ApplyMPMParticleNeumannConditionProcess(KratosMultiphysics.Process):
         
         self.modified_normal = False
         
-        # Set Flag BOUNDARY and variables PARTICLES_PER_CONDITION
-        if self.particles_per_condition >= 0:
+        # Set Flag BOUNDARY and variables MATERIAL_POINTS_PER_CONDITION
+        if self.material_points_per_condition >= 0:
             KratosMultiphysics.VariableUtils().SetFlag(KratosMultiphysics.BOUNDARY, True, self.model_part.Nodes)
 
             for condition in self.model_part.Conditions:
                 condition.Set(KratosMultiphysics.BOUNDARY, True)
                 condition.Set(KratosMultiphysics.MARKER, self.normal_following_load)
                 condition.Set(KratosMultiphysics.MODIFIED, self.modified_normal)
-                condition.SetValue(KratosParticle.PARTICLES_PER_CONDITION, self.particles_per_condition)
-                condition.SetValue(KratosParticle.MPC_IS_NEUMANN, self.is_neumann_boundary)
+                condition.SetValue(KratosMPM.MATERIAL_POINTS_PER_CONDITION, self.material_points_per_condition)
+                condition.SetValue(KratosMPM.MPC_IS_NEUMANN, self.is_neumann_boundary)
                 condition.SetValue(self.variable, self.value)
         else:
-            err_msg = '\n::[ApplyMPMParticleNeumannConditionProcess]:: W-A-R-N-I-N-G: You have specified invalid "particles_per_condition", '
-            err_msg += 'or assigned negative values. \nPlease assign: "particles_per_condition" > 0 or = 0 (for automatic value)!\n'
+            err_msg = '\n::[ApplyMPMParticleNeumannConditionProcess]:: W-A-R-N-I-N-G: You have specified invalid "material_points_per_condition", '
+            err_msg += 'or assigned negative values. \nPlease assign: "material_points_per_condition" > 0 or = 0 (for automatic value)!\n'
             raise Exception(err_msg)
 
     def ExecuteBeforeSolutionLoop(self):
@@ -134,7 +134,7 @@ class ApplyMPMParticleNeumannConditionProcess(KratosMultiphysics.Process):
         for mpc in self.model_part.Conditions:
             current_time = self.model_part.ProcessInfo[KratosMultiphysics.TIME]
             
-            mpc_coord = mpc.CalculateOnIntegrationPoints(KratosParticle.MPC_COORD,self.model_part.ProcessInfo)[0]
+            mpc_coord = mpc.CalculateOnIntegrationPoints(KratosMPM.MPC_COORD,self.model_part.ProcessInfo)[0]
            
 
             if self.interval.IsInInterval(current_time):
@@ -158,5 +158,5 @@ class ApplyMPMParticleNeumannConditionProcess(KratosMultiphysics.Process):
                     self.value = self.vector_direction * self.modulus
                         
 
-                mpc.SetValuesOnIntegrationPoints(KratosParticle.POINT_LOAD,[self.value],self.model_part.ProcessInfo)
+                mpc.SetValuesOnIntegrationPoints(KratosMPM.POINT_LOAD,[self.value],self.model_part.ProcessInfo)
                 

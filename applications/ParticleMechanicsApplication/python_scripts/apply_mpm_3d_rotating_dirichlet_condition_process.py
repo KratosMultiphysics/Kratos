@@ -1,6 +1,6 @@
 import KratosMultiphysics
-import KratosMultiphysics.ParticleMechanicsApplication as KratosParticle
-from KratosMultiphysics.ParticleMechanicsApplication.apply_mpm_particle_dirichlet_condition_process import ApplyMPMParticleDirichletConditionProcess
+import KratosMultiphysics.MPMApplication as KratosMPM
+from KratosMultiphysics.MPMApplication.apply_mpm_particle_dirichlet_condition_process import ApplyMPMParticleDirichletConditionProcess
 
 import math
 
@@ -16,7 +16,7 @@ class ApplyMPM3DRotatingDirichletConditionProcess(ApplyMPMParticleDirichletCondi
         default_parameters = KratosMultiphysics.Parameters( """
             {
                 "model_part_name"           : "PLEASE_SPECIFY_MODEL_PART_NAME",
-                "particles_per_condition"   : 0,
+                "material_points_per_condition"   : 0,
                 "imposition_type"           : "penalty",
                 "penalty_factor"            : 0,
                 "constrained"               : "fixed",
@@ -80,19 +80,19 @@ class ApplyMPM3DRotatingDirichletConditionProcess(ApplyMPMParticleDirichletCondi
 
         for mpc in self.model_part.Conditions:
             # Compute current radius
-            mpc_coord = mpc.CalculateOnIntegrationPoints(KratosParticle.MPC_COORD,self.model_part.ProcessInfo)[0]
+            mpc_coord = mpc.CalculateOnIntegrationPoints(KratosMPM.MPC_COORD,self.model_part.ProcessInfo)[0]
             radius = mpc_coord - self.rotation_center
 
             # Update impose_displacement
-            imposed_disp = mpc.CalculateOnIntegrationPoints(KratosParticle.MPC_IMPOSED_DISPLACEMENT,self.model_part.ProcessInfo)[0]
+            imposed_disp = mpc.CalculateOnIntegrationPoints(KratosMPM.MPC_IMPOSED_DISPLACEMENT,self.model_part.ProcessInfo)[0]
             
             imposed_disp += new_rotation_matrix * (self._rotation_matrix.transpose() * radius) - radius
-            mpc.SetValuesOnIntegrationPoints(KratosParticle.MPC_IMPOSED_DISPLACEMENT,[imposed_disp],self.model_part.ProcessInfo)
+            mpc.SetValuesOnIntegrationPoints(KratosMPM.MPC_IMPOSED_DISPLACEMENT,[imposed_disp],self.model_part.ProcessInfo)
 
             # Update normal vector
-            normal = mpc.CalculateOnIntegrationPoints(KratosParticle.MPC_NORMAL,self.model_part.ProcessInfo)[0]
+            normal = mpc.CalculateOnIntegrationPoints(KratosMPM.MPC_NORMAL,self.model_part.ProcessInfo)[0]
             modified_normal = new_rotation_matrix * (self._rotation_matrix.transpose() * normal)
-            mpc.SetValuesOnIntegrationPoints(KratosParticle.MPC_NORMAL,[modified_normal],self.model_part.ProcessInfo)
+            mpc.SetValuesOnIntegrationPoints(KratosMPM.MPC_NORMAL,[modified_normal],self.model_part.ProcessInfo)
 
 
         # Copy rotation matrix
@@ -102,7 +102,7 @@ class ApplyMPM3DRotatingDirichletConditionProcess(ApplyMPMParticleDirichletCondi
     def _ComputeCenterRotation(self):
         auto_rc = KratosMultiphysics.Vector(3)
         for mpc in self.model_part.Conditions:
-            auto_rc += mpc.CalculateOnIntegrationPoints(KratosParticle.MPC_COORD,self.model_part.ProcessInfo)[0]
+            auto_rc += mpc.CalculateOnIntegrationPoints(KratosMPM.MPC_COORD,self.model_part.ProcessInfo)[0]
 
         auto_rc = auto_rc / self.model_part.NumberOfConditions()
         self.rotation_center = auto_rc

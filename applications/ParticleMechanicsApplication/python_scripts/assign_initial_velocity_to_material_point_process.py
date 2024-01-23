@@ -1,13 +1,13 @@
 import KratosMultiphysics
-import KratosMultiphysics.ParticleMechanicsApplication as KratosParticle
+import KratosMultiphysics.MPMApplication as KratosMPM
 
 def Factory(settings, Model):
     if(not isinstance(settings, KratosMultiphysics.Parameters)):
         raise Exception("expected input shall be a Parameters object, encapsulating a json string")
-    return AssignInitialVelocityToParticleProcess(Model, settings["Parameters"])
+    return AssignInitialVelocityToMaterialPointProcess(Model, settings["Parameters"])
 
 ## All the processes python should be derived from "Process"
-class AssignInitialVelocityToParticleProcess(KratosMultiphysics.Process):
+class AssignInitialVelocityToMaterialPointProcess(KratosMultiphysics.Process):
     def __init__(self, Model, settings ):
         KratosMultiphysics.Process.__init__(self)
 
@@ -35,8 +35,8 @@ class AssignInitialVelocityToParticleProcess(KratosMultiphysics.Process):
         # Detect if variable_name is MP_VELOCITY
         if(settings.Has("variable_name")):
             if(settings["variable_name"].GetString() != "MP_VELOCITY"):
-                KratosMultiphysics.Logger.PrintInfo("Warning in apply velocity to particle", "Error in determining variable_name")
-                raise Exception('The assign_initial_velocity_to_particle_process only accepts \"MP_VELOCITY\" as variable_name.')
+                KratosMultiphysics.Logger.PrintInfo("Warning in apply velocity to material point", "Error in determining variable_name")
+                raise Exception('The assign_initial_velocity_to_material_point_process only accepts \"MP_VELOCITY\" as variable_name.')
 
         settings.ValidateAndAssignDefaults(default_settings)
 
@@ -47,8 +47,8 @@ class AssignInitialVelocityToParticleProcess(KratosMultiphysics.Process):
             model_part_name = model_part_name.replace('Initial_MPM_Material.','')
         self.mpm_material_model_part_name = "MPM_Material." + model_part_name
         # The actual initial velocity application occurs after the submodelpart is
-        # transferred from the initial MPM material to the MPM material in the particle
-        # generator utility. Therefore we change the prefix from initial MPM material
+        # transferred from the initial MPM material to the MPM material in the MaterialPointGeneratorUtility.
+        # Therefore we change the prefix from initial MPM material
         # to MPM material.
 
         # Default settings
@@ -62,4 +62,4 @@ class AssignInitialVelocityToParticleProcess(KratosMultiphysics.Process):
         # the model part is identified here, AFTER it has been transferred to the MPM_material part!
         if not model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED]:
             for element in model_part.Elements:
-                element.SetValuesOnIntegrationPoints(KratosParticle.MP_VELOCITY,[self.velocity],model_part.ProcessInfo)
+                element.SetValuesOnIntegrationPoints(KratosMPM.MP_VELOCITY,[self.velocity],model_part.ProcessInfo)

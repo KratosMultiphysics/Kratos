@@ -1,5 +1,5 @@
 import KratosMultiphysics
-import KratosMultiphysics.ParticleMechanicsApplication as KratosParticle
+import KratosMultiphysics.MPMApplication as KratosMPM
 
 def Factory(settings, Model):
     if(not isinstance(settings, KratosMultiphysics.Parameters)):
@@ -14,7 +14,7 @@ class ApplyMPMParticleDirichletConditionProcess(KratosMultiphysics.Process):
         default_parameters = KratosMultiphysics.Parameters( """
             {
                 "model_part_name"           : "PLEASE_SPECIFY_MODEL_PART_NAME",
-                "particles_per_condition"   : 0,
+                "material_points_per_condition"   : 0,
                 "imposition_type"           : "penalty",
                 "penalty_factor"            : 0,
                 "variable_name"             : "DISPLACEMENT",
@@ -34,13 +34,13 @@ class ApplyMPMParticleDirichletConditionProcess(KratosMultiphysics.Process):
         self.model_part = Model[settings["model_part_name"].GetString()]
         self.model_part_name = settings["model_part_name"].GetString()
         self.model = Model
-        self.particles_per_condition = settings["particles_per_condition"].GetInt()
+        self.material_points_per_condition = settings["material_points_per_condition"].GetInt()
         self.imposition_type = settings["imposition_type"].GetString()
         self.is_neumann_boundary = False
         self.option = settings["option"].GetString()
 
-        #is_equal_distributed = false (particle conditions at Gauss Point Positions)
-        #is_equal_distributed = true (particle conditions equally distributed; also at nodes; only 2D)
+        #is_equal_distributed = false (material point conditions at Gauss Point Positions)
+        #is_equal_distributed = true (material point conditions equally distributed; also at nodes; only 2D)
         self.is_equal_distributed = settings["is_equal_distributed"].GetBool()
 
         """
@@ -108,8 +108,8 @@ class ApplyMPMParticleDirichletConditionProcess(KratosMultiphysics.Process):
         if self.option == "flip_normal":
             self.modified_normal = True
 
-        # Set Flag BOUNDARY and variables PARTICLES_PER_CONDITION
-        if self.particles_per_condition >= 0:
+        # Set Flag BOUNDARY and variables MATERIAL_POINTS_PER_CONDITION
+        if self.material_points_per_condition >= 0:
             KratosMultiphysics.VariableUtils().SetFlag(KratosMultiphysics.BOUNDARY, True, self.model_part.Nodes)
 
             for condition in self.model_part.Conditions:
@@ -117,17 +117,17 @@ class ApplyMPMParticleDirichletConditionProcess(KratosMultiphysics.Process):
                 condition.Set(KratosMultiphysics.SLIP, self.is_slip_boundary)
                 condition.Set(KratosMultiphysics.CONTACT, self.is_contact_boundary)
                 condition.Set(KratosMultiphysics.MODIFIED, self.modified_normal)
-                condition.SetValue(KratosParticle.PARTICLES_PER_CONDITION, self.particles_per_condition)
-                condition.SetValue(KratosParticle.IS_EQUAL_DISTRIBUTED, self.is_equal_distributed)
-                condition.SetValue(KratosParticle.MPC_IS_NEUMANN, self.is_neumann_boundary)
-                condition.SetValue(KratosParticle.MPC_BOUNDARY_CONDITION_TYPE, self.boundary_condition_type)
+                condition.SetValue(KratosMPM.MATERIAL_POINTS_PER_CONDITION, self.material_points_per_condition)
+                condition.SetValue(KratosMPM.IS_EQUAL_DISTRIBUTED, self.is_equal_distributed)
+                condition.SetValue(KratosMPM.MPC_IS_NEUMANN, self.is_neumann_boundary)
+                condition.SetValue(KratosMPM.MPC_BOUNDARY_CONDITION_TYPE, self.boundary_condition_type)
 
                 ### Set necessary essential BC variables
                 if self.boundary_condition_type==1:
-                    condition.SetValue(KratosParticle.PENALTY_FACTOR, self.penalty_factor)
+                    condition.SetValue(KratosMPM.PENALTY_FACTOR, self.penalty_factor)
         else:
-            err_msg = '\n::[ApplyMPMParticleDirichletConditionProcess]:: W-A-R-N-I-N-G: You have specified invalid "particles_per_condition", '
-            err_msg += 'or assigned negative values. \nPlease assign: "particles_per_condition" > 0 or = 0 (for automatic value)!\n'
+            err_msg = '\n::[ApplyMPMParticleDirichletConditionProcess]:: W-A-R-N-I-N-G: You have specified invalid "material_points_per_condition", '
+            err_msg += 'or assigned negative values. \nPlease assign: "material_points_per_condition" > 0 or = 0 (for automatic value)!\n'
             raise Exception(err_msg)
 
     def ExecuteBeforeSolutionLoop(self):
@@ -153,7 +153,7 @@ class ApplyMPMParticleDirichletConditionProcess(KratosMultiphysics.Process):
 
         for mpc in self.model_part.Conditions:
             current_time = self.model_part.ProcessInfo[KratosMultiphysics.TIME]
-            mpc_coord = mpc.CalculateOnIntegrationPoints(KratosParticle.MPC_COORD,self.model_part.ProcessInfo)[0]
+            mpc_coord = mpc.CalculateOnIntegrationPoints(KratosMPM.MPC_COORD,self.model_part.ProcessInfo)[0]
 
             if self.interval.IsInInterval(current_time):
 
@@ -169,4 +169,4 @@ class ApplyMPMParticleDirichletConditionProcess(KratosMultiphysics.Process):
                             self.value[i] = self.aux_function[i].CallFunction(mpc_coord[0],mpc_coord[1],mpc_coord[2],current_time,0.0,0.0,0.0)
 
 
-                mpc.SetValuesOnIntegrationPoints(KratosParticle.MPC_IMPOSED_DISPLACEMENT,[self.value],self.model_part.ProcessInfo)
+                mpc.SetValuesOnIntegrationPoints(KratosMPM.MPC_IMPOSED_DISPLACEMENT,[self.value],self.model_part.ProcessInfo)

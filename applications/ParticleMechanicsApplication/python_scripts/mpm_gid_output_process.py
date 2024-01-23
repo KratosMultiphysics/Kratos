@@ -3,7 +3,7 @@
 import KratosMultiphysics
 
 # Import applications and dependencies
-import KratosMultiphysics.ParticleMechanicsApplication as KratosParticle
+import KratosMultiphysics.MPMApplication as KratosMPM
 from  KratosMultiphysics.deprecation_management import DeprecationManager
 
 # Import time library
@@ -15,9 +15,9 @@ def Factory(settings, Model):
     model_part = Model[settings["Parameters"]["model_part_name"].GetString()]
     output_name = settings["Parameters"]["output_name"].GetString()
     postprocess_parameters = settings["Parameters"]["postprocess_parameters"]
-    return ParticleGiDOutputProcess(model_part, output_name, postprocess_parameters)
+    return MPMGiDOutputProcess(model_part, output_name, postprocess_parameters)
 
-class ParticleGiDOutputProcess(KratosMultiphysics.Process):
+class MPMGiDOutputProcess(KratosMultiphysics.Process):
     defaults = KratosMultiphysics.Parameters("""{
         "result_file_configuration": {
             "gidpost_flags": {
@@ -116,7 +116,7 @@ class ParticleGiDOutputProcess(KratosMultiphysics.Process):
         self.mesh_file.write("\" dimension 3 ElemType Point Nnode 1\n")
         self.mesh_file.write("Coordinates\n")
         for mpm in self.model_part.Elements:
-            coord = mpm.CalculateOnIntegrationPoints(KratosParticle.MP_COORD,self.model_part.ProcessInfo)[0]
+            coord = mpm.CalculateOnIntegrationPoints(KratosMPM.MP_COORD,self.model_part.ProcessInfo)[0]
             self.mesh_file.write("{} {} {} {}\n".format( mpm.Id, coord[0], coord[1], coord[2]))
         self.mesh_file.write("End Coordinates\n")
         self.mesh_file.write("Elements\n")
@@ -173,7 +173,7 @@ class ParticleGiDOutputProcess(KratosMultiphysics.Process):
 
         Examples:
         variable = self._get_attribute("DISPLACEMENT",
-                                       KratosMultiphysics.ParticleMechanicsApplication.GetVariable,
+                                       KratosMultiphysics.MPMApplication.GetVariable,
                                        "Variable")
         """
         splitted = my_string.split(".")
@@ -199,7 +199,7 @@ class ParticleGiDOutputProcess(KratosMultiphysics.Process):
         recommended usage:
         variable = self._get_variable("MP_VELOCITY")
         deprecated:
-        variable = self._get_variables("KratosMultiphysics.ParticleMechanicsApplication.MP_VELOCITY")
+        variable = self._get_variables("KratosMultiphysics.MPMApplication.MP_VELOCITY")
         """
         return self._get_attribute(my_string, KratosMultiphysics.KratosGlobals.GetVariable, "Variable")
 
@@ -249,7 +249,7 @@ class ParticleGiDOutputProcess(KratosMultiphysics.Process):
 
     def _stop_time_measure(self, time_ip):
         time_fp = time()
-        KratosMultiphysics.Logger.PrintInfo("::[Particle GiD Output Process]:: ", "[Spent time for output = ", time_fp - time_ip, "sec]")
+        KratosMultiphysics.Logger.PrintInfo("::[MPM GiD Output Process]:: ", "[Spent time for output = ", time_fp - time_ip, "sec]")
 
     def _is_scalar(self,variable):
         is_scalar = False

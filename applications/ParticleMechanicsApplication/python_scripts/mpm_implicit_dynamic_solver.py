@@ -3,10 +3,10 @@
 import KratosMultiphysics
 
 # Import applications and dependencies
-import KratosMultiphysics.ParticleMechanicsApplication as KratosParticle
+import KratosMultiphysics.MPMApplication as KratosMPM
 
 # Importing the base class
-from KratosMultiphysics.ParticleMechanicsApplication.mpm_solver import MPMSolver
+from KratosMultiphysics.MPMApplication.mpm_solver import MPMSolver
 
 def CreateSolver(model, custom_settings):
     return MPMImplicitDynamicSolver(model, custom_settings)
@@ -41,7 +41,7 @@ class MPMImplicitDynamicSolver(MPMSolver):
         domain_size = self._GetDomainSize()
         block_size  = domain_size
         is_mixed_formulation = self.settings["pressure_dofs"].GetBool()
-        self.grid_model_part.ProcessInfo.SetValue(KratosParticle.IS_MIXED_FORMULATION, is_mixed_formulation)
+        self.grid_model_part.ProcessInfo.SetValue(KratosMPM.IS_MIXED_FORMULATION, is_mixed_formulation)
         if (is_mixed_formulation):
             block_size += 1
 
@@ -60,7 +60,7 @@ class MPMImplicitDynamicSolver(MPMSolver):
 
         is_dynamic = self._IsDynamic()
 
-        return KratosParticle.MPMResidualBasedBossakScheme( grid_model_part,
+        return KratosMPM.MPMResidualBasedBossakScheme( grid_model_part,
                                                             domain_size,
                                                             block_size,
                                                             damp_factor_m,

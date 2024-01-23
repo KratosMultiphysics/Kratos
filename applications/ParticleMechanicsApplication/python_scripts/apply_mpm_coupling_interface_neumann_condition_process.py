@@ -1,6 +1,6 @@
 import KratosMultiphysics
-import KratosMultiphysics.ParticleMechanicsApplication as KratosParticle
-from KratosMultiphysics.ParticleMechanicsApplication.apply_mpm_particle_neumann_condition_process import ApplyMPMParticleNeumannConditionProcess
+import KratosMultiphysics.MPMApplication as KratosMPM
+from KratosMultiphysics.MPMApplication.apply_mpm_particle_neumann_condition_process import ApplyMPMParticleNeumannConditionProcess
 
 def Factory(settings, Model):
     if(not isinstance(settings, KratosMultiphysics.Parameters)):
@@ -14,7 +14,7 @@ class ApplyMPMCouplingInterfaceNeumannConditionProcess(ApplyMPMParticleNeumannCo
         default_parameters = KratosMultiphysics.Parameters( """
             {
                 "model_part_name"           : "PLEASE_SPECIFY_MODEL_PART_NAME",
-                "particles_per_condition"   : 0,
+                "material_points_per_condition"   : 0,
                 "variable_name"             : "POINT_LOAD",
                 "constrained"               : "fixed",
                 "option"                    : ""
@@ -51,7 +51,7 @@ class ApplyMPMCouplingInterfaceNeumannConditionProcess(ApplyMPMParticleNeumannCo
         for mpc in self.model_part.Conditions:
             if (mpc.Is(KratosMultiphysics.INTERFACE)):
                 node_id         = mpc.Id
-                node_coordinate = mpc.CalculateOnIntegrationPoints(KratosParticle.MPC_COORD, self.model_part.ProcessInfo)[0]
+                node_coordinate = mpc.CalculateOnIntegrationPoints(KratosMPM.MPC_COORD, self.model_part.ProcessInfo)[0]
                 self.coupling_model_part.CreateNewNode(node_id, node_coordinate[0], node_coordinate[1], node_coordinate[2])
 
 
@@ -65,7 +65,7 @@ class ApplyMPMCouplingInterfaceNeumannConditionProcess(ApplyMPMParticleNeumannCo
             coupling_id  = coupling_node.Id
             point_load = coupling_node.GetSolutionStepValue(KratosMultiphysics.CONTACT_FORCE)
 
-            self.model_part.GetCondition(coupling_id).SetValuesOnIntegrationPoints(KratosParticle.POINT_LOAD, [point_load], self.model_part.ProcessInfo)
+            self.model_part.GetCondition(coupling_id).SetValuesOnIntegrationPoints(KratosMPM.POINT_LOAD, [point_load], self.model_part.ProcessInfo)
 
 
 
@@ -75,8 +75,8 @@ class ApplyMPMCouplingInterfaceNeumannConditionProcess(ApplyMPMParticleNeumannCo
             if (mpc.Is(KratosMultiphysics.INTERFACE)):
                 coupling_id   = mpc.Id
 
-                displacement = mpc.CalculateOnIntegrationPoints(KratosParticle.MPC_DISPLACEMENT, self.model_part.ProcessInfo)[0]
-                velocity = mpc.CalculateOnIntegrationPoints(KratosParticle.MPC_VELOCITY, self.model_part.ProcessInfo)[0]
+                displacement = mpc.CalculateOnIntegrationPoints(KratosMPM.MPC_DISPLACEMENT, self.model_part.ProcessInfo)[0]
+                velocity = mpc.CalculateOnIntegrationPoints(KratosMPM.MPC_VELOCITY, self.model_part.ProcessInfo)[0]
                 
                 self.coupling_model_part.GetNode(coupling_id).SetSolutionStepValue(KratosMultiphysics.VELOCITY,0,velocity)
                 self.coupling_model_part.GetNode(coupling_id).SetSolutionStepValue(KratosMultiphysics.DISPLACEMENT,0,displacement)

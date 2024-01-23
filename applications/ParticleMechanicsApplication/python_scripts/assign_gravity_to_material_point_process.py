@@ -1,13 +1,13 @@
 import KratosMultiphysics
-import KratosMultiphysics.ParticleMechanicsApplication as KratosParticle
+import KratosMultiphysics.MPMApplication as KratosMPM
 
 def Factory(settings, Model):
     if(not isinstance(settings, KratosMultiphysics.Parameters)):
         raise Exception("expected input shall be a Parameters object, encapsulating a json string")
-    return AssignGravityToParticleProcess(Model, settings["Parameters"])
+    return AssignGravityToMaterialPointProcess(Model, settings["Parameters"])
 
 ## All the processes python should be derived from "Process"
-class AssignGravityToParticleProcess(KratosMultiphysics.Process):
+class AssignGravityToMaterialPointProcess(KratosMultiphysics.Process):
     def __init__(self, Model, settings ):
         KratosMultiphysics.Process.__init__(self)
 
@@ -35,8 +35,8 @@ class AssignGravityToParticleProcess(KratosMultiphysics.Process):
         # Detect if variable_name is MP_VOLUME_ACCELERATION
         if(settings.Has("variable_name")):
             if(settings["variable_name"].GetString() != "MP_VOLUME_ACCELERATION"):
-                KratosMultiphysics.Logger.PrintInfo("Warning in apply gravity to particle", "Error in determining variable_name")
-                raise Exception('The assign_gravity_to_particle_process only accepts \"MP_VOLUME_ACCELERATION\" as variable_name.')
+                KratosMultiphysics.Logger.PrintInfo("Warning in apply gravity to material point", "Error in determining variable_name")
+                raise Exception('The assign_gravity_to_material_point_process only accepts \"MP_VOLUME_ACCELERATION\" as variable_name.')
 
         settings.ValidateAndAssignDefaults(default_settings)
 
@@ -50,5 +50,5 @@ class AssignGravityToParticleProcess(KratosMultiphysics.Process):
         if not self.model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED]:
             # Assign gravity to MP after solver.Initialize() - only apply once at the beginning!
             for element in self.model_part.Elements:
-                element.SetValuesOnIntegrationPoints(KratosParticle.MP_VOLUME_ACCELERATION,[self.gravity_acceleration],self.model_part.ProcessInfo)
-                element.SetValuesOnIntegrationPoints(KratosParticle.MP_ACCELERATION,[self.gravity_acceleration],self.model_part.ProcessInfo)
+                element.SetValuesOnIntegrationPoints(KratosMPM.MP_VOLUME_ACCELERATION,[self.gravity_acceleration],self.model_part.ProcessInfo)
+                element.SetValuesOnIntegrationPoints(KratosMPM.MP_ACCELERATION,[self.gravity_acceleration],self.model_part.ProcessInfo)

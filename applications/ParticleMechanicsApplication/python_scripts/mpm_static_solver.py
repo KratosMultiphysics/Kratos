@@ -3,7 +3,7 @@
 import KratosMultiphysics
 
 # Importing the base class
-from KratosMultiphysics.ParticleMechanicsApplication.mpm_solver import MPMSolver
+from KratosMultiphysics.MPMApplication.mpm_solver import MPMSolver
 
 def CreateSolver(model, custom_settings):
     return MPMStaticSolver(model, custom_settings)

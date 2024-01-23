@@ -1,8 +1,8 @@
 import numpy as np
 import KratosMultiphysics
 from KratosMultiphysics.kratos_utilities import IssueDeprecationWarning
-import KratosMultiphysics.ParticleMechanicsApplication as KratosParticle
-from KratosMultiphysics.ParticleMechanicsApplication.particle_vtk_output_process import ParticleVtkOutputProcess
+import KratosMultiphysics.MPMApplication as KratosMPM
+from KratosMultiphysics.MPMApplication.mpm_vtk_output_process import MPMVtkOutputProcess
 
 # Import time library
 from time import time
@@ -12,10 +12,10 @@ def Factory(settings: KratosMultiphysics.Parameters, model: KratosMultiphysics.M
         raise Exception("expected input shall be a Model object, encapsulating a json string")
     if not isinstance(settings, KratosMultiphysics.Parameters):
         raise Exception("expected input shall be a Parameters object, encapsulating a json string")
-    IssueDeprecationWarning("ParticleMechanicsApplication:","`ParticleConditionVTKOutputProcess` is deprecated and replaced with `ParticleVtkOutputProcess`")
-    return ParticleVtkOutputProcess(model, settings["Parameters"])
+    IssueDeprecationWarning("MPMApplication:","`MPMConditionVTKOutputProcess` is deprecated and replaced with `MPMVtkOutputProcess`")
+    return MPMVtkOutputProcess(model, settings["Parameters"])
 
-class LegacyParticleConditionVTKOutputProcess(ParticleVtkOutputProcess):
+class LegacyMPMConditionVTKOutputProcess(MPMVtkOutputProcess):
     defaults = KratosMultiphysics.Parameters("""{
         "model_part_name"                    : "MPM_Material",
         "output_control_type"                : "step",
@@ -39,8 +39,8 @@ class LegacyParticleConditionVTKOutputProcess(ParticleVtkOutputProcess):
         self.param = param
         self.model_part = model_part
 
-        # Initiate base class - particle output
-        ParticleVTKOutputProcess.__init__(self, model_part, param)
+        # Initiate base class - material point output
+        MPMVTKOutputProcess.__init__(self, model_part, param)
 
     def ExecuteBeforeSolutionLoop(self): 
         if (self.problem_name.startswith('Background_Grid.')):
@@ -58,7 +58,7 @@ class LegacyParticleConditionVTKOutputProcess(ParticleVtkOutputProcess):
 
         i = 0
         for mpc in self.model_part.Conditions:
-            coord = mpc.CalculateOnIntegrationPoints(KratosParticle.MPC_COORD,self.model_part.ProcessInfo)[0]
+            coord = mpc.CalculateOnIntegrationPoints(KratosMPM.MPC_COORD,self.model_part.ProcessInfo)[0]
             self.coords_X[i] = coord[0]
             self.coords_Y[i] = coord[1]
             self.coords_Z[i] = coord[2]
@@ -111,4 +111,4 @@ class LegacyParticleConditionVTKOutputProcess(ParticleVtkOutputProcess):
 
     def _stop_time_measure(self, time_ip):
         time_fp = time()
-        KratosMultiphysics.Logger.PrintInfo("::[Particle Condition VTK Output Process]:: ", "[Spent time for output = ", time_fp - time_ip, "sec]")
+        KratosMultiphysics.Logger.PrintInfo("::[Material Point Condition VTK Output Process]:: ", "[Spent time for output = ", time_fp - time_ip, "sec]")

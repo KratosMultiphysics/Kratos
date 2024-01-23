@@ -1,16 +1,16 @@
 import KratosMultiphysics
 import KratosMultiphysics.kratos_utilities as kratos_utils
 from  KratosMultiphysics.deprecation_management import DeprecationManager
-import KratosMultiphysics.ParticleMechanicsApplication as KratosParticle
+import KratosMultiphysics.MPMApplication as KratosMPM
 
 def Factory(settings: KratosMultiphysics.Parameters, model: KratosMultiphysics.Model) -> KratosMultiphysics.OutputProcess:
     if not isinstance(model, KratosMultiphysics.Model):
         raise Exception("expected input shall be a Model object, encapsulating a json string")
     if not isinstance(settings, KratosMultiphysics.Parameters):
         raise Exception("expected input shall be a Parameters object, encapsulating a json string")
-    return ParticleVtkOutputProcess(model, settings["Parameters"])
+    return MPMVtkOutputProcess(model, settings["Parameters"])
 
-class ParticleVtkOutputProcess(KratosMultiphysics.OutputProcess):
+class MPMVtkOutputProcess(KratosMultiphysics.OutputProcess):
 
     def __init__(self, model: KratosMultiphysics.Model, settings: KratosMultiphysics.Parameters) -> None:
         super().__init__()
@@ -26,9 +26,9 @@ class ParticleVtkOutputProcess(KratosMultiphysics.OutputProcess):
 
         # Change name deprecated settings
         self.TranslateLegacyVariablesAccordingToCurrentStandard(self.settings)
-        # Validate settings using default parameters defined in ParticleVtkOutput process
-        # Default settings can be found in "custom_io/particle_vtk_output.cpp"
-        default_settings = KratosParticle.ParticleVtkOutput.GetDefaultParameters()
+        # Validate settings using default parameters defined in MPMVtkOutput process
+        # Default settings can be found in "custom_io/mpm_vtk_output.cpp"
+        default_settings = KratosMPM.MPMVtkOutput.GetDefaultParameters()
         self.settings.ValidateAndAssignDefaults(default_settings)
 
         if self.settings["save_output_files_in_folder"].GetBool():
@@ -76,7 +76,7 @@ class ParticleVtkOutputProcess(KratosMultiphysics.OutputProcess):
 
     def ExecuteBeforeSolutionLoop(self) -> None:
         vtk_model_part = self.model[self.full_model_part_name]
-        self.vtk_io = KratosParticle.ParticleVtkOutput(vtk_model_part, self.settings)
+        self.vtk_io = KratosMPM.MPMVtkOutput(vtk_model_part, self.settings)
 
         self.__controller = KratosMultiphysics.OutputController(self.model, self.settings)
 

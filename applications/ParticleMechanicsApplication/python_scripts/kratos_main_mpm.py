@@ -1,10 +1,10 @@
 
 import KratosMultiphysics
-from KratosMultiphysics.ParticleMechanicsApplication.particle_mechanics_analysis import ParticleMechanicsAnalysis
+from KratosMultiphysics.MPMApplication.mpm_analysis import MPMAnalysis
 
 """
 For user-scripting it is intended that a new class is derived
-from ParticleMechanicsAnalysis to do modifications
+from MPMAnalysis to do modifications
 """
 
 if __name__ == "__main__":
@@ -13,5 +13,5 @@ if __name__ == "__main__":
         parameters = KratosMultiphysics.Parameters(parameter_file.read())
 
     model = KratosMultiphysics.Model()
-    simulation = ParticleMechanicsAnalysis(model,parameters)
+    simulation = MPMAnalysis(model,parameters)
     simulation.Run()

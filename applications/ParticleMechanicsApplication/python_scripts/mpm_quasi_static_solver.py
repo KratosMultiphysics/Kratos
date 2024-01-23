@@ -3,7 +3,7 @@
 import KratosMultiphysics
 
 # Importing the base class
-from KratosMultiphysics.ParticleMechanicsApplication.mpm_implicit_dynamic_solver import MPMImplicitDynamicSolver
+from KratosMultiphysics.MPMApplication.mpm_implicit_dynamic_solver import MPMImplicitDynamicSolver
 
 def CreateSolver(model, custom_settings):
     return MPMQuasiStaticSolver(model, custom_settings)

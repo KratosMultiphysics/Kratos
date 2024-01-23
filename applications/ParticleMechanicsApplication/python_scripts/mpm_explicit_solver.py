@@ -3,10 +3,10 @@
 import KratosMultiphysics
 
 # Import applications and dependencies
-import KratosMultiphysics.ParticleMechanicsApplication as KratosParticle
+import KratosMultiphysics.MPMApplication as KratosMPM
 
 # Importing the base class
-from KratosMultiphysics.ParticleMechanicsApplication.mpm_solver import MPMSolver
+from KratosMultiphysics.MPMApplication.mpm_solver import MPMSolver
 
 def CreateSolver(model, custom_settings):
     return MPMExplicitSolver(model, custom_settings)
@@ -56,22 +56,22 @@ class MPMExplicitSolver(MPMSolver):
 
         # Check whether compressibility is considered
         is_compressible = self.settings["compressible"].GetBool()
-        grid_model_part.ProcessInfo.SetValue(KratosParticle.IS_COMPRESSIBLE, is_compressible)
+        grid_model_part.ProcessInfo.SetValue(KratosMPM.IS_COMPRESSIBLE, is_compressible)
 
         # Check whether the partitioned quadrature mpm (PQMPM) is used
         is_pqmpm = self.settings["is_pqmpm"].GetBool()
-        grid_model_part.ProcessInfo.SetValue(KratosParticle.IS_PQMPM, is_pqmpm)
+        grid_model_part.ProcessInfo.SetValue(KratosMPM.IS_PQMPM, is_pqmpm)
         is_make_normal_mp_if_pqmpm_fails = self.settings["is_make_normal_mp_if_pqmpm_fails"].GetBool()
-        grid_model_part.ProcessInfo.SetValue(KratosParticle.IS_MAKE_NORMAL_MP_IF_PQMPM_FAILS, is_make_normal_mp_if_pqmpm_fails)
+        grid_model_part.ProcessInfo.SetValue(KratosMPM.IS_MAKE_NORMAL_MP_IF_PQMPM_FAILS, is_make_normal_mp_if_pqmpm_fails)
         pqmpm_subpoint_min_volume_fraction = self.settings["pqmpm_subpoint_min_volume_fraction"].GetDouble()
-        grid_model_part.ProcessInfo.SetValue(KratosParticle.PQMPM_SUBPOINT_MIN_VOLUME_FRACTION, pqmpm_subpoint_min_volume_fraction)
+        grid_model_part.ProcessInfo.SetValue(KratosMPM.PQMPM_SUBPOINT_MIN_VOLUME_FRACTION, pqmpm_subpoint_min_volume_fraction)
 
         # Check if we are fixing MPs that lie directly on the edge of grid elements
         if is_pqmpm:
-            grid_model_part.ProcessInfo.SetValue(KratosParticle.IS_FIX_EXPLICIT_MP_ON_GRID_EDGE, False)
+            grid_model_part.ProcessInfo.SetValue(KratosMPM.IS_FIX_EXPLICIT_MP_ON_GRID_EDGE, False)
         else:
             is_fix_explicit_mp_on_grid_edge = self.settings["is_fix_explicit_mp_on_grid_edge"].GetBool()
-            grid_model_part.ProcessInfo.SetValue(KratosParticle.IS_FIX_EXPLICIT_MP_ON_GRID_EDGE, is_fix_explicit_mp_on_grid_edge)
+            grid_model_part.ProcessInfo.SetValue(KratosMPM.IS_FIX_EXPLICIT_MP_ON_GRID_EDGE, is_fix_explicit_mp_on_grid_edge)
 
         # Setting the time integration schemes
         scheme_type = self.settings["scheme_type"].GetString()
@@ -88,23 +88,23 @@ class MPMExplicitSolver(MPMSolver):
             else:
                 err_msg = "The requested stress update \"" + stress_update + "\" is not available!\n"
                 err_msg += "Available options are: \"usf\", \"usl\",\"musl\""
-            grid_model_part.ProcessInfo.SetValue(KratosParticle.EXPLICIT_STRESS_UPDATE_OPTION, stress_update_option)
-            grid_model_part.ProcessInfo.SetValue(KratosParticle.IS_EXPLICIT_CENTRAL_DIFFERENCE, False)
+            grid_model_part.ProcessInfo.SetValue(KratosMPM.EXPLICIT_STRESS_UPDATE_OPTION, stress_update_option)
+            grid_model_part.ProcessInfo.SetValue(KratosMPM.IS_EXPLICIT_CENTRAL_DIFFERENCE, False)
         elif scheme_type == "central_difference":
-            grid_model_part.ProcessInfo.SetValue(KratosParticle.EXPLICIT_STRESS_UPDATE_OPTION, 0)
-            grid_model_part.ProcessInfo.SetValue(KratosParticle.IS_EXPLICIT_CENTRAL_DIFFERENCE, True)
+            grid_model_part.ProcessInfo.SetValue(KratosMPM.EXPLICIT_STRESS_UPDATE_OPTION, 0)
+            grid_model_part.ProcessInfo.SetValue(KratosMPM.IS_EXPLICIT_CENTRAL_DIFFERENCE, True)
         else:
             err_msg = "The requested scheme type \"" + scheme_type + "\" is not available!\n"
             err_msg += "Available options are: \"forward_euler\", \"central_difference\""
             raise Exception(err_msg)
 
-        return KratosParticle.MPMExplicitScheme( grid_model_part)
+        return KratosMPM.MPMExplicitScheme( grid_model_part)
 
     def _CreateSolutionStrategy(self):
         analysis_type = self.settings["analysis_type"].GetString()
         if analysis_type == "linear":
                 grid_model_part = self.GetGridModelPart();
-                grid_model_part.ProcessInfo.SetValue(KratosParticle.IS_EXPLICIT, True)
+                grid_model_part.ProcessInfo.SetValue(KratosMPM.IS_EXPLICIT, True)
                 solution_strategy = self._CreateLinearStrategy()
         else:
             err_msg =  "The requested explicit analysis type \"" + analysis_type + "\" is not available!\n"
@@ -119,7 +119,7 @@ class MPMExplicitSolver(MPMSolver):
         reform_dofs_at_each_step = False ## hard-coded, but can be changed upon implementation
         move_mesh_flag = self.settings["move_mesh_flag"].GetBool()
         move_mesh_flag = False ## hard-coded
-        return KratosParticle.MPMExplicitStrategy(computing_model_part,
+        return KratosMPM.MPMExplicitStrategy(computing_model_part,
                                                       solution_scheme,
                                                       self.settings["compute_reactions"].GetBool(),
                                                       reform_dofs_at_each_step,

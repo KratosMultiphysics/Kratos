@@ -2,7 +2,7 @@
 import KratosMultiphysics
 
 # Import applications and dependencies
-import KratosMultiphysics.ParticleMechanicsApplication as KratosParticle
+import KratosMultiphysics.MPMApplication as KratosMPM
 
 # Importing the base class
 from KratosMultiphysics.python_solver import PythonSolver
@@ -134,9 +134,9 @@ class MPMSolver(PythonSolver):
         KratosMultiphysics.Logger.PrintInfo("::[MPMSolver]:: ","DOFs are added.")
 
     def Initialize(self):
-        # The particle solution strategy is created here if it does not already exist.
-        particle_solution_strategy = self._GetSolutionStrategy()
-        particle_solution_strategy.SetEchoLevel(self.settings["echo_level"].GetInt())
+        # The material point solution strategy is created here if it does not already exist.
+        material_point_solution_strategy = self._GetSolutionStrategy()
+        material_point_solution_strategy.SetEchoLevel(self.settings["echo_level"].GetInt())
 
         # Generate material points
         self._GenerateMaterialPoint()
@@ -213,9 +213,9 @@ class MPMSolver(PythonSolver):
         pressure_dofs          = self.settings["pressure_dofs"].GetBool()
         axis_symmetric_flag    = self.settings["axis_symmetric_flag"].GetBool()
         if axis_symmetric_flag:
-            self.grid_model_part.ProcessInfo.SetValue(KratosParticle.IS_AXISYMMETRIC, True)
+            self.grid_model_part.ProcessInfo.SetValue(KratosMPM.IS_AXISYMMETRIC, True)
         else:
-            self.grid_model_part.ProcessInfo.SetValue(KratosParticle.IS_AXISYMMETRIC, False)
+            self.grid_model_part.ProcessInfo.SetValue(KratosMPM.IS_AXISYMMETRIC, False)
         stabilization          = self.settings["stabilization"].GetString()
         if pressure_dofs:
             if (stabilization=="none"):
@@ -223,7 +223,7 @@ class MPMSolver(PythonSolver):
                 KratosMultiphysics.Logger.PrintInfo("::[MPMSolver]:: ","WARNING: No stabilization considered for a mixed formulation.")
             elif (stabilization =="ppp"): #Polynomial Pressure Projection stabilization
                 stabilization_type = 1
-            self.grid_model_part.ProcessInfo.SetValue(KratosParticle.STABILIZATION_TYPE, stabilization_type)
+            self.grid_model_part.ProcessInfo.SetValue(KratosMPM.STABILIZATION_TYPE, stabilization_type)
 
         # Assigning extra information to the main model part
         self.material_point_model_part.SetNodes(self.grid_model_part.GetNodes())
@@ -232,8 +232,8 @@ class MPMSolver(PythonSolver):
             self.material_point_model_part.ProcessInfo = self.grid_model_part.ProcessInfo
 
             # Generate MP Element and Condition
-            KratosParticle.GenerateMaterialPointElement(self.grid_model_part, self.initial_mesh_model_part, self.material_point_model_part, pressure_dofs)
-            KratosParticle.GenerateMaterialPointCondition(self.grid_model_part, self.initial_mesh_model_part, self.material_point_model_part)
+            KratosMPM.GenerateMaterialPointElement(self.grid_model_part, self.initial_mesh_model_part, self.material_point_model_part, pressure_dofs)
+            KratosMPM.GenerateMaterialPointCondition(self.grid_model_part, self.initial_mesh_model_part, self.material_point_model_part)
         else:
             self.grid_model_part.ProcessInfo = self.material_point_model_part.ProcessInfo
 
@@ -242,14 +242,14 @@ class MPMSolver(PythonSolver):
         max_number_of_search_results = self.settings["element_search_settings"]["max_number_of_results"].GetInt()
         searching_tolerance          = self.settings["element_search_settings"]["searching_tolerance"].GetDouble()
         if (searching_alg_type == "bin_based"):
-            KratosParticle.SearchElement(self.grid_model_part, self.material_point_model_part, max_number_of_search_results, searching_tolerance)
+            KratosMPM.SearchElement(self.grid_model_part, self.material_point_model_part, max_number_of_search_results, searching_tolerance)
         else:
             err_msg  = "The requested searching algorithm \"" + searching_alg_type
-            err_msg += "\" is not available for ParticleMechanicsApplication!\n"
+            err_msg += "\" is not available for MPMApplication!\n"
             err_msg += "Available options are: \"bin_based\""
             raise Exception(err_msg)
         remove_entities_not_found = self.settings["element_search_settings"]["remove_entities_not_found"].GetBool()
-        if remove_entities_not_found: KratosParticle.ParticleEraseProcess(self.material_point_model_part).Execute()
+        if remove_entities_not_found: KratosMPM.MaterialPointEraseProcess(self.material_point_model_part).Execute()
 
     def _AddModelPartContainers(self):
         domain_size = self._GetDomainSize()
@@ -290,8 +290,8 @@ class MPMSolver(PythonSolver):
 
         # MPM specific nodal variables
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_MASS)
-        model_part.AddNodalSolutionStepVariable(KratosParticle.NODAL_MOMENTUM)
-        model_part.AddNodalSolutionStepVariable(KratosParticle.NODAL_INERTIA)
+        model_part.AddNodalSolutionStepVariable(KratosMPM.NODAL_MOMENTUM)
+        model_part.AddNodalSolutionStepVariable(KratosMPM.NODAL_INERTIA)
 
         # Add variables that the user defined in the ProjectParameters
         auxiliary_solver_utilities.AddVariables(model_part, self.settings["auxiliary_variables_list"])
@@ -299,8 +299,8 @@ class MPMSolver(PythonSolver):
         # Add variables for specific cases
         if self.settings["pressure_dofs"].GetBool():
             # add specific variables for the problem (pressure dofs)
-            model_part.AddNodalSolutionStepVariable(KratosParticle.PRESSURE_REACTION)
-            model_part.AddNodalSolutionStepVariable(KratosParticle.NODAL_MPRESSURE)
+            model_part.AddNodalSolutionStepVariable(KratosMPM.PRESSURE_REACTION)
+            model_part.AddNodalSolutionStepVariable(KratosMPM.NODAL_MPRESSURE)
 
     def _AddDynamicVariables(self, model_part):
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VELOCITY)
@@ -328,7 +328,7 @@ class MPMSolver(PythonSolver):
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_Z, KratosMultiphysics.REACTION_Z, model_part)
 
         if self.settings["pressure_dofs"].GetBool():
-            KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.PRESSURE, KratosParticle.PRESSURE_REACTION, model_part)
+            KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.PRESSURE, KratosMPM.PRESSURE_REACTION, model_part)
 
         # Add dofs that the user defined in the ProjectParameters
         auxiliary_solver_utilities.AddDofs(model_part, self.settings["auxiliary_dofs_list"], self.settings["auxiliary_reaction_list"])
@@ -364,7 +364,7 @@ class MPMSolver(PythonSolver):
             convergence_criterion.SetEchoLevel(convergence_criterion_parameters["echo_level"].GetInt())
         else:
             err_msg  = "The requested convergence criteria \"" + convergence_criterion_parameters["convergence_criterion"].GetString()
-            err_msg += "\" is not supported for ParticleMechanicsApplication!\n"
+            err_msg += "\" is not supported for MPMApplication!\n"
             err_msg += "Available options are: \"residual_criterion\" or \"displacement_criterion\""
             raise Exception(err_msg)
 
@@ -393,7 +393,7 @@ class MPMSolver(PythonSolver):
     def _CreateSolutionStrategy(self):
         # this is for implicit only. explicit is implemented in derived mpm_explicit_solver
         grid_model_part = self.GetGridModelPart();
-        grid_model_part.ProcessInfo.SetValue(KratosParticle.IS_EXPLICIT, False)
+        grid_model_part.ProcessInfo.SetValue(KratosMPM.IS_EXPLICIT, False)
         analysis_type = self.settings["analysis_type"].GetString()
         is_consistent_mass_matrix = self.settings["consistent_mass_matrix"].GetBool()
         if is_consistent_mass_matrix:
@@ -403,7 +403,7 @@ class MPMSolver(PythonSolver):
         if analysis_type == "non_linear":
                 solution_strategy = self._CreateNewtonRaphsonStrategy()
         elif analysis_type == 'linear':
-                self.material_point_model_part.ProcessInfo.SetValue(KratosParticle.IGNORE_GEOMETRIC_STIFFNESS, True)
+                self.material_point_model_part.ProcessInfo.SetValue(KratosMPM.IGNORE_GEOMETRIC_STIFFNESS, True)
                 solution_strategy = self._CreateLinearStrategy();
         else:
             err_msg =  "The requested implicit analysis type \"" + analysis_type + "\" is not available!\n"
@@ -417,7 +417,7 @@ class MPMSolver(PythonSolver):
         convergence_criterion = self._GetConvergenceCriteria()
         builder_and_solver = self._GetBuilderAndSolver()
         reform_dofs_at_each_step = False ## hard-coded, but can be changed upon implementation
-        return KratosParticle.MPMResidualBasedNewtonRaphsonStrategy(computing_model_part,
+        return KratosMPM.MPMResidualBasedNewtonRaphsonStrategy(computing_model_part,
                                                                         solution_scheme,
                                                                         convergence_criterion,
                                                                         builder_and_solver,
@@ -461,10 +461,10 @@ class MPMSolver(PythonSolver):
             tb = KratosMultiphysics.PiecewiseLinearTable(time_step_table)
             return tb.GetValue(current_time)
         else:
-            raise Exception("::[ParticleSolver]:: Time stepping not defined!")
+            raise Exception("::[MPMSolver]:: Time stepping not defined!")
 
     def __ExecuteCheckAndPrepare(self):
-        # Specific active node and element check for particle MPM solver
+        # Specific active node and element check for MPM solver
         for node in self.grid_model_part.Nodes:
             if (node.Is(KratosMultiphysics.ACTIVE)):
                 KratosMultiphysics.Logger.PrintInfo("::[MPMSolver]:: ","WARNING: This grid node has been set active: ", node.Id)
