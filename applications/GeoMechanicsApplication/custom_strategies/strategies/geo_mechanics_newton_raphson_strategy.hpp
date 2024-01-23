@@ -59,16 +59,16 @@ public:
      * @param ReformDofSetAtEachStep The flag that allows to compute the modification of the DOF
      * @param MoveMeshFlag The flag that allows to move the mesh
      */
-    GeoMechanicsNewtonRaphsonStrategy(ModelPart& model_part,
-                                      typename TSchemeType::Pointer pScheme,
+    GeoMechanicsNewtonRaphsonStrategy(ModelPart&                      model_part,
+                                      typename TSchemeType::Pointer   pScheme,
                                       typename TLinearSolver::Pointer pNewLinearSolver,
                                       typename TConvergenceCriteriaType::Pointer pNewConvergenceCriteria,
                                       typename TBuilderAndSolverType::Pointer pNewBuilderAndSolver,
-                                      Parameters& rParameters,
-                                      int MaxIterations           = 30,
-                                      bool CalculateReactions     = false,
-                                      bool ReformDofSetAtEachStep = false,
-                                      bool MoveMeshFlag           = false)
+                                      Parameters&                             rParameters,
+                                      int                                     MaxIterations = 30,
+                                      bool CalculateReactions                               = false,
+                                      bool ReformDofSetAtEachStep                           = false,
+                                      bool MoveMeshFlag                                     = false)
         : ResidualBasedNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(
               model_part,
               pScheme,
@@ -136,7 +136,7 @@ protected:
     {
         double ReferenceDofsNorm = 0.0;
 
-        int NumThreads = ParallelUtilities::GetNumThreads();
+        int                          NumThreads = ParallelUtilities::GetNumThreads();
         OpenMPUtils::PartitionVector DofSetPartition;
         OpenMPUtils::DivideInPartitions(rDofSet.size(), NumThreads, DofSetPartition);
 

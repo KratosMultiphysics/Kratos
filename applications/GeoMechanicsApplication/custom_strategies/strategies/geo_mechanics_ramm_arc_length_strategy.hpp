@@ -53,16 +53,16 @@ public:
     using MotherType::mSubModelPartList;
     using MotherType::mVariableNames;
 
-    GeoMechanicsRammArcLengthStrategy(ModelPart& model_part,
-                                      typename TSchemeType::Pointer pScheme,
+    GeoMechanicsRammArcLengthStrategy(ModelPart&                      model_part,
+                                      typename TSchemeType::Pointer   pScheme,
                                       typename TLinearSolver::Pointer pNewLinearSolver,
                                       typename TConvergenceCriteriaType::Pointer pNewConvergenceCriteria,
                                       typename TBuilderAndSolverType::Pointer pNewBuilderAndSolver,
-                                      Parameters& rParameters,
-                                      int MaxIterations           = 30,
-                                      bool CalculateReactions     = false,
-                                      bool ReformDofSetAtEachStep = false,
-                                      bool MoveMeshFlag           = false)
+                                      Parameters&                             rParameters,
+                                      int                                     MaxIterations = 30,
+                                      bool CalculateReactions                               = false,
+                                      bool ReformDofSetAtEachStep                           = false,
+                                      bool MoveMeshFlag                                     = false)
         : GeoMechanicsNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(
               model_part,
               pScheme,
@@ -157,7 +157,7 @@ public:
             << "ARC-LENGTH RADIUS: " << mRadius / mRadius_0 << " X initial radius" << std::endl;
 
         // Initialize variables
-        DofsArrayType& rDofSet     = mpBuilderAndSolver->GetDofSet();
+        DofsArrayType&     rDofSet = mpBuilderAndSolver->GetDofSet();
         TSystemMatrixType& mA      = *mpA;
         TSystemVectorType& mDx     = *mpDx;
         TSystemVectorType& mb      = *mpb;
@@ -168,7 +168,7 @@ public:
         TSystemVectorType& mDxStep = *mpDxStep;
 
         // initializing the parameters of the iteration loop
-        double NormDx;
+        double       NormDx;
         unsigned int iteration_number                                  = 1;
         BaseType::GetModelPart().GetProcessInfo()[NL_ITERATION_NUMBER] = iteration_number;
         mpScheme->InitializeNonLinIteration(BaseType::GetModelPart(), mA, mDx, mb);
@@ -295,10 +295,10 @@ public:
         // Update the radius
         mRadius = mRadius * sqrt(double(mDesiredIterations) / double(iteration_number));
 
-        DofsArrayType& rDofSet = mpBuilderAndSolver->GetDofSet();
-        TSystemMatrixType& mA  = *mpA;
-        TSystemVectorType& mDx = *mpDx;
-        TSystemVectorType& mb  = *mpb;
+        DofsArrayType&     rDofSet = mpBuilderAndSolver->GetDofSet();
+        TSystemMatrixType& mA      = *mpA;
+        TSystemVectorType& mDx     = *mpDx;
+        TSystemVectorType& mb      = *mpb;
 
         if (BaseType::GetModelPart().GetProcessInfo()[IS_CONVERGED]) {
             // Modify the radius to advance faster when convergence is achieved
@@ -507,8 +507,8 @@ protected:
     {
         // Update External Loads
         for (unsigned int i = 0; i < mVariableNames.size(); i++) {
-            ModelPart& rSubModelPart        = *(mSubModelPartList[i]);
-            const std::string& VariableName = mVariableNames[i];
+            ModelPart&         rSubModelPart = *(mSubModelPartList[i]);
+            const std::string& VariableName  = mVariableNames[i];
 
             if (KratosComponents<Variable<double>>::Has(VariableName)) {
                 const Variable<double>& var = KratosComponents<Variable<double>>::Get(VariableName);
@@ -526,7 +526,7 @@ protected:
                 }
             } else if (KratosComponents<Variable<array_1d<double, 3>>>::Has(VariableName)) {
                 typedef Variable<double> component_type;
-                const component_type& varx =
+                const component_type&    varx =
                     KratosComponents<component_type>::Get(VariableName + std::string("_X"));
                 const component_type& vary =
                     KratosComponents<component_type>::Get(VariableName + std::string("_Y"));

@@ -93,24 +93,24 @@ public:
             rElementOrCondition.GetDofList(rDofList, rCurrentProcessInfo);
     }
 
-    void EquationId(const Element& rElement,
+    void EquationId(const Element&                 rElement,
                     Element::EquationIdVectorType& rEquationId,
-                    const ProcessInfo& rCurrentProcessInfo) override
+                    const ProcessInfo&             rCurrentProcessInfo) override
     {
         EquationIdImpl(rElement, rEquationId, rCurrentProcessInfo);
     }
 
-    void EquationId(const Condition& rCondition,
+    void EquationId(const Condition&                 rCondition,
                     Condition::EquationIdVectorType& rEquationId,
-                    const ProcessInfo& rCurrentProcessInfo) override
+                    const ProcessInfo&               rCurrentProcessInfo) override
     {
         EquationIdImpl(rCondition, rEquationId, rCurrentProcessInfo);
     }
 
     template <typename T>
-    void EquationIdImpl(const T& rElementOrCondition,
+    void EquationIdImpl(const T&                          rElementOrCondition,
                         typename T::EquationIdVectorType& rEquationId,
-                        const ProcessInfo& rCurrentProcessInfo)
+                        const ProcessInfo&                rCurrentProcessInfo)
     {
         if (IsActive(rElementOrCondition))
             rElementOrCondition.EquationIdVector(rEquationId, rCurrentProcessInfo);
@@ -203,32 +203,32 @@ public:
         FinalizeSolutionStepActiveEntities(rModelPart, A, Dx, b);
     }
 
-    void CalculateSystemContributions(Element& rCurrentElement,
-                                      LocalSystemMatrixType& LHS_Contribution,
-                                      LocalSystemVectorType& RHS_Contribution,
+    void CalculateSystemContributions(Element&                       rCurrentElement,
+                                      LocalSystemMatrixType&         LHS_Contribution,
+                                      LocalSystemVectorType&         RHS_Contribution,
                                       Element::EquationIdVectorType& EquationId,
-                                      const ProcessInfo& CurrentProcessInfo) override
+                                      const ProcessInfo&             CurrentProcessInfo) override
     {
         CalculateSystemContributionsImpl(rCurrentElement, LHS_Contribution, RHS_Contribution,
                                          EquationId, CurrentProcessInfo);
     }
 
-    void CalculateSystemContributions(Condition& rCurrentCondition,
-                                      LocalSystemMatrixType& LHS_Contribution,
-                                      LocalSystemVectorType& RHS_Contribution,
+    void CalculateSystemContributions(Condition&                     rCurrentCondition,
+                                      LocalSystemMatrixType&         LHS_Contribution,
+                                      LocalSystemVectorType&         RHS_Contribution,
                                       Element::EquationIdVectorType& EquationId,
-                                      const ProcessInfo& CurrentProcessInfo) override
+                                      const ProcessInfo&             CurrentProcessInfo) override
     {
         CalculateSystemContributionsImpl(rCurrentCondition, LHS_Contribution, RHS_Contribution,
                                          EquationId, CurrentProcessInfo);
     }
 
     template <typename T>
-    void CalculateSystemContributionsImpl(T& rCurrentComponent,
-                                          LocalSystemMatrixType& LHS_Contribution,
-                                          LocalSystemVectorType& RHS_Contribution,
+    void CalculateSystemContributionsImpl(T&                                rCurrentComponent,
+                                          LocalSystemMatrixType&            LHS_Contribution,
+                                          LocalSystemVectorType&            RHS_Contribution,
                                           typename T::EquationIdVectorType& EquationId,
-                                          const ProcessInfo& CurrentProcessInfo)
+                                          const ProcessInfo&                CurrentProcessInfo)
 
     {
         KRATOS_TRY
@@ -239,27 +239,27 @@ public:
         KRATOS_CATCH("")
     }
 
-    void CalculateRHSContribution(Element& rCurrentElement,
-                                  LocalSystemVectorType& RHS_Contribution,
+    void CalculateRHSContribution(Element&                       rCurrentElement,
+                                  LocalSystemVectorType&         RHS_Contribution,
                                   Element::EquationIdVectorType& EquationId,
-                                  const ProcessInfo& CurrentProcessInfo) override
+                                  const ProcessInfo&             CurrentProcessInfo) override
     {
         CalculateRHSContributionImpl(rCurrentElement, RHS_Contribution, EquationId, CurrentProcessInfo);
     }
 
-    void CalculateRHSContribution(Condition& rCurrentCondition,
-                                  LocalSystemVectorType& RHS_Contribution,
+    void CalculateRHSContribution(Condition&                     rCurrentCondition,
+                                  LocalSystemVectorType&         RHS_Contribution,
                                   Element::EquationIdVectorType& EquationId,
-                                  const ProcessInfo& CurrentProcessInfo) override
+                                  const ProcessInfo&             CurrentProcessInfo) override
     {
         CalculateRHSContributionImpl(rCurrentCondition, RHS_Contribution, EquationId, CurrentProcessInfo);
     }
 
     template <typename T>
-    void CalculateRHSContributionImpl(T& rCurrentComponent,
-                                      LocalSystemVectorType& RHS_Contribution,
+    void CalculateRHSContributionImpl(T&                                rCurrentComponent,
+                                      LocalSystemVectorType&            RHS_Contribution,
                                       typename T::EquationIdVectorType& EquationId,
-                                      const ProcessInfo& CurrentProcessInfo)
+                                      const ProcessInfo&                CurrentProcessInfo)
     {
         KRATOS_TRY
 
@@ -269,27 +269,27 @@ public:
         KRATOS_CATCH("")
     }
 
-    void CalculateLHSContribution(Element& rCurrentElement,
-                                  LocalSystemMatrixType& LHS_Contribution,
+    void CalculateLHSContribution(Element&                       rCurrentElement,
+                                  LocalSystemMatrixType&         LHS_Contribution,
                                   Element::EquationIdVectorType& EquationId,
-                                  const ProcessInfo& CurrentProcessInfo) override
+                                  const ProcessInfo&             CurrentProcessInfo) override
     {
         CalculateLHSContributionImpl(rCurrentElement, LHS_Contribution, EquationId, CurrentProcessInfo);
     }
 
-    void CalculateLHSContribution(Condition& rCurrentCondition,
-                                  LocalSystemMatrixType& LHS_Contribution,
+    void CalculateLHSContribution(Condition&                     rCurrentCondition,
+                                  LocalSystemMatrixType&         LHS_Contribution,
                                   Element::EquationIdVectorType& EquationId,
-                                  const ProcessInfo& CurrentProcessInfo) override
+                                  const ProcessInfo&             CurrentProcessInfo) override
     {
         CalculateLHSContributionImpl(rCurrentCondition, LHS_Contribution, EquationId, CurrentProcessInfo);
     }
 
     template <typename T>
-    void CalculateLHSContributionImpl(T& rCurrentComponent,
-                                      LocalSystemMatrixType& LHS_Contribution,
+    void CalculateLHSContributionImpl(T&                                rCurrentComponent,
+                                      LocalSystemMatrixType&            LHS_Contribution,
                                       typename T::EquationIdVectorType& EquationId,
-                                      const ProcessInfo& CurrentProcessInfo)
+                                      const ProcessInfo&                CurrentProcessInfo)
     {
         KRATOS_TRY
 
@@ -394,8 +394,8 @@ private:
             << "missing " << rVariable.Name() << " dof on node " << rNode.Id() << std::endl;
     }
 
-    double mDeltaTime = 1.0;
-    std::vector<FirstOrderScalarVariable> mFirstOrderScalarVariables;
+    double                                 mDeltaTime = 1.0;
+    std::vector<FirstOrderScalarVariable>  mFirstOrderScalarVariables;
     std::vector<SecondOrderVectorVariable> mSecondOrderVectorVariables;
 };
 

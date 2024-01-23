@@ -52,16 +52,16 @@ public:
     using NodeType       = Node;
     using GeometryType   = Geometry<NodeType>;
 
-    GeoMechanicsNewtonRaphsonErosionProcessStrategy(ModelPart& model_part,
+    GeoMechanicsNewtonRaphsonErosionProcessStrategy(ModelPart&                    model_part,
                                                     typename TSchemeType::Pointer pScheme,
                                                     typename TLinearSolver::Pointer pNewLinearSolver,
                                                     typename TConvergenceCriteriaType::Pointer pNewConvergenceCriteria,
                                                     typename TBuilderAndSolverType::Pointer pNewBuilderAndSolver,
                                                     Parameters& rParameters,
-                                                    int MaxIterations           = 30,
-                                                    bool CalculateReactions     = false,
-                                                    bool ReformDofSetAtEachStep = false,
-                                                    bool MoveMeshFlag           = false)
+                                                    int         MaxIterations          = 30,
+                                                    bool        CalculateReactions     = false,
+                                                    bool        ReformDofSetAtEachStep = false,
+                                                    bool        MoveMeshFlag           = false)
         : GeoMechanicsNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(
               model_part,
               pScheme,
@@ -87,7 +87,7 @@ public:
 
         // get piping elements
         std::vector<Element*> PipeElements = GetPipingElements();
-        unsigned int n_el                  = PipeElements.size(); // number of piping elements
+        unsigned int          n_el         = PipeElements.size(); // number of piping elements
 
         // get initially open pipe elements
         unsigned int openPipeElements = this->InitialiseNumActivePipeElements(PipeElements);
@@ -163,9 +163,9 @@ public:
 
     std::vector<Element*> GetPipingElements()
     {
-        ModelPart& CurrentModelPart = this->GetModelPart();
+        ModelPart&            CurrentModelPart = this->GetModelPart();
         std::vector<Element*> PipeElements;
-        double PipeElementStartX;
+        double                PipeElementStartX;
 
         for (Element& element : CurrentModelPart.Elements()) {
             if (element.GetProperties().Has(PIPE_START_ELEMENT)) {
@@ -234,9 +234,9 @@ public:
 
 private:
     unsigned int mPipingIterations; /// This is used to calculate the pipingLength
-    int rank;
-    double small_pipe_height    = 1e-10;
-    double pipe_height_accuracy = small_pipe_height * 10;
+    int          rank;
+    double       small_pipe_height    = 1e-10;
+    double       pipe_height_accuracy = small_pipe_height * 10;
 
     /// <summary>
     /// Initialises the number of open pipe elements. This value can be greater than 0 in a multi
@@ -284,8 +284,8 @@ private:
         // loop over all elements
         for (Element* pipe_element : pipe_elements) {
             // calculate pipe particle diameter of pipe element
-            PropertiesType prop      = pipe_element->GetProperties();
-            double particle_diameter = this->CalculateParticleDiameter(prop);
+            PropertiesType prop              = pipe_element->GetProperties();
+            double         particle_diameter = this->CalculateParticleDiameter(prop);
 
             // get maximum pipe particle diameter of all pipe elements
             if (particle_diameter > max_diameter) {
@@ -329,9 +329,9 @@ private:
 
     bool check_pipe_equilibrium(filtered_elements open_pipe_elements, double amax, unsigned int mPipingIterations)
     {
-        bool equilibrium      = false;
-        bool converged        = true;
-        unsigned int PipeIter = 0;
+        bool         equilibrium = false;
+        bool         converged   = true;
+        unsigned int PipeIter    = 0;
         // todo: JDN (20220817) : grow not used.
         // bool grow = true;
 
@@ -404,9 +404,9 @@ private:
     /// <param name="max_pipe_height"> maximum allowed pipe height</param>
     /// <param name="PipeElements"> vector of all pipe elements</param>
     /// <returns>tuple of grow bool and number of open pipe elements</returns>
-    std::tuple<bool, int> check_status_tip_element(unsigned int n_open_elements,
-                                                   unsigned int n_elements,
-                                                   double max_pipe_height,
+    std::tuple<bool, int> check_status_tip_element(unsigned int          n_open_elements,
+                                                   unsigned int          n_elements,
+                                                   double                max_pipe_height,
                                                    std::vector<Element*> PipeElements)
     {
         bool grow = true;
@@ -414,7 +414,7 @@ private:
         // pipe height or if all elements are open
         if (n_open_elements < n_elements) {
             Element* tip_element = PipeElements.at(n_open_elements - 1);
-            double pipe_height   = tip_element->GetValue(PIPE_HEIGHT);
+            double   pipe_height = tip_element->GetValue(PIPE_HEIGHT);
 
             if ((pipe_height > max_pipe_height + std::numeric_limits<double>::epsilon()) ||
                 (pipe_height < pipe_height_accuracy)) {
@@ -449,6 +449,7 @@ private:
             }
         }
     }
+
     //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 }; // Class GeoMechanicsNewtonRaphsonStrategy

@@ -39,11 +39,11 @@ public:
         mVelocityVector.resize(num_threads);
     }
 
-    void CalculateSystemContributions(Element& rCurrentElement,
-                                      LocalSystemMatrixType& LHS_Contribution,
-                                      LocalSystemVectorType& RHS_Contribution,
+    void CalculateSystemContributions(Element&                       rCurrentElement,
+                                      LocalSystemMatrixType&         LHS_Contribution,
+                                      LocalSystemVectorType&         RHS_Contribution,
                                       Element::EquationIdVectorType& EquationId,
-                                      const ProcessInfo& CurrentProcessInfo) override
+                                      const ProcessInfo&             CurrentProcessInfo) override
     {
         KRATOS_TRY
 
@@ -62,10 +62,10 @@ public:
         KRATOS_CATCH("")
     }
 
-    void CalculateRHSContribution(Element& rCurrentElement,
-                                  LocalSystemVectorType& RHS_Contribution,
+    void CalculateRHSContribution(Element&                       rCurrentElement,
+                                  LocalSystemVectorType&         RHS_Contribution,
                                   Element::EquationIdVectorType& EquationId,
-                                  const ProcessInfo& CurrentProcessInfo) override
+                                  const ProcessInfo&             CurrentProcessInfo) override
     {
         KRATOS_TRY
 
@@ -82,10 +82,10 @@ public:
         KRATOS_CATCH("")
     }
 
-    void CalculateLHSContribution(Element& rCurrentElement,
-                                  LocalSystemMatrixType& LHS_Contribution,
+    void CalculateLHSContribution(Element&                       rCurrentElement,
+                                  LocalSystemMatrixType&         LHS_Contribution,
                                   Element::EquationIdVectorType& EquationId,
-                                  const ProcessInfo& CurrentProcessInfo) override
+                                  const ProcessInfo&             CurrentProcessInfo) override
     {
         KRATOS_TRY
 
@@ -110,10 +110,10 @@ protected:
             noalias(LHS_Contribution) += (this->GetGamma() / (this->GetBeta() * this->GetDeltaTime())) * C;
     }
 
-    void AddDampingToRHS(Element& rCurrentElement,
+    void AddDampingToRHS(Element&               rCurrentElement,
                          LocalSystemVectorType& RHS_Contribution,
                          LocalSystemMatrixType& C,
-                         const ProcessInfo& CurrentProcessInfo)
+                         const ProcessInfo&     CurrentProcessInfo)
     {
         int thread = OpenMPUtils::ThisThread();
 

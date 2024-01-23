@@ -115,11 +115,11 @@ public:
         }
     }
 
-    void CalculateSystemContributions(Condition& rCurrentCondition,
-                                      LocalSystemMatrixType& LHS_Contribution,
-                                      LocalSystemVectorType& RHS_Contribution,
+    void CalculateSystemContributions(Condition&                     rCurrentCondition,
+                                      LocalSystemMatrixType&         LHS_Contribution,
+                                      LocalSystemVectorType&         RHS_Contribution,
                                       Element::EquationIdVectorType& EquationId,
-                                      const ProcessInfo& CurrentProcessInfo) override
+                                      const ProcessInfo&             CurrentProcessInfo) override
     {
         KRATOS_TRY
 
@@ -141,11 +141,11 @@ public:
         KRATOS_CATCH("")
     }
 
-    void CalculateSystemContributions(Element& rCurrentElement,
-                                      LocalSystemMatrixType& LHS_Contribution,
-                                      LocalSystemVectorType& RHS_Contribution,
+    void CalculateSystemContributions(Element&                       rCurrentElement,
+                                      LocalSystemMatrixType&         LHS_Contribution,
+                                      LocalSystemVectorType&         RHS_Contribution,
                                       Element::EquationIdVectorType& EquationId,
-                                      const ProcessInfo& CurrentProcessInfo) override
+                                      const ProcessInfo&             CurrentProcessInfo) override
     {
         KRATOS_TRY
 
@@ -167,10 +167,10 @@ public:
         KRATOS_CATCH("")
     }
 
-    void CalculateRHSContribution(Element& rCurrentElement,
-                                  LocalSystemVectorType& RHS_Contribution,
+    void CalculateRHSContribution(Element&                       rCurrentElement,
+                                  LocalSystemVectorType&         RHS_Contribution,
                                   Element::EquationIdVectorType& EquationId,
-                                  const ProcessInfo& CurrentProcessInfo) override
+                                  const ProcessInfo&             CurrentProcessInfo) override
     {
         KRATOS_TRY
 
@@ -190,10 +190,10 @@ public:
         KRATOS_CATCH("")
     }
 
-    void CalculateRHSContribution(Condition& rCurrentCondition,
-                                  LocalSystemVectorType& rRHS_Contribution,
+    void CalculateRHSContribution(Condition&                     rCurrentCondition,
+                                  LocalSystemVectorType&         rRHS_Contribution,
                                   Element::EquationIdVectorType& rEquationIds,
-                                  const ProcessInfo& rCurrentProcessInfo) override
+                                  const ProcessInfo&             rCurrentProcessInfo) override
     {
         KRATOS_TRY
 
@@ -213,10 +213,10 @@ public:
         KRATOS_CATCH("")
     }
 
-    void CalculateLHSContribution(Condition& rCurrentCondition,
-                                  LocalSystemMatrixType& LHS_Contribution,
+    void CalculateLHSContribution(Condition&                     rCurrentCondition,
+                                  LocalSystemMatrixType&         LHS_Contribution,
                                   Element::EquationIdVectorType& EquationId,
-                                  const ProcessInfo& CurrentProcessInfo) override
+                                  const ProcessInfo&             CurrentProcessInfo) override
     {
         KRATOS_TRY
 
@@ -235,10 +235,10 @@ public:
         KRATOS_CATCH("")
     }
 
-    void CalculateLHSContribution(Element& rCurrentElement,
-                                  LocalSystemMatrixType& LHS_Contribution,
+    void CalculateLHSContribution(Element&                       rCurrentElement,
+                                  LocalSystemMatrixType&         LHS_Contribution,
                                   Element::EquationIdVectorType& EquationId,
-                                  const ProcessInfo& CurrentProcessInfo) override
+                                  const ProcessInfo&             CurrentProcessInfo) override
     {
         KRATOS_TRY
 
@@ -261,7 +261,7 @@ protected:
     void AddDynamicsToLHS(LocalSystemMatrixType& LHS_Contribution,
                           LocalSystemMatrixType& M,
                           LocalSystemMatrixType& C,
-                          const ProcessInfo& CurrentProcessInfo)
+                          const ProcessInfo&     CurrentProcessInfo)
     {
         KRATOS_TRY
 
@@ -277,11 +277,11 @@ protected:
         KRATOS_CATCH("")
     }
 
-    void AddDynamicsToRHS(Condition& rCurrentCondition,
+    void AddDynamicsToRHS(Condition&             rCurrentCondition,
                           LocalSystemVectorType& RHS_Contribution,
                           LocalSystemMatrixType& M,
                           LocalSystemMatrixType& C,
-                          const ProcessInfo& CurrentProcessInfo)
+                          const ProcessInfo&     CurrentProcessInfo)
     {
         KRATOS_TRY
 
@@ -302,11 +302,11 @@ protected:
         KRATOS_CATCH("")
     }
 
-    void AddDynamicsToRHS(Element& rCurrentElement,
+    void AddDynamicsToRHS(Element&               rCurrentElement,
                           LocalSystemVectorType& RHS_Contribution,
                           LocalSystemMatrixType& M,
                           LocalSystemMatrixType& C,
-                          const ProcessInfo& CurrentProcessInfo)
+                          const ProcessInfo&     CurrentProcessInfo)
     {
         KRATOS_TRY
 

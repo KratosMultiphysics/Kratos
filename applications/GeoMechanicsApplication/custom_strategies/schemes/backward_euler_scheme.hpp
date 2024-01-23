@@ -22,7 +22,7 @@ template <class TSparseSpace, class TDenseSpace>
 class BackwardEulerScheme : public GeoMechanicsTimeIntegrationScheme<TSparseSpace, TDenseSpace>
 {
 public:
-    BackwardEulerScheme(const std::vector<FirstOrderScalarVariable>& rFirstOrderScalarVariables,
+    BackwardEulerScheme(const std::vector<FirstOrderScalarVariable>&  rFirstOrderScalarVariables,
                         const std::vector<SecondOrderVectorVariable>& rSecondOrderVectorVariables)
         : GeoMechanicsTimeIntegrationScheme<TSparseSpace, TDenseSpace>(rFirstOrderScalarVariables, rSecondOrderVectorVariables)
     {

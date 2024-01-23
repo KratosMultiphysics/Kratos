@@ -168,7 +168,7 @@ public:
         const auto nconditions = static_cast<int>(rModelPart.Conditions().size());
 
         const ProcessInfo& r_current_process_info               = rModelPart.GetProcessInfo();
-        ModelPart::ElementsContainerType::iterator el_begin     = rModelPart.ElementsBegin();
+        ModelPart::ElementsContainerType::iterator   el_begin   = rModelPart.ElementsBegin();
         ModelPart::ConditionsContainerType::iterator cond_begin = rModelPart.ConditionsBegin();
 
         // contributions to the system
@@ -262,10 +262,10 @@ public:
      * @param rb The RHS vector
      */
     void BuildAndSolve(typename TSchemeType::Pointer pScheme,
-                       ModelPart& rModelPart,
-                       TSystemMatrixType& rA,
-                       TSystemVectorType& rDx,
-                       TSystemVectorType& rb) override
+                       ModelPart&                    rModelPart,
+                       TSystemMatrixType&            rA,
+                       TSystemVectorType&            rDx,
+                       TSystemVectorType&            rb) override
     {
         KRATOS_TRY
 
@@ -325,10 +325,10 @@ public:
      * @param rb The RHS vector
      */
     void BuildRHSAndSolve(typename TSchemeType::Pointer pScheme,
-                          ModelPart& rModelPart,
-                          TSystemMatrixType& rA,
-                          TSystemVectorType& rDx,
-                          TSystemVectorType& rb) override
+                          ModelPart&                    rModelPart,
+                          TSystemMatrixType&            rA,
+                          TSystemVectorType&            rDx,
+                          TSystemVectorType&            rb) override
     {
         KRATOS_TRY
 
@@ -459,7 +459,7 @@ protected:
 
     void GetFirstAndSecondDerivativeVector(TSystemVectorType& rFirstDerivativeVector,
                                            TSystemVectorType& rSecondDerivativeVector,
-                                           ModelPart& rModelPart)
+                                           ModelPart&         rModelPart)
     {
         block_for_each(rModelPart.Nodes(), [&rFirstDerivativeVector, &rSecondDerivativeVector, this](Node& rNode) {
             if (rNode.IsActive()) {
@@ -478,9 +478,9 @@ protected:
     }
 
     void GetDerivativesForOptionalVariable(const Variable<double>& rVariable,
-                                           const Node& rNode,
-                                           TSystemVectorType& rFirstDerivativeVector,
-                                           TSystemVectorType& rSecondDerivativeVector) const
+                                           const Node&             rNode,
+                                           TSystemVectorType&      rFirstDerivativeVector,
+                                           TSystemVectorType&      rSecondDerivativeVector) const
     {
         if (rNode.HasDofFor(rVariable)) {
             GetDerivativesForVariable(rVariable, rNode, rFirstDerivativeVector, rSecondDerivativeVector);
@@ -488,9 +488,9 @@ protected:
     }
 
     void GetDerivativesForVariable(const Variable<double>& rVariable,
-                                   const Node& rNode,
-                                   TSystemVectorType& rFirstDerivativeVector,
-                                   TSystemVectorType& rSecondDerivativeVector) const
+                                   const Node&             rNode,
+                                   TSystemVectorType&      rFirstDerivativeVector,
+                                   TSystemVectorType&      rSecondDerivativeVector) const
     {
         const auto& first_derivative  = rVariable.GetTimeDerivative();
         const auto& second_derivative = first_derivative.GetTimeDerivative();
@@ -565,10 +565,10 @@ private:
     TSystemMatrixType mMassMatrix;
     TSystemMatrixType mDampingMatrix;
 
-    void InitializeDynamicMatrix(TSystemMatrixType& rMatrix,
-                                 unsigned int MatrixSize,
+    void InitializeDynamicMatrix(TSystemMatrixType&            rMatrix,
+                                 unsigned int                  MatrixSize,
                                  typename TSchemeType::Pointer pScheme,
-                                 ModelPart& rModelPart)
+                                 ModelPart&                    rModelPart)
     {
         rMatrix.resize(MatrixSize, MatrixSize, false);
         BaseType::ConstructMatrixStructure(pScheme, rMatrix, rModelPart);
