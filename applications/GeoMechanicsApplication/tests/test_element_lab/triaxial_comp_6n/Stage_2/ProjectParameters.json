@@ -149,10 +149,7 @@
             "active":               [true,false],
             "value":                [0.0,0.0],
             "table":                [2,0],
-            "fluid_pressure_type": "Uniform",
-            "gravity_direction":    1,
-            "reference_coordinate": 0.0,
-            "specific_weight":      9.81
+            "fluid_pressure_type": "Uniform"
         }
     }],
         "auxiliar_process_list": []
