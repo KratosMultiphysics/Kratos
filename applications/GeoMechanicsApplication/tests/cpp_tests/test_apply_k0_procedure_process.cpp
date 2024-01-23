@@ -62,41 +62,13 @@ bool ElementConsidersDiagonalEntriesOnlyAndNoShear(const Element& rElement)
 namespace Kratos::Testing
 {
 
-KRATOS_TEST_CASE_IN_SUITE(NoneOfElementsConsiderDiagonalEntriesOnlyAndNoShearWhenForceDecoupledElasticityFlagIsNotDefined,
+KRATOS_TEST_CASE_IN_SUITE(AllElementsConsiderDiagonalEntriesOnlyAndNoShearWhenUseStandardProcedureFlagIsNotDefined,
                           KratosGeoMechanicsFastSuite)
 {
     Model model;
     auto& r_model_part = PrepareTestModelPart(model);
 
-    Parameters k0_settings; // 'force_decoupled_elasticity' is not defined
-
-    ApplyK0ProcedureProcess process{r_model_part, k0_settings};
-    process.ExecuteInitialize();
-
-    KRATOS_EXPECT_TRUE(boost::algorithm::none_of(r_model_part.Elements(), ElementConsidersDiagonalEntriesOnlyAndNoShear))
-}
-
-KRATOS_TEST_CASE_IN_SUITE(NoneOfElementsConsiderDiagonalEntriesOnlyAndNoShearWhenForceDecoupledElasticityFlagIsOff,
-                          KratosGeoMechanicsFastSuite)
-{
-    Model model;
-    auto& r_model_part = PrepareTestModelPart(model);
-
-    Parameters k0_settings{R"({"force_decoupled_elasticity": false})"};
-
-    ApplyK0ProcedureProcess process{r_model_part, k0_settings};
-    process.ExecuteInitialize();
-
-    KRATOS_EXPECT_TRUE(boost::algorithm::none_of(r_model_part.Elements(), ElementConsidersDiagonalEntriesOnlyAndNoShear))
-}
-
-KRATOS_TEST_CASE_IN_SUITE(AllElementsConsiderDiagonalEntriesOnlyAndNoShearWhenForceDecoupledElasticityFlagIsOn,
-                          KratosGeoMechanicsFastSuite)
-{
-    Model model;
-    auto& r_model_part = PrepareTestModelPart(model);
-
-    Parameters k0_settings{R"({"force_decoupled_elasticity": true})"};
+    Parameters k0_settings; // 'use_standard_procedure' is not defined, assume it to be true
 
     ApplyK0ProcedureProcess process{r_model_part, k0_settings};
     process.ExecuteInitialize();
@@ -104,12 +76,40 @@ KRATOS_TEST_CASE_IN_SUITE(AllElementsConsiderDiagonalEntriesOnlyAndNoShearWhenFo
     KRATOS_EXPECT_TRUE(boost::algorithm::all_of(r_model_part.Elements(), ElementConsidersDiagonalEntriesOnlyAndNoShear))
 }
 
-KRATOS_TEST_CASE_IN_SUITE(ForceDecoupledElasticityFlagIsInEffectDuringProcessExecutionOnly, KratosGeoMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(AllElementsConsiderDiagonalEntriesOnlyAndNoShearWhenUsingStandardProcedure,
+                          KratosGeoMechanicsFastSuite)
 {
     Model model;
     auto& r_model_part = PrepareTestModelPart(model);
 
-    Parameters k0_settings{R"({"force_decoupled_elasticity": true})"};
+    Parameters k0_settings{R"({"use_standard_procedure": true})"};
+
+    ApplyK0ProcedureProcess process{r_model_part, k0_settings};
+    process.ExecuteInitialize();
+
+    KRATOS_EXPECT_TRUE(boost::algorithm::all_of(r_model_part.Elements(), ElementConsidersDiagonalEntriesOnlyAndNoShear))
+}
+
+KRATOS_TEST_CASE_IN_SUITE(NoneOfElementsConsiderDiagonalEntriesOnlyAndNoShearWhenNotUsingStandardProcedure,
+                          KratosGeoMechanicsFastSuite)
+{
+    Model model;
+    auto& r_model_part = PrepareTestModelPart(model);
+
+    Parameters k0_settings{R"({"use_standard_procedure": false})"};
+
+    ApplyK0ProcedureProcess process{r_model_part, k0_settings};
+    process.ExecuteInitialize();
+
+    KRATOS_EXPECT_TRUE(boost::algorithm::none_of(r_model_part.Elements(), ElementConsidersDiagonalEntriesOnlyAndNoShear))
+}
+
+KRATOS_TEST_CASE_IN_SUITE(UseStandardProcedureFlagIsInEffectDuringProcessExecutionOnly, KratosGeoMechanicsFastSuite)
+{
+    Model model;
+    auto& r_model_part = PrepareTestModelPart(model);
+
+    Parameters k0_settings{R"({"use_standard_procedure": true})"};
 
     ApplyK0ProcedureProcess process{r_model_part, k0_settings};
     process.ExecuteInitialize(); // start considering diagonal entries only and no shear

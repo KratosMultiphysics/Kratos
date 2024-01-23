@@ -36,7 +36,7 @@ public:
     std::string Info() const override;
 
 private:
-    [[nodiscard]] bool ForceDecoupledElasticity() const;
+    [[nodiscard]] bool UseStandardProcedure() const;
     void CalculateK0Stresses(Element& rElement);
 
     ModelPart& mrModelPart;

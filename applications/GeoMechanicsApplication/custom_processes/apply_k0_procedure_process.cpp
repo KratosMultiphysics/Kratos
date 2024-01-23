@@ -52,14 +52,14 @@ ApplyK0ProcedureProcess::ApplyK0ProcedureProcess(ModelPart& model_part, const Pa
 
 void ApplyK0ProcedureProcess::ExecuteInitialize()
 {
-    if (ForceDecoupledElasticity()) {
+    if (UseStandardProcedure()) {
         SetConsiderDiagonalEntriesOnlyAndNoShear(mrModelPart.Elements(), true);
     }
 }
 
 void ApplyK0ProcedureProcess::ExecuteFinalize()
 {
-    if (ForceDecoupledElasticity()) {
+    if (UseStandardProcedure()) {
         SetConsiderDiagonalEntriesOnlyAndNoShear(mrModelPart.Elements(), false);
     }
 }
@@ -77,10 +77,10 @@ void ApplyK0ProcedureProcess::ExecuteFinalizeSolutionStep()
 
 std::string ApplyK0ProcedureProcess::Info() const { return "ApplyK0ProcedureProcess"; }
 
-bool ApplyK0ProcedureProcess::ForceDecoupledElasticity() const
+bool ApplyK0ProcedureProcess::UseStandardProcedure() const
 {
-    const auto setting_name = std::string{"force_decoupled_elasticity"};
-    return mSettings.Has(setting_name) && mSettings[setting_name].GetBool();
+    const auto setting_name = std::string{"use_standard_procedure"};
+    return !mSettings.Has(setting_name) || mSettings[setting_name].GetBool();
 }
 
 void ApplyK0ProcedureProcess::CalculateK0Stresses(Element& rElement)
