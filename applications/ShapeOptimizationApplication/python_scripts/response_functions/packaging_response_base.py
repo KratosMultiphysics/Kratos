@@ -10,6 +10,7 @@
 
 import time as timer
 import KratosMultiphysics as KM
+import KratosMultiphysics.ShapeOptimizationApplication as KSO
 from KratosMultiphysics import Logger
 from KratosMultiphysics.response_functions.response_function_interface import ResponseFunctionInterface
 
@@ -60,6 +61,8 @@ class PackagingResponseBase(ResponseFunctionInterface):
         self.feasible_in_normal_direction = self.response_settings["feasible_in_normal_direction"].GetBool()
         self.exponent = 2
 
+        self.consider_nodal_area = self.response_settings["consider_nodal_area"].GetBool()
+
     @classmethod
     def GetDefaultParameters(cls):
         this_defaults = KM.Parameters("""{
@@ -70,7 +73,8 @@ class PackagingResponseBase(ResponseFunctionInterface):
                 "input_type"        : "use_input_model_part",
                 "input_filename"    : "UNKNOWN_NAME"
             },
-            "feasible_in_normal_direction" : true
+            "feasible_in_normal_direction" : true,
+            "consider_nodal_area": false
         }""")
         return this_defaults
 
@@ -96,9 +100,20 @@ class PackagingResponseBase(ResponseFunctionInterface):
         if not self.directions or not self.signed_distances:
             self._CalculateDistances()
 
+        if self.feasible_in_normal_direction:
+            Logger.PrintInfo("> Maximum nodal violation: ", -min(self.signed_distances))
+        else:
+            Logger.PrintInfo("> Maximum nodal violation: ", max(self.signed_distances))
+
+        if self.consider_nodal_area:
+            self.lumped_integration_utility = KSO.LumpedIntegrationUtility(self.model_part)
+            self.lumped_integration_utility.CalculateLumpedAreas()
+
         value = 0.0
-        for i in range(len(self.signed_distances)):
-            value += self._CalculateNodalValue(self.signed_distances[i])
+        for i, node in enumerate(self.model_part.Nodes):
+            value_i = self.signed_distances[i]
+            lumped_area_factor = node.GetValue(KSO.LUMPED_AREA) if self.consider_nodal_area else 1.0
+            value += self._CalculateNodalValue(value_i, lumped_area_factor=lumped_area_factor)
 
         self.value = value
 
@@ -113,7 +128,8 @@ class PackagingResponseBase(ResponseFunctionInterface):
             self._CalculateDistances()
 
         for i, node in enumerate(self.model_part.Nodes):
-            gradient = self._CalculateNodalGradient(self.signed_distances[i], self.directions[i*3:i*3+3])
+            lumped_area_factor = node.GetValue(KSO.LUMPED_AREA) if self.consider_nodal_area else 1.0
+            gradient = self._CalculateNodalGradient(self.signed_distances[i], self.directions[i*3:i*3+3], lumped_area_factor=lumped_area_factor)
             self.gradient[node.Id] = gradient
 
         Logger.PrintInfo("> Time needed for calculating gradients = ", round(timer.time() - startTime,2), "s")
@@ -131,20 +147,20 @@ class PackagingResponseBase(ResponseFunctionInterface):
     def _CalculateDistances(self):
         raise NotImplementedError("_CalculateDistances needs to be implemented by the derived class!")
 
-    def _CalculateNodalValue(self, signed_distance):
+    def _CalculateNodalValue(self, signed_distance, lumped_area_factor=1.0):
         if not self._HasContribution(signed_distance):
             return 0.0
-        return pow(signed_distance, self.exponent)
+        return pow(signed_distance * lumped_area_factor, self.exponent)
 
-    def _CalculateNodalGradient(self, signed_distance, direction):
+    def _CalculateNodalGradient(self, signed_distance, direction, lumped_area_factor=1.0):
         if not self._HasContribution(signed_distance):
             return [0.0, 0.0, 0.0]
 
         factor = self.exponent * pow(signed_distance, self.exponent-1)
         gradient = [
-            direction[0] * factor,
-            direction[1] * factor,
-            direction[2] * factor
+            direction[0] * lumped_area_factor * factor,
+            direction[1] * lumped_area_factor * factor,
+            direction[2] * lumped_area_factor * factor
         ]
         return gradient
 

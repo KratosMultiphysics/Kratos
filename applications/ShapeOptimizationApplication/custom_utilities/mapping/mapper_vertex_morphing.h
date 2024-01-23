@@ -196,106 +196,21 @@ protected:
     virtual void InitializeComputationOfMappingMatrix();
 
     // --------------------------------------------------------------------------
-    virtual void ComputeMappingMatrix()
-    {
-        InitializeComputationOfMappingMatrix();
-        CreateSearchTreeWithAllNodesInOriginModelPart();
-
-        double filter_radius = mMapperSettings["filter_radius"].GetDouble();
-        unsigned int max_number_of_neighbors = mMapperSettings["max_nodes_in_filter_radius"].GetInt();
-
-        // working vectors
-        std::vector<double> resulting_squared_distances( max_number_of_neighbors );
-        NodeVector neighbor_nodes( max_number_of_neighbors );
-        std::vector<double> list_of_weights( max_number_of_neighbors );
-
-        for(auto& node_i : mrDestinationModelPart.Nodes())
-        {
-            unsigned int number_of_neighbors = mpSearchTree->SearchInRadius( node_i,
-                                                                             filter_radius,
-                                                                             neighbor_nodes.begin(),
-                                                                             resulting_squared_distances.begin(),
-                                                                             max_number_of_neighbors );
-
-            list_of_weights.resize(number_of_neighbors);
-            std::fill(list_of_weights.begin(), list_of_weights.end(), 0.0);
-            double sum_of_weights = 0.0;
-
-            if(number_of_neighbors >= max_number_of_neighbors)
-                KRATOS_WARNING("ShapeOpt::MapperVertexMorphing") << "For node " << node_i.Id() << " and specified filter radius, maximum number of neighbor nodes (=" << max_number_of_neighbors << " nodes) reached!" << std::endl;
-
-            ComputeWeightForAllNeighbors( node_i, neighbor_nodes, number_of_neighbors, list_of_weights, sum_of_weights );
-            FillMappingMatrixWithWeights( node_i, neighbor_nodes, number_of_neighbors, list_of_weights, sum_of_weights );
-        }
-    }
+    virtual void ComputeMappingMatrix();
 
     // --------------------------------------------------------------------------
     virtual void ComputeWeightForAllNeighbors(  ModelPart::NodeType& origin_node,
                                         NodeVector& neighbor_nodes,
                                         unsigned int number_of_neighbors,
                                         std::vector<double>& list_of_weights,
-                                        double& sum_of_weights )
-    {
-        for(unsigned int neighbor_itr = 0 ; neighbor_itr<number_of_neighbors ; neighbor_itr++)
-        {
-            ModelPart::NodeType& neighbor_node = *neighbor_nodes[neighbor_itr];
-            double weight = mpFilterFunction->ComputeWeight( origin_node.Coordinates(), neighbor_node.Coordinates() );
-
-            list_of_weights[neighbor_itr] = weight;
-            sum_of_weights += weight;
-        }
-    }
-
-    // --------------------------------------------------------------------------
-    virtual void InitializeMappingVariables()
-    {
-        const unsigned int origin_node_number = mrOriginModelPart.Nodes().size();
-        mValuesOrigin.resize(3);
-        mValuesOrigin[0] = ZeroVector(origin_node_number);
-        mValuesOrigin[1] = ZeroVector(origin_node_number);
-        mValuesOrigin[2] = ZeroVector(origin_node_number);
-
-        const unsigned int destination_node_number = mrDestinationModelPart.Nodes().size();
-        mValuesDestination.resize(3);
-        mValuesDestination[0] = ZeroVector(destination_node_number);
-        mValuesDestination[1] = ZeroVector(destination_node_number);
-        mValuesDestination[2] = ZeroVector(destination_node_number);
-
-        mMappingMatrix.resize(destination_node_number,origin_node_number,false);
-    }
+                                        double& sum_of_weights );
 
     // --------------------------------------------------------------------------
     virtual void FillMappingMatrixWithWeights(  ModelPart::NodeType& destination_node,
                                         NodeVector& neighbor_nodes,
                                         unsigned int number_of_neighbors,
                                         std::vector<double>& list_of_weights,
-                                        double& sum_of_weights )
-    {
-        unsigned int row_id = destination_node.GetValue(MAPPING_ID);
-
-        std::vector<std::pair<int, double>> sorted_neighbors;
-        sorted_neighbors.reserve(number_of_neighbors);
-
-        for(unsigned int neighbor_itr = 0 ; neighbor_itr<number_of_neighbors ; neighbor_itr++)
-        {
-            ModelPart::NodeType& neighbor_node = *neighbor_nodes[neighbor_itr];
-            sorted_neighbors.push_back(std::make_pair(neighbor_node.GetValue(MAPPING_ID), list_of_weights[neighbor_itr]));
-        }
-
-        // Sort the vector of pairs according the column id - speeds up matrix insertion
-        std::sort(std::begin(sorted_neighbors), std::end(sorted_neighbors),
-            [&](const std::pair<int, double>& a, const std::pair<int, double>& b)
-            {
-                return a.first < b.first;
-            });
-
-        for(unsigned int neighbor_itr = 0 ; neighbor_itr<number_of_neighbors ; neighbor_itr++)
-        {
-            int collumn_id = sorted_neighbors[neighbor_itr].first;
-            double weight = sorted_neighbors[neighbor_itr].second / sum_of_weights;
-            mMappingMatrix.insert_element(row_id,collumn_id,weight);
-        }
-    }
+                                        double& sum_of_weights );
 
     ///@}
     ///@name Protected  Access
@@ -354,23 +269,6 @@ private:
 
     // --------------------------------------------------------------------------
     void CreateSearchTreeWithAllNodesInOriginModelPart();
-
-    // --------------------------------------------------------------------------
-    void ComputeMappingMatrix();
-
-    // --------------------------------------------------------------------------
-    virtual void ComputeWeightForAllNeighbors(  ModelPart::NodeType& origin_node,
-                                        NodeVector& neighbor_nodes,
-                                        unsigned int number_of_neighbors,
-                                        std::vector<double>& list_of_weights,
-                                        double& sum_of_weights );
-
-    // --------------------------------------------------------------------------
-    void FillMappingMatrixWithWeights(  ModelPart::NodeType& origin_node,
-                                        NodeVector& neighbor_nodes,
-                                        unsigned int number_of_neighbors,
-                                        std::vector<double>& list_of_weights,
-                                        double& sum_of_weights );
 
     // --------------------------------------------------------------------------
 

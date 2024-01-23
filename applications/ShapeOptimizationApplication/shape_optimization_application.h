@@ -133,6 +133,9 @@ namespace Kratos
 	// For face angle response
 	KRATOS_DEFINE_APPLICATION_VARIABLE(SHAPE_OPTIMIZATION_APPLICATION, bool, CONSIDER_FACE_ANGLE);
 
+    // For mesh independent mapping
+    KRATOS_DEFINE_APPLICATION_VARIABLE(SHAPE_OPTIMIZATION_APPLICATION, double, LUMPED_AREA);
+
 	///@}
 	///@name Type Definitions
 	///@{

@@ -27,6 +27,7 @@ def CreateMapper(origin_model_part, destination_model_part, mapper_settings):
         "consistent_mapping"         : false,
         "improved_integration"       : false,
         "mesh_independent"           : false,
+        "mesh_independent_weighting" : false,
         "integration_method"         : "gauss_integration",
         "number_of_gauss_points"     : 5,
         "in_plane_morphing"          : false,

@@ -338,23 +338,35 @@ void MapperVertexMorphing::ComputeWeightForAllNeighbors(  ModelPart::NodeType& o
     }
 }
 
-void MapperVertexMorphing::FillMappingMatrixWithWeights(  ModelPart::NodeType& origin_node,
+void MapperVertexMorphing::FillMappingMatrixWithWeights(  ModelPart::NodeType& destination_node,
                                     NodeVector& neighbor_nodes,
                                     unsigned int number_of_neighbors,
                                     std::vector<double>& list_of_weights,
                                     double& sum_of_weights )
 {
+    unsigned int row_id = destination_node.GetValue(MAPPING_ID);
 
+    std::vector<std::pair<int, double>> sorted_neighbors;
+    sorted_neighbors.reserve(number_of_neighbors);
 
-    unsigned int row_id = origin_node.GetValue(MAPPING_ID);
     for(unsigned int neighbor_itr = 0 ; neighbor_itr<number_of_neighbors ; neighbor_itr++)
     {
         ModelPart::NodeType& neighbor_node = *neighbor_nodes[neighbor_itr];
-        int collumn_id = neighbor_node.GetValue(MAPPING_ID);
+        sorted_neighbors.push_back(std::make_pair(neighbor_node.GetValue(MAPPING_ID), list_of_weights[neighbor_itr]));
+    }
 
+    // Sort the vector of pairs according the column id - speeds up matrix insertion
+    std::sort(std::begin(sorted_neighbors), std::end(sorted_neighbors),
+        [&](const std::pair<int, double>& a, const std::pair<int, double>& b)
+        {
+            return a.first < b.first;
+        });
 
-        double weight = list_of_weights[neighbor_itr] / sum_of_weights;
-        mMappingMatrix.insert_element(row_id,collumn_id,weight);
+    for(unsigned int neighbor_itr = 0 ; neighbor_itr<number_of_neighbors ; neighbor_itr++)
+    {
+        int column_id = sorted_neighbors[neighbor_itr].first;
+        double weight = sorted_neighbors[neighbor_itr].second / sum_of_weights;
+        mMappingMatrix.insert_element(row_id,column_id,weight);
     }
 }
 

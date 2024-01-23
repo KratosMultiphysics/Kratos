@@ -69,6 +69,7 @@ public:
     MapperVertexMorphingMeshIndependent( ModelPart& rOriginModelPart, ModelPart& rDestinationModelPart, Parameters MapperSettings )
         : MapperVertexMorphing(rOriginModelPart, rDestinationModelPart, MapperSettings)
     {
+        mWeighting = MapperSettings["mesh_independent_weighting"].GetBool();
     }
 
     /// Destructor.
@@ -119,7 +120,10 @@ public:
         if (mIsMappingInitialized == false)
             Initialize();
 
-        ScaleOriginValues(rOriginVariable);
+        if (!mWeighting)
+        {
+            ScaleOriginValues(rOriginVariable);
+        }
         MapperVertexMorphing::Map(rOriginVariable, rDestinationVariable);
     }
 
@@ -128,7 +132,10 @@ public:
         if (mIsMappingInitialized == false)
             Initialize();
 
-        ScaleOriginValues(rOriginVariable);
+        if (!mWeighting)
+        {
+            ScaleOriginValues(rOriginVariable);
+        }
         MapperVertexMorphing::Map(rOriginVariable, rDestinationVariable);
     }
 
@@ -139,6 +146,12 @@ public:
 
         MapperVertexMorphing::InverseMap(rDestinationVariable, rOriginVariable);
         ScaleOriginValues(rOriginVariable);
+        if (mWeighting)
+        {
+            ScaleOriginValues(rOriginVariable);
+            KRATOS_WARNING("ShapeOpt::MapperVertexMorphing") << "Sensitivity Weighting!" << std::endl;
+        }
+
     }
 
     void InverseMap(const Variable<double> &rDestinationVariable, const Variable<double> &rOriginVariable) override
@@ -148,6 +161,12 @@ public:
 
         MapperVertexMorphing::InverseMap(rDestinationVariable, rOriginVariable);
         ScaleOriginValues(rOriginVariable);
+        if (mWeighting)
+        {
+            ScaleOriginValues(rOriginVariable);
+            KRATOS_WARNING("ShapeOpt::MapperVertexMorphing") << "Sensitivity Weighting!" << std::endl;
+        }
+
     }
 
 
@@ -268,6 +287,7 @@ private:
 
     Vector mOriginNodalAreas;
     Vector mDestinationNodalAreas;
+    bool mWeighting = false;
 
     ///@}
     ///@name Private Operators

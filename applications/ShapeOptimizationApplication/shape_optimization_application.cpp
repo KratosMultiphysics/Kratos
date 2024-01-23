@@ -120,6 +120,9 @@ namespace Kratos
     // For face angle response
     KRATOS_CREATE_VARIABLE(bool, CONSIDER_FACE_ANGLE);
 
+    // For mesh independent mapping
+    KRATOS_CREATE_VARIABLE(double, LUMPED_AREA);
+
     // Eof variables
 
     KratosShapeOptimizationApplication::KratosShapeOptimizationApplication() :
@@ -226,6 +229,9 @@ namespace Kratos
 
         // For face angle response
         KRATOS_REGISTER_VARIABLE(CONSIDER_FACE_ANGLE);
+
+        // For mesh independent mapping
+        KRATOS_REGISTER_VARIABLE(LUMPED_AREA);
  	}
 
 }  // namespace Kratos.

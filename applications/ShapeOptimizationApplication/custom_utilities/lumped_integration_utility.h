@@ -58,12 +58,11 @@ public:
         FindConditionsNeighboursProcess find_conditions_neighbours_process(mrModelPart, mrModelPart.GetProcessInfo()[DOMAIN_SIZE]);
         find_conditions_neighbours_process.Execute();
 
-        mLumpedAreas = ZeroVector(mrModelPart.Nodes().size());
-        const auto nodes_begin = mrModelPart.NodesBegin();
+        auto nodes_begin = mrModelPart.NodesBegin();
         #pragma omp parallel for
         for(int i=0; i<mrModelPart.Nodes().size(); ++i)
         {
-            const auto& r_node_i = *(nodes_begin + i);
+            auto& r_node_i = *(nodes_begin + i);
 
             // Get all neighbour conditions
             const GlobalPointersVector<Condition>& r_conditions = r_node_i.GetValue(NEIGHBOUR_CONDITIONS);
@@ -74,7 +73,7 @@ public:
                 // Get geometry of current condition
                 const Condition& r_condition = r_conditions[j];
                 const Condition::GeometryType& r_geom_i = r_condition.GetGeometry();
-                mLumpedAreas[i] += r_geom_i.DomainSize() / r_geom_i.size();
+                r_node_i.GetValue(LUMPED_AREA) += r_geom_i.DomainSize() / r_geom_i.size();
             }
         }
     }
@@ -82,14 +81,12 @@ public:
     template <typename T>
     void Integrate(const T& rVariable)
     {
-        KRATOS_ERROR_IF(mLumpedAreas.size() != mrModelPart.Nodes().size()) << "LumpedIntegrationUtility: size mismatch!" << std::endl;
-
         const auto nodes_begin = mrModelPart.NodesBegin();
         #pragma omp parallel for
         for(int i=0; i<mrModelPart.Nodes().size(); ++i)
         {
             auto& r_node_i = *(nodes_begin + i);
-            r_node_i.FastGetSolutionStepValue(rVariable) *= mLumpedAreas[i];
+            r_node_i.FastGetSolutionStepValue(rVariable) *= r_node_i.GetValue(LUMPED_AREA);
         }
     }
 
@@ -114,7 +111,6 @@ private:
     ///@{
 
     ModelPart& mrModelPart;
-    Vector mLumpedAreas;
 
     ///@}
 

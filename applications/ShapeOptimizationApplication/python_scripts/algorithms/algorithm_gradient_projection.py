@@ -39,6 +39,8 @@ class AlgorithmGradientProjection(OptimizationAlgorithm):
             "line_search" : {
                 "line_search_type"           : "manual_stepping",
                 "normalize_search_direction" : true,
+                "consider_scaling"           : false,
+                "algorithm_settings"         : false,
                 "step_size"                  : 1.0,
                 "step_size_in_geometry_space": false
             }
@@ -245,7 +247,7 @@ class AlgorithmGradientProjection(OptimizationAlgorithm):
         s = KM.Vector()
         self.optimization_utilities.AssembleVector(self.design_surface, nabla_f, KSO.DF1DX_MAPPED)
 
-        consider_scaling = True
+        consider_scaling = self.algorithm_settings["line_search"]["consider_scaling"].GetBool()
         if consider_scaling:
             KM.Logger.PrintInfo("ShapeOpt", "Consider scaling factors in computation of step size")
             scaling_factors = KM.Vector([node.GetValue(KSO.VARIABLE_SCALING_FACTOR) for node in self.design_surface.Nodes for _ in range(3)])
