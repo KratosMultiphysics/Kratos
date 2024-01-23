@@ -175,28 +175,28 @@ int GeoLinearElasticLaw::Check(const Properties& rMaterialProperties,
     return 0;
 }
 
-void GeoLinearElasticLaw::SetCouplingOption(GeoLinearElasticLaw::IsCouplingWanted WantCoupling)
+void GeoLinearElasticLaw::SetConsiderDiagonalEntriesOnlyAndNoShear(bool Whether)
 {
-    mIsCouplingWanted = WantCoupling;
+    mConsiderDiagonalEntriesOnlyAndNoShear = Whether;
 }
 
-GeoLinearElasticLaw::IsCouplingWanted GeoLinearElasticLaw::GetCouplingOption() const
+bool GeoLinearElasticLaw::GetConsiderDiagonalEntriesOnlyAndNoShear() const
 {
-    return mIsCouplingWanted;
+    return mConsiderDiagonalEntriesOnlyAndNoShear;
 }
 
 void GeoLinearElasticLaw::save(Serializer& rSerializer) const
 {
     KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, ConstitutiveLaw)
-    // Since `mIsCouplingWanted` is supposed to be changed only during the execution of a stage that
-    // includes the K0 procedure, there is no need to serialize this data member
+    // Since `mConsiderDiagonalEntriesOnlyAndNoShear` is supposed to be changed only during the
+    // execution of a stage that includes the K0 procedure, there is no need to serialize it
 }
 
 void GeoLinearElasticLaw::load(Serializer& rSerializer)
 {
     KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, ConstitutiveLaw)
-    // Since `mIsCouplingWanted` is supposed to be changed only during the execution of a stage that
-    // includes the K0 procedure, there is no need to serialize this data member
+    // Since `mConsiderDiagonalEntriesOnlyAndNoShear` is supposed to be changed only during the
+    // execution of a stage that includes the K0 procedure, there is no need to serialize it
 }
 
 } // namespace Kratos

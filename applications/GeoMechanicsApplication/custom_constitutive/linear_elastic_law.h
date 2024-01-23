@@ -50,10 +50,8 @@ public:
               const GeometryType& rElementGeometry,
               const ProcessInfo& rCurrentProcessInfo) const override;
 
-    enum class IsCouplingWanted {Yes, No};
-
-    void SetCouplingOption(GeoLinearElasticLaw::IsCouplingWanted WantCoupling);
-    [[nodiscard]] IsCouplingWanted GetCouplingOption() const;
+    void SetConsiderDiagonalEntriesOnlyAndNoShear(bool Whether);
+    [[nodiscard]] bool GetConsiderDiagonalEntriesOnlyAndNoShear() const;
 
 protected:
     virtual void CalculateElasticMatrix(Matrix& rConstitutiveMatrix,
@@ -69,7 +67,7 @@ private:
     void save(Serializer& rSerializer) const override;
     void load(Serializer& rSerializer) override;
 
-    IsCouplingWanted mIsCouplingWanted = IsCouplingWanted::Yes;
+    bool mConsiderDiagonalEntriesOnlyAndNoShear = false;
 };
 
 } // namespace Kratos

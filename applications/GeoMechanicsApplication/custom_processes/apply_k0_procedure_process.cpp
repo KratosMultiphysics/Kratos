@@ -31,12 +31,12 @@ namespace
 
 using namespace Kratos;
 
-void SetCouplingOption(ModelPart::ElementsContainerType& rElements, GeoLinearElasticLaw::IsCouplingWanted WantCoupling)
+void SetConsiderDiagonalEntriesOnlyAndNoShear(ModelPart::ElementsContainerType& rElements, bool Whether)
 {
-    block_for_each(rElements, [WantCoupling](Element& rElement) {
+    block_for_each(rElements, [Whether](Element& rElement) {
         auto pLinearElasticLaw =
             dynamic_cast<GeoLinearElasticLaw*>(rElement.GetProperties().GetValue(CONSTITUTIVE_LAW).get());
-        if (pLinearElasticLaw) pLinearElasticLaw->SetCouplingOption(WantCoupling);
+        if (pLinearElasticLaw) pLinearElasticLaw->SetConsiderDiagonalEntriesOnlyAndNoShear(Whether);
     });
 }
 
@@ -53,14 +53,14 @@ ApplyK0ProcedureProcess::ApplyK0ProcedureProcess(ModelPart& model_part, const Pa
 void ApplyK0ProcedureProcess::ExecuteInitialize()
 {
     if (ForceDecoupledElasticity()) {
-        SetCouplingOption(mrModelPart.Elements(), GeoLinearElasticLaw::IsCouplingWanted::No);
+        SetConsiderDiagonalEntriesOnlyAndNoShear(mrModelPart.Elements(), true);
     }
 }
 
 void ApplyK0ProcedureProcess::ExecuteFinalize()
 {
     if (ForceDecoupledElasticity()) {
-        SetCouplingOption(mrModelPart.Elements(), GeoLinearElasticLaw::IsCouplingWanted::Yes);
+        SetConsiderDiagonalEntriesOnlyAndNoShear(mrModelPart.Elements(), false);
     }
 }
 

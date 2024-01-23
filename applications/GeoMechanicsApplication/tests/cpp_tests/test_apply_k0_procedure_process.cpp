@@ -16,6 +16,9 @@
 #include "stub_linear_elastic_law.h"
 #include "testing/testing.h"
 
+#include <boost/algorithm/cxx11/all_of.hpp>
+#include <boost/algorithm/cxx11/none_of.hpp>
+
 using namespace Kratos;
 
 namespace
@@ -47,14 +50,11 @@ ModelPart& PrepareTestModelPart(Model& rModel)
     return result;
 }
 
-bool AllElementsHaveSameCouplingOption(const ModelPart::ElementsContainerType& rElements,
-                                       GeoLinearElasticLaw::IsCouplingWanted ExpectedCouplingOption)
+bool ElementConsidersDiagonalEntriesOnlyAndNoShear(const Element& rElement)
 {
-    return std::all_of(rElements.begin(), rElements.end(), [ExpectedCouplingOption](const auto& rElement) {
-        auto p_constitutive_law = dynamic_cast<const GeoLinearElasticLaw*>(
-            rElement.GetProperties().GetValue(CONSTITUTIVE_LAW).get());
-        return p_constitutive_law->GetCouplingOption() == ExpectedCouplingOption;
-    });
+    auto p_constitutive_law =
+        dynamic_cast<const GeoLinearElasticLaw*>(rElement.GetProperties().GetValue(CONSTITUTIVE_LAW).get());
+    return p_constitutive_law && p_constitutive_law->GetConsiderDiagonalEntriesOnlyAndNoShear();
 }
 
 } // namespace
@@ -62,7 +62,8 @@ bool AllElementsHaveSameCouplingOption(const ModelPart::ElementsContainerType& r
 namespace Kratos::Testing
 {
 
-KRATOS_TEST_CASE_IN_SUITE(ExpectCouplingTermsWhenForceDecoupledElasticityFlagIsNotDefined, KratosGeoMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(NoneOfElementsConsiderDiagonalEntriesOnlyAndNoShearWhenForceDecoupledElasticityFlagIsNotDefined,
+                          KratosGeoMechanicsFastSuite)
 {
     Model model;
     auto& r_model_part = PrepareTestModelPart(model);
@@ -72,10 +73,11 @@ KRATOS_TEST_CASE_IN_SUITE(ExpectCouplingTermsWhenForceDecoupledElasticityFlagIsN
     ApplyK0ProcedureProcess process{r_model_part, k0_settings};
     process.ExecuteInitialize();
 
-    KRATOS_EXPECT_TRUE(AllElementsHaveSameCouplingOption(
-        r_model_part.Elements(), GeoLinearElasticLaw::IsCouplingWanted::Yes))
+    KRATOS_EXPECT_TRUE(boost::algorithm::none_of(r_model_part.Elements(), ElementConsidersDiagonalEntriesOnlyAndNoShear))
 }
-KRATOS_TEST_CASE_IN_SUITE(ExpectCouplingTermsWhenForceDecoupledElasticityFlagIsOff, KratosGeoMechanicsFastSuite)
+
+KRATOS_TEST_CASE_IN_SUITE(NoneOfElementsConsiderDiagonalEntriesOnlyAndNoShearWhenForceDecoupledElasticityFlagIsOff,
+                          KratosGeoMechanicsFastSuite)
 {
     Model model;
     auto& r_model_part = PrepareTestModelPart(model);
@@ -85,11 +87,11 @@ KRATOS_TEST_CASE_IN_SUITE(ExpectCouplingTermsWhenForceDecoupledElasticityFlagIsO
     ApplyK0ProcedureProcess process{r_model_part, k0_settings};
     process.ExecuteInitialize();
 
-    KRATOS_EXPECT_TRUE(AllElementsHaveSameCouplingOption(
-        r_model_part.Elements(), GeoLinearElasticLaw::IsCouplingWanted::Yes))
+    KRATOS_EXPECT_TRUE(boost::algorithm::none_of(r_model_part.Elements(), ElementConsidersDiagonalEntriesOnlyAndNoShear))
 }
 
-KRATOS_TEST_CASE_IN_SUITE(ExpectNoCouplingTermsWhenForceDecoupledElasticityFlagIsOn, KratosGeoMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(AllElementsConsiderDiagonalEntriesOnlyAndNoShearWhenForceDecoupledElasticityFlagIsOn,
+                          KratosGeoMechanicsFastSuite)
 {
     Model model;
     auto& r_model_part = PrepareTestModelPart(model);
@@ -99,8 +101,7 @@ KRATOS_TEST_CASE_IN_SUITE(ExpectNoCouplingTermsWhenForceDecoupledElasticityFlagI
     ApplyK0ProcedureProcess process{r_model_part, k0_settings};
     process.ExecuteInitialize();
 
-    KRATOS_EXPECT_TRUE(AllElementsHaveSameCouplingOption(r_model_part.Elements(),
-                                                         GeoLinearElasticLaw::IsCouplingWanted::No))
+    KRATOS_EXPECT_TRUE(boost::algorithm::all_of(r_model_part.Elements(), ElementConsidersDiagonalEntriesOnlyAndNoShear))
 }
 
 KRATOS_TEST_CASE_IN_SUITE(ForceDecoupledElasticityFlagIsInEffectDuringProcessExecutionOnly, KratosGeoMechanicsFastSuite)
@@ -111,11 +112,10 @@ KRATOS_TEST_CASE_IN_SUITE(ForceDecoupledElasticityFlagIsInEffectDuringProcessExe
     Parameters k0_settings{R"({"force_decoupled_elasticity": true})"};
 
     ApplyK0ProcedureProcess process{r_model_part, k0_settings};
-    process.ExecuteInitialize(); // all coupling terms are wiped out
-    process.ExecuteFinalize(); // all coupling terms are restored
+    process.ExecuteInitialize(); // start considering diagonal entries only and no shear
+    process.ExecuteFinalize(); // stop considering diagonal entries only and no shear
 
-    KRATOS_EXPECT_TRUE(AllElementsHaveSameCouplingOption(r_model_part.Elements(),
-                                                         GeoLinearElasticLaw::IsCouplingWanted::Yes))
+    KRATOS_EXPECT_TRUE(boost::algorithm::none_of(r_model_part.Elements(), ElementConsidersDiagonalEntriesOnlyAndNoShear))
 }
 
 } // namespace Kratos::Testing
