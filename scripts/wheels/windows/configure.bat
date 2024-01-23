@@ -16,7 +16,7 @@ CALL :add_app %KRATOS_APP_DIR%\StructuralMechanicsApplication
 CALL :add_app %KRATOS_APP_DIR%\FluidDynamicsApplication
 CALL :add_app %KRATOS_APP_DIR%\DEMApplication
 CALL :add_app %KRATOS_APP_DIR%\ContactStructuralMechanicsApplication
-CALL :add_app %KRATOS_APP_DIR%\ParticleMechanicsApplication;
+CALL :add_app %KRATOS_APP_DIR%\MPMApplication;
 CALL :add_app %KRATOS_APP_DIR%\ConvectionDiffusionApplication;
 CALL :add_app %KRATOS_APP_DIR%\DamApplication;
 CALL :add_app %KRATOS_APP_DIR%\PoromechanicsApplication;
