@@ -24,7 +24,7 @@ The test is performed in two stages, with the following common conditions for bo
 
 _Note: Since the displacement at the top is fixed, the earlier applied top normal load of -100 kPa is confined and it is not needed to specify this again during stage 2._
 
-### Checking the results
+### Assertions
 The calculated effective stresses after the Kratos Geomechanics calculations are compared to the expected solutions:
 - After stage 1: The effective stresses in xx, yy and zz are all expected to be -100 kPa in the element integration points, due to the applied confining stress in the xy plane. Due to the axisymmetry of the problem, the same stress is expected in the third dimension (zz).
 - After stage 2: The effective stresses in xx and zz are still expected to be -100 kPa, while in the yy direction, the expectation is -300 kPa due to the forced y-displacement (also here, the comparisons are done in the integration points).
