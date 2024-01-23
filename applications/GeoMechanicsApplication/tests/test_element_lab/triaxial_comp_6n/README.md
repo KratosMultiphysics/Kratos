@@ -1,6 +1,6 @@
 # Triaxial compression test with 6 noded elements
 
-This test is a drained compression tri-axial test on Mohr-Coulomb model with axi-symmetric 2D6N elements. It mimics a lab test, where soil properties are defined. The test is performed on a cube, consisting of 2 elements, as displayed in the figure below.
+This test is a drained compression tri-axial test on Mohr-Coulomb model with axi-symmetric 2D6N elements. It mimics a lab test, where soil properties are defined. In the lab this is performed on a cylindric volume of soil, with an increasing pressure applied from the top/sides of the cylinder. In the model test, the test is performed on a 2D cube, consisting of 2 axisymmetric elements (emulating the cylinder), as displayed in the figure below.
 
 ![img.png](img.png)
 
@@ -15,17 +15,19 @@ The test is performed in two stages, with the following common conditions for bo
   - An AxisymmetricLineNormalLoadDiffOrderCondition2D3N is added to both the top and right side of the cube (nodes 1, 2, 6 and 6, 8, 9 respectively).
 
 ### Stage 1 - Apply a confining stress of -100 kPa, time interval [0, 1]
-  - A normal load is applied to the right side of the cube (nodes 6, 8, 9), linearly ramping up from 0 to 100 in the time interval [0, 1].
-  - A normal load is applied to the top side of the cube (nodes 1, 2, 6), linearly ramping up from 0 to 100 in the time interval [0, 1].
+  - A normal load is applied to the right side of the cube (nodes 6, 8, 9), linearly ramping up from 0 to -100 kPa in the time interval [0, 1].
+  - A normal load is applied to the top side of the cube (nodes 1, 2, 6), linearly ramping up from 0 to -100 kPa in the time interval [0, 1].
 
-### Stage 2 - Apply a deviatoric stress of 200 kPa, time interval [1, 1.25]:
-  - A constant normal load of 100 is applied to the right side of the cube (nodes 6, 8, 9), during the interval [1.0, 1.25].
-  - The displacement of the top nodes (1, 2, 6) is specified in the y direction during the interval [1.0, 2.0] to linearly change from 0.0 to -1.0 meaning at the end-time of 1.25, it will have reached -0.25.
+### Stage 2 - Apply a deviatoric stress of -200 kPa, time interval [1, 1.25]:
+  - A constant normal load of -100 kPa is applied to the right side of the cube (nodes 6, 8, 9), during the interval [1.0, 1.25].
+  - The displacement of the top nodes (1, 2, 6) is specified in the y direction during the interval [1.0, 2.0] to linearly change from 0.0 to -1.0 meaning at the end-time of 1.25, it will have reached -0.25. This results in a -200 kPa deviatoric stress.
+
+_Note: Since the displacement at the top is fixed, the earlier applied top normal load of -100 kPa is confined and it is not needed to specify this again during stage 2._
 
 ### Checking the results
 The calculated effective stresses after the Kratos Geomechanics calculations are compared to the expected solutions:
-- After stage 1: The effective stresses in xx, yy and zz are all expected to be -100 in the element integration points.
-- After stage 2: The effective stresses in xx and yy are still expected to be -100, while in the zz direction, the expectation is -300 (also here, the comparisons are done in the integration points).
+- After stage 1: The effective stresses in xx, yy and zz are all expected to be -100 kPa in the element integration points, due to the applied confining stress in the xy plane. Due to the axisymmetry of the problem, the same stress is expected in the third dimension (zz).
+- After stage 2: The effective stresses in xx and zz are still expected to be -100 kPa, while in the yy direction, the expectation is -300 kPa due to the forced y-displacement (also here, the comparisons are done in the integration points).
 
 
 
