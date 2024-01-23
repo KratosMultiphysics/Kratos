@@ -12,7 +12,7 @@
 
 // Project includes
 #include "pqmpm_partition_utilities.h"
-#include "mpm_search_element_utility.h"
+#include "material_point_search_utility.h"
 
 namespace Kratos
 {

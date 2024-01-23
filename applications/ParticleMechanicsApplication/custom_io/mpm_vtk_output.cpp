@@ -15,8 +15,8 @@
 // External includes
 
 // Project includes
-#include "particle_mechanics_application_variables.h"
-#include "particle_vtk_output.h"
+#include "mpm_application_variables.h"
+#include "mpm_vtk_output.h"
 #include "includes/kratos_filesystem.h"
 
 namespace Kratos
