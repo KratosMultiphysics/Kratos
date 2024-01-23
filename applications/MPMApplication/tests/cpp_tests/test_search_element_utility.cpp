@@ -18,7 +18,7 @@
 #include "mpm_application_variables.h"
 #include "containers/model.h"
 
-#include "custom_utilities/mpm_search_element_utility.h"
+#include "custom_utilities/material_point_search_utility.h"
 #include "utilities/quadrature_points_utility.h"
 
 namespace Kratos

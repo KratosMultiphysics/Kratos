@@ -17,7 +17,7 @@
 
 // Project includes
 #include "testing/testing.h"
-#include "custom_utilities/mpm_mechanics_math_utilities.h"
+#include "custom_utilities/mpm_math_utilities.h"
 
 namespace Kratos
 {
