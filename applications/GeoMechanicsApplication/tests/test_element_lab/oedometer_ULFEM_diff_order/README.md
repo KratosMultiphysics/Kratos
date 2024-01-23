@@ -3,7 +3,7 @@ This test simulates an oedometer lab test. An UpdatedLagrangianUPwDiffOrderEleme
 
 ![MeshStructure.png](MeshStructure.png)
 
-### Setup
+## Setup
 The test is performed in a single stage, with the following conditions:
 - Constraints:
   - The X and Y displacement in the bottom nodes (5, 7, 9) are fixed to 0.0.
@@ -13,9 +13,9 @@ The test is performed in a single stage, with the following conditions:
 - Conditions:
   - A LineLoadDiffOrderCondition2D3N is added to the top side of the cube (nodes 6, 1 and 2).
 - Loads:
-  - A line load in the y direction is applied to the top side of the cube (nodes 1, 2 and 6), linearly ramping up from 0 to -1000 kPa (?) in the time interval [0, 1].
+  - A line load in the y direction is applied to the top side of the cube (nodes 1, 2 and 6), linearly ramping up from 0 to -1000 kPa (?) in the time interval \[0, 1\].
 
-### Assertions
+## Assertions
 In this test, there are two results checks:
 1. It is asserted that the effective stress is -1000 kPa (?) in the integration points of both elements in the y direction and 0 in the other directions.
 2. It is asserted that the displacement of one of the top nodes (1) is close to -9.999000099991246e-05 as a result of the applied line load.
