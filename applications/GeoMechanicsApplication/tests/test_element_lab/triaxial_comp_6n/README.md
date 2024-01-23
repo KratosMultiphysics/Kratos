@@ -1,8 +1,8 @@
 # Triaxial compression test with 6 noded elements
 
-This test is a drained compression tri-axial test on Mohr-Coulomb model with axi-symmetric 2D6N elements. It mimics a lab test, where soil properties are defined. In the lab this is performed on a cylindric volume of soil, with an increasing pressure applied from the top/sides of the cylinder. In the model test, the test is performed on a 2D cube, consisting of 2 axisymmetric elements (emulating the cylinder), as displayed in the figure below.
+This test is a drained compression tri-axial test on Mohr-Coulomb model with axi-symmetric 2D6N elements. It mimics a lab test, where soil properties are defined. In the lab this is performed on a cylindric volume of soil, with an increasing pressure applied from the top/sides of the cylinder. In the model test, the test is performed on a 2D cube, consisting of 2 axisymmetric elements (emulating the cylinder), as displayed in the figure below:
 
-![img.png](img.png)
+![MeshStructure](MeshStructure.png)
 
 ### Setup
 The test is performed in two stages, with the following common conditions for both stages:
