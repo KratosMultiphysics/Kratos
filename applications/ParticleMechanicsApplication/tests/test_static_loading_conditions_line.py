@@ -1,6 +1,6 @@
 import KratosMultiphysics
 
-import KratosMultiphysics.ParticleMechanicsApplication as KratosParticle
+import KratosMultiphysics.MPMApplication as KratosMPM
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 from math import sqrt
 
@@ -37,7 +37,7 @@ class TestStaticLoadingConditionsLine(KratosUnittest.TestCase):
         load_on_cond[0] = 1.0
         load_on_cond[1] = 2.0
         load_on_cond[2] = 0.0 # Note that this is a 2D condition
-        cond.SetValue(KratosParticle.LINE_LOAD,load_on_cond)
+        cond.SetValue(KratosMPM.LINE_LOAD,load_on_cond)
         cond.CalculateLocalSystem(lhs,rhs,mp.ProcessInfo)
         self.assertEqual(rhs[0],0.5*length)
         self.assertEqual(rhs[1],1.0*length)
@@ -99,10 +99,10 @@ class TestStaticLoadingConditionsLine(KratosUnittest.TestCase):
         load_on_cond[0] = 1.0
         load_on_cond[1] = 0.0
         load_on_cond[2] = 0.0 # note that this is a 2D condition
-        cond1.SetValue(KratosParticle.LINE_LOAD,load_on_cond)
+        cond1.SetValue(KratosMPM.LINE_LOAD,load_on_cond)
         load_on_cond[0] =  0.0
         load_on_cond[1] = -1.0
-        cond2.SetValue(KratosParticle.LINE_LOAD,load_on_cond)
+        cond2.SetValue(KratosMPM.LINE_LOAD,load_on_cond)
 
         linear_solver = KratosMultiphysics.SkylineLUFactorizationSolver()
         builder_and_solver = KratosMultiphysics.ResidualBasedBlockBuilderAndSolver(linear_solver)
