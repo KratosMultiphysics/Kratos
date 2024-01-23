@@ -24,7 +24,7 @@ namespace Kratos
 
 /***********************************************************************************/
 /***********************************************************************************/
-
+"HELLO WORLD"
 template<SizeType TVoigtSize>
 void ConstitutiveLawUtilities<TVoigtSize>::CalculateGreenLagrangianStrain(
     const MatrixType& rCauchyTensor,
