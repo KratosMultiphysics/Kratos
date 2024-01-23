@@ -25,6 +25,7 @@
 #include "includes/kratos_parameters.h"
 #include "linear_solvers/linear_solver.h"
 #include "linear_solvers/preconditioner.h"
+#include "input_output/logger.h" // KRATOS_WARNING_IF
 
 namespace Kratos
 {
@@ -90,48 +91,38 @@ public:
     ///@name Life Cycle
     ///@{
 
-    /// Default constructor.
-    IterativeSolver()
-        : mResidualNorm(0)
-        , mIterationsNumber(0)
-        , mBNorm(0)
-        , mpPreconditioner(new TPreconditionerType())
-        , mTolerance(0)
-        , mMaxIterationsNumber(0)
-    {
-    }
-
-    IterativeSolver(double NewTolerance)
-        : mResidualNorm(0)
-        , mIterationsNumber(0)
-        , mBNorm(0)
-        , mpPreconditioner(new TPreconditionerType())
-        ,	mTolerance(NewTolerance)
-        , mMaxIterationsNumber(0)
+    IterativeSolver(double NewTolerance, unsigned int NewMaxIterationsNumber, typename TPreconditionerType::Pointer pNewPreconditioner)
+        : mResidualNorm(0.0),
+          mIterationsNumber(0ul),
+          mBNorm(0.0),
+          mpPreconditioner(pNewPreconditioner),
+          mTolerance(NewTolerance),
+          mMaxIterationsNumber(NewMaxIterationsNumber)
     {
     }
 
     IterativeSolver(double NewTolerance, unsigned int NewMaxIterationsNumber)
-        : mResidualNorm(0)
-        , mIterationsNumber(0)
-        , mBNorm(0)
-        , mpPreconditioner(new TPreconditionerType())
-        , mTolerance(NewTolerance)
-        , mMaxIterationsNumber(NewMaxIterationsNumber) {}
+        : IterativeSolver(NewTolerance,
+                          NewMaxIterationsNumber,
+                          make_shared<TPreconditionerType>())
+    {
+    }
 
-    IterativeSolver(double NewTolerance, unsigned int NewMaxIterationsNumber, typename TPreconditionerType::Pointer pNewPreconditioner) :
-        mResidualNorm(0), mIterationsNumber(0), mBNorm(0),
-        mpPreconditioner(pNewPreconditioner),
-        mTolerance(NewTolerance),
-        mMaxIterationsNumber(NewMaxIterationsNumber) {}
+    IterativeSolver(double NewTolerance)
+        : IterativeSolver(NewTolerance, 0u)
+    {
+    }
+
+    /// Default constructor.
+    IterativeSolver()
+        : IterativeSolver(0.0)
+    {
+    }
 
     IterativeSolver(Parameters settings,
                     typename TPreconditionerType::Pointer pNewPreconditioner = Kratos::make_shared<TPreconditionerType>()
-                   ):
-        mResidualNorm(0),
-        mIterationsNumber(0),
-        mBNorm(0),
-        mpPreconditioner(pNewPreconditioner)
+                   )
+        : IterativeSolver(0.0, 0u, pNewPreconditioner)
     {
         KRATOS_TRY
 
@@ -149,39 +140,19 @@ public:
 
         this->SetTolerance( settings["tolerance"].GetDouble() );
         this->SetMaxIterationsNumber( settings["max_iteration"].GetInt() );
-        
-        
+
         KRATOS_CATCH("")
     }
 
     /// Copy constructor.
-    IterativeSolver(const IterativeSolver& Other) : BaseType(Other),
-        mResidualNorm(Other.mResidualNorm), mIterationsNumber(Other.mIterationsNumber), mBNorm(Other.mBNorm),
-        mpPreconditioner(Other.mpPreconditioner),
-        mTolerance(Other.mTolerance),
-        mMaxIterationsNumber(Other.mMaxIterationsNumber)
-    {
-
-    }
-
-    /// Destructor.
-    ~IterativeSolver() override {}
-
+    IterativeSolver(const IterativeSolver& Other) = default;
 
     ///@}
     ///@name Operators
     ///@{
 
     /// Assignment operator.
-    IterativeSolver& operator=(const IterativeSolver& Other)
-    {
-        BaseType::operator=(Other);
-        mResidualNorm = Other.mResidualNorm;
-        mFirstResidualNorm = Other.mFirstResidualNorm;
-        mIterationsNumber = Other.mIterationsNumber;
-        mBNorm = Other.mBNorm;
-        return *this;
-    }
+    IterativeSolver& operator=(const IterativeSolver& Other) = default;
 
     /** This function is designed to be called every time the coefficients change in the system
     		 * that is, normally at the beginning of each solve.
@@ -224,10 +195,7 @@ public:
      */
     bool AdditionalPhysicalDataIsNeeded() override
     {
-        if (GetPreconditioner()->AdditionalPhysicalDataIsNeeded())
-            return true;
-        else
-            return false;
+        return GetPreconditioner()->AdditionalPhysicalDataIsNeeded();
     }
 
     /** Some solvers may require a minimum degree of knowledge of the structure of the matrix. To make an example
@@ -272,16 +240,6 @@ public:
         mpPreconditioner = pNewPreconditioner;
     }
 
-//       virtual typename TStopCriteriaType::Pointer GetStopCriteria(void)
-// 	{
-// 	  return mpStopCriteria;
-// 	}
-
-//       virtual void SetStopCriteria(typename TStopCriteriaType::Pointer pNewStopCriteria)
-// 	{
-// 	  mpStopCriteria = pNewStopCriteria;
-// 	}
-
     virtual void SetMaxIterationsNumber(unsigned int NewMaxIterationsNumber)
     {
         mMaxIterationsNumber = NewMaxIterationsNumber;
@@ -314,14 +272,27 @@ public:
 
     virtual void SetResidualNorm(double NewResidualNorm)
     {
-        if (mIterationsNumber == 1)
-            mFirstResidualNorm = NewResidualNorm;
         mResidualNorm = NewResidualNorm;
     }
 
     virtual double GetResidualNorm()
     {
         return mResidualNorm;
+    }
+
+    /// @brief Return the right hand side of the linear system @f$ Ax = b @f$.
+    double GetRhsNorm() const noexcept
+    {
+        return mBNorm;
+    }
+
+    /// @brief Set the right hand side of the linear system @f$ Ax = b @f$.
+    void SetRhsNorm(double RhsNorm) noexcept
+    {
+        KRATOS_WARNING_IF("IterativeSolver", std::abs(RhsNorm) < 1e30)
+            << "setting the RHS norm to "
+            << RhsNorm << std::endl;
+        mBNorm = RhsNorm;
     }
 
     ///@}
@@ -397,8 +368,6 @@ protected:
     ///@{
 
     double mResidualNorm;
-
-    double mFirstResidualNorm;
 
     IndexType mIterationsNumber;
 
@@ -528,6 +497,6 @@ inline std::ostream& operator << (std::ostream& OStream,
 
 }  // namespace Kratos.
 
-#endif // KRATOS_ITERATIVE_SOLVER_H_INCLUDED  defined 
+#endif // KRATOS_ITERATIVE_SOLVER_H_INCLUDED  defined
 
 
