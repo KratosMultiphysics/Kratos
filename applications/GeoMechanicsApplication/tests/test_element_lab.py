@@ -21,7 +21,7 @@ class KratosGeoMechanicsLabElementTests(KratosUnittest.TestCase):
         Drained compression triaxial test on Mohr-Coulomb model with axisymmetric 2D6N elements
         It consistes of two calculation phases:
         1) apply confining stress of -100 kPa
-        2) apply deviatoric stress of 200 kPa
+        2) apply deviatoric stress of -200 kPa
         """
         test_name = 'triaxial_comp_6n'
         project_path = test_helper.get_file_path(os.path.join('test_element_lab', test_name))
