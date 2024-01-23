@@ -17,7 +17,7 @@
 
 // Project includes
 #include "testing/testing.h"
-#include "custom_utilities/particle_mechanics_math_utilities.h"
+#include "custom_utilities/mpm_mechanics_math_utilities.h"
 
 namespace Kratos
 {
@@ -123,7 +123,7 @@ namespace Testing
     /**
     * Check whether the computation of eigenvalues and eigenvectors are performed correctly
     */
-    KRATOS_TEST_CASE_IN_SUITE(ParticleMathUtilsQRFactorizationCalculation, KratosParticleMechanicsFastSuite)
+    KRATOS_TEST_CASE_IN_SUITE(MPMMathUtilsQRFactorizationCalculation, KratosMPMFastSuite)
     {
         // Initialize vectors and matrices
         Matrix Q = ZeroMatrix(3,3);
@@ -131,7 +131,7 @@ namespace Testing
 
         // QR Factorization
         Matrix A = CreateSymmetricTest3Matrix3x3();
-        ParticleMechanicsMathUtilities<double>::QRFactorization(A, Q, R);
+        MPMMathUtilities<double>::QRFactorization(A, Q, R);
 
         Matrix Q_ref(3,3);
         Q_ref(0,0) = -7.071068e-01;
@@ -160,7 +160,7 @@ namespace Testing
         // Check False
         A.resize(4,3,false);
         KRATOS_EXPECT_EXCEPTION_IS_THROWN(
-            ParticleMechanicsMathUtilities<double>::QRFactorization(A, Q, R),
+            MPMMathUtilities<double>::QRFactorization(A, Q, R),
             " GIVEN MATRIX IS NOT A SQUARE MATRIX: QRFactorization calculation");
 
     }
@@ -169,7 +169,7 @@ namespace Testing
     /**
     * Check whether the computation of eigenvalues and eigenvectors are performed correctly
     */
-    KRATOS_TEST_CASE_IN_SUITE(ParticleMathUtilsEigenValueVectorsCalculation, KratosParticleMechanicsFastSuite)
+    KRATOS_TEST_CASE_IN_SUITE(MPMMathUtilsEigenValueVectorsCalculation, KratosMPMFastSuite)
     {
         // Initialize vectors and matrices
         Vector eigen_values_2  = ZeroVector(2);
@@ -178,32 +178,32 @@ namespace Testing
 
         // 1. Compute EigenValues
         Matrix A = CreateTestMatrix3x3();
-        noalias(eigen_values_3) = ParticleMechanicsMathUtilities<double>::EigenValues(A);
+        noalias(eigen_values_3) = MPMMathUtilities<double>::EigenValues(A);
 
         std::vector<double> eigen_values_3_ref = {-5.0, 3.0, 6.0};
         KRATOS_EXPECT_VECTOR_RELATIVE_NEAR( eigen_values_3, eigen_values_3_ref, 1e-6);
 
         Matrix B = CreateTestMatrix2x2();
-        noalias(eigen_values_2) = ParticleMechanicsMathUtilities<double>::EigenValues(B);
+        noalias(eigen_values_2) = MPMMathUtilities<double>::EigenValues(B);
 
         std::vector<double> eigen_values_2_ref = {4.0, -3.0};
         KRATOS_EXPECT_VECTOR_RELATIVE_NEAR( eigen_values_2, eigen_values_2_ref, 1e-6);
 
         // 2. Compute EigenValues using direct method
         Matrix C = CreateSymmetricTestMatrix3x3();
-        noalias(eigen_values_3) = ParticleMechanicsMathUtilities<double>::EigenValuesDirectMethod(C);
+        noalias(eigen_values_3) = MPMMathUtilities<double>::EigenValuesDirectMethod(C);
 
         eigen_values_3_ref = {8.0, -1.0, -1.0};
         KRATOS_EXPECT_VECTOR_RELATIVE_NEAR( eigen_values_3, eigen_values_3_ref,1e-6);
 
         Matrix D = CreateSymmetricTest2Matrix3x3();
-        noalias(eigen_values_3) = ParticleMechanicsMathUtilities<double>::EigenValuesDirectMethod(D);
+        noalias(eigen_values_3) = MPMMathUtilities<double>::EigenValuesDirectMethod(D);
 
         eigen_values_3_ref = {10, 6.0, 0.0};
         KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(eigen_values_3, eigen_values_3_ref, 1e-6);
 
         // 3. Compute EigenVectors and EigenValues of 3x3 symmetric matrices - using Gauss Seidel method
-        ParticleMechanicsMathUtilities<double>::EigenVectors(C, eigen_vectors_3, eigen_values_3, comp_tolerance, num_iteration);
+        MPMMathUtilities<double>::EigenVectors(C, eigen_vectors_3, eigen_values_3, comp_tolerance, num_iteration);
 
         eigen_values_3_ref = {-1.0, -1.0, 8.0};
         KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(eigen_values_3, eigen_values_3_ref, 1e-6);
@@ -220,7 +220,7 @@ namespace Testing
         eigen_vectors_3_ref(2,2) =  6.666667e-01;
         KRATOS_EXPECT_MATRIX_RELATIVE_NEAR( eigen_vectors_3, eigen_vectors_3_ref, 1e-6);
 
-        ParticleMechanicsMathUtilities<double>::EigenVectors(D, eigen_vectors_3, eigen_values_3, comp_tolerance, num_iteration);
+        MPMMathUtilities<double>::EigenVectors(D, eigen_vectors_3, eigen_values_3, comp_tolerance, num_iteration);
 
         eigen_values_3_ref = {0.0, 10.0, 6.0};
         KRATOS_EXPECT_VECTOR_RELATIVE_NEAR( eigen_values_3, eigen_values_3_ref, 1e-6);
@@ -240,15 +240,15 @@ namespace Testing
     /**
     * Check norm computation
     */
-    KRATOS_TEST_CASE_IN_SUITE(ParticleMathUtilsNormCalculation, KratosParticleMechanicsFastSuite)
+    KRATOS_TEST_CASE_IN_SUITE(MPMMathUtilsNormCalculation, KratosMPMFastSuite)
     {
         Vector V3 = CreateTestVector3();
         Vector V6 = CreateTestVector6();
         Matrix M  = CreateSymmetricTest2Matrix3x3();
 
-        ParticleMechanicsMathUtilities<double>::Normalize(V3);
-        ParticleMechanicsMathUtilities<double>::Normalize(V6);
-        const double norm_M = ParticleMechanicsMathUtilities<double>::NormTensor(M);
+        MPMMathUtilities<double>::Normalize(V3);
+        MPMMathUtilities<double>::Normalize(V6);
+        const double norm_M = MPMMathUtilities<double>::NormTensor(M);
 
         for (unsigned int i = 0; i<3; ++i)
             KRATOS_EXPECT_NEAR(V3[i], 0.5773502692, 1e-6);

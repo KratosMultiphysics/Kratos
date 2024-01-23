@@ -18,7 +18,7 @@
 // Project includes
 #include "testing/testing.h"
 #include "custom_utilities/mpm_energy_calculation_utility.h"
-#include "particle_mechanics_application_variables.h"
+#include "mpm_application_variables.h"
 #include "containers/model.h"
 
 namespace Kratos
@@ -89,7 +89,7 @@ namespace Testing
     /**
     * Check whether the calculation of energy are okay
     */
-    KRATOS_TEST_CASE_IN_SUITE(ParticleTotalEnergyCalculation, KratosParticleMechanicsFastSuite)
+    KRATOS_TEST_CASE_IN_SUITE(MPMTotalEnergyCalculation, KratosMPMFastSuite)
     {
         KRATOS_WATCH("")
         Model current_model;

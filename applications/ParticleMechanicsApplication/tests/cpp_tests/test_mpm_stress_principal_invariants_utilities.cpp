@@ -105,7 +105,7 @@ namespace Testing
     /**
     * Check whether the stress sorting is working as expected
     */
-    KRATOS_TEST_CASE_IN_SUITE(ParticleStressPrincipalUtisStressSorting, KratosParticleMechanicsFastSuite)
+    KRATOS_TEST_CASE_IN_SUITE(MPMStressPrincipalUtisStressSorting, KratosMPMFastSuite)
     {
         // Stress dummy -- unsorted
         auto random_unsorted = CreateRandomUnsortedStressVector();
@@ -142,7 +142,7 @@ namespace Testing
     /**
     * Check whether the tensor invariant calculation is performed correctly
     */
-    KRATOS_TEST_CASE_IN_SUITE(ParticleStressInvariantsUtilsTensorInvariantsCalculation, KratosParticleMechanicsFastSuite)
+    KRATOS_TEST_CASE_IN_SUITE(MPMStressInvariantsUtilsTensorInvariantsCalculation, KratosMPMFastSuite)
     {
         double I1, J2, J3;
         auto positive_hydrostatic = CreateHydrostaticStressVector();
@@ -169,7 +169,7 @@ namespace Testing
     /**
     * Check whether the tensor invariant derivatives calculation is performed correctly
     */
-    KRATOS_TEST_CASE_IN_SUITE(ParticleStressInvariantsUtilsTensorInvariantDerivativesCalculation, KratosParticleMechanicsFastSuite)
+    KRATOS_TEST_CASE_IN_SUITE(MPMStressInvariantsUtilsTensorInvariantDerivativesCalculation, KratosMPMFastSuite)
     {
         Vector derivative_I1, derivative_J2, derivative_J3;
         auto negative_hydrostatic  = CreateNegativeHydrostaticStressVector();
@@ -215,7 +215,7 @@ namespace Testing
     /**
     * Check whether the tensor second invariant derivatives calculation is performed correctly
     */
-    KRATOS_TEST_CASE_IN_SUITE(ParticleStressInvariantsUtilsTensorInvariant2ndDerivativesCalculation, KratosParticleMechanicsFastSuite)
+    KRATOS_TEST_CASE_IN_SUITE(MPMStressInvariantsUtilsTensorInvariant2ndDerivativesCalculation, KratosMPMFastSuite)
     {
         Matrix derivative2_I1, derivative2_J2, derivative2_J3;
         auto random_sorted = CreateRandomSortedStressVector();
@@ -269,7 +269,7 @@ namespace Testing
     /**
     * Check whether the stress invariant calculation is performed correctly
     */
-    KRATOS_TEST_CASE_IN_SUITE(ParticleStressInvariantsUtilsStressInvariantsCalculation, KratosParticleMechanicsFastSuite)
+    KRATOS_TEST_CASE_IN_SUITE(MPMStressInvariantsUtilsStressInvariantsCalculation, KratosMPMFastSuite)
     {
         double p, q, lode_angle;
         auto positive_hydrostatic = CreateHydrostaticStressVector();
@@ -297,7 +297,7 @@ namespace Testing
     /**
     * Check whether the stress invariant derivatives calculation is performed correctly
     */
-    KRATOS_TEST_CASE_IN_SUITE(ParticleStressInvariantsUtilsStressInvariantDerivativesCalculation, KratosParticleMechanicsFastSuite)
+    KRATOS_TEST_CASE_IN_SUITE(MPMStressInvariantsUtilsStressInvariantDerivativesCalculation, KratosMPMFastSuite)
     {
         Vector derivative_p, derivative_q, derivative_lode_angle;
         auto negative_hydrostatic  = CreateNegativeHydrostaticStressVector();
@@ -343,7 +343,7 @@ namespace Testing
     /**
     * Check whether the stress second invariant derivatives calculation is performed correctly
     */
-    KRATOS_TEST_CASE_IN_SUITE(ParticleStressInvariantsUtilsStressInvariant2ndDerivativesCalculation, KratosParticleMechanicsFastSuite)
+    KRATOS_TEST_CASE_IN_SUITE(MPMStressInvariantsUtilsStressInvariant2ndDerivativesCalculation, KratosMPMFastSuite)
     {
         Matrix derivative2_p, derivative2_q, derivative2_lode_angle;
         auto positive_hydrostatic  = CreateHydrostaticStressVector();

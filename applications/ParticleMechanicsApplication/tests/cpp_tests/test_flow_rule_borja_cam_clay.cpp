@@ -19,7 +19,7 @@
 #include "testing/testing.h"
 
 // Application includes
-#include "particle_mechanics_application_variables.h"
+#include "mpm_application_variables.h"
 
 // Hardening law
 #include "custom_constitutive/hardening_laws/cam_clay_hardening_law.hpp"
@@ -37,15 +37,15 @@ namespace Testing
 {
     typedef Node NodeType;
 
-    typedef ParticleHardeningLaw HL;
+    typedef MPMHardeningLaw HL;
 
     typedef CamClayHardeningLaw CCHL;
 
-    typedef ParticleYieldCriterion YC;
+    typedef MPMYieldCriterion YC;
 
     typedef ModifiedCamClayYieldCriterion MCCYC;
 
-    typedef ParticleFlowRule FR;
+    typedef MPMFlowRule FR;
 
     typedef BorjaCamClayPlasticFlowRule BCCFR;
 
@@ -72,7 +72,7 @@ namespace Testing
     /**
     * Check the correct calculation of the integrated stress with the CL's
     */
-    KRATOS_TEST_CASE_IN_SUITE(ParticleConstitutiveLawBorjaCamClay, KratosParticleMechanicsFastSuite)
+    KRATOS_TEST_CASE_IN_SUITE(MPMConstitutiveLawBorjaCamClay, KratosMPMFastSuite)
     {
         Matrix stress, strain;
         Properties material_properties;

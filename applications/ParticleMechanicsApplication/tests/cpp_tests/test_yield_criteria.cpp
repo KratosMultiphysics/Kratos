@@ -19,25 +19,25 @@
 #include "testing/testing.h"
 
 // Application includes
-#include "particle_mechanics_application_variables.h"
+#include "mpm_application_variables.h"
 
 // Yields
 #include "custom_constitutive/yield_criteria/mc_yield_criterion.hpp"
 #include "custom_constitutive/yield_criteria/modified_cam_clay_yield_criterion.hpp"
 
 // Hardening law
-#include "custom_constitutive/hardening_laws/particle_hardening_law.hpp"
+#include "custom_constitutive/hardening_laws/mpm_hardening_law.hpp"
 
 namespace Kratos
 {
 namespace Testing
 {
 
-    typedef ParticleHardeningLaw HL;
+    typedef MPMHardeningLaw HL;
 
     typedef CamClayHardeningLaw CCHL;
 
-    typedef ParticleYieldCriterion YC;
+    typedef MPMYieldCriterion YC;
 
     typedef MCYieldCriterion MC;
 
@@ -61,7 +61,7 @@ namespace Testing
     /**
     * Check the correct yield condition calculation of a given stress condition
     */
-    KRATOS_TEST_CASE_IN_SUITE(ParticleYieldConditionCalculation, KratosParticleMechanicsFastSuite)
+    KRATOS_TEST_CASE_IN_SUITE(MPMYieldConditionCalculation, KratosMPMFastSuite)
     {
         Vector principal_stress = ZeroVector(3);
         Properties material_properties;
@@ -101,7 +101,7 @@ namespace Testing
     /**
     * Check the correct calculation of the derivatives of the yield surfaces
     */
-    KRATOS_TEST_CASE_IN_SUITE(ParticleYieldFunctionFirstDerivativeCalculation, KratosParticleMechanicsFastSuite)
+    KRATOS_TEST_CASE_IN_SUITE(MPMYieldFunctionFirstDerivativeCalculation, KratosMPMFastSuite)
     {
         Vector principal_stress = ZeroVector(3);
         Properties material_properties;
@@ -136,7 +136,7 @@ namespace Testing
     /**
     * Check the correct calculation of the second derivatives of the yield surfaces
     */
-    KRATOS_TEST_CASE_IN_SUITE(ParticleYieldFunctionSecondDerivativeCalculation, KratosParticleMechanicsFastSuite)
+    KRATOS_TEST_CASE_IN_SUITE(MPMYieldFunctionSecondDerivativeCalculation, KratosMPMFastSuite)
     {
         Vector principal_stress = ZeroVector(3);
         Properties material_properties;

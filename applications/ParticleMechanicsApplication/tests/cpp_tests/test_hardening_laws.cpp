@@ -19,7 +19,7 @@
 #include "testing/testing.h"
 
 // Application includes
-#include "particle_mechanics_application_variables.h"
+#include "mpm_application_variables.h"
 
 // Hardening laws
 #include "custom_constitutive/hardening_laws/cam_clay_hardening_law.hpp"
@@ -33,7 +33,7 @@ namespace Testing
 
     typedef Node NodeType;
 
-    typedef ParticleHardeningLaw HL;
+    typedef MPMHardeningLaw HL;
 
     typedef CamClayHardeningLaw CCHL;
 
@@ -58,7 +58,7 @@ namespace Testing
     /**
     * Check the correct hardening parameter calculation of a given stress condition
     */
-    KRATOS_TEST_CASE_IN_SUITE(ParticleHardeningParameterCalculation, KratosParticleMechanicsFastSuite)
+    KRATOS_TEST_CASE_IN_SUITE(MPMHardeningParameterCalculation, KratosMPMFastSuite)
     {
         Properties material_properties;
         GenerateTestVariables(material_properties);

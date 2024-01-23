@@ -21,7 +21,7 @@
 #include "containers/model.h"
 
 // Application includes
-#include "particle_mechanics_application_variables.h"
+#include "mpm_application_variables.h"
 
 // Material law
 #include "custom_constitutive/johnson_cook_thermal_plastic_plane_strain_2D_law.hpp"
@@ -35,7 +35,7 @@ namespace Testing
 {
     typedef Node NodeType;
 
-    KRATOS_TEST_CASE_IN_SUITE(ParticleConstitutiveLawJohnsonCookWithThermalSoftening, KratosParticleMechanicsFastSuite)
+    KRATOS_TEST_CASE_IN_SUITE(MPMConstitutiveLawJohnsonCookWithThermalSoftening, KratosMPMFastSuite)
     {
         ConstitutiveLaw::Parameters cl_parameters;
         Properties material_properties;
@@ -130,7 +130,7 @@ namespace Testing
         KRATOS_EXPECT_NEAR(ref_equivalent_stress, value, tolerance);
     }
 
-    KRATOS_TEST_CASE_IN_SUITE(ParticleConstitutiveLawJohnsonCookWithoutThermalSoftening, KratosParticleMechanicsFastSuite)
+    KRATOS_TEST_CASE_IN_SUITE(MPMConstitutiveLawJohnsonCookWithoutThermalSoftening, KratosMPMFastSuite)
     {
         ConstitutiveLaw::Parameters cl_parameters;
         Properties material_properties;

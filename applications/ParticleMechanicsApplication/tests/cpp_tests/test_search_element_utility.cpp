@@ -15,7 +15,7 @@
 
 // Project includes
 #include "testing/testing.h"
-#include "particle_mechanics_application_variables.h"
+#include "mpm_application_variables.h"
 #include "containers/model.h"
 
 #include "custom_utilities/mpm_search_element_utility.h"
@@ -189,7 +189,7 @@ namespace Testing
     }
 
     ///// Check if search function works properly
-    KRATOS_TEST_CASE_IN_SUITE(MPMSearchElementQuad2D, KratosParticleMechanicsFastSuite)
+    KRATOS_TEST_CASE_IN_SUITE(MPMSearchElementQuad2D, KratosMPMFastSuite)
     {
         // First Coordinates of Material Point
         array_1d<double, 3> mp_coordinate;
@@ -241,7 +241,7 @@ namespace Testing
     }
 
     ///// Check if search function works properly
-    KRATOS_TEST_CASE_IN_SUITE(MPMSearchElementTri2D, KratosParticleMechanicsFastSuite)
+    KRATOS_TEST_CASE_IN_SUITE(MPMSearchElementTri2D, KratosMPMFastSuite)
     {
         // First Coordinates of Material Point: (0.0, 0.2, 0.0)
         array_1d<double, 3> mp_coordinate;
@@ -361,7 +361,7 @@ namespace Testing
     }
 
     /// PQMPM test 1 - MP domain is entirely within cell and should only make 1 mp
-    KRATOS_TEST_CASE_IN_SUITE(MPMSearchElementPQMPM2DQuadWithinCell, KratosParticleMechanicsFastSuite)
+    KRATOS_TEST_CASE_IN_SUITE(MPMSearchElementPQMPM2DQuadWithinCell, KratosMPMFastSuite)
     {
         // First Coordinates of Material Point
         array_1d<double, 3> mp_coordinate;
@@ -403,7 +403,7 @@ namespace Testing
     }
 
     /// PQMPM test 2 - MP domain is entirely within cell and should only make 1 mp
-    KRATOS_TEST_CASE_IN_SUITE(MPMSearchElementPQMPM2DTriWithinCell, KratosParticleMechanicsFastSuite)
+    KRATOS_TEST_CASE_IN_SUITE(MPMSearchElementPQMPM2DTriWithinCell, KratosMPMFastSuite)
     {
         // First Coordinates of Material Point
         array_1d<double, 3> mp_coordinate;
@@ -445,7 +445,7 @@ namespace Testing
     }
 
     /// PQMPM test 3 - MP domain is not entirely within one cell and should make 9 mp. 2D skew quad
-    KRATOS_TEST_CASE_IN_SUITE(MPMSearchElementPQMPM2DQuad, KratosParticleMechanicsFastSuite)
+    KRATOS_TEST_CASE_IN_SUITE(MPMSearchElementPQMPM2DQuad, KratosMPMFastSuite)
     {
         // First Coordinates of Material Point
         array_1d<double, 3> mp_coordinate;
@@ -493,7 +493,7 @@ namespace Testing
     }
 
     /// PQMPM test 4 - MP domain is not entirely within one cell and should make 5 mp. 2D skew tri
-    KRATOS_TEST_CASE_IN_SUITE(MPMSearchElementPQMPM2DTri, KratosParticleMechanicsFastSuite)
+    KRATOS_TEST_CASE_IN_SUITE(MPMSearchElementPQMPM2DTri, KratosMPMFastSuite)
     {
         // First Coordinates of Material Point
         array_1d<double, 3> mp_coordinate;
@@ -540,7 +540,7 @@ namespace Testing
     }
 
     /// PQMPM test 5 - MP domain is not entirely within one cell and should make 4 mp. 3D hex
-    KRATOS_TEST_CASE_IN_SUITE(MPMSearchElementPQMPM3DHex, KratosParticleMechanicsFastSuite)
+    KRATOS_TEST_CASE_IN_SUITE(MPMSearchElementPQMPM3DHex, KratosMPMFastSuite)
     {
         // First Coordinates of Material Point
         array_1d<double, 3> mp_coordinate;
@@ -588,7 +588,7 @@ namespace Testing
 
     // TEST DISABLED - KRATOS_EXPECT_EXCEPTION_IS_THROWN doesn't work in parallel!
     /// PQMPM test 6 - Check pqmpm fails with unstructured 3D mesh
-    //KRATOS_TEST_CASE_IN_SUITE(MPMSearchElementPQMPM3DHexError, KratosParticleMechanicsFastSuite)
+    //KRATOS_TEST_CASE_IN_SUITE(MPMSearchElementPQMPM3DHexError, KratosMPMFastSuite)
     //{
     //    // First Coordinates of Material Point
     //    array_1d<double, 3> mp_coordinate;
@@ -626,7 +626,7 @@ namespace Testing
 
     // TEST DISABLED - KRATOS_EXPECT_EXCEPTION_IS_THROWN doesn't work in parallel!
     ///// PQMPM test 7 - Check pqmpm fails if point tries to split outside mesh
-    //KRATOS_TEST_CASE_IN_SUITE(MPMSearchElementPQMPM2DOutsideSplit, KratosParticleMechanicsFastSuite)
+    //KRATOS_TEST_CASE_IN_SUITE(MPMSearchElementPQMPM2DOutsideSplit, KratosMPMFastSuite)
     //{
     //    // First Coordinates of Material Point
     //    array_1d<double, 3> mp_coordinate;
@@ -663,7 +663,7 @@ namespace Testing
     //}
 
     /// PQMPM test 8 - Check pqmpm falls back to normal mpm if point tries to split outside mesh
-    KRATOS_TEST_CASE_IN_SUITE(MPMSearchElementPQMPM2DFallbackToMPM, KratosParticleMechanicsFastSuite)
+    KRATOS_TEST_CASE_IN_SUITE(MPMSearchElementPQMPM2DFallbackToMPM, KratosMPMFastSuite)
     {
         // First Coordinates of Material Point
         array_1d<double, 3> mp_coordinate;
@@ -700,7 +700,7 @@ namespace Testing
     }
 
     /// PQMPM test 9 - Check pqmpm does not split across a BC
-    KRATOS_TEST_CASE_IN_SUITE(MPMSearchElementPQMPM2DQuadBC, KratosParticleMechanicsFastSuite)
+    KRATOS_TEST_CASE_IN_SUITE(MPMSearchElementPQMPM2DQuadBC, KratosMPMFastSuite)
     {
         // First Coordinates of Material Point
         array_1d<double, 3> mp_coordinate;
@@ -744,7 +744,7 @@ namespace Testing
     }
 
     /// PQMPM test 10 - Check pqmpm reverts back to normal MPM if min_pqmpm fraction is specified and not fulfilled
-    KRATOS_TEST_CASE_IN_SUITE(MPMSearchElementPQMPM2DFraction, KratosParticleMechanicsFastSuite)
+    KRATOS_TEST_CASE_IN_SUITE(MPMSearchElementPQMPM2DFraction, KratosMPMFastSuite)
     {
         // First Coordinates of Material Point
         array_1d<double, 3> mp_coordinate;
