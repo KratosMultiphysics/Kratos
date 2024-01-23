@@ -128,6 +128,15 @@ namespace Kratos {
       mFile_ThermalEnergy << "9 - TOT";
       mFile_ThermalEnergy << std::endl;
     }
+    if (mGraph_ThermalEnergy) {
+      mFile_ThermalEnergyWalls.open("graph_thermal_energy_walls.txt", std::ios::out);
+      KRATOS_ERROR_IF_NOT(mFile_ThermalEnergyWalls) << "Could not open graph file graph_thermal_energy_walls.txt!" << std::endl;
+      mFile_ThermalEnergyWalls << "1 - TIME STEP | ";
+      mFile_ThermalEnergyWalls << "2 - TIME | ";
+      mFile_ThermalEnergyWalls << "3 - ANNULAR | ";
+      mFile_ThermalEnergyWalls << "4 - SIDES";
+      mFile_ThermalEnergyWalls << std::endl;
+    }
     if (mGraph_HeatGenValues) {
       mFile_HeatGenValues.open("graph_heat_generation.txt", std::ios::out);
       KRATOS_ERROR_IF_NOT(mFile_HeatGenValues) << "Could not open graph file graph_heat_generation.txt!" << std::endl;
@@ -215,6 +224,9 @@ namespace Kratos {
     double total_thermal_damp_pw = 0.0;
     double total_thermal         = 0.0;
 
+    double total_thermal_pw_annul = 0.0;
+    double total_thermal_pw_sides = 0.0;
+
     double total_heat_gen_slid_pp = 0.0;
     double total_heat_gen_slid_pw = 0.0;
     double total_heat_gen_roll_pp = 0.0;
@@ -270,6 +282,9 @@ namespace Kratos {
       const double thermal_damp_pp = fabs(particle.mGenerationThermalEnergy_damp_particle);
       const double thermal_damp_pw = fabs(particle.mGenerationThermalEnergy_damp_wall);
 
+      const double thermal_pw_annul = fabs(particle.mGenerationThermalEnergy_wall_annul);
+      const double thermal_pw_sides = fabs(particle.mGenerationThermalEnergy_wall_sides);
+
       const double heat_gen_slid_pp = fabs(particle.mGenerationHeatFlux_slid_particle);
       const double heat_gen_slid_pw = fabs(particle.mGenerationHeatFlux_slid_wall);
       const double heat_gen_roll_pp = fabs(particle.mGenerationHeatFlux_roll_particle);
@@ -309,6 +324,9 @@ namespace Kratos {
         total_thermal_damp_pp += thermal_damp_pp;
         total_thermal_damp_pw += thermal_damp_pw;
         total_thermal         += thermal_slid_pp + thermal_slid_pw + thermal_roll_pp + thermal_roll_pw + thermal_damp_pp + thermal_damp_pw;
+
+        total_thermal_pw_annul += thermal_pw_annul;
+        total_thermal_pw_sides += thermal_pw_sides;
 
         total_heat_gen_slid_pp += heat_gen_slid_pp;
         total_heat_gen_slid_pw += heat_gen_slid_pw;
@@ -407,6 +425,13 @@ namespace Kratos {
                           << total_thermal
                           << std::endl;
 
+    if (mFile_ThermalEnergyWalls.is_open())
+      mFile_ThermalEnergyWalls << time_step              << " "
+                               << time                   << " "
+                               << total_thermal_pw_annul << " "
+                               << total_thermal_pw_sides
+                               << std::endl;
+
     if (mFile_HeatGenValues.is_open())
       mFile_HeatGenValues << time_step              << " "
                           << time                   << " "
@@ -448,17 +473,18 @@ namespace Kratos {
   {
     KRATOS_TRY
 
-    if (mFile_ParticleTempMin.is_open())   mFile_ParticleTempMin.close();
-    if (mFile_ParticleTempMax.is_open())   mFile_ParticleTempMax.close();
-    if (mFile_ParticleTempAvg.is_open())   mFile_ParticleTempAvg.close();
-    if (mFile_ParticleTempDev.is_open())   mFile_ParticleTempDev.close();
-    if (mFile_ModelTempAvg.is_open())      mFile_ModelTempAvg.close();
-    if (mFile_MechanicalEnergy.is_open())  mFile_MechanicalEnergy.close();
-    if (mFile_ThermalEnergy.is_open())     mFile_ThermalEnergy.close();
-    if (mFile_HeatGenValues.is_open())     mFile_HeatGenValues.close();
-    if (mFile_HeatGenContrib.is_open())    mFile_HeatGenContrib.close();
-    if (mFile_MassInSilo.is_open())        mFile_MassInSilo.close();
-    if (mFile_Coordination.is_open())      mFile_Coordination.close();
+    if (mFile_ParticleTempMin.is_open())    mFile_ParticleTempMin.close();
+    if (mFile_ParticleTempMax.is_open())    mFile_ParticleTempMax.close();
+    if (mFile_ParticleTempAvg.is_open())    mFile_ParticleTempAvg.close();
+    if (mFile_ParticleTempDev.is_open())    mFile_ParticleTempDev.close();
+    if (mFile_ModelTempAvg.is_open())       mFile_ModelTempAvg.close();
+    if (mFile_MechanicalEnergy.is_open())   mFile_MechanicalEnergy.close();
+    if (mFile_ThermalEnergy.is_open())      mFile_ThermalEnergy.close();
+    if (mFile_ThermalEnergyWalls.is_open()) mFile_ThermalEnergyWalls.close();
+    if (mFile_HeatGenValues.is_open())      mFile_HeatGenValues.close();
+    if (mFile_HeatGenContrib.is_open())     mFile_HeatGenContrib.close();
+    if (mFile_MassInSilo.is_open())         mFile_MassInSilo.close();
+    if (mFile_Coordination.is_open())       mFile_Coordination.close();
 
     KRATOS_CATCH("")
   }

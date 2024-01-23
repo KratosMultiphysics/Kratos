@@ -161,6 +161,8 @@ namespace Kratos
     mGenerationThermalEnergy_slid_wall     = 0.0;
     mGenerationThermalEnergy_roll_particle = 0.0;
     mGenerationThermalEnergy_roll_wall     = 0.0;
+    mGenerationThermalEnergy_wall_annul    = 0.0;
+    mGenerationThermalEnergy_wall_sides    = 0.0;
 
     KRATOS_CATCH("")
   }

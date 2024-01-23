@@ -47,6 +47,21 @@ namespace Kratos {
     double heat_gen_rolling_pp = 0.0;
     double heat_gen_rolling_pw = 0.0;
 
+    // Check type of wall neighbor
+    bool is_wall_side = false;
+    if (particle->mNeighborType & WALL_NEIGHBOR) {
+      DEMWall* neighbor = particle->mNeighbor_w;
+      array_1d<double, 3> coord_z = ZeroVector(3);
+      int number_of_nodes = neighbor->GetGeometry().size();
+      for (unsigned int i = 0; i < number_of_nodes; i++) {
+        const array_1d<double, 3>& Nodecoord = neighbor->GetGeometry()[i].Coordinates();
+        coord_z[i] = Nodecoord[2];
+      }
+      if (fabs(coord_z[0] - coord_z[1]) < 0.00001 && fabs(coord_z[0] - coord_z[2]) < 0.00001) {
+        is_wall_side = true;
+      }
+    }
+
     // Damping thermal power
     if (r_process_info[GENERATION_DAMPING_OPTION]) {
       thermal_energy = coeff * contact_params.viscodamping_energy;
@@ -61,6 +76,11 @@ namespace Kratos {
         particle->mGenerationThermalEnergy_damp_wall += thermal_energy;
         particle->mGenerationHeatFlux_damp_wall      += heat_gen;
         heat_gen_damping_pw = heat_gen;
+
+        if (is_wall_side)
+          particle->mGenerationThermalEnergy_wall_sides += thermal_energy;
+        else
+          particle->mGenerationThermalEnergy_wall_annul += thermal_energy;
       }  
     }
 
@@ -78,6 +98,11 @@ namespace Kratos {
         particle->mGenerationThermalEnergy_slid_wall += thermal_energy;
         particle->mGenerationHeatFlux_slid_wall      += heat_gen;
         heat_gen_sliding_pw = heat_gen;
+
+        if (is_wall_side)
+          particle->mGenerationThermalEnergy_wall_sides += thermal_energy;
+        else
+          particle->mGenerationThermalEnergy_wall_annul += thermal_energy;
       }
     }
 
@@ -95,6 +120,11 @@ namespace Kratos {
         particle->mGenerationThermalEnergy_roll_wall += thermal_energy;
         particle->mGenerationHeatFlux_roll_wall      += heat_gen;
         heat_gen_rolling_pw = heat_gen;
+
+        if (is_wall_side)
+          particle->mGenerationThermalEnergy_wall_sides += thermal_energy;
+        else
+          particle->mGenerationThermalEnergy_wall_annul += thermal_energy;
       }
     }
 

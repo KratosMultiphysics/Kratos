@@ -245,6 +245,8 @@ namespace Kratos
       double mGenerationThermalEnergy_slid_wall;
       double mGenerationThermalEnergy_roll_particle;
       double mGenerationThermalEnergy_roll_wall;
+      double mGenerationThermalEnergy_wall_annul;
+      double mGenerationThermalEnergy_wall_sides;
 
       // Heat maps
       std::vector<std::vector<std::vector<double>>> mHeatMapGenerationDampingPP;  // Local heat map matrix for heat generaion by damping between particle-particle
