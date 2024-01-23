@@ -17,50 +17,52 @@
 #include "custom_python/add_custom_utilities_to_python.h"
 #include "spaces/ublas_space.h"
 
-//Utilities
+// Utilities
 #include "custom_utilities/rayleigh_damping_coefficients_utilities.h"
 #include "custom_utilities/explicit_integration_utilities.h"
 #include "custom_utilities/project_vector_on_surface_utility.h"
 #include "custom_utilities/perturb_geometry_sparse_utility.h"
 #include "custom_utilities/perturb_geometry_subgrid_utility.h"
+#include "custom_utilities/parallel_compute_cl_variables_utility.h"
 
-namespace Kratos::Python {
-
-void AddCustomUtilitiesToPython(pybind11::module& m)
+namespace Kratos::Python
 {
-    namespace py = pybind11;
 
-    typedef UblasSpace<double, CompressedMatrix, boost::numeric::ublas::vector<double>> SparseSpaceType;
-    typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
+    void AddCustomUtilitiesToPython(pybind11::module &m)
+    {
+        namespace py = pybind11;
 
-    // Base types
-    typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverTypeSparse;
-    typedef LinearSolverTypeSparse::Pointer LinearSolverPointerTypeSparse;
+        typedef UblasSpace<double, CompressedMatrix, boost::numeric::ublas::vector<double>> SparseSpaceType;
+        typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
 
-    typedef LinearSolver<LocalSpaceType, LocalSpaceType > LinearSolverTypeDense;
-    typedef LinearSolverTypeDense::Pointer LinearSolverPointerTypeDense;
+        // Base types
+        typedef LinearSolver<SparseSpaceType, LocalSpaceType> LinearSolverTypeSparse;
+        typedef LinearSolverTypeSparse::Pointer LinearSolverPointerTypeSparse;
 
-    // RayleighDampingCoefficientsUtilities
-    m.def("ComputeDampingCoefficients",&RayleighDampingCoefficientsUtilities::ComputeDampingCoefficients);
+        typedef LinearSolver<LocalSpaceType, LocalSpaceType> LinearSolverTypeDense;
+        typedef LinearSolverTypeDense::Pointer LinearSolverPointerTypeDense;
 
-    // ExplicitIntegrationUtilities
-    m.def("CalculateDeltaTime",&ExplicitIntegrationUtilities::CalculateDeltaTime);
+        // RayleighDampingCoefficientsUtilities
+        m.def("ComputeDampingCoefficients", &RayleighDampingCoefficientsUtilities::ComputeDampingCoefficients);
 
-    py::class_<ProjectVectorOnSurfaceUtility>(m,"ProjectVectorOnSurfaceUtility")
-        .def_static("Execute",&ProjectVectorOnSurfaceUtility::Execute);
+        // ExplicitIntegrationUtilities
+        m.def("CalculateDeltaTime", &ExplicitIntegrationUtilities::CalculateDeltaTime);
 
-    py::class_<PerturbGeometrySparseUtility, PerturbGeometrySparseUtility::Pointer>(m,"PerturbGeometrySparseUtility")
-        .def(py::init<ModelPart&,LinearSolverPointerTypeSparse, Parameters>())
-        .def("CreateRandomFieldVectors", &PerturbGeometrySparseUtility::CreateRandomFieldVectors)
-        .def("ApplyRandomFieldVectorsToGeometry", &PerturbGeometrySparseUtility::ApplyRandomFieldVectorsToGeometry)
-        ;
+        py::class_<ProjectVectorOnSurfaceUtility>(m, "ProjectVectorOnSurfaceUtility")
+            .def_static("Execute", &ProjectVectorOnSurfaceUtility::Execute);
 
-    py::class_<PerturbGeometrySubgridUtility, PerturbGeometrySubgridUtility::Pointer>(m,"PerturbGeometrySubgridUtility")
-        .def(py::init<ModelPart&, LinearSolverPointerTypeDense, Parameters>())
-        .def("CreateRandomFieldVectors", &PerturbGeometrySubgridUtility::CreateRandomFieldVectors)
-        .def("ApplyRandomFieldVectorsToGeometry", &PerturbGeometrySubgridUtility::ApplyRandomFieldVectorsToGeometry)
-        ;
-}
+        py::class_<PerturbGeometrySparseUtility, PerturbGeometrySparseUtility::Pointer>(m, "PerturbGeometrySparseUtility")
+            .def(py::init<ModelPart &, LinearSolverPointerTypeSparse, Parameters>())
+            .def("CreateRandomFieldVectors", &PerturbGeometrySparseUtility::CreateRandomFieldVectors)
+            .def("ApplyRandomFieldVectorsToGeometry", &PerturbGeometrySparseUtility::ApplyRandomFieldVectorsToGeometry);
 
-}  // namespace Kratos::Python.
+        py::class_<PerturbGeometrySubgridUtility, PerturbGeometrySubgridUtility::Pointer>(m, "PerturbGeometrySubgridUtility")
+            .def(py::init<ModelPart &, LinearSolverPointerTypeDense, Parameters>())
+            .def("CreateRandomFieldVectors", &PerturbGeometrySubgridUtility::CreateRandomFieldVectors)
+            .def("ApplyRandomFieldVectorsToGeometry", &PerturbGeometrySubgridUtility::ApplyRandomFieldVectorsToGeometry);
+        py::class_<ParallelComputeCLVariablesUtility, ParallelComputeCLVariablesUtility::Pointer>(m, "ParallelComputeCLVariablesUtility")
+            .def(py::init<>())
+            .def("ComputeStresses", &ParallelComputeCLVariablesUtility::ComputeStresses);
+    }
 
+} // namespace Kratos::Python.
