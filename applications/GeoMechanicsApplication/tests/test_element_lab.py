@@ -61,7 +61,7 @@ class KratosGeoMechanicsLabElementTests(KratosUnittest.TestCase):
 
     def test_oedometer_ULFEM(self):
         """
-        Oedometer test on Mohr-Coulomb model with 2D6N elements
+        Oedometer test on a linear elastic model with 2D6N elements
         """
         test_name = 'oedometer_ULFEM'
         project_path = test_helper.get_file_path(os.path.join('test_element_lab', test_name))
@@ -86,7 +86,7 @@ class KratosGeoMechanicsLabElementTests(KratosUnittest.TestCase):
 
     def test_oedometer_ULFEM_diff_order(self):
         """
-        Oedometer test on Mohr-Coulomb model with 2D6N with different order elements
+        Oedometer test on a linear elastic model with 2D6N with different order elements
         """
         test_name = 'oedometer_ULFEM_diff_order'
         project_path = test_helper.get_file_path(os.path.join('test_element_lab', test_name))
