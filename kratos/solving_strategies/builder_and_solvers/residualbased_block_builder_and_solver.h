@@ -229,11 +229,6 @@ public:
         // Assemble all elements
         const auto timer = BuiltinTimer();
 
-        // NewUtility my_utility;
-        // std::vector<int> binary_array_elements = my_utility.CreateBinaryArray(A.size1());
-        // std::vector<int> binary_array_conditions = my_utility.CreateBinaryArray(A.size1());
-        // KRATOS_WATCH(A.size1())
-
         #pragma omp parallel firstprivate(nelements,nconditions, LHS_Contribution, RHS_Contribution, EquationId)
         {
             # pragma omp for  schedule(guided, 512) nowait
@@ -263,69 +258,8 @@ public:
                 }
             }
         }
-        
-        // // KRATOS_WATCH(binary_array_elements)
-        // int number_dofs_fixed = 0;
-        // for(auto& r_dof : BaseType::mDofSet){
-        //     // if (binary_array_elements[r_dof.EquationId()] == 0 && binary_array_conditions[r_dof.EquationId()] == 0 ) {
-        //     if (binary_array_elements[r_dof.EquationId()] == 0 ) { // NEED TO ADD IN THE CASE OF BODY-FITTED OPTION
-        //         // r_dof.FixDof(); 
-        //         number_dofs_fixed++;
-        //         KRATOS_WATCH(r_dof.EquationId())
-        //         // for (int i = 0; i < A.size1(); i++){
-        //         //     KRATOS_WATCH(A(r_dof.EquationId(),i))
-        //         // }
-        //     }
-        // }
 
-        // KRATOS_WATCH('FIX MANUALLY THE FIXED DOFS')
-        // for(auto& r_dof : BaseType::mDofSet){
-        //     if(r_dof.IsFixed()){
-        //         // A(r_dof.EquationId(),r_dof.EquationId()) = 1.0;
-        //         int a = 0;
-        //     }
-        // }
-        // KRATOS_INFO_IF("NUMBER OF DOFS FIXED", this->GetEchoLevel() >= 0) << number_dofs_fixed << std::endl;
-
-        // // ADDITIONAL check for weird cases
-        // const double threshold = 1e-7;
-        // int number_zero_rows = 0;
-        // for(std::size_t i = 0; i < A.size1(); ++i){
-        //     bool is_all_zero = true;
-        //     for(std::size_t j = 0; j < A.size2(); ++j){
-        //         if(std::abs(A(i,j)) > threshold){
-        //             is_all_zero = false;
-        //             break;
-        //         }
-        //     }
-        //     if(is_all_zero){
-        //         A(i,i) = 1.0;
-        //         number_zero_rows++;
-        //         KRATOS_WATCH(i)
-        //     }
-        // }
-        // if (number_zero_rows > 0) { KRATOS_INFO_IF("NUMBER OF ZERO ROWS", this->GetEchoLevel() >= 0) << number_zero_rows << std::endl; }
-
-
-        // // COLUMNS 
-        // int number_zero_col = 0;
-        // for(std::size_t i = 0; i < A.size1(); ++i){
-        //     bool is_all_zero = true;
-        //     for(std::size_t j = 0; j < A.size2(); ++j){
-        //         if(std::abs(A(j,i)) > threshold){
-        //             is_all_zero = false;
-        //             break;
-        //         }
-        //     }
-        //     if(is_all_zero){
-        //         A(i,i) = 1.0;
-        //         number_zero_col++;
-        //     }
-        // }
-        // if (number_zero_col > 0) { KRATOS_INFO_IF("NUMBER OF ZERO COLUMNS", this->GetEchoLevel() >= 0) << number_zero_col << std::endl; }
-
-
-        // CONDITION NUMBER
+        // // CONDITION NUMBER
         // ConditionNumberUtility mpConditionNumberUtility;
         // const double condition_number = mpConditionNumberUtility.GetConditionNumber(A);
         // const double minimum_eigenvalue = mpConditionNumberUtility.GetMinimumEigenvalue(A);

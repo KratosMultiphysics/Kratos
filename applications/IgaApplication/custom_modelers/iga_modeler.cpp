@@ -11,6 +11,7 @@
 
 // Project includes
 #include "iga_modeler.h"
+#include "spatial_containers/bins_dynamic.h"
 
 
 namespace Kratos
@@ -134,6 +135,39 @@ namespace Kratos
             << " for " << rGeometryList.size() << " geometries"
             << " in " << rModelPart.Name() << "-SubModelPart." << std::endl;
 
+        
+        // MODIFIED SBM
+
+        ModelPart& skin_model_part = mpModel->HasModelPart("skin_model_part")
+            ? mpModel->GetModelPart("skin_model_part")
+            : mpModel->CreateModelPart("skin_model_part");
+        using PointType = Node;
+        using PointTypePointer = Node::Pointer;
+        using PointVector = std::vector<PointType::Pointer>;
+        using PointIterator = std::vector<PointType::Pointer>::iterator;
+        using DistanceVector = std::vector<double>;
+        using DistanceIterator = std::vector<double>::iterator;
+        using DynamicBins = BinsDynamic<3, PointType, PointVector, PointTypePointer, PointIterator, DistanceIterator>;
+        using PointerType = DynamicBins::PointerType;
+
+        PointVector points;
+        for (auto &i_cond : skin_model_part.Conditions()) {
+            points.push_back(PointTypePointer(new PointType(i_cond.Id(), i_cond.GetGeometry()[0].X(), i_cond.GetGeometry()[0].Y(), i_cond.GetGeometry()[0].Z())));
+        }
+        DynamicBins testBins(points.begin(), points.end());
+    
+        Vector meshSizes_uv = mpModel->GetModelPart("surrogate_model_part").GetProcessInfo().GetValue(MARKER_MESHES);
+
+        double meshSize = meshSizes_uv[0];
+        if (meshSizes_uv[1] > meshSize) {meshSize = meshSizes_uv[1];}
+        
+        const double radius = sqrt(2)*(meshSize); 
+        // const double radius = 5*(meshSize);
+        const int numberOfResults = 1e6; 
+        ModelPart::NodesContainerType::ContainerType Results(numberOfResults);
+
+        std::vector<double> list_of_distances(numberOfResults);
+            
         for (SizeType i = 0; i < rGeometryList.size(); ++i)
         {
             GeometriesArrayType geometries;
@@ -185,10 +219,45 @@ namespace Kratos
                 SizeType id = 1;
                 if (rModelPart.GetRootModelPart().Conditions().size() > 0)
                     id = rModelPart.GetRootModelPart().Conditions().back().Id() + 1;
+                
+                std::vector<int> listIdClosestCondition(geometries.size());
+                if (name == "SBMLaplacianCondition") { 
+                    for (auto j= 0; j < geometries.size() ; j++) {  
 
-                this->CreateConditions(
+                        Point gaussPoint = geometries[j].Center(); 
+                        
+                        PointerType pointToSearch = PointerType(new PointType(10000, gaussPoint.X(), gaussPoint.Y(), gaussPoint.Z()));
+
+                        // OLD SEARCH (not working well- maybe in the future)
+                        // PointerType nearestPoint = testBins.SearchNearestPoint(*pointToSearch);
+                        // listIdClosestCondition[j] = nearestPoint->Id();
+
+                        int obtainedResults = testBins.SearchInRadius(*pointToSearch, radius, Results.begin(), list_of_distances.begin(), numberOfResults);
+
+                        double minimum_distance=1e10;
+                        int nearestNodeId;
+                        for (uint i_distance = 0; i_distance < obtainedResults; i_distance++) {
+                            double new_distance = list_of_distances[i_distance];   
+                            if (new_distance < minimum_distance) { 
+                                minimum_distance = new_distance;
+                                nearestNodeId = i_distance;
+                                }
+                        }
+
+                        if (obtainedResults == 0) { KRATOS_WATCH('0 POINTS FOUND: EXIT');  exit(0);}
+
+                        
+                        listIdClosestCondition[j] = Results[nearestNodeId]->Id();
+                    }
+
+                    this->CreateConditions(
                     geometries.ptr_begin(), geometries.ptr_end(),
-                    rModelPart, name, id, PropertiesPointerType());
+                    rModelPart, skin_model_part, listIdClosestCondition, name, id, PropertiesPointerType());
+                } else {
+                    this->CreateConditions(
+                        geometries.ptr_begin(), geometries.ptr_end(),
+                        rModelPart, name, id, PropertiesPointerType());
+                }
             }
             else {
                 KRATOS_ERROR << "\"type\" does not exist: " << type
@@ -214,27 +283,14 @@ namespace Kratos
                 rGeometryList.push_back(rModelPart.pGetGeometry(rParameters["brep_ids"][i].GetInt()));
             }
             KRATOS_WATCH(rParameters["iga_model_part"].GetString())
-            
-            // Get the name of the Snake file
-            std::ifstream file("txt_files/input_data.txt");
-            std::string line;
-            std::getline(file, line);  std::getline(file, line); // Skip first and second lines
-            std::getline(file, line); // Read the third line
-            std::string filename = line;
-            file.close();
 
             /// MODIFIED
-            if (rParameters["iga_model_part"].GetString() == "Support_2") {
-                // Read the control_points from the external file in order to know how many edge I have to add (need to improve this)
-                std::ifstream file("txt_files/" + filename + ".txt");
-                KRATOS_WATCH("txt_files/" + filename + ".txt")
-                double x, y;
-                std::vector<double> coordinates_x;
-                while (file >> x >> y) {coordinates_x.push_back(x);}
-                file.close();
-                KRATOS_WATCH(coordinates_x)
+            std::string conditionName = rParameters["iga_model_part"].GetString();
+            if (conditionName.rfind("SBM", 0) == 0) { 
+                ModelPart& surrogateModelPart = mpModel->GetModelPart("surrogate_model_part");
+                uint sizeSurrogateLoop = surrogateModelPart.Nodes().size();
                 int starting_brep_ids = 8;
-                for (SizeType j = 0; j < coordinates_x.size()-1; ++j) {
+                for (SizeType j = 0; j < sizeSurrogateLoop-1; ++j) {
                     // Add the brep_ids of the internal boundary for SBMLaplacianCondition
                     rGeometryList.push_back(rModelPart.pGetGeometry(starting_brep_ids+j));
                 }
@@ -287,6 +343,51 @@ namespace Kratos
         }
 
         rModelPart.AddElements(new_element_list.begin(), new_element_list.end());
+    }
+
+    void IgaModeler::CreateConditions(
+        typename GeometriesArrayType::ptr_iterator rGeometriesBegin,
+        typename GeometriesArrayType::ptr_iterator rGeometriesEnd,
+        ModelPart& rModelPart,
+        ModelPart& rSkinModelPart,
+        std::vector<int>& listIdClosestCondition,
+        std::string& rConditionName,
+        SizeType& rIdCounter,
+        PropertiesPointerType pProperties) const
+    {
+        const Condition& rReferenceCondition = KratosComponents<Condition>::Get(rConditionName);
+
+        ModelPart::ConditionsContainerType new_condition_list;
+
+        KRATOS_INFO_IF("CreateConditions", mEchoLevel > 2)
+            << "Creating conditions of type " << rConditionName
+            << " in " << rModelPart.Name() << "-SubModelPart." << std::endl;
+
+        int countListClosestCondition = 0;
+        for (auto it = rGeometriesBegin; it != rGeometriesEnd; ++it)
+        {
+            new_condition_list.push_back(
+                rReferenceCondition.Create(rIdCounter, (*it), pProperties));
+
+            int condId = listIdClosestCondition[countListClosestCondition];
+
+            Condition::Pointer cond1 = &rSkinModelPart.GetCondition(condId);
+            int condId2;  
+            if (condId == 1) { condId2 = rSkinModelPart.Conditions().size();}
+            else {condId2 = condId-1;}
+            Condition::Pointer cond2 = &rSkinModelPart.GetCondition(condId2);
+
+            new_condition_list.GetContainer()[countListClosestCondition]->SetValue(NEIGHBOUR_CONDITIONS, GlobalPointersVector<Condition>({cond1,cond2}));
+
+            for (SizeType i = 0; i < (*it)->size(); ++i) {
+                // These are the control points associated with the basis functions involved in the condition we are creating
+                rModelPart.AddNode((*it)->pGetPoint(i));
+            }
+            rIdCounter++;
+            countListClosestCondition++;
+        }
+
+        rModelPart.AddConditions(new_condition_list.begin(), new_condition_list.end());
     }
 
     void IgaModeler::CreateConditions(

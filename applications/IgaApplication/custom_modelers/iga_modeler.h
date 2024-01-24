@@ -173,6 +173,17 @@ private:
         SizeType& rIdCounter,
         PropertiesPointerType pProperties) const;
 
+    /// Creates conditions from geometries
+    void CreateConditions(
+        typename GeometriesArrayType::ptr_iterator rGeometriesBegin,
+        typename GeometriesArrayType::ptr_iterator rGeometriesEnd,
+        ModelPart& rDestinationModelPart,
+        ModelPart& rSkinModelPart,
+        std::vector<int>& listIdClosestCondition,
+        std::string& rConditionName,
+        SizeType& rIdCounter,
+        PropertiesPointerType pProperties) const;
+
     ///@}
     ///@name Get Points at Boundaries
     ///@{

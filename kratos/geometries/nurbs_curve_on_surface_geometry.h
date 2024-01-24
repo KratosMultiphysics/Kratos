@@ -454,7 +454,7 @@ public:
         mpNurbsCurve->GlobalSpaceDerivatives(global_space_first,rIntegrationPoints[0],1);  // i = 0
         mpNurbsCurve->GlobalSpaceDerivatives(global_space_second,rIntegrationPoints[1],1); // i = 1
 
-        for (IndexType i = 0; i < rIntegrationPoints.size(); ++i) // Va da 0 a 4 quando p = 2
+        for (IndexType i = 0; i < rIntegrationPoints.size(); ++i)
         {    
             std::vector<CoordinatesArrayType> global_space_derivatives(2);
             mpNurbsCurve->GlobalSpaceDerivatives(
@@ -476,7 +476,7 @@ public:
                 if (std::abs(global_space_derivatives[0][1]-mpNurbsSurface->KnotsV()[0]) < threshold) {is_surrogate_boundary = false;} // External boundary
                 if (std::abs(global_space_derivatives[0][1]-mpNurbsSurface->KnotsV()[mpNurbsSurface->KnotsV().size()-1]) < threshold) {is_surrogate_boundary = false;} // External boundary
 
-                // If it is 1 -> the current GP is a surrogate GP
+                // If it is 1 -> the current GP is a surrogate GP otherwise it is an external GP
                 if (is_surrogate_boundary) {
                     // KRATOS_WATCH('SURROGATE BOUNDARY GP')
                     IndexType SpanU = NurbsUtilities::GetLowerSpan(mpNurbsSurface->PolynomialDegreeU(), mpNurbsSurface->KnotsU(), global_space_derivatives[0][0]);

@@ -155,7 +155,7 @@ namespace Kratos
                     }
                     
                     // SBM CASE
-                    // (SBM_technique == 0) -> SM
+                    // (SBM_technique == 0) -> SBM
                     else {
                         // Artificiality for let SBM works
                         if (clip_area/span_area <= 0.40) { 

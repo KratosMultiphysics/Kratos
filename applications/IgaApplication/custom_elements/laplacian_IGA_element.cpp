@@ -161,8 +161,7 @@ void LaplacianIGAElement<TDim>::CalculateLocalSystem(MatrixType& rLeftHandSideMa
         noalias(DN_DX) = prod(DN_De[i_point],InvJ0);
 
         auto N = row(N_gausspoint,i_point); // these are the N which correspond to the gauss point "i_point"
-        const double IntToReferenceWeight = integration_points[i_point].Weight() * fabs(DetJ0);
-        // Watch out DetJ0 = -1
+        const double IntToReferenceWeight = integration_points[i_point].Weight() * std::abs(DetJ0);
 
         // Also the conductivity is multiplied by the value of the shape function at the GaussPoint
         const double conductivity_gauss = inner_prod(N, nodal_conductivity);
@@ -178,10 +177,10 @@ void LaplacianIGAElement<TDim>::CalculateLocalSystem(MatrixType& rLeftHandSideMa
     for (unsigned int i = 0; i < number_of_points; i++) {
         // KRATOS_WATCH(r_geometry[i].GetId())
         temp[i] = r_geometry[i].GetSolutionStepValue(r_unknown_var);
-        std::ofstream outputFile("txt_files/Id_active_control_points.txt", std::ios::app);
-        outputFile << r_geometry[i].GetId() << "  " <<r_geometry[i].GetDof(r_unknown_var).EquationId() <<"\n";
-        outputFile.close();
-        // KRATOS_WATCH(r_geometry[i].GetDof(r_unknown_var).EquationId())
+
+        // std::ofstream outputFile("txt_files/Id_active_control_points.txt", std::ios::app);
+        // outputFile << r_geometry[i].GetId() << "  " <<r_geometry[i].GetDof(r_unknown_var).EquationId() <<"\n";
+        // outputFile.close();
     }
 
     // RHS -= K*temp
@@ -195,8 +194,6 @@ void LaplacianIGAElement<TDim>::CalculateLocalSystem(MatrixType& rLeftHandSideMa
 template<std::size_t TDim>
 void LaplacianIGAElement<TDim>::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, const ProcessInfo& rCurrentProcessInfo)
 {   
-    KRATOS_WATCH('LHS___111')
-    exit(0) ;
     VectorType temp(0);
     CalculateLocalSystem(rLeftHandSideMatrix, temp, rCurrentProcessInfo);
 }
@@ -318,7 +315,6 @@ void LaplacianIGAElement<TDim>::FinalizeSolutionStep(const ProcessInfo& rCurrent
     double y_coord_gauss_point = 0;
     double rOutput = 0;
 
-    // KRATOS_WATCH(r_geometry.Center())
     for (IndexType i = 0; i < nb_nodes; ++i)
     {
         // KRATOS_WATCH(r_geometry[i])

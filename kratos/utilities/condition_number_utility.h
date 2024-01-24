@@ -190,11 +190,9 @@ public:
 
         pEigenSolverMin->Solve(rInputMatrix, identity_matrix, eigen_values, eigen_vectors);
         const double min_lambda = eigen_values[0];
-        // KRATOS_WATCH(eigen_values)
 
         // DA TOGLIERE abs !! 
         // KRATOS_ERROR_IF(abs(min_lambda) < std::numeric_limits<double>::epsilon()) << "ERROR:: NOT POSSIBLE TO COMPUTE CONDITION NUMBER. ZERO EIGENVALUE" << std::endl;
-
         const double condition_number = std::abs(max_lambda)/std::abs(min_lambda);
 
         return condition_number;

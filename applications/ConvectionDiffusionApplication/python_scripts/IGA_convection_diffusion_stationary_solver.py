@@ -24,9 +24,9 @@ class IGAConvectionDiffusionStationarySolver(convection_diffusion_stationary_sol
     if (file_mdpa_exists) :
         print('mdpa file of embedded boundary exists!')
         current_model = KratosMultiphysics.Model()
-        skin_model_part = current_model.CreateModelPart("skin_model_part")
-        skin_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.TEMPERATURE)
-        KratosMultiphysics.ModelPartIO(name_mdpa_true_boundary).ReadModelPart(skin_model_part)
+        skin_model_part2 = current_model.CreateModelPart("skin_model_part2")
+        skin_model_part2.AddNodalSolutionStepVariable(KratosMultiphysics.TEMPERATURE)
+        KratosMultiphysics.ModelPartIO(name_mdpa_true_boundary).ReadModelPart(skin_model_part2)
         
         # Write all the points of the skin boundary in an external file
         directory = "txt_files"
@@ -34,28 +34,28 @@ class IGAConvectionDiffusionStationarySolver(convection_diffusion_stationary_sol
         if os.path.exists(file_name):
             os.remove(file_name)
         with open(file_name, 'w') as file:
-            for condition in skin_model_part.Conditions :
+            for condition in skin_model_part2.Conditions :
                 file.write(f"{condition.GetNodes()[0].X} {condition.GetNodes()[0].Y}\n")
                 file.write(f"{condition.GetNodes()[1].X} {condition.GetNodes()[1].Y}\n")
-    else :
-        if os.path.exists("txt_file/true_points.txt") :
-            os.remove("txt_file/true_points.txt")
-            print('true_points file has been deleted')
+    # else :
+    #     if os.path.exists("txt_file/true_points.txt") :
+    #         os.remove("txt_file/true_points.txt")
+    #         print('true_points file has been deleted')
 
-        current_model = KratosMultiphysics.Model()
-        skin_model_part = current_model.CreateModelPart("skin_model_part")
-        skin_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.TEMPERATURE)
-        KratosMultiphysics.ModelPartIO("mdpa_files/Weird_shape5" ).ReadModelPart(skin_model_part)
+    #     current_model = KratosMultiphysics.Model()
+    #     skin_model_part = current_model.CreateModelPart("skin_model_part")
+    #     skin_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.TEMPERATURE)
+    #     KratosMultiphysics.ModelPartIO("mdpa_files/Weird_shape5" ).ReadModelPart(skin_model_part)
         
-        # Write all the points of the skin boundary in an external file
-        directory = "txt_files"
-        file_name = os.path.join(directory, "true_points_for_trimming.txt")
-        if os.path.exists(file_name):
-            os.remove(file_name)
-        with open(file_name, 'w') as file:
-            for condition in skin_model_part.Conditions :
-                file.write(f"{condition.GetNodes()[0].X} {condition.GetNodes()[0].Y}\n")
-                file.write(f"{condition.GetNodes()[1].X} {condition.GetNodes()[1].Y}\n")
+    #     # Write all the points of the skin boundary in an external file
+    #     directory = "txt_files"
+    #     file_name = os.path.join(directory, "true_points_for_trimming.txt")
+    #     if os.path.exists(file_name):
+    #         os.remove(file_name)
+    #     with open(file_name, 'w') as file:
+    #         for condition in skin_model_part.Conditions :
+    #             file.write(f"{condition.GetNodes()[0].X} {condition.GetNodes()[0].Y}\n")
+    #             file.write(f"{condition.GetNodes()[1].X} {condition.GetNodes()[1].Y}\n")
 
     
     def __init__(self, main_model_part, custom_settings):

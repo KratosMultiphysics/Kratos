@@ -17,6 +17,7 @@
 
 // Project includes
 #include "custom_conditions/sbm_laplacian_condition.h"
+#include "containers/model.h"
 
 namespace Kratos
 {
@@ -28,8 +29,11 @@ namespace Kratos
         const bool CalculateResidualVectorFlag
     )
     {
-        KRATOS_TRY
+        Condition candidateClosestSkinSegment1 = this->GetValue(NEIGHBOUR_CONDITIONS)[0] ;
+        Condition candidateClosestSkinSegment2 = this->GetValue(NEIGHBOUR_CONDITIONS)[1];
 
+        
+        KRATOS_TRY
         const auto& r_geometry = this->GetGeometry();
         const SizeType number_of_nodes = r_geometry.PointsNumber();
         if (rRightHandSideVector.size() != number_of_nodes) {
@@ -50,9 +54,7 @@ namespace Kratos
         double h = 2.0/(insertions+1) ;
 
         // Modify the penalty factor: penalty/h
-        // penalty = penalty/(h*h);
         penalty = penalty/(h);
-        // KRATOS_WATCH(r_geometry.Center())
 
         // Integration
         const GeometryType::IntegrationPointsArrayType& integration_points = r_geometry.IntegrationPoints();
@@ -83,35 +85,36 @@ namespace Kratos
             Vector GP_parameter_coord(2); 
             GP_parameter_coord = prod(r_geometry.Center(),J0[point_number]);
 
-            // GENERAL COMPUTATION OF THE PROJECTION
-            std::ifstream file("txt_files/true_points.txt");    // Read the true points from the mdpa
-            std::vector<double> x_true_boundary;
-            std::vector<double> y_true_boundary;
-            double x, y;
-            while (file >> x >> y) { x_true_boundary.push_back(x); y_true_boundary.push_back(y); }
-            file.close();
-            int index_min_distance = 0; // Initialization of the index of the true node closest to the Gauss point.
-            double min_distance_squared = 1e14;
-            for (int i = 1; i < x_true_boundary.size(); i++) {
-                double current_distance_squared = (GP_parameter_coord[0]-x_true_boundary[i])*(GP_parameter_coord[0]-x_true_boundary[i]) +  
-                      (GP_parameter_coord[1]-y_true_boundary[i])*(GP_parameter_coord[1]-y_true_boundary[i]) ;
-                if ( current_distance_squared  <  min_distance_squared ) {
-                        min_distance_squared = current_distance_squared;
-                        index_min_distance = i ;
-                      }
-            }
 
+            // std::ifstream file("txt_files/true_points.txt");    // Read the true points from the mdpa
+            // std::vector<double> x_true_boundary;
+            // std::vector<double> y_true_boundary;
+            // double x, y;
+            // while (file >> x >> y) { x_true_boundary.push_back(x); y_true_boundary.push_back(y); }
+            // file.close();
+            // int index_min_distance = 0; // Initialization of the index of the true node closest to the Gauss point.
+            // double min_distance_squared = 1e14;
+            // for (int i = 1; i < x_true_boundary.size(); i++) {
+            //     double current_distance_squared = (GP_parameter_coord[0]-x_true_boundary[i])*(GP_parameter_coord[0]-x_true_boundary[i]) +  
+            //           (GP_parameter_coord[1]-y_true_boundary[i])*(GP_parameter_coord[1]-y_true_boundary[i]) ;
+            //     if ( current_distance_squared  <  min_distance_squared ) {
+            //             min_distance_squared = current_distance_squared;
+            //             index_min_distance = i ;
+            //           }
+            // }
+            // Vector projection(2);
+            // projection[0] = x_true_boundary[index_min_distance] ;
+            // projection[1] = y_true_boundary[index_min_distance] ;
+            
+            // Obtaining the projection from the closest skin segment
             Vector projection(2);
-            projection[0] = x_true_boundary[index_min_distance] ;
-            projection[1] = y_true_boundary[index_min_distance] ;
+            projection[0] = candidateClosestSkinSegment1.GetGeometry()[0].X() ;
+            projection[1] = candidateClosestSkinSegment1.GetGeometry()[0].Y() ;
 
-
-            // Stampa su file esterno le coordinate (projection[0],projection[1])
+            // Print on external file the projection coordinates (projection[0],projection[1]) -> For PostProcess
             std::ofstream outputFile("txt_files/Projection_Coordinates.txt", std::ios::app);
             outputFile << projection[0] << " " << projection[1] << " "  << GP_parameter_coord[0] << " " << GP_parameter_coord[1] <<"\n";
             outputFile.close();
-            // KRATOS_WATCH(GP_parameter_coord[0])
-            // KRATOS_WATCH(GP_parameter_coord[1])
 
             Vector d(2);
             d[0] = projection[0] - GP_parameter_coord[0];
@@ -157,11 +160,7 @@ namespace Kratos
             normal_parameter_space[1] = - tangent_parameter_space[0] / magnitude;  // By observations on the result of .Calculate(LOCAL_TANGENT
 
             normal_physical_space = prod(trans(J0[0]),normal_parameter_space);
-            // KRATOS_WATCH(GP_parameter_coord)
-            // KRATOS_WATCH(normal_parameter_space)
-            // KRATOS_WATCH(d)
             
-
             // Guglielmo innovaction
             double Guglielmo_innovation = -1.0;  // = 1 -> Penalty approach
                                                 // = -1 -> Free-penalty approach
@@ -191,16 +190,11 @@ namespace Kratos
                 H_4thTayor_term(0, i) = 1.0/24.0 * DDDDN_DDDDe(i,0) * d[0]*d[0]*d[0]*d[0] + 1.0/6.0 * DDDDN_DDDDe(i,1) * d[0]*d[0]*d[0]*d[1] + 1.0/4.0 * DDDDN_DDDDe(i,2) * d[0]*d[0]*d[1]*d[1] + 1.0/6.0 * DDDDN_DDDDe(i,3) * d[0]*d[1]*d[1]*d[1] + 1.0/24.0 * DDDDN_DDDDe(i,4) * d[1]*d[1]*d[1]*d[1];
                 H_5thTayor_term(0, i) = 1.0/120.0 * DDDDDN_DDDDDe(i,0) * d[0]*d[0]*d[0]*d[0]*d[0] + 1.0/24.0 * DDDDDN_DDDDDe(i,1) * d[0]*d[0]*d[0]*d[0]*d[1] + 1.0/12.0 * DDDDDN_DDDDDe(i,2) * d[0]*d[0]*d[0]*d[1]*d[1] + 1.0/12.0 * DDDDDN_DDDDDe(i,3) * d[0]*d[0]*d[1]*d[1]*d[1] + 1.0/24.0 * DDDDDN_DDDDDe(i,4) * d[0]*d[1]*d[1]*d[1]*d[1] + 1.0/120.0 * DDDDDN_DDDDDe(i,5) * d[1]*d[1]*d[1]*d[1]*d[1];
                 // H_hessian_term(0, i) = 0;
-                // H_3rdTayor_term(0, i) = 0;
-                // H_4thTayor_term(0, i) = 0;
+                H_3rdTayor_term(0, i) = 0;
+                H_4thTayor_term(0, i) = 0;
                 H_5thTayor_term(0, i) = 0;
 
             }
-            
-            // KRATOS_WATCH(H_gradient_term)
-            // KRATOS_WATCH(H_hessian_term)
-            // KRATOS_WATCH(H_3rdTayor_term)
-            // KRATOS_WATCH(H_4thTayor_term)
             // Assembly
 
             // Termine -(GRAD_w * n, u + GRAD_u * d + ...)
@@ -263,12 +257,12 @@ namespace Kratos
             }
         }
 
-        for (unsigned int i = 0; i < number_of_nodes; i++) {
-            std::ofstream outputFile("txt_files/Id_active_control_points_condition.txt", std::ios::app);
-            outputFile << r_geometry[i].GetId() << "  " << r_geometry[i].GetDof(TEMPERATURE).EquationId() <<"\n";
-            outputFile.close();
-            // KRATOS_WATCH(r_geometry[i].GetDof(TEMPERATURE).EquationId() )
-        }
+        // for (unsigned int i = 0; i < number_of_nodes; i++) {
+        //     std::ofstream outputFile("txt_files/Id_active_control_points_condition.txt", std::ios::app);
+        //     outputFile << r_geometry[i].GetId() << "  " << r_geometry[i].GetDof(TEMPERATURE).EquationId() <<"\n";
+        //     outputFile.close();
+        //     // KRATOS_WATCH(r_geometry[i].GetDof(TEMPERATURE).EquationId() )
+        // }
         KRATOS_CATCH("")
     }
 

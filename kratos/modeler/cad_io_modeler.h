@@ -20,6 +20,8 @@
 
 // Project includes
 #include "modeler.h"
+#include "spatial_containers/bins_dynamic.h"
+#include "utilities/math_utils.h"
 
 
 namespace Kratos
@@ -43,6 +45,7 @@ public:
 
     typedef std::size_t SizeType;
     typedef std::size_t IndexType;
+
 
     ///@}
     ///@name Life Cycle
@@ -103,18 +106,30 @@ public:
     }
 
     Parameters ReadParamatersFile(
-        const std::string& rDataFileName) const;
+        const std::string& rDataFileName) const;    
 
-    void CreateTheSnakeCoordinates(const Parameters refinements_parameters);
-    
+    void CreateTheSnakeCoordinates(Vector& knot_vector_u, Vector& knot_vector_v, double& knot_step_u, double& knot_step_v, const Parameters refinements_parameters, ModelPart& surrogate_model_part);
+
+    void SnakeStep(std::vector<std::vector<int>> &knot_spans_available, int knot_span_u_1st_point, int knot_span_u_2nd_point, int knot_span_v_1st_point,int knot_span_v_2nd_point, double& x_true_boundary1, double& x_true_boundary2, double& y_true_boundary1, double& y_true_boundary2, double& knot_step_u, double& knot_step_v);
 
     ///@}
 
 private:
     ///@name Iga functionalities
     ///@{
+    using PointType = Node;
+    using PointTypePointer = Node::Pointer;
+    using PointVector = std::vector<PointType::Pointer>;
+    using PointIterator = std::vector<PointType::Pointer>::iterator;
+    using DistanceVector = std::vector<double>;
+    using DistanceIterator = std::vector<double>::iterator;
+    using DynamicBins = BinsDynamic<3, PointType, PointVector, PointTypePointer, PointIterator, DistanceIterator>;
+    using PointerType = DynamicBins::PointerType;
 
     Model* mpModel = nullptr;
+
+
+    bool isPointInsideSkinBoundary(Point& pointToSearch, DynamicBins& testBins, ModelPart& skin_model_part);
 
     ///@}
     ///@name Serializer
