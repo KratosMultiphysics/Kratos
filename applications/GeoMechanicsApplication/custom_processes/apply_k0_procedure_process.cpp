@@ -52,16 +52,14 @@ ApplyK0ProcedureProcess::ApplyK0ProcedureProcess(ModelPart& model_part, const Pa
 
 void ApplyK0ProcedureProcess::ExecuteInitialize()
 {
-    if (UseStandardProcedure()) {
+    if (UseStandardProcedure())
         SetConsiderDiagonalEntriesOnlyAndNoShear(mrModelPart.Elements(), true);
-    }
 }
 
 void ApplyK0ProcedureProcess::ExecuteFinalize()
 {
-    if (UseStandardProcedure()) {
+    if (UseStandardProcedure())
         SetConsiderDiagonalEntriesOnlyAndNoShear(mrModelPart.Elements(), false);
-    }
 }
 
 void ApplyK0ProcedureProcess::ExecuteFinalizeSolutionStep()
