@@ -6,7 +6,7 @@ In the lab this is performed on a cylindric volume of soil, with an increasing p
 sides of the cylinder. In the model test, the cylinder is emulated by two 2 axisymmetric elements. The mesh is displayed
 in the figure below:
 
-![MeshStructure](MeshStructure.png)
+![MeshStructure](MeshStructure.svg)
 
 ## Setup
 
@@ -16,16 +16,17 @@ The test is performed in two stages, with the following common conditions for bo
     - The displacement in the bottom nodes (5, 7, 9) are fixed in the y direction
     - The displacement in the symmetry axis (i.e. the left nodes 1, 3, 5) are fixed in the x direction.
 - Material:
-    - The material is described using the Mohr-Coulomb model of the UMAT library found in MohrCoulomb64.dll
-- Conditions:
-    - An AxisymmetricLineNormalLoadDiffOrderCondition2D3N is added to both the top and the right side of the cube (nodes
-      1, 2,
-      6 and 6, 8, 9 respectively).
+    - The material is described using the Mohr-Coulomb model of the UMAT library found in MohrCoulomb64.dll 
+* Conditions:
+  * An AxisymmetricLineNormalLoadDiffOrderCondition2D3N is added to both the top and the right side of the cube (nodes
+  1, 2,
+  6 and 6, 8, 9 respectively).
 
 ## Stage 1 - Apply a confining stress of -100 kPa, time interval \[0, 1\]
 
 - A normal load is applied to the right side of the cube (nodes 6, 8, 9), linearly ramping up from 0 to -100 kPa in the
   time interval \[0, 1\].
+
 - A normal load is applied to the top of the cube (nodes 1, 2, 6), linearly ramping up from 0 to -100 kPa in the
   time interval \[0, 1\].
 
@@ -33,6 +34,7 @@ The test is performed in two stages, with the following common conditions for bo
 
 - A constant normal load of -100 kPa is applied to the right side of the cube (nodes 6, 8, 9), during the interval
   \[1.0, 1.25\].
+
 - The displacement of the top nodes (1, 2, 6) is specified in the y direction during the interval \[1.0, 2.0\] to
   linearly change from 0.0 to -1.0 meaning at the end-time of 1.25, it will have reached -0.25. This results in a -200
   kPa deviatoric stress.
@@ -47,6 +49,7 @@ The calculated effective stresses after the Kratos Geomechanics calculations are
 - After stage 1: The effective stresses in xx and yy are expected to be -100 kPa in the element integration
   points, due to the applied confining stress in the xy plane. Due to the axisymmetry of the problem, the same stress is
   expected in the third dimension (zz).
+
 - After stage 2: The effective stresses in xx and zz are still expected to be -100 kPa, while in the yy direction, the
   expectation is -300 kPa due to the forced y-displacement (also here, the comparisons are done in the integration
   points).

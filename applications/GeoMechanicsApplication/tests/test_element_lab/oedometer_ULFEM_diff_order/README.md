@@ -3,15 +3,15 @@
 This test simulates an oedometer lab test. An UpdatedLagrangianUPwDiffOrderElement2D6N element is used to simulate the
 soil sample in a very simple 9-noded mesh, as displayed in the following figure:
 
-![MeshStructure.png](MeshStructure.png)
+![MeshStructure](MeshStructure.svg)
 
 ## Setup
 
 The test is performed in a single stage, with the following conditions:
 
 - Constraints:
-    - The X and Y displacement in the bottom nodes (5, 7, 9) are fixed to 0.0.
-    - The X displacement on the lef and right boundary nodes (1, 3, 5 and 6, 8, 9) are fixed to 0.0.
+    - The X and Y displacement in the bottom nodes (5, 7, 9) are fixed.
+    - The X displacement on the lef and right boundary nodes (1, 3, 5 and 6, 8, 9) are fixed.
 - Material:
     - The material is described using a linear elastic material with a GeoLinearElasticPlaneStrain2DLaw.
 - Conditions:

@@ -107,7 +107,7 @@ class KratosGeoMechanicsLabElementTests(KratosUnittest.TestCase):
         y_displacements = [displacement[1] for displacement in displacements]
         top_node_nbrs = [1]
         for top_node_nbr in top_node_nbrs:
-            self.assertAlmostEqual(-9.999000099991246e-05, y_displacements[top_node_nbr], 6)
+            self.assertAlmostEqual(-1e-04, y_displacements[top_node_nbr], 6)
 
 if __name__ == '__main__':
     KratosUnittest.main()
