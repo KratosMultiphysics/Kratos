@@ -104,6 +104,7 @@ class KratosGeoMechanicsK0ProcedureProcessTests(KratosUnittest.TestCase):
         sig_yy = sig_integrationpoint1_element3[1,1]
         sig_xx = sig_integrationpoint1_element3[0,0]
         self.assertAlmostEqual( sig_xx, k0_nc*sig_yy )
+        self.assertIsClose(sig_xx, -71.7, rel_tol=0.01)
         sig_xy = sig_integrationpoint1_element3[0,1]
         self.assertEqual( sig_xy, 0.0 )
 
@@ -113,6 +114,7 @@ class KratosGeoMechanicsK0ProcedureProcessTests(KratosUnittest.TestCase):
         sig_yy = sig_integrationpoint1_element80[1,1]
         sig_xx = sig_integrationpoint1_element80[0,0]
         self.assertAlmostEqual( sig_xx, k0_nc*sig_yy )
+        self.assertIsClose(sig_xx, -250.4, rel_tol=0.01)
         sig_xy = sig_integrationpoint1_element80[0,1]
         self.assertEqual( sig_xy, 0.0 )
 
@@ -122,6 +124,7 @@ class KratosGeoMechanicsK0ProcedureProcessTests(KratosUnittest.TestCase):
         sig_yy = sig_integrationpoint1_element117[1,1]
         sig_xx = sig_integrationpoint1_element117[0,0]
         self.assertAlmostEqual( sig_xx, k0_nc*sig_yy )
+        self.assertIsClose(sig_xx, -547.8, rel_tol=0.01)
         sig_xy = sig_integrationpoint1_element117[0,1]
         self.assertEqual( sig_xy, 0.0 )
 
