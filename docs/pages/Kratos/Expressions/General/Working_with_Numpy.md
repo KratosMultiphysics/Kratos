@@ -1,0 +1,130 @@
+---
+title: Working with Numpy
+keywords: 
+tags: [numpy, scipy, expressions, variable expression io, carray expression io]
+sidebar: kratos_expressions
+summary: 
+---
+
+## Introduction
+
+Expressions make working with nump/scipy or any other thrid party library easier. It allows reading numpy arrays to expressions, and then assign them to data value containers using variables and writing expressions to numpy arrays so variable data in data value containers of kratos do some calculation using numpy.
+
+**In the case of shared memory parallelized runs, these expressions will hold only data of corresponding data value containers of the local mesh**.
+
+## Writing to numpy arrays
+
+Writing an expression to a numpy array is super simple. In the case of **shared memory** parallelized runs, this will only generate a numpy array having only the data from the
+```LocalMesh```. Following code snippet shows an example:
+```python
+import KratosMultiphysics as Kratos
+model = Kratos.Model()
+model_part = model.CreateModelPart("test")
+node_1 = model_part.CreateNewNode(1, 0.0, 0.0, 0.0)
+node_2 = model_part.CreateNewNode(2, 0.0, 1.0, 0.0)
+node_1.SetValue(Kratos.VELOCITY, Kratos.Array3([1,2,3]))
+node_2.SetValue(Kratos.VELOCITY, Kratos.Array3([3,4,5]))
+
+# now create the expression:
+nodal_expression = Kratos.Expression.NodalExpression(model_part)
+
+# now read the VELOCITY from the non-historical container
+Kratos.Expression.VariableExpressionIO.Read(nodal_expression, Kratos.VELOCITY, False)
+
+# now get the numpy array from the expression
+numpy_nodal_expression = nodal_expression.Evaluate()
+
+# first dimension of the numpy array always represents number of entities in the expression (local mesh entities only)
+# rest of the dimensions represent the dimensions of the entity data. In this case, VELOCITY have only three components,
+# it shows 3 as the last dimension.
+print("Shape of the numpy array = ", numpy_nodal_expression.shape)
+```
+
+## Reading from numpy arrays
+Reading from a numpy array is also simple with Expressions. First you can create the numpy array independent from Kratos if you are aware of the number of local entities (i.e. number of nodes/conditions/elements in the local mesh). Followings are supported numpy data types for the conversion:
+1. ```numpy.int32```
+2. ```numpy.float64```
+
+Thereafter, you can make a **copy** of the values to an expression. Following code snippet shows an example:
+
+```python
+import numpy
+# create the numpy expression. This does not need Kratos as long as you know correctly
+# the number of local entities (i.e. nodes/conditions/elements) in the model part.
+# it is a good practice to specify the "dtype" in here.
+# here also, first dimension represent the number of local entities, rest of the
+# dimensions represent the dimensionality of the entity data.
+numpy_array = numpy.array([
+                    [1,2,3],
+                    [3,4,5]], dtype=numpy.float64)
+
+
+import KratosMultiphysics as Kratos
+model = Kratos.Model()
+model_part = model.CreateModelPart("test")
+node_1 = model_part.CreateNewNode(1, 0.0, 0.0, 0.0)
+node_2 = model_part.CreateNewNode(2, 0.0, 1.0, 0.0)
+
+# now create the expression:
+nodal_expression = Kratos.Expression.NodalExpression(model_part)
+
+# now read in the data from numpy array to expression
+Kratos.Expression.CArrayExpressionIO.Read(nodal_expression, numpy_array)
+
+# now write the expression data to VELOCITY variable
+Kratos.Expression.VariableExpressionIO.Write(nodal_expression, Kratos.VELOCITY, False)
+
+for node in model_part.Nodes:
+    velocity = node.GetValue(Kratos.VELOCITY)
+    print(f"node id: {node.Id}, velocity: [{velocity[0]}, {velocity[1]}, {velocity[2]}]")
+```
+
+## Moving from numpy arrays
+
+This is similar to the [reading from numpy arrays](#reading-from-numpy-arraystest). The difference is, this does not create a copy within the expression.
+It uses the memory location of the original numpy array with in the expression, hence it is of ```O(1)``` cost. No new meory allocation will be done
+within the expression. So, if someone uses the moving of numpy array to an expression, **they need to make sure that the numpy array is not destroyed untill the expression or any of the dependent expressions are used up**. Otherwise, there will be a **Segmentation fault** error.
+
+Following code snippet illustrates how to move numpy arrays to expressions:
+```python
+import numpy
+# create the numpy expression. This does not need Kratos as long as you know correctly
+# the number of local entities (i.e. nodes/conditions/elements) in the model part.
+# it is a good practice to specify the "dtype" in here.
+# here also, first dimension represent the number of local entities, rest of the
+# dimensions represent the dimensionality of the entity data.
+numpy_array = numpy.array([
+                    [1,2,3],
+                    [3,4,5]], dtype=numpy.float64)
+
+
+import KratosMultiphysics as Kratos
+model = Kratos.Model()
+model_part = model.CreateModelPart("test")
+node_1 = model_part.CreateNewNode(1, 0.0, 0.0, 0.0)
+node_2 = model_part.CreateNewNode(2, 0.0, 1.0, 0.0)
+
+# now create the expression:
+nodal_expression = Kratos.Expression.NodalExpression(model_part)
+
+# now move in the data from numpy array to expression (linking nodal expression with numpy array)
+Kratos.Expression.CArrayExpressionIO.Move(nodal_expression, numpy_array)
+
+# now write the expression data to VELOCITY variable
+Kratos.Expression.VariableExpressionIO.Write(nodal_expression, Kratos.VELOCITY, False)
+
+# now it will print the value in the numpy array
+for node in model_part.Nodes:
+    velocity = node.GetValue(Kratos.VELOCITY)
+    print(f"node id: {node.Id}, velocity: [{velocity[0]}, {velocity[1]}, {velocity[2]}]")
+
+# now change some values in the numpy array
+numpy_array[1, 1] = 10.0
+
+# now write the expression data to VELOCITY variable to update the nodal data value container.
+Kratos.Expression.VariableExpressionIO.Write(nodal_expression, Kratos.VELOCITY, False)
+# now it will print the modified value in the numpy array
+for node in model_part.Nodes:
+    velocity = node.GetValue(Kratos.VELOCITY)
+    print(f"node id: {node.Id}, velocity: [{velocity[0]}, {velocity[1]}, {velocity[2]}]")
+```
