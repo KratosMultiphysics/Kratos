@@ -5,24 +5,24 @@ from KratosMultiphysics.kratos_utilities import CheckIfApplicationsAvailable
 # Importing the base class
 from KratosMultiphysics.CoSimulationApplication.solver_wrappers.kratos import kratos_base_wrapper
 
-# Importing ParticleMechanics
-if not CheckIfApplicationsAvailable("ParticleMechanicsApplication"):
-    raise ImportError("The ParticleMechanicsApplication is not available!")
-import KratosMultiphysics.ParticleMechanicsApplication as KPM
-from KratosMultiphysics.ParticleMechanicsApplication.particle_mechanics_analysis import ParticleMechanicsAnalysis
+# Importing MPM
+if not CheckIfApplicationsAvailable("MPMApplication"):
+    raise ImportError("The MPMApplication is not available!")
+import KratosMultiphysics.MPMApplication as KPM
+from KratosMultiphysics.MPMApplication.mpm_analysis import MPMAnalysis
 
 # Other imports
 import math
 
 def Create(settings, model, solver_name):
-    return ParticleMechanicsDirichletWrapper(settings, model, solver_name)
+    return MPMDirichletWrapper(settings, model, solver_name)
 
-class ParticleMechanicsDirichletWrapper(kratos_base_wrapper.KratosBaseWrapper):
-    """This class is the interface to the ParticleMechanicsApplication of Kratos."""
-    """It is designed for the Dirichlet Interface in the ParticleMechanicsApplication"""
+class MPMDirichletWrapper(kratos_base_wrapper.KratosBaseWrapper):
+    """This class is the interface to the MPMApplication of Kratos."""
+    """It is designed for the Dirichlet Interface in the MPMApplication"""
 
     def _CreateAnalysisStage(self):
-        return ParticleMechanicsAnalysis(self.model, self.project_parameters)
+        return MPMAnalysis(self.model, self.project_parameters)
 
     def SolveSolutionStep(self):
         coupling_model_part = self.model.GetModelPart("MPM_Coupling_Dirichlet_Interface")
