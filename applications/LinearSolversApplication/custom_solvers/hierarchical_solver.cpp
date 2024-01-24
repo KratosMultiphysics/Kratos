@@ -347,7 +347,7 @@ void GetLowerOrderDofs(typename TSparseSpace::MatrixType& rA,
                         if (rp_dof->IsFree()) rCoarseMask[i_fine_dof] = true;
                     }
                 } // if the node is not flagged SLAVE
-            }
+            } // for i_node in range(coarse_node_count)
         } // if (r_entity.IsActive())
     } // for entity in rModelPart
 
@@ -365,6 +365,8 @@ void GetLowerOrderDofs(typename TSparseSpace::MatrixType& rA,
 
             if (it_node->Is(SLAVE)) {
                 rCoarseMask[r_dof.EquationId()] = false;
+            } else if (it_node->Is(MASTER)) {
+                rCoarseMask[r_dof.EquationId()] = true;
             }
         }
     }
