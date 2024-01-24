@@ -7,11 +7,11 @@
                 "name" : "HyperElasticNeoHookeanPlaneStrain2DLaw"
             },
             "Variables"        : {
-                "THICKNESS"     : 1.0,
-                "PARTICLES_PER_ELEMENT" : 4,
-                "DENSITY"       : 1000.0,
-                "YOUNG_MODULUS" : 90000000.0,
-                "POISSON_RATIO" : 0
+                "THICKNESS"                     : 1.0,
+                "MATERIAL_POINTS_PER_ELEMENT"   : 4,
+                "DENSITY"                       : 1000.0,
+                "YOUNG_MODULUS"                 : 90000000.0,
+                "POISSON_RATIO"                 : 0
             },
             "Tables"           : {}
         }
