@@ -327,7 +327,7 @@ void AddExpressionIOToPython(pybind11::module& rModule)
         .value("Ghost", MeshType::Ghost)
         ;
 
-    pybind11::class_<VariableExpressionIO::VariableExpressionInput, VariableExpressionIO::VariableExpressionInput::Pointer, ExpressionInput>(variable_expression_io, "Input")
+    pybind11::class_<VariableExpressionIO::Input, VariableExpressionIO::Input::Pointer, ExpressionInput>(variable_expression_io, "Input")
         .def(pybind11::init<const ModelPart&,
                             const VariableExpressionIO::VariableType&,
                             const ContainerType&>(),
@@ -336,7 +336,7 @@ void AddExpressionIOToPython(pybind11::module& rModule)
              pybind11::arg("container_type"))
         ;
 
-    pybind11::class_<VariableExpressionIO::VariableExpressionOutput, VariableExpressionIO::VariableExpressionOutput::Pointer, ExpressionOutput>(variable_expression_io, "Output")
+    pybind11::class_<VariableExpressionIO::Output, VariableExpressionIO::Output::Pointer, ExpressionOutput>(variable_expression_io, "Output")
         .def(pybind11::init<ModelPart&,
                             const VariableExpressionIO::VariableType&,
                             const ContainerType&>(),
@@ -400,7 +400,7 @@ void AddExpressionIOToPython(pybind11::module& rModule)
     Detail::AddLiteralExpressionIOMethods<ModelPart::ElementsContainerType, int>(data_expression_io);
     Detail::AddLiteralExpressionIOMethods<ModelPart::ElementsContainerType, double>(data_expression_io);
 
-    pybind11::class_<LiteralExpressionIO::LiteralExpressionInput, LiteralExpressionIO::LiteralExpressionInput::Pointer, ExpressionInput>(
+    pybind11::class_<LiteralExpressionIO::Input, LiteralExpressionIO::Input::Pointer, ExpressionInput>(
         data_expression_io, "Input")
         .def(pybind11::init<const ModelPart&,
                             const LiteralExpressionIO::DataType&,
@@ -411,13 +411,20 @@ void AddExpressionIOToPython(pybind11::module& rModule)
         ;
 
     auto nodal_expression_io = rModule.def_submodule("NodalPositionExpressionIO");
-    pybind11::class_<NodalPositionExpressionIO::NodalPositionExpressionInput, NodalPositionExpressionIO::NodalPositionExpressionInput::Pointer, ExpressionInput>(
+    pybind11::class_<NodalPositionExpressionIO::Input, NodalPositionExpressionIO::Input::Pointer, ExpressionInput>(
         nodal_expression_io, "Input")
         .def(pybind11::init<const ModelPart&,
                             const NodalPositionExpressionIO::Configuration&>(),
              pybind11::arg("model_part"),
              pybind11::arg("configuration"))
         ;
+    pybind11::class_<NodalPositionExpressionIO::Output, NodalPositionExpressionIO::Output::Pointer, ExpressionOutput>(
+        nodal_expression_io, "Output")
+        .def(pybind11::init<ModelPart&,
+                            const NodalPositionExpressionIO::Configuration&>(),
+             pybind11::arg("model_part"),
+             pybind11::arg("configuration"))
+    ;
     nodal_expression_io.def("Read", &NodalPositionExpressionIO::Read<MeshType::Local>, pybind11::arg("nodal_expression"), pybind11::arg("configuration"));
     nodal_expression_io.def("Write", &NodalPositionExpressionIO::Write<MeshType::Local>, pybind11::arg("nodal_expression"), pybind11::arg("configuration"));
 }
