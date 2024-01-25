@@ -100,7 +100,7 @@ class MaterialPropertiesControl(Control):
         # get the current unfiltered control field
         unfiltered_control_field = self.GetControlField()
 
-        if KratosOA.ExpressionUtils.NormL2(unfiltered_control_field - control_field) > 1e-9:
+        if Kratos.Expression.Utils.NormL2(unfiltered_control_field - control_field) > 1e-9:
             KratosOA.PropertiesVariableExpressionIO.Write(control_field, self.controlled_physical_variable)
             return True
 

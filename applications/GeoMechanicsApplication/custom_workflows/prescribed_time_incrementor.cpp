@@ -17,17 +17,15 @@
 
 #include <algorithm>
 
-
 namespace Kratos
 {
 
 PrescribedTimeIncrementor::PrescribedTimeIncrementor(const std::vector<double>& increments)
-    : mIncrements(increments),
-      mPos(mIncrements.begin())
+    : mIncrements(increments), mPos(mIncrements.begin())
 {
-    KRATOS_ERROR_IF(std::any_of(mIncrements.begin(), mIncrements.end(),
-                                [](auto value){return value < 0.0;}))
-        << "All prescribed increments must not be negative";
+    KRATOS_ERROR_IF(std::any_of(mIncrements.begin(), mIncrements.end(), [](auto value) {
+        return value < 0.0;
+    })) << "All prescribed increments must not be negative";
 }
 
 bool PrescribedTimeIncrementor::WantNextStep(const Kratos::TimeStepEndState& rPreviousState) const
@@ -37,8 +35,7 @@ bool PrescribedTimeIncrementor::WantNextStep(const Kratos::TimeStepEndState& rPr
     return mPos != mIncrements.end();
 }
 
-bool PrescribedTimeIncrementor::WantRetryStep(std::size_t             CycleNumber,
-                                              const TimeStepEndState& rPreviousState) const
+bool PrescribedTimeIncrementor::WantRetryStep(std::size_t CycleNumber, const TimeStepEndState& rPreviousState) const
 {
     return CycleNumber == 0;
 }
@@ -55,4 +52,4 @@ void PrescribedTimeIncrementor::PostTimeStepExecution(const Kratos::TimeStepEndS
     ++mPos;
 }
 
-}
+} // namespace Kratos
