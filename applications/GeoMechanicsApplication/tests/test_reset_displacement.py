@@ -84,7 +84,7 @@ class KratosGeoMechanicsResetDisplacementTests(KratosUnittest.TestCase):
         """
 
         # calculate strain
-        F = -1e5    # [N]
+        F = -1e10   # [N]
         E = 2069e8  # [N/m2]
         I = 1       # [m4]
         L = 1       # [m]
@@ -110,8 +110,8 @@ class KratosGeoMechanicsResetDisplacementTests(KratosUnittest.TestCase):
 
         # Assert
         stage_nr = 0
-        for idx, node in enumerate(nodal_coordinates_stages[stage_nr]):
-            self.assertAlmostEqual(displacement_stages[stage_nr][idx][0], eps * node[0], places=5)
+        y_displacement_at_end_of_beam = displacement_stages[stage_nr][10][1]
+        self.assertAlmostEqual(y_displacement_at_end_of_beam, eps * L, places=5)
 
         stage_nr = 1
         for idx, node in enumerate(nodal_coordinates_stages[stage_nr]):
@@ -122,8 +122,8 @@ class KratosGeoMechanicsResetDisplacementTests(KratosUnittest.TestCase):
             self.assertAlmostEqual(displacement_stages[stage_nr][idx][0], 0, places=5)
 
         stage_nr = 3
-        for idx, node in enumerate(nodal_coordinates_stages[stage_nr]):
-            self.assertAlmostEqual(displacement_stages[stage_nr][idx][0], -eps * node[0], places=5)
+        y_displacement_at_end_of_beam = displacement_stages[stage_nr][10][1]
+        self.assertAlmostEqual(y_displacement_at_end_of_beam, -eps * L, places=5)
 
     def test_reset_displacement_shell_Dirichlet(self):
         """
