@@ -229,7 +229,7 @@ class GeoMechanicalSolver(PythonSolver):
         self.linear_solver = self._ConstructLinearSolver()
 
         # Builder and solver creation
-        self.builder_and_solver = self._ConstructBuilderAndSolver(self.settings["block_builder"].GetBool())
+        self.builder_and_solver = self._CreateBuilderAndSolver()
 
         # Solution scheme creation
         self.scheme = self._ConstructScheme(self.settings["scheme_type"].GetString(),
@@ -361,6 +361,11 @@ class GeoMechanicalSolver(PythonSolver):
         self.main_model_part.AddNodalSolutionStepVariable(GeoMechanicsApplication.DT_TEMPERATURE)
         # Add variables for the heat conditions
         self.main_model_part.AddNodalSolutionStepVariable(GeoMechanicsApplication.NORMAL_HEAT_FLUX)
+        self.main_model_part.AddNodalSolutionStepVariable(GeoMechanicsApplication.AIR_TEMPERATURE)
+        self.main_model_part.AddNodalSolutionStepVariable(GeoMechanicsApplication.SOLAR_RADIATION)
+        self.main_model_part.AddNodalSolutionStepVariable(GeoMechanicsApplication.AIR_HUMIDITY)
+        self.main_model_part.AddNodalSolutionStepVariable(GeoMechanicsApplication.PRECIPITATION)
+        self.main_model_part.AddNodalSolutionStepVariable(GeoMechanicsApplication.WIND_SPEED)
 
     def _add_smoothing_variables(self):
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_AREA)
@@ -385,6 +390,9 @@ class GeoMechanicalSolver(PythonSolver):
             KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.ANGULAR_ACCELERATION_X,self.main_model_part)
             KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.ANGULAR_ACCELERATION_Y,self.main_model_part)
             KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.ANGULAR_ACCELERATION_Z,self.main_model_part)
+
+    def _GetLinearSolver(self):
+        return self.linear_solver
 
     def _ExecuteCheckAndPrepare(self):
 
@@ -453,7 +461,8 @@ class GeoMechanicalSolver(PythonSolver):
         import KratosMultiphysics.python_linear_solver_factory as linear_solver_factory
         return linear_solver_factory.ConstructSolver(self.settings["linear_solver_settings"])
 
-    def _ConstructBuilderAndSolver(self, block_builder):
+    def _CreateBuilderAndSolver(self):
+        block_builder = self.settings["block_builder"].GetBool()
 
         # Creating the builder and solver
         if (block_builder):
@@ -513,7 +522,6 @@ class GeoMechanicalSolver(PythonSolver):
             self.strategy_params.AddValue("min_alpha",                  self.settings["min_alpha"])
             self.strategy_params.AddValue("max_alpha",                  self.settings["max_alpha"])
             self.strategy_params.AddValue("line_search_tolerance",      self.settings["line_search_tolerance"])
-            self.strategy_params.AddValue("move_mesh_flag",             self.settings["move_mesh_flag"])
             self.strategy_params.AddValue("move_mesh_flag",             self.settings["move_mesh_flag"])
             self.strategy_params.AddValue("reform_dofs_at_each_step",   self.settings["reform_dofs_at_each_step"])
             self.strategy_params.AddValue("echo_level",                 self.settings["echo_level"])

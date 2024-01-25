@@ -136,16 +136,15 @@ class UPwSolver(GeoSolver):
                 node.AddDof(KratosMultiphysics.ACCELERATION_X)
                 node.AddDof(KratosMultiphysics.ACCELERATION_Y)
                 node.AddDof(KratosMultiphysics.ACCELERATION_Z)
-            # if self.settings["rotation_dofs"].GetBool():
-            #     for node in self.main_model_part.Nodes:
-            #         # adding ANGULAR_VELOCITY as dofs
-            #         node.AddDof(KratosMultiphysics.ANGULAR_VELOCITY_X)
-            #         node.AddDof(KratosMultiphysics.ANGULAR_VELOCITY_Y)
-            #         node.AddDof(KratosMultiphysics.ANGULAR_VELOCITY_Z)
-            #         # adding ANGULAR_ACCELERATION as dofs
-            #         node.AddDof(KratosMultiphysics.ANGULAR_ACCELERATION_X)
-            #         node.AddDof(KratosMultiphysics.ANGULAR_ACCELERATION_Y)
-            #         node.AddDof(KratosMultiphysics.ANGULAR_ACCELERATION_Z)
+                if self.settings["rotation_dofs"].GetBool():
+                    # adding ANGULAR_VELOCITY as dofs
+                    node.AddDof(KratosMultiphysics.ANGULAR_VELOCITY_X)
+                    node.AddDof(KratosMultiphysics.ANGULAR_VELOCITY_Y)
+                    node.AddDof(KratosMultiphysics.ANGULAR_VELOCITY_Z)
+                    # adding ANGULAR_ACCELERATION as dofs
+                    node.AddDof(KratosMultiphysics.ANGULAR_ACCELERATION_X)
+                    node.AddDof(KratosMultiphysics.ANGULAR_ACCELERATION_Y)
+                    node.AddDof(KratosMultiphysics.ANGULAR_ACCELERATION_Z)
 
         KratosMultiphysics.Logger.PrintInfo("GeoMechanics_U_Pw_Solver", "DOFs added correctly.")
 
@@ -248,13 +247,14 @@ class UPwSolver(GeoSolver):
 
         return convergence_criterion
 
-    def _ConstructBuilderAndSolver(self, block_builder):
+    def _CreateBuilderAndSolver(self):
+        block_builder = self.settings["block_builder"].GetBool()
         if (block_builder and
             self.settings.Has("prebuild_dynamics") and
             self.settings["prebuild_dynamics"].GetBool()):
             return KratosGeo.ResidualBasedBlockBuilderAndSolverWithMassAndDamping(self.linear_solver)
 
-        return super()._ConstructBuilderAndSolver(block_builder)
+        return super()._CreateBuilderAndSolver()
 
     def _CheckConvergence(self):
         IsConverged = self.solver.IsConverged()

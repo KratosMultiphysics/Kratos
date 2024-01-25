@@ -115,7 +115,9 @@ SolvingStrategyWrapperType CreateWrapperWithDefaultProcessInfoEntries(ModelPart&
 ModelPart& CreateDummyModelPart(Model& rModel)
 {
     const auto buffer_size = ModelPart::IndexType{2};
-    return rModel.CreateModelPart("dummy", buffer_size);
+    auto& r_model_part = rModel.CreateModelPart("dummy", buffer_size);
+    r_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
+    return r_model_part;
 }
 
 SolvingStrategyWrapperType CreateWrapperWithEmptyProcessInfo(ModelPart& rModelPart)
@@ -142,13 +144,13 @@ KRATOS_TEST_CASE_IN_SUITE(GetEndTimeFromStrategyWrapper_ReturnsCorrectNumber, Kr
     KRATOS_EXPECT_DOUBLE_EQ(wrapper.GetEndTime(), 17.0);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(GetConvergenceStateFromStrategyWrapper_ReturnsCorrectState, KratosGeoMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(SolveSolutionStepFromStrategyWrapper_ReturnsCorrectState, KratosGeoMechanicsFastSuite)
 {
     Model model;
     auto& model_part = CreateDummyModelPart(model);
     auto  wrapper    = CreateWrapperWithDefaultProcessInfoEntries(model_part);
 
-    KRATOS_EXPECT_EQ(wrapper.GetConvergenceState(), TimeStepEndState::ConvergenceState::converged);
+    KRATOS_EXPECT_EQ(wrapper.SolveSolutionStep(), TimeStepEndState::ConvergenceState::converged);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(SetEndTimeFromStrategyWrapper, KratosGeoMechanicsFastSuite)

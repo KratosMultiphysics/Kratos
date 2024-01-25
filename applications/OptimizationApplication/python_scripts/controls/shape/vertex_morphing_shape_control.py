@@ -292,7 +292,7 @@ class VertexMorphingShapeControl(Control):
     def Update(self, new_control_field: ContainerExpressionTypes) -> bool:
         if not IsSameContainerExpression(new_control_field, self.GetEmptyField()):
             raise RuntimeError(f"Updates for the required element container not found for control \"{self.GetName()}\". [ required model part name: {self.filter_model_part.FullName()}, given model part name: {new_control_field.GetModelPart().FullName()} ]")
-        if KratosOA.ExpressionUtils.NormL2(self.control_field - new_control_field) > 1e-15:
+        if Kratos.Expression.Utils.NormL2(self.control_field - new_control_field) > 1e-15:
             # update the control SHAPE field
             control_update = new_control_field - self.control_field
             self.control_field = new_control_field

@@ -14,7 +14,8 @@
 
 #include "custom_elements/transient_thermal_element.h"
 
-namespace Kratos {
+namespace Kratos
+{
 
 template class TransientThermalElement<2, 3>;
 template class TransientThermalElement<2, 4>;

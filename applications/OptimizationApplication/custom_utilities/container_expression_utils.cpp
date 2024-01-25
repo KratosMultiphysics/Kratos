@@ -176,104 +176,6 @@ double ContainerExpressionUtils::EntityMaxNormL2(const ContainerExpression<TCont
     })));
 }
 
-template<class TContainerType>
-double ContainerExpressionUtils::NormInf(const ContainerExpression<TContainerType>& rContainer)
-{
-    const auto& r_expression = rContainer.GetExpression();
-    const IndexType local_size = rContainer.GetItemComponentCount();
-    const IndexType number_of_entities = rContainer.GetContainer().size();
-
-    return rContainer.GetModelPart().GetCommunicator().GetDataCommunicator().MaxAll(IndexPartition<IndexType>(number_of_entities).for_each<MaxReduction<double>>([&r_expression, local_size](const IndexType EntityIndex) {
-        const IndexType local_data_begin_index = EntityIndex * local_size;
-        double value = std::numeric_limits<double>::lowest();
-        for (IndexType i = 0; i < local_size; ++i) {
-            value = std::max(value, std::abs(r_expression.Evaluate(EntityIndex, local_data_begin_index, i)));
-        }
-        return value;
-    }));
-}
-
-double ContainerExpressionUtils::NormInf(
-    const CollectiveExpression& rContainer)
-{
-    double max_norm = std::numeric_limits<double>::lowest();
-    for (const auto& p_variable_data_container : rContainer.GetContainerExpressions()) {
-        std::visit([&max_norm](const auto& v) { max_norm = std::max(max_norm, NormInf(*v));}, p_variable_data_container);
-    }
-    return max_norm;
-}
-
-template<class TContainerType>
-double ContainerExpressionUtils::NormL2(
-    const ContainerExpression<TContainerType>& rContainer)
-{
-    const auto& r_expression = rContainer.GetExpression();
-    const IndexType local_size = rContainer.GetItemComponentCount();
-    const IndexType number_of_entities = rContainer.GetContainer().size();
-
-    const double local_l2_norm_square = IndexPartition<IndexType>(number_of_entities).for_each<SumReduction<double>>([&r_expression, local_size](const IndexType EntityIndex) {
-        const IndexType local_data_begin_index = EntityIndex * local_size;
-        double value = 0.0;
-        for (IndexType i = 0; i < local_size; ++i) {
-            value += std::pow(r_expression.Evaluate(EntityIndex, local_data_begin_index, i), 2);
-        }
-        return value;
-    });
-
-    return std::sqrt(rContainer.GetModelPart().GetCommunicator().GetDataCommunicator().SumAll(local_l2_norm_square));
-}
-
-double ContainerExpressionUtils::NormL2(
-    const CollectiveExpression& rContainer)
-{
-    double l2_norm_square = 0.0;
-    for (const auto& p_variable_data_container : rContainer.GetContainerExpressions()) {
-        std::visit([&l2_norm_square](const auto& v) { l2_norm_square += std::pow(NormL2(*v), 2);}, p_variable_data_container);
-    }
-    return std::sqrt(l2_norm_square);
-}
-
-template<class TContainerType>
-double ContainerExpressionUtils::InnerProduct(
-    const ContainerExpression<TContainerType>& rContainer1,
-    const ContainerExpression<TContainerType>& rContainer2)
-{
-    const auto& r_expression_1 = rContainer1.GetExpression();
-    const IndexType local_size_1 = rContainer1.GetItemComponentCount();
-    const IndexType number_of_entities_1 = rContainer1.GetContainer().size();
-
-    const auto& r_expression_2 = rContainer2.GetExpression();
-    const IndexType local_size_2 = rContainer2.GetItemComponentCount();
-    const IndexType number_of_entities_2 = rContainer2.GetContainer().size();
-
-    KRATOS_ERROR_IF(local_size_1 != local_size_2)
-        << "Data dimension mismatch in InnerProduct calculation. "
-        << "Followings are the given containers: \n"
-        << "   Container 1: " << rContainer1 << "\n"
-        << "   Container 2: " << rContainer2 << "\n";
-
-    KRATOS_ERROR_IF(number_of_entities_1 != number_of_entities_2)
-        << "Number of entities mismatch in InnerProduct calculation. "
-        << "Followings are the given containers: \n"
-        << "   Container 1: " << rContainer1 << "\n"
-        << "   Container 2: " << rContainer2 << "\n";
-
-    KRATOS_ERROR_IF(&rContainer1.GetModelPart() != &rContainer2.GetModelPart())
-        << "Model part mismatch in InnerProduct calculation. "
-        << "Followings are the given containers: \n"
-        << "   Container 1: " << rContainer1 << "\n"
-        << "   Container 2: " << rContainer2 << "\n";
-
-    return rContainer1.GetModelPart().GetCommunicator().GetDataCommunicator().SumAll(IndexPartition<IndexType>(number_of_entities_1).for_each<SumReduction<double>>([&r_expression_1, &r_expression_2, local_size_1](const IndexType EntityIndex) {
-        const IndexType local_data_begin_index = EntityIndex * local_size_1;
-        double value = 0.0;
-        for (IndexType i = 0; i < local_size_1; ++i) {
-            value += r_expression_1.Evaluate(EntityIndex, local_data_begin_index, i) * r_expression_2.Evaluate(EntityIndex, local_data_begin_index, i);
-        }
-        return value;
-    }));
-}
-
 double ContainerExpressionUtils::InnerProduct(
     const CollectiveExpression& rContainer1,
     const CollectiveExpression& rContainer2)
@@ -287,7 +189,7 @@ double ContainerExpressionUtils::InnerProduct(
         const auto v_2 = rContainer2.GetContainerExpressions()[i];
         std::visit([&inner_product_value, &v_2](const auto& v_1) {
             using v_type = std::decay_t<decltype(v_1)>;
-            inner_product_value += InnerProduct(*v_1, *std::get<v_type>(v_2));
+            inner_product_value += ExpressionUtils::InnerProduct(*v_1, *std::get<v_type>(v_2));
         }, rContainer1.GetContainerExpressions()[i]);
     }
     return inner_product_value;
@@ -652,9 +554,6 @@ void ContainerExpressionUtils::ComputeNodalVariableProductWithEntityMatrix(
 // template instantiations
 #define KRATOS_INSTANTIATE_UTILITY_METHOD_FOR_CONTAINER_TYPE(ContainerType)                                                                                                                                                      \
     template KRATOS_API(OPTIMIZATION_APPLICATION) double ContainerExpressionUtils::EntityMaxNormL2(const ContainerExpression<ContainerType>&);                                                                                                                        \
-    template KRATOS_API(OPTIMIZATION_APPLICATION) double ContainerExpressionUtils::NormInf(const ContainerExpression<ContainerType>&);                                                                                                                                \
-    template KRATOS_API(OPTIMIZATION_APPLICATION) double ContainerExpressionUtils::NormL2(const ContainerExpression<ContainerType>&);                                                                                                                                 \
-    template KRATOS_API(OPTIMIZATION_APPLICATION) double ContainerExpressionUtils::InnerProduct(const ContainerExpression<ContainerType>&, const ContainerExpression<ContainerType>&);                                                                                \
     template KRATOS_API(OPTIMIZATION_APPLICATION) void ContainerExpressionUtils::ProductWithEntityMatrix(ContainerExpression<ContainerType>&, const typename UblasSpace<double, CompressedMatrix, Vector>::MatrixType&, const ContainerExpression<ContainerType>&);   \
     template KRATOS_API(OPTIMIZATION_APPLICATION) void ContainerExpressionUtils::ProductWithEntityMatrix(ContainerExpression<ContainerType>&, const Matrix&, const ContainerExpression<ContainerType>&);
 

@@ -39,7 +39,7 @@
         "rayleigh_m":                         0.0,
         "rayleigh_k":                         0.0,
         "strategy_type":                      "newton_raphson",
-        "convergence_criterion":              "displacement_criterion",
+        "convergence_criterion":              "residual_criterion",
         "displacement_relative_tolerance":    1.0E-4,
         "displacement_absolute_tolerance":    1.0E-9,
         "residual_relative_tolerance":        1.0E-4,

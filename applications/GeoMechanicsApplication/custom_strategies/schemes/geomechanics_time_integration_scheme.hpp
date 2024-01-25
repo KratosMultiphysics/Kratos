@@ -12,11 +12,44 @@
 #pragma once
 
 #include "solving_strategies/schemes/scheme.h"
+#include "geo_mechanics_application_variables.h"
 
-namespace Kratos {
+namespace Kratos
+{
+
+struct FirstOrderScalarVariable
+{
+    Variable<double> instance;
+    Variable<double> first_time_derivative;
+    Variable<double> delta_time_coefficient;
+
+    FirstOrderScalarVariable(const Variable<double>& instance,
+                             const Variable<double>& first_time_derivative,
+                             const Variable<double>& delta_time_coefficient)
+        : instance(instance),
+          first_time_derivative(first_time_derivative),
+          delta_time_coefficient(delta_time_coefficient)
+    {
+    }
+};
+
+struct SecondOrderVectorVariable
+{
+    Variable<array_1d<double, 3>> instance;
+    Variable<array_1d<double, 3>> first_time_derivative;
+    Variable<array_1d<double, 3>> second_time_derivative;
+
+    explicit SecondOrderVectorVariable(const Variable<array_1d<double, 3>>& instance)
+        : instance(instance),
+          first_time_derivative(instance.GetTimeDerivative()),
+          second_time_derivative(first_time_derivative.GetTimeDerivative())
+    {
+    }
+};
 
 template <class TSparseSpace, class TDenseSpace>
-class GeoMechanicsTimeIntegrationScheme : public Scheme<TSparseSpace, TDenseSpace> {
+class GeoMechanicsTimeIntegrationScheme : public Scheme<TSparseSpace, TDenseSpace>
+{
 public:
     using BaseType = Scheme<TSparseSpace, TDenseSpace>;
     using DofsArrayType = typename BaseType::DofsArrayType;
@@ -24,6 +57,26 @@ public:
     using TSystemMatrixType = typename BaseType::TSystemMatrixType;
     using LocalSystemVectorType = typename BaseType::LocalSystemVectorType;
     using LocalSystemMatrixType = typename BaseType::LocalSystemMatrixType;
+
+    GeoMechanicsTimeIntegrationScheme(const std::vector<FirstOrderScalarVariable>& rFirstOrderScalarVariables,
+                                      const std::vector<SecondOrderVectorVariable>& rSecondOrderVectorVariables)
+        : mFirstOrderScalarVariables(rFirstOrderScalarVariables),
+          mSecondOrderVectorVariables(rSecondOrderVectorVariables)
+    {
+    }
+
+    int Check(const ModelPart& rModelPart) const final
+    {
+        KRATOS_TRY
+
+        Scheme<TSparseSpace, TDenseSpace>::Check(rModelPart);
+        CheckAllocatedVariables(rModelPart);
+        CheckBufferSize(rModelPart);
+
+        return 0;
+
+        KRATOS_CATCH("")
+    }
 
     void GetDofList(const Element& rElement,
                     Element::DofsVectorType& rDofList,
@@ -148,11 +201,13 @@ public:
     {
         const auto& r_current_process_info = rModelPart.GetProcessInfo();
         block_for_each(rModelPart.Elements(),
-                       [&r_current_process_info, pMemberFunction](auto& rElement) {
-                           if (IsActive(rElement)) {
-                               (rElement.*pMemberFunction)(r_current_process_info);
-                           }
-                       });
+                       [&r_current_process_info, pMemberFunction](auto& rElement)
+        {
+            if (IsActive(rElement))
+            {
+                (rElement.*pMemberFunction)(r_current_process_info);
+            }
+        });
     }
 
     template <typename MemFuncPtr>
@@ -160,10 +215,11 @@ public:
     {
         const auto& r_current_process_info = rModelPart.GetProcessInfo();
         block_for_each(rModelPart.Conditions(),
-                       [&r_current_process_info, pMemberFunction](Condition& rCondition) {
-                           if (IsActive(rCondition))
-                               (rCondition.*pMemberFunction)(r_current_process_info);
-                       });
+                       [&r_current_process_info, pMemberFunction](Condition& rCondition)
+        {
+            if (IsActive(rCondition))
+                (rCondition.*pMemberFunction)(r_current_process_info);
+        });
     }
 
     template <class T>
@@ -212,7 +268,6 @@ public:
 
         rCurrentComponent.CalculateLocalSystem(
             LHS_Contribution, RHS_Contribution, CurrentProcessInfo);
-
         rCurrentComponent.EquationIdVector(EquationId, CurrentProcessInfo);
 
         KRATOS_CATCH("")
@@ -245,7 +300,6 @@ public:
         KRATOS_TRY
 
         rCurrentComponent.CalculateRightHandSide(RHS_Contribution, CurrentProcessInfo);
-
         rCurrentComponent.EquationIdVector(EquationId, CurrentProcessInfo);
 
         KRATOS_CATCH("")
@@ -278,7 +332,6 @@ public:
         KRATOS_TRY
 
         rCurrentComponent.CalculateLeftHandSide(LHS_Contribution, CurrentProcessInfo);
-
         rCurrentComponent.EquationIdVector(EquationId, CurrentProcessInfo);
 
         KRATOS_CATCH("")
@@ -292,35 +345,83 @@ public:
     {
         KRATOS_TRY
 
-        int num_threads = ParallelUtilities::GetNumThreads();
-        OpenMPUtils::PartitionVector dof_set_partition;
-        OpenMPUtils::DivideInPartitions(static_cast<int>(rDofSet.size()),
-                                        num_threads, dof_set_partition);
-
-#pragma omp parallel
+        block_for_each(rDofSet, [&Dx](auto& dof)
         {
-            int k = OpenMPUtils::ThisThread();
-
-            typename DofsArrayType::iterator dofs_begin =
-                rDofSet.begin() + dof_set_partition[k];
-            typename DofsArrayType::iterator dofs_end =
-                rDofSet.begin() + dof_set_partition[k + 1];
-
-            // Update Displacement and Pressure (DOFs)
-            for (typename DofsArrayType::iterator it_dof = dofs_begin;
-                 it_dof != dofs_end; ++it_dof) {
-                if (it_dof->IsFree())
-                    it_dof->GetSolutionStepValue() +=
-                        TSparseSpace::GetValue(Dx, it_dof->EquationId());
+            if (dof.IsFree())
+            {
+                dof.GetSolutionStepValue() +=
+                    TSparseSpace::GetValue(Dx, dof.EquationId());
             }
-        }
+        });
 
-        this->UpdateVariablesDerivatives(rModelPart);
+        UpdateVariablesDerivatives(rModelPart);
 
         KRATOS_CATCH("")
     }
 
 protected:
+    const Variable<double>& GetComponentFromVectorVariable(
+        const Variable<array_1d<double, 3>>& rSource, const std::string& rComponent) const
+    {
+        return KratosComponents<Variable<double>>::Get(rSource.Name() + "_" + rComponent);
+    }
+
+    virtual inline void SetTimeFactors(ModelPart& rModelPart)
+    {
+        mDeltaTime = rModelPart.GetProcessInfo()[DELTA_TIME];
+    }
+
+    virtual inline void UpdateVariablesDerivatives(ModelPart& rModelPart) = 0;
+
+    [[nodiscard]] double GetDeltaTime() const { return mDeltaTime; }
+
+    [[nodiscard]] const std::vector<SecondOrderVectorVariable>& GetSecondOrderVectorVariables() const
+    {
+        return mSecondOrderVectorVariables;
+    }
+
+    [[nodiscard]] const std::vector<FirstOrderScalarVariable>& GetFirstOrderScalarVariables() const
+    {
+        return mFirstOrderScalarVariables;
+    }
+
+private:
+    void CheckAllocatedVariables(const ModelPart& rModelPart) const
+    {
+        for (const auto& r_node : rModelPart.Nodes())
+        {
+            for (const auto& r_first_order_scalar_variable : mFirstOrderScalarVariables)
+            {
+                this->CheckSolutionStepsData(r_node, r_first_order_scalar_variable.instance);
+                this->CheckSolutionStepsData(r_node, r_first_order_scalar_variable.first_time_derivative);
+                this->CheckDof(r_node, r_first_order_scalar_variable.instance);
+            }
+        }
+
+        for (const auto& r_node : rModelPart.Nodes())
+        {
+            for (const auto& r_second_order_vector_variable : this->mSecondOrderVectorVariables)
+            {
+                if (!rModelPart.HasNodalSolutionStepVariable(
+                        r_second_order_vector_variable.instance))
+                    continue;
+
+                this->CheckSolutionStepsData(r_node, r_second_order_vector_variable.instance);
+                this->CheckSolutionStepsData(r_node, r_second_order_vector_variable.first_time_derivative);
+                this->CheckSolutionStepsData(r_node, r_second_order_vector_variable.second_time_derivative);
+
+                // We don't check for "Z", since it is optional (in case of a 2D problem)
+                std::vector<std::string> components{"X", "Y"};
+                for (const auto& component : components)
+                {
+                    const auto& variable_component = GetComponentFromVectorVariable(
+                        r_second_order_vector_variable.instance, component);
+                    this->CheckDof(r_node, variable_component);
+                }
+            }
+        }
+    }
+
     void CheckBufferSize(const ModelPart& rModelPart) const
     {
         constexpr auto minimum_buffer_size = ModelPart::IndexType{2};
@@ -331,41 +432,25 @@ protected:
             << rModelPart.GetBufferSize() << std::endl;
     }
 
-    void CheckSolutionStepsData(const Node& r_node, const Variable<double>& variable) const
+    template <class T>
+    void CheckSolutionStepsData(const Node& rNode, const Variable<T>& rVariable) const
     {
-        KRATOS_ERROR_IF_NOT(r_node.SolutionStepsDataHas(variable))
-            << variable.Name() << " variable is not allocated for node "
-            << r_node.Id() << std::endl;
+        KRATOS_ERROR_IF_NOT(rNode.SolutionStepsDataHas(rVariable))
+            << rVariable.Name() << " variable is not allocated for node "
+            << rNode.Id() << std::endl;
     }
 
-    void CheckDof(const Node& r_node, const Variable<double>& variable) const
+    template <class T>
+    void CheckDof(const Node& rNode, const Variable<T>& rVariable) const
     {
-        KRATOS_ERROR_IF_NOT(r_node.HasDofFor(variable))
-            << "missing " << variable.Name() << " dof on node " << r_node.Id()
+        KRATOS_ERROR_IF_NOT(rNode.HasDofFor(rVariable))
+            << "missing " << rVariable.Name() << " dof on node " << rNode.Id()
             << std::endl;
     }
 
-    virtual inline void SetTimeFactors(ModelPart& rModelPart)
-    {
-        // intentionally empty
-    }
-    virtual inline void UpdateVariablesDerivatives(ModelPart& rModelPart)
-    {
-        // intentionally empty
-    }
-
-    [[nodiscard]] double GetDeltaTime() const
-    {
-        return mDeltaTime;
-    }
-
-    void SetDeltaTime(double DeltaTime)
-    {
-        mDeltaTime = DeltaTime;
-    }
-
-private:
     double mDeltaTime = 1.0;
+    std::vector<FirstOrderScalarVariable> mFirstOrderScalarVariables;
+    std::vector<SecondOrderVectorVariable> mSecondOrderVectorVariables;
 };
 
 } // namespace Kratos
