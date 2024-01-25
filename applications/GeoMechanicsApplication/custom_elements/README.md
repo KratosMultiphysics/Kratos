@@ -11,18 +11,25 @@ $$ \left(n S \rho^w c^w + (1- n) \rho^s c^s \right) \frac{\partial T}{\partial t
 where,
 
 <style>
-td, th {
-   border: none!important;
+table {
+    border-collapse: collapse;
+}
+table, th, td {
+   border: none;
+}
+blockquote {
+    border-left: none;
+    padding-left: 10px;
 }
 </style>
 
 ||||
-|----------|-------------------------------------|--------------------|
-| $c^w$    | specific heat capacity liquid phase | \mathrm{[J/kgC]}$  |
-| $c^s$    | specific heat capacity solid phase  | \mathrm{[J/kgC]}$  |
-| $D_{ij}$ | hydrodynamic thermal dispersion 	 | \mathrm{[W/mC]}$   |
-| $T$      | temperature 						 | \mathrm{[C]}$      |
-| $\rho^s$ | density solid phase 				 | \mathrm{[kg/m^3]}$ |
+|----------|--------------------------------------------------|--------------------|
+| $c^w$    | specific heat capacity liquid phase              | $\mathrm{[J/kgC]}$  |
+| $c^s$    | specific heat capacity solid phase               | $\mathrm{[J/kgC]}$  |
+| $D_{ij}$ | hydrodynamic thermal dispersion 	              | $\mathrm{[W/mC]}$   |
+| $T$      | temperature 						              | $\mathrm{[C]}$      |
+| $\rho^s$ | density solid phase 				              | $\mathrm{[kg/m^3]}$ |
 
 
 The hydrodynamic thermal dispersion is defined as:
