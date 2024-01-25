@@ -26,6 +26,7 @@ $$ D_{ij}= nS \lambda^w \delta_{ij} + \left(1-n\right) \lambda_{ij}^s + c^w \rho
 
 where
 
+||||
 |:---           |:---                               |:---               |
 | $\alpha_l$    | longitudinal dispersivity         | $\mathrm{[m]}$    |
 | $\alpha_t$    | transverse dispersivity           | $\mathrm{[m]}$    |
