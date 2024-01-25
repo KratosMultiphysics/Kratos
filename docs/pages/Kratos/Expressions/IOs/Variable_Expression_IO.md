@@ -1,7 +1,7 @@
 ---
 title: Variable Expression IO
 keywords: 
-tags: [variable expression io, expressions]
+tags: [variable expression io, expressions, variable]
 sidebar: kratos_expressions
 summary: 
 ---
@@ -121,4 +121,33 @@ for element in model_part.Elements:
     velocity = element.GetValue(Kratos.VELOCITY)
     acceleration = element.GetValue(Kratos.ACCELERATION)
     print(f"element_id: {element.Id}, velocity: [{velocity[0]},{velocity[1]},{velocity[2]}], acceleration: [{acceleration[0]},{acceleration[1]},{acceleration[2]}]")
+```
+
+## Using expressions without the model parts
+The ```NodalExpression```, ```ConditionExpression``` and ```ElementExpression``` has an expression which can be directly used if required. The advantage of working
+with the ```Expression``` directely is, then it is not bound to a model part of a ```DataValueContainer```. Hence, these expressions can be interchanged if required in
+advanced use cases. Following code snippet shows how to use bare ```Expressions```.
+```python
+import KratosMultiphysics as Kratos
+model = Kratos.Model()
+model_part = model.CreateModelPart("test")
+node_1 = model_part.CreateNewNode(1, 0.0, 0.0, 0.0)
+node_2 = model_part.CreateNewNode(2, 0.0, 1.0, 0.0)
+node_1.SetValue(Kratos.VELOCITY, Kratos.Array3([1,2,3]))
+node_2.SetValue(Kratos.VELOCITY, Kratos.Array3([3,4,5]))
+
+# now create the expression by reading non historical velocity:
+exp = Kratos.Expression.VariableExpressionIO.Input(model_part, Kratos.VELOCITY, Kratos.Expression.ContainerType.NodalNonHistorical).Execute()
+
+# do some arithmetic operations
+exp *= 2.0
+
+# now write the expression value to model part as ACCELERATION in the historical container
+Kratos.Expression.VariableExpressionIO.Output(model_part, Kratos.ACCELERATION, Kratos.Expression.ContainerType.NodalNonHistorical).Execute(exp)
+
+# now print and see
+for node in model_part.Nodes:
+    velocity = node.GetValue(Kratos.VELOCITY)
+    acceleration = node.GetValue(Kratos.ACCELERATION)
+    print(f"node_id: {node.Id}, velocity: [{velocity[0]},{velocity[1]},{velocity[2]}], acceleration: [{acceleration[0]},{acceleration[1]},{acceleration[2]}]")
 ```
