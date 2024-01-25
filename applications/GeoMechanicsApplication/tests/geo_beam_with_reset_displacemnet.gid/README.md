@@ -15,7 +15,7 @@ The following stages can be distinguished:
 
 ## Assertions
 In stage 1, the displacement can be approximated using the following expression:
-$$ u_y = \frac{FL^3}{3EI}x $$
+$$u_y = \frac{FL^3}{3EI}L$$
 
 where $F$ is the applied force, $L$ is the length of the beam, $E$ is the Young Modulus and $I$ is the second moment of area. The displacement at the right node (10) is then $u_y \approx -0.016$ for this specific case.
 
