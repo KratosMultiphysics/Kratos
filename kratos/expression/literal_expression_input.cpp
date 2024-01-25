@@ -22,7 +22,7 @@
 
 namespace Kratos {
 
-LiteralExpressionIO::LiteralExpressionInput::LiteralExpressionInput(
+LiteralExpressionIO::Input::Input(
     const ModelPart& rModelPart,
     const DataType& rValue,
     const ContainerType& rContainerType,
@@ -33,7 +33,7 @@ LiteralExpressionIO::LiteralExpressionInput::LiteralExpressionInput(
       mMeshType(rMeshType)
 {
 }
-Expression::Pointer LiteralExpressionIO::LiteralExpressionInput::Execute() const
+Expression::Pointer LiteralExpressionIO::Input::Execute() const
 {
     return std::visit([&](auto& rValue){
         using data_type = std::remove_const_t<std::remove_reference_t<decltype(rValue)>>;
@@ -64,7 +64,7 @@ void LiteralExpressionIO::SetData(
     const DataType& rValue)
 {
     rContainerExpression.SetExpression(
-        LiteralExpressionInput(rContainerExpression.GetModelPart(), rValue,
+        Input(rContainerExpression.GetModelPart(), rValue,
                             std::is_same_v<TContainerType, ModelPart::NodesContainerType>
                                 ? ContainerType::NodalNonHistorical
                                 : std::is_same_v<TContainerType, ModelPart::ConditionsContainerType>
@@ -81,7 +81,7 @@ void LiteralExpressionIO::SetDataToZero(
 {
     std::visit([&rContainerExpression](const auto pVariable) {
         rContainerExpression.SetExpression(
-            LiteralExpressionInput(rContainerExpression.GetModelPart(), pVariable->Zero(),
+            Input(rContainerExpression.GetModelPart(), pVariable->Zero(),
                                 std::is_same_v<TContainerType, ModelPart::NodesContainerType>
                                     ? ContainerType::NodalNonHistorical
                                     : std::is_same_v<TContainerType, ModelPart::ConditionsContainerType>
