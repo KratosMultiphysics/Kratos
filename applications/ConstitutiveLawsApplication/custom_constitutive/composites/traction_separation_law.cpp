@@ -148,6 +148,8 @@ bool TractionSeparationLaw3D<TDim>::Has(const Variable<double>& rThisVariable)
 
     if (rThisVariable == DAMAGE) {
         has = true;
+    } else if (rThisVariable == REFERENCE_DAMAGE) {
+        has = true;
     } else if (rThisVariable == PREVIOUS_CYCLE) {
         has = true;
     } else if (rThisVariable == CYCLE_PERIOD) {
@@ -264,6 +266,11 @@ double& TractionSeparationLaw3D<TDim>::GetValue(
 
         // rValue = mDelaminationDamageModeTwo[1];
         rValue = mDelaminationDamageModeOne[1];    //Change the loading mode here
+        return rValue;
+    } else if (rThisVariable == REFERENCE_DAMAGE) {
+
+        // rValue = mFatigueDataContainersModeTwo[0].GetReferenceDamage();
+        rValue = mFatigueDataContainersModeOne[0].GetReferenceDamage();    //Change the loading mode here
         return rValue;
     } else if (rThisVariable == PREVIOUS_CYCLE) {
 
@@ -525,8 +532,16 @@ double& TractionSeparationLaw3D<TDim>::CalculateValue(
             interfacial_stress[i][2] = (layer_stress[i][5] + layer_stress[i+1][5]) * 0.5; // interfacial shear stress
         }
 
+        double equivalent_stress_mode_one_fred = std::abs((layer_stress[interface_identifier][2] + layer_stress[interface_identifier + 1][2]) * 0.5);
+
+        Vector fatigue_interfacial_stress_vector_mode_one = ZeroVector(VoigtSize);
+        fatigue_interfacial_stress_vector_mode_one[2] = (layer_stress[interface_identifier][2] + layer_stress[interface_identifier + 1][2]) * 0.5;
+        const double sign_factor = mFatigueDataContainersModeOne[0].CalculateTensionOrCompressionIdentifier(fatigue_interfacial_stress_vector_mode_one);
+        equivalent_stress_mode_one_fred *= sign_factor;
+
         if (rThisVariable == MODE_ONE_UNIAXIAL_STRESS) {
-            rValue = interfacial_stress[interface_identifier][0];
+            // rValue = interfacial_stress[interface_identifier][0];
+            rValue = equivalent_stress_mode_one_fred;
             return rValue;
         } else if (rThisVariable == MODE_TWO_UNIAXIAL_STRESS) {
             rValue = std::sqrt(std::pow(interfacial_stress[interface_identifier][1],2.0)+std::pow(interfacial_stress[interface_identifier][2],2.0));

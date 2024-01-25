@@ -191,7 +191,11 @@ void AdvanceInTimeHighCycleFatigueProcess::CyclePeriodPerIntegrationPoint(bool& 
     std::vector<bool> cycle_identifier;
     std::vector<double> previous_cycle_time;    //time when the previous cycle finished. It is used to obtain the new period for the current cycle
     std::vector<double> period;
+    std::vector<double> max_stress;
+    std::vector<double> s_th;
+    std::vector<double> reference_damage;
     double time = process_info[TIME];
+    double max_stress_rd = 0.0;
 
     KRATOS_ERROR_IF(mrModelPart.NumberOfElements() == 0) << "The number of elements in the domain is zero. The process can not be applied."<< std::endl;
 
@@ -200,6 +204,9 @@ void AdvanceInTimeHighCycleFatigueProcess::CyclePeriodPerIntegrationPoint(bool& 
         r_elem.CalculateOnIntegrationPoints(CYCLE_INDICATOR, cycle_identifier, process_info);
         r_elem.CalculateOnIntegrationPoints(PREVIOUS_CYCLE, previous_cycle_time, process_info);
         r_elem.CalculateOnIntegrationPoints(CYCLE_PERIOD, period, process_info);
+        r_elem.CalculateOnIntegrationPoints(MAX_STRESS, max_stress, process_info);
+        r_elem.CalculateOnIntegrationPoints(THRESHOLD_STRESS, s_th, process_info);
+        r_elem.CalculateOnIntegrationPoints(REFERENCE_DAMAGE, reference_damage, process_info);
 
         // Check if the HCF CL is being used. Otherwise there is no reason for entering into the advance in time strategy
         std::vector<ConstitutiveLaw::Pointer> constitutive_law_vector(number_of_ip);
@@ -209,10 +216,15 @@ void AdvanceInTimeHighCycleFatigueProcess::CyclePeriodPerIntegrationPoint(bool& 
 
         if (is_fatigue) {
             for (unsigned int i = 0; i < number_of_ip; i++) {
+                    max_stress_rd = (1 - reference_damage[i]) * max_stress[i];
                     if (cycle_identifier[i]) {
-                        period[i] = time - previous_cycle_time[i];
-                        previous_cycle_time[i] = time;
-                        rCycleFound = true;
+                        if (max_stress_rd > s_th[i]) {
+                            period[i] = time - previous_cycle_time[i];
+                            previous_cycle_time[i] = time;
+                            rCycleFound = true;
+                        } else {
+                            period[i] = 0.0;
+                        }
                     }
             }
             r_elem.SetValuesOnIntegrationPoints(PREVIOUS_CYCLE, previous_cycle_time, process_info);
@@ -335,12 +347,14 @@ void AdvanceInTimeHighCycleFatigueProcess::TimeAndCyclesUpdate(const double Incr
 
     // KRATOS_ERROR_IF(mrModelPart.NumberOfElements() == 0) << "The number of elements in the domain is zero. The process can not be applied."<< std::endl;
 
+    double time_increment = 0.0;
+
     for (auto& r_elem : mrModelPart.Elements()) {
         std::vector<bool> cycle_identifier;
         std::vector<int>  local_number_of_cycles;
         std::vector<int>  global_number_of_cycles;
         std::vector<double> period;
-        double time_increment = 0.0;
+        // double time_increment = 0.0;
         std::vector<double> previous_cycle_time;    //time when the previous cycle finished. It is used to obtain the new period for the current cycle
 
         unsigned int number_of_ip = r_elem.GetGeometry().IntegrationPoints(r_elem.GetIntegrationMethod()).size();

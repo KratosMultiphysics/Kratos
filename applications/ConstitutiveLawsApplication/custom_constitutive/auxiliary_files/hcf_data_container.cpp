@@ -270,36 +270,42 @@ void HCFDataContainer::FinalizeSolutionStep(HCFDataContainer::FatigueVariables &
             }
         }
 
-        if (std::abs(rFatigueVariables.MinStress) < tolerance) {
-            rFatigueVariables.ReversionFactorRelativeError = std::abs(rFatigueVariables.ReversionFactor - rFatigueVariables.PreviousReversionFactor);
-        } else {
-            rFatigueVariables.ReversionFactorRelativeError = std::abs((rFatigueVariables.ReversionFactor - rFatigueVariables.PreviousReversionFactor) / rFatigueVariables.ReversionFactor);
-        }
-        rFatigueVariables.MaxStressRelativeError = std::abs((rFatigueVariables.MaxStress - rFatigueVariables.PreviousMaxStress) / rFatigueVariables.MaxStress);
+        if (MaxStressRD > rFatigueVariables.Sth) { //&& MaxStressRD < ultimate_stress
+            if (std::abs(rFatigueVariables.MinStress) < tolerance) {
+                rFatigueVariables.ReversionFactorRelativeError = std::abs(rFatigueVariables.ReversionFactor - rFatigueVariables.PreviousReversionFactor);
+            } else {
+                rFatigueVariables.ReversionFactorRelativeError = std::abs((rFatigueVariables.ReversionFactor - rFatigueVariables.PreviousReversionFactor) / rFatigueVariables.ReversionFactor);
+            }
+            rFatigueVariables.MaxStressRelativeError = std::abs((rFatigueVariables.MaxStress - rFatigueVariables.PreviousMaxStress) / rFatigueVariables.MaxStress);
 
-        // if (!rFatigueVariables.DamageActivation && rFatigueVariables.GlobalNumberOfCycles > 2 && !rFatigueVariables.AdvanceStrategyApplied && (rFatigueVariables.ReversionFactorRelativeError > tolerance || rFatigueVariables.MaxStressRelativeError > tolerance)) {
-        //     rFatigueVariables.LocalNumberOfCycles = std::trunc(std::pow(10, std::pow(-(std::log(rFatigueVariables.FatigueReductionFactor) / rFatigueVariables.B0), 1.0 / (betaf * betaf)))) + 1;
-        // }
+            if (rFatigueVariables.GlobalNumberOfCycles > 2 && !rFatigueVariables.AdvanceStrategyApplied && (rFatigueVariables.ReversionFactorRelativeError > tolerance || rFatigueVariables.MaxStressRelativeError > tolerance)) {
+                rFatigueVariables.LocalNumberOfCycles = std::trunc(std::pow(10, std::pow(-(std::log(rFatigueVariables.FatigueReductionFactor) / rFatigueVariables.B0), 1.0 / (betaf * betaf)))) + 1;
+            }
 
-        rFatigueVariables.GlobalNumberOfCycles++;
-        rFatigueVariables.LocalNumberOfCycles++;
-        rFatigueVariables.NewCycle = true;
-        rFatigueVariables.MaxIndicator = false;
-        rFatigueVariables.MinIndicator = false;
-        rFatigueVariables.PreviousMaxStress = rFatigueVariables.MaxStress;
-        rFatigueVariables.PreviousMinStress = rFatigueVariables.MinStress;
-        mCyclesToFailure = rFatigueVariables.CyclesToFailure;
+        // if (MaxStressRD > rFatigueVariables.Sth) { //&& MaxStressRD < ultimate_stress
+            rFatigueVariables.GlobalNumberOfCycles++;
+            rFatigueVariables.LocalNumberOfCycles++;
+            // rFatigueVariables.NewCycle = true;
+            // rFatigueVariables.MaxIndicator = false;
+            // rFatigueVariables.MinIndicator = false;
+            rFatigueVariables.PreviousMaxStress = rFatigueVariables.MaxStress;
+            rFatigueVariables.PreviousMinStress = rFatigueVariables.MinStress;
+            mCyclesToFailure = rFatigueVariables.CyclesToFailure;
 
-        if (rFatigueVariables.MaxStress > rFatigueVariables.Sth) {
             CalculateFatigueReductionFactorAndWohlerStress(rMaterialProperties, rFatigueVariables, rVariable);
         }
+        rFatigueVariables.MaxIndicator = false;
+        rFatigueVariables.MinIndicator = false;
+        rFatigueVariables.NewCycle = true;
     }
     if (rFatigueVariables.AdvanceStrategyApplied) {
     rFatigueVariables.ReversionFactor = CalculateReversionFactor(rFatigueVariables.MaxStress, rFatigueVariables.MinStress);
 
     CalculateFatigueParameters(rMaterialProperties, rFatigueVariables, rVariable);
 
-    if (rFatigueVariables.MaxStress > rFatigueVariables.Sth) {
+    double MaxStressRD = (1 - rFatigueVariables.ReferenceDamage) * rFatigueVariables.MaxStress;
+
+    if (MaxStressRD > rFatigueVariables.Sth) {
         CalculateFatigueReductionFactorAndWohlerStress(rMaterialProperties, rFatigueVariables, rVariable);
     }
     mAITControlParameter = rFatigueVariables.LocalNumberOfCycles;

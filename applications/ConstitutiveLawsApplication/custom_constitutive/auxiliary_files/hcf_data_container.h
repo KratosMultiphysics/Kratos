@@ -218,6 +218,13 @@ public:
     }
 
     /**
+     * @brief This method returns the threshold stress
+     */
+    double GetReferenceDamage() {
+        return mReferenceDamage;
+    }
+
+    /**
      * @brief This method returns the maximum stress
      */
     double GetMaximumStress() {
