@@ -47,25 +47,25 @@ public:
     ///@name Public classes
     ///@{
 
-    class KRATOS_API(KRATOS_CORE) VariableExpressionInput : public ExpressionInput
+    class KRATOS_API(KRATOS_CORE) Input : public ExpressionInput
     {
     public:
         ///@name Type definitions
         ///@{
 
-        KRATOS_CLASS_POINTER_DEFINITION(VariableExpressionInput);
+        KRATOS_CLASS_POINTER_DEFINITION(Input);
 
         ///@}
         ///@name Life cycle
         ///@{
 
-        VariableExpressionInput(
+        Input(
             const ModelPart& rModelPart,
             const VariableType& rVariable,
             const ContainerType& rContainerType,
             const MeshType& rMeshType = MeshType::Local);
 
-        ~VariableExpressionInput() override = default;
+        ~Input() override = default;
 
         ///@}
         ///@name Public operations
@@ -91,25 +91,25 @@ public:
 
     };
 
-    class KRATOS_API(KRATOS_CORE) VariableExpressionOutput : public ExpressionOutput
+    class KRATOS_API(KRATOS_CORE) Output : public ExpressionOutput
     {
     public:
         ///@name Type definitions
         ///@{
 
-        KRATOS_CLASS_POINTER_DEFINITION(VariableExpressionOutput);
+        KRATOS_CLASS_POINTER_DEFINITION(Output);
 
         ///@}
         ///@name Life cycle
         ///@{
 
-        VariableExpressionOutput(
+        Output(
             ModelPart& rModelPart,
             const VariableType& rVariable,
             const ContainerType& rContainerType,
             MeshType rMeshType = MeshType::Local);
 
-        ~VariableExpressionOutput() override = default;
+        ~Output() override = default;
 
         ///@}
         ///@name Public operations
