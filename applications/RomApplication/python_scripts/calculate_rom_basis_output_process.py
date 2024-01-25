@@ -159,7 +159,7 @@ class CalculateRomBasisOutputProcess(KratosMultiphysics.OutputProcess):
         n_nodal_unknowns = len(self.snapshot_variables_list)
 
         # Calculate the randomized SVD of the snapshots matrix
-        u,_,_,_= RandomizedSingularValueDecomposition().Calculate(snapshots_matrix, self.svd_truncation_tolerance)
+        u, sigma,_,_= RandomizedSingularValueDecomposition().Calculate(snapshots_matrix, self.svd_truncation_tolerance)
 
         # Save the nodal basis
         rom_basis_dict["rom_settings"]["nodal_unknowns"] = [var.Name() for var in self.snapshot_variables_list]
@@ -185,6 +185,8 @@ class CalculateRomBasisOutputProcess(KratosMultiphysics.OutputProcess):
             # Storing modes in Numpy format
             numpy.save(self.rom_basis_output_folder / "RightBasisMatrix.npy", u)
             numpy.save(self.rom_basis_output_folder / "NodeIds.npy", numpy.arange(1,((u.shape[0]+1)/n_nodal_unknowns), 1, dtype=int))
+            numpy.save(self.rom_basis_output_folder / "SingularValuesVector.npy", sigma)
+            
         else:
             err_msg = "Unsupported output format {}.".format(self.rom_basis_output_format)
             raise Exception(err_msg)
@@ -193,7 +195,6 @@ class CalculateRomBasisOutputProcess(KratosMultiphysics.OutputProcess):
         output_filename = self.rom_basis_output_folder / f"{self.rom_basis_output_name}.json"
         with output_filename.open('w') as f:
             json.dump(rom_basis_dict, f, indent = 4)
-
 
 
     def ExecuteFinalize(self):

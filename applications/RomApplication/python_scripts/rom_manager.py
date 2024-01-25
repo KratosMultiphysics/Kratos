@@ -2,6 +2,7 @@ import KratosMultiphysics
 from KratosMultiphysics.RomApplication.rom_testing_utilities import SetUpSimulationInstance
 from KratosMultiphysics.RomApplication.calculate_rom_basis_output_process import CalculateRomBasisOutputProcess
 from KratosMultiphysics.RomApplication.randomized_singular_value_decomposition import RandomizedSingularValueDecomposition
+from KratosMultiphysics.RomApplication.rom_nn_trainer import Rom_NN_trainer
 import numpy as np
 import importlib
 import json
@@ -43,6 +44,9 @@ class RomManager(object):
                     self._StoreSnapshotsMatrix('rom_snapshots', rom_snapshots)
                 self.ROMvsFOM_train = np.linalg.norm(fom_snapshots - rom_snapshots)/ np.linalg.norm(fom_snapshots)
 
+            if any(item == "ANN-PROM" for item in training_stages):
+                self.__LaunchTrainNN()
+
             if any(item == "HROM" for item in training_stages):
                 #FIXME there will be an error if we only train HROM, but not ROM
                 self._ChangeRomFlags(simulation_to_run = "trainHROMGalerkin")
@@ -66,6 +70,10 @@ class RomManager(object):
                 if store_all_snapshots or store_rom_snapshots:
                     self._StoreSnapshotsMatrix('rom_snapshots', rom_snapshots)
                 self.ROMvsFOM_train = np.linalg.norm(fom_snapshots - rom_snapshots)/ np.linalg.norm(fom_snapshots)
+
+            if any(item == "ANN-PROM" for item in training_stages):
+                self.__LaunchTrainNN()
+
             if any(item == "HROM" for item in training_stages):
                 # Change the flags to train the HROM for LSPG
                 self._ChangeRomFlags(simulation_to_run = "trainHROMLSPG")
@@ -95,6 +103,10 @@ class RomManager(object):
                 if store_all_snapshots or store_rom_snapshots:
                     self._StoreSnapshotsMatrix('rom_snapshots', rom_snapshots)
                 self.ROMvsFOM_train = np.linalg.norm(fom_snapshots - rom_snapshots)/ np.linalg.norm(fom_snapshots)
+
+            if any(item == "ANN-PROM" for item in training_stages):
+                self.__LaunchTrainNN()
+
             if any(item == "HROM" for item in training_stages):
                 #FIXME there will be an error if we only train HROM, but not ROM
                 self._ChangeRomFlags(simulation_to_run = "trainHROMPetrovGalerkin")
@@ -108,7 +120,6 @@ class RomManager(object):
         else:
             err_msg = f'Provided projection strategy {chosen_projection_strategy} is not supported. Available options are \'galerkin\', \'lspg\' and \'petrov_galerkin\'.'
             raise Exception(err_msg)
-
 
 
     def Test(self, mu_test=[None]):
@@ -163,11 +174,10 @@ class RomManager(object):
             err_msg = f'Provided projection strategy {chosen_projection_strategy} is not supported. Available options are \'galerkin\', \'lspg\' and \'petrov_galerkin\'.'
             raise Exception(err_msg)
 
-
-
-
-    def RunFOM(self, mu_run=[None]):
-        self.__LaunchRunFOM(mu_run)
+    def RunFOM(self, mu_run=[None], snapshots_matrix_name=None):
+        fom_snapshots = self.__LaunchRunFOM(mu_run)
+        if snapshots_matrix_name is not None:
+            self._StoreSnapshotsMatrix('snapshots_matrix_name', fom_snapshots)
 
     def RunROM(self, mu_run=[None], nn_rom_interface=None, output_path=None):
         customROM=None ## This is temporary and should be done in a better way
@@ -469,6 +479,7 @@ class RomManager(object):
         with open(self.project_parameters_name,'r') as parameter_file:
             parameters = KratosMultiphysics.Parameters(parameter_file.read())
 
+        SnapshotsMatrix = []
         for Id, mu in enumerate(mu_run):
             parameters_copy = self.UpdateProjectParameters(parameters.Clone(), mu)
             parameters_copy = self._StoreResultsByName(parameters_copy,'FOM_Run',mu,Id)
@@ -479,6 +490,13 @@ class RomManager(object):
             simulation = self.CustomizeSimulation(analysis_stage_class,model,parameters_copy)
             simulation.Run()
             self.QoI_Run_FOM.append(simulation.GetFinalData())
+            for process in simulation._GetListOfOutputProcesses():
+                if isinstance(process, CalculateRomBasisOutputProcess):
+                    BasisOutputProcess = process
+            SnapshotsMatrix.append(BasisOutputProcess._GetSnapshotsMatrix())
+        SnapshotsMatrix = np.block(SnapshotsMatrix)
+
+        return SnapshotsMatrix
 
 
     def __LaunchRunROM(self, mu_run, customROM=None, nn_rom_interface=None, output_path=None):
@@ -521,6 +539,10 @@ class RomManager(object):
             simulation.Run()
             self.QoI_Run_HROM.append(simulation.GetFinalData())
 
+    def __LaunchTrainNN(self):
+        rom_nn_trainer = Rom_NN_trainer(self.general_rom_manager_parameters)
+        model_name = rom_nn_trainer.train_network()
+        rom_nn_trainer.evaluate_network(model_name)
 
     def _AddHromParametersToRomParameters(self,f):
         f["hrom_settings"]["element_selection_type"] = self.hrom_training_parameters["element_selection_type"].GetString()
