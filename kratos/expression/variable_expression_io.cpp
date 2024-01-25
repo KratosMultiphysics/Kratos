@@ -22,7 +22,7 @@
 
 namespace Kratos {
 
-VariableExpressionIO::VariableExpressionInput::VariableExpressionInput(
+VariableExpressionIO::Input::Input(
     const ModelPart& rModelPart,
     const VariableType& rVariable,
     const ContainerType& rContainerType,
@@ -34,7 +34,7 @@ VariableExpressionIO::VariableExpressionInput::VariableExpressionInput(
 {
 }
 
-Expression::Pointer VariableExpressionIO::VariableExpressionInput::Execute() const
+Expression::Pointer VariableExpressionIO::Input::Execute() const
 {
     const auto& r_mesh = ExpressionIOUtils::GetMesh(mrModelPart.GetCommunicator(), mMeshType);
     const auto& r_data_communicator = mrModelPart.GetCommunicator().GetDataCommunicator();
@@ -65,7 +65,7 @@ Expression::Pointer VariableExpressionIO::VariableExpressionInput::Execute() con
     return nullptr;
 }
 
-VariableExpressionIO::VariableExpressionOutput::VariableExpressionOutput(
+VariableExpressionIO::Output::Output(
     ModelPart& rModelPart,
     const VariableType& rVariable,
     const ContainerType& rContainerType,
@@ -77,7 +77,7 @@ VariableExpressionIO::VariableExpressionOutput::VariableExpressionOutput(
 {
 }
 
-void VariableExpressionIO::VariableExpressionOutput::Execute(const Expression& rExpression)
+void VariableExpressionIO::Output::Execute(const Expression& rExpression)
 {
     KRATOS_TRY
     auto& r_communicator = mrModelPart.GetCommunicator();
@@ -107,7 +107,7 @@ void VariableExpressionIO::Read(
     const bool IsHistorical)
 {
     auto p_expression =
-        VariableExpressionInput(rContainerExpression.GetModelPart(), rVariable,
+        Input(rContainerExpression.GetModelPart(), rVariable,
                                 IsHistorical ? ContainerType::NodalHistorical
                                              : ContainerType::NodalNonHistorical,
                                 TMeshType)
@@ -126,7 +126,7 @@ void VariableExpressionIO::Read(
                   "stated.\n");
 
     auto p_expression =
-        VariableExpressionInput(rContainerExpression.GetModelPart(), rVariable,
+        Input(rContainerExpression.GetModelPart(), rVariable,
                                 std::is_same_v<TContainerType, ModelPart::ConditionsContainerType>
                                     ? ContainerType::ConditionNonHistorical
                                     : ContainerType::ElementNonHistorical,
@@ -142,7 +142,7 @@ void VariableExpressionIO::Write(
     const VariableType& rVariable,
     const bool IsHistorical)
 {
-    VariableExpressionOutput(*rContainerExpression.pGetModelPart(), rVariable,
+    Output(*rContainerExpression.pGetModelPart(), rVariable,
                              IsHistorical ? ContainerType::NodalHistorical
                                           : ContainerType::NodalNonHistorical,
                              TMeshType)
@@ -158,7 +158,7 @@ void VariableExpressionIO::Write(
                   "NodesContainerType expressions should have the IsHistorical "
                   "stated.\n");
 
-    VariableExpressionOutput(*rContainerExpression.pGetModelPart(), rVariable,
+    Output(*rContainerExpression.pGetModelPart(), rVariable,
                              std::is_same_v<TContainerType, ModelPart::ConditionsContainerType>
                                  ? ContainerType::ConditionNonHistorical
                                  : ContainerType::ElementNonHistorical,
