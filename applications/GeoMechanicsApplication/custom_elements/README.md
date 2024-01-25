@@ -6,7 +6,7 @@ The extraction of geothermal energy relies on a profound understanding of heat t
 ## Governing Equations
 The primary governing equation for heat transport in geothermal applications is the heat convection-conduction equation, which describes how heat flows through a porous medium. 
 
-$$ \left(n S \rho^w c^w + (1- n) \rho^s c^s \right) \frac{\partial T}{\partial t} = -\rho^w c^w q_i \frac{\partial T}{\partial x_i} + \frac{\partial}{\partial x_i} \left( D_{ij} \frac{\partial T}{\partial x_j} \right) \qquad \text{on} \quad \Omega \label{eq:t1} $$
+$$\left(n S \rho^w c^w + (1- n) \rho^s c^s \right) \frac{\partial T}{\partial t} = -\rho^w c^w q_i \frac{\partial T}{\partial x_i} + \frac{\partial}{\partial x_i} \left( D_{ij} \frac{\partial T}{\partial x_j} \right) \qquad \text{on} \quad \Omega$$
 
 where,
 
@@ -22,10 +22,7 @@ where,
 
 The hydrodynamic thermal dispersion is defined as:
 
-$$
-	D_{ij}= nS \lambda^w \delta_{ij} + \left(1-n\right) \lambda_{ij}^s + c^w \rho^w \left( (\alpha_l - \alpha_t) \frac{q_i q_j}{q} + \delta_{ij} \alpha_t q \right)
-	\label{eq:t2}
-$$
+$$D_{ij}= nS \lambda^w \delta_{ij} + \left(1-n\right) \lambda_{ij}^s + c^w \rho^w \left( (\alpha_l - \alpha_t) \frac{q_i q_j}{q} + \delta_{ij} \alpha_t q \right)$$
 
 where
 
@@ -44,12 +41,10 @@ In the absence of ground water flow, equations \ref{eq:t1} is simplified to,
 $$
 	\left(n S \rho^w c^w + (1- n) \rho^s c^s \right) \frac{\partial T}{\partial t} = \frac{\partial}{\partial x_i} \left( D_{ij} \frac{\partial T}{\partial x_j} \right)
 	\qquad \text{on} \quad \Omega
-	\label{eq:t3}
 $$
 
 $$
 	D_{ij}= nS \lambda^w \delta_{ij} + \left(1-n\right) \lambda_{ij}^s
-	\label{eq:t4}
 $$
 
 ## Boundary Conditions
