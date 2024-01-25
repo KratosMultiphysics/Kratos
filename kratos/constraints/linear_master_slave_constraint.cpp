@@ -45,6 +45,7 @@ LinearMasterSlaveConstraint::LinearMasterSlaveConstraint(
 
     // Setting the slave flag on the node
     rSlaveNode.Set(SLAVE);
+    rMasterNode.Set(MASTER);
 }
 
 void LinearMasterSlaveConstraint::EquationIdVector(
