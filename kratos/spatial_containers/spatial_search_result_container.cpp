@@ -118,7 +118,7 @@ void SpatialSearchResultContainer<TObjectType>::Barrier()
         const int current_world_size = mrDataCommunicator.Size();
 
         // Using the global Id as tag
-        KRATOS_DEBUG_ERROR_IF(mGlobalIndex > std::numeric_limits<int>::max()) << "Global index is greater than integer. Error may happen" << std::endl;
+        KRATOS_DEBUG_ERROR_IF(mGlobalIndex > static_cast<IndexType>(std::numeric_limits<int>::max())) << "Global index is greater than integer. Error may happen" << std::endl;
         const int tag = static_cast<int>(mGlobalIndex);
 
         // Sending receiving simple integers
