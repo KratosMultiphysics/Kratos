@@ -484,8 +484,8 @@ public:
     #ifndef KRATOS_EXPRESSION_UTILS_CEXP_METHOD_1
     #define KRATOS_EXPRESSION_UTILS_CEXP_METHOD_1(METHOD_NAME)                      \
         /**                                                                         \
-         @brief Returns a container expression having METHOD_NAME evaluated on the given @a rContainerExpression. \
-        @details Refer @ref METHOD_NAME.                                           \
+        @brief Returns a container expression having METHOD_NAME evaluated on the given @a rContainerExpression's expression. \
+        @see METHOD_NAME.                                           \
         @tparam TContainerType Container type.                                     \
         @param ContainerExpression<TContainerType> Container expression to apply METHOD_NAME.                    \
         @return ContainerExpression<TContainerType> Resulting container expression. **/                          \
@@ -502,8 +502,8 @@ public:
     #ifndef KRATOS_EXPRESSION_UTILS_CEXP_METHOD_2
     #define KRATOS_EXPRESSION_UTILS_CEXP_METHOD_2(METHOD_NAME)                                     \
         /**                                                                                        \
-         @brief Returns a reduced value by evaluating METHOD_NAME on the given @a rContainerExpression.                                                                         \
-        @details Refer @ref METHOD_NAME.                                                          \
+        @brief Returns a reduced value by evaluating METHOD_NAME on the given @a rContainerExpression's expression.                                                                         \
+        @see METHOD_NAME.                                                          \
         @tparam TContainerType Container type.                                                    \
         @param ContainerExpression<TContainerType> Container expression to apply METHOD_NAME.                                                                                  \
         @return double Resulting scalar value after evaluating METHOD_NAME on @a rContainerExpression. **/                                                                     \
@@ -519,8 +519,8 @@ public:
     #ifndef KRATOS_EXPRESSION_UTILS_CEXP_METHOD_3
     #define KRATOS_EXPRESSION_UTILS_CEXP_METHOD_3(METHOD_NAME)                                   \
         /**                                                                                      \
-         @brief Returns a container expression by evaluating METHOD_NAME on the given @a rContainerExpression using @a Value                                                      \
-        @details Refer @ref METHOD_NAME.                                                        \
+        @brief Returns a container expression by evaluating METHOD_NAME on the given @a rContainerExpression's expression using @a Value                                                      \
+        @see METHOD_NAME.                                                        \
         @tparam TContainerType Container type.                                                  \
         @param ContainerExpression<TContainerType> Container expression to apply METHOD_NAME.                                                                                \
         @return ContainerExpression<TContainerType> Resulting container expression. **/                                                                                         \
@@ -533,8 +533,8 @@ public:
             return copy;                                                                         \
         }                                                                                        \
         /**                                                                                      \
-         @brief Returns a container expression by evaluating METHOD_NAME on the given @a rContainerExpression using @a rContainerExpression2                                      \
-        @details Refer @ref METHOD_NAME.                                                        \
+         @brief Returns a container expression by evaluating METHOD_NAME on the given @a rContainerExpression's expression using @a rContainerExpression2's expression                                      \
+        @see METHOD_NAME.                                                        \
         @tparam TContainerType Container type.                                                  \
         @param ContainerExpression<TContainerType> Container expression1 to apply METHOD_NAME.                                                                                \
         @param ContainerExpression<TContainerType> Container expression1 to apply METHOD_NAME.                                                                                \
@@ -567,8 +567,8 @@ public:
     #undef KRATOS_EXPRESSION_UTILS_CEXP_METHOD_3
 
     /**
-     * @brief Slicing given container expression.
-     * @details Refer @ref Slice.
+     * @brief Slicing given container expression's expression.
+     * @see Slice.
      * @tparam TContainerType Container type
      * @param rContainerExpression  Container expression to be sliced.
      * @param Offset Index of the first component to begin slicing at.
@@ -587,8 +587,8 @@ public:
     }
 
     /**
-     * @brief Reshape the data in the given container expression.
-     * @details Refer @ref Reshape.
+     * @brief Reshape the data in the given container expression's expression.
+     * @see Reshape.
      * @tparam TContainerType Container type
      * @tparam TIterator Iterator type for the shape.
      * @param rContainerExpression  Container expression to be sliced.
@@ -608,8 +608,8 @@ public:
     }
 
     /**
-     * @brief Reshape the data in the given container expression.
-     * @details Refer @ref Reshape.
+     * @brief Reshape the data in the given container expression's expression.
+     * @see Reshape.
      * @tparam TContainerType Container type
      * @param rContainerExpression  Container expression to be sliced.
      * @param rNewShape New shape.
@@ -623,8 +623,8 @@ public:
         return Reshape(rContainerExpression, rNewShape.begin(), rNewShape.end());
     }
 
-    /** @brief Append the components of a set of container expressions to the current container expression's components.
-     * @details Refer @ref Comb
+    /** @brief Append the components of a set of container expressions' expression to the current container expression's expression components.
+     * @see Comb
      * @throws If the @a rpContainerExpressions is empty.
      * @tparam TContainerType Type of the data container
      * @param rpContainerExpressions  List of container expressions to comb through.
@@ -643,8 +643,8 @@ public:
     }
 
     /**
-     * @brief Computes the P norm of the given container expression
-     * @details Refer @ref NormP
+     * @brief Computes the P norm of the given container expression's expression.
+     * @see NormP
      * @tparam TContainerType   Container type.
      * @param rContainerExpression  Input container expression.
      * @param P Norm coefficient.
@@ -659,8 +659,8 @@ public:
     }
 
     /**
-     * @brief Computes inner product between two container expressions.
-     * @details Refer @ref InnerProduct
+     * @brief Computes inner product between two container expressions's expressions.
+     * @see InnerProduct
      * @tparam TContainerType Container type.
      * @param rContainerExpression1    Container expression 1.
      * @param rContainerExpression2    Container expression 2.
