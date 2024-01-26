@@ -60,8 +60,6 @@ public:
             const ModelPart& rModelPart,
             const ContainerType& rContainerType);
 
-        ~Input() override = default;
-
         ///@}
         ///@name Public operations
         ///@{
