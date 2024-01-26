@@ -20,6 +20,7 @@
 #include "expression_io.h"
 #include "includes/define.h"
 #include "includes/model_part.h"
+#include "includes/global_variables.h"
 
 namespace Kratos {
 
@@ -58,7 +59,7 @@ public:
 
         Input(
             const ModelPart& rModelPart,
-            ContainerType rContainerType);
+            Globals::DataLocation CurrentLocation);
 
         ///@}
         ///@name Public operations
@@ -72,9 +73,9 @@ public:
         ///@name Private member variables
         ///@{
 
-        const ModelPart& mrModelPart;
+        ModelPart const * mpModelPart;
 
-        const ContainerType mContainerType;
+        Globals::DataLocation mDataLocation;
 
         ///@}
 
