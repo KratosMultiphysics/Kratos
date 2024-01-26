@@ -36,12 +36,6 @@ namespace Kratos {
 class KRATOS_API(KRATOS_CORE) DomainSizeExpressionIO
 {
 public:
-    ///@name Type definitions
-    ///@{
-
-    using Configuration = Kratos::Globals::Configuration;
-
-    ///@}
     ///@name Public classes
     ///@{
 
