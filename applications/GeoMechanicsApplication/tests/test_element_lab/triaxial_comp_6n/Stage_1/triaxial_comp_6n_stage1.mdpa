@@ -75,7 +75,7 @@ Begin SubModelPart Soil
   End SubModelPartConditions
 End SubModelPart
 
-Begin SubModelPart Fixed_Based_Y
+Begin SubModelPart Fixed_Base
   Begin SubModelPartTables
   End SubModelPartTables
   Begin SubModelPartNodes
