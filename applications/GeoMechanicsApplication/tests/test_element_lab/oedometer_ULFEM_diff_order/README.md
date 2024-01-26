@@ -27,5 +27,5 @@ In this test, there are two results checks:
 
 1. It is asserted that the effective stress is -1000 kPa in the integration points of both elements in the Y direction
    and 0.0 in the other directions, due to the Poisson ration being 0.0.
-2. It is asserted that the displacement of one of the top nodes (1) is close to $FA/E = -1000 / 1e7 = -1e-4$ as a result of
+2. It is asserted that the displacement of one of the top nodes (1) is close to $FA/E = -1000 / 1e7 = -1e\text{-}4$ as a result of
    the applied line load and linear elastic behavior.
