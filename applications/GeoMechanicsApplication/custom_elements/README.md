@@ -10,27 +10,11 @@ $$ \left(n S \rho^w c^w + (1- n) \rho^s c^s \right) \frac{\partial T}{\partial t
 
 where,
 
-<style>
-table {
-    border-collapse: collapse;
-}
-table, th, td {
-   border: none;
-}
-blockquote {
-    border-left: none;
-    padding-left: 10px;
-}
-</style>
-
-||||
-|----------|--------------------------------------------------|--------------------|
-| $c^w$    | specific heat capacity liquid phase              | $\mathrm{[J/kgC]}$  |
-| $c^s$    | specific heat capacity solid phase               | $\mathrm{[J/kgC]}$  |
-| $D_{ij}$ | hydrodynamic thermal dispersion 	              | $\mathrm{[W/mC]}$   |
-| $T$      | temperature 						              | $\mathrm{[C]}$      |
-| $\rho^s$ | density solid phase 				              | $\mathrm{[kg/m^3]}$ |
-
+- $c^w$       = specific heat capacity liquid phase $\mathrm{[J/kg ^{\circ}C]}$
+- $c^s$        = specific heat capacity solid phase  $\mathrm{[J/kg ^{\circ}C]}$
+- $D_{ij}$     = hydrodynamic thermal dispersion  $\mathrm{[W/m ^{\circ}C]}$
+- $T$           = temperature  $\mathrm{[ ^{\circ}C]}$
+- $\rho^s$ = density solid phase $\mathrm{[kg/m^3]}$ 
 
 The hydrodynamic thermal dispersion is defined as:
 
@@ -38,15 +22,13 @@ $$ D_{ij}= nS \lambda^w \delta_{ij} + \left(1-n\right) \lambda_{ij}^s + c^w \rho
 
 where
 
-||||
-|:---           |:---                               |:---               |
-| $\alpha_l$    | longitudinal dispersivity         | $\mathrm{[m]}$    |
-| $\alpha_t$    | transverse dispersivity           | $\mathrm{[m]}$    |
-| $\delta_{ij}$ | Kronecker delta                   | $\mathrm{[-]}$    |
-| $\lambda^w$   | thermal conductivity water        | $\mathrm{[W/mC]}$ |
-| $\lambda^s$   | thermal conductivity solid matrix | $\mathrm{[W/mC]}$ |
+- $\alpha_l$    = longitudinal dispersivity $\mathrm{[m]}$
+- $\alpha_t$    = transverse dispersivity $\mathrm{[m]}$
+- $\delta_{ij}$ = Kronecker delta $\mathrm{[-]}$
+- $\lambda^w$   = thermal conductivity water $\mathrm{[W/m ^{\circ}C]}$
+- $\lambda^s$   = thermal conductivity solid matrix $\mathrm{[W/m ^{\circ}C]}$
 
-In the absence of ground water flow, equations \ref{eq:t1} is simplified to,
+In the absence of ground water flow, these equations are simplified to,
 
 $$ \left(n S \rho^w c^w + (1- n) \rho^s c^s \right) \frac{\partial T}{\partial t} = \frac{\partial}{\partial x_i} \left( D_{ij} \frac{\partial T}{\partial x_j} \right) \qquad \text{on} \quad \Omega $$
 
@@ -57,17 +39,17 @@ $$ D_{ij}= nS \lambda^w \delta_{ij} + \left(1-n\right) \lambda_{ij}^s $$
 ### Dirichlet boundary condition
 $$ T = \overline T \qquad \text{on} \quad \Gamma_{1}^T $$
 
-where $\overline T \left[ C \right]$  is a prescribed temperature 
+where $\overline T \left[ ^{\circ}C \right]$  is a prescribed temperature 
 
 ### Neumann Boundary Condition
 $$ D_{ij} \frac{\partial T}{\partial x_j} n_i = \overline{f} \qquad \text{on} \quad \Gamma_{2}^T $$
 
-where $\overline f \left[ C \right]$ is a prescribed conductive heat flux.
+where $\overline f \left[ ^{\circ}C \right]$ is a prescribed conductive heat flux.
 
 ### Robin bounday condition
 $$ D_{ij} \frac{\partial T}{\partial x_j} n_i = \overline{g} -  \rho^w c^w q_n T \qquad \text{on} \quad \Gamma_{3}^T \label{eq:t6} $$
 
-where $\overline g \left[ C \right]$ is a prescribed convective-conductive heat flux.
+where $\overline g \left[ ^{\circ}C \right]$ is a prescribed convective-conductive heat flux.
 
 
 ## Derived Properties
@@ -90,7 +72,8 @@ $$ \mu = 2.4318 \cdot 10^{-5} \cdot 10^{{247.8} / {\left(T+133.0\right]}} $$
 
 density of water $\rho^w$ $[\mathrm {kg/m^3}]$ relates to temperature and \cite{Diersch1} proposes a six order Taylor expansion which is approximated here by:
 
-$$ \rho^w = 9.998396 \cdot 10^2 + 6.764771  \cdot 10^{-2} \; T - 8.993699  \cdot 10^{-3} \; T^2 + 9.143518 \cdot 10^{-5} \; T^3 - 8.907391 \cdot 10^{-7} \; T^4 + 5.291959  \cdot 10^{-9} \; T^5 - 1.359813  \cdot 10^{-11} \; T^6 $$
+$$ \rho^w = 9.998396 \cdot 10^2 + 6.764771  \cdot 10^{-2} \cdot T - 8.993699  \cdot 10^{-3} \cdot T^2 + 9.143518 \cdot 10^{-5} \cdot T^3$$
+$$ - 8.907391 \cdot 10^{-7} \cdot T^4 + 5.291959  \cdot 10^{-9} \cdot T^5 - 1.359813  \cdot 10^{-11} \cdot T^6 $$
 
 
 
@@ -102,34 +85,22 @@ $$ \left(\frac{1}{\theta \Delta t} \boldsymbol{S} + \boldsymbol{A} + \boldsymbol
 
 Compressibility matrix 
 
-$$
-	\boldsymbol{S} = \int_{\Omega^e} \left( n S \rho^w c^w + \left(1-n\right) \rho^s c^s \right)^{n+1} \boldsymbol{N}^T  \boldsymbol{N} d \Omega
-	\label{eq:t16} 
-$$
+$$ \boldsymbol{S} = \sum_e \int_{\Omega^e} \left( n S \rho^w c^w + \left(1-n\right) \rho^s c^s \right)^{n+1} \boldsymbol{N}^T  \boldsymbol{N} d \Omega $$
 
 Convectivity matrix
 
-$$
-	\boldsymbol{A} = \int_{\Omega^e} \left(\rho^w c^w\right)^{n+1}  \boldsymbol{N}^T \boldsymbol{q}^{T,n+1} \boldsymbol{\nabla N}   d \Omega
-	\label{eq:t18}
-$$
+$$ \boldsymbol{A} = \sum_e \int_{\Omega^e} \left(\rho^w c^w\right)^{n+1}  \boldsymbol{N}^T \boldsymbol{q}^{T,n+1} \boldsymbol{\nabla N}   d \Omega $$
 
 Conductivity matrix
 
-$$
-	\boldsymbol{H} = \int_{\Omega^e} \boldsymbol{\nabla N}^T \boldsymbol{D}^{n+1} \boldsymbol{\nabla N} d \Omega 
-	\label{eq:t17}
-$$
+$$ \boldsymbol{H} = \sum_e \int_{\Omega^e} \boldsymbol{\nabla N}^T \boldsymbol{D}^{n+1} \boldsymbol{\nabla N} d \Omega $$
 
 Neumann condition (dispersive boundary)
 
-$$
-	\boldsymbol{V} = \int_{\Gamma_2^{ep}}  f^{n+1} \boldsymbol{N}^T  d \Gamma 
-	\label{eq:t19}
-$$
+$$ \boldsymbol{V} = \sum_e \int_{\Gamma_2^{ep}}  f^{n+1} \boldsymbol{N}^T  d \Gamma $$
 
 Robin condition (convective boundary)
 
-$$ \boldsymbol{W^r} = \int_{\Gamma_2^{ep}}  g^{n+1} \boldsymbol{N}^T  d \Gamma $$
+$$ \boldsymbol{W^r} = \sum_e \int_{\Gamma_2^{ep}}  g^{n+1} \boldsymbol{N}^T  d \Gamma $$
 
-$$ \boldsymbol{W^l} = \int_{\Gamma_3^{ep}}  \left( \rho^w c^w q_n \right)^{n+1} \boldsymbol{N}^T \boldsymbol{I} d \Gamma $$
+$$ \boldsymbol{W^l} = \sum_e \int_{\Gamma_3^{ep}}  \left( \rho^w c^w q_n \right)^{n+1} \boldsymbol{N}^T \boldsymbol{I} d \Gamma $$
