@@ -426,7 +426,7 @@ void AddExpressionIOToPython(pybind11::module& rModule)
     pybind11::class_<DomainSizeExpressionIO::Input, DomainSizeExpressionIO::Input::Pointer, ExpressionInput>(
         domain_size_expression_io, "Input")
         .def(pybind11::init<const ModelPart&,
-                            const ContainerType&>(),
+                            ContainerType>(),
              pybind11::arg("model_part"),
              pybind11::arg("container_type"))
         ;

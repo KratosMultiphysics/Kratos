@@ -58,7 +58,7 @@ public:
 
         Input(
             const ModelPart& rModelPart,
-            const ContainerType& rContainerType);
+            ContainerType rContainerType);
 
         ///@}
         ///@name Public operations

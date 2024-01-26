@@ -23,7 +23,7 @@ namespace Kratos {
 
 DomainSizeExpressionIO::Input::Input(
     const ModelPart& rModelPart,
-    const ContainerType& rContainerType)
+    ContainerType rContainerType)
     : mrModelPart(rModelPart),
       mContainerType(rContainerType)
 {
