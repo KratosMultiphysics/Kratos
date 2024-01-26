@@ -23,8 +23,17 @@
 
 namespace Kratos {
 
-
-class KRATOS_API(KRATOS_CORE) EntityDomainSizeExpressionIO
+/**
+ * @brief Utility class for domain size IO
+ * @details This utility is used to compute domain sizes of each entity
+ *          (such as of conditions/elements). The domain size for conditions
+ *          and elements differs depending on the underlying geometry.
+ *          1. If it is a line geometry, then domain size represents the line length.
+ *          2. If it is a surface geometry, then domain size represents the surface area.
+ *          3. If is is a volume geometry, then domain size represents the volume.
+ * @see Geometry::DomainSize
+ */
+class KRATOS_API(KRATOS_CORE) DomainSizeExpressionIO
 {
 public:
     ///@name Type definitions
@@ -36,23 +45,28 @@ public:
     ///@name Public classes
     ///@{
 
-    class KRATOS_API(KRATOS_CORE) EntityDomainSizeExpressionInput : public ExpressionInput
+    /**
+     * @brief Construct a new domain expression input
+     * @details This constructs an input object to read in domain sizes of each entity.
+     *
+     */
+    class KRATOS_API(KRATOS_CORE) Input : public ExpressionInput
     {
     public:
         ///@name Type definitions
         ///@{
 
-        KRATOS_CLASS_POINTER_DEFINITION(EntityDomainSizeExpressionInput);
+        KRATOS_CLASS_POINTER_DEFINITION(Input);
 
         ///@}
         ///@name Life cycle
         ///@{
 
-        EntityDomainSizeExpressionInput(
+        Input(
             const ModelPart& rModelPart,
             const ContainerType& rContainerType);
 
-        ~EntityDomainSizeExpressionInput() override = default;
+        ~Input() override = default;
 
         ///@}
         ///@name Public operations

@@ -17,11 +17,11 @@
 #include "utilities/parallel_utilities.h"
 
 // Include base h
-#include "entity_domain_size_expression_io.h"
+#include "domain_size_expression_io.h"
 
 namespace Kratos {
 
-EntityDomainSizeExpressionIO::EntityDomainSizeExpressionInput::EntityDomainSizeExpressionInput(
+DomainSizeExpressionIO::Input::Input(
     const ModelPart& rModelPart,
     const ContainerType& rContainerType)
     : mrModelPart(rModelPart),
@@ -29,7 +29,7 @@ EntityDomainSizeExpressionIO::EntityDomainSizeExpressionInput::EntityDomainSizeE
 {
 }
 
-Expression::Pointer EntityDomainSizeExpressionIO::EntityDomainSizeExpressionInput::Execute() const
+Expression::Pointer DomainSizeExpressionIO::Input::Execute() const
 {
     const auto& r_mesh = mrModelPart.GetCommunicator().LocalMesh();
 
@@ -51,7 +51,7 @@ Expression::Pointer EntityDomainSizeExpressionIO::EntityDomainSizeExpressionInpu
             });
             break;
         default:
-            KRATOS_ERROR << "EntityDomainSizeExpressionInput only supports ConditionNonHistorical and ElementNonHistorical container types.";
+            KRATOS_ERROR << "Input only supports ConditionNonHistorical and ElementNonHistorical container types.";
             break;
     }
 
@@ -59,13 +59,13 @@ Expression::Pointer EntityDomainSizeExpressionIO::EntityDomainSizeExpressionInpu
 }
 
 template<class TContainerType, MeshType TMeshType>
-void EntityDomainSizeExpressionIO::Read(ContainerExpression<TContainerType, TMeshType>& rContainerExpression)
+void DomainSizeExpressionIO::Read(ContainerExpression<TContainerType, TMeshType>& rContainerExpression)
 {
     if constexpr(std::is_same_v<TContainerType, ModelPart::ConditionsContainerType>) {
-        auto p_expression = EntityDomainSizeExpressionInput(rContainerExpression.GetModelPart(), ContainerType::ConditionNonHistorical).Execute();
+        auto p_expression = Input(rContainerExpression.GetModelPart(), ContainerType::ConditionNonHistorical).Execute();
         rContainerExpression.SetExpression(p_expression);
     } else if constexpr(std::is_same_v<TContainerType, ModelPart::ElementsContainerType>) {
-        auto p_expression = EntityDomainSizeExpressionInput(rContainerExpression.GetModelPart(), ContainerType::ElementNonHistorical).Execute();
+        auto p_expression = Input(rContainerExpression.GetModelPart(), ContainerType::ElementNonHistorical).Execute();
         rContainerExpression.SetExpression(p_expression);
     } else {
         static_assert(std::is_same_v<TContainerType, TContainerType>, "Unsupported TContainerType");
@@ -74,7 +74,7 @@ void EntityDomainSizeExpressionIO::Read(ContainerExpression<TContainerType, TMes
 }
 
 #define KRATOS_INSTANTIATE_CONTAINER_ENTITY_DOMAIN_SIZE_EXPRESSION_IO(CONTAINER_TYPE, MESH_TYPE)                                                                                                            \
-    template KRATOS_API(KRATOS_CORE) void EntityDomainSizeExpressionIO::Read(ContainerExpression<CONTAINER_TYPE, MESH_TYPE>&);
+    template KRATOS_API(KRATOS_CORE) void DomainSizeExpressionIO::Read(ContainerExpression<CONTAINER_TYPE, MESH_TYPE>&);
 
 KRATOS_INSTANTIATE_CONTAINER_ENTITY_DOMAIN_SIZE_EXPRESSION_IO(ModelPart::ConditionsContainerType, MeshType::Local)
 KRATOS_INSTANTIATE_CONTAINER_ENTITY_DOMAIN_SIZE_EXPRESSION_IO(ModelPart::ElementsContainerType, MeshType::Local)
