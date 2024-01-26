@@ -115,11 +115,11 @@ class KratosGeoMechanicsResetDisplacementTests(KratosUnittest.TestCase):
 
         stage_nr = 1
         for idx, node in enumerate(nodal_coordinates_stages[stage_nr]):
-            self.assertAlmostEqual(displacement_stages[stage_nr][idx][0], 0, places=5)
+            self.assertAlmostEqual(displacement_stages[stage_nr][idx][1], 0, places=5)
 
         stage_nr = 2
         for idx, node in enumerate(nodal_coordinates_stages[stage_nr]):
-            self.assertAlmostEqual(displacement_stages[stage_nr][idx][0], 0, places=5)
+            self.assertAlmostEqual(displacement_stages[stage_nr][idx][1], 0, places=5)
 
         stage_nr = 3
         y_displacement_at_end_of_beam = displacement_stages[stage_nr][10][1]
