@@ -109,7 +109,7 @@ namespace Kratos
             }
 
             // Differential area
-            double penalty_integration = penalty * integration_points[point_number].Weight() * fabs(determinant_jacobian_vector[point_number]);
+            double penalty_integration = penalty * integration_points[point_number].Weight() * std::abs(determinant_jacobian_vector[point_number]);
 
             // Guglielmo innovaction
             double Guglielmo_innovation = -1.0;  // = 1 -> Penalty approach
@@ -121,9 +121,9 @@ namespace Kratos
             // Assembly
             noalias(rLeftHandSideMatrix) -= prod(trans(H), H) * penalty_integration;
             // Assembly of the integration by parts term -(w,GRAD_u * n) -> Fundamental !!
-            noalias(rLeftHandSideMatrix) -= prod(trans(H), DN_dot_n)                        * integration_points[point_number].Weight() * fabs(determinant_jacobian_vector[point_number]) ;
+            noalias(rLeftHandSideMatrix) -= prod(trans(H), DN_dot_n)                        * integration_points[point_number].Weight() * std::abs(determinant_jacobian_vector[point_number]) ;
             // Of the Dirichlet BCs -(GRAD_w* n,u) 
-            noalias(rLeftHandSideMatrix) -= Guglielmo_innovation * prod(trans(DN_dot_n), H) * integration_points[point_number].Weight() * fabs(determinant_jacobian_vector[point_number]) ;
+            noalias(rLeftHandSideMatrix) -= Guglielmo_innovation * prod(trans(DN_dot_n), H) * integration_points[point_number].Weight() * std::abs(determinant_jacobian_vector[point_number]) ;
 
 
 
@@ -153,7 +153,7 @@ namespace Kratos
                 // exit(0);
                 noalias(rRightHandSideVector) += prod(prod(trans(H), H), u_D) * penalty_integration;
                 // Of the Dirichlet BCs
-                noalias(rRightHandSideVector) += Guglielmo_innovation * prod(prod(trans(DN_dot_n), H), u_D) * integration_points[point_number].Weight() * fabs(determinant_jacobian_vector[point_number]);
+                noalias(rRightHandSideVector) += Guglielmo_innovation * prod(prod(trans(DN_dot_n), H), u_D) * integration_points[point_number].Weight() * std::abs(determinant_jacobian_vector[point_number]);
 
 
                 Vector temp(number_of_nodes);

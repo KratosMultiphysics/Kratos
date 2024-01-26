@@ -124,8 +124,7 @@ private:
     const Shell3pElement mShell3pElement;
     const Shell5pHierarchicElement mShell5pHierarchicElement;
     const Shell5pElement mShell5pElement;
-    const LaplacianIGAElement<2> mLaplacianIGA2D3N;
-    // const ConvDiffIGAElement<2> mConvDiffIGA2D3N;
+    const LaplacianIGAElement mLaplacianIGAElement;
 
     //Conditions
     const OutputCondition mOutputCondition;

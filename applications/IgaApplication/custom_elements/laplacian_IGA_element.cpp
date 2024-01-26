@@ -30,8 +30,7 @@
 namespace Kratos
 {
 
-template<std::size_t TDim>
-LaplacianIGAElement<TDim>::LaplacianIGAElement(
+LaplacianIGAElement::LaplacianIGAElement(
     IndexType NewId,
     GeometryType::Pointer pGeometry)
     : Element(
@@ -40,8 +39,7 @@ LaplacianIGAElement<TDim>::LaplacianIGAElement(
 {
 }
 
-template<std::size_t TDim>
-LaplacianIGAElement<TDim>::LaplacianIGAElement(
+LaplacianIGAElement::LaplacianIGAElement(
     IndexType NewId,
     GeometryType::Pointer pGeometry,
     PropertiesType::Pointer pProperties)
@@ -52,8 +50,7 @@ LaplacianIGAElement<TDim>::LaplacianIGAElement(
 {
 }
 
-template<std::size_t TDim>
-Element::Pointer LaplacianIGAElement<TDim>::Create(
+Element::Pointer LaplacianIGAElement::Create(
     IndexType NewId,
     NodesArrayType const& ThisNodes,
     PropertiesType::Pointer pProperties) const
@@ -61,8 +58,7 @@ Element::Pointer LaplacianIGAElement<TDim>::Create(
     return Kratos::make_intrusive<LaplacianIGAElement>(NewId, GetGeometry().Create(ThisNodes), pProperties);
 }
 
-template<std::size_t TDim>
-Element::Pointer LaplacianIGAElement<TDim>::Create(
+Element::Pointer LaplacianIGAElement::Create(
     IndexType NewId,
     GeometryType::Pointer pGeom,
     PropertiesType::Pointer pProperties) const
@@ -71,15 +67,14 @@ Element::Pointer LaplacianIGAElement<TDim>::Create(
 }
 
 // Deconstructor
-template<std::size_t TDim>
-LaplacianIGAElement<TDim>::~LaplacianIGAElement()
+
+LaplacianIGAElement::~LaplacianIGAElement()
 {
 }
 
 
 // From classical Laplacian
-template<std::size_t TDim>
-void LaplacianIGAElement<TDim>::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
+void LaplacianIGAElement::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
                                             VectorType& rRightHandSideVector,
                                             const ProcessInfo& rCurrentProcessInfo)
 {
@@ -191,8 +186,7 @@ void LaplacianIGAElement<TDim>::CalculateLocalSystem(MatrixType& rLeftHandSideMa
 
 
 // From classical Laplacian
-template<std::size_t TDim>
-void LaplacianIGAElement<TDim>::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, const ProcessInfo& rCurrentProcessInfo)
+void LaplacianIGAElement::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, const ProcessInfo& rCurrentProcessInfo)
 {   
     VectorType temp(0);
     CalculateLocalSystem(rLeftHandSideMatrix, temp, rCurrentProcessInfo);
@@ -200,8 +194,7 @@ void LaplacianIGAElement<TDim>::CalculateLeftHandSide(MatrixType& rLeftHandSideM
 
 
 // From classical Laplacian
-template<std::size_t TDim>
-void LaplacianIGAElement<TDim>::CalculateRightHandSide(VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo)
+void LaplacianIGAElement::CalculateRightHandSide(VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo)
 {
     MatrixType temp(0,0);
     CalculateLocalSystem(temp, rRightHandSideVector, rCurrentProcessInfo);
@@ -211,8 +204,7 @@ void LaplacianIGAElement<TDim>::CalculateRightHandSide(VectorType& rRightHandSid
 
 
 
-template<std::size_t TDim>
-void LaplacianIGAElement<TDim>::EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo& rCurrentProcessInfo) const
+void LaplacianIGAElement::EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo& rCurrentProcessInfo) const
 {
     const ProcessInfo& r_process_info = rCurrentProcessInfo;
     ConvectionDiffusionSettings::Pointer p_settings = r_process_info[CONVECTION_DIFFUSION_SETTINGS];
@@ -231,8 +223,7 @@ void LaplacianIGAElement<TDim>::EquationIdVector(EquationIdVectorType& rResult, 
 
 //************************************************************************************
 //************************************************************************************
-template<std::size_t TDim>
-void LaplacianIGAElement<TDim>::GetDofList(DofsVectorType& ElementalDofList,const ProcessInfo& rCurrentProcessInfo) const
+void LaplacianIGAElement::GetDofList(DofsVectorType& ElementalDofList,const ProcessInfo& rCurrentProcessInfo) const
 {
     const ProcessInfo& r_process_info = rCurrentProcessInfo;
     ConvectionDiffusionSettings::Pointer p_settings = r_process_info[CONVECTION_DIFFUSION_SETTINGS];
@@ -250,8 +241,7 @@ void LaplacianIGAElement<TDim>::GetDofList(DofsVectorType& ElementalDofList,cons
 }
 
 
-template<std::size_t TDim>
-int LaplacianIGAElement<TDim>::Check(const ProcessInfo& rCurrentProcessInfo) const
+int LaplacianIGAElement::Check(const ProcessInfo& rCurrentProcessInfo) const
 {
     KRATOS_ERROR_IF_NOT(rCurrentProcessInfo.Has(CONVECTION_DIFFUSION_SETTINGS)) << "No CONVECTION_DIFFUSION_SETTINGS defined in ProcessInfo." << std::endl;
     ConvectionDiffusionSettings::Pointer p_settings = rCurrentProcessInfo[CONVECTION_DIFFUSION_SETTINGS];
@@ -281,16 +271,14 @@ int LaplacianIGAElement<TDim>::Check(const ProcessInfo& rCurrentProcessInfo) con
 }
 
 
-template<std::size_t TDim>
-Element::IntegrationMethod LaplacianIGAElement<TDim>::GetIntegrationMethod() const
+Element::IntegrationMethod LaplacianIGAElement::GetIntegrationMethod() const
 {
     return GeometryData::IntegrationMethod::GI_GAUSS_1;
 }
 
 
 
-template<std::size_t TDim>
-void LaplacianIGAElement<TDim>::FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
+void LaplacianIGAElement::FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
     {
     const auto& r_geometry = GetGeometry();
     const SizeType nb_nodes = r_geometry.size();
@@ -333,12 +321,9 @@ void LaplacianIGAElement<TDim>::FinalizeSolutionStep(const ProcessInfo& rCurrent
     }
 }
 
-template<std::size_t TDim>
-void LaplacianIGAElement<TDim>::InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo){
+void LaplacianIGAElement::InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo){
 }
 
 
-template class LaplacianIGAElement<2>;
-template class LaplacianIGAElement<3>;
 
 } // Namespace Kratos

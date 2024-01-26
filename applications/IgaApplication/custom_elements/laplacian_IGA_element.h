@@ -45,7 +45,6 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-template<std::size_t TDim>
 class LaplacianIGAElement : public Element
 {
 public:
@@ -57,7 +56,7 @@ public:
 
     typedef Element BaseType;
 
-    static constexpr std::size_t NumNodes = TDim + 1;
+    // static constexpr std::size_t NumNodes = TDim + 1;
 
     ///@}
     ///@name Life Cycle

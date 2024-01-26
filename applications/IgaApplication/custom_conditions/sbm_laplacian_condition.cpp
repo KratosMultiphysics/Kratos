@@ -190,7 +190,7 @@ namespace Kratos
                 H_4thTayor_term(0, i) = 1.0/24.0 * DDDDN_DDDDe(i,0) * d[0]*d[0]*d[0]*d[0] + 1.0/6.0 * DDDDN_DDDDe(i,1) * d[0]*d[0]*d[0]*d[1] + 1.0/4.0 * DDDDN_DDDDe(i,2) * d[0]*d[0]*d[1]*d[1] + 1.0/6.0 * DDDDN_DDDDe(i,3) * d[0]*d[1]*d[1]*d[1] + 1.0/24.0 * DDDDN_DDDDe(i,4) * d[1]*d[1]*d[1]*d[1];
                 H_5thTayor_term(0, i) = 1.0/120.0 * DDDDDN_DDDDDe(i,0) * d[0]*d[0]*d[0]*d[0]*d[0] + 1.0/24.0 * DDDDDN_DDDDDe(i,1) * d[0]*d[0]*d[0]*d[0]*d[1] + 1.0/12.0 * DDDDDN_DDDDDe(i,2) * d[0]*d[0]*d[0]*d[1]*d[1] + 1.0/12.0 * DDDDDN_DDDDDe(i,3) * d[0]*d[0]*d[1]*d[1]*d[1] + 1.0/24.0 * DDDDDN_DDDDDe(i,4) * d[0]*d[1]*d[1]*d[1]*d[1] + 1.0/120.0 * DDDDDN_DDDDDe(i,5) * d[1]*d[1]*d[1]*d[1]*d[1];
                 // H_hessian_term(0, i) = 0;
-                H_3rdTayor_term(0, i) = 0;
+                // H_3rdTayor_term(0, i) = 0;
                 H_4thTayor_term(0, i) = 0;
                 H_5thTayor_term(0, i) = 0;
 
