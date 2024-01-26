@@ -2,6 +2,7 @@ import KratosMultiphysics
 from KratosMultiphysics.RomApplication.rom_testing_utilities import SetUpSimulationInstance
 from KratosMultiphysics.RomApplication.calculate_rom_basis_output_process import CalculateRomBasisOutputProcess
 from KratosMultiphysics.RomApplication.randomized_singular_value_decomposition import RandomizedSingularValueDecomposition
+from KratosMultiphysics.RomApplication.rom_nn_trainer import Rom_NN_trainer
 import numpy as np
 import importlib
 import json
@@ -110,6 +111,20 @@ class RomManager(object):
             raise Exception(err_msg)
 
 
+    def FitNN(self, mu_training=[None], mu_validation=[None]):
+        fit_nn_stages = self.general_rom_manager_parameters["rom_stages_nn_fit"].GetStringArray()
+        if any(item == "GenValData" for item in fit_nn_stages):
+            self.RunFOM(mu_run=mu_validation, snapshots_matrix_name='fom_snapshots_val')
+        if any(item == "GenTrainData" for item in fit_nn_stages):
+            fom_snapshots = self.__LaunchTrainROM(mu_training)
+            self._StoreSnapshotsMatrix('fom_snapshots', fom_snapshots)
+        if any(item == "TrainNN" for item in fit_nn_stages):
+            self.__LaunchTrainNN()
+
+
+    def TestNN(self):
+        self.__LaunchTestNN()
+
 
     def Test(self, mu_test=[None]):
         chosen_projection_strategy = self.general_rom_manager_parameters["projection_strategy"].GetString()
@@ -166,8 +181,10 @@ class RomManager(object):
 
 
 
-    def RunFOM(self, mu_run=[None]):
-        self.__LaunchRunFOM(mu_run)
+    def RunFOM(self, mu_run=[None], snapshots_matrix_name=None):
+        fom_snapshots = self.__LaunchRunFOM(mu_run)
+        if snapshots_matrix_name is not None:
+            self._StoreSnapshotsMatrix(snapshots_matrix_name, fom_snapshots)
 
     def RunROM(self, mu_run=[None]):
         chosen_projection_strategy = self.general_rom_manager_parameters["projection_strategy"].GetString()
@@ -455,9 +472,10 @@ class RomManager(object):
         """
         with open(self.project_parameters_name,'r') as parameter_file:
             parameters = KratosMultiphysics.Parameters(parameter_file.read())
-
+        SnapshotsMatrix = []
         for Id, mu in enumerate(mu_run):
             parameters_copy = self.UpdateProjectParameters(parameters.Clone(), mu)
+            parameters_copy = self._AddBasisCreationToProjectParameters(parameters_copy)
             parameters_copy = self._StoreResultsByName(parameters_copy,'FOM_Run',mu,Id)
             materials_file_name = parameters_copy["solver_settings"]["material_import_settings"]["materials_filename"].GetString()
             self.UpdateMaterialParametersFile(materials_file_name, mu)
@@ -466,8 +484,13 @@ class RomManager(object):
             simulation = self.CustomizeSimulation(analysis_stage_class,model,parameters_copy)
             simulation.Run()
             self.QoI_Run_FOM.append(simulation.GetFinalData())
+            for process in simulation._GetListOfOutputProcesses():
+                if isinstance(process, CalculateRomBasisOutputProcess):
+                    BasisOutputProcess = process
+            SnapshotsMatrix.append(BasisOutputProcess._GetSnapshotsMatrix())
+        SnapshotsMatrix = np.block(SnapshotsMatrix)
 
-
+        return SnapshotsMatrix
     def __LaunchRunROM(self, mu_run):
         """
         This method should be parallel capable
@@ -508,6 +531,15 @@ class RomManager(object):
             simulation.Run()
             self.QoI_Run_HROM.append(simulation.GetFinalData())
 
+    def __LaunchTrainNN(self):
+        rom_nn_trainer = Rom_NN_trainer(self.general_rom_manager_parameters)
+        model_name = rom_nn_trainer.train_network()
+        rom_nn_trainer.evaluate_network(model_name)
+
+    def __LaunchTestNN(self):
+        rom_nn_trainer = Rom_NN_trainer(self.general_rom_manager_parameters)
+        model_name=self.general_rom_manager_parameters["NN"]["online"]["model_name"].GetString()
+        rom_nn_trainer.evaluate_network(model_name)
 
     def _AddHromParametersToRomParameters(self,f):
         f["hrom_settings"]["element_selection_type"] = self.hrom_training_parameters["element_selection_type"].GetString()
