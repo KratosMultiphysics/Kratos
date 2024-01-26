@@ -13,18 +13,19 @@ The test is performed in a single stage, with the following conditions:
     -   The X and Y displacement in the bottom two nodes (3 and 4) are fixed.
     -   The X displacement in all nodes is fixed.
 -   Material:
-    -   The material is described using a linear elastic material with a GeoLinearElasticPlaneStrain2DLaw.
+    -   The material is described using a linear elastic material with a GeoLinearElasticPlaneStrain2DLaw, a Young's modulus
+        of 1e7 kPa and a Poisson ratio of 0.0.
 -   Conditions:
     -   A UPwFaceLoadCondition2D2N is added to the top of the cube (nodes 1 and 2).
 -   Loads:
-    -   A line load in the y direction is applied to the top of the cube (nodes 1 and 2), linearly ramping up from 0 to
+    -   A line load in the Y direction is applied to the top of the cube (nodes 1 and 2), linearly ramping up from 0 to
       -1000000 kPa in the time interval \[0, 1\].
 
 ## Assertions
 
 In this test, there are two results checks:
 
-1. It is asserted that the effective stress is -1000000 kPa in the integration points of both elements in the y
+1. It is asserted that the effective stress is -1000000 kPa in the integration points of both elements in the Y
    direction and 0.0 in the other directions, due to the Poisson ration being 0.0.
 2. It is asserted that the displacement of one of the top nodes (1) is close to -0.0909090909516868 as a result of the
    applied line load.

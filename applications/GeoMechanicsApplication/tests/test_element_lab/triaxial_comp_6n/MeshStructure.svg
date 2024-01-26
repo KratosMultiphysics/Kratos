@@ -162,6 +162,46 @@ CreationDate: Wed Jan 24 13:46:33 2024
          d="M 5.77,0 -2.88,5 V -5 Z"
          id="path135-2-8" />
     </marker>
+    <marker
+       style="overflow:visible"
+       id="Triangle-5-6"
+       refX="3"
+       refY="0"
+       orient="auto-start-reverse"
+       inkscape:stockid="Triangle arrow"
+       markerWidth="1"
+       markerHeight="1"
+       viewBox="0 0 1 1"
+       inkscape:isstock="true"
+       inkscape:collect="always"
+       preserveAspectRatio="xMidYMid"
+       markerUnits="strokeWidth">
+      <path
+         transform="scale(0.5)"
+         style="fill:context-stroke;fill-rule:evenodd;stroke:context-stroke;stroke-width:1pt"
+         d="M 5.77,0 -2.88,5 V -5 Z"
+         id="path135-6-3" />
+    </marker>
+    <marker
+       style="overflow:visible"
+       id="Triangle-5-6-5"
+       refX="3"
+       refY="0"
+       orient="auto-start-reverse"
+       inkscape:stockid="Triangle arrow"
+       markerWidth="1"
+       markerHeight="1"
+       viewBox="0 0 1 1"
+       inkscape:isstock="true"
+       inkscape:collect="always"
+       preserveAspectRatio="xMidYMid"
+       markerUnits="strokeWidth">
+      <path
+         transform="scale(0.5)"
+         style="fill:context-stroke;fill-rule:evenodd;stroke:context-stroke;stroke-width:1pt"
+         d="M 5.77,0 -2.88,5 V -5 Z"
+         id="path135-6-3-7" />
+    </marker>
   </defs>
   <g
      id="g5-0"
@@ -1758,4 +1798,33 @@ CreationDate: Wed Jan 24 13:46:33 2024
          x="37.213131"
          y="227.39787">x</tspan></text>
   </g>
+  <path
+     style="fill:#ffffff;stroke:#000024;stroke-width:2;marker-start:url(#Triangle-5-6);marker-end:url(#Triangle-5-6)"
+     d="M 197.97888,566.78558 H 423.45169"
+     id="path3-8" />
+  <text
+     xml:space="preserve"
+     style="font-size:21.3035px;font-family:Arial;-inkscape-font-specification:'Arial, Normal';fill:#000000;fill-opacity:1;stroke:#000024;stroke-width:0;stroke-dasharray:none"
+     x="275.28384"
+     y="587.95239"
+     id="text3"><tspan
+       sodipodi:role="line"
+       id="tspan3"
+       x="275.28384"
+       y="587.95239">1.0 m</tspan></text>
+  <path
+     style="fill:#ffffff;stroke:#000024;stroke-width:2;marker-start:url(#Triangle-5-6-5);marker-end:url(#Triangle-5-6-5)"
+     d="M 59.870787,196.50424 V 421.97705"
+     id="path3-8-4" />
+  <text
+     xml:space="preserve"
+     style="font-size:21.3035px;font-family:Arial;-inkscape-font-specification:'Arial, Normal';fill:#000000;fill-opacity:1;stroke:#000024;stroke-width:0;stroke-dasharray:none"
+     x="273.8092"
+     y="-38.703983"
+     id="text3-3"
+     transform="rotate(90)"><tspan
+       sodipodi:role="line"
+       id="tspan3-6"
+       x="273.8092"
+       y="-38.703983">1.0 m</tspan></text>
 </svg>

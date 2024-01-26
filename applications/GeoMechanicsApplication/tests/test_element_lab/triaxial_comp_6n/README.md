@@ -13,8 +13,8 @@ in the figure below:
 The test is performed in two stages, with the following common conditions for both stages:
 
 - Constraints:
-    - The displacement in the bottom nodes (5, 7, 9) are fixed in the y direction
-    - The displacement in the symmetry axis (i.e. the left nodes 1, 3, 5) are fixed in the x direction.
+    - The displacement in the bottom nodes (5, 7, 9) are fixed in the Y direction
+    - The displacement in the symmetry axis (i.e. the left nodes 1, 3, 5) are fixed in the X direction.
 - Material:
     - The material is described using the Mohr-Coulomb model of the UMAT library found in MohrCoulomb64.dll 
 * Conditions:
@@ -35,7 +35,7 @@ The test is performed in two stages, with the following common conditions for bo
 - A constant normal load of -100 kPa is applied to the right side of the cube (nodes 6, 8, 9), during the interval
   \[1.0, 1.25\].
 
-- The displacement of the top nodes (1, 2, 6) is specified in the y direction during the interval \[1.0, 2.0\] to
+- The displacement of the top nodes (1, 2, 6) is specified in the Y direction during the interval \[1.0, 2.0\] to
   linearly change from 0.0 to -1.0 meaning at the end-time of 1.25, it will have reached -0.25. This results in a -200
   kPa deviatoric stress.
 
@@ -46,10 +46,10 @@ confined. Therefore, it is not needed to specify this again during stage 2._
 
 The calculated effective stresses after the Kratos Geomechanics calculations are compared to the expected solutions:
 
-- After stage 1: The effective stresses in xx and yy are expected to be -100 kPa in the element integration
-  points, due to the applied confining stress in the xy plane. Due to the axisymmetry of the problem, the same stress is
-  expected in the third dimension (zz).
+- After stage 1: The effective stresses in XX and YY are expected to be -100 kPa in the element integration
+  points, due to the applied confining stress in the XY plane. Due to the axisymmetry of the problem, the same stress is
+  expected in the third dimension (ZZ).
 
-- After stage 2: The effective stresses in xx and zz are still expected to be -100 kPa, while in the yy direction, the
-  expectation is -300 kPa due to the forced y-displacement (also here, the comparisons are done in the integration
+- After stage 2: The effective stresses in XX and ZZ are still expected to be -100 kPa, while in the YY direction, the
+  expectation is -300 kPa due to the forced Y-displacement (also here, the comparisons are done in the integration
   points).
