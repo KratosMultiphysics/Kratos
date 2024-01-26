@@ -39,17 +39,17 @@ $$ D_{ij}= nS \lambda^w \delta_{ij} + \left(1-n\right) \lambda_{ij}^s $$
 ### Dirichlet boundary condition
 $$ T = \overline T \qquad \text{on} \quad \Gamma_{1}^T $$
 
-where $\overline T \left[ ^{\circ}C \right]$  is a prescribed temperature 
+where $\overline T$ $\mathrm{\left[ ^{\circ}C \right]}$ is a prescribed temperature 
 
 ### Neumann Boundary Condition
 $$ D_{ij} \frac{\partial T}{\partial x_j} n_i = \overline{f} \qquad \text{on} \quad \Gamma_{2}^T $$
 
-where $\overline f \left[ W/m^2 \right]$ is a prescribed conductive heat flux.
+where $\overline f$ $\mathrm{\left[ W/m^2 \right]}$ is a prescribed conductive heat flux.
 
 ### Robin bounday condition
 $$ D_{ij} \frac{\partial T}{\partial x_j} n_i = \overline{g} -  \rho^w c^w q_n T \qquad \text{on} \quad \Gamma_{3}^T $$
 
-where $\overline g \left[ W/m^2 \right]$ is a prescribed convective-conductive heat flux.
+where $\overline g$ $\mathrm{\left[ W/m^2 \right]}$ is a prescribed convective-conductive heat flux.
 
 
 ## Derived Properties
@@ -58,7 +58,7 @@ The density of the bulk material $\rho$ $\mathrm{\left[ kg/m^3 \right]}$ is calc
 
 $$ \rho = n S \rho^w + \left( 1 - n \right) \rho^s $$
 
-And the heat capacity of the bulk material $C$ $\mathrm{\left[ J/m^3 ^{\circ}C \right]}$ is:
+And the heat capacity of the bulk material $C$ $\mathrm{\left[ J/m{^3 \circ}C \right]}$ is:
 
 $$ C = n S \rho^w c^w + \left( 1 - n \right) \rho^s c^s $$
 
@@ -94,7 +94,7 @@ $$ \boldsymbol{A} = \sum_e \int_{\Omega^e} \left(\rho^w c^w\right)^{n+1}  \bolds
 
 $$ \boldsymbol{H} = \sum_e \int_{\Omega^e} \boldsymbol{\nabla N}^T \boldsymbol{D}^{n+1} \boldsymbol{\nabla N} d \Omega $$
 
-###8 Neumann condition (dispersive boundary)
+### Neumann condition (dispersive boundary)
 
 $$ \boldsymbol{V} = \sum_e \int_{\Gamma_2^{ep}}  f^{n+1} \boldsymbol{N}^T  d \Gamma $$
 
