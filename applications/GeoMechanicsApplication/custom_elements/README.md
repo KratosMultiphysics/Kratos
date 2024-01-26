@@ -44,12 +44,12 @@ where $\overline T \left[ ^{\circ}C \right]$  is a prescribed temperature
 ### Neumann Boundary Condition
 $$ D_{ij} \frac{\partial T}{\partial x_j} n_i = \overline{f} \qquad \text{on} \quad \Gamma_{2}^T $$
 
-where $\overline f \left[ ^{\circ}C \right]$ is a prescribed conductive heat flux.
+where $\overline f \left[ W/m^2 \right]$ is a prescribed conductive heat flux.
 
 ### Robin bounday condition
 $$ D_{ij} \frac{\partial T}{\partial x_j} n_i = \overline{g} -  \rho^w c^w q_n T \qquad \text{on} \quad \Gamma_{3}^T $$
 
-where $\overline g \left[ ^{\circ}C \right]$ is a prescribed convective-conductive heat flux.
+where $\overline g \left[ W/m^2 \right]$ is a prescribed convective-conductive heat flux.
 
 
 ## Derived Properties
@@ -58,11 +58,11 @@ The density of the bulk material $\rho$ $\mathrm{\left[ kg/m^3 \right]}$ is calc
 
 $$ \rho = n S \rho^w + \left( 1 - n \right) \rho^s $$
 
-And the heat capacity of the bulk material $C$ $\mathrm{\left[ J/m^3 C \right]}$ is:
+And the heat capacity of the bulk material $C$ $\mathrm{\left[ J/m^3 ^{\circ}C \right]}$ is:
 
 $$ C = n S \rho^w c^w + \left( 1 - n \right) \rho^s c^s $$
 
-The thermal conductivity of the bulk material $\lambda$ $\mathrm{\left[ W/mC \right]}$
+The thermal conductivity of the bulk material $\lambda$ $\mathrm{\left[ W/m ^{\circ}C \right]}$
 
 $$ \lambda = n S \lambda^w + \left( 1 - n \right) \lambda^s $$
 
@@ -82,23 +82,23 @@ Kratos solves the equations based on incremental method. In The fram of Genereli
 
 $$ \left(\frac{1}{\theta \Delta t} \boldsymbol{S} + \boldsymbol{A} + \boldsymbol{H} + \boldsymbol{W}^l  \right) \boldsymbol{\Delta T} = \left( \frac{1}{\theta} - 1 \right) \boldsymbol{S} \frac{dT^n}{dt} - \left(\boldsymbol{A} + \boldsymbol{H} + \boldsymbol{W}^l \right) \boldsymbol{T}^{n} + \left( \boldsymbol{V} + \boldsymbol{W}^r \right) $$
 
-###Compressibility matrix 
+### Compressibility matrix 
 
 $$ \boldsymbol{S} = \sum_e \int_{\Omega^e} \left( n S \rho^w c^w + \left(1-n\right) \rho^s c^s \right)^{n+1} \boldsymbol{N}^T  \boldsymbol{N} d \Omega $$
 
-###Convectivity matrix
+### Convectivity matrix
 
 $$ \boldsymbol{A} = \sum_e \int_{\Omega^e} \left(\rho^w c^w\right)^{n+1}  \boldsymbol{N}^T \boldsymbol{q}^{T,n+1} \boldsymbol{\nabla N}   d \Omega $$
 
-###Conductivity matrix
+### Conductivity matrix
 
 $$ \boldsymbol{H} = \sum_e \int_{\Omega^e} \boldsymbol{\nabla N}^T \boldsymbol{D}^{n+1} \boldsymbol{\nabla N} d \Omega $$
 
-###Neumann condition (dispersive boundary)
+###8 Neumann condition (dispersive boundary)
 
 $$ \boldsymbol{V} = \sum_e \int_{\Gamma_2^{ep}}  f^{n+1} \boldsymbol{N}^T  d \Gamma $$
 
-###Robin condition (convective boundary)
+### Robin condition (convective boundary)
 
 $$ \boldsymbol{W^r} = \sum_e \int_{\Gamma_2^{ep}}  g^{n+1} \boldsymbol{N}^T  d \Gamma $$
 
