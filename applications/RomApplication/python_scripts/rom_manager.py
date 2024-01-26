@@ -44,9 +44,6 @@ class RomManager(object):
                     self._StoreSnapshotsMatrix('rom_snapshots', rom_snapshots)
                 self.ROMvsFOM_train = np.linalg.norm(fom_snapshots - rom_snapshots)/ np.linalg.norm(fom_snapshots)
 
-            if any(item == "ANN-PROM" for item in training_stages):
-                self.__LaunchTrainNN()
-
             if any(item == "HROM" for item in training_stages):
                 #FIXME there will be an error if we only train HROM, but not ROM
                 self._ChangeRomFlags(simulation_to_run = "trainHROMGalerkin")
@@ -70,9 +67,6 @@ class RomManager(object):
                 if store_all_snapshots or store_rom_snapshots:
                     self._StoreSnapshotsMatrix('rom_snapshots', rom_snapshots)
                 self.ROMvsFOM_train = np.linalg.norm(fom_snapshots - rom_snapshots)/ np.linalg.norm(fom_snapshots)
-
-            if any(item == "ANN-PROM" for item in training_stages):
-                self.__LaunchTrainNN()
 
             if any(item == "HROM" for item in training_stages):
                 # Change the flags to train the HROM for LSPG
@@ -104,9 +98,6 @@ class RomManager(object):
                     self._StoreSnapshotsMatrix('rom_snapshots', rom_snapshots)
                 self.ROMvsFOM_train = np.linalg.norm(fom_snapshots - rom_snapshots)/ np.linalg.norm(fom_snapshots)
 
-            if any(item == "ANN-PROM" for item in training_stages):
-                self.__LaunchTrainNN()
-
             if any(item == "HROM" for item in training_stages):
                 #FIXME there will be an error if we only train HROM, but not ROM
                 self._ChangeRomFlags(simulation_to_run = "trainHROMPetrovGalerkin")
@@ -120,6 +111,21 @@ class RomManager(object):
         else:
             err_msg = f'Provided projection strategy {chosen_projection_strategy} is not supported. Available options are \'galerkin\', \'lspg\' and \'petrov_galerkin\'.'
             raise Exception(err_msg)
+        
+        
+    def FitNN(self, mu_training=[None], mu_validation=[None]):
+        fit_nn_stages = self.general_rom_manager_parameters["rom_stages_nn_fit"].GetStringArray()
+        if any(item == "GenValData" for item in fit_nn_stages):
+            self.RunFOM(mu_run=mu_validation, snapshots_matrix_name='fom_snapshots_val')
+        if any(item == "GenTrainData" for item in fit_nn_stages):
+            fom_snapshots = self.__LaunchTrainROM(mu_training)
+            self._StoreSnapshotsMatrix('fom_snapshots', fom_snapshots)
+        if any(item == "TrainNN" for item in fit_nn_stages):
+            self.__LaunchTrainNN()
+
+
+    def TestNN(self):
+        self.__LaunchTestNN()
 
 
     def Test(self, mu_test=[None]):
@@ -177,7 +183,7 @@ class RomManager(object):
     def RunFOM(self, mu_run=[None], snapshots_matrix_name=None):
         fom_snapshots = self.__LaunchRunFOM(mu_run)
         if snapshots_matrix_name is not None:
-            self._StoreSnapshotsMatrix('snapshots_matrix_name', fom_snapshots)
+            self._StoreSnapshotsMatrix(snapshots_matrix_name, fom_snapshots)
 
     def RunROM(self, mu_run=[None], nn_rom_interface=None, output_path=None):
         customROM=None ## This is temporary and should be done in a better way
@@ -482,6 +488,7 @@ class RomManager(object):
         SnapshotsMatrix = []
         for Id, mu in enumerate(mu_run):
             parameters_copy = self.UpdateProjectParameters(parameters.Clone(), mu)
+            parameters_copy = self._AddBasisCreationToProjectParameters(parameters_copy)
             parameters_copy = self._StoreResultsByName(parameters_copy,'FOM_Run',mu,Id)
             materials_file_name = parameters_copy["solver_settings"]["material_import_settings"]["materials_filename"].GetString()
             self.UpdateMaterialParametersFile(materials_file_name, mu)
@@ -542,6 +549,11 @@ class RomManager(object):
     def __LaunchTrainNN(self):
         rom_nn_trainer = Rom_NN_trainer(self.general_rom_manager_parameters)
         model_name = rom_nn_trainer.train_network()
+        rom_nn_trainer.evaluate_network(model_name)
+
+    def __LaunchTestNN(self):
+        rom_nn_trainer = Rom_NN_trainer(self.general_rom_manager_parameters)
+        model_name=self.general_rom_manager_parameters["NN"]["online"]["model_name"].GetString()
         rom_nn_trainer.evaluate_network(model_name)
 
     def _AddHromParametersToRomParameters(self,f):
