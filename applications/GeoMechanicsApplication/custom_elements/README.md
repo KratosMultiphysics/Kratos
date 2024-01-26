@@ -47,7 +47,7 @@ $$ D_{ij} \frac{\partial T}{\partial x_j} n_i = \overline{f} \qquad \text{on} \q
 where $\overline f \left[ ^{\circ}C \right]$ is a prescribed conductive heat flux.
 
 ### Robin bounday condition
-$$ D_{ij} \frac{\partial T}{\partial x_j} n_i = \overline{g} -  \rho^w c^w q_n T \qquad \text{on} \quad \Gamma_{3}^T \label{eq:t6} $$
+$$ D_{ij} \frac{\partial T}{\partial x_j} n_i = \overline{g} -  \rho^w c^w q_n T \qquad \text{on} \quad \Gamma_{3}^T $$
 
 where $\overline g \left[ ^{\circ}C \right]$ is a prescribed convective-conductive heat flux.
 
@@ -70,10 +70,9 @@ dynamic viscosity  $\mu$ $[\mathrm {Pas}$] of pure water as a function of temper
 
 $$ \mu = 2.4318 \cdot 10^{-5} \cdot 10^{{247.8} / {\left(T+133.0\right]}} $$
 
-density of water $\rho^w$ $[\mathrm {kg/m^3}]$ relates to temperature and \cite{Diersch1} proposes a six order Taylor expansion which is approximated here by:
+density of water $\rho^w$ $[\mathrm {kg/m^3}]$ relates to temperature and Diersch proposes a six order Taylor expansion which is approximated here by:
 
-$$ \rho^w = 9.998396 \cdot 10^2 + 6.764771  \cdot 10^{-2} \cdot T - 8.993699  \cdot 10^{-3} \cdot T^2 + 9.143518 \cdot 10^{-5} \cdot T^3$$
-$$ - 8.907391 \cdot 10^{-7} \cdot T^4 + 5.291959  \cdot 10^{-9} \cdot T^5 - 1.359813  \cdot 10^{-11} \cdot T^6 $$
+$$ \rho^w = 9.998396 \cdot 10^2 + 6.764771  \cdot 10^{-2} \cdot T - 8.993699  \cdot 10^{-3} \cdot T^2 + 9.143518 \cdot 10^{-5} \cdot T^3 - 8.907391 \cdot 10^{-7} \cdot T^4 + 5.291959  \cdot 10^{-9} \cdot T^5 - 1.359813  \cdot 10^{-11} \cdot T^6 $$
 
 
 
@@ -83,23 +82,23 @@ Kratos solves the equations based on incremental method. In The fram of Genereli
 
 $$ \left(\frac{1}{\theta \Delta t} \boldsymbol{S} + \boldsymbol{A} + \boldsymbol{H} + \boldsymbol{W}^l  \right) \boldsymbol{\Delta T} = \left( \frac{1}{\theta} - 1 \right) \boldsymbol{S} \frac{dT^n}{dt} - \left(\boldsymbol{A} + \boldsymbol{H} + \boldsymbol{W}^l \right) \boldsymbol{T}^{n} + \left( \boldsymbol{V} + \boldsymbol{W}^r \right) $$
 
-Compressibility matrix 
+###Compressibility matrix 
 
 $$ \boldsymbol{S} = \sum_e \int_{\Omega^e} \left( n S \rho^w c^w + \left(1-n\right) \rho^s c^s \right)^{n+1} \boldsymbol{N}^T  \boldsymbol{N} d \Omega $$
 
-Convectivity matrix
+###Convectivity matrix
 
 $$ \boldsymbol{A} = \sum_e \int_{\Omega^e} \left(\rho^w c^w\right)^{n+1}  \boldsymbol{N}^T \boldsymbol{q}^{T,n+1} \boldsymbol{\nabla N}   d \Omega $$
 
-Conductivity matrix
+###Conductivity matrix
 
 $$ \boldsymbol{H} = \sum_e \int_{\Omega^e} \boldsymbol{\nabla N}^T \boldsymbol{D}^{n+1} \boldsymbol{\nabla N} d \Omega $$
 
-Neumann condition (dispersive boundary)
+###Neumann condition (dispersive boundary)
 
 $$ \boldsymbol{V} = \sum_e \int_{\Gamma_2^{ep}}  f^{n+1} \boldsymbol{N}^T  d \Gamma $$
 
-Robin condition (convective boundary)
+###Robin condition (convective boundary)
 
 $$ \boldsymbol{W^r} = \sum_e \int_{\Gamma_2^{ep}}  g^{n+1} \boldsymbol{N}^T  d \Gamma $$
 
