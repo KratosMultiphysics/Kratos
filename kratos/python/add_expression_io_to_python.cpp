@@ -23,12 +23,13 @@
 #include "expression/entity_domain_size_expression_io.h"
 #include "expression/expression.h"
 #include "expression/expression_io.h"
+#include "expression/expression_utils.h"
+#include "expression/integration_point_expression_io.h"
 #include "expression/literal_expression.h"
 #include "expression/literal_expression_input.h"
 #include "expression/literal_flat_expression.h"
 #include "expression/nodal_position_expression_io.h"
 #include "expression/variable_expression_io.h"
-#include "expression/view_operators.h"
 #include "includes/define_python.h"
 
 namespace Kratos::Python {
@@ -64,6 +65,15 @@ public:
             const std::vector<IndexType>,   /*return type*/
             Expression,                     /*base type*/
             GetItemShape                    /*function name*/
+        );
+    }
+
+    IndexType GetMaxDepth() const override
+    {
+        PYBIND11_OVERRIDE_PURE(
+            IndexType,                      /*return type*/
+            Expression,                     /*base type*/
+            GetMaxDepth                     /*function name*/
         );
     }
 
@@ -210,6 +220,7 @@ void AddExpressionIOToPython(pybind11::module& rModule)
         .def("GetItemShape", &Expression::GetItemShape)
         .def("NumberOfEntities", &Expression::NumberOfEntities)
         .def("GetItemComponentCount", &Expression::GetItemComponentCount)
+        .def("GetMaxDepth", &Expression::GetMaxDepth)
         .def("__add__", [](Expression::Pointer pLeft, double Right) {return pLeft + Right;})
         //.def("__add__", [](double Left, Expression::Pointer pRight) {return Left + pRight;})
         .def("__add__", [](Expression::Pointer pLeft, Expression::Pointer pRight) {return pLeft + pRight;})
@@ -222,8 +233,8 @@ void AddExpressionIOToPython(pybind11::module& rModule)
         .def("__truediv__", [](Expression::Pointer pLeft, double Right) {return pLeft / Right;})
         //.def("__truediv__", [](double Left, Expression::Pointer pRight) {return Left / pRight;})
         .def("__truediv__", [](Expression::Pointer pLeft, Expression::Pointer pRight) {return pLeft / pRight;})
-        .def("__pow__", [](Expression::Pointer pLeft, double Right) {return Power(pLeft, Right);})
-        .def("__pow__", [](Expression::Pointer pLeft, Expression::Pointer pRight) {return Power(pLeft, pRight);})
+        .def("__pow__", [](Expression::Pointer pLeft, double Right) {return ExpressionUtils::Pow(pLeft, Right);})
+        .def("__pow__", [](Expression::Pointer pLeft, Expression::Pointer pRight) {return ExpressionUtils::Pow(pLeft, pRight);})
         .def("__neg__", [](Expression::Pointer pOperand) {return -1.0 * pOperand;})
         .def("__str__", &Expression::Info)
         ;
@@ -278,6 +289,24 @@ void AddExpressionIOToPython(pybind11::module& rModule)
                                pybind11::arg("element_container_expression"),
                                pybind11::arg("variable"));
 
+    auto integration_point_expression_io = rModule.def_submodule("IntegrationPointExpressionIO");
+    integration_point_expression_io.def("Read",
+                               &IntegrationPointExpressionIO::Read<ModelPart::ConditionsContainerType, MeshType::Local>,
+                               pybind11::arg("condition_container_expression"),
+                               pybind11::arg("variable"));
+    integration_point_expression_io.def("Read",
+                               &IntegrationPointExpressionIO::Read<ModelPart::ElementsContainerType, MeshType::Local>,
+                               pybind11::arg("element_container_expression"),
+                               pybind11::arg("variable"));
+    integration_point_expression_io.def("Write",
+                               &IntegrationPointExpressionIO::Write<ModelPart::ConditionsContainerType, MeshType::Local>,
+                               pybind11::arg("condition_container_expression"),
+                               pybind11::arg("variable"));
+    integration_point_expression_io.def("Write",
+                               &IntegrationPointExpressionIO::Write<ModelPart::ElementsContainerType, MeshType::Local>,
+                               pybind11::arg("element_container_expression"),
+                               pybind11::arg("variable"));
+
     pybind11::class_<ExpressionInput, Detail::ExpressionInputTrampoline, ExpressionInput::Pointer>(variable_expression_io, "ExpressionInput")
         .def("Execute", &ExpressionInput::Execute)
         ;
@@ -311,6 +340,24 @@ void AddExpressionIOToPython(pybind11::module& rModule)
     pybind11::class_<VariableExpressionIO::VariableExpressionOutput, VariableExpressionIO::VariableExpressionOutput::Pointer, ExpressionOutput>(variable_expression_io, "Output")
         .def(pybind11::init<ModelPart&,
                             const VariableExpressionIO::VariableType&,
+                            const ContainerType&>(),
+             pybind11::arg("model_part"),
+             pybind11::arg("variable"),
+             pybind11::arg("container_type"))
+        ;
+
+    pybind11::class_<IntegrationPointExpressionIO::Input, IntegrationPointExpressionIO::Input::Pointer, ExpressionInput>(integration_point_expression_io, "Input")
+        .def(pybind11::init<ModelPart&,
+                            const IntegrationPointExpressionIO::VariableType&,
+                            const ContainerType&>(),
+             pybind11::arg("model_part"),
+             pybind11::arg("variable"),
+             pybind11::arg("container_type"))
+        ;
+
+    pybind11::class_<IntegrationPointExpressionIO::Output, IntegrationPointExpressionIO::Output::Pointer, ExpressionOutput>(integration_point_expression_io, "Output")
+        .def(pybind11::init<ModelPart&,
+                            const IntegrationPointExpressionIO::VariableType&,
                             const ContainerType&>(),
              pybind11::arg("model_part"),
              pybind11::arg("variable"),
