@@ -28,4 +28,6 @@ In this test, there are two results checks:
 1. It is asserted that the effective stress is -1000000 kPa in the integration points of both elements in the Y
    direction and 0.0 in the other directions, due to the Poisson ration being 0.0.
 2. It is asserted that the displacement of one of the top nodes (1) is close to -0.0909090909516868 as a result of the
-   applied line load.
+   applied line load. The expected displacement for a linear elastic material would be $FA/E = -1e6 / 1e7 = 0.1$.
+   However, due to the non-linear behavior of the Updated Lagrangian Element, the stiffness increases with load yielding
+   a smaller displacement then this theoretical value.
