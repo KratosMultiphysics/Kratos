@@ -1,18 +1,18 @@
 ---
 title: EntityMin
-keywords:
+keywords: 
 tags: [entity min, min, expressions]
 sidebar: kratos_expressions
-summary:
+summary: 
 ---
 ## Introduction
 
-This get the maximum value from each component in each entity. Assume the input expression is given by $$\underline{\mathbb{u}} = \left\lbrace u_{ij},  \forall (i,j)\in\left[0, M\right)\times\left[0, N\right)\right\rbrace$$ where $$i^{th}$$ entity's $$j^{th}$$ component is represented by $$u_{ij}$$ with $$i\in \left[0, M\right)$$ for each entity and $$j\in \left[0, N\right)$$ for each component in each entity. Following equation illustrates the formulation of the resulting expression which is always a scalar expression.
+This get the minimum value from each component in each entity. Assume the input expression is given by $$\underline{\mathbb{u}} = \left\lbrace u_{ij},  \forall (i,j)\in\left[0, M\right)\times\left[0, N\right)\right\rbrace$$ where $$i^{th}$$ entity's $$j^{th}$$ component is represented by $$u_{ij}$$ with $$i\in \left[0, M\right)$$ for each entity and $$j\in \left[0, N\right)$$ for each component in each entity. Following equation illustrates the formulation of the resulting expression which is always a scalar expression.
 
-<p align="center">$$ EntityMin\left(\underline{\mathbb{u}}\right) = \left\lbrace \min_{j\in\left[0, N\right)} {u_{ij}},  \forall i\in\left[0, M\right)\right\rbrace$$</p>
+<p align="center">$$ EntityMax\left(\underline{\mathbb{u}}\right) = \left\lbrace v_i, \text{where} \quad v_i = \min_{j\in\left[0, N\right)} {u_{ij}} \quad  \forall i\in\left[0, M\right)\right\rbrace$$</p>
 
 ## Use cases
-Following code snippet illustrates how to use ```EntityMax```.
+Following code snippet illustrates how to use ```EntityMin```.
 ```python
 import KratosMultiphysics as Kratos
 model = Kratos.Model()
