@@ -314,13 +314,6 @@ void AddExpressionIOToPython(pybind11::module& rModule)
         .def("Execute", &ExpressionOutput::Execute)
         ;
 
-    pybind11::enum_<ContainerType>(rModule, "ContainerType")
-        .value("NodalHistorical", ContainerType::NodalHistorical)
-        .value("NodalNonHistorical", ContainerType::NodalNonHistorical)
-        .value("ElementNonHistorical", ContainerType::ElementNonHistorical)
-        .value("ConditionNonHistorical", ContainerType::ConditionNonHistorical)
-        ;
-
     pybind11::enum_<MeshType>(rModule, "MeshType")
         .value("Local", MeshType::Local)
         .value("Interface", MeshType::Interface)
