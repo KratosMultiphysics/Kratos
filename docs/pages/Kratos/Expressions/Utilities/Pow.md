@@ -1,9 +1,9 @@
 ---
 title: Pow
-keywords: 
+keywords:
 tags: [pow, expression]
 sidebar: kratos_expressions
-summary: 
+summary:
 ---
 
 ## Introduction
@@ -21,12 +21,12 @@ Case 1:
 Case 2:
 
 The expression with power is illustrated by $$\underline{\mathbb{P}} = \left\lbrace p_{ij},  \forall (i,j)\in\left[0, M\right)\times\left[0, N\right)\right\rbrace$$
-<p align="center">$$ Pow\left(\underline{\mathbb{u}}, \underline{\mathbb{P}}\right) = \left\lbrace u_{ij}^{P_{ij}},  \forall (i,j)\in\left[0, M\right)\times\left[0, N\right)\right\rbrace$$</p>
+<p align="center">$$ Pow\left(\underline{\mathbb{u}}, \underline{\mathbb{P}}\right) = \left\lbrace u_{ij}^{p_{ij}},  \forall (i,j)\in\left[0, M\right)\times\left[0, N\right)\right\rbrace$$</p>
 
 Case 3:
 
 The expression with power is illustrated by $$\underline{\mathbb{P}} = \left\lbrace p_{i},  \forall i\in\left[0, M\right)\right\rbrace$$
-<p align="center">$$ Pow\left(\underline{\mathbb{u}}, \underline{\mathbb{P}}\right) = \left\lbrace u_{ij}^{P_{i}},  \forall (i,j)\in\left[0, M\right)\times\left[0, N\right)\right\rbrace$$</p>
+<p align="center">$$ Pow\left(\underline{\mathbb{u}}, \underline{\mathbb{P}}\right) = \left\lbrace u_{ij}^{p_{i}},  \forall (i,j)\in\left[0, M\right)\times\left[0, N\right)\right\rbrace$$</p>
 
 ## Use cases
 
