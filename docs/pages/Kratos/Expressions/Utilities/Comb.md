@@ -1,9 +1,9 @@
 ---
 title: Comb
-keywords:
+keywords: 
 tags: [combing, expressions]
 sidebar: kratos_expressions
-summary:
+summary: 
 ---
 
 ## Introduction
