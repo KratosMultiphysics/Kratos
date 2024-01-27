@@ -348,19 +348,19 @@ void AddExpressionIOToPython(pybind11::module& rModule)
     pybind11::class_<IntegrationPointExpressionIO::Input, IntegrationPointExpressionIO::Input::Pointer, ExpressionInput>(integration_point_expression_io, "Input")
         .def(pybind11::init<ModelPart&,
                             const IntegrationPointExpressionIO::VariableType&,
-                            const ContainerType&>(),
+                            Globals::DataLocation>(),
              pybind11::arg("model_part"),
              pybind11::arg("variable"),
-             pybind11::arg("container_type"))
+             pybind11::arg("data_location"))
         ;
 
     pybind11::class_<IntegrationPointExpressionIO::Output, IntegrationPointExpressionIO::Output::Pointer, ExpressionOutput>(integration_point_expression_io, "Output")
         .def(pybind11::init<ModelPart&,
                             const IntegrationPointExpressionIO::VariableType&,
-                            const ContainerType&>(),
+                            Globals::DataLocation>(),
              pybind11::arg("model_part"),
              pybind11::arg("variable"),
-             pybind11::arg("container_type"))
+             pybind11::arg("data_location"))
         ;
 
     auto carray_expression_io = rModule.def_submodule("CArrayExpressionIO");
