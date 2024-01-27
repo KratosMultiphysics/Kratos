@@ -1,9 +1,9 @@
 ---
 title: Literal Expression Input
-keywords:
+keywords: 
 tags: [literal values, expressions, scalars]
 sidebar: kratos_expressions
-summary:
+summary: 
 ---
 
 ## Introduction

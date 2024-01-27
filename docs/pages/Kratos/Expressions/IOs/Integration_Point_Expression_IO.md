@@ -1,9 +1,9 @@
 ---
 title: Integration Point Expression IO
-keywords:
+keywords: 
 tags: [Integration_Point_Expression_IO.md]
 sidebar: kratos_expressions
-summary:
+summary: 
 ---
 
 ## Introduction
