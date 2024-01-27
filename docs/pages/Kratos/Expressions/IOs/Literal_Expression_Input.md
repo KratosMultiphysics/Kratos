@@ -1,9 +1,9 @@
 ---
 title: Literal Expression Input
-keywords: 
+keywords:
 tags: [literal values, expressions, scalars]
 sidebar: kratos_expressions
-summary: 
+summary:
 ---
 
 ## Introduction
@@ -125,13 +125,13 @@ node_1 = model_part.CreateNewNode(1, 0.0, 0.0, 0.0)
 node_2 = model_part.CreateNewNode(2, 0.0, 1.0, 0.0)
 
 # now create the expression by reading non historical velocity:
-exp = Kratos.Expression.LiteralExpressionIO.Input(model_part, Kratos.Array3([1,2,3]), Kratos.Expression.ContainerType.NodalNonHistorical).Execute()
+exp = Kratos.Expression.LiteralExpressionIO.Input(model_part, Kratos.Array3([1,2,3]), Kratos.Globals.DataLocation.NodeNonHistorical).Execute()
 
 # do some arithmetic operations
 exp *= 2.0
 
 # now write the expression value to model part as ACCELERATION in the historical container
-Kratos.Expression.VariableExpressionIO.Output(model_part, Kratos.ACCELERATION, Kratos.Expression.ContainerType.NodalNonHistorical).Execute(exp)
+Kratos.Expression.VariableExpressionIO.Output(model_part, Kratos.ACCELERATION, Kratos.Globals.DataLocation.NodeNonHistorical).Execute(exp)
 
 # now print and see
 for node in model_part.Nodes:

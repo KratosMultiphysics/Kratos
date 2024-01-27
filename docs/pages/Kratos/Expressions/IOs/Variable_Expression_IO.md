@@ -1,9 +1,9 @@
 ---
 title: Variable Expression IO
-keywords: 
+keywords:
 tags: [variable expression io, expressions, variable]
 sidebar: kratos_expressions
-summary: 
+summary:
 ---
 
 ## Introduction
@@ -137,13 +137,13 @@ node_1.SetValue(Kratos.VELOCITY, Kratos.Array3([1,2,3]))
 node_2.SetValue(Kratos.VELOCITY, Kratos.Array3([3,4,5]))
 
 # now create the expression by reading non historical velocity:
-exp = Kratos.Expression.VariableExpressionIO.Input(model_part, Kratos.VELOCITY, Kratos.Expression.ContainerType.NodalNonHistorical).Execute()
+exp = Kratos.Expression.VariableExpressionIO.Input(model_part, Kratos.VELOCITY, Kratos.Globals.DataLocation.NodeNonHistorical).Execute()
 
 # do some arithmetic operations
 exp *= 2.0
 
 # now write the expression value to model part as ACCELERATION in the historical container
-Kratos.Expression.VariableExpressionIO.Output(model_part, Kratos.ACCELERATION, Kratos.Expression.ContainerType.NodalNonHistorical).Execute(exp)
+Kratos.Expression.VariableExpressionIO.Output(model_part, Kratos.ACCELERATION, Kratos.Globals.DataLocation.NodeNonHistorical).Execute(exp)
 
 # now print and see
 for node in model_part.Nodes:

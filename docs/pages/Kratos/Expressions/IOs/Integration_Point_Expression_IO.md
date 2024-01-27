@@ -73,11 +73,11 @@ cond1 = model_part.CreateNewElement("Element2D3N", 1, [1, 2, 3], prop)
 cond1.SetValue(Kratos.VELOCITY, Kratos.Array3([1,2,3]))
 
 # now create the expression by reading non historical velocity:
-exp = Kratos.Expression.IntegrationPointExpressionIO.Input(model_part, Kratos.VELOCITY, Kratos.Expression.ContainerType.ElementNonHistorical).Execute()
+exp = Kratos.Expression.IntegrationPointExpressionIO.Input(model_part, Kratos.VELOCITY, Kratos.Globals.DataLocation.Element).Execute()
 
 # do some arithmetic operations
 exp *= 2.0
 
 # now write the expression value to model part as ACCELERATION in the historical container
-Kratos.Expression.IntegrationPointExpressionIO.Output(model_part, Kratos.ACCELERATION, Kratos.Expression.ContainerType.ElementNonHistorical).Execute(exp)
+Kratos.Expression.IntegrationPointExpressionIO.Output(model_part, Kratos.ACCELERATION, Kratos.Globals.DataLocation.Element).Execute(exp)
 ```
