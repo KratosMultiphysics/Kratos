@@ -330,19 +330,19 @@ void AddExpressionIOToPython(pybind11::module& rModule)
     pybind11::class_<VariableExpressionIO::Input, VariableExpressionIO::Input::Pointer, ExpressionInput>(variable_expression_io, "Input")
         .def(pybind11::init<const ModelPart&,
                             const VariableExpressionIO::VariableType&,
-                            const ContainerType&>(),
+                            Globals::DataLocation>(),
              pybind11::arg("model_part"),
              pybind11::arg("variable"),
-             pybind11::arg("container_type"))
+             pybind11::arg("data_location"))
         ;
 
     pybind11::class_<VariableExpressionIO::Output, VariableExpressionIO::Output::Pointer, ExpressionOutput>(variable_expression_io, "Output")
         .def(pybind11::init<ModelPart&,
                             const VariableExpressionIO::VariableType&,
-                            const ContainerType&>(),
+                            Globals::DataLocation>(),
              pybind11::arg("model_part"),
              pybind11::arg("variable"),
-             pybind11::arg("container_type"))
+             pybind11::arg("data_location"))
         ;
 
     pybind11::class_<IntegrationPointExpressionIO::Input, IntegrationPointExpressionIO::Input::Pointer, ExpressionInput>(integration_point_expression_io, "Input")
