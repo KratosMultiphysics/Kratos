@@ -1,9 +1,9 @@
 ---
 title: Domain Size Expression IO
-keywords: 
+keywords:
 tags: [domain size, condition, element, expression io]
 sidebar: kratos_expressions
-summary: 
+summary:
 ---
 
 ## Introduction
@@ -37,4 +37,28 @@ Kratos.Expression.DomainSizeExpressionIO.Read(element_expression)
 
 shape = element_expression.Evaluate().shape
 print(shape)
+```
+
+## Using expressions without the model parts
+The ```ConditionExpression``` and ```ElementExpression``` has an expression which can be directly used if required. The advantage of working
+with the ```Expression``` directely is, then it is not bound to a model part of a ```DataValueContainer```. Hence, these expressions can be interchanged if required in
+advanced use cases. Following code snippet shows how to use bare ```Expressions```.
+```python
+import KratosMultiphysics as Kratos
+model = Kratos.Model()
+model_part = model.CreateModelPart("test")
+model_part.CreateNewNode(1, 0.0, 0.0, 0.0)
+model_part.CreateNewNode(2, 0.0, 1.0, 0.0)
+model_part.CreateNewNode(3, 1.0, 1.0, 0.0)
+
+prop = model_part.CreateNewProperties(1)
+model_part.CreateNewElement("Element2D3N", 1, [1, 2, 3], prop)
+
+# now create the expression by reading element domain sizes:
+exp = Kratos.Expression.DomainSizeExpressionIO.Input(model_part, Kratos.Globals.DataLocation.Element).Execute()
+
+# do some arithmetic operations
+exp *= 2.0
+
+print(exp)
 ```
