@@ -404,10 +404,10 @@ void AddExpressionIOToPython(pybind11::module& rModule)
         data_expression_io, "Input")
         .def(pybind11::init<const ModelPart&,
                             const LiteralExpressionIO::DataType&,
-                            const ContainerType&>(),
+                            Globals::DataLocation&>(),
              pybind11::arg("model_part"),
              pybind11::arg("variable"),
-             pybind11::arg("container_type"))
+             pybind11::arg("data_location"))
         ;
 
     auto nodal_expression_io = rModule.def_submodule("NodalPositionExpressionIO");

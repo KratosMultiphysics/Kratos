@@ -25,12 +25,12 @@ namespace Kratos {
 LiteralExpressionIO::Input::Input(
     const ModelPart& rModelPart,
     const DataType& rValue,
-    const ContainerType& rContainerType,
-    const MeshType& rMeshType)
-    : mrModelPart(rModelPart),
+    Globals::DataLocation CurrentLocation,
+    MeshType CurrentMeshType)
+    : mpModelPart(&rModelPart),
       mValue(rValue),
-      mContainerType(rContainerType),
-      mMeshType(rMeshType)
+      mDataLocation(CurrentLocation),
+      mMeshType(CurrentMeshType)
 {
 }
 Expression::Pointer LiteralExpressionIO::Input::Execute() const
@@ -39,18 +39,19 @@ Expression::Pointer LiteralExpressionIO::Input::Execute() const
         using data_type = std::remove_const_t<std::remove_reference_t<decltype(rValue)>>;
 
         IndexType number_of_entities = 0;
-        switch (mContainerType) {
-            case ContainerType::NodalHistorical:
-                number_of_entities = ExpressionIOUtils::GetMesh(mrModelPart.GetCommunicator(), mMeshType).NumberOfNodes();
+        switch (mDataLocation) {
+            case Globals::DataLocation::NodeHistorical:
+            case Globals::DataLocation::NodeNonHistorical:
+                number_of_entities = ExpressionIOUtils::GetMesh(mpModelPart->GetCommunicator(), mMeshType).NumberOfNodes();
                 break;
-            case ContainerType::NodalNonHistorical:
-                number_of_entities = ExpressionIOUtils::GetMesh(mrModelPart.GetCommunicator(), mMeshType).NumberOfNodes();
+            case Globals::DataLocation::Condition:
+                number_of_entities = ExpressionIOUtils::GetMesh(mpModelPart->GetCommunicator(), mMeshType).NumberOfConditions();
                 break;
-            case ContainerType::ConditionNonHistorical:
-                number_of_entities = ExpressionIOUtils::GetMesh(mrModelPart.GetCommunicator(), mMeshType).NumberOfConditions();
+            case Globals::DataLocation::Element:
+                number_of_entities = ExpressionIOUtils::GetMesh(mpModelPart->GetCommunicator(), mMeshType).NumberOfElements();
                 break;
-            case ContainerType::ElementNonHistorical:
-                number_of_entities = ExpressionIOUtils::GetMesh(mrModelPart.GetCommunicator(), mMeshType).NumberOfElements();
+            default:
+                KRATOS_ERROR << "Invalid container type. Only supports NodeHistorical, NodeNonHistorical, Condition, Element.";
                 break;
         }
 
@@ -66,10 +67,10 @@ void LiteralExpressionIO::SetData(
     rContainerExpression.SetExpression(
         Input(rContainerExpression.GetModelPart(), rValue,
                             std::is_same_v<TContainerType, ModelPart::NodesContainerType>
-                                ? ContainerType::NodalNonHistorical
+                                ? Globals::DataLocation::NodeNonHistorical
                                 : std::is_same_v<TContainerType, ModelPart::ConditionsContainerType>
-                                    ? ContainerType::ConditionNonHistorical
-                                    : ContainerType::ElementNonHistorical,
+                                    ? Globals::DataLocation::Condition
+                                    : Globals::DataLocation::Element,
                             TMeshType)
             .Execute());
 }
@@ -83,10 +84,10 @@ void LiteralExpressionIO::SetDataToZero(
         rContainerExpression.SetExpression(
             Input(rContainerExpression.GetModelPart(), pVariable->Zero(),
                                 std::is_same_v<TContainerType, ModelPart::NodesContainerType>
-                                    ? ContainerType::NodalNonHistorical
+                                    ? Globals::DataLocation::NodeNonHistorical
                                     : std::is_same_v<TContainerType, ModelPart::ConditionsContainerType>
-                                        ? ContainerType::ConditionNonHistorical
-                                        : ContainerType::ElementNonHistorical,
+                                        ? Globals::DataLocation::Condition
+                                        : Globals::DataLocation::Element,
                                 TMeshType)
                 .Execute());
     }, rVariable);
