@@ -1,9 +1,9 @@
 ---
 title: Domain Size Expression IO
-keywords:
+keywords: 
 tags: [domain size, condition, element, expression io]
 sidebar: kratos_expressions
-summary:
+summary: 
 ---
 
 ## Introduction
