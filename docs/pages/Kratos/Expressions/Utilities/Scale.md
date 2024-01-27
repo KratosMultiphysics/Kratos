@@ -1,9 +1,9 @@
 ---
 title: Scale
-keywords:
+keywords: 
 tags: [Scale.md]
 sidebar: kratos_expressions
-summary:
+summary: 
 ---
 
 ## Introduction

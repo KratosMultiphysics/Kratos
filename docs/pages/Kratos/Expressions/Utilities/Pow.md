@@ -1,9 +1,9 @@
 ---
 title: Pow
-keywords:
+keywords: 
 tags: [pow, expression]
 sidebar: kratos_expressions
-summary:
+summary: 
 ---
 
 ## Introduction
