@@ -1,9 +1,9 @@
 ---
 title: EntityMax
-keywords:
+keywords: 
 tags: [entity max, max, expression]
 sidebar: kratos_expressions
-summary:
+summary: 
 ---
 
 ## Introduction
