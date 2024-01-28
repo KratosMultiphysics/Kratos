@@ -218,12 +218,14 @@ KRATOS_TESTING_TEST_CASE_CLASS_BODY(TestCaseName,ParentName) \
 //        TestModelPartConstruction::mDummy;
 //    void TestModelPartConstruction::TestFunction()
 //
+/*
 #define KRATOS_TEST_CASE(TestCaseName) \
 KRATOS_TESTING_TEST_CASE_CLASS(TestCaseName, TestCase) \
 const Kratos::Testing::Internals::RegisterThisTest< KRATOS_TESTING_CREATE_CLASS_NAME(TestCaseName) > \
         KRATOS_TESTING_CREATE_CLASS_NAME(TestCaseName)::mDummy; \
 \
 void KRATOS_TESTING_CREATE_CLASS_NAME(TestCaseName)::TestFunction()
+ */
 
 #define KRATOS_DISABLED_TEST_CASE(TestCaseName) \
 KRATOS_TESTING_TEST_CASE_CLASS(TestCaseName, TestCase) \
