@@ -34,6 +34,8 @@ namespace Kratos
         mFractionalStepPFEM23D ( 0, Element::GeometryType::Pointer( new Tetrahedra3D4<Node >(  Element::GeometryType::PointsArrayType (4 ) ) ) ),
         mMonolithicPFEM22D    ( 0, Element::GeometryType::Pointer( new Triangle2D3<Node >(  Element::GeometryType::PointsArrayType (3 ) ) ) ),
         mMonolithicPFEM23D    ( 0, Element::GeometryType::Pointer( new Tetrahedra3D4<Node >(  Element::GeometryType::PointsArrayType (4 ) ) ) ),
+		mMonolithicModifiedPFEM22D    ( 0, Element::GeometryType::Pointer( new Triangle2D3<Node >(  Element::GeometryType::PointsArrayType (3 ) ) ) ),
+        mMonolithicModifiedPFEM23D    ( 0, Element::GeometryType::Pointer( new Tetrahedra3D4<Node >(  Element::GeometryType::PointsArrayType (4 ) ) ) ),
         mNoNewtonianMonolithicPFEM22D    ( 0, Element::GeometryType::Pointer( new Triangle2D3<Node >(  Element::GeometryType::PointsArrayType (3 ) ) ) ),
         mNoNewtonianMonolithicPFEM23D    ( 0, Element::GeometryType::Pointer( new Tetrahedra3D4<Node >(  Element::GeometryType::PointsArrayType (4 ) ) ) ),
         mMonolithicAutoSlipPFEM22D    ( 0, Element::GeometryType::Pointer( new Triangle2D3<Node >(  Element::GeometryType::PointsArrayType (3 ) ) ) ),
@@ -57,6 +59,8 @@ namespace Kratos
  		KRATOS_REGISTER_ELEMENT("FractionalStepPFEM23D", mFractionalStepPFEM23D);
  		KRATOS_REGISTER_ELEMENT("MonolithicPFEM22D", mMonolithicPFEM22D);
  		KRATOS_REGISTER_ELEMENT("MonolithicPFEM23D", mMonolithicPFEM23D);
+		KRATOS_REGISTER_ELEMENT("MonolithicModifiedPFEM22D", mMonolithicModifiedPFEM22D);
+ 		KRATOS_REGISTER_ELEMENT("MonolithicModifiedPFEM23D", mMonolithicModifiedPFEM23D);
  		KRATOS_REGISTER_ELEMENT("NoNewtonianMonolithicPFEM22D", mNoNewtonianMonolithicPFEM22D);
  		KRATOS_REGISTER_ELEMENT("NoNewtonianMonolithicPFEM23D", mNoNewtonianMonolithicPFEM23D);
  		KRATOS_REGISTER_ELEMENT("MonolithicAutoSlipPFEM22D", mMonolithicAutoSlipPFEM22D);
