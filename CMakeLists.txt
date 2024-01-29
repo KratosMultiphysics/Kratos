@@ -41,11 +41,6 @@ if(NOT DEFINED KRATOS_BINARY_DIR)
   set(KRATOS_BINARY_DIR ${CMAKE_BINARY_DIR})
 endif(NOT DEFINED KRATOS_BINARY_DIR)
 
-if(NOT DEFINED INSTALL_RUNKRATOS)
-  message("-- No INSTALL_RUNKRATOS is defined, setting to ON")
-  set(INSTALL_RUNKRATOS ON)
-endif(NOT DEFINED INSTALL_RUNKRATOS)
-
 option(REMOVE_INSTALL_DIRECTORIES "Remove the install directories to achieve a clean compilation" ON)
 
 
@@ -430,16 +425,6 @@ if(${USE_CUDA} MATCHES ON)
   find_package(CUDA QUIET REQUIRED)
 endif(${USE_CUDA} MATCHES ON)
 
-# Follow the symbolic links for the python lib only if needed
-if(${INSTALL_RUNKRATOS} MATCHES ON )
-    foreach( library ${PYTHON_LIBRARIES})
-        get_filename_component(python_lib ${library} REALPATH)
-        set(PYTHON_LIBRARIES_REALPATH ${PYTHON_LIBRARIES_REALPATH} ${python_lib})
-    endforeach(library)
-
-    set(PYTHON_LIBRARIES ${PYTHON_LIBRARIES_REALPATH} CACHE STRING "exact file of the PYTHON library" FORCE)
-endif(${INSTALL_RUNKRATOS} MATCHES ON )
-
 ##*****************************
 # Compiling the triangle library
 if(${USE_TRIANGLE_NONFREE_TPL} MATCHES ON )
@@ -631,11 +616,6 @@ endif(${USE_TRIANGLE_NONFREE_TPL} MATCHES ON )
 
 # Compiling the tinyexpr library
 add_subdirectory(${KRATOS_SOURCE_DIR}/external_libraries/tinyexpr)
-
-# runkratos - compiles "runkratos and packages the python lib needed"
-if(${INSTALL_RUNKRATOS} MATCHES ON )
-    add_subdirectory(kratos/run_kratos)
-endif(${INSTALL_RUNKRATOS} MATCHES ON )
 
 # Clean the Module and libs install directories
 if(${REMOVE_INSTALL_DIRECTORIES} MATCHES ON )

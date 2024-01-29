@@ -36,14 +36,14 @@ class TestExplicitFilter(kratos_unittest.TestCase):
         unfiltered_field = Kratos.Expression.NodalExpression(model_part)
         Kratos.Expression.LiteralExpressionIO.SetData(unfiltered_field, constant_field_value)
         filtered_data = vm_filter.FilterField(unfiltered_field)
-        self.assertAlmostEqual(KratosOA.ExpressionUtils.NormL2(filtered_data), 1e-9, 8)
+        self.assertAlmostEqual(Kratos.Expression.Utils.NormL2(filtered_data), 1e-9, 8)
 
         integration_weights = Kratos.Expression.NodalExpression(model_part)
         Kratos.Expression.LiteralExpressionIO.SetData(integration_weights, constant_field_value)
         vm_filter.GetIntegrationWeights(integration_weights)
         integrated_constant_field = integration_weights * unfiltered_field
         damped_filtered_integrated_data = vm_filter.FilterIntegratedField(integrated_constant_field)
-        self.assertAlmostEqual(KratosOA.ExpressionUtils.NormL2(damped_filtered_integrated_data), 1e-9, 8)
+        self.assertAlmostEqual(Kratos.Expression.Utils.NormL2(damped_filtered_integrated_data), 1e-9, 8)
 
     def test_ConditionExplicitFilterConsistency(self):
         vm_filter = KratosOA.ConditionExplicitFilter(self.model_part, "linear", 1000)
@@ -70,14 +70,14 @@ class TestExplicitFilter(kratos_unittest.TestCase):
         unfiltered_field = container_expression_type(model_part)
         Kratos.Expression.LiteralExpressionIO.SetData(unfiltered_field, constant_field_value)
         filtered_data = vm_filter.FilterField(unfiltered_field)
-        self.assertAlmostEqual(KratosOA.ExpressionUtils.NormL2(filtered_data), math.sqrt(12 * len(entities)), 12)
+        self.assertAlmostEqual(Kratos.Expression.Utils.NormL2(filtered_data), math.sqrt(12 * len(entities)), 12)
 
         integration_weights = container_expression_type(model_part)
         Kratos.Expression.LiteralExpressionIO.SetData(integration_weights, constant_field_value)
         vm_filter.GetIntegrationWeights(integration_weights)
         integrated_constant_field = integration_weights * unfiltered_field
         filtered_integrated_data = vm_filter.FilterIntegratedField(integrated_constant_field)
-        self.assertAlmostEqual(KratosOA.ExpressionUtils.NormL2(filtered_integrated_data), math.sqrt(12 * len(entities)), 12)
+        self.assertAlmostEqual(Kratos.Expression.Utils.NormL2(filtered_integrated_data), math.sqrt(12 * len(entities)), 12)
 
 if __name__ == "__main__":
     kratos_unittest.main()

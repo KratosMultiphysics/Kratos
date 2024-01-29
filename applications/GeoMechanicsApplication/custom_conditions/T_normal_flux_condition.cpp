@@ -14,6 +14,7 @@
 
 // Application includes
 #include "custom_conditions/T_normal_flux_condition.h"
+#include "custom_utilities/condition_utilities.hpp"
 #include "utilities/math_utils.h"
 
 namespace Kratos {
@@ -73,30 +74,16 @@ void GeoTNormalFluxCondition<TDim, TNumNodes>::CalculateRHS(Vector& rRightHandSi
         // Interpolation of nodal normal flux to integration point normal flux.
         auto normal_flux_on_integration_point = MathUtils<>::Dot(N, normal_flux_vector);
 
-        auto weighting_integration_coefficient = CalculateIntegrationCoefficient(j_container[integration_point],
-                                                                                        r_integration_points[integration_point].Weight());
+        auto weighting_integration_coefficient =
+            ConditionUtilities::CalculateIntegrationCoefficient<TDim, TNumNodes>(
+                j_container[integration_point],
+                r_integration_points[integration_point].Weight());
 
         // Contributions to the right hand side
         auto normal_flux_on_DOF = normal_flux_on_integration_point * N * weighting_integration_coefficient;
         GeoElementUtilities::AssemblePBlockVector<0, TNumNodes>(rRightHandSideVector,
                                                                 normal_flux_on_DOF);
     }
-}
-
-template <unsigned int TDim, unsigned int TNumNodes>
-double GeoTNormalFluxCondition<TDim, TNumNodes>::CalculateIntegrationCoefficient(const Matrix& rJacobian,
-                                                                                 double Weight)
-{
-    Vector normal_vector = ZeroVector(TDim);
-
-    if constexpr (TDim == 2) {
-        normal_vector = column(rJacobian, 0);
-    }
-    else if constexpr (TDim == 3) {
-        MathUtils<double>::CrossProduct(normal_vector, column(rJacobian, 0),
-                                        column(rJacobian, 1));
-    }
-    return Weight * MathUtils<double>::Norm(normal_vector);
 }
 
 template class GeoTNormalFluxCondition<2, 2>;

@@ -24,7 +24,6 @@ Add the following lines inside the file:
 KratosMultiphysics/
 applications/python_scripts/ 
 libpython2.7.so.1.0
-runkratos
 libs/
 ``` 
 
