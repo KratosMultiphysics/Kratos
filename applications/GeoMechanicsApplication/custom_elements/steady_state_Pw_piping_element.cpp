@@ -36,6 +36,7 @@ Element::Pointer SteadyStatePwPipingElement<TDim, TNumNodes>::Create(IndexType N
 {
     return Element::Pointer(new SteadyStatePwPipingElement(NewId, pGeom, pProperties));
 }
+
 template <unsigned int TDim, unsigned int TNumNodes>
 int SteadyStatePwPipingElement<TDim, TNumNodes>::Check(const ProcessInfo& rCurrentProcessInfo) const
 {
@@ -120,6 +121,7 @@ void SteadyStatePwPipingElement<3, 6>::CalculateLength(const GeometryType& Geom)
                     "implemented"
                  << std::endl;
 }
+
 template <>
 void SteadyStatePwPipingElement<3, 8>::CalculateLength(const GeometryType& Geom)
 {
@@ -252,6 +254,7 @@ double SteadyStatePwPipingElement<2, 4>::CalculateHeadGradient(const PropertiesT
     const auto nodalHead = GeoElementUtilities::CalculateNodalHydraulicHeadFromWaterPressures(Geom, Prop);
     return std::abs((nodalHead[3] + nodalHead[0]) / 2 - (nodalHead[2] + nodalHead[1]) / 2) / dx;
 }
+
 template <>
 double SteadyStatePwPipingElement<3, 6>::CalculateHeadGradient(const PropertiesType& Prop,
                                                                const GeometryType& Geom,
@@ -261,6 +264,7 @@ double SteadyStatePwPipingElement<3, 6>::CalculateHeadGradient(const PropertiesT
                     "SteadyStatePwPipingElement3D6N element is not implemented"
                  << std::endl;
 }
+
 template <>
 double SteadyStatePwPipingElement<3, 8>::CalculateHeadGradient(const PropertiesType& Prop,
                                                                const GeometryType& Geom,

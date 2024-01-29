@@ -4,8 +4,8 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Ruben Zorrilla
 //
@@ -14,6 +14,8 @@
 
 // System includes
 #include <string>
+#include <numeric>
+#include <variant>
 #include <iostream>
 #include <algorithm>
 
@@ -49,10 +51,8 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/// Short class definition.
-/**takes a model part full of SIMPLICIAL ELEMENTS (triangles and tetras) and convects a level set distance
-* on the top of it
-*/
+/// @brief Process to solve a pure convection problem using a Flux Corrected Transport scheme and an edge-based data structure
+/// @tparam TDim Number of dimensions
 template<unsigned int TDim>
 class FluxCorrectedTransportConvectionProcess : public Process
 {
@@ -101,7 +101,7 @@ public:
         mpConvectionVar = &KratosComponents<Variable<array_1d<double, 3>>>::Get(ThisParameters["convection_variable_name"].GetString());
 
         // Check provided values
-        KRATOS_ERROR_IF(mDiffusionConstant < 1.0e-12 || mDiffusionConstant - 1.0 > 1.0e-12)
+        KRATOS_ERROR_IF(mDiffusionConstant < 1.0e-12 || mDiffusionConstant > 1.0)
             << "Provided 'diffusion_constant' " << mDiffusionConstant << " is not valid. Value must be between 0 and 1." << std::endl;
     }
 
@@ -180,12 +180,12 @@ public:
         const double max_dt = std::min(cfl_dt, mMaxAllowedDt); // Check if the user defined delta time is more restrictive than the CFL one
         const SizeType n_steps = std::ceil(target_dt / max_dt); // Required number of substeps (rounded up)
         const double dt = target_dt / n_steps; // Time increment to be used in the substep loop
-        KRATOS_INFO_IF("FluxCorrectedTransportConvectionProcess", mEchoLevel > 0) << "Solving FCT convection with \u0394t = " << dt << " (max allowed \u0394t = " <<  max_dt << ")" << std::endl;
-        
+        KRATOS_INFO_IF("FluxCorrectedTransportConvectionProcess", mEchoLevel > 0) << u8"Solving FCT convection with \u0394t = " << dt << u8" (max allowed \u0394t = " <<  max_dt << ")" << std::endl;
+
         // Substepping time loop
         for (IndexType step = 1; step <= n_steps; ++step) {
             // Solve current substep
-            KRATOS_INFO_IF("FluxCorrectedTransportConvectionProcess", mEchoLevel > 1) << "Substep = " << step << " - Time = " <<  prev_time << " - \u0394t = " << dt << std::endl;
+            KRATOS_INFO_IF("FluxCorrectedTransportConvectionProcess", mEchoLevel > 1) << "Substep = " << step << " - Time = " <<  prev_time << u8" - \u0394t = " << dt << std::endl;
             this->SolveSubStep(dt);
 
             // Advance in time
@@ -302,7 +302,7 @@ private:
     std::vector<array_1d<double,3>> mConvectionValues; /// Auxiliary vector to store the convection variable values (e.g. VELOCITY)
 
     typename EdgeBasedDataStructure<TDim>::UniquePointer mpEdgeDataStructure; /// Pointer to the edge-based data structure
-    
+
     ///@}
     ///@name Private Operators
     ///@{
@@ -369,7 +369,7 @@ private:
     }
 
     void SolveSubStep(const double DeltaTime)
-    {   
+    {
         // Calculate the low order Runge-Kutta update
         const double low_order_max_iteration = 1;
         const double low_order_diff_constant = mDiffusionConstant;
@@ -385,7 +385,7 @@ private:
         const SizeType rk_steps = std::visit([](const auto& rTableau){return rTableau.SubstepCount();}, butcher_tableau_variant);
         std::vector<std::vector<double>> rk_residuals_lo(mAuxSize, std::vector<double>(rk_steps, 0.0));
         std::vector<std::vector<double>> rk_residuals_ho(mAuxSize, std::vector<double>(rk_steps, 0.0));
-    
+
         // Initialize intermediate substep solution vector
         std::vector<double> rk_u_lo = mSolutionOld;
         std::vector<double> rk_u_ho = mSolutionOld;
@@ -449,70 +449,6 @@ private:
         });
     }
 
-    // void SolveSubStep(const double DeltaTime)
-    // {   
-    //     // Calculate the low order Runge-Kutta update
-    //     const double low_order_max_iteration = 1;
-    //     const double low_order_diff_constant = mDiffusionConstant;
-    //     CalculateSolutionUpdate(mLowOrderUpdate, low_order_diff_constant, DeltaTime, low_order_max_iteration);
-
-    //     // Calculate the high order Runge-Kutta update
-    //     const double high_order_max_iteration = 5;
-    //     const double high_order_diff_constant = 0.0;
-    //     CalculateSolutionUpdate(mHighOrderUpdate, high_order_diff_constant, DeltaTime, high_order_max_iteration);
-
-    //     // Add the low order update 
-    //     IndexPartition<IndexType>(mAuxSize).for_each([this](IndexType i){
-    //         mSolution[i] = mSolutionOld[i] + mLowOrderUpdate[i];
-    //     });
-
-    //     // Calculate the antidiffusive edge contributions
-    //     CalculateAntidiffusiveEdgeContributions(DeltaTime);
-
-    //     // Evaluate limiter
-    //     EvaluateLimiter(DeltaTime);
-
-    //     // Do the current step solution update
-    //     IndexPartition<IndexType>(mAuxSize).for_each([this](IndexType i){
-    //         mSolutionOld[i] = mSolution[i];
-    //     });
-    // }
-
-    // void CalculateSolutionUpdate(
-    //     std::vector<double>& rSolutionUpdate,
-    //     const double DiffusionConstant,
-    //     const double DeltaTime,
-    //     const double MaxIteration = 1)
-    // {
-    //     // Get Butcher tableau variant with the selected Runge-Kutta scheme
-    //     const auto butcher_tableau_variant = GetButcherTableauVariant();
-
-    //     // Allocate auxiliary Runge-Kutta arrays
-    //     const SizeType rk_steps = std::visit([](const auto& rTableau){return rTableau.SubstepCount();}, butcher_tableau_variant);
-    //     std::vector<std::vector<double>> rk_residuals(mAuxSize, std::vector<double>(rk_steps, 0.0));
-    
-    //     // Initialize intermediate substep solution vector
-    //     std::vector<double> rk_u = mSolutionOld;
-
-    //     // Perform the Runge-Kutta intermediate steps
-    //     for (IndexType step = 1; step <= rk_steps; ++step) {
-    //         // Solve current Runge-Kutta step
-    //         const IndexType residual_column = step - 1;
-    //         const double rk_step_theta = std::visit([&step](const auto &rTableau) {return rTableau.GetIntegrationTheta(step);}, butcher_tableau_variant); // Runge-Kutta step integration theta
-    //         CalculateResidual(rk_residuals, rk_u, residual_column, DiffusionConstant, rk_step_theta * DeltaTime);
-
-    //         // Do the explicit lumped mass matrix solve to obtain the intermediate solutions
-    //         if (step != rk_steps) {
-    //             const auto [rk_mat_row_begin, rk_mat_row_end] = std::visit([&step](const auto& rTableau) {return rTableau.GetMatrixRow(step);}, butcher_tableau_variant); // Runge-Kutta matrix row
-    //             ExplicitSolveSolution(rk_u, rk_residuals, DeltaTime, rk_mat_row_begin, rk_mat_row_end, MaxIteration);
-    //         }
-    //     }
-
-    //     // Do the final solution update
-    //     const auto rk_weights = std::visit([](const auto& rTableau) -> auto {return rTableau.GetWeights();}, butcher_tableau_variant);
-    //     ExplicitSolveUpdate(rSolutionUpdate, rk_residuals, DeltaTime, rk_weights.begin(), rk_weights.end(), MaxIteration);
-    // }
-    
     auto GetButcherTableauVariant()
     {
         if (mTimeSchemeName == "forward_euler") {
@@ -669,7 +605,7 @@ private:
                     rUpdater(rSolution, i_node_id, aux_update[i_node_id]);
                 }
             });
-        } 
+        }
     }
 
     void CalculateResidual(
@@ -692,7 +628,7 @@ private:
             array_1d<double, TDim> d_ij;
             array_1d<double, TDim> b_ij;
             array_1d<double, TDim> F_ij_num;
-            array_1d<double, 3> vel_ij_half;
+            // array_1d<double, 3> vel_ij_half;
         };
 
         // Off-diagonal (edge) contributions assembly
@@ -710,7 +646,7 @@ private:
                 auto& d_ij = rTLS.d_ij;
                 auto& b_ij = rTLS.b_ij;
                 auto& F_ij_num = rTLS.F_ij_num;
-                auto& vel_ij_half = rTLS.vel_ij_half;
+                // auto& vel_ij_half = rTLS.vel_ij_half;
 
                 // i-node nodal data
                 const double u_i = rSolutionVector[iRow];

@@ -17,11 +17,9 @@
 // Project includes
 #include "containers/model.h"
 #include "geometries/quadrilateral_2d_4.h"
-#include "includes/gid_io.h"
-#include "linear_solvers/amgcl_solver.h"
-#include "processes/levelset_convection_process.h"
-#include "processes/flux_corrected_transport_convection_process.h"
+// #include "includes/gid_io.h"
 #include "processes/find_global_nodal_neighbours_process.h"
+#include "processes/flux_corrected_transport_convection_process.h"
 #include "processes/structured_mesh_generator_process.h"
 #include "testing/testing.h"
 #include "utilities/variable_utils.h"
@@ -30,7 +28,7 @@ namespace Kratos::Testing {
 
 KRATOS_TEST_CASE_IN_SUITE(FluxCorrectedTransportConvectionProcess2D, KratosCoreFastSuite)
 {
-    // Set-up a simplicial mesh to calculate its edge data structure
+    // Set-up a simplicial mesh
     Model current_model;
     auto& r_model_part = current_model.CreateModelPart("ModelPart");
     auto p_point_1 = Kratos::make_intrusive<Node>(1, -0.5, -0.5, 0.0);
@@ -63,7 +61,6 @@ KRATOS_TEST_CASE_IN_SUITE(FluxCorrectedTransportConvectionProcess2D, KratosCoreF
         "diffusion_constant" : 1.0
     })");
 
-    // Set nodal values
 
     // // Gaussian hill
     // const double a = 1.0; // height
@@ -87,6 +84,7 @@ KRATOS_TEST_CASE_IN_SUITE(FluxCorrectedTransportConvectionProcess2D, KratosCoreF
     auto dist_func = [&](Node& rNode){return std::abs(rNode.X() - b) < c ? a : 0.0;};
     auto vel_func = [&](Node& rNode, array_1d<double,3>& rVel){rVel[0] = 1.0;rVel[1] = 0.0;rVel[2] = 0.0;};
 
+    // Set nodal values
     array_1d<double,3> aux_v;
     for (auto& r_node : r_model_part.Nodes()) {
         vel_func(r_node, aux_v);
@@ -98,16 +96,17 @@ KRATOS_TEST_CASE_IN_SUITE(FluxCorrectedTransportConvectionProcess2D, KratosCoreF
     }
 
     // Set and execute the FCT convection process (time loop)
-    GidIO<> gid_io_convection("/home/rzorrilla/Desktop/FluxCorrectedTransportProcess2D", GiD_PostAscii, SingleFile, WriteDeformed, WriteConditions);
-    gid_io_convection.InitializeMesh(0);
-    gid_io_convection.WriteMesh(r_model_part.GetMesh());
-    gid_io_convection.FinalizeMesh();
-    gid_io_convection.InitializeResults(0, r_model_part.GetMesh());
-    gid_io_convection.WriteNodalResults(DISTANCE, r_model_part.Nodes(), 0, 1);
-    gid_io_convection.WriteNodalResults(VELOCITY, r_model_part.Nodes(), 0, 1);
+    // GidIO<> gid_io_convection("/home/rzorrilla/Desktop/FluxCorrectedTransportProcess2D", GiD_PostAscii, SingleFile, WriteDeformed, WriteConditions);
+    // gid_io_convection.InitializeMesh(0);
+    // gid_io_convection.WriteMesh(r_model_part.GetMesh());
+    // gid_io_convection.FinalizeMesh();
+    // gid_io_convection.InitializeResults(0, r_model_part.GetMesh());
+    // gid_io_convection.WriteNodalResults(DISTANCE, r_model_part.Nodes(), 0, 1);
+    // gid_io_convection.WriteNodalResults(VELOCITY, r_model_part.Nodes(), 0, 1);
 
     const double dt = 5e-3;
-    const double end_time = 0.5;
+    const double end_time = 5e-3;
+    // const double end_time = 0.5; // Set this end time to do the complete test
     r_model_part.GetProcessInfo()[TIME] = 0.0;
     r_model_part.GetProcessInfo()[DELTA_TIME] = dt;
     FluxCorrectedTransportConvectionProcess<2> fct_convection_process(current_model, fct_parameters);
@@ -115,40 +114,22 @@ KRATOS_TEST_CASE_IN_SUITE(FluxCorrectedTransportConvectionProcess2D, KratosCoreF
         const double new_time = r_model_part.GetProcessInfo()[TIME] + dt;
         r_model_part.CloneTimeStep(new_time);
         fct_convection_process.Execute();
-        gid_io_convection.WriteNodalResults(DISTANCE, r_model_part.Nodes(), new_time, 0);
-        gid_io_convection.WriteNodalResults(VELOCITY, r_model_part.Nodes(), new_time, 0);
+        // gid_io_convection.WriteNodalResults(DISTANCE, r_model_part.Nodes(), new_time, 0);
+        // gid_io_convection.WriteNodalResults(VELOCITY, r_model_part.Nodes(), new_time, 0);
     }
 
-    gid_io_convection.FinalizeResults();
-
-    // Parameters ls_conv_parameters(R"({
-    //     "model_part_name" : "ModelPart",
-    //     "echo_level" : 1,
-    //     "max_CFL" : 1.0
-    // })");
-
-    // typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
-    // typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
-    // typedef LinearSolver<SparseSpaceType, LocalSpaceType> LinearSolverType;
-    // auto p_ls_linear_solver = Kratos::make_shared<AMGCLSolver<SparseSpaceType, LocalSpaceType>>();
-    // LevelSetConvectionProcess<2,SparseSpaceType,LocalSpaceType,LinearSolverType> ls_conv_process(current_model, p_ls_linear_solver, ls_conv_parameters);
-    // ls_conv_process.Execute();
-
-    // GidIO<> gid_io_convection("/home/rzorrilla/Desktop/LevelSetConvectionProcess2D", GiD_PostAscii, SingleFile, WriteDeformed, WriteConditions);
-    // gid_io_convection.InitializeMesh(0);
-    // gid_io_convection.WriteMesh(r_model_part.GetMesh());
-    // gid_io_convection.FinalizeMesh();
-    // gid_io_convection.InitializeResults(0, r_model_part.GetMesh());
-    // gid_io_convection.WriteNodalResults(DISTANCE, r_model_part.Nodes(), 0, 1);
-    // gid_io_convection.WriteNodalResults(VELOCITY, r_model_part.Nodes(), 0, 1);
-    // gid_io_convection.WriteNodalResults(DISTANCE, r_model_part.Nodes(), 1, 0);
-    // gid_io_convection.WriteNodalResults(VELOCITY, r_model_part.Nodes(), 1, 0);
     // gid_io_convection.FinalizeResults();
+
+    // Check results
+    KRATOS_EXPECT_NEAR(r_model_part.GetNode(1451).FastGetSolutionStepValue(DISTANCE), 1.0, 1.0e-8);
+    KRATOS_EXPECT_NEAR(r_model_part.GetNode(1502).FastGetSolutionStepValue(DISTANCE), 0.249900031105, 1.0e-8);
+    KRATOS_EXPECT_NEAR(r_model_part.GetNode(1553).FastGetSolutionStepValue(DISTANCE), 9.99688951356e-05, 1.0e-8);
+    KRATOS_EXPECT_NEAR(r_model_part.GetNode(1604).FastGetSolutionStepValue(DISTANCE), 0.0, 1.0e-8);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(FluxCorrectedTransportConvectionProcessZalesak, KratosCoreFastSuite)
 {
-    // Set-up a simplicial mesh to calculate its edge data structure
+    // Set-up a simplicial mesh
     Model current_model;
     auto& r_model_part = current_model.CreateModelPart("ModelPart");
     auto p_point_1 = Kratos::make_intrusive<Node>(1, 0.0, 0.0, 0.0);
@@ -176,13 +157,13 @@ KRATOS_TEST_CASE_IN_SUITE(FluxCorrectedTransportConvectionProcessZalesak, Kratos
     // FCT convection settings
     Parameters fct_parameters(R"({
         "model_part_name" : "ModelPart",
-        "echo_level" : 1,
+        "echo_level" : 0,
         "max_CFL" : 0.1,
         "echo_level" : 2,
-        "time_scheme" : "forward_euler"
+        "time_scheme" : "RK3-TVD"
     })");
 
-    // Set nodal values
+    // Define initial distance function
     auto dist_func = [&](Node& rNode){
         double dist_disk = 0.0;
         const double aux_1 = std::sqrt(std::pow(rNode.X() - 0.5,2) + std::pow(rNode.Y() - 0.75,2));
@@ -203,12 +184,15 @@ KRATOS_TEST_CASE_IN_SUITE(FluxCorrectedTransportConvectionProcessZalesak, Kratos
         }
         return std::max({dist_disk, dist_cone, dist_hump});
     };
+
+    // Define velocity function
     auto vel_func = [&](Node& rNode, array_1d<double,3>& rVel){
         rVel[0] = 0.5 - rNode.Y();
         rVel[1] = rNode.X() - 0.5;
         rVel[2] = 0.0;
     };
 
+    // Set nodal values
     array_1d<double,3> aux_v;
     for (auto& r_node : r_model_part.Nodes()) {
         vel_func(r_node, aux_v);
@@ -224,18 +208,17 @@ KRATOS_TEST_CASE_IN_SUITE(FluxCorrectedTransportConvectionProcessZalesak, Kratos
     }
 
     // Set and execute the FCT convection process (time loop)
-    GidIO<> gid_io_convection("/home/rzorrilla/Desktop/FluxCorrectedTransportProcessZalesak", GiD_PostAscii, SingleFile, WriteDeformed, WriteConditions);
-    gid_io_convection.InitializeMesh(0);
-    gid_io_convection.WriteMesh(r_model_part.GetMesh());
-    gid_io_convection.FinalizeMesh();
-    gid_io_convection.InitializeResults(0, r_model_part.GetMesh());
-    gid_io_convection.WriteNodalResults(DISTANCE, r_model_part.Nodes(), 0, 1);
-    gid_io_convection.WriteNodalResults(VELOCITY, r_model_part.Nodes(), 0, 1);
+    // GidIO<> gid_io_convection("/home/rzorrilla/Desktop/FluxCorrectedTransportProcessZalesak", GiD_PostAscii, SingleFile, WriteDeformed, WriteConditions);
+    // gid_io_convection.InitializeMesh(0);
+    // gid_io_convection.WriteMesh(r_model_part.GetMesh());
+    // gid_io_convection.FinalizeMesh();
+    // gid_io_convection.InitializeResults(0, r_model_part.GetMesh());
+    // gid_io_convection.WriteNodalResults(DISTANCE, r_model_part.Nodes(), 0, 1);
+    // gid_io_convection.WriteNodalResults(VELOCITY, r_model_part.Nodes(), 0, 1);
 
-    // const double dt = 1.0e-3;
-    // const double t_end = 1.0e-3;
     const double dt = 1.0e-2;
-    const double t_end = 6.28;
+    const double t_end = 5.0e-2;
+    // const double t_end = 6.28; // Set this end time to do the complete test
     r_model_part.GetProcessInfo()[TIME] = 0.0;
     r_model_part.GetProcessInfo()[DELTA_TIME] = dt;
     FluxCorrectedTransportConvectionProcess<2> fct_convection_process(current_model, fct_parameters);
@@ -243,11 +226,16 @@ KRATOS_TEST_CASE_IN_SUITE(FluxCorrectedTransportConvectionProcessZalesak, Kratos
         const double new_time = r_model_part.GetProcessInfo()[TIME] + dt;
         r_model_part.CloneTimeStep(new_time);
         fct_convection_process.Execute();
-        gid_io_convection.WriteNodalResults(DISTANCE, r_model_part.Nodes(), new_time, 0);
-        gid_io_convection.WriteNodalResults(VELOCITY, r_model_part.Nodes(), new_time, 0);
+        // gid_io_convection.WriteNodalResults(DISTANCE, r_model_part.Nodes(), new_time, 0);
+        // gid_io_convection.WriteNodalResults(VELOCITY, r_model_part.Nodes(), new_time, 0);
     }
 
-    gid_io_convection.FinalizeResults();
+    // gid_io_convection.FinalizeResults();
+
+    // Check results
+    KRATOS_EXPECT_NEAR(r_model_part.GetNode(4191).FastGetSolutionStepValue(DISTANCE), 0.49392428659, 1.0e-8);
+    KRATOS_EXPECT_NEAR(r_model_part.GetNode(8547).FastGetSolutionStepValue(DISTANCE), 0.93486103314, 1.0e-8);
+    KRATOS_EXPECT_NEAR(r_model_part.GetNode(8739).FastGetSolutionStepValue(DISTANCE), 0.950609952007, 1.0e-8);
 }
 
 } // namespace Kratos::Testing.

@@ -1,6 +1,6 @@
 import KratosMultiphysics
 import KratosMultiphysics.FluidDynamicsApplication
-from KratosMultiphysics.FluidDynamicsApplication.fluid_dynamics_analysis import FluidDynamicsAnalysis
+from KratosMultiphysics.FluidDynamicsHydraulicsApplication.fluid_dynamics_hydraulic_analysis import FluidDynamicsHydraulicsAnalysis
 
 import math
 import time
@@ -9,15 +9,15 @@ import sys
 import KratosMultiphysics.KratosUnittest as UnitTest
 import KratosMultiphysics.kratos_utilities as KratosUtilities
 
-class FluidDynamicsAnalysisHydraulic(FluidDynamicsAnalysis):
 
+class FluidDynamicsHydraulicsAnalysisTest(FluidDynamicsHydraulicsAnalysis):
     def ModifyInitialGeometry(self):
-            h0=0.5
-            hmax=0.1
-            for node in self._GetSolver().GetComputingModelPart().Nodes:
-                d0=node.Y-(h0+hmax*math.cos(math.pi*(1-node.X)))
-                node.SetSolutionStepValue(KratosMultiphysics.DISTANCE,d0)
-                node.SetSolutionStepValue(KratosMultiphysics.DISTANCE,1,d0)
+        h0=0.5
+        hmax=0.1
+        for node in self._GetSolver().GetComputingModelPart().Nodes:
+            d0=node.Y-(h0+hmax*math.cos(math.pi*(1-node.X)))
+            node.SetSolutionStepValue(KratosMultiphysics.DISTANCE,d0)
+            node.SetSolutionStepValue(KratosMultiphysics.DISTANCE,1,d0)
 
 # Class derived from the UnitTest (KratosMultiphysics.KratosUnittest) class
 class TwoFluidHydraulicSolverTest(UnitTest.TestCase):
@@ -112,7 +112,7 @@ class TwoFluidHydraulicSolverTest(UnitTest.TestCase):
                     self._AddReferenceValuesCheck()
 
                 # running
-                self.simulation = FluidDynamicsAnalysisHydraulic(model, self.parameters)
+                self.simulation = FluidDynamicsHydraulicsAnalysisTest(model, self.parameters)
                 self.simulation.Run()
 
     def _AddOutput(self):
