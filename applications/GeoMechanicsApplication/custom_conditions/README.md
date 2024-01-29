@@ -61,7 +61,7 @@ $$ E = \frac{L_v}{\lambda \rho_w} $$
 where
 
 - $L_v$ = latent heat flux
-- $\lambda$ = latent heat of vaporization $\mathrm{[2.45\;MJ/kg]}$
+- $\lambda$ = latent heat of vaporization $\mathrm{[2.45 \space MJ/kg]}$
 - $\rho_w$  = density of water $\mathrm{[kg/m^3]}$
 
 The latent heat flux is:
@@ -71,8 +71,8 @@ $$ L_v  = \frac{e^\prime_{at} \left(R_n + Q_f - Q_s \right) + C_a \rho_a \left(e
 where
 
 - $r_a$ = atomospheric resistance $\mathrm{[s/m]}$
-- $r_s$ = surface resistance constant $\mathrm{[30 \; s/m]}$ 
-- $\gamma$ = psychometric constant $\mathrm{[k0.067\;kPa/C]}$
+- $r_s$ = surface resistance constant $\mathrm{[30 \space s/m]}$ 
+- $\gamma$ = psychometric constant $\mathrm{[k0.067 \space kPa/C]}$
 - $Q_f$ = build enviromental radiation $\mathrm{[W/m^2]}$ (user defined parameter)
 - $C_a$ = specific heat of moist air $\mathrm{[kJ/kgC]}$
 - $\rho_a$ = air density $\mathrm{[kg/m^3]}$ 
@@ -80,7 +80,7 @@ where
 - $e^\prime$ = slope of the saturation vapor curve $\mathrm{[hPa/K]}$
 - $e^a$ = actual vapour pressure $\mathrm{[hPa]}$
 
-$$ e^s = 6.11 \exp \left( \frac{17.27\; T}{T+237.3} \right) $$
+$$ e^s = 6.11 \exp \left( \frac{17.27 \space T}{T+237.3} \right) $$
 
 $$ e^\prime=  \frac{4098 \space e^s}{\left(T + 237.3\right)^2} $$   
 
@@ -105,7 +105,7 @@ $$ h_{rl} \frac{T_{rl}^1 - T_{rl}^0}{\Delta t} = \frac{T_{ss}^0-T_{rl}^1}{r_g} +
 
 Then the temperature in the roughness layer $T_{rl}$ reads as,
 
-$$ T_{rl}^1 = \frac{r_g \space h_{rl} \space T_{rl}^0 + \Delta t \space T_{ss}^0 + r_g \space \Delta t \space u \space f_h \;d_d^2 \space T_{at}^1}{r_g \space h_{rl} + \Delta t + r_g \space \Delta t \space u \space f_h \space a_d^2} $$
+$$ T_{rl}^1 = \frac{r_g \space h_{rl} \space T_{rl}^0 + \Delta t \space T_{ss}^0 + r_g \space \Delta t \space u \space f_h \space d_d^2 \space T_{at}^1}{r_g \space h_{rl} + \Delta t + r_g \space \Delta t \space u \space f_h \space a_d^2} $$
 
 where
 
@@ -126,11 +126,11 @@ where
 
 Surface roughness factor $f_h$ for unstable weather conditions where $T_{rl} \geq T_{at}$
 
-$$ f_h = 1 - \frac{15 \; r_{i}}{1+75 \; a_d^2 \sqrt{z_m/z_0} \sqrt{|r_{i}|}} $$
+$$ f_h = 1 - \frac{15 \space r_{i}}{1+75 \space a_d^2 \sqrt{z_m/z_0} \sqrt{|r_{i}|}} $$
 
 and for stable weather conditions where $T_{rl} < T_{at}$
 
-$$ f_h = \left({1 + {15\; r_{i}}{\sqrt{1+5\;r_{i}}}}\right)^{-1} $$
+$$ f_h = \left({1 + {15 \space r_{i}}{\sqrt{1+5 \space r_{i}}}}\right)^{-1} $$
 
 where $r_i$ $\mathrm{[-]}$ is Richardson bulk modulus and is defines as,
 
