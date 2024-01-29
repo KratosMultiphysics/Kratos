@@ -36,7 +36,6 @@ namespace Kratos
  * @tparam TObjectType The type of the object
  * @ingroup KratosCore
  * @author Vicente Mataix Ferrandiz
- * @todo Add a map of indexes to avoid store nullptr when a huge Id is considered
  */
 template <class TObjectType>
 class KRATOS_API(KRATOS_CORE) SpatialSearchResultContainerVector
@@ -47,6 +46,9 @@ public:
 
     /// Pointer definition of SpatialSearchResultContainerVector
     KRATOS_CLASS_POINTER_DEFINITION(SpatialSearchResultContainerVector);
+
+    /// The index map type
+    using IndexMapType = std::unordered_map<IndexType, IndexType>;
 
     /// The spatial search result container type
     using SpatialSearchResultContainerType = SpatialSearchResultContainer<TObjectType>;
@@ -234,7 +236,7 @@ public:
      */
     SpatialSearchResultContainerReferenceType operator[](const IndexType Index)
     {
-        KRATOS_ERROR_IF_NOT(this->HasResult(Index)) << "The result container does not exist for index: " << Index << std::endl;
+        KRATOS_DEBUG_ERROR_IF_NOT(HasResult(Index)) << "Index " << Index << " not available. Size: " << mPointResults.size() << std::endl;
         return *mPointResults[Index];
     }
 
@@ -245,7 +247,7 @@ public:
      */
     const SpatialSearchResultContainerType& operator[](const IndexType Index) const
     {
-        KRATOS_ERROR_IF_NOT(this->HasResult(Index)) << "The result container does not exist for index: " << Index << std::endl;
+        KRATOS_DEBUG_ERROR_IF_NOT(HasResult(Index)) << "Index " << Index << " not available. Size: " << mPointResults.size() << std::endl;
         return *mPointResults[Index];
     }
 
@@ -256,6 +258,7 @@ public:
      */
     SpatialSearchResultContainerPointerType operator()(const IndexType Index)
     {
+        KRATOS_DEBUG_ERROR_IF_NOT(HasResult(Index)) << "Index " << Index << " not available. Size: " << mPointResults.size() << std::endl;
         return mPointResults[Index];
     }
 
@@ -266,6 +269,7 @@ public:
      */
     const SpatialSearchResultContainerType* operator()(const IndexType Index) const
     {
+        KRATOS_DEBUG_ERROR_IF_NOT(HasResult(Index)) << "Index " << Index << " not available. Size: " << mPointResults.size() << std::endl;
         return mPointResults[Index];
     }
 
@@ -317,16 +321,16 @@ public:
 
     /**
      * @brief Initialize the container
-     * @param Index The index to be initialized
+     * @param rDataCommunicator The data communicator
      * @return The result container
      */
-    SpatialSearchResultContainerReferenceType InitializeResult(const IndexType Index);
+    SpatialSearchResultContainerReferenceType InitializeResult(const DataCommunicator& rDataCommunicator);
 
     /**
      * @brief Initialize the container
-     * @param Indexes The indexes to be initialized
+     * @param rDataCommunicators The data communicators
      */
-    void InitializeResults(const std::vector<IndexType>& rIndexes);
+    void InitializeResults(const std::vector<const DataCommunicator*>& rDataCommunicators);
 
     /**
      * @brief Check if coordinates are initialized
@@ -379,8 +383,7 @@ private:
     ///@name Member Variables
     ///@{
 
-    ContainerType mPointResults;  /// The results of each point
-
+    ContainerType mPointResults; /// The results of each point
     ///@}
     ///@name Private Operations
     ///@{

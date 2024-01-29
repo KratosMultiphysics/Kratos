@@ -109,7 +109,7 @@ template<typename TObjectType>
 void BindSpatialSearchResultContainer(pybind11::module& m, const std::string& rClassName) {
     using ContainerType = SpatialSearchResultContainer<TObjectType>;
     auto cls = pybind11::class_<ContainerType, typename ContainerType::Pointer>(m, rClassName.c_str())
-    .def(pybind11::init<>())
+    .def(pybind11::init<const DataCommunicator&>())
     .def("IsObjectFound", &ContainerType::IsObjectFound)
     .def("NumberOfLocalResults", &ContainerType::NumberOfLocalResults)
     .def("NumberOfGlobalResults", &ContainerType::NumberOfGlobalResults)
@@ -127,6 +127,10 @@ void BindSpatialSearchResultContainer(pybind11::module& m, const std::string& rC
     .def("GetResultShapeFunctions", &ContainerType::GetResultShapeFunctions)
     .def("GetResultIndices", &ContainerType::GetResultIndices)
     .def("GetResultCoordinates", &ContainerType::GetResultCoordinates)
+    .def("GetDataCommunicator", &ContainerType::GetDataCommunicator)
+    .def("GetLocalResults", &ContainerType::GetLocalResults)
+    .def("GetGlobalResults", &ContainerType::GetGlobalResults)
+    .def("GetGlobalPointerCommunicator", &ContainerType::GetGlobalPointerCommunicator)
     .def("__getitem__", [](ContainerType& self, const std::size_t Index) {
         return self.GetLocalResults()[Index];
     })
@@ -163,6 +167,8 @@ void BindSpatialSearchResultContainerVector(pybind11::module& m, const std::stri
     .def("InitializeResult", &ContainerVectorType::InitializeResult)
     .def("HasResult",  &ContainerVectorType::HasResult)
     .def("Clear", &ContainerVectorType::Clear)
+    .def("SynchronizeAll", &ContainerVectorType::SynchronizeAll)
+    .def("GetContainer", &ContainerVectorType::GetContainer)
     .def("__getitem__", [](ContainerVectorType& self, const std::size_t Index) {
         return self[Index];
     })

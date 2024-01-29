@@ -52,43 +52,43 @@ KRATOS_TEST_CASE_IN_SUITE(SearchWrapperGeometricalObjectsBinsSearchInRadius, Kra
     // 0.29 radius
     search_wrapper.SearchInRadius(r_array_nodes.begin(), r_array_nodes.end(), 0.29, results);
     KRATOS_EXPECT_EQ(results.NumberOfSearchResults(), 1);
-    KRATOS_EXPECT_FALSE(results[p_point->Id()].IsObjectFound());
-    KRATOS_EXPECT_EQ(results[p_point->Id()].NumberOfGlobalResults(), 0);
+    KRATOS_EXPECT_FALSE(results[0].IsObjectFound());
+    KRATOS_EXPECT_EQ(results[0].NumberOfGlobalResults(), 0);
 
     // 0.3 radius
     search_wrapper.SearchInRadius(r_array_nodes.begin(), r_array_nodes.end(), 0.3, results);
     KRATOS_EXPECT_EQ(results.NumberOfSearchResults(), 1);
-    KRATOS_EXPECT_TRUE(results[p_point->Id()].IsObjectFound());
-    KRATOS_EXPECT_EQ(results[p_point->Id()].NumberOfGlobalResults(), 4);
+    KRATOS_EXPECT_TRUE(results[0].IsObjectFound());
+    KRATOS_EXPECT_EQ(results[0].NumberOfGlobalResults(), 4);
 
     // 0.4 radius
     search_wrapper.SearchInRadius(r_array_nodes.begin(), r_array_nodes.end(), 0.4, results);
     KRATOS_EXPECT_EQ(results.NumberOfSearchResults(), 1);
-    KRATOS_EXPECT_TRUE(results[p_point->Id()].IsObjectFound());
-    KRATOS_EXPECT_EQ(results[p_point->Id()].NumberOfGlobalResults(), 4);
+    KRATOS_EXPECT_TRUE(results[0].IsObjectFound());
+    KRATOS_EXPECT_EQ(results[0].NumberOfGlobalResults(), 4);
 
     // 0.6 radius
     search_wrapper.SearchInRadius(r_array_nodes.begin(), r_array_nodes.end(), 0.6, results);
     KRATOS_EXPECT_EQ(results.NumberOfSearchResults(), 1);
-    KRATOS_EXPECT_TRUE(results[p_point->Id()].IsObjectFound());
-    KRATOS_EXPECT_EQ(results[p_point->Id()].NumberOfGlobalResults(), 8);
+    KRATOS_EXPECT_TRUE(results[0].IsObjectFound());
+    KRATOS_EXPECT_EQ(results[0].NumberOfGlobalResults(), 8);
 
     // 0.7 radius
     search_wrapper.SearchInRadius(r_array_nodes.begin(), r_array_nodes.end(), 0.7, results);
     KRATOS_EXPECT_EQ(results.NumberOfSearchResults(), 1);
-    KRATOS_EXPECT_TRUE(results[p_point->Id()].IsObjectFound());
-    KRATOS_EXPECT_EQ(results[p_point->Id()].NumberOfGlobalResults(), 8);
+    KRATOS_EXPECT_TRUE(results[0].IsObjectFound());
+    KRATOS_EXPECT_EQ(results[0].NumberOfGlobalResults(), 8);
 
     // 0.9 radius
     search_wrapper.SearchInRadius(r_array_nodes.begin(), r_array_nodes.end(), 0.9, results);
     KRATOS_EXPECT_EQ(results.NumberOfSearchResults(), 1);
-    KRATOS_EXPECT_TRUE(results[p_point->Id()].IsObjectFound());
-    KRATOS_EXPECT_EQ(results[p_point->Id()].NumberOfGlobalResults(), 12);
+    KRATOS_EXPECT_TRUE(results[0].IsObjectFound());
+    KRATOS_EXPECT_EQ(results[0].NumberOfGlobalResults(), 12);
 }
 
 /** Checks SearchWrapper works for GeometricalObjectBins search nearest
 */
-KRATOS_TEST_CASE_IN_SUITE(SearchWrapperGeometricalObjectsBinsSearchNearestInRadius, KratosCoreFastSuite) 
+KRATOS_TEST_CASE_IN_SUITE(SearchWrapperGeometricalObjectsBinsSearchNearestInRadius, KratosCoreFastSuite)
 {
     constexpr double tolerance = 1e-12;
 
@@ -115,32 +115,32 @@ KRATOS_TEST_CASE_IN_SUITE(SearchWrapperGeometricalObjectsBinsSearchNearestInRadi
     search_wrapper.SearchNearestInRadius(r_array_nodes.begin(), r_array_nodes.end(), cube_z - 1.e-4, results);
 
     KRATOS_EXPECT_EQ(results.NumberOfSearchResults(), 1);
-    KRATOS_EXPECT_FALSE(results[p_near_point->Id()].IsObjectFound());
+    KRATOS_EXPECT_FALSE(results[0].IsObjectFound());
 
     search_wrapper.SearchNearestInRadius(r_array_nodes.begin(), r_array_nodes.end(), cube_z + 1.e-4, results);
 
     KRATOS_EXPECT_EQ(results.NumberOfSearchResults(), 1);
-    KRATOS_EXPECT_TRUE(results[p_near_point->Id()].IsObjectFound());
-    KRATOS_EXPECT_EQ(results[p_near_point->Id()].NumberOfGlobalResults(), 1);
+    KRATOS_EXPECT_TRUE(results[0].IsObjectFound());
+    KRATOS_EXPECT_EQ(results[0].NumberOfGlobalResults(), 1);
 
     // Distances
-    auto distances = results[p_near_point->Id()].GetDistances();
+    auto distances = results[0].GetDistances();
     KRATOS_EXPECT_NEAR(distances[0], (cube_z - epsilon), tolerance);
 
     // Compute indices
-    auto indices = results[p_near_point->Id()].GetResultIndices();
+    auto indices = results[0].GetResultIndices();
     const std::size_t id = indices[0];
     KRATOS_EXPECT_EQ(id, 3);
 }
 
 /** Checks SearchWrapper works for GeometricalObjectBins search nearest
 */
-KRATOS_TEST_CASE_IN_SUITE(SearchWrapperGeometricalObjectsBinsSearchNearest, KratosCoreFastSuite) 
+KRATOS_TEST_CASE_IN_SUITE(SearchWrapperGeometricalObjectsBinsSearchNearest, KratosCoreFastSuite)
 {
     constexpr double tolerance = 1e-12;
 
     Model current_model;
-    
+
     // Cube coordinates
     const double cube_z = 0.3;
 
@@ -162,22 +162,22 @@ KRATOS_TEST_CASE_IN_SUITE(SearchWrapperGeometricalObjectsBinsSearchNearest, Krat
     search_wrapper.SearchNearest(r_array_nodes.begin(), r_array_nodes.end(), results);
 
     KRATOS_EXPECT_EQ(results.NumberOfSearchResults(), 1);
-    KRATOS_EXPECT_TRUE(results[p_near_point->Id()].IsObjectFound());
-    KRATOS_EXPECT_EQ(results[p_near_point->Id()].NumberOfGlobalResults(), 1);
+    KRATOS_EXPECT_TRUE(results[0].IsObjectFound());
+    KRATOS_EXPECT_EQ(results[0].NumberOfGlobalResults(), 1);
 
     // Distances
-    auto distances = results[p_near_point->Id()].GetDistances();
+    auto distances = results[0].GetDistances();
     KRATOS_EXPECT_NEAR(distances[0], (cube_z - epsilon), tolerance);
 
     // Compute indices
-    auto indices = results[p_near_point->Id()].GetResultIndices();
+    auto indices = results[0].GetResultIndices();
     const std::size_t id = indices[0];
     KRATOS_EXPECT_EQ(id, 3);
 }
 
-/** Checks SearchWrapper works for GeometricalObjectBins empty search nearest 
+/** Checks SearchWrapper works for GeometricalObjectBins empty search nearest
 */
-KRATOS_TEST_CASE_IN_SUITE(SearchWrapperGeometricalObjectsBinsEmptySearchNearest, KratosCoreFastSuite) 
+KRATOS_TEST_CASE_IN_SUITE(SearchWrapperGeometricalObjectsBinsEmptySearchNearest, KratosCoreFastSuite)
 {
     Model current_model;
 
@@ -197,12 +197,12 @@ KRATOS_TEST_CASE_IN_SUITE(SearchWrapperGeometricalObjectsBinsEmptySearchNearest,
     search_wrapper.SearchNearest(r_array_nodes.begin(), r_array_nodes.end(), results);
 
     KRATOS_EXPECT_EQ(results.NumberOfSearchResults(), 1);
-    KRATOS_EXPECT_FALSE(results[p_point->Id()].IsObjectFound());
+    KRATOS_EXPECT_FALSE(results[0].IsObjectFound());
 }
 
 /** Checks SearchWrapper works for GeometricalObjectBins search is inside 
 */
-KRATOS_TEST_CASE_IN_SUITE(SearchWrapperGeometricalObjectsBinsSearchIsInside, KratosCoreFastSuite) 
+KRATOS_TEST_CASE_IN_SUITE(SearchWrapperGeometricalObjectsBinsSearchIsInside, KratosCoreFastSuite)
 {
     Model current_model;
 
@@ -222,13 +222,13 @@ KRATOS_TEST_CASE_IN_SUITE(SearchWrapperGeometricalObjectsBinsSearchIsInside, Kra
     search_wrapper.SearchIsInside(r_array_nodes.begin(), r_array_nodes.end(), results);
 
     KRATOS_EXPECT_EQ(results.NumberOfSearchResults(), 1);
-    KRATOS_EXPECT_TRUE(results[p_inside_point->Id()].IsObjectFound());
-    KRATOS_EXPECT_EQ(results[p_inside_point->Id()].NumberOfGlobalResults(), 1);
+    KRATOS_EXPECT_TRUE(results[0].IsObjectFound());
+    KRATOS_EXPECT_EQ(results[0].NumberOfGlobalResults(), 1);
 }
 
 /** Checks SearchWrapper works for GeometricalObjectBins search is inside = not found
 */
-KRATOS_TEST_CASE_IN_SUITE(SearchWrapperGeometricalObjectsBinsSearchIsNotInside, KratosCoreFastSuite) 
+KRATOS_TEST_CASE_IN_SUITE(SearchWrapperGeometricalObjectsBinsSearchIsNotInside, KratosCoreFastSuite)
 {
     Model current_model;
 
@@ -248,7 +248,7 @@ KRATOS_TEST_CASE_IN_SUITE(SearchWrapperGeometricalObjectsBinsSearchIsNotInside, 
     search_wrapper.SearchIsInside(r_array_nodes.begin(), r_array_nodes.end(), results);
 
     KRATOS_EXPECT_EQ(results.NumberOfSearchResults(), 1);
-    KRATOS_EXPECT_FALSE(results[p_outside_point->Id()].IsObjectFound());
+    KRATOS_EXPECT_FALSE(results[0].IsObjectFound());
 }
 
 // Definition of the trees search wrapper
@@ -284,14 +284,14 @@ void TestTreeSearchInRadius()
     // 0.3 radius
     search_wrapper.SearchInRadius(r_array_nodes.begin(), r_array_nodes.end(), 0.3, results);
     KRATOS_EXPECT_EQ(results.NumberOfSearchResults(), 1);
-    KRATOS_EXPECT_FALSE(results[p_point->Id()].IsObjectFound());
-    KRATOS_EXPECT_EQ(results[p_point->Id()].NumberOfGlobalResults(), 0);
+    KRATOS_EXPECT_FALSE(results[0].IsObjectFound());
+    KRATOS_EXPECT_EQ(results[0].NumberOfGlobalResults(), 0);
 
     // 2.0 radius
     search_wrapper.SearchInRadius(r_array_nodes.begin(), r_array_nodes.end(), 2.0, results);
     KRATOS_EXPECT_EQ(results.NumberOfSearchResults(), 1);
-    KRATOS_EXPECT_TRUE(results[p_point->Id()].IsObjectFound());
-    KRATOS_EXPECT_EQ(results[p_point->Id()].NumberOfGlobalResults(), 12);
+    KRATOS_EXPECT_TRUE(results[0].IsObjectFound());
+    KRATOS_EXPECT_EQ(results[0].NumberOfGlobalResults(), 12);
 }
 
 /** Checks SearchWrapper works for KDTreeElement search in radius
@@ -355,20 +355,20 @@ void TestTreeSearchNearestInRadius()
     search_wrapper.SearchNearestInRadius(r_array_nodes.begin(), r_array_nodes.end(), cube_z, results);
 
     KRATOS_EXPECT_EQ(results.NumberOfSearchResults(), 1);
-    KRATOS_EXPECT_FALSE(results[p_near_point->Id()].IsObjectFound());
+    KRATOS_EXPECT_FALSE(results[0].IsObjectFound());
 
     search_wrapper.SearchNearestInRadius(r_array_nodes.begin(), r_array_nodes.end(), 0.6, results);
 
     KRATOS_EXPECT_EQ(results.NumberOfSearchResults(), 1);
-    KRATOS_EXPECT_TRUE(results[p_near_point->Id()].IsObjectFound());
-    KRATOS_EXPECT_EQ(results[p_near_point->Id()].NumberOfGlobalResults(), 1);
+    KRATOS_EXPECT_TRUE(results[0].IsObjectFound());
+    KRATOS_EXPECT_EQ(results[0].NumberOfGlobalResults(), 1);
 
     // Distances
-    auto distances = results[p_near_point->Id()].GetDistances();
+    auto distances = results[0].GetDistances();
     KRATOS_EXPECT_NEAR(distances[0], (cube_z - 0.08 - epsilon), tolerance);
 
     // Compute indices
-    auto indices = results[p_near_point->Id()].GetResultIndices();
+    auto indices = results[0].GetResultIndices();
     const std::size_t id = indices[0];
     KRATOS_EXPECT_EQ(id, 4);
 }
@@ -412,7 +412,7 @@ void TestTreeSearchNearest()
     constexpr double tolerance = 1e-6;
 
     Model current_model;
-    
+
     // Cube coordinates
     const double cube_z = 0.3;
 
@@ -434,15 +434,15 @@ void TestTreeSearchNearest()
     search_wrapper.SearchNearest(r_array_nodes.begin(), r_array_nodes.end(), results);
 
     KRATOS_EXPECT_EQ(results.NumberOfSearchResults(), 1);
-    KRATOS_EXPECT_TRUE(results[p_near_point->Id()].IsObjectFound());
-    KRATOS_EXPECT_EQ(results[p_near_point->Id()].NumberOfGlobalResults(), 1);
+    KRATOS_EXPECT_TRUE(results[0].IsObjectFound());
+    KRATOS_EXPECT_EQ(results[0].NumberOfGlobalResults(), 1);
 
     // Distances
-    auto distances = results[p_near_point->Id()].GetDistances();
+    auto distances = results[0].GetDistances();
     KRATOS_EXPECT_NEAR(distances[0], (cube_z - 0.08 - epsilon), tolerance);
 
     // Compute indices
-    auto indices = results[p_near_point->Id()].GetResultIndices();
+    auto indices = results[0].GetResultIndices();
     const std::size_t id = indices[0];
     KRATOS_EXPECT_EQ(id, 4);
 }
@@ -501,7 +501,7 @@ void TestTreeSearchNearestEmpty()
     search_wrapper.SearchNearest(r_array_nodes.begin(), r_array_nodes.end(), results);
 
     KRATOS_EXPECT_EQ(results.NumberOfSearchResults(), 1);
-    KRATOS_EXPECT_FALSE(results[p_point->Id()].IsObjectFound());
+    KRATOS_EXPECT_FALSE(results[0].IsObjectFound());
 }
 
 /** Checks SearchWrapper works for KDTreeElement search nearest

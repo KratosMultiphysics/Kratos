@@ -55,6 +55,9 @@ public:
     /// The index type
     using IndexType = std::size_t;
 
+    /// Defining signed index type
+    using SignedIndexType = std::ptrdiff_t;
+
     /// Spatial search result type
     using SpatialSearchResultType = SpatialSearchResult<TObjectType>;
 
@@ -88,8 +91,9 @@ public:
 
     /**
      * @brief Constructor
+     * @param rDataCommunicator The data communicator
      */
-    SpatialSearchResultContainer();
+    SpatialSearchResultContainer(const DataCommunicator& rDataCommunicator);
 
     /// Destructor.
     virtual ~SpatialSearchResultContainer() = default;
@@ -427,16 +431,19 @@ public:
 
     /**
      * @brief Generate the global pointer communicator
-     * @param rDataCommunicator The data communicator
      */
-    void GenerateGlobalPointerCommunicator(const DataCommunicator& rDataCommunicator);
+    void GenerateGlobalPointerCommunicator();
 
     /**
      * @brief Synchronize the container between partitions
      * @details This method synchronizes the container between partitions
-     * @param rDataCommunicator The data communicator
      */
-    void SynchronizeAll(const DataCommunicator& rDataCommunicator);
+    void SynchronizeAll();
+
+    /**
+     * @brief Enforces a barrier, waiting for other partitions
+     */
+    void Barrier();
 
     /**
      * @brief Applies a user-provided function to the global pointers and return a proxy to the results.
@@ -545,8 +552,18 @@ public:
     ///@{
 
     /**
+     * @brief Accessor for mDataCommunicator.
+     * @details This method returns a reference to the DataCommunicator mDataCommunicator.
+     * @return A reference to the DataCommunicator mDataCommunicator.
+     */
+    const DataCommunicator& GetDataCommunicator()
+    {
+        return mrDataCommunicator;
+    }
+
+    /**
      * @brief Accessor for mLocalResults.
-     * This method returns a reference to the LocalResultsVector mLocalResults.
+     * @details This method returns a reference to the LocalResultsVector mLocalResults.
      * @return A reference to the LocalResultsVector mLocalResults.
      */
     LocalResultsVector& GetLocalResults()
@@ -556,7 +573,7 @@ public:
 
     /**
      * @brief Accessor for mGlobalResults.
-     * This method returns a reference to the GlobalResultsVector mGlobalResults.
+     * @details This method returns a reference to the GlobalResultsVector mGlobalResults.
      * @return A reference to the GlobalResultsVector mGlobalResults.
      */
     GlobalResultsVector& GetGlobalResults()
@@ -566,12 +583,90 @@ public:
 
     /**
      * @brief Accessor for mpGlobalPointerCommunicator.
-     * This method returns the GlobalPointerCommunicatorPointer mpGlobalPointerCommunicator.
+     * @details This method returns the GlobalPointerCommunicatorPointer mpGlobalPointerCommunicator.
      * @return The GlobalPointerCommunicatorPointer mpGlobalPointerCommunicator.
      */
     GlobalPointerCommunicatorPointerType GetGlobalPointerCommunicator()
     {
         return mpGlobalPointerCommunicator;
+    }
+
+    /**
+    * @brief Get the rank for searching.
+    * @return The rank for searching.
+    */
+    int GetRankSearch() const
+    {
+        return mRankSearch;
+    }
+
+    /**
+    * @brief Set the rank for searching.
+    * @param Rank The rank to set.
+    */
+    void SetRankSearch(const int Rank)
+    {
+        mRankSearch = Rank;
+    }
+
+    /**
+    * @brief Retrieve the global index value.
+    * @return The global index value.
+    */
+    IndexType GetGlobalIndex() const
+    {
+        return mGlobalIndex;
+    }
+
+    /**
+    * @brief Update the global index value.
+    * @param Index The global index value to assign.
+    */
+    void SetGlobalIndex(const IndexType GlobalIndex)
+    {
+        // Assign the global index
+        mGlobalIndex = GlobalIndex;
+    }
+
+    /**
+    * @brief Get the local index value.
+    * @return The local index value.
+    */
+    SignedIndexType GetLocalIndex() const
+    {
+        return mLocalIndex;
+    }
+
+    /**
+    * @brief Set the local index value.
+    * @param Index The local index value to set.
+    */
+    void SetLocalIndex(const SignedIndexType LocalIndex)
+    {
+        // Assign index
+        mLocalIndex = LocalIndex;
+    }
+
+    ///@}
+    ///@name Inquiry
+    ///@{
+
+    /**
+     * @brief Check if the point of the search is local.
+     * @return true if the ranks match, false otherwise.
+     */
+    bool IsLocalPoint() const
+    {
+        return mLocalIndex >= 0;
+    }
+
+    /**
+     * @brief Check if the search rank is the same as the rank of the data communicator.
+     * @return true if the ranks match, false otherwise.
+     */
+    bool IsLocalSearch() const
+    {
+        return mRankSearch == mrDataCommunicator.Rank();
     }
 
     ///@}
@@ -592,8 +687,13 @@ private:
     ///@name Member Variables
     ///@{
 
+    const DataCommunicator& mrDataCommunicator;                                 /// The data communicator
     LocalResultsVector mLocalResults;                                           /// Local results
     GlobalResultsVector mGlobalResults;                                         /// Global results
+
+    int mRankSearch = -1;                                                       /// Rank where the search is call
+    SignedIndexType mLocalIndex = -1;                                           /// Some index considered for identification (local)
+    IndexType mGlobalIndex = 0;                                                 /// Some index considered for identification (global)
 
     GlobalPointerCommunicatorPointerType mpGlobalPointerCommunicator = nullptr; /// Global pointer to the communicator
 

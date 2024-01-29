@@ -30,7 +30,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISpatialSearchResultContainerAddResult, 
     const DataCommunicator& r_data_comm = Testing::GetDefaultDataCommunicator();
 
     // Create a test object
-    SpatialSearchResultContainer<GeometricalObject> container;
+    SpatialSearchResultContainer<GeometricalObject> container(r_data_comm);
 
     // Create a test result
     GeometricalObject object = GeometricalObject(r_data_comm.Rank() + 1);
@@ -60,7 +60,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISpatialSearchResultContainerClear, Krat
     const DataCommunicator& r_data_comm = Testing::GetDefaultDataCommunicator();
 
     // Create a test object
-    SpatialSearchResultContainer<GeometricalObject> container;
+    SpatialSearchResultContainer<GeometricalObject> container(r_data_comm);
 
     // Create a test result
     GeometricalObject object = GeometricalObject(r_data_comm.Rank() + 1);
@@ -85,7 +85,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISpatialSearchResultContainerSynchronize
     const DataCommunicator& r_data_comm = Testing::GetDefaultDataCommunicator();
 
     // Create a test object
-    SpatialSearchResultContainer<GeometricalObject> container;
+    SpatialSearchResultContainer<GeometricalObject> container(r_data_comm);
 
     // Create a test result
     GeometricalObject object = GeometricalObject(r_data_comm.Rank() + 1);
@@ -95,7 +95,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISpatialSearchResultContainerSynchronize
     container.AddResult(result);
 
     // Synchronize the container between partitions
-    container.SynchronizeAll(r_data_comm);
+    container.SynchronizeAll();
 
     // Check that the result was added correctly
     auto& r_local_pointers = container.GetLocalResults();
@@ -108,13 +108,132 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISpatialSearchResultContainerSynchronize
     KRATOS_EXPECT_EQ(r_global_pointers.size(), container.NumberOfGlobalResults());
 }
 
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISpatialSearchResultContainerBarrier, KratosMPICoreFastSuite)
+{
+    // The data communicator
+    const DataCommunicator& r_data_comm = Testing::GetDefaultDataCommunicator();
+
+    // MPI data
+    const int world_size = r_data_comm.Size();
+    const int current_rank = r_data_comm.Rank();
+
+    // We will gather on every node the global pointers of the nodes with index from current_rank(+1) to world_size
+    std::vector<int> ranks;
+    ranks.reserve(world_size - 1);
+    for(int i = 1; i < world_size; ++i) {
+        ranks.push_back(i);
+    }
+
+    // Create a test object
+    if (current_rank > 0) {
+        auto& r_partial_data_comm = r_data_comm.GetSubDataCommunicator(ranks, "SubDataComm");
+
+        // Create a test object
+        SpatialSearchResultContainer<GeometricalObject> container(r_partial_data_comm);
+
+        // Create a test result
+        GeometricalObject object = GeometricalObject(1);
+        SpatialSearchResult<GeometricalObject> result(&object);
+
+        // Add the result to the container
+        container.AddResult(result);
+
+        // Synchronize the container between partitions
+        container.SynchronizeAll();
+
+        // Using Barrier
+        container.Barrier();
+
+        // Check that the result was added correctly
+        auto& r_local_pointers = container.GetLocalResults();
+        KRATOS_EXPECT_EQ(r_local_pointers.size(), 1);
+        KRATOS_EXPECT_EQ(r_local_pointers.size(), container.NumberOfLocalResults());
+
+        // Check global pointers
+        auto& r_global_pointers = container.GetGlobalResults();
+        KRATOS_EXPECT_EQ(static_cast<int>(r_global_pointers.size()), r_partial_data_comm.Size());
+        KRATOS_EXPECT_EQ(r_global_pointers.size(), container.NumberOfGlobalResults());
+    }
+}
+
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISpatialSearchResultContainerSynchronizeAllPartialPartitions, KratosMPICoreFastSuite)
+{
+    // The data communicator
+    const DataCommunicator& r_data_comm = Testing::GetDefaultDataCommunicator();
+
+    // MPI data
+    const int rank = r_data_comm.Rank();
+    const int size = r_data_comm.Size();
+    if (rank == 0) {
+        // Sub data communicator
+        std::vector<int> rank_vector(1, 0);
+        const auto& r_sub_data_communicator = r_data_comm.GetSubDataCommunicator(rank_vector, "sub1");
+
+        // Create a test object
+        SpatialSearchResultContainer<GeometricalObject> container(r_sub_data_communicator);
+
+        // Create a test result
+        GeometricalObject object = GeometricalObject(rank + 1);
+        SpatialSearchResult<GeometricalObject> result(&object);
+
+        // Add the result to the container
+        container.AddResult(result);
+
+        // Synchronize the container between partitions
+        container.SynchronizeAll();
+
+        // Check that the result was added correctly
+        auto& r_local_pointers = container.GetLocalResults();
+        KRATOS_EXPECT_EQ(r_local_pointers.size(), 1);
+        KRATOS_EXPECT_EQ(r_local_pointers.size(), container.NumberOfLocalResults());
+
+        // Check global pointers
+        auto& r_global_pointers = container.GetGlobalResults();
+        KRATOS_EXPECT_EQ(static_cast<int>(r_global_pointers.size()), 1);
+        KRATOS_EXPECT_EQ(r_global_pointers.size(), container.NumberOfGlobalResults());
+    } else {
+        // Sub data communicator
+        std::vector<int> rank_vector(size - 1, 0);
+        int value = 1;
+        for (int& i : rank_vector) {
+            i = value;
+            ++value;
+        }
+        const auto& r_sub_data_communicator = r_data_comm.GetSubDataCommunicator(rank_vector, "sub2");
+
+        // Create a test object
+        SpatialSearchResultContainer<GeometricalObject> container(r_sub_data_communicator);
+
+        // Create a test result
+        GeometricalObject object = GeometricalObject(rank + 1);
+        SpatialSearchResult<GeometricalObject> result(&object);
+
+        // Add the result to the container
+        container.AddResult(result);
+
+        // Synchronize the container between partitions
+        container.SynchronizeAll();
+
+        // Check that the result was added correctly
+        auto& r_local_pointers = container.GetLocalResults();
+        KRATOS_EXPECT_EQ(r_local_pointers.size(), 1);
+        KRATOS_EXPECT_EQ(r_local_pointers.size(), container.NumberOfLocalResults());
+
+        // Check global pointers
+        auto& r_global_pointers = container.GetGlobalResults();
+        KRATOS_EXPECT_EQ(static_cast<int>(r_global_pointers.size()), size - 1);
+        KRATOS_EXPECT_EQ(static_cast<int>(r_global_pointers.size()), r_sub_data_communicator.Size());
+        KRATOS_EXPECT_EQ(r_global_pointers.size(), container.NumberOfGlobalResults());
+    }
+}
+
 KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISpatialSearchResultContainerGetResultShapeFunctions, KratosMPICoreFastSuite)
 {
     // The data communicator
     const DataCommunicator& r_data_comm = Testing::GetDefaultDataCommunicator();
 
     // Create a test object
-    SpatialSearchResultContainer<GeometricalObject> container;
+    SpatialSearchResultContainer<GeometricalObject> container(r_data_comm);
 
     // Generate a geometry
     auto p_node1 = Kratos::make_intrusive<Node>(1, 0.0, 0.0, 0.0);
@@ -129,7 +248,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISpatialSearchResultContainerGetResultSh
     container.AddResult(result);
 
     // Synchronize the container between partitions
-    container.SynchronizeAll(r_data_comm);
+    container.SynchronizeAll();
 
     // Compute shape functions
     Point point = Point(0.5, 0.0, 0.0);
@@ -163,7 +282,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISpatialSearchResultContainerGetResultIs
     const DataCommunicator& r_data_comm = Testing::GetDefaultDataCommunicator();
 
     // Create a test object
-    SpatialSearchResultContainer<GeometricalObject> container;
+    SpatialSearchResultContainer<GeometricalObject> container(r_data_comm);
 
     // Create a test result
     GeometricalObject object = GeometricalObject(r_data_comm.Rank() + 1);
@@ -173,7 +292,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISpatialSearchResultContainerGetResultIs
     container.AddResult(result);
 
     // Synchronize the container between partitions
-    container.SynchronizeAll(r_data_comm);
+    container.SynchronizeAll();
 
     // Compute is local
     auto is_local = container.GetResultIsLocal();
@@ -204,7 +323,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISpatialSearchResultContainerGetResultIs
     const DataCommunicator& r_data_comm = Testing::GetDefaultDataCommunicator();
 
     // Create a test object
-    SpatialSearchResultContainer<GeometricalObject> container;
+    SpatialSearchResultContainer<GeometricalObject> container(r_data_comm);
 
     // Create a test result
     GeometricalObject object = GeometricalObject(r_data_comm.Rank() + 1);
@@ -214,7 +333,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISpatialSearchResultContainerGetResultIs
     container.AddResult(result);
 
     // Synchronize the container between partitions
-    container.SynchronizeAll(r_data_comm);
+    container.SynchronizeAll();
 
     // Compute is active
     auto is_active = container.GetResultIsActive();
@@ -244,7 +363,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISpatialSearchResultContainerGetResultIn
     const DataCommunicator& r_data_comm = Testing::GetDefaultDataCommunicator();
 
     // Create a test object
-    SpatialSearchResultContainer<GeometricalObject> container;
+    SpatialSearchResultContainer<GeometricalObject> container(r_data_comm);
 
     // Create a test result
     GeometricalObject object = GeometricalObject(r_data_comm.Rank() + 1);
@@ -254,7 +373,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISpatialSearchResultContainerGetResultIn
     container.AddResult(result);
 
     // Synchronize the container between partitions
-    container.SynchronizeAll(r_data_comm);
+    container.SynchronizeAll();
 
     // Compute indices
     auto indices = container.GetResultIndices();
@@ -272,7 +391,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISpatialSearchResultContainerGetResultCo
     const DataCommunicator& r_data_comm = Testing::GetDefaultDataCommunicator();
 
     // Create a test object
-    SpatialSearchResultContainer<GeometricalObject> container;
+    SpatialSearchResultContainer<GeometricalObject> container(r_data_comm);
 
     // Generate a geometry
     auto p_node1 = Kratos::make_intrusive<Node>(1, 0.0, 0.0, 0.0);
@@ -287,7 +406,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISpatialSearchResultContainerGetResultCo
     container.AddResult(result);
 
     // Synchronize the container between partitions
-    container.SynchronizeAll(r_data_comm);
+    container.SynchronizeAll();
 
     // Compute shape functions
     auto coordinates = container.GetResultCoordinates();
@@ -309,7 +428,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISpatialSearchResultContainerRemoveResul
     const int world_size = r_data_comm.Size();
 
     // Create a test object
-    SpatialSearchResultContainer<GeometricalObject> container;
+    SpatialSearchResultContainer<GeometricalObject> container(r_data_comm);
 
     // Create a test result
     GeometricalObject object_1 = GeometricalObject(3 * rank + 1);
@@ -326,7 +445,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISpatialSearchResultContainerRemoveResul
     KRATOS_EXPECT_EQ(container.NumberOfLocalResults(), 3);
 
     // Synchronize the container between partitions
-    container.SynchronizeAll(r_data_comm);
+    container.SynchronizeAll();
 
     // Check global pointers
     KRATOS_EXPECT_EQ(container.NumberOfGlobalResults(), static_cast<std::size_t>(3 * world_size));

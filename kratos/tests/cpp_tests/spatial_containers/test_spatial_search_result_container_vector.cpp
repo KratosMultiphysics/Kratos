@@ -31,7 +31,8 @@ KRATOS_TEST_CASE_IN_SUITE(SpatialSearchResultContainerVectorInitializeResult, Kr
 
     // Initialize result
     const std::size_t index = 0;
-    container_vector.InitializeResult(index);
+    DataCommunicator data_communicator;
+    container_vector.InitializeResult(data_communicator);
 
     // Check that the result was added correctly
     KRATOS_EXPECT_TRUE(container_vector.HasResult(index));
@@ -45,8 +46,10 @@ KRATOS_TEST_CASE_IN_SUITE(SpatialSearchResultContainerVectorInitializeResults, K
     SpatialSearchResultContainerVector<GeometricalObject> container_vector;
 
     // Initialize result
+    DataCommunicator data_communicator;
     const std::vector<std::size_t> indexes{0,1,2,3,4,5,6,7,8,9};
-    container_vector.InitializeResults(indexes);
+    const std::vector<const DataCommunicator*> data_communicators(indexes.size(), &data_communicator);
+    container_vector.InitializeResults(data_communicators);
 
     // Check that the result was added correctly
     for (auto index : indexes) {
@@ -63,7 +66,8 @@ KRATOS_TEST_CASE_IN_SUITE(SpatialSearchResultContainerVectorClear, KratosCoreFas
 
     // Initialize result
     const std::size_t index = 0;
-    container_vector.InitializeResult(index);
+    DataCommunicator data_communicator;
+    container_vector.InitializeResult(data_communicator);
 
     // Check that the result was added correctly
     KRATOS_EXPECT_TRUE(container_vector.HasResult(index));
@@ -78,13 +82,61 @@ KRATOS_TEST_CASE_IN_SUITE(SpatialSearchResultContainerVectorOperators, KratosCor
 
     // Initialize result
     const std::size_t index = 0;
-    container_vector.InitializeResult(index);
+    DataCommunicator data_communicator;
+    container_vector.InitializeResult(data_communicator);
 
     // Check that the result was added correctly
     auto& r_result = container_vector[index];
     auto& r_local_pointers = r_result.GetLocalResults();
     KRATOS_EXPECT_EQ(r_local_pointers.size(), 0);
     KRATOS_EXPECT_EQ(r_local_pointers.size(), r_result.NumberOfLocalResults());
+}
+
+KRATOS_TEST_CASE_IN_SUITE(SpatialSearchResultContainerVectorSynchronizeAll, KratosCoreFastSuite)
+{
+    // Create a test object
+    SpatialSearchResultContainerVector<GeometricalObject> container_vector;
+
+    // Initialize result
+    DataCommunicator data_communicator;
+    const std::vector<std::size_t> indexes{0,1};
+    const std::vector<const DataCommunicator*> data_communicators(indexes.size(), &data_communicator);
+    container_vector.InitializeResults(data_communicators);
+
+    // Container 1
+    auto& r_container_1 = container_vector[0];
+
+    // Create a test result
+    GeometricalObject object_1 = GeometricalObject(1);
+    SpatialSearchResult<GeometricalObject> result_1(&object_1);
+    result_1.SetDistance(0.5);
+    GeometricalObject object_2 = GeometricalObject(2);
+    SpatialSearchResult<GeometricalObject> result_2(&object_2);
+    result_2.SetDistance(0.25);
+
+    // Add the result to the container
+    r_container_1.AddResult(result_1);
+    r_container_1.AddResult(result_2);
+
+    // Container 2
+    auto& r_container_2 = container_vector[1];
+
+    // Create a test result
+    GeometricalObject object_3 = GeometricalObject(3);
+    SpatialSearchResult<GeometricalObject> result_3(&object_3);
+    result_3.SetDistance(0.5);
+
+    // Add the result to the container
+    r_container_2.AddResult(result_3);
+
+    // SynchronizeAll
+    container_vector.SynchronizeAll(data_communicator);
+
+    // Check that the results were added correctly
+    KRATOS_EXPECT_EQ(r_container_1.NumberOfLocalResults(), 2);
+    KRATOS_EXPECT_EQ(r_container_1.NumberOfGlobalResults(), 2);
+    KRATOS_EXPECT_EQ(r_container_2.NumberOfLocalResults(), 1);
+    KRATOS_EXPECT_EQ(r_container_2.NumberOfGlobalResults(), 1);
 }
 
 }  // namespace Kratos::Testing
