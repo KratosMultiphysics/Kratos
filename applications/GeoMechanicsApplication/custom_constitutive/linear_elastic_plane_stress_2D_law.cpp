@@ -54,7 +54,7 @@ void GeoLinearElasticPlaneStress2DLaw::CalculateElasticMatrix(Matrix& C, Constit
     const double E  = r_material_properties[YOUNG_MODULUS];
     const double NU = r_material_properties[POISSON_RATIO];
 
-    this->CheckClearElasticMatrix(C);
+    C = ZeroMatrix(GetStrainSize(), GetStrainSize());
 
     const double c1 = E / (1.0 - NU * NU);
     const double c2 = c1 * NU;
