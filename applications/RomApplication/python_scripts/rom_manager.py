@@ -122,7 +122,7 @@ class RomManager(object):
             self.__LaunchTrainNN()
 
 
-    def TestNN(self):
+    def TestNeuralNetwork(self):
         self.__LaunchTestNN()
 
 
