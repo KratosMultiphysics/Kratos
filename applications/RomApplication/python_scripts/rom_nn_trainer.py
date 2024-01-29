@@ -16,45 +16,8 @@ class RomNeuralNetworkTrainer(object):
     def __init__(self, general_rom_manager_parameters):
 
         self.general_rom_manager_parameters = general_rom_manager_parameters
-        self.nn_parameters = self._SetNNParameters()
-
-    def _SetNeuralNetworkParameters(self):
-        defaults = self._GetDefaultNNParameters()
-
-        nn_params = self.general_rom_manager_parameters["NN"]
-
-        keys_to_copy = [
-             "saved_models_root_path"
-        ]
-
-        keys_to_copy_train = [
-             "modes",
-             "layers_size",
-             "batch_size",
-             "lr_strategy",
-             "epochs",
-             "database"
-        ]
-
-        keys_to_copy_online = [
-             "model_name"
-        ]
-
-        for key in keys_to_copy:
-            if key in nn_params.keys():
-                defaults[key] = nn_params[key]
-
-        if "training" in nn_params.keys():
-            for key in keys_to_copy_train:
-                if key in nn_params["training"].keys():
-                    defaults["training"][key] = nn_params["training"][key]
-
-        if "online" in nn_params.keys():
-            for key in keys_to_copy_online:
-                if key in nn_params["online"].keys():
-                    defaults["online"][key] = nn_params["online"][key]
-
-        return defaults
+        self.nn_parameters = self.general_rom_manager_parameters["neural_network"]
+        self.nn_parameters.RecursivelyValidateAndAssignDefaults(self._GetDefaultNeuralNetworkParameters())
     
     @classmethod
     def _GetDefaultNeuralNetworkParameters(self):
@@ -128,7 +91,7 @@ class RomNeuralNetworkTrainer(object):
 
         return S_val, Q_inf_val, Q_sup_val, phisig_inf, phisig_sup
     
-    def SelectScheduler(self, strategy_name, base_lr, additional_params):
+    def _SelectScheduler(self, strategy_name, base_lr, additional_params):
 
         def lr_const_scheduler(epoch, lr):
             new_lr= base_lr
@@ -160,7 +123,7 @@ class RomNeuralNetworkTrainer(object):
         
         return schedulers_dict[strategy_name]
     
-    def DefineNetwork(self, n_inf, n_sup, layers_size):
+    def _DefineNetwork(self, n_inf, n_sup, layers_size):
         input_layer=layers.Input((n_inf,), dtype=tf.float64)
         layer_out=input_layer
         for layer_size in layers_size:
@@ -191,7 +154,7 @@ class RomNeuralNetworkTrainer(object):
         database_settings = nn_training_parameters['database']
         Q_inf_train, Q_inf_val, Q_sup_train, Q_sup_val, phisig_norm_matrix, rescaling_factor = self._GetTrainingData(n_inf, n_sup, database_settings)
 
-        network = self.define_network(n_inf, n_sup, layers_size)
+        network = self._DefineNetwork(n_inf, n_sup, layers_size)
 
         def scaled_phinorm_mse_loss(y_true, y_pred):
             y_diff=y_true-y_pred
@@ -202,7 +165,7 @@ class RomNeuralNetworkTrainer(object):
         network.compile(AdamW(epsilon=1e-17), loss=scaled_phinorm_mse_loss, run_eagerly=False)
         network.summary()
 
-        callbacks = [LearningRateScheduler(self.select_scheduler(lr_scheme, base_lr, lr_additional_params), verbose=0)]
+        callbacks = [LearningRateScheduler(self._SelectScheduler(lr_scheme, base_lr, lr_additional_params), verbose=0)]
 
         history = network.fit(Q_inf_train, Q_sup_train, batch_size=batch_size, epochs=epochs, validation_data=(Q_inf_val,Q_sup_val), shuffle=True, validation_batch_size=1, callbacks=callbacks)
         
@@ -234,7 +197,7 @@ class RomNeuralNetworkTrainer(object):
 
         return model_name
 
-    def evaluate_network(self, model_name):
+    def EvaluateNetwork(self, model_name):
 
         model_path=self.nn_parameters['saved_models_root_path'].GetString()+model_name+'/'
 
@@ -245,7 +208,7 @@ class RomNeuralNetworkTrainer(object):
         n_sup = model_properties['modes'][1]
         layers_size = model_properties['layers_size']
                                                   
-        network = self.define_network(n_inf, n_sup, layers_size)
+        network = self._DefineNetwork(n_inf, n_sup, layers_size)
         network.summary()
 
         network.load_weights(model_path+'model_weights.h5')

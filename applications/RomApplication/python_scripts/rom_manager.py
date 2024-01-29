@@ -2,7 +2,7 @@ import KratosMultiphysics
 from KratosMultiphysics.RomApplication.rom_testing_utilities import SetUpSimulationInstance
 from KratosMultiphysics.RomApplication.calculate_rom_basis_output_process import CalculateRomBasisOutputProcess
 from KratosMultiphysics.RomApplication.randomized_singular_value_decomposition import RandomizedSingularValueDecomposition
-from KratosMultiphysics.RomApplication.rom_nn_trainer import Rom_NN_trainer
+from KratosMultiphysics.RomApplication.rom_nn_trainer import RomNeuralNetworkTrainer
 import numpy as np
 import importlib
 import json
@@ -119,11 +119,11 @@ class RomManager(object):
             fom_snapshots = self.__LaunchTrainROM(mu_training)
             self._StoreSnapshotsMatrix('fom_snapshots', fom_snapshots)
         if any(item == "TrainNN" for item in fit_nn_stages):
-            self.__LaunchTrainNN()
+            self.__LaunchTrainNeuralNetwork()
 
 
     def TestNeuralNetwork(self):
-        self.__LaunchTestNN()
+        self.__LaunchTestNeuralNetwork()
 
 
     def Test(self, mu_test=[None]):
@@ -532,15 +532,15 @@ class RomManager(object):
             simulation.Run()
             self.QoI_Run_HROM.append(simulation.GetFinalData())
 
-    def __LaunchTrainNN(self):
-        rom_nn_trainer = Rom_NN_trainer(self.general_rom_manager_parameters)
+    def __LaunchTrainNeuralNetwork(self):
+        rom_nn_trainer = RomNeuralNetworkTrainer(self.general_rom_manager_parameters)
         model_name = rom_nn_trainer.TrainNetwork()
         rom_nn_trainer.EvaluateNetwork(model_name)
 
-    def __LaunchTestNN(self):
-        rom_nn_trainer = Rom_NN_trainer(self.general_rom_manager_parameters)
-        model_name=self.general_rom_manager_parameters["NN"]["online"]["model_name"].GetString()
-        rom_nn_trainer.evaluate_network(model_name)
+    def __LaunchTestNeuralNetwork(self):
+        rom_nn_trainer = RomNeuralNetworkTrainer(self.general_rom_manager_parameters)
+        model_name=self.general_rom_manager_parameters["neural_network"]["online"]["model_name"].GetString()
+        rom_nn_trainer.EvaluateNetwork(model_name)
 
     def _AddHromParametersToRomParameters(self,f):
         f["hrom_settings"]["element_selection_type"] = self.hrom_training_parameters["element_selection_type"].GetString()
