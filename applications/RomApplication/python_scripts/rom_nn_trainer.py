@@ -1,5 +1,5 @@
 import numpy as np
-import os
+import pathlib
 import json
 
 import tensorflow as tf
@@ -38,13 +38,23 @@ class RomNeuralNetworkTrainer(object):
                     "validation_set": "rom_data/SnapshotsMatrices/fom_snapshots_val.npy",
                     "phi_matrix": "rom_data/RightBasisMatrix.npy",
                     "sigma_vector": "rom_data/SingularValuesVector.npy"
-                }                                     
+                },
+                "use_automatic_name": false,
+                "custom_name": "test_neural_network"                         
             },
             "online":{
-                "model_name": ""
+                "model_name": "test_neural_network"
             }
          }""")
         return nn_training_parameters
+    
+    def _CheckNumberOfModes(self,n_inf,n_sup,n_max):
+        if n_inf >= n_max:
+            err_msg = f'Specified number of inferior modes ({n_inf}) is higher than or equal to the available ones from the Phi matrix ({n_max}).'
+            raise Exception(err_msg)
+        elif n_sup > n_max:
+            err_msg = f'Specified number of superior modes ({n_sup}) is higher than the available ones from the Phi matrix ({n_max}).'
+            raise Exception(err_msg)
 
     def _GetTrainingData(self, n_inf, n_sup, database_settings):
         
@@ -53,6 +63,8 @@ class RomNeuralNetworkTrainer(object):
 
         phi = np.load(database_settings['phi_matrix'].GetString())
         sigma_vec = np.load(database_settings['sigma_vector'].GetString())/np.sqrt(S_train.shape[1])
+
+        self._CheckNumberOfModes(n_inf,n_sup,sigma_vec.shape[0])
 
         phisig_inv_inf = np.linalg.inv(np.diag(sigma_vec[:n_inf]))@phi[:,:n_inf].T
         phisig_inv_sup = np.linalg.inv(np.diag(sigma_vec[n_inf:n_sup]))@phi[:,n_inf:n_sup].T
@@ -146,10 +158,13 @@ class RomNeuralNetworkTrainer(object):
         lr_additional_params = nn_training_parameters['lr_strategy']['additional_params'].GetVector()
         epochs = nn_training_parameters['epochs'].GetInt()
         
-        model_name='NN_model_'+str(n_inf)+'.'+str(n_sup)+'_'+str(layers_size)+'_lr'+lr_scheme+'.'+str(base_lr)+'_batchsize'+str(batch_size)
-        model_path=self.nn_parameters['saved_models_root_path'].GetString()+model_name+'/'
+        if nn_training_parameters['use_automatic_name'].GetBool():
+            model_name='NN_model_'+str(n_inf)+'.'+str(n_sup)+'_'+str(layers_size)+'_lr'+lr_scheme+'.'+str(base_lr)+'_batchsize'+str(batch_size)
+        else:
+            model_name=nn_training_parameters['custom_name'].GetString()
 
-        os.makedirs(model_path, exist_ok=False)
+        model_path=pathlib.Path(self.nn_parameters['saved_models_root_path'].GetString()+model_name)
+        model_path.mkdir(exist_ok=False)
 
         database_settings = nn_training_parameters['database']
         Q_inf_train, Q_inf_val, Q_sup_train, Q_sup_val, phisig_norm_matrix, rescaling_factor = self._GetTrainingData(n_inf, n_sup, database_settings)
@@ -188,20 +203,20 @@ class RomNeuralNetworkTrainer(object):
             }
         }
 
-        with open(model_path+"train_config.json", "w") as ae_config_json_file:
+        with open(str(model_path)+"/train_config.json", "w") as ae_config_json_file:
             json.dump(training_parameters_dict, ae_config_json_file)
 
-        network.save_weights(model_path+"model_weights.h5")
-        with open(model_path+"history.json", "w") as history_file:
+        network.save_weights(str(model_path)+"/model_weights.h5")
+        with open(str(model_path)+"/history.json", "w") as history_file:
             json.dump(str(history.history), history_file)
 
         return model_name
 
     def EvaluateNetwork(self, model_name):
 
-        model_path=self.nn_parameters['saved_models_root_path'].GetString()+model_name+'/'
+        model_path=pathlib.Path(self.nn_parameters['saved_models_root_path'].GetString()+model_name)
 
-        with open(model_path+'train_config.json', "r") as config_file:
+        with open(str(model_path)+'/train_config.json', "r") as config_file:
             model_properties = json.load(config_file)
         
         n_inf = model_properties['modes'][0]
@@ -211,7 +226,7 @@ class RomNeuralNetworkTrainer(object):
         network = self._DefineNetwork(n_inf, n_sup, layers_size)
         network.summary()
 
-        network.load_weights(model_path+'model_weights.h5')
+        network.load_weights(str(model_path)+'/model_weights.h5')
 
         S_val, Q_inf_val, Q_sup_val, phisig_inf, phisig_sup = self._GetEvaluationData(model_properties)
 
