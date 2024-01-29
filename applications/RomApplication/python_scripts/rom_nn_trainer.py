@@ -16,7 +16,7 @@ class RomNeuralNetworkTrainer(object):
     def __init__(self, general_rom_manager_parameters):
 
         self.general_rom_manager_parameters = general_rom_manager_parameters
-        self.nn_parameters = self.general_rom_manager_parameters["neural_network"]
+        self.nn_parameters = self.general_rom_manager_parameters["ROM"]["ann_enhanced_settings"]
         self.nn_parameters.RecursivelyValidateAndAssignDefaults(self._GetDefaultNeuralNetworkParameters())
     
     @classmethod
