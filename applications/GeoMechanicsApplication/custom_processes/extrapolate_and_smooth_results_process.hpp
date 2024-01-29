@@ -62,8 +62,10 @@ namespace Kratos {
         ///@{
 
         /**
-         * \brief  Initializes the set parameter field process. Checks if the value that needs to be changed is a UMAT_PARAMETERS(so Vector) or double.
+         * \brief  Initializes the ExtrapolateAndSmoothProcess, prepares nodal zero vectors for needed variables
          */
+        void ExecuteInitializeSolutionStep() override;
+
         void ExecuteBeforeOutputStep() override;
 
         ///@}
