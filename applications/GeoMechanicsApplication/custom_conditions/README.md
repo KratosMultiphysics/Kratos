@@ -60,13 +60,13 @@ $$ E = \frac{L_v}{\lambda \rho_w} $$
 
 where
 
-$L_v$ = latent heat flux
-$\lambda$ = latent heat of vaporization $\mathrm{[2.45\;MJ/kg]}$
-$\rho_w$  = density of water $\mathrm{[kg/m^3]}$
+- $L_v$ = latent heat flux
+- $\lambda$ = latent heat of vaporization $\mathrm{[2.45\;MJ/kg]}$
+- $\rho_w$  = density of water $\mathrm{[kg/m^3]}$
 
 The latent heat flux is:
 
-$$ L_v  = \frac{e'_{at} \left(R_n + Q_f - Q_s \right) + C_a \rho_a \left(e_{at}^s - e_{at}^a\right) / r_a}{e'_{at} + \gamma (1+r_{s} / r_a)} $$
+$$ L_v  = \frac{e^\prime_{at} \left(R_n + Q_f - Q_s \right) + C_a \rho_a \left(e_{at}^s - e_{at}^a\right) / r_a}{e^\prime_{at} + \gamma (1+r_{s} / r_a)} $$
 
 where
 
@@ -77,12 +77,12 @@ where
 - $C_a$ = specific heat of moist air $\mathrm{[kJ/kgC]}$
 - $\rho_a$ = air density $\mathrm{[kg/m^3]}$ 
 - $e^s$ = saturated vapour pressure $\mathrm{[hPa]}$ 
-- $e'$ = slope of the saturation vapor curve $\mathrm{[hPa/K]}$
+- $e^\prime$ = slope of the saturation vapor curve $\mathrm{[hPa/K]}$
 - $e^a$ = actual vapour pressure $\mathrm{[hPa]}$
 
 $$ e^s = 6.11 \exp \left( \frac{17.27\; T}{T+237.3} \right) $$
 
-$$ e'=  \frac{4098 \; e^s}{\left(T + 237.3\right)^2} $$   
+$$ e^\prime=  \frac{4098 \space e^s}{\left(T + 237.3\right)^2} $$   
 
 $$ e^a = \frac{\mathrm{RH}}{100} e^s $$
 
@@ -105,7 +105,7 @@ $$ h_{rl} \frac{T_{rl}^1 - T_{rl}^0}{\Delta t} = \frac{T_{ss}^0-T_{rl}^1}{r_g} +
 
 Then the temperature in the roughness layer $T_{rl}$ reads as,
 
-$$ T_{rl}^1 = \frac{r_g \; h_{rl} \; T_{rl}^0 + \Delta t \; T_{ss}^0 + r_g \; \Delta t \; u \;f_h \;d_d^2 \; T_{at}^1}{r_g \; h_{rl} + \Delta t + r_g \; \Delta t \; u \; f_h \; a_d^2} $$
+$$ T_{rl}^1 = \frac{r_g \space h_{rl} \space T_{rl}^0 + \Delta t \space T_{ss}^0 + r_g \space \Delta t \space u \space f_h \;d_d^2 \space T_{at}^1}{r_g \space h_{rl} + \Delta t + r_g \space \Delta t \space u \space f_h \space a_d^2} $$
 
 where
 
