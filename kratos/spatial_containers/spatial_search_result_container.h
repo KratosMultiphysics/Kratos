@@ -29,6 +29,7 @@ namespace Kratos
 ///@addtogroup KratosCore
 ///@{
 
+///@}
 ///@name Kratos Classes
 ///@{
 
