@@ -19,17 +19,19 @@
 #include "generalized_newmark_scheme.hpp"
 #include "geo_mechanics_application_variables.h"
 
-namespace Kratos {
+namespace Kratos
+{
 
 template <class TSparseSpace, class TDenseSpace>
 class NewmarkQuasistaticPwScheme
-    : public GeneralizedNewmarkScheme<TSparseSpace, TDenseSpace> {
+    : public GeneralizedNewmarkScheme<TSparseSpace, TDenseSpace>
+{
 public:
     KRATOS_CLASS_POINTER_DEFINITION(NewmarkQuasistaticPwScheme);
 
     explicit NewmarkQuasistaticPwScheme(double theta)
         : GeneralizedNewmarkScheme<TSparseSpace, TDenseSpace>(
-              theta, WATER_PRESSURE, DT_WATER_PRESSURE, DT_PRESSURE_COEFFICIENT)
+              {FirstOrderScalarVariable(WATER_PRESSURE, DT_WATER_PRESSURE, DT_PRESSURE_COEFFICIENT)}, theta)
     {
     }
 
