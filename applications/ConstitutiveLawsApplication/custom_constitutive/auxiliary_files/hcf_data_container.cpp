@@ -101,6 +101,7 @@ void HCFDataContainer::CalculateFatigueParameters(const Properties& rMaterialPar
     const double BETAF = r_fatigue_coefficients[4];
     const double AUXR1 = r_fatigue_coefficients[5];
     const double AUXR2 = r_fatigue_coefficients[6];
+    const double c_factor = r_fatigue_coefficients[7];
 
     if (std::abs(rFatigueVariables.ReversionFactor) < 1.0) {
         rFatigueVariables.Sth = Se + (ultimate_stress - Se) * std::pow((0.5 + 0.5 * rFatigueVariables.ReversionFactor), STHR1);
@@ -115,7 +116,7 @@ void HCFDataContainer::CalculateFatigueParameters(const Properties& rMaterialPar
 
     if (MaxStressRD > rFatigueVariables.Sth && MaxStressRD <= ultimate_stress) {
         rFatigueVariables.CyclesToFailure = std::pow(10.0,std::pow(-std::log((MaxStressRD - rFatigueVariables.Sth) / (ultimate_stress - rFatigueVariables.Sth))/rFatigueVariables.Alphat,(1.0/BETAF)));
-        rFatigueVariables.B0 = -(std::log(MaxStressRD / ultimate_stress) / std::pow((std::log10(rFatigueVariables.CyclesToFailure)), square_betaf));
+        rFatigueVariables.B0 = -(std::log(MaxStressRD / ultimate_stress) / std::pow((std::log10(rFatigueVariables.CyclesToFailure)), c_factor * square_betaf));
 
         // if (softening_type == curve_by_points) {
         //     rFatigueVariables.CyclesToFailure = std::pow(rFatigueVariables.CyclesToFailure, std::pow(std::log(rFatigueVariables.MaxStress / yield_stress) / std::log(rFatigueVariables.MaxStress / ultimate_stress), 1.0 / square_betaf));
@@ -245,6 +246,7 @@ void HCFDataContainer::FinalizeSolutionStep(HCFDataContainer::FatigueVariables &
     
     rFatigueVariables.AdvanceStrategyApplied = rCurrentProcessInfo.Has(ADVANCE_STRATEGY_APPLIED) ? rCurrentProcessInfo[ADVANCE_STRATEGY_APPLIED] : false;
     rFatigueVariables.DamageActivation = rCurrentProcessInfo.Has(DAMAGE_ACTIVATION) ? rCurrentProcessInfo[DAMAGE_ACTIVATION] : false;
+    const double c_factor = rMaterialProperties[HIGH_CYCLE_FATIGUE_COEFFICIENTS][7];
 
     if (rFatigueVariables.MaxIndicator && rFatigueVariables.MinIndicator) {
         rFatigueVariables.PreviousReversionFactor = CalculateReversionFactor(rFatigueVariables.PreviousMaxStress, rFatigueVariables.PreviousMinStress);
@@ -266,7 +268,7 @@ void HCFDataContainer::FinalizeSolutionStep(HCFDataContainer::FatigueVariables &
 
         if (threshold - MaxStressRD >= -1 * tolerance) {
             if (MaxStressRD > rFatigueVariables.Sth) {
-                rFatigueVariables.CyclesToFailure = std::pow(rFatigueVariables.CyclesToFailure, std::pow(std::log(MaxStressRD / threshold) / std::log(MaxStressRD / ultimate_stress), 1.0 / (square_betaf)));
+                rFatigueVariables.CyclesToFailure = std::pow(rFatigueVariables.CyclesToFailure, std::pow(std::log(MaxStressRD / threshold) / std::log(MaxStressRD / ultimate_stress), 1.0 / (c_factor * square_betaf)));
             }
         }
 

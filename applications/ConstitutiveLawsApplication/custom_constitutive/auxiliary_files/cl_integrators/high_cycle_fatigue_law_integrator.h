@@ -246,6 +246,7 @@ public:
                                                                 const Variable<double>& rVariable = YIELD_STRESS)
 	{
         const double BETAF = rMaterialParameters[HIGH_CYCLE_FATIGUE_COEFFICIENTS][4];
+        const double c_factor = rMaterialParameters[HIGH_CYCLE_FATIGUE_COEFFICIENTS][7];
         if (GlobalNumberOfCycles > 2){
 
             double ultimate_stress = 0.0;
@@ -272,7 +273,7 @@ public:
             rWohlerStress = (Sth + (ultimate_stress - Sth) * std::exp(-Alphat * (std::pow(std::log10(static_cast<double>(LocalNumberOfCycles)), BETAF)))) / ultimate_stress;
         }
         if (MaxStress > Sth) {
-            rFatigueReductionFactor = std::min(rFatigueReductionFactor, std::exp(-B0 * std::pow(std::log10(static_cast<double>(LocalNumberOfCycles)), (BETAF * BETAF))));
+            rFatigueReductionFactor = std::min(rFatigueReductionFactor, std::exp(-B0 * std::pow(std::log10(static_cast<double>(LocalNumberOfCycles)), c_factor * (BETAF * BETAF))));
             rFatigueReductionFactor = (rFatigueReductionFactor < 0.01) ? 0.01 : rFatigueReductionFactor;
         }
     }
