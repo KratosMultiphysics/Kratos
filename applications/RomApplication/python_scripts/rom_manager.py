@@ -111,7 +111,7 @@ class RomManager(object):
             raise Exception(err_msg)
 
 
-    def FitNN(self, mu_training=[None], mu_validation=[None]):
+    def FitNeuralNetwork(self, mu_training=[None], mu_validation=[None]):
         fit_nn_stages = self.general_rom_manager_parameters["rom_stages_nn_fit"].GetStringArray()
         if any(item == "GenValData" for item in fit_nn_stages):
             self.RunFOM(mu_run=mu_validation, snapshots_matrix_name='fom_snapshots_val')
@@ -491,6 +491,7 @@ class RomManager(object):
         SnapshotsMatrix = np.block(SnapshotsMatrix)
 
         return SnapshotsMatrix
+        
     def __LaunchRunROM(self, mu_run):
         """
         This method should be parallel capable
@@ -533,8 +534,8 @@ class RomManager(object):
 
     def __LaunchTrainNN(self):
         rom_nn_trainer = Rom_NN_trainer(self.general_rom_manager_parameters)
-        model_name = rom_nn_trainer.train_network()
-        rom_nn_trainer.evaluate_network(model_name)
+        model_name = rom_nn_trainer.TrainNetwork()
+        rom_nn_trainer.EvaluateNetwork(model_name)
 
     def __LaunchTestNN(self):
         rom_nn_trainer = Rom_NN_trainer(self.general_rom_manager_parameters)

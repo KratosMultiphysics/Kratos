@@ -11,14 +11,14 @@ from keras.callbacks import LearningRateScheduler
 import KratosMultiphysics
 
 
-class Rom_NN_trainer(object):
+class RomNeuralNetworkTrainer(object):
 
     def __init__(self, general_rom_manager_parameters):
 
         self.general_rom_manager_parameters = general_rom_manager_parameters
         self.nn_parameters = self._SetNNParameters()
 
-    def _SetNNParameters(self):
+    def _SetNeuralNetworkParameters(self):
         defaults = self._GetDefaultNNParameters()
 
         nn_params = self.general_rom_manager_parameters["NN"]
@@ -56,7 +56,8 @@ class Rom_NN_trainer(object):
 
         return defaults
     
-    def _GetDefaultNNParameters(self):
+    @classmethod
+    def _GetDefaultNeuralNetworkParameters(self):
         nn_training_parameters = KratosMultiphysics.Parameters("""{
             "saved_models_root_path": "rom_data/saved_nn_models/",
             "training":{
@@ -127,7 +128,7 @@ class Rom_NN_trainer(object):
 
         return S_val, Q_inf_val, Q_sup_val, phisig_inf, phisig_sup
     
-    def select_scheduler(self, strategy_name, base_lr, additional_params):
+    def SelectScheduler(self, strategy_name, base_lr, additional_params):
 
         def lr_const_scheduler(epoch, lr):
             new_lr= base_lr
@@ -159,7 +160,7 @@ class Rom_NN_trainer(object):
         
         return schedulers_dict[strategy_name]
     
-    def define_network(self, n_inf, n_sup, layers_size):
+    def DefineNetwork(self, n_inf, n_sup, layers_size):
         input_layer=layers.Input((n_inf,), dtype=tf.float64)
         layer_out=input_layer
         for layer_size in layers_size:
@@ -169,7 +170,7 @@ class Rom_NN_trainer(object):
         network=Model(input_layer, output_layer)
         return network
 
-    def train_network(self):
+    def TrainNetwork(self):
 
         nn_training_parameters = self.nn_parameters['training']
         
