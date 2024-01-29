@@ -1,0 +1,141 @@
+# Microclimate Boundary Condition
+A microclimate boundary condition refers to the specific set of environmental factors and conditions that influence the climate within a small, localized area, known as a microclimate. Unlike the broader regional or global climate, microclimates are unique climatic conditions that can vary significantly within a relatively small space.
+
+Microclimate boundary conditions are determined by factors such as:
+
+- Air temperature
+- Solar radiation
+- Humidity
+- Precipitation
+- Wind speed
+
+## Radiation
+The net radiation $R_n$ $\mathrm{[W/m^2]}$ is calculated by:
+
+$$ R_n = R^s + R^{l,ab} - R^{l,em} $$
+
+where
+
+$R^s$ = in-coming short wave radiation $\mathrm{[J / m^2 s]}$
+$R^{l,ab}$ = absorbed long wave radiation  $\mathrm{[J / m^2 s]}$
+$R^{l,em}$ = emitted long wave radiation $\mathrm{[J / m^2 s]}$
+
+The incoming short wave radiation is defined by
+
+$$ R^s = \left(1 - \alpha \right) R_{g} $$
+
+where
+
+$\alpha$ = Albedo cover or vegetation coefficient  $\mathrm{[-]}$\\
+$R_{g}$ = Short wave radiation  $\mathrm{[W / m^2]}$ 
+
+The absorbed long wave radiation is:
+
+$$ R^{l,ab}=  \epsilon \sigma \left( T_{at} +273.15 \right)^4 $$
+
+where
+
+- $\epsilon$ = effective emissivity  $\mathrm{[-]}$
+- $\sigma$ = Stefan Boltzmann's constant  $\mathrm{[5.67 \cdot 10^{-8}\;  W/m^2 K^4]}$
+- $T_{at}$ = atmospheric temperature $\mathrm{[C]}$
+
+And the emitted long wave radiation,
+
+$$ R^{l,em} = \sigma \left( T_{ss} +273.15 \right)^4 $$
+
+where
+
+$T_{ss}$ = land surface temperature $\mathrm{[C]}$
+
+## Surface Heat Storage
+The surface heat storage term $Q_s$ $\mathrm{[W/m^2]}$ is calculated by,
+
+$$ Q_s =  a_1 R_n^1 + a_2 \frac{R_n^1-R_n^0}{\Delta t} + a_3 $$
+
+where $a_1$, $a_2$ and $a_3$ are user defined variables. $R_n^1$ and $R_n^0$ are the net radiations at current and previous times steps, respectively.
+
+
+## Evaporation Flux
+The evaporation flux $E$ $\mathrm{[m/s]}$ is calculated by,
+
+$$ E = \frac{L_v}{\lambda \rho_w} $$
+
+where
+
+$L_v$ = latent heat flux
+$\lambda$ = latent heat of vaporization $\mathrm{[2.45\;MJ/kg]}$
+$\rho_w$  = density of water $\mathrm{[kg/m^3]}$
+
+The latent heat flux is:
+
+$$ L_v  = \frac{e'_{at} \left(R_n + Q_f - Q_s \right) + C_a \rho_a \left(e_{at}^s - e_{at}^a\right) / r_a}{e'_{at} + \gamma (1+r_{s} / r_a)} $$
+
+where
+
+- $r_a$ = atomospheric resistance $\mathrm{[s/m]}$
+- $r_s$ = surface resistance constant $\mathrm{[30 \; s/m]}$ 
+- $\gamma$ = psychometric constant $\mathrm{[k0.067\;kPa/C]}$
+- $Q_f$ = build enviromental radiation $\mathrm{[W/m^2]}$ (user defined parameter)
+- $C_a$ = specific heat of moist air $\mathrm{[kJ/kgC]}$
+- $\rho_a$ = air density $\mathrm{[kg/m^3]}$ 
+- $e^s$ = saturated vapour pressure $\mathrm{[hPa]}$ 
+- $e'$ = slope of the saturation vapor curve $\mathrm{[hPa/K]}$
+- $e^a$ = actual vapour pressure $\mathrm{[hPa]}$
+
+$$ e^s = 6.11 \exp \left( \frac{17.27\; T}{T+237.3} \right) $$
+
+$$ e'=  \frac{4098 \; e^s}{\left(T + 237.3\right)^2} $$   
+
+$$ e^a = \frac{\mathrm{RH}}{100} e^s $$
+
+$\mathrm{RH}$ is the relative humidity which is a user defined parameter.
+
+The atomospheric resistance,
+
+$$ r_a = \frac{1}{0.007+0.0056 u} $$
+
+where $u$ $\mathrm{[m/s]}$ is the wind speed which is a user defined parameter.
+
+## Roughness Layer Temperature
+The uenergy balance equation for the roughness layer reads as,
+
+$$ h_{rl} \frac{\partial T_{rl}}{\partial t} = \frac{T_{ss}-T_{rl}}{r_g} + u f_h a_d^2 \left(T_{at}-T_{rl}\right)  $$
+
+After discritization,
+
+$$ h_{rl} \frac{T_{rl}^1 - T_{rl}^0}{\Delta t} = \frac{T_{ss}^0-T_{rl}^1}{r_g} + u f_h a_d^2 \left(T_{at}^1-T_{rl}^1\right) $$
+
+Then the temperature in the roughness layer $T_{rl}$ reads as,
+
+$$ T_{rl}^1 = \frac{r_g \; h_{rl} \; T_{rl}^0 + \Delta t \; T_{ss}^0 + r_g \; \Delta t \; u \;f_h \;d_d^2 \; T_{at}^1}{r_g \; h_{rl} + \Delta t + r_g \; \Delta t \; u \; f_h \; a_d^2} $$
+
+where
+
+- $f_h$ = surface roughness factor $\mathrm{[-]}$
+- $a_d$ = friction drag coefficient $\mathrm{[-]}$
+- $r_g$ = roughness layer resistance $\mathrm{[s/m]}$
+- $T_{at}$ = atmospheric temperature $\mathrm{[C]}$
+
+The friction drag coefficient $a_d$ is:
+
+$$ a_d = \frac{\kappa}{\ln\left(z_m / z_0\right)} $$
+
+where
+
+- $\kappa$ = friction drag coefficient $\mathrm{[-]}$
+- $z_m$ = measurment height $\mathrm{[10 m]}$
+- $z_0$ = roughness length $\mathrm{[1 m]}$
+
+Surface roughness factor $f_h$ for unstable weather conditions where $T_{rl} \geq T_{at}$
+
+$$ f_h &= 1 - \frac{15 \; r_{i}}{1+75 \; a_d^2 \sqrt{z_m/z_0} \sqrt{|r_{i}|}} $$
+
+and for stable weather conditions where $T_{rl} < T_{at}$
+
+$$ f_h &= \left({1 + {15\; r_{i}}{\sqrt{1+5\;r_{i}}}}\right)^{-1} $$
+
+where $r_i$ $\mathrm{[-]}$ is Richardson bulk modulus and is defines as,
+
+$$ r_{i} = \frac{2 g z_m}{T_{at}+T_{rl}+ 546.3} \frac{T_{at}-T_{rl}}{u^2} $$
+
+$g$ is gravitation constant $\mathrm{[9.81 m/s^2]}$
