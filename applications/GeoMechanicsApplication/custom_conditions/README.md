@@ -16,9 +16,9 @@ $$ R_n = R^s + R^{l,ab} - R^{l,em} $$
 
 where
 
-$R^s$ = in-coming short wave radiation $\mathrm{[J / m^2 s]}$
-$R^{l,ab}$ = absorbed long wave radiation  $\mathrm{[J / m^2 s]}$
-$R^{l,em}$ = emitted long wave radiation $\mathrm{[J / m^2 s]}$
+- $R^s$ = in-coming short wave radiation $\mathrm{[J/m^2s]}$
+- $R^{l,ab}$ = absorbed long wave radiation $\mathrm{[J/m^2s]}$
+- $R^{l,em}$ = emitted long wave radiation $\mathrm{[J/m^2s]}$
 
 The incoming short wave radiation is defined by
 
@@ -26,8 +26,8 @@ $$ R^s = \left(1 - \alpha \right) R_{g} $$
 
 where
 
-$\alpha$ = Albedo cover or vegetation coefficient  $\mathrm{[-]}$\\
-$R_{g}$ = Short wave radiation  $\mathrm{[W / m^2]}$ 
+- $\alpha$ = Albedo cover or vegetation coefficient  $\mathrm{[-]}$
+- $R_{g}$ = Short wave radiation  $\mathrm{[W/m^2]}$ 
 
 The absorbed long wave radiation is:
 
@@ -36,16 +36,14 @@ $$ R^{l,ab}=  \epsilon \sigma \left( T_{at} +273.15 \right)^4 $$
 where
 
 - $\epsilon$ = effective emissivity  $\mathrm{[-]}$
-- $\sigma$ = Stefan Boltzmann's constant  $\mathrm{[5.67 \cdot 10^{-8}\;  W/m^2 K^4]}$
+- $\sigma$ = Stefan Boltzmann's constant  $\mathrm{[5.67 \cdot 10^{-8}  W/m^2 K^4]}$
 - $T_{at}$ = atmospheric temperature $\mathrm{[C]}$
 
 And the emitted long wave radiation,
 
 $$ R^{l,em} = \sigma \left( T_{ss} +273.15 \right)^4 $$
 
-where
-
-$T_{ss}$ = land surface temperature $\mathrm{[C]}$
+where $T_{ss}$ $\mathrm{[C]}$ is land surface temperature.
 
 ## Surface Heat Storage
 The surface heat storage term $Q_s$ $\mathrm{[W/m^2]}$ is calculated by,
@@ -128,11 +126,11 @@ where
 
 Surface roughness factor $f_h$ for unstable weather conditions where $T_{rl} \geq T_{at}$
 
-$$ f_h &= 1 - \frac{15 \; r_{i}}{1+75 \; a_d^2 \sqrt{z_m/z_0} \sqrt{|r_{i}|}} $$
+$$ f_h = 1 - \frac{15 \; r_{i}}{1+75 \; a_d^2 \sqrt{z_m/z_0} \sqrt{|r_{i}|}} $$
 
 and for stable weather conditions where $T_{rl} < T_{at}$
 
-$$ f_h &= \left({1 + {15\; r_{i}}{\sqrt{1+5\;r_{i}}}}\right)^{-1} $$
+$$ f_h = \left({1 + {15\; r_{i}}{\sqrt{1+5\;r_{i}}}}\right)^{-1} $$
 
 where $r_i$ $\mathrm{[-]}$ is Richardson bulk modulus and is defines as,
 
