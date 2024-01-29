@@ -6,6 +6,13 @@
         "title": "sidebar"
     },
     "custom_entries": [
-        "General"
+        "General",
+        "Algorithms",
+        "Responses",
+        "Controls",
+        "Filtering",
+        "Model_Part_Controllers",
+        "Processes",
+        "Examples"
     ]
 }
