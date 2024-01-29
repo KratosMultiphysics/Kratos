@@ -61,10 +61,10 @@ KRATOS_TEST_CASE_IN_SUITE(ComputePenaltyFrictionlessActiveSet, KratosContactStru
     const auto is_converged = ActiveSetUtilities::ComputePenaltyFrictionlessActiveSet(r_model_part);
 
     // Check flags
-    KRATOS_CHECK_EQUAL(is_converged, 2);
-    KRATOS_CHECK(p_node1->Is(ACTIVE));
-    KRATOS_CHECK(p_node2->IsNot(ACTIVE));
-    KRATOS_CHECK(p_node3->IsNot(ACTIVE));
+    KRATOS_EXPECT_EQ(is_converged, 2);
+    KRATOS_EXPECT_TRUE(p_node1->Is(ACTIVE));
+    KRATOS_EXPECT_TRUE(p_node2->IsNot(ACTIVE));
+    KRATOS_EXPECT_TRUE(p_node3->IsNot(ACTIVE));
 }
 
 /**
@@ -113,14 +113,14 @@ KRATOS_TEST_CASE_IN_SUITE(ComputePenaltyFrictionalActiveSet, KratosContactStruct
     auto is_converged = ActiveSetUtilities::ComputePenaltyFrictionalActiveSet(r_model_part);
 
     // Check flags
-    KRATOS_CHECK_EQUAL(is_converged[0], 2);
-    KRATOS_CHECK_EQUAL(is_converged[1], 1);
-    KRATOS_CHECK(p_node1->Is(ACTIVE));
-    KRATOS_CHECK(p_node1->IsNot(SLIP));
-    KRATOS_CHECK(p_node2->IsNot(ACTIVE));
-    KRATOS_CHECK(p_node2->IsNot(SLIP));
-    KRATOS_CHECK(p_node3->IsNot(ACTIVE));
-    KRATOS_CHECK(p_node3->IsNot(SLIP));
+    KRATOS_EXPECT_EQ(is_converged[0], 2);
+    KRATOS_EXPECT_EQ(is_converged[1], 1);
+    KRATOS_EXPECT_TRUE(p_node1->Is(ACTIVE));
+    KRATOS_EXPECT_TRUE(p_node1->IsNot(SLIP));
+    KRATOS_EXPECT_TRUE(p_node2->IsNot(ACTIVE));
+    KRATOS_EXPECT_TRUE(p_node2->IsNot(SLIP));
+    KRATOS_EXPECT_TRUE(p_node3->IsNot(ACTIVE));
+    KRATOS_EXPECT_TRUE(p_node3->IsNot(SLIP));
 
     // Set flags
     for (auto& r_node : r_model_part.Nodes()) {
@@ -132,14 +132,14 @@ KRATOS_TEST_CASE_IN_SUITE(ComputePenaltyFrictionalActiveSet, KratosContactStruct
     is_converged = ActiveSetUtilities::ComputePenaltyFrictionalActiveSet(r_model_part, true);
 
     // Check flags
-    KRATOS_CHECK_EQUAL(is_converged[0], 2);
-    KRATOS_CHECK_EQUAL(is_converged[1], 0);
-    KRATOS_CHECK(p_node1->Is(ACTIVE));
-    KRATOS_CHECK(p_node1->Is(SLIP));
-    KRATOS_CHECK(p_node2->IsNot(ACTIVE));
-    KRATOS_CHECK(!p_node2->IsDefined(SLIP));
-    KRATOS_CHECK(p_node3->IsNot(ACTIVE));
-    KRATOS_CHECK(!p_node3->IsDefined(SLIP));
+    KRATOS_EXPECT_EQ(is_converged[0], 2);
+    KRATOS_EXPECT_EQ(is_converged[1], 0);
+    KRATOS_EXPECT_TRUE(p_node1->Is(ACTIVE));
+    KRATOS_EXPECT_TRUE(p_node1->Is(SLIP));
+    KRATOS_EXPECT_TRUE(p_node2->IsNot(ACTIVE));
+    KRATOS_EXPECT_TRUE(!p_node2->IsDefined(SLIP));
+    KRATOS_EXPECT_TRUE(p_node3->IsNot(ACTIVE));
+    KRATOS_EXPECT_TRUE(!p_node3->IsDefined(SLIP));
 }
 
 /**
@@ -186,10 +186,10 @@ KRATOS_TEST_CASE_IN_SUITE(ComputeALMFrictionlessActiveSet, KratosContactStructur
     const auto is_converged = ActiveSetUtilities::ComputeALMFrictionlessActiveSet(r_model_part);
 
     // Check flags
-    KRATOS_CHECK_EQUAL(is_converged, 1);
-    KRATOS_CHECK(p_node1->Is(ACTIVE));
-    KRATOS_CHECK(p_node2->IsNot(ACTIVE));
-    KRATOS_CHECK(p_node3->Is(ACTIVE));
+    KRATOS_EXPECT_EQ(is_converged, 1);
+    KRATOS_EXPECT_TRUE(p_node1->Is(ACTIVE));
+    KRATOS_EXPECT_TRUE(p_node2->IsNot(ACTIVE));
+    KRATOS_EXPECT_TRUE(p_node3->Is(ACTIVE));
 }
 
 /**
@@ -240,10 +240,10 @@ KRATOS_TEST_CASE_IN_SUITE(ComputeALMFrictionlessComponentsActiveSet, KratosConta
     const auto is_converged = ActiveSetUtilities::ComputeALMFrictionlessComponentsActiveSet(r_model_part);
 
     // Check flags
-    KRATOS_CHECK_EQUAL(is_converged, 1);
-    KRATOS_CHECK(p_node1->Is(ACTIVE));
-    KRATOS_CHECK(p_node2->IsNot(ACTIVE));
-    KRATOS_CHECK(p_node3->Is(ACTIVE));
+    KRATOS_EXPECT_EQ(is_converged, 1);
+    KRATOS_EXPECT_TRUE(p_node1->Is(ACTIVE));
+    KRATOS_EXPECT_TRUE(p_node2->IsNot(ACTIVE));
+    KRATOS_EXPECT_TRUE(p_node3->Is(ACTIVE));
 }
 
 /**
@@ -302,14 +302,14 @@ KRATOS_TEST_CASE_IN_SUITE(ComputeALMFrictionalActiveSet, KratosContactStructural
     auto is_converged = ActiveSetUtilities::ComputeALMFrictionalActiveSet(r_model_part);
 
     // Check flags
-    KRATOS_CHECK_EQUAL(is_converged[0], 1);
-    KRATOS_CHECK_EQUAL(is_converged[1], 2);
-    KRATOS_CHECK(p_node1->Is(ACTIVE));
-    KRATOS_CHECK(p_node1->IsNot(SLIP));
-    KRATOS_CHECK(p_node2->IsNot(ACTIVE));
-    KRATOS_CHECK(p_node2->IsNot(SLIP));
-    KRATOS_CHECK(p_node3->Is(ACTIVE));
-    KRATOS_CHECK(p_node3->IsNot(SLIP));
+    KRATOS_EXPECT_EQ(is_converged[0], 1);
+    KRATOS_EXPECT_EQ(is_converged[1], 2);
+    KRATOS_EXPECT_TRUE(p_node1->Is(ACTIVE));
+    KRATOS_EXPECT_TRUE(p_node1->IsNot(SLIP));
+    KRATOS_EXPECT_TRUE(p_node2->IsNot(ACTIVE));
+    KRATOS_EXPECT_TRUE(p_node2->IsNot(SLIP));
+    KRATOS_EXPECT_TRUE(p_node3->Is(ACTIVE));
+    KRATOS_EXPECT_TRUE(p_node3->IsNot(SLIP));
 
     // Set flags
     for (auto& r_node : r_model_part.Nodes()) {
@@ -321,13 +321,13 @@ KRATOS_TEST_CASE_IN_SUITE(ComputeALMFrictionalActiveSet, KratosContactStructural
     is_converged = ActiveSetUtilities::ComputeALMFrictionalActiveSet(r_model_part, true);
 
     // Check flags
-    KRATOS_CHECK_EQUAL(is_converged[0], 1);
-    KRATOS_CHECK_EQUAL(is_converged[1], 0);
-    KRATOS_CHECK(p_node1->Is(ACTIVE));
-    KRATOS_CHECK(p_node1->Is(SLIP));
-    KRATOS_CHECK(p_node2->IsNot(ACTIVE));
-    KRATOS_CHECK(!p_node2->IsDefined(SLIP));
-    KRATOS_CHECK(p_node3->Is(ACTIVE));
-    KRATOS_CHECK(p_node3->Is(SLIP));
+    KRATOS_EXPECT_EQ(is_converged[0], 1);
+    KRATOS_EXPECT_EQ(is_converged[1], 0);
+    KRATOS_EXPECT_TRUE(p_node1->Is(ACTIVE));
+    KRATOS_EXPECT_TRUE(p_node1->Is(SLIP));
+    KRATOS_EXPECT_TRUE(p_node2->IsNot(ACTIVE));
+    KRATOS_EXPECT_TRUE(!p_node2->IsDefined(SLIP));
+    KRATOS_EXPECT_TRUE(p_node3->Is(ACTIVE));
+    KRATOS_EXPECT_TRUE(p_node3->Is(SLIP));
 }
 }  // namespace Kratos::Testing.

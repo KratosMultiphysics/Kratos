@@ -88,7 +88,7 @@ class TestFileIO(KratosUnittest.TestCase):
         io = file_io._HDF5SerialFileIO()
         self._BuildTestFileIOObject(io)
         obj = io.Get('kratos.h5')
-        self.assertIsInstance(obj, KratosHDF5.HDF5FileSerial)
+        self.assertIsInstance(obj, KratosHDF5.HDF5File)
 
     def test_SetDefaults(self):
         settings = ParametersWrapper()
@@ -685,44 +685,44 @@ class TestControllers(KratosUnittest.TestCase):
         mock_instance.GetFileName.return_value = 'kratos.h5'
         _, model_part = _SurrogateModelPart()
         controller_settings = ParametersWrapper()
-        with patch('KratosMultiphysics.HDF5Application.core.file_io.KratosHDF5.HDF5FileSerial', autospec=True):
+        with patch('KratosMultiphysics.HDF5Application.core.file_io.KratosHDF5.HDF5File', autospec=True):
             operation = MagicMock(spec = operations.AggregateOperation)
             controller = controllers.Factory(
                 model_part, operation, controller_settings.Get())
             self.assertTrue(controller_settings.Has('controller_type'))
-            self.assertEqual(
-                controller_settings['controller_type'], 'default_controller')
-            self.assertEqual(controller.model_part, model_part)
+            self.assertEqual(controller_settings['controller_type'], 'default_controller')
             for _ in range(10):
                 controller()
             self.assertEqual(operation.Execute.call_count, 10)
 
     def test_TemporalController_CreateWithDefaults(self):
-        model, model_part = _SurrogateModelPart()
+        _, model_part = _SurrogateModelPart()
         operation = MagicMock(spec = operations.AggregateOperation)
         controller_settings = ParametersWrapper()
         controller_settings['controller_type'] = 'temporal_controller'
-        controller: controllers.TemporalController = controllers.Factory(model_part, operation, controller_settings.Get())
-        self.assertEqual(controller.model_part, model_part)
-        self.assertEqual(controller.time_frequency, 1.0)
-        self.assertEqual(controller.step_frequency, 1)
-        self.assertEqual(controller.current_time, 0.0)
-        self.assertEqual(controller.current_step, 0)
+        controller = controllers.Factory(model_part, operation, controller_settings.Get())
+        for _ in range(1, 11):
+            model_part.ProcessInfo[KratosMultiphysics.STEP] += 1
+            model_part.ProcessInfo[KratosMultiphysics.TIME] += model_part.ProcessInfo[KratosMultiphysics.DELTA_TIME]
+            controller()
+        self.assertEqual(operation.Execute.call_count, 10)
 
     def test_TemporalController_CreateWithParameters(self):
-        model, model_part = _SurrogateModelPart()
-        data_comm = model_part.GetCommunicator().GetDataCommunicator()
+        _, model_part = _SurrogateModelPart()
         operation = MagicMock(spec = operations.AggregateOperation)
         controller_settings = ParametersWrapper()
         controller_settings['controller_type'] = 'temporal_controller'
         controller_settings['time_frequency'] = 2.0
         controller_settings['step_frequency'] = 3
         controller = controllers.Factory(model_part, operation, controller_settings.Get())
-        self.assertEqual(controller.time_frequency, 2.0)
-        self.assertEqual(controller.step_frequency, 3)
+        for _ in range(1, 31):
+            model_part.ProcessInfo[KratosMultiphysics.STEP] += 1
+            model_part.ProcessInfo[KratosMultiphysics.TIME] += model_part.ProcessInfo[KratosMultiphysics.DELTA_TIME]
+            controller()
+        self.assertEqual(operation.Execute.call_count, 10)
 
     def test_TemporalController_StepFrequency(self):
-        model, model_part = _SurrogateModelPart()
+        _, model_part = _SurrogateModelPart()
         controller_settings = ParametersWrapper()
         controller_settings['step_frequency'] = 2
         controller_settings['controller_type'] = 'temporal_controller'
@@ -730,12 +730,14 @@ class TestControllers(KratosUnittest.TestCase):
             operation = MagicMock(spec = operations.AggregateOperation)
             controller = controllers.Factory(
                 model_part, operation, controller_settings.Get())
-            for i in range(10):
+            for _ in range(10):
+                model_part.ProcessInfo[KratosMultiphysics.STEP] += 1
+                model_part.ProcessInfo[KratosMultiphysics.TIME] += model_part.ProcessInfo[KratosMultiphysics.DELTA_TIME]
                 controller()
             self.assertEqual(operation.Execute.call_count, 5)
 
     def test_TemporalController_TimeFrequency(self):
-        model, model_part = _SurrogateModelPart()
+        _, model_part = _SurrogateModelPart()
         controller_settings = ParametersWrapper()
         controller_settings['step_frequency'] = 100
         controller_settings['time_frequency'] = 0.5
@@ -744,21 +746,24 @@ class TestControllers(KratosUnittest.TestCase):
             operation = MagicMock(spec = operations.AggregateOperation)
             controller = controllers.Factory(
                 model_part, operation, controller_settings.Get())
-            for i in range(10):
+            for _ in range(10):
+                model_part.ProcessInfo[KratosMultiphysics.STEP] += 1
+                model_part.ProcessInfo[KratosMultiphysics.TIME] += model_part.ProcessInfo[KratosMultiphysics.DELTA_TIME]
                 controller()
             self.assertEqual(operation.Execute.call_count, 2)
 
     def test_TemporalController_NearlyTheSameTimeFrequency(self):
-        model, model_part = _SurrogateModelPart()
-        controller_settings = ParametersWrapper()
-        controller_settings['step_frequency'] = 100
-        controller_settings['time_frequency'] = 0.2000001
-        controller_settings['controller_type'] = 'temporal_controller'
+        _, model_part = _SurrogateModelPart()
         with patch('KratosMultiphysics.HDF5Application.core.file_io._HDF5SerialFileIO', autospec=True):
+            controller_settings = ParametersWrapper()
+            controller_settings['step_frequency'] = 100
+            controller_settings['time_frequency'] = 0.2000001
+            controller_settings['controller_type'] = 'temporal_controller'
             operation = MagicMock(spec = operations.AggregateOperation)
-            controller = controllers.Factory(
-                model_part, operation, controller_settings.Get())
+            controller = controllers.Factory(model_part, operation, controller_settings.Get())
             for _ in range(10):
+                model_part.ProcessInfo[KratosMultiphysics.STEP] += 1
+                model_part.ProcessInfo[KratosMultiphysics.TIME] += model_part.ProcessInfo[KratosMultiphysics.DELTA_TIME]
                 controller()
             self.assertEqual(operation.Execute.call_count, 5)
 
@@ -766,15 +771,17 @@ class TestControllers(KratosUnittest.TestCase):
     def test_TemporalController_OperationCall(self, mock_class):
         mock_instance = mock_class.return_value
         mock_instance.GetFileName.return_value = 'kratos.h5'
-        model, model_part = _SurrogateModelPart()
+        _, model_part = _SurrogateModelPart()
         controller_settings = KratosMultiphysics.Parameters("""{
             "controller_type" : "temporal_controller"
         }""")
         operation = MagicMock(spec = operations.AggregateOperation)
         controller = controllers.Factory(
             model_part, operation, controller_settings)
-        with patch('KratosMultiphysics.HDF5Application.core.file_io.KratosHDF5.HDF5FileSerial', autospec=True):
+        with patch('KratosMultiphysics.HDF5Application.core.file_io.KratosHDF5.HDF5File', autospec=True):
             for _ in range(10):
+                model_part.ProcessInfo[KratosMultiphysics.STEP] += 1
+                model_part.ProcessInfo[KratosMultiphysics.TIME] += model_part.ProcessInfo[KratosMultiphysics.DELTA_TIME]
                 controller()
             self.assertEqual(operation.Execute.call_count, 10)
 
@@ -830,7 +837,7 @@ class TestFactory(KratosUnittest.TestCase):
             }''')
         parent_settings = ParametersWrapper(parent_settings)
         process = core.Factory(parent_settings['list_of_controllers'], model, KratosMultiphysics.Process)
-        with patch('KratosMultiphysics.HDF5Application.core.file_io.KratosHDF5.HDF5FileSerial', autospec=True) as MockedFileSerial:
+        with patch('KratosMultiphysics.HDF5Application.core.file_io.KratosHDF5.HDF5File', autospec=True) as MockedFileSerial:
             with patch('KratosMultiphysics.HDF5Application.core.operations.KratosHDF5.HDF5ModelPartIO', autospec=True) as MockedModelPartIO:
                 process.ExecuteInitialize()
                 model_part_io = MockedModelPartIO.return_value

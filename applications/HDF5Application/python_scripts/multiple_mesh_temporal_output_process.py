@@ -86,14 +86,6 @@ def CreateCoreSettings(user_settings, model):
     core_settings = ParametersWrapper("""
         [{
             "model_part_name" : "",
-            "process_step": "before_solution_loop",
-            "io_settings": {
-                "io_type": "serial_hdf5_file_io",
-                "file_name": "<model_part_name>-<time>.h5"
-            },
-            "list_of_operations": []
-        },{
-            "model_part_name" : "",
             "process_step": "finalize_solution_step",
             "controller_settings": {
                 "controller_type": "temporal_controller"
@@ -160,5 +152,5 @@ def CreateCoreSettings(user_settings, model):
                                     user_settings["condition_gauss_point_value_settings"])
         ]
     for key in user_settings["output_time_settings"]:
-        core_settings[1]["controller_settings"][key] = user_settings["output_time_settings"][key]
+        core_settings[0]["controller_settings"][key] = user_settings["output_time_settings"][key]
     return core_settings

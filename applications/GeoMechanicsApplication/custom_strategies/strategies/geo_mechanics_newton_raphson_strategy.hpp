@@ -87,7 +87,6 @@ public:
                     "number_cycles":    5,
                     "increase_factor":  2.0,
                     "reduction_factor": 0.5,
-                    "end_time": 1.0,
                     "max_piping_iterations": 50,
                     "desired_iterations": 4,
                     "max_radius_factor": 20.0,
@@ -99,10 +98,8 @@ public:
                     "rebuild_level": 2
                 }  )" );
 
-            // Validate agains defaults -- this also ensures no type mismatch
+            // Validate against defaults -- this also ensures no type mismatch
             rParameters.ValidateAndAssignDefaults(default_parameters);
-
-            mpParameters = &rParameters;
 
             // Set Load SubModelParts and Variable names
             if (rParameters["loads_sub_model_part_list"].size() > 0)
@@ -123,7 +120,6 @@ public:
 
 protected:
     /// Member Variables
-    Parameters* mpParameters;
     std::vector<ModelPart*> mSubModelPartList; /// List of every SubModelPart associated to an external load
     std::vector<std::string> mVariableNames; /// Name of the nodal variable associated to every SubModelPart
 

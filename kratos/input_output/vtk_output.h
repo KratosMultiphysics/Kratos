@@ -203,7 +203,7 @@ protected:
      * @param rModelPart modelpart which is beging output
      * @param rFileStream the file stream to which data is to be written.
      */
-    void WriteConditionsAndElementsToFile(const ModelPart& rModelPart, std::ofstream& rFileStream) const;
+    virtual void WriteConditionsAndElementsToFile(const ModelPart& rModelPart, std::ofstream& rFileStream) const;
 
     /**
      * @brief Calculate the total number of cells which are in the provided rModelPart. = num_elements + num_conditions
@@ -243,7 +243,7 @@ protected:
      * @param rModelPart modelpart which is beging output
      * @param rFileStream the file stream to which data is to be written.
      */
-    void WriteNodalResultsToFile(const ModelPart& rModelPart, std::ofstream& rFileStream);
+    virtual void WriteNodalResultsToFile(const ModelPart& rModelPart, std::ofstream& rFileStream);
 
     /**
      * @brief Write the results/flags on the elements of rModelPart.
