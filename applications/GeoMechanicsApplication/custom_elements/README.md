@@ -123,7 +123,7 @@ where
 - $\Omega$ = domain region
 - $\Gamma$ = boundary region
 
-The supercripts "$^l$" and "$^r$" for Robin boundary condition indicate the left hands side (matrix) and righ hand side (vector), respectively. The supercripts "$^e$" and "$^{ep}$" for $\Omega$ and $\Gamma$ indicat valunes at element and perpendicular on element interfaces, respectively.  
+The supercripts "$l$" and "$r$" for Robin boundary condition indicate the left hands side (matrix) and righ hand side (vector), respectively. The supercripts "$e$" and "${ep}$" for $\Omega$ and $\Gamma$ indicat valunes at element and perpendicular to element interfaces, respectively.  
 
 ## Bibliography
 Diersch, H.-J. G., 2014. FEFLOW; Finite Element Modeling of Flow, Mass and Heat Transport in Porous and Fractured Media. Springer.
