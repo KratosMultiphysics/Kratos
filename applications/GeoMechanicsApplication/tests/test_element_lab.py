@@ -5,7 +5,7 @@ import test_helper
 
 class KratosGeoMechanicsLabElementTests(KratosUnittest.TestCase):
     """
-    This class contains some element tests, such as triaxial and oedoemter tests
+    This class contains some element tests, such as triaxial and oedometer tests
     """
 
     def setUp(self):
