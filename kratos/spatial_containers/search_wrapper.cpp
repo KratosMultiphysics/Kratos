@@ -170,8 +170,8 @@ void SearchWrapper<TSearchObject>::LocalSearchInRadius(
     const PointType& rPoint,
     const double Radius,
     std::vector<ResultType>& rResults,
-    const int AllocationSize,
-    const int Rank
+    const int Rank,
+    const int AllocationSize
     )
 {
     // If we are using GeometricalObjectBins we can use the optimized search
