@@ -67,8 +67,6 @@ class KratosGeoMechanicsLabElementTests(KratosUnittest.TestCase):
         project_path = test_helper.get_file_path(os.path.join('test_element_lab', test_name))
         simulation = test_helper.run_kratos(project_path)
         effective_stresses = test_helper.get_cauchy_stress_tensor(simulation)
-        displacements = test_helper.get_displacement(simulation)
-
         effective_stresses_xx = [integration_point[0,0] for element in effective_stresses for integration_point in element]
         effective_stresses_yy = [integration_point[1,1] for element in effective_stresses for integration_point in element]
         effective_stresses_zz = [integration_point[2,2] for element in effective_stresses for integration_point in element]
@@ -79,10 +77,24 @@ class KratosGeoMechanicsLabElementTests(KratosUnittest.TestCase):
             self.assertAlmostEqual(-1000000, effective_stresses_yy[idx], 2)
             self.assertAlmostEqual(0.0,      effective_stresses_zz[idx], 3)
 
-        y_displacements = [displacement[1] for displacement in displacements]
-        top_node_nbrs = [1]
-        for top_node_nbr in top_node_nbrs:
-            self.assertAlmostEqual(-0.0909090909516868, y_displacements[top_node_nbr], 6)
+        top_node_nbrs = [1, 2]
+        output_file_path = os.path.join(project_path, test_name+'.post.res')
+        output_reader = test_helper.GiDOutputFileReader()
+        output_data = output_reader.read_output_from(output_file_path)
+        displacements = test_helper.GiDOutputFileReader.nodal_values_at_time("DISPLACEMENT", 0.1, output_data, node_ids=top_node_nbrs)
+        for displacement in displacements:
+            y_displacement = displacement[1]
+            self.assertAlmostEqual(-0.00990099, y_displacement, 6)
+
+        displacements = test_helper.GiDOutputFileReader.nodal_values_at_time("DISPLACEMENT", 0.7, output_data, node_ids=top_node_nbrs)
+        for displacement in displacements:
+            y_displacement = displacement[1]
+            self.assertAlmostEqual(-0.0654206, y_displacement, 6)
+
+        displacements = test_helper.GiDOutputFileReader.nodal_values_at_time("DISPLACEMENT", 1.0, output_data, node_ids=top_node_nbrs)
+        for displacement in displacements:
+            y_displacement = displacement[1]
+            self.assertAlmostEqual(-0.0909090909516868, y_displacement, 6)
 
     def test_oedometer_ULFEM_diff_order(self):
         """
