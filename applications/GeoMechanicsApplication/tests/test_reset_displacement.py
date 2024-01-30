@@ -37,7 +37,7 @@ class KratosGeoMechanicsResetDisplacementTests(KratosUnittest.TestCase):
         eps = F/(E*A)
 
         # get stages
-        test_name = 'geo_truss_with_reset_displacemnet'
+        test_name = 'geo_truss_with_reset_displacement'
         project_path = test_helper.get_file_path(os.path.join('.', test_name + '.gid'))
         n_stages = 4
 
@@ -92,7 +92,7 @@ class KratosGeoMechanicsResetDisplacementTests(KratosUnittest.TestCase):
         eps = (F*L**3)/(3*E*I)
 
         # get stages
-        test_name = 'geo_beam_with_reset_displacemnet'
+        test_name = 'geo_beam_with_reset_displacement'
         project_path = test_helper.get_file_path(os.path.join('.', test_name + '.gid'))
         n_stages = 4
         cwd = os.getcwd()
