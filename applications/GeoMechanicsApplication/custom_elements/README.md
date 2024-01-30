@@ -60,11 +60,11 @@ The density of the porous media $\rho$ $\mathrm{\left[ kg/m^3 \right]}$ is calcu
 
 $$ \rho = n S \rho^w + \left( 1 - n \right) \rho^s $$
 
-And the heat capacity of the bulk material $C$ $\mathrm{\left[ J/m^{3 \circ}C \right]}$ is:
+And the heat capacity of the porous media $C$ $\mathrm{\left[ J/m^{3 \circ}C \right]}$ is:
 
 $$ C = n S \rho^w c^w + \left( 1 - n \right) \rho^s c^s $$
 
-The thermal conductivity of the bulk material $\lambda$ $\mathrm{\left[ W/m ^{\circ}C \right]}$
+The thermal conductivity of the porous media $\lambda$ $\mathrm{\left[ W/m ^{\circ}C \right]}$
 
 $$ \lambda = n S \lambda^w + \left( 1 - n \right) \lambda^s $$
 
@@ -114,7 +114,7 @@ $$ \boldsymbol{W^l} = \int_{\Gamma_3^{ep}}  \left( \rho^w c^w q_n \right)^{n+1} 
 
 where
 
-- $\Delta t$ = time step $\mathrm{\left[s]}$
+- $\Delta t$ = time step $\mathrm{\left[s \right]}$
 - $\Delta T$ = temperature increment $T^{n+1} - T^n$ $\mathrm{\left[^\circ C \right]}$
 - $\boldsymbol N$ = shape function array $\mathrm{\left[ - \right]}$
 - $\theta$ = a coefficient in Newmark time integration $\mathrm{\left[ - \right]}$
