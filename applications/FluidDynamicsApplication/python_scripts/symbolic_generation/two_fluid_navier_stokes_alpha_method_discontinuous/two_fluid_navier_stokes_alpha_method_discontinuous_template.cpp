@@ -107,7 +107,7 @@ void TwoFluidNavierStokesAlphaMethodDiscontinuous<TElementData>::CalculateLocalS
                 }
             } else {
                 //TODO: I think we can do all these bounded
-                VectorType rhs_ee_tot = ZeroVector(NumNodes);
+                VectorType rhs_ee_tot = ZeroVector(NumNodes + Dim);
                 MatrixType Vtot = ZeroMatrix(LocalSize, NumNodes + Dim);
                 MatrixType Htot = ZeroMatrix(NumNodes + Dim, LocalSize);
                 MatrixType Kee_tot = ZeroMatrix(NumNodes + Dim, NumNodes + Dim);
@@ -597,7 +597,7 @@ void TwoFluidNavierStokesAlphaMethodDiscontinuous<TElementData>::ComputeSplittin
     for (unsigned int i = 0; i < NumNodes; ++i){
         if (rData.Distance[i] > 0.0){
             enr_neg_interp(i, i) = 1.0;
-        } else{
+        } else {
             enr_pos_interp(i, i) = 1.0;
         }
     }
@@ -643,11 +643,12 @@ void TwoFluidNavierStokesAlphaMethodDiscontinuous<TElementData>::ComputeSplittin
     }
 
     // Compute the bubble shape function values
+    double dist;
     double abs_dist;
     array_1d<double,Dim> abs_dist_grad;
     const double bubble_scaling = 1.0;
 
-    const SizeType n_pos_gauss = rStandardShapeFunctionsPos.size2();
+    const SizeType n_pos_gauss = rStandardShapeFunctionsPos.size1();
     rBubbleShapeFunctionsPos.resize(n_pos_gauss);
     rBubbleShapeDerivativesPos.resize(n_pos_gauss);
     for (IndexType g_pos = 0; g_pos < n_pos_gauss; ++g_pos) {
@@ -655,31 +656,42 @@ void TwoFluidNavierStokesAlphaMethodDiscontinuous<TElementData>::ComputeSplittin
         const auto& r_N_g_pos = row(rStandardShapeFunctionsPos, g_pos);
         const auto& r_DN_g_pos = rStandardShapeDerivativesPos[g_pos];
 
-        // Compute absolute distance interpolation and gradient
-        abs_dist = 0.0;
+        // Compute distance interpolations
+        dist = 0.0;
         noalias(abs_dist_grad) = ZeroVector(Dim);
         for (IndexType i_node = 0; i_node < NumNodes; ++i_node) {
-            abs_dist += r_N_g_pos(i_node) * std::abs(rData.Distance[i_node]);
+            dist += r_N_g_pos(i_node) * rData.Distance[i_node];
             for (IndexType d = 0; d < Dim; ++d) {
-                abs_dist_grad[d] += r_DN_g_pos(i_node, d) * std::abs(rData.Distance[i_node]);
+                abs_dist_grad[d] += r_DN_g_pos(i_node, d) * rData.Distance[i_node];
             }
         }
+        abs_dist = std::abs(dist);
+        abs_dist_grad *= dist > 0.0 ? 1.0 : -1.0;
 
         // Initialize and calculate the current positive Gauss point bubble function values
-        rBubbleShapeFunctionsPos(g_pos) = bubble_scaling * abs_dist;
-        for (IndexType d = 0; d < Dim; ++d) {
-            rBubbleShapeDerivativesPos(g_pos)[d] = bubble_scaling * abs_dist_grad[d];
-        }
-
-        for (IndexType i_node = 0; i_node < NumNodes; ++i_node) {
-            rBubbleShapeFunctionsPos(g_pos) *= r_N_g_pos(i_node);
+        if constexpr (Dim == 2) {
+            rBubbleShapeFunctionsPos(g_pos) = bubble_scaling*r_N_g_pos(0)*r_N_g_pos(1)*r_N_g_pos(2)*abs_dist;
             for (IndexType d = 0; d < Dim; ++d) {
-                rBubbleShapeDerivativesPos(g_pos)[d] *= r_DN_g_pos(i_node, d);
+                rBubbleShapeDerivativesPos(g_pos)[d] = bubble_scaling * (
+                    r_DN_g_pos(0, d)*r_N_g_pos(1)*r_N_g_pos(2)*abs_dist +
+                    r_N_g_pos(0)*r_DN_g_pos(1, d)*r_N_g_pos(2)*abs_dist +
+                    r_N_g_pos(0)*r_N_g_pos(1)*r_DN_g_pos(2, d)*abs_dist +
+                    r_N_g_pos(0)*r_N_g_pos(1)*r_N_g_pos(2)*abs_dist_grad[d]);
+            }
+        } else {
+            rBubbleShapeFunctionsPos(g_pos) = bubble_scaling*r_N_g_pos(0)*r_N_g_pos(1)*r_N_g_pos(2)*r_N_g_pos(3)*abs_dist;
+            for (IndexType d = 0; d < Dim; ++d) {
+                rBubbleShapeDerivativesPos(g_pos)[d] = bubble_scaling * (
+                    r_DN_g_pos(0, d)*r_N_g_pos(1)*r_N_g_pos(2)*r_N_g_pos(3)*abs_dist +
+                    r_N_g_pos(0)*r_DN_g_pos(1, d)*r_N_g_pos(2)*r_N_g_pos(3)*abs_dist +
+                    r_N_g_pos(0)*r_N_g_pos(1)*r_DN_g_pos(2, d)*r_N_g_pos(3)*abs_dist +
+                    r_N_g_pos(0)*r_N_g_pos(1)*r_N_g_pos(2)*r_DN_g_pos(3, d)*abs_dist +
+                    r_N_g_pos(0)*r_N_g_pos(1)*r_N_g_pos(2)*r_N_g_pos(3)*abs_dist_grad[d]);
             }
         }
     }
 
-    const SizeType n_neg_gauss = rStandardShapeFunctionsNeg.size2();
+    const SizeType n_neg_gauss = rStandardShapeFunctionsNeg.size1();
     rBubbleShapeFunctionsNeg.resize(n_neg_gauss);
     rBubbleShapeDerivativesNeg.resize(n_neg_gauss);
     for (IndexType g_neg = 0; g_neg < n_neg_gauss; ++g_neg) {
@@ -687,26 +699,38 @@ void TwoFluidNavierStokesAlphaMethodDiscontinuous<TElementData>::ComputeSplittin
         const auto& r_N_g_neg = row(rStandardShapeFunctionsNeg, g_neg);
         const auto& r_DN_g_neg = rStandardShapeDerivativesNeg[g_neg];
 
-        // Compute absolute distance interpolation and gradient
-        abs_dist = 0.0;
+        // Compute distance interpolations
+        dist = 0.0;
         noalias(abs_dist_grad) = ZeroVector(Dim);
         for (IndexType i_node = 0; i_node < NumNodes; ++i_node) {
+            dist += r_N_g_neg(i_node) * rData.Distance[i_node];
             abs_dist += r_N_g_neg(i_node) * std::abs(rData.Distance[i_node]);
             for (IndexType d = 0; d < Dim; ++d) {
-                abs_dist_grad[d] += r_DN_g_neg(i_node, d) * std::abs(rData.Distance[i_node]);
+                abs_dist_grad[d] += r_DN_g_neg(i_node, d) * rData.Distance[i_node];
             }
         }
+        abs_dist = std::abs(dist);
+        abs_dist_grad *= dist > 0.0 ? 1.0 : -1.0;
 
-        // Initialize and calculate the current negitive Gauss point bubble function values
-        rBubbleShapeFunctionsNeg(g_neg) = bubble_scaling * abs_dist;
-        for (IndexType d = 0; d < Dim; ++d) {
-            rBubbleShapeDerivativesNeg(g_neg)[d] = bubble_scaling * abs_dist_grad[d];
-        }
-
-        for (IndexType i_node = 0; i_node < NumNodes; ++i_node) {
-            rBubbleShapeFunctionsNeg(g_neg) *= r_N_g_neg(i_node);
+        // Initialize and calculate the current positive Gauss point bubble function values
+        if constexpr (Dim == 2) {
+            rBubbleShapeFunctionsNeg(g_neg) = bubble_scaling*r_N_g_neg(0)*r_N_g_neg(1)*r_N_g_neg(2)*abs_dist;
             for (IndexType d = 0; d < Dim; ++d) {
-                rBubbleShapeDerivativesNeg(g_neg)[d] *= r_DN_g_neg(i_node, d);
+                rBubbleShapeDerivativesNeg(g_neg)[d] = bubble_scaling * (
+                    r_DN_g_neg(0, d)*r_N_g_neg(1)*r_N_g_neg(2)*abs_dist +
+                    r_N_g_neg(0)*r_DN_g_neg(1, d)*r_N_g_neg(2)*abs_dist +
+                    r_N_g_neg(0)*r_N_g_neg(1)*r_DN_g_neg(2, d)*abs_dist +
+                    r_N_g_neg(0)*r_N_g_neg(1)*r_N_g_neg(2)*abs_dist_grad[d]);
+            }
+        } else {
+            rBubbleShapeFunctionsNeg(g_neg) = bubble_scaling*r_N_g_neg(0)*r_N_g_neg(1)*r_N_g_neg(2)*r_N_g_neg(3)*abs_dist;
+            for (IndexType d = 0; d < Dim; ++d) {
+                rBubbleShapeDerivativesNeg(g_neg)[d] = bubble_scaling * (
+                    r_DN_g_neg(0, d)*r_N_g_neg(1)*r_N_g_neg(2)*r_N_g_neg(3)*abs_dist +
+                    r_N_g_neg(0)*r_DN_g_neg(1, d)*r_N_g_neg(2)*r_N_g_neg(3)*abs_dist +
+                    r_N_g_neg(0)*r_N_g_neg(1)*r_DN_g_neg(2, d)*r_N_g_neg(3)*abs_dist +
+                    r_N_g_neg(0)*r_N_g_neg(1)*r_N_g_neg(2)*r_DN_g_neg(3, d)*abs_dist +
+                    r_N_g_neg(0)*r_N_g_neg(1)*r_N_g_neg(2)*r_N_g_neg(3)*abs_dist_grad[d]);
             }
         }
     }
