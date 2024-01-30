@@ -4,8 +4,8 @@
 //        / /___/ /_/ / / / / /_/ /_/ / /__/ /_ ___/ / /_/ /  / /_/ / /__/ /_/ /_/ / /  / /_/ / /  
 //        \____/\____/_/ /_/\__/\__,_/\___/\__//____/\__/_/   \__,_/\___/\__/\__,_/_/   \__,_/_/  MECHANICS
 //
-//  License:		 BSD License
-//					 license: ContactStructuralMechanicsApplication/license.txt
+//  License:         BSD License
+//                   license: ContactStructuralMechanicsApplication/license.txt
 //
 //  Main authors:    Vicente Mataix Ferrandiz
 //
@@ -34,7 +34,7 @@ double ContactUtilities::CalculateRelativeSizeMesh(ModelPart& rModelPart)
 double ContactUtilities::CalculateMaxNodalH(ModelPart& rModelPart)
 {
     double max_value = 0.0;
-    max_value = block_for_each<MaxReduction<double>>(rModelPart.Nodes(), [&](NodeType& rNode) {
+    max_value = block_for_each<MaxReduction<double>>(rModelPart.Nodes(), [&](Node& rNode) {
         KRATOS_DEBUG_ERROR_IF_NOT(rNode.SolutionStepsDataHas(NODAL_H)) << "ERROR:: NODAL_H not added" << std::endl;
         return rNode.FastGetSolutionStepValue(NODAL_H);
     });
@@ -50,7 +50,7 @@ double ContactUtilities::CalculateMeanNodalH(ModelPart& rModelPart)
     // We iterate over the nodes
     NodesArrayType& r_nodes_array = rModelPart.Nodes();
     double sum_nodal_h = 0.0;
-    sum_nodal_h = block_for_each<SumReduction<double>>(r_nodes_array, [&](NodeType& rNode) {
+    sum_nodal_h = block_for_each<SumReduction<double>>(r_nodes_array, [&](Node& rNode) {
         KRATOS_DEBUG_ERROR_IF_NOT(rNode.SolutionStepsDataHas(NODAL_H)) << "ERROR:: NODAL_H not added" << std::endl;
         return rNode.FastGetSolutionStepValue(NODAL_H);;
     });
@@ -64,7 +64,7 @@ double ContactUtilities::CalculateMeanNodalH(ModelPart& rModelPart)
 double ContactUtilities::CalculateMinimalNodalH(ModelPart& rModelPart)
 {
     double min_value = 0.0;
-    min_value = block_for_each<MinReduction<double>>(rModelPart.Nodes(), [&](NodeType& rNode) {
+    min_value = block_for_each<MinReduction<double>>(rModelPart.Nodes(), [&](Node& rNode) {
         KRATOS_DEBUG_ERROR_IF_NOT(rNode.SolutionStepsDataHas(NODAL_H)) << "ERROR:: NODAL_H not added" << std::endl;
         return rNode.FastGetSolutionStepValue(NODAL_H);
     });
@@ -103,7 +103,7 @@ void ContactUtilities::ComputeStepJump(
 
     // We compute the half jump
     array_1d<double, 3> new_delta_disp = ZeroVector(3);
-    block_for_each(r_nodes_array, new_delta_disp, [&velocity_constant, &acceleration_constant, &DeltaTime](NodeType& rNode, array_1d<double, 3>& new_delta_disp) {
+    block_for_each(r_nodes_array, new_delta_disp, [&velocity_constant, &acceleration_constant, &DeltaTime](Node& rNode, array_1d<double, 3>& new_delta_disp) {
         const array_1d<double, 3>& r_current_velocity = rNode.FastGetSolutionStepValue(VELOCITY);
         const array_1d<double, 3>& r_previous_velocity = rNode.FastGetSolutionStepValue(VELOCITY, 1);
         const array_1d<double, 3>& r_previous_acceleration = rNode.FastGetSolutionStepValue(ACCELERATION, 1);
@@ -125,7 +125,7 @@ bool ContactUtilities::CheckActivity(
 {
     // We compute the half jump
     IndexType aux_check = 0;
-    aux_check = block_for_each<SumReduction<IndexType>>(rModelPart.Nodes(), [&](NodeType& rNode) {
+    aux_check = block_for_each<SumReduction<IndexType>>(rModelPart.Nodes(), [&](Node& rNode) {
         if (rNode.Is(SLAVE)) {
             if (rNode.Is(ACTIVE)) {
                 return 1;

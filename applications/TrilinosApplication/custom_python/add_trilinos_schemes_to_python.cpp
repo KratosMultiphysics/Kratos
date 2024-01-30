@@ -4,30 +4,26 @@
 //           | || |  | | | | | | | (_) \__
 //           |_||_|  |_|_|_|_| |_|\___/|___/ APPLICATION
 //
-//  License:             BSD License
-//                                       Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Riccardo Rossi
 //
-// System includes
 
 #if defined(KRATOS_PYTHON)
+
+// System includes
+
 // External includes
 
 // Project includes
 #include "includes/define_python.h"
-
 #include "custom_python/add_trilinos_schemes_to_python.h"
-
-// Trilinos includes
-#include "Epetra_FEVector.h"
-
-// Project includes
 #include "trilinos_space.h"
 #include "spaces/ublas_space.h"
 #include "includes/kratos_parameters.h"
 
-// Schemes
+/* Schemes */
 #include "solving_strategies/schemes/residualbased_incrementalupdate_static_scheme.h"
 #include "solving_strategies/schemes/residualbased_incrementalupdate_static_scheme_slip.h"
 #include "solving_strategies/schemes/residual_based_bossak_displacement_scheme.hpp"
@@ -37,15 +33,10 @@
 #include "solving_strategies/schemes/residual_based_adjoint_steady_scheme.h"
 #include "solving_strategies/schemes/residual_based_adjoint_bossak_scheme.h"
 
-// Response function
+/* Response function */
 #include "response_functions/adjoint_response_function.h"
 
-// //teuchos parameter list
-// #include "Teuchos_ParameterList.hpp"
-
-namespace Kratos
-{
-namespace Python
+namespace Kratos::Python
 {
 namespace py = pybind11;
 
@@ -135,6 +126,7 @@ void  AddSchemes(pybind11::module& m)
     py::class_<TrilinosResidualBasedAdjointStaticSchemeType, typename TrilinosResidualBasedAdjointStaticSchemeType::Pointer, TrilinosBaseSchemeType>
         (m, "TrilinosResidualBasedAdjointStaticScheme")
         .def(py::init<AdjointResponseFunction::Pointer>())
+        .def("SetResponseFunction", &TrilinosResidualBasedAdjointStaticSchemeType::SetResponseFunction, py::arg("new_response_function"))
     ;
 
     typedef ResidualBasedAdjointSteadyScheme<TrilinosSparseSpaceType, TrilinosLocalSpaceType> TrilinosResidualBasedAdjointSteadySchemeType;
@@ -151,8 +143,6 @@ void  AddSchemes(pybind11::module& m)
 
 }
 
-} // namespace Python.
-
-} // namespace Kratos.
+} // namespace Kratos::Python.
 
 #endif // KRATOS_PYTHON defined

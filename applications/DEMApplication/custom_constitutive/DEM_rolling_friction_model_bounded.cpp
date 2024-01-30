@@ -1,12 +1,15 @@
-/////////////////////////////////////////////////
-// Main author: Chengshun Shang (CIMNE)
-//              Joaqu¨ªn Iraz¨¢bal
-// Email: chengshun.shang1996@gmail.com
-// Date: Sep 2022
-/////////////////////////////////////////////////
+//  Kratos Multi-Physics - DEM Application
+//
+//  License:       BSD License
+//                 Kratos default license: kratos/license.txt
+//
+//  Main authors:  Chengshun Shang (cshang@cimne.upc.edu)
+//                 Joaquin Irazabal (jirazabal@cimne.upc.edu)
+//
 
-//This model can be found as BRFM in [Joaqu¨ªn Iraz¨¢bal, 2017, Numerical modelling of granular materials -
-//with spherical discrete particles and the bounded rolling friction model. Application to railway ballast]
+// Description:
+// This model can be found as BRFM in [Joaquin Irazabal, 2017, Numerical modelling of granular materials -
+// with spherical discrete particles and the bounded rolling friction model. Application to railway ballast]
 
 #include "DEM_rolling_friction_model_bounded.h"
 #include "custom_utilities/GeometryFunctions.h"
@@ -49,18 +52,33 @@ namespace Kratos{
         KRATOS_CATCH("")
     }
 
-    void DEMRollingFrictionModelBounded::ComputeRollingResistance(const double& NormalLocalContactForce, const double& equiv_rolling_friction_coeff, const unsigned int i) {
+    void DEMRollingFrictionModelBounded::ComputeRollingResistance(SphericParticle* p_element, SphericParticle* p_neighbor, double LocalContactForce[3]) {
 
         KRATOS_TRY
 
-        mRollingResistance += fabs(NormalLocalContactForce) * equiv_rolling_friction_coeff;
+        Properties& r_properties = p_element->GetProperties().GetSubProperties(p_neighbor->GetProperties().Id());
+        const double min_radius = std::min(p_element->GetRadius(), p_neighbor->GetRadius());
+        const double equiv_rolling_friction_coeff = r_properties[ROLLING_FRICTION] * min_radius;
+
+        mRollingResistance += std::abs(LocalContactForce[2]) * equiv_rolling_friction_coeff;
+
+        KRATOS_CATCH("")
+    }
+
+    void DEMRollingFrictionModelBounded::ComputeRollingResistanceWithWall(SphericParticle* p_element, Condition* const wall, double LocalContactForce[3]) {
+
+        KRATOS_TRY
+
+        Properties& r_properties = p_element->GetProperties().GetSubProperties(wall->GetProperties().Id());
+        const double equiv_rolling_friction_coeff = r_properties[ROLLING_FRICTION] * p_element->GetRadius();
+
+        mRollingResistance += std::abs(LocalContactForce[2]) * equiv_rolling_friction_coeff;
 
         KRATOS_CATCH("")
     }
 
     void DEMRollingFrictionModelBounded::DoFinalOperations(SphericParticle* p_element, double dt, array_1d<double, 3>& mContactMoment)
     {
-
         KRATOS_TRY
 
         array_1d<double, 3> & rolling_resistance_moment = p_element->GetGeometry()[0].FastGetSolutionStepValue(ROLLING_RESISTANCE_MOMENT);
@@ -98,6 +116,5 @@ namespace Kratos{
 
         KRATOS_CATCH("")
     }
-
 
 }//namespace Kratos

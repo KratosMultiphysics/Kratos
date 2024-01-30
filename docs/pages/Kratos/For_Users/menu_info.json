@@ -1,0 +1,12 @@
+{
+    "side_bar_name": "kratos_for_users",
+    "landing_page": "General/Overview.md",
+    "additional_menu_options": {
+        "product": "For Users"
+    },
+    "custom_entries": [
+        "General",
+        "How_to_get_Kratos",
+        "Getting_started"
+    ]
+}

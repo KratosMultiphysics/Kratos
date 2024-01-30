@@ -4,19 +4,17 @@
 //           | || |  | | | | | | | (_) \__
 //           |_||_|  |_|_|_|_| |_|\___/|___/ APPLICATION
 //
-//  License:             BSD License
-//                                       Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Riccardo Rossi
 //
 
+#if defined(KRATOS_PYTHON)
+
 // System includes
 
-#if defined(KRATOS_PYTHON)
 // External includes
-
-// Trilinos includes
-#include "Epetra_FEVector.h"
 
 // Project includes
 #include "includes/define_python.h"
@@ -50,10 +48,7 @@
 #include "external_includes/amgcl_mpi_solver.h"
 #include "external_includes/amgcl_mpi_schur_complement_solver.h"
 
-namespace Kratos
-{
-
-namespace Python
+namespace Kratos::Python
 {
 
 namespace py = pybind11;
@@ -153,8 +148,6 @@ void  AddLinearSolvers(pybind11::module& m)
         ;
 }
 
-} // namespace Python.
-
-} // namespace Kratos.
+} // namespace Python:: Kratos.
 
 #endif // KRATOS_PYTHON defined

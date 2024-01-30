@@ -4,8 +4,8 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Riccardo Rossi
 //
@@ -19,9 +19,7 @@
 #include "includes/kratos_parameters.h"
 #include "add_kratos_parameters_to_python.h"
 
-namespace Kratos {
-
-namespace Python {
+namespace Kratos::Python {
 
 pybind11::list items(Parameters const& self)
 {
@@ -81,6 +79,7 @@ void  AddKratosParametersToPython(pybind11::module& m)
     .def("AddEmptyValue", &Parameters::AddEmptyValue)
     .def("AddEmptyArray", &Parameters::AddEmptyArray)
     .def("RemoveValue", &Parameters::RemoveValue)
+    .def("RemoveValues", &Parameters::RemoveValues)
     .def("ValidateAndAssignDefaults", &Parameters::ValidateAndAssignDefaults)
     .def("RecursivelyValidateAndAssignDefaults", &Parameters::RecursivelyValidateAndAssignDefaults)
     .def("AddMissingParameters", &Parameters::AddMissingParameters)
@@ -96,6 +95,7 @@ void  AddKratosParametersToPython(pybind11::module& m)
     .def("IsInt", &Parameters::IsInt)
     .def("IsBool", &Parameters::IsBool)
     .def("IsString", &Parameters::IsString)
+    .def("IsStringArray", &Parameters::IsStringArray)
     .def("IsArray", &Parameters::IsArray)
     .def("IsVector", &Parameters::IsVector)
     .def("IsMatrix", &Parameters::IsMatrix)
@@ -140,9 +140,8 @@ void  AddKratosParametersToPython(pybind11::module& m)
     .def("Append", Append<Matrix>) // created due to ambiguous overload int/bool...
     .def("Append", Append<std::string>) // created due to ambiguous overload int/bool...
     .def("Append", Append<Parameters>) // created due to ambiguous overload int/bool...
+    .def("CopyValuesFromExistingParameters", &Parameters::CopyValuesFromExistingParameters)
     ;
 }
 
-} // namespace Python.
-
-} // Namespace Kratos
+} // namespace Kratos::Python.

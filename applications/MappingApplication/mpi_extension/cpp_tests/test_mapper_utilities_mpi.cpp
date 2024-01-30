@@ -4,7 +4,7 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
+//  License:         BSD License
 //                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Philipp Bucher (https://github.com/philbucher)
@@ -16,8 +16,7 @@
 #include "mpi/utilities/model_part_communicator_utilities.h"
 #include "custom_utilities/mapper_utilities.h"
 
-namespace Kratos {
-namespace Testing {
+namespace Kratos::Testing {
 
 KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MapperUtilities_ComputeGlobalBoundingBox_distributed, KratosMappingApplicationMPITestSuite)
 {
@@ -49,11 +48,10 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MapperUtilities_ComputeGlobalBoundingBox_d
         -8.3-total_procs+1
     };
 
-    KRATOS_CHECK_EQUAL(bbox.size(), 6);
+    KRATOS_EXPECT_EQ(bbox.size(), 6);
     for (std::size_t i=0; i<6; ++i){
-        KRATOS_CHECK_NEAR(bbox[i], exp_bbox[i], 1e-12);
+        KRATOS_EXPECT_NEAR(bbox[i], exp_bbox[i], 1e-12);
     }
 }
 
-}  // namespace Testing
-}  // namespace Kratos
+}  // namespace Kratos::Testing

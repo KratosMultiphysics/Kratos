@@ -489,7 +489,7 @@ protected:
                 const double error = (r_dof.GetSolutionStepValue(0) - prev_step_solution)/2.0;
 
                 r_dof.GetSolutionStepValue(1) = prev_step_solution - error;
-                // Will be copied to buffer position (0) duting the last substep initialize
+                // Will be copied to buffer position (0) during the last substep initialize
 
             }
         );

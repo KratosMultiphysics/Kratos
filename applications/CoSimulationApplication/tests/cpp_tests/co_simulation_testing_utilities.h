@@ -23,7 +23,7 @@ namespace Kratos {
 namespace Testing {
 
 void CheckNodesAreEqual(
-    const Kratos::Node<3>& rKratosNode,
+    const Kratos::Node& rKratosNode,
     const CoSimIO::Node& rCoSimIONode);
 
 void CheckElementsAreEqual(

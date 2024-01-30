@@ -20,6 +20,7 @@
 #include "includes/condition.h"
 #include "includes/element.h"
 #include "utilities/parallel_utilities.h"
+#include "utilities/reduction_utilities.h"
 #include "utilities/variable_utils.h"
 #include "utilities/compute_neighbour_list_functor.h"
 #include "utilities/communication_coloring_utilities.h"
@@ -218,14 +219,11 @@ void FindGlobalNodalEntityNeighboursProcess<TContainerType>::Clear()
 }
 
 template<class TContainerType>
-std::unordered_map<int, std::vector<int>> FindGlobalNodalEntityNeighboursProcess<TContainerType>::GetNeighbourIds(
-    ModelPart::NodesContainerType& rNodes)
+typename FindGlobalNodalEntityNeighboursProcess<TContainerType>::IdMapType FindGlobalNodalEntityNeighboursProcess<TContainerType>::GetNeighbourIds(const ModelPart::NodesContainerType& rNodes)
 {
     KRATOS_TRY
 
-    auto& r_model_part = mrModel.GetModelPart(mModelPartName);
-
-    std::unordered_map<int, std::vector<int>> output;
+    const auto& r_model_part = mrModel.GetModelPart(mModelPartName);
 
     auto constructor_functor =  Kratos::ComputeNeighbourListFunctor<ModelPart::NodesContainerType, Variable<GlobalEntityPointersVectorType>>(rNodes, mrOutputVariable);
 
@@ -237,16 +235,14 @@ std::unordered_map<int, std::vector<int>> FindGlobalNodalEntityNeighboursProcess
         }
     );
 
-    block_for_each(rNodes, [&](NodeType& rNode){
+    return block_for_each<MapReduction<IdMapType>>(rNodes, [&](auto& rNode){
         auto& r_neighbours = rNode.GetValue(mrOutputVariable);
         std::vector<int> tmp(r_neighbours.size());
         for(unsigned int i=0; i<r_neighbours.size(); ++i) {
             tmp[i] = result_proxy.Get(r_neighbours(i));
         }
-        output[rNode.Id()] = tmp;
+        return std::make_pair(rNode.Id(), tmp);
     });
-
-    return output;
 
     KRATOS_CATCH("");
 }
@@ -256,5 +252,3 @@ template class FindGlobalNodalEntityNeighboursProcess<ModelPart::ConditionsConta
 template class FindGlobalNodalEntityNeighboursProcess<ModelPart::ElementsContainerType>;
 
 }  // namespace Kratos.
-
-

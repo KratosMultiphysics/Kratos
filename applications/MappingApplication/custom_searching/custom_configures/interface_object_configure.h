@@ -4,8 +4,8 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Philipp Bucher, Jordi Cotela
 //
@@ -13,13 +13,11 @@
 // "Development and Implementation of a Parallel
 //  Framework for Non-Matching Grid Mapping"
 
-#if !defined(KRATOS_INTERFACE_OBJECT_CONFIGURE_H_INCLUDED)
-#define  KRATOS_INTERFACE_OBJECT_CONFIGURE_H_INCLUDED
+#pragma once
 
 // System includes
 
 // Kratos includes
-#include "utilities/contact_pair.h"
 #include "custom_searching/interface_object.h"
 
 namespace Kratos
@@ -61,8 +59,6 @@ public:
      * @param IteratorType          Iterator of points.
      * @param ResultIteratorType    Iterator of results. For this configure should be the same as PointIteratorType.
      * @param DistanceIteratorType  Iterato of distances (doubles)
-     * @param ContainerContactType  Container type for contacts
-     * @param IteratorContactType   Iterator type for contacts
      */
     typedef InterfaceObject                     ObjectType;
     typedef PointerVectorSet <
@@ -73,14 +69,10 @@ public:
 
     typedef ObjectContainerType::ContainerType  ContainerType;
     typedef ObjectContainerType::ContainerType  ResultContainerType;
-    typedef ContactPair<PointerType>            ContactPairType;
 
     typedef ContainerType::iterator             IteratorType;
     typedef ResultContainerType::iterator       ResultIteratorType;
     typedef std::vector<double>::iterator       DistanceIteratorType;
-
-    typedef std::vector<ContactPairType>        ContainerContactType;
-    typedef ContainerContactType::iterator      IteratorContactType;
 
     typedef double                              CoordinateType;
     typedef Tvector<CoordinateType, Dimension>   CoordinateArray;
@@ -335,4 +327,3 @@ inline std::ostream& operator << (std::ostream& rOStream, const InterfaceObjectC
 ///@}
 
 } // namespace Kratos.
-#endif /* KRATOS_INTERFACE_OBJECT_CONFIGURE_H_INCLUDED */

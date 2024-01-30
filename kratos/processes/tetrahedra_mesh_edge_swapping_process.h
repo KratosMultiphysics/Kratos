@@ -49,7 +49,7 @@ namespace Kratos
       /// Pointer definition of TetrahedraMeshEdgeSwappingProcess
       KRATOS_CLASS_POINTER_DEFINITION(TetrahedraMeshEdgeSwappingProcess);
 
-      using PointType=Node<3>;
+      using PointType=Node;
 
       ///@}
       ///@name Life Cycle

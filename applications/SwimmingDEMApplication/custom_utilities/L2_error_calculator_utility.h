@@ -30,7 +30,7 @@ class L2ErrorNormCalculator
 
 public:
 
-    typedef Node < 3 > NodeType;
+    typedef Node NodeType;
     typedef Properties PropertiesType;
     typedef Geometry<NodeType> GeometryType;
     typedef Geometry<NodeType>::PointsArrayType NodesArrayType;
@@ -49,7 +49,7 @@ virtual ~L2ErrorNormCalculator(){}
 
 void ComputeDofsErrors(ModelPart& r_model_part)
 {
-    block_for_each(r_model_part.Nodes(), [&](Node<3>& r_node)
+    block_for_each(r_model_part.Nodes(), [&](Node& r_node)
     {
         auto& r_vectorial_error = r_node.FastGetSolutionStepValue(VECTORIAL_ERROR);
         r_vectorial_error = r_node.FastGetSolutionStepValue(VELOCITY) - r_node.FastGetSolutionStepValue(EXACT_VELOCITY);

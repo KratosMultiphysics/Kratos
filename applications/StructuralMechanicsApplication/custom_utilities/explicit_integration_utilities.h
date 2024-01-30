@@ -3,15 +3,14 @@
 //             | |   |    |   | (    |   |   | |   (   | |
 //       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
 //
-//  License:		 BSD License
-//					 license: structural_mechanics_application/license.txt
+//  License:         BSD License
+//                   license: StructuralMechanicsApplication/license.txt
 //
 //  Main authors:    Klaus B Sautter
 //                   Vicente Mataix Ferrandiz
 //
 
-#if !defined(KRATOS_EXPLICIT_LAW_UTILITIES)
-#define KRATOS_EXPLICIT_LAW_UTILITIES
+#pragma once
 
 // System includes
 
@@ -89,4 +88,3 @@ namespace ExplicitIntegrationUtilities
 
 }; // namespace ExplicitIntegrationUtilities
 }  // namespace Kratos
-#endif /* KRATOS_EXPLICIT_LAW_UTILITIES defined */

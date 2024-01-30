@@ -22,7 +22,7 @@
 namespace Kratos {
 
 typedef std::size_t SizeType;
-    typedef Node <3> NodeType;
+    typedef Node NodeType;
     typedef Properties PropertiesType;
     typedef Element ElementType;
     typedef Condition ConditionType;
@@ -39,7 +39,7 @@ typedef std::size_t SizeType;
  * @author Alejandro Cornejo
  */
 template <SizeType TDim = 3>
-class RegeneratePfemPressureConditionsProcess : public Process
+class KRATOS_API(FEM_TO_DEM_APPLICATION) RegeneratePfemPressureConditionsProcess : public Process
 {
 
 

@@ -108,7 +108,7 @@ public:
     typedef MmgUtilities<MMGLibrary::MMG3D> BaseType;
 
     /// Node definition
-    typedef Node <3>                                                   NodeType;
+    typedef Node                                                   NodeType;
     // Geometry definition
     typedef Geometry<NodeType>                                     GeometryType;
 

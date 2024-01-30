@@ -12,7 +12,7 @@
 //
 
 // System includes
- 
+
 // External includes
 
 // Project includes
@@ -39,9 +39,9 @@
 #include "utilities/mls_shape_functions_utility.h"
 #include "utilities/tessellation_utilities/delaunator_utilities.h"
 #include "utilities/rbf_shape_functions_utility.h"
+#include "utilities/assign_master_slave_constraints_to_neighbours_utility.h"
 
-namespace Kratos {
-namespace Python {
+namespace Kratos::Python {
 
 // Embedded skin utility auxiliar functions
 template<std::size_t TDim>
@@ -80,6 +80,89 @@ void InterpolateDiscontinuousMeshVariableToSkinArray(
     const std::string &rInterfaceSide)
 {
     rEmbeddedSkinUtility.InterpolateDiscontinuousMeshVariableToSkin(rVariable, rEmbeddedVariable, rInterfaceSide);
+}
+
+// MLS shape functions utility
+void AuxiliaryCalculateMLSShapeFunctions(
+    const std::size_t Dim,
+    const std::size_t Order,
+    const Matrix& rPoints,
+    const array_1d<double,3>& rX,
+    const double h,
+    Vector& rN)
+{
+    switch (Dim)
+    {
+    case 2:
+        switch (Order)
+        {
+        case 1:
+            MLSShapeFunctionsUtility::CalculateShapeFunctions<2,1>(rPoints, rX, h, rN);
+            break;
+        case 2:
+            MLSShapeFunctionsUtility::CalculateShapeFunctions<2,2>(rPoints, rX, h, rN);
+            break;
+        default:
+            KRATOS_ERROR << "Wrong order: " << Order << ". Only \'1\' and \'2\' are supported." << std::endl;
+            break;
+        }
+    case 3:
+        switch (Order)
+        {
+        case 1:
+            MLSShapeFunctionsUtility::CalculateShapeFunctions<3,1>(rPoints, rX, h, rN);
+            break;
+        case 2:
+            MLSShapeFunctionsUtility::CalculateShapeFunctions<3,2>(rPoints, rX, h, rN);
+            break;
+        default:
+            KRATOS_ERROR << "Wrong order: " << Order << ". Only \'1\' and \'2\' are supported." << std::endl;
+            break;
+        }
+    default:
+        KRATOS_ERROR << "Wrong dimension: " << Dim << std::endl;
+        break;
+    }
+}
+
+void AuxiliaryCalculateMLSShapeFunctionsAndGradients(
+    const std::size_t Dim,
+    const std::size_t Order,
+    const Matrix& rPoints,
+    const array_1d<double,3>& rX,
+    const double h,
+    Vector& rN,
+    Matrix& rDNDX)
+{
+    if (Dim == 2) {
+        switch (Order)
+        {
+        case 1:
+            MLSShapeFunctionsUtility::CalculateShapeFunctionsAndGradients<2,1>(rPoints, rX, h, rN, rDNDX);
+            break;
+        case 2:
+            MLSShapeFunctionsUtility::CalculateShapeFunctionsAndGradients<2,2>(rPoints, rX, h, rN, rDNDX);
+            break;
+        default:
+            KRATOS_ERROR << "Wrong order: " << Order << ". Only \'1\' and \'2\' are supported." << std::endl;
+            break;
+        }
+    } else if (Dim == 3) {
+        switch (Order)
+        {
+        case 1:
+            MLSShapeFunctionsUtility::CalculateShapeFunctionsAndGradients<3,1>(rPoints, rX, h, rN, rDNDX);
+            break;
+        case 2:
+            MLSShapeFunctionsUtility::CalculateShapeFunctionsAndGradients<3,2>(rPoints, rX, h, rN, rDNDX);
+            break;
+        default:
+            KRATOS_ERROR << "Wrong order: " << Order << ". Only \'1\' and \'2\' are supported." << std::endl;
+            break;
+        }
+    } else {
+        KRATOS_ERROR << "Wrong dimension: " << Dim << std::endl;
+    }
 }
 
 void AddGeometricalUtilitiesToPython(pybind11::module &m)
@@ -255,7 +338,7 @@ void AddGeometricalUtilitiesToPython(pybind11::module &m)
         .def("UpdateSearchDatabaseAssignedSize", &BinBasedNodesInElementLocator < 3 > ::UpdateSearchDatabaseAssignedSize)
         ;
 
-    //embeded skin utilities
+    //embedded skin utilities
     py::class_< EmbeddedSkinUtility < 2 > >(m,"EmbeddedSkinUtility2D")
         .def(py::init< ModelPart&, ModelPart&, const std::string >())
         .def("GenerateSkin", &EmbeddedSkinUtility < 2 > ::GenerateSkin)
@@ -333,10 +416,8 @@ void AddGeometricalUtilitiesToPython(pybind11::module &m)
 
     // MLS shape functions utility
     py::class_<MLSShapeFunctionsUtility>(m,"MLSShapeFunctionsUtility")
-        .def_static("CalculateShapeFunctions2D", &MLSShapeFunctionsUtility::CalculateShapeFunctions<2>)
-        .def_static("CalculateShapeFunctions3D", &MLSShapeFunctionsUtility::CalculateShapeFunctions<3>)
-        .def_static("CalculateShapeFunctionsAndGradients2D", &MLSShapeFunctionsUtility::CalculateShapeFunctionsAndGradients<2>)
-        .def_static("CalculateShapeFunctionsAndGradients3D", &MLSShapeFunctionsUtility::CalculateShapeFunctionsAndGradients<3>)
+        .def_static("CalculateShapeFunctions", &AuxiliaryCalculateMLSShapeFunctions)
+        .def_static("CalculateShapeFunctionsAndGradients", &AuxiliaryCalculateMLSShapeFunctionsAndGradients)
         ;
 
     // Radial Basis FUnctions utility
@@ -351,7 +432,14 @@ void AddGeometricalUtilitiesToPython(pybind11::module &m)
         .def_static("CalculateShapeFunctions", [](const Matrix& rPoints, const array_1d<double,3>& rX, const double h, Vector& rN, DenseQRPointerType pDenseQR){
             return RBFShapeFunctionsUtility::CalculateShapeFunctions(rPoints, rX, h, rN, pDenseQR);})
         ;
+
+    // Radial Node Search and MasterSlaveConstraints Assignation Utility
+    using NodesContainerType = typename AssignMasterSlaveConstraintsToNeighboursUtility::NodesContainerType;
+    py::class_<AssignMasterSlaveConstraintsToNeighboursUtility>(m, "AssignMasterSlaveConstraintsToNeighboursUtility")
+        .def(py::init<ModelPart::NodesContainerType&>())
+        .def("AssignMasterSlaveConstraintsToNodes", [](AssignMasterSlaveConstraintsToNeighboursUtility& rAssignMasterSlaveConstraintsToNeighboursUtility, NodesContainerType pNodes, double const Radius, ModelPart& rComputingModelPart, const std::vector<std::reference_wrapper<const Kratos::Variable<double>>>& rVariableList, double const MinNumOfNeighNodes){
+            return rAssignMasterSlaveConstraintsToNeighboursUtility.AssignMasterSlaveConstraintsToNodes(pNodes, Radius, rComputingModelPart, rVariableList, MinNumOfNeighNodes);})
+        ;
 }
 
-} // namespace Python.
-} // Namespace Kratos
+} // namespace Kratos::Python.

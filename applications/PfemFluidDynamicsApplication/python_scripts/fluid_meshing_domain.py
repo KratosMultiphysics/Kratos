@@ -48,7 +48,15 @@ class FluidMeshingDomain(object):
                     "final_time"       : 1,
                     "upper_point"      : [10,10,10],
                     "lower_point"      : [-10,-10,-10]
-            }
+            },
+            "spatial_refining_box_list"            : [{
+                    "use_refining_box"    : false,
+                    "transition_elements" : 4,
+                    "initial_time"        : 0.0,
+                    "final_time"          : 1,
+                    "upper_point"         : [10,10,10],
+                    "lower_point"         : [-10,-10,-10]
+            }]
         }
         """)
 
@@ -101,17 +109,20 @@ class FluidMeshingDomain(object):
 
         # parameters
         self.RefiningParameters.SetAlphaParameter(self.settings["alpha_shape"].GetDouble())
-
+        number_of_refining_boxes=self.settings["spatial_refining_box_list"].size()
+        self.MeshingParameters.InitializeRefiningBoxParameters(number_of_refining_boxes)       
         # set mesh refinement in box
-        size = self.dimension
-        refining_box = self.settings["spatial_refining_box"]
-        if(refining_box["use_refining_box"].GetBool()):
-            self.MeshingParameters.SetUseRefiningBox(True)
-            self.MeshingParameters.SetRefiningBoxMinimumPoint(refining_box["lower_point"][0].GetDouble(),refining_box["lower_point"][1].GetDouble(),refining_box["lower_point"][2].GetDouble())
-            self.MeshingParameters.SetRefiningBoxMaximumPoint(refining_box["upper_point"][0].GetDouble(),refining_box["upper_point"][1].GetDouble(),refining_box["upper_point"][2].GetDouble())
-            self.MeshingParameters.SetRefiningBoxTimeInterval(refining_box["initial_time"].GetDouble(),refining_box["final_time"].GetDouble())
-            self.MeshingParameters.SetRefiningBoxMeshSize(refining_box["mesh_size"].GetDouble())
-
+        index=0    
+        for item in self.settings["spatial_refining_box_list"]:
+            refining_box_list = item
+            self.MeshingParameters.SetUseRefiningBox(index,refining_box_list["use_refining_box"].GetBool()) 
+            self.MeshingParameters.SetRefiningBoxElementsInTransitionZone(index,refining_box_list["transition_elements"].GetInt())
+            self.MeshingParameters.SetRefiningBoxTimeInterval(index,refining_box_list["initial_time"].GetDouble(),refining_box_list["final_time"].GetDouble())
+            self.MeshingParameters.SetRefiningBoxMinimumPoint(index,refining_box_list["lower_point"][0].GetDouble(),refining_box_list["lower_point"][1].GetDouble(),refining_box_list["lower_point"][2].GetDouble()) 
+            self.MeshingParameters.SetRefiningBoxShiftedMinimumPoint(index,refining_box_list["lower_point"][0].GetDouble(),refining_box_list["lower_point"][1].GetDouble(),refining_box_list["lower_point"][2].GetDouble()) 
+            self.MeshingParameters.SetRefiningBoxMaximumPoint(index,refining_box_list["upper_point"][0].GetDouble(),refining_box_list["upper_point"][1].GetDouble(),refining_box_list["upper_point"][2].GetDouble()) 
+            self.MeshingParameters.SetRefiningBoxShiftedMaximumPoint(index,refining_box_list["upper_point"][0].GetDouble(),refining_box_list["upper_point"][1].GetDouble(),refining_box_list["upper_point"][2].GetDouble()) 
+            index+=1   
 
         removing_options = KratosMultiphysics.Flags()
 

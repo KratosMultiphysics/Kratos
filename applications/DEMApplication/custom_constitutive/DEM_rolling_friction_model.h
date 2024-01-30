@@ -1,8 +1,10 @@
-/////////////////////////////////////////////////
-// Main author: Chengshun Shang (CIMNE)
-// Email: chengshun.shang1996@gmail.com
-// Date: Aug 2022
-/////////////////////////////////////////////////
+//  Kratos Multi-Physics - DEM Application
+//
+//  License:       BSD License
+//                 Kratos default license: kratos/license.txt
+//
+//  Main authors:  Chengshun Shang (cshang@cimne.upc.edu)
+//
 
 #if !defined(DEM_ROLLING_FRICTION_MODEL_H_INCLUDED)
 #define DEM_ROLLING_FRICTION_MODEL_H_INCLUDED
@@ -15,7 +17,6 @@
 #include "includes/define.h"
 #include "custom_utilities/AuxiliaryFunctions.h"
 #include "includes/serializer.h"
-
 #include "custom_utilities/GeometryFunctions.h"
 #include "custom_elements/discrete_element.h"
 #include "custom_elements/Particle_Contact_Element.h"
@@ -49,15 +50,21 @@ namespace Kratos{
 
         virtual std::unique_ptr<DEMRollingFrictionModel> CloneUnique();
 
-        virtual void ComputeRollingFriction(SphericParticle* p_element, SphericParticle* p_neighbor, double LocalContactForce[3], array_1d<double, 3>& mContactMoment, double indentation);
-        
-        virtual void ComputeRollingFrictionWithWall(double LocalContactForce[3], SphericParticle* p_element, Condition* const wall, double indentation, array_1d<double, 3>& mContactMoment);
-
         virtual void InitializeSolutionStep() {}
 
-        virtual void ComputeRollingResistance(const double& NormalLocalContactForce, const double& equiv_rolling_friction_coeff, const unsigned int i) {}
+        virtual void ComputeRollingFriction(SphericParticle* p_element, SphericParticle* p_neighbor, const ProcessInfo& r_process_info, double LocalContactForce[3], double indentation, array_1d<double, 3>& mContactMoment) {}
+        
+        virtual void ComputeRollingFrictionWithWall(SphericParticle* p_element, Condition* const wall, const ProcessInfo& r_process_info, double LocalContactForce[3], double indentation, array_1d<double, 3>& mContactMoment) {}
+
+        virtual void ComputeRollingResistance(SphericParticle* p_element, SphericParticle* p_neighbor, double LocalContactForce[3]) {}
+
+        virtual void ComputeRollingResistanceWithWall(SphericParticle* p_element, Condition* const wall, double LocalContactForce[3]) {}
 
         virtual void DoFinalOperations(SphericParticle* p_element, double dt, array_1d<double, 3>& mContactMoment) {}
+
+        virtual void CalculateInelasticRollingResistanceEnergy(double& inelastic_rollingresistance_energy, const array_1d<double, 3>& rolling_friction_moment, const array_1d<double, 3>& relative_angular_velocity, double dt) {}
+
+        virtual void CalculateInelasticRollingResistanceEnergyWithWall(double& inelastic_rollingresistance_energy, const array_1d<double, 3>& rolling_friction_moment, const array_1d<double, 3>& relative_angular_velocity, double dt) {}
     
     private:
 
@@ -70,7 +77,6 @@ namespace Kratos{
         virtual void load(Serializer& rSerializer) {
                     //rSerializer.load("MyMemberName",myMember);
         }
-
     };
 
     //This definition is done here to avoid recursive inclusion of header files

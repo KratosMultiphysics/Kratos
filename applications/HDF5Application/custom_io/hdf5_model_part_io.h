@@ -37,7 +37,7 @@ namespace HDF5
 ///@{
 
 /// A class for serial IO of a model part in HDF5.
-class ModelPartIO : public IO
+class KRATOS_API(HDF5_APPLICATION) ModelPartIO : public IO
 {
 public:
     ///@name Type Definitions

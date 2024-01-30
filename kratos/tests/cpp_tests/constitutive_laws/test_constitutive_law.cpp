@@ -30,12 +30,12 @@ namespace Kratos
         {
             ConstitutiveLaw this_cl = ConstitutiveLaw();
 
-            KRATOS_CHECK_IS_FALSE(this_cl.Has(IS_RESTARTED));                 // Bool
-            KRATOS_CHECK_IS_FALSE(this_cl.Has(DOMAIN_SIZE));                  // Integer
-            KRATOS_CHECK_IS_FALSE(this_cl.Has(NODAL_H));                      // Double
-            KRATOS_CHECK_IS_FALSE(this_cl.Has(DISPLACEMENT));                 // Array 1D
-            KRATOS_CHECK_IS_FALSE(this_cl.Has(INITIAL_STRAIN));               // Vector
-            KRATOS_CHECK_IS_FALSE(this_cl.Has(GREEN_LAGRANGE_STRAIN_TENSOR)); // Matrix
+            KRATOS_EXPECT_FALSE(this_cl.Has(IS_RESTARTED));                 // Bool
+            KRATOS_EXPECT_FALSE(this_cl.Has(DOMAIN_SIZE));                  // Integer
+            KRATOS_EXPECT_FALSE(this_cl.Has(NODAL_H));                      // Double
+            KRATOS_EXPECT_FALSE(this_cl.Has(DISPLACEMENT));                 // Array 1D
+            KRATOS_EXPECT_FALSE(this_cl.Has(INITIAL_STRAIN));               // Vector
+            KRATOS_EXPECT_FALSE(this_cl.Has(GREEN_LAGRANGE_STRAIN_TENSOR)); // Matrix
         }
 
         /**
@@ -45,7 +45,7 @@ namespace Kratos
         {
             ConstitutiveLaw this_cl = ConstitutiveLaw();
 
-            KRATOS_CHECK_EQUAL(this_cl.GetStrainMeasure(), ConstitutiveLaw::StrainMeasure_Infinitesimal);
+            KRATOS_EXPECT_EQ(this_cl.GetStrainMeasure(), ConstitutiveLaw::StrainMeasure_Infinitesimal);
         }
 
         /**
@@ -56,7 +56,7 @@ namespace Kratos
             ConstitutiveLaw this_cl = ConstitutiveLaw();
             Properties prop = Properties();
 
-            KRATOS_CHECK_IS_FALSE(this_cl.ValidateInput(prop));
+            KRATOS_EXPECT_FALSE(this_cl.ValidateInput(prop));
         }
 
         /**
@@ -66,7 +66,7 @@ namespace Kratos
         {
             ConstitutiveLaw this_cl = ConstitutiveLaw();
 
-            KRATOS_CHECK_IS_FALSE(this_cl.IsIncremental());
+            KRATOS_EXPECT_FALSE(this_cl.IsIncremental());
         }
 
         /**
@@ -76,7 +76,7 @@ namespace Kratos
         {
             ConstitutiveLaw this_cl = ConstitutiveLaw();
 
-            KRATOS_CHECK_EQUAL(this_cl.GetStressMeasure(), ConstitutiveLaw::StressMeasure_PK1);
+            KRATOS_EXPECT_EQ(this_cl.GetStressMeasure(), ConstitutiveLaw::StressMeasure_PK1);
         }
 
     } // namespace Testing

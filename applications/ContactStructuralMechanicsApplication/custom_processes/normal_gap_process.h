@@ -4,14 +4,13 @@
 //        / /___/ /_/ / / / / /_/ /_/ / /__/ /_ ___/ / /_/ /  / /_/ / /__/ /_/ /_/ / /  / /_/ / /  
 //        \____/\____/_/ /_/\__/\__,_/\___/\__//____/\__/_/   \__,_/\___/\__/\__,_/_/   \__,_/_/  MECHANICS
 //
-//  License:		 BSD License
-//					 license: ContactStructuralMechanicsApplication/license.txt
+//  License:         BSD License
+//                   license: ContactStructuralMechanicsApplication/license.txt
 //
 //  Main authors:    Vicente Mataix Ferrandiz
 //
 
-#if !defined(KRATOS_NORMAL_GAP_PROCESS_H_INCLUDED )
-#define  KRATOS_NORMAL_GAP_PROCESS_H_INCLUDED
+#pragma once
 
 // System includes
 
@@ -61,10 +60,10 @@ public:
     ///@{
 
     /// The type of mapper considered
-    typedef SimpleMortarMapperProcess<TDim, TNumNodes, Variable<array_1d<double, 3>>, TNumNodesMaster> MapperType;
+    using MapperType = SimpleMortarMapperProcess<TDim, TNumNodes, Variable<array_1d<double, 3>>, TNumNodesMaster>;
 
     /// General type definitions
-    typedef ModelPart::NodesContainerType                    NodesArrayType;
+    using NodesArrayType = ModelPart::NodesContainerType;
 
     /// The definition of zero tolerance
     static constexpr double ZeroTolerance = std::numeric_limits<double>::epsilon();
@@ -180,7 +179,7 @@ protected:
      */
     static inline void SwitchFlagNodes(NodesArrayType& rNodes)
     {
-        block_for_each(rNodes, [&](NodeType& rNode) {
+        block_for_each(rNodes, [&](Node& rNode) {
             rNode.Flip(SLAVE);
             rNode.Flip(MASTER);
         });
@@ -268,5 +267,3 @@ inline std::ostream& operator << (std::ostream& rOStream,
 ///@}
 
 }  // namespace Kratos.
-
-#endif // KRATOS_NORMAL_GAP_PROCESS_H_INCLUDED  defined

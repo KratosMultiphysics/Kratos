@@ -44,7 +44,7 @@ public:
     ///@{
     ///@}
 
-    typedef Node<3> NodeType;
+    typedef Node NodeType;
     typedef Geometry<NodeType> GeometryType;
     typedef GeometryType::Pointer GeometryPtrType;
 
@@ -103,7 +103,7 @@ private:
     * Creates a new tetrahedra3D10
     * @return The new tetrahedra
     */
-    Tetrahedra3D10<Node<3>> GenerateTetrahedra(
+    Tetrahedra3D10<Node> GenerateTetrahedra(
         ModelPart& rThisModelPart, 
         const std::vector<int>& rNodeIds);
 
@@ -111,7 +111,7 @@ private:
     * Creates a new triangle3D6
     * @return The new triangle
     */
-    Triangle3D6<Node<3>> GenerateTriangle3D6(
+    Triangle3D6<Node> GenerateTriangle3D6(
         ModelPart& rThisModelPart, 
         const array_1d<int, 6>& rNodeIds);
 

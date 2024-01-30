@@ -10,23 +10,16 @@
 //  Main authors:    Vahid Galavi
 //
 
-#if !defined(KRATOS_GEO_MECHANICS_APPLICATION_CONSTANTS_H_INCLUDED )
-#define  KRATOS_GEO_MECHANICS_APPLICATION_CONSTANTS_H_INCLUDED
-
-// System includes
-
-// External includes
+#pragma once
 
 // Project includes
 #include "includes/define.h"
-
 
 namespace Kratos
 {
     /* Contants used in GeoMechanicsApplication */
     // The size type definition
-    typedef std::size_t         SizeType;
-
+    using SizeType = std::size_t;
 
     // Static definition of the dimension
     constexpr SizeType N_DIM_3D = 3;
@@ -47,7 +40,7 @@ namespace Kratos
     // Static definition of the VoigtSize
     constexpr SizeType VOIGT_SIZE_3D = 6;
     constexpr SizeType VOIGT_SIZE_2D_PLANE_STRESS = 3;
-    constexpr SizeType VOIGT_SIZE_2D_PLANE_STRAIN = 4; // This needs to be changed
+    constexpr SizeType VOIGT_SIZE_2D_PLANE_STRAIN = 4;
     constexpr SizeType VOIGT_SIZE_2D_AXISYMMETRIC = 4;
     constexpr SizeType VOIGT_SIZE_2D_INTERFACE    = 2;
     constexpr SizeType VOIGT_SIZE_3D_INTERFACE    = 3;
@@ -100,6 +93,9 @@ namespace Kratos
                               INDEX_2D_BEAM_Y,
                               INDEX_2D_BEAM_T };
 
-}
+    // Heat vector indices:
+    enum class indexThermalFlux : int {
+        X, Y, Z
+    };
 
-#endif  /* KRATOS_GEO_MECHANICS_APPLICATION_CONSTANTS_H_INCLUDED */
+}

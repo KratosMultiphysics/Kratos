@@ -43,7 +43,7 @@ namespace Kratos
         // Integration
         const typename GeometryType::IntegrationPointsArrayType& integration_points = r_geometry.IntegrationPoints();
 
-        // Determinant of jacobian 
+        // Determinant of jacobian
         // Determine the integration: conservative -> initial; non-conservative -> current
         Vector determinant_jacobian_vector(integration_points.size());
         const bool integrate_conservative = GetProperties().Has(INTEGRATE_CONSERVATIVE)
@@ -61,7 +61,7 @@ namespace Kratos
         for (IndexType point_number = 0; point_number < integration_points.size(); point_number++)
         {
             // Differential area, being 1 for points.
-            const double integration = (r_geometry.Dimension() == 0)
+            const double integration = (r_geometry.LocalSpaceDimension() == 0)
                 ? 1
                 : integration_points[point_number].Weight() * determinant_jacobian_vector[point_number];
 
