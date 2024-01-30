@@ -15,8 +15,10 @@ where,
 - $D_{ij}$ = hydrodynamic thermal dispersion  $\mathrm{[W/m ^{\circ}C]}$
 - $T$      = temperature  $\mathrm{[ ^{\circ}C]}$
 - $\rho^s$ = density solid phase $\mathrm{[kg/m^3]}$ 
+- $\rho^w$ = water density $\mathrm{[kg/m^3]}$ 
 - $q$      = specific discharge $\mathrm{[m/s]}$ 
-- $S$      = degree of saturation $\mathrm{[-]}$ 
+- $S$      = degree of saturation $\mathrm{[-]}$
+- $n$      = porosity $\mathrm{[-]}$
 
 The hydrodynamic thermal dispersion is defined as:
 
@@ -108,7 +110,7 @@ $$ \boldsymbol{V} = \int_{\Gamma_2^{ep}}  f^{n+1} \boldsymbol{N}^T  d \Gamma $$
 
 ***Robin condition (convective boundary)***
 
-$$ \boldsymbol{W^r} = \int_{\Gamma_2^{ep}}  g^{n+1} \boldsymbol{N}^T  d \Gamma $$
+$$ \boldsymbol{W^r} = \int_{\Gamma_3^{ep}}  g^{n+1} \boldsymbol{N}^T  d \Gamma $$
 
 $$ \boldsymbol{W^l} = \int_{\Gamma_3^{ep}}  \left( \rho^w c^w q_n \right)^{n+1} \boldsymbol{N}^T \boldsymbol{I} d \Gamma $$
 
@@ -121,6 +123,7 @@ where
 - $\Omega$ = domain region
 - $\Gamma$ = boundary region
 
+The supercripts "$^l$" and "$^r$" for Robin boundary condition indicate the left hands side (matrix) and righ hand side (vector), respectively. The supercripts "$^e$" and "$^{ep}$" for $\Omega$ and $\Gamma$ indicat valunes at element and perpendicular on element interfaces, respectively.  
 
 ## Bibliography
 Diersch, H.-J. G., 2014. FEFLOW; Finite Element Modeling of Flow, Mass and Heat Transport in Porous and Fractured Media. Springer.
