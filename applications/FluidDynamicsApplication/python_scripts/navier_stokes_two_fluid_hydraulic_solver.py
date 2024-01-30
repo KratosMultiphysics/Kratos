@@ -129,7 +129,7 @@ class NavierStokesTwoFluidsHydraulicSolver(FluidSolver):
 
         self.eulerian_fm_ale = self.settings["eulerian_fm_ale"].GetBool()
         if self.eulerian_fm_ale:
-            self.fm_ale_variable = KratosCFD.CONVECTION_SCALAR 
+            self.fm_ale_variable = KratosCFD.CONVECTION_SCALAR
             self.eulerian_gradient = KratosCFD.CONVECTION_SCALAR_GRADIENT
             self.eulerian_convection_var = KratosCFD.CONVECTION_VELOCITY
             self.settings["eulerian_fm_ale_settings"].AddEmptyValue("levelset_variable_name").SetString("CONVECTION_SCALAR")
@@ -243,20 +243,48 @@ class NavierStokesTwoFluidsHydraulicSolver(FluidSolver):
     def InitializeSolutionStep(self):
 
         # Inlet and outlet water discharge is calculated for current time step, first discharge and the considering the time step inlet and outlet volume is calculated
+        print("InitializeSolutionStep antes de la masa")
+        for node in self.GetComputingModelPart().Nodes:
+            if node.Id == 66821:
+                print(node.IsFixed(KratosMultiphysics.DISTANCE))
+                print(node.GetSolutionStepValue(KratosMultiphysics.DISTANCE))
         if self.mass_source:
             self._ComputeStepInitialWaterVolume()
+
+        print("InitializeSolutionStep post de la masa pre fm ale")
+        for node in self.GetComputingModelPart().Nodes:
+            if node.Id == 66821:
+                print(node.IsFixed(KratosMultiphysics.DISTANCE))
+                print(node.GetSolutionStepValue(KratosMultiphysics.DISTANCE))
 
         # Perform the convection of the historical database (Eulerian FM-ALE)
         if self.eulerian_fm_ale:
             self.__PerformEulerianFmAleVelocity()
             KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "FM-Lagrangian method is performed.")
+        print("InitializeSolutionStep post fm ale pre levelset")
+        for node in self.GetComputingModelPart().Nodes:
+            if node.Id == 66821:
+                print(node.IsFixed(KratosMultiphysics.DISTANCE))
+                print(node.GetSolutionStepValue(KratosMultiphysics.DISTANCE))
 
         # Perform the level-set convection according to the previous step velocity
         self.__PerformLevelSetConvection()
         KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Level-set convection is performed.")
 
+        print("InitializeSolutionStep post levelset pre corrrection distance")
+        for node in self.GetComputingModelPart().Nodes:
+            if node.Id == 66821:
+                print(node.IsFixed(KratosMultiphysics.DISTANCE))
+                print(node.GetSolutionStepValue(KratosMultiphysics.DISTANCE))
+
         # Perform distance correction to prevent ill-conditioned cuts
-        self._GetDistanceModificationProcess().ExecuteInitializeSolutionStep()
+        # self._GetDistanceModificationProcess().ExecuteInitializeSolutionStep()
+
+        print("InitializeSolutionStep post levelset post corrrection distance")
+        for node in self.GetComputingModelPart().Nodes:
+            if node.Id == 66821:
+                print(node.IsFixed(KratosMultiphysics.DISTANCE))
+                print(node.GetSolutionStepValue(KratosMultiphysics.DISTANCE))
 
         # Update the DENSITY and DYNAMIC_VISCOSITY values according to the new level-set
         self._SetNodalProperties()
@@ -275,13 +303,23 @@ class NavierStokesTwoFluidsHydraulicSolver(FluidSolver):
         dynamic_tau = self.settings["formulation"]["dynamic_tau"].GetDouble()
         self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DYNAMIC_TAU, dynamic_tau)
 
+
     def FinalizeSolutionStep(self):
         KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Mass and momentum conservation equations are solved.")
-
+        print("FinalizeSolutionStep pre redistance")
+        for node in self.GetComputingModelPart().Nodes:
+            if node.Id == 66821:
+                print(node.IsFixed(KratosMultiphysics.DISTANCE))
+                print(node.GetSolutionStepValue(KratosMultiphysics.DISTANCE))
         # Recompute the distance field according to the new level-set position
         if self._reinitialization_type != "none":
             self._GetDistanceReinitializationProcess().Execute()
             KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Redistancing process is finished.")
+        print("FinalizeSolutionStep post redistance")
+        for node in self.GetComputingModelPart().Nodes:
+            if node.Id == 66821:
+                print(node.IsFixed(KratosMultiphysics.DISTANCE))
+                print(node.GetSolutionStepValue(KratosMultiphysics.DISTANCE))
 
         # Prepare distance correction for next step
         self._GetDistanceModificationProcess().ExecuteFinalizeSolutionStep()
@@ -388,7 +426,7 @@ class NavierStokesTwoFluidsHydraulicSolver(FluidSolver):
             self._GetEulerianFmAleProcess().Execute()
             KratosMultiphysics.VariableUtils().CopyModelPartNodalVar(self.fm_ale_variable, auxiliar_velocity_componentes[i], self.main_model_part, self.main_model_part, 0, 0)
             self.__CorrectVelocityHistory(velocity_components[i], mesh_var[i])
-        self.__SlipConditionFixity()
+        self.__SlipConditionFixity(domain_size,velocity_components)
 
     def __CorrectVelocityHistory(self,velocity_components, mesh_variable):
         for node in self.GetComputingModelPart().Nodes:
@@ -408,9 +446,15 @@ class NavierStokesTwoFluidsHydraulicSolver(FluidSolver):
             result += i*j
         return result
 
-    def __SlipConditionFixity(self):
+    def __SlipConditionFixity(self,domain_size,velocity_components):
+
         for node in self.GetComputingModelPart().Nodes:
-            if node.Is(KratosMultiphysics.SLIP):
+            IsFixed = False
+            for i in range(domain_size):
+                if node.IsFixed(velocity_components[i]):
+                    IsFixed =True
+                    break
+            if node.Is(KratosMultiphysics.SLIP) and not IsFixed:
                     n = node.GetSolutionStepValue(KratosMultiphysics.NORMAL)
                     n/=math.sqrt(n[0]**2+n[1]**2+n[2]**2)
                     # n /= math.sqrt(n[0]**2+n[1]**2)
@@ -658,9 +702,9 @@ class NavierStokesTwoFluidsHydraulicSolver(FluidSolver):
             domain_size + 1)
 
         return scheme
-    
+
     def _HydraulicBoundaryConditionCheck(self,boundary,name):
-        # Check if the inlet and outl 
+        # Check if the inlet and outl
         computing_model_part = self.GetComputingModelPart()
         not_boundary_nodes=any([node.Is(boundary) for node in computing_model_part.Nodes])
         if not not_boundary_nodes:

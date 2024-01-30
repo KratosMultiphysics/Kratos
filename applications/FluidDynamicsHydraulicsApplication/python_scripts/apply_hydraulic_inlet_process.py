@@ -143,16 +143,37 @@ class ApplyHydraulicInletProcess(KratosMultiphysics.Process):
             self.inlet_model_part, inlet_velocity, self.water_depth_variable)
 
         #Assign the identical value of the inlet water depth to the DISTANCE variable (free surface) for all nodes associated with the inlet model part.
+        for node in self.inlet_model_part.Nodes:
+            if node.Id == 66821:
+                print("ExecuteInitializeSolutionStep pre fijar")
+                print(node.IsFixed(KratosMultiphysics.DISTANCE))
+                print(node.GetSolutionStepValue(KratosMultiphysics.DISTANCE))
+
         KratosFluidHydraulics.HydraulicFluidAuxiliaryUtilities.SetInletFreeSurface(
             self.inlet_model_part, KratosMultiphysics.INLET, self.water_depth_variable)
+        for node in self.inlet_model_part.Nodes:
+            if node.Id == 66821:
+                print("ExecuteInitializeSolutionStep POST fijar")
+                print(node.IsFixed(KratosMultiphysics.DISTANCE))
+                print(node.GetSolutionStepValue(KratosMultiphysics.DISTANCE))
 
 
     def ExecuteFinalizeSolutionStep(self):
         # Here we free all of the nodes in the inlet
+        for node in self.inlet_model_part.Nodes:
+            if node.Id == 66821:
+                print("ExecuteInitializeSolutionStep ANTES DE LIBERAR")
+                print(node.IsFixed(KratosMultiphysics.DISTANCE))
+                print(node.GetSolutionStepValue(KratosMultiphysics.DISTANCE))
         if self.step_is_active:
             KratosFluidHydraulics.HydraulicFluidAuxiliaryUtilities.FreeInletVelocity(
                 self.inlet_model_part)
         self.step_is_active = False
+        for node in self.inlet_model_part.Nodes:
+            if node.Id == 66821:
+                print("ExecuteInitializeSolutionStep POST LIBERAR")
+                print(node.IsFixed(KratosMultiphysics.DISTANCE))
+                print(node.GetSolutionStepValue(KratosMultiphysics.DISTANCE))
 
     def CalculateFroudeNumber(self, water_depth):
         #The Froude number is computed, and this value will be included into the objective function for the bisection method.

@@ -285,9 +285,13 @@ void HydraulicFluidAuxiliaryUtilities::SetInletVelocity(
         }
         else{
             // The air velocity in the inlet node is assumed to be null.
-            rNode.FastGetSolutionStepValue(VELOCITY_X) = 0.0;
-            rNode.FastGetSolutionStepValue(VELOCITY_Y) = 0.0;
-            rNode.FastGetSolutionStepValue(VELOCITY_Z) = 0.0;
+            // rNode.FastGetSolutionStepValue(VELOCITY_X) = 0.0;
+            // rNode.FastGetSolutionStepValue(VELOCITY_Y) = 0.0;
+            // rNode.FastGetSolutionStepValue(VELOCITY_Z) = 0.0;
+            // rNode.Fix(VELOCITY_X);
+            // rNode.Fix(VELOCITY_Y);
+            // rNode.Fix(VELOCITY_Z);
+            rNode.FastGetSolutionStepValue(VELOCITY) = inlet_velocity;
             rNode.Fix(VELOCITY_X);
             rNode.Fix(VELOCITY_Y);
             rNode.Fix(VELOCITY_Z);

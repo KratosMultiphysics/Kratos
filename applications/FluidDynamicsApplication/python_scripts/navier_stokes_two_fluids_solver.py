@@ -299,6 +299,12 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
         # We set this value at every time step as other processes/solvers also use them
         dynamic_tau = self.settings["formulation"]["dynamic_tau"].GetDouble()
         self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DYNAMIC_TAU, dynamic_tau)
+        aaaaa
+        for node in self.GetComputingModelPart().Nodes:
+            aaaaaa
+            if node.Id ==1101:
+
+                print(node.GetSolutionStepValue(KratosMultiphysics.VELOCITY))
 
 
     def FinalizeSolutionStep(self):

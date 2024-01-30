@@ -165,7 +165,7 @@ public:
         ModelPart& rBaseModelPart,
         typename TLinearSolver::Pointer pLinearSolver,
         BuilderSolverPointerType pBuilderAndSolver,
-        unsigned int MaxIterations = 10,
+        unsigned int MaxIterations = 20,
         Flags Options = CALCULATE_EXACT_DISTANCES_TO_PLANE.AsFalse(),
         std::string AuxPartName = "RedistanceCalculationPart",
         double Coefficient1 = 0.01,
@@ -231,10 +231,21 @@ public:
         block_for_each(r_distance_model_part.Nodes(), [](Node& rNode){
             double& d = rNode.FastGetSolutionStepValue(DISTANCE);
 
-            // Free the DISTANCE values
-            rNode.Free(DISTANCE);
-            // Set the fix flag to 0
-            rNode.Set(BLOCKED, false);
+            if (rNode.IsFixed(DISTANCE))
+            {
+                rNode.Set(BLOCKED, true);
+            }
+            else{
+                // Free the DISTANCE values
+                rNode.Free(DISTANCE);
+                // Set the fix flag to 0
+                rNode.Set(BLOCKED, false);
+            }
+
+            // // Free the DISTANCE values
+            // rNode.Free(DISTANCE);
+            // // Set the fix flag to 0
+            // rNode.Set(BLOCKED, false);
 
             // Save the distances
             rNode.SetValue(DISTANCE, d);
@@ -243,13 +254,26 @@ public:
                 d = 1.0e-15;
                 rNode.Set(BLOCKED, true);
                 rNode.Fix(DISTANCE);
-            } else {
+            } else if ( !rNode.IsFixed(DISTANCE)) {
                 if(d > 0.0){
                     d = 1.0e15; // Set to a large number, to make sure that that the minimal distance is computed according to CaculateTetrahedraDistances
                 } else {
                     d = -1.0e15;
                 }
             }
+
+            // if(d == 0){
+            //     d = 1.0e-15;
+            //     rNode.Set(BLOCKED, true);
+            //     rNode.Fix(DISTANCE);
+            // } else{
+            //     if(d > 0.0){
+            //         d = 1.0e15; // Set to a large number, to make sure that that the minimal distance is computed according to CaculateTetrahedraDistances
+            //     } else {
+            //         d = -1.0e15;
+            //     }
+            // }
+
         });
 
         block_for_each(r_distance_model_part.Elements(), [this](Element& rElem){
