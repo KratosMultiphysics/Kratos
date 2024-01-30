@@ -24,14 +24,33 @@
      inkscape:pagecheckerboard="0"
      inkscape:deskcolor="#d1d1d1"
      inkscape:zoom="1.4142136"
-     inkscape:cx="241.12341"
-     inkscape:cy="136.82516"
+     inkscape:cx="55.507882"
+     inkscape:cy="175.71604"
      inkscape:window-width="1920"
      inkscape:window-height="1017"
      inkscape:window-x="-8"
      inkscape:window-y="-8"
      inkscape:window-maximized="1"
-     inkscape:current-layer="svg298" />
+     inkscape:current-layer="svg298"
+     showgrid="true">
+    <inkscape:grid
+       type="axonomgrid"
+       id="grid1"
+       units="mm"
+       originx="0"
+       originy="0"
+       spacingx="0"
+       spacingy="7.5590551"
+       empcolor="#0099e5"
+       empopacity="0.30196078"
+       color="#0099e5"
+       opacity="0.14901961"
+       empspacing="5"
+       dotted="false"
+       gridanglex="30"
+       gridanglez="30"
+       visible="true" />
+  </sodipodi:namedview>
   <title
      id="title1">UNNAMED</title>
   <desc
@@ -44,850 +63,148 @@ CreationDate: Thu Jan 25 16:45:48 2024
      id="defs1">
     <marker
        style="overflow:visible"
-       id="Triangle-0"
-       refX="2"
+       id="ArrowTriangleStylized"
+       refX="0"
        refY="0"
        orient="auto-start-reverse"
-       inkscape:stockid="Triangle arrow"
+       inkscape:stockid="Stylized triangle arrow"
        markerWidth="1"
        markerHeight="1"
        viewBox="0 0 1 1"
        inkscape:isstock="true"
        inkscape:collect="always"
-       preserveAspectRatio="xMidYMid"
-       markerUnits="strokeWidth">
+       preserveAspectRatio="xMidYMid">
       <path
          transform="scale(0.5)"
          style="fill:context-stroke;fill-rule:evenodd;stroke:context-stroke;stroke-width:1pt"
-         d="M 5.77,0 -2.88,5 V -5 Z"
-         id="path135-2" />
+         d="m 6,0 c -3,1 -7,3 -9,5 0,0 0,-4 2,-5 -2,-1 -2,-5 -2,-5 2,2 6,4 9,5 z"
+         id="path4" />
+    </marker>
+    <inkscape:perspective
+       sodipodi:type="inkscape:persp3d"
+       inkscape:vp_x="0 : 198.36305 : 1"
+       inkscape:vp_y="0 : 1000 : 0"
+       inkscape:vp_z="460.80344 : 198.36305 : 1"
+       inkscape:persp3d-origin="230.40172 : 132.24203 : 1"
+       id="perspective8" />
+    <marker
+       style="overflow:visible"
+       id="ArrowTriangleStylized-4"
+       refX="0"
+       refY="0"
+       orient="auto-start-reverse"
+       inkscape:stockid="Stylized triangle arrow"
+       markerWidth="1"
+       markerHeight="1"
+       viewBox="0 0 1 1"
+       inkscape:isstock="true"
+       inkscape:collect="always"
+       preserveAspectRatio="xMidYMid">
+      <path
+         transform="scale(0.5)"
+         style="fill:context-stroke;fill-rule:evenodd;stroke:context-stroke;stroke-width:1pt"
+         d="m 6,0 c -3,1 -7,3 -9,5 0,0 0,-4 2,-5 -2,-1 -2,-5 -2,-5 2,2 6,4 9,5 z"
+         id="path4-0" />
     </marker>
     <marker
        style="overflow:visible"
-       id="Triangle-0-0"
-       refX="2"
+       id="ArrowTriangleStylized-4-5"
+       refX="0"
        refY="0"
        orient="auto-start-reverse"
-       inkscape:stockid="Triangle arrow"
+       inkscape:stockid="Stylized triangle arrow"
        markerWidth="1"
        markerHeight="1"
        viewBox="0 0 1 1"
        inkscape:isstock="true"
        inkscape:collect="always"
-       preserveAspectRatio="xMidYMid"
-       markerUnits="strokeWidth">
+       preserveAspectRatio="xMidYMid">
       <path
          transform="scale(0.5)"
          style="fill:context-stroke;fill-rule:evenodd;stroke:context-stroke;stroke-width:1pt"
-         d="M 5.77,0 -2.88,5 V -5 Z"
-         id="path135-2-8" />
+         d="m 6,0 c -3,1 -7,3 -9,5 0,0 0,-4 2,-5 -2,-1 -2,-5 -2,-5 2,2 6,4 9,5 z"
+         id="path4-0-6" />
     </marker>
     <marker
        style="overflow:visible"
-       id="Triangle-0-0-9"
-       refX="2"
+       id="ArrowTriangleStylized-1"
+       refX="0"
        refY="0"
        orient="auto-start-reverse"
-       inkscape:stockid="Triangle arrow"
+       inkscape:stockid="Stylized triangle arrow"
        markerWidth="1"
        markerHeight="1"
        viewBox="0 0 1 1"
        inkscape:isstock="true"
        inkscape:collect="always"
-       preserveAspectRatio="xMidYMid"
-       markerUnits="strokeWidth">
+       preserveAspectRatio="xMidYMid">
       <path
          transform="scale(0.5)"
          style="fill:context-stroke;fill-rule:evenodd;stroke:context-stroke;stroke-width:1pt"
-         d="M 5.77,0 -2.88,5 V -5 Z"
-         id="path135-2-8-1" />
+         d="m 6,0 c -3,1 -7,3 -9,5 0,0 0,-4 2,-5 -2,-1 -2,-5 -2,-5 2,2 6,4 9,5 z"
+         id="path4-2" />
     </marker>
   </defs>
   <g
-     id="g300"
-     transform="translate(-638.44025,-254.5)">
-    <polygon
-       fill="#ffffe5"
-       points="928,418 943,409 928,409 "
-       id="polygon5"
-       style="shape-rendering:crispEdges" />
-    <polygon
-       fill="#ffffe5"
-       points="928,418 943,426 943,409 "
-       id="polygon6"
-       style="shape-rendering:crispEdges" />
-    <polygon
-       fill="#ffffe5"
-       points="928,418 936,426 943,426 "
-       id="polygon7"
-       style="shape-rendering:crispEdges" />
-    <polygon
-       fill="#ffffe5"
-       points="774,264 789,255 774,255 "
-       id="polygon8"
-       style="shape-rendering:crispEdges" />
-    <polygon
-       fill="#ffffe5"
-       points="774,264 789,272 789,255 "
-       id="polygon9"
-       style="shape-rendering:crispEdges" />
-    <polygon
-       fill="#ffffe5"
-       points="774,264 782,272 789,272 "
-       id="polygon10"
-       style="shape-rendering:crispEdges" />
-    <polygon
-       fill="#ffffe5"
-       points="1083,264 1098,255 1083,255 "
-       id="polygon11"
-       style="shape-rendering:crispEdges" />
-    <polygon
-       fill="#ffffe5"
-       points="774,573 782,581 789,581 "
-       id="polygon12"
-       style="shape-rendering:crispEdges" />
-    <polygon
-       fill="#ffffe5"
-       points="774,573 789,581 789,564 "
-       id="polygon13"
-       style="shape-rendering:crispEdges" />
-    <polygon
-       fill="#ffffe5"
-       points="774,573 789,564 774,564 "
-       id="polygon14"
-       style="shape-rendering:crispEdges" />
-    <polygon
-       fill="#ffffe5"
-       points="1083,264 1098,272 1098,255 "
-       id="polygon15"
-       style="shape-rendering:crispEdges" />
-    <polygon
-       fill="#ffffe5"
-       points="1083,264 1091,272 1098,272 "
-       id="polygon16"
-       style="shape-rendering:crispEdges" />
-    <polygon
-       fill="#ffffe5"
-       points="1083,573 1098,564 1083,564 "
-       id="polygon17"
-       style="shape-rendering:crispEdges" />
-    <polygon
-       fill="#ffffe5"
-       points="1083,573 1098,581 1098,564 "
-       id="polygon18"
-       style="shape-rendering:crispEdges" />
-    <polygon
-       fill="#ffffe5"
-       points="1083,573 1091,581 1098,581 "
-       id="polygon19"
-       style="shape-rendering:crispEdges" />
-    <polygon
-       fill="#ffffe5"
-       points="774,573 766.044,588.566 782,581 "
-       id="polygon20"
-       style="shape-rendering:crispEdges" />
-    <polygon
-       fill="#ffffe5"
-       points="1083,264 1074.79,279.823 1091,272 "
-       id="polygon21"
-       style="shape-rendering:crispEdges" />
-    <polygon
-       fill="#ffffe5"
-       points="928,418 920.415,434.195 936,426 "
-       id="polygon22"
-       style="shape-rendering:crispEdges" />
-    <polygon
-       fill="#ffffe5"
-       points="1083,573 1074.79,588.566 1091,581 "
-       id="polygon23"
-       style="shape-rendering:crispEdges" />
-    <polygon
-       fill="#ffffe5"
-       points="774,264 766.044,279.823 782,272 "
-       id="polygon24"
-       style="shape-rendering:crispEdges" />
-    <text
-       fill="#999999"
-       x="931"
-       y="423"
-       font-size="14px"
-       text-anchor="start"
-       baseline-shift="0px"
-       font-family="Helvetica"
-       id="text24"
-       style="shape-rendering:crispEdges">1</text>
-    <text
-       fill="#000000"
-       x="777"
-       y="578"
-       font-size="14px"
-       text-anchor="start"
-       baseline-shift="0px"
-       font-family="Helvetica"
-       id="text25"
-       style="shape-rendering:crispEdges">1</text>
-    <text
-       fill="#000000"
-       x="1086"
-       y="269"
-       font-size="14px"
-       text-anchor="start"
-       baseline-shift="0px"
-       font-family="Helvetica"
-       id="text26"
-       style="shape-rendering:crispEdges">3</text>
-    <text
-       fill="#000000"
-       x="777"
-       y="269"
-       font-size="14px"
-       text-anchor="start"
-       baseline-shift="0px"
-       font-family="Helvetica"
-       id="text27"
-       style="shape-rendering:crispEdges">4</text>
-    <text
-       fill="#000000"
-       x="1086"
-       y="578"
-       font-size="14px"
-       text-anchor="start"
-       baseline-shift="0px"
-       font-family="Helvetica"
-       id="text28"
-       style="shape-rendering:crispEdges">2</text>
-    <polyline
-       fill="none"
-       stroke="#0000ff"
-       stroke-width="1"
-       stroke-linejoin="round"
-       stroke-linecap="round"
-       points="766.044,279.823 766.044,588.566"
-       id="polyline107"
-       style="stroke:#000024;stroke-width:2;stroke-dasharray:none;stroke-opacity:1;shape-rendering:crispEdges" />
-    <polyline
-       fill="none"
-       stroke="#0000ff"
-       stroke-width="1"
-       stroke-linejoin="round"
-       stroke-linecap="round"
-       points="1074.79,279.823 766.044,279.823"
-       id="polyline108"
-       style="stroke:#000024;stroke-width:2;stroke-dasharray:none;stroke-opacity:1;shape-rendering:crispEdges" />
-    <polyline
-       fill="none"
-       stroke="#0000ff"
-       stroke-width="1"
-       stroke-linejoin="round"
-       stroke-linecap="round"
-       points="766.044,588.566 1074.79,588.566 1074.79,279.823"
-       id="polyline109"
-       style="stroke:#000024;stroke-width:2;stroke-dasharray:none;stroke-opacity:1;shape-rendering:crispEdges" />
-    <polyline
-       fill="none"
-       stroke="#000000"
-       stroke-width="1"
-       stroke-linejoin="round"
-       stroke-linecap="round"
-       points="1098,255 1083,255"
-       id="polyline130"
-       style="shape-rendering:crispEdges" />
-    <polyline
-       fill="none"
-       stroke="#000000"
-       stroke-width="1"
-       stroke-linejoin="round"
-       stroke-linecap="round"
-       points="774,564 774,573"
-       id="polyline131"
-       style="shape-rendering:crispEdges" />
-    <polyline
-       fill="none"
-       stroke="#000000"
-       stroke-width="1"
-       stroke-linejoin="round"
-       stroke-linecap="round"
-       points="789,564 774,564"
-       id="polyline132"
-       style="shape-rendering:crispEdges" />
-    <polyline
-       fill="none"
-       stroke="#000000"
-       stroke-width="1"
-       stroke-linejoin="round"
-       stroke-linecap="round"
-       points="789,581 789,564"
-       id="polyline133"
-       style="shape-rendering:crispEdges" />
-    <polyline
-       fill="none"
-       stroke="#000000"
-       stroke-width="1"
-       stroke-linejoin="round"
-       stroke-linecap="round"
-       points="1098,272 1098,255"
-       id="polyline134"
-       style="shape-rendering:crispEdges" />
-    <polyline
-       fill="none"
-       stroke="#000000"
-       stroke-width="1"
-       stroke-linejoin="round"
-       stroke-linecap="round"
-       points="1091,272 1098,272"
-       id="polyline135"
-       style="shape-rendering:crispEdges" />
-    <polyline
-       fill="none"
-       stroke="#000000"
-       stroke-width="1"
-       stroke-linejoin="round"
-       stroke-linecap="round"
-       points="782,272 789,272 789,255 774,255 774,264"
-       id="polyline136"
-       style="shape-rendering:crispEdges" />
-    <polyline
-       fill="none"
-       stroke="#000000"
-       stroke-width="1"
-       stroke-linejoin="round"
-       stroke-linecap="round"
-       points="1083,255 1083,264"
-       id="polyline137"
-       style="shape-rendering:crispEdges" />
-    <polyline
-       fill="none"
-       stroke="#000000"
-       stroke-width="1"
-       stroke-linejoin="round"
-       stroke-linecap="round"
-       points="1098,255 1083,255"
-       id="polyline138"
-       style="shape-rendering:crispEdges" />
-    <polyline
-       fill="none"
-       stroke="#000000"
-       stroke-width="1"
-       stroke-linejoin="round"
-       stroke-linecap="round"
-       points="1098,272 1098,255"
-       id="polyline139"
-       style="shape-rendering:crispEdges" />
-    <polyline
-       fill="none"
-       stroke="#999999"
-       stroke-width="1"
-       stroke-linejoin="round"
-       stroke-linecap="round"
-       points="936,426 943,426 943,409 928,409"
-       id="polyline140"
-       style="shape-rendering:crispEdges" />
-    <polyline
-       fill="none"
-       stroke="#000000"
-       stroke-width="1"
-       stroke-linejoin="round"
-       stroke-linecap="round"
-       points="1083,255 1083,264"
-       id="polyline141"
-       style="shape-rendering:crispEdges" />
-    <polyline
-       fill="none"
-       stroke="#000000"
-       stroke-width="1"
-       stroke-linejoin="round"
-       stroke-linecap="round"
-       points="1091,272 1098,272"
-       id="polyline142"
-       style="shape-rendering:crispEdges" />
-    <polyline
-       fill="none"
-       stroke="#000000"
-       stroke-width="1"
-       stroke-linejoin="round"
-       stroke-linecap="round"
-       points="782,581 789,581"
-       id="polyline143"
-       style="shape-rendering:crispEdges" />
-    <polyline
-       fill="none"
-       stroke="#000000"
-       stroke-width="1"
-       stroke-linejoin="round"
-       stroke-linecap="round"
-       points="774,564 774,573"
-       id="polyline144"
-       style="shape-rendering:crispEdges" />
-    <polyline
-       fill="none"
-       stroke="#000000"
-       stroke-width="1"
-       stroke-linejoin="round"
-       stroke-linecap="round"
-       points="1083,564 1083,573"
-       id="polyline145"
-       style="shape-rendering:crispEdges" />
-    <polyline
-       fill="none"
-       stroke="#000000"
-       stroke-width="1"
-       stroke-linejoin="round"
-       stroke-linecap="round"
-       points="1098,564 1083,564"
-       id="polyline146"
-       style="shape-rendering:crispEdges" />
-    <polyline
-       fill="none"
-       stroke="#000000"
-       stroke-width="1"
-       stroke-linejoin="round"
-       stroke-linecap="round"
-       points="1098,581 1098,564"
-       id="polyline147"
-       style="shape-rendering:crispEdges" />
-    <polyline
-       fill="none"
-       stroke="#999999"
-       stroke-width="1"
-       stroke-linejoin="round"
-       stroke-linecap="round"
-       points="936,426 943,426 943,409 928,409 928,418"
-       id="polyline148"
-       style="shape-rendering:crispEdges" />
-    <polyline
-       fill="none"
-       stroke="#000000"
-       stroke-width="1"
-       stroke-linejoin="round"
-       stroke-linecap="round"
-       points="1091,581 1098,581"
-       id="polyline149"
-       style="shape-rendering:crispEdges" />
-    <polyline
-       fill="none"
-       stroke="#000000"
-       stroke-width="1"
-       stroke-linejoin="round"
-       stroke-linecap="round"
-       points="789,255 774,255"
-       id="polyline150"
-       style="shape-rendering:crispEdges" />
-    <polyline
-       fill="none"
-       stroke="#000000"
-       stroke-width="1"
-       stroke-linejoin="round"
-       stroke-linecap="round"
-       points="782,581 789,581 789,564"
-       id="polyline151"
-       style="shape-rendering:crispEdges" />
-    <polyline
-       fill="none"
-       stroke="#000000"
-       stroke-width="1"
-       stroke-linejoin="round"
-       stroke-linecap="round"
-       points="789,272 789,255"
-       id="polyline152"
-       style="shape-rendering:crispEdges" />
-    <polyline
-       fill="none"
-       stroke="#000000"
-       stroke-width="1"
-       stroke-linejoin="round"
-       stroke-linecap="round"
-       points="789,564 774,564"
-       id="polyline153"
-       style="shape-rendering:crispEdges" />
-    <polyline
-       fill="none"
-       stroke="#000000"
-       stroke-width="1"
-       stroke-linejoin="round"
-       stroke-linecap="round"
-       points="1083,564 1083,573"
-       id="polyline154"
-       style="shape-rendering:crispEdges" />
-    <polyline
-       fill="none"
-       stroke="#000000"
-       stroke-width="1"
-       stroke-linejoin="round"
-       stroke-linecap="round"
-       points="1098,564 1083,564"
-       id="polyline155"
-       style="shape-rendering:crispEdges" />
-    <polyline
-       fill="none"
-       stroke="#999999"
-       stroke-width="1"
-       stroke-linejoin="round"
-       stroke-linecap="round"
-       points="928,409 928,418"
-       id="polyline156"
-       style="shape-rendering:crispEdges" />
-    <polyline
-       fill="none"
-       stroke="#000000"
-       stroke-width="1"
-       stroke-linejoin="round"
-       stroke-linecap="round"
-       points="782,272 789,272"
-       id="polyline157"
-       style="shape-rendering:crispEdges" />
-    <polyline
-       fill="none"
-       stroke="#000000"
-       stroke-width="1"
-       stroke-linejoin="round"
-       stroke-linecap="round"
-       points="1098,581 1098,564"
-       id="polyline158"
-       style="shape-rendering:crispEdges" />
-    <polyline
-       fill="none"
-       stroke="#000000"
-       stroke-width="1"
-       stroke-linejoin="round"
-       stroke-linecap="round"
-       points="1091,581 1098,581"
-       id="polyline159"
-       style="shape-rendering:crispEdges" />
-    <polyline
-       fill="none"
-       stroke="#000000"
-       stroke-width="1"
-       stroke-linejoin="round"
-       stroke-linecap="round"
-       points="774,255 774,264 766.044,279.823"
-       id="polyline160"
-       style="shape-rendering:crispEdges" />
-    <polyline
-       fill="none"
-       stroke="#000000"
-       stroke-width="1"
-       stroke-linejoin="round"
-       stroke-linecap="round"
-       points="1083,573 1074.79,588.566 1091,581"
-       id="polyline161"
-       style="shape-rendering:crispEdges" />
-    <polyline
-       fill="none"
-       stroke="#000000"
-       stroke-width="1"
-       stroke-linejoin="round"
-       stroke-linecap="round"
-       points="1083,573 1074.79,588.566 1091,581"
-       id="polyline162"
-       style="shape-rendering:crispEdges" />
-    <polyline
-       fill="none"
-       stroke="#000000"
-       stroke-width="1"
-       stroke-linejoin="round"
-       stroke-linecap="round"
-       points="1083,264 1074.79,279.823 1091,272"
-       id="polyline163"
-       style="shape-rendering:crispEdges" />
-    <polyline
-       fill="none"
-       stroke="#000000"
-       stroke-width="1"
-       stroke-linejoin="round"
-       stroke-linecap="round"
-       points="766.044,588.566 782,581"
-       id="polyline164"
-       style="shape-rendering:crispEdges" />
-    <polyline
-       fill="none"
-       stroke="#000000"
-       stroke-width="1"
-       stroke-linejoin="round"
-       stroke-linecap="round"
-       points="774,573 766.044,588.566"
-       id="polyline165"
-       style="shape-rendering:crispEdges" />
-    <polyline
-       fill="none"
-       stroke="#000000"
-       stroke-width="1"
-       stroke-linejoin="round"
-       stroke-linecap="round"
-       points="1083,264 1074.79,279.823"
-       id="polyline166"
-       style="shape-rendering:crispEdges" />
-    <polyline
-       fill="none"
-       stroke="#999999"
-       stroke-width="1"
-       stroke-linejoin="round"
-       stroke-linecap="round"
-       points="920.415,434.195 936,426"
-       id="polyline167"
-       style="shape-rendering:crispEdges" />
-    <polyline
-       fill="none"
-       stroke="#000000"
-       stroke-width="1"
-       stroke-linejoin="round"
-       stroke-linecap="round"
-       points="1074.79,279.823 1091,272"
-       id="polyline168"
-       style="shape-rendering:crispEdges" />
-    <polyline
-       fill="none"
-       stroke="#000000"
-       stroke-width="1"
-       stroke-linejoin="round"
-       stroke-linecap="round"
-       points="766.044,588.566 782,581"
-       id="polyline169"
-       style="shape-rendering:crispEdges" />
-    <polyline
-       fill="none"
-       stroke="#999999"
-       stroke-width="1"
-       stroke-linejoin="round"
-       stroke-linecap="round"
-       points="928,418 920.415,434.195"
-       id="polyline170"
-       style="shape-rendering:crispEdges" />
-    <polyline
-       fill="none"
-       stroke="#000000"
-       stroke-width="1"
-       stroke-linejoin="round"
-       stroke-linecap="round"
-       points="774,573 766.044,588.566"
-       id="polyline171"
-       style="shape-rendering:crispEdges" />
-    <polyline
-       fill="none"
-       stroke="#999999"
-       stroke-width="1"
-       stroke-linejoin="round"
-       stroke-linecap="round"
-       points="920.415,434.195 936,426"
-       id="polyline172"
-       style="shape-rendering:crispEdges" />
-    <polyline
-       fill="none"
-       stroke="#999999"
-       stroke-width="1"
-       stroke-linejoin="round"
-       stroke-linecap="round"
-       points="928,418 920.415,434.195"
-       id="polyline173"
-       style="shape-rendering:crispEdges" />
-    <polyline
-       fill="none"
-       stroke="#000000"
-       stroke-width="1"
-       stroke-linejoin="round"
-       stroke-linecap="round"
-       points="766.044,279.823 782,272"
-       id="polyline174"
-       style="shape-rendering:crispEdges" />
-    <polyline
-       fill="none"
-       stroke="#000000"
-       stroke-width="1"
-       stroke-linejoin="round"
-       stroke-linecap="round"
-       points="774,264 766.044,279.823 782,272"
-       id="polyline175"
-       style="shape-rendering:crispEdges" />
+     id="g3-2-6"
+     transform="matrix(1,0,0,-1,7.3967004e-7,377.95277)">
+    <path
+       style="fill:none;fill-opacity:1;stroke:#7f7f7f;stroke-width:2;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
+       d="m 229.12169,245.6693 -13.09267,7.55906"
+       id="path17-3-7" />
+    <path
+       style="fill:none;fill-opacity:1;stroke:#7f7f7f;stroke-width:2;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
+       d="m 229.12169,260.78741 -13.09267,7.55906"
+       id="path18-7-7" />
+    <path
+       style="fill:none;fill-opacity:1;stroke:#7f7f7f;stroke-width:2;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
+       d="m 229.12169,275.90552 -13.09267,7.55906"
+       id="path19-3-3" />
+    <path
+       style="fill:none;fill-opacity:1;stroke:#7f7f7f;stroke-width:2;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
+       d="m 229.12169,291.02363 -13.09267,7.55906"
+       id="path17-0-7-8" />
+    <path
+       style="fill:none;fill-opacity:1;stroke:#7f7f7f;stroke-width:2;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
+       d="m 229.12169,306.14174 -13.09267,7.55906"
+       id="path18-1-5-2" />
+    <path
+       style="fill:none;fill-opacity:1;stroke:#7f7f7f;stroke-width:2;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
+       d="m 229.12169,321.25985 -13.09267,7.55906"
+       id="path19-8-7-8" />
   </g>
-  <g
-     id="g4-1"
-     transform="matrix(0,1.5933408,-1.5933408,0,259.74613,-119.27139)"
-     inkscape:label="Fixed-single direction">
-    <ellipse
-       style="fill:none;stroke:#919191;stroke-width:1.26242;stroke-opacity:1"
-       id="path3-6"
-       cx="83.333191"
-       cy="117.51894"
-       rx="4.3687887"
-       ry="4.3687882" />
-    <ellipse
-       style="fill:none;stroke:#919191;stroke-width:1.26242;stroke-opacity:1"
-       id="path3-4-0"
-       cx="98.154411"
-       cy="117.5884"
-       rx="4.3687882"
-       ry="4.3687892" />
-    <path
-       sodipodi:type="star"
-       style="fill:none;stroke:#000000;stroke-width:1.05833;stroke-opacity:1"
-       id="path1-4-4"
-       inkscape:flatsided="false"
-       sodipodi:sides="3"
-       sodipodi:cx="56.147808"
-       sodipodi:cy="49.241245"
-       sodipodi:r1="17.529676"
-       sodipodi:r2="8.7648382"
-       sodipodi:arg1="0.51914611"
-       sodipodi:arg2="1.5663437"
-       inkscape:rounded="0"
-       inkscape:randomized="0"
-       d="m 71.367829,57.9384 -15.180995,0.0676 -15.180994,0.0676 7.531958,-13.180926 7.531957,-13.180924 7.649037,13.113329 z"
-       inkscape:transform-center-x="-0.015179157"
-       inkscape:transform-center-y="-4.369267"
-       inkscape:label="path1"
-       transform="rotate(0.15588799,-20128.008,12897.694)" />
-  </g>
-  <g
-     id="g4-0"
-     transform="matrix(1.5933408,0,0,1.5933408,290.08598,201.401)"
-     inkscape:label="Fixed-single direction">
-    <ellipse
-       style="fill:none;stroke:#919191;stroke-width:1.26242;stroke-opacity:1"
-       id="path3-8"
-       cx="83.333191"
-       cy="117.51894"
-       rx="4.3687887"
-       ry="4.3687882" />
-    <ellipse
-       style="fill:none;stroke:#919191;stroke-width:1.26242;stroke-opacity:1"
-       id="path3-4-7"
-       cx="98.154411"
-       cy="117.5884"
-       rx="4.3687882"
-       ry="4.3687892" />
-    <path
-       sodipodi:type="star"
-       style="fill:none;stroke:#000000;stroke-width:1.05833;stroke-opacity:1"
-       id="path1-4-8"
-       inkscape:flatsided="false"
-       sodipodi:sides="3"
-       sodipodi:cx="56.147808"
-       sodipodi:cy="49.241245"
-       sodipodi:r1="17.529676"
-       sodipodi:r2="8.7648382"
-       sodipodi:arg1="0.51914611"
-       sodipodi:arg2="1.5663437"
-       inkscape:rounded="0"
-       inkscape:randomized="0"
-       d="m 71.367829,57.9384 -15.180995,0.0676 -15.180994,0.0676 7.531958,-13.180926 7.531957,-13.180924 7.649037,13.113329 z"
-       inkscape:transform-center-x="-0.015179157"
-       inkscape:transform-center-y="-4.369267"
-       inkscape:label="path1"
-       transform="rotate(0.15588799,-20128.008,12897.694)" />
-  </g>
-  <g
-     id="g7"
-     inkscape:label="Axes"
-     transform="matrix(3.0193916,0,0,3.0193916,-5.9532739,-348.66326)">
-    <path
-       style="fill:none;stroke:#000000;stroke-width:0.878929;stroke-dasharray:none;stroke-opacity:1;marker-start:url(#Triangle-0)"
-       d="M 34.738756,225.71196 H 17.953546"
-       id="path4-89" />
-    <path
-       style="fill:none;stroke:#000000;stroke-width:0.878929;stroke-dasharray:none;stroke-opacity:1;marker-start:url(#Triangle-0-0)"
-       d="m 18.328212,209.2175 v 16.78521"
-       id="path4-89-7" />
-    <text
-       xml:space="preserve"
-       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:7.05556px;font-family:Arial;-inkscape-font-specification:'Arial, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;fill:#000000;stroke:#000000;stroke-width:0;stroke-dasharray:none;stroke-opacity:1"
-       x="16.694675"
-       y="205.15634"
-       id="text5-4"><tspan
-         sodipodi:role="line"
-         id="tspan6"
-         x="16.694675"
-         y="205.15634">y</tspan></text>
-    <text
-       xml:space="preserve"
-       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:7.05556px;font-family:Arial;-inkscape-font-specification:'Arial, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;fill:#000000;stroke:#000000;stroke-width:0;stroke-dasharray:none;stroke-opacity:1"
-       x="37.213131"
-       y="227.39787"
-       id="text5-4-2"><tspan
-         sodipodi:role="line"
-         id="tspan7"
-         x="37.213131"
-         y="227.39787">x</tspan></text>
-  </g>
-  <g
-     id="g3"
-     transform="matrix(1.5916183,0,0,1.5916183,22.622726,267.68519)"
-     inkscape:label="Fixed-both directions">
-    <path
-       style="fill:none;stroke:#919191;stroke-width:1.05833;stroke-opacity:1"
-       d="M 50.168514,71.527704 45.43624,78.178471"
-       id="path2" />
-    <path
-       style="fill:none;stroke:#919191;stroke-width:1.05833;stroke-opacity:1"
-       d="m 56.101865,71.392561 -4.732274,6.650767"
-       id="path2-3" />
-    <path
-       style="fill:none;stroke:#919191;stroke-width:1.05833;stroke-opacity:1"
-       d="m 62.422348,71.401345 -4.732274,6.650767"
-       id="path2-8" />
-    <path
-       style="fill:none;stroke:#919191;stroke-width:1.05833;stroke-opacity:1"
-       d="m 68.630043,71.360586 -4.732274,6.650767"
-       id="path2-0" />
-    <path
-       style="fill:none;stroke:#919191;stroke-width:1.05833;stroke-opacity:1"
-       d="m 74.740086,71.460644 -4.732274,6.650767"
-       id="path2-5" />
-    <path
-       style="fill:none;stroke:#919191;stroke-width:1.05833;stroke-opacity:1"
-       d="m 80.690859,71.506629 -4.732274,6.650767"
-       id="path2-9" />
-    <path
-       sodipodi:type="star"
-       style="fill:none;stroke:#000000;stroke-width:1.05833;stroke-opacity:1"
-       id="path1"
-       inkscape:flatsided="false"
-       sodipodi:sides="3"
-       sodipodi:cx="56.147808"
-       sodipodi:cy="49.241245"
-       sodipodi:r1="17.529676"
-       sodipodi:r2="8.7648382"
-       sodipodi:arg1="0.51914611"
-       sodipodi:arg2="1.5663437"
-       inkscape:rounded="0"
-       inkscape:randomized="0"
-       d="m 71.367829,57.9384 -15.180995,0.0676 -15.180994,0.0676 7.531958,-13.180926 7.531957,-13.180924 7.649037,13.113329 z"
-       inkscape:transform-center-x="-0.015179157"
-       inkscape:transform-center-y="-4.369267"
-       inkscape:label="path1"
-       transform="rotate(0.15588799,-4828.1881,3434.3305)" />
-  </g>
-  <g
-     id="g299"
-     transform="matrix(0.63095238,0,0,0.63095238,-172.44041,-109.9902)"
-     style="fill:#ffffff;fill-opacity:1">
-    <circle
-       style="fill:#ffffff;fill-opacity:1;stroke:#000024;stroke-width:2;stroke-dasharray:none;stroke-opacity:1"
-       id="path298"
-       cx="965.32214"
-       cy="214.76849"
-       r="20" />
-    <path
-       style="fill:#ffffff;fill-opacity:1;stroke:#000024;stroke-width:2;stroke-dasharray:none;stroke-opacity:1"
-       d="m 979,201 -27.5,27.5"
-       id="path299" />
-    <path
-       style="fill:#ffffff;fill-opacity:1;stroke:#000024;stroke-width:2;stroke-dasharray:none;stroke-opacity:1"
-       d="m 951.70711,200.70711 27.49999,27.5"
-       id="path299-3" />
-  </g>
-  <path
-     style="fill:none;stroke:#000000;stroke-width:2.65383;stroke-dasharray:none;stroke-opacity:1;marker-start:url(#Triangle-0-0-9)"
-     d="m 13.546456,368.0883 35.83696,-35.83696"
-     id="path4-89-7-3" />
   <text
      xml:space="preserve"
      style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:21.3035px;font-family:Arial;-inkscape-font-specification:'Arial, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;fill:#000000;stroke:#000000;stroke-width:0;stroke-dasharray:none;stroke-opacity:1"
-     x="-0.41608396"
-     y="386.08612"
+     x="81.643219"
+     y="295.01791"
+     id="text5-4"><tspan
+       sodipodi:role="line"
+       id="tspan6"
+       x="81.643219"
+       y="295.01791"
+       style="stroke-width:0">y</tspan></text>
+  <text
+     xml:space="preserve"
+     style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:21.3035px;font-family:Arial;-inkscape-font-specification:'Arial, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;fill:#000000;stroke:#000000;stroke-width:0;stroke-dasharray:none;stroke-opacity:1"
+     x="81.612015"
+     y="353.48141"
+     id="text5-4-2"><tspan
+       sodipodi:role="line"
+       id="tspan7"
+       x="81.612015"
+       y="353.48141"
+       style="stroke-width:0">x</tspan></text>
+  <text
+     xml:space="preserve"
+     style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:21.3035px;font-family:Arial;-inkscape-font-specification:'Arial, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;fill:#000000;stroke:#000000;stroke-width:0;stroke-dasharray:none;stroke-opacity:1"
+     x="28.044718"
+     y="264.53464"
      id="text5-4-2-8"><tspan
        sodipodi:role="line"
        id="tspan300"
-       x="-0.41608396"
-       y="386.08612">z</tspan></text>
+       x="28.044718"
+       y="264.53464">z</tspan></text>
   <metadata
      id="metadata300">
     <rdf:RDF>
@@ -897,4 +214,153 @@ CreationDate: Thu Jan 25 16:45:48 2024
       </cc:Work>
     </rdf:RDF>
   </metadata>
+  <path
+     style="fill:none;stroke:#000000;stroke-width:2"
+     d="M 229.12169,283.46458 392.78004,188.97638 229.12169,94.488188 65.463341,188.97638 Z"
+     id="path1" />
+  <path
+     style="fill:none;fill-opacity:1;stroke:#000000;stroke-width:2;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;marker-end:url(#ArrowTriangleStylized)"
+     d="m 392.78004,188.97639 v 75.59055"
+     id="path12" />
+  <text
+     xml:space="preserve"
+     style="font-size:21.3035px;font-family:Arial;-inkscape-font-specification:'Arial, Normal';fill:#000000;fill-opacity:1;stroke:#000000;stroke-width:0;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
+     x="67.023842"
+     y="212.0697"
+     id="text12"><tspan
+       sodipodi:role="line"
+       id="tspan12"
+       x="67.023842"
+       y="212.0697">1</tspan></text>
+  <text
+     xml:space="preserve"
+     style="font-size:21.3035px;font-family:Arial;-inkscape-font-specification:'Arial, Normal';fill:#000000;fill-opacity:1;stroke:#000000;stroke-width:0;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;font-weight:normal;font-style:normal;font-stretch:normal;font-variant:normal;font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal"
+     x="232.18033"
+     y="303.14459"
+     id="text12-8"><tspan
+       sodipodi:role="line"
+       id="tspan13">2</tspan></text>
+  <text
+     xml:space="preserve"
+     style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:16px;font-family:Arial;-inkscape-font-specification:'Arial, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;fill:#000000;fill-opacity:1;stroke:#000000;stroke-width:0;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
+     x="119.86707"
+     y="388.82639"
+     id="text12-8-3"
+     transform="rotate(-30)"><tspan
+       sodipodi:role="line"
+       id="tspan5"
+       x="119.86707"
+       y="388.82639">2000 m</tspan></text>
+  <text
+     xml:space="preserve"
+     style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:21.3035px;font-family:Arial;-inkscape-font-specification:'Arial, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;fill:#000000;fill-opacity:1;stroke:#000000;stroke-width:0;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
+     x="232.31993"
+     y="90.120064"
+     id="text12-8-9"><tspan
+       sodipodi:role="line"
+       id="tspan14"
+       x="232.31993"
+       y="90.120064">4</tspan></text>
+  <text
+     xml:space="preserve"
+     style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:21.3035px;font-family:Arial;-inkscape-font-specification:'Arial, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;fill:#000000;fill-opacity:1;stroke:#000000;stroke-width:0;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
+     x="399.22955"
+     y="190.70711"
+     id="text12-8-9-7"><tspan
+       sodipodi:role="line"
+       id="tspan15">3</tspan></text>
+  <path
+     style="fill:none;fill-opacity:1;stroke:#000000;stroke-width:1;stroke-dasharray:2, 1;stroke-dashoffset:0;stroke-opacity:1"
+     d="m 65.821515,151.18111 v 75.59055 l 163.658345,94.4882 V 245.6693 Z"
+     id="path15" />
+  <path
+     style="fill:none;fill-opacity:1;stroke:#000000;stroke-width:1;stroke-dasharray:2, 1;stroke-dashoffset:0;stroke-opacity:1"
+     d="M 66.103197,150.69033 65.821515,226.77166 229.12169,132.28347 V 56.692916 Z"
+     id="path16" />
+  <g
+     id="g3">
+    <path
+       style="fill:none;fill-opacity:1;stroke:#7f7f7f;stroke-width:2;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
+       d="m 229.12169,245.6693 -13.09267,7.55906"
+       id="path17" />
+    <path
+       style="fill:none;fill-opacity:1;stroke:#7f7f7f;stroke-width:2;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
+       d="m 229.12169,260.78741 -13.09267,7.55906"
+       id="path18" />
+    <path
+       style="fill:none;fill-opacity:1;stroke:#7f7f7f;stroke-width:2;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
+       d="m 229.12169,275.90552 -13.09267,7.55906"
+       id="path19" />
+    <path
+       style="fill:none;fill-opacity:1;stroke:#7f7f7f;stroke-width:2;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
+       d="m 229.12169,291.02363 -13.09267,7.55906"
+       id="path17-0" />
+    <path
+       style="fill:none;fill-opacity:1;stroke:#7f7f7f;stroke-width:2;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
+       d="m 229.12169,306.14174 -13.09267,7.55906"
+       id="path18-1" />
+    <path
+       style="fill:none;fill-opacity:1;stroke:#7f7f7f;stroke-width:2;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
+       d="m 229.12169,321.25985 -13.09267,7.55906"
+       id="path19-8" />
+  </g>
+  <g
+     id="g3-2"
+     transform="translate(-163.65835,-94.48819)">
+    <path
+       style="fill:none;fill-opacity:1;stroke:#7f7f7f;stroke-width:2;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
+       d="m 229.12169,245.6693 -13.09267,7.55906"
+       id="path17-3" />
+    <path
+       style="fill:none;fill-opacity:1;stroke:#7f7f7f;stroke-width:2;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
+       d="m 229.12169,260.78741 -13.09267,7.55906"
+       id="path18-7" />
+    <path
+       style="fill:none;fill-opacity:1;stroke:#7f7f7f;stroke-width:2;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
+       d="m 229.12169,275.90552 -13.09267,7.55906"
+       id="path19-3" />
+    <path
+       style="fill:none;fill-opacity:1;stroke:#7f7f7f;stroke-width:2;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
+       d="m 229.12169,291.02363 -13.09267,7.55906"
+       id="path17-0-7" />
+    <path
+       style="fill:none;fill-opacity:1;stroke:#7f7f7f;stroke-width:2;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
+       d="m 229.12169,306.14174 -13.09267,7.55906"
+       id="path18-1-5" />
+    <path
+       style="fill:none;fill-opacity:1;stroke:#7f7f7f;stroke-width:2;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
+       d="m 229.12169,321.25985 -13.09267,7.55906"
+       id="path19-8-7" />
+  </g>
+  <path
+     style="fill:none;stroke:#000000;stroke-width:1.85164;stroke-dasharray:none;stroke-opacity:1;marker-end:url(#ArrowTriangleStylized)"
+     d="M 32.73167,321.25986 V 275.90552"
+     id="path3" />
+  <path
+     style="fill:none;stroke:#000000;stroke-width:1.85164;stroke-dasharray:none;stroke-opacity:1;marker-end:url(#ArrowTriangleStylized-4)"
+     d="M 32.73167,321.25986 72.00968,298.58269"
+     id="path3-7" />
+  <path
+     style="fill:none;stroke:#000000;stroke-width:1.85164;stroke-dasharray:none;stroke-opacity:1;marker-end:url(#ArrowTriangleStylized-4-5)"
+     d="m 32.731664,321.25985 39.27801,22.67717"
+     id="path3-7-3" />
+  <path
+     style="fill:none;stroke:#000000;stroke-width:1.852;stroke-dasharray:none;stroke-opacity:1;marker-start:url(#ArrowTriangleStylized);marker-end:url(#ArrowTriangleStylized)"
+     d="m 261.85336,279.68505 98.19501,-56.69292"
+     id="path5" />
+  <text
+     xml:space="preserve"
+     style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:16px;font-family:Arial;-inkscape-font-specification:'Arial, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;fill:#000000;fill-opacity:1;stroke:#000000;stroke-width:0;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
+     x="229.47337"
+     y="159.7047"
+     id="text12-8-3-5"
+     transform="rotate(30)"><tspan
+       sodipodi:role="line"
+       id="tspan5-7"
+       x="229.47337"
+       y="159.7047">2000 m</tspan></text>
+  <path
+     style="fill:none;stroke:#000000;stroke-width:1.852;stroke-dasharray:none;stroke-opacity:1;marker-start:url(#ArrowTriangleStylized-1);marker-end:url(#ArrowTriangleStylized-1)"
+     d="m 98.195011,222.99213 98.195009,56.69292"
+     id="path5-0" />
 </svg>
