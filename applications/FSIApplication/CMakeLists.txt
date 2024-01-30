@@ -8,9 +8,6 @@ include_directories( ${KRATOS_SOURCE_DIR}/kratos )
 set( KRATOS_FSI_APPLICATION_CORE_SOURCES
 	# application class
 	${CMAKE_CURRENT_SOURCE_DIR}/fsi_application.cpp
-
-	# utilities
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/AdvancedNMPointsMapper.cpp
 )
 
 ## define python interface sources

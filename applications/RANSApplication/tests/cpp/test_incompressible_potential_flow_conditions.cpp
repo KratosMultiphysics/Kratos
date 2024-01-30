@@ -54,6 +54,8 @@ ModelPart& RansIncompressiblePotentialFlowVelocityInlet2D2NSetUp(
     RandomFillContainerVariable<ModelPart::ConditionsContainerType, array_1d<double, 3>>(
         r_model_part, NORMAL, 1.0, 10.0);
 
+    RansApplicationTestUtilities::CheckElementsAndConditions(r_model_part);
+
     return r_model_part;
 }
 
@@ -103,8 +105,8 @@ KRATOS_TEST_CASE_IN_SUITE(RansIncompressiblePotentialFlowVelocityInlet2D2N_Calcu
     ref_RHS = ZeroVector(2);
     ref_LHS = ZeroMatrix(2, 2);
 
-    KRATOS_CHECK_VECTOR_NEAR(RHS, ref_RHS, 1e-12);
-    KRATOS_CHECK_MATRIX_NEAR(LHS, ref_LHS, 1e-12);
+    KRATOS_EXPECT_VECTOR_NEAR(RHS, ref_RHS, 1e-12);
+    KRATOS_EXPECT_MATRIX_NEAR(LHS, ref_LHS, 1e-12);
 
     // checking for inlet condition
     r_condition.SetValue(RANS_IS_INLET, 1);
@@ -114,8 +116,8 @@ KRATOS_TEST_CASE_IN_SUITE(RansIncompressiblePotentialFlowVelocityInlet2D2N_Calcu
     ref_RHS[0] = -1.1197702304027259e+00;
     ref_RHS[1] = -1.1197702304027259e+00;
 
-    KRATOS_CHECK_VECTOR_NEAR(RHS, ref_RHS, 1e-12);
-    KRATOS_CHECK_MATRIX_NEAR(LHS, ref_LHS, 1e-12);
+    KRATOS_EXPECT_VECTOR_NEAR(RHS, ref_RHS, 1e-12);
+    KRATOS_EXPECT_MATRIX_NEAR(LHS, ref_LHS, 1e-12);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(RansIncompressiblePotentialFlowVelocityInlet2D2N_CalculateLeftHandSide,
@@ -135,13 +137,13 @@ KRATOS_TEST_CASE_IN_SUITE(RansIncompressiblePotentialFlowVelocityInlet2D2N_Calcu
     r_condition.Initialize(r_process_info);
     r_condition.CalculateLeftHandSide(LHS, r_process_info);
 
-    KRATOS_CHECK_MATRIX_NEAR(LHS, ref_LHS, 1e-12);
+    KRATOS_EXPECT_MATRIX_NEAR(LHS, ref_LHS, 1e-12);
 
     r_condition.SetValue(RANS_IS_INLET, 1);
     r_condition.Initialize(r_process_info);
     r_condition.CalculateLeftHandSide(LHS, r_process_info);
 
-    KRATOS_CHECK_MATRIX_NEAR(LHS, ref_LHS, 1e-12);
+    KRATOS_EXPECT_MATRIX_NEAR(LHS, ref_LHS, 1e-12);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(RansIncompressiblePotentialFlowVelocityInlet2D2N_CalculateRightHandSide,
@@ -167,7 +169,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansIncompressiblePotentialFlowVelocityInlet2D2N_Calcu
     ref_RHS[0] = -1.1197702304027259e+00;
     ref_RHS[1] = -1.1197702304027259e+00;
 
-    KRATOS_CHECK_VECTOR_NEAR(RHS, ref_RHS, 1e-12);
+    KRATOS_EXPECT_VECTOR_NEAR(RHS, ref_RHS, 1e-12);
 }
 
 } // namespace Testing

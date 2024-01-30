@@ -18,17 +18,15 @@ include(pybind11Tools)
 
 add_definitions( -DEIGEN_MPL2_ONLY)
 
-include_directories(
-    ${KRATOS_SOURCE_DIR}/kratos
-    SYSTEM external_libraries/eigen3 # Including as System to suppress compile-warnings from it
-    SYSTEM external_libraries/spectra1/include # Including as System to suppress compile-warnings from it
-)
+include_directories(${KRATOS_SOURCE_DIR}/kratos)
+
+set(KRATOS_LINEAR_SOLVERS_APPLICATION_LIB_INC "external_libraries/eigen3" "external_libraries/spectra1/include")
 
 if( USE_EIGEN_MKL MATCHES ON )
     if( DEFINED ENV{MKLROOT} )
         message( "-- MKLROOT = $ENV{MKLROOT}" )
 
-        include_directories( SYSTEM $ENV{MKLROOT}/include )
+        set(KRATOS_LINEAR_SOLVERS_APPLICATION_LIB_INC ${KRATOS_LINEAR_SOLVERS_APPLICATION_LIB_INC} $ENV{MKLROOT}/include)
 
         link_directories("$ENV{MKLROOT}/lib")
 
@@ -39,10 +37,10 @@ if( USE_EIGEN_MKL MATCHES ON )
         message("-- Found Conda environment: $ENV{CONDA_PREFIX}")
 
         if( WIN32 )
-            include_directories(SYSTEM $ENV{CONDA_PREFIX}/Library/include)
+            set(KRATOS_LINEAR_SOLVERS_APPLICATION_LIB_INC ${KRATOS_LINEAR_SOLVERS_APPLICATION_LIB_INC} $ENV{CONDA_PREFIX}/Library/include)
             link_directories("$ENV{CONDA_PREFIX}/Library/lib")
         else()
-            include_directories(SYSTEM $ENV{CONDA_PREFIX}/include)
+            set(KRATOS_LINEAR_SOLVERS_APPLICATION_LIB_INC ${KRATOS_LINEAR_SOLVERS_APPLICATION_LIB_INC} $ENV{CONDA_PREFIX}/include)
             link_directories("$ENV{CONDA_PREFIX}/lib")
         endif()
     else()
@@ -62,7 +60,7 @@ if( USE_EIGEN_FEAST MATCHES ON )
     include(CMakeAddFortranSubdirectory)
     cmake_add_fortran_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/external_libraries/FEAST NO_EXTERNAL_INSTALL )
     set(FEAST_ROOT ${CMAKE_CURRENT_SOURCE_DIR}/external_libraries/FEAST/4.0 )
-    include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/external_libraries/FEAST/4.0/include )
+    set(KRATOS_LINEAR_SOLVERS_APPLICATION_LIB_INC ${KRATOS_LINEAR_SOLVERS_APPLICATION_LIB_INC} ${CMAKE_CURRENT_SOURCE_DIR}/external_libraries/FEAST/4.0/include)
     add_definitions(-DUSE_EIGEN_FEAST)
     # MKL implements some of FEAST's function. This definition excludes the definitions of MKL's FEAST
     # functions in mkl/include/mkl_solvers_ee.h. Otherwise, some functions are defined multiple times
@@ -89,6 +87,8 @@ file(
 add_library( KratosLinearSolversCore SHARED ${KRATOS_LINEARSOLVERS_APPLICATION_CORE_SOURCES} )
 target_link_libraries( KratosLinearSolversCore PUBLIC KratosCore )
 set_target_properties( KratosLinearSolversCore PROPERTIES COMPILE_DEFINITIONS "LINEARSOLVERS_APPLICATION=EXPORT,API")
+
+target_include_directories(KratosLinearSolversCore SYSTEM PUBLIC ${CMAKE_CURRENT_SOURCE_DIR} ${KRATOS_LINEAR_SOLVERS_APPLICATION_LIB_INC})
 
 ## LinearSolversApplication python module
 pybind11_add_module( KratosLinearSolversApplication MODULE THIN_LTO ${KRATOS_LINEARSOLVERS_APPLICATION_PYTHON_INTERFACE} )

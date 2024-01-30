@@ -40,12 +40,12 @@ KRATOS_TEST_CASE_IN_SUITE(BruteForcePointLocatorTriangleElement, KratosCoreFastS
 
     const int found_id = point_locator.FindElement(the_point, shape_function_values);
 
-    KRATOS_CHECK_EQUAL(found_id, elem_id_to_be_found);
-    KRATOS_CHECK_EQUAL(shape_function_values.size(), 3);
+    KRATOS_EXPECT_EQ(found_id, elem_id_to_be_found);
+    KRATOS_EXPECT_EQ(shape_function_values.size(), 3);
 
-    KRATOS_CHECK_NEAR(shape_function_values[0], 0.65, 1e-06);
-    KRATOS_CHECK_NEAR(shape_function_values[1], 0.1,  1e-06);
-    KRATOS_CHECK_NEAR(shape_function_values[2], 0.25, 1e-06);
+    KRATOS_EXPECT_NEAR(shape_function_values[0], 0.65, 1e-06);
+    KRATOS_EXPECT_NEAR(shape_function_values[1], 0.1,  1e-06);
+    KRATOS_EXPECT_NEAR(shape_function_values[2], 0.25, 1e-06);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(BruteForcePointLocatorQuadrilateralElement, KratosCoreFastSuite)
@@ -71,13 +71,13 @@ KRATOS_TEST_CASE_IN_SUITE(BruteForcePointLocatorQuadrilateralElement, KratosCore
 
     const int found_id = point_locator.FindElement(the_point, shape_function_values);
 
-    KRATOS_CHECK_EQUAL(found_id, elem_id_to_be_found);
-    KRATOS_CHECK_EQUAL(shape_function_values.size(), 4);
+    KRATOS_EXPECT_EQ(found_id, elem_id_to_be_found);
+    KRATOS_EXPECT_EQ(shape_function_values.size(), 4);
 
-    KRATOS_CHECK_NEAR(shape_function_values[0], 0.452231, 1e-06);
-    KRATOS_CHECK_NEAR(shape_function_values[1], 0.0316039,  1e-06);
-    KRATOS_CHECK_NEAR(shape_function_values[2], 0.0337157, 1e-06);
-    KRATOS_CHECK_NEAR(shape_function_values[3], 0.48245, 1e-06);
+    KRATOS_EXPECT_NEAR(shape_function_values[0], 0.452231, 1e-06);
+    KRATOS_EXPECT_NEAR(shape_function_values[1], 0.0316039,  1e-06);
+    KRATOS_EXPECT_NEAR(shape_function_values[2], 0.0337157, 1e-06);
+    KRATOS_EXPECT_NEAR(shape_function_values[3], 0.48245, 1e-06);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(BruteForcePointLocatorTetrahedraElement, KratosCoreFastSuite)
@@ -103,13 +103,13 @@ KRATOS_TEST_CASE_IN_SUITE(BruteForcePointLocatorTetrahedraElement, KratosCoreFas
 
     const int found_id = point_locator.FindElement(the_point, shape_function_values);
 
-    KRATOS_CHECK_EQUAL(found_id, elem_id_to_be_found);
-    KRATOS_CHECK_EQUAL(shape_function_values.size(), 4);
+    KRATOS_EXPECT_EQ(found_id, elem_id_to_be_found);
+    KRATOS_EXPECT_EQ(shape_function_values.size(), 4);
 
-    KRATOS_CHECK_NEAR(shape_function_values[0], 0.530166, 1e-06);
-    KRATOS_CHECK_NEAR(shape_function_values[1], 0.121616,  1e-06);
-    KRATOS_CHECK_NEAR(shape_function_values[2], 0.0769547, 1e-06);
-    KRATOS_CHECK_NEAR(shape_function_values[3], 0.271263, 1e-06);
+    KRATOS_EXPECT_NEAR(shape_function_values[0], 0.530166, 1e-06);
+    KRATOS_EXPECT_NEAR(shape_function_values[1], 0.121616,  1e-06);
+    KRATOS_EXPECT_NEAR(shape_function_values[2], 0.0769547, 1e-06);
+    KRATOS_EXPECT_NEAR(shape_function_values[3], 0.271263, 1e-06);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(BruteForcePointLocatorHexahedraElement, KratosCoreFastSuite)
@@ -139,17 +139,17 @@ KRATOS_TEST_CASE_IN_SUITE(BruteForcePointLocatorHexahedraElement, KratosCoreFast
 
     const int found_id = point_locator.FindElement(the_point, shape_function_values);
 
-    KRATOS_CHECK_EQUAL(found_id, elem_id_to_be_found);
-    KRATOS_CHECK_EQUAL(shape_function_values.size(), 8);
+    KRATOS_EXPECT_EQ(found_id, elem_id_to_be_found);
+    KRATOS_EXPECT_EQ(shape_function_values.size(), 8);
 
-    KRATOS_CHECK_NEAR(shape_function_values[0], 0.197609, 1e-06);
-    KRATOS_CHECK_NEAR(shape_function_values[1], 0.0590793,  1e-06);
-    KRATOS_CHECK_NEAR(shape_function_values[2], 0.0242583, 1e-06);
-    KRATOS_CHECK_NEAR(shape_function_values[3], 0.0811397, 1e-06);
-    KRATOS_CHECK_NEAR(shape_function_values[4], 0.348142, 1e-06);
-    KRATOS_CHECK_NEAR(shape_function_values[5], 0.104084, 1e-06);
-    KRATOS_CHECK_NEAR(shape_function_values[6], 0.0427376, 1e-06);
-    KRATOS_CHECK_NEAR(shape_function_values[7], 0.142949, 1e-06);
+    KRATOS_EXPECT_NEAR(shape_function_values[0], 0.197609, 1e-06);
+    KRATOS_EXPECT_NEAR(shape_function_values[1], 0.0590793,  1e-06);
+    KRATOS_EXPECT_NEAR(shape_function_values[2], 0.0242583, 1e-06);
+    KRATOS_EXPECT_NEAR(shape_function_values[3], 0.0811397, 1e-06);
+    KRATOS_EXPECT_NEAR(shape_function_values[4], 0.348142, 1e-06);
+    KRATOS_EXPECT_NEAR(shape_function_values[5], 0.104084, 1e-06);
+    KRATOS_EXPECT_NEAR(shape_function_values[6], 0.0427376, 1e-06);
+    KRATOS_EXPECT_NEAR(shape_function_values[7], 0.142949, 1e-06);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(BruteForcePointLocatorNode, KratosCoreFastSuite)
@@ -173,7 +173,7 @@ KRATOS_TEST_CASE_IN_SUITE(BruteForcePointLocatorNode, KratosCoreFastSuite)
 
     const int found_id = point_locator.FindNode(the_point);
 
-    KRATOS_CHECK_EQUAL(found_id, node_id_to_be_found);
+    KRATOS_EXPECT_EQ(found_id, node_id_to_be_found);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(BruteForcePointLocatorNodeCurrentConfiguration, KratosCoreFastSuite)
@@ -208,7 +208,7 @@ KRATOS_TEST_CASE_IN_SUITE(BruteForcePointLocatorNodeCurrentConfiguration, Kratos
                                                  Globals::Configuration::Current,
                                                  tolerance );
 
-    KRATOS_CHECK_EQUAL( found_id, node_id_to_be_found );
+    KRATOS_EXPECT_EQ( found_id, node_id_to_be_found );
 }
 
 KRATOS_TEST_CASE_IN_SUITE(BruteForcePointLocatorQuadrilateralCondition, KratosCoreFastSuite)
@@ -234,13 +234,13 @@ KRATOS_TEST_CASE_IN_SUITE(BruteForcePointLocatorQuadrilateralCondition, KratosCo
 
     const int found_id = point_locator.FindCondition(the_point, shape_function_values);
 
-    KRATOS_CHECK_EQUAL(found_id, cond_id_to_be_found);
-    KRATOS_CHECK_EQUAL(shape_function_values.size(), 4);
+    KRATOS_EXPECT_EQ(found_id, cond_id_to_be_found);
+    KRATOS_EXPECT_EQ(shape_function_values.size(), 4);
 
-    KRATOS_CHECK_NEAR(shape_function_values[0], 0.452231, 1e-06);
-    KRATOS_CHECK_NEAR(shape_function_values[1], 0.0316039,  1e-06);
-    KRATOS_CHECK_NEAR(shape_function_values[2], 0.0337157, 1e-06);
-    KRATOS_CHECK_NEAR(shape_function_values[3], 0.48245, 1e-06);
+    KRATOS_EXPECT_NEAR(shape_function_values[0], 0.452231, 1e-06);
+    KRATOS_EXPECT_NEAR(shape_function_values[1], 0.0316039,  1e-06);
+    KRATOS_EXPECT_NEAR(shape_function_values[2], 0.0337157, 1e-06);
+    KRATOS_EXPECT_NEAR(shape_function_values[3], 0.48245, 1e-06);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(BruteForcePointLocatorCurrentConfigurationTriangleElement, KratosCoreFastSuite)
@@ -257,7 +257,7 @@ KRATOS_TEST_CASE_IN_SUITE(BruteForcePointLocatorCurrentConfigurationTriangleElem
     Element::Pointer p_element = model_part.CreateNewElement("Element2D3N", elem_id_to_be_found, {1, 2, 3}, p_properties);
 
     // Set current configuration of the element (degenerate)
-    for ( Node<3>& r_node : p_element->GetGeometry() )
+    for ( Node& r_node : p_element->GetGeometry() )
         r_node.Coordinates() = array_1d<double, 3>( 3, 0.0 );
 
     BruteForcePointLocator point_locator(model_part);
@@ -269,16 +269,16 @@ KRATOS_TEST_CASE_IN_SUITE(BruteForcePointLocatorCurrentConfigurationTriangleElem
     const int found_id = point_locator.FindElement(the_point, shape_function_values);
 
     // Check whether the current configuration is restored after the search
-    for ( Node<3>& r_node : p_element->GetGeometry() )
+    for ( Node& r_node : p_element->GetGeometry() )
         for ( double component : r_node )
-            KRATOS_CHECK_NEAR( component, 0.0, 1e-16 );
+            KRATOS_EXPECT_NEAR( component, 0.0, 1e-16 );
 
-    KRATOS_CHECK_EQUAL(found_id, elem_id_to_be_found);
-    KRATOS_CHECK_EQUAL(shape_function_values.size(), 3);
+    KRATOS_EXPECT_EQ(found_id, elem_id_to_be_found);
+    KRATOS_EXPECT_EQ(shape_function_values.size(), 3);
 
-    KRATOS_CHECK_NEAR(shape_function_values[0], 0.65, 1e-06);
-    KRATOS_CHECK_NEAR(shape_function_values[1], 0.1,  1e-06);
-    KRATOS_CHECK_NEAR(shape_function_values[2], 0.25, 1e-06);
+    KRATOS_EXPECT_NEAR(shape_function_values[0], 0.65, 1e-06);
+    KRATOS_EXPECT_NEAR(shape_function_values[1], 0.1,  1e-06);
+    KRATOS_EXPECT_NEAR(shape_function_values[2], 0.25, 1e-06);
 }
 
 } // namespace Testing

@@ -1,0 +1,99 @@
+{
+   "properties": [{
+      "model_part_name":         "PorousDomain.Soil",
+      "properties_id":           1,
+      "Material": {
+          "constitutive_law": {
+              "name"             :  "GeoLinearElasticPlaneStrain2DLaw" 
+          },
+          "Variables": {
+              "YOUNG_MODULUS"            :  10000,
+              "POISSON_RATIO"            :  0.2,
+              "DENSITY_SOLID"            :  2.65,
+              "DENSITY_WATER"            :  1.0,
+              "POROSITY"                 :  0.3,
+              "BULK_MODULUS_SOLID"       :  1.0e9,
+              "BULK_MODULUS_FLUID"       :  2.0e6,
+              "PERMEABILITY_XX"          :  4.5e-13,
+              "PERMEABILITY_YY"          :  4.5e-13,
+              "PERMEABILITY_XY"          :  0.0,
+              "DYNAMIC_VISCOSITY"        :  8.90e-7,
+              "THICKNESS"                :  1.0,
+              "BIOT_COEFFICIENT"         :  1.0,
+              "RETENTION_LAW"                    : "VanGenuchtenLaw",
+              "SATURATED_SATURATION"             :  1.0,
+              "RESIDUAL_SATURATION"              :  0.06203,
+              "VAN_GENUCHTEN_AIR_ENTRY_PRESSURE" :  2.561,
+              "VAN_GENUCHTEN_GN"                 :  1.377,
+              "VAN_GENUCHTEN_GL"                 :  1.25,
+              "MINIMUM_RELATIVE_PERMEABILITY"    :  0.0001
+         },
+         "Tables": {}
+      }
+   },{
+      "model_part_name":         "PorousDomain.Embankment",
+      "properties_id":           2,
+      "Material": {
+          "constitutive_law": {
+              "name"             :  "GeoLinearElasticPlaneStrain2DLaw" 
+          },
+          "Variables": {
+              "YOUNG_MODULUS"            :  10000,
+              "POISSON_RATIO"            :  0.2,
+              "DENSITY_SOLID"            :  2.65,
+              "DENSITY_WATER"            :  1.0,
+              "POROSITY"                 :  0.3,
+              "BULK_MODULUS_SOLID"       :  1.0e9,
+              "BULK_MODULUS_FLUID"       :  2.0e6,
+              "PERMEABILITY_XX"          :  4.5e-16,
+              "PERMEABILITY_YY"          :  4.5e-16,
+              "PERMEABILITY_XY"          :  0.0,
+              "DYNAMIC_VISCOSITY"        :  8.90e-7,
+              "THICKNESS"                :  1.0,
+              "BIOT_COEFFICIENT"         :  1.0,
+              "RETENTION_LAW"                    : "VanGenuchtenLaw",
+              "SATURATED_SATURATION"             :  1.0,
+              "RESIDUAL_SATURATION"              :  0.06203,
+              "VAN_GENUCHTEN_AIR_ENTRY_PRESSURE" :  2.561,
+              "VAN_GENUCHTEN_GN"                 :  1.377,
+              "VAN_GENUCHTEN_GL"                 :  1.25,
+              "MINIMUM_RELATIVE_PERMEABILITY"    :  0.0001
+         },
+         "Tables": {}
+      }
+   },{
+      "model_part_name":         "PorousDomain.Pipe",
+      "properties_id":           3,
+      "Material": {
+          "constitutive_law": {
+              "name"             :  "LinearElastic2DInterfaceLaw" 
+          },
+          "Variables": {
+              "YOUNG_MODULUS"            :  100000,
+              "POISSON_RATIO"            :  0.45,
+              "DENSITY_SOLID"            :  2.65,
+              "DENSITY_WATER"            :  1.0,
+              "POROSITY"                 :  0.3,
+              "BULK_MODULUS_SOLID"       :  1.0e9,
+              "BULK_MODULUS_FLUID"       :  2.0e6,
+              "TRANSVERSAL_PERMEABILITY" :  1.157e-10,
+              "DYNAMIC_VISCOSITY"        :  8.90e-7,
+              "THICKNESS"                :  1.0,
+              "MINIMUM_JOINT_WIDTH"      :  1.0e-3,
+			  "PIPE_D_70"				 :  0.0002,
+			  "PIPE_ETA"				 :  0.25,
+			  "PIPE_THETA"               :  37,
+			  "PIPE_START_ELEMENT"		 :  210,
+              "BIOT_COEFFICIENT"         :  1.0,
+              "RETENTION_LAW"                    : "VanGenuchtenLaw",
+              "SATURATED_SATURATION"             :  1.0,
+              "RESIDUAL_SATURATION"              :  0.06203,
+              "VAN_GENUCHTEN_AIR_ENTRY_PRESSURE" :  2.561,
+              "VAN_GENUCHTEN_GN"                 :  1.377,
+              "VAN_GENUCHTEN_GL"                 :  1.25,
+              "MINIMUM_RELATIVE_PERMEABILITY"    :  0.0001
+         },
+         "Tables": {}
+      }
+   }]
+}

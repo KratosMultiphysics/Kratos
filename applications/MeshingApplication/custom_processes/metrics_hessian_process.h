@@ -102,7 +102,7 @@ public:
     ///@{
 
     /// Node definition
-    typedef Node <3>                                                                NodeType;
+    typedef Node                                                                NodeType;
 
     /// Containers definitions
     typedef ModelPart::NodesContainerType                                     NodesArrayType;

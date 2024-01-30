@@ -10,22 +10,18 @@
 //  Main authors:    Vahid Galavi
 //
 
-
 #if !defined(KRATOS_GEO_UPDATED_LAGRANGIAN_U_PW_DIFF_ORDER_ELEMENT_H_INCLUDED)
-#define  KRATOS_GEO_UPDATED_LAGRANGIAN_U_PW_DIFF_ORDER_ELEMENT_H_INCLUDED
-
+#define KRATOS_GEO_UPDATED_LAGRANGIAN_U_PW_DIFF_ORDER_ELEMENT_H_INCLUDED
 
 // System includes
-
 
 // External includes
 
 // Project includes
 #include "custom_elements/small_strain_U_Pw_diff_order_element.hpp"
-#include "custom_utilities/stress_strain_utilities.hpp"
 #include "custom_utilities/element_utilities.hpp"
+#include "custom_utilities/stress_strain_utilities.hpp"
 #include "geo_mechanics_application_variables.h"
-
 
 namespace Kratos
 {
@@ -52,54 +48,54 @@ namespace Kratos
  * @details Implements an Updated Lagrangian definition for different order U-P elements. This works for arbitrary geometries in 2D and 3D
  * @author Vahid Galavi (Geomechanics)
  */
-class KRATOS_API(GEO_MECHANICS_APPLICATION) UpdatedLagrangianUPwDiffOrderElement
-    : public SmallStrainUPwDiffOrderElement
+class KRATOS_API(GEO_MECHANICS_APPLICATION) UpdatedLagrangianUPwDiffOrderElement : public SmallStrainUPwDiffOrderElement
 {
 public:
     ///@name Type Definitions
     ///@{
-    typedef std::size_t IndexType;
-    typedef Properties PropertiesType;
-    typedef Node <3> NodeType;
-    typedef Geometry<NodeType> GeometryType;
-    typedef Geometry<NodeType>::PointsArrayType NodesArrayType;
-    typedef Vector VectorType;
-    typedef Matrix MatrixType;
+    using IndexType      = std::size_t;
+    using PropertiesType = Properties;
+    using NodeType       = Node;
+    using GeometryType   = Geometry<NodeType>;
+    using NodesArrayType = GeometryType::PointsArrayType;
+    using VectorType     = Vector;
+    using MatrixType     = Matrix;
 
     /// Type definition for integration methods
-    typedef GeometryData::IntegrationMethod IntegrationMethod;
+    using IntegrationMethod = GeometryData::IntegrationMethod;
 
     /// The definition of the sizetype
-    typedef std::size_t SizeType;
-    using SmallStrainUPwDiffOrderElement::mConstitutiveLawVector;
-    using SmallStrainUPwDiffOrderElement::mStressVector;
-    using SmallStrainUPwDiffOrderElement::mStateVariablesFinalized;
+    using SizeType = std::size_t;
     using SmallStrainUPwDiffOrderElement::AssembleUBlockMatrix;
     using SmallStrainUPwDiffOrderElement::CalculateCauchyAlmansiStrain;
     using SmallStrainUPwDiffOrderElement::CalculateCauchyGreenStrain;
     using SmallStrainUPwDiffOrderElement::CalculateCauchyStrain;
     using SmallStrainUPwDiffOrderElement::CalculateDerivativesOnInitialConfiguration;
+    using SmallStrainUPwDiffOrderElement::mConstitutiveLawVector;
+    using SmallStrainUPwDiffOrderElement::mStateVariablesFinalized;
+    using SmallStrainUPwDiffOrderElement::mStressVector;
 
-    typedef typename SmallStrainUPwDiffOrderElement::ElementVariables ElementVariables;
+    using ElementVariables = typename SmallStrainUPwDiffOrderElement::ElementVariables;
 
     /// Counted pointer of UpdatedLagrangianUPwDiffOrderElement
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(UpdatedLagrangianUPwDiffOrderElement);
 
-///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     /// Default Constructor
     UpdatedLagrangianUPwDiffOrderElement() : SmallStrainUPwDiffOrderElement() {}
 
     /// Constructor using Geometry
-    UpdatedLagrangianUPwDiffOrderElement(IndexType NewId,
-                                         GeometryType::Pointer pGeometry)
-                                         : SmallStrainUPwDiffOrderElement(NewId, pGeometry) {}
+    UpdatedLagrangianUPwDiffOrderElement(IndexType NewId, GeometryType::Pointer pGeometry)
+        : SmallStrainUPwDiffOrderElement(NewId, pGeometry)
+    {
+    }
 
     /// Constructor using Properties
-    UpdatedLagrangianUPwDiffOrderElement(IndexType NewId,
-                                         GeometryType::Pointer pGeometry,
-                                         PropertiesType::Pointer pProperties)
-                                         : SmallStrainUPwDiffOrderElement( NewId, pGeometry, pProperties ) {}
+    UpdatedLagrangianUPwDiffOrderElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
+        : SmallStrainUPwDiffOrderElement(NewId, pGeometry, pProperties)
+    {
+    }
 
     /// Destructor
     ~UpdatedLagrangianUPwDiffOrderElement() override {}
@@ -111,9 +107,7 @@ public:
      * @param pProperties The pointer to property
      * @return The pointer to the created element
      */
-    Element::Pointer Create(IndexType NewId,
-                            GeometryType::Pointer pGeom,
-                            PropertiesType::Pointer pProperties) const override;
+    Element::Pointer Create(IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties) const override;
 
     /**
      * @brief Creates a new element
@@ -142,14 +136,13 @@ public:
      * @param rOutput The values obtained int the integration points
      * @param rCurrentProcessInfo The current process info instance
      */
-    void CalculateOnIntegrationPoints(const Variable<Matrix >& rVariable,
-                                      std::vector< Matrix >& rOutput,
+    void CalculateOnIntegrationPoints(const Variable<Matrix>& rVariable,
+                                      std::vector<Matrix>& rOutput,
                                       const ProcessInfo& rCurrentProcessInfo) override;
 
-
-    void CalculateOnIntegrationPoints(const Variable<Vector> &rVariable,
-                                      std::vector<Vector> &rOutput,
-                                      const ProcessInfo &rCurrentProcessInfo) override;
+    void CalculateOnIntegrationPoints(const Variable<Vector>& rVariable,
+                                      std::vector<Vector>& rOutput,
+                                      const ProcessInfo& rCurrentProcessInfo) override;
 
     ///@}
     ///@name Access
@@ -166,14 +159,16 @@ public:
     std::string Info() const override
     {
         std::stringstream buffer;
-        buffer << "Updated Lagrangian U-Pw different order Element #" << this->Id() << "\nConstitutive law: " << mConstitutiveLawVector[0]->Info();
+        buffer << "Updated Lagrangian U-Pw different order Element #" << this->Id()
+               << "\nConstitutive law: " << mConstitutiveLawVector[0]->Info();
         return buffer.str();
     }
 
     /// Print information about this object.
     void PrintInfo(std::ostream& rOStream) const override
     {
-        rOStream << "Updated Lagrangian U-Pw different order Element #" << this->Id() << "\nConstitutive law: " << mConstitutiveLawVector[0]->Info();
+        rOStream << "Updated Lagrangian U-Pw different order Element #" << this->Id()
+                 << "\nConstitutive law: " << mConstitutiveLawVector[0]->Info();
     }
 
     /// Print object's data.
@@ -213,9 +208,9 @@ protected:
                       const bool CalculateStiffnessMatrixFlag,
                       const bool CalculateResidualVectorFlag) override;
 
-    void CalculateAndAddGeometricStiffnessMatrix( MatrixType& rLeftHandSideMatrix,
-                                                  ElementVariables& rVariables,
-                                                  unsigned int GPoint);
+    void CalculateAndAddGeometricStiffnessMatrix(MatrixType& rLeftHandSideMatrix,
+                                                 ElementVariables& rVariables,
+                                                 unsigned int GPoint);
 
     ///@}
     ///@name Protected Operations
@@ -243,14 +238,12 @@ private:
     ///@name Private Operators
     ///@{
 
-
     // Copy constructor
     UpdatedLagrangianUPwDiffOrderElement(UpdatedLagrangianUPwDiffOrderElement const& rOther);
 
     ///@}
     ///@name Private Operations
     ///@{
-
 
     ///@}
     ///@name Private  Access
@@ -274,9 +267,9 @@ private:
     ///@name Un accessible methods
     ///@{
     /// Assignment operator.
-    //UpdatedLagrangianUPwDiffOrderElement& operator=(const UpdatedLagrangianUPwDiffOrderElement& rOther);
+    // UpdatedLagrangianUPwDiffOrderElement& operator=(const UpdatedLagrangianUPwDiffOrderElement& rOther);
     /// Copy constructor.
-    //UpdatedLagrangianUPwDiffOrderElement(const UpdatedLagrangianUPwDiffOrderElement& rOther);
+    // UpdatedLagrangianUPwDiffOrderElement(const UpdatedLagrangianUPwDiffOrderElement& rOther);
     ///@}
 
 }; // Class UpdatedLagrangianUPwDiffOrderElement
@@ -290,4 +283,4 @@ private:
 ///@}
 
 } // namespace Kratos.
-#endif // KRATOS_GEO_UPDATED_LAGRANGIAN_U_PW_DIFF_ORDER_ELEMENT_H_INCLUDED  defined
+#endif // KRATOS_GEO_UPDATED_LAGRANGIAN_U_PW_DIFF_ORDER_ELEMENT_H_INCLUDED defined

@@ -4,14 +4,13 @@
 //        / /___/ /_/ / / / / /_/ /_/ / /__/ /_ ___/ / /_/ /  / /_/ / /__/ /_/ /_/ / /  / /_/ / /  
 //        \____/\____/_/ /_/\__/\__,_/\___/\__//____/\__/_/   \__,_/\___/\__/\__,_/_/   \__,_/_/  MECHANICS
 //
-//  License:		 BSD License
-//					 license: ContactStructuralMechanicsApplication/license.txt
+//  License:         BSD License
+//                   license: ContactStructuralMechanicsApplication/license.txt
 //
 //  Main authors:    Vicente Mataix Ferrandiz
 //
 
-#if !defined(KRATOS_FIND_INTERSECTED_GEOMETRICAL_OBJECTS_WITH_OBB_PROCESS_FOR_SEARCH_H_INCLUDED )
-#define  KRATOS_FIND_INTERSECTED_GEOMETRICAL_OBJECTS_WITH_OBB_PROCESS_FOR_SEARCH_H_INCLUDED
+#pragma once
 
 // System includes
 
@@ -45,7 +44,7 @@ namespace Kratos
  * @class FindIntersectedGeometricalObjectsWithOBBContactSearchProcess
  * @ingroup ContactStructuralMechanicsApplication
  * @brief This class is a modification of FindIntersectedGeometricalObjectsWithOBBProcess for contact search
- * @details Fills the serach set. Only works for Conditions
+ * @details Fills the search set. Only works for Conditions
  * @author Vicente Mataix Ferrandiz
 */
 class KRATOS_API(CONTACT_STRUCTURAL_MECHANICS_APPLICATION) FindIntersectedGeometricalObjectsWithOBBContactSearchProcess
@@ -59,31 +58,28 @@ public:
     KRATOS_CLASS_POINTER_DEFINITION(FindIntersectedGeometricalObjectsWithOBBContactSearchProcess);
 
     /// Definition of the index type
-    typedef std::size_t IndexType;
+    using IndexType = std::size_t;
 
     /// Definition of the size type
-    typedef std::size_t SizeType;
+    using SizeType = std::size_t;
 
     /// Definition of the point type
-    typedef Point PointType;
+    using PointType = Point;
 
     /// Definition of the base type
-    typedef FindIntersectedGeometricalObjectsProcess BaseProcessType;
+    using BaseProcessType = FindIntersectedGeometricalObjectsProcess;
 
     /// Definition of the base type
-    typedef FindIntersectedGeometricalObjectsWithOBBProcess BaseType;
+    using BaseType = FindIntersectedGeometricalObjectsWithOBBProcess;
 
     /// Octree type definition
-    typedef typename BaseType::OctreeType OctreeType;
-
-    /// Definition of the node type
-    using NodeType = Node<3>;
+    using OctreeType = typename BaseType::OctreeType;
 
     /// Definition of the geometry type
-    using GeometryType = Geometry<NodeType>;
+    using GeometryType = Geometry<Node>;
 
     /// Definition of the entity container type
-    typedef PointerVectorSet<Condition, IndexedObject> EntityContainerType;
+    using EntityContainerType = PointerVectorSet<Condition, IndexedObject>;
 
     ///@}
     ///@name Life Cycle
@@ -254,5 +250,3 @@ inline std::istream& operator >> (std::istream& rIStream,
 ///@} addtogroup block
 
 }  // namespace Kratos.
-
-#endif // KRATOS_FIND_INTERSECTED_GEOMETRICAL_OBJECTS_WITH_OBB_PROCESS_FOR_SEARCH_H_INCLUDED  defined

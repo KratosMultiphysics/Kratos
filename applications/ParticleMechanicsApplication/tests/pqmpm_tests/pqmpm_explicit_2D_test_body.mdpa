@@ -41,7 +41,7 @@ Begin Nodes
 End Nodes
 
 
-Begin Elements UpdatedLagrangian2D4N// GUI group identifier: bar
+Begin Elements MPMUpdatedLagrangian2D4N// GUI group identifier: bar
         1          0        257        249        269        276 
         2          0        237        231        249        257 
         3          0        223        207        231        237 

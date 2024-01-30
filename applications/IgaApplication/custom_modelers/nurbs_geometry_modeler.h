@@ -36,7 +36,7 @@ public:
 
     typedef std::size_t IndexType;
     typedef std::size_t SizeType;
-    typedef Node<3> NodeType;
+    typedef Node NodeType;
 
     typedef Geometry<NodeType> GeometryType;
     typedef typename GeometryType::Pointer GeometryPointerType;
@@ -100,8 +100,8 @@ private:
      * @param NumKnotSpans Number of equidistant elements/knot spans in each direction u,v.
      * @note The CP'S are defined as nodes and added to the rModelPart.
      **/
-    void CreateAndAddRegularGrid2D( ModelPart& r_model_part, const Point& A, const Point& B, SizeType OrderU, SizeType OrderV,
-        SizeType NumKnotSpansU, SizeType NumKnotSpansV );
+    void CreateAndAddRegularGrid2D( ModelPart& r_model_part, const Point& A_xyz, const Point& B_xyz, const Point& A_uvw, const Point& B_uvw,
+        SizeType OrderU, SizeType OrderV, SizeType NumKnotSpansU, SizeType NumKnotSpansV );
 
     /**
      * @brief Creates a cartesian grid composed out of trivariant B-spline cubes.
@@ -111,8 +111,8 @@ private:
      * @param NumKnotSpans Number of equidistant elements/knot spans in each direction u,v,w.
      * @note The CP'S are defined as nodes and added to the rModelPart.
      **/
-    void CreateAndAddRegularGrid3D( ModelPart& r_model_part, const Point& A, const Point& B, SizeType OrderU, SizeType OrderV, SizeType OrderW,
-        SizeType NumKnotSpansU, SizeType NumKnotSpansV, SizeType NumKnotSpansW );
+    void CreateAndAddRegularGrid3D( ModelPart& r_model_part, const Point& A_xyz, const Point& B_xyz, const Point& A_uvw, const Point& B_uvw,
+       SizeType OrderU, SizeType OrderV, SizeType OrderW, SizeType NumKnotSpansU, SizeType NumKnotSpansV, SizeType NumKnotSpansW );
 
 };
 

@@ -54,9 +54,9 @@ namespace Kratos
             /// Pointer definition of MesherUtilities
             KRATOS_CLASS_POINTER_DEFINITION(MesherUtilities);
 
-            typedef Node<3> PointType;
-            typedef Node<3>::Pointer PointPointerType;
-            typedef Geometry<Node<3>> GeometryType;
+            typedef Node PointType;
+            typedef Node::Pointer PointPointerType;
+            typedef Geometry<Node> GeometryType;
             typedef std::vector<PointPointerType> PointPointerVector;
             typedef ModelPart::PropertiesType PropertiesType;
             typedef ModelPart::PropertiesContainerType PropertiesContainerType;
@@ -66,7 +66,7 @@ namespace Kratos
             typedef ModelPart::MeshType::GeometryType::PointsArrayType PointsArrayType;
             typedef MeshDataTransferUtilities::TransferParameters TransferParametersType;
 
-            typedef GlobalPointersVector<Node<3>> NodeWeakPtrVectorType;
+            typedef GlobalPointersVector<Node> NodeWeakPtrVectorType;
             typedef GlobalPointersVector<Element> ElementWeakPtrVectorType;
             typedef GlobalPointersVector<Condition> ConditionWeakPtrVectorType;
 
@@ -283,13 +283,16 @@ namespace Kratos
                   unsigned int NumberOfNewNodes;
                   unsigned int NumberOfNewConditions;
 
+                  unsigned int NumberOfEulerianInletNodes;
+                  unsigned int NumberOfLagrangianInletNodes;
+
                   // total for all refining boxes
                   unsigned int InsertedNodes;
                   unsigned int RemovedNodes;
                   int BalancePrincipalSecondaryPartsNodes;
                   unsigned int InsertedBoundaryNodes;
                   unsigned int InsertedBoundaryConditions;
-                  
+
                   unsigned int CriticalElements;
 
                   bool GeometricalSmoothingRequired;
@@ -698,17 +701,16 @@ namespace Kratos
                   array_1d<double, 3> BoundingBoxLowerPoint;
                   array_1d<double, 3> BoundingBoxUpperPoint;
 
-                  bool UseRefiningBox;
-                  double RefiningBoxInitialTime;
-                  double RefiningBoxFinalTime;
-                  double RefiningBoxMeshSize;
-                  array_1d<double, 3> RefiningBoxMinimumPoint;
-                  array_1d<double, 3> RefiningBoxMaximumPoint;
+                  std::vector<bool> UseRefiningBox;
+                  std::vector<double> RefiningBoxInitialTime;
+                  std::vector<double> RefiningBoxFinalTime;
+                  std::vector<double> RefiningBoxMeshSize;
+                  std::vector<unsigned int> RefiningBoxElementsInTransitionZone;
+                  std::vector<array_1d<double, 3>> RefiningBoxMinimumPoint;
+                  std::vector<array_1d<double, 3>> RefiningBoxMaximumPoint;
 
-                  array_1d<double, 3> RefiningBoxMinInternalPoint;
-                  array_1d<double, 3> RefiningBoxMinExternalPoint;
-                  array_1d<double, 3> RefiningBoxMaxInternalPoint;
-                  array_1d<double, 3> RefiningBoxMaxExternalPoint;
+                  std::vector<array_1d<double, 3>> RefiningBoxShiftedMinimumPoint;
+                  std::vector<array_1d<double, 3>> RefiningBoxShiftedMaximumPoint;
 
                   void Set(Flags ThisFlag)
                   {
@@ -869,11 +871,6 @@ namespace Kratos
                         OutMesh.Initialize();
                         MidMesh.Initialize();
 
-                        RefiningBoxMinInternalPoint = ZeroVector(3);
-                        RefiningBoxMinExternalPoint = ZeroVector(3);
-                        RefiningBoxMaxInternalPoint = ZeroVector(3);
-                        RefiningBoxMaxExternalPoint = ZeroVector(3);
-
                         // RemeshInfo.Initialize();
                         // Refine.Initialize();
                   };
@@ -917,63 +914,68 @@ namespace Kratos
                         BoundingBoxFinalTime = rBoundingBoxFinalTime;
                   };
 
-                  void SetUseRefiningBox(bool rUseRefiningBox)
+                  void InitializeRefiningBoxParameters(unsigned int size)
                   {
-                        UseRefiningBox = rUseRefiningBox;
+                        UseRefiningBox.resize(size, false);
+                        RefiningBoxMinimumPoint.resize(size);
+                        RefiningBoxMaximumPoint.resize(size);
+                        RefiningBoxShiftedMinimumPoint.resize(size);
+                        RefiningBoxShiftedMaximumPoint.resize(size);
+                        RefiningBoxInitialTime.resize(size, false);
+                        RefiningBoxFinalTime.resize(size, false);
+                        RefiningBoxMeshSize.resize(size, false);
+                        RefiningBoxElementsInTransitionZone.resize(size, false);
+                  }
+
+                  void SetUseRefiningBox(unsigned int index, bool rUseRefiningBox)
+                  {
+                        UseRefiningBox[index] = rUseRefiningBox;
                   };
 
-                  void SetRefiningBoxMinimumPoint(double rRefiningBoxMinimumPointX, double rRefiningBoxMinimumPointY, double rRefiningBoxMinimumPointZ)
+                  void SetRefiningBoxMinimumPoint(unsigned int index, double rRefiningBoxMinimumPointX, double rRefiningBoxMinimumPointY, double rRefiningBoxMinimumPointZ)
                   {
-                        RefiningBoxMinimumPoint[0] = rRefiningBoxMinimumPointX;
-                        RefiningBoxMinimumPoint[1] = rRefiningBoxMinimumPointY;
-                        RefiningBoxMinimumPoint[2] = rRefiningBoxMinimumPointZ;
+                        RefiningBoxMinimumPoint[index][0] = rRefiningBoxMinimumPointX;
+                        RefiningBoxMinimumPoint[index][1] = rRefiningBoxMinimumPointY;
+                        RefiningBoxMinimumPoint[index][2] = rRefiningBoxMinimumPointZ;
                   };
 
-                  void SetRefiningBoxMaximumPoint(double rRefiningBoxMaximumPointX, double rRefiningBoxMaximumPointY, double rRefiningBoxMaximumPointZ)
+                  void SetRefiningBoxMaximumPoint(unsigned int index, double rRefiningBoxMaximumPointX, double rRefiningBoxMaximumPointY, double rRefiningBoxMaximumPointZ)
                   {
-                        RefiningBoxMaximumPoint[0] = rRefiningBoxMaximumPointX;
-                        RefiningBoxMaximumPoint[1] = rRefiningBoxMaximumPointY;
-                        RefiningBoxMaximumPoint[2] = rRefiningBoxMaximumPointZ;
+                        RefiningBoxMaximumPoint[index][0] = rRefiningBoxMaximumPointX;
+                        RefiningBoxMaximumPoint[index][1] = rRefiningBoxMaximumPointY;
+                        RefiningBoxMaximumPoint[index][2] = rRefiningBoxMaximumPointZ;
                   };
 
-                  void SetRefiningBoxMinExternalPoint(double rPointX, double rPointY, double rPointZ)
+                  void SetRefiningBoxShiftedMinimumPoint(unsigned int index, double rPointX, double rPointY, double rPointZ)
                   {
-                        RefiningBoxMinExternalPoint[0] = rPointX;
-                        RefiningBoxMinExternalPoint[1] = rPointY;
-                        RefiningBoxMinExternalPoint[2] = rPointZ;
+                        RefiningBoxShiftedMinimumPoint[index][0] = rPointX;
+                        RefiningBoxShiftedMinimumPoint[index][1] = rPointY;
+                        RefiningBoxShiftedMinimumPoint[index][2] = rPointZ;
                   };
 
-                  void SetRefiningBoxMinInternalPoint(double rPointX, double rPointY, double rPointZ)
+                  void SetRefiningBoxShiftedMaximumPoint(unsigned int index, double rPointX, double rPointY, double rPointZ)
                   {
-                        RefiningBoxMinInternalPoint[0] = rPointX;
-                        RefiningBoxMinInternalPoint[1] = rPointY;
-                        RefiningBoxMinInternalPoint[2] = rPointZ;
+                        RefiningBoxShiftedMaximumPoint[index][0] = rPointX;
+                        RefiningBoxShiftedMaximumPoint[index][1] = rPointY;
+                        RefiningBoxShiftedMaximumPoint[index][2] = rPointZ;
                   };
 
-                  void SetRefiningBoxMaxExternalPoint(double rPointX, double rPointY, double rPointZ)
+                  void SetRefiningBoxTimeInterval(unsigned int index, double rRefiningBoxInitialTime, double rRefiningBoxFinalTime)
                   {
-                        RefiningBoxMaxExternalPoint[0] = rPointX;
-                        RefiningBoxMaxExternalPoint[1] = rPointY;
-                        RefiningBoxMaxExternalPoint[2] = rPointZ;
+                        RefiningBoxInitialTime[index] = rRefiningBoxInitialTime;
+                        RefiningBoxFinalTime[index] = rRefiningBoxFinalTime;
                   };
 
-                  void SetRefiningBoxMaxInternalPoint(double rPointX, double rPointY, double rPointZ)
+                  void SetRefiningBoxMeshSize(unsigned int index, double rRefiningBoxMeshSize)
                   {
-                        RefiningBoxMaxInternalPoint[0] = rPointX;
-                        RefiningBoxMaxInternalPoint[1] = rPointY;
-                        RefiningBoxMaxInternalPoint[2] = rPointZ;
+                        RefiningBoxMeshSize[index] = rRefiningBoxMeshSize;
                   };
 
-                  void SetRefiningBoxTimeInterval(double rRefiningBoxInitialTime, double rRefiningBoxFinalTime)
+                  void SetRefiningBoxElementsInTransitionZone(unsigned int index, unsigned int rRefiningBoxElementsInTransitionZone)
                   {
-                        RefiningBoxInitialTime = rRefiningBoxInitialTime;
-                        RefiningBoxFinalTime = rRefiningBoxFinalTime;
+                        RefiningBoxElementsInTransitionZone[index] = rRefiningBoxElementsInTransitionZone;
                   };
-
-                  void SetRefiningBoxMeshSize(double rRefiningBoxMeshSize)
-                  {
-                        RefiningBoxMeshSize = rRefiningBoxMeshSize;
-                  };
+                  
             };
 
             ///@}
@@ -1007,21 +1009,21 @@ namespace Kratos
             //*******************************************************************************************
             //*******************************************************************************************
 
-            bool CheckSubdomain(Geometry<Node<3>> &rGeometry);
+            bool CheckSubdomain(Geometry<Node> &rGeometry);
 
-            bool CheckRigidOuterCentre(Geometry<Node<3>> &rGeometry);
+            bool CheckRigidOuterCentre(Geometry<Node> &rGeometry);
 
-            bool CheckInnerCentre(Geometry<Node<3>> &rGeometry);
+            bool CheckInnerCentre(Geometry<Node> &rGeometry);
 
-            bool CheckOuterCentre(Geometry<Node<3>> &rGeometry, double &rOffsetFactor, bool &rSelfContact);
+            bool CheckOuterCentre(Geometry<Node> &rGeometry, double &rOffsetFactor, bool &rSelfContact);
 
-            bool CheckSliver(Geometry<Node<3>> &rGeometry);
+            bool CheckSliver(Geometry<Node> &rGeometry);
 
-            ContactElementType CheckContactElement(Geometry<Node<3>> &rGeometry, std::vector<int> &rSlaveVertices);
+            ContactElementType CheckContactElement(Geometry<Node> &rGeometry, std::vector<int> &rSlaveVertices);
 
-            double GetAndCompareSideLenghts(Geometry<Node<3>> &rGeometry, double &rMaximumSideLength, double &rMinimumSideLength);
+            double GetAndCompareSideLenghts(Geometry<Node> &rGeometry, double &rMaximumSideLength, double &rMinimumSideLength);
 
-            bool CheckGeometryShape(Geometry<Node<3>> &rGeometry, int &rShape);
+            bool CheckGeometryShape(Geometry<Node> &rGeometry, int &rShape);
 
             //*******************************************************************************************
             //*******************************************************************************************
@@ -1030,20 +1032,20 @@ namespace Kratos
             double &ComputeRadius(double &rRadius, double &rVolume, std::vector<Vector> &rVertices, const unsigned int &dimension);
 
             // returns false if it should be removed
-            bool AlphaShape(double AlphaParameter, Geometry<Node<3>> &rGeometry, const unsigned int dimension);
-            bool AlphaShape(double AlphaParameter, Geometry<Node<3>> &rGeometry, const unsigned int dimension, const double MeanMeshSize);
+            bool AlphaShape(double AlphaParameter, Geometry<Node> &rGeometry, const unsigned int dimension);
+            bool AlphaShape(double AlphaParameter, Geometry<Node> &rGeometry, const unsigned int dimension, const double MeanMeshSize);
 
             // returns false if it should be removed
-            bool ShrankAlphaShape(double AlphaParameter, Geometry<Node<3>> &rGeometry, double &rOffsetFactor, const unsigned int dimension);
+            bool ShrankAlphaShape(double AlphaParameter, Geometry<Node> &rGeometry, double &rOffsetFactor, const unsigned int dimension);
 
             // returns the nodal h relative to a single boundary node
-            double FindBoundaryH(Node<3> &BoundaryPoint);
+            double FindBoundaryH(Node &BoundaryPoint);
 
             // writes a list of particles telling if they are set as boundary or not
             void CheckParticles(ModelPart &rModelPart);
 
             // computes velocity norms of the geometry
-            bool CheckRelativeVelocities(Geometry<Node<3>> &rGeometry, const double &rRelativeFactor);
+            bool CheckRelativeVelocities(Geometry<Node> &rGeometry, const double &rRelativeFactor);
 
             // computes prediction of volume decrease of the geometry
             bool CheckVolumeDecrease(GeometryType &rVertices, const unsigned int &rDimension, const double &rTolerance, double &VolumeChange);
@@ -1054,6 +1056,17 @@ namespace Kratos
             // computes deformation gradient determinant
             double GetDeformationGradientDeterminant(GeometryType &rVertices, const unsigned int &rDimension);
 
+            void DefineMeshSizeInTransitionZones2D(MeshingParameters &rMeshingVariables,
+                                                   double currentTime,
+                                                   array_1d<double, 3> NodeCoordinates,
+                                                   double &meanMeshSize,
+                                                   bool &insideTransitionZone);
+
+            void DefineMeshSizeInTransitionZones3D(MeshingParameters &rMeshingVariables,
+                                                   double currentTime,
+                                                   array_1d<double, 3> NodeCoordinates,
+                                                   double &meanMeshSize,
+                                                   bool &insideTransitionZone);
             //*******************************************************************************************
             //*******************************************************************************************
 
@@ -1062,7 +1075,7 @@ namespace Kratos
                   return sqrt((P1.X() - P2.X()) * (P1.X() - P2.X()) + (P1.Y() - P2.Y()) * (P1.Y() - P2.Y()) + (P1.Z() - P2.Z()) * (P1.Z() - P2.Z()));
             };
 
-            static inline double CalculateBoundarySize(Geometry<Node<3>> &rGeometry)
+            static inline double CalculateBoundarySize(Geometry<Node> &rGeometry)
             {
 
                   if (rGeometry.size() == 2)
@@ -1080,7 +1093,7 @@ namespace Kratos
                   }
             };
 
-            static inline double CalculateTriangleRadius(Geometry<Node<3>> &rGeometry)
+            static inline double CalculateTriangleRadius(Geometry<Node> &rGeometry)
             {
 
                   double L1 = CalculateSideLength(rGeometry[0], rGeometry[1]);
@@ -1095,7 +1108,7 @@ namespace Kratos
                   return Rcrit;
             };
 
-            static inline double CalculateTetrahedronRadius(Geometry<Node<3>> &rGeometry)
+            static inline double CalculateTetrahedronRadius(Geometry<Node> &rGeometry)
             {
 
                   // edges
@@ -1126,7 +1139,7 @@ namespace Kratos
                   return Rcrit;
             };
 
-            static inline double CalculateElementRadius(Geometry<Node<3>> &rGeometry)
+            static inline double CalculateElementRadius(Geometry<Node> &rGeometry)
             {
 
                   if (rGeometry.size() == 3)
@@ -1135,7 +1148,7 @@ namespace Kratos
                         return CalculateTetrahedronRadius(rGeometry);
             };
 
-            static inline double CalculateElementRadius(Geometry<Node<3>> &rGeometry, double &rDomainSize)
+            static inline double CalculateElementRadius(Geometry<Node> &rGeometry, double &rDomainSize)
             {
 
                   if (rGeometry.size() == 3)
@@ -1369,7 +1382,7 @@ namespace Kratos
 
             bool CheckElementInBox(Element::Pointer &pElement, SpatialBoundingBox &rRefiningBox, ProcessInfo &rCurrentProcessInfo);
 
-            bool CheckVerticesInBox(Geometry<Node<3>> &rGeometry, SpatialBoundingBox &rRefiningBox, ProcessInfo &rCurrentProcessInfo);
+            bool CheckVerticesInBox(Geometry<Node> &rGeometry, SpatialBoundingBox &rRefiningBox, ProcessInfo &rCurrentProcessInfo);
 
             //*******************************************************************************************
             //*******************************************************************************************
@@ -1485,7 +1498,7 @@ namespace Kratos
             //*******************************************************************************************
             //*******************************************************************************************
 
-            bool FindCondition(Geometry<Node<3>> &rConditionGeometry, Geometry<Node<3>> &rGeometry, DenseMatrix<unsigned int> &lpofa, DenseVector<unsigned int> &lnofa, unsigned int &iface);
+            bool FindCondition(Geometry<Node> &rConditionGeometry, Geometry<Node> &rGeometry, DenseMatrix<unsigned int> &lpofa, DenseVector<unsigned int> &lnofa, unsigned int &iface);
 
             //*******************************************************************************************
             //*******************************************************************************************

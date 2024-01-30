@@ -168,13 +168,13 @@ template<> struct SendTraits< Kratos::VariablesListDataValueContainer >
     }
 };
 
-template<> struct SendTraits< Node<3>::DofsContainerType >
+template<> struct SendTraits< Node::DofsContainerType >
 {
     using SendType = int;
     using BufferType = std::vector<SendType>;
     constexpr static bool IsFixedSize = false;
 
-    static inline std::size_t GetMessageSize(const Node<3>::DofsContainerType& rValue)
+    static inline std::size_t GetMessageSize(const Node::DofsContainerType& rValue)
     {
         return rValue.size();
     }
@@ -294,11 +294,11 @@ template<> struct SendTools< Kratos::VariablesListDataValueContainer >
     }
 };
 
-template<> struct SendTools< Node<3>::DofsContainerType >
+template<> struct SendTools< Node::DofsContainerType >
 {
-    using SendType = SendTraits< Node<3>::DofsContainerType >::SendType;
+    using SendType = SendTraits< Node::DofsContainerType >::SendType;
 
-    static inline void WriteBuffer(const Node<3>::DofsContainerType& rValue, SendType* pBuffer)
+    static inline void WriteBuffer(const Node::DofsContainerType& rValue, SendType* pBuffer)
     {
         unsigned int i = 0;
         for (auto i_dof = rValue.begin(); i_dof != rValue.end(); ++i_dof)
@@ -308,7 +308,7 @@ template<> struct SendTools< Node<3>::DofsContainerType >
         }
     }
 
-    static inline void ReadBuffer(const SendType* pBuffer, Node<3>::DofsContainerType& rValue)
+    static inline void ReadBuffer(const SendType* pBuffer, Node::DofsContainerType& rValue)
     {
         unsigned int i = 0;
         for (auto i_dof = rValue.begin(); i_dof != rValue.end(); ++i_dof)
@@ -498,7 +498,7 @@ class DofIdAccess: public NodalContainerAccess
 {
 public:
 
-    using ValueType = Node<3>::DofsContainerType;
+    using ValueType = Node::DofsContainerType;
     using SendType = typename SendTraits<ValueType>::SendType;
 
     ValueType& GetValue(IteratorType& iter)
@@ -583,7 +583,9 @@ enum class OperationType {
     Replace,
     SumValues,
     MinValues,
+    AbsMinValues,
     MaxValues,
+    AbsMaxValues,
     OrAccessedFlags,
     AndAccessedFlags,
     ReplaceAccessedFlags
@@ -955,6 +957,40 @@ public:
         return true;
     }
 
+    bool SynchronizeCurrentDataToAbsMax(Variable<double> const& ThisVariable) override
+    {
+        constexpr MeshAccess<DistributedType::Local> local_meshes;
+        constexpr MeshAccess<DistributedType::Ghost> ghost_meshes;
+        constexpr Operation<OperationType::Replace> replace;
+        constexpr Operation<OperationType::AbsMaxValues> max;
+        MPIInternals::NodalSolutionStepValueAccess<double> nodal_solution_step_access(ThisVariable);
+
+        // Calculate max on owner rank
+        TransferDistributedValues(ghost_meshes, local_meshes, nodal_solution_step_access, max);
+
+        // Synchronize result on ghost copies
+        TransferDistributedValues(local_meshes, ghost_meshes, nodal_solution_step_access, replace);
+
+        return true;
+    }
+
+    bool SynchronizeNonHistoricalDataToAbsMax(Variable<double> const& ThisVariable) override
+    {
+        constexpr MeshAccess<DistributedType::Local> local_meshes;
+        constexpr MeshAccess<DistributedType::Ghost> ghost_meshes;
+        constexpr Operation<OperationType::Replace> replace;
+        constexpr Operation<OperationType::AbsMaxValues> max;
+        MPIInternals::NodalDataAccess<double> nodal_data_access(ThisVariable);
+
+        // Calculate max on owner rank
+        TransferDistributedValues(ghost_meshes, local_meshes, nodal_data_access, max);
+
+        // Synchronize result on ghost copies
+        TransferDistributedValues(local_meshes, ghost_meshes, nodal_data_access, replace);
+
+        return true;
+    }
+
     bool SynchronizeCurrentDataToMin(Variable<double> const& ThisVariable) override
     {
         constexpr MeshAccess<DistributedType::Local> local_meshes;
@@ -978,6 +1014,40 @@ public:
         constexpr MeshAccess<DistributedType::Ghost> ghost_meshes;
         constexpr Operation<OperationType::Replace> replace;
         constexpr Operation<OperationType::MinValues> min;
+        MPIInternals::NodalDataAccess<double> nodal_data_access(ThisVariable);
+
+        // Calculate min on owner rank
+        TransferDistributedValues(ghost_meshes, local_meshes, nodal_data_access, min);
+
+        // Synchronize result on ghost copies
+        TransferDistributedValues(local_meshes, ghost_meshes, nodal_data_access, replace);
+
+        return true;
+    }
+
+    bool SynchronizeCurrentDataToAbsMin(Variable<double> const& ThisVariable) override
+    {
+        constexpr MeshAccess<DistributedType::Local> local_meshes;
+        constexpr MeshAccess<DistributedType::Ghost> ghost_meshes;
+        constexpr Operation<OperationType::Replace> replace;
+        constexpr Operation<OperationType::AbsMinValues> min;
+        MPIInternals::NodalSolutionStepValueAccess<double> nodal_solution_step_access(ThisVariable);
+
+        // Calculate min on owner rank
+        TransferDistributedValues(ghost_meshes, local_meshes, nodal_solution_step_access, min);
+
+        // Synchronize result on ghost copies
+        TransferDistributedValues(local_meshes, ghost_meshes, nodal_solution_step_access, replace);
+
+        return true;
+    }
+
+    bool SynchronizeNonHistoricalDataToAbsMin(Variable<double> const& ThisVariable) override
+    {
+        constexpr MeshAccess<DistributedType::Local> local_meshes;
+        constexpr MeshAccess<DistributedType::Ghost> ghost_meshes;
+        constexpr Operation<OperationType::Replace> replace;
+        constexpr Operation<OperationType::AbsMinValues> min;
         MPIInternals::NodalDataAccess<double> nodal_data_access(ThisVariable);
 
         // Calculate min on owner rank
@@ -1364,7 +1434,7 @@ private:
     }
 
     template<class TNodesArrayType>
-    void PrintNodesId(TNodesArrayType& rNodes, std::string Tag, int color)
+    void PrintNodesId(TNodesArrayType& rNodes, const std::string& Tag, int color)
     {
         int rank = mrDataCommunicator.Rank();
         std::cout << Tag << rank << " with color " << color << ":";
@@ -1659,6 +1729,22 @@ private:
         const typename TDatabaseAccess::SendType* pBuffer,
         TDatabaseAccess& rAccess,
         typename TDatabaseAccess::IteratorType ContainerIterator,
+        Operation<OperationType::AbsMaxValues>)
+    {
+        using ValueType = typename TDatabaseAccess::ValueType;
+        ValueType& r_current = rAccess.GetValue(ContainerIterator);
+        ValueType recv_value(r_current); // creating by copy to have the correct size in dynamic types
+        MPIInternals::SendTools<ValueType>::ReadBuffer(pBuffer, recv_value);
+        if (std::abs(recv_value) > std::abs(r_current)) r_current = recv_value;
+
+        return MPIInternals::BufferAllocation<TDatabaseAccess>::GetSendSize(recv_value);
+    }
+    
+    template<class TDatabaseAccess>
+    std::size_t ReduceValues(
+        const typename TDatabaseAccess::SendType* pBuffer,
+        TDatabaseAccess& rAccess,
+        typename TDatabaseAccess::IteratorType ContainerIterator,
         Operation<OperationType::MinValues>)
     {
         using ValueType = typename TDatabaseAccess::ValueType;
@@ -1666,6 +1752,22 @@ private:
         ValueType recv_value(r_current); // creating by copy to have the correct size in dynamic types
         MPIInternals::SendTools<ValueType>::ReadBuffer(pBuffer, recv_value);
         if (recv_value < r_current) r_current = recv_value;
+
+        return MPIInternals::BufferAllocation<TDatabaseAccess>::GetSendSize(recv_value);
+    }
+
+    template<class TDatabaseAccess>
+    std::size_t ReduceValues(
+        const typename TDatabaseAccess::SendType* pBuffer,
+        TDatabaseAccess& rAccess,
+        typename TDatabaseAccess::IteratorType ContainerIterator,
+        Operation<OperationType::AbsMinValues>)
+    {
+        using ValueType = typename TDatabaseAccess::ValueType;
+        ValueType& r_current = rAccess.GetValue(ContainerIterator);
+        ValueType recv_value(r_current); // creating by copy to have the correct size in dynamic types
+        MPIInternals::SendTools<ValueType>::ReadBuffer(pBuffer, recv_value);
+        if (std::abs(recv_value) < std::abs(r_current)) r_current = recv_value;
 
         return MPIInternals::BufferAllocation<TDatabaseAccess>::GetSendSize(recv_value);
     }

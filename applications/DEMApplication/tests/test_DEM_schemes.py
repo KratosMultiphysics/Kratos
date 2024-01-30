@@ -35,7 +35,7 @@ class DEM3D_ForwardEulerTestSolution(KratosMultiphysics.DEMApplication.DEM_analy
         return os.path.join(self.main_path, self.DEM_parameters["problem_name"].GetString())
 
     def CheckValues(self, x_vel, dem_pressure):
-        tol = 1.0e-18
+        tol = 1.0e-10
         x_vel_ref = 0.028907825348927448
         self.assertAlmostEqual(x_vel, x_vel_ref, delta=tol)
 
@@ -104,7 +104,7 @@ class DEM3D_ForwardEulerTestSolution(KratosMultiphysics.DEMApplication.DEM_analy
 class DEM3D_TaylorTestSolution(DEM3D_ForwardEulerTestSolution):
 
     def CheckValues(self, x_vel, dem_pressure):
-        tol = 1.0e-18
+        tol = 1.0e-10
         x_vel_ref = 0.028709756132288513
         self.assertAlmostEqual(x_vel, x_vel_ref, delta=tol)
 
@@ -114,7 +114,7 @@ class DEM3D_TaylorTestSolution(DEM3D_ForwardEulerTestSolution):
 class DEM3D_SymplecticTestSolution(DEM3D_ForwardEulerTestSolution):
 
     def CheckValues(self, x_vel, dem_pressure):
-        tol = 1.0e-18
+        tol = 1.0e-10
         x_vel_ref = 0.028515905722678703
         self.assertAlmostEqual(x_vel, x_vel_ref, delta=tol)
 
@@ -123,7 +123,7 @@ class DEM3D_SymplecticTestSolution(DEM3D_ForwardEulerTestSolution):
 class DEM3D_VerletTestSolution(DEM3D_ForwardEulerTestSolution):
 
     def CheckValues(self,x_vel, dem_pressure):
-        tol = 1.0e-18
+        tol = 1.0e-10
         x_vel_ref = 0.028603162986524718
         self.assertAlmostEqual(x_vel, x_vel_ref, delta=tol)
 

@@ -21,11 +21,10 @@
 #include "geometries/prism_3d_6.h"
 #include "tests/cpp_tests/geometries/test_geometry.h"
 
-namespace Kratos {
-namespace Testing {
+namespace Kratos::Testing {
 
-    typedef Node<3>                                PointType;
-    typedef Node<3>::Pointer                    PointPtrType;
+    typedef Node                                PointType;
+    typedef Node::Pointer                    PointPtrType;
     typedef Prism3D6<PointType>            PrismGeometryType;
     typedef PrismGeometryType::Pointer  PrismGeometryPtrType;
 
@@ -64,7 +63,7 @@ namespace Testing {
     KRATOS_TEST_CASE_IN_SUITE(Prism3D6EdgesNumber, KratosCoreGeometriesFastSuite) {
         auto geomRegular = GenerateRegularPrism3D6();
 
-        KRATOS_CHECK_EQUAL(geomRegular->EdgesNumber(), 9);
+        KRATOS_EXPECT_EQ(geomRegular->EdgesNumber(), 9);
     }
 
     /** Checks if the number of faces is correct.
@@ -73,7 +72,7 @@ namespace Testing {
     KRATOS_TEST_CASE_IN_SUITE(Prism3D6FacesNumber, KratosCoreGeometriesFastSuite) {
         auto geomRegular = GenerateRegularPrism3D6();
 
-        KRATOS_CHECK_EQUAL(geomRegular->FacesNumber(), 5);
+        KRATOS_EXPECT_EQ(geomRegular->FacesNumber(), 5);
     }
 
     /** Checks if the characteristic length of the prism is calculated correctly.
@@ -82,7 +81,7 @@ namespace Testing {
     KRATOS_TEST_CASE_IN_SUITE(Prism3D6Length, KratosCoreGeometriesFastSuite) {
         auto geomRegular = GenerateRegularPrism3D6();
 
-        KRATOS_CHECK_NEAR(geomRegular->Length(), 0.264567, TOLERANCE);
+        KRATOS_EXPECT_NEAR(geomRegular->Length(), 0.264567, TOLERANCE);
     }
 
     /** Checks if the area of the prism is calculated correctly.
@@ -91,7 +90,7 @@ namespace Testing {
     KRATOS_TEST_CASE_IN_SUITE(Prism3D6Area, KratosCoreGeometriesFastSuite) {
         auto geomRegular = GenerateRegularPrism3D6();
 
-        KRATOS_CHECK_NEAR(geomRegular->Area(),  0.5, TOLERANCE);
+        KRATOS_EXPECT_NEAR(geomRegular->Area(),  0.5, ZERO_TOLERANCE);
     }
 
     /** Checks if the volume of the prism is calculated correctly.
@@ -101,7 +100,7 @@ namespace Testing {
     KRATOS_TEST_CASE_IN_SUITE(Prism3D6Volume, KratosCoreGeometriesFastSuite) {
         auto geomRegular = GenerateRegularPrism3D6();
 
-        KRATOS_CHECK_NEAR(geomRegular->Volume(),  0.5, TOLERANCE);
+        KRATOS_EXPECT_NEAR(geomRegular->Volume(),  0.5, ZERO_TOLERANCE);
     }
 
     /**
@@ -111,16 +110,16 @@ namespace Testing {
         auto p_geom = GenerateRegularPrism3D6();
 
         // Prism inside the box
-        KRATOS_CHECK(p_geom->HasIntersection(Point(-0.6,-0.6,-0.6), Point(0.6,0.6,0.6)));
+        KRATOS_EXPECT_TRUE(p_geom->HasIntersection(Point(-0.6,-0.6,-0.6), Point(0.6,0.6,0.6)));
 
         // Prism contains the box
-        KRATOS_CHECK(p_geom->HasIntersection(Point(-.25,-.25,-.25), Point(.25,.25,.25)));
+        KRATOS_EXPECT_TRUE(p_geom->HasIntersection(Point(-.25,-.25,-.25), Point(.25,.25,.25)));
 
         // Prism intersects the box
-        KRATOS_CHECK(p_geom->HasIntersection(Point(.25,.25,.25), Point(1.0,1.0,1.0)));
+        KRATOS_EXPECT_TRUE(p_geom->HasIntersection(Point(.25,.25,.25), Point(1.0,1.0,1.0)));
 
         // Prism not intersects the box
-        KRATOS_CHECK_IS_FALSE(p_geom->HasIntersection(Point(.51,.51,.51), Point(1.1,1.1,1.1)));
+        KRATOS_EXPECT_FALSE(p_geom->HasIntersection(Point(.51,.51,.51), Point(1.1,1.1,1.1)));
     }
 
     /** Checks the inside test for a given point respect to the prism
@@ -141,10 +140,10 @@ namespace Testing {
 
         Point LocalCoords;
 
-        KRATOS_CHECK(geom->IsInside(PointInside, LocalCoords, EPSILON));
-        KRATOS_CHECK_IS_FALSE(geom->IsInside(PointOutside, LocalCoords, EPSILON));
-        KRATOS_CHECK(geom->IsInside(PointInVertex, LocalCoords, EPSILON));
-        KRATOS_CHECK(geom->IsInside(PointInEdge, LocalCoords, EPSILON));
+        KRATOS_EXPECT_TRUE(geom->IsInside(PointInside, LocalCoords, EPSILON));
+        KRATOS_EXPECT_FALSE(geom->IsInside(PointOutside, LocalCoords, EPSILON));
+        KRATOS_EXPECT_TRUE(geom->IsInside(PointInVertex, LocalCoords, EPSILON));
+        KRATOS_EXPECT_TRUE(geom->IsInside(PointInEdge, LocalCoords, EPSILON));
     }
 
     /** Checks the point local coordinates for a given point respect to the
@@ -163,9 +162,9 @@ namespace Testing {
         array_1d<double, 3> centre_local_coords;
         geom->PointLocalCoordinates(centre_local_coords, centre);
 
-        KRATOS_CHECK_NEAR(centre_local_coords(0), 1.0/3.0, TOLERANCE);
-        KRATOS_CHECK_NEAR(centre_local_coords(1), 1.0/3.0, TOLERANCE);
-        KRATOS_CHECK_NEAR(centre_local_coords(2), 1.0/2.0, TOLERANCE);
+        KRATOS_EXPECT_NEAR(centre_local_coords(0), 1.0/3.0, TOLERANCE);
+        KRATOS_EXPECT_NEAR(centre_local_coords(1), 1.0/3.0, TOLERANCE);
+        KRATOS_EXPECT_NEAR(centre_local_coords(2), 1.0/2.0, TOLERANCE);
     }
 
     KRATOS_TEST_CASE_IN_SUITE(Prism3D6ShapeFunctionsValues, KratosCoreGeometriesFastSuite) {
@@ -174,12 +173,12 @@ namespace Testing {
         coord[0] = 1.0 / 2.0;
         coord[1] = 1.0 / 4.0;
         coord[2] = 1.0 / 16.0;
-        KRATOS_CHECK_NEAR(geom->ShapeFunctionValue(0, coord), 0.234375, TOLERANCE);
-        KRATOS_CHECK_NEAR(geom->ShapeFunctionValue(1, coord), 0.46875, TOLERANCE);
-        KRATOS_CHECK_NEAR(geom->ShapeFunctionValue(2, coord), 0.234375, TOLERANCE);
-        KRATOS_CHECK_NEAR(geom->ShapeFunctionValue(3, coord), 0.015625, TOLERANCE);
-        KRATOS_CHECK_NEAR(geom->ShapeFunctionValue(4, coord), 0.03125, TOLERANCE);
-        KRATOS_CHECK_NEAR(geom->ShapeFunctionValue(5, coord), 0.015625, TOLERANCE);
+        KRATOS_EXPECT_NEAR(geom->ShapeFunctionValue(0, coord), 0.234375, TOLERANCE);
+        KRATOS_EXPECT_NEAR(geom->ShapeFunctionValue(1, coord), 0.46875, TOLERANCE);
+        KRATOS_EXPECT_NEAR(geom->ShapeFunctionValue(2, coord), 0.234375, TOLERANCE);
+        KRATOS_EXPECT_NEAR(geom->ShapeFunctionValue(3, coord), 0.015625, TOLERANCE);
+        KRATOS_EXPECT_NEAR(geom->ShapeFunctionValue(4, coord), 0.03125, TOLERANCE);
+        KRATOS_EXPECT_NEAR(geom->ShapeFunctionValue(5, coord), 0.015625, TOLERANCE);
     }
 
     KRATOS_TEST_CASE_IN_SUITE(Prism3D6ShapeFunctionsLocalGradients, KratosCoreGeometriesFastSuite) {
@@ -197,29 +196,29 @@ namespace Testing {
 
         gradient = geom->ShapeFunctionsLocalGradients(gradient, centre_local_coords);
 
-        KRATOS_CHECK_NEAR(gradient(0,0), -0.5, TOLERANCE);
-        KRATOS_CHECK_NEAR(gradient(0,1), -0.5, TOLERANCE);
-        KRATOS_CHECK_NEAR(gradient(0,2), -1.0/3.0, TOLERANCE);
+        KRATOS_EXPECT_NEAR(gradient(0,0), -0.5, TOLERANCE);
+        KRATOS_EXPECT_NEAR(gradient(0,1), -0.5, TOLERANCE);
+        KRATOS_EXPECT_NEAR(gradient(0,2), -1.0/3.0, TOLERANCE);
 
-        KRATOS_CHECK_NEAR(gradient(1,0), 0.5, TOLERANCE);
-        KRATOS_CHECK_NEAR(gradient(1,1), 0.0, TOLERANCE);
-        KRATOS_CHECK_NEAR(gradient(1,2), -1.0/3.0, TOLERANCE);
+        KRATOS_EXPECT_NEAR(gradient(1,0), 0.5, TOLERANCE);
+        KRATOS_EXPECT_NEAR(gradient(1,1), 0.0, TOLERANCE);
+        KRATOS_EXPECT_NEAR(gradient(1,2), -1.0/3.0, TOLERANCE);
 
-        KRATOS_CHECK_NEAR(gradient(2,0), 0.0, TOLERANCE);
-        KRATOS_CHECK_NEAR(gradient(2,1), 0.5, TOLERANCE);
-        KRATOS_CHECK_NEAR(gradient(2,2), -1.0/3.0, TOLERANCE);
+        KRATOS_EXPECT_NEAR(gradient(2,0), 0.0, TOLERANCE);
+        KRATOS_EXPECT_NEAR(gradient(2,1), 0.5, TOLERANCE);
+        KRATOS_EXPECT_NEAR(gradient(2,2), -1.0/3.0, TOLERANCE);
 
-        KRATOS_CHECK_NEAR(gradient(3,0), -0.5, TOLERANCE);
-        KRATOS_CHECK_NEAR(gradient(3,1), -0.5, TOLERANCE);
-        KRATOS_CHECK_NEAR(gradient(3,2), 1.0/3.0, TOLERANCE);
+        KRATOS_EXPECT_NEAR(gradient(3,0), -0.5, TOLERANCE);
+        KRATOS_EXPECT_NEAR(gradient(3,1), -0.5, TOLERANCE);
+        KRATOS_EXPECT_NEAR(gradient(3,2), 1.0/3.0, TOLERANCE);
 
-        KRATOS_CHECK_NEAR(gradient(4,0), 0.5, TOLERANCE);
-        KRATOS_CHECK_NEAR(gradient(4,1), 0.0, TOLERANCE);
-        KRATOS_CHECK_NEAR(gradient(4,2), 1.0/3.0, TOLERANCE);
+        KRATOS_EXPECT_NEAR(gradient(4,0), 0.5, TOLERANCE);
+        KRATOS_EXPECT_NEAR(gradient(4,1), 0.0, TOLERANCE);
+        KRATOS_EXPECT_NEAR(gradient(4,2), 1.0/3.0, TOLERANCE);
 
-        KRATOS_CHECK_NEAR(gradient(5,0), 0.0, TOLERANCE);
-        KRATOS_CHECK_NEAR(gradient(5,1), 0.5, TOLERANCE);
-        KRATOS_CHECK_NEAR(gradient(5,2), 1.0/3.0, TOLERANCE);
+        KRATOS_EXPECT_NEAR(gradient(5,0), 0.0, TOLERANCE);
+        KRATOS_EXPECT_NEAR(gradient(5,1), 0.5, TOLERANCE);
+        KRATOS_EXPECT_NEAR(gradient(5,2), 1.0/3.0, TOLERANCE);
     }
 
     /** Tests the area using 'GI_GAUSS_1' integration method.
@@ -230,7 +229,7 @@ namespace Testing {
 
         const double expected_vol = 0.5;
 
-        KRATOS_CHECK_NEAR(CalculateAreaByIntegration(*geom, GeometryData::IntegrationMethod::GI_GAUSS_1), expected_vol, TOLERANCE);
+        KRATOS_EXPECT_NEAR(CalculateAreaByIntegration(*geom, GeometryData::IntegrationMethod::GI_GAUSS_1), expected_vol, TOLERANCE);
         VerifyStrainExactness(*geom, GeometryData::IntegrationMethod::GI_GAUSS_1);
     }
 
@@ -242,7 +241,7 @@ namespace Testing {
 
         const double expected_vol = 0.5;
 
-        KRATOS_CHECK_NEAR(CalculateAreaByIntegration(*geom, GeometryData::IntegrationMethod::GI_GAUSS_2), expected_vol, TOLERANCE);
+        KRATOS_EXPECT_NEAR(CalculateAreaByIntegration(*geom, GeometryData::IntegrationMethod::GI_GAUSS_2), expected_vol, TOLERANCE);
         VerifyStrainExactness(*geom, GeometryData::IntegrationMethod::GI_GAUSS_2);
     }
 
@@ -254,7 +253,7 @@ namespace Testing {
 
         const double expected_vol = 0.5;
 
-        KRATOS_CHECK_NEAR(CalculateAreaByIntegration(*geom, GeometryData::IntegrationMethod::GI_GAUSS_3), expected_vol, TOLERANCE);
+        KRATOS_EXPECT_NEAR(CalculateAreaByIntegration(*geom, GeometryData::IntegrationMethod::GI_GAUSS_3), expected_vol, TOLERANCE);
         VerifyStrainExactness(*geom, GeometryData::IntegrationMethod::GI_GAUSS_3);
     }
 
@@ -266,7 +265,7 @@ namespace Testing {
 
         const double expected_vol = 0.5;
 
-        KRATOS_CHECK_NEAR(CalculateAreaByIntegration(*geom, GeometryData::IntegrationMethod::GI_GAUSS_4), expected_vol, TOLERANCE);
+        KRATOS_EXPECT_NEAR(CalculateAreaByIntegration(*geom, GeometryData::IntegrationMethod::GI_GAUSS_4), expected_vol, TOLERANCE);
         VerifyStrainExactness(*geom, GeometryData::IntegrationMethod::GI_GAUSS_4);
     }
 
@@ -278,8 +277,23 @@ namespace Testing {
 
         const double expected_vol = 0.5;
 
-        KRATOS_CHECK_NEAR(CalculateAreaByIntegration(*geom, GeometryData::IntegrationMethod::GI_GAUSS_5), expected_vol, TOLERANCE);
+        KRATOS_EXPECT_NEAR(CalculateAreaByIntegration(*geom, GeometryData::IntegrationMethod::GI_GAUSS_5), expected_vol, TOLERANCE);
         VerifyStrainExactness(*geom, GeometryData::IntegrationMethod::GI_GAUSS_5);
     }
-}
-}  // namespace Kratos.
+
+    /** Checks if CalculateDistance is correct.
+     * Checks if CalculateDistance is correct.
+     */
+    KRATOS_TEST_CASE_IN_SUITE(Prism3D6CalculateDistance, KratosCoreGeometriesFastSuite)
+    {
+        auto geom = GenerateRegularPrism3D6();
+
+        Point point1(0.25, 0.25, 0.5);
+        KRATOS_EXPECT_DOUBLE_EQ(geom->CalculateDistance(point1), 0.0);
+        KRATOS_EXPECT_DOUBLE_EQ(geom->CalculateDistance(point1), GeometryUtils::CalculateDistanceFrom3DGeometry(*geom, point1));
+
+        Point point2(0.25, 0.25, 1.5);
+        KRATOS_EXPECT_DOUBLE_EQ(geom->CalculateDistance(point2), 0.5);
+        KRATOS_EXPECT_DOUBLE_EQ(geom->CalculateDistance(point2), GeometryUtils::CalculateDistanceFrom3DGeometry(*geom, point2));
+    }
+}  // namespace Kratos::Python.

@@ -9,8 +9,6 @@
 #
 # ==============================================================================
 
-# Making KratosMultiphysics backward compatible with python 2.6 and 2.7
-from __future__ import print_function, absolute_import, division
 
 # Kratos Core and Apps
 import KratosMultiphysics as KM
@@ -351,6 +349,7 @@ class AlgorithmBeadOptimization(OptimizationAlgorithm):
                 additional_values_to_log["penalty_factor"] = penalty_factor
                 additional_values_to_log["max_norm_objective_gradient"] = max_norm_objective_gradient
 
+                self.data_logger.LogSensitivityHeatmap(total_iteration, self.mapper)
                 self.data_logger.LogCurrentValues(total_iteration, additional_values_to_log)
                 self.data_logger.LogCurrentDesign(total_iteration)
 

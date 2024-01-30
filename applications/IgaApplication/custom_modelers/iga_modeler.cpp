@@ -4,7 +4,7 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:         BSD License 
+//  License:         BSD License
 //                   Kratos default license: kratos/license.txt
 //
 
@@ -334,8 +334,8 @@ namespace Kratos
             auto p_background_geometry = geom.pGetGeometryPart(GeometryType::BACKGROUND_GEOMETRY_INDEX);
 
             if (rGeometryType == "GeometryCurveNodes") {
-                KRATOS_DEBUG_ERROR_IF(geom.Dimension() != 1) << "Geometry #" << geom.Id()
-                    << " needs to have a dimension of 1 for type GeometryCurveNodes. Dimension: " << geom.Dimension()
+                KRATOS_DEBUG_ERROR_IF(geom.LocalSpaceDimension() != 1) << "Geometry #" << geom.Id()
+                    << " needs to have a dimension of 1 for type GeometryCurveNodes. LocalSpaceDimension: " << geom.LocalSpaceDimension()
                     << ". Geometry" << geom << std::endl;
 
                 SizeType number_of_cps = p_background_geometry->size();
@@ -353,8 +353,8 @@ namespace Kratos
                 }
             }
             else if (rGeometryType == "GeometryCurveVariationNodes") {
-                KRATOS_DEBUG_ERROR_IF(geom.Dimension() != 1) << "Geometry #" << geom.Id()
-                    << " needs to have a dimension of 1 for type GeometryCurveVariationNodes. Dimension: " << geom.Dimension()
+                KRATOS_DEBUG_ERROR_IF(geom.LocalSpaceDimension() != 1) << "Geometry #" << geom.Id()
+                    << " needs to have a dimension of 1 for type GeometryCurveVariationNodes. LocalSpaceDimension: " << geom.LocalSpaceDimension()
                     << ". Geometry" << geom << std::endl;
 
                 SizeType number_of_cps = p_background_geometry->size();
@@ -376,9 +376,9 @@ namespace Kratos
             }
             else if (rGeometryType == "GeometrySurfaceNodes"
                 || rGeometryType == "GeometrySurfaceVariationNodes") {
-                KRATOS_DEBUG_ERROR_IF(geom.Dimension() != 2) << "Geometry #" << geom.Id()
-                    << " needs to have a dimension of 2 for type " << rGeometryType << ". Dimension: "
-                    << geom.Dimension() << ". Geometry" << geom << std::endl;
+                KRATOS_DEBUG_ERROR_IF(geom.LocalSpaceDimension() != 2) << "Geometry #" << geom.Id()
+                    << " needs to have a dimension of 2 for type " << rGeometryType << ". LocalSpaceDimension: "
+                    << geom.LocalSpaceDimension() << ". Geometry" << geom << std::endl;
 
                 SizeType number_of_cps_u = geom.PointsNumberInDirection(0);
                 SizeType number_of_cps_v = geom.PointsNumberInDirection(1);

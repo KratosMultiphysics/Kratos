@@ -4,8 +4,8 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Author1 Fullname
 //                   Author2 Fullname
@@ -14,9 +14,7 @@
 #error Please change the author fullname and if your license is different please state it above
 #error Please change the KRATOS_FILENAME_H_INCLUDED and ClassName and remove these error pragmas
 
-#if !defined(KRATOS_FILENAME_H_INCLUDED )
-#define  KRATOS_FILENAME_H_INCLUDED
-
+#pragma once
 
 // System includes
 #include <string>
@@ -30,8 +28,8 @@
 #include "includes/define.h"
 
 
-namespace Kratos
-{
+namespace Kratos {
+
 ///@addtogroup ApplicationNameApplication
 ///@{
 
@@ -73,13 +71,15 @@ public:
     /// Default constructor.
     ClassName(){}
 
-    /// Destructor.
-    virtual ~ClassName(){}
+    /// Copy constructor.
+    ClassName(ClassName const& rOther) = delete;
 
     ///@}
     ///@name Operators
     ///@{
 
+    /// Assignment operator.
+    ClassName& operator=(ClassName const& rOther) = delete;
 
     ///@}
     ///@name Operations
@@ -101,18 +101,18 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const
+    std::string Info() const
     {
-std::stringstream buffer;
-    buffer << "ClassName" ;
-    return buffer.str();
+        std::stringstream buffer;
+        buffer << "ClassName" ;
+        return buffer.str();
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const {rOStream << "ClassName";}
+    void PrintInfo(std::ostream& rOStream) const {rOStream << "ClassName";}
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const {}
+    void PrintData(std::ostream& rOStream) const {}
 
     ///@}
     ///@name Friends
@@ -189,16 +189,6 @@ private:
 
 
     ///@}
-    ///@name Un accessible methods
-    ///@{
-
-    /// Assignment operator.
-    ClassName& operator=(ClassName const& rOther){}
-
-    /// Copy constructor.
-    ClassName(ClassName const& rOther){}
-
-    ///@}
 
 }; // Class ClassName
 
@@ -211,7 +201,6 @@ private:
 ///@}
 ///@name Input and output
 ///@{
-
 
 /// input stream function
 inline std::istream& operator >> (std::istream& rIStream,
@@ -231,8 +220,4 @@ inline std::ostream& operator << (std::ostream& rOStream,
 
 ///@} addtogroup block
 
-}  // namespace Kratos.
-
-#endif // KRATOS_FILENAME_H_INCLUDED  defined
-
-
+} // namespace Kratos

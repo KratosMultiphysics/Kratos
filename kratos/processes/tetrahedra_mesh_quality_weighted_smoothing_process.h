@@ -51,9 +51,9 @@ namespace Kratos
       /// Pointer definition of TetrahedraMeshQualityWeightedSmoothingProcess
       KRATOS_CLASS_POINTER_DEFINITION(TetrahedraMeshQualityWeightedSmoothingProcess);
 
-	  typedef Node<3> NodeType;
+	  typedef Node NodeType;
 
-	  typedef GlobalPointersVector< Node<3> > NeighboursVectorType;
+	  typedef GlobalPointersVector< Node > NeighboursVectorType;
 
 	  typedef std::vector<Point > PointsVectorType;
 

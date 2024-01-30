@@ -63,8 +63,8 @@ public:
     ///@{
 
     typedef std::size_t                     IndexType;
-    typedef Node<3>                         NodeType;
-    typedef Node<3>::Pointer                NodePointerType;
+    typedef Node                         NodeType;
+    typedef Node::Pointer                NodePointerType;
     typedef ModelPart::NodesContainerType   NodesArrayType;
     typedef NodesArrayType::iterator        NodeIteratorType;
 

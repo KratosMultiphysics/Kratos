@@ -35,7 +35,7 @@ Begin Elements UPwSmallStrainElement2D3N
   10  1  8 5 10
 End Elements
 
-Begin Elements GeoCableElement3D2N
+Begin Elements GeoCableElement2D2N
   11  2  9 7
 End Elements
 

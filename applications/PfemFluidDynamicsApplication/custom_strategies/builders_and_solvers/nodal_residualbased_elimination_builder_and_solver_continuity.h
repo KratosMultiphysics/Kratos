@@ -60,17 +60,17 @@ namespace Kratos
 	///@{
 
 	/**
-   * @class NodalResidualBasedEliminationBuilderAndSolverContinuity
-   * @ingroup KratosCore
-   * @brief Current class provides an implementation for standard builder and solving operations.
-   * @details The RHS is constituted by the unbalanced loads (residual)
-   * Degrees of freedom are reordered putting the restrained degrees of freedom at
-   * the end of the system ordered in reverse order with respect to the DofSet.
-   * Imposition of the dirichlet conditions is naturally dealt with as the residual already contains
-   * this information.
-   * Calculation of the reactions involves a cost very similiar to the calculation of the total residual
-   * @author Riccardo Rossi
-   */
+	 * @class NodalResidualBasedEliminationBuilderAndSolverContinuity
+	 * @ingroup KratosCore
+	 * @brief Current class provides an implementation for standard builder and solving operations.
+	 * @details The RHS is constituted by the unbalanced loads (residual)
+	 * Degrees of freedom are reordered putting the restrained degrees of freedom at
+	 * the end of the system ordered in reverse order with respect to the DofSet.
+	 * Imposition of the dirichlet conditions is naturally dealt with as the residual already contains
+	 * this information.
+	 * Calculation of the reactions involves a cost very similiar to the calculation of the total residual
+	 * @author Riccardo Rossi
+	 */
 	template <class TSparseSpace,
 			  class TDenseSpace,  //= DenseSpace<double>,
 			  class TLinearSolver //= LinearSolver<TSparseSpace,TDenseSpace>
@@ -102,7 +102,7 @@ namespace Kratos
 		typedef typename BaseType::TSystemMatrixPointerType TSystemMatrixPointerType;
 		typedef typename BaseType::TSystemVectorPointerType TSystemVectorPointerType;
 
-		typedef Node<3> NodeType;
+		typedef Node NodeType;
 
 		typedef typename BaseType::NodesArrayType NodesArrayType;
 		typedef typename BaseType::ElementsArrayType ElementsArrayType;
@@ -117,7 +117,7 @@ namespace Kratos
 		///@{
 
 		/** Constructor.
-       */
+		 */
 		NodalResidualBasedEliminationBuilderAndSolverContinuity(
 			typename TLinearSolver::Pointer pNewLinearSystemSolver)
 			: BuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver>(pNewLinearSystemSolver)
@@ -126,7 +126,7 @@ namespace Kratos
 		}
 
 		/** Destructor.
-       */
+		 */
 		~NodalResidualBasedEliminationBuilderAndSolverContinuity() override
 		{
 		}
@@ -149,7 +149,7 @@ namespace Kratos
 
 			KRATOS_ERROR_IF(!pScheme) << "No scheme provided!" << std::endl;
 
-			//contributions to the continuity equation system
+			// contributions to the continuity equation system
 			LocalSystemMatrixType LHS_Contribution = LocalSystemMatrixType(0, 0);
 			LocalSystemVectorType RHS_Contribution = LocalSystemVectorType(0);
 
@@ -158,6 +158,7 @@ namespace Kratos
 
 			const unsigned int dimension = rModelPart.ElementsBegin()->GetGeometry().WorkingSpaceDimension();
 			const double timeInterval = CurrentProcessInfo[DELTA_TIME];
+			const double deviatoric_threshold = 0.1;
 			double pressure = 0;
 			double deltaPressure = 0;
 			double meanMeshSize = 0;
@@ -190,35 +191,18 @@ namespace Kratos
 					{
 
 						const double nodalVolume = itNode->FastGetSolutionStepValue(NODAL_VOLUME);
-
 						noalias(LHS_Contribution) = ZeroMatrix(neighSize, neighSize);
 						noalias(RHS_Contribution) = ZeroVector(neighSize);
 
 						if (EquationId.size() != neighSize)
 							EquationId.resize(neighSize, false);
 
-						double deviatoricCoeff = itNode->FastGetSolutionStepValue(DEVIATORIC_COEFFICIENT);
+						double deviatoricCoeff = 0;
+						this->GetDeviatoricCoefficientForFluid(rModelPart, itNode, deviatoricCoeff);
 
-						double yieldShear = itNode->FastGetSolutionStepValue(YIELD_SHEAR);
-						if (yieldShear > 0)
+						if (deviatoricCoeff > deviatoric_threshold)
 						{
-							double adaptiveExponent = itNode->FastGetSolutionStepValue(ADAPTIVE_EXPONENT);
-							double equivalentStrainRate = itNode->FastGetSolutionStepValue(NODAL_EQUIVALENT_STRAIN_RATE);
-							double exponent = -adaptiveExponent * equivalentStrainRate;
-							if (equivalentStrainRate != 0)
-							{
-								deviatoricCoeff += (yieldShear / equivalentStrainRate) * (1 - exp(exponent));
-							}
-							if (equivalentStrainRate < 0.00001 && yieldShear != 0 && adaptiveExponent != 0)
-							{
-								// for gamma_dot very small the limit of the Papanastasiou viscosity is mu=m*tau_yield
-								deviatoricCoeff = adaptiveExponent * yieldShear;
-							}
-						}
-
-						if (deviatoricCoeff > 0.1)
-						{
-							deviatoricCoeff = 0.1;
+							deviatoricCoeff = deviatoric_threshold;
 						}
 
 						double volumetricCoeff = timeInterval * itNode->FastGetSolutionStepValue(BULK_MODULUS);
@@ -260,7 +244,6 @@ namespace Kratos
 
 						tauStab = 1.0 * (characteristicLength * characteristicLength * timeInterval) / (density * nodalVelocityNorm * timeInterval * characteristicLength + density * characteristicLength * characteristicLength + 8.0 * deviatoricCoeff * timeInterval);
 						itNode->FastGetSolutionStepValue(NODAL_TAU) = tauStab;
-						/* std::cout<<"tauStab= "<<tauStab<<std::endl; */
 
 						LHS_Contribution(0, 0) += +nodalVolume * tauStab * density / (volumetricCoeff * timeInterval);
 						RHS_Contribution[0] += -nodalVolume * tauStab * density / (volumetricCoeff * timeInterval) * (deltaPressure - itNode->FastGetSolutionStepValue(PRESSURE_VELOCITY, 0) * timeInterval);
@@ -457,6 +440,93 @@ namespace Kratos
 			KRATOS_CATCH("")
 		}
 
+		void GetDeviatoricCoefficientForFluid(ModelPart &rModelPart, ModelPart::NodeIterator itNode, double &deviatoricCoefficient)
+		{
+			const double tolerance = 1e-12;
+
+			if (rModelPart.GetNodalSolutionStepVariablesList().Has(STATIC_FRICTION)) // mu(I)-rheology
+			{
+				const double static_friction = itNode->FastGetSolutionStepValue(STATIC_FRICTION);
+				const double dynamic_friction = itNode->FastGetSolutionStepValue(DYNAMIC_FRICTION);
+				const double delta_friction = dynamic_friction - static_friction;
+				const double inertial_number_zero = itNode->FastGetSolutionStepValue(INERTIAL_NUMBER_ZERO);
+				const double grain_diameter = itNode->FastGetSolutionStepValue(GRAIN_DIAMETER);
+				const double grain_density = itNode->FastGetSolutionStepValue(GRAIN_DENSITY);
+				const double regularization_coeff = itNode->FastGetSolutionStepValue(REGULARIZATION_COEFFICIENT);
+
+				const double theta = 0.5;
+				double mean_pressure = itNode->FastGetSolutionStepValue(PRESSURE, 0) * theta + itNode->FastGetSolutionStepValue(PRESSURE, 1) * (1 - theta);
+
+				double pressure_tolerance = -1.0e-07;
+				if (mean_pressure > pressure_tolerance)
+				{
+					mean_pressure = pressure_tolerance;
+				}
+
+				const double equivalent_strain_rate = itNode->FastGetSolutionStepValue(NODAL_EQUIVALENT_STRAIN_RATE);
+				const double exponent = -equivalent_strain_rate / regularization_coeff;
+				const double second_viscous_term = delta_friction * grain_diameter / (inertial_number_zero * std::sqrt(std::fabs(mean_pressure) / grain_density) + equivalent_strain_rate * grain_diameter);
+
+				if (std::fabs(equivalent_strain_rate) > tolerance)
+				{
+					const double first_viscous_term = static_friction * (1 - std::exp(exponent)) / equivalent_strain_rate;
+					deviatoricCoefficient = (first_viscous_term + second_viscous_term) * std::fabs(mean_pressure);
+				}
+				else
+				{
+					deviatoricCoefficient = 1.0; // this is for the first iteration and first time step
+				}
+			}
+			else if (rModelPart.GetNodalSolutionStepVariablesList().Has(INTERNAL_FRICTION_ANGLE)) // frictiional viscoplastic model
+			{
+				const double dynamic_viscosity = itNode->FastGetSolutionStepValue(DYNAMIC_VISCOSITY);
+				const double friction_angle = itNode->FastGetSolutionStepValue(INTERNAL_FRICTION_ANGLE);
+				const double cohesion = itNode->FastGetSolutionStepValue(COHESION);
+				const double adaptive_exponent = itNode->FastGetSolutionStepValue(ADAPTIVE_EXPONENT);
+
+				const double theta = 0.5;
+				double mean_pressure = itNode->FastGetSolutionStepValue(PRESSURE, 0) * theta + itNode->FastGetSolutionStepValue(PRESSURE, 1) * (1 - theta);
+
+				double pressure_tolerance = -1.0e-07;
+				if (mean_pressure > pressure_tolerance)
+				{
+					mean_pressure = pressure_tolerance;
+				}
+
+				const double equivalent_strain_rate = itNode->FastGetSolutionStepValue(NODAL_EQUIVALENT_STRAIN_RATE);
+
+				// Ensuring that the case of equivalent_strain_rate = 0 is not problematic
+				if (std::fabs(equivalent_strain_rate) > tolerance)
+				{
+					const double friction_angle_rad = friction_angle * Globals::Pi / 180.0;
+					const double tanFi = std::tan(friction_angle_rad);
+					double regularization = 1.0 - std::exp(-adaptive_exponent * equivalent_strain_rate);
+					deviatoricCoefficient = dynamic_viscosity + regularization * ((cohesion + tanFi * fabs(mean_pressure)) / equivalent_strain_rate);
+				}
+				else
+				{
+					deviatoricCoefficient = dynamic_viscosity;
+				}
+			}
+			else if (rModelPart.GetNodalSolutionStepVariablesList().Has(YIELD_SHEAR)) // bingham model
+			{
+				const double yieldShear = itNode->FastGetSolutionStepValue(YIELD_SHEAR);
+				const double equivalentStrainRate = itNode->FastGetSolutionStepValue(NODAL_EQUIVALENT_STRAIN_RATE);
+				const double adaptiveExponent = itNode->FastGetSolutionStepValue(ADAPTIVE_EXPONENT);
+				const double exponent = -adaptiveExponent * equivalentStrainRate;
+				deviatoricCoefficient = itNode->FastGetSolutionStepValue(DYNAMIC_VISCOSITY);
+				if (std::abs(equivalentStrainRate) > tolerance)
+				{
+					deviatoricCoefficient += (yieldShear / equivalentStrainRate) * (1 - exp(exponent));
+				}
+			}
+			else if (rModelPart.GetNodalSolutionStepVariablesList().Has(DYNAMIC_VISCOSITY))
+			{
+				deviatoricCoefficient = itNode->FastGetSolutionStepValue(DYNAMIC_VISCOSITY);
+			}
+			itNode->FastGetSolutionStepValue(DEVIATORIC_COEFFICIENT) = deviatoricCoefficient;
+		}
+
 		void BuildNodallyUnlessLaplacian(
 			typename TSchemeType::Pointer pScheme,
 			ModelPart &rModelPart,
@@ -467,7 +537,7 @@ namespace Kratos
 
 			KRATOS_ERROR_IF(!pScheme) << "No scheme provided!" << std::endl;
 
-			//contributions to the continuity equation system
+			// contributions to the continuity equation system
 			LocalSystemMatrixType LHS_Contribution = LocalSystemMatrixType(0, 0);
 			LocalSystemVectorType RHS_Contribution = LocalSystemVectorType(0);
 
@@ -476,6 +546,7 @@ namespace Kratos
 
 			const unsigned int dimension = rModelPart.ElementsBegin()->GetGeometry().WorkingSpaceDimension();
 			const double timeInterval = CurrentProcessInfo[DELTA_TIME];
+			const double deviatoric_threshold = 0.1;
 			double deltaPressure = 0;
 			double meanMeshSize = 0;
 			double characteristicLength = 0;
@@ -510,28 +581,12 @@ namespace Kratos
 						if (EquationId.size() != neighSize)
 							EquationId.resize(neighSize, false);
 
-						double deviatoricCoeff = itNode->FastGetSolutionStepValue(DEVIATORIC_COEFFICIENT);
+						double deviatoricCoeff = 0;
+						this->GetDeviatoricCoefficientForFluid(rModelPart, itNode, deviatoricCoeff);
 
-						double yieldShear = itNode->FastGetSolutionStepValue(YIELD_SHEAR);
-						if (yieldShear > 0)
+						if (deviatoricCoeff > deviatoric_threshold)
 						{
-							double adaptiveExponent = itNode->FastGetSolutionStepValue(ADAPTIVE_EXPONENT);
-							double equivalentStrainRate = itNode->FastGetSolutionStepValue(NODAL_EQUIVALENT_STRAIN_RATE);
-							double exponent = -adaptiveExponent * equivalentStrainRate;
-							if (equivalentStrainRate != 0)
-							{
-								deviatoricCoeff += (yieldShear / equivalentStrainRate) * (1 - exp(exponent));
-							}
-							if (equivalentStrainRate < 0.00001 && yieldShear != 0 && adaptiveExponent != 0)
-							{
-								// for gamma_dot very small the limit of the Papanastasiou viscosity is mu=m*tau_yield
-								deviatoricCoeff = adaptiveExponent * yieldShear;
-							}
-						}
-
-						if (deviatoricCoeff > 0.1)
-						{
-							deviatoricCoeff = 0.1;
+							deviatoricCoeff = deviatoric_threshold;
 						}
 
 						double volumetricCoeff = timeInterval * itNode->FastGetSolutionStepValue(BULK_MODULUS);
@@ -716,7 +771,7 @@ namespace Kratos
 
 			KRATOS_ERROR_IF(!pScheme) << "No scheme provided!" << std::endl;
 
-			//contributions to the continuity equation system
+			// contributions to the continuity equation system
 			LocalSystemMatrixType LHS_Contribution = LocalSystemMatrixType(0, 0);
 			LocalSystemVectorType RHS_Contribution = LocalSystemVectorType(0);
 
@@ -725,6 +780,7 @@ namespace Kratos
 
 			const unsigned int dimension = rModelPart.ElementsBegin()->GetGeometry().WorkingSpaceDimension();
 			const double timeInterval = CurrentProcessInfo[DELTA_TIME];
+			const double deviatoric_threshold = 0.1;
 			double deltaPressure = 0;
 			double meanMeshSize = 0;
 			double characteristicLength = 0;
@@ -755,28 +811,12 @@ namespace Kratos
 						if (EquationId.size() != neighSize)
 							EquationId.resize(neighSize, false);
 
-						double deviatoricCoeff = itNode->FastGetSolutionStepValue(DEVIATORIC_COEFFICIENT);
+						double deviatoricCoeff = 0;
+						this->GetDeviatoricCoefficientForFluid(rModelPart, itNode, deviatoricCoeff);
 
-						double yieldShear = itNode->FastGetSolutionStepValue(YIELD_SHEAR);
-						if (yieldShear > 0)
+						if (deviatoricCoeff > deviatoric_threshold)
 						{
-							double adaptiveExponent = itNode->FastGetSolutionStepValue(ADAPTIVE_EXPONENT);
-							double equivalentStrainRate = itNode->FastGetSolutionStepValue(NODAL_EQUIVALENT_STRAIN_RATE);
-							double exponent = -adaptiveExponent * equivalentStrainRate;
-							if (equivalentStrainRate != 0)
-							{
-								deviatoricCoeff += (yieldShear / equivalentStrainRate) * (1 - exp(exponent));
-							}
-							if (equivalentStrainRate < 0.00001 && yieldShear != 0 && adaptiveExponent != 0)
-							{
-								// for gamma_dot very small the limit of the Papanastasiou viscosity is mu=m*tau_yield
-								deviatoricCoeff = adaptiveExponent * yieldShear;
-							}
-						}
-
-						if (deviatoricCoeff > 0.1)
-						{
-							deviatoricCoeff = 0.1;
+							deviatoricCoeff = deviatoric_threshold;
 						}
 
 						double volumetricCoeff = timeInterval * itNode->FastGetSolutionStepValue(BULK_MODULUS);
@@ -885,7 +925,7 @@ namespace Kratos
 
 			KRATOS_ERROR_IF(!pScheme) << "No scheme provided!" << std::endl;
 
-			//contributions to the continuity equation system
+			// contributions to the continuity equation system
 			LocalSystemMatrixType LHS_Contribution = LocalSystemMatrixType(0, 0);
 			LocalSystemVectorType RHS_Contribution = LocalSystemVectorType(0);
 
@@ -893,6 +933,7 @@ namespace Kratos
 			const ProcessInfo &CurrentProcessInfo = rModelPart.GetProcessInfo();
 
 			const double timeInterval = CurrentProcessInfo[DELTA_TIME];
+			const double deviatoric_threshold = 0.1;
 			double deltaPressure = 0;
 
 			/* #pragma omp parallel */
@@ -918,28 +959,12 @@ namespace Kratos
 						if (EquationId.size() != neighSize)
 							EquationId.resize(neighSize, false);
 
-						double deviatoricCoeff = itNode->FastGetSolutionStepValue(DEVIATORIC_COEFFICIENT);
+						double deviatoricCoeff = 0;
+						this->GetDeviatoricCoefficientForFluid(rModelPart, itNode, deviatoricCoeff);
 
-						double yieldShear = itNode->FastGetSolutionStepValue(YIELD_SHEAR);
-						if (yieldShear > 0)
+						if (deviatoricCoeff > deviatoric_threshold)
 						{
-							double adaptiveExponent = itNode->FastGetSolutionStepValue(ADAPTIVE_EXPONENT);
-							double equivalentStrainRate = itNode->FastGetSolutionStepValue(NODAL_EQUIVALENT_STRAIN_RATE);
-							double exponent = -adaptiveExponent * equivalentStrainRate;
-							if (equivalentStrainRate != 0)
-							{
-								deviatoricCoeff += (yieldShear / equivalentStrainRate) * (1 - exp(exponent));
-							}
-							if (equivalentStrainRate < 0.00001 && yieldShear != 0 && adaptiveExponent != 0)
-							{
-								// for gamma_dot very small the limit of the Papanastasiou viscosity is mu=m*tau_yield
-								deviatoricCoeff = adaptiveExponent * yieldShear;
-							}
-						}
-
-						if (deviatoricCoeff > 0.1)
-						{
-							deviatoricCoeff = 0.1;
+							deviatoricCoeff = deviatoric_threshold;
 						}
 
 						double volumetricCoeff = timeInterval * itNode->FastGetSolutionStepValue(BULK_MODULUS);
@@ -983,7 +1008,7 @@ namespace Kratos
 
 			KRATOS_ERROR_IF(!pScheme) << "No scheme provided!" << std::endl;
 
-			//contributions to the continuity equation system
+			// contributions to the continuity equation system
 			LocalSystemMatrixType LHS_Contribution = LocalSystemMatrixType(0, 0);
 			LocalSystemVectorType RHS_Contribution = LocalSystemVectorType(0);
 
@@ -992,6 +1017,7 @@ namespace Kratos
 			const ProcessInfo &CurrentProcessInfo = rModelPart.GetProcessInfo();
 
 			const double timeInterval = CurrentProcessInfo[DELTA_TIME];
+			const double deviatoric_threshold = 0.1;
 			double deltaPressure = 0;
 
 			/* #pragma omp parallel */
@@ -1009,23 +1035,11 @@ namespace Kratos
 				if (neighSize > 1)
 				{
 
-					// if (LHS_Contribution.size1() != neighSize)
-					// 	LHS_Contribution.resize(neighSize, neighSize, false); //false says not to preserve existing storage!!
-
-					// if (RHS_Contribution.size() != neighSize)
-					// 	RHS_Contribution.resize(neighSize, false); //false says not to preserve existing storage!!
-
-					// LHS_Contribution= ZeroMatrix(neighSize,neighSize);
-					// RHS_Contribution= ZeroVector(neighSize);
-
-					// if (EquationId.size() != neighSize)
-					// 	EquationId.resize(neighSize, false);
-
 					if (LHS_Contribution.size1() != 1)
-						LHS_Contribution.resize(1, 1, false); //false says not to preserve existing storage!!
+						LHS_Contribution.resize(1, 1, false); // false says not to preserve existing storage!!
 
 					if (RHS_Contribution.size() != 1)
-						RHS_Contribution.resize(1, false); //false says not to preserve existing storage!!
+						RHS_Contribution.resize(1, false); // false says not to preserve existing storage!!
 
 					noalias(LHS_Contribution) = ZeroMatrix(1, 1);
 					noalias(RHS_Contribution) = ZeroVector(1);
@@ -1038,28 +1052,12 @@ namespace Kratos
 					if (nodalVolume > 0)
 					{ // in interface nodes not in contact with fluid elements the nodal volume is zero
 
-						double deviatoricCoeff = itNode->FastGetSolutionStepValue(DEVIATORIC_COEFFICIENT);
+						double deviatoricCoeff = 0;
+						this->GetDeviatoricCoefficientForFluid(rModelPart, itNode, deviatoricCoeff);
 
-						double yieldShear = itNode->FastGetSolutionStepValue(YIELD_SHEAR);
-						if (yieldShear > 0)
+						if (deviatoricCoeff > deviatoric_threshold)
 						{
-							double adaptiveExponent = itNode->FastGetSolutionStepValue(ADAPTIVE_EXPONENT);
-							double equivalentStrainRate = itNode->FastGetSolutionStepValue(NODAL_EQUIVALENT_STRAIN_RATE);
-							double exponent = -adaptiveExponent * equivalentStrainRate;
-							if (equivalentStrainRate != 0)
-							{
-								deviatoricCoeff += (yieldShear / equivalentStrainRate) * (1 - exp(exponent));
-							}
-							if (equivalentStrainRate < 0.00001 && yieldShear != 0 && adaptiveExponent != 0)
-							{
-								// for gamma_dot very small the limit of the Papanastasiou viscosity is mu=m*tau_yield
-								deviatoricCoeff = adaptiveExponent * yieldShear;
-							}
-						}
-
-						if (deviatoricCoeff > 0.1)
-						{
-							deviatoricCoeff = 0.1;
+							deviatoricCoeff = deviatoric_threshold;
 						}
 
 						double volumetricCoeff = timeInterval * itNode->FastGetSolutionStepValue(BULK_MODULUS);
@@ -1094,7 +1092,7 @@ namespace Kratos
 #ifdef _OPENMP
 			int A_size = A.size1();
 
-			//creating an array of lock variables of the size of the system matrix
+			// creating an array of lock variables of the size of the system matrix
 			std::vector<omp_lock_t> lock_array(A.size1());
 
 			for (int i = 0; i < A_size; i++)
@@ -1112,12 +1110,12 @@ namespace Kratos
 #pragma omp parallel for firstprivate(number_of_threads) schedule(static, 1)
 			for (int k = 0; k < number_of_threads; k++)
 			{
-				//contributions to the system
+				// contributions to the system
 				LocalSystemMatrixType elementalLHS_Contribution = LocalSystemMatrixType(0, 0);
 				LocalSystemVectorType elementalRHS_Contribution = LocalSystemVectorType(0);
 
-				//vector containing the localization in the system of the different
-				//terms
+				// vector containing the localization in the system of the different
+				// terms
 				Element::EquationIdVectorType elementalEquationId;
 				const ProcessInfo &CurrentProcessInfo = rModelPart.GetProcessInfo();
 				typename ElementsArrayType::ptr_iterator it_begin = pElements.ptr_begin() + element_partition[k];
@@ -1128,17 +1126,17 @@ namespace Kratos
 				// assemble all elements
 				for (typename ElementsArrayType::ptr_iterator it = it_begin; it != it_end; ++it)
 				{
-					//calculate elemental contribution
+					// calculate elemental contribution
 					(*it)->CalculateLocalSystem(elementalLHS_Contribution, elementalRHS_Contribution, CurrentProcessInfo);
 
-					Geometry<Node<3>> &geom = (*it)->GetGeometry();
+					Geometry<Node> &geom = (*it)->GetGeometry();
 					if (elementalEquationId.size() != geom.size())
 						elementalEquationId.resize(geom.size(), false);
 
 					for (unsigned int i = 0; i < geom.size(); i++)
 						elementalEquationId[i] = geom[i].GetDof(PRESSURE, pos).EquationId();
 
-						//assemble the elemental contribution
+						// assemble the elemental contribution
 #ifdef _OPENMP
 					this->Assemble(A, b, elementalLHS_Contribution, elementalRHS_Contribution, elementalEquationId, lock_array);
 #else
@@ -1155,11 +1153,11 @@ namespace Kratos
 			KRATOS_CATCH("")
 		}
 		/**
-       * @brief This is a call to the linear system solver
-       * @param A The LHS matrix
-       * @param Dx The Unknowns vector
-       * @param b The RHS vector
-       */
+		 * @brief This is a call to the linear system solver
+		 * @param A The LHS matrix
+		 * @param Dx The Unknowns vector
+		 * @param b The RHS vector
+		 */
 		void SystemSolve(
 			TSystemMatrixType &A,
 			TSystemVectorType &Dx,
@@ -1175,7 +1173,7 @@ namespace Kratos
 
 			if (norm_b != 0.00)
 			{
-				//do solve
+				// do solve
 				BaseType::mpLinearSystemSolver->Solve(A, Dx, b);
 			}
 			else
@@ -1188,12 +1186,12 @@ namespace Kratos
 		}
 
 		/**
-       *@brief This is a call to the linear system solver (taking into account some physical particularities of the problem)
-       * @param A The LHS matrix
-       * @param Dx The Unknowns vector
-       * @param b The RHS vector
-       * @param rModelPart The model part of the problem to solve
-       */
+		 *@brief This is a call to the linear system solver (taking into account some physical particularities of the problem)
+		 * @param A The LHS matrix
+		 * @param Dx The Unknowns vector
+		 * @param b The RHS vector
+		 * @param rModelPart The model part of the problem to solve
+		 */
 		void SystemSolveWithPhysics(
 			TSystemMatrixType &A,
 			TSystemVectorType &Dx,
@@ -1210,11 +1208,11 @@ namespace Kratos
 
 			if (norm_b != 0.00)
 			{
-				//provide physical data as needed
+				// provide physical data as needed
 				if (BaseType::mpLinearSystemSolver->AdditionalPhysicalDataIsNeeded())
 					BaseType::mpLinearSystemSolver->ProvideAdditionalData(A, Dx, b, BaseType::mDofSet, rModelPart);
 
-				//do solve
+				// do solve
 				BaseType::mpLinearSystemSolver->Solve(A, Dx, b);
 			}
 			else
@@ -1230,15 +1228,15 @@ namespace Kratos
 		}
 
 		/**
-       * @brief Function to perform the building and solving phase at the same time.
-       * @details It is ideally the fastest and safer function to use when it is possible to solve
-       * just after building
-       * @param pScheme The integration scheme considered
-       * @param rModelPart The model part of the problem to solve
-       * @param A The LHS matrix
-       * @param Dx The Unknowns vector
-       * @param b The RHS vector
-       */
+		 * @brief Function to perform the building and solving phase at the same time.
+		 * @details It is ideally the fastest and safer function to use when it is possible to solve
+		 * just after building
+		 * @param pScheme The integration scheme considered
+		 * @param rModelPart The model part of the problem to solve
+		 * @param A The LHS matrix
+		 * @param Dx The Unknowns vector
+		 * @param b The RHS vector
+		 */
 		void BuildAndSolve(
 			typename TSchemeType::Pointer pScheme,
 			ModelPart &rModelPart,
@@ -1253,18 +1251,18 @@ namespace Kratos
 			/* boost::timer c_build_time; */
 
 			///////////////////////////////// ALL NODAL /////////////////////////////////
-			//BuildNodally(pScheme, rModelPart, A, b);
+			// BuildNodally(pScheme, rModelPart, A, b);
 			///////////////////////////////// ALL NODAL /////////////////////////////////
 
 			// /////////////////////// NODAL + ELEMENTAL LAPLACIAN ///////////////////////
-			//BuildNodallyUnlessLaplacian(pScheme, rModelPart, A, b);
-			//Build(pScheme, rModelPart, A, b);
+			// BuildNodallyUnlessLaplacian(pScheme, rModelPart, A, b);
+			// Build(pScheme, rModelPart, A, b);
 			// /////////////////////// NODAL + ELEMENTAL LAPLACIAN ///////////////////////
 
 			//////////////// NODAL + ELEMENTAL VOLUMETRIC STABILIZED TERMS////////////////
-			//BuildNodallyNoVolumetricStabilizedTerms(pScheme, rModelPart, A, b);
-			//Build(pScheme, rModelPart, A, b);
-			// /////////////////////// NODAL + ELEMENTAL LAPLACIAN ///////////////////////
+			// BuildNodallyNoVolumetricStabilizedTerms(pScheme, rModelPart, A, b);
+			// Build(pScheme, rModelPart, A, b);
+			//  /////////////////////// NODAL + ELEMENTAL LAPLACIAN ///////////////////////
 
 			/////////////////////// NODAL + ELEMENTAL STABILIZATION //////////////////////
 			// BuildNodallyNotStabilized(pScheme, rModelPart, A, b);
@@ -1274,7 +1272,7 @@ namespace Kratos
 			/////////////////////// NODAL + ELEMENTAL STABILIZATION //////////////////////
 
 			//////////////////////// ALL ELEMENTAL (FOR HYBRID) //////////////////////////
-			//Build(pScheme, rModelPart, A, b);
+			// Build(pScheme, rModelPart, A, b);
 			//////////////////////// ALL ELEMENTAL (FOR HYBRID) //////////////////////////
 
 			Timer::Stop("Build");
@@ -1313,22 +1311,22 @@ namespace Kratos
 			if (!pScheme)
 				KRATOS_THROW_ERROR(std::runtime_error, "No scheme provided!", "");
 
-			//getting the elements from the model
+			// getting the elements from the model
 			ElementsArrayType &pElements = r_model_part.Elements();
 
 			// //getting the array of the conditions
 			// ConditionsArrayType& ConditionsArray = r_model_part.Conditions();
 
-			//resetting to zero the vector of reactions
+			// resetting to zero the vector of reactions
 			TSparseSpace::SetToZero(*(BaseType::mpReactionsVector));
 
-			//create a partition of the element array
+			// create a partition of the element array
 			int number_of_threads = ParallelUtilities::GetNumThreads();
 
 #ifdef _OPENMP
 			int A_size = A.size1();
 
-			//creating an array of lock variables of the size of the system matrix
+			// creating an array of lock variables of the size of the system matrix
 			std::vector<omp_lock_t> lock_array(A.size1());
 
 			for (int i = 0; i < A_size; i++)
@@ -1348,12 +1346,12 @@ namespace Kratos
 #pragma omp parallel for firstprivate(number_of_threads) schedule(static, 1)
 			for (int k = 0; k < number_of_threads; k++)
 			{
-				//contributions to the system
+				// contributions to the system
 				LocalSystemMatrixType LHS_Contribution = LocalSystemMatrixType(0, 0);
 				LocalSystemVectorType RHS_Contribution = LocalSystemVectorType(0);
 
-				//vector containing the localization in the system of the different
-				//terms
+				// vector containing the localization in the system of the different
+				// terms
 				Element::EquationIdVectorType EquationId;
 				const ProcessInfo &CurrentProcessInfo = r_model_part.GetProcessInfo();
 				typename ElementsArrayType::ptr_iterator it_begin = pElements.ptr_begin() + element_partition[k];
@@ -1365,17 +1363,17 @@ namespace Kratos
 				for (typename ElementsArrayType::ptr_iterator it = it_begin; it != it_end; ++it)
 				{
 
-					//calculate elemental contribution
+					// calculate elemental contribution
 					(*it)->CalculateLocalSystem(LHS_Contribution, RHS_Contribution, CurrentProcessInfo);
 
-					Geometry<Node<3>> &geom = (*it)->GetGeometry();
+					Geometry<Node> &geom = (*it)->GetGeometry();
 					if (EquationId.size() != geom.size())
 						EquationId.resize(geom.size(), false);
 
 					for (unsigned int i = 0; i < geom.size(); i++)
 						EquationId[i] = geom[i].GetDof(PRESSURE, pos).EquationId();
 
-						//assemble the elemental contribution
+						// assemble the elemental contribution
 #ifdef _OPENMP
 					this->Assemble(A, b, LHS_Contribution, RHS_Contribution, EquationId, lock_array);
 #else
@@ -1399,13 +1397,13 @@ namespace Kratos
 		}
 
 		/**
-       * @brief Builds the list of the DofSets involved in the problem by "asking" to each element
-       * and condition its Dofs.
-       * @details The list of dofs is stores insde the BuilderAndSolver as it is closely connected to the
-       * way the matrix and RHS are built
-       * @param pScheme The integration scheme considered
-       * @param rModelPart The model part of the problem to solve
-       */
+		 * @brief Builds the list of the DofSets involved in the problem by "asking" to each element
+		 * and condition its Dofs.
+		 * @details The list of dofs is stores insde the BuilderAndSolver as it is closely connected to the
+		 * way the matrix and RHS are built
+		 * @param pScheme The integration scheme considered
+		 * @param rModelPart The model part of the problem to solve
+		 */
 		void SetUpDofSet(
 			typename TSchemeType::Pointer pScheme,
 			ModelPart &rModelPart) override
@@ -1414,7 +1412,7 @@ namespace Kratos
 
 			KRATOS_INFO_IF("NodalResidualBasedEliminationBuilderAndSolverContinuity", this->GetEchoLevel() > 1 && rModelPart.GetCommunicator().MyPID() == 0) << "Setting up the dofs" << std::endl;
 
-			//Gets the array of elements from the modeler
+			// Gets the array of elements from the modeler
 			ElementsArrayType &pElements = rModelPart.Elements();
 			const int nelements = static_cast<int>(pElements.size());
 
@@ -1461,35 +1459,12 @@ namespace Kratos
 
 				dofs_aux_list[this_thread_id].insert(ElementalDofList.begin(), ElementalDofList.end());
 			}
-			
-			//         ConditionsArrayType& pConditions = rModelPart.Conditions();
-			//         const int nconditions = static_cast<int>(pConditions.size());
-			// #pragma omp parallel for firstprivate(nconditions, ElementalDofList)
-			//         for (int i = 0; i < nconditions; i++)
-			// 	  {
-			//             typename ConditionsArrayType::iterator it = pConditions.begin() + i;
-			//             const unsigned int this_thread_id = OpenMPUtils::ThisThread();
 
-			//             // gets list of Dof involved on every element
-			//             pScheme->GetConditionDofList(*(it.base()), ElementalDofList, CurrentProcessInfo);
-			//             dofs_aux_list[this_thread_id].insert(ElementalDofList.begin(), ElementalDofList.end());
-			// 	  }
-
-			//here we do a reduction in a tree so to have everything on thread 0
+			// here we do a reduction in a tree so to have everything on thread 0
 			unsigned int old_max = nthreads;
 			unsigned int new_max = ceil(0.5 * static_cast<double>(old_max));
 			while (new_max >= 1 && new_max != old_max)
 			{
-				//          //just for debugging
-				//          std::cout << "old_max" << old_max << " new_max:" << new_max << std::endl;
-				//          for (int i = 0; i < new_max; i++)
-				//          {
-				//             if (i + new_max < old_max)
-				//             {
-				//                std::cout << i << " - " << i + new_max << std::endl;
-				//             }
-				//          }
-				//          std::cout << "********************" << std::endl;
 
 #pragma omp parallel for
 				for (int i = 0; i < static_cast<int>(new_max); i++)
@@ -1556,9 +1531,9 @@ namespace Kratos
 		}
 
 		/**
-       * @brief Organises the dofset in order to speed up the building phase
-       * @param rModelPart The model part of the problem to solve
-       */
+		 * @brief Organises the dofset in order to speed up the building phase
+		 * @param rModelPart The model part of the problem to solve
+		 */
 		void SetUpSystem(
 			ModelPart &rModelPart) override
 		{
@@ -1595,22 +1570,22 @@ namespace Kratos
 
 			/* boost::timer c_contruct_matrix; */
 
-			if (pA == NULL) //if the pointer is not initialized initialize it to an empty matrix
+			if (pA == NULL) // if the pointer is not initialized initialize it to an empty matrix
 			{
 				TSystemMatrixPointerType pNewA = TSystemMatrixPointerType(new TSystemMatrixType(0, 0));
 				pA.swap(pNewA);
 			}
-			if (pDx == NULL) //if the pointer is not initialized initialize it to an empty matrix
+			if (pDx == NULL) // if the pointer is not initialized initialize it to an empty matrix
 			{
 				TSystemVectorPointerType pNewDx = TSystemVectorPointerType(new TSystemVectorType(0));
 				pDx.swap(pNewDx);
 			}
-			if (pb == NULL) //if the pointer is not initialized initialize it to an empty matrix
+			if (pb == NULL) // if the pointer is not initialized initialize it to an empty matrix
 			{
 				TSystemVectorPointerType pNewb = TSystemVectorPointerType(new TSystemVectorType(0));
 				pb.swap(pNewb);
 			}
-			if (BaseType::mpReactionsVector == NULL) //if the pointer is not initialized initialize it to an empty matrix
+			if (BaseType::mpReactionsVector == NULL) // if the pointer is not initialized initialize it to an empty matrix
 			{
 				TSystemVectorPointerType pNewReactionsVector = TSystemVectorPointerType(new TSystemVectorType(0));
 				BaseType::mpReactionsVector.swap(pNewReactionsVector);
@@ -1620,8 +1595,8 @@ namespace Kratos
 			TSystemVectorType &Dx = *pDx;
 			TSystemVectorType &b = *pb;
 
-			//resizing the system vectors and matrix
-			if (A.size1() == 0 || BaseType::GetReshapeMatrixFlag() == true) //if the matrix is not initialized
+			// resizing the system vectors and matrix
+			if (A.size1() == 0 || BaseType::GetReshapeMatrixFlag() == true) // if the matrix is not initialized
 			{
 				A.resize(BaseType::mEquationSystemSize, BaseType::mEquationSystemSize, false);
 				ConstructMatrixStructure(pScheme, A, rModelPart);
@@ -1641,7 +1616,7 @@ namespace Kratos
 			if (b.size() != BaseType::mEquationSystemSize)
 				b.resize(BaseType::mEquationSystemSize, false);
 
-			//if needed resize the vector for the calculation of reactions
+			// if needed resize the vector for the calculation of reactions
 			if (BaseType::mCalculateReactionsFlag == true)
 			{
 				unsigned int ReactionsVectorSize = BaseType::mDofSet.size();
@@ -1657,16 +1632,16 @@ namespace Kratos
 		//**************************************************************************
 
 		/**
-       * @brief Applies the dirichlet conditions. This operation may be very heavy or completely
-       * unexpensive depending on the implementation choosen and on how the System Matrix is built.
-       * @details For explanation of how it works for a particular implementation the user
-       * should refer to the particular Builder And Solver choosen
-       * @param pScheme The integration scheme considered
-       * @param rModelPart The model part of the problem to solve
-       * @param A The LHS matrix
-       * @param Dx The Unknowns vector
-       * @param b The RHS vector
-       */
+		 * @brief Applies the dirichlet conditions. This operation may be very heavy or completely
+		 * unexpensive depending on the implementation choosen and on how the System Matrix is built.
+		 * @details For explanation of how it works for a particular implementation the user
+		 * should refer to the particular Builder And Solver choosen
+		 * @param pScheme The integration scheme considered
+		 * @param rModelPart The model part of the problem to solve
+		 * @param A The LHS matrix
+		 * @param Dx The Unknowns vector
+		 * @param b The RHS vector
+		 */
 		void ApplyDirichletConditions(
 			typename TSchemeType::Pointer pScheme,
 			ModelPart &rModelPart,
@@ -1677,8 +1652,8 @@ namespace Kratos
 		}
 
 		/**
-       * @brief This function is intended to be called at the end of the solution step to clean up memory storage not needed
-       */
+		 * @brief This function is intended to be called at the end of the solution step to clean up memory storage not needed
+		 */
 		void Clear() override
 		{
 			this->mDofSet = DofsArrayType();
@@ -1693,12 +1668,12 @@ namespace Kratos
 		}
 
 		/**
-       * @brief This function is designed to be called once to perform all the checks needed
-       * on the input provided. Checks can be "expensive" as the function is designed
-       * to catch user's errors.
-       * @param rModelPart The model part of the problem to solve
-       * @return 0 all ok
-       */
+		 * @brief This function is designed to be called once to perform all the checks needed
+		 * on the input provided. Checks can be "expensive" as the function is designed
+		 * to catch user's errors.
+		 * @param rModelPart The model part of the problem to solve
+		 * @return 0 all ok
+		 */
 		int Check(ModelPart &rModelPart) override
 		{
 			KRATOS_TRY
@@ -1773,7 +1748,7 @@ namespace Kratos
 					omp_unset_lock(&lock_array[i_global]);
 #endif
 				}
-				//note that assembly on fixed rows is not performed here
+				// note that assembly on fixed rows is not performed here
 			}
 		}
 
@@ -1784,7 +1759,7 @@ namespace Kratos
 			TSystemMatrixType &A,
 			ModelPart &rModelPart)
 		{
-			//filling with zero the matrix (creating the structure)
+			// filling with zero the matrix (creating the structure)
 			Timer::Start("MatrixStructure");
 
 			const std::size_t equation_size = BaseType::mEquationSystemSize;
@@ -1800,12 +1775,12 @@ namespace Kratos
 			Element::EquationIdVectorType ids(3, 0);
 
 #pragma omp parallel firstprivate(ids)
-		{
-			// The process info
-			ProcessInfo &r_current_process_info = rModelPart.GetProcessInfo();
+			{
+				// The process info
+				ProcessInfo &r_current_process_info = rModelPart.GetProcessInfo();
 
-			// We repeat the same declaration for each thead
-			std::vector<std::unordered_set<std::size_t>> temp_indexes(equation_size);
+				// We repeat the same declaration for each thead
+				std::vector<std::unordered_set<std::size_t>> temp_indexes(equation_size);
 
 #pragma omp for
 				for (int index = 0; index < static_cast<int>(equation_size); ++index)
@@ -1870,7 +1845,7 @@ namespace Kratos
 				}
 			}
 
-			//count the row sizes
+			// count the row sizes
 			unsigned int nnz = 0;
 			for (unsigned int i = 0; i < indices.size(); i++)
 				nnz += indices[i].size();
@@ -1881,7 +1856,7 @@ namespace Kratos
 			std::size_t *Arow_indices = A.index1_data().begin();
 			std::size_t *Acol_indices = A.index2_data().begin();
 
-			//filling the index1 vector - DO NOT MAKE PARALLEL THE FOLLOWING LOOP!
+			// filling the index1 vector - DO NOT MAKE PARALLEL THE FOLLOWING LOOP!
 			Arow_indices[0] = 0;
 			for (int i = 0; i < static_cast<int>(A.size1()); i++)
 				Arow_indices[i + 1] = Arow_indices[i] + indices[i].size();
@@ -1997,7 +1972,7 @@ namespace Kratos
 				{
 					const unsigned int i_global = EquationId[i_local];
 
-					if (i_global < BaseType::mEquationSystemSize) //free dof
+					if (i_global < BaseType::mEquationSystemSize) // free dof
 					{
 						// ASSEMBLING THE SYSTEM VECTOR
 						double &b_value = b[i_global];
@@ -2015,7 +1990,7 @@ namespace Kratos
 				{
 					const unsigned int i_global = EquationId[i_local];
 
-					if (i_global < BaseType::mEquationSystemSize) //free dof
+					if (i_global < BaseType::mEquationSystemSize) // free dof
 					{
 						// ASSEMBLING THE SYSTEM VECTOR
 						double &b_value = b[i_global];
@@ -2024,7 +1999,7 @@ namespace Kratos
 #pragma omp atomic
 						b_value += rhs_value;
 					}
-					else //fixed dof
+					else // fixed dof
 					{
 						double &b_value = ReactionsVector[i_global - BaseType::mEquationSystemSize];
 						const double &rhs_value = RHS_Contribution[i_local];

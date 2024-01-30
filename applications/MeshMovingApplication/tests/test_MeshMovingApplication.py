@@ -12,8 +12,8 @@ from test_structural_mesh_motion_2d import TestCase as TTestCaseStructural2D
 from test_structural_mesh_motion_3d import TestCase as TTestCaseStructural3D
 from test_laplacian_mesh_motion_2d import TestCase as TTestCaseLaplacian2D
 from test_laplacian_mesh_motion_3d import TestCase as TTestCaseLaplacian3D
-from test_linear_transform import LinearTransformTest
-from test_parametric_linear_transform import ParametricLinearTransformTest
+from test_affine_transform import AffineTransformTest
+from test_parametric_affine_transform import ParametricAffineTransformTest
 from test_impose_mesh_motion_process import TestImposeMeshMotionProcess
 
 from test_ale_fluid_solver import ALEFluidSolverTest
@@ -42,8 +42,8 @@ def AssembleTestSuites():
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestCaseStructural3D]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestCaseLaplacian2D]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestCaseLaplacian3D]))
-    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([LinearTransformTest]))
-    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([ParametricLinearTransformTest]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([AffineTransformTest]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([ParametricAffineTransformTest]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestImposeMeshMotionProcess]))
 
     # Create a test suite with the selected tests plus all small tests

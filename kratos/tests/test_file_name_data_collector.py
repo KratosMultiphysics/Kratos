@@ -72,7 +72,7 @@ class TestFileNameDataCollector(KratosUnittest.TestCase):
                 file_name_without_path = check_data[0]
                 if (file_name_data_collector.RetrieveFileNameData(f_data, file_name_without_path)):
                     self.assertTrue(index in list_of_matching_indices)
-                    check_data[1].SetFileName(file_name_data_collector.GetPath() + "/" + file_name_without_path)
+                    check_data[1].SetFileName(os.path.join(file_name_data_collector.GetPath(), file_name_without_path))
                     self.assertEqual(f_data, check_data[1])
                 else:
                     self.assertFalse(index in list_of_matching_indices)

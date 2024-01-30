@@ -86,8 +86,6 @@ class ResidualBasedNewtonRaphsonStrategy
 
     typedef typename BaseType::TSchemeType TSchemeType;
 
-    //typedef typename BaseType::DofSetType DofSetType;
-
     typedef typename BaseType::DofsArrayType DofsArrayType;
 
     typedef typename BaseType::TSystemMatrixType TSystemMatrixType;
@@ -593,9 +591,9 @@ class ResidualBasedNewtonRaphsonStrategy
      * @param Level The level to set
      * @details The different levels of echo are:
      * - 0: Mute... no echo at all
-     * - 1: Printing time and basic informations
+     * - 1: Printing time and basic information
      * - 2: Printing linear solver data
-     * - 3: Print of debug informations: Echo of stiffness matrix, Dx, b...
+     * - 3: Print of debug information: Echo of stiffness matrix, Dx, b...
      */
 
     void SetEchoLevel(int Level) override
@@ -798,24 +796,24 @@ class ResidualBasedNewtonRaphsonStrategy
             BuiltinTimer setup_dofs_time;
             p_builder_and_solver->SetUpDofSet(p_scheme, r_model_part);
             KRATOS_INFO_IF("ResidualBasedNewtonRaphsonStrategy", BaseType::GetEchoLevel() > 0) << "Setup Dofs Time: "
-                << setup_dofs_time.ElapsedSeconds() << std::endl;
+                << setup_dofs_time << std::endl;
 
             // Shaping correctly the system
             BuiltinTimer setup_system_time;
             p_builder_and_solver->SetUpSystem(r_model_part);
             KRATOS_INFO_IF("ResidualBasedNewtonRaphsonStrategy", BaseType::GetEchoLevel() > 0) << "Setup System Time: "
-                << setup_system_time.ElapsedSeconds() << std::endl;
+                << setup_system_time << std::endl;
 
             // Setting up the Vectors involved to the correct size
             BuiltinTimer system_matrix_resize_time;
             p_builder_and_solver->ResizeAndInitializeVectors(p_scheme, mpA, mpDx, mpb,
                                                                 r_model_part);
             KRATOS_INFO_IF("ResidualBasedNewtonRaphsonStrategy", BaseType::GetEchoLevel() > 0) << "System Matrix Resize Time: "
-                << system_matrix_resize_time.ElapsedSeconds() << std::endl;
+                << system_matrix_resize_time << std::endl;
         }
 
         KRATOS_INFO_IF("ResidualBasedNewtonRaphsonStrategy", BaseType::GetEchoLevel() > 0) << "System Construction Time: "
-            << system_construction_time.ElapsedSeconds() << std::endl;
+            << system_construction_time << std::endl;
 
         TSystemMatrixType& rA  = *mpA;
         TSystemVectorType& rDx = *mpDx;
@@ -1109,7 +1107,6 @@ class ResidualBasedNewtonRaphsonStrategy
 
     ///@}
     ///@name Access
-
     ///@{
 
     /**
@@ -1144,7 +1141,6 @@ class ResidualBasedNewtonRaphsonStrategy
 
         return mDx;
     }
-
 
     /**
      * @brief Set method for the flag mKeepSystemConstantDuringIterations
@@ -1225,7 +1221,6 @@ class ResidualBasedNewtonRaphsonStrategy
     ///@{
 
     ///@}
-
   protected:
     ///@name Static Member Variables
     ///@{
@@ -1280,7 +1275,6 @@ class ResidualBasedNewtonRaphsonStrategy
      * @param b The RHS vector of the system of equations
      * @param MoveMesh The flag that allows to move the mesh
      */
-
     virtual void UpdateDatabase(
         TSystemMatrixType& rA,
         TSystemVectorType& rDx,
@@ -1343,7 +1337,6 @@ class ResidualBasedNewtonRaphsonStrategy
     /**
      * @brief This method prints information after reach the max number of iterations
      */
-
     virtual void MaxIterationsExceeded()
     {
         KRATOS_INFO_IF("ResidualBasedNewtonRaphsonStrategy", this->GetEchoLevel() > 0)

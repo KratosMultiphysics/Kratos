@@ -4,14 +4,13 @@
 //        / /___/ /_/ / / / / /_/ /_/ / /__/ /_ ___/ / /_/ /  / /_/ / /__/ /_/ /_/ / /  / /_/ / /  
 //        \____/\____/_/ /_/\__/\__,_/\___/\__//____/\__/_/   \__,_/\___/\__/\__,_/_/   \__,_/_/  MECHANICS
 //
-//  License:		 BSD License
-//					 license: ContactStructuralMechanicsApplication/license.txt
+//  License:         BSD License
+//                   license: ContactStructuralMechanicsApplication/license.txt
 //
 //  Main authors:    Vicente Mataix Ferrandiz
 //
 
-#if !defined(KRATOS_MIXEDULM_SOLVER_H_INCLUDED )
-#define  KRATOS_MIXEDULM_SOLVER_H_INCLUDED
+#pragma once
 
 // System includes
 #include <string>
@@ -35,15 +34,19 @@ namespace Kratos
 {
 ///@name Kratos Globals
 ///@{
+
 ///@}
 ///@name Type Definitions
 ///@{
+
 ///@}
 ///@name  Enum's
 ///@{
+
 ///@}
 ///@name  Functions
 ///@{
+
 ///@}
 ///@name Kratos Classes
 ///@{
@@ -67,15 +70,17 @@ public:
     ///@name Enums
     ///@{
 
-    /// This enum is used to identify each index whick kind is
+    /**
+     * @brief An enumeration of the different types of blocks used in the mixed Uzawa-LM linear solver.
+     */
     enum class BlockType {
-            OTHER,
-            MASTER,
-            SLAVE_INACTIVE,
-            SLAVE_ACTIVE,
-            LM_INACTIVE,
-            LM_ACTIVE
-            };
+        OTHER, ///< A block of another type.
+        MASTER, ///< A master block.
+        SLAVE_INACTIVE, ///< An inactive slave block.
+        SLAVE_ACTIVE, ///< An active slave block.
+        LM_INACTIVE, ///< An inactive Lagrange multiplier block.
+        LM_ACTIVE ///< An active Lagrange multiplier block.
+    };
 
     ///@name Type Definitions
     ///@{
@@ -90,53 +95,51 @@ public:
     KRATOS_CLASS_POINTER_DEFINITION (MixedULMLinearSolver);
 
     /// The base class corresponds to the an iterative solver
-    typedef IterativeSolver<TSparseSpaceType, TDenseSpaceType, TPreconditionerType, TReordererType> BaseType;
+    using BaseType = IterativeSolver<TSparseSpaceType, TDenseSpaceType, TPreconditionerType, TReordererType>;
 
     /// The base class for the linear solver
-    typedef LinearSolver<TSparseSpaceType, TDenseSpaceType, TReordererType> LinearSolverType;
+    using LinearSolverType = LinearSolver<TSparseSpaceType, TDenseSpaceType, TReordererType>;
 
     /// The pointer to a linear solver
-    typedef typename LinearSolverType::Pointer LinearSolverPointerType;
+    using LinearSolverPointerType = typename LinearSolverType::Pointer;
 
     /// The sparse matrix type
-    typedef typename TSparseSpaceType::MatrixType SparseMatrixType;
+    using SparseMatrixType = typename TSparseSpaceType::MatrixType;
 
     /// The vector type
-    typedef typename TSparseSpaceType::VectorType VectorType;
+    using VectorType = typename TSparseSpaceType::VectorType;
 
     /// The dense matrix type
-    typedef typename TDenseSpaceType::MatrixType DenseMatrixType;
+    using DenseMatrixType = typename TDenseSpaceType::MatrixType;
 
     /// The dense vector type
-    typedef typename TDenseSpaceType::VectorType DenseVectorType;
-
-    /// The node type
-    typedef Node<3> NodeType;
+    using DenseVectorType = typename TDenseSpaceType::VectorType;
 
     /// The definition of the dof type
-    typedef typename ModelPart::DofType DofType;
+    using DofType = typename ModelPart::DofType;
 
     /// The array containing the dofs
-    typedef typename ModelPart::DofsArrayType DofsArrayType;
+    using DofsArrayType = typename ModelPart::DofsArrayType;
 
     /// An array of conditions
-    typedef ModelPart::ConditionsContainerType ConditionsArrayType;
+    using ConditionsArrayType = typename ModelPart::ConditionsContainerType;
 
     /// An array of nodes
-    typedef ModelPart::NodesContainerType NodesArrayType;
+    using NodesArrayType = typename ModelPart::NodesContainerType;
 
     /// The size type
-    typedef std::size_t SizeType;
+    using SizeType = std::size_t;
 
     /// The index type
-    typedef std::size_t IndexType;
+    using IndexType = std::size_t;
 
     /// A vector of indexes
-    typedef DenseVector<IndexType> IndexVectorType;
+    using IndexVectorType = DenseVector<IndexType>;
 
     /// A vector of types
-    typedef DenseVector<BlockType> BlockTypeVectorType;
+    using BlockTypeVectorType = DenseVector<BlockType>;
 
+    /// The zero tolerance considerered
     static constexpr double ZeroTolerance = std::numeric_limits<double>::epsilon();
 
     ///@}
@@ -307,7 +310,7 @@ public:
         VectorType& rB
         ) override
     {
-        // Auxiliar size
+        // Auxiliary size
         const SizeType lm_active_size = mLMActiveIndices.size();
         const SizeType lm_inactive_size = mLMInactiveIndices.size();
         const SizeType total_disp_size = mOtherIndices.size() + mMasterIndices.size() + mSlaveInactiveIndices.size() + mSlaveActiveIndices.size();
@@ -522,7 +525,7 @@ public:
             // In case of block builder and solver
             for (auto& i_dof : rDofSet) {
                 node_id = i_dof.Id();
-                const NodeType& node = rModelPart.GetNode(node_id);
+                const Node& node = rModelPart.GetNode(node_id);
                 if (i_dof.EquationId() < rA.size1()) {
                     tot_active_dofs++;
                     if (IsLMDof(i_dof)) {
@@ -546,7 +549,7 @@ public:
             // In case of elimination builder and solver
             for (auto& i_dof : rDofSet) {
                 node_id = i_dof.Id();
-                const NodeType& node = rModelPart.GetNode(node_id);
+                const Node& node = rModelPart.GetNode(node_id);
                 tot_active_dofs++;
                 if (IsLMDof(i_dof)) {
                     if (node.Is(ACTIVE))
@@ -608,7 +611,7 @@ public:
             // In case of block builder and solver
             for (auto& i_dof : rDofSet) {
                 node_id = i_dof.Id();
-                const NodeType& r_node = rModelPart.GetNode(node_id);
+                const Node& r_node = rModelPart.GetNode(node_id);
                 if (i_dof.EquationId() < rA.size1()) {
                     if (IsLMDof(i_dof)) {
                         if (r_node.Is(ACTIVE)) {
@@ -659,7 +662,7 @@ public:
             // In case of elimination builder and solver
             for (auto& i_dof : rDofSet) {
                 node_id = i_dof.Id();
-                const NodeType& r_node = rModelPart.GetNode(node_id);
+                const Node& r_node = rModelPart.GetNode(node_id);
                 if (IsLMDof(i_dof)) {
                     if (r_node.Is(ACTIVE)) {
                         mLMActiveIndices[lm_active_counter] = global_pos;
@@ -851,7 +854,7 @@ protected:
     {
         KRATOS_TRY
 
-        // Auxiliar sizes
+        // Auxiliary sizes
         const SizeType other_dof_size = mOtherIndices.size();
         const SizeType master_size = mMasterIndices.size();
         const SizeType slave_inactive_size = mSlaveInactiveIndices.size();
@@ -1148,7 +1151,7 @@ protected:
             SparseMatrixMultiplicationUtility::MatrixMultiplication(mCOperator, mKSASA, aslave_auxKSASA);
         }
 
-        // Auxiliar indexes
+        // Auxiliary indexes
         const SizeType other_dof_initial_index = 0;
         const SizeType master_dof_initial_index = other_dof_size;
         const SizeType slave_inactive_dof_initial_index = master_dof_initial_index + master_size;
@@ -1180,13 +1183,13 @@ protected:
 
         IndexPartition<std::size_t>(rA.size1()).for_each([&](std::size_t i) {
             if ( mWhichBlockType[i] == BlockType::OTHER) { //either KNN or KNM or KNSI or KNSA
-                ComputeAuxiliarValuesDispDoFs( index1, index2, values,  i, other_dof_initial_index, K_disp_modified_ptr_aux1, aux_index2_K_disp_modified_aux1, aux_val_K_disp_modified_aux1);
+                ComputeAuxiliaryValuesDispDoFs( index1, index2, values,  i, other_dof_initial_index, K_disp_modified_ptr_aux1, aux_index2_K_disp_modified_aux1, aux_val_K_disp_modified_aux1);
             } else if ( mWhichBlockType[i] == BlockType::MASTER) { //either KMN or KMM or KMSI or KMLM
-                ComputeAuxiliarValuesDispDoFs( index1, index2, values,  i, master_dof_initial_index, K_disp_modified_ptr_aux1, aux_index2_K_disp_modified_aux1, aux_val_K_disp_modified_aux1);
+                ComputeAuxiliaryValuesDispDoFs( index1, index2, values,  i, master_dof_initial_index, K_disp_modified_ptr_aux1, aux_index2_K_disp_modified_aux1, aux_val_K_disp_modified_aux1);
             } else if ( mWhichBlockType[i] == BlockType::SLAVE_INACTIVE) { //either KSIN or KSIM or KSISI or KSISA
-                ComputeAuxiliarValuesDispDoFs( index1, index2, values,  i, slave_inactive_dof_initial_index, K_disp_modified_ptr_aux1, aux_index2_K_disp_modified_aux1, aux_val_K_disp_modified_aux1);
+                ComputeAuxiliaryValuesDispDoFs( index1, index2, values,  i, slave_inactive_dof_initial_index, K_disp_modified_ptr_aux1, aux_index2_K_disp_modified_aux1, aux_val_K_disp_modified_aux1);
             } else if ( mWhichBlockType[i] == BlockType::LM_ACTIVE) { //either KLMAM or KLMASI or KLMASA
-                ComputeAuxiliarValuesPartialDispDoFs( index1, index2, values,  i, assembling_slave_dof_initial_index, K_disp_modified_ptr_aux1, aux_index2_K_disp_modified_aux1, aux_val_K_disp_modified_aux1);
+                ComputeAuxiliaryValuesPartialDispDoFs( index1, index2, values,  i, assembling_slave_dof_initial_index, K_disp_modified_ptr_aux1, aux_index2_K_disp_modified_aux1, aux_val_K_disp_modified_aux1);
             }
         });
 
@@ -1461,7 +1464,7 @@ private:
      * @param AuxIndex2 The indexes of the non zero columns
      * @param AuxVals The values of the final matrix
      */
-    inline void ComputeAuxiliarValuesDispDoFs(
+    inline void ComputeAuxiliaryValuesDispDoFs(
         const IndexType* Index1,
         const IndexType* Index2,
         const double* Values,
@@ -1472,12 +1475,12 @@ private:
         double* AuxVals
         )
     {
-        // Auxiliar sizes
+        // Auxiliary sizes
         const SizeType other_dof_size = mOtherIndices.size();
         const SizeType master_size = mMasterIndices.size();
         const SizeType slave_inactive_size = mSlaveInactiveIndices.size();
 
-        // Auxiliar indexes
+        // Auxiliary indexes
         const SizeType other_dof_initial_index = 0;
         const SizeType master_dof_initial_index = other_dof_size;
         const SizeType slave_inactive_dof_initial_index = master_dof_initial_index + master_size;
@@ -1528,7 +1531,7 @@ private:
      * @param AuxIndex2 The indexes of the non zero columns
      * @param AuxVals The values of the final matrix
      */
-    inline void ComputeAuxiliarValuesPartialDispDoFs(
+    inline void ComputeAuxiliaryValuesPartialDispDoFs(
         const IndexType* Index1,
         const IndexType* Index2,
         const double* Values,
@@ -1539,12 +1542,12 @@ private:
         double* AuxVals
         )
     {
-        // Auxiliar sizes
+        // Auxiliary sizes
         const SizeType other_dof_size = mOtherIndices.size();
         const SizeType master_size = mMasterIndices.size();
         const SizeType slave_inactive_size = mSlaveInactiveIndices.size();
 
-        // Auxiliar indexes
+        // Auxiliary indexes
         const SizeType master_dof_initial_index = other_dof_size;
         const SizeType slave_inactive_dof_initial_index = master_dof_initial_index + master_size;
         const SizeType assembling_slave_dof_initial_index = slave_inactive_dof_initial_index + slave_inactive_size;
@@ -1611,7 +1614,7 @@ private:
         mLMInactive.clear(); /// The solution of the inactive LM
         mDisp.clear();       /// The solution of the displacement
 
-        // Auxiliar sizes
+        // Auxiliary sizes
         const SizeType other_dof_size = mOtherIndices.size();
         const SizeType master_size = mMasterIndices.size();
         const SizeType slave_inactive_size = mSlaveInactiveIndices.size();
@@ -1654,7 +1657,7 @@ private:
         VectorType& ResidualU
         )
     {
-        // Auxiliar sizes
+        // Auxiliary sizes
         const SizeType other_dof_size = mOtherIndices.size();
         const SizeType master_size = mMasterIndices.size();
         const SizeType slave_inactive_size = mSlaveInactiveIndices.size();
@@ -1719,7 +1722,7 @@ private:
         VectorType& rResidualLMA
         )
     {
-        // Auxiliar sizes
+        // Auxiliary sizes
         const SizeType other_dof_size = mOtherIndices.size();
         const SizeType master_size = mMasterIndices.size();
         const SizeType slave_inactive_size = mSlaveInactiveIndices.size();
@@ -1782,7 +1785,7 @@ private:
         VectorType& rResidualLMI
         )
     {
-        // Auxiliar size
+        // Auxiliary size
         const SizeType lm_inactive_size = mLMInactiveIndices.size();
 
         // We get the displacement residual of the active slave nodes
@@ -1977,7 +1980,7 @@ private:
 //             const double value = diagA_vector[i];
             if (std::abs(value) > Tolerance)
                 aux_val[i] = 1.0/value;
-            else // Auxiliar value
+            else // Auxiliary value
                 aux_val[i] = 1.0;
         });
 
@@ -2083,4 +2086,3 @@ inline std::ostream& operator << (std::ostream& rOStream,
 }
 ///@}
 }  // namespace Kratos.
-#endif // KRATOS_MIXEDULM_SOLVER_H_INCLUDED  defined

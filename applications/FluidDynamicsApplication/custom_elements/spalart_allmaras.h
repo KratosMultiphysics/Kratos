@@ -238,7 +238,7 @@ protected:
     void AddModelTerms(MatrixType& rLHS,
                        const double MolecularViscosity,
                        const double LastEddyViscosity,
-                       const array_1d<double,3> rLastEddyViscosityGradient,
+                       const array_1d<double,3>& rLastEddyViscosityGradient,
                        const double Distance,
                        const array_1d<double,3>& rVelocity,
                        const ShapeFunctionsType& N,

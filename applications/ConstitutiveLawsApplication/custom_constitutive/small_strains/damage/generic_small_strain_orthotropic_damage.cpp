@@ -20,25 +20,25 @@
 #include "custom_utilities/tangent_operator_calculator_utility.h"
 #include "constitutive_laws_application_variables.h"
 #include "generic_small_strain_orthotropic_damage.h"
-#include "custom_constitutive/auxiliar_files/constitutive_laws_integrators/generic_constitutive_law_integrator_damage.h"
+#include "custom_constitutive/auxiliary_files/cl_integrators/generic_cl_integrator_damage.h"
 
 // Yield surfaces
-#include "custom_constitutive/auxiliar_files/yield_surfaces/generic_yield_surface.h"
-#include "custom_constitutive/auxiliar_files/yield_surfaces/von_mises_yield_surface.h"
-#include "custom_constitutive/auxiliar_files/yield_surfaces/modified_mohr_coulomb_yield_surface.h"
-#include "custom_constitutive/auxiliar_files/yield_surfaces/mohr_coulomb_yield_surface.h"
-#include "custom_constitutive/auxiliar_files/yield_surfaces/rankine_yield_surface.h"
-#include "custom_constitutive/auxiliar_files/yield_surfaces/simo_ju_yield_surface.h"
-#include "custom_constitutive/auxiliar_files/yield_surfaces/drucker_prager_yield_surface.h"
-#include "custom_constitutive/auxiliar_files/yield_surfaces/tresca_yield_surface.h"
+#include "custom_constitutive/auxiliary_files/yield_surfaces/generic_yield_surface.h"
+#include "custom_constitutive/auxiliary_files/yield_surfaces/von_mises_yield_surface.h"
+#include "custom_constitutive/auxiliary_files/yield_surfaces/modified_mohr_coulomb_yield_surface.h"
+#include "custom_constitutive/auxiliary_files/yield_surfaces/mohr_coulomb_yield_surface.h"
+#include "custom_constitutive/auxiliary_files/yield_surfaces/rankine_yield_surface.h"
+#include "custom_constitutive/auxiliary_files/yield_surfaces/simo_ju_yield_surface.h"
+#include "custom_constitutive/auxiliary_files/yield_surfaces/drucker_prager_yield_surface.h"
+#include "custom_constitutive/auxiliary_files/yield_surfaces/tresca_yield_surface.h"
 
 // Plastic potentials
-#include "custom_constitutive/auxiliar_files/plastic_potentials/generic_plastic_potential.h"
-#include "custom_constitutive/auxiliar_files/plastic_potentials/von_mises_plastic_potential.h"
-#include "custom_constitutive/auxiliar_files/plastic_potentials/tresca_plastic_potential.h"
-#include "custom_constitutive/auxiliar_files/plastic_potentials/modified_mohr_coulomb_plastic_potential.h"
-#include "custom_constitutive/auxiliar_files/plastic_potentials/mohr_coulomb_plastic_potential.h"
-#include "custom_constitutive/auxiliar_files/plastic_potentials/drucker_prager_plastic_potential.h"
+#include "custom_constitutive/auxiliary_files/plastic_potentials/generic_plastic_potential.h"
+#include "custom_constitutive/auxiliary_files/plastic_potentials/von_mises_plastic_potential.h"
+#include "custom_constitutive/auxiliary_files/plastic_potentials/tresca_plastic_potential.h"
+#include "custom_constitutive/auxiliary_files/plastic_potentials/modified_mohr_coulomb_plastic_potential.h"
+#include "custom_constitutive/auxiliary_files/plastic_potentials/mohr_coulomb_plastic_potential.h"
+#include "custom_constitutive/auxiliary_files/plastic_potentials/drucker_prager_plastic_potential.h"
 
 namespace Kratos
 {
@@ -149,9 +149,9 @@ void GenericSmallStrainOrthotropicDamage<TConstLawIntegratorType>::CalculateMate
         this->CalculateSecantTensor(secant_tensor, rValues, damages);
 
         // Now we recover the original axis system
-        Matrix auxiliar(VoigtSize,VoigtSize);
-        noalias(auxiliar) = prod(secant_tensor, rotation_matrix);
-        noalias(secant_tensor) = prod(trans(rotation_matrix), auxiliar);
+        Matrix auxiliary(VoigtSize,VoigtSize);
+        noalias(auxiliary) = prod(secant_tensor, rotation_matrix);
+        noalias(secant_tensor) = prod(trans(rotation_matrix), auxiliary);
 
         // Apply the constitutive law
         noalias(r_integrated_stress_vector) = prod(secant_tensor, r_strain_vector);
@@ -506,7 +506,7 @@ void GenericSmallStrainOrthotropicDamage<TConstLawIntegratorType>::CalculateSeca
         rSecantTensor.resize(VoigtSize, VoigtSize);
     noalias(rSecantTensor) = ZeroMatrix(VoigtSize, VoigtSize);
 
-    if (Dimension == 3) { // 3D version
+    if constexpr (Dimension == 3) { // 3D version
         const double c1 = E / ((1.0 + nu) * (1 - 2.0 * nu));
         const double c2 = c1 * (1.0 - nu); // Cii
         const double c3 = c1 * nu;  // Cij
@@ -550,7 +550,7 @@ void GenericSmallStrainOrthotropicDamage<TConstLawIntegratorType>::CalculateRota
         rRotationTensor.resize(VoigtSize,VoigtSize);
     noalias(rRotationTensor) = ZeroMatrix(VoigtSize,VoigtSize);
 
-    if (Dimension == 3) {
+    if constexpr (Dimension == 3) {
         // Reorder the principal stresses
         double a = rEigenValuesMatrix(0,0);
         double b = rEigenValuesMatrix(1,1);

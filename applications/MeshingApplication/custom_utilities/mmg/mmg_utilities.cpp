@@ -840,7 +840,7 @@ void MmgUtilities<MMGLibrary::MMGS>::BlockElement(const IndexType iElement)
 /***********************************************************************************/
 
 template<>
-Node<3>::Pointer MmgUtilities<MMGLibrary::MMG2D>::CreateNode(
+Node::Pointer MmgUtilities<MMGLibrary::MMG2D>::CreateNode(
     ModelPart& rModelPart,
     const IndexType iNode,
     int& Ref,
@@ -865,7 +865,7 @@ Node<3>::Pointer MmgUtilities<MMGLibrary::MMG2D>::CreateNode(
 /***********************************************************************************/
 
 template<>
-Node<3>::Pointer MmgUtilities<MMGLibrary::MMG3D>::CreateNode(
+Node::Pointer MmgUtilities<MMGLibrary::MMG3D>::CreateNode(
     ModelPart& rModelPart,
     const IndexType iNode,
     int& Ref,
@@ -890,7 +890,7 @@ Node<3>::Pointer MmgUtilities<MMGLibrary::MMG3D>::CreateNode(
 /***********************************************************************************/
 
 template<>
-Node<3>::Pointer MmgUtilities<MMGLibrary::MMGS>::CreateNode(
+Node::Pointer MmgUtilities<MMGLibrary::MMGS>::CreateNode(
     ModelPart& rModelPart,
     const IndexType iNode,
     int& Ref,
@@ -3599,7 +3599,7 @@ void MmgUtilities<TMMGLibrary>::GenerateMeshDataFromModelPart(
     // Before computing colors we do some check and throw a warning to get the user informed
     const std::vector<std::string> sub_model_part_names = AssignUniqueModelPartCollectionTagUtility::GetRecursiveSubModelPartNames(rModelPart);
 
-    for (auto sub_model_part_name : sub_model_part_names) {
+    for (const auto& sub_model_part_name : sub_model_part_names) {
         ModelPart& r_sub_model_part = AssignUniqueModelPartCollectionTagUtility::GetRecursiveSubModelPart(rModelPart, sub_model_part_name);
 
         KRATOS_WARNING_IF("MmgUtilities", mEchoLevel > 0 && (r_sub_model_part.NumberOfNodes() > 0 && (r_sub_model_part.NumberOfConditions() == 0 && r_sub_model_part.NumberOfElements() == 0))) <<
@@ -3776,7 +3776,7 @@ void MmgUtilities<TMMGLibrary>::GenerateMeshDataFromModelPart(
     /* Nodes */
     IndexType counter_to_remesh = block_for_each<SumReduction<IndexType>>(
     r_nodes_array,
-    [](Node<3>& r_node){
+    [](Node& r_node){
         const bool old_entity = r_node.IsDefined(OLD_ENTITY) ? r_node.Is(OLD_ENTITY) : false;
         if (!old_entity) {
             return 1;
@@ -4372,7 +4372,7 @@ void MmgUtilities<TMMGLibrary>::WriteMeshDataToModelPart(
         const IndexType key = r_color_list.first;
 
         if (key != 0) {// NOTE: key == 0 is the MainModelPart
-            for (auto sub_model_part_name : r_color_list.second) {
+            for (const auto& sub_model_part_name : r_color_list.second) {
                 ModelPart& r_sub_model_part = AssignUniqueModelPartCollectionTagUtility::GetRecursiveSubModelPart(rModelPart, sub_model_part_name);
 
                 if (color_nodes.find(key) != color_nodes.end()) r_sub_model_part.AddNodes(color_nodes[key]);
@@ -4405,7 +4405,7 @@ void MmgUtilities<TMMGLibrary>::WriteMeshDataToModelPart(
     // NOTE: We add the nodes from the elements and conditions to the respective submodelparts
     const std::vector<std::string> sub_model_part_names = AssignUniqueModelPartCollectionTagUtility::GetRecursiveSubModelPartNames(rModelPart);
 
-    for (auto sub_model_part_name : sub_model_part_names) {
+    for (const auto& sub_model_part_name : sub_model_part_names) {
         ModelPart& r_sub_model_part = AssignUniqueModelPartCollectionTagUtility::GetRecursiveSubModelPart(rModelPart, sub_model_part_name);
 
         std::unordered_set<IndexType> node_ids;

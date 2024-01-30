@@ -4,20 +4,19 @@
 //        / /___/ /_/ / / / / /_/ /_/ / /__/ /_ ___/ / /_/ /  / /_/ / /__/ /_/ /_/ / /  / /_/ / /  
 //        \____/\____/_/ /_/\__/\__,_/\___/\__//____/\__/_/   \__,_/\___/\__/\__,_/_/   \__,_/_/  MECHANICS
 //
-//  License:		 BSD License
-//					 license: ContactStructuralMechanicsApplication/license.txt
+//  License:         BSD License
+//                   license: ContactStructuralMechanicsApplication/license.txt
 //
 //  Main authors:    Vicente Mataix Ferrandiz
 //
 
-#if !defined(KRATOS_DISPLACEMENT_LAGRANGE_MULTIPLIER_FRICTIONAL_CONTACT_CRITERIA_H)
-#define KRATOS_DISPLACEMENT_LAGRANGE_MULTIPLIER_FRICTIONAL_CONTACT_CRITERIA_H
+#pragma once
 
-/* System includes */
+// System includes
 
-/* External includes */
+// External includes
 
-/* Project includes */
+// Project includes
 #include "utilities/table_stream_utility.h"
 #include "utilities/color_utilities.h"
 #include "solving_strategies/convergencecriterias/convergence_criteria.h"
@@ -78,28 +77,28 @@ public:
     KRATOS_DEFINE_LOCAL_FLAG( PURE_SLIP );
 
     /// The base class definition
-    typedef ConvergenceCriteria< TSparseSpace, TDenseSpace >                                      BaseType;
+    using BaseType = ConvergenceCriteria<TSparseSpace, TDenseSpace>;
 
     /// The definition of the current class
-    typedef DisplacementLagrangeMultiplierFrictionalContactCriteria< TSparseSpace, TDenseSpace > ClassType;
+    using ClassType = DisplacementLagrangeMultiplierFrictionalContactCriteria<TSparseSpace, TDenseSpace>;
 
     /// The dofs array type
-    typedef typename BaseType::DofsArrayType                                                 DofsArrayType;
+    using DofsArrayType = typename BaseType::DofsArrayType;
 
     /// The sparse matrix type
-    typedef typename BaseType::TSystemMatrixType                                         TSystemMatrixType;
+    using TSystemMatrixType = typename BaseType::TSystemMatrixType;
 
     /// The dense vector type
-    typedef typename BaseType::TSystemVectorType                                         TSystemVectorType;
+    using TSystemVectorType = typename BaseType::TSystemVectorType;
 
     /// The sparse space used
-    typedef TSparseSpace                                                                   SparseSpaceType;
+    using SparseSpaceType = TSparseSpace;
 
     /// The table stream definition TODO: Replace by logger
-    typedef TableStreamUtility::Pointer                                            TablePrinterPointerType;
+    using TablePrinterPointerType = TableStreamUtility::Pointer;
 
     /// The index type definition
-    typedef std::size_t                                                                          IndexType;
+    using IndexType = std::size_t;
 
     /// The epsilon tolerance definition
     static constexpr double Tolerance = std::numeric_limits<double>::epsilon();
@@ -255,7 +254,7 @@ public:
             // The nodes array
             auto& r_nodes_array = rModelPart.Nodes();
 
-            // Auxiliar values
+            // Auxiliary values
             struct AuxValues {
                 std::size_t dof_id = 0;
                 double dof_value = 0.0, dof_incr = 0.0;
@@ -265,7 +264,7 @@ public:
             // The number of active dofs
             const std::size_t number_active_dofs = rb.size();
 
-            // Auxiliar displacement DoF check
+            // Auxiliary displacement DoF check
             const std::function<bool(const VariableData&)> check_without_rot =
             [](const VariableData& rCurrVar) -> bool {return true;};
             const std::function<bool(const VariableData&)> check_with_rot =
@@ -636,18 +635,6 @@ protected:
     }
 
     ///@}
-    ///@name Protected  Access
-    ///@{
-
-    ///@}
-    ///@name Protected Inquiry
-    ///@{
-
-    ///@}
-    ///@name Protected LifeCycle
-    ///@{
-    ///@}
-
 private:
     ///@name Static Member Variables
     ///@{
@@ -677,29 +664,6 @@ private:
     std::vector<int> mActiveDofs;       /// This vector contains the dofs that are active
 
     ///@}
-    ///@name Private Operators
-    ///@{
-
-    ///@}
-    ///@name Private Operations
-    ///@{
-
-    ///@}
-    ///@name Private  Access
-    ///@{
-    ///@}
-
-    ///@}
-    ///@name Serialization
-    ///@{
-
-    ///@name Private Inquiry
-    ///@{
-    ///@}
-
-    ///@name Unaccessible methods
-    ///@{
-    ///@}
 };  // Kratos DisplacementLagrangeMultiplierFrictionalContactCriteria
 
 ///@name Local flags creation
@@ -717,5 +681,3 @@ const Kratos::Flags DisplacementLagrangeMultiplierFrictionalContactCriteria<TSpa
 template<class TSparseSpace, class TDenseSpace>
 const Kratos::Flags DisplacementLagrangeMultiplierFrictionalContactCriteria<TSparseSpace, TDenseSpace>::PURE_SLIP(Kratos::Flags::Create(4));
 }
-
-#endif	/* KRATOS_DISPLACEMENT_LAGRANGE_MULTIPLIER_FRICTIONAL_CONTACT_CRITERIA_H */

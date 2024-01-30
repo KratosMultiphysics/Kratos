@@ -56,7 +56,7 @@ endif()
 #----------------------------------------------------------------------------
 # Symbolic example uses Boost.odeint available since Boost v1.53
 #----------------------------------------------------------------------------
-if (NOT ${Boost_VERSION} STRLESS "105300")
+if (${Boost_VERSION} VERSION_GREATER_EQUAL "1.53.0")
     add_vexcl_examples(symbolic)
 endif ()
 
@@ -87,7 +87,7 @@ if (VEXCL_BACKEND MATCHES "CUDA")
     list(APPEND CUDA_NVCC_FLAGS
         ${CUDA_ARCH_FLAGS}
         -Wno-deprecated-gpu-targets
-        $<$<CXX_COMPILER_ID:GNU>:-Xcompiler -std=c++03>
+        -std=c++14
         )
     cuda_add_executable(thrust-sort thrust-sort.cpp thrust-sort.cu)
     target_link_libraries(thrust-sort VexCL::CUDA)

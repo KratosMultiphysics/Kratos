@@ -10,10 +10,7 @@
 //  Main authors:    @{KRATOS_APP_AUTHOR}
 //
 
-
-#if !defined(KRATOS_@{APP_NAME_CAPS}_APPLICATION_H_INCLUDED )
-#define  KRATOS_@{APP_NAME_CAPS}_APPLICATION_H_INCLUDED
-
+#pragma once
 
 // System includes
 
@@ -64,13 +61,15 @@ public:
     /// Default constructor.
     Kratos@{APP_NAME_CAMEL}Application();
 
-    /// Destructor.
-    ~Kratos@{APP_NAME_CAMEL}Application() override {}
+    /// Copy constructor.
+    Kratos@{APP_NAME_CAMEL}Application(Kratos@{APP_NAME_CAMEL}Application const& rOther) = delete;
 
     ///@}
     ///@name Operators
     ///@{
 
+    /// Assignment operator.
+    Kratos@{APP_NAME_CAMEL}Application& operator=(Kratos@{APP_NAME_CAMEL}Application const& rOther) = delete;
 
     ///@}
     ///@name Operations
@@ -199,26 +198,13 @@ private:
 
 
     ///@}
-    ///@name Un accessible methods
-    ///@{
-
-    /// Assignment operator.
-    Kratos@{APP_NAME_CAMEL}Application& operator=(Kratos@{APP_NAME_CAMEL}Application const& rOther);
-
-    /// Copy constructor.
-    Kratos@{APP_NAME_CAMEL}Application(Kratos@{APP_NAME_CAMEL}Application const& rOther);
-
-
-    ///@}
 
 }; // Class Kratos@{APP_NAME_CAMEL}Application
 
 ///@}
 
-
 ///@name Type Definitions
 ///@{
-
 
 ///@}
 ///@name Input and output
@@ -226,7 +212,4 @@ private:
 
 ///@}
 
-
 }  // namespace Kratos.
-
-#endif // KRATOS_@{APP_NAME_CAPS}_APPLICATION_H_INCLUDED  defined

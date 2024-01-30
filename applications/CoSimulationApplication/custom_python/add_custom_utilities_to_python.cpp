@@ -3,11 +3,11 @@
 //        | |__| (_) |__) | | | | | | | |_| | | (_| | |_| | (_) | | | |
 //         \____\___/____/|_|_| |_| |_|\__,_|_|\__,_|\__|_|\___/|_| |_|
 //
-//  License:		 BSD License
-//					 license: CoSimulationApplication/license.txt
+//  License:         BSD License
+//                   license: CoSimulationApplication/license.txt
 //
-//  Main authors:   Philipp Bucher
-//                  Ashish Darekar
+//  Main authors:    Philipp Bucher (https://github.com/philbucher)
+//                   Ashish Darekar
 //
 
 // System includes
@@ -22,9 +22,7 @@
 #include "custom_utilities/feti_dynamic_coupling_utilities.h"
 #include "custom_utilities/conversion_utilities.h"
 
-namespace Kratos{
-
-namespace Python{
+namespace Kratos::Python {
 
     void  AddCustomUtilitiesToPython(pybind11::module& m)
     {
@@ -64,5 +62,4 @@ namespace Python{
 
     }
 
-}  // namespace Python.
-} // Namespace Kratos
+}  // namespace Kratos::Python.

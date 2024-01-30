@@ -4,8 +4,8 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Pooyan Dadvand
 //                   Riccardo Rossi
@@ -36,7 +36,10 @@
 #include "add_geometries_to_python.h"
 #include "add_bounding_box_to_python.h"
 #include "add_containers_to_python.h"
+#include "add_controllers_to_python.h"
+#include "add_operations_to_python.h"
 #include "add_processes_to_python.h"
+#include "add_properties_to_python.h"
 #include "add_model_to_python.h"
 #include "add_io_to_python.h"
 #include "add_mesh_to_python.h"
@@ -69,17 +72,18 @@
 #include "add_dofs_to_python.h"
 #include "add_mapper_to_python.h"
 #include "add_sparse_matrices_to_python.h"
+#include "add_registry_to_python.h"
+#include "add_container_expression_to_python.h"
+#include "add_accessors_to_python.h"
+#include "add_globals_to_python.h"
 
-namespace Kratos
-{
-
-namespace Python
+namespace Kratos::Python
 {
 
 std::string Hello()
 {
     std::stringstream header;
-    header << "Hello, I am Kratos Multi-Physics " << GetVersionString() << " ;-)";
+    header << "Hello, I am Kratos Multi-Physics " << GetVersionString() << "for" << GetOSName() << " ;-)\n";
     return header.str();
 }
 
@@ -96,6 +100,7 @@ PYBIND11_MODULE(Kratos, m)
     AddDofsToPython(m);
     AddNodeToPython(m);
     AddPropertiesToPython(m);
+    AddAccessorsToPython(m);
     AddMeshToPython(m);
     AddQuaternionToPython(m);
 
@@ -108,6 +113,8 @@ PYBIND11_MODULE(Kratos, m)
     AddDeprecatedVariablesToPython(m);
     AddGlobalPointersToPython(m);
 
+    AddOperationsToPython(m);
+    AddControllersToPython(m);
     AddProcessesToPython(m);
     AddIOToPython(m);
     AddModelToPython(m);
@@ -144,11 +151,11 @@ PYBIND11_MODULE(Kratos, m)
     AddParallelEnvironmentToPython(m);
     AddMapperToPython(m);
     AddSparseMatricesToPython(m);
+    AddRegistryToPython(m);
+    AddContainerExpressionToPython(m);
+    AddGlobalsToPython(m);
 
     m.def("Hello", Hello);
 }
 
-
-}  // namespace Python.
-
-}  // namespace Kratos.
+}  // namespace Kratos::Python.

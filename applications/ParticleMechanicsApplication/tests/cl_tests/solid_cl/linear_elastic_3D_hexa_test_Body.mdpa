@@ -16,7 +16,7 @@ Begin Nodes
 End Nodes
 
 
-Begin Elements UpdatedLagrangian3D8N// GUI group identifier: Parts Auto1
+Begin Elements MPMUpdatedLagrangian3D8N// GUI group identifier: Parts Auto1
         1          0          4          1          2          6          7          3          5          8
 End Elements
 

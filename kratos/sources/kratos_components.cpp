@@ -4,8 +4,8 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Pooyan Dadvand
 //
@@ -33,118 +33,118 @@
 
 namespace Kratos {
 
-void AddKratosComponent(std::string const& Name, Variable<bool> const& ThisComponent)
+void AddKratosComponent(const std::string& rName, const Variable<bool>& rComponent)
 {
-    KratosComponents<Variable<bool> >::Add(Name, ThisComponent);
+    KratosComponents<Variable<bool>>::Add(rName, rComponent);
 }
 
-void AddKratosComponent(std::string const& Name, Variable<int> const& ThisComponent)
+void AddKratosComponent(const std::string& rName, const Variable<int>& rComponent)
 {
-    KratosComponents<Variable<int> >::Add(Name, ThisComponent);
+    KratosComponents<Variable<int>>::Add(rName, rComponent);
 }
 
-void AddKratosComponent(std::string const& Name, Variable<unsigned int> const& ThisComponent)
+void AddKratosComponent(const std::string& rName, const Variable<unsigned int>& rComponent)
 {
-    KratosComponents<Variable<unsigned int> >::Add(Name, ThisComponent);
+    KratosComponents<Variable<unsigned int>>::Add(rName, rComponent);
 }
 
-void AddKratosComponent(std::string const& Name, Variable<double> const& ThisComponent)
+void AddKratosComponent(const std::string& rName, const Variable<double>& rComponent)
 {
-    KratosComponents<Variable<double> >::Add(Name, ThisComponent);
+    KratosComponents<Variable<double>>::Add(rName, rComponent);
 }
 
-void AddKratosComponent(std::string const& Name, Variable<array_1d<double, 3> > const& ThisComponent)
+void AddKratosComponent(const std::string& rName, const Variable<array_1d<double, 3>>& rComponent)
 {
-    KratosComponents<Variable<array_1d<double, 3> > >::Add(Name, ThisComponent);
+    KratosComponents<Variable<array_1d<double, 3>>>::Add(rName, rComponent);
 }
 
-void AddKratosComponent(std::string const& Name, Variable<array_1d<double, 4> > const& ThisComponent)
+void AddKratosComponent(const std::string& rName, const Variable<array_1d<double, 4>>& rComponent)
 {
-    KratosComponents<Variable<array_1d<double, 4> > >::Add(Name, ThisComponent);
+    KratosComponents<Variable<array_1d<double, 4>>>::Add(rName, rComponent);
 }
 
-void AddKratosComponent(std::string const& Name, Variable<array_1d<double, 6> > const& ThisComponent)
+void AddKratosComponent(const std::string& rName, const Variable<array_1d<double, 6>>& rComponent)
 {
-    KratosComponents<Variable<array_1d<double, 6> > >::Add(Name, ThisComponent);
+    KratosComponents<Variable<array_1d<double, 6>>>::Add(rName, rComponent);
 }
 
-void AddKratosComponent(std::string const& Name, Variable<array_1d<double, 9> > const& ThisComponent)
+void AddKratosComponent(const std::string& rName, const Variable<array_1d<double, 9>>& rComponent)
 {
-    KratosComponents<Variable<array_1d<double, 9> > >::Add(Name, ThisComponent);
+    KratosComponents<Variable<array_1d<double, 9>>>::Add(rName, rComponent);
 }
 
-void AddKratosComponent(std::string const& Name, Variable<Quaternion<double> > const& ThisComponent)
+void AddKratosComponent(const std::string& rName, const Variable<Quaternion<double>>& rComponent)
 {
-    KratosComponents<Variable<Quaternion<double> > >::Add(Name, ThisComponent);
+    KratosComponents<Variable<Quaternion<double>>>::Add(rName, rComponent);
 }
 
-void AddKratosComponent(std::string const& Name, Variable<Vector> const& ThisComponent)
+void AddKratosComponent(const std::string& rName, const Variable<Vector>& rComponent)
 {
-    KratosComponents<Variable<Vector> >::Add(Name, ThisComponent);
+    KratosComponents<Variable<Vector>>::Add(rName, rComponent);
 }
 
-void AddKratosComponent(std::string const& Name, Variable<Matrix> const& ThisComponent)
+void AddKratosComponent(const std::string& rName, const Variable<Matrix>& rComponent)
 {
-    KratosComponents<Variable<Matrix> >::Add(Name, ThisComponent);
+    KratosComponents<Variable<Matrix>>::Add(rName, rComponent);
 }
 
-void AddKratosComponent(std::string const& Name, Variable<std::string> const& ThisComponent)
+void AddKratosComponent(const std::string& rName, const Variable<std::string>& rComponent)
 {
-    KratosComponents<Variable<std::string> >::Add(Name, ThisComponent);
+    KratosComponents<Variable<std::string>>::Add(rName, rComponent);
 }
 
-void AddKratosComponent(std::string const& Name, Variable<Flags> const& ThisComponent)
+void AddKratosComponent(const std::string& rName, const Variable<Flags>& rComponent)
 {
-    KratosComponents<Variable<Flags> >::Add(Name, ThisComponent);
+    KratosComponents<Variable<Flags>>::Add(rName, rComponent);
 }
 
-void AddKratosComponent(std::string const& Name, Geometry<Node<3>> const& ThisComponent)
+void AddKratosComponent(const std::string& rName, const Geometry<Node>& rComponent)
 {
-    KratosComponents<Geometry<Node<3>>>::Add(Name, ThisComponent);
+    KratosComponents<Geometry<Node>>::Add(rName, rComponent);
 }
 
-void AddKratosComponent(std::string const& Name, Element const& ThisComponent)
+void AddKratosComponent(const std::string& rName, const Element& rComponent)
 {
-    KratosComponents<Element>::Add(Name, ThisComponent);
+    KratosComponents<Element>::Add(rName, rComponent);
 }
 
-void AddKratosComponent(std::string const& Name, Condition const& ThisComponent)
+void AddKratosComponent(const std::string& rName, const Condition& rComponent)
 {
-    KratosComponents<Condition>::Add(Name, ThisComponent);
+    KratosComponents<Condition>::Add(rName, rComponent);
 }
 
-void AddKratosComponent(std::string const& Name, Modeler const& ThisComponent)
+void AddKratosComponent(const std::string& rName, const Modeler& rComponent)
 {
-    KratosComponents<Modeler>::Add(Name, ThisComponent);
+    KratosComponents<Modeler>::Add(rName, rComponent);
 }
 
-void AddKratosComponent(std::string const& Name, ConstitutiveLaw const& ThisComponent)
+void AddKratosComponent(const std::string& rName, const ConstitutiveLaw& rComponent)
 {
-    KratosComponents<ConstitutiveLaw>::Add(Name, ThisComponent);
+    KratosComponents<ConstitutiveLaw>::Add(rName, rComponent);
 }
 
-void AddKratosComponent(std::string const& Name, Variable<ConstitutiveLaw::Pointer> const& ThisComponent)
+void AddKratosComponent(const std::string& rName, const Variable<ConstitutiveLaw::Pointer>& rComponent)
 {
-    KratosComponents<Variable<ConstitutiveLaw::Pointer> >::Add(Name, ThisComponent);
+    KratosComponents<Variable<ConstitutiveLaw::Pointer>>::Add(rName, rComponent);
 }
 
-template class KratosComponents<Variable<bool> >;
-template class KratosComponents<Variable<int> >;
-template class KratosComponents<Variable<unsigned int> >;
-template class KratosComponents<Variable<double> >;
-template class KratosComponents<Variable<array_1d<double, 3> > >;
-template class KratosComponents<Variable<array_1d<double, 4> > >;
-template class KratosComponents<Variable<array_1d<double, 6> > >;
-template class KratosComponents<Variable<array_1d<double, 9> > >;
-template class KratosComponents<Variable<Quaternion<double> > >;
-template class KratosComponents<Variable<Vector> >;
-template class KratosComponents<Variable<Matrix> >;
-template class KratosComponents<Variable<std::string> >;
-template class KratosComponents<Variable<Flags> >;
+template class KratosComponents<Variable<bool>>;
+template class KratosComponents<Variable<int>>;
+template class KratosComponents<Variable<unsigned int>>;
+template class KratosComponents<Variable<double>>;
+template class KratosComponents<Variable<array_1d<double, 3>>>;
+template class KratosComponents<Variable<array_1d<double, 4>>>;
+template class KratosComponents<Variable<array_1d<double, 6>>>;
+template class KratosComponents<Variable<array_1d<double, 9>>>;
+template class KratosComponents<Variable<Quaternion<double>>>;
+template class KratosComponents<Variable<Vector>>;
+template class KratosComponents<Variable<Matrix>>;
+template class KratosComponents<Variable<std::string>>;
+template class KratosComponents<Variable<Flags>>;
 template class KratosComponents<Flags>;
 template class KratosComponents<DataCommunicator>;
 
-template class KratosComponents<Geometry<Node<3>>>;
+template class KratosComponents<Geometry<Node>>;
 template class KratosComponents<Element>;
 template class KratosComponents<Condition>;
 template class KratosComponents<ConstitutiveLaw>;
@@ -162,7 +162,7 @@ template class KratosComponents<LinearSolverFactory<ComplexSparseSpace, ComplexD
 template class KratosComponents<PreconditionerFactory<RealSparseSpace, RealDenseSpace>>;
 template class KratosComponents<ExplicitBuilder<RealSparseSpace, RealDenseSpace>>;
 
-// Specialize array of compenents for VariableData
+// Specialize array of components for VariableData
 KratosComponents<VariableData>::ComponentsContainerType KratosComponents<VariableData>::msComponents;
 
 }  // namespace Kratos.
