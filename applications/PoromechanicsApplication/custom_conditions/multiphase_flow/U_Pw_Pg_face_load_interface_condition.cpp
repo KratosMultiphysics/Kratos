@@ -44,11 +44,18 @@ void UPwPgFaceLoadInterfaceCondition<TDim,TNumNodes>::Initialize(const ProcessIn
 template< >
 void UPwPgFaceLoadInterfaceCondition<2,2>::CalculateInitialGap(const GeometryType& Geom)
 {
+    const double& InitialJointWidth = this->GetProperties()[INITIAL_JOINT_WIDTH];
+    const double Tolerance = std::numeric_limits<double>::epsilon();
     mInitialGap.resize(1);
     
     array_1d<double,3> Vx;
     noalias(Vx) = Geom.GetPoint( 1 ) - Geom.GetPoint( 0 );
     mInitialGap[0] = norm_2(Vx);
+    if (mInitialGap[0] <= (InitialJointWidth+Tolerance)) {
+        mInitialGap[0] = InitialJointWidth;
+    } else {
+        KRATOS_THROW_ERROR( std::invalid_argument, "The value of INITIAL_JOINT_WIDTH is smaller than the geometrical width.", "" )
+    }
 }
 
 //----------------------------------------------------------------------------------------
@@ -56,14 +63,26 @@ void UPwPgFaceLoadInterfaceCondition<2,2>::CalculateInitialGap(const GeometryTyp
 template< >
 void UPwPgFaceLoadInterfaceCondition<3,4>::CalculateInitialGap(const GeometryType& Geom)
 {
+    const double& InitialJointWidth = this->GetProperties()[INITIAL_JOINT_WIDTH];
+    const double Tolerance = std::numeric_limits<double>::epsilon();
     mInitialGap.resize(2);
     
     array_1d<double,3> Vx;
     noalias(Vx) = Geom.GetPoint( 3 ) - Geom.GetPoint( 0 );
     mInitialGap[0] = norm_2(Vx);
+    if (mInitialGap[0] <= (InitialJointWidth+Tolerance)) {
+        mInitialGap[0] = InitialJointWidth;
+    } else {
+        KRATOS_THROW_ERROR( std::invalid_argument, "The value of INITIAL_JOINT_WIDTH is smaller than the geometrical width.", "" )
+    }
 
     noalias(Vx) = Geom.GetPoint( 2 ) - Geom.GetPoint( 1 );
     mInitialGap[1] = norm_2(Vx);
+    if (mInitialGap[1] <= (InitialJointWidth+Tolerance)) {
+        mInitialGap[1] = InitialJointWidth;
+    } else {
+        KRATOS_THROW_ERROR( std::invalid_argument, "The value of INITIAL_JOINT_WIDTH is smaller than the geometrical width.", "" )
+    }
 }
 
 //----------------------------------------------------------------------------------------
@@ -90,10 +109,10 @@ void UPwPgFaceLoadInterfaceCondition<TDim,TNumNodes>::CalculateRHS( VectorType& 
     array_1d<double,TNumNodes*TDim> FaceLoadVector;
     PoroConditionUtilities::GetNodalVariableVector(FaceLoadVector,Geom,FACE_LOAD);
     BoundedMatrix<double,TDim,TDim> RotationMatrix;
-    const double& MinimumJointWidth = this->GetProperties()[MINIMUM_JOINT_WIDTH];
+    const double& InitialJointWidth = this->GetProperties()[INITIAL_JOINT_WIDTH];
     bool ComputeJointWidth;
     double JointWidth;
-    this->CheckJointWidth(JointWidth,ComputeJointWidth,RotationMatrix,MinimumJointWidth,Geom);
+    this->CheckJointWidth(JointWidth,ComputeJointWidth,RotationMatrix,InitialJointWidth,Geom);
     array_1d<double,TDim> LocalRelDispVector;
     array_1d<double,TDim> RelDispVector;
     BoundedMatrix<double,TDim, TNumNodes*TDim> Nu = ZeroMatrix(TDim, TNumNodes*TDim);
@@ -111,7 +130,7 @@ void UPwPgFaceLoadInterfaceCondition<TDim,TNumNodes>::CalculateRHS( VectorType& 
         InterfaceElementUtilities::CalculateNuMatrix(Nu,NContainer,GPoint);
         
         if(ComputeJointWidth==true)
-            this->CalculateJointWidth(JointWidth, Nu, DisplacementVector, RelDispVector, RotationMatrix, LocalRelDispVector, MinimumJointWidth,GPoint);
+            this->CalculateJointWidth(JointWidth, Nu, DisplacementVector, RelDispVector, RotationMatrix, LocalRelDispVector, InitialJointWidth,GPoint);
         
         //Compute weighting coefficient for integration
         this->CalculateIntegrationCoefficient(IntegrationCoefficient, JContainer[GPoint], integration_points[GPoint].Weight(), JointWidth);
@@ -126,14 +145,14 @@ void UPwPgFaceLoadInterfaceCondition<TDim,TNumNodes>::CalculateRHS( VectorType& 
 
 template< >
 void UPwPgFaceLoadInterfaceCondition<2,2>::CheckJointWidth(double& rJointWidth, bool& rComputeJointWidth, BoundedMatrix<double,2,2>& rRotationMatrix,
-                                                                const double& MinimumJointWidth, const Element::GeometryType& Geom)
+                                                                const double& InitialJointWidth, const Element::GeometryType& Geom)
 {
     //Line_interface_2d_2
     //Unitary vector in local x direction
     array_1d<double,3> Vx;
     noalias(Vx) = Geom.GetPoint( 1 ) - Geom.GetPoint( 0 );
     double norm_x = norm_2(Vx);
-    if(norm_x > MinimumJointWidth) {
+    if(norm_x > InitialJointWidth) {
         Vx[0] *= 1.0/norm_x;
         Vx[1] *= 1.0/norm_x;
 
@@ -146,7 +165,7 @@ void UPwPgFaceLoadInterfaceCondition<2,2>::CheckJointWidth(double& rJointWidth, 
 
         rComputeJointWidth = true;
     } else {
-        rJointWidth = MinimumJointWidth;
+        rJointWidth = InitialJointWidth;
         rComputeJointWidth = false;
     }
 }
@@ -155,7 +174,7 @@ void UPwPgFaceLoadInterfaceCondition<2,2>::CheckJointWidth(double& rJointWidth, 
 
 template< >
 void UPwPgFaceLoadInterfaceCondition<3,4>::CheckJointWidth(double& rJointWidth, bool& rComputeJointWidth, BoundedMatrix<double,3,3>& rRotationMatrix,
-                                                            const double& MinimumJointWidth, const Element::GeometryType& Geom)
+                                                            const double& InitialJointWidth, const Element::GeometryType& Geom)
 {
     //Quadrilateral_interface_3d_4
     array_1d<double, 3> pmid0;
@@ -204,7 +223,7 @@ void UPwPgFaceLoadInterfaceCondition<3,4>::CheckJointWidth(double& rJointWidth, 
     }
     else
     {
-        rJointWidth = MinimumJointWidth;
+        rJointWidth = InitialJointWidth;
         rComputeJointWidth = false;
     }
 }
@@ -215,7 +234,7 @@ template< >
 void UPwPgFaceLoadInterfaceCondition<2,2>::CalculateJointWidth( double& rJointWidth, const BoundedMatrix<double,2,4>& Nu,
                                                                         const array_1d<double,4>& DisplacementVector, array_1d<double,2>& rRelDispVector,
                                                                         const BoundedMatrix<double,2,2>& RotationMatrix,
-                                                                        array_1d<double,2>& rLocalRelDispVector, const double& MinimumJointWidth,
+                                                                        array_1d<double,2>& rLocalRelDispVector, const double& InitialJointWidth,
                                                                         const unsigned int& GPoint )
 {
     //Line_interface_2d_2
@@ -225,19 +244,9 @@ void UPwPgFaceLoadInterfaceCondition<2,2>::CalculateJointWidth( double& rJointWi
 
     rJointWidth = mInitialGap[GPoint] + rLocalRelDispVector[0]; //The joint width is obtained in the local x direction
     
-    // No contact
-    if(rJointWidth > 0.0) {
-        if(rJointWidth < MinimumJointWidth)
-        {
-            rJointWidth = MinimumJointWidth;
-        }
-    } else {
-        // Contact
-        if(std::abs(rJointWidth) < MinimumJointWidth){
-            rJointWidth = MinimumJointWidth;
-        } else {
-            rJointWidth = -rJointWidth;
-        }
+    // JointWidth can't be negative
+    if (rJointWidth < 0.0) {
+        rJointWidth = 0.0;
     }
 }
 
@@ -247,7 +256,7 @@ template< >
 void UPwPgFaceLoadInterfaceCondition<3,4>::CalculateJointWidth( double& rJointWidth, const BoundedMatrix<double,3,12>& Nu,
                                                                         const array_1d<double,12>& DisplacementVector, array_1d<double,3>& rRelDispVector,
                                                                         const BoundedMatrix<double,3,3>& RotationMatrix,
-                                                                        array_1d<double,3>& rLocalRelDispVector, const double& MinimumJointWidth,
+                                                                        array_1d<double,3>& rLocalRelDispVector, const double& InitialJointWidth,
                                                                         const unsigned int& GPoint )
 {
     //Quadrilateral_interface_3d_4
@@ -257,19 +266,9 @@ void UPwPgFaceLoadInterfaceCondition<3,4>::CalculateJointWidth( double& rJointWi
 
     rJointWidth = mInitialGap[GPoint] + rLocalRelDispVector[1]; //The joint width is obtained in the local y direction
 
-    // No contact
-    if(rJointWidth > 0.0) {
-        if(rJointWidth < MinimumJointWidth)
-        {
-            rJointWidth = MinimumJointWidth;
-        }
-    } else {
-        // Contact
-        if(std::abs(rJointWidth) < MinimumJointWidth){
-            rJointWidth = MinimumJointWidth;
-        } else {
-            rJointWidth = -rJointWidth;
-        }
+    // JointWidth can't be negative
+    if (rJointWidth < 0.0) {
+        rJointWidth = 0.0;
     }
 }
 
