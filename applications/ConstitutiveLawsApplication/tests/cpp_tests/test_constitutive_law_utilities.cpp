@@ -53,20 +53,20 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawUtilitiesPrincipalStresses, KratosStruc
     AdvancedConstitutiveLawUtilities<6>::CalculateI2Invariant(stress_vector, I2);
     AdvancedConstitutiveLawUtilities<6>::CalculateI3Invariant(stress_vector, I3);
 
-    KRATOS_CHECK_LESS_EQUAL((   -2.27e+07 - I1)/I1, tolerance);
-    KRATOS_CHECK_LESS_EQUAL((-1.70812e+14 - I2)/I2, tolerance);
-    KRATOS_CHECK_LESS_EQUAL(( 2.64752e+21 - I3)/I3, tolerance);
+    KRATOS_EXPECT_LE((   -2.27e+07 - I1)/I1, tolerance);
+    KRATOS_EXPECT_LE((-1.70812e+14 - I2)/I2, tolerance);
+    KRATOS_EXPECT_LE(( 2.64752e+21 - I3)/I3, tolerance);
 
     AdvancedConstitutiveLawUtilities<6>::CalculatePrincipalStresses(principal_stress_vector, stress_vector);
 
-    KRATOS_CHECK_LESS_EQUAL((1.16178e+07 - principal_stress_vector[0])/principal_stress_vector[0], tolerance);
-    KRATOS_CHECK_LESS_EQUAL((-2.53163e+07 - principal_stress_vector[1])/principal_stress_vector[1], tolerance);
-    KRATOS_CHECK_LESS_EQUAL((-9.00151e+06 - principal_stress_vector[2])/principal_stress_vector[2], tolerance);
+    KRATOS_EXPECT_LE((1.16178e+07 - principal_stress_vector[0])/principal_stress_vector[0], tolerance);
+    KRATOS_EXPECT_LE((-2.53163e+07 - principal_stress_vector[1])/principal_stress_vector[1], tolerance);
+    KRATOS_EXPECT_LE((-9.00151e+06 - principal_stress_vector[2])/principal_stress_vector[2], tolerance);
 
     AdvancedConstitutiveLawUtilities<6>::CalculatePrincipalStressesWithCardano(principal_stress_vector, stress_vector);
-    KRATOS_CHECK_LESS_EQUAL((1.16178e+07 - principal_stress_vector[0])/principal_stress_vector[0], tolerance);
-    KRATOS_CHECK_LESS_EQUAL((-9.00151e+06 - principal_stress_vector[1])/principal_stress_vector[1], tolerance);
-    KRATOS_CHECK_LESS_EQUAL((-2.53163e+07 - principal_stress_vector[2])/principal_stress_vector[2], tolerance);
+    KRATOS_EXPECT_LE((1.16178e+07 - principal_stress_vector[0])/principal_stress_vector[0], tolerance);
+    KRATOS_EXPECT_LE((-9.00151e+06 - principal_stress_vector[1])/principal_stress_vector[1], tolerance);
+    KRATOS_EXPECT_LE((-2.53163e+07 - principal_stress_vector[2])/principal_stress_vector[2], tolerance);
 }
 
 /**
@@ -88,18 +88,18 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawUtilitiesHenckyAndBiot, KratosStructura
     // Compute Hencky
     AdvancedConstitutiveLawUtilities<6>::CalculateHenckyStrain(C, strain_vector);
 
-    KRATOS_CHECK_LESS_EQUAL((0.0454445 - strain_vector[0])/strain_vector[0], tolerance);
-    KRATOS_CHECK_LESS_EQUAL((-0.0023557 - strain_vector[1])/strain_vector[1], tolerance);
-    KRATOS_CHECK_LESS_EQUAL((0.0 - strain_vector[2])/(strain_vector[2] + 1.0e-12), tolerance);
-    KRATOS_CHECK_LESS_EQUAL((-0.0956005 - strain_vector[3])/strain_vector[3], tolerance);
+    KRATOS_EXPECT_LE((0.0454445 - strain_vector[0])/strain_vector[0], tolerance);
+    KRATOS_EXPECT_LE((-0.0023557 - strain_vector[1])/strain_vector[1], tolerance);
+    KRATOS_EXPECT_LE((0.0 - strain_vector[2])/(strain_vector[2] + 1.0e-12), tolerance);
+    KRATOS_EXPECT_LE((-0.0956005 - strain_vector[3])/strain_vector[3], tolerance);
 
     // Compute Biot
     AdvancedConstitutiveLawUtilities<6>::CalculateBiotStrain(C, strain_vector);
 
-    KRATOS_CHECK_LESS_EQUAL((0.0476699 - strain_vector[0])/strain_vector[0], tolerance);
-    KRATOS_CHECK_LESS_EQUAL((-0.00119458 - strain_vector[1])/strain_vector[1], tolerance);
-    KRATOS_CHECK_LESS_EQUAL((0.0 - strain_vector[2])/(strain_vector[2] + 1.0e-12), tolerance);
-    KRATOS_CHECK_LESS_EQUAL((-0.097729 - strain_vector[3])/strain_vector[3], tolerance);
+    KRATOS_EXPECT_LE((0.0476699 - strain_vector[0])/strain_vector[0], tolerance);
+    KRATOS_EXPECT_LE((-0.00119458 - strain_vector[1])/strain_vector[1], tolerance);
+    KRATOS_EXPECT_LE((0.0 - strain_vector[2])/(strain_vector[2] + 1.0e-12), tolerance);
+    KRATOS_EXPECT_LE((-0.097729 - strain_vector[3])/strain_vector[3], tolerance);
 }
 
 /**
@@ -121,18 +121,18 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawUtilitiesAlmansiAndGreen, KratosStructu
     // Compute Green-Lagrange
     ConstitutiveLawUtilities<6>::CalculateGreenLagrangianStrain(C, strain_vector);
 
-    KRATOS_CHECK_LESS_EQUAL((0.05 - strain_vector[0])/strain_vector[0], tolerance);
-    KRATOS_CHECK_LESS_EQUAL((0.0 - strain_vector[1])/(strain_vector[1] + 1.0e-12), tolerance);
-    KRATOS_CHECK_LESS_EQUAL((0.0 - strain_vector[2])/(strain_vector[2] + 1.0e-12), tolerance);
-    KRATOS_CHECK_LESS_EQUAL((-0.001 - strain_vector[3])/strain_vector[3], tolerance);
+    KRATOS_EXPECT_LE((0.05 - strain_vector[0])/strain_vector[0], tolerance);
+    KRATOS_EXPECT_LE((0.0 - strain_vector[1])/(strain_vector[1] + 1.0e-12), tolerance);
+    KRATOS_EXPECT_LE((0.0 - strain_vector[2])/(strain_vector[2] + 1.0e-12), tolerance);
+    KRATOS_EXPECT_LE((-0.001 - strain_vector[3])/strain_vector[3], tolerance);
 
     // Compute Alamansi (We use C, but it is supposed to be B, we are just using to compute and check)
     AdvancedConstitutiveLawUtilities<6>::CalculateAlmansiStrain(C, strain_vector);
 
-    KRATOS_CHECK_LESS_EQUAL((0.0412844 - strain_vector[0])/strain_vector[0], tolerance);
-    KRATOS_CHECK_LESS_EQUAL((-0.00458716 - strain_vector[1])/strain_vector[1], tolerance);
-    KRATOS_CHECK_LESS_EQUAL((0.0 - strain_vector[2])/(strain_vector[2] + 1.0e-12), tolerance);
-    KRATOS_CHECK_LESS_EQUAL((-0.0458716 - strain_vector[3])/strain_vector[3], tolerance);
+    KRATOS_EXPECT_LE((0.0412844 - strain_vector[0])/strain_vector[0], tolerance);
+    KRATOS_EXPECT_LE((-0.00458716 - strain_vector[1])/strain_vector[1], tolerance);
+    KRATOS_EXPECT_LE((0.0 - strain_vector[2])/(strain_vector[2] + 1.0e-12), tolerance);
+    KRATOS_EXPECT_LE((-0.0458716 - strain_vector[3])/strain_vector[3], tolerance);
 }
 
 /**
@@ -170,8 +170,8 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawUtilitiesPolarDecomposition, KratosStru
     U_ref(1, 1) = 0.798078;
     U_ref(2, 2) = 1.0;
 
-    KRATOS_CHECK_LESS_EQUAL(norm_frobenius(R-R_ref), tolerance);
-    KRATOS_CHECK_LESS_EQUAL(norm_frobenius(U-U_ref), tolerance);
+    KRATOS_EXPECT_LE(norm_frobenius(R-R_ref), tolerance);
+    KRATOS_EXPECT_LE(norm_frobenius(U-U_ref), tolerance);
 }
 /**
 * Check the correct calculation of the CL utilities Hencky and Biot strains
@@ -201,12 +201,12 @@ KRATOS_TEST_CASE_IN_SUITE(CalculateCharacteristicLength, KratosStructuralMechani
     // Compute CalculateCharacteristicLength
     const double length = AdvancedConstitutiveLawUtilities<3>::CalculateCharacteristicLength(triangle);
 
-    KRATOS_CHECK_NEAR(length,  0.743871, tolerance);
+    KRATOS_EXPECT_NEAR(length,  0.743871, tolerance);
 
     // Compute CalculateCharacteristicLengthOnReferenceConfiguration
     const double length_origin = AdvancedConstitutiveLawUtilities<3>::CalculateCharacteristicLengthOnReferenceConfiguration(triangle);
 
-    KRATOS_CHECK_NEAR(length_origin,  0.745356, tolerance);
+    KRATOS_EXPECT_NEAR(length_origin,  0.745356, tolerance);
 }
 } // namespace Testing
 } // namespace Kratos

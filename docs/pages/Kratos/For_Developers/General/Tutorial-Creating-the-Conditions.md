@@ -167,8 +167,8 @@ int PointSourceCondition::Check(const ProcessInfo& rCurrentProcessInfo) const
     for ( unsigned int i = 0; i < number_of_points; i++ )
     {
         auto &rnode = this->GetGeometry()[i];
-        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(TEMPERATURE,rnode)
-        KRATOS_CHECK_DOF_IN_NODE(TEMPERATURE,rnode)
+        KRATOS_EXPECT_VARIABLE_IN_NODAL_DATA(TEMPERATURE,rnode)
+        KRATOS_EXPECT_DOF_IN_NODE(TEMPERATURE,rnode)
     }
 
     return ierr;

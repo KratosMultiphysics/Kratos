@@ -179,10 +179,10 @@ protected:
 
     void CalculateRotationMatrix(BoundedMatrix<double,TDim,TDim>& rRotationMatrix, const GeometryType& Geom);
 
-    void CalculateJointWidth(double& rJointWidth,const double& NormalRelDisp,const double& MinimumJointWidth,const unsigned int& GPoint);
+    void CalculateJointWidth(double& rJointWidth,const double& NormalRelDisp,const double& InitialJointWidth,const unsigned int& GPoint);
 
     void CheckAndCalculateJointWidth(double& rJointWidth,ConstitutiveLaw::Parameters& rConstitutiveParameters,
-                                    double& rNormalRelDisp,const double& MinimumJointWidth,const unsigned int& GPoint);
+                                    double& rNormalRelDisp,const double& InitialJointWidth,const unsigned int& GPoint);
 
     template< class TMatrixType >
     void CalculateShapeFunctionsGradients(TMatrixType& rGradNpT, SFGradAuxVariables& rAuxVariables,const Matrix& Jacobian,

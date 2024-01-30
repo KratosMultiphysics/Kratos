@@ -24,13 +24,23 @@ class CheckSameModelPartUsingSkinDistanceProcess(KratosMultiphysics.Process):
         model -- the container of the different model parts.
         settings -- Kratos parameters containing solver settings.
         """
+        KratosMultiphysics.Logger.PrintWarning("DEPRECATION-Warning", "This python process will be removed in the future. Please use the C++ version instead with the register instead")
         KratosMultiphysics.Process.__init__(self)
 
         # Assigning values
         self.model = model
 
+        # Get first model part (must be defined anyway)
+        self.model_part = self.model[settings["skin_model_part_1_name"].GetString()]
+        if not self.model_part.ProcessInfo.Has(KratosMultiphysics.DOMAIN_SIZE):
+            raise ValueError("DOMAIN_SIZE nor defined in ProcessInfo")
+
+
         # Create the process
-        self.process = KratosMultiphysics.CheckSameModelPartUsingSkinDistanceProcess3D(self.model, settings)
+        if self.dimension == 2:
+            self.process = KratosMultiphysics.CheckSameModelPartUsingSkinDistanceProcess2D(self.model, settings)
+        else:
+            self.process = KratosMultiphysics.CheckSameModelPartUsingSkinDistanceProcess3D(self.model, settings)
 
     def ExecuteBeforeSolutionLoop(self):
         """This method is executed in before initialize the solution step

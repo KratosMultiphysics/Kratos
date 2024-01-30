@@ -1,0 +1,91 @@
+{
+    "properties": [
+        {
+            "model_part_name": "PorousDomain.soil1",
+            "properties_id": 1,
+            "Material": {
+                "Variables": {
+                    "YOUNG_MODULUS": 30000000.0,
+                    "POISSON_RATIO": 0.2,
+                    "DENSITY_SOLID": 2650,
+                    "POROSITY": 0.3,
+                    "BULK_MODULUS_SOLID": 50000000000.0,
+                    "IGNORE_UNDRAINED": true,
+                    "PERMEABILITY_XX": 1e-30,
+                    "PERMEABILITY_YY": 1e-30,
+                    "PERMEABILITY_ZZ": 1e-30,
+                    "PERMEABILITY_XY": 0,
+                    "PERMEABILITY_YZ": 0,
+                    "PERMEABILITY_ZX": 0,
+                    "RETENTION_LAW": "SaturatedLaw",
+                    "SATURATED_SATURATION": 1.0,
+                    "DYNAMIC_VISCOSITY": 0.0013,
+                    "BULK_MODULUS_FLUID": 2000000000.0,
+                    "DENSITY_WATER": 1000
+                },
+                "constitutive_law": {
+                    "name": "LinearElastic3DLaw"
+                }
+            },
+            "Tables": {}
+        },
+        {
+            "model_part_name": "PorousDomain.soil2",
+            "properties_id": 2,
+            "Material": {
+                "Variables": {
+                    "YOUNG_MODULUS": 30000000.0,
+                    "POISSON_RATIO": 0.2,
+                    "DENSITY_SOLID": 2650,
+                    "POROSITY": 0.3,
+                    "BULK_MODULUS_SOLID": 50000000000.0,
+                    "IGNORE_UNDRAINED": true,
+                    "PERMEABILITY_XX": 1e-30,
+                    "PERMEABILITY_YY": 1e-30,
+                    "PERMEABILITY_ZZ": 1e-30,
+                    "PERMEABILITY_XY": 0,
+                    "PERMEABILITY_YZ": 0,
+                    "PERMEABILITY_ZX": 0,
+                    "RETENTION_LAW": "SaturatedLaw",
+                    "SATURATED_SATURATION": 1.0,
+                    "DYNAMIC_VISCOSITY": 0.0013,
+                    "BULK_MODULUS_FLUID": 2000000000.0,
+                    "DENSITY_WATER": 1000
+                },
+                "constitutive_law": {
+                    "name": "LinearElastic3DLaw"
+                }
+            },
+            "Tables": {}
+        },
+        {
+            "model_part_name": "PorousDomain.embankment",
+            "properties_id": 3,
+            "Material": {
+                "Variables": {
+                    "YOUNG_MODULUS": 30000000.0,
+                    "POISSON_RATIO": 0.2,
+                    "DENSITY_SOLID": 2650,
+                    "POROSITY": 0.3,
+                    "BULK_MODULUS_SOLID": 50000000000.0,
+                    "IGNORE_UNDRAINED": true,
+                    "PERMEABILITY_XX": 1e-30,
+                    "PERMEABILITY_YY": 1e-30,
+                    "PERMEABILITY_ZZ": 1e-30,
+                    "PERMEABILITY_XY": 0,
+                    "PERMEABILITY_YZ": 0,
+                    "PERMEABILITY_ZX": 0,
+                    "RETENTION_LAW": "SaturatedLaw",
+                    "SATURATED_SATURATION": 1.0,
+                    "DYNAMIC_VISCOSITY": 0.0013,
+                    "BULK_MODULUS_FLUID": 2000000000.0,
+                    "DENSITY_WATER": 1000
+                },
+                "constitutive_law": {
+                    "name": "LinearElastic3DLaw"
+                }
+            },
+            "Tables": {}
+        }
+    ]
+}

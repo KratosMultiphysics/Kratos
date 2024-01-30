@@ -28,18 +28,19 @@
 #include "custom_strategies/builder_and_solvers/residualbased_block_builder_and_solver_with_mass_and_damping.h"
 
 //schemes
-#include "custom_strategies/schemes/newmark_quasistatic_U_Pw_scheme.hpp"
-#include "custom_strategies/schemes/newmark_quasistatic_damped_U_Pw_scheme.hpp"
+#include "custom_strategies/schemes/backward_euler_T_scheme.hpp"
+#include "custom_strategies/schemes/backward_euler_quasistatic_Pw_scheme.hpp"
+#include "custom_strategies/schemes/backward_euler_quasistatic_U_Pw_scheme.hpp"
+#include "custom_strategies/schemes/generalized_newmark_T_scheme.hpp"
 #include "custom_strategies/schemes/newmark_dynamic_U_Pw_scheme.hpp"
 #include "custom_strategies/schemes/newmark_quasistatic_Pw_scheme.hpp"
-#include "custom_strategies/schemes/backward_euler_quasistatic_U_Pw_scheme.hpp"
-#include "custom_strategies/schemes/backward_euler_quasistatic_Pw_scheme.hpp"
+#include "custom_strategies/schemes/newmark_quasistatic_U_Pw_scheme.hpp"
+#include "custom_strategies/schemes/newmark_quasistatic_damped_U_Pw_scheme.hpp"
 
 //linear solvers
 #include "linear_solvers/linear_solver.h"
 
-namespace Kratos {
-namespace Python {
+namespace Kratos::Python {
 
 void AddCustomStrategiesToPython(pybind11::module& m)
 {
@@ -58,8 +59,13 @@ void AddCustomStrategiesToPython(pybind11::module& m)
     using NewmarkQuasistaticDampedUPwSchemeType = NewmarkQuasistaticDampedUPwScheme< SparseSpaceType, LocalSpaceType >;
     using NewmarkDynamicUPwSchemeType = NewmarkDynamicUPwScheme< SparseSpaceType, LocalSpaceType >;
     using NewmarkQuasistaticPwSchemeType = NewmarkQuasistaticPwScheme< SparseSpaceType, LocalSpaceType >;
+    using NewmarkQuasistaticTSchemeType =
+        GeneralizedNewmarkTScheme< SparseSpaceType, LocalSpaceType >;
+
     using BackwardEulerQuasistaticUPwSchemeType = BackwardEulerQuasistaticUPwScheme< SparseSpaceType, LocalSpaceType >;
     using BackwardEulerQuasistaticPwSchemeType = BackwardEulerQuasistaticPwScheme< SparseSpaceType, LocalSpaceType >;
+    using BackwardEulerQuasistaticTSchemeType =
+        BackwardEulerTScheme< SparseSpaceType, LocalSpaceType >;
 
     using GeoMechanicsNewtonRaphsonStrategyType = GeoMechanicsNewtonRaphsonStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >;
     using GeoMechanicsRammArcLengthStrategyType = GeoMechanicsRammArcLengthStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >;
@@ -83,6 +89,10 @@ void AddCustomStrategiesToPython(pybind11::module& m)
     (m, "NewmarkQuasistaticPwScheme")
     .def(py::init<  double >());
 
+    py::class_<NewmarkQuasistaticTSchemeType, typename NewmarkQuasistaticTSchemeType::Pointer, BaseSchemeType>
+        (m, "GeneralizedNewmarkTScheme")
+            .def(py::init<double>());
+
     py::class_< BackwardEulerQuasistaticUPwSchemeType, typename BackwardEulerQuasistaticUPwSchemeType::Pointer, BaseSchemeType >
     (m, "BackwardEulerQuasistaticUPwScheme")
     .def(py::init< >());
@@ -90,6 +100,10 @@ void AddCustomStrategiesToPython(pybind11::module& m)
     py::class_< BackwardEulerQuasistaticPwSchemeType, typename BackwardEulerQuasistaticPwSchemeType::Pointer, BaseSchemeType >
     (m, "BackwardEulerQuasistaticPwScheme")
     .def(py::init< >());
+
+    py::class_< BackwardEulerQuasistaticTSchemeType, typename BackwardEulerQuasistaticTSchemeType::Pointer, BaseSchemeType >
+        (m, "BackwardEulerTScheme")
+            .def(py::init< >());
 
     py::class_< GeoMechanicsNewtonRaphsonStrategyType, typename GeoMechanicsNewtonRaphsonStrategyType::Pointer, BaseSolvingStrategyType >
     (m, "GeoMechanicsNewtonRaphsonStrategy")
@@ -116,5 +130,4 @@ void AddCustomStrategiesToPython(pybind11::module& m)
         ;
 }
 
-} // Namespace Python.
-} // Namespace Kratos
+} // Namespace Kratos::Python

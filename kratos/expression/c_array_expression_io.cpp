@@ -22,7 +22,6 @@
 // Include base h
 #include "c_array_expression_io.h"
 
-
 namespace Kratos {
 
 template<class TRawDataType>
@@ -154,6 +153,29 @@ void CArrayExpressionIO::Read(
         Input(pBegin, NumberOfEntities, pShapeBegin, ShapeSize).Execute());
 }
 
+template<class TContainerType, MeshType TMeshType>
+void CArrayExpressionIO::Read(
+    ContainerExpression<TContainerType, TMeshType>& rContainerExpression,
+    const Vector& rValues,
+    const std::vector<IndexType>& rShape)
+{
+    const IndexType number_of_entities = rContainerExpression.GetContainer().size();
+    auto p_flat_expression = LiteralFlatExpression<double>::Create(number_of_entities, rShape);
+    const IndexType flat_size = p_flat_expression->GetItemComponentCount() * number_of_entities;
+
+    KRATOS_ERROR_IF_NOT(flat_size == rValues.size())
+        << "Vector does not contain required number of values for the given container and the shape. [ Vector size = "
+        << rValues.size() << ", shape = " << rShape << " number of entities = "
+        << number_of_entities << ", required number of values = "
+        << flat_size << " ].\n";
+
+    IndexPartition<IndexType>(flat_size).for_each([&p_flat_expression, &rValues](const IndexType Index) {
+        *(p_flat_expression->begin() + Index) = rValues[Index];
+    });
+
+    rContainerExpression.SetExpression(p_flat_expression);
+}
+
 template<class TRawDataType, class TContainerType, MeshType TMeshType>
 void CArrayExpressionIO::Move(
     ContainerExpression<TContainerType, TMeshType>& rContainerExpression,
@@ -166,6 +188,25 @@ void CArrayExpressionIO::Move(
         MoveInput(pBegin, NumberOfEntities, pShapeBegin, ShapeSize).Execute());
 }
 
+template<class TContainerType, MeshType TMeshType>
+void CArrayExpressionIO::Move(
+    ContainerExpression<TContainerType, TMeshType>& rContainerExpression,
+    Vector& rValues,
+    const std::vector<IndexType>& rShape)
+{
+    const IndexType number_of_entities = rContainerExpression.GetContainer().size();
+    auto p_flat_expression = LiteralFlatExpression<double>::Create(rValues.data().begin(), number_of_entities, rShape);
+    const IndexType flat_size = p_flat_expression->GetItemComponentCount() * number_of_entities;
+
+    KRATOS_ERROR_IF_NOT(flat_size == rValues.size())
+        << "Vector does not contain required number of values for the given container and the shape. [ Vector size = "
+        << rValues.size() << ", shape = " << rShape << " number of entities = "
+        << number_of_entities << ", required number of values = "
+        << flat_size << " ].\n";
+
+    rContainerExpression.SetExpression(p_flat_expression);
+}
+
 template<class TRawDataType, class TContainerType, MeshType TMeshType>
 void CArrayExpressionIO::Write(
     const ContainerExpression<TContainerType, TMeshType>& rContainerExpression,
@@ -175,20 +216,35 @@ void CArrayExpressionIO::Write(
     Output(pBegin, mSize).Execute(rContainerExpression.GetExpression());
 }
 
+template<class TContainerType, MeshType TMeshType>
+void CArrayExpressionIO::Write(
+    const ContainerExpression<TContainerType, TMeshType>& rContainerExpression,
+    Vector& rValues)
+{
+    const IndexType flat_size = rContainerExpression.GetItemComponentCount() * rContainerExpression.GetContainer().size();
+    if (rValues.size() != flat_size) {
+        rValues.resize(flat_size, false);
+    }
+
+    Output(rValues.data().begin(), rValues.size()).Execute(rContainerExpression.GetExpression());
+}
+
 #define KRATOS_INSTANTIATE_C_ARRAY_EXPRESSION_IO_METHODS(RAW_DATA_TYPE, CONTAINER_TYPE, MESH_TYPE)                                                                      \
     template void KRATOS_API(KRATOS_CORE) CArrayExpressionIO::Read(ContainerExpression<CONTAINER_TYPE, MESH_TYPE>&, RAW_DATA_TYPE const*, const int, int const*, const int); \
     template void KRATOS_API(KRATOS_CORE) CArrayExpressionIO::Move(ContainerExpression<CONTAINER_TYPE, MESH_TYPE>&, RAW_DATA_TYPE*, const int, int const*, const int);       \
     template void KRATOS_API(KRATOS_CORE) CArrayExpressionIO::Write(const ContainerExpression<CONTAINER_TYPE, MESH_TYPE>&, RAW_DATA_TYPE*, const int);
 
-#define KRATOS_INSTANTIATE_C_ARRAY_EXPRESSION_IO_METHODS_1(RAW_DATA_TYPE, MESH_TYPE)                                \
-    KRATOS_INSTANTIATE_C_ARRAY_EXPRESSION_IO_METHODS(RAW_DATA_TYPE, ModelPart::NodesContainerType, MESH_TYPE)       \
-    KRATOS_INSTANTIATE_C_ARRAY_EXPRESSION_IO_METHODS(RAW_DATA_TYPE, ModelPart::ConditionsContainerType, MESH_TYPE)  \
-    KRATOS_INSTANTIATE_C_ARRAY_EXPRESSION_IO_METHODS(RAW_DATA_TYPE, ModelPart::ElementsContainerType, MESH_TYPE)
+#define KRATOS_INSTANTIATE_C_ARRAY_EXPRESSION_VECTOR_AND_OTHER_IO_METHODS(CONTAINER_TYPE, MESH_TYPE)                                                                          \
+    template void KRATOS_API(KRATOS_CORE) CArrayExpressionIO::Read(ContainerExpression<CONTAINER_TYPE, MESH_TYPE>&, const Vector&, const std::vector<IndexType>&);  \
+    template void KRATOS_API(KRATOS_CORE) CArrayExpressionIO::Move(ContainerExpression<CONTAINER_TYPE, MESH_TYPE>&, Vector&, const std::vector<IndexType>&);        \
+    template void KRATOS_API(KRATOS_CORE) CArrayExpressionIO::Write(const ContainerExpression<CONTAINER_TYPE, MESH_TYPE>&, Vector&);                                \
+    KRATOS_INSTANTIATE_C_ARRAY_EXPRESSION_IO_METHODS(int, CONTAINER_TYPE, MESH_TYPE)                                                                                \
+    KRATOS_INSTANTIATE_C_ARRAY_EXPRESSION_IO_METHODS(double, CONTAINER_TYPE, MESH_TYPE)
 
-#define KRATOS_INSTANTIATE_C_ARRAY_EXPRESSION_IO_METHODS_2(RAW_DATA_TYPE)                   \
-    KRATOS_INSTANTIATE_C_ARRAY_EXPRESSION_IO_METHODS_1(RAW_DATA_TYPE, MeshType::Local)      \
-    KRATOS_INSTANTIATE_C_ARRAY_EXPRESSION_IO_METHODS_1(RAW_DATA_TYPE, MeshType::Interface)  \
-    KRATOS_INSTANTIATE_C_ARRAY_EXPRESSION_IO_METHODS_1(RAW_DATA_TYPE, MeshType::Ghost)
+#define KRATOS_INSTANTIATE_C_ARRAY_EXPRESSION_IO_METHODS_1(MESH_TYPE)                                                 \
+    KRATOS_INSTANTIATE_C_ARRAY_EXPRESSION_VECTOR_AND_OTHER_IO_METHODS(ModelPart::NodesContainerType, MESH_TYPE)       \
+    KRATOS_INSTANTIATE_C_ARRAY_EXPRESSION_VECTOR_AND_OTHER_IO_METHODS(ModelPart::ConditionsContainerType, MESH_TYPE)  \
+    KRATOS_INSTANTIATE_C_ARRAY_EXPRESSION_VECTOR_AND_OTHER_IO_METHODS(ModelPart::ElementsContainerType, MESH_TYPE)
 
 // template instantiations
 template KRATOS_API(KRATOS_CORE) CArrayExpressionIO::Input::Input(int const*, const int, int const*, const int);
@@ -200,11 +256,12 @@ template KRATOS_API(KRATOS_CORE) CArrayExpressionIO::MoveInput::MoveInput(double
 template KRATOS_API(KRATOS_CORE) CArrayExpressionIO::Output::Output(int*, const int);
 template KRATOS_API(KRATOS_CORE) CArrayExpressionIO::Output::Output(double*, const int);
 
-KRATOS_INSTANTIATE_C_ARRAY_EXPRESSION_IO_METHODS_2(int)
-KRATOS_INSTANTIATE_C_ARRAY_EXPRESSION_IO_METHODS_2(double)
+KRATOS_INSTANTIATE_C_ARRAY_EXPRESSION_IO_METHODS_1(MeshType::Local)
+KRATOS_INSTANTIATE_C_ARRAY_EXPRESSION_IO_METHODS_1(MeshType::Ghost)
+KRATOS_INSTANTIATE_C_ARRAY_EXPRESSION_IO_METHODS_1(MeshType::Interface)
 
 #undef KRATOS_INSTANTIATE_C_ARRAY_EXPRESSION_IO_METHODS
-#undef KRATOS_INSTANTIATE_C_ARRAY_EXPRESSION_IO_METHODS_2
 #undef KRATOS_INSTANTIATE_C_ARRAY_EXPRESSION_IO_METHODS_1
+#undef KRATOS_INSTANTIATE_C_ARRAY_EXPRESSION_VECTOR_AND_OTHER_IO_METHODS
 
 } // namespace Kratos

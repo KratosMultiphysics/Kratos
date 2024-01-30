@@ -100,7 +100,7 @@ void RegeneratePfemPressureConditionsProcess<TDim>::GenerateLineLoads2Nodes(
 
     // We check some things...
     auto& r_elem_neigb = (itElem)->GetValue(NEIGHBOUR_ELEMENTS);
-    if (r_elem_neigb(NonWetLocalIdNode).get()!=nullptr && r_elem_neigb[NonWetLocalIdNode].Id() == (itElem)->Id()) {
+    if (r_elem_neigb(NonWetLocalIdNode).get() == nullptr) {
         const IndexType id_2 = (NonWetLocalIdNode == 0) ? 1 : (NonWetLocalIdNode == 1) ? 2 : 0;
         const IndexType id_3 = (NonWetLocalIdNode == 0) ? 2 : (NonWetLocalIdNode == 1) ? 0 : 1;
         this->CreateLineLoads(id_2, id_3, itElem, r_sub_model_part, p_properties, rMaximumConditionId);
@@ -125,7 +125,7 @@ void RegeneratePfemPressureConditionsProcess<TDim>::GenerateLineLoads3Nodes(
     IndexType alone_edge_local_id = 10;
     int number_of_free_edges = 0, non_free_edge;
     for (IndexType i = 0; i < r_elem_neigb.size(); ++i) {
-        if (r_elem_neigb(i).get()!=nullptr && (itElem)->Id() == r_elem_neigb[i].Id()) {
+        if (r_elem_neigb(i).get() == nullptr) {
             alone_edge_local_id = i;
             number_of_free_edges++;
         } else {
@@ -164,7 +164,7 @@ void RegeneratePfemPressureConditionsProcess<TDim>::GeneratePressureLoads3WetNod
 
     // We only create pressure loads when the surface is skin
     auto& r_elem_neigb = (itElem)->GetValue(NEIGHBOUR_ELEMENTS);
-    if (r_elem_neigb(NonWetLocalIdNode).get()!=nullptr && r_elem_neigb[NonWetLocalIdNode].Id() == (itElem)->Id()) {
+    if (r_elem_neigb(NonWetLocalIdNode).get() == nullptr) {
         this->CreatePressureLoads(id_2, id_3, id_4, itElem, r_sub_model_part, p_properties, rMaximumConditionId);
     }
 }

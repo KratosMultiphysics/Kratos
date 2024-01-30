@@ -163,8 +163,8 @@ namespace Kratos
 //             // DEBUG ONLY
 //             ComplexOrientationMPCGiDIODebug(r_model_part);
 
-            KRATOS_CHECK_LESS_EQUAL(std::abs(r_model_part.Nodes()[2].FastGetSolutionStepValue(DISPLACEMENT_X) + 5.3651e-7), 1.0e-4);
-            KRATOS_CHECK_LESS_EQUAL(std::abs(r_model_part.Nodes()[2].FastGetSolutionStepValue(DISPLACEMENT_Y) + 5.3651e-7), 1.0e-4);
+            KRATOS_EXPECT_LE(std::abs(r_model_part.Nodes()[2].FastGetSolutionStepValue(DISPLACEMENT_X) + 5.3651e-7), 1.0e-4);
+            KRATOS_EXPECT_LE(std::abs(r_model_part.Nodes()[2].FastGetSolutionStepValue(DISPLACEMENT_Y) + 5.3651e-7), 1.0e-4);
         }
 
 

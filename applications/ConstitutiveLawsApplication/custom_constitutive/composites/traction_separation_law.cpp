@@ -192,24 +192,13 @@ void TractionSeparationLaw3D<TDim>::InitializeMaterial(
 
     mThresholdModeOne.resize(r_p_constitutive_law_vector.size()-1, false);
     for (IndexType i=0; i < r_p_constitutive_law_vector.size()-1; ++i) {
-        mThresholdModeOne[i] = rMaterialProperties[INTERFACIAL_NORMAL_STRENGTH];
+        mThresholdModeOne[i] = rMaterialProperties.Has(INTERFACIAL_NORMAL_STRENGTH_VECTOR) ? rMaterialProperties[INTERFACIAL_NORMAL_STRENGTH_VECTOR][i] : rMaterialProperties[INTERFACIAL_NORMAL_STRENGTH];
     }
 
     mThresholdModeTwo.resize(r_p_constitutive_law_vector.size()-1, false);
     for (IndexType i=0; i < r_p_constitutive_law_vector.size()-1; ++i) {
-        mThresholdModeTwo[i] = rMaterialProperties[INTERFACIAL_SHEAR_STRENGTH];
+        mThresholdModeTwo[i] = rMaterialProperties.Has(INTERFACIAL_SHEAR_STRENGTH_VECTOR) ? rMaterialProperties[INTERFACIAL_SHEAR_STRENGTH_VECTOR][i] : rMaterialProperties[INTERFACIAL_SHEAR_STRENGTH];
     }
-
-    // Check fracture energy
-    const double characteristic_length = 0.6343 * (AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateCharacteristicLengthOnReferenceConfiguration(rElementGeometry));
-
-    const double AParameter_mode_one = 1.00 / (rMaterialProperties[MODE_ONE_FRACTURE_ENERGY] * rMaterialProperties[TENSILE_INTERFACE_MODULUS] / (characteristic_length
-                                    * std::pow(rMaterialProperties[INTERFACIAL_NORMAL_STRENGTH], 2)) - 0.5); // Exponential
-    KRATOS_ERROR_IF(AParameter_mode_one < 0.0) << "MODE_ONE_FRACTURE_ENERGY is too low" << std::endl;
-
-    const double AParameter_mode_two = 1.00 / (rMaterialProperties[MODE_TWO_FRACTURE_ENERGY] * rMaterialProperties[SHEAR_INTERFACE_MODULUS] / (characteristic_length
-                                    * std::pow(rMaterialProperties[INTERFACIAL_SHEAR_STRENGTH], 2)) - 0.5); // Exponential
-    KRATOS_ERROR_IF(AParameter_mode_two < 0.0) << "MODE_TWO_FRACTURE_ENERGY is too low" << std::endl;
 }
 
 /***********************************************************************************/
@@ -332,12 +321,12 @@ void  TractionSeparationLaw3D<TDim>::CalculateMaterialResponsePK2(ConstitutiveLa
 
             // Damage calculation
 
-            const double T0n = r_material_properties[INTERFACIAL_NORMAL_STRENGTH]; // Interfacial Normal Strength
-            const double T0s = r_material_properties[INTERFACIAL_SHEAR_STRENGTH]; // Interfacial Shear Strength
-            const double GIc = r_material_properties[MODE_ONE_FRACTURE_ENERGY]; // Mode I Energy Release Rate
-            const double GIIc = r_material_properties[MODE_TWO_FRACTURE_ENERGY]; // Mode II Energy Release Rate
-            const double Ei = r_material_properties[TENSILE_INTERFACE_MODULUS]; // Tensile modulus of the interface
-            const double Gi = r_material_properties[SHEAR_INTERFACE_MODULUS]; // Shear modulus of the interface
+            const double T0n = r_material_properties.Has(INTERFACIAL_NORMAL_STRENGTH_VECTOR) ? r_material_properties[INTERFACIAL_NORMAL_STRENGTH_VECTOR][i] : r_material_properties[INTERFACIAL_NORMAL_STRENGTH]; // Interfacial Normal Strength
+            const double T0s = r_material_properties.Has(INTERFACIAL_SHEAR_STRENGTH_VECTOR) ? r_material_properties[INTERFACIAL_SHEAR_STRENGTH_VECTOR][i] : r_material_properties[INTERFACIAL_SHEAR_STRENGTH]; // Interfacial Shear Strength
+            const double GIc = r_material_properties.Has(MODE_ONE_FRACTURE_ENERGY_VECTOR) ? r_material_properties[MODE_ONE_FRACTURE_ENERGY_VECTOR][i] : r_material_properties[MODE_ONE_FRACTURE_ENERGY]; // Mode I Energy Release Rate
+            const double GIIc = r_material_properties.Has(MODE_TWO_FRACTURE_ENERGY_VECTOR) ? r_material_properties[MODE_TWO_FRACTURE_ENERGY_VECTOR][i] : r_material_properties[MODE_TWO_FRACTURE_ENERGY]; // Mode II Energy Release Rate
+            const double Ei = r_material_properties.Has(TENSILE_INTERFACE_MODULUS_VECTOR) ? r_material_properties[TENSILE_INTERFACE_MODULUS_VECTOR][i] : r_material_properties[TENSILE_INTERFACE_MODULUS]; // Tensile modulus of the interface
+            const double Gi = r_material_properties.Has(SHEAR_INTERFACE_MODULUS_VECTOR) ? r_material_properties[SHEAR_INTERFACE_MODULUS_VECTOR][i] : r_material_properties[SHEAR_INTERFACE_MODULUS]; // Shear modulus of the interface
 
             const double F_mode_one = equivalent_stress_mode_one - ThresholdModeOne[i];
             if (F_mode_one > tolerance) {
@@ -532,12 +521,12 @@ void TractionSeparationLaw3D<TDim>::FinalizeMaterialResponsePK2(ConstitutiveLaw:
             }
 
             // Damage calculation
-            const double T0n = r_material_properties[INTERFACIAL_NORMAL_STRENGTH]; // Interfacial Normal Strength
-            const double T0s = r_material_properties[INTERFACIAL_SHEAR_STRENGTH]; // Interfacial Shear Strength
-            const double GIc = r_material_properties[MODE_ONE_FRACTURE_ENERGY]; // Mode I Energy Release Rate
-            const double GIIc = r_material_properties[MODE_TWO_FRACTURE_ENERGY]; // Mode II Energy Release Rate
-            const double Ei = r_material_properties[TENSILE_INTERFACE_MODULUS]; // Tensile modulus of the interface
-            const double Gi = r_material_properties[SHEAR_INTERFACE_MODULUS]; // Shear modulus of the interface
+            const double T0n = r_material_properties.Has(INTERFACIAL_NORMAL_STRENGTH_VECTOR) ? r_material_properties[INTERFACIAL_NORMAL_STRENGTH_VECTOR][i] : r_material_properties[INTERFACIAL_NORMAL_STRENGTH]; // Interfacial Normal Strength
+            const double T0s = r_material_properties.Has(INTERFACIAL_SHEAR_STRENGTH_VECTOR) ? r_material_properties[INTERFACIAL_SHEAR_STRENGTH_VECTOR][i] : r_material_properties[INTERFACIAL_SHEAR_STRENGTH]; // Interfacial Shear Strength
+            const double GIc = r_material_properties.Has(MODE_ONE_FRACTURE_ENERGY_VECTOR) ? r_material_properties[MODE_ONE_FRACTURE_ENERGY_VECTOR][i] : r_material_properties[MODE_ONE_FRACTURE_ENERGY]; // Mode I Energy Release Rate
+            const double GIIc = r_material_properties.Has(MODE_TWO_FRACTURE_ENERGY_VECTOR) ? r_material_properties[MODE_TWO_FRACTURE_ENERGY_VECTOR][i] : r_material_properties[MODE_TWO_FRACTURE_ENERGY]; // Mode II Energy Release Rate
+            const double Ei = r_material_properties.Has(TENSILE_INTERFACE_MODULUS_VECTOR) ? r_material_properties[TENSILE_INTERFACE_MODULUS_VECTOR][i] : r_material_properties[TENSILE_INTERFACE_MODULUS]; // Tensile modulus of the interface
+            const double Gi = r_material_properties.Has(SHEAR_INTERFACE_MODULUS_VECTOR) ? r_material_properties[SHEAR_INTERFACE_MODULUS_VECTOR][i] : r_material_properties[SHEAR_INTERFACE_MODULUS]; // Shear modulus of the interface
 
             const double F_mode_one = equivalent_stress_mode_one - ThresholdModeOne[i];
             if (F_mode_one > tolerance) {
@@ -621,16 +610,82 @@ int TractionSeparationLaw3D<TDim>::Check(
     const ProcessInfo& rCurrentProcessInfo
     ) const
 {
-    KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(INTERFACIAL_NORMAL_STRENGTH)) << "INTERFACIAL_NORMAL_STRENGTH is not a defined value" << std::endl;
-    KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(INTERFACIAL_SHEAR_STRENGTH)) << "INTERFACIAL_SHEAR_STRENGTH is not a defined value" << std::endl;
-    KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(MODE_ONE_FRACTURE_ENERGY)) << "MODE_ONE_FRACTURE_ENERGY is not a defined value" << std::endl;
-    KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(MODE_TWO_FRACTURE_ENERGY)) << "MODE_TWO_FRACTURE_ENERGY is not a defined value" << std::endl;
-    KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(TENSILE_INTERFACE_MODULUS)) << "TENSILE_INTERFACE_MODULUS is not a defined value" << std::endl;
-    KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(SHEAR_INTERFACE_MODULUS)) << "SHEAR_INTERFACE_MODULUS is not a defined value" << std::endl;
-    KRATOS_ERROR_IF(rMaterialProperties[MODE_ONE_FRACTURE_ENERGY] < 0.0) << "MODE_ONE_FRACTURE_ENERGY is negative." << std::endl;
-    KRATOS_ERROR_IF(rMaterialProperties[MODE_TWO_FRACTURE_ENERGY] < 0.0) << "MODE_TWO_FRACTURE_ENERGY is negative." << std::endl;
+    BaseType::Check(rMaterialProperties,rElementGeometry,rCurrentProcessInfo);
 
-    return BaseType::Check(rMaterialProperties,rElementGeometry,rCurrentProcessInfo);
+    // Check if input parameters are completely defined
+    KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(INTERFACIAL_NORMAL_STRENGTH) || rMaterialProperties.Has(INTERFACIAL_NORMAL_STRENGTH_VECTOR)) << "INTERFACIAL_NORMAL_STRENGTH is not a defined value" << std::endl;
+    KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(INTERFACIAL_SHEAR_STRENGTH) || rMaterialProperties.Has(INTERFACIAL_SHEAR_STRENGTH_VECTOR)) << "INTERFACIAL_SHEAR_STRENGTH is not a defined value" << std::endl;
+    KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(MODE_ONE_FRACTURE_ENERGY) || rMaterialProperties.Has(MODE_ONE_FRACTURE_ENERGY_VECTOR)) << "MODE_ONE_FRACTURE_ENERGY is not a defined value" << std::endl;
+    KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(MODE_TWO_FRACTURE_ENERGY) || rMaterialProperties.Has(MODE_TWO_FRACTURE_ENERGY_VECTOR)) << "MODE_TWO_FRACTURE_ENERGY is not a defined value" << std::endl;
+    KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(TENSILE_INTERFACE_MODULUS) || rMaterialProperties.Has(TENSILE_INTERFACE_MODULUS_VECTOR)) << "TENSILE_INTERFACE_MODULUS is not a defined value" << std::endl;
+    KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(SHEAR_INTERFACE_MODULUS) || rMaterialProperties.Has(SHEAR_INTERFACE_MODULUS_VECTOR)) << "SHEAR_INTERFACE_MODULUS is not a defined value" << std::endl;
+
+    // Check the size of the vectors
+    if (rMaterialProperties.Has(INTERFACIAL_NORMAL_STRENGTH_VECTOR)) {
+        KRATOS_ERROR_IF(rMaterialProperties[INTERFACIAL_NORMAL_STRENGTH_VECTOR].size() != (rMaterialProperties[LAYER_EULER_ANGLES].size() / 3) - 1) << "INTERFACIAL_NORMAL_STRENGTH_VECTOR badly defined" << std::endl;
+    }
+
+    if (rMaterialProperties.Has(INTERFACIAL_SHEAR_STRENGTH_VECTOR)) {
+        KRATOS_ERROR_IF(rMaterialProperties[INTERFACIAL_SHEAR_STRENGTH_VECTOR].size() != (rMaterialProperties[LAYER_EULER_ANGLES].size() / 3) - 1) << "INTERFACIAL_SHEAR_STRENGTH_VECTOR badly defined" << std::endl;
+    }
+
+    if (rMaterialProperties.Has(MODE_ONE_FRACTURE_ENERGY_VECTOR)) {
+        KRATOS_ERROR_IF(rMaterialProperties[MODE_ONE_FRACTURE_ENERGY_VECTOR].size() != (rMaterialProperties[LAYER_EULER_ANGLES].size() / 3) - 1) << "MODE_ONE_FRACTURE_ENERGY_VECTOR badly defined" << std::endl;
+    }
+
+    if (rMaterialProperties.Has(MODE_TWO_FRACTURE_ENERGY_VECTOR)) {
+        KRATOS_ERROR_IF(rMaterialProperties[MODE_TWO_FRACTURE_ENERGY_VECTOR].size() != (rMaterialProperties[LAYER_EULER_ANGLES].size() / 3) - 1) << "MODE_TWO_FRACTURE_ENERGY_VECTOR badly defined" << std::endl;
+    }
+
+    if (rMaterialProperties.Has(TENSILE_INTERFACE_MODULUS_VECTOR)) {
+        KRATOS_ERROR_IF(rMaterialProperties[TENSILE_INTERFACE_MODULUS_VECTOR].size() != (rMaterialProperties[LAYER_EULER_ANGLES].size() / 3) - 1) << "TENSILE_INTERFACE_MODULUS_VECTOR badly defined" << std::endl;
+    }
+
+    if (rMaterialProperties.Has(SHEAR_INTERFACE_MODULUS_VECTOR)) {
+        KRATOS_ERROR_IF(rMaterialProperties[SHEAR_INTERFACE_MODULUS_VECTOR].size() != (rMaterialProperties[LAYER_EULER_ANGLES].size() / 3) - 1) << "SHEAR_INTERFACE_MODULUS_VECTOR badly defined" << std::endl;
+    }
+
+    // Check negative fracture energy
+    if (rMaterialProperties.Has(MODE_ONE_FRACTURE_ENERGY_VECTOR)) {
+        const double SizeModeOne = rMaterialProperties[MODE_ONE_FRACTURE_ENERGY_VECTOR].size();
+        for (IndexType i=0; i < SizeModeOne; ++i) {
+            KRATOS_ERROR_IF(rMaterialProperties[MODE_ONE_FRACTURE_ENERGY_VECTOR][i] < 0.0) << "MODE_ONE_FRACTURE_ENERGY is negative at interface " << i << std::endl;
+        }
+    } else {
+        KRATOS_ERROR_IF(rMaterialProperties[MODE_ONE_FRACTURE_ENERGY] < 0.0) << "MODE_ONE_FRACTURE_ENERGY is negative." << std::endl;
+    }
+
+    if (rMaterialProperties.Has(MODE_TWO_FRACTURE_ENERGY_VECTOR)) {
+        const double SizeModeTwo = rMaterialProperties[MODE_TWO_FRACTURE_ENERGY_VECTOR].size();
+        for (IndexType i=0; i < SizeModeTwo; ++i) {
+            KRATOS_ERROR_IF(rMaterialProperties[MODE_TWO_FRACTURE_ENERGY_VECTOR][i] < 0.0) << "MODE_TWO_FRACTURE_ENERGY is negative at interface " << i << std::endl;
+        }
+    } else {
+        KRATOS_ERROR_IF(rMaterialProperties[MODE_TWO_FRACTURE_ENERGY] < 0.0) << "MODE_TWO_FRACTURE_ENERGY is negative." << std::endl;
+    }
+
+    // Check fracture energy
+    const double characteristic_length = 0.6343 * (AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateCharacteristicLengthOnReferenceConfiguration(rElementGeometry));
+
+    for(IndexType i=0; i < (rMaterialProperties[LAYER_EULER_ANGLES].size() / 3) - 1; ++i) {
+        const double Tn = rMaterialProperties.Has(INTERFACIAL_NORMAL_STRENGTH_VECTOR) ? rMaterialProperties[INTERFACIAL_NORMAL_STRENGTH_VECTOR][i] : rMaterialProperties[INTERFACIAL_NORMAL_STRENGTH]; // Interfacial Normal Strength
+        const double GI = rMaterialProperties.Has(MODE_ONE_FRACTURE_ENERGY_VECTOR) ? rMaterialProperties[MODE_ONE_FRACTURE_ENERGY_VECTOR][i] : rMaterialProperties[MODE_ONE_FRACTURE_ENERGY]; // Mode I Energy Release Rate
+        const double E = rMaterialProperties.Has(TENSILE_INTERFACE_MODULUS_VECTOR) ? rMaterialProperties[TENSILE_INTERFACE_MODULUS_VECTOR][i] : rMaterialProperties[TENSILE_INTERFACE_MODULUS]; // Tensile modulus of the interface
+
+        const double AParameter_mode_one = 1.00 / (GI * E / (characteristic_length * std::pow(Tn, 2)) - 0.5); // Exponential
+        KRATOS_ERROR_IF(AParameter_mode_one < 0.0) << "MODE_ONE_FRACTURE_ENERGY is too low at interface " << i << std::endl;
+    }
+
+    for(IndexType i=0; i < (rMaterialProperties[LAYER_EULER_ANGLES].size() / 3) - 1; ++i) {
+        const double Ts = rMaterialProperties.Has(INTERFACIAL_SHEAR_STRENGTH_VECTOR) ? rMaterialProperties[INTERFACIAL_SHEAR_STRENGTH_VECTOR][i] : rMaterialProperties[INTERFACIAL_SHEAR_STRENGTH]; // Interfacial Shear Strength
+        const double GII = rMaterialProperties.Has(MODE_TWO_FRACTURE_ENERGY_VECTOR) ? rMaterialProperties[MODE_TWO_FRACTURE_ENERGY_VECTOR][i] : rMaterialProperties[MODE_TWO_FRACTURE_ENERGY]; // Mode II Energy Release Rate
+        const double G = rMaterialProperties.Has(SHEAR_INTERFACE_MODULUS_VECTOR) ? rMaterialProperties[SHEAR_INTERFACE_MODULUS_VECTOR][i] : rMaterialProperties[SHEAR_INTERFACE_MODULUS]; // Shear modulus of the interface
+
+        const double AParameter_mode_two = 1.00 / (GII * G / (characteristic_length * std::pow(Ts, 2)) - 0.5); // Exponential
+        KRATOS_ERROR_IF(AParameter_mode_two < 0.0) << "MODE_TWO_FRACTURE_ENERGY is too low at interface " << i << std::endl;
+    }
+
+    return 0;
 }
 
 /***********************************************************************************/

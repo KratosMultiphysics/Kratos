@@ -128,145 +128,6 @@ public:
      */
     void CopyFrom(const ContainerExpression<TContainerType, TMeshType>& rOther);
 
-    /**
-     * @brief Reads data from c like interface
-     *
-     * This method can read data from a c-interface where @ref pBegin is the
-     * starting pointer to a contiguous array having space and data
-     * to all @ref NumberOfEntities where each entity having data for
-     * shape @ref rShape.
-     *
-     * Eg: 1) If NumberOfEntities = 10, and rShape = {4}, then
-     *        pBegin should point to starting double value's pointer
-     *        where it has 40 doubles in a contiguous manner.
-     *     2) iF NumberOfEntities = 10 and rShape = (4, 3), then
-     *        pBegin should point to starting double value's pointer
-     *        where it has 120 doubles in a contiguous manner.
-     *        The matrix within these containers are using row first notation.
-     *              [
-     *                  [1, 2, 3]
-     *                  [3, 4, 5]
-     *              ] = {1, 2, 3, 3, 4, 5}
-     *
-     * @param pBegin            Starting pointer to the data.
-     * @param NumberOfEntities  Number of entities present in data.
-     * @param pShapeBegin       Starting  point of the shape of data in each entity.
-     * @param ShapeSize         Size of the shape.
-     */
-    void Read(
-        double const* pBegin,
-        const int NumberOfEntities,
-        int const* pShapeBegin,
-        const int ShapeSize);
-
-    /**
-     * @brief Reads data from c like interface
-     *
-     * This method can read data from a c-interface where @ref pBegin is the
-     * starting pointer to a contiguous array having space and data
-     * to all @ref NumberOfEntities where each entity having data for
-     * shape @ref rShape.
-     *
-     * Eg: 1) If NumberOfEntities = 10, and rShape = {4}, then
-     *        pBegin should point to starting double value's pointer
-     *        where it has 40 doubles in a contiguous manner.
-     *     2) iF NumberOfEntities = 10 and rShape = (4, 3), then
-     *        pBegin should point to starting double value's pointer
-     *        where it has 120 doubles in a contiguous manner.
-     *        The matrix within these containers are using row first notation.
-     *              [
-     *                  [1, 2, 3]
-     *                  [3, 4, 5]
-     *              ] = {1, 2, 3, 3, 4, 5}
-     *
-     * @param pBegin            Starting pointer to the data.
-     * @param NumberOfEntities  Number of entities present in data.
-     * @param pShapeBegin       Starting  point of the shape of data in each entity.
-     * @param ShapeSize         Size of the shape.
-     */
-    void Read(
-        int const* pBegin,
-        const int NumberOfEntities,
-        int const* pShapeBegin,
-        const int ShapeSize);
-
-    /**
-     * @brief Move data from pBegin array to internal structure.
-     *
-     * @warning This instance does not take the ownership of the passed array.
-     *  The life time of the passed array is not managed by this instance
-     * @warning Seg faults if this is used when passed @ref pBegin was destroyed.
-     *
-     * @param pBegin            Starting pointer to the data.
-     * @param NumberOfEntities  Number of entities present in data.
-     * @param pShapeBegin       Starting  point of the shape of data in each entity.
-     * @param ShapeSize         Size of the shape.
-     */
-    void MoveFrom(
-        double* pBegin,
-        const int NumberOfEntities,
-        int const* pShapeBegin,
-        const int ShapeSize);
-
-    /**
-     * @brief Move data from pBegin array to internal structure.
-     *
-     * @warning This instance does not take the ownership of the passed array.
-     *  The life time of the passed array is not managed by this instance
-     * @warning Seg faults if this is used when passed @ref pBegin was destroyed.
-     *
-     * @param pBegin            Starting pointer to the data.
-     * @param NumberOfEntities  Number of entities present in data.
-     * @param pShapeBegin       Starting  point of the shape of data in each entity.
-     * @param ShapeSize         Size of the shape.
-     */
-    void MoveFrom(
-        int* pBegin,
-        const int NumberOfEntities,
-        int const* pShapeBegin,
-        const int ShapeSize);
-
-    /**
-     * @brief Assign the data in the expression to c-like interfaces
-     *
-     * This method can assign data to a c-interface where @ref pBegin is the
-     * starting pointer to a contiguous array having space and data
-     * to all @ref NumberOfEntities where each entity having data for
-     * shape @ref rShape. This is checking whether the internal @ref NumberOfEntities
-     * and internal @ref Expression shape is matching with the user input.
-     *
-     * Eg: 1) If NumberOfEntities = 10, and rShape = {4}, then
-     *        pBegin should point to starting double value's pointer
-     *        where it has 40 doubles in a contiguous manner.
-     *     2) iF NumberOfEntities = 10 and rShape = (4, 3), then
-     *        pBegin should point to starting double value's pointer
-     *        where it has 120 doubles in a contiguous manner.
-     *        The matrix within these containers are using row first notation.
-     *              [
-     *                  [1, 2, 3]
-     *                  [3, 4, 5]
-     *              ] = {1, 2, 3, 3, 4, 5}
-     *
-     * @param pBegin            Starting pointer to the data.
-     * @param NumberOfEntities  Number of entities present in data.
-     * @param rShape            Shape of data in each entity.
-     */
-    void Evaluate(
-        double* pBegin,
-        const int NumberOfEntities,
-        int const* pShapeBegin,
-        const int ShapeSize) const;
-
-    /**
-     * @brief Set the Data To Zero container.
-     *
-     * This replaces the expression with a LiteralExpression<double> with 0.0.
-     * This is also a light weight operation since it only creates on literal with
-     * one 0.0 value.
-     *
-     */
-    void SetDataToZero();
-
     ///@}
     ///@name Input and output
     ///@{
@@ -362,6 +223,15 @@ public:
     const TContainerType& GetContainer() const;
 
     /**
+     * @brief Get the Max Depth of the lazy expression tree.
+     *
+     * Returns the maximum depth of the lazy expression tree.
+     *
+     * @return IndexType Max depth of the lazy expression tree.
+     */
+    IndexType GetMaxDepth() const;
+
+    /**
      * @brief Get the info string
      *
      * @return std::string
@@ -379,31 +249,6 @@ public:
     ///@name Public operators
     ///@{
 
-    /** @brief Returns a slice of the provided expression. Slicing is based on item components.
-     *  @details @see Kratos::Slice.
-     *  @param Offset Offset of the component to start slicing at.
-     *  @param Stride Number of components from the offset in the sliced entity.
-     */
-    ContainerExpression Slice(IndexType Offset, IndexType Stride) const;
-
-    /** @brief Define a new shape for an otherwise identical expression.
-     *  @details @see Kratos::Reshape
-     *  @param rNewShape New shape to used to reshape the existing expression.
-     */
-    ContainerExpression Reshape(const std::vector<IndexType>& rNewShape) const;
-
-    /** @brief Append the components of an expression to the current expression's components.
-     *  @details @see Kratos::Comb.
-     *  @param rOther Expression to comb components from.
-     */
-    ContainerExpression Comb(const ContainerExpression& rOther) const;
-
-    /** @brief Append the components of a set of expressions to the current expression's components.
-     *  @details @see Kratos::Comb.
-     *  @param rOthers Expressions to comb components from.
-     */
-    ContainerExpression Comb(const std::vector<Pointer>& rOthers) const;
-
     ContainerExpression& operator+=(const double Value);
 
     ContainerExpression& operator+=(const ContainerExpression& Value);
@@ -419,12 +264,6 @@ public:
     ContainerExpression& operator/=(const double Value);
 
     ContainerExpression& operator/=(const ContainerExpression& Value);
-
-    ContainerExpression& Power(const double Value);
-
-    ContainerExpression& Power(const ContainerExpression& Value);
-
-    ContainerExpression& Scale(const ContainerExpression& Value);
 
     ///@}
 protected:

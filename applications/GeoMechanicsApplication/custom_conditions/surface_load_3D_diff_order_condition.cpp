@@ -40,11 +40,6 @@ SurfaceLoad3DDiffOrderCondition::
                                     PropertiesType::Pointer pProperties) :
                                     GeneralUPwDiffOrderCondition(NewId, pGeometry, pProperties) {}
 
-//----------------------------------------------------------------------------------------
-
-//Destructor
-SurfaceLoad3DDiffOrderCondition::~SurfaceLoad3DDiffOrderCondition() {}
-
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 Condition::Pointer SurfaceLoad3DDiffOrderCondition::

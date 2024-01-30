@@ -78,54 +78,77 @@ public:
     ///@name Type Definitions
     ///@{
 
-    /** Counted pointer of ClassName */
+    /// Pointer definition of ResidualBasedNewtonRaphsonMPCContactStrategy
     KRATOS_CLASS_POINTER_DEFINITION( ResidualBasedNewtonRaphsonMPCContactStrategy );
 
-    typedef SolvingStrategy<TSparseSpace, TDenseSpace>                        SolvingStrategyType;
+    /// The solving strategy type
+    using SolvingStrategyType = SolvingStrategy<TSparseSpace, TDenseSpace>;
 
-    typedef ImplicitSolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>    StrategyBaseType;
+    /// The base type for the implicit solving strategy
+    using StrategyBaseType = ImplicitSolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>;
 
-    typedef ResidualBasedNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver> BaseType;
+    /// The base type for the Newton-Raphson strategy
+    using BaseType = ResidualBasedNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver>;
 
-    typedef ResidualBasedNewtonRaphsonMPCContactStrategy<TSparseSpace, TDenseSpace, TLinearSolver> ClassType;
+    /// The current class type
+    using ClassType = ResidualBasedNewtonRaphsonMPCContactStrategy<TSparseSpace, TDenseSpace, TLinearSolver>;
 
-    typedef ConvergenceCriteria<TSparseSpace, TDenseSpace>               TConvergenceCriteriaType;
+    /// The convergence criteria type
+    using TConvergenceCriteriaType = ConvergenceCriteria<TSparseSpace, TDenseSpace>;
 
-    typedef MPCContactCriteria<TSparseSpace, TDenseSpace>                 TMPCContactCriteriaType;
+    /// The MPC contact criteria type
+    using TMPCContactCriteriaType = MPCContactCriteria<TSparseSpace, TDenseSpace>;
 
-    typedef typename BaseType::TBuilderAndSolverType                        TBuilderAndSolverType;
+    /// The type of the builder and solver
+    using TBuilderAndSolverType = typename BaseType::TBuilderAndSolverType;
 
-    typedef typename BaseType::TDataType                                                TDataType;
+    /// The data type
+    using TDataType = typename BaseType::TDataType;
 
-    typedef TSparseSpace                                                          SparseSpaceType;
+    /// The sparse space used
+    using SparseSpaceType = TSparseSpace;
 
-    typedef typename BaseType::TSchemeType                                            TSchemeType;
+    /// The scheme type
+    using TSchemeType = typename BaseType::TSchemeType;
 
-    typedef typename BaseType::DofsArrayType                                        DofsArrayType;
+    /// The array type for degrees of freedom
+    using DofsArrayType = typename BaseType::DofsArrayType;
 
-    typedef typename BaseType::TSystemMatrixType                                TSystemMatrixType;
+    /// The sparse matrix type
+    using TSystemMatrixType = typename BaseType::TSystemMatrixType;
 
-    typedef typename BaseType::TSystemVectorType                                TSystemVectorType;
+    /// The dense vector type
+    using TSystemVectorType = typename BaseType::TSystemVectorType;
 
-    typedef typename BaseType::LocalSystemVectorType                        LocalSystemVectorType;
+    /// The local system vector type
+    using LocalSystemVectorType = typename BaseType::LocalSystemVectorType;
 
-    typedef typename BaseType::LocalSystemMatrixType                        LocalSystemMatrixType;
+    /// The local system matrix type
+    using LocalSystemMatrixType = typename BaseType::LocalSystemMatrixType;
 
-    typedef typename BaseType::TSystemMatrixPointerType                  TSystemMatrixPointerType;
+    /// Pointer type for the system matrix
+    using TSystemMatrixPointerType = typename BaseType::TSystemMatrixPointerType;
 
-    typedef typename BaseType::TSystemVectorPointerType                  TSystemVectorPointerType;
+    /// Pointer type for the system vector
+    using TSystemVectorPointerType = typename BaseType::TSystemVectorPointerType;
 
-    typedef ModelPart::NodesContainerType                                          NodesArrayType;
+    /// Array type for nodes
+    using NodesArrayType = typename ModelPart::NodesContainerType;
 
-    typedef ModelPart::ElementsContainerType                                    ElementsArrayType;
+    /// Array type for elements
+    using ElementsArrayType = typename ModelPart::ElementsContainerType;
 
-    typedef ModelPart::ConditionsContainerType                                ConditionsArrayType;
+    /// Array type for conditions
+    using ConditionsArrayType = typename ModelPart::ConditionsContainerType;
 
-    typedef ModelPart::MasterSlaveConstraintContainerType                     ConstraintArrayType;
+    /// Array type for constraints
+    using ConstraintArrayType = typename ModelPart::MasterSlaveConstraintContainerType;
 
-    typedef std::size_t                                                                 IndexType;
+    /// Index type definition
+    using IndexType = std::size_t;
 
-    typedef std::size_t                                                                  SizeType;
+    /// Size type definition
+    using SizeType = std::size_t;
 
     /**
      * @brief Default constructor

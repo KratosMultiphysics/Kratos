@@ -30,11 +30,6 @@ SurfaceNormalLoad3DDiffOrderCondition::SurfaceNormalLoad3DDiffOrderCondition(Ind
 //Constructor 2
 SurfaceNormalLoad3DDiffOrderCondition::SurfaceNormalLoad3DDiffOrderCondition(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties) : SurfaceLoad3DDiffOrderCondition(NewId, pGeometry, pProperties) {}
 
-//----------------------------------------------------------------------------------------
-
-//Destructor
-SurfaceNormalLoad3DDiffOrderCondition::~SurfaceNormalLoad3DDiffOrderCondition() {}
-
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 Condition::Pointer SurfaceNormalLoad3DDiffOrderCondition::Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const
 {

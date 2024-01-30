@@ -60,11 +60,11 @@ KRATOS_TEST_CASE_IN_SUITE(VariableUtilsSetHistoricalVariablesToZero, KratosCoreF
     // Values are properly allocated
     const double tolerance = 1.0e-12;
     for (const auto& r_node : r_test_model_part.Nodes()) {
-        KRATOS_CHECK_NEAR(r_node.FastGetSolutionStepValue(PRESSURE), 0.0, tolerance);
-        KRATOS_CHECK_NEAR(r_node.FastGetSolutionStepValue(TEMPERATURE), 0.0, tolerance);
-        KRATOS_CHECK_VECTOR_NEAR(r_node.FastGetSolutionStepValue(VELOCITY), ZeroVector(3), tolerance);
-        KRATOS_CHECK_VECTOR_NEAR(r_node.FastGetSolutionStepValue(DISPLACEMENT), ZeroVector(3), tolerance);
-        KRATOS_CHECK_MATRIX_NEAR(r_node.FastGetSolutionStepValue(DEFORMATION_GRADIENT), ZeroMatrix(0,0), tolerance);
+        KRATOS_EXPECT_NEAR(r_node.FastGetSolutionStepValue(PRESSURE), 0.0, tolerance);
+        KRATOS_EXPECT_NEAR(r_node.FastGetSolutionStepValue(TEMPERATURE), 0.0, tolerance);
+        KRATOS_EXPECT_VECTOR_NEAR(r_node.FastGetSolutionStepValue(VELOCITY), ZeroVector(3), tolerance);
+        KRATOS_EXPECT_VECTOR_NEAR(r_node.FastGetSolutionStepValue(DISPLACEMENT), ZeroVector(3), tolerance);
+        KRATOS_EXPECT_MATRIX_NEAR(r_node.FastGetSolutionStepValue(DEFORMATION_GRADIENT), ZeroMatrix(0,0), tolerance);
     }
 }
 
@@ -83,11 +83,11 @@ KRATOS_TEST_CASE_IN_SUITE(VariableUtilsSetNonHistoricalVariablesToZeroNodes, Kra
     // Values are properly allocated
     const double tolerance = 1.0e-12;
     for (const auto& r_node : r_test_model_part.Nodes()) {
-        KRATOS_CHECK_NEAR(r_node.GetValue(PRESSURE), 0.0, tolerance);
-        KRATOS_CHECK_NEAR(r_node.GetValue(TEMPERATURE), 0.0, tolerance);
-        KRATOS_CHECK_VECTOR_NEAR(r_node.GetValue(VELOCITY), ZeroVector(3), tolerance);
-        KRATOS_CHECK_VECTOR_NEAR(r_node.GetValue(DISPLACEMENT), ZeroVector(3), tolerance);
-        KRATOS_CHECK_MATRIX_NEAR(r_node.GetValue(DEFORMATION_GRADIENT), ZeroMatrix(0,0), tolerance);
+        KRATOS_EXPECT_NEAR(r_node.GetValue(PRESSURE), 0.0, tolerance);
+        KRATOS_EXPECT_NEAR(r_node.GetValue(TEMPERATURE), 0.0, tolerance);
+        KRATOS_EXPECT_VECTOR_NEAR(r_node.GetValue(VELOCITY), ZeroVector(3), tolerance);
+        KRATOS_EXPECT_VECTOR_NEAR(r_node.GetValue(DISPLACEMENT), ZeroVector(3), tolerance);
+        KRATOS_EXPECT_MATRIX_NEAR(r_node.GetValue(DEFORMATION_GRADIENT), ZeroMatrix(0,0), tolerance);
     }
 }
 
@@ -111,11 +111,11 @@ KRATOS_TEST_CASE_IN_SUITE(VariableUtilsSetNonHistoricalVariablesToZeroElements, 
     // Values are properly allocated
     const double tolerance = 1.0e-12;
     for (const auto& r_element : r_test_model_part.Elements()) {
-        KRATOS_CHECK_NEAR(r_element.GetValue(PRESSURE), 0.0, tolerance);
-        KRATOS_CHECK_NEAR(r_element.GetValue(TEMPERATURE), 0.0, tolerance);
-        KRATOS_CHECK_VECTOR_NEAR(r_element.GetValue(VELOCITY), ZeroVector(3), tolerance);
-        KRATOS_CHECK_VECTOR_NEAR(r_element.GetValue(DISPLACEMENT), ZeroVector(3), tolerance);
-        KRATOS_CHECK_MATRIX_NEAR(r_element.GetValue(DEFORMATION_GRADIENT), ZeroMatrix(0,0), tolerance);
+        KRATOS_EXPECT_NEAR(r_element.GetValue(PRESSURE), 0.0, tolerance);
+        KRATOS_EXPECT_NEAR(r_element.GetValue(TEMPERATURE), 0.0, tolerance);
+        KRATOS_EXPECT_VECTOR_NEAR(r_element.GetValue(VELOCITY), ZeroVector(3), tolerance);
+        KRATOS_EXPECT_VECTOR_NEAR(r_element.GetValue(DISPLACEMENT), ZeroVector(3), tolerance);
+        KRATOS_EXPECT_MATRIX_NEAR(r_element.GetValue(DEFORMATION_GRADIENT), ZeroMatrix(0,0), tolerance);
     }
 }
 
@@ -139,11 +139,11 @@ KRATOS_TEST_CASE_IN_SUITE(VariableUtilsSetNonHistoricalVariablesToZeroConditions
     // Values are properly allocated
     const double tolerance = 1.0e-12;
     for (const auto& r_condition : r_test_model_part.Conditions()) {
-        KRATOS_CHECK_NEAR(r_condition.GetValue(PRESSURE), 0.0, tolerance);
-        KRATOS_CHECK_NEAR(r_condition.GetValue(TEMPERATURE), 0.0, tolerance);
-        KRATOS_CHECK_VECTOR_NEAR(r_condition.GetValue(VELOCITY), ZeroVector(3), tolerance);
-        KRATOS_CHECK_VECTOR_NEAR(r_condition.GetValue(DISPLACEMENT), ZeroVector(3), tolerance);
-        KRATOS_CHECK_MATRIX_NEAR(r_condition.GetValue(DEFORMATION_GRADIENT), ZeroMatrix(0,0), tolerance);
+        KRATOS_EXPECT_NEAR(r_condition.GetValue(PRESSURE), 0.0, tolerance);
+        KRATOS_EXPECT_NEAR(r_condition.GetValue(TEMPERATURE), 0.0, tolerance);
+        KRATOS_EXPECT_VECTOR_NEAR(r_condition.GetValue(VELOCITY), ZeroVector(3), tolerance);
+        KRATOS_EXPECT_VECTOR_NEAR(r_condition.GetValue(DISPLACEMENT), ZeroVector(3), tolerance);
+        KRATOS_EXPECT_MATRIX_NEAR(r_condition.GetValue(DEFORMATION_GRADIENT), ZeroMatrix(0,0), tolerance);
     }
 }
 
@@ -169,8 +169,8 @@ KRATOS_TEST_CASE_IN_SUITE(VariableUtilsEraseNonHistoricalVariableConditions, Kra
 
     // Values are properly allocated
     for (const auto& r_condition : r_test_model_part.Conditions()) {
-        KRATOS_CHECK(r_condition.Has(PRESSURE));
-        KRATOS_CHECK_IS_FALSE(r_condition.Has(TEMPERATURE));
+        KRATOS_EXPECT_TRUE(r_condition.Has(PRESSURE));
+        KRATOS_EXPECT_FALSE(r_condition.Has(TEMPERATURE));
     }
 }
 
@@ -196,8 +196,8 @@ KRATOS_TEST_CASE_IN_SUITE(VariableUtilsClearNonHistoricalDataConditions, KratosC
 
     // Values are properly allocated
     for (const auto& r_condition : r_test_model_part.Conditions()) {
-        KRATOS_CHECK_IS_FALSE(r_condition.Has(PRESSURE));
-        KRATOS_CHECK_IS_FALSE(r_condition.Has(TEMPERATURE));
+        KRATOS_EXPECT_FALSE(r_condition.Has(PRESSURE));
+        KRATOS_EXPECT_FALSE(r_condition.Has(TEMPERATURE));
     }
 }
 
@@ -218,11 +218,11 @@ KRATOS_TEST_CASE_IN_SUITE(VariableUtilsGetPositionsVector, KratosCoreFastSuite)
 
     const std::vector<double> exp_pos{1,2,3,1,2,3,1,2,3,1,2,3};
 
-    KRATOS_CHECK_VECTOR_EQUAL(exp_pos, init_pos_1);
-    KRATOS_CHECK_VECTOR_EQUAL(exp_pos, init_pos_2);
+    KRATOS_EXPECT_VECTOR_EQ(exp_pos, init_pos_1);
+    KRATOS_EXPECT_VECTOR_EQ(exp_pos, init_pos_2);
 
-    KRATOS_CHECK_VECTOR_EQUAL(exp_pos, curr_pos_1);
-    KRATOS_CHECK_VECTOR_EQUAL(exp_pos, curr_pos_2);
+    KRATOS_EXPECT_VECTOR_EQ(exp_pos, curr_pos_1);
+    KRATOS_EXPECT_VECTOR_EQ(exp_pos, curr_pos_2);
 
 }
 

@@ -192,7 +192,7 @@ void MPCContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::ResetContactOper
     NodesArrayType& r_nodes_array = r_sub_contact_model_part.Nodes();
 
     if (BaseType::mrMainModelPart.Is(MODIFIED)) { // It has been remeshed. We remove everything
-        block_for_each(r_nodes_array, [&](NodeType& rNode) {
+        block_for_each(r_nodes_array, [&](Node& rNode) {
             if (rNode.Is(MASTER)) {
                 IndexMap::Pointer p_indexes_pairs = rNode.GetValue(INDEX_MAP);
 

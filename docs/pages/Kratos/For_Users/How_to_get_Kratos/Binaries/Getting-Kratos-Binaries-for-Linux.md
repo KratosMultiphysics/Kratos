@@ -44,7 +44,7 @@ KRATOS_ROOT=/path/to/kratos   # Please change this variable
 export PYTHONHOME=${KRATOS_ROOT}
 export PYTHONPATH=${KRATOS_ROOT}
 export LD_LIBRARY_PATH=${KRATOS_ROOT}/libs:${KRATOS_ROOT}/OpenMPI/lib:/home/roigcarlo/KratosInstall/libs
-${KRATOS_ROOT}/runkratos $*
+python $*
 ```
 
 Do not forget to give the script execution rights:

@@ -243,16 +243,86 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ConstitutiveLawUtilities
         }
     }
 
-        /**
-    * It calculates the constitutive matrix C in plane stress, strain or in 3D
-    * @param C: The constitutive matrix
-    * @param rValues Parameters of the constitutive law
+    /**
+    * It calculates the constitutive matrix C in 2D plane stress
+    * @param rC: The constitutive matrix
+    * @param YoungModulus: The elasticity modulus
+    * @param PoissonRatio: The poisson ratio
     */
-    static void CalculateElasticMatrixPlaneStress(MatrixType &C, ConstitutiveLaw::Parameters &rValues);
-    static void CalculateElasticMatrixPlaneStrain(MatrixType &C, ConstitutiveLaw::Parameters &rValues);
-    static void CalculateElasticMatrix(MatrixType &C, ConstitutiveLaw::Parameters &rValues);
+    static void CalculateElasticMatrixPlaneStress(
+        MatrixType& rC,
+        const double E,
+        const double NU);
 
-private:
+    /**
+    * It calculates the constitutive matrix C in 2D plane strain
+    * @param rC: The constitutive matrix
+    * @param YoungModulus: The elasticity modulus
+    * @param PoissonRatio: The poisson ratio
+    */
+    static void CalculateElasticMatrixPlaneStrain(
+        MatrixType& rC,
+        const double E,
+        const double N);
+
+    /**
+    * It calculates the constitutive matrix C in 3D
+    * @param rC: The constitutive matrix
+    * @param YoungModulus: The elasticity modulus
+    * @param PoissonRatio: The poisson ratio
+    */
+    static void CalculateElasticMatrix(
+        MatrixType& rC,
+        const double E,
+        const double N);
+    
+    /**
+     * @brief It calculates the strain vector
+     * @param rValues The internal values of the law
+     * @param rStrainVector The strain vector in Voigt notation
+     */
+    static void CalculateCauchyGreenStrain(
+        ConstitutiveLaw::Parameters &rValues,
+        ConstitutiveLaw::StrainVectorType &rStrainVector);
+
+    /**
+    * It calculates elastic stress from strain and E and NU for 3D elasticity
+    * @param rStressVector: The stress vector
+    * @param rStrainVector: The strain vector
+    * @param YoungModulus: The elasticity modulus
+    * @param PoissonRatio: The poisson ratio
+    */
+    static void CalculatePK2StressFromStrain(
+        ConstitutiveLaw::StressVectorType& rStressVector,
+        const ConstitutiveLaw::StrainVectorType& rStrainVector,
+        const double YoungModulus,
+        const double PoissonRatio);
+
+    /**
+    * It calculates elastic stress from strain and E and NU in plane stress elasticity
+    * @param rStressVector: The stress vector
+    * @param rStrainVector: The strain vector
+    * @param YoungModulus: The elasticity modulus
+    * @param PoissonRatio: The poisson ratio
+    */
+    static void CalculatePK2StressFromStrainPlaneStress(
+        ConstitutiveLaw::StressVectorType& rStressVector,
+        const ConstitutiveLaw::StrainVectorType& rStrainVector,
+        const double YoungModulus,
+        const double PoissonRatio);
+
+    /**
+    * It calculates elastic stress from strain and E and NU for plane strain elasticity
+    * @param rStressVector: The stress vector
+    * @param rStrainVector: The strain vector
+    * @param YoungModulus: The elasticity modulus
+    * @param PoissonRatio: The poisson ratio
+    */
+    static void CalculatePK2StressFromStrainPlaneStrain(
+        ConstitutiveLaw::StressVectorType& rStressVector,
+        const ConstitutiveLaw::StrainVectorType& rStrainVector,
+        const double YoungModulus,
+        const double PoissonRatio);
 
 }; // class ConstitutiveLawUtilities
 } // namespace Kratos

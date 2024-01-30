@@ -26,8 +26,8 @@
 #include "spaces/ublas_space.h"
 
 /* Element include */
-#include "tests/cpp_tests/auxiliar_files_for_cpp_unnitest/test_element.h"
-#include "tests/cpp_tests/auxiliar_files_for_cpp_unnitest/test_constitutive_law.h"
+#include "tests/test_utilities/test_element.h"
+#include "tests/test_utilities/test_constitutive_law.h"
 
 // Linear solvers
 #include "linear_solvers/reorderer.h"
@@ -173,8 +173,8 @@ namespace Kratos
                 pstrategy->Solve();
 
                 for (auto it= Doftemp.begin(); it!= Doftemp.end(); it++) {
-                    KRATOS_CHECK_LESS_EQUAL(std::abs(it->GetSolutionStepValue() - 1.0), tolerance);
-                    KRATOS_CHECK_LESS_EQUAL(std::abs(it->GetSolutionStepReactionValue()), tolerance);
+                    KRATOS_EXPECT_LE(std::abs(it->GetSolutionStepValue() - 1.0), tolerance);
+                    KRATOS_EXPECT_LE(std::abs(it->GetSolutionStepReactionValue()), tolerance);
                 }
             }
         }
@@ -221,8 +221,8 @@ namespace Kratos
                 pstrategy->Solve();
 
                 for (auto it= Doftemp.begin(); it!= Doftemp.end(); it++) {
-                    KRATOS_CHECK_LESS_EQUAL(std::abs(it->GetSolutionStepValue() - 1.0), tolerance);
-                    KRATOS_CHECK_LESS_EQUAL(std::abs(it->GetSolutionStepReactionValue()), tolerance);
+                    KRATOS_EXPECT_LE(std::abs(it->GetSolutionStepValue() - 1.0), tolerance);
+                    KRATOS_EXPECT_LE(std::abs(it->GetSolutionStepReactionValue()), tolerance);
                 }
             }
         }
@@ -275,8 +275,8 @@ namespace Kratos
                 pstrategy->Solve();
 
                 for (auto it= Doftemp.begin(); it!= Doftemp.end(); it++) {
-                    KRATOS_CHECK_LESS_EQUAL(std::abs(it->GetSolutionStepValue() - 1.0), tolerance);
-                    KRATOS_CHECK_LESS_EQUAL(std::abs(it->GetSolutionStepReactionValue()), tolerance);
+                    KRATOS_EXPECT_LE(std::abs(it->GetSolutionStepValue() - 1.0), tolerance);
+                    KRATOS_EXPECT_LE(std::abs(it->GetSolutionStepReactionValue()), tolerance);
                 }
             }
         }
@@ -335,7 +335,7 @@ namespace Kratos
                 pstrategy->Solve();
 
                 for (auto it= Doftemp.begin(); it!= Doftemp.end(); it++) {
-                    KRATOS_CHECK_LESS_EQUAL(std::abs(it->GetSolutionStepValue() - 1.25), tolerance);
+                    KRATOS_EXPECT_LE(std::abs(it->GetSolutionStepValue() - 1.25), tolerance);
                 }
             }
         }

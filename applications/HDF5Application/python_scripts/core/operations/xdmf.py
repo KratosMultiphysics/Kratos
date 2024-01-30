@@ -6,7 +6,11 @@ Main authors:
     Philipp Bucher
     Michael Andre
 '''
+
+# --- Kratos Imports ---
 import KratosMultiphysics
+import KratosMultiphysics.HDF5Application as KratosHDF5
+
 
 # in case the h5py-module is not installed (e.g. on clusters) we don't want it to crash the simulation!
 # => in such a case the xdmf can be created manually afterwards locally
@@ -20,15 +24,24 @@ except ImportError:
     KratosMultiphysics.Logger.PrintWarning(__name__, warn_msg)
 
 
-class XdmfOutput(object):
+class XdmfOutput(KratosMultiphysics.Operation):
     '''Output that creates the xdmf-file for the given h5-files.'''
 
-    def __call__(self, model_part, hdf5_file):
-        model_part.GetCommunicator().GetDataCommunicator().Barrier()
+    def __init__(self,
+                 model_part: KratosMultiphysics.ModelPart,
+                 _: KratosMultiphysics.Parameters,
+                 file: KratosHDF5.HDF5File):
+        super().__init__()
+        self.__model_part = model_part
+        self.__file = file
+
+    def Execute(self) -> None:
+        self.__model_part.GetCommunicator().GetDataCommunicator().Barrier()
         # write xdmf only on one rank!
-        if model_part.GetCommunicator().MyPID() == 0:
-            WriteMultifileTemporalAnalysisToXdmf(
-                hdf5_file.GetFileName(), "/ModelData", "/ResultsData")
+        if self.__model_part.GetCommunicator().MyPID() == 0:
+            WriteMultifileTemporalAnalysisToXdmf(self.__file.GetFileName(),
+                                                 "/ModelData",
+                                                 "/ResultsData")
 
 
 def Create(settings):
@@ -37,9 +50,8 @@ def Create(settings):
     This method is normally not used directly, but rather it is imported
     in core.operations.model_part.Create using the 'module_name' setting.
     '''
-    operation_type = settings['operation_type']
+    operation_type = settings['operation_type'].GetString()
     if operation_type == 'xdmf_output':
-        return XdmfOutput()
+        return XdmfOutput
     else:
-        raise ValueError(
-            '"operation_type" has invalid value "' + operation_type + '"')
+        raise ValueError(f'"operation_type" has invalid value "{operation_type}"')

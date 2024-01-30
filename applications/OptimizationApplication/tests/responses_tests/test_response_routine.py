@@ -112,19 +112,19 @@ class TestResponseRoutine(kratos_unittest.TestCase):
 
         # mass response has gradients w.r.t. control1.
         control_1_gradient = gradient.GetContainerExpressions()[0]
-        self.assertEqual(KratosOA.ExpressionUtils.NormL2(control_1_gradient), 20.09975124224178)
+        self.assertEqual(Kratos.Expression.Utils.NormL2(control_1_gradient), 20.09975124224178)
 
         # mass response has gradients w.r.t. YOUNG_MODULUS even the response evaluated in the same control2 domain (same model part).
         control_2_gradient = gradient.GetContainerExpressions()[1]
-        self.assertEqual(KratosOA.ExpressionUtils.NormInf(control_2_gradient), 0.0)
+        self.assertEqual(Kratos.Expression.Utils.NormInf(control_2_gradient), 0.0)
 
         # mass response has gradients w.r.t. control3.
         control_3_gradient = gradient.GetContainerExpressions()[2]
-        self.assertEqual(KratosOA.ExpressionUtils.NormL2(control_3_gradient), 20.09975124224178)
+        self.assertEqual(Kratos.Expression.Utils.NormL2(control_3_gradient), 20.09975124224178)
 
         # mass response has gradients w.r.t. DENSITY because evaluation and control domains does not have an intersection.
         control_4_gradient = gradient.GetContainerExpressions()[3]
-        self.assertEqual(KratosOA.ExpressionUtils.NormInf(control_4_gradient), 0.0)
+        self.assertEqual(Kratos.Expression.Utils.NormInf(control_4_gradient), 0.0)
 
 if __name__ == "__main__":
     Kratos.Tester.SetVerbosity(Kratos.Tester.Verbosity.PROGRESS)  # TESTS_OUTPUTS

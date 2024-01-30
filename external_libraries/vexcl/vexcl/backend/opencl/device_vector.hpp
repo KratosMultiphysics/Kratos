@@ -32,7 +32,11 @@ THE SOFTWARE.
  */
 
 #include <vexcl/backend/opencl/defines.hpp>
-#include <CL/cl.hpp>
+#ifdef VEXCL_HAVE_OPENCL_HPP
+#  include <CL/opencl.hpp>
+#else
+#  include <CL/cl2.hpp>
+#endif
 
 namespace vex {
 namespace backend {
@@ -91,7 +95,9 @@ class device_vector {
         }
 
         size_t size() const {
-            return buffer.getInfo<CL_MEM_SIZE>() / sizeof(T);
+            if (buffer())
+                return buffer.getInfo<CL_MEM_SIZE>() / sizeof(T);
+            return 0;
         }
 
         struct buffer_unmapper {

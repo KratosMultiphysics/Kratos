@@ -34,7 +34,7 @@ void AALMAdaptPenaltyValueProcess::Execute()
     
     // We iterate over the nodes
     NodesArrayType& r_nodes_array = mrThisModelPart.Nodes();
-    block_for_each(r_nodes_array, [&](NodeType& rNode) {
+    block_for_each(r_nodes_array, [&](Node& rNode) {
         // Initial value
         const double penalty_parameter = initialize ? initial_penalty_parameter : rNode.GetValue(INITIAL_PENALTY);
         

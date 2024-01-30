@@ -189,8 +189,6 @@ Please, notice that *Kratos* is big and the compilation process can easily take 
 
 Once *Kratos* is compiled, you will have to tell the OS where to find the libraries.  You need to add to PYTHONPATH (environment variables) the *Kratos* folder, and to PATH (environment variables) the libs folder (usually the kratos_folder/libs).
 
-If you have enabled the embedded python option -DINSTALL_EMBEDDED_PYTHON=ON, you can also add to PATH (environment variables) the *Kratos* folder in order to have the "runkratos" available as a regular command.
-
 ## Test
 
 * Objectives:
@@ -202,9 +200,6 @@ To to tests the compilation, you can execute a simple python script containing t
 from KratosMultiphysics import *
 ```
 
-We strongly recommend you to run kratos scripts with the "runkratos" binary that will be generated inside your Kratos installation folder. You can also run them by using python (if you have compiled with python version 2.x.x), or python3 (if you have compiled with python version 3.x.x)
-
-* runkratos test.py
 * python test.py
 * python3 test.py
 

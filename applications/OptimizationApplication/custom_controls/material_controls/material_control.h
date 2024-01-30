@@ -54,7 +54,7 @@ namespace Kratos
 /** Detail class definition.
 */
 
-class KRATOS_API(OPTIMIZATION_APPLICATION) MaterialControl : public Control
+class MaterialControl : public Control
 {
 public:
     ///@name Type Definitions
@@ -89,7 +89,7 @@ public:
     // --------------------------------------------------------------------------
     void Initialize() override {};
     // --------------------------------------------------------------------------
-    void Update() override {};    
+    void Update() override {};
 
     ///@}
     ///@name Access
@@ -141,7 +141,7 @@ protected:
 
     // Initialized by class constructor
     Model& mrModel;
-    
+
     ///@}
     ///@name Protected Operators
     ///@{

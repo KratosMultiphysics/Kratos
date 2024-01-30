@@ -4,8 +4,8 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Riccardo Rossi
 //                   Pooyan Dadvand
@@ -20,8 +20,7 @@
 #include "containers/model.h"
 #include "python/add_model_to_python.h"
 
-namespace Kratos {
-namespace Python {
+namespace Kratos::Python {
 
 ModelPart& Model_GetModelPart(Model& rModel, const std::string& rFullModelPartName)
 {
@@ -44,5 +43,4 @@ void  AddModelToPython(pybind11::module& m)
         .def("__str__", PrintObject<Model>);
 }
 
-}  // namespace Python.
-} // Namespace Kratos
+}  // namespace Kratos::Python.

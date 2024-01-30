@@ -33,7 +33,7 @@ KRATOS_TEST_CASE(AtomicAdd)
             }
         );
 
-    KRATOS_CHECK_DOUBLE_EQUAL(static_cast<double>(size), sum);
+    KRATOS_EXPECT_DOUBLE_EQ(static_cast<double>(size), sum);
 }
 
 KRATOS_TEST_CASE(AtomicSub)
@@ -47,7 +47,7 @@ KRATOS_TEST_CASE(AtomicSub)
             }
         );
 
-    KRATOS_CHECK_DOUBLE_EQUAL(static_cast<double>(size), -sum);
+    KRATOS_EXPECT_DOUBLE_EQ(static_cast<double>(size), -sum);
 }
 
 KRATOS_TEST_CASE(AtomicMult)
@@ -62,7 +62,7 @@ KRATOS_TEST_CASE(AtomicMult)
             }
         );
 
-    KRATOS_CHECK_NEAR(5 * std::pow(exp, size), sum, 1e-3);
+    KRATOS_EXPECT_NEAR(5 * std::pow(exp, size), sum, 1e-3);
 }
 
 }  // namespace Kratos::Testing

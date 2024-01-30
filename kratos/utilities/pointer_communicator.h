@@ -69,7 +69,7 @@ class ResultsProxy
 {
 public:
     /// Type alias for the result of applying the functor to a global pointer of TPointerDataType
-    using TSendType = typename std::result_of< TFunctorType(GlobalPointer<TPointerDataType>&)>::type;
+    using TSendType = std::invoke_result_t<TFunctorType,GlobalPointer<TPointerDataType>&>;
 
     /**
      * @brief Constructor.
@@ -127,7 +127,7 @@ public:
      * @param rGlobalPointer The pointer that is being checked.
      * @return True if the node has the pointer, otherwise False.
      */
-    bool Has(GlobalPointer<TPointerDataType>& rGlobalPointer) const 
+    bool Has(GlobalPointer<TPointerDataType>& rGlobalPointer) const
     {
         if(rGlobalPointer.GetRank() == mCurrentRank)
             return true;
@@ -169,7 +169,7 @@ private:
  * @class GlobalPointerCommunicator
  * @brief A template class for handling communication related to global pointers.
  * @details This class manages communication related to global pointers of a specified type.
- * It is responsible for creating a communication plan for sending/receiving global pointers, 
+ * It is responsible for creating a communication plan for sending/receiving global pointers,
  * and for applying a user-provided function to global pointers.
  * @tparam TPointerDataType The datatype for the pointer.
  */
@@ -323,6 +323,15 @@ public:
     ///@name Access
     ///@{
 
+    /**
+     * @brief Returns the data communicator.
+     * @return The data communicator.
+     */
+    const DataCommunicator& GetDataCommunicator() const
+    {
+        return mrDataCommunicator;
+    }
+
     ///@}
     ///@name Inquiry
     ///@{
@@ -372,7 +381,7 @@ protected:
     /**
      * @brief Adds global pointers to the communicator.
      * @details This function adds the global pointers from the provided range to the communicator.
-     * It only adds the pointers that are not on the current rank. After adding the pointers, 
+     * It only adds the pointers that are not on the current rank. After adding the pointers,
      * it ensures that no repeated information is stored.
      * @tparam TIteratorType Iterator type.
      * @param begin Beginning of the range of global pointers.

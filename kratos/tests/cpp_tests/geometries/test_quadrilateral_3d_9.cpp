@@ -52,9 +52,9 @@ namespace {
 
     template<class TPointType>
     void CheckSamePoint(const TPointType& rThisPoint, const TPointType& rThatPoint) {
-        KRATOS_CHECK_NEAR(rThisPoint.X(), rThatPoint.X(), TOLERANCE);
-        KRATOS_CHECK_NEAR(rThisPoint.Y(), rThatPoint.Y(), TOLERANCE);
-        KRATOS_CHECK_NEAR(rThisPoint.Z(), rThatPoint.Z(), TOLERANCE);
+        KRATOS_EXPECT_NEAR(rThisPoint.X(), rThatPoint.X(), TOLERANCE);
+        KRATOS_EXPECT_NEAR(rThisPoint.Y(), rThatPoint.Y(), TOLERANCE);
+        KRATOS_EXPECT_NEAR(rThisPoint.Z(), rThatPoint.Z(), TOLERANCE);
     }
 }
 
@@ -67,7 +67,7 @@ KRATOS_TEST_CASE_IN_SUITE(Quadrilateral3D9EdgesNumber, KratosCoreGeometriesFastS
 {
     auto geom = GenerateFlatQuadrilateral3D9<Node>();
 
-    KRATOS_CHECK_EQUAL(geom->EdgesNumber(), 4);
+    KRATOS_EXPECT_EQ(geom->EdgesNumber(), 4);
 }
 
 /** Checks if the number of edges is correct.
@@ -101,7 +101,7 @@ KRATOS_TEST_CASE_IN_SUITE(Quadrilateral3D9Edges, KratosCoreGeometriesFastSuite)
 KRATOS_TEST_CASE_IN_SUITE(Quadrilateral3D9Area, KratosCoreGeometriesFastSuite)
 {
     auto geom = GenerateFlatQuadrilateral3D9<Node>();
-    KRATOS_CHECK_NEAR(geom->Area(), 1.0, TOLERANCE);
+    KRATOS_EXPECT_NEAR(geom->Area(), 1.0, TOLERANCE);
 }
 
 /** Tests the PointLocalCoordinates for Quadrilateral3D9.
@@ -119,14 +119,14 @@ KRATOS_TEST_CASE_IN_SUITE(Quadrilateral3D9PointLocalCoordinates, KratosCoreGeome
     geom->PointLocalCoordinates(TestResultB, TestPointB);
 
     // Test transformation in the edge
-    KRATOS_CHECK_NEAR(TestResultA[0], 1.0, TOLERANCE);
-    KRATOS_CHECK_NEAR(TestResultA[1], 1.0, TOLERANCE);
-    KRATOS_CHECK_NEAR(TestResultA[2], 0.0, TOLERANCE);
+    KRATOS_EXPECT_NEAR(TestResultA[0], 1.0, TOLERANCE);
+    KRATOS_EXPECT_NEAR(TestResultA[1], 1.0, TOLERANCE);
+    KRATOS_EXPECT_NEAR(TestResultA[2], 0.0, TOLERANCE);
 
     // Test transformation in the center
-    KRATOS_CHECK_NEAR(TestResultB[0], 0.0, TOLERANCE);
-    KRATOS_CHECK_NEAR(TestResultB[1], 0.0, TOLERANCE);
-    KRATOS_CHECK_NEAR(TestResultB[2], 0.0, TOLERANCE);
+    KRATOS_EXPECT_NEAR(TestResultB[0], 0.0, TOLERANCE);
+    KRATOS_EXPECT_NEAR(TestResultB[1], 0.0, TOLERANCE);
+    KRATOS_EXPECT_NEAR(TestResultB[2], 0.0, TOLERANCE);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(Quadrilateral3D9ShapeFunctionsValues, KratosCoreGeometriesFastSuite) {
@@ -157,9 +157,9 @@ KRATOS_TEST_CASE_IN_SUITE(Quadrilateral3D9Normal, KratosCoreGeometriesFastSuite)
     auto unit_normal = p_geom->UnitNormal(local_coordinates);
 
     array_1d<double, 3> expected_unit_normal{0.0, -1.0, 0.0};
-    KRATOS_CHECK_VECTOR_NEAR(unit_normal, expected_unit_normal, TOLERANCE);
+    KRATOS_EXPECT_VECTOR_NEAR(unit_normal, expected_unit_normal, TOLERANCE);
 
-    KRATOS_CHECK_NEAR(MathUtils<double>::Norm3(normal), MathUtils<double>::Dot3(unit_normal, normal), TOLERANCE);
+    KRATOS_EXPECT_NEAR(MathUtils<double>::Norm3(normal), MathUtils<double>::Dot3(unit_normal, normal), TOLERANCE);
 }
 
 }

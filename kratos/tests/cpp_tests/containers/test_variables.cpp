@@ -41,14 +41,14 @@ KRATOS_TEST_CASE_IN_SUITE(VariablesKeyUniqueness, KratosCoreFastSuite) {
 
 KRATOS_TEST_CASE_IN_SUITE(TestTimeDerivatives, KratosCoreFastSuite)
 {
-    KRATOS_CHECK_EQUAL((DISPLACEMENT.GetTimeDerivative()).Name(), "VELOCITY");
-    KRATOS_CHECK_EQUAL((DISPLACEMENT_X.GetTimeDerivative()).Name(), "VELOCITY_X");
-    KRATOS_CHECK_EQUAL(((DISPLACEMENT.GetTimeDerivative()).GetTimeDerivative()).Name(), "ACCELERATION");
-    KRATOS_CHECK_EQUAL((VELOCITY.GetTimeDerivative()).Name(), "ACCELERATION");
-    KRATOS_CHECK_EQUAL((ROTATION.GetTimeDerivative()).Name(), "ANGULAR_VELOCITY");
-    KRATOS_CHECK_EQUAL((ROTATION_X.GetTimeDerivative()).Name(), "ANGULAR_VELOCITY_X");
-    KRATOS_CHECK_EQUAL(((ROTATION.GetTimeDerivative()).GetTimeDerivative()).Name(), "ANGULAR_ACCELERATION");
-    KRATOS_CHECK_EQUAL((ANGULAR_VELOCITY.GetTimeDerivative()).Name(), "ANGULAR_ACCELERATION");
+    KRATOS_EXPECT_EQ((DISPLACEMENT.GetTimeDerivative()).Name(), "VELOCITY");
+    KRATOS_EXPECT_EQ((DISPLACEMENT_X.GetTimeDerivative()).Name(), "VELOCITY_X");
+    KRATOS_EXPECT_EQ(((DISPLACEMENT.GetTimeDerivative()).GetTimeDerivative()).Name(), "ACCELERATION");
+    KRATOS_EXPECT_EQ((VELOCITY.GetTimeDerivative()).Name(), "ACCELERATION");
+    KRATOS_EXPECT_EQ((ROTATION.GetTimeDerivative()).Name(), "ANGULAR_VELOCITY");
+    KRATOS_EXPECT_EQ((ROTATION_X.GetTimeDerivative()).Name(), "ANGULAR_VELOCITY_X");
+    KRATOS_EXPECT_EQ(((ROTATION.GetTimeDerivative()).GetTimeDerivative()).Name(), "ANGULAR_ACCELERATION");
+    KRATOS_EXPECT_EQ((ANGULAR_VELOCITY.GetTimeDerivative()).Name(), "ANGULAR_ACCELERATION");
 }
 
 KRATOS_TEST_CASE_IN_SUITE(VariablesKeyOrder, KratosCoreFastSuite) {
@@ -63,8 +63,8 @@ KRATOS_TEST_CASE_IN_SUITE(VariablesKeyOrder, KratosCoreFastSuite) {
                 auto const& variable_y = KratosComponents<VariableData>::Get(variable->Name() + "_Y");
                 auto const& variable_z = KratosComponents<VariableData>::Get(variable->Name() + "_Z");
                 if(variable_x.IsComponent() && variable_y.IsComponent() && variable_z.IsComponent()){
-                    KRATOS_CHECK_EQUAL(variable_x.Key() + 1, variable_y.Key()) << " for " << variable_x << " and " << variable_y << std::endl;
-                    KRATOS_CHECK_EQUAL(variable_y.Key() + 1, variable_z.Key()) << " for " << variable_y << " and " << variable_z << std::endl;
+                    KRATOS_EXPECT_EQ(variable_x.Key() + 1, variable_y.Key()) << " for " << variable_x << " and " << variable_y << std::endl;
+                    KRATOS_EXPECT_EQ(variable_y.Key() + 1, variable_z.Key()) << " for " << variable_y << " and " << variable_z << std::endl;
                 }
            }
         }

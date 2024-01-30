@@ -33,7 +33,7 @@ namespace Kratos{
 
         std::string GetTypeOfLaw() override;
 
-        virtual void Check(Properties::Pointer pProp) const override;
+        void Check(Properties::Pointer pProp) const override;
 
         DEMDiscontinuumConstitutiveLaw::Pointer Clone() const override;
 

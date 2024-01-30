@@ -40,11 +40,6 @@ LineNormalFluidFlux2DDiffOrderCondition::
                                             PropertiesType::Pointer pProperties) :
                                             LineLoad2DDiffOrderCondition(NewId, pGeometry, pProperties) {}
 
-//----------------------------------------------------------------------------------------
-
-//Destructor
-LineNormalFluidFlux2DDiffOrderCondition::~LineNormalFluidFlux2DDiffOrderCondition() {}
-
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 Condition::Pointer LineNormalFluidFlux2DDiffOrderCondition::Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const

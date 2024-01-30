@@ -129,7 +129,7 @@ KRATOS_TEST_CASE_IN_SUITE(DepthIntegrationProcess2D, ShallowWaterApplicationFast
 
     for(std::size_t i = 0; i < r_interface_model_part.NumberOfNodes(); ++i) {
         auto i_node = r_interface_model_part.NodesBegin() + i;
-        KRATOS_CHECK_VECTOR_NEAR(i_node->GetValue(VELOCITY), reference[i], 1e-6);
+        KRATOS_EXPECT_VECTOR_NEAR(i_node->GetValue(VELOCITY), reference[i], 1e-6);
     }
 }
 
@@ -159,7 +159,7 @@ KRATOS_TEST_CASE_IN_SUITE(DepthIntegrationProcess3D, ShallowWaterApplicationFast
 
     for (std::size_t i = 0; i < r_interface_model_part.NumberOfNodes(); ++i) {
         auto i_node = r_interface_model_part.NodesBegin() + i;
-        KRATOS_CHECK_VECTOR_NEAR(i_node->GetValue(VELOCITY), reference[i], 1e-6);
+        KRATOS_EXPECT_VECTOR_NEAR(i_node->GetValue(VELOCITY), reference[i], 1e-6);
     }
 }
 

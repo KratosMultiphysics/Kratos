@@ -172,17 +172,15 @@ void GenericSmallStrainFemDemElement<TDim,TyieldSurf>::CalculateAll(
     if (CalculateStiffnessMatrixFlag) { // Calculation of the matrix is required
         if (rLeftHandSideMatrix.size1() != mat_size )
             rLeftHandSideMatrix.resize(mat_size, mat_size, false);
-
-        noalias(rLeftHandSideMatrix) = ZeroMatrix(mat_size, mat_size); //resetting LHS
     }
+    rLeftHandSideMatrix.clear();
 
     // Resizing as needed the RHS
     if (CalculateResidualVectorFlag) { // Calculation of the matrix is required
         if (rRightHandSideVector.size() != mat_size )
-            rRightHandSideVector.resize( mat_size, false);
-
-        noalias(rRightHandSideVector) = ZeroVector(mat_size); //resetting RHS
+            rRightHandSideVector.resize(mat_size, false);
     }
+    rRightHandSideVector.clear();
 
     // Reading integration points and local gradients
     const auto& integration_points = r_geometry.IntegrationPoints(this->GetIntegrationMethod());

@@ -151,20 +151,6 @@ class KRATOS_API(CONSTITUTIVE_LAWS_APPLICATION) ViscousGeneralizedMaxwell
     void CalculateMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues) override;
 
     /**
-     * to be called at the end of each solution step
-     * (e.g. from Element::FinalizeSolutionStep)
-     * @param rMaterialProperties the Properties instance of the current element
-     * @param rElementGeometry the geometry of the current element
-     * @param rShapeFunctionsValues the shape functions values in the current integration point
-     * @param the current ProcessInfo instance
-     */
-    void FinalizeSolutionStep(
-        const Properties &rMaterialProperties,
-        const GeometryType &rElementGeometry,
-        const Vector &rShapeFunctionsValues,
-        const ProcessInfo &rCurrentProcessInfo) override;
-
-    /**
      * Finalize the material response in terms of 1st Piola-Kirchhoff stresses
      * @see Parameters
      */
@@ -187,19 +173,6 @@ class KRATOS_API(CONSTITUTIVE_LAWS_APPLICATION) ViscousGeneralizedMaxwell
      * @see Parameters
      */
     void FinalizeMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues) override;
-
-    /**
-     * @brief Calculates the value of a specified variable (Vector)
-     * @param rParameterValues the needed parameters for the CL calculation
-     * @param rThisVariable the variable to be returned
-     * @param rValue a reference to the returned value
-     * @param rValue output: the value of the specified variable
-     */
-    Vector& CalculateValue(
-        ConstitutiveLaw::Parameters& rParameterValues,
-        const Variable<Vector>& rThisVariable,
-        Vector& rValue
-        ) override;
 
     /**
      * @brief Calculates the value of a specified variable (Matrix)

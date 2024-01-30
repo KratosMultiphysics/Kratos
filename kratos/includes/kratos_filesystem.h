@@ -13,19 +13,9 @@
 #pragma once
 
 // System includes
+#include <filesystem>
 #include <string>
 #include <vector>
-#if __has_include(<filesystem>) // Check if the header "<filesystem>" exists
-    #include <filesystem> // We have a decent compiler and can use the normal version
-#elif __has_include(<experimental/filesystem>) // Check if the header "<experimental/filesystem>" exists
-    #include <experimental/filesystem>
-    // We need the alias from std::experimental::filesystem to std::filesystem
-    namespace std {
-      namespace filesystem = experimental::filesystem;
-    }
-#else // Fail if neither header is available with a nice error message
-    #error Could not find system header "<filesystem>" or "<experimental/filesystem>"
-#endif // #if __has_include(<filesystem>)
 
 // External includes
 

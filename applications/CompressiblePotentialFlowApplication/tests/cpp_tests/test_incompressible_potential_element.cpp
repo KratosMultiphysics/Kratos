@@ -140,7 +140,7 @@ namespace Kratos {
       std::array<double, 3> reference{0.5, 0.0, -0.5};
 
       for (unsigned int i = 0; i < RHS.size(); i++) {
-        KRATOS_CHECK_NEAR(RHS(i), reference[i], 1e-6);
+        KRATOS_EXPECT_NEAR(RHS(i), reference[i], 1e-6);
       }
     }
 
@@ -171,7 +171,7 @@ namespace Kratos {
       std::array<double, 6> reference{0.5, 0.0, 0.0, 0.0, 0.0, -0.5};
 
       for (unsigned int i = 0; i < RHS.size(); i++) {
-        KRATOS_CHECK_NEAR(RHS(i), reference[i], 1e-6);
+        KRATOS_EXPECT_NEAR(RHS(i), reference[i], 1e-6);
       }
     }
 
@@ -207,7 +207,7 @@ namespace Kratos {
       std::array<double, 3> reference{0.125, 0.0, -0.125};
 
       for (unsigned int i = 0; i < RHS.size(); i++) {
-        KRATOS_CHECK_NEAR(RHS(i), reference[i], 1e-6);
+        KRATOS_EXPECT_NEAR(RHS(i), reference[i], 1e-6);
       }
     }
 
@@ -232,7 +232,7 @@ namespace Kratos {
 
       PotentialFlowTestUtilities::ComputeElementalSensitivities<3>(model_part, LHS_finite_diference, LHS_analytical, potential);
 
-      KRATOS_CHECK_MATRIX_NEAR(LHS_finite_diference, LHS_analytical, 1e-10);
+      KRATOS_EXPECT_MATRIX_NEAR(LHS_finite_diference, LHS_analytical, 1e-10);
     }
 
     KRATOS_TEST_CASE_IN_SUITE(PingEmbeddedIncompressiblePotentialFlowElementLHSPenalty, CompressiblePotentialApplicationFastSuite) {
@@ -257,7 +257,7 @@ namespace Kratos {
 
       PotentialFlowTestUtilities::ComputeElementalSensitivities<3>(model_part, LHS_finite_diference, LHS_analytical, potential);
 
-      KRATOS_CHECK_MATRIX_NEAR(LHS_finite_diference, LHS_analytical, 1e-10);
+      KRATOS_EXPECT_MATRIX_NEAR(LHS_finite_diference, LHS_analytical, 1e-10);
     }
 
 
@@ -288,7 +288,7 @@ namespace Kratos {
 
       // Check the EquationIdVector values
       for (unsigned int i = 0; i < EquationIdVector.size(); i++) {
-        KRATOS_CHECK(EquationIdVector[i] == i);
+        KRATOS_EXPECT_TRUE(EquationIdVector[i] == i);
       }
     }
 
@@ -325,7 +325,7 @@ namespace Kratos {
 
       //Check the EquationIdVector values
       for (unsigned int i = 0; i < EquationIdVector.size(); i++) {
-        KRATOS_CHECK(EquationIdVector[i] == i);
+        KRATOS_EXPECT_TRUE(EquationIdVector[i] == i);
       }
     }
 
@@ -347,7 +347,7 @@ namespace Kratos {
       std::array<double, 3> reference{1.0, -1.0, -1.0};
 
       for (unsigned int i = 0; i < returned_distances.size(); i++) {
-        KRATOS_CHECK_NEAR(returned_distances(i), reference[i], 1e-7);
+        KRATOS_EXPECT_NEAR(returned_distances(i), reference[i], 1e-7);
       }
     }
 
@@ -367,7 +367,7 @@ namespace Kratos {
       std::array<double, 3> reference{1.0, 2.0, 3.0};
 
       for (unsigned int i = 0; i < potentials.size(); i++) {
-        KRATOS_CHECK_NEAR(potentials(i), reference[i], 1e-7);
+        KRATOS_EXPECT_NEAR(potentials(i), reference[i], 1e-7);
       }
     }
 
@@ -391,7 +391,7 @@ namespace Kratos {
       std::array<double, 3> reference{1.0, 2.0, 3.0};
 
       for (unsigned int i = 0; i < potentials.size(); i++) {
-        KRATOS_CHECK_NEAR(potentials(i), reference[i], 1e-7);
+        KRATOS_EXPECT_NEAR(potentials(i), reference[i], 1e-7);
       }
     }
 
@@ -415,7 +415,7 @@ namespace Kratos {
       std::array<double, 3> reference{6.0, 7.0, 8.0};
 
       for (unsigned int i = 0; i < potentials.size(); i++) {
-        KRATOS_CHECK_NEAR(potentials(i), reference[i], 1e-7);
+        KRATOS_EXPECT_NEAR(potentials(i), reference[i], 1e-7);
       }
     }
 
@@ -439,7 +439,7 @@ namespace Kratos {
       std::array<double, 6> reference{1.0, 2.0, 3.0, 6.0, 7.0, 8.0};
 
       for (unsigned int i = 0; i < potentials.size(); i++) {
-        KRATOS_CHECK_NEAR(potentials(i), reference[i], 1e-7);
+        KRATOS_EXPECT_NEAR(potentials(i), reference[i], 1e-7);
       }
     }
 
@@ -459,7 +459,7 @@ namespace Kratos {
       std::array<double, 2> reference{1.0, 1.0};
 
       for (unsigned int i = 0; i < velocity.size(); i++) {
-        KRATOS_CHECK_NEAR(velocity(i), reference[i], 1e-7);
+        KRATOS_EXPECT_NEAR(velocity(i), reference[i], 1e-7);
       }
     }
 
@@ -483,7 +483,7 @@ namespace Kratos {
       std::array<double, 2> reference{1.0, 1.0};
 
       for (unsigned int i = 0; i < velocity.size(); i++) {
-        KRATOS_CHECK_NEAR(velocity(i), reference[i], 1e-7);
+        KRATOS_EXPECT_NEAR(velocity(i), reference[i], 1e-7);
       }
     }
 
@@ -507,7 +507,7 @@ namespace Kratos {
       std::array<double, 2> reference{1.0, 1.0};
 
       for (unsigned int i = 0; i < velocity.size(); i++) {
-        KRATOS_CHECK_NEAR(velocity(i), reference[i], 1e-7);
+        KRATOS_EXPECT_NEAR(velocity(i), reference[i], 1e-7);
       }
     }
 
@@ -527,7 +527,7 @@ namespace Kratos {
       std::array<double, 2> reference{1.0, 1.0};
 
       for (unsigned int i = 0; i < velocity.size(); i++) {
-        KRATOS_CHECK_NEAR(velocity(i), reference[i], 1e-7);
+        KRATOS_EXPECT_NEAR(velocity(i), reference[i], 1e-7);
       }
     }
 
@@ -545,7 +545,7 @@ namespace Kratos {
       const ProcessInfo& r_current_process_info = model_part.GetProcessInfo();
       double pressure_coefficient = PotentialFlowUtilities::ComputeIncompressiblePressureCoefficient<2,3>(*p_element, r_current_process_info);
 
-      KRATOS_CHECK_NEAR(pressure_coefficient, 0.98, 1e-7);
+      KRATOS_EXPECT_NEAR(pressure_coefficient, 0.98, 1e-7);
     }
 
   } // namespace Testing

@@ -88,9 +88,14 @@ public:
     ///@{
 
 
-    ///@}
-    ///@name Operations
-    ///@{
+    /**
+     * This function provides the place to perform checks on the completeness of the input.
+     * It is designed to be called only once (or anyway, not often) typically at the beginning
+     * of the calculations, so to verify that nothing is missing from the input
+     * or that no common error is found.
+     * @param rCurrentProcessInfo
+     */
+    int Check( const ProcessInfo& rCurrentProcessInfo ) const override;
 
     /**
      * Called at the beginning of each solution step
@@ -132,6 +137,7 @@ protected:
     array_1d<double, 3> m_imposed_displacement;
     array_1d<double, 3> m_imposed_velocity;
     array_1d<double, 3> m_imposed_acceleration;
+    array_1d<double, 3> m_contact_force;
 
     ///@}
     ///@name Protected Operations
@@ -154,6 +160,7 @@ private:
         rSerializer.save("imposed_displacement",m_imposed_displacement);
         rSerializer.save("imposed_velocity",m_imposed_velocity);
         rSerializer.save("imposed_acceleration",m_imposed_acceleration);
+        rSerializer.save("contact_force",m_contact_force);
 
     }
 
@@ -163,6 +170,7 @@ private:
         rSerializer.load("imposed_displacement",m_imposed_displacement);
         rSerializer.load("imposed_velocity",m_imposed_velocity);
         rSerializer.load("imposed_acceleration",m_imposed_acceleration);
+        rSerializer.load("contact_force",m_contact_force);
     }
 
     ///@}

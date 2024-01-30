@@ -84,16 +84,16 @@ template< class TBinderType, typename TContainerType, typename TVariableType > v
 
 void  AddContainersToPython(pybind11::module& m)
 {
-    typedef Variable<array_1d<double, 3> > Array1DVariable3;
-    typedef Variable<array_1d<double, 4> > Array1DVariable4;
-    typedef Variable<array_1d<double, 6> > Array1DVariable6;
-    typedef Variable<array_1d<double, 9> > Array1DVariable9;
+    using Array1DVariable3 = Variable<array_1d<double, 3> >;
+    using Array1DVariable4 = Variable<array_1d<double, 4> >;
+    using Array1DVariable6 = Variable<array_1d<double, 6> >;
+    using Array1DVariable9 = Variable<array_1d<double, 9> >;
 
     py::class_<VariableData>(m, "VariableData" )
     .def("Name", &VariableData::Name, py::return_value_policy::copy)
     .def("Key", &VariableData::Key)
     .def("GetSourceVariable", &VariableData::GetSourceVariable)
-    .def("GetComponentIndex()", &VariableData::GetComponentIndex)
+    .def("GetComponentIndex", &VariableData::GetComponentIndex)
     .def("IsComponent", &VariableData::IsComponent)
     .def("__str__", PrintObject<VariableData>)
     ;

@@ -90,18 +90,18 @@ KRATOS_TEST_CASE_IN_SUITE(_ConstitutiveLaw_SmallStrainIsotropicDamageTractionOnl
     //
     // Test: check correct behavior of internal and calculated variables
     //
-    KRATOS_CHECK_IS_FALSE(cl.Check(material_properties, geometry, test_model_part.GetProcessInfo()));
+    KRATOS_EXPECT_FALSE(cl.Check(material_properties, geometry, test_model_part.GetProcessInfo()));
 
-    KRATOS_CHECK_IS_FALSE(cl.Has(STRAIN_ENERGY));  // = False, in order to use CalculateValue())
-    KRATOS_CHECK_IS_FALSE(cl.Has(DAMAGE_VARIABLE));  // = False, in order to use CalculateValue())
-    KRATOS_CHECK(cl.Has(INTERNAL_VARIABLES));  // = True
+    KRATOS_EXPECT_FALSE(cl.Has(STRAIN_ENERGY));  // = False, in order to use CalculateValue())
+    KRATOS_EXPECT_FALSE(cl.Has(DAMAGE_VARIABLE));  // = False, in order to use CalculateValue())
+    KRATOS_EXPECT_TRUE(cl.Has(INTERNAL_VARIABLES));  // = True
     Vector internal_variables_w(1);
     internal_variables_w[0] = 0.123;
     cl.SetValue(INTERNAL_VARIABLES, internal_variables_w, test_model_part.GetProcessInfo());
     Vector internal_variables_r;  // CL should internally resize it to 1
     cl.GetValue(INTERNAL_VARIABLES, internal_variables_r);
-    KRATOS_CHECK_NEAR(internal_variables_r.size(), 1., 1.e-5);  // = True
-    KRATOS_CHECK_NEAR(internal_variables_r[0], 0.123, 1.e-5);  // = True
+    KRATOS_EXPECT_NEAR(internal_variables_r.size(), 1., 1.e-5);  // = True
+    KRATOS_EXPECT_NEAR(internal_variables_r[0], 0.123, 1.e-5);  // = True
 
     //
     // Test: exponential hardening model, load in traction
@@ -153,18 +153,18 @@ KRATOS_TEST_CASE_IN_SUITE(_ConstitutiveLaw_SmallStrainIsotropicDamageTractionOnl
     // Check damage variable and strain energy
     double value;
     cl.CalculateValue(cl_parameters, DAMAGE_VARIABLE, value);
-    KRATOS_CHECK_NEAR(ref_damage_variable, value, tolerance);
+    KRATOS_EXPECT_NEAR(ref_damage_variable, value, tolerance);
     cl.CalculateValue(cl_parameters, STRAIN_ENERGY, value);
-    KRATOS_CHECK_NEAR(ref_strain_energy, value, tolerance);
+    KRATOS_EXPECT_NEAR(ref_strain_energy, value, tolerance);
 
     // Check stress
     for (std::size_t comp = 0; comp < 6; ++comp)
-        KRATOS_CHECK_NEAR(stress_vector(comp), ref_stress(comp), tolerance);
+        KRATOS_EXPECT_NEAR(stress_vector(comp), ref_stress(comp), tolerance);
 
     // Check constitutive tensor
     for (std::size_t i = 0; i < 6; ++i)
         for (std::size_t j = 0; j < 6; ++j)
-            KRATOS_CHECK_NEAR(const_matrix(i, j), ref_C(j, i), tolerance);
+            KRATOS_EXPECT_NEAR(const_matrix(i, j), ref_C(j, i), tolerance);
 
     //
     // Test: trilinear hardening model, load in traction
@@ -224,18 +224,18 @@ KRATOS_TEST_CASE_IN_SUITE(_ConstitutiveLaw_SmallStrainIsotropicDamageTractionOnl
 
     // Check damage variable and strain energy
     cl.CalculateValue(cl_parameters, DAMAGE_VARIABLE, value);
-    KRATOS_CHECK_NEAR(ref_damage_variable, value, tolerance);
+    KRATOS_EXPECT_NEAR(ref_damage_variable, value, tolerance);
     cl.CalculateValue(cl_parameters, STRAIN_ENERGY, value);
-    KRATOS_CHECK_NEAR(ref_strain_energy, value, tolerance);
+    KRATOS_EXPECT_NEAR(ref_strain_energy, value, tolerance);
 
     // Check stress
     for (std::size_t comp = 0; comp < 6; ++comp)
-        KRATOS_CHECK_NEAR(stress_vector(comp), ref_stress(comp), tolerance);
+        KRATOS_EXPECT_NEAR(stress_vector(comp), ref_stress(comp), tolerance);
 
     // Check constitutive tensor
     for (std::size_t i = 0; i < 6; ++i)
         for (std::size_t j = 0; j < 6; ++j)
-            KRATOS_CHECK_NEAR(const_matrix(i, j), ref_C(j, i), tolerance);
+            KRATOS_EXPECT_NEAR(const_matrix(i, j), ref_C(j, i), tolerance);
 
 
 }

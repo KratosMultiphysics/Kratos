@@ -172,20 +172,22 @@ void CombineModelPartModeler::CreateCommunicators()
         ModelPart& r_origin_model_part = mpModel->GetModelPart(model_part_list[i]["origin_model_part"].GetString());
         ModelPart& r_destination_model_part = mpModel->GetModelPart(model_part_list[i]["destination_model_part"].GetString());
         Communicator& r_reference_comm = r_origin_model_part.GetCommunicator();
-        Communicator::Pointer p_destination_comm = r_reference_comm.Create();
-        p_destination_comm->SetNumberOfColors(r_reference_comm.GetNumberOfColors());
-        p_destination_comm->NeighbourIndices() = r_reference_comm.NeighbourIndices();
-        r_destination_model_part.SetCommunicator( p_destination_comm );
+        if (r_origin_model_part.GetCommunicator().IsDistributed()) {
+            Communicator::Pointer p_destination_comm = r_reference_comm.Create();
+            p_destination_comm->SetNumberOfColors(r_reference_comm.GetNumberOfColors());
+            p_destination_comm->NeighbourIndices() = r_reference_comm.NeighbourIndices();
+            r_destination_model_part.SetCommunicator( p_destination_comm );
 
-        ModelPart* p_current_model_part = &r_destination_model_part;
-        while (p_current_model_part->IsSubModelPart()) {
-            p_current_model_part = &(p_current_model_part->GetParentModelPart());
-            Communicator& r_parent_reference_comm = mpOriginRootModelPart->GetCommunicator();
-            Communicator::Pointer p_parent_destination_comm = r_parent_reference_comm.Create();
-            p_parent_destination_comm->SetNumberOfColors(r_parent_reference_comm.GetNumberOfColors());
-            p_parent_destination_comm->NeighbourIndices() = r_parent_reference_comm.NeighbourIndices();
-            p_current_model_part->SetCommunicator( p_parent_destination_comm );
+            ModelPart* p_current_model_part = &r_destination_model_part;
+            while (p_current_model_part->IsSubModelPart()) {
+                p_current_model_part = &(p_current_model_part->GetParentModelPart());
+                Communicator& r_parent_reference_comm = mpOriginRootModelPart->GetCommunicator();
+                Communicator::Pointer p_parent_destination_comm = r_parent_reference_comm.Create();
+                p_parent_destination_comm->SetNumberOfColors(r_parent_reference_comm.GetNumberOfColors());
+                p_parent_destination_comm->NeighbourIndices() = r_parent_reference_comm.NeighbourIndices();
+                p_current_model_part->SetCommunicator( p_parent_destination_comm );
 
+            }
         }
     }
     KRATOS_CATCH("Failure in CreateCommunicators");
@@ -203,19 +205,20 @@ void CombineModelPartModeler::PopulateCommunicators()
         ModelPart& r_destination_model_part = mpModel->GetModelPart(model_part_list[i]["destination_model_part"].GetString());
         ModelPart* p_current_model_part = &r_destination_model_part;
         Communicator& r_origin_communicator = r_origin_model_part.GetCommunicator();
-        bool keep_going_up = true;
-        while (keep_going_up) {
-            Communicator& r_destination_communicator = p_current_model_part->GetCommunicator();
-            PopulateLocalMesh(
-                r_origin_communicator,
-                r_destination_communicator,
-                *p_current_model_part
-            );
-            keep_going_up = p_current_model_part->IsSubModelPart();
-            p_current_model_part = &p_current_model_part->GetParentModelPart();
+        if (r_origin_model_part.GetCommunicator().IsDistributed()) {
+            bool keep_going_up = true;
+            while (keep_going_up) {
+                Communicator& r_destination_communicator = p_current_model_part->GetCommunicator();
+                PopulateLocalMesh(
+                    r_origin_communicator,
+                    r_destination_communicator,
+                    *p_current_model_part
+                );
+                keep_going_up = p_current_model_part->IsSubModelPart();
+                p_current_model_part = &p_current_model_part->GetParentModelPart();
+            }
         }
     }
-
 }
 
 /***********************************************************************************/
@@ -357,17 +360,19 @@ void CombineModelPartModeler::DuplicateCommunicatorData(
     ModelPart& rDestinationModelPart) const
 {
     Communicator& rReferenceComm = rOriginModelPart.GetCommunicator();
-    Communicator::Pointer pDestinationComm = rReferenceComm.Create();
-    pDestinationComm->SetNumberOfColors( rReferenceComm.GetNumberOfColors() );
-    pDestinationComm->NeighbourIndices() = rReferenceComm.NeighbourIndices();
-    rDestinationModelPart.SetCommunicator( pDestinationComm );
+    if (rReferenceComm.IsDistributed()) {
+        Communicator::Pointer pDestinationComm = rReferenceComm.Create();
+        pDestinationComm->SetNumberOfColors( rReferenceComm.GetNumberOfColors() );
+        pDestinationComm->NeighbourIndices() = rReferenceComm.NeighbourIndices();
+        rDestinationModelPart.SetCommunicator( pDestinationComm );
 
-    auto& rDestinationComm = rDestinationModelPart.GetCommunicator();
-    PopulateLocalMesh(
-        rReferenceComm,
-        rDestinationComm,
-        rDestinationModelPart
-    );
+        auto& rDestinationComm = rDestinationModelPart.GetCommunicator();
+        PopulateLocalMesh(
+            rReferenceComm,
+            rDestinationComm,
+            rDestinationModelPart
+        );
+    }
 }
 
 /***********************************************************************************/

@@ -32,12 +32,12 @@ namespace Testing {
         BoundingBox<Point> bounding_box({0, .1, .3}, {2.1, 3.4, 5.6});
 
 
-        KRATOS_CHECK_NEAR(bounding_box.GetMinPoint()[0], 0.00, tolerance);
-        KRATOS_CHECK_NEAR(bounding_box.GetMinPoint()[1], 0.10, tolerance);
-        KRATOS_CHECK_NEAR(bounding_box.GetMinPoint()[2], 0.30, tolerance);
-        KRATOS_CHECK_NEAR(bounding_box.GetMaxPoint()[0], 2.10, tolerance);
-        KRATOS_CHECK_NEAR(bounding_box.GetMaxPoint()[1], 3.40, tolerance);
-        KRATOS_CHECK_NEAR(bounding_box.GetMaxPoint()[2], 5.60, tolerance);
+        KRATOS_EXPECT_NEAR(bounding_box.GetMinPoint()[0], 0.00, tolerance);
+        KRATOS_EXPECT_NEAR(bounding_box.GetMinPoint()[1], 0.10, tolerance);
+        KRATOS_EXPECT_NEAR(bounding_box.GetMinPoint()[2], 0.30, tolerance);
+        KRATOS_EXPECT_NEAR(bounding_box.GetMaxPoint()[0], 2.10, tolerance);
+        KRATOS_EXPECT_NEAR(bounding_box.GetMaxPoint()[1], 3.40, tolerance);
+        KRATOS_EXPECT_NEAR(bounding_box.GetMaxPoint()[2], 5.60, tolerance);
     }
 
 
@@ -53,12 +53,12 @@ namespace Testing {
         assigned_box = copied_box;
 
 
-        KRATOS_CHECK_NEAR(assigned_box.GetMinPoint()[0], 0.00, tolerance);
-        KRATOS_CHECK_NEAR(assigned_box.GetMinPoint()[1], 0.10, tolerance);
-        KRATOS_CHECK_NEAR(assigned_box.GetMinPoint()[2], 0.30, tolerance);
-        KRATOS_CHECK_NEAR(assigned_box.GetMaxPoint()[0], 2.10, tolerance);
-        KRATOS_CHECK_NEAR(assigned_box.GetMaxPoint()[1], 3.40, tolerance);
-        KRATOS_CHECK_NEAR(assigned_box.GetMaxPoint()[2], 5.60, tolerance);
+        KRATOS_EXPECT_NEAR(assigned_box.GetMinPoint()[0], 0.00, tolerance);
+        KRATOS_EXPECT_NEAR(assigned_box.GetMinPoint()[1], 0.10, tolerance);
+        KRATOS_EXPECT_NEAR(assigned_box.GetMinPoint()[2], 0.30, tolerance);
+        KRATOS_EXPECT_NEAR(assigned_box.GetMaxPoint()[0], 2.10, tolerance);
+        KRATOS_EXPECT_NEAR(assigned_box.GetMaxPoint()[1], 3.40, tolerance);
+        KRATOS_EXPECT_NEAR(assigned_box.GetMaxPoint()[2], 5.60, tolerance);
     }
 
     /** Checks BoundingBox creation with iterator of points
@@ -75,12 +75,12 @@ namespace Testing {
         BoundingBox<Point> bounding_box(points.begin(), points.end());
 
 
-        KRATOS_CHECK_NEAR(bounding_box.GetMinPoint()[0],-0.20, tolerance);
-        KRATOS_CHECK_NEAR(bounding_box.GetMinPoint()[1],-0.30, tolerance);
-        KRATOS_CHECK_NEAR(bounding_box.GetMinPoint()[2],-0.50, tolerance);
-        KRATOS_CHECK_NEAR(bounding_box.GetMaxPoint()[0], 0.90, tolerance);
-        KRATOS_CHECK_NEAR(bounding_box.GetMaxPoint()[1], 0.80, tolerance);
-        KRATOS_CHECK_NEAR(bounding_box.GetMaxPoint()[2], 0.30, tolerance);
+        KRATOS_EXPECT_NEAR(bounding_box.GetMinPoint()[0],-0.20, tolerance);
+        KRATOS_EXPECT_NEAR(bounding_box.GetMinPoint()[1],-0.30, tolerance);
+        KRATOS_EXPECT_NEAR(bounding_box.GetMinPoint()[2],-0.50, tolerance);
+        KRATOS_EXPECT_NEAR(bounding_box.GetMaxPoint()[0], 0.90, tolerance);
+        KRATOS_EXPECT_NEAR(bounding_box.GetMaxPoint()[1], 0.80, tolerance);
+        KRATOS_EXPECT_NEAR(bounding_box.GetMaxPoint()[2], 0.30, tolerance);
     }
 
     /** Checks BoundingBox set method
@@ -99,12 +99,12 @@ namespace Testing {
 
         bounding_box.Set(points.begin(), points.end());
 
-        KRATOS_CHECK_NEAR(bounding_box.GetMinPoint()[0],-0.20, tolerance);
-        KRATOS_CHECK_NEAR(bounding_box.GetMinPoint()[1],-0.30, tolerance);
-        KRATOS_CHECK_NEAR(bounding_box.GetMinPoint()[2],-0.50, tolerance);
-        KRATOS_CHECK_NEAR(bounding_box.GetMaxPoint()[0], 0.90, tolerance);
-        KRATOS_CHECK_NEAR(bounding_box.GetMaxPoint()[1], 0.80, tolerance);
-        KRATOS_CHECK_NEAR(bounding_box.GetMaxPoint()[2], 0.30, tolerance);
+        KRATOS_EXPECT_NEAR(bounding_box.GetMinPoint()[0],-0.20, tolerance);
+        KRATOS_EXPECT_NEAR(bounding_box.GetMinPoint()[1],-0.30, tolerance);
+        KRATOS_EXPECT_NEAR(bounding_box.GetMinPoint()[2],-0.50, tolerance);
+        KRATOS_EXPECT_NEAR(bounding_box.GetMaxPoint()[0], 0.90, tolerance);
+        KRATOS_EXPECT_NEAR(bounding_box.GetMaxPoint()[1], 0.80, tolerance);
+        KRATOS_EXPECT_NEAR(bounding_box.GetMaxPoint()[2], 0.30, tolerance);
     }
 
     /** Checks BoundingBox set method
@@ -123,12 +123,12 @@ namespace Testing {
 
         bounding_box.Extend(points.begin(), points.end());
 
-        KRATOS_CHECK_NEAR(bounding_box.GetMinPoint()[0],-0.20, tolerance);
-        KRATOS_CHECK_NEAR(bounding_box.GetMinPoint()[1],-0.30, tolerance);
-        KRATOS_CHECK_NEAR(bounding_box.GetMinPoint()[2],-0.50, tolerance);
-        KRATOS_CHECK_NEAR(bounding_box.GetMaxPoint()[0], 0.90, tolerance);
-        KRATOS_CHECK_NEAR(bounding_box.GetMaxPoint()[1], 0.80, tolerance);
-        KRATOS_CHECK_NEAR(bounding_box.GetMaxPoint()[2], 0.30, tolerance);
+        KRATOS_EXPECT_NEAR(bounding_box.GetMinPoint()[0],-0.20, tolerance);
+        KRATOS_EXPECT_NEAR(bounding_box.GetMinPoint()[1],-0.30, tolerance);
+        KRATOS_EXPECT_NEAR(bounding_box.GetMinPoint()[2],-0.50, tolerance);
+        KRATOS_EXPECT_NEAR(bounding_box.GetMaxPoint()[0], 0.90, tolerance);
+        KRATOS_EXPECT_NEAR(bounding_box.GetMaxPoint()[1], 0.80, tolerance);
+        KRATOS_EXPECT_NEAR(bounding_box.GetMaxPoint()[2], 0.30, tolerance);
     }
 
  

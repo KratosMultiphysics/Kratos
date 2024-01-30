@@ -151,7 +151,7 @@ class TestCase(KratosUnittest.TestCase):
             "file_driver" : "mpio",
             "echo_level" : 0
         }""")
-        return HDF5FileParallel(params)
+        return HDF5File(params)
 
     def _get_model_part_io(self, hdf5_file):
         return HDF5PartitionedModelPartIO(hdf5_file, "/ModelData")

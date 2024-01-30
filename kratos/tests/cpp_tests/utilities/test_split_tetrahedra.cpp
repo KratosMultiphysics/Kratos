@@ -103,7 +103,7 @@ KRATOS_TEST_CASE_IN_SUITE(TetrahedraSplitModes, KratosCoreFastSuite)
 
     const std::vector<int> expected_results{0, 5, 3, 7, 3, 9};
     for (std::size_t i = 0; i < 6; ++i) {
-        KRATOS_CHECK_EQUAL(edge_ids[i], expected_results[i]);
+        KRATOS_EXPECT_EQ(edge_ids[i], expected_results[i]);
     }
 }
 
@@ -204,7 +204,7 @@ KRATOS_TEST_CASE_IN_SUITE(TetrahedraSplitEdgesPatterns, KratosCoreFastSuite)
                                     edge_int_vect[5] << std::endl;
                             }
 
-                            KRATOS_CHECK_NEAR(tot_vol, 1.0/6.0, 1e-12);
+                            KRATOS_EXPECT_NEAR(tot_vol, 1.0/6.0, 1e-12);
 
                             // Search for the external faces
                             if (compute_faces) {

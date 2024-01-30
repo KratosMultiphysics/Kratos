@@ -10,16 +10,9 @@
 //  Main authors:    Vahid Galavi
 //
 
-
-// System includes
-
-// External includes
-
-// Project includes
 #include "includes/kratos_flags.h"
 #include "utilities/parallel_utilities.h"
 #include "custom_processes/deactivate_conditions_on_inactive_elements_process.hpp"
-
 
 namespace Kratos
 {
@@ -48,4 +41,4 @@ void DeactivateConditionsOnInactiveElements::Execute()
     KRATOS_CATCH("")
 }
 
-} // namespace Kratos
+}

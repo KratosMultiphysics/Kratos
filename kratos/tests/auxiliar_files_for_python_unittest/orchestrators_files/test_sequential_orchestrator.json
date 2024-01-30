@@ -1,0 +1,87 @@
+{
+"orchestrator" : {
+    "name" : "Orchestrators.KratosMultiphysics.SequentialOrchestrator",
+    "settings" : {
+        "echo_level" : 0,
+        "execution_list" : ["stage_1","stage_2"],
+        "load_from_checkpoint" : null,
+        "stage_checkpoints" : true,
+        "stage_checkpoints_folder" : "auxiliar_files_for_python_unittest/orchestrators_files/checkpoints",
+        "output_validated_settings" : "test_sequential_orchestrator"
+    }
+},
+"stages" : {
+    "stage_1" : {
+        "stage_preprocess" : {
+            "modelers" : [{
+                "name" : "KratosMultiphysics.modelers.import_mdpa_modeler.ImportMDPAModeler",
+                "Parameters" : {
+                    "input_filename" : "auxiliar_files_for_python_unittest/mdpa_files/small_cube",
+                    "model_part_name" : "TestModelPart"
+                }
+            }],
+            "operations" : [{
+                "name" : "Operations.KratosMultiphysics.EmptyOperation",
+                "Parameters" : {
+                }
+            }]
+        },
+        "stage_settings" : {
+            "analysis_stage": "Stages.KratosMultiphysics.EmptyAnalysisStage",
+            "problem_data"     : {
+                "echo_level" : 0,
+                "parallel_type" : "OpenMP",
+                "start_time" : 0.0,
+                "end_time" : 0.0
+            },
+            "solver_settings"  : {
+                "model_part_name" : "TestModelPart"
+            },
+            "processes"        : {},
+            "output_processes" : {}
+        },
+        "stage_postprocess" : {
+            "operations" : [{
+                "name" : "Operations.KratosMultiphysics.EmptyOperation",
+                "Parameters" : {
+                }
+            }]
+        }
+    },
+    "stage_2" : {
+        "stage_preprocess" : {
+            "modelers" : [{
+                "name" : "KratosMultiphysics.modelers.delete_model_parts_modeler.DeleteModelPartsModeler",
+                "Parameters" : {
+                    "model_part_names" : ["TestModelPart"]
+                }
+            },{
+                "name" : "KratosMultiphysics.modelers.import_mdpa_modeler.ImportMDPAModeler",
+                "Parameters" : {
+                    "input_filename" : "auxiliar_files_for_python_unittest/mdpa_files/small_cube",
+                    "model_part_name" : "TestModelPartNew"
+                }
+            }],
+            "operations" : [{
+                "name" : "Operations.KratosMultiphysics.EmptyOperation",
+                "Parameters" : {
+                }
+            }]
+        },
+        "stage_settings" : {
+            "analysis_stage": "Stages.KratosMultiphysics.EmptyAnalysisStage",
+            "problem_data": {
+                "echo_level" : 0,
+                "parallel_type" : "OpenMP",
+                "start_time" : 0.0,
+                "end_time" : 0.0
+            },
+            "solver_settings": {
+                "model_part_name" : "TestModelPartNew"
+            },
+            "processes": {},
+            "output_processes": {}
+        }
+    }
+}
+}

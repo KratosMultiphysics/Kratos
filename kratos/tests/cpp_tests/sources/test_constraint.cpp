@@ -53,12 +53,12 @@ namespace Kratos {
 
             auto p_clone_of_const = p_const->Clone(2);
 
-            KRATOS_CHECK_EQUAL(p_clone_of_const->Id(), 2);
-            KRATOS_CHECK_DOUBLE_EQUAL(p_clone_of_const->GetValue(DISTANCE), 12.1);
-            KRATOS_CHECK_DOUBLE_EQUAL(p_clone_of_const->GetValue(VELOCITY_X), 32.4);
-            KRATOS_CHECK_DOUBLE_EQUAL(p_clone_of_const->GetValue(VELOCITY_Y), 0.00);
-            KRATOS_CHECK_DOUBLE_EQUAL(p_clone_of_const->GetValue(VELOCITY_Z), 0.00);
-            KRATOS_CHECK(p_clone_of_const->Is(ACTIVE));
+            KRATOS_EXPECT_EQ(p_clone_of_const->Id(), 2);
+            KRATOS_EXPECT_DOUBLE_EQ(p_clone_of_const->GetValue(DISTANCE), 12.1);
+            KRATOS_EXPECT_DOUBLE_EQ(p_clone_of_const->GetValue(VELOCITY_X), 32.4);
+            KRATOS_EXPECT_DOUBLE_EQ(p_clone_of_const->GetValue(VELOCITY_Y), 0.00);
+            KRATOS_EXPECT_DOUBLE_EQ(p_clone_of_const->GetValue(VELOCITY_Z), 0.00);
+            KRATOS_EXPECT_TRUE(p_clone_of_const->Is(ACTIVE));
         }
 
         /**
@@ -104,11 +104,11 @@ namespace Kratos {
             p_new_const->GetLocalSystem(new_matrix, new_vector, r_process_info);
 
             for (IndexType i = 0; i < vector.size(); ++i) {
-                KRATOS_CHECK_NEAR(vector[i], new_vector[i], 1.0e-12);
+                KRATOS_EXPECT_NEAR(vector[i], new_vector[i], 1.0e-12);
             }
             for (IndexType i = 0; i < matrix.size1(); ++i) {
                 for (IndexType j = 0; j < matrix.size2(); ++j) {
-                    KRATOS_CHECK_NEAR(matrix(i, j), new_matrix(i, j), 1.0e-12);
+                    KRATOS_EXPECT_NEAR(matrix(i, j), new_matrix(i, j), 1.0e-12);
                 }
             }
         }

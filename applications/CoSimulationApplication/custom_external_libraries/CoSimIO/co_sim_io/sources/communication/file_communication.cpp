@@ -215,9 +215,9 @@ Info FileCommunication::GenericSendWithFileSerializer(
     WaitUntilFileIsRemoved(file_name); // TODO maybe this can be queued somehow ... => then it would not block the sender
 
     const auto start_time(std::chrono::steady_clock::now());
-    SerializeToFile(GetTempFileName(file_name, mUseAuxFileForFileAvailability), rObj, GetSerializerTraceType());
+    SerializeToFile(GetTmpFileName(file_name, mUseAuxFileForFileAvailability), rObj, GetSerializerTraceType());
 
-    info.Set<std::size_t>("memory_usage_ipc", fs::file_size(GetTempFileName(file_name, mUseAuxFileForFileAvailability)));
+    info.Set<std::size_t>("memory_usage_ipc", fs::file_size(GetTmpFileName(file_name, mUseAuxFileForFileAvailability)));
 
     MakeFileVisible(file_name, mUseAuxFileForFileAvailability);
 
@@ -275,7 +275,7 @@ double FileCommunication::GenericSend(
 
     const auto start_time(std::chrono::steady_clock::now());
 
-    std::ofstream output_file(GetTempFileName(file_name, mUseAuxFileForFileAvailability), std::ios::out|std::ios::binary);
+    std::ofstream output_file(GetTmpFileName(file_name, mUseAuxFileForFileAvailability), std::ios::out|std::ios::binary);
     Utilities::CheckStream(output_file, file_name);
 
     output_file.write(reinterpret_cast<const char *>(&size), sizeof(std::size_t));

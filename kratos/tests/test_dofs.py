@@ -2,8 +2,21 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 import KratosMultiphysics
 
 class TestDofs(KratosUnittest.TestCase):
+    """
+    This module contains unit tests for KratosMultiphysics DOF-related functionality.
+    It covers DOF creation, manipulation, and DOF lists.
+    """
 
     def __SetUpTestModelPart(self, model):
+        """
+        Set up a test ModelPart with nodes and DOFs.
+
+        Args:
+            model (KratosMultiphysics.Model): The Kratos model to create the ModelPart in.
+
+        Returns:
+            KratosMultiphysics.ModelPart: The created ModelPart with nodes and DOFs.
+        """
         mp = model.CreateModelPart("Main")
         mp.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
         mp.AddNodalSolutionStepVariable(KratosMultiphysics.REACTION)
@@ -24,6 +37,13 @@ class TestDofs(KratosUnittest.TestCase):
         return mp
 
     def testDofExport(self):
+        """
+        Test the export of DOF information.
+
+        This test creates a ModelPart with nodes and DOFs, exports and manipulates DOFs,
+        and performs various assertions.
+
+        """
         current_model = KratosMultiphysics.Model()
         test_model_part = self.__SetUpTestModelPart(current_model)
 
@@ -35,11 +55,29 @@ class TestDofs(KratosUnittest.TestCase):
         dz = n.GetDof(KratosMultiphysics.DISPLACEMENT_Z)
         p2 = n2.GetDof(KratosMultiphysics.PRESSURE)
 
+        # Fixing only displacement in X
         n.Fix(KratosMultiphysics.DISPLACEMENT_X)
+        self.assertTrue(n.IsFixed(KratosMultiphysics.DISPLACEMENT_X))
+        self.assertFalse(n.IsFixed(KratosMultiphysics.DISPLACEMENT_Y))
+        self.assertFalse(n.IsFixed(KratosMultiphysics.DISPLACEMENT_Z))
+        self.assertFalse(n.IsFixed(KratosMultiphysics.PRESSURE))
+
+        # Release the displacement in X and checking again
+        n.Free(KratosMultiphysics.DISPLACEMENT_X)
+        self.assertFalse(n.IsFixed(KratosMultiphysics.DISPLACEMENT_X))
+        self.assertFalse(n.IsFixed(KratosMultiphysics.DISPLACEMENT_Y))
+        self.assertFalse(n.IsFixed(KratosMultiphysics.DISPLACEMENT_Z))
+        self.assertFalse(n.IsFixed(KratosMultiphysics.PRESSURE))
+
+        # Fixing again dof
+        n.Fix(KratosMultiphysics.DISPLACEMENT_X)
+
+        # Assign equation Id
         dx.EquationId = 5
         dy.EquationId = 6
         dz.EquationId = 7
 
+        # Checks
         self.assertEqual(p.GetVariable(), KratosMultiphysics.PRESSURE)
         self.assertEqual(dx.GetVariable(), KratosMultiphysics.DISPLACEMENT_X)
         self.assertEqual(dx.GetReaction(), KratosMultiphysics.REACTION_X)
@@ -50,6 +88,13 @@ class TestDofs(KratosUnittest.TestCase):
         self.assertGreater(p2,dz)
 
     def testDofListValues(self):
+        """
+        Test DOF list values and manipulation.
+
+        This test creates a ModelPart with nodes and DOFs, creates a DOF list, sets and
+        retrieves values, and performs assertions.
+
+        """
         current_model = KratosMultiphysics.Model()
         test_model_part = self.__SetUpTestModelPart(current_model)
 
@@ -83,6 +128,13 @@ class TestDofs(KratosUnittest.TestCase):
         self.assertEqual(p.GetSolutionStepValue(), 14.0)
 
     def testDofListAppend(self):
+        """
+        Test appending DOFs to a list.
+
+        This test creates a ModelPart with nodes and DOFs and appends DOFs to a list,
+        asserting the length of the list.
+
+        """
         current_model = KratosMultiphysics.Model()
         test_model_part = self.__SetUpTestModelPart(current_model)
 
@@ -93,6 +145,13 @@ class TestDofs(KratosUnittest.TestCase):
         self.assertEqual(len(dofs_vector), test_model_part.NumberOfNodes())
 
     def testDofListUnique(self):
+        """
+        Test making a DOF list unique.
+
+        This test creates a ModelPart with nodes and DOFs, appends multiple copies of
+        the same DOF to a list, makes the list unique, and asserts its length.
+
+        """
         current_model = KratosMultiphysics.Model()
         test_model_part = self.__SetUpTestModelPart(current_model)
 
@@ -107,4 +166,5 @@ class TestDofs(KratosUnittest.TestCase):
         self.assertEqual(len(dofs_vector), test_model_part.NumberOfNodes())
 
 if __name__ == '__main__':
+    KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(KratosMultiphysics.Logger.Severity.WARNING)
     KratosUnittest.main()

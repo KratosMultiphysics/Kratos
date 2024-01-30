@@ -126,6 +126,7 @@ void  AddSchemes(pybind11::module& m)
     py::class_<TrilinosResidualBasedAdjointStaticSchemeType, typename TrilinosResidualBasedAdjointStaticSchemeType::Pointer, TrilinosBaseSchemeType>
         (m, "TrilinosResidualBasedAdjointStaticScheme")
         .def(py::init<AdjointResponseFunction::Pointer>())
+        .def("SetResponseFunction", &TrilinosResidualBasedAdjointStaticSchemeType::SetResponseFunction, py::arg("new_response_function"))
     ;
 
     typedef ResidualBasedAdjointSteadyScheme<TrilinosSparseSpaceType, TrilinosLocalSpaceType> TrilinosResidualBasedAdjointSteadySchemeType;

@@ -14,6 +14,7 @@
 #define KRATOS_DIVIDE_TETRAHEDRA_3D_4_UTILS
 
 // System includes
+#include <bitset>
 
 // External includes
 
@@ -162,6 +163,8 @@ private:
     ///@name Member Variables
     ///@{
 
+    std::bitset<4> mNodeIsCut{0x0};
+
     ///@}
     ///@name Serialization
     ///@{
@@ -181,6 +184,8 @@ private:
     ///@}
     ///@name Private Inquiry
     ///@{
+
+    bool NodeIsInterface(int NodeKey) const;
 
     ///@}
     ///@name Un accessible methods

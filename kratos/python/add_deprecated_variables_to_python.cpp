@@ -4,8 +4,8 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Pooyan Dadvand
 //                   Riccardo Rossi
@@ -20,10 +20,7 @@
 #include "python/add_deprecated_variables_to_python.h"
 #include "includes/deprecated_variables.h"
 
-namespace Kratos
-{
-
-namespace Python
+namespace Kratos::Python
 {
 
 void  AddDeprecatedVariablesToPython(pybind11::module& m)
@@ -130,5 +127,4 @@ void  AddDeprecatedVariablesToPython(pybind11::module& m)
 	KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, IS_GRAVITY_FILLING)
 
 }
-} // namespace Python.
-} // Namespace Kratos
+} // namespace Kratos::Python.

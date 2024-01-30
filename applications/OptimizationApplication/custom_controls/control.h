@@ -22,7 +22,7 @@
 // ------------------------------------------------------------------------------
 // Project includes
 // ------------------------------------------------------------------------------
-#include "optimization_application.h"
+#include "optimization_application_variables.h"
 
 #include "includes/define.h"
 #include "includes/model_part.h"
@@ -76,9 +76,9 @@ public:
     typedef BaseType::NodesArrayType NodesArrayType;
     typedef BaseType::PropertiesType PropertiesType;
     typedef BaseType::IndexType IndexType;
-    typedef BaseType::SizeType SizeType;    
+    typedef BaseType::SizeType SizeType;
     typedef BaseType::MatrixType MatrixType;
-    typedef BaseType::VectorType VectorType;    
+    typedef BaseType::VectorType VectorType;
     typedef GeometryData::IntegrationMethod IntegrationMethod;
     typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
     typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;

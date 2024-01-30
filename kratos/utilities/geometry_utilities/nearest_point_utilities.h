@@ -21,6 +21,8 @@
 // Project includes
 #include "includes/define.h"
 #include "geometries/geometry.h"
+#include "utilities/geometrical_projection_utilities.h"
+#include "geometries/line_3d_2.h"
 
 namespace Kratos {
 

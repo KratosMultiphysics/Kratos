@@ -17,7 +17,7 @@
 
 // Project includes
 #include "testing/test_suite.h"
-#include "includes/checks.h"
+#include "includes/expect.h"
 
 namespace Kratos::Testing {
 

@@ -189,17 +189,6 @@ public:
         );
 
     /**
-    * This process renumerates the elements and nodes
-    * @param New_Elements: Pointers to the new elements created
-    * @return this_model_part: The model part of the model (it is the input too)
-    */
-
-    virtual void RenumeringElementsAndNodes(
-        ModelPart& this_model_part,
-        PointerVector< Element >& New_Elements
-        );
-
-    /**
     * It creates a partition of the process between the different threads
     * @param number_of_threads: Number the threads considered in the computation
     * @param number_of_rows:
@@ -248,7 +237,8 @@ protected:
 
         ModelPart& mModelPart;       /// The model part to be refined
         int mCurrentRefinementLevel; /// The current refinement level
-
+        std::unordered_map<std::size_t, unsigned int> mMapNodeIdToPos;
+        std::vector<std::size_t> mMapPosToNodeId;
     ///@}
     ///@name Protected Operators
     ///@{
@@ -266,9 +256,9 @@ protected:
             if (it->GetValue(SPLIT_ELEMENT)) {
                 auto& r_geom = it->GetGeometry(); // Nodes of the element
                 for (unsigned int i = 0; i < r_geom.size(); i++) {
-                    int index_i = r_geom[i].Id() - 1;
+                    int index_i = mMapNodeIdToPos[r_geom[i].Id()];
                     for (unsigned int j = 0; j < r_geom.size(); j++) {
-                        int index_j = r_geom[j].Id() - 1;
+                        int index_j = mMapNodeIdToPos[r_geom[j].Id()];
                         if (index_j > index_i)
                         {
                             rCoord(index_i, index_j) = -2;

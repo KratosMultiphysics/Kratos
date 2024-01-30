@@ -54,9 +54,6 @@ public:
                                                 GeometryType::Pointer pGeometry,
                                                 PropertiesType::Pointer pProperties );
 
-    // Destructor
-    ~SurfaceNormalFluidFlux3DDiffOrderCondition() override;
-
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     Condition::Pointer Create(IndexType NewId,NodesArrayType const& ThisNodes,PropertiesType::Pointer pProperties ) const override;

@@ -286,11 +286,9 @@ class EigensystemSolver
 
         // --- output
         if (echo_level > 0) {
-            double duration = timer.ElapsedSeconds();
-
             Eigen::IOFormat fmt(Eigen::StreamPrecision, Eigen::DontAlignCols, ", ", ", ", "", "", "[ ", " ]");
 
-            KRATOS_INFO("EigensystemSolver:") << "Completed in " << duration << " seconds" << std::endl
+            KRATOS_INFO("EigensystemSolver:") << "Completed in " << timer << std::endl
                       << "                   Eigenvalues = " << eigvals.transpose().format(fmt) << std::endl;
         }
     }

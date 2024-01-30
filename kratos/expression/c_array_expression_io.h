@@ -14,6 +14,7 @@
 
 // System includes
 #include <variant>
+#include <vector>
 
 // Project includes
 #include "expression/container_expression.h"
@@ -179,6 +180,12 @@ public:
         int const* pShapeBegin,
         const int ShapeSize);
 
+    template<class TContainerType, MeshType TMeshType>
+    static void Read(
+        ContainerExpression<TContainerType, TMeshType>& rContainerExpression,
+        const Vector& rValues,
+        const std::vector<IndexType>& rShape);
+
     template<class TRawDataType, class TContainerType, MeshType TMeshType>
     static void Move(
         ContainerExpression<TContainerType, TMeshType>& rContainerExpression,
@@ -187,11 +194,22 @@ public:
         int const* pShapeBegin,
         const int ShapeSize);
 
+    template<class TContainerType, MeshType TMeshType>
+    static void Move(
+        ContainerExpression<TContainerType, TMeshType>& rContainerExpression,
+        Vector& rValues,
+        const std::vector<IndexType>& rShape);
+
     template<class TRawDataType, class TContainerType, MeshType TMeshType>
     static void Write(
         const ContainerExpression<TContainerType, TMeshType>& rContainerExpression,
         TRawDataType* pBegin,
         const int mSize);
+
+    template<class TContainerType, MeshType TMeshType>
+    static void Write(
+        const ContainerExpression<TContainerType, TMeshType>& rContainerExpression,
+        Vector& rValues);
 
     ///@}
 };

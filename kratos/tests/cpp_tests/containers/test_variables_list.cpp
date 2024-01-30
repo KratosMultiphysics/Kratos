@@ -31,30 +31,30 @@ KRATOS_TEST_CASE_IN_SUITE(VariablesListHas, KratosCoreFastSuite) {
     variables_list.Add(VELOCITY);
 
 
-    KRATOS_CHECK(variables_list.Has(NODAL_AREA));
-    KRATOS_CHECK(variables_list.Has(VELOCITY));
-    KRATOS_CHECK_IS_FALSE(variables_list.Has(DISPLACEMENT));
+    KRATOS_EXPECT_TRUE(variables_list.Has(NODAL_AREA));
+    KRATOS_EXPECT_TRUE(variables_list.Has(VELOCITY));
+    KRATOS_EXPECT_FALSE(variables_list.Has(DISPLACEMENT));
 }
 
 KRATOS_TEST_CASE_IN_SUITE(VariablesListHasComponent, KratosCoreFastSuite) {
     VariablesList variables_list;
     variables_list.Add(DISPLACEMENT);
  
-    KRATOS_CHECK_IS_FALSE(variables_list.Has(VELOCITY_X));
-    KRATOS_CHECK_IS_FALSE(variables_list.Has(VELOCITY_Y));
-    KRATOS_CHECK_IS_FALSE(variables_list.Has(VELOCITY_Z));
+    KRATOS_EXPECT_FALSE(variables_list.Has(VELOCITY_X));
+    KRATOS_EXPECT_FALSE(variables_list.Has(VELOCITY_Y));
+    KRATOS_EXPECT_FALSE(variables_list.Has(VELOCITY_Z));
 
-    KRATOS_CHECK(variables_list.Has(DISPLACEMENT_X));
-    KRATOS_CHECK(variables_list.Has(DISPLACEMENT_Y));
-    KRATOS_CHECK(variables_list.Has(DISPLACEMENT_Z));
+    KRATOS_EXPECT_TRUE(variables_list.Has(DISPLACEMENT_X));
+    KRATOS_EXPECT_TRUE(variables_list.Has(DISPLACEMENT_Y));
+    KRATOS_EXPECT_TRUE(variables_list.Has(DISPLACEMENT_Z));
 }
 
 
 KRATOS_TEST_CASE_IN_SUITE(VariablesListGetDofInfo, KratosCoreFastSuite) {
     VariablesList variables_list;
     auto dof_index = variables_list.AddDof(&DISPLACEMENT_Y, &REACTION_Y);
-    KRATOS_CHECK_EQUAL(variables_list.GetDofVariable(dof_index), DISPLACEMENT_Y);
-    KRATOS_CHECK_EQUAL(variables_list.pGetDofReaction(dof_index), &REACTION_Y);
+    KRATOS_EXPECT_EQ(variables_list.GetDofVariable(dof_index), DISPLACEMENT_Y);
+    KRATOS_EXPECT_EQ(variables_list.pGetDofReaction(dof_index), &REACTION_Y);
 
 }
 

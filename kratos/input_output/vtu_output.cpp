@@ -368,7 +368,7 @@ template<class TContaierType, class TContainerIOTag>
 void AddListOfVariables(
     XmlExpressionElement::Pointer pXmlDataElement,
     ModelPart& rModelPart,
-    const std::unordered_map<std::string, VtuOutput::SupportedVariables>& rVariablesMap)
+    const std::map<std::string, VtuOutput::SupportedVariables>& rVariablesMap)
 {
     for (const auto& p_variable_variant : rVariablesMap){
         std::visit([&rModelPart, &pXmlDataElement](auto pVariable) {
@@ -387,7 +387,7 @@ template<class TContaierType>
 void AddListOfFlags(
     XmlExpressionElement::Pointer pXmlDataElement,
     ModelPart& rModelPart,
-    const std::unordered_map<std::string, const Flags*>& rFlagsMap)
+    const std::map<std::string, const Flags*>& rFlagsMap)
 {
     for (const auto& r_flag_pair : rFlagsMap){
         AddDataArrayElement(pXmlDataElement, CreateFlagDataXmlElement<TContaierType>(r_flag_pair.first, *r_flag_pair.second, rModelPart));
@@ -399,7 +399,7 @@ void AddListOfContainerExpressions(
     XmlExpressionElement::Pointer pXmlDataElement,
     ModelPart& rModelPart,
     const std::unordered_map<IndexType, IndexType>& rKratosVtuIndicesMap,
-    const std::unordered_map<std::string, TContainerExpressionType>& rContainerExpressionsMap)
+    const std::map<std::string, TContainerExpressionType>& rContainerExpressionsMap)
 {
     for (const auto& r_container_expression_pair : rContainerExpressionsMap){
         const std::string& r_name = r_container_expression_pair.first;

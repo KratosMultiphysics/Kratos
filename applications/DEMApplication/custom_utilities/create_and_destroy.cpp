@@ -1080,6 +1080,25 @@ SphericParticle* ParticleCreatorDestructor::SphereCreatorForBreakableClusters(Mo
         KRATOS_CATCH("")
     }
 
+    void ParticleCreatorDestructor::UpdateSurroundingBoundingBox(ModelPart& spheres_model_part) {
+        
+        KRATOS_TRY
+
+        spheres_model_part.GetProcessInfo().SetValue(DOMAIN_MIN_CORNER, mLowPoint);
+        spheres_model_part.GetProcessInfo().SetValue(DOMAIN_MAX_CORNER, mHighPoint);
+
+        for (int i = 0; i < 3; ++i) {
+                KRATOS_ERROR_IF(mHighPoint[i] < mLowPoint[i]) << "Check limits of the Bounding Box, minimum coordinates exceed maximum coordinates." << std::endl;
+            }
+
+        mStrictHighPoint = mHighPoint; // mHighPoint and mLowPoint have been set as an input value
+        mStrictLowPoint = mLowPoint;
+        mStrictDiameter = norm_2(mStrictHighPoint - mStrictLowPoint);
+        mDiameter = norm_2(mHighPoint - mLowPoint);
+        
+        KRATOS_CATCH("")
+    }
+
     template<class TParticleType>
     void ParticleCreatorDestructor::DestroyParticles(ModelPart& r_model_part)
     {

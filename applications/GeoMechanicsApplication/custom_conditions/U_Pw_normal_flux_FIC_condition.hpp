@@ -62,8 +62,6 @@ public:
         : UPwNormalFluxCondition<TDim,TNumNodes>(NewId, pGeometry, pProperties)
     {}
 
-    ~UPwNormalFluxFICCondition() override {}
-
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     Condition::Pointer Create(IndexType NewId,NodesArrayType const& ThisNodes,PropertiesType::Pointer pProperties ) const override;

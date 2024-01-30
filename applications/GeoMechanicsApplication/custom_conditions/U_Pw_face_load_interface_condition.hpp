@@ -62,8 +62,6 @@ public:
         this->SetIntegrationMethod(GeometryData::IntegrationMethod::GI_GAUSS_1);
     }
 
-    ~UPwFaceLoadInterfaceCondition() override {}
-
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     Condition::Pointer Create(IndexType NewId,NodesArrayType const& ThisNodes,PropertiesType::Pointer pProperties ) const override;

@@ -21,7 +21,7 @@ class ApplyOutletProcess(KratosMultiphysics.Process):
             "model_part_name"    : "",
             "variable_name"      : "PRESSURE",
             "constrained"        : true,
-            "value"              : 0.0,
+            "value"              : {},
             "interval"           : [0.0,"End"],
             "hydrostatic_outlet" : false,
             "h_top"              : 0.0,
@@ -31,10 +31,15 @@ class ApplyOutletProcess(KratosMultiphysics.Process):
         }
         """)
 
-        # Trick: allows "value" to be a double or a string value (otherwise the ValidateAndAssignDefaults might fail)
+        # Trick: allows "value" to be a double, a string or a table value (otherwise the ValidateAndAssignDefaults might fail)
         if(settings.Has("value")):
             if(settings["value"].IsString()):
                 default_settings["value"].SetString("0.0")
+            elif settings["value"].IsNumber():
+                default_settings["value"].SetDouble(0.0)
+        else:
+            err_msg = "Provided settings have no 'value'. This needs to be provided."
+            raise Exception(err_msg)
 
         settings.ValidateAndAssignDefaults(default_settings)
 

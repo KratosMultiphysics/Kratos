@@ -40,7 +40,7 @@ namespace Kratos
 /// The base class for all processes in Kratos.
 /** This function applies a constant value (and fixity) to all of the nodes in a given mesh
 */
-class ApplyConstantScalarValueProcess : public Process
+class KRATOS_API(KRATOS_CORE) ApplyConstantScalarValueProcess : public Process
 {
 public:
     ///@name Type Definitions
@@ -390,8 +390,6 @@ private:
     ///@}
 
 }; // Class ApplyConstantScalarValueProcess
-
-KRATOS_CREATE_LOCAL_FLAG(ApplyConstantScalarValueProcess,VARIABLE_IS_FIXED, 0);
 
 ///@}
 

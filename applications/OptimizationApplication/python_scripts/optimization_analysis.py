@@ -8,6 +8,7 @@ from KratosMultiphysics.OptimizationApplication.controls.control import Control
 from KratosMultiphysics.OptimizationApplication.utilities.helper_utilities import OptimizationComponentFactory
 from KratosMultiphysics.OptimizationApplication.utilities.helper_utilities import CallOnAll
 from KratosMultiphysics.OptimizationApplication.utilities.optimization_problem import OptimizationProblem
+from KratosMultiphysics.OptimizationApplication.utilities.logger_utilities import OptimizationAnalysisTimeLogger
 
 class OptimizationAnalysis:
     @classmethod
@@ -48,8 +49,6 @@ class OptimizationAnalysis:
         for process_type in self.__algorithm.GetProcessesOrder():
             CallOnAll(self.optimization_problem.GetListOfProcesses(process_type), Kratos.Process.ExecuteInitialize)
         CallOnAll(self.optimization_problem.GetListOfExecutionPolicies(), ExecutionPolicyDecorator.Initialize)
-        CallOnAll(self.optimization_problem.GetListOfControls(), Control.Initialize)
-        CallOnAll(self.optimization_problem.GetListOfResponses(), ResponseFunction.Initialize)
 
         self.__algorithm.Initialize()
 
@@ -57,8 +56,6 @@ class OptimizationAnalysis:
         for process_type in self.__algorithm.GetProcessesOrder():
             CallOnAll(self.optimization_problem.GetListOfProcesses(process_type), Kratos.Process.Check)
         CallOnAll(self.optimization_problem.GetListOfExecutionPolicies(), ExecutionPolicyDecorator.Check)
-        CallOnAll(self.optimization_problem.GetListOfControls(), Control.Check)
-        CallOnAll(self.optimization_problem.GetListOfResponses(), ResponseFunction.Check)
 
         self.__algorithm.Check()
 
@@ -69,28 +66,31 @@ class OptimizationAnalysis:
         for process_type in self.__algorithm.GetProcessesOrder():
             CallOnAll(self.optimization_problem.GetListOfProcesses(process_type), Kratos.Process.ExecuteFinalize)
         CallOnAll(self.optimization_problem.GetListOfExecutionPolicies(), ExecutionPolicyDecorator.Finalize)
-        CallOnAll(self.optimization_problem.GetListOfControls(), Control.Finalize)
-        CallOnAll(self.optimization_problem.GetListOfResponses(), ResponseFunction.Finalize)
 
     def Run(self):
-        self.Initialize()
-        self.Check()
-        self.__algorithm.SolveOptimizationProblem()
-        self.Finalize()
+        with OptimizationAnalysisTimeLogger():
+            self.Initialize()
+            self.Check()
+            self.__algorithm.Solve()
+            self.Finalize()
 
     def _CreateModelPartControllers(self):
         default_settings = Kratos.Parameters("""{
             "type": "mdpa_model_part_controller",
             "module": "KratosMultiphysics.OptimizationApplication.model_part_controllers"
-        }""")        
+        }""")
         for model_part_controller_settings in self.project_parameters["model_parts"]:
             model_part_controller_settings.AddMissingParameters(default_settings)
             model_part_controller: ModelPartController = OptimizationComponentFactory(self.model, model_part_controller_settings, self.optimization_problem)
             self.__list_of_model_part_controllers.append(model_part_controller)
 
     def _CreateAnalyses(self):
+        default_settings = Kratos.Parameters("""{
+            "module": "KratosMultiphysics.OptimizationApplication.execution_policies"
+        }""")
         for analyses_settings in self.project_parameters["analyses"]:
-            execution_policy = ExecutionPolicyDecorator(self.model, analyses_settings, self.optimization_problem)
+            analyses_settings.AddMissingParameters(default_settings)
+            execution_policy = OptimizationComponentFactory(self.model, analyses_settings, self.optimization_problem)
             self.optimization_problem.AddComponent(execution_policy)
 
     def _CreateResponses(self):

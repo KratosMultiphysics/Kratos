@@ -62,7 +62,7 @@ void UPwSmallStrainLinkInterfaceElement<TDim,TNumNodes>::CalculateOnIntegrationP
             BoundedMatrix<double,TDim, TNumNodes*TDim> Nu = ZeroMatrix(TDim, TNumNodes*TDim);
             array_1d<double,TDim> LocalRelDispVector;
             array_1d<double,TDim> RelDispVector;
-            const double& MinimumJointWidth = Prop[MINIMUM_JOINT_WIDTH];
+            const double& InitialJointWidth = Prop[INITIAL_JOINT_WIDTH];
             BoundedMatrix<double,TNumNodes, TDim> GradNpT; 
             double JointWidth;
             BoundedMatrix<double,TDim, TDim> LocalPermeabilityMatrix = ZeroMatrix(TDim,TDim);
@@ -82,7 +82,7 @@ void UPwSmallStrainLinkInterfaceElement<TDim,TNumNodes>::CalculateOnIntegrationP
                 
                 noalias(LocalRelDispVector) = prod(RotationMatrix,RelDispVector);
                 
-                this->CalculateJointWidth(JointWidth, LocalRelDispVector[TDim-1], MinimumJointWidth,GPoint);
+                this->CalculateJointWidth(JointWidth, LocalRelDispVector[TDim-1], InitialJointWidth,GPoint);
 
                 this->template CalculateShapeFunctionsGradients< BoundedMatrix<double,TNumNodes,TDim> >(GradNpT,SFGradAuxVars,JContainer[GPoint],RotationMatrix,
                                                                                                                     DN_DeContainer[GPoint],NContainer,JointWidth,GPoint);
@@ -112,7 +112,7 @@ void UPwSmallStrainLinkInterfaceElement<TDim,TNumNodes>::CalculateOnIntegrationP
             this->CalculateRotationMatrix(RotationMatrix,Geom);
             BoundedMatrix<double,TDim, TNumNodes*TDim> Nu = ZeroMatrix(TDim, TNumNodes*TDim);
             array_1d<double,TDim> RelDispVector;
-            const double& MinimumJointWidth = Prop[MINIMUM_JOINT_WIDTH];
+            const double& InitialJointWidth = Prop[INITIAL_JOINT_WIDTH];
             double JointWidth;
             array_1d<double,TDim> LocalStressVector;
             array_1d<double,TDim> ContactStressVector;
@@ -145,7 +145,7 @@ void UPwSmallStrainLinkInterfaceElement<TDim,TNumNodes>::CalculateOnIntegrationP
                 
                 noalias(StrainVector) = prod(RotationMatrix,RelDispVector);
                 
-                this->CheckAndCalculateJointWidth(JointWidth, ConstitutiveParameters, StrainVector[TDim-1], MinimumJointWidth, GPoint);
+                this->CheckAndCalculateJointWidth(JointWidth, ConstitutiveParameters, StrainVector[TDim-1], InitialJointWidth, GPoint);
                 
                 noalias(Np) = row(NContainer,GPoint);
                 
@@ -170,7 +170,7 @@ void UPwSmallStrainLinkInterfaceElement<TDim,TNumNodes>::CalculateOnIntegrationP
             this->CalculateRotationMatrix(RotationMatrix,Geom);
             BoundedMatrix<double,TDim, TNumNodes*TDim> Nu = ZeroMatrix(TDim, TNumNodes*TDim);
             array_1d<double,TDim> RelDispVector;
-            const double& MinimumJointWidth = Prop[MINIMUM_JOINT_WIDTH];
+            const double& InitialJointWidth = Prop[INITIAL_JOINT_WIDTH];
             double JointWidth;
             array_1d<double,TDim> LocalStressVector;
             
@@ -202,7 +202,7 @@ void UPwSmallStrainLinkInterfaceElement<TDim,TNumNodes>::CalculateOnIntegrationP
                 
                 noalias(StrainVector) = prod(RotationMatrix,RelDispVector);
                 
-                this->CheckAndCalculateJointWidth(JointWidth, ConstitutiveParameters, StrainVector[TDim-1], MinimumJointWidth, GPoint);
+                this->CheckAndCalculateJointWidth(JointWidth, ConstitutiveParameters, StrainVector[TDim-1], InitialJointWidth, GPoint);
                 
                 noalias(Np) = row(NContainer,GPoint);
                 
@@ -263,7 +263,7 @@ void UPwSmallStrainLinkInterfaceElement<TDim,TNumNodes>::CalculateOnIntegrationP
             BoundedMatrix<double,TDim, TNumNodes*TDim> Nu = ZeroMatrix(TDim, TNumNodes*TDim);
             array_1d<double,TDim> LocalRelDispVector;
             array_1d<double,TDim> RelDispVector;
-            const double& MinimumJointWidth = Prop[MINIMUM_JOINT_WIDTH];
+            const double& InitialJointWidth = Prop[INITIAL_JOINT_WIDTH];
             BoundedMatrix<double,TNumNodes, TDim> GradNpT; 
             double JointWidth;
             BoundedMatrix<double,TDim, TDim> LocalPermeabilityMatrix = ZeroMatrix(TDim,TDim);
@@ -282,7 +282,7 @@ void UPwSmallStrainLinkInterfaceElement<TDim,TNumNodes>::CalculateOnIntegrationP
                 
                 noalias(LocalRelDispVector) = prod(RotationMatrix,RelDispVector);
                 
-                this->CalculateJointWidth(JointWidth, LocalRelDispVector[TDim-1], MinimumJointWidth,GPoint);
+                this->CalculateJointWidth(JointWidth, LocalRelDispVector[TDim-1], InitialJointWidth,GPoint);
 
                 this->template CalculateShapeFunctionsGradients< BoundedMatrix<double,TNumNodes,TDim> >(GradNpT,SFGradAuxVars,JContainer[GPoint],RotationMatrix,
                                                                                                                     DN_DeContainer[GPoint],NContainer,JointWidth,GPoint);
@@ -352,7 +352,7 @@ void UPwSmallStrainLinkInterfaceElement<TDim,TNumNodes>::CalculateOnIntegrationP
             BoundedMatrix<double,TDim, TNumNodes*TDim> Nu = ZeroMatrix(TDim, TNumNodes*TDim);
             array_1d<double,TDim> LocalRelDispVector;
             array_1d<double,TDim> RelDispVector;
-            const double& MinimumJointWidth = Prop[MINIMUM_JOINT_WIDTH];
+            const double& InitialJointWidth = Prop[INITIAL_JOINT_WIDTH];
             double JointWidth;
             BoundedMatrix<double,TDim, TDim> LocalPermeabilityMatrix = ZeroMatrix(TDim,TDim);
             BoundedMatrix<double,TDim, TDim> PermeabilityMatrix;
@@ -366,7 +366,7 @@ void UPwSmallStrainLinkInterfaceElement<TDim,TNumNodes>::CalculateOnIntegrationP
                 
                 noalias(LocalRelDispVector) = prod(RotationMatrix,RelDispVector);
                 
-                this->CalculateJointWidth(JointWidth, LocalRelDispVector[TDim-1], MinimumJointWidth,GPoint);
+                this->CalculateJointWidth(JointWidth, LocalRelDispVector[TDim-1], InitialJointWidth,GPoint);
 
                 InterfaceElementUtilities::CalculateLinkPermeabilityMatrix(LocalPermeabilityMatrix,JointWidth);
                 
@@ -391,7 +391,7 @@ void UPwSmallStrainLinkInterfaceElement<TDim,TNumNodes>::CalculateOnIntegrationP
             BoundedMatrix<double,TDim, TNumNodes*TDim> Nu = ZeroMatrix(TDim, TNumNodes*TDim);
             array_1d<double,TDim> LocalRelDispVector;
             array_1d<double,TDim> RelDispVector;
-            const double& MinimumJointWidth = Prop[MINIMUM_JOINT_WIDTH];
+            const double& InitialJointWidth = Prop[INITIAL_JOINT_WIDTH];
             double JointWidth;
             BoundedMatrix<double,TDim, TDim> LocalPermeabilityMatrix = ZeroMatrix(TDim,TDim);
         
@@ -404,7 +404,7 @@ void UPwSmallStrainLinkInterfaceElement<TDim,TNumNodes>::CalculateOnIntegrationP
                 
                 noalias(LocalRelDispVector) = prod(RotationMatrix,RelDispVector);
                 
-                this->CalculateJointWidth(JointWidth, LocalRelDispVector[TDim-1], MinimumJointWidth,GPoint);
+                this->CalculateJointWidth(JointWidth, LocalRelDispVector[TDim-1], InitialJointWidth,GPoint);
 
                 InterfaceElementUtilities::CalculateLinkPermeabilityMatrix(LocalPermeabilityMatrix,JointWidth);
 
@@ -472,7 +472,7 @@ void UPwSmallStrainLinkInterfaceElement<TDim,TNumNodes>::CalculateAll( MatrixTyp
     this->InitializeElementVariables(Variables,ConstitutiveParameters,Geom,Prop,CurrentProcessInfo);
     
     //Auxiliary variables
-    const double& MinimumJointWidth = Prop[MINIMUM_JOINT_WIDTH];
+    const double& InitialJointWidth = Prop[INITIAL_JOINT_WIDTH];
     array_1d<double,TDim> RelDispVector;
     SFGradAuxVariables SFGradAuxVars;
     
@@ -484,7 +484,7 @@ void UPwSmallStrainLinkInterfaceElement<TDim,TNumNodes>::CalculateAll( MatrixTyp
         InterfaceElementUtilities::CalculateNuMatrix(Variables.Nu,NContainer,GPoint);
         noalias(RelDispVector) = prod(Variables.Nu,Variables.DisplacementVector);
         noalias(Variables.StrainVector) = prod(Variables.RotationMatrix,RelDispVector);        
-        this->CheckAndCalculateJointWidth(Variables.JointWidth,ConstitutiveParameters,Variables.StrainVector[TDim-1], MinimumJointWidth, GPoint);
+        this->CheckAndCalculateJointWidth(Variables.JointWidth,ConstitutiveParameters,Variables.StrainVector[TDim-1], InitialJointWidth, GPoint);
         this->template CalculateShapeFunctionsGradients< Matrix >(Variables.GradNpT,SFGradAuxVars,JContainer[GPoint],Variables.RotationMatrix,
                                                         DN_DeContainer[GPoint],NContainer,Variables.JointWidth,GPoint);
         
@@ -539,7 +539,7 @@ void UPwSmallStrainLinkInterfaceElement<TDim,TNumNodes>::CalculateRHS( VectorTyp
     this->InitializeElementVariables(Variables,ConstitutiveParameters,Geom,Prop,CurrentProcessInfo);
     
     //Auxiliary variables
-    const double& MinimumJointWidth = Prop[MINIMUM_JOINT_WIDTH];
+    const double& InitialJointWidth = Prop[INITIAL_JOINT_WIDTH];
     array_1d<double,TDim> RelDispVector;
     SFGradAuxVariables SFGradAuxVars;
     
@@ -551,7 +551,7 @@ void UPwSmallStrainLinkInterfaceElement<TDim,TNumNodes>::CalculateRHS( VectorTyp
         InterfaceElementUtilities::CalculateNuMatrix(Variables.Nu,NContainer,GPoint);
         noalias(RelDispVector) = prod(Variables.Nu,Variables.DisplacementVector);
         noalias(Variables.StrainVector) = prod(Variables.RotationMatrix,RelDispVector);
-        this->CheckAndCalculateJointWidth(Variables.JointWidth,ConstitutiveParameters,Variables.StrainVector[TDim-1], MinimumJointWidth, GPoint);
+        this->CheckAndCalculateJointWidth(Variables.JointWidth,ConstitutiveParameters,Variables.StrainVector[TDim-1], InitialJointWidth, GPoint);
         this->template CalculateShapeFunctionsGradients< Matrix >(Variables.GradNpT,SFGradAuxVars,JContainer[GPoint],Variables.RotationMatrix,
                                                         DN_DeContainer[GPoint],NContainer,Variables.JointWidth,GPoint);
 

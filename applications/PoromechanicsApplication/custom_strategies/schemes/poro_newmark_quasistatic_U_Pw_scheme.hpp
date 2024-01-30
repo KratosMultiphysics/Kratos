@@ -47,8 +47,9 @@ public:
     ///Constructor
     PoroNewmarkQuasistaticUPwScheme(double beta, double gamma, double theta) : Scheme<TSparseSpace,TDenseSpace>()
     {
-        mBeta = beta;
-        mGamma = gamma;
+        // Here mBeta and mGamma are not used for the GN11 scheme
+        mBeta = 1.0;
+        mGamma = 1.0;
         mTheta = theta;
     }
 
@@ -70,8 +71,6 @@ public:
             KRATOS_THROW_ERROR( std::invalid_argument,"DISPLACEMENT Key is 0. Check if all applications were correctly registered.", "" )
         if(VELOCITY.Key() == 0)
             KRATOS_THROW_ERROR( std::invalid_argument,"VELOCITY Key is 0. Check if all applications were correctly registered.", "" )
-        if(ACCELERATION.Key() == 0)
-            KRATOS_THROW_ERROR( std::invalid_argument,"ACCELERATION Key is 0. Check if all applications were correctly registered.", "" )
         if(WATER_PRESSURE.Key() == 0)
             KRATOS_THROW_ERROR( std::invalid_argument, "WATER_PRESSURE Key is 0. Check if all applications were correctly registered.", "" )
         if(DT_WATER_PRESSURE.Key() == 0)
@@ -88,8 +87,6 @@ public:
                 KRATOS_THROW_ERROR( std::logic_error, "DISPLACEMENT variable is not allocated for node ", it->Id() )
             if(it->SolutionStepsDataHas(VELOCITY) == false)
                 KRATOS_THROW_ERROR( std::logic_error, "VELOCITY variable is not allocated for node ", it->Id() )
-            if(it->SolutionStepsDataHas(ACCELERATION) == false)
-                KRATOS_THROW_ERROR( std::logic_error, "ACCELERATION variable is not allocated for node ", it->Id() )
             if(it->SolutionStepsDataHas(WATER_PRESSURE) == false)
                 KRATOS_THROW_ERROR( std::logic_error, "WATER_PRESSURE variable is not allocated for node ", it->Id() )
             if(it->SolutionStepsDataHas(DT_WATER_PRESSURE) == false)
@@ -109,9 +106,9 @@ public:
         if (r_model_part.GetBufferSize() < 2)
             KRATOS_THROW_ERROR( std::logic_error, "insufficient buffer size. Buffer size should be greater than 2. Current size is", r_model_part.GetBufferSize() )
 
-        // Check beta, gamma and theta
-        if(mBeta <= 0.0 || mGamma<= 0.0 || mTheta <= 0.0)
-            KRATOS_THROW_ERROR( std::invalid_argument,"Some of the scheme variables: beta, gamma or theta has an invalid value ", "" )
+        // Check theta
+        if(mTheta <= 0.0)
+            KRATOS_THROW_ERROR( std::invalid_argument,"Theta has an invalid value ", "" )
 
         return 0;
 
@@ -125,7 +122,8 @@ public:
         KRATOS_TRY
 
         mDeltaTime = r_model_part.GetProcessInfo()[DELTA_TIME];
-        r_model_part.GetProcessInfo().SetValue(VELOCITY_COEFFICIENT,mGamma/(mBeta*mDeltaTime));
+        // Note: VELOCITY_COEFFICIENT is updated according to the GN11 scheme used here
+        r_model_part.GetProcessInfo().SetValue(VELOCITY_COEFFICIENT,1.0/(mTheta*mDeltaTime));
         r_model_part.GetProcessInfo().SetValue(DT_PRESSURE_COEFFICIENT,1.0/(mTheta*mDeltaTime));
 
         const int NNodes = static_cast<int>(r_model_part.Nodes().size());
@@ -180,10 +178,6 @@ public:
         TSystemVectorType& b) override
     {
         KRATOS_TRY
-
-        mDeltaTime = r_model_part.GetProcessInfo()[DELTA_TIME];
-        r_model_part.GetProcessInfo().SetValue(VELOCITY_COEFFICIENT,mGamma/(mBeta*mDeltaTime));
-        r_model_part.GetProcessInfo().SetValue(DT_PRESSURE_COEFFICIENT,1.0/(mTheta*mDeltaTime));
 
         const ProcessInfo& CurrentProcessInfo = r_model_part.GetProcessInfo();
 
@@ -535,7 +529,7 @@ protected:
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    inline void UpdateVariablesDerivatives(ModelPart& r_model_part)
+    virtual inline void UpdateVariablesDerivatives(ModelPart& r_model_part)
     {
         KRATOS_TRY
 
@@ -552,14 +546,13 @@ protected:
         {
             ModelPart::NodesContainerType::iterator itNode = node_begin + i;
 
-            array_1d<double,3>& CurrentAcceleration = itNode->FastGetSolutionStepValue(ACCELERATION);
             array_1d<double,3>& CurrentVelocity = itNode->FastGetSolutionStepValue(VELOCITY);
             noalias(DeltaDisplacement) = itNode->FastGetSolutionStepValue(DISPLACEMENT) - itNode->FastGetSolutionStepValue(DISPLACEMENT, 1);
-            const array_1d<double,3>& PreviousAcceleration = itNode->FastGetSolutionStepValue(ACCELERATION, 1);
             const array_1d<double,3>& PreviousVelocity = itNode->FastGetSolutionStepValue(VELOCITY, 1);
 
-            noalias(CurrentAcceleration) = 1.0/(mBeta*mDeltaTime*mDeltaTime)*(DeltaDisplacement - mDeltaTime*PreviousVelocity - (0.5-mBeta)*mDeltaTime*mDeltaTime*PreviousAcceleration);
-            noalias(CurrentVelocity) = PreviousVelocity + (1.0-mGamma)*mDeltaTime*PreviousAcceleration + mGamma*mDeltaTime*CurrentAcceleration;
+            // Note: Since acceleration is not used in the quasi-static scheme, here we use a GN11 scheme to update velocity. 
+            // A GN22 is used in the dynamic scheme
+            noalias(CurrentVelocity) = 1.0/(mTheta*mDeltaTime)*(DeltaDisplacement - (1.0-mTheta)*mDeltaTime*PreviousVelocity);
 
             double& CurrentDtPressure = itNode->FastGetSolutionStepValue(DT_WATER_PRESSURE);
             DeltaPressure = itNode->FastGetSolutionStepValue(WATER_PRESSURE) - itNode->FastGetSolutionStepValue(WATER_PRESSURE, 1);

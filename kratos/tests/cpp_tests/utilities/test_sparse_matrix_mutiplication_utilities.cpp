@@ -44,14 +44,14 @@ KRATOS_TEST_CASE_IN_SUITE(AssembleSparseMatrixByBlocks, KratosCoreFastSuite)
     SparseMatrixMultiplicationUtility::AssembleSparseMatrixByBlocks(solution_matrix, matrices_p_blocks, contribution_coefficients);
 
     const double tolerance = 1.0e-16;
-    KRATOS_CHECK_NEAR(solution_matrix(0,0), 1.0, tolerance);
-    KRATOS_CHECK_NEAR(solution_matrix(1,1), 1.0, tolerance);
-    KRATOS_CHECK_NEAR(solution_matrix(2,2), 1.0, tolerance);
-    KRATOS_CHECK_NEAR(solution_matrix(3,3), 1.0, tolerance);
-    KRATOS_CHECK_NEAR(solution_matrix(2,0), -1.0, tolerance);
-    KRATOS_CHECK_NEAR(solution_matrix(3,1), -1.0, tolerance);
-    KRATOS_CHECK_NEAR(solution_matrix(0,2), -1.0, tolerance);
-    KRATOS_CHECK_NEAR(solution_matrix(1,3), -1.0, tolerance);
+    KRATOS_EXPECT_NEAR(solution_matrix(0,0), 1.0, tolerance);
+    KRATOS_EXPECT_NEAR(solution_matrix(1,1), 1.0, tolerance);
+    KRATOS_EXPECT_NEAR(solution_matrix(2,2), 1.0, tolerance);
+    KRATOS_EXPECT_NEAR(solution_matrix(3,3), 1.0, tolerance);
+    KRATOS_EXPECT_NEAR(solution_matrix(2,0), -1.0, tolerance);
+    KRATOS_EXPECT_NEAR(solution_matrix(3,1), -1.0, tolerance);
+    KRATOS_EXPECT_NEAR(solution_matrix(0,2), -1.0, tolerance);
+    KRATOS_EXPECT_NEAR(solution_matrix(1,3), -1.0, tolerance);
 
     double total = 0.0;
     for (std::size_t i = 0; i < 4; ++i) {
@@ -59,7 +59,7 @@ KRATOS_TEST_CASE_IN_SUITE(AssembleSparseMatrixByBlocks, KratosCoreFastSuite)
             total += solution_matrix(i,j);
         }
     }
-    KRATOS_CHECK_NEAR(total, 0.0, tolerance);
+    KRATOS_EXPECT_NEAR(total, 0.0, tolerance);
 }
 
 }   // namespace Testing

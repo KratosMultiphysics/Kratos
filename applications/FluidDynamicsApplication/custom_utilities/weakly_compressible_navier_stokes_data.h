@@ -12,11 +12,18 @@
 //
 
 
-#if !defined(KRATOS_WEAKLY_COMPRESSIBLE_NAVIER_STOKES_DATA_H)
-#define KRATOS_WEAKLY_COMPRESSIBLE_NAVIER_STOKES_DATA_H
+#pragma once
 
+// System includes
+
+
+// External includes
+
+
+// Project includes
 #include "includes/constitutive_law.h"
 
+// Application includes
 #include "fluid_dynamics_application_variables.h"
 #include "custom_utilities/fluid_element_data.h"
 #include "utilities/element_size_calculator.h"
@@ -61,6 +68,7 @@ NodalScalarData SoundVelocity;
 double DynamicViscosity;
 double DeltaTime;      // Time increment
 double DynamicTau;     // Dynamic tau considered in ASGS stabilization coefficients
+double Resistance;     // Darcy's law resistance (permeability inverse)
 
 double bdf0;
 double bdf1;
@@ -102,10 +110,11 @@ void Initialize(const Element& rElement, const ProcessInfo& rProcessInfo) overri
     bdf1 = BDFVector[1];
     bdf2 = BDFVector[2];
 
-    ElementSize = ElementSizeCalculator<TDim,TNumNodes>::MinimumElementSize(r_geometry);
+    // Get data from element database
+    this->FillFromElementData(Resistance, RESISTANCE, rElement);
 
-    noalias(lhs) = ZeroMatrix(TNumNodes*(TDim+1),TNumNodes*(TDim+1));
-    noalias(rhs) = ZeroVector(TNumNodes*(TDim+1));
+    // Calculate element characteristic size
+    ElementSize = ElementSizeCalculator<TDim,TNumNodes>::MinimumElementSize(r_geometry);
 }
 
 void UpdateGeometryValues(
@@ -141,5 +150,3 @@ static int Check(const Element& rElement, const ProcessInfo& rProcessInfo)
 ///@}
 
 }
-
-#endif

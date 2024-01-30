@@ -25,14 +25,23 @@ def main():
                         default="/ModelData", help="internal HDF5 file path to the mesh")
     parser.add_argument("-r", "--results-path", dest="results_path", metavar="<results-path>",
                         default="/ResultsData", help="internal HDF5 file path to the results")
+    parser.add_argument("--require-results",
+                        dest = "require_results",
+                        action = "store_const",
+                        default = False,
+                        const = True,
+                        help = "Ignore outputs that have mesh data but lack results.")
     print('\nCreate XDMF:')
     args = parser.parse_args()
     if args.type == "multiple" and args.analysis == "temporal":
-        WriteMultifileTemporalAnalysisToXdmf(
-            args.file_name, args.mesh_path, args.results_path)
+        WriteMultifileTemporalAnalysisToXdmf(args.file_name,
+                                             args.mesh_path,
+                                             args.results_path)
     elif args.type == "single" and args.analysis == "temporal":
-        WriteSinglefileTemporalAnalysisToXdmf(
-            args.file_name, args.mesh_path, args.results_path)        
+        WriteSinglefileTemporalAnalysisToXdmf(args.file_name,
+                                              args.mesh_path,
+                                              args.results_path,
+                                              require_results = args.require_results)
     else:
         raise RuntimeError("Unsupported command line options.")
 

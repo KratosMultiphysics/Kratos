@@ -8,9 +8,11 @@ include(pybind11Tools)
 add_compile_definitions(_USE_MATH_DEFINES)
 
 kratos_add_dependency(${KRATOS_SOURCE_DIR}/applications/StructuralMechanicsApplication)
+kratos_add_dependency(${KRATOS_SOURCE_DIR}/applications/LinearSolversApplication)
 
 include_directories( ${CMAKE_SOURCE_DIR}/kratos )
 include_directories( ${CMAKE_SOURCE_DIR}/applications/StructuralMechanicsApplication )
+include_directories( ${CMAKE_SOURCE_DIR}/applications/LinearSolversApplication )
 include_directories( ${CMAKE_SOURCE_DIR}/applications/GeoMechanicsApplication )
 
 ## GeoMechanics Core sources
@@ -23,12 +25,13 @@ file(GLOB_RECURSE KRATOS_GEO_MECHANICS_APPLICATION_CORE
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_retention/*.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/*.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_io/*.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_operations/*.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/*.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_response_functions/*.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_strategies/*.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/*.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_workflows/*.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/external_bindings/*.cpp		
+    ${CMAKE_CURRENT_SOURCE_DIR}/external_bindings/*.cpp
 )
 
 ## GeoMechanics testing sources
@@ -40,7 +43,7 @@ endif(${KRATOS_BUILD_TESTING} MATCHES ON)
 file(GLOB_RECURSE KRATOS_GEO_MECHANICS_APPLICATION_PYTHON_INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/*.cpp)
 
 add_library(KratosGeoMechanicsCore SHARED ${KRATOS_GEO_MECHANICS_APPLICATION_CORE} ${KRATOS_GEO_MECHANICS_APPLICATION_TESTING_SOURCES})
-target_link_libraries(KratosGeoMechanicsCore PUBLIC KratosCore KratosStructuralMechanicsCore ${CMAKE_DL_LIBS})
+target_link_libraries(KratosGeoMechanicsCore PUBLIC KratosCore KratosStructuralMechanicsCore KratosLinearSolversCore ${CMAKE_DL_LIBS})
 set_target_properties(KratosGeoMechanicsCore PROPERTIES COMPILE_DEFINITIONS "GEO_MECHANICS_APPLICATION=EXPORT,API")
 
 

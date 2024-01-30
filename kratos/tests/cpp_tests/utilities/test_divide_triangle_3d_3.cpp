@@ -13,13 +13,10 @@
 // Project includes
 #include "testing/testing.h"
 #include "containers/model.h"
-#include "includes/checks.h"
+#include "includes/expect.h"
 #include "utilities/divide_triangle_3d_3.h"
 
-namespace Kratos
-{
-namespace Testing
-{
+namespace Kratos::Testing {
 
 KRATOS_TEST_CASE_IN_SUITE(DivideGeometryTriangle3D3, KratosCoreFastSuite)
 {
@@ -82,9 +79,9 @@ KRATOS_TEST_CASE_IN_SUITE(DivideGeometryTriangle3D3, KratosCoreFastSuite)
     const double tolerance = 1e-10;
 
     // Check general splitting values
-    KRATOS_CHECK(triangle_splitter.mIsSplit);
-    KRATOS_CHECK_EQUAL(triangle_splitter.mDivisionsNumber, 3);
-    KRATOS_CHECK_EQUAL(triangle_splitter.mSplitEdgesNumber, 2);
+    KRATOS_EXPECT_TRUE(triangle_splitter.mIsSplit);
+    KRATOS_EXPECT_EQ(triangle_splitter.mDivisionsNumber, 3);
+    KRATOS_EXPECT_EQ(triangle_splitter.mSplitEdgesNumber, 2);
 
     // Check split edges
     std::array<int,6> expected_split_edges;
@@ -95,31 +92,31 @@ KRATOS_TEST_CASE_IN_SUITE(DivideGeometryTriangle3D3, KratosCoreFastSuite)
     expected_split_edges[4]= 4;
     expected_split_edges[5]= 5;
     for (unsigned int i = 0; i < 6; ++i) {
-        KRATOS_CHECK_EQUAL(triangle_splitter.mSplitEdges[i],  expected_split_edges[i]);
+        KRATOS_EXPECT_EQ(triangle_splitter.mSplitEdges[i],  expected_split_edges[i]);
     }
 
     // Check subdivisions
     const auto &r_positive_subdivision_0 = *(triangle_splitter.GetPositiveSubdivisions()[0]);
-    
+
     Vector positive_subdivision_0_node_0_coordinates(3);
     positive_subdivision_0_node_0_coordinates[0] = 0.0;
     positive_subdivision_0_node_0_coordinates[1] = 0.5;
     positive_subdivision_0_node_0_coordinates[2] = -0.5;
-    KRATOS_CHECK_VECTOR_EQUAL(r_positive_subdivision_0[0],positive_subdivision_0_node_0_coordinates);
+    KRATOS_EXPECT_VECTOR_EQ(r_positive_subdivision_0[0],positive_subdivision_0_node_0_coordinates);
 
     Vector positive_subdivision_0_node_1_coordinates(3);
     positive_subdivision_0_node_1_coordinates[0] = 0.5;
     positive_subdivision_0_node_1_coordinates[1] = 0.5;
     positive_subdivision_0_node_1_coordinates[2] = -0.5;
-    KRATOS_CHECK_VECTOR_EQUAL(r_positive_subdivision_0[1],positive_subdivision_0_node_1_coordinates);
-    
+    KRATOS_EXPECT_VECTOR_EQ(r_positive_subdivision_0[1],positive_subdivision_0_node_1_coordinates);
+
     Vector positive_subdivision_0_node_2_coordinates(3);
     positive_subdivision_0_node_2_coordinates[0] = 0.0;
     positive_subdivision_0_node_2_coordinates[1] = 1.0;
     positive_subdivision_0_node_2_coordinates[2] = -1.0;
-    KRATOS_CHECK_VECTOR_EQUAL(r_positive_subdivision_0[2],positive_subdivision_0_node_2_coordinates);
-    
-    KRATOS_CHECK_NEAR(r_positive_subdivision_0.Area(), 0.17677669529,tolerance);
+    KRATOS_EXPECT_VECTOR_EQ(r_positive_subdivision_0[2],positive_subdivision_0_node_2_coordinates);
+
+    KRATOS_EXPECT_NEAR(r_positive_subdivision_0.Area(), 0.17677669529,tolerance);
 
     const auto &r_negative_subdivision_0 = *(triangle_splitter.GetNegativeSubdivisions()[0]);
 
@@ -127,21 +124,21 @@ KRATOS_TEST_CASE_IN_SUITE(DivideGeometryTriangle3D3, KratosCoreFastSuite)
     negative_subdivision_0_node_0_coordinates[0] = 0.0;
     negative_subdivision_0_node_0_coordinates[1] = 0.5;
     negative_subdivision_0_node_0_coordinates[2] = -0.5;
-    KRATOS_CHECK_VECTOR_EQUAL(r_negative_subdivision_0[0],negative_subdivision_0_node_0_coordinates);
+    KRATOS_EXPECT_VECTOR_EQ(r_negative_subdivision_0[0],negative_subdivision_0_node_0_coordinates);
 
     Vector negative_subdivision_0_node_1_coordinates(3);
     negative_subdivision_0_node_1_coordinates[0] = 1.0;
     negative_subdivision_0_node_1_coordinates[1] = 0.0;
     negative_subdivision_0_node_1_coordinates[2] = 0.0;
-    KRATOS_CHECK_VECTOR_EQUAL(r_negative_subdivision_0[1],negative_subdivision_0_node_1_coordinates);
+    KRATOS_EXPECT_VECTOR_EQ(r_negative_subdivision_0[1],negative_subdivision_0_node_1_coordinates);
 
     Vector negative_subdivision_0_node_2_coordinates(3);
     negative_subdivision_0_node_2_coordinates[0] = 0.5;
     negative_subdivision_0_node_2_coordinates[1] = 0.5;
     negative_subdivision_0_node_2_coordinates[2] = -0.5;
-    KRATOS_CHECK_VECTOR_EQUAL(r_negative_subdivision_0[2],negative_subdivision_0_node_2_coordinates);
+    KRATOS_EXPECT_VECTOR_EQ(r_negative_subdivision_0[2],negative_subdivision_0_node_2_coordinates);
 
-    KRATOS_CHECK_NEAR(r_negative_subdivision_0.Area(), 0.17677669529, tolerance);
+    KRATOS_EXPECT_NEAR(r_negative_subdivision_0.Area(), 0.17677669529, tolerance);
 
     const auto &r_negative_subdivision_1 = *(triangle_splitter.GetNegativeSubdivisions()[1]);
 
@@ -149,21 +146,21 @@ KRATOS_TEST_CASE_IN_SUITE(DivideGeometryTriangle3D3, KratosCoreFastSuite)
     negative_subdivision_1_node_0_coordinates[0] = 0.0;
     negative_subdivision_1_node_0_coordinates[1] = 0.5;
     negative_subdivision_1_node_0_coordinates[2] = -0.5;
-    KRATOS_CHECK_VECTOR_EQUAL(r_negative_subdivision_1[0],negative_subdivision_1_node_0_coordinates);
+    KRATOS_EXPECT_VECTOR_EQ(r_negative_subdivision_1[0],negative_subdivision_1_node_0_coordinates);
 
     Vector negative_subdivision_1_node_1_coordinates(3);
     negative_subdivision_1_node_1_coordinates[0] = 0.0;
     negative_subdivision_1_node_1_coordinates[1] = 0.0;
     negative_subdivision_1_node_1_coordinates[2] = 0.0;
-    KRATOS_CHECK_VECTOR_EQUAL(r_negative_subdivision_1[1],negative_subdivision_1_node_1_coordinates);
+    KRATOS_EXPECT_VECTOR_EQ(r_negative_subdivision_1[1],negative_subdivision_1_node_1_coordinates);
 
     Vector negative_subdivision_1_node_2_coordinates(3);
     negative_subdivision_1_node_2_coordinates[0] = 1.0;
     negative_subdivision_1_node_2_coordinates[1] = 0.0;
     negative_subdivision_1_node_2_coordinates[2] = 0.0;
-    KRATOS_CHECK_VECTOR_EQUAL(r_negative_subdivision_1[2],negative_subdivision_1_node_2_coordinates);
+    KRATOS_EXPECT_VECTOR_EQ(r_negative_subdivision_1[2],negative_subdivision_1_node_2_coordinates);
 
-    KRATOS_CHECK_NEAR(r_negative_subdivision_1.Area(), 0.35355339059, tolerance);
+    KRATOS_EXPECT_NEAR(r_negative_subdivision_1.Area(), 0.35355339059, tolerance);
 
     // Check interfaces
     const auto &r_positive_interface_0 = *(triangle_splitter.GetPositiveInterfaces()[0]);
@@ -172,13 +169,13 @@ KRATOS_TEST_CASE_IN_SUITE(DivideGeometryTriangle3D3, KratosCoreFastSuite)
     positive_interface_0_node_0_coordinates[0] = 0.0;
     positive_interface_0_node_0_coordinates[1] = 0.5;
     positive_interface_0_node_0_coordinates[2] = -0.5;
-    KRATOS_CHECK_VECTOR_EQUAL(r_positive_interface_0[0],positive_interface_0_node_0_coordinates);
+    KRATOS_EXPECT_VECTOR_EQ(r_positive_interface_0[0],positive_interface_0_node_0_coordinates);
 
     Vector positive_interface_0_node_1_coordinates(3);
     positive_interface_0_node_1_coordinates[0] = 0.5;
     positive_interface_0_node_1_coordinates[1] = 0.5;
     positive_interface_0_node_1_coordinates[2] = -0.5;
-    KRATOS_CHECK_VECTOR_EQUAL(r_positive_interface_0[1],positive_interface_0_node_1_coordinates);
+    KRATOS_EXPECT_VECTOR_EQ(r_positive_interface_0[1],positive_interface_0_node_1_coordinates);
 
     const auto &r_negative_interface_0 = *(triangle_splitter.GetNegativeInterfaces()[0]);
 
@@ -186,88 +183,116 @@ KRATOS_TEST_CASE_IN_SUITE(DivideGeometryTriangle3D3, KratosCoreFastSuite)
     negative_interface_0_node_0_coordinates[0] = 0.5;
     negative_interface_0_node_0_coordinates[1] = 0.5;
     negative_interface_0_node_0_coordinates[2] = -0.5;
-    KRATOS_CHECK_VECTOR_EQUAL(r_negative_interface_0[0],negative_interface_0_node_0_coordinates);
+    KRATOS_EXPECT_VECTOR_EQ(r_negative_interface_0[0],negative_interface_0_node_0_coordinates);
 
     Vector negative_interface_0_node_1_coordinates(3);
     negative_interface_0_node_1_coordinates[0] = 0.0;
     negative_interface_0_node_1_coordinates[1] = 0.5;
     negative_interface_0_node_1_coordinates[2] = -0.5;
-    KRATOS_CHECK_VECTOR_EQUAL(r_negative_interface_0[1],negative_interface_0_node_1_coordinates);
+    KRATOS_EXPECT_VECTOR_EQ(r_negative_interface_0[1],negative_interface_0_node_1_coordinates);
 
-    KRATOS_CHECK_EQUAL(triangle_splitter.GetPositiveInterfacesParentIds()[0], 0);
-    KRATOS_CHECK_EQUAL(triangle_splitter.GetNegativeInterfacesParentIds()[0], 0);
+    KRATOS_EXPECT_EQ(triangle_splitter.GetPositiveInterfacesParentIds()[0], 0);
+    KRATOS_EXPECT_EQ(triangle_splitter.GetNegativeInterfacesParentIds()[0], 0);
 
     // Check exterior faces
-    KRATOS_CHECK_EQUAL(pos_ext_faces.size(), 2);
-    KRATOS_CHECK_EQUAL(neg_ext_faces.size(), 3);
+    KRATOS_EXPECT_EQ(pos_ext_faces.size(), 2);
+    KRATOS_EXPECT_EQ(neg_ext_faces.size(), 3);
 
-    KRATOS_CHECK_EQUAL(pos_ext_faces_parent_ids[0], 0);
-    KRATOS_CHECK_EQUAL(pos_ext_faces_parent_ids[1], 0);
+    KRATOS_EXPECT_EQ(pos_ext_faces_parent_ids[0], 0);
+    KRATOS_EXPECT_EQ(pos_ext_faces_parent_ids[1], 0);
 
-    KRATOS_CHECK_EQUAL(neg_ext_faces_parent_ids[0], 0);
-    KRATOS_CHECK_EQUAL(neg_ext_faces_parent_ids[1], 1);
-    KRATOS_CHECK_EQUAL(neg_ext_faces_parent_ids[2], 1);
+    KRATOS_EXPECT_EQ(neg_ext_faces_parent_ids[0], 0);
+    KRATOS_EXPECT_EQ(neg_ext_faces_parent_ids[1], 1);
+    KRATOS_EXPECT_EQ(neg_ext_faces_parent_ids[2], 1);
 
     Vector pos_ext_faces_0_node_0_coordinates(3);
     pos_ext_faces_0_node_0_coordinates[0] = 0.5;
     pos_ext_faces_0_node_0_coordinates[1] = 0.5;
     pos_ext_faces_0_node_0_coordinates[2] = -0.5;
-    KRATOS_CHECK_VECTOR_EQUAL((*pos_ext_faces[0])[0],pos_ext_faces_0_node_0_coordinates);
+    KRATOS_EXPECT_VECTOR_EQ((*pos_ext_faces[0])[0],pos_ext_faces_0_node_0_coordinates);
 
     Vector pos_ext_faces_0_node_1_coordinates(3);
     pos_ext_faces_0_node_1_coordinates[0] = 0.0;
     pos_ext_faces_0_node_1_coordinates[1] = 1.0;
     pos_ext_faces_0_node_1_coordinates[2] = -1.0;
-    KRATOS_CHECK_VECTOR_EQUAL((*pos_ext_faces[0])[1],pos_ext_faces_0_node_1_coordinates);
+    KRATOS_EXPECT_VECTOR_EQ((*pos_ext_faces[0])[1],pos_ext_faces_0_node_1_coordinates);
 
     Vector pos_ext_faces_1_node_0_coordinates(3);
     pos_ext_faces_1_node_0_coordinates[0] = 0.0;
     pos_ext_faces_1_node_0_coordinates[1] = 1.0;
     pos_ext_faces_1_node_0_coordinates[2] = -1.0;
-    KRATOS_CHECK_VECTOR_EQUAL((*pos_ext_faces[1])[0],pos_ext_faces_1_node_0_coordinates);
+    KRATOS_EXPECT_VECTOR_EQ((*pos_ext_faces[1])[0],pos_ext_faces_1_node_0_coordinates);
 
     Vector pos_ext_faces_1_node_1_coordinates(3);
     pos_ext_faces_1_node_1_coordinates[0] = 0.0;
     pos_ext_faces_1_node_1_coordinates[1] = 0.5;
     pos_ext_faces_1_node_1_coordinates[2] = -0.5;
-    KRATOS_CHECK_VECTOR_EQUAL((*pos_ext_faces[1])[1],pos_ext_faces_1_node_1_coordinates);
+    KRATOS_EXPECT_VECTOR_EQ((*pos_ext_faces[1])[1],pos_ext_faces_1_node_1_coordinates);
 
     Vector neg_ext_faces_0_node_0_coordinates(3);
     neg_ext_faces_0_node_0_coordinates[0] = 1.0;
     neg_ext_faces_0_node_0_coordinates[1] = 0.0;
     neg_ext_faces_0_node_0_coordinates[2] = 0.0;
-    KRATOS_CHECK_VECTOR_EQUAL((*neg_ext_faces[0])[0],neg_ext_faces_0_node_0_coordinates);
+    KRATOS_EXPECT_VECTOR_EQ((*neg_ext_faces[0])[0],neg_ext_faces_0_node_0_coordinates);
 
     Vector neg_ext_faces_0_node_1_coordinates(3);
     neg_ext_faces_0_node_1_coordinates[0] = 0.5;
     neg_ext_faces_0_node_1_coordinates[1] = 0.5;
     neg_ext_faces_0_node_1_coordinates[2] = -0.5;
-    KRATOS_CHECK_VECTOR_EQUAL((*neg_ext_faces[0])[1],neg_ext_faces_0_node_1_coordinates);
+    KRATOS_EXPECT_VECTOR_EQ((*neg_ext_faces[0])[1],neg_ext_faces_0_node_1_coordinates);
 
     Vector neg_ext_faces_1_node_0_coordinates(3);
     neg_ext_faces_1_node_0_coordinates[0] = 0.0;
     neg_ext_faces_1_node_0_coordinates[1] = 0.5;
     neg_ext_faces_1_node_0_coordinates[2] = -0.5;
-    KRATOS_CHECK_VECTOR_EQUAL((*neg_ext_faces[1])[0],neg_ext_faces_1_node_0_coordinates);
+    KRATOS_EXPECT_VECTOR_EQ((*neg_ext_faces[1])[0],neg_ext_faces_1_node_0_coordinates);
 
     Vector neg_ext_faces_1_node_1_coordinates(3);
     neg_ext_faces_1_node_1_coordinates[0] = 0.0;
     neg_ext_faces_1_node_1_coordinates[1] = 0.0;
     neg_ext_faces_1_node_1_coordinates[2] = 0.0;
-    KRATOS_CHECK_VECTOR_EQUAL((*neg_ext_faces[1])[1],neg_ext_faces_1_node_1_coordinates);
+    KRATOS_EXPECT_VECTOR_EQ((*neg_ext_faces[1])[1],neg_ext_faces_1_node_1_coordinates);
 
     Vector neg_ext_faces_2_node_0_coordinates(3);
     neg_ext_faces_2_node_0_coordinates[0] = 0.0;
     neg_ext_faces_2_node_0_coordinates[1] = 0.0;
     neg_ext_faces_2_node_0_coordinates[2] = 0.0;
-    KRATOS_CHECK_VECTOR_EQUAL((*neg_ext_faces[2])[0],neg_ext_faces_2_node_0_coordinates);
+    KRATOS_EXPECT_VECTOR_EQ((*neg_ext_faces[2])[0],neg_ext_faces_2_node_0_coordinates);
 
     Vector neg_ext_faces_2_node_1_coordinates(3);
     neg_ext_faces_2_node_1_coordinates[0] = 1.0;
     neg_ext_faces_2_node_1_coordinates[1] = 0.0;
     neg_ext_faces_2_node_1_coordinates[2] = 0.0;
-    KRATOS_CHECK_VECTOR_EQUAL((*neg_ext_faces[2])[1],neg_ext_faces_2_node_1_coordinates);
+    KRATOS_EXPECT_VECTOR_EQ((*neg_ext_faces[2])[1],neg_ext_faces_2_node_1_coordinates);
 
 }
+
+KRATOS_TEST_CASE_IN_SUITE(DivideGeometryTriangle3D3ZeroNode, KratosCoreFastSuite)
+{
+    Model current_model;
+
+    // Generate a model part with the previous
+    ModelPart& base_model_part = current_model.CreateModelPart("Triangle");
+
+    // Fill the model part geometry data
+    base_model_part.CreateNewNode(1, 0.3,  0.0, 0.6);
+    base_model_part.CreateNewNode(2, 0.3,  0.0, 0.9);
+    base_model_part.CreateNewNode(3, 0.3, -0.3, 0.3);
+    Properties::Pointer p_properties(new Properties(0));
+    auto p_elem = base_model_part.CreateNewElement("Element3D3N", 1, {1, 2, 3}, p_properties);
+
+    Vector nodal_distances = ZeroVector(3);
+    // cut at z = 0.6, across node 0
+    nodal_distances[0] = 0.0;
+    nodal_distances[1] = 0.3;
+    nodal_distances[2] = -0.3;
+
+    auto divider = DivideTriangle3D3<Node>(p_elem->GetGeometry(), nodal_distances);
+    divider.GenerateDivision();
+
+    // Should split a single edge and return two triangles
+    KRATOS_EXPECT_EQ(divider.GetPositiveSubdivisions().size(), 1);
+    KRATOS_EXPECT_EQ(divider.GetNegativeSubdivisions().size(), 1);
 }
-}  // namespace Kratos.
+
+}  // namespace Kratos::Testing.

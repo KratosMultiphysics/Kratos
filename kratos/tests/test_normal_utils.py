@@ -130,6 +130,19 @@ class TestNormalUtilsCoarseSphere(KratosUnittest.TestCase):
 
             self.assertLess(CalculateNorm(normal - solution_normal), 0.15)
 
+    @KratosUnittest.skipIf(KratosMultiphysics.IsDistributedRun(), "This test is designed for serial runs only.")
+    def test_ComputeSimplexNormalModelPartWithLineCondition(self):
+        #Adding one line, to make sure it is getting ignored
+        self.model_part.CreateNewCondition("LineCondition3D2N", 1000, [1,2], self.model_part.GetProperties()[1])
+        KratosMultiphysics.NormalCalculationUtils().CalculateOnSimplex(self.model_part)
+        for node in self.model_part.GetSubModelPart("Skin_Part").Nodes:
+            normal = CalculateAnalyticalNormal(node)
+
+            solution_normal = node.GetSolutionStepValue(KratosMultiphysics.NORMAL)
+            solution_normal /= CalculateNorm(solution_normal)
+
+            self.assertLess(CalculateNorm(normal - solution_normal), 0.15)
+
     def test_ComputeSimplexNormalModelPartWithCustomVariable(self):
         ## Calculate the normals using NODAL_VAUX as custom variable
         KratosMultiphysics.NormalCalculationUtils().CalculateOnSimplex(

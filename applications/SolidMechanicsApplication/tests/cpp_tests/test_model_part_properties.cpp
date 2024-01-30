@@ -32,17 +32,17 @@ KRATOS_TEST_CASE_IN_SUITE(ModelPartSetProperties, KratosSolidMechanicsFastSuite)
 
   model_part.AddProperties(NewProperty);
     
-  KRATOS_CHECK_EQUAL(model_part.NumberOfProperties(), 1);
-  KRATOS_CHECK_EQUAL(sub_model_part.NumberOfProperties(), 0);
+  KRATOS_EXPECT_EQ(model_part.NumberOfProperties(), 1);
+  KRATOS_EXPECT_EQ(sub_model_part.NumberOfProperties(), 0);
 
   sub_model_part.SetProperties(model_part.pProperties());
   
-  KRATOS_CHECK_EQUAL(model_part.NumberOfProperties(), 1);
-  KRATOS_CHECK_EQUAL(sub_model_part.NumberOfProperties(), 1);
+  KRATOS_EXPECT_EQ(model_part.NumberOfProperties(), 1);
+  KRATOS_EXPECT_EQ(sub_model_part.NumberOfProperties(), 1);
 
   model_part.RemoveSubModelPart("Part1)");
   
-  KRATOS_CHECK_EQUAL(model_part.NumberOfProperties(), 1);
+  KRATOS_EXPECT_EQ(model_part.NumberOfProperties(), 1);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(ModelPartGetProperties, KratosSolidMechanicsFastSuite)
@@ -55,13 +55,13 @@ KRATOS_TEST_CASE_IN_SUITE(ModelPartGetProperties, KratosSolidMechanicsFastSuite)
 
   Properties::Pointer MainProperty = model_part.pGetProperties(-1);
     
-  KRATOS_CHECK_EQUAL(model_part.NumberOfProperties(), 1);
-  KRATOS_CHECK_EQUAL(sub_model_part.NumberOfProperties(), 0);
+  KRATOS_EXPECT_EQ(model_part.NumberOfProperties(), 1);
+  KRATOS_EXPECT_EQ(sub_model_part.NumberOfProperties(), 0);
 
   Properties::Pointer SubProperty = sub_model_part.pGetProperties(-1);
   
-  KRATOS_CHECK_EQUAL(model_part.NumberOfProperties(), 1);
-  KRATOS_CHECK_EQUAL(sub_model_part.NumberOfProperties(), 1);  
+  KRATOS_EXPECT_EQ(model_part.NumberOfProperties(), 1);
+  KRATOS_EXPECT_EQ(sub_model_part.NumberOfProperties(), 1);  
 }
 
 KRATOS_TEST_CASE_IN_SUITE(ModelPartRemoveProperties, KratosSolidMechanicsFastSuite)
@@ -76,12 +76,12 @@ KRATOS_TEST_CASE_IN_SUITE(ModelPartRemoveProperties, KratosSolidMechanicsFastSui
   
   sub_model_part.SetProperties(model_part.pProperties());
   
-  KRATOS_CHECK_EQUAL(model_part.NumberOfProperties(), 1);
-  KRATOS_CHECK_EQUAL(sub_model_part.NumberOfProperties(), 1);
+  KRATOS_EXPECT_EQ(model_part.NumberOfProperties(), 1);
+  KRATOS_EXPECT_EQ(sub_model_part.NumberOfProperties(), 1);
 
   model_part.RemoveSubModelPart("Part1)");
   
-  KRATOS_CHECK_EQUAL(model_part.NumberOfProperties(), 1);    
+  KRATOS_EXPECT_EQ(model_part.NumberOfProperties(), 1);    
 }
 
 }

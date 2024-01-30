@@ -110,7 +110,7 @@ KRATOS_TEST_CASE_IN_SUITE(EmbeddedTransonicPerturbationPotentialFlowElementRHS, 
 
     std::vector<double> reference{109.69824459475,-91.606971325612,-18.091273269139};
 
-    KRATOS_CHECK_VECTOR_NEAR(RHS, reference, 1e-12);
+    KRATOS_EXPECT_VECTOR_NEAR(RHS, reference, 1e-12);
 }
 
 /** Checks the TransonicPerturbationPotentialFlowElement.
@@ -136,7 +136,7 @@ KRATOS_TEST_CASE_IN_SUITE(EmbeddedTransonicPerturbationPotentialFlowInletElement
 
     std::vector<double> reference{109.69824459475,-91.606971325612,-18.091273269139};
 
-    KRATOS_CHECK_VECTOR_NEAR(RHS, reference, 1e-12);
+    KRATOS_EXPECT_VECTOR_NEAR(RHS, reference, 1e-12);
 }
 
 /** Checks the TransonicPerturbationPotentialFlowElement.
@@ -166,7 +166,7 @@ KRATOS_TEST_CASE_IN_SUITE(EmbeddedTransonicPerturbationPotentialFlowElementLHS, 
 
     for (unsigned int i = 0; i < LHS.size1(); i++) {
         for (unsigned int j = 0; j < LHS.size2(); j++) {
-            KRATOS_CHECK_RELATIVE_NEAR(LHS(i, j), reference[i * 3 + j], 1e-12);
+            KRATOS_EXPECT_RELATIVE_NEAR(LHS(i, j), reference[i * 3 + j], 1e-12);
         }
     }
 }
@@ -226,7 +226,7 @@ KRATOS_TEST_CASE_IN_SUITE(EmbeddedTransonicPerturbationPotentialFlowSupersonicEl
 
     std::vector<double> reference{138.942250054897102,-173.403842905459442,34.4615928505623046,0.0};
 
-    KRATOS_CHECK_VECTOR_NEAR(RHS, reference, 1e-15);
+    KRATOS_EXPECT_VECTOR_NEAR(RHS, reference, 1e-15);
 }
 
 /** Checks the EmbeddedTransonicPerturbationPotentialFlowElement
@@ -255,7 +255,7 @@ KRATOS_TEST_CASE_IN_SUITE(PingEmbeddedTransonicPerturbationPotentialFlowElementL
     PotentialFlowTestUtilities::ComputeElementalSensitivities<3>(
         model_part, LHS_finite_diference, LHS_analytical, potential);
 
-    KRATOS_CHECK_MATRIX_NEAR(LHS_finite_diference, LHS_analytical, 1e-10);
+    KRATOS_EXPECT_MATRIX_NEAR(LHS_finite_diference, LHS_analytical, 1e-10);
 }
 
 /** Checks the EmbeddedTransonicPerturbationPotentialFlowElement when it's INLET
@@ -284,7 +284,7 @@ KRATOS_TEST_CASE_IN_SUITE(PingEmbeddedTransonicPerturbationInletPotentialFlowEle
     PotentialFlowTestUtilities::ComputeElementalSensitivities<3>(
         model_part, LHS_finite_diference, LHS_analytical, potential);
 
-    KRATOS_CHECK_MATRIX_NEAR(LHS_finite_diference, LHS_analytical, 1e-10);
+    KRATOS_EXPECT_MATRIX_NEAR(LHS_finite_diference, LHS_analytical, 1e-10);
 }
 
 
@@ -312,7 +312,7 @@ KRATOS_TEST_CASE_IN_SUITE(PingEmbeddedTransonicPerturbationWakePotentialFlowElem
     PotentialFlowTestUtilities::ComputeWakeElementalSensitivities<3>(
         model_part, LHS_finite_diference, LHS_analytical, potential);
 
-    KRATOS_CHECK_MATRIX_NEAR(LHS_finite_diference, LHS_analytical, 1e-10);
+    KRATOS_EXPECT_MATRIX_NEAR(LHS_finite_diference, LHS_analytical, 1e-10);
 }
 
 
@@ -403,7 +403,7 @@ KRATOS_TEST_CASE_IN_SUITE(PingEmbeddedTransonicPerturbationPotentialFlowSuperson
             p_upwind_element->GetGeometry()[2].FastGetSolutionStepValue(VELOCITY_POTENTIAL) -= delta;
         }
     }
-    KRATOS_CHECK_MATRIX_NEAR(LHS_finite_diference, LHS_analytical, 1e-10);
+    KRATOS_EXPECT_MATRIX_NEAR(LHS_finite_diference, LHS_analytical, 1e-10);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(PingEmbeddedTransonicPerturbationPotentialFlowSupersonicDecElementLHS, CompressiblePotentialApplicationFastSuite) {
@@ -489,7 +489,7 @@ KRATOS_TEST_CASE_IN_SUITE(PingEmbeddedTransonicPerturbationPotentialFlowSuperson
             p_upwind_element->GetGeometry()[2].FastGetSolutionStepValue(VELOCITY_POTENTIAL) -= delta;
         }
     }
-    KRATOS_CHECK_MATRIX_NEAR(LHS_finite_diference, LHS_analytical, 1e-10);
+    KRATOS_EXPECT_MATRIX_NEAR(LHS_finite_diference, LHS_analytical, 1e-10);
 }
 
 } // namespace Testing

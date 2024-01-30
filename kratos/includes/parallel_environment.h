@@ -10,8 +10,7 @@
 //  Main author:     Jordi Cotela
 //
 
-#ifndef KRATOS_PARALLEL_ENVIRONMENT_H_INCLUDED
-#define KRATOS_PARALLEL_ENVIRONMENT_H_INCLUDED
+#pragma once
 
 // System includes
 #include <string>
@@ -320,5 +319,3 @@ class KRATOS_API(KRATOS_CORE) ParallelEnvironment
 ///@} addtogroup block
 
 } // namespace Kratos.
-
-#endif // KRATOS_PARALLEL_ENVIRONMENT_H_INCLUDED  defined

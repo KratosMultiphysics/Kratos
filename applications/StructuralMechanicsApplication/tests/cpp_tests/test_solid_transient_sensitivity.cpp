@@ -111,7 +111,7 @@ KRATOS_TEST_CASE_IN_SUITE(TotalLagrangian2D3_SaintVenantPlaneStrain_TransientSen
             const double adjoint_sensitivity =
                 adjoint_solver.CalculateSensitivity(i_node, dir);
             const double tol = std::max(0.001 * std::abs(finite_diff_sensitivity), 1e-10);
-            KRATOS_CHECK_NEAR(adjoint_sensitivity, finite_diff_sensitivity, tol);
+            KRATOS_EXPECT_NEAR(adjoint_sensitivity, finite_diff_sensitivity, tol);
         }
     }
 }
@@ -159,7 +159,7 @@ KRATOS_TEST_CASE_IN_SUITE(TotalLagrangian3D8_SaintVenant_TransientSensitivity, K
             const double adjoint_sensitivity =
                 adjoint_solver.CalculateSensitivity(i_node, dir);
             const double tol = std::max(0.01 * std::abs(finite_diff_sensitivity), 1e-10);
-            KRATOS_CHECK_NEAR(adjoint_sensitivity, finite_diff_sensitivity, tol);
+            KRATOS_EXPECT_NEAR(adjoint_sensitivity, finite_diff_sensitivity, tol);
         }
     }
 }

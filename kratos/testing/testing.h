@@ -18,14 +18,14 @@
 // External includes
 
 // Project includes
+#include "includes/expect.h"  // It is almost always necessary. includes the exception
 #include "testing/test_suite.h" // This includes the test_case.h which includes tester.h
-#include "includes/checks.h"  // It is almost always necessary. includes the exception
 #include "includes/data_communicator.h"
 #include "testing/test_skipped_exception.h" // Macros and exception class used to skip tests.
 
 namespace Kratos::Testing 
 {
 
-DataCommunicator& GetDefaultDataCommunicator();
+KRATOS_API(KRATOS_CORE) DataCommunicator& GetDefaultDataCommunicator();
 
 }

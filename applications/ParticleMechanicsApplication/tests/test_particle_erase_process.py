@@ -6,7 +6,7 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 
 class TestParticleEraseProcess(KratosUnittest.TestCase):
 
-    def _generate_particle_element_and_check(self, current_model):
+    def _generate_particle_elements_and_conditions_and_check(self, current_model):
         KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(KratosMultiphysics.Logger.Severity.WARNING)
 
         dimension = 3
@@ -63,37 +63,36 @@ class TestParticleEraseProcess(KratosUnittest.TestCase):
             condition.SetValue(KratosParticle.PARTICLES_PER_CONDITION, 0)
             condition.SetValue(KratosParticle.MPC_BOUNDARY_CONDITION_TYPE, 1)
 
-    def _search_element(self, current_model):
+    def _search_particle_elements_and_conditions(self, current_model):
         # Default
         max_num_results = 1000
         specific_tolerance = 1.e-5
 
-        # Get model part
+        # Get model parts
         material_point_model_part = current_model.GetModelPart("dummy_name")
         grid_model_part           = current_model.GetModelPart("Background_Grid")
 
-        # Search element
+        # Search particle elements and conditions
         KratosParticle.SearchElement(grid_model_part, material_point_model_part, max_num_results, specific_tolerance)
 
-
-    def test_ParticleEraseOutsideGivenDomain(self):
+    def test_ParticleElementEraseOutsideGivenDomain(self):
         current_model = KratosMultiphysics.Model()
-        self._generate_particle_element_and_check(current_model)
+        self._generate_particle_elements_and_conditions_and_check(current_model)
 
-        # Get model part
+        # Get mpm model part
         material_point_model_part = current_model.GetModelPart("dummy_name")
 
-        # Check initial total number of element
+        # Check initial total number of particle elements
         particle_counter = material_point_model_part.NumberOfElements()
         self.assertEqual(particle_counter, 8)
 
-        # Move particle
+        # Move particle elements
         for mpm in material_point_model_part.Elements:
             new_coordinates = mpm.CalculateOnIntegrationPoints(KratosParticle.MP_COORD, self.process_info)
             new_coordinates[0] += [0.3, 0.23, 0.22]
             mpm.SetValuesOnIntegrationPoints(KratosParticle.MP_COORD, new_coordinates, self.process_info)
 
-        # Check outside given domain
+        # Check if particle elements are outside given domain
         for mpm in material_point_model_part.Elements:
             new_coordinate = mpm.CalculateOnIntegrationPoints(KratosParticle.MP_COORD, self.process_info)[0]
             if(new_coordinate[0] < -0.5 or new_coordinate[0] > 0.5 or new_coordinate[1] < -0.5 or new_coordinate[1] > 0.5 or new_coordinate[2] < 0.0 or new_coordinate[2] > 1.0 ):
@@ -105,32 +104,32 @@ class TestParticleEraseProcess(KratosUnittest.TestCase):
         # Execute
         process.Execute()
 
-        # Check total number of element
+        # Check total number of particle elements
         particle_counter = material_point_model_part.NumberOfElements()
         self.assertEqual(particle_counter, 1)
         expected_id = 9
         for mpm in material_point_model_part.Elements:
             self.assertEqual(mpm.Id, expected_id)
 
-    def test_ParticleEraseBySearch(self):
+    def test_ParticleElementEraseBySearch(self):
         current_model = KratosMultiphysics.Model()
-        self._generate_particle_element_and_check(current_model)
+        self._generate_particle_elements_and_conditions_and_check(current_model)
 
-        # Get model part
+        # Get mpm model part
         material_point_model_part = current_model.GetModelPart("dummy_name")
 
-        # Check initial total number of element
+        # Check initial total number of particle elements
         particle_counter = material_point_model_part.NumberOfElements()
         self.assertEqual(particle_counter, 8)
 
-        # Move particle
+        # Move particle elements
         for mpm in material_point_model_part.Elements:
             new_coordinates = mpm.CalculateOnIntegrationPoints(KratosParticle.MP_COORD, self.process_info)
             new_coordinates[0] += [0.3, 0.23, 0.22]
             mpm.SetValuesOnIntegrationPoints(KratosParticle.MP_COORD, new_coordinates, self.process_info)
 
         # Call Search
-        self._search_element(current_model)
+        self._search_particle_elements_and_conditions(current_model)
 
         # Initiate process
         process = KratosParticle.ParticleEraseProcess(material_point_model_part)
@@ -138,7 +137,7 @@ class TestParticleEraseProcess(KratosUnittest.TestCase):
         # Execute
         process.Execute()
 
-        # Check total number of element
+        # Check total number of particle elements
         particle_counter = material_point_model_part.NumberOfElements()
         self.assertEqual(particle_counter, 1)
         expected_id = 9
@@ -147,59 +146,105 @@ class TestParticleEraseProcess(KratosUnittest.TestCase):
 
     def test_ParticleConditionEraseOutsideGivenDomain(self):
         current_model = KratosMultiphysics.Model()
-        self._generate_particle_element_and_check(current_model)
+        self._generate_particle_elements_and_conditions_and_check(current_model)
 
-        # Get model part
+        # Get mpm model part
         material_point_model_part = current_model.GetModelPart("dummy_name")
 
-        # Check initial number of condition
+        # Check initial number of particle condition
         particle_counter = material_point_model_part.NumberOfConditions()
         self.assertEqual(particle_counter, 1)
 
-        # Move particle
+        # Move particle conditions
         for mpc in material_point_model_part.Conditions:
+            # Current position is (0,0,0.5)
             new_coordinates = mpc.CalculateOnIntegrationPoints(KratosParticle.MPC_COORD, self.process_info)
+            # Updated position is (-0.5,0.5,1.0)
             new_coordinates[0] += [-0.5, 0.5, 0.5]
             mpc.SetValuesOnIntegrationPoints(KratosParticle.MPC_COORD, new_coordinates, self.process_info)
 
-        # Check outside given domain
+        # Check if particle conditions are outside given domain
         for mpc in material_point_model_part.Conditions:
             new_coordinate = mpc.CalculateOnIntegrationPoints(KratosParticle.MPC_COORD, self.process_info)[0]
             if(new_coordinate[0] < -0.5 or new_coordinate[0] > 0.5 or new_coordinate[1] < -0.5 or new_coordinate[1] > 0.5 or new_coordinate[2] < 0.0 or new_coordinate[2] > 1.0 ):
                 mpc.Set(KratosMultiphysics.TO_ERASE, True)
 
-        # Initiate process
-        process = KratosParticle.ParticleEraseProcess(material_point_model_part)
+        # Execute ParticleEraseProcess
+        KratosParticle.ParticleEraseProcess(material_point_model_part).Execute()
 
-        # Execute
-        process.Execute()
-
-        # Check total number of condition
+        # Check total number of particle conditions
         particle_counter = material_point_model_part.NumberOfConditions()
         self.assertEqual(particle_counter, 1)
         expected_id = 11
         for mpc in material_point_model_part.Conditions:
             self.assertEqual(mpc.Id, expected_id)
 
+        # Move particle conditions
+        for mpc in material_point_model_part.Conditions:
+            # Current  position is (-0.5,0.5,1.0)
+            new_coordinates = mpc.CalculateOnIntegrationPoints(KratosParticle.MPC_COORD, self.process_info)
+            # Updated position is (-0.501,0.5,1.0)
+            new_coordinates[0] += [-0.001,0,0]
+            mpc.SetValuesOnIntegrationPoints(KratosParticle.MPC_COORD, new_coordinates, self.process_info)
+
+        # Check if particle condition is outside given domain
+        for mpc in material_point_model_part.Conditions:
+            new_coordinate = mpc.CalculateOnIntegrationPoints(KratosParticle.MPC_COORD, self.process_info)[0]
+            if(new_coordinate[0] < -0.5 or new_coordinate[0] > 0.5 or new_coordinate[1] < -0.5 or new_coordinate[1] > 0.5 or new_coordinate[2] < 0.0 or new_coordinate[2] > 1.0 ):
+                mpc.Set(KratosMultiphysics.TO_ERASE, True)
+
+        # Execute ParticleEraseProcess
+        KratosParticle.ParticleEraseProcess(material_point_model_part).Execute()
+
+        # Check total number of particle conditions
+        particle_counter = material_point_model_part.NumberOfConditions()
+        self.assertEqual(particle_counter, 0)
+
     def test_ParticleConditionEraseBySearch(self):
         current_model = KratosMultiphysics.Model()
-        self._generate_particle_element_and_check(current_model)
+        self._generate_particle_elements_and_conditions_and_check(current_model)
 
-        # Get model part
+        # Get mpm model part
         material_point_model_part = current_model.GetModelPart("dummy_name")
 
-        # Check initial number of condition
+        # Check initial number of particle condition
         particle_counter = material_point_model_part.NumberOfConditions()
         self.assertEqual(particle_counter, 1)
 
-        # Move particle
+        # Move particle conditions
         for mpc in material_point_model_part.Conditions:
+            # Current position is (0,0,0.5)
             new_coordinates = mpc.CalculateOnIntegrationPoints(KratosParticle.MPC_COORD, self.process_info)
+            # Updated position is (-0.5,0.5,1.0)
             new_coordinates[0] += [-0.5, 0.5, 0.5]
             mpc.SetValuesOnIntegrationPoints(KratosParticle.MPC_COORD, new_coordinates, self.process_info)
 
         # Call Search
-        self._search_element(current_model)
+        self._search_particle_elements_and_conditions(current_model)
+
+        # Initiate process
+        process = KratosParticle.ParticleEraseProcess(material_point_model_part)
+
+        # Execute process
+        process.Execute()
+
+        # Check total number of particle conditions
+        particle_counter = material_point_model_part.NumberOfConditions()
+        self.assertEqual(particle_counter, 1)
+        expected_id = 11
+        for mpc in material_point_model_part.Conditions:
+            self.assertEqual(mpc.Id, expected_id)
+
+        # Move particle conditions
+        for mpc in material_point_model_part.Conditions:
+            # Current position is (-0.5,0.5,1)
+            new_coordinates = mpc.CalculateOnIntegrationPoints(KratosParticle.MPC_COORD, self.process_info)
+            # Updated position is (-0.5,0.5,1.001)
+            new_coordinates[0] += [0, 0, 0.001]
+            mpc.SetValuesOnIntegrationPoints(KratosParticle.MPC_COORD, new_coordinates, self.process_info)
+
+        # Call Search
+        self._search_particle_elements_and_conditions(current_model)
 
         # Initiate process
         process = KratosParticle.ParticleEraseProcess(material_point_model_part)
@@ -207,13 +252,9 @@ class TestParticleEraseProcess(KratosUnittest.TestCase):
         # Execute
         process.Execute()
 
-        # Check total number of condition
+        # Check total number of particle conditions
         particle_counter = material_point_model_part.NumberOfConditions()
-        self.assertEqual(particle_counter, 1)
-        expected_id = 11
-        for mpc in material_point_model_part.Conditions:
-            self.assertEqual(mpc.Id, expected_id)
-
+        self.assertEqual(particle_counter, 0)
 
 if __name__ == '__main__':
     KratosUnittest.main()

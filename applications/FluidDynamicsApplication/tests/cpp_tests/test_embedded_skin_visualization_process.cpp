@@ -200,10 +200,10 @@ namespace Kratos {
             const std::array<double, 8> expected_d_y{{-2.0,-2.0,2.0,-0.2,-0.2,-0.2,-0.2,-0.2}};
             unsigned int i = 0;
             for (auto& r_node : visualization_model_part.Nodes()) {
-                KRATOS_CHECK_NEAR(r_node.FastGetSolutionStepValue(PRESSURE), expected_p[i], tolerance);
-                KRATOS_CHECK_NEAR(r_node.FastGetSolutionStepValue(VELOCITY_X), expected_v_x[i], tolerance);
-                KRATOS_CHECK_NEAR(r_node.GetValue(TEMPERATURE), expected_t[i], tolerance);
-                KRATOS_CHECK_NEAR(r_node.GetValue(DISPLACEMENT_Y), expected_d_y[i], tolerance);
+                KRATOS_EXPECT_NEAR(r_node.FastGetSolutionStepValue(PRESSURE), expected_p[i], tolerance);
+                KRATOS_EXPECT_NEAR(r_node.FastGetSolutionStepValue(VELOCITY_X), expected_v_x[i], tolerance);
+                KRATOS_EXPECT_NEAR(r_node.GetValue(TEMPERATURE), expected_t[i], tolerance);
+                KRATOS_EXPECT_NEAR(r_node.GetValue(DISPLACEMENT_Y), expected_d_y[i], tolerance);
                 i++;
             }
 	    }
@@ -252,10 +252,10 @@ namespace Kratos {
             const std::array<double, 8> expected_d_y{{-2.0,-2.0,2.0,2.0,2.0,-2.0,-2.0,-2.0}};
             unsigned int i = 0;
             for (auto& r_node : visualization_model_part.Nodes()) {
-                KRATOS_CHECK_NEAR(r_node.FastGetSolutionStepValue(PRESSURE), expected_p[i], tolerance);
-                KRATOS_CHECK_NEAR(r_node.FastGetSolutionStepValue(VELOCITY_X), expected_v_x[i], tolerance);
-                KRATOS_CHECK_NEAR(r_node.GetValue(TEMPERATURE), expected_t[i], tolerance);
-                KRATOS_CHECK_NEAR(r_node.GetValue(DISPLACEMENT_Y), expected_d_y[i], tolerance);
+                KRATOS_EXPECT_NEAR(r_node.FastGetSolutionStepValue(PRESSURE), expected_p[i], tolerance);
+                KRATOS_EXPECT_NEAR(r_node.FastGetSolutionStepValue(VELOCITY_X), expected_v_x[i], tolerance);
+                KRATOS_EXPECT_NEAR(r_node.GetValue(TEMPERATURE), expected_t[i], tolerance);
+                KRATOS_EXPECT_NEAR(r_node.GetValue(DISPLACEMENT_Y), expected_d_y[i], tolerance);
                 i++;
             }
 	    }
@@ -312,10 +312,10 @@ namespace Kratos {
             const std::array<double, 8> expected_d_y{{-2.0,-2.0,2.0,-0.2,2.0,-0.2,-2.0,-0.2}};
             unsigned int i = 0;
             for (auto& r_node : visualization_model_part.Nodes()) {
-                KRATOS_CHECK_NEAR(r_node.FastGetSolutionStepValue(PRESSURE), expected_p[i], tolerance);
-                KRATOS_CHECK_NEAR(r_node.FastGetSolutionStepValue(VELOCITY_X), expected_v_x[i], tolerance);
-                KRATOS_CHECK_NEAR(r_node.GetValue(TEMPERATURE), expected_t[i], tolerance);
-                KRATOS_CHECK_NEAR(r_node.GetValue(DISPLACEMENT_Y), expected_d_y[i], tolerance);
+                KRATOS_EXPECT_NEAR(r_node.FastGetSolutionStepValue(PRESSURE), expected_p[i], tolerance);
+                KRATOS_EXPECT_NEAR(r_node.FastGetSolutionStepValue(VELOCITY_X), expected_v_x[i], tolerance);
+                KRATOS_EXPECT_NEAR(r_node.GetValue(TEMPERATURE), expected_t[i], tolerance);
+                KRATOS_EXPECT_NEAR(r_node.GetValue(DISPLACEMENT_Y), expected_d_y[i], tolerance);
                 i++;
             }
 	    }
@@ -364,10 +364,10 @@ namespace Kratos {
             const std::array<double, 13> expected_d_y{{-2.0,-2.0,-2.0,2.0,-0.2,-0.2,-0.2,-0.2,-0.2,-0.2,-0.2,-0.2,-0.2}};
             unsigned int i = 0;
             for (auto& r_node : visualization_model_part.Nodes()) {
-                KRATOS_CHECK_NEAR(r_node.FastGetSolutionStepValue(PRESSURE), expected_p[i], tolerance);
-                KRATOS_CHECK_NEAR(r_node.FastGetSolutionStepValue(VELOCITY_X), expected_v_x[i], tolerance);
-                KRATOS_CHECK_NEAR(r_node.GetValue(TEMPERATURE), expected_t[i], tolerance);
-                KRATOS_CHECK_NEAR(r_node.GetValue(DISPLACEMENT_Y), expected_d_y[i], tolerance);
+                KRATOS_EXPECT_NEAR(r_node.FastGetSolutionStepValue(PRESSURE), expected_p[i], tolerance);
+                KRATOS_EXPECT_NEAR(r_node.FastGetSolutionStepValue(VELOCITY_X), expected_v_x[i], tolerance);
+                KRATOS_EXPECT_NEAR(r_node.GetValue(TEMPERATURE), expected_t[i], tolerance);
+                KRATOS_EXPECT_NEAR(r_node.GetValue(DISPLACEMENT_Y), expected_d_y[i], tolerance);
                 i++;
             }
 	    }
@@ -416,10 +416,10 @@ namespace Kratos {
             const std::array<double, 13> expected_d_y{{-2.0,-2.0,-2.0,2.0,2.0,2.0,2.0,-2.0,-2.0,-2.0,-2.0,-2.0,-2.0}};
             unsigned int i = 0;
             for (auto& r_node : visualization_model_part.Nodes()) {
-                KRATOS_CHECK_NEAR(r_node.FastGetSolutionStepValue(PRESSURE), expected_p[i], tolerance);
-                KRATOS_CHECK_NEAR(r_node.FastGetSolutionStepValue(VELOCITY_X), expected_v_x[i], tolerance);
-                KRATOS_CHECK_NEAR(r_node.GetValue(TEMPERATURE), expected_t[i], tolerance);
-                KRATOS_CHECK_NEAR(r_node.GetValue(DISPLACEMENT_Y), expected_d_y[i], tolerance);
+                KRATOS_EXPECT_NEAR(r_node.FastGetSolutionStepValue(PRESSURE), expected_p[i], tolerance);
+                KRATOS_EXPECT_NEAR(r_node.FastGetSolutionStepValue(VELOCITY_X), expected_v_x[i], tolerance);
+                KRATOS_EXPECT_NEAR(r_node.GetValue(TEMPERATURE), expected_t[i], tolerance);
+                KRATOS_EXPECT_NEAR(r_node.GetValue(DISPLACEMENT_Y), expected_d_y[i], tolerance);
                 i++;
             }
 	    }
@@ -476,10 +476,10 @@ namespace Kratos {
             const std::array<double, 13> expected_d_y{{-2.0,-2.0,-2.0,2.0,-0.2,2.0,2.0,-2.0,-0.2,-0.2,-2.0,-0.2,-2.0}};
             unsigned int i = 0;
             for (auto& r_node : visualization_model_part.Nodes()) {
-                KRATOS_CHECK_NEAR(r_node.FastGetSolutionStepValue(PRESSURE), expected_p[i], tolerance);
-                KRATOS_CHECK_NEAR(r_node.FastGetSolutionStepValue(VELOCITY_X), expected_v_x[i], tolerance);
-                KRATOS_CHECK_NEAR(r_node.GetValue(TEMPERATURE), expected_t[i], tolerance);
-                KRATOS_CHECK_NEAR(r_node.GetValue(DISPLACEMENT_Y), expected_d_y[i], tolerance);
+                KRATOS_EXPECT_NEAR(r_node.FastGetSolutionStepValue(PRESSURE), expected_p[i], tolerance);
+                KRATOS_EXPECT_NEAR(r_node.FastGetSolutionStepValue(VELOCITY_X), expected_v_x[i], tolerance);
+                KRATOS_EXPECT_NEAR(r_node.GetValue(TEMPERATURE), expected_t[i], tolerance);
+                KRATOS_EXPECT_NEAR(r_node.GetValue(DISPLACEMENT_Y), expected_d_y[i], tolerance);
                 i++;
             }
 	    }

@@ -70,10 +70,10 @@ namespace Kratos
 //             GiDIODebugNodalH(this_model_part);
 
             const double tolerance = 1.0e-4;
-            KRATOS_CHECK_LESS_EQUAL(this_model_part.pGetNode(1)->FastGetSolutionStepValue(NODAL_H) - 1.0, tolerance);
-            KRATOS_CHECK_LESS_EQUAL(this_model_part.pGetNode(2)->FastGetSolutionStepValue(NODAL_H) - 1.0, tolerance);
-            KRATOS_CHECK_LESS_EQUAL(this_model_part.pGetNode(5)->FastGetSolutionStepValue(NODAL_H) - 1.0, tolerance);
-            KRATOS_CHECK_LESS_EQUAL(this_model_part.pGetNode(6)->FastGetSolutionStepValue(NODAL_H) - 1.0, tolerance);
+            KRATOS_EXPECT_LE(this_model_part.pGetNode(1)->FastGetSolutionStepValue(NODAL_H) - 1.0, tolerance);
+            KRATOS_EXPECT_LE(this_model_part.pGetNode(2)->FastGetSolutionStepValue(NODAL_H) - 1.0, tolerance);
+            KRATOS_EXPECT_LE(this_model_part.pGetNode(5)->FastGetSolutionStepValue(NODAL_H) - 1.0, tolerance);
+            KRATOS_EXPECT_LE(this_model_part.pGetNode(6)->FastGetSolutionStepValue(NODAL_H) - 1.0, tolerance);
         }
 
         /**
@@ -97,10 +97,10 @@ namespace Kratos
             // GiDIODebugNodalH(this_model_part);
 
             const double tolerance = 1.0e-4;
-            KRATOS_CHECK_LESS_EQUAL(this_model_part.pGetNode(1)->GetValue(NODAL_H) - 1.0, tolerance);
-            KRATOS_CHECK_LESS_EQUAL(this_model_part.pGetNode(2)->GetValue(NODAL_H) - 1.0, tolerance);
-            KRATOS_CHECK_LESS_EQUAL(this_model_part.pGetNode(5)->GetValue(NODAL_H) - 1.0, tolerance);
-            KRATOS_CHECK_LESS_EQUAL(this_model_part.pGetNode(6)->GetValue(NODAL_H) - 1.0, tolerance);
+            KRATOS_EXPECT_LE(this_model_part.pGetNode(1)->GetValue(NODAL_H) - 1.0, tolerance);
+            KRATOS_EXPECT_LE(this_model_part.pGetNode(2)->GetValue(NODAL_H) - 1.0, tolerance);
+            KRATOS_EXPECT_LE(this_model_part.pGetNode(5)->GetValue(NODAL_H) - 1.0, tolerance);
+            KRATOS_EXPECT_LE(this_model_part.pGetNode(6)->GetValue(NODAL_H) - 1.0, tolerance);
         }
 
         /**
@@ -130,14 +130,14 @@ namespace Kratos
 //             GiDIODebugNodalH(this_model_part);
 
             const double tolerance = 1.0e-4;
-            KRATOS_CHECK_LESS_EQUAL(this_model_part.pGetNode(1)->FastGetSolutionStepValue(NODAL_H) - 1.0, tolerance);
-            KRATOS_CHECK_LESS_EQUAL(this_model_part.pGetNode(2)->FastGetSolutionStepValue(NODAL_H) - 1.0, tolerance);
-            KRATOS_CHECK_LESS_EQUAL(this_model_part.pGetNode(3)->FastGetSolutionStepValue(NODAL_H) - 1.0, tolerance);
-            KRATOS_CHECK_LESS_EQUAL(this_model_part.pGetNode(5)->FastGetSolutionStepValue(NODAL_H) - 1.0, tolerance);
-            KRATOS_CHECK_LESS_EQUAL(this_model_part.pGetNode(9)->FastGetSolutionStepValue(NODAL_H) - 1.0, tolerance);
-            KRATOS_CHECK_LESS_EQUAL(this_model_part.pGetNode(10)->FastGetSolutionStepValue(NODAL_H) - 1.0, tolerance);
-            KRATOS_CHECK_LESS_EQUAL(this_model_part.pGetNode(11)->FastGetSolutionStepValue(NODAL_H) - 1.0, tolerance);
-            KRATOS_CHECK_LESS_EQUAL(this_model_part.pGetNode(12)->FastGetSolutionStepValue(NODAL_H) - 1.0, tolerance);
+            KRATOS_EXPECT_LE(this_model_part.pGetNode(1)->FastGetSolutionStepValue(NODAL_H) - 1.0, tolerance);
+            KRATOS_EXPECT_LE(this_model_part.pGetNode(2)->FastGetSolutionStepValue(NODAL_H) - 1.0, tolerance);
+            KRATOS_EXPECT_LE(this_model_part.pGetNode(3)->FastGetSolutionStepValue(NODAL_H) - 1.0, tolerance);
+            KRATOS_EXPECT_LE(this_model_part.pGetNode(5)->FastGetSolutionStepValue(NODAL_H) - 1.0, tolerance);
+            KRATOS_EXPECT_LE(this_model_part.pGetNode(9)->FastGetSolutionStepValue(NODAL_H) - 1.0, tolerance);
+            KRATOS_EXPECT_LE(this_model_part.pGetNode(10)->FastGetSolutionStepValue(NODAL_H) - 1.0, tolerance);
+            KRATOS_EXPECT_LE(this_model_part.pGetNode(11)->FastGetSolutionStepValue(NODAL_H) - 1.0, tolerance);
+            KRATOS_EXPECT_LE(this_model_part.pGetNode(12)->FastGetSolutionStepValue(NODAL_H) - 1.0, tolerance);
         }
     } // namespace Testing
 }  // namespace Kratos.

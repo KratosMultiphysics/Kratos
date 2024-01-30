@@ -16,6 +16,10 @@
 //constitutive laws
 #include "custom_constitutive/bilinear_cohesive_3D_law.hpp"
 #include "custom_constitutive/bilinear_cohesive_2D_law.hpp"
+#include "custom_constitutive/elastoplastic_mohr_coulomb_cohesive_3D_law.hpp"
+#include "custom_constitutive/elastoplastic_mohr_coulomb_cohesive_2D_law.hpp"
+#include "custom_constitutive/elastoplastic_mod_mohr_coulomb_cohesive_3D_law.hpp"
+#include "custom_constitutive/elastoplastic_mod_mohr_coulomb_cohesive_2D_law.hpp"
 #include "custom_constitutive/isotropic_damage_cohesive_3D_law.hpp"
 #include "custom_constitutive/isotropic_damage_cohesive_2D_law.hpp"
 #include "custom_constitutive/elastic_cohesive_3D_law.hpp"
@@ -54,6 +58,20 @@ namespace py = pybind11;
 void  AddCustomConstitutiveLawsToPython(pybind11::module& m)
 {
     // Module local to avoid conflicts with other apps
+    py::class_< ElastoPlasticMohrCoulombCohesive3DLaw, ElastoPlasticMohrCoulombCohesive3DLaw::Pointer, ConstitutiveLaw >
+    (m, "ElastoPlasticMohrCoulombCohesive3DLaw", py::module_local())
+    .def( py::init<>() );
+    py::class_< ElastoPlasticMohrCoulombCohesive2DLaw, ElastoPlasticMohrCoulombCohesive2DLaw::Pointer, ConstitutiveLaw >
+    (m, "ElastoPlasticMohrCoulombCohesive2DLaw", py::module_local())
+    .def( py::init<>() ) ;
+
+    py::class_< ElastoPlasticModMohrCoulombCohesive3DLaw, ElastoPlasticModMohrCoulombCohesive3DLaw::Pointer, ConstitutiveLaw >
+    (m, "ElastoPlasticModMohrCoulombCohesive3DLaw", py::module_local())
+    .def( py::init<>() );
+    py::class_< ElastoPlasticModMohrCoulombCohesive2DLaw, ElastoPlasticModMohrCoulombCohesive2DLaw::Pointer, ConstitutiveLaw >
+    (m, "ElastoPlasticModMohrCoulombCohesive2DLaw", py::module_local())
+    .def( py::init<>() ) ;
+
     py::class_< ElasticCohesive2DLaw, ElasticCohesive2DLaw::Pointer, ConstitutiveLaw >
     (m, "ElasticCohesive2DLaw", py::module_local())
     .def( py::init<>() ) ;

@@ -33,7 +33,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     - name: Build the Docker image
       run: docker build . --file scripts/docker_files/docker_file_ci_ubuntu_22_04/DockerFile --tag kratosmultiphysics/kratos-image-ci-ubuntu-22-04
     - name: Docker Login
@@ -50,7 +50,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     - name: Build the Docker image
       run: docker build . --file scripts/docker_files/docker_file_ci_centos_7/DockerFile --tag kratosmultiphysics/kratos-image-ci-centos7
     - name: Docker Login

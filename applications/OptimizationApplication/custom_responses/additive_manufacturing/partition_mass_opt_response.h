@@ -51,7 +51,7 @@ namespace Kratos
 /** Detail class definition.
 */
 
-class KRATOS_API(OPTIMIZATION_APPLICATION) PartitionMassOptResponse : public Response
+class PartitionMassOptResponse : public Response
 {
 public:
     ///@name Type Definitions
@@ -97,7 +97,7 @@ public:
 
             KRATOS_ERROR_IF_NOT(controlled_model_part.Elements().size()>0)
                 <<"PartitionMassOptResponse::Initialize: controlled object "<<controlled_obj<<" for "<<control_type<<" sensitivity must have elements !"<<std::endl;
-                   
+
         }
     };
     // --------------------------------------------------------------------------
@@ -112,8 +112,8 @@ public:
 				if(element_is_active){
 
                     double element_density = elem_i.GetProperties().GetValue(DENSITY);
-                    int element_density_f = 1; 
-                    int element_density_c = 1;                   
+                    int element_density_f = 1;
+                    int element_density_c = 1;
 
                     if((element_density>=(element_density_c-0.01))&&(element_density<=element_density_c)){
                         if(partitions.count(element_density_c)<1){
@@ -122,24 +122,24 @@ public:
                         else{
                             partitions.at(element_density_c) += elem_i.GetGeometry().Volume()*element_density;
                         }
-                        total_val += elem_i.GetGeometry().Volume()*element_density;                                                   
+                        total_val += elem_i.GetGeometry().Volume()*element_density;
                     }else if((element_density>=(element_density_f))&&(element_density<=element_density_f+0.01)){
-                        if(partitions.count(element_density_f)<1){ 
+                        if(partitions.count(element_density_f)<1){
                             partitions.insert({element_density_f,elem_i.GetGeometry().Volume()*element_density});
                         }
                         else{
                             partitions.at(element_density_f) += elem_i.GetGeometry().Volume()*element_density;
                         }
-                        total_val += elem_i.GetGeometry().Volume()*element_density;                                                    
-                    }    
-                }                    
+                        total_val += elem_i.GetGeometry().Volume()*element_density;
+                    }
+                }
 			}
         }
         // for (auto const &pair: partitions) {
         //     std::cout << " {" << pair.first << ": " << pair.second << "}\n";
         // }
         return total_val;
-    };    
+    };
 
     double CalculateElementValue(Element& elem_i, const std::size_t DomainSize){
         // We get the element geometry
@@ -155,7 +155,7 @@ public:
 
         double element_density = elem_i.GetProperties().GetValue(DENSITY);
         double element_density_f = std::floor(element_density);
-        double element_val =  elem_i.GetGeometry().Volume() * std::pow(element_density-element_density_f,3); 
+        double element_val =  elem_i.GetGeometry().Volume() * std::pow(element_density-element_density_f,3);
 
         // We restore the current configuration
         for (std::size_t i_node = 0; i_node < number_of_nodes; ++i_node) {
@@ -182,16 +182,16 @@ public:
 				const bool element_is_active = elem_i.IsDefined(ACTIVE) ? elem_i.Is(ACTIVE) : true;
 				if(element_is_active){
                     if(control_type=="material")
-                        CalculateElementMaterialGradients(elem_i,domain_size);                                              
+                        CalculateElementMaterialGradients(elem_i,domain_size);
                 }
             }
 
-            
+
         }
 
 		KRATOS_CATCH("");
- 
-    };  
+
+    };
 
     void CalculateElementMaterialGradients(Element& elem_i, const std::size_t DomainSize){
 
@@ -201,25 +201,25 @@ public:
 
         double elem_dens_grad = 0.0;
         double element_density = elem_i.GetProperties().GetValue(DENSITY);
-        int element_density_f = 8; 
-        int element_density_c = 8;                   
+        int element_density_f = 8;
+        int element_density_c = 8;
 
         if((element_density>=(element_density_c-0.01))&&(element_density<=element_density_c)){
-            elem_dens_grad = elem_i.GetGeometry().Volume();                                                   
+            elem_dens_grad = elem_i.GetGeometry().Volume();
         }else if((element_density>=(element_density_f))&&(element_density<=element_density_f+0.01)){
-            elem_dens_grad = elem_i.GetGeometry().Volume();                                                    
-        }  
-        
+            elem_dens_grad = elem_i.GetGeometry().Volume();
+        }
+
 
         for (SizeType i_node = 0; i_node < number_of_nodes; ++i_node){
             const auto& d_pd_d_fd = r_this_geometry[i_node].FastGetSolutionStepValue(D_PD_D_FD);
             r_this_geometry[i_node].FastGetSolutionStepValue(D_PARTITION_MASS_D_FD) += d_pd_d_fd * elem_dens_grad / number_of_nodes;
         }
-    };        
+    };
 
 
     // --------------------------------------------------------------------------
-       
+
     ///@}
     ///@name Access
     ///@{
@@ -262,7 +262,7 @@ public:
 protected:
     ///@name Protected static Member Variables
     ///@{
-    std::map<int,double> partitions;   
+    std::map<int,double> partitions;
 
     ///@}
     ///@name Protected member Variables
@@ -270,7 +270,7 @@ protected:
 
     // Initialized by class constructor
 
-    
+
     ///@}
     ///@name Protected Operators
     ///@{

@@ -30,7 +30,7 @@ namespace Kratos
 ///@{
 
     /// Definition of the size type
-    typedef std::size_t SizeType;
+    using SizeType = std::size_t;
 
 ///@}
 ///@name  Enum's
@@ -65,24 +65,21 @@ public:
     ///@name Type Definitions
     ///@{
 
-    // Basetype definition
-    typedef SPRErrorProcess<TDim>                                                   BaseType;
+    /// Basetype definition
+    using BaseType = SPRErrorProcess<TDim>;
 
     /// Containers definition
-    typedef ModelPart::NodesContainerType                                     NodesArrayType;
-    typedef ModelPart::ElementsContainerType                               ElementsArrayType;
-    typedef ModelPart::ConditionsContainerType                           ConditionsArrayType;
-
-    /// The definition of the node type
-    typedef Node                                                                NodeType;
+    using NodesArrayType = ModelPart::NodesContainerType;
+    using ElementsArrayType = ModelPart::ElementsContainerType;
+    using ConditionsArrayType = ModelPart::ConditionsContainerType;
 
     /// Definition of the iterators
-    typedef GlobalPointersVector< Element >::iterator                      WeakElementItType;
-    typedef NodesArrayType::iterator                                              NodeItType;
-    typedef ElementsArrayType::iterator                                        ElementItType;
+    using WeakElementItType = GlobalPointersVector<Element>::iterator;
+    using NodeItType = NodesArrayType::iterator;
+    using ElementItType = ElementsArrayType::iterator;
 
     /// Definition of the indextype
-    typedef std::size_t                                                            IndexType;
+    using IndexType = std::size_t;
 
     /// Pointer definition of ContactSPRErrorProcess
     KRATOS_CLASS_POINTER_DEFINITION(ContactSPRErrorProcess);

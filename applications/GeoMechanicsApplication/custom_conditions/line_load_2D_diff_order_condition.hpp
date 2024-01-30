@@ -52,9 +52,6 @@ public:
     // Constructor 2
     LineLoad2DDiffOrderCondition( IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties );
 
-    // Destructor
-    ~LineLoad2DDiffOrderCondition() override;
-
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     Condition::Pointer Create(IndexType NewId,

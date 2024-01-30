@@ -19,6 +19,7 @@
 #include "spaces/ublas_space.h"
 #include "spatial_containers/spatial_containers.h"
 #include "expression/container_expression.h"
+#include "expression/expression_utils.h"
 #include "collective_expression.h"
 
 // Application includes
@@ -46,68 +47,6 @@ public:
     ///@{
 
     /**
-     * @brief Calculate infinity norm of the evaluated expression for each entitiy.
-     *
-     * This method calculates the infinity norm of the expression by evaluating
-     * the expression for each entity in the container, hence this is an expensive
-     * operation.
-     *
-     * This method is optimized and compatible with OpenMP and MPI.
-     *
-     * @tparam TContainerType
-     * @param rContainer                Container data
-     * @return double                   Infinity norm
-     */
-    template<class TContainerType>
-    static double NormInf(const ContainerExpression<TContainerType>& rContainer);
-
-    /**
-     * @brief Calculate infinity norm of the evaluated expressions for each entitiy.
-     *
-     * This method calculates the infinity norm of the expressions by evaluating
-     * the expression for each entity in the container. Then the infinity norm of all the
-     * collective expressions are computed, hence this is an expensive
-     * operation.
-     *
-     * This method is optimized and compatible with OpenMP and MPI.
-     *
-     * @param rContainer                Collective expressions.
-     * @return double                   Infinity norm.
-     */
-    static double NormInf(const CollectiveExpression& rContainer);
-
-    /**
-     * @brief Calculate L2 norm of the evaluated expression for each entitiy.
-     *
-     * This method calculates the L2 norm of the expression by evaluating
-     * the expression for each entity in the container, hence this is an expensive
-     * operation.
-     *
-     * This method is optimized and compatible with OpenMP and MPI.
-     *
-     * @tparam TContainerType
-     * @param rContainer                Container data
-     * @return double                   L2 norm
-     */
-    template<class TContainerType>
-    static double NormL2(const ContainerExpression<TContainerType>& rContainer);
-
-    /**
-     * @brief Calculate L2 norm of the evaluated expressions for each entitiy.
-     *
-     * This method calculates the L2 norm of the expression by evaluating
-     * the expression for each entity in the container. Then the L2 norm of all the
-     * collective expressions are computed, hence this is an expensive
-     * operation.
-     *
-     * This method is optimized and compatible with OpenMP and MPI.
-     *
-     * @param rContainer                Collective expressions.
-     * @return double                   L2 norm
-     */
-    static double NormL2(const CollectiveExpression& rContainer);
-
-    /**
      * @brief Calculate max L2 norm of the evaluated expression for each entitiy.
      *
      * This calculates L2 norm of the each entity expression by evaluating, and then returns
@@ -121,24 +60,6 @@ public:
      */
     template<class TContainerType>
     static double EntityMaxNormL2(const ContainerExpression<TContainerType>& rContainer);
-
-    /**
-     * @brief Computes inner product between two container expressions by evaluating
-     * both expressions for each entity in their containers, hence this is an
-     * expensive operation. Both containers should have the same model part,
-     * therefore they will have the same containers.
-     *
-     * This method is optimized and compatible with OpenMP and MPI.
-     *
-     * @tparam TContainerType
-     * @param rContainer1               Container variable data 1
-     * @param rContainer2               Container variable data 2
-     * @return double                   Output of the inner product.
-     */
-    template<class TContainerType>
-    static double InnerProduct(
-        const ContainerExpression<TContainerType>& rContainer1,
-        const ContainerExpression<TContainerType>& rContainer2);
 
     /**
      * @brief Computes inner product between two container expressions by evaluating
@@ -297,6 +218,114 @@ public:
         const ContainerExpression<ModelPart::NodesContainerType>& rNodalValues,
         const Variable<Matrix>& rMatrixVariable,
         TContainerType& rEntities);
+
+    ///@}
+    ///@name Static operations derrived from Kratos::ExpressionUtils
+    ///@{
+
+    #ifndef KRATOS_OPTAPP_EXPRESSION_UTILS_CEXP_METHOD_1
+    #define KRATOS_OPTAPP_EXPRESSION_UTILS_CEXP_METHOD_1(METHOD_NAME)                              \
+        static CollectiveExpression METHOD_NAME(const CollectiveExpression& rCollectiveExpression) \
+        {                                                                                          \
+            KRATOS_TRY                                                                             \
+            auto result = rCollectiveExpression;                                                   \
+            auto r_list_of_container_expressions = result.GetContainerExpressions();               \
+            for (IndexType i = 0; i < r_list_of_container_expressions.size(); ++i) {               \
+                std::visit(                                                                        \
+                    [](auto& pResult) {                                                            \
+                        *pResult = ExpressionUtils::METHOD_NAME(*pResult);                         \
+                    },                                                                             \
+                    r_list_of_container_expressions[i]);                                           \
+            }                                                                                      \
+            return result;                                                                         \
+            KRATOS_CATCH("");                                                                      \
+        }
+    #endif
+
+    #ifndef KRATOS_OPTAPP_EXPRESSION_UTILS_CEXP_METHOD_2
+    #define KRATOS_OPTAPP_EXPRESSION_UTILS_CEXP_METHOD_2(METHOD_NAME)                \
+        static double METHOD_NAME(const CollectiveExpression& rCollectiveExpression) \
+        {                                                                            \
+            KRATOS_TRY                                                               \
+            double value = 0.0;                                                      \
+            auto r_list_of_container_expressions =                                   \
+                rCollectiveExpression.GetContainerExpressions();                     \
+            for (IndexType i = 0; i < r_list_of_container_expressions.size(); ++i) { \
+                value += std::visit(                                                 \
+                    [](const auto& pResult) {                                        \
+                        return ExpressionUtils::METHOD_NAME(*pResult);               \
+                    },                                                               \
+                    r_list_of_container_expressions[i]);                             \
+            }                                                                        \
+            return value;                                                            \
+            KRATOS_CATCH("");                                                        \
+        }
+    #endif
+
+    #ifndef KRATOS_OPTAPP_EXPRESSION_UTILS_CEXP_METHOD_3
+    #define KRATOS_OPTAPP_EXPRESSION_UTILS_CEXP_METHOD_3(METHOD_NAME)                            \
+        static CollectiveExpression METHOD_NAME(                                                 \
+            const CollectiveExpression& rCollectiveExpression, const double V)                   \
+        {                                                                                        \
+            KRATOS_TRY                                                                           \
+            auto result = rCollectiveExpression;                                                 \
+            auto r_list_of_container_expressions = result.GetContainerExpressions();             \
+            for (IndexType i = 0; i < r_list_of_container_expressions.size(); ++i) {             \
+                std::visit(                                                                      \
+                    [V](auto& pResult) {                                                         \
+                        *pResult = ExpressionUtils::METHOD_NAME(*pResult, V);                    \
+                    },                                                                           \
+                    r_list_of_container_expressions[i]);                                         \
+            }                                                                                    \
+            return result;                                                                       \
+            KRATOS_CATCH("");                                                                    \
+        }                                                                                        \
+        static CollectiveExpression METHOD_NAME(                                                 \
+            const CollectiveExpression& rCollectiveExpression1,                                  \
+            const CollectiveExpression& rCollectiveExpression2)                                  \
+        {                                                                                        \
+            KRATOS_TRY                                                                           \
+                                                                                                \
+            KRATOS_ERROR_IF_NOT(rCollectiveExpression1.IsCompatibleWith(rCollectiveExpression2)) \
+                << "Unsupported collective variable data holders provided for "                  \
+                "\""                                                                          \
+                << #METHOD_NAME << "\"."                                                         \
+                << "\nLeft operand : " << rCollectiveExpression1                                 \
+                << "\nRight operand: " << rCollectiveExpression2 << std::endl;                   \
+                                                                                                \
+            auto result = rCollectiveExpression1;                                                \
+            auto r_list_of_container_expressions = result.GetContainerExpressions();             \
+            const auto& r_right_container_expressions =                                          \
+                rCollectiveExpression2.GetContainerExpressions();                                \
+            for (IndexType i = 0; i < r_list_of_container_expressions.size(); ++i) {             \
+                std::visit(                                                                      \
+                    [&r_right_container_expressions, i](auto& pResult) {                         \
+                        auto p_right = std::get<std::decay_t<decltype(pResult)>>(                \
+                            r_right_container_expressions[i]);                                   \
+                        *pResult = ExpressionUtils::METHOD_NAME(*pResult, *p_right);             \
+                    },                                                                           \
+                    r_list_of_container_expressions[i]);                                         \
+            }                                                                                    \
+            return result;                                                                       \
+                                                                                                \
+            KRATOS_CATCH("");                                                                    \
+        }
+    #endif
+
+    KRATOS_OPTAPP_EXPRESSION_UTILS_CEXP_METHOD_1(Collapse)
+    KRATOS_OPTAPP_EXPRESSION_UTILS_CEXP_METHOD_1(Abs)
+    KRATOS_OPTAPP_EXPRESSION_UTILS_CEXP_METHOD_1(EntityMin)
+    KRATOS_OPTAPP_EXPRESSION_UTILS_CEXP_METHOD_1(EntityMax)
+    KRATOS_OPTAPP_EXPRESSION_UTILS_CEXP_METHOD_1(EntitySum)
+    KRATOS_OPTAPP_EXPRESSION_UTILS_CEXP_METHOD_2(Sum)
+    KRATOS_OPTAPP_EXPRESSION_UTILS_CEXP_METHOD_2(NormInf)
+    KRATOS_OPTAPP_EXPRESSION_UTILS_CEXP_METHOD_2(NormL2)
+    KRATOS_OPTAPP_EXPRESSION_UTILS_CEXP_METHOD_3(Pow)
+    KRATOS_OPTAPP_EXPRESSION_UTILS_CEXP_METHOD_3(Scale)
+
+    #undef KRATOS_OPTAPP_EXPRESSION_UTILS_CEXP_METHOD_1
+    #undef KRATOS_OPTAPP_EXPRESSION_UTILS_CEXP_METHOD_2
+    #undef KRATOS_OPTAPP_EXPRESSION_UTILS_CEXP_METHOD_3
 
     ///@}
 };

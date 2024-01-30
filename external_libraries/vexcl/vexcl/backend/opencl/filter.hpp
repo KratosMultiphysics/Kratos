@@ -35,6 +35,7 @@ THE SOFTWARE.
 #include <fstream>
 #include <string>
 #include <vector>
+#include <map>
 #include <functional>
 #include <cstdlib>
 
@@ -45,7 +46,11 @@ THE SOFTWARE.
 #include <boost/version.hpp>
 
 #include <vexcl/backend/opencl/defines.hpp>
-#include <CL/cl.hpp>
+#ifdef VEXCL_HAVE_OPENCL_HPP
+#  include <CL/opencl.hpp>
+#else
+#  include <CL/cl2.hpp>
+#endif
 
 
 namespace vex {

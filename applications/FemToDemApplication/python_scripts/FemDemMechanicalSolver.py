@@ -49,7 +49,7 @@ class FemDemMechanicalSolver(object):
             "delta_time_refresh"         : 1000,
             "max_delta_time"             : 1.0e0,
             "fraction_delta_time"        : 0.333333333333333333333333333333333333,
-	    "analysis_type": "Non-Linear",
+            "analysis_type": "Non-Linear",
             "model_import_settings": {
                 "input_type": "mdpa",
                 "input_filename": "unknown_name",

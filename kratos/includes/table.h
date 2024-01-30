@@ -81,22 +81,7 @@ public:
     ///@name Life Cycle
     ///@{
 
-    /// Default constructor.
-    Table() : mData()
-    {
-    }
-
-    /// Destructor.
-    virtual ~Table()
-    {
-    }
-
-    /// Assignment operator.
-    Table& operator=(Table const& rOther)
-    {
-        mData = rOther.mData;
-        return *this;
-    }
+    virtual ~Table() = default;
 
     ///@}
     ///@name Operators
@@ -304,6 +289,26 @@ public:
     {
     }
 
+    const std::string& NameOfX() const
+    {
+        return mNameOfX;
+    }
+
+    const std::string& NameOfY() const
+    {
+        return mNameOfY;
+    }
+
+    void SetNameOfX(const std::string& name)
+    {
+        mNameOfX = name;
+    }
+
+    void SetNameOfY(const std::string& name)
+    {
+        mNameOfY = name;
+    }
+
     ///@}
     ///@name Friends
     ///@{
@@ -358,6 +363,8 @@ private:
     ///@{
 
     TableContainerType mData;
+    std::string mNameOfX;
+    std::string mNameOfY;
 
     ///@}
     ///@name Private Operators
@@ -418,9 +425,6 @@ private:
     ///@name Un accessible methods
     ///@{
 
-    /// Copy constructor.
-    Table(Table const& rOther);
-
 
     ///@}
 
@@ -452,38 +456,17 @@ public:
     ///@name Life Cycle
     ///@{
 
-    /// Default constructor.
-    Table() : mData()
-    {
-    }
-
-
-    /// Copy constructor.
-    Table(Table const& rOther): mData(rOther.mData)
-    {
-
-    }
+    Table() = default;
 
     /// Matrix constructor. the template parameter must have (i,j) access operator and  size1 methods defined.
     template<class TMatrixType>
-    Table(TMatrixType const& ThisMatrix): mData()
+    explicit Table(TMatrixType const& ThisMatrix): mData()
     {
         for(unsigned int i = 0 ; i < ThisMatrix.size1() ; i++)
             PushBack(ThisMatrix(i,0), ThisMatrix(i,1));
     }
 
-    /// Destructor.
-    virtual ~Table()
-    {
-    }
-
-
-    /// Assignment operator.
-    Table& operator=(Table const& rOther)
-    {
-        mData = rOther.mData;
-        return *this;
-    }
+    virtual ~Table() = default;
 
 
     ///@}
@@ -746,6 +729,26 @@ public:
             rOStream << mData[i].first << "\t\t" << mData[i].second[0] << std::endl;
     }
 
+    const std::string& NameOfX() const
+    {
+        return mNameOfX;
+    }
+
+    const std::string& NameOfY() const
+    {
+        return mNameOfY;
+    }
+
+    void SetNameOfX(const std::string& name)
+    {
+        mNameOfX = name;
+    }
+
+    void SetNameOfY(const std::string& name)
+    {
+        mNameOfY = name;
+    }
+
     ///@}
     ///@name Friends
     ///@{
@@ -764,6 +767,8 @@ private:
     ///@{
 
     TableContainerType mData;
+    std::string mNameOfX;
+    std::string mNameOfY;
 
     ///@}
     ///@name Private Operators

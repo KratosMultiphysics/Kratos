@@ -360,7 +360,13 @@ namespace Kratos {
             array_1d<double, 3> other_ball_to_ball_forces(3,0.0);
             ComputeOtherBallToBallForces(other_ball_to_ball_forces);
 
-            GeometryFunctions::VectorLocal2Global(data_buffer.mLocalCoordSystem, LocalElasticContactForce, GlobalElasticContactForce);
+            if (i < (int)mContinuumInitialNeighborsSize && mContinuumConstitutiveLawArray[i]->GetTypeOfLaw() == "smooth_joint_CL") {
+                double JointLocalCoordSystem[3][3];
+                GeometryFunctions::RotateCoordToDirection(data_buffer.mLocalCoordSystem, mLocalJointNormal, JointLocalCoordSystem);
+                GeometryFunctions::VectorLocal2Global(JointLocalCoordSystem, LocalElasticContactForce, GlobalElasticContactForce);
+            } else {
+                GeometryFunctions::VectorLocal2Global(data_buffer.mLocalCoordSystem, LocalElasticContactForce, GlobalElasticContactForce);
+            }
 
             //******************Moments calculation start****************
             if (this->Is(DEMFlags::HAS_ROTATION)) {
@@ -440,7 +446,7 @@ namespace Kratos {
                 total_local_elastic_contact_force[1] = LocalElasticContactForce[1] + LocalElasticExtraContactForce[1];
                 total_local_elastic_contact_force[2] = LocalElasticContactForce[2] + LocalElasticExtraContactForce[2];
                 //TODO: REMOVE ElasticLocalRotationalMoment
-                CalculateOnContinuumContactElements(i, total_local_elastic_contact_force, ElasticLocalRotationalMoment, contact_sigma, contact_tau, failure_criterion_state, acumulated_damage, time_steps);
+                CalculateOnContinuumContactElements(i, total_local_elastic_contact_force, ElasticLocalRotationalMoment, contact_sigma, contact_tau, failure_criterion_state, acumulated_damage, time_steps, calculation_area);
             }
 
             if (this->Is(DEMFlags::HAS_STRESS_TENSOR) /*&& (i < mContinuumInitialNeighborsSize)*/) {
@@ -835,7 +841,7 @@ namespace Kratos {
         else return 0.0;
     }
 
-    void SphericContinuumParticle::CalculateOnContinuumContactElements(size_t i, double LocalElasticContactForce[3], double ElasticLocalRotationalMoment[3], double contact_sigma, double contact_tau, double failure_criterion_state, double acumulated_damage, int time_steps) {
+    void SphericContinuumParticle::CalculateOnContinuumContactElements(size_t i, double LocalElasticContactForce[3], double ElasticLocalRotationalMoment[3], double contact_sigma, double contact_tau, double failure_criterion_state, double acumulated_damage, int time_steps, double calculation_area) {
 
         KRATOS_TRY
         if (!mBondElements.size()) return; // we skip this function if the vector of bonds hasn't been filled yet.
@@ -852,6 +858,7 @@ namespace Kratos {
         bond->mContactTau = contact_tau;
         bond->mContactFailure = mIniNeighbourFailureId[i];
         bond->mFailureCriterionState = failure_criterion_state;
+        bond->mContactRadius = sqrt(calculation_area / Globals::Pi);
 
         if ((time_steps == 0) || (acumulated_damage > bond->mUnidimendionalDamage)) {
             bond->mUnidimendionalDamage = acumulated_damage;

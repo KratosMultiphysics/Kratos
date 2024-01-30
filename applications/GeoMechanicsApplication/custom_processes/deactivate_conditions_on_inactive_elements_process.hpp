@@ -10,18 +10,11 @@
 //  Main authors:    Vahid Galavi
 //
 
-
-#ifndef KRATOS_DEACTIVATE_CONDITIONS_ON_INACTIVE_ELEMENTS_PROCESS
-#define KRATOS_DEACTIVATE_CONDITIONS_ON_INACTIVE_ELEMENTS_PROCESS
-
-// System includes
-
-// External includes
+#pragma once
 
 // Project includes
 #include "includes/model_part.h"
 #include "processes/process.h"
-
 
 namespace Kratos
 {
@@ -58,13 +51,14 @@ public:
     /**
      * @param rModelPart The model part to check.
      */
-    DeactivateConditionsOnInactiveElements( ModelPart& rModelPart ):  Process(),
+    explicit DeactivateConditionsOnInactiveElements( ModelPart& rModelPart ):  Process(),
             mrModelPart(rModelPart)
     {
     }
 
-    /// Destructor.
-    ~DeactivateConditionsOnInactiveElements() override {}
+    DeactivateConditionsOnInactiveElements(const DeactivateConditionsOnInactiveElements&) = delete;
+    DeactivateConditionsOnInactiveElements& operator=(DeactivateConditionsOnInactiveElements&) = delete;
+    ~DeactivateConditionsOnInactiveElements() override = default;
 
     ///@}
     ///@name Operators
@@ -103,12 +97,6 @@ public:
         return "DeactivateConditionsOnInactiveElements";
     }
 
-    /// Print information about this object.
-    void PrintInfo(std::ostream& rOStream) const override
-    {
-        rOStream << "DeactivateConditionsOnInactiveElements";
-    }
-
     /// Print object's data.
     void PrintData(std::ostream& rOStream) const override
     {
@@ -140,12 +128,6 @@ private:
     ///@name Un accessible methods
     ///@{
 
-    /// Assignment operator.
-    DeactivateConditionsOnInactiveElements& operator=(DeactivateConditionsOnInactiveElements const& rOther);
-
-    /// Copy constructor.
-    DeactivateConditionsOnInactiveElements(DeactivateConditionsOnInactiveElements const& rOther);
-
     ///@}
 
 }; // Class Process
@@ -176,7 +158,4 @@ inline std::ostream& operator << (std::ostream& rOStream,
 }
 ///@}
 
-} // namespace Kratos
-
-
-#endif // KRATOS_DEACTIVATE_CONDITIONS_ON_INACTIVE_ELEMENTS_PROCESS
+}

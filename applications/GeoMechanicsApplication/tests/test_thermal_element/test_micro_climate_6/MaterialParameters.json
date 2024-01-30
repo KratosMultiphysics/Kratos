@@ -1,0 +1,38 @@
+{
+  "properties": [{
+    "model_part_name"                      : "PorousDomain.Soil1",
+    "properties_id"                        : 1,
+    "Material" : { 
+      "constitutive_law" : {
+        "name"                             : "GeoThermalDispersion2DLaw"
+      }, 
+      "Variables" : {
+        "DENSITY_SOLID"                    : 1.700000e+03,
+        "DENSITY_WATER"                    : 1000.0,
+        "POROSITY"                         : 0.000000e+00,
+        "RETENTION_LAW"                    : "SaturatedLaw",
+        "SATURATED_SATURATION"             :  1.0,
+        "SPECIFIC_HEAT_CAPACITY_SOLID"     : 1.000000e+03,
+        "SPECIFIC_HEAT_CAPACITY_WATER"     : 4182, 
+        "THERMAL_CONDUCTIVITY_SOLID_XX"    : 1.700000e+00,
+        "THERMAL_CONDUCTIVITY_SOLID_YY"    : 1.700000e+00,
+        "THERMAL_CONDUCTIVITY_SOLID_XY"    : 0.0,
+        "THERMAL_CONDUCTIVITY_WATER"       : 0.6,
+        "SOLID_COMPRESSIBILITY"            : 1.0,
+        "PERMEABILITY_XX"                  : 0.000000e+00,
+        "PERMEABILITY_YY"                  : 0.000000e+00,
+        "PERMEABILITY_XY"                  : 0.0,
+        "DYNAMIC_VISCOSITY"                : 1e-3,
+        "A1_COEFFICIENT"                   : 0.000000e+00,
+        "A2_COEFFICIENT"                   : 0.000000e+00,
+        "A3_COEFFICIENT"                   : 0.000000e+00,
+        "ALPHA_COEFFICIENT"                : 1.900000e-01,
+        "QF_COEFFICIENT"                   : 1.000000e+02,
+        "SMIN_COEFFICIENT"                 : 0.000000e+00,
+        "SMAX_COEFFICIENT"                 : 0.000000e+00
+      },
+      "Tables": {
+      }
+    }
+  }]
+}

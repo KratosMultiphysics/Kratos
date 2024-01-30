@@ -60,10 +60,10 @@ public:
     ///@{
 
     /// The type of mapper considered
-    typedef SimpleMortarMapperProcess<TDim, TNumNodes, Variable<array_1d<double, 3>>, TNumNodesMaster> MapperType;
+    using MapperType = SimpleMortarMapperProcess<TDim, TNumNodes, Variable<array_1d<double, 3>>, TNumNodesMaster>;
 
     /// General type definitions
-    typedef ModelPart::NodesContainerType                    NodesArrayType;
+    using NodesArrayType = ModelPart::NodesContainerType;
 
     /// The definition of zero tolerance
     static constexpr double ZeroTolerance = std::numeric_limits<double>::epsilon();
@@ -179,7 +179,7 @@ protected:
      */
     static inline void SwitchFlagNodes(NodesArrayType& rNodes)
     {
-        block_for_each(rNodes, [&](NodeType& rNode) {
+        block_for_each(rNodes, [&](Node& rNode) {
             rNode.Flip(SLAVE);
             rNode.Flip(MASTER);
         });

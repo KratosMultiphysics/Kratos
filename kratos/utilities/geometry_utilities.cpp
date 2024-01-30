@@ -351,6 +351,44 @@ double GeometryUtils::PointDistanceToTriangle3D(
 /***********************************************************************************/
 /***********************************************************************************/
 
+double GeometryUtils::PointDistanceToTriangle3D(
+    const Point& rTrianglePoint1,
+    const Point& rTrianglePoint2,
+    const Point& rTrianglePoint3,
+    const Point& rTrianglePoint4,
+    const Point& rTrianglePoint5,
+    const Point& rTrianglePoint6,
+    const Point& rPoint
+    )
+{
+    std::array<double, 4> distances;
+    distances[0] = GeometryUtils::PointDistanceToTriangle3D(rTrianglePoint1, rTrianglePoint4, rTrianglePoint6, rPoint);
+    distances[1] = GeometryUtils::PointDistanceToTriangle3D(rTrianglePoint4, rTrianglePoint2, rTrianglePoint5, rPoint);
+    distances[2] = GeometryUtils::PointDistanceToTriangle3D(rTrianglePoint6, rTrianglePoint5, rTrianglePoint3, rPoint);
+    distances[3] = GeometryUtils::PointDistanceToTriangle3D(rTrianglePoint4, rTrianglePoint5, rTrianglePoint6, rPoint);
+    const auto min = std::min_element(distances.begin(), distances.end());
+    return *min;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+double GeometryUtils::PointDistanceToQuadrilateral3D(
+    const Point& rQuadrilateralPoint1,
+    const Point& rQuadrilateralPoint2,
+    const Point& rQuadrilateralPoint3,
+    const Point& rQuadrilateralPoint4,
+    const Point& rPoint
+    )
+{
+    const double distance_1 = GeometryUtils::PointDistanceToTriangle3D(rQuadrilateralPoint1, rQuadrilateralPoint2, rQuadrilateralPoint3, rPoint);
+    const double distance_2 = GeometryUtils::PointDistanceToTriangle3D(rQuadrilateralPoint3, rQuadrilateralPoint4, rQuadrilateralPoint1, rPoint);
+    return std::min(distance_1, distance_2);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
 template <class TDataType>
 void GeometryUtils::EvaluateHistoricalVariableValueAtGaussPoint(
     TDataType& rOutput,
@@ -447,6 +485,184 @@ void GeometryUtils::EvaluateHistoricalVariableGradientAtGaussPoint(
             }
         }
     }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void GeometryUtils::ShapeFunctionsSecondDerivativesTransformOnAllIntegrationPoints(
+        DenseVector<DenseVector<Matrix>>& rResult,
+        const GeometryType& rGeometry,
+        const GeometryType::IntegrationMethod& rIntegrationMethod )
+{
+
+    const unsigned int integration_points_number = rGeometry.IntegrationPointsNumber( rIntegrationMethod );
+
+    if ( integration_points_number == 0 )
+            KRATOS_ERROR << "This integration method is not supported" << std::endl;
+
+    rResult.resize(integration_points_number, false);
+
+    //calculating the local gradients
+     DenseVector<Matrix> DN_DX;
+    rGeometry.ShapeFunctionsIntegrationPointsGradients( DN_DX, rIntegrationMethod );
+    for (IndexType i = 0; i < integration_points_number; i++) {
+        rResult[i].resize(rGeometry.PointsNumber(), false);
+        for (IndexType j = 0; j < rGeometry.PointsNumber(); j++)
+            rResult[i][j].resize(rGeometry.WorkingSpaceDimension(), rGeometry.WorkingSpaceDimension(), false);
+        GeometryUtils::ShapeFunctionsSecondDerivativesTransformOnIntegrationPoint(DN_DX[i],rGeometry,rGeometry.IntegrationPoints( rIntegrationMethod )[i], rResult[i]);
+    }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void GeometryUtils::ShapeFunctionsSecondDerivativesTransformOnIntegrationPoint(
+      const Matrix& DN_DX,
+      const GeometryType& rGeometry,
+      const GeometryType::CoordinatesArrayType& rLocalIntegrationPointCoordinates,
+      DenseVector<Matrix>& rResult)
+{
+        KRATOS_ERROR_IF_NOT(rGeometry.WorkingSpaceDimension() == rGeometry.LocalSpaceDimension())
+            << "\'ShapeFunctionsIntegrationPointsSecondDerivatives\' is not defined for current geometry type as second derivatives are only defined in the local space." << std::endl;
+
+        GeometryType::ShapeFunctionsSecondDerivativesType DDN_DDe;
+        rGeometry.ShapeFunctionsSecondDerivatives(DDN_DDe, rLocalIntegrationPointCoordinates);
+
+        Matrix A, Ainv;
+        double DetA;
+        Matrix J(rGeometry.WorkingSpaceDimension(),rGeometry.LocalSpaceDimension());
+        rGeometry.Jacobian(J,rLocalIntegrationPointCoordinates);
+
+        DenseVector<Matrix> aux(rGeometry.PointsNumber());
+        Vector rhs, result;
+        if (rGeometry.WorkingSpaceDimension() == 2){
+            rhs.resize(3, false);
+            result.resize(3, false);
+        }
+        else if (rGeometry.WorkingSpaceDimension() == 3){
+            rhs.resize(6, false);
+            result.resize(6, false);
+        }
+
+        for (IndexType i = 0; i < rGeometry.PointsNumber(); i++) {
+            aux[i].resize(rGeometry.WorkingSpaceDimension(), rGeometry.WorkingSpaceDimension(), false);
+        }
+
+        if (rGeometry.WorkingSpaceDimension() == 2){
+                A.resize(3,3,false);
+                Ainv.resize(3,3,false);
+
+                A(0,0) = J(0,0) * J(0,0);
+                A(0,1) = J(1,0) * J(1,0);
+                A(0,2) = 2.0 * J(0,0) * J(1,0);
+
+                A(1,0) = J(0,1) * J(0,1);
+                A(1,1) = J(1,1) * J(1,1);
+                A(1,2) = 2.0 * J(0,1) * J(1,1);
+
+                A(2,0) = J(0,0) * J(0,1);
+                A(2,1) = J(1,0) * J(1,1);
+                A(2,2) = J(0,0) * J(1,1) + J(0,1) * J(1,0);
+            }
+            else if (rGeometry.WorkingSpaceDimension() == 3){
+                A.resize(6,6,false);
+                Ainv.resize(6,6,false);
+
+                A(0,0) = J(0,0) * J(0,0);
+                A(0,1) = J(1,0) * J(1,0);
+                A(0,2) = J(2,0) * J(2,0);
+                A(0,3) = 2.0 * J(0,0) * J(1,0);
+                A(0,4) = 2.0 * J(1,0) * J(2,0);
+                A(0,5) = 2.0 * J(0,0) * J(2,0);
+
+                A(1,0) = J(0,1) * J(0,1);
+                A(1,1) = J(1,1) * J(1,1);
+                A(1,2) = J(2,1) * J(2,1);
+                A(1,3) = 2.0 * J(0,1) * J(1,1);
+                A(1,4) = 2.0 * J(1,1) * J(2,1);
+                A(1,5) = 2.0 * J(0,1) * J(2,1);
+
+                A(2,0) = J(0,2) * J(0,2);
+                A(2,1) = J(1,2) * J(1,2);
+                A(2,2) = J(2,2) * J(2,2);
+                A(2,3) = 2.0 * J(0,2) * J(1,2);
+                A(2,4) = 2.0 * J(1,2) * J(2,2);
+                A(2,5) = 2.0 * J(0,2) * J(2,2);
+
+                A(3,0) = J(0,0) * J(0,1);
+                A(3,1) = J(1,0) * J(1,1);
+                A(3,2) = J(2,0) * J(2,1);
+                A(3,3) = J(0,0) * J(1,1) + J(0,1) * J(1,0);
+                A(3,4) = J(1,0) * J(2,1) + J(1,1) * J(2,0);
+                A(3,5) = J(0,0) * J(2,1) + J(0,1) * J(2,0);
+
+                A(4,0) = J(0,1) * J(0,2);
+                A(4,1) = J(1,1) * J(1,2);
+                A(4,2) = J(2,1) * J(2,2);
+                A(4,3) = J(0,1) * J(1,2) + J(0,2) * J(1,1);
+                A(4,4) = J(1,1) * J(2,2) + J(1,2) * J(2,1);
+                A(4,5) = J(0,1) * J(2,2) + J(0,2) * J(2,1);
+
+                A(5,0) = J(0,0) * J(0,2);
+                A(5,1) = J(1,0) * J(1,2);
+                A(5,2) = J(2,0) * J(2,2);
+                A(5,3) = J(0,0) * J(1,2) + J(0,2) * J(1,0);
+                A(5,4) = J(1,0) * J(2,2) + J(1,2) * J(2,0);
+                A(5,5) = J(0,0) * J(2,2) + J(0,2) * J(2,0);
+
+            }
+            MathUtils<double>::InvertMatrix( A, Ainv, DetA );
+            DenseVector<Matrix> H(rGeometry.WorkingSpaceDimension());
+            for (unsigned int d = 0; d < rGeometry.WorkingSpaceDimension(); ++d)
+                H[d] = ZeroMatrix(rGeometry.LocalSpaceDimension(),rGeometry.LocalSpaceDimension());
+
+            for (IndexType p = 0; p < rGeometry.PointsNumber(); ++p) {
+                const array_1d<double, 3>& r_coordinates = rGeometry[p].Coordinates();
+                for (unsigned int d=0 ; d < rGeometry.WorkingSpaceDimension(); ++d){
+                    for (unsigned int e=0 ; e < rGeometry.WorkingSpaceDimension(); ++e){
+                        for (unsigned int f=0 ; f < rGeometry.WorkingSpaceDimension(); ++f){
+                            H[d](e,f) += r_coordinates[d] * DDN_DDe[p](e,f);
+                        }
+                    }
+                }
+            }
+            for (IndexType p = 0; p < rGeometry.PointsNumber(); ++p) {
+                if (rGeometry.WorkingSpaceDimension() == 2){
+                    rhs[0] = DDN_DDe[p](0,0) - DN_DX(p,0) * H[0](0,0) - DN_DX(p,1) * H[1](0,0);
+                    rhs[1] = DDN_DDe[p](1,1) - DN_DX(p,0) * H[0](1,1) - DN_DX(p,1) * H[1](1,1);
+                    rhs[2] = DDN_DDe[p](0,1) - DN_DX(p,0) * H[0](0,1) - DN_DX(p,1) * H[1](0,1);
+                }
+                else if (rGeometry.WorkingSpaceDimension() == 3){
+                    rhs[0] = DDN_DDe[p](0,0) - DN_DX(p,0) * H[0](0,0) - DN_DX(p,1) * H[1](0,0) - DN_DX(p,2) * H[2](0,0);
+                    rhs[1] = DDN_DDe[p](1,1) - DN_DX(p,0) * H[0](1,1) - DN_DX(p,1) * H[1](1,1) - DN_DX(p,2) * H[2](0,0);
+                    rhs[2] = DDN_DDe[p](2,2) - DN_DX(p,0) * H[0](2,2) - DN_DX(p,1) * H[1](2,2) - DN_DX(p,2) * H[2](2,2);
+                    rhs[3] = DDN_DDe[p](0,1) - DN_DX(p,0) * H[0](0,1) - DN_DX(p,1) * H[1](0,1) - DN_DX(p,2) * H[2](0,1);
+                    rhs[4] = DDN_DDe[p](1,2) - DN_DX(p,0) * H[0](1,2) - DN_DX(p,1) * H[1](1,2) - DN_DX(p,2) * H[2](1,2);
+                    rhs[5] = DDN_DDe[p](0,2) - DN_DX(p,0) * H[0](0,2) - DN_DX(p,1) * H[1](0,2) - DN_DX(p,2) * H[2](0,2);
+                }
+
+                aux[p].resize(rGeometry.WorkingSpaceDimension(), rGeometry.WorkingSpaceDimension(), false );
+
+                noalias(result) = prod(Ainv, rhs);
+
+                aux[p](0,0) = result[0];
+                aux[p](1,1) = result[1];
+                if (rGeometry.WorkingSpaceDimension() == 2){
+                    aux[p](0,1) = result[2];
+                    aux[p](1,0) = result[2];
+                }
+                else if (rGeometry.WorkingSpaceDimension() == 3){
+                    aux[p](2,2) = result[2];
+                    aux[p](0,1) = result[3];
+                    aux[p](1,0) = result[3];
+                    aux[p](0,2) = result[5];
+                    aux[p](2,0) = result[5];
+                    aux[p](2,1) = result[4];
+                    aux[p](1,2) = result[4];
+                }
+            }
+            noalias(rResult) = aux;
 }
 
 /***********************************************************************************/

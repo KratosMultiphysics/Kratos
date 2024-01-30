@@ -93,8 +93,8 @@ namespace Testing
         MCC_result = mcc_yc_pointer->CalculateYieldCondition(MCC_result, principal_stress, alpha, prev_pc, material_properties);
 
         // Check results
-        KRATOS_CHECK_NEAR(MC_result, MC_analytical, 1);
-        KRATOS_CHECK_NEAR(MCC_result, MCC_analytical, 1.e5);
+        KRATOS_EXPECT_NEAR(MC_result, MC_analytical, 1);
+        KRATOS_EXPECT_NEAR(MCC_result, MCC_analytical, 1.e5);
 
     }
 
@@ -127,9 +127,9 @@ namespace Testing
         mcc_yc_pointer->CalculateYieldFunctionDerivative(principal_stress, MCC_derivative_result, alpha, prev_pc, material_properties);
 
         // Check results
-        KRATOS_CHECK_NEAR(MCC_derivative_result[0], MCC_derivative_analytical[0], 1);
-        KRATOS_CHECK_NEAR(MCC_derivative_result[1], MCC_derivative_analytical[1], 1);
-        KRATOS_CHECK_NEAR(MCC_derivative_result[2], MCC_derivative_analytical[2], 1);
+        KRATOS_EXPECT_NEAR(MCC_derivative_result[0], MCC_derivative_analytical[0], 1);
+        KRATOS_EXPECT_NEAR(MCC_derivative_result[1], MCC_derivative_analytical[1], 1);
+        KRATOS_EXPECT_NEAR(MCC_derivative_result[2], MCC_derivative_analytical[2], 1);
 
     }
 
@@ -163,12 +163,12 @@ namespace Testing
         mcc_yc_pointer->CalculateYieldFunctionSecondDerivative(principal_stress, MCC_derivative2_result, material_properties);
 
         // Check results
-        KRATOS_CHECK_NEAR(MCC_derivative2_result[0], MCC_derivative2_analytical[0], 1e-6);
-        KRATOS_CHECK_NEAR(MCC_derivative2_result[1], MCC_derivative2_analytical[1], 1e-6);
-        KRATOS_CHECK_NEAR(MCC_derivative2_result[2], MCC_derivative2_analytical[2], 1e-6);
-        KRATOS_CHECK_NEAR(MCC_derivative2_result[3], MCC_derivative2_analytical[3], 1e-6);
-        KRATOS_CHECK_NEAR(MCC_derivative2_result[4], MCC_derivative2_analytical[4], 1e-6);
-        KRATOS_CHECK_NEAR(MCC_derivative2_result[5], MCC_derivative2_analytical[5], 1e-6);
+        KRATOS_EXPECT_NEAR(MCC_derivative2_result[0], MCC_derivative2_analytical[0], 1e-6);
+        KRATOS_EXPECT_NEAR(MCC_derivative2_result[1], MCC_derivative2_analytical[1], 1e-6);
+        KRATOS_EXPECT_NEAR(MCC_derivative2_result[2], MCC_derivative2_analytical[2], 1e-6);
+        KRATOS_EXPECT_NEAR(MCC_derivative2_result[3], MCC_derivative2_analytical[3], 1e-6);
+        KRATOS_EXPECT_NEAR(MCC_derivative2_result[4], MCC_derivative2_analytical[4], 1e-6);
+        KRATOS_EXPECT_NEAR(MCC_derivative2_result[5], MCC_derivative2_analytical[5], 1e-6);
 
     }
 

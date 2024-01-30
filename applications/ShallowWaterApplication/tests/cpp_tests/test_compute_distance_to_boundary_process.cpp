@@ -67,7 +67,7 @@ KRATOS_TEST_CASE_IN_SUITE(CalculateDistanceToOneBoundaryProcess, ShallowWaterApp
     const double tolerance = 1e-16;
     for (auto& r_node : r_model_part.Nodes()) {
         const double distance = 1.0 - r_node.X();
-        KRATOS_CHECK_NEAR(r_node.FastGetSolutionStepValue(DISTANCE), distance, tolerance);
+        KRATOS_EXPECT_NEAR(r_node.FastGetSolutionStepValue(DISTANCE), distance, tolerance);
     }
 }
 
@@ -99,7 +99,7 @@ KRATOS_TEST_CASE_IN_SUITE(CalculateDistanceToTwoBoundariesProcess, ShallowWaterA
     const double tolerance = 1e-16;
     for (auto& r_node : r_model_part.Nodes()) {
         const double distance = std::min(1.0 - r_node.X(), 1.0 - r_node.Y());
-        KRATOS_CHECK_NEAR(r_node.FastGetSolutionStepValue(DISTANCE), distance, tolerance);
+        KRATOS_EXPECT_NEAR(r_node.FastGetSolutionStepValue(DISTANCE), distance, tolerance);
     }
 }
 
@@ -124,7 +124,7 @@ KRATOS_TEST_CASE_IN_SUITE(CalculateDistanceToTwoBoundariesBruteForceProcess, Sha
     const double tolerance = 1e-16;
     for (auto& r_node : r_model_part.Nodes()) {
         const double distance = std::min(1.0 - r_node.X(), 1.0 - r_node.Y());
-        KRATOS_CHECK_NEAR(r_node.FastGetSolutionStepValue(DISTANCE), distance, tolerance);
+        KRATOS_EXPECT_NEAR(r_node.FastGetSolutionStepValue(DISTANCE), distance, tolerance);
     }
 }
 

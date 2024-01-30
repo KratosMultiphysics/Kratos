@@ -4,8 +4,8 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Pooyan Dadvand
 //
@@ -24,83 +24,79 @@
 #include "python/containers_interface.h"
 #include "python/add_mesh_to_python.h"
 
-namespace Kratos
-{
-namespace Python
+namespace Kratos::Python
 {
 namespace py = pybind11;
 
-typedef Node NodeType;
-
 template<class TVariableType> inline
-void NodeFix(NodeType& rThisNode, TVariableType const& rThisVariable)
+void NodeFix(Node& rThisNode, TVariableType const& rThisVariable)
 {
     rThisNode.Fix(rThisVariable);
 }
 
 template<class TVariableType> inline
-void NodeFree(NodeType& rThisNode, TVariableType const& rThisVariable)
+void NodeFree(Node& rThisNode, TVariableType const& rThisVariable)
 {
     rThisNode.Free(rThisVariable);
 }
 
 template<class TVariableType> inline
-bool NodeIsFixed(NodeType& rThisNode, TVariableType const& rThisVariable)
+bool NodeIsFixed(Node& rThisNode, TVariableType const& rThisVariable)
 {
     return rThisNode.IsFixed(rThisVariable);
 }
 
 template<class TVariableType> inline
-bool NodeHasDofFor(NodeType& rThisNode, TVariableType const& rThisVariable)
+bool NodeHasDofFor(Node& rThisNode, TVariableType const& rThisVariable)
 {
     return rThisNode.HasDofFor(rThisVariable);
 }
 
 template<class TVariableType> inline
-void NodeAddDof(NodeType& rThisNode, TVariableType const& rThisVariable)
+void NodeAddDof(Node& rThisNode, TVariableType const& rThisVariable)
 {
     rThisNode.pAddDof(rThisVariable);
 }
 
 template<class TVariableType> inline
-void NodeAddDofwithReaction(NodeType& rThisNode, TVariableType const& rThisVariable,  TVariableType const& rReactionVariable)
+void NodeAddDofwithReaction(Node& rThisNode, TVariableType const& rThisVariable,  TVariableType const& rReactionVariable)
 {
 // 	      KRATOS_WATCH(rReactionVariable);
     rThisNode.pAddDof(rThisVariable, rReactionVariable);
 }
 
 template<class TVariableType>
-bool NodeSolutionStepsDataHas(NodeType& rThisNode, const TVariableType& rThisVariable)
+bool NodeSolutionStepsDataHas(Node& rThisNode, const TVariableType& rThisVariable)
 {
     return rThisNode.SolutionStepsDataHas(rThisVariable);
 }
 
-void PointSetX0(NodeType& ThisPoint, double Value)
+void PointSetX0(Node& ThisPoint, double Value)
 {
     ThisPoint.X0() = Value;
 }
 
-void PointSetY0(NodeType& ThisPoint, double Value)
+void PointSetY0(Node& ThisPoint, double Value)
 {
     ThisPoint.Y0() = Value;
 }
 
-void PointSetZ0(NodeType& ThisPoint, double Value)
+void PointSetZ0(Node& ThisPoint, double Value)
 {
     ThisPoint.Z0() = Value;
 }
 
-double PointGetX0(NodeType& ThisPoint)
+double PointGetX0(Node& ThisPoint)
 {
     return ThisPoint.X0();
 }
 
-double PointGetY0(NodeType& ThisPoint)
+double PointGetY0(Node& ThisPoint)
 {
     return ThisPoint.Y0();
 }
 
-double PointGetZ0(NodeType& ThisPoint)
+double PointGetZ0(Node& ThisPoint)
 {
     return ThisPoint.Z0();
 }
@@ -130,38 +126,34 @@ template< class TBinderType, typename TContainerType, typename TVariableType > v
 
 void  AddNodeToPython(pybind11::module& m)
 {
-    typedef Mesh<NodeType, Properties, Element, Condition> MeshType;
-
-    typedef MeshType::NodeType NodeType;
-
+    using MeshType = Mesh<Node, Properties, Element, Condition>;
 
     py::class_<IndexedObject, IndexedObject::Pointer>(m,"IndexedObject")
     .def_property("Id", &IndexedObject::GetId, &IndexedObject::SetId)
     .def("__str__", PrintObject<IndexedObject>)
     ;
 
-
-    typedef  py::class_<NodeType, NodeType::Pointer, NodeType::BaseType, Flags > NodeBinderType;
+    typedef  py::class_<Node, Node::Pointer, Node::BaseType, Flags > NodeBinderType;
     NodeBinderType node_binder(m,"Node");
-    node_binder.def(py::init<NodeType::IndexType, double, double, double>());
-    node_binder.def(py::init<NodeType::IndexType, const Point& >());
+    node_binder.def(py::init<Node::IndexType, double, double, double>());
+    node_binder.def(py::init<Node::IndexType, const Point& >());
 
-    IndexingUtility<NodeBinderType,NodeType,Variable<bool> >(node_binder);
-    IndexingUtility<NodeBinderType,NodeType,Variable<int> >(node_binder);
-    IndexingUtility<NodeBinderType,NodeType,Variable<double> >(node_binder);
-    IndexingUtility<NodeBinderType,NodeType,Variable<array_1d<double, 3> > >(node_binder);
-    IndexingUtility<NodeBinderType,NodeType,Variable<array_1d<double, 4> > >(node_binder);
-    IndexingUtility<NodeBinderType,NodeType,Variable<array_1d<double, 6> > >(node_binder);
-    IndexingUtility<NodeBinderType,NodeType,Variable<array_1d<double, 9> > >(node_binder);
-    IndexingUtility<NodeBinderType,NodeType,Variable<Quaternion<double> > >(node_binder);
-    IndexingUtility<NodeBinderType,NodeType,Variable<Vector > >(node_binder);
-    IndexingUtility<NodeBinderType,NodeType,Variable<Matrix > >(node_binder);
+    IndexingUtility<NodeBinderType,Node,Variable<bool> >(node_binder);
+    IndexingUtility<NodeBinderType,Node,Variable<int> >(node_binder);
+    IndexingUtility<NodeBinderType,Node,Variable<double> >(node_binder);
+    IndexingUtility<NodeBinderType,Node,Variable<array_1d<double, 3> > >(node_binder);
+    IndexingUtility<NodeBinderType,Node,Variable<array_1d<double, 4> > >(node_binder);
+    IndexingUtility<NodeBinderType,Node,Variable<array_1d<double, 6> > >(node_binder);
+    IndexingUtility<NodeBinderType,Node,Variable<array_1d<double, 9> > >(node_binder);
+    IndexingUtility<NodeBinderType,Node,Variable<Quaternion<double> > >(node_binder);
+    IndexingUtility<NodeBinderType,Node,Variable<Vector > >(node_binder);
+    IndexingUtility<NodeBinderType,Node,Variable<Matrix > >(node_binder);
 
-    node_binder.def("GetBufferSize", &NodeType::GetBufferSize);
+    node_binder.def("GetBufferSize", &Node::GetBufferSize);
     node_binder.def("AddDof", NodeAddDof<Variable<double> >);
     node_binder.def("AddDof", NodeAddDofwithReaction<Variable<double> >);
     node_binder.def("GetDof",
-        [](const NodeType& rNode, const Variable<double>& rVar) -> NodeType::DofType& {return *rNode.pGetDof(rVar); }
+        [](const Node& rNode, const Variable<double>& rVar) -> Node::DofType& {return *rNode.pGetDof(rVar); }
         ,py::return_value_policy::reference_internal
     );
     node_binder.def("Fix", NodeFix<Variable<double> >);
@@ -177,18 +169,16 @@ void  AddNodeToPython(pybind11::module& m)
     node_binder.def("SolutionStepsDataHas", &NodeSolutionStepsDataHas<Variable<array_1d<double, 9> > >);
     node_binder.def("SolutionStepsDataHas", &NodeSolutionStepsDataHas<Variable<Vector> >);
     node_binder.def("SolutionStepsDataHas", &NodeSolutionStepsDataHas<Variable<DenseMatrix<double> > >);
-    node_binder.def("__str__", PrintObject<NodeType>);
-    node_binder.def("OverwriteSolutionStepData", &NodeType::OverwriteSolutionStepData);
+    node_binder.def("__str__", PrintObject<Node>);
+    node_binder.def("OverwriteSolutionStepData", &Node::OverwriteSolutionStepData);
     node_binder.def_property("X0", PointGetX0, PointSetX0);
     node_binder.def_property("Y0", PointGetY0, PointSetY0);
     node_binder.def_property("Z0", PointGetZ0, PointSetZ0);
-    node_binder.def_property("Id", &NodeType::GetId, &NodeType::SetId);
+    node_binder.def_property("Id", &Node::GetId, &Node::SetId);
 
     PointerVectorSetPythonInterface<MeshType::NodesContainerType>().CreateInterface(m,"NodesArray");
 
 }
 
-}  // namespace Python.
-
-} // Namespace Kratos
+}  // namespace Kratos::Python.
 

@@ -194,16 +194,18 @@ class kernel {
         }
 
         /// Set launch configuration.
-        kernel& config(ndrange blocks, ndrange threads) {
+        kernel& config(ndrange blocks, ndrange threads, size_t shared_mem = 0) {
             g_size = blocks;
             w_size = threads;
+
+            if (shared_mem) smem = shared_mem;
 
             return *this;
         }
 
         /// Set launch configuration.
-        kernel& config(size_t blocks, size_t threads) {
-            return config(ndrange(blocks), ndrange(threads));
+        kernel& config(size_t blocks, size_t threads, size_t shared_mem = 0) {
+            return config(ndrange(blocks), ndrange(threads), shared_mem);
         }
 
         size_t preferred_work_group_size_multiple(const backend::command_queue &q) const {

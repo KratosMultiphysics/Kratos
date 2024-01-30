@@ -127,6 +127,10 @@ class AutomatedInitialDamageTest(TestFactory):
 class TractionSeparationLawTest(TestFactory):
     file_name = "TractionSeparationLaw/traction_separation_law_test"
 
+class CurveByPointsPlasticityTest(TestFactory):
+    file_name = "CurveByPointsPlasticity/plastic_test"
+
+
 
 if __name__ == '__main__':
     KratosUnittest.main()

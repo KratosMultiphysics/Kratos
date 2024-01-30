@@ -114,7 +114,7 @@ namespace Kratos
         for (unsigned int i = 0; i < mrNodalDistances.size(); ++i) {
             if (mrNodalDistances(i) < 0.0) {
                 n_neg++;
-            } else {
+            } else if (mrNodalDistances(i) > 0.0) {
                 n_pos++;
             }
         }

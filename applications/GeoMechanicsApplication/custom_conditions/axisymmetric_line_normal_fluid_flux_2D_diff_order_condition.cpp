@@ -38,10 +38,6 @@ AxisymmetricLineNormalFluidFlux2DDiffOrderCondition::
                                             PropertiesType::Pointer pProperties) :
                                             LineNormalFluidFlux2DDiffOrderCondition(NewId, pGeometry, pProperties) {}
 
-//----------------------------------------------------------------------------------------
-//Destructor
-AxisymmetricLineNormalFluidFlux2DDiffOrderCondition::~AxisymmetricLineNormalFluidFlux2DDiffOrderCondition() {}
-
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 Condition::Pointer AxisymmetricLineNormalFluidFlux2DDiffOrderCondition::
     Create(IndexType NewId,

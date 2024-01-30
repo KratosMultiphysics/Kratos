@@ -32,24 +32,20 @@ void CheckSameModelPartUsingSkinDistanceProcess<TDim>::Execute()
 {
     KRATOS_TRY
 
-    // We get the names of the model parts
-    const std::string& r_skin_model_part_1_name = mThisParameters["skin_model_part_1_name"].GetString();
-    const std::string& r_skin_model_part_2_name = mThisParameters["skin_model_part_2_name"].GetString();
-
-    // We get the model parts
-    ModelPart& r_skin_model_part_1 = mrModel.GetModelPart(r_skin_model_part_1_name);
-    ModelPart& r_skin_model_part_2 = mrModel.GetModelPart(r_skin_model_part_2_name);
-    
     // Checking that the model part contains conditions
-    KRATOS_ERROR_IF(r_skin_model_part_1.NumberOfConditions() == 0) << "The first model part does not contain conditions" << std::endl;
-    KRATOS_ERROR_IF(r_skin_model_part_2.NumberOfConditions() == 0) << "The second model part does not contain conditions" << std::endl;
+    KRATOS_ERROR_IF(mrSkinModelPart1.NumberOfConditions() == 0) << "The first model part does not contain conditions" << std::endl;
+    KRATOS_ERROR_IF(mrSkinModelPart2.NumberOfConditions() == 0) << "The second model part does not contain conditions" << std::endl;
     if constexpr (TDim == 2) { // 2D
-        KRATOS_ERROR_IF_NOT(r_skin_model_part_1.Conditions().begin()->GetGeometry().GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Line2D2) << "Conditions from first model part must be lines in 2D space" << std::endl;
-        KRATOS_ERROR_IF_NOT(r_skin_model_part_2.Conditions().begin()->GetGeometry().GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Line2D2) << "Conditions from second model part must be lines in 2D space" << std::endl;
+        KRATOS_ERROR_IF_NOT(mrSkinModelPart1.Conditions().begin()->GetGeometry().GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Line2D2) << "Conditions from first model part must be lines in 2D space" << std::endl;
+        KRATOS_ERROR_IF_NOT(mrSkinModelPart2.Conditions().begin()->GetGeometry().GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Line2D2) << "Conditions from second model part must be lines in 2D space" << std::endl;
     } else { // 3D
-        KRATOS_ERROR_IF_NOT(r_skin_model_part_1.Conditions().begin()->GetGeometry().GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Triangle3D3) << "Conditions from first model part must be triangles in 3D space" << std::endl;
-        KRATOS_ERROR_IF_NOT(r_skin_model_part_2.Conditions().begin()->GetGeometry().GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Triangle3D3) << "Conditions from second model part must be triangles in 3D space" << std::endl;
+        KRATOS_ERROR_IF_NOT(mrSkinModelPart1.Conditions().begin()->GetGeometry().GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Triangle3D3) << "Conditions from first model part must be triangles in 3D space" << std::endl;
+        KRATOS_ERROR_IF_NOT(mrSkinModelPart2.Conditions().begin()->GetGeometry().GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Triangle3D3) << "Conditions from second model part must be triangles in 3D space" << std::endl;
     }
+
+    // Getting the parent models
+    auto& r_model_1 = mrSkinModelPart1.GetModel();
+    auto& r_model_2 = mrSkinModelPart2.GetModel();
 
     // We get the coordinates of the bounding box
     const double zero_tolerance = std::numeric_limits<double>::epsilon();
@@ -60,12 +56,12 @@ void CheckSameModelPartUsingSkinDistanceProcess<TDim>::Execute()
         "create_skin_sub_model_part" : false
     })");
     mesher_parameters["number_of_divisions"].SetInt(mThisParameters["number_of_divisions_background_mesh"].GetInt());
-    ModelPart& r_model_part_1 = mrModel.CreateModelPart("BACKGROUND_MESH_1");
+    ModelPart& r_model_part_1 = r_model_1.CreateModelPart("BACKGROUND_MESH_1");
     const double bounding_box_scale_factor = mThisParameters["bounding_box_scale_factor"].GetDouble();
     if constexpr (TDim == 2) { // 2D
         mesher_parameters["element_name"].SetString("Element2D3N");
         using BBReduction = CombinedReduction<MaxReduction<double>, MinReduction<double>, MaxReduction<double>, MinReduction<double>>;
-        auto [max_x, min_x, max_y, min_y] = block_for_each<BBReduction>(r_skin_model_part_1.Nodes(), [&](NodeType& rNode) {
+        auto [max_x, min_x, max_y, min_y] = block_for_each<BBReduction>(mrSkinModelPart1.Nodes(), [&](NodeType& rNode) {
             return std::make_tuple(rNode.X(),rNode.X(),rNode.Y(),rNode.Y());
         });
         if (max_x > zero_tolerance) max_x *= bounding_box_scale_factor; else max_x /= bounding_box_scale_factor;
@@ -82,7 +78,7 @@ void CheckSameModelPartUsingSkinDistanceProcess<TDim>::Execute()
         StructuredMeshGeneratorProcess(geometry, r_model_part_1, mesher_parameters).Execute();
     } else { // 3D
         using BBReduction = CombinedReduction<MaxReduction<double>, MinReduction<double>, MaxReduction<double>, MinReduction<double>, MaxReduction<double>, MinReduction<double>>;
-        auto [max_x, min_x, max_y, min_y, max_z, min_z] = block_for_each<BBReduction>(r_skin_model_part_1.Nodes(), [&](NodeType& rNode) {
+        auto [max_x, min_x, max_y, min_y, max_z, min_z] = block_for_each<BBReduction>(mrSkinModelPart1.Nodes(), [&](NodeType& rNode) {
             return std::make_tuple(rNode.X(),rNode.X(),rNode.Y(),rNode.Y(),rNode.Z(),rNode.Z());
         });
         if (max_x > zero_tolerance) max_x *= bounding_box_scale_factor; else max_x /= bounding_box_scale_factor;
@@ -106,18 +102,18 @@ void CheckSameModelPartUsingSkinDistanceProcess<TDim>::Execute()
     }
 
     // Using the same geometry, we create the second background mesh, but values are stored in a different model part
-    ModelPart& r_model_part_2 = AuxiliarModelPartUtilities(r_model_part_1).DeepCopyModelPart("BACKGROUND_MESH_2", &mrModel);
+    ModelPart& r_model_part_2 = AuxiliarModelPartUtilities(r_model_part_1).DeepCopyModelPart("BACKGROUND_MESH_2", &r_model_2);
 
     // Compute the distance to the skin
     Parameters distance_parameters = mThisParameters["discontinuous_distance_settings"];
-    CalculateDiscontinuousDistanceToSkinProcess<TDim> distance_calculator_1(r_model_part_1, r_skin_model_part_1, distance_parameters);
+    CalculateDiscontinuousDistanceToSkinProcess<TDim> distance_calculator_1(r_model_part_1, mrSkinModelPart1, distance_parameters);
     distance_calculator_1.Execute();
-    CalculateDiscontinuousDistanceToSkinProcess<TDim> distance_calculator_2(r_model_part_2, r_skin_model_part_2, distance_parameters);
+    CalculateDiscontinuousDistanceToSkinProcess<TDim> distance_calculator_2(r_model_part_2, mrSkinModelPart2, distance_parameters);
     distance_calculator_2.Execute();
 
     // Compute the average length of the elements in order to compute the tolerance
-    auto it_cond_begin_1 = r_skin_model_part_1.ConditionsBegin();
-    const std::size_t total_number_conditions = r_skin_model_part_1.NumberOfConditions();
+    auto it_cond_begin_1 = mrSkinModelPart1.ConditionsBegin();
+    const std::size_t total_number_conditions = mrSkinModelPart1.NumberOfConditions();
     double average_length = IndexPartition<std::size_t>(total_number_conditions).for_each<SumReduction<double>>([&](std::size_t i) {
         auto it_cond_1 = it_cond_begin_1 + i;
         return it_cond_1->GetGeometry().Length();
@@ -148,8 +144,8 @@ void CheckSameModelPartUsingSkinDistanceProcess<TDim>::Execute()
     // TODO: Add MPI version
 
     // Cleaning up created model parts
-    mrModel.DeleteModelPart("BACKGROUND_MESH_1");
-    mrModel.DeleteModelPart("BACKGROUND_MESH_2");
+    r_model_1.DeleteModelPart("BACKGROUND_MESH_1");
+    r_model_2.DeleteModelPart("BACKGROUND_MESH_2");
 
     KRATOS_CATCH("")
 }

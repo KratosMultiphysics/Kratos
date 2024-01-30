@@ -15,6 +15,7 @@
 // External includes
 
 // Project includes
+#include "spatial_containers/point_object.h"
 #include "utilities/geometrical_projection_utilities.h"
 #include "processes/calculate_distance_to_path_process.h"
 #include "utilities/variable_utils.h"
@@ -134,7 +135,7 @@ void CalculateDistanceToPathProcess<THistorical>::CalculateDistance(
     });
 
     /// Type definitions for the KDtree
-    using KDtreePointType = PointGeometry;
+    using KDtreePointType = PointObject<Geometry<Node>>;
     using KDtreePointTypePointer = KDtreePointType::Pointer;
     using KDtreePointVector = std::vector<KDtreePointTypePointer>;
     using KDtreePointIterator = KDtreePointVector::iterator;
@@ -169,7 +170,7 @@ void CalculateDistanceToPathProcess<THistorical>::CalculateDistance(
         IndexType number_points_found = 0;
         while (number_points_found == 0) {
             search_radius *= search_increment_factor;
-            const PointGeometry point(rNode.X(), rNode.Y(), rNode.Z());
+            const KDtreePointType point(rNode.Coordinates());
             number_points_found = tree_points.SearchInRadius(point, search_radius, points_found.begin(), allocation_size);
         }
 
@@ -177,7 +178,7 @@ void CalculateDistanceToPathProcess<THistorical>::CalculateDistance(
         Geometry<NodeType>::Pointer p_closest_geometry = nullptr;
         for (IndexType i = 0; i < number_points_found; ++i) {
             auto p_point = points_found[i];
-            auto p_segment = p_point->pGetGeometry();
+            auto p_segment = p_point->pGetObject();
             const double potential_min = GeometricalProjectionUtilities::FastMinimalDistanceOnLine(*p_segment, rNode, distance_tolerance);
             if (std::abs(potential_min) < std::abs(min_value)) {
                 min_value = potential_min;

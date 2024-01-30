@@ -17,7 +17,7 @@
 // Project includes
 #include "containers/model.h"
 #include "testing/testing.h"
-#include "includes/checks.h"
+#include "includes/expect.h"
 #include "geometries/prism_3d_6.h"
 
 /* Processes */
@@ -69,7 +69,7 @@ namespace Kratos
             thickness_process.Execute();
 
             for (auto& node : this_model_part.Nodes())
-                KRATOS_CHECK_NEAR(node.GetValue(THICKNESS), 1.0, std::numeric_limits<double>::epsilon());
+                KRATOS_EXPECT_NEAR(node.GetValue(THICKNESS), 1.0, std::numeric_limits<double>::epsilon());
         }
 
     } // namespace Testing

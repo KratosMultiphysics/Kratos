@@ -25,6 +25,7 @@ namespace Kratos{
         DEM_parallel_bond() {}
 
         void TransferParametersToProperties(const Parameters& parameters, Properties::Pointer pProp) override;
+        std::string GetTypeOfLaw() override;
         void Check(Properties::Pointer pProp) const override;
 
         ~DEM_parallel_bond() {}
@@ -33,10 +34,15 @@ namespace Kratos{
 
         virtual void CalculateContactArea(double radius, double other_radius, double& calculation_area) override;
         virtual double CalculateContactArea(double radius, double other_radius, Vector& v) override;
-        void GetcontactArea(const double radius, const double other_radius, const Vector& vector_of_initial_areas, const int neighbour_position, double& calculation_area);
+        void GetContactArea(const double radius, const double other_radius, const Vector& vector_of_initial_areas, const int neighbour_position, double& calculation_area) override;
         void CalculateElasticConstants(double& kn_el, double& kt_el, double initial_dist, double equiv_young,
                                     double equiv_poisson, double calculation_area, SphericContinuumParticle* element1, SphericContinuumParticle* element2, double indentation) override;
         virtual void InitializeContact(SphericParticle* const element1, SphericParticle* const element2, const double indentation);
+
+        virtual void CalculateUnbondedViscoDampingForce(double LocalRelVel[3],
+                                                double UnbondedViscoDampingLocalContactForce[3],
+                                                SphericParticle* const element1,
+                                                SphericParticle* const element2);
 
         // TODO: check whether it is necessary 
         double LocalMaxSearchDistance(const int i,

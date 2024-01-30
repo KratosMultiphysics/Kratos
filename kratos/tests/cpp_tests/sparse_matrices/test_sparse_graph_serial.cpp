@@ -236,7 +236,7 @@ bool CheckCSRMatrix(
 
     auto N = rRowIndices.size()-1;
 
-    KRATOS_CHECK_EQUAL(rReferenceGraph.size(), rA.nnz());
+    KRATOS_EXPECT_EQ(rReferenceGraph.size(), rA.nnz());
 
     for (SparseTestingInternals::IndexType I = 0; I < N; ++I)
     {
@@ -247,7 +247,7 @@ bool CheckCSRMatrix(
             if (rReferenceGraph.find({I, J}) == rReferenceGraph.end()) //implies it is not present
                 KRATOS_ERROR << "Entry " << I << "," << J << "not present in A graph" << std::endl;
 
-            KRATOS_CHECK_NEAR(rReferenceGraph.find({I, J})->second , value, 1e-14);
+            KRATOS_EXPECT_NEAR(rReferenceGraph.find({I, J})->second , value, 1e-14);
 
             //check that that cols are ordered
             if(k-rRowIndices[I] > 0)
@@ -479,7 +479,7 @@ KRATOS_TEST_CASE_IN_SUITE(SystemVectorAssembly, KratosCoreFastSuite)
         sum += b(i);
     }
 
-    KRATOS_CHECK_EQUAL(sum, reference_sum);
+    KRATOS_EXPECT_EQ(sum, reference_sum);
 }
 
 
@@ -520,7 +520,7 @@ KRATOS_TEST_CASE_IN_SUITE(SpMV, KratosCoreFastSuite)
     for(auto& item : reference_A_map)
         reference_sum += item.second;
 
-    KRATOS_CHECK_EQUAL(sum, reference_sum);
+    KRATOS_EXPECT_EQ(sum, reference_sum);
 
 }
 
@@ -537,23 +537,23 @@ KRATOS_TEST_CASE_IN_SUITE(SystemVectorOperations, KratosCoreFastSuite)
     SystemVector<double,SparseTestingInternals::IndexType> c(a);
     c += b;
     for(unsigned int i=0; i<c.size(); ++i)
-        KRATOS_CHECK_NEAR(c[i], 8.0,1e-14);
+        KRATOS_EXPECT_NEAR(c[i], 8.0,1e-14);
 
     c -= b;
     for(unsigned int i=0; i<c.size(); ++i)
-        KRATOS_CHECK_NEAR(c[i], 5.0,1e-14);
+        KRATOS_EXPECT_NEAR(c[i], 5.0,1e-14);
 
     c.Add(3.0,a);
     for(unsigned int i=0; i<c.size(); ++i)
-        KRATOS_CHECK_NEAR(c[i], 20.0,1e-14);
+        KRATOS_EXPECT_NEAR(c[i], 20.0,1e-14);
 
     c*=2.0;
     for(unsigned int i=0; i<c.size(); ++i)
-        KRATOS_CHECK_NEAR(c[i], 40.0,1e-14);
+        KRATOS_EXPECT_NEAR(c[i], 40.0,1e-14);
 
     c/=4.0;
     for(unsigned int i=0; i<c.size(); ++i)
-        KRATOS_CHECK_NEAR(c[i], 10.0,1e-14);
+        KRATOS_EXPECT_NEAR(c[i], 10.0,1e-14);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(ToAMGCLMatrix, KratosCoreFastSuite)
@@ -587,15 +587,15 @@ KRATOS_TEST_CASE_IN_SUITE(ToAMGCLMatrix, KratosCoreFastSuite)
     for(auto& item : y)
        sum += item;
 
-    KRATOS_CHECK_EQUAL(sum,496);
+    KRATOS_EXPECT_EQ(sum,496);
 
     auto pAconverted = AmgclCSRConversionUtilities::ConvertToCsrMatrix<double,IndexType>(*pAmgcl); //NOTE that A,Aconverted and pAmgcl all have the same data!
     auto reference_map = A.ToMap();
     auto converted_A_map = pAconverted->ToMap();
     for(const auto& item : reference_map)
-        KRATOS_CHECK_EQUAL(item.second, converted_A_map[item.first]);
+        KRATOS_EXPECT_EQ(item.second, converted_A_map[item.first]);
     for(const auto& item : converted_A_map)
-        KRATOS_CHECK_EQUAL(item.second, reference_map[item.first]);
+        KRATOS_EXPECT_EQ(item.second, reference_map[item.first]);
 
     //matrix matrix multiplication
     CsrMatrix<double>::Pointer pC = AmgclCSRSpMMUtilities::SparseMultiply(A,*pAconverted); //C=A*Aconverted
@@ -662,7 +662,7 @@ KRATOS_TEST_CASE_IN_SUITE(SmallRectangularMatricMatrixMultiply, KratosCoreFastSu
         IndexType I = item.first.first;
         IndexType J = item.first.second;
         double ref_value = item.second;
-        KRATOS_CHECK_EQUAL(ref_value,C(I,J));
+        KRATOS_EXPECT_EQ(ref_value,C(I,J));
     }
 }
 
@@ -733,7 +733,7 @@ KRATOS_TEST_CASE_IN_SUITE(RectangularMatrixConstruction, KratosCoreFastSuite)
 
     for(SparseTestingInternals::IndexType i=0; i<x.size(); ++i)
     {
-        KRATOS_CHECK_NEAR(x[i], xtranspose_spmv_ref[i], 1e-14);
+        KRATOS_EXPECT_NEAR(x[i], xtranspose_spmv_ref[i], 1e-14);
     }
 
 }

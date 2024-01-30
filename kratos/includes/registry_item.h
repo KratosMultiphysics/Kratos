@@ -238,11 +238,22 @@ public:
 
     RegistryItem& GetItem(std::string const& rItemName);
 
-    template<typename TDataType> TDataType const& GetValue() const
+    template<typename TDataType>
+    TDataType const& GetValue() const
     {
         KRATOS_TRY
 
         return *(std::any_cast<std::shared_ptr<TDataType>>(mpValue));
+
+        KRATOS_CATCH("");
+    }
+
+    template<typename TDataType, typename TCastType> 
+    TCastType const& GetValueAs() const
+    {
+        KRATOS_TRY
+
+        return *std::dynamic_pointer_cast<TCastType>(std::any_cast<std::shared_ptr<TDataType>>(mpValue));
 
         KRATOS_CATCH("");
     }

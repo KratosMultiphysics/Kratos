@@ -290,19 +290,17 @@ The most easy way to execute a KratosMultiphysics script from the command line i
 
 ```bash
   set PATH=C:\\Kratos;C:\\Kratos\\libs;%PATH%
-  "C:\\Kratos\\runkratos" test_kratos.py
+  "python" test_kratos.py
 ```
 
-We strongly recommend you to run kratos scripts with the `runkratos` binary inside your *Kratos* installation folder, because it gives the correct values to the environment variables.
-
 ```bash
-  runkratos test.py
+  python test.py
 ```
 
 Or more exactly, you can go to the folder where your case is (input files and main *python* script) and type:
 
 ```bash
-  path_to_kratos/runkratos test.py
+  python test.py
 ```
 
 You can also run them directly using the python you have installed in your system (provided that the system knows where python is and the environment variables have the correct values assigned, `PYTHONPATH`, `LD_LIBRARY_PATH` and `PATH`).

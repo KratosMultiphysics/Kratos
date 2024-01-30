@@ -29,12 +29,11 @@ namespace Kratos
 ///@name Type Definitions
 ///@{
 
-    typedef Point                                     PointType;
-    typedef Node                                    NodeType;
-    typedef Geometry<NodeType>                     GeometryType;
-    typedef Geometry<PointType>               GeometryPointType;
+    using PointType = Point;
+    using GeometryType = Geometry<Node>;
+    using GeometryPointType = Geometry<PointType>;
     ///Type definition for integration methods
-    typedef GeometryData::IntegrationMethod   IntegrationMethod;
+    using IntegrationMethod = GeometryData::IntegrationMethod;
 
 ///@}
 ///@name  Enum's
@@ -66,40 +65,58 @@ public:
     /// Counted pointer of PenaltyMethodFrictionalMortarContactAxisymCondition
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( PenaltyMethodFrictionalMortarContactAxisymCondition );
 
-    typedef MortarContactCondition<2, TNumNodes, FrictionalCase::FRICTIONAL_PENALTY, TNormalVariation, TNumNodesMaster> MortarBaseType;
+    /// Mortar base type definition
+    using MortarBaseType = MortarContactCondition<2, TNumNodes, FrictionalCase::FRICTIONAL_PENALTY, TNormalVariation, TNumNodesMaster>;
 
-    typedef PenaltyMethodFrictionalMortarContactCondition<2, TNumNodes, TNormalVariation, TNumNodesMaster>                    BaseType;
+    /// Base type definition
+    using BaseType = PenaltyMethodFrictionalMortarContactCondition<2, TNumNodes, TNormalVariation, TNumNodesMaster>;
 
-    typedef typename MortarBaseType::MortarConditionMatrices                                                   MortarConditionMatrices;
+    /// Mortar condition matrices type definition
+    using MortarConditionMatrices = typename MortarBaseType::MortarConditionMatrices;
 
-    typedef typename MortarBaseType::GeneralVariables                                                                 GeneralVariables;
+    /// General variables type definition
+    using GeneralVariables = typename MortarBaseType::GeneralVariables;
 
-    typedef typename MortarBaseType::AeData                                                                                     AeData;
+    /// Ae data type definition
+    using AeData = typename MortarBaseType::AeData;
 
-    typedef Condition                                                                                                ConditionBaseType;
+    /// Condition base type definition
+    using ConditionBaseType = Condition;
 
-    typedef typename ConditionBaseType::VectorType                                                                          VectorType;
+    /// Vector type definition
+    using VectorType = typename ConditionBaseType::VectorType;
 
-    typedef typename ConditionBaseType::MatrixType                                                                          MatrixType;
+    /// Matrix type definition
+    using MatrixType = typename ConditionBaseType::MatrixType;
 
-    typedef typename ConditionBaseType::IndexType                                                                            IndexType;
+    /// Index type definition
+    using IndexType = typename ConditionBaseType::IndexType;
 
-    typedef typename ConditionBaseType::GeometryType::Pointer                                                      GeometryPointerType;
+    /// Geometry pointer type definition
+    using GeometryPointerType = typename ConditionBaseType::GeometryType::Pointer;
 
-    typedef typename ConditionBaseType::NodesArrayType                                                                  NodesArrayType;
+    /// Nodes array type definition
+    using NodesArrayType = typename ConditionBaseType::NodesArrayType;
 
-    typedef typename ConditionBaseType::PropertiesType::Pointer                                                  PropertiesPointerType;
+    /// Properties pointer type definition
+    using PropertiesPointerType = typename ConditionBaseType::PropertiesType::Pointer;
 
-    typedef typename ConditionBaseType::EquationIdVectorType                                                      EquationIdVectorType;
+    /// Equation ID vector type definition
+    using EquationIdVectorType = typename ConditionBaseType::EquationIdVectorType;
 
-    typedef typename ConditionBaseType::DofsVectorType                                                                  DofsVectorType;
+    /// DOFs vector type definition
+    using DofsVectorType = typename ConditionBaseType::DofsVectorType;
 
-    typedef typename std::vector<array_1d<PointType,2>>                                                         ConditionArrayListType;
+    /// Condition array list type definition
+    using ConditionArrayListType = typename std::vector<array_1d<PointType,2>>;
 
-    typedef Line2D2<Point>                                                                                           DecompositionType;
+    /// Decomposition type definition
+    using DecompositionType = Line2D2<Point>;
 
-    typedef DerivativeDataFrictional<2, TNumNodes, TNumNodesMaster>                                                 DerivativeDataType;
+    /// Derivative data type definition
+    using DerivativeDataType = DerivativeDataFrictional<2, TNumNodes, TNumNodesMaster>;
 
+    /// Matrix size definition
     static constexpr IndexType MatrixSize = 2 * (TNumNodes + TNumNodesMaster);
 
     ///@}

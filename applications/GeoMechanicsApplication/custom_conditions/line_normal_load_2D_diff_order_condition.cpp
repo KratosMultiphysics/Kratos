@@ -40,11 +40,6 @@ LineNormalLoad2DDiffOrderCondition::
                                         PropertiesType::Pointer pProperties ) :
                                         LineLoad2DDiffOrderCondition(NewId, pGeometry, pProperties) {}
 
-//----------------------------------------------------------------------------------------
-
-//Destructor
-LineNormalLoad2DDiffOrderCondition::~LineNormalLoad2DDiffOrderCondition() {}
-
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 Condition::Pointer LineNormalLoad2DDiffOrderCondition::

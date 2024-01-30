@@ -23,7 +23,7 @@
 #include "includes/model_part.h"
 #include "spaces/ublas_space.h"
 #include "geometries/line_2d_2.h"
-#include "tests/cpp_tests/auxiliar_files_for_cpp_unnitest/test_bar_element.h"
+#include "tests/test_utilities/test_bar_element.h"
 #include "solving_strategies/builder_and_solvers/explicit_builder.h"
 
 namespace Kratos
@@ -107,22 +107,22 @@ KRATOS_TEST_CASE_IN_SUITE(ExplicitBlockBuilderAndSolverInitialization, KratosCor
     const auto& r_lumped_mass_vector = p_builder_and_solver->GetLumpedMassMatrixVector();
 
     // Check the DOF set
-    KRATOS_CHECK_EQUAL(r_dof_set.size(), 6);
+    KRATOS_EXPECT_EQ(r_dof_set.size(), 6);
     for (unsigned int i_dof = 0; i_dof < r_dof_set.size(); ++i_dof) {
         const auto it_dof = r_dof_set.begin() + i_dof;
         if (i_dof % 2 == 0) {
-            KRATOS_CHECK(it_dof->GetVariable() == DISPLACEMENT_X);
-            KRATOS_CHECK(it_dof->GetReaction() == REACTION_X);
+            KRATOS_EXPECT_TRUE(it_dof->GetVariable() == DISPLACEMENT_X);
+            KRATOS_EXPECT_TRUE(it_dof->GetReaction() == REACTION_X);
         } else {
-            KRATOS_CHECK(it_dof->GetVariable() == DISPLACEMENT_Y);
-            KRATOS_CHECK(it_dof->GetReaction() == REACTION_Y);
+            KRATOS_EXPECT_TRUE(it_dof->GetVariable() == DISPLACEMENT_Y);
+            KRATOS_EXPECT_TRUE(it_dof->GetReaction() == REACTION_Y);
         }
     }
 
     // Check the lumped mass vector values
     const double tolerance = 1.0e-8;
     std::vector<double> expected_solution = {0.5, 0.0, 0.5, 0.5, 0.0, 0.5};
-    KRATOS_CHECK_VECTOR_NEAR(r_lumped_mass_vector, expected_solution, tolerance);
+    KRATOS_EXPECT_VECTOR_NEAR(r_lumped_mass_vector, expected_solution, tolerance);
 }
 
 } // namespace Testing

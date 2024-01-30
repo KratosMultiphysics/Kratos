@@ -46,8 +46,8 @@ KRATOS_TEST_CASE_IN_SUITE(BarycentricInterfaceInfo_BasicTests, KratosMappingAppl
     // Test if the "Create" function returns the correct object
     const auto& r_arg_1 = *barycentric_info_1;
     const auto& r_arg_2 = *barycentric_info_2;
-    KRATOS_CHECK_EQUAL(typeid(barycentric_info), typeid(r_arg_1));
-    KRATOS_CHECK_EQUAL(typeid(barycentric_info), typeid(r_arg_2));
+    KRATOS_EXPECT_EQ(typeid(barycentric_info), typeid(r_arg_1));
+    KRATOS_EXPECT_EQ(typeid(barycentric_info), typeid(r_arg_2));
 }
 
 KRATOS_TEST_CASE_IN_SUITE(BarycentricInterfaceInfo_simple_line_interpolation, KratosMappingApplicationSerialTestSuite)
@@ -74,14 +74,14 @@ KRATOS_TEST_CASE_IN_SUITE(BarycentricInterfaceInfo_simple_line_interpolation, Kr
     barycentric_info.ProcessSearchResult(*interface_node_2);
     barycentric_info.ProcessSearchResult(*interface_node_3);
 
-    KRATOS_CHECK(barycentric_info.GetLocalSearchWasSuccessful());
-    KRATOS_CHECK_IS_FALSE(barycentric_info.GetIsApproximation());
+    KRATOS_EXPECT_TRUE(barycentric_info.GetLocalSearchWasSuccessful());
+    KRATOS_EXPECT_FALSE(barycentric_info.GetIsApproximation());
 
     ClosestPointsContainer exp_closest_points(2);
     exp_closest_points.Add(PointWithId(108, Point(0.3, 0.0, 0.0), 0.1));
     exp_closest_points.Add(PointWithId(5, Point(1.0, 0.1, -0.2), coords.Distance(*node_2)));
 
-    KRATOS_CHECK_EQUAL(barycentric_info.GetClosestPoints(), exp_closest_points);
+    KRATOS_EXPECT_EQ(barycentric_info.GetClosestPoints(), exp_closest_points);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(BarycentricInterfaceInfo_line_only_one_point, KratosMappingApplicationSerialTestSuite)
@@ -100,13 +100,13 @@ KRATOS_TEST_CASE_IN_SUITE(BarycentricInterfaceInfo_line_only_one_point, KratosMa
 
     barycentric_info.ProcessSearchResult(*interface_node_1);
 
-    KRATOS_CHECK(barycentric_info.GetLocalSearchWasSuccessful());
-    KRATOS_CHECK(barycentric_info.GetIsApproximation());
+    KRATOS_EXPECT_TRUE(barycentric_info.GetLocalSearchWasSuccessful());
+    KRATOS_EXPECT_TRUE(barycentric_info.GetIsApproximation());
 
     ClosestPointsContainer exp_closest_points(2);
     exp_closest_points.Add(PointWithId(13, Point(3.3, 0.0, 0.0), 2.9));
 
-    KRATOS_CHECK_EQUAL(barycentric_info.GetClosestPoints(), exp_closest_points);
+    KRATOS_EXPECT_EQ(barycentric_info.GetClosestPoints(), exp_closest_points);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(BarycentricInterfaceInfo_line_duplicated_point, KratosMappingApplicationSerialTestSuite)
@@ -139,14 +139,14 @@ KRATOS_TEST_CASE_IN_SUITE(BarycentricInterfaceInfo_line_duplicated_point, Kratos
     barycentric_info.ProcessSearchResult(*interface_node_3);
     barycentric_info.ProcessSearchResult(*interface_node_4);
 
-    KRATOS_CHECK(barycentric_info.GetLocalSearchWasSuccessful());
-    KRATOS_CHECK_IS_FALSE(barycentric_info.GetIsApproximation());
+    KRATOS_EXPECT_TRUE(barycentric_info.GetLocalSearchWasSuccessful());
+    KRATOS_EXPECT_FALSE(barycentric_info.GetIsApproximation());
 
     ClosestPointsContainer exp_closest_points(2);
     exp_closest_points.Add(PointWithId(108, Point(0.3, 0.0, 0.0), 0.1));
     exp_closest_points.Add(PointWithId(5, Point(1.0, 0.1, -0.2), coords.Distance(*node_2)));
 
-    KRATOS_CHECK_EQUAL(barycentric_info.GetClosestPoints(), exp_closest_points);
+    KRATOS_EXPECT_EQ(barycentric_info.GetClosestPoints(), exp_closest_points);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(BarycentricInterfaceInfo_Serialization, KratosMappingApplicationSerialTestSuite)
@@ -173,14 +173,14 @@ KRATOS_TEST_CASE_IN_SUITE(BarycentricInterfaceInfo_Serialization, KratosMappingA
     barycentric_info.ProcessSearchResult(*interface_node_2);
     barycentric_info.ProcessSearchResult(*interface_node_3);
 
-    KRATOS_CHECK(barycentric_info.GetLocalSearchWasSuccessful());
-    KRATOS_CHECK_IS_FALSE(barycentric_info.GetIsApproximation());
+    KRATOS_EXPECT_TRUE(barycentric_info.GetLocalSearchWasSuccessful());
+    KRATOS_EXPECT_FALSE(barycentric_info.GetIsApproximation());
 
     ClosestPointsContainer exp_closest_points(2);
     exp_closest_points.Add(PointWithId(108, Point(0.3, 0.0, 0.0), 0.1));
     exp_closest_points.Add(PointWithId(5, Point(1.0, 0.1, -0.2), coords.Distance(*node_2)));
 
-    KRATOS_CHECK_EQUAL(barycentric_info.GetClosestPoints(), exp_closest_points);
+    KRATOS_EXPECT_EQ(barycentric_info.GetClosestPoints(), exp_closest_points);
 
     // serializing the object
     StreamSerializer serializer;
@@ -190,9 +190,9 @@ KRATOS_TEST_CASE_IN_SUITE(BarycentricInterfaceInfo_Serialization, KratosMappingA
     BarycentricInterfaceInfo barycentric_info_new(BarycentricInterpolationType::LINE);
     serializer.load("barycentric_interface_info", barycentric_info_new);
 
-    KRATOS_CHECK_EQUAL(barycentric_info_new.GetLocalSystemIndex(), source_local_sys_idx);
+    KRATOS_EXPECT_EQ(barycentric_info_new.GetLocalSystemIndex(), source_local_sys_idx);
 
-    KRATOS_CHECK_EQUAL(barycentric_info_new.GetClosestPoints(), exp_closest_points);
+    KRATOS_EXPECT_EQ(barycentric_info_new.GetClosestPoints(), exp_closest_points);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(BarycentricLocalSystem_simple_line_interpolation, KratosMappingApplicationSerialTestSuite)
@@ -217,8 +217,8 @@ KRATOS_TEST_CASE_IN_SUITE(BarycentricLocalSystem_simple_line_interpolation, Krat
     p_interface_info->ProcessSearchResult(*interface_node_1);
     p_interface_info->ProcessSearchResult(*interface_node_2);
 
-    KRATOS_CHECK(p_interface_info->GetLocalSearchWasSuccessful());
-    KRATOS_CHECK_IS_FALSE(p_interface_info->GetIsApproximation());
+    KRATOS_EXPECT_TRUE(p_interface_info->GetLocalSearchWasSuccessful());
+    KRATOS_EXPECT_FALSE(p_interface_info->GetIsApproximation());
 
     BarycentricLocalSystem local_sys(node_orig.get());
     local_sys.AddInterfaceInfo(p_interface_info);
@@ -240,26 +240,26 @@ KRATOS_TEST_CASE_IN_SUITE(BarycentricLocalSystem_simple_line_interpolation, Krat
 
     local_sys.EquationIdVectors(origin_ids, destination_ids);
 
-    KRATOS_CHECK_EQUAL(origin_ids.size(), exp_origin_ids.size());
+    KRATOS_EXPECT_EQ(origin_ids.size(), exp_origin_ids.size());
     for (std::size_t i=0; i<exp_origin_ids.size(); ++i) {
-        KRATOS_CHECK_EQUAL(origin_ids[i], exp_origin_ids[i]);
+        KRATOS_EXPECT_EQ(origin_ids[i], exp_origin_ids[i]);
     }
-    KRATOS_CHECK_EQUAL(destination_ids.size(), 1);
-    KRATOS_CHECK_EQUAL(destination_ids[0], exp_destination_id);
+    KRATOS_EXPECT_EQ(destination_ids.size(), 1);
+    KRATOS_EXPECT_EQ(destination_ids[0], exp_destination_id);
 
     local_sys.CalculateLocalSystem(local_mapping_matrix, origin_ids2, destination_ids2);
 
-    KRATOS_CHECK_EQUAL(local_mapping_matrix.size1(), 1);
-    KRATOS_CHECK_EQUAL(local_mapping_matrix.size2(), exp_origin_ids.size());
-    KRATOS_CHECK_EQUAL(origin_ids2.size(), exp_origin_ids.size());
-    KRATOS_CHECK_EQUAL(destination_ids2.size(), 1);
+    KRATOS_EXPECT_EQ(local_mapping_matrix.size1(), 1);
+    KRATOS_EXPECT_EQ(local_mapping_matrix.size2(), exp_origin_ids.size());
+    KRATOS_EXPECT_EQ(origin_ids2.size(), exp_origin_ids.size());
+    KRATOS_EXPECT_EQ(destination_ids2.size(), 1);
 
-    KRATOS_CHECK_MATRIX_NEAR(local_mapping_matrix, exp_matrix, 1e-14)
+    KRATOS_EXPECT_MATRIX_NEAR(local_mapping_matrix, exp_matrix, 1e-14)
 
     for (std::size_t i=0; i<exp_origin_ids.size(); ++i) {
-        KRATOS_CHECK_EQUAL(origin_ids[i], exp_origin_ids[i]);
+        KRATOS_EXPECT_EQ(origin_ids[i], exp_origin_ids[i]);
     }
-    KRATOS_CHECK_EQUAL(destination_ids2[0], exp_destination_id);
+    KRATOS_EXPECT_EQ(destination_ids2[0], exp_destination_id);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(BarycentricInterfaceInfo_simple_triangle_interpolation, KratosMappingApplicationSerialTestSuite)
@@ -290,17 +290,17 @@ KRATOS_TEST_CASE_IN_SUITE(BarycentricInterfaceInfo_simple_triangle_interpolation
     barycentric_info.ProcessSearchResult(*interface_node_3);
     barycentric_info.ProcessSearchResult(*interface_node_4);
 
-    KRATOS_CHECK(barycentric_info.GetLocalSearchWasSuccessful());
-    KRATOS_CHECK(barycentric_info.GetIsApproximation());
+    KRATOS_EXPECT_TRUE(barycentric_info.GetLocalSearchWasSuccessful());
+    KRATOS_EXPECT_TRUE(barycentric_info.GetIsApproximation());
 
     KRATOS_SKIP_TEST << "this test needs some updates" << std::endl;
 
     std::vector<int> found_ids;
     barycentric_info.GetValue(found_ids, MapperInterfaceInfo::InfoType::Dummy);
-    KRATOS_CHECK_EQUAL(found_ids.size(), 3);
-    KRATOS_CHECK_EQUAL(found_ids[0], 13);
-    KRATOS_CHECK_EQUAL(found_ids[1], 5);
-    KRATOS_CHECK_EQUAL(found_ids[2], 108);
+    KRATOS_EXPECT_EQ(found_ids.size(), 3);
+    KRATOS_EXPECT_EQ(found_ids[0], 13);
+    KRATOS_EXPECT_EQ(found_ids[1], 5);
+    KRATOS_EXPECT_EQ(found_ids[2], 108);
 
     std::vector<double> neighbor_coords;
     barycentric_info.GetValue(neighbor_coords, MapperInterfaceInfo::InfoType::Dummy);
@@ -309,7 +309,7 @@ KRATOS_TEST_CASE_IN_SUITE(BarycentricInterfaceInfo_simple_triangle_interpolation
         1.0, 0.0, 0.0,
         0.0, 1.0, 0.0
     };
-    KRATOS_CHECK_VECTOR_EQUAL(exp_results, neighbor_coords)
+    KRATOS_EXPECT_VECTOR_EQ(exp_results, neighbor_coords)
 }
 
 KRATOS_TEST_CASE_IN_SUITE(BarycentricInterfaceInfo_triangle_collinear_nodes_interpolation, KratosMappingApplicationSerialTestSuite)
@@ -352,17 +352,17 @@ KRATOS_TEST_CASE_IN_SUITE(BarycentricInterfaceInfo_triangle_collinear_nodes_inte
     barycentric_info.ProcessSearchResult(*interface_node_6);
     barycentric_info.ProcessSearchResult(*interface_node_7);
 
-    KRATOS_CHECK(barycentric_info.GetLocalSearchWasSuccessful());
-    KRATOS_CHECK(barycentric_info.GetIsApproximation());
+    KRATOS_EXPECT_TRUE(barycentric_info.GetLocalSearchWasSuccessful());
+    KRATOS_EXPECT_TRUE(barycentric_info.GetIsApproximation());
 
     KRATOS_SKIP_TEST << "this test needs some updates" << std::endl;
 
     std::vector<int> found_ids;
     barycentric_info.GetValue(found_ids, MapperInterfaceInfo::InfoType::Dummy);
-    KRATOS_CHECK_EQUAL(found_ids.size(), 3);
-    KRATOS_CHECK_EQUAL(found_ids[0], 13);
-    KRATOS_CHECK_EQUAL(found_ids[1], 64);
-    KRATOS_CHECK_EQUAL(found_ids[2], 108);
+    KRATOS_EXPECT_EQ(found_ids.size(), 3);
+    KRATOS_EXPECT_EQ(found_ids[0], 13);
+    KRATOS_EXPECT_EQ(found_ids[1], 64);
+    KRATOS_EXPECT_EQ(found_ids[2], 108);
 
     std::vector<double> neighbor_coords;
     barycentric_info.GetValue(neighbor_coords, MapperInterfaceInfo::InfoType::Dummy);
@@ -371,7 +371,7 @@ KRATOS_TEST_CASE_IN_SUITE(BarycentricInterfaceInfo_triangle_collinear_nodes_inte
         0.5, 0.0, 0.0,
         0.0, 1.1, 0.0
     };
-    KRATOS_CHECK_VECTOR_EQUAL(exp_results, neighbor_coords)
+    KRATOS_EXPECT_VECTOR_EQ(exp_results, neighbor_coords)
 }
 
 KRATOS_TEST_CASE_IN_SUITE(BarycentricInterfaceInfo_triangle_only_collinear_nodes_approx, KratosMappingApplicationSerialTestSuite)
@@ -398,17 +398,17 @@ KRATOS_TEST_CASE_IN_SUITE(BarycentricInterfaceInfo_triangle_only_collinear_nodes
     barycentric_info.ProcessSearchResult(*interface_node_2);
     barycentric_info.ProcessSearchResult(*interface_node_3);
 
-    KRATOS_CHECK(barycentric_info.GetLocalSearchWasSuccessful());
-    KRATOS_CHECK(barycentric_info.GetIsApproximation());
+    KRATOS_EXPECT_TRUE(barycentric_info.GetLocalSearchWasSuccessful());
+    KRATOS_EXPECT_TRUE(barycentric_info.GetIsApproximation());
 
     KRATOS_SKIP_TEST << "this test needs some updates" << std::endl;
 
     std::vector<int> found_ids;
     barycentric_info.GetValue(found_ids, MapperInterfaceInfo::InfoType::Dummy);
-    KRATOS_CHECK_EQUAL(found_ids.size(), 3);
-    KRATOS_CHECK_EQUAL(found_ids[0], 13);
-    KRATOS_CHECK_EQUAL(found_ids[1], 108);
-    KRATOS_CHECK_EQUAL(found_ids[2], -1);
+    KRATOS_EXPECT_EQ(found_ids.size(), 3);
+    KRATOS_EXPECT_EQ(found_ids[0], 13);
+    KRATOS_EXPECT_EQ(found_ids[1], 108);
+    KRATOS_EXPECT_EQ(found_ids[2], -1);
 
     std::vector<double> neighbor_coords;
     barycentric_info.GetValue(neighbor_coords, MapperInterfaceInfo::InfoType::Dummy);
@@ -417,7 +417,7 @@ KRATOS_TEST_CASE_IN_SUITE(BarycentricInterfaceInfo_triangle_only_collinear_nodes
         0.5, 0.0, 0.0,
         std::numeric_limits<double>::max(), std::numeric_limits<double>::max(), std::numeric_limits<double>::max()
     };
-    KRATOS_CHECK_VECTOR_EQUAL(exp_results, neighbor_coords)
+    KRATOS_EXPECT_VECTOR_EQ(exp_results, neighbor_coords)
 }
 
 KRATOS_TEST_CASE_IN_SUITE(BarycentricInterfaceInfo_simple_tetra_interpolation, KratosMappingApplicationSerialTestSuite)
@@ -448,18 +448,18 @@ KRATOS_TEST_CASE_IN_SUITE(BarycentricInterfaceInfo_simple_tetra_interpolation, K
     barycentric_info.ProcessSearchResult(*interface_node_3);
     barycentric_info.ProcessSearchResult(*interface_node_4);
 
-    KRATOS_CHECK(barycentric_info.GetLocalSearchWasSuccessful());
-    KRATOS_CHECK(barycentric_info.GetIsApproximation());
+    KRATOS_EXPECT_TRUE(barycentric_info.GetLocalSearchWasSuccessful());
+    KRATOS_EXPECT_TRUE(barycentric_info.GetIsApproximation());
 
     KRATOS_SKIP_TEST << "this test needs some updates" << std::endl;
 
     std::vector<int> found_ids;
     barycentric_info.GetValue(found_ids, MapperInterfaceInfo::InfoType::Dummy);
-    KRATOS_CHECK_EQUAL(found_ids.size(), 4);
-    KRATOS_CHECK_EQUAL(found_ids[0], 13);
-    KRATOS_CHECK_EQUAL(found_ids[1], 5);
-    KRATOS_CHECK_EQUAL(found_ids[2], 108);
-    KRATOS_CHECK_EQUAL(found_ids[3], 41);
+    KRATOS_EXPECT_EQ(found_ids.size(), 4);
+    KRATOS_EXPECT_EQ(found_ids[0], 13);
+    KRATOS_EXPECT_EQ(found_ids[1], 5);
+    KRATOS_EXPECT_EQ(found_ids[2], 108);
+    KRATOS_EXPECT_EQ(found_ids[3], 41);
 
     std::vector<double> neighbor_coords;
     barycentric_info.GetValue(neighbor_coords, MapperInterfaceInfo::InfoType::Dummy);
@@ -469,7 +469,7 @@ KRATOS_TEST_CASE_IN_SUITE(BarycentricInterfaceInfo_simple_tetra_interpolation, K
         0.0, 1.0, 0.0,
         0.0, 0.0, 1.1
     };
-    KRATOS_CHECK_VECTOR_EQUAL(exp_results, neighbor_coords)
+    KRATOS_EXPECT_VECTOR_EQ(exp_results, neighbor_coords)
 }
 
 }  // namespace Kratos::Testing

@@ -193,8 +193,6 @@ namespace Kratos
 
     Element::Pointer Clone(IndexType NewId, NodesArrayType const &ThisNodes) const override;
 
-    void Initialize(const ProcessInfo &rCurrentProcessInfo) override;
-
     /// Initializes the element and all geometric information required for the problem.
     void InitializeSolutionStep(const ProcessInfo &rCurrentProcessInfo) override{};
 
@@ -288,8 +286,6 @@ namespace Kratos
     ///@}
     ///@name Protected member Variables
     ///@{
-
-    ConstitutiveLaw::Pointer mpConstitutiveLaw = nullptr;
 
     ///@}
     ///@name Protected Operators

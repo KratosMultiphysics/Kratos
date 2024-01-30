@@ -73,6 +73,7 @@ public:
     double mContactFailure;
     double mFailureCriterionState;
     double mUnidimendionalDamage;
+    double mContactRadius;
 
 protected:
 

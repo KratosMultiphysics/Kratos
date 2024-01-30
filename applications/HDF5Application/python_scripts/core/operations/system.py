@@ -7,29 +7,39 @@ Main authors:
     Michael Andre
 '''
 
-
-import os
-
-
+# --- Kratos Imports ---
 import KratosMultiphysics
+import KratosMultiphysics.HDF5Application as KratosHDF5
 from KratosMultiphysics.kratos_utilities import DeleteFileIfExisting
 
+# --- STD Imports ---
+import pathlib
 
-class DeleteOldH5Files:
+
+class DeleteOldH5Files(KratosMultiphysics.Operation):
     '''Delete h5-files from previous simulations.'''
 
-    def __call__(self, model_part, hdf5_file):
-        file_path, file_name = os.path.split(hdf5_file.GetFileName())
+    def __init__(self,
+                 model_part: KratosMultiphysics.ModelPart,
+                 _: KratosMultiphysics.Parameters,
+                 file: KratosHDF5.HDF5File):
+        super().__init__()
+        self.__model_part = model_part
+        self.__file = file
+
+    def Execute(self) -> None:
+        ## @todo this is a terrible idea (@matekelemen)
+        file_path = pathlib.Path(self.__file.GetFileName())
+        directory_path = file_path.absolute().parent
+        file_name = file_path.name
         time_prefix = file_name.replace(".h5", "") + "-"
-        current_time = model_part.ProcessInfo[KratosMultiphysics.TIME]
-        if file_path == "":
-            file_path = "."  # os.listdir fails with empty path
-        for name in os.listdir(file_path):
+        current_time = self.__model_part.ProcessInfo[KratosMultiphysics.TIME]
+        for path in directory_path.glob("*.h5"):
+            name = path.name
             if name.startswith(time_prefix):
                 file_time = float(name.replace(".h5", "")[len(time_prefix):])
                 if file_time > current_time:
-                    DeleteFileIfExisting(
-                        os.path.join(file_path, name))
+                    DeleteFileIfExisting(str(directory_path / name))
 
 
 def Create(settings):
@@ -38,9 +48,8 @@ def Create(settings):
     This method is normally not used directly, but rather it is imported
     in core.operations.model_part.Create using the 'module_name' setting.
     '''
-    operation_type = settings['operation_type']
+    operation_type = settings['operation_type'].GetString()
     if operation_type == 'delete_old_h5_files':
-        return DeleteOldH5Files()
+        return DeleteOldH5Files
     else:
-        raise ValueError(
-            '"operation_type" has invalid value "' + operation_type + '"')
+        raise ValueError(f'"operation_type" has invalid value "{operation_type}"')

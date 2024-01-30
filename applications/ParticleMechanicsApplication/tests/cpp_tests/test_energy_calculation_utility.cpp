@@ -115,10 +115,10 @@ namespace Testing
         std::vector<double> r_MP_TotalEnergy(1);
         r_model_part.pGetElement(element_id)->CalculateOnIntegrationPoints(MP_TOTAL_ENERGY, r_MP_TotalEnergy, r_current_process_info);
 
-        KRATOS_CHECK_NEAR(r_MP_PotentialEnergy[0], 7.35  , 1e-6);
-        KRATOS_CHECK_NEAR(r_MP_KineticEnergy[0]  , 10.50 , 1e-6);
-        KRATOS_CHECK_NEAR(r_MP_StrainEnergy[0]   , 11.375, 1e-6);
-        KRATOS_CHECK_NEAR(r_MP_TotalEnergy[0]    , 29.225, 1e-6);
+        KRATOS_EXPECT_NEAR(r_MP_PotentialEnergy[0], 7.35  , 1e-6);
+        KRATOS_EXPECT_NEAR(r_MP_KineticEnergy[0]  , 10.50 , 1e-6);
+        KRATOS_EXPECT_NEAR(r_MP_StrainEnergy[0]   , 11.375, 1e-6);
+        KRATOS_EXPECT_NEAR(r_MP_TotalEnergy[0]    , 29.225, 1e-6);
     }
 
 } // namespace Testing

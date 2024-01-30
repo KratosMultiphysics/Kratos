@@ -94,7 +94,7 @@ int Tester::RunTestCases(std::string const& rTestCasesNamePattern)
     SelectTestCasesByPattern(rTestCasesNamePattern);
     return RunSelectedTestCases();
 
-    //KRATOS_CHECK(std::regex_match(s, std::regex(buffer.str())));
+    //KRATOS_EXPECT_TRUE(std::regex_match(s, std::regex(buffer.str())));
 }
 
 int Tester::ProfileTestSuite(std::string const& TestSuiteName)

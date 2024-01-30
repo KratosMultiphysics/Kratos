@@ -26,10 +26,7 @@
 #include "python/add_model_part_to_python.h"
 #include "python/containers_interface.h"
 
-namespace Kratos
-{
-
-namespace Python
+namespace Kratos::Python
 {
 
 template<class TDataType>
@@ -876,6 +873,7 @@ void AddModelPartToPython(pybind11::module& m)
         .def("RemoveSubModelPart", RemoveSubModelPart1)
         .def("RemoveSubModelPart", RemoveSubModelPart2)
         .def("HasSubModelPart", &ModelPart::HasSubModelPart)
+        .def("GetSubModelPartNames", &ModelPart::GetSubModelPartNames)
         .def("ConditionsArray", &ModelPart::ConditionsArray, py::return_value_policy::reference_internal)
         .def("AddNodalSolutionStepVariable", AddNodalSolutionStepVariable<bool>)
         .def("AddNodalSolutionStepVariable", AddNodalSolutionStepVariable<int>)
@@ -938,6 +936,9 @@ void AddModelPartToPython(pybind11::module& m)
         .def("GetNonHistoricalVariablesNames", [](ModelPart& rModelPart, ModelPart::ConditionsContainerType& rContainer, bool doFullSearch=false) -> std::unordered_set<std::string> {
             return GetNonHistoricalVariablesNames(rModelPart, rContainer, doFullSearch);
         })
+        .def("HasMasterSlaveConstraint", [](ModelPart& rModelPart, ModelPart::IndexType MasterSlaveConstraintId) -> bool {
+            return rModelPart.HasMasterSlaveConstraint(MasterSlaveConstraintId);
+        })
         .def("GetMasterSlaveConstraint", ModelPartGetMasterSlaveConstraint1)
         .def("GetMasterSlaveConstraints", ModelPartGetMasterSlaveConstraints1)
         .def("RemoveMasterSlaveConstraint", ModelPartRemoveMasterSlaveConstraint1)
@@ -954,6 +955,4 @@ void AddModelPartToPython(pybind11::module& m)
         ;
 }
 
-} // namespace Python.
-
-} // Namespace Kratos
+} // namespace Kratos::Python.

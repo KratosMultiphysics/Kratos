@@ -60,7 +60,6 @@ typedef SearchType::PointType                                               Poin
 typedef PointerVectorSet<Point, IndexedObject>::ContainerType   ContainerType;
 typedef PointerVectorSet<Point, IndexedObject>                  PointsContainerType;
 
-typedef SearchType::ElementType                                             ElementType;
 typedef ContainerType::value_type                                           PointerType;
 typedef ContainerType::iterator                                             IteratorType;
 

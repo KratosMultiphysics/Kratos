@@ -24,7 +24,6 @@
 
 // Application includes
 #include "custom_io/hdf5_file.h"
-#include "custom_io/hdf5_file_serial.h"
 
 namespace Kratos
 {
@@ -117,7 +116,7 @@ HDF5::File::Pointer pGetTestSerialFile();
 
 HDF5::File GetTestFile();
 
-HDF5::FileSerial GetTestSerialFile();
+HDF5::File GetTestSerialFile();
 
 /// Silences HDF5 stderr messages for duration of local scope.
 class H5_stderr_muter

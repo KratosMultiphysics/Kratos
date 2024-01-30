@@ -144,7 +144,6 @@ protected:
     GeometryData::IntegrationMethod mThisIntegrationMethod;
     std::vector<ConstitutiveLaw::Pointer> mConstitutiveLawVector;
     std::vector<double> mInitialGap;
-    std::vector<bool> mIsOpen;
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -163,10 +162,10 @@ protected:
 
     void CalculateRotationMatrix(BoundedMatrix<double,TDim,TDim>& rRotationMatrix, const GeometryType& Geom);
 
-    void CalculateJointWidth(double& rJointWidth,const double& NormalRelDisp,const double& MinimumJointWidth,const unsigned int& GPoint);
+    void CalculateJointWidth(double& rJointWidth,const double& NormalRelDisp,const double& InitialJointWidth,const unsigned int& GPoint);
 
     void CheckAndCalculateJointWidth(double& rJointWidth,ConstitutiveLaw::Parameters& rConstitutiveParameters,
-                                    double& rNormalRelDisp,const double& MinimumJointWidth,const unsigned int& GPoint);
+                                    double& rNormalRelDisp,const double& InitialJointWidth,const unsigned int& GPoint);
 
     void CalculateIntegrationCoefficient(double& rIntegrationCoefficient, const double& weight, const double& detJ);
 

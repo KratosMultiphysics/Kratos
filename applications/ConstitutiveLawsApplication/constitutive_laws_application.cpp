@@ -343,9 +343,42 @@ void KratosConstitutiveLawsApplication::Register()
     KRATOS_REGISTER_CONSTITUTIVE_LAW("AssociativePlasticDamageModel3DModifiedMohrCoulomb", mAssociativePlasticDamageModel3DModifiedMohrCoulomb);
     KRATOS_REGISTER_CONSTITUTIVE_LAW("AssociativePlasticDamageModel3DRankine", mAssociativePlasticDamageModel3DRankine);
 
+    // Thermal CL
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("ThermalElasticIsotropic3D", mThermalElasticIsotropic3D);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("ThermalLinearPlaneStrain", mThermalLinearPlaneStrain);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("ThermalLinearPlaneStress", mThermalLinearPlaneStress);
+
+   /// Damage
+    /* Small strain */
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("SmallStrainThermalIsotropicDamage3DVonMises", mSmallStrainThermalIsotropicDamage3DVonMises);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("SmallStrainThermalIsotropicDamage3DModifiedMohrCoulomb", mSmallStrainThermalIsotropicDamage3DModifiedMohrCoulomb);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("SmallStrainThermalIsotropicDamage3DTresca", mSmallStrainThermalIsotropicDamage3DTresca);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("SmallStrainThermalIsotropicDamage3DDruckerPrager", mSmallStrainThermalIsotropicDamage3DDruckerPrager);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("SmallStrainThermalIsotropicDamage3DRankine", mSmallStrainThermalIsotropicDamage3DRankine);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("SmallStrainThermalIsotropicDamage3DSimoJu", mSmallStrainThermalIsotropicDamage3DSimoJu);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("SmallStrainThermalIsotropicDamage3DMohrCoulomb", mSmallStrainThermalIsotropicDamage3DMohrCoulomb);
+
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("SmallStrainThermalIsotropicDamagePlaneStrainVonMises", mSmallStrainThermalIsotropicDamagePlaneStrainVonMises);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("SmallStrainThermalIsotropicDamagePlaneStrainModifiedMohrCoulomb", mSmallStrainThermalIsotropicDamagePlaneStrainModifiedMohrCoulomb);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("SmallStrainThermalIsotropicDamagePlaneStrainTresca", mSmallStrainThermalIsotropicDamagePlaneStrainTresca);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("SmallStrainThermalIsotropicDamagePlaneStrainDruckerPrager", mSmallStrainThermalIsotropicDamagePlaneStrainDruckerPrager);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("SmallStrainThermalIsotropicDamagePlaneStrainRankine", mSmallStrainThermalIsotropicDamagePlaneStrainRankine);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("SmallStrainThermalIsotropicDamagePlaneStrainSimoJu", mSmallStrainThermalIsotropicDamagePlaneStrainSimoJu);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("SmallStrainThermalIsotropicDamagePlaneStrainMohrCoulomb", mSmallStrainThermalIsotropicDamagePlaneStrainMohrCoulomb);
+
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("SmallStrainThermalIsotropicDamagePlaneStressVonMises", mSmallStrainThermalIsotropicDamagePlaneStressVonMises);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("SmallStrainThermalIsotropicDamagePlaneStressRankine", mSmallStrainThermalIsotropicDamagePlaneStressRankine);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("SmallStrainThermalIsotropicDamagePlaneStressTresca", mSmallStrainThermalIsotropicDamagePlaneStressTresca);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("SmallStrainThermalIsotropicDamagePlaneStressMohrCoulomb", mSmallStrainThermalIsotropicDamagePlaneStressMohrCoulomb);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("SmallStrainThermalIsotropicDamagePlaneStressModifiedMohrCoulomb", mSmallStrainThermalIsotropicDamagePlaneStressModifiedMohrCoulomb);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("SmallStrainThermalIsotropicDamagePlaneStressDruckerPrager", mSmallStrainThermalIsotropicDamagePlaneStressDruckerPrager);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("SmallStrainThermalIsotropicDamagePlaneStressSimoJu", mSmallStrainThermalIsotropicDamagePlaneStressSimoJu);
+
     // Constitutive laws variables
 
-    //Faituge variables
+    //Fatigue variables
+    KRATOS_REGISTER_VARIABLE(TOTAL_OR_PLASTIC_STRAIN_SPACE)
+    KRATOS_REGISTER_VARIABLE(TOTAL_STRAIN_VECTOR_PLASTICITY_POINT_CURVE)
     KRATOS_REGISTER_VARIABLE(IS_PRESTRESSED)
     KRATOS_REGISTER_VARIABLE(HIGH_CYCLE_FATIGUE_COEFFICIENTS)
     KRATOS_REGISTER_VARIABLE(STRESS_LIMITS)
@@ -372,6 +405,12 @@ void KratosConstitutiveLawsApplication::Register()
     KRATOS_REGISTER_VARIABLE(SERIAL_PARALLEL_IMPOSED_STRAIN)
     KRATOS_REGISTER_VARIABLE(DELAMINATION_DAMAGE_VECTOR_MODE_ONE)
     KRATOS_REGISTER_VARIABLE(DELAMINATION_DAMAGE_VECTOR_MODE_TWO)
+    KRATOS_REGISTER_VARIABLE(INTERFACIAL_NORMAL_STRENGTH_VECTOR)
+    KRATOS_REGISTER_VARIABLE(INTERFACIAL_SHEAR_STRENGTH_VECTOR)
+    KRATOS_REGISTER_VARIABLE(MODE_ONE_FRACTURE_ENERGY_VECTOR)
+    KRATOS_REGISTER_VARIABLE(MODE_TWO_FRACTURE_ENERGY_VECTOR)
+    KRATOS_REGISTER_VARIABLE(TENSILE_INTERFACE_MODULUS_VECTOR)
+    KRATOS_REGISTER_VARIABLE(SHEAR_INTERFACE_MODULUS_VECTOR)
     KRATOS_REGISTER_VARIABLE(CRACK_RECLOSING)
     KRATOS_REGISTER_VARIABLE(LAYER_EULER_ANGLES)
     KRATOS_REGISTER_VARIABLE(INELASTIC_FLAG)

@@ -64,14 +64,14 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawIntegrateStressPlasticitySmallStrainKin
     ModelPart& r_test_model_part = current_model.CreateModelPart("Main");
     VM cl = VM();
 
-    KRATOS_CHECK_IS_FALSE(cl.Has(UNIAXIAL_STRESS));  // = False, in order to use CalculateValue())
-    KRATOS_CHECK_IS_FALSE(cl.Has(EQUIVALENT_PLASTIC_STRAIN));  // = False, in order to use CalculateValue())
-    KRATOS_CHECK_IS_FALSE(cl.Has(BACK_STRESS_VECTOR));  // = False, in order to use CalculateValue())
-    KRATOS_CHECK_IS_FALSE(cl.Has(BACK_STRESS_TENSOR));  // = False, in order to use CalculateValue())
-    KRATOS_CHECK(cl.Has(PLASTIC_DISSIPATION));  // = True
-    KRATOS_CHECK(cl.Has(PLASTIC_STRAIN_VECTOR));  // = True
-    KRATOS_CHECK(cl.Has(PLASTIC_STRAIN_TENSOR));  // = True
-    KRATOS_CHECK(cl.Has(INTERNAL_VARIABLES));  // = True
+    KRATOS_EXPECT_FALSE(cl.Has(UNIAXIAL_STRESS));  // = False, in order to use CalculateValue())
+    KRATOS_EXPECT_FALSE(cl.Has(EQUIVALENT_PLASTIC_STRAIN));  // = False, in order to use CalculateValue())
+    KRATOS_EXPECT_FALSE(cl.Has(BACK_STRESS_VECTOR));  // = False, in order to use CalculateValue())
+    KRATOS_EXPECT_FALSE(cl.Has(BACK_STRESS_TENSOR));  // = False, in order to use CalculateValue())
+    KRATOS_EXPECT_TRUE(cl.Has(PLASTIC_DISSIPATION));  // = True
+    KRATOS_EXPECT_TRUE(cl.Has(PLASTIC_STRAIN_VECTOR));  // = True
+    KRATOS_EXPECT_TRUE(cl.Has(PLASTIC_STRAIN_TENSOR));  // = True
+    KRATOS_EXPECT_TRUE(cl.Has(INTERNAL_VARIABLES));  // = True
 
     // Here we assume VoigtSize=6
     Vector internal_variables_w(7);
@@ -86,14 +86,14 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawIntegrateStressPlasticitySmallStrainKin
     Vector internal_variables_r;  // CL should internally resize it to 6
     cl.GetValue(INTERNAL_VARIABLES, internal_variables_r);
 
-    KRATOS_CHECK_NEAR(internal_variables_r.size(), 7., 1.e-5);  // = True
-    KRATOS_CHECK_NEAR(internal_variables_r[0], 0.0, 1.e-5);  // = True
-    KRATOS_CHECK_NEAR(internal_variables_r[1], 0.1, 1.e-5);  // = True
-    KRATOS_CHECK_NEAR(internal_variables_r[2], 0.2, 1.e-5);  // = True
-    KRATOS_CHECK_NEAR(internal_variables_r[3], 0.3, 1.e-5);  // = True
-    KRATOS_CHECK_NEAR(internal_variables_r[4], 0.4, 1.e-5);  // = True
-    KRATOS_CHECK_NEAR(internal_variables_r[5], 0.5, 1.e-5);  // = True
-    KRATOS_CHECK_NEAR(internal_variables_r[6], 0.6, 1.e-5);  // = True
+    KRATOS_EXPECT_NEAR(internal_variables_r.size(), 7., 1.e-5);  // = True
+    KRATOS_EXPECT_NEAR(internal_variables_r[0], 0.0, 1.e-5);  // = True
+    KRATOS_EXPECT_NEAR(internal_variables_r[1], 0.1, 1.e-5);  // = True
+    KRATOS_EXPECT_NEAR(internal_variables_r[2], 0.2, 1.e-5);  // = True
+    KRATOS_EXPECT_NEAR(internal_variables_r[3], 0.3, 1.e-5);  // = True
+    KRATOS_EXPECT_NEAR(internal_variables_r[4], 0.4, 1.e-5);  // = True
+    KRATOS_EXPECT_NEAR(internal_variables_r[5], 0.5, 1.e-5);  // = True
+    KRATOS_EXPECT_NEAR(internal_variables_r[6], 0.6, 1.e-5);  // = True
 }
 
 KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawIntegrateStressPlasticitySmallStrainKinematic, KratosConstitutiveLawsFastSuite)
@@ -166,7 +166,7 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawIntegrateStressPlasticitySmallStrainKin
 
     // Check the results
     const double tolerance = 1.0e-4;
-    KRATOS_CHECK_VECTOR_RELATIVE_NEAR(VMres, TestVM, tolerance);
+    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(VMres, TestVM, tolerance);
 }
 
 /**
@@ -248,7 +248,7 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawIntegrateStressPlasticityFiniteStrainKi
 
     // Check the results
     const double tolerance = 0.1e6;
-    KRATOS_CHECK_VECTOR_NEAR(VMres, TestVM, tolerance);
+    KRATOS_EXPECT_VECTOR_NEAR(VMres, TestVM, tolerance);
 }
 
 } // namespace Testing

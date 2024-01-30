@@ -38,10 +38,6 @@ AxisymmetricLineNormalLoad2DDiffOrderCondition::
                                                     PropertiesType::Pointer pProperties ) :
                                                     LineNormalLoad2DDiffOrderCondition(NewId, pGeometry, pProperties) {}
 
-//----------------------------------------------------------------------------------------
-//Destructor
-AxisymmetricLineNormalLoad2DDiffOrderCondition::~AxisymmetricLineNormalLoad2DDiffOrderCondition() {}
-
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 Condition::Pointer AxisymmetricLineNormalLoad2DDiffOrderCondition::
     Create(IndexType NewId,

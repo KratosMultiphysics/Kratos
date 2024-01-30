@@ -40,9 +40,9 @@ namespace Kratos {
 
             noalias(intersected_metric) = MetricsMathUtils<2>::IntersectMetrics(metric_1, metric_2);
 
-            KRATOS_CHECK_NEAR(intersected_metric[0], 2.0, TOLERANCE);
-            KRATOS_CHECK_NEAR(intersected_metric[1], 2.0, TOLERANCE);
-            KRATOS_CHECK_NEAR(intersected_metric[2], 0.0, TOLERANCE);
+            KRATOS_EXPECT_NEAR(intersected_metric[0], 2.0, TOLERANCE);
+            KRATOS_EXPECT_NEAR(intersected_metric[1], 2.0, TOLERANCE);
+            KRATOS_EXPECT_NEAR(intersected_metric[2], 0.0, TOLERANCE);
 
             metric_1[2] = 0.1;
 
@@ -50,9 +50,9 @@ namespace Kratos {
 
             noalias(intersected_metric) = MetricsMathUtils<2>::IntersectMetrics(metric_1, metric_2);
 
-            KRATOS_CHECK_NEAR(intersected_metric[0], 1.95164, TOLERANCE);
-            KRATOS_CHECK_NEAR(intersected_metric[1], 2.00933, TOLERANCE);
-            KRATOS_CHECK_NEAR(intersected_metric[2], 0.00576923, TOLERANCE);
+            KRATOS_EXPECT_NEAR(intersected_metric[0], 1.95164, TOLERANCE);
+            KRATOS_EXPECT_NEAR(intersected_metric[1], 2.00933, TOLERANCE);
+            KRATOS_EXPECT_NEAR(intersected_metric[2], 0.00576923, TOLERANCE);
         }
 
         /**
@@ -79,12 +79,12 @@ namespace Kratos {
 
             noalias(intersected_metric) = MetricsMathUtils<3>::IntersectMetrics(metric_1, metric_2);
 
-            KRATOS_CHECK_NEAR(intersected_metric[0], 2.0, TOLERANCE);
-            KRATOS_CHECK_NEAR(intersected_metric[1], 2.0, TOLERANCE);
-            KRATOS_CHECK_NEAR(intersected_metric[2], 2.0, TOLERANCE);
-            KRATOS_CHECK_NEAR(intersected_metric[3], 0.0, TOLERANCE);
-            KRATOS_CHECK_NEAR(intersected_metric[4], 0.0, TOLERANCE);
-            KRATOS_CHECK_NEAR(intersected_metric[5], 0.0, TOLERANCE);
+            KRATOS_EXPECT_NEAR(intersected_metric[0], 2.0, TOLERANCE);
+            KRATOS_EXPECT_NEAR(intersected_metric[1], 2.0, TOLERANCE);
+            KRATOS_EXPECT_NEAR(intersected_metric[2], 2.0, TOLERANCE);
+            KRATOS_EXPECT_NEAR(intersected_metric[3], 0.0, TOLERANCE);
+            KRATOS_EXPECT_NEAR(intersected_metric[4], 0.0, TOLERANCE);
+            KRATOS_EXPECT_NEAR(intersected_metric[5], 0.0, TOLERANCE);
 
             metric_1[3] = 0.1;
             metric_1[4] = 0.3;
@@ -96,12 +96,12 @@ namespace Kratos {
 
             noalias(intersected_metric) = MetricsMathUtils<3>::IntersectMetrics(metric_1, metric_2);
 
-            KRATOS_CHECK_NEAR(intersected_metric[0], 1.92815, TOLERANCE);
-            KRATOS_CHECK_NEAR(intersected_metric[1], 2.00271, TOLERANCE);
-            KRATOS_CHECK_NEAR(intersected_metric[2], 2.00417, TOLERANCE);
-            KRATOS_CHECK_NEAR(intersected_metric[3], 0.0105435, TOLERANCE);
-            KRATOS_CHECK_NEAR(intersected_metric[4], 0.307946, TOLERANCE);
-            KRATOS_CHECK_NEAR(intersected_metric[5], 0.0427123, TOLERANCE);
+            KRATOS_EXPECT_NEAR(intersected_metric[0], 1.92815, TOLERANCE);
+            KRATOS_EXPECT_NEAR(intersected_metric[1], 2.00271, TOLERANCE);
+            KRATOS_EXPECT_NEAR(intersected_metric[2], 2.00417, TOLERANCE);
+            KRATOS_EXPECT_NEAR(intersected_metric[3], 0.0105435, TOLERANCE);
+            KRATOS_EXPECT_NEAR(intersected_metric[4], 0.307946, TOLERANCE);
+            KRATOS_EXPECT_NEAR(intersected_metric[5], 0.0427123, TOLERANCE);
         }
 
     } // namespace Testing

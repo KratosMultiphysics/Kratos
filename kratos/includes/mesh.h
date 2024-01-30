@@ -4,18 +4,14 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Pooyan Dadvand
 //
 //
 
-
-#if !defined(KRATOS_MESH_H_INCLUDED )
-#define  KRATOS_MESH_H_INCLUDED
-
-
+#pragma once
 
 // System includes
 #include <string>
@@ -23,9 +19,7 @@
 #include <sstream>
 #include <cstddef>
 
-
 // External includes
-
 
 // Project includes
 #include "includes/define.h"
@@ -36,7 +30,6 @@
 #include "containers/flags.h"
 #include "containers/data_value_container.h"
 #include "includes/master_slave_constraint.h"
-
 
 namespace Kratos
 {
@@ -60,143 +53,116 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/// Mesh is the second level of abstraction in the data structure which hold Nodes, Elements and Conditions and their Properties.
 /**
- * Mesh is the second level of abstraction in the data structure which hold Nodes, Elements and Conditions and their Properties.
+ * @class Mesh
+ * @ingroup KratosCore
+ * @brief Mesh is the second level of abstraction in the data structure which hold Nodes, Elements and Conditions and their Properties.
+ * @details Mesh is the second level of abstraction in the data structure which hold Nodes, Elements and Conditions and their Properties.
  * In other words, Mesh is a complete pack of all type of entities without any additional data associated with them.
  * So a set of Elements and Conditions with their Nodes and Properties can be grouped together as a Mesh and send to
  * procedures like mesh refinement, material optimization, mesh movement or any other procedure which works on entities
  * without needing additional data for their processes.
+ * @author Pooyan Dadvand
 */
 template<class TNodeType, class TPropertiesType, class TElementType, class TConditionType>
 class Mesh : public DataValueContainer, public Flags
 {
 public:
-
-
     ///@name Type Definitions
     ///@{
 
     /// Pointer definition of Mesh
     KRATOS_CLASS_POINTER_DEFINITION(Mesh);
 
-    typedef std::size_t IndexType;
+    // Alias for representing indices, typically used for indexing arrays or collections.
+    using IndexType = std::size_t;
 
-    typedef std::size_t SizeType;
+    // Alias for representing sizes or counts, commonly used to indicate the size of data structures.
+    using SizeType = std::size_t;
 
-    typedef TNodeType NodeType;
+    // Alias for representing node types in a mesh data structure.
+    using NodeType = TNodeType;
 
-    typedef TPropertiesType PropertiesType;
+    // Alias for representing properties associated with nodes or elements in a mesh.
+    using PropertiesType = TPropertiesType;
 
-    typedef Geometry<NodeType> GeometryType;
+    // Alias for representing the geometry associated with a specific node type.
+    using GeometryType = Geometry<NodeType>;
 
-    typedef TElementType ElementType;
+    // Alias for representing element types in a mesh data structure.
+    using ElementType = TElementType;
 
-    typedef TConditionType ConditionType;
+    // Alias for representing condition types in a mesh data structure.
+    using ConditionType = TConditionType;
 
-    typedef MasterSlaveConstraint MasterSlaveConstraintType;
+    // Alias for representing master-slave constraints that can be applied in the mesh.
+    using MasterSlaveConstraintType = MasterSlaveConstraint;
 
-    typedef Mesh<TNodeType, TPropertiesType, TElementType, TConditionType> MeshType;
+    // Alias for the complete mesh data structure, including nodes, properties, elements, and conditions.
+    using MeshType = Mesh<TNodeType, TPropertiesType, TElementType, TConditionType>;
 
-    /// Nodes container. Which is a vector set of nodes with their Id's as key.
-    typedef PointerVectorSet<NodeType,
-                            IndexedObject,
-                            std::less<typename IndexedObject::result_type>,
-                            std::equal_to<typename IndexedObject::result_type>,
-                            typename NodeType::Pointer,
-                            std::vector< typename NodeType::Pointer >
-                            > NodesContainerType;
+    /// Type alias for the container of nodes.
+    using NodesContainerType = PointerVectorSet<NodeType,
+        IndexedObject,
+        std::less<typename IndexedObject::result_type>,
+        std::equal_to<typename IndexedObject::result_type>,
+        typename NodeType::Pointer,
+        std::vector<typename NodeType::Pointer>
+    >;
 
-    /** Iterator over the nodes. This iterator is an indirect
-    iterator over Node::Pointer which turn back a reference to
-    node by * operator and not a pointer for more convenient
-    usage. */
-    typedef typename NodesContainerType::iterator NodeIterator;
+    /// Iterator for nodes in the container. Provides direct references to nodes.
+    using NodeIterator = typename NodesContainerType::iterator;
 
-    /** Const iterator over the nodes. This iterator is an indirect
-    iterator over Node::Pointer which turn back a reference to
-    node by * operator and not a pointer for more convenient
-    usage. */
-    typedef typename NodesContainerType::const_iterator NodeConstantIterator;
+    /// Const iterator for nodes in the container. Provides direct references to nodes.
+    using NodeConstantIterator = typename NodesContainerType::const_iterator;
 
-    /// Properties container. A vector set of properties with their Id's as key.
-    typedef PointerVectorSet<PropertiesType, IndexedObject> PropertiesContainerType;
+    /// Type alias for the container of properties.
+    using PropertiesContainerType = PointerVectorSet<PropertiesType, IndexedObject>;
 
-    /** Iterator over the properties. This iterator is an indirect
-    iterator over Properties::Pointer which turn back a reference to
-    properties by * operator and not a pointer for more convenient
-    usage. */
-    typedef typename PropertiesContainerType::iterator PropertiesIterator;
+    /// Iterator for properties in the container. Provides direct references to properties.
+    using PropertiesIterator = typename PropertiesContainerType::iterator;
 
-    /** Const iterator over the properties. This iterator is an indirect
-    iterator over Properties::Pointer which turn back a reference to
-    properties by * operator and not a pointer for more convenient
-    usage. */
-    typedef typename PropertiesContainerType::const_iterator PropertiesConstantIterator;
+    /// Const iterator for properties in the container. Provides direct references to properties.
+    using PropertiesConstantIterator = typename PropertiesContainerType::const_iterator;
 
-    /// Geometries container. A vector map of Geometries with given Id's as key.
-    /*       typedef PointerVectorMap<GeometryType> GeometriesContainerType; */
+    /// Type alias for the container of elements.
+    using ElementsContainerType = PointerVectorSet<ElementType,
+        IndexedObject,
+        std::less<typename IndexedObject::result_type>,
+        std::equal_to<typename IndexedObject::result_type>,
+        typename ElementType::Pointer,
+        std::vector<typename ElementType::Pointer>
+    >;
 
-    /// Element container. A vector set of Elements with their Id's as key.
-    typedef PointerVectorSet<ElementType,
-                            IndexedObject,
-                            std::less<typename IndexedObject::result_type>,
-                            std::equal_to<typename IndexedObject::result_type>,
-                            typename ElementType::Pointer,
-                            std::vector< typename ElementType::Pointer >
-                            > ElementsContainerType;
+    /// Iterator for elements in the container. Provides direct references to elements.
+    using ElementIterator = typename ElementsContainerType::iterator;
 
-    /** Iterator over the Elements. This iterator is an indirect
-    iterator over Elements::Pointer which turn back a reference to
-    Element by * operator and not a pointer for more convenient
-    usage. */
-    typedef typename ElementsContainerType::iterator ElementIterator;
+    /// Const iterator for elements in the container. Provides direct references to elements.
+    using ElementConstantIterator = typename ElementsContainerType::const_iterator;
 
-    /** Const iterator over the Elements. This iterator is an indirect
-    iterator over Elements::Pointer which turn back a reference to
-    Element by * operator and not a pointer for more convenient
-    usage. */
-    typedef typename ElementsContainerType::const_iterator ElementConstantIterator;
+    /// Type alias for the container of conditions.
+    using ConditionsContainerType = PointerVectorSet<ConditionType,
+        IndexedObject,
+        std::less<typename IndexedObject::result_type>,
+        std::equal_to<typename IndexedObject::result_type>,
+        typename ConditionType::Pointer,
+        std::vector<typename ConditionType::Pointer>
+    >;
 
-    /// Conditions container. A vector set of Conditions with their Id's as key.
-    typedef PointerVectorSet<ConditionType,
-                            IndexedObject,
-                            std::less<typename IndexedObject::result_type>,
-                            std::equal_to<typename IndexedObject::result_type>,
-                            typename ConditionType::Pointer,
-                            std::vector< typename ConditionType::Pointer >
-                            > ConditionsContainerType;
+    /// Iterator for conditions in the container. Provides direct references to conditions.
+    using ConditionIterator = typename ConditionsContainerType::iterator;
 
-    /** Iterator over the Conditions. This iterator is an indirect
-    iterator over Conditions::Pointer which turn back a reference to
-    Condition by * operator and not a pointer for more convenient
-    usage. */
-    typedef typename ConditionsContainerType::iterator ConditionIterator;
+    /// Const iterator for conditions in the container. Provides direct references to conditions.
+    using ConditionConstantIterator = typename ConditionsContainerType::const_iterator;
 
-    /** Const iterator over the Conditions. This iterator is an indirect
-    iterator over Conditions::Pointer which turn back a reference to
-    Condition by * operator and not a pointer for more convenient
-    usage. */
-    typedef typename ConditionsContainerType::const_iterator ConditionConstantIterator;
+    /// Type alias for the container of master-slave constraints.
+    using MasterSlaveConstraintContainerType = PointerVectorSet<MasterSlaveConstraintType, IndexedObject>;
 
-    // Defining the constraint base type
+    /// Iterator for master-slave constraints in the container. Provides direct references to constraints.
+    using MasterSlaveConstraintIteratorType = typename MasterSlaveConstraintContainerType::iterator;
 
-    /// The container of the constraints
-    typedef PointerVectorSet<MasterSlaveConstraintType, IndexedObject> MasterSlaveConstraintContainerType;
-
-    /** Iterator over the constraints. This iterator is an indirect
-    iterator over MasterSlaveConstraint::Pointer which turn back a reference to
-    MasterSlaveConstraint by * operator and not a pointer for more convenient
-    usage. */
-    typedef typename MasterSlaveConstraintContainerType::iterator MasterSlaveConstraintIteratorType;
-
-    /** Const iterator over the constraints. This iterator is an indirect
-    iterator over MasterSlaveConstraint::Pointer which turn back a reference to
-    Table by * operator and not a pointer for more convenient
-    usage. */
-    typedef typename MasterSlaveConstraintContainerType::const_iterator MasterSlaveConstraintConstantIteratorType;
-
-
+    /// Const iterator for master-slave constraints in the container. Provides direct references to constraints.
+    using MasterSlaveConstraintConstantIteratorType = typename MasterSlaveConstraintContainerType::const_iterator;
 
     ///@}
     ///@name Life Cycle
@@ -230,11 +196,9 @@ public:
     /// Destructor.
     ~Mesh() override {}
 
-
     ///@}
     ///@name Operators
     ///@{
-
 
     ///@}
     ///@name Operations
@@ -272,19 +236,20 @@ public:
 
     SizeType WorkingSpaceDimension() const
     {
-      SizeType dimension = 3;
+        SizeType dimension = 3;
 
-      // NOTE: possible segmentacion fault if a Element or Condition
-      // is created using the base class of geometry, then the mpGeometryData
-      // of the geometry is a null pointer and has not any mWorkingSpaceDimension
-      if(NumberOfElements()!=0)
-	dimension = (mpElements->begin())->GetGeometry().WorkingSpaceDimension();
-      else if(NumberOfConditions()!=0)
-	dimension = (mpConditions->begin())->GetGeometry().WorkingSpaceDimension();
-      else if(NumberOfNodes()!=0)
-	dimension = (mpNodes->begin())->Dimension();
+        // NOTE: possible segmentation fault if a Element or Condition
+        // is created using the base class of geometry, then the mpGeometryData
+        // of the geometry is a null pointer and has not any mWorkingSpaceDimension
+        if (NumberOfElements()!=0) {
+            dimension = (mpElements->begin())->GetGeometry().WorkingSpaceDimension();
+        } else if(NumberOfConditions()!=0) {
+            dimension = (mpConditions->begin())->GetGeometry().WorkingSpaceDimension();
+        } else if(NumberOfNodes()!=0) {
+            dimension = (mpNodes->begin())->Dimension();
+        }
 
-      return dimension;
+        return dimension;
     }
 
     ///@}
@@ -859,16 +824,13 @@ public:
         return (mpMasterSlaveConstraints->find(MasterSlaveConstraintId) != mpMasterSlaveConstraints->end());
     }
 
-
     ///@}
     ///@name Access
     ///@{
 
-
     ///@}
     ///@name Inquiry
     ///@{
-
 
     ///@}
     ///@name Input and output
@@ -912,55 +874,43 @@ public:
         rOStream << PrefixString << "    Number of Constraints : " << mpMasterSlaveConstraints->size() << std::endl;
     }
 
-
     ///@}
     ///@name Friends
     ///@{
 
-
     ///@}
-
 protected:
     ///@name Protected static Member Variables
     ///@{
-
 
     ///@}
     ///@name Protected member Variables
     ///@{
 
-
     ///@}
     ///@name Protected Operators
     ///@{
-
 
     ///@}
     ///@name Protected Operations
     ///@{
 
-
     ///@}
     ///@name Protected  Access
     ///@{
-
 
     ///@}
     ///@name Protected Inquiry
     ///@{
 
-
     ///@}
     ///@name Protected LifeCycle
     ///@{
 
-
     ///@}
-
 private:
     ///@name Static Member Variables
     ///@{
-
 
     ///@}
     ///@name Member Variables
@@ -981,7 +931,6 @@ private:
     ///@name Private Operators
     ///@{
 
-
     ///@}
     ///@name Private Operations
     ///@{
@@ -990,9 +939,7 @@ private:
     ///@name Serialization
     ///@{
 
-
     friend class Serializer;
-
 
     void save(Serializer& rSerializer) const override
     {
@@ -1021,11 +968,9 @@ private:
     ///@name Private  Access
     ///@{
 
-
     ///@}
     ///@name Private Inquiry
     ///@{
-
 
     ///@}
     ///@name Un accessible methods
@@ -1048,15 +993,12 @@ private:
 }; // Class Mesh
 
 ///@}
-
 ///@name Type Definitions
 ///@{
-
 
 ///@}
 ///@name Input and output
 ///@{
-
 
 /// input stream function
 template<class TNodeType, class TPropertiesType, class TElementType, class TConditionType>
@@ -1078,7 +1020,5 @@ inline std::ostream& operator << (std::ostream& rOStream,
 
 
 }  // namespace Kratos.
-
-#endif // KRATOS_MESH_H_INCLUDED  defined
 
 

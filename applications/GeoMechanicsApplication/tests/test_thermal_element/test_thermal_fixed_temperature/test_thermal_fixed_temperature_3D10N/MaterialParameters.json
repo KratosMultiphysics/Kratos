@@ -1,0 +1,28 @@
+{
+   "properties": [{
+      "model_part_name":         "PorousDomain.Soil",
+      "properties_id":           1,
+      "Material": {
+          "constitutive_law": {
+              "name"             :  "GeoThermalDispersion3DLaw"
+          },
+          "Variables": {
+              "DENSITY_SOLID"                 :  2650,
+              "DENSITY_WATER"                 :  1000,
+              "POROSITY"                      :  0.36,
+              "RETENTION_LAW"                 : "SaturatedLaw",
+              "SATURATED_SATURATION"          :  1.0,
+              "SPECIFIC_HEAT_CAPACITY_SOLID"  :  400.0,
+              "SPECIFIC_HEAT_CAPACITY_WATER"  :  3795.0,
+              "THERMAL_CONDUCTIVITY_SOLID_XX" :  1.50,
+              "THERMAL_CONDUCTIVITY_SOLID_YY" :  1.50,
+              "THERMAL_CONDUCTIVITY_SOLID_ZZ" :  1.50,
+              "THERMAL_CONDUCTIVITY_SOLID_XY" :  0.0,
+              "THERMAL_CONDUCTIVITY_SOLID_YZ" :  0.0,
+              "THERMAL_CONDUCTIVITY_SOLID_XZ" :  0.0,
+              "THERMAL_CONDUCTIVITY_WATER"    :  0.48
+         },
+         "Tables": {}
+      }
+   }]
+}

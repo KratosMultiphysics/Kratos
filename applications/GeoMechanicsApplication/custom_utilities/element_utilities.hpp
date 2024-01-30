@@ -668,13 +668,13 @@ public:
 
     //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    template< unsigned int TNumNodes >
-    static array_1d<double, TNumNodes> CalculateNodalHydraulicHeadFromWaterPressures(const GeometryType& rGeom, const Properties& rProp)
+    static Vector CalculateNodalHydraulicHeadFromWaterPressures(const GeometryType& rGeom, const Properties& rProp)
     {
         const auto NumericalLimit = std::numeric_limits<double>::epsilon();
     	//Defining necessary variables
-        array_1d<double, TNumNodes> nodal_hydraulic_heads;
-        for (unsigned int node = 0; node < TNumNodes; ++node) {
+
+        Vector nodal_hydraulic_heads(rGeom.PointsNumber());
+        for (unsigned int node = 0; node < rGeom.PointsNumber(); ++node) {
             array_1d<double, 3> node_volume_acceleration;
             noalias(node_volume_acceleration) = rGeom[node].FastGetSolutionStepValue(VOLUME_ACCELERATION, 0);
             const double g = norm_2(node_volume_acceleration);

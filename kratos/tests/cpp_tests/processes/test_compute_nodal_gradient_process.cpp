@@ -84,10 +84,10 @@ namespace Kratos
 //             GiDIODebugGradient(this_model_part);
 
             const double tolerance = 1.0e-8;
-            KRATOS_CHECK_LESS_EQUAL(std::abs(this_model_part.pGetNode(1)->FastGetSolutionStepValue(DISTANCE_GRADIENT_X)) - 1.0, tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs(this_model_part.pGetNode(2)->FastGetSolutionStepValue(DISTANCE_GRADIENT_X)) - 1.0, tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs(this_model_part.pGetNode(5)->FastGetSolutionStepValue(DISTANCE_GRADIENT_X)) - 1.0, tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs(this_model_part.pGetNode(6)->FastGetSolutionStepValue(DISTANCE_GRADIENT_X)) - 1.0, tolerance);
+            KRATOS_EXPECT_LE(std::abs(this_model_part.pGetNode(1)->FastGetSolutionStepValue(DISTANCE_GRADIENT_X)) - 1.0, tolerance);
+            KRATOS_EXPECT_LE(std::abs(this_model_part.pGetNode(2)->FastGetSolutionStepValue(DISTANCE_GRADIENT_X)) - 1.0, tolerance);
+            KRATOS_EXPECT_LE(std::abs(this_model_part.pGetNode(5)->FastGetSolutionStepValue(DISTANCE_GRADIENT_X)) - 1.0, tolerance);
+            KRATOS_EXPECT_LE(std::abs(this_model_part.pGetNode(6)->FastGetSolutionStepValue(DISTANCE_GRADIENT_X)) - 1.0, tolerance);
         }
 
         /**
@@ -130,10 +130,10 @@ namespace Kratos
 //             GiDIODebugGradient(this_model_part);
 
             const double tolerance = 1.0e-8;
-            KRATOS_CHECK_LESS_EQUAL(std::abs(this_model_part.pGetNode(1)->FastGetSolutionStepValue(DISTANCE_GRADIENT_X)) - 1.0, tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs(this_model_part.pGetNode(2)->FastGetSolutionStepValue(DISTANCE_GRADIENT_X)) - 1.0, tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs(this_model_part.pGetNode(5)->FastGetSolutionStepValue(DISTANCE_GRADIENT_X)) - 1.0, tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs(this_model_part.pGetNode(6)->FastGetSolutionStepValue(DISTANCE_GRADIENT_X)) - 1.0, tolerance);
+            KRATOS_EXPECT_LE(std::abs(this_model_part.pGetNode(1)->FastGetSolutionStepValue(DISTANCE_GRADIENT_X)) - 1.0, tolerance);
+            KRATOS_EXPECT_LE(std::abs(this_model_part.pGetNode(2)->FastGetSolutionStepValue(DISTANCE_GRADIENT_X)) - 1.0, tolerance);
+            KRATOS_EXPECT_LE(std::abs(this_model_part.pGetNode(5)->FastGetSolutionStepValue(DISTANCE_GRADIENT_X)) - 1.0, tolerance);
+            KRATOS_EXPECT_LE(std::abs(this_model_part.pGetNode(6)->FastGetSolutionStepValue(DISTANCE_GRADIENT_X)) - 1.0, tolerance);
         }
 
         /**
@@ -177,14 +177,14 @@ namespace Kratos
 //             GiDIODebugGradient(this_model_part);
 
             const double tolerance = 1.0e-8;
-            KRATOS_CHECK_LESS_EQUAL(std::abs(this_model_part.pGetNode(1)->FastGetSolutionStepValue(DISTANCE_GRADIENT_X)) - 1.0, tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs(this_model_part.pGetNode(2)->FastGetSolutionStepValue(DISTANCE_GRADIENT_X)) - 1.0, tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs(this_model_part.pGetNode(3)->FastGetSolutionStepValue(DISTANCE_GRADIENT_X)) - 1.0, tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs(this_model_part.pGetNode(5)->FastGetSolutionStepValue(DISTANCE_GRADIENT_X)) - 1.0, tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs(this_model_part.pGetNode(9)->FastGetSolutionStepValue(DISTANCE_GRADIENT_X)) - 1.0, tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs(this_model_part.pGetNode(10)->FastGetSolutionStepValue(DISTANCE_GRADIENT_X)) - 1.0, tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs(this_model_part.pGetNode(11)->FastGetSolutionStepValue(DISTANCE_GRADIENT_X)) - 1.0, tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs(this_model_part.pGetNode(12)->FastGetSolutionStepValue(DISTANCE_GRADIENT_X)) - 1.0, tolerance);
+            KRATOS_EXPECT_LE(std::abs(this_model_part.pGetNode(1)->FastGetSolutionStepValue(DISTANCE_GRADIENT_X)) - 1.0, tolerance);
+            KRATOS_EXPECT_LE(std::abs(this_model_part.pGetNode(2)->FastGetSolutionStepValue(DISTANCE_GRADIENT_X)) - 1.0, tolerance);
+            KRATOS_EXPECT_LE(std::abs(this_model_part.pGetNode(3)->FastGetSolutionStepValue(DISTANCE_GRADIENT_X)) - 1.0, tolerance);
+            KRATOS_EXPECT_LE(std::abs(this_model_part.pGetNode(5)->FastGetSolutionStepValue(DISTANCE_GRADIENT_X)) - 1.0, tolerance);
+            KRATOS_EXPECT_LE(std::abs(this_model_part.pGetNode(9)->FastGetSolutionStepValue(DISTANCE_GRADIENT_X)) - 1.0, tolerance);
+            KRATOS_EXPECT_LE(std::abs(this_model_part.pGetNode(10)->FastGetSolutionStepValue(DISTANCE_GRADIENT_X)) - 1.0, tolerance);
+            KRATOS_EXPECT_LE(std::abs(this_model_part.pGetNode(11)->FastGetSolutionStepValue(DISTANCE_GRADIENT_X)) - 1.0, tolerance);
+            KRATOS_EXPECT_LE(std::abs(this_model_part.pGetNode(12)->FastGetSolutionStepValue(DISTANCE_GRADIENT_X)) - 1.0, tolerance);
         }
 
         /**
@@ -227,10 +227,10 @@ namespace Kratos
 //             GiDIODebugGradient(this_model_part);
             
             const double tolerance = 1.0e-8;
-            KRATOS_CHECK_LESS_EQUAL(std::abs(this_model_part.pGetNode(1)->FastGetSolutionStepValue(DISTANCE_GRADIENT_X)) - 1.0, tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs(this_model_part.pGetNode(2)->FastGetSolutionStepValue(DISTANCE_GRADIENT_X)) - 1.0, tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs(this_model_part.pGetNode(5)->FastGetSolutionStepValue(DISTANCE_GRADIENT_X)) - 1.0, tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs(this_model_part.pGetNode(6)->FastGetSolutionStepValue(DISTANCE_GRADIENT_X)) - 1.0, tolerance);
+            KRATOS_EXPECT_LE(std::abs(this_model_part.pGetNode(1)->FastGetSolutionStepValue(DISTANCE_GRADIENT_X)) - 1.0, tolerance);
+            KRATOS_EXPECT_LE(std::abs(this_model_part.pGetNode(2)->FastGetSolutionStepValue(DISTANCE_GRADIENT_X)) - 1.0, tolerance);
+            KRATOS_EXPECT_LE(std::abs(this_model_part.pGetNode(5)->FastGetSolutionStepValue(DISTANCE_GRADIENT_X)) - 1.0, tolerance);
+            KRATOS_EXPECT_LE(std::abs(this_model_part.pGetNode(6)->FastGetSolutionStepValue(DISTANCE_GRADIENT_X)) - 1.0, tolerance);
         }
         
         /** 
@@ -274,14 +274,14 @@ namespace Kratos
 //             GiDIODebugGradient(this_model_part);
 
             const double tolerance = 1.0e-8;
-            KRATOS_CHECK_LESS_EQUAL(std::abs(this_model_part.pGetNode(1)->FastGetSolutionStepValue(DISTANCE_GRADIENT_X)) - 1.0, tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs(this_model_part.pGetNode(2)->FastGetSolutionStepValue(DISTANCE_GRADIENT_X)) - 1.0, tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs(this_model_part.pGetNode(3)->FastGetSolutionStepValue(DISTANCE_GRADIENT_X)) - 1.0, tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs(this_model_part.pGetNode(5)->FastGetSolutionStepValue(DISTANCE_GRADIENT_X)) - 1.0, tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs(this_model_part.pGetNode(9)->FastGetSolutionStepValue(DISTANCE_GRADIENT_X)) - 1.0, tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs(this_model_part.pGetNode(10)->FastGetSolutionStepValue(DISTANCE_GRADIENT_X)) - 1.0, tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs(this_model_part.pGetNode(11)->FastGetSolutionStepValue(DISTANCE_GRADIENT_X)) - 1.0, tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs(this_model_part.pGetNode(12)->FastGetSolutionStepValue(DISTANCE_GRADIENT_X)) - 1.0, tolerance);
+            KRATOS_EXPECT_LE(std::abs(this_model_part.pGetNode(1)->FastGetSolutionStepValue(DISTANCE_GRADIENT_X)) - 1.0, tolerance);
+            KRATOS_EXPECT_LE(std::abs(this_model_part.pGetNode(2)->FastGetSolutionStepValue(DISTANCE_GRADIENT_X)) - 1.0, tolerance);
+            KRATOS_EXPECT_LE(std::abs(this_model_part.pGetNode(3)->FastGetSolutionStepValue(DISTANCE_GRADIENT_X)) - 1.0, tolerance);
+            KRATOS_EXPECT_LE(std::abs(this_model_part.pGetNode(5)->FastGetSolutionStepValue(DISTANCE_GRADIENT_X)) - 1.0, tolerance);
+            KRATOS_EXPECT_LE(std::abs(this_model_part.pGetNode(9)->FastGetSolutionStepValue(DISTANCE_GRADIENT_X)) - 1.0, tolerance);
+            KRATOS_EXPECT_LE(std::abs(this_model_part.pGetNode(10)->FastGetSolutionStepValue(DISTANCE_GRADIENT_X)) - 1.0, tolerance);
+            KRATOS_EXPECT_LE(std::abs(this_model_part.pGetNode(11)->FastGetSolutionStepValue(DISTANCE_GRADIENT_X)) - 1.0, tolerance);
+            KRATOS_EXPECT_LE(std::abs(this_model_part.pGetNode(12)->FastGetSolutionStepValue(DISTANCE_GRADIENT_X)) - 1.0, tolerance);
         }
     } // namespace Testing
 }  // namespace Kratos.

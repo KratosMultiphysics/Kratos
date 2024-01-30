@@ -573,6 +573,10 @@ private:
 
     void ReadSubModelPartConditionsBlock(ModelPart& rMainModelPart, ModelPart& rSubModelPart);
 
+    void ReadSubModelPartGeometriesBlock(
+        ModelPart &rMainModelPart,
+        ModelPart &rSubModelPart);
+
     void DivideInputToPartitionsImpl(
         OutputFilesContainerType& rOutputFiles,
         SizeType NumberOfPartitions,

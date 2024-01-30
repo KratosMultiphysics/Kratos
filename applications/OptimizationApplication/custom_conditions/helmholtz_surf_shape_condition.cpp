@@ -18,6 +18,7 @@
 #include "includes/variables.h"
 #include "includes/checks.h"
 #include "utilities/atomic_utilities.h"
+#include "optimization_application_variables.h"
 
 namespace Kratos
 {
@@ -221,8 +222,8 @@ void HelmholtzSurfShapeCondition::Calculate(const Variable<double>& rVariable, d
             nodal_vals[3 * node_element + 0] = r_geometry[node_element].X0();
             nodal_vals[3 * node_element + 1] = r_geometry[node_element].Y0();
             nodal_vals[3 * node_element + 2] = r_geometry[node_element].Z0();
-        }    
-        rOutput = inner_prod(nodal_vals, prod(K, nodal_vals));    
+        }
+        rOutput = inner_prod(nodal_vals, prod(K, nodal_vals));
     }
     else{
         auto& parentElement = this->GetValue(NEIGHBOUR_ELEMENTS);
@@ -253,7 +254,7 @@ void HelmholtzSurfShapeCondition::CalculateLocalSystem(
 
     noalias( rLeftHandSideMatrix ) = ZeroMatrix( mat_size, mat_size ); //resetting LHS
 
-    // Resizing as needed the RHS 
+    // Resizing as needed the RHS
     if ( rRightHandSideVector.size() != mat_size )
         rRightHandSideVector.resize( mat_size, false );
 
@@ -266,9 +267,9 @@ void HelmholtzSurfShapeCondition::CalculateLocalSystem(
     KRATOS_ERROR_IF(parentElement.size() == 0) << "A condition was NOT assigned a parent element." << std::endl;
 
     MatrixType M;
-    CalculateSurfaceMassMatrix(M,rCurrentProcessInfo);  
+    CalculateSurfaceMassMatrix(M,rCurrentProcessInfo);
     MatrixType A;
-    CalculateSurfaceStiffnessMatrix(A,rCurrentProcessInfo); 
+    CalculateSurfaceStiffnessMatrix(A,rCurrentProcessInfo);
 
     MatrixType K;
     if(!rCurrentProcessInfo[COMPUTE_CONTROL_POINTS_SHAPE])
@@ -276,8 +277,8 @@ void HelmholtzSurfShapeCondition::CalculateLocalSystem(
 
     //apply drichlet BC
     Vector temp;
-    GetValuesVector(temp,0);    
-    noalias(rRightHandSideVector) -= prod(rLeftHandSideMatrix,temp);    
+    GetValuesVector(temp,0);
+    noalias(rRightHandSideVector) -= prod(rLeftHandSideMatrix,temp);
 
 }
 
@@ -366,7 +367,7 @@ void HelmholtzSurfShapeCondition::CalculateSurfaceMassMatrix(
     for ( IndexType point_number = 0; point_number < integration_points.size(); ++point_number ) {
         Matrix J0;
         GeometryUtils::JacobianOnInitialConfiguration(r_cond_geom, integration_points[point_number], J0);
-        double detJ0 = MathUtils<double>::GeneralizedDet(J0);     
+        double detJ0 = MathUtils<double>::GeneralizedDet(J0);
 
         const double integration_weight = integration_points[point_number].Weight() * detJ0;
         const Vector& rN = row(Ncontainer,point_number);
@@ -409,7 +410,7 @@ void HelmholtzSurfShapeCondition::GetParentElementShapeFunctionsValues(
     auto& parentElement = this->GetValue(NEIGHBOUR_ELEMENTS);
     const auto& r_elem_geom = parentElement[0].GetGeometry();
 
-    for ( IndexType point_number = 0; point_number < cond_integration_points.size(); ++point_number ) {    
+    for ( IndexType point_number = 0; point_number < cond_integration_points.size(); ++point_number ) {
         Point cond_gp_local_pt = Point(cond_integration_points[point_number].Coordinates());
         Point cond_gp_global_pt;
         r_cond_geom.GlobalCoordinates(cond_gp_global_pt,cond_gp_local_pt);
@@ -424,7 +425,7 @@ void HelmholtzSurfShapeCondition::GetParentElementShapeFunctionsValues(
                 }
             }
         }
-    }  
+    }
 
     KRATOS_CATCH("");
 }
@@ -511,7 +512,7 @@ void HelmholtzSurfShapeCondition::GetParentElementShapeFunctionsGlobalGradients(
 
     auto& parentElement = this->GetValue(NEIGHBOUR_ELEMENTS);
     const auto& r_elem_geom = parentElement[0].GetGeometry();
-    
+
     Point cond_gp_local_pt = Point(cond_integration_points[PointNumber].Coordinates());
     Point cond_gp_global_pt;
     r_cond_geom.GlobalCoordinates(cond_gp_global_pt,cond_gp_local_pt);
@@ -536,7 +537,7 @@ void HelmholtzSurfShapeCondition::GetParentElementShapeFunctionsGlobalGradients(
                     rDN_DX(cond_point_number,k) = elem_DN_DX(elem_point_number,k);
             }
         }
-    }    
+    }
 
     KRATOS_CATCH("");
 }

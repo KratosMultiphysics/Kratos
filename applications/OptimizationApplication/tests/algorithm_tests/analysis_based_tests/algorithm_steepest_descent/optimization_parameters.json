@@ -15,7 +15,7 @@
     "analyses": [
         {
             "name": "Structure_static",
-            "type": "stepping_analysis_execution_policy",
+            "type": "kratos_analysis_execution_policy",
             "settings": {
                 "model_part_names": [
                     "Structure"
@@ -24,6 +24,11 @@
                 "analysis_type": "StructuralMechanicsAnalysis",
                 "analysis_settings": {
                     "@include_json": "primal_parameters.json"
+                },
+                "analysis_output_settings": {
+                    "nodal_solution_step_data_variables": [
+                        "DISPLACEMENT"
+                    ]
                 }
             }
         }
@@ -42,7 +47,9 @@
             "name": "strain_energy",
             "type": "linear_strain_energy_response_function",
             "settings": {
-                "evaluated_model_part_names": ["Structure"],
+                "evaluated_model_part_names": [
+                    "Structure"
+                ],
                 "primal_analysis_name": "Structure_static",
                 "perturbation_size": 1e-8
             }

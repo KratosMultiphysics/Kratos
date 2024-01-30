@@ -162,7 +162,7 @@ public:
                 rMeshVel = BDFcoefs[0] * rDisp0 + BDFcoefs[1] * rDisp1 + BDFcoefs[2] * rDisp2;
             }
         }
-        //this->UpdateFluidFraction(rModelPart, CurrentProcessInfo);
+        this->UpdateFluidFraction(rModelPart, CurrentProcessInfo);
     }
 
     void SetTimeCoefficients(ProcessInfo& rCurrentProcessInfo)

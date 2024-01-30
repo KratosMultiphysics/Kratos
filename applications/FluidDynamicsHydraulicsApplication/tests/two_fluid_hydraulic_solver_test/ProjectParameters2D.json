@@ -1,0 +1,137 @@
+{
+    "problem_data"     : {
+        "problem_name"  : "sloshing_tank",
+        "parallel_type" : "OpenMP",
+        "echo_level"    : 0,
+        "start_time"    : 0.0,
+        "end_time"      : 0.1
+    },
+        "output_processes" : {
+            "gid_output" : []
+        },
+        "solver_settings"  : {
+            "model_part_name"             : "FluidModelPart",
+            "domain_size"                 : 2,
+            "solver_type"                 : "two_fluid_hydraulic",
+            "model_import_settings"       : {
+                "input_type"     : "mdpa",
+                "input_filename" : "2D_geometry"
+            },
+            "material_import_settings"    : {
+                "materials_filename" : "TwoFluidHydraulic2DTestMaterials.json"
+            },
+        "echo_level"                  : 1,
+        "compute_reactions"           : false,
+        "maximum_iterations"          : 20,
+        "relative_velocity_tolerance" : 0.001,
+        "absolute_velocity_tolerance" : 1e-5,
+        "relative_pressure_tolerance" : 0.001,
+        "absolute_pressure_tolerance" : 1e-5,
+        "volume_model_part_name"      : "FluidParts_Fluid",
+        "skin_parts"                  : ["AutomaticInlet2D_Inlet","Slip2D_Floor","Slip2D_Top","Outlet2D_Outlet","VELOCITY_Point"],
+        "no_skin_parts"              	: [],
+        "move_mesh_flag"				: false,
+        "formulation": {
+            "dynamic_tau": 1.0,
+            "mass_source": true
+        },
+        "levelset_convection_settings": {
+            "max_CFL": 1.0,
+            "eulerian_error_compensation": false,
+            "element_type": "levelset_convection_supg",
+            "element_settings": {
+                "tau_nodal": false
+            }
+        },
+        "artificial_viscosity": true,
+        "artificial_visocosity_settings": {
+            "limiter_coefficient": 1000000
+        },
+        "eulerian_fm_ale": true,
+        "eulerian_fm_ale_settings": {
+            "max_CFL": 1.0,
+            "eulerian_error_compensation": false,
+            "element_type": "levelset_convection_supg",
+            "element_settings": {
+                "dynamic_tau": 0.0,
+                "tau_nodal": false
+            }
+        },
+
+        "time_stepping"  : {
+            "automatic_time_step" 	: false,
+            "time_step"           	: 0.1
+        },
+        "linear_solver_settings": {
+            "solver_type": "amgcl"
+        }
+    },
+    "processes"        : {
+        "initial_conditions_process_list"  : [],
+        "boundary_conditions_process_list" : [{
+            "python_module" : "assign_scalar_variable_process",
+            "kratos_module" : "KratosMultiphysics",
+            "process_name"  : "AssignScalarVariableProcess",
+            "Parameters"    : {
+                "model_part_name"    : "FluidModelPart.VELOCITY_Point",
+                "variable_name"      : "PRESSURE",
+                "constrained"        : true,
+                "value"              : 0.0
+            }
+        },{
+            "python_module" : "assign_vector_variable_process",
+            "kratos_module" : "KratosMultiphysics",
+            "process_name"  : "AssignVectorVariableProcess",
+            "Parameters"    : {
+                "model_part_name"    : "FluidModelPart.Slip2D_Top",
+                "variable_name"      : "VELOCITY",
+                "constrained"        : [false,true,false],
+                "value"              : [null,0.0,null]
+            }
+        },{
+            "python_module" : "assign_vector_variable_process",
+            "kratos_module" : "KratosMultiphysics",
+            "process_name"  : "AssignVectorVariableProcess",
+            "Parameters"    : {
+                "model_part_name"    : "FluidModelPart.Slip2D_Floor",
+                "variable_name"      : "VELOCITY",
+                "constrained"        : [false,true,false],
+                "value"              : [null,0.0,null]
+            }
+        },{
+            "python_module" : "assign_vector_variable_process",
+            "kratos_module" : "KratosMultiphysics",
+            "process_name"  : "AssignVectorVariableProcess",
+            "Parameters"    : {
+                "model_part_name"    : "FluidModelPart.AutomaticInlet2D_Inlet",
+                "variable_name"      : "VELOCITY",
+                "constrained"        : [true,false,false],
+                "value"              : [0.0,null,null]
+            }
+        },{
+            "python_module" : "assign_vector_variable_process",
+            "kratos_module" : "KratosMultiphysics",
+            "process_name"  : "AssignVectorVariableProcess",
+            "Parameters"    : {
+                "model_part_name"    : "FluidModelPart.Outlet2D_Outlet",
+                "variable_name"      : "VELOCITY",
+                "constrained"        : [true,false,false],
+                "value"              : [0.0,null,null]
+            }
+        }],
+        "gravity"                          : [{
+            "python_module" : "assign_vector_by_direction_process",
+            "kratos_module" : "KratosMultiphysics",
+            "process_name"  : "AssignVectorByDirectionProcess",
+            "Parameters"    : {
+                "model_part_name" : "FluidModelPart.FluidParts_Fluid",
+                "variable_name"   : "BODY_FORCE",
+                "modulus"         : 9.81,
+                "constrained"     : false,
+                "direction"       : [0.0,-1,0.0]
+            }
+        }],
+        "auxiliar_process_list" : [],
+        "json_check_process_list" : []
+    }
+}

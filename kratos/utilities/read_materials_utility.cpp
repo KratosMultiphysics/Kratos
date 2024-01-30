@@ -19,6 +19,7 @@
 // Project includes
 #include "utilities/read_materials_utility.h"
 #include "utilities/parallel_utilities.h"
+#include "utilities/read_and_set_accessors_utilities.h"
 
 namespace Kratos {
 namespace {
@@ -182,6 +183,9 @@ void ReadMaterialsUtility::AssignMaterialToProperty(
     // Assign CL
     AssignConstitutiveLawToProperty(MaterialData, rProperty);
 
+    // Assign Accessors
+    AssignAccessorsToProperty(MaterialData, rProperty);
+
     KRATOS_CATCH("");
 }
 
@@ -324,6 +328,21 @@ void ReadMaterialsUtility::AssignTablesToProperty(
     } else {
         KRATOS_INFO("Read materials") << "No tables defined for material ID: " << rProperty.Id() << std::endl;
     }
+
+    KRATOS_CATCH("");
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void ReadMaterialsUtility::AssignAccessorsToProperty(
+    const Parameters MaterialData,
+    Properties& rProperty
+    )
+{
+    KRATOS_TRY;
+
+    ReadAndSetAccessorsUtilities::ReadAndSetAccessors(MaterialData, rProperty);
 
     KRATOS_CATCH("");
 }

@@ -10,16 +10,9 @@
 //  Main authors:    Vahid Galavi
 //
 
-
-// System includes
-
-// External includes
-
-// Project includes
 #include "geometries/geometry.h"
 #include "includes/kratos_flags.h"
 #include "custom_processes/find_neighbour_elements_of_conditions_process.hpp"
-
 
 namespace Kratos
 {
@@ -36,13 +29,12 @@ void FindNeighbourElementsOfConditionsProcess::Execute()
         itCond->Set(VISITED, false);
         GeometryType& rGeometry = itCond->GetGeometry();
 
-        DenseVector<int> Ids(rGeometry.size());
+        DenseVector<IndexType> Ids(rGeometry.size());
 
         for (IndexType i=0; i < Ids.size(); ++i) {
             rGeometry[i].Set(BOUNDARY,true);
             Ids[i] = rGeometry[i].Id();
         }
-
 
         if (rGeometry.GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Triangle3D3) {
             // reverse ordering to be consistent with face ordering
@@ -82,7 +74,7 @@ void FindNeighbourElementsOfConditionsProcess::Execute()
         const auto rBoundaryGeometries = rGeometryElement.GenerateBoundariesEntities();
         
         for (IndexType iFace = 0; iFace < rBoundaryGeometries.size(); ++iFace) {
-            DenseVector<int> FaceIds(rBoundaryGeometries[iFace].size());
+            DenseVector<IndexType> FaceIds(rBoundaryGeometries[iFace].size());
 
             // faces or edges for 2D and 3D elements
             for (IndexType iNode = 0; iNode < FaceIds.size(); ++iNode) {
@@ -130,7 +122,7 @@ void FindNeighbourElementsOfConditionsProcess::Execute()
             const auto rPointGeometries = rGeometryElement.GeneratePoints();
 
             for (IndexType iPoint = 0; iPoint < rPointGeometries.size(); ++iPoint) {
-                DenseVector<int> PointIds(rPointGeometries[iPoint].size());
+                DenseVector<IndexType> PointIds(rPointGeometries[iPoint].size());
 
                 // Points
                 for (IndexType iNode = 0; iNode < PointIds.size(); ++iNode) {
@@ -162,7 +154,7 @@ void FindNeighbourElementsOfConditionsProcess::Execute()
                 const auto rBoundaryGeometries = rGeometryElement.GenerateEdges();
 
                 for (IndexType iEdge = 0; iEdge < rBoundaryGeometries.size(); ++iEdge) {
-                    DenseVector<int> EdgeIds(rBoundaryGeometries[iEdge].size());
+                    DenseVector<IndexType> EdgeIds(rBoundaryGeometries[iEdge].size());
 
                     // edges for 3D elements
                     for (IndexType iNode = 0; iNode < EdgeIds.size(); ++iNode) {
@@ -183,7 +175,6 @@ void FindNeighbourElementsOfConditionsProcess::Execute()
         }
     }
 
-
     //check that all of the conditions belong to at least an element.
     all_conditions_visited = CheckIfAllConditionsAreVisited();
 
@@ -195,17 +186,15 @@ void FindNeighbourElementsOfConditionsProcess::Execute()
     // check 1D elements, note that this has to happen after procedures to find 2 and 3d neighbours are alredy performed, such that 1D elements are only added
     // as neighbours when the condition is not neighbouring 2D or 3D elements
     this->CheckIf1DElementIsNeighbour(FacesMap);
-    
-    
+
     //check that all of the conditions belong to at least an element. Throw an error otherwise (this is particularly useful in mpi)
     all_conditions_visited = true;
-    for (auto& rCond : mrModelPart.Conditions()) {
+    for (const auto& rCond : mrModelPart.Conditions()) {
         if (rCond.IsNot(VISITED)) {
             all_conditions_visited = false;
             KRATOS_INFO("Condition without any corresponding element, ID ") << rCond.Id() << std::endl;
         }
     }
-
     KRATOS_ERROR_IF_NOT(all_conditions_visited) << "Some conditions found without any corresponding element" << std::endl;
 
     KRATOS_CATCH("")
@@ -428,7 +417,4 @@ hashmap::iterator FindNeighbourElementsOfConditionsProcess::
     KRATOS_CATCH("")
 }
 
-
-} // namespace Kratos
-
-
+}

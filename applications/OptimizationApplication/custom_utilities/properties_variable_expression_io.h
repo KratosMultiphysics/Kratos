@@ -27,7 +27,7 @@
 namespace Kratos {
 
 
-class KRATOS_API(KRATOS_CORE) PropertiesVariableExpressionIO
+class KRATOS_API(OPTIMIZATION_APPLICATION) PropertiesVariableExpressionIO
 {
 public:
     ///@name Type definitions
@@ -47,7 +47,7 @@ public:
     ///@name Public classes
     ///@{
 
-    class KRATOS_API(KRATOS_CORE) PropertiesVariableExpressionInput : public ExpressionInput
+    class KRATOS_API(OPTIMIZATION_APPLICATION) PropertiesVariableExpressionInput : public ExpressionInput
     {
     public:
         ///@name Type definitions
@@ -88,7 +88,7 @@ public:
 
     };
 
-    class KRATOS_API(KRATOS_CORE) PropertiesVariableExpressionOutput : public ExpressionOutput
+    class KRATOS_API(OPTIMIZATION_APPLICATION) PropertiesVariableExpressionOutput : public ExpressionOutput
     {
     public:
         ///@name Type definitions

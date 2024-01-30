@@ -18,7 +18,7 @@ class TestComponentDataView(kratos_unittest.TestCase):
             pass
         def Finalize(self) -> None:
             pass
-        def GetImplementedPhysicalKratosVariables(self) -> list[SupportedSensitivityFieldVariableTypes]:
+        def GetImplementedPhysicalKratosVariables(self) -> 'list[SupportedSensitivityFieldVariableTypes]':
             return None
         def GetAnalysisModelPart(self) -> Kratos.ModelPart:
             return None
@@ -26,7 +26,7 @@ class TestComponentDataView(kratos_unittest.TestCase):
             return None
         def CalculateValue(self) -> float:
             return 0.0
-        def CalculateGradient(self, _: dict[SupportedSensitivityFieldVariableTypes, KratosOA.CollectiveExpression]) -> None:
+        def CalculateGradient(self, _: 'dict[SupportedSensitivityFieldVariableTypes, KratosOA.CollectiveExpression]') -> None:
             return None
 
     @classmethod

@@ -260,7 +260,7 @@ Values
 250 1
 251 1
 End Values
-Result "HYDRAULIC_HEAD" "Kratos" 0 Scalar OnGaussPoints "tri3_element_gp"
+Result "HYDRAULIC_HEAD" "Kratos" 1 Scalar OnGaussPoints "tri3_element_gp"
 Values
 1 -0.97619
  -0.97619

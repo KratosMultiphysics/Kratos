@@ -248,6 +248,8 @@ public:
                                          double scale_factor,
                                          bool automatic);
 
+    void UpdateSurroundingBoundingBox(ModelPart& spheres_model_part);
+
     template<class TParticleType>
     bool CheckParticlePreservationCriteria(const Element::Pointer p_element, const double current_time);
 

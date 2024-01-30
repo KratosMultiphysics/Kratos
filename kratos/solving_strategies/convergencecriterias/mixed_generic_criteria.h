@@ -10,8 +10,7 @@
 //  Main authors:    Jordi Cotela, Riccardo Rossi, Carlos Roig and Ruben Zorrilla
 //
 
-#ifndef KRATOS_MIXED_GENERIC_CRITERIA_H
-#define	KRATOS_MIXED_GENERIC_CRITERIA_H
+#pragma once
 
 // System includes
 
@@ -405,6 +404,31 @@ protected:
         }
     }
 
+    /**
+     * @brief Finds the var local key in the mLocalKeyMap for 
+     * a gifen DOF. If the variable does not exist in mLocalKeyMap
+     * this function returns false
+     * @param itDof the DOF iterator
+     * @param rVarLocalKey variable local key 
+     * @return dof variable is found or not
+     */
+    bool FindVarLocalKey(
+        typename DofsArrayType::const_iterator itDof,
+        int& rVarLocalKey) const
+    {
+        const auto &r_current_variable = itDof->GetVariable();
+        const KeyType key = r_current_variable.IsComponent() ? r_current_variable.GetSourceVariable().Key() : r_current_variable.Key();
+        auto key_find = this->mLocalKeyMap.find(key);
+        bool found = true;
+        if (key_find == this->mLocalKeyMap.end()) {
+            found = false;
+        } else {
+            rVarLocalKey = key_find->second;;
+        }
+        return found;
+    }
+
+
     ///@}
     ///@name Protected  Access
     ///@{
@@ -462,7 +486,7 @@ private:
         const TSystemVectorType& rDx,
         std::vector<int>& rDofsCount,
         std::vector<TDataType>& rSolutionNormsVector,
-        std::vector<TDataType>& rIncreaseNormsVector)
+        std::vector<TDataType>& rIncreaseNormsVector) const
     {
         int n_dofs = rDofSet.size();
 
@@ -492,9 +516,13 @@ private:
                     dof_value = it_dof->GetSolutionStepValue(0);
                     dof_dx = TSparseSpace::GetValue(rDx, dof_id);
 
-                    const auto &r_current_variable = it_dof->GetVariable();
-                    int var_local_key = mLocalKeyMap[r_current_variable.IsComponent() ? r_current_variable.GetSourceVariable().Key() : r_current_variable.Key()];
-
+                    int var_local_key;
+                    bool key_found = FindVarLocalKey(it_dof,var_local_key);
+                    if (!key_found) {
+                        // the dof does not belong to the list of variables
+                        // we are checking for convergence, so we skip it
+                        continue;
+                    }
                     var_solution_norm_reduction[var_local_key] += dof_value * dof_value;
                     var_correction_norm_reduction[var_local_key] += dof_dx * dof_dx;
                     dofs_counter_reduction[var_local_key]++;
@@ -563,5 +591,3 @@ private:
 
 ///@} // Application group
 }
-
-#endif // KRATOS_MIXED_GENERIC_CRITERIA_H

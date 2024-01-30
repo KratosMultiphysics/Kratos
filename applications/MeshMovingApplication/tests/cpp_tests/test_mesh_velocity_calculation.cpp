@@ -15,7 +15,7 @@
 
 // Project includes
 #include "testing/testing.h"
-#include "includes/checks.h"
+#include "includes/expect.h"
 #include "includes/model_part.h"
 #include "includes/kratos_parameters.h"
 #include "containers/model.h"
@@ -97,7 +97,7 @@ void CheckNodalResults(const ModelPart& rModelPart,
                       << " | result: " << result << std::endl;
         }
         else {
-            KRATOS_CHECK_NEAR(expected_result, result, tol);
+            KRATOS_EXPECT_NEAR(expected_result, result, tol);
         }
     }
 }

@@ -98,7 +98,7 @@ class SetMeshMotionAndGetForcesProcess(KratosMultiphysics.Process):
             reference_point = [0.0, 0.0, 0.0]
             translation_vector = [0.0, 0.0, 0.0]
 
-            transform = MeshMoving.LinearTransform(
+            transform = MeshMoving.AffineTransform(
                 rotation_axis,
                 rotation_angle,
                 reference_point,

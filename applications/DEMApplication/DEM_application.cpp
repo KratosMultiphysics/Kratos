@@ -36,6 +36,7 @@
 #include "custom_constitutive/dem_d_linear_custom_constants_cl.h"
 #include "custom_constitutive/DEM_D_Conical_damage_CL.h"
 #include "custom_constitutive/DEM_D_Quadratic_CL.h"
+#include "custom_constitutive/DEM_D_void_CL.h"
 #include "custom_constitutive/DEM_D_Linear_classic_CL.h"
 #include "custom_constitutive/DEM_KDEM_fabric_CL.h"
 #include "custom_constitutive/DEM_beam_constitutive_law.h"
@@ -46,6 +47,7 @@
 #include "custom_constitutive/DEM_compound_constitutive_law.h"
 #include "custom_constitutive/DEM_compound_constitutive_law_for_PBM.h"
 #include "custom_constitutive/DEM_parallel_bond_CL.h"
+#include "custom_constitutive/DEM_smooth_joint_CL.h"
 #include "custom_constitutive/DEM_parallel_bond_for_membrane_CL.h"
 #include "custom_constitutive/DEM_rolling_friction_model.h"
 #include "custom_constitutive/DEM_rolling_friction_model_constant_torque.h"
@@ -266,6 +268,12 @@ KRATOS_CREATE_VARIABLE(double, BOND_INTERNAL_FRICC)
 KRATOS_CREATE_VARIABLE(double, BOND_ROTATIONAL_MOMENT_COEFFICIENT_NORMAL)
 KRATOS_CREATE_VARIABLE(double, BOND_ROTATIONAL_MOMENT_COEFFICIENT_TANGENTIAL)
 KRATOS_CREATE_VARIABLE(double, BOND_RADIUS_FACTOR)
+KRATOS_CREATE_VARIABLE(double, JOINT_NORMAL_STIFFNESS)
+KRATOS_CREATE_VARIABLE(double, JOINT_TANGENTIAL_STIFFNESS)
+KRATOS_CREATE_VARIABLE(double, JOINT_NORMAL_DIRECTION_X)
+KRATOS_CREATE_VARIABLE(double, JOINT_NORMAL_DIRECTION_Y)
+KRATOS_CREATE_VARIABLE(double, JOINT_NORMAL_DIRECTION_Z)
+KRATOS_CREATE_VARIABLE(double, JOINT_FRICTION_COEFF)
 KRATOS_CREATE_VARIABLE(double, K_ALPHA) // for DEM_D_Quadratic_LAW
 
 // *************** Continuum only END *************
@@ -275,6 +283,7 @@ KRATOS_CREATE_VARIABLE(double, K_ALPHA) // for DEM_D_Quadratic_LAW
 KRATOS_CREATE_VARIABLE(double, LOCAL_CONTACT_AREA_HIGH)
 KRATOS_CREATE_VARIABLE(double, LOCAL_CONTACT_AREA_LOW)
 KRATOS_CREATE_VARIABLE(double, MEAN_CONTACT_AREA)
+KRATOS_CREATE_VARIABLE(double, CONTACT_RADIUS)
 KRATOS_CREATE_VARIABLE(double, REPRESENTATIVE_VOLUME)
 KRATOS_CREATE_VARIABLE(DenseVector<int>, NEIGHBOUR_IDS)
 KRATOS_CREATE_VARIABLE(DenseVector<double>, NEIGHBOURS_CONTACT_AREAS)
@@ -340,6 +349,7 @@ KRATOS_CREATE_VARIABLE(double, PARTICLE_INELASTIC_FRICTIONAL_ENERGY)
 KRATOS_CREATE_VARIABLE(double, PARTICLE_INELASTIC_ROLLING_RESISTANCE_ENERGY)
 KRATOS_CREATE_VARIABLE(int, COMPUTE_ENERGY_OPTION)
 KRATOS_CREATE_VARIABLE(double, GLOBAL_DAMPING)
+KRATOS_CREATE_VARIABLE(double, GLOBAL_VISCOUS_DAMPING)
 KRATOS_CREATE_VARIABLE(double, NORMAL_IMPACT_VELOCITY)
 KRATOS_CREATE_VARIABLE(double, TANGENTIAL_IMPACT_VELOCITY)
 KRATOS_CREATE_VARIABLE(double, FACE_NORMAL_IMPACT_VELOCITY)
@@ -734,6 +744,12 @@ void KratosDEMApplication::Register() {
     KRATOS_REGISTER_VARIABLE(BOND_ROTATIONAL_MOMENT_COEFFICIENT_NORMAL)
     KRATOS_REGISTER_VARIABLE(BOND_ROTATIONAL_MOMENT_COEFFICIENT_TANGENTIAL)
     KRATOS_REGISTER_VARIABLE(BOND_RADIUS_FACTOR)
+    KRATOS_REGISTER_VARIABLE(JOINT_NORMAL_STIFFNESS)
+    KRATOS_REGISTER_VARIABLE(JOINT_TANGENTIAL_STIFFNESS)
+    KRATOS_REGISTER_VARIABLE(JOINT_NORMAL_DIRECTION_X)
+    KRATOS_REGISTER_VARIABLE(JOINT_NORMAL_DIRECTION_Y)
+    KRATOS_REGISTER_VARIABLE(JOINT_NORMAL_DIRECTION_Z)
+    KRATOS_REGISTER_VARIABLE(JOINT_FRICTION_COEFF)
 
     // *************** Continuum only END *************
 
@@ -743,6 +759,7 @@ void KratosDEMApplication::Register() {
     KRATOS_REGISTER_VARIABLE(LOCAL_CONTACT_AREA_HIGH)
     KRATOS_REGISTER_VARIABLE(LOCAL_CONTACT_AREA_LOW)
     KRATOS_REGISTER_VARIABLE(MEAN_CONTACT_AREA)
+    KRATOS_REGISTER_VARIABLE(CONTACT_RADIUS)
     KRATOS_REGISTER_VARIABLE(REPRESENTATIVE_VOLUME)
     KRATOS_REGISTER_VARIABLE(NEIGHBOUR_IDS)
     KRATOS_REGISTER_VARIABLE(NEIGHBOURS_CONTACT_AREAS)
@@ -815,6 +832,7 @@ void KratosDEMApplication::Register() {
     KRATOS_REGISTER_VARIABLE(PARTICLE_INELASTIC_ROLLING_RESISTANCE_ENERGY)
     KRATOS_REGISTER_VARIABLE(COMPUTE_ENERGY_OPTION)
     KRATOS_REGISTER_VARIABLE(GLOBAL_DAMPING)
+    KRATOS_REGISTER_VARIABLE(GLOBAL_VISCOUS_DAMPING)
     KRATOS_REGISTER_VARIABLE(NORMAL_IMPACT_VELOCITY)
     KRATOS_REGISTER_VARIABLE(TANGENTIAL_IMPACT_VELOCITY)
     KRATOS_REGISTER_VARIABLE(FACE_NORMAL_IMPACT_VELOCITY)
@@ -992,6 +1010,7 @@ void KratosDEMApplication::Register() {
         DEM_D_Hertz_viscous_Coulomb_Nestle());
     Serializer::Register("DEM_D_Quadratic", DEM_D_Quadratic());
     Serializer::Register("DEM_D_Linear_classic", DEM_D_Linear_classic());
+    Serializer::Register("DEM_D_void", DEM_D_void());
 
     Serializer::Register("DEM_Dempack", DEM_Dempack());
     Serializer::Register("DEM_Dempack2D", DEM_Dempack2D());
@@ -1005,6 +1024,7 @@ void KratosDEMApplication::Register() {
     Serializer::Register("DEM_KDEM2D", DEM_KDEM2D());
     Serializer::Register("DEM_ExponentialHC", DEM_ExponentialHC());
     Serializer::Register("DEM_parallel_bond", DEM_parallel_bond());
+    Serializer::Register("DEM_smooth_joint", DEM_smooth_joint());
     Serializer::Register("DEM_parallel_bond_for_membrane", DEM_parallel_bond_for_membrane());
     Serializer::Register("DEMRollingFrictionModelConstantTorque", DEMRollingFrictionModelConstantTorque());
     Serializer::Register("DEMRollingFrictionModelViscousTorque", DEMRollingFrictionModelViscousTorque());

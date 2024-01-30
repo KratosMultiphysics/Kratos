@@ -69,7 +69,7 @@ KRATOS_TEST_CASE_IN_SUITE(Hexahedra3D27EdgesNumber, KratosCoreGeometriesFastSuit
 {
     auto geom = GenerateCanonicalHexahedra3D27();
 
-    KRATOS_CHECK_EQUAL(geom->EdgesNumber(), 12);
+    KRATOS_EXPECT_EQ(geom->EdgesNumber(), 12);
 }
 
 /** Checks if the number of faces is correct.
@@ -79,7 +79,7 @@ KRATOS_TEST_CASE_IN_SUITE(Hexahedra3D27FacesNumber, KratosCoreGeometriesFastSuit
 {
     auto geom = GenerateCanonicalHexahedra3D27();
 
-    KRATOS_CHECK_EQUAL(geom->FacesNumber(), 6);
+    KRATOS_EXPECT_EQ(geom->FacesNumber(), 6);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(Hexahedra3D27Jacobian, KratosCoreGeometriesFastSuite)
@@ -88,16 +88,16 @@ KRATOS_TEST_CASE_IN_SUITE(Hexahedra3D27Jacobian, KratosCoreGeometriesFastSuite)
     Matrix J = ZeroMatrix(3,3), expected_J = 0.5*IdentityMatrix(3, 3);
     geom->Jacobian(J, array_1d<double, 3>(3, 0.0));
 
-    KRATOS_CHECK_MATRIX_NEAR(J, expected_J, TOLERANCE);
+    KRATOS_EXPECT_MATRIX_NEAR(J, expected_J, TOLERANCE);
 
-    KRATOS_CHECK_NEAR(geom->DeterminantOfJacobian(array_1d<double,3>(3, 0.0)), 0.125, TOLERANCE);
+    KRATOS_EXPECT_NEAR(geom->DeterminantOfJacobian(array_1d<double,3>(3, 0.0)), 0.125, TOLERANCE);
 
     Hexa27GeometryType::JacobiansType integration_point_jacobians;
     geom->Jacobian(integration_point_jacobians);
 
-    KRATOS_CHECK_EQUAL(integration_point_jacobians.size(), 27);
+    KRATOS_EXPECT_EQ(integration_point_jacobians.size(), 27);
     for (const auto& jacobian: integration_point_jacobians) {
-        KRATOS_CHECK_NEAR(MathUtils<double>::Det3(jacobian), 0.125, 1.0);
+        KRATOS_EXPECT_NEAR(MathUtils<double>::Det3(jacobian), 0.125, 1.0);
     }
 }
 
@@ -108,7 +108,7 @@ KRATOS_TEST_CASE_IN_SUITE(Hexahedra3D27Length, KratosCoreGeometriesFastSuite)
 {
     auto geom = GenerateCanonicalHexahedra3D27();
 
-    KRATOS_CHECK_NEAR(geom->Length(), 0.353553, TOLERANCE);
+    KRATOS_EXPECT_NEAR(geom->Length(), 0.353553, TOLERANCE);
 }
 
 /** Checks if the area of the hexahedra is calculated correctly.
@@ -118,7 +118,7 @@ KRATOS_TEST_CASE_IN_SUITE(Hexahedra3D27Area, KratosCoreGeometriesFastSuite)
 {
     auto geom = GenerateCanonicalHexahedra3D27();
 
-    KRATOS_CHECK_NEAR(geom->Area(), 1.0, TOLERANCE);
+    KRATOS_EXPECT_NEAR(geom->Area(), 1.0, TOLERANCE);
 }
 
 /** Checks if the volume of the hexahedra is calculated correctly.
@@ -129,7 +129,7 @@ KRATOS_TEST_CASE_IN_SUITE(Hexahedra3D27Volume, KratosCoreGeometriesFastSuite)
 {
     auto geom = GenerateCanonicalHexahedra3D27();
 
-    KRATOS_CHECK_NEAR(geom->Volume(), 1.0, TOLERANCE);
+    KRATOS_EXPECT_NEAR(geom->Volume(), 1.0, TOLERANCE);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(Hexahedra3D27ShapeFunctionsLocalGradients, KratosCoreGeometriesFastSuite)
@@ -146,23 +146,23 @@ KRATOS_TEST_CASE_IN_SUITE(Hexahedra3D27BoxIntersection, KratosCoreGeometriesFast
     auto hexahedron = GenerateCanonicalHexahedra3D27();
 
     //hexahedron inside the box
-    KRATOS_CHECK(hexahedron->HasIntersection(Point(-0.1,-0.1,-0.1), Point(1.1,1.1,1.1)));
+    KRATOS_EXPECT_TRUE(hexahedron->HasIntersection(Point(-0.1,-0.1,-0.1), Point(1.1,1.1,1.1)));
 
     //hexahedron contains the box
-    KRATOS_CHECK(hexahedron->HasIntersection(Point(.25,.25,.25), Point(.75,.75,.75)));
+    KRATOS_EXPECT_TRUE(hexahedron->HasIntersection(Point(.25,.25,.25), Point(.75,.75,.75)));
 
     //hexahedron intersects the box
-    KRATOS_CHECK(hexahedron->HasIntersection(Point(.25,.25,.25), Point(1.5,1.5,1.5)));
+    KRATOS_EXPECT_TRUE(hexahedron->HasIntersection(Point(.25,.25,.25), Point(1.5,1.5,1.5)));
 
     //hexahedron not intersects the box
-    KRATOS_CHECK_IS_FALSE(hexahedron->HasIntersection(Point(1.1,1.1,1.1), Point(2.1,2.1,2.1)));
+    KRATOS_EXPECT_FALSE(hexahedron->HasIntersection(Point(1.1,1.1,1.1), Point(2.1,2.1,2.1)));
 }
 
 KRATOS_TEST_CASE_IN_SUITE(Hexahedra3D27AverageEdgeLength, KratosCoreGeometriesFastSuite)
 {
     auto hexahedron = GenerateCanonicalHexahedra3D27();
 
-    KRATOS_CHECK_NEAR(hexahedron->AverageEdgeLength(), 1.0, TOLERANCE);
+    KRATOS_EXPECT_NEAR(hexahedron->AverageEdgeLength(), 1.0, TOLERANCE);
 }
 
 }  // namespace Kratos::Testing.

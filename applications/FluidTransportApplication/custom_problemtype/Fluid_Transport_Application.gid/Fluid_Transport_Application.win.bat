@@ -11,4 +11,4 @@ rem Setting paths. WARNING: one should check them before running this file
 set PATH=C:\\KratosInstall;C:\\KratosInstall\\libs;%PATH%
 
 rem Execute the program
-C:\\KratosInstall\\runkratos MainKratos.py > %1.info 2> %1.err
+echo "This script was using runkratos. Please contact the developer so he can update it to the new mechanism"

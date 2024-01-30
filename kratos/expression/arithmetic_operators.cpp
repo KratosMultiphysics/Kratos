@@ -52,25 +52,6 @@ KRATOS_DEFINE_BINARY_EXPRESSION_OPERATOR(operator*, BinaryOperations::Multiplica
 
 KRATOS_DEFINE_BINARY_EXPRESSION_OPERATOR(operator/, BinaryOperations::Division)
 
-KRATOS_DEFINE_BINARY_EXPRESSION_OPERATOR(Power, BinaryOperations::Power)
-
 #undef KRATOS_DEFINE_BINARY_EXPRESSION_OPERATOR
-
-Expression::Pointer Scale(const Expression::ConstPointer& rpLeft, const Expression::ConstPointer& rpRight)
-{
-    KRATOS_ERROR_IF_NOT(rpLeft->NumberOfEntities() == rpRight->NumberOfEntities())
-        << "Operand size mismatch in binary operator: Scale!\n"
-        << "Left operand: " << *rpLeft << '\n'
-        << "Right operand: " << *rpRight;
-    KRATOS_ERROR_IF_NOT(rpLeft->GetItemComponentCount() == rpRight->GetItemComponentCount() || rpRight->GetItemComponentCount() == 1)
-        << "Incompatible operand item component sizes in binary operator: Scale!\n"
-        << "Left operand: " << *rpLeft << '\n'
-        << "Right operand: " << *rpRight;
-    return BinaryExpression<BinaryOperations::Multiplication>::Create(
-        rpLeft,
-        rpRight
-    );
-}
-
 
 } // namespace Kratos

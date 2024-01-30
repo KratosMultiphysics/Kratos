@@ -145,6 +145,25 @@ struct terminal_preamble< tensordot_expr<LHS, LDIM, RHS, RDIM, CDIM> > {
 
 template <class LHS, size_t LDIM, class RHS, size_t RDIM, size_t CDIM>
 struct local_terminal_init< tensordot_expr<LHS, LDIM, RHS, RDIM, CDIM> > {
+    template <typename T>
+    static typename std::enable_if<is_cl_vector<T>::value, std::string>::type
+    init(int v) {
+        std::ostringstream buf;
+        buf << "{";
+        for (size_t i = 0; i < cl_vector_length<T>::value; ++i) {
+            if (i) buf << ", ";
+            buf << v;
+        }
+        buf << "}";
+        return buf.str();
+    }
+
+    template <typename T>
+    static typename std::enable_if<!is_cl_vector<T>::value, std::string>::type
+    init(int v) {
+        return std::to_string(v);
+    }
+
     static void get(backend::source_generator &src,
             const tensordot_expr<LHS, LDIM, RHS, RDIM, CDIM> &term,
             const backend::command_queue &queue, const std::string &prm_name,
@@ -152,7 +171,8 @@ struct local_terminal_init< tensordot_expr<LHS, LDIM, RHS, RDIM, CDIM> > {
     {
         typedef typename tensordot_expr<LHS, LDIM, RHS, RDIM, CDIM>::value_type T;
 
-        src.new_line() << type_name<T>() << " " << prm_name << "_sum = 0;";
+        src.new_line() << type_name<T>() << " " << prm_name << "_sum = "
+            << init<T>(0) << ";";
         src.open("{");
 
         src.new_line() << type_name<size_t>() << " lptr0 = " << prm_name << "_lhs_start;";
@@ -186,7 +206,7 @@ struct local_terminal_init< tensordot_expr<LHS, LDIM, RHS, RDIM, CDIM> > {
             src.open("{");
         }
 
-        src.new_line() << type_name<T>() << " prod = 1;";
+        src.new_line() << type_name<T>() << " prod = " << init<T>(1) << ";";
 
         {
             src.open("{");

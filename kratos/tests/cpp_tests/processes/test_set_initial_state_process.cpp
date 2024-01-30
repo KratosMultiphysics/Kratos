@@ -17,8 +17,8 @@
 // Project includes
 #include "containers/model.h"
 #include "testing/testing.h"
-#include"tests/cpp_tests/auxiliar_files_for_cpp_unnitest/test_constitutive_law.h"
-#include"tests/cpp_tests/auxiliar_files_for_cpp_unnitest/test_element.h"
+#include"tests/test_utilities/test_constitutive_law.h"
+#include"tests/test_utilities/test_element.h"
 #include "geometries/quadrilateral_2d_4.h"
 #include "geometries/tetrahedra_3d_4.h"
 
@@ -100,12 +100,12 @@ namespace Kratos
                     const auto& r_imposed_S = p_initial_state->GetInitialStressVector();
 
                     for (IndexType component = 0; component < 3; component++) {
-                        KRATOS_CHECK_LESS_EQUAL(r_imposed_E(component) - initial_E(component), tolerance);
-                        KRATOS_CHECK_LESS_EQUAL(r_imposed_S(component) - initial_S(component), tolerance);
+                        KRATOS_EXPECT_LE(r_imposed_E(component) - initial_E(component), tolerance);
+                        KRATOS_EXPECT_LE(r_imposed_S(component) - initial_S(component), tolerance);
                     }
-                    KRATOS_CHECK_LESS_EQUAL(r_imposed_F(0,0) - initial_F(0,0), tolerance);
-                    KRATOS_CHECK_LESS_EQUAL(r_imposed_F(0,1) - initial_F(0,1), tolerance);
-                    KRATOS_CHECK_LESS_EQUAL(r_imposed_F(1,1) - initial_F(1,1), tolerance);
+                    KRATOS_EXPECT_LE(r_imposed_F(0,0) - initial_F(0,0), tolerance);
+                    KRATOS_EXPECT_LE(r_imposed_F(0,1) - initial_F(0,1), tolerance);
+                    KRATOS_EXPECT_LE(r_imposed_F(1,1) - initial_F(1,1), tolerance);
                 }
             }
         }
@@ -190,17 +190,17 @@ namespace Kratos
                     const auto& r_imposed_S = p_initial_state->GetInitialStressVector();
 
                     for (IndexType component = 0; component < 6; component++) {
-                        KRATOS_CHECK_LESS_EQUAL(r_imposed_E(component) - initial_E(component), tolerance);
-                        KRATOS_CHECK_LESS_EQUAL(r_imposed_S(component) - initial_S(component), tolerance);
+                        KRATOS_EXPECT_LE(r_imposed_E(component) - initial_E(component), tolerance);
+                        KRATOS_EXPECT_LE(r_imposed_S(component) - initial_S(component), tolerance);
                     }
-                    KRATOS_CHECK_LESS_EQUAL(r_imposed_F(0,0) - initial_F(0,0), tolerance);
-                    KRATOS_CHECK_LESS_EQUAL(r_imposed_F(0,1) - initial_F(0,1), tolerance);
-                    KRATOS_CHECK_LESS_EQUAL(r_imposed_F(1,1) - initial_F(1,1), tolerance);
-                    KRATOS_CHECK_LESS_EQUAL(r_imposed_F(0,1) - initial_F(0,1), tolerance);
-                    KRATOS_CHECK_LESS_EQUAL(r_imposed_F(1,0) - initial_F(1,0), tolerance);
-                    KRATOS_CHECK_LESS_EQUAL(r_imposed_F(1,2) - initial_F(1,2), tolerance);
-                    KRATOS_CHECK_LESS_EQUAL(r_imposed_F(2,1) - initial_F(2,1), tolerance);
-                    KRATOS_CHECK_LESS_EQUAL(r_imposed_F(2,2) - initial_F(2,2), tolerance);
+                    KRATOS_EXPECT_LE(r_imposed_F(0,0) - initial_F(0,0), tolerance);
+                    KRATOS_EXPECT_LE(r_imposed_F(0,1) - initial_F(0,1), tolerance);
+                    KRATOS_EXPECT_LE(r_imposed_F(1,1) - initial_F(1,1), tolerance);
+                    KRATOS_EXPECT_LE(r_imposed_F(0,1) - initial_F(0,1), tolerance);
+                    KRATOS_EXPECT_LE(r_imposed_F(1,0) - initial_F(1,0), tolerance);
+                    KRATOS_EXPECT_LE(r_imposed_F(1,2) - initial_F(1,2), tolerance);
+                    KRATOS_EXPECT_LE(r_imposed_F(2,1) - initial_F(2,1), tolerance);
+                    KRATOS_EXPECT_LE(r_imposed_F(2,2) - initial_F(2,2), tolerance);
                 }
             }
         }

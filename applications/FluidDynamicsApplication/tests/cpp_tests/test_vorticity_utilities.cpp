@@ -98,9 +98,9 @@ KRATOS_TEST_CASE_IN_SUITE(VorticityUtilities2DQValue, FluidDynamicsApplicationFa
     std::vector<double> QValues;
     ModelPart.ElementsBegin()->CalculateOnIntegrationPoints(Q_VALUE,QValues,ModelPart.GetProcessInfo());
 
-    KRATOS_CHECK_EQUAL(QValues.size(),3);
+    KRATOS_EXPECT_EQ(QValues.size(),3);
     for (unsigned int i = 0; i < QValues.size(); i++) {
-        KRATOS_CHECK_NEAR(QValues[i],1.0,1e-6);
+        KRATOS_EXPECT_NEAR(QValues[i],1.0,1e-6);
     }
 }
 
@@ -112,9 +112,9 @@ KRATOS_TEST_CASE_IN_SUITE(VorticityUtilities2DVorticityMagnitude, FluidDynamicsA
     std::vector<double> VorticityMagnitudes;
     ModelPart.ElementsBegin()->CalculateOnIntegrationPoints(VORTICITY_MAGNITUDE,VorticityMagnitudes,ModelPart.GetProcessInfo());
 
-    KRATOS_CHECK_EQUAL(VorticityMagnitudes.size(),3);
+    KRATOS_EXPECT_EQ(VorticityMagnitudes.size(),3);
     for (unsigned int i = 0; i < VorticityMagnitudes.size(); i++) {
-        KRATOS_CHECK_NEAR(VorticityMagnitudes[i],2.0,1e-6);
+        KRATOS_EXPECT_NEAR(VorticityMagnitudes[i],2.0,1e-6);
     }
 }
 
@@ -126,11 +126,11 @@ KRATOS_TEST_CASE_IN_SUITE(VorticityUtilities2DVorticity, FluidDynamicsApplicatio
     std::vector< array_1d<double,3> > Vorticities;
     ModelPart.ElementsBegin()->CalculateOnIntegrationPoints(VORTICITY,Vorticities,ModelPart.GetProcessInfo());
 
-    KRATOS_CHECK_EQUAL(Vorticities.size(),3);
+    KRATOS_EXPECT_EQ(Vorticities.size(),3);
     for (unsigned int i = 0; i < Vorticities.size(); i++) {
-        KRATOS_CHECK_NEAR(Vorticities[i][0], 0.0,1e-6);
-        KRATOS_CHECK_NEAR(Vorticities[i][1], 0.0,1e-6);
-        KRATOS_CHECK_NEAR(Vorticities[i][2],-2.0,1e-6);
+        KRATOS_EXPECT_NEAR(Vorticities[i][0], 0.0,1e-6);
+        KRATOS_EXPECT_NEAR(Vorticities[i][1], 0.0,1e-6);
+        KRATOS_EXPECT_NEAR(Vorticities[i][2],-2.0,1e-6);
     }
 }
 
@@ -143,9 +143,9 @@ KRATOS_TEST_CASE_IN_SUITE(VorticityUtilities3DQValue, FluidDynamicsApplicationFa
     std::vector<double> QValues;
     ModelPart.ElementsBegin()->CalculateOnIntegrationPoints(Q_VALUE,QValues,ModelPart.GetProcessInfo());
 
-    KRATOS_CHECK_EQUAL(QValues.size(),4);
+    KRATOS_EXPECT_EQ(QValues.size(),4);
     for (unsigned int i = 0; i < QValues.size(); i++) {
-        KRATOS_CHECK_NEAR(QValues[i],1.0,1e-6);
+        KRATOS_EXPECT_NEAR(QValues[i],1.0,1e-6);
     }
 }
 
@@ -157,9 +157,9 @@ KRATOS_TEST_CASE_IN_SUITE(VorticityUtilities3DVorticityMagnitude, FluidDynamicsA
     std::vector<double> VorticityMagnitudes;
     ModelPart.ElementsBegin()->CalculateOnIntegrationPoints(VORTICITY_MAGNITUDE,VorticityMagnitudes,ModelPart.GetProcessInfo());
 
-    KRATOS_CHECK_EQUAL(VorticityMagnitudes.size(),4);
+    KRATOS_EXPECT_EQ(VorticityMagnitudes.size(),4);
     for (unsigned int i = 0; i < VorticityMagnitudes.size(); i++) {
-        KRATOS_CHECK_NEAR(VorticityMagnitudes[i],2.0,1e-6);
+        KRATOS_EXPECT_NEAR(VorticityMagnitudes[i],2.0,1e-6);
     }
 }
 
@@ -171,11 +171,11 @@ KRATOS_TEST_CASE_IN_SUITE(VorticityUtilities3DVorticity, FluidDynamicsApplicatio
     std::vector< array_1d<double,3> > Vorticities;
     ModelPart.ElementsBegin()->CalculateOnIntegrationPoints(VORTICITY,Vorticities,ModelPart.GetProcessInfo());
 
-    KRATOS_CHECK_EQUAL(Vorticities.size(),4);
+    KRATOS_EXPECT_EQ(Vorticities.size(),4);
     for (unsigned int i = 0; i < Vorticities.size(); i++) {
-        KRATOS_CHECK_NEAR(Vorticities[i][0], 0.0,1e-6);
-        KRATOS_CHECK_NEAR(Vorticities[i][1], 2.0,1e-6);
-        KRATOS_CHECK_NEAR(Vorticities[i][2], 0.0,1e-6);
+        KRATOS_EXPECT_NEAR(Vorticities[i][0], 0.0,1e-6);
+        KRATOS_EXPECT_NEAR(Vorticities[i][1], 2.0,1e-6);
+        KRATOS_EXPECT_NEAR(Vorticities[i][2], 0.0,1e-6);
     }
 }
 

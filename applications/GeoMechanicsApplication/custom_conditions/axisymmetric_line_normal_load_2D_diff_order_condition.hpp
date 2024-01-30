@@ -54,9 +54,6 @@ public:
                                                     GeometryType::Pointer pGeometry,
                                                     PropertiesType::Pointer pProperties );
 
-    // Destructor
-    ~AxisymmetricLineNormalLoad2DDiffOrderCondition() override;
-
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     Condition::Pointer

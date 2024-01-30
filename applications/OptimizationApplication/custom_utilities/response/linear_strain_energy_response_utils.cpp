@@ -158,9 +158,7 @@ void LinearStrainEnergyResponseUtils::CalculateStrainEnergyEntitySemiAnalyticSha
     Vector& rPerturbedRHS,
     typename TEntityType::Pointer& pThreadLocalEntity,
     ModelPart& rModelPart,
-    std::vector<std::string>& rModelPartNames,
     const double Delta,
-    const IndexType MaxNodeId,
     const Variable<array_1d<double, 3>>& rOutputGradientVariable)
 {
     KRATOS_TRY
@@ -178,25 +176,14 @@ void LinearStrainEnergyResponseUtils::CalculateStrainEnergyEntitySemiAnalyticSha
         // initialize dummy element for parallelized perturbation based sensitivity calculation
         // in each thread seperately
         if (!pThreadLocalEntity) {
-
-            std::stringstream name;
-            const int thread_id = OpenMPUtils::ThisThread();
-            name << rModelPart.Name() << "_temp_" << thread_id;
-            if constexpr(std::is_same_v<TEntityType, ModelPart::ConditionType>) {
-                name << "_condition";
-            } else if constexpr(std::is_same_v<TEntityType, ModelPart::ElementType>) {
-                name << "_element";
-            }
             GeometryType::PointsArrayType nodes;
-            {
-                KRATOS_CRITICAL_SECTION
 
-                rModelPartNames.push_back(name.str());
-                auto& tls_model_part = rModelPart.CreateSubModelPart(name.str());
-
-                for (IndexType i = 0; i < r_geometry.size(); ++i) {
-                    nodes.push_back(tls_model_part.CreateNewNode((thread_id + 1) * MaxNodeId + i + 1, r_geometry[i]));
-                }
+            for (IndexType i = 0; i < r_geometry.size(); ++i) {
+                const auto& r_coordinates = r_geometry[i].Coordinates();
+                auto p_new_node = Kratos::make_intrusive<Node>(i+1, r_coordinates[0], r_coordinates[1], r_coordinates[2]);
+                p_new_node->SetSolutionStepVariablesList(rModelPart.pGetNodalSolutionStepVariablesList());
+                p_new_node->SetBufferSize(rModelPart.GetBufferSize());
+                nodes.push_back(p_new_node);
             }
 
             pThreadLocalEntity = rEntity.Create(1, nodes, rEntity.pGetProperties());
@@ -265,11 +252,6 @@ void LinearStrainEnergyResponseUtils::CalculateStrainEnergySemiAnalyticShapeGrad
 
     using tls_condition_type = std::tuple<Vector, Vector, Vector, Condition::Pointer>;
 
-    const int max_id = block_for_each<MaxReduction<int>>(rModelPart.GetRootModelPart().Nodes(), [](const auto& rNode) {
-        return rNode.Id();
-    });
-
-    std::vector<std::string> model_part_names;
     VariableUtils().SetNonHistoricalVariableToZero(rOutputGradientVariable, rModelPart.Nodes());
 
     block_for_each(rModelPart.Elements(), tls_element_type(), [&](auto& rElement, tls_element_type& rTLS) {
@@ -280,9 +262,7 @@ void LinearStrainEnergyResponseUtils::CalculateStrainEnergySemiAnalyticShapeGrad
             std::get<2>(rTLS),
             std::get<3>(rTLS),
             rModelPart,
-            model_part_names,
             Delta,
-            max_id,
             rOutputGradientVariable);
     });
 
@@ -294,28 +274,9 @@ void LinearStrainEnergyResponseUtils::CalculateStrainEnergySemiAnalyticShapeGrad
             std::get<2>(rTLS),
             std::get<3>(rTLS),
             rModelPart,
-            model_part_names,
             Delta,
-            max_id + ParallelUtilities::GetNumThreads() * 1000, // no element or condition is not suppose to have 1000 nodes per element or condition. This is done to avoid re-calculating the max id for conditions
             rOutputGradientVariable);
     });
-
-    // now clear the temp model part
-    VariableUtils().SetFlag(TO_ERASE, false, rModelPart.Nodes());
-    for (const auto& r_model_part_name : model_part_names) {
-        auto& tls_model_part = rModelPart.GetSubModelPart(r_model_part_name);
-        for (auto& r_node : tls_model_part.Nodes()) {
-            r_node.Set(TO_ERASE, true);
-        }
-    }
-
-    // remove temporary nodes
-    rModelPart.RemoveNodesFromAllLevels(TO_ERASE);
-
-    // remove temporary model parts
-    for (const auto& r_model_part_name : model_part_names) {
-        rModelPart.RemoveSubModelPart(r_model_part_name);
-    }
 
     // Assemble nodal result
     rModelPart.GetCommunicator().AssembleNonHistoricalData(rOutputGradientVariable);

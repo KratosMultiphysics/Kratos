@@ -154,7 +154,7 @@ namespace Kratos
 
                 for (std::size_t i = 0; i <integration_points_number; i++) {
                     double aux;
-                    KRATOS_CHECK_LESS_EQUAL(std::abs(constitutive_law_vector[i]->GetValue(plastic_strain_variable, aux) - 1.0), tolerance);
+                    KRATOS_EXPECT_LE(std::abs(constitutive_law_vector[i]->GetValue(plastic_strain_variable, aux) - 1.0), tolerance);
                 }
             }
         }
@@ -254,7 +254,7 @@ namespace Kratos
 
                 for (std::size_t i = 0; i <integration_points_number; i++) {
                     double aux;
-                    KRATOS_CHECK_LESS_EQUAL(std::abs(constitutive_law_vector[i]->GetValue(plastic_strain_variable, aux) - 1.0), tolerance);
+                    KRATOS_EXPECT_LE(std::abs(constitutive_law_vector[i]->GetValue(plastic_strain_variable, aux) - 1.0), tolerance);
                 }
             }
         }
@@ -351,7 +351,7 @@ namespace Kratos
 
                 for (std::size_t i = 0; i <integration_points_number; i++) {
                     double aux;
-                    KRATOS_CHECK_LESS_EQUAL(std::abs(constitutive_law_vector[i]->GetValue(plastic_strain_variable, aux) - 1.0), tolerance);
+                    KRATOS_EXPECT_LE(std::abs(constitutive_law_vector[i]->GetValue(plastic_strain_variable, aux) - 1.0), tolerance);
                 }
             }
         }
@@ -452,7 +452,7 @@ namespace Kratos
 
                 for (std::size_t i = 0; i <integration_points_number; i++) {
                     double aux;
-                    KRATOS_CHECK_LESS_EQUAL(std::abs(constitutive_law_vector[i]->GetValue(plastic_strain_variable, aux) - 1.0), tolerance);
+                    KRATOS_EXPECT_LE(std::abs(constitutive_law_vector[i]->GetValue(plastic_strain_variable, aux) - 1.0), tolerance);
                 }
             }
         }
@@ -530,7 +530,7 @@ namespace Kratos
                 elem.CalculateOnIntegrationPoints(this_var,detF0_vector,current_process_info);
 
                 for (std::size_t i = 0; i <integration_points_number; i++)
-                    KRATOS_CHECK_LESS_EQUAL(std::abs(detF0_vector[i] - 1.0), tolerance);
+                    KRATOS_EXPECT_LE(std::abs(detF0_vector[i] - 1.0), tolerance);
             }
         }
         /**
@@ -610,7 +610,7 @@ namespace Kratos
                 elem.CalculateOnIntegrationPoints(this_var,detF0_vector,current_process_info);
 
                 for (std::size_t i = 0; i <integration_points_number; i++)
-                    KRATOS_CHECK_LESS_EQUAL(std::abs(detF0_vector[i] - 1.0), tolerance);
+                    KRATOS_EXPECT_LE(std::abs(detF0_vector[i] - 1.0), tolerance);
             }
         }
 
@@ -687,7 +687,7 @@ namespace Kratos
                 elem.CalculateOnIntegrationPoints(this_var,detF0_vector,current_process_info);
 
                 for (std::size_t i = 0; i <integration_points_number; i++)
-                    KRATOS_CHECK_LESS_EQUAL(std::abs(detF0_vector[i] - 1.0), tolerance);
+                    KRATOS_EXPECT_LE(std::abs(detF0_vector[i] - 1.0), tolerance);
             }
         }
 
@@ -768,7 +768,7 @@ namespace Kratos
                 elem.CalculateOnIntegrationPoints(this_var,detF0_vector,current_process_info);
 
                 for (std::size_t i = 0; i <integration_points_number; i++)
-                    KRATOS_CHECK_LESS_EQUAL(std::abs(detF0_vector[i] - 1.0), tolerance);
+                    KRATOS_EXPECT_LE(std::abs(detF0_vector[i] - 1.0), tolerance);
             }
         }
     } // namespace Testing
