@@ -96,8 +96,8 @@
                         "node_output":         false,
                         "skin_output":         false,
                         "plane_output":        [],
-                        "nodal_results":       ["DISPLACEMENT","TOTAL_DISPLACEMENT","ROTATION"],
-                        "gauss_point_results": ["GREEN_LAGRANGE_STRAIN_TENSOR","ENGINEERING_STRAIN_TENSOR","CAUCHY_STRESS_TENSOR"]
+                        "nodal_results":       ["DISPLACEMENT"],
+                        "gauss_point_results": []
                     },
                     "point_data_configuration":  []
                 }
