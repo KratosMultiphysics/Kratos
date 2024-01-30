@@ -164,7 +164,7 @@ class RomNeuralNetworkTrainer(object):
             model_name=nn_training_parameters['custom_name'].GetString()
 
         model_path=pathlib.Path(self.nn_parameters['saved_models_root_path'].GetString()+model_name)
-        model_path.mkdir(exist_ok=False)
+        model_path.mkdir(parents=True, exist_ok=False)
 
         database_settings = nn_training_parameters['database']
         Q_inf_train, Q_inf_val, Q_sup_train, Q_sup_val, phisig_norm_matrix, rescaling_factor = self._GetTrainingData(n_inf, n_sup, database_settings)
