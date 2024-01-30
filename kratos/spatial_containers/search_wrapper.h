@@ -20,6 +20,7 @@
 // Project includes
 #include "includes/geometrical_object.h"
 #include "includes/kratos_parameters.h"
+#include "utilities/timer.h"
 #include "utilities/search_utilities.h"
 #include "utilities/parallel_utilities.h"
 #include "spatial_containers/geometrical_objects_bins.h"
@@ -392,12 +393,15 @@ private:
         const std::size_t number_of_points = itPointEnd - itPointBegin;
 
         // Initialize results
+        Timer::Start("SearchWrapper::InitializeResults");
         {
             const std::vector<const DataCommunicator*> data_communicators(number_of_points, &mrDataCommunicator);
             rResults.InitializeResults(data_communicators);
         }
+        Timer::Stop("SearchWrapper::InitializeResults");
 
         // Adding the results to the container
+        Timer::Start("SearchWrapper::Search");
         IndexPartition<IndexType>(number_of_points).for_each([this, &itPointBegin, &rResults, &Radius, &allocation_size](std::size_t index) {
             auto it_point = itPointBegin + index;
             auto& r_point_result = rResults[index];
@@ -418,9 +422,12 @@ private:
                 r_point_result.AddResult(r_result);
             }
         });
+        Timer::Stop("SearchWrapper::Search");
 
         // Synchronize
+        Timer::Start("SearchWrapper::SynchronizeAll");
         rResults.SynchronizeAll(mrDataCommunicator);
+        Timer::Stop("SearchWrapper::SynchronizeAll");
     }
 
     /**
@@ -456,12 +463,15 @@ private:
         const std::size_t number_of_points = itPointEnd - itPointBegin;
 
         // Initialize results
+        Timer::Start("SearchWrapper::InitializeResults");
         {
             const std::vector<const DataCommunicator*> data_communicators(number_of_points, &mrDataCommunicator);
             rResults.InitializeResults(data_communicators);
         }
+        Timer::Stop("SearchWrapper::InitializeResults");
 
         // Adding the results to the container
+        Timer::Start("SearchWrapper::Search");
         IndexPartition<IndexType>(number_of_points).for_each([this, &itPointBegin, &rResults, &Radius, &allocation_size](std::size_t index) {
             auto it_point = itPointBegin + index;
             auto& r_point_result = rResults[index];
@@ -480,9 +490,12 @@ private:
             LocalSearchNearestInRadius(*it_point, Radius, result, 0, allocation_size);
             r_point_result.AddResult(result);
         });
+        Timer::Stop("SearchWrapper::Search");
 
         // Synchronize
+        Timer::Start("SearchWrapper::SynchronizeAll");
         rResults.SynchronizeAll(mrDataCommunicator);
+        Timer::Stop("SearchWrapper::SynchronizeAll");
     }
 
     /**
@@ -512,12 +525,15 @@ private:
         const std::size_t number_of_points = itPointEnd - itPointBegin;
 
         // Initialize results
+        Timer::Start("SearchWrapper::InitializeResults");
         {
             const std::vector<const DataCommunicator*> data_communicators(number_of_points, &mrDataCommunicator);
             rResults.InitializeResults(data_communicators);
         }
+        Timer::Stop("SearchWrapper::InitializeResults");
 
         // Adding the results to the container
+        Timer::Start("SearchWrapper::Search");
         IndexPartition<IndexType>(number_of_points).for_each([this, &itPointBegin, &rResults](std::size_t index) {
             auto it_point = itPointBegin + index;
             auto& r_point_result = rResults[index];
@@ -536,9 +552,12 @@ private:
             LocalSearchNearest(*it_point, result, 0);
             r_point_result.AddResult(result);
         });
+        Timer::Stop("SearchWrapper::Search");
 
         // Synchronize
+        Timer::Start("SearchWrapper::SynchronizeAll");
         rResults.SynchronizeAll(mrDataCommunicator);
+        Timer::Stop("SearchWrapper::SynchronizeAll");
     }
 
     /**
@@ -570,12 +589,15 @@ private:
         const std::size_t number_of_points = itPointEnd - itPointBegin;
 
         // Initialize results
+        Timer::Start("SearchWrapper::InitializeResults");
         {
             const std::vector<const DataCommunicator*> data_communicators(number_of_points, &mrDataCommunicator);
             rResults.InitializeResults(data_communicators);
         }
+        Timer::Stop("SearchWrapper::InitializeResults");
 
         // Adding the results to the container
+        Timer::Start("SearchWrapper::Search");
         IndexPartition<IndexType>(number_of_points).for_each([this, &itPointBegin, &rResults](std::size_t index) {
             auto it_point = itPointBegin + index;
             auto& r_point_result = rResults[index];
@@ -594,9 +616,12 @@ private:
             LocalSearchIsInside(*it_point, result, 0);
             r_point_result.AddResult(result);
         });
+        Timer::Stop("SearchWrapper::Search");
 
         // Synchronize
+        Timer::Start("SearchWrapper::SynchronizeAll");
         rResults.SynchronizeAll(mrDataCommunicator);
+        Timer::Stop("SearchWrapper::SynchronizeAll");
     }
 
 #ifdef KRATOS_USING_MPI
@@ -634,13 +659,18 @@ private:
         const auto& r_local_bb = mpSearchObject ? mpSearchObject->GetBoundingBox() : BoundingBox<PointType>();
 
         // Prepare MPI search
+        Timer::Start("SearchWrapper::SynchronousPointSynchronizationWithBoundingBox");
         DistributedSearchInformation search_info;
         SearchUtilities::SynchronousPointSynchronizationWithBoundingBox(itPointBegin, itPointEnd, search_info, r_local_bb, Radius, mrDataCommunicator, true);
+        Timer::Stop("SearchWrapper::SynchronousPointSynchronizationWithBoundingBox");
 
         // Initialize results
+        Timer::Start("SearchWrapper::PrepareResultsInProperRanks");
         PrepareResultsInProperRanks(rResults, search_info, ConsiderGlobalDataCommunicator);
+        Timer::Stop("SearchWrapper::PrepareResultsInProperRanks");
 
         // Perform the corresponding searches
+        Timer::Start("SearchWrapper::Search");
         const std::size_t total_number_of_points = search_info.LocalIndices.size();
         struct TLS {
             Point point;
@@ -658,9 +688,12 @@ private:
                 r_point_result.AddResult(r_result);
             }
         });
+        Timer::Stop("SearchWrapper::Search");
 
         // Synchronize
+        Timer::Start("SearchWrapper::SynchronizeAll");
         rResults.SynchronizeAll(mrDataCommunicator);
+        Timer::Stop("SearchWrapper::SynchronizeAll");
     }
 
     /**
@@ -698,13 +731,18 @@ private:
         const auto& r_local_bb = mpSearchObject ? mpSearchObject->GetBoundingBox() : BoundingBox<PointType>();
 
         // Prepare MPI search
+        Timer::Start("SearchWrapper::SynchronousPointSynchronizationWithBoundingBox");
         DistributedSearchInformation search_info;
         SearchUtilities::SynchronousPointSynchronizationWithBoundingBox(itPointBegin, itPointEnd, search_info, r_local_bb, Radius, mrDataCommunicator, true);
+        Timer::Stop("SearchWrapper::SynchronousPointSynchronizationWithBoundingBox");
 
         // Initialize results
+        Timer::Start("SearchWrapper::PrepareResultsInProperRanks");
         PrepareResultsInProperRanks(rResults, search_info, ConsiderGlobalDataCommunicator);
+        Timer::Stop("SearchWrapper::PrepareResultsInProperRanks");
 
         // Perform the corresponding searches
+        Timer::Start("SearchWrapper::Search");
         const std::size_t total_number_of_points = search_info.LocalIndices.size();
         struct TLS {
             Point point;
@@ -720,12 +758,17 @@ private:
             LocalSearchNearestInRadius(rTLS.point, Radius, local_result, r_point_result.GetDataCommunicator().Rank(), allocation_size);
             r_point_result.AddResult(local_result);
         });
+        Timer::Stop("SearchWrapper::Search");
 
         // Synchronize
+        Timer::Start("SearchWrapper::SynchronizeAll");
         rResults.SynchronizeAll(mrDataCommunicator);
+        Timer::Stop("SearchWrapper::SynchronizeAll");
 
         // Remove the non closest results
+        Timer::Start("SearchWrapper::KeepOnlyClosestResult");
         KeepOnlyClosestResult(rResults);
+        Timer::Stop("SearchWrapper::KeepOnlyClosestResult");
     }
 
     /**
@@ -762,13 +805,18 @@ private:
         const auto& r_local_bb = mpSearchObject ? mpSearchObject->GetBoundingBox() : BoundingBox<PointType>();
 
         // Prepare MPI search
+        Timer::Start("SearchWrapper::SynchronousPointSynchronizationWithBoundingBox");
         DistributedSearchInformation search_info;
         SearchUtilities::SynchronousPointSynchronizationWithBoundingBox(itPointBegin, itPointEnd, search_info, r_local_bb, max_radius, mrDataCommunicator, true);
+        Timer::Stop("SearchWrapper::SynchronousPointSynchronizationWithBoundingBox");
 
         // Initialize results
+        Timer::Start("SearchWrapper::PrepareResultsInProperRanks");
         PrepareResultsInProperRanks(rResults, search_info, ConsiderGlobalDataCommunicator);
+        Timer::Stop("SearchWrapper::PrepareResultsInProperRanks");
 
         // Perform the corresponding searches
+        Timer::Start("SearchWrapper::Search");
         const std::size_t total_number_of_points = search_info.LocalIndices.size();
         struct TLS {
             Point point;
@@ -784,12 +832,17 @@ private:
             LocalSearchNearest(rTLS.point, local_result, r_point_result.GetDataCommunicator().Rank());
             r_point_result.AddResult(local_result);
         });
+        Timer::Stop("SearchWrapper::Search");
 
         // Synchronize
+        Timer::Start("SearchWrapper::SynchronizeAll");
         rResults.SynchronizeAll(mrDataCommunicator);
+        Timer::Stop("SearchWrapper::SynchronizeAll");
 
         // Remove the non closest results
+        Timer::Start("SearchWrapper::KeepOnlyClosestResult");
         KeepOnlyClosestResult(rResults);
+        Timer::Stop("SearchWrapper::KeepOnlyClosestResult");
     }
 
     /**
@@ -823,13 +876,18 @@ private:
         const auto& r_local_bb = mpSearchObject ? mpSearchObject->GetBoundingBox() : BoundingBox<PointType>();
 
         // Prepare MPI search
+        Timer::Start("SearchWrapper::SynchronousPointSynchronizationWithBoundingBox");
         DistributedSearchInformation search_info;
         SearchUtilities::SynchronousPointSynchronizationWithBoundingBox(itPointBegin, itPointEnd, search_info, r_local_bb, 0.0, mrDataCommunicator, true);
+        Timer::Stop("SearchWrapper::SynchronousPointSynchronizationWithBoundingBox");
 
         // Initialize results
+        Timer::Start("SearchWrapper::PrepareResultsInProperRanks");
         PrepareResultsInProperRanks(rResults, search_info, ConsiderGlobalDataCommunicator);
+        Timer::Stop("SearchWrapper::PrepareResultsInProperRanks");
 
         // Perform the corresponding searches
+        Timer::Start("SearchWrapper::Search");
         const std::size_t total_number_of_points = search_info.LocalIndices.size();
         struct TLS {
             Point point;
@@ -845,12 +903,17 @@ private:
             LocalSearchIsInside(rTLS.point, local_result, r_point_result.GetDataCommunicator().Rank());
             r_point_result.AddResult(local_result);
         });
+        Timer::Stop("SearchWrapper::Search");
 
         // Synchronize
+        Timer::Start("SearchWrapper::SynchronizeAll");
         rResults.SynchronizeAll(mrDataCommunicator);
+        Timer::Stop("SearchWrapper::SynchronizeAll");
 
         // Remove the non lowest rank results
+        Timer::Start("SearchWrapper::KeepOnlyLowestRankResult");
         KeepOnlyLowestRankResult(rResults);
+        Timer::Stop("SearchWrapper::KeepOnlyLowestRankResult");
     }
 
 #else
