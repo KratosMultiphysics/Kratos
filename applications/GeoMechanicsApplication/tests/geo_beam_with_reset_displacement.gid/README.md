@@ -17,6 +17,6 @@ The following stages can be distinguished:
 In stage 1, the displacement can be approximated using the following expression:
 $$u_y = \frac{FL^3}{3EI}L$$
 
-where $F$ is the applied force, $L$ is the length of the beam, $E$ is the Young Modulus and $I$ is the second moment of area. The displacement at the right node (10) is then $u_y \approx -0.016$ for this specific case.
+where $F$ is the applied force, $L$ is the length of the beam, $E$ is Young's Modulus and $I$ is the second moment of area. The displacement at the right node (10) is then $u_y \approx -0.016$ for this specific case.
 
-Due to the reset_displacement option, the displacement in stage 2 is expected to be 0.0 for all nodes. The same holds for stage 3 (is this expected, since 'reset_displacement' is set to false?). In stage 4, the load is removed, meaning that the displacement is expected to be the opposite of the displacement in stage 1 (bringing the beam back to its original position).
+Due to the reset_displacement option in stage 1 and 2, the internal force from stage 1 is retained. Since this internal force is in equilibrium with the applied external force, the displacement in stage 2 and 3 is expected to be 0.0 for all nodes. In stage 4, the load is removed, meaning that the displacement is expected to be the opposite of the displacement in stage 1 (bringing the beam back to its original position).

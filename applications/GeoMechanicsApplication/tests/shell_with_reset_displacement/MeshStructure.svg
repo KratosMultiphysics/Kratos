@@ -24,8 +24,8 @@
      inkscape:pagecheckerboard="0"
      inkscape:deskcolor="#d1d1d1"
      inkscape:zoom="1.4142136"
-     inkscape:cx="55.507882"
-     inkscape:cy="175.71604"
+     inkscape:cx="55.861434"
+     inkscape:cy="175.71603"
      inkscape:window-width="1920"
      inkscape:window-height="1017"
      inkscape:window-x="-8"
@@ -243,14 +243,14 @@ CreationDate: Thu Jan 25 16:45:48 2024
   <text
      xml:space="preserve"
      style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:16px;font-family:Arial;-inkscape-font-specification:'Arial, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;fill:#000000;fill-opacity:1;stroke:#000000;stroke-width:0;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
-     x="119.86707"
+     x="112.30801"
      y="388.82639"
      id="text12-8-3"
      transform="rotate(-30)"><tspan
        sodipodi:role="line"
-       id="tspan5"
-       x="119.86707"
-       y="388.82639">2000 m</tspan></text>
+       id="tspan2"
+       x="112.30801"
+       y="388.82639">2000 mm</tspan></text>
   <text
      xml:space="preserve"
      style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:21.3035px;font-family:Arial;-inkscape-font-specification:'Arial, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;fill:#000000;fill-opacity:1;stroke:#000000;stroke-width:0;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
@@ -351,14 +351,14 @@ CreationDate: Thu Jan 25 16:45:48 2024
   <text
      xml:space="preserve"
      style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:16px;font-family:Arial;-inkscape-font-specification:'Arial, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;fill:#000000;fill-opacity:1;stroke:#000000;stroke-width:0;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
-     x="229.47337"
-     y="159.7047"
+     x="219.78452"
+     y="159.89366"
      id="text12-8-3-5"
      transform="rotate(30)"><tspan
        sodipodi:role="line"
-       id="tspan5-7"
-       x="229.47337"
-       y="159.7047">2000 m</tspan></text>
+       id="tspan1"
+       x="219.78452"
+       y="159.89366">2000 mm</tspan></text>
   <path
      style="fill:none;stroke:#000000;stroke-width:1.852;stroke-dasharray:none;stroke-opacity:1;marker-start:url(#ArrowTriangleStylized-1);marker-end:url(#ArrowTriangleStylized-1)"
      d="m 98.195011,222.99213 98.195009,56.69292"

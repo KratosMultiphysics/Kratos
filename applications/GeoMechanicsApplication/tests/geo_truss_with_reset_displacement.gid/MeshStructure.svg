@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <svg
-   width="828.10565"
-   height="302.64438"
-   viewBox="0 0 828.10565 302.64438"
+   width="882.18591"
+   height="271.97021"
+   viewBox="0 0 882.18591 271.97022"
    version="1.1"
    id="svg381"
    sodipodi:docname="MeshStructure.svg"
@@ -23,9 +23,9 @@
      inkscape:pageopacity="0.0"
      inkscape:pagecheckerboard="0"
      inkscape:deskcolor="#d1d1d1"
-     inkscape:zoom="1.9548056"
-     inkscape:cx="687.02484"
-     inkscape:cy="116.37986"
+     inkscape:zoom="0.9774028"
+     inkscape:cx="270.61514"
+     inkscape:cy="45.528824"
      inkscape:window-width="1920"
      inkscape:window-height="1017"
      inkscape:window-x="-8"
@@ -85,7 +85,7 @@ CreationDate: Thu Jan 25 14:42:10 2024
   </defs>
   <g
      id="g6"
-     transform="matrix(0,3.7795276,-3.7795276,0,224.7158,-37.40355)"
+     transform="matrix(0,3.7795276,-3.7795276,0,224.7158,-68.07774)"
      inkscape:label="FixedBeam">
     <path
        style="fill:none;stroke:#919191;stroke-width:1.05833;stroke-opacity:1"
@@ -118,116 +118,116 @@ CreationDate: Thu Jan 25 14:42:10 2024
   </g>
   <path
      style="fill:#000000;fill-opacity:1;stroke:#000000;stroke-width:3.6115;stroke-dasharray:none;stroke-opacity:1"
-     d="M 26.696237,103.8143 H 784.82786"
+     d="M 26.696234,73.14011 H 784.82786"
      id="path381" />
   <ellipse
      style="fill:#000000;fill-opacity:1;stroke:#000000;stroke-width:0;stroke-dasharray:none;stroke-opacity:1"
      id="path382"
-     cx="27.165827"
-     cy="103.85234"
+     cx="27.165823"
+     cy="73.178154"
      rx="8"
      ry="7.958003" />
   <ellipse
      style="fill:#000000;fill-opacity:1;stroke:#000000;stroke-width:0;stroke-dasharray:none;stroke-opacity:1"
      id="path382-3"
      cx="95.919609"
-     cy="103.85252"
+     cy="73.178337"
      rx="8"
      ry="7.958003" />
   <ellipse
      style="fill:#000000;fill-opacity:1;stroke:#000000;stroke-width:0;stroke-dasharray:none;stroke-opacity:1"
      id="path382-3-1"
      cx="164.89328"
-     cy="103.85271"
+     cy="73.17852"
      rx="8"
      ry="7.958003" />
   <ellipse
      style="fill:#000000;fill-opacity:1;stroke:#000000;stroke-width:0;stroke-dasharray:none;stroke-opacity:1"
      id="path382-3-0"
      cx="233.84775"
-     cy="103.85271"
+     cy="73.17852"
      rx="8"
      ry="7.958003" />
   <ellipse
      style="fill:#000000;fill-opacity:1;stroke:#000000;stroke-width:0;stroke-dasharray:none;stroke-opacity:1"
      id="path382-3-1-7"
      cx="302.82138"
-     cy="103.85289"
+     cy="73.178703"
      rx="8"
      ry="7.958003" />
   <ellipse
      style="fill:#000000;fill-opacity:1;stroke:#000000;stroke-width:0;stroke-dasharray:none;stroke-opacity:1"
      id="path382-3-7"
      cx="371.79739"
-     cy="103.85271"
+     cy="73.17852"
      rx="8"
      ry="7.958003" />
   <ellipse
      style="fill:#000000;fill-opacity:1;stroke:#000000;stroke-width:0;stroke-dasharray:none;stroke-opacity:1"
      id="path382-3-1-5"
      cx="440.77103"
-     cy="103.85289"
+     cy="73.178703"
      rx="8"
      ry="7.958003" />
   <ellipse
      style="fill:#000000;fill-opacity:1;stroke:#000000;stroke-width:0;stroke-dasharray:none;stroke-opacity:1"
      id="path382-3-0-4"
      cx="509.72549"
-     cy="103.85289"
+     cy="73.178703"
      rx="8"
      ry="7.958003" />
   <ellipse
      style="fill:#000000;fill-opacity:1;stroke:#000000;stroke-width:0;stroke-dasharray:none;stroke-opacity:1"
      id="path382-3-1-7-4"
      cx="578.6991"
-     cy="103.85307"
+     cy="73.178886"
      rx="8"
      ry="7.958003" />
   <ellipse
      style="fill:#000000;fill-opacity:1;stroke:#000000;stroke-width:0;stroke-dasharray:none;stroke-opacity:1"
      id="path382-3-1-5-2"
      cx="647.23676"
-     cy="103.85271"
+     cy="73.17852"
      rx="8"
      ry="7.958003" />
   <ellipse
      style="fill:#000000;fill-opacity:1;stroke:#000000;stroke-width:0;stroke-dasharray:none;stroke-opacity:1"
      id="path382-3-0-4-9"
      cx="716.19122"
-     cy="103.85271"
+     cy="73.17852"
      rx="8"
      ry="7.958003" />
   <ellipse
      style="fill:#000000;fill-opacity:1;stroke:#000000;stroke-width:0;stroke-dasharray:none;stroke-opacity:1"
      id="path382-3-1-7-4-5"
      cx="785.16486"
-     cy="103.85289"
+     cy="73.178703"
      rx="8"
      ry="7.958003" />
   <text
      xml:space="preserve"
      style="font-size:26.6667px;font-family:Arial;-inkscape-font-specification:'Arial, Normal';fill:#000000;fill-opacity:1;stroke:#000000;stroke-width:0;stroke-dasharray:none;stroke-opacity:1"
-     x="33.858055"
-     y="94.606247"
+     x="36.92741"
+     y="103.83373"
      id="text382"><tspan
        sodipodi:role="line"
        id="tspan382"
-       x="33.858055"
-       y="94.606247">0.0</tspan></text>
+       x="36.92741"
+       y="103.83373">0.0</tspan></text>
   <text
      xml:space="preserve"
      style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:26.6667px;font-family:Arial;-inkscape-font-specification:'Arial, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;fill:#000000;fill-opacity:1;stroke:#000000;stroke-width:0;stroke-dasharray:none;stroke-opacity:1"
      x="792.31134"
-     y="134.56544"
+     y="103.89126"
      id="text382-4"><tspan
        sodipodi:role="line"
        id="tspan383"
        x="792.31134"
-       y="134.56544">1.0</tspan></text>
+       y="103.89126">1.0</tspan></text>
   <g
      id="g7"
      inkscape:label="Axes"
-     transform="matrix(3.7795276,0,0,3.7795276,-41.663513,-560.66409)">
+     transform="matrix(3.7795276,0,0,3.7795276,-41.663516,-591.33828)">
     <path
        style="fill:none;stroke:#000000;stroke-width:0.878929;stroke-dasharray:none;stroke-opacity:1;marker-start:url(#Triangle-0)"
        d="M 34.738756,225.71196 H 17.953546"
@@ -268,7 +268,7 @@ CreationDate: Thu Jan 25 14:42:10 2024
   </metadata>
   <g
      id="g2"
-     transform="rotate(90,732.7091,51.257355)">
+     transform="rotate(90,800.14497,88.179684)">
     <path
        style="fill:#7f7f7f;fill-opacity:1;stroke:#808080;stroke-width:3.684;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
        d="M 785.23566,84.161466 V 6.1387178"
