@@ -29,7 +29,7 @@ public:
     /// Pointer definition of ConstantRotationProcess
     KRATOS_CLASS_POINTER_DEFINITION(ConstantRotationProcess);
 
-    typedef Node<3>                     NodeType;
+    typedef Node                     NodeType;
     typedef Geometry<NodeType>      GeometryType;
 
     /// Constructor.

@@ -121,7 +121,7 @@ public:
         ThisParameters = this->ValidateAndAssignParameters(ThisParameters, this->GetDefaultParameters());
         this->AssignSettings(ThisParameters);
 
-        // Set flags to start correcty the calculations
+        // Set flags to start the calculations correctly
         mSolutionStepIsInitialized = false;
         mInitializeWasPerformed = false;
 
@@ -165,7 +165,7 @@ public:
                                  new ResidualBasedBlockBuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver > (pNewLinearSolver)
                              );
 
-        // Set flag to start correcty the calculations
+        // Set flag to start the calculations correctly
         mSolutionStepIsInitialized = false;
         mInitializeWasPerformed = false;
 
@@ -213,7 +213,7 @@ public:
     {
         KRATOS_TRY
 
-        // Set flag to start correcty the calculations
+        // Set flag to start the calculations correctly
         mSolutionStepIsInitialized = false;
         mInitializeWasPerformed = false;
 
@@ -341,9 +341,9 @@ public:
      * @param Level The level to set
      * @details The different levels of echo are:
      * - 0: Mute... no echo at all
-     * - 1: Printing time and basic informations
+     * - 1: Printing time and basic information
      * - 2: Printing linear solver data
-     * - 3: Print of debug informations: Echo of stiffness matrix, Dx, b...
+     * - 3: Print of debug information: Echo of stiffness matrix, Dx, b...
      */
 
     void SetEchoLevel(int Level) override
@@ -541,21 +541,21 @@ public:
                 //setting up the list of the DOFs to be solved
                 BuiltinTimer setup_dofs_time;
                 p_builder_and_solver->SetUpDofSet(p_scheme, BaseType::GetModelPart());
-                KRATOS_INFO_IF("ResidualBasedLinearStrategy", BaseType::GetEchoLevel() > 0) << "Setup Dofs Time: " << setup_dofs_time.ElapsedSeconds() << std::endl;
+                KRATOS_INFO_IF("ResidualBasedLinearStrategy", BaseType::GetEchoLevel() > 0) << "Setup Dofs Time: " << setup_dofs_time << std::endl;
 
                 //shaping correctly the system
                 BuiltinTimer setup_system_time;
                 p_builder_and_solver->SetUpSystem(BaseType::GetModelPart());
-                KRATOS_INFO_IF("ResidualBasedLinearStrategy", BaseType::GetEchoLevel() > 0) << "Setup System Time: " << setup_system_time.ElapsedSeconds() << std::endl;
+                KRATOS_INFO_IF("ResidualBasedLinearStrategy", BaseType::GetEchoLevel() > 0) << "Setup System Time: " << setup_system_time << std::endl;
 
                 //setting up the Vectors involved to the correct size
                 BuiltinTimer system_matrix_resize_time;
                 p_builder_and_solver->ResizeAndInitializeVectors(p_scheme, mpA, mpDx, mpb,
                                                                  BaseType::GetModelPart());
-                KRATOS_INFO_IF("ResidualBasedLinearStrategy", BaseType::GetEchoLevel() > 0) << "System Matrix Resize Time: " << system_matrix_resize_time.ElapsedSeconds() << std::endl;
+                KRATOS_INFO_IF("ResidualBasedLinearStrategy", BaseType::GetEchoLevel() > 0) << "System Matrix Resize Time: " << system_matrix_resize_time << std::endl;
             }
 
-            KRATOS_INFO_IF("ResidualBasedLinearStrategy", BaseType::GetEchoLevel() > 0) << "System Construction Time: " << system_construction_time.ElapsedSeconds() << std::endl;
+            KRATOS_INFO_IF("ResidualBasedLinearStrategy", BaseType::GetEchoLevel() > 0) << "System Construction Time: " << system_construction_time << std::endl;
 
             TSystemMatrixType& rA  = *mpA;
             TSystemVectorType& rDx = *mpDx;

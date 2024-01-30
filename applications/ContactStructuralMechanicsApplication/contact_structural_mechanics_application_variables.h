@@ -4,14 +4,13 @@
 //        / /___/ /_/ / / / / /_/ /_/ / /__/ /_ ___/ / /_/ /  / /_/ / /__/ /_/ /_/ / /  / /_/ / /  
 //        \____/\____/_/ /_/\__/\__,_/\___/\__//____/\__/_/   \__,_/\___/\__/\__,_/_/   \__,_/_/  MECHANICS
 //
-//  License:		 BSD License
-//					 license: ContactStructuralMechanicsApplication/license.txt
+//  License:         BSD License
+//                   license: ContactStructuralMechanicsApplication/license.txt
 //
 //  Main authors:    Vicente Mataix
 //
 
-#if !defined(KRATOS_CONTACT_STRUCTURAL_MECHANICS_APPLICATION_VARIABLES_H_INCLUDED )
-#define  KRATOS_CONTACT_STRUCTURAL_MECHANICS_APPLICATION_VARIABLES_H_INCLUDED
+#pragma once
 
 // System includes
 
@@ -35,21 +34,32 @@ namespace Kratos
 ///@name Type Definitions
 ///@{
 
-    typedef Geometry<Node<3>> GeometryType;
+    using GeometryType = Geometry<Node>;
 
 ///@}
 ///@name  Enum's
 ///@{
 
     /**
-     * @brief We use this to differentiate between cases of friction
+     * @brief An enumeration of the different cases of friction that can be used in the contact search process.
      */
-    enum class FrictionalCase {FRICTIONLESS = 0, FRICTIONLESS_COMPONENTS = 1, FRICTIONAL = 2, FRICTIONLESS_PENALTY = 3, FRICTIONAL_PENALTY = 4  };
+    enum class FrictionalCase {
+        FRICTIONLESS = 0, ///< Frictionless contact.
+        FRICTIONLESS_COMPONENTS = 1, ///< Frictionless contact with components.
+        FRICTIONAL = 2, ///< Frictional contact.
+        FRICTIONLESS_PENALTY = 3, ///< Frictionless contact with penalty method.
+        FRICTIONAL_PENALTY = 4 ///< Frictional contact with penalty method.
+    };
 
     /**
-     * @brief This enum is used to define the different options for normal derivatives computation
+     * @brief An enumeration of the different options for normal derivatives computation.
      */
-    enum NormalDerivativesComputation {NO_DERIVATIVES_COMPUTATION = 0, ELEMENTAL_DERIVATIVES = 1, NODAL_ELEMENTAL_DERIVATIVES = 2, NO_DERIVATIVES_COMPUTATION_WITH_NORMAL_UPDATE = 3};
+    enum class NormalDerivativesComputation {
+        NO_DERIVATIVES_COMPUTATION = 0, ///< No computation of normal derivatives.
+        ELEMENTAL_DERIVATIVES = 1, ///< Computation of normal derivatives at the element level.
+        NODAL_ELEMENTAL_DERIVATIVES = 2, ///< Computation of normal derivatives at the node level.
+        NO_DERIVATIVES_COMPUTATION_WITH_NORMAL_UPDATE = 3 ///< No computation of normal derivatives, but update of the normal vector.
+    };
 
 ///@}
 ///@name  Functions
@@ -68,7 +78,7 @@ KRATOS_DEFINE_APPLICATION_VARIABLE( CONTACT_STRUCTURAL_MECHANICS_APPLICATION, do
 KRATOS_DEFINE_APPLICATION_VARIABLE( CONTACT_STRUCTURAL_MECHANICS_APPLICATION, double, ZERO_TOLERANCE_FACTOR )                          // The epsilon factor considered
 KRATOS_DEFINE_APPLICATION_VARIABLE( CONTACT_STRUCTURAL_MECHANICS_APPLICATION, double, ACTIVE_CHECK_FACTOR )                            // The factor employed to search an active/inactive node
 KRATOS_DEFINE_APPLICATION_VARIABLE( CONTACT_STRUCTURAL_MECHANICS_APPLICATION, double, SLIP_THRESHOLD )                                 // The threshold employed to search an slip/stick node
-KRATOS_DEFINE_3D_APPLICATION_VARIABLE_WITH_COMPONENTS(CONTACT_STRUCTURAL_MECHANICS_APPLICATION, AUXILIAR_COORDINATES )                 // Auxiliar coordinates used to map
+KRATOS_DEFINE_3D_APPLICATION_VARIABLE_WITH_COMPONENTS(CONTACT_STRUCTURAL_MECHANICS_APPLICATION, AUXILIAR_COORDINATES )                 // Auxiliary coordinates used to map
 KRATOS_DEFINE_3D_APPLICATION_VARIABLE_WITH_COMPONENTS(CONTACT_STRUCTURAL_MECHANICS_APPLICATION, DELTA_COORDINATES )                    // Delta coordinates used to map
 KRATOS_DEFINE_APPLICATION_VARIABLE( CONTACT_STRUCTURAL_MECHANICS_APPLICATION, double, NORMAL_GAP )                                     // The normal gap employed in contact formulation
 KRATOS_DEFINE_3D_APPLICATION_VARIABLE_WITH_COMPONENTS(CONTACT_STRUCTURAL_MECHANICS_APPLICATION, TANGENT_SLIP )                         // The tangent slip gap employed in contact formulation
@@ -95,6 +105,7 @@ KRATOS_DEFINE_APPLICATION_VARIABLE( CONTACT_STRUCTURAL_MECHANICS_APPLICATION, do
 
 /* For mesh tying mortar condition */
 KRATOS_DEFINE_APPLICATION_VARIABLE( CONTACT_STRUCTURAL_MECHANICS_APPLICATION, std::string, TYING_VARIABLE )                            // The variable name for the mesh tying
+KRATOS_DEFINE_APPLICATION_VARIABLE( CONTACT_STRUCTURAL_MECHANICS_APPLICATION, Element::Pointer, PARENT_ELEMENT )                       // The parent element considered in the mesh tying with static condensation
 
 /* Explicit simulation */
 KRATOS_DEFINE_APPLICATION_VARIABLE( CONTACT_STRUCTURAL_MECHANICS_APPLICATION, double, MAX_GAP_THRESHOLD )                              // The gap considered as threshold to rescale penalty
@@ -103,5 +114,3 @@ KRATOS_DEFINE_APPLICATION_VARIABLE( CONTACT_STRUCTURAL_MECHANICS_APPLICATION, do
 KRATOS_DEFINE_APPLICATION_VARIABLE( CONTACT_STRUCTURAL_MECHANICS_APPLICATION, FrictionalLaw::Pointer, FRICTIONAL_LAW )                 // The frictional law considered
 KRATOS_DEFINE_APPLICATION_VARIABLE( CONTACT_STRUCTURAL_MECHANICS_APPLICATION, double, TRESCA_FRICTION_THRESHOLD )                      // The threshold value for Tresca frictional contact
 }
-
-#endif	/* KRATOS_CONTACT_STRUCTURAL_MECHANICS_APPLICATION_VARIABLES_H_INCLUDED */

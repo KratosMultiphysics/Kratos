@@ -18,7 +18,6 @@ class KratosGeoMechanicsResetDisplacementTests(KratosUnittest.TestCase):
         # Code here will be placed AFTER every test in this TestCase.
         pass
 
-    @KratosUnittest.skip("MCGICJN2 27/6/22 - Test Ignored - Investigation Underway")
     def test_reset_displacement_truss(self):
         """
         Tests reset displacement in a truss in 4 stages
@@ -31,7 +30,7 @@ class KratosGeoMechanicsResetDisplacementTests(KratosUnittest.TestCase):
         """
 
         # calculate strain
-        F = -1e10    # [N]
+        F = -1e10   # [N]
         E = 2069e8  # [N/m2]
         A = 1       # [m2]
 
@@ -42,8 +41,8 @@ class KratosGeoMechanicsResetDisplacementTests(KratosUnittest.TestCase):
         project_path = test_helper.get_file_path(os.path.join('.', test_name + '.gid'))
         n_stages = 4
 
+        cwd = os.getcwd()
         stages = test_helper.get_stages(project_path, n_stages)
-
         displacement_stages = [None]*n_stages
         nodal_coordinates_stages = [None]*n_stages
 
@@ -52,6 +51,8 @@ class KratosGeoMechanicsResetDisplacementTests(KratosUnittest.TestCase):
             stage.Run()
             displacement_stages[idx] = test_helper.get_displacement(stage)
             nodal_coordinates_stages[idx] = test_helper. get_nodal_coordinates(stage)
+
+        os.chdir(cwd)
 
         # Assert
         stage_nr = 0
@@ -94,7 +95,7 @@ class KratosGeoMechanicsResetDisplacementTests(KratosUnittest.TestCase):
         test_name = 'geo_beam_with_reset_displacemnet'
         project_path = test_helper.get_file_path(os.path.join('.', test_name + '.gid'))
         n_stages = 4
-
+        cwd = os.getcwd()
         stages = test_helper.get_stages(project_path, n_stages)
 
         displacement_stages = [None] * n_stages
@@ -105,6 +106,7 @@ class KratosGeoMechanicsResetDisplacementTests(KratosUnittest.TestCase):
             stage.Run()
             displacement_stages[idx] = test_helper.get_displacement(stage)
             nodal_coordinates_stages[idx] = test_helper.get_nodal_coordinates(stage)
+        os.chdir(cwd)
 
         # Assert
         stage_nr = 0
@@ -122,6 +124,18 @@ class KratosGeoMechanicsResetDisplacementTests(KratosUnittest.TestCase):
         stage_nr = 3
         for idx, node in enumerate(nodal_coordinates_stages[stage_nr]):
             self.assertAlmostEqual(displacement_stages[stage_nr][idx][0], -eps * node[0], places=5)
+
+    def test_reset_displacement_shell_Dirichlet(self):
+        """
+        Tests reset displacement in a shell, loaded with prescribed Displacement
+        Verifies that the prescribed displacement is not erased by reset_displacement.
+        load is applied / reset displacement is true, prescribed Z displacement -20 on node 3
+        """
+        test_name  = 'shell_with_reset_displacement'
+        file_path  = test_helper.get_file_path(os.path.join('.', test_name))
+        simulation = test_helper.run_kratos(file_path)
+        displacement = test_helper.get_displacement(simulation)
+        self.assertEqual(displacement[2][2], -20.0)
 
 if __name__ == '__main__':
     KratosUnittest.main()

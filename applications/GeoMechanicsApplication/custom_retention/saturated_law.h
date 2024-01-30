@@ -10,8 +10,7 @@
 //  Main authors:    Vahid Galavi
 //
 
-#if !defined (KRATOS_SATURATED_LAW_H_INCLUDED)
-#define  KRATOS_SATURATED_LAW_H_INCLUDED
+#pragma once
 
 // System includes
 #include <string>
@@ -29,25 +28,6 @@
 
 namespace Kratos
 {
-///@name Kratos Globals
-///@{
-
-///@}
-///@name Type Definitions
-///@{
-
-///@}
-///@name  Enum's
-///@{
-
-///@}
-///@name  Functions
-///@{
-
-///@}
-///@name Kratos Classes
-///@{
-
 /**
  * @class SaturatedLaw
  * @ingroup GeoMechanicsApplication
@@ -60,51 +40,19 @@ class KRATOS_API(GEO_MECHANICS_APPLICATION) SaturatedLaw
 {
 public:
 
-    ///@name Type Definitions
-    ///@{
-
     /// The base class RetentionLaw type definition
-    typedef RetentionLaw         BaseType;
+    using BaseType = RetentionLaw;
 
-    typedef Geometry<Node<3>> GeometryType;
+    using GeometryType = Geometry<Node>;
 
     /// The size type definition
-    typedef std::size_t             SizeType;
+    using SizeType = std::size_t;
 
     /// Counted pointer of SaturatedLaw
     KRATOS_CLASS_POINTER_DEFINITION( SaturatedLaw );
 
-    ///@}
-    ///@name Lyfe Cycle
-    ///@{
-
-    /**
-     * @brief Default constructor.
-     */
-    SaturatedLaw();
-
-    /**
-     * @brief Clone method
-     */
     RetentionLaw::Pointer Clone() const override;
 
-    /**
-     * Copy constructor.
-     */
-    SaturatedLaw(const SaturatedLaw& rOther);
-
-    /**
-     * @brief Destructor.
-     */
-    ~SaturatedLaw() override;
-
-    ///@}
-    ///@name Operators
-    ///@{
-
-    ///@}
-    ///@name Operations
-    ///@{
     void InitializeMaterial(const Properties& rMaterialProperties,
                             const GeometryType& rElementGeometry,
                             const Vector& rShapeFunctionsValues) override;
@@ -150,52 +98,7 @@ public:
     int Check(const Properties& rMaterialProperties,
               const ProcessInfo& rCurrentProcessInfo) override;
 
-
-protected:
-
-    ///@name Protected static Member Variables
-    ///@{
-
-    ///@}
-    ///@name Protected member Variables
-    ///@{
-
-    ///@}
-    ///@name Protected Operators
-    ///@{
-
-    ///@}
-    ///@name Protected Operations
-    ///@{
-
-
-    ///@}
-
 private:
-
-    ///@name Static Member Variables
-    ///@{
-
-    ///@}
-    ///@name Member Variables
-    ///@{
-
-    ///@}
-    ///@name Private Operators
-    ///@{
-
-    ///@}
-    ///@name Private Operations
-    ///@{
-
-    ///@}
-    ///@name Private  Access
-    ///@{
-    ///@}
-
-    ///@}
-    ///@name Serialization
-    ///@{
     friend class Serializer;
 
     void save(Serializer& rSerializer) const override
@@ -210,4 +113,3 @@ private:
 
 }; // Class SaturatedLaw
 }  // namespace Kratos.
-#endif // KRATOS_SATURATED_LAW_H_INCLUDED  defined

@@ -1,4 +1,3 @@
-from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 
 # Import KratosMultiphysics
 import KratosMultiphysics
@@ -14,18 +13,18 @@ mode = "c" #to output to a c++ file
 impose_partion_of_unity = False
 
 dim_combinations = [2,2,2,2,3,3,3,3,3,3,3,3]
-nnodeselement_combinations = [3,3,4,4,4,4,8,8,4,4,8,8]
-nnodeselement_master_combinations = [3,3,4,4,4,4,8,8,8,8,4,4]
+nnodeselement_combinations = [2,2,3,3,4,4,3,3,4,4]
+nnodeselement_master_combinations = [2,2,3,3,4,4,4,4,3,3]
 tensor_combinations = [1,2,1,2,1,3,1,3,1,3,1,3]
 
 lhs_string = ""
-lhs_template_begin_string = "\n/***********************************************************************************/\n/***********************************************************************************/\n\ntemplate< >\ntemplate< >\nvoid MeshTyingMortarCondition<TDim,TNumNodesElem,TNumNodesElemMaster>::CalculateLocalLHS<MeshTyingMortarCondition<TDim,TNumNodesElem,TNumNodesElemMaster>::TTensor>(\n    Matrix& rLocalLHS,\n    const MortarConditionMatrices& rMortarConditionMatrices,\n    const DofData<TTensor>& rDofData\n    )\n{\n    // We get the mortar operators\n    const BoundedMatrix<double, NumNodes, NumNodesMaster>& MOperator = rMortarConditionMatrices.MOperator;\n    const BoundedMatrix<double, NumNodes, NumNodes>& DOperator = rMortarConditionMatrices.DOperator;\n\n"
+lhs_template_begin_string = "\n/***********************************************************************************/\n/***********************************************************************************/\n\ntemplate< >\ntemplate< >\nvoid MeshTyingMortarCondition<TDim,TNumNodesElem,TNumNodesElemMaster>::CalculateLocalLHS<MeshTyingMortarCondition<TDim,TNumNodesElem,TNumNodesElemMaster>::TTensor>(\n    Matrix& rLocalLHS,\n    const MortarConditionMatrices& rMortarConditionMatrices,\n    const DofData<TTensor>& rDofData\n    )\n{\n    // We get the mortar operators\n    const BoundedMatrix<double, TNumNodes, TNumNodesMaster>& MOperator = rMortarConditionMatrices.MOperator;\n    const BoundedMatrix<double, TNumNodes, TNumNodes>& DOperator = rMortarConditionMatrices.DOperator;\n"
 
 lhs_template_end_string = "\n}\n"
 
 rhs_string = ""
 
-rhs_template_begin_string = "\n/***********************************************************************************/\n/***********************************************************************************/\n\ntemplate<>\ntemplate<>\nvoid MeshTyingMortarCondition<TDim,TNumNodesElem, TNumNodesElemMaster>::CalculateLocalRHS<MeshTyingMortarCondition<TDim,TNumNodesElem,TNumNodesElemMaster>::TTensor>(\n    Vector& rLocalRHS,\n    const MortarConditionMatrices& rMortarConditionMatrices,\n    const DofData<TTensor>& rDofData\n    )\n{\n    // Initialize values\n    const BoundedMatrix<double, NumNodes, TTensor> u1 = rDofData.u1;\n    const BoundedMatrix<double, NumNodesMaster, TTensor> u2 = rDofData.u2;\n\n    const BoundedMatrix<double, NumNodes, TTensor> lm = rDofData.LagrangeMultipliers; \n\n    // Mortar operators\n    const BoundedMatrix<double, NumNodes, NumNodesMaster>& MOperator = rMortarConditionMatrices.MOperator;\n    const BoundedMatrix<double, NumNodes, NumNodes>& DOperator = rMortarConditionMatrices.DOperator;\n\n"
+rhs_template_begin_string = "\n/***********************************************************************************/\n/***********************************************************************************/\n\ntemplate<>\ntemplate<>\nvoid MeshTyingMortarCondition<TDim,TNumNodesElem, TNumNodesElemMaster>::CalculateLocalRHS<MeshTyingMortarCondition<TDim,TNumNodesElem,TNumNodesElemMaster>::TTensor>(\n    Vector& rLocalRHS,\n    const MortarConditionMatrices& rMortarConditionMatrices,\n    const DofData<TTensor>& rDofData\n    )\n{\n    // Initialize values\n    const BoundedMatrix<double, TNumNodes, TTensor>& u1 = rDofData.u1;\n    const BoundedMatrix<double, TNumNodesMaster, TTensor>& u2 = rDofData.u2;\n\n    const BoundedMatrix<double, TNumNodes, TTensor>& lm = rDofData.LagrangeMultipliers; \n\n    // Mortar operators\n    const BoundedMatrix<double, TNumNodes, TNumNodesMaster>& MOperator = rMortarConditionMatrices.MOperator;\n    const BoundedMatrix<double, TNumNodes, TNumNodes>& DOperator = rMortarConditionMatrices.DOperator;\n"
 
 rhs_template_end_string = "\n}\n"
 
@@ -137,8 +136,8 @@ for dim, nnodeselement, nnodeselement_master, tensor in zip(dim_combinations, nn
         lhs_string = lhs_string.replace("TTensor", "Vector2DValue")
     elif (tensor == 3):
         lhs_string = lhs_string.replace("TTensor", "Vector3DValue")
-    lhs_string = lhs_string.replace("NumNodesMaster", str(nnodes_master))
-    lhs_string = lhs_string.replace("NumNodes", str(nnodes))
+    lhs_string = lhs_string.replace("TNumNodesMaster", str(nnodes_master))
+    lhs_string = lhs_string.replace("TNumNodes", str(nnodes))
     lhs_string = lhs_string.replace("MatrixSize", str(lhs.shape[0]))
 
     rhs_string = rhs_string.replace("TDim", str(dim))
@@ -150,8 +149,8 @@ for dim, nnodeselement, nnodeselement_master, tensor in zip(dim_combinations, nn
         rhs_string = rhs_string.replace("TTensor", "Vector2DValue")
     elif (tensor == 3):
         rhs_string = rhs_string.replace("TTensor", "Vector3DValue")
-    rhs_string = rhs_string.replace("NumNodesMaster", str(nnodes_master))
-    rhs_string = rhs_string.replace("NumNodes", str(nnodes))
+    rhs_string = rhs_string.replace("TNumNodesMaster", str(nnodes_master))
+    rhs_string = rhs_string.replace("TNumNodes", str(nnodes))
     rhs_string = rhs_string.replace("MatrixSize", str(rhs.shape[0]))
     lhs_string = lhs_string.replace("lhs(", "rLocalLHS(")
     rhs_string = rhs_string.replace("rhs[", "rLocalRHS[")

@@ -112,7 +112,6 @@ class TestClusters(KratosUnittest.TestCase):
         kratos_utils.DeleteFileIfExisting(GetFilePath(file_to_remove))
         os.chdir(this_working_dir_backup)
 
-
 if __name__ == "__main__":
     Logger.GetDefaultOutput().SetSeverity(Logger.Severity.WARNING)
     KratosUnittest.main()

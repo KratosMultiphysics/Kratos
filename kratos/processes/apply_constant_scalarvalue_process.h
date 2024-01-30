@@ -40,7 +40,7 @@ namespace Kratos
 /// The base class for all processes in Kratos.
 /** This function applies a constant value (and fixity) to all of the nodes in a given mesh
 */
-class ApplyConstantScalarValueProcess : public Process
+class KRATOS_API(KRATOS_CORE) ApplyConstantScalarValueProcess : public Process
 {
 public:
     ///@name Type Definitions
@@ -122,7 +122,7 @@ public:
                               const Variable<double>& rVariable,
                               const double double_value,
                               std::size_t mesh_id,
-                              Flags options
+                              const Flags options
                                    ) : Process(options) , mr_model_part(model_part),mdouble_value(double_value), mint_value(0), mbool_value(false),mmesh_id(mesh_id)
     {
         KRATOS_TRY;
@@ -146,7 +146,7 @@ public:
                               const Variable< int >& rVariable,
                               const int int_value,
                               std::size_t mesh_id,
-                              Flags options
+                              const Flags options
                                    ) : Process(options) , mr_model_part(model_part),mdouble_value(0.0), mint_value(int_value), mbool_value(false),mmesh_id(mesh_id)
     {
         KRATOS_TRY;
@@ -174,7 +174,7 @@ public:
                               const Variable< bool >& rVariable,
                               const bool bool_value,
                               std::size_t mesh_id,
-                              Flags options
+                              const Flags options
                                    ) : Process(options) , mr_model_part(model_part),mdouble_value(0.0), mint_value(0), mbool_value(bool_value),mmesh_id(mesh_id)
     {
         KRATOS_TRY;
@@ -355,7 +355,7 @@ private:
 
         if(nnodes != 0)
         {
-            block_for_each(mr_model_part.GetMesh(mmesh_id).Nodes(), [&](Node<3>& rNode){
+            block_for_each(mr_model_part.GetMesh(mmesh_id).Nodes(), [&](Node& rNode){
                 if(to_be_fixed)
                 {
                     rNode.Fix(rVar);
@@ -390,8 +390,6 @@ private:
     ///@}
 
 }; // Class ApplyConstantScalarValueProcess
-
-KRATOS_CREATE_LOCAL_FLAG(ApplyConstantScalarValueProcess,VARIABLE_IS_FIXED, 0);
 
 ///@}
 

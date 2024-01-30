@@ -53,7 +53,7 @@ KRATOS_TEST_CASE_IN_SUITE(
 				End Elements
 
 				Begin NodalData BOUNDARY
-				    3 
+				    3
 				End NodalData
 
 				Begin NodalData DISPLACEMENT_X          //be careful, variables are case sensitive!
@@ -101,23 +101,22 @@ KRATOS_TEST_CASE_IN_SUITE(
     Kratos::shared_ptr<std::stringstream> p_output_1(new std::stringstream);
     Kratos::shared_ptr<std::iostream> streams[2] = {p_output_0, p_output_1};
 
-    std::size_t number_of_partitions = 2;
-    std::size_t number_of_colors = 1;
+    constexpr std::size_t number_of_partitions = 2;
+    constexpr std::size_t number_of_colors = 1;
     IO::GraphType domains_colored_graph(number_of_partitions, number_of_colors);
     domains_colored_graph(0, 0) = 1;
     domains_colored_graph(1, 0) = 0;
-    IO::PartitionIndicesType nodes_partitions = {0, 0, 1, 1};
-    IO::PartitionIndicesType elements_partitions = {0, 1};
-    IO::PartitionIndicesType conditions_partitions = {0, 1};
-    IO::PartitionIndicesContainerType nodes_all_partitions = {
-        {0}, {0, 1}, {1}, {0, 1}};
-    IO::PartitionIndicesContainerType elements_all_partitions = {{0}, {1}};
-    IO::PartitionIndicesContainerType conditions_all_partitions = {{0}, {1}};
 
-    model_part_io.DivideInputToPartitions(streams, number_of_partitions,
-        domains_colored_graph, nodes_partitions, elements_partitions,
-        conditions_partitions, nodes_all_partitions, elements_all_partitions,
-        conditions_all_partitions);
+    IO::PartitioningInfo part_info;
+    part_info.Graph = domains_colored_graph;
+    part_info.NodesPartitions = {0, 0, 1, 1};
+    part_info.ElementsPartitions = {0, 1};
+    part_info.ConditionsPartitions = {0, 1};
+    part_info.NodesAllPartitions = {{0}, {0, 1}, {1}, {0, 1}};
+    part_info.ElementsAllPartitions = {{0}, {1}};
+    part_info.ConditionsAllPartitions = {{0}, {1}};
+
+    model_part_io.DivideInputToPartitions(streams, number_of_partitions, part_info);
 
     ModelPart& model_part_0 = current_model.CreateModelPart("Partition 0");
     model_part_0.AddNodalSolutionStepVariable(DISPLACEMENT);
@@ -128,16 +127,16 @@ KRATOS_TEST_CASE_IN_SUITE(
     ModelPartIO * model_part_io_0 = new ModelPartIO(p_output_0);
     model_part_io_0->ReadModelPart(model_part_0);
 
-    KRATOS_CHECK_EQUAL(model_part_0.NumberOfNodes(), 3);
-    KRATOS_CHECK_EQUAL(model_part_0.NumberOfElements(), 1);
-    KRATOS_CHECK_EQUAL(model_part_0.NumberOfConditions(), 1);
-    KRATOS_CHECK_EQUAL(model_part_0.NumberOfSubModelParts(), 1);
-    KRATOS_CHECK(model_part_0.HasSubModelPart("BasePart"));
-    KRATOS_CHECK_EQUAL(
+    KRATOS_EXPECT_EQ(model_part_0.NumberOfNodes(), 3);
+    KRATOS_EXPECT_EQ(model_part_0.NumberOfElements(), 1);
+    KRATOS_EXPECT_EQ(model_part_0.NumberOfConditions(), 1);
+    KRATOS_EXPECT_EQ(model_part_0.NumberOfSubModelParts(), 1);
+    KRATOS_EXPECT_TRUE(model_part_0.HasSubModelPart("BasePart"));
+    KRATOS_EXPECT_EQ(
         model_part_0.GetSubModelPart("BasePart").NumberOfNodes(), 2);
-    KRATOS_CHECK_EQUAL(
+    KRATOS_EXPECT_EQ(
         model_part_0.GetSubModelPart("BasePart").NumberOfElements(), 0);
-    KRATOS_CHECK_EQUAL(
+    KRATOS_EXPECT_EQ(
         model_part_0.GetSubModelPart("BasePart").NumberOfConditions(), 1);
 
     ModelPart& model_part_1 = current_model.CreateModelPart("Partition 1");
@@ -149,24 +148,24 @@ KRATOS_TEST_CASE_IN_SUITE(
     ModelPartIO * model_part_io_1 = new ModelPartIO(p_output_1);
     model_part_io_1->ReadModelPart(model_part_1);
 
-    KRATOS_CHECK(model_part_1.GetNode(3).Is(BOUNDARY));
-    KRATOS_CHECK_EQUAL(model_part_1.NumberOfNodes(), 3);
-    KRATOS_CHECK_EQUAL(model_part_1.NumberOfElements(), 1);
-    KRATOS_CHECK_EQUAL(model_part_1.NumberOfConditions(), 1);
-    KRATOS_CHECK_EQUAL(model_part_1.NumberOfSubModelParts(), 1);
-    KRATOS_CHECK(model_part_1.HasSubModelPart("BasePart"));
-    KRATOS_CHECK_EQUAL(
+    KRATOS_EXPECT_TRUE(model_part_1.GetNode(3).Is(BOUNDARY));
+    KRATOS_EXPECT_EQ(model_part_1.NumberOfNodes(), 3);
+    KRATOS_EXPECT_EQ(model_part_1.NumberOfElements(), 1);
+    KRATOS_EXPECT_EQ(model_part_1.NumberOfConditions(), 1);
+    KRATOS_EXPECT_EQ(model_part_1.NumberOfSubModelParts(), 1);
+    KRATOS_EXPECT_TRUE(model_part_1.HasSubModelPart("BasePart"));
+    KRATOS_EXPECT_EQ(
         model_part_1.GetSubModelPart("BasePart").NumberOfNodes(), 1);
-    KRATOS_CHECK_EQUAL(
+    KRATOS_EXPECT_EQ(
         model_part_1.GetSubModelPart("BasePart").NumberOfElements(), 0);
-    KRATOS_CHECK_EQUAL(
+    KRATOS_EXPECT_EQ(
         model_part_1.GetSubModelPart("BasePart").NumberOfConditions(), 0);
 
     // Free the modelparts to prevent files still being opened
     delete model_part_io_0;
     delete model_part_io_1;
 
-    //KRATOS_CHECK_STRING_CONTAIN_SUB_STRING(p_output_1->str(), R"/(Begin SubModelPart BaseNodes
+    //KRATOS_EXPECT_HAS_SUBSTRING(p_output_1->str(), R"/(Begin SubModelPart BaseNodes
     //Begin SubModelPartNodes
     //2
     //End SubModelPartNodes
@@ -246,24 +245,24 @@ KRATOS_TEST_CASE_IN_SUITE(ModelPartIOWriteModelPart, KratosCoreFastSuite) {
     model_part_io_output->ReadModelPart(main_model_part_output);
 
     // Assert results
-    KRATOS_CHECK_EQUAL(main_model_part_output.NumberOfProperties(), 1);
-    KRATOS_CHECK_EQUAL(main_model_part_output.NumberOfSubModelParts() ,1);
-    KRATOS_CHECK_EQUAL(main_model_part_output.NumberOfNodes(), 4);
-    KRATOS_CHECK_EQUAL(main_model_part_output.NumberOfElements(), 2);
-    KRATOS_CHECK_EQUAL(main_model_part_output.NumberOfConditions(), 3);
-    KRATOS_CHECK_EQUAL(main_model_part_output.GetSubModelPart("SubModelPart").NumberOfNodes(), 3);
-    KRATOS_CHECK_EQUAL(main_model_part_output.GetSubModelPart("SubModelPart").NumberOfElements(), 1);
-    KRATOS_CHECK_EQUAL(main_model_part_output.GetSubModelPart("SubModelPart").NumberOfConditions(), 2);
-    KRATOS_CHECK_EQUAL(main_model_part_output.GetMesh().GetElement(1).GetValue(CAUCHY_STRESS_TENSOR)(1,1),1);
-    KRATOS_CHECK_EQUAL(main_model_part_output.GetMesh().GetElement(1).GetValue(IS_RESTARTED),is_restarted);
-    KRATOS_CHECK_EQUAL(main_model_part_output.GetMesh().GetElement(1).GetValue(DOMAIN_SIZE),domain_size);
-    KRATOS_CHECK_EQUAL(main_model_part_output.GetMesh().GetElement(1).GetValue(TEMPERATURE), temperature);
-    KRATOS_CHECK_EQUAL(main_model_part_output.GetMesh().GetElement(1).GetValue(DISPLACEMENT_X), displacement_x);
-    KRATOS_CHECK_EQUAL(main_model_part_output.GetMesh().GetCondition(1).GetValue(CAUCHY_STRESS_TENSOR)(1,1),1);
-    KRATOS_CHECK_EQUAL(main_model_part_output.GetMesh().GetCondition(1).GetValue(IS_RESTARTED),is_restarted);
-    KRATOS_CHECK_EQUAL(main_model_part_output.GetMesh().GetCondition(1).GetValue(DOMAIN_SIZE),domain_size);
-    KRATOS_CHECK_EQUAL(main_model_part_output.GetMesh().GetCondition(1).GetValue(TEMPERATURE), temperature);
-    KRATOS_CHECK_EQUAL(main_model_part_output.GetMesh().GetCondition(1).GetValue(DISPLACEMENT_X), displacement_x);
+    KRATOS_EXPECT_EQ(main_model_part_output.NumberOfProperties(), 1);
+    KRATOS_EXPECT_EQ(main_model_part_output.NumberOfSubModelParts() ,1);
+    KRATOS_EXPECT_EQ(main_model_part_output.NumberOfNodes(), 4);
+    KRATOS_EXPECT_EQ(main_model_part_output.NumberOfElements(), 2);
+    KRATOS_EXPECT_EQ(main_model_part_output.NumberOfConditions(), 3);
+    KRATOS_EXPECT_EQ(main_model_part_output.GetSubModelPart("SubModelPart").NumberOfNodes(), 3);
+    KRATOS_EXPECT_EQ(main_model_part_output.GetSubModelPart("SubModelPart").NumberOfElements(), 1);
+    KRATOS_EXPECT_EQ(main_model_part_output.GetSubModelPart("SubModelPart").NumberOfConditions(), 2);
+    KRATOS_EXPECT_EQ(main_model_part_output.GetMesh().GetElement(1).GetValue(CAUCHY_STRESS_TENSOR)(1,1),1);
+    KRATOS_EXPECT_EQ(main_model_part_output.GetMesh().GetElement(1).GetValue(IS_RESTARTED),is_restarted);
+    KRATOS_EXPECT_EQ(main_model_part_output.GetMesh().GetElement(1).GetValue(DOMAIN_SIZE),domain_size);
+    KRATOS_EXPECT_EQ(main_model_part_output.GetMesh().GetElement(1).GetValue(TEMPERATURE), temperature);
+    KRATOS_EXPECT_EQ(main_model_part_output.GetMesh().GetElement(1).GetValue(DISPLACEMENT_X), displacement_x);
+    KRATOS_EXPECT_EQ(main_model_part_output.GetMesh().GetCondition(1).GetValue(CAUCHY_STRESS_TENSOR)(1,1),1);
+    KRATOS_EXPECT_EQ(main_model_part_output.GetMesh().GetCondition(1).GetValue(IS_RESTARTED),is_restarted);
+    KRATOS_EXPECT_EQ(main_model_part_output.GetMesh().GetCondition(1).GetValue(DOMAIN_SIZE),domain_size);
+    KRATOS_EXPECT_EQ(main_model_part_output.GetMesh().GetCondition(1).GetValue(TEMPERATURE), temperature);
+    KRATOS_EXPECT_EQ(main_model_part_output.GetMesh().GetCondition(1).GetValue(DISPLACEMENT_X), displacement_x);
 
     // Free the modelparts to prevent files still being opened
     delete model_part_io_write;
@@ -333,7 +332,7 @@ KRATOS_TEST_CASE_IN_SUITE(ModelPartIOVariableNotInSolutionStepData, KratosCoreFa
     model_part_0.AddNodalSolutionStepVariable(PRESSURE);
     model_part_0.AddNodalSolutionStepVariable(TEMPERATURE);
 
-    KRATOS_CHECK_EXCEPTION_IS_THROWN(
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         default_model_part_io.ReadModelPart(model_part_0),
         "The nodal solution step container does not have this variable: FORCE_Y");
 
@@ -342,7 +341,7 @@ KRATOS_TEST_CASE_IN_SUITE(ModelPartIOVariableNotInSolutionStepData, KratosCoreFa
     model_part_1.AddNodalSolutionStepVariable(FORCE);
     model_part_1.AddNodalSolutionStepVariable(PRESSURE);
 
-    KRATOS_CHECK_EXCEPTION_IS_THROWN(
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         default_model_part_io.ReadModelPart(model_part_1),
         "The nodal solution step container does not have this variable: TEMPERATURE");
 
@@ -355,8 +354,8 @@ KRATOS_TEST_CASE_IN_SUITE(ModelPartIOVariableNotInSolutionStepData, KratosCoreFa
     model_part_0.AddNodalSolutionStepVariable(TEMPERATURE);
 
     ignore_model_part_io.ReadModelPart(model_part_2);
-    KRATOS_CHECK_EQUAL(model_part_2.NumberOfNodes(), 4);
-    KRATOS_CHECK_EQUAL(model_part_2.NodesBegin()->Has(FORCE), false);
+    KRATOS_EXPECT_EQ(model_part_2.NumberOfNodes(), 4);
+    KRATOS_EXPECT_EQ(model_part_2.NodesBegin()->Has(FORCE), false);
 
     ModelPart& model_part_3 = current_model.CreateModelPart("IgnoreTemperature");
     model_part_1.AddNodalSolutionStepVariable(DISPLACEMENT);
@@ -364,8 +363,8 @@ KRATOS_TEST_CASE_IN_SUITE(ModelPartIOVariableNotInSolutionStepData, KratosCoreFa
     model_part_1.AddNodalSolutionStepVariable(PRESSURE);
 
     ignore_model_part_io.ReadModelPart(model_part_3);
-    KRATOS_CHECK_EQUAL(model_part_3.NumberOfNodes(), 4);
-    KRATOS_CHECK_EQUAL(model_part_3.NodesBegin()->Has(TEMPERATURE), false);
+    KRATOS_EXPECT_EQ(model_part_3.NumberOfNodes(), 4);
+    KRATOS_EXPECT_EQ(model_part_3.NodesBegin()->Has(TEMPERATURE), false);
 }
 
 }  // namespace Testing.

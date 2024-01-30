@@ -4,18 +4,17 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Riccardo Rossi
 //                   Vicente Mataix Ferrandiz
 //
 
-
-#if !defined(KRATOS_KRATOS_PARAMETERS_H_INCLUDED )
-#define  KRATOS_KRATOS_PARAMETERS_H_INCLUDED
+#pragma once
 
 // System includes
+#include <filesystem>
 
 // External includes
 #include "json/json_fwd.hpp" // Import forward declaration nlohmann json library
@@ -59,7 +58,7 @@ namespace Kratos
 class KRATOS_API(KRATOS_CORE) Parameters
 {
 private:
-    ///@name Nested clases
+    ///@name Nested classes
     ///@{
     /**
      * @class iterator_adaptor
@@ -140,7 +139,7 @@ private:
 
         /**
          * @brief operator ->
-         * @details This operator acces to the pointer of the Parameter
+         * @details This operator access to the pointer of the Parameter
          * @return The pointer of the parameter
          */
         Parameters* operator->() const;
@@ -150,7 +149,7 @@ private:
         ///@{
 
         /**
-         * @brief This method returs the current iterator
+         * @brief This method returns the current iterator
          * @return The current iterator
          */
         inline value_iterator GetCurrentIterator() const;
@@ -254,7 +253,7 @@ private:
 
         /**
          * @brief operator ->
-         * @details This operator acces to the pointer of the Parameter
+         * @details This operator access to the pointer of the Parameter
          * @return The pointer of the parameter
          */
         const Parameters* operator->() const;
@@ -264,7 +263,7 @@ private:
         ///@{
 
         /**
-         * @brief This method returs the current iterator
+         * @brief This method returns the current iterator
          * @return The current iterator
          */
         inline value_iterator GetCurrentIterator() const;
@@ -302,7 +301,7 @@ public:
     /// Pointer definition of MmgProcess
     KRATOS_CLASS_POINTER_DEFINITION(Parameters);
 
-    /// Definiton of the iterators
+    /// Definition of the iterators
     using iterator = iterator_adaptor;
     using const_iterator = const_iterator_adaptor;
 
@@ -369,14 +368,14 @@ public:
     Parameters operator[](const std::string& rEntry) const;
 
     /**
-     * @brief This method allows to acces to an array item with the operator []
+     * @brief This method allows to access to an array item with the operator []
      * @param Index The index of the term of interest
      * @return The desired Parameter
      */
     Parameters operator[](const IndexType Index);
 
     /**
-     * @brief This method allows to acces to an array item with the operator [] (const version)
+     * @brief This method allows to access to an array item with the operator [] (const version)
      * @param Index The index of the term of interest
      * @return The desired Parameter
      */
@@ -384,7 +383,7 @@ public:
 
     /**
      * @brief This is the move operator
-     * @param rOther The othe parameter to compute the move
+     * @param rOther The other parameter to compute the move
      */
     Parameters& operator=(Parameters&& rOther);
 
@@ -396,7 +395,7 @@ public:
      * @brief Generates a clone of the current document
      * @return A clone of the given Parameters
      */
-    Parameters Clone();
+    Parameters Clone() const;
 
     /**
      * @brief This method returns a string with the corresponding text to the equivalent *.json file
@@ -456,6 +455,13 @@ public:
      * @return False if failed, true otherwise
      */
     bool RemoveValue(const std::string& rEntry);
+
+    /**
+     * @brief This method removes several entries of the Parameters given a certain list of keys
+     * @param rEntries The keys identifier of the parameters
+     * @return False if failed, true otherwise
+     */
+    bool RemoveValues(const std::vector<std::string>& rEntries);
 
     /**
      * @brief This method returns the items of the current parameter
@@ -519,6 +525,12 @@ public:
     bool IsArray() const;
 
     /**
+     * @brief This method checks if the parameter is an array of strings
+     * @return True if it is a string array, false otherwise
+     */
+    bool IsStringArray() const;
+
+    /**
      * @brief This method checks if the parameter is a vector
      * @return True if it is a vector, false otherwise
      */
@@ -529,6 +541,14 @@ public:
      * @return True if it is a matrix, false otherwise
      */
     bool IsMatrix() const;
+
+    /**
+     * @brief Templetized type checker for supported types.
+     * @details Supported types: double, int, bool, std::string, @ref Vector, @ref Matrix.
+     * @tparam TValue: type of the value to parse.
+     */
+    template <class TValue>
+    bool Is() const;
 
     /**
      * @brief This method checks if the parameter is a subparameter
@@ -579,6 +599,14 @@ public:
     Matrix GetMatrix() const;
 
     /**
+     * @brief Templetized getter for supported types.
+     * @details Supported types: double, int, bool, std::string, @ref Vector, @ref Matrix.
+     * @tparam TValue: type of the value to parse and return.
+     */
+    template <class TValue>
+    TValue Get() const;
+
+    /**
      * @brief This method sets the double contained in the current Parameter
      * @param Value The double value
      */
@@ -619,6 +647,15 @@ public:
      * @param Value The matrix value
      */
     void SetMatrix(const Matrix& rValue);
+
+    /**
+     * @brief Templetized setter for supported types.
+     * @details Supported types: double, int, bool, std::string, @ref Vector, @ref Matrix.
+     * @tparam TValue: type of the value to be set.
+     * @param rValue: value to be written to the JSON.
+     */
+    template <class TValue>
+    void Set(const TValue& rValue);
 
     /**
      * @brief This method adds a new double Parameter
@@ -722,7 +759,7 @@ public:
 
     /**
      * @brief This method does a swap between two parameters
-     * @param rOther The othe parameter to compute the swap
+     * @param rOther The other parameter to compute the swap
      */
     void swap(Parameters& rOther) noexcept;
 
@@ -804,6 +841,16 @@ public:
     void Append(const Parameters& rValue);
 
     /**
+     * @brief This method can be used in order to copy the values from existing Parameters object
+     * @param OriginParameters The Parameters to be copied
+     * @param rListParametersToCopy The list of Parameters to copy
+     */
+    void CopyValuesFromExistingParameters(
+        const Parameters OriginParameters,
+        const std::vector<std::string>& rListParametersToCopy
+        );
+
+    /**
      * @brief This method looks in a recursive way in the json structure
      * @param rBaseValue The value where to find
      * @param rValueToFind The value to look
@@ -877,7 +924,6 @@ public:
      */
     void RecursivelyValidateDefaults(const Parameters& rDefaultParameters) const;
 
-
     ///@}
     ///@name Access
     ///@{
@@ -909,36 +955,6 @@ public:
 //         rOStream << "Parameters Object " << Info();
     };
 
-protected:
-    ///@name Protected static Member Variables
-    ///@{
-
-    ///@}
-    ///@name Protected member Variables
-    ///@{
-
-    ///@}
-    ///@name Protected Operators
-    ///@{
-
-    ///@}
-    ///@name Protected Operations
-    ///@{
-
-    ///@}
-    ///@name Protected  Access
-    ///@{
-
-    ///@}
-    ///@name Protected Inquiry
-    ///@{
-
-    ///@}
-    ///@name Protected LifeCycle
-    ///@{
-
-    ///@}
-
 private:
     ///@name Static Member Variables
     ///@{
@@ -954,7 +970,7 @@ private:
     ///@{
 
     nlohmann::json* mpValue;                   /// This is where the json is actually stored
-    Kratos::shared_ptr<nlohmann::json> mpRoot; /// This is a shared pointer to the root structure (this is what allows us to acces in a tree structure to the JSON database)
+    Kratos::shared_ptr<nlohmann::json> mpRoot; /// This is a shared pointer to the root structure (this is what allows us to access in a tree structure to the JSON database)
 
     ///@}
     ///@name Private Operators
@@ -1036,6 +1052,22 @@ private:
      */
     void InternalSetValue(const Parameters& rOtherValue);
 
+    /**
+     * @brief This method solves all the include dependencies in a json file
+     * @param rJson The json object
+     * @param rFileName name of the current json file ("root" if called from the constructor)
+     * @param rIncludeSequence a stack containing the current sequence of included JSON files
+     * @return This method leaves in rJson the final json object with no include dependencies
+     */
+    void SolveIncludes(nlohmann::json& rJson, const std::filesystem::path& rFileName, std::vector<std::filesystem::path>& rIncludeSequence);
+
+    /**
+     * @brief This method parses a json file.
+     * @param rFileName The JSON file's name.
+     * @return The JSON object obtained from parsing the file.
+     */
+    nlohmann::json ReadFile(const std::filesystem::path& rFileName);
+
 }; // Parameters class
 
 ///@}
@@ -1070,5 +1102,3 @@ inline std::ostream& operator << (std::ostream& rOStream,
 ///@} addtogroup block
 
 }  // namespace Kratos.
-
-#endif // KRATOS_KRATOS_PARAMETERS_H_INCLUDED  defined

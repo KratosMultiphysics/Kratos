@@ -590,7 +590,7 @@ void OrientedBoundingBox<TDim>::RotateNode2D(array_1d<double, 3>& rCoords) const
 template<std::size_t TDim>
 void OrientedBoundingBox<TDim>::RotateNode3D(
     array_1d<double, 3>& rCoords,
-    BoundedMatrix<double, 4, 4> rInvertedRotationMatrix
+    const BoundedMatrix<double, 4, 4>& rInvertedRotationMatrix
     ) const
 {
     array_1d<double, 4> old_coords;

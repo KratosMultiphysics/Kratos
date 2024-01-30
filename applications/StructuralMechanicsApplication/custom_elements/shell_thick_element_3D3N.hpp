@@ -4,14 +4,13 @@
 //       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
 //
 //  License:         BSD License
-//                     license: structural_mechanics_application/license.txt
+//                   license: StructuralMechanicsApplication/license.txt
 //
 //  Main authors:    Peter Wilson
 //       contact:    A.Winterstein[at]tum.de
 //
 
-#if !defined(SHELL_THICK_ELEMENT_3D3N_H_INCLUDED )
-#define  SHELL_THICK_ELEMENT_3D3N_H_INCLUDED
+#pragma once
 
 
 // System includes
@@ -389,4 +388,3 @@ private:
 };
 
 }
-#endif // SHELL_THICK_ELEMENT_3D3N_H_INCLUDED

@@ -4,8 +4,8 @@
 //        / /___/ /_/ / / / / /_/ /_/ / /__/ /_ ___/ / /_/ /  / /_/ / /__/ /_/ /_/ / /  / /_/ / /  
 //        \____/\____/_/ /_/\__/\__,_/\___/\__//____/\__/_/   \__,_/\___/\__/\__,_/_/   \__,_/_/  MECHANICS
 //
-//  License:		 BSD License
-//					 license: ContactStructuralMechanicsApplication/license.txt
+//  License:         BSD License
+//                   license: ContactStructuralMechanicsApplication/license.txt
 //
 //  Main authors:    Vicente Mataix Ferrandiz
 //
@@ -28,7 +28,7 @@ void ALMVariablesCalculationProcess::Execute()
 
     /* We compute the penalty factor */
 
-    // Auxiliar values
+    // Auxiliary values
     const double epsilon = std::numeric_limits<double>::epsilon();
     const double tolerance = 1.0e-12;
 
@@ -94,19 +94,42 @@ void ALMVariablesCalculationProcess::Execute()
     mean_nodal_h_master       /= (total_area_master   + tolerance);
     mean_young_modulus_master /= (total_volume_master + tolerance);
 
+    // Prepare the string stream
+    std::stringstream buffer;
+
     // Finally we compute the penalty factor
-    const double penalty_parameter_slave  = (mean_young_modulus_slave > epsilon) ? mFactorStiffness * mean_young_modulus_slave/(mean_nodal_h_slave + tolerance) : mFactorStiffness * mean_young_modulus_master/(mean_nodal_h_master + tolerance);
-    const double scale_factor_slave       = mPenaltyScale * mFactorStiffness * mean_young_modulus_slave/(mean_nodal_h_slave + tolerance);
-    const double penalty_parameter_master = mFactorStiffness * mean_young_modulus_master/(mean_nodal_h_master + tolerance);
-    const double scale_factor_master      = mPenaltyScale * mFactorStiffness * mean_young_modulus_master/(mean_nodal_h_master + tolerance);
+    if (mComputePenalty) {
+        const double penalty_parameter_slave  = (mean_young_modulus_slave > epsilon) ? mFactorStiffness * mean_young_modulus_slave/(mean_nodal_h_slave + tolerance) : mFactorStiffness * mean_young_modulus_master/(mean_nodal_h_master + tolerance);
+        const double penalty_parameter_master = mFactorStiffness * mean_young_modulus_master/(mean_nodal_h_master + tolerance);
 
-    KRATOS_INFO("ALM Values") << "The potential parameters for penalty and scale factor are: \n" << "PENALTY SLAVE:\t" << penalty_parameter_slave << "\tPENALTY MASTER:\t" << penalty_parameter_master << "\nSCALE FACTOR SLAVE:\t" << scale_factor_slave << "\tSCALE FACTOR MASTER:\t" << scale_factor_master << std::endl;
+        // Fill the buffer
+        if (mComputeScaleFactor) buffer << "The potential parameters for penalty and scale factor are: \n";
+        buffer << "PENALTY SLAVE:\t" << penalty_parameter_slave << "\tPENALTY MASTER:\t" << penalty_parameter_master;
 
-    // NOTE: > or <? , we are supposed to take the smallest of the values (less stiff)
-    const double final_penalty = (penalty_parameter_slave < penalty_parameter_master) ? penalty_parameter_slave : penalty_parameter_master;
-    const double final_scale_factor = (scale_factor_slave < scale_factor_master) ? scale_factor_slave : scale_factor_master;
-    mrThisModelPart.GetProcessInfo().SetValue(INITIAL_PENALTY, final_penalty);
-    mrThisModelPart.GetProcessInfo().SetValue(SCALE_FACTOR, final_scale_factor);
+        // NOTE: > or <? , we are supposed to take the smallest of the values (less stiff)
+        const double final_penalty = (penalty_parameter_slave < penalty_parameter_master) ? penalty_parameter_slave : penalty_parameter_master;
+        
+        // Setting value
+        mrThisModelPart.GetProcessInfo().SetValue(INITIAL_PENALTY, final_penalty);
+    }
+
+    // Finally we compute the scale factor
+    if (mComputeScaleFactor) {
+        const double scale_factor_slave  = mPenaltyScale * mFactorStiffness * mean_young_modulus_slave/(mean_nodal_h_slave + tolerance);
+        const double scale_factor_master = mPenaltyScale * mFactorStiffness * mean_young_modulus_master/(mean_nodal_h_master + tolerance);
+
+        // Fill the buffer
+        if (!mComputePenalty) buffer << "The potential parameters for scale factor are: \n";
+        buffer << "\nSCALE FACTOR SLAVE:\t" << scale_factor_slave << "\tSCALE FACTOR MASTER:\t" << scale_factor_master;
+
+        // NOTE: > or <? , we are supposed to take the smallest of the values (less stiff)
+        const double final_scale_factor = (scale_factor_slave < scale_factor_master) ? scale_factor_slave : scale_factor_master;
+
+        // Setting value
+        mrThisModelPart.GetProcessInfo().SetValue(SCALE_FACTOR, final_scale_factor);
+    }
+
+    KRATOS_INFO("ALM Values") << buffer.str() << std::endl;
 
     KRATOS_CATCH("")
 } // class ALMVariablesCalculationProcess

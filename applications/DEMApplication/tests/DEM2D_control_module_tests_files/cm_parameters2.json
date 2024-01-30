@@ -1,0 +1,55 @@
+{
+    "multiaxial_control_module_generalized_2d_utility" : {
+        "Parameters"    : {
+            "control_module_delta_time": 2.0e-8,
+            "perturbation_tolerance": 1.0e-4,
+            "perturbation_period": 10,
+            "max_reaction_rate_factor": 10.0,
+            "stiffness_averaging_time_interval": 2.0e-6,
+            "velocity_averaging_time_interval": 2.0e-4,
+            "reaction_averaging_time_interval": 6.0e-8,
+            "output_interval": 0
+        },
+        "list_of_actuators" : [{
+            "Parameters"    : {
+                "actuator_name": "Z",
+                "initial_velocity" : 0.0,
+                "compression_length" : 1.0,
+                "young_modulus" : 7.0e9
+            },
+            "list_of_dem_boundaries": [{
+                "model_part_name" : "dems",
+                "outer_normal": [0.0,0.0,1.0]
+            }],
+            "list_of_fem_boundaries": [],
+            "target_stress_table": {
+                "input_variable": "TIME",
+                "output_variable": "TARGET_STRESS",
+                "data": [
+                    [0.0, 0.0],
+                    [2.0E-2, 0.0]
+                ]
+            }
+        },{
+            "Parameters"    : {
+                "actuator_name": "Radial",
+                "initial_velocity" : 0.0,
+                "compression_length" : 0.0505,
+                "young_modulus" : 7.0e9
+            },
+            "list_of_dem_boundaries": [],
+            "list_of_fem_boundaries": [{
+                "model_part_name" : "1",
+                "outer_normal": [0.0,0.0,0.0]
+            }],
+            "target_stress_table": {
+                "input_variable": "TIME",
+                "output_variable": "TARGET_STRESS",
+                "data": [
+                    [0.0, 0.0],
+                    [2.0E-2, -1.0e9]
+                ]
+            }
+        }]
+    }
+}

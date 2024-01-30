@@ -65,7 +65,7 @@ template <size_t TDim, size_t TNumNodes, bool TElementIntegratesInTime>
 void FluidElementData<TDim, TNumNodes, TElementIntegratesInTime>::FillFromHistoricalNodalData(
     NodalScalarData &rData,
     const Variable<double> &rVariable,
-    const Geometry<Node<3>> &rGeometry)
+    const Geometry<Node> &rGeometry)
 {
     for (size_t i = 0; i < TNumNodes; i++) {
         rData[i] = rGeometry[i].FastGetSolutionStepValue(rVariable);
@@ -76,7 +76,7 @@ template <size_t TDim, size_t TNumNodes, bool TElementIntegratesInTime>
 void FluidElementData<TDim, TNumNodes, TElementIntegratesInTime>::FillFromHistoricalNodalData(
     NodalVectorData& rData,
     const Variable<array_1d<double, 3>>& rVariable,
-    const Geometry<Node<3>>& rGeometry)
+    const Geometry<Node>& rGeometry)
 {
     for (size_t i = 0; i < TNumNodes; i++) {
         const array_1d<double, 3>& r_nodal_values =
@@ -91,7 +91,7 @@ template <size_t TDim, size_t TNumNodes, bool TElementIntegratesInTime>
 void FluidElementData<TDim, TNumNodes, TElementIntegratesInTime>::FillFromHistoricalNodalData(
     NodalTensorData& rData,
     const Variable<Matrix>& rVariable,
-    const Geometry<Node<3>>& rGeometry)
+    const Geometry<Node>& rGeometry)
 {
     for (size_t i = 0; i < TNumNodes; i++) {
         const Matrix& r_nodal_values =
@@ -103,7 +103,7 @@ void FluidElementData<TDim, TNumNodes, TElementIntegratesInTime>::FillFromHistor
 template <size_t TDim, size_t TNumNodes, bool TElementIntegratesInTime>
 void FluidElementData<TDim, TNumNodes, TElementIntegratesInTime>::FillFromHistoricalNodalData(
     NodalScalarData& rData, const Variable<double>& rVariable,
-    const Geometry<Node<3>>& rGeometry, const unsigned int Step)
+    const Geometry<Node>& rGeometry, const unsigned int Step)
 {
     for (size_t i = 0; i < TNumNodes; i++) {
         rData[i] = rGeometry[i].FastGetSolutionStepValue(rVariable,Step);
@@ -113,7 +113,7 @@ void FluidElementData<TDim, TNumNodes, TElementIntegratesInTime>::FillFromHistor
 template <size_t TDim, size_t TNumNodes, bool TElementIntegratesInTime>
 void FluidElementData<TDim, TNumNodes, TElementIntegratesInTime>::FillFromHistoricalNodalData(
     NodalVectorData& rData, const Variable<array_1d<double, 3>>& rVariable,
-    const Geometry<Node<3>>& rGeometry, const unsigned int Step)
+    const Geometry<Node>& rGeometry, const unsigned int Step)
 {
     for (size_t i = 0; i < TNumNodes; i++) {
         const array_1d<double, 3>& r_nodal_values =
@@ -128,7 +128,7 @@ template <size_t TDim, size_t TNumNodes, bool TElementIntegratesInTime>
 void FluidElementData<TDim, TNumNodes, TElementIntegratesInTime>::FillFromNonHistoricalNodalData(
     NodalScalarData& rData,
     const Variable<double>& rVariable,
-    const Geometry<Node<3>>& rGeometry)
+    const Geometry<Node>& rGeometry)
 {
     for (size_t i = 0; i < TNumNodes; i++) {
         rData[i] = rGeometry[i].GetValue(rVariable);
@@ -139,7 +139,7 @@ template <size_t TDim, size_t TNumNodes, bool TElementIntegratesInTime>
 void FluidElementData<TDim, TNumNodes, TElementIntegratesInTime>::FillFromNonHistoricalNodalData(
     NodalVectorData& rData,
     const Variable<array_1d<double, 3>>& rVariable,
-    const Geometry<Node<3>>& rGeometry)
+    const Geometry<Node>& rGeometry)
 {
     for (size_t i = 0; i < TNumNodes; i++) {
         const array_1d<double, 3>& r_nodal_values = rGeometry[i].GetValue(rVariable);
@@ -201,6 +201,8 @@ template class FluidElementData<2,3,true>;
 
 // Quadrilaterals
 template class FluidElementData<2,4,false>;
+template class FluidElementData<2,6,false>;
+template class FluidElementData<2,9,false>;
 template class FluidElementData<2,4,true>;
 
 // Tetrahedra
@@ -214,5 +216,6 @@ template class FluidElementData<3,6,true>;
 // Hexahedra
 template class FluidElementData<3,8,false>;
 template class FluidElementData<3,8,true>;
+template class FluidElementData<3,27,false>;
 
 } // namespace Kratos

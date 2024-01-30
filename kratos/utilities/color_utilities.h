@@ -2,17 +2,15 @@
 //    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ `
 //   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics 
+//                   Multi-Physics
 //
-//  License:		 BSD License 
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Vicente Mataix Ferrandiz
-//                    
 //
 
-#ifndef _COLORS_
-#define _COLORS_
+#pragma once
 
 /* FOREGROUND */
 #if !defined(_WIN32)
@@ -34,7 +32,11 @@
     #define FWHT(x) KWHT x RST
 
     #define BOLDFONT(x) "\x1B[1m" x RST
+    #define FAINTFONT(x) "\x1B[2m" x RST
+    #define ITAFONT(x) "\x1B[3m" x RST
     #define UNDL(x) "\x1B[4m" x RST
+    #define INVFONT(x) "\x1B[7m" x RST
+    #define STRFONT(x) "\x1B[9m" x RST
 #else
     #define RST  ""
     #define KRED ""
@@ -54,7 +56,9 @@
     #define FWHT(x) KWHT x RST
 
     #define BOLDFONT(x) "" x RST
+    #define FAINTFONT(x) "" x RST
+    #define ITAFONT(x) "" x RST
     #define UNDL(x) "" x RST
+    #define INVFONT(x) "" x RST
+    #define STRFONT(x) "" x RST
 #endif
-
-#endif  /* _COLORS_ */

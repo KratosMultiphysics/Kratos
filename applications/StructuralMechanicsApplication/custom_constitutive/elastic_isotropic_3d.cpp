@@ -4,7 +4,7 @@
 //       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
 //
 //  License:         BSD License
-//                   license: structural_mechanics_application/license.txt
+//                   license: StructuralMechanicsApplication/license.txt
 //
 //  Main authors:    Riccardo Rossi
 //
@@ -239,7 +239,7 @@ Vector& ElasticIsotropic3D::CalculateValue(
         const bool flag_stress = r_flags.Is( ConstitutiveLaw::COMPUTE_STRESS );
 
         // Set flags to only compute the stress
-        r_flags.Set( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true );
+        r_flags.Set( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false );
         r_flags.Set( ConstitutiveLaw::COMPUTE_STRESS, true );
 
         this->CalculateMaterialResponsePK2(rParameterValues);
@@ -332,6 +332,22 @@ int ElasticIsotropic3D::Check(
 /***********************************************************************************/
 /***********************************************************************************/
 
+std::string ElasticIsotropic3D::Info() const
+{
+    return "ElasticIsotropic3D ConstitutiveLaw instance";
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void ElasticIsotropic3D::PrintInfo(std::ostream& rOStream) const
+{
+    rOStream << this->Info() << std::endl;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
 void ElasticIsotropic3D::CheckClearElasticMatrix(ConstitutiveLaw::VoigtSizeMatrixType& rConstitutiveMatrix)
 {
     const SizeType size_system = this->GetStrainSize();
@@ -348,7 +364,10 @@ void ElasticIsotropic3D::CalculateElasticMatrix(
     ConstitutiveLaw::Parameters& rValues
     )
 {
-    ConstitutiveLawUtilities<6>::CalculateElasticMatrix(rConstitutiveMatrix, rValues);
+    const auto &r_props = rValues.GetMaterialProperties();
+    const double E = r_props[YOUNG_MODULUS];
+    const double NU = r_props[POISSON_RATIO];
+    ConstitutiveLawUtilities<6>::CalculateElasticMatrix(rConstitutiveMatrix, E, NU);
 }
 
 /***********************************************************************************/
@@ -364,17 +383,7 @@ void ElasticIsotropic3D::CalculatePK2Stress(
     const double E = r_material_properties[YOUNG_MODULUS];
     const double NU = r_material_properties[POISSON_RATIO];
 
-    const double c1 = E / ((1.00 + NU) * (1 - 2 * NU));
-    const double c2 = c1 * (1 - NU);
-    const double c3 = c1 * NU;
-    const double c4 = c1 * 0.5 * (1 - 2 * NU);
-
-    rStressVector[0] = c2 * rStrainVector[0] + c3 * rStrainVector[1] + c3 * rStrainVector[2];
-    rStressVector[1] = c3 * rStrainVector[0] + c2 * rStrainVector[1] + c3 * rStrainVector[2];
-    rStressVector[2] = c3 * rStrainVector[0] + c3 * rStrainVector[1] + c2 * rStrainVector[2];
-    rStressVector[3] = c4 * rStrainVector[3];
-    rStressVector[4] = c4 * rStrainVector[4];
-    rStressVector[5] = c4 * rStrainVector[5];
+    ConstitutiveLawUtilities<6>::CalculatePK2StressFromStrain(rStressVector, rStrainVector, E, NU);
 }
 
 /***********************************************************************************/
@@ -385,19 +394,7 @@ void ElasticIsotropic3D::CalculateCauchyGreenStrain(
     ConstitutiveLaw::StrainVectorType& rStrainVector
     )
 {
-    const SizeType space_dimension = this->WorkingSpaceDimension();
-
-    //1.-Compute total deformation gradient
-    const ConstitutiveLaw::DeformationGradientMatrixType& F = rValues.GetDeformationGradientF();
-    KRATOS_DEBUG_ERROR_IF(F.size1()!= space_dimension || F.size2() != space_dimension)
-        << "expected size of F " << space_dimension << "x" << space_dimension << ", got " << F.size1() << "x" << F.size2() << std::endl;
-
-    ConstitutiveLaw::DeformationGradientMatrixType E_tensor = prod(trans(F),F);
-    for(unsigned int i=0; i<space_dimension; ++i)
-      E_tensor(i,i) -= 1.0;
-    E_tensor *= 0.5;
-
-    noalias(rStrainVector) = MathUtils<double>::StrainTensorToVector(E_tensor);
+    ConstitutiveLawUtilities<6>::CalculateCauchyGreenStrain(rValues, rStrainVector);
 }
 
 } // Namespace Kratos

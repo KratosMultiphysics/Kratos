@@ -1,17 +1,15 @@
-//    |  /           |
-//    ' /   __| _` | __|  _ \   __|
-//    . \  |   (   | |   (   |\__ `
-//   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics
+// KRATOS  ___|  |                   |                   |
+//       \___ \  __|  __| |   |  __| __| |   |  __| _` | |
+//             | |   |    |   | (    |   |   | |   (   | |
+//       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
 //
-//  License:		 BSD License
-//					 license: StructuralMechanicsApplication/license.txt
+//  License:         BSD License
+//                   license: StructuralMechanicsApplication/license.txt
 //
 //  Main author:    Michael Andre, https://github.com/msandre
 //
 
-#if !defined(KRATOS_EIGENSOLVER_STRATEGY )
-#define  KRATOS_EIGENSOLVER_STRATEGY
+#pragma once
 
 // System includes
 
@@ -240,9 +238,8 @@ public:
         KRATOS_TRY
 
         ModelPart& rModelPart = BaseType::GetModelPart();
-        const int rank = rModelPart.GetCommunicator().MyPID();
 
-        KRATOS_INFO_IF("EigensolverStrategy", BaseType::GetEchoLevel() > 2 && rank == 0)
+        KRATOS_INFO_IF("EigensolverStrategy", BaseType::GetEchoLevel() > 2)
             <<  "Entering Initialize" << std::endl;
 
         if (mInitializeWasPerformed == false)
@@ -259,7 +256,7 @@ public:
                 pScheme->InitializeConditions(rModelPart);
         }
 
-        KRATOS_INFO_IF("EigensolverStrategy", BaseType::GetEchoLevel() > 2 && rank == 0)
+        KRATOS_INFO_IF("EigensolverStrategy", BaseType::GetEchoLevel() > 2)
             <<  "Exiting Initialize" << std::endl;
 
         KRATOS_CATCH("")
@@ -304,9 +301,8 @@ public:
         KRATOS_TRY
 
         ModelPart& rModelPart = BaseType::GetModelPart();
-        const int rank = rModelPart.GetCommunicator().MyPID();
 
-        KRATOS_INFO_IF("EigensolverStrategy", BaseType::GetEchoLevel() > 2 && rank == 0)
+        KRATOS_INFO_IF("EigensolverStrategy", BaseType::GetEchoLevel() > 2)
             <<  "Entering InitializeSolutionStep" << std::endl;
 
         BuilderAndSolverPointerType& pBuilderAndSolver = this->pGetBuilderAndSolver();
@@ -329,15 +325,15 @@ public:
             BuiltinTimer setup_dofs_time;
             pBuilderAndSolver->SetUpDofSet(pScheme, rModelPart);
 
-            KRATOS_INFO_IF("Setup Dofs Time", BaseType::GetEchoLevel() > 0 && rank == 0)
-                << setup_dofs_time.ElapsedSeconds() << std::endl;
+            KRATOS_INFO_IF("Setup Dofs Time", BaseType::GetEchoLevel() > 0)
+                << setup_dofs_time << std::endl;
 
             // Set global equation ids
             BuiltinTimer setup_system_time;
             pBuilderAndSolver->SetUpSystem(rModelPart);
 
-            KRATOS_INFO_IF("Setup System Time", BaseType::GetEchoLevel() > 0 && rank == 0)
-                << setup_system_time.ElapsedSeconds() << std::endl;
+            KRATOS_INFO_IF("Setup System Time", BaseType::GetEchoLevel() > 0)
+                << setup_system_time << std::endl;
 
             // Resize and initialize system matrices
             BuiltinTimer system_matrix_resize_time;
@@ -351,8 +347,8 @@ public:
             pBuilderAndSolver->ResizeAndInitializeVectors(
                 pScheme, pStiffnessMatrix, pDx, pb, rModelPart);
 
-            KRATOS_INFO_IF("System Matrix Resize Time", BaseType::GetEchoLevel() > 0 && rank == 0)
-                << system_matrix_resize_time.ElapsedSeconds() << std::endl;
+            KRATOS_INFO_IF("System Matrix Resize Time", BaseType::GetEchoLevel() > 0)
+                << system_matrix_resize_time << std::endl;
         }
         else
         {
@@ -362,8 +358,8 @@ public:
             SparseSpaceType::Set(rDx, 0.0);
         }
 
-        KRATOS_INFO_IF("System Construction Time", BaseType::GetEchoLevel() > 0 && rank == 0)
-            << system_construction_time.ElapsedSeconds() << std::endl;
+        KRATOS_INFO_IF("System Construction Time", BaseType::GetEchoLevel() > 0)
+            << system_construction_time << std::endl;
 
         // Initial operations ... things that are constant over the solution
         // step
@@ -374,7 +370,7 @@ public:
         // step
         pScheme->InitializeSolutionStep(BaseType::GetModelPart(), rStiffnessMatrix, rDx, rb);
 
-        KRATOS_INFO_IF("EigensolverStrategy", BaseType::GetEchoLevel() > 2 && rank == 0)
+        KRATOS_INFO_IF("EigensolverStrategy", BaseType::GetEchoLevel() > 2)
             <<  "Exiting InitializeSolutionStep" << std::endl;
 
         KRATOS_CATCH("")
@@ -448,7 +444,7 @@ public:
                 Eigenvectors);
 
         KRATOS_INFO_IF("System Solve Time", BaseType::GetEchoLevel() > 0)
-                << system_solve_time.ElapsedSeconds() << std::endl;
+                << system_solve_time << std::endl;
 
         if (master_slave_constraints_defined){
             this->ReconstructSlaveSolution(Eigenvectors);
@@ -469,8 +465,7 @@ public:
     {
         KRATOS_TRY;
 
-        const int rank = BaseType::GetModelPart().GetCommunicator().MyPID();
-        KRATOS_INFO_IF("EigensolverStrategy", BaseType::GetEchoLevel() > 2 && rank == 0)
+        KRATOS_INFO_IF("EigensolverStrategy", BaseType::GetEchoLevel() > 2)
             <<  "Entering FinalizeSolutionStep" << std::endl;
 
         SparseMatrixType& rStiffnessMatrix = this->GetStiffnessMatrix();
@@ -480,7 +475,7 @@ public:
             BaseType::GetModelPart(), rStiffnessMatrix, *pDx, *pb);
         pGetScheme()->FinalizeSolutionStep(BaseType::GetModelPart(),
                                            rStiffnessMatrix, *pDx, *pb);
-        KRATOS_INFO_IF("EigensolverStrategy", BaseType::GetEchoLevel() > 2 && rank == 0)
+        KRATOS_INFO_IF("EigensolverStrategy", BaseType::GetEchoLevel() > 2)
             <<  "Exiting FinalizeSolutionStep" << std::endl;
 
         KRATOS_CATCH("");
@@ -495,9 +490,8 @@ public:
         KRATOS_TRY
 
         ModelPart& rModelPart = BaseType::GetModelPart();
-        const int rank = rModelPart.GetCommunicator().MyPID();
 
-        KRATOS_INFO_IF("EigensolverStrategy", BaseType::GetEchoLevel() > 2 && rank == 0)
+        KRATOS_INFO_IF("EigensolverStrategy", BaseType::GetEchoLevel() > 2)
             <<  "Entering Check" << std::endl;
 
         // check the model part
@@ -509,7 +503,7 @@ public:
         // check the builder and solver
         this->pGetBuilderAndSolver()->Check(rModelPart);
 
-        KRATOS_INFO_IF("EigensolverStrategy", BaseType::GetEchoLevel() > 2 && rank == 0)
+        KRATOS_INFO_IF("EigensolverStrategy", BaseType::GetEchoLevel() > 2)
             <<  "Exiting Check" << std::endl;
 
         return 0;
@@ -668,9 +662,7 @@ private:
     {
         KRATOS_TRY
 
-        const int rank = BaseType::GetModelPart().GetCommunicator().MyPID();
-
-        KRATOS_INFO_IF("EigensolverStrategy", BaseType::GetEchoLevel() > 2 && rank == 0)
+        KRATOS_INFO_IF("EigensolverStrategy", BaseType::GetEchoLevel() > 2)
             <<  "Entering ApplyDirichletConditions" << std::endl;
 
         const std::size_t SystemSize = rA.size1();
@@ -679,12 +671,10 @@ private:
         const int NumDofs = static_cast<int>(rDofSet.size());
 
         // NOTE: dofs are assumed to be numbered consecutively
-        #pragma omp parallel for firstprivate(NumDofs)
-        for(int k = 0; k<NumDofs; k++)
-        {
+        IndexPartition(NumDofs).for_each([&rDofSet, &ScalingFactors](std::size_t k){
             auto dof_iterator = std::begin(rDofSet) + k;
             ScalingFactors[k] = (dof_iterator->IsFixed()) ? 0.0 : 1.0;
-        }
+        });
 
         double* AValues = std::begin(rA.value_data());
         std::size_t* ARowIndices = std::begin(rA.index1_data());
@@ -707,9 +697,7 @@ private:
         //         rA(k,k) = 1.0;
         // }
 
-        #pragma omp parallel for
-        for (int k = 0; k < static_cast<int>(SystemSize); ++k)
-        {
+        IndexPartition(SystemSize).for_each([&](std::size_t k){
             std::size_t ColBegin = ARowIndices[k];
             std::size_t ColEnd = ARowIndices[k+1];
             if (ScalingFactors[k] == 0.0)
@@ -717,7 +705,7 @@ private:
                 // row dof is fixed. zero off-diagonal columns and factor diagonal
                 for (std::size_t j = ColBegin; j < ColEnd; ++j)
                 {
-                    if (static_cast<int>(AColIndices[j]) != k)
+                    if (AColIndices[j] != k)
                     {
                         AValues[j] = 0.0;
                     }
@@ -735,9 +723,9 @@ private:
                     AValues[j] *= ScalingFactors[AColIndices[j]];
                 }
             }
-        }
+        });
 
-        KRATOS_INFO_IF("EigensolverStrategy", BaseType::GetEchoLevel() > 2 && rank == 0)
+        KRATOS_INFO_IF("EigensolverStrategy", BaseType::GetEchoLevel() > 2)
             <<  "Exiting ApplyDirichletConditions" << std::endl;
 
         KRATOS_CATCH("")
@@ -828,5 +816,3 @@ private:
 ///@}
 
 } /* namespace Kratos */
-
-#endif /* KRATOS_EIGENSOLVER_STRATEGY  defined */

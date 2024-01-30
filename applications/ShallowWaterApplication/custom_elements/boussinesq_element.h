@@ -20,7 +20,7 @@
 
 
 // Project includes
-#include "wave_element.h"
+#include "primitive_element.h"
 
 namespace Kratos
 {
@@ -48,7 +48,7 @@ namespace Kratos
 
 ///@brief Implementation of a linear element for shallow water problems
 template<std::size_t TNumNodes>
-class BoussinesqElement : public WaveElement<TNumNodes>
+class BoussinesqElement : public PrimitiveElement<TNumNodes>
 {
 public:
     ///@name Type Definitions
@@ -56,25 +56,25 @@ public:
 
     typedef std::size_t IndexType;
 
-    typedef Node<3> NodeType;
+    typedef Node NodeType;
 
     typedef Geometry<NodeType> GeometryType;
 
-    typedef WaveElement<TNumNodes> WaveElementType;
+    typedef PrimitiveElement<TNumNodes> BaseType;
 
-    typedef typename WaveElementType::VectorType VectorType;
+    typedef typename BaseType::VectorType VectorType;
 
-    typedef typename WaveElementType::NodesArrayType NodesArrayType;
+    typedef typename BaseType::NodesArrayType NodesArrayType;
 
-    typedef typename WaveElementType::PropertiesType PropertiesType;
+    typedef typename BaseType::PropertiesType PropertiesType;
 
-    typedef typename WaveElementType::ElementData ElementData;
+    typedef typename BaseType::ElementData ElementData;
 
-    typedef typename WaveElementType::LocalMatrixType LocalMatrixType;
+    typedef typename BaseType::LocalMatrixType LocalMatrixType;
 
-    typedef typename WaveElementType::LocalVectorType LocalVectorType;
+    typedef typename BaseType::LocalVectorType LocalVectorType;
 
-    typedef typename WaveElementType::ShapeFunctionsGradientsType ShapeFunctionsGradientsType;
+    typedef typename BaseType::ShapeFunctionsGradientsType ShapeFunctionsGradientsType;
 
     ///@}
     ///@name Pointer definition
@@ -89,22 +89,22 @@ public:
     /**
      * @brief Default constructor
      */
-    BoussinesqElement() : WaveElementType(){}
+    BoussinesqElement() : BaseType(){}
 
     /**
      * @brief Constructor using an array of nodes
      */
-    BoussinesqElement(IndexType NewId, const NodesArrayType& ThisNodes) : WaveElementType(NewId, ThisNodes){}
+    BoussinesqElement(IndexType NewId, const NodesArrayType& ThisNodes) : BaseType(NewId, ThisNodes){}
 
     /**
      * @brief Constructor using Geometry
      */
-    BoussinesqElement(IndexType NewId, GeometryType::Pointer pGeometry) : WaveElementType(NewId, pGeometry){}
+    BoussinesqElement(IndexType NewId, GeometryType::Pointer pGeometry) : BaseType(NewId, pGeometry){}
 
     /**
      * @brief Constructor using Geometry and Properties
      */
-    BoussinesqElement(IndexType NewId, GeometryType::Pointer pGeometry, typename PropertiesType::Pointer pProperties) : WaveElementType(NewId, pGeometry, pProperties){}
+    BoussinesqElement(IndexType NewId, GeometryType::Pointer pGeometry, typename PropertiesType::Pointer pProperties) : BaseType(NewId, pGeometry, pProperties){}
 
     /**
      * @brief Destructor
@@ -201,7 +201,7 @@ protected:
     ///@name Protected static Member Variables
     ///@{
 
-    static constexpr IndexType mLocalSize = WaveElementType::mLocalSize;
+    static constexpr IndexType mLocalSize = BaseType::mLocalSize;
 
     ///@}
     ///@name Protected Operations
@@ -214,23 +214,15 @@ protected:
         const ShapeFunctionsGradientsType& rDN_DXContainer,
         const Vector& rWeights);
 
-    void AddAuxiliaryLaplacian(
-        LocalMatrixType& rVelocityLaplacian,
-        LocalMatrixType& rMomentumLaplacian,
+    void AddDispersionProjection(
+        LocalVectorType& rDispersionH,
+        LocalVectorType& rDispersionU,
         const ElementData& rData,
         const array_1d<double,TNumNodes>& rN,
         const BoundedMatrix<double,TNumNodes,2>& rDN_DX,
         const double Weight = 1.0);
 
-    const Variable<double>& GetUnknownComponent(int Index) const override;
-
-    LocalVectorType GetUnknownVector(const ElementData& rData) const override;
-
     void GetNodalData(ElementData& rData, const GeometryType& rGeometry, int Step = 0) override;
-
-    void UpdateGaussPointData(ElementData& rData, const array_1d<double,TNumNodes>& rN) override;
-
-    double StabilizationParameter(const ElementData& rData) const override;
 
     void CalculateArtificialViscosity(
         BoundedMatrix<double,3,3>& rViscosity,

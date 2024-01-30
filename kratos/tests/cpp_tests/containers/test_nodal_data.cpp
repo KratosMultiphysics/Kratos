@@ -50,8 +50,8 @@ namespace Testing {
 					distance_sum += i_node->FastGetSolutionStepValue(DISTANCE);
 					velocity_x_sum += i_node->FastGetSolutionStepValue(VELOCITY_X) * 2;
 				}
-				KRATOS_CHECK_DOUBLE_EQUAL(distance_sum, i * size);
-				KRATOS_CHECK_DOUBLE_EQUAL(velocity_x_sum, i * size * 2);
+				KRATOS_EXPECT_DOUBLE_EQ(distance_sum, i * size);
+				KRATOS_EXPECT_DOUBLE_EQ(velocity_x_sum, i * size * 2);
 			}
 		}
 
@@ -90,9 +90,9 @@ namespace Testing {
 					velocity_x_sum += i_node->FastGetSolutionStepValue(VELOCITY_X);
 					velocity_y_sum += i_node->FastGetSolutionStepValue(VELOCITY_Y);
 				}
-				KRATOS_CHECK_DOUBLE_EQUAL(pressure_sum, i * size);
-				KRATOS_CHECK_DOUBLE_EQUAL(velocity_x_sum, 2*i * size);
-				KRATOS_CHECK_DOUBLE_EQUAL(velocity_y_sum, 0.00);
+				KRATOS_EXPECT_DOUBLE_EQ(pressure_sum, i * size);
+				KRATOS_EXPECT_DOUBLE_EQ(velocity_x_sum, 2*i * size);
+				KRATOS_EXPECT_DOUBLE_EQ(velocity_y_sum, 0.00);
 			}
 		}
 
@@ -109,18 +109,18 @@ namespace Testing {
             const std::string tag_string("Node");
 
 
-			Node<3>::Pointer p_node_to_be_saved = model_part.CreateNewNode(1, 1, 0, 0);
+			Node::Pointer p_node_to_be_saved = model_part.CreateNewNode(1, 1, 0, 0);
 			p_node_to_be_saved->FastGetSolutionStepValue(DISTANCE) = 1.12;
 			p_node_to_be_saved->FastGetSolutionStepValue(VELOCITY_X) = 2.32;
 
-			Node<3>::Pointer p_node_to_be_loaded(nullptr);
+			Node::Pointer p_node_to_be_loaded(nullptr);
  
             serializer.save(tag_string, p_node_to_be_saved);
             serializer.load(tag_string, p_node_to_be_loaded);
 
-			KRATOS_CHECK_EQUAL(p_node_to_be_loaded->Id() , 1);
-			KRATOS_CHECK_DOUBLE_EQUAL(p_node_to_be_loaded->FastGetSolutionStepValue(DISTANCE), 1.12);
-			KRATOS_CHECK_DOUBLE_EQUAL(p_node_to_be_loaded->FastGetSolutionStepValue(VELOCITY_X), 2.32);
+			KRATOS_EXPECT_EQ(p_node_to_be_loaded->Id() , 1);
+			KRATOS_EXPECT_DOUBLE_EQ(p_node_to_be_loaded->FastGetSolutionStepValue(DISTANCE), 1.12);
+			KRATOS_EXPECT_DOUBLE_EQ(p_node_to_be_loaded->FastGetSolutionStepValue(VELOCITY_X), 2.32);
 		}
 
         KRATOS_TEST_CASE_IN_SUITE(NodalDataSerialization, KratosCoreFastSuite) {
@@ -138,7 +138,7 @@ namespace Testing {
             serializer.save("NodalData", nodal_data_to_be_saved);
             serializer.load("NodalData", nodal_data_to_be_loaded);
 
-            KRATOS_CHECK_EQUAL(nodal_data_to_be_saved.Id(), nodal_data_to_be_loaded.Id());
+            KRATOS_EXPECT_EQ(nodal_data_to_be_saved.Id(), nodal_data_to_be_loaded.Id());
         }
 
 }

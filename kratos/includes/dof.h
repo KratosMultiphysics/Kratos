@@ -4,15 +4,14 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Pooyan Dadvand
 //
 //
 
-#if !defined(KRATOS_DOF_H_INCLUDED )
-#define  KRATOS_DOF_H_INCLUDED
+#pragma once
 
 // System includes
 #include <string>
@@ -26,7 +25,6 @@
 #include "includes/define.h"
 #include "containers/data_value_container.h"
 #include "containers/nodal_data.h"
-#include "containers/array_1d.h"
 
 namespace Kratos
 {
@@ -105,7 +103,7 @@ public:
     ///@{
 
     /** Constructor. This constructor takes all necessary
-    informations to construct a degree of freedom. Also default
+    information to construct a degree of freedom. Also default
     values are used to make it easier to define for simple cases.
 
     @param rThisVariable Variable which this degree of freedom
@@ -448,11 +446,7 @@ private:
     int mIndex : 6;
 
     /** Equation identificator of the degree of freedom */
-#ifdef KRATOS_ENV32BIT // Required to avoid overflow on 32 bit systems
-    EquationIdType mEquationId : 32;
-#else
     EquationIdType mEquationId : 48;
-#endif
 
     /** A pointer to nodal data stored in node which is corresponded to this dof */
     NodalData* mpNodalData;
@@ -630,9 +624,6 @@ inline bool operator == ( Dof<TDataType> const& First,
 
 }  // namespace Kratos.
 
-
 #undef KRATOS_DOF_TRAITS
 #undef KRATOS_MAKE_DOF_TRAIT
 #undef KRATOS_END_DOF_TRAIT
-
-#endif // KRATOS_DOF_H_INCLUDED  defined

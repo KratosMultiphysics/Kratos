@@ -64,7 +64,7 @@ public:
     /// Pointer definition of DistanceModificationProcess
     KRATOS_CLASS_POINTER_DEFINITION(MassConservationCheckProcess);
 
-    typedef Node<3> NodeType;
+    typedef Node NodeType;
     typedef Geometry<NodeType> GeometryType;
 
     ///@}
@@ -85,7 +85,7 @@ public:
         const bool PerformCorrections,
         const int CorrectionFreq,
         const bool WriteToLogFile,
-        const std::string LogFileName);
+        const std::string& LogFileName);
 
     /**
      * @brief Constructor with Kratos parameters
@@ -239,7 +239,7 @@ private:
      * @param An Normal vector
      * @param pGeometry Geometry to be considered
      */
-    void CalculateNormal2D( array_1d<double,3>& An, const Geometry<Node<3> >& pGeometry );
+    void CalculateNormal2D( array_1d<double,3>& An, const Geometry<Node >& pGeometry );
 
     /**
      * @brief Computation of normal (non-unit) vector on a triangle
@@ -247,7 +247,7 @@ private:
      * @param An Normal vector (norm represents area)
      * @param pGeometry Geometry to be considered
      */
-    void CalculateNormal3D( array_1d<double,3>& An, const Geometry<Node<3> >& pGeometry );
+    void CalculateNormal3D( array_1d<double,3>& An, const Geometry<Node >& pGeometry );
 
     /**
      * @brief Function to shift the distance field to perform a volume correction
@@ -260,9 +260,9 @@ private:
      * @brief Generating a 2D triangle of type Triangle2D3 out of a Triangle3D3 geometry
      * A rotation to a position parallel to the x,y plane is performed.
      * @param rGeom Original triangle geometry
-     * @return Triangle2D3<Node<3>>::Pointer Shared pointer to the resulting triangle of type Triangle2D3
+     * @return Triangle2D3<Node>::Pointer Shared pointer to the resulting triangle of type Triangle2D3
      */
-    Triangle2D3<Node<3>>::Pointer GenerateAuxTriangle( const Geometry<Node<3> >& rGeom );
+    Triangle2D3<Node>::Pointer GenerateAuxTriangle( const Geometry<Node >& rGeom );
 
     /**
      * @brief Function to generate an auxiliary line segment that covers only the negative part of the original geometry
@@ -273,7 +273,7 @@ private:
      * @param aux_velocity1 Velocity at the first node of the new line segment(output)
      * @param aux_velocity2 Velocity at the second node of the new line segment (output)
      */
-    void GenerateAuxLine(   const Geometry<Node<3> >& rGeom,
+    void GenerateAuxLine(   const Geometry<Node >& rGeom,
                             const Vector& distance,
                             Line3D2<IndexedPoint>::Pointer& p_aux_line,
                             array_1d<double, 3>& aux_velocity1,

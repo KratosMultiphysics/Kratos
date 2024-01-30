@@ -35,7 +35,7 @@ namespace Kratos
 {
 namespace Testing
 {
-    typedef Node<3> NodeType;
+    typedef Node NodeType;
 
     typedef ParticleHardeningLaw HL;
 
@@ -88,20 +88,20 @@ namespace Testing
 
         // Compute trial elastic stresses
         FR::RadialReturnVariables rma_variables;
-        mcss_fr_pointer->CalculatePrincipalStressTrial(rma_variables, strain, stress);
+        mcss_fr_pointer->CalculatePrincipalStressTrial(rma_variables, strain, stress, material_properties);
 
         Vector stress_trial_analytic = ZeroVector(3);
         stress_trial_analytic[0] =  1.03076923077e+05;
         stress_trial_analytic[1] = -1.69230769230e+05;
         stress_trial_analytic[2] =  1.46153846154e+05;
 
-        KRATOS_CHECK_NEAR(stress(0,0), stress_trial_analytic[0], 1e-6);
-        KRATOS_CHECK_NEAR(stress(1,1), stress_trial_analytic[1], 1e-6);
-        KRATOS_CHECK_NEAR(stress(2,2), stress_trial_analytic[2], 1e-6);
+        KRATOS_EXPECT_NEAR(stress(0,0), stress_trial_analytic[0], 1e-6);
+        KRATOS_EXPECT_NEAR(stress(1,1), stress_trial_analytic[1], 1e-6);
+        KRATOS_EXPECT_NEAR(stress(2,2), stress_trial_analytic[2], 1e-6);
 
         // Compute new stresses after return mapping
         Matrix dummy_deformation_gradient = IdentityMatrix(3);
-        mcss_fr_pointer->CalculateReturnMapping( rma_variables, dummy_deformation_gradient, stress, strain);
+        mcss_fr_pointer->CalculateReturnMapping( rma_variables, dummy_deformation_gradient, stress, strain, material_properties);
 
         Vector stress_analytic = ZeroVector(3);
         stress_analytic[0] = -1.95819827945e+04;
@@ -109,10 +109,10 @@ namespace Testing
         stress_analytic[2] = -1.95819827945e+04;
         const double yield_analytic = 1.245017619943e+06;
 
-        KRATOS_CHECK_NEAR(rma_variables.TrialStateFunction, yield_analytic, 1e-6);
-        KRATOS_CHECK_NEAR(stress(0,0), stress_analytic[0], 1e-6);
-        KRATOS_CHECK_NEAR(stress(1,1), stress_analytic[1], 1e-6);
-        KRATOS_CHECK_NEAR(stress(2,2), stress_analytic[2], 1e-6);
+        KRATOS_EXPECT_NEAR(rma_variables.TrialStateFunction, yield_analytic, 1e-6);
+        KRATOS_EXPECT_NEAR(stress(0,0), stress_analytic[0], 1e-6);
+        KRATOS_EXPECT_NEAR(stress(1,1), stress_analytic[1], 1e-6);
+        KRATOS_EXPECT_NEAR(stress(2,2), stress_analytic[2], 1e-6);
 
     }
 

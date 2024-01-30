@@ -31,30 +31,25 @@ namespace Kratos
     KratosShallowWaterApplication::KratosShallowWaterApplication():
         KratosApplication("ShallowWaterApplication"),
 
-        mSWE2D3N(0, Element::GeometryType::Pointer( new Triangle2D3<Node<3>> ( Element::GeometryType::PointsArrayType (3) ) ) ),
-        mSWE2D4N(0, Element::GeometryType::Pointer( new Quadrilateral2D4<Node<3> >( Element::GeometryType::PointsArrayType (4) ) ) ),
+        mWaveElement2D3N(0, Element::GeometryType::Pointer(new Triangle2D3<Node>(Element::GeometryType::PointsArrayType(3)))),
+        mWaveElement2D6N(0, Element::GeometryType::Pointer(new Triangle2D6<Node>(Element::GeometryType::PointsArrayType(6)))),
+        mWaveElement2D4N(0, Element::GeometryType::Pointer(new Quadrilateral2D4<Node>(Element::GeometryType::PointsArrayType(4)))),
+        mWaveElement2D8N(0, Element::GeometryType::Pointer(new Quadrilateral2D8<Node>(Element::GeometryType::PointsArrayType(8)))),
+        mWaveElement2D9N(0, Element::GeometryType::Pointer(new Quadrilateral2D9<Node>(Element::GeometryType::PointsArrayType(9)))),
+        mPrimitiveElement2D3N(0, Element::GeometryType::Pointer(new Triangle2D3<Node>(Element::GeometryType::PointsArrayType(3)))),
+        mPrimitiveElement2D4N(0, Element::GeometryType::Pointer(new Quadrilateral2D4<Node>(Element::GeometryType::PointsArrayType(4)))),
+        mCrankNicolsonWaveElement2D3N(0, Element::GeometryType::Pointer(new Triangle2D3<Node>(Element::GeometryType::PointsArrayType(3)))),
+        mBoussinesqElement2D3N(0, Element::GeometryType::Pointer(new Triangle2D3<Node>(Element::GeometryType::PointsArrayType(3)))),
+        mBoussinesqElement2D4N(0, Element::GeometryType::Pointer(new Quadrilateral2D4<Node>(Element::GeometryType::PointsArrayType(4)))),
+        mConservativeElementGJ2D3N(0, Element::GeometryType::Pointer(new Triangle2D3<Node>(Element::GeometryType::PointsArrayType(3)))),
+        mConservativeElementRV2D3N(0, Element::GeometryType::Pointer(new Triangle2D3<Node>(Element::GeometryType::PointsArrayType(3)))),
+        mConservativeElementFC2D3N(0, Element::GeometryType::Pointer(new Triangle2D3<Node>(Element::GeometryType::PointsArrayType(3)))),
 
-        mLagrangianSWE2D3N(0, Element::GeometryType::Pointer( new Triangle2D3<Node<3>> ( Element::GeometryType::PointsArrayType (3) ) ) ),
-        mLagrangianSWE2D4N(0, Element::GeometryType::Pointer( new Quadrilateral2D4<Node<3> >( Element::GeometryType::PointsArrayType (4) ) ) ),
-
-        mWaveElement2D3N(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3>>(Element::GeometryType::PointsArrayType(3)))),
-        mWaveElement2D6N(0, Element::GeometryType::Pointer(new Triangle2D6<Node<3>>(Element::GeometryType::PointsArrayType(6)))),
-        mWaveElement2D4N(0, Element::GeometryType::Pointer(new Quadrilateral2D4<Node<3>>(Element::GeometryType::PointsArrayType(4)))),
-        mWaveElement2D8N(0, Element::GeometryType::Pointer(new Quadrilateral2D8<Node<3>>(Element::GeometryType::PointsArrayType(8)))),
-        mWaveElement2D9N(0, Element::GeometryType::Pointer(new Quadrilateral2D9<Node<3>>(Element::GeometryType::PointsArrayType(9)))),
-        mCrankNicolsonWaveElement2D3N(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3>>(Element::GeometryType::PointsArrayType(3)))),
-        mBoussinesqElement2D3N(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3>>(Element::GeometryType::PointsArrayType(3)))),
-        mBoussinesqElement2D4N(0, Element::GeometryType::Pointer(new Quadrilateral2D4<Node<3>>(Element::GeometryType::PointsArrayType(4)))),
-        mConservativeElementGJ2D3N(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3>>(Element::GeometryType::PointsArrayType(3)))),
-        mConservativeElementRV2D3N(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3>>(Element::GeometryType::PointsArrayType(3)))),
-        mConservativeElementFC2D3N(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3>>(Element::GeometryType::PointsArrayType(3)))),
-
-        mShallowWater2D3N(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3>>(Element::GeometryType::PointsArrayType(3)))),
-
-        mWaveCondition2D2N(0, Element::GeometryType::Pointer(new Line2D2<Node<3>>(Element::GeometryType::PointsArrayType(2)))),
-        mWaveCondition2D3N(0, Element::GeometryType::Pointer(new Line2D3<Node<3>>(Element::GeometryType::PointsArrayType(3)))),
-        mBoussinesqCondition2D2N(0, Element::GeometryType::Pointer(new Line2D2<Node<3>>(Element::GeometryType::PointsArrayType(2)))),
-        mConservativeCondition2D2N(0, Element::GeometryType::Pointer(new Line2D2<Node<3>>(Element::GeometryType::PointsArrayType(2))))
+        mWaveCondition2D2N(0, Element::GeometryType::Pointer(new Line2D2<Node>(Element::GeometryType::PointsArrayType(2)))),
+        mWaveCondition2D3N(0, Element::GeometryType::Pointer(new Line2D3<Node>(Element::GeometryType::PointsArrayType(3)))),
+        mPrimitiveCondition2D2N(0, Element::GeometryType::Pointer(new Line2D2<Node>(Element::GeometryType::PointsArrayType(2)))),
+        mBoussinesqCondition2D2N(0, Element::GeometryType::Pointer(new Line2D2<Node>(Element::GeometryType::PointsArrayType(2)))),
+        mConservativeCondition2D2N(0, Element::GeometryType::Pointer(new Line2D2<Node>(Element::GeometryType::PointsArrayType(2))))
     {}
 
     void KratosShallowWaterApplication::Register()
@@ -80,7 +75,8 @@ namespace Kratos
         KRATOS_REGISTER_VARIABLE(CHEZY)
         KRATOS_REGISTER_VARIABLE(ATMOSPHERIC_PRESSURE)
         KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(WIND)
-        KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(VELOCITY_H_LAPLACIAN)
+        KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(DISPERSION_H)
+        KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(DISPERSION_V)
 
         // Auxiliary variables
         KRATOS_REGISTER_VARIABLE(INTEGRATE_BY_PARTS)
@@ -124,17 +120,13 @@ namespace Kratos
         KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(MOMENTUM_ERROR)
 
         // Registering elements and conditions here
-        KRATOS_REGISTER_ELEMENT("SWE2D3N", mSWE2D3N) // TODO: remove
-        KRATOS_REGISTER_ELEMENT("SWE2D4N", mSWE2D4N) // TODO: remove
-
-        KRATOS_REGISTER_ELEMENT("LagrangianSWE2D3N", mLagrangianSWE2D3N) // TODO: remove
-        KRATOS_REGISTER_ELEMENT("LagrangianSWE2D4N", mLagrangianSWE2D4N) // TODO: remove
-
         KRATOS_REGISTER_ELEMENT("WaveElement2D3N", mWaveElement2D3N)
         KRATOS_REGISTER_ELEMENT("WaveElement2D6N", mWaveElement2D6N)
         KRATOS_REGISTER_ELEMENT("WaveElement2D4N", mWaveElement2D4N)
         KRATOS_REGISTER_ELEMENT("WaveElement2D8N", mWaveElement2D8N)
         KRATOS_REGISTER_ELEMENT("WaveElement2D9N", mWaveElement2D9N)
+        KRATOS_REGISTER_ELEMENT("PrimitiveElement2D3N", mPrimitiveElement2D3N)
+        KRATOS_REGISTER_ELEMENT("PrimitiveElement2D4N", mPrimitiveElement2D4N)
         KRATOS_REGISTER_ELEMENT("CrankNicolsonWaveElement2D3N", mCrankNicolsonWaveElement2D3N)
         KRATOS_REGISTER_ELEMENT("BoussinesqElement2D3N", mBoussinesqElement2D3N)
         KRATOS_REGISTER_ELEMENT("BoussinesqElement2D4N", mBoussinesqElement2D4N)
@@ -142,10 +134,9 @@ namespace Kratos
         KRATOS_REGISTER_ELEMENT("ConservativeElementRV2D3N", mConservativeElementRV2D3N)
         KRATOS_REGISTER_ELEMENT("ConservativeElementFC2D3N", mConservativeElementFC2D3N)
 
-        KRATOS_REGISTER_ELEMENT("ShallowWater2D3N", mShallowWater2D3N) // TODO: move to ConservativeElement
-
         KRATOS_REGISTER_CONDITION("WaveCondition2D2N", mWaveCondition2D2N)
         KRATOS_REGISTER_CONDITION("WaveCondition2D3N", mWaveCondition2D3N)
+        KRATOS_REGISTER_CONDITION("PrimitiveCondition2D2N", mPrimitiveCondition2D2N)
         KRATOS_REGISTER_CONDITION("BoussinesqCondition2D2N", mBoussinesqCondition2D2N)
         KRATOS_REGISTER_CONDITION("ConservativeCondition2D2N", mConservativeCondition2D2N)
 

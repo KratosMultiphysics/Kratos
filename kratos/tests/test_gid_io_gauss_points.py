@@ -34,7 +34,7 @@ class TestGiDIOGaussPoints(UnitTest.TestCase):
 
     def tearDown(self):
         with WorkFolderScope(self.workFolder):
-            for suffix in ['_0.post.res', '_0.post.msh']:
+            for suffix in ['.post.res', '.post.msh']:
                 kratos_utils.DeleteFileIfExisting(self.output_file_name+suffix)
 
 
@@ -111,8 +111,8 @@ class TestGiDIOGaussPoints(UnitTest.TestCase):
         self.gid_io.FinalizeResults()
 
     def outputMatchesReferenceSolution(self):
-        msh_file_matches = filecmp.cmp(self.reference_file_name+'_0.post.msh',self.output_file_name+'_0.post.msh')
-        res_file_matches = filecmp.cmp(self.reference_file_name+'_0.post.res',self.output_file_name+'_0.post.res')
+        msh_file_matches = filecmp.cmp(self.reference_file_name+'.post.msh.ref',self.output_file_name+'.post.msh')
+        res_file_matches = filecmp.cmp(self.reference_file_name+'.post.res.ref',self.output_file_name+'.post.res')
         return msh_file_matches and res_file_matches
 
 

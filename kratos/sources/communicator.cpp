@@ -4,14 +4,19 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Pooyan Dadvand
 //                   Riccardo Rossi
 //
 //
 
+// System includes
+
+// External includes
+
+// Project includes
 #include "includes/communicator.h"
 #include "includes/data_communicator.h"
 #include "includes/parallel_environment.h"
@@ -108,6 +113,11 @@ Communicator::SizeType Communicator::GlobalNumberOfConditions() const
     return mrDataCommunicator.SumAll(static_cast<unsigned int>(mpLocalMesh->NumberOfConditions()));
 }
 
+Communicator::SizeType Communicator::GlobalNumberOfMasterSlaveConstraints() const
+{
+    return mrDataCommunicator.SumAll(static_cast<unsigned int>(mpLocalMesh->NumberOfMasterSlaveConstraints()));
+}
+
 Communicator::SizeType Communicator::GetNumberOfColors() const
 {
     return mNumberOfColors;
@@ -165,37 +175,37 @@ void Communicator::SetLocalMesh(MeshType::Pointer pGivenMesh)
     mpLocalMesh = pGivenMesh;
 }
 
-// Returns pointer to the mesh storing all local entites
+// Returns pointer to the mesh storing all local entities
 Communicator::MeshType::Pointer Communicator::pLocalMesh()
 {
     return mpLocalMesh;
 }
 
-// Returns pointer to the mesh storing all ghost entites
+// Returns pointer to the mesh storing all ghost entities
 Communicator::MeshType::Pointer Communicator::pGhostMesh()
 {
     return mpGhostMesh;
 }
 
-// Returns pointer to the mesh storing all interface entites
+// Returns pointer to the mesh storing all interface entities
 Communicator::MeshType::Pointer Communicator::pInterfaceMesh()
 {
     return mpInterfaceMesh;
 }
 
-// Returns a constant pointer to the mesh storing all local entites
+// Returns a constant pointer to the mesh storing all local entities
 const Communicator::MeshType::Pointer Communicator::pLocalMesh() const
 {
     return mpLocalMesh;
 }
 
-// Returns a constant pointer to the mesh storing all ghost entites
+// Returns a constant pointer to the mesh storing all ghost entities
 const Communicator::MeshType::Pointer Communicator::pGhostMesh() const
 {
     return mpGhostMesh;
 }
 
-// Returns a constant pointer to the mesh storing all interface entites
+// Returns a constant pointer to the mesh storing all interface entities
 const Communicator::MeshType::Pointer Communicator::pInterfaceMesh() const
 {
     return mpInterfaceMesh;
@@ -231,37 +241,37 @@ const Communicator::MeshType::Pointer Communicator::pInterfaceMesh(IndexType Thi
     return mInterfaceMeshes(ThisIndex);
 }
 
-// Returns the reference to the mesh storing all local entites
+// Returns the reference to the mesh storing all local entities
 Communicator::MeshType& Communicator::LocalMesh()
 {
     return *mpLocalMesh;
 }
 
-// Returns the reference to the mesh storing all ghost entites
+// Returns the reference to the mesh storing all ghost entities
 Communicator::MeshType& Communicator::GhostMesh()
 {
     return *mpGhostMesh;
 }
 
-// Returns the reference to the mesh storing all interface entites
+// Returns the reference to the mesh storing all interface entities
 Communicator::MeshType& Communicator::InterfaceMesh()
 {
     return *mpInterfaceMesh;
 }
 
-// Returns a constant reference to the mesh storing all local entites
+// Returns a constant reference to the mesh storing all local entities
 Communicator::MeshType const& Communicator::LocalMesh() const
 {
     return *mpLocalMesh;
 }
 
-// Returns a constant reference to the mesh storing all ghost entites
+// Returns a constant reference to the mesh storing all ghost entities
 Communicator::MeshType const& Communicator::GhostMesh() const
 {
     return *mpGhostMesh;
 }
 
-// Returns a constant reference to the mesh storing all interface entites
+// Returns a constant reference to the mesh storing all interface entities
 Communicator::MeshType const& Communicator::InterfaceMesh() const
 {
     return *mpInterfaceMesh;
@@ -454,12 +464,32 @@ bool Communicator::SynchronizeNonHistoricalDataToMax(Variable<double> const& Thi
     return true;
 }
 
+bool Communicator::SynchronizeCurrentDataToAbsMax(Variable<double> const& ThisVariable)
+{
+    return true;
+}
+
+bool Communicator::SynchronizeNonHistoricalDataToAbsMax(Variable<double> const& ThisVariable)
+{
+    return true;
+}
+
 bool Communicator::SynchronizeCurrentDataToMin(Variable<double> const& ThisVariable)
 {
     return true;
 }
 
 bool Communicator::SynchronizeNonHistoricalDataToMin(Variable<double> const& ThisVariable)
+{
+    return true;
+}
+
+bool Communicator::SynchronizeCurrentDataToAbsMin(Variable<double> const& ThisVariable)
+{
+    return true;
+}
+
+bool Communicator::SynchronizeNonHistoricalDataToAbsMin(Variable<double> const& ThisVariable)
 {
     return true;
 }

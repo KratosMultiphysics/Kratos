@@ -21,6 +21,7 @@
 #include "includes/properties.h"
 #include "custom_elements/boussinesq_element.h"
 #include "shallow_water_application_variables.h"
+// #include "utilities/math_utils.h"
 
 namespace Kratos {
 
@@ -35,8 +36,8 @@ void InitializeModelPart(ModelPart& rModelPart)
     rModelPart.AddNodalSolutionStepVariable(HEIGHT);
     rModelPart.AddNodalSolutionStepVariable(FREE_SURFACE_ELEVATION);
     rModelPart.AddNodalSolutionStepVariable(VERTICAL_VELOCITY);
-    rModelPart.AddNodalSolutionStepVariable(VELOCITY_LAPLACIAN);
-    rModelPart.AddNodalSolutionStepVariable(VELOCITY_H_LAPLACIAN);
+    rModelPart.AddNodalSolutionStepVariable(DISPERSION_H);
+    rModelPart.AddNodalSolutionStepVariable(DISPERSION_V);
     rModelPart.AddNodalSolutionStepVariable(TOPOGRAPHY);
     rModelPart.AddNodalSolutionStepVariable(MANNING);
 
@@ -78,7 +79,7 @@ KRATOS_TEST_CASE_IN_SUITE(BoussinesqElement2D3N_FlatBottom, ShallowWaterApplicat
     array_1d<double,TNumNodes> topography;
     array_1d<double,TNumNodes> free_surface;
     array_1d<array_1d<double,3>,TNumNodes> velocity;
-    array_1d<array_1d<double,3>,TNumNodes> velocity_laplacian;
+    array_1d<array_1d<double,3>,TNumNodes> dispersion;
     array_1d<array_1d<double,3>,TNumNodes> acceleration;
     array_1d<double,TNumNodes> vertical_velocity;
     topography[0] = -1.0;
@@ -90,23 +91,24 @@ KRATOS_TEST_CASE_IN_SUITE(BoussinesqElement2D3N_FlatBottom, ShallowWaterApplicat
     velocity[0] = array_1d<double,3>({0.2, 0.0, 0.0});
     velocity[1] = array_1d<double,3>({0.1, 0.0, 0.0});
     velocity[2] = array_1d<double,3>({0.2, 0.0, 0.0});
-    velocity_laplacian[0] = array_1d<double,3>({0.0, 0.0, 0.0});
-    velocity_laplacian[1] = array_1d<double,3>({0.05, 0.0, 0.0});
-    velocity_laplacian[2] = array_1d<double,3>({0.0, 0.0, 0.0});
-    acceleration[0] = array_1d<double,3>({0.212862, 0.0, 0.0});
-    acceleration[1] = array_1d<double,3>({0.212867, 0.0, 0.0});
-    acceleration[2] = array_1d<double,3>({0.212861, 0.0, 0.0});
-    vertical_velocity[0] = 0.113501;
-    vertical_velocity[1] = 0.113501;
-    vertical_velocity[2] = 0.113501;
+    dispersion[0] = array_1d<double,3>({0.0, 0.0, 0.0});
+    dispersion[1] = array_1d<double,3>({0.01, 0.0, 0.0});
+    dispersion[2] = array_1d<double,3>({0.0, 0.0, 0.0});
+    acceleration[0] = array_1d<double,3>({0.213822,-0.00237072, 0.0});
+    acceleration[1] = array_1d<double,3>({0.208574, 0.00000000, 0.0});
+    acceleration[2] = array_1d<double,3>({0.216193, 0.00237072, 0.0});
+    vertical_velocity[0] = 0.102002;
+    vertical_velocity[1] = 0.097998;
+    vertical_velocity[2] = 0.102002;
+
     // Set the nodal values
     for (std::size_t i = 0; i < element->GetGeometry().size(); i++)
     {
         element->GetGeometry()[i].FastGetSolutionStepValue(TOPOGRAPHY) = topography[i];
-        element->GetGeometry()[i].FastGetSolutionStepValue(FREE_SURFACE_ELEVATION) = free_surface[i];
+        element->GetGeometry()[i].FastGetSolutionStepValue(HEIGHT) = free_surface[i] - topography[i];
         element->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY) = velocity[i];
-        element->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_LAPLACIAN) = velocity_laplacian[i];
-        element->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_H_LAPLACIAN) = velocity_laplacian[i];
+        element->GetGeometry()[i].FastGetSolutionStepValue(DISPERSION_H) = dispersion[i];
+        element->GetGeometry()[i].FastGetSolutionStepValue(DISPERSION_V) = dispersion[i];
         element->GetGeometry()[i].FastGetSolutionStepValue(ACCELERATION) = acceleration[i];
         element->GetGeometry()[i].FastGetSolutionStepValue(VERTICAL_VELOCITY) = vertical_velocity[i];
     }
@@ -122,9 +124,14 @@ KRATOS_TEST_CASE_IN_SUITE(BoussinesqElement2D3N_FlatBottom, ShallowWaterApplicat
     element->CalculateLocalSystem(LHS, RHS, r_process_info);
     element->GetFirstDerivativesVector(derivatives);
 
+    // Matrix inv_M;
+    // double det_M;
+    // MathUtils<double>::InvertMatrix(M, inv_M, det_M);
+    // KRATOS_WATCH_CERR(prod(inv_M, RHS))
+
     double tolerance = 1e-6;
     Vector increment = prod(M,derivatives) -RHS;
-    KRATOS_CHECK_VECTOR_RELATIVE_NEAR(increment, ZeroVector(9), tolerance);
+    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(increment, ZeroVector(9), tolerance);
 }
 
 /**
@@ -151,7 +158,7 @@ KRATOS_TEST_CASE_IN_SUITE(BoussinesqElement2D4N_FlatBottom, ShallowWaterApplicat
     array_1d<double,TNumNodes> topography;
     array_1d<double,TNumNodes> free_surface;
     array_1d<array_1d<double,3>,TNumNodes> velocity;
-    array_1d<array_1d<double,3>,TNumNodes> velocity_laplacian;
+    array_1d<array_1d<double,3>,TNumNodes> dispersion;
     array_1d<array_1d<double,3>,TNumNodes> acceleration;
     array_1d<double,TNumNodes> vertical_velocity;
     topography[0] = -1.0;
@@ -166,26 +173,27 @@ KRATOS_TEST_CASE_IN_SUITE(BoussinesqElement2D4N_FlatBottom, ShallowWaterApplicat
     velocity[1] = array_1d<double,3>({0.0, 0.2, 0.0});
     velocity[2] = array_1d<double,3>({0.0, 0.1, 0.0});
     velocity[3] = array_1d<double,3>({0.0, 0.1, 0.0});
-    velocity_laplacian[0] = array_1d<double,3>({0.0, 0.0, 0.0});
-    velocity_laplacian[1] = array_1d<double,3>({0.0, 0.0, 0.0});
-    velocity_laplacian[2] = array_1d<double,3>({0.0, 0.05, 0.0});
-    velocity_laplacian[3] = array_1d<double,3>({0.0, 0.05, 0.0});
-    acceleration[0] = array_1d<double,3>({-0.00225801, 0.213936, 0.0});
-    acceleration[1] = array_1d<double,3>({0.00225801, 0.213936, 0.0});
-    acceleration[2] = array_1d<double,3>({0.00225591, 0.208458, 0.0});
-    acceleration[3] = array_1d<double,3>({-0.00225591, 0.208458, 0.0});
-    vertical_velocity[0] = 0.114834;
-    vertical_velocity[1] = 0.114834;
-    vertical_velocity[2] = 0.110834;
-    vertical_velocity[3] = 0.110834;
+    dispersion[0] = array_1d<double,3>({0.0, 0.0, 0.0});
+    dispersion[1] = array_1d<double,3>({0.0, 0.0, 0.0});
+    dispersion[2] = array_1d<double,3>({0.0, 0.05, 0.0});
+    dispersion[3] = array_1d<double,3>({0.0, 0.05, 0.0});
+    acceleration[0] = array_1d<double,3>({-0.002258, 0.213936, 0.0});
+    acceleration[1] = array_1d<double,3>({ 0.002258, 0.213936, 0.0});
+    acceleration[2] = array_1d<double,3>({ 0.002256, 0.208458, 0.0});
+    acceleration[3] = array_1d<double,3>({-0.002256, 0.208458, 0.0});
+    vertical_velocity[0] = 0.0620025;
+    vertical_velocity[1] = 0.0620025;
+    vertical_velocity[2] = 0.0579975;
+    vertical_velocity[3] = 0.0579975;
+
     // Set the nodal values
     for (std::size_t i = 0; i < element->GetGeometry().size(); i++)
     {
         element->GetGeometry()[i].FastGetSolutionStepValue(TOPOGRAPHY) = topography[i];
-        element->GetGeometry()[i].FastGetSolutionStepValue(FREE_SURFACE_ELEVATION) = free_surface[i];
+        element->GetGeometry()[i].FastGetSolutionStepValue(HEIGHT) = free_surface[i] - topography[i];
         element->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY) = velocity[i];
-        element->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_LAPLACIAN) = velocity_laplacian[i];
-        element->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_H_LAPLACIAN) = velocity_laplacian[i];
+        element->GetGeometry()[i].FastGetSolutionStepValue(DISPERSION_H) = dispersion[i];
+        element->GetGeometry()[i].FastGetSolutionStepValue(DISPERSION_V) = dispersion[i];
         element->GetGeometry()[i].FastGetSolutionStepValue(ACCELERATION) = acceleration[i];
         element->GetGeometry()[i].FastGetSolutionStepValue(VERTICAL_VELOCITY) = vertical_velocity[i];
     }
@@ -201,9 +209,14 @@ KRATOS_TEST_CASE_IN_SUITE(BoussinesqElement2D4N_FlatBottom, ShallowWaterApplicat
     element->CalculateLocalSystem(LHS, RHS, r_process_info);
     element->GetFirstDerivativesVector(derivatives);
 
+    // Matrix inv_M;
+    // double det_M;
+    // MathUtils<double>::InvertMatrix(M, inv_M, det_M);
+    // KRATOS_WATCH_CERR(prod(inv_M, RHS))
+
     double tolerance = 1e-6;
     Vector increment = prod(M,derivatives) -RHS;
-    KRATOS_CHECK_VECTOR_RELATIVE_NEAR(increment, ZeroVector(12), tolerance);
+    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(increment, ZeroVector(12), tolerance);
 }
 
 } // namespace Testing

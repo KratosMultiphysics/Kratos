@@ -525,7 +525,7 @@ private:
     //************************************************************************************
     //************************************************************************************
 
-    bool MatchTransferFlags(const Node<3>::Pointer& pNode, const std::vector<Flags>& rTransferFlags)
+    bool MatchTransferFlags(const Node::Pointer& pNode, const std::vector<Flags>& rTransferFlags)
     {
 
       for(unsigned int i = 0; i<rTransferFlags.size(); i++)

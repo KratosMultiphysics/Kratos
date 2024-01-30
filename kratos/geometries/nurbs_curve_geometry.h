@@ -818,8 +818,7 @@ const GeometryData NurbsCurveGeometry<TWorkingSpaceDimension, TContainerPointTyp
     {}, {}, {});
 
 template<int TWorkingSpaceDimension, class TContainerPointType>
-const GeometryDimension NurbsCurveGeometry<TWorkingSpaceDimension, TContainerPointType>::msGeometryDimension(
-    1, TWorkingSpaceDimension, 1);
+const GeometryDimension NurbsCurveGeometry<TWorkingSpaceDimension, TContainerPointType>::msGeometryDimension(TWorkingSpaceDimension, 1);
 
 } // namespace Kratos
 

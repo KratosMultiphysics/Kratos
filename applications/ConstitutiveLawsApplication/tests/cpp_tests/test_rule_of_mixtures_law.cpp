@@ -30,7 +30,7 @@ namespace Kratos
 namespace Testing
 {
 /// Nodetype definition
-typedef Node<3> NodeType;
+typedef Node NodeType;
 
 // void GiDIODebugRuleMixtures(ModelPart& ThisModelPart)
 // {
@@ -159,7 +159,7 @@ Parameters GetThreeLayersParameters()
     return three_layers;
 }
 
-void Create3DGeometryHexahedraRuleOfMixtures(ModelPart& rThisModelPart, std::size_t NumberOfLayers = 2, const std::string ElementName = "SmallDisplacementElement3D8N")
+void Create3DGeometryHexahedraRuleOfMixtures(ModelPart& rThisModelPart, std::size_t NumberOfLayers = 2, const std::string& ElementName = "SmallDisplacementElement3D8N")
 {
     rThisModelPart.AddNodalSolutionStepVariable(DISPLACEMENT);
 
@@ -199,7 +199,7 @@ void Create3DGeometryHexahedraRuleOfMixtures(ModelPart& rThisModelPart, std::siz
     }
 }
 
-void Create3DGeometryTetrahedraRuleOfMixtures(ModelPart& rThisModelPart, std::size_t NumberOfLayers = 2, const std::string ElementName = "SmallDisplacementElement3D4N")
+void Create3DGeometryTetrahedraRuleOfMixtures(ModelPart& rThisModelPart, std::size_t NumberOfLayers = 2, const std::string& ElementName = "SmallDisplacementElement3D4N")
 {
     rThisModelPart.AddNodalSolutionStepVariable(DISPLACEMENT);
 
@@ -288,7 +288,7 @@ KRATOS_TEST_CASE_IN_SUITE(RuleOfMixturesConstitutiveLawHexahedronTwoLayers, Krat
         elem.CalculateOnIntegrationPoints(PK2_STRESS_VECTOR, solution, process_info);
 
         for (auto& sol : solution) {
-            KRATOS_CHECK_LESS_EQUAL((sol[0] - 4.09597e+09)/4.09597e+09, tolerance);
+            KRATOS_EXPECT_LE((sol[0] - 4.09597e+09)/4.09597e+09, tolerance);
         }
     }
 }
@@ -326,7 +326,7 @@ KRATOS_TEST_CASE_IN_SUITE(RuleOfMixturesConstitutiveLawHexahedronThreeLayers, Kr
         elem.CalculateOnIntegrationPoints(PK2_STRESS_VECTOR, solution, process_info);
 
         for (auto& sol : solution) {
-            KRATOS_CHECK_LESS_EQUAL((sol[0] - 2.32156e+12)/2.32156e+12, tolerance);
+            KRATOS_EXPECT_LE((sol[0] - 2.32156e+12)/2.32156e+12, tolerance);
         }
     }
 }
@@ -364,7 +364,7 @@ KRATOS_TEST_CASE_IN_SUITE(RuleOfMixturesConstitutiveLawTetrahedronTwoLayers, Kra
         elem.CalculateOnIntegrationPoints(PK2_STRESS_VECTOR, solution, process_info);
 
         for (auto& sol : solution) {
-            KRATOS_CHECK_LESS_EQUAL((sol[0] - 4.09597e+09)/4.09597e+09, tolerance);
+            KRATOS_EXPECT_LE((sol[0] - 4.09597e+09)/4.09597e+09, tolerance);
         }
     }
 }
@@ -402,7 +402,7 @@ KRATOS_TEST_CASE_IN_SUITE(RuleOfMixturesConstitutiveLawTetrahedronThreeLayers, K
         elem.CalculateOnIntegrationPoints(PK2_STRESS_VECTOR, solution, process_info);
 
         for (auto& sol : solution) {
-            KRATOS_CHECK_LESS_EQUAL((sol[0] - 2.32156e+12)/2.32156e+12, tolerance);
+            KRATOS_EXPECT_LE((sol[0] - 2.32156e+12)/2.32156e+12, tolerance);
         }
     }
 }

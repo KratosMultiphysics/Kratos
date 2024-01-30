@@ -45,7 +45,7 @@ std::vector<Kratos::shared_ptr<ModelPart>> ModelSubdivisionUtilities::SortNodesB
     }
 
     // Assign nodes to sub model parts
-    auto sort_function = [&slabs, &sub_model_parts](const Node<3>& rNode) -> ModelPart*
+    auto sort_function = [&slabs, &sub_model_parts](const Node& rNode) -> ModelPart*
     {
         KRATOS_TRY
         return slabs.IsInside(rNode) ?
@@ -77,7 +77,7 @@ std::vector<Kratos::shared_ptr<ModelPart>> ModelSubdivisionUtilities::SortNodesB
 
 void ModelSubdivisionUtilities::SortNodes(
     ModelPart& rModelPart,
-    std::function<ModelPart*(const Node<3>&)> sortFunction,
+    std::function<ModelPart*(const Node&)> sortFunction,
     std::vector<ModelPart*>& rSubModelParts)
 {
     KRATOS_TRY
@@ -85,7 +85,7 @@ void ModelSubdivisionUtilities::SortNodes(
     ModelSubdivisionUtilities::ThreadSafeIndexSet index_sets(rSubModelParts);
 
     block_for_each(rModelPart.Nodes(),
-        [&](const Node<3>& rNode)
+        [&](const Node& rNode)
         {
             index_sets.Push(
                 sortFunction(rNode),
