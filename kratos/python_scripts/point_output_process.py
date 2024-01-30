@@ -166,7 +166,7 @@ class PointOutputProcess(KratosMultiphysics.OutputProcess):
             err_msg += '"node", "element", "condition"'
             raise Exception(err_msg)
 
-        # Check if a point was found, and initalize output
+        # Check if a point was found, and initialize output
         # NOTE: If the search was not successful (i.e. found_id = -1), we fail silently and
         # do nothing. This is BY DESIGN, as we are supposed to work on MPI too, and the point
         # in question might lie on a different partition.

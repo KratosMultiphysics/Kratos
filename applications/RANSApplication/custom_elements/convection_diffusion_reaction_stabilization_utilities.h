@@ -48,10 +48,11 @@ inline double CalculatePsiTwo(
            std::pow(ElementLength, 2) * (1.0 / 6.0);
 }
 
-inline void CalculateStabilizationTau(
+template<unsigned int TDim>
+void CalculateStabilizationTau(
     double& rTau,
     double& rElementLength,
-    const array_1d<double, 3>& rVelocity,
+    const array_1d<double, TDim>& rVelocity,
     const Matrix& rContravariantMetricTensor,
     const double Reaction,
     const double EffectiveKinematicViscosity,
@@ -60,18 +61,16 @@ inline void CalculateStabilizationTau(
     const double DeltaTime,
     const double DynamicTau)
 {
-    unsigned int dim = rContravariantMetricTensor.size2();
-    const Vector& velocity = RansCalculationUtilities::GetVector(rVelocity, dim);
-    Vector temp(dim);
-    noalias(temp) = prod(rContravariantMetricTensor, velocity);
+
     const double velocity_norm = norm_2(rVelocity);
 
     if (velocity_norm > 0.0) {
-        rElementLength = 2.0 * velocity_norm / std::sqrt(inner_prod(velocity, temp));
+        const array_1d<double, TDim> temp = prod(rContravariantMetricTensor, rVelocity);
+        rElementLength = 2.0 * velocity_norm / std::sqrt(inner_prod(rVelocity, temp));
     } else {
         rElementLength = 0.0;
-        for (unsigned int i = 0; i < dim; ++i)
-            for (unsigned int j = 0; j < dim; ++j)
+        for (unsigned int i = 0; i < TDim; ++i)
+            for (unsigned int j = 0; j < TDim; ++j)
                 rElementLength += rContravariantMetricTensor(i, j);
         rElementLength = std::sqrt(1.0 / rElementLength) * 2.0;
     }

@@ -108,6 +108,8 @@ Add **thermal settings** with desired options:
 		"global_porosity"                : 0.0,
 		"alpha_shape_parameter"          : 1.2,
 		"integral_tolerance"             : 0.000001,
+		"heat_map_corners"               : [[0,0,0],[1,1,1]],
+		"heat_map_subdivisions"          : [10,10,10],
 		"global_fluid_properties"        : {
 			"fluid_density"              : 1.0,
 			"fluid_viscosity"            : 1.0,
@@ -130,7 +132,9 @@ Add **post options** with desired options:
 	"PostGraphParticleTempDev"       : true or false,
 	"PostGraphModelTempAvg"          : true or false,
 	"PostGraphHeatFluxContributions" : true or false,
-	"PostGraphHeatGenContributions"  : true or false
+	"PostGraphHeatGenContributions"  : true or false,
+	"PostGraphEnergyContributions"   : true or false,
+	"PostMapHeatGeneration"          : true or false
 
 ### Materials (json file)
 
@@ -326,6 +330,14 @@ Add **SubModelPartData** to sub model parts with desired options:
   Numerical tolerance for numerical integration, in case it is required.\
   Default: 0.000001
 
+- *"heat_map_corners"*:\
+  Coordinates of two opposite corners of a cuboid that define the region where heat map is evaluated.\
+  Default: [[0,0,0],[1,1,1]]
+
+- *"heat_map_subdivisions"*:\
+  Number of subdivisions in X,Y,Z directions to defined the grid of the heat map.\
+  Default: [10,10,10]
+  
 - *"global_fluid_properties"*:\
   Prescribed values for the properties of the interstitial fluid, assumed as constant throughout all the analysis (fluid behavior does not change as it is not simulated).
 
@@ -396,6 +408,14 @@ Add **SubModelPartData** to sub model parts with desired options:
 
 - *"PostGraphHeatGenContributions"*:\
   Boolean for writing a graph with the contribution of each heat generation mechanism to the total heat generation.\
+  Default: false
+  
+- *"PostGraphEnergyContributions"*:\
+  Boolean for writing a graph with the energy composition (conservative and accumulated dissipative components) of all partilces.\
+  Default: false
+
+- *"PostMapHeatGeneration"*:\
+  Boolean for assemblying and writing the density map of heat generation.\
   Default: false
   
 **Material properties**

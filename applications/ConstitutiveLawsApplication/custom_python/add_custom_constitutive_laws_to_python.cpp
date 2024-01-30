@@ -28,7 +28,7 @@
 #include "custom_constitutive/finite_strains/hyperelasticity/hyper_elastic_isotropic_kirchhoff_plane_stress_2d.h"
 #include "custom_constitutive/finite_strains/hyperelasticity/hyper_elastic_isotropic_kirchhoff_plane_strain_2d.h"
 #include "custom_constitutive/finite_strains/hyperelasticity/hyper_elastic_isotropic_neo_hookean_3d.h"
-#include "custom_constitutive/finite_strains/hyperelasticity/hyper_elastic_isotropic_quasi_incompressible_isochoric_neo_hookean_3d.h"
+#include "custom_constitutive/finite_strains/hyperelasticity/hyper_elastic_isotropic_q_incomp_isoch_neo_hook_3d.h"
 #include "custom_constitutive/finite_strains/hyperelasticity/hyper_elastic_isotropic_neo_hookean_plane_strain_2d.h"
 #include "custom_constitutive/small_strains/linear/linear_elastic_orthotropic_2D_law.h"
 #include "custom_constitutive/small_strains/plasticity/small_strain_j2_plasticity_3d.h"
@@ -66,38 +66,56 @@
 #include "custom_constitutive/composites/serial_parallel_rule_of_mixtures_law.h"
 
 // Integrators
-#include "custom_constitutive/auxiliar_files/constitutive_laws_integrators/generic_constitutive_law_integrator_damage.h"
-#include "custom_constitutive/auxiliar_files/constitutive_laws_integrators/generic_constitutive_law_integrator_plasticity.h"
-#include "custom_constitutive/auxiliar_files/constitutive_laws_integrators/generic_constitutive_law_integrator_kinematic_plasticity.h"
-#include "custom_constitutive/auxiliar_files/constitutive_laws_integrators/d+d-constitutive_law_integrators/generic_compression_constitutive_law_integrator.h"
-#include "custom_constitutive/auxiliar_files/constitutive_laws_integrators/d+d-constitutive_law_integrators/generic_tension_constitutive_law_integrator.h"
+#include "custom_constitutive/auxiliary_files/cl_integrators/generic_cl_integrator_damage.h"
+#include "custom_constitutive/auxiliary_files/cl_integrators/generic_cl_integrator_plasticity.h"
+#include "custom_constitutive/auxiliary_files/cl_integrators/generic_cl_integrator_kinematic_plasticity.h"
+#include "custom_constitutive/auxiliary_files/cl_integrators/d+d-cl_integrators/generic_compression_cl_integrator.h"
+#include "custom_constitutive/auxiliary_files/cl_integrators/d+d-cl_integrators/generic_tension_cl_integrator.h"
 
 // Yield surfaces
-#include "custom_constitutive/auxiliar_files/yield_surfaces/generic_yield_surface.h"
-#include "custom_constitutive/auxiliar_files/yield_surfaces/von_mises_yield_surface.h"
-#include "custom_constitutive/auxiliar_files/yield_surfaces/modified_mohr_coulomb_yield_surface.h"
-#include "custom_constitutive/auxiliar_files/yield_surfaces/mohr_coulomb_yield_surface.h"
-#include "custom_constitutive/auxiliar_files/yield_surfaces/rankine_yield_surface.h"
-#include "custom_constitutive/auxiliar_files/yield_surfaces/simo_ju_yield_surface.h"
-#include "custom_constitutive/auxiliar_files/yield_surfaces/drucker_prager_yield_surface.h"
-#include "custom_constitutive/auxiliar_files/yield_surfaces/tresca_yield_surface.h"
+#include "custom_constitutive/auxiliary_files/yield_surfaces/generic_yield_surface.h"
+#include "custom_constitutive/auxiliary_files/yield_surfaces/von_mises_yield_surface.h"
+#include "custom_constitutive/auxiliary_files/yield_surfaces/modified_mohr_coulomb_yield_surface.h"
+#include "custom_constitutive/auxiliary_files/yield_surfaces/mohr_coulomb_yield_surface.h"
+#include "custom_constitutive/auxiliary_files/yield_surfaces/rankine_yield_surface.h"
+#include "custom_constitutive/auxiliary_files/yield_surfaces/simo_ju_yield_surface.h"
+#include "custom_constitutive/auxiliary_files/yield_surfaces/drucker_prager_yield_surface.h"
+#include "custom_constitutive/auxiliary_files/yield_surfaces/tresca_yield_surface.h"
+
+// Thermal yield surfaces
+#include "custom_constitutive/thermal/auxiliary_files/thermal_yield_surfaces/thermal_von_mises_yield_surface.h"
+#include "custom_constitutive/thermal/auxiliary_files/thermal_yield_surfaces/thermal_tresca_yield_surface.h"
+#include "custom_constitutive/thermal/auxiliary_files/thermal_yield_surfaces/thermal_rankine_yield_surface.h"
+#include "custom_constitutive/thermal/auxiliary_files/thermal_yield_surfaces/thermal_simo_ju_yield_surface.h"
+#include "custom_constitutive/thermal/auxiliary_files/thermal_yield_surfaces/thermal_mohr_coulomb_yield_surface.h"
+#include "custom_constitutive/thermal/auxiliary_files/thermal_yield_surfaces/thermal_modified_mohr_coulomb_yield_surface.h"
+#include "custom_constitutive/thermal/auxiliary_files/thermal_yield_surfaces/thermal_drucker_prager_yield_surface.h"
 
 // Plastic potentials
-#include "custom_constitutive/auxiliar_files/plastic_potentials/generic_plastic_potential.h"
-#include "custom_constitutive/auxiliar_files/plastic_potentials/von_mises_plastic_potential.h"
-#include "custom_constitutive/auxiliar_files/plastic_potentials/tresca_plastic_potential.h"
-#include "custom_constitutive/auxiliar_files/plastic_potentials/modified_mohr_coulomb_plastic_potential.h"
-#include "custom_constitutive/auxiliar_files/plastic_potentials/mohr_coulomb_plastic_potential.h"
-#include "custom_constitutive/auxiliar_files/plastic_potentials/drucker_prager_plastic_potential.h"
-#include "custom_constitutive/auxiliar_files/plastic_potentials/rankine_plastic_potential.h"
+#include "custom_constitutive/auxiliary_files/plastic_potentials/generic_plastic_potential.h"
+#include "custom_constitutive/auxiliary_files/plastic_potentials/von_mises_plastic_potential.h"
+#include "custom_constitutive/auxiliary_files/plastic_potentials/tresca_plastic_potential.h"
+#include "custom_constitutive/auxiliary_files/plastic_potentials/modified_mohr_coulomb_plastic_potential.h"
+#include "custom_constitutive/auxiliary_files/plastic_potentials/mohr_coulomb_plastic_potential.h"
+#include "custom_constitutive/auxiliary_files/plastic_potentials/drucker_prager_plastic_potential.h"
+#include "custom_constitutive/auxiliary_files/plastic_potentials/rankine_plastic_potential.h"
 
 // Rules of mixtures
 #include "custom_constitutive/composites/rule_of_mixtures_law.h"
+#include "custom_constitutive/composites/traction_separation_law.h"
 
 #include "custom_constitutive/small_strains/plastic_damage/associative_plastic_damage_model.h"
 
-namespace Kratos {
-namespace Python {
+// Thermal CL's
+#include "custom_constitutive/thermal/small_strains/elastic/thermal_elastic_isotropic_3d.h"
+#include "custom_constitutive/thermal/small_strains/elastic/thermal_linear_plane_strain.h"
+#include "custom_constitutive/thermal/small_strains/elastic/thermal_linear_plane_stress.h"
+#include "custom_constitutive/thermal/small_strains/damage/generic_small_strain_thermal_isotropic_damage.h"
+#include "custom_constitutive/thermal/small_strains/damage/generic_small_strain_thermal_isotropic_damage_plane_stress.h"
+
+#include "custom_constitutive/thermal/auxiliary_files/thermal_yield_surfaces/thermal_von_mises_yield_surface.h"
+
+namespace Kratos::Python {
 
 void AddCustomConstitutiveLawsToPython(pybind11::module& m)
 {
@@ -109,6 +127,10 @@ void AddCustomConstitutiveLawsToPython(pybind11::module& m)
 
     py::class_< MultiLinearIsotropicPlaneStress2D, typename MultiLinearIsotropicPlaneStress2D::Pointer, LinearPlaneStress >
     (m, "MultiLinearIsotropicPlaneStress2D").def(py::init<>() )
+    ;
+
+    py::class_< TractionSeparationLaw3D<3>, typename TractionSeparationLaw3D<3>::Pointer,  ConstitutiveLaw  >
+    (m,"TractionSeparationLaw3D").def(py::init<>())
     ;
 
     py::class_< WrinklingLinear2DLaw, typename WrinklingLinear2DLaw::Pointer, ConstitutiveLaw >
@@ -1152,7 +1174,101 @@ void AddCustomConstitutiveLawsToPython(pybind11::module& m)
     typename AssociativePlasticDamageModel <RankineYieldSurface<RankinePlasticPotential<6>>>::Pointer,
     ConstitutiveLaw >
     (m,"AssociativePlasticDamageModel3DRankine").def(py::init<>());
+
+    // Thermal CL's
+    py::class_< ThermalElasticIsotropic3D, typename ThermalElasticIsotropic3D::Pointer, ConstitutiveLaw >
+    (m,"ThermalElasticIsotropic3D").def(py::init<>());
+
+    py::class_< ThermalLinearPlaneStrain, typename ThermalLinearPlaneStrain::Pointer, ConstitutiveLaw >
+    (m,"ThermalLinearPlaneStrain").def(py::init<>());
+
+    py::class_< ThermalLinearPlaneStress, typename ThermalLinearPlaneStress::Pointer, ConstitutiveLaw >
+    (m,"ThermalLinearPlaneStress").def(py::init<>());
+
+
+    // damage 3D
+    py::class_<  GenericSmallStrainThermalIsotropicDamage <GenericConstitutiveLawIntegratorDamage<ThermalVonMisesYieldSurface<VonMisesPlasticPotential<6>>>>,
+    typename GenericSmallStrainThermalIsotropicDamage <GenericConstitutiveLawIntegratorDamage<ThermalVonMisesYieldSurface<VonMisesPlasticPotential<6>>>>::Pointer,
+    ConstitutiveLaw > (m,"SmallStrainThermalIsotropicDamage3DVonMises").def(py::init<>());
+
+    py::class_<  GenericSmallStrainThermalIsotropicDamage <GenericConstitutiveLawIntegratorDamage<ThermalModifiedMohrCoulombYieldSurface<VonMisesPlasticPotential<6>>>>,
+    typename GenericSmallStrainThermalIsotropicDamage <GenericConstitutiveLawIntegratorDamage<ThermalModifiedMohrCoulombYieldSurface<VonMisesPlasticPotential<6>>>>::Pointer,
+    ConstitutiveLaw > (m,"SmallStrainThermalIsotropicDamage3DModifiedMohrCoulomb").def(py::init<>());
+
+    py::class_<  GenericSmallStrainThermalIsotropicDamage <GenericConstitutiveLawIntegratorDamage<ThermalTrescaYieldSurface<VonMisesPlasticPotential<6>>>>,
+    typename GenericSmallStrainThermalIsotropicDamage <GenericConstitutiveLawIntegratorDamage<ThermalTrescaYieldSurface<VonMisesPlasticPotential<6>>>>::Pointer,
+    ConstitutiveLaw > (m,"SmallStrainThermalIsotropicDamage3DTresca").def(py::init<>());
+
+    py::class_<  GenericSmallStrainThermalIsotropicDamage <GenericConstitutiveLawIntegratorDamage<ThermalDruckerPragerYieldSurface<VonMisesPlasticPotential<6>>>>,
+    typename GenericSmallStrainThermalIsotropicDamage <GenericConstitutiveLawIntegratorDamage<ThermalDruckerPragerYieldSurface<VonMisesPlasticPotential<6>>>>::Pointer,
+    ConstitutiveLaw > (m,"SmallStrainThermalIsotropicDamage3DDruckerPrager").def(py::init<>());
+
+    py::class_<  GenericSmallStrainThermalIsotropicDamage <GenericConstitutiveLawIntegratorDamage<ThermalSimoJuYieldSurface<VonMisesPlasticPotential<6>>>>,
+    typename GenericSmallStrainThermalIsotropicDamage <GenericConstitutiveLawIntegratorDamage<ThermalSimoJuYieldSurface<VonMisesPlasticPotential<6>>>>::Pointer,
+    ConstitutiveLaw > (m,"SmallStrainThermalIsotropicDamage3DSimoJu").def(py::init<>());
+
+    py::class_<  GenericSmallStrainThermalIsotropicDamage <GenericConstitutiveLawIntegratorDamage<ThermalMohrCoulombYieldSurface<VonMisesPlasticPotential<6>>>>,
+    typename GenericSmallStrainThermalIsotropicDamage <GenericConstitutiveLawIntegratorDamage<ThermalMohrCoulombYieldSurface<VonMisesPlasticPotential<6>>>>::Pointer,
+    ConstitutiveLaw > (m,"SmallStrainThermalIsotropicDamage3DMohrCoulomb").def(py::init<>());
+
+    py::class_<  GenericSmallStrainThermalIsotropicDamage <GenericConstitutiveLawIntegratorDamage<ThermalRankineYieldSurface<VonMisesPlasticPotential<6>>>>,
+    typename GenericSmallStrainThermalIsotropicDamage <GenericConstitutiveLawIntegratorDamage<ThermalRankineYieldSurface<VonMisesPlasticPotential<6>>>>::Pointer,
+    ConstitutiveLaw > (m,"SmallStrainThermalIsotropicDamage3DRankine").def(py::init<>());
+
+    // damage plane strain
+    py::class_<  GenericSmallStrainThermalIsotropicDamage <GenericConstitutiveLawIntegratorDamage<ThermalVonMisesYieldSurface<VonMisesPlasticPotential<3>>>>,
+    typename GenericSmallStrainThermalIsotropicDamage <GenericConstitutiveLawIntegratorDamage<ThermalVonMisesYieldSurface<VonMisesPlasticPotential<3>>>>::Pointer,
+    ConstitutiveLaw > (m,"SmallStrainThermalIsotropicDamagePlaneStrainVonMises").def(py::init<>());
+
+    py::class_<  GenericSmallStrainThermalIsotropicDamage <GenericConstitutiveLawIntegratorDamage<ThermalModifiedMohrCoulombYieldSurface<VonMisesPlasticPotential<3>>>>,
+    typename GenericSmallStrainThermalIsotropicDamage <GenericConstitutiveLawIntegratorDamage<ThermalModifiedMohrCoulombYieldSurface<VonMisesPlasticPotential<3>>>>::Pointer,
+    ConstitutiveLaw > (m,"SmallStrainThermalIsotropicDamagePlaneStrainModifiedMohrCoulomb").def(py::init<>());
+
+    py::class_<  GenericSmallStrainThermalIsotropicDamage <GenericConstitutiveLawIntegratorDamage<ThermalTrescaYieldSurface<VonMisesPlasticPotential<3>>>>,
+    typename GenericSmallStrainThermalIsotropicDamage <GenericConstitutiveLawIntegratorDamage<ThermalTrescaYieldSurface<VonMisesPlasticPotential<3>>>>::Pointer,
+    ConstitutiveLaw > (m,"SmallStrainThermalIsotropicDamagePlaneStrainTresca").def(py::init<>());
+
+    py::class_<  GenericSmallStrainThermalIsotropicDamage <GenericConstitutiveLawIntegratorDamage<ThermalDruckerPragerYieldSurface<VonMisesPlasticPotential<3>>>>,
+    typename GenericSmallStrainThermalIsotropicDamage <GenericConstitutiveLawIntegratorDamage<ThermalDruckerPragerYieldSurface<VonMisesPlasticPotential<3>>>>::Pointer,
+    ConstitutiveLaw > (m,"SmallStrainThermalIsotropicDamagePlaneStrainDruckerPrager").def(py::init<>());
+
+    py::class_<  GenericSmallStrainThermalIsotropicDamage <GenericConstitutiveLawIntegratorDamage<ThermalSimoJuYieldSurface<VonMisesPlasticPotential<3>>>>,
+    typename GenericSmallStrainThermalIsotropicDamage <GenericConstitutiveLawIntegratorDamage<ThermalSimoJuYieldSurface<VonMisesPlasticPotential<3>>>>::Pointer,
+    ConstitutiveLaw > (m,"SmallStrainThermalIsotropicDamagePlaneStrainSimoJu").def(py::init<>());
+
+    py::class_<  GenericSmallStrainThermalIsotropicDamage <GenericConstitutiveLawIntegratorDamage<ThermalMohrCoulombYieldSurface<VonMisesPlasticPotential<3>>>>,
+    typename GenericSmallStrainThermalIsotropicDamage <GenericConstitutiveLawIntegratorDamage<ThermalMohrCoulombYieldSurface<VonMisesPlasticPotential<3>>>>::Pointer,
+    ConstitutiveLaw > (m,"SmallStrainThermalIsotropicDamagePlaneStrainMohrCoulomb").def(py::init<>());
+
+    py::class_<  GenericSmallStrainThermalIsotropicDamage <GenericConstitutiveLawIntegratorDamage<ThermalRankineYieldSurface<VonMisesPlasticPotential<3>>>>,
+    typename GenericSmallStrainThermalIsotropicDamage <GenericConstitutiveLawIntegratorDamage<ThermalRankineYieldSurface<VonMisesPlasticPotential<3>>>>::Pointer,
+    ConstitutiveLaw > (m,"SmallStrainThermalIsotropicDamagePlaneStrainRankine").def(py::init<>());
+
+    py::class_<  GenericSmallStrainThermalIsotropicDamagePlaneStress <GenericConstitutiveLawIntegratorDamage<ThermalModifiedMohrCoulombYieldSurface<VonMisesPlasticPotential<3>>>>,
+    typename GenericSmallStrainThermalIsotropicDamagePlaneStress <GenericConstitutiveLawIntegratorDamage<ThermalModifiedMohrCoulombYieldSurface<VonMisesPlasticPotential<3>>>>::Pointer,
+    ConstitutiveLaw > (m,"SmallStrainThermalIsotropicDamagePlaneStressModifiedMohrCoulomb").def(py::init<>());
+
+    // Plane stress thermal damage
+    py::class_<  GenericSmallStrainThermalIsotropicDamagePlaneStress <GenericConstitutiveLawIntegratorDamage<ThermalTrescaYieldSurface<VonMisesPlasticPotential<3>>>>,
+    typename GenericSmallStrainThermalIsotropicDamagePlaneStress <GenericConstitutiveLawIntegratorDamage<ThermalTrescaYieldSurface<VonMisesPlasticPotential<3>>>>::Pointer,
+    ConstitutiveLaw > (m,"SmallStrainThermalIsotropicDamagePlaneStressTresca").def(py::init<>());
+
+    py::class_<  GenericSmallStrainThermalIsotropicDamagePlaneStress <GenericConstitutiveLawIntegratorDamage<ThermalDruckerPragerYieldSurface<VonMisesPlasticPotential<3>>>>,
+    typename GenericSmallStrainThermalIsotropicDamagePlaneStress <GenericConstitutiveLawIntegratorDamage<ThermalDruckerPragerYieldSurface<VonMisesPlasticPotential<3>>>>::Pointer,
+    ConstitutiveLaw > (m,"SmallStrainThermalIsotropicDamagePlaneStressDruckerPrager").def(py::init<>());
+
+    py::class_<  GenericSmallStrainThermalIsotropicDamagePlaneStress <GenericConstitutiveLawIntegratorDamage<ThermalSimoJuYieldSurface<VonMisesPlasticPotential<3>>>>,
+    typename GenericSmallStrainThermalIsotropicDamagePlaneStress <GenericConstitutiveLawIntegratorDamage<ThermalSimoJuYieldSurface<VonMisesPlasticPotential<3>>>>::Pointer,
+    ConstitutiveLaw > (m,"SmallStrainThermalIsotropicDamagePlaneStressSimoJu").def(py::init<>());
+
+    py::class_<  GenericSmallStrainThermalIsotropicDamagePlaneStress <GenericConstitutiveLawIntegratorDamage<ThermalMohrCoulombYieldSurface<VonMisesPlasticPotential<3>>>>,
+    typename GenericSmallStrainThermalIsotropicDamagePlaneStress <GenericConstitutiveLawIntegratorDamage<ThermalMohrCoulombYieldSurface<VonMisesPlasticPotential<3>>>>::Pointer,
+    ConstitutiveLaw > (m,"SmallStrainThermalIsotropicDamagePlaneStressMohrCoulomb").def(py::init<>());
+
+    py::class_<  GenericSmallStrainThermalIsotropicDamagePlaneStress <GenericConstitutiveLawIntegratorDamage<ThermalRankineYieldSurface<VonMisesPlasticPotential<3>>>>,
+    typename GenericSmallStrainThermalIsotropicDamagePlaneStress <GenericConstitutiveLawIntegratorDamage<ThermalRankineYieldSurface<VonMisesPlasticPotential<3>>>>::Pointer,
+    ConstitutiveLaw > (m,"SmallStrainThermalIsotropicDamagePlaneStressRankine").def(py::init<>());
+
 }
 
-}  // namespace Python.
-}  // namespace Kratos.
+}  // namespace Kratos::Python.

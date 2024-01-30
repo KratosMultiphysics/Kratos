@@ -101,7 +101,7 @@ class GiDOutputProcess(KM.OutputProcess):
             self.TranslateLegacyVariablesAccordingToCurrentStandard(param)
             # Note: this only validates the first level of the JSON tree.
             # I'm not going for recursive validation because some branches may
-            # not exist and I don't want the validator assinging defaults there.
+            # not exist and I don't want the validator assigning defaults there.
             param.ValidateAndAssignDefaults(self.defaults)
 
         self.param = param
@@ -124,9 +124,13 @@ class GiDOutputProcess(KM.OutputProcess):
         else:
             self.point_output_process = None
 
-        self.step_count = 0
         self.printed_step_count = 0
-        self.next_output = 0.0
+
+        controller_settings = KM.Parameters("""{}""")
+        controller_settings.AddString("model_part_name", model_part.FullName())
+        if param["result_file_configuration"].Has("output_control_type"): controller_settings.AddValue("output_control_type", param["result_file_configuration"]["output_control_type"])
+        if param["result_file_configuration"].Has("output_interval"): controller_settings.AddValue("output_interval", param["result_file_configuration"]["output_interval"])
+        self.controller = KM.OutputController(model_part.GetModel(), controller_settings)
 
     # This function can be extended with new deprecated variables as they are generated
     def TranslateLegacyVariablesAccordingToCurrentStandard(self, settings):
@@ -235,11 +239,7 @@ class GiDOutputProcess(KM.OutputProcess):
             mesh_name = 0.0
             self.__write_mesh(mesh_name)
             self.__initialize_results(mesh_name)
-
-            if self.post_mode == KM.GiDPostMode.GiD_PostBinary:
-                self.__write_step_to_list()
-            else:
-                self.__write_step_to_list(0)
+            self.__write_step_to_list()
 
         if self.multifile_flag == KM.MultiFileFlag.MultipleFiles:
             label = 0.0
@@ -262,8 +262,6 @@ class GiDOutputProcess(KM.OutputProcess):
             self.point_output_process.ExecuteBeforeSolutionLoop()
 
     def ExecuteInitializeSolutionStep(self):
-        self.step_count += 1
-
         if self.point_output_process is not None:
             self.point_output_process.ExecuteInitializeSolutionStep()
 
@@ -273,11 +271,7 @@ class GiDOutputProcess(KM.OutputProcess):
             self.point_output_process.ExecuteFinalizeSolutionStep()
 
     def IsOutputStep(self):
-        if self.output_control_is_time:
-            time = self.__get_pretty_time(self.model_part.ProcessInfo[KM.TIME])
-            return (time >= self.__get_pretty_time(self.next_output))
-        else:
-            return ( self.step_count >= self.next_output )
+        return self.controller.Evaluate()
 
     def PrintOutput(self):
         if self.point_output_process is not None:
@@ -315,13 +309,7 @@ class GiDOutputProcess(KM.OutputProcess):
             self.__write_step_to_list(label)
 
         # Schedule next output
-        if self.output_interval > 0.0: # Note: if == 0, we'll just always print
-            if self.output_control_is_time:
-                while self.__get_pretty_time(self.next_output) <= time:
-                    self.next_output += self.output_interval
-            else:
-                while self.next_output <= self.step_count:
-                    self.next_output += self.output_interval
+        self.controller.Update()
 
         if self.point_output_process is not None:
             self.point_output_process.ExecuteAfterOutputStep()
@@ -341,7 +329,7 @@ class GiDOutputProcess(KM.OutputProcess):
             f.close()
 
         # Note: it is important to call the GidIO destructor, since it closes output files
-        # Since Python's garbage colletion DOES NOT ensure that the destructor will be called,
+        # Since Python's garbage collection DOES NOT ensure that the destructor will be called,
         # I'm deallocating the GidIO instances explicitly. This is VERY BAD PRACTICE
         # and effectively breaks the class if called after this point, but we haven't found
         # a better solution yet (jcotela 12/V/2016)
@@ -409,7 +397,7 @@ class GiDOutputProcess(KM.OutputProcess):
 
     def _InitializeListFiles(self,additional_frequencies):
         '''Set up .post.lst files for global and cut results.
-        If we have only one tipe of output (volume or cut), the
+        If we have only one type of output (volume or cut), the
         list file is called <gid_model_name>.post.lst. When we have
         both types, call the volume one <gid_model_name>.post.lst and
         the cut one <gid_model_name>_cuts.post.lst.
@@ -732,13 +720,7 @@ class GiDOutputProcess(KM.OutputProcess):
         return KM.CuttingUtility()
 
     def _SetCurrentTimeParameters(self, additional_list_files):
-        self.step_count = self.model_part.ProcessInfo[KM.STEP]
         self.printed_step_count = self.model_part.ProcessInfo[KM.PRINTED_STEP]
-
-        if self.output_control_is_time:
-            self.next_output = self.model_part.ProcessInfo[KM.TIME]
-        else:
-            self.next_output = self.model_part.ProcessInfo[KM.STEP]
 
         # Remove post results
         if self.output_label_is_time:
@@ -759,6 +741,6 @@ class GiDOutputProcess(KM.OutputProcess):
 
         # Make sure that the path to the desired output folder exists
         output_path = Path(file_name).parent
-        KM.FilesystemExtensions.MPISafeCreateDirectories(str(output_path))
+        KM.FilesystemExtensions.MPISafeCreateDirectories(output_path)
 
         return file_name

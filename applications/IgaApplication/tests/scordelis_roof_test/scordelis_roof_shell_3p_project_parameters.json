@@ -8,7 +8,7 @@
     },
     "solver_settings": {
         "model_part_name": "IgaModelPart",
-        "domain_size": 1,
+        "domain_size": 3,
         "echo_level": 3,
         "buffer_size": 2,
         "analysis_type": "linear",
@@ -123,4 +123,3 @@
         }]
     }
 }
-

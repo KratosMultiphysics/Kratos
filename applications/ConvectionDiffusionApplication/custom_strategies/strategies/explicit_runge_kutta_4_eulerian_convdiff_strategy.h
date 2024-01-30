@@ -319,7 +319,7 @@ private:
         auto& r_settings = *p_settings;
 
         // Initialize the projection value
-        block_for_each(r_model_part.Nodes(), [&](Node<3>& rNode){
+        block_for_each(r_model_part.Nodes(), [&](Node& rNode){
             rNode.GetValue(r_settings.GetProjectionVariable()) = 0.0;
         });
 

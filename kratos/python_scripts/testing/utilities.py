@@ -24,9 +24,6 @@ def ReadModelPart(mdpa_file_name, model_part, settings=None):
         mdpa_file_name (str): Name of the mdpa file (without ".mdpa" extension)
         model_part (Kratos.ModelPart): ModelPart to be filled
     """
-    if Kratos.DOMAIN_SIZE not in model_part.ProcessInfo:
-        raise Exception('"DOMAIN_SIZE" needs to be specified in ProcessInfo!')
-
     if model_part.NumberOfNodes() > 0:
         raise Exception("ModelPart must not contain Nodes!")
 
@@ -82,12 +79,12 @@ def ReadDistributedModelPart(mdpa_file_name, model_part, importer_settings=None)
 
 def PrintTestHeader(application):
     Kratos.Logger.Flush()
-    print("\nRunning {} tests".format(application), file=sys.stderr, flush=True)
+    print(f"\nRunning {application} tests", file=sys.stderr, flush=True)
 
 def PrintTestFooter(application, exit_code):
     Kratos.Logger.Flush()
-    appendix = " with exit code {}!".format(exit_code) if exit_code != 0 else "."
-    print("Completed {} tests{}\n".format(application, appendix), file=sys.stderr, flush=True)
+    appendix = f" with exit code {exit_code}!" if exit_code != 0 else "."
+    print(f"Completed {application} tests{appendix}\n", file=sys.stderr, flush=True)
 
 def PrintTestSummary(exit_codes):
     Kratos.Logger.Flush()
@@ -96,7 +93,7 @@ def PrintTestSummary(exit_codes):
     for test, exit_code in exit_codes.items():
         result_string = "OK" if exit_code == 0 else "FAILED"
         pretty_name = test.ljust(max_test_name_length)
-        print("  {}: {}".format(pretty_name, result_string), file=sys.stderr, flush=True)
+        print(f"  {pretty_name}: {result_string}", file=sys.stderr, flush=True)
     sys.stderr.flush()
 
 class Commander:

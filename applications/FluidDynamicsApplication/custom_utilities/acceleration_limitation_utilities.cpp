@@ -37,7 +37,7 @@ namespace Kratos
         const double dt = mrModelPart.GetProcessInfo().GetValue(DELTA_TIME);
 
         array_1d<double,3> delta_v;
-        double max_delta_v = block_for_each<MaxReduction<double>>(mrModelPart.Nodes(), delta_v, [&](Node<3>& rNode, array_1d<double,3>& rDeltaVTLS){
+        double max_delta_v = block_for_each<MaxReduction<double>>(mrModelPart.Nodes(), delta_v, [&](Node& rNode, array_1d<double,3>& rDeltaVTLS){
             double norm_delta_v_fixed = 0.0;
             if ( rNode.Is(INLET) || rNode.IsFixed(VELOCITY_X) || rNode.IsFixed(VELOCITY_Y) || rNode.IsFixed(VELOCITY_Z) ){
                 const array_1d<double, 3> &r_v  = rNode.FastGetSolutionStepValue( VELOCITY, 0 );
@@ -53,7 +53,7 @@ namespace Kratos
         // Synchronize maximum fixed acceleration between processes
         max_delta_v = mrModelPart.GetCommunicator().GetDataCommunicator().MaxAll(max_delta_v);
 
-        block_for_each(mrModelPart.Nodes(), [&](Node<3>& rNode){
+        block_for_each(mrModelPart.Nodes(), [&](Node& rNode){
             // retrieving velocities of current and last time step
             array_1d<double, 3> &v  = rNode.FastGetSolutionStepValue( VELOCITY, 0 );
             const array_1d<double, 3> &vn = rNode.FastGetSolutionStepValue( VELOCITY, 1 );

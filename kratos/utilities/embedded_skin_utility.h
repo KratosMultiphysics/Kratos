@@ -72,10 +72,10 @@ public:
     KRATOS_CLASS_POINTER_DEFINITION(EmbeddedSkinUtility);
 
     typedef std::unordered_map<
-        Node<3>::Pointer,
+        Node::Pointer,
         std::tuple< const Element::Pointer, const unsigned int >,
-        SharedPointerHasher<Node<3>::Pointer>,
-        SharedPointerComparator<Node<3>::Pointer> > EdgeNodesMapType;
+        SharedPointerHasher<Node::Pointer>,
+        SharedPointerComparator<Node::Pointer> > EdgeNodesMapType;
 
     ///@}
     ///@name  Enum's
@@ -96,7 +96,7 @@ public:
         ModelPart &rModelPart,
         ModelPart &rSkinModelPart,
         const std::string LevelSetType = "continuous",
-        const std::vector<std::string> InterpolatedSkinVariables = {}) :
+        const std::vector<std::string>& InterpolatedSkinVariables = {}) :
         mrModelPart(rModelPart),
         mrSkinModelPart(rSkinModelPart),
         mLevelSetType(LevelSetType == "continuous" ? Continuous : Discontinuous),
@@ -253,7 +253,7 @@ private:
      * @return false if the element is not split
      */
     bool inline ElementIsSplit(
-        const Geometry<Node<3>> &rGeometry,
+        const Geometry<Node> &rGeometry,
         const Vector &rNodalDistances);
 
     /**
@@ -289,7 +289,7 @@ private:
         for (int i_node = 0; i_node < static_cast<int>(mrSkinModelPart.NumberOfNodes()); ++i_node) {
             // Get the current node
             auto it_node = mrSkinModelPart.NodesBegin() + i_node;
-            Node<3>::Pointer p_node = &(*it_node);
+            Node::Pointer p_node = &(*it_node);
 
             // Search for the current node in the intersected edges map
             const auto i_node_info = mEdgeNodesMap.find(p_node);
@@ -347,8 +347,8 @@ private:
      * @param rNodalDistances Vector containing the distance values
      * @return A pointer to the divide geometry utility
      */
-    DivideGeometry<Node<3>>::Pointer SetDivideGeometryUtility(
-        const Geometry<Node<3>> &rGeometry,
+    DivideGeometry<Node>::Pointer SetDivideGeometryUtility(
+        const Geometry<Node> &rGeometry,
         const Vector &rNodalDistances);
 
     /**
@@ -357,7 +357,7 @@ private:
      * @param rNewNodesArray Nodes that conform the new interface geometry
      * @return A pointer to the new geometry
      */
-    Geometry< Node<3> >::Pointer pCreateNewConditionGeometry(
+    Geometry< Node >::Pointer pCreateNewConditionGeometry(
         const GeometryData::KratosGeometryType &rOriginGeometryType,
         const Condition::NodesArrayType &rNewNodesArray);
 
@@ -403,7 +403,7 @@ private:
      * to the current element modified shape functions utility
      */
     ModifiedShapeFunctions::UniquePointer pCreateModifiedShapeFunctions(
-        const Geometry<Node<3>>::Pointer pGeometry,
+        const Geometry<Node>::Pointer pGeometry,
         const Vector& rNodalDistances);
 
     /**

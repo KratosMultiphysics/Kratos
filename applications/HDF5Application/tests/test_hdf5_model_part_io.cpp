@@ -32,7 +32,7 @@ KRATOS_TEST_CASE_IN_SUITE(HDF5_ModelPartIO_ReadNodes, KratosHDF5TestSuite)
     Model this_model;
     ModelPart& r_write_model_part = this_model.CreateModelPart("test_write");
     TestModelPartFactory::CreateModelPart(r_write_model_part);
-    KRATOS_CHECK(r_write_model_part.NumberOfNodes() > 0);
+    KRATOS_EXPECT_TRUE(r_write_model_part.NumberOfNodes() > 0);
     HDF5::ModelPartIO model_part_io(pGetTestSerialFile(), "/Step");
     model_part_io.WriteNodes(r_write_model_part.Nodes());
     ModelPart& r_read_model_part = this_model.CreateModelPart("test_read");
@@ -45,7 +45,7 @@ KRATOS_TEST_CASE_IN_SUITE(HDF5_ModelPartIO_ReadElements1, KratosHDF5TestSuite)
     Model this_model;
     ModelPart& r_write_model_part = this_model.CreateModelPart("test_write");
     TestModelPartFactory::CreateModelPart(r_write_model_part, {{"Element2D3N"}});
-    KRATOS_CHECK(r_write_model_part.NumberOfElements() > 0);
+    KRATOS_EXPECT_TRUE(r_write_model_part.NumberOfElements() > 0);
     HDF5::ModelPartIO model_part_io(pGetTestSerialFile(), "/Step");
     model_part_io.WriteNodes(r_write_model_part.Nodes());
     model_part_io.WriteElements(r_write_model_part.Elements());
@@ -61,7 +61,7 @@ KRATOS_TEST_CASE_IN_SUITE(HDF5_ModelPartIO_ReadElements2, KratosHDF5TestSuite)
     ModelPart& r_write_model_part = this_model.CreateModelPart("test_write");
     TestModelPartFactory::CreateModelPart(r_write_model_part,
                                           {{"Element2D3N"}, {"Element2D4N"}});
-    KRATOS_CHECK(r_write_model_part.NumberOfElements() > 0);
+    KRATOS_EXPECT_TRUE(r_write_model_part.NumberOfElements() > 0);
     HDF5::ModelPartIO model_part_io(pGetTestSerialFile(), "/Step");
     model_part_io.WriteNodes(r_write_model_part.Nodes());
     model_part_io.WriteElements(r_write_model_part.Elements());
@@ -89,7 +89,7 @@ KRATOS_TEST_CASE_IN_SUITE(HDF5_ModelPartIO_ReadConditions1, KratosHDF5TestSuite)
     Model this_model;
     ModelPart& r_write_model_part = this_model.CreateModelPart("test_write");
     TestModelPartFactory::CreateModelPart(r_write_model_part, {}, {{"SurfaceCondition3D3N"}});
-    KRATOS_CHECK(r_write_model_part.NumberOfConditions() > 0);
+    KRATOS_EXPECT_TRUE(r_write_model_part.NumberOfConditions() > 0);
     HDF5::ModelPartIO model_part_io(pGetTestSerialFile(), "/Step");
     model_part_io.WriteNodes(r_write_model_part.Nodes());
     model_part_io.WriteConditions(r_write_model_part.Conditions());
@@ -106,7 +106,7 @@ KRATOS_TEST_CASE_IN_SUITE(HDF5_ModelPartIO_ReadConditions2, KratosHDF5TestSuite)
     TestModelPartFactory::CreateModelPart(
         r_write_model_part, {},
         {{"SurfaceCondition3D3N"}, {"SurfaceCondition3D4N"}});
-    KRATOS_CHECK(r_write_model_part.NumberOfConditions() > 0);
+    KRATOS_EXPECT_TRUE(r_write_model_part.NumberOfConditions() > 0);
     HDF5::ModelPartIO model_part_io(pGetTestSerialFile(), "/Step");
     model_part_io.WriteNodes(r_write_model_part.Nodes());
     model_part_io.WriteConditions(r_write_model_part.Conditions());
@@ -146,7 +146,7 @@ KRATOS_TEST_CASE_IN_SUITE(HDF5_ModelPartIO_Properties1, KratosHDF5TestSuite)
     ModelPart& r_read_model_part = this_model.CreateModelPart("test_read");
     HDF5::PropertiesContainerType& r_read_properties = r_read_model_part.rProperties();
     model_part_io.ReadProperties(r_read_properties);
-    KRATOS_CHECK(r_read_model_part.NumberOfProperties() == r_write_model_part.NumberOfProperties());
+    KRATOS_EXPECT_TRUE(r_read_model_part.NumberOfProperties() == r_write_model_part.NumberOfProperties());
     CompareDataValueContainers(r_read_properties[1].Data(), dummy_flags,
                                r_write_properties[1].Data(), dummy_flags);
     CompareDataValueContainers(r_read_properties[3].Data(), dummy_flags,
@@ -166,8 +166,8 @@ KRATOS_TEST_CASE_IN_SUITE(HDF5_ModelPartIO_Properties2, KratosHDF5TestSuite)
     ModelPart& r_read_model_part = this_model.CreateModelPart("test_read");
     HDF5::PropertiesContainerType& r_read_properties = r_read_model_part.rProperties();
     model_part_io.ReadProperties(r_read_properties); // read empty properties container
-    KRATOS_CHECK(r_write_model_part.NumberOfProperties() == 0);
-    KRATOS_CHECK(r_read_model_part.NumberOfProperties() == 0);
+    KRATOS_EXPECT_TRUE(r_write_model_part.NumberOfProperties() == 0);
+    KRATOS_EXPECT_TRUE(r_read_model_part.NumberOfProperties() == 0);
     KRATOS_CATCH_WITH_BLOCK("", H5close();); // prevent failure from propagating to subsequent tests
 }
 

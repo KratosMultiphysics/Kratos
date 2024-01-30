@@ -36,6 +36,8 @@ class StabilizedFormulation(object):
                 self._SetUpWeaklyCompressible(settings)
             elif formulation == "weakly_compressible":
                 self._SetUpWeaklyCompressible(settings)
+            elif formulation == "axisymmetric_navier_stokes":
+                self._SetUpAxisymmetricNavierStokes(settings)
         else:
             print(settings)
             raise RuntimeError("Argument \'element_type\' not found in stabilization settings.")
@@ -166,6 +168,22 @@ class StabilizedFormulation(object):
         self.process_data[KratosMultiphysics.DYNAMIC_TAU] = settings["dynamic_tau"].GetDouble()
         #TODO: Remove SOUND_VELOCITY from ProcessInfo. Should be obtained from the properties.
         self.process_data[KratosMultiphysics.SOUND_VELOCITY] = settings["sound_velocity"].GetDouble()
+
+    def _SetUpAxisymmetricNavierStokes(self,settings):
+        default_settings = KratosMultiphysics.Parameters(r"""{
+            "element_type": "axisymmetric_navier_stokes",
+            "dynamic_tau": 1.0
+        }""")
+        settings.ValidateAndAssignDefaults(default_settings)
+
+        self.element_name = "AxisymmetricNavierStokes"
+        self.condition_name = "LineCondition" #TODO: Implement an AxisymmetricNavierStokesCondition
+        self.element_integrates_in_time = True
+
+        # set the nodal material properties flag
+        self.element_has_nodal_properties = False
+
+        self.process_data[KratosMultiphysics.DYNAMIC_TAU] = settings["dynamic_tau"].GetDouble()
 
 def CreateSolver(model, custom_settings):
     return NavierStokesSolverMonolithic(model, custom_settings)
@@ -326,12 +344,11 @@ class NavierStokesSolverMonolithic(FluidSolver):
         KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Solver initialization finished.")
 
     def InitializeSolutionStep(self):
-        if self._TimeBufferIsInitialized():
-            # If required, compute the BDF coefficients
-            if hasattr(self, 'time_discretization'):
-                (self.time_discretization).ComputeAndSaveBDFCoefficients(self.GetComputingModelPart().ProcessInfo)
-            # Perform the solver InitializeSolutionStep
-            self._GetSolutionStrategy().InitializeSolutionStep()
+        # If required, compute the BDF coefficients
+        if hasattr(self, 'time_discretization'):
+            (self.time_discretization).ComputeAndSaveBDFCoefficients(self.GetComputingModelPart().ProcessInfo)
+        # Perform the solver InitializeSolutionStep
+        self._GetSolutionStrategy().InitializeSolutionStep()
 
     def _SetFormulation(self):
         self.formulation = StabilizedFormulation(self.settings["formulation"])

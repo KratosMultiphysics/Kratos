@@ -9,8 +9,6 @@
 #
 # ==============================================================================
 
-# Making KratosMultiphysics backward compatible with python 2.6 and 2.7
-from __future__ import print_function, absolute_import, division
 
 # Kratos Core and Apps
 import KratosMultiphysics as KM
@@ -212,12 +210,14 @@ class AlgorithmSteepestDescent(OptimizationAlgorithm):
 
     # --------------------------------------------------------------------------
     def __logCurrentOptimizationStep(self):
+
         self.previos_objective_value = self.communicator.getStandardizedValue(self.objectives[0]["identifier"].GetString())
         self.norm_objective_gradient = self.optimization_utilities.ComputeL2NormOfNodalVariable(self.design_surface, KSO.DF1DX_MAPPED)
 
         additional_values_to_log = {}
         additional_values_to_log["step_size"] = self.step_size
         additional_values_to_log["norm_objective_gradient"] = self.norm_objective_gradient
+        self.data_logger.LogSensitivityHeatmap(self.optimization_iteration, self.mapper)
         self.data_logger.LogCurrentValues(self.optimization_iteration, additional_values_to_log)
         self.data_logger.LogCurrentDesign(self.optimization_iteration)
 

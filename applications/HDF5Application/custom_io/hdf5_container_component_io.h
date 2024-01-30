@@ -41,7 +41,7 @@ namespace HDF5
 
 /// A class for IO of element data in HDF5.
 template <typename TContainerType, typename TContainerItemType, typename... TComponents>
-class ContainerComponentIO
+class KRATOS_API(HDF5_APPLICATION) ContainerComponentIO
 {
 public:
     ///@name Type Definitions

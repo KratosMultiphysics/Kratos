@@ -49,7 +49,7 @@ public:
     ///@{
 
     /// Node type definition
-    typedef Node<3> NodeType;
+    typedef Node NodeType;
 
     /// The container of the entities
     typedef PointerVectorSet<TEntity, IndexedObject> EntityContainerType;

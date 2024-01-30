@@ -55,7 +55,7 @@ public:
     /// Constructor for CheckSkinProcess Process
     CheckSkinProcess(
         ModelPart& rModelPart,
-        Flags Options
+        const Flags Options
         ): Process(Options),
            mrModelPart(rModelPart)
     {

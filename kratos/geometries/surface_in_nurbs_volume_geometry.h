@@ -506,8 +506,7 @@ const GeometryData SurfaceInNurbsVolumeGeometry<TWorkingSpaceDimension, TVolumeC
     {}, {}, {});
 
 template<int TWorkingSpaceDimension, class TVolumeContainerPointType>
-const GeometryDimension SurfaceInNurbsVolumeGeometry<TWorkingSpaceDimension, TVolumeContainerPointType>::msGeometryDimension(
-    2, TWorkingSpaceDimension, 3);
+const GeometryDimension SurfaceInNurbsVolumeGeometry<TWorkingSpaceDimension, TVolumeContainerPointType>::msGeometryDimension(TWorkingSpaceDimension, 3);
 
 } // namespace Kratos
 

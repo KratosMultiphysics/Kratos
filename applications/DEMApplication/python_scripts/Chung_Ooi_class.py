@@ -2,431 +2,54 @@ from KratosMultiphysics import *                                  # importing th
 from KratosMultiphysics.DEMApplication import *
 import shutil
 from glob import glob
-from math import log, pi, sin, cos, tan, atan, fabs
+from math import pi, tan, fabs
 from os import system
 
 def initialize_time_parameters(benchmark_number):
 
-    if benchmark_number==1:
+    if benchmark_number==5:
 
-        end_time                      = 0.0005
-        dt                              = 6.4e-8 # Complies Rayleigh's condition
-        output_time_step                = 0.000005
-        number_of_points_in_the_graphic = 6
-
-    elif benchmark_number==2:
-
-        end_time                      = 0.007
-        dt                              = 3e-6 #3e-7 # Complies Rayleigh's condition????????????????
-        output_time_step                = 0.0001
-        number_of_points_in_the_graphic = 6
-
-    elif benchmark_number==3:
-
-        end_time                      = 0.00031
-        dt                              = 5.0e-8  #1.1e-9 # Complies Rayleigh's condition
-        output_time_step                = 0.000001
-        number_of_points_in_the_graphic = 6
-
-    elif benchmark_number==4:
-
-        end_time                      = 0.0002  #0.00003
-        dt                              = 1.9e-8  #1.9e-9 # Complies Rayleigh's condition
-        output_time_step                = 0.000001
-        number_of_points_in_the_graphic = 17
-
-    elif benchmark_number==5:
-
-        end_time                      = 0.0000005
+        end_time                        = 0.0000005
         dt                              = 3.3e-10  #3.6e-12 # Complies Rayleigh's condition
         output_time_step                = 0.00000005
         number_of_points_in_the_graphic = 17
 
     elif benchmark_number==6:
 
-        end_time                      = 0.01
+        end_time                        = 0.01
         dt                              = 5.0e-7  #1.0e-7 # Complies Rayleigh's condition ????????????????
         output_time_step                = 0.00025
         number_of_points_in_the_graphic = 17
 
     elif benchmark_number==7:
 
-        end_time                      = 0.0005
+        end_time                        = 0.0005
         dt                              = 2e-7 #4.4614e-8 # Complies Rayleigh's condition ????????????????
         output_time_step                = 0.000005
         number_of_points_in_the_graphic = 17
 
     elif benchmark_number==8:
 
-        end_time                      = 0.02
+        end_time                        = 0.02
         dt                              = 1.0e-6 #5.0e-7 # Complies Rayleigh's condition
         output_time_step                = 0.0001
         number_of_points_in_the_graphic = 17
 
     elif benchmark_number==9:
 
-        end_time                      = 0.001 #0.0005
+        end_time                        = 0.001 #0.0005
         dt                              = 1e-7 #6.4e-8 # Complies Rayleigh's condition
         output_time_step                = 0.000005
         number_of_points_in_the_graphic = 6
 
     else: #benchmark_number=10
 
-        end_time                      = 0.001 #0.0005
+        end_time                        = 0.001 #0.0005
         dt                              = 6.4e-8 # Complies Rayleigh's condition
         output_time_step                = 0.000005
         number_of_points_in_the_graphic = 10
 
     return end_time, dt, output_time_step, number_of_points_in_the_graphic
-
-
-class Benchmark1:
-
-    def __init__(self):
-        self.initial_normal_vel = 10.0
-
-    def get_initial_data(self, modelpart, iteration, number_of_points_in_the_graphic):
-
-        for node in modelpart.Nodes:
-            if node.Id == 1:
-                node.SetSolutionStepValue(VELOCITY_X, -self.initial_normal_vel)
-            else:
-                node.SetSolutionStepValue(VELOCITY_X,  self.initial_normal_vel)
-
-    def get_final_data(self, modelpart):
-        pass
-
-    def print_results(self, number_of_points_in_the_graphic, dt=0):
-
-        normal_contact_force_outfile_name = 'variables_for_node_1.txt'
-        gnuplot_script_name = 'benchmark1_dt_' + str(dt) + 's.gp'
-        self.gnuplot_outfile = open(gnuplot_script_name, 'w')
-        self.gnuplot_outfile.write("set grid; plot '" + normal_contact_force_outfile_name + "' every 20 u 1:8 w lp lt -1 lw 1.5 ps 1 pt 4")
-        self.gnuplot_outfile.close()
-        print_gnuplot_files_on_screen(gnuplot_script_name)
-
-
-class Benchmark2:
-
-    def __init__(self):
-        self.initial_normal_vel = -0.2
-
-    def get_initial_data(self, modelpart, iteration, number_of_points_in_the_graphic):
-
-        for node in modelpart.Nodes:
-            node.SetSolutionStepValue(VELOCITY_Z, self.initial_normal_vel)
-
-    def get_final_data(self, modelpart):
-        pass
-
-    def print_results(self, number_of_points_in_the_graphic, dt=0):
-
-        normal_contact_force_outfile_name = 'variables_for_node_1.txt'
-        gnuplot_script_name = 'benchmark2_dt_' + str(dt) + 's.gp'
-        self.gnuplot_outfile = open(gnuplot_script_name, 'w')
-        self.gnuplot_outfile.write("set grid; plot '" + normal_contact_force_outfile_name + "' every 10 u 1:10 w lp lt 3 lw 1.5 ps 1 pt 6")
-        self.gnuplot_outfile.close()
-        print_gnuplot_files_on_screen(gnuplot_script_name)
-
-
-class Benchmark3:
-
-    def __init__(self):
-        self.restitution_numbers_list = []
-        self.initial_normal_vel = 0
-        self.restitution_numbers_vector_list_outfile = None
-
-    def get_initial_data(self, modelpart, iteration, number_of_points_in_the_graphic):
-
-        number = 1.0/(number_of_points_in_the_graphic-1) * (iteration - 1)
-
-        if number_of_points_in_the_graphic == 1:
-            number = 0
-        else:
-            number = 1.0/(number_of_points_in_the_graphic-1) * (iteration - 1)
-
-        for node in modelpart.Nodes:
-            self.initial_normal_vel = node.GetSolutionStepValue(VELOCITY_Z)
-            modelpart.GetProperties()[1][COEFFICIENT_OF_RESTITUTION] = number
-
-    def get_final_data(self, modelpart):
-
-        for node in modelpart.Nodes:
-            final_vel = node.GetSolutionStepValue(VELOCITY_Z)
-
-        restitution_coefficient = -final_vel / self.initial_normal_vel
-        self.restitution_numbers_list.append(restitution_coefficient)
-
-    def print_results(self, number_of_points_in_the_graphic, dt=0):
-
-        self.restitution_numbers_vector_list_outfile_name = "benchmark3_dt_" + str(dt) + '_restitution_numbers_vector_list_data.dat'
-        self.restitution_numbers_vector_list_outfile = open(self.restitution_numbers_vector_list_outfile_name, 'w')
-
-        for i in range(0, number_of_points_in_the_graphic):
-            first_col = 1/(number_of_points_in_the_graphic-1) * i
-            self.restitution_numbers_vector_list_outfile.write("%6.4f %11.8f" % (first_col, self.restitution_numbers_list[i]) + '\n')
-        self.restitution_numbers_vector_list_outfile.close()
-
-        gnuplot_script_name = 'benchmark3_dt_' + str(dt) + 's.gp'
-        self.gnuplot_outfile = open(gnuplot_script_name, 'w')
-        self.gnuplot_outfile.write("set grid; plot '" + self.restitution_numbers_vector_list_outfile_name + "' u 1:2 w lp lt 3 lw 1.5 ps 2 pt 4, '"\
-                                                      + self.restitution_numbers_vector_list_outfile_name + "' u 1:3 w lp lt 2 lw 1.5 ps 2 pt 6")
-        self.gnuplot_outfile.close()
-
-        #self.create_gnuplot_scripts(self.restitution_numbers_vector_list_outfile_name, dt)
-
-        error1, error2, error3 = self.compute_errors(self.restitution_numbers_vector_list_outfile_name)
-
-        error_filename = 'errors.txt'
-        error_file = open(error_filename, 'a')
-        error_file.write("Test 3:")
-
-        if (error1 < 10.0 and error2 < 10.0 and error3 < 10.0):
-            error_file.write(" OK!........ Test 3 SUCCESSFUL\n")
-        else:
-            error_file.write(" KO!........ Test 3 FAILED\n")
-        error_file.close()
-
-    def create_gnuplot_scripts(self, restitution_numbers_vector_list_outfile_name, dt):
-
-        gnuplot_script_name_1 = 'benchmark3_comparison_1_dt_' + str(dt) + 's.gp'
-        self.gnuplot_outfile = open(gnuplot_script_name_1, 'w')
-        self.gnuplot_outfile.write("set grid\nset key left bottom\nset xlabel 'Coefficient of restitution'\nset ylabel 'Damping ratio'\nset style line 1 pt 8 lt -1 ps 3\nset style line 2 pt 9 lt  3 ps 3\n")
-        self.gnuplot_outfile.write("plot [0:1][0:1] '" + restitution_numbers_vector_list_outfile_name + "' w lp lt 1 lw 1.5 ps 2 pt 5,\\\n")
-        self.gnuplot_outfile.write("'paper_data/benchmark3_graph1.dat' w lp ls 1 t 'Al. oxide',\\\n")
-        self.gnuplot_outfile.write("'paper_data/benchmark3_graph1.dat' w lp ls 2 t 'Cast iron'\n")
-        self.gnuplot_outfile.close()
-
-        print_gnuplot_files_on_screen(gnuplot_script_name_1)
-
-    def compute_errors(self, restitution_numbers_vector_list_outfile_name):
-
-        lines_Chung = lines_DEM = list(range(0, 6));
-        Chung_data = []; DEM_data = []; summation_of_Chung_data = 0
-        i = 0
-        with open('paper_data/benchmark3_graph1.dat') as inf:
-            for line in inf:
-                if i in lines_Chung:
-                    parts = line.split()
-                    Chung_data.append(float(parts[1]))
-                i+=1
-        i = 0
-        with open(restitution_numbers_vector_list_outfile_name) as inf:
-            for line in inf:
-                if i in lines_DEM:
-                    parts = line.split()
-                    DEM_data.append(float(parts[1]))
-                i+=1
-        final_restitution_numbers_error = 0
-
-        for j in Chung_data:
-            summation_of_Chung_data+=abs(j)
-
-        for i, j in zip(DEM_data, Chung_data):
-            final_restitution_numbers_error+=fabs(i-j)
-        final_restitution_numbers_error/=summation_of_Chung_data
-
-        Logger.PrintInfo("Error in restitution numbers =", 100*final_restitution_numbers_error,"%")
-
-        error1 = 100*final_restitution_numbers_error
-
-        error2 = error3 = 0
-
-        return error1, error2, error3
-
-
-class Benchmark4:
-
-    def __init__(self):
-        self.initial_module_vel = 3.9
-        self.initial_tangential_vel = 0
-        self.radius = 0.0025
-        self.degrees = 0
-        self.angles_list = []
-        self.tangential_restitution_coefficient_list = []
-        self.final_angular_vel_list = []
-        self.rebound_angle_list = []
-        self.final_angular_vel_list_outfile = None
-        self.rebound_angle_list_outfile = None
-        self.tangential_restitution_coefficient_list_outfile = None
-
-    def get_initial_data(self, modelpart, iteration, number_of_points_in_the_graphic):
-
-        self.degrees = 90 / (number_of_points_in_the_graphic + 1) * iteration
-        self.initial_tangential_vel =  self.initial_module_vel * sin(self.degrees * pi / 180.0)
-        initial_normal_vel = -self.initial_module_vel * cos(self.degrees * pi / 180.0)
-
-        for node in modelpart.Nodes:
-            node.SetSolutionStepValue(VELOCITY_Y, self.initial_tangential_vel)
-            node.SetSolutionStepValue(VELOCITY_Z, initial_normal_vel)
-
-    def get_final_data(self, modelpart):
-
-        for node in modelpart.Nodes:
-
-            final_angular_vel = node.GetSolutionStepValue(ANGULAR_VELOCITY_X)
-            final_tangential_center_velocity = node.GetSolutionStepValue(VELOCITY_Y)
-            final_normal_center_velocity = node.GetSolutionStepValue(VELOCITY_Z)
-            final_tangential_contact_velocity = final_tangential_center_velocity + final_angular_vel * self.radius
-            rebound_angle = 180 / pi * atan(final_tangential_contact_velocity / final_normal_center_velocity)
-            tangential_restitution_coefficient = final_tangential_center_velocity / self.initial_tangential_vel
-
-        self.final_angular_vel_list.append(final_angular_vel)
-        self.rebound_angle_list.append(rebound_angle)
-        self.tangential_restitution_coefficient_list.append(tangential_restitution_coefficient)
-        self.angles_list.append(self.degrees)
-
-    def print_results(self, number_of_points_in_the_graphic, dt=0):
-
-        self.tangential_restitution_coefficient_list_outfile_name = "benchmark4_dt_" + str(dt) + '_tangential_restitution_coefficient_list_data.dat'
-        self.final_angular_vel_list_outfile_name = "benchmark4_dt_" + str(dt) + '_final_angular_vel_list_data.dat'
-        self.rebound_angle_list_outfile_name = "benchmark4_dt_" + str(dt) + '_rebound_angle_list_data.dat'
-        self.tangential_restitution_coefficient_list_outfile = open(self.tangential_restitution_coefficient_list_outfile_name, 'w')
-        self.final_angular_vel_list_outfile = open(self.final_angular_vel_list_outfile_name, 'w')
-        self.rebound_angle_list_outfile = open(self.rebound_angle_list_outfile_name, 'w')
-
-        for i in range(0, number_of_points_in_the_graphic):
-            self.tangential_restitution_coefficient_list_outfile.write("%14.8f %14.8f" % (self.angles_list[i], self.tangential_restitution_coefficient_list[i]) + '\n')
-            self.final_angular_vel_list_outfile.write("%14.8f %14.8f" % (self.angles_list[i], self.final_angular_vel_list[i]) + '\n')
-            self.rebound_angle_list_outfile.write("%14.8f %14.8f" % (self.angles_list[i], self.rebound_angle_list[i]) + '\n')
-        self.tangential_restitution_coefficient_list_outfile.close()
-        self.final_angular_vel_list_outfile.close()
-        self.rebound_angle_list_outfile.close()
-
-        #self.create_gnuplot_scripts(self.tangential_restitution_coefficient_list_outfile_name, self.final_angular_vel_list_outfile_name,\
-        #                            self.rebound_angle_list_outfile_name, dt)
-
-        error1, error2, error3 = self.compute_errors(self.tangential_restitution_coefficient_list_outfile_name, self.final_angular_vel_list_outfile_name,\
-                                    self.rebound_angle_list_outfile_name)
-
-        error_filename = 'errors.txt'
-        error_file = open(error_filename, 'a')
-        error_file.write("Test 4:")
-
-        if (error1 < 10.0 and error2 < 10.0 and error3 < 10.0):
-            error_file.write(" OK!........ Test 4 SUCCESSFUL\n")
-        else:
-            error_file.write(" KO!........ Test 4 FAILED\n")
-        error_file.close()
-
-    def create_gnuplot_scripts(self, tangential_restitution_coefficient_list_outfile_name, final_angular_vel_list_outfile_name,\
-                               rebound_angle_list_outfile_name, dt):
-
-        gnuplot_script_name_1 = 'benchmark4_comparison_1_dt_' + str(dt) + 's.gp'
-        self.gnuplot_outfile = open(gnuplot_script_name_1, 'w')
-        self.gnuplot_outfile.write("set grid\nset key left bottom\nset style line 1 pt 8 lt -1 ps 3\nset style line 2 pt 9 lt  3 ps 3\n")
-        self.gnuplot_outfile.write("plot [0:90][.4:1] '" + tangential_restitution_coefficient_list_outfile_name + "' w lp lt 1 lw 1.5 ps 2 pt 5,\\\n")
-        self.gnuplot_outfile.write("'paper_data/benchmark4_graph1.dat' index 0 w lp ls 1 t 'Al. oxide',\\\n")
-        self.gnuplot_outfile.write("'paper_data/benchmark4_graph1.dat' index 1 w lp ls 2 t 'Al. alloy',\\\n")
-        self.gnuplot_outfile.write("'paper_data/benchmark4_graph1.dat' index 2 w p pt 7 ps 2 lt -1 t 'Experimental'\n")
-        self.gnuplot_outfile.close()
-
-        gnuplot_script_name_2 = 'benchmark4_comparison_2_dt_' + str(dt) + 's.gp'
-        self.gnuplot_outfile = open(gnuplot_script_name_2, 'w')
-        self.gnuplot_outfile.write("set grid\nset key left bottom\nset xlabel 'Incident angle (deg)'\nset ylabel 'Final angular velocity (rad/s)'\nset style line 1 pt 8 lt -1 ps 3\nset style line 2 pt 9 lt  3 ps 3\n")
-        self.gnuplot_outfile.write("plot [0:90][-750:0] '" + final_angular_vel_list_outfile_name + "' w lp lt 1 lw 1.5 ps 2 pt 5,\\\n")
-        self.gnuplot_outfile.write("'paper_data/benchmark4_graph2.dat' index 0 w lp ls 1 t 'Al. oxide',\\\n")
-        self.gnuplot_outfile.write("'paper_data/benchmark4_graph2.dat' index 1 w lp ls 2 t 'Al. alloy',\\\n")
-        self.gnuplot_outfile.write("'paper_data/benchmark4_graph2.dat' index 2 w p pt 7 ps 2 lt -1 t 'Experimental'\n")
-        self.gnuplot_outfile.close()
-
-        gnuplot_script_name_3 = 'benchmark4_comparison_3_dt_' + str(dt) + 's.gp'
-        self.gnuplot_outfile = open(gnuplot_script_name_3, 'w')
-        self.gnuplot_outfile.write("set grid\nset key left bottom\nset xlabel 'Incident angle (deg)'\nset ylabel 'Rebound angle (deg)'\nset style line 1 pt 8 lt -1 ps 3\nset style line 2 pt 9 lt  3 ps 3\n")
-        self.gnuplot_outfile.write("plot [0:90][-30:90] '" + rebound_angle_list_outfile_name + "' w lp lt 1 lw 1.5 ps 2 pt 5,\\\n")
-        self.gnuplot_outfile.write("'paper_data/benchmark4_graph3.dat' index 0 w lp ls 1 t 'Al. oxide',\\\n")
-        self.gnuplot_outfile.write("'paper_data/benchmark4_graph3.dat' index 1 w lp ls 2 t 'Al. alloy',\\\n")
-        self.gnuplot_outfile.write("'paper_data/benchmark4_graph3.dat' index 2 w p pt 7 ps 2 lt -1 t 'Experimental'\n")
-        self.gnuplot_outfile.close()
-
-        print_gnuplot_files_on_screen(gnuplot_script_name_1)
-        print_gnuplot_files_on_screen(gnuplot_script_name_2)
-        print_gnuplot_files_on_screen(gnuplot_script_name_3)
-
-    def compute_errors(self, tangential_restitution_coefficient_list_outfile_name, final_angular_vel_list_outfile_name, rebound_angle_list_outfile_name):
-
-        lines_Chung = list(range(17, 30)); lines_DEM = list(range(0, 8)) + list(range(9, 16, 2)) + [16]
-        Chung_data = []; DEM_data = []; summation_of_Chung_data = 0
-        i = 0
-        with open('paper_data/benchmark4_graph1.dat') as inf:
-            for line in inf:
-                if i in lines_Chung:
-                    parts = line.split(',')
-                    Chung_data.append(float(parts[1]))
-                i+=1
-        i = 0
-        with open(tangential_restitution_coefficient_list_outfile_name) as inf:
-            for line in inf:
-                if i in lines_DEM:
-                    parts = line.split()
-                    DEM_data.append(float(parts[1]))
-                i+=1
-        final_tangential_restitution_coefficient_error = 0
-
-        for j in Chung_data:
-            summation_of_Chung_data+=abs(j)
-
-        for i, j in zip(DEM_data, Chung_data):
-            final_tangential_restitution_coefficient_error+=fabs(i-j)
-        final_tangential_restitution_coefficient_error/=summation_of_Chung_data
-        Logger.PrintInfo("Error in tangential restitution coefficient =", 100*final_tangential_restitution_coefficient_error,"%")
-
-        Chung_data = []; DEM_data = []; summation_of_Chung_data = 0
-        i = 0
-        with open('paper_data/benchmark4_graph2.dat') as inf:
-            for line in inf:
-                if i in lines_Chung:
-                    parts = line.split(',')
-                    Chung_data.append(float(parts[1]))
-                i+=1
-        i = 0
-        with open(final_angular_vel_list_outfile_name) as inf:
-            for line in inf:
-                if i in lines_DEM:
-                    parts = line.split()
-                    DEM_data.append(float(parts[1]))
-                i+=1
-        final_angular_vel_total_error = 0
-
-        for j in Chung_data:
-            summation_of_Chung_data+=abs(j)
-
-        for i, j in zip(DEM_data, Chung_data):
-            final_angular_vel_total_error+=fabs(i-j)
-        final_angular_vel_total_error/=summation_of_Chung_data
-        Logger.PrintInfo("Error in final angular vel =", 100*final_angular_vel_total_error,"%")
-
-        Chung_data = []; DEM_data = []; summation_of_Chung_data = 0
-        i = 0
-        with open('paper_data/benchmark4_graph3.dat') as inf:
-            for line in inf:
-                if i in lines_Chung:
-                    parts = line.split(',')
-                    Chung_data.append(float(parts[1]))
-                i+=1
-        i = 0
-        with open(rebound_angle_list_outfile_name) as inf:
-            for line in inf:
-                if i in lines_DEM:
-                    parts = line.split()
-                    DEM_data.append(float(parts[1]))
-                i+=1
-        final_rebound_angle_error = 0
-
-        for j in Chung_data:
-            summation_of_Chung_data+=abs(j)
-
-        for i, j in zip(DEM_data, Chung_data):
-            final_rebound_angle_error+=fabs(i-j)
-        final_rebound_angle_error/=summation_of_Chung_data
-        Logger.PrintInfo("Error in final rebound angle =", 100*final_rebound_angle_error,"%")
-
-        error1 = 100*final_tangential_restitution_coefficient_error
-        error2 = 100*final_angular_vel_total_error
-        error3 = 100*final_rebound_angle_error
-
-        return error1, error2, error3
-
 
 class Benchmark5:
 
@@ -477,8 +100,6 @@ class Benchmark5:
             self.r_w1_prima_div_mu_per_Vcn_list_outfile.write("%14.8f %14.8f" % (self.Vst_div_mu_per_Vcn_list[i], self.r_w1_prima_div_mu_per_Vcn_list[i]) + '\n')
         self.Vst_prima_div_mu_per_Vcn_prima_list_outfile.close()
         self.r_w1_prima_div_mu_per_Vcn_list_outfile.close()
-
-        #self.create_gnuplot_scripts(self.Vst_prima_div_mu_per_Vcn_prima_list_outfile_name, self.r_w1_prima_div_mu_per_Vcn_list_outfile_name, dt)
 
         error1, error2, error3 = self.compute_errors(self.Vst_prima_div_mu_per_Vcn_prima_list_outfile_name, self.r_w1_prima_div_mu_per_Vcn_list_outfile_name)
 
@@ -578,7 +199,6 @@ class Benchmark5:
 
         return error1, error2, error3
 
-
 class Benchmark6:
 
     def __init__(self):
@@ -633,8 +253,6 @@ class Benchmark6:
             self.Vst_prima_div_Vcn_prima_list_outfile.write("%14.8f %14.8f" % (self.Vst_div_Vcn_list[i], self.Vst_prima_div_Vcn_prima_list[i]) + '\n')
         self.beta_list_outfile.close()
         self.Vst_prima_div_Vcn_prima_list_outfile.close()
-
-        #self.create_gnuplot_scripts(self.beta_list_outfile_name, self.Vst_prima_div_Vcn_prima_list_outfile_name, dt)
 
         error1, error2, error3 = self.compute_errors(self.beta_list_outfile_name, self.Vst_prima_div_Vcn_prima_list_outfile_name)
 
@@ -794,8 +412,6 @@ class Benchmark7:
                                     plot [0:25][0:25] '" + self.final_angular_vel_list_outfile_name + "' w lp lw 1.5 lt 3 ps 2 pt 6; unset multiplot")
         self.gnuplot_outfile.close()
 
-        #self.create_gnuplot_scripts(self.final_tangential_center_vel_list_outfile_name, self.final_angular_vel_list_outfile_name, dt)
-
         error1, error2, error3 = self.compute_errors(self.final_tangential_center_vel_list_outfile_name, self.final_angular_vel_list_outfile_name)
 
         error_filename = 'errors.txt'
@@ -885,7 +501,6 @@ class Benchmark7:
 
         return error1, error2, error3
 
-
 class Benchmark8:
 
     def __init__(self):
@@ -943,8 +558,6 @@ class Benchmark8:
 
         self.beta_list_outfile.close()
         self.Vst_prima_div_Vcn_prima_list_outfile.close()
-
-        #self.create_gnuplot_scripts(self.beta_list_outfile_name, self.Vst_prima_div_Vcn_prima_list_outfile_name, dt)
 
         error1, error2, error3 = self.compute_errors(self.beta_list_outfile_name, self.Vst_prima_div_Vcn_prima_list_outfile_name)
 
@@ -1098,8 +711,6 @@ class Benchmark9:
                                                       + self.restitution_numbers_vector_list_outfile_name + "' u 1:3 w lp lt 2 lw 1.5 ps 2 pt 6")
         self.gnuplot_outfile.close()
 
-        #self.create_gnuplot_scripts(self.restitution_numbers_vector_list_outfile_name, dt)
-
         error1, error2, error3 = self.compute_errors(self.restitution_numbers_vector_list_outfile_name)
 
         error_filename = 'errors.txt'
@@ -1205,7 +816,6 @@ class Benchmark10:
             self.restitution_numbers_vector_list_outfile.write("%6.4f %6.4f %11.8f" % (first_col, first_col, self.restitution_numbers_list[i]) + '\n')
         self.restitution_numbers_vector_list_outfile.close()
 
-
 def delete_archives(nodeplotter):
 
     #.......................Removing extra files
@@ -1229,3 +839,11 @@ def print_gnuplot_files_on_screen(gnuplot_script_name):
 def create_pdf_document(pdf_script_name):
     system('gnuplot -persist ' + pdf_script_name)
 
+def ComputeRelativeError(a, b):
+    sum_a = 0.0
+    diff_sum = 0.0
+    for a_comp, b_comp in zip(a, b):
+        diff_sum += abs(a_comp - b_comp)
+        sum_a += abs(a_comp)
+    relative_error = diff_sum / sum_a
+    return relative_error

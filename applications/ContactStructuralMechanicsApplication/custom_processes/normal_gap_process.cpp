@@ -4,8 +4,8 @@
 //        / /___/ /_/ / / / / /_/ /_/ / /__/ /_ ___/ / /_/ /  / /_/ / /__/ /_/ /_/ / /  / /_/ / /  
 //        \____/\____/_/ /_/\__/\__,_/\___/\__//____/\__/_/   \__,_/\___/\__/\__,_/_/   \__,_/_/  MECHANICS
 //
-//  License:		 BSD License
-//					 license: ContactStructuralMechanicsApplication/license.txt
+//  License:         BSD License
+//                   license: ContactStructuralMechanicsApplication/license.txt
 //
 //  Main authors:    Vicente Mataix Ferrandiz
 //
@@ -33,16 +33,16 @@ void NormalGapProcess<TDim, TNumNodes, TNumNodesMaster>::Execute()
     auto& r_nodes_array_master = mrMasterModelPart.Nodes();
     auto& r_nodes_array_slave = mrSlaveModelPart.Nodes();
 
-    // We set the auxiliar Coordinates
+    // We set the auxiliary Coordinates
     const array_1d<double, 3> zero_array = ZeroVector(3);
-    block_for_each(r_nodes_array_master, [&](NodeType& rNode) {
+    block_for_each(r_nodes_array_master, [&](Node& rNode) {
         if (mSearchOrientation) {
             rNode.SetValue(AUXILIAR_COORDINATES, rNode.Coordinates());
         } else {
             rNode.SetValue(AUXILIAR_COORDINATES, zero_array);
         }
     });
-    block_for_each(r_nodes_array_slave, [&](NodeType& rNode) {
+    block_for_each(r_nodes_array_slave, [&](Node& rNode) {
         if (!mSearchOrientation) {
             rNode.SetValue(AUXILIAR_COORDINATES, rNode.Coordinates());
         } else {
@@ -92,17 +92,17 @@ void NormalGapProcess<TDim, TNumNodes, TNumNodesMaster>::ComputeNormalGap(NodesA
 {
     KRATOS_TRY
 
-    struct auxiliar {array_1d<double, 3> normal, auxiliar_coordinates, components_gap; double gap = 0.0; };
-    block_for_each(rNodes, auxiliar(), [this](NodeType& rNode, auxiliar& aux) {
+    struct auxiliary {array_1d<double, 3> normal, auxiliary_coordinates, components_gap; double gap = 0.0; };
+    block_for_each(rNodes, auxiliary(), [this](Node& rNode, auxiliary& aux) {
         if (rNode.Is(SLAVE) == this->mSearchOrientation) {
             // We compute the gap
             noalias(aux.normal) = rNode.FastGetSolutionStepValue(NORMAL);
-            noalias(aux.auxiliar_coordinates) = rNode.GetValue(AUXILIAR_COORDINATES);
-            noalias(aux.components_gap) = ( rNode.Coordinates() - aux.auxiliar_coordinates);
+            noalias(aux.auxiliary_coordinates) = rNode.GetValue(AUXILIAR_COORDINATES);
+            noalias(aux.components_gap) = ( rNode.Coordinates() - aux.auxiliary_coordinates);
             aux.gap = inner_prod(aux.components_gap, - aux.normal);
 
             // We activate if the node is close enough
-            if (norm_2(aux.auxiliar_coordinates) > ZeroTolerance)
+            if (norm_2(aux.auxiliary_coordinates) > ZeroTolerance)
                 rNode.SetValue(NORMAL_GAP, aux.gap);
         } else {
             rNode.SetValue(NORMAL_GAP, 0.0);

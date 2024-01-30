@@ -29,6 +29,8 @@ void NormalCalculationUtils::CalculateNormalsInContainer(
     const Variable<array_1d<double,3>>& rNormalVariable
     )
 {
+    KRATOS_TRY;
+
     // Declare auxiliar coordinates
     Point::CoordinatesArrayType aux_coords;
 
@@ -50,6 +52,8 @@ void NormalCalculationUtils::CalculateNormalsInContainer(
         r_geometry.PointLocalCoordinates(aux_coords, r_geometry.Center());
         it_entity->SetValue(rNormalVariable, r_geometry.UnitNormal(aux_coords));
     }
+
+    KRATOS_CATCH("Error in CalculateNormalsInContainer");
 }
 
 /***********************************************************************************/
@@ -61,6 +65,8 @@ void NormalCalculationUtils::InitializeNormals(
     const Variable<array_1d<double,3>>& rNormalVariable
     )
 {
+    KRATOS_TRY
+
     // Resetting the normals
     const array_1d<double, 3> zero = ZeroVector(3);
 
@@ -70,7 +76,7 @@ void NormalCalculationUtils::InitializeNormals(
         // If Parallel make sure normals are reset in all partitions
         VariableUtils().SetFlag(VISITED, false, rModelPart.Nodes());
 
-        BlockPartition<TContainerType>(r_entity_array).for_each([](typename TContainerType::value_type& rEntity) {
+        block_for_each(r_entity_array, [](typename TContainerType::value_type& rEntity) {
             for (auto& r_node : rEntity.GetGeometry()) {
                 r_node.SetLock();
                 r_node.Set(VISITED, true);
@@ -86,15 +92,16 @@ void NormalCalculationUtils::InitializeNormals(
         }
     } else {
         // In serial iterate normally over the condition nodes
-        BlockPartition<TContainerType>(r_entity_array)
-            .for_each([zero, &rNormalVariable, this](typename TContainerType::value_type& rEntity) {
+        block_for_each(r_entity_array, [zero, &rNormalVariable, this](typename TContainerType::value_type& rEntity) {
                 for (auto& r_node : rEntity.GetGeometry()) {
                     r_node.SetLock();
                     SetNormalValue<TIsHistorical>(r_node, rNormalVariable, zero);
                     r_node.UnSetLock();
                 }
-            });
+        });
     }
+
+    KRATOS_CATCH("Error in InitializeNormals");
 }
 
 /***********************************************************************************/
@@ -108,6 +115,8 @@ KRATOS_API(KRATOS_CORE) void NormalCalculationUtils::CalculateNormals<ModelPart:
     const Variable<array_1d<double,3>>& rNormalVariable
     )
 {
+    KRATOS_TRY
+
     if (CheckUseSimplex(rModelPart, EnforceGenericGeometryAlgorithm)) {
         const auto& r_process_info = rModelPart.GetProcessInfo();
         const SizeType dimension = r_process_info.GetValue(DOMAIN_SIZE);
@@ -115,6 +124,8 @@ KRATOS_API(KRATOS_CORE) void NormalCalculationUtils::CalculateNormals<ModelPart:
     } else {
         CalculateNormalsUsingGenericAlgorithm<ModelPart::ConditionsContainerType, true>(rModelPart, ConsiderUnitNormal, rNormalVariable);
     }
+
+    KRATOS_CATCH("Error in CalculateNormals");
 }
 
 /***********************************************************************************/
@@ -229,7 +240,7 @@ void NormalCalculationUtils::CalculateNormalShapeDerivativesOnSimplex(
                                                  ZeroMatrix(4, 2), rConditions);
 
         // calculate condition normal shape derivatives
-        BlockPartition<ConditionsArrayType>(rConditions).for_each([](ConditionType& rCondition) {
+        block_for_each(rConditions, [](ConditionType& rCondition) {
             if (rCondition.GetGeometry().GetGeometryType() ==
                 GeometryData::KratosGeometryType::Kratos_Line2D2) {
                 CalculateNormalShapeDerivative2D(rCondition);
@@ -241,7 +252,7 @@ void NormalCalculationUtils::CalculateNormalShapeDerivativesOnSimplex(
                                                  ZeroMatrix(9, 3), rConditions);
 
         // calculate condition normal shape derivatives
-        BlockPartition<ConditionsArrayType>(rConditions).for_each([](ConditionType& rCondition) {
+        block_for_each(rConditions, [](ConditionType& rCondition) {
             if (rCondition.GetGeometry().GetGeometryType() ==
                 GeometryData::KratosGeometryType::Kratos_Triangle3D3) {
                 CalculateNormalShapeDerivative3D(rCondition);
@@ -298,6 +309,8 @@ void NormalCalculationUtils::CalculateOnSimplex(
     const Variable<array_1d<double,3>>& rNormalVariable
     )
 {
+    KRATOS_TRY
+
     // Initialize the normals
     InitializeNormals<ModelPart::ConditionsContainerType,true>(rModelPart, rNormalVariable);
 
@@ -306,6 +319,8 @@ void NormalCalculationUtils::CalculateOnSimplex(
 
     // Synchronize the normal
     rModelPart.GetCommunicator().AssembleCurrentData(rNormalVariable);
+
+    KRATOS_CATCH("Error in CalculateOnSimplex");
 }
 
 /***********************************************************************************/
@@ -335,7 +350,7 @@ void NormalCalculationUtils::SwapNormals(ModelPart& rModelPart)
 
     for(auto& r_cond : rModelPart.Conditions()) {
         GeometryType& r_geometry = r_cond.GetGeometry();
-        Node<3>::Pointer paux = r_geometry(0);
+        Node::Pointer paux = r_geometry(0);
         r_geometry(0) = r_geometry(1);
         r_geometry(1) = paux;
     }
@@ -714,6 +729,8 @@ void NormalCalculationUtils::AuxiliaryCalculateOnSimplex(
     const NormalVariableType& rNormalVariable
     )
 {
+    KRATOS_TRY
+
     // Calculating the normals and storing on the conditions
     if (Dimension == 2) {
         block_for_each(rConditions, array_1d<double,3>(), [&rNormalVariable](Condition& rCondition, array_1d<double,3>& rAn){
@@ -737,18 +754,26 @@ void NormalCalculationUtils::AuxiliaryCalculateOnSimplex(
         });
     }
 
+    const auto condition_simplex_type = Dimension == 2
+            ? GeometryData::KratosGeometryType::Kratos_Line2D2
+            : GeometryData::KratosGeometryType::Kratos_Triangle3D3;
+
     // Adding the normals to the nodes
-    block_for_each(rConditions, [&rNormalVariable, this](Condition& rCondition) {
+    block_for_each(rConditions, [&rNormalVariable, &condition_simplex_type, this](Condition& rCondition) {
         auto& r_geometry = rCondition.GetGeometry();
-        const double coeff = 1.0 / r_geometry.size();
-        const auto& r_normal = rCondition.GetValue(rNormalVariable);
-        for (unsigned int i = 0; i < r_geometry.size(); ++i) {
-            auto& r_node = r_geometry[i];
-            r_node.SetLock();
-            noalias(GetNormalValue<TIsHistorical>(r_node, rNormalVariable)) += coeff * r_normal;
-            r_node.UnSetLock();
+        if (rCondition.GetGeometry().GetGeometryType() == condition_simplex_type) {
+            const double coeff = 1.0 / r_geometry.size();
+            const auto& r_normal = rCondition.GetValue(rNormalVariable);
+            for (unsigned int i = 0; i < r_geometry.size(); ++i) {
+                auto& r_node = r_geometry[i];
+                r_node.SetLock();
+                noalias(GetNormalValue<TIsHistorical>(r_node, rNormalVariable)) += coeff * r_normal;
+                r_node.UnSetLock();
+            }
         }
     });
+
+    KRATOS_CATCH("AuxiliaryCalculateOnSimplex");
 }
 
 // template instantiations

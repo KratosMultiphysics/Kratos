@@ -13,7 +13,7 @@ class BoussinesqSolver(ShallowWaterBaseSolver):
         super().__init__(model, settings)
         self.element_name = "BoussinesqElement"
         self.condition_name = "BoussinesqCondition"
-        if self.settings["time_integration_scheme"].GetString() == "BDF":
+        if self.settings["time_integration_scheme"].GetString().lower() == "bdf":
             self.min_buffer_size = self.settings["time_integration_order"].GetInt() + 1
         else:
             self.min_buffer_size = 4
@@ -24,32 +24,19 @@ class BoussinesqSolver(ShallowWaterBaseSolver):
     def AddDofs(self):
         KM.VariableUtils().AddDof(KM.VELOCITY_X, self.main_model_part)
         KM.VariableUtils().AddDof(KM.VELOCITY_Y, self.main_model_part)
-        KM.VariableUtils().AddDof(SW.FREE_SURFACE_ELEVATION, self.main_model_part)
+        KM.VariableUtils().AddDof(SW.HEIGHT, self.main_model_part)
         KM.Logger.PrintInfo(self.__class__.__name__, "Boussinesq equations DOFs added correctly.")
 
     def AddVariables(self):
         super().AddVariables()
-        self.main_model_part.AddNodalSolutionStepVariable(KM.ACCELERATION)
-        self.main_model_part.AddNodalSolutionStepVariable(SW.VERTICAL_VELOCITY)
-        self.main_model_part.AddNodalSolutionStepVariable(KM.VELOCITY_LAPLACIAN)   # Intermediate field
-        self.main_model_part.AddNodalSolutionStepVariable(SW.VELOCITY_H_LAPLACIAN) # Intermediate field
-        self.main_model_part.AddNodalSolutionStepVariable(KM.RHS)          # This is used by the predictor
-        self.main_model_part.AddNodalSolutionStepVariable(KM.NODAL_AREA)   # This is used to assemble the RHS by the predictor
-        self.main_model_part.AddNodalSolutionStepVariable(SW.FIRST_DERIVATIVE_WEIGHTS)  # Gradient recovery
-        self.main_model_part.AddNodalSolutionStepVariable(SW.SECOND_DERIVATIVE_WEIGHTS) # Laplacian recovery
-
-    def AdvanceInTime(self, current_time):
-        current_time = super().AdvanceInTime(current_time)
-        if self._TimeBufferIsInitialized():
-            current_time_step = self.GetComputingModelPart().ProcessInfo.GetValue(KM.DELTA_TIME)
-            previous_time_step = self.GetComputingModelPart().ProcessInfo.GetPreviousTimeStepInfo().GetValue(KM.DELTA_TIME)
-            if current_time_step - previous_time_step > 1e-10:
-                KM.Logger.PrintWarning(self.__class__.__name__, "The Adams Moulton scheme requires a constant time step.")
-        return current_time
+        self.main_model_part.AddNodalSolutionStepVariable(SW.DISPERSION_H)      # Intermediate field
+        self.main_model_part.AddNodalSolutionStepVariable(SW.DISPERSION_V)      # Intermediate field
+        self.main_model_part.AddNodalSolutionStepVariable(KM.RHS)               # This is used by the predictor in ABM scheme
+        self.main_model_part.AddNodalSolutionStepVariable(KM.NODAL_AREA)        # This is used to assemble the RHS by the predictor and the dispersive fields
 
     def FinalizeSolutionStep(self):
         super().FinalizeSolutionStep()
-        SW.ShallowWaterUtilities().ComputeHeightFromFreeSurface(self.main_model_part)
+        SW.ShallowWaterUtilities().ComputeFreeSurfaceElevation(self.main_model_part)
 
     def _SetProcessInfo(self):
         super()._SetProcessInfo()
@@ -58,13 +45,13 @@ class BoussinesqSolver(ShallowWaterBaseSolver):
         self.main_model_part.ProcessInfo.SetValue(SW.SHOCK_STABILIZATION_FACTOR, self.settings["shock_capturing_factor"].GetDouble())
 
     def _CreateScheme(self):
-        if self.settings["time_integration_scheme"].GetString() == "BDF":
+        if self.settings["time_integration_scheme"].GetString().lower() == "bdf":
             scheme_settings = KM.Parameters()
-            scheme_settings.AddStringArray("solution_variables", ["VELOCITY","FREE_SURFACE_ELEVATION"])
-            scheme_settings.AddDouble("integration_order", 4)
+            scheme_settings.AddStringArray("solution_variables", ["VELOCITY","HEIGHT"])
+            scheme_settings.AddValue("integration_order", self.settings["time_integration_order"])
             scheme_settings.AddBool("project_dispersive_field", True)
             return SW.ShallowWaterResidualBasedBDFScheme(scheme_settings)
-        elif self.settings["time_integration_scheme"].GetString() == "Adams-Moulton":
+        elif self.settings["time_integration_scheme"].GetString().lower() == "adams-moulton":
             return SW.ResidualBasedAdamsMoultonScheme()
         else:
             raise Exception("Unknown time scheme, possible options are 'Adams-Moulton' or 'BDF'")

@@ -619,7 +619,7 @@ class SettleModelStructureProcess
             {
 
               bool node_belongs_to_condition = false;
-              Geometry< Node<3 > > & rjGeom = j_cond->GetGeometry();
+              Geometry< Node > & rjGeom = j_cond->GetGeometry();
 
               if ( j_cond->Is(NEW_ENTITY) ){
                 for ( unsigned int j = 0; j < rjGeom.size() ; ++j) {

@@ -1,4 +1,3 @@
-from __future__ import print_function, absolute_import, division
 import KratosMultiphysics
 
 import KratosMultiphysics.ParticleMechanicsApplication as KratosParticle
@@ -31,6 +30,10 @@ class TestGenerateMPMParticleCondition(KratosUnittest.TestCase):
         for condition in grid_model_part.Conditions:
             condition.SetValue(KratosParticle.PARTICLES_PER_CONDITION, num_particle)
             condition.SetValue(KratosParticle.MPC_BOUNDARY_CONDITION_TYPE, 1)
+            if (geometry_element == "Point"):
+                condition.SetValue(KratosParticle.MPC_IS_NEUMANN, True)
+                condition.SetValue(KratosParticle.POINT_LOAD, [0.0,0,0])
+
 
 
         # Create element and nodes for initial meshes
@@ -57,9 +60,9 @@ class TestGenerateMPMParticleCondition(KratosUnittest.TestCase):
 
     def _create_elements(self, initial_mp, dimension, geometry_element):
         if (dimension == 2):
-            initial_mp.CreateNewElement("UpdatedLagrangian2D4N", 1, [1,2,3,4], initial_mp.GetProperties()[1])
+            initial_mp.CreateNewElement("MPMUpdatedLagrangian2D4N", 1, [1,2,3,4], initial_mp.GetProperties()[1])
         else:
-            initial_mp.CreateNewElement("UpdatedLagrangian3D8N", 1, [1,2,3,4,5,6,7,8], initial_mp.GetProperties()[1])
+            initial_mp.CreateNewElement("MPMUpdatedLagrangian3D8N", 1, [1,2,3,4,5,6,7,8], initial_mp.GetProperties()[1])
 
         KratosMultiphysics.VariableUtils().SetFlag(KratosMultiphysics.ACTIVE, True, initial_mp.Elements)
 

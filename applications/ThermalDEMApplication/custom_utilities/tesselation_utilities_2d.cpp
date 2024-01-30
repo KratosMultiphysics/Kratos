@@ -72,10 +72,10 @@ namespace Kratos {
     in.numberofpoints = num_particles;
     in.pointlist = (double*)malloc(sizeof(double) * in.numberofpoints * 2);
 
+    ModelPart::ElementsContainerType::iterator it = rModelPart.GetCommunicator().LocalMesh().Elements().ptr_begin();
     #pragma omp parallel for schedule(dynamic, 100)
     for (int i = 0; i < in.numberofpoints; i++) {
-      ModelPart::ElementsContainerType::iterator it = rModelPart.GetCommunicator().LocalMesh().Elements().ptr_begin() + i;
-      ThermalSphericParticle& particle = dynamic_cast<ThermalSphericParticle&> (*it);
+      ThermalSphericParticle& particle = dynamic_cast<ThermalSphericParticle&> (*(it+i));
 
       particle.mDelaunayPointListIndex = i;
 

@@ -12,12 +12,19 @@ from test_randomized_singular_value_decomposition import TestRandomizedSVD
 from test_empirical_cubature_method import TestEmpiricalCubatureMethod
 from test_calculate_rom_basis_output_process import TestCalculateRomBasisOutputProcess
 from test_compressible_potiential_rom import TestCompressiblePotentialRom
+from test_fluid_lspg_rom import TestFluidLSPGRom
+from test_thermal_lspg_rom import TestThermalLSPGRom
+from test_structural_lspg_rom import TestStructuralLSPGRom
+from test_fluid_pg_rom import TestFluidPGRom
+from test_thermal_pg_rom import TestThermalPGRom
+from test_structural_pg_rom import TestStructuralPGRom
+from test_monotonicity_preserving_rom import TestMonotonicityPreservingRom
 
 def AssembleTestSuites():
     ''' Populates the test suites to run.
 
     Populates the test suites to run. At least, it should pupulate the suites:
-    "small", "nighlty" and "all"
+    "small", "nightly" and "all"
 
     Return
     ------
@@ -39,6 +46,17 @@ def AssembleTestSuites():
     smallSuite.addTest(TestRandomizedSVD('test_radomized_svd'))
     smallSuite.addTest(TestEmpiricalCubatureMethod('test_empirical_cubature_method'))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestCompressiblePotentialRom]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestFluidLSPGRom]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestThermalLSPGRom]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestStructuralLSPGRom]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestFluidPGRom]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestThermalPGRom]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestStructuralPGRom]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestMonotonicityPreservingRom]))
+
+    # - testNightly
+    nightlySuite = suites['nightly']
+    nightlySuite.addTests(smallSuite)
 
     # Create a test suit that contains all the tests from every testCase
     # in the list:

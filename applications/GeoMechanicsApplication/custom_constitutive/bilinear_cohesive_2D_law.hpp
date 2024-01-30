@@ -13,8 +13,7 @@
 //
 
 
-#if !defined (KRATOS_BILINEAR_COHESIVE_2D_LAW_H_INCLUDED)
-#define  KRATOS_BILINEAR_COHESIVE_2D_LAW_H_INCLUDED
+#pragma once
 
 // Project includes
 #include "includes/serializer.h"
@@ -32,72 +31,51 @@ public:
 
     KRATOS_CLASS_POINTER_DEFINITION(BilinearCohesive2DLaw);
 
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-    // Default Constructor
     BilinearCohesive2DLaw();
-
-    // Copy Constructor
-    BilinearCohesive2DLaw (const BilinearCohesive2DLaw& rOther);
-
-    // Destructor
-    ~BilinearCohesive2DLaw() override;
-
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     void GetLawFeatures(Features& rFeatures) override;
 
     ConstitutiveLaw::Pointer Clone() const override;
 
-    virtual SizeType GetStrainSize() const override
+    SizeType GetStrainSize() const override
     {
         return 2;
     }
 
-    virtual SizeType WorkingSpaceDimension() override
+    SizeType WorkingSpaceDimension() override
     {
         return 2;
     }
-
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 protected:
-
-    // Member Variables
-
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
     void ComputeEquivalentStrain(double& rEquivalentStrain,const Vector& StrainVector,const double& CriticalDisplacement) override;
 
     void ComputeEquivalentStrainContact(double& rEquivalentStrain,const Vector& StrainVector,const double& CriticalDisplacement) override;
 
 
     void ComputeConstitutiveMatrixLoading(Matrix& rConstitutiveMatrix,const Vector& StrainVector,const double& JointStrength,
-                                                        const double& DamageThreshold,const double& CriticalDisplacement) override;
+                                          const double& DamageThreshold,const double& CriticalDisplacement) override;
 
     void ComputeConstitutiveMatrixContactLoading(Matrix& rConstitutiveMatrix,const Vector& StrainVector,const double& YoungModulus,const double& FrictionCoefficient,
-                                                            const double& JointStrength,const double& DamageThreshold,const double& CriticalDisplacement) override;
+                                                 const double& JointStrength,const double& DamageThreshold,const double& CriticalDisplacement) override;
 
 
     void ComputeConstitutiveMatrixUnloading(Matrix& rConstitutiveMatrix,const double& JointStrength,
-                                                        const double& DamageThreshold,const double& CriticalDisplacement) override;
+                                            const double& DamageThreshold,const double& CriticalDisplacement) override;
 
     void ComputeConstitutiveMatrixContactUnloading(Matrix& rConstitutiveMatrix,const Vector& StrainVector,const double& YoungModulus,const double& FrictionCoefficient,
-                                                            const double& JointStrength,const double& DamageThreshold,const double& CriticalDisplacement) override;
+                                                   const double& JointStrength,const double& DamageThreshold,const double& CriticalDisplacement) override;
 
 
     void ComputeStressVector(Vector& rStressVector,const Vector& StrainVector,const double& JointStrength,
-                                                const double& DamageThreshold,const double& CriticalDisplacement) override;
+                             const double& DamageThreshold,const double& CriticalDisplacement) override;
 
     void ComputeStressVectorContact(Vector& rStressVector,const Vector& StrainVector,const double& YoungModulus,const double& FrictionCoefficient,
-                                                        const double& JointStrength,const double& DamageThreshold,const double& CriticalDisplacement) override;
-
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+                                    const double& JointStrength,const double& DamageThreshold,const double& CriticalDisplacement) override;
 
 private:
 
     // Serialization
-
     friend class Serializer;
 
     void save(Serializer& rSerializer) const override
@@ -111,5 +89,5 @@ private:
     }
 
 }; // Class BilinearCohesive2DLaw
-}  // namespace Kratos.
-#endif // KRATOS_BILINEAR_COHESIVE_2D_LAW_H_INCLUDED  defined
+
+}

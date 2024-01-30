@@ -1,4 +1,3 @@
-from __future__ import print_function, absolute_import, division
 
 # Importing the Kratos Library
 import KratosMultiphysics
@@ -305,7 +304,7 @@ class TestSpecificationsUtilities(KratosUnittest.TestCase):
         self.assertEqual(node1.HasDofFor(KratosMultiphysics.DISPLACEMENT_X), True)
         self.assertEqual(node1.HasDofFor(KratosMultiphysics.DISPLACEMENT_Y), True)
         self.assertEqual(node1.HasDofFor(KratosMultiphysics.DISPLACEMENT_Z), True)
-        
+
     def test_specifications_utilities_GetDofsListFromSpecifications(self):
         # Set the test model part
         current_model = KratosMultiphysics.Model()

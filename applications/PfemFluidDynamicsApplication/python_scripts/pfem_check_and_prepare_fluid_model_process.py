@@ -1,4 +1,3 @@
-from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 import KratosMultiphysics
 import KratosMultiphysics.PfemFluidDynamicsApplication as KratosPfemFluid
 import KratosMultiphysics.DelaunayMeshingApplication as KratosDelaunay
@@ -83,9 +82,9 @@ class CheckAndPrepareModelProcess(KratosMultiphysics.Process):
 
             biggestFluidBody=0
             largestNumberOfElements=0
-            
+
             for i in range(self.bodies_parts_list.size()):
-                #create body model part                        
+                #create body model part
 
                 body_model_part_name = self.bodies_parts_list[i]["body_name"].GetString()
                 self.main_model_part.CreateSubModelPart(body_model_part_name)
@@ -121,7 +120,7 @@ class CheckAndPrepareModelProcess(KratosMultiphysics.Process):
                             self.main_model_part.GetSubModelPart(body_parts_name_list[j].GetString()), \
                             max_property_id).Execute()
 
-                body_model_part_type = self.bodies_parts_list[i]["body_type"].GetString() 
+                body_model_part_type = self.bodies_parts_list[i]["body_type"].GetString()
 
                 counter=0
                 for part in body_parts_list:
