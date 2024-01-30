@@ -170,17 +170,15 @@ void SearchWrapper<TSearchObject>::LocalSearchInRadius(
     const PointType& rPoint,
     const double Radius,
     std::vector<ResultType>& rResults,
-    const int AllocationSize
+    const int AllocationSize,
+    const int Rank
     )
 {
-    // Get the rank
-    const int rank = GetRank();
-
     // If we are using GeometricalObjectBins we can use the optimized search
     if constexpr (IsGeometricalObjectBins) {
         mpSearchObject->SearchInRadius(rPoint, Radius, rResults);
         for(auto& r_result : rResults) {
-            r_result.Get().SetRank(rank);
+            r_result.Get().SetRank(Rank);
         }
     } else { // Using trees
         // We search if geometrical objects are provided
@@ -194,7 +192,7 @@ void SearchWrapper<TSearchObject>::LocalSearchInRadius(
                 for (std::size_t i = 0; i < number_of_results; ++i) {
                     auto p_point = results[i];
                     const double distance = results_distances[i];
-                    rResults.emplace_back((p_point->pGetObject()).get(), rank);
+                    rResults.emplace_back((p_point->pGetObject()).get(), Rank);
                     rResults[i].SetDistance(distance);
                 }
             }
@@ -210,16 +208,14 @@ void SearchWrapper<TSearchObject>::LocalSearchNearestInRadius(
     const PointType& rPoint,
     const double Radius,
     ResultType& rResult,
+    const int Rank,
     const int AllocationSize
     )
 {
-    // Get the rank
-    const int rank = GetRank();
-
     // If we are using GeometricalObjectBins we can use the optimized search
     if constexpr (IsGeometricalObjectBins) {
         rResult = mpSearchObject->SearchNearestInRadius(rPoint, Radius);
-        rResult.Get().SetRank(rank);
+        rResult.Get().SetRank(Rank);
     } else { // Using trees
         // We search if geometrical objects are provided
         if (mpPointVector) {
@@ -237,7 +233,7 @@ void SearchWrapper<TSearchObject>::LocalSearchNearestInRadius(
                 IndexType index = std::distance(results_distances.begin(), it_min);
 
                 // Set the result
-                rResult = ResultType((results[index]->pGetObject()).get(), rank);
+                rResult = ResultType((results[index]->pGetObject()).get(), Rank);
                 rResult.SetDistance(results_distances[index]);
             }
         }
@@ -250,16 +246,14 @@ void SearchWrapper<TSearchObject>::LocalSearchNearestInRadius(
 template<class TSearchObject>
 void SearchWrapper<TSearchObject>::LocalSearchNearest(
     const PointType& rPoint,
-    ResultType& rResult
+    ResultType& rResult,
+    const int Rank
     )
 {
-    // Get the rank
-    const int rank = GetRank();
-
     // If we are using GeometricalObjectBins we can use the optimized search
     if constexpr (IsGeometricalObjectBins) {
         rResult = mpSearchObject->SearchNearest(rPoint);
-        rResult.Get().SetRank(rank);
+        rResult.Get().SetRank(Rank);
     } else { // Using trees
         // We search if geometrical objects are provided
         if (mpPointVector) {
@@ -268,7 +262,7 @@ void SearchWrapper<TSearchObject>::LocalSearchNearest(
             auto p_point = mpSearchObject->SearchNearestPoint(rPoint, distance);
 
             // Set the result
-            rResult = ResultType((p_point->pGetObject()).get(), rank);
+            rResult = ResultType((p_point->pGetObject()).get(), Rank);
             rResult.SetDistance(distance);
         }
     }
@@ -280,13 +274,14 @@ void SearchWrapper<TSearchObject>::LocalSearchNearest(
 template<class TSearchObject>
 void SearchWrapper<TSearchObject>::LocalSearchIsInside(
     const PointType& rPoint,
-    ResultType& rResult
+    ResultType& rResult,
+    const int Rank
     )
 {
     // If we are using GeometricalObjectBins we can use the optimized search
     if constexpr (IsGeometricalObjectBins) {
         rResult = mpSearchObject->SearchIsInside(rPoint);
-        rResult.Get().SetRank(GetRank());
+        rResult.Get().SetRank(Rank);
     } else { // Using trees
         KRATOS_ERROR << "SearchIsInside not compatible with Search trees" << std::endl;
     }

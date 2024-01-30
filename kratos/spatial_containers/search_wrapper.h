@@ -32,6 +32,7 @@ namespace Kratos
 ///@addtogroup KratosCore
 ///@{
 
+///@}
 ///@name Kratos Classes
 ///@{
 
@@ -412,7 +413,7 @@ private:
 
             // Search
             std::vector<ResultType> results;
-            LocalSearchInRadius(*it_point, Radius, results, allocation_size);
+            LocalSearchInRadius(*it_point, Radius, results, 0, allocation_size);
             for (auto& r_result : results) {
                 r_point_result.AddResult(r_result);
             }
@@ -476,7 +477,7 @@ private:
 
             // Search
             ResultType result;
-            LocalSearchNearestInRadius(*it_point, Radius, result, allocation_size);
+            LocalSearchNearestInRadius(*it_point, Radius, result, 0, allocation_size);
             r_point_result.AddResult(result);
         });
 
@@ -532,7 +533,7 @@ private:
 
             // Search
             ResultType result;
-            LocalSearchNearest(*it_point, result);
+            LocalSearchNearest(*it_point, result, 0);
             r_point_result.AddResult(result);
         });
 
@@ -590,7 +591,7 @@ private:
 
             // Search
             ResultType result;
-            LocalSearchIsInside(*it_point, result);
+            LocalSearchIsInside(*it_point, result, 0);
             r_point_result.AddResult(result);
         });
 
@@ -652,7 +653,7 @@ private:
 
             // Search
             std::vector<ResultType> results;
-            LocalSearchInRadius(rTLS.point, Radius, results, allocation_size);
+            LocalSearchInRadius(rTLS.point, Radius, results, r_point_result.GetDataCommunicator().Rank(), allocation_size);
             for (auto& r_result : results) {
                 r_point_result.AddResult(r_result);
             }
@@ -716,7 +717,7 @@ private:
 
             // Result of search
             ResultType local_result;
-            LocalSearchNearestInRadius(rTLS.point, Radius, local_result, allocation_size);
+            LocalSearchNearestInRadius(rTLS.point, Radius, local_result, r_point_result.GetDataCommunicator().Rank(), allocation_size);
             r_point_result.AddResult(local_result);
         });
 
@@ -780,7 +781,7 @@ private:
 
             // Result of search
             ResultType local_result;
-            LocalSearchNearest(rTLS.point, local_result);
+            LocalSearchNearest(rTLS.point, local_result, r_point_result.GetDataCommunicator().Rank());
             r_point_result.AddResult(local_result);
         });
 
@@ -841,7 +842,7 @@ private:
 
             // Result of search
             ResultType local_result;
-            LocalSearchIsInside(rTLS.point, local_result);
+            LocalSearchIsInside(rTLS.point, local_result, r_point_result.GetDataCommunicator().Rank());
             r_point_result.AddResult(local_result);
         });
 
@@ -908,15 +909,17 @@ private:
     /**
      * @brief This method takes a point and finds all of the objects in the given radius to it.
      * @details The result contains the object and also its distance to the point.
-     * @param rPoint The point to be checked
-     * @param Radius The radius to be checked
-     * @param rResults The results of the search
-     * @param AllocationSize The allocation size of the results
+     * @param rPoint The point to be checked.
+     * @param Radius The radius to be checked.
+     * @param rResults The results of the search.
+     * @param Rank The rank of the search.
+     * @param AllocationSize The allocation size of the results.
      */
     void LocalSearchInRadius(
         const PointType& rPoint,
         const double Radius,
         std::vector<ResultType>& rResults,
+        const int Rank,
         const int AllocationSize = 1000
         );
 
@@ -925,15 +928,17 @@ private:
      * @details If there are more than one object in the same minimum distance only one is returned
      * If there are no objects in that radius the result will be set to not found.
      * Result contains a flag is the object has been found or not.
-     * @param rPoint The point to be checked
-     * @param Radius The radius to be checked
-     * @param rResult The result of the search
-     * @param AllocationSize The allocation size of the results
+     * @param rPoint The point to be checked.
+     * @param Radius The radius to be checked.
+     * @param rResult The result of the search.
+     * @param Rank The rank of the search.
+     * @param AllocationSize The allocation size of the results.
      */
     void LocalSearchNearestInRadius(
         const PointType& rPoint,
         const double Radius,
         ResultType& rResult,
+        const int Rank,
         const int AllocationSize = 1000
         );
 
@@ -941,12 +946,14 @@ private:
      * @brief This method takes a point and finds the nearest object to it.
      * @details If there are more than one object in the same minimum distance only one is returned
      * Result contains a flag is the object has been found or not.
-     * @param rPoint The point to be checked
-     * @param rResult The result of the search
+     * @param rPoint The point to be checked.
+     * @param rResult The result of the search.
+     * @param Rank The rank of the search.
     */
     void LocalSearchNearest(
         const PointType& rPoint,
-        ResultType& rResult
+        ResultType& rResult,
+        const int Rank
         );
 
     /**
@@ -955,12 +962,14 @@ private:
      * If there is no object, the result will be set to not found.
      * Result contains a flag is the object has been found or not.
      * This method is a simplified and faster method of SearchNearest.
-     * @param rPoint The point to be checked
-     * @param rResult The result of the search
+     * @param rPoint The point to be checked.
+     * @param rResult The result of the search.
+     * @param Rank The rank of the search.
      */
     void LocalSearchIsInside(
         const PointType& rPoint,
-        ResultType& rResult
+        ResultType& rResult,
+        const int Rank
         );
 
     /**
