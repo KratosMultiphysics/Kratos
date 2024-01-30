@@ -123,12 +123,12 @@ namespace vex {
   inline std::ostream &operator<<(std::ostream & os,                           \
                                   const cl_##name##len & value) {              \
     boost::io::ios_all_saver stream_state(os);                                 \
-    os << "(";                                                                 \
+    os << "{";                                                                 \
     for (std::size_t i = 0; i < len; i++) {                                    \
       if (i != 0) { os << ','; }                                               \
       os << std::setw(13) << std::scientific << value.s[i];                    \
     }                                                                          \
-    return os << ')';                                                          \
+    return os << '}';                                                          \
   }                                                                            \
   namespace vex {                                                              \
   template <> struct cl_scalar_of<cl_##name##len> {                            \

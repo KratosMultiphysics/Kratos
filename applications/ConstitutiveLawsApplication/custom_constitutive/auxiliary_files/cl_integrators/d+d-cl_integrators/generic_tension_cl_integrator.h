@@ -11,8 +11,7 @@
 //  Main authors:    Alejandro Cornejo 
 //
 
-#if !defined(KRATOS_GENERIC_TENSION_CONSTITUTIVE_LAW_INTEGRATOR_DAMAGE_H_INCLUDED)
-#define KRATOS_GENERIC_TENSION_CONSTITUTIVE_LAW_INTEGRATOR_DAMAGE_H_INCLUDED
+#pragma once
 
 // System includes
 
@@ -298,4 +297,3 @@ class GenericTensionConstitutiveLawIntegratorDplusDminusDamage
 
 };
 } // namespace Kratos
-#endif

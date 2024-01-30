@@ -1,4 +1,5 @@
 import os
+import json
 
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 import test_helper
@@ -41,6 +42,31 @@ class KratosGeoMechanicsAbsorbingBoundaryColumnTests(KratosUnittest.TestCase):
 
         self.run_and_assert_1d_column(file_path, node_nbrs_to_assert, direction)
 
+    def test_stiff_absorbing_boundary_on_1d_column_quad(self):
+        """
+        Tests a very stiff Lysmer absorbing boundary condition on a column made of rectangulars. The boundary is a 2d2n
+        line. Since the boundary is very stiff, the wave is completely reflected
+
+        """
+
+        test_name = 'test_lysmer_boundary_stiff_column2d_quad'
+        file_path = test_helper.get_file_path(os.path.join('.', test_name))
+
+        test_helper.run_kratos(file_path)
+
+        # retrieve results from calculation
+        with open(os.path.join(file_path, "calculated_result.json")) as fp:
+            calculated_result = json.load(fp)
+
+        output_indices = [0, 8, 16, 24, 32]
+        calculated_velocity = [calculated_result["NODE_51"]["VELOCITY_Y"][idx] for idx in output_indices]
+
+        # set expected results
+        expected_results = [0, self.expected_velocity, 0, -self.expected_velocity, 0]
+
+        # assert
+        self.assertVectorAlmostEqual(calculated_velocity, expected_results, 2)
+
     def run_and_assert_1d_column(self, file_path, node_nbrs, direction):
         """
         Runs and asserts a dynamic test on a 1d column. This test checks when a p-wave arrives at a certain coordinate
@@ -80,11 +106,14 @@ class KratosGeoMechanicsAbsorbingBoundaryColumnTests(KratosUnittest.TestCase):
             expected_ini_time = dist/self.vp
 
             # find index of expected time of wave arrival in time list
-            ini_time_idx = test_helper.find_closest_index_greater_than_value(res["time"], expected_ini_time)
+            res_keys = list(res.keys())
+            ini_time_idx = test_helper.find_closest_index_greater_than_value(res_keys, expected_ini_time)
 
             # calculate velocity after wave arrival
-            dt = (res["time"][-1] - res["time"][ini_time_idx])
-            velocity_part_two = (res[str(node_nbr)][-1][direction] - res[str(node_nbr)][ini_time_idx][direction])/dt
+            t1 = res_keys[ini_time_idx]
+            t2 = res_keys[-1]
+            dt = t2 - t1
+            velocity_part_two = (res[t2][node_nbr][direction] - res[t1][node_nbr][direction])/dt
 
             # assert velocities
             self.assertAlmostEqual(velocity_part_two, self.expected_velocity, 2)

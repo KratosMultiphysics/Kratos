@@ -34,7 +34,7 @@ namespace Kratos
 namespace Testing
 {
 // We test the associated damage Constitutive laws...
-typedef Node<3> NodeType;
+typedef Node NodeType;
 typedef GenericSmallStrainHighCycleFatigueLaw<GenericConstitutiveLawIntegratorDamage<VonMisesYieldSurface<VonMisesPlasticPotential<6>>>> FatigueLawType;
 
 /**
@@ -111,7 +111,7 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawHighCycleFatigueExponential, KratosCons
     TestStress = cl_parameters.GetStressVector();
 
     //Check the results
-    KRATOS_CHECK_VECTOR_NEAR(expected_value, TestStress, 0.0001e+08);
+    KRATOS_EXPECT_VECTOR_NEAR(expected_value, TestStress, 0.0001e+08);
 }
 
 } // namespace Testing

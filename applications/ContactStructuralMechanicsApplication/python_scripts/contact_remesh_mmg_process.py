@@ -37,7 +37,6 @@ class ContactRemeshMmgProcess(MmgProcess):
         default_parameters = KratosMultiphysics.Parameters("""
         {
             "help"                             : "This process remeshes using MMG library. This process uses different utilities and processes. It is adapted to be used for contact problems",
-            "mesh_id"                          : 0,
             "filename"                         : "out",
             "automatic_normalization_factor"   : true,
             "consider_strain_energy"           : false,
@@ -188,38 +187,32 @@ class ContactRemeshMmgProcess(MmgProcess):
                     index_to_remove = i
 
             # Copying
-            auxiliar_parameters = KratosMultiphysics.Parameters("""{"metric_variable" : [], "non_historical_metric_variable" : [], "normalization_factor" : [], "normalization_alpha" : [], "normalization_method" : []}""")
+            auxiliary_parameters = KratosMultiphysics.Parameters("""{"metric_variable" : [], "non_historical_metric_variable" : [], "normalization_factor" : [], "normalization_alpha" : [], "normalization_method" : []}""")
             for i in range(number_of_metric_variable):
                 if not i == index_to_remove:
-                    auxiliar_parameters["metric_variable"].Append(settings["hessian_strategy_parameters"]["metric_variable"][i])
-                    auxiliar_parameters["non_historical_metric_variable"].Append(settings["hessian_strategy_parameters"]["non_historical_metric_variable"][i])
-                    auxiliar_parameters["normalization_factor"].Append(settings["hessian_strategy_parameters"]["normalization_factor"][i])
-                    auxiliar_parameters["normalization_alpha"].Append(settings["hessian_strategy_parameters"]["normalization_alpha"][i])
-                    auxiliar_parameters["normalization_method"].Append(settings["hessian_strategy_parameters"]["normalization_method"][i])
+                    auxiliary_parameters["metric_variable"].Append(settings["hessian_strategy_parameters"]["metric_variable"][i])
+                    auxiliary_parameters["non_historical_metric_variable"].Append(settings["hessian_strategy_parameters"]["non_historical_metric_variable"][i])
+                    auxiliary_parameters["normalization_factor"].Append(settings["hessian_strategy_parameters"]["normalization_factor"][i])
+                    auxiliary_parameters["normalization_alpha"].Append(settings["hessian_strategy_parameters"]["normalization_alpha"][i])
+                    auxiliary_parameters["normalization_method"].Append(settings["hessian_strategy_parameters"]["normalization_method"][i])
 
             # Removing old
-            settings["hessian_strategy_parameters"].RemoveValue("metric_variable")
-            settings["hessian_strategy_parameters"].RemoveValue("non_historical_metric_variable")
-            settings["hessian_strategy_parameters"].RemoveValue("normalization_factor")
-            settings["hessian_strategy_parameters"].RemoveValue("normalization_alpha")
-            settings["hessian_strategy_parameters"].RemoveValue("normalization_method")
+            list_remove = ["metric_variable", "non_historical_metric_variable", "normalization_factor", "normalization_alpha", "normalization_method"]
+            settings["hessian_strategy_parameters"].RemoveValues(list_remove)
 
             # Adding new
-            settings["hessian_strategy_parameters"].AddValue("metric_variable", auxiliar_parameters["metric_variable"])
-            settings["hessian_strategy_parameters"].AddValue("non_historical_metric_variable", auxiliar_parameters["non_historical_metric_variable"])
-            settings["hessian_strategy_parameters"].AddValue("normalization_factor", auxiliar_parameters["normalization_factor"])
-            settings["hessian_strategy_parameters"].AddValue("normalization_alpha", auxiliar_parameters["normalization_alpha"])
-            settings["hessian_strategy_parameters"].AddValue("normalization_method", auxiliar_parameters["normalization_method"])
+            parameter_list = ["metric_variable", "non_historical_metric_variable", "normalization_factor", "normalization_alpha", "normalization_method"]
+            settings["hessian_strategy_parameters"].CopyValuesFromExistingParameters(auxiliary_parameters, parameter_list)
 
-        # Auxiliar dictionary with the variables and index
+        # Auxiliary dictionary with the variables and index
         self.variables_dict = {}
         number_of_metric_variable = settings["hessian_strategy_parameters"]["metric_variable"].size()
         for i in range(number_of_metric_variable):
             self.variables_dict[settings["hessian_strategy_parameters"]["metric_variable"][i].GetString()] = i
 
         # Avoid conflict with mother class
-        settings.RemoveValue("automatic_normalization_factor")
-        settings.RemoveValue("consider_strain_energy")
+        list_remove = ["automatic_normalization_factor", "consider_strain_energy"]
+        settings.RemoveValues(list_remove)
 
         # Construct the base process.
         super().__init__(Model, settings)
@@ -369,7 +362,7 @@ class ContactRemeshMmgProcess(MmgProcess):
         # We call to the base process
         super().ExecuteFinalize()
 
-    def _AuxiliarCallsBeforeRemesh(self):
+    def _AuxiliaryCallsBeforeRemesh(self):
         """ This method is executed right before execute the remesh
 
         Keyword arguments:
@@ -399,7 +392,7 @@ class ContactRemeshMmgProcess(MmgProcess):
         # We create the contact submodelparts
         self.main_model_part.CreateSubModelPart("Contact")
 
-    def _AuxiliarCallsAfterRemesh(self):
+    def _AuxiliaryCallsAfterRemesh(self):
         """ This method is executed right after execute the remesh
 
         Keyword arguments:
@@ -416,9 +409,8 @@ class ContactRemeshMmgProcess(MmgProcess):
 
         # We compute the error
         error_compute_parameters = KratosMultiphysics.Parameters("""{}""")
-        error_compute_parameters.AddValue("stress_vector_variable", self.settings["error_strategy_parameters"]["compute_error_extra_parameters"]["stress_vector_variable"])
-        error_compute_parameters.AddValue("penalty_normal", self.settings["error_strategy_parameters"]["compute_error_extra_parameters"]["penalty_normal"])
-        error_compute_parameters.AddValue("penalty_tangential", self.settings["error_strategy_parameters"]["compute_error_extra_parameters"]["penalty_tangential"])
+        parameter_list = ["stress_vector_variable", "penalty_normal", "penalty_tangential"]
+        error_compute_parameters.CopyValuesFromExistingParameters(self.settings["error_strategy_parameters"]["compute_error_extra_parameters"], parameter_list)
         error_compute_parameters.AddValue("echo_level", self.settings["echo_level"])
         if self.domain_size == 2:
             return ContactStructuralMechanicsApplication.ContactSPRErrorProcess2D(self.main_model_part, error_compute_parameters)

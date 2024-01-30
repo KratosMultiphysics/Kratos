@@ -18,7 +18,7 @@ namespace Kratos {
 
     namespace GeometryFunctions {
 
-    typedef Geometry<Node < 3 > > GeometryType;
+    typedef Geometry<Node > GeometryType;
 
     static inline void RotateAVectorAGivenAngleAroundAUnitaryVector(const array_1d<double, 3>& old_vec, const array_1d<double, 3>& axis,
                                                                     const double ang, array_1d<double, 3>& new_vec) {
@@ -935,6 +935,43 @@ namespace Kratos {
         EulerAngles[2] = acos(return3);
 
     }*/
+
+    static inline void RotateCoordToDirection(const double OLdCoordSystem[3][3], double Vector[3], double NewCoordSystem[3][3])
+    {
+        double x_axis[3] = {0.0};
+        double y_axis[3] = {0.0};
+        double z_axis[3] = {0.0};
+
+        x_axis[0] = OLdCoordSystem[0][0];
+        x_axis[1] = OLdCoordSystem[0][1];
+        x_axis[2] = OLdCoordSystem[0][2];
+        y_axis[0] = OLdCoordSystem[1][0];
+        y_axis[1] = OLdCoordSystem[1][1];
+        y_axis[2] = OLdCoordSystem[1][2];
+        z_axis[0] = OLdCoordSystem[2][0];
+        z_axis[1] = OLdCoordSystem[2][1];
+        z_axis[2] = OLdCoordSystem[2][2];
+
+        normalize(Vector);
+
+        double rotation_matrix[3][3];
+        rotation_matrix[2][0] = Vector[0];
+        rotation_matrix[2][1] = Vector[1];
+        rotation_matrix[2][2] = Vector[2];
+        CrossProduct(rotation_matrix[2], y_axis, rotation_matrix[0]);
+        normalize(rotation_matrix[0]);
+        CrossProduct(rotation_matrix[2], rotation_matrix[0], rotation_matrix[1]);
+
+        NewCoordSystem[0][0] = rotation_matrix[0][0] * x_axis[0] + rotation_matrix[0][1] * y_axis[0] + rotation_matrix[0][2] * z_axis[0];
+        NewCoordSystem[0][1] = rotation_matrix[0][0] * x_axis[1] + rotation_matrix[0][1] * y_axis[1] + rotation_matrix[0][2] * z_axis[1];
+        NewCoordSystem[0][2] = rotation_matrix[0][0] * x_axis[2] + rotation_matrix[0][1] * y_axis[2] + rotation_matrix[0][2] * z_axis[2];
+        NewCoordSystem[1][0] = rotation_matrix[2][0];
+        NewCoordSystem[1][1] = rotation_matrix[2][1];
+        NewCoordSystem[1][2] = rotation_matrix[2][2];
+        NewCoordSystem[2][0] = rotation_matrix[1][0] * x_axis[0] + rotation_matrix[1][1] * y_axis[0] + rotation_matrix[1][2] * z_axis[0];
+        NewCoordSystem[2][1] = rotation_matrix[1][0] * x_axis[1] + rotation_matrix[1][1] * y_axis[1] + rotation_matrix[1][2] * z_axis[1];
+        NewCoordSystem[2][2] = rotation_matrix[1][0] * x_axis[2] + rotation_matrix[1][1] * y_axis[2] + rotation_matrix[1][2] * z_axis[2];
+    }
 
     static inline  bool InsideOutside(const array_1d<double, 3>& Coord1,
                                       const array_1d<double, 3>& Coord2,

@@ -4,14 +4,13 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
-//  Main authors:  Vicente Mataix Ferrandiz
+//  Main authors:    Vicente Mataix Ferrandiz
 //
 
-#if !defined(KRATOS_MORTAR_CLASSES )
-#define  KRATOS_MORTAR_CLASSES
+#pragma once
 
 // System includes
 
@@ -34,18 +33,18 @@ namespace Kratos
 ///@{
 
     // Point and nodes defines
-    typedef Point                                                PointType;
-    typedef Node<3>                                               NodeType;
-    typedef Geometry<NodeType>                                GeometryType;
+    using PointType = Point;
+    using GeometryType = Geometry<Node>;
 
     // Type definition for integration methods
-    typedef GeometryType::IntegrationPointsArrayType IntegrationPointsType;
+    using IntegrationPointsType = typename GeometryType::IntegrationPointsArrayType;
 
     /// The definition of the size type
-    typedef std::size_t SizeType;
+    using SizeType = std::size_t;
 
     /// The definition of the index type
-    typedef std::size_t IndexType;
+    using IndexType = std::size_t;
+
 
 ///@}
 ///@name  Enum's
@@ -55,9 +54,9 @@ namespace Kratos
     */
     enum class PointBelongs
     {
-        Master       = 0,
-        Slave        = 1,
-        Intersection = 2
+        Master = 0,      /// The point belongs to the master entity
+        Slave = 1,       /// The point belongs to the slave entity
+        Intersection = 2 /// The point belongs to an intersection of entities
     };
 
     /**
@@ -65,11 +64,11 @@ namespace Kratos
     */
     enum class PointBelongsLine2D2N
     {
-        SlaveLine2D2N0       = 0,
-        SlaveLine2D2N1       = 1,
-        MasterLine2D2N0      = 2,
-        MasterLine2D2N1      = 3,
-        IntersectionLine2D2N = 4
+        SlaveLine2D2N0 = 0,       /// The point belongs to the first slave node of a 2D line element
+        SlaveLine2D2N1 = 1,       /// The point belongs to the second slave node of a 2D line element
+        MasterLine2D2N0 = 2,      /// The point belongs to the first master node of a 2D line element
+        MasterLine2D2N1 = 3,      /// The point belongs to the second master node of a 2D line element
+        IntersectionLine2D2N = 4  /// The point belongs to an intersection of nodes in a 2D line element
     };
 
     /**
@@ -375,7 +374,6 @@ public:
     ///@name Operators
     ///@{
 
-
     ///@}
     ///@name Operations
     ///@{
@@ -419,36 +417,6 @@ public:
 
     ///@}
     ///@name Friends
-    ///@{
-
-    ///@}
-
-protected:
-    ///@name Protected static Member Variables
-    ///@{
-
-    ///@}
-    ///@name Protected member Variables
-    ///@{
-
-    ///@}
-    ///@name Protected Operators
-    ///@{
-
-    ///@}
-    ///@name Protected Operations
-    ///@{
-
-    ///@}
-    ///@name Protected  Access
-    ///@{
-
-    ///@}
-    ///@name Protected Inquiry
-    ///@{
-
-    ///@}
-    ///@name Protected LifeCycle
     ///@{
 
     ///@}
@@ -524,7 +492,8 @@ public:
     ///@name Type Definitions
     ///@{
 
-    typedef MortarKinematicVariables<TNumNodes, TNumNodesMaster> BaseClassType;
+    /// Definition of the base class
+    using BaseClassType = MortarKinematicVariables<TNumNodes, TNumNodesMaster>;
 
     /// Counted pointer of MortarKinematicVariables
     KRATOS_CLASS_POINTER_DEFINITION( MortarKinematicVariablesWithDerivatives );
@@ -553,13 +522,12 @@ public:
     ///@name Operators
     ///@{
 
-
     ///@}
     ///@name Operations
     ///@{
 
     /**
-     * This method initialized the operators
+     * @brief This method initialized the operators
      */
     void Initialize()
     {
@@ -596,36 +564,6 @@ public:
 
     ///@}
     ///@name Friends
-    ///@{
-
-    ///@}
-
-protected:
-    ///@name Protected static Member Variables
-    ///@{
-
-    ///@}
-    ///@name Protected member Variables
-    ///@{
-
-    ///@}
-    ///@name Protected Operators
-    ///@{
-
-    ///@}
-    ///@name Protected Operations
-    ///@{
-
-    ///@}
-    ///@name Protected  Access
-    ///@{
-
-    ///@}
-    ///@name Protected Inquiry
-    ///@{
-
-    ///@}
-    ///@name Protected LifeCycle
     ///@{
 
     ///@}
@@ -702,22 +640,22 @@ public:
     ///@name Type Definitions
     ///@{
 
-    // Auxiliar types
-    typedef BoundedMatrix<int, 1, 1> DummyBoundedMatrixType;
+    // Auxiliary types
+    using DummyBoundedMatrixType = BoundedMatrix<int, 1, 1>;
 
-    typedef array_1d<double, TNumNodes> GeometryArraySlaveType;
+    using GeometryArraySlaveType = array_1d<double, TNumNodes>;
 
-    typedef array_1d<double, TNumNodesMaster> GeometryArrayMasterType;
+    using GeometryArrayMasterType = array_1d<double, TNumNodesMaster>;
 
-    typedef BoundedMatrix<double, TNumNodes, TDim> GeometryDoFMatrixSlaveType;
+    using GeometryDoFMatrixSlaveType = BoundedMatrix<double, TNumNodes, TDim>;
 
-    typedef BoundedMatrix<double, TNumNodesMaster, TDim> GeometryDoFMatrixMasterType;
+    using GeometryDoFMatrixMasterType = BoundedMatrix<double, TNumNodesMaster, TDim>;
 
-    typedef BoundedMatrix<double, TNumNodes, TNumNodes> GeometryMatrixType;
+    using GeometryMatrixType = BoundedMatrix<double, TNumNodes, TNumNodes>;
 
-    typedef typename std::conditional<TNumNodes == 2, DummyBoundedMatrixType, BoundedMatrix<double, 3, 3>>::type VertexDerivativesMatrixType;
+    using VertexDerivativesMatrixType = typename std::conditional<TNumNodes == 2, DummyBoundedMatrixType, BoundedMatrix<double, 3, 3>>::type;
 
-    // Auxiliar sizes
+    // Auxiliary sizes
     static const SizeType DummySize = 1;
 
     static const SizeType DoFSizeSlaveGeometry = (TNumNodes * TDim);
@@ -835,7 +773,7 @@ public:
     {
         // Derivatives
         if constexpr (TDim == 3) { // Derivative of the cell vertex
-            // Auxiliar zero matrix
+            // Auxiliary zero matrix
             const BoundedMatrix<double, 3, 3> aux_zero = ZeroMatrix(3, 3);
             for (IndexType i = 0; i < TNumNodes * TDim; ++i) {
                 noalias(DeltaCellVertex[i]) = aux_zero;
@@ -851,7 +789,7 @@ public:
      */
     void InitializeDeltaAeComponents()
     {
-        // Auxiliar zero matrix
+        // Auxiliary zero matrix
         const GeometryMatrixType aux_zero = ZeroMatrix(TNumNodes, TNumNodes);
 
         // Ae
@@ -897,36 +835,6 @@ public:
 
     ///@}
     ///@name Friends
-    ///@{
-
-    ///@}
-
-protected:
-    ///@name Protected static Member Variables
-    ///@{
-
-    ///@}
-    ///@name Protected member Variables
-    ///@{
-
-    ///@}
-    ///@name Protected Operators
-    ///@{
-
-    ///@}
-    ///@name Protected Operations
-    ///@{
-
-    ///@}
-    ///@name Protected  Access
-    ///@{
-
-    ///@}
-    ///@name Protected Inquiry
-    ///@{
-
-    ///@}
-    ///@name Protected LifeCycle
     ///@{
 
     ///@}
@@ -1029,11 +937,11 @@ public:
     ///@{
 
     /// The base class type
-    typedef DerivativeData<TDim, TNumNodes, TNumNodesMaster> BaseClassType;
+    using BaseClassType = DerivativeData<TDim, TNumNodes, TNumNodesMaster>;
 
     /// The bounded matrix employed class
-    typedef BoundedMatrix<double, TNumNodes, TDim> GeometryDoFMatrixSlaveType;
-    typedef BoundedMatrix<double, TNumNodesMaster, TDim> GeometryDoFMatrixMasterType;
+    using GeometryDoFMatrixSlaveType = BoundedMatrix<double, TNumNodes, TDim>;
+    using GeometryDoFMatrixMasterType = BoundedMatrix<double, TNumNodesMaster, TDim>;
 
     // Size of DoFs of a not paired dependency
     static const SizeType DoFSizeSlaveGeometry = (TNumNodes * TDim);
@@ -1060,7 +968,6 @@ public:
     ///@}
     ///@name Operators
     ///@{
-
 
     ///@}
     ///@name Operations
@@ -1112,36 +1019,6 @@ public:
 
     ///@}
     ///@name Friends
-    ///@{
-
-    ///@}
-
-protected:
-    ///@name Protected static Member Variables
-    ///@{
-
-    ///@}
-    ///@name Protected member Variables
-    ///@{
-
-    ///@}
-    ///@name Protected Operators
-    ///@{
-
-    ///@}
-    ///@name Protected Operations
-    ///@{
-
-    ///@}
-    ///@name Protected  Access
-    ///@{
-
-    ///@}
-    ///@name Protected Inquiry
-    ///@{
-
-    ///@}
-    ///@name Protected LifeCycle
     ///@{
 
     ///@}
@@ -1220,11 +1097,11 @@ public:
     ///@{
 
     /// The kinematic variables class
-    typedef MortarKinematicVariables<TNumNodes, TNumNodesMaster> KinematicVariables;
+    using KinematicVariables = MortarKinematicVariables<TNumNodes, TNumNodesMaster>;
 
     /// The bounded matrix employed class
-    typedef BoundedMatrix<double, TNumNodes, TNumNodes> GeometryMatrixSlaveType;
-    typedef BoundedMatrix<double, TNumNodes, TNumNodesMaster> GeometryMatrixMasterType;
+    using GeometryMatrixSlaveType = BoundedMatrix<double, TNumNodes, TNumNodes>;
+    using GeometryMatrixMasterType = BoundedMatrix<double, TNumNodes, TNumNodesMaster>;
 
     /// Counted pointer of MortarOperator
     KRATOS_CLASS_POINTER_DEFINITION( MortarOperator );
@@ -1244,7 +1121,6 @@ public:
     ///@}
     ///@name Operators
     ///@{
-
 
     ///@}
     ///@name Operations
@@ -1330,36 +1206,6 @@ public:
     ///@{
 
     ///@}
-
-protected:
-    ///@name Protected static Member Variables
-    ///@{
-
-    ///@}
-    ///@name Protected member Variables
-    ///@{
-
-    ///@}
-    ///@name Protected Operators
-    ///@{
-
-    ///@}
-    ///@name Protected Operations
-    ///@{
-
-    ///@}
-    ///@name Protected  Access
-    ///@{
-
-    ///@}
-    ///@name Protected Inquiry
-    ///@{
-
-    ///@}
-    ///@name Protected LifeCycle
-    ///@{
-
-    ///@}
 private:
     ///@name Static Member Variables
     ///@{
@@ -1429,21 +1275,28 @@ public:
     ///@name Type Definitions
     ///@{
 
-    typedef MortarOperator<TNumNodes, TNumNodesMaster>                                                  BaseClassType;
+    /// The base class type
+    using BaseClassType = MortarOperator<TNumNodes, TNumNodesMaster>;
 
-    typedef MortarKinematicVariables<TNumNodes, TNumNodesMaster>                                   KinematicVariables;
+    /// The kinematic variables class
+    using KinematicVariables = MortarKinematicVariables<TNumNodes, TNumNodesMaster>;
 
-    typedef DerivativeDataFrictional<TDim, TNumNodes, TNumNodesMaster>                   DerivativeDataFrictionalType;
+    /// The type for frictional derivative data
+    using DerivativeDataFrictionalType = DerivativeDataFrictional<TDim, TNumNodes, TNumNodesMaster>;
 
-    typedef DerivativeData<TDim, TNumNodes, TNumNodesMaster>                          DerivativeFrictionalessDataType;
+    /// The type for frictionless derivative data
+    using DerivativeFrictionalessDataType = DerivativeData<TDim, TNumNodes, TNumNodesMaster>;
 
-    typedef typename std::conditional<TFrictional, DerivativeDataFrictionalType, DerivativeFrictionalessDataType>::type DerivativeDataType;
+    /// The type for derivative data, determined by the presence of friction
+    using DerivativeDataType = typename std::conditional<TFrictional, DerivativeDataFrictionalType, DerivativeFrictionalessDataType>::type;
 
-    /// The bounded matrix employed class
-    typedef BoundedMatrix<double, TNumNodes, TNumNodes> GeometryMatrixSlaveType;
-    typedef BoundedMatrix<double, TNumNodes, TNumNodesMaster> GeometryMatrixMasterType;
+    /// The bounded matrix employed class for slave geometry
+    using GeometryMatrixSlaveType = BoundedMatrix<double, TNumNodes, TNumNodes>;
 
-    // Auxiliar sizes
+    /// The bounded matrix employed class for master geometry
+    using GeometryMatrixMasterType = BoundedMatrix<double, TNumNodes, TNumNodesMaster>;
+
+    // Auxiliary sizes
     static const SizeType DoFSizeSlaveGeometry = (TNumNodes * TDim);
     static const SizeType DoFSizeMasterGeometry = (TNumNodesMaster * TDim);
 
@@ -1470,7 +1323,6 @@ public:
     ///@name Operators
     ///@{
 
-
     ///@}
     ///@name Operations
     ///@{
@@ -1482,7 +1334,7 @@ public:
     {
         BaseClassType::Initialize();
 
-        // Auxiliar zero matrix
+        // Auxiliary zero matrix
         const GeometryMatrixSlaveType aux_zero_slave = ZeroMatrix(TNumNodes, TNumNodes);
         const GeometryMatrixMasterType aux_zero_master = ZeroMatrix(TNumNodes, TNumNodesMaster);
 
@@ -1593,36 +1445,6 @@ public:
     ///@{
 
     ///@}
-
-protected:
-    ///@name Protected static Member Variables
-    ///@{
-
-    ///@}
-    ///@name Protected member Variables
-    ///@{
-
-    ///@}
-    ///@name Protected Operators
-    ///@{
-
-    ///@}
-    ///@name Protected Operations
-    ///@{
-
-    ///@}
-    ///@name Protected  Access
-    ///@{
-
-    ///@}
-    ///@name Protected Inquiry
-    ///@{
-
-    ///@}
-    ///@name Protected LifeCycle
-    ///@{
-
-    ///@}
 private:
     ///@name Static Member Variables
     ///@{
@@ -1694,10 +1516,10 @@ public:
     ///@{
 
     /// The kinematic variables class
-    typedef MortarKinematicVariables<TNumNodes, TNumNodesMaster> KinematicVariables;
+    using KinematicVariables = MortarKinematicVariables<TNumNodes, TNumNodesMaster>;
 
     /// The bounded matrix employed class
-    typedef BoundedMatrix<double, TNumNodes, TNumNodes> GeometryMatrixType;
+    using GeometryMatrixType = BoundedMatrix<double, TNumNodes, TNumNodes>;
 
     /// Counted pointer of DualLagrangeMultiplierOperators
     KRATOS_CLASS_POINTER_DEFINITION( DualLagrangeMultiplierOperators );
@@ -1710,13 +1532,12 @@ public:
 
     virtual ~DualLagrangeMultiplierOperators(){}
 
-    /// The auxiliar operators needed to build the dual LM Ae operator
+    /// The auxiliary operators needed to build the dual LM Ae operator
     GeometryMatrixType Me, De;
 
     ///@}
     ///@name Operators
     ///@{
-
 
     ///@}
     ///@name Operations
@@ -1830,36 +1651,6 @@ public:
     ///@{
 
     ///@}
-
-protected:
-    ///@name Protected static Member Variables
-    ///@{
-
-    ///@}
-    ///@name Protected member Variables
-    ///@{
-
-    ///@}
-    ///@name Protected Operators
-    ///@{
-
-    ///@}
-    ///@name Protected Operations
-    ///@{
-
-    ///@}
-    ///@name Protected  Access
-    ///@{
-
-    ///@}
-    ///@name Protected Inquiry
-    ///@{
-
-    ///@}
-    ///@name Protected LifeCycle
-    ///@{
-
-    ///@}
 private:
     ///@name Static Member Variables
     ///@{
@@ -1929,20 +1720,25 @@ public:
     ///@name Type Definitions
     ///@{
 
-    typedef DualLagrangeMultiplierOperators<TNumNodes, TNumNodesMaster>                                 BaseClassType;
+    /// The base class type
+    using BaseClassType = DualLagrangeMultiplierOperators<TNumNodes, TNumNodesMaster>;
 
-    typedef MortarKinematicVariablesWithDerivatives<TDim, TNumNodes, TNumNodesMaster>          KinematicVariablesType;
+    /// The kinematic variables type with derivatives
+    using KinematicVariablesType = MortarKinematicVariablesWithDerivatives<TDim, TNumNodes, TNumNodesMaster>;
 
-    typedef DerivativeDataFrictional<TDim, TNumNodes, TNumNodesMaster>                   DerivativeDataFrictionalType;
+    /// The type for frictional derivative data
+    using DerivativeDataFrictionalType = DerivativeDataFrictional<TDim, TNumNodes, TNumNodesMaster>;
 
-    typedef DerivativeData<TDim, TNumNodes, TNumNodesMaster>                          DerivativeFrictionalessDataType;
+    /// The type for frictionless derivative data
+    using DerivativeFrictionalessDataType = DerivativeData<TDim, TNumNodes, TNumNodesMaster>;
 
-    typedef typename std::conditional<TFrictional, DerivativeDataFrictionalType, DerivativeFrictionalessDataType>::type DerivativeDataType;
+    /// The type for derivative data, determined by the presence of friction
+    using DerivativeDataType = typename std::conditional<TFrictional, DerivativeDataFrictionalType, DerivativeFrictionalessDataType>::type;
 
-    // Auxiliar types
-    typedef BoundedMatrix<double, TNumNodes, TNumNodes> GeometryMatrixType;
+    /// The bounded matrix employed class for geometry
+    using GeometryMatrixType = BoundedMatrix<double, TNumNodes, TNumNodes>;
 
-    // Auxiliar sizes
+    // Auxiliary sizes
     static const SizeType DoFSizeSlaveGeometry = (TNumNodes * TDim);
 
     static const SizeType DoFSizeMasterGeometry = (TNumNodesMaster * TDim);
@@ -1969,7 +1765,6 @@ public:
     ///@name Operators
     ///@{
 
-
     ///@}
     ///@name Operations
     ///@{
@@ -1982,7 +1777,7 @@ public:
         BaseClassType::Initialize();
 
         // Derivatives matrices
-	const BoundedMatrix<double, TNumNodes, TNumNodes> zeromatrix = ZeroMatrix(TNumNodes, TNumNodes);
+	    const BoundedMatrix<double, TNumNodes, TNumNodes> zeromatrix = ZeroMatrix(TNumNodes, TNumNodes);
         for (IndexType i = 0; i < DoFSizeDerivativesDependence; ++i) {
             noalias(DeltaMe[i]) = zeromatrix;
             noalias(DeltaDe[i]) = zeromatrix;
@@ -2090,36 +1885,6 @@ public:
     ///@{
 
     ///@}
-
-protected:
-    ///@name Protected static Member Variables
-    ///@{
-
-    ///@}
-    ///@name Protected member Variables
-    ///@{
-
-    ///@}
-    ///@name Protected Operators
-    ///@{
-
-    ///@}
-    ///@name Protected Operations
-    ///@{
-
-    ///@}
-    ///@name Protected  Access
-    ///@{
-
-    ///@}
-    ///@name Protected Inquiry
-    ///@{
-
-    ///@}
-    ///@name Protected LifeCycle
-    ///@{
-
-    ///@}
 private:
     ///@name Static Member Variables
     ///@{
@@ -2190,7 +1955,7 @@ public:
     ///@{
 
     /// The belonging type
-    typedef typename std::conditional<TNumNodes == 2, PointBelongsLine2D2N, typename std::conditional<TNumNodes == 3, typename std::conditional<TNumNodesMaster == 3, PointBelongsTriangle3D3N, PointBelongsTriangle3D3NQuadrilateral3D4N>::type, typename std::conditional<TNumNodesMaster == 3, PointBelongsQuadrilateral3D4NTriangle3D3N, PointBelongsQuadrilateral3D4N>::type>::type>::type BelongType;
+    using BelongType = typename std::conditional<TNumNodes == 2, PointBelongsLine2D2N, typename std::conditional<TNumNodes == 3, typename std::conditional<TNumNodesMaster == 3, PointBelongsTriangle3D3N, PointBelongsTriangle3D3NQuadrilateral3D4N>::type, typename std::conditional<TNumNodesMaster == 3, PointBelongsQuadrilateral3D4NTriangle3D3N, PointBelongsQuadrilateral3D4N>::type>::type>::type;
 
     /// Counted pointer of PointBelong
     KRATOS_CLASS_POINTER_DEFINITION( PointBelong );
@@ -2239,37 +2004,6 @@ public:
     {
         return mBelongs;
     }
-
-protected:
-
-    ///@name Protected static Member Variables
-    ///@{
-
-    ///@}
-    ///@name Protected member Variables
-    ///@{
-
-    ///@}
-    ///@name Protected Operators
-    ///@{
-
-    ///@}
-    ///@name Protected Operations
-    ///@{
-
-    ///@}
-    ///@name Protected  Access
-    ///@{
-
-    ///@}
-    ///@name Protected Inquiry
-    ///@{
-
-    ///@}
-    ///@name Protected LifeCycle
-    ///@{
-    ///@}
-
 private:
     ///@name Static Member Variables
     ///@{
@@ -2317,5 +2051,3 @@ private:
 ///@}
 
 }// namespace Kratos.
-
-#endif // KRATOS_MORTAR_CLASSES  defined

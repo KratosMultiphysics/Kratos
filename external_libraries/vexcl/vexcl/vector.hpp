@@ -1034,7 +1034,9 @@ copy(const std::vector<Th> &hv, vex::vector<Td> &dv, bool blocking = true) {
 template <class Th, class Td>
 typename std::enable_if<!std::is_same<Td, Th>::value, void>::type
 copy(const std::vector<Th> &hv, vex::vector<Td> &dv, bool blocking = true) {
-    std::vector<Td> tmp(hv.begin(), hv.end());
+    std::vector<Td> tmp(hv.size());
+    for (size_t i = 0; i < hv.size(); ++i)
+        tmp[i] = hv[i];
     dv.write_data(0, dv.size(), tmp.data(), true);
 }
 

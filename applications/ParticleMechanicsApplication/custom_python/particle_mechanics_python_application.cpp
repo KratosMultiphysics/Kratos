@@ -24,6 +24,7 @@
 #include "custom_python/add_custom_utilities_to_python.h"
 #include "custom_python/add_custom_constitutive_laws_to_python.h"
 #include "custom_python/add_custom_processes_to_python.h"
+#include "custom_python/add_custom_io_to_python.h"
 #ifdef KRATOS_USING_MPI // MPI-parallel compilation
 #include "custom_python/mpi/add_custom_mpi_utilities_to_python.h"
 #endif
@@ -46,6 +47,7 @@ namespace Python{
         AddCustomUtilitiesToPython(m);
         AddCustomConstitutiveLawsToPython(m);
         AddCustomProcessesToPython(m);
+        AddCustomIOToPython(m);
 #ifdef KRATOS_USING_MPI // MPI-parallel compilation
         AddCustomMPIUtilitiesToPython(m);
 #endif
@@ -79,6 +81,7 @@ namespace Python{
         KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, IS_PQMPM);
         KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, IS_MAKE_NORMAL_MP_IF_PQMPM_FAILS);
         KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, PQMPM_SUBPOINT_MIN_VOLUME_FRACTION);
+        KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, IS_MIXED_FORMULATION);
 
         KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, MPC_COORD);
         KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, MPC_CONDITION_ID);
@@ -94,6 +97,7 @@ namespace Python{
         KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, MPC_IMPOSED_ACCELERATION);
         KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, MPC_CONTACT_FORCE);
         KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, PARTICLES_PER_CONDITION);
+        KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, IS_EQUAL_DISTRIBUTED);
 
         KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, MP_DISPLACEMENT);
         KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, MP_VELOCITY);
@@ -124,6 +128,9 @@ namespace Python{
         KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, CALCULATE_EXPLICIT_MP_STRESS);
         KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, EXPLICIT_MAP_GRID_TO_MP);
         KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, IS_FIX_EXPLICIT_MP_ON_GRID_EDGE);
+
+        // Stabilization variables
+        KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, STABILIZATION_TYPE);
     }
 
 }  // namespace Python.

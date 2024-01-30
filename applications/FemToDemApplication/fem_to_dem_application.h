@@ -11,8 +11,7 @@
 //
 
 
-#if !defined(KRATOS_FEM_TO_DEM_APPLICATION_H_INCLUDED )
-#define  KRATOS_FEM_TO_DEM_APPLICATION_H_INCLUDED
+#pragma once
 
 
 // System includes
@@ -42,7 +41,7 @@
 
 namespace Kratos {
 
-class KratosFemToDemApplication : public KratosApplication 
+class KRATOS_API(FEM_TO_DEM_APPLICATION) KratosFemToDemApplication : public KratosApplication 
 
 {
 
@@ -152,11 +151,11 @@ private:
     const GenericTotalLagrangianMixturesFemDemElement<3,6> mTotalLagrangianMixturesMohrCoulombFemDemElement3D;
 
     //Hiperelastic and elastic laws
-   const LinearPlaneStrainFEMDEM mLinearPlaneStrainFEMDEM;
-   const LinearPlaneStressFEMDEM mLinearPlaneStressFEMDEM;
-   const ElasticIsotropic3DFEMDEM mElasticIsotropic3DFEMDEM;
-   const HyperElasticIsotropicNeoHookeanPlaneStrain2DFEMDEM mHyperElasticIsotropicNeoHookeanPlaneStrain2DFEMDEM;
-   const HyperElasticIsotropicNeoHookean3DFEMDEM mHyperElasticIsotropicNeoHookean3DFEMDEM;
+    const LinearPlaneStrainFEMDEM mLinearPlaneStrainFEMDEM;
+    const LinearPlaneStressFEMDEM mLinearPlaneStressFEMDEM;
+    const ElasticIsotropic3DFEMDEM mElasticIsotropic3DFEMDEM;
+    const HyperElasticIsotropicNeoHookeanPlaneStrain2DFEMDEM mHyperElasticIsotropicNeoHookeanPlaneStrain2DFEMDEM;
+    const HyperElasticIsotropicNeoHookean3DFEMDEM mHyperElasticIsotropicNeoHookean3DFEMDEM;
     
 
     /// Assignment operator.
@@ -166,7 +165,5 @@ private:
     KratosFemToDemApplication(KratosFemToDemApplication const& rOther);
 
 }; // Class KratosFemToDemApplication
-
 }  // namespace Kratos.
 
-#endif // KRATOS_FEM_TO_DEM_APPLICATION_H_INCLUDED  defined

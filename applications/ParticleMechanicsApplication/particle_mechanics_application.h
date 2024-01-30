@@ -42,14 +42,13 @@
 #include "custom_conditions/grid_based_conditions/mpm_grid_surface_load_condition_3d.h"
 #include "custom_conditions/particle_based_conditions/mpm_particle_base_dirichlet_condition.h"
 #include "custom_conditions/particle_based_conditions/mpm_particle_penalty_dirichlet_condition.h"
-#include "custom_conditions/particle_based_conditions/mpm_particle_penalty_coupling_interface_condition.h"
 #include "custom_conditions/particle_based_conditions/mpm_particle_base_load_condition.h"
 #include "custom_conditions/particle_based_conditions/mpm_particle_point_load_condition.h"
 
 //---element
-#include "custom_elements/updated_lagrangian.hpp"
-#include "custom_elements/updated_lagrangian_UP.hpp"
-#include "custom_elements/updated_lagrangian_PQ.hpp"
+#include "custom_elements/mpm_updated_lagrangian.hpp"
+#include "custom_elements/mpm_updated_lagrangian_UP.hpp"
+#include "custom_elements/mpm_updated_lagrangian_PQ.hpp"
 
 //---constitutive laws
 #include "custom_constitutive/linear_elastic_3D_law.hpp"
@@ -75,6 +74,8 @@
 #include "custom_constitutive/hencky_borja_cam_clay_3D_law.hpp"
 #include "custom_constitutive/hencky_borja_cam_clay_plane_strain_2D_law.hpp"
 #include "custom_constitutive/hencky_borja_cam_clay_axisym_2D_law.hpp"
+#include "custom_constitutive/displacement_newtonian_fluid_3D_law.hpp"
+#include "custom_constitutive/displacement_newtonian_fluid_plane_strain_2D_law.hpp"
 
 //---flow rules
 #include "custom_constitutive/flow_rules/mc_plastic_flow_rule.hpp"
@@ -229,18 +230,18 @@ private:
     ///@{
 
     // Elements
-    const UpdatedLagrangian mUpdatedLagrangian;
-    const UpdatedLagrangianUP mUpdatedLagrangianUP;
-    const UpdatedLagrangianPQ mUpdatedLagrangianPQ;
+    const MPMUpdatedLagrangian mMPMUpdatedLagrangian;
+    const MPMUpdatedLagrangianUP mMPMUpdatedLagrangianUP;
+    const MPMUpdatedLagrangianPQ mMPMUpdatedLagrangianPQ;
 
     // Deprecated Elements
-    const UpdatedLagrangian mUpdatedLagrangian2D3N;
-    const UpdatedLagrangian mUpdatedLagrangian3D4N;
-    const UpdatedLagrangian mUpdatedLagrangianUP2D3N;
-    const UpdatedLagrangian mUpdatedLagrangian2D4N;
-    const UpdatedLagrangian mUpdatedLagrangian3D8N;
-    const UpdatedLagrangian mUpdatedLagrangianAxisymmetry2D3N;
-    const UpdatedLagrangian mUpdatedLagrangianAxisymmetry2D4N;
+    const MPMUpdatedLagrangian mMPMUpdatedLagrangian2D3N;
+    const MPMUpdatedLagrangian mMPMUpdatedLagrangian3D4N;
+    const MPMUpdatedLagrangian mMPMUpdatedLagrangianUP2D3N;
+    const MPMUpdatedLagrangian mMPMUpdatedLagrangian2D4N;
+    const MPMUpdatedLagrangian mMPMUpdatedLagrangian3D8N;
+    const MPMUpdatedLagrangian mMPMUpdatedLagrangianAxisymmetry2D3N;
+    const MPMUpdatedLagrangian mMPMUpdatedLagrangianAxisymmetry2D4N;
 
     // Conditions
     // Grid Conditions:
@@ -253,18 +254,13 @@ private:
     const MPMGridSurfaceLoadCondition3D mMPMGridSurfaceLoadCondition3D4N;
     // Particle Conditions:
     const MPMParticlePenaltyDirichletCondition mMPMParticlePenaltyDirichletCondition;
-    const MPMParticlePenaltyCouplingInterfaceCondition mMPMParticlePenaltyCouplingInterfaceCondition;
     const MPMParticlePointLoadCondition mMPMParticlePointLoadCondition;
-    
+
     // Deprecated Conditions
     const MPMParticlePenaltyDirichletCondition mMPMParticlePenaltyDirichletCondition2D3N;
     const MPMParticlePenaltyDirichletCondition mMPMParticlePenaltyDirichletCondition2D4N;
     const MPMParticlePenaltyDirichletCondition mMPMParticlePenaltyDirichletCondition3D4N;
     const MPMParticlePenaltyDirichletCondition mMPMParticlePenaltyDirichletCondition3D8N;
-    const MPMParticlePenaltyCouplingInterfaceCondition mMPMParticlePenaltyCouplingInterfaceCondition2D3N;
-    const MPMParticlePenaltyCouplingInterfaceCondition mMPMParticlePenaltyCouplingInterfaceCondition2D4N;
-    const MPMParticlePenaltyCouplingInterfaceCondition mMPMParticlePenaltyCouplingInterfaceCondition3D4N;
-    const MPMParticlePenaltyCouplingInterfaceCondition mMPMParticlePenaltyCouplingInterfaceCondition3D8N;
     const MPMParticlePointLoadCondition mMPMParticlePointLoadCondition2D3N;
     const MPMParticlePointLoadCondition mMPMParticlePointLoadCondition3D4N;
     const MPMParticlePointLoadCondition mMPMParticlePointLoadCondition2D4N;
@@ -301,7 +297,9 @@ private:
     const HenckyBorjaCamClayPlastic3DLaw                    mHenckyBorjaCamClayPlastic3DLaw;
     const HenckyBorjaCamClayPlasticPlaneStrain2DLaw         mHenckyBorjaCamClayPlasticPlaneStrain2DLaw;
     const HenckyBorjaCamClayPlasticAxisym2DLaw              mHenckyBorjaCamClayPlasticAxisym2DLaw;
-
+    // CL: Displacement-based Newtonian Fluid
+    const DispNewtonianFluid3DLaw                           mDispNewtonianFluid3DLaw;
+    const DispNewtonianFluidPlaneStrain2DLaw                mDispNewtonianFluidPlaneStrain2DLaw;
     // Flow Rules
     const MCPlasticFlowRule                         mMCPlasticFlowRule;
     const MCStrainSofteningPlasticFlowRule          mMCStrainSofteningPlasticFlowRule;

@@ -9,13 +9,8 @@
 //
 //  Main authors:    Pooyan Dadvand
 //
-//
 
-
-#if !defined(KRATOS_GEOMETRY_CONTAINER_H_INCLUDED )
-#define  KRATOS_GEOMETRY_CONTAINER_H_INCLUDED
-
-
+#pragma once
 
 // System includes
 
@@ -129,12 +124,12 @@ public:
     GeometryIterator AddGeometry(GeometryPointerType pNewGeometry)
     {
         auto i = mGeometries.find(pNewGeometry->Id());
-        if(i == mGeometries.end())
+        if (i == mGeometries.end()) {
             return mGeometries.insert(pNewGeometry);
-        else
-        {
-            KRATOS_ERROR << "Geometry with Id: " << pNewGeometry->Id()
-                << " exists already.";
+        } else if (&(*i) == pNewGeometry.get()) { // check if the pointee coincides
+            return i;
+        } else {
+            KRATOS_ERROR << "Attempting to add Geometry with Id: " << pNewGeometry->Id() << ", unfortunately a (different) geometry with the same Id already exists!" << std::endl;
         }
     }
 
@@ -373,7 +368,3 @@ inline std::ostream& operator << (std::ostream& rOStream,
 ///@}
 
 }  // namespace Kratos.
-
-#endif // KRATOS_GEOMETRY_CONTAINER_H_INCLUDED  defined
-
-

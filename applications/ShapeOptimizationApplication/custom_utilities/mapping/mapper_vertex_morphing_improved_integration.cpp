@@ -79,9 +79,9 @@ void MapperVertexMorphingImprovedIntegration::FindNeighbourConditions()
     find_conditions_neighbours_process.Execute();
 }
 
-void MapperVertexMorphingImprovedIntegration::ComputeWeightForAllNeighbors(  ModelPart::NodeType& node_i,
-                                    NodeVector& neighbor_nodes,
-                                    unsigned int number_of_neighbors,
+void MapperVertexMorphingImprovedIntegration::ComputeWeightForAllNeighbors(  const ModelPart::NodeType& node_i,
+                                    const NodeVector& neighbor_nodes,
+                                    const unsigned int number_of_neighbors,
                                     std::vector<double>& list_of_weights,
                                     double& sum_of_weights )
 {
@@ -94,7 +94,7 @@ void MapperVertexMorphingImprovedIntegration::ComputeWeightForAllNeighbors(  Mod
         if (mAreaWeightedNodeSum){
             // Computation of weight according specified weighting function
             // Note that we did not compute the square root of the distances to save this expensive computation (it is not needed here)
-            double Aij = mpFilterFunction->ComputeWeight(node_j.Coordinates(),node_i.Coordinates());
+            double Aij = mpFilterFunction->ComputeWeight(node_j.Coordinates(),node_i.Coordinates(), this->GetVertexMorphingRadius(node_i));
             Aij *= nodalAreas[node_j.GetValue(MAPPING_ID)];
 
             // Add values to list
@@ -140,7 +140,7 @@ void MapperVertexMorphingImprovedIntegration::ComputeWeightForAllNeighbors(  Mod
 
                     // Computation of weight according specified weighting function
                     // Note that we did not compute the square root of the distances to save this expensive computation (it is not needed here)
-                    double Aij = mpFilterFunction->ComputeWeight(gp_i_coord,node_i.Coordinates());
+                    double Aij = mpFilterFunction->ComputeWeight(gp_i_coord,node_i.Coordinates(), this->GetVertexMorphingRadius(node_i));
 
                     // multiply with evaluation of shape function at gauss point
                     Aij *= geom_i.ShapeFunctionValue(pointNumber,localNodeIndex,mIntegrationMethod);;

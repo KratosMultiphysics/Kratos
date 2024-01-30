@@ -3,14 +3,13 @@
 //             | |   |    |   | (    |   |   | |   (   | |
 //       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
 //
-//  License:		 BSD License
-//					 license: structural_mechanics_application/license.txt
+//  License:         BSD License
+//                   license: StructuralMechanicsApplication/license.txt
 //
 //  Main authors:    Vicente Mataix Ferrandiz
 //
 
-#if !defined(KRATOS_NODAL_CONCENTRATED_ELEMENT_H_INCLUDED )
-#define  KRATOS_NODAL_CONCENTRATED_ELEMENT_H_INCLUDED
+#pragma once
 
 // TODO: Add rotational stiffness
 
@@ -346,4 +345,3 @@ private:
 ///@}
 
 } // namespace Kratos.
-#endif // KRATOS_NODAL_CONCENTRATED_ELEMENT_H_INCLUDED  defined

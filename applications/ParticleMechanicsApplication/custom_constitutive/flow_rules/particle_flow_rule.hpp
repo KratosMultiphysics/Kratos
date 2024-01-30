@@ -343,18 +343,12 @@ public:
     virtual void InitializeMaterial (const Properties& rMaterialProperties)
     {
 
-        mpYieldCriterion->GetHardeningLaw().InitializeMaterial(rMaterialProperties);
-
         // Initialize material variables
         mInternalVariables.clear();
         mThermalVariables.clear();
 
     };
 
-    const Properties & GetProperties()
-    {
-        return mpYieldCriterion->GetHardeningLaw().GetProperties();
-    };
 
     const InternalVariables & GetInternalVariables()
     {
@@ -366,19 +360,19 @@ public:
         return mThermalVariables;
     };
 
-    virtual bool CalculateReturnMapping( RadialReturnVariables& rReturnMappingVariables, Matrix& rIsoStressMatrix )
+    virtual bool CalculateReturnMapping( RadialReturnVariables& rReturnMappingVariables, Matrix& rIsoStressMatrix, const Properties& rProp )
     {
         KRATOS_ERROR << "Calling the base class function (CalculateReturnMapping) in MPM FlowRule:: illegal operation!" << std::endl;
         return 0;
     };
 
-    virtual bool CalculateReturnMapping( RadialReturnVariables& rReturnMappingVariables, const Matrix& rIncrementalDeformationGradient, Matrix& rStressMatrix, Matrix& rNewElasticLeftCauchyGreen)
+    virtual bool CalculateReturnMapping( RadialReturnVariables& rReturnMappingVariables, const Matrix& rIncrementalDeformationGradient, Matrix& rStressMatrix, Matrix& rNewElasticLeftCauchyGreen, const Properties& rProp)
     {
         KRATOS_ERROR << "Calling the base class function (CalculateReturnMapping) in MPM FlowRule:: illegal operation!" << std::endl;
         return 0;
     };
 
-    virtual void ComputeElastoPlasticTangentMatrix( const RadialReturnVariables& rReturnMappingVariables, const Matrix& rElasticLeftCauchyGreen, const double& rAlpha, Matrix& rElastoPlasticMatrix)
+    virtual void ComputeElastoPlasticTangentMatrix( const RadialReturnVariables& rReturnMappingVariables, const Matrix& rElasticLeftCauchyGreen, const double& rAlpha, Matrix& rElastoPlasticMatrix, const Properties& rProp)
     {
         KRATOS_ERROR << "Calling the base class function (ComputeElastoPlasticTangentMatrix) in MPM FlowRule:: illegal operation!" << std::endl;
     };
@@ -388,7 +382,7 @@ public:
         KRATOS_ERROR << "Calling the base class function (CalculateScalingFactors) in MPM FlowRule:: illegal operation!" << std::endl;
     };
 
-    virtual bool UpdateInternalVariables( RadialReturnVariables& rReturnMappingVariables )
+    virtual bool UpdateInternalVariables( RadialReturnVariables& rReturnMappingVariables, const Properties& rProp )
     {
         KRATOS_ERROR << "Calling the base class function (UpdateInternalVariables) in MPM FlowRule:: illegal operation!" << std::endl;
 
@@ -405,7 +399,7 @@ public:
         KRATOS_ERROR << "Calling the base class function (GetPlasticRegion) in MPM FlowRule:: illegal operation!" << std::endl;
     };
 
-    virtual void CalculatePrincipalStressTrial(const RadialReturnVariables& rReturnMappingVariables, const Matrix& rNewElasticLeftCauchyGreen, Matrix& rStressMatrix)
+    virtual void CalculatePrincipalStressTrial(const RadialReturnVariables& rReturnMappingVariables, const Matrix& rNewElasticLeftCauchyGreen, Matrix& rStressMatrix, const Properties& rProp)
     {
         KRATOS_ERROR << "Calling the base class function (CalculatePrincipalStressTrial) in MPM FlowRule:: illegal operation!" << std::endl;
     };

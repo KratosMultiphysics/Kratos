@@ -35,6 +35,28 @@ class TestModelPartIO(KratosUnittest.TestCase):
         with self.subTest("pathlib.Path"):
             self.execute_test_model_part_io_read_model_part(Path(input_mdpa))
 
+    def test_model_part_io_read_using_submodelpart(self):
+        current_model = KratosMultiphysics.Model()
+
+        main_model_part = current_model.CreateModelPart("Main")
+        model_part = main_model_part.CreateSubModelPart("submodelpart")
+        model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
+        model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VISCOSITY)
+        model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VELOCITY)
+
+        model_part_io = KratosMultiphysics.ModelPartIO(GetFilePath("auxiliar_files_for_python_unittest/mdpa_files/test_model_part_io_read"))
+        model_part_io.ReadModelPart(model_part)
+
+        self.assertEqual(model_part.NumberOfSubModelParts(), 2)
+        self.assertEqual(model_part.NumberOfTables(), 1)
+        self.assertEqual(model_part.NumberOfProperties(), 1)
+        self.assertEqual(model_part.NumberOfNodes(), 6)
+        self.assertEqual(model_part.NumberOfProperties(), 1)
+        self.assertEqual(model_part.NumberOfGeometries(), 9)
+        self.assertEqual(model_part.NumberOfElements(), 4)
+        self.assertEqual(model_part.NumberOfConditions(), 5)
+
+
     def execute_test_model_part_io_read_model_part(self, input_mdpa):
         current_model = KratosMultiphysics.Model()
 

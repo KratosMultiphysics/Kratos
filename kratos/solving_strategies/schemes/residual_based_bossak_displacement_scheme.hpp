@@ -1,55 +1,41 @@
 //    |  /           |
 //    ' /   __| _` | __|  _ \   __|
-//    . \  |   (   | |   (   |\__ \.
+//    . \  |   (   | |   (   |\__ `
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:          BSD License
-//  Main authors:  Josep Maria Carbonell
-//                 Vicente Mataix Ferrandiz
-//                 Andreas Winterstein (refactoring)
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
+//
+//  Main authors:    Josep Maria Carbonell
+//                   Vicente Mataix Ferrandiz
+//                   Andreas Winterstein (refactoring)
 //
 
-#if !defined(KRATOS_RESIDUAL_BASED_BOSSAK_DISPLACEMENT_SCHEME )
-#define  KRATOS_RESIDUAL_BASED_BOSSAK_DISPLACEMENT_SCHEME
+#pragma once
 
-/* System includes */
-
-/* External includes */
-
-/* Project includes */
+// Project includes
 #include "solving_strategies/schemes/residual_based_implicit_time_scheme.h"
 #include "includes/variables.h"
 #include "includes/checks.h"
 
 namespace Kratos
 {
-///@name Kratos Globals
-///@{
-///@}
-///@name Type Definitions
-///@{
-///@}
-///@name  Enum's
-///@{
-///@}
-///@name  Functions
-///@{
-///@}
+
 ///@name Kratos Classes
 ///@{
 
-/**
- * @class ResidualBasedBossakDisplacementScheme
- * @ingroup KratosCore
- * @brief Bossak integration scheme (for linear and nonlinear dynamic problems) for displacements
- * @details This is a dynamic implicit scheme based of the Bossak algorithm for displacements.
- * The parameter Alpha of Bossak introduces damping, the value of Bossak is from 0 to -0.5 (negative)
- * Implementation according to: "An alpha modification of Newmark's method; W.L. Wood, M. Bossak, O.C. Zienkiewicz;
- * Numerical Methods in Engineering; 1980"
- * @author Josep Maria Carbonell
- * @author Vicente Mataix Ferrandiz
- * @author Andreas Winterstein (refactoring)
+/** @brief Bossak integration scheme (for linear and nonlinear dynamic problems) for displacements
+ *  @class ResidualBasedBossakDisplacementScheme
+ *  @ingroup KratosCore
+ *
+ *  @details This is a dynamic implicit scheme based on the Bossak algorithm for displacements.
+ *           The Bossak Alpha parameter ranges from 0 to -0.5, and introduces damping.
+ *           Implementation according to: "An alpha modification of Newmark's method; W.L. Wood, M. Bossak, O.C. Zienkiewicz;
+ *           Numerical Methods in Engineering; 1980"
+ *  @author Josep Maria Carbonell
+ *  @author Vicente Mataix Ferrandiz
+ *  @author Andreas Winterstein (refactoring)
  */
 template<class TSparseSpace,  class TDenseSpace >
 class ResidualBasedBossakDisplacementScheme
@@ -58,48 +44,63 @@ class ResidualBasedBossakDisplacementScheme
 public:
     ///@name Type Definitions
     ///@{
+
     KRATOS_CLASS_POINTER_DEFINITION( ResidualBasedBossakDisplacementScheme );
 
-    typedef Scheme<TSparseSpace,TDenseSpace>                                  BaseType;
+    /// Base type for the scheme
+    using BaseType = Scheme<TSparseSpace, TDenseSpace>;
 
-    typedef ResidualBasedImplicitTimeScheme<TSparseSpace,TDenseSpace> ImplicitBaseType;
+    /// Implicit base type for the scheme
+    using ImplicitBaseType = ResidualBasedImplicitTimeScheme<TSparseSpace, TDenseSpace>;
 
-    typedef ResidualBasedBossakDisplacementScheme<TSparseSpace, TDenseSpace> ClassType;
+    /// Class type for the scheme
+    using ClassType = ResidualBasedBossakDisplacementScheme<TSparseSpace, TDenseSpace>;
 
-    typedef typename ImplicitBaseType::TDataType                             TDataType;
+    /// Data type used within the ImplicitBaseType
+    using TDataType = typename ImplicitBaseType::TDataType;
 
-    typedef typename ImplicitBaseType::DofsArrayType                     DofsArrayType;
+    /// Array type for degrees of freedom within ImplicitBaseType
+    using DofsArrayType = typename ImplicitBaseType::DofsArrayType;
 
-    typedef typename Element::DofsVectorType                            DofsVectorType;
+    /// Vector type for degrees of freedom within an Element
+    using DofsVectorType = typename Element::DofsVectorType;
 
-    typedef typename ImplicitBaseType::TSystemMatrixType             TSystemMatrixType;
+    /// Type for the system matrix within ImplicitBaseType
+    using TSystemMatrixType = typename ImplicitBaseType::TSystemMatrixType;
 
-    typedef typename ImplicitBaseType::TSystemVectorType             TSystemVectorType;
+    /// Type for the system vector within ImplicitBaseType
+    using TSystemVectorType = typename ImplicitBaseType::TSystemVectorType;
 
-    typedef typename ImplicitBaseType::LocalSystemVectorType     LocalSystemVectorType;
+    /// Type for local system vectors within ImplicitBaseType
+    using LocalSystemVectorType = typename ImplicitBaseType::LocalSystemVectorType;
 
-    typedef typename ImplicitBaseType::LocalSystemMatrixType     LocalSystemMatrixType;
+    /// Type for local system matrices within ImplicitBaseType
+    using LocalSystemMatrixType = typename ImplicitBaseType::LocalSystemMatrixType;
 
-    typedef ModelPart::NodeIterator                                       NodeIterator;
+    /// Iterator for nodes in a ModelPart
+    using NodeIterator = ModelPart::NodeIterator;
 
-    typedef ModelPart::NodesContainerType                               NodesArrayType;
+    /// Container type for nodes in a ModelPart
+    using NodesArrayType = ModelPart::NodesContainerType;
 
-    typedef ModelPart::ElementsContainerType                         ElementsArrayType;
+    /// Container type for elements in a ModelPart
+    using ElementsArrayType = ModelPart::ElementsContainerType;
 
-    typedef ModelPart::ConditionsContainerType                     ConditionsArrayType;
+    /// Container type for conditions in a ModelPart
+    using ConditionsArrayType = ModelPart::ConditionsContainerType;
 
-    typedef typename BaseType::Pointer                                 BaseTypePointer;
+    /// Pointer type for the BaseType
+    using BaseTypePointer = typename BaseType::Pointer;
 
-    typedef double              ComponentType;
+    /// Component type as 'double'
+    using ComponentType = double;
 
     ///@}
     ///@name Life Cycle
     ///@{
 
-    /**
-     * @brief Constructor. (with parameters)
-     * @detail The bossak method
-     * @param ThisParameters The parameters containing the configuration
+    /** @brief Construct from a @ref Parameters object.
+     *  @param ThisParameters The parameters containing the configuration.
      */
     explicit ResidualBasedBossakDisplacementScheme(Parameters ThisParameters)
         : ImplicitBaseType()
@@ -114,22 +115,20 @@ public:
         AuxiliarInitializeBossak();
     }
 
-    /**
-     * @brief Constructor.
-     * @detail The bossak method
-     * @param Alpha is the Bossak parameter. Default value is 0, which is the Newmark method
-     * @param NewarkBeta the Newmark parameter. Default value is 0.25, for mean constant acceleration.
+    /** @brief Constructor from a Bossak parameter.
+     *  @param Alpha is the Bossak parameter. Default value is 0, which is the Newmark method.
+     *  @note The Newmark beta parameter is set to 0.25, for mean constant acceleration.
      */
     explicit ResidualBasedBossakDisplacementScheme(const double Alpha = 0.0)
         : ResidualBasedBossakDisplacementScheme(Alpha, 0.25)
     {
     }
 
-    /**
-     * @brief Constructor.
-     * @detail The bossak method
-     * @param Alpha is the Bossak parameter. Default value is 0, which is the Newmark method
-     * @param NewarkBeta the Newmark parameter. Default value is 0.25, for mean constant acceleration.
+    /** @brief Constructor.
+     *  @param Alpha The Bossak parameter.
+     *  @param NewarkBeta The Newmark parameter.
+     *  @note A Bossak parameter (@a Alpha) of 0 results in the Newmark method.
+     *  @note A Newmark parameter (@a NewmarkBeta) of 0.25 results in mean constant acceleration.
      */
     explicit ResidualBasedBossakDisplacementScheme(const double Alpha, const double NewmarkBeta)
         :ImplicitBaseType()
@@ -142,9 +141,6 @@ public:
         AuxiliarInitializeBossak();
     }
 
-    /**
-     * @brief Copy Constructor.
-     */
     explicit ResidualBasedBossakDisplacementScheme(ResidualBasedBossakDisplacementScheme& rOther)
         :ImplicitBaseType(rOther)
         ,mBossak(rOther.mBossak)
@@ -153,55 +149,40 @@ public:
     {
     }
 
-    /**
-     * @brief Clone method
-     */
     BaseTypePointer Clone() override
     {
         return BaseTypePointer( new ResidualBasedBossakDisplacementScheme(*this) );
     }
 
-    /** Destructor.
-     */
     ~ResidualBasedBossakDisplacementScheme
     () override {}
-
-    ///@}
-    ///@name Operators
-    ///@{
 
     ///@}
     ///@name Operations
     ///@{
 
-    /**
-     * @brief Create method
-     * @param ThisParameters The configuration parameters
+    /** @brief Construct a dynamically allocated new scheme from a @ref Parameters object.
+     *  @param ThisParameters The configuration parameters.
      */
     typename BaseType::Pointer Create(Parameters ThisParameters) const override
     {
         return Kratos::make_shared<ClassType>(ThisParameters);
     }
 
-    /**
-     * @brief Recalculates the Newmark coefficients, taking into account the alpha parameters
-     * @param beta The Bossak beta coefficient
-     * @param gamma The Bossak gamma coefficient
-     */
+    /// @brief Recalculate the Newmark coefficients, taking the alpha parameters into account.
     void CalculateBossakCoefficients()
     {
         mBossak.beta  = (1.0 - mBossak.alpha) * (1.0 - mBossak.alpha) * mNewmark.beta;
         mBossak.gamma = mNewmark.gamma  - mBossak.alpha;
     }
 
-    /**
-     * @brief Performing the update of the solution
-     * @details Incremental update within newton iteration. It updates the state variables at the end of the time step u_{n+1}^{k+1}= u_{n+1}^{k}+ \Delta u
-     * @param rModelPart The model of the problem to solve
-     * @param rDofSet Set of all primary variables
-     * @param rA LHS matrix
-     * @param rDx incremental update of primary variables
-     * @param rb RHS Vector
+    /** @brief Update state variables within a newton iteration at the end of the time step.
+     *  @details @f[ u_{n+1}^{k+1} = u_{n+1}^k+ \Delta u @f]
+     *  @param rModelPart @ref ModelPart to update.
+     *  @param rDofSet Set of all primary variables.
+     *  @param rA Left hand side matrix.
+     *  @param rDx Primary variable updates.
+     *  @param rb Right hand side vector.
      */
     void Update(
         ModelPart& rModelPart,
@@ -216,7 +197,7 @@ public:
         mpDofUpdater->UpdateDofs(rDofSet, rDx);
 
         // Updating time derivatives (nodally for efficiency)
-        block_for_each(rModelPart.Nodes(), array_1d<double,3>(), [&](Node<3>& rNode, array_1d<double,3>& rDeltaDisplacementTLS){
+        block_for_each(rModelPart.Nodes(), array_1d<double,3>(), [&](Node& rNode, array_1d<double,3>& rDeltaDisplacementTLS){
             noalias(rDeltaDisplacementTLS) = rNode.FastGetSolutionStepValue(DISPLACEMENT) - rNode.FastGetSolutionStepValue(DISPLACEMENT, 1);
 
             array_1d<double, 3>& r_current_velocity = rNode.FastGetSolutionStepValue(VELOCITY);
@@ -233,13 +214,13 @@ public:
     }
 
     /**
-     * @brief Performing the prediction of the solution
-     * @details It predicts the solution for the current step x = xold + vold * Dt
-     * @param rModelPart The model of the problem to solve
-     * @param rDofSet set of all primary variables
-     * @param rA LHS matrix
-     * @param rDx Incremental update of primary variables
-     * @param rb RHS Vector
+     * @brief Apply the predictor.
+     * @details @f[ x_{k+1} = x_{k} + v_{k} \cdot \Delta t @f]
+     * @param rModelPart @ref ModelPart to update.
+     * @param rDofSet Set of all primary variables.
+     * @param rA Left hand side matrix.
+     * @param rDx Primary variable updates.
+     * @param rb Right hand side vector.
      */
     void Predict(
         ModelPart& rModelPart,
@@ -256,83 +237,86 @@ public:
         const double delta_time = r_current_process_info[DELTA_TIME];
 
         // Updating time derivatives (nodally for efficiency)
-        const auto it_node_begin = rModelPart.Nodes().begin();
+        if (rModelPart.Nodes().size() > 0) {
+            const auto it_node_begin = rModelPart.Nodes().begin();
 
-        // Getting position
-        KRATOS_ERROR_IF_NOT(it_node_begin->HasDofFor(DISPLACEMENT_X)) << "ResidualBasedBossakDisplacementScheme:: DISPLACEMENT is not added" << std::endl;
-        const int disppos = it_node_begin->GetDofPosition(DISPLACEMENT_X);
-        const int velpos = it_node_begin->HasDofFor(VELOCITY_X) ? static_cast<int>(it_node_begin->GetDofPosition(VELOCITY_X)) : -1;
-        const int accelpos = it_node_begin->HasDofFor(ACCELERATION_X) ? static_cast<int>(it_node_begin->GetDofPosition(ACCELERATION_X)) : -1;
+            // Getting position
+            KRATOS_ERROR_IF_NOT(it_node_begin->HasDofFor(DISPLACEMENT_X)) << "ResidualBasedBossakDisplacementScheme:: DISPLACEMENT is not added" << std::endl;
+            const int disppos = it_node_begin->GetDofPosition(DISPLACEMENT_X);
+            const int velpos = it_node_begin->HasDofFor(VELOCITY_X) ? static_cast<int>(it_node_begin->GetDofPosition(VELOCITY_X)) : -1;
+            const int accelpos = it_node_begin->HasDofFor(ACCELERATION_X) ? static_cast<int>(it_node_begin->GetDofPosition(ACCELERATION_X)) : -1;
 
-        // Getting dimension
-        KRATOS_WARNING_IF("ResidualBasedBossakDisplacementScheme", !r_current_process_info.Has(DOMAIN_SIZE)) << "DOMAIN_SIZE not defined. Please define DOMAIN_SIZE. 3D case will be assumed" << std::endl;
-        const std::size_t dimension = r_current_process_info.Has(DOMAIN_SIZE) ? r_current_process_info.GetValue(DOMAIN_SIZE) : 3;
+            // Getting dimension
+            KRATOS_WARNING_IF("ResidualBasedBossakDisplacementScheme", !r_current_process_info.Has(DOMAIN_SIZE)) << "DOMAIN_SIZE not defined. Please define DOMAIN_SIZE. 3D case will be assumed" << std::endl;
+            const std::size_t dimension = r_current_process_info.Has(DOMAIN_SIZE) ? r_current_process_info.GetValue(DOMAIN_SIZE) : 3;
 
-        // Auxiliar variables
-        array_1d<double, 3 > delta_displacement;
-        std::array<bool, 3> predicted = {false, false, false};
-        const std::array<const Variable<ComponentType>*, 3> disp_components = {&DISPLACEMENT_X, &DISPLACEMENT_Y, &DISPLACEMENT_Z};
-        const std::array<const Variable<ComponentType>*, 3> vel_components = {&VELOCITY_X, &VELOCITY_Y, &VELOCITY_Z};
-        const std::array<const Variable<ComponentType>*, 3> accel_components = {&ACCELERATION_X, &ACCELERATION_Y, &ACCELERATION_Z};
+            // Auxiliar variables
+            array_1d<double, 3 > delta_displacement;
+            std::array<bool, 3> predicted = {false, false, false};
+            const std::array<const Variable<ComponentType>*, 3> disp_components = {&DISPLACEMENT_X, &DISPLACEMENT_Y, &DISPLACEMENT_Z};
+            const std::array<const Variable<ComponentType>*, 3> vel_components = {&VELOCITY_X, &VELOCITY_Y, &VELOCITY_Z};
+            const std::array<const Variable<ComponentType>*, 3> accel_components = {&ACCELERATION_X, &ACCELERATION_Y, &ACCELERATION_Z};
 
-        typedef std::tuple<array_1d<double,3>, std::array<bool,3>> TLSContainerType;
-        TLSContainerType aux_TLS = std::make_tuple(delta_displacement, predicted);
+            typedef std::tuple<array_1d<double,3>, std::array<bool,3>> TLSContainerType;
+            TLSContainerType aux_TLS = std::make_tuple(delta_displacement, predicted);
 
-        block_for_each(rModelPart.Nodes(), aux_TLS, [&](Node<3>& rNode, TLSContainerType& rAuxTLS){
-            auto& r_delta_displacement = std::get<0>(rAuxTLS);
-            auto& r_predicted = std::get<1>(rAuxTLS);
+            block_for_each(rModelPart.Nodes(), aux_TLS, [&](Node& rNode, TLSContainerType& rAuxTLS){
+                auto& r_delta_displacement = std::get<0>(rAuxTLS);
+                auto& r_predicted = std::get<1>(rAuxTLS);
 
-            for (std::size_t i_dim = 0; i_dim < dimension; ++i_dim) {
-                r_predicted[i_dim] = false;
-            }
-
-            // Predicting: NewDisplacement = r_previous_displacement + r_previous_velocity * delta_time;
-            const array_1d<double, 3>& r_previous_acceleration = rNode.FastGetSolutionStepValue(ACCELERATION, 1);
-            const array_1d<double, 3>& r_previous_velocity     = rNode.FastGetSolutionStepValue(VELOCITY,     1);
-            const array_1d<double, 3>& r_previous_displacement = rNode.FastGetSolutionStepValue(DISPLACEMENT, 1);
-            array_1d<double, 3>& r_current_acceleration        = rNode.FastGetSolutionStepValue(ACCELERATION);
-            array_1d<double, 3>& r_current_velocity            = rNode.FastGetSolutionStepValue(VELOCITY);
-            array_1d<double, 3>& r_current_displacement        = rNode.FastGetSolutionStepValue(DISPLACEMENT);
-
-            if (accelpos > -1) {
                 for (std::size_t i_dim = 0; i_dim < dimension; ++i_dim) {
-                    if (rNode.GetDof(*accel_components[i_dim], accelpos + i_dim).IsFixed()) {
-                        r_delta_displacement[i_dim] = (r_current_acceleration[i_dim] + mBossak.c3 * r_previous_acceleration[i_dim] +  mBossak.c2 * r_previous_velocity[i_dim])/mBossak.c0;
-                        r_current_displacement[i_dim] =  r_previous_displacement[i_dim] + r_delta_displacement[i_dim];
-                        r_predicted[i_dim] = true;
+                    r_predicted[i_dim] = false;
+                }
+
+                // Predicting: NewDisplacement = r_previous_displacement + r_previous_velocity * delta_time;
+                const array_1d<double, 3>& r_previous_acceleration = rNode.FastGetSolutionStepValue(ACCELERATION, 1);
+                const array_1d<double, 3>& r_previous_velocity     = rNode.FastGetSolutionStepValue(VELOCITY,     1);
+                const array_1d<double, 3>& r_previous_displacement = rNode.FastGetSolutionStepValue(DISPLACEMENT, 1);
+                array_1d<double, 3>& r_current_acceleration        = rNode.FastGetSolutionStepValue(ACCELERATION);
+                array_1d<double, 3>& r_current_velocity            = rNode.FastGetSolutionStepValue(VELOCITY);
+                array_1d<double, 3>& r_current_displacement        = rNode.FastGetSolutionStepValue(DISPLACEMENT);
+
+                if (accelpos > -1) {
+                    for (std::size_t i_dim = 0; i_dim < dimension; ++i_dim) {
+                        if (rNode.GetDof(*accel_components[i_dim], accelpos + i_dim).IsFixed()) {
+                            r_delta_displacement[i_dim] = (r_current_acceleration[i_dim] + mBossak.c3 * r_previous_acceleration[i_dim] +  mBossak.c2 * r_previous_velocity[i_dim])/mBossak.c0;
+                            r_current_displacement[i_dim] =  r_previous_displacement[i_dim] + r_delta_displacement[i_dim];
+                            r_predicted[i_dim] = true;
+                        }
                     }
                 }
-            }
-            if (velpos > -1) {
-                for (std::size_t i_dim = 0; i_dim < dimension; ++i_dim) {
-                    if (rNode.GetDof(*vel_components[i_dim], velpos + i_dim).IsFixed() && !r_predicted[i_dim]) {
-                        r_delta_displacement[i_dim] = (r_current_velocity[i_dim] + mBossak.c4 * r_previous_velocity[i_dim] + mBossak.c5 * r_previous_acceleration[i_dim])/mBossak.c1;
-                        r_current_displacement[i_dim] =  r_previous_displacement[i_dim] + r_delta_displacement[i_dim];
-                        r_predicted[i_dim] = true;
+                if (velpos > -1) {
+                    for (std::size_t i_dim = 0; i_dim < dimension; ++i_dim) {
+                        if (rNode.GetDof(*vel_components[i_dim], velpos + i_dim).IsFixed() && !r_predicted[i_dim]) {
+                            r_delta_displacement[i_dim] = (r_current_velocity[i_dim] + mBossak.c4 * r_previous_velocity[i_dim] + mBossak.c5 * r_previous_acceleration[i_dim])/mBossak.c1;
+                            r_current_displacement[i_dim] =  r_previous_displacement[i_dim] + r_delta_displacement[i_dim];
+                            r_predicted[i_dim] = true;
+                        }
                     }
                 }
-            }
-            for (std::size_t i_dim = 0; i_dim < dimension; ++i_dim) {
-                if (!rNode.GetDof(*disp_components[i_dim], disppos + i_dim).IsFixed() && !r_predicted[i_dim]) {
-                    r_current_displacement[i_dim] = r_previous_displacement[i_dim] + delta_time * r_previous_velocity[i_dim] + 0.5 * std::pow(delta_time, 2) * r_previous_acceleration[i_dim];
+                for (std::size_t i_dim = 0; i_dim < dimension; ++i_dim) {
+                    if (!rNode.GetDof(*disp_components[i_dim], disppos + i_dim).IsFixed() && !r_predicted[i_dim]) {
+                        r_current_displacement[i_dim] = r_previous_displacement[i_dim] + delta_time * r_previous_velocity[i_dim] + 0.5 * std::pow(delta_time, 2) * r_previous_acceleration[i_dim];
+                    }
                 }
-            }
 
-            // Updating time derivatives ::: Please note that displacements and its time derivatives can not be consistently fixed separately
-            noalias(r_delta_displacement) = r_current_displacement - r_previous_displacement;
-            UpdateVelocity(r_current_velocity, r_delta_displacement, r_previous_velocity, r_previous_acceleration);
-            UpdateAcceleration(r_current_acceleration, r_delta_displacement, r_previous_velocity, r_previous_acceleration);
-        });
+                // Updating time derivatives ::: Please note that displacements and its time derivatives can not be consistently fixed separately
+                noalias(r_delta_displacement) = r_current_displacement - r_previous_displacement;
+                UpdateVelocity(r_current_velocity, r_delta_displacement, r_previous_velocity, r_previous_acceleration);
+                UpdateAcceleration(r_current_acceleration, r_delta_displacement, r_previous_velocity, r_previous_acceleration);
+            });
+        }
 
         KRATOS_CATCH( "" );
     }
 
-    /**
-     * @brief It initializes time step solution. Only for reasons if the time step solution is restarted
-     * @param rModelPart The model of the problem to solve
-     * @param A LHS matrix
-     * @param Dx Incremental update of primary variables
-     * @param b RHS Vector
+    /** @brief Prepare state variables for a new solution step.
+     *  @note This function should be called before solving a solution step,
+     *        or restarting a failed one.
+     *  @param rModelPart @ref ModelPart to update.
+     *  @param A Left hand side matrix.
+     *  @param Dx Primary variable updates.
+     *  @param b Right hand side vector.
      */
     void InitializeSolutionStep(
         ModelPart& rModelPart,
@@ -359,53 +343,52 @@ public:
         mBossak.c5 = ( delta_time * 0.5 * ( ( mBossak.gamma / mBossak.beta ) - 2.0 ) );
 
         // Updating time derivatives (nodally for efficiency)
-        const auto it_node_begin = rModelPart.Nodes().begin();
+        if (rModelPart.Nodes().size() > 0) {
+            const auto it_node_begin = rModelPart.Nodes().begin();
 
-        // Getting dimension
-        KRATOS_WARNING_IF("ResidualBasedBossakDisplacementScheme", !r_current_process_info.Has(DOMAIN_SIZE)) << "DOMAIN_SIZE not defined. Please define DOMAIN_SIZE. 3D case will be assumed" << std::endl;
-        const std::size_t dimension = r_current_process_info.Has(DOMAIN_SIZE) ? r_current_process_info.GetValue(DOMAIN_SIZE) : 3;
+            // Getting dimension
+            KRATOS_WARNING_IF("ResidualBasedBossakDisplacementScheme", !r_current_process_info.Has(DOMAIN_SIZE)) << "DOMAIN_SIZE not defined. Please define DOMAIN_SIZE. 3D case will be assumed" << std::endl;
+            const std::size_t dimension = r_current_process_info.Has(DOMAIN_SIZE) ? r_current_process_info.GetValue(DOMAIN_SIZE) : 3;
 
-        // Getting position
-        const int velpos = it_node_begin->HasDofFor(VELOCITY_X) ? static_cast<int>(it_node_begin->GetDofPosition(VELOCITY_X)) : -1;
-        const int accelpos = it_node_begin->HasDofFor(ACCELERATION_X) ? static_cast<int>(it_node_begin->GetDofPosition(ACCELERATION_X)) : -1;
+            // Getting position
+            const int velpos = it_node_begin->HasDofFor(VELOCITY_X) ? static_cast<int>(it_node_begin->GetDofPosition(VELOCITY_X)) : -1;
+            const int accelpos = it_node_begin->HasDofFor(ACCELERATION_X) ? static_cast<int>(it_node_begin->GetDofPosition(ACCELERATION_X)) : -1;
 
-        std::array<bool, 3> fixed = {false, false, false};
-        const std::array<const Variable<ComponentType>*, 3> disp_components = {&DISPLACEMENT_X, &DISPLACEMENT_Y, &DISPLACEMENT_Z};
-        const std::array<const Variable<ComponentType>*, 3> vel_components = {&VELOCITY_X, &VELOCITY_Y, &VELOCITY_Z};
-        const std::array<const Variable<ComponentType>*, 3> accel_components = {&ACCELERATION_X, &ACCELERATION_Y, &ACCELERATION_Z};
+            std::array<bool, 3> fixed = {false, false, false};
+            const std::array<const Variable<ComponentType>*, 3> disp_components = {&DISPLACEMENT_X, &DISPLACEMENT_Y, &DISPLACEMENT_Z};
+            const std::array<const Variable<ComponentType>*, 3> vel_components = {&VELOCITY_X, &VELOCITY_Y, &VELOCITY_Z};
+            const std::array<const Variable<ComponentType>*, 3> accel_components = {&ACCELERATION_X, &ACCELERATION_Y, &ACCELERATION_Z};
 
-        block_for_each(rModelPart.Nodes(), fixed, [&](Node<3>& rNode, std::array<bool,3>& rFixedTLS){
-            for (std::size_t i_dim = 0; i_dim < dimension; ++i_dim) {
-                rFixedTLS[i_dim] = false;
-            }
-
-            if (accelpos > -1) {
+            block_for_each(rModelPart.Nodes(), fixed, [&](Node& rNode, std::array<bool,3>& rFixedTLS){
                 for (std::size_t i_dim = 0; i_dim < dimension; ++i_dim) {
-                    if (rNode.GetDof(*accel_components[i_dim], accelpos + i_dim).IsFixed()) {
-                        rNode.Fix(*disp_components[i_dim]);
-                        rFixedTLS[i_dim] = true;
+                    rFixedTLS[i_dim] = false;
+                }
+
+                if (accelpos > -1) {
+                    for (std::size_t i_dim = 0; i_dim < dimension; ++i_dim) {
+                        if (rNode.GetDof(*accel_components[i_dim], accelpos + i_dim).IsFixed()) {
+                            rNode.Fix(*disp_components[i_dim]);
+                            rFixedTLS[i_dim] = true;
+                        }
                     }
                 }
-            }
-            if (velpos > -1) {
-                for (std::size_t i_dim = 0; i_dim < dimension; ++i_dim) {
-                    if (rNode.GetDof(*vel_components[i_dim], velpos + i_dim).IsFixed() && !rFixedTLS[i_dim]) {
-                        rNode.Fix(*disp_components[i_dim]);
+                if (velpos > -1) {
+                    for (std::size_t i_dim = 0; i_dim < dimension; ++i_dim) {
+                        if (rNode.GetDof(*vel_components[i_dim], velpos + i_dim).IsFixed() && !rFixedTLS[i_dim]) {
+                            rNode.Fix(*disp_components[i_dim]);
+                        }
                     }
                 }
-            }
-        });
+            });
+        }
 
         KRATOS_CATCH( "" );
     }
 
-    /**
-     * @brief This function is designed to be called once to perform all the checks needed
-     * on the input provided.
-     * @details Checks can be "expensive" as the function is designed
-     * to catch user's errors.
-     * @param rModelPart The model of the problem to solve
-     * @return Zero means  all ok
+    /** @brief Check whether the scheme and the provided @ref ModelPart are configured correctly.
+     *  @details Checks may be expensive as the function is designed to catch user errors.
+     *  @param rModelPart @ref ModelPart to check.
+     *  @return 0 if ok, nonzero otherwise.
      */
     int Check(const ModelPart& rModelPart) const override
     {
@@ -450,16 +433,13 @@ public:
         KRATOS_CATCH( "" );
     }
 
-    /// Free memory allocated by this class.
+    /// @brief Release dynamic memory allocated by this instance.
     void Clear() override
     {
         this->mpDofUpdater->Clear();
     }
 
-        /**
-     * @brief This method provides the defaults parameters to avoid conflicts between the different constructors
-     * @return The default parameters
-     */
+    /// @brief This function returns the default @ref Parameters to help avoiding conflicts between different constructors.
     Parameters GetDefaultParameters() const override
     {
         Parameters default_parameters = Parameters(R"(
@@ -475,111 +455,96 @@ public:
         return default_parameters;
     }
 
-    /**
-     * @brief Returns the name of the class as used in the settings (snake_case format)
-     * @return The name of the class
-     */
+    /// @brief Return the name of the class as used in the settings (@a snake_case).
     static std::string Name()
     {
         return "bossak_scheme";
     }
 
     ///@}
-    ///@name Access
-    ///@{
-
-    ///@}
-    ///@name Inquiry
-    ///@{
-
-    ///@}
     ///@name Input and output
     ///@{
 
-    /// Turn back information as a string.
+    /// @brief Return information as a string.
     std::string Info() const override
     {
         return "ResidualBasedBossakDisplacementScheme";
     }
 
-    /// Print information about this object.
+    /// @brief Print information about this object.
     void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << Info();
     }
 
-    /// Print object's data.
+    /// @brief Print the instance's data.
     void PrintData(std::ostream& rOStream) const override
     {
         rOStream << Info();
     }
 
     ///@}
-    ///@name Friends
-    ///@{
 
 protected:
+    /// @todo Move to @ref ImplicitBaseType
+    typename TSparseSpace::DofUpdaterPointerType mpDofUpdater = TSparseSpace::CreateDofUpdater();
 
-    ///@name Protected static Member Variables
-    ///@{
-
-    ///@}
-    ///@name Protected member Variables
-    ///@{
-
-    typename TSparseSpace::DofUpdaterPointerType mpDofUpdater = TSparseSpace::CreateDofUpdater(); /// TODO: Move to ImplicitBaseType
-
-    /**
-     * @brief The Bossak Alpha components
-     */
+    /// @brief Bossak Alpha parameters.
     struct BossakAlphaMethod
     {
-        double alpha; /// Alpha Bossak
-        double beta;  /// Beta Bossak
-        double gamma; /// Gamma Bossak
+        /// @brief Bossak Alpha.
+        double alpha;
 
-        // System constants
+        /// @brief Bossak Beta.
+        double beta;
+
+        /// @brief Bossak Gamma.
+        double gamma;
+
+        /// @brief System constants
         double c0, c1, c2, c3, c4, c5;
     };
 
-    /**
-     * @brief The Newmark parameters used during integration
-     */
+    /// @brief Newmark parameters used for integration.
     struct NewmarkMethod
     {
-        // Newmark constants
-        double beta;  ///Beta Newmark
-        double gamma; //Gamma Newmark
+        /// @brief Newmark Beta.
+        double beta;
+
+        /// @brief Newmark Gamma.
+        double gamma;
     };
 
-    /**
-     * @brief Vector containing the velocity and acceleration used on integration
-     */
+    /// @brief Velocities and accelerations used for integration.
     struct GeneralVectors
     {
-        std::vector< Vector > v;  /// Velocity
-        std::vector< Vector > a;  /// Acceleration
-        std::vector< Vector > ap; /// Previous acceleration
+        /// @brief Velocity.
+        std::vector< Vector > v;
+
+        /// @brief Acceleration.
+        std::vector< Vector > a;
+
+        /// @brief Previous acceleration.
+        std::vector< Vector > ap;
     };
 
-    BossakAlphaMethod mBossak;     /// The structure containing the Bossak components
-    NewmarkMethod mNewmark;        /// The structure containing the Newmark parameters
-    GeneralVectors mVector;        /// The structure containing the velocities and accelerations
+    /// @brief Bossak Alpha parameters.
+    BossakAlphaMethod mBossak;
 
-    ///@}
-    ///@name Protected Operators
-    ///@{
+    /// @brief Newmark Beta parameters.
+    NewmarkMethod mNewmark;
 
-    ///@}
+    /// @brief Aggregate struct for velocities and accelerations.
+    GeneralVectors mVector;
+
     ///@name Protected Operations
     ///@{
 
-    /**
-     * @brief Updating first time Derivative
-     * @param rCurrentVelocity The current velocity
-     * @param rDeltaDisplacement The increment of displacement
-     * @param rPreviousVelocity The previous velocity
-     * @param rPreviousAcceleration The previous acceleration
+    /** @brief Update the first time derivative.
+     *  @param rCurrentVelocity Current velocity.
+     *  @param rDeltaDisplacement Displacement increment.
+     *  @param rPreviousVelocity Previous velocity.
+     *  @param rPreviousAcceleration Previous acceleration.
      */
     inline void UpdateVelocity(
         array_1d<double, 3>& rCurrentVelocity,
@@ -591,12 +556,11 @@ protected:
         noalias(rCurrentVelocity) = (mBossak.c1 * rDeltaDisplacement - mBossak.c4 * rPreviousVelocity - mBossak.c5 * rPreviousAcceleration);
     }
 
-    /**
-     * @brief Updating second time Derivative
-     * @param rCurrentAcceleration The current velocity
-     * @param rDeltaDisplacement The increment of displacement
-     * @param rPreviousVelocity The previous velocity
-     * @param rPreviousAcceleration The previous acceleration
+    /** @brief Update the second time derivative.
+     *  @param rCurrentAcceleration Current velocity.
+     *  @param rDeltaDisplacement Displacement increment.
+     *  @param rPreviousVelocity Previous velocity.
+     *  @param rPreviousAcceleration Previous acceleration.
      */
     inline void UpdateAcceleration(
         array_1d<double, 3>& rCurrentAcceleration,
@@ -608,12 +572,12 @@ protected:
         noalias(rCurrentAcceleration) = (mBossak.c0 * rDeltaDisplacement - mBossak.c2 * rPreviousVelocity -  mBossak.c3 * rPreviousAcceleration);
     }
 
-    /**
-     * @brief It adds the dynamic LHS contribution of the elements M*c0 + D*c1 + K
-     * @param LHS_Contribution The dynamic contribution for the LHS
-     * @param D The damping matrix
-     * @param M The mass matrix
-     * @param rCurrentProcessInfo The current process info instance
+    /** @brief Add dynamic left hand side contribution from @ref Element s.
+     *  @details @f[ M \cdot c_0 + D \cdot c_1 + K @f]
+     *  @param LHS_Contribution Dynamic contribution for the left hand side.
+     *  @param D Damping matrix.
+     *  @param M Mass matrix.
+     *  @param rCurrentProcessInfo Current @ref ProcessInfo.
      */
     void AddDynamicsToLHS(
         LocalSystemMatrixType& LHS_Contribution,
@@ -631,13 +595,13 @@ protected:
             noalias(LHS_Contribution) += D * mBossak.c1;
     }
 
-    /**
-     * @brief It adds the dynamic RHS contribution of the elements b - (1-alpha)*M*a_n+1 - alpha*M*a_n - D*v_n
-     * @param rElement The element to compute
-     * @param RHS_Contribution The dynamic contribution for the RHS
-     * @param D The damping matrix
-     * @param M The mass matrix
-     * @param rCurrentProcessInfo The current process info instance
+    /** @brief Add dynamic right hand side contribution from an @ref Element.
+     *  @details @f[ b - (1 - \alpha) \cdot M \cdot a_{n+1} - \alpha \cdot M \cdot a_n - D \cdot v_n @f]
+     *  @param rElement @ref Element to compute the contribution from.
+     *  @param RHS_Contribution Dynamic contribution for the right hand side.
+     *  @param D Damping matrix.
+     *  @param M Mass matrix.
+     *  @param rCurrentProcessInfo Current @ref ProcessInfo.
      */
     void AddDynamicsToRHS(
         Element& rElement,
@@ -669,13 +633,13 @@ protected:
         }
     }
 
-    /**
-     * @brief It adds the dynamic RHS contribution of the condition b - (1-alpha)*M*a_n+1 - alpha*M*a_n - D*v_n
-     * @param rCondition The condition to compute
-     * @param RHS_Contribution The dynamic contribution for the RHS
-     * @param D The damping matrix
-     * @param M The mass matrix
-     * @param rCurrentProcessInfo The current process info instance
+    /** @brief Add dynamic right hand side contribution of a @ref Condition.
+     *  @details @f[ b - (1-alpha)*M*a_n+1 - alpha*M*a_n - D*v_n @f]
+     *  @param rCondition @ref Condition to compute the contribution from.
+     *  @param RHS_Contribution Dynamic contribution for the right hand side.
+     *  @param D Damping matrix.
+     *  @param M Mass matrix.
+     *  @param rCurrentProcessInfo Current @ref ProcessInfo.
      */
     void AddDynamicsToRHS(
         Condition& rCondition,
@@ -708,10 +672,7 @@ protected:
         }
     }
 
-    /**
-     * @brief This method assigns settings to member variables
-     * @param ThisParameters Parameters that are assigned to the member variables
-     */
+    /// @brief Assign member variables from @ref Parameters.
     void AssignSettings(const Parameters ThisParameters) override
     {
         ImplicitBaseType::AssignSettings(ThisParameters);
@@ -720,37 +681,12 @@ protected:
     }
 
     ///@}
-    ///@name Protected  Access
-    ///@{
-
-    ///@}
-    ///@name Protected Inquiry
-    ///@{
-
-    ///@}
-    ///@name Protected LifeCycle
-    ///@{
-    ///@{
 
 private:
-
-    ///@name Static Member Variables
-    ///@{
-    ///@}
-    ///@name Member Variables
-    ///@{
-
-    ///@}
-    ///@name Private Operators
-    ///@{
-
-    ///@}
     ///@name Private Operations
     ///@{
 
-    /**
-     * @brief This method does an auziliar initialization of some member variables of the class
-     */
+    /// @brief Utility function for initializing some members.
     void AuxiliarInitializeBossak()
     {
         // Initialize Bossak coefficients
@@ -767,28 +703,8 @@ private:
     }
 
     ///@}
-    ///@name Private  Access
-    ///@{
-    ///@}
+}; // Class ResidualBasedBossakDisplacementScheme
 
-    ///@}
-    ///@name Serialization
-    ///@{
+///@}
 
-    ///@name Private Inquiry
-    ///@{
-    ///@}
-    ///@name Un accessible methods
-    ///@{
-    ///@}
-}; /* Class ResidualBasedBossakDisplacementScheme */
-///@}
-///@name Type Definitions
-///@{
-///@}
-///@name Input and output
-///@{
-///@}
-}  /* namespace Kratos.*/
-
-#endif /* KRATOS_RESIDUAL_BASED_BOSSAK_DISPLACEMENT_SCHEME defined */
+} // namespace Kratos

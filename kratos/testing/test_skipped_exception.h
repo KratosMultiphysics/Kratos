@@ -4,21 +4,23 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Pooyan Dadvand
 //
 //
 
-#ifndef KRATOS_TEST_SKIPPED_EXCEPTION_H_INCLUDED
-#define KRATOS_TEST_SKIPPED_EXCEPTION_H_INCLUDED
+#pragma once
 
+// System includes
 #include <stdexcept>
 #include <string>
 #include <iostream>
 #include <sstream>
 #include <vector>
+
+// External includes
 
 // Project includes
 #include "includes/exception.h"
@@ -125,5 +127,3 @@ std::ostream &operator<<(std::ostream &rOStream, const TestSkippedException &rTh
 ///@} addtogroup block
 
 } // namespace Kratos.
-
-#endif // KRATOS_TEST_SKIPPED_EXCEPTION_H_INCLUDED  defined

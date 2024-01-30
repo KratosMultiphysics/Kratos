@@ -36,7 +36,8 @@ class CreatePointBasedEntitiesProcess(KM.Process):
             "entity_name"              : "PointLoadCondition3D1N",
             "entity_type"              : "condition",
             "properties_id"            : 0,
-            "kratos_application"       : ""
+            "kratos_application"       : "",
+            "initialize_communicators" : false
         }""")
 
         settings.ValidateAndAssignDefaults(default_settings)
@@ -95,6 +96,10 @@ class CreatePointBasedEntitiesProcess(KM.Process):
 
         for i, node_id in enumerate(node_ids):
             creation_fct_ptr(entity_name, i+local_id_start, [node_id], props)
+
+        if settings["initialize_communicators"].GetBool() and model_part.IsDistributed():
+            from KratosMultiphysics.mpi import ParallelFillCommunicator
+            ParallelFillCommunicator(model_part, model_part.GetCommunicator().GetDataCommunicator()).Execute()
 
 
 def RecursiveCreateModelParts(model_part, model_part_name):

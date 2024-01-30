@@ -41,7 +41,7 @@ namespace HDF5
 ///@{
 
 /// A class for IO of nodal solution step data in HDF5.
-class NodalSolutionStepDataIO
+class KRATOS_API(HDF5_APPLICATION) NodalSolutionStepDataIO
 {
 public:
     ///@name Type Definitions
