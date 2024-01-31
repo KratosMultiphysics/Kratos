@@ -486,7 +486,9 @@ private:
             // Search
             ResultType result;
             LocalSearchNearestInRadius(*it_point, Radius, result, 0, allocation_size);
-            r_point_result.AddResult(result);
+            if (result.GetIsObjectFound()) {
+                r_point_result.AddResult(result);
+            }
         });
         Timer::Stop("SearchWrapper::Search");
 
@@ -547,7 +549,9 @@ private:
             // Search
             ResultType result;
             LocalSearchNearest(*it_point, result, 0);
-            r_point_result.AddResult(result);
+            if (result.GetIsObjectFound()) {
+                r_point_result.AddResult(result);
+            }
         });
         Timer::Stop("SearchWrapper::Search");
 
@@ -610,7 +614,9 @@ private:
             // Search
             ResultType result;
             LocalSearchIsInside(*it_point, result, 0);
-            r_point_result.AddResult(result);
+            if (result.GetIsObjectFound()) {
+                r_point_result.AddResult(result);
+            }
         });
         Timer::Stop("SearchWrapper::Search");
 
@@ -752,7 +758,9 @@ private:
             // Result of search
             ResultType local_result;
             LocalSearchNearestInRadius(rTLS.point, Radius, local_result, r_point_result.GetDataCommunicator().Rank(), allocation_size);
-            r_point_result.AddResult(local_result);
+            if (local_result.GetIsObjectFound()) {
+                r_point_result.AddResult(local_result);
+            }
         });
         Timer::Stop("SearchWrapper::Search");
 
@@ -826,7 +834,9 @@ private:
             // Result of search
             ResultType local_result;
             LocalSearchNearest(rTLS.point, local_result, r_point_result.GetDataCommunicator().Rank());
-            r_point_result.AddResult(local_result);
+            if (local_result.GetIsObjectFound()) {
+                r_point_result.AddResult(local_result);
+            }
         });
         Timer::Stop("SearchWrapper::Search");
 
@@ -897,7 +907,9 @@ private:
             // Result of search
             ResultType local_result;
             LocalSearchIsInside(rTLS.point, local_result, r_point_result.GetDataCommunicator().Rank());
-            r_point_result.AddResult(local_result);
+            if (local_result.GetIsObjectFound()) {
+                r_point_result.AddResult(local_result);
+            }
         });
         Timer::Stop("SearchWrapper::Search");
 
