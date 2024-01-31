@@ -671,7 +671,7 @@ namespace Kratos
     KRATOS_TRY
 
     // Update radius
-    const double new_radius = GetParticleRadius() + mRadiusInitial * mDeformationRate * r_process_info[DELTA_TIME] * mNumStepsEval;
+    const double new_radius = GetParticleRadius() + mRadiusInitial * mDeformationRate * r_process_info[DELTA_TIME];
     SetParticleRadius(new_radius);
 
     // Update inertia
