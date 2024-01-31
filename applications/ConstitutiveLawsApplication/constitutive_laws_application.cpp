@@ -101,6 +101,8 @@ void KratosConstitutiveLawsApplication::Register()
     KRATOS_REGISTER_CONSTITUTIVE_LAW("SmallStrainIsotropicPlasticity3DTrescaMohrCoulomb", mSmallStrainIsotropicPlasticity3DTrescaMohrCoulomb);
     KRATOS_REGISTER_CONSTITUTIVE_LAW("SmallStrainIsotropicPlasticity3DDruckerPragerMohrCoulomb", mSmallStrainIsotropicPlasticity3DDruckerPragerMohrCoulomb);
 
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("SmallStrainIsotropicPlasticityPlaneStrainVonMisesVonMises", mSmallStrainIsotropicPlasticityPlaneStrainVonMisesVonMises);
+
     KRATOS_REGISTER_CONSTITUTIVE_LAW("SmallStrainKinematicPlasticity3DVonMisesVonMises", mSmallStrainKinematicPlasticity3DVonMisesVonMises);
     KRATOS_REGISTER_CONSTITUTIVE_LAW("SmallStrainKinematicPlasticity3DVonMisesModifiedMohrCoulomb", mSmallStrainKinematicPlasticity3DVonMisesModifiedMohrCoulomb);
     KRATOS_REGISTER_CONSTITUTIVE_LAW("SmallStrainKinematicPlasticity3DVonMisesDruckerPrager", mSmallStrainKinematicPlasticity3DVonMisesDruckerPrager);
@@ -124,6 +126,8 @@ void KratosConstitutiveLawsApplication::Register()
     KRATOS_REGISTER_CONSTITUTIVE_LAW("SmallStrainKinematicPlasticity3DMohrCoulombTresca", mSmallStrainKinematicPlasticity3DMohrCoulombTresca);
     KRATOS_REGISTER_CONSTITUTIVE_LAW("SmallStrainKinematicPlasticity3DTrescaMohrCoulomb", mSmallStrainKinematicPlasticity3DTrescaMohrCoulomb);
     KRATOS_REGISTER_CONSTITUTIVE_LAW("SmallStrainKinematicPlasticity3DDruckerPragerMohrCoulomb", mSmallStrainKinematicPlasticity3DDruckerPragerMohrCoulomb);
+
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("SmallStrainKinematicPlasticitypePlaneStrainVonMisesVonMises", mSmallStrainKinematicPlasticityPlaneStrainVonMisesVonMises);
 
     //Plastic Damage Model
     KRATOS_REGISTER_CONSTITUTIVE_LAW("SmallStrainPlasticDamageModel3DVonMisesVonMisesVonMises", mSmallStrainPlasticDamageModel3DVonMisesVonMisesVonMises);

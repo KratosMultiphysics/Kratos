@@ -241,6 +241,15 @@ void AddCustomConstitutiveLawsToPython(pybind11::module& m)
     // Custom Constitutive Laws Registration
     // Isotropic Plasticity
     /* Small strain */
+
+    py::class_< GenericSmallStrainIsotropicPlasticity <GenericConstitutiveLawIntegratorPlasticity<VonMisesYieldSurface<VonMisesPlasticPotential<3>>>>,
+    typename GenericSmallStrainIsotropicPlasticity <GenericConstitutiveLawIntegratorPlasticity<VonMisesYieldSurface<VonMisesPlasticPotential<3>>>>::Pointer,
+    ConstitutiveLaw >
+    (m,"SmallStrainIsotropicPlasticityPlaneStrainVonMisesVonMises").def(py::init<>());
+
+
+
+
     py::class_< GenericSmallStrainIsotropicPlasticity <GenericConstitutiveLawIntegratorPlasticity<VonMisesYieldSurface<VonMisesPlasticPotential<6>>>>,
     typename GenericSmallStrainIsotropicPlasticity <GenericConstitutiveLawIntegratorPlasticity<VonMisesYieldSurface<VonMisesPlasticPotential<6>>>>::Pointer,
     ConstitutiveLaw >
@@ -370,6 +379,16 @@ void AddCustomConstitutiveLawsToPython(pybind11::module& m)
 
     // Kinematic Plasticity
     /* Small strain */
+
+	py::class_< GenericSmallStrainKinematicPlasticity <GenericConstitutiveLawIntegratorKinematicPlasticity<VonMisesYieldSurface<VonMisesPlasticPotential<3>>>>,
+    typename GenericSmallStrainKinematicPlasticity <GenericConstitutiveLawIntegratorKinematicPlasticity<VonMisesYieldSurface<VonMisesPlasticPotential<3>>>>::Pointer,
+    ConstitutiveLaw >
+    (m,"SmallStrainKinematicPlasticityPlaneStrainVonMisesVonMises").def(py::init<>());
+
+
+
+
+
 	py::class_< GenericSmallStrainKinematicPlasticity <GenericConstitutiveLawIntegratorKinematicPlasticity<VonMisesYieldSurface<VonMisesPlasticPotential<6>>>>,
     typename GenericSmallStrainKinematicPlasticity <GenericConstitutiveLawIntegratorKinematicPlasticity<VonMisesYieldSurface<VonMisesPlasticPotential<6>>>>::Pointer,
     ConstitutiveLaw >
