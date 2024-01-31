@@ -83,8 +83,8 @@ public:
     {
         mCpuBounds.resize(pComm->Size()+1);
 
-        std::vector<IndexType> send_vect{LocalSize};
-        std::vector<IndexType> local_sizes = pComm->AllGather(send_vect);
+        std::vector<unsigned long> send_vect{static_cast<unsigned long>(LocalSize)};
+        std::vector<unsigned long> local_sizes = pComm->AllGather(send_vect);
         mCpuBounds[0] = 0;
         for(unsigned int i=1; i<mCpuBounds.size(); ++i)
             mCpuBounds[i] = mCpuBounds[i-1] + local_sizes[i-1];

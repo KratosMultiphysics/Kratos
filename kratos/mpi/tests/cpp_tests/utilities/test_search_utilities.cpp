@@ -20,6 +20,7 @@
 #include "geometries/point.h"
 #include "utilities/search_utilities.h"
 #include "testing/test_suite.h"
+#include "testing/distributed_test_case.h"
 
 namespace Kratos::Testing 
 {
@@ -40,7 +41,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(SynchronousPointSynchronization, KratosMPI
 
     // Call the function
     std::vector<double> all_points_coordinates;
-    std::vector<std::size_t> all_points_ids;
+    std::vector<unsigned long> all_points_ids;
     SearchUtilities::SynchronousPointSynchronization(points.begin(), points.end(), all_points_coordinates, all_points_ids, r_data_comm);
 
     // Check the results
@@ -75,7 +76,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISynchronousPointSynchronizationWithRadi
 
     // Call the function
     std::vector<double> all_points_coordinates;
-    std::vector<std::size_t> all_points_ids;
+    std::vector<unsigned long> all_points_ids;
     auto radius = SearchUtilities::SynchronousPointSynchronizationWithRadius(points.begin(), points.end(), all_points_coordinates, all_points_ids, local_radius, r_data_comm);
 
     // Check the results

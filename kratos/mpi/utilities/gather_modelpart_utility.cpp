@@ -198,15 +198,15 @@ void GatherModelPartUtility::GatherEntitiesFromOtherPartitions(
     const auto& r_data_communicator = rModelPart.GetCommunicator().GetDataCommunicator();
 
     // Call auxiliary methods
-    const std::size_t nodes_to_bring = r_data_communicator.SumAll(rNodesToBring.size());
+    const std::size_t nodes_to_bring = r_data_communicator.SumAll(static_cast<unsigned long>(rNodesToBring.size()));
     if (nodes_to_bring > 0) {
         GatherEntityFromOtherPartitions<Node>(rModelPart, rNodesToBring, EchoLevel);
     }
-    const std::size_t elements_to_bring = r_data_communicator.SumAll(rElementsToBring.size());
+    const std::size_t elements_to_bring = r_data_communicator.SumAll(static_cast<unsigned long>(rElementsToBring.size()));
     if (elements_to_bring > 0) {
         GatherEntityFromOtherPartitions<Element>(rModelPart, rElementsToBring, EchoLevel);
     }
-    const std::size_t conditions_to_bring = r_data_communicator.SumAll(rConditionsToBring.size());
+    const std::size_t conditions_to_bring = r_data_communicator.SumAll(static_cast<unsigned long>(rConditionsToBring.size()));
     if (conditions_to_bring > 0) {
         GatherEntityFromOtherPartitions<Condition>(rModelPart, rConditionsToBring, EchoLevel);
     }
@@ -232,7 +232,7 @@ void GatherModelPartUtility::GatherNodesFromOtherPartitions(
     const auto& r_data_communicator = rModelPart.GetCommunicator().GetDataCommunicator();
 
     // Call auxiliary methods
-    const std::size_t nodes_to_bring = r_data_communicator.SumAll(rNodesToBring.size());
+    const std::size_t nodes_to_bring = r_data_communicator.SumAll(static_cast<unsigned long>(rNodesToBring.size()));
     if (nodes_to_bring > 0) {
         GatherEntityFromOtherPartitions<Node>(rModelPart, rNodesToBring, EchoLevel);
     }
@@ -258,7 +258,7 @@ void GatherModelPartUtility::GatherElementsFromOtherPartitions(
     const auto& r_data_communicator = rModelPart.GetCommunicator().GetDataCommunicator();
 
     // Call auxiliary methods
-    const std::size_t elements_to_bring = r_data_communicator.SumAll(rElementsToBring.size());
+    const std::size_t elements_to_bring = r_data_communicator.SumAll(static_cast<unsigned long>(rElementsToBring.size()));
     if (elements_to_bring > 0) {
         GatherEntityFromOtherPartitions<Element>(rModelPart, rElementsToBring, EchoLevel);
     }
@@ -284,7 +284,7 @@ void GatherModelPartUtility::GatherConditionsFromOtherPartitions(
     const auto& r_data_communicator = rModelPart.GetCommunicator().GetDataCommunicator();
 
     // Call auxiliary methods
-    const std::size_t conditions_to_bring = r_data_communicator.SumAll(rConditionsToBring.size());
+    const std::size_t conditions_to_bring = r_data_communicator.SumAll(static_cast<unsigned long>(rConditionsToBring.size()));
     if (conditions_to_bring > 0) {
         GatherEntityFromOtherPartitions<Condition>(rModelPart, rConditionsToBring, EchoLevel);
     }

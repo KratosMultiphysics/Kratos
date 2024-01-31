@@ -227,15 +227,15 @@ void ParallelFillCommunicator::ComputeCommunicationPlan(ModelPart& rModelPart)
     }
 
     // Initialize arrays for all neighbour id lists on root process.
-    std::vector<std::size_t> number_of_receive_neighbours;
-    std::vector<std::vector<int>> receive_neighbours;
+    std::vector<unsigned long> number_of_receive_neighbours;
+    std::vector<std::vector<unsigned long>> receive_neighbours;
     if (my_rank == root_id)
     {
         number_of_receive_neighbours.resize(num_processors);
         receive_neighbours.resize(num_processors);
     }
     {
-        std::vector<std::size_t> send_buf{my_receive_neighbours.size()};
+        std::vector<unsigned long> send_buf{static_cast<unsigned long>(my_receive_neighbours.size())};
         mrDataComm.Gather(send_buf, number_of_receive_neighbours, root_id);
     }
     if (my_rank == root_id)

@@ -147,7 +147,7 @@ public:
     {
         IndexType MinJ, MaxJ;
         ComputeLocalMinMaxColumnIndex(MinJ,MaxJ);
-        return GetComm().MaxAll(MaxJ);
+        return GetComm().MaxAll(static_cast<unsigned long>(MaxJ));
     }
 
 
