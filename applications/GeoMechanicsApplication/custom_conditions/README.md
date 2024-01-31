@@ -103,11 +103,11 @@ $$ h_{rl} \frac{\partial T_{rl}}{\partial t} = \frac{T_{ss}-T_{rl}}{r_g} + u f_h
 
 After discritization,
 
-$$ h_{rl} \frac{T_{rl}(t+\Delta t) - T_{rl}(t)}{\Delta t} = \frac{T_{ss}(t)-T_{rl}(t+\Delta t)}{r_g} + u f_h a_d^2 \left(T_{at}(t+\Delta t)-T_{rl}(t+\Delta t) \right) $$
+$$ h_{rl} \frac{T_{rl}(t+\Delta t) - T_{rl}(t)}{\Delta t} = \frac{T_{ss}(t)-T_{rl}(t+\Delta t)}{r_g} + u f_h a_d^2 \left[T_{at}(t+\Delta t)-T_{rl}(t+\Delta t) \right] $$
 
 Then the temperature in the roughness layer $T_{rl}$ reads as,
 
-$$ T_{rl}^1 = \frac{r_g \space h_{rl} \space T_{rl}^0 + \Delta t \space T_{ss}(t) + r_g \space \Delta t \space u \space f_h \space d_d^2 \space T_{at}(t+\Delta t)}{r_g \space h_{rl} + \Delta t + r_g \space \Delta t \space u \space f_h \space a_d^2} $$
+$$ T_{rl}(t+\Delta t) = \frac{r_g \space h_{rl} \space T_{rl}^0 + \Delta t \space T_{ss}(t) + r_g \space \Delta t \space u \space f_h \space d_d^2 \space T_{at}(t+\Delta t)}{r_g \space h_{rl} + \Delta t + r_g \space \Delta t \space u \space f_h \space a_d^2} $$
 
 where
 
@@ -132,10 +132,10 @@ $$ f_h = 1 - \frac{15 \space r_{i}}{1+75 \space a_d^2 \sqrt{z_m/z_0} \sqrt{|r_{i
 
 and for stable weather conditions where $T_{rl} < T_{at}$
 
-$$ f_h = \left({1 + {15 \space r_{i}}{\sqrt{1+5 \space r_{i}}}}\right)^{-1} $$
+$$ f_h = \frac{}{1 + 15 \space r_i \sqrt{1+5 \space r_i}} $$
 
 where $r_i$ $\mathrm{[-]}$ is Richardson bulk modulus and is defines as,
 
-$$ r_{i} = \frac{2 g z_m}{T_{at}+T_{rl}+ 546.3} \frac{T_{at}-T_{rl}}{u^2} $$
+$$ r_i = \frac{2 g z_m}{T_{at}+T_{rl}+ 546.3} \frac{T_{at}-T_{rl}}{u^2} $$
 
 $g$ is gravitation constant $\mathrm{[9.81 m/s^2]}$
