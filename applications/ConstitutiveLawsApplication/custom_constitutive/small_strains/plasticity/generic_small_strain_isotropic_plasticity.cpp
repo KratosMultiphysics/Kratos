@@ -358,7 +358,7 @@ void GenericSmallStrainIsotropicPlasticity<TConstLawIntegratorType>::FinalizeMat
             plastic_dissipation, plastic_strain_increment,
             r_constitutive_matrix, plastic_strain, rValues,
             characteristic_length);
-        BaseType::CalculateElasticMatrix( r_constitutive_matrix, rValues);
+        BaseType::CalculateElasticMatrix(r_constitutive_matrix, rValues);
     }
 
     mPlasticDissipation = plastic_dissipation;
