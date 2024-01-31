@@ -94,7 +94,7 @@ The atomospheric resistance,
 
 $$ r_a = \frac{1}{0.007+0.0056 u} $$
 
-where $u$ $\mathrm{[m/s]}$ is the wind speed which is a user defined parameter.
+where $u$ $\mathrm{[m/s]}$ is the wind speed which is a user defined parameter. $t$ $\mathrm{[s]}$ and $\Delta t$ $\mathrm{[s]}$ are time and time step, respectively.
 
 ## Roughness Layer Temperature
 The uenergy balance equation for the roughness layer reads as,
@@ -103,11 +103,11 @@ $$ h_{rl} \frac{\partial T_{rl}}{\partial t} = \frac{T_{ss}-T_{rl}}{r_g} + u f_h
 
 After discritization,
 
-$$ h_{rl} \frac{T_{rl}^1 - T_{rl}^0}{\Delta t} = \frac{T_{ss}^0-T_{rl}^1}{r_g} + u f_h a_d^2 \left(T_{at}^1-T_{rl}^1\right) $$
+$$ h_{rl} \frac{T_{rl}(t+\Delta t) - T_{rl}(t)}{\Delta t} = \frac{T_{ss}(t)-T_{rl}(t+\Delta t)}{r_g} + u f_h a_d^2 \left(T_{at}(t+\Delta t)-T_{rl}(t+\Delta t) \right) $$
 
 Then the temperature in the roughness layer $T_{rl}$ reads as,
 
-$$ T_{rl}^1 = \frac{r_g \space h_{rl} \space T_{rl}^0 + \Delta t \space T_{ss}^0 + r_g \space \Delta t \space u \space f_h \space d_d^2 \space T_{at}^1}{r_g \space h_{rl} + \Delta t + r_g \space \Delta t \space u \space f_h \space a_d^2} $$
+$$ T_{rl}^1 = \frac{r_g \space h_{rl} \space T_{rl}^0 + \Delta t \space T_{ss}(t) + r_g \space \Delta t \space u \space f_h \space d_d^2 \space T_{at}(t+\Delta t)}{r_g \space h_{rl} + \Delta t + r_g \space \Delta t \space u \space f_h \space a_d^2} $$
 
 where
 
