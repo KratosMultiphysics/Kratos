@@ -152,6 +152,7 @@ namespace Kratos
                         (r_process_info[HEAT_GENERATION_OPTION]  ||
                         (r_process_info[DIRECT_CONDUCTION_OPTION] && r_process_info[DIRECT_CONDUCTION_MODEL_NAME].compare("collisional") == 0));    
     
+    // Save initial radius in case it changes
     mRadiusInitial = GetParticleRadius();
 
     // Clear maps
@@ -689,7 +690,7 @@ namespace Kratos
     KRATOS_TRY
 
     // Update radius
-    const double new_radius = GetParticleRadius() * (1.0 + GetParticleExpansionCoefficient() * (GetParticleTemperature() - mPreviousTemperature));
+    const double new_radius = GetParticleRadius() + mRadiusInitial * GetParticleExpansionCoefficient() * (GetParticleTemperature() - mPreviousTemperature);
     SetParticleRadius(new_radius);
 
     // Update inertia
