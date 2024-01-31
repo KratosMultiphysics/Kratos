@@ -171,7 +171,7 @@ inline std::ostream& operator<<(
         static const Kratos::Testing::Internals::AddThisTestToTestSuite        \
             mAnotherDummy;                                                     \
     };
-
+    /*
 // This is the macro to use
 #define KRATOS_TEST_CASE_IN_SUITE(TestCaseName, TestSuiteName)          \
     KRATOS_TESTING_TEST_CASE_IN_SUITE_CLASS(TestCaseName, TestCase)     \
@@ -185,7 +185,7 @@ inline std::ostream& operator<<(
                 KRATOS_TESTING_CONVERT_TO_STRING(TestSuiteName));       \
                                                                         \
     void KRATOS_TESTING_CREATE_CLASS_NAME(TestCaseName)::TestFunction()
-
+*/
 // Disabled version of the macro to used
 #define KRATOS_DISABLED_TEST_CASE_IN_SUITE(TestCaseName, TestSuiteName) \
     KRATOS_TESTING_TEST_CASE_IN_SUITE_CLASS(TestCaseName, TestCase)     \
