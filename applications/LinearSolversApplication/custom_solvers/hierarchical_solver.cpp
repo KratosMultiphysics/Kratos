@@ -118,7 +118,9 @@ struct HierarchicalSolver<TSparseSpace,TDenseSpace,TReorderer>::Impl
 
     std::size_t mMaxIterations;
 
-    typename LinearSolver<TSparseSpace,TDenseSpace/*reorderer is omitted on purpose*/>::Pointer mpFineSolver;
+    std::optional<typename LinearSolver<TSparseSpace,TDenseSpace>::Pointer> mpMaybePreSmoother;
+
+    std::optional<typename LinearSolver<TSparseSpace,TDenseSpace>::Pointer> mpMaybePostSmoother;
 
     typename TSparseSpace::MatrixType mRestrictionOperator;
 
@@ -127,7 +129,7 @@ struct HierarchicalSolver<TSparseSpace,TDenseSpace,TReorderer>::Impl
     struct CoarseSystem {
         typename TSparseSpace::MatrixType mA;
 
-        typename LinearSolver<TSparseSpace,TDenseSpace/*reorderer is omitted on purpose*/>::Pointer mpSolver;
+        typename LinearSolver<TSparseSpace,TDenseSpace>::Pointer mpSolver;
     } mCoarseSystem;
 }; // struct HierarchicalSolver::Impl
 
@@ -151,7 +153,16 @@ HierarchicalSolver<TSparseSpace,TDenseSpace,TReorderer>::HierarchicalSolver(Para
 {
     KRATOS_TRY
     Parameters default_parameters = HierarchicalSolver::GetDefaultParameters();
-    parameters.ValidateAndAssignDefaults(default_parameters);
+
+    // Perform a shallow, untyped validation
+    for (auto it_sub=parameters.begin(); it_sub!=parameters.end(); ++it_sub) {
+        if (!default_parameters.Has(it_sub.name())) {
+            KRATOS_ERROR << "parameter validation failed because '" << it_sub.name()
+                         << "' is present in the input parameters, but NOT in the default ones.\n"
+                         << "Parameters being validated are:\n" << parameters.PrettyPrintJsonString() << "\n"
+                         << "Default parameters:\n" << default_parameters << std::endl;
+        }
+    }
 
     KRATOS_ERROR_IF_NOT(parameters["solver_type"].GetString() == "hierarchical")
         << "Requested a(n) '" << parameters["solver_type"].GetString() << "' solver,"
@@ -163,11 +174,25 @@ HierarchicalSolver<TSparseSpace,TDenseSpace,TReorderer>::HierarchicalSolver(Para
     mpImpl->mMaxIterations = safe_parameters["max_iterations"].Get<int>();
 
     // Construct nested solvers
-    KRATOS_TRY
     LinearSolverFactory<TSparseSpace,TDenseSpace> solver_factory;
+
+    KRATOS_TRY
     mpImpl->mCoarseSystem.mpSolver = solver_factory.Create(safe_parameters["coarse_solver_settings"].GetInput());
-    mpImpl->mpFineSolver = solver_factory.Create(safe_parameters["fine_solver_settings"].GetInput());
-    KRATOS_CATCH("")
+    KRATOS_CATCH("while constructing coarse solver")
+
+    Parameters pre_smoother_settings = safe_parameters["pre_smoother_settings"].GetInput();
+    if (!pre_smoother_settings.IsNull()) {
+        KRATOS_TRY
+        mpImpl->mpMaybePreSmoother = solver_factory.Create(safe_parameters["pre_smoother_settings"].GetInput());
+        KRATOS_CATCH("while constructing pre-smoother")
+    }
+
+    Parameters post_smoother_settings = safe_parameters["post_smoother_settings"].GetInput();
+    if (!post_smoother_settings.IsNull()) {
+        KRATOS_TRY
+        mpImpl->mpMaybePostSmoother = solver_factory.Create(safe_parameters["post_smoother_settings"].GetInput());
+        KRATOS_CATCH("while constructing post-smoother")
+    }
 
     KRATOS_CATCH("")
 }
@@ -214,6 +239,34 @@ bool HierarchicalSolver<TSparseSpace,TDenseSpace,TReorderer>::Solve(SparseMatrix
     const std::size_t max_iterations = mpImpl->mMaxIterations;
     std::size_t i_iteration = 0ul;
     while (true) {
+        // Perform a few smoothing passes on the fine system
+        // A_fine * d_fine = r_fine
+        if (mpImpl->mpMaybePreSmoother.has_value()) {
+            KRATOS_TRY
+
+            TSparseSpace::SetToZero(fine_delta);
+            mpImpl->mpMaybePreSmoother.value()->Solve(rA, fine_delta, fine_residual);
+            TSparseSpace::UnaliasedAdd(rX, 1.0, fine_delta);
+
+            if (5 <= mpImpl->mVerbosity) {
+                const std::string relaxed_delta = "presmoothed_delta_" + std::to_string(i_iteration) + ".mm";
+                TSparseSpace::WriteMatrixMarketVector(relaxed_delta.c_str(), fine_delta);
+            }
+
+            // Update the fine residual
+            // r_fine = b_fine - A_fine * x_fine
+            TSparseSpace::Mult(rA, fine_delta, fine_tmp);
+            TSparseSpace::UnaliasedAdd(fine_residual, -1.0, fine_tmp);
+
+            KRATOS_INFO_IF("HierarchicalSolver", 3 <= mpImpl->mVerbosity)
+                << "iteration " << i_iteration
+                << " residual after pre-smoothing "
+                << TSparseSpace::TwoNorm(fine_residual) / rhs_norm
+                << "\n";
+
+            KRATOS_CATCH("")
+        }
+
         // Restrict the residual
         // r_coarse = R * r_fine
         TSparseSpace::Mult(mpImpl->mRestrictionOperator,
@@ -249,21 +302,25 @@ bool HierarchicalSolver<TSparseSpace,TDenseSpace,TReorderer>::Solve(SparseMatrix
 
         // Perform a few smoothing passes on the fine system
         // A_fine * d_fine = r_fine
-        KRATOS_TRY
-        TSparseSpace::SetToZero(fine_delta);
-        mpImpl->mpFineSolver->Solve(rA, fine_delta, fine_residual);
-        TSparseSpace::UnaliasedAdd(rX, 1.0, fine_delta);
-        KRATOS_CATCH("")
+        if (mpImpl->mpMaybePostSmoother.has_value()) {
+            KRATOS_TRY
 
-        if (5 <= mpImpl->mVerbosity) {
-            const std::string relaxed_delta = "relaxed_delta_" + std::to_string(i_iteration) + ".mm";
-            TSparseSpace::WriteMatrixMarketVector(relaxed_delta.c_str(), fine_delta);
+            TSparseSpace::SetToZero(fine_delta);
+            mpImpl->mpMaybePostSmoother.value()->Solve(rA, fine_delta, fine_residual);
+            TSparseSpace::UnaliasedAdd(rX, 1.0, fine_delta);
+
+            if (5 <= mpImpl->mVerbosity) {
+                const std::string relaxed_delta = "postsmoothed_delta_" + std::to_string(i_iteration) + ".mm";
+                TSparseSpace::WriteMatrixMarketVector(relaxed_delta.c_str(), fine_delta);
+            }
+
+            // Update the fine residual
+            // r_fine = b_fine - A_fine * x_fine
+            TSparseSpace::Mult(rA, fine_delta, fine_tmp);
+            TSparseSpace::UnaliasedAdd(fine_residual, -1.0, fine_tmp);
+
+            KRATOS_CATCH("")
         }
-
-        // Update the fine residual
-        // r_fine = b_fine - A_fine * x_fine
-        TSparseSpace::Mult(rA, fine_delta, fine_tmp);
-        TSparseSpace::UnaliasedAdd(fine_residual, -1.0, fine_tmp);
 
         // Update status
         residual_norm = TSparseSpace::TwoNorm(fine_residual) / rhs_norm;
@@ -1025,13 +1082,10 @@ void HierarchicalSolver<TSparseSpace,TDenseSpace,TReorderer>::ProvideAdditionalD
                                                               rModelPart);
     } // destroy coarse system containers (excluding the system matrix)
 
-    if (mpImpl->mpFineSolver->AdditionalPhysicalDataIsNeeded()) {
-        // Provide additional physical data for the fine system
-        mpImpl->mpFineSolver->ProvideAdditionalData(rA,
-                                                    rX,
-                                                    rB,
-                                                    rDofs,
-                                                    rModelPart);
+    for (auto& rp_maybe_smoother : {mpImpl->mpMaybePreSmoother, mpImpl->mpMaybePostSmoother}) {
+        if (rp_maybe_smoother.has_value() && rp_maybe_smoother.value()->AdditionalPhysicalDataIsNeeded()) {
+            rp_maybe_smoother.value()->ProvideAdditionalData(rA, rX, rB, rDofs, rModelPart);
+        }
     }
 
     KRATOS_INFO_IF("HierarchicalSolver", 2 <= mpImpl->mVerbosity)
@@ -1053,14 +1107,22 @@ HierarchicalSolver<TSparseSpace,TDenseSpace,TReorderer>::GetDefaultParameters()
     "verbosity" : 0,
     "max_iterations" : 50,
     "tolerance" : 1e-6,
+    "pre_smoother_settings" : {
+        "solver_type" : "gauss_seidel",
+        "max_iterations" : 2,
+        "relaxation" : 1.0,
+        "backward" : false
+    },
     "coarse_solver_settings" : {
         "solver_type" : "cg",
         "max_iteration" : 50,
         "tolerance" : 2e-1
     },
-    "fine_solver_settings" : {
+    "post_smoother_settings" : {
         "solver_type" : "gauss_seidel",
-        "max_iterations" : 3
+        "max_iterations" : 2,
+        "relaxation" : 1.0,
+        "backward" : true
     }
 }
     )");
