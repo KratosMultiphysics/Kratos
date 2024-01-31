@@ -192,7 +192,7 @@ for dim in dim_vector:
     vel_residual = rho*f_gauss - rho*accel_gauss - rho*convective_term.transpose() - grad_p
 
     # Mass conservation residual
-    mas_residual =- div_v_stabilization[0,0] + volume_error_ratio #NOTE: The divergence of v in here is not computed at alpha
+    mas_residual = volume_error_ratio - div_v_stabilization[0,0] #NOTE: The divergence of v in here is not computed at alpha
 
     ## Subscales calculation
     vel_subscale = tau1*vel_residual
@@ -240,8 +240,8 @@ for dim in dim_vector:
     ##  H Kee p_enr =  rhs_ee
 
     # Calculate subscales for the enrichment terms functional
-    vel_residual_enr = rho*f_gauss - rho*(accel_gauss + convective_term.transpose() + convective_term_enr.transpose()) - grad_p  - grad_p_enr
-    mas_residual_enr = volume_error_ratio - div_v_stabilization[0,0] + div_v_enr[0,0] #NOTE: The divergence of v in here is not computed at alpha
+    vel_residual_enr = - rho*convective_term_enr.transpose() - grad_p_enr
+    mas_residual_enr = - div_v_enr[0,0] #NOTE: The divergence of v in here is not computed at alpha
 
     vel_subscale_enr = tau1 * vel_residual_enr
     mas_subscale_enr = tau2 * mas_residual_enr
@@ -254,9 +254,14 @@ for dim in dim_vector:
     rv_galerkin_enriched += q_enr_gauss*(volume_error_ratio - div_v[0,0] - div_v_enr[0,0]) - q_gauss*div_v_enr[0,0]
 
     # Calculate the stabilization functional
-    rv_stab_enriched = grad_q_enr.transpose()*vel_subscale_enr
-    rv_stab_enriched += rho*div_w_enr[0,0]*vconv_gauss.transpose()*vel_subscale_enr + rho*div_vconv*w_enr_gauss*vel_subscale_enr
-    rv_stab_enriched += div_w_enr*mas_subscale_enr
+    rv_stab_enriched = (rho*div_vconv)*w_gauss.transpose()*vel_subscale_enr
+    rv_stab_enriched += rho*vconv_gauss.transpose()*grad_w*vel_subscale_enr
+    rv_stab_enriched += div_w*mas_subscale_enr
+    rv_stab_enriched += grad_q.transpose()*vel_subscale_enr
+    rv_stab_enriched += (rho*div_vconv)*w_enr_gauss*(vel_subscale + vel_subscale_enr)
+    rv_stab_enriched += rho*vconv_gauss.transpose()*grad_w*(vel_subscale + vel_subscale_enr)
+    rv_stab_enriched += div_w_enr*(mas_subscale + mas_subscale_enr)
+    rv_stab_enriched += grad_q_enr.transpose()*(vel_subscale + vel_subscale_enr)
 
     # Add the stabilization terms to the original residual terms
     rv_enriched = rv_galerkin_enriched
@@ -277,7 +282,8 @@ for dim in dim_vector:
     ##  K V   x    =  b + rhs_eV
     ##  H Kee p_enr =  rhs_ee
     rhs_eV = Compute_RHS(rv_enriched.copy(), test_func, do_simplifications)
-    SubstituteMatrixValue(rhs_eV, stress, C*grad_sym_v_enr_voigt)
+    # SubstituteMatrixValue(rhs_eV, stress, C*grad_sym_v_enr_voigt)
+    SubstituteMatrixValue(rhs_eV, stress, C*(grad_sym_v_voigt+grad_sym_v_enr_voigt))
     V = Compute_LHS(rhs_eV, test_func, dofs_enr, do_simplifications)
 
     rhs_ee = Compute_RHS(rv_enriched.copy(), test_func_enr, do_simplifications)
