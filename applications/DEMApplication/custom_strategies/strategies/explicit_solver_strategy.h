@@ -304,7 +304,6 @@ namespace Kratos {
         bool   mRVE_Solve;              // Flag for evaluating RVE in current step
         bool   mRVE_Compress;           // Flag for compressing RVE
         bool   mRVE_Equilibrium;        // Flag for static equilibrium of particles
-        int    mRVE_FreqWrite = 1;      // Frequency for writing results as a multiplication factor of the evaluating frequency
         int    mRVE_Dimension;          // RVE dimension: 2D or 3D
         int    mRVE_EqSteps;            // Number of RVE solution steps in equilibrium
         int    mRVE_NumParticles;       // Total number of particles inside RVE (does not consider wall particles)

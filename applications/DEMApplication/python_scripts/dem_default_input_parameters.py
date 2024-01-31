@@ -183,6 +183,7 @@ def GetDefaultInputParameters():
             "problem_name" : "dummy_name.Provide_a_real_one",
             "processes" : {},
             "RVEEvalFreq"                      : 1000,
+            "RVEWriteFreq"                     : 1000,
             "LimitConsolidationStress"         : 100000,
             "LimitConsolidationPorosity"       : 0.15,
             "InnerConsolidationPorosityOffset" : 0.7,

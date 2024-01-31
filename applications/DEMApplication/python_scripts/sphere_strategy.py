@@ -190,6 +190,7 @@ class ExplicitStrategy():
         self.SetContinuumType()
 
         self.rve_eval_freq                        = DEM_parameters["RVEEvalFreq"].GetInt()
+        self.rve_write_freq                       = DEM_parameters["RVEWriteFreq"].GetInt()
         self.limit_consolidation_stress           = DEM_parameters["LimitConsolidationStress"].GetDouble()
         self.limit_consolidation_porosity         = DEM_parameters["LimitConsolidationPorosity"].GetDouble()
         self.inner_consolidation_porosity_offset  = DEM_parameters["InnerConsolidationPorosityOffset"].GetDouble()
@@ -334,7 +335,8 @@ class ExplicitStrategy():
         self.settings.inlet_model_part = self.inlet_model_part
         self.settings.cluster_model_part = self.cluster_model_part
 
-        self.spheres_model_part.ProcessInfo.SetValue(RVE_EVAL_FREQ, self.rve_eval_freq)
+        self.spheres_model_part.ProcessInfo.SetValue(RVE_EVAL_FREQ,  self.rve_eval_freq)
+        self.spheres_model_part.ProcessInfo.SetValue(RVE_WRITE_FREQ, self.rve_write_freq)
         self.spheres_model_part.ProcessInfo.SetValue(LIMIT_CONSOLIDATION_STRESS, self.limit_consolidation_stress)
         self.spheres_model_part.ProcessInfo.SetValue(LIMIT_CONSOLIDATION_POROSITY, self.limit_consolidation_porosity)
         self.spheres_model_part.ProcessInfo.SetValue(INNER_CONSOLIDATION_POROSITY_OFFSET, self.inner_consolidation_porosity_offset)

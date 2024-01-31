@@ -1816,7 +1816,6 @@ namespace Kratos {
       mRVE_FlatWalls   = r_conditions.size() > 0;
       mRVE_Compress    = true;
       mRVE_Equilibrium = false;
-      mRVE_FreqWrite  *= r_process_info[RVE_EVAL_FREQ];
       mRVE_Dimension   = r_process_info[DOMAIN_SIZE];
       mRVE_EqSteps     = 0;
       
@@ -2859,7 +2858,8 @@ namespace Kratos {
       const int    time_step        = r_process_info[TIME_STEPS];
       const double time             = r_process_info[TIME];
 
-      if (time_step % mRVE_FreqWrite != 0.0)
+      const int eval_freq = r_process_info[RVE_WRITE_FREQ];
+      if (time_step % eval_freq != 0.0)
         return;
 
       if (mRVE_FileCoordinates.is_open()) {
