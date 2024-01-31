@@ -2,7 +2,7 @@
 title: Post processing
 keywords: 
 tags: [post_processing.md]
-sidebar: particle_mechanics_application
+sidebar: mpm_application
 summary: 
 ---
 
@@ -12,32 +12,32 @@ When the calculation finished, examine the results in the post-processing mode o
 ![drag_and_drop](https://user-images.githubusercontent.com/51473791/190993773-bd58206b-a5ff-4c8f-9591-7f411916ecff.jpg)
 
 
-Then GiD automatically switches to its post-processing surface and loads the results file. Now, we can see the particles that we assigned to the domain of the cantilever in a previous step:
+Then GiD automatically switches to its post-processing surface and loads the results file. Now, we can see the material points that we assigned to the domain of the cantilever in a previous step:
 
 ![updated_particles_result](https://user-images.githubusercontent.com/51473791/190993829-0a32d698-038c-4deb-a980-ea12e896ab28.jpg)
 
-Often it is useful to compare the behaviour of the particles with the geometry of the background mesh. To add the background mesh to the post-processing, click on **`Files`&rightarrow;`Merge`** and select the file *project_name_Grid.post.bin* to open.
- 
+Often it is useful to compare the behaviour of the material points with the geometry of the background mesh. To add the background mesh to the post-processing, click on **`Files`&rightarrow;`Merge`** and select the file *project_name_Grid.post.bin* to open.
+
 ![merge](https://user-images.githubusercontent.com/51473791/170937564-ecc48ed7-73ee-419c-83d9-fbf9e31c105d.png)
 
 ![merge2](https://user-images.githubusercontent.com/51473791/170937565-e41df791-0ad3-4935-b6ea-f32418f62ac7.png)
 
-Then we can see the particles as well as the background domain.
+Then we can see the material points as well as the background domain.
 
 ![merged_result_files](https://user-images.githubusercontent.com/51473791/190993887-72c795f9-c4d3-463b-8122-9b70c3c60883.jpg)
 
-To adapt the depiction of the background mesh, we click in the right toolbar in the line of the backgroundmesh on the yellow quadrat that contains a black cross. Subsequently, another dropdown menu opens and we click on the first entry, as depicted in the image below. 
+To adapt the depiction of the background mesh, we click in the right toolbar in the line of the backgroundmesh on the yellow quadrat that contains a black cross. Subsequently, another dropdown menu opens and we click on the first entry, as depicted in the image below.
 
 ![right_toolbar_wa](https://user-images.githubusercontent.com/51473791/170946238-f77bdc44-1705-4bdb-bdc9-e2fbc28b3a98.png)
 
-Now we can see the particles within the outer edges of the background mesh:
+Now we can see the material points within the outer edges of the background mesh:
 
 ![merged_image_2](https://user-images.githubusercontent.com/51473791/191246995-0dce65d8-3f90-48aa-aedb-2139f02612fd.jpg)
 
 
 
-To see the deformation of the particles due to the dead load of the structure, one has to select the depiction of the displacement of the 
-material points (particles). This is done by clicking on the following symbol and selecting **`MP Displacement`**.
+To see the deformation of the structure, one has to select the depiction of the displacement of the
+material points. This is done by clicking on the following symbol and selecting **`MP Displacement`**.
 
 ![choose_mp_displacement](https://user-images.githubusercontent.com/51473791/191246922-99cd2f61-0993-48d2-9520-c8d116e1c741.jpg)
 

@@ -2,7 +2,7 @@
 title: Meshing
 keywords: 
 tags: [meshing.md]
-sidebar: particle_mechanics_application
+sidebar: mpm_application
 summary: 
 ---
 

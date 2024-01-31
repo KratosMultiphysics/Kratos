@@ -2,7 +2,7 @@
 title: Introduction
 keywords: 
 tags: [introduction.md]
-sidebar: particle_mechanics_application
+sidebar: mpm_application
 summary: 
 ---
 # MPM example in GiD

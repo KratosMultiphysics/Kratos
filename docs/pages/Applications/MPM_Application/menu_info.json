@@ -1,8 +1,8 @@
 {
-    "side_bar_name": "particle_mechanics_application",
+    "side_bar_name": "mpm_application",
     "landing_page": "General/Overview.md",
     "additional_menu_options": {
-        "product": "Particle Mechanics Application",
+        "product": "MPM Application",
         "title": "sidebar"
 
     },
