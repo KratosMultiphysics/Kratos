@@ -38,7 +38,7 @@ class KratosGeoMechanicsResetDisplacementTests(KratosUnittest.TestCase):
 
         # get stages
         test_name = 'geo_truss_with_reset_displacement'
-        project_path = test_helper.get_file_path(os.path.join('.', test_name + '.gid'))
+        project_path = test_helper.get_file_path(os.path.join('.', test_name))
         n_stages = 4
 
         cwd = os.getcwd()
@@ -93,7 +93,7 @@ class KratosGeoMechanicsResetDisplacementTests(KratosUnittest.TestCase):
 
         # get stages
         test_name = 'geo_beam_with_reset_displacement'
-        project_path = test_helper.get_file_path(os.path.join('.', test_name + '.gid'))
+        project_path = test_helper.get_file_path(os.path.join('.', test_name))
         n_stages = 4
         cwd = os.getcwd()
         stages = test_helper.get_stages(project_path, n_stages)
