@@ -343,7 +343,7 @@ class MPMFromJsonCheckResultProcess(LegacyFromJsonCheckResultProcess, KratosUnit
 
                         # Scalar variable
                         if (variable_type == "Double" or variable_type == "Integer" or variable_type == "Component"):
-                            values_json = self.data["PARTICLE_" + str(mp.Id)][variable_name]
+                            values_json = self.data["MP_" + str(mp.Id)][variable_name]
                             value_json = self.__linear_interpolation(time, input_time_list, values_json)
                             isclosethis = t_isclose(value, value_json, rel_tol=reltol, abs_tol=tol)
                             self.assertTrue(isclosethis, msg=(str(value) + " != " + str(value_json) + ", rel_tol = " + str(reltol) + ", abs_tol = " + str(tol) + " : Error checking material point " + str(mp.Id) + " " + variable_name + " results."))
@@ -352,19 +352,19 @@ class MPMFromJsonCheckResultProcess(LegacyFromJsonCheckResultProcess, KratosUnit
 
                             if (KratosMultiphysics.KratosGlobals.GetVariableType(variable_name + "_X") == "Double"):
                                 for component_index, component in enumerate(["_X", "_Y", "_Z"]):
-                                    values_json = self.data["PARTICLE_" + str(mp.Id)][variable_name +component]
+                                    values_json = self.data["MP_" + str(mp.Id)][variable_name +component]
                                     value_json = self.__linear_interpolation(time, input_time_list, values_json)
                                     isclosethis = t_isclose(value[component_index], value_json, rel_tol=reltol, abs_tol=tol)
                                     self.assertTrue(isclosethis, msg=(str(value[component_index]) + " != "+str(value_json) + ", rel_tol = " + str(reltol) + ", abs_tol = " + str(tol) + " : Error checking material point " + str(mp.Id) + " " + variable_name + " results."))
                             else:
-                                values_json = self.data["PARTICLE_"+str(mp.Id)][variable_name][step - 1]
+                                values_json = self.data["MP_"+str(mp.Id)][variable_name][step - 1]
                                 for index in range(len(value)):
                                     value_json = values_json[index] # self.__linear_interpolation(time, input_time_list, values_json[index])
                                     isclosethis = t_isclose(value[index], value_json, rel_tol=reltol, abs_tol=tol)
                                     self.assertTrue(isclosethis, msg=(str(value) + " != " + str(value_json) + ", rel_tol = " + str(reltol) + ", abs_tol = " + str(tol) + " : Error checking material point " + str(mp.Id) + " " + variable_name + " results."))
                         # Vector variable
                         elif variable_type == "Vector":
-                            values_json = self.data["PARTICLE_"+str(mp.Id)][variable_name][step - 1]
+                            values_json = self.data["MP_"+str(mp.Id)][variable_name][step - 1]
                             for index in range(len(value)):
                                 value_json = values_json[index] # self.__linear_interpolation(time, input_time_list, values_json[index])
                                 isclosethis = t_isclose(value[index], value_json, rel_tol=reltol, abs_tol=tol)
