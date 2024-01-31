@@ -665,7 +665,10 @@ namespace Kratos
     // Update inertia
     SetParticleMomentInertia(CalculateMomentOfInertia());
 
-    // TODO: update density
+    // Update density
+    double* rho = &(GetProperties()[PARTICLE_DENSITY]);
+    *rho = GetParticleMass() / GetParticleVolume();
+    GetFastProperties()->SetDensityFromProperties(rho);
 
     KRATOS_CATCH("")
   }
