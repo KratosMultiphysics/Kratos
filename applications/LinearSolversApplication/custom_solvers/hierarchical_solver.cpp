@@ -385,7 +385,7 @@ void GetLowerOrderDofs(typename TSparseSpace::MatrixType& rA,
 
             if (it_node->Is(SLAVE)) {
                 rCoarseMask[r_dof.EquationId()] = DofCategory::Constrained;
-            } else if (it_node->Is(MASTER) && rCoarseMask[r_dof.EquationId()] == DofCategory::Unknown) {
+            } else if (it_node->Is(MASTER) && rCoarseMask[r_dof.EquationId()] != DofCategory::Fine) {
                 rCoarseMask[r_dof.EquationId()] = DofCategory::Coarse;
             }
         }
@@ -641,16 +641,17 @@ void MapHigherToLowerOrder(const ModelPart& rModelPart,
                             const std::size_t i_fine_dof = r_fine_node_dofs[i_node_dof]->EquationId();
                             const auto it_slave = rSlaveMap.find(i_fine_dof);
                             const bool is_slave = it_slave != rSlaveMap.end();
-                            if (!is_slave) {
-                                // The DoF is not a slave, so it can be added to the restriction map
-                                rRestrictionMap.emplace(std::make_pair(i_coarse_dof, i_fine_dof), r_fine_coefficient_pair.second);
-                            } else {
-                                // The DoF is a slave, so its master should be added to the restriction map instead
+                            if (is_slave) {
+                                // The DoF is a slave, so its master should take its place
+                                // in the restriction operator.
                                 for (auto master_and_coefficient : it_slave->second.first) {
                                     const auto i_master = master_and_coefficient.first;
                                     const auto mpc_coefficient = master_and_coefficient.second;
                                     rRestrictionMap.emplace(std::make_pair(i_coarse_dof, i_master), r_fine_coefficient_pair.second * mpc_coefficient);
                                 }
+                            } else {
+                                // The DoF is not a slave, so it can be added to the restriction map
+                                rRestrictionMap.emplace(std::make_pair(i_coarse_dof, i_fine_dof), r_fine_coefficient_pair.second);
                             }
                         } // if rCoarseDofMask[i_coarse_dof_in_fine_system]
 
