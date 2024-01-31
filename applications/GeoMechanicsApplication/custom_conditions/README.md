@@ -16,9 +16,9 @@ $$ R_n = R^s + R^{l,ab} - R^{l,em} $$
 
 where
 
-- $R^s$ = in-coming short wave radiation $\mathrm{[J/m^2s]}$
-- $R^{l,ab}$ = absorbed long wave radiation $\mathrm{[J/m^2s]}$
-- $R^{l,em}$ = emitted long wave radiation $\mathrm{[J/m^2s]}$
+- $R^s$ = in-coming short wave radiation $\mathrm{[W/m^2]}$
+- $R^{l,ab}$ = absorbed long wave radiation $\mathrm{[W/m^2]}$
+- $R^{l,em}$ = emitted long wave radiation $\mathrm{[W/m^2]}$
 
 The incoming short wave radiation is defined by
 
@@ -29,6 +29,8 @@ where
 - $\alpha$ = Albedo cover or vegetation coefficient  $\mathrm{[-]}$
 - $R_{g}$ = Short wave radiation  $\mathrm{[W/m^2]}$ 
 
+$R_g$ is a user difined parameter which is usually provided as a "Time-Radiation" table.
+
 The absorbed long wave radiation is:
 
 $$ R^{l,ab}=  \epsilon \sigma \left( T_{at} +273.15 \right)^4 $$
@@ -36,21 +38,21 @@ $$ R^{l,ab}=  \epsilon \sigma \left( T_{at} +273.15 \right)^4 $$
 where
 
 - $\epsilon$ = effective emissivity  $\mathrm{[-]}$
-- $\sigma$ = Stefan Boltzmann's constant  $\mathrm{[5.67 \cdot 10^{-8}  W/m^2 K^4]}$
-- $T_{at}$ = atmospheric temperature $\mathrm{[C]}$
+- $\sigma$ = Stefan Boltzmann's constant  $\mathrm{[5.67 \cdot 10^{-8}  W/m^2 ^{\circ}C^4]}$
+- $T_{at}$ = atmospheric temperature $\mathrm{[^{\circ}C]}$
 
 And the emitted long wave radiation,
 
 $$ R^{l,em} = \sigma \left( T_{ss} +273.15 \right)^4 $$
 
-where $T_{ss}$ $\mathrm{[C]}$ is land surface temperature.
+where $T_{ss}$ $\mathrm{[^{\circ}C]}$ is land surface temperature.
 
 ## Surface Heat Storage
 The surface heat storage term $Q_s$ $\mathrm{[W/m^2]}$ is calculated by,
 
-$$ Q_s =  a_1 R_n^1 + a_2 \frac{R_n^1-R_n^0}{\Delta t} + a_3 $$
+$$ Q_s =  a_1 R_n(t+\Delta t) + a_2 \frac{R_n(t+\Delta t) - R_n(t)}{\Delta t} + a_3 $$
 
-where $a_1$, $a_2$ and $a_3$ are user defined variables. $R_n^1$ and $R_n^0$ are the net radiations at current and previous times steps, respectively.
+where $a_1$ $\mathrm{[-]}$, $a_2$ $\mathrm{[s]}$ and $a_3$ $\mathrm{[W/m^2]}$ are user defined variables.
 
 
 ## Evaporation Flux
@@ -72,12 +74,12 @@ where
 
 - $r_a$ = atomospheric resistance $\mathrm{[s/m]}$
 - $r_s$ = surface resistance constant $\mathrm{[30 \space s/m]}$ 
-- $\gamma$ = psychometric constant $\mathrm{[k0.067 \space kPa/C]}$
+- $\gamma$ = psychometric constant $\mathrm{[0.67 \space hPa/ ^{\circ}C]}$
 - $Q_f$ = build enviromental radiation $\mathrm{[W/m^2]}$ (user defined parameter)
-- $C_a$ = specific heat of moist air $\mathrm{[kJ/kgC]}$
+- $C_a$ = specific heat of moist air $\mathrm{[J/kg ^{\circ}C]}$
 - $\rho_a$ = air density $\mathrm{[kg/m^3]}$ 
 - $e^s$ = saturated vapour pressure $\mathrm{[hPa]}$ 
-- $e^\prime$ = slope of the saturation vapor curve $\mathrm{[hPa/K]}$
+- $e^\prime$ = slope of the saturation vapor curve $\mathrm{[hPa/ ^{\circ}C]}$
 - $e^a$ = actual vapour pressure $\mathrm{[hPa]}$
 
 $$ e^s = 6.11 \exp \left( \frac{17.27 \space T}{T+237.3} \right) $$
