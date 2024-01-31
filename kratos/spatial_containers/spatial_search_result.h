@@ -21,7 +21,6 @@
 // Project includes
 #include "includes/define.h"
 
-
 namespace Kratos
 {
 ///@addtogroup ApplicationNameApplication
@@ -141,7 +140,7 @@ public:
         return mIsObjectFound;
     }
 
-    /// Getting if the ibject is found
+    /// Getting if the object is found
     void SetIsObjectFound(const bool IsObjectFound) {
         mIsObjectFound = IsObjectFound;
     }
