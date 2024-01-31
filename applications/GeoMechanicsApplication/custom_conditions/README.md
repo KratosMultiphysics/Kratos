@@ -38,7 +38,7 @@ $$ R^{l,ab}=  \epsilon \sigma \left( T_{at} +273.15 \right)^4 $$
 where
 
 - $\epsilon$ = effective emissivity  $\mathrm{[-]}$
-- $\sigma$ = Stefan Boltzmann's constant  $\mathrm{[5.67 \cdot 10^{-8}  W/m^2 ^{\circ}C^4]}$
+- $\sigma$ = Stefan Boltzmann's constant  $\mathrm{[5.67 \cdot 10^{-8}  W/m^{2 \circ}C^4]}$
 - $T_{at}$ = atmospheric temperature $\mathrm{[^{\circ}C]}$
 
 And the emitted long wave radiation,
