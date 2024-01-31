@@ -31,7 +31,7 @@ namespace Kratos
  *  MPIDataCommunicator construction) and held by ParallelEnvironment
  *  until the end of the program run.
  */
-class KRATOS_API(KRATOS_MPI_CORE) MPIManager: public EnvironmentManager
+class MPIManager: public EnvironmentManager
 {
 public:
     ///@name Type Definitions

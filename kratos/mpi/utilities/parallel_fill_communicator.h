@@ -51,7 +51,7 @@ namespace Kratos
  * It fills the Ghost and Local lists and performs the coloring, then it updates the MPI communicator
  * @author Riccardo Rossi
  */
-class KRATOS_API(KRATOS_MPI_CORE) ParallelFillCommunicator 
+class ParallelFillCommunicator
     : public FillCommunicator
 {
 public:

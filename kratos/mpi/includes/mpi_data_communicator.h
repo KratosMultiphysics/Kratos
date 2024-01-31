@@ -178,7 +178,7 @@ namespace Kratos
  *
  *  @see DataCommunicator in the KratosCore for the full interface and a serial do-nothing implementation.
  */
-class KRATOS_API(KRATOS_MPI_CORE) MPIDataCommunicator: public DataCommunicator
+class MPIDataCommunicator: public DataCommunicator
 {
   public:
     ///@name Type Definitions
@@ -268,7 +268,7 @@ class KRATOS_API(KRATOS_MPI_CORE) MPIDataCommunicator: public DataCommunicator
     /** @note This method does not exist in the base class
      *  as it would introduce a dependency to MPI in the Kratos core.
      */
-    static MPI_Comm GetMPICommunicator(const DataCommunicator& rDataCommunicator);
+    KRATOS_API(KRATOS_CORE) static MPI_Comm GetMPICommunicator(const DataCommunicator& rDataCommunicator);
 
     ///@}
     ///@name Inquiry
