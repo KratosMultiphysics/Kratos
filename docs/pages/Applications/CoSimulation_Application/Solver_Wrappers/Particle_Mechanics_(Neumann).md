@@ -1,7 +1,7 @@
 ---
-title: Particle Mechanics (Neumann)
-keywords: 
-tags: [Particle_Mechanics_(Neumann).md]
+title: MPM Neumann
+keywords:
+tags: [MPM_Neumann.md]
 sidebar: cosimulation_application
-summary: 
+summary:
 ---
