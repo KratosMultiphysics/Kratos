@@ -59,11 +59,11 @@ class TestShellThicknessControl(kratos_unittest.TestCase):
 
     def test_GetControlField(self):
         control_field = self.thickness_control.GetControlField()
-        self.assertAlmostEqual(KratosOA.ExpressionUtils.NormInf(control_field), 0.5, 4)
+        self.assertAlmostEqual(Kratos.Expression.Utils.NormInf(control_field), 0.5, 4)
 
     def test_GetPhysicalField(self):
         thickness_field = self.thickness_control.GetPhysicalField()
-        self.assertAlmostEqual(KratosOA.ExpressionUtils.NormL2(thickness_field), 0.03, 4)
+        self.assertAlmostEqual(Kratos.Expression.Utils.NormL2(thickness_field), 0.03, 4)
 
     def test_MapGradient(self):
         physical_gradient = self.thickness_control.GetEmptyField()
@@ -71,7 +71,7 @@ class TestShellThicknessControl(kratos_unittest.TestCase):
             element.SetValue(KratosOA.THICKNESS_SENSITIVITY, element.GetGeometry().Area())
         Kratos.Expression.VariableExpressionIO.Read(physical_gradient, KratosOA.THICKNESS_SENSITIVITY)
         mapped_gradient = self.thickness_control.MapGradient({Kratos.THICKNESS: physical_gradient})
-        self.assertAlmostEqual(KratosOA.ExpressionUtils.NormL2(mapped_gradient), 0.5625, 4)
+        self.assertAlmostEqual(Kratos.Expression.Utils.NormL2(mapped_gradient), 0.5625, 4)
 
     def test_Update(self):
         update_field = self.thickness_control.GetEmptyField()
@@ -79,8 +79,8 @@ class TestShellThicknessControl(kratos_unittest.TestCase):
         self.thickness_control.Update(update_field)
         control_field = self.thickness_control.GetControlField()
         thickness_field = self.thickness_control.GetPhysicalField()
-        self.assertAlmostEqual(KratosOA.ExpressionUtils.NormInf(control_field), 0.75, 4)
-        self.assertAlmostEqual(KratosOA.ExpressionUtils.NormInf(thickness_field), 0.019999962733607157, 10)
+        self.assertAlmostEqual(Kratos.Expression.Utils.NormInf(control_field), 0.75, 4)
+        self.assertAlmostEqual(Kratos.Expression.Utils.NormInf(thickness_field), 0.019999962733607157, 10)
 
 if __name__ == "__main__":
     kratos_unittest.main()
