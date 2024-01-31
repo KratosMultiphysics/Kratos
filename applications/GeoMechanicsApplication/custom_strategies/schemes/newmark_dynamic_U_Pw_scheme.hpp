@@ -35,8 +35,6 @@ public:
     using TSystemVectorType = typename BaseType::TSystemVectorType;
     using LocalSystemVectorType = typename BaseType::LocalSystemVectorType;
     using LocalSystemMatrixType = typename BaseType::LocalSystemMatrixType;
-    using NewmarkQuasistaticUPwScheme<TSparseSpace, TDenseSpace>::mBeta;
-    using NewmarkQuasistaticUPwScheme<TSparseSpace, TDenseSpace>::mGamma;
 
     NewmarkDynamicUPwScheme(double beta, double gamma, double theta)
         : NewmarkQuasistaticUPwScheme<TSparseSpace, TDenseSpace>(beta, gamma, theta)
@@ -63,6 +61,7 @@ public:
 
         KRATOS_CATCH("")
     }
+
     void PredictVariables(const ModelPart& rModelPart)
     {
         block_for_each(rModelPart.Nodes(),
@@ -71,29 +70,30 @@ public:
 
     void PredictVariablesForNode(Node& rNode)
     {
-        for (const auto& variable_derivative : this->GetVariableDerivatives())
+        for (const auto& r_second_order_vector_variable : this->GetSecondOrderVectorVariables())
         {
-            if (!rNode.SolutionStepsDataHas(variable_derivative.instance))
+            if (!rNode.SolutionStepsDataHas(r_second_order_vector_variable.instance))
                 continue;
-            PredictVariableForNode(rNode, variable_derivative);
+            PredictVariableForNode(rNode, r_second_order_vector_variable);
         }
     }
 
-    void PredictVariableForNode(Node& rNode, const VariableWithTimeDerivatives& rVariableWithDerivatives)
+    void PredictVariableForNode(Node& rNode, const SecondOrderVectorVariable& rSecondOrderVariables)
     {
-        std::vector<std::string> components = {"X", "Y"};
-        if (rNode.HasDofFor(this->GetComponentFromVectorVariable(
-                rVariableWithDerivatives.instance, "Z")))
-            components.emplace_back("Z");
+        const std::vector<std::string> components = {"X", "Y", "Z"};
 
         for (const auto& component : components)
         {
             const auto& instance_component = this->GetComponentFromVectorVariable(
-                rVariableWithDerivatives.instance, component);
+                rSecondOrderVariables.instance, component);
+
+            if (!rNode.HasDofFor(instance_component))
+                continue;
+
             const auto& first_time_derivative_component = this->GetComponentFromVectorVariable(
-                rVariableWithDerivatives.first_time_derivative, component);
+                rSecondOrderVariables.first_time_derivative, component);
             const auto& second_time_derivative_component = this->GetComponentFromVectorVariable(
-                rVariableWithDerivatives.second_time_derivative, component);
+                rSecondOrderVariables.second_time_derivative, component);
 
             const double previous_variable =
                 rNode.FastGetSolutionStepValue(instance_component, 1);
@@ -111,15 +111,16 @@ public:
                 rNode.FastGetSolutionStepValue(instance_component) =
                     previous_variable + this->GetDeltaTime() * previous_first_time_derivative +
                     this->GetDeltaTime() * this->GetDeltaTime() *
-                        ((0.5 - mBeta) * previous_second_time_derivative +
-                         mBeta * current_second_time_derivative);
+                        ((0.5 - this->GetBeta()) * previous_second_time_derivative +
+                         this->GetBeta() * current_second_time_derivative);
             }
             else if (rNode.IsFixed(first_time_derivative_component))
             {
                 rNode.FastGetSolutionStepValue(instance_component) =
                     previous_variable +
                     this->GetDeltaTime() *
-                        ((mBeta / mGamma) * (current_first_time_derivative - previous_first_time_derivative) +
+                        ((this->GetBeta() / this->GetGamma()) *
+                             (current_first_time_derivative - previous_first_time_derivative) +
                          previous_first_time_derivative);
             }
             else if (!rNode.IsFixed(instance_component))
@@ -290,11 +291,12 @@ protected:
         // adding mass contribution
         if (M.size1() != 0)
             noalias(LHS_Contribution) +=
-                (1.0 / (mBeta * this->GetDeltaTime() * this->GetDeltaTime())) * M;
+                (1.0 / (this->GetBeta() * this->GetDeltaTime() * this->GetDeltaTime())) * M;
 
         // adding damping contribution
         if (C.size1() != 0)
-            noalias(LHS_Contribution) += (mGamma / (mBeta * this->GetDeltaTime())) * C;
+            noalias(LHS_Contribution) +=
+                (this->GetGamma() / (this->GetBeta() * this->GetDeltaTime())) * C;
 
         KRATOS_CATCH("")
     }
