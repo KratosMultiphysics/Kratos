@@ -63,6 +63,69 @@ void ElasticCohesive2DLaw::ComputeStressVector(Vector& rStressVector,
 {
     const Vector& StrainVector = rValues.GetStrainVector();
 
+// ------------------------------------------------------ NEW ------------------------------------------------------
+    const Element::GeometryType& geometry = rValues.GetElementGeometry();
+    const unsigned int number_of_nodes = geometry.size();
+
+    const int dimension = 2; // Temporary solution. Need to generalise
+    const int strainSize = 3; // Temporary solution. Need to generalise
+
+    // Create the necessary components for the initialisation of the stresses
+    Matrix nodal_initial_stress_tensor(dimension,dimension);
+    noalias(nodal_initial_stress_tensor) = ZeroMatrix(dimension,dimension);
+    Vector nodal_initial_stress_vector(strainSize);
+
+    for (unsigned int i = 0; i < number_of_nodes; i++) {
+        const Matrix& r_initial_stress_tensor = geometry[i].GetSolutionStepValue(INITIAL_STRESS_TENSOR);
+        KRATOS_WATCH(geometry[i]);
+        KRATOS_WATCH(r_initial_stress_tensor);
+        for(unsigned int j=0; j < dimension; j++) {
+            for(unsigned int k=0; k < dimension; k++) {
+                nodal_initial_stress_tensor(j,k) += r_initial_stress_tensor(j,k);
+            }
+            // KRATOS_WATCH(nodal_initial_stress_tensor);
+        }
+    }
+
+    KRATOS_WATCH(nodal_initial_stress_tensor);
+    nodal_initial_stress_tensor /= number_of_nodes;
+    noalias(nodal_initial_stress_vector) = MathUtils<double>::StressTensorToVector(nodal_initial_stress_tensor);
+    KRATOS_WATCH(nodal_initial_stress_vector);
+
+    // KRATOS_WATCH(nodal_initial_stress_vector);
+
+    // // Ask if there is any function that computes angle of the element
+    // array_1d<double, 3> Point1 = geometry.GetPoint( 0 );
+    // array_1d<double, 3> Point2 = geometry.GetPoint( 1 );
+
+    //Define mid-plane points for quadrilateral_interface_2d_4
+    array_1d<double, 3> pmid0;
+    array_1d<double, 3> pmid1;
+    noalias(pmid0) = 0.5 * (geometry.GetPoint( 0 ) + geometry.GetPoint( 3 ));
+    noalias(pmid1) = 0.5 * (geometry.GetPoint( 1 ) + geometry.GetPoint( 2 ));
+
+    //Unitary vector in local x direction
+    array_1d<double, 3> Vx;
+    noalias(Vx) = pmid1 - pmid0;
+    double inv_norm_x = 1.0/norm_2(Vx);
+    Vx[0] *= inv_norm_x; // cos
+    Vx[1] *= inv_norm_x; // sin
+
+    Matrix RotationInterface(dimension,strainSize);
+
+    RotationInterface(0,0) = -Vx[1]*Vx[0];
+    RotationInterface(0,1) = Vx[1]*Vx[0];
+    RotationInterface(0,2) = Vx[0]*Vx[0] - Vx[1]*Vx[1];
+    RotationInterface(1,0) = Vx[1]*Vx[1];
+    RotationInterface(1,1) = Vx[0]*Vx[0];
+    RotationInterface(1,2) = -2*Vx[1]*Vx[0];
+
+    Vector LocalInitialStresses(dimension); 
+    noalias(LocalInitialStresses) = prod(RotationInterface, trans(nodal_initial_stress_vector));
+
+    KRATOS_WATCH(LocalInitialStresses);
+
+// -----------------------------------------------------------------------------------------------------------------
     double cp = 1.0;
 
     // Penalization coefficient, in case it is a compression
@@ -70,9 +133,11 @@ void ElasticCohesive2DLaw::ComputeStressVector(Vector& rStressVector,
         cp = rVariables.PenaltyStiffness;
     }
 
-    rStressVector[0] = StrainVector[0] * rVariables.ShearStiffness;
-    rStressVector[1] = StrainVector[1] * rVariables.NormalStiffness * cp;
-    
+    rStressVector[0] = LocalInitialStresses[0] + StrainVector[0] * rVariables.ShearStiffness;
+    rStressVector[1] = LocalInitialStresses[1] + StrainVector[1] * rVariables.NormalStiffness * cp;
+
+    // KRATOS_WATCH(rStressVector);
+
 }
 
 } // Namespace Kratos
