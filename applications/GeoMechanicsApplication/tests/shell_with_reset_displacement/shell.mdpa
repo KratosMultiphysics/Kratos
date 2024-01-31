@@ -13,7 +13,7 @@ Begin Elements ShellThinElementCorotational3D4N
   1  1   1  2  3  4
 End Elements
 
-Begin SubModelPart bodemplaat
+Begin SubModelPart shell
   Begin SubModelPartTables
   End SubModelPartTables
   Begin SubModelPartNodes
