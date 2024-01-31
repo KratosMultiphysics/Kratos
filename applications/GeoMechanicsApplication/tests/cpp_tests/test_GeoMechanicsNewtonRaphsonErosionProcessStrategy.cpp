@@ -26,7 +26,7 @@
 namespace Kratos::Testing
 {
 
-std::string WorkingDirectorySellmeijer()
+std::filesystem::path WorkingDirectorySellmeijer()
 {
     auto projectDirectory = "./applications/GeoMechanicsApplication/tests/test_compare_sellmeijer/HeightAquiferD10L30.gid";
     auto kratos_source_directory = std::getenv("KRATOS_SOURCE");
@@ -45,7 +45,7 @@ KRATOS_TEST_CASE_IN_SUITE(ErosionProcessStrategy, KratosGeoMechanicsIntegrationS
                                                                  &flow_stubs::emptyLog,
                                                                  &flow_stubs::emptyCancel);
 
-    const int status = execute.ExecuteFlowAnalysis(workingDirectory, projectFile, critical_head_info, "PorousDomain.Left_head", call_back_functions);
+    const int status = execute.ExecuteFlowAnalysis(workingDirectory.string(), projectFile, critical_head_info, "PorousDomain.Left_head", call_back_functions);
 
 
     KRATOS_EXPECT_EQ(status, 0);
@@ -82,7 +82,7 @@ KRATOS_TEST_CASE_IN_SUITE(ErosionProcessStrategyTextualProgressReport, KratosGeo
                                                                  reportTextualProgress,
                                                                  &flow_stubs::emptyCancel);
 
-    const int status = execute.ExecuteFlowAnalysis(workingDirectory, projectFile, critical_head_info, "PorousDomain.Left_head", call_back_functions);
+    const int status = execute.ExecuteFlowAnalysis(workingDirectory.string(), projectFile, critical_head_info, "PorousDomain.Left_head", call_back_functions);
 
     KRATOS_EXPECT_EQ(status, 0);
     KRATOS_EXPECT_EQ(firstMessageFound, true);
@@ -121,7 +121,7 @@ KRATOS_TEST_CASE_IN_SUITE(ErosionProcessStrategyProgressReport, KratosGeoMechani
                                                                  &flow_stubs::emptyLog,
                                                                  &flow_stubs::emptyCancel);
 
-    const int status = execute.ExecuteFlowAnalysis(workingDirectory, projectFile, critical_head_info, "PorousDomain.Left_head", call_back_functions);
+    const int status = execute.ExecuteFlowAnalysis(workingDirectory.string(), projectFile, critical_head_info, "PorousDomain.Left_head", call_back_functions);
 
 
     KRATOS_EXPECT_EQ(status, 0);
