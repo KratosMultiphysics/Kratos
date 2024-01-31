@@ -7,6 +7,7 @@ when that option is switched on.
 
 This test consists of a single 4-noded element (using the ShellThinElementCorotational3D4N class) of 2000mm x 2000mm . A
 schematic representation can be found in the figure below:
+
 ![MeshStructure](MeshStructure.svg)
 
 Nodes 1, 2 and 4 have fixed rotations and displacements in all directions. Node 3 has a fixed displacement in the Z

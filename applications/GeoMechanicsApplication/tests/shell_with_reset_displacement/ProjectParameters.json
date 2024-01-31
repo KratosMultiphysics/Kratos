@@ -123,7 +123,7 @@
         "process_name":  "ApplyVectorConstraintTableProcess",
         "Parameters":    {
             "model_part_name": "PorousDomain.FixedNodes",
-            "variable_name":   "DISPLACEMENT",
+            "variable_name":   "ROTATION",
             "active":          [true,true,true],
             "is_fixed":        [true,true,true],
             "value":           [0.0,0.0,0.0],
@@ -136,8 +136,8 @@
         "Parameters":    {
             "model_part_name": "PorousDomain.ZsupportLoadPoint",
             "variable_name":   "DISPLACEMENT",
-            "active":          [true,true,true],
-            "is_fixed":        [true,true,true],
+            "active":          [false,false,true],
+            "is_fixed":        [false,false,true],
             "value":           [0.0,0.0,-20.0],
             "table":           [0,0,0]
         }
