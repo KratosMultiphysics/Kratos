@@ -95,7 +95,7 @@ void GenericSmallStrainIsotropicPlasticity<TConstLawIntegratorType>::CalculateMa
             Vector& r_stress_vector = rValues.GetStressVector();
             if (r_constitutive_law_options.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR)) {
                 BaseType::CalculateElasticMatrix( r_constitutive_matrix, rValues);
-                noalias(r_stress_vector) = prod( r_constitutive_matrix, r_strain_vector);
+                noalias(r_stress_vector) = prod(r_constitutive_matrix, r_strain_vector);
                 this->template AddInitialStressVectorContribution<Vector>(r_stress_vector);
             } else {
                 BaseType::CalculatePK2Stress( r_strain_vector, r_stress_vector, rValues);
@@ -107,8 +107,8 @@ void GenericSmallStrainIsotropicPlasticity<TConstLawIntegratorType>::CalculateMa
         Vector& r_integrated_stress_vector = rValues.GetStressVector();
         const double characteristic_length = AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateCharacteristicLengthOnReferenceConfiguration(rValues.GetElementGeometry());
 
-        if (r_constitutive_law_options.IsNot( ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN)) {
-            BaseType::CalculateCauchyGreenStrain( rValues, r_strain_vector);
+        if (r_constitutive_law_options.IsNot(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN)) {
+            BaseType::CalculateCauchyGreenStrain(rValues, r_strain_vector);
         }
 
         this->template AddInitialStrainVectorContribution<Vector>(r_strain_vector);
@@ -135,9 +135,12 @@ void GenericSmallStrainIsotropicPlasticity<TConstLawIntegratorType>::CalculateMa
 
             // Initialize Plastic Parameters
             double uniaxial_stress = 0.0, plastic_denominator = 0.0;
-            BoundedArrayType f_flux = ZeroVector(VoigtSize); // DF/DS
-            BoundedArrayType g_flux = ZeroVector(VoigtSize); // DG/DS
-            BoundedArrayType plastic_strain_increment = ZeroVector(VoigtSize);
+            array_1d<double, VoigtSize> f_flux; // DF/DS
+            array_1d<double, VoigtSize> g_flux; // DG/DS
+            array_1d<double, VoigtSize> plastic_strain_increment;
+            f_flux.clear();
+            g_flux.clear();
+            plastic_strain_increment.clear();
 
             // Elastic Matrix
             this->CalculateElasticMatrix(r_constitutive_matrix, rValues);
@@ -332,9 +335,12 @@ void GenericSmallStrainIsotropicPlasticity<TConstLawIntegratorType>::FinalizeMat
 
     // Initialize Plastic Parameters
     double uniaxial_stress = 0.0, plastic_denominator = 0.0;
-    BoundedArrayType f_flux = ZeroVector(VoigtSize); // DF/DS
-    BoundedArrayType g_flux = ZeroVector(VoigtSize); // DG/DS
-    BoundedArrayType plastic_strain_increment = ZeroVector(VoigtSize);
+    array_1d<double, VoigtSize> f_flux; // DF/DS
+    array_1d<double, VoigtSize> g_flux; // DG/DS
+    array_1d<double, VoigtSize> plastic_strain_increment;
+    f_flux.clear();
+    g_flux.clear();
+    plastic_strain_increment.clear();
 
     const double F = TConstLawIntegratorType::CalculatePlasticParameters(
         predictive_stress_vector, r_strain_vector, uniaxial_stress,
@@ -356,7 +362,7 @@ void GenericSmallStrainIsotropicPlasticity<TConstLawIntegratorType>::FinalizeMat
     }
 
     mPlasticDissipation = plastic_dissipation;
-    mPlasticStrain = plastic_strain;
+    noalias(mPlasticStrain) = plastic_strain;
     mThreshold = threshold;
 }
 
