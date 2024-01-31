@@ -476,6 +476,7 @@ std::unique_ptr<DEMRollingFrictionModel> mRollingFrictionModel;
 double mInitializationTime;
 double mProgrammedDestructionTime=-1.0; // set to a negative value, so that when marked TO_ERASE, elimination is by default.
 double mRadius;
+double mRadiusInitial;
 double mSearchRadius;
 double mRealMass;
 PropertiesProxy* mFastProperties;

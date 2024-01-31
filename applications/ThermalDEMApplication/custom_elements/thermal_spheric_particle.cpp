@@ -152,6 +152,8 @@ namespace Kratos
                         (r_process_info[HEAT_GENERATION_OPTION]  ||
                         (r_process_info[DIRECT_CONDUCTION_OPTION] && r_process_info[DIRECT_CONDUCTION_MODEL_NAME].compare("collisional") == 0));    
     
+    mRadiusInitial = GetParticleRadius();
+
     // Clear maps
     mContactParamsParticle.clear();
     mContactParamsWall.clear();
@@ -641,6 +643,15 @@ namespace Kratos
       // Remove non-contacting neighbors from maps of contact parameters
       if (mStoreContactParam)
         CleanContactParameters(r_process_info);
+
+      // Apply deformation rate
+      const double time = r_process_info[TIME];
+      if (mDeformationRate != 0.0 && time >= mDeformationRateStart && time <= mDeformationRateStop) {
+        double added_search_distance = r_process_info[SEARCH_RADIUS_INCREMENT];
+        UpdateDeformationRateRadius(r_process_info);
+        ComputeAddedSearchDistance(r_process_info, added_search_distance);
+        SetSearchRadius(GetParticleRadius() + added_search_distance);
+      }
     }
 
     // Update temperature dependent radius
@@ -650,6 +661,25 @@ namespace Kratos
       ComputeAddedSearchDistance(r_process_info, added_search_distance);
       SetSearchRadius(GetParticleRadius() + added_search_distance);
     }
+
+    KRATOS_CATCH("")
+  }
+
+  //------------------------------------------------------------------------------------------------------------
+  void ThermalSphericParticle::UpdateDeformationRateRadius(const ProcessInfo& r_process_info) {
+    KRATOS_TRY
+
+    // Update radius
+    const double new_radius = GetParticleRadius() + mRadiusInitial * mDeformationRate * r_process_info[DELTA_TIME] * mNumStepsEval;
+    SetParticleRadius(new_radius);
+
+    // Update inertia
+    SetParticleMomentInertia(CalculateMomentOfInertia());
+
+    // Update density
+    double* rho = &(GetProperties()[PARTICLE_DENSITY]);
+    *rho = GetParticleMass() / GetParticleVolume();
+    GetFastProperties()->SetDensityFromProperties(rho);
 
     KRATOS_CATCH("")
   }
@@ -1618,6 +1648,21 @@ namespace Kratos
   //------------------------------------------------------------------------------------------------------------
   void ThermalSphericParticle::SetParticleRealYoungRatio(const double ratio) {
     mRealYoungRatio = ratio;
+  }
+
+  //------------------------------------------------------------------------------------------------------------
+  void ThermalSphericParticle::SetParticleDeformationRate(const double rate) {
+    mDeformationRate = rate;
+  }
+
+  //------------------------------------------------------------------------------------------------------------
+  void ThermalSphericParticle::SetParticleDeformationRateStart(const double start) {
+    mDeformationRateStart = start;
+  }
+
+  //------------------------------------------------------------------------------------------------------------
+  void ThermalSphericParticle::SetParticleDeformationRateStop(const double stop) {
+    mDeformationRateStop = stop;
   }
 
   //=====================================================================================================================================================================================
