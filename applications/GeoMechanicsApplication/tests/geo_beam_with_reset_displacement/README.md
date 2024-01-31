@@ -7,6 +7,11 @@ The test describes a beam with a length of 1m, consisting of 11 equidistant node
 
 ![MeshStructure](MeshStructure.svg)
 
+The material is described using:
+-   Young's modulus equal to 2069.0e8 N/m2 and Poisson's ratio is 0.29
+-   The BeamConstitutiveLaw from the structural mechanics application
+-   A cross area of 1.0 m2
+
 The following stages can be distinguished:
 1.  A point load of 1e10 N is applied to node 11 in the negative y-direction. The 'reset_displacement' option is set to true. The beam is expected to bend downwards.
 2.  Essentially the same as stage 1: however, due to the 'reset_displacement' option, the displacement is expected to be 0.0 after this stage.
