@@ -54,7 +54,6 @@ namespace Kratos
  *  - PointCoordinates: The coordinates of the points to be created
  *  - LocalIndices: The local indexes of the points to be created
  *  - GlobalIndices: The global indexes of the points to be created
- *  - SearchRanks: The ranks where the search will be invoked
  *  - Ranks: The ranks where the results will be defined
  */
 struct DistributedSearchInformation
@@ -71,7 +70,6 @@ struct DistributedSearchInformation
     std::vector<double> PointCoordinates;      /// Vector to store point coordinates.
     std::vector<SignedIndexType> LocalIndices; /// Vector to store point local indices.
     std::vector<IndexType> GlobalIndices;      /// Vector to store point global indices.
-    std::vector<int> SearchRanks;              /// Ranks where search is invoked.
     std::vector<std::vector<int>> Ranks;       /// Vector of vectors to store ranks.
 
     /**
@@ -83,7 +81,6 @@ struct DistributedSearchInformation
         PointCoordinates.reserve(Size * 3);
         LocalIndices.reserve(Size);
         GlobalIndices.reserve(Size);
-        SearchRanks.reserve(Size);
         Ranks.reserve(Size);
     }
 
@@ -95,7 +92,6 @@ struct DistributedSearchInformation
         PointCoordinates.shrink_to_fit();
         LocalIndices.shrink_to_fit();
         GlobalIndices.shrink_to_fit();
-        SearchRanks.shrink_to_fit();
         Ranks.shrink_to_fit();
     }
 
@@ -116,7 +112,6 @@ struct DistributedSearchInformation
         PointCoordinates.clear();
         LocalIndices.clear();
         GlobalIndices.clear();
-        SearchRanks.clear();
         Ranks.clear();
     }
 };
@@ -313,7 +308,7 @@ public:
      * @return The ids of all points.
      */
     template<typename TPointIteratorType, typename TBoundingBoxType>
-    static std::vector<SignedIndexType> SynchronousPointSynchronizationWithBoundingBox(
+    static void SynchronousPointSynchronizationWithBoundingBox(
         TPointIteratorType itPointBegin,
         TPointIteratorType itPointEnd,
         DistributedSearchInformation& rSearchInfo,
@@ -331,7 +326,7 @@ public:
         KRATOS_DEBUG_ERROR_IF(total_number_of_points < 0) << "The total number of points is negative" << std::endl;
 
         // We synchronize the points
-        return SynchronizePointsWithBoundingBox(itPointBegin, itPointEnd, rSearchInfo, rBoundingBox, ThresholdBoundingBox, rDataCommunicator, number_of_points, total_number_of_points, IndexItIsJustPosition);
+        SynchronizePointsWithBoundingBox(itPointBegin, itPointEnd, rSearchInfo, rBoundingBox, ThresholdBoundingBox, rDataCommunicator, number_of_points, total_number_of_points, IndexItIsJustPosition);
     }
 
     /**
@@ -873,10 +868,9 @@ private:
      * @return A vector containing the sizes of data for each process.
      * @tparam TPointIteratorType The type of the point iterator.
      * @tparam TBoundingBoxType The type of the bounding box.
-     * @return The ids of all points.
      */
     template<typename TPointIteratorType, typename TBoundingBoxType>
-    static std::vector<SignedIndexType> SynchronizePointsWithBoundingBox(
+    static void SynchronizePointsWithBoundingBox(
         TPointIteratorType itPointBegin,
         TPointIteratorType itPointEnd,
         DistributedSearchInformation& rSearchInfo,
@@ -942,11 +936,6 @@ private:
                 // Now adding // NOTE: Should be ordered, so a priori is not required to reorder
                 if (to_be_included) {
                      rSearchInfo.Ranks.push_back(inside_ranks);
-                     // Find the iterator of the element
-                     auto it = std::find(inside_ranks.begin(), inside_ranks.end(), search_rank);
-                     KRATOS_DEBUG_ERROR_IF(it == inside_ranks.end()) << "Error looking for rank" << std::endl;
-                     const int position = it - inside_ranks.begin();
-                     rSearchInfo.SearchRanks.push_back(position);
                 }
             }
         } else { // Serial
@@ -971,8 +960,6 @@ private:
 
         // Check that size is equal in all partitions
         rSearchInfo.Check(rDataCommunicator);
-
-        return all_points_local_ids;
     }
 
     /**

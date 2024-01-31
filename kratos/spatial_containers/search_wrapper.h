@@ -407,7 +407,6 @@ private:
             auto& r_point_result = rResults[index];
 
             // Set some values
-            r_point_result.SetRankSearch(0);
             r_point_result.SetLocalIndex(index);
             if constexpr (std::is_same<TPointIteratorType, ModelPart::NodeIterator>::value || std::is_same<TPointIteratorType, ModelPart::NodeConstantIterator>::value) {
                 r_point_result.SetGlobalIndex(it_point->Id());
@@ -477,7 +476,6 @@ private:
             auto& r_point_result = rResults[index];
 
             // Set some values
-            r_point_result.SetRankSearch(0);
             r_point_result.SetLocalIndex(index);
             if constexpr (std::is_same<TPointIteratorType, ModelPart::NodeIterator>::value || std::is_same<TPointIteratorType, ModelPart::NodeConstantIterator>::value) {
                 r_point_result.SetGlobalIndex(it_point->Id());
@@ -539,7 +537,6 @@ private:
             auto& r_point_result = rResults[index];
 
             // Set some values
-            r_point_result.SetRankSearch(0);
             r_point_result.SetLocalIndex(index);
             if constexpr (std::is_same<TPointIteratorType, ModelPart::NodeIterator>::value || std::is_same<TPointIteratorType, ModelPart::NodeConstantIterator>::value) {
                 r_point_result.SetGlobalIndex(it_point->Id());
@@ -603,7 +600,6 @@ private:
             auto& r_point_result = rResults[index];
 
             // Set some values
-            r_point_result.SetRankSearch(0);
             r_point_result.SetLocalIndex(index);
             if constexpr (std::is_same<TPointIteratorType, ModelPart::NodeIterator>::value || std::is_same<TPointIteratorType, ModelPart::NodeConstantIterator>::value) {
                 r_point_result.SetGlobalIndex(it_point->Id());
@@ -671,7 +667,7 @@ private:
 
         // Perform the corresponding searches
         Timer::Start("SearchWrapper::Search");
-        const std::size_t total_number_of_points = search_info.LocalIndices.size();
+        const std::size_t total_number_of_points = search_info.Ranks.size();
         struct TLS {
             Point point;
         };
@@ -743,7 +739,7 @@ private:
 
         // Perform the corresponding searches
         Timer::Start("SearchWrapper::Search");
-        const std::size_t total_number_of_points = search_info.LocalIndices.size();
+        const std::size_t total_number_of_points = search_info.Ranks.size();
         struct TLS {
             Point point;
         };
@@ -817,7 +813,7 @@ private:
 
         // Perform the corresponding searches
         Timer::Start("SearchWrapper::Search");
-        const std::size_t total_number_of_points = search_info.LocalIndices.size();
+        const std::size_t total_number_of_points = search_info.Ranks.size();
         struct TLS {
             Point point;
         };
@@ -888,7 +884,7 @@ private:
 
         // Perform the corresponding searches
         Timer::Start("SearchWrapper::Search");
-        const std::size_t total_number_of_points = search_info.LocalIndices.size();
+        const std::size_t total_number_of_points = search_info.Ranks.size();
         struct TLS {
             Point point;
         };

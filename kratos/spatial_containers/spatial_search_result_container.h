@@ -593,24 +593,6 @@ public:
     }
 
     /**
-    * @brief Get the rank for searching.
-    * @return The rank for searching.
-    */
-    int GetRankSearch() const
-    {
-        return mRankSearch;
-    }
-
-    /**
-    * @brief Set the rank for searching.
-    * @param Rank The rank to set.
-    */
-    void SetRankSearch(const int Rank)
-    {
-        mRankSearch = Rank;
-    }
-
-    /**
     * @brief Retrieve the global index value.
     * @return The global index value.
     */
@@ -663,11 +645,13 @@ public:
 
     /**
      * @brief Check if the search rank is the same as the rank of the data communicator.
+     * @param GlobalIndex The global index of the search.
      * @return true if the ranks match, false otherwise.
      */
-    bool IsLocalSearch() const
+    bool IsLocalSearch(const IndexType GlobalIndex = 0)
     {
-        return mRankSearch == mrDataCommunicator.Rank();
+        const auto result_rank = GetResultRank();
+        return result_rank[GlobalIndex] == mrDataCommunicator.Rank();
     }
 
     ///@}
@@ -692,7 +676,6 @@ private:
     LocalResultsVector mLocalResults;                                           /// Local results
     GlobalResultsVector mGlobalResults;                                         /// Global results
 
-    int mRankSearch = -1;                                                       /// Rank where the search is call
     SignedIndexType mLocalIndex = -1;                                           /// Some index considered for identification (local)
     IndexType mGlobalIndex = 0;                                                 /// Some index considered for identification (global)
 
