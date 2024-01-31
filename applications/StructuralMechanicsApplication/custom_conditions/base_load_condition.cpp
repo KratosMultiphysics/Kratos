@@ -313,14 +313,40 @@ int BaseLoadCondition::Check( const ProcessInfo& rCurrentProcessInfo ) const
 {
     // Base check
     Condition::Check(rCurrentProcessInfo);
+    const auto& r_geometry = this->GetGeometry();
+    const SizeType number_of_nodes = r_geometry.size();
+    const SizeType dimension = r_geometry.WorkingSpaceDimension();
 
     // Check that the condition's nodes contain all required SolutionStepData and Degrees of freedom
-    for (const auto& r_node : this->GetGeometry().Points()) {
-        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(DISPLACEMENT,r_node)
-
-        KRATOS_CHECK_DOF_IN_NODE(DISPLACEMENT_X, r_node)
-        KRATOS_CHECK_DOF_IN_NODE(DISPLACEMENT_Y, r_node)
-        KRATOS_CHECK_DOF_IN_NODE(DISPLACEMENT_Z, r_node)
+    switch (dimension) {
+        case 0: break;
+        case 1: {
+            for (IndexType i_node=0ul; i_node<number_of_nodes; ++i_node) {
+                KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(DISPLACEMENT_X, r_geometry[i_node])
+                KRATOS_CHECK_DOF_IN_NODE(DISPLACEMENT_X, r_geometry[i_node])
+            }
+            break;
+        }
+        case 2: {
+            for (IndexType i_node=0ul; i_node<number_of_nodes; ++i_node) {
+                KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(DISPLACEMENT_X, r_geometry[i_node])
+                KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(DISPLACEMENT_Y, r_geometry[i_node])
+                KRATOS_CHECK_DOF_IN_NODE(DISPLACEMENT_X, r_geometry[i_node])
+                KRATOS_CHECK_DOF_IN_NODE(DISPLACEMENT_Y, r_geometry[i_node])
+            }
+            break;
+        }
+        default: {
+            for (IndexType i_node=0ul; i_node<number_of_nodes; ++i_node) {
+                KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(DISPLACEMENT_X, r_geometry[i_node])
+                KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(DISPLACEMENT_Y, r_geometry[i_node])
+                KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(DISPLACEMENT_Z, r_geometry[i_node])
+                KRATOS_CHECK_DOF_IN_NODE(DISPLACEMENT_X, r_geometry[i_node])
+                KRATOS_CHECK_DOF_IN_NODE(DISPLACEMENT_Y, r_geometry[i_node])
+                KRATOS_CHECK_DOF_IN_NODE(DISPLACEMENT_Z, r_geometry[i_node])
+            }
+            break;
+        }
     }
 
     return 0;

@@ -380,7 +380,26 @@ public:
 
         // Check if displacement var is needed
         if (mMoveMeshFlag) {
-            VariableUtils().CheckVariableExists<>(DISPLACEMENT, GetModelPart().Nodes());
+            switch (GetModelPart().GetProcessInfo()[DOMAIN_SIZE]) {
+                case 0: break;
+                case 1: {
+                    VariableUtils().CheckVariableExists<>(GetModelPart().Nodes(),
+                                                          DISPLACEMENT_X);
+                    break;
+                }
+                case 2: {
+                    VariableUtils().CheckVariableExists<>(GetModelPart().Nodes(),
+                                                          DISPLACEMENT_X,
+                                                          DISPLACEMENT_Y);
+                    break;
+                }
+                default: {
+                    VariableUtils().CheckVariableExists<>(GetModelPart().Nodes(),
+                                                          DISPLACEMENT_X,
+                                                          DISPLACEMENT_Y,
+                                                          DISPLACEMENT_Z);
+                }
+            }
         }
 
         GetModelPart().Check();

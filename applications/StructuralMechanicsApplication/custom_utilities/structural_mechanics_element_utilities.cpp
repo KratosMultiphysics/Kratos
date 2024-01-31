@@ -37,13 +37,35 @@ int SolidElementCheck(
     const SizeType dimension = r_geometry.WorkingSpaceDimension();
 
     // Check that the element's nodes contain all required SolutionStepData and Degrees of freedom
-    for ( IndexType i = 0; i < number_of_nodes; i++ ) {
-        const NodeType &rnode = r_geometry[i];
-        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(DISPLACEMENT,rnode)
-
-        KRATOS_CHECK_DOF_IN_NODE(DISPLACEMENT_X, rnode)
-        KRATOS_CHECK_DOF_IN_NODE(DISPLACEMENT_Y, rnode)
-        KRATOS_CHECK_DOF_IN_NODE(DISPLACEMENT_Z, rnode)
+    switch (dimension) {
+        case 0: break;
+        case 1: {
+            for (IndexType i_node=0ul; i_node<number_of_nodes; ++i_node) {
+                KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(DISPLACEMENT_X, r_geometry[i_node])
+                KRATOS_CHECK_DOF_IN_NODE(DISPLACEMENT_X, r_geometry[i_node])
+            }
+            break;
+        }
+        case 2: {
+            for (IndexType i_node=0ul; i_node<number_of_nodes; ++i_node) {
+                KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(DISPLACEMENT_X, r_geometry[i_node])
+                KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(DISPLACEMENT_Y, r_geometry[i_node])
+                KRATOS_CHECK_DOF_IN_NODE(DISPLACEMENT_X, r_geometry[i_node])
+                KRATOS_CHECK_DOF_IN_NODE(DISPLACEMENT_Y, r_geometry[i_node])
+            }
+            break;
+        }
+        default: {
+            for (IndexType i_node=0ul; i_node<number_of_nodes; ++i_node) {
+                KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(DISPLACEMENT_X, r_geometry[i_node])
+                KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(DISPLACEMENT_Y, r_geometry[i_node])
+                KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(DISPLACEMENT_Z, r_geometry[i_node])
+                KRATOS_CHECK_DOF_IN_NODE(DISPLACEMENT_X, r_geometry[i_node])
+                KRATOS_CHECK_DOF_IN_NODE(DISPLACEMENT_Y, r_geometry[i_node])
+                KRATOS_CHECK_DOF_IN_NODE(DISPLACEMENT_Z, r_geometry[i_node])
+            }
+            break;
+        }
     }
 
     // Verify that the constitutive law exists

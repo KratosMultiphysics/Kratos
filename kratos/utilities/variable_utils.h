@@ -1041,6 +1041,13 @@ public:
         const NodesContainerType& rOriginNodes
         );
 
+    template <class TVarType>
+    void CheckVariableInNode(const TVarType& rVariable,
+                             const Node& rNode)
+    {
+        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(rVariable, rNode);
+    }
+
     /**
      * @brief Checks if all the nodes of a node set has the specified variable
      * @param rVariable reference to a variable to be checked
@@ -1057,6 +1064,29 @@ public:
 
         for (auto& i_node : rNodes)
             KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(rVariable, i_node);
+
+        return 0;
+
+        KRATOS_CATCH("");
+    }
+
+    /**
+     * @brief Checks if all the nodes of a node set has the specified variable
+     * @param rVariable reference to a variable to be checked
+     * @param rNodes reference to the nodes set to be checked
+     * @return 0: if succeeds, return 0
+     */
+    template<class ...TVarTypes>
+    int CheckVariableExists(
+        const NodesContainerType& rNodes,
+        const Variable<TVarTypes>&... rVariables
+        )
+    {
+        KRATOS_TRY
+
+        for (auto& i_node : rNodes) {
+            (CheckVariableInNode(rVariables, i_node), ...);
+        }
 
         return 0;
 
