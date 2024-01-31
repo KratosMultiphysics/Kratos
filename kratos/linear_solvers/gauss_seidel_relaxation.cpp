@@ -15,6 +15,9 @@
 #include "spaces/ublas_space.h"
 #include "utilities/profiler.h"
 
+// System includes
+#include <optional>
+
 
 namespace Kratos {
 
@@ -31,6 +34,8 @@ struct GaussSeidelRelaxation<TSparseSpace,TDenseSpace,TReorderer>::Impl
     int mVerbosity;
 
     std::size_t mMaxIterations;
+
+    bool mBackward;
 }; // struct GaussSeidelRelaxation::Impl
 
 
@@ -53,6 +58,7 @@ GaussSeidelRelaxation<TSparseSpace,TDenseSpace,TReorderer>::GaussSeidelRelaxatio
     mpImpl->mTolerance = parameters["tolerance"].Get<double>();
     mpImpl->mVerbosity = parameters["verbosity"].Get<int>();
     mpImpl->mMaxIterations = parameters["max_iterations"].Get<int>();
+    mpImpl->mBackward = parameters["backward"].Get<bool>();
 
     KRATOS_CATCH("")
 }
@@ -69,13 +75,29 @@ GaussSeidelRelaxation<TSparseSpace,TDenseSpace,TReorderer>::~GaussSeidelRelaxati
 
 namespace {
 template <class TIterator>
-void GaussSeidelSweep(TIterator it_row,
-                      TIterator it_row_end,
+void GaussSeidelSweep(TIterator itRow,
+                      const TIterator itRowEnd,
                       Vector& rX,
                       const Vector& rB,
                       const double relaxation)
 {
+    for (; itRow!=itRowEnd; ++itRow) {
+        const std::size_t i_row = itRow.index1();
+        double value = rB[i_row];
+        double diagonal = 1.0;
 
+        const auto it_column_end = itRow.end();
+        for (auto it_column=itRow.begin(); it_column!=it_column_end; ++it_column) {
+            const auto i_column = it_column.index2();
+            if (i_column == i_row) {
+                diagonal = *it_column;
+            } else {
+                value -= *it_column * rX[i_column];
+            }
+        }
+
+        rX[i_row] += relaxation * (value / diagonal - rX[i_row]);
+    }
 }
 } // unnamed namespace
 
@@ -92,43 +114,41 @@ bool GaussSeidelRelaxation<TSparseSpace,TDenseSpace,TReorderer>::Solve(SparseMat
     const double relaxation = mpImpl->mRelaxation;
     Vector residual(rX.size());
 
-    for (std::size_t i_relax=0ul; i_relax<mpImpl->mMaxIterations; ++i_relax) {
-        const auto it_row_end = rA.end1();
-        for (auto it_row=rA.begin1(); it_row!=it_row_end; ++it_row) {
-            const std::size_t i_row = it_row.index1();
-            double value = rB[i_row];
-            double diagonal = 1.0;
+    // Compute residuals after each iteration only if a
+    // non-negative tolerance is requested. A negative
+    // tolerance makes no sense anyway, so let the solver
+    // chug on until the max iteration count without ever
+    // computing residuals.
+    const bool residual_criterion = 0 <= this->mpImpl->mTolerance;
 
-            const auto it_column_end = it_row.end();
-            for (auto it_column=it_row.begin(); it_column!=it_column_end; ++it_column) {
-                const auto i_column = it_column.index2();
-                if (i_column == i_row) {
-                    diagonal = *it_column;
-                } else {
-                    value -= *it_column * rX[i_column];
-                }
+    for (std::size_t i_relax=0ul; i_relax<mpImpl->mMaxIterations; ++i_relax) {
+        if (this->mpImpl->mBackward) {
+            GaussSeidelSweep(rA.rbegin1(), rA.rend1(), rX, rB, relaxation);
+        } else {
+            GaussSeidelSweep(rA.begin1(), rA.end1(), rX, rB, relaxation);
+        }
+
+        if (residual_criterion || 3 <= mpImpl->mVerbosity) {
+            TSparseSpace::Mult(rA, rX, residual);
+            TSparseSpace::ScaleAndAdd(1.0, rB, -1.0, residual);
+            const double residual_norm = TSparseSpace::TwoNorm(residual);
+
+            if (3 <= mpImpl->mVerbosity) {
+                KRATOS_INFO("GaussSeidelRelaxation")
+                    << "iteration " << i_relax
+                    << " residual " << residual_norm << "\n";
             }
 
-            rX[i_row] += relaxation * (value / diagonal - rX[i_row]);
+            if (residual_norm <= mpImpl->mTolerance) {
+                break;
+            }
         }
-
-        if (3 <= mpImpl->mVerbosity) {
-            Vector residual(rX.size());
-            TSparseSpace::Mult(rA, rX, residual);
-            residual = rB - residual;
-            KRATOS_INFO("GaussSeidelRelaxation")
-                << "iteration " << i_relax
-                << " residual " << TSparseSpace::TwoNorm(residual) << "\n";
-        }
-
-        //noalias(residual) = rB - prod(rA, rX);
-        //if (norm_2(residual) < mpImpl->mTolerance) {
-        //    break;
-        //}
     }
 
-    noalias(residual) = rB - prod(rA, rX);
-    return norm_2(residual) < mpImpl->mTolerance;
+    TSparseSpace::Mult(rA, rX, residual);
+    TSparseSpace::ScaleAndAdd(1.0, rB, -1.0, residual);
+    const double residual_norm = TSparseSpace::TwoNorm(residual);
+    return residual_norm <= mpImpl->mTolerance;
     KRATOS_CATCH("")
 }
 
@@ -144,8 +164,9 @@ GaussSeidelRelaxation<TSparseSpace,TDenseSpace,TReorderer>::GetDefaultParameters
     "solver_type" : "gauss_seidel",
     "verbosity" : 0,
     "max_iterations" : 500,
-    "tolerance" : 1e-6,
-    "relaxation" : 1.0
+    "tolerance" : -1,
+    "relaxation" : 1.0,
+    "backward" : false
 }
     )");
 }
@@ -177,6 +198,7 @@ template<class TSparseSpace,
 void GaussSeidelRelaxation<TSparseSpace,TDenseSpace,TReorderer>::PrintData(std::ostream& rStream) const
 {
     rStream
+        << (mpImpl->mBackward ? "backward" : "forward") << " gauss-seidel\n"
         << "tolerance     : " << mpImpl->mTolerance << "\n"
         << "max iterations: " << mpImpl->mMaxIterations << "\n"
         << "verbosity     : " << mpImpl->mVerbosity << "\n"
