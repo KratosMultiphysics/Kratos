@@ -75,7 +75,7 @@
             "process_name": "GiDOutputProcess",
             "Parameters":    {
                 "model_part_name": "PorousDomain.porous_computational_model_part",
-                "output_name": "Oedometer_ULFEM",
+                "output_name": "oedometer_ULFEM",
                 "postprocess_parameters": {
                     "result_file_configuration": {
                         "gidpost_flags":       {
