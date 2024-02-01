@@ -1,14 +1,14 @@
 ---
 title: Algorithm
-keywords:
-tags: [Algorithm.md]
+keywords: 
+tags: [algorithm, optimization]
 sidebar: optimization_application
-summary:
+summary: 
 ---
 
 ## Introduction
 
-Figure 1 illustrates hwo an algorithm operates when ```OptimizationAnalysis``` executes ```Algorithm::Solve``` method. Overview of the existing algorithms can be found [here](../Algorithms/Overview.html).
+Figure 1 illustrates how an algorithm operates when ```OptimizationAnalysis``` executes ```Algorithm::Solve``` method. Overview of the existing algorithms can be found [here](../Algorithms/Overview.html).
 
 <p align="center">
     <img src="https://github.com/KratosMultiphysics/Documentation/blob/master/OptimizationApplication/General/algorithm.png?raw=true" alt="Algorithm"/>
@@ -38,6 +38,6 @@ When an ```Algorithm``` is constructed by the ```OptimizationAnalysis```,
 
 ## Source files
 * [applications/OptimizationApplication/python_scripts/algorithms/algorithm.py](https://github.com/KratosMultiphysics/Kratos/blob/master/applications/OptimizationApplication/python_scripts/algorithms/algorithm.py)
-* [Doxygen](TODO)
+* [Doxygen](TODO) TODO
 
 
