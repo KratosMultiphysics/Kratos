@@ -67,11 +67,37 @@ class AssignVectorVariableProcess(KratosMultiphysics.Process):
 
         self.model_part = Model[settings["model_part_name"].GetString()]
 
-        self.aux_processes = []
+        # Get domain size
+        # Note that we check both the current model part and the root one
+        if self.model_part.ProcessInfo.Has(KratosMultiphysics.DOMAIN_SIZE):
+            domain_size = self.model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
+            if domain_size not in [2,3]:
+                root_model_part = self.model_part.GetRootModelPart()
+                if root_model_part.ProcessInfo.Has(KratosMultiphysics.DOMAIN_SIZE):
+                    domain_size = root_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
+                else:
+                    domain_size = 3
+                    warn_msg = "DOMAIN_SIZE is found neither in '{}' nor in root model part '{}' ProcessInfo containers. Defaulting to 3.".format(self.model_part.Name, self.model_part.GetRootModelPart().Name)
+                    KratosMultiphysics.Logger.PrintWarning("AssignVectorByDirectionProcess", warn_msg)
+        else:
+            root_model_part = self.model_part.GetRootModelPart()
+            if root_model_part.ProcessInfo.Has(KratosMultiphysics.DOMAIN_SIZE):
+                domain_size = root_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
+            else:
+                domain_size = 3
+                warn_msg = "DOMAIN_SIZE is found neither in '{}' nor in root model part '{}' ProcessInfo containers. Defaulting to 3.".format(self.model_part.Name, self.model_part.GetRootModelPart().Name)
+                KratosMultiphysics.Logger.PrintWarning("AssignVectorByDirectionProcess", warn_msg)
 
+        # Check the obtained domain size value
+        if domain_size not in [2,3]:
+            if domain_size == 1:
+                raise Exception("Domain size equals 1. Use 'AssignScalarVariableProcess' to assign values of 1D problem variables.")
+            else:
+                raise ValueError("Domain size must be either 2 or 3. Found value {} in model part '{}'.".format(domain_size, self.model_part.FullName()))
 
         # Loop over components X, Y and Z
-        for indice,variable in enumerate(["_X", "_Y", "_Z"]):
+        self.aux_processes = []
+        for indice, variable in enumerate(["_X", "_Y", "_Z"] if domain_size == 3 else ["_X", "_Y"]):
             if not settings["value"][indice].IsNull():
                 i_params = KratosMultiphysics.Parameters("{}")
                 i_params.AddValue("model_part_name",settings["model_part_name"])
