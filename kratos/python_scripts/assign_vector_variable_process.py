@@ -6,8 +6,10 @@ from KratosMultiphysics import assign_scalar_variable_process
 def Factory(settings, Model):
     if not isinstance(settings, KratosMultiphysics.Parameters):
         raise Exception("expected input shall be a Parameters object, encapsulating a json string")
+    if settings["Parameters"].Has("mesh_id"):
+        settings["Parameters"].RemoveValue("mesh_id")
+        KratosMultiphysics.Logger.PrintWarning("AssignVectorVariableProcess", "mesh_id is a legacy setting. Please remove mesh_id from your parameters")
     return AssignVectorVariableProcess(Model, settings["Parameters"])
-
 
 class AssignVectorVariableProcess(KratosMultiphysics.Process):
     """This process assigns a given value (vector) to the nodes belonging a certain submodelpart
@@ -33,7 +35,6 @@ class AssignVectorVariableProcess(KratosMultiphysics.Process):
         default_settings = KratosMultiphysics.Parameters("""
         {
             "help"                 : "This process assigns a given value (vector) to the nodes belonging a certain submodelpart",
-            "mesh_id"              : 0,
             "model_part_name"      : "please_specify_model_part_name",
             "variable_name"        : "SPECIFY_VARIABLE_NAME",
             "interval"             : [0.0, 1e30],
@@ -75,7 +76,6 @@ class AssignVectorVariableProcess(KratosMultiphysics.Process):
             if not settings["value"][indice].IsNull():
                 i_params = KratosMultiphysics.Parameters("{}")
                 i_params.AddValue("model_part_name",settings["model_part_name"])
-                i_params.AddValue("mesh_id",settings["mesh_id"])
                 i_params.AddEmptyValue("constrained").SetBool(settings["constrained"][indice].GetBool())
                 i_params.AddValue("interval",settings["interval"])
                 i_params.AddValue("value",settings["value"][indice])

@@ -5,8 +5,10 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 def Factory(settings, Model):
     if( not isinstance(settings,KratosMultiphysics.Parameters) ):
         raise Exception("expected input shall be a Parameters object, encapsulating a json string")
+    if settings["Parameters"].Has("mesh_id"):
+        settings["Parameters"].RemoveValue("mesh_id")
+        KratosMultiphysics.Logger.PrintWarning("CheckScalarOnElementsProcess", "mesh_id is a legacy setting. Please remove mesh_id from your parameters")
     return CheckScalarOnElementsProcess(Model, settings["Parameters"])
-
 
 ## All the processes python should be derived from "Process"
 class CheckScalarOnElementsProcess(KratosMultiphysics.Process, KratosUnittest.TestCase):
@@ -15,7 +17,6 @@ class CheckScalarOnElementsProcess(KratosMultiphysics.Process, KratosUnittest.Te
 
         default_settings = KratosMultiphysics.Parameters("""
             {
-                "mesh_id"         : 0,
                 "model_part_name" : "please_specify_model_part_name",
                 "variable_name"   : "SPECIFY_VARIABLE_NAME",
                 "tolerance_rank"  : 3
@@ -33,20 +34,19 @@ class CheckScalarOnElementsProcess(KratosMultiphysics.Process, KratosUnittest.Te
 
     def ExecuteInitialize(self):
         self.model_part = self.model[self.settings["model_part_name"].GetString()]
-        self.mesh = self.model_part.GetMesh(self.settings["mesh_id"].GetInt())
 
     def ExecuteInitializeSolutionStep(self):
         pass
 
     def ExecuteFinalizeSolutionStep(self):
-        FirstElement = self.mesh.Elements[1]
+        FirstElement = self.model_part.Elements[1]
 
         SomeProcessInfo = KratosMultiphysics.ProcessInfo()
         VariableValue = FirstElement.CalculateOnIntegrationPoints( self.variable, SomeProcessInfo)
         VariableValue = VariableValue[0]
 
 
-        for elem in self.mesh.Elements:
+        for elem in self.model_part.Elements:
             ThisValue = elem.CalculateOnIntegrationPoints( self.variable, SomeProcessInfo)
             ThisValue = ThisValue[0]
             for i in range(0, VariableValue.Size1()):

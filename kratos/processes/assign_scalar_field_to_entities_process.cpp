@@ -34,7 +34,7 @@ AssignScalarFieldToEntitiesProcess<TEntity>::AssignScalarFieldToEntitiesProcess(
     const Parameters default_parameters = GetDefaultParameters();
     rParameters.ValidateAndAssignDefaults(default_parameters);
 
-    mMeshId       = rParameters["mesh_id"].GetInt();
+    mMeshId       = 0;
     mVariableName = rParameters["variable_name"].GetString();
 
     mpFunction = Kratos::make_unique<GenericFunctionUtility>(rParameters["value"].GetString(), rParameters["local_axes"]);
@@ -74,7 +74,6 @@ const Parameters AssignScalarFieldToEntitiesProcess<TEntity>::GetDefaultParamete
     const Parameters default_parameters( R"(
     {
         "model_part_name" :"MODEL_PART_NAME",
-        "mesh_id"         : 0,
         "variable_name"   : "VARIABLE_NAME",
         "interval"        : [0.0, 1e30],
         "value"           : "please give an expression in terms of the variable x, y, z, t",

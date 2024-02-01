@@ -16,8 +16,10 @@ class aux_object_cpp_callback:
 def Factory(settings, Model):
     if( not isinstance(settings,KratosMultiphysics.Parameters) ):
         raise Exception("expected input shall be a Parameters object, encapsulating a json string")
+    if settings["Parameters"].Has("mesh_id"):
+        settings["Parameters"].RemoveValue("mesh_id")
+        KratosMultiphysics.Logger.PrintWarning("CheckScalarOnNodesProcess", "mesh_id is a legacy setting. Please remove mesh_id from your parameters")
     return CheckScalarOnNodesProcess(Model, settings["Parameters"])
-
 
 ## All the processes python should be derived from "Process"
 class CheckScalarOnNodesProcess(KratosMultiphysics.Process, KratosUnittest.TestCase):
@@ -26,7 +28,6 @@ class CheckScalarOnNodesProcess(KratosMultiphysics.Process, KratosUnittest.TestC
 
         default_settings = KratosMultiphysics.Parameters("""
             {
-                "mesh_id"         : 0,
                 "model_part_name" : "please_specify_model_part_name",
                 "variable_name"   : "SPECIFY_VARIABLE_NAME",
                 "interval"        : [0.0, 1e30],
@@ -103,7 +104,6 @@ class CheckScalarOnNodesProcess(KratosMultiphysics.Process, KratosUnittest.TestC
 
     def ExecuteInitialize(self):
         self.model_part = self.model[self.settings["model_part_name"].GetString()]
-        self.mesh = self.model_part.GetMesh(self.settings["mesh_id"].GetInt())
 
     def ExecuteInitializeSolutionStep(self):
         pass
@@ -114,13 +114,13 @@ class CheckScalarOnNodesProcess(KratosMultiphysics.Process, KratosUnittest.TestC
         if(current_time >= self.interval[0] and  current_time<self.interval[1]):
 
             if self.value_is_numeric:
-                for node in self.mesh.Nodes:
+                for node in self.model_part.Nodes:
                     value = node.GetSolutionStepValue(self.variable, 0)
                     self.assertAlmostEqual(self.value, value, self.tol)
             else:
                 if self.is_time_function:
                     self.value = self.aux_function.f(0.0,0.0,0.0,current_time)
-                    for node in self.mesh.Nodes:
+                    for node in self.model_part.Nodes:
                         value = node.GetSolutionStepValue(self.variable, 0)
                         self.assertAlmostEqual(self.value, value, self.tol)
                 else: #most general case - space varying function (possibly also time varying)

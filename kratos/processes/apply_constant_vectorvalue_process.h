@@ -68,7 +68,6 @@ public:
         Parameters default_parameters( R"(
             {
                 "model_part_name":"PLEASE_CHOOSE_MODEL_PART_NAME",
-                "mesh_id": 0,
                 "variable_name": "PLEASE_PRESCRIBE_VARIABLE_NAME",
                 "is_fixed_x": false,
                 "is_fixed_y": false,
@@ -100,7 +99,7 @@ public:
         parameters.ValidateAndAssignDefaults(default_parameters);
 
         // Read from the parameters and assign to the values
-        mmesh_id = parameters["mesh_id"].GetInt();
+        mmesh_id = 0;
 
         this->Set(X_COMPONENT_FIXED,  parameters["is_fixed_x"].GetBool());
         this->Set(Y_COMPONENT_FIXED,  parameters["is_fixed_y"].GetBool());

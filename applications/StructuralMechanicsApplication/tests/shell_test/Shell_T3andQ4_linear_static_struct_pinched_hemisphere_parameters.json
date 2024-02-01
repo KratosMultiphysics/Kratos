@@ -38,7 +38,6 @@
         "help"          : "This process fixes the selected components of a given vector variable",
         "process_name"  : "AssignVectorVariableProcess",
         "Parameters"    : {
-            "mesh_id"         : 0,
             "model_part_name" : "Structure.DISPLACEMENT_sym_XZ",
             "variable_name"   : "DISPLACEMENT",
             "constrained"     : [false,true,false],
@@ -51,7 +50,6 @@
         "help"          : "This process fixes the selected components of a given vector variable",
         "process_name"  : "AssignVectorVariableProcess",
         "Parameters"    : {
-            "mesh_id"         : 0,
             "model_part_name" : "Structure.DISPLACEMENT_sym_YZ",
             "variable_name"   : "DISPLACEMENT",
             "constrained"     : [true,false,false],
@@ -64,7 +62,6 @@
         "help"          : "This process fixes the selected components of a given vector variable",
         "process_name"  : "AssignVectorVariableProcess",
         "Parameters"    : {
-            "mesh_id"         : 0,
             "model_part_name" : "Structure.ROTATION_sym_XZ",
             "variable_name"   : "ROTATION",
             "constrained"     : [true,false,true],
@@ -77,7 +74,6 @@
         "help"          : "This process fixes the selected components of a given vector variable",
         "process_name"  : "AssignVectorVariableProcess",
         "Parameters"    : {
-            "mesh_id"         : 0,
             "model_part_name" : "Structure.ROTATION_sym_YZ",
             "variable_name"   : "ROTATION",
             "constrained"     : [false,true,true],
@@ -93,7 +89,6 @@
         "check"         : "DirectorVectorNonZero direction",
         "process_name"  : "AssignVectorByDirectionToConditionProcess",
         "Parameters"    : {
-            "mesh_id"         : 0,
             "model_part_name" : "Structure.PointLoad3D_neumann_x",
             "variable_name"   : "POINT_LOAD",
             "modulus"         : 1.0,
@@ -107,7 +102,6 @@
         "check"         : "DirectorVectorNonZero direction",
         "process_name"  : "AssignVectorByDirectionToConditionProcess",
         "Parameters"    : {
-            "mesh_id"         : 0,
             "model_part_name" : "Structure.PointLoad3D_neumann_y",
             "variable_name"   : "POINT_LOAD",
             "modulus"         : 1.0,

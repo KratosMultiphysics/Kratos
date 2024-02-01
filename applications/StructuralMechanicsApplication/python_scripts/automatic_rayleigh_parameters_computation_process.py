@@ -7,6 +7,9 @@ import KratosMultiphysics.StructuralMechanicsApplication as SMA
 def Factory(settings, Model):
     if not isinstance(settings, KM.Parameters):
         raise Exception("Expected input shall be a Parameters object, encapsulating a json string")
+    if settings["Parameters"].Has("mesh_id"):
+        settings["Parameters"].RemoveValue("mesh_id")
+        KratosMultiphysics.Logger.PrintWarning("AutomaticRayleighComputationProcess", "mesh_id is a legacy setting. Please remove mesh_id from your parameters")
     return AutomaticRayleighComputationProcess(Model, settings["Parameters"])
 
 # All the processes python processes should be derived from "Process"
@@ -35,7 +38,6 @@ class AutomaticRayleighComputationProcess(KM.Process):
         default_parameters = KM.Parameters("""
         {
             "help"                           :"This class is used in order to compute automatically the Rayleigh damping parameters computing in first place the eigenvalues of the system",
-            "mesh_id"                        : 0,
             "model_part_name"                : "Structure",
             "echo_level"                     : 0,
             "write_on_properties"            : true,

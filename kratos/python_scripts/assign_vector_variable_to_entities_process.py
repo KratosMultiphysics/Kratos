@@ -5,6 +5,9 @@ from KratosMultiphysics import assign_scalar_variable_to_entities_process
 def Factory(settings, Model):
     if not isinstance(settings, KratosMultiphysics.Parameters):
         raise Exception("expected input shall be a Parameters object, encapsulating a json string")
+    if settings["Parameters"].Has("mesh_id"):
+        settings["Parameters"].RemoveValue("mesh_id")
+        KratosMultiphysics.Logger.PrintWarning("AssignVectorVariableToEntitiesProcess", "mesh_id is a legacy setting. Please remove mesh_id from your parameters")
     return AssignVectorVariableToEntitiesProcess(Model, settings["Parameters"])
 
 ## All the processes python should be derived from "Process"
@@ -33,7 +36,6 @@ class AssignVectorVariableToEntitiesProcess(KratosMultiphysics.Process):
         default_settings = KratosMultiphysics.Parameters("""
         {
             "help"                 : "This process assigns a given value (vector) to the entities belonging a certain submodelpart",
-            "mesh_id"              : 0,
             "model_part_name"      : "please_specify_model_part_name",
             "variable_name"        : "SPECIFY_VARIABLE_NAME",
             "interval"             : [0.0, 1e30],
@@ -72,7 +74,6 @@ class AssignVectorVariableToEntitiesProcess(KratosMultiphysics.Process):
             if not settings["value"][i_dir].IsNull():
                 direction_params = KratosMultiphysics.Parameters("{}")
                 direction_params.AddValue("model_part_name",settings["model_part_name"])
-                direction_params.AddValue("mesh_id",settings["mesh_id"])
                 direction_params.AddValue("interval",settings["interval"])
                 direction_params.AddValue("value",settings["value"][i_dir])
                 direction_params.AddEmptyValue("variable_name").SetString(settings["variable_name"].GetString() + var_string)

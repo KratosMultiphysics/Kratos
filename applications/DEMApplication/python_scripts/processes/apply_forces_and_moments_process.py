@@ -9,11 +9,14 @@ def Factory(settings, Model):
     if(type(settings) != KratosMultiphysics.Parameters):
         raise Exception("expected input shall be a Parameters object, encapsulating a json string")
 
+    if settings["Parameters"].Has("mesh_id"):
+        settings["Parameters"].RemoveValue("mesh_id")
+        KratosMultiphysics.Logger.PrintWarning("ApplyForcesAndMomentsProcess", "mesh_id is a legacy setting. Please remove mesh_id from your parameters")
+
     process_settings = settings["Parameters"]
 
     folder_settings = KratosMultiphysics.Parameters("""{
             "help"                 : "This process applies loads over the particles in a certain submodelpart, for a certain time interval",
-            "mesh_id"              : 0,
             "model_part_name"      : "please_specify_model_part_name",
             "force_settings" : {
                 "value"            : [10.0, "3*t", "x+y"],

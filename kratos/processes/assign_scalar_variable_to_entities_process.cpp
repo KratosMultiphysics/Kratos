@@ -35,7 +35,7 @@ AssignScalarVariableToEntitiesProcess<TEntity>::AssignScalarVariableToEntitiesPr
     const Parameters default_parameters = GetDefaultParameters();
     rParameters.ValidateAndAssignDefaults(default_parameters);
 
-    mMeshId       = rParameters["mesh_id"].GetInt();
+    mMeshId       = 0;
     mVariableName = rParameters["variable_name"].GetString();
 
     if( KratosComponents< Variable<double> >::Has( mVariableName )) { //case of double variable
@@ -81,7 +81,6 @@ const Parameters AssignScalarVariableToEntitiesProcess<TEntity>::GetDefaultParam
     const Parameters default_parameters( R"(
     {
         "model_part_name" : "MODEL_PART_NAME",
-        "mesh_id"         : 0,
         "variable_name"   : "VARIABLE_NAME",
         "value"           : 1.0
     }  )" );

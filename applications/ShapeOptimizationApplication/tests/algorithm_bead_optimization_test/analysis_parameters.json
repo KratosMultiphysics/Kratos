@@ -38,7 +38,6 @@
           "help"          : "This process fixes the selected components of a given vector variable",
           "process_name"  : "AssignVectorVariableProcess",
           "Parameters"    : {
-              "mesh_id"         : 0,
               "model_part_name" : "plate.corner_points",
               "variable_name"   : "DISPLACEMENT",
               "value"           : [0.0,0.0,0.0]
@@ -49,7 +48,6 @@
           "help"          : "This process fixes the selected components of a given vector variable",
           "process_name"  : "AssignVectorVariableProcess",
           "Parameters"    : {
-              "mesh_id"         : 0,
               "model_part_name" : "plate.corner_points",
               "variable_name"   : "ROTATION",
               "value"           : [0.0,0.0,0.0]
@@ -60,7 +58,6 @@
           "kratos_module" : "KratosMultiphysics",
           "process_name"  : "AssignVectorByDirectionProcess",
           "Parameters"    : {
-              "mesh_id"         : 0,
               "model_part_name" : "plate.load_point",
               "variable_name"   : "POINT_LOAD",
               "modulus"         : 100.0,

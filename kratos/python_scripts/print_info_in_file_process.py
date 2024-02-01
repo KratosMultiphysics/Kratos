@@ -6,6 +6,9 @@ from pathlib import Path
 def Factory(settings, Model):
     if not isinstance(settings, KratosMultiphysics.Parameters):
         raise Exception("expected input shall be a Parameters object, encapsulating a json string")
+    if settings["Parameters"].Has("mesh_id"):
+        settings["Parameters"].RemoveValue("mesh_id")
+        KratosMultiphysics.Logger.PrintWarning("PrintInfoInFileProcess", "mesh_id is a legacy setting. Please remove mesh_id from your parameters")
     return PrintInfoInFileProcess(Model, settings["Parameters"])
 
 ## All the processes python should be derived from "Process"
@@ -31,7 +34,6 @@ class PrintInfoInFileProcess(KratosMultiphysics.OutputProcess):
         default_settings = KratosMultiphysics.Parameters("""
         {
             "help"                     : "This process prints nodal/elemental information ina .txt file",
-            "mesh_id"                  : 0,
             "model_part_name"          : "please_specify_model_part_name",
             "variable_name"            : "SPECIFY_VARIABLE_NAME",
             "results_type"             : "not_provided_by_default",

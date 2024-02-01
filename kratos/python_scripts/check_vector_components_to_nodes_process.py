@@ -9,8 +9,10 @@ from math import *
 def Factory(settings, Model):
     if(type(settings) != KratosMultiphysics.Parameters):
         raise Exception("expected input shall be a Parameters object, encapsulating a json string")
+    if settings["Parameters"].Has("mesh_id"):
+        settings["Parameters"].RemoveValue("mesh_id")
+        KratosMultiphysics.Logger.PrintWarning("CheckVectorComponentsToNodesProcess", "mesh_id is a legacy setting. Please remove mesh_id from your parameters")
     return CheckVectorComponentsToNodesProcess(Model, settings["Parameters"])
-
 
 ## All the processes python should be derived from "Process"
 class CheckVectorComponentsToNodesProcess(KratosMultiphysics.Process, KratosUnittest.TestCase):
@@ -20,7 +22,6 @@ class CheckVectorComponentsToNodesProcess(KratosMultiphysics.Process, KratosUnit
         default_settings = KratosMultiphysics.Parameters("""
             {
                 "help"                 : "This process checks analytically from a function the solution (vector) in a set of nodes belonging a certain submodelpart",
-                "mesh_id"              : 0,
                 "model_part_name"      : "please_specify_model_part_name",
                 "variable_name"        : "SPECIFY_VARIABLE_NAME",
                 "interval"             : [0.0, 1e30],
@@ -53,7 +54,6 @@ class CheckVectorComponentsToNodesProcess(KratosMultiphysics.Process, KratosUnit
         if(not settings["value"][0].IsNull()):
             x_params = KratosMultiphysics.Parameters("{}")
             x_params.AddValue("model_part_name",settings["model_part_name"])
-            x_params.AddValue("mesh_id",settings["mesh_id"])
             x_params.AddEmptyValue("tolerance_rank").SetInt(settings["tolerance_rank"].GetInt())
             x_params.AddValue("interval",settings["interval"])
             x_params.AddValue("value",settings["value"][0])
@@ -66,7 +66,6 @@ class CheckVectorComponentsToNodesProcess(KratosMultiphysics.Process, KratosUnit
         if(not settings["value"][1].IsNull()):
             y_params = KratosMultiphysics.Parameters("{}")
             y_params.AddValue("model_part_name",settings["model_part_name"])
-            y_params.AddValue("mesh_id",settings["mesh_id"])
             y_params.AddEmptyValue("tolerance_rank").SetInt(settings["tolerance_rank"].GetInt())
             y_params.AddValue("interval",settings["interval"])
             y_params.AddValue("value",settings["value"][1])
@@ -79,7 +78,6 @@ class CheckVectorComponentsToNodesProcess(KratosMultiphysics.Process, KratosUnit
         if(not settings["value"][2].IsNull()):
             z_params = KratosMultiphysics.Parameters("{}")
             z_params.AddValue("model_part_name",settings["model_part_name"])
-            z_params.AddValue("mesh_id",settings["mesh_id"])
             z_params.AddEmptyValue("tolerance_rank").SetInt(settings["tolerance_rank"].GetInt())
             z_params.AddValue("interval",settings["interval"])
             z_params.AddValue("value",settings["value"][2])

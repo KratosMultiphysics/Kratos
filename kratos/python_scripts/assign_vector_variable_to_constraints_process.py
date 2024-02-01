@@ -4,6 +4,9 @@ import KratosMultiphysics
 def Factory(settings, Model):
     if not isinstance(settings, KratosMultiphysics.Parameters):
         raise Exception("expected input shall be a Parameters object, encapsulating a json string")
+    if settings["Parameters"].Has("mesh_id"):
+        settings["Parameters"].RemoveValue("mesh_id")
+        KratosMultiphysics.Logger.PrintWarning("AssignVectorVariableToConstraintProcess", "mesh_id is a legacy setting. Please remove mesh_id from your parameters")
     return AssignVectorVariableToConstraintProcess(Model, settings["Parameters"])
 
 from KratosMultiphysics import assign_vector_variable_to_entities_process
@@ -32,7 +35,6 @@ class AssignVectorVariableToConstraintProcess(assign_vector_variable_to_entities
         default_settings = KratosMultiphysics.Parameters("""
         {
             "help"                 : "This process assigns a given value (vector) to the constraints belonging a certain submodelpart",
-            "mesh_id"              : 0,
             "model_part_name"      : "please_specify_model_part_name",
             "variable_name"        : "SPECIFY_VARIABLE_NAME",
             "interval"             : [0.0, 1e30],

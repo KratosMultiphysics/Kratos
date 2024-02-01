@@ -1,17 +1,17 @@
 # Importing the Kratos Library
 import KratosMultiphysics
 
-
 def Factory(settings, Model):
     if not isinstance(settings, KratosMultiphysics.Parameters):
         raise Exception(
             "expected input shall be a Parameters object, encapsulating a json string"
         )
+    if settings["Parameters"].Has("mesh_id"):
+        settings["Parameters"].RemoveValue("mesh_id")
+        KratosMultiphysics.Logger.PrintWarning("SetInitialStateProcess", "mesh_id is a legacy setting. Please remove mesh_id from your parameters")
     return SetInitialStateProcess(Model, settings["Parameters"])
 
-
 # All the processes python processes should be derived from "Process"
-
 
 def components_to_functions(vect):
     """Receives a vector and converts its components to functions. Components can be
@@ -42,7 +42,6 @@ def components_to_functions(vect):
         v.append(function)
     return v
 
-
 class SetInitialStateProcess(KratosMultiphysics.Process):
 
     """This process sets a given value for a certain flag in all the nodes of a submodelpart
@@ -69,7 +68,6 @@ class SetInitialStateProcess(KratosMultiphysics.Process):
             """
         {
             "help"            : "This sets the initial conditions in terms of imposed strain, stress or deformation gradient",
-            "mesh_id"         : 0,
             "model_part_name" : "please_specify_model_part_name",
             "dimension"       : 3,
             "imposed_strain"  : ["0*t","0*t","0*t",0,0,0],
@@ -107,7 +105,6 @@ class SetInitialStateProcess(KratosMultiphysics.Process):
         ncols = aux_matrix[0].size()
         self.imposed_deformation_gradient = KratosMultiphysics.Matrix(nrows, ncols)
 
-
     def ExecuteInitializeSolutionStep(self):
         """This method is executed in order to initialize the current step
 
@@ -143,7 +140,6 @@ class SetInitialStateProcess(KratosMultiphysics.Process):
                         )
 
             self.SetInitialState()
-
 
     def SetInitialState(self):
         """This method creates the c++ process and sets each entity
