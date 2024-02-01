@@ -67,8 +67,10 @@ void ElasticCohesive2DLaw::ComputeStressVector(Vector& rStressVector,
     const Element::GeometryType& geometry = rValues.GetElementGeometry();
     const unsigned int number_of_nodes = geometry.size();
 
-    const int dimension = 2; // Temporary solution. Need to generalise
-    const int strainSize = 3; // Temporary solution. Need to generalise
+    const unsigned int dimension = rValues.GetSpaceDimension();
+    const unsigned int strainSize = rValues.GetStrainSize();
+    // const int dimension = 2; // Temporary solution. Need to generalise
+    // const int strainSize = 3; // Temporary solution. Need to generalise
 
     // Create the necessary components for the initialisation of the stresses
     Matrix nodal_initial_stress_tensor(dimension,dimension);
