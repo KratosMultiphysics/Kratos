@@ -64,6 +64,7 @@ void ElasticCohesive2DLaw::ComputeStressVector(Vector& rStressVector,
     const Vector& StrainVector = rValues.GetStrainVector();
 
 // ------------------------------------------------------ NEW ------------------------------------------------------
+    const Vector& N = rValues.GetShapeFunctionsValues(); // TODO. An interpolation of the initial stress is necessary
     const Element::GeometryType& geometry = rValues.GetElementGeometry();
     const unsigned int number_of_nodes = geometry.size();
 
