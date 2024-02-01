@@ -9,6 +9,10 @@ summary:
 
 ```MasterControl``` is a collection of ```Control```s used by an ```Algorithm```. It is owned by ```Algorithm``` and shared among all the ```ResponseRoutine```s used by that ```Algorithm```. It does not own any of the ```Control```s, it just links to appropriate ```Control```s found in ```OptimizationProblem```. Thereafter, ```MasterControl``` can govern over these ```Control```s.
 
+## Working space
+
+As explained above ```MasterControl``` will work in the control space and physical space.
+
 ## Data flow and work flow
 
 It is responsible for converting control space designs (i.e. $$\underline{\hat{\phi}}$$) to physical space designs (i.e. $$\underline{\phi}$$). This is done via the ```MasterControl::Update``` method as illustrated in Figure 1. It disassemble the control domain ```CollectiveExpression``` (i.e.  $$\underline{\hat{\phi}}$$) passed to the master control, to smaller ```ContainerExpressions``` control domains (i.e.  $$\underline{\hat{\phi}}_1$$,  $$\underline{\hat{\phi}}_2$$) and then use respective ```Control``` to transform to smaller physical domains ```ContainerExpressions``` (i.e.  $$\underline{\phi}_1$$,  $$\underline{\phi}_1$$). Then another ```CollectiveExpression``` is built aggregating all the smaller physical domains to a larger physical domain (i.e $$\underline{\phi}$$) to get the final physical domain.
