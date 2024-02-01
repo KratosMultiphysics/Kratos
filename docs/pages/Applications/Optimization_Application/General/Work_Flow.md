@@ -56,7 +56,7 @@ Following json snippet illustrates basic settings which can be found in a json s
 }
 ```
 
-### Model Parts
+### Model parts
 
 ```model_parts``` section of the json settings can be used to read/create meshes. This sections is **not a must** to be used in an optimization analysis. If a central place is required to read/create all the meshes which will be used in the optimization analysis, this can be used. Otherwise, the meshes can be read in their respective places making this section empty. Following code snippet illustrate an example use case of one single entry in the list.
 
@@ -116,3 +116,103 @@ Following json-snippet illustrates an example use case.
     }
 }
 ```
+
+### Controls
+```controls``` section is to list all of the controls to be used by the algorithm.
+
+**```name``` field should be a unique string entry for the whole optimization problem**
+
+Following code-snippet illustrates an example use case.
+```json
+{
+    "name": "thickness_control",
+    "type": "thickness.shell_thickness_control",
+    "settings": {
+        "controlled_model_part_names": [
+            "Structure.Parts_Shell_structure"
+        ],
+        "filter_settings": {
+            "type": "implicit",
+            "radius": 0.2,
+            "linear_solver_settings": {
+                "solver_type": "LinearSolversApplication.amgcl"
+            }
+        },
+        "output_all_fields": false,
+        "beta_value": 25.0,
+        "initial_physical_thickness": 0.15,
+        "physical_thicknesses": [
+            0.1,
+            0.2
+        ]
+    }
+}
+```
+
+### Algorithm settings
+
+```algorithm_settings``` section holds all the necessary information for algorithms such as which controls, which responses to be used, what type of convergence criteria, etc.
+
+
+### Processes
+```processes``` section is allowed to have two type of processes. One is, processes you find anywhere in Kratos which is not in hte OptimizationApplication. If these processes are required to be used in the optimization analysis to input or output data, then they should go in the ```kratos_processes```.
+
+There are some specific processes which are implemented in OptimizationApplication which requires not only ```Kratos::Model``` and ```Kratos::Parameters```, but also ```OptimizationProblem``` to construct an object. These processes needs to be included under ```optimization_data_processes```.
+
+
+## Work flow
+
+<p align="center">
+    <img src="overall_execution.svg" alt="Overall execution flow"/>
+</p>
+<p align="center">Figure 1: Overall execution flow</p>
+
+Figure 1 illustrates the overall execution of an optimization problem.
+
+### Construction of components
+
+This step will construct all following components in the listed order.
+1. ```OptimizationProblem``` data container.
+2. [```ModelPartControllers```](#model-parts)
+3. [```Analyses```](#analyses)
+4. [```Controls```](#controls)
+5. [```Responses```](#responses)
+6. [```Algorithm```](#algorithm-settings)
+7. [```Processes```](#processes)
+
+Each type of component will read its respective part of the json to create the component.
+
+### Initialization of components
+
+Initialization of components will be done in the following listed order.
+
+1. Fill in the model parts specified by [```ModelPartControllers```](#model-parts) by calling ```ModelPartController::ImportModelPart```.
+2. Initialize ```ModelPartController``` by calling ```ModelPartController::Initialize```
+3. Initialize Processes.
+4. Initialize ```Algorithm```
+
+Initialization of ```ResponseFunction``` and ```Controls``` are done within the ```Algorithm::Initialize```.
+
+### Checking of components
+
+Checking of components will be done in the following listed order.
+
+1. Checks processes
+2. Check ```Algorithm```
+
+Checking of ```ResponseFunction``` and ```Controls``` are done within the ```Algorithm::Check```.
+
+
+### Running optimization algorithm
+
+This step will call [```Algorithm::Solve```](Algorithm.html) method.
+
+
+### Finalizing of components
+
+Finalization of components will be done in the following listed order.
+
+1. Initialize ```Algorithm```.
+2. Initialize Processes.
+
+Finalization of ```ResponseFunction``` and ```Controls``` are done within the ```Algorithm::Finalize```.
