@@ -22,6 +22,7 @@
 #include "includes/define.h"
 #include "includes/condition.h"
 #include "particle_mechanics_application_variables.h"
+#include "custom_utilities/mpm_boundary_rotation_utility.h"
 
 namespace Kratos
 {
@@ -82,6 +83,7 @@ public:
 
     ///@name Type Definitions
     typedef std::size_t SizeType;
+    typedef MPMBoundaryRotationUtility<MatrixType,VectorType> RotationToolType;
     ///@{
 
     // Counted pointer of MPMParticleBaseCondition
@@ -274,6 +276,12 @@ public:
         const std::vector<array_1d<double, 3 > >& rValues,
         const ProcessInfo& rCurrentProcessInfo) override;
 
+    /**
+     * Intended to be called in Initialize() of the instance that owns the rotationUtility (currently Scheme) to
+     * allow access to the rotation utility by particle-based conditions
+     */
+    static void SetRotationUtility(const MPMBoundaryRotationUtility<MatrixType,VectorType> *pRotationUtility);
+
     ///@}
     ///@name Inquiry
     ///@{
@@ -291,6 +299,8 @@ protected:
 
     ///@name Protected static Member Variables
     ///@{
+
+
 
     ///@}
     ///@name Protected member Variables
@@ -347,6 +357,8 @@ protected:
     ///@name Protected  Access
     ///@{
 
+    static const RotationToolType& GetRotationTool();
+
     ///@}
     ///@name Protected Inquiry
     ///@{
@@ -358,6 +370,8 @@ protected:
 private:
     ///@name Static Member Variables
     ///@{
+
+    static inline const RotationToolType *p_rotation_tool = nullptr;
 
 
     ///@}

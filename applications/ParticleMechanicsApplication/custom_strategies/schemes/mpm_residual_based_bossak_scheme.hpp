@@ -29,6 +29,7 @@
 #include "solving_strategies/schemes/residual_based_implicit_time_scheme.h"
 #include "solving_strategies/schemes/residual_based_bossak_displacement_scheme.hpp"
 #include "custom_utilities/mpm_boundary_rotation_utility.h"
+#include "custom_conditions/particle_based_conditions/mpm_particle_base_condition.h"
 
 namespace Kratos
 {
@@ -139,6 +140,13 @@ public:
 
     //***************************************************************************
     //***************************************************************************
+
+    void Initialize(ModelPart& rModelPart) override {
+        MPMParticleBaseCondition::SetRotationUtility(&mRotationTool);
+
+        BossakBaseType::Initialize(rModelPart);
+    }
+
 
     /**
      * @brief Performing the update of the solution
