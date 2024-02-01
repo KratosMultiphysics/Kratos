@@ -131,6 +131,10 @@ namespace Python{
 
         // Stabilization variables
         KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, STABILIZATION_TYPE);
+
+        // For friction
+        KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, STICK_FORCE);
+        KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, FRICTION_STATE);
     }
 
 }  // namespace Python.

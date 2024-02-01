@@ -12,15 +12,25 @@ class ApplyMPMSlipBoundaryProcess(KratosMultiphysics.Process):
 
         default_parameters = KratosMultiphysics.Parameters( """
             {
-                "model_part_name":"PLEASE_CHOOSE_MODEL_PART_NAME",
-                "mesh_id": 0,
-                "avoid_recomputing_normals": true
+                "model_part_name"           :"PLEASE_CHOOSE_MODEL_PART_NAME",
+                "mesh_id"                   : 0,
+                "friction_coefficient"      : 0,
+                "option"                    : "",
+                "avoid_recomputing_normals" : true
             }  """ )
 
         settings.ValidateAndAssignDefaults(default_parameters)
 
         self.model_part = Model[settings["model_part_name"].GetString()]
         self.avoid_recomputing_normals = settings["avoid_recomputing_normals"].GetBool()
+
+        # get friction parameters
+        self.friction_coefficient = settings["friction_coefficient"].GetDouble()
+        if self.friction_coefficient > 0 and self.is_slip_boundary:
+            # friction active -- set flag on ProcessInfo
+            self.model_part.ProcessInfo[KratosMultiphysics.FLAG_VARIABLE] = 1.0
+
+        # TODO: add condition for friction?
 
         # Compute the normal on the nodes of interest -
         # Note that the model part employed here is supposed to only have slip "conditions"
@@ -31,6 +41,7 @@ class ApplyMPMSlipBoundaryProcess(KratosMultiphysics.Process):
             node.Set(KratosMultiphysics.SLIP, True)
             node.SetValue(KratosMultiphysics.IS_STRUCTURE,1.0)
             node.SetSolutionStepValue(KratosMultiphysics.IS_STRUCTURE,0,1.0)
+            node.SetValue(KratosMultiphysics.FRICTION_COEFFICIENT, self.friction_coefficient)
 
 
 

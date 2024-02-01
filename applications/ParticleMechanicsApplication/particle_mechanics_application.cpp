@@ -303,6 +303,10 @@ namespace Kratos
 
         // Stabilization variables
         KRATOS_REGISTER_VARIABLE(STABILIZATION_TYPE)
+
+        // For friction
+        KRATOS_REGISTER_VARIABLE(STICK_FORCE)
+        KRATOS_REGISTER_VARIABLE(FRICTION_STATE)
     }
 
 }  // namespace Kratos.
