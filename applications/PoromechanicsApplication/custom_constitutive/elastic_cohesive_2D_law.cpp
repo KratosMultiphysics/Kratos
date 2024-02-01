@@ -99,7 +99,6 @@ void ElasticCohesive2DLaw::ComputeStressVector(Vector& rStressVector,
     double inv_norm_x = 1.0/norm_2(Vx);
     Vx[0] *= inv_norm_x; // cos
     Vx[1] *= inv_norm_x; // sin
-    KRATOS_WATCH(Vx)
 
     // Define and assign the rotation matrix
     Matrix RotationInterface(dimension,strainSize);
