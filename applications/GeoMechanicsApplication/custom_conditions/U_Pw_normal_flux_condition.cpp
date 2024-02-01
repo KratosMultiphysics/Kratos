@@ -93,5 +93,7 @@ void UPwNormalFluxCondition<TDim,TNumNodes>::
 template class UPwNormalFluxCondition<2,2>;
 template class UPwNormalFluxCondition<3,3>;
 template class UPwNormalFluxCondition<3,4>;
-
+template class UPwNormalFluxCondition<3,6>;
+template class UPwNormalFluxCondition<3,8>;
+template class UPwNormalFluxCondition<3,9>;
 } // Namespace Kratos.

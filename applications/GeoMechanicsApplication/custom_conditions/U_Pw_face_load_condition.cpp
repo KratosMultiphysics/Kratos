@@ -75,107 +75,35 @@ void UPwFaceLoadCondition<TDim,TNumNodes>::
     }
 }
 
-//----------------------------------------------------------------------------------------
-template< >
-double UPwFaceLoadCondition<2,2>::
-    CalculateIntegrationCoefficient(const Matrix& Jacobian, const double& Weight)
+// ============================================================================================
+// ============================================================================================
+template<unsigned int TDim, unsigned int TNumNodes>
+double UPwFaceLoadCondition<TDim, TNumNodes>::CalculateIntegrationCoefficient(
+    const Matrix& Jacobian,
+    const double& Weight)
 {
-    double dx_dxi = Jacobian(0,0);
-    double dy_dxi = Jacobian(1,0);
+    Vector NormalVector = ZeroVector(TDim);
 
-    double ds = sqrt(dx_dxi*dx_dxi + dy_dxi*dy_dxi);
+    if constexpr (TDim == 2) {
+        NormalVector = column(Jacobian, 0);
+    }
+    else if constexpr (TDim == 3) {
+        MathUtils<double>::CrossProduct(NormalVector, column(Jacobian, 0), column(Jacobian, 1));
+    }
 
-    return ds * Weight;
+    return MathUtils<double>::Norm(NormalVector) * Weight;
 }
 
-//----------------------------------------------------------------------------------------
-template< >
-double UPwFaceLoadCondition<2,3>::
-    CalculateIntegrationCoefficient(const Matrix& Jacobian, const double& Weight)
-{
-    double dx_dxi = Jacobian(0,0);
-    double dy_dxi = Jacobian(1,0);
-
-    double ds = sqrt(dx_dxi*dx_dxi + dy_dxi*dy_dxi);
-
-    return ds * Weight;
-}
-
-//----------------------------------------------------------------------------------------
-template< >
-double UPwFaceLoadCondition<2,4>::
-CalculateIntegrationCoefficient(const Matrix& Jacobian, const double& Weight)
-{
-    const double dx_dxi = Jacobian(0, 0);
-    const double dy_dxi = Jacobian(1, 0);
-
-    const double ds = std::sqrt(dx_dxi * dx_dxi + dy_dxi * dy_dxi);
-
-    return ds * Weight;
-}
-
-//----------------------------------------------------------------------------------------
-template< >
-double UPwFaceLoadCondition<2,5>::
-CalculateIntegrationCoefficient(const Matrix& Jacobian, const double& Weight)
-{
-    const double dx_dxi = Jacobian(0, 0);
-    const double dy_dxi = Jacobian(1, 0);
-
-    const double ds = std::sqrt(dx_dxi * dx_dxi + dy_dxi * dy_dxi);
-
-    return ds * Weight;
-}
-
-//----------------------------------------------------------------------------------------
-template< >
-double UPwFaceLoadCondition<3,3>::
-    CalculateIntegrationCoefficient(const Matrix& Jacobian, const double& Weight)
-{
-    double NormalVector[3];
-
-    NormalVector[0] = Jacobian(1,0) * Jacobian(2,1) - Jacobian(2,0) * Jacobian(1,1);
-
-    NormalVector[1] = Jacobian(2,0) * Jacobian(0,1) - Jacobian(0,0) * Jacobian(2,1);
-
-    NormalVector[2] = Jacobian(0,0) * Jacobian(1,1) - Jacobian(1,0) * Jacobian(0,1);
-
-    double dA = sqrt(  NormalVector[0]*NormalVector[0]
-                     + NormalVector[1]*NormalVector[1]
-                     + NormalVector[2]*NormalVector[2]);
-
-    return dA * Weight;
-}
-
-//----------------------------------------------------------------------------------------
-template< >
-double UPwFaceLoadCondition<3,4>::
-    CalculateIntegrationCoefficient(const Matrix& Jacobian, const double& Weight)
-{
-    double NormalVector[3];
-
-    NormalVector[0] = Jacobian(1,0) * Jacobian(2,1) - Jacobian(2,0) * Jacobian(1,1);
-
-    NormalVector[1] = Jacobian(2,0) * Jacobian(0,1) - Jacobian(0,0) * Jacobian(2,1);
-
-    NormalVector[2] = Jacobian(0,0) * Jacobian(1,1) - Jacobian(1,0) * Jacobian(0,1);
-
-    double dA = sqrt(  NormalVector[0]*NormalVector[0]
-                     + NormalVector[1]*NormalVector[1]
-                     + NormalVector[2]*NormalVector[2]);
-
-    return dA * Weight;
-}
-
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
+// ============================================================================================
+// ============================================================================================
 template class UPwFaceLoadCondition<2,2>;
 template class UPwFaceLoadCondition<2,3>;
 template class UPwFaceLoadCondition<2,4>;
 template class UPwFaceLoadCondition<2,5>;
-
 template class UPwFaceLoadCondition<3,3>;
 template class UPwFaceLoadCondition<3,4>;
-
+template class UPwFaceLoadCondition<3,6>;
+template class UPwFaceLoadCondition<3,8>;
+template class UPwFaceLoadCondition<3,9>;
 
 } // Namespace Kratos.

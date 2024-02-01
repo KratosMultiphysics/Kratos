@@ -159,6 +159,9 @@ template class PwCondition<2,2>;
 template class PwCondition<3,1>;
 template class PwCondition<3,3>;
 template class PwCondition<3,4>;
+template class PwCondition<3,6>;
+template class PwCondition<3,8>;
+template class PwCondition<3,9>;
 
 template class PwCondition<2,3>;
 
