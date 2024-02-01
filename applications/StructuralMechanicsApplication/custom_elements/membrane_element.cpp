@@ -178,7 +178,7 @@ void MembraneElement::CalculateLeftHandSide(
         for (SizeType j = 0; j < system_size; j++) {
             derivative_Fint_z[j] = rLeftHandSideMatrix(DFZintIndex,j);
         }
-        KRATOS_WATCH(derivative_Fint_z)
+        // KRATOS_WATCH(derivative_Fint_z)
         // Get node normal
         array_1d<double, 3> node_normal = GetGeometry()[i].GetValue(NORMAL);
         // Get nodal Fext/du contribution
@@ -189,7 +189,7 @@ void MembraneElement::CalculateLeftHandSide(
                 DFextDU_i(m,n) = (1 / node_normal[2]) * (node_normal[m] * derivative_Fint_z[n]);
             }
         }
-        KRATOS_WATCH(DFextDU_i)
+        // KRATOS_WATCH(DFextDU_i)
         // Fill DFextDU entries
         for (SizeType rowCurrent = rowIndex; rowCurrent < (rowIndex + 3); rowCurrent++)
         {
@@ -201,7 +201,7 @@ void MembraneElement::CalculateLeftHandSide(
         DFZintIndex += 3;
         rowIndex += 3;
     }
-    KRATOS_WATCH(derivative_external_forces)
+    // KRATOS_WATCH(derivative_external_forces)
     // subtract DFintDU - DFextDU
     for (SizeType dof_s = 0; dof_s < system_size; dof_s++)
     {
@@ -210,6 +210,9 @@ void MembraneElement::CalculateLeftHandSide(
             rLeftHandSideMatrix(dof_s, dof_r) -= derivative_external_forces(dof_s, dof_r);
         }
     }
+    rLeftHandSideMatrix(2, 2) = 1.0;
+    rLeftHandSideMatrix(5, 5) = 1.0;
+    rLeftHandSideMatrix(8, 8) = 1.0;
     KRATOS_INFO("LHS post DFextDU") << "LHS after DFext adjustment" << std::endl;
     KRATOS_WATCH(rLeftHandSideMatrix)
 }
@@ -235,7 +238,7 @@ void MembraneElement::CalculateRightHandSide(
     // RHS before external force calculation
     KRATOS_INFO("RHS -Fint") << "RHS before external force calculation" << std::endl;
     KRATOS_WATCH(internal_forces)
-    KRATOS_WATCH(rRightHandSideVector)
+    // KRATOS_WATCH(rRightHandSideVector)
 
     Vector external_forces = ZeroVector(system_size);
     // INTENSITY OF EXTERNAL FORCE PER NODE
@@ -243,15 +246,15 @@ void MembraneElement::CalculateRightHandSide(
     double p_1 = 0.0;
     double p_2 = 0.0;
 
-    KRATOS_INFO("Node Normals") << "NORMALS, INSIDE ELEMENT" << std::endl;
+    // KRATOS_INFO("Node Normals") << "NORMALS, INSIDE ELEMENT" << std::endl;
     // declare as 'const'?
     array_1d<double, 3> normal_0 = GetGeometry()[0].GetValue(NORMAL);
     array_1d<double, 3> normal_1 = GetGeometry()[1].GetValue(NORMAL);
     array_1d<double, 3> normal_2 = GetGeometry()[2].GetValue(NORMAL);
 
-    KRATOS_WATCH(normal_0)
-    KRATOS_WATCH(normal_1)
-    KRATOS_WATCH(normal_2)
+    // KRATOS_WATCH(normal_0)
+    // KRATOS_WATCH(normal_1)
+    // KRATOS_WATCH(normal_2)
 
     if (std::abs(internal_forces[2]) > 1e-15) {
         p_0 = internal_forces[2] / normal_0[2];
@@ -275,9 +278,9 @@ void MembraneElement::CalculateRightHandSide(
     external_forces(8) = p_2 * normal_2[2];
     noalias(rRightHandSideVector) += external_forces;
 
-    KRATOS_WATCH(p_0)
-    KRATOS_WATCH(p_1)
-    KRATOS_WATCH(p_2)
+    // KRATOS_WATCH(p_0)
+    // KRATOS_WATCH(p_1)
+    // KRATOS_WATCH(p_2)
     KRATOS_INFO("RHS Fext - Fint") << "RHS after external force calculation" << std::endl;
     KRATOS_WATCH(external_forces)
     KRATOS_WATCH(rRightHandSideVector)
