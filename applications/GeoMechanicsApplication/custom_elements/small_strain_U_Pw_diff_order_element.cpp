@@ -38,27 +38,29 @@ SmallStrainUPwDiffOrderElement::SmallStrainUPwDiffOrderElement() : Element()
 }
 
 // Constructor 1
-SmallStrainUPwDiffOrderElement::SmallStrainUPwDiffOrderElement(IndexType NewId, GeometryType::Pointer pGeometry)
-    : Element(NewId, pGeometry)
+SmallStrainUPwDiffOrderElement::SmallStrainUPwDiffOrderElement(IndexType NewId,
+                                                               GeometryType::Pointer pGeometry,
+                                                               std::unique_ptr<StressStateStrategy> strategy)
+    : Element(NewId, pGeometry), mpStressStateStrategy(std::move(strategy))
 {
-    if (this->GetGeometry().WorkingSpaceDimension() > 2) {
-        mpStressStateStrategy = std::make_unique<ThreeDStressState>();
-    } else {
-        mpStressStateStrategy = std::make_unique<PlaneStrainStressState>();
+    if (!mpStressStateStrategy) {
+        if (this->GetGeometry().WorkingSpaceDimension() > 2) {
+            mpStressStateStrategy = std::make_unique<ThreeDStressState>();
+        } else {
+            mpStressStateStrategy = std::make_unique<PlaneStrainStressState>();
+        }
     }
 }
 
 // Constructor 2
 SmallStrainUPwDiffOrderElement::SmallStrainUPwDiffOrderElement(IndexType NewId,
                                                                GeometryType::Pointer pGeometry,
-                                                               PropertiesType::Pointer pProperties)
-    : Element(NewId, pGeometry, pProperties)
+                                                               PropertiesType::Pointer pProperties,
+                                                               std::unique_ptr<StressStateStrategy> strategy)
+    : Element(NewId, pGeometry, pProperties), mpStressStateStrategy(std::move(strategy))
 {
-    if (this->GetGeometry().WorkingSpaceDimension() > 2) {
-        mpStressStateStrategy = std::make_unique<ThreeDStressState>();
-    } else {
-        mpStressStateStrategy = std::make_unique<PlaneStrainStressState>();
-    }
+
+    KRATOS_ERROR_IF_NOT(mpStressStateStrategy) << "Whoops \n";
 }
 
 SmallStrainUPwDiffOrderElement::~SmallStrainUPwDiffOrderElement() = default;
@@ -67,14 +69,17 @@ Element::Pointer SmallStrainUPwDiffOrderElement::Create(IndexType NewId,
                                                         NodesArrayType const& ThisNodes,
                                                         PropertiesType::Pointer pProperties) const
 {
-    return Element::Pointer(new SmallStrainUPwDiffOrderElement(NewId, GetGeometry().Create(ThisNodes), pProperties));
+    return Element::Pointer(new SmallStrainUPwDiffOrderElement(
+        NewId, GetGeometry().Create(ThisNodes), pProperties,
+        mpStressStateStrategy->Create()));
 }
 
 Element::Pointer SmallStrainUPwDiffOrderElement::Create(IndexType NewId,
                                                         GeometryType::Pointer pGeom,
                                                         PropertiesType::Pointer pProperties) const
 {
-    return Element::Pointer(new SmallStrainUPwDiffOrderElement(NewId, pGeom, pProperties));
+    return Element::Pointer(new SmallStrainUPwDiffOrderElement(
+        NewId, pGeom, pProperties, mpStressStateStrategy->Create()));
 }
 
 int SmallStrainUPwDiffOrderElement::Check(const ProcessInfo& rCurrentProcessInfo) const

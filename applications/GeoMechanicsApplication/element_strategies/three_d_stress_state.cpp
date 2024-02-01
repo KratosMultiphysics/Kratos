@@ -46,4 +46,9 @@ double ThreeDStressState::CalculateIntegrationCoefficient(const Geometry<Node>::
 {
     return IntegrationPoints[PointNumber].Weight() * detJ;
 }
+
+std::unique_ptr<StressStateStrategy> ThreeDStressState::Create()
+{
+    return std::make_unique<ThreeDStressState>();
+}
 } // namespace Kratos

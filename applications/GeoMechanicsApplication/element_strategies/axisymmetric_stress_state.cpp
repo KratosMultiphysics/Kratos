@@ -53,4 +53,9 @@ double AxisymmetricStressState::CalculateIntegrationCoefficient(const Geometry<N
     return IntegrationPoints[PointNumber].Weight() * detJ * radiusWeight;
 }
 
+std::unique_ptr<StressStateStrategy> AxisymmetricStressState::Create()
+{
+    return std::make_unique<AxisymmetricStressState>();
+}
+
 } // namespace Kratos

@@ -25,6 +25,8 @@ public:
                                            unsigned int PointNumber,
                                            double detJ,
                                            const Geometry<Node>& rGeometry) override;
+
+    std::unique_ptr<StressStateStrategy> Create() override;
 };
 
 } // namespace Kratos

@@ -43,10 +43,10 @@ public:
     SmallStrainUPwDiffOrderElement();
 
     // Constructor 1
-    SmallStrainUPwDiffOrderElement(IndexType NewId, GeometryType::Pointer pGeometry);
+    SmallStrainUPwDiffOrderElement(IndexType NewId, GeometryType::Pointer pGeometry, std::unique_ptr<StressStateStrategy> strategy = nullptr);
 
     // Constructor 2
-    SmallStrainUPwDiffOrderElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties);
+    SmallStrainUPwDiffOrderElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties, std::unique_ptr<StressStateStrategy> strategy = nullptr);
 
     // Destructor
     ~SmallStrainUPwDiffOrderElement() override;

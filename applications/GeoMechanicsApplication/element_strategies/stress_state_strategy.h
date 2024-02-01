@@ -28,6 +28,8 @@ public:
                                                    double detJ,
                                                    const Geometry<Node>& rGeometry) = 0;
 
+    virtual std::unique_ptr<StressStateStrategy> Create() = 0;
+
     virtual ~StressStateStrategy() = default;
 };
 

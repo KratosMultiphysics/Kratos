@@ -41,4 +41,9 @@ double PlaneStrainStressState::CalculateIntegrationCoefficient(const Geometry<No
     return IntegrationPoints[PointNumber].Weight() * detJ;
 }
 
+std::unique_ptr<StressStateStrategy> PlaneStrainStressState::Create()
+{
+    return std::make_unique<PlaneStrainStressState>();
+}
+
 } // namespace Kratos
