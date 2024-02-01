@@ -108,7 +108,7 @@ private:
             // double Z0_new = r_node.Z0() + disp[2];
             // r_node.SetInitialPosition(X0_new, Y0_new, Z0_new);
 
-            r_node.FastGetSolutionStepValue(DISPLACEMENT) = ZeroVector(3);  // needed for us?
+            // r_node.FastGetSolutionStepValue(DISPLACEMENT) = ZeroVector(3);
         }
     }
 
