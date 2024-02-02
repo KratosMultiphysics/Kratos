@@ -20,7 +20,7 @@ Following operations are supported:
 These operations are carried out only when their results are required ([lazy evaluation](https://en.wikipedia.org/wiki/Lazy_evaluation)).
 
 ## Example usage
-Following code snippet explains few use cases for ```NodalExpression```. All the other ```Expression``` also have a similar usage.
+Here is an example for using ```NodalExpression``` (other expression types can be used in a similar fashion).
 ```python
 import KratosMultiphysics as Kratos
 model = Kratos.Model()
