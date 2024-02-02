@@ -47,4 +47,21 @@ It is allowed to create subfolders to store page data such as ```images```. If t
 <p align="center">Figure 2: Vertex morphing filtering</p>
 ```
 
+## Python snippets
+
+Python snippets can be added to markdown as usual. In this case, if one required to generate the output of the python snippet automatically and then to be added to the same markdown file, then ```## POST_PROCESS_PAGES_PYTHON_OUTPUT_GENERATION``` can be added somewhere within the python snippet.
+
+This generation is only done if ```process_pages.py``` is passed with `-t local` flag.
+Following is an example:
+```python
+print(1)
+## POST_PROCESS_PAGES_PYTHON_OUTPUT_GENERATION
+```
+
+This will generate the following markdown
+```
+Expected output:
+1
+```
+
 
