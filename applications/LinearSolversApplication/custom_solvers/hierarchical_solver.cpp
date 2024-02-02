@@ -233,7 +233,7 @@ bool HierarchicalSolver<TSparseSpace,TDenseSpace,TReorderer>::Solve(SparseMatrix
     // Initializations
     // r = b - A * x
     TSparseSpace::Mult(rA, rX, fine_tmp);
-    noalias(fine_residual) = rB - fine_tmp;
+    TSparseSpace::ScaleAndAdd(1.0, rB, -1.0, fine_tmp, fine_residual);
 
     double residual_norm = 1.0;
     const std::size_t max_iterations = mpImpl->mMaxIterations;
@@ -748,7 +748,7 @@ void MapHigherToLowerOrder(const ModelPart& rModelPart,
     for (const auto& r_master_info : rMasterMap) {
         const std::size_t i_coarse_dof_in_fine_system = r_master_info.first;
 
-        // Skip the DoF if it is not part of the coarse system
+        // Skip the DoF if it is only part of the fine system
         if (rCoarseDofMask[i_coarse_dof_in_fine_system] != DofCategory::Coarse) {
             continue;
         }
@@ -763,8 +763,8 @@ void MapHigherToLowerOrder(const ModelPart& rModelPart,
 
             for (auto entry : r_slave_info.second) {
                 const Geometry<Node>& r_fine_geometry = std::get<0>(entry)->GetGeometry();
-                const std::size_t i_vertex = std::get<1>(entry);
-                const std::size_t i_node_dof = std::get<2>(entry);
+                const std::size_t i_slave_vertex = std::get<1>(entry);
+                const std::size_t i_slave_node_dof = std::get<2>(entry);
 
                 std::vector<
                     std::vector<std::pair<
@@ -775,10 +775,10 @@ void MapHigherToLowerOrder(const ModelPart& rModelPart,
                 restriction_coefficients.reserve(4ul); // <== reserve assuming a tetrahedron (linear vertex count)
                 GetNonzeroQuadraticCoefficients(r_fine_geometry.GetGeometryType(),
                                                 std::back_inserter(restriction_coefficients));
-                if (i_vertex < restriction_coefficients.size()) {
-                    KRATOS_ERROR_IF_NOT(i_vertex < restriction_coefficients.size());
+                if (i_slave_vertex < restriction_coefficients.size()) {
+                    KRATOS_ERROR_IF_NOT(i_slave_vertex < restriction_coefficients.size());
 
-                    const auto& r_restriction_terms = restriction_coefficients[i_vertex];
+                    const auto& r_restriction_terms = restriction_coefficients[i_slave_vertex];
 
                     // The first term always corresponds to the linear equivalent of the vertex,
                     // which would not have an impact on the restricted stiffness under normal
@@ -794,7 +794,7 @@ void MapHigherToLowerOrder(const ModelPart& rModelPart,
                     for (; i_term<r_restriction_terms.size(); ++i_term) {
                         const auto& r_fine_coefficient_pair = r_restriction_terms[i_term];
                         const std::size_t i_fine_vertex = r_fine_coefficient_pair.first;
-                        const std::size_t i_fine_dof = r_fine_geometry[i_fine_vertex].GetDofs()[i_node_dof]->EquationId();
+                        const std::size_t i_fine_dof = r_fine_geometry[i_fine_vertex].GetDofs()[i_slave_node_dof]->EquationId();
                         const auto it_slave = rSlaveMap.find(i_fine_dof);
                         const bool is_slave = it_slave != it_slave_end;
                         if (!is_slave) {
@@ -810,11 +810,11 @@ void MapHigherToLowerOrder(const ModelPart& rModelPart,
                             }
                         }
                     }
-                } /* if (i_vertex < restriction_coefficients.size()) */ else {
+                } /* if (i_slave_vertex < restriction_coefficients.size()) */ else {
                     //const auto mpc_coefficient = slave_pair.second;
                     //const auto restriction_coefficient = mpc_coefficient;
                     /// @todo find out why i_slave_dof always evaluates to 0 in this case (matekelemen)
-                    //const std::size_t i_slave_dof = r_fine_geometry[i_vertex].GetDofs()[i_node_dof]->EquationId();
+                    //const std::size_t i_slave_dof = r_fine_geometry[i_slave_vertex].GetDofs()[i_slave_node_dof]->EquationId();
                     //rRestrictionMap.emplace(std::make_pair(i_coarse_dof, i_slave_dof), restriction_coefficient);
                 }
             } // for entry in r_slave_info.mContainingElements
