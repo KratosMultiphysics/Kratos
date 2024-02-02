@@ -1,4 +1,5 @@
 import KratosMultiphysics
+import KratosMultiphysics.ParticleMechanicsApplication as KratosParticle
 
 def Factory(settings, Model):
     if(not isinstance(settings, KratosMultiphysics.Parameters)):
@@ -15,6 +16,7 @@ class ApplyMPMSlipBoundaryProcess(KratosMultiphysics.Process):
                 "model_part_name"           :"PLEASE_CHOOSE_MODEL_PART_NAME",
                 "mesh_id"                   : 0,
                 "friction_coefficient"      : 0,
+                "tangential_penalty_factor" : 0,
                 "option"                    : "",
                 "avoid_recomputing_normals" : true
             }  """ )
@@ -26,11 +28,12 @@ class ApplyMPMSlipBoundaryProcess(KratosMultiphysics.Process):
 
         # get friction parameters
         self.friction_coefficient = settings["friction_coefficient"].GetDouble()
-        if self.friction_coefficient > 0 and self.is_slip_boundary:
+        self.tangential_penalty_factor = settings["tangential_penalty_factor"].GetDouble()
+
+        if self.friction_coefficient > 0 and self.tangential_penalty_factor > 0:
             # friction active -- set flag on ProcessInfo
             self.model_part.ProcessInfo[KratosMultiphysics.FLAG_VARIABLE] = 1.0
 
-        # TODO: add condition for friction?
 
         # Compute the normal on the nodes of interest -
         # Note that the model part employed here is supposed to only have slip "conditions"
@@ -42,6 +45,7 @@ class ApplyMPMSlipBoundaryProcess(KratosMultiphysics.Process):
             node.SetValue(KratosMultiphysics.IS_STRUCTURE,1.0)
             node.SetSolutionStepValue(KratosMultiphysics.IS_STRUCTURE,0,1.0)
             node.SetValue(KratosMultiphysics.FRICTION_COEFFICIENT, self.friction_coefficient)
+            node.SetValue(KratosParticle.TANGENTIAL_PENALTY_FACTOR, self.tangential_penalty_factor)
 
 
 
