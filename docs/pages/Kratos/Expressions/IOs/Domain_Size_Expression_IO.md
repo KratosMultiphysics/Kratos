@@ -14,7 +14,7 @@ summary:
 2. If the ```Condition``` or ```Element``` as a geometry representing a surface, then this will compute an expression with surface area for each entitiy.
 3. If the ```Condition``` or ```Element``` as a geometry representing a volume, then this will compute an expression with volume for each entitiy.
 
-The resulting expression will be always a scalar expression.
+The resulting expression is always a scalar expression.
 
 ## Reading domain sizes
 Following code snippet shows how to read domain sizes to an expression
