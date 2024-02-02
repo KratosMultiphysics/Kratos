@@ -1,9 +1,9 @@
 ---
 title: Slice
-keywords:
+keywords: 
 tags: [slice, expressions]
 sidebar: kratos_expressions
-summary:
+summary: 
 ---
 
 ## Introduction
