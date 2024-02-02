@@ -23,7 +23,7 @@ The following data containers are supported:
 
 ## Supported data types
 
-The expressions support almost all the variable types in Kratos, and many more data types as well. The data storage in the expressions can be assumed as a flat ```int``` or ```double``` array. Followings are few supported data types:
+Expressions are compatible with most main variable types in Kratos:
 
 * ```int```
 * ```double```
