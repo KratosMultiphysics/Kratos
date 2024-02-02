@@ -44,7 +44,7 @@ Kratos.Expression.VariableExpressionIO.Read(nodal_expression, Kratos.VELOCITY, F
 ## Condition Expression
 
 Condition expressions are used to store data related to condition quantities. Following code snippet illustrtes creating a condition expression
-and reading ```VELOCITY``` from condition data value container.
+and reading ```VELOCITY``` from the conditions' container.
 ```python
 import KratosMultiphysics as Kratos
 model = Kratos.Model()
