@@ -852,6 +852,34 @@ class TestConditionContainerExpression(kratos_unittest.TestCase, TestContainerEx
     def _Evaluate(self, container_expression, variable):
         Kratos.Expression.VariableExpressionIO.Write(container_expression, variable)
 
+    def testDomainSizeExpressionIOCondition(self):
+        condition_exp = Kratos.Expression.ConditionExpression(self.model_part)
+        Kratos.Expression.DomainSizeExpressionIO.Read(condition_exp)
+        numpy_condition_exp = condition_exp.Evaluate()
+        for i, condition in enumerate(self.model_part.Conditions):
+            self.assertEqual(numpy_condition_exp[i], condition.GetGeometry().DomainSize())
+
+    def testDomainSizeExpressionIOElement(self):
+        element_exp = Kratos.Expression.ElementExpression(self.model_part)
+        Kratos.Expression.DomainSizeExpressionIO.Read(element_exp)
+        numpy_element_exp = element_exp.Evaluate()
+        for i, element in enumerate(self.model_part.Elements):
+            self.assertEqual(numpy_element_exp[i], element.GetGeometry().DomainSize())
+
+    def testDomainSizeExpressionIOCondition_Empty(self):
+        model = Kratos.Model()
+        model_part = model.CreateModelPart("test")
+        cond_exp = Kratos.Expression.ConditionExpression(model_part)
+        Kratos.Expression.DomainSizeExpressionIO.Read(cond_exp)
+        self.assertEqual(cond_exp.Evaluate().shape, (0,))
+
+    def testDomainSizeExpressionIOElement_Empty(self):
+        model = Kratos.Model()
+        model_part = model.CreateModelPart("test")
+        element_exp = Kratos.Expression.ElementExpression(model_part)
+        Kratos.Expression.DomainSizeExpressionIO.Read(element_exp)
+        self.assertEqual(element_exp.Evaluate().shape, (0,))
+
 class TestElementContainerExpression(kratos_unittest.TestCase, TestContainerExpression):
     @classmethod
     def setUpClass(cls):
