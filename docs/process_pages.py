@@ -228,37 +228,43 @@ def AddPythonSnippetOutputs(file_path: Path) -> None:
     while index < len(lines):
         line = lines[index]
         index += 1
-        output_lines.append(line)
+        if not found_python_snippet_block or line != "## POST_PROCESS_PAGES_PYTHON_OUTPUT_GENERATION\n":
+            output_lines.append(line)
 
         if found_python_snippet_block and line.startswith("```"):
             found_python_snippet_block = False
             if "## POST_PROCESS_PAGES_PYTHON_OUTPUT_GENERATION\n" in snippet_lines:
-                # create a temp file
-                temp_file_path = str(file_path.absolute()) + ".temp.py"
-                with open(temp_file_path, "w") as temp_file_output:
-                    temp_file_output.writelines(snippet_lines)
+                # check whether existing expected output is found
+                temp_index = index
+                is_existing_output_found = False
+                while temp_index < len(lines):
+                    if lines[temp_index].strip() != "":
+                        is_existing_output_found  = lines[temp_index] == "Expected output:\n"
+                        is_existing_output_found &= lines[temp_index+1] == "```bash\n"
+                        break
+                    temp_index += 1
 
-                popen = subprocess.Popen(["python3", temp_file_path], stdout=subprocess.PIPE, universal_newlines=True)
+                if not is_existing_output_found:
+                    # existing is not found or force re-write is enabled
 
-                output_lines.append("\n")
-                output_lines.append("Expected output:\n")
-                output_lines.append("```bash\n")
-                for stdout_line in iter(popen.stdout.readline, ""):
-                    output_lines.append(stdout_line)
-                output_lines.append("```\n")
+                    # create a temp file
+                    temp_file_path = str(file_path.absolute()) + ".temp.py"
+                    with open(temp_file_path, "w") as temp_file_output:
+                        temp_file_output.writelines(snippet_lines)
 
-                # remove the temp file
-                os.remove(temp_file_path)
+                    popen = subprocess.Popen(["python3", temp_file_path], stdout=subprocess.PIPE, universal_newlines=True)
+                    output_lines.append("\n")
+                    output_lines.append("Expected output:\n")
+                    output_lines.append("```bash\n")
+                    for stdout_line in iter(popen.stdout.readline, ""):
+                        output_lines.append(stdout_line)
+                    output_lines.append("```\n")
 
-                # now check this output already exists. then remove that output since
-                # this will be only called when processing is done with -t local flag.
-                # raise RuntimeError(lines[index:index+3])
-                if lines[index:index+3] == ["\n", "Expected output:\n", "```bash\n"]:
-                    while index < len(lines):
-                        if lines[index] == "```\n":
-                            index += 1
-                            break
-                        index += 1
+                    # remove the temp file
+                    os.remove(temp_file_path)
+
+                    if is_existing_output_found:
+                        index += temp_index + lines[temp_index:].index("```\n") + 1
 
         if found_python_snippet_block:
             snippet_lines.append(line)
