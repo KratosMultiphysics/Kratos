@@ -8,9 +8,9 @@ summary:
 
 ## Introduction
 
-```NodalPositionExpressionIO``` allows writing and reading nodal positions of a given model part. This can be used on following configurations:
-* Initial -> This uses the initial nodal position to read and write.
-* Current -> This uses the current position of the nodes to read and write.
+```NodalPositionExpressionIO``` allows writing and reading nodal positions of a given model part. This can be used on following the configurations:
+* Initial -> initial positions of the node
+* Current -> positions of the nodes in the current configuration
 
 In the case of **distributed memory** parallelized runs, the reading will only read the nodal positions of the nodes in the local mesh, and the writing will write to local mesh nodes and will afterwards synchronize to update the ghost meshes.
 

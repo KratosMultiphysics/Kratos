@@ -8,7 +8,7 @@ summary:
 
 ## Introduction
 
-```IntegrationPointExpressionIO``` is used to set and get the integration point quantities from ```Kratos::Condition``` or ```Kratos::Element``` containers.
+```IntegrationPointExpressionIO``` is used to set or get quantities at integration points from elements or conditions.
 
 ### Variable types
 Following data types are supported for integration point quantity calculations.
@@ -22,7 +22,7 @@ Following data types are supported for integration point quantity calculations.
 * ```Matrix```
 
 ### Shape of resulting expressions
-The resulting expressions computed by ```IntegrationPointExpressionIO``` will have two additional dimensionalities apart from the dimensionality of the entity data type. The first dimension will illustrate number of entities in the expression. Second dimension will be number of gauss points computed in each entitiy. Rest of the dimensions will be representing the dimensionality of the entity data.
+The resulting expressions computed by ```IntegrationPointExpressionIO``` will have two additional dimensions on top of the data type's dimensions. The first one indicates the number of entities in the expression, while the second dimension is the number of gauss points computed in each entitiy. The rest of the dimensions are carried over from the integration point quantity.
 
 ## Reading and writing integration point data
 Following code snippet shows how to read and write integration point data.
@@ -55,9 +55,8 @@ Kratos.Expression.IntegrationPointExpressionIO.Write(element_expression, Kratos.
 ```
 
 ## Using expressions without the model parts
-The ```NodalExpression```, ```ConditionExpression``` and ```ElementExpression``` has an expression which can be directly used if required. The advantage of working
-with the ```Expression``` directely is, then it is not bound to a model part of a ```DataValueContainer```. Hence, these expressions can be interchanged if required in
-advanced use cases. Following code snippet shows how to use bare ```Expressions```.
+The underlying `Expression` instance of ```NodalExpression```, ```ConditionExpression``` and ```ElementExpression``` can be accessed directly, if necessary. The advantage of working
+with bare ```Expression```s is that they are not bound to a specific model part or entity type, which means that they are completely interchangable. The following code snippet shows how to use bare ```Expression```s.
 ```python
 import KratosMultiphysics as Kratos
 model = Kratos.Model()

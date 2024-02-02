@@ -8,7 +8,7 @@ summary:
 
 ## Introduction
 
-```LiteralExpressionIO``` is used to represent literal values. Following literal types are supported:
+```LiteralExpressionIO``` is used to represent literal values. The following literal types are supported:
 * int
 * double
 * array_1d<double, 3>
@@ -18,12 +18,11 @@ summary:
 * Vector
 * Matrix
 
-This IO will create an expression with the specified literal for all entities. Since it is going to be constant for all entities, the literal will be stored only once for
-all entities making the memory occupation the least. When the expression is evaluated, this stored literal will be read by all entities.
+This IO will create an expression with the specified literal for all entities.
 
 ## Setting literal expressions
 
-Following code snippet shows how to set literal expressions
+The following code snippet shows how to set literal expressions
 ```python
 import KratosMultiphysics as Kratos
 model = Kratos.Model()
@@ -48,7 +47,7 @@ for node in model_part.Nodes:
 
 ## Setting literal expression to zero
 
-The ```LiteralExpressionIO``` also can be used to set entity data to zero for a given variable. **In the case of dynamic data types, it will create empty data sets [Such as Vector with size 0, Matrix with shape (0,0)**. The passed variable is only used to determine the entity data shape. Following code-snippet shows an example:
+The ```LiteralExpressionIO``` also can be used to set entity data to zero for a given variable. **In the case of dynamically sized types, it will create empty instances [Such as Vector with size 0, Matrix with shape (0,0)**. The passed variable is only used to determine the entity shape. Example:
 ```python
 import KratosMultiphysics as Kratos
 model = Kratos.Model()

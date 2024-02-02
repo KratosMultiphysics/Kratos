@@ -8,11 +8,11 @@ summary:
 
 ## Introduction
 
-```VariableExpressionIO``` is used to read ```Kratos::Variable``` data in a data value container to a expression or write an expression data in to a ```Kratos::Variable``` in a specified data value container. The expression will only read or write to the entities (i.e. nodes/conditions/elements) in the local mesh. In the case of writing expression data to a variable in data value container, if it is used in ***distributed memory** parallelized environment, proper synchronization will be automatically done. Hence, all of these operations are compatible with **shared memory** and **distributed memory** parallelizations.
+```VariableExpressionIO``` is used to read ```Kratos::Variable``` from a container to an expression vice versa. The expression will only read or write to the entities (i.e. nodes/conditions/elements) in the local mesh. If writing an expression to a variable in a container during an MPI run, synchronization between ranks is automatically done.
 
 ### Variable types
 
-Following variable types are allowed to be read in or write to from an expression.
+The following Kratos variable types are supported:
 * ```Kratos::Variable<int>```
 * ```Kratos::Variable<double>```
 * ```Kratos::Variable<array_1d<double, 3>>```
@@ -23,11 +23,10 @@ Following variable types are allowed to be read in or write to from an expressio
 * ```Kratos::Variable<Matrix>```
 
 ### Shape of the resulting expression
-In the case of static data types given by static data type variables (such as ```Kratos::Variable<double>```, ```Kratos::Variable<array_1d<double, 3>>```), the shape of the expression will be always have number of local entities in the first dimension, rest will be followed by the static size of the data type. If the variable type being used is of dynamic data type (such as ```Kratos::Variable<Vector>```, ```Kratos::Variable<Matrix>```), then it will represent still the number of local entities in the first dimension. Rest of the dimensions will represent the dimenions of the first data value found in the respective container. [In the case of **distributed memory** parallelized runs, first data value shape synchronization is done to identify the shape of the expression].
+If the data type has static size (such as ```Kratos::Variable<double>```, ```Kratos::Variable<array_1d<double, 3>>```), the result's shape is the number of local entities, followed by the static size of the type. However, if the data type has dynamic size (such as ```Kratos::Variable<Vector>```, ```Kratos::Variable<Matrix>```), then all entries in the container are assumed to have the same shape as the first entry. [In MPI runs, the first entry's shape is synchronized across all ranks to determine the final shape of the expression].
 
 
 ## Reading/Writing nodal values
-Reading and writing to nodal values have the same interface within ```VariableExpressionIO```. The first argument shall be a `NodalExpression`, the second argumen shall be a ```Kratos::Variable``` and the last argument shall be a boolean indicating true if it is required to read from historical nodal data value container or false if it is required read from non-historical nodal data value container. In the case of **distributed memory** parallelized runs, a proper synchronization between ghost nodes are done when writing is executed.
 
 ```python
 import KratosMultiphysics as Kratos
@@ -59,7 +58,6 @@ for node in model_part.Nodes:
 ```
 
 ## Reading/Writing condition values
-Reading and writing to condition values have the same interface within ```VariableExpressionIO```. The first argument shall be a `ConditionExpression` and the second argumen shall be a ```Kratos::Variable```.
 ```python
 import KratosMultiphysics as Kratos
 model = Kratos.Model()
@@ -91,7 +89,6 @@ for condition in model_part.Conditions:
 ```
 
 ## Reading/Writing element values
-Reading and writing to element values have the same interface within ```VariableExpressionIO```. The first argument shall be a `ElementExpression` and the second argumen shall be a ```Kratos::Variable```.
 ```python
 import KratosMultiphysics as Kratos
 model = Kratos.Model()

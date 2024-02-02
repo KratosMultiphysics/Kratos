@@ -8,15 +8,14 @@ summary:
 
 ## Introduction
 
-```CArrayExpressionIO``` is used to exchange data between `C` type arrays and expressions. This allows reading from `C` arrays as well as writing to `C` arrays. In the python later, it can be used to exchange data between numpy arrays, ```Kratos::Vectors``` as well.
+```CArrayExpressionIO``` is used to exchange data between `C` type arrays and expressions. In python, it can be used to exchange data between numpy arrays, ```Kratos::Vectors```, or any other contiguous array of supported types.
 
-## Reading and moving from numpy array
+## Reading or viewing a numpy array
 
 Please refer to [Working with numpy](../General/Working_with_Numpy.html) section.
 
 ## Writing to numpy array
-Writing an expression to a numpy array is super simple. In the case of **shared memory** parallelized runs, this will only write only the data from the
-```LocalMesh``` to the numpy array. The size of the numpy array should be compatible with the expression shape. Following code snippet shows an example:
+In MPI runs, expressions will only write data from the ```LocalMesh``` to the numpy array. The size of the numpy array should be compatible with the expression shape. The following code snippet shows an example:
 ```python
 import numpy
 import KratosMultiphysics as Kratos
@@ -43,10 +42,15 @@ Kratos.Expression.CArrayExpressionIO.Write(nodal_expression, numpy_array)
 print("numpy array = ", numpy_array)
 ```
 
-## Reading and writing to Kratos::Vector
-```CArrayExpressionIO``` also allows reading and writing from ```Kratos::Vector``` data containers. In this case, the size of the ```Kratos::Vector``` should be the flattened size of the shape of interest which the user will be working on.
+## Reading and writing to `Kratos::Vector`
+```CArrayExpressionIO``` also allows reading and writing from ```Kratos::Vector``` containers. In this case, the size of the ```Kratos::Vector``` should be the flattened size of the shape of interest which the user will be working on.
 
-The arguments for reading from a ```Kratos::Vector``` are, first the expression should be passed, secondly the ```Kratos::Vector``` should be passed. Finally the shape of the entity data should be passed. Following code snippet illustrates the usage.
+The arguments for reading from a ```Kratos::Vector``` are:
+- expression to read to
+- `Kratos::Vector` to read from
+- shape of the entity
+
+Example:
 ```python
 import KratosMultiphysics as Kratos
 model = Kratos.Model()
