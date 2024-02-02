@@ -50,7 +50,7 @@ Info Connection::Register(
 {
     CO_SIM_IO_INFO("CoSimIO") << "Registering function for: " << rFunctionName << std::endl;
 
-    CheckIfNameIsValid(rFunctionName);
+    // CheckIfNameIsValid(rFunctionName);
 
     CO_SIM_IO_ERROR_IF((mRegisteredFunctions.count(rFunctionName)>0)) << "A function was already registered for " << rFunctionName << "!" << std::endl;
 
@@ -66,7 +66,7 @@ Info Connection::Run(const Info& I_Info)
     while (true) {
         CoSimIO::Info info = ImportInfo(ctrl_info);
         const std::string control_signal = info.Get<std::string>("control_signal");
-        CheckIfNameIsValid(control_signal);
+        // CheckIfNameIsValid(control_signal);
         if (control_signal == "exit") {
             break;
         } else {
