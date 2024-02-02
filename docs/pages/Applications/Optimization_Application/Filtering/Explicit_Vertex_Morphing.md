@@ -1,9 +1,9 @@
 ---
 title: Explicit Vertex Morphing
-keywords:
+keywords: 
 tags: [explicit, vertex morphing, filtering, optimization]
 sidebar: optimization_application
-summary:
+summary: 
 ---
 
 ## Introduction
