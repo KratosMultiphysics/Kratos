@@ -62,14 +62,22 @@ for dim in dim_vector:
     DN_enr_p = DefineMatrix('DN_enr_p', n_nodes, dim)
 
     ## Define shape functions for velocity enrichment (bubble)
-    N_enr_vel = sympy.Symbol('N_enr_vel', positive=True)
-    DN_enr_vel = DefineVector('DN_enr_vel', dim)
+    # N_enr_vel = sympy.Symbol('N_enr_vel', positive=True)
+    # DN_enr_vel = DefineVector('DN_enr_vel', dim)
+
+    N_enr_vel_pos = sympy.Symbol('N_enr_vel_pos', positive=True)
+    DN_enr_vel_pos = DefineVector('DN_enr_vel_pos', dim)
+
+    N_enr_vel_neg = sympy.Symbol('N_enr_vel_neg', positive=True)
+    DN_enr_vel_neg = DefineVector('DN_enr_vel_neg', dim)
 
     ## Unknown fields definition
     v = DefineMatrix('v', n_nodes, dim)         # Current step velocity (v(i,j) refers to velocity of node i component j)
     vn = DefineMatrix('vn', n_nodes, dim)       # Previous step velocity
     vnn = DefineMatrix('vnn', n_nodes, dim)     # 2 previous step velocity
-    v_enr = DefineVector('v_enr', dim)          # Velocity enrichment DOF
+    # v_enr = DefineVector('v_enr', dim)          # Velocity enrichment DOF
+    v_enr_pos = DefineVector('v_enr_pos', dim)  # Velocity enrichment DOF
+    v_enr_neg = DefineVector('v_enr_neg', dim)  # Velocity enrichment DOF
     p = DefineVector('p', n_nodes)              # Pressure
     p_enr= DefineVector('penr', n_nodes)	    # Enriched Pressure
 
@@ -77,7 +85,9 @@ for dim in dim_vector:
     q = DefineVector('q', n_nodes)              # Pressure field test function
     w = DefineMatrix('w', n_nodes, dim)         # Velocity field test function
     q_enr = DefineVector('qenr' ,n_nodes)	    # Enriched pressure field test function
-    w_enr = DefineVector('w_enr', dim)          # Enriched velocity field test function
+    # w_enr = DefineVector('w_enr', dim)          # Enriched velocity field test function
+    w_enr_pos = DefineVector('w_enr_pos', dim)  # Enriched velocity field test function
+    w_enr_neg = DefineVector('w_enr_neg', dim)  # Enriched velocity field test function
 
     ## Other data definitions
     f = DefineMatrix('f',n_nodes,dim)           # Forcing term
@@ -147,7 +157,8 @@ for dim in dim_vector:
     p_enr_gauss = p_enr.transpose()*N_enr_p
     q_enr_gauss = q_enr.transpose()*N_enr_p
     w_gauss = w.transpose()*N
-    w_enr_gauss = w_enr.transpose()*N_enr_vel
+    # w_enr_gauss = w_enr.transpose()*N_enr_vel
+    w_enr_gauss = w_enr_pos.transpose()*N_enr_vel_pos + w_enr_neg.transpose()*N_enr_vel_neg
     accel_gauss = acceleration.transpose()*N
 
     ## Gradients computation
@@ -160,14 +171,18 @@ for dim in dim_vector:
     grad_v = DN.transpose()*v_alpha
     grad_w = DN.transpose()*w
 
-    grad_v_enr = DN_enr_vel*v_enr.transpose()
-    grad_w_enr = DN_enr_vel*w_enr.transpose()
+    # grad_v_enr = DN_enr_vel*v_enr.transpose()
+    # grad_w_enr = DN_enr_vel*w_enr.transpose()
+    grad_v_enr = DN_enr_vel_pos*v_enr_pos.transpose() + DN_enr_vel_neg*v_enr_neg.transpose()
+    grad_w_enr = DN_enr_vel_pos*w_enr_pos.transpose() + DN_enr_vel_neg*w_enr_neg.transpose()
 
     div_v = div(DN,v_alpha)
     div_v_stabilization=div(DN,v)
 
-    div_v_enr = DN_enr_vel.transpose()*v_enr
-    div_w_enr = DN_enr_vel.transpose()*w_enr
+    # div_v_enr = DN_enr_vel.transpose()*v_enr
+    # div_w_enr = DN_enr_vel.transpose()*w_enr
+    div_v_enr = DN_enr_vel_pos.transpose()*v_enr_pos + DN_enr_vel_neg.transpose()*v_enr_neg
+    div_w_enr = DN_enr_vel_pos.transpose()*w_enr_pos + DN_enr_vel_neg.transpose()*w_enr_neg
 
     div_w = div(DN,w)
     div_vconv = div(DN,vconv)
@@ -180,7 +195,7 @@ for dim in dim_vector:
 
     # Convective term definition
     convective_term = vconv_gauss.transpose()*grad_v
-    convective_term_enr = vconv_gauss.transpose()*grad_v_enr #TODO: Should we include v_enr in the convective velocity? Maybe sabe the one from prev. it and use it?
+    convective_term_enr = vconv_gauss.transpose()*grad_v_enr #TODO: Should we include v_enr in the convective velocity? Maybe save the one from prev. it and use it?
 
     ## Galerkin Functional
     rv_galerkin = rho*w_gauss.transpose()*f_gauss - rho*w_gauss.transpose()*accel_gauss - rho*w_gauss.transpose()*convective_term.transpose() - grad_sym_w_voigt.transpose()*stress + div_w*p_gauss
@@ -237,7 +252,7 @@ for dim in dim_vector:
 
     # Enrichment Functional
     ##  K V   x    =  b + rhs_eV
-    ##  H Kee p_enr =  rhs_ee
+    ##  H Kee x_enr =  rhs_ee
 
     # Calculate subscales for the enrichment terms functional
     vel_residual_enr = - rho*convective_term_enr.transpose() - grad_p_enr
@@ -249,7 +264,7 @@ for dim in dim_vector:
     # Calculate the enrichment functional
     rv_galerkin_enriched = rho*w_enr_gauss*f_gauss - rho*w_enr_gauss*accel_gauss
     rv_galerkin_enriched += - rho*w_gauss.transpose()*convective_term_enr.transpose() - rho*w_enr_gauss*convective_term.transpose() - rho*w_enr_gauss*convective_term_enr.transpose()
-    rv_galerkin_enriched += - grad_sym_w_enr_voigt.transpose() * stress
+    rv_galerkin_enriched += - grad_sym_w_enr_voigt.transpose()*stress
     rv_galerkin_enriched += + div_w_enr[0,0]*p_gauss + div_w*p_enr_gauss + div_w_enr[0,0]*p_enr_gauss
     rv_galerkin_enriched += q_enr_gauss*(volume_error_ratio - div_v[0,0] - div_v_enr[0,0]) - q_gauss*div_v_enr[0,0]
 
@@ -269,25 +284,32 @@ for dim in dim_vector:
         rv_enriched += rv_stab_enriched
 
     # Set up the enrichment DOFs and test functions arrays
-    dofs_enr = sympy.zeros(n_nodes + dim,1)
-    test_func_enr = sympy.zeros(n_nodes + dim,1)
+    # dofs_enr = sympy.zeros(n_nodes + dim,1)
+    # test_func_enr = sympy.zeros(n_nodes + dim,1)
+    dofs_enr = sympy.zeros(n_nodes + 2*dim, 1)
+    test_func_enr = sympy.zeros(n_nodes + 2*dim, 1)
 
     for i in range(n_nodes):
         dofs_enr[i] = p_enr[i,0]
         test_func_enr[i] = q_enr[i,0]
+    # for i in range(dim):
+    #     dofs_enr[n_nodes + i] = v_enr[i,0]
+    #     test_func_enr[n_nodes + i] = w_enr[i,0]
     for i in range(dim):
-        dofs_enr[n_nodes + i] = v_enr[i,0]
-        test_func_enr[n_nodes + i] = w_enr[i,0]
+        dofs_enr[n_nodes + i] = v_enr_pos[i,0]
+        test_func_enr[n_nodes + i] = w_enr_pos[i,0]
+    for i in range(dim):
+        dofs_enr[n_nodes + dim + i] = v_enr_neg[i,0]
+        test_func_enr[n_nodes + dim + i] = w_enr_neg[i,0]
 
     ##  K V   x    =  b + rhs_eV
     ##  H Kee p_enr =  rhs_ee
     rhs_eV = Compute_RHS(rv_enriched.copy(), test_func, do_simplifications)
-    # SubstituteMatrixValue(rhs_eV, stress, C*grad_sym_v_enr_voigt)
-    SubstituteMatrixValue(rhs_eV, stress, C*(grad_sym_v_voigt+grad_sym_v_enr_voigt))
+    SubstituteMatrixValue(rhs_eV, stress, C*grad_sym_v_enr_voigt) # Note that the non-enriched stress is already added to the standard RHS
     V = Compute_LHS(rhs_eV, test_func, dofs_enr, do_simplifications)
 
     rhs_ee = Compute_RHS(rv_enriched.copy(), test_func_enr, do_simplifications)
-    SubstituteMatrixValue(rhs_ee, stress, C*(grad_sym_v_voigt+grad_sym_v_enr_voigt))
+    SubstituteMatrixValue(rhs_eV, stress, C*(grad_sym_v_voigt + grad_sym_v_enr_voigt))
     H = Compute_LHS(rhs_ee, test_func_enr, dofs, do_simplifications)
     Kee = Compute_LHS(rhs_ee, test_func_enr, dofs_enr, do_simplifications)
 

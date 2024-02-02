@@ -136,6 +136,8 @@ public:
         GeometryType::Pointer pGeom,
         Properties::Pointer pProperties) const override;
 
+    void InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
+
     void CalculateLocalSystem(
         MatrixType &rLeftHandSideMatrix,
         VectorType &rRightHandSideVector,
@@ -233,6 +235,14 @@ protected:
 
     ///@}
 private:
+    ///@name Member Variables
+    ///@{
+
+    array_1d<double,Dim> mVelEnrPos;
+    array_1d<double,Dim> mVelEnrNeg;
+    array_1d<double,NumNodes> mPresEnr;
+
+    ///@}
     ///@name Private Operations
     ///@{
 
@@ -292,10 +302,14 @@ private:
         const double rBubbleShapeFunction,
         const array_1d<double, Dim>& rBubbleShapeFunctionGradients) const;
 
-    void AddNormalVelocityContinuityPenalization(
-        TElementData& rData,
-        MatrixType& rLHS,
-        VectorType& rRHS);
+	void CondenseAndSaveEnrichmentWithContinuity(
+		const TElementData& rData,
+		Matrix& rLeftHandSideMatrix,
+		VectorType& rRightHandSideVector,
+		const MatrixType& rVTot,
+		const MatrixType& rHTot,
+		MatrixType& rKeeTot,
+		const VectorType& rRHSeeTot);
 
     ///@}
     ///@name Private  Access

@@ -22,6 +22,7 @@
 
 // Application includes
 #include "two_fluid_navier_stokes_alpha_method_discontinuous.h"
+#include "custom_utilities/fluid_auxiliary_utilities.h"
 #include "data_containers/two_fluid_navier_stokes/two_fluid_navier_stokes_alpha_method_discontinuous_data.h"
 
 namespace Kratos
@@ -48,6 +49,14 @@ Element::Pointer TwoFluidNavierStokesAlphaMethodDiscontinuous<TElementData>::Cre
     return Kratos::make_intrusive<TwoFluidNavierStokesAlphaMethodDiscontinuous>(NewId, pGeom, pProperties);
 }
 
+template <class TElementData>
+void TwoFluidNavierStokesAlphaMethodDiscontinuous<TElementData>::InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
+{
+    // Reset enrichment values to zero
+    this->mVelEnrPos = ZeroVector(Dim);
+    this->mVelEnrNeg = ZeroVector(Dim);
+    this->mPresEnr = ZeroVector(NumNodes);
+}
 
 template <class TElementData>
 void TwoFluidNavierStokesAlphaMethodDiscontinuous<TElementData>::CalculateLocalSystem(
@@ -107,10 +116,14 @@ void TwoFluidNavierStokesAlphaMethodDiscontinuous<TElementData>::CalculateLocalS
                 }
             } else {
                 //TODO: I think we can do all these bounded
-                VectorType rhs_ee_tot = ZeroVector(NumNodes + Dim);
-                MatrixType Vtot = ZeroMatrix(LocalSize, NumNodes + Dim);
-                MatrixType Htot = ZeroMatrix(NumNodes + Dim, LocalSize);
-                MatrixType Kee_tot = ZeroMatrix(NumNodes + Dim, NumNodes + Dim);
+                // VectorType rhs_ee_tot = ZeroVector(NumNodes + Dim);
+                // MatrixType Vtot = ZeroMatrix(LocalSize, NumNodes + Dim);
+                // MatrixType Htot = ZeroMatrix(NumNodes + Dim, LocalSize);
+                // MatrixType Kee_tot = ZeroMatrix(NumNodes + Dim, NumNodes + Dim);
+                VectorType rhs_ee_tot = ZeroVector(NumNodes + 2*Dim);
+                MatrixType Vtot = ZeroMatrix(LocalSize, NumNodes + 2*Dim);
+                MatrixType Htot = ZeroMatrix(NumNodes + 2*Dim, LocalSize);
+                MatrixType Kee_tot = ZeroMatrix(NumNodes + 2*Dim, NumNodes + 2*Dim);
 
                 for (unsigned int g_pos = 0; g_pos < data.w_gauss_pos_side.size(); ++g_pos){
                     this->UpdateIntegrationPointDataDiscontinuous(
@@ -144,7 +157,8 @@ void TwoFluidNavierStokesAlphaMethodDiscontinuous<TElementData>::CalculateLocalS
 
                 // Without pressure gradient stabilization, volume ratio is checked during condensation
                 // Also, without surface tension, zero pressure difference is penalized
-                this->CondenseEnrichmentWithContinuity(data, rLeftHandSideMatrix, rRightHandSideVector, Htot, Vtot, Kee_tot, rhs_ee_tot);
+                // this->CondenseEnrichmentWithContinuity(data, rLeftHandSideMatrix, rRightHandSideVector, Htot, Vtot, Kee_tot, rhs_ee_tot);
+                this->CondenseAndSaveEnrichmentWithContinuity(data, rLeftHandSideMatrix, rRightHandSideVector, Htot, Vtot, Kee_tot, rhs_ee_tot);
             }
         } else {
             //Get Shape function data
@@ -250,6 +264,24 @@ void TwoFluidNavierStokesAlphaMethodDiscontinuous<TwoFluidNavierStokesAlphaMetho
         r_strain_rate[0] += r_DN_DX_vel(i,0)*velocity_alpha(i,0);
         r_strain_rate[1] += r_DN_DX_vel(i,1)*velocity_alpha(i,1);
         r_strain_rate[2] += r_DN_DX_vel(i,0)*velocity_alpha(i,1) + r_DN_DX_vel(i,1)*velocity_alpha(i,0);
+    }
+
+    if (FluidAuxiliaryUtilities::IsSplit(rData.Distance)) {
+        const auto& DN_enr_vel = rData.DN_DX_enr_vel;
+        const bool is_positive = inner_prod(rData.N, rData.Distance) < 0.0 ? false : true;
+        if (is_positive) {
+            const auto& r_enr_pos = this->mVelEnrPos;
+            const array_1d<double,2>& DN_enr_vel_pos = is_positive ? DN_enr_vel : ZeroVector(2);
+            r_strain_rate[0] += DN_enr_vel_pos[0]*r_enr_pos[0];
+            r_strain_rate[1] += DN_enr_vel_pos[1]*r_enr_pos[1];
+            r_strain_rate[2] += DN_enr_vel_pos[0]*r_enr_pos[1] + DN_enr_vel_pos[1]*r_enr_pos[0];
+        } else {
+            const auto& r_enr_neg = this->mVelEnrNeg;
+            const array_1d<double,2>& DN_enr_vel_neg = is_positive ? ZeroVector(2) : DN_enr_vel;
+            r_strain_rate[0] += DN_enr_vel_neg[0]*r_enr_neg[0];
+            r_strain_rate[1] += DN_enr_vel_neg[1]*r_enr_neg[1];
+            r_strain_rate[2] += DN_enr_vel_neg[0]*r_enr_neg[1] + DN_enr_vel_neg[1]*r_enr_neg[0];
+        }
     }
 }
 
@@ -461,8 +493,9 @@ void TwoFluidNavierStokesAlphaMethodDiscontinuous<TwoFluidNavierStokesAlphaMetho
 
     const BoundedMatrix<double,3,2> vconv = (vn-vmeshn)+ alpha_f*((v-vmesh)-(vn-vmeshn));
 
-    // Get constitutive matrix
+    // Get material response data
     const Matrix &C = rData.C;
+    const auto &stress = rData.ShearStress;
 
     // Get standard shape function values
     const auto &N = rData.N;
@@ -476,6 +509,12 @@ void TwoFluidNavierStokesAlphaMethodDiscontinuous<TwoFluidNavierStokesAlphaMetho
     const auto &N_enr_vel = rData.N_enr_vel;
     const auto &DN_enr_vel = rData.DN_DX_enr_vel;
 
+    const bool is_positive = inner_prod(N, rData.Distance) < 0.0 ? false : true;
+    const double N_enr_vel_pos = is_positive ? N_enr_vel : 0.0;
+    const double N_enr_vel_neg = is_positive ? 0.0 : N_enr_vel;
+    const array_1d<double,2>& DN_enr_vel_pos = is_positive ? DN_enr_vel : ZeroVector(2);
+    const array_1d<double,2>& DN_enr_vel_neg = is_positive ? ZeroVector(2) : DN_enr_vel;
+
     // Stabilization parameters
     constexpr double stab_c1 = 4.0;
     constexpr double stab_c2 = 2.0;
@@ -485,8 +524,10 @@ void TwoFluidNavierStokesAlphaMethodDiscontinuous<TwoFluidNavierStokesAlphaMetho
 
     // Initialize enrichment DOFs appearing in the enrichment RHS to zero
     // Note that we always initialize them to zero as we do not want to store them
-    array_1d<double, Dim> v_enr = ZeroVector(Dim);
-    array_1d<double, NumNodes> penr = ZeroVector(NumNodes);
+    // array_1d<double, Dim> v_enr = ZeroVector(Dim);
+    array_1d<double, 2> v_enr_pos = ZeroVector(2);
+    array_1d<double, 2> v_enr_neg = ZeroVector(2);
+    array_1d<double, 3> penr = ZeroVector(3);
 
     // Add current Gauss point enrichment contribution
     const double gauss_weight = rData.Weight;
@@ -529,8 +570,9 @@ void TwoFluidNavierStokesAlphaMethodDiscontinuous<TwoFluidNavierStokesAlphaMetho
 
     const BoundedMatrix<double,4,3> vconv = (vn-vmeshn)+ alpha_f*((v-vmesh)-(vn-vmeshn));
 
-    // Get constitutive matrix
+    // Get material response data
     const Matrix &C = rData.C;
+    const auto &stress = rData.ShearStress;
 
     // Get standard shape function values
     const auto &N = rData.N;
@@ -544,6 +586,12 @@ void TwoFluidNavierStokesAlphaMethodDiscontinuous<TwoFluidNavierStokesAlphaMetho
     const auto &N_enr_vel = rData.N_enr_vel;
     const auto &DN_enr_vel = rData.DN_DX_enr_vel;
 
+    const bool is_positive = inner_prod(N, rData.Distance) < 0.0 ? false : true;
+    const double N_enr_vel_pos = is_positive ? N_enr_vel : 0.0;
+    const double N_enr_vel_neg = is_positive ? 0.0 : N_enr_vel;
+    const array_1d<double,3>& DN_enr_vel_pos = is_positive ? DN_enr_vel : ZeroVector(3);
+    const array_1d<double,3>& DN_enr_vel_neg = is_positive ? ZeroVector(3) : DN_enr_vel;
+
     // Stabilization parameters
     constexpr double stab_c1 = 4.0;
     constexpr double stab_c2 = 2.0;
@@ -553,8 +601,10 @@ void TwoFluidNavierStokesAlphaMethodDiscontinuous<TwoFluidNavierStokesAlphaMetho
 
     // Initialize enrichment DOFs appearing in the enrichment RHS to zero
     // Note that we always initialize them to zero as we do not want to store them
-    array_1d<double, Dim> v_enr = ZeroVector(Dim);
-    array_1d<double, NumNodes> penr = ZeroVector(NumNodes);
+    // array_1d<double, Dim> v_enr = ZeroVector(Dim);
+    array_1d<double, 3> v_enr_pos = ZeroVector(3);
+    array_1d<double, 3> v_enr_neg = ZeroVector(3);
+    array_1d<double, 4> penr = ZeroVector(4);
 
     // Add current Gauss point enrichment contribution
     const double gauss_weight = rData.Weight;
@@ -768,6 +818,102 @@ void TwoFluidNavierStokesAlphaMethodDiscontinuous<TElementData>::UpdateIntegrati
         rData.CalculateAirMaterialResponse();
     } else {
         this->CalculateMaterialResponse(rData);
+    }
+}
+
+template <class TElementData>
+void TwoFluidNavierStokesAlphaMethodDiscontinuous<TElementData>::CondenseAndSaveEnrichmentWithContinuity(
+    const TElementData& rData,
+    Matrix& rLeftHandSideMatrix,
+    VectorType& rRightHandSideVector,
+    const MatrixType& rHTot,
+    const MatrixType& rVTot,
+    MatrixType& rKeeTot,
+    const VectorType& rRHSeeTot)
+{
+    // Compute positive side, negative side and total volumes
+    double pos_vol = 0.0;
+    double neg_vol = 0.0;
+    for (const double w_gauss_pos : rData.w_gauss_pos_side) {
+        pos_vol += w_gauss_pos;
+    }
+    for (const double w_gauss_neg : rData.w_gauss_neg_side) {
+        neg_vol += w_gauss_neg;
+    }
+    const double tot_vol = pos_vol + neg_vol;
+
+    //We only enrich elements which are not almost empty/full
+    const double min_area_ratio = 1e-7;
+    if (pos_vol / tot_vol > min_area_ratio && neg_vol / tot_vol > min_area_ratio) {
+
+        // Compute the maximum diagonal value in the pressure enrichment stiffness matrix
+        double max_diag = 0.0;
+        for (IndexType k = 0; k < NumNodes; ++k){
+            if (std::abs(rKeeTot(k, k)) > max_diag){
+                max_diag = std::abs(rKeeTot(k, k));
+            }
+        }
+        if (max_diag < 1.0e-12){
+            max_diag = 1.0;
+        }
+
+        // "Weakly" impose continuity of pressure enrichment in the interserced edges
+        // Note that this effectively leaves us with a unique pressure enrichment DOF
+        for (IndexType i = 0; i < Dim; ++i){
+            const double abs_d_i = std::abs(rData.Distance[i]);
+            for (IndexType j = i + 1; j < NumNodes; ++j){
+                const double abs_d_j = std::abs(rData.Distance[j]);
+                // Check if the edge is cut, if it is, set the penalty constraint
+                if (rData.Distance[i] * rData.Distance[j] < 0.0){
+                    const double sum_d = abs_d_i + abs_d_j;
+                    const double N_i = abs_d_j / sum_d;
+                    const double N_j = abs_d_i / sum_d;
+                    const double penalty_coeff = max_diag * 0.001; // h/BDFVector[0];
+                    rKeeTot(i, i) += penalty_coeff * N_i * N_i;
+                    rKeeTot(i, j) -= penalty_coeff * N_i * N_j;
+                    rKeeTot(j, i) -= penalty_coeff * N_j * N_i;
+                    rKeeTot(j, j) += penalty_coeff * N_j * N_j;
+                }
+            }
+        }
+
+        // Enrichment condensation (add to LHS and RHS the enrichment contributions)
+        double det;
+        BoundedMatrix<double, NumNodes+2*Dim, NumNodes+2*Dim> KeeTotInv;
+        MathUtils<double>::InvertMatrix(rKeeTot, KeeTotInv, det);
+
+        const BoundedMatrix<double, NumNodes+2*Dim, LocalSize> tmp = prod(KeeTotInv, rHTot);
+        noalias(rLeftHandSideMatrix) -= prod(rVTot, tmp);
+
+        const array_1d<double, NumNodes+2*Dim> tmp2 = prod(KeeTotInv, rRHSeeTot);
+        noalias(rRightHandSideVector) -= prod(rVTot, tmp2);
+
+        // Calculate and save the enrichment contributions so we can use them later on
+        // These are used for the calculation of the strain for the constitutive law or the postprocess
+        const double rho_inf = rData.MaxSpectralRadius;
+        const double alpha_f = 1.0 / (rho_inf+1.0);
+        array_1d<double, LocalSize> sol_vect;
+        for (IndexType i_node = 0; i_node < NumNodes; ++i_node) {
+            const auto& r_v_i = row(rData.Velocity, i_node);
+            const auto& r_v_n_i = row(rData.Velocity_OldStep1, i_node);
+            for (IndexType d = 0; d < Dim; ++d) {
+                sol_vect[i_node*BlockSize + d] = r_v_n_i[d] + alpha_f*(r_v_i[d]-r_v_n_i[d]);
+            }
+            sol_vect[i_node*BlockSize + Dim] = rData.Pressure[i_node];
+        }
+
+        const Vector H_sol_vect = prod(rHTot, sol_vect);
+        const Vector aux_enr_RHS = rRHSeeTot - H_sol_vect;
+        const Vector enr_vect = prod(KeeTotInv, aux_enr_RHS);
+
+        // Save the enrichment contributions
+        for (IndexType i_node = 0; i_node < NumNodes; ++i_node) {
+            this->mPresEnr[i_node] = enr_vect[i_node];
+        }
+        for (IndexType d = 0; d < Dim; ++d) {
+            this->mVelEnrPos[d] = enr_vect[NumNodes + d];
+            this->mVelEnrNeg[d] = enr_vect[NumNodes + Dim + d];
+        }
     }
 }
 
