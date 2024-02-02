@@ -51,9 +51,7 @@ Kratos.Expression.VariableExpressionIO.Write(nodal_expression, Kratos.ACCELERATI
 
 for node in model_part.Nodes:
     print(node.GetValue(Kratos.ACCELERATION))
-## POST_PROCESS_PAGES_PYTHON_OUTPUT_GENERATION
 ```
-
 Expected output:
 ```bash
 [3](0.833333,1.5,2.16667)
