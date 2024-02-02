@@ -16,10 +16,10 @@ Following json-snippet illustrates an example use case
     "type": "connectivity_preserving_model_part_duplication_controller",
     "module": "KratosMultiphysics.OptimizationApplication.model_part_controllers",
     "settings": {
-        "source_model_part_name"      : "",
-        "destination_model_part_name" : "",
-        "destination_element_name"    : "",
-        "destination_condition_name"  : ""
+        "source_model_part_name"      : "AdjointStructure",
+        "destination_model_part_name" : "Structure",
+        "destination_element_name"    : "SolidElement3D4N",
+        "destination_condition_name"  : "SurfaceCondition3D3N"
     }
 }
 ```
