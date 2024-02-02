@@ -24,7 +24,7 @@ TODO: add an example (@matekelemen) - requires exposing the `Input` and `Output`
 ## Nodal Expression
 
 Nodal expressions are used to store data related to nodal quantities. They may be historical or non-historical. Following code snippet illustrtes creating a nodal expression
-and reading ```VELOCITY``` from nodal non-historical data value container.
+and reading ```VELOCITY``` from non-historical nodal container.
 ```python
 import KratosMultiphysics as Kratos
 model = Kratos.Model()
