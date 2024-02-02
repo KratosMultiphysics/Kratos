@@ -41,7 +41,7 @@ print("Shape of the numpy array = ", numpy_nodal_expression.shape)
 ```
 
 ## Reading from numpy arrays
-Reading from a numpy array is also simple with Expressions. First you can create the numpy array independent from Kratos if you are aware of the number of local entities (i.e. number of nodes/conditions/elements in the local mesh). Followings are supported numpy data types for the conversion:
+First create the numpy array independent from Kratos if the number of local entities are known (i.e. number of nodes/conditions/elements in the local mesh). The following numpy data types are supported when reading numpy arrays:
 1. ```numpy.int32```
 2. ```numpy.float64```
 
