@@ -17,7 +17,7 @@ Following operations are supported:
 * Division ```/``` or ```/=```
 * Power ```**``` or ```**=```
 
-**All these arithmatics always has ```O(1)``` computational cost because, they are not evaluated at the point these arithmetics are used. They are only evaluated when the final value of the ```Expression``` is required.**
+These operations are carried out only when their results are required ([lazy evaluation](https://en.wikipedia.org/wiki/Lazy_evaluation)).
 
 ## Example usage
 Following code snippet explains few use cases for ```NodalExpression```. All the other ```Expression``` also have a similar usage.
