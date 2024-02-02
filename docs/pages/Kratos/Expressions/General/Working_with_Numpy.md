@@ -8,7 +8,7 @@ summary:
 
 ## Introduction
 
-Expressions make working with nump/scipy or any other thrid party library easier. It allows reading numpy arrays to expressions, and then assign them to data value containers using variables and writing expressions to numpy arrays so variable data in data value containers of kratos do some calculation using numpy.
+Expressions make working with numpy/scipy or any other thrid party library easier. It allows reading numpy arrays to expressions, and then assign them to Kratos containers using variables.
 
 **In the case of shared memory parallelized runs, these expressions will hold only data of corresponding data value containers of the local mesh**.
 
