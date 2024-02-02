@@ -14,8 +14,6 @@ Expressions make working with numpy/scipy or any other thrid party library easie
 
 ## Writing to numpy arrays
 
-Writing an expression to a numpy array is super simple. In the case of **shared memory** parallelized runs, this will only generate a numpy array having only the data from the
-```LocalMesh```. Following code snippet shows an example:
 ```python
 import KratosMultiphysics as Kratos
 model = Kratos.Model()
