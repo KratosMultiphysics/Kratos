@@ -8,14 +8,12 @@ summary:
 
 ## Introduction
 
-Expressions make working with nump/scipy or any other thrid party library easier. It allows reading numpy arrays to expressions, and then assign them to data value containers using variables and writing expressions to numpy arrays so variable data in data value containers of kratos do some calculation using numpy.
+Expressions make working with numpy/scipy or any other thrid party library easier. It allows reading numpy arrays to expressions, and then assign them to Kratos containers using variables.
 
-**In the case of shared memory parallelized runs, these expressions will hold only data of corresponding data value containers of the local mesh**.
+**When running with MPI, these expressions will hold only data of corresponding containers of the local mesh**.
 
 ## Writing to numpy arrays
 
-Writing an expression to a numpy array is super simple. In the case of **shared memory** parallelized runs, this will only generate a numpy array having only the data from the
-```LocalMesh```. Following code snippet shows an example:
 ```python
 import KratosMultiphysics as Kratos
 model = Kratos.Model()
@@ -41,11 +39,11 @@ print("Shape of the numpy array = ", numpy_nodal_expression.shape)
 ```
 
 ## Reading from numpy arrays
-Reading from a numpy array is also simple with Expressions. First you can create the numpy array independent from Kratos if you are aware of the number of local entities (i.e. number of nodes/conditions/elements in the local mesh). Followings are supported numpy data types for the conversion:
+First create the numpy array independent from Kratos if the number of local entities are known (i.e. number of nodes/conditions/elements in the local mesh). The following numpy data types are supported when reading numpy arrays:
 1. ```numpy.int32```
 2. ```numpy.float64```
 
-Thereafter, you can make a **copy** of the values to an expression. Following code snippet shows an example:
+The numpy array can then be **copied** to the expression. The following code snippet shows an example:
 
 ```python
 import numpy
@@ -81,9 +79,8 @@ for node in model_part.Nodes:
 
 ## Moving from numpy arrays
 
-This is similar to the [reading from numpy arrays](#reading-from-numpy-arraystest). The difference is, this does not create a copy within the expression.
-It uses the memory location of the original numpy array with in the expression, hence it is of ```O(1)``` cost. No new meory allocation will be done
-within the expression. So, if someone uses the moving of numpy array to an expression, **they need to make sure that the numpy array is not destroyed untill the expression or any of the dependent expressions are used up**. Otherwise, there will be a **Segmentation fault** error.
+This is similar to [reading from numpy arrays](#reading-from-numpy-arraystest) with the difference that this does not create a copy for the expression.
+It uses the memory location of the original numpy array within the expression, eliding the copy and its related memory allocation. An important consequence is that **the original numpy array must be kept in memory for entire lifetime of the expression**, otherwise evaluating the expression will result in a segmentation fault.
 
 Following code snippet illustrates how to move numpy arrays to expressions:
 ```python

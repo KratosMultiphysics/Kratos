@@ -8,15 +8,23 @@ summary:
 
 ## Introduction
 
-There are three types of expressions.
-* NodalExpression
-* ConditionExpression
-* ElementExpression
+There are four types of expressions.
+* `Expression`
+* `NodalExpression`
+* `ConditionExpression`
+* `ElementExpression`
+
+## `Expression`
+
+`Expression` is the lowest level class that everything else is built on top of. It models an array of numeric values (scalars, vectors, matrices, etc.), supports arithmetic operations, but is not related to any container in Kratos. To create an `Expression` or write an existing one, you can use one of the derived classes of `ExpressionIO`.
+
+TODO: add an example (@matekelemen) - requires exposing the `Input` and `Output` nested classes of `VariableExpressionIO` to python.
+
 
 ## Nodal Expression
 
 Nodal expressions are used to store data related to nodal quantities. They may be historical or non-historical. Following code snippet illustrtes creating a nodal expression
-and reading ```VELOCITY``` from nodal non-historical data value container.
+and reading ```VELOCITY``` from non-historical nodal container.
 ```python
 import KratosMultiphysics as Kratos
 model = Kratos.Model()
@@ -36,7 +44,7 @@ Kratos.Expression.VariableExpressionIO.Read(nodal_expression, Kratos.VELOCITY, F
 ## Condition Expression
 
 Condition expressions are used to store data related to condition quantities. Following code snippet illustrtes creating a condition expression
-and reading ```VELOCITY``` from condition data value container.
+and reading ```VELOCITY``` from the conditions' container.
 ```python
 import KratosMultiphysics as Kratos
 model = Kratos.Model()
@@ -58,7 +66,7 @@ Kratos.Expression.VariableExpressionIO.Read(condition_expression, Kratos.VELOCIT
 ## Element Expression
 
 Element expressions are used to store data related to element quantities. Following code snippet illustrtes creating a element expression
-and reading ```VELOCITY``` from element data value container.
+and reading ```VELOCITY``` from the elements' container.
 ```python
 import KratosMultiphysics as Kratos
 model = Kratos.Model()
