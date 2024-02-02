@@ -17,9 +17,9 @@ KratosMultiphysics stores its data in different containers depending on what kin
 ## Supported data containers
 
 The following data containers are supported:
-* NodalExpression - Nodal data value container (Historical / Non historical).
-* ConditionExpression - Condition data value container.
-* ElementExpression - Element data value container.
+* NodalExpression - data related to nodes (with historical or non-historical variables).
+* ConditionExpression - data related to conditions.
+* ElementExpression - data related to elements.
 
 ## Supported data types
 
