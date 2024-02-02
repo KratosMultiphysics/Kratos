@@ -68,7 +68,7 @@ void DomainSizeExpressionIO::Read(ContainerExpression<TContainerType, TMeshType>
         auto p_expression = Input(rContainerExpression.GetModelPart(), Globals::DataLocation::Element).Execute();
         rContainerExpression.SetExpression(p_expression);
     } else {
-        static_assert(std::is_same_v<TContainerType, TContainerType>, "Unsupported TContainerType");
+        static_assert(!std::is_same_v<TContainerType, TContainerType>, "Unsupported TContainerType");
     }
 }
 
