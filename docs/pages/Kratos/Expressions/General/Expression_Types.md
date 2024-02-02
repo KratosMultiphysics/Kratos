@@ -66,7 +66,7 @@ Kratos.Expression.VariableExpressionIO.Read(condition_expression, Kratos.VELOCIT
 ## Element Expression
 
 Element expressions are used to store data related to element quantities. Following code snippet illustrtes creating a element expression
-and reading ```VELOCITY``` from element data value container.
+and reading ```VELOCITY``` from the elements' container.
 ```python
 import KratosMultiphysics as Kratos
 model = Kratos.Model()
