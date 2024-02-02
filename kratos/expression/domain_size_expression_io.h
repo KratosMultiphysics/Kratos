@@ -85,6 +85,7 @@ public:
     ///@name Public static operations
     ///@{
 
+    /// @tparam TContainerType @ref ModelPart::ElementsContainerType or @ref ModelPart::ConditionsContainerType
     template<class TContainerType, MeshType TMeshType>
     KRATOS_API(KRATOS_CORE) static void Read(ContainerExpression<TContainerType, TMeshType>& rContainerExpression);
 
