@@ -1,9 +1,9 @@
 ---
 title: Connectivity Preserving ModelPart Duplication Controller
-keywords:
+keywords: 
 tags: [connectivity preserving modeller, model part controller, optimization]
 sidebar: optimization_application
-summary:
+summary: 
 ---
 ## Introduction
 
