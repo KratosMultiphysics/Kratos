@@ -8,7 +8,7 @@ summary:
 
 ## Introduction
 
-```VariableExpressionIO``` is used to read ```Kratos::Variable``` data in a data value container to a expression or write an expression data in to a ```Kratos::Variable``` in a specified data value container. The expression will only read or write to the entities (i.e. nodes/conditions/elements) in the local mesh. In the case of writing expression data to a variable in data value container, if it is used in ***distributed memory** parallelized environment, proper synchronization will be automatically done. Hence, all of these operations are compatible with **shared memory** and **distributed memory** parallelizations.
+```VariableExpressionIO``` is used to read ```Kratos::Variable``` from a container to an expression vice versa. The expression will only read or write to the entities (i.e. nodes/conditions/elements) in the local mesh. If writing an expression to a variable in a container during an MPI run, synchronization between ranks is automatically done.
 
 ### Variable types
 
