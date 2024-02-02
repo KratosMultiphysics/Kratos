@@ -18,8 +18,7 @@ summary:
 * Vector
 * Matrix
 
-This IO will create an expression with the specified literal for all entities. Since it is going to be constant for all entities, the literal will be stored only once for
-all entities making the memory occupation the least. When the expression is evaluated, this stored literal will be read by all entities.
+This IO will create an expression with the specified literal for all entities.
 
 ## Setting literal expressions
 
