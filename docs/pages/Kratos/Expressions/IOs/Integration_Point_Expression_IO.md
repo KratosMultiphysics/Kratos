@@ -55,9 +55,8 @@ Kratos.Expression.IntegrationPointExpressionIO.Write(element_expression, Kratos.
 ```
 
 ## Using expressions without the model parts
-The ```NodalExpression```, ```ConditionExpression``` and ```ElementExpression``` has an expression which can be directly used if required. The advantage of working
-with the ```Expression``` directely is, then it is not bound to a model part of a ```DataValueContainer```. Hence, these expressions can be interchanged if required in
-advanced use cases. Following code snippet shows how to use bare ```Expressions```.
+The underlying `Expression` instance of ```NodalExpression```, ```ConditionExpression``` and ```ElementExpression``` can be accessed directly, if necessary. The advantage of working
+with bare ```Expression```s is that they are not bound to a specific model part or entity type, which means that they are completely interchangable. The following code snippet shows how to use bare ```Expression```s.
 ```python
 import KratosMultiphysics as Kratos
 model = Kratos.Model()
