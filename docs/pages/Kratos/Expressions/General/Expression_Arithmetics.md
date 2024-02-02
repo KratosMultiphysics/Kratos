@@ -1,9 +1,9 @@
 ---
 title: Expression Arithmetics
-keywords: 
-tags: [expression, arithmetaics]
+keywords:
+tags: [expression, arithmetics]
 sidebar: kratos_expressions
-summary: 
+summary:
 ---
 
 ## Introduction
@@ -12,7 +12,7 @@ The ```Expressions``` of type ```NodalExpression```, ```ConditionExpression```, 
 
 Following operations are supported:
 * Addition ```+``` or ```+=```
-* Substraction ```-``` or ```-=```
+* Subtraction ```-``` or ```-=```
 * Multiplication ```*``` or ```*=```
 * Division ```/``` or ```/=```
 * Power ```**``` or ```**=```
@@ -34,7 +34,6 @@ node_1.SetValue(Kratos.VELOCITY, Kratos.Array3([1,2,3]))
 node_2.SetValue(Kratos.VELOCITY, Kratos.Array3([4,5,6]))
 node_3.SetValue(Kratos.VELOCITY, Kratos.Array3([7,8,9]))
 
-
 # create nodal expression
 nodal_expression = Kratos.Expression.NodalExpression(model_part)
 
@@ -45,12 +44,13 @@ Kratos.Expression.VariableExpressionIO.Read(nodal_expression, Kratos.VELOCITY, F
 nodal_expression += 1 # Adds 1 to all the components of VELOCITY in all the entities
 nodal_expression *= 2 # Multiplies by 2, the all the components of VELOCITY in all the entities
 nodal_expression /= 3 # Divides by 2, the all the components of VELOCITY in all the entities
-nodal_expression -= 0.5 # Substract by 2, the all the components of VELOCITY in all the entities
-
+nodal_expression -= 0.5 # Subtract by 2, the all the components of VELOCITY in all the entities
 
 # writing the result to the ACCELERATION variable
 Kratos.Expression.VariableExpressionIO.Write(nodal_expression, Kratos.ACCELERATION, False)
 
 for node in model_part.Nodes:
     print(node.GetValue(Kratos.ACCELERATION))
+
+## POST_PROCESS_PAGES_PYTHON_OUTPUT_GENERATION
 ```
