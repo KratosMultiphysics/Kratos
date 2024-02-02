@@ -8,7 +8,7 @@ summary:
 
 ## Introduction
 
-```IntegrationPointExpressionIO``` is used to set and get the integration point quantities from ```Kratos::Condition``` or ```Kratos::Element``` containers.
+```IntegrationPointExpressionIO``` is used to set or get quantities at integration points from elements or conditions.
 
 ### Variable types
 Following data types are supported for integration point quantity calculations.
