@@ -90,7 +90,6 @@ for condition in model_part.Conditions:
 ```
 
 ## Reading/Writing element values
-Reading and writing to element values have the same interface within ```VariableExpressionIO```. The first argument shall be a `ElementExpression` and the second argumen shall be a ```Kratos::Variable```.
 ```python
 import KratosMultiphysics as Kratos
 model = Kratos.Model()
