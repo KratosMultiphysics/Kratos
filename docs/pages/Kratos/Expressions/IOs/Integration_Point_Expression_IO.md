@@ -22,7 +22,7 @@ Following data types are supported for integration point quantity calculations.
 * ```Matrix```
 
 ### Shape of resulting expressions
-The resulting expressions computed by ```IntegrationPointExpressionIO``` will have two additional dimensionalities apart from the dimensionality of the entity data type. The first dimension will illustrate number of entities in the expression. Second dimension will be number of gauss points computed in each entitiy. Rest of the dimensions will be representing the dimensionality of the entity data.
+The resulting expressions computed by ```IntegrationPointExpressionIO``` will have two additional dimensions on top of the data type's dimensions. The first one indicates the number of entities in the expression, while the second dimension is the number of gauss points computed in each entitiy. The rest of the dimensions are carried over from the integration point quantity.
 
 ## Reading and writing integration point data
 Following code snippet shows how to read and write integration point data.
