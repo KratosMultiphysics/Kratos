@@ -14,6 +14,13 @@ There are four types of expressions.
 * `ConditionExpression`
 * `ElementExpression`
 
+## `Expression`
+
+`Expression` is the lowest level class that everything else is built on top of. It models an array of numeric values (scalars, vectors, matrices, etc.), supports arithmetic operations, but is not related to any container in Kratos. To create an `Expression` or write an existing one, you can use one of the derived classes of `ExpressionIO`.
+
+TODO: add an example (@matekelemen) - requires exposing the `Input` and `Output` nested classes of `VariableExpressionIO` to python.
+
+
 ## Nodal Expression
 
 Nodal expressions are used to store data related to nodal quantities. They may be historical or non-historical. Following code snippet illustrtes creating a nodal expression
