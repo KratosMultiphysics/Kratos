@@ -43,7 +43,7 @@ First create the numpy array independent from Kratos if the number of local enti
 1. ```numpy.int32```
 2. ```numpy.float64```
 
-Thereafter, you can make a **copy** of the values to an expression. Following code snippet shows an example:
+The numpy array can then be **copied** to the expression. The following code snippet shows an example:
 
 ```python
 import numpy
