@@ -8,7 +8,7 @@ summary:
 
 ## Introduction
 
-```CArrayExpressionIO``` is used to exchange data between `C` type arrays and expressions. This allows reading from `C` arrays as well as writing to `C` arrays. In the python later, it can be used to exchange data between numpy arrays, ```Kratos::Vectors``` as well.
+```CArrayExpressionIO``` is used to exchange data between `C` type arrays and expressions. In python, it can be used to exchange data between numpy arrays, ```Kratos::Vectors```, or any other contiguous array of supported types.
 
 ## Reading and moving from numpy array
 
