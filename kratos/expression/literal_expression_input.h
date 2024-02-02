@@ -23,6 +23,7 @@
 #include "expression_io.h"
 #include "includes/define.h"
 #include "includes/model_part.h"
+#include "includes/global_variables.h"
 
 namespace Kratos {
 
@@ -72,8 +73,8 @@ public:
         Input(
             const ModelPart& rModelPart,
             const DataType& rValue,
-            const ContainerType& rContainerType,
-            const MeshType& rMeshType = MeshType::Local);
+            Globals::DataLocation CurrentLocation,
+            MeshType CurrentMeshType = MeshType::Local);
 
         ~Input() override = default;
 
@@ -89,13 +90,13 @@ public:
         ///@name Private member variables
         ///@{
 
-        const ModelPart& mrModelPart;
+        ModelPart const * mpModelPart;
 
-        const DataType mValue;
+        DataType mValue;
 
-        const ContainerType mContainerType;
+        Globals::DataLocation mDataLocation;
 
-        const MeshType mMeshType;
+        MeshType mMeshType;
 
         ///@}
 

@@ -314,13 +314,6 @@ void AddExpressionIOToPython(pybind11::module& rModule)
         .def("Execute", &ExpressionOutput::Execute)
         ;
 
-    pybind11::enum_<ContainerType>(rModule, "ContainerType")
-        .value("NodalHistorical", ContainerType::NodalHistorical)
-        .value("NodalNonHistorical", ContainerType::NodalNonHistorical)
-        .value("ElementNonHistorical", ContainerType::ElementNonHistorical)
-        .value("ConditionNonHistorical", ContainerType::ConditionNonHistorical)
-        ;
-
     pybind11::enum_<MeshType>(rModule, "MeshType")
         .value("Local", MeshType::Local)
         .value("Interface", MeshType::Interface)
@@ -330,37 +323,37 @@ void AddExpressionIOToPython(pybind11::module& rModule)
     pybind11::class_<VariableExpressionIO::Input, VariableExpressionIO::Input::Pointer, ExpressionInput>(variable_expression_io, "Input")
         .def(pybind11::init<const ModelPart&,
                             const VariableExpressionIO::VariableType&,
-                            const ContainerType&>(),
+                            Globals::DataLocation>(),
              pybind11::arg("model_part"),
              pybind11::arg("variable"),
-             pybind11::arg("container_type"))
+             pybind11::arg("data_location"))
         ;
 
     pybind11::class_<VariableExpressionIO::Output, VariableExpressionIO::Output::Pointer, ExpressionOutput>(variable_expression_io, "Output")
         .def(pybind11::init<ModelPart&,
                             const VariableExpressionIO::VariableType&,
-                            const ContainerType&>(),
+                            Globals::DataLocation>(),
              pybind11::arg("model_part"),
              pybind11::arg("variable"),
-             pybind11::arg("container_type"))
+             pybind11::arg("data_location"))
         ;
 
     pybind11::class_<IntegrationPointExpressionIO::Input, IntegrationPointExpressionIO::Input::Pointer, ExpressionInput>(integration_point_expression_io, "Input")
         .def(pybind11::init<ModelPart&,
                             const IntegrationPointExpressionIO::VariableType&,
-                            const ContainerType&>(),
+                            Globals::DataLocation>(),
              pybind11::arg("model_part"),
              pybind11::arg("variable"),
-             pybind11::arg("container_type"))
+             pybind11::arg("data_location"))
         ;
 
     pybind11::class_<IntegrationPointExpressionIO::Output, IntegrationPointExpressionIO::Output::Pointer, ExpressionOutput>(integration_point_expression_io, "Output")
         .def(pybind11::init<ModelPart&,
                             const IntegrationPointExpressionIO::VariableType&,
-                            const ContainerType&>(),
+                            Globals::DataLocation>(),
              pybind11::arg("model_part"),
              pybind11::arg("variable"),
-             pybind11::arg("container_type"))
+             pybind11::arg("data_location"))
         ;
 
     auto carray_expression_io = rModule.def_submodule("CArrayExpressionIO");
@@ -404,10 +397,10 @@ void AddExpressionIOToPython(pybind11::module& rModule)
         data_expression_io, "Input")
         .def(pybind11::init<const ModelPart&,
                             const LiteralExpressionIO::DataType&,
-                            const ContainerType&>(),
+                            Globals::DataLocation&>(),
              pybind11::arg("model_part"),
              pybind11::arg("variable"),
-             pybind11::arg("container_type"))
+             pybind11::arg("data_location"))
         ;
 
     auto nodal_expression_io = rModule.def_submodule("NodalPositionExpressionIO");
