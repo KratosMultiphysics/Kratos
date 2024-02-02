@@ -1,8 +1,8 @@
 {
     "problem_data": {
-        "problem_name":         "geo_beam_with_reset_displacemnet_stage_4",
-        "start_time":           3.0,
-        "end_time":             4.0,
+        "problem_name":         "geo_beam_with_reset_displacement_stage_1",
+        "start_time":           0.0,
+        "end_time":             1.0,
         "echo_level":           1,
         "parallel_type":        "OpenMP",
         "number_of_threads":    1
@@ -13,7 +13,7 @@
         "domain_size":                        2,
         "model_import_settings":              {
             "input_type":       "mdpa",
-            "input_filename":   "geo_beam_with_reset_displacemnet_stage_4"
+            "input_filename":   "geo_beam_with_reset_displacement_stage_1"
         },
         "material_import_settings":              {
             "materials_filename":       "MaterialParameters.json"
@@ -37,10 +37,10 @@
         "newmark_theta":                      0.5,
         "rayleigh_m":                         0.0,
         "rayleigh_k":                         0.0,
-        "strategy_type":                      "newton_raphson",
+        "strategy_type":                      "line_search",
         "convergence_criterion":              "displacement_criterion",
-        "displacement_relative_tolerance":    1.0E-4,
-        "displacement_absolute_tolerance":    1.0E-9,
+        "displacement_relative_tolerance":    1.0E-6,
+        "displacement_absolute_tolerance":    1.0E-12,
         "residual_relative_tolerance":        1.0E-4,
         "residual_absolute_tolerance":        1.0E-9,
         "min_iterations":                      1,
@@ -80,7 +80,7 @@
             "process_name": "GiDOutputProcess",
             "Parameters":    {
                 "model_part_name": "PorousDomain.porous_computational_model_part",
-                "output_name": "geo_beam_with_reset_displacemnet_stage_4",
+                "output_name": "geo_beam_with_reset_displacement_stage_1",
                 "postprocess_parameters": {
                     "result_file_configuration": {
                         "gidpost_flags":       {
@@ -96,8 +96,8 @@
                         "node_output":         false,
                         "skin_output":         false,
                         "plane_output":        [],
-                        "nodal_results":       ["DISPLACEMENT","WATER_PRESSURE","TOTAL_DISPLACEMENT"],
-                        "gauss_point_results": ["GREEN_LAGRANGE_STRAIN_TENSOR","CAUCHY_STRESS_TENSOR","TOTAL_STRESS_TENSOR","VON_MISES_STRESS","FLUID_FLUX_VECTOR", "MOMENT", "FORCE"]
+                        "nodal_results":       ["DISPLACEMENT"],
+                        "gauss_point_results": ["CAUCHY_STRESS_TENSOR"]
                     },
                     "point_data_configuration":  []
                 }
@@ -138,7 +138,7 @@
             "model_part_name": "PorousDomain.Load",
             "variable_name":   "POINT_LOAD",
             "active":          [true,true,true],
-            "value":           [0.0,0,0.0],
+            "value":           [0.0,-1e10,0.0],
             "table":           [0,0,0]
         }
     }]

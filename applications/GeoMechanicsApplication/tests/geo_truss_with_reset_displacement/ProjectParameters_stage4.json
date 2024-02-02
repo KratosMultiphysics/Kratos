@@ -1,8 +1,8 @@
 {
     "problem_data": {
-        "problem_name":         "geo_truss_with_reset_displacemnet_stage_3",
-        "start_time":           2.0,
-        "end_time":             3.0,
+        "problem_name":         "geo_truss_with_reset_displacement_stage_4",
+        "start_time":           3.0,
+        "end_time":             4.0,
         "echo_level":           1,
         "parallel_type":        "OpenMP",
         "number_of_threads":    1
@@ -13,10 +13,10 @@
         "domain_size":                        2,
         "model_import_settings":              {
             "input_type":       "mdpa",
-            "input_filename":   "geo_truss_with_reset_displacemnet_stage_3"
+            "input_filename":   "geo_truss_with_reset_displacement_stage_4"
         },
         "material_import_settings":              {
-            "materials_filename":       "MaterialParameters_stage_3.json"
+            "materials_filename":       "MaterialParameters.json"
         },
         "time_stepping":              {
             "time_step":            0.25
@@ -80,7 +80,7 @@
             "process_name": "GiDOutputProcess",
             "Parameters":    {
                 "model_part_name": "PorousDomain.porous_computational_model_part",
-                "output_name": "geo_truss_with_reset_displacemnet_stage_3",
+                "output_name": "geo_truss_with_reset_displacement_stage_4",
                 "postprocess_parameters": {
                     "result_file_configuration": {
                         "gidpost_flags":       {
@@ -96,8 +96,8 @@
                         "node_output":         false,
                         "skin_output":         false,
                         "plane_output":        [],
-                        "nodal_results":       ["DISPLACEMENT","WATER_PRESSURE"],
-                        "gauss_point_results": ["GREEN_LAGRANGE_STRAIN_TENSOR","CAUCHY_STRESS_TENSOR","TOTAL_STRESS_TENSOR","VON_MISES_STRESS","FLUID_FLUX_VECTOR"]
+                        "nodal_results":       ["DISPLACEMENT"],
+                        "gauss_point_results": ["CAUCHY_STRESS_TENSOR"]
                     },
                     "point_data_configuration":  []
                 }
@@ -138,7 +138,7 @@
             "model_part_name": "PorousDomain.Point_Load-auto-1",
             "variable_name":   "POINT_LOAD",
             "active":          [true,false,false],
-            "value":           [-1e10,0.0,0.0],
+            "value":           [0.0,0.0,0.0],
             "table":           [0,0,0]
         }
     }]

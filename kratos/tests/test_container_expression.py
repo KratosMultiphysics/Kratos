@@ -764,7 +764,7 @@ class TestContainerExpression(ABC):
         pass
 
     @abstractmethod
-    def _GetContainerType(self) -> Kratos.Expression.ContainerType:
+    def _GetContainerType(self) -> Kratos.Globals.DataLocation:
         pass
 
     @abstractmethod
@@ -791,8 +791,8 @@ class TestHistoricalContainerExpression(kratos_unittest.TestCase, TestContainerE
     def _GetContainerExpression(self) -> Kratos.Expression.NodalExpression:
         return Kratos.Expression.NodalExpression(self.model_part)
 
-    def _GetContainerType(self) -> Kratos.Expression.ContainerType:
-        return Kratos.Expression.ContainerType.NodalHistorical
+    def _GetContainerType(self) -> Kratos.Globals.DataLocation:
+        return Kratos.Globals.DataLocation.NodeHistorical
 
     def _GetContainer(self):
         return self.model_part.GetCommunicator().LocalMesh().Nodes
@@ -814,8 +814,8 @@ class TestNodalContainerExpression(kratos_unittest.TestCase, TestContainerExpres
     def _GetContainerExpression(self) -> Kratos.Expression.NodalExpression:
         return Kratos.Expression.NodalExpression(self.model_part)
 
-    def _GetContainerType(self) -> Kratos.Expression.ContainerType:
-        return Kratos.Expression.ContainerType.NodalNonHistorical
+    def _GetContainerType(self) -> Kratos.Globals.DataLocation:
+        return Kratos.Globals.DataLocation.NodeNonHistorical
 
     def _GetContainer(self):
         return self.model_part.GetCommunicator().LocalMesh().Nodes
@@ -837,8 +837,8 @@ class TestConditionContainerExpression(kratos_unittest.TestCase, TestContainerEx
     def _GetContainerExpression(self) -> Kratos.Expression.ConditionExpression:
         return Kratos.Expression.ConditionExpression(self.model_part)
 
-    def _GetContainerType(self) -> Kratos.Expression.ContainerType:
-        return Kratos.Expression.ContainerType.ConditionNonHistorical
+    def _GetContainerType(self) -> Kratos.Globals.DataLocation:
+        return Kratos.Globals.DataLocation.Condition
 
     def _GetContainer(self):
         return self.model_part.GetCommunicator().LocalMesh().Conditions
@@ -852,6 +852,34 @@ class TestConditionContainerExpression(kratos_unittest.TestCase, TestContainerEx
     def _Evaluate(self, container_expression, variable):
         Kratos.Expression.VariableExpressionIO.Write(container_expression, variable)
 
+    def testDomainSizeExpressionIOCondition(self):
+        condition_exp = Kratos.Expression.ConditionExpression(self.model_part)
+        Kratos.Expression.DomainSizeExpressionIO.Read(condition_exp)
+        numpy_condition_exp = condition_exp.Evaluate()
+        for i, condition in enumerate(self.model_part.Conditions):
+            self.assertEqual(numpy_condition_exp[i], condition.GetGeometry().DomainSize())
+
+    def testDomainSizeExpressionIOElement(self):
+        element_exp = Kratos.Expression.ElementExpression(self.model_part)
+        Kratos.Expression.DomainSizeExpressionIO.Read(element_exp)
+        numpy_element_exp = element_exp.Evaluate()
+        for i, element in enumerate(self.model_part.Elements):
+            self.assertEqual(numpy_element_exp[i], element.GetGeometry().DomainSize())
+
+    def testDomainSizeExpressionIOCondition_Empty(self):
+        model = Kratos.Model()
+        model_part = model.CreateModelPart("test")
+        cond_exp = Kratos.Expression.ConditionExpression(model_part)
+        Kratos.Expression.DomainSizeExpressionIO.Read(cond_exp)
+        self.assertEqual(cond_exp.Evaluate().shape, (0,))
+
+    def testDomainSizeExpressionIOElement_Empty(self):
+        model = Kratos.Model()
+        model_part = model.CreateModelPart("test")
+        element_exp = Kratos.Expression.ElementExpression(model_part)
+        Kratos.Expression.DomainSizeExpressionIO.Read(element_exp)
+        self.assertEqual(element_exp.Evaluate().shape, (0,))
+
 class TestElementContainerExpression(kratos_unittest.TestCase, TestContainerExpression):
     @classmethod
     def setUpClass(cls):
@@ -860,8 +888,8 @@ class TestElementContainerExpression(kratos_unittest.TestCase, TestContainerExpr
     def _GetContainerExpression(self):
         return Kratos.Expression.ElementExpression(self.model_part)
 
-    def _GetContainerType(self) -> Kratos.Expression.ContainerType:
-        return Kratos.Expression.ContainerType.ElementNonHistorical
+    def _GetContainerType(self) -> Kratos.Globals.DataLocation:
+        return Kratos.Globals.DataLocation.Element
 
     def _GetContainer(self):
         return self.model_part.GetCommunicator().LocalMesh().Elements
