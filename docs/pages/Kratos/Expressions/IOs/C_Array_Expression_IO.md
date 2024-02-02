@@ -45,7 +45,12 @@ print("numpy array = ", numpy_array)
 ## Reading and writing to `Kratos::Vector`
 ```CArrayExpressionIO``` also allows reading and writing from ```Kratos::Vector``` containers. In this case, the size of the ```Kratos::Vector``` should be the flattened size of the shape of interest which the user will be working on.
 
-The arguments for reading from a ```Kratos::Vector``` are, first the expression should be passed, secondly the ```Kratos::Vector``` should be passed. Finally the shape of the entity data should be passed. Following code snippet illustrates the usage.
+The arguments for reading from a ```Kratos::Vector``` are:
+- expression to read to
+- `Kratos::Vector` to read from
+- shape of the entity
+
+Example:
 ```python
 import KratosMultiphysics as Kratos
 model = Kratos.Model()
