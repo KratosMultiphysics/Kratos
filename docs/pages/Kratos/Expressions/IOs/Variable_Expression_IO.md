@@ -27,7 +27,6 @@ If the data type has static size (such as ```Kratos::Variable<double>```, ```Kra
 
 
 ## Reading/Writing nodal values
-Reading and writing to nodal values have the same interface within ```VariableExpressionIO```. The first argument shall be a `NodalExpression`, the second argumen shall be a ```Kratos::Variable``` and the last argument shall be a boolean indicating true if it is required to read from historical nodal data value container or false if it is required read from non-historical nodal data value container. In the case of **distributed memory** parallelized runs, a proper synchronization between ghost nodes are done when writing is executed.
 
 ```python
 import KratosMultiphysics as Kratos
