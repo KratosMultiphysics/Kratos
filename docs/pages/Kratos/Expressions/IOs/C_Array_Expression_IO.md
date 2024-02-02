@@ -15,8 +15,7 @@ summary:
 Please refer to [Working with numpy](../General/Working_with_Numpy.html) section.
 
 ## Writing to numpy array
-Writing an expression to a numpy array is super simple. In the case of **shared memory** parallelized runs, this will only write only the data from the
-```LocalMesh``` to the numpy array. The size of the numpy array should be compatible with the expression shape. Following code snippet shows an example:
+In MPI runs, expressions will only write data from the ```LocalMesh``` to the numpy array. The size of the numpy array should be compatible with the expression shape. The following code snippet shows an example:
 ```python
 import numpy
 import KratosMultiphysics as Kratos
