@@ -22,7 +22,7 @@ This IO will create an expression with the specified literal for all entities.
 
 ## Setting literal expressions
 
-Following code snippet shows how to set literal expressions
+The following code snippet shows how to set literal expressions
 ```python
 import KratosMultiphysics as Kratos
 model = Kratos.Model()
