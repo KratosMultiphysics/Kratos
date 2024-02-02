@@ -23,7 +23,7 @@ Following variable types are allowed to be read in or write to from an expressio
 * ```Kratos::Variable<Matrix>```
 
 ### Shape of the resulting expression
-In the case of static data types given by static data type variables (such as ```Kratos::Variable<double>```, ```Kratos::Variable<array_1d<double, 3>>```), the shape of the expression will be always have number of local entities in the first dimension, rest will be followed by the static size of the data type. If the variable type being used is of dynamic data type (such as ```Kratos::Variable<Vector>```, ```Kratos::Variable<Matrix>```), then it will represent still the number of local entities in the first dimension. Rest of the dimensions will represent the dimenions of the first data value found in the respective container. [In the case of **distributed memory** parallelized runs, first data value shape synchronization is done to identify the shape of the expression].
+If the data type has static size (such as ```Kratos::Variable<double>```, ```Kratos::Variable<array_1d<double, 3>>```), the result's shape is the number of local entities, followed by the static size of the type. However, if the data type has dynamic size (such as ```Kratos::Variable<Vector>```, ```Kratos::Variable<Matrix>```), then all entries in the container are assumed to have the same shape as the first entry. [In MPI runs, the first entry's shape is synchronized across all ranks to determine the final shape of the expression].
 
 
 ## Reading/Writing nodal values
