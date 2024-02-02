@@ -29,62 +29,181 @@ namespace Kratos
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Life cycle
 
-template <class TElementData>
-WeaklyCompressibleNavierStokes<TElementData>::WeaklyCompressibleNavierStokes(IndexType NewId)
-    : FluidElement<TElementData>(NewId) {}
+template< unsigned int TDim >
+IncompressibleNavierStokesDivStable<TDim>::IncompressibleNavierStokesDivStable(IndexType NewId)
+    : Element(NewId)
+{}
 
-template <class TElementData>
-WeaklyCompressibleNavierStokes<TElementData>::WeaklyCompressibleNavierStokes(
+template< unsigned int TDim >
+IncompressibleNavierStokesDivStable<TDim>::IncompressibleNavierStokesDivStable(
     IndexType NewId,
     const NodesArrayType& ThisNodes)
-    : FluidElement<TElementData>(NewId, ThisNodes) {}
+    : Element(NewId, ThisNodes)
+{}
 
-template <class TElementData>
-WeaklyCompressibleNavierStokes<TElementData>::WeaklyCompressibleNavierStokes(
+template< unsigned int TDim >
+IncompressibleNavierStokesDivStable<TDim>::IncompressibleNavierStokesDivStable(
     IndexType NewId,
     GeometryType::Pointer pGeometry)
-    : FluidElement<TElementData>(NewId, pGeometry) {}
+    : Element(NewId, pGeometry)
+{}
 
-template <class TElementData>
-WeaklyCompressibleNavierStokes<TElementData>::WeaklyCompressibleNavierStokes(
+template< unsigned int TDim >
+IncompressibleNavierStokesDivStable<TDim>::IncompressibleNavierStokesDivStable(
     IndexType NewId,
     GeometryType::Pointer pGeometry,
     Properties::Pointer pProperties)
-    : FluidElement<TElementData>(NewId, pGeometry, pProperties) {}
+    : Element(NewId, pGeometry, pProperties)
+{}
 
-template <class TElementData>
-WeaklyCompressibleNavierStokes<TElementData>::~WeaklyCompressibleNavierStokes() {}
+template< unsigned int TDim >
+IncompressibleNavierStokesDivStable<TDim>::~IncompressibleNavierStokesDivStable()
+{}
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Public Operations
 
-template< class TElementData >
-Element::Pointer WeaklyCompressibleNavierStokes<TElementData>::Create(
+template< unsigned int TDim >
+Element::Pointer IncompressibleNavierStokesDivStable<TDim>::Create(
     IndexType NewId,
     NodesArrayType const& ThisNodes,
     Properties::Pointer pProperties) const
 {
-    return Kratos::make_intrusive<WeaklyCompressibleNavierStokes>(NewId, this->GetGeometry().Create(ThisNodes), pProperties);
+    return Kratos::make_intrusive<IncompressibleNavierStokesDivStable<TDim>>(NewId, this->GetGeometry().Create(ThisNodes), pProperties);
 }
 
-
-template< class TElementData >
-Element::Pointer WeaklyCompressibleNavierStokes<TElementData>::Create(
+template< unsigned int TDim >
+Element::Pointer IncompressibleNavierStokesDivStable<TDim>::Create(
     IndexType NewId,
     GeometryType::Pointer pGeom,
     Properties::Pointer pProperties) const
 {
-    return Kratos::make_intrusive<WeaklyCompressibleNavierStokes>(NewId, pGeom, pProperties);
+    return Kratos::make_intrusive<IncompressibleNavierStokesDivStable<TDim>>(NewId, pGeom, pProperties);
+}
+
+template< unsigned int TDim >
+void Element::Initialize(const ProcessInfo& rCurrentProcessInfo)
+{
+    KRATOS_TRY;
+
+    // If we are restarting, the constitutive law will be already defined
+    if (mpConstitutiveLaw == nullptr) {
+        const auto& r_properties = this->GetProperties();
+        KRATOS_ERROR_IF_NOT(r_properties.Has(CONSTITUTIVE_LAW))
+            << "In initialization of Element " << this->Info()
+            << ": No CONSTITUTIVE_LAW defined for property "
+            << r_properties.Id() << "." << std::endl;
+
+        mpConstitutiveLaw = r_properties[CONSTITUTIVE_LAW]->Clone();
+
+        const auto& r_geometry = this->GetGeometry();
+        const auto& r_shape_functions = r_geometry.ShapeFunctionsValues(GeometryData::IntegrationMethod::GI_GAUSS_1);
+        mpConstitutiveLaw->InitializeMaterial(r_properties, r_geometry, row(r_shape_functions,0));
+    }
+
+    KRATOS_CATCH("");
+}
+
+template< unsigned int TDim >
+void IncompressibleNavierStokesDivStable<TDim>::EquationIdVector(
+    EquationIdVectorType &rResult,
+    const ProcessInfo &rCurrentProcessInfo) const
+{
+    if (rResult.size() != LocalSize) {
+        rResult.resize(LocalSize, false);
+    }
+
+    IndexType local_index = 0;
+    const auto& r_geometry = this->GetGeometry();
+    const IndexType x_pos = this->GetGeometry()[0].GetDofPosition(VELOCITY_X);
+    for (IndexType i = 0; i < VelocityNumNodes; ++i) {
+        rResult[local_index++] = r_geometry[i].GetDof(VELOCITY_X, x_pos).EquationId();
+        rResult[local_index++] = r_geometry[i].GetDof(VELOCITY_Y, x_pos+1).EquationId();
+        if constexpr (TDim == 3) {
+            rResult[local_index++] = r_geometry[i].GetDof(VELOCITY_Z, x_pos+2).EquationId();
+        }
+    }
+
+    const IndexType p_pos = this->GetGeometry()[0].GetDofPosition(PRESSURE);
+    for (IndexType i = 0; i < PressureNumNodes; ++i) {
+        rResult[local_index++] = r_geometry[i].GetDof(PRESSURE, p_pos).EquationId();
+    }
+}
+
+template< unsigned int TDim >
+void IncompressibleNavierStokesDivStable<TDim>::GetDofList(
+    DofsVectorType &rElementalDofList,
+    const ProcessInfo &rCurrentProcessInfo) const
+{
+    if (rElementalDofList.size() != LocalSize) {
+        rElementalDofList.resize(LocalSize);
+
+    }
+
+    IndexType local_index = 0;
+    const auto& r_geometry = this->GetGeometry();
+    const IndexType x_pos = this->GetGeometry()[0].GetDofPosition(VELOCITY_X);
+    for (IndexType i = 0; i < VelocityNumNodes; ++i) {
+        rElementalDofList[local_index++] = r_geometry[i].pGetDof(VELOCITY_X, x_pos);
+        rElementalDofList[local_index++] = r_geometry[i].pGetDof(VELOCITY_Y, x_pos+1);
+        if constexpr (Dim == 3) {
+            rElementalDofList[LocalIndex++] = r_geometry[i].pGetDof(VELOCITY_Z, x_pos+2);
+        }
+    }
+
+    const IndexType p_pos = this->GetGeometry()[0].GetDofPosition(PRESSURE);
+    for (IndexType i = 0; i < PressureNumNodes; ++i) {
+        rElementalDofList[local_index++] = r_geometry[i].pGetDof(PRESSURE, p_pos);
+    }
+}
+
+template< unsigned int TDim >
+void Element::CalculateLocalSystem(
+    MatrixType& rLeftHandSideMatrix,
+    VectorType& rRightHandSideVector,
+    const ProcessInfo& rCurrentProcessInfo)
+{
+    // Resize and intialize output
+    if (rLeftHandSideMatrix.size1() != LocalSize || rLeftHandSideMatrix.size2() != LocalSize) {
+        rLeftHandSideMatrix.resize(LocalSize, LocalSize, false);
+    }
+
+    if (rRightHandSideVector.size() != LocalSize) {
+        rRightHandSideVector.resize(LocalSize, false);
+    }
+
+    noalias(rLeftHandSideMatrix) = ZeroMatrix(LocalSize, LocalSize);
+    noalias(rRightHandSideVector) = ZeroVector(LocalSize);
+
+    // Initialize element data
+    ElementDataContainer aux_data;
+    SetElementData(aux_data);
+
+    // Calculate kinematics
+
+    // Loop Gauss points
+    const SizeType n_gauss = 0; //FIXME: Get this from 3rd order quadrature
+    for (IndexType g = 0; g < n_gauss; ++g) {
+        // Get current Gauss point kinematics
+
+
+        // Assemble standard Galerkin contribution
+
+
+        // Assemble bubble function contributions (to be condensed)
+    }
+
+    // Condense bubble function contribution
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Public Inquiry
 
-template <class TElementData>
-int WeaklyCompressibleNavierStokes<TElementData>::Check(const ProcessInfo &rCurrentProcessInfo) const
+template< unsigned int TDim >
+int IncompressibleNavierStokesDivStable<TDim>::Check(const ProcessInfo &rCurrentProcessInfo) const
 {
     KRATOS_TRY;
-    int out = FluidElement<TElementData>::Check(rCurrentProcessInfo);
+    int out = Element::Check(rCurrentProcessInfo);
     KRATOS_ERROR_IF_NOT(out == 0)
         << "Error in base class Check for Element " << this->Info() << std::endl
         << "Error code is " << out << std::endl;
@@ -98,7 +217,7 @@ int WeaklyCompressibleNavierStokes<TElementData>::Check(const ProcessInfo &rCurr
 // Public I/O
 
 template<class TElementData>
-const Parameters WeaklyCompressibleNavierStokes<TElementData>::GetSpecifications() const
+const Parameters IncompressibleNavierStokesDivStable<TDim>::GetSpecifications() const
 {
     const Parameters specifications = Parameters(R"({
         "time_integration"           : ["implicit"],
@@ -137,16 +256,16 @@ const Parameters WeaklyCompressibleNavierStokes<TElementData>::GetSpecifications
     return specifications;
 }
 
-template <class TElementData>
-std::string WeaklyCompressibleNavierStokes<TElementData>::Info() const
+template< unsigned int TDim >
+std::string IncompressibleNavierStokesDivStable<TDim>::Info() const
 {
     std::stringstream buffer;
-    buffer << "WeaklyCompressibleNavierStokes" << Dim << "D" << NumNodes << "N #" << this->Id();
+    buffer << "IncompressibleNavierStokesDivStable" << Dim << "D" << NumNodes << "N #" << this->Id();
     return buffer.str();
 }
 
-template <class TElementData>
-void WeaklyCompressibleNavierStokes<TElementData>::PrintInfo(std::ostream& rOStream) const
+template< unsigned int TDim >
+void IncompressibleNavierStokesDivStable<TDim>::PrintInfo(std::ostream& rOStream) const
 {
     rOStream << this->Info() << std::endl;
 
@@ -159,98 +278,15 @@ void WeaklyCompressibleNavierStokes<TElementData>::PrintInfo(std::ostream& rOStr
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Protected operations
 
-template <class TElementData>
-void WeaklyCompressibleNavierStokes<TElementData>::AddTimeIntegratedSystem(
-    TElementData& rData,
-    MatrixType& rLHS,
-    VectorType& rRHS)
-{
-    this->ComputeGaussPointLHSContribution(rData, rLHS);
-    this->ComputeGaussPointRHSContribution(rData, rRHS);
-}
-
-template <class TElementData>
-void WeaklyCompressibleNavierStokes<TElementData>::AddTimeIntegratedLHS(
-    TElementData& rData,
-    MatrixType& rLHS)
-{
-    this->ComputeGaussPointLHSContribution(rData, rLHS);
-}
-
-template <class TElementData>
-void WeaklyCompressibleNavierStokes<TElementData>::AddTimeIntegratedRHS(
-    TElementData& rData,
-    VectorType& rRHS)
-{
-    this->ComputeGaussPointRHSContribution(rData, rRHS);
-}
-
-template <class TElementData>
-void WeaklyCompressibleNavierStokes<TElementData>::AddBoundaryTraction(
-    TElementData& rData,
-    const Vector& rUnitNormal,
-    MatrixType& rLHS,
-    VectorType& rRHS)
-{
-    // Set the current Gauss pt. Voigt notation normal projection matrix
-    BoundedMatrix<double, Dim, StrainSize> voigt_normal_projection_matrix = ZeroMatrix(Dim, StrainSize);
-    FluidElementUtilities<NumNodes>::VoigtTransformForProduct(rUnitNormal, voigt_normal_projection_matrix);
-
-    // Set the current Gauss pt. strain matrix
-    BoundedMatrix<double, StrainSize, LocalSize> B_matrix = ZeroMatrix(StrainSize, LocalSize);
-    FluidElementUtilities<NumNodes>::GetStrainMatrix(rData.DN_DX, B_matrix);
-
-    // Compute some Gauss pt. auxiliar matrices
-    const BoundedMatrix<double, Dim, StrainSize> aux_matrix_AC = prod(voigt_normal_projection_matrix, rData.C);
-    const BoundedMatrix<double, StrainSize, LocalSize> aux_matrix_ACB = prod(aux_matrix_AC, B_matrix);
-
-    // Fill the pressure to Voigt notation operator matrix
-    BoundedMatrix<double, StrainSize, LocalSize> pres_to_voigt_matrix_op = ZeroMatrix(StrainSize, LocalSize);
-    for (unsigned int i=0; i<NumNodes; ++i) {
-        for (unsigned int comp=0; comp<Dim; ++comp) {
-            pres_to_voigt_matrix_op(comp, i*BlockSize+Dim) = rData.N[i];
-        }
-    }
-
-    // Set the shape functions auxiliar transpose matrix
-    BoundedMatrix<double, LocalSize, Dim> N_aux_trans = ZeroMatrix(LocalSize, Dim);
-    for (unsigned int i=0; i<NumNodes; ++i) {
-        for (unsigned int comp=0; comp<Dim; ++comp) {
-            N_aux_trans(i*BlockSize+comp, comp) = rData.N[i];
-        }
-    }
-
-    // Contribution coming fron the shear stress operator
-    noalias(rData.lhs) = prod(N_aux_trans, aux_matrix_ACB);
-
-    // Contribution coming from the pressure terms
-    const BoundedMatrix<double, LocalSize, StrainSize> N_voigt_proj_matrix = prod(N_aux_trans, voigt_normal_projection_matrix);
-    noalias(rData.lhs) -= prod(N_voigt_proj_matrix, pres_to_voigt_matrix_op);
-
-    array_1d<double,LocalSize> values;
-    this->GetCurrentValuesVector(rData,values);
-
-    rData.lhs *= rData.Weight;
-    noalias(rLHS) -= rData.lhs;
-    noalias(rRHS) += prod(rData.lhs,values);
-}
-
 template <>
-void WeaklyCompressibleNavierStokes< WeaklyCompressibleNavierStokesData<2,3> >::ComputeGaussPointLHSContribution(
-    WeaklyCompressibleNavierStokesData<2,3>& rData,
+void IncompressibleNavierStokesDivStable<2,3>::ComputeGaussPointLHSContribution(
+    IncompressibleNavierStokesDivStableData<2,3>& rData,
     MatrixType& rLHS)
 {
-    const array_1d<double,3>& rho = rData.Density;
-    const double mu = rData.EffectiveViscosity;
-    const double sigma = rData.Resistance;
-
-    const double h = rData.ElementSize;
-    const array_1d<double,3>& c = rData.SoundVelocity;
+    const double rho = this->GetProperties().GetValue(DENSITY);
 
     const double dt = rData.DeltaTime;
     const double bdf0 = rData.bdf0;
-
-    const double dyn_tau = rData.DynamicTau;
 
     const BoundedMatrix<double,2,3> vconv = rData.Velocity - rData.MeshVelocity;
 
@@ -261,27 +297,17 @@ void WeaklyCompressibleNavierStokes< WeaklyCompressibleNavierStokesData<2,3> >::
     const array_1d<double,3>& N = rData.N;
     const BoundedMatrix<double,3,2>& DN = rData.DN_DX;
 
-    // Stabilization parameters
-    constexpr double stab_c1 = 4.0;
-    constexpr double stab_c2 = 2.0;
-    constexpr double stab_c3 = 2.0;
-
     // Assemble LHS contribution
     const double gauss_weight = rData.Weight;
     //substitute_lhs_2D3N
 }
 
 template <>
-void WeaklyCompressibleNavierStokes<WeaklyCompressibleNavierStokesData<3,4>>::ComputeGaussPointLHSContribution(
-    WeaklyCompressibleNavierStokesData<3,4>& rData,
+void IncompressibleNavierStokesDivStable<3,4>::ComputeGaussPointLHSContribution(
+    IncompressibleNavierStokesDivStableData<3,4>& rData,
     MatrixType& rLHS)
 {
-    const array_1d<double,4>& rho = rData.Density;
-    const double mu = rData.EffectiveViscosity;
-    const double sigma = rData.Resistance;
-
-    const double h = rData.ElementSize;
-    const array_1d<double,4>& c = rData.SoundVelocity;
+    const double rho = this->GetProperties().GetValue(DENSITY);
 
     const double dt = rData.DeltaTime;
     const double bdf0 = rData.bdf0;
@@ -297,34 +323,22 @@ void WeaklyCompressibleNavierStokes<WeaklyCompressibleNavierStokesData<3,4>>::Co
     const array_1d<double,4>& N = rData.N;
     const BoundedMatrix<double,4,3>& DN = rData.DN_DX;
 
-    // Stabilization parameters
-    constexpr double stab_c1 = 4.0;
-    constexpr double stab_c2 = 2.0;
-    constexpr double stab_c3 = 2.0;
-
     // Assemble LHS contribution
     const double gauss_weight = rData.Weight;
     //substitute_lhs_3D4N
 }
 
 template <>
-void WeaklyCompressibleNavierStokes<WeaklyCompressibleNavierStokesData<2,3>>::ComputeGaussPointRHSContribution(
-    WeaklyCompressibleNavierStokesData<2,3>& rData,
+void IncompressibleNavierStokesDivStable<2,3>::ComputeGaussPointRHSContribution(
+    IncompressibleNavierStokesDivStableData<2,3>& rData,
     VectorType& rRHS)
 {
-    const array_1d<double,3>& rho = rData.Density;
-    const double mu = rData.EffectiveViscosity;
-    const double sigma = rData.Resistance;
-
-    const double h = rData.ElementSize;
-    const array_1d<double,3>& c = rData.SoundVelocity;
+    const double rho = this->GetProperties().GetValue(DENSITY);
 
     const double dt = rData.DeltaTime;
     const double bdf0 = rData.bdf0;
     const double bdf1 = rData.bdf1;
     const double bdf2 = rData.bdf2;
-
-    const double dyn_tau = rData.DynamicTau;
 
     const BoundedMatrix<double,2,3>& v = rData.Velocity;
     const BoundedMatrix<double,2,3>& vn = rData.Velocity_OldStep1;
@@ -341,22 +355,18 @@ void WeaklyCompressibleNavierStokes<WeaklyCompressibleNavierStokesData<2,3>>::Co
     const array_1d<double,3>& N = rData.N;
     const BoundedMatrix<double,3,2>& DN = rData.DN_DX;
 
-    // Stabilization parameters
-    constexpr double stab_c1 = 4.0;
-    constexpr double stab_c2 = 2.0;
-    constexpr double stab_c3 = 2.0;
-
     // Assemble RHS contribution
     const double gauss_weight = rData.Weight;
     //substitute_rhs_2D3N
 }
 
 template <>
-void WeaklyCompressibleNavierStokes<WeaklyCompressibleNavierStokesData<3,4>>::ComputeGaussPointRHSContribution(
-    WeaklyCompressibleNavierStokesData<3,4>& rData,
+void IncompressibleNavierStokesDivStable<3,4>::ComputeGaussPointRHSContribution(
+    IncompressibleNavierStokesDivStableData<3,4>& rData,
     VectorType& rRHS)
 {
-    const array_1d<double,4>& rho = rData.Density;
+    const double rho = this->GetProperties().GetValue(DENSITY);
+
     const double mu = rData.EffectiveViscosity;
     const double sigma = rData.Resistance;
 
@@ -385,38 +395,75 @@ void WeaklyCompressibleNavierStokes<WeaklyCompressibleNavierStokesData<3,4>>::Co
     const array_1d<double,4>& N = rData.N;
     const BoundedMatrix<double,4,3>& DN = rData.DN_DX;
 
-    // Stabilization parameters
-    constexpr double stab_c1 = 4.0;
-    constexpr double stab_c2 = 2.0;
-    constexpr double stab_c3 = 2.0;
-
     // Assemble RHS contribution
     const double gauss_weight = rData.Weight;
     //substitute_rhs_3D4N
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
+// Private operations
+
+template <unsigned int TDim>
+void IncompressibleNavierStokesDivStable<TDim>::SetElementData(ElementDataContainer &rData)
+{
+    const auto& r_geom = this->GetGeometry();
+    for (IndexType i = 0; i < TNumNodes; ++i) {
+        const auto& r_v = r_geom[i].FastGetSolutionStepValue(VELOCITY);
+        const auto& r_v_n = r_geom[i].FastGetSolutionStepValue(VELOCITY, 1);
+        const auto& r_v_nn = r_geom[i].FastGetSolutionStepValue(VELOCITY, 2);
+        const auto& r_v_mesh = r_geom[i].FastGetSolutionStepValue(MESH_VELOCITY);
+        const auto& r_vol_acc = r_geom[i].FastGetSolutionStepValue(VOLUME_ACCELERATION);
+
+        for (IndexType d = 0; d < TDim; ++d) {
+            rData.Velocity[d, i] = r_v[d];
+            rData.VelocityOld1[d, i] = r_v_n[d];
+            rData.VelocityOld2[d, i] = r_v_nn[d];
+            rData.MeshVelocity[d, i] = r_v_mesh[d];
+            rData.BodyForce[d, i] = r_vol_acc[d];
+        }
+    }
+
+    for (IndexType i = 0; i < PressureNumNodes; ++i) {
+        rData.Pressure[i] = r_geom[i].FastGetSolutionStepValue(PRESSURE);
+    }
+}
+
+template< unsigned int TDim >
+void IncompressibleNavierStokesDivStable<TDim>::CalculateKinematics(
+    Vector& rGaussWeights,
+    Matrix& rVelocityN,
+    Matrix& rPressureN,
+    Geometry::ShapeFunctionsGradientsType& rVelocityDNDX,
+    Geometry::ShapeFunctionsGradientsType& rPressureDNDX)
+{
+    // Get element geometry
+    const auto& r_geom = this->GetGeometry();
+
+    // Calculate velocity kinematics from the geometry (P2 interpolation)
+    const auto integration_method = GeometryData::IntegrationMethod::GI_GAUSS_3;
+    r_geom.ShapeFunctionsValues(rVelocityN, integration_method);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////
 // Private serialization
 
-template< class TElementData >
-void WeaklyCompressibleNavierStokes<TElementData>::save(Serializer& rSerializer) const
+template< unsigned int TDim >
+void IncompressibleNavierStokesDivStable<TDim>::save(Serializer& rSerializer) const
 {
-    using BaseType = FluidElement<TElementData>;
-    KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, BaseType );
+    KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Element);
 }
 
 
-template< class TElementData >
-void WeaklyCompressibleNavierStokes<TElementData>::load(Serializer& rSerializer)
+template< unsigned int TDim >
+void IncompressibleNavierStokesDivStable<TDim>::load(Serializer& rSerializer)
 {
-    using BaseType = FluidElement<TElementData>;
-    KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, BaseType);
+    KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Class template instantiation
 
-template class WeaklyCompressibleNavierStokes< WeaklyCompressibleNavierStokesData<2,3> >;
-template class WeaklyCompressibleNavierStokes< WeaklyCompressibleNavierStokesData<3,4> >;
+template class IncompressibleNavierStokesDivStable<2,6>;
+template class IncompressibleNavierStokesDivStable<3,10>;
 
 }

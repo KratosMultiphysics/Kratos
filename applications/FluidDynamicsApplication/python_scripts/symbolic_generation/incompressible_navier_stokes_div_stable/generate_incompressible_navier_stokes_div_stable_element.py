@@ -101,10 +101,6 @@ for dim, v_n_nodes, p_n_nodes in zip(dim_vector, v_nodes_vector, p_nodes_vector)
     bdf1 = sympy.Symbol('bdf1')
     bdf2 = sympy.Symbol('bdf2')
 
-    ## Data interpolation to the Gauss points
-    f_gauss = f.transpose()*N_v
-    v_gauss = v.transpose()*N_v
-
     ## Convective velocity definition
     if convective_term:
         if (linearisation == "Picard"):
@@ -122,138 +118,92 @@ for dim, v_n_nodes, p_n_nodes in zip(dim_vector, v_nodes_vector, p_nodes_vector)
         for i in range(0, dim):
             stab_norm_a += vconv_gauss[i]**2
         stab_norm_a = sympy.sqrt(stab_norm_a)
-        tau1 = 1.0/(rho*dyn_tau/dt + stab_c2*rho*stab_norm_a/h + stab_c1*mu/h**2 + stab_c3*sigma/h**2) # Stabilization parameter 1
-        tau2 = mu + (stab_c2*rho*stab_norm_a*h + stab_c3*sigma)/stab_c1                                # Stabilization parameter 2
+        tau1 = 1.0/(rho*dyn_tau/dt + stab_c2*rho*stab_norm_a/h + stab_c1*mu/h**2) # Stabilization parameter 1
+        tau2 = mu + (stab_c2*rho*stab_norm_a*h)/stab_c1                                # Stabilization parameter 2
     else:
-        tau1 = 1.0/(rho*dyn_tau/dt + stab_c1*mu/h**2 + stab_c3*sigma/h**2) # Stabilization parameter 1
-        tau2 = mu + stab_c3*sigma/stab_c1                                  # Stabilization parameter 2
+        tau1 = 1.0/(rho*dyn_tau/dt + stab_c1*mu/h**2) # Stabilization parameter 1
+        tau2 = mu                                     # Stabilization parameter 2
 
     ## Compute the rest of magnitudes at the Gauss points
-    accel_gauss = (bdf0*v + bdf1*vn + bdf2*vnn).transpose()*N
+    accel_gauss = (bdf0*v + bdf1*vn + bdf2*vnn).transpose()*N_v
 
-    p_gauss = p.transpose()*N
-    if artificial_compressibility:
-        pder_gauss = (bdf0*p + bdf1*pn + bdf2*pnn).transpose()*N
+    ## Data interpolation to the Gauss points
+    f_gauss = f.transpose()*N_v
 
-    w_gauss = w.transpose()*N
-    q_gauss = q.transpose()*N
+    v_gauss = v.transpose()*N_v
+    p_gauss = p.transpose()*N_p
+
+    w_gauss = w.transpose()*N_v
+    q_gauss = q.transpose()*N_p
 
     ## Gradients computation (fluid dynamics gradient)
-    grad_w = DfjDxi(DN,w)
-    grad_q = DfjDxi(DN,q)
-    grad_p = DfjDxi(DN,p)
-    grad_v = DfjDxi(DN,v)
-    if artificial_compressibility:
-        grad_rho = DfjDxi(DN,rho_nodes)
+    grad_w = DfjDxi(DN_v, w)
+    grad_q = DfjDxi(DN_p, q)
 
-    div_w = div(DN,w)
-    div_v = div(DN,v)
+    grad_v = DfjDxi(DN_v,v)
+    grad_p = DfjDxi(DN_p, p)
+
+    div_w = div(DN_v,w)
+    div_v = div(DN_v,v)
+
     if convective_term:
-        div_vconv = div(DN,vconv)
+        div_vconv = div(DN_v, vconv)
 
-    grad_sym_v = grad_sym_voigtform(DN,v)       # Symmetric gradient of v in Voigt notation
-    grad_w_voigt = grad_sym_voigtform(DN,w)     # Symmetric gradient of w in Voigt notation
+    grad_sym_v = grad_sym_voigtform(DN_v,v)       # Symmetric gradient of v in Voigt notation
+    grad_w_voigt = grad_sym_voigtform(DN_v,w)     # Symmetric gradient of w in Voigt notation
     # Recall that the grad(w):stress contraction equals grad_sym(w)*stress in Voigt notation since the stress is a symmetric tensor.
 
     # Convective term definition
     if convective_term:
         convective_term_gauss = (vconv_gauss.transpose()*grad_v)
-        rho_convective_term_gauss = vconv_gauss.transpose()*grad_rho
 
     ## Compute galerkin functional
     # Navier-Stokes functional
     if divide_by_rho:
-        rv_galerkin = rho*w_gauss.transpose()*f_gauss - rho*w_gauss.transpose()*accel_gauss - grad_w_voigt.transpose()*stress + div_w*p_gauss - sigma*w_gauss.transpose()*v_gauss - q_gauss*div_v
-        if artificial_compressibility:
-            rv_galerkin -= (1/(rho*c*c))*q_gauss*pder_gauss
-            if convective_term:
-                rv_galerkin -= (1/rho)*q_gauss*rho_convective_term_gauss
+        rv_galerkin = rho*w_gauss.transpose()*f_gauss - rho*w_gauss.transpose()*accel_gauss - grad_w_voigt.transpose()*stress + div_w*p_gauss - q_gauss*div_v
         if convective_term:
             rv_galerkin -= rho*w_gauss.transpose()*convective_term_gauss.transpose()
     else:
-        rv_galerkin = rho*w_gauss.transpose()*f_gauss - rho*w_gauss.transpose()*accel_gauss  - grad_w_voigt.transpose()*stress + div_w*p_gauss - rho*q_gauss*div_v
-        if artificial_compressibility:
-            rv_galerkin -= (1/(c*c))*q_gauss*pder_gauss
-            if convective_term:
-                rv_galerkin -= q_gauss*rho_convective_term_gauss
+        rv_galerkin = rho*w_gauss.transpose()*f_gauss - rho*w_gauss.transpose()*accel_gauss - grad_w_voigt.transpose()*stress + div_w*p_gauss - rho*q_gauss*div_v
         if convective_term:
             rv_galerkin -= rho*w_gauss.transpose()*convective_term_gauss.transpose()
-
-    ##  Stabilization functional terms
-    # Momentum conservation residual
-    # Note that the viscous stress term is dropped since linear elements are used
-    vel_residual = rho*f_gauss - rho*accel_gauss - grad_p - sigma*v_gauss
-    if convective_term:
-        vel_residual -= rho*convective_term_gauss.transpose()
-
-    # Mass conservation residual
-    if divide_by_rho:
-        mas_residual = -div_v
-        if artificial_compressibility:
-            mas_residual -= (1/(rho*c*c))*pder_gauss
-            if convective_term:
-                mas_residual -= (1/rho)*rho_convective_term_gauss
-    else:
-        mas_residual = -rho*div_v
-        if artificial_compressibility:
-            mas_residual -= (1/(c*c))*pder_gauss
-            if convective_term:
-                mas_residual -= rho_convective_term_gauss
-
-    vel_subscale = tau1*vel_residual
-    mas_subscale = tau2*mas_residual
-
-    # Compute the ASGS stabilization terms using the momentum and mass conservation residuals above
-    if divide_by_rho:
-        rv_stab = grad_q.transpose()*vel_subscale
-    else:
-        rv_stab = rho*grad_q.transpose()*vel_subscale
-    if convective_term:
-        rv_stab += rho*vconv_gauss.transpose()*grad_w*vel_subscale
-        rv_stab += rho*div_vconv*w_gauss.transpose()*vel_subscale
-    rv_stab -= sigma*w_gauss.transpose()*vel_subscale
-    rv_stab += div_w*mas_subscale
-
-    ## Add the stabilization terms to the original residual terms
-    if ASGS_stabilization:
-        rv = rv_galerkin + rv_stab
-    else:
-        rv = rv_galerkin
 
     ## Define DOFs and test function vectors
-    dofs = sympy.zeros(nnodes*(dim+1), 1)
-    testfunc = sympy.zeros(nnodes*(dim+1), 1)
+    n_dofs = v_n_nodes * dim + p_n_nodes
 
-    for i in range(nnodes):
+    dofs = sympy.zeros(n_dofs, 1)
+    testfunc = sympy.zeros(n_dofs, 1)
 
-        # Velocity DOFs and test functions
-        for k in range(0,dim):
-            dofs[i*(dim+1)+k] = v[i,k]
-            testfunc[i*(dim+1)+k] = w[i,k]
+    # Velocity DOFs and test functions
+    for i in range(v_n_nodes):
+        for k in range(dim):
+            dofs[i*dim + k] = v[i,k]
+            testfunc[i*dim + k] = w[i,k]
 
-        # Pressure DOFs and test functions
-        dofs[i*(dim+1)+dim] = p[i,0]
-        testfunc[i*(dim+1)+dim] = q[i,0]
+    # Pressure DOFs and test functions
+    for i in range(p_n_nodes):
+        dofs[v_n_nodes + i] = p[i,0]
+        testfunc[v_n_nodes + i] = q[i,0]
 
     ## Compute LHS and RHS
     # For the RHS computation one wants the residual of the previous iteration (residual based formulation). By this reason the stress is
     # included as a symbolic variable, which is assumed to be passed as an argument from the previous iteration database.
-    print(f"Computing {dim}D{nnodes}N RHS Gauss point contribution\n")
-    rhs = Compute_RHS(rv.copy(), testfunc, do_simplifications)
+    print(f"Computing {dim}D RHS Gauss point contribution\n")
+    rhs = Compute_RHS(rv_galerkin.copy(), testfunc, do_simplifications)
     rhs_out = OutputVector_CollectingFactors(gauss_weight*rhs, "rRHS", mode, assignment_op='+=')
 
     # Compute LHS (RHS(residual) differenctiation w.r.t. the DOFs)
     # Note that the 'stress' (symbolic variable) is substituted by 'C*grad_sym_v' for the LHS differenctiation. Otherwise the velocity terms
     # within the velocity symmetryc gradient would not be considered in the differenctiation, meaning that the stress would be considered as
     # a velocity independent constant in the LHS.
-    print(f"Computing {dim}D{nnodes}N LHS Gauss point contribution\n")
+    print(f"Computing {dim}D LHS Gauss point contribution\n")
     SubstituteMatrixValue(rhs, stress, C*grad_sym_v)
     lhs = Compute_LHS(rhs, testfunc, dofs, do_simplifications) # Compute the LHS (considering stress as C*(B*v) to derive w.r.t. v)
     lhs_out = OutputMatrix_CollectingFactors(gauss_weight*lhs, "rLHS", mode, assignment_op='+=')
 
     ## Replace the computed RHS and LHS in the template outstring
-    outstring = outstring.replace(f"//substitute_lhs_{dim}D{nnodes}N", lhs_out)
-    outstring = outstring.replace(f"//substitute_rhs_{dim}D{nnodes}N", rhs_out)
+    outstring = outstring.replace(f"//substitute_lhs_{dim}D", lhs_out)
+    outstring = outstring.replace(f"//substitute_rhs_{dim}D", rhs_out)
 
 ## Write the modified template
 print("Writing output file \'" + output_filename + "\'")
