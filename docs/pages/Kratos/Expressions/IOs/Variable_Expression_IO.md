@@ -58,7 +58,6 @@ for node in model_part.Nodes:
 ```
 
 ## Reading/Writing condition values
-Reading and writing to condition values have the same interface within ```VariableExpressionIO```. The first argument shall be a `ConditionExpression` and the second argumen shall be a ```Kratos::Variable```.
 ```python
 import KratosMultiphysics as Kratos
 model = Kratos.Model()
