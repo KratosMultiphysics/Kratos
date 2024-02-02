@@ -8,7 +8,7 @@ summary:
 
 ## Introduction
 
-```DomainSizeExpressionIO``` computes the domain sizes of each entitiy (such as ```Condition``` or ```Element```). This only supports ```ConditionExpression``` or ```ElementExression```. The domain sizes are computed by accessing underlying geometry's ```Geometry::DomainSize``` method of the entity.
+```DomainSizeExpressionIO``` computes the domain sizes (length, surface or volume, depending of the entity's dimension) of each entitiy (such as ```Condition``` or ```Element```) in the provided `ModelPart`. This only supports ```ConditionExpression``` or ```ElementExression```. Domain sizes are computed by accessing underlying geometry's ```Geometry::DomainSize``` method.
 
 1. If the ```Condition``` or ```Element``` as a geometry representing a line, then this will compute an expression with line length for each entitiy.
 2. If the ```Condition``` or ```Element``` as a geometry representing a surface, then this will compute an expression with surface area for each entitiy.
