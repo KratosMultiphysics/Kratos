@@ -804,7 +804,8 @@ void MapHigherToLowerOrder(const ModelPart& rModelPart,
                         } else {
                             for (auto master_and_coefficient : it_slave->second.first) {
                                 const auto i_master = master_and_coefficient.first;
-                                const auto mpc_coefficient = master_and_coefficient.second;
+                                //const auto mpc_coefficient = master_and_coefficient.second;
+                                const auto mpc_coefficient = 1.0;
                                 rRestrictionMap.emplace(std::make_pair(i_coarse_dof, i_master), r_fine_coefficient_pair.second * mpc_coefficient);
                             }
                         }
