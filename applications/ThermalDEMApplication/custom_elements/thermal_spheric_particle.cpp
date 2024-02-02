@@ -3,7 +3,7 @@
 //  License:       BSD License
 //                 Kratos default license: kratos/license.txt
 //
-//  Main authors:  Rafael Rangel (rrangel@cimne.upc.edu)
+//  Main authors:  Rafael Rangel (rrangel@cimne.upc.edu) 
 //
 
 /*
