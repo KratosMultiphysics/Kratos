@@ -10,7 +10,7 @@ summary:
 
 Expressions make working with numpy/scipy or any other thrid party library easier. It allows reading numpy arrays to expressions, and then assign them to Kratos containers using variables.
 
-**In the case of shared memory parallelized runs, these expressions will hold only data of corresponding data value containers of the local mesh**.
+**When running with MPI, these expressions will hold only data of corresponding containers of the local mesh**.
 
 ## Writing to numpy arrays
 
