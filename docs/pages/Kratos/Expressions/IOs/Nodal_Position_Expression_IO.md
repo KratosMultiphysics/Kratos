@@ -8,7 +8,7 @@ summary:
 
 ## Introduction
 
-```NodalPositionExpressionIO``` allows writing and reading nodal positions of a given model part. This can be used on following configurations:
+```NodalPositionExpressionIO``` allows writing and reading nodal positions of a given model part. This can be used on following the configurations:
 * Initial -> This uses the initial nodal position to read and write.
 * Current -> This uses the current position of the nodes to read and write.
 
