@@ -7,9 +7,9 @@ summary:
 ---
 ## Introduction
 
-An expression represents a mechanism where a given mathematical expression is evaluated when actual value of that expression in required. One can relate these
-expressions to lazy expressions (expression templates) in [Eigen](https://eigen.tuxfamily.org/dox/TopicLazyEvaluation.html) or in [Boost](https://www.boost.org/doc/libs/1_82_0/doc/html/boost_yap/manual.html). The main difference being, Kratos expressions are lazy expressions which is evaluated at runtime, whereas Eigen anb Boost has lazy expressions which are evaluated at compile-time. Few of the main advantages of these lazy expressions are:
-* May reduce memory foot.
+An expression represents a mechanism where a given mathematical expression is evaluated when actual value of that expression in required. One can compare these
+expressions to lazy expressions (expression templates) in [Eigen](https://eigen.tuxfamily.org/dox/TopicLazyEvaluation.html) or in [Boost](https://www.boost.org/doc/libs/1_82_0/doc/html/boost_yap/manual.html). The main difference being, Kratos expressions are **dynamic** lazy expressions (evaluated on demand, not automatically) whose type is evaluated at runtime, whereas Eigen and Boost has **static** lazy expressions whose type is known at compile-time. Few of the main advantages of these lazy expressions are:
+* May reduce memory footprint.
 * May reduce computational cost.
 
 Kratos - Multiphysics has various types of data containers to store data. All of those data containers requires a ```Kratos::Variable``` to access its underlying data. This requires defining the variable before hand, and then using it to store and retrieve data. The expressions allows the user and/or developer to use these data containers with minimal to no variable to store/retrieve data from data containers. All the expressions are enabled with **shared memory** and **distributed memory** parallelisms. All of these expressions are implemented in C++, while being exposed to python.
