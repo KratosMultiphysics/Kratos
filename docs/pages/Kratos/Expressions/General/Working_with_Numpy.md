@@ -38,6 +38,20 @@ numpy_nodal_expression = nodal_expression.Evaluate()
 print("Shape of the numpy array = ", numpy_nodal_expression.shape)
 ```
 
+Expected output:
+```bash
+Shape of the numpy array =  (2, 3)
+ |  /           |                  
+ ' /   __| _` | __|  _ \   __|    
+ . \  |   (   | |   (   |\__ \  
+_|\_\_|  \__,_|\__|\___/ ____/
+           Multi-Physics 9.4."3"-docs/expression_documentation-6de5f1a499-Release-x86_64
+           Compiled for GNU/Linux and Python3.11 with GCC-13.2
+Compiled with threading and MPI support.
+Maximum number of threads: 30.
+Running without MPI.
+```
+
 ## Reading from numpy arrays
 First create the numpy array independent from Kratos if the number of local entities are known (i.e. number of nodes/conditions/elements in the local mesh). The following numpy data types are supported when reading numpy arrays:
 1. ```numpy.int32```
@@ -75,6 +89,21 @@ Kratos.Expression.VariableExpressionIO.Write(nodal_expression, Kratos.VELOCITY, 
 for node in model_part.Nodes:
     velocity = node.GetValue(Kratos.VELOCITY)
     print(f"node id: {node.Id}, velocity: [{velocity[0]}, {velocity[1]}, {velocity[2]}]")
+```
+
+Expected output:
+```bash
+node id: 1, velocity: [1.0, 2.0, 3.0]
+node id: 2, velocity: [3.0, 4.0, 5.0]
+ |  /           |                  
+ ' /   __| _` | __|  _ \   __|    
+ . \  |   (   | |   (   |\__ \  
+_|\_\_|  \__,_|\__|\___/ ____/
+           Multi-Physics 9.4."3"-docs/expression_documentation-6de5f1a499-Release-x86_64
+           Compiled for GNU/Linux and Python3.11 with GCC-13.2
+Compiled with threading and MPI support.
+Maximum number of threads: 30.
+Running without MPI.
 ```
 ## Moving from numpy arrays
 
@@ -123,4 +152,21 @@ Kratos.Expression.VariableExpressionIO.Write(nodal_expression, Kratos.VELOCITY, 
 for node in model_part.Nodes:
     velocity = node.GetValue(Kratos.VELOCITY)
     print(f"node id: {node.Id}, velocity: [{velocity[0]}, {velocity[1]}, {velocity[2]}]")
+```
+
+Expected output:
+```bash
+node id: 1, velocity: [1.0, 2.0, 3.0]
+node id: 2, velocity: [3.0, 4.0, 5.0]
+node id: 1, velocity: [1.0, 2.0, 3.0]
+node id: 2, velocity: [3.0, 10.0, 5.0]
+ |  /           |                  
+ ' /   __| _` | __|  _ \   __|    
+ . \  |   (   | |   (   |\__ \  
+_|\_\_|  \__,_|\__|\___/ ____/
+           Multi-Physics 9.4."3"-docs/expression_documentation-6de5f1a499-Release-x86_64
+           Compiled for GNU/Linux and Python3.11 with GCC-13.2
+Compiled with threading and MPI support.
+Maximum number of threads: 30.
+Running without MPI.
 ```

@@ -34,3 +34,16 @@ Kratos.Expression.VariableExpressionIO.Read(nodal_expression, Kratos.VELOCITY, F
 
 print(Kratos.Expression.Utils.NormP(nodal_expression, 3))
 ```
+Expected output:
+```bash
+12.651489979526238
+ |  /           |                  
+ ' /   __| _` | __|  _ \   __|    
+ . \  |   (   | |   (   |\__ \  
+_|\_\_|  \__,_|\__|\___/ ____/
+           Multi-Physics 9.4."3"-docs/expression_documentation-6de5f1a499-Release-x86_64
+           Compiled for GNU/Linux and Python3.11 with GCC-13.2
+Compiled with threading and MPI support.
+Maximum number of threads: 30.
+Running without MPI.
+```

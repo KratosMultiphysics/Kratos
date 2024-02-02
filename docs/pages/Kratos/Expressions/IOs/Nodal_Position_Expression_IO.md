@@ -39,7 +39,7 @@ Kratos.Expression.NodalPositionExpressionIO.Read(current_nodal_expression,Kratos
 print("initial:\n", initial_nodal_expression.Evaluate())
 print("current:\n", current_nodal_expression.Evaluate())
 
-# now do some arithmatics with the exps
+# now do some arithmetics with the exps
 initial_nodal_expression *= 2
 current_nodal_expression *= 2
 
@@ -52,9 +52,30 @@ for node in model_part.Nodes:
     print(f"node_id: {node.Id}, initial: [{node.X0}, {node.Y0}, {node.Z0}], current: [{node.X}, {node.Y}, {node.Z}]")
 ```
 
+Expected output:
+```bash
+initial:
+ [[0. 0. 0.]
+ [0. 1. 0.]]
+current:
+ [[10. 10.  0.]
+ [ 0.  1.  0.]]
+node_id: 1, initial: [0.0, 0.0, 0.0], current: [20.0, 20.0, 0.0]
+node_id: 2, initial: [0.0, 2.0, 0.0], current: [0.0, 2.0, 0.0]
+ |  /           |                  
+ ' /   __| _` | __|  _ \   __|    
+ . \  |   (   | |   (   |\__ \  
+_|\_\_|  \__,_|\__|\___/ ____/
+           Multi-Physics 9.4."3"-docs/expression_documentation-6de5f1a499-Release-x86_64
+           Compiled for GNU/Linux and Python3.11 with GCC-13.2
+Compiled with threading and MPI support.
+Maximum number of threads: 30.
+Running without MPI.
+```
+
 ## Using expressions without the model parts
 The ```NodalExpression```, ```ConditionExpression``` and ```ElementExpression``` has an expression which can be directly used if required. The advantage of working
-with the ```Expression``` directely is, then it is not bound to a model part of a ```DataValueContainer```. Hence, these expressions can be interchanged if required in
+with the ```Expression``` directly is, then it is not bound to a model part of a ```DataValueContainer```. Hence, these expressions can be interchanged if required in
 advanced use cases. Following code snippet shows how to use bare ```Expressions```.
 ```python
 import KratosMultiphysics as Kratos
@@ -75,4 +96,18 @@ Kratos.Expression.NodalPositionExpressionIO.Output(model_part, Kratos.Configurat
 # now read nodal positions
 for node in model_part.Nodes:
     print(f"node_id: {node.Id}, initial: [{node.X0}, {node.Y0}, {node.Z0}], current: [{node.X}, {node.Y}, {node.Z}]")
+```
+Expected output:
+```bash
+node_id: 1, initial: [0.0, 0.0, 0.0], current: [0.0, 0.0, 0.0]
+node_id: 2, initial: [0.0, 1.0, 0.0], current: [0.0, 2.0, 0.0]
+ |  /           |                  
+ ' /   __| _` | __|  _ \   __|    
+ . \  |   (   | |   (   |\__ \  
+_|\_\_|  \__,_|\__|\___/ ____/
+           Multi-Physics 9.4."3"-docs/expression_documentation-6de5f1a499-Release-x86_64
+           Compiled for GNU/Linux and Python3.11 with GCC-13.2
+Compiled with threading and MPI support.
+Maximum number of threads: 30.
+Running without MPI.
 ```

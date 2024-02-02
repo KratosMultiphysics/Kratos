@@ -42,6 +42,21 @@ Kratos.Expression.CArrayExpressionIO.Write(nodal_expression, numpy_array)
 print("numpy array = ", numpy_array)
 ```
 
+Expected output:
+```bash
+numpy array =  [[1. 2. 3.]
+ [3. 4. 5.]]
+ |  /           |                  
+ ' /   __| _` | __|  _ \   __|    
+ . \  |   (   | |   (   |\__ \  
+_|\_\_|  \__,_|\__|\___/ ____/
+           Multi-Physics 9.4."3"-docs/expression_documentation-6de5f1a499-Release-x86_64
+           Compiled for GNU/Linux and Python3.11 with GCC-13.2
+Compiled with threading and MPI support.
+Maximum number of threads: 30.
+Running without MPI.
+```
+
 ## Reading and writing to `Kratos::Vector`
 ```CArrayExpressionIO``` also allows reading and writing from ```Kratos::Vector``` containers. In this case, the size of the ```Kratos::Vector``` should be the flattened size of the shape of interest which the user will be working on.
 
@@ -74,6 +89,21 @@ for node in model_part.Nodes:
     print(f"node_id: {node.Id}, velocity: [{velocity[0]}, {velocity[1]}, {velocity[2]}]")
 ```
 
+Expected output:
+```bash
+node_id: 1, velocity: [1.0, 2.0, 3.0]
+node_id: 2, velocity: [4.0, 5.0, 6.0]
+ |  /           |                  
+ ' /   __| _` | __|  _ \   __|    
+ . \  |   (   | |   (   |\__ \  
+_|\_\_|  \__,_|\__|\___/ ____/
+           Multi-Physics 9.4."3"-docs/expression_documentation-6de5f1a499-Release-x86_64
+           Compiled for GNU/Linux and Python3.11 with GCC-13.2
+Compiled with threading and MPI support.
+Maximum number of threads: 30.
+Running without MPI.
+```
+
 Writing to a ```Kratos::Vector``` is illustarted by the following code snippet. If the passed vector (to where the expression values are written) is not with the correct size, it will be resized. This will also only write the data values of the local entities in the LocalMesh.
 ```python
 import KratosMultiphysics as Kratos
@@ -94,5 +124,19 @@ Kratos.Expression.VariableExpressionIO.Read(nodal_expression, Kratos.VELOCITY, F
 vector = Kratos.Vector()
 Kratos.Expression.CArrayExpressionIO.Write(nodal_expression, vector)
 print(vector)
+```
+
+Expected output:
+```bash
+[6](1,2,3,3,4,5)
+ |  /           |                  
+ ' /   __| _` | __|  _ \   __|    
+ . \  |   (   | |   (   |\__ \  
+_|\_\_|  \__,_|\__|\___/ ____/
+           Multi-Physics 9.4."3"-docs/expression_documentation-6de5f1a499-Release-x86_64
+           Compiled for GNU/Linux and Python3.11 with GCC-13.2
+Compiled with threading and MPI support.
+Maximum number of threads: 30.
+Running without MPI.
 ```
 

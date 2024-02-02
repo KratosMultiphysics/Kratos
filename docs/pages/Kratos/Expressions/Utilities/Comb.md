@@ -55,3 +55,18 @@ combined_exp = Kratos.Expression.Utils.Comb([p_exp, u_exp])
 
 print(combined_exp.Evaluate())
 ```
+Expected output:
+```bash
+[[ 1.  4.  5. -1.]
+ [ 2.  6.  7. -1.]
+ [ 3.  8.  9. -1.]]
+ |  /           |                  
+ ' /   __| _` | __|  _ \   __|    
+ . \  |   (   | |   (   |\__ \  
+_|\_\_|  \__,_|\__|\___/ ____/
+           Multi-Physics 9.4."3"-docs/expression_documentation-6de5f1a499-Release-x86_64
+           Compiled for GNU/Linux and Python3.11 with GCC-13.2
+Compiled with threading and MPI support.
+Maximum number of threads: 30.
+Running without MPI.
+```

@@ -45,3 +45,18 @@ for node in model_part.Nodes:
     pressure = node.GetValue(Kratos.PRESSURE)
     print(f"node_id: {node.Id}, velocity=[{velocity[0]}, {velocity[1]}, {velocity[2]}], pressure = {pressure}")
 ```
+Expected output:
+```bash
+node_id: 1, velocity=[-1.0, -2.0, -3.0], pressure = -1.0
+node_id: 2, velocity=[-4.0, -5.0, -6.0], pressure = -4.0
+node_id: 3, velocity=[-7.0, -8.0, -9.0], pressure = -7.0
+ |  /           |                  
+ ' /   __| _` | __|  _ \   __|    
+ . \  |   (   | |   (   |\__ \  
+_|\_\_|  \__,_|\__|\___/ ____/
+           Multi-Physics 9.4."3"-docs/expression_documentation-6de5f1a499-Release-x86_64
+           Compiled for GNU/Linux and Python3.11 with GCC-13.2
+Compiled with threading and MPI support.
+Maximum number of threads: 30.
+Running without MPI.
+```

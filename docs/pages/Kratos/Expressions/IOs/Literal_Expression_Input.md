@@ -45,6 +45,21 @@ for node in model_part.Nodes:
     print(f"node_id: {node.Id}, velocity = [{velocity[0]}, {velocity[1]}, {velocity[2]}]")
 ```
 
+Expected output:
+```bash
+node_id: 1, velocity = [1.0, 2.0, 3.0]
+node_id: 2, velocity = [1.0, 2.0, 3.0]
+ |  /           |                  
+ ' /   __| _` | __|  _ \   __|    
+ . \  |   (   | |   (   |\__ \  
+_|\_\_|  \__,_|\__|\___/ ____/
+           Multi-Physics 9.4."3"-docs/expression_documentation-6de5f1a499-Release-x86_64
+           Compiled for GNU/Linux and Python3.11 with GCC-13.2
+Compiled with threading and MPI support.
+Maximum number of threads: 30.
+Running without MPI.
+```
+
 ## Setting literal expression to zero
 
 The ```LiteralExpressionIO``` also can be used to set entity data to zero for a given variable. **In the case of dynamically sized types, it will create empty instances [Such as Vector with size 0, Matrix with shape (0,0)**. The passed variable is only used to determine the entity shape. Example:
@@ -75,6 +90,23 @@ Kratos.Expression.VariableExpressionIO.Write(nodal_expression, Kratos.TEMPERATUR
 # now check
 for node in model_part.Nodes:
     print(f"node_id: {node.Id}, pressure = {node.GetValue(Kratos.PRESSURE)}, temperature = {node.GetValue(Kratos.TEMPERATURE)}")
+```
+
+Expected output:
+```bash
+PRESSURE before resetting:
+ [10. 20.]
+node_id: 1, pressure = 10.0, temperature = 0.0
+node_id: 2, pressure = 20.0, temperature = 0.0
+ |  /           |                  
+ ' /   __| _` | __|  _ \   __|    
+ . \  |   (   | |   (   |\__ \  
+_|\_\_|  \__,_|\__|\___/ ____/
+           Multi-Physics 9.4."3"-docs/expression_documentation-6de5f1a499-Release-x86_64
+           Compiled for GNU/Linux and Python3.11 with GCC-13.2
+Compiled with threading and MPI support.
+Maximum number of threads: 30.
+Running without MPI.
 ```
 
 ## Use cases
@@ -108,8 +140,24 @@ Kratos.Expression.VariableExpressionIO.Write(inverse_expression, Kratos.TEMPERAT
 
 # now check
 for node in model_part.Nodes:
-    velocity = node.GetValue(Kratos.VELOCITY)
     print(f"node_id: {node.Id}, pressure = {node.GetValue(Kratos.PRESSURE)}, temperature = {node.GetValue(Kratos.TEMPERATURE)}")
+```
+
+Expected output:
+```bash
+PRESSURE before resetting:
+ [10. 20.]
+node_id: 1, pressure = 10.0, temperature = 0.1
+node_id: 2, pressure = 20.0, temperature = 0.05
+ |  /           |                  
+ ' /   __| _` | __|  _ \   __|    
+ . \  |   (   | |   (   |\__ \  
+_|\_\_|  \__,_|\__|\___/ ____/
+           Multi-Physics 9.4."3"-docs/expression_documentation-6de5f1a499-Release-x86_64
+           Compiled for GNU/Linux and Python3.11 with GCC-13.2
+Compiled with threading and MPI support.
+Maximum number of threads: 30.
+Running without MPI.
 ```
 
 ## Using expressions without the model parts
@@ -136,4 +184,19 @@ Kratos.Expression.VariableExpressionIO.Output(model_part, Kratos.ACCELERATION, K
 for node in model_part.Nodes:
     acceleration = node.GetValue(Kratos.ACCELERATION)
     print(f"node_id: {node.Id}, acceleration: [{acceleration[0]},{acceleration[1]},{acceleration[2]}]")
+```
+
+Expected output:
+```bash
+node_id: 1, acceleration: [2.0,4.0,6.0]
+node_id: 2, acceleration: [2.0,4.0,6.0]
+ |  /           |                  
+ ' /   __| _` | __|  _ \   __|    
+ . \  |   (   | |   (   |\__ \  
+_|\_\_|  \__,_|\__|\___/ ____/
+           Multi-Physics 9.4."3"-docs/expression_documentation-6de5f1a499-Release-x86_64
+           Compiled for GNU/Linux and Python3.11 with GCC-13.2
+Compiled with threading and MPI support.
+Maximum number of threads: 30.
+Running without MPI.
 ```

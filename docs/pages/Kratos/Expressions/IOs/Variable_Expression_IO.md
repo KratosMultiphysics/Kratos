@@ -57,6 +57,21 @@ for node in model_part.Nodes:
     print(f"node_id: {node.Id}, velocity: [{velocity[0]},{velocity[1]},{velocity[2]}], acceleration: [{acceleration[0]},{acceleration[1]},{acceleration[2]}]")
 ```
 
+Expected output:
+```bash
+node_id: 1, velocity: [1.0,2.0,3.0], acceleration: [2.0,4.0,6.0]
+node_id: 2, velocity: [3.0,4.0,5.0], acceleration: [6.0,8.0,10.0]
+ |  /           |                  
+ ' /   __| _` | __|  _ \   __|    
+ . \  |   (   | |   (   |\__ \  
+_|\_\_|  \__,_|\__|\___/ ____/
+           Multi-Physics 9.4."3"-docs/expression_documentation-6de5f1a499-Release-x86_64
+           Compiled for GNU/Linux and Python3.11 with GCC-13.2
+Compiled with threading and MPI support.
+Maximum number of threads: 30.
+Running without MPI.
+```
+
 ## Reading/Writing condition values
 ```python
 import KratosMultiphysics as Kratos
@@ -86,6 +101,20 @@ for condition in model_part.Conditions:
     velocity = condition.GetValue(Kratos.VELOCITY)
     acceleration = condition.GetValue(Kratos.ACCELERATION)
     print(f"condition_id: {condition.Id}, velocity: [{velocity[0]},{velocity[1]},{velocity[2]}], acceleration: [{acceleration[0]},{acceleration[1]},{acceleration[2]}]")
+```
+
+Expected output:
+```bash
+condition_id: 1, velocity: [1.0,2.0,3.0], acceleration: [2.0,4.0,6.0]
+ |  /           |                  
+ ' /   __| _` | __|  _ \   __|    
+ . \  |   (   | |   (   |\__ \  
+_|\_\_|  \__,_|\__|\___/ ____/
+           Multi-Physics 9.4."3"-docs/expression_documentation-6de5f1a499-Release-x86_64
+           Compiled for GNU/Linux and Python3.11 with GCC-13.2
+Compiled with threading and MPI support.
+Maximum number of threads: 30.
+Running without MPI.
 ```
 
 ## Reading/Writing element values
@@ -120,6 +149,20 @@ for element in model_part.Elements:
     print(f"element_id: {element.Id}, velocity: [{velocity[0]},{velocity[1]},{velocity[2]}], acceleration: [{acceleration[0]},{acceleration[1]},{acceleration[2]}]")
 ```
 
+Expected output:
+```bash
+element_id: 1, velocity: [1.0,2.0,3.0], acceleration: [2.0,4.0,6.0]
+ |  /           |                  
+ ' /   __| _` | __|  _ \   __|    
+ . \  |   (   | |   (   |\__ \  
+_|\_\_|  \__,_|\__|\___/ ____/
+           Multi-Physics 9.4."3"-docs/expression_documentation-6de5f1a499-Release-x86_64
+           Compiled for GNU/Linux and Python3.11 with GCC-13.2
+Compiled with threading and MPI support.
+Maximum number of threads: 30.
+Running without MPI.
+```
+
 ## Using expressions without the model parts
 The ```NodalExpression```, ```ConditionExpression``` and ```ElementExpression``` has an expression which can be directly used if required. The advantage of working
 with the ```Expression``` directely is, then it is not bound to a model part of a ```DataValueContainer```. Hence, these expressions can be interchanged if required in
@@ -147,4 +190,19 @@ for node in model_part.Nodes:
     velocity = node.GetValue(Kratos.VELOCITY)
     acceleration = node.GetValue(Kratos.ACCELERATION)
     print(f"node_id: {node.Id}, velocity: [{velocity[0]},{velocity[1]},{velocity[2]}], acceleration: [{acceleration[0]},{acceleration[1]},{acceleration[2]}]")
+```
+
+Expected output:
+```bash
+node_id: 1, velocity: [1.0,2.0,3.0], acceleration: [2.0,4.0,6.0]
+node_id: 2, velocity: [3.0,4.0,5.0], acceleration: [6.0,8.0,10.0]
+ |  /           |                  
+ ' /   __| _` | __|  _ \   __|    
+ . \  |   (   | |   (   |\__ \  
+_|\_\_|  \__,_|\__|\___/ ____/
+           Multi-Physics 9.4."3"-docs/expression_documentation-6de5f1a499-Release-x86_64
+           Compiled for GNU/Linux and Python3.11 with GCC-13.2
+Compiled with threading and MPI support.
+Maximum number of threads: 30.
+Running without MPI.
 ```
