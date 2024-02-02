@@ -36,13 +36,13 @@ Expressions are compatible with most main variable types in Kratos:
 
 ## Use cases
 
-Expressions are usefull in following scenarios:
-1. Transferring data back and forth from/to Kratos with another libraries - Library may be developed in another language like Fortran as well.
-2. Transferring data back and forth from/to Kratos with numpy/scipy.
-3. Transferring data back and forth from/to Kratos with HDF5.
-4. If it is required to compute some intermediary value at python level, where a variable usage is not required such as in computing intermediate values with efficiency.
+Expressions are useful in following scenarios:
+1. Transferring data between Kratos and other libraries - third-party libraries may be developed in other languages like Fortran as well.
+2. Transferring data between Kratos and numpy/scipy.
+3. Storing and fetching Kratos data in HDF5.
+4. Non performance-critical intermediate calculations in python.
 5. Transerring data back and forth within Kratos without variables such as in OptimizationApplication.
-6. Prototyping your research code with ease in python level while utilizing **shared memory** and **distributed memory** paralellism.
+6. Quick and convenient prototyping of research code in python while using **shared memory** and **distributed memory** paralellism.
 
 
 
