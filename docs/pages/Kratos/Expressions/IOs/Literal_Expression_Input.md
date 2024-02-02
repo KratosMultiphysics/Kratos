@@ -8,7 +8,7 @@ summary:
 
 ## Introduction
 
-```LiteralExpressionIO``` is used to represent literal values. Following literal types are supported:
+```LiteralExpressionIO``` is used to represent literal values. The following literal types are supported:
 * int
 * double
 * array_1d<double, 3>
