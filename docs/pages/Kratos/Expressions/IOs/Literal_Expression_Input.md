@@ -47,7 +47,7 @@ for node in model_part.Nodes:
 
 ## Setting literal expression to zero
 
-The ```LiteralExpressionIO``` also can be used to set entity data to zero for a given variable. **In the case of dynamic data types, it will create empty data sets [Such as Vector with size 0, Matrix with shape (0,0)**. The passed variable is only used to determine the entity data shape. Following code-snippet shows an example:
+The ```LiteralExpressionIO``` also can be used to set entity data to zero for a given variable. **In the case of dynamically sized types, it will create empty instances [Such as Vector with size 0, Matrix with shape (0,0)**. The passed variable is only used to determine the entity shape. Example:
 ```python
 import KratosMultiphysics as Kratos
 model = Kratos.Model()
