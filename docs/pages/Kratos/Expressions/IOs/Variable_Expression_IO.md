@@ -12,7 +12,7 @@ summary:
 
 ### Variable types
 
-Following variable types are allowed to be read in or write to from an expression.
+The following Kratos variable types are supported:
 * ```Kratos::Variable<int>```
 * ```Kratos::Variable<double>```
 * ```Kratos::Variable<array_1d<double, 3>>```
