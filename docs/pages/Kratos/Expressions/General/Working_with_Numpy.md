@@ -79,9 +79,8 @@ for node in model_part.Nodes:
 
 ## Moving from numpy arrays
 
-This is similar to the [reading from numpy arrays](#reading-from-numpy-arraystest). The difference is, this does not create a copy within the expression.
-It uses the memory location of the original numpy array with in the expression, hence it is of ```O(1)``` cost. No new meory allocation will be done
-within the expression. So, if someone uses the moving of numpy array to an expression, **they need to make sure that the numpy array is not destroyed untill the expression or any of the dependent expressions are used up**. Otherwise, there will be a **Segmentation fault** error.
+This is similar to [reading from numpy arrays](#reading-from-numpy-arraystest) with the difference that this does not create a copy for the expression.
+It uses the memory location of the original numpy array within the expression, eliding the copy and its related memory allocation. An important consequence is that **the original numpy array must be kept in memory for entire lifetime of the expression**, otherwise evaluating the expression will result in a segmentation fault.
 
 Following code snippet illustrates how to move numpy arrays to expressions:
 ```python
