@@ -311,7 +311,8 @@ void CoupledPlasticDamageFatigueModel<TYieldSurfaceType>::CalculatePlasticDissip
     PlasticDamageParameters &rParam
     )
 {
-    const double g = CalculateVolumetricFractureEnergy(rMaterialProperties, rParam);
+    double g = CalculateVolumetricFractureEnergy(rMaterialProperties, rParam);
+    g *= rParam.FatigueReductionFactor * rParam.FatigueReductionFactor;
     rParam.PlasticDissipationIncrement = inner_prod(rParam.StressVector,
                             rParam.PlasticStrainIncrement) / g;
     rParam.PlasticDissipationIncrement = MacaullyBrackets(rParam.PlasticDissipationIncrement);
@@ -326,7 +327,8 @@ void CoupledPlasticDamageFatigueModel<TYieldSurfaceType>::CalculateDamageDissipa
     PlasticDamageParameters &rParam
     )
 {
-    const double g = CalculateVolumetricFractureEnergy(rMaterialProperties, rParam);
+    double g = CalculateVolumetricFractureEnergy(rMaterialProperties, rParam);
+    g *= rParam.FatigueReductionFactor * rParam.FatigueReductionFactor;
     rParam.DamageDissipationIncrement = inner_prod(rParam.StressVector,
                             prod(rParam.ComplianceMatrixIncrement,rParam.StressVector)) * 0.5 / g;
 
