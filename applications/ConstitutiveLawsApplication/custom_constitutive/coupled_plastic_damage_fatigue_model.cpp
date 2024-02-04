@@ -282,7 +282,8 @@ double CoupledPlasticDamageFatigueModel<TYieldSurfaceType>::CalculatePlasticDeno
     ConstitutiveLaw::Parameters& rValues,
     PlasticDamageParameters &rParam)
 {
-    const double g = CalculateVolumetricFractureEnergy(rValues.GetMaterialProperties(), rParam);
+    double g = CalculateVolumetricFractureEnergy(rValues.GetMaterialProperties(), rParam);
+    g *= rParam.FatigueReductionFactor * rParam.FatigueReductionFactor;
     const BoundedVectorType& r_plastic_flow = rParam.PlasticFlow;
     const BoundedVectorType& r_stress = rParam.StressVector;
     const double slope = rParam.Slope; // d(Threshold) / d(plastic_dissipation)
@@ -518,9 +519,10 @@ CoupledPlasticDamageFatigueModel<TYieldSurfaceType>::CurveByPointsHardeningImpli
             chi = 0.5;
         }
         const double C0 = r_mat_properties[YOUNG_MODULUS];
-        const double g = CoupledPlasticDamageFatigueModel<TYieldSurfaceType>::CalculateVolumetricFractureEnergy(r_mat_properties, rPDParameters);
+        double g = CoupledPlasticDamageFatigueModel<TYieldSurfaceType>::CalculateVolumetricFractureEnergy(r_mat_properties, rPDParameters);
+        g *= rPDParameters.FatigueReductionFactor * rPDParameters.FatigueReductionFactor;
         double K0;
-        GenericConstitutiveLawIntegratorPlasticity<TYieldSurfaceType>::GetInitialUniaxialThreshold(rValues, K0);
+        GenericConstitutiveLawIntegratorPlasticityWithFatigue<TYieldSurfaceType>::GetInitialUniaxialThreshold(rValues, K0, rPDParameters.FatigueReductionFactor);
         const double E0 = K0 / C0; // Yield strain
         const Vector& s_by_points = r_mat_properties[EQUIVALENT_STRESS_VECTOR_PLASTICITY_POINT_CURVE]; // By-Points region. Stress vector
         const Vector& e_by_points = r_mat_properties[TOTAL_STRAIN_VECTOR_PLASTICITY_POINT_CURVE]; // By-Points region. Strain vector
@@ -563,9 +565,10 @@ CoupledPlasticDamageFatigueModel<TYieldSurfaceType>::CurveByPointsHardeningImpli
             chi = 0.5;
         }
         const double C0 = r_mat_properties[YOUNG_MODULUS];
-        const double g = CalculateVolumetricFractureEnergy(rValues.GetMaterialProperties(), rPDParameters);
+        double g = CalculateVolumetricFractureEnergy(rValues.GetMaterialProperties(), rPDParameters);
+        g *= rPDParameters.FatigueReductionFactor * rPDParameters.FatigueReductionFactor;
         double K0;
-        GenericConstitutiveLawIntegratorPlasticity<TYieldSurfaceType>::GetInitialUniaxialThreshold(rValues, K0);
+        GenericConstitutiveLawIntegratorPlasticityWithFatigue<TYieldSurfaceType>::GetInitialUniaxialThreshold(rValues, K0, rPDParameters.FatigueReductionFactor);
         const double E0 = K0 / C0; // Yield strain
         const Vector& s_by_points = r_mat_properties[EQUIVALENT_STRESS_VECTOR_PLASTICITY_POINT_CURVE]; // By-Points region. Stress vector
         const Vector& e_by_points = r_mat_properties[TOTAL_STRAIN_VECTOR_PLASTICITY_POINT_CURVE]; // By-Points region. Strain vector
