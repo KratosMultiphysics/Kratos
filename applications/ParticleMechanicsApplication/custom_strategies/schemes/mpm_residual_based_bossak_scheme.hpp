@@ -264,7 +264,6 @@ public:
         KRATOS_CATCH( "" );
     }
 
-    // Clear friction-related flags so that RHS can be properly constructed for current iteration
     void FinalizeNonLinIteration(ModelPart &rModelPart, TSystemMatrixType &rA, TSystemVectorType &rDx,
                                    TSystemVectorType &rb) override {
 
@@ -275,6 +274,16 @@ public:
 
         // modify reaction forces for particle slip conditions (Penalty)
         mRotationTool.CalculateReactionForces(mGridModelPart);
+
+        mRotationTool.ComputeFrictionAndResetFlags(rModelPart);
+    }
+
+    void InitializeNonLinIteration(ModelPart &rModelPart, TSystemMatrixType &rA, TSystemVectorType &rDx,
+                                 TSystemVectorType &rb) override {
+
+        BossakBaseType::InitializeNonLinIteration(rModelPart, rA, rDx, rb);
+
+        mRotationTool.ComputeFrictionAndResetFlags(rModelPart);
     }
 
     /**
@@ -333,6 +342,21 @@ public:
                 double & r_nodal_mpressure = (i)->FastGetSolutionStepValue(NODAL_MPRESSURE);
                 r_nodal_mpressure = 0.0;
             }
+
+            // friction-related
+            if(i->SolutionStepsDataHas(STICK_FORCE)) {
+                array_1d<double, 3 > & r_stick_force = (i)->FastGetSolutionStepValue(STICK_FORCE);
+                r_stick_force.clear();
+            }
+            if(i->SolutionStepsDataHas(FRICTION_FORCE)) {
+                array_1d<double, 3 > & r_friction_force = (i)->FastGetSolutionStepValue(FRICTION_FORCE);
+                r_friction_force.clear();
+            }
+
+            if(i->SolutionStepsDataHas(FRICTION_STATE)) {
+                int & r_friction_state = (i)->FastGetSolutionStepValue(FRICTION_STATE);
+                r_friction_state = mRotationTool.GetSlidingState();
+            }
 		}
 
         // Extrapolate from Material Point Elements and Conditions
@@ -370,6 +394,12 @@ public:
                 r_nodal_acceleration += delta_nodal_acceleration;
 
                 r_nodal_pressure += delta_nodal_pressure;
+
+                // use INLET to mark nodes which have non-zero momentum in the 1st timestep s.t. these nodes can have
+                // an initial friction state of SLIDING instead of STICK
+                if(mGridModelPart.GetProcessInfo()[STEP] ==  1 && norm_2(r_nodal_momentum) > std::numeric_limits<double>::epsilon()){
+                    (i)->Set(INLET);
+                }
             }
         }
 

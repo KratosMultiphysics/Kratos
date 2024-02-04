@@ -168,6 +168,55 @@ public:
                         rLocalMatrix(j, j) = 1.0; // set diagonal term to 1.0
                     }
 
+                    // Modifications to introduce friction force
+                    const double mu = rGeometry[itNode].GetValue(FRICTION_COEFFICIENT);
+                    const double tangential_penalty_factor = rGeometry[itNode].GetValue(TANGENTIAL_PENALTY_FACTOR);
+
+                    if (mu > 0 && tangential_penalty_factor > 0) { // Friction active
+                        array_1d<double,3> & r_stick_force = rGeometry[itNode].FastGetSolutionStepValue(STICK_FORCE);
+
+                        // accumulate normal forces (RHS vector) for subsequent re-determination of friction state
+                        if (rGeometry[itNode].GetValue(FRICTION_COEFFICIENT) > 0){
+                            rGeometry[itNode].FastGetSolutionStepValue(STICK_FORCE)[0] -= rLocalVector[j];
+                        }
+
+                        // check if friction force has been computed for the current node
+                        rGeometry[itNode].SetLock();
+                        bool friction_computed = rGeometry[itNode].Is(OUTLET);
+                        rGeometry[itNode].Set(OUTLET);
+                        rGeometry[itNode].UnSetLock();
+
+                        if (!friction_computed) {
+                            // obtain displacement in normal-tangential coordinates
+                            // [ use a copy and not reference to avoid rotating the displacement in SolutionStepValue ]
+                            array_1d<double,3> displacement_copy = rGeometry[itNode].FastGetSolutionStepValue(DISPLACEMENT);
+                            RotateVector(displacement_copy, rGeometry[itNode]);
+
+                            // TODO: scaling by nodal_area? [rmb to scale LHS contribution as well]
+                            // determine penalty-based sticking force in the tangential direction for the current node
+                            // [ displacement in MPM is the displacement update -> penalize any and all displacement
+                            //   updates in the tangential direction [this assumes a stationary background grid]
+                            for( unsigned int i = 1; i < this->GetDomainSize(); ++i) {
+                                r_stick_force[i] = tangential_penalty_factor * displacement_copy[i];
+                            }
+
+                            const int friction_state = rGeometry[itNode].FastGetSolutionStepValue(FRICTION_STATE);
+
+                            if(friction_state == STICK) {
+                                if (rLocalMatrix.size1() != 0) {
+                                    for (unsigned int i = 1; i < this->GetDomainSize(); ++i)
+                                        rLocalMatrix(j + i, j + i) += tangential_penalty_factor;
+                                }
+                            } // else, sliding: nothing needed for LHS
+
+                            // add friction to RHS
+                            array_1d<double,3> & r_friction_force = rGeometry[itNode].FastGetSolutionStepValue(FRICTION_FORCE);
+
+                            for( unsigned int i = 1; i < this->GetDomainSize(); ++i)
+                                rLocalVector[j + i] -= r_friction_force[i];
+                        }
+                    }
+
                     // Set value of normal displacement at node directly to the normal displacement of the boundary mesh
 					rLocalVector[j] = inner_prod(rN,displacement);
 				}
@@ -431,9 +480,121 @@ public:
 			}
 		}
 	}
+
+
+    /// Helper function to rotate a 3-vector to and from the coordinate system defined by the NORMAL defined at rNode
+    /**
+     @param rVector Vector to be rotated
+     @param rNode A reference to the node associated with the vector
+     @param toGlobalCoordinates If true, instead rotates the vector back to the global coordinates [default: false]
+     */
+    inline void RotateVector(array_1d<double, 3>& rVector,
+                      const Node& rNode,
+                      const bool toGlobalCoordinates = false) const {
+
+        TLocalVectorType rotated_nodal_vector(this->GetDomainSize());
+        TLocalVectorType tmp(this->GetDomainSize());
+
+        if(this->GetDomainSize() == 3){
+            // 3D case
+            BoundedMatrix<double, 3, 3> rotation_matrix;
+            this->LocalRotationOperatorPure(rotation_matrix, rNode);
+
+            noalias(rotated_nodal_vector) = prod(toGlobalCoordinates ? trans(rotation_matrix) : rotation_matrix, rVector);
+
+            rVector = rotated_nodal_vector;
+        } else {
+            // 2D case
+            BoundedMatrix<double, 2, 2> rotation_matrix;
+            this->LocalRotationOperatorPure(rotation_matrix, rNode);
+
+            tmp(0) = rVector(0);
+            tmp(1) = rVector(1);
+
+            noalias(rotated_nodal_vector) = prod(toGlobalCoordinates ? trans(rotation_matrix) : rotation_matrix, tmp);
+
+            rVector(0) = rotated_nodal_vector(0);
+            rVector(1) = rotated_nodal_vector(1);
+        }
+
+
+    }
+
+
+    // Sets FRICTION_STATE for a SLIP node to indicate its stick/sliding state and stores the maximum tangent force
+    // allowed in each direction in FRICTION_FORCE
+    void ComputeFrictionAndResetFlags(ModelPart& rModelPart){
+        #pragma omp parallel for
+        for (int iter = 0; iter < static_cast<int>(rModelPart.Nodes().size()); ++iter) {
+            auto pNode = rModelPart.NodesBegin() + iter;
+
+            int& r_friction_state = pNode->FastGetSolutionStepValue(FRICTION_STATE, 0);
+            const double mu = pNode->GetValue(FRICTION_COEFFICIENT);
+
+            array_1d<double, 3>& r_friction_force = pNode->FastGetSolutionStepValue(FRICTION_FORCE);
+
+            // Limit tangential forces for friction
+            if (mu > 0) {
+                // obtain normal and tangent forces assoc. with node at the desired timestep
+                double normal_force = pNode->FastGetSolutionStepValue(STICK_FORCE_X, 1);
+                const double tangent_force1 = pNode->FastGetSolutionStepValue(STICK_FORCE_Y, 0);
+                const double tangent_force2 = pNode->FastGetSolutionStepValue(STICK_FORCE_Z, 0);
+
+                // if needed, flip normal direction
+                if(pNode->Is(MODIFIED)) normal_force *= -1.0;
+
+                // [note: no friction if normal component < 0 [direction chosen to be consistent with contact algo]]
+                // [since normal point away from the boundary/interface, a normal component < 0 indicates a force
+                //  pulling towards the normal (i.e. tensile force)]
+                const double normal_force_norm = fmax(normal_force, 0.0);
+
+                const double tangent_force_norm = sqrt(tangent_force1 * tangent_force1 + tangent_force2 * tangent_force2);
+                const double max_tangent_force_norm = normal_force_norm * mu;
+
+                const bool isInitialLoop = (rModelPart.GetProcessInfo()[FLAG_VARIABLE] > 0);
+
+                // special treatment for initial loop
+                if (isInitialLoop) {
+                    if (pNode->Is(INLET)) { // used to mark nodes with non-zero momentum in the initial timestep
+                        r_friction_state = SLIDING;
+                    }
+                    else {
+                        r_friction_state = STICK;
+                    }
+                } else {
+                    r_friction_state = (tangent_force_norm >= max_tangent_force_norm) ? SLIDING : STICK;
+                }
+
+                if (r_friction_state == SLIDING) {
+                    double tangent_force_dir1 = 0.0;
+                    double tangent_force_dir2 = 0.0;
+
+                    if (tangent_force_norm > std::numeric_limits<double>::epsilon()) {
+                        tangent_force_dir1 = tangent_force1 / tangent_force_norm;
+                        tangent_force_dir2 = tangent_force2 / tangent_force_norm;
+                    }
+
+                    r_friction_force[1] = tangent_force_dir1 * max_tangent_force_norm;
+                    r_friction_force[2] = tangent_force_dir2 * max_tangent_force_norm;
+                }
+                else { // STICK
+                    r_friction_force[1] = tangent_force1;
+                    r_friction_force[2] = tangent_force2;
+                }
+
+                // reset friction-related flags/variables
+                pNode->Reset(OUTLET);
+                pNode->FastGetSolutionStepValue(STICK_FORCE).clear();
+            }
+        }
+    }
+
 	///@}
 	///@name Access
 	///@{
+	int GetSlidingState(){
+        return SLIDING;
+    }
 
 	///@}
 	///@name Inquiry
@@ -501,6 +662,9 @@ private:
 	///@{
 
 	const Variable<double>& mrFlagVariable;
+
+    const int SLIDING = 0;
+    const int STICK = 1;
 
 	///@}
 	///@name Member Variables
