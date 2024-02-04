@@ -716,7 +716,7 @@ private:
 
     //Fatigue member variables
     double mFatigueReductionFactor = 1.0;
-    // Vector mPreviousStresses = ZeroVector(2); // [S_t-2, S_t-1]
+    Vector mPreviousStresses = ZeroVector(2); // [S_t-2, S_t-1]
     double mMaxStress = 0.0;
     double mMinStress = 0.0;
     double mPreviousMaxStress = 0.0;
@@ -731,7 +731,7 @@ private:
     double mThresholdStress = 0.0; // Endurance limit of the fatigue model.
     double mReversionFactorRelativeError = 0.0; // Relative error of the R = Smin / Smax between cycles inducing recalculation of Nlocal and advanciing process.
     double mMaxStressRelativeError = 0.0; // Relative error of Smax between cycles inducing recalculation of Nlocal and advanciing process.
-    // bool mNewCycleIndicator = false; // New cycle identifier required for the advancing process.
+    bool mNewCycleIndicator = false; // New cycle identifier required for the advancing process.
     double mCyclesToFailure = 0.0; // Nf. Required for the advanciing process.
     // double mPreviousCycleTime = 0.0; // Instanced variable used in the advanciing process for the conversion between time and number of cycles.
     // double mPeriod = 0.0; // Instanced variable used in the advanciing process for the conversion between time and number of cycles.

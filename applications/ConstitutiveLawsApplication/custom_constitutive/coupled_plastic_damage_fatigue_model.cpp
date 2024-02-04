@@ -27,6 +27,7 @@
 // Plasticity Integrator includes
 #include "custom_constitutive/constitutive_laws_integrators/generic_constitutive_law_integrator_plasticity.h"
 #include "custom_constitutive/constitutive_laws_integrators/high_cycle_fatigue_law_integrator.h"
+#include "custom_constitutive/constitutive_laws_integrators/generic_constitutive_law_integrator_plasticity_with_fatigue.h"
 
 // Yield surfaces
 #include "custom_constitutive/yield_surfaces/generic_yield_surface.h"
@@ -178,6 +179,32 @@ void CoupledPlasticDamageFatigueModel<TYieldSurfaceType>::FinalizeMaterialRespon
         UpdateInternalVariables(plastic_damage_parameters);
     }
 
+    //Lo pongo aquí en lugar de antes porque en el cálculo se recalcula la tensión uniaxial (el cálculo es iterativo); en realidad debería de dar igual porque se va a hacer con valores de referencia
+    //This should be done with the stress computed using reference values --> AIT is needed
+    double sign_factor = HighCycleFatigueLawIntegrator<6>::CalculateTensionCompressionFactor(plastic_damage_parameters.StressVector);
+    const double uniaxial_stress_max_min = sign_factor * plastic_damage_parameters.UniaxialStress;
+    double max_stress = mMaxStress;
+    double min_stress = mMinStress;
+    bool max_indicator = mMaxDetected;
+    bool min_indicator = mMinDetected;
+
+    HighCycleFatigueLawIntegrator<6>::CalculateMaximumAndMinimumStresses(
+            uniaxial_stress_max_min,
+            max_stress,
+            min_stress,
+            mPreviousStresses,
+            max_indicator,
+            min_indicator);
+    mMaxStress = max_stress;
+    mMinStress = min_stress;
+    mMaxDetected = max_indicator;
+    mMinDetected = min_indicator;
+
+    Vector previous_stresses = ZeroVector(2);
+    const Vector& r_aux_stresses = mPreviousStresses;
+    previous_stresses[1] = uniaxial_stress_max_min;
+    previous_stresses[0] = r_aux_stresses[1];
+    mPreviousStresses = previous_stresses;
 }
 
 /***********************************************************************************/
@@ -541,6 +568,7 @@ void CoupledPlasticDamageFatigueModel<TYieldSurfaceType>::CalculateThresholdAndS
 {
     const auto& r_mat_properties = rValues.GetMaterialProperties();
 
+    const double fatigue_reduction_factor = mFatigueReductionFactor;
     double chi;
     const bool threshold_xi_dependence = r_mat_properties[THRESHOLD_XI_DEPENDENCE];
     if (threshold_xi_dependence) {
@@ -550,7 +578,7 @@ void CoupledPlasticDamageFatigueModel<TYieldSurfaceType>::CalculateThresholdAndS
     }
     if (chi == 0.0) { // full plastic behaviour
         double uniaxial_plastic_strain = 0.0;
-        GenericConstitutiveLawIntegratorPlasticity<TYieldSurfaceType>::
+        GenericConstitutiveLawIntegratorPlasticityWithFatigue<TYieldSurfaceType>::
             CalculateEquivalentPlasticStrain(rPDParameters.StressVector,
             rPDParameters.UniaxialStress, rPDParameters.PlasticStrain, 0.0, rValues, uniaxial_plastic_strain);
         double tension_parameter, compression_parameter;
@@ -1319,7 +1347,7 @@ void CoupledPlasticDamageFatigueModel<TYieldSurfaceType>::InitializeMaterialResp
             max_stress,
             rValues.GetMaterialProperties(),
             // (1.0 - damage) * threshold, //Current damage threshold with no influence of fatigue, only damage no-linearity
-            threshold,
+            threshold / fatigue_reduction_factor,
             s_th,
             ultimate_stress,
             c_factor);
