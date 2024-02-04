@@ -107,11 +107,22 @@ void CoupledPlasticDamageFatigueModel<TYieldSurfaceType>::CalculateMaterialRespo
 
         noalias(plastic_damage_parameters.StressVector) = prod(plastic_damage_parameters.ConstitutiveMatrix, r_strain_vector - plastic_damage_parameters.PlasticStrain);
 
+        // TYieldSurfaceType::CalculateEquivalentStress(plastic_damage_parameters.StressVector, plastic_damage_parameters.StrainVector, plastic_damage_parameters.UniaxialStress, rValues);
+
+        //Updating kpd and the threshold according to the fatigue reduction factor -> this is done following what is done in plasticity where the parameters are updated
+        //even though the nonlinearity is activie. This is necessary because fred is inducing nonlinearities. This should not be necessary for kappa because at this point
+        //there is no plastic strain nor compliance matrix increment -> this should be checked, but these should be 0 at this point of the calculation ALWAYS
+        // CalculatePlasticDissipationIncrement(r_mat_props, plastic_damage_parameters);
+        // CalculateDamageDissipationIncrement(r_mat_props, plastic_damage_parameters);
+        // AddNonLinearDissipation(plastic_damage_parameters);
+
+        // updated uniaxial and threshold stress check
         TYieldSurfaceType::CalculateEquivalentStress(plastic_damage_parameters.StressVector, plastic_damage_parameters.StrainVector, plastic_damage_parameters.UniaxialStress, rValues);
+        CalculateThresholdAndSlope(rValues, plastic_damage_parameters);
 
-        plastic_damage_parameters.NonLinearIndicator = plastic_damage_parameters.UniaxialStress - mThreshold;
+        plastic_damage_parameters.NonLinearIndicator = plastic_damage_parameters.UniaxialStress - plastic_damage_parameters.Threshold;
 
-        if (plastic_damage_parameters.NonLinearIndicator <= std::abs(tolerance * mThreshold)) {
+        if (plastic_damage_parameters.NonLinearIndicator <= std::abs(tolerance * plastic_damage_parameters.Threshold)) {
             noalias(r_integrated_stress_vector) = plastic_damage_parameters.StressVector;
         } else {
             IntegrateStressPlasticDamageMechanics(rValues, plastic_damage_parameters);
@@ -169,12 +180,23 @@ void CoupledPlasticDamageFatigueModel<TYieldSurfaceType>::FinalizeMaterialRespon
     noalias(plastic_damage_parameters.StressVector) = prod(plastic_damage_parameters.ConstitutiveMatrix,
         r_strain_vector - plastic_damage_parameters.PlasticStrain);
 
-    TYieldSurfaceType::CalculateEquivalentStress(plastic_damage_parameters.StressVector,
-        plastic_damage_parameters.StrainVector, plastic_damage_parameters.UniaxialStress, rValues);
+    // TYieldSurfaceType::CalculateEquivalentStress(plastic_damage_parameters.StressVector,
+    //     plastic_damage_parameters.StrainVector, plastic_damage_parameters.UniaxialStress, rValues);
 
-    plastic_damage_parameters.NonLinearIndicator = plastic_damage_parameters.UniaxialStress - mThreshold;
+    //Updating kpd and the threshold according to the fatigue reduction factor -> this is done following what is done in plasticity where the parameters are updated
+    //even though the nonlinearity is activie. This is necessary because fred is inducing nonlinearities. This should not be necessary for kappa because at this point
+    //there is no plastic strain nor compliance matrix increment -> this should be checked, but these should be 0 at this point of the calculation ALWAYS
+    // CalculatePlasticDissipationIncrement(r_mat_props, plastic_damage_parameters);
+    // CalculateDamageDissipationIncrement(r_mat_props, plastic_damage_parameters);
+    // AddNonLinearDissipation(plastic_damage_parameters);
 
-    if (plastic_damage_parameters.NonLinearIndicator > std::abs(tolerance * mThreshold)) {
+    // updated uniaxial and threshold stress check
+    TYieldSurfaceType::CalculateEquivalentStress(plastic_damage_parameters.StressVector, plastic_damage_parameters.StrainVector, plastic_damage_parameters.UniaxialStress, rValues);
+    CalculateThresholdAndSlope(rValues, plastic_damage_parameters);
+
+    plastic_damage_parameters.NonLinearIndicator = plastic_damage_parameters.UniaxialStress - plastic_damage_parameters.Threshold;
+
+    if (plastic_damage_parameters.NonLinearIndicator > std::abs(tolerance * plastic_damage_parameters.Threshold)) {
         IntegrateStressPlasticDamageMechanics(rValues, plastic_damage_parameters);
         UpdateInternalVariables(plastic_damage_parameters);
     }
@@ -333,7 +355,6 @@ CoupledPlasticDamageFatigueModel<TYieldSurfaceType>::ExponentialSofteningImplici
         double g = CoupledPlasticDamageFatigueModel<TYieldSurfaceType>::CalculateVolumetricFractureEnergy(r_mat_properties, rPDParameters);
         g *= rPDParameters.FatigueReductionFactor * rPDParameters.FatigueReductionFactor;
         double K0;
-        KRATOS_WATCH(rPDParameters.FatigueReductionFactor)
         GenericConstitutiveLawIntegratorPlasticityWithFatigue<TYieldSurfaceType>::GetInitialUniaxialThreshold(rValues, K0, rPDParameters.FatigueReductionFactor);
         const double alpha = std::pow(K0, 2) / (2.0 * E * g);
         const double K_K0 = Threshold / K0;
@@ -393,13 +414,15 @@ CoupledPlasticDamageFatigueModel<TYieldSurfaceType>::ExponentialHardeningImplici
         double max_threshold = 0.0;
         double chi = 0.0;
         double K0;
-        GenericConstitutiveLawIntegratorPlasticity<TYieldSurfaceType>::GetInitialUniaxialThreshold(rValues, K0);
-        const double g = CalculateVolumetricFractureEnergy(rValues.GetMaterialProperties(), rPDParameters);
+        GenericConstitutiveLawIntegratorPlasticityWithFatigue<TYieldSurfaceType>::GetInitialUniaxialThreshold(rValues, K0, rPDParameters.FatigueReductionFactor);
+        double g = CalculateVolumetricFractureEnergy(rValues.GetMaterialProperties(), rPDParameters);
+        g *= rPDParameters.FatigueReductionFactor * rPDParameters.FatigueReductionFactor;
         const double E = r_mat_properties[YOUNG_MODULUS];
         const double factor = std::pow(K0, 2) / E;
 
         if (r_mat_properties.Has(MAXIMUM_STRESS)) {
             max_threshold = r_mat_properties[MAXIMUM_STRESS];
+            max_threshold *= rPDParameters.FatigueReductionFactor; //Not checked but it should be like this as the maximum stress in the curve should be also afected by fatigue
             chi = -std::sqrt(max_threshold / (max_threshold - K0));
         } else {
             chi = (factor + g + std::sqrt(factor * (5.0 / 4.0 * factor + 2.0 * g))) / (0.5 * factor - g);
@@ -440,14 +463,16 @@ CoupledPlasticDamageFatigueModel<TYieldSurfaceType>::ExponentialHardeningImplici
         double max_threshold = 0.0;
         double chi = 0.0;
         double K0;
-        GenericConstitutiveLawIntegratorPlasticity<TYieldSurfaceType>::GetInitialUniaxialThreshold(rValues, K0);
-        const double g = CalculateVolumetricFractureEnergy(rValues.GetMaterialProperties(), rPDParameters);
+        GenericConstitutiveLawIntegratorPlasticityWithFatigue<TYieldSurfaceType>::GetInitialUniaxialThreshold(rValues, K0, rPDParameters.FatigueReductionFactor);
+        double g = CalculateVolumetricFractureEnergy(rValues.GetMaterialProperties(), rPDParameters);
+        g *= rPDParameters.FatigueReductionFactor * rPDParameters.FatigueReductionFactor;
         const double E = r_mat_properties[YOUNG_MODULUS];
         const double factor = std::pow(K0, 2) / E;
         double chi_square;
 
         if (r_mat_properties.Has(MAXIMUM_STRESS)) {
             max_threshold = r_mat_properties[MAXIMUM_STRESS];
+            max_threshold *= rPDParameters.FatigueReductionFactor;
             chi = -std::sqrt(max_threshold / (max_threshold - K0));
             chi_square = std::pow(chi, 2);
         } else {
@@ -625,8 +650,9 @@ void CoupledPlasticDamageFatigueModel<TYieldSurfaceType>::CalculateThresholdAndS
                 ResidualFunctionType implicit_function   = ExponentialHardeningImplicitFunction();
                 ResidualFunctionType function_derivative = ExponentialHardeningImplicitFunctionDerivative();
                 double K0;
-                GenericConstitutiveLawIntegratorPlasticity<TYieldSurfaceType>::GetInitialUniaxialThreshold(rValues, K0);
-                const double g = CalculateVolumetricFractureEnergy(rValues.GetMaterialProperties(), rPDParameters);
+                GenericConstitutiveLawIntegratorPlasticityWithFatigue<TYieldSurfaceType>::GetInitialUniaxialThreshold(rValues, K0, rPDParameters.FatigueReductionFactor);
+                double g = CalculateVolumetricFractureEnergy(rValues.GetMaterialProperties(), rPDParameters);
+                g *= rPDParameters.FatigueReductionFactor * rPDParameters.FatigueReductionFactor;
                 const double E = rValues.GetMaterialProperties()[YOUNG_MODULUS];
                 const double factor = std::pow(K0, 2) / E;
                 const double chi = (factor + g + std::sqrt(factor * (5.0 / 4.0 * factor + 2.0 * g))) / (0.5 * factor - g);
@@ -646,13 +672,14 @@ void CoupledPlasticDamageFatigueModel<TYieldSurfaceType>::CalculateThresholdAndS
                 } else {
                     chi = 0.5;
                 }
-                const double g = CalculateVolumetricFractureEnergy(rValues.GetMaterialProperties(), rPDParameters);
+                double g = CalculateVolumetricFractureEnergy(rValues.GetMaterialProperties(), rPDParameters);
+                g *= rPDParameters.FatigueReductionFactor * rPDParameters.FatigueReductionFactor;
                 const double C0 = rValues.GetMaterialProperties()[YOUNG_MODULUS];
                 double K0;
-                GenericConstitutiveLawIntegratorPlasticity<TYieldSurfaceType>::GetInitialUniaxialThreshold(rValues, K0);
+                GenericConstitutiveLawIntegratorPlasticityWithFatigue<TYieldSurfaceType>::GetInitialUniaxialThreshold(rValues, K0, rPDParameters.FatigueReductionFactor);
                 const double E0 = K0 / C0; // Yield strain
-                const Vector& s_by_points = rValues.GetMaterialProperties()[EQUIVALENT_STRESS_VECTOR_PLASTICITY_POINT_CURVE]; // By-Points region. Stress vector
-                const Vector& e_by_points = rValues.GetMaterialProperties()[TOTAL_STRAIN_VECTOR_PLASTICITY_POINT_CURVE]; // By-Points region. Strain vector
+                const Vector& s_by_points = rPDParameters.FatigueReductionFactor * rValues.GetMaterialProperties()[EQUIVALENT_STRESS_VECTOR_PLASTICITY_POINT_CURVE]; // By-Points region. Stress vector
+                const Vector& e_by_points = rPDParameters.FatigueReductionFactor * rValues.GetMaterialProperties()[TOTAL_STRAIN_VECTOR_PLASTICITY_POINT_CURVE]; // By-Points region. Strain vector
                 const SizeType size_curve = s_by_points.size();
 
                 // Compute volumetric fracture energies of each region
@@ -843,7 +870,7 @@ void CoupledPlasticDamageFatigueModel<TYieldSurfaceType>::CalculatePlasticConsis
 
     if (std::abs(denominator) > machine_tolerance) {
         rPDParameters.PlasticConsistencyIncrement = (rPDParameters.NonLinearIndicator) / denominator;
-        // rPDParameters.PlasticConsistencyIncrement = (rPDParameters.PlasticConsistencyIncrement < 0.0) ? 0.0 : rPDParameters.PlasticConsistencyIncrement;
+        rPDParameters.PlasticConsistencyIncrement = (rPDParameters.PlasticConsistencyIncrement < 0.0) ? 0.0 : rPDParameters.PlasticConsistencyIncrement;
 
     } else {
         rPDParameters.PlasticConsistencyIncrement = 0.0;
