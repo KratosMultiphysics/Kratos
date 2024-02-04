@@ -124,6 +124,7 @@ public:
         double Threshold                   = 0.0;
         double Slope                       = 0.0; // d(Threshold)/d(dissipation)
         double PlasticDamageProportion     = 0.5; // 0-> Plastic    1->Damage
+        double FatigueReductionFactor     = 1.0;
     };
 
     /// The definition of the lambdas to compute implicitly the threshold
@@ -501,6 +502,7 @@ public:
         noalias(rPlasticDamageParameters.ComplianceMatrixCompression) = mComplianceMatrixCompression;
         noalias(rPlasticDamageParameters.StrainVector) = rStrainVector;
         rPlasticDamageParameters.CharacteristicLength  = CharateristicLength;
+        rPlasticDamageParameters.FatigueReductionFactor  = mFatigueReductionFactor;
 
         if (rMaterialProperties.Has(VOLUMETRIC_PART)) { // Fluctuating plastic-damage CL
             const SizeType volumetric_participation_size = rMaterialProperties[VOLUMETRIC_PART].size();

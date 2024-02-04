@@ -330,9 +330,11 @@ CoupledPlasticDamageFatigueModel<TYieldSurfaceType>::ExponentialSofteningImplici
             chi = 0.5;
         }
         const double E = r_mat_properties[YOUNG_MODULUS];
-        const double g = CoupledPlasticDamageFatigueModel<TYieldSurfaceType>::CalculateVolumetricFractureEnergy(r_mat_properties, rPDParameters);
+        double g = CoupledPlasticDamageFatigueModel<TYieldSurfaceType>::CalculateVolumetricFractureEnergy(r_mat_properties, rPDParameters);
+        g *= rPDParameters.FatigueReductionFactor * rPDParameters.FatigueReductionFactor;
         double K0;
-        GenericConstitutiveLawIntegratorPlasticity<TYieldSurfaceType>::GetInitialUniaxialThreshold(rValues, K0);
+        KRATOS_WATCH(rPDParameters.FatigueReductionFactor)
+        GenericConstitutiveLawIntegratorPlasticityWithFatigue<TYieldSurfaceType>::GetInitialUniaxialThreshold(rValues, K0, rPDParameters.FatigueReductionFactor);
         const double alpha = std::pow(K0, 2) / (2.0 * E * g);
         const double K_K0 = Threshold / K0;
         return K0 * (1.0 - Dissipation) - Threshold * (1.0 + alpha * ((1.0 - chi) * (K_K0 - 0.5 * std::log(K_K0) - 1.0) + 0.5 * std::log(K_K0)) - 0.5 * chi * std::log(K_K0));
@@ -358,9 +360,10 @@ CoupledPlasticDamageFatigueModel<TYieldSurfaceType>::ExponentialSofteningImplici
             chi = 0.5;
         }
         const double E = r_mat_properties[YOUNG_MODULUS];
-        const double g = CoupledPlasticDamageFatigueModel<TYieldSurfaceType>::CalculateVolumetricFractureEnergy(r_mat_properties, rPDParameters);
+        double g = CoupledPlasticDamageFatigueModel<TYieldSurfaceType>::CalculateVolumetricFractureEnergy(r_mat_properties, rPDParameters);
+        g *= rPDParameters.FatigueReductionFactor * rPDParameters.FatigueReductionFactor;
         double K0;
-        GenericConstitutiveLawIntegratorPlasticity<TYieldSurfaceType>::GetInitialUniaxialThreshold(rValues, K0);
+        GenericConstitutiveLawIntegratorPlasticityWithFatigue<TYieldSurfaceType>::GetInitialUniaxialThreshold(rValues, K0, rPDParameters.FatigueReductionFactor);
         const double alpha = std::pow(K0, 2) / (2.0 * E * g);
         const double K_K0 = Threshold / K0;
         return -(1.0 + alpha * ((1.0 - chi) * (K_K0 - 0.5 * std::log(K_K0) - 1.0) + 0.5 * std::log(K_K0)) - 0.5 * chi * std::log(K_K0)) - Threshold * (alpha * ((1.0 - chi) * (1.0 / K0 - 1.0 / (2.0 * Threshold)) + 1 / (2.0 * Threshold)) - 0.5 * chi / Threshold);
@@ -568,7 +571,6 @@ void CoupledPlasticDamageFatigueModel<TYieldSurfaceType>::CalculateThresholdAndS
 {
     const auto& r_mat_properties = rValues.GetMaterialProperties();
 
-    const double fatigue_reduction_factor = mFatigueReductionFactor;
     double chi;
     const bool threshold_xi_dependence = r_mat_properties[THRESHOLD_XI_DEPENDENCE];
     if (threshold_xi_dependence) {
@@ -582,13 +584,13 @@ void CoupledPlasticDamageFatigueModel<TYieldSurfaceType>::CalculateThresholdAndS
             CalculateEquivalentPlasticStrain(rPDParameters.StressVector,
             rPDParameters.UniaxialStress, rPDParameters.PlasticStrain, 0.0, rValues, uniaxial_plastic_strain);
         double tension_parameter, compression_parameter;
-        GenericConstitutiveLawIntegratorPlasticity<TYieldSurfaceType>::CalculateIndicatorsFactors(
+        GenericConstitutiveLawIntegratorPlasticityWithFatigue<TYieldSurfaceType>::CalculateIndicatorsFactors(
             rPDParameters.StressVector, tension_parameter,compression_parameter);
 
-        GenericConstitutiveLawIntegratorPlasticity<TYieldSurfaceType>::
+        GenericConstitutiveLawIntegratorPlasticityWithFatigue<TYieldSurfaceType>::
             CalculateEquivalentStressThreshold(rPDParameters.TotalDissipation,
             tension_parameter, compression_parameter, rPDParameters.Threshold, rPDParameters.Slope, rValues,
-            uniaxial_plastic_strain, rPDParameters.CharacteristicLength);
+            uniaxial_plastic_strain, rPDParameters.CharacteristicLength, rPDParameters.FatigueReductionFactor);
     } else { // plastic-damage combinations
         const int curve_type = r_mat_properties[HARDENING_CURVE];
         switch (static_cast<typename GenericConstitutiveLawIntegratorPlasticity<TYieldSurfaceType>::HardeningCurveType>(curve_type)) {
@@ -602,7 +604,7 @@ void CoupledPlasticDamageFatigueModel<TYieldSurfaceType>::CalculateThresholdAndS
                         chi = 0.5;
                     }
                     double K0;
-                    GenericConstitutiveLawIntegratorPlasticity<TYieldSurfaceType>::GetInitialUniaxialThreshold(rValues, K0);
+                    GenericConstitutiveLawIntegratorPlasticityWithFatigue<TYieldSurfaceType>::GetInitialUniaxialThreshold(rValues, K0, rPDParameters.FatigueReductionFactor);
                     if (chi == 1.0) {
                         rPDParameters.Threshold = K0 * (1.0 - rPDParameters.TotalDissipation);
                         rPDParameters.Slope = -K0;
