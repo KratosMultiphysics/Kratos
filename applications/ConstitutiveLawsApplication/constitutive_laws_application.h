@@ -104,6 +104,7 @@
 #include "custom_constitutive/uncoupled_plastic_damage_law.h"
 
 #include "custom_constitutive/associative_plastic_damage_model.h"
+#include "custom_constitutive/coupled_plastic_damage_fatigue_model.h"
 
 namespace Kratos {
 
@@ -624,6 +625,11 @@ private:
     const AssociativePlasticDamageModel <DruckerPragerYieldSurface<DruckerPragerPlasticPotential<6>>> mAssociativePlasticDamageModel3DDruckerPrager;
     const AssociativePlasticDamageModel <ModifiedMohrCoulombYieldSurface<ModifiedMohrCoulombPlasticPotential<6>>> mAssociativePlasticDamageModel3DModifiedMohrCoulomb;
     const AssociativePlasticDamageModel <RankineYieldSurface<RankinePlasticPotential<6>>> mAssociativePlasticDamageModel3DRankine;
+
+    const CoupledPlasticDamageFatigueModel <VonMisesYieldSurface<VonMisesPlasticPotential<6>>> mCoupledPlasticDamageFatigueModel3DVonMises;
+    const CoupledPlasticDamageFatigueModel <DruckerPragerYieldSurface<DruckerPragerPlasticPotential<6>>> mCoupledPlasticDamageFatigueModel3DDruckerPrager;
+    const CoupledPlasticDamageFatigueModel <ModifiedMohrCoulombYieldSurface<ModifiedMohrCoulombPlasticPotential<6>>> mCoupledPlasticDamageFatigueModel3DModifiedMohrCoulomb;
+    const CoupledPlasticDamageFatigueModel <RankineYieldSurface<RankinePlasticPotential<6>>> mCoupledPlasticDamageFatigueModel3DRankine;
 
     ///@}
     ///@name Private Operators

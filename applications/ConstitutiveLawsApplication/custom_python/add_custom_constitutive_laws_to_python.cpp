@@ -96,6 +96,7 @@
 #include "custom_constitutive/uncoupled_plastic_damage_law.h"
 
 #include "custom_constitutive/associative_plastic_damage_model.h"
+#include "custom_constitutive/coupled_plastic_damage_fatigue_model.h"
 
 namespace Kratos {
 namespace Python {
@@ -1495,6 +1496,27 @@ void AddCustomConstitutiveLawsToPython(pybind11::module& m)
     typename AssociativePlasticDamageModel <RankineYieldSurface<RankinePlasticPotential<6>>>::Pointer,
     ConstitutiveLaw >
     (m,"AssociativePlasticDamageModel3DRankine").def(py::init<>());
+
+
+    py::class_< CoupledPlasticDamageFatigueModel <VonMisesYieldSurface<VonMisesPlasticPotential<6>>>,
+    typename CoupledPlasticDamageFatigueModel <VonMisesYieldSurface<VonMisesPlasticPotential<6>>>::Pointer,
+    ConstitutiveLaw >
+    (m,"CoupledPlasticDamageFatigueModel3DVonMises").def(py::init<>());
+
+    py::class_< CoupledPlasticDamageFatigueModel <DruckerPragerYieldSurface<DruckerPragerPlasticPotential<6>>>,
+    typename CoupledPlasticDamageFatigueModel <DruckerPragerYieldSurface<DruckerPragerPlasticPotential<6>>>::Pointer,
+    ConstitutiveLaw >
+    (m,"CoupledPlasticDamageFatigueModel3DDruckerPrager").def(py::init<>());
+
+    py::class_< CoupledPlasticDamageFatigueModel <ModifiedMohrCoulombYieldSurface<ModifiedMohrCoulombPlasticPotential<6>>>,
+    typename CoupledPlasticDamageFatigueModel <ModifiedMohrCoulombYieldSurface<ModifiedMohrCoulombPlasticPotential<6>>>::Pointer,
+    ConstitutiveLaw >
+    (m,"CoupledPlasticDamageFatigueModel3DModifiedMohrCoulomb").def(py::init<>());
+
+    py::class_< CoupledPlasticDamageFatigueModel <RankineYieldSurface<RankinePlasticPotential<6>>>,
+    typename CoupledPlasticDamageFatigueModel <RankineYieldSurface<RankinePlasticPotential<6>>>::Pointer,
+    ConstitutiveLaw >
+    (m,"CoupledPlasticDamageFatigueModel3DRankine").def(py::init<>());
 }
 
 }  // namespace Python.
