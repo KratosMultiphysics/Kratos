@@ -238,7 +238,7 @@ def AddPythonSnippetOutputs(file_path: Path) -> None:
                 temp_index = index
                 is_existing_output_found = False
                 while temp_index < len(lines):
-                    if lines[temp_index].strip() != "":
+                    if lines[temp_index].strip():
                         is_existing_output_found  = lines[temp_index] == "Expected output:\n"
                         is_existing_output_found &= lines[temp_index+1] == "```bash\n"
                         break
