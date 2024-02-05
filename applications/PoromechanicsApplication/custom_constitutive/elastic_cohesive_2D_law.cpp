@@ -68,27 +68,34 @@ void ElasticCohesive2DLaw::ComputeStressVector(Vector& rStressVector,
     const Element::GeometryType& geometry = rValues.GetElementGeometry();
     const unsigned int number_of_nodes = geometry.size();
 
-    const unsigned int dimension = rValues.GetSpaceDimension();
-    const unsigned int strainSize = rValues.GetStrainSize();
-    // const int dimension = 2; // Temporary solution. Need to generalise
-    // const int strainSize = 3; // Temporary solution. Need to generalise
+    // const unsigned int dimension = rValues.GetSpaceDimension();
+    // const unsigned int strainSize = rValues.GetStrainSize();
+    // KRATOS_WATCH(geometry);
+    // KRATOS_WATCH(strainSize);
+
+    const int dimension = 2; // Temporary solution. Need to generalise
+    const int strainSize = 3; // Temporary solution. Need to generalise
 
     // Create the necessary components for the initialisation of the stresses
-    Matrix nodal_initial_stress_tensor(dimension,dimension);
-    noalias(nodal_initial_stress_tensor) = ZeroMatrix(dimension,dimension);
     Vector nodal_initial_stress_vector(strainSize);
+    Matrix nodal_initial_stress_tensor(dimension,dimension);
 
+    Vector gp_initial_stress_vector(strainSize);
+    noalias(gp_initial_stress_vector) = ZeroVector(strainSize);
+    
     for (unsigned int i = 0; i < number_of_nodes; i++) {
         const Matrix& r_initial_stress_tensor = geometry[i].GetSolutionStepValue(INITIAL_STRESS_TENSOR);
         for(unsigned int j=0; j < dimension; j++) {
             for(unsigned int k=0; k < dimension; k++) {
-                nodal_initial_stress_tensor(j,k) += r_initial_stress_tensor(j,k);
+                nodal_initial_stress_tensor(j,k) = r_initial_stress_tensor(j,k);
             }
         }
-    }
+        noalias(nodal_initial_stress_vector) = MathUtils<double>::StressTensorToVector(nodal_initial_stress_tensor);
 
-    nodal_initial_stress_tensor /= number_of_nodes;
-    noalias(nodal_initial_stress_vector) = MathUtils<double>::StressTensorToVector(nodal_initial_stress_tensor);
+        for(unsigned int j=0; j < strainSize; j++){
+            gp_initial_stress_vector[j] += N[i] * nodal_initial_stress_vector[j];
+        }
+    }
 
     //Define mid-plane points for quadrilateral_interface_2d_4
     array_1d<double, 3> pmid0;
@@ -114,7 +121,7 @@ void ElasticCohesive2DLaw::ComputeStressVector(Vector& rStressVector,
 
     // Local stress vector in local coordinates
     Vector LocalInitialStresses(dimension); 
-    noalias(LocalInitialStresses) = prod(RotationInterface, trans(nodal_initial_stress_vector));
+    noalias(LocalInitialStresses) = prod(RotationInterface, trans(gp_initial_stress_vector));
 
 // -----------------------------------------------------------------------------------------------------------------
     double cp = 1.0;
