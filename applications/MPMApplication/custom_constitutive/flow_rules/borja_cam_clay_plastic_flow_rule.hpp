@@ -64,7 +64,7 @@ namespace Kratos
 /// Short class definition.
 /** Detail class definition.
  */
-class KRATOS_API(MPM_MECHANICS_APPLICATION) BorjaCamClayPlasticFlowRule
+class KRATOS_API(MPM_APPLICATION) BorjaCamClayPlasticFlowRule
     :public MPMFlowRule
 {
 

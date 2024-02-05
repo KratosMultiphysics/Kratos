@@ -36,7 +36,7 @@ namespace Kratos
  * to large displacements.
  */
 
-class KRATOS_API(MPM_MECHANICS_APPLICATION) DispNewtonianFluid3DLaw
+class KRATOS_API(MPM_APPLICATION) DispNewtonianFluid3DLaw
     : public ConstitutiveLaw
 {
 protected:

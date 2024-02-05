@@ -33,7 +33,7 @@ namespace Kratos
  * to large displacements elasticity.
  */
 
-class KRATOS_API(MPM_MECHANICS_APPLICATION) HyperElastic3DLaw
+class KRATOS_API(MPM_APPLICATION) HyperElastic3DLaw
     : public ConstitutiveLaw
 {
 protected:

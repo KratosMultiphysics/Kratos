@@ -38,7 +38,7 @@ namespace Kratos
 */
 
 
-class KRATOS_API(MPM_MECHANICS_APPLICATION) HenckyBorjaCamClayPlastic3DLaw
+class KRATOS_API(MPM_APPLICATION) HenckyBorjaCamClayPlastic3DLaw
     : public HenckyElasticPlastic3DLaw
 
 {

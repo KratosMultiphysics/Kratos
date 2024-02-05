@@ -36,7 +36,7 @@ namespace Kratos
 
 
 
-class KRATOS_API(MPM_MECHANICS_APPLICATION) HenckyMCPlasticPlaneStrainUP2DLaw
+class KRATOS_API(MPM_APPLICATION) HenckyMCPlasticPlaneStrainUP2DLaw
     : public HenckyElasticPlasticPlaneStrainUP2DLaw
 
 {

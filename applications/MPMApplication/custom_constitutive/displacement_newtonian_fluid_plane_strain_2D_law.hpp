@@ -36,7 +36,7 @@ namespace Kratos
  * to large displacements.
  */
 
-class KRATOS_API(MPM_MECHANICS_APPLICATION) DispNewtonianFluidPlaneStrain2DLaw
+class KRATOS_API(MPM_APPLICATION) DispNewtonianFluidPlaneStrain2DLaw
     : public DispNewtonianFluid3DLaw
 {
 public:

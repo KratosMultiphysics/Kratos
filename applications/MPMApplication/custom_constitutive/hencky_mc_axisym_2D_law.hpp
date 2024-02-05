@@ -35,7 +35,7 @@ namespace Kratos
 
 
 
-class KRATOS_API(MPM_MECHANICS_APPLICATION) HenckyMCPlasticAxisym2DLaw
+class KRATOS_API(MPM_APPLICATION) HenckyMCPlasticAxisym2DLaw
   : public HenckyElasticPlasticAxisym2DLaw
 
 {

@@ -38,7 +38,7 @@ namespace Kratos
 
 
 
-class KRATOS_API(MPM_MECHANICS_APPLICATION) HenckyMCStrainSofteningPlastic3DLaw
+class KRATOS_API(MPM_APPLICATION) HenckyMCStrainSofteningPlastic3DLaw
     : public HenckyElasticPlastic3DLaw
 
 {

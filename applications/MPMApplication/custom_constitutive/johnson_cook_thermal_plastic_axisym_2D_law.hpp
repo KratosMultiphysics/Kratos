@@ -31,7 +31,7 @@ namespace Kratos
 	 * constitutive tensor is not implemented.
 	 */
 
-	class KRATOS_API(MPM_MECHANICS_APPLICATION) JohnsonCookThermalPlastic2DAxisymLaw : public JohnsonCookThermalPlastic2DPlaneStrainLaw
+	class KRATOS_API(MPM_APPLICATION) JohnsonCookThermalPlastic2DAxisymLaw : public JohnsonCookThermalPlastic2DPlaneStrainLaw
 	{
 	public:
 

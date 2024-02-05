@@ -32,7 +32,7 @@ namespace Kratos
  * The functionality is limited to large displacements
  */
 
-class KRATOS_API(MPM_MECHANICS_APPLICATION) HenckyElasticPlasticPlaneStrain2DLaw : public HenckyElasticPlastic3DLaw
+class KRATOS_API(MPM_APPLICATION) HenckyElasticPlasticPlaneStrain2DLaw : public HenckyElasticPlastic3DLaw
 {
 public:
     /**
