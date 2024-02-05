@@ -82,7 +82,7 @@ Note: the dependency of water density and viscosity to temperature is user defin
 
 ## Finite Element Formulation
 
-Kratos solves the equations based on an incremental method. In the frame of Generelized Newmark method (GN11), the fully implicit incremental temperature formulation read as,
+Kratos solves the equations based on an incremental method. In the frame of Generalized Newmark method (GN11), the fully implicit incremental temperature formulation read as,
 
 $$ \left(\frac{1}{\theta \Delta t} \boldsymbol{S} + \boldsymbol{A} + \boldsymbol{H} + \boldsymbol{W}^l  \right) \boldsymbol{\Delta T} = \left( \frac{1}{\theta} - 1 \right) \boldsymbol{S} \frac{dT^n}{dt} - \left(\boldsymbol{A} + \boldsymbol{H} + \boldsymbol{W}^l \right) \boldsymbol{T}^{n} + \left( \boldsymbol{V} + \boldsymbol{W}^r \right) $$
 
@@ -123,7 +123,7 @@ where
 - $\Omega$ = domain region
 - $\Gamma$ = boundary region
 
-The supercripts $^l$ and $^r$ for Robin boundary condition indicate the left hands side (matrix) and righ hand side (vector), respectively. The supercripts $^e$ and $^{ep}$ for $\Omega$ and $\Gamma$ indicate values in the element volume and perpendicular to element boundaries, respectively.  
+The superscripts $^l$ and $^r$ for Robin boundary condition indicate the left hands side (matrix) and right hand side (vector), respectively. The supercripts $^e$ and $^{ep}$ for $\Omega$ and $\Gamma$ indicate values in the element volume and perpendicular to element boundaries, respectively.  
 
 
 ## Bibliography
