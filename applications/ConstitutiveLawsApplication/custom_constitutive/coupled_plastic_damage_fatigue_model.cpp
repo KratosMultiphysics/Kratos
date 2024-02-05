@@ -524,8 +524,8 @@ CoupledPlasticDamageFatigueModel<TYieldSurfaceType>::CurveByPointsHardeningImpli
         double K0;
         GenericConstitutiveLawIntegratorPlasticityWithFatigue<TYieldSurfaceType>::GetInitialUniaxialThreshold(rValues, K0, rPDParameters.FatigueReductionFactor);
         const double E0 = K0 / C0; // Yield strain
-        const Vector& s_by_points = r_mat_properties[EQUIVALENT_STRESS_VECTOR_PLASTICITY_POINT_CURVE]; // By-Points region. Stress vector
-        const Vector& e_by_points = r_mat_properties[TOTAL_STRAIN_VECTOR_PLASTICITY_POINT_CURVE]; // By-Points region. Strain vector
+        const Vector& s_by_points = rPDParameters.FatigueReductionFactor * r_mat_properties[EQUIVALENT_STRESS_VECTOR_PLASTICITY_POINT_CURVE]; // By-Points region. Stress vector
+        const Vector& e_by_points = rPDParameters.FatigueReductionFactor * r_mat_properties[TOTAL_STRAIN_VECTOR_PLASTICITY_POINT_CURVE]; // By-Points region. Strain vector
         const SizeType size_curve = s_by_points.size();
 
         // Compute volumetric fracture energy in the transition by-points -> exponential
@@ -570,8 +570,8 @@ CoupledPlasticDamageFatigueModel<TYieldSurfaceType>::CurveByPointsHardeningImpli
         double K0;
         GenericConstitutiveLawIntegratorPlasticityWithFatigue<TYieldSurfaceType>::GetInitialUniaxialThreshold(rValues, K0, rPDParameters.FatigueReductionFactor);
         const double E0 = K0 / C0; // Yield strain
-        const Vector& s_by_points = r_mat_properties[EQUIVALENT_STRESS_VECTOR_PLASTICITY_POINT_CURVE]; // By-Points region. Stress vector
-        const Vector& e_by_points = r_mat_properties[TOTAL_STRAIN_VECTOR_PLASTICITY_POINT_CURVE]; // By-Points region. Strain vector
+        const Vector& s_by_points = rPDParameters.FatigueReductionFactor * r_mat_properties[EQUIVALENT_STRESS_VECTOR_PLASTICITY_POINT_CURVE]; // By-Points region. Stress vector
+        const Vector& e_by_points = rPDParameters.FatigueReductionFactor * r_mat_properties[TOTAL_STRAIN_VECTOR_PLASTICITY_POINT_CURVE]; // By-Points region. Strain vector
         const SizeType size_curve = s_by_points.size();
 
         // Compute volumetric fracture energy in the transition by-points -> exponential
