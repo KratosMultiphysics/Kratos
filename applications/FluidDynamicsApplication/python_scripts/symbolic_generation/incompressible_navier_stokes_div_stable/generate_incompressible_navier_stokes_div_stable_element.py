@@ -22,7 +22,8 @@ from KratosMultiphysics.sympy_fe_utilities import *
 ## Symbolic generation settings
 mode = "c"
 do_simplifications = False
-dim_to_compute = "Both"             # Spatial dimensions to compute. Options:  "2D","3D","Both"
+# dim_to_compute = "Both"             # Spatial dimensions to compute. Options:  "2D","3D","Both"
+dim_to_compute = "2D"             # Spatial dimensions to compute. Options:  "2D","3D","Both"
 divide_by_rho = True                # Divide the mass conservation equation by rho
 
 convective_term = True
@@ -61,15 +62,14 @@ for dim, v_n_nodes, p_n_nodes in zip(dim_vector, v_nodes_vector, p_nodes_vector)
     elif dim == 3:
         strain_size = 6
 
-    impose_partion_of_unity = False
-    N_v, DN_v = DefineShapeFunctions(v_n_nodes, dim, impose_partion_of_unity)
-    N_p, DN_p = DefineShapeFunctions(p_n_nodes, dim, impose_partion_of_unity)
+    N_v, DN_v = DefineShapeFunctions(v_n_nodes, dim, impose_partion_of_unity=False, shape_functions_name='N_v', gradients_name='DN_v')
+    N_p, DN_p = DefineShapeFunctions(p_n_nodes, dim, impose_partion_of_unity=False, shape_functions_name='N_p', gradients_name='DN_p')
 
     ## Unknown fields definition
-    v = DefineMatrix('v', v_n_nodes, dim)            # Current step velocity (v(i,j) refers to velocity of node i component j)
-    vn = DefineMatrix('vn', v_n_nodes, dim)          # Previous step velocity
-    vnn = DefineMatrix('vnn', v_n_nodes, dim)        # 2 previous step velocity
-    p = DefineVector('p', p_n_nodes)                 # Pressure
+    v = DefineMatrix('r_v', v_n_nodes, dim)            # Current step velocity (v(i,j) refers to velocity of node i component j)
+    vn = DefineMatrix('r_vn', v_n_nodes, dim)          # Previous step velocity
+    vnn = DefineMatrix('r_vnn', v_n_nodes, dim)        # 2 previous step velocity
+    p = DefineVector('r_p', p_n_nodes)                 # Pressure
 
     ## Fluid properties
     mu = sympy.Symbol('mu', positive = True)         # Dynamic viscosity
@@ -77,52 +77,36 @@ for dim, v_n_nodes, p_n_nodes in zip(dim_vector, v_nodes_vector, p_nodes_vector)
 
     ## Test functions definition
     w = DefineMatrix('w', v_n_nodes, dim)            # Velocity field test function
-    q = DefineVector('q', v_n_nodes)                 # Pressure field test function
+    q = DefineVector('q', p_n_nodes)                 # Pressure field test function
 
     ## Other data definitions
-    f = DefineMatrix('f',v_n_nodes,dim)                 # Forcing term
+    f = DefineMatrix('r_f',v_n_nodes,dim)                 # Forcing term
 
     ## Constitutive matrix definition
     C = DefineSymmetricMatrix('C',strain_size,strain_size)
 
     ## Stress vector definition
-    stress = DefineVector('stress',strain_size)
+    stress = DefineVector('r_stress',strain_size)
 
     ## Other simbols definition
-    dt = sympy.Symbol('dt', positive = True)         # Time increment
-    h = sympy.Symbol('h', positive = True)
-    dyn_tau = sympy.Symbol('dyn_tau', positive = True)
-    stab_c1 = sympy.Symbol('stab_c1', positive = True)
-    stab_c2 = sympy.Symbol('stab_c2', positive = True)
-    gauss_weight = sympy.Symbol('gauss_weight', positive = True)
+    dt = sympy.Symbol('rData.DeltaTime', positive = True)         # Time increment
+    gauss_weight = sympy.Symbol('gauss_weight', positive = True)  # Integration point weight
 
     ## Backward differences coefficients
-    bdf0 = sympy.Symbol('bdf0')
-    bdf1 = sympy.Symbol('bdf1')
-    bdf2 = sympy.Symbol('bdf2')
+    bdf0 = sympy.Symbol('rData.BDF0')
+    bdf1 = sympy.Symbol('rData.BDF1')
+    bdf2 = sympy.Symbol('rData.BDF2')
 
     ## Convective velocity definition
     if convective_term:
         if (linearisation == "Picard"):
             vconv = DefineMatrix('vconv',v_n_nodes,dim)     # Convective velocity defined a symbol
         elif (linearisation == "FullNR"):
-            vmesh = DefineMatrix('vmesh',v_n_nodes,dim)     # Mesh velocity
+            vmesh = DefineMatrix('r_vmesh',v_n_nodes,dim)   # Mesh velocity
             vconv = v - vmesh                               # Convective velocity defined as a velocity dependent variable
         else:
             raise Exception("Wrong linearisation \'" + linearisation + "\' selected. Available options are \'Picard\' and \'FullNR\'.")
         vconv_gauss = vconv.transpose()*N_v
-
-    ## Compute the stabilization parameters
-    if convective_term:
-        stab_norm_a = 0.0
-        for i in range(0, dim):
-            stab_norm_a += vconv_gauss[i]**2
-        stab_norm_a = sympy.sqrt(stab_norm_a)
-        tau1 = 1.0/(rho*dyn_tau/dt + stab_c2*rho*stab_norm_a/h + stab_c1*mu/h**2) # Stabilization parameter 1
-        tau2 = mu + (stab_c2*rho*stab_norm_a*h)/stab_c1                                # Stabilization parameter 2
-    else:
-        tau1 = 1.0/(rho*dyn_tau/dt + stab_c1*mu/h**2) # Stabilization parameter 1
-        tau2 = mu                                     # Stabilization parameter 2
 
     ## Compute the rest of magnitudes at the Gauss points
     accel_gauss = (bdf0*v + bdf1*vn + bdf2*vnn).transpose()*N_v
@@ -182,8 +166,8 @@ for dim, v_n_nodes, p_n_nodes in zip(dim_vector, v_nodes_vector, p_nodes_vector)
 
     # Pressure DOFs and test functions
     for i in range(p_n_nodes):
-        dofs[v_n_nodes + i] = p[i,0]
-        testfunc[v_n_nodes + i] = q[i,0]
+        dofs[v_n_nodes*dim + i] = p[i,0]
+        testfunc[v_n_nodes*dim + i] = q[i,0]
 
     ## Compute LHS and RHS
     # For the RHS computation one wants the residual of the previous iteration (residual based formulation). By this reason the stress is

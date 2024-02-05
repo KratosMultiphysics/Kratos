@@ -20,8 +20,7 @@
 
 
 // Application includes
-#include "weakly_compressible_navier_stokes.h"
-#include "custom_utilities/weakly_compressible_navier_stokes_data.h"
+#include "incompressible_navier_stokes_div_stable.h"
 
 namespace Kratos
 {
@@ -82,7 +81,7 @@ Element::Pointer IncompressibleNavierStokesDivStable<TDim>::Create(
 }
 
 template< unsigned int TDim >
-void Element::Initialize(const ProcessInfo& rCurrentProcessInfo)
+void IncompressibleNavierStokesDivStable<TDim>::Initialize(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY;
 
@@ -146,8 +145,8 @@ void IncompressibleNavierStokesDivStable<TDim>::GetDofList(
     for (IndexType i = 0; i < VelocityNumNodes; ++i) {
         rElementalDofList[local_index++] = r_geometry[i].pGetDof(VELOCITY_X, x_pos);
         rElementalDofList[local_index++] = r_geometry[i].pGetDof(VELOCITY_Y, x_pos+1);
-        if constexpr (Dim == 3) {
-            rElementalDofList[LocalIndex++] = r_geometry[i].pGetDof(VELOCITY_Z, x_pos+2);
+        if constexpr (TDim == 3) {
+            rElementalDofList[local_index++] = r_geometry[i].pGetDof(VELOCITY_Z, x_pos+2);
         }
     }
 
@@ -158,7 +157,7 @@ void IncompressibleNavierStokesDivStable<TDim>::GetDofList(
 }
 
 template< unsigned int TDim >
-void Element::CalculateLocalSystem(
+void IncompressibleNavierStokesDivStable<TDim>::CalculateLocalSystem(
     MatrixType& rLeftHandSideMatrix,
     VectorType& rRightHandSideVector,
     const ProcessInfo& rCurrentProcessInfo)
@@ -216,7 +215,7 @@ int IncompressibleNavierStokesDivStable<TDim>::Check(const ProcessInfo &rCurrent
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Public I/O
 
-template<class TElementData>
+template< unsigned int TDim >
 const Parameters IncompressibleNavierStokesDivStable<TDim>::GetSpecifications() const
 {
     const Parameters specifications = Parameters(R"({
@@ -225,27 +224,27 @@ const Parameters IncompressibleNavierStokesDivStable<TDim>::GetSpecifications() 
         "symmetric_lhs"              : false,
         "positive_definite_lhs"      : true,
         "output"                     : {
-            "gauss_point"            : ["VORTICITY","Q_VALUE","VORTICITY_MAGNITUDE"],
-            "nodal_historical"       : ["VELOCITY","PRESSURE","DENSITY","DYNAMIC_VISCOSITY"],
+            "gauss_point"            : [""],
+            "nodal_historical"       : ["VELOCITY","PRESSURE"],
             "nodal_non_historical"   : [],
             "entity"                 : []
         },
         "required_variables"         : ["VELOCITY","ACCELERATION","MESH_VELOCITY","PRESSURE","IS_STRUCTURE","DISPLACEMENT","BODY_FORCE","NODAL_AREA","NODAL_H","ADVPROJ","DIVPROJ","REACTION","REACTION_WATER_PRESSURE","EXTERNAL_PRESSURE","NORMAL","Y_WALL","Q_VALUE"]
         "required_dofs"              : [],
         "flags_used"                 : [],
-        "compatible_geometries"      : ["Triangle2D3","Tetrahedra3D4"],
+        "compatible_geometries"      : ["Triangle2D6","Tetrahedra3D10"],
         "element_integrates_in_time" : true,
         "compatible_constitutive_laws": {
             "type"        : ["Newtonian2DLaw","Newtonian3DLaw","NewtonianTemperatureDependent2DLaw","NewtonianTemperatureDependent3DLaw","Euler2DLaw","Euler3DLaw"],
             "dimension"   : ["2D","3D"],
             "strain_size" : [3,6]
         },
-        "required_polynomial_degree_of_geometry" : 1,
+        "required_polynomial_degree_of_geometry" : 2,
         "documentation"   :
-            "This implements a weakly compressible Navier-Stokes element with quasi-static Variational MultiScales (VMS) stabilization. Note that this formulation allows a weak coupling with a custom Equation of State that updates the nodal DENSITY from the obtained PRESSURE values. Also note that no viscous behavior is hardcoded, meaning that any fluid constitutive model can be used through a constitutive law."
+            "This implements a div-stable incompressible Navier-Stokes element with bubble function enrichment. No viscous behavior is hardcoded, meaning that any fluid constitutive model can be used through a constitutive law."
     })");
 
-    if (Dim == 2) {
+    if (TDim == 2) {
         std::vector<std::string> dofs_2d({"VELOCITY_X","VELOCITY_Y","PRESSURE"});
         specifications["required_dofs"].SetStringArray(dofs_2d);
     } else {
@@ -260,7 +259,7 @@ template< unsigned int TDim >
 std::string IncompressibleNavierStokesDivStable<TDim>::Info() const
 {
     std::stringstream buffer;
-    buffer << "IncompressibleNavierStokesDivStable" << Dim << "D" << NumNodes << "N #" << this->Id();
+    buffer << "IncompressibleNavierStokesDivStable" << TDim << "D" << VelocityNumNodes << "N #" << this->Id();
     return buffer.str();
 }
 
@@ -269,135 +268,10 @@ void IncompressibleNavierStokesDivStable<TDim>::PrintInfo(std::ostream& rOStream
 {
     rOStream << this->Info() << std::endl;
 
-    if (this->GetConstitutiveLaw() != nullptr) {
+    if (mpConstitutiveLaw != nullptr) {
         rOStream << "with constitutive law " << std::endl;
-        this->GetConstitutiveLaw()->PrintInfo(rOStream);
+        mpConstitutiveLaw->PrintInfo(rOStream);
     }
-}
-
-///////////////////////////////////////////////////////////////////////////////////////////////////
-// Protected operations
-
-template <>
-void IncompressibleNavierStokesDivStable<2,3>::ComputeGaussPointLHSContribution(
-    IncompressibleNavierStokesDivStableData<2,3>& rData,
-    MatrixType& rLHS)
-{
-    const double rho = this->GetProperties().GetValue(DENSITY);
-
-    const double dt = rData.DeltaTime;
-    const double bdf0 = rData.bdf0;
-
-    const BoundedMatrix<double,2,3> vconv = rData.Velocity - rData.MeshVelocity;
-
-    // Get constitutive matrix
-    const BoundedMatrix<double,3,3>& C = rData.C;
-
-    // Get shape function values
-    const array_1d<double,3>& N = rData.N;
-    const BoundedMatrix<double,3,2>& DN = rData.DN_DX;
-
-    // Assemble LHS contribution
-    const double gauss_weight = rData.Weight;
-    //substitute_lhs_2D3N
-}
-
-template <>
-void IncompressibleNavierStokesDivStable<3,4>::ComputeGaussPointLHSContribution(
-    IncompressibleNavierStokesDivStableData<3,4>& rData,
-    MatrixType& rLHS)
-{
-    const double rho = this->GetProperties().GetValue(DENSITY);
-
-    const double dt = rData.DeltaTime;
-    const double bdf0 = rData.bdf0;
-
-    const double dyn_tau = rData.DynamicTau;
-
-    const BoundedMatrix<double,3,4> vconv = rData.Velocity - rData.MeshVelocity;
-
-    // Get constitutive matrix
-    const BoundedMatrix<double,6,6>& C = rData.C;
-
-    // Get shape function values
-    const array_1d<double,4>& N = rData.N;
-    const BoundedMatrix<double,4,3>& DN = rData.DN_DX;
-
-    // Assemble LHS contribution
-    const double gauss_weight = rData.Weight;
-    //substitute_lhs_3D4N
-}
-
-template <>
-void IncompressibleNavierStokesDivStable<2,3>::ComputeGaussPointRHSContribution(
-    IncompressibleNavierStokesDivStableData<2,3>& rData,
-    VectorType& rRHS)
-{
-    const double rho = this->GetProperties().GetValue(DENSITY);
-
-    const double dt = rData.DeltaTime;
-    const double bdf0 = rData.bdf0;
-    const double bdf1 = rData.bdf1;
-    const double bdf2 = rData.bdf2;
-
-    const BoundedMatrix<double,2,3>& v = rData.Velocity;
-    const BoundedMatrix<double,2,3>& vn = rData.Velocity_OldStep1;
-    const BoundedMatrix<double,2,3>& vnn = rData.Velocity_OldStep2;
-    const BoundedMatrix<double,2,3>& vmesh = rData.MeshVelocity;
-    const BoundedMatrix<double,2,3> vconv = v - vmesh;
-    const BoundedMatrix<double,2,3>& f = rData.BodyForce;
-    const array_1d<double,3>& p = rData.Pressure;
-    const array_1d<double,3>& pn = rData.Pressure_OldStep1;
-    const array_1d<double,3>& pnn = rData.Pressure_OldStep2;
-    const array_1d<double,3>& stress = rData.ShearStress;
-
-    // Get shape function values
-    const array_1d<double,3>& N = rData.N;
-    const BoundedMatrix<double,3,2>& DN = rData.DN_DX;
-
-    // Assemble RHS contribution
-    const double gauss_weight = rData.Weight;
-    //substitute_rhs_2D3N
-}
-
-template <>
-void IncompressibleNavierStokesDivStable<3,4>::ComputeGaussPointRHSContribution(
-    IncompressibleNavierStokesDivStableData<3,4>& rData,
-    VectorType& rRHS)
-{
-    const double rho = this->GetProperties().GetValue(DENSITY);
-
-    const double mu = rData.EffectiveViscosity;
-    const double sigma = rData.Resistance;
-
-    const double h = rData.ElementSize;
-    const array_1d<double,4>& c = rData.SoundVelocity;
-
-    const double dt = rData.DeltaTime;
-    const double bdf0 = rData.bdf0;
-    const double bdf1 = rData.bdf1;
-    const double bdf2 = rData.bdf2;
-
-    const double dyn_tau = rData.DynamicTau;
-
-    const BoundedMatrix<double,3,4>& v = rData.Velocity;
-    const BoundedMatrix<double,3,4>& vn = rData.Velocity_OldStep1;
-    const BoundedMatrix<double,3,4>& vnn = rData.Velocity_OldStep2;
-    const BoundedMatrix<double,3,4>& vmesh = rData.MeshVelocity;
-    const BoundedMatrix<double,3,4> vconv = v - vmesh;
-    const BoundedMatrix<double,3,4>& f = rData.BodyForce;
-    const array_1d<double,4>& p = rData.Pressure;
-    const array_1d<double,4>& pn = rData.Pressure_OldStep1;
-    const array_1d<double,4>& pnn = rData.Pressure_OldStep2;
-    const array_1d<double,6>& stress = rData.ShearStress;
-
-    // Get shape function values
-    const array_1d<double,4>& N = rData.N;
-    const BoundedMatrix<double,4,3>& DN = rData.DN_DX;
-
-    // Assemble RHS contribution
-    const double gauss_weight = rData.Weight;
-    //substitute_rhs_3D4N
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
@@ -407,7 +281,7 @@ template <unsigned int TDim>
 void IncompressibleNavierStokesDivStable<TDim>::SetElementData(ElementDataContainer &rData)
 {
     const auto& r_geom = this->GetGeometry();
-    for (IndexType i = 0; i < TNumNodes; ++i) {
+    for (IndexType i = 0; i < VelocityNumNodes; ++i) {
         const auto& r_v = r_geom[i].FastGetSolutionStepValue(VELOCITY);
         const auto& r_v_n = r_geom[i].FastGetSolutionStepValue(VELOCITY, 1);
         const auto& r_v_nn = r_geom[i].FastGetSolutionStepValue(VELOCITY, 2);
@@ -415,11 +289,11 @@ void IncompressibleNavierStokesDivStable<TDim>::SetElementData(ElementDataContai
         const auto& r_vol_acc = r_geom[i].FastGetSolutionStepValue(VOLUME_ACCELERATION);
 
         for (IndexType d = 0; d < TDim; ++d) {
-            rData.Velocity[d, i] = r_v[d];
-            rData.VelocityOld1[d, i] = r_v_n[d];
-            rData.VelocityOld2[d, i] = r_v_nn[d];
-            rData.MeshVelocity[d, i] = r_v_mesh[d];
-            rData.BodyForce[d, i] = r_vol_acc[d];
+            rData.Velocity(d, i) = r_v[d];
+            rData.VelocityOld1(d, i) = r_v_n[d];
+            rData.VelocityOld2(d, i) = r_v_nn[d];
+            rData.MeshVelocity(d, i) = r_v_mesh[d];
+            rData.BodyForce(d, i) = r_vol_acc[d];
         }
     }
 
@@ -433,15 +307,203 @@ void IncompressibleNavierStokesDivStable<TDim>::CalculateKinematics(
     Vector& rGaussWeights,
     Matrix& rVelocityN,
     Matrix& rPressureN,
-    Geometry::ShapeFunctionsGradientsType& rVelocityDNDX,
-    Geometry::ShapeFunctionsGradientsType& rPressureDNDX)
+    GeometryType::ShapeFunctionsGradientsType& rVelocityDNDX,
+    GeometryType::ShapeFunctionsGradientsType& rPressureDNDX)
 {
     // Get element geometry
     const auto& r_geom = this->GetGeometry();
 
-    // Calculate velocity kinematics from the geometry (P2 interpolation)
+    // Integration rule data
+    // Note that we use the same for both velocity and pressure interpolations
     const auto integration_method = GeometryData::IntegrationMethod::GI_GAUSS_3;
-    r_geom.ShapeFunctionsValues(rVelocityN, integration_method);
+    const SizeType n_gauss = r_geom.IntegrationPointsNumber(integration_method);
+    const auto integration_points = r_geom.IntegrationPoints(integration_method);
+
+    // Calculate Jacobians at integration points
+    double det_J;
+    Vector det_J_vect;
+    Matrix J;
+    Matrix inv_J;
+    std::vector<BoundedMatrix<double, TDim, TDim>> inv_J_vect;
+    for (IndexType g = 0; g < n_gauss; ++g) {
+        r_geom.Jacobian(J, g, integration_method);
+        MathUtils<double>::InvertMatrix(J, inv_J, det_J);
+        det_J_vect[g] = det_J;
+        noalias(inv_J_vect[g]) = inv_J;
+    }
+
+    // Calculate velocity kinematics from the geometry (P2 interpolation)
+    rVelocityN = r_geom.ShapeFunctionsValues(integration_method);
+    const auto& r_DN_De_v = r_geom.ShapeFunctionsLocalGradients(integration_method);
+    if (rVelocityDNDX.size() != n_gauss) {
+        rVelocityDNDX.resize(n_gauss, false);
+    }
+    for (IndexType g = 0; g < n_gauss; ++g) {
+        noalias(rVelocityDNDX[g]) = prod(r_DN_De_v[g], inv_J_vect[g]);
+    }
+
+    // Calculate pressure kinematics from an auxiliary geometry (P1 interpolation)
+    GeometryType::UniquePointer p_aux_geom = nullptr;
+    if constexpr (TDim == 2) {
+        p_aux_geom = Kratos::make_unique<Triangle2D3<NodeType>>(r_geom(0), r_geom(1), r_geom(2));
+    } else {
+        p_aux_geom = Kratos::make_unique<Tetrahedra3D4<NodeType>>(r_geom(0), r_geom(1), r_geom(2), r_geom(3));
+    }
+    rPressureN = p_aux_geom->ShapeFunctionsValues(integration_method);
+    if (rPressureDNDX.size() != n_gauss) {
+        rPressureDNDX.resize(n_gauss, false);
+    }
+    const auto& r_DN_De_p = p_aux_geom->ShapeFunctionsLocalGradients(integration_method);
+    for (IndexType g = 0; g < n_gauss; ++g) {
+        noalias(rPressureDNDX[g]) = prod(r_DN_De_p[g], inv_J_vect[g]);
+    }
+
+    // Calculate enrichment bubble kinematics
+    //TODO:
+
+    // Calculate integration points weight
+    if (rGaussWeights.size() != n_gauss) {
+        rGaussWeights.resize(n_gauss, false);
+    }
+    for (IndexType g = 0; g < n_gauss; ++g) {
+        rGaussWeights[g] = det_J_vect[g] * integration_points[g].Weight();
+    }
+}
+
+template <>
+void IncompressibleNavierStokesDivStable<2>::ComputeGaussPointLHSContribution(
+    ElementDataContainer& rData,
+    MatrixType& rLHS)
+{
+    // Get material data
+    const double rho = this->GetProperties().GetValue(DENSITY);
+
+    // Get auxiliary data
+    const double bdf0 = rData.BDF0;
+    const double dt = rData.DeltaTime;
+
+    // Calculate convective velocity
+    const BoundedMatrix<double,2,6> vconv = rData.Velocity - rData.MeshVelocity;
+
+    // Get constitutive matrix
+    const BoundedMatrix<double,3,3>& C = rData.ConstitutiveMatrix;
+
+    // Get shape function values
+    const auto& N_p = rData.N_p;
+    const auto& N_v = rData.N_v;
+    const auto& DN_p = rData.DN_p;
+    const auto& DN_v = rData.DN_v;
+
+    // Assemble LHS contribution
+    const double gauss_weight = rData.Weight;
+    //substitute_lhs_2D
+}
+
+template <>
+void IncompressibleNavierStokesDivStable<3>::ComputeGaussPointLHSContribution(
+    ElementDataContainer& rData,
+    MatrixType& rLHS)
+{
+    // Get material data
+    const double rho = this->GetProperties().GetValue(DENSITY);
+
+    // Get auxiliary data
+    const double dt = rData.DeltaTime;
+    const double bdf0 = rData.BDF0;
+
+    // Calculate convective velocity
+    const BoundedMatrix<double,3,10> vconv = rData.Velocity - rData.MeshVelocity;
+
+    // Get constitutive matrix
+    const BoundedMatrix<double,6,6>& C = rData.ConstitutiveMatrix;
+
+    // Get shape function values
+    const auto& N_p = rData.N_p;
+    const auto& N_v = rData.N_v;
+    const auto& DN_p = rData.DN_p;
+    const auto& DN_v = rData.DN_v;
+
+    // Assemble LHS contribution
+    const double gauss_weight = rData.Weight;
+    //substitute_lhs_3D
+}
+
+template <>
+void IncompressibleNavierStokesDivStable<2>::ComputeGaussPointRHSContribution(
+    ElementDataContainer& rData,
+    VectorType& rRHS)
+{
+    // Get material data
+    const double rho = this->GetProperties().GetValue(DENSITY);
+
+    // Get auxiliary data
+    const double bdf0 = rData.BDF0;
+    const double bdf1 = rData.BDF1;
+    const double bdf2 = rData.BDF2;
+    const double dt = rData.DeltaTime;
+
+    // Get nodal data
+    const auto& r_v = rData.Velocity;
+    const auto& r_vn = rData.VelocityOld1;
+    const auto& r_vnn = rData.VelocityOld2;
+    const auto& r_vmesh = rData.MeshVelocity;
+    const auto& r_f = rData.BodyForce;
+    const auto& r_p = rData.Pressure;
+
+    // Calculate convective velocity
+    const BoundedMatrix<double,2,6> vconv = r_v - r_vmesh;
+
+    // Get stress from material response
+    const auto& r_stress = rData.ShearStress;
+
+    // Get shape function values
+    const auto& N_p = rData.N_p;
+    const auto& N_v = rData.N_v;
+    const auto& DN_p = rData.DN_p;
+    const auto& DN_v = rData.DN_v;
+
+    // Assemble RHS contribution
+    const double gauss_weight = rData.Weight;
+    //substitute_rhs_2D
+}
+
+template <>
+void IncompressibleNavierStokesDivStable<3>::ComputeGaussPointRHSContribution(
+    ElementDataContainer& rData,
+    VectorType& rRHS)
+{
+    // Get material data
+    const double rho = this->GetProperties().GetValue(DENSITY);
+
+    // Get auxiliary data
+    const double bdf0 = rData.BDF0;
+    const double bdf1 = rData.BDF1;
+    const double bdf2 = rData.BDF2;
+    const double dt = rData.DeltaTime;
+
+    // Get nodal data
+    const auto& r_v = rData.Velocity;
+    const auto& r_vn = rData.VelocityOld1;
+    const auto& r_vnn = rData.VelocityOld2;
+    const auto& r_vmesh = rData.MeshVelocity;
+    const auto& r_f = rData.BodyForce;
+    const auto& r_p = rData.Pressure;
+
+    // Calculate convective velocity
+    const BoundedMatrix<double,3,10> vconv = r_v - r_vmesh;
+
+    // Get stress from material response
+    const auto& r_stress = rData.ShearStress;
+
+    // Get shape function values
+    const auto& N_p = rData.N_p;
+    const auto& N_v = rData.N_v;
+    const auto& DN_p = rData.DN_p;
+    const auto& DN_v = rData.DN_v;
+
+    // Assemble RHS contribution
+    const double gauss_weight = rData.Weight;
+    //substitute_rhs_3D
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
@@ -463,7 +525,7 @@ void IncompressibleNavierStokesDivStable<TDim>::load(Serializer& rSerializer)
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Class template instantiation
 
-template class IncompressibleNavierStokesDivStable<2,6>;
-template class IncompressibleNavierStokesDivStable<3,10>;
+template class IncompressibleNavierStokesDivStable<2>;
+template class IncompressibleNavierStokesDivStable<3>;
 
 }

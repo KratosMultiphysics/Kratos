@@ -55,7 +55,7 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-template< unsigned int TDim, unsigned int VelocityNumNodes >
+template< unsigned int TDim >
 class IncompressibleNavierStokesDivStable : public Element
 {
 public:
@@ -72,42 +72,55 @@ public:
 
     struct ElementDataContainer
     {
+        // Gauss point kinematics
+        array_1d<double, VelocityNumNodes> N_v;
+        array_1d<double, PressureNumNodes> N_p;
+        BoundedMatrix<double, VelocityNumNodes, TDim> DN_v;
+        BoundedMatrix<double, PressureNumNodes, TDim> DN_p;
+
+        // Nodal values
+        array_1d<double, PressureNumNodes> Pressure;
         BoundedMatrix<double, TDim, VelocityNumNodes> Velocity;
         BoundedMatrix<double, TDim, VelocityNumNodes> VelocityOld1;
         BoundedMatrix<double, TDim, VelocityNumNodes> VelocityOld2;
         BoundedMatrix<double, TDim, VelocityNumNodes> MeshVelocity;
         BoundedMatrix<double, TDim, VelocityNumNodes> BodyForce;
-        array_1d<double, PressureNumNodes> Pressure;
+
+        // Material response variables
         array_1d<double, StrainSize> ShearStress;
-    }
+        BoundedMatrix<double, StrainSize, StrainSize> ConstitutiveMatrix;
+
+        // Auxiliary values
+        double BDF0;
+        double BDF1;
+        double BDF2;
+        double Weight;
+        double DeltaTime;
+    };
 
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(IncompressibleNavierStokesDivStable);
 
-    typedef Node NodeType;
+    using BaseType = Element;
 
-    typedef Geometry<NodeType> GeometryType;
+    using NodeType = BaseType::NodeType;
 
-    typedef Geometry<NodeType>::PointsArrayType NodesArrayType;
+    using GeometryType = BaseType::GeometryType;
 
-    typedef Vector VectorType;
+    using NodesArrayType = BaseType::NodesArrayType;
 
-    typedef Matrix MatrixType;
+    using VectorType = BaseType::VectorType;
 
-    typedef std::size_t IndexType;
+    using MatrixType = BaseType::MatrixType;
 
-    typedef std::size_t SizeType;
+    using IndexType = BaseType::IndexType;
 
-    typedef std::vector<std::size_t> EquationIdVectorType;
+    using SizeType = BaseType::SizeType;
 
-    typedef std::vector< Dof<double>::Pointer > DofsVectorType;
+    using EquationIdVectorType = BaseType::EquationIdVectorType;
 
-    typedef PointerVectorSet<Dof<double>, IndexedObject> DofsArrayType;
+    using DofsVectorType = BaseType::DofsVectorType;
 
-    typedef typename FluidElement<TElementData>::ShapeFunctionsType ShapeFunctionsType;
-
-    typedef typename FluidElement<TElementData>::ShapeFunctionDerivativesType ShapeFunctionDerivativesType;
-
-    typedef typename FluidElement<TElementData>::ShapeFunctionDerivativesArrayType ShapeFunctionDerivativesArrayType;
+    using DofsArrayType = BaseType::DofsArrayType;
 
     ///@}
     ///@name Life Cycle
@@ -226,14 +239,6 @@ protected:
     ///@{
 
 
-    void ComputeGaussPointLHSContribution(
-        TElementData& rData,
-        MatrixType& rLHS);
-
-    void ComputeGaussPointRHSContribution(
-        TElementData& rData,
-        VectorType& rRHS);
-
     ///@}
     ///@name Protected  Access
     ///@{
@@ -259,6 +264,8 @@ private:
     ///@name Member Variables
     ///@{
 
+    /// Pointer to the viscous constitutive model
+    ConstitutiveLaw::Pointer mpConstitutiveLaw = nullptr;
 
     ///@}
     ///@name Serialization
@@ -279,14 +286,22 @@ private:
     ///@name Private Operations
     ///@{
 
-    SetElementData(ElementDataContainer& rElementData);
+    void SetElementData(ElementDataContainer& rElementData);
 
-    CalculateKinematics(
+    void CalculateKinematics(
         Vector& rGaussWeights,
         Matrix& rVelocityN,
         Matrix& rPressureN,
-        Geometry::ShapeFunctionsGradientsType& rVelocityDNDX,
-        Geometry::ShapeFunctionsGradientsType& rPressureDNDX);
+        GeometryType::ShapeFunctionsGradientsType& rVelocityDNDX,
+        GeometryType::ShapeFunctionsGradientsType& rPressureDNDX);
+
+    void ComputeGaussPointLHSContribution(
+        ElementDataContainer& rData,
+        MatrixType& rLHS);
+
+    void ComputeGaussPointRHSContribution(
+        ElementDataContainer& rData,
+        VectorType& rRHS);
 
     ///@}
     ///@name Private  Access
@@ -316,19 +331,19 @@ private:
 ///@{
 
 /// input stream function
-template< class TElementData >
+template< unsigned int TDim >
 inline std::istream& operator >>(
     std::istream& rIStream,
-    IncompressibleNavierStokesDivStable<TElementData>& rThis)
+    IncompressibleNavierStokesDivStable<TDim>& rThis)
 {
     return rIStream;
 }
 
 /// output stream function
-template< class TElementData >
+template< unsigned int TDim >
 inline std::ostream& operator <<(
     std::ostream& rOStream,
-    const IncompressibleNavierStokesDivStable<TElementData>& rThis)
+    const IncompressibleNavierStokesDivStable<TDim>& rThis)
 {
     rThis.PrintInfo(rOStream);
     rOStream << std::endl;
