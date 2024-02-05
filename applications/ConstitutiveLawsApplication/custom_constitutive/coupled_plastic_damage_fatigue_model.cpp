@@ -1051,6 +1051,33 @@ void CoupledPlasticDamageFatigueModel<TYieldSurfaceType>::CalculateElasticCompli
     rC(4,4) = c3;
     rC(5,5) = c3;
 }
+/***********************************************************************************/
+/***********************************************************************************/
+
+template <class TYieldSurfaceType>
+bool CoupledPlasticDamageFatigueModel<TYieldSurfaceType>::Has(
+    const Variable<bool>& rThisVariable)
+{
+    if (rThisVariable == CYCLE_INDICATOR) {
+        return true;
+    }
+    return false;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template <class TYieldSurfaceType>
+bool CoupledPlasticDamageFatigueModel<TYieldSurfaceType>::Has(
+    const Variable<int>& rThisVariable)
+{
+    if (rThisVariable == NUMBER_OF_CYCLES) {
+        return true;
+    } else if (rThisVariable == LOCAL_NUMBER_OF_CYCLES) {
+        return true;
+    }
+    return false;
+}
 
 /***********************************************************************************/
 /***********************************************************************************/
@@ -1075,6 +1102,24 @@ bool CoupledPlasticDamageFatigueModel<TYieldSurfaceType>::Has(
         has = true;
     } else if (rThisVariable == VOLUMETRIC_PARTICIPATION) {
         has = true;
+    } else if (rThisVariable == CYCLES_TO_FAILURE) {
+        has = true;
+    } else if (rThisVariable == REVERSION_FACTOR_RELATIVE_ERROR) {
+        has = true;
+    } else if (rThisVariable == MAX_STRESS_RELATIVE_ERROR) {
+        has = true;
+    } else if (rThisVariable == MAX_STRESS) {
+        has = true;
+    } else if (rThisVariable == PREVIOUS_CYCLE) {
+        has = true;
+    } else if (rThisVariable == CYCLE_PERIOD) {
+        has = true;
+    } else if (rThisVariable == PREVIOUS_CYCLE_DAMAGE) {
+        has = true;
+    } else if (rThisVariable == PREVIOUS_CYCLE_PLASTIC_DISSIPATION) {
+        has = true;
+    } else if (rThisVariable == THRESHOLD_STRESS) {
+        has = true;
     }
     return has;
 }
@@ -1098,6 +1143,38 @@ bool CoupledPlasticDamageFatigueModel<TYieldSurfaceType>::Has(
 /***********************************************************************************/
 
 template<class TYieldSurfaceType>
+bool& CoupledPlasticDamageFatigueModel<TYieldSurfaceType>::GetValue(
+    const Variable<bool>& rThisVariable,
+    bool& rValue
+    )
+{
+    if (rThisVariable == CYCLE_INDICATOR) {
+        rValue = mNewCycleIndicator;
+    }
+    return rValue;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<class TYieldSurfaceType>
+int& CoupledPlasticDamageFatigueModel<TYieldSurfaceType>::GetValue(
+    const Variable<int>& rThisVariable,
+    int& rValue
+    )
+{
+    if (rThisVariable == NUMBER_OF_CYCLES) {
+        rValue = mNumberOfCyclesGlobal;
+    } else if (rThisVariable == LOCAL_NUMBER_OF_CYCLES) {
+        rValue = mNumberOfCyclesLocal;
+    }
+    return rValue;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<class TYieldSurfaceType>
 double& CoupledPlasticDamageFatigueModel<TYieldSurfaceType>::GetValue(
     const Variable<double>& rThisVariable,
     double& rValue
@@ -1114,6 +1191,28 @@ double& CoupledPlasticDamageFatigueModel<TYieldSurfaceType>::GetValue(
         rValue = mPlasticDissipation + mDamageDissipation;
     } else if (rThisVariable == VOLUMETRIC_PARTICIPATION) {
         rValue = mPlasticDamageProportion;
+    } else if (rThisVariable == FATIGUE_REDUCTION_FACTOR) {
+        rValue = mFatigueReductionFactor;
+    } else if (rThisVariable == WOHLER_STRESS) {
+        rValue = mWohlerStress;
+    } else if (rThisVariable == CYCLES_TO_FAILURE) {
+        rValue = mCyclesToFailure;
+    } else if (rThisVariable == REVERSION_FACTOR_RELATIVE_ERROR) {
+        rValue = mReversionFactorRelativeError;
+    } else if (rThisVariable == MAX_STRESS_RELATIVE_ERROR) {
+        rValue = mMaxStressRelativeError;
+    } else if (rThisVariable == MAX_STRESS) {
+        rValue = mMaxStress;
+    } else if (rThisVariable == PREVIOUS_CYCLE) {
+        rValue = mPreviousCycleTime;
+    } else if (rThisVariable == CYCLE_PERIOD) {
+        rValue = mPeriod;
+    } else if (rThisVariable == PREVIOUS_CYCLE_DAMAGE) {
+        rValue = mPreviousCycleDamage;
+    } else if (rThisVariable == PREVIOUS_CYCLE_PLASTIC_DISSIPATION) {
+        rValue = mPreviousCyclePlasticDissipation;
+    } else if (rThisVariable == THRESHOLD_STRESS) {
+        rValue = mFatigueLimit;
     }
     return rValue;
 }
@@ -1135,6 +1234,36 @@ Vector& CoupledPlasticDamageFatigueModel<TYieldSurfaceType>::GetValue(
     return rValue;
 }
 
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<class TYieldSurfaceType>
+void CoupledPlasticDamageFatigueModel<TYieldSurfaceType>::SetValue(
+    const Variable<bool>& rThisVariable,
+    const bool& rValue,
+    const ProcessInfo& rCurrentProcessInfo
+    )
+{
+    if (rThisVariable == CYCLE_INDICATOR) {
+        mNewCycleIndicator = rValue;
+    }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+template<class TYieldSurfaceType>
+void CoupledPlasticDamageFatigueModel<TYieldSurfaceType>::SetValue(
+    const Variable<int>& rThisVariable,
+    const int& rValue,
+    const ProcessInfo& rCurrentProcessInfo
+    )
+{
+    if (rThisVariable == NUMBER_OF_CYCLES) {
+        mNumberOfCyclesGlobal = rValue;
+    } else if (rThisVariable == LOCAL_NUMBER_OF_CYCLES) {
+        mNumberOfCyclesLocal = rValue;
+    }
+}
 
 /***********************************************************************************/
 /***********************************************************************************/
@@ -1154,6 +1283,28 @@ void CoupledPlasticDamageFatigueModel<TYieldSurfaceType>::SetValue(
         mDamageDissipation = rValue;
     }  else if (rThisVariable == VOLUMETRIC_PARTICIPATION) {
         mPlasticDamageProportion = rValue;
+    }  else if (rThisVariable == FATIGUE_REDUCTION_FACTOR) {
+        mFatigueReductionFactor = rValue;
+    }  else if (rThisVariable == WOHLER_STRESS) {
+        mWohlerStress = rValue;
+    }  else if (rThisVariable == CYCLES_TO_FAILURE) {
+        mCyclesToFailure = rValue;
+    }  else if (rThisVariable == REVERSION_FACTOR_RELATIVE_ERROR) {
+        mReversionFactorRelativeError = rValue;
+    }  else if (rThisVariable == MAX_STRESS_RELATIVE_ERROR) {
+        mMaxStressRelativeError = rValue;
+    }  else if (rThisVariable == MAX_STRESS) {
+        mMaxStress = rValue;
+    }  else if (rThisVariable == PREVIOUS_CYCLE) {
+        mPreviousCycleTime = rValue;
+    }  else if (rThisVariable == CYCLE_PERIOD) {
+        mPeriod = rValue;
+    }  else if (rThisVariable == PREVIOUS_CYCLE_DAMAGE) {
+        mPreviousCycleDamage = rValue;
+    }  else if (rThisVariable == PREVIOUS_CYCLE_PLASTIC_DISSIPATION) {
+        mPreviousCyclePlasticDissipation = rValue;
+    }  else if (rThisVariable == THRESHOLD_STRESS) {
+        mFatigueLimit = rValue;
     }
 }
 
@@ -1309,8 +1460,8 @@ void CoupledPlasticDamageFatigueModel<TYieldSurfaceType>::InitializeMaterialResp
     ConstitutiveLaw::Parameters& rValues
     )
 {
-    const bool current_load_type = true;
-    // const bool current_load_type = rValues.GetProcessInfo()[CURRENT_LOAD_TYPE];
+    // const bool current_load_type = true;
+    const bool current_load_type = rValues.GetProcessInfo()[CURRENT_LOAD_TYPE];
     const double max_stress = mMaxStress;
     const double min_stress = mMinStress;
     bool max_indicator = mMaxDetected;
@@ -1325,19 +1476,18 @@ void CoupledPlasticDamageFatigueModel<TYieldSurfaceType>::InitializeMaterialResp
     double previous_min_stress = mPreviousMinStress;
     double wohler_stress = mWohlerStress;
     bool new_cycle = false;
-    double s_th = mThresholdStress;
+    double s_th = mFatigueLimit;
     double cycles_to_failure = mCyclesToFailure;
     bool advance_in_time_process_applied = rValues.GetProcessInfo()[ADVANCE_STRATEGY_APPLIED];
     // bool no_linearity_activation = rValues.GetProcessInfo()[NO_LINEARITY_ACTIVATION];
     double c_factor = mCFactor;
 
-    // const bool new_model_part = rValues.GetProcessInfo()[NEW_MODEL_PART];
-    // if (new_model_part) {
-    //     // KRATOS_WATCH("HERE")
-    //     max_indicator = false;
-    //     min_indicator = false;
-    //     mFirstCycleOfANewLoad = true;
-    // }
+    const bool new_model_part = rValues.GetProcessInfo()[NEW_MODEL_PART];
+    if (new_model_part) {
+        max_indicator = false;
+        min_indicator = false;
+        mFirstCycleOfANewLoad = true;
+    }
     // const double damage = this->GetDamage();
     // const double reference_damage = mReferenceDamage;    //Threshold is used here to define Nf. This is required for those cases that damage has started
     // double threshold = this->GetThreshold();
@@ -1421,35 +1571,38 @@ void CoupledPlasticDamageFatigueModel<TYieldSurfaceType>::InitializeMaterialResp
                                                                                         ultimate_stress,
                                                                                         c_factor);
         //AIT dependent
-        // mFirstCycleOfANewLoad = false;
+        mFirstCycleOfANewLoad = false;
     }
-    // if (advance_in_time_process_applied && current_load_type) {
-    //     // KRATOS_WATCH("ADV IN TIME")
-    //     const double reversion_factor = HighCycleFatigueLawIntegrator<6>::CalculateReversionFactor(max_stress, min_stress);
-    //     double alphat;
-    //     const double ultimate_stress = HighCycleFatigueLawIntegrator<6>::UltimateStressDamage(rValues.GetMaterialProperties());
-    //     HighCycleFatigueLawIntegrator<6>::CalculateFatigueParameters(
-    //         (1.0 - reference_damage) * max_stress,
-    //         reversion_factor,
-    //         rValues.GetMaterialProperties(),
-    //         B0,
-    //         s_th,
-    //         alphat,
-    //         cycles_to_failure,
-    //         ultimate_stress,
-    //         c_factor);
-    //     HighCycleFatigueLawIntegrator<6>::CalculateFatigueReductionFactorAndWohlerStress(rValues.GetMaterialProperties(),
-    //                                                                                     (1.0 - reference_damage) * max_stress,
-    //                                                                                     local_number_of_cycles,
-    //                                                                                     global_number_of_cycles,
-    //                                                                                     B0,
-    //                                                                                     s_th,
-    //                                                                                     alphat,
-    //                                                                                     fatigue_reduction_factor,
-    //                                                                                     wohler_stress,
-    //                                                                                     ultimate_stress,
-    //                                                                                     c_factor);
-    // }
+    if (advance_in_time_process_applied && current_load_type) {
+        // KRATOS_WATCH("ADV IN TIME")
+        const double reversion_factor = HighCycleFatigueLawIntegrator<6>::CalculateReversionFactor(max_stress, min_stress);
+        double alphat;
+        const double ultimate_stress = UltimateStressCalculation(rValues.GetMaterialProperties());
+
+        HighCycleFatigueLawIntegrator<6>::CalculateFatigueParameters(
+            // (1.0 - reference_damage) * max_stress,
+            max_stress,
+            reversion_factor,
+            rValues.GetMaterialProperties(),
+            B0,
+            s_th,
+            alphat,
+            cycles_to_failure,
+            ultimate_stress,
+            c_factor);
+        HighCycleFatigueLawIntegrator<6>::CalculateFatigueReductionFactorAndWohlerStress(rValues.GetMaterialProperties(),
+                                                                                        // (1.0 - reference_damage) * max_stress,
+                                                                                        max_stress,
+                                                                                        local_number_of_cycles,
+                                                                                        global_number_of_cycles,
+                                                                                        B0,
+                                                                                        s_th,
+                                                                                        alphat,
+                                                                                        fatigue_reduction_factor,
+                                                                                        wohler_stress,
+                                                                                        ultimate_stress,
+                                                                                        c_factor);
+    }
     mNumberOfCyclesGlobal = global_number_of_cycles;
     mNumberOfCyclesLocal = local_number_of_cycles;
     mReversionFactorRelativeError = reversion_factor_relative_error;
@@ -1462,12 +1615,19 @@ void CoupledPlasticDamageFatigueModel<TYieldSurfaceType>::InitializeMaterialResp
     mFatigueReductionFactor = fatigue_reduction_factor;
     mWohlerStress = wohler_stress;
     mNewCycleIndicator = new_cycle;
-    mThresholdStress = s_th;
+    mFatigueLimit = s_th;
     mCFactor = c_factor;
-    // if (new_model_part) {
-    //     mReferenceDamage = this->GetDamage();   //Updating the damage reference values. This needs to be changed by the end of the method because the calculations
-    //                                             //done here are built using the values of the previous step. This should not have a big effect in this CL but is consistent.
-    // }
+
+    if (current_load_type) {
+        mPlasticDamageProportion = 1.0;
+    } else {
+        mPlasticDamageProportion = 0.0;
+    }
+    if (new_model_part) {
+        // REFERENCE INFO
+        // mReferenceDamage = this->GetDamage();   //Updating the damage reference values. This needs to be changed by the end of the method because the calculations
+                                                //done here are built using the values of the previous step. This should not have a big effect in this CL but is consistent.
+    }
 }
 
 /***********************************************************************************/

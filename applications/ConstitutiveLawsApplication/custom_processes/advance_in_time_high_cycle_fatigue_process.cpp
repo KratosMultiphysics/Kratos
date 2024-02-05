@@ -213,6 +213,7 @@ void AdvanceInTimeHighCycleFatigueProcess::NoLinearitiesInitiationAndAccumulatio
     std::vector<double> previous_cycle_damage;
     std::vector<double> plastic_dissipation;
     std::vector<double> previous_cycle_plastic_dissipation;
+    std::vector<double> plastic_damage;
 
     KRATOS_ERROR_IF(mrModelPart.NumberOfElements() == 0) << "The number of elements in the domain is zero. The process can not be applied."<< std::endl;
 
@@ -224,27 +225,47 @@ void AdvanceInTimeHighCycleFatigueProcess::NoLinearitiesInitiationAndAccumulatio
 
         const bool is_damage = constitutive_law_vector[0]->Has(DAMAGE);
         const bool is_plasticity = constitutive_law_vector[0]->Has(PLASTIC_DISSIPATION);
-        if (is_damage) {
-            r_elem.CalculateOnIntegrationPoints(DAMAGE, damage, process_info);
+        const bool is_coupled_plastic_damage = constitutive_law_vector[0]->Has(DISSIPATION);
+        if (is_coupled_plastic_damage) {
+            r_elem.CalculateOnIntegrationPoints(DISSIPATION, plastic_damage, process_info);
             r_elem.CalculateOnIntegrationPoints(PREVIOUS_CYCLE_DAMAGE, previous_cycle_damage, process_info);
-            for (unsigned int i = 0; i < number_of_ip; i++) {
-                if (damage[i] > 0.0) {
-                    rMaximumDamageIncrement = std::max(rMaximumDamageIncrement, std::abs(damage[i] - previous_cycle_damage[i]));
-                    process_info[NO_LINEARITY_ACTIVATION] = true;
-                }
-            }
-            r_elem.SetValuesOnIntegrationPoints(PREVIOUS_CYCLE_DAMAGE, damage, process_info);
-        }
-        if (is_plasticity) {
             r_elem.CalculateOnIntegrationPoints(PLASTIC_DISSIPATION, plastic_dissipation, process_info);
             r_elem.CalculateOnIntegrationPoints(PREVIOUS_CYCLE_PLASTIC_DISSIPATION, previous_cycle_plastic_dissipation, process_info);
             for (unsigned int i = 0; i < number_of_ip; i++) {
-                if (damage[i] > 0.0) {
+                if (plastic_damage[i] > 0.0) {
+                    rMaximumDamageIncrement = std::max(rMaximumDamageIncrement, std::abs(plastic_damage[i] - previous_cycle_damage[i]));
+                    process_info[NO_LINEARITY_ACTIVATION] = true;
+                }
+                if (plastic_dissipation[i] > 0.0) {
                     rMaximumPlasticDissipationIncrement = std::max(rMaximumPlasticDissipationIncrement, std::abs(plastic_dissipation[i] - previous_cycle_plastic_dissipation[i]));
                     process_info[NO_LINEARITY_ACTIVATION] = true;
                 }
             }
+            r_elem.SetValuesOnIntegrationPoints(PREVIOUS_CYCLE_DAMAGE, plastic_damage, process_info);
             r_elem.SetValuesOnIntegrationPoints(PREVIOUS_CYCLE_PLASTIC_DISSIPATION, plastic_dissipation, process_info);
+        } else {
+            if (is_damage) {
+                r_elem.CalculateOnIntegrationPoints(DAMAGE, damage, process_info);
+                r_elem.CalculateOnIntegrationPoints(PREVIOUS_CYCLE_DAMAGE, previous_cycle_damage, process_info);
+                for (unsigned int i = 0; i < number_of_ip; i++) {
+                    if (damage[i] > 0.0) {
+                        rMaximumDamageIncrement = std::max(rMaximumDamageIncrement, std::abs(damage[i] - previous_cycle_damage[i]));
+                        process_info[NO_LINEARITY_ACTIVATION] = true;
+                    }
+                }
+                r_elem.SetValuesOnIntegrationPoints(PREVIOUS_CYCLE_DAMAGE, damage, process_info);
+            }
+            if (is_plasticity) {
+                r_elem.CalculateOnIntegrationPoints(PLASTIC_DISSIPATION, plastic_dissipation, process_info);
+                r_elem.CalculateOnIntegrationPoints(PREVIOUS_CYCLE_PLASTIC_DISSIPATION, previous_cycle_plastic_dissipation, process_info);
+                for (unsigned int i = 0; i < number_of_ip; i++) {
+                    if (plastic_dissipation[i] > 0.0) {
+                        rMaximumPlasticDissipationIncrement = std::max(rMaximumPlasticDissipationIncrement, std::abs(plastic_dissipation[i] - previous_cycle_plastic_dissipation[i]));
+                        process_info[NO_LINEARITY_ACTIVATION] = true;
+                    }
+                }
+                r_elem.SetValuesOnIntegrationPoints(PREVIOUS_CYCLE_PLASTIC_DISSIPATION, plastic_dissipation, process_info);
+            }
         }
     }
 }
@@ -283,8 +304,6 @@ void AdvanceInTimeHighCycleFatigueProcess::StableConditionForAdvancingStrategy(b
             }
         }
     }
-    // KRATOS_WATCH(acumulated_max_stress_rel_error)
-    // KRATOS_WATCH(acumulated_rev_factor_rel_error)
     if ((acumulated_max_stress_rel_error < 1e-4 && acumulated_rev_factor_rel_error < 1e-4 && fatigue_in_course) || (NoLinearityIndicator && acumulated_max_stress_rel_error < 1e-3 && acumulated_rev_factor_rel_error < 1e-2 && fatigue_in_course)) {
         rAdvancingStrategy = true;
     }

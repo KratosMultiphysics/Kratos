@@ -194,6 +194,20 @@ public:
      * @param rThisVariable the variable to be checked for
      * @return true if the variable is defined in the constitutive law
      */
+    bool Has(const Variable<bool>& rThisVariable) override;
+
+    /**
+     * @brief Returns whether this constitutive Law has specified variable (double)
+     * @param rThisVariable the variable to be checked for
+     * @return true if the variable is defined in the constitutive law
+     */
+    bool Has(const Variable<int>& rThisVariable) override;
+
+    /**
+     * @brief Returns whether this constitutive Law has specified variable (double)
+     * @param rThisVariable the variable to be checked for
+     * @return true if the variable is defined in the constitutive law
+     */
     bool Has(const Variable<double>& rThisVariable) override;
 
     /**
@@ -202,6 +216,28 @@ public:
      * @return true if the variable is defined in the constitutive law
      */
     bool Has(const Variable<Vector>& rThisVariable) override;
+
+    /**
+     * @brief Returns the value of a specified variable (double)
+     * @param rThisVariable the variable to be returned
+     * @param rValue a reference to the returned value
+     * @return rValue output: the value of the specified variable
+     */
+    bool& GetValue(
+        const Variable<bool>& rThisVariable,
+        bool& rValue
+        ) override;
+
+    /**
+     * @brief Returns the value of a specified variable (double)
+     * @param rThisVariable the variable to be returned
+     * @param rValue a reference to the returned value
+     * @return rValue output: the value of the specified variable
+     */
+    int& GetValue(
+        const Variable<int>& rThisVariable,
+        int& rValue
+        ) override;
 
     /**
      * @brief Returns the value of a specified variable (double)
@@ -223,6 +259,30 @@ public:
     Vector& GetValue(
         const Variable<Vector>& rThisVariable,
         Vector& rValue
+        ) override;
+
+    /**
+     * @brief Sets the value of a specified variable (double)
+     * @param rThisVariable the variable to be returned
+     * @param rValue new value of the specified variable
+     * @param rCurrentProcessInfo the process info
+     */
+     void SetValue(
+        const Variable<bool>& rThisVariable,
+        const bool& rValue,
+        const ProcessInfo& rCurrentProcessInfo
+        ) override;
+
+    /**
+     * @brief Sets the value of a specified variable (double)
+     * @param rThisVariable the variable to be returned
+     * @param rValue new value of the specified variable
+     * @param rCurrentProcessInfo the process info
+     */
+     void SetValue(
+        const Variable<int>& rThisVariable,
+        const int& rValue,
+        const ProcessInfo& rCurrentProcessInfo
         ) override;
 
     /**
@@ -504,60 +564,42 @@ public:
         rPlasticDamageParameters.CharacteristicLength  = CharateristicLength;
         rPlasticDamageParameters.FatigueReductionFactor  = mFatigueReductionFactor;
 
-        if (rMaterialProperties.Has(VOLUMETRIC_PART)) { // Fluctuating plastic-damage CL
-            const SizeType volumetric_participation_size = rMaterialProperties[VOLUMETRIC_PART].size();
-            double volumetric_participation;
-            if (volumetric_participation_size == 1) {
-                volumetric_participation = rMaterialProperties[VOLUMETRIC_PART][0];
-            } else if (volumetric_participation_size == 3) { //Linear or exponential transition
-                const int volumetric_participation_transition_type = rMaterialProperties[VOLUMETRIC_PART][0];
-                const double initial_volumetric_participation = rMaterialProperties[VOLUMETRIC_PART][1];
-                const double final_volumetric_participation = rMaterialProperties[VOLUMETRIC_PART][2];
-                if (volumetric_participation_transition_type == 0) { //Linear case
-                    volumetric_participation = initial_volumetric_participation * (1.0 - rPlasticDamageParameters.TotalDissipation) + final_volumetric_participation * rPlasticDamageParameters.TotalDissipation;
-                } else { //Exponential case
-                    volumetric_participation = initial_volumetric_participation * std::exp(rPlasticDamageParameters.TotalDissipation * std::log(final_volumetric_participation / initial_volumetric_participation));
-                }
-            } else if (volumetric_participation_size == 4) { //Potential or inverse potential transition
-                const int volumetric_participation_transition_type = rMaterialProperties[VOLUMETRIC_PART][0];
-                const double initial_volumetric_participation = rMaterialProperties[VOLUMETRIC_PART][1];
-                const double final_volumetric_participation = rMaterialProperties[VOLUMETRIC_PART][2];
-                const double index_volumetric_participation = rMaterialProperties[VOLUMETRIC_PART][3];
-                if (volumetric_participation_transition_type == 0) { //Potential case
-                    volumetric_participation = (final_volumetric_participation - initial_volumetric_participation) * std::pow(rPlasticDamageParameters.TotalDissipation, index_volumetric_participation) + initial_volumetric_participation;
-                } else { //Inverse potential case
-                    volumetric_participation = (final_volumetric_participation - initial_volumetric_participation) * std::pow((rPlasticDamageParameters.TotalDissipation - 1.0), index_volumetric_participation) + final_volumetric_participation;
-                }
-            } else {
-                KRATOS_ERROR << "Wrong size VOLUMETRIC_PART variable" << std::endl;
-            }
-            volumetric_participation = (volumetric_participation > 1.0) ? 1.0 : volumetric_participation;
-            volumetric_participation = (volumetric_participation < 0.0) ? 0.0 : volumetric_participation;
-            rPlasticDamageParameters.PlasticDamageProportion = volumetric_participation;
-            mPlasticDamageProportion = volumetric_participation;
-        } else {
-            rPlasticDamageParameters.PlasticDamageProportion = rMaterialProperties[PLASTIC_DAMAGE_PROPORTION];
-        }
+        rPlasticDamageParameters.PlasticDamageProportion = mPlasticDamageProportion;
 
-        // const double initial_proportion = -2.0;
-        // const double final_proportion = 2.0;
-        // rPlasticDamageParameters.PlasticDamageProportion = initial_proportion * (1.0 - rPlasticDamageParameters.TotalDissipation) + final_proportion * rPlasticDamageParameters.TotalDissipation;
-        // if(rPlasticDamageParameters.PlasticDamageProportion < 0.1){
-        //     rPlasticDamageParameters.PlasticDamageProportion = 0.1;
-        // } else if(rPlasticDamageParameters.PlasticDamageProportion > 0.95){
-        //     rPlasticDamageParameters.PlasticDamageProportion = 0.95;
-        // }
-        // rPlasticDamageParameters.PlasticDamageProportion = 0.1;
-
-        // const double initial_proportion = 0.9;
-        // const double final_proportion = 0.1;
-        // if(rPlasticDamageParameters.TotalDissipation < 0.4){
-        //     rPlasticDamageParameters.PlasticDamageProportion = initial_proportion;
+        // if (rMaterialProperties.Has(VOLUMETRIC_PART)) { // Fluctuating plastic-damage CL
+        //     const SizeType volumetric_participation_size = rMaterialProperties[VOLUMETRIC_PART].size();
+        //     double volumetric_participation;
+        //     if (volumetric_participation_size == 1) {
+        //         volumetric_participation = rMaterialProperties[VOLUMETRIC_PART][0];
+        //     } else if (volumetric_participation_size == 3) { //Linear or exponential transition
+        //         const int volumetric_participation_transition_type = rMaterialProperties[VOLUMETRIC_PART][0];
+        //         const double initial_volumetric_participation = rMaterialProperties[VOLUMETRIC_PART][1];
+        //         const double final_volumetric_participation = rMaterialProperties[VOLUMETRIC_PART][2];
+        //         if (volumetric_participation_transition_type == 0) { //Linear case
+        //             volumetric_participation = initial_volumetric_participation * (1.0 - rPlasticDamageParameters.TotalDissipation) + final_volumetric_participation * rPlasticDamageParameters.TotalDissipation;
+        //         } else { //Exponential case
+        //             volumetric_participation = initial_volumetric_participation * std::exp(rPlasticDamageParameters.TotalDissipation * std::log(final_volumetric_participation / initial_volumetric_participation));
+        //         }
+        //     } else if (volumetric_participation_size == 4) { //Potential or inverse potential transition
+        //         const int volumetric_participation_transition_type = rMaterialProperties[VOLUMETRIC_PART][0];
+        //         const double initial_volumetric_participation = rMaterialProperties[VOLUMETRIC_PART][1];
+        //         const double final_volumetric_participation = rMaterialProperties[VOLUMETRIC_PART][2];
+        //         const double index_volumetric_participation = rMaterialProperties[VOLUMETRIC_PART][3];
+        //         if (volumetric_participation_transition_type == 0) { //Potential case
+        //             volumetric_participation = (final_volumetric_participation - initial_volumetric_participation) * std::pow(rPlasticDamageParameters.TotalDissipation, index_volumetric_participation) + initial_volumetric_participation;
+        //         } else { //Inverse potential case
+        //             volumetric_participation = (final_volumetric_participation - initial_volumetric_participation) * std::pow((rPlasticDamageParameters.TotalDissipation - 1.0), index_volumetric_participation) + final_volumetric_participation;
+        //         }
+        //     } else {
+        //         KRATOS_ERROR << "Wrong size VOLUMETRIC_PART variable" << std::endl;
+        //     }
+        //     volumetric_participation = (volumetric_participation > 1.0) ? 1.0 : volumetric_participation;
+        //     volumetric_participation = (volumetric_participation < 0.0) ? 0.0 : volumetric_participation;
+        //     rPlasticDamageParameters.PlasticDamageProportion = volumetric_participation;
+        //     mPlasticDamageProportion = volumetric_participation;
         // } else {
-        //     rPlasticDamageParameters.PlasticDamageProportion = final_proportion;
+        //     rPlasticDamageParameters.PlasticDamageProportion = rMaterialProperties[PLASTIC_DAMAGE_PROPORTION];
         // }
-        // rPlasticDamageParameters.PlasticDamageProportion = 0.99;
-        // KRATOS_WATCH(rPlasticDamageParameters.PlasticDamageProportion)
     }
 
     /**
@@ -730,16 +772,17 @@ private:
     bool mMaxDetected = false; // Maximum's indicator in the current cycle
     bool mMinDetected = false; // Minimum's indicator in the current cycle
     double mWohlerStress = 1.0; // Normalised Wohler stress required for building the life prediction curves (SN curves)
-    double mThresholdStress = 0.0; // Endurance limit of the fatigue model.
+    double mFatigueLimit = 0.0; // Endurance limit of the fatigue model.
     double mReversionFactorRelativeError = 0.0; // Relative error of the R = Smin / Smax between cycles inducing recalculation of Nlocal and advanciing process.
     double mMaxStressRelativeError = 0.0; // Relative error of Smax between cycles inducing recalculation of Nlocal and advanciing process.
     bool mNewCycleIndicator = false; // New cycle identifier required for the advancing process.
     double mCyclesToFailure = 0.0; // Nf. Required for the advanciing process.
-    // double mPreviousCycleTime = 0.0; // Instanced variable used in the advanciing process for the conversion between time and number of cycles.
-    // double mPeriod = 0.0; // Instanced variable used in the advanciing process for the conversion between time and number of cycles.
+    double mPreviousCycleTime = 0.0; // Instanced variable used in the advanciing process for the conversion between time and number of cycles.
+    double mPeriod = 0.0; // Instanced variable used in the advanciing process for the conversion between time and number of cycles.
     // double mReferenceDamage = 0.0; // Damage level to be considered at each load block. This is used to work with stable loads during the fatigue process.
-    // double mPreviousCycleDamage = 0.0; // Damage level at the previous cycle.
-    // bool mFirstCycleOfANewLoad = false; // Variable used to identify the first cycle after a new load block. This is used in the Nlocal calculation and to compute the C factor.
+    double mPreviousCycleDamage = 0.0; // Degradation level at the previous cycle.
+    double mPreviousCyclePlasticDissipation = 0.0; // Degradation level at the previous cycle.
+    bool mFirstCycleOfANewLoad = false; // Variable used to identify the first cycle after a new load block. This is used in the Nlocal calculation and to compute the C factor.
     double mCFactor = 1.0;
 
     ///@}
