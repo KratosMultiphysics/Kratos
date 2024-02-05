@@ -377,8 +377,8 @@ protected:
 
     BoundingBox<PointType> mBoundingBox;             /// The bounding box of the domain
     array_1d<std::size_t, Dimension> mNumberOfCells; /// The number of cells in each direction
-    array_1d<double, 3>  mCellSizes;                 /// The size of each cell in each direction
-    array_1d<double, 3>  mInverseOfCellSize;         /// The inverse of the size of each cell in each direction
+    array_1d<double, 3> mCellSizes;                  /// The size of each cell in each direction
+    array_1d<double, 3> mInverseOfCellSize;          /// The inverse of the size of each cell in each direction
     std::vector<CellType> mCells;                    /// The cells of the domain
     double mTolerance;                               /// The tolerance considered
 
@@ -583,31 +583,30 @@ private:
 }; // Class GeometricalObjectsBins
 
 ///@}
-
 ///@name Type Definitions
 ///@{
-
 
 ///@}
 ///@name Input and output
 ///@{
 
-// /// input stream function
-// inline std::istream& operator >> (std::istream& rIStream,
-//                 GeometricalObjectsBins& rThis){
-//                     return rIStream;
-//                 }
+/// input stream function
+inline std::istream& operator >> (std::istream& rIStream,
+                GeometricalObjectsBins& rThis){
+                    return rIStream;
+                }
 
-// /// output stream function
-// inline std::ostream& operator << (std::ostream& rOStream,
-//                 const GeometricalObjectsBins& rThis)
-// {
-//     rThis.PrintInfo(rOStream);
-//     rOStream << std::endl;
-//     rThis.PrintData(rOStream);
+/// output stream function
+inline std::ostream& operator << (std::ostream& rOStream,
+                const GeometricalObjectsBins& rThis)
+{
+    rThis.PrintInfo(rOStream);
+    rOStream << std::endl;
+    rThis.PrintData(rOStream);
 
-//     return rOStream;
-// }
+    return rOStream;
+}
+
 ///@}
 
 ///@} addtogroup block
