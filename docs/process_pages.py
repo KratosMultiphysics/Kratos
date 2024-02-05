@@ -218,7 +218,7 @@ def CreateNavigatonBar(root_path: str, max_levels: int, default_header_dict: dic
     return list_of_strings
 
 def AddPythonSnippetOutputs(file_path: Path) -> None:
-    with open(str(file_path), "r") as file_input:
+    with open(file_path, "r") as file_input:
         lines = file_input.readlines()
 
     found_python_snippet_block = False
