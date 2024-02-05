@@ -3,7 +3,6 @@ from argparse import ArgumentParser
 from collections import OrderedDict
 from pathlib import Path
 import subprocess
-import os
 
 from entry_utilities import default_header_dict
 from entry_utilities import file_navigation_levels
@@ -260,7 +259,7 @@ def AddPythonSnippetOutputs(file_path: Path) -> None:
                     output_lines.append("```\n")
 
                     # remove the temp file
-                    os.remove(temp_file_path)
+                    Path(temp_file_path).unlink()
 
                     if is_existing_output_found:
                         index += temp_index + lines[temp_index:].index("```\n") + 1
