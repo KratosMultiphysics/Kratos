@@ -251,7 +251,7 @@ def AddPythonSnippetOutputs(file_path: Path) -> None:
                     with open(temp_file_path, "w") as temp_file_output:
                         temp_file_output.writelines(snippet_lines)
 
-                    subprocess_run = subprocess.run([GetPython3Command(), temp_file_path], stdout=subprocess.PIPE, universal_newlines=True, check=True)
+                    subprocess_run = subprocess.run([GetPython3Command(), "-u", temp_file_path], stdout=subprocess.PIPE, universal_newlines=True, check=True)
                     output_lines.append("\n")
                     output_lines.append("Expected output:\n")
                     output_lines.append("```bash\n")
