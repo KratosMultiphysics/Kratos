@@ -1,9 +1,9 @@
 ---
 title: Pow
-keywords: 
+keywords:
 tags: [pow, expression]
 sidebar: kratos_expressions
-summary: 
+summary:
 ---
 
 ## Introduction
@@ -13,20 +13,20 @@ This raises value of each component to the specified power given by either a flo
 2. If it is raised to power given by a expression and the expression has the same shape as the input expression, then each component is raised to power by the expressions same component given by the second expression.
 3. If it is raised to power given by a expression and the expression has shape of a scalar expression, then each component is raised to power by the second expression's entity value.
 
-Assume the input expression is given by $$\underline{\mathbb{u}} = \left\lbrace u_{ij},  \forall (i,j)\in\left[0, M\right)\times\left[0, N\right)\right\rbrace$$ where $$i^{th}$$ entity's $$j^{th}$$ component is represented by $$u_{ij}$$ with $$i\in \left[0, M\right)$$ for each entity and $$j\in \left[0, N\right)$$ for each component in each entity. Following equation illustrates the formulation of the resulting expression.
+Assume the input expression is given by $$\underline{\mathbf{u}} = \left\lbrace u_{ij},  \forall (i,j)\in\left[0, M\right)\times\left[0, N\right)\right\rbrace$$ where $$i^{th}$$ entity's $$j^{th}$$ component is represented by $$u_{ij}$$ with $$i\in \left[0, M\right)$$ for each entity and $$j\in \left[0, N\right)$$ for each component in each entity. Following equation illustrates the formulation of the resulting expression.
 
 Case 1:
-<p align="center">$$ Pow\left(\underline{\mathbb{u}}, P\right) = \left\lbrace u_{ij}^P,  \forall (i,j)\in\left[0, M\right)\times\left[0, N\right)\right\rbrace$$</p>
+<p align="center">$$ Pow\left(\underline{\mathbf{u}}, P\right) = \left\lbrace u_{ij}^P,  \forall (i,j)\in\left[0, M\right)\times\left[0, N\right)\right\rbrace$$</p>
 
 Case 2:
 
-The expression with power is illustrated by $$\underline{\mathbb{P}} = \left\lbrace p_{ij},  \forall (i,j)\in\left[0, M\right)\times\left[0, N\right)\right\rbrace$$
-<p align="center">$$ Pow\left(\underline{\mathbb{u}}, \underline{\mathbb{P}}\right) = \left\lbrace u_{ij}^{p_{ij}},  \forall (i,j)\in\left[0, M\right)\times\left[0, N\right)\right\rbrace$$</p>
+The expression with power is illustrated by $$\underline{\mathbf{P}} = \left\lbrace p_{ij},  \forall (i,j)\in\left[0, M\right)\times\left[0, N\right)\right\rbrace$$
+<p align="center">$$ Pow\left(\underline{\mathbf{u}}, \underline{\mathbf{P}}\right) = \left\lbrace u_{ij}^{p_{ij}},  \forall (i,j)\in\left[0, M\right)\times\left[0, N\right)\right\rbrace$$</p>
 
 Case 3:
 
-The expression with power is illustrated by $$\underline{\mathbb{P}} = \left\lbrace p_{i},  \forall i\in\left[0, M\right)\right\rbrace$$
-<p align="center">$$ Pow\left(\underline{\mathbb{u}}, \underline{\mathbb{P}}\right) = \left\lbrace u_{ij}^{p_{i}},  \forall (i,j)\in\left[0, M\right)\times\left[0, N\right)\right\rbrace$$</p>
+The expression with power is illustrated by $$\underline{\mathbf{P}} = \left\lbrace p_{i},  \forall i\in\left[0, M\right)\right\rbrace$$
+<p align="center">$$ Pow\left(\underline{\mathbf{u}}, \underline{\mathbf{P}}\right) = \left\lbrace u_{ij}^{p_{i}},  \forall (i,j)\in\left[0, M\right)\times\left[0, N\right)\right\rbrace$$</p>
 
 ## Use cases
 
@@ -69,9 +69,9 @@ Expected output:
 node_id: 1, velocity=[-1.0, -2.0, -3.0], acceleration = [-1.0, -8.0, -27.0]
 node_id: 2, velocity=[-4.0, -5.0, -6.0], acceleration = [-64.0, -125.0, -216.0]
 node_id: 3, velocity=[-7.0, -8.0, -9.0], acceleration = [-343.0, -512.0, -729.0]
- |  /           |                  
- ' /   __| _` | __|  _ \   __|    
- . \  |   (   | |   (   |\__ \  
+ |  /           |
+ ' /   __| _` | __|  _ \   __|
+ . \  |   (   | |   (   |\__ \
 _|\_\_|  \__,_|\__|\___/ ____/
            Multi-Physics 9.4."3"-docs/expression_documentation-6de5f1a499-Release-x86_64
            Compiled for GNU/Linux and Python3.11 with GCC-13.2
@@ -119,9 +119,9 @@ Expected output:
 node_id: 1, velocity=[-1.0, -2.0, -3.0], pressure = 3.7416573867739413
 node_id: 2, velocity=[-4.0, -5.0, -6.0], pressure = 8.774964387392123
 node_id: 3, velocity=[-7.0, -8.0, -9.0], pressure = 13.92838827718412
- |  /           |                  
- ' /   __| _` | __|  _ \   __|    
- . \  |   (   | |   (   |\__ \  
+ |  /           |
+ ' /   __| _` | __|  _ \   __|
+ . \  |   (   | |   (   |\__ \
 _|\_\_|  \__,_|\__|\___/ ____/
            Multi-Physics 9.4."3"-docs/expression_documentation-6de5f1a499-Release-x86_64
            Compiled for GNU/Linux and Python3.11 with GCC-13.2

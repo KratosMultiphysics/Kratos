@@ -1,16 +1,16 @@
 ---
 title: Abs
-keywords: 
+keywords:
 tags: [abs, expression]
 sidebar: kratos_expressions
-summary: 
+summary:
 ---
 
 ## Introduction
 
-This computes absolute value of each component of the given expression. Assume the input expression is given by $$\underline{\mathbb{u}} = \left\lbrace u_{ij},  \forall (i,j)\in\left[0, M\right)\times\left[0, N\right)\right\rbrace$$ where $$i^{th}$$ entity's $$j^{th}$$ component is represented by $$u_{ij}$$ with $$i\in \left[0, M\right)$$ for each entity and $$j\in \left[0, N\right)$$ for each component in each entity. Following equation illustrates the formulation of the resulting expression.
+This computes absolute value of each component of the given expression. Assume the input expression is given by $$\underline{\mathbf{u}} = \left\lbrace u_{ij},  \forall (i,j)\in\left[0, M\right)\times\left[0, N\right)\right\rbrace$$ where $$i^{th}$$ entity's $$j^{th}$$ component is represented by $$u_{ij}$$ with $$i\in \left[0, M\right)$$ for each entity and $$j\in \left[0, N\right)$$ for each component in each entity. Following equation illustrates the formulation of the resulting expression.
 
-<p align="center">$$ Abs\left(\underline{\mathbb{u}}\right) = \left\lbrace \left|u_{ij}\right|,  \forall (i,j)\in\left[0, M\right)\times\left[0, N\right)\right\rbrace$$</p>
+<p align="center">$$ Abs\left(\underline{\mathbf{u}}\right) = \left\lbrace \left|u_{ij}\right|,  \forall (i,j)\in\left[0, M\right)\times\left[0, N\right)\right\rbrace$$</p>
 
 ## Use cases
 
@@ -54,9 +54,9 @@ Expected output:
 node_id: 1, velocity=[-1.0, -2.0, -3.0], acceleration = [1.0, 2.0, 3.0]
 node_id: 2, velocity=[-4.0, -5.0, -6.0], acceleration = [4.0, 5.0, 6.0]
 node_id: 3, velocity=[-7.0, -8.0, -9.0], acceleration = [7.0, 8.0, 9.0]
- |  /           |                  
- ' /   __| _` | __|  _ \   __|    
- . \  |   (   | |   (   |\__ \  
+ |  /           |
+ ' /   __| _` | __|  _ \   __|
+ . \  |   (   | |   (   |\__ \
 _|\_\_|  \__,_|\__|\___/ ____/
            Multi-Physics 9.4."3"-docs/expression_documentation-6de5f1a499-Release-x86_64
            Compiled for GNU/Linux and Python3.11 with GCC-13.2
@@ -104,9 +104,9 @@ Expected output:
 node_id: 1, velocity=[-1.0, -2.0, -3.0], pressure = 3.0
 node_id: 2, velocity=[-4.0, -5.0, -6.0], pressure = 6.0
 node_id: 3, velocity=[-7.0, -8.0, -9.0], pressure = 9.0
- |  /           |                  
- ' /   __| _` | __|  _ \   __|    
- . \  |   (   | |   (   |\__ \  
+ |  /           |
+ ' /   __| _` | __|  _ \   __|
+ . \  |   (   | |   (   |\__ \
 _|\_\_|  \__,_|\__|\___/ ____/
            Multi-Physics 9.4."3"-docs/expression_documentation-6de5f1a499-Release-x86_64
            Compiled for GNU/Linux and Python3.11 with GCC-13.2

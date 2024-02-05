@@ -1,17 +1,17 @@
 ---
 title: InnerProduct
-keywords: 
+keywords:
 tags: [inner product, expressions]
 sidebar: kratos_expressions
-summary: 
+summary:
 ---
 
 ## Introduction
-Computes component wise inner product between two expressions. Assume the input expression is given by $$\underline{\mathbb{u}} = \left\lbrace u_{ij},  \forall (i,j)\in\left[0, M\right)\times\left[0, N\right)\right\rbrace$$ where $$i^{th}$$ entity's $$j^{th}$$ component is represented by $$u_{ij}$$ with $$i\in \left[0, M\right)$$ for each entity and $$j\in \left[0, N\right)$$ for each component in each entity. The second input expression is given by $$\underline{\mathbb{v}} = \left\lbrace v_{ij},  \forall (i,j)\in\left[0, M\right)\times\left[0, N\right)\right\rbrace$$ where $$i^{th}$$ entity's $$j^{th}$$ component is represented by $$u_{ij}$$ with $$i\in \left[0, M\right)$$ for each entity and $$j\in \left[0, N\right)$$ for each component in each entity.
+Computes component wise inner product between two expressions. Assume the input expression is given by $$\underline{\mathbf{u}} = \left\lbrace u_{ij},  \forall (i,j)\in\left[0, M\right)\times\left[0, N\right)\right\rbrace$$ where $$i^{th}$$ entity's $$j^{th}$$ component is represented by $$u_{ij}$$ with $$i\in \left[0, M\right)$$ for each entity and $$j\in \left[0, N\right)$$ for each component in each entity. The second input expression is given by $$\underline{\mathbf{v}} = \left\lbrace v_{ij},  \forall (i,j)\in\left[0, M\right)\times\left[0, N\right)\right\rbrace$$ where $$i^{th}$$ entity's $$j^{th}$$ component is represented by $$u_{ij}$$ with $$i\in \left[0, M\right)$$ for each entity and $$j\in \left[0, N\right)$$ for each component in each entity.
 
 **Both expressions should have the same shape**
 
-<p align="center">$$ InnerProduct\left(\underline{\mathbb{u}}, \underline{\mathbb{v}}\right) = \sum_{(i,j)\in\left[0, M\right)\times\left[0,N\right)}u_{ij} \times v_{ij}$$</p>
+<p align="center">$$ InnerProduct\left(\underline{\mathbf{u}}, \underline{\mathbf{v}}\right) = \sum_{(i,j)\in\left[0, M\right)\times\left[0,N\right)}u_{ij} \times v_{ij}$$</p>
 
 ## Use cases
 Following code snippet illustrates how to use ```InnerProduct```.
@@ -40,9 +40,9 @@ print(Kratos.Expression.Utils.InnerProduct(nodal_expression, nodal_expression))
 Expected output:
 ```bash
 285.0
- |  /           |                  
- ' /   __| _` | __|  _ \   __|    
- . \  |   (   | |   (   |\__ \  
+ |  /           |
+ ' /   __| _` | __|  _ \   __|
+ . \  |   (   | |   (   |\__ \
 _|\_\_|  \__,_|\__|\___/ ____/
            Multi-Physics 9.4."3"-docs/expression_documentation-6de5f1a499-Release-x86_64
            Compiled for GNU/Linux and Python3.11 with GCC-13.2
