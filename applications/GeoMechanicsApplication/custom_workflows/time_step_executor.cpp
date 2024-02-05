@@ -32,11 +32,9 @@ TimeStepEndState TimeStepExecutor::Run(double Time)
 
     mStrategyWrapper->InitializeSolutionStep();
 
-    for (const auto& process_observable : mProcessObservables)
-    {
+    for (const auto& process_observable : mProcessObservables) {
         auto process = process_observable.lock();
-        if (process)
-            process->ExecuteInitializeSolutionStep();
+        if (process) process->ExecuteInitializeSolutionStep();
     }
 
     mStrategyWrapper->Predict();
@@ -46,15 +44,13 @@ TimeStepEndState TimeStepExecutor::Run(double Time)
     // This is because the IsConverged method of the strategy makes unforeseen changes
     // to the results.
     TimeStepEndState result;
-    result.time = Time;
+    result.time              = Time;
     result.convergence_state = mStrategyWrapper->SolveSolutionStep();
     result.num_of_iterations = mStrategyWrapper->GetNumberOfIterations();
 
-    for (const auto& process_observable : mProcessObservables)
-    {
+    for (const auto& process_observable : mProcessObservables) {
         auto process = process_observable.lock();
-        if (process)
-            process->ExecuteFinalizeSolutionStep();
+        if (process) process->ExecuteFinalizeSolutionStep();
     }
 
     return result;
