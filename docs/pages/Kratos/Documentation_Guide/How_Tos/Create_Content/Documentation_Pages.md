@@ -56,7 +56,7 @@ Python snippets can be added to markdown as usual. In this case, if one requires
 
 This generation is only done if ```process_pages.py``` is passed with `-t local` flag.
 Following is an example:
-```python
+```python-example
 print(1)
 ## POST_PROCESS_PAGES_PYTHON_OUTPUT_GENERATION
 ```

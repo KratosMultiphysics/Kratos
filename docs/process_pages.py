@@ -248,16 +248,15 @@ def AddPythonSnippetOutputs(file_path: Path) -> None:
                     # existing is not found or force re-write is enabled
 
                     # create a temp file
-                    temp_file_path = str(file_path.absolute()) + ".temp.py"
+                    temp_file_path = f"{file_path.name}.temp.py"
                     with open(temp_file_path, "w") as temp_file_output:
                         temp_file_output.writelines(snippet_lines)
 
-                    popen = subprocess.Popen(["python3", temp_file_path], stdout=subprocess.PIPE, universal_newlines=True)
+                    subprocess_run = subprocess.run([GetPython3Command(), temp_file_path], stdout=subprocess.PIPE, universal_newlines=True)
                     output_lines.append("\n")
                     output_lines.append("Expected output:\n")
                     output_lines.append("```bash\n")
-                    for stdout_line in iter(popen.stdout.readline, ""):
-                        output_lines.append(stdout_line)
+                    output_lines.append(subprocess_run.stdout)
                     output_lines.append("```\n")
 
                     # remove the temp file
@@ -269,7 +268,7 @@ def AddPythonSnippetOutputs(file_path: Path) -> None:
         if found_python_snippet_block:
             snippet_lines.append(line)
 
-        if line.startswith("```python"):
+        if line == "```python\n":
             found_python_snippet_block = True
             snippet_lines = []
 
@@ -320,6 +319,7 @@ if __name__ == "__main__":
                         file_output.writelines(list_of_strings)
 
     if is_locally_built:
+        from KratosMultiphysics.testing.utilities import GetPython3Command
         for file_path in Path("pages").rglob("*.md"):
             AddPythonSnippetOutputs(file_path)
 
