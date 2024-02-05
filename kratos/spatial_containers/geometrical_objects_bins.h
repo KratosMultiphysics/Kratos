@@ -590,22 +590,22 @@ private:
 ///@name Input and output
 ///@{
 
-/// input stream function
-inline std::istream& operator >> (std::istream& rIStream,
-                GeometricalObjectsBins& rThis){
-                    return rIStream;
-                }
+// /// input stream function
+// inline std::istream& operator >> (std::istream& rIStream,
+//                 GeometricalObjectsBins& rThis){
+//                     return rIStream;
+//                 }
 
-/// output stream function
-inline std::ostream& operator << (std::ostream& rOStream,
-                const GeometricalObjectsBins& rThis)
-{
-    rThis.PrintInfo(rOStream);
-    rOStream << std::endl;
-    rThis.PrintData(rOStream);
+// /// output stream function
+// inline std::ostream& operator << (std::ostream& rOStream,
+//                 const GeometricalObjectsBins& rThis)
+// {
+//     rThis.PrintInfo(rOStream);
+//     rOStream << std::endl;
+//     rThis.PrintData(rOStream);
 
-    return rOStream;
-}
+//     return rOStream;
+// }
 
 ///@}
 
