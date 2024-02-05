@@ -44,17 +44,17 @@ print("numpy array = ", numpy_array)
 
 Expected output:
 ```bash
-numpy array =  [[1. 2. 3.]
- [3. 4. 5.]]
  |  /           |                  
  ' /   __| _` | __|  _ \   __|    
  . \  |   (   | |   (   |\__ \  
 _|\_\_|  \__,_|\__|\___/ ____/
-           Multi-Physics 9.4."3"-docs/expression_documentation-6de5f1a499-Release-x86_64
+           Multi-Physics 9.4."3"-docs/expression_documentation-156476ea1c-Release-x86_64
            Compiled for GNU/Linux and Python3.11 with GCC-13.2
 Compiled with threading and MPI support.
 Maximum number of threads: 30.
 Running without MPI.
+numpy array =  [[1. 2. 3.]
+ [3. 4. 5.]]
 ```
 
 ## Reading and writing to `Kratos::Vector`
@@ -91,17 +91,17 @@ for node in model_part.Nodes:
 
 Expected output:
 ```bash
-node_id: 1, velocity: [1.0, 2.0, 3.0]
-node_id: 2, velocity: [4.0, 5.0, 6.0]
  |  /           |                  
  ' /   __| _` | __|  _ \   __|    
  . \  |   (   | |   (   |\__ \  
 _|\_\_|  \__,_|\__|\___/ ____/
-           Multi-Physics 9.4."3"-docs/expression_documentation-6de5f1a499-Release-x86_64
+           Multi-Physics 9.4."3"-docs/expression_documentation-156476ea1c-Release-x86_64
            Compiled for GNU/Linux and Python3.11 with GCC-13.2
 Compiled with threading and MPI support.
 Maximum number of threads: 30.
 Running without MPI.
+node_id: 1, velocity: [1.0, 2.0, 3.0]
+node_id: 2, velocity: [4.0, 5.0, 6.0]
 ```
 
 Writing to a ```Kratos::Vector``` is illustarted by the following code snippet. If the passed vector (to where the expression values are written) is not with the correct size, it will be resized. This will also only write the data values of the local entities in the LocalMesh.
@@ -128,15 +128,14 @@ print(vector)
 
 Expected output:
 ```bash
-[6](1,2,3,3,4,5)
  |  /           |                  
  ' /   __| _` | __|  _ \   __|    
  . \  |   (   | |   (   |\__ \  
 _|\_\_|  \__,_|\__|\___/ ____/
-           Multi-Physics 9.4."3"-docs/expression_documentation-6de5f1a499-Release-x86_64
+           Multi-Physics 9.4."3"-docs/expression_documentation-156476ea1c-Release-x86_64
            Compiled for GNU/Linux and Python3.11 with GCC-13.2
 Compiled with threading and MPI support.
 Maximum number of threads: 30.
 Running without MPI.
+[6](1,2,3,3,4,5)
 ```
-

@@ -1,9 +1,9 @@
 ---
 title: Expression Arithmetics
-keywords: 
+keywords:
 tags: [expression, arithmetics]
 sidebar: kratos_expressions
-summary: 
+summary:
 ---
 
 ## Introduction
@@ -54,16 +54,16 @@ for node in model_part.Nodes:
 ```
 Expected output:
 ```bash
-[3](0.833333,1.5,2.16667)
-[3](2.83333,3.5,4.16667)
-[3](4.83333,5.5,6.16667)
- |  /           |                  
- ' /   __| _` | __|  _ \   __|    
- . \  |   (   | |   (   |\__ \  
+ |  /           |
+ ' /   __| _` | __|  _ \   __|
+ . \  |   (   | |   (   |\__ \
 _|\_\_|  \__,_|\__|\___/ ____/
-           Multi-Physics 9.4."3"-docs/expression_documentation-6de5f1a499-Release-x86_64
+           Multi-Physics 9.4."3"-docs/expression_documentation-156476ea1c-Release-x86_64
            Compiled for GNU/Linux and Python3.11 with GCC-13.2
 Compiled with threading and MPI support.
 Maximum number of threads: 30.
 Running without MPI.
+[3](0.833333,1.5,2.16667)
+[3](2.83333,3.5,4.16667)
+[3](4.83333,5.5,6.16667)
 ```

@@ -41,16 +41,16 @@ print(shape)
 
 Expected output:
 ```bash
-(1,)
  |  /           |                  
  ' /   __| _` | __|  _ \   __|    
  . \  |   (   | |   (   |\__ \  
 _|\_\_|  \__,_|\__|\___/ ____/
-           Multi-Physics 9.4."3"-docs/expression_documentation-6de5f1a499-Release-x86_64
+           Multi-Physics 9.4."3"-docs/expression_documentation-156476ea1c-Release-x86_64
            Compiled for GNU/Linux and Python3.11 with GCC-13.2
 Compiled with threading and MPI support.
 Maximum number of threads: 30.
 Running without MPI.
+(1,)
 ```
 
 ## Using expressions without the model parts
@@ -79,14 +79,14 @@ print(exp)
 
 Expected output:
 ```bash
-(DoubleVec[]*2)
  |  /           |                  
  ' /   __| _` | __|  _ \   __|    
  . \  |   (   | |   (   |\__ \  
 _|\_\_|  \__,_|\__|\___/ ____/
-           Multi-Physics 9.4."3"-docs/expression_documentation-6de5f1a499-Release-x86_64
+           Multi-Physics 9.4."3"-docs/expression_documentation-156476ea1c-Release-x86_64
            Compiled for GNU/Linux and Python3.11 with GCC-13.2
 Compiled with threading and MPI support.
 Maximum number of threads: 30.
 Running without MPI.
+(DoubleVec[]*2)
 ```

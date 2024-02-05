@@ -47,17 +47,17 @@ for node in model_part.Nodes:
 
 Expected output:
 ```bash
-node_id: 1, velocity = [1.0, 2.0, 3.0]
-node_id: 2, velocity = [1.0, 2.0, 3.0]
  |  /           |                  
  ' /   __| _` | __|  _ \   __|    
  . \  |   (   | |   (   |\__ \  
 _|\_\_|  \__,_|\__|\___/ ____/
-           Multi-Physics 9.4."3"-docs/expression_documentation-6de5f1a499-Release-x86_64
+           Multi-Physics 9.4."3"-docs/expression_documentation-156476ea1c-Release-x86_64
            Compiled for GNU/Linux and Python3.11 with GCC-13.2
 Compiled with threading and MPI support.
 Maximum number of threads: 30.
 Running without MPI.
+node_id: 1, velocity = [1.0, 2.0, 3.0]
+node_id: 2, velocity = [1.0, 2.0, 3.0]
 ```
 
 ## Setting literal expression to zero
@@ -94,19 +94,19 @@ for node in model_part.Nodes:
 
 Expected output:
 ```bash
-PRESSURE before resetting:
- [10. 20.]
-node_id: 1, pressure = 10.0, temperature = 0.0
-node_id: 2, pressure = 20.0, temperature = 0.0
  |  /           |                  
  ' /   __| _` | __|  _ \   __|    
  . \  |   (   | |   (   |\__ \  
 _|\_\_|  \__,_|\__|\___/ ____/
-           Multi-Physics 9.4."3"-docs/expression_documentation-6de5f1a499-Release-x86_64
+           Multi-Physics 9.4."3"-docs/expression_documentation-156476ea1c-Release-x86_64
            Compiled for GNU/Linux and Python3.11 with GCC-13.2
 Compiled with threading and MPI support.
 Maximum number of threads: 30.
 Running without MPI.
+PRESSURE before resetting:
+ [10. 20.]
+node_id: 1, pressure = 10.0, temperature = 0.0
+node_id: 2, pressure = 20.0, temperature = 0.0
 ```
 
 ## Use cases
@@ -145,19 +145,19 @@ for node in model_part.Nodes:
 
 Expected output:
 ```bash
-PRESSURE before resetting:
- [10. 20.]
-node_id: 1, pressure = 10.0, temperature = 0.1
-node_id: 2, pressure = 20.0, temperature = 0.05
  |  /           |                  
  ' /   __| _` | __|  _ \   __|    
  . \  |   (   | |   (   |\__ \  
 _|\_\_|  \__,_|\__|\___/ ____/
-           Multi-Physics 9.4."3"-docs/expression_documentation-6de5f1a499-Release-x86_64
+           Multi-Physics 9.4."3"-docs/expression_documentation-156476ea1c-Release-x86_64
            Compiled for GNU/Linux and Python3.11 with GCC-13.2
 Compiled with threading and MPI support.
 Maximum number of threads: 30.
 Running without MPI.
+PRESSURE before resetting:
+ [10. 20.]
+node_id: 1, pressure = 10.0, temperature = 0.1
+node_id: 2, pressure = 20.0, temperature = 0.05
 ```
 
 ## Using expressions without the model parts
@@ -188,15 +188,15 @@ for node in model_part.Nodes:
 
 Expected output:
 ```bash
-node_id: 1, acceleration: [2.0,4.0,6.0]
-node_id: 2, acceleration: [2.0,4.0,6.0]
  |  /           |                  
  ' /   __| _` | __|  _ \   __|    
  . \  |   (   | |   (   |\__ \  
 _|\_\_|  \__,_|\__|\___/ ____/
-           Multi-Physics 9.4."3"-docs/expression_documentation-6de5f1a499-Release-x86_64
+           Multi-Physics 9.4."3"-docs/expression_documentation-156476ea1c-Release-x86_64
            Compiled for GNU/Linux and Python3.11 with GCC-13.2
 Compiled with threading and MPI support.
 Maximum number of threads: 30.
 Running without MPI.
+node_id: 1, acceleration: [2.0,4.0,6.0]
+node_id: 2, acceleration: [2.0,4.0,6.0]
 ```
