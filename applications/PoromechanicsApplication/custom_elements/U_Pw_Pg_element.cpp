@@ -169,6 +169,14 @@ void UPwPgElement<TDim,TNumNodes>::Initialize(const ProcessInfo& rCurrentProcess
         mImposedZStrainVector[i] = 0.0;
     }
 
+    // if (mSaturationLawVector.size() != NumGPoints) mSaturationLawVector.resize(NumGPoints);
+    // for (unsigned int i = 0; i < mSaturationLawVector.size(); ++i) {
+    //     // SaturationLawWrapper::Pointer pRetentionFactory;
+    //     mSaturationLawVector[i] = SaturationLawWrapper::Clone(rProp);
+    //     mSaturationLawVector[i]->InitializeMaterial(
+    //         rProp, rGeom, row(rGeom.ShapeFunctionsValues(mThisIntegrationMethod), i));
+    // }
+
     // Initializing the intrinsic permeability matrix from the properties
     PoroElementUtilities::CalculatePermeabilityMatrix(mIntrinsicPermeability,Prop,TDim);
 

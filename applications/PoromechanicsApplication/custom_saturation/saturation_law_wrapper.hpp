@@ -1,0 +1,60 @@
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
+//
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
+//
+//  Main authors:    Ignasi de Pouplana
+//
+
+#pragma once
+
+// System includes
+#include <iostream>
+
+// Project includes
+#include "includes/define.h"
+#include "custom_saturation/saturation_law.hpp"
+#include "custom_saturation/brooks_and_corey_law.hpp"
+#include "custom_saturation/van_genuchten_law.hpp"
+
+// Application includes
+#include "poromechanics_application_variables.h"
+
+namespace Kratos
+{
+
+class SaturationLawWrapper
+{
+public:
+
+    KRATOS_CLASS_POINTER_DEFINITION(SaturationLawWrapper);
+
+    static unique_ptr<SaturationLaw> Clone(const Properties& rMaterialProperties)
+     {
+         if (rMaterialProperties.Has(SATURATION_LAW))
+         {
+            const std::string &SaturationLawName = rMaterialProperties[SATURATION_LAW];
+            
+            if (SaturationLawName == "BrooksAndCoreyLaw")
+                return make_unique<BrooksAndCoreyLaw>();
+
+            if (SaturationLawName == "VanGenuchtenLaw")
+                return make_unique<VanGenuchtenLaw>();
+
+            KRATOS_ERROR << "Undefined SATURATION_LAW name" << SaturationLawName << std::endl;
+
+            return nullptr;
+         }
+
+         // default is saturated law
+         return make_unique<BrooksAndCoreyLaw>();
+
+     }
+
+}; // Class SaturationLawWrapper
+
+}  // namespace Kratos.

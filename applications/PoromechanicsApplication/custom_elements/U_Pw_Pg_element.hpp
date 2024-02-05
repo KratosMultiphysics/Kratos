@@ -26,6 +26,8 @@
 #include "includes/constitutive_law.h"
 
 // Application includes
+#include "custom_saturation/saturation_law.hpp"
+#include "custom_saturation/saturation_law_wrapper.hpp"
 #include "custom_utilities/poro_element_utilities.hpp"
 #include "poromechanics_application_variables.h"
 
@@ -134,6 +136,8 @@ protected:
     GeometryData::IntegrationMethod mThisIntegrationMethod;
 
     std::vector<ConstitutiveLaw::Pointer> mConstitutiveLawVector;
+
+    // std::vector<SaturationLaw::Pointer> mSaturationLawVector;
 
     Matrix mIntrinsicPermeability;
 
