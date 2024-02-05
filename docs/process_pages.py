@@ -273,7 +273,7 @@ def AddPythonSnippetOutputs(file_path: Path) -> None:
             found_python_snippet_block = True
             snippet_lines = []
 
-    with open(str(file_path), "w") as file_output:
+    with open(file_path, "w") as file_output:
         file_output.writelines(output_lines)
 
 if __name__ == "__main__":
