@@ -814,6 +814,35 @@ double AdvancedConstitutiveLawUtilities<TVoigtSize>::MacaullyBrackets(const doub
 /***********************************************************************************/
 /***********************************************************************************/
 
+template<SizeType TVoigtSize>
+double AdvancedConstitutiveLawUtilities<TVoigtSize>::GetMaterialPropertyThroughAccessor(
+    const Variable<double>& rVariable,
+    ConstitutiveLaw::Parameters &rValues
+    )
+{
+    const auto &r_geom = rValues.GetElementGeometry();
+    const auto &r_N = rValues.GetShapeFunctionsValues();
+    const auto &r_process_info = rValues.GetProcessInfo();
+    return rValues.GetMaterialProperties().GetValue(rVariable, r_geom, r_N, r_process_info);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<SizeType TVoigtSize>
+double AdvancedConstitutiveLawUtilities<TVoigtSize>::GetPropertyFromTemperatureTable(
+    const Variable<double>& rVariable,
+    ConstitutiveLaw::Parameters &rValues,
+    const double Temperature
+    )
+{
+    const auto& r_properties = rValues.GetMaterialProperties();
+    return r_properties.HasTable(TEMPERATURE, rVariable) ? r_properties.GetTable(TEMPERATURE, rVariable).GetValue(Temperature) : r_properties[rVariable];
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
 template class AdvancedConstitutiveLawUtilities<3>;
 template class AdvancedConstitutiveLawUtilities<6>;
 

@@ -55,12 +55,12 @@ public:
         p_node->AddDof(WATER_PRESSURE);
         result.GetProcessInfo()[DELTA_TIME] = 4.0;
 
+        p_node->FastGetSolutionStepValue(DISPLACEMENT, 1) =
+            Kratos::array_1d<double, 3>{7.0, 8.0, 9.0};
         p_node->FastGetSolutionStepValue(VELOCITY, 1) =
             Kratos::array_1d<double, 3>{1.0, 2.0, 3.0};
         p_node->FastGetSolutionStepValue(ACCELERATION, 1) =
             Kratos::array_1d<double, 3>{4.0, 5.0, 6.0};
-        p_node->FastGetSolutionStepValue(DISPLACEMENT, 1) =
-            Kratos::array_1d<double, 3>{7.0, 8.0, 9.0};
 
         p_node->FastGetSolutionStepValue(WATER_PRESSURE, 1) = 1.0;
         p_node->FastGetSolutionStepValue(WATER_PRESSURE, 0) = 2.0;
