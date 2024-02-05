@@ -70,6 +70,8 @@ public:
 
     static constexpr std::size_t LocalSize = VelocityNumNodes*TDim + PressureNumNodes;
 
+    static constexpr IntegrationMethod IntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_3;
+
     struct ElementDataContainer
     {
         // Gauss point kinematics
@@ -80,15 +82,16 @@ public:
 
         // Nodal values
         array_1d<double, PressureNumNodes> Pressure;
-        BoundedMatrix<double, TDim, VelocityNumNodes> Velocity;
-        BoundedMatrix<double, TDim, VelocityNumNodes> VelocityOld1;
-        BoundedMatrix<double, TDim, VelocityNumNodes> VelocityOld2;
-        BoundedMatrix<double, TDim, VelocityNumNodes> MeshVelocity;
-        BoundedMatrix<double, TDim, VelocityNumNodes> BodyForce;
+        BoundedMatrix<double, VelocityNumNodes, TDim> Velocity;
+        BoundedMatrix<double, VelocityNumNodes, TDim> VelocityOld1;
+        BoundedMatrix<double, VelocityNumNodes, TDim> VelocityOld2;
+        BoundedMatrix<double, VelocityNumNodes, TDim> MeshVelocity;
+        BoundedMatrix<double, VelocityNumNodes, TDim> BodyForce;
 
         // Material response variables
-        array_1d<double, StrainSize> ShearStress;
-        BoundedMatrix<double, StrainSize, StrainSize> ConstitutiveMatrix;
+        Vector StrainRate = ZeroVector(StrainSize);
+        Vector ShearStress = ZeroVector(StrainSize);
+        Matrix ConstitutiveMatrix = ZeroMatrix(StrainSize, StrainSize);
 
         // Auxiliary values
         double BDF0;
@@ -294,6 +297,8 @@ private:
         Matrix& rPressureN,
         GeometryType::ShapeFunctionsGradientsType& rVelocityDNDX,
         GeometryType::ShapeFunctionsGradientsType& rPressureDNDX);
+
+    void CalculateStrainRate(ElementDataContainer& rData);
 
     void ComputeGaussPointLHSContribution(
         ElementDataContainer& rData,

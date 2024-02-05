@@ -155,6 +155,9 @@ KratosFluidDynamicsApplication::KratosFluidDynamicsApplication():
     mTwoFluidNavierStokesAlphaMethod3D4N(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node >(Element::GeometryType::PointsArrayType(4)))),
     mTwoFluidNavierStokesWallCondition2D(0, Element::GeometryType::Pointer(new Line2D2<Node>(Element::GeometryType::PointsArrayType(2)))),
     mTwoFluidNavierStokesWallCondition3D(0, Element::GeometryType::Pointer(new Triangle3D3<Node>(Element::GeometryType::PointsArrayType(3)))),
+    // Incompressbile Navier-Stokes div-stable elements
+    mIncompressibleNavierStokesDivStable2D6N(0, Element::GeometryType::Pointer(new Triangle2D6<Node >(Element::GeometryType::PointsArrayType(6)))),
+    mIncompressibleNavierStokesDivStable3D10N(0, Element::GeometryType::Pointer(new Tetrahedra3D10<Node >(Element::GeometryType::PointsArrayType(10)))),
     // Fluid adjoint elements
     mVMSAdjointElement2D(0,Element::GeometryType::Pointer(new Triangle2D3<Node >(Element::GeometryType::PointsArrayType(3)))),
     mVMSAdjointElement3D(0,Element::GeometryType::Pointer(new Tetrahedra3D4<Node >(Element::GeometryType::PointsArrayType(4)))),
@@ -386,6 +389,10 @@ void KratosFluidDynamicsApplication::Register() {
     KRATOS_REGISTER_ELEMENT("CompressibleNavierStokesExplicit2D3N",mCompressibleNavierStokesExplicit2D3N);
     KRATOS_REGISTER_ELEMENT("CompressibleNavierStokesExplicit2D4N",mCompressibleNavierStokesExplicit2D4N);
     KRATOS_REGISTER_ELEMENT("CompressibleNavierStokesExplicit3D4N",mCompressibleNavierStokesExplicit3D4N);
+
+    // Incompressbile Navier-Stokes div-stable elements
+    KRATOS_REGISTER_ELEMENT("IncompressibleNavierStokesDivStable2D6N",mIncompressibleNavierStokesDivStable2D6N);
+    KRATOS_REGISTER_ELEMENT("IncompressibleNavierStokesDivStable3D10N",mIncompressibleNavierStokesDivStable3D10N);
 
     // Adjoint elements
     KRATOS_REGISTER_ELEMENT("VMSAdjointElement2D", mVMSAdjointElement2D);   // old naming convention

@@ -178,21 +178,47 @@ void IncompressibleNavierStokesDivStable<TDim>::CalculateLocalSystem(
     ElementDataContainer aux_data;
     SetElementData(aux_data);
 
+    // Initialize constitutive law parameters
+    const auto& r_geom = this->GetGeometry();
+    const auto p_prop = this->GetProperties();
+    ConstitutiveLaw::Parameters cons_law_params(r_geom, p_prop, rCurrentProcessInfo);
+    cons_law_params.SetStrainVector(aux_data.StrainRate);
+    cons_law_params.SetStressVector(aux_data.ShearStress);
+    cons_law_params.SetConstitutiveMatrix(aux_data.ConstitutiveMatrix);
+
     // Calculate kinematics
+    //TODO: Bubble is missing here
+    Vector weights;
+    Matrix velocity_N;
+    Matrix pressure_N;
+    GeometryType::ShapeFunctionsGradientsType velocity_DN;
+    GeometryType::ShapeFunctionsGradientsType pressure_DN;
+    CalculateKinematics(weights, velocity_N, pressure_N, velocity_DN, pressure_DN);
 
     // Loop Gauss points
-    const SizeType n_gauss = 0; //FIXME: Get this from 3rd order quadrature
+    const SizeType n_gauss = r_geom.IntegrationPointsNumber(IntegrationMethod);
     for (IndexType g = 0; g < n_gauss; ++g) {
-        // Get current Gauss point kinematics
+        // set current Gauss point kinematics
+        noalias(aux_data.N_v) = row(velocity_N, g);
+        noalias(aux_data.N_p) = row(pressure_N, g);
+        noalias(aux_data.DN_v) = velocity_DN[g];
+        noalias(aux_data.DN_p) = pressure_DN[g];
+        aux_data.Weight = weights[g];
 
+        // Calculate current Gauss point material response
+        CalculateStrainRate(aux_data);
+        mpConstitutiveLaw->CalculateMaterialResponseCauchy(cons_law_params);
 
         // Assemble standard Galerkin contribution
-
+        ComputeGaussPointLHSContribution(aux_data, rLeftHandSideMatrix);
+        ComputeGaussPointRHSContribution(aux_data, rRightHandSideVector);
 
         // Assemble bubble function contributions (to be condensed)
+        //TODO:
     }
 
     // Condense bubble function contribution
+    //TODO:
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
@@ -286,14 +312,14 @@ void IncompressibleNavierStokesDivStable<TDim>::SetElementData(ElementDataContai
         const auto& r_v_n = r_geom[i].FastGetSolutionStepValue(VELOCITY, 1);
         const auto& r_v_nn = r_geom[i].FastGetSolutionStepValue(VELOCITY, 2);
         const auto& r_v_mesh = r_geom[i].FastGetSolutionStepValue(MESH_VELOCITY);
-        const auto& r_vol_acc = r_geom[i].FastGetSolutionStepValue(VOLUME_ACCELERATION);
+        const auto& r_body_force = r_geom[i].FastGetSolutionStepValue(BODY_FORCE);
 
         for (IndexType d = 0; d < TDim; ++d) {
-            rData.Velocity(d, i) = r_v[d];
-            rData.VelocityOld1(d, i) = r_v_n[d];
-            rData.VelocityOld2(d, i) = r_v_nn[d];
-            rData.MeshVelocity(d, i) = r_v_mesh[d];
-            rData.BodyForce(d, i) = r_vol_acc[d];
+            rData.Velocity(i, d) = r_v[d];
+            rData.VelocityOld1(i, d) = r_v_n[d];
+            rData.VelocityOld2(i, d) = r_v_nn[d];
+            rData.MeshVelocity(i, d) = r_v_mesh[d];
+            rData.BodyForce(i, d) = r_body_force[d];
         }
     }
 
@@ -315,31 +341,30 @@ void IncompressibleNavierStokesDivStable<TDim>::CalculateKinematics(
 
     // Integration rule data
     // Note that we use the same for both velocity and pressure interpolations
-    const auto integration_method = GeometryData::IntegrationMethod::GI_GAUSS_3;
-    const SizeType n_gauss = r_geom.IntegrationPointsNumber(integration_method);
-    const auto integration_points = r_geom.IntegrationPoints(integration_method);
+    const SizeType n_gauss = r_geom.IntegrationPointsNumber(IntegrationMethod);
+    const auto integration_points = r_geom.IntegrationPoints(IntegrationMethod);
 
     // Calculate Jacobians at integration points
-    double det_J;
-    Vector det_J_vect;
     Matrix J;
     Matrix inv_J;
-    std::vector<BoundedMatrix<double, TDim, TDim>> inv_J_vect;
+    double det_J;
+    Vector det_J_vect(n_gauss);
+    std::vector<BoundedMatrix<double, TDim, TDim>> inv_J_vect(n_gauss);
     for (IndexType g = 0; g < n_gauss; ++g) {
-        r_geom.Jacobian(J, g, integration_method);
+        r_geom.Jacobian(J, g, IntegrationMethod);
         MathUtils<double>::InvertMatrix(J, inv_J, det_J);
         det_J_vect[g] = det_J;
         noalias(inv_J_vect[g]) = inv_J;
     }
 
     // Calculate velocity kinematics from the geometry (P2 interpolation)
-    rVelocityN = r_geom.ShapeFunctionsValues(integration_method);
-    const auto& r_DN_De_v = r_geom.ShapeFunctionsLocalGradients(integration_method);
+    rVelocityN = r_geom.ShapeFunctionsValues(IntegrationMethod);
+    const auto& r_DN_De_v = r_geom.ShapeFunctionsLocalGradients(IntegrationMethod);
     if (rVelocityDNDX.size() != n_gauss) {
         rVelocityDNDX.resize(n_gauss, false);
     }
     for (IndexType g = 0; g < n_gauss; ++g) {
-        noalias(rVelocityDNDX[g]) = prod(r_DN_De_v[g], inv_J_vect[g]);
+        rVelocityDNDX[g] = prod(r_DN_De_v[g], inv_J_vect[g]);
     }
 
     // Calculate pressure kinematics from an auxiliary geometry (P1 interpolation)
@@ -349,13 +374,13 @@ void IncompressibleNavierStokesDivStable<TDim>::CalculateKinematics(
     } else {
         p_aux_geom = Kratos::make_unique<Tetrahedra3D4<NodeType>>(r_geom(0), r_geom(1), r_geom(2), r_geom(3));
     }
-    rPressureN = p_aux_geom->ShapeFunctionsValues(integration_method);
+    rPressureN = p_aux_geom->ShapeFunctionsValues(IntegrationMethod);
     if (rPressureDNDX.size() != n_gauss) {
         rPressureDNDX.resize(n_gauss, false);
     }
-    const auto& r_DN_De_p = p_aux_geom->ShapeFunctionsLocalGradients(integration_method);
+    const auto& r_DN_De_p = p_aux_geom->ShapeFunctionsLocalGradients(IntegrationMethod);
     for (IndexType g = 0; g < n_gauss; ++g) {
-        noalias(rPressureDNDX[g]) = prod(r_DN_De_p[g], inv_J_vect[g]);
+        rPressureDNDX[g] = prod(r_DN_De_p[g], inv_J_vect[g]);
     }
 
     // Calculate enrichment bubble kinematics
@@ -368,6 +393,33 @@ void IncompressibleNavierStokesDivStable<TDim>::CalculateKinematics(
     for (IndexType g = 0; g < n_gauss; ++g) {
         rGaussWeights[g] = det_J_vect[g] * integration_points[g].Weight();
     }
+}
+
+template< unsigned int TDim >
+void IncompressibleNavierStokesDivStable<TDim>::CalculateStrainRate(ElementDataContainer& rData)
+{
+    if (rData.StrainRate.size() != StrainSize) {
+        rData.StrainRate.resize(StrainSize, false);
+    }
+    noalias(rData.StrainRate) = ZeroVector(StrainSize);
+
+    if constexpr (TDim == 2) {
+        for (IndexType i = 0; i < VelocityNumNodes; ++i) {
+            rData.StrainRate[0] += rData.DN_v(i,0)*rData.Velocity(i,0);
+            rData.StrainRate[1] += rData.DN_v(i,1)*rData.Velocity(i,1);
+            rData.StrainRate[2] += rData.DN_v(i,0)*rData.Velocity(i,1) + rData.DN_v(i,1)*rData.Velocity(i,0);
+        }
+    } else {
+        for (IndexType i = 0; i < VelocityNumNodes; ++i) {
+            rData.StrainRate[0] += rData.DN_v(i,0)*rData.Velocity(i,0);
+            rData.StrainRate[1] += rData.DN_v(i,1)*rData.Velocity(i,1);
+            rData.StrainRate[2] += rData.DN_v(i,2)*rData.Velocity(i,2);
+            rData.StrainRate[3] += rData.DN_v(i,0)*rData.Velocity(i,1) + rData.DN_v(i,1)*rData.Velocity(i,0);
+            rData.StrainRate[4] += rData.DN_v(i,1)*rData.Velocity(i,2) + rData.DN_v(i,2)*rData.Velocity(i,1);
+            rData.StrainRate[5] += rData.DN_v(i,0)*rData.Velocity(i,2) + rData.DN_v(i,2)*rData.Velocity(i,0);
+        }
+    }
+
 }
 
 template <>
