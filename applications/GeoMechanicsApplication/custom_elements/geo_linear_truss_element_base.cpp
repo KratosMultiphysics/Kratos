@@ -17,7 +17,7 @@
 
 // Project includes
 #include "custom_elements/geo_linear_truss_element_base.hpp"
-#include "custom_utilities/structural_mechanics_element_utilities.h"
+#include "../StructuralMechanicsApplication/custom_utilities/structural_mechanics_element_utilities.h"
 #include "geo_mechanics_application_variables.h"
 #include "includes/define.h"
 
@@ -250,9 +250,9 @@ double GeoTrussElementLinearBase<TDim, TNumNodes>::CalculateLinearStrain()
 
     double length_0;
     if constexpr (TDim == 2) {
-        length_0 = GeoStructuralMechanicsElementUtilities::CalculateReferenceLength2D2N(*this);
+        length_0 = StructuralMechanicsElementUtilities::CalculateReferenceLength2D2N(*this);
     } else if constexpr (TDim == 3) {
-        length_0 = GeoStructuralMechanicsElementUtilities::CalculateReferenceLength3D2N(*this);
+        length_0 = StructuralMechanicsElementUtilities::CalculateReferenceLength3D2N(*this);
     } else {
         KRATOS_ERROR << "Dimension of truss element should be either 2D or 3D" << std::endl;
     }
