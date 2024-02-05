@@ -226,7 +226,8 @@ namespace Kratos
       unsigned int mNumStepsEval;        // number of steps passed since last thermal evaluation
       double       mPreviousTemperature; // temperature from the beginning of the step
       bool         mIsTimeToSolve;       // flag to solve thermal problem in current step
-      bool         mHasMotion;           // flag to solve mechanical behavior (forces and displacements)
+      bool         mHasForces;           // flag to solve mechanical behavior (forces)
+      bool         mHasMotion;           // flag to solve displacements
       bool         mHasFixedTemperature; // flag for constant temperature
       bool         mHasVariableRadius;   // flag for temperature-dependent radius
       bool         mStoreContactParam;   // flag to store contact parameters with neighbors when solving the mechanical problem

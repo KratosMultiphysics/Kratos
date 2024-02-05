@@ -143,12 +143,13 @@ namespace Kratos
     SetNumericalIntegrationMethod(numerical_integration_method);
 
     // Set flags
+    mHasForces = r_process_info[FORCES_OPTION];
     mHasMotion = r_process_info[MOTION_OPTION];
 
     mHasVariableRadius = (r_properties.Has(THERMAL_EXPANSION_COEFFICIENT) && r_properties[THERMAL_EXPANSION_COEFFICIENT] != 0.0) ||
                           r_properties.HasTable(TEMPERATURE, THERMAL_EXPANSION_COEFFICIENT);
 
-    mStoreContactParam = mHasMotion &&
+    mStoreContactParam = mHasForces &&
                         (r_process_info[HEAT_GENERATION_OPTION]  ||
                         (r_process_info[DIRECT_CONDUCTION_OPTION] && r_process_info[DIRECT_CONDUCTION_MODEL_NAME].compare("collisional") == 0));    
     
@@ -172,7 +173,7 @@ namespace Kratos
     KRATOS_TRY
 
     // Initialize base class
-    if (mHasMotion)
+    if (mHasForces)
       SphericParticle::InitializeSolutionStep(r_process_info);
 
     // Check if it is time to evaluate thermal problem
@@ -230,7 +231,7 @@ namespace Kratos
     KRATOS_TRY
 
     // Force components
-    if (mHasMotion)
+    if (mHasForces)
       SphericParticle::CalculateRightHandSide(r_process_info, dt, gravity);
     
     // Heat flux components
@@ -321,7 +322,7 @@ namespace Kratos
 
     // Heat generation
     // ASSUMPTION: Heat is generated even when neighbor is adiabatic
-    if (r_process_info[HEAT_GENERATION_OPTION] && mHasMotion)
+    if (r_process_info[HEAT_GENERATION_OPTION] && mHasForces)
       mGenerationHeatFlux += GetGenerationModel().ComputeHeatGeneration(r_process_info, this);
 
     // Check if neighbor is adiabatic
@@ -622,7 +623,7 @@ namespace Kratos
   //------------------------------------------------------------------------------------------------------------
   void ThermalSphericParticle::Move(const double delta_t, const bool rotation_option, const double force_reduction_factor, const int StepFlag) {
     // Time integration of motion
-    if (mHasMotion)
+    if (mHasForces && mHasMotion)
       SphericParticle::Move(delta_t, rotation_option, force_reduction_factor, StepFlag);
 
     // Time integration of temperature
@@ -638,7 +639,7 @@ namespace Kratos
   void ThermalSphericParticle::FinalizeSolutionStep(const ProcessInfo& r_process_info) {
     KRATOS_TRY
 
-    if (mHasMotion) {
+    if (mHasForces) {
       SphericParticle::FinalizeSolutionStep(r_process_info);
 
       // Remove non-contacting neighbors from maps of contact parameters

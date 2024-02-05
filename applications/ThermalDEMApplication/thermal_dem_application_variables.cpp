@@ -30,6 +30,7 @@ namespace Kratos
   KRATOS_CREATE_VARIABLE(std::string,                          VORONOI_METHOD_NAME)
   KRATOS_CREATE_VARIABLE(std::string,                          POROSITY_METHOD_NAME)
   KRATOS_CREATE_VARIABLE(bool,                                 AUTO_SOLVE_FREQUENCY_OPTION)
+  KRATOS_CREATE_VARIABLE(bool,                                 FORCES_OPTION)
   KRATOS_CREATE_VARIABLE(bool,                                 MOTION_OPTION)
   KRATOS_CREATE_VARIABLE(bool,                                 DIRECT_CONDUCTION_OPTION)
   KRATOS_CREATE_VARIABLE(bool,                                 INDIRECT_CONDUCTION_OPTION)
