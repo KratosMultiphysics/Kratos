@@ -17,7 +17,7 @@
 
 // Project includes
 #include "custom_elements/geo_truss_element_base.hpp"
-#include "custom_utilities/structural_mechanics_element_utilities.h"
+#include "../StructuralMechanicsApplication/custom_utilities/structural_mechanics_element_utilities.h"
 #include "geo_mechanics_application_variables.h"
 #include "includes/checks.h"
 #include "includes/define.h"
@@ -159,7 +159,7 @@ template <unsigned int TDim, unsigned int TNumNodes>
 void GeoTrussElementBase<TDim, TNumNodes>::CalculateDampingMatrix(MatrixType& rDampingMatrix,
                                                                   const ProcessInfo& rCurrentProcessInfo)
 {
-    GeoStructuralMechanicsElementUtilities::CalculateRayleighDampingMatrix(
+    StructuralMechanicsElementUtilities::CalculateRayleighDampingMatrix(
         *this, rDampingMatrix, rCurrentProcessInfo, TDim * TNumNodes);
 }
 
@@ -176,7 +176,7 @@ void GeoTrussElementBase<TDim, TNumNodes>::CalculateMassMatrix(MatrixType& rMass
     }
     rMassMatrix = ZeroMatrix(TDim * TNumNodes, TDim * TNumNodes);
 
-    if (GeoStructuralMechanicsElementUtilities::ComputeLumpedMassMatrix(GetProperties(), rCurrentProcessInfo)) {
+    if (StructuralMechanicsElementUtilities::ComputeLumpedMassMatrix(GetProperties(), rCurrentProcessInfo)) {
         // Compute lumped mass matrix
         VectorType temp_vector(TDim * TNumNodes);
         CalculateLumpedMassVector(temp_vector, rCurrentProcessInfo);
@@ -200,7 +200,7 @@ void GeoTrussElementBase<TDim, TNumNodes>::CalculateConsistentMassMatrix(MatrixT
     KRATOS_TRY
 
     const double A   = GetProperties()[CROSS_AREA];
-    const double L   = GeoStructuralMechanicsElementUtilities::CalculateReferenceLength3D2N(*this);
+    const double L   = StructuralMechanicsElementUtilities::CalculateReferenceLength3D2N(*this);
     const double rho = GetProperties()[DENSITY];
 
     const double factor = TDim * TNumNodes;
@@ -225,8 +225,8 @@ void GeoTrussElementBase<TDim, TNumNodes>::CalculateBodyForces(FullDofVectorType
 
     // creating necessary values
     const double A = GetProperties()[CROSS_AREA];
-    const double L = GeoStructuralMechanicsElementUtilities::CalculateReferenceLength3D2N(*this);
-    const double rho = GeoStructuralMechanicsElementUtilities::GetDensityForMassMatrixComputation(*this);
+    const double L = StructuralMechanicsElementUtilities::CalculateReferenceLength3D2N(*this);
+    const double rho = StructuralMechanicsElementUtilities::GetDensityForMassMatrixComputation(*this);
 
     double total_mass = A * L * rho;
 
@@ -387,7 +387,7 @@ void GeoTrussElementBase<TDim, TNumNodes>::Calculate(const Variable<double>& rVa
                                                      const ProcessInfo& rCurrentProcessInfo)
 {
     if (rVariable == STRAIN_ENERGY) {
-        const double L0 = GeoStructuralMechanicsElementUtilities::CalculateReferenceLength3D2N(*this);
+        const double L0 = StructuralMechanicsElementUtilities::CalculateReferenceLength3D2N(*this);
         const double A = GetProperties()[CROSS_AREA];
 
         // material strain energy
@@ -453,8 +453,8 @@ void GeoTrussElementBase<TDim, TNumNodes>::CalculateOnIntegrationPoints(const Va
         }
     }
     if (rVariable == REFERENCE_DEFORMATION_GRADIENT_DETERMINANT) {
-        const double l = GeoStructuralMechanicsElementUtilities::CalculateCurrentLength3D2N(*this);
-        const double L0 = GeoStructuralMechanicsElementUtilities::CalculateReferenceLength3D2N(*this);
+        const double l = StructuralMechanicsElementUtilities::CalculateCurrentLength3D2N(*this);
+        const double L0 = StructuralMechanicsElementUtilities::CalculateReferenceLength3D2N(*this);
         rOutput[0] = l / L0;
     }
 
@@ -493,8 +493,8 @@ void GeoTrussElementBase<TDim, TNumNodes>::CalculateOnIntegrationPoints(const Va
         Values.SetStressVector(temp_stress);
         mpConstitutiveLaw->CalculateMaterialResponse(Values, ConstitutiveLaw::StressMeasure_PK2);
 
-        const double l = GeoStructuralMechanicsElementUtilities::CalculateCurrentLength3D2N(*this);
-        const double L0 = GeoStructuralMechanicsElementUtilities::CalculateReferenceLength3D2N(*this);
+        const double l = StructuralMechanicsElementUtilities::CalculateCurrentLength3D2N(*this);
+        const double L0 = StructuralMechanicsElementUtilities::CalculateReferenceLength3D2N(*this);
 
         temp_stress[0] += prestress;
         rOutput[0] = temp_stress;
@@ -580,7 +580,7 @@ int GeoTrussElementBase<TDim, TNumNodes>::Check(const ProcessInfo& rCurrentProce
         KRATOS_ERROR << "DENSITY not provided for this element" << Id() << std::endl;
     }
 
-    KRATOS_ERROR_IF(GeoStructuralMechanicsElementUtilities::CalculateReferenceLength3D2N(*this) < std::numeric_limits<double>::epsilon())
+    KRATOS_ERROR_IF(StructuralMechanicsElementUtilities::CalculateReferenceLength3D2N(*this) < std::numeric_limits<double>::epsilon())
         << "Element #" << Id() << " has a length of zero!" << std::endl;
 
     if (TDim == 2) {
@@ -603,8 +603,8 @@ double GeoTrussElementBase<TDim, TNumNodes>::CalculateGreenLagrangeStrain() cons
 {
     KRATOS_TRY
 
-    const double l = GeoStructuralMechanicsElementUtilities::CalculateCurrentLength3D2N(*this);
-    const double L = GeoStructuralMechanicsElementUtilities::CalculateReferenceLength3D2N(*this);
+    const double l = StructuralMechanicsElementUtilities::CalculateCurrentLength3D2N(*this);
+    const double L = StructuralMechanicsElementUtilities::CalculateReferenceLength3D2N(*this);
     const double e = ((l * l - L * L) / (2.00 * L * L));
     return e;
 
@@ -621,8 +621,8 @@ void GeoTrussElementBase<TDim, TNumNodes>::UpdateInternalForces(FullDofVectorTyp
     FullDofMatrixType transformation_matrix;
     CreateTransformationMatrix(transformation_matrix);
 
-    const double l  = GeoStructuralMechanicsElementUtilities::CalculateCurrentLength3D2N(*this);
-    const double L0 = GeoStructuralMechanicsElementUtilities::CalculateReferenceLength3D2N(*this);
+    const double l  = StructuralMechanicsElementUtilities::CalculateCurrentLength3D2N(*this);
+    const double L0 = StructuralMechanicsElementUtilities::CalculateReferenceLength3D2N(*this);
     const double A  = GetProperties()[CROSS_AREA];
 
     double prestress = 0.00;
@@ -906,8 +906,8 @@ void GeoTrussElementBase<3, 2>::CalculateGeometricStiffnessMatrix(FullDofMatrixT
     const double dx = GetGeometry()[1].X0() - GetGeometry()[0].X0();
     const double dy = GetGeometry()[1].Y0() - GetGeometry()[0].Y0();
     const double dz = GetGeometry()[1].Z0() - GetGeometry()[0].Z0();
-    const double L  = GeoStructuralMechanicsElementUtilities::CalculateReferenceLength3D2N(*this);
-    const double l  = GeoStructuralMechanicsElementUtilities::CalculateCurrentLength3D2N(*this);
+    const double L  = StructuralMechanicsElementUtilities::CalculateReferenceLength3D2N(*this);
+    const double l  = StructuralMechanicsElementUtilities::CalculateCurrentLength3D2N(*this);
     double e_gL     = (l * l - L * L) / (2.00 * L * L);
     const double L3 = L * L * L;
 
@@ -1001,8 +1001,8 @@ void GeoTrussElementBase<2, 2>::CalculateGeometricStiffnessMatrix(FullDofMatrixT
                 GetGeometry()[0].FastGetSolutionStepValue(DISPLACEMENT_Y);
     const double dx = GetGeometry()[1].X0() - GetGeometry()[0].X0();
     const double dy = GetGeometry()[1].Y0() - GetGeometry()[0].Y0();
-    const double L  = GeoStructuralMechanicsElementUtilities::CalculateReferenceLength3D2N(*this);
-    const double l  = GeoStructuralMechanicsElementUtilities::CalculateCurrentLength3D2N(*this);
+    const double L  = StructuralMechanicsElementUtilities::CalculateReferenceLength3D2N(*this);
+    const double l  = StructuralMechanicsElementUtilities::CalculateCurrentLength3D2N(*this);
     double e_gL     = (l * l - L * L) / (2.00 * L * L);
     const double L3 = L * L * L;
 
@@ -1052,7 +1052,7 @@ void GeoTrussElementBase<3, 2>::CalculateElasticStiffnessMatrix(MatrixType& rEla
     const double dx = GetGeometry()[1].X0() - GetGeometry()[0].X0();
     const double dy = GetGeometry()[1].Y0() - GetGeometry()[0].Y0();
     const double dz = GetGeometry()[1].Z0() - GetGeometry()[0].Z0();
-    const double L  = GeoStructuralMechanicsElementUtilities::CalculateReferenceLength3D2N(*this);
+    const double L  = StructuralMechanicsElementUtilities::CalculateReferenceLength3D2N(*this);
     const double L3 = L * L * L;
 
     const double EA = E * A;
@@ -1128,7 +1128,7 @@ void GeoTrussElementBase<2, 2>::CalculateElasticStiffnessMatrix(MatrixType& rEla
 
     const double dx = GetGeometry()[1].X0() - GetGeometry()[0].X0();
     const double dy = GetGeometry()[1].Y0() - GetGeometry()[0].Y0();
-    const double L  = GeoStructuralMechanicsElementUtilities::CalculateReferenceLength3D2N(*this);
+    const double L  = StructuralMechanicsElementUtilities::CalculateReferenceLength3D2N(*this);
     const double L3 = L * L * L;
 
     const double EA = E * A;
@@ -1206,7 +1206,7 @@ void GeoTrussElementBase<TDim, TNumNodes>::CalculateLumpedMassVector(VectorType&
     }
 
     const double A   = GetProperties()[CROSS_AREA];
-    const double L   = GeoStructuralMechanicsElementUtilities::CalculateReferenceLength3D2N(*this);
+    const double L   = StructuralMechanicsElementUtilities::CalculateReferenceLength3D2N(*this);
     const double rho = GetProperties()[DENSITY];
 
     const double total_mass = A * L * rho;
