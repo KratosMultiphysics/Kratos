@@ -1,14 +1,7 @@
 import KratosMultiphysics as Kratos
 import KratosMultiphysics.OptimizationApplication as KratosOA
 from KratosMultiphysics.OptimizationApplication.utilities.optimization_problem import OptimizationProblem
-from KratosMultiphysics.OptimizationApplication.algorithms.standardized_objective import StandardizedObjective
-from KratosMultiphysics.OptimizationApplication.controls.master_control import MasterControl
-from KratosMultiphysics.OptimizationApplication.algorithms.algorithm import Algorithm
-from KratosMultiphysics.OptimizationApplication.utilities.component_data_view import ComponentDataView
-from KratosMultiphysics.OptimizationApplication.utilities.opt_convergence import CreateConvergenceCriteria
-from KratosMultiphysics.OptimizationApplication.utilities.opt_line_search import CreateLineSearch
 from KratosMultiphysics.OptimizationApplication.utilities.logger_utilities import time_decorator
-from KratosMultiphysics.OptimizationApplication.utilities.logger_utilities import OptimizationAlgorithmTimeLogger
 from KratosMultiphysics.OptimizationApplication.algorithms.algorithm_steepest_descent import AlgorithmSteepestDescent
 
 
@@ -56,5 +49,4 @@ class AlgorithmNesterovAcceleratedGradient(AlgorithmSteepestDescent):
             self.algorithm_data.GetBufferedData()["control_field_update"] = update * (1 + self.eta)
             self.prev_update = update
 
-        for expression in self.prev_update.GetContainerExpressions():
-            expression.SetExpression(expression.Flatten().GetExpression())
+        self.prev_update = KratosOA.ExpressionUtils.Collapse(self.prev_update)
