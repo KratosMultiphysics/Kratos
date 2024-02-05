@@ -18,6 +18,7 @@ import test_execution_policies
 import test_optimization_info
 import test_optimization_utils
 import responses_tests.test_response_routine
+import responses_tests.test_overhang_response_function
 import responses_tests.test_mass_response_function
 import responses_tests.test_linear_strain_energy_response_function
 import responses_tests.test_standardized_responses
@@ -85,6 +86,7 @@ def AssembleTestSuites():
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([responses_tests.test_mass_response_function.TestMassResponseFunctionShells]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([responses_tests.test_mass_response_function.TestMassResponseFunctionSolids]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([responses_tests.test_linear_strain_energy_response_function.TestLinearStrainEnergyResponseFunction]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([responses_tests.test_overhang_response_function.TestOverHangResponseFunction]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([responses_tests.test_geometric_centroid_deviation_response_function.TestGeometricCentroidDeviationResponseFunction]))
 
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_container_expression.TestConditionPropertiesExpression]))
