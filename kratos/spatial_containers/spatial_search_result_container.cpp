@@ -594,14 +594,15 @@ void SpatialSearchResultContainer<TObjectType>::RemoveResultsFromIndexesList(con
         local_indexes_map.insert({(it_begin_local + i)->Get()->Id(), i});
     }
 
-    // Remove from local results
-    std::vector<IndexType> local_indexes_to_remove;
+    // Remove from local results (indexes may be repeated if for example a node is in more than one partition, using therefore a set)
+    std::unordered_set<IndexType> local_indexes_to_remove_set;
     for (const auto index : rIndexes) {
         const auto it_find = local_indexes_map.find(index);
         if (it_find != local_indexes_map.end()) {
-            local_indexes_to_remove.push_back(it_find->second);
+            local_indexes_to_remove_set.insert(it_find->second);
         }
     }
+    std::vector<IndexType> local_indexes_to_remove(local_indexes_to_remove_set.begin(), local_indexes_to_remove_set.end());
     std::sort(local_indexes_to_remove.begin(), local_indexes_to_remove.end(), std::greater<IndexType>());
     for (const auto index : local_indexes_to_remove) {
         mLocalResults.erase(mLocalResults.begin() + index);
