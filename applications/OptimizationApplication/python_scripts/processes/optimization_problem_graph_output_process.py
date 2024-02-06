@@ -39,6 +39,8 @@ class GraphData:
         self.graph_names: 'list[str]' = []
         for component_path in self.component_paths:
             data = component_path.split("/")
+            if len(data) < 3:
+                raise RuntimeError(f"\"{component_path}\" does not have the component value specified.")
             object_name = data[1]
             self.graph_names.append(f"{object_name}." + ".".join(data[2:]))
 
