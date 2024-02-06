@@ -12,6 +12,7 @@
 //
 #pragma once
 
+#include "geo_mechanics_application_constants.h"
 #include "includes/ublas_interface.h"
 
 namespace Kratos
@@ -20,7 +21,7 @@ namespace Kratos
 class StressStatePolicy
 {
 public:
-    virtual Matrix CalculateBMatrix(const Matrix& GradNpT, const Vector& Np) const = 0;
+    virtual Matrix CalculateBMatrix(const Matrix& GradNpT, const Vector& Np, SizeType NumberOfNodes) const = 0;
 
     virtual ~StressStatePolicy() = default;
 };
