@@ -17,7 +17,7 @@
 
 // Project includes
 #include "custom_elements/geo_cable_element.hpp"
-#include "custom_utilities/structural_mechanics_element_utilities.h"
+#include "../StructuralMechanicsApplication/custom_utilities/structural_mechanics_element_utilities.h"
 #include "geo_mechanics_application_variables.h"
 #include "includes/define.h"
 
@@ -121,8 +121,8 @@ void GeoCableElement<TDim, TNumNodes>::UpdateInternalForces(BoundedVector<double
     FullDofMatrixType transformation_matrix;
     this->CreateTransformationMatrix(transformation_matrix);
 
-    const double l  = GeoStructuralMechanicsElementUtilities::CalculateCurrentLength3D2N(*this);
-    const double L0 = GeoStructuralMechanicsElementUtilities::CalculateReferenceLength3D2N(*this);
+    const double l  = StructuralMechanicsElementUtilities::CalculateCurrentLength3D2N(*this);
+    const double L0 = StructuralMechanicsElementUtilities::CalculateReferenceLength3D2N(*this);
     const double A  = this->GetProperties()[CROSS_AREA];
 
     double prestress = 0.00;
