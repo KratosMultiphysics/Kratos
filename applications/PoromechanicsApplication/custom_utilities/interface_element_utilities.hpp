@@ -224,15 +224,6 @@ public:
         Vector LocalInitialStress(dimension);
         noalias(LocalInitialStress) = ZeroVector(dimension);
 
-        // KRATOS_WATCH("Before if")
-        // KRATOS_WATCH(rStressVector)  
-        // // Checking if rStressVector has significant values
-        // if (abs(rStressVector[0]) > 6e+66 || abs(rStressVector[1]) > 6e+66) {
-        //     rStressVector = ZeroVector(dimension);
-        // }
-        // KRATOS_WATCH("After if")
-        // KRATOS_WATCH(rStressVector)  
-
         // Contribution of each of the nodal values to the corresponding GP
         for (unsigned int i = 0; i < number_of_nodes; i++) {
             const Matrix& r_initial_stress_tensor = geometry[i].GetSolutionStepValue(INITIAL_STRESS_TENSOR);
@@ -273,13 +264,9 @@ public:
         // Local stress vector
         noalias(LocalInitialStress) = prod(RotationInterface, trans(gp_initial_stress_vector));
     
-        KRATOS_WATCH("Before sum")
-        KRATOS_WATCH(rStressVector)  
         // Update the stress vector
         rStressVector[0] += LocalInitialStress[0];
         rStressVector[1] += LocalInitialStress[1];
-        KRATOS_WATCH("After sum")
-        KRATOS_WATCH(rStressVector)  
 
     }
 }; /* Class InterfaceElementUtilities*/
