@@ -1,6 +1,7 @@
 import matplotlib as mpl
 mpl.use('Agg') # to have plotting possible without a Xserver running.
 import matplotlib.pyplot as plt
+from pathlib import Path
 
 import KratosMultiphysics as Kratos
 from KratosMultiphysics.OptimizationApplication.utilities.component_data_view import ComponentDataView
@@ -159,7 +160,9 @@ class OptimizationProblemGraphOutputProcess(Kratos.OutputProcess):
                     ax.grid(True)
 
             ax.set_xlabel(self.x_axis_label)
-            fig.savefig(self.output_file_name.replace("<step>", str(self.optimization_problem.GetStep())), dpi=self.dpi, bbox_inches="tight")
+            output_path = Path(self.output_file_name.replace("<step>", str(self.optimization_problem.GetStep())))
+            output_path.parent.mkdir(parents=True, exist_ok=True)
+            fig.savefig(str(output_path), dpi=self.dpi, bbox_inches="tight")
             plt.close()
 
     def _IsWritingProcess(self):
