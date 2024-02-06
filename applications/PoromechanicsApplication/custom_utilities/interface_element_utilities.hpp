@@ -18,9 +18,7 @@
 // Project includes
 #include "includes/element.h"
 #include "includes/serializer.h"
-#include "includes/checks.h"
 #include "includes/constitutive_law.h"
-
 
 // Application includes
 #include "poromechanics_application_variables.h"
