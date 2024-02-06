@@ -1,21 +1,20 @@
 ---
 title: Abs
-keywords:
+keywords: 
 tags: [abs, expression]
 sidebar: kratos_expressions
-summary:
+summary: 
 ---
 
 ## Introduction
 
-This computes absolute value of each component of the given expression. Assume the input expression is given by $$\underline{\mathbf{u}} = \left\lbrace u_{ij},  \forall (i,j)\in\left[0, M\right)\times\left[0, N\right)\right\rbrace$$ where $$i^{th}$$ entity's $$j^{th}$$ component is represented by $$u_{ij}$$ with $$i\in \left[0, M\right)$$ for each entity and $$j\in \left[0, N\right)$$ for each component in each entity. Following equation illustrates the formulation of the resulting expression.
+This computes the componentwise absolute value of the given expression. Assume the input expression is given by $$\underline{\mathbf{u}} = \left\lbrace u_{ij},  \forall (i,j)\in\left[0, M\right)\times\left[0, N\right)\right\rbrace$$ where the $$i^{th}$$ entity's $$j^{th}$$ component is represented by $$u_{ij}$$ with $$i\in \left[0, M\right)$$ for each entity and $$j\in \left[0, N\right)$$ for each component in each entity. The Following equation illustrates the formulation of the resulting expression.
 
 <p align="center">$$ Abs\left(\underline{\mathbf{u}}\right) = \left\lbrace \left|u_{ij}\right|,  \forall (i,j)\in\left[0, M\right)\times\left[0, N\right)\right\rbrace$$</p>
 
 ## Use cases
 
 ### Using to compute absolute values
-Following code snippet illustrates how to use ```Abs```.
 ```python
 import KratosMultiphysics as Kratos
 model = Kratos.Model()
@@ -50,23 +49,23 @@ for node in model_part.Nodes:
 ```
 
 Expected output:
-```bash
-node_id: 1, velocity=[-1.0, -2.0, -3.0], acceleration = [1.0, 2.0, 3.0]
-node_id: 2, velocity=[-4.0, -5.0, -6.0], acceleration = [4.0, 5.0, 6.0]
-node_id: 3, velocity=[-7.0, -8.0, -9.0], acceleration = [7.0, 8.0, 9.0]
+```console
  |  /           |
  ' /   __| _` | __|  _ \   __|
  . \  |   (   | |   (   |\__ \
 _|\_\_|  \__,_|\__|\___/ ____/
-           Multi-Physics 9.4."3"-docs/expression_documentation-6de5f1a499-Release-x86_64
+           Multi-Physics 9.4."3"-docs/add_python_processing_locally-eb00abccc7-FullDebug-x86_64
            Compiled for GNU/Linux and Python3.11 with GCC-13.2
 Compiled with threading and MPI support.
 Maximum number of threads: 30.
 Running without MPI.
+Process Id: 494037
+node_id: 1, velocity=[-1.0, -2.0, -3.0], acceleration = [1.0, 2.0, 3.0]
+node_id: 2, velocity=[-4.0, -5.0, -6.0], acceleration = [4.0, 5.0, 6.0]
+node_id: 3, velocity=[-7.0, -8.0, -9.0], acceleration = [7.0, 8.0, 9.0]
 ```
 
 ### Using to compute entity wise inf-norm
-Following code snippet illustrates how to use ```Abs``` to compute the entity wise inf-norm.
 ```python
 import KratosMultiphysics as Kratos
 model = Kratos.Model()
@@ -100,17 +99,18 @@ for node in model_part.Nodes:
 ```
 
 Expected output:
-```bash
-node_id: 1, velocity=[-1.0, -2.0, -3.0], pressure = 3.0
-node_id: 2, velocity=[-4.0, -5.0, -6.0], pressure = 6.0
-node_id: 3, velocity=[-7.0, -8.0, -9.0], pressure = 9.0
+```console
  |  /           |
  ' /   __| _` | __|  _ \   __|
  . \  |   (   | |   (   |\__ \
 _|\_\_|  \__,_|\__|\___/ ____/
-           Multi-Physics 9.4."3"-docs/expression_documentation-6de5f1a499-Release-x86_64
+           Multi-Physics 9.4."3"-docs/add_python_processing_locally-eb00abccc7-FullDebug-x86_64
            Compiled for GNU/Linux and Python3.11 with GCC-13.2
 Compiled with threading and MPI support.
 Maximum number of threads: 30.
 Running without MPI.
+Process Id: 494090
+node_id: 1, velocity=[-1.0, -2.0, -3.0], pressure = 3.0
+node_id: 2, velocity=[-4.0, -5.0, -6.0], pressure = 6.0
+node_id: 3, velocity=[-7.0, -8.0, -9.0], pressure = 9.0
 ```
