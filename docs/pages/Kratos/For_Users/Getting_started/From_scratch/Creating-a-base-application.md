@@ -1,9 +1,9 @@
 ---
 title: Creating a base application
-keywords: 
+keywords:
 tags: [Creating-a-base-application.md]
 sidebar: kratos_for_users
-summary: 
+summary:
 ---
 
 ## Quick start
@@ -14,7 +14,7 @@ The process of creating such a basic application is very simple and it is done t
 
 You will find a couple of python files there. If you are the **TL;DR** kind of person you can execute right away the file `createApplication.py` with your application name and it will generate your application or you can jump to "In detail" to learn how to customize your app. It is important that your application name is in camel case format (first letter of every word in caps). For example:
 
-```bash
+```console
 python createApplication.py MyExample
 ```
 
@@ -22,7 +22,7 @@ That's it! Your application has been generated, You can check that it has been c
 
 In order to compile it just add:
 
-```bash
+```console
 -DMY_EXAMPLE_APPLICATION=ON \
 ```
 
@@ -98,7 +98,7 @@ debugApp.AddProcesses([
 ```
 -->
 
-Finally you can create processes. There is no custom options for processes yet but its name and you will probably need at least one. 
+Finally you can create processes. There is no custom options for processes yet but its name and you will probably need at least one.
 
 #### Generating the app
 ```python
@@ -151,7 +151,7 @@ if(Import_MyExampleApplication):
     kernel.AddApplication(my_example_application)
     print("KratosMyExampleApplication Succesfully imported")
 
-# ... 
+# ...
 # And finally:
 
 if(Import_MyExampleApplication):
@@ -172,8 +172,8 @@ Here is a list of common problems that can appear while using the generator:
 FileExistsError: [Errno 17] File exists: '/path/Kratos/kratos/python_scripts/application_generator
 /utils/../../../../applications/MyExampleApplication'
 ```
-- **Cause**: 
+- **Cause**:
 The application name you used is used by another application
 
-- **Solution**: 
+- **Solution**:
 Use another name.

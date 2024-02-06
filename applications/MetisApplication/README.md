@@ -14,7 +14,7 @@ which generates a partition of the mesh based on the nodal graph and can be used
 
 Building the `MetisApplication` requires *METIS* libraries and their dependencies already installed on the system. The easiest way to get them is by the package manager of the *GNU/Linux* distribution. For example, in *Ubuntu GNU/Linux*:
 
-```bash
+```console
 sudo apt install libmetis-dev
 ```
 
@@ -25,7 +25,7 @@ Assuming that the dependencies are installed, the following steps are:
 1. Add the `MetisApplication` to the list of applications to be compiled in the building script for Kratos,
 as described in the [install instructions](https://github.com/KratosMultiphysics/Kratos/blob/master/INSTALL.md#adding-applications).
 
-```bash
+```console
 export KRATOS_APPLICATIONS=
 ...
 add_app ${KRATOS_APP_DIR}/MetisApplication
@@ -33,7 +33,7 @@ add_app ${KRATOS_APP_DIR}/MetisApplication
 
 2. Tell CMake where are located the libraries and headers of *METIS*, if CMake does not find them automatically. For example:
 
-```bash
+```console
 cmake -H"${KRATOS_SOURCE}" -B"${KRATOS_BUILD}" \
 ...
 -DMETIS_ROOT_DIR="${HOME}/Projects/METIS/build"
@@ -45,38 +45,38 @@ cmake -H"${KRATOS_SOURCE}" -B"${KRATOS_BUILD}" \
 
 To install *Spack* you just need to run the following command:
 
-```bash
+```console
 git clone -c feature.manyFiles=true https://github.com/spack/spack.git
 ```
 
 To use it you will need to add the corresponding environment variables (or call `spack_location/spack/bin/spack`):
 
-```bash
+```console
 . spack_location/spack/share/spack/setup-env.sh
 ```
 
 Then in order to install *METIS*:
 
-```bash
+```console
 spack install parmetis
 ```
 
 If you want that the libraries are added automatically to `LD_LIBRARY_PATH` to run the following commands before loading the modules:
 
-```bash
+```console
 spack config add modules:prefix_inspections:lib64:[LD_LIBRARY_PATH]
 spack config add modules:prefix_inspections:lib:[LD_LIBRARY_PATH]
 ```
 
 Now you just need to load *METIS*:
 
-```bash
+```console
 spack load parmetis
 ```
 
-Once to compile `MetisApplication` just remember to add the application to the `cofigure` bash script: 
+Once to compile `MetisApplication` just remember to add the application to the `cofigure` bash script:
 
-```bash
+```console
 export KRATOS_APPLICATIONS=
 ...
 add_app ${KRATOS_APP_DIR}/MetisApplication
