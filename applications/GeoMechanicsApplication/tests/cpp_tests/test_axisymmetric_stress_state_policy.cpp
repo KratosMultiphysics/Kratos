@@ -60,14 +60,16 @@ KRATOS_TEST_CASE_IN_SUITE(CalculateBMatrixWithValidGeometryReturnsCorrectResults
     Vector Np(3, 1.0);
     Matrix GradNpT(3, 2, 3.0);
 
-    const Matrix calculated_matrix = p_stress_state_policy->CalculateBMatrix(
-      GradNpT, Np, 3, model_part.GetElement(1).GetGeometry());
+    const Matrix calculated_matrix =
+        p_stress_state_policy->CalculateBMatrix(GradNpT, Np, 3, model_part.GetElement(1).GetGeometry());
 
+    // clang-format off
     Matrix expected_matrix(4, 6);
-    expected_matrix <<= 3,0,3,0,3,0,
-        0,3,0,3,0,3,
-        0.5,0,0.5,0,0.5,0,
-        3,3,3,3,3,3;
+    expected_matrix <<= 3   ,0  ,3   ,0 ,3   ,0,
+                        0   ,3  ,0   ,3 ,0   ,3,
+                        0.5 ,0  ,0.5 ,0 ,0.5 ,0,
+                        3   ,3  ,3   ,3 ,3   ,3;
+    // clang-format on
 
     KRATOS_CHECK_MATRIX_NEAR(calculated_matrix, expected_matrix, 1e-12)
 }
