@@ -1,12 +1,12 @@
 ---
 title: NormP
-keywords: 
+keywords:
 tags: [p norm, expressions]
 sidebar: kratos_expressions
-summary: 
+summary:
 ---
 ## Introduction
-Computes component wise p norm in expressions. Assume the input expression is given by $$\underline{\mathbf{u}} = \left\lbrace u_{ij} |  \forall (i,j)\in\left[0, M\right)\times\left[0, N\right)\right\rbrace$$ where the $$i^{th}$$ entity's $$j^{th}$$ component is represented by $$u_{ij}$$ with $$i\in \left[0, M\right)$$ for each entity and $$j\in \left[0, N\right)$$ for each component in each entity.
+`NormP` computes component wise p norm in expressions. Assume the input expression is given by $$\underline{\mathbf{u}} = \left\lbrace u_{ij} |  \forall (i,j)\in\left[0, M\right)\times\left[0, N\right)\right\rbrace$$ where the $$i^{th}$$ entity's $$j^{th}$$ component is represented by $$u_{ij}$$ with $$i\in \left[0, M\right)$$ for each entity and $$j\in \left[0, N\right)$$ for each component in each entity.
 
 <p align="center">$$ NormP\left(\underline{\mathbf{u}}, P\right) = \left({\sum_{(i,j)\in\left[0, M\right)\times\left[0,N\right)} {\left|u_{ij}\right|^P}}\right)^{1/P}$$</p>
 ## Use cases
