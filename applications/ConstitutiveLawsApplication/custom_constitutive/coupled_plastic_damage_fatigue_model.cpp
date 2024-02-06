@@ -180,18 +180,11 @@ void CoupledPlasticDamageFatigueModel<TYieldSurfaceType>::FinalizeMaterialRespon
     noalias(plastic_damage_parameters.StressVector) = prod(plastic_damage_parameters.ConstitutiveMatrix,
         r_strain_vector - plastic_damage_parameters.PlasticStrain);
 
-    // TYieldSurfaceType::CalculateEquivalentStress(plastic_damage_parameters.StressVector,
-    //     plastic_damage_parameters.StrainVector, plastic_damage_parameters.UniaxialStress, rValues);
 
-    //Updating kpd and the threshold according to the fatigue reduction factor -> this is done following what is done in plasticity where the parameters are updated
-    //even though the nonlinearity is activie. This is necessary because fred is inducing nonlinearities. This should not be necessary for kappa because at this point
-    //there is no plastic strain nor compliance matrix increment -> this should be checked, but these should be 0 at this point of the calculation ALWAYS
-    // CalculatePlasticDissipationIncrement(r_mat_props, plastic_damage_parameters);
-    // CalculateDamageDissipationIncrement(r_mat_props, plastic_damage_parameters);
-    // AddNonLinearDissipation(plastic_damage_parameters);
-
-    // updated uniaxial and threshold stress check
     TYieldSurfaceType::CalculateEquivalentStress(plastic_damage_parameters.StressVector, plastic_damage_parameters.StrainVector, plastic_damage_parameters.UniaxialStress, rValues);
+    //It is necessary to update the threshold because fred is evolving and it may be the one generating nonlinearities
+    //It is not necessary to update kpd value (which is only done for F>0) because although the increment of kd and kp depend on fred, they also depend on the
+    //increment of plastic strain and compliance matrix which are zero while fred evolve.
     CalculateThresholdAndSlope(rValues, plastic_damage_parameters);
 
     plastic_damage_parameters.NonLinearIndicator = plastic_damage_parameters.UniaxialStress - plastic_damage_parameters.Threshold;
@@ -201,10 +194,16 @@ void CoupledPlasticDamageFatigueModel<TYieldSurfaceType>::FinalizeMaterialRespon
         UpdateInternalVariables(plastic_damage_parameters);
     }
 
-    //Lo pongo aquí en lugar de antes porque en el cálculo se recalcula la tensión uniaxial (el cálculo es iterativo); en realidad debería de dar igual porque se va a hacer con valores de referencia
-    //This should be done with the stress computed using reference values --> AIT is needed
-    double sign_factor = HighCycleFatigueLawIntegrator<6>::CalculateTensionCompressionFactor(plastic_damage_parameters.StressVector);
-    const double uniaxial_stress_max_min = sign_factor * plastic_damage_parameters.UniaxialStress;
+    //Reference uniaxial stress
+    double reference_uniaxial_stress;
+    BoundedMatrixType reference_constitutive_matrix = mReferenceConstitutiveMatrix;
+    BoundedVectorType reference_plastic_strain = mReferencePlasticStrain;
+
+    BoundedVectorType reference_stress_vector = prod(reference_constitutive_matrix, r_strain_vector - reference_plastic_strain);
+    TYieldSurfaceType::CalculateEquivalentStress(reference_stress_vector, plastic_damage_parameters.StrainVector, reference_uniaxial_stress, rValues);
+
+    double sign_factor = HighCycleFatigueLawIntegrator<6>::CalculateTensionCompressionFactor(reference_stress_vector);
+    const double uniaxial_stress_max_min = sign_factor * reference_uniaxial_stress;
     double max_stress = mMaxStress;
     double min_stress = mMinStress;
     bool max_indicator = mMaxDetected;
@@ -1494,21 +1493,22 @@ void CoupledPlasticDamageFatigueModel<TYieldSurfaceType>::InitializeMaterialResp
     double threshold = mThreshold; //Threshold in cPDF model is already the integrated hystoric maximum stress
 
     if (max_indicator && min_indicator && current_load_type) {
-    //     if (mFirstCycleOfANewLoad) {
-    //         const SizeType fatigue_parameters_size = rValues.GetMaterialProperties()[HIGH_CYCLE_FATIGUE_COEFFICIENTS].size();
-    //         if (fatigue_parameters_size == 8) {
-    //             c_factor = rValues.GetMaterialProperties()[HIGH_CYCLE_FATIGUE_COEFFICIENTS][7];
-    //         } else if (fatigue_parameters_size == 11) {
-    //             c_factor = rValues.GetMaterialProperties()[HIGH_CYCLE_FATIGUE_COEFFICIENTS][7] * ((1.0 - reference_damage) * max_stress) + rValues.GetMaterialProperties()[HIGH_CYCLE_FATIGUE_COEFFICIENTS][8];
-    //             const double c_factor_min = rValues.GetMaterialProperties()[HIGH_CYCLE_FATIGUE_COEFFICIENTS][9];
-    //             const double c_factor_max = rValues.GetMaterialProperties()[HIGH_CYCLE_FATIGUE_COEFFICIENTS][10];
+        if (mFirstCycleOfANewLoad) {
+            const SizeType fatigue_parameters_size = rValues.GetMaterialProperties()[HIGH_CYCLE_FATIGUE_COEFFICIENTS].size();
+            if (fatigue_parameters_size == 8) {
+                c_factor = rValues.GetMaterialProperties()[HIGH_CYCLE_FATIGUE_COEFFICIENTS][7];
+            } else if (fatigue_parameters_size == 11) {
+                // c_factor = rValues.GetMaterialProperties()[HIGH_CYCLE_FATIGUE_COEFFICIENTS][7] * ((1.0 - reference_damage) * max_stress) + rValues.GetMaterialProperties()[HIGH_CYCLE_FATIGUE_COEFFICIENTS][8];
+                c_factor = rValues.GetMaterialProperties()[HIGH_CYCLE_FATIGUE_COEFFICIENTS][7] * max_stress + rValues.GetMaterialProperties()[HIGH_CYCLE_FATIGUE_COEFFICIENTS][8];
+                const double c_factor_min = rValues.GetMaterialProperties()[HIGH_CYCLE_FATIGUE_COEFFICIENTS][9];
+                const double c_factor_max = rValues.GetMaterialProperties()[HIGH_CYCLE_FATIGUE_COEFFICIENTS][10];
 
-    //             KRATOS_ERROR_IF(c_factor_min > c_factor_max) << "The min and max C factor order is not correct: first C_min and then C_max" << std::endl;
+                KRATOS_ERROR_IF(c_factor_min > c_factor_max) << "The min and max C factor order is not correct: first C_min and then C_max" << std::endl;
 
-    //             c_factor = (c_factor < c_factor_min) ? c_factor_min : c_factor;
-    //             c_factor = (c_factor > c_factor_max) ? c_factor_max : c_factor;
-    //         }
-    //     }
+                c_factor = (c_factor < c_factor_min) ? c_factor_min : c_factor;
+                c_factor = (c_factor > c_factor_max) ? c_factor_max : c_factor;
+            }
+        }
 
         const double previous_reversion_factor = HighCycleFatigueLawIntegrator<6>::CalculateReversionFactor(previous_max_stress, previous_min_stress);
         const double reversion_factor = HighCycleFatigueLawIntegrator<6>::CalculateReversionFactor(max_stress, min_stress); // Does not depend on the reference damage
@@ -1625,6 +1625,18 @@ void CoupledPlasticDamageFatigueModel<TYieldSurfaceType>::InitializeMaterialResp
     }
     if (new_model_part) {
         // REFERENCE INFO
+        Vector& r_strain_vector = rValues.GetStrainVector();
+        const double characteristic_length = AdvancedConstitutiveLawUtilities<VoigtSize>::
+            CalculateCharacteristicLengthOnReferenceConfiguration(rValues.GetElementGeometry());
+        PlasticDamageParameters plastic_damage_parameters = PlasticDamageParameters();
+        const auto &r_mat_props = rValues.GetMaterialProperties();
+        InitializePlasticDamageParameters(r_strain_vector, r_mat_props, characteristic_length, plastic_damage_parameters);
+        CalculateConstitutiveMatrix(rValues, plastic_damage_parameters);
+
+        mReferenceConstitutiveMatrix = plastic_damage_parameters.ConstitutiveMatrix;
+        mReferencePlasticStrain = plastic_damage_parameters.PlasticStrain;
+        KRATOS_WATCH(mReferenceConstitutiveMatrix)
+        KRATOS_WATCH(mReferencePlasticStrain)
         // mReferenceDamage = this->GetDamage();   //Updating the damage reference values. This needs to be changed by the end of the method because the calculations
                                                 //done here are built using the values of the previous step. This should not have a big effect in this CL but is consistent.
     }

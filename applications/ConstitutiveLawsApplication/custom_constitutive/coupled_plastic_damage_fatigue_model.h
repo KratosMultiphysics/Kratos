@@ -784,6 +784,8 @@ private:
     double mPreviousCyclePlasticDissipation = 0.0; // Degradation level at the previous cycle.
     bool mFirstCycleOfANewLoad = false; // Variable used to identify the first cycle after a new load block. This is used in the Nlocal calculation and to compute the C factor.
     double mCFactor = 1.0;
+    BoundedMatrixType mReferenceConstitutiveMatrix = ZeroMatrix(VoigtSize, VoigtSize);
+    BoundedVectorType mReferencePlasticStrain    = ZeroVector(VoigtSize);
 
     ///@}
     ///@name Private Operators
