@@ -64,14 +64,12 @@ void ElasticCohesive2DLaw::ComputeStressVector(Vector& rStressVector,
     const Vector& StrainVector = rValues.GetStrainVector();
 
 // ------------------------------------------------------ NEW ------------------------------------------------------
-    const Vector& N = rValues.GetShapeFunctionsValues(); // TODO. An interpolation of the initial stress is necessary
+    const Vector& N = rValues.GetShapeFunctionsValues();
     const Element::GeometryType& geometry = rValues.GetElementGeometry();
     const unsigned int number_of_nodes = geometry.size();
 
     // const unsigned int dimension = rValues.GetSpaceDimension();
     // const unsigned int strainSize = rValues.GetStrainSize();
-    // KRATOS_WATCH(geometry);
-    // KRATOS_WATCH(strainSize);
 
     const int dimension = 2; // Temporary solution. Need to generalise
     const int strainSize = 3; // Temporary solution. Need to generalise
