@@ -1,5 +1,5 @@
 import matplotlib as mpl
-mpl.use('Agg')
+mpl.use('Agg') # to have plotting possible without a Xserver running.
 import matplotlib.pyplot as plt
 
 import KratosMultiphysics as Kratos
