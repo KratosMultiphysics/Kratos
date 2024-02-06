@@ -24,8 +24,10 @@ class StressStatePolicy
 {
 public:
     virtual Matrix CalculateBMatrix(const Matrix& GradNpT, const Vector& Np, const Geometry<Node>& rGeometry) const = 0;
+    virtual double CalculateIntegrationCoefficient(const Geometry<Node>::IntegrationPointType& rIntegrationPoint,
+                                                   double detJ) const = 0;
 
     virtual ~StressStatePolicy() = default;
 };
 
-}
+} // namespace Kratos

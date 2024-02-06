@@ -23,7 +23,6 @@ Matrix AxisymmetricStressStatePolicy::CalculateBMatrix(const Matrix&         Gra
                                                        const Vector&         Np,
                                                        const Geometry<Node>& rGeometry) const
 {
-    KRATOS_ERROR_IF(GradNpT.size1() == 0 || GradNpT.size2() == 0 || Np.empty()) << "Input data is empty.\n";
     const double radius = GeoElementUtilities::CalculateRadius(Np, rGeometry);
 
     const auto dimension       = rGeometry.WorkingSpaceDimension();
@@ -41,6 +40,12 @@ Matrix AxisymmetricStressStatePolicy::CalculateBMatrix(const Matrix&         Gra
     }
 
     return result;
+}
+
+double AxisymmetricStressStatePolicy::CalculateIntegrationCoefficient(const Geometry<Node>::IntegrationPointType& rIntegrationPoint,
+                                                                      double detJ) const
+{
+    return 0;
 }
 
 } // namespace Kratos

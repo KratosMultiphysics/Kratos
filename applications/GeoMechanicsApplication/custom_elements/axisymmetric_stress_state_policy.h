@@ -21,6 +21,8 @@ namespace Kratos
 class AxisymmetricStressStatePolicy : public StressStatePolicy
 {
 public:
+    double CalculateIntegrationCoefficient(const Geometry<Node>::IntegrationPointType& rIntegrationPoint,
+                                           double detJ) const override;
     Matrix CalculateBMatrix(const Matrix& GradNpT, const Vector& Np, const Geometry<Node>& rGeometry) const override;
 };
 

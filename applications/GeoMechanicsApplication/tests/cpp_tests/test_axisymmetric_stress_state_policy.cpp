@@ -14,7 +14,7 @@
 #include "containers/model.h"
 #include "custom_elements/axisymmetric_stress_state_policy.h"
 #include "custom_elements/stress_state_policy.h"
-#include "geo_mechanics_application_constants.h"
+#include "geometries/geometry.h"
 #include "includes/checks.h"
 #include "testing/testing.h"
 #include <boost/numeric/ublas/assignment.hpp>
@@ -61,6 +61,18 @@ KRATOS_TEST_CASE_IN_SUITE(CalculateBMatrixWithValidGeometryReturnsCorrectResults
     // clang-format on
 
     KRATOS_CHECK_MATRIX_NEAR(calculated_matrix, expected_matrix, 1e-12)
+}
+
+KRATOS_TEST_CASE_IN_SUITE(CanCalculateIntegrationCoefficient, KratosGeoMechanicsFastSuite)
+{
+    std::unique_ptr<StressStatePolicy> p_stress_state_policy =
+        std::make_unique<AxisymmetricStressStatePolicy>();
+
+    Geometry<Node>::IntegrationPointType integration_point;
+    const double                         detJ = 2.0;
+
+    const double calculated_coefficient =
+        p_stress_state_policy->CalculateIntegrationCoefficient(integration_point, detJ);
 }
 
 } // namespace Kratos::Testing
