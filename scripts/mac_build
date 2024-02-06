@@ -80,7 +80,7 @@ build_dir="${source_dir}/build"                 # <== path to the build director
 install_dir="$(get_site_packages_dir)"          # <== path to install kratos to
 clean=0                                         # <== clean the build and install directories, then exit
 app_names=""                                    # <== list of app names to build
-cmake_arguments=""                              # <== semicolon-separated list of options to pass to CMake
+cmake_arguments=()                              # <== list of options to pass to CMake
 
 # Function to append the list of built applications
 add_app() {
@@ -137,7 +137,7 @@ while getopts ":h C b: i: t: j: a: o:" arg; do
             add_app "$OPTARG"
             ;;
         o)  # Add CMake option
-            cmake_arguments="$cmake_arguments;$OPTARG"
+            cmake_arguments=("${cmake_arguments[@]}" "$OPTARG")
             ;;
         \?) # Unrecognized argumnet
             echo "Error: unrecognized argument: -$OPTARG"
@@ -267,7 +267,7 @@ if ! cmake                                                  \
     "-DUSE_EIGEN_MKL:BOOL=OFF"                              \
     "-DKRATOS_GENERATE_PYTHON_STUBS:BOOL=ON"                \
     "-DKRATOS_ENABLE_PROFILING:BOOL=OFF"                    \
-    $(echo $cmake_arguments | tr '\;' '\n')                 \
+    "${cmake_arguments[@]}"                                 \
     ; then
     exit 1
 fi
