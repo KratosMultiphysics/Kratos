@@ -1,9 +1,14 @@
 ---
+<<<<<<< HEAD:docs/pages/Kratos/For_Users/Getting_Started/Hello_World.md
 title: Hello Kratos
 keywords: 
+=======
+title: Python Script  Hello Kratos
+keywords:
+>>>>>>> master:docs/pages/Kratos/For_Users/Getting_started/hello-world.md
 tags: [Python Script Tutorial Hello World Kratos]
 sidebar: kratos_for_users
-summary: 
+summary:
 ---
 
 The first step in writing a python script for *Kratos* is importing the KratosMultiphysics as follow:
@@ -15,9 +20,13 @@ from KratosMultiphysics import *
 This imports the *Kratos* and shows a logo of *Kratos*:
 
 ```console
+<<<<<<< HEAD:docs/pages/Kratos/For_Users/Getting_Started/Hello_World.md
  |  /           |             
+=======
+ |  /           |
+>>>>>>> master:docs/pages/Kratos/For_Users/Getting_started/hello-world.md
  ' /   __| _` | __|  _ \   __|
- . \  |   (   | |   (   |\__ \ 
+ . \  |   (   | |   (   |\__ \
 _|\_\_|  \__,_|\__|\___/ ____/
            Multi-Physics 6.0.0
 ```

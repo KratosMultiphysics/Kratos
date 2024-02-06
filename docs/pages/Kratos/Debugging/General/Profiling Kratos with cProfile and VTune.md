@@ -1,9 +1,9 @@
 ---
 title: Profiling Kratos with cProfile and VTune
-keywords: 
+keywords:
 tags: [Profiling Kratos with cProfile and VTune.md]
 sidebar: kratos_debugging
-summary: 
+summary:
 ---
 
 # Profiling Kratos with cProfile and VTune

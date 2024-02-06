@@ -90,6 +90,12 @@ public:
     };
 
     void Initialize() override { ++mSolverStrategyInitializeCalls; }
+
+    void InitializeOutput() override
+    {
+        // Intentionally empty
+    }
+
     void InitializeSolutionStep() override
     {
         ++mSolverStrategyInitializeSolutionStepCalls;

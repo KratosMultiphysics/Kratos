@@ -1,9 +1,15 @@
 ---
+<<<<<<< HEAD:docs/pages/Kratos/For_Users/Getting_Started/From_Scratch/Creating_A_Base_Application.md
 title: Creating a Base Application
 keywords: 
 tags: [Creating Base Application]
+=======
+title: Creating a base application
+keywords:
+tags: [Creating-a-base-application.md]
+>>>>>>> master:docs/pages/Kratos/For_Users/Getting_started/From_scratch/Creating-a-base-application.md
 sidebar: kratos_for_users
-summary: 
+summary:
 ---
 
 ## Quick start
@@ -94,7 +100,21 @@ debugApp.AddConditions([
 
 The `AddCondition` function is the analogue of `AddElements` but for conditions. It allows you to do the same but will generate a condition instead.
 
+<<<<<<< HEAD:docs/pages/Kratos/For_Users/Getting_Started/From_Scratch/Creating_A_Base_Application.md
 Finally you can create processes. There is no custom options for processes yet but its name and you will probably need at least one. 
+=======
+<!--
+#### Processes
+```python
+debugApp.AddProcesses([
+    ProcessCreator('CustomTestProcessAlpha'),
+    ProcessCreator('CustomTestProcessDelta')
+])
+```
+-->
+
+Finally you can create processes. There is no custom options for processes yet but its name and you will probably need at least one.
+>>>>>>> master:docs/pages/Kratos/For_Users/Getting_started/From_scratch/Creating-a-base-application.md
 
 ### Generating the app
 ```python
@@ -149,7 +169,7 @@ if(Import_MyExampleApplication):
     kernel.AddApplication(my_example_application)
     print("KratosMyExampleApplication Succesfully imported")
 
-# ... 
+# ...
 # And finally:
 
 if(Import_MyExampleApplication):
@@ -175,5 +195,5 @@ FileExistsError: [Errno 17] File exists: '/path/Kratos/kratos/python_scripts/app
 - **Cause**: 
 The application name you used is used by another application
 
-- **Solution**: 
+- **Solution**:
 Use another name.

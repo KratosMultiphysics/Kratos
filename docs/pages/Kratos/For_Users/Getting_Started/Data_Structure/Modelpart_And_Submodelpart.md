@@ -3,7 +3,7 @@ title: ModelPart and SubModelPart
 keywords: 
 tags: [Python Script Tutorial ModelPart SubModelPart]
 sidebar: kratos_for_users
-summary: 
+summary:
 ---
 
 In the previous part of the tutorial, we already saw how the `ModelPart` is the object containing `Element`, `Conditions`, `Nodes` and `Properties`.
@@ -12,7 +12,7 @@ A fundamental feature is that it can also hierarchically contain **"SubModelPart
 
 A quite extensive testing can be found [here](https://github.com/KratosMultiphysics/Kratos/blob/master/kratos/tests/test_model_part.py)
 
-However let's try to make an example to explain this better. 
+However let's try to make an example to explain this better.
 
 ```python        
 # Create a ModelPart root
@@ -36,7 +36,7 @@ the output is:
     Number of sub model parts : 1
     Current solution step index : 0
 
-    Mesh 0 : 
+    Mesh 0 :
         Number of Nodes      : 0
         Number of Properties : 0
         Number of Elements   : 0
@@ -46,7 +46,7 @@ the output is:
         Number of tables : 0
         Number of sub model parts : 0
 
-        Mesh 0 : 
+        Mesh 0 :
             Number of Nodes      : 0
             Number of Properties : 0
             Number of Elements   : 0
@@ -89,7 +89,7 @@ to give
     Number of sub model parts : 3
     Current solution step index : 0
 
-    Mesh 0 : 
+    Mesh 0 :
         Number of Nodes      : 0
         Number of Properties : 0
         Number of Elements   : 0
@@ -99,7 +99,7 @@ to give
         Number of tables : 0
         Number of sub model parts : 0
 
-        Mesh 0 : 
+        Mesh 0 :
             Number of Nodes      : 0
             Number of Properties : 0
             Number of Elements   : 0
@@ -108,7 +108,7 @@ to give
         Number of tables : 0
         Number of sub model parts : 0
 
-        Mesh 0 : 
+        Mesh 0 :
             Number of Nodes      : 0
             Number of Properties : 0
             Number of Elements   : 0
@@ -117,7 +117,7 @@ to give
         Number of tables : 0
         Number of sub model parts : 2
 
-        Mesh 0 : 
+        Mesh 0 :
             Number of Nodes      : 0
             Number of Properties : 0
             Number of Elements   : 0
@@ -126,7 +126,7 @@ to give
             Number of tables : 0
             Number of sub model parts : 0
 
-            Mesh 0 : 
+            Mesh 0 :
                 Number of Nodes      : 0
                 Number of Properties : 0
                 Number of Elements   : 0
@@ -135,7 +135,7 @@ to give
             Number of tables : 0
             Number of sub model parts : 0
 
-            Mesh 0 : 
+            Mesh 0 :
                 Number of Nodes      : 0
                 Number of Properties : 0
                 Number of Elements   : 0
@@ -175,7 +175,7 @@ Temp
 {: data-lang="Python Output"}
 
 ## Data Ownership
-The parent-son relation is such that **anything that belongs to a given SubModelPart also belongs to the parent ModelPart**. 
+The parent-son relation is such that **anything that belongs to a given SubModelPart also belongs to the parent ModelPart**.
 
 This implies that the ultimate "owner" of any `Node`, `Element`, etc, will be the "root" `ModelPart`. The consistency of the tree is ensured by the `ModelPart` **API**, which provides the tools needed for creating or removing anything any of the contained objects.
 
@@ -249,12 +249,12 @@ inlet2_model_part.CreateNewNode(4, 4.00,0.00,0.00)
 ```
 {: data-lang="Python"}
 
-Multiple nodes can be removed at once (and from all levels) by flagging them 
+Multiple nodes can be removed at once (and from all levels) by flagging them
 
 ```python
 for node in model_part.Nodes:
     if(node.Id < 3):
-        node.Set(TO_ERASE,True) 
+        node.Set(TO_ERASE,True)
 
 model_part.RemoveNodesFromAllLevels(TO_ERASE)
 ```

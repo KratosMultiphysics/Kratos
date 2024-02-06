@@ -507,6 +507,127 @@ public:
         return Volume();
     }
 
+        /**
+     * Returns a matrix of the local coordinates of all points
+     * @param rResult a Matrix that will be overwritten by the results
+     * @return the coordinates of all points of the current geometry
+     */
+    Matrix& PointsLocalCoordinates( Matrix& rResult ) const override
+    {
+        if ( rResult.size1() != 27 || rResult.size2() != 3 )
+            rResult.resize( 27, 3, false );
+
+        rResult( 0, 0 ) = -1.0;
+        rResult( 0, 1 ) = -1.0;
+        rResult( 0, 2 ) = -1.0;
+
+        rResult( 1, 0 ) = 1.0;
+        rResult( 1, 1 ) = -1.0;
+        rResult( 1, 2 ) = -1.0;
+
+        rResult( 2, 0 ) = 1.0;
+        rResult( 2, 1 ) = 1.0;
+        rResult( 2, 2 ) = -1.0;
+
+        rResult( 3, 0 ) = -1.0;
+        rResult( 3, 1 ) = 1.0;
+        rResult( 3, 2 ) = -1.0;
+
+        rResult( 4, 0 ) = -1.0;
+        rResult( 4, 1 ) = -1.0;
+        rResult( 4, 2 ) = 1.0;
+
+        rResult( 5, 0 ) = 1.0;
+        rResult( 5, 1 ) = -1.0;
+        rResult( 5, 2 ) = 1.0;
+
+        rResult( 6, 0 ) = 1.0;
+        rResult( 6, 1 ) = 1.0;
+        rResult( 6, 2 ) = 1.0;
+
+        rResult( 7, 0 ) = -1.0;
+        rResult( 7, 1 ) = 1.0;
+        rResult( 7, 2 ) = 1.0;
+
+        rResult( 8, 0 ) = 0.0;
+        rResult( 8, 1 ) = -1.0;
+        rResult( 8, 2 ) = -1.0;
+
+        rResult( 9, 0 ) = 1.0;
+        rResult( 9, 1 ) = 0.0;
+        rResult( 9, 2 ) = -1.0;
+
+        rResult( 10, 0 ) = 0.0;
+        rResult( 10, 1 ) = 1.0;
+        rResult( 10, 2 ) = -1.0;
+
+        rResult( 11, 0 ) = -1.0;
+        rResult( 11, 1 ) = 0.0;
+        rResult( 11, 2 ) = -1.0;
+
+        rResult( 12, 0 ) = -1.0;
+        rResult( 12, 1 ) = -1.0;
+        rResult( 12, 2 ) = 0.0;
+
+        rResult( 13, 0 ) = 1.0;
+        rResult( 13, 1 ) = -1.0;
+        rResult( 13, 2 ) = 0.0;
+
+        rResult( 14, 0 ) = 1.0;
+        rResult( 14, 1 ) = 1.0;
+        rResult( 14, 2 ) = 0.0;
+
+        rResult( 15, 0 ) = -1.0;
+        rResult( 15, 1 ) = 1.0;
+        rResult( 15, 2 ) = 0.0;
+
+        rResult( 16, 0 ) = 0.0;
+        rResult( 16, 1 ) = -1.0;
+        rResult( 16, 2 ) = 1.0;
+
+        rResult( 17, 0 ) = 1.0;
+        rResult( 17, 1 ) = 0.0;
+        rResult( 17, 2 ) = 1.0;
+
+        rResult( 18, 0 ) = 0.0;
+        rResult( 18, 1 ) = 1.0;
+        rResult( 18, 2 ) = 1.0;
+
+        rResult( 19, 0 ) = -1.0;
+        rResult( 19, 1 ) = 0.0;
+        rResult( 19, 2 ) = 1.0;
+
+        rResult( 20, 0 ) = 0.0;
+        rResult( 20, 1 ) = 0.0;
+        rResult( 20, 2 ) = -1.0;
+
+        rResult( 21, 0 ) = 0.0;
+        rResult( 21, 1 ) = -1.0;
+        rResult( 21, 2 ) = 0.0;
+
+        rResult( 22, 0 ) = 1.0;
+        rResult( 22, 1 ) = 0.0;
+        rResult( 22, 2 ) = 0.0;
+
+        rResult( 23, 0 ) = 0.0;
+        rResult( 23, 1 ) = 1.0;
+        rResult( 23, 2 ) = 0.0;
+
+        rResult( 24, 0 ) = -1.0;
+        rResult( 24, 1 ) = 0.0;
+        rResult( 24, 2 ) = 0.0;
+
+        rResult( 25, 0 ) = 0.0;
+        rResult( 25, 1 ) = 0.0;
+        rResult( 25, 2 ) = 1.0;
+
+        rResult( 26, 0 ) = 0.0;
+        rResult( 26, 1 ) = 0.0;
+        rResult( 26, 2 ) = 0.0;
+
+        return rResult;
+    }
+
     /**
      * @brief Returns whether given arbitrary point is inside the Geometry and the respective
      * local point for the given global point

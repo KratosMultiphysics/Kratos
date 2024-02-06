@@ -1029,7 +1029,7 @@ public:
         // Row maps must be the same
         KRATOS_ERROR_IF_NOT(rA.RowMap().SameAs(rB.RowMap())) << "Row maps are not compatible" << std::endl;
 
-        // Gettings the graphs
+        // Getting the graphs
         const auto& r_graph_a = rA.Graph();
         const auto& r_graph_b = rB.Graph();
 
@@ -1077,6 +1077,17 @@ public:
                 for (j = 0; j < num_entries; j++) {
                     combined_indexes.insert(r_graph_a.GCID(cols[j]));
                 }
+                // Vector equivalent
+                std::vector<int> combined_indexes_vector(combined_indexes.begin(), combined_indexes.end());
+                num_entries = combined_indexes_vector.size();
+                // Adding to graph
+                ierr = graph.InsertGlobalIndices(global_row_index, num_entries, combined_indexes_vector.data());
+                KRATOS_ERROR_IF(ierr != 0) << "Epetra failure inserting indices with code ierr = " << ierr << std::endl;
+                // Clear set
+                combined_indexes.clear();
+            }
+            for (i = 0; i < r_graph_b.NumMyRows(); i++) {
+                const int global_row_index = r_graph_b.GRID(i);
                 // Second graph
                 ierr = r_graph_b.ExtractMyRowView(i, num_entries, cols);
                 KRATOS_ERROR_IF(ierr != 0) << "Epetra failure found extracting indices (II) with code ierr = " << ierr << std::endl;
@@ -1115,16 +1126,38 @@ public:
         // Cleaning destination matrix
         SetToZero(rA);
 
+        // The current process id
+        const int rank = rA.Comm().MyPID();
+
+        // Row maps must be the same
+        const bool same_col_map = rA.ColMap().SameAs(rB.ColMap());
+
+        // Getting the graphs
+        const auto& r_graph_b = rB.Graph();
+
         // Copy values from rB to intermediate
         int i, ierr;
         int num_entries; // Number of non-zero entries (rB matrix)
         double* vals;    // Row non-zero values (rB matrix)
         int* cols;       // Column indices of row non-zero values (rB matrix)
-        for (i = 0; i < rB.NumMyRows(); i++) {
-            ierr = rB.ExtractMyRowView(i, num_entries, vals, cols);
-            KRATOS_ERROR_IF(ierr != 0) << "Epetra failure found extracting values with code ierr = " << ierr << std::endl;
-            ierr = rA.ReplaceMyValues(i, num_entries, vals, cols);
-            KRATOS_ERROR_IF(ierr != 0) << "Epetra failure found replacing values with code ierr = " << ierr << std::endl;
+        if (same_col_map) {
+            for (i = 0; i < rB.NumMyRows(); i++) {
+                ierr = rB.ExtractMyRowView(i, num_entries, vals, cols);
+                KRATOS_ERROR_IF(ierr != 0) << "Epetra failure found extracting values in local row " << i << " in rank " << rank << " with code ierr = " << ierr << std::endl;
+                ierr = rA.ReplaceMyValues(i, num_entries, vals, cols);
+                KRATOS_ERROR_IF(ierr != 0) << "Epetra failure found replacing values in local row " << i << " in rank " << rank << " with code ierr = " << ierr << std::endl;
+            }
+        } else {
+            for (i = 0; i < rB.NumMyRows(); i++) {
+                ierr = rB.ExtractMyRowView(i, num_entries, vals, cols);
+                KRATOS_ERROR_IF(ierr != 0) << "Epetra failure found extracting values in local row " << i << " in rank " << rank << " with code ierr = " << ierr << std::endl;
+                const int global_row_index = r_graph_b.GRID(i);
+                for (int j = 0; j < num_entries; j++) {
+                    cols[j] = r_graph_b.GCID(cols[j]);
+                }
+                ierr = rA.ReplaceGlobalValues(global_row_index, num_entries, vals, cols);
+                KRATOS_ERROR_IF(ierr != 0) << "Epetra failure found extracting values in global row " << global_row_index << " in rank " << rank << " with code ierr = " << ierr << std::endl;
+            }
         }
     }
 
