@@ -1,9 +1,9 @@
 ---
 title: Profiling Kratos with LineProfile
-keywords:
+keywords: 
 tags: [Profiling-Kratos-with-LineProfile.md]
 sidebar: kratos_debugging
-summary:
+summary: 
 ---
 
 ## Profiling Kratos with LineProfile

@@ -3,7 +3,7 @@ title: ModelPart and SubModelPart
 keywords: 
 tags: [Python Script Tutorial ModelPart SubModelPart]
 sidebar: kratos_for_users
-summary:
+summary: 
 ---
 
 In the previous part of the tutorial, we already saw how the `ModelPart` is the object containing `Element`, `Conditions`, `Nodes` and `Properties`.

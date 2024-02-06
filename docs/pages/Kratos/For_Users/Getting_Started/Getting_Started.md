@@ -3,7 +3,7 @@ title: Getting Started
 keywords: 
 tags: [Python Script Tutorial Getting Started]
 sidebar: kratos_for_users
-summary:
+summary: 
 ---
 
 In order to write a python script with *Kratos* the first step would be to *"Obtain"* the `KratosMultiphysics` module and then *"add"* it as an external module to *Python*. 

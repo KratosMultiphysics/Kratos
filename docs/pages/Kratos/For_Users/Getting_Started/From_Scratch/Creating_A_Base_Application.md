@@ -1,9 +1,9 @@
 ---
 title: Creating a Base Application
-keywords:
+keywords: 
 tags: [Creating Base Application]
 sidebar: kratos_for_users
-summary:
+summary: 
 ---
 
 ## Quick start
