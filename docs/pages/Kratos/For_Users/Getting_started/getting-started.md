@@ -1,33 +1,33 @@
 ---
 title: Python Script  Getting Started
-keywords: 
+keywords:
 tags: [Python Script Tutorial Getting Started]
 sidebar: kratos_for_users
-summary: 
+summary:
 ---
 
-In order to write a python script with *Kratos* the first step would be to *"Obtain"* the `KratosMultiphysics` module and then *"add"* it as an external module to the *Python*. 
+In order to write a python script with *Kratos* the first step would be to *"Obtain"* the `KratosMultiphysics` module and then *"add"* it as an external module to the *Python*.
 
 There are two ways to "Obtain" the module:
 
 - Download the latest release of *Kratos* from Kratos' [release page](https://github.com/KratosMultiphysics/Kratos/releases)
 - Getting the *Kratos* and its **GUI** from *GiD* internet retrieve.
 
-A simple way would be to add the `KratosMultiphysics` module path to the `PYTHONPATH` environment variable. 
+A simple way would be to add the `KratosMultiphysics` module path to the `PYTHONPATH` environment variable.
 
 # Linux
 In Linux you can set the python path to the Kratos root directory using `export` command in terminal:
 
-```bash
+```console
 export PYTHONPATH=/path/to/Kratos
 ```
 ## Example:
 For a release version extracted your home directory
-```bash
+```console
 export PYTHONPATH=$HOME/Kratos
 ```
-In case of having a GiD installed in `GiDx64/GiD14.0.0` subfolder of home: 
-```bash
+In case of having a GiD installed in `GiDx64/GiD14.0.0` subfolder of home:
+```console
 export PYTHONPATH=$HOME/GiDx64/GiD14.0.0/problemtypes/kratos.gid/exec/Kratos
 ```
 # Windows

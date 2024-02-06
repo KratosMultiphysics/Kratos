@@ -1,9 +1,9 @@
 ---
 title: Python Script  ModelPart and SubModelPart
-keywords: 
+keywords:
 tags: [Python Script Tutorial ModelPart SubModelPart]
 sidebar: kratos_for_users
-summary: 
+summary:
 ---
 
 In the previous part of the tutorial, we already saw how the `ModelPart` is the object containing `Element`, `Conditions`, `Nodes` and `Properties`.
@@ -12,9 +12,9 @@ A fundamental feature is that it can also hierarchically contain **"SubModelPart
 
 A quite extensive testing can be found [here](https://github.com/KratosMultiphysics/Kratos/blob/master/kratos/tests/test_model_part.py)
 
-However let's try to make an example to explain this better. 
+However let's try to make an example to explain this better.
 
-```py        
+```py
 # Create a ModelPart root
 current_model = Model()
 model_part = current_model.CreateModelPart("Main")
@@ -28,14 +28,14 @@ print(model_part)
 
 the output is:
 
-```bash      
+```console
 -Main- model part
     Buffer Size : 1
     Number of tables : 0
     Number of sub model parts : 1
     Current solution step index : 0
 
-    Mesh 0 : 
+    Mesh 0 :
         Number of Nodes      : 0
         Number of Properties : 0
         Number of Elements   : 0
@@ -45,7 +45,7 @@ the output is:
         Number of tables : 0
         Number of sub model parts : 0
 
-        Mesh 0 : 
+        Mesh 0 :
             Number of Nodes      : 0
             Number of Properties : 0
             Number of Elements   : 0
@@ -54,11 +54,11 @@ the output is:
 
 We could now verify if a given submodelpart exists, or how many SubModelParts exist as
 
-```py        
+```py
 model_part.HasSubModelPart("Inlets") #returns True
 model_part.NumberOfSubModelParts() #returns 1
 model_part.GetSubModelPart("Inlets").Name #returns the name --> Inlets
-```     
+```
 
 Let's now create some other SubModelParts
 
@@ -78,14 +78,14 @@ print(model_part)
 
 to give
 
-```bash
+```console
 -Main- model part
     Buffer Size : 1
     Number of tables : 0
     Number of sub model parts : 3
     Current solution step index : 0
 
-    Mesh 0 : 
+    Mesh 0 :
         Number of Nodes      : 0
         Number of Properties : 0
         Number of Elements   : 0
@@ -95,7 +95,7 @@ to give
         Number of tables : 0
         Number of sub model parts : 0
 
-        Mesh 0 : 
+        Mesh 0 :
             Number of Nodes      : 0
             Number of Properties : 0
             Number of Elements   : 0
@@ -104,7 +104,7 @@ to give
         Number of tables : 0
         Number of sub model parts : 0
 
-        Mesh 0 : 
+        Mesh 0 :
             Number of Nodes      : 0
             Number of Properties : 0
             Number of Elements   : 0
@@ -113,7 +113,7 @@ to give
         Number of tables : 0
         Number of sub model parts : 2
 
-        Mesh 0 : 
+        Mesh 0 :
             Number of Nodes      : 0
             Number of Properties : 0
             Number of Elements   : 0
@@ -122,7 +122,7 @@ to give
             Number of tables : 0
             Number of sub model parts : 0
 
-            Mesh 0 : 
+            Mesh 0 :
                 Number of Nodes      : 0
                 Number of Properties : 0
                 Number of Elements   : 0
@@ -131,7 +131,7 @@ to give
             Number of tables : 0
             Number of sub model parts : 0
 
-            Mesh 0 : 
+            Mesh 0 :
                 Number of Nodes      : 0
                 Number of Properties : 0
                 Number of Elements   : 0
@@ -166,7 +166,7 @@ Temp
 ```
 
 ## Data Ownership
-The parent-son relation is such that **anything that belongs to a given SubModelPart also belongs to the parent ModelPart**. 
+The parent-son relation is such that **anything that belongs to a given SubModelPart also belongs to the parent ModelPart**.
 
 This implies that the ultimate "owner" of any `Node`, `Element`, etc, will be the "root" `ModelPart`. The consistency of the tree is ensured by the `ModelPart` **API**, which provides the tools needed for creating or removing anything any of the contained objects.
 
@@ -185,7 +185,7 @@ model_part.CreateNewNode(1, 0.00,0.00,0.00)  # Here an error is thrown
 However if we try to create a node with the same coordinates twice nothing is actually done (and no error is thrown)
 
 ```py
-model_part.CreateNewNode(1, 1.00,0.00,0.00) 
+model_part.CreateNewNode(1, 1.00,0.00,0.00)
 print(model_part.NumberOfNodes()) # This still returns 1!!
 ```
 
@@ -231,12 +231,12 @@ inlet2_model_part = inlets_model_part.GetSubModelPart("Inlet2")
 inlet2_model_part.CreateNewNode(4, 4.00,0.00,0.00)
 ```
 
-Multiple nodes can be removed at once (and from all levels) by flagging them 
+Multiple nodes can be removed at once (and from all levels) by flagging them
 
 ```py
 for node in model_part.Nodes:
     if(node.Id < 3):
-        node.Set(TO_ERASE,True) 
+        node.Set(TO_ERASE,True)
 
 model_part.RemoveNodesFromAllLevels(TO_ERASE)
 ```
