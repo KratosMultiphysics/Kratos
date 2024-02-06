@@ -1,14 +1,14 @@
 ---
 title: Explicit Vertex Morphing
-keywords: 
+keywords:
 tags: [explicit, vertex morphing, filtering, optimization]
 sidebar: optimization_application
-summary: 
+summary:
 ---
 
 ## Introduction
 
-Explicit Vertex morphing (here onwards called as vertex morphing) is a filtering method to filter out noise present in a gradient field or design field. Noisy gradient field is a common challenge in optimization problems which makes updated designs non-intuitive. They may also make the updated meshes based on updated design space with bad elements which eventually result in failure in primal and adjoint solution computation. Therefore it is crucial to apply a filtering technique to obtain a smooth gradient field. An example of a noisy field is shown in figure 1.
+Explicit Vertex morphing (here onwards called as vertex morphing) is a discrete filtering method to regularize optimization problem. Non-smooth discrete gradient field is a common challenge in optimization problems which makes design updates noisy and non-applicable for numerical model, for instance, bad elements which eventually result in failure in primal and adjoint solution computation. Therefore it is crucial to apply a filtering technique to obtain a smooth design updates. An example of a noisy field is shown in figure 1.
 
 <p align="center">
     <img src="https://github.com/KratosMultiphysics/Documentation/blob/master/OptimizationApplication/Filtering/sensitivity_field_noise.png?raw=true" alt="Noisy design field"/>
@@ -131,6 +131,10 @@ Thereafter, the gradient of the vertex is multiplied by the damping factor to co
 Then for each vertex's (i.e. $$i^{th}$$) neigbhour vertices (i.e. $$j^{th}$$) the weights are computed using filter functions mentioned above (i.e. $$A_{ij}$$). Thereafter, the vertex morphed gradients for each gradient is computed as given in the following equation.
 
 <p align="center">$$ \left(\frac{df}{d\underline{s}}\right)_{i, morphed} = \frac{1}{\sum_{j=1}^N A_{ij}}\sum_{j=1}^{N} A_{ij}\left(\frac{df}{d\underline{s}}\right)_j$$</p>
+
+## References
+TODO:
+
 
 ## Source files
 * [Doxygen](TODO) TODO
