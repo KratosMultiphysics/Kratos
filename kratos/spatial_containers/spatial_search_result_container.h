@@ -30,6 +30,22 @@ namespace Kratos
 ///@{
 
 ///@}
+///@name  Enum's
+///@{
+
+/**
+ * @enum SpatialSearchCommunication
+ * @brief Enum class for defining types of spatial search communication.
+ * This enum class is used to specify the type of communication used to communicate search results between partitions.
+ */
+enum class SpatialSearchCommunication
+{
+    SYNCHRONOUS_HOMOGENEOUS,   ///< Synchronous where all partitions know everything.
+    SYNCHRONOUS_HETEROGENEOUS, ///< Synchronous where sub-data communicators are considered.
+    ASYNCHRONOUS               ///< Asynchronous communication. Not implemented yet.
+};
+
+///@}
 ///@name Kratos Classes
 ///@{
 
@@ -37,13 +53,14 @@ class DataCommunicator;  // forward declaration
 
 /**
  * @class SpatialSearchResultContainer
- * @brief Spatial search result container
- * @details This class is used to store the results of a spatial search
- * @tparam TObjectType The type of the object
+ * @brief Spatial search result container.
+ * @details This class is used to store the results of a spatial search.
+ * @tparam TObjectType The type of the object.
+ * @tparam TSpatialSearchCommunication The type of spatial search communication considered.
  * @ingroup KratosCore
  * @author Vicente Mataix Ferrandiz
  */
-template <class TObjectType>
+template <class TObjectType, SpatialSearchCommunication TSpatialSearchCommunication = SpatialSearchCommunication::SYNCHRONOUS_HOMOGENEOUS>
 class KRATOS_API(KRATOS_CORE) SpatialSearchResultContainer
 {
 public:
@@ -707,17 +724,17 @@ private:
 }; // Class SpatialSearchResultContainer
 
 /// input stream function
-template <class TObjectType>
+template <class TObjectType, SpatialSearchCommunication TSpatialSearchCommunication>
 inline std::istream& operator>>(std::istream& rIStream,
-                                SpatialSearchResultContainer<TObjectType>& rThis)
+                                SpatialSearchResultContainer<TObjectType, TSpatialSearchCommunication>& rThis)
 {
     return rIStream;
 }
 
 /// output stream function
-template <class TObjectType>
+template <class TObjectType, SpatialSearchCommunication TSpatialSearchCommunication>
 inline std::ostream& operator<<(std::ostream& rOStream,
-                                const SpatialSearchResultContainer<TObjectType>& rThis)
+                                const SpatialSearchResultContainer<TObjectType, TSpatialSearchCommunication>& rThis)
 {
     rThis.PrintInfo(rOStream);
     rOStream << std::endl;

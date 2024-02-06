@@ -25,18 +25,21 @@
 namespace Kratos
 {
 
-template <class TObjectType>
-SpatialSearchResultContainer<TObjectType>::SpatialSearchResultContainer(const DataCommunicator& rDataCommunicator)
+template <class TObjectType, SpatialSearchCommunication TSpatialSearchCommunication>
+SpatialSearchResultContainer<TObjectType, TSpatialSearchCommunication>::SpatialSearchResultContainer(const DataCommunicator& rDataCommunicator)
     : mrDataCommunicator(rDataCommunicator)
 {
-    // TODO: Add something if required
+    /// Some error in case asynchronous
+    if constexpr (TSpatialSearchCommunication == SpatialSearchCommunication::ASYNCHRONOUS) {
+        KRATOS_ERROR << "Asynchronous communication is not yet implemented for SpatialSearchResultContainer" << std::endl;
+    }
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
 
-template <class TObjectType>
-void SpatialSearchResultContainer<TObjectType>::AddResult(SpatialSearchResultType& rResult)
+template <class TObjectType, SpatialSearchCommunication TSpatialSearchCommunication>
+void SpatialSearchResultContainer<TObjectType, TSpatialSearchCommunication>::AddResult(SpatialSearchResultType& rResult)
 {
     // Check if the object has been found
     if (rResult.IsObjectFound()) {
@@ -48,8 +51,8 @@ void SpatialSearchResultContainer<TObjectType>::AddResult(SpatialSearchResultTyp
 /***********************************************************************************/
 /***********************************************************************************/
 
-template <class TObjectType>
-void SpatialSearchResultContainer<TObjectType>::AddResult(
+template <class TObjectType, SpatialSearchCommunication TSpatialSearchCommunication>
+void SpatialSearchResultContainer<TObjectType, TSpatialSearchCommunication>::AddResult(
     TObjectType* pResult,
     const int Rank
     )
@@ -64,8 +67,8 @@ void SpatialSearchResultContainer<TObjectType>::AddResult(
 /***********************************************************************************/
 /***********************************************************************************/
 
-template <class TObjectType>
-void SpatialSearchResultContainer<TObjectType>::AddResult(
+template <class TObjectType, SpatialSearchCommunication TSpatialSearchCommunication>
+void SpatialSearchResultContainer<TObjectType, TSpatialSearchCommunication>::AddResult(
     TObjectType* pResult,
     const double Distance,
     const int Rank
@@ -82,8 +85,8 @@ void SpatialSearchResultContainer<TObjectType>::AddResult(
 /***********************************************************************************/
 /***********************************************************************************/
 
-template <class TObjectType>
-void SpatialSearchResultContainer<TObjectType>::Clear()
+template <class TObjectType, SpatialSearchCommunication TSpatialSearchCommunication>
+void SpatialSearchResultContainer<TObjectType, TSpatialSearchCommunication>::Clear()
 {
     // Clear pointer
     mpGlobalPointerCommunicator = nullptr;
@@ -98,8 +101,8 @@ void SpatialSearchResultContainer<TObjectType>::Clear()
 /***********************************************************************************/
 /***********************************************************************************/
 
-template <class TObjectType>
-void SpatialSearchResultContainer<TObjectType>::GenerateGlobalPointerCommunicator()
+template <class TObjectType, SpatialSearchCommunication TSpatialSearchCommunication>
+void SpatialSearchResultContainer<TObjectType, TSpatialSearchCommunication>::GenerateGlobalPointerCommunicator()
 {
     // Generate the communicator
     mpGlobalPointerCommunicator = Kratos::make_shared<GlobalPointerCommunicatorType>(mrDataCommunicator, mGlobalResults.ptr_begin(), mGlobalResults.ptr_end());
@@ -108,33 +111,35 @@ void SpatialSearchResultContainer<TObjectType>::GenerateGlobalPointerCommunicato
 /***********************************************************************************/
 /***********************************************************************************/
 
-template <class TObjectType>
-void SpatialSearchResultContainer<TObjectType>::Barrier()
+template <class TObjectType, SpatialSearchCommunication TSpatialSearchCommunication>
+void SpatialSearchResultContainer<TObjectType, TSpatialSearchCommunication>::Barrier()
 {
-    // Only in MPI code
-    if(mrDataCommunicator.IsDistributed()) {
-        // MPI data
-        const int rank = mrDataCommunicator.Rank();
-        const int current_world_size = mrDataCommunicator.Size();
+    // Only in MPI code and in SYNCHRONOUS_HETEROGENEOUS
+    if constexpr (TSpatialSearchCommunication == SpatialSearchCommunication::SYNCHRONOUS_HETEROGENEOUS) {
+        if(mrDataCommunicator.IsDistributed()) {
+            // MPI data
+            const int rank = mrDataCommunicator.Rank();
+            const int current_world_size = mrDataCommunicator.Size();
 
-        // Using the global Id as tag
-        KRATOS_DEBUG_ERROR_IF(mGlobalIndex > static_cast<IndexType>(std::numeric_limits<int>::max())) << "Global index is greater than integer. Error may happen" << std::endl;
-        const int tag = static_cast<int>(mGlobalIndex);
+            // Using the global Id as tag
+            KRATOS_DEBUG_ERROR_IF(mGlobalIndex > static_cast<IndexType>(std::numeric_limits<int>::max())) << "Global index is greater than integer. Error may happen" << std::endl;
+            const int tag = static_cast<int>(mGlobalIndex);
 
-        // Sending receiving simple integers
-        int send = 0;
-        int recv = 0;
+            // Sending receiving simple integers
+            int send = 0;
+            int recv = 0;
 
-        // Main rank
-        const int main_rank = 0;
+            // Main rank
+            const int main_rank = 0;
 
-        // If rank search, send to other partitions
-        if (rank == main_rank) {
-            for (int i_rank = 1; i_rank < current_world_size; ++i_rank) {
-                mrDataCommunicator.Send(send, i_rank, tag);
+            // If rank search, send to other partitions
+            if (rank == main_rank) {
+                for (int i_rank = 1; i_rank < current_world_size; ++i_rank) {
+                    mrDataCommunicator.Send(send, i_rank, tag);
+                }
+            } else { // Otherwise receive
+                mrDataCommunicator.Recv(recv, main_rank, tag);
             }
-        } else { // Otherwise receive
-            mrDataCommunicator.Recv(recv, main_rank, tag);
         }
     }
 }
@@ -142,8 +147,8 @@ void SpatialSearchResultContainer<TObjectType>::Barrier()
 /***********************************************************************************/
 /***********************************************************************************/
 
-template <class TObjectType>
-void SpatialSearchResultContainer<TObjectType>::SynchronizeAll()
+template <class TObjectType, SpatialSearchCommunication TSpatialSearchCommunication>
+void SpatialSearchResultContainer<TObjectType, TSpatialSearchCommunication>::SynchronizeAll()
 {
     // TODO: Try to avoid use simple calls of Send/Recv and try to use more efficient methods
 
@@ -230,8 +235,8 @@ void SpatialSearchResultContainer<TObjectType>::SynchronizeAll()
 /***********************************************************************************/
 /***********************************************************************************/
 
-template <class TObjectType>
-std::vector<double> SpatialSearchResultContainer<TObjectType>::GetDistances()
+template <class TObjectType, SpatialSearchCommunication TSpatialSearchCommunication>
+std::vector<double> SpatialSearchResultContainer<TObjectType, TSpatialSearchCommunication>::GetDistances()
 {
     // Check if the communicator has been created
     KRATOS_ERROR_IF(mpGlobalPointerCommunicator == nullptr) << "The communicator has not been created." << std::endl;
@@ -257,8 +262,8 @@ std::vector<double> SpatialSearchResultContainer<TObjectType>::GetDistances()
 /***********************************************************************************/
 /***********************************************************************************/
 
-template <class TObjectType>
-std::vector<bool> SpatialSearchResultContainer<TObjectType>::GetResultIsLocal()
+template <class TObjectType, SpatialSearchCommunication TSpatialSearchCommunication>
+std::vector<bool> SpatialSearchResultContainer<TObjectType, TSpatialSearchCommunication>::GetResultIsLocal()
 {
     // Check if the communicator has been created
     KRATOS_ERROR_IF(mpGlobalPointerCommunicator == nullptr) << "The communicator has not been created." << std::endl;
@@ -286,8 +291,8 @@ std::vector<bool> SpatialSearchResultContainer<TObjectType>::GetResultIsLocal()
 /***********************************************************************************/
 /***********************************************************************************/
 
-template <class TObjectType>
-std::vector<int> SpatialSearchResultContainer<TObjectType>::GetResultRank()
+template <class TObjectType, SpatialSearchCommunication TSpatialSearchCommunication>
+std::vector<int> SpatialSearchResultContainer<TObjectType, TSpatialSearchCommunication>::GetResultRank()
 {
     // Check if the communicator has been created
     KRATOS_ERROR_IF(mpGlobalPointerCommunicator == nullptr) << "The communicator has not been created." << std::endl;
@@ -313,8 +318,8 @@ std::vector<int> SpatialSearchResultContainer<TObjectType>::GetResultRank()
 /***********************************************************************************/
 /***********************************************************************************/
 
-template <class TObjectType>
-std::vector<bool> SpatialSearchResultContainer<TObjectType>::GetResultIsActive()
+template <class TObjectType, SpatialSearchCommunication TSpatialSearchCommunication>
+std::vector<bool> SpatialSearchResultContainer<TObjectType, TSpatialSearchCommunication>::GetResultIsActive()
 {
     // Check if the communicator has been created
     KRATOS_ERROR_IF(mpGlobalPointerCommunicator == nullptr) << "The communicator has not been created." << std::endl;
@@ -346,8 +351,8 @@ std::vector<bool> SpatialSearchResultContainer<TObjectType>::GetResultIsActive()
 /***********************************************************************************/
 /***********************************************************************************/
 
-template <class TObjectType>
-std::vector<bool> SpatialSearchResultContainer<TObjectType>::GetResultIsInside(
+template <class TObjectType, SpatialSearchCommunication TSpatialSearchCommunication>
+std::vector<bool> SpatialSearchResultContainer<TObjectType, TSpatialSearchCommunication>::GetResultIsInside(
     const array_1d<double, 3>& rPoint,
     const double Tolerance
     )
@@ -387,8 +392,8 @@ std::vector<bool> SpatialSearchResultContainer<TObjectType>::GetResultIsInside(
 /***********************************************************************************/
 /***********************************************************************************/
 
-template <class TObjectType>
-std::vector<Vector> SpatialSearchResultContainer<TObjectType>::GetResultShapeFunctions(const array_1d<double, 3>& rPoint)
+template <class TObjectType, SpatialSearchCommunication TSpatialSearchCommunication>
+std::vector<Vector> SpatialSearchResultContainer<TObjectType, TSpatialSearchCommunication>::GetResultShapeFunctions(const array_1d<double, 3>& rPoint)
 {
     // Check if the communicator has been created
     KRATOS_ERROR_IF(mpGlobalPointerCommunicator == nullptr) << "The communicator has not been created." << std::endl;
@@ -430,8 +435,8 @@ std::vector<Vector> SpatialSearchResultContainer<TObjectType>::GetResultShapeFun
 /***********************************************************************************/
 /***********************************************************************************/
 
-template <class TObjectType>
-std::vector<IndexType> SpatialSearchResultContainer<TObjectType>::GetResultIndices()
+template <class TObjectType, SpatialSearchCommunication TSpatialSearchCommunication>
+std::vector<IndexType> SpatialSearchResultContainer<TObjectType, TSpatialSearchCommunication>::GetResultIndices()
 {
     // Check if the communicator has been created
     KRATOS_ERROR_IF(mpGlobalPointerCommunicator == nullptr) << "The communicator has not been created." << std::endl;
@@ -458,8 +463,8 @@ std::vector<IndexType> SpatialSearchResultContainer<TObjectType>::GetResultIndic
 /***********************************************************************************/
 /***********************************************************************************/
 
-template <class TObjectType>
-std::vector<std::vector<IndexType>> SpatialSearchResultContainer<TObjectType>::GetResultNodeIndices()
+template <class TObjectType, SpatialSearchCommunication TSpatialSearchCommunication>
+std::vector<std::vector<IndexType>> SpatialSearchResultContainer<TObjectType, TSpatialSearchCommunication>::GetResultNodeIndices()
 {
     // Check if the communicator has been created
     KRATOS_ERROR_IF(mpGlobalPointerCommunicator == nullptr) << "The communicator has not been created." << std::endl;
@@ -500,8 +505,8 @@ std::vector<std::vector<IndexType>> SpatialSearchResultContainer<TObjectType>::G
 /***********************************************************************************/
 /***********************************************************************************/
 
-template <class TObjectType>
-std::vector<std::vector<int>> SpatialSearchResultContainer<TObjectType>::GetResultPartitionIndices()
+template <class TObjectType, SpatialSearchCommunication TSpatialSearchCommunication>
+std::vector<std::vector<int>> SpatialSearchResultContainer<TObjectType, TSpatialSearchCommunication>::GetResultPartitionIndices()
 {
     // Check if the communicator has been created
     KRATOS_ERROR_IF(mpGlobalPointerCommunicator == nullptr) << "The communicator has not been created." << std::endl;
@@ -542,8 +547,8 @@ std::vector<std::vector<int>> SpatialSearchResultContainer<TObjectType>::GetResu
 /***********************************************************************************/
 /***********************************************************************************/
 
-template <class TObjectType>
-std::vector<std::vector<array_1d<double, 3>>> SpatialSearchResultContainer<TObjectType>::GetResultCoordinates()
+template <class TObjectType, SpatialSearchCommunication TSpatialSearchCommunication>
+std::vector<std::vector<array_1d<double, 3>>> SpatialSearchResultContainer<TObjectType, TSpatialSearchCommunication>::GetResultCoordinates()
 {
     // Check if the communicator has been created
     KRATOS_ERROR_IF(mpGlobalPointerCommunicator == nullptr) << "The communicator has not been created." << std::endl;
@@ -584,8 +589,8 @@ std::vector<std::vector<array_1d<double, 3>>> SpatialSearchResultContainer<TObje
 /***********************************************************************************/
 /***********************************************************************************/
 
-template <class TObjectType>
-void SpatialSearchResultContainer<TObjectType>::RemoveResultsFromIndexesList(const std::vector<IndexType>& rIndexes)
+template <class TObjectType, SpatialSearchCommunication TSpatialSearchCommunication>
+void SpatialSearchResultContainer<TObjectType, TSpatialSearchCommunication>::RemoveResultsFromIndexesList(const std::vector<IndexType>& rIndexes)
 {
     // Prepare for local remove
     std::unordered_map<IndexType, IndexType> local_indexes_map;
@@ -630,8 +635,8 @@ void SpatialSearchResultContainer<TObjectType>::RemoveResultsFromIndexesList(con
 /***********************************************************************************/
 /***********************************************************************************/
 
-template <class TObjectType>
-std::vector<int> SpatialSearchResultContainer<TObjectType>::GenerateGreaterThanZeroIndexes(const std::vector<int>& rInputVector)
+template <class TObjectType, SpatialSearchCommunication TSpatialSearchCommunication>
+std::vector<int> SpatialSearchResultContainer<TObjectType, TSpatialSearchCommunication>::GenerateGreaterThanZeroIndexes(const std::vector<int>& rInputVector)
 {
     std::vector<int> indexes;
     for (int i = 1; i < static_cast<int>(rInputVector.size()); ++i) {
@@ -645,8 +650,8 @@ std::vector<int> SpatialSearchResultContainer<TObjectType>::GenerateGreaterThanZ
 /***********************************************************************************/
 /***********************************************************************************/
 
-template <class TObjectType>
-std::string SpatialSearchResultContainer<TObjectType>::Info() const
+template <class TObjectType, SpatialSearchCommunication TSpatialSearchCommunication>
+std::string SpatialSearchResultContainer<TObjectType, TSpatialSearchCommunication>::Info() const
 {
     std::stringstream buffer;
     buffer << "SpatialSearchResultContainer" ;
@@ -656,8 +661,8 @@ std::string SpatialSearchResultContainer<TObjectType>::Info() const
 /***********************************************************************************/
 /***********************************************************************************/
 
-template <class TObjectType>
-void SpatialSearchResultContainer<TObjectType>::PrintInfo(std::ostream& rOStream) const
+template <class TObjectType, SpatialSearchCommunication TSpatialSearchCommunication>
+void SpatialSearchResultContainer<TObjectType, TSpatialSearchCommunication>::PrintInfo(std::ostream& rOStream) const
 {
     rOStream << "SpatialSearchResultContainer" << "\n";
 }
@@ -665,8 +670,8 @@ void SpatialSearchResultContainer<TObjectType>::PrintInfo(std::ostream& rOStream
 /***********************************************************************************/
 /***********************************************************************************/
 
-template <class TObjectType>
-void SpatialSearchResultContainer<TObjectType>::PrintData(std::ostream& rOStream) const
+template <class TObjectType, SpatialSearchCommunication TSpatialSearchCommunication>
+void SpatialSearchResultContainer<TObjectType, TSpatialSearchCommunication>::PrintData(std::ostream& rOStream) const
 {
     rOStream << "SpatialSearchResultContainer data summary: " << "\n";
     rOStream << "\tNumber of local results: " << mLocalResults.size() << "\n";
@@ -676,8 +681,8 @@ void SpatialSearchResultContainer<TObjectType>::PrintData(std::ostream& rOStream
 /***********************************************************************************/
 /***********************************************************************************/
 
-template <class TObjectType>
-void SpatialSearchResultContainer<TObjectType>::save(Serializer& rSerializer) const
+template <class TObjectType, SpatialSearchCommunication TSpatialSearchCommunication>
+void SpatialSearchResultContainer<TObjectType, TSpatialSearchCommunication>::save(Serializer& rSerializer) const
 {
     //rSerializer.save("DataCommunicator", mrDataCommunicator); // TODO: DataCommunicator does not define Serializer
     rSerializer.save("LocalResults", mLocalResults);
@@ -688,8 +693,8 @@ void SpatialSearchResultContainer<TObjectType>::save(Serializer& rSerializer) co
 /***********************************************************************************/
 /***********************************************************************************/
 
-template <class TObjectType>
-void SpatialSearchResultContainer<TObjectType>::load(Serializer& rSerializer)
+template <class TObjectType, SpatialSearchCommunication TSpatialSearchCommunication>
+void SpatialSearchResultContainer<TObjectType, TSpatialSearchCommunication>::load(Serializer& rSerializer)
 {
     //rSerializer.load("DataCommunicator", mrDataCommunicator); // TODO: DataCommunicator does not define Serializer
     rSerializer.load("LocalResults", mLocalResults);
@@ -701,9 +706,16 @@ void SpatialSearchResultContainer<TObjectType>::load(Serializer& rSerializer)
 /***********************************************************************************/
 
 /// Template instantiation
-template class SpatialSearchResultContainer<Node>;
-template class SpatialSearchResultContainer<GeometricalObject>;
-template class SpatialSearchResultContainer<Element>;
-template class SpatialSearchResultContainer<Condition>;
+// SYNCHRONOUS_HOMOGENEOUS
+template class SpatialSearchResultContainer<Node, SpatialSearchCommunication::SYNCHRONOUS_HOMOGENEOUS>;
+template class SpatialSearchResultContainer<GeometricalObject, SpatialSearchCommunication::SYNCHRONOUS_HOMOGENEOUS>;
+template class SpatialSearchResultContainer<Element, SpatialSearchCommunication::SYNCHRONOUS_HOMOGENEOUS>;
+template class SpatialSearchResultContainer<Condition, SpatialSearchCommunication::SYNCHRONOUS_HOMOGENEOUS>;
+
+// SYNCHRONOUS_HETEROGENEOUS
+template class SpatialSearchResultContainer<Node, SpatialSearchCommunication::SYNCHRONOUS_HETEROGENEOUS>;
+template class SpatialSearchResultContainer<GeometricalObject, SpatialSearchCommunication::SYNCHRONOUS_HETEROGENEOUS>;
+template class SpatialSearchResultContainer<Element, SpatialSearchCommunication::SYNCHRONOUS_HETEROGENEOUS>;
+template class SpatialSearchResultContainer<Condition, SpatialSearchCommunication::SYNCHRONOUS_HETEROGENEOUS>;
 
 }  // namespace Kratos
