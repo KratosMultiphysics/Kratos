@@ -24,7 +24,6 @@ mode = "c"
 do_simplifications = False
 # dim_to_compute = "Both"             # Spatial dimensions to compute. Options:  "2D","3D","Both"
 dim_to_compute = "2D"             # Spatial dimensions to compute. Options:  "2D","3D","Both"
-divide_by_rho = True                # Divide the mass conservation equation by rho
 
 convective_term = True
 linearisation = "Picard" # Convective term linearisation type. Options: "Picard", "FullNR"
@@ -34,7 +33,6 @@ template_filename = "incompressible_navier_stokes_div_stable_cpp_template.cpp"
 info_msg = "\n"
 info_msg += "Element generator settings:\n"
 info_msg += "\t - Dimension: " + dim_to_compute + "\n"
-info_msg += "\t - Divide mass conservation by rho: " + str(divide_by_rho) + "\n"
 print(info_msg)
 
 if dim_to_compute == "2D":
@@ -89,6 +87,10 @@ for dim, v_n_nodes, p_n_nodes in zip(dim_vector, v_nodes_vector, p_nodes_vector)
     stress = DefineVector('r_stress',strain_size)
 
     ## Other simbols definition
+    h = sympy.Symbol('h', positive = True)                        # Element characteristic size
+    stab_c1 = sympy.Symbol('stab_c1', positive = True)            # Stabilization first constant
+    stab_c2 = sympy.Symbol('stab_c2', positive = True)            # Stabilization second constant
+    dyn_tau = sympy.Symbol('dyn_tau', positive = True)            # Stabilization dynamic tau
     dt = sympy.Symbol('rData.DeltaTime', positive = True)         # Time increment
     gauss_weight = sympy.Symbol('gauss_weight', positive = True)  # Integration point weight
 
@@ -143,14 +145,24 @@ for dim, v_n_nodes, p_n_nodes in zip(dim_vector, v_nodes_vector, p_nodes_vector)
 
     ## Compute galerkin functional
     # Navier-Stokes functional
-    if divide_by_rho:
-        rv_galerkin = rho*w_gauss.transpose()*f_gauss - rho*w_gauss.transpose()*accel_gauss - grad_w_voigt.transpose()*stress + div_w*p_gauss - q_gauss*div_v
-        if convective_term:
-            rv_galerkin -= rho*w_gauss.transpose()*convective_term_gauss.transpose()
-    else:
-        rv_galerkin = rho*w_gauss.transpose()*f_gauss - rho*w_gauss.transpose()*accel_gauss - grad_w_voigt.transpose()*stress + div_w*p_gauss - rho*q_gauss*div_v
-        if convective_term:
-            rv_galerkin -= rho*w_gauss.transpose()*convective_term_gauss.transpose()
+    rv_galerkin = rho*w_gauss.transpose()*f_gauss - rho*w_gauss.transpose()*accel_gauss - grad_w_voigt.transpose()*stress + div_w*p_gauss - q_gauss*div_v
+    if convective_term:
+        rv_galerkin -= rho*w_gauss.transpose()*convective_term_gauss.transpose()
+
+    ## Stabilization functional
+    stab_norm_a = 0.0
+    for i in range(dim):
+        stab_norm_a += vconv_gauss[i]**2
+    stab_norm_a = sympy.sqrt(stab_norm_a)
+    tau = 1.0/(rho*dyn_tau/dt + stab_c2*rho*stab_norm_a/h + stab_c1*mu/h**2) # Stabilization operator
+
+    mom_residual = rho*f_gauss - rho*accel_gauss -rho*convective_term_gauss.transpose() - grad_p #TODO: Here there should be the viscous component of the stress
+    vel_subscale = tau * mom_residual
+
+    rv_stab = grad_q.transpose()*vel_subscale
+    rv_stab += rho*vconv_gauss.transpose()*grad_w*vel_subscale
+    rv_stab += rho*div_vconv*w_gauss.transpose()*vel_subscale
+    #TODO: Think about the viscous subscale component --> should we include it in the stress calculation?
 
     ## Define DOFs and test function vectors
     n_dofs = v_n_nodes * dim + p_n_nodes
@@ -170,10 +182,13 @@ for dim, v_n_nodes, p_n_nodes in zip(dim_vector, v_nodes_vector, p_nodes_vector)
         testfunc[v_n_nodes*dim + i] = q[i,0]
 
     ## Compute LHS and RHS
+    # Add the stabilization to the Galerkin residual
+    functional = rv_galerkin + rv_stab
+
     # For the RHS computation one wants the residual of the previous iteration (residual based formulation). By this reason the stress is
     # included as a symbolic variable, which is assumed to be passed as an argument from the previous iteration database.
     print(f"Computing {dim}D RHS Gauss point contribution\n")
-    rhs = Compute_RHS(rv_galerkin.copy(), testfunc, do_simplifications)
+    rhs = Compute_RHS(functional.copy(), testfunc, do_simplifications)
     rhs_out = OutputVector_CollectingFactors(gauss_weight*rhs, "rRHS", mode, assignment_op='+=')
 
     # Compute LHS (RHS(residual) differenctiation w.r.t. the DOFs)

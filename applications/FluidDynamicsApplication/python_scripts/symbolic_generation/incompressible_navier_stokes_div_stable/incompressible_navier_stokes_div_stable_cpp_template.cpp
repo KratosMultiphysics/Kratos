@@ -17,7 +17,7 @@
 
 
 // Project includes
-
+#include "utilities/element_size_calculator.h"
 
 // Application includes
 #include "incompressible_navier_stokes_div_stable.h"
@@ -176,7 +176,7 @@ void IncompressibleNavierStokesDivStable<TDim>::CalculateLocalSystem(
 
     // Initialize element data
     ElementDataContainer aux_data;
-    SetElementData(aux_data);
+    SetElementData(rCurrentProcessInfo, aux_data);
 
     // Initialize constitutive law parameters
     const auto& r_geom = this->GetGeometry();
@@ -208,6 +208,7 @@ void IncompressibleNavierStokesDivStable<TDim>::CalculateLocalSystem(
         // Calculate current Gauss point material response
         CalculateStrainRate(aux_data);
         mpConstitutiveLaw->CalculateMaterialResponseCauchy(cons_law_params);
+        mpConstitutiveLaw->CalculateValue(cons_law_params, EFFECTIVE_VISCOSITY, aux_data.EffectiveViscosity);
 
         // Assemble standard Galerkin contribution
         ComputeGaussPointLHSContribution(aux_data, rLeftHandSideMatrix);
@@ -304,8 +305,11 @@ void IncompressibleNavierStokesDivStable<TDim>::PrintInfo(std::ostream& rOStream
 // Private operations
 
 template <unsigned int TDim>
-void IncompressibleNavierStokesDivStable<TDim>::SetElementData(ElementDataContainer &rData)
+void IncompressibleNavierStokesDivStable<TDim>::SetElementData(
+    const ProcessInfo& rProcessInfo,
+    ElementDataContainer &rData)
 {
+    // Set nodal data
     const auto& r_geom = this->GetGeometry();
     for (IndexType i = 0; i < VelocityNumNodes; ++i) {
         const auto& r_v = r_geom[i].FastGetSolutionStepValue(VELOCITY);
@@ -326,6 +330,18 @@ void IncompressibleNavierStokesDivStable<TDim>::SetElementData(ElementDataContai
     for (IndexType i = 0; i < PressureNumNodes; ++i) {
         rData.Pressure[i] = r_geom[i].FastGetSolutionStepValue(PRESSURE);
     }
+
+    // Set material values
+    rData.Density = this->GetProperties().GetValue(DENSITY);
+
+    // Set stabilization values
+    rData.StabC1 = 4.0;
+    rData.StabC2 = 2.0;
+    rData.DynamicTau = rProcessInfo[DYNAMIC_TAU];
+    rData.ElementSize = ElementSizeCalculator<TDim, VelocityNumNodes>::AverageElementSize(r_geom);
+
+    // Set other data
+    rData.DeltaTime = rProcessInfo[DELTA_TIME];
 }
 
 template< unsigned int TDim >
@@ -424,15 +440,22 @@ void IncompressibleNavierStokesDivStable<TDim>::CalculateStrainRate(ElementDataC
 
 template <>
 void IncompressibleNavierStokesDivStable<2>::ComputeGaussPointLHSContribution(
-    ElementDataContainer& rData,
+    const ElementDataContainer& rData,
     MatrixType& rLHS)
 {
     // Get material data
-    const double rho = this->GetProperties().GetValue(DENSITY);
+    const double rho = rData.Density;
+    const double mu = rData.EffectiveViscosity;
 
     // Get auxiliary data
     const double bdf0 = rData.BDF0;
     const double dt = rData.DeltaTime;
+
+    // Get stabilization data
+    const double h = rData.ElementSize;
+    const double stab_c1 = rData.StabC1;
+    const double stab_c2 = rData.StabC2;
+    const double dyn_tau = rData.DynamicTau;
 
     // Calculate convective velocity
     const BoundedMatrix<double,2,6> vconv = rData.Velocity - rData.MeshVelocity;
@@ -453,15 +476,22 @@ void IncompressibleNavierStokesDivStable<2>::ComputeGaussPointLHSContribution(
 
 template <>
 void IncompressibleNavierStokesDivStable<3>::ComputeGaussPointLHSContribution(
-    ElementDataContainer& rData,
+    const ElementDataContainer& rData,
     MatrixType& rLHS)
 {
     // Get material data
-    const double rho = this->GetProperties().GetValue(DENSITY);
+    const double rho = rData.Density;
+    const double mu = rData.EffectiveViscosity;
 
     // Get auxiliary data
-    const double dt = rData.DeltaTime;
     const double bdf0 = rData.BDF0;
+    const double dt = rData.DeltaTime;
+
+    // Get stabilization data
+    const double h = rData.ElementSize;
+    const double stab_c1 = rData.StabC1;
+    const double stab_c2 = rData.StabC2;
+    const double dyn_tau = rData.DynamicTau;
 
     // Calculate convective velocity
     const BoundedMatrix<double,3,10> vconv = rData.Velocity - rData.MeshVelocity;
@@ -482,17 +512,24 @@ void IncompressibleNavierStokesDivStable<3>::ComputeGaussPointLHSContribution(
 
 template <>
 void IncompressibleNavierStokesDivStable<2>::ComputeGaussPointRHSContribution(
-    ElementDataContainer& rData,
+    const ElementDataContainer& rData,
     VectorType& rRHS)
 {
     // Get material data
-    const double rho = this->GetProperties().GetValue(DENSITY);
+    const double rho = rData.Density;
+    const double mu = rData.EffectiveViscosity;
 
     // Get auxiliary data
     const double bdf0 = rData.BDF0;
     const double bdf1 = rData.BDF1;
     const double bdf2 = rData.BDF2;
     const double dt = rData.DeltaTime;
+
+    // Get stabilization data
+    const double h = rData.ElementSize;
+    const double stab_c1 = rData.StabC1;
+    const double stab_c2 = rData.StabC2;
+    const double dyn_tau = rData.DynamicTau;
 
     // Get nodal data
     const auto& r_v = rData.Velocity;
@@ -521,17 +558,24 @@ void IncompressibleNavierStokesDivStable<2>::ComputeGaussPointRHSContribution(
 
 template <>
 void IncompressibleNavierStokesDivStable<3>::ComputeGaussPointRHSContribution(
-    ElementDataContainer& rData,
+    const ElementDataContainer& rData,
     VectorType& rRHS)
 {
     // Get material data
-    const double rho = this->GetProperties().GetValue(DENSITY);
+    const double rho = rData.Density;
+    const double mu = rData.EffectiveViscosity;
 
     // Get auxiliary data
     const double bdf0 = rData.BDF0;
     const double bdf1 = rData.BDF1;
     const double bdf2 = rData.BDF2;
     const double dt = rData.DeltaTime;
+
+    // Get stabilization data
+    const double h = rData.ElementSize;
+    const double stab_c1 = rData.StabC1;
+    const double stab_c2 = rData.StabC2;
+    const double dyn_tau = rData.DynamicTau;
 
     // Get nodal data
     const auto& r_v = rData.Velocity;

@@ -99,6 +99,16 @@ public:
         double BDF2;
         double Weight;
         double DeltaTime;
+
+        // Stabilization values
+        double StabC1;
+        double StabC2;
+        double DynamicTau;
+        double ElementSize;
+
+        // Material parameters
+        double Density;
+        double EffectiveViscosity;
     };
 
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(IncompressibleNavierStokesDivStable);
@@ -289,7 +299,9 @@ private:
     ///@name Private Operations
     ///@{
 
-    void SetElementData(ElementDataContainer& rElementData);
+    void SetElementData(
+        const ProcessInfo& rProcessInfo,
+        ElementDataContainer& rElementData);
 
     void CalculateKinematics(
         Vector& rGaussWeights,
@@ -301,11 +313,11 @@ private:
     void CalculateStrainRate(ElementDataContainer& rData);
 
     void ComputeGaussPointLHSContribution(
-        ElementDataContainer& rData,
+        const ElementDataContainer& rData,
         MatrixType& rLHS);
 
     void ComputeGaussPointRHSContribution(
-        ElementDataContainer& rData,
+        const ElementDataContainer& rData,
         VectorType& rRHS);
 
     ///@}
