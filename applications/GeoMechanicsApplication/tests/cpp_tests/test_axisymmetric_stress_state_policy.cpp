@@ -57,18 +57,25 @@ KRATOS_TEST_CASE_IN_SUITE(CalculateBMatrixWithValidGeometryReturnsCorrectResults
     std::vector<ModelPart::IndexType> node_ids{1, 2, 3};
     model_part.CreateNewElement("UPwSmallStrainElement2D3N", 1, node_ids, model_part.CreateNewProperties(0));
 
-    Vector Np(3, 1.0);
-    Matrix GradNpT(3, 2, 3.0);
+    Vector Np(3);
+    Np <<= 1.0, 2.0, 3.0;
+
+    // clang-format off
+    Matrix GradNpT(3, 2);
+    GradNpT <<= 1.0, 2.0,
+                3.0, 4.0,
+                5.0, 6.0;
+    // clang-format on
 
     const Matrix calculated_matrix =
         p_stress_state_policy->CalculateBMatrix(GradNpT, Np, 3, model_part.GetElement(1).GetGeometry());
 
     // clang-format off
     Matrix expected_matrix(4, 6);
-    expected_matrix <<= 3   ,0  ,3   ,0 ,3   ,0,
-                        0   ,3  ,0   ,3 ,0   ,3,
-                        0.5 ,0  ,0.5 ,0 ,0.5 ,0,
-                        3   ,3  ,3   ,3 ,3   ,3;
+    expected_matrix <<= 1   ,0  ,3   ,0 ,5   ,0,
+                        0   ,2  ,0   ,4 ,0   ,6,
+                        0.2 ,0  ,0.4 ,0 ,0.6 ,0,
+                        2   ,1  ,4   ,3 ,6   ,5;
     // clang-format on
 
     KRATOS_CHECK_MATRIX_NEAR(calculated_matrix, expected_matrix, 1e-12)
