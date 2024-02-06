@@ -16,13 +16,11 @@
 namespace Kratos
 {
 
-static const SizeType voigt_size =
-    VOIGT_SIZE_2D_PLANE_STRAIN; // For a axi-symmetric stress state, the voigt size is the same as for plane strain
-static const SizeType dimension = 2; // Axi-symmetric stress state assumes a 2D problem definition
+static const SizeType NumberOfUDofPerNode = 2; // Axi-symmetric stress state assumes a 2D problem definition
 
 Matrix AxisymmetricStressStatePolicy::CalculateBMatrix(const Matrix& GradNpT, const Vector& Np, SizeType NumberOfNodes) const
 {
-    return ZeroMatrix(voigt_size, dimension * NumberOfNodes);
+    return ZeroMatrix(VOIGT_SIZE_2D_AXISYMMETRIC, NumberOfUDofPerNode * NumberOfNodes);
 }
 
 } // namespace Kratos
