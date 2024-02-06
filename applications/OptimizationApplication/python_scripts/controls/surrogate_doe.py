@@ -8,6 +8,7 @@ from KratosMultiphysics.OptimizationApplication.utilities.optimization_problem i
 from KratosMultiphysics.OptimizationApplication.utilities.model_part_utilities import ModelPartOperation
 from KratosMultiphysics.OptimizationApplication.utilities.union_utilities import ContainerExpressionTypes
 import KratosMultiphysics.FluidDynamicsApplication as KratosCFD
+import KratosMultiphysics.StructuralMechanicsApplication as KratosSMA
 import numpy as np
 import math
 
@@ -155,8 +156,11 @@ class AngleOfAttackFreeStreamMachControl(Control):
         self.control_vars = parameters["variable_names_list"].GetStringArray()
         self.angle_of_attack = parameters["angle_of_attack"].GetDouble()
         self.variable_utils = Kratos.VariableUtils()
-        self.scalar_vars = ["PRESSURE", "REACTION_WATER_PRESSURE", "VELOCITY_POTENTIAL", "AUXILIARY_VELOCITY_POTENTIAL"]
-        self.vec_vars = ["VELOCITY", "MESH_DISPLACEMENT", "MESH_VELOCITY", "MESH_ACCELERATION", "MESH_REACTION", "ACCELERATION","DISPLACEMENT", "ROTATION", "REACTION", "FORCE", "POINT_LOAD"]
+        self.scalar_vars = ["PRESSURE", "REACTION_WATER_PRESSURE", "VELOCITY_POTENTIAL", "AUXILIARY_VELOCITY_POTENTIAL",
+                            "NEGATIVE_FACE_PRESSURE", "POSITIVE_FACE_PRESSURE"]
+        self.vec_vars = ["VELOCITY", "MESH_DISPLACEMENT", "MESH_VELOCITY", "MESH_ACCELERATION", "MESH_REACTION", "ACCELERATION",
+                         "VOLUME_ACCELERATION","DISPLACEMENT", "ROTATION", "REACTION", "FORCE", "POINT_LOAD", "LINE_LOAD", "SURFACE_LOAD",
+                         "REACTION_MOMENT", "POINT_MOMENT"]
 
     def Initialize(self) -> None:
         model_parts = self.models[self.control_model_name].GetModelPartNames()
@@ -254,16 +258,20 @@ class AngleOfAttackFreeStreamMachControl(Control):
             mdpNames = model.GetModelPartNames()
             mdp = model.GetModelPart(mdpNames[0])
             root_mdp = mdp.GetRootModelPart()
-
             self.variable_utils.UpdateCurrentToInitialConfiguration(root_mdp.GetNodes())
-            
+            histVars = root_mdp.GetHistoricalVariablesNames()
             for vec_field in self.vec_vars:
-                 if root_mdp.HasNodalSolutionStepVariable(Kratos.KratosGlobals.GetVariable(vec_field)):
+                if vec_field in histVars:
                     self.variable_utils.SetHistoricalVariableToZero(Kratos.KratosGlobals.GetVariable(vec_field),root_mdp.GetNodes())
+                else:
+                    self.variable_utils.SetNonHistoricalVariableToZero(Kratos.KratosGlobals.GetVariable(vec_field),root_mdp.GetNodes())
 
             for scala_field in self.scalar_vars:
-                if root_mdp.HasNodalSolutionStepVariable(Kratos.KratosGlobals.GetVariable(scala_field)):
+                if scala_field in histVars:
                     self.variable_utils.SetHistoricalVariableToZero(Kratos.KratosGlobals.GetVariable(scala_field),root_mdp.GetNodes())
+                else:
+                    self.variable_utils.SetNonHistoricalVariableToZero(Kratos.KratosGlobals.GetVariable(scala_field),root_mdp.GetNodes())
+                
 
 
     def __str__(self) -> str:

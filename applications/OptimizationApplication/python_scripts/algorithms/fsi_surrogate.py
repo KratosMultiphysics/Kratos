@@ -159,7 +159,7 @@ class FsiSurrogate(Algorithm):
                 if element[0] == "PRESSURE_COEFFICIENT" :
                     for cond in modelpart.Conditions:
                         header.append(element[0] + '_' + str(cond.Id))
-                if (element[0] == "LIFT_COEFFICIENT") or (element[0] == "DRAG_COEFFICIENT"):
+                elif (element[0] == "LIFT_COEFFICIENT") or (element[0] == "DRAG_COEFFICIENT"):
                     header.append(element[0])
                 else :
                     for node in modelpart.Nodes:
@@ -190,7 +190,7 @@ class FsiSurrogate(Algorithm):
                       for cond in modelpart.Conditions:
                            nextSample.append(cond.GetValue(var))
                 elif element[0] == "LIFT_COEFFICIENT" or element[0] == "DRAG_COEFFICIENT":
-                    root_model_part.ProcessInfo.GetValue(var)
+                    nextSample.append(root_model_part.ProcessInfo.GetValue(var))
                 else:
                 	for node in modelpart.Nodes:
                             nextSample.append(node.GetSolutionStepValue(var))
@@ -198,13 +198,22 @@ class FsiSurrogate(Algorithm):
                 varX = Kratos.KratosGlobals.GetVariable(element[0] + '_X')
                 varY = Kratos.KratosGlobals.GetVariable(element[0] + '_Y')
                 varZ = Kratos.KratosGlobals.GetVariable(element[0] + '_Z')
-                for node in modelpart.Nodes:
-                    valX = node.GetSolutionStepValue(varX)
-                    valY = node.GetSolutionStepValue(varY)
-                    valZ = node.GetSolutionStepValue(varZ)
-                    nextSample.append(valX)
-                    nextSample.append(valY)
-                    nextSample.append(valZ)
+                if element[0] == "VELOCITY":
+                    for node in modelpart.Nodes:
+                        valX = node.GetValue(varX)
+                        valY = node.GetValue(varY)
+                        valZ = node.GetValue(varZ)
+                        nextSample.append(valX)
+                        nextSample.append(valY)
+                        nextSample.append(valZ)
+                else:
+                    for node in modelpart.Nodes:
+                        valX = node.GetSolutionStepValue(varX)
+                        valY = node.GetSolutionStepValue(varY)
+                        valZ = node.GetSolutionStepValue(varZ)
+                        nextSample.append(valX)
+                        nextSample.append(valY)
+                        nextSample.append(valZ)
         return nextSample
     
     def surrogate_io_valid_append(self):
@@ -224,7 +233,7 @@ class FsiSurrogate(Algorithm):
                     for cond in modelpart.Conditions:
                         nextSample.append(cond.GetValue(var))
                 elif element[0] == "LIFT_COEFFICIENT" or element[0] == "DRAG_COEFFICIENT":
-                    root_model_part.ProcessInfo.GetValue(var)
+                    nextSample.append(root_model_part.ProcessInfo.GetValue(var))
                 else:
                     for node in modelpart.Nodes:
                         nextSample.append(node.GetSolutionStepValue(var))
@@ -232,13 +241,22 @@ class FsiSurrogate(Algorithm):
                 varX = Kratos.KratosGlobals.GetVariable(element[0] + '_X')
                 varY = Kratos.KratosGlobals.GetVariable(element[0] + '_Y')
                 varZ = Kratos.KratosGlobals.GetVariable(element[0] + '_Z')
-                for node in modelpart.Nodes:
-                    valX = node.GetSolutionStepValue(varX)
-                    valY = node.GetSolutionStepValue(varY)
-                    valZ = node.GetSolutionStepValue(varZ)
-                    nextSample.append(valX)
-                    nextSample.append(valY)
-                    nextSample.append(valZ)
+                if element[0] == "VELOCITY":
+                    for node in modelpart.Nodes:
+                        valX = node.GetValue(varX)
+                        valY = node.GetValue(varY)
+                        valZ = node.GetValue(varZ)
+                        nextSample.append(valX)
+                        nextSample.append(valY)
+                        nextSample.append(valZ)
+                else:
+                    for node in modelpart.Nodes:
+                        valX = node.GetSolutionStepValue(varX)
+                        valY = node.GetSolutionStepValue(varY)
+                        valZ = node.GetSolutionStepValue(varZ)
+                        nextSample.append(valX)
+                        nextSample.append(valY)
+                        nextSample.append(valZ)
         return nextSample
     
     def AdvanceStep(self):

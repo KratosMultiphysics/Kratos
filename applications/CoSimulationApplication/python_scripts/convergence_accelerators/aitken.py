@@ -50,6 +50,7 @@ class AitkenConvergenceAccelerator(CoSimulationConvergenceAccelerator):
         ## For the first iteration, do relaxation only
         if self.initial_iteration:
             self.initial_iteration = False
+            self.alpha_old = self.settings["init_alpha"].GetDouble() ############### had to be done here, cannot reset it from OptApp
             alpha = min( self.alpha_old, self.init_alpha_max )
             if self.echo_level > 3:
                 cs_tools.cs_print_info(self._ClassName(), ": Doing relaxation in the first iteration with initial factor = {}".format(alpha))
