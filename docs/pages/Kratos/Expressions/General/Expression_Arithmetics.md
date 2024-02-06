@@ -1,9 +1,9 @@
 ---
 title: Expression Arithmetics
-keywords:
+keywords: 
 tags: [expression, arithmetics]
 sidebar: kratos_expressions
-summary:
+summary: 
 ---
 
 ## Introduction
