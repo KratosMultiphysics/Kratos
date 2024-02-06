@@ -7,13 +7,13 @@ summary:
 ---
 
 ## Introduction
-```Collapse``` method is used to collapse the lazy expression tree. **This is useful when the lazy expression tree is larger which occupies or exceeds the RAM
+```Collapse``` method is used to collapse the lazy expression tree. **This is useful when the lazy expression tree is larger which may occupy or exceeds the RAM
 limitations.**.
 
-Using this method on an expression which will always result in an expression having the same shape, having the same evaluated values. But the resulting expression will be not having the tree structure since it is collapsed.
+The resulting expression retains the original's shape, having the same evaluated values. But the resulting expression will not be having the tree structure since it is collapsed.
 
 ## Use case
-The max depth of an expression can be checked to identify the max depth of the lazy expression as explained in the following code snippet. It also explains how to collapse the tree hierarchy of the lazy expressions.
+The following example shows how to compute the maximum depth of the expression hierarchy, and collapse it down to a single array.
 ```python
 import KratosMultiphysics as Kratos
 model = Kratos.Model()
@@ -40,19 +40,25 @@ nodal_expression += 1
 print(nodal_expression.GetMaxDepth())
 
 collapsed_exp = Kratos.Expression.Utils.Collapse(nodal_expression)
+
+# Destroy the original expression to free up memory
+del nodal_expression
+
 print(collapsed_exp.GetMaxDepth())
 ```
+
 Expected output:
-```bash
-3
-1
+```console
  |  /           |                  
  ' /   __| _` | __|  _ \   __|    
  . \  |   (   | |   (   |\__ \  
 _|\_\_|  \__,_|\__|\___/ ____/
-           Multi-Physics 9.4."3"-docs/expression_documentation-6de5f1a499-Release-x86_64
+           Multi-Physics 9.4."3"-docs/add_python_processing_locally-eb00abccc7-FullDebug-x86_64
            Compiled for GNU/Linux and Python3.11 with GCC-13.2
 Compiled with threading and MPI support.
 Maximum number of threads: 30.
 Running without MPI.
+Process Id: 499448 
+3
+1
 ```
