@@ -70,7 +70,9 @@ struct DistributedSearchInformation
     std::vector<double> PointCoordinates;      /// Vector to store point coordinates.
     std::vector<SignedIndexType> LocalIndices; /// Vector to store point local indices.
     std::vector<IndexType> GlobalIndices;      /// Vector to store point global indices.
+    std::vector<IndexType> GlobalPosition;     /// Vector to store point global position relative to all points.
     std::vector<std::vector<int>> Ranks;       /// Vector of vectors to store ranks.
+    std::size_t TotalNumberOfPoints = 0;       /// Total number of points.
 
     /**
      * @brief Reserve memory for the point data vectors.
@@ -81,6 +83,7 @@ struct DistributedSearchInformation
         PointCoordinates.reserve(Size * 3);
         LocalIndices.reserve(Size);
         GlobalIndices.reserve(Size);
+        GlobalPosition.reserve(Size);
         Ranks.reserve(Size);
     }
 
@@ -92,6 +95,7 @@ struct DistributedSearchInformation
         PointCoordinates.shrink_to_fit();
         LocalIndices.shrink_to_fit();
         GlobalIndices.shrink_to_fit();
+        GlobalPosition.shrink_to_fit();
         Ranks.shrink_to_fit();
     }
 
@@ -112,7 +116,9 @@ struct DistributedSearchInformation
         PointCoordinates.clear();
         LocalIndices.clear();
         GlobalIndices.clear();
+        GlobalPosition.clear();
         Ranks.clear();
+        TotalNumberOfPoints = 0;
     }
 };
 
@@ -324,6 +330,9 @@ public:
 
         KRATOS_DEBUG_ERROR_IF(number_of_points < 0) << "The number of points is negative" << std::endl;
         KRATOS_DEBUG_ERROR_IF(total_number_of_points < 0) << "The total number of points is negative" << std::endl;
+
+        // Assign points number
+        rSearchInfo.TotalNumberOfPoints = total_number_of_points;
 
         // We synchronize the points
         SynchronizePointsWithBoundingBox(itPointBegin, itPointEnd, rSearchInfo, rBoundingBox, ThresholdBoundingBox, rDataCommunicator, number_of_points, total_number_of_points, IndexItIsJustPosition);
@@ -918,6 +927,7 @@ private:
                     }
                     rSearchInfo.LocalIndices.push_back(all_points_local_ids[i_point]);
                     rSearchInfo.GlobalIndices.push_back(all_points_global_ids[i_point]);
+                    rSearchInfo.GlobalPosition.push_back(i_point);
                     ranks[0] = rank;
                 } else {
                     ranks[0] = -1;
@@ -933,7 +943,7 @@ private:
                     inside_ranks.end()
                 );
 
-                // Now adding // NOTE: Should be ordered, so a priori is not required to reorder
+                // Now adding
                 if (to_be_included) {
                      rSearchInfo.Ranks.push_back(inside_ranks);
                 }
@@ -950,6 +960,7 @@ private:
                     }
                     rSearchInfo.LocalIndices.push_back(all_points_local_ids[i_point]);
                     rSearchInfo.GlobalIndices.push_back(all_points_global_ids[i_point]);
+                    rSearchInfo.GlobalPosition.push_back(i_point);
                     rSearchInfo.Ranks.push_back({0});
                 }
             }
