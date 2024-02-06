@@ -7,10 +7,9 @@ summary:
 ---
 
 ## Introduction
-This method allows to reshape any expression to another new shape. **The total number of components in the new shape should be same as the original shape's total number of components.**
+`Reshape` is used to reshape any expression to another new shape. **The total number of components in the new shape should be same as the original shape's total number of components.**
 
 ## Use case
-Following example showcases one of the use case of ```Reshape```
 ```python
 import KratosMultiphysics as Kratos
 model = Kratos.Model()
@@ -46,7 +45,17 @@ print(reshaped_exp.Evaluate())
 ```
 
 Expected output:
-```bash
+```console
+ |  /           |                  
+ ' /   __| _` | __|  _ \   __|    
+ . \  |   (   | |   (   |\__ \  
+_|\_\_|  \__,_|\__|\___/ ____/
+           Multi-Physics 9.4."3"-docs/add_python_processing_locally-eb00abccc7-FullDebug-x86_64
+           Compiled for GNU/Linux and Python3.11 with GCC-13.2
+Compiled with threading and MPI support.
+Maximum number of threads: 30.
+Running without MPI.
+Process Id: 528742 
 [[[ 1.  4.]
   [ 5. -1.]]
 
@@ -55,13 +64,4 @@ Expected output:
 
  [[ 3.  8.]
   [ 9. -1.]]]
- |  /           |                  
- ' /   __| _` | __|  _ \   __|    
- . \  |   (   | |   (   |\__ \  
-_|\_\_|  \__,_|\__|\___/ ____/
-           Multi-Physics 9.4."3"-docs/expression_documentation-6de5f1a499-Release-x86_64
-           Compiled for GNU/Linux and Python3.11 with GCC-13.2
-Compiled with threading and MPI support.
-Maximum number of threads: 30.
-Running without MPI.
 ```
