@@ -1,9 +1,9 @@
 ---
 title: Domain Size Expression IO
-keywords: 
+keywords:
 tags: [domain size, condition, element, expression io]
 sidebar: kratos_expressions
-summary: 
+summary:
 ---
 
 ## Introduction
@@ -40,10 +40,10 @@ print(shape)
 ```
 
 Expected output:
-```bash
- |  /           |                  
- ' /   __| _` | __|  _ \   __|    
- . \  |   (   | |   (   |\__ \  
+```console
+ |  /           |
+ ' /   __| _` | __|  _ \   __|
+ . \  |   (   | |   (   |\__ \
 _|\_\_|  \__,_|\__|\___/ ____/
            Multi-Physics 9.4."3"-docs/expression_documentation-156476ea1c-Release-x86_64
            Compiled for GNU/Linux and Python3.11 with GCC-13.2
@@ -78,10 +78,10 @@ print(exp)
 ```
 
 Expected output:
-```bash
- |  /           |                  
- ' /   __| _` | __|  _ \   __|    
- . \  |   (   | |   (   |\__ \  
+```console
+ |  /           |
+ ' /   __| _` | __|  _ \   __|
+ . \  |   (   | |   (   |\__ \
 _|\_\_|  \__,_|\__|\___/ ____/
            Multi-Physics 9.4."3"-docs/expression_documentation-156476ea1c-Release-x86_64
            Compiled for GNU/Linux and Python3.11 with GCC-13.2

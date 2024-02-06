@@ -1,9 +1,9 @@
 ---
 title: Working with Numpy
-keywords: 
+keywords:
 tags: [numpy, scipy, expressions, variable expression io, carray expression io]
 sidebar: kratos_expressions
-summary: 
+summary:
 ---
 
 ## Introduction
@@ -39,10 +39,10 @@ print("Shape of the numpy array = ", numpy_nodal_expression.shape)
 ```
 
 Expected output:
-```bash
- |  /           |                  
- ' /   __| _` | __|  _ \   __|    
- . \  |   (   | |   (   |\__ \  
+```console
+ |  /           |
+ ' /   __| _` | __|  _ \   __|
+ . \  |   (   | |   (   |\__ \
 _|\_\_|  \__,_|\__|\___/ ____/
            Multi-Physics 9.4."3"-docs/expression_documentation-156476ea1c-Release-x86_64
            Compiled for GNU/Linux and Python3.11 with GCC-13.2
@@ -92,10 +92,10 @@ for node in model_part.Nodes:
 ```
 
 Expected output:
-```bash
- |  /           |                  
- ' /   __| _` | __|  _ \   __|    
- . \  |   (   | |   (   |\__ \  
+```console
+ |  /           |
+ ' /   __| _` | __|  _ \   __|
+ . \  |   (   | |   (   |\__ \
 _|\_\_|  \__,_|\__|\___/ ____/
            Multi-Physics 9.4."3"-docs/expression_documentation-156476ea1c-Release-x86_64
            Compiled for GNU/Linux and Python3.11 with GCC-13.2
@@ -155,10 +155,10 @@ for node in model_part.Nodes:
     print(f"node id: {node.Id}, velocity: [{velocity[0]}, {velocity[1]}, {velocity[2]}]")
 ```
 Expected output:
-```bash
- |  /           |                  
- ' /   __| _` | __|  _ \   __|    
- . \  |   (   | |   (   |\__ \  
+```console
+ |  /           |
+ ' /   __| _` | __|  _ \   __|
+ . \  |   (   | |   (   |\__ \
 _|\_\_|  \__,_|\__|\___/ ____/
            Multi-Physics 9.4."3"-docs/expression_documentation-156476ea1c-Release-x86_64
            Compiled for GNU/Linux and Python3.11 with GCC-13.2

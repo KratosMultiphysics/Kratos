@@ -1,9 +1,9 @@
 ---
 title: Literal Expression Input
-keywords: 
+keywords:
 tags: [literal values, expressions, scalars]
 sidebar: kratos_expressions
-summary: 
+summary:
 ---
 
 ## Introduction
@@ -46,10 +46,10 @@ for node in model_part.Nodes:
 ```
 
 Expected output:
-```bash
- |  /           |                  
- ' /   __| _` | __|  _ \   __|    
- . \  |   (   | |   (   |\__ \  
+```console
+ |  /           |
+ ' /   __| _` | __|  _ \   __|
+ . \  |   (   | |   (   |\__ \
 _|\_\_|  \__,_|\__|\___/ ____/
            Multi-Physics 9.4."3"-docs/expression_documentation-156476ea1c-Release-x86_64
            Compiled for GNU/Linux and Python3.11 with GCC-13.2
@@ -93,10 +93,10 @@ for node in model_part.Nodes:
 ```
 
 Expected output:
-```bash
- |  /           |                  
- ' /   __| _` | __|  _ \   __|    
- . \  |   (   | |   (   |\__ \  
+```console
+ |  /           |
+ ' /   __| _` | __|  _ \   __|
+ . \  |   (   | |   (   |\__ \
 _|\_\_|  \__,_|\__|\___/ ____/
            Multi-Physics 9.4."3"-docs/expression_documentation-156476ea1c-Release-x86_64
            Compiled for GNU/Linux and Python3.11 with GCC-13.2
@@ -144,10 +144,10 @@ for node in model_part.Nodes:
 ```
 
 Expected output:
-```bash
- |  /           |                  
- ' /   __| _` | __|  _ \   __|    
- . \  |   (   | |   (   |\__ \  
+```console
+ |  /           |
+ ' /   __| _` | __|  _ \   __|
+ . \  |   (   | |   (   |\__ \
 _|\_\_|  \__,_|\__|\___/ ____/
            Multi-Physics 9.4."3"-docs/expression_documentation-156476ea1c-Release-x86_64
            Compiled for GNU/Linux and Python3.11 with GCC-13.2
@@ -187,10 +187,10 @@ for node in model_part.Nodes:
 ```
 
 Expected output:
-```bash
- |  /           |                  
- ' /   __| _` | __|  _ \   __|    
- . \  |   (   | |   (   |\__ \  
+```console
+ |  /           |
+ ' /   __| _` | __|  _ \   __|
+ . \  |   (   | |   (   |\__ \
 _|\_\_|  \__,_|\__|\___/ ____/
            Multi-Physics 9.4."3"-docs/expression_documentation-156476ea1c-Release-x86_64
            Compiled for GNU/Linux and Python3.11 with GCC-13.2

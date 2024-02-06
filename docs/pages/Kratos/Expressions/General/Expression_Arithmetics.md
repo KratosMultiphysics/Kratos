@@ -1,9 +1,9 @@
 ---
 title: Expression Arithmetics
-keywords: 
+keywords:
 tags: [expression, arithmetics]
 sidebar: kratos_expressions
-summary: 
+summary:
 ---
 
 ## Introduction
@@ -53,7 +53,7 @@ for node in model_part.Nodes:
     print(node.GetValue(Kratos.ACCELERATION))
 ```
 Expected output:
-```bash
+```console
  |  /           |
  ' /   __| _` | __|  _ \   __|
  . \  |   (   | |   (   |\__ \
