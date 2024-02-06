@@ -14,7 +14,7 @@ Obtaining the profiler:
 You can find the python line profiler an all the relevant information here: https://github.com/pyutils/line_profiler.
 
 If you prefer only to install it just:
-```bash
+```console
 python -m pip install line_profiler
 ```
 
@@ -55,12 +55,12 @@ print("Profile output written in:", "profile_"+str(os.getpid())+".prof")
 We do recommend to launch your case with this launcher as well if you intend to run with MPI, as it will automatically generate a different report for every process. An example of an invocation call will look like this:
 
 Serial
-```bash
+```console
 python profiler.py MainKratos.py
 ```
 
 Distributed
-```bash
+```console
 mpirun -np [N] --output-filename profile python profiler.py MainKratos.py
 ```
 ## Analyzing output

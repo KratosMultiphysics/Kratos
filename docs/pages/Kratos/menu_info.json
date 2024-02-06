@@ -6,6 +6,7 @@
         "Utilities",
         "Debugging",
         "Documentation_Guide",
+        "Sequence_Diagrams",
         {
             "type": "external",
             "title": "Source Documentation",
