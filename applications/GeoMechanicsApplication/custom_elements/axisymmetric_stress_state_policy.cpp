@@ -43,9 +43,16 @@ Matrix AxisymmetricStressStatePolicy::CalculateBMatrix(const Matrix&         Gra
 }
 
 double AxisymmetricStressStatePolicy::CalculateIntegrationCoefficient(const Geometry<Node>::IntegrationPointType& rIntegrationPoint,
-                                                                      double detJ) const
+                                                                      double detJ,
+                                                                      const Geometry<Node>& rGeometry) const
 {
-    return 0;
+    Vector shape_function_values;
+    shape_function_values = rGeometry.ShapeFunctionsValues(shape_function_values, rIntegrationPoint.Coordinates());
+
+    const double radiusWeight =
+        GeoElementUtilities::CalculateAxisymmetricCircumference(shape_function_values, rGeometry);
+
+    return rIntegrationPoint.Weight() * detJ * radiusWeight;
 }
 
 } // namespace Kratos

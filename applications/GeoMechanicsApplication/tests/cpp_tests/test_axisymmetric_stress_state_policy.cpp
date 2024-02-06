@@ -63,16 +63,31 @@ KRATOS_TEST_CASE_IN_SUITE(CalculateBMatrixWithValidGeometryReturnsCorrectResults
     KRATOS_CHECK_MATRIX_NEAR(calculated_matrix, expected_matrix, 1e-12)
 }
 
-KRATOS_TEST_CASE_IN_SUITE(CanCalculateIntegrationCoefficient, KratosGeoMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(ReturnCorrectIntegrationCoefficient, KratosGeoMechanicsFastSuite)
 {
     std::unique_ptr<StressStatePolicy> p_stress_state_policy =
         std::make_unique<AxisymmetricStressStatePolicy>();
 
-    Geometry<Node>::IntegrationPointType integration_point;
-    const double                         detJ = 2.0;
+    Model      model;
+    ModelPart& model_part = model.CreateModelPart("Main");
 
-    const double calculated_coefficient =
-        p_stress_state_policy->CalculateIntegrationCoefficient(integration_point, detJ);
+    model_part.CreateNewNode(1, 0.0, 0.0, 0.0);
+    model_part.CreateNewNode(2, 1.0, 0.0, 0.0);
+    model_part.CreateNewNode(3, 1.0, 1.0, 0.0);
+
+    std::vector<ModelPart::IndexType> node_ids{1, 2, 3};
+    model_part.CreateNewElement("UPwSmallStrainElement2D3N", 1, node_ids, model_part.CreateNewProperties(0));
+
+    Geometry<Node>::IntegrationPointType integration_point(0.5, 0.3, 0.0, 0.5);
+    // ShapeFunctionsValues for this integration point are [0.2,0.5,0.3]
+
+    const double detJ                   = 2.0;
+    const double calculated_coefficient = p_stress_state_policy->CalculateIntegrationCoefficient(
+        integration_point, detJ, model_part.GetElement(1).GetGeometry());
+
+    // The expected number is calculated as follows:
+    // 2.0 * pi * 0.8 (radius) * 2.0 (detJ) * 0.5 (weight) = 5.02655
+    KRATOS_EXPECT_NEAR(calculated_coefficient, 5.02655, 1e-5);
 }
 
 } // namespace Kratos::Testing
