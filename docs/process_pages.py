@@ -239,7 +239,7 @@ def AddPythonSnippetOutputs(file_path: Path) -> None:
                 while temp_index < len(lines):
                     if lines[temp_index].strip():
                         is_existing_output_found  = lines[temp_index] == "Expected output:\n"
-                        is_existing_output_found &= lines[temp_index+1] == "```bash\n"
+                        is_existing_output_found &= lines[temp_index+1] == "```console\n"
                         break
                     temp_index += 1
 
@@ -254,7 +254,7 @@ def AddPythonSnippetOutputs(file_path: Path) -> None:
                     subprocess_run = subprocess.run([GetPython3Command(), "-u", temp_file_path], stdout=subprocess.PIPE, universal_newlines=True, check=True)
                     output_lines.append("\n")
                     output_lines.append("Expected output:\n")
-                    output_lines.append("```bash\n")
+                    output_lines.append("```console\n")
                     output_lines.append(subprocess_run.stdout)
                     output_lines.append("```\n")
 
