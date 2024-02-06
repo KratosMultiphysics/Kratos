@@ -26,8 +26,8 @@
 
 namespace Kratos
 {
-template <class TObjectType>
-SpatialSearchResultContainerVector<TObjectType>::~SpatialSearchResultContainerVector()
+template <class TObjectType, SpatialSearchCommunication TSpatialSearchCommunication>
+SpatialSearchResultContainerVector<TObjectType, TSpatialSearchCommunication>::~SpatialSearchResultContainerVector()
 {
     // Make sure to delete the pointers stored in the container
     block_for_each(mPointResults, [](auto p_result) {
@@ -38,8 +38,8 @@ SpatialSearchResultContainerVector<TObjectType>::~SpatialSearchResultContainerVe
 /***********************************************************************************/
 /***********************************************************************************/
 
-template <class TObjectType>
-std::size_t SpatialSearchResultContainerVector<TObjectType>::NumberOfSearchResults() const
+template <class TObjectType, SpatialSearchCommunication TSpatialSearchCommunication>
+std::size_t SpatialSearchResultContainerVector<TObjectType, TSpatialSearchCommunication>::NumberOfSearchResults() const
 {
     return mPointResults.size();
 }
@@ -47,23 +47,23 @@ std::size_t SpatialSearchResultContainerVector<TObjectType>::NumberOfSearchResul
 /***********************************************************************************/
 /***********************************************************************************/
 
-template <class TObjectType>
-typename SpatialSearchResultContainerVector<TObjectType>::SpatialSearchResultContainerReferenceType SpatialSearchResultContainerVector<TObjectType>::InitializeResult(const DataCommunicator& rDataCommunicator)
+template <class TObjectType, SpatialSearchCommunication TSpatialSearchCommunication>
+typename SpatialSearchResultContainerVector<TObjectType, TSpatialSearchCommunication>::SpatialSearchResultContainerReferenceType SpatialSearchResultContainerVector<TObjectType, TSpatialSearchCommunication>::InitializeResult(const DataCommunicator& rDataCommunicator)
 {
     // Resize vector
     const std::size_t current_size = mPointResults.size();
     mPointResults.resize(current_size + 1);
 
     // Create the result
-    mPointResults[current_size] = new SpatialSearchResultContainer<TObjectType>(rDataCommunicator);
+    mPointResults[current_size] = new SpatialSearchResultContainer<TObjectType, TSpatialSearchCommunication>(rDataCommunicator);
     return *mPointResults[current_size];
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
 
-template <class TObjectType>
-void SpatialSearchResultContainerVector<TObjectType>::InitializeResults(const std::vector<const DataCommunicator*>& rDataCommunicators)
+template <class TObjectType, SpatialSearchCommunication TSpatialSearchCommunication>
+void SpatialSearchResultContainerVector<TObjectType, TSpatialSearchCommunication>::InitializeResults(const std::vector<const DataCommunicator*>& rDataCommunicators)
 {
     // Define counter
     std::size_t counter = 0;
@@ -80,15 +80,15 @@ void SpatialSearchResultContainerVector<TObjectType>::InitializeResults(const st
 
     // Create the results
     block_for_each(values_to_initialize, [this, &rDataCommunicators](const auto Index) {
-        mPointResults[Index] = new SpatialSearchResultContainer<TObjectType>(*rDataCommunicators[Index]);
+        mPointResults[Index] = new SpatialSearchResultContainer<TObjectType, TSpatialSearchCommunication>(*rDataCommunicators[Index]);
     });
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
 
-template <class TObjectType>
-bool SpatialSearchResultContainerVector<TObjectType>::HasResult(const IndexType Index) const
+template <class TObjectType, SpatialSearchCommunication TSpatialSearchCommunication>
+bool SpatialSearchResultContainerVector<TObjectType, TSpatialSearchCommunication>::HasResult(const IndexType Index) const
 {
     // Check size
     return Index < mPointResults.size();
@@ -97,8 +97,8 @@ bool SpatialSearchResultContainerVector<TObjectType>::HasResult(const IndexType 
 /***********************************************************************************/
 /***********************************************************************************/
 
-template <class TObjectType>
-void SpatialSearchResultContainerVector<TObjectType>::Clear()
+template <class TObjectType, SpatialSearchCommunication TSpatialSearchCommunication>
+void SpatialSearchResultContainerVector<TObjectType, TSpatialSearchCommunication>::Clear()
 {
     mPointResults.clear();
 }
@@ -106,8 +106,8 @@ void SpatialSearchResultContainerVector<TObjectType>::Clear()
 /***********************************************************************************/
 /***********************************************************************************/
 
-template <class TObjectType>
-void SpatialSearchResultContainerVector<TObjectType>::SynchronizeAll(const DataCommunicator& rDataCommunicator)
+template <class TObjectType, SpatialSearchCommunication TSpatialSearchCommunication>
+void SpatialSearchResultContainerVector<TObjectType, TSpatialSearchCommunication>::SynchronizeAll(const DataCommunicator& rDataCommunicator)
 {
     // Synchronize local results to global results
     if(rDataCommunicator.IsDistributed()) { // MPI code
@@ -136,8 +136,8 @@ void SpatialSearchResultContainerVector<TObjectType>::SynchronizeAll(const DataC
 /***********************************************************************************/
 /***********************************************************************************/
 
-template <class TObjectType>
-std::string SpatialSearchResultContainerVector<TObjectType>::Info() const
+template <class TObjectType, SpatialSearchCommunication TSpatialSearchCommunication>
+std::string SpatialSearchResultContainerVector<TObjectType, TSpatialSearchCommunication>::Info() const
 {
     std::stringstream buffer;
     buffer << "SpatialSearchResultContainerVector" ;
@@ -147,8 +147,8 @@ std::string SpatialSearchResultContainerVector<TObjectType>::Info() const
 /***********************************************************************************/
 /***********************************************************************************/
 
-template <class TObjectType>
-void SpatialSearchResultContainerVector<TObjectType>::PrintInfo(std::ostream& rOStream) const
+template <class TObjectType, SpatialSearchCommunication TSpatialSearchCommunication>
+void SpatialSearchResultContainerVector<TObjectType, TSpatialSearchCommunication>::PrintInfo(std::ostream& rOStream) const
 {
     rOStream << "SpatialSearchResultContainerVector" << "\n";
 }
@@ -156,8 +156,8 @@ void SpatialSearchResultContainerVector<TObjectType>::PrintInfo(std::ostream& rO
 /***********************************************************************************/
 /***********************************************************************************/
 
-template <class TObjectType>
-void SpatialSearchResultContainerVector<TObjectType>::PrintData(std::ostream& rOStream) const
+template <class TObjectType, SpatialSearchCommunication TSpatialSearchCommunication>
+void SpatialSearchResultContainerVector<TObjectType, TSpatialSearchCommunication>::PrintData(std::ostream& rOStream) const
 {
     // Print results
     rOStream << "SpatialSearchResultContainerVector data summary: " << "\n";
@@ -172,8 +172,8 @@ void SpatialSearchResultContainerVector<TObjectType>::PrintData(std::ostream& rO
 /***********************************************************************************/
 /***********************************************************************************/
 
-template <class TObjectType>
-void SpatialSearchResultContainerVector<TObjectType>::CopyingValuesToGlobalResultsVector(
+template <class TObjectType, SpatialSearchCommunication TSpatialSearchCommunication>
+void SpatialSearchResultContainerVector<TObjectType, TSpatialSearchCommunication>::CopyingValuesToGlobalResultsVector(
     const std::vector<GlobalPointerResultType>& rGlobalResults,
     const std::vector<std::size_t>& rActiveResults,
     const std::vector<std::size_t>& rResultGlobalSize
@@ -207,8 +207,8 @@ void SpatialSearchResultContainerVector<TObjectType>::CopyingValuesToGlobalResul
 /***********************************************************************************/
 /***********************************************************************************/
 
-template <class TObjectType>
-void SpatialSearchResultContainerVector<TObjectType>::save(Serializer& rSerializer) const
+template <class TObjectType, SpatialSearchCommunication TSpatialSearchCommunication>
+void SpatialSearchResultContainerVector<TObjectType, TSpatialSearchCommunication>::save(Serializer& rSerializer) const
 {
     rSerializer.save("PointResults", mPointResults);
 }
@@ -216,8 +216,8 @@ void SpatialSearchResultContainerVector<TObjectType>::save(Serializer& rSerializ
 /***********************************************************************************/
 /***********************************************************************************/
 
-template <class TObjectType>
-void SpatialSearchResultContainerVector<TObjectType>::load(Serializer& rSerializer)
+template <class TObjectType, SpatialSearchCommunication TSpatialSearchCommunication>
+void SpatialSearchResultContainerVector<TObjectType, TSpatialSearchCommunication>::load(Serializer& rSerializer)
 {
     rSerializer.save("PointResults", mPointResults);
 }
@@ -226,9 +226,16 @@ void SpatialSearchResultContainerVector<TObjectType>::load(Serializer& rSerializ
 /***********************************************************************************/
 
 /// Template instantiation
-template class SpatialSearchResultContainerVector<Node>;
-template class SpatialSearchResultContainerVector<GeometricalObject>;
-template class SpatialSearchResultContainerVector<Element>;
-template class SpatialSearchResultContainerVector<Condition>;
+// SYNCHRONOUS_HOMOGENEOUS
+template class SpatialSearchResultContainerVector<Node, SpatialSearchCommunication::SYNCHRONOUS_HOMOGENEOUS>;
+template class SpatialSearchResultContainerVector<GeometricalObject, SpatialSearchCommunication::SYNCHRONOUS_HOMOGENEOUS>;
+template class SpatialSearchResultContainerVector<Element, SpatialSearchCommunication::SYNCHRONOUS_HOMOGENEOUS>;
+template class SpatialSearchResultContainerVector<Condition, SpatialSearchCommunication::SYNCHRONOUS_HOMOGENEOUS>;
+
+// SYNCHRONOUS_HETEROGENEOUS
+template class SpatialSearchResultContainerVector<Node, SpatialSearchCommunication::SYNCHRONOUS_HETEROGENEOUS>;
+template class SpatialSearchResultContainerVector<GeometricalObject, SpatialSearchCommunication::SYNCHRONOUS_HETEROGENEOUS>;
+template class SpatialSearchResultContainerVector<Element, SpatialSearchCommunication::SYNCHRONOUS_HETEROGENEOUS>;
+template class SpatialSearchResultContainerVector<Condition, SpatialSearchCommunication::SYNCHRONOUS_HETEROGENEOUS>;
 
 }  // namespace Kratos

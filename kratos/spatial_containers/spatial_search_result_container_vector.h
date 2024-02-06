@@ -31,13 +31,14 @@ namespace Kratos
 
 /**
  * @class SpatialSearchResultContainerVector
- * @brief Spatial search result container map
- * @details This class is used to store the results of a spatial search, in a map to be identify results for a given coordinates
- * @tparam TObjectType The type of the object
+ * @brief Spatial search result container map.
+ * @details This class is used to store the results of a spatial search, in a map to be identify results for a given coordinates.
+ * @tparam TObjectType The type of the object.
+ * @tparam TSpatialSearchCommunication The type of spatial search communication considered.
  * @ingroup KratosCore
  * @author Vicente Mataix Ferrandiz
  */
-template <class TObjectType>
+template <class TObjectType, SpatialSearchCommunication TSpatialSearchCommunication = SpatialSearchCommunication::SYNCHRONOUS_HOMOGENEOUS>
 class KRATOS_API(KRATOS_CORE) SpatialSearchResultContainerVector
 {
 public:
@@ -51,7 +52,7 @@ public:
     using IndexMapType = std::unordered_map<IndexType, IndexType>;
 
     /// The spatial search result container type
-    using SpatialSearchResultContainerType = SpatialSearchResultContainer<TObjectType>;
+    using SpatialSearchResultContainerType = SpatialSearchResultContainer<TObjectType, TSpatialSearchCommunication>;
 
     /// The global pointer result type
     using GlobalPointerResultType = typename SpatialSearchResultContainerType::GlobalPointerResultType;
@@ -384,6 +385,7 @@ private:
     ///@{
 
     ContainerType mPointResults; /// The results of each point
+
     ///@}
     ///@name Private Operations
     ///@{
@@ -423,17 +425,17 @@ private:
 }; // Class SpatialSearchResultContainerVector
 
 /// input stream function
-template <class TObjectType>
+template <class TObjectType, SpatialSearchCommunication TSpatialSearchCommunication>
 inline std::istream& operator>>(std::istream& rIStream,
-                                SpatialSearchResultContainerVector<TObjectType>& rThis)
+                                SpatialSearchResultContainerVector<TObjectType, TSpatialSearchCommunication>& rThis)
 {
     return rIStream;
 }
 
 /// output stream function
-template <class TObjectType>
+template <class TObjectType, SpatialSearchCommunication TSpatialSearchCommunication>
 inline std::ostream& operator<<(std::ostream& rOStream,
-                                const SpatialSearchResultContainerVector<TObjectType>& rThis)
+                                const SpatialSearchResultContainerVector<TObjectType, TSpatialSearchCommunication>& rThis)
 {
     rThis.PrintInfo(rOStream);
     rOStream << std::endl;
