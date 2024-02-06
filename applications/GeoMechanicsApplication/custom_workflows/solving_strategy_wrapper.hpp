@@ -48,9 +48,10 @@ public:
 
     double GetEndTime() const override { return mrModelPart.GetProcessInfo()[TIME]; }
 
-    void Initialize() override
+    void Initialize() override { mpStrategy->Initialize(); }
+
+    void InitializeOutput() override
     {
-        mpStrategy->Initialize();
         const auto gid_output_settings =
             mProjectParameters["output_processes"]["gid_output"][0]["Parameters"];
         mWriter = std::make_unique<GeoOutputWriter>(
