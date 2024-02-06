@@ -160,6 +160,7 @@ class OptimizationProblemGraphOutputProcess(Kratos.OutputProcess):
 
             ax.set_xlabel(self.x_axis_label)
             fig.savefig(self.output_file_name.replace("<step>", str(self.optimization_problem.GetStep())), dpi=self.dpi, bbox_inches="tight")
+            plt.close()
 
     def _IsWritingProcess(self):
         if Kratos.IsDistributedRun():
