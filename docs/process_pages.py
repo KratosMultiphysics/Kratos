@@ -244,8 +244,6 @@ def AddPythonSnippetOutputs(file_path: Path) -> None:
                     temp_index += 1
 
                 if not is_existing_output_found:
-                    # existing is not found or force re-write is enabled
-
                     # create a temp file
                     temp_file_path = f"{file_path.name}.temp.py"
                     with open(temp_file_path, "w") as temp_file_output:
