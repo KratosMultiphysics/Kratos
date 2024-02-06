@@ -276,13 +276,13 @@ def AddPythonSnippetOutputs(file_path: Path) -> None:
 
 if __name__ == "__main__":
     ## process the index file.
-    r = requests.get("https://raw.githubusercontent.com/KratosMultiphysics/Kratos/master/README.md", allow_redirects=True)
+    # r = requests.get("https://raw.githubusercontent.com/KratosMultiphysics/Kratos/master/README.md", allow_redirects=True)
 
-    with open("pages/index.md", "w") as file_output:
-        if r.status_code == 200:
-            data = r.text
-            data = "---\nkeywords: Summary\ntags: []\nsidebar: kratos_for_users\npermalink: index.html\ntitle: Summary\nsummary: \n---\n" + data
-            file_output.write(data)
+    # with open("pages/index.md", "w") as file_output:
+    #     if r.status_code == 200:
+    #         data = r.text
+    #         data = "---\nkeywords: Summary\ntags: []\nsidebar: kratos_for_users\npermalink: index.html\ntitle: Summary\nsummary: \n---\n" + data
+    #         file_output.write(data)
 
     parser = ArgumentParser(description="Process mark down files in pages folder to create navigation bars.")
     parser.add_argument("-t", "--build_type", dest="build_type", metavar="<build_type>",
