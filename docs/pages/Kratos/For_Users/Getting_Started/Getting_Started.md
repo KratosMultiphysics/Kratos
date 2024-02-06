@@ -1,21 +1,12 @@
 ---
-<<<<<<< HEAD:docs/pages/Kratos/For_Users/Getting_Started/Getting_Started.md
 title: Getting Started
 keywords: 
-=======
-title: Python Script  Getting Started
-keywords:
->>>>>>> master:docs/pages/Kratos/For_Users/Getting_started/getting-started.md
 tags: [Python Script Tutorial Getting Started]
 sidebar: kratos_for_users
 summary:
 ---
 
-<<<<<<< HEAD:docs/pages/Kratos/For_Users/Getting_Started/Getting_Started.md
 In order to write a python script with *Kratos* the first step would be to *"Obtain"* the `KratosMultiphysics` module and then *"add"* it as an external module to *Python*. 
-=======
-In order to write a python script with *Kratos* the first step would be to *"Obtain"* the `KratosMultiphysics` module and then *"add"* it as an external module to the *Python*.
->>>>>>> master:docs/pages/Kratos/For_Users/Getting_started/getting-started.md
 
 There are sveral ways to Obtain the module:
 
@@ -24,11 +15,7 @@ There are sveral ways to Obtain the module:
 - Getting the *Kratos* and its **GUI** from *GiD* internet retrieve.
 - Compile the source from the GitHub repo.
 
-<<<<<<< HEAD:docs/pages/Kratos/For_Users/Getting_Started/Getting_Started.md
 Remember that if you compile Kratos you will have to add the module path to the `PYTHONPATH` environment variable. 
-=======
-A simple way would be to add the `KratosMultiphysics` module path to the `PYTHONPATH` environment variable.
->>>>>>> master:docs/pages/Kratos/For_Users/Getting_started/getting-started.md
 
 ## Linux
 In Linux you can set the python path to the Kratos root directory using `export` command in terminal:
