@@ -13,6 +13,8 @@ def Factory(_: Kratos.Model, parameters: Kratos.Parameters, optimization_problem
     return OptimizationProblemGraphOutputProcess(parameters["settings"], optimization_problem)
 
 class GraphData:
+    """A class to hold information about each graph.
+    """
     def __init__(self, parameters: Kratos.Parameters, optimization_problem: OptimizationProblem) -> None:
         default_settings = Kratos.Parameters("""{
             "y_axis_label"   : "",
@@ -67,6 +69,12 @@ class GraphData:
         return self.data
 
     def Update(self) -> None:
+        """Updates the internal data storage with the current values of the components.
+
+        Raises:
+            RuntimeError: If the component is not found.
+        """
+
         for i, component_path in enumerate(self.component_paths):
             data = component_path.split("/")
             object_type = data[0]
@@ -89,6 +97,10 @@ class GraphData:
             self.data[i].append(component_buffered_data["/".join(data[2:])])
 
 class OptimizationProblemGraphOutputProcess(Kratos.OutputProcess):
+    """An output process which can be used to plot buffered data in the Optimization problem
+
+    This process can be used to plot values from the buffered data in each component of the optimization problem.
+    """
     def GetDefaultParameters(self):
         return Kratos.Parameters(
             """
