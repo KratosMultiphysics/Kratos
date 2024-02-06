@@ -1,19 +1,18 @@
 ---
 title: EntityMax
-keywords:
+keywords: 
 tags: [entity max, max, expression]
 sidebar: kratos_expressions
-summary:
+summary: 
 ---
 
 ## Introduction
 
-This get the maximum value from each component in each entity. Assume the input expression is given by $$\underline{\mathbf{u}} = \left\lbrace u_{ij},  \forall (i,j)\in\left[0, M\right)\times\left[0, N\right)\right\rbrace$$ where $$i^{th}$$ entity's $$j^{th}$$ component is represented by $$u_{ij}$$ with $$i\in \left[0, M\right)$$ for each entity and $$j\in \left[0, N\right)$$ for each component in each entity. Following equation illustrates the formulation of the resulting expression which is always a scalar expression.
+`EntityMax` finds the largest component of each entity. Assume the input expression is given by $$\underline{\mathbf{u}} = \left\lbrace u_{ij},  \forall (i,j)\in\left[0, M\right)\times\left[0, N\right)\right\rbrace$$ where the $$i^{th}$$ entity's $$j^{th}$$ component is represented by $$u_{ij}$$ with $$i\in \left[0, M\right)$$ for each entity and $$j\in \left[0, N\right)$$ for each component in each entity. The result is always a scalar expression.
 
-<p align="center">$$ EntityMax\left(\underline{\mathbf{u}}\right) = \left\lbrace v_i, \text{where} \quad v_i = \max_{j\in\left[0, N\right)} {u_{ij}} \quad  \forall i\in\left[0, M\right)\right\rbrace$$</p>
+<p align="center">$$ EntityMax\left(\underline{\mathbf{u}}\right) = \left\lbrace v_i | \quad v_i = \max_{j\in\left[0, N\right)} {u_{ij}} \quad  \forall i\in\left[0, M\right)\right\rbrace$$</p>
 
 ## Use cases
-Following code snippet illustrates how to use ```EntityMax```.
 ```python
 import KratosMultiphysics as Kratos
 model = Kratos.Model()
@@ -45,18 +44,20 @@ for node in model_part.Nodes:
     pressure = node.GetValue(Kratos.PRESSURE)
     print(f"node_id: {node.Id}, velocity=[{velocity[0]}, {velocity[1]}, {velocity[2]}], pressure = {pressure}")
 ```
+
 Expected output:
-```bash
-node_id: 1, velocity=[-1.0, -2.0, -3.0], pressure = -1.0
-node_id: 2, velocity=[-4.0, -5.0, -6.0], pressure = -4.0
-node_id: 3, velocity=[-7.0, -8.0, -9.0], pressure = -7.0
- |  /           |
- ' /   __| _` | __|  _ \   __|
- . \  |   (   | |   (   |\__ \
+```console
+ |  /           |                  
+ ' /   __| _` | __|  _ \   __|    
+ . \  |   (   | |   (   |\__ \  
 _|\_\_|  \__,_|\__|\___/ ____/
-           Multi-Physics 9.4."3"-docs/expression_documentation-6de5f1a499-Release-x86_64
+           Multi-Physics 9.4."3"-docs/add_python_processing_locally-eb00abccc7-FullDebug-x86_64
            Compiled for GNU/Linux and Python3.11 with GCC-13.2
 Compiled with threading and MPI support.
 Maximum number of threads: 30.
 Running without MPI.
+Process Id: 506403 
+node_id: 1, velocity=[-1.0, -2.0, -3.0], pressure = -1.0
+node_id: 2, velocity=[-4.0, -5.0, -6.0], pressure = -4.0
+node_id: 3, velocity=[-7.0, -8.0, -9.0], pressure = -7.0
 ```
