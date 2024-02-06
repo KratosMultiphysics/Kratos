@@ -1,9 +1,9 @@
 ---
 title: C Array Expression IO
-keywords:
+keywords: 
 tags: [c array expression io, numpy, scipy, Vector]
 sidebar: kratos_expressions
-summary:
+summary: 
 ---
 
 ## Introduction

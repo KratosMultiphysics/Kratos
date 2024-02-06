@@ -1,9 +1,9 @@
 ---
 title: Variable Expression IO
-keywords:
+keywords: 
 tags: [variable expression io, expressions, variable]
 sidebar: kratos_expressions
-summary:
+summary: 
 ---
 
 ## Introduction

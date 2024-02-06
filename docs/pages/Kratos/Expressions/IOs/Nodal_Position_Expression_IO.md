@@ -1,9 +1,9 @@
 ---
 title: Nodal Position Expression IO
-keywords:
+keywords: 
 tags: [nodal position, initial, current, expressions]
 sidebar: kratos_expressions
-summary:
+summary: 
 ---
 
 ## Introduction

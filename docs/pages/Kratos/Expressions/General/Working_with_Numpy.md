@@ -1,9 +1,9 @@
 ---
 title: Working with Numpy
-keywords:
+keywords: 
 tags: [numpy, scipy, expressions, variable expression io, carray expression io]
 sidebar: kratos_expressions
-summary:
+summary: 
 ---
 
 ## Introduction

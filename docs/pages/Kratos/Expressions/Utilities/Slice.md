@@ -7,7 +7,7 @@ summary:
 ---
 
 ## Introduction
-This method slice existing expression to expressions having a new shape with some sub components from the original expression.
+`Slice` method slices existing expression to expressions having a new shape with some sub components from the original expression.
 ```
 Assume an @ref Expression of shape [3] and 3 entities with
 the following data in the flattened representation:
@@ -24,7 +24,6 @@ output container shape = [2] = equal to Stride.
 ```
 
 ## Use case
-Following code snippet replicates the above example.
 ```python
 import KratosMultiphysics as Kratos
 model = Kratos.Model()
@@ -52,17 +51,18 @@ print(sliced_exp.Evaluate())
 ```
 
 Expected output:
-```bash
-[[2. 3.]
- [5. 6.]
- [8. 9.]]
+```console
  |  /           |                  
  ' /   __| _` | __|  _ \   __|    
  . \  |   (   | |   (   |\__ \  
 _|\_\_|  \__,_|\__|\___/ ____/
-           Multi-Physics 9.4."3"-docs/expression_documentation-6de5f1a499-Release-x86_64
+           Multi-Physics 9.4."3"-docs/add_python_processing_locally-eb00abccc7-FullDebug-x86_64
            Compiled for GNU/Linux and Python3.11 with GCC-13.2
 Compiled with threading and MPI support.
 Maximum number of threads: 30.
 Running without MPI.
+Process Id: 540110 
+[[2. 3.]
+ [5. 6.]
+ [8. 9.]]
 ```
