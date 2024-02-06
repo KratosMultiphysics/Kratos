@@ -18,8 +18,8 @@
 // Project includes
 #include "includes/define.h"
 #include "custom_saturation/saturation_law.hpp"
-#include "custom_saturation/brooks_and_corey_law.hpp"
-#include "custom_saturation/van_genuchten_law.hpp"
+#include "custom_saturation/brooksandcorey_law.hpp"
+#include "custom_saturation/vangenuchten_law.hpp"
 
 // Application includes
 #include "poromechanics_application_variables.h"

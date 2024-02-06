@@ -19,9 +19,13 @@
 /* Project includes */
 #include "includes/define.h"
 #include "includes/serializer.h"
+#include "includes/variables.h"
+#include "includes/node.h"
 #include "includes/properties.h"
 #include "geometries/geometry.h"
+#include "utilities/math_utils.h"
 #include "includes/process_info.h"
+#include "includes/ublas_interface.h"
 
 namespace Kratos {
 
@@ -29,205 +33,372 @@ class KRATOS_API(POROMECHANICS_APPLICATION) SaturationLaw
 {
 
 public:
-    /**
-     * Type definitions
-     * NOTE: geometries are assumed to be of type Node for all problems
-     */
-    using ProcessInfoType = ProcessInfo;
-    using SizeType = std::size_t;
-    using GeometryType = Geometry<Node>;
 
-    /**
-     * Counted pointer of SaturationLaw
-     */
+    typedef ProcessInfo ProcessInfoType;
+    typedef std::size_t SizeType;
+    typedef Geometry<Node > GeometryType;
+
+    ///------------------------------------------------------------------------------------------------
+
     KRATOS_CLASS_POINTER_DEFINITION(SaturationLaw);
 
-    class Parameters {
+    ///------------------------------------------------------------------------------------------------
+
+    struct Parameters
+    {
+
         KRATOS_CLASS_POINTER_DEFINITION(Parameters);
 
-        /**
-         * Structure "Parameters" to be used by the element to pass the parameters into the saturation law *
-
-        * KINEMATIC PARAMETERS:
-
-        *** NOTE: Pointers are used only to point to a certain variable,
-        *   no "new" or "malloc" can be used for this Parameters ***
-
-        * MATERIAL PROPERTIES:
-        * @param mrMaterialProperties reference to the material's Properties object (input data)
-
-        * PROCESS PROPERTIES:
-        * @param mrCurrentProcessInfo reference to current ProcessInfo instance (input data)
-
-        */
-
-    public:
-        Parameters(const Properties& rMaterialProperties,
-                   const ProcessInfo& rCurrentProcessInfo)
-            : mrCurrentProcessInfo(rCurrentProcessInfo),
-              mrMaterialProperties(rMaterialProperties){};
-
-        ~Parameters() = default;
-
-        void SetFluidPressure(double FluidPressure)
-        {
-            mFluidPressure = FluidPressure;
-        };
-
-        double GetFluidPressure() const
-        {
-            KRATOS_ERROR_IF_NOT(mFluidPressure.has_value())
-                << "Fluid pressure is not yet set in the saturation "
-                   "law when trying to retrieve it, aborting.\n";
-            return mFluidPressure.value();
-        }
-
-        const ProcessInfo& GetProcessInfo() const
-        {
-            return mrCurrentProcessInfo;
-        }
-
-        const Properties& GetMaterialProperties() const
-        {
-            return mrMaterialProperties;
-        }
+        ///------------------------------------------------------------------------------------------------
 
     private:
-        std::optional<double> mFluidPressure;
-        const ProcessInfo& mrCurrentProcessInfo;
-        const Properties& mrMaterialProperties;
 
-    }; // class Parameters end
+        double*             mpSw;
+        double*             mpdSwdPc;
+        double*             mpkrw;
+        double*             mpkrg;
+
+        const Vector*       mpShapeFunctionsValues;
+        const Matrix*       mpShapeFunctionsDerivatives;
+
+        const ProcessInfo*  mpCurrentProcessInfo;
+        const Properties*   mpMaterialProperties;
+        const GeometryType* mpElementGeometry;
+
+        ///------------------------------------------------------------------------------------------------
+
+    public:
+
+        Parameters()
+        {
+            mpSw=NULL;
+            mpdSwdPc=NULL;
+            mpkrw=NULL;
+            mpkrg=NULL;
+            mpShapeFunctionsValues=NULL;
+            mpShapeFunctionsDerivatives=NULL;
+            mpCurrentProcessInfo=NULL;
+            mpMaterialProperties=NULL;
+            mpElementGeometry=NULL;
+        };
+
+        Parameters(const GeometryType& rElementGeometry,
+                const Properties& rMaterialProperties,
+                const ProcessInfo& rCurrentProcessInfo):
+            mpCurrentProcessInfo(&rCurrentProcessInfo),
+            mpMaterialProperties(&rMaterialProperties),
+            mpElementGeometry(&rElementGeometry)
+        {
+            mpSw=NULL;
+            mpdSwdPc=NULL;
+            mpkrw=NULL;
+            mpkrg=NULL;
+            mpShapeFunctionsValues=NULL;
+            mpShapeFunctionsDerivatives=NULL;
+        };
+
+        Parameters(const Parameters & rNewParameters):
+            mpSw(rNewParameters.mpSw),
+            mpdSwdPc(rNewParameters.mpdSwdPc),
+            mpkrw(rNewParameters.mpkrw),
+            mpkrg(rNewParameters.mpkrg),
+            mpShapeFunctionsValues(rNewParameters.mpShapeFunctionsValues),
+            mpShapeFunctionsDerivatives(rNewParameters.mpShapeFunctionsDerivatives),
+            mpCurrentProcessInfo(rNewParameters.mpCurrentProcessInfo),
+            mpMaterialProperties(rNewParameters.mpMaterialProperties),
+            mpElementGeometry(rNewParameters.mpElementGeometry)
+        {
+
+        };
+
+        ~Parameters() = default;
+        {
+
+        }
+
+        ///------------------------------------------------------------------------------------------------
+
+        bool CheckAllParameters ()
+        {
+            if(CheckHydraulicVariables() &&  CheckShapeFunctions() && CheckInfoMaterialGeometry ())
+                return 1;
+            else
+                return 0;
+        }
+
+        bool CheckHydraulicVariables ()
+        {
+            if(!mpSw)
+                KRATOS_ERROR << "Sw NOT SET" << std::endl;
+
+            if(!mpdSwdPc<=0)
+                KRATOS_ERROR << "dSwdPc NOT SET" << std::endl;
+
+            if(!mpkrw<=0)
+                KRATOS_ERROR << "krw NOT SET" << std::endl;
+
+            if(!mpkrg<=0)
+                KRATOS_ERROR << "krg NOT SET" << std::endl;
+
+            return 1;
+        }
+
+        bool CheckShapeFunctions ()
+        {
+            if(!mpShapeFunctionsValues)
+                KRATOS_ERROR << "ShapeFunctionsValues NOT SET" << std::endl;
+
+            if(!mpShapeFunctionsDerivatives)
+                KRATOS_ERROR << "ShapeFunctionsDerivatives NOT SET" << std::endl;
+
+            return 1;
+        }
+
+        bool CheckInfoMaterialGeometry ()
+        {
+            if(!mpCurrentProcessInfo)
+                KRATOS_ERROR << "CurrentProcessInfo NOT SET" << std::endl;
+
+            if(!mpMaterialProperties)
+                KRATOS_ERROR << "MaterialProperties NOT SET" << std::endl;
+
+            if(!mpElementGeometry)
+                KRATOS_ERROR << "ElementGeometry NOT SET" << std::endl;
+
+            return 1;
+        }
+
+        ///------------------------------------------------------------------------------------------------
+
+        void SetSw (const double& rSw)         {mpSw=&rSw;};
+        void SetdSwdPc (const double& rdSwdPc) {mpdSwdPc=&rdSwdPc;};
+        void Setkrw (const double& rkrw)       {mpkrw=&rkrw;};
+        void Setkrg (const double& rkrg)       {mpkrg=&rkrg;};
+
+        void SetShapeFunctionsValues (const Vector& rShapeFunctionsValues)           {mpShapeFunctionsValues=&rShapeFunctionsValues;};
+        void SetShapeFunctionsDerivatives (const Matrix& rShapeFunctionsDerivatives) {mpShapeFunctionsDerivatives=&rShapeFunctionsDerivatives;};
+
+        void SetProcessInfo (const ProcessInfo& rProcessInfo)               {mpCurrentProcessInfo =&rProcessInfo;};
+        void SetMaterialProperties (const Properties&  rMaterialProperties) {mpMaterialProperties =&rMaterialProperties;};
+        void SetElementGeometry (const GeometryType& rElementGeometry)      {mpElementGeometry =&rElementGeometry;};
+
+        ///------------------------------------------------------------------------------------------------
+
+        double& GetSw()
+        {
+            KRATOS_DEBUG_ERROR_IF_NOT(IsSetSw()) << "Sw is not set!" << std::endl;
+            return *mpSw;
+        }
+        double& GetdSwdPc()
+        {
+            KRATOS_DEBUG_ERROR_IF_NOT(IsSetdSwdPc()) << "dSwdPc is not set!" << std::endl;
+            return *mpdSwdPc;
+        }
+        double& Getkrw()
+        {
+            KRATOS_DEBUG_ERROR_IF_NOT(IsSetkrw()) << "krw is not set!" << std::endl;
+            return *mpkrw;
+        }
+        double& Getkrg()
+        {
+            KRATOS_DEBUG_ERROR_IF_NOT(IsSetkrg()) << "krg is not set!" << std::endl;
+            return *mpkrg;
+        }
+
+        const Vector& GetShapeFunctionsValues()
+        {
+            KRATOS_DEBUG_ERROR_IF_NOT(IsSetShapeFunctionsValues()) << "ShapeFunctionsValues is not set!" << std::endl;
+            return *mpShapeFunctionsValues;
+        }
+        const Matrix& GetShapeFunctionsDerivatives()
+        {
+            KRATOS_DEBUG_ERROR_IF_NOT(IsSetShapeFunctionsDerivatives()) << "ShapeFunctionsDerivatives is not set!" << std::endl;
+            return *mpShapeFunctionsDerivatives;
+        }
+
+        const ProcessInfo& GetProcessInfo()
+        {
+            KRATOS_DEBUG_ERROR_IF_NOT(IsSetProcessInfo()) << "ProcessInfo is not set!" << std::endl;
+            return *mpCurrentProcessInfo;
+        }
+        const Properties& GetMaterialProperties()
+        {
+            KRATOS_DEBUG_ERROR_IF_NOT(IsSetMaterialProperties()) << "MaterialProperties is not set!" << std::endl;
+            return *mpMaterialProperties;
+        }
+        const GeometryType& GetElementGeometry()
+        {
+            KRATOS_DEBUG_ERROR_IF_NOT(IsSetElementGeometry()) << "ElementGeometry is not set!" << std::endl;
+            return *mpElementGeometry;
+        }
+
+        ///------------------------------------------------------------------------------------------------
+
+        double& GetSw (double& rSw)         {rSw=*mpSw; return rSw;};
+        double& GetdSwdPc (double& rdSwdPc) {rdSwdPc=*mpdSwdPc; return rdSwdPc;};
+        double& Getkrw (double& rkrw)       {rkrw=*mpkrw; return rkrw;};
+        double& Getkrg (double& rkrg)       {rkrg=*mpkrg; return rkrg;};
+
+        ///------------------------------------------------------------------------------------------------
+
+        bool IsSetSw ()     {return (mpSw != NULL);};
+        bool IsSetdSwdPc () {return (mpdSwdPc != NULL);};
+        bool IsSetkrw ()    {return (mpkrw != NULL);};
+        bool IsSetkrg ()    {return (mpkrg != NULL);};
+
+        bool IsSetShapeFunctionsValues ()      {return (mpShapeFunctionsValues != NULL);};
+        bool IsSetShapeFunctionsDerivatives () {return (mpShapeFunctionsDerivatives != NULL);};
+
+        bool IsSetProcessInfo ()        {return (mpCurrentProcessInfo != NULL);};
+        bool IsSetMaterialProperties () {return (mpMaterialProperties != NULL);};
+        bool IsSetElementGeometry ()    {return (mpElementGeometry != NULL);};
+
+    };// struct Parameters end
+
+    ///------------------------------------------------------------------------------------------------
 
     SaturationLaw() = default;
 
+    SaturationLaw(const SaturationLaw& rOther)
+    {
+    }
+
     virtual ~SaturationLaw() = default;
 
-    /**
-     * @brief Clone function (has to be implemented by any derived class)
-     * @return a pointer to a new instance of this saturation law
-     * @note implementation scheme:
-     *      SaturationLaw::Pointer p_clone(new SaturationLaw());
-     *      return p_clone;
-     */
-    virtual SaturationLaw::Pointer Clone() const = 0;
+    virtual SaturationLaw::Pointer Clone() const;
 
-    /**
-     * @brief Calculates the value of a specified variable (double)
-     * @param rParameterValues the needed parameters for the CL calculation
-     * @param rThisVariable the variable to be returned
-     * @param rValue a reference to the returned value
-     * @param rValue output: the value of the specified variable
-     */
-    virtual double& CalculateValue(Parameters& rParameters,
-                                   const Variable<double>& rThisVariable,
-                                   double& rValue) = 0;
+    ///------------------------------------------------------------------------------------------------
+    
+    // virtual SizeType WorkingSpaceDimension();
 
-    virtual double CalculateSaturation(Parameters& rParameters) = 0;
+    ///------------------------------------------------------------------------------------------------
 
-    virtual double CalculateEffectiveSaturation(Parameters& rParameters) = 0;
+    virtual bool Has(const Variable<bool>& rThisVariable);
+    virtual bool Has(const Variable<int>& rThisVariable);
+    virtual bool Has(const Variable<double>& rThisVariable);
+    virtual bool Has(const Variable<Vector>& rThisVariable);
+    virtual bool Has(const Variable<Matrix>& rThisVariable);
+    virtual bool Has(const Variable<array_1d<double, 3 > >& rThisVariable);
+    virtual bool Has(const Variable<array_1d<double, 6 > >& rThisVariable);
 
-    virtual double CalculateDerivativeOfSaturation(Parameters& rParameters) = 0;
+    ///------------------------------------------------------------------------------------------------
 
-    virtual double CalculateRelativePermeability(Parameters& rParameters) = 0;
+    virtual bool& GetValue(const Variable<bool>& rThisVariable, bool& rValue);
+    virtual int& GetValue(const Variable<int>& rThisVariable, int& rValue);
+    virtual double& GetValue(const Variable<double>& rThisVariable, double& rValue);
+    virtual Vector& GetValue(const Variable<Vector>& rThisVariable, Vector& rValue);
+    virtual Matrix& GetValue(const Variable<Matrix>& rThisVariable, Matrix& rValue);
+    virtual array_1d<double, 3>& GetValue(const Variable<array_1d<double, 3>>& rThisVariable, array_1d<double,3>& rValue);
+    virtual array_1d<double, 6>& GetValue(const Variable<array_1d<double, 6>>& rThisVariable, array_1d<double, 6>& rValue);
+    
+    ///------------------------------------------------------------------------------------------------
 
-    virtual double CalculateBishopCoefficient(Parameters& rParameters) = 0;
+    virtual void SetValue(const Variable<bool>& rVariable,
+                          const bool& Value,
+                          const ProcessInfo& rCurrentProcessInfo);
+    virtual void SetValue(const Variable<int>& rVariable,
+                          const int& Value,
+                          const ProcessInfo& rCurrentProcessInfo);
+    virtual void SetValue(const Variable<double>& rVariable,
+                          const double& rValue,
+                          const ProcessInfo& rCurrentProcessInfo);
+    virtual void SetValue(const Variable<Vector >& rVariable,
+                          const Vector& rValue,
+                          const ProcessInfo& rCurrentProcessInfo);
+    virtual void SetValue(const Variable<Matrix >& rVariable,
+                          const Matrix& rValue,
+                          const ProcessInfo& rCurrentProcessInfo);
+    virtual void SetValue(const Variable<array_1d<double, 3>>& rVariable,
+                          const array_1d<double, 3>& rValue,
+                          const ProcessInfo& rCurrentProcessInfo);
+    virtual void SetValue(const Variable<array_1d<double, 6>>& rVariable,
+                          const array_1d<double, 6>& rValue,
+                          const ProcessInfo& rCurrentProcessInfo);
 
-    /**
-     * This is to be called at the very beginning of the calculation
-     * (e.g. from InitializeElement) in order to initialize all relevant
-     * attributes of the saturation law
-     * @param rMaterialProperties the Properties instance of the current element
-     * @param rElementGeometry the geometry of the current element
-     * @param rCurrentProcessInfo process info
-     */
+    ///------------------------------------------------------------------------------------------------
+
+    virtual bool& CalculateValue(Parameters& rParameterValues, const Variable<bool>& rThisVariable, bool& rValue);
+    virtual int& CalculateValue(Parameters& rParameterValues, const Variable<int>& rThisVariable, int& rValue);
+    virtual double& CalculateValue(Parameters& rParameterValues, const Variable<double>& rThisVariable, double& rValue);
+    virtual Vector& CalculateValue(Parameters& rParameterValues, const Variable<Vector>& rThisVariable, Vector& rValue);
+    virtual Matrix& CalculateValue(Parameters& rParameterValues, const Variable<Matrix>& rThisVariable, Matrix& rValue);
+    virtual array_1d<double, 3>& CalculateValue(Parameters& rParameterValues, const Variable<array_1d<double, 3>>& rVariable, array_1d<double, 3>& rValue);
+    virtual array_1d<double, 6>& CalculateValue(Parameters& rParameterValues, const Variable<array_1d<double, 6>>& rVariable, array_1d<double, 6>& rValue);
+
+    ///------------------------------------------------------------------------------------------------
+
+    virtual int Check(const Properties& rMaterialProperties,
+                      const GeometryType& rElementGeometry,
+                      const ProcessInfo& rCurrentProcessInfo) const;
+
+    virtual bool ValidateInput(const Properties& rMaterialProperties);
+
     virtual void InitializeMaterial(const Properties& rMaterialProperties,
                                     const GeometryType& rElementGeometry,
                                     const Vector& rShapeFunctionsValues);
 
-    virtual void Initialize(Parameters& rParameters);
+    virtual void CalculateMaterialResponse (Parameters& rValues);
 
-    /**
-     * to be called at the beginning of each solution step
-     * (e.g. from Element::InitializeSolutionStep)
-     */
-    virtual void InitializeSolutionStep(Parameters& rParameters);
+    virtual bool RequiresInitializeMaterialResponse()
+    {
+        return false;
+    }
 
-    /**
-     * to be called at the end of each solution step
-     * (e.g. from Element::FinalizeSolutionStep)
-     */
-    virtual void FinalizeSolutionStep(Parameters& rParameters);
+    virtual void InitializeMaterialResponse (Parameters& rValues);
 
-    /**
-     * Finalize the material response in terms of Cauchy stresses
-     * @see Parameters
-     */
-    virtual void Finalize(Parameters& rParameters);
+    virtual bool RequiresFinalizeMaterialResponse()
+    {
+        return false;
+    }
 
-    /**
-     * This can be used in order to reset all internal variables of the
-     * saturation law (e.g. if a model should be reset to its reference state)
-     * @param rMaterialProperties the Properties instance of the current element
-     * @param rElementGeometry the geometry of the current element
-     * @param rShapeFunctionsValues the shape functions values in the current integration point
-     * @param the current ProcessInfo instance
-     */
+    virtual void FinalizeMaterialResponse (Parameters& rValues);
+
     virtual void ResetMaterial(const Properties& rMaterialProperties,
                                const GeometryType& rElementGeometry,
                                const Vector& rShapeFunctionsValues);
+    
+    ///------------------------------------------------------------------------------------------------
 
-    /**
-     * This function is designed to be called once to perform all the checks
-     * needed on the input provided. Checks can be "expensive" as the function
-     * is designed to catch user's errors.
-     * @param rMaterialProperties
-     * @param rElementGeometry
-     * @param rCurrentProcessInfo
-     * @return
-     */
-    virtual int Check(const Properties& rMaterialProperties,
-                      const ProcessInfo& rCurrentProcessInfo) = 0;
-
-    /**
-     * @brief This method is used to check that two Retention Laws are the same type (references)
-     * @param rLHS The first argument
-     * @param rRHS The second argument
-     */
-    inline static bool HasSameType(const SaturationLaw& rLHS, const SaturationLaw& rRHS)
-    {
+    inline static bool HasSameType(const SaturationLaw& rLHS, const SaturationLaw& rRHS) {
         return (typeid(rLHS) == typeid(rRHS));
     }
 
-    /**
-     * @brief This method is used to check that tow Retention Laws are the same type (pointers)
-     * @param rLHS The first argument
-     * @param rRHS The second argument
-     */
-    inline static bool HasSameType(const SaturationLaw* rLHS, const SaturationLaw* rRHS)
-    {
+    inline static bool HasSameType(const SaturationLaw* rLHS, const SaturationLaw* rRHS) {
         return SaturationLaw::HasSameType(*rLHS, *rRHS);
     }
 
-    /// Turn back information as a string.
-    virtual std::string Info() const
+    ///------------------------------------------------------------------------------------------------
+
+    std::string Info() const override
     {
-        return "SaturationLaw";
+        std::stringstream buffer;
+        buffer << "SaturationLaw";
+        return buffer.str();
     }
 
-    /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const
+    void PrintInfo(std::ostream& rOStream) const override
     {
-        rOStream << Info();
+        rOStream << "SaturationLaw";
     }
 
-    /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const
+    void PrintData(std::ostream& rOStream) const override
     {
-        rOStream << "SaturationLaw has no data";
+      rOStream << "SaturationLaw has no data";
     }
+
+    ///------------------------------------------------------------------------------------------------
+
+protected:
+
+    struct SaturationLawVariables
+    {
+        
+    };
+
+    ///------------------------------------------------------------------------------------------------
 
 private:
+
     friend class Serializer;
 
     virtual void save(Serializer& rSerializer) const;
@@ -236,10 +407,8 @@ private:
 
 }; /* Class SaturationLaw */
 
-/// input stream function
 inline std::istream& operator>>(std::istream& rIStream, SaturationLaw& rThis);
 
-/// output stream function
 inline std::ostream& operator<<(std::ostream& rOStream, const SaturationLaw& rThis)
 {
     rThis.PrintInfo(rOStream);
