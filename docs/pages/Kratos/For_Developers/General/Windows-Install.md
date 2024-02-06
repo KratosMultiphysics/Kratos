@@ -1,9 +1,9 @@
 ---
 title: Windows Install
-keywords: 
+keywords:
 tags: [Windows-Install.md]
 sidebar: kratos_for_developers
-summary: 
+summary:
 ---
 
 # How to compile Kratos:
@@ -23,12 +23,12 @@ Notice that these installers will overwrite any previous version of the prerequi
 
 - Python 3.3
 - SVN 1.8.0.1
-- CMake 3.0.2 
+- CMake 3.0.2
 - ACML 4.4
 
 # How to compile Kratos: Windows
 
-In this section we are going to go through the process of compiling a basic version of *Kratos Multiphysics* under *Windows* environments. We recommend you to use *Windows 10* but you can compile *Kratos* with *Windows 7* or higher. 
+In this section we are going to go through the process of compiling a basic version of *Kratos Multiphysics* under *Windows* environments. We recommend you to use *Windows 10* but you can compile *Kratos* with *Windows 7* or higher.
 
 A basic knowledge of *Windows* is assumed ( execute commands in cmd, create directories, etc...)
 
@@ -51,12 +51,12 @@ Since *Visual Studio* is a multi-language IDE, some distributions come without C
 
 ## Git
 
-- Objectives: 
+- Objectives:
 	- Install git
 	- Get Kratos Multiphysics source code
 
 
-The first thing you will need is the *Kratos Multiphysics* source code. To download the code you will have to use a git manager. You can install a git manager from the link below. There are may other git clients that you can use. 
+The first thing you will need is the *Kratos Multiphysics* source code. To download the code you will have to use a git manager. You can install a git manager from the link below. There are may other git clients that you can use.
 
 [GitKraken](https://www.gitkraken.com/download)
 
@@ -68,7 +68,7 @@ https://github.com/KratosMultiphysics/Kratos
 
 Once this is done, you should have a "Kratos" directory containing Kratos soruces
 
-## CMake 
+## CMake
 
 - Objectives:
 	- Install CMake
@@ -77,11 +77,11 @@ Once this is done, you should have a "Kratos" directory containing Kratos soruce
 
 [CMake](http://cmake.org/download/)
 
-Once installing, please <span style="color:red"> do not forget to mark the option: '''"Add CMake to the system PATH for all users"'''</span> 
+Once installing, please <span style="color:red"> do not forget to mark the option: '''"Add CMake to the system PATH for all users"'''</span>
 
 Please notice that if you want to use *python* 3.4 or higher, you will need *CMake* 3.0.2 or higher.
 
-## Python 
+## Python
 
 - Objectives:
 	- Install Python3
@@ -95,7 +95,7 @@ Please, take special care to download a installer that suits your desired archit
 ## BLAS and LAPACK
 
 - Objectives:
-	- Get LIBBLAS and LIBLAPACK 
+	- Get LIBBLAS and LIBLAPACK
 
 *Blas* and *Lapack* are needed for many solvers, specially those present in the *ExternalSolversApplication*, that you will likely need to compile. You can get these libraries from:
 
@@ -113,7 +113,7 @@ Additionally, you will need some extra dependencies for these libs. The easiest 
 
 **Warning:** After launching the installer, several options must be selected. Choose **version 6.4.0**. Please take special care to select the correct architecture during this installation (32 bits is called `i868`, 64 bits is called `x86_64`).
 
-## Boost 
+## Boost
 
 - Objectives:
 	- Download boost libraries
@@ -139,16 +139,16 @@ This file controls where Kratos is going to search for the libraries, which appl
 The first thing you need to do is to tell *CMake* that you intend to build a *VisualStudio* project. This is done automatically by *CMake*, but is highly recommended to add it yourself. To do it add `-G` option followed by your target. For example, if you are using *VisualStudio 2015*:
 
 **For 32 bits:**
-```bash
+```console
   cmake -G "Visual Studio 14 2015" ^
 ```
 
 **For 64 bits:**
-```bash
+```console
   cmake -G "Visual Studio 14 2015 Win64" ^
 ```
 **For 64 bits and VS 2017:**
-```bash
+```console
   cmake -G "Visual Studio 15 2017 Win64" ^
 ```
 
@@ -163,7 +163,7 @@ You can find more info and a list of available generators here:
 Once the generator is correctly set, you have to make sure that the paths to all libraries are correctly set. Please make sure that you configure.bat
 file has the following lines with the correct path:
 
-```bash
+```console
   -DBOOST_ROOT="example/boost_1_67_0/" ^
   -DBLAS_LIBRARIES="example/libblas.lib" ^
   -DLAPACK_LIBRARIES="example/liblapack.lib" ^
@@ -171,7 +171,7 @@ file has the following lines with the correct path:
 
 It is possible that if you have multiple python versions in your system CMake detects the wrong one ( typically, the one with the highest version ) to avoid that, please set it manually. For instance, for Python 3.6:
 
-```bash
+```console
   -DPYTHON_EXECUTABLE=C:\Python36\python.exe"
 ```
 
@@ -179,13 +179,13 @@ It is possible that if you have multiple python versions in your system CMake de
 
 Now, you can enable and  disable the applications you may want to compile or not. For instance:
 
-```bash
+```console
   -DSTRUCTURAL_APPLICATION=ON/OFF ^
 ```
 
 We recommend you to enable:
 
-```bash
+```console
   -DINSTALL_EMBEDDED_PYTHON=ON ^
 ```
 
@@ -199,10 +199,10 @@ Here we present a full example using these assumptions:
 - You have blas and lapack in "C:\external_libraries"
 - You have Python36 in "C:\Python36"
 - You downloaded Kratos in "C:\Kratos"
- 
-```bash
+
+```console
   del CMakeCache.txt
-  
+
   cmake -G "Visual Studio 14 2015 Win64"                                              ^
   -DCMAKE_BUILD_TYPE=Release                                                          ^
   -DCMAKE_CXX_FLAGS=" -D_SCL_SECURE_NO_WARNINGS "                                     ^
@@ -236,7 +236,7 @@ Here we present a full example using these assumptions:
 
 Once the modifications of the file are done, it needs to be executed. You can do that by executing the command:
 
-```bash
+```console
   configure
 ```
 
@@ -275,7 +275,7 @@ Once Kratos is compiled and correctly install all its left is to execute some ca
 
 To to test the compilation, you can prepare a simple script (for example `test_kratos.py`) that contains this line:
 
-```bash
+```console
   from KratosMultiphysics import *
 ```
 
@@ -288,24 +288,24 @@ The most easy way to execute a KratosMultiphysics script from the command line i
 - Your Downloaded Kratos in `C:\Kratos`
 - Your script is called `test_kratos.py`
 
-```bash
+```console
   set PATH=C:\\Kratos;C:\\Kratos\\libs;%PATH%
   "python" test_kratos.py
 ```
 
-```bash
+```console
   python test.py
 ```
 
 Or more exactly, you can go to the folder where your case is (input files and main *python* script) and type:
 
-```bash
+```console
   python test.py
 ```
 
 You can also run them directly using the python you have installed in your system (provided that the system knows where python is and the environment variables have the correct values assigned, `PYTHONPATH`, `LD_LIBRARY_PATH` and `PATH`).
 
-```bash
+```console
   python test.py
   python3 test.py
   python36 test.py
@@ -313,10 +313,10 @@ You can also run them directly using the python you have installed in your syste
 
 If everything is correct you will see this message:
 
-```bash
-   |  /           |             
+```console
+   |  /           |
    ' /   __| _` | __|  _ \   __|
-   . \  |   (   | |   (   |\__ \ 
+   . \  |   (   | |   (   |\__ \
   _|\_\_|  \__,_|\__|\___/ ____/
            Multi-Physics 6.1.XXXXX
 ```
@@ -336,7 +336,7 @@ Add this to the `*.vsproj` file of the project is giving you problems under the 
 
 or by setting:
 
-```bash
+```console
 set PreferredToolArchitecture=x64
 ```
 
@@ -348,7 +348,7 @@ before calling `Msbuild.exe` if you are compiling directly from the cmd.
 
 You have a conflicting declaration of round. This could happen for example if you have multiple versions of Visual Studio in your computer. Please add `-DHAVE_ROUND` to the configure `cxxflags` entry:
 
-```bash
+```console
  -DCMAKE_CXX_FLAGS=" -D_SCL_SECURE_NO_WARNINGS -DHAVE_ROUND"
 ```
 

@@ -1,12 +1,12 @@
 ---
 title: Getting Kratos Binaries for Linux
-keywords: 
+keywords:
 tags: [Getting-Kratos-Binaries-for-Linux.md]
 sidebar: kratos_for_users
-summary: 
+summary:
 ---
 
-This page covers the process of downloading a compiled version of Kratos for Linux and how to use it to run an example. 
+This page covers the process of downloading a compiled version of Kratos for Linux and how to use it to run an example.
 
 ## Minimum requirements
 
@@ -48,18 +48,18 @@ python $*
 ```
 
 Do not forget to give the script execution rights:
-```bash
+```console
 chmod +x runner.sh
 ```
 
 2 - Make an alias for the script
 
-```bash
+```console
 echo "alias kratos=runner.sh" >> $HOME/.bashrc
 ```
 
 3 - Open the terminal and execute the problem script using kratos:
 
-```bash
+```console
 kratos MainKratos.py
 ```
