@@ -22,8 +22,8 @@
 namespace Kratos
 {
 
-template<class TSearchObject>
-BoundingBox<Point> SearchWrapper<TSearchObject>::GetBoundingBox() const
+template<class TSearchObject, SpatialSearchCommunication TSpatialSearchCommunication>
+BoundingBox<Point> SearchWrapper<TSearchObject, TSpatialSearchCommunication>::GetBoundingBox() const
 {
     // Generate BB
     BoundingBox<Point> bb;
@@ -57,8 +57,8 @@ BoundingBox<Point> SearchWrapper<TSearchObject>::GetBoundingBox() const
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<class TSearchObject>
-int SearchWrapper<TSearchObject>::GetRank() const
+template<class TSearchObject, SpatialSearchCommunication TSpatialSearchCommunication>
+int SearchWrapper<TSearchObject, TSpatialSearchCommunication>::GetRank() const
 {
     return mrDataCommunicator.Rank();
 }
@@ -66,8 +66,8 @@ int SearchWrapper<TSearchObject>::GetRank() const
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<class TSearchObject>
-int SearchWrapper<TSearchObject>::GetWorldSize() const
+template<class TSearchObject, SpatialSearchCommunication TSpatialSearchCommunication>
+int SearchWrapper<TSearchObject, TSpatialSearchCommunication>::GetWorldSize() const
 {
     return mrDataCommunicator.Size();
 }
@@ -75,8 +75,8 @@ int SearchWrapper<TSearchObject>::GetWorldSize() const
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<class TSearchObject>
-void SearchWrapper<TSearchObject>::InitializeGlobalBoundingBoxes()
+template<class TSearchObject, SpatialSearchCommunication TSpatialSearchCommunication>
+void SearchWrapper<TSearchObject, TSpatialSearchCommunication>::InitializeGlobalBoundingBoxes()
 {
     // Just executed in MPI
     if (mrDataCommunicator.IsDistributed()) {
@@ -114,8 +114,8 @@ void SearchWrapper<TSearchObject>::InitializeGlobalBoundingBoxes()
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<class TSearchObject>
-std::vector<int> SearchWrapper<TSearchObject>::RansksPointIsInsideBoundingBox(const array_1d<double, 3>& rCoords)
+template<class TSearchObject, SpatialSearchCommunication TSpatialSearchCommunication>
+std::vector<int> SearchWrapper<TSearchObject, TSpatialSearchCommunication>::RansksPointIsInsideBoundingBox(const array_1d<double, 3>& rCoords)
 {
     std::vector<int> ranks;
     const int world_size = GetWorldSize();
@@ -137,8 +137,8 @@ std::vector<int> SearchWrapper<TSearchObject>::RansksPointIsInsideBoundingBox(co
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<class TSearchObject>
-std::vector<int> SearchWrapper<TSearchObject>::RansksPointIsInsideBoundingBoxWithTolerance(
+template<class TSearchObject, SpatialSearchCommunication TSpatialSearchCommunication>
+std::vector<int> SearchWrapper<TSearchObject, TSpatialSearchCommunication>::RansksPointIsInsideBoundingBoxWithTolerance(
     const array_1d<double, 3>& rCoords,
     const double Tolerance
     )
@@ -165,8 +165,8 @@ std::vector<int> SearchWrapper<TSearchObject>::RansksPointIsInsideBoundingBoxWit
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<class TSearchObject>
-void SearchWrapper<TSearchObject>::LocalSearchInRadius(
+template<class TSearchObject, SpatialSearchCommunication TSpatialSearchCommunication>
+void SearchWrapper<TSearchObject, TSpatialSearchCommunication>::LocalSearchInRadius(
     const PointType& rPoint,
     const double Radius,
     std::vector<ResultType>& rResults,
@@ -203,8 +203,8 @@ void SearchWrapper<TSearchObject>::LocalSearchInRadius(
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<class TSearchObject>
-void SearchWrapper<TSearchObject>::LocalSearchNearestInRadius(
+template<class TSearchObject, SpatialSearchCommunication TSpatialSearchCommunication>
+void SearchWrapper<TSearchObject, TSpatialSearchCommunication>::LocalSearchNearestInRadius(
     const PointType& rPoint,
     const double Radius,
     ResultType& rResult,
@@ -243,8 +243,8 @@ void SearchWrapper<TSearchObject>::LocalSearchNearestInRadius(
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<class TSearchObject>
-void SearchWrapper<TSearchObject>::LocalSearchNearest(
+template<class TSearchObject, SpatialSearchCommunication TSpatialSearchCommunication>
+void SearchWrapper<TSearchObject, TSpatialSearchCommunication>::LocalSearchNearest(
     const PointType& rPoint,
     ResultType& rResult,
     const int Rank
@@ -271,8 +271,8 @@ void SearchWrapper<TSearchObject>::LocalSearchNearest(
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<class TSearchObject>
-void SearchWrapper<TSearchObject>::LocalSearchIsInside(
+template<class TSearchObject, SpatialSearchCommunication TSpatialSearchCommunication>
+void SearchWrapper<TSearchObject, TSpatialSearchCommunication>::LocalSearchIsInside(
     const PointType& rPoint,
     ResultType& rResult,
     const int Rank
@@ -290,8 +290,8 @@ void SearchWrapper<TSearchObject>::LocalSearchIsInside(
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<class TSearchObject>
-void SearchWrapper<TSearchObject>::KeepOnlyClosestResult(ResultContainerVectorType& rResults)
+template<class TSearchObject, SpatialSearchCommunication TSpatialSearchCommunication>
+void SearchWrapper<TSearchObject, TSpatialSearchCommunication>::KeepOnlyClosestResult(ResultContainerVectorType& rResults)
 {
     auto distance_lambda = [](ResultContainerType& rResult) -> std::vector<double> {
         return rResult.GetDistances();
@@ -302,8 +302,8 @@ void SearchWrapper<TSearchObject>::KeepOnlyClosestResult(ResultContainerVectorTy
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<class TSearchObject>
-void SearchWrapper<TSearchObject>::KeepOnlyLowestRankResult(ResultContainerVectorType& rResults)
+template<class TSearchObject, SpatialSearchCommunication TSpatialSearchCommunication>
+void SearchWrapper<TSearchObject, TSpatialSearchCommunication>::KeepOnlyLowestRankResult(ResultContainerVectorType& rResults)
 {
     auto rank_lambda = [](ResultContainerType& rResult) -> std::vector<int> {
         return rResult.GetResultRank();
@@ -314,8 +314,8 @@ void SearchWrapper<TSearchObject>::KeepOnlyLowestRankResult(ResultContainerVecto
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<class TSearchObject>
-std::string SearchWrapper<TSearchObject>::GenerateNameFromRanks(
+template<class TSearchObject, SpatialSearchCommunication TSpatialSearchCommunication>
+std::string SearchWrapper<TSearchObject, TSpatialSearchCommunication>::GenerateNameFromRanks(
     const std::string& rBaseName,
     const std::vector<int>& rRanks
     )
@@ -342,19 +342,23 @@ struct VectorHash {
     }
 };
 
-template<class TSearchObject>
-void SearchWrapper<TSearchObject>::PrepareResultsInProperRanks(
+template<class TSearchObject, SpatialSearchCommunication TSpatialSearchCommunication>
+void SearchWrapper<TSearchObject, TSpatialSearchCommunication>::PrepareResultsInProperRanks(
     ResultContainerVectorType& rResults,
-    const DistributedSearchInformation& rSearchInfo,
-    const bool ConsiderGlobalDataCommunicator
+    const DistributedSearchInformation& rSearchInfo
     )
 {
-    // Get the ranks and prepare the data communicators
-    const auto& r_ranks = rSearchInfo.Ranks;
-    std::vector<const DataCommunicator*> data_communicators(r_ranks.size(), &mrDataCommunicator);
+    // If considering global data communicator
+    if constexpr (ConsiderGlobalDataCommunicator) {
+        // Prepare the data communicators
+        std::vector<const DataCommunicator*> data_communicators(rSearchInfo.TotalNumberOfPoints, &mrDataCommunicator);
+        // Initialize results
+        rResults.InitializeResults(data_communicators);
+    } else { // If not considering global data communicator
+        // Get the ranks and prepare the data communicators
+        const auto& r_ranks = rSearchInfo.Ranks;
+        std::vector<const DataCommunicator*> data_communicators(r_ranks.size(), &mrDataCommunicator);
 
-    // If not considering global data communicator
-    if (!ConsiderGlobalDataCommunicator) {
         // The base sub data communicator name
         const std::string base_name = "SubCommunicator_";
         std::unordered_map<std::vector<int>, const DataCommunicator*, VectorHash> data_communicators_database; // NOTE: WE use this to avoid the creating of strings concatenating integers and the search of std::string that is expensive
@@ -372,32 +376,41 @@ void SearchWrapper<TSearchObject>::PrepareResultsInProperRanks(
                 data_communicators_database.insert({r_current_ranks, &r_sub_communicator});
             }
         }
-    }
 
-    // Initialize results
-    rResults.InitializeResults(data_communicators);
+        // Initialize results
+        rResults.InitializeResults(data_communicators);
+    }
 
     // Set some values
     const auto& r_local_indices = rSearchInfo.LocalIndices;
     const auto& r_global_indices = rSearchInfo.GlobalIndices;
     auto& r_results_vector = rResults.GetContainer();
-    IndexPartition<IndexType>(r_results_vector.size()).for_each([&r_results_vector, &r_local_indices, &r_global_indices](const IndexType Index) {
-        auto& r_point_result = *(r_results_vector[Index]);
-        r_point_result.SetLocalIndex(r_local_indices[Index]);
-        r_point_result.SetGlobalIndex(r_global_indices[Index]);
-    });
+    if constexpr (ConsiderGlobalDataCommunicator) {
+        const auto& r_global_position = rSearchInfo.GlobalPosition;
+        IndexPartition<IndexType>(r_local_indices.size()).for_each([&r_results_vector, &r_local_indices, &r_global_indices, &r_global_position](const IndexType Index) {
+            auto& r_point_result = *(r_results_vector[r_global_position[Index]]);
+            r_point_result.SetLocalIndex(r_local_indices[Index]);
+            r_point_result.SetGlobalIndex(r_global_indices[Index]);
+        });
+    } else {
+        IndexPartition<IndexType>(r_local_indices.size()).for_each([&r_results_vector, &r_local_indices, &r_global_indices](const IndexType Index) {
+            auto& r_point_result = *(r_results_vector[Index]);
+            r_point_result.SetLocalIndex(r_local_indices[Index]);
+            r_point_result.SetGlobalIndex(r_global_indices[Index]);
+        });
+    }
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<class TSearchObject>
-const Parameters SearchWrapper<TSearchObject>::GetDefaultParameters() const
+template<class TSearchObject, SpatialSearchCommunication TSpatialSearchCommunication>
+const Parameters SearchWrapper<TSearchObject, TSpatialSearchCommunication>::GetDefaultParameters() const
 {
     const Parameters default_parameters = Parameters(R"(
     {
-        "allocation_size" : 1000,
-        "bucket_size"     : 4
+        "allocation_size"   : 1000,
+        "bucket_size"       : 4
     })" );
     return default_parameters;
 }
@@ -406,26 +419,49 @@ const Parameters SearchWrapper<TSearchObject>::GetDefaultParameters() const
 /***********************************************************************************/
 
 // GeometricalObjectsBins
-template class SearchWrapper<GeometricalObjectsBins>;
+// SYNCHRONOUS_HOMOGENEOUS
+template class SearchWrapper<GeometricalObjectsBins, SpatialSearchCommunication::SYNCHRONOUS_HOMOGENEOUS>;
+// SYNCHRONOUS_HETEROGENEOUS
+template class SearchWrapper<GeometricalObjectsBins, SpatialSearchCommunication::SYNCHRONOUS_HETEROGENEOUS>;
 
 // KDTree
-template class SearchWrapper<Tree<KDTreePartition<Bucket<3ul, PointObject<Node>, std::vector<PointObject<Node>::Pointer>>>>>;
-template class SearchWrapper<Tree<KDTreePartition<Bucket<3ul, PointObject<Element>, std::vector<PointObject<Element>::Pointer>>>>>;
-template class SearchWrapper<Tree<KDTreePartition<Bucket<3ul, PointObject<Condition>, std::vector<PointObject<Condition>::Pointer>>>>>;
+// SYNCHRONOUS_HOMOGENEOUS
+template class SearchWrapper<Tree<KDTreePartition<Bucket<3ul, PointObject<Node>, std::vector<PointObject<Node>::Pointer>>>>, SpatialSearchCommunication::SYNCHRONOUS_HOMOGENEOUS>;
+template class SearchWrapper<Tree<KDTreePartition<Bucket<3ul, PointObject<Element>, std::vector<PointObject<Element>::Pointer>>>>, SpatialSearchCommunication::SYNCHRONOUS_HOMOGENEOUS>;
+template class SearchWrapper<Tree<KDTreePartition<Bucket<3ul, PointObject<Condition>, std::vector<PointObject<Condition>::Pointer>>>>, SpatialSearchCommunication::SYNCHRONOUS_HOMOGENEOUS>;
+// SYNCHRONOUS_HETEROGENEOUS
+template class SearchWrapper<Tree<KDTreePartition<Bucket<3ul, PointObject<Node>, std::vector<PointObject<Node>::Pointer>>>>, SpatialSearchCommunication::SYNCHRONOUS_HETEROGENEOUS>;
+template class SearchWrapper<Tree<KDTreePartition<Bucket<3ul, PointObject<Element>, std::vector<PointObject<Element>::Pointer>>>>, SpatialSearchCommunication::SYNCHRONOUS_HETEROGENEOUS>;
+template class SearchWrapper<Tree<KDTreePartition<Bucket<3ul, PointObject<Condition>, std::vector<PointObject<Condition>::Pointer>>>>, SpatialSearchCommunication::SYNCHRONOUS_HETEROGENEOUS>;
 
 // OCTree
-template class SearchWrapper<Tree<OCTreePartition<Bucket<3ul, PointObject<Node>, std::vector<PointObject<Node>::Pointer>>>>>;
-template class SearchWrapper<Tree<OCTreePartition<Bucket<3ul, PointObject<Element>, std::vector<PointObject<Element>::Pointer>>>>>;
-template class SearchWrapper<Tree<OCTreePartition<Bucket<3ul, PointObject<Condition>, std::vector<PointObject<Condition>::Pointer>>>>>;
+// SYNCHRONOUS_HOMOGENEOUS
+template class SearchWrapper<Tree<OCTreePartition<Bucket<3ul, PointObject<Node>, std::vector<PointObject<Node>::Pointer>>>>, SpatialSearchCommunication::SYNCHRONOUS_HOMOGENEOUS>;
+template class SearchWrapper<Tree<OCTreePartition<Bucket<3ul, PointObject<Element>, std::vector<PointObject<Element>::Pointer>>>>, SpatialSearchCommunication::SYNCHRONOUS_HOMOGENEOUS>;
+template class SearchWrapper<Tree<OCTreePartition<Bucket<3ul, PointObject<Condition>, std::vector<PointObject<Condition>::Pointer>>>>, SpatialSearchCommunication::SYNCHRONOUS_HOMOGENEOUS>;
+// SYNCHRONOUS_HETEROGENEOUS
+template class SearchWrapper<Tree<OCTreePartition<Bucket<3ul, PointObject<Node>, std::vector<PointObject<Node>::Pointer>>>>, SpatialSearchCommunication::SYNCHRONOUS_HETEROGENEOUS>;
+template class SearchWrapper<Tree<OCTreePartition<Bucket<3ul, PointObject<Element>, std::vector<PointObject<Element>::Pointer>>>>, SpatialSearchCommunication::SYNCHRONOUS_HETEROGENEOUS>;
+template class SearchWrapper<Tree<OCTreePartition<Bucket<3ul, PointObject<Condition>, std::vector<PointObject<Condition>::Pointer>>>>, SpatialSearchCommunication::SYNCHRONOUS_HETEROGENEOUS>;
 
 // StaticBinsTree
-template class SearchWrapper<Tree<Bins<3ul, PointObject<Node>, std::vector<PointObject<Node>::Pointer>>>>;
-template class SearchWrapper<Tree<Bins<3ul, PointObject<Element>, std::vector<PointObject<Element>::Pointer>>>>;
-template class SearchWrapper<Tree<Bins<3ul, PointObject<Condition>, std::vector<PointObject<Condition>::Pointer>>>>;
+// SYNCHRONOUS_HOMOGENEOUS
+template class SearchWrapper<Tree<Bins<3ul, PointObject<Node>, std::vector<PointObject<Node>::Pointer>>>, SpatialSearchCommunication::SYNCHRONOUS_HOMOGENEOUS>;
+template class SearchWrapper<Tree<Bins<3ul, PointObject<Element>, std::vector<PointObject<Element>::Pointer>>>, SpatialSearchCommunication::SYNCHRONOUS_HOMOGENEOUS>;
+template class SearchWrapper<Tree<Bins<3ul, PointObject<Condition>, std::vector<PointObject<Condition>::Pointer>>>, SpatialSearchCommunication::SYNCHRONOUS_HOMOGENEOUS>;
+// SYNCHRONOUS_HETEROGENEOUS
+template class SearchWrapper<Tree<Bins<3ul, PointObject<Node>, std::vector<PointObject<Node>::Pointer>>>, SpatialSearchCommunication::SYNCHRONOUS_HETEROGENEOUS>;
+template class SearchWrapper<Tree<Bins<3ul, PointObject<Element>, std::vector<PointObject<Element>::Pointer>>>, SpatialSearchCommunication::SYNCHRONOUS_HETEROGENEOUS>;
+template class SearchWrapper<Tree<Bins<3ul, PointObject<Condition>, std::vector<PointObject<Condition>::Pointer>>>, SpatialSearchCommunication::SYNCHRONOUS_HETEROGENEOUS>;
 
 // DynamicBins
-template class SearchWrapper<BinsDynamic<3ul, PointObject<Node>, std::vector<PointObject<Node>::Pointer>>>;
-template class SearchWrapper<BinsDynamic<3ul, PointObject<Element>, std::vector<PointObject<Element>::Pointer>>>;
-template class SearchWrapper<BinsDynamic<3ul, PointObject<Condition>, std::vector<PointObject<Condition>::Pointer>>>;
+// SYNCHRONOUS_HOMOGENEOUS
+template class SearchWrapper<BinsDynamic<3ul, PointObject<Node>, std::vector<PointObject<Node>::Pointer>>, SpatialSearchCommunication::SYNCHRONOUS_HOMOGENEOUS>;
+template class SearchWrapper<BinsDynamic<3ul, PointObject<Element>, std::vector<PointObject<Element>::Pointer>>, SpatialSearchCommunication::SYNCHRONOUS_HOMOGENEOUS>;
+template class SearchWrapper<BinsDynamic<3ul, PointObject<Condition>, std::vector<PointObject<Condition>::Pointer>>, SpatialSearchCommunication::SYNCHRONOUS_HOMOGENEOUS>;
+// SYNCHRONOUS_HETEROGENEOUS
+template class SearchWrapper<BinsDynamic<3ul, PointObject<Node>, std::vector<PointObject<Node>::Pointer>>, SpatialSearchCommunication::SYNCHRONOUS_HETEROGENEOUS>;
+template class SearchWrapper<BinsDynamic<3ul, PointObject<Element>, std::vector<PointObject<Element>::Pointer>>, SpatialSearchCommunication::SYNCHRONOUS_HETEROGENEOUS>;
+template class SearchWrapper<BinsDynamic<3ul, PointObject<Condition>, std::vector<PointObject<Condition>::Pointer>>, SpatialSearchCommunication::SYNCHRONOUS_HETEROGENEOUS>;
 
 }  // namespace Kratos.
