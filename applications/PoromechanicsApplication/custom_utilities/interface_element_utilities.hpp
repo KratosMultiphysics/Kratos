@@ -206,9 +206,9 @@ public:
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    static inline void AddInitialInterfaceStresses2D(array_1d<double,2>& rStressVector,
+    static inline void AddInitialInterfaceStresses2D(Vector& rStressVector,
                                                         ConstitutiveLaw::Parameters& rValues,
-                                                        Element::GeometryType& geometry)
+                                                        const Element::GeometryType& geometry)
     {
         // Obtain necessary variables
         const Vector& N = rValues.GetShapeFunctionsValues();
@@ -222,6 +222,16 @@ public:
         Vector gp_initial_stress_vector(strainSize);
         noalias(gp_initial_stress_vector) = ZeroVector(strainSize);
         Vector LocalInitialStress(dimension);
+        noalias(LocalInitialStress) = ZeroVector(dimension);
+
+        // KRATOS_WATCH("Before if")
+        // KRATOS_WATCH(rStressVector)  
+        // // Checking if rStressVector has significant values
+        // if (abs(rStressVector[0]) > 6e+66 || abs(rStressVector[1]) > 6e+66) {
+        //     rStressVector = ZeroVector(dimension);
+        // }
+        // KRATOS_WATCH("After if")
+        // KRATOS_WATCH(rStressVector)  
 
         // Contribution of each of the nodal values to the corresponding GP
         for (unsigned int i = 0; i < number_of_nodes; i++) {
@@ -259,13 +269,17 @@ public:
         RotationInterface(1,0) = Vx[1]*Vx[1];
         RotationInterface(1,1) = Vx[0]*Vx[0];
         RotationInterface(1,2) = -2*Vx[1]*Vx[0];
-
+    
         // Local stress vector
         noalias(LocalInitialStress) = prod(RotationInterface, trans(gp_initial_stress_vector));
-
+    
+        KRATOS_WATCH("Before sum")
+        KRATOS_WATCH(rStressVector)  
         // Update the stress vector
         rStressVector[0] += LocalInitialStress[0];
         rStressVector[1] += LocalInitialStress[1];
+        KRATOS_WATCH("After sum")
+        KRATOS_WATCH(rStressVector)  
 
     }
 }; /* Class InterfaceElementUtilities*/

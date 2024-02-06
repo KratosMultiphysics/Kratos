@@ -63,6 +63,7 @@ void ElasticCohesive2DLaw::ComputeStressVector(Vector& rStressVector,
 {
     const Vector& StrainVector = rValues.GetStrainVector();
 
+/*
 // ------------------------------------------------------ NEW ------------------------------------------------------
     const Vector& N = rValues.GetShapeFunctionsValues();
     const Element::GeometryType& geometry = rValues.GetElementGeometry();
@@ -122,6 +123,10 @@ void ElasticCohesive2DLaw::ComputeStressVector(Vector& rStressVector,
     noalias(LocalInitialStresses) = prod(RotationInterface, trans(gp_initial_stress_vector));
 
 // -----------------------------------------------------------------------------------------------------------------
+*/
+    // const Element::GeometryType& geometry = rValues.GetElementGeometry();
+    // InterfaceElementUtilities::AddInitialInterfaceStresses2D(rStressVector, rValues, geometry);
+    
     double cp = 1.0;
 
     // Penalization coefficient, in case it is a compression
@@ -129,8 +134,11 @@ void ElasticCohesive2DLaw::ComputeStressVector(Vector& rStressVector,
         cp = rVariables.PenaltyStiffness;
     }
 
-    rStressVector[0] = LocalInitialStresses[0] + StrainVector[0] * rVariables.ShearStiffness;
-    rStressVector[1] = LocalInitialStresses[1] + StrainVector[1] * rVariables.NormalStiffness * cp;
+    rStressVector[0] = StrainVector[0] * rVariables.ShearStiffness;
+    rStressVector[1] = StrainVector[1] * rVariables.NormalStiffness * cp;
+
+    const Element::GeometryType& geometry = rValues.GetElementGeometry();
+    InterfaceElementUtilities::AddInitialInterfaceStresses2D(rStressVector, rValues, geometry);
 
 }
 
