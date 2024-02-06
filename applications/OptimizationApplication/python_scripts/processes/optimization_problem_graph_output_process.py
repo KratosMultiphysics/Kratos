@@ -6,6 +6,7 @@ from pathlib import Path
 import KratosMultiphysics as Kratos
 from KratosMultiphysics.OptimizationApplication.utilities.component_data_view import ComponentDataView
 from KratosMultiphysics.OptimizationApplication.utilities.optimization_problem import OptimizationProblem
+from KratosMultiphysics.OptimizationApplication.utilities.helper_utilities import GetComponentHavingDataByFullName
 
 def Factory(_: Kratos.Model, parameters: Kratos.Parameters, optimization_problem: OptimizationProblem) -> Kratos.OutputProcess:
     if not parameters.Has("settings"):
@@ -29,20 +30,24 @@ class GraphData:
         self.y_axis_label = parameters["y_axis_label"].GetString()
         self.y_min = parameters["y_min"].GetString()
         self.y_max = parameters["y_max"].GetString()
-        self.component_paths = parameters["components"].GetStringArray()
         self.is_log = parameters["is_log"].GetBool()
         self.legend_position = parameters["legend_position"].GetString()
+        self.component_paths: 'list[str]' = parameters["components"].GetStringArray()
 
         self.optimization_problem = optimization_problem
         self.data: 'list[list[float]]' = [[] for _ in self.component_paths]
 
         self.graph_names: 'list[str]' = []
         for component_path in self.component_paths:
-            data = component_path.split("/")
-            if len(data) < 3:
-                raise RuntimeError(f"\"{component_path}\" does not have the component value specified.")
-            object_name = data[1]
-            self.graph_names.append(f"{object_name}." + ".".join(data[2:]))
+            data = component_path.split(".")
+            if data[0] in ["response_function", "control", "execution_policy"]:
+                if len(data) < 3:
+                    raise RuntimeError(f"\"{component_path}\" does not have the component value specified.")
+                self.graph_names.append(".".join(data[1:]))
+            else:
+                if len(data) < 2:
+                    raise RuntimeError(f"\"{component_path}\" does not have the component value specified.")
+                self.graph_names.append(component_path)
 
     def GetYAxisLabel(self) -> str:
         return self.y_axis_label
@@ -76,27 +81,18 @@ class GraphData:
         Raises:
             RuntimeError: If the component is not found.
         """
-
         for i, component_path in enumerate(self.component_paths):
-            data = component_path.split("/")
-            object_type = data[0]
-            object_name = data[1]
-            if object_type == "object":
-                component_data_view = ComponentDataView(object_name, self.optimization_problem)
-            elif object_type == "ResponseFunction":
-                component = self.optimization_problem.GetResponse(object_name)
-                component_data_view = ComponentDataView(component, self.optimization_problem)
-            elif object_type == "ExecutionPolicy":
-                component = self.optimization_problem.GetExecutionPolicy(object_name)
-                component_data_view = ComponentDataView(component, self.optimization_problem)
-            elif object_type == "Control":
-                component = self.optimization_problem.GetControl(object_name)
-                component_data_view = ComponentDataView(component, self.optimization_problem)
+            data = component_path.split(".")
+            if data[0] in ["response_function", "control", "execution_policy"]:
+                component = GetComponentHavingDataByFullName(f"{data[0]}.{data[1]}", self.optimization_problem)
+                value_path = "/".join(data[2:])
             else:
-                raise RuntimeError(f"Unsupported object type \"{object_type}. Followings are supported:\n\tobject\n\tResponseFunction\n\tExecutionPolicy\n\tControl")
+                component = GetComponentHavingDataByFullName(data[0], self.optimization_problem)
+                value_path = "/".join(data[1:])
 
+            component_data_view = ComponentDataView(component, self.optimization_problem)
             component_buffered_data = component_data_view.GetBufferedData()
-            self.data[i].append(component_buffered_data["/".join(data[2:])])
+            self.data[i].append(component_buffered_data[value_path])
 
 class OptimizationProblemGraphOutputProcess(Kratos.OutputProcess):
     """An output process which can be used to plot buffered data in the Optimization problem
