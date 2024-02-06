@@ -1,35 +1,34 @@
 ---
 title: Scale
-keywords:
+keywords: 
 tags: [scale, expression]
 sidebar: kratos_expressions
-summary:
+summary: 
 ---
 
 ## Introduction
 
-This scales value of each component to the specified power given by either a floating value or as an expression.
-1. If it is scaled given by a scalar, then all the components are raised to that power.
-2. If it is scaled given by a expression and the expression has the same shape as the input expression, then each component is raised to power by the expressions same component given by the second expression.
-3. If it is scaled given by a expression and the expression has shape of a scalar expression, then each component is raised to power by the second expression's entity value.
+`Scale` scales value of each component to the specified value given by either a floating value or as an expression.
+1. If it is scaled by a floating value, then all the components are scaled with the same.
+2. If it is scaled by an expression and that expression has the same shape as the first expression, then each component of the first expression is scaled by the second expression's corresponding same component value.
+3. If it is scaled by an expression and that expression has shape of a scalar expression, then each component of the first expression is scaled by the second expression's entity value.
 
-Assume the input expression is given by $$\underline{\mathbf{u}} = \left\lbrace u_{ij},  \forall (i,j)\in\left[0, M\right)\times\left[0, N\right)\right\rbrace$$ where $$i^{th}$$ entity's $$j^{th}$$ component is represented by $$u_{ij}$$ with $$i\in \left[0, M\right)$$ for each entity and $$j\in \left[0, N\right)$$ for each component in each entity. Following equation illustrates the formulation of the resulting expression.
+Assume the first expression is given by $$\underline{\mathbf{u}} = \left\lbrace u_{ij},  \forall (i,j)\in\left[0, M\right)\times\left[0, N\right)\right\rbrace$$ where the $$i^{th}$$ entity's $$j^{th}$$ component is represented by $$u_{ij}$$ with $$i\in \left[0, M\right)$$ for each entity and $$j\in \left[0, N\right)$$ for each component in each entity. Following equations illustrate the formulations of the resulting expression.
 
 Case 1:
 <p align="center">$$ Scale\left(\underline{\mathbf{u}}, P\right) = \left\lbrace u_{ij}\times P,  \forall (i,j)\in\left[0, M\right)\times\left[0, N\right)\right\rbrace$$</p>
 
 Case 2:
 
-The expression with scaling is illustrated by $$\underline{\mathbf{P}} = \left\lbrace p_{ij},  \forall (i,j)\in\left[0, M\right)\times\left[0, N\right)\right\rbrace$$
+The expression with scaling (i.e. second expression) is given by $$\underline{\mathbf{P}} = \left\lbrace p_{ij},  \forall (i,j)\in\left[0, M\right)\times\left[0, N\right)\right\rbrace$$
 <p align="center">$$ Scale\left(\underline{\mathbf{u}}, \underline{\mathbf{P}}\right) = \left\lbrace u_{ij}\times{p_{ij}},  \forall (i,j)\in\left[0, M\right)\times\left[0, N\right)\right\rbrace$$</p>
 
 Case 3:
 
-The expression with scaling is illustrated by $$\underline{\mathbf{P}} = \left\lbrace p_{i},  \forall i\in\left[0, M\right)\right\rbrace$$
+The expression with scaling (i.e. second expression) is given by $$\underline{\mathbf{P}} = \left\lbrace p_{i},  \forall i\in\left[0, M\right)\right\rbrace$$
 <p align="center">$$ Scale\left(\underline{\mathbf{u}}, \underline{\mathbf{P}}\right) = \left\lbrace u_{ij}\times{p_{i}},  \forall (i,j)\in\left[0, M\right)\times\left[0, N\right)\right\rbrace$$</p>
 
 ## Use cases
-Following code snippet illustrates how to use ```Scale```.
 ```python
 import KratosMultiphysics as Kratos
 model = Kratos.Model()
@@ -61,18 +60,20 @@ for node in model_part.Nodes:
     acceleration = node.GetValue(Kratos.ACCELERATION)
     print(f"node_id: {node.Id}, velocity=[{velocity[0]}, {velocity[1]}, {velocity[2]}], acceleration = [{acceleration[0]}, {acceleration[1]}, {acceleration[2]}]")
 ```
+
 Expected output:
-```bash
-node_id: 1, velocity=[-1.0, -2.0, -3.0], acceleration = [-3.0, -6.0, -9.0]
-node_id: 2, velocity=[-4.0, -5.0, -6.0], acceleration = [-12.0, -15.0, -18.0]
-node_id: 3, velocity=[-7.0, -8.0, -9.0], acceleration = [-21.0, -24.0, -27.0]
+```console
  |  /           |
  ' /   __| _` | __|  _ \   __|
  . \  |   (   | |   (   |\__ \
 _|\_\_|  \__,_|\__|\___/ ____/
-           Multi-Physics 9.4."3"-docs/expression_documentation-6de5f1a499-Release-x86_64
+           Multi-Physics 9.4."3"-docs/add_python_processing_locally-eb00abccc7-FullDebug-x86_64
            Compiled for GNU/Linux and Python3.11 with GCC-13.2
 Compiled with threading and MPI support.
 Maximum number of threads: 30.
 Running without MPI.
+Process Id: 534910
+node_id: 1, velocity=[-1.0, -2.0, -3.0], acceleration = [-3.0, -6.0, -9.0]
+node_id: 2, velocity=[-4.0, -5.0, -6.0], acceleration = [-12.0, -15.0, -18.0]
+node_id: 3, velocity=[-7.0, -8.0, -9.0], acceleration = [-21.0, -24.0, -27.0]
 ```
