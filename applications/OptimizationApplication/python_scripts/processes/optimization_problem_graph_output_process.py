@@ -106,12 +106,12 @@ class OptimizationProblemGraphOutputProcess(Kratos.OutputProcess):
             """
             {
                 "output_file_name": "SPECIFY_OUTPUT_FILE_NAME",
-                "dpi"            : 300,
-                "output_interval": 1,
-                "interval"       : [0, "End"],
-                "max_iterations" : 1e+3,
-                "x_axis_label"   : "Iteration [-]",
-                "graphs"         : []
+                "dpi"             : 300,
+                "output_interval" : 1,
+                "interval"        : [0, "End"],
+                "max_iterations"  : 1e+3,
+                "x_axis_label"    : "Iteration [-]",
+                "graphs"          : []
             }
             """
         )
