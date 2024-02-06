@@ -27,7 +27,7 @@ class TestOptimizationProblemGraphOutputProcess(kratos_unittest.TestCase):
                     "y_max"          : "<initial_max_value> * 20",
                     "is_log"         : false,
                     "legend_position": "upper right",
-                    "components"     : ["object/test_component_1/value", "object/test_component_2/value"]
+                    "components"     : ["test_component_1.value", "test_component_2.value"]
                 },
                 {
                     "y_axis_label"   : "constraints",
@@ -35,7 +35,7 @@ class TestOptimizationProblemGraphOutputProcess(kratos_unittest.TestCase):
                     "y_max"          : "<initial_max_value> * 20",
                     "is_log"         : true,
                     "legend_position": "upper right",
-                    "components"     : ["object/test_component_3/value"]
+                    "components"     : ["test_component_3.value"]
                 }
             ]
         }""")
