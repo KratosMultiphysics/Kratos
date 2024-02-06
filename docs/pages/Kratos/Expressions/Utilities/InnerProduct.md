@@ -7,14 +7,13 @@ summary:
 ---
 
 ## Introduction
-Computes component wise inner product between two expressions. Assume the input expression is given by $$\underline{\mathbf{u}} = \left\lbrace u_{ij},  \forall (i,j)\in\left[0, M\right)\times\left[0, N\right)\right\rbrace$$ where $$i^{th}$$ entity's $$j^{th}$$ component is represented by $$u_{ij}$$ with $$i\in \left[0, M\right)$$ for each entity and $$j\in \left[0, N\right)$$ for each component in each entity. The second input expression is given by $$\underline{\mathbf{v}} = \left\lbrace v_{ij},  \forall (i,j)\in\left[0, M\right)\times\left[0, N\right)\right\rbrace$$ where $$i^{th}$$ entity's $$j^{th}$$ component is represented by $$u_{ij}$$ with $$i\in \left[0, M\right)$$ for each entity and $$j\in \left[0, N\right)$$ for each component in each entity.
+Computes component wise inner product between two expressions. Assume the input expression is given by $$\underline{\mathbf{u}} = \left\lbrace u_{ij} |  \forall (i,j)\in\left[0, M\right)\times\left[0, N\right)\right\rbrace$$ where the $$i^{th}$$ entity's $$j^{th}$$ component is represented by $$u_{ij}$$ with $$i\in \left[0, M\right)$$ for each entity and $$j\in \left[0, N\right)$$ for each component in each entity. The second input expression is given by $$\underline{\mathbf{v}} = \left\lbrace v_{ij} |  \forall (i,j)\in\left[0, M\right)\times\left[0, N\right)\right\rbrace$$ where the $$i^{th}$$ entity's $$j^{th}$$ component is represented by $$u_{ij}$$ with $$i\in \left[0, M\right)$$ for each entity and $$j\in \left[0, N\right)$$ for each component in each entity.
 
-**Both expressions should have the same shape**
+**Both expressions should have the same shape.**
 
 <p align="center">$$ InnerProduct\left(\underline{\mathbf{u}}, \underline{\mathbf{v}}\right) = \sum_{(i,j)\in\left[0, M\right)\times\left[0,N\right)}u_{ij} \times v_{ij}$$</p>
 
 ## Use cases
-Following code snippet illustrates how to use ```InnerProduct```.
 ```python
 import KratosMultiphysics as Kratos
 model = Kratos.Model()
@@ -37,16 +36,18 @@ Kratos.Expression.VariableExpressionIO.Read(nodal_expression, Kratos.VELOCITY, F
 
 print(Kratos.Expression.Utils.InnerProduct(nodal_expression, nodal_expression))
 ```
+
 Expected output:
-```bash
-285.0
+```console
  |  /           |
  ' /   __| _` | __|  _ \   __|
  . \  |   (   | |   (   |\__ \
 _|\_\_|  \__,_|\__|\___/ ____/
-           Multi-Physics 9.4."3"-docs/expression_documentation-6de5f1a499-Release-x86_64
+           Multi-Physics 9.4."3"-docs/add_python_processing_locally-eb00abccc7-FullDebug-x86_64
            Compiled for GNU/Linux and Python3.11 with GCC-13.2
 Compiled with threading and MPI support.
 Maximum number of threads: 30.
 Running without MPI.
+Process Id: 513031
+285.0
 ```
