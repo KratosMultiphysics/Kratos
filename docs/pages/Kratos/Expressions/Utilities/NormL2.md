@@ -1,9 +1,9 @@
 ---
 title: NormL2
-keywords:
+keywords: 
 tags: [l2 norm, expressions]
 sidebar: kratos_expressions
-summary:
+summary: 
 ---
 ## Introduction
 `NormL2` computes component wise L2 norm in expressions. Assume the input expression is given by $$\underline{\mathbf{u}} = \left\lbrace u_{ij} | \forall (i,j)\in\left[0, M\right)\times\left[0, N\right)\right\rbrace$$ where the $$i^{th}$$ entity's $$j^{th}$$ component is represented by $$u_{ij}$$ with $$i\in \left[0, M\right)$$ for each entity and $$j\in \left[0, N\right)$$ for each component in each entity.

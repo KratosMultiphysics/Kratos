@@ -1,9 +1,9 @@
 ---
 title: InnerProduct
-keywords:
+keywords: 
 tags: [inner product, expressions]
 sidebar: kratos_expressions
-summary:
+summary: 
 ---
 
 ## Introduction
