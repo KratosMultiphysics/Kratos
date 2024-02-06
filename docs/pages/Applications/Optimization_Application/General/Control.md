@@ -8,7 +8,7 @@ summary:
 
 ## Introduction
 
-```Control``` is used to control the design surface with the updates given by the ```Algorithm``` as illustrated in Figure 1. This is also used to transform data between physical and control spaces.
+```Control``` is used to regularize the design variables updates, which are given by the ```Algorithm``` as illustrated in Figure 1. It also updates the properties of the ```model_part```.  This is also used to transform data between physical and control spaces.
 <p align="center">
     <img src="https://github.com/KratosMultiphysics/Documentation/blob/master/OptimizationApplication/General/control.png?raw=true" alt="Control data flow"/>
 </p>
