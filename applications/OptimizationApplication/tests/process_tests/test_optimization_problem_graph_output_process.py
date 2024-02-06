@@ -6,7 +6,10 @@ import KratosMultiphysics.KratosUnittest as kratos_unittest
 import KratosMultiphysics.kratos_utilities as kratos_utils
 from KratosMultiphysics.OptimizationApplication.utilities.component_data_view import ComponentDataView
 from KratosMultiphysics.OptimizationApplication.utilities.optimization_problem import OptimizationProblem
-from KratosMultiphysics.OptimizationApplication.processes.optimization_problem_graph_output_process import OptimizationProblemGraphOutputProcess
+try:
+    from KratosMultiphysics.OptimizationApplication.processes.optimization_problem_graph_output_process import OptimizationProblemGraphOutputProcess
+except:
+    OptimizationProblemGraphOutputProcess = None
 
 class TestOptimizationProblemGraphOutputProcess(kratos_unittest.TestCase):
     @classmethod
@@ -39,12 +42,15 @@ class TestOptimizationProblemGraphOutputProcess(kratos_unittest.TestCase):
                 }
             ]
         }""")
-        cls.output_process = OptimizationProblemGraphOutputProcess(params, cls.optimization_problem)
+
+        if OptimizationProblemGraphOutputProcess:
+            cls.output_process = OptimizationProblemGraphOutputProcess(params, cls.optimization_problem)
 
         ComponentDataView("test_component_1", cls.optimization_problem).SetDataBuffer(1)
         ComponentDataView("test_component_2", cls.optimization_problem).SetDataBuffer(1)
         ComponentDataView("test_component_3", cls.optimization_problem).SetDataBuffer(1)
 
+    @kratos_unittest.skipIf(OptimizationProblemGraphOutputProcess == None, "matplotlib is not found")
     def test_OptimizationProblemGraphOutputProcess(self):
         file_1 = Path("output_5.png")
         file_2 = Path("output_10.png")
