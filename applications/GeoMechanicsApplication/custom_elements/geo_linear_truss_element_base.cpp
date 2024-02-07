@@ -51,7 +51,7 @@ Element::Pointer GeoTrussElementLinearBase<TDim, TNumNodes>::Create(IndexType Ne
 
 //----------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
-Element::Pointer GeoTrussElementLinearBase<TDim, TNumNodes>::Create(IndexType NewId,
+Element::Pointer GeoTrussElementLinearBase<TDim, TNumNodes>::Create(IndexType             NewId,
                                                                     GeometryType::Pointer pGeom,
                                                                     PropertiesType::Pointer pProperties) const
 {
@@ -155,7 +155,7 @@ void GeoTrussElementLinearBase<TDim, TNumNodes>::CalculateOnIntegrationPoints(
 
     if (rVariable == FORCE) {
         BoundedVector<double, TDim> truss_forces = ZeroVector(TDim);
-        const double A                           = this->GetProperties()[CROSS_AREA];
+        const double                A            = this->GetProperties()[CROSS_AREA];
 
         double prestress = 0.00;
         if (this->GetProperties().Has(TRUSS_PRESTRESS_PK2)) {
