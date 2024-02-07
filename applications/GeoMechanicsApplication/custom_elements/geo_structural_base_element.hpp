@@ -61,8 +61,8 @@ public:
 
     ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    Element::Pointer Create(IndexType NewId,
-                            NodesArrayType const& ThisNodes,
+    Element::Pointer Create(IndexType               NewId,
+                            NodesArrayType const&   ThisNodes,
                             PropertiesType::Pointer pProperties) const override;
 
     Element::Pointer Create(IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties) const override;
@@ -77,8 +77,8 @@ public:
 
     ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
-                              VectorType& rRightHandSideVector,
+    void CalculateLocalSystem(MatrixType&        rLeftHandSideMatrix,
+                              VectorType&        rRightHandSideVector,
                               const ProcessInfo& rCurrentProcessInfo) override;
 
     void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, const ProcessInfo& rCurrentProcessInfo) override;
@@ -99,9 +99,9 @@ public:
 
     ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    void SetValuesOnIntegrationPoints(const Variable<double>& rVariable,
+    void SetValuesOnIntegrationPoints(const Variable<double>&    rVariable,
                                       const std::vector<double>& rValues,
-                                      const ProcessInfo& rCurrentProcessInfo) override;
+                                      const ProcessInfo&         rCurrentProcessInfo) override;
 
     ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -128,12 +128,12 @@ protected:
         Matrix NodalCrossDirection;
 
         /// Variables computed at each GP
-        Matrix B;
+        Matrix                                        B;
         BoundedMatrix<double, TDim, TNumNodes * TDim> NuTot;
 
-        Matrix TransformationMatrix;
+        Matrix                 TransformationMatrix;
         array_1d<double, TDim> GaussVolumeAcceleration;
-        double IntegrationCoefficient;
+        double                 IntegrationCoefficient;
         /// Constitutive Law parameters
         Vector StrainVector;
         Vector StressVector;
@@ -151,31 +151,31 @@ protected:
     GeometryData::IntegrationMethod mThisIntegrationMethod;
 
     std::vector<ConstitutiveLaw::Pointer> mConstitutiveLawVector;
-    std::vector<Vector> mStressVector;
+    std::vector<Vector>                   mStressVector;
 
     virtual SizeType GetTotalNumberIntegrationPoints() const;
     virtual SizeType GetCrossNumberIntegrationPoints() const;
     virtual SizeType GetAlongNumberIntegrationPoints() const;
 
-    virtual void InitializeElementVariables(ElementVariables& rVariables,
+    virtual void InitializeElementVariables(ElementVariables&            rVariables,
                                             ConstitutiveLaw::Parameters& rConstitutiveParameters,
-                                            const GeometryType& Geom,
-                                            const PropertiesType& Prop,
-                                            const ProcessInfo& rCurrentProcessInfo) const;
+                                            const GeometryType&          Geom,
+                                            const PropertiesType&        Prop,
+                                            const ProcessInfo&           rCurrentProcessInfo) const;
 
-    virtual void GetNodalDofValuesVector(Vector& rNodalVariableVector,
+    virtual void GetNodalDofValuesVector(Vector&             rNodalVariableVector,
                                          const GeometryType& Geom,
-                                         IndexType SolutionStepIndex = 0) const;
+                                         IndexType           SolutionStepIndex = 0) const;
 
     ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     virtual void CalculateStiffnessMatrix(MatrixType& rStiffnessMatrix, const ProcessInfo& rCurrentProcessInfo);
 
-    virtual void CalculateAll(MatrixType& rLeftHandSideMatrix,
-                              VectorType& rRightHandSideVector,
+    virtual void CalculateAll(MatrixType&        rLeftHandSideMatrix,
+                              VectorType&        rRightHandSideVector,
                               const ProcessInfo& rCurrentProcessInfo,
-                              const bool CalculateStiffnessMatrixFlag,
-                              const bool CalculateResidualVectorFlag);
+                              const bool         CalculateStiffnessMatrixFlag,
+                              const bool         CalculateResidualVectorFlag);
 
     virtual void CalculateRHS(VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo);
 
