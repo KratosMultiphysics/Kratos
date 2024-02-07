@@ -156,26 +156,21 @@ void UPwPgElement<TDim,TNumNodes>::Initialize(const ProcessInfo& rCurrentProcess
 
     if ( mConstitutiveLawVector.size() != NumGPoints )
         mConstitutiveLawVector.resize( NumGPoints );
-
-    //Imposed Z strain vector initialisation
+    if (mSaturationLawVector.size() != NumGPoints)
+        mSaturationLawVector.resize(NumGPoints);
     if ( mImposedZStrainVector.size() != NumGPoints )
         mImposedZStrainVector.resize( NumGPoints );
 
-    for ( unsigned int i = 0; i < mConstitutiveLawVector.size(); i++ )
+    for ( unsigned int i = 0; i < NumGPoints; i++ )
     {
         mConstitutiveLawVector[i] = Prop[CONSTITUTIVE_LAW]->Clone();
-        mConstitutiveLawVector[i]->InitializeMaterial( Prop, Geom,row( Geom.ShapeFunctionsValues( mThisIntegrationMethod ), i ) );
+        mConstitutiveLawVector[i]->InitializeMaterial( Prop, Geom, row( Geom.ShapeFunctionsValues( mThisIntegrationMethod ), i ) );
+
+        mSaturationLawVector[i] = SaturationLawWrapper::Clone(Prop);
+        mSaturationLawVector[i]->InitializeMaterial(Prop, Geom, row( Geom.ShapeFunctionsValues( mThisIntegrationMethod ), i ) );
 
         mImposedZStrainVector[i] = 0.0;
     }
-
-    // if (mSaturationLawVector.size() != NumGPoints) mSaturationLawVector.resize(NumGPoints);
-    // for (unsigned int i = 0; i < mSaturationLawVector.size(); ++i) {
-    //     // SaturationLawWrapper::Pointer pRetentionFactory;
-    //     mSaturationLawVector[i] = SaturationLawWrapper::Clone(rProp);
-    //     mSaturationLawVector[i]->InitializeMaterial(
-    //         rProp, rGeom, row(rGeom.ShapeFunctionsValues(mThisIntegrationMethod), i));
-    // }
 
     // Initializing the intrinsic permeability matrix from the properties
     PoroElementUtilities::CalculatePermeabilityMatrix(mIntrinsicPermeability,Prop,TDim);

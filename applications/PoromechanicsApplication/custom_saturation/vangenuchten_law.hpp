@@ -22,33 +22,33 @@
 #include "includes/checks.h"
 
 // Application includes
-#include "custom_saturation/saturation_law.hpp"
+#include "custom_saturation/brooksandcorey_law.hpp"
 #include "poromechanics_application_variables.h"
 
 namespace Kratos {
 
-class KRATOS_API(POROMECHANICS_APPLICATION) BrooksAndCoreyLaw : public SaturationLaw
+class KRATOS_API(POROMECHANICS_APPLICATION) VanGenuchtenLaw : public BrooksAndCoreyLaw
 {
 
 public:
 
-    KRATOS_CLASS_POINTER_DEFINITION(BrooksAndCoreyLaw);
+    KRATOS_CLASS_POINTER_DEFINITION(VanGenuchtenLaw);
 
     ///------------------------------------------------------------------------------------------------
 
-    BrooksAndCoreyLaw() = default;
+    VanGenuchtenLaw() = default;
 
-    BrooksAndCoreyLaw (const BrooksAndCoreyLaw& rOther) : SaturationLaw(rOther)
+    VanGenuchtenLaw (const VanGenuchtenLaw& rOther) : BrooksAndCoreyLaw(rOther)
     {
     }
 
-    ~BrooksAndCoreyLaw() override
+    ~VanGenuchtenLaw() override
     {
     }
 
     SaturationLaw::Pointer Clone() const override
     {
-        return Kratos::make_shared<BrooksAndCoreyLaw>(BrooksAndCoreyLaw(*this));
+        return Kratos::make_shared<VanGenuchtenLaw>(VanGenuchtenLaw(*this));
     }
 
     ///------------------------------------------------------------------------------------------------
@@ -67,15 +67,13 @@ public:
 
 protected:
 
-    virtual void InitializeSaturationLawVariables(SaturationLawVariables& rVariables, Parameters& rValues);
+    void InitializeSaturationLawVariables(SaturationLawVariables& rVariables, Parameters& rValues) override;
 
-    virtual void CalculateWaterSaturationDegree(SaturationLawVariables& rVariables, Parameters& rValues);
+    void CalculateWaterSaturationDegree(SaturationLawVariables& rVariables, Parameters& rValues) override;
 
-    virtual void EffectiveSaturation(SaturationLawVariables& rVariables, Parameters& rValues);
+    void WaterRelativePermeability(SaturationLawVariables& rVariables, Parameters& rValues) override;
 
-    virtual void WaterRelativePermeability(SaturationLawVariables& rVariables, Parameters& rValues);
-
-    virtual void GasRelativePermeability(SaturationLawVariables& rVariables, Parameters& rValues);
+    void GasRelativePermeability(SaturationLawVariables& rVariables, Parameters& rValues) override;
 
     ///------------------------------------------------------------------------------------------------
 
@@ -85,14 +83,14 @@ private:
 
     void save(Serializer& rSerializer) const override
     {
-        KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, SaturationLaw )
+        KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, BrooksAndCoreyLaw )
     }
 
     void load(Serializer& rSerializer)
     {
-        KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, SaturationLaw )
+        KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, BrooksAndCoreyLaw )
     }
 
-}; /* Class BrooksAndCoreyLaw */
+}; /* Class VanGenuchtenLaw */
 
 } /* namespace Kratos.*/

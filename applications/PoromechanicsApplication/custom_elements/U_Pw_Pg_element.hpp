@@ -137,7 +137,7 @@ protected:
 
     std::vector<ConstitutiveLaw::Pointer> mConstitutiveLawVector;
 
-    // std::vector<SaturationLaw::Pointer> mSaturationLawVector;
+    std::vector<SaturationLaw::Pointer> mSaturationLawVector;
 
     Matrix mIntrinsicPermeability;
 

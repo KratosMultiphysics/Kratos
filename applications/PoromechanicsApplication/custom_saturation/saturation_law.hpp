@@ -353,6 +353,8 @@ public:
 
     virtual void FinalizeMaterialResponse (Parameters& rValues);
 
+    virtual void CalculateSaturation (Parameters& rValues);
+
     virtual void ResetMaterial(const Properties& rMaterialProperties,
                                const GeometryType& rElementGeometry,
                                const Vector& rShapeFunctionsValues);

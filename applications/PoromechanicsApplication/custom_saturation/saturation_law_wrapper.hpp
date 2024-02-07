@@ -33,25 +33,25 @@ public:
 
     KRATOS_CLASS_POINTER_DEFINITION(SaturationLawWrapper);
 
-    static unique_ptr<SaturationLaw> Clone(const Properties& rMaterialProperties)
+    static Kratos::unique_ptr<SaturationLaw> Clone(const Properties& rMaterialProperties)
      {
          if (rMaterialProperties.Has(SATURATION_LAW))
          {
             const std::string &SaturationLawName = rMaterialProperties[SATURATION_LAW];
             
             if (SaturationLawName == "BrooksAndCoreyLaw")
-                return make_unique<BrooksAndCoreyLaw>();
+                return Kratos::make_unique<BrooksAndCoreyLaw>();
 
             if (SaturationLawName == "VanGenuchtenLaw")
-                return make_unique<VanGenuchtenLaw>();
+                return Kratos::make_unique<VanGenuchtenLaw>();
 
             KRATOS_ERROR << "Undefined SATURATION_LAW name" << SaturationLawName << std::endl;
 
             return nullptr;
          }
 
-         // default is saturated law
-         return make_unique<BrooksAndCoreyLaw>();
+         // The default is Brooks and Corey Law
+         return Kratos::make_unique<BrooksAndCoreyLaw>();
 
      }
 

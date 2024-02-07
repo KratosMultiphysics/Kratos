@@ -111,17 +111,6 @@ protected:
         double GasDiffusionCoefficient;
         bool   AddGasDiffusion = false;
 
-        //Element state variables
-        double Sw;
-        double dSwdpc;
-        double ipCapilarPressure;
-        
-        // Water retention curve parameters
-        int    WaterSaturationLaw;
-        double PoreSizeFactor;
-        double ResidualWaterSaturation;
-        double GasEntryPressure;
-
         ///ProcessInfo variables
         double VelocityCoefficient;
         double DtPressureCoefficient;
@@ -151,6 +140,11 @@ protected:
         Matrix GradNpT;
         Matrix F;
         double detF;
+        //Saturation Law parameters
+        double Sw;
+        double dSwdPc;
+        double krw;
+        double krg;
         ///Auxiliary Variables
         BoundedMatrix<double,TNumNodes*TDim,TNumNodes*TDim> UMatrix;
         BoundedMatrix<double,TNumNodes*TDim,TNumNodes> UPMatrix;
@@ -193,7 +187,8 @@ protected:
 
     void CalculateRHS( VectorType& rRightHandSideVector, const ProcessInfo& CurrentProcessInfo ) override;
 
-    void InitializeElementVariables(ElementVariables& rVariables,ConstitutiveLaw::Parameters& rConstitutiveParameters,
+    void InitializeElementVariables(ElementVariables& rVariables, ConstitutiveLaw::Parameters& rConstitutiveParameters,
+                                    SaturationLaw::Parameters& rSaturationParameters,
                                     const GeometryType& Geom, const PropertiesType& Prop, const ProcessInfo& CurrentProcessInfo);
 
     void CalculateBMatrix(Matrix& rB, const Matrix& GradNpT);
@@ -219,15 +214,7 @@ protected:
 
     void GetCouplingCompressibilityCoefficients(double& Cwu, double& Cgu, ElementVariables& rVariables);
 
-    void CalculateWaterSaturationDegree(ElementVariables& rVariables);
-
     void GetCompressibilityCoefficients(double& Cww, double& Cwg, double& Cgw, double& Cgg, const ElementVariables& Variables);
-
-    double EffectiveSaturation(double Sw, double Swr);
-
-    double WaterRelativePermeability(double Se, const ElementVariables& Variables);
-
-    double GasRelativePermeability(double Se, const ElementVariables& Variables);
 
     void CalculateAndAddRHS(VectorType& rRightHandSideVector, ElementVariables& rVariables);
 
@@ -242,6 +229,8 @@ protected:
     void CalculateAndAddPermeabilityFlow(VectorType& rRightHandSideVector, ElementVariables& rVariables);
 
     void CalculateAndAddFluidBodyFlow(VectorType& rRightHandSideVector, ElementVariables& rVariables);
+
+    void UpdateDensity(ElementVariables& Variables);
 
 
     void CalculateFluxResidual (VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo) override;

@@ -220,6 +220,13 @@ void SaturationLaw::FinalizeMaterialResponse (Parameters& rValues)
 
 //------------------------------------------------------------------------------------------------
 
+void SaturationLaw::CalculateSaturation (Parameters& rValues)
+{
+    KRATOS_ERROR <<  "Calling virtual function for CalculateSaturation"<< std::endl;;
+}
+
+//------------------------------------------------------------------------------------------------
+
 void SaturationLaw::ResetMaterial(const Properties& rMaterialProperties,
                                     const GeometryType& rElementGeometry,
                                     const Vector& rShapeFunctionsValues)

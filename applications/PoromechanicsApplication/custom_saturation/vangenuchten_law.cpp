@@ -11,18 +11,18 @@
 //
 
 /* Project includes */
-#include "custom_saturation/brooksandcorey_law.hpp"
+#include "custom_saturation/vangenuchten_law.hpp"
 
 namespace Kratos
 {
 
-int BrooksAndCoreyLaw::Check(const Properties& rMaterialProperties,
+int VanGenuchtenLaw::Check(const Properties& rMaterialProperties,
                            const GeometryType& rElementGeometry,
                            const ProcessInfo& rCurrentProcessInfo) const
 {
     KRATOS_TRY
 
-    int ierr = SaturationLaw::Check(rCurrentProcessInfo);
+    int ierr = BrooksAndCoreyLaw::Check(rCurrentProcessInfo);
     if(ierr != 0)
         return ierr;
 
@@ -33,16 +33,16 @@ int BrooksAndCoreyLaw::Check(const Properties& rMaterialProperties,
 
 //------------------------------------------------------------------------------------------------
 
-// void BrooksAndCoreyLaw::InitializeMaterial(const Properties& rMaterialProperties,
+// void VanGenuchtenLaw::InitializeMaterial(const Properties& rMaterialProperties,
 //         const GeometryType& rElementGeometry,
 //         const Vector& rShapeFunctionsValues)
 // {
-//     SaturationLaw::InitializeMaterial(rMaterialProperties,rElementGeometry,rShapeFunctionsValues);
+//     BrooksAndCoreyLaw::InitializeMaterial(rMaterialProperties,rElementGeometry,rShapeFunctionsValues);
 // }
 
 //------------------------------------------------------------------------------------------------
 
-void BrooksAndCoreyLaw::CalculateMaterialResponse (Parameters& rValues)
+void VanGenuchtenLaw::CalculateMaterialResponse (Parameters& rValues)
 {
     //Check
     rValues.CheckAllParameters();
@@ -67,7 +67,7 @@ void BrooksAndCoreyLaw::CalculateMaterialResponse (Parameters& rValues)
 
 //------------------------------------------------------------------------------------------------
 
-void BrooksAndCoreyLaw::CalculateSaturation (Parameters& rValues)
+void VanGenuchtenLaw::CalculateSaturation (Parameters& rValues)
 {
     //Check
     rValues.CheckAllParameters();
@@ -88,14 +88,14 @@ void BrooksAndCoreyLaw::CalculateSaturation (Parameters& rValues)
 
 //------------------------------------------------------------------------------------------------
 
-void BrooksAndCoreyLaw::InitializeSaturationLawVariables (SaturationLawVariables& rVariables, Parameters& rValues)
+void VanGenuchtenLaw::InitializeSaturationLawVariables (SaturationLawVariables& rVariables, Parameters& rValues)
 {
     
 }
 
 //------------------------------------------------------------------------------------------------
 
-void BrooksAndCoreyLaw::CalculateWaterSaturationDegree (SaturationLawVariables& rVariables, Parameters& rValues)
+void VanGenuchtenLaw::CalculateWaterSaturationDegree (SaturationLawVariables& rVariables, Parameters& rValues)
 {
     //Get material parameters
     double Swr    = rVariables.ResidualWaterSaturation;
@@ -109,38 +109,28 @@ void BrooksAndCoreyLaw::CalculateWaterSaturationDegree (SaturationLawVariables& 
 
     if(pc > pb)
     {
-            // -- Brooks and Corey
-            //           (see pg. 479 from Khoei's 2015 book: Extended Finite Element: theory and applications, ISBN 978-1-118-45768-9) -----
-                
-                // Water saturation degree
-                rVariables.Sw = (1.0 - Swr)*pow(pb/pc,lambda) + Swr;
+            // -- van Genuchten (https://www.sciencedirect.com/science/article/pii/S0266352X22004657) -----
 
-                // Derivative of the water saturation degree with respect to the capilar pressure
-                rVariables.dSwdPc = (1.0 - Swr) * lambda * pb * pow(pb/pc,lambda-1) / (pc * pc);
+            // Water saturation degree
+            rVariables.Sw = (1.0 - Swr)*pow(1.0 + pow(pc/pb,1.0/(1.0-lambda)),-lambda) + Swr;
+
+            // Derivative of the water saturation degree with respect to the capilar pressure
+            rVariables.dSwdPc = (1.0 - Swr)*lambda/(pb * pow(pc/pb,1.0+1.0/(lambda-1.0)) * (lambda - 1.0) * pow(1.0+1.0/(pow(pc/pb,1/(lambda-1.0))),lambda+1.0));
+                
     }
 }
 
 //------------------------------------------------------------------------------------------------
 
-void BrooksAndCoreyLaw::EffectiveSaturation (SaturationLawVariables& rVariables, Parameters& rValues)
-{
-    double Se = (Sw - Swr)/(1.0 - Swr);
-    return Se;    
-}
-
-//------------------------------------------------------------------------------------------------
-
-void BrooksAndCoreyLaw::WaterRelativePermeability (SaturationLawVariables& rVariables, Parameters& rValues)
+void VanGenuchtenLaw::WaterRelativePermeability (SaturationLawVariables& rVariables, Parameters& rValues)
 {
     double krw, nw, lambda;
 
     // Compute the water relative permeability according with the consitutive model
-        // -- Brooks and Corey
-        //           (see pg. 479 from Khoei's 2015 book: Extended Finite Element: theory and applications, ISBN 978-1-118-45768-9) ----
-           
-            lambda = Variables.PoreSizeFactor;
-            nw     = (2.0 + 3.0*lambda)/lambda;
-            krw    = pow(Se,nw);
+        // -- van Genuchten (https://www.sciencedirect.com/science/article/pii/S0266352X22004657) -----
+
+            nw  = 1.5;
+            krw = pow(Se,nw);
 
     krw = std::min(krw,0.0001);
     return krw;    
@@ -148,17 +138,15 @@ void BrooksAndCoreyLaw::WaterRelativePermeability (SaturationLawVariables& rVari
 
 //------------------------------------------------------------------------------------------------
 
-void BrooksAndCoreyLaw::GasRelativePermeability (SaturationLawVariables& rVariables, Parameters& rValues)
+void VanGenuchtenLaw::GasRelativePermeability (SaturationLawVariables& rVariables, Parameters& rValues)
 {
     double krg, ng, lambda;
 
     // Compute the gas relative permeability according with the consitutive model
-        // -- Brooks and Corey
-        //           (see pg. 479 from Khoei's 2015 book: Extended Finite Element: theory and applications, ISBN 978-1-118-45768-9) -----
-            
-            lambda = Variables.PoreSizeFactor;
-            ng     = (2.0 + lambda)/lambda;
-            krg    = pow(1.0-Se,2.0)*(1.0 - pow(Se,ng));
+        // -- van Genuchten (https://www.sciencedirect.com/science/article/pii/S0266352X22004657) -----
+
+            ng  = 3.0;
+            krg = pow(1.0-Se,ng);
 
     krg = std::min(krg,0.0001);
     return krg;    
