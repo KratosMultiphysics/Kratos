@@ -363,7 +363,8 @@ namespace Kratos {
         Matrix mRVE_ConductivityTensor;      // Effective thermal conductivity tensor (all particles)
         Matrix mRVE_ConductivityTensorInner; // Effective thermal conductivity tensor (inner particles)
 
-        std::ofstream mRVE_FileCoordinates;
+        std::ofstream mRVE_FileCoordinatesHistory;
+        std::ofstream mRVE_FileCoordinatesLast;
         std::ofstream mRVE_FilePorosity;
         std::ofstream mRVE_FileContactNumber;
         std::ofstream mRVE_FileCoordNumber;

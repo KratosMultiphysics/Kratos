@@ -2862,34 +2862,52 @@ namespace Kratos {
       if (time_step % eval_freq != 0.0)
         return;
 
-      if (mRVE_FileCoordinates.is_open()) {
-        double xmin, xmax, ymin, ymax, zmin, zmax;
+      const int write_coords_freq = r_process_info[RVE_WRITE_COORDINATES_FREQ];
+      if (mRVE_FileCoordinatesHistory.is_open() && time_step % write_coords_freq == 0.0) {
+        double xmin, ymin, xmax, ymax;
 
         if (mRVE_WallXMin.size() > 0) xmin = mRVE_WallXMin[0]->GetGeometry()[0][0];
         else                          xmin = 0.0;
-        if (mRVE_WallXMax.size() > 0) xmax = mRVE_WallXMax[0]->GetGeometry()[0][0];
-        else                          xmax = 0.0;
         if (mRVE_WallYMin.size() > 0) ymin = mRVE_WallYMin[0]->GetGeometry()[0][1];
         else                          ymin = 0.0;
+        if (mRVE_WallXMax.size() > 0) xmax = mRVE_WallXMax[0]->GetGeometry()[0][0];
+        else                          xmax = 0.0;
         if (mRVE_WallYMax.size() > 0) ymax = mRVE_WallYMax[0]->GetGeometry()[0][1];
         else                          ymax = 0.0;
-        if (mRVE_WallZMin.size() > 0) zmin = mRVE_WallZMin[0]->GetGeometry()[0][2];
-        else                          zmin = 0.0;
-        if (mRVE_WallZMax.size() > 0) zmax = mRVE_WallZMax[0]->GetGeometry()[0][2];
-        else                          zmax = 0.0;
 
-        mRVE_FileCoordinates << time_step << " " << time << " ";
-        mRVE_FileCoordinates << xmin << " " << xmax << " " << ymin << " " << ymax << " " << zmin << " " << zmax << " ";
+        mRVE_FileCoordinatesHistory << std::defaultfloat << time_step << " " << time << " ";
+        mRVE_FileCoordinatesHistory << std::fixed << std::setprecision(12) << xmin << " " << ymin << " " << xmax << " " << ymax << " ";
 
         const int number_of_particles = (int)mListOfSphericParticles.size();
         for (int i = 0; i < number_of_particles; i++) {
+          const double r = mListOfSphericParticles[i]->GetRadius();
           const double x = mListOfSphericParticles[i]->GetGeometry()[0][0];
           const double y = mListOfSphericParticles[i]->GetGeometry()[0][1];
-          const double z = mListOfSphericParticles[i]->GetGeometry()[0][2];
-          const double r = mListOfSphericParticles[i]->GetRadius();
-          mRVE_FileCoordinates << x << " " << y << " " << z << " " << r << " ";
+          mRVE_FileCoordinatesHistory << std::fixed << std::setprecision(12) << r << " " << x << " " << y << " ";
         }
-        mRVE_FileCoordinates << std::endl;
+        mRVE_FileCoordinatesHistory << std::endl;
+      }
+
+      if (r_process_info[POST_WRITE_COORDINATES_LAST]) {
+        mRVE_FileCoordinatesLast.open("rve_coordinates_last.txt", std::ios::out | std::ios::trunc);
+        mRVE_FileCoordinatesLast << "LINE 1: WALL_MIN_X   WALL_MIN_Y   WALL_MAX_X   WALL_MAX_Y | ";
+        mRVE_FileCoordinatesLast << "NEXT LINES: R X Y";
+        mRVE_FileCoordinatesLast << std::endl;
+
+        const double xmin = mRVE_WallXMin[0]->GetGeometry()[0][0];
+        const double ymin = mRVE_WallYMin[0]->GetGeometry()[0][1];
+        const double xmax = mRVE_WallXMax[0]->GetGeometry()[0][0];
+        const double ymax = mRVE_WallYMax[0]->GetGeometry()[0][1];
+        mRVE_FileCoordinatesLast << std::fixed << std::setprecision(15) << xmin << " " << ymin << " " << xmax << " " << ymax << std::endl;
+
+        const int number_of_particles = (int)mListOfSphericParticles.size();
+        for (int i = 0; i < number_of_particles; i++) {
+          const double r = mListOfSphericParticles[i]->GetRadius();
+          const double x = mListOfSphericParticles[i]->GetGeometry()[0][0];
+          const double y = mListOfSphericParticles[i]->GetGeometry()[0][1];
+          mRVE_FileCoordinatesLast << std::fixed << std::setprecision(15) << r << " " << x << " " << y << std::endl;
+        }
+        mRVE_FileCoordinatesLast.close();
       }
 
       if (mRVE_FilePorosity.is_open())
@@ -3154,14 +3172,14 @@ namespace Kratos {
       ModelPart&   r_dem_model_part = GetModelPart();
       ProcessInfo& r_process_info   = r_dem_model_part.GetProcessInfo();
       
-      if (r_process_info[POST_WRITE_COORDINATES]) {
-        mRVE_FileCoordinates.open("rve_coordinates.txt", std::ios::out);
-        KRATOS_ERROR_IF_NOT(mRVE_FileCoordinates) << "Could not open file rve_coordinates.txt!" << std::endl;
-        mRVE_FileCoordinates << "1 - STEP | ";
-        mRVE_FileCoordinates << "2 - TIME | ";
-        mRVE_FileCoordinates << "3 - WALL_MIN_X WALL_MAX_X WALL_MIN_Y WALL_MAX_Y WALL_MIN_Z WALL_MAX_Z | ";
-        mRVE_FileCoordinates << "4 - X Y Z R of all particles";
-        mRVE_FileCoordinates << std::endl;
+      if (r_process_info[POST_WRITE_COORDINATES_HISTORY]) {
+        mRVE_FileCoordinatesHistory.open("rve_coordinates_history.txt", std::ios::out);
+        KRATOS_ERROR_IF_NOT(mRVE_FileCoordinatesHistory) << "Could not open file rve_coordinates_history.txt!" << std::endl;
+        mRVE_FileCoordinatesHistory << "1 - STEP | ";
+        mRVE_FileCoordinatesHistory << "2 - TIME | ";
+        mRVE_FileCoordinatesHistory << "3 - WALL_MIN_X   WALL_MIN_Y   WALL_MAX_X   WALL_MAX_Y | ";
+        mRVE_FileCoordinatesHistory << "4 - R X Y of all particles";
+        mRVE_FileCoordinatesHistory << std::endl;
       }
 
       if (r_process_info[POST_WRITE_POROSITY]) {
@@ -3392,7 +3410,7 @@ namespace Kratos {
 
     //-----------------------------------------------------------------------------------------------------------------------------------------
     void ExplicitSolverStrategy::RVECloseFiles(void) {
-      if (mRVE_FileCoordinates.is_open())             mRVE_FileCoordinates.close();
+      if (mRVE_FileCoordinatesHistory.is_open())      mRVE_FileCoordinatesHistory.close();
       if (mRVE_FilePorosity.is_open())                mRVE_FilePorosity.close();
       if (mRVE_FileContactNumber.is_open())           mRVE_FileContactNumber.close();
       if (mRVE_FileCoordNumber.is_open())             mRVE_FileCoordNumber.close();
