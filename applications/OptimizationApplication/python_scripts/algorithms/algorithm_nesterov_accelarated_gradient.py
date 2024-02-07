@@ -40,10 +40,7 @@ class AlgorithmNesterovAcceleratedGradient(AlgorithmSteepestDescent):
     def ComputeControlUpdate(self, alpha):
         # compute the correction part from momentum point
         search_direction = self.algorithm_data.GetBufferedData()["search_direction"]
-        if isinstance(alpha, float):
-            update = search_direction * alpha
-        elif isinstance(alpha, KratosOA.CollectiveExpression):
-            update = Kratos.Expression.Utils.Scale(search_direction, alpha)
+        update = KratosOA.ExpressionUtils.Scale(search_direction, alpha)
         # add momentum to the correction update to compute new momentum point.
         if self.prev_update:
             mom_update = update + self.prev_update * self.eta
