@@ -210,7 +210,7 @@ public:
     {
         // Obtain necessary variables
         const Vector& N = rValues.GetShapeFunctionsValues();
-        const unsigned int number_of_nodes = geometry.size();      
+        const unsigned int number_of_nodes = geometry.size();
         const unsigned int dimension = 2;
         const unsigned int strainSize = 3;   
 
