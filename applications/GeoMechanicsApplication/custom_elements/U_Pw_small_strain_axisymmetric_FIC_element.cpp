@@ -12,6 +12,7 @@
 
 // Application includes
 #include "custom_elements/U_Pw_small_strain_axisymmetric_FIC_element.hpp"
+#include "axisymmetric_stress_state_policy.h"
 
 namespace Kratos
 {
@@ -41,17 +42,8 @@ void UPwSmallStrainAxisymmetricFICElement<TDim, TNumNodes>::CalculateBMatrix(Mat
 {
     KRATOS_TRY
 
-    const double radius = GeoElementUtilities::CalculateRadius(Np, this->GetGeometry());
-
-    for (IndexType i = 0; i < TNumNodes; ++i) {
-        const IndexType index = TDim * i;
-
-        rB(INDEX_2D_PLANE_STRAIN_XX, index + INDEX_X) = GradNpT(i, INDEX_X);
-        rB(INDEX_2D_PLANE_STRAIN_YY, index + INDEX_Y) = GradNpT(i, INDEX_Y);
-        rB(INDEX_2D_PLANE_STRAIN_ZZ, index + INDEX_X) = Np[i] / radius;
-        rB(INDEX_2D_PLANE_STRAIN_XY, index + INDEX_X) = GradNpT(i, INDEX_Y);
-        rB(INDEX_2D_PLANE_STRAIN_XY, index + INDEX_Y) = GradNpT(i, INDEX_X);
-    }
+    AxisymmetricStressStatePolicy policy;
+    rB = policy.CalculateBMatrix(GradNpT, Np, this->GetGeometry());
 
     KRATOS_CATCH("")
 }
@@ -62,12 +54,8 @@ double UPwSmallStrainAxisymmetricFICElement<TDim, TNumNodes>::CalculateIntegrati
     const GeometryType::IntegrationPointsArrayType& IntegrationPoints, unsigned int PointNumber, double detJ)
 
 {
-    Vector N;
-    N = this->GetGeometry().ShapeFunctionsValues(N, IntegrationPoints[PointNumber].Coordinates());
-    const double radiusWeight =
-        GeoElementUtilities::CalculateAxisymmetricCircumference(N, this->GetGeometry());
-
-    return IntegrationPoints[PointNumber].Weight() * detJ * radiusWeight;
+    AxisymmetricStressStatePolicy policy;
+    return policy.CalculateIntegrationCoefficient(IntegrationPoints[PointNumber], detJ, this->GetGeometry());
 }
 
 //----------------------------------------------------------------------------------------------------
