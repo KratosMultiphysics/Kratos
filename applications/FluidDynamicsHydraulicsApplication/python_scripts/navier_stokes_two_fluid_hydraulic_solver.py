@@ -77,6 +77,7 @@ class NavierStokesTwoFluidsHydraulicSolver(FluidSolver):
                     "tau_nodal":true
                 }
             },
+            "levelset_test": false,
             "levelset_convection_settings": {
                 "max_CFL" : 1.0,
                 "max_substeps" : 0,
@@ -86,6 +87,16 @@ class NavierStokesTwoFluidsHydraulicSolver(FluidSolver):
                     "dynamic_tau" : 1.0,
                     "tau_nodal":true
                 }
+            },
+            "edge_based_level_set_convection":{
+                "convected_variable_name": "DISTANCE",
+                "convection_variable_name": "VELOCITY",
+                "diffusion_constant": 1.0,
+                "echo_level": 0,
+                "max_CFL": 0.1,
+                "max_delta_time": 1.0,
+                "model_part_name": "",
+                "time_scheme": "RK3-TVD"                                      
             },
             "distance_reinitialization": "variational",
             "parallel_redistance_max_layers" : 25,
@@ -137,8 +148,13 @@ class NavierStokesTwoFluidsHydraulicSolver(FluidSolver):
             self.settings["eulerian_fm_ale_settings"].AddEmptyValue("levelset_convection_variable_name").SetString("CONVECTION_VELOCITY")
             self.settings["eulerian_fm_ale_settings"].AddEmptyValue("convection_model_part_name").SetString("EulerianFMALEModelPart")
 
-
-
+        # TODO: TEST 
+        self.levelset_test = self.settings["levelset_test"].GetBool()
+        if self.levelset_test:
+            self.settings["edge_based_level_set_convection"].AddEmptyValue("convected_variable_name").SetString("DISTANCE")
+            self.settings["edge_based_level_set_convection"].AddEmptyValue("convection_variable_name").SetString("VELOCITY")
+            self.settings["edge_based_level_set_convection"].AddEmptyValue("model_part_name").SetString("FluidModelPart")
+            
         dynamic_tau = self.settings["formulation"]["dynamic_tau"].GetDouble()
         self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DYNAMIC_TAU, dynamic_tau)
 
@@ -219,7 +235,11 @@ class NavierStokesTwoFluidsHydraulicSolver(FluidSolver):
         # Instantiate the level set convection process
         # Note that is is required to do this in here in order to validate the defaults and set the corresponding distance gradient flag
         # Note that the nodal gradient of the distance is required either for the eulerian BFECC limiter or by the algebraic element antidiffusivity
-        self._GetLevelSetConvectionProcess()
+        # TODO: TEST 
+        if self.levelset_test:
+            self._GetEdgeBasedLevelSetConvectionProcess()
+        else:
+            self._GetLevelSetConvectionProcess()
 
         # Instantiate the eulerian historical data convection
         if self.eulerian_fm_ale:
@@ -250,10 +270,13 @@ class NavierStokesTwoFluidsHydraulicSolver(FluidSolver):
         if self.eulerian_fm_ale:
             self.__PerformEulerianFmAleVelocity()
             KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "FM-Lagrangian method is performed.")
-
+        # TODO: TEST
+        if self.levelset_test:
+            self.__PerformEdgeBasedLevelSetConvection()
+        else: 
+            self.__PerformLevelSetConvection()
+            KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Level-set convection is performed.")
         # Perform the level-set convection according to the previous step velocity
-        self.__PerformLevelSetConvection()
-        KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Level-set convection is performed.")
 
         # Perform distance correction to prevent ill-conditioned cuts
         self._GetDistanceModificationProcess().ExecuteInitializeSolutionStep()
@@ -410,7 +433,7 @@ class NavierStokesTwoFluidsHydraulicSolver(FluidSolver):
             self._GetEulerianFmAleProcess().Execute()
             KratosMultiphysics.VariableUtils().CopyModelPartNodalVar(self.fm_ale_variable, auxiliar_velocity_componentes[i], self.main_model_part, self.main_model_part, 0, 0)
             self.__CorrectVelocityHistory(velocity_components[i], mesh_var[i])
-        self.__SlipConditionFixity()
+        self.__SlipConditionFixity(domain_size,velocity_components)
 
     def __CorrectVelocityHistory(self,velocity_components, mesh_variable):
         for node in self.GetComputingModelPart().Nodes:
@@ -430,19 +453,25 @@ class NavierStokesTwoFluidsHydraulicSolver(FluidSolver):
             result += i*j
         return result
 
-    def __SlipConditionFixity(self):
+    def __SlipConditionFixity(self,domain_size,velocity_components):
+
         for node in self.GetComputingModelPart().Nodes:
-            if node.Is(KratosMultiphysics.SLIP):
-                    n = node.GetSolutionStepValue(KratosMultiphysics.NORMAL)
-                    n/=math.sqrt(n[0]**2+n[1]**2+n[2]**2)
-                    # n /= math.sqrt(n[0]**2+n[1]**2)
-                    v = node.GetSolutionStepValue(KratosCFD.AUXILIAR_VECTOR_VELOCITY)
-                    v_prooj = self.DotProduct(v,n)
-                    v -= v_prooj * n
-                    node.SetSolutionStepValue(KratosMultiphysics.VELOCITY, v)
-                    node.SetSolutionStepValue(KratosMultiphysics.VELOCITY, 1, v)
-                    node.SetSolutionStepValue(KratosMultiphysics.MESH_VELOCITY, v)
-                    node.SetSolutionStepValue(KratosMultiphysics.MESH_VELOCITY, 1,v)
+            IsFixed = False
+            for i in range(domain_size):
+                if node.IsFixed(velocity_components[i]):
+                    IsFixed =True
+                    break
+            if node.Is(KratosMultiphysics.SLIP) and not IsFixed:
+                n = node.GetSolutionStepValue(KratosMultiphysics.NORMAL)
+                n/=math.sqrt(n[0]**2+n[1]**2+n[2]**2)
+                # n /= math.sqrt(n[0]*2+n[1]*2)
+                v = node.GetSolutionStepValue(KratosCFD.AUXILIAR_VECTOR_VELOCITY)
+                v_prooj = self.DotProduct(v,n)
+                v -= v_prooj * n
+                node.SetSolutionStepValue(KratosMultiphysics.VELOCITY, v)
+                node.SetSolutionStepValue(KratosMultiphysics.VELOCITY, 1, v)
+                node.SetSolutionStepValue(KratosMultiphysics.MESH_VELOCITY, v)
+                node.SetSolutionStepValue(KratosMultiphysics.MESH_VELOCITY, 1,v)
 
     # TODO: Remove this method as soon as the subproperties are available
     def _SetPhysicalProperties(self):
@@ -687,6 +716,30 @@ class NavierStokesTwoFluidsHydraulicSolver(FluidSolver):
         not_boundary_nodes=any([node.Is(boundary) for node in computing_model_part.Nodes])
         if not not_boundary_nodes:
             KratosMultiphysics.Logger.PrintWarning(self.__class__.__name__, name +" condition is not defined in the model part.")
+   
+    # TODO: TEST
 
+    def _CreateEdgeBasedLevelSetConvectionProcess(self):
+        # Construct the edge based level set convection process
+        domain_size = self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
+        # computing_model_part = self.GetModelPart()
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISTANCE, self.main_model_part)
+        edge_based_level_set_convection_setttings = self.settings["edge_based_level_set_convection"]
+        if domain_size == 2:
+            print("entra aqui")
+            edge_based_level_set_convection_process = KratosMultiphysics.FluxCorrectedTransportConvectionProcess2D(
+                self.model,
+                edge_based_level_set_convection_setttings)
+        else:
+            edge_based_level_set_convection_process = KratosMultiphysics.FluxCorrectedTransportConvectionProcess3D(
+                self.model,
+                edge_based_level_set_convection_setttings)
+        return edge_based_level_set_convection_process
 
+    def _GetEdgeBasedLevelSetConvectionProcess(self):
+        if not hasattr(self, 'edge_based_level_set_convection_process'):
+            self.edge_based_level_set_convection_process = self._CreateEdgeBasedLevelSetConvectionProcess()
+        return self.edge_based_level_set_convection_process
+    def __PerformEdgeBasedLevelSetConvection(self):
+        self._GetEdgeBasedLevelSetConvectionProcess().Execute()
 
