@@ -307,8 +307,8 @@ private:
     ///@name Member Variables
     ///@{
 
-    typename TSearchObject::Pointer mpSearchObject =  nullptr;  /// The pointer to the base search considered
-    Kratos::unique_ptr<PointVector> mpPointVector =  nullptr;   /// The point vector considered in the search trees
+    typename TSearchObject::Pointer mpSearchObject = nullptr;   /// The pointer to the base search considered
+    Kratos::unique_ptr<PointVector> mpPointVector = nullptr;    /// The point vector considered in the search trees
     std::vector<double> mGlobalBoundingBoxes;                   /// All the global BB, data is xmax, xmin,  ymax, ymin,  zmax, zmin
     const DataCommunicator& mrDataCommunicator;                 /// The data communicator
     Parameters mSettings;                                       /// The settings considered
@@ -915,8 +915,7 @@ private:
         TPointIteratorType itPointEnd,
         const double Radius,
         ResultContainerVectorType& rResults,
-        const bool ClearSolution = true,
-        
+        const bool ClearSolution = true
         )
     {
         KRATOS_ERROR << "Running distributed method requires to compile with MPI support" << std::endl;
@@ -928,8 +927,7 @@ private:
         TPointIteratorType itPointEnd,
         const double Radius,
         ResultContainerVectorType& rResults,
-        const bool ClearSolution = true,
-        
+        const bool ClearSolution = true
         )
     {
         KRATOS_ERROR << "Running distributed method requires to compile with MPI support" << std::endl;
@@ -940,8 +938,7 @@ private:
         TPointIteratorType itPointBegin,
         TPointIteratorType itPointEnd,
         ResultContainerVectorType& rResults,
-        const bool ClearSolution = true,
-        
+        const bool ClearSolution = true
         )
     {
         KRATOS_ERROR << "Running distributed method requires to compile with MPI support" << std::endl;
@@ -952,8 +949,7 @@ private:
         TPointIteratorType itPointBegin,
         TPointIteratorType itPointEnd,
         ResultContainerVectorType& rResults,
-        const bool ClearSolution = true,
-        
+        const bool ClearSolution = true
         )
     {
         KRATOS_ERROR << "Running distributed method requires to compile with MPI support" << std::endl;
