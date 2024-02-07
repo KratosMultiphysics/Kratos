@@ -55,4 +55,9 @@ double AxisymmetricStressStatePolicy::CalculateIntegrationCoefficient(const Geom
     return rIntegrationPoint.Weight() * detJ * radiusWeight;
 }
 
+unique_ptr<StressStatePolicy> AxisymmetricStressStatePolicy::Clone() const
+{
+    return std::make_unique<AxisymmetricStressStatePolicy>();
+}
+
 } // namespace Kratos

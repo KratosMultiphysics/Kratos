@@ -26,8 +26,7 @@ namespace Kratos::Testing
 
 KRATOS_TEST_CASE_IN_SUITE(CalculateBMatrixWithValidGeometryReturnsCorrectResults, KratosGeoMechanicsFastSuite)
 {
-    std::unique_ptr<StressStatePolicy> p_stress_state_policy =
-        std::make_unique<AxisymmetricStressStatePolicy>();
+    const auto p_stress_state_policy = std::make_unique<AxisymmetricStressStatePolicy>();
 
     Model      model;
     ModelPart& model_part = model.CreateModelPart("Main");
@@ -65,8 +64,7 @@ KRATOS_TEST_CASE_IN_SUITE(CalculateBMatrixWithValidGeometryReturnsCorrectResults
 
 KRATOS_TEST_CASE_IN_SUITE(ReturnCorrectIntegrationCoefficient, KratosGeoMechanicsFastSuite)
 {
-    std::unique_ptr<StressStatePolicy> p_stress_state_policy =
-        std::make_unique<AxisymmetricStressStatePolicy>();
+    const auto p_stress_state_policy = std::make_unique<AxisymmetricStressStatePolicy>();
 
     Model      model;
     ModelPart& model_part = model.CreateModelPart("Main");
@@ -88,6 +86,14 @@ KRATOS_TEST_CASE_IN_SUITE(ReturnCorrectIntegrationCoefficient, KratosGeoMechanic
     // The expected number is calculated as follows:
     // 2.0 * pi * 0.8 (radius) * 2.0 (detJ) * 0.5 (weight) = 5.02655
     KRATOS_EXPECT_NEAR(calculated_coefficient, 5.02655, 1e-5);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(TestCloneReturnsCorrectType, KratosGeoMechanicsFastSuite)
+{
+    const auto p_stress_state_policy = std::make_unique<AxisymmetricStressStatePolicy>();
+    const auto p_cloned_stress_state_policy = p_stress_state_policy->Clone();
+
+    KRATOS_EXPECT_NE(dynamic_cast<AxisymmetricStressStatePolicy*>(p_cloned_stress_state_policy.get()), nullptr);
 }
 
 } // namespace Kratos::Testing

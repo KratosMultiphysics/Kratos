@@ -25,6 +25,7 @@ public:
                                            double                detJ,
                                            const Geometry<Node>& rGeometry) const override;
     Matrix CalculateBMatrix(const Matrix& GradNpT, const Vector& Np, const Geometry<Node>& rGeometry) const override;
+    unique_ptr<StressStatePolicy> Clone() const override;
 };
 
 } // namespace Kratos
