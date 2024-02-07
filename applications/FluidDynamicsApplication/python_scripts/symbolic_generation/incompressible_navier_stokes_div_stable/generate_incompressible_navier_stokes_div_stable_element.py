@@ -25,7 +25,6 @@ do_simplifications = False
 # dim_to_compute = "Both"             # Spatial dimensions to compute. Options:  "2D","3D","Both"
 dim_to_compute = "2D"             # Spatial dimensions to compute. Options:  "2D","3D","Both"
 
-convective_term = True
 linearisation = "Picard" # Convective term linearisation type. Options: "Picard", "FullNR"
 output_filename = "incompressible_navier_stokes_div_stable.cpp"
 template_filename = "incompressible_navier_stokes_div_stable_cpp_template.cpp"
@@ -60,14 +59,18 @@ for dim, v_n_nodes, p_n_nodes in zip(dim_vector, v_nodes_vector, p_nodes_vector)
     elif dim == 3:
         strain_size = 6
 
+    ## Kinematics symbols definition
     N_v, DN_v = DefineShapeFunctions(v_n_nodes, dim, impose_partion_of_unity=False, shape_functions_name='N_v', gradients_name='DN_v')
     N_p, DN_p = DefineShapeFunctions(p_n_nodes, dim, impose_partion_of_unity=False, shape_functions_name='N_p', gradients_name='DN_p')
+    N_e = sympy.Symbol('N_e', positive = True)
+    DN_e = DefineMatrix('DN_e', 1, dim)
 
     ## Unknown fields definition
     v = DefineMatrix('r_v', v_n_nodes, dim)            # Current step velocity (v(i,j) refers to velocity of node i component j)
     vn = DefineMatrix('r_vn', v_n_nodes, dim)          # Previous step velocity
     vnn = DefineMatrix('r_vnn', v_n_nodes, dim)        # 2 previous step velocity
     p = DefineVector('r_p', p_n_nodes)                 # Pressure
+    v_e = DefineMatrix('v_e', 1, dim)                  # Velocity enrichment dof
 
     ## Fluid properties
     mu = sympy.Symbol('mu', positive = True)         # Dynamic viscosity
@@ -76,6 +79,7 @@ for dim, v_n_nodes, p_n_nodes in zip(dim_vector, v_nodes_vector, p_nodes_vector)
     ## Test functions definition
     w = DefineMatrix('w', v_n_nodes, dim)            # Velocity field test function
     q = DefineVector('q', p_n_nodes)                 # Pressure field test function
+    w_e = DefineMatrix('w_e', 1, dim)                # Velocity enrichment test function
 
     ## Other data definitions
     f = DefineMatrix('r_f',v_n_nodes,dim)                 # Forcing term
@@ -100,15 +104,14 @@ for dim, v_n_nodes, p_n_nodes in zip(dim_vector, v_nodes_vector, p_nodes_vector)
     bdf2 = sympy.Symbol('rData.BDF2')
 
     ## Convective velocity definition
-    if convective_term:
-        if (linearisation == "Picard"):
-            vconv = DefineMatrix('vconv',v_n_nodes,dim)     # Convective velocity defined a symbol
-        elif (linearisation == "FullNR"):
-            vmesh = DefineMatrix('r_vmesh',v_n_nodes,dim)   # Mesh velocity
-            vconv = v - vmesh                               # Convective velocity defined as a velocity dependent variable
-        else:
-            raise Exception("Wrong linearisation \'" + linearisation + "\' selected. Available options are \'Picard\' and \'FullNR\'.")
-        vconv_gauss = vconv.transpose()*N_v
+    if (linearisation == "Picard"):
+        vconv = DefineMatrix('vconv',v_n_nodes,dim)     # Convective velocity defined a symbol
+    elif (linearisation == "FullNR"):
+        vmesh = DefineMatrix('r_vmesh',v_n_nodes,dim)   # Mesh velocity
+        vconv = v - vmesh                               # Convective velocity defined as a velocity dependent variable
+    else:
+        raise Exception("Wrong linearisation \'" + linearisation + "\' selected. Available options are \'Picard\' and \'FullNR\'.")
+    vconv_gauss = vconv.transpose()*N_v
 
     ## Compute the rest of magnitudes at the Gauss points
     accel_gauss = (bdf0*v + bdf1*vn + bdf2*vnn).transpose()*N_v
@@ -122,32 +125,38 @@ for dim, v_n_nodes, p_n_nodes in zip(dim_vector, v_nodes_vector, p_nodes_vector)
     w_gauss = w.transpose()*N_v
     q_gauss = q.transpose()*N_p
 
+    v_e_gauss = v_e * N_e
+    w_e_gauss = w_e * N_e
+
     ## Gradients computation (fluid dynamics gradient)
     grad_w = DfjDxi(DN_v, w)
     grad_q = DfjDxi(DN_p, q)
 
     grad_v = DfjDxi(DN_v,v)
     grad_p = DfjDxi(DN_p, p)
+    grad_v_e = DfjDxi(DN_e, v_e)
 
     div_w = div(DN_v,w)
+    div_w_e = div(DN_e,w_e)
     div_v = div(DN_v,v)
+    div_v_e = div(DN_e, v_e)
 
-    if convective_term:
-        div_vconv = div(DN_v, vconv)
+    div_vconv = div(DN_v, vconv)
 
     grad_sym_v = grad_sym_voigtform(DN_v,v)       # Symmetric gradient of v in Voigt notation
+    grad_sym_v_e = grad_sym_voigtform(DN_e,v_e)   # Symmetric gradient of enrichment v in Voigt notation
     grad_w_voigt = grad_sym_voigtform(DN_v,w)     # Symmetric gradient of w in Voigt notation
+    grad_w_e_voigt = grad_sym_voigtform(DN_e,w_e) # Symmetric gradient of enrichment w in Voigt notation
     # Recall that the grad(w):stress contraction equals grad_sym(w)*stress in Voigt notation since the stress is a symmetric tensor.
 
     # Convective term definition
-    if convective_term:
-        convective_term_gauss = (vconv_gauss.transpose()*grad_v)
+    convective_term_gauss = (vconv_gauss.transpose()*grad_v)
+    convective_term_gauss_e = (vconv_gauss.transpose()*grad_v_e)
 
     ## Compute galerkin functional
     # Navier-Stokes functional
     rv_galerkin = rho*w_gauss.transpose()*f_gauss - rho*w_gauss.transpose()*accel_gauss - grad_w_voigt.transpose()*stress + div_w*p_gauss - q_gauss*div_v
-    if convective_term:
-        rv_galerkin -= rho*w_gauss.transpose()*convective_term_gauss.transpose()
+    rv_galerkin -= rho*w_gauss.transpose()*convective_term_gauss.transpose()
 
     ## Stabilization functional
     stab_norm_a = 0.0
@@ -163,6 +172,13 @@ for dim, v_n_nodes, p_n_nodes in zip(dim_vector, v_nodes_vector, p_nodes_vector)
     rv_stab += rho*vconv_gauss.transpose()*grad_w*vel_subscale
     rv_stab += rho*div_vconv*w_gauss.transpose()*vel_subscale
     #TODO: Think about the viscous subscale component --> should we include it in the stress calculation?
+
+    ## Enrichment functional
+    rv_enr = rho*w_e_gauss*f_gauss - rho*w_e_gauss*accel_gauss
+    rv_enr -= rho*w_e_gauss*convective_term_gauss.transpose() - rho*w_e_gauss*convective_term_gauss_e.transpose()
+    rv_enr -= grad_w_e_voigt.transpose()*stress
+    rv_enr -= div_w_e*p_gauss
+    rv_enr -= q_gauss*div_v_e
 
     ## Define DOFs and test function vectors
     n_dofs = v_n_nodes * dim + p_n_nodes
@@ -180,6 +196,14 @@ for dim, v_n_nodes, p_n_nodes in zip(dim_vector, v_nodes_vector, p_nodes_vector)
     for i in range(p_n_nodes):
         dofs[v_n_nodes*dim + i] = p[i,0]
         testfunc[v_n_nodes*dim + i] = q[i,0]
+
+    ## Enrichment DOFs and test functions
+    dofs_enr = sympy.zeros(dim, 1)
+    testfunc_enr = sympy.zeros(dim, 1)
+
+    for i in range(dim):
+        dofs_enr[i] = v_e[i]
+        testfunc_enr[i] = w_e[i]
 
     ## Compute LHS and RHS
     # Add the stabilization to the Galerkin residual
@@ -203,6 +227,27 @@ for dim, v_n_nodes, p_n_nodes in zip(dim_vector, v_nodes_vector, p_nodes_vector)
     ## Replace the computed RHS and LHS in the template outstring
     outstring = outstring.replace(f"//substitute_lhs_{dim}D", lhs_out)
     outstring = outstring.replace(f"//substitute_rhs_{dim}D", rhs_out)
+
+    ## Compute enrichment matrices
+    rhs_ee = Compute_RHS(rv_enr.copy(), testfunc_enr, do_simplifications)
+    rhs_ee_out = OutputVector_CollectingFactors(gauss_weight*rhs_ee, "rRHSee", mode, assignment_op='+=')
+
+    SubstituteMatrixValue(rhs_ee, stress, C*(grad_sym_v+grad_sym_v_e))
+    K_ee = Compute_LHS(rhs_ee.copy(), testfunc_enr, dofs_enr, do_simplifications)
+    K_eu = Compute_LHS(rhs_ee.copy(), testfunc_enr, dofs, do_simplifications)
+    K_ee_out = OutputMatrix_CollectingFactors(gauss_weight*K_ee, "rKee", mode, assignment_op='+=')
+    K_eu_out = OutputMatrix_CollectingFactors(gauss_weight*K_eu, "rKeu", mode, assignment_op='+=')
+
+    rhs_ue = Compute_RHS(rv_enr.copy(), testfunc, do_simplifications)
+    SubstituteMatrixValue(rhs_ue, stress, C*(grad_sym_v+grad_sym_v_e))
+    K_ue = Compute_LHS(rhs_ue.copy(), testfunc, dofs_enr, do_simplifications)
+    K_ue_out = OutputMatrix_CollectingFactors(gauss_weight*K_ue, "rKue", mode, assignment_op='+=')
+
+    ## Replace the enrichment RHS and LHS in the template outstring
+    outstring = outstring.replace(f"//substitute_K_ee_{dim}D", K_ee_out)
+    outstring = outstring.replace(f"//substitute_K_eu_{dim}D", K_eu_out)
+    outstring = outstring.replace(f"//substitute_K_ue_{dim}D", K_ue_out)
+    outstring = outstring.replace(f"//substitute_rhs_ee_{dim}D", rhs_ee_out)
 
 ## Write the modified template
 print("Writing output file \'" + output_filename + "\'")

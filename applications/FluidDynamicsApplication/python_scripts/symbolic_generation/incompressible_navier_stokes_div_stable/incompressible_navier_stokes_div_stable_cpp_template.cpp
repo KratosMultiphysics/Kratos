@@ -193,7 +193,15 @@ void IncompressibleNavierStokesDivStable<TDim>::CalculateLocalSystem(
     Matrix pressure_N;
     GeometryType::ShapeFunctionsGradientsType velocity_DN;
     GeometryType::ShapeFunctionsGradientsType pressure_DN;
-    CalculateKinematics(weights, velocity_N, pressure_N, velocity_DN, pressure_DN);
+    Vector velocity_bubble;
+    std::vector<BoundedMatrix<double, 1, TDim>> velocity_bubble_grad;
+    CalculateKinematics(weights, velocity_N, pressure_N, velocity_DN, pressure_DN, velocity_bubble, velocity_bubble_grad);
+
+    // Initialize enrichment arrays
+    array_1d<double, TDim> RHSee = ZeroVector(TDim);
+    BoundedMatrix<double, TDim, TDim> Kee = ZeroMatrix(TDim, TDim);
+    BoundedMatrix<double, TDim, LocalSize> Keu = ZeroMatrix(TDim, LocalSize);
+    BoundedMatrix<double, LocalSize, TDim> Kue = ZeroMatrix(LocalSize, TDim);
 
     // Loop Gauss points
     const SizeType n_gauss = r_geom.IntegrationPointsNumber(IntegrationMethod);
@@ -203,6 +211,8 @@ void IncompressibleNavierStokesDivStable<TDim>::CalculateLocalSystem(
         noalias(aux_data.N_p) = row(pressure_N, g);
         noalias(aux_data.DN_v) = velocity_DN[g];
         noalias(aux_data.DN_p) = pressure_DN[g];
+        aux_data.N_e = velocity_bubble[g];
+        noalias(aux_data.DN_e) = velocity_bubble_grad[g];
         aux_data.Weight = weights[g];
 
         // Calculate current Gauss point material response
@@ -215,11 +225,16 @@ void IncompressibleNavierStokesDivStable<TDim>::CalculateLocalSystem(
         ComputeGaussPointRHSContribution(aux_data, rRightHandSideVector);
 
         // Assemble bubble function contributions (to be condensed)
-        //TODO:
+        ComputeGaussPointEnrichmentContribution(aux_data, RHSee, Kue, Keu, Kee);
     }
 
     // Condense bubble function contribution
-    //TODO:
+    double det;
+    BoundedMatrix<double, TDim, TDim> invKee;
+    MathUtils<double>::InvertMatrix(Kee, invKee, det);
+    const BoundedMatrix<double, LocalSize, TDim> KueinvKee = prod(Kue, invKee);
+    noalias(rLeftHandSideMatrix) -= prod(KueinvKee, Keu);
+    noalias(rRightHandSideVector) -= prod(KueinvKee, RHSee);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
@@ -350,7 +365,9 @@ void IncompressibleNavierStokesDivStable<TDim>::CalculateKinematics(
     Matrix& rVelocityN,
     Matrix& rPressureN,
     GeometryType::ShapeFunctionsGradientsType& rVelocityDNDX,
-    GeometryType::ShapeFunctionsGradientsType& rPressureDNDX)
+    GeometryType::ShapeFunctionsGradientsType& rPressureDNDX,
+    Vector& rVelocityBubble,
+    std::vector<BoundedMatrix<double, 1, TDim>>& rVelocityBubbleGrad)
 {
     // Get element geometry
     const auto& r_geom = this->GetGeometry();
@@ -399,8 +416,28 @@ void IncompressibleNavierStokesDivStable<TDim>::CalculateKinematics(
         rPressureDNDX[g] = prod(r_DN_De_p[g], inv_J_vect[g]);
     }
 
-    // Calculate enrichment bubble kinematics
-    //TODO:
+    // Calculate enrichment bubble kinematics using the previous auxiliary element barycentric coordinates
+    if (rVelocityBubble.size() != n_gauss) {
+        rVelocityBubble.resize(n_gauss, false);
+    }
+    if (rVelocityBubbleGrad.size() != n_gauss) {
+        rVelocityBubbleGrad.resize(n_gauss);
+    }
+    for (IndexType g = 0; g < n_gauss; ++g) {
+        const auto& r_bar_coords = row(rPressureN, g);
+        const auto& r_bar_coords_grads = rPressureDNDX[g];
+        auto& r_vel_bub_grad_g = rVelocityBubbleGrad[g];
+        if constexpr (TDim == 2) {
+            rVelocityBubble[g] = r_bar_coords[0] * r_bar_coords[1] * r_bar_coords[2];
+            r_vel_bub_grad_g(0,0) = r_bar_coords_grads(0,0) * r_bar_coords[1] * r_bar_coords[2] + r_bar_coords[0] * r_bar_coords_grads(1,0) * r_bar_coords[2] + r_bar_coords[0] * r_bar_coords[1] * r_bar_coords_grads(2,0);
+            r_vel_bub_grad_g(0,1) = r_bar_coords_grads(0,1) * r_bar_coords[1] * r_bar_coords[2] + r_bar_coords[0] * r_bar_coords_grads(1,1) * r_bar_coords[2] + r_bar_coords[0] * r_bar_coords[1] * r_bar_coords_grads(2,1);
+        } else {
+            rVelocityBubble[g] = r_bar_coords[0] * r_bar_coords[1] * r_bar_coords[2] * r_bar_coords[3];
+            r_vel_bub_grad_g(0,0) = r_bar_coords_grads(0,0) * r_bar_coords[1] * r_bar_coords[2] * r_bar_coords[3] + r_bar_coords[0] * r_bar_coords_grads(1,0) * r_bar_coords[2] * r_bar_coords[3] + r_bar_coords[0] * r_bar_coords[1] * r_bar_coords_grads(2,0) * r_bar_coords[3] + r_bar_coords[0] * r_bar_coords[1] * r_bar_coords[2] * r_bar_coords_grads(3,0);
+            r_vel_bub_grad_g(0,1) = r_bar_coords_grads(0,1) * r_bar_coords[1] * r_bar_coords[2] * r_bar_coords[3] + r_bar_coords[0] * r_bar_coords_grads(1,1) * r_bar_coords[2] * r_bar_coords[3] + r_bar_coords[0] * r_bar_coords[1] * r_bar_coords_grads(2,1) * r_bar_coords[3] + r_bar_coords[0] * r_bar_coords[1] * r_bar_coords[2] * r_bar_coords_grads(3,1);
+            r_vel_bub_grad_g(0,2) = r_bar_coords_grads(0,2) * r_bar_coords[1] * r_bar_coords[2] * r_bar_coords[3] + r_bar_coords[0] * r_bar_coords_grads(1,2) * r_bar_coords[2] * r_bar_coords[3] + r_bar_coords[0] * r_bar_coords[1] * r_bar_coords_grads(2,2) * r_bar_coords[3] + r_bar_coords[0] * r_bar_coords[1] * r_bar_coords[2] * r_bar_coords_grads(3,2);
+        }
+    }
 
     // Calculate integration points weight
     if (rGaussWeights.size() != n_gauss) {
@@ -414,6 +451,8 @@ void IncompressibleNavierStokesDivStable<TDim>::CalculateKinematics(
 template< unsigned int TDim >
 void IncompressibleNavierStokesDivStable<TDim>::CalculateStrainRate(ElementDataContainer& rData)
 {
+    //TODO: Add here the bubble contribution to the enrichment!!!
+
     if (rData.StrainRate.size() != StrainSize) {
         rData.StrainRate.resize(StrainSize, false);
     }
@@ -461,7 +500,7 @@ void IncompressibleNavierStokesDivStable<2>::ComputeGaussPointLHSContribution(
     const BoundedMatrix<double,2,6> vconv = rData.Velocity - rData.MeshVelocity;
 
     // Get constitutive matrix
-    const BoundedMatrix<double,3,3>& C = rData.ConstitutiveMatrix;
+    const auto& C = rData.ConstitutiveMatrix;
 
     // Get shape function values
     const auto& N_p = rData.N_p;
@@ -497,7 +536,7 @@ void IncompressibleNavierStokesDivStable<3>::ComputeGaussPointLHSContribution(
     const BoundedMatrix<double,3,10> vconv = rData.Velocity - rData.MeshVelocity;
 
     // Get constitutive matrix
-    const BoundedMatrix<double,6,6>& C = rData.ConstitutiveMatrix;
+    const auto& C = rData.ConstitutiveMatrix;
 
     // Get shape function values
     const auto& N_p = rData.N_p;
@@ -600,6 +639,126 @@ void IncompressibleNavierStokesDivStable<3>::ComputeGaussPointRHSContribution(
     // Assemble RHS contribution
     const double gauss_weight = rData.Weight;
     //substitute_rhs_3D
+}
+
+template <>
+void IncompressibleNavierStokesDivStable<2>::ComputeGaussPointEnrichmentContribution(
+    const ElementDataContainer& rData,
+    array_1d<double, 2>& rRHSee,
+    BoundedMatrix<double, LocalSize, 2>& rKue,
+    BoundedMatrix<double, 2, LocalSize>& rKeu,
+    BoundedMatrix<double, 2, 2>& rKee)
+{
+    // Get material data
+    const double rho = rData.Density;
+    const double mu = rData.EffectiveViscosity;
+
+    // Get auxiliary data
+    const double bdf0 = rData.BDF0;
+    const double bdf1 = rData.BDF1;
+    const double bdf2 = rData.BDF2;
+    const double dt = rData.DeltaTime;
+
+    // Get stabilization data
+    const double h = rData.ElementSize;
+    const double stab_c1 = rData.StabC1;
+    const double stab_c2 = rData.StabC2;
+    const double dyn_tau = rData.DynamicTau;
+
+    // Get nodal data
+    const auto& r_v = rData.Velocity;
+    const auto& r_vn = rData.VelocityOld1;
+    const auto& r_vnn = rData.VelocityOld2;
+    const auto& r_vmesh = rData.MeshVelocity;
+    const auto& r_f = rData.BodyForce;
+    const auto& r_p = rData.Pressure;
+
+    // Calculate convective velocity
+    const BoundedMatrix<double,3,10> vconv = r_v - r_vmesh;
+
+    // Get stress from material response
+    const auto& r_stress = rData.ShearStress;
+    const auto& C = rData.ConstitutiveMatrix;
+
+    // Get shape function values
+    const auto& N_p = rData.N_p;
+    const auto& N_v = rData.N_v;
+    const auto& DN_p = rData.DN_p;
+    const auto& DN_v = rData.DN_v;
+    const double N_e = rData.N_e;
+    const auto& DN_e = rData.DN_e;
+
+    // Assemble enrichment contribution
+    const double gauss_weight = rData.Weight;
+    const BoundedMatrix<double,1,2> v_e = ZeroMatrix(1,2);
+
+    //substitute_rhs_ee_2D
+
+    //substitute_K_ue_2D
+
+    //substitute_K_eu_2D
+
+    //substitute_K_ee_2D
+}
+
+template <>
+void IncompressibleNavierStokesDivStable<3>::ComputeGaussPointEnrichmentContribution(
+    const ElementDataContainer& rData,
+    array_1d<double, 3>& rRHSee,
+    BoundedMatrix<double, LocalSize, 3>& rKue,
+    BoundedMatrix<double, 3, LocalSize>& rKeu,
+    BoundedMatrix<double, 3, 3>& rKee)
+{
+    // Get material data
+    const double rho = rData.Density;
+    const double mu = rData.EffectiveViscosity;
+
+    // Get auxiliary data
+    const double bdf0 = rData.BDF0;
+    const double bdf1 = rData.BDF1;
+    const double bdf2 = rData.BDF2;
+    const double dt = rData.DeltaTime;
+
+    // Get stabilization data
+    const double h = rData.ElementSize;
+    const double stab_c1 = rData.StabC1;
+    const double stab_c2 = rData.StabC2;
+    const double dyn_tau = rData.DynamicTau;
+
+    // Get nodal data
+    const auto& r_v = rData.Velocity;
+    const auto& r_vn = rData.VelocityOld1;
+    const auto& r_vnn = rData.VelocityOld2;
+    const auto& r_vmesh = rData.MeshVelocity;
+    const auto& r_f = rData.BodyForce;
+    const auto& r_p = rData.Pressure;
+
+    // Calculate convective velocity
+    const BoundedMatrix<double,3,10> vconv = r_v - r_vmesh;
+
+    // Get stress from material response
+    const auto& r_stress = rData.ShearStress;
+    const auto& C = rData.ConstitutiveMatrix;
+
+    // Get shape function values
+    const auto& N_p = rData.N_p;
+    const auto& N_v = rData.N_v;
+    const auto& DN_p = rData.DN_p;
+    const auto& DN_v = rData.DN_v;
+    const double N_e = rData.N_e;
+    const auto& DN_e = rData.DN_e;
+
+    // Assemble enrichment contribution
+    const double gauss_weight = rData.Weight;
+    const BoundedMatrix<double,1,3> v_e = ZeroMatrix(1,3);
+
+    //substitute_rhs_ee_3D
+
+    //substitute_K_ue_3D
+
+    //substitute_K_eu_3D
+
+    //substitute_K_ee_3D
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
