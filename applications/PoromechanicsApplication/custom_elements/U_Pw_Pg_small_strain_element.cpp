@@ -1178,7 +1178,6 @@ void UPwPgSmallStrainElement<TDim,TNumNodes>::InitializeElementVariables(Element
     rVariables.FluidDensity              = Prop[DENSITY_WATER];
     rVariables.GasDensity                = Prop[DENSITY_GAS];
     rVariables.GasDiffusionCoefficient   = Prop[GAS_DIFFUSION_COEFF];
-    rVariables.WaterSaturationLaw        = Prop[WATER_SATURATION_LAW];
     rVariables.BiotCoefficient           = Prop[BIOT_COEFFICIENT];
     rVariables.SolidCompressibilityCoeff = (rVariables.BiotCoefficient-Porosity)/BulkModulusSolid;
     rVariables.FluidCompressibilityCoeff = Porosity/Prop[BULK_MODULUS_FLUID];

@@ -43,90 +43,25 @@ int BrooksAndCoreyLaw::Check(const Properties& rMaterialProperties,
 
 //------------------------------------------------------------------------------------------------
 
-void BrooksAndCoreyLaw::CalculateMaterialResponse (Parameters& rValues)
-{
-    //Check
-    rValues.CheckAllParameters();
-
-    //Initialize main variables
-    SaturationLawVariables Variables;
-    this->InitializeConstitutiveLawVariables(Variables,rValues);
-
-        // //Compute the capilar pressure at the integration point
-        // Variables.ipCapilarPressure = inner_prod(Variables.Np,Variables.CapilarPressureVector);
-
-    this->CalculateWaterSaturationDegree(Variables,rValues);
-
-    this->EffectiveSaturation(Variables,rValues);
-    this->WaterRelativePermeability(Variables,rValues);
-    this->GasRelativePermeability(Variables,rValues);
-    
-
-
-
-}
-
-//------------------------------------------------------------------------------------------------
-
-void BrooksAndCoreyLaw::CalculateSaturation (Parameters& rValues)
-{
-    //Check
-    rValues.CheckAllParameters();
-
-    //Initialize main variables
-    SaturationLawVariables Variables;
-    this->InitializeConstitutiveLawVariables(Variables,rValues);
-
-        // //Compute the capilar pressure at the integration point
-        // Variables.ipCapilarPressure = inner_prod(Variables.Np,Variables.CapilarPressureVector);
-
-    this->CalculateWaterSaturationDegree(Variables,rValues);
-    
-
-
-
-}
-
-//------------------------------------------------------------------------------------------------
-
-void BrooksAndCoreyLaw::InitializeSaturationLawVariables (SaturationLawVariables& rVariables, Parameters& rValues)
-{
-    
-}
-
-//------------------------------------------------------------------------------------------------
-
 void BrooksAndCoreyLaw::CalculateWaterSaturationDegree (SaturationLawVariables& rVariables, Parameters& rValues)
 {
-    //Get material parameters
-    double Swr    = rVariables.ResidualWaterSaturation;
-    double lambda = rVariables.PoreSizeFactor;
-    double pb     = rVariables.GasEntryPressure;
-    double pc     = rVariables.ipCapilarPressure;
+    double& rSw = rValues.GetSw();
+    double& rdSwdPc = rValues.GetdSwdPc();
 
     // If the capillar pressure is lower than the gas-entry pressure, the porous media is fully saturated with the wetting phase.
-    rVariables.Sw     = 1.0;
-    rVariables.dSwdPc = 0.0;
+    rSw = 1.0;
+    rdSwdPc = 0.0;
 
-    if(pc > pb)
+    if(rVariables.pc > rVariables.pb)
     {
-            // -- Brooks and Corey
-            //           (see pg. 479 from Khoei's 2015 book: Extended Finite Element: theory and applications, ISBN 978-1-118-45768-9) -----
-                
-                // Water saturation degree
-                rVariables.Sw = (1.0 - Swr)*pow(pb/pc,lambda) + Swr;
+        // Water saturation degree
+        rSw = (1.0 - rVariables.Swr)*pow(rVariables.pb/rVariables.pc,rVariables.lambda) + rVariables.Swr;
 
-                // Derivative of the water saturation degree with respect to the capilar pressure
-                rVariables.dSwdPc = (1.0 - Swr) * lambda * pb * pow(pb/pc,lambda-1) / (pc * pc);
+        // Derivative of the water saturation degree with respect to the capilar pressure
+        rdSwdPc = (1.0 - rVariables.Swr) * 
+                    rVariables.lambda * rVariables.pb * pow(rVariables.pb/rVariables.pc,rVariables.lambda-1.0) /
+                    (rVariables.pc * rVariables.pc);
     }
-}
-
-//------------------------------------------------------------------------------------------------
-
-void BrooksAndCoreyLaw::EffectiveSaturation (SaturationLawVariables& rVariables, Parameters& rValues)
-{
-    double Se = (Sw - Swr)/(1.0 - Swr);
-    return Se;    
 }
 
 //------------------------------------------------------------------------------------------------
@@ -164,4 +99,5 @@ void BrooksAndCoreyLaw::GasRelativePermeability (SaturationLawVariables& rVariab
     krg = std::min(krg,0.0001);
     return krg;    
 }
+
 }

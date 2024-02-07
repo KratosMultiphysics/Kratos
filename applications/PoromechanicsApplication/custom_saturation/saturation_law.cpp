@@ -19,14 +19,14 @@ namespace Kratos
 
 SaturationLaw::Pointer SaturationLaw::Clone() const
 {
-    KRATOS_ERROR <<  "Called the virtual function for Clone"<< std::endl;;
+    KRATOS_ERROR <<  "Called the virtual function for Clone"<< std::endl;
 }
 
 //------------------------------------------------------------------------------------------------
 
 // SaturationLaw::SizeType SaturationLaw::WorkingSpaceDimension()
 // {
-//     KRATOS_ERROR <<  "Called the virtual function for WorkingSpaceDimension"<< std::endl;;
+//     KRATOS_ERROR <<  "Called the virtual function for WorkingSpaceDimension"<< std::endl;
 // }
 
 //------------------------------------------------------------------------------------------------
@@ -99,41 +99,41 @@ void SaturationLaw::SetValue(const Variable<bool>& rThisVariable,
                                const bool& Value,
                                const ProcessInfo& rCurrentProcessInfo)
 {
-    KRATOS_ERROR <<  "Called the virtual function for SetValue"<< std::endl;;
+    KRATOS_ERROR <<  "Called the virtual function for SetValue"<< std::endl;
 }
 void SaturationLaw::SetValue(const Variable<int>& rThisVariable,
                                const int& Value,
                                const ProcessInfo& rCurrentProcessInfo)
 {
-    KRATOS_ERROR <<  "Called the virtual function for SetValue"<< std::endl;;
+    KRATOS_ERROR <<  "Called the virtual function for SetValue"<< std::endl;
 }
 void SaturationLaw::SetValue(const Variable<double>& rVariable,
                                const double& rValue,
                                const ProcessInfo& rCurrentProcessInfo)
 {
-    KRATOS_ERROR <<  "Called the virtual function for SetValue"<< std::endl;;
+    KRATOS_ERROR <<  "Called the virtual function for SetValue"<< std::endl;
 }
 void SaturationLaw::SetValue(const Variable<Vector >& rVariable,
                                const Vector& rValue, const ProcessInfo& rCurrentProcessInfo)
 {
-    KRATOS_ERROR <<  "Called the virtual function for SetValue"<< std::endl;;
+    KRATOS_ERROR <<  "Called the virtual function for SetValue"<< std::endl;
 }
 void SaturationLaw::SetValue(const Variable<Matrix >& rVariable,
                                const Matrix& rValue, const ProcessInfo& rCurrentProcessInfo)
 {
-    KRATOS_ERROR <<  "Called the virtual function for SetValue"<< std::endl;;
+    KRATOS_ERROR <<  "Called the virtual function for SetValue"<< std::endl;
 }
 void SaturationLaw::SetValue(const Variable<array_1d<double, 3 > >& rVariable,
                                const array_1d<double, 3 > & rValue,
                                const ProcessInfo& rCurrentProcessInfo)
 {
-    KRATOS_ERROR <<  "Called the virtual function for SetValue"<< std::endl;;
+    KRATOS_ERROR <<  "Called the virtual function for SetValue"<< std::endl;
 }
 void SaturationLaw::SetValue(const Variable<array_1d<double, 6 > >& rVariable,
                                const array_1d<double, 6 > & rValue,
                                const ProcessInfo& rCurrentProcessInfo)
 {
-    KRATOS_ERROR <<  "Called the virtual function for SetValue"<< std::endl;;
+    KRATOS_ERROR <<  "Called the virtual function for SetValue"<< std::endl;
 }
 
 //------------------------------------------------------------------------------------------------
@@ -202,7 +202,18 @@ void SaturationLaw::InitializeMaterial(const Properties& rMaterialProperties,
 
 void SaturationLaw::CalculateMaterialResponse (Parameters& rValues)
 {
-    KRATOS_ERROR <<  "Calling virtual function for CalculateMaterialResponse"<< std::endl;;
+    //Check
+    rValues.CheckAllParameters();
+
+    //Initialize main variables
+    SaturationLawVariables Variables;
+    this->InitializeSaturationLawVariables(Variables,rValues);
+
+    this->CalculateWaterSaturationDegree(Variables,rValues);
+
+    this->CalculateEffectiveSaturation(Variables,rValues);
+    this->WaterRelativePermeability(Variables,rValues);
+    this->GasRelativePermeability(Variables,rValues);
 }
 
 //------------------------------------------------------------------------------------------------
@@ -223,7 +234,14 @@ void SaturationLaw::FinalizeMaterialResponse (Parameters& rValues)
 
 void SaturationLaw::CalculateSaturation (Parameters& rValues)
 {
-    KRATOS_ERROR <<  "Calling virtual function for CalculateSaturation"<< std::endl;;
+    //Check
+    rValues.CheckAllParameters();
+
+    //Initialize main variables
+    SaturationLawVariables Variables;
+    this->InitializeSaturationLawVariables(Variables,rValues);
+
+    this->CalculateWaterSaturationDegree(Variables,rValues);
 }
 
 //------------------------------------------------------------------------------------------------
@@ -232,7 +250,55 @@ void SaturationLaw::ResetMaterial(const Properties& rMaterialProperties,
                                     const GeometryType& rElementGeometry,
                                     const Vector& rShapeFunctionsValues)
 {
-    KRATOS_ERROR <<  "Calling virtual function for ResetMaterial"<< std::endl;;
+    KRATOS_ERROR <<  "Calling virtual function for ResetMaterial"<< std::endl;
+}
+
+//------------------------------------------------------------------------------------------------
+
+void SaturationLaw::InitializeSaturationLawVariables(SaturationLawVariables& rVariables, Parameters& rValues)
+{
+    const Properties& properties = rValues.GetMaterialProperties();
+    const Vector& N = rValues.GetShapeFunctionsValues();
+    const Element::GeometryType& geometry = rValues.GetElementGeometry();
+    const unsigned int number_of_nodes = geometry.size();
+
+    rVariables.Swr = properties[RESIDUAL_WATER_SATURATION];
+    rVariables.lambda = properties[PORE_SIZE_FACTOR];
+    rVariables.pb = properties[GAS_ENTRY_PRESSURE];
+    // Capilar pore pressure: pc = pg - pw
+    rVariables.pc = 0.0;
+    for (unsigned int i = 0; i < number_of_nodes; i++) {
+        rVariables.pc += N[i] * (geometry[i].GetSolutionStepValue(GAS_PRESSURE) - geometry[i].GetSolutionStepValue(WATER_PRESSURE))
+    }
+}
+
+//------------------------------------------------------------------------------------------------
+
+void SaturationLaw::CalculateWaterSaturationDegree (SaturationLawVariables& rVariables, Parameters& rValues)
+{
+    KRATOS_ERROR <<  "Calling virtual function for CalculateWaterSaturationDegree"<< std::endl;
+}
+
+//------------------------------------------------------------------------------------------------
+
+void SaturationLaw::CalculateEffectiveSaturation(SaturationLawVariables& rVariables, Parameters& rValues)
+{
+    const double& Sw = rValues.GetSw();
+    rVariables.Se = (Sw - rVariables.Swr)/(1.0 - rVariables.Swr);
+}
+
+//------------------------------------------------------------------------------------------------
+
+void SaturationLaw::WaterRelativePermeability (SaturationLawVariables& rVariables, Parameters& rValues)
+{
+    KRATOS_ERROR <<  "Calling virtual function for WaterRelativePermeability"<< std::endl;
+}
+
+//------------------------------------------------------------------------------------------------
+
+void SaturationLaw::GasRelativePermeability (SaturationLawVariables& rVariables, Parameters& rValues)
+{
+    KRATOS_ERROR <<  "Calling virtual function for GasRelativePermeability"<< std::endl;
 }
 
 //------------------------------------------------------------------------------------------------

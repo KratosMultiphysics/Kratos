@@ -89,13 +89,6 @@ void VanGenuchtenLaw::CalculateSaturation (Parameters& rValues)
 
 //------------------------------------------------------------------------------------------------
 
-void VanGenuchtenLaw::InitializeSaturationLawVariables (SaturationLawVariables& rVariables, Parameters& rValues)
-{
-    
-}
-
-//------------------------------------------------------------------------------------------------
-
 void VanGenuchtenLaw::CalculateWaterSaturationDegree (SaturationLawVariables& rVariables, Parameters& rValues)
 {
     //Get material parameters

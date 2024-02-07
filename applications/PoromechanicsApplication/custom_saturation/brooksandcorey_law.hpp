@@ -28,6 +28,9 @@
 
 namespace Kratos {
 
+/// Brooks and Corey Saturation Law
+/// see pg. 479 from Khoei's 2015 book: Extended Finite Element: theory and applications, ISBN 978-1-118-45768-9
+
 class KRATOS_API(POROMECHANICS_APPLICATION) BrooksAndCoreyLaw : public SaturationLaw
 {
 
@@ -60,23 +63,13 @@ public:
 
     ///------------------------------------------------------------------------------------------------
 
-    void CalculateMaterialResponse (Parameters & rValues) override;
-
-    void CalculateSaturation (Parameters & rValues) override;
-
-    ///------------------------------------------------------------------------------------------------
-
 protected:
 
-    virtual void InitializeSaturationLawVariables(SaturationLawVariables& rVariables, Parameters& rValues);
+    void CalculateWaterSaturationDegree(SaturationLawVariables& rVariables, Parameters& rValues) override;
 
-    virtual void CalculateWaterSaturationDegree(SaturationLawVariables& rVariables, Parameters& rValues);
+    void WaterRelativePermeability(SaturationLawVariables& rVariables, Parameters& rValues) override;
 
-    virtual void EffectiveSaturation(SaturationLawVariables& rVariables, Parameters& rValues);
-
-    virtual void WaterRelativePermeability(SaturationLawVariables& rVariables, Parameters& rValues);
-
-    virtual void GasRelativePermeability(SaturationLawVariables& rVariables, Parameters& rValues);
+    void GasRelativePermeability(SaturationLawVariables& rVariables, Parameters& rValues) override;
 
     ///------------------------------------------------------------------------------------------------
 
