@@ -39,7 +39,7 @@ void SmallStrainUPwDiffOrderAxisymmetricElement::CalculateBMatrix(Matrix& rB, co
 {
     KRATOS_TRY
 
-    AxisymmetricStressStatePolicy policy;
+    AxisymmetricStressState policy;
     rB = policy.CalculateBMatrix(GradNpT, Np, this->GetGeometry());
 
     KRATOS_CATCH("")
@@ -50,7 +50,7 @@ double SmallStrainUPwDiffOrderAxisymmetricElement::CalculateIntegrationCoefficie
     const GeometryType::IntegrationPointsArrayType& IntegrationPoints, unsigned int PointNumber, double detJ)
 
 {
-    AxisymmetricStressStatePolicy policy;
+    AxisymmetricStressState policy;
     return policy.CalculateIntegrationCoefficient(IntegrationPoints[PointNumber], detJ, this->GetGeometry());
 }
 

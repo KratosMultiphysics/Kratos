@@ -44,7 +44,7 @@ void UPwSmallStrainAxisymmetricElement<TDim, TNumNodes>::CalculateBMatrix(Matrix
 {
     KRATOS_TRY
 
-    AxisymmetricStressStatePolicy policy;
+    AxisymmetricStressState policy;
     rB = policy.CalculateBMatrix(GradNpT, Np, this->GetGeometry());
 
     KRATOS_CATCH("")
@@ -56,7 +56,7 @@ double UPwSmallStrainAxisymmetricElement<TDim, TNumNodes>::CalculateIntegrationC
     const GeometryType::IntegrationPointsArrayType& IntegrationPoints, unsigned int PointNumber, double detJ)
 
 {
-    AxisymmetricStressStatePolicy policy;
+    AxisymmetricStressState policy;
     return policy.CalculateIntegrationCoefficient(IntegrationPoints[PointNumber], detJ, this->GetGeometry());
 }
 

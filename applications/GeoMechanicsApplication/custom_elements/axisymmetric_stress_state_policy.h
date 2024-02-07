@@ -18,7 +18,7 @@
 namespace Kratos
 {
 
-class AxisymmetricStressStatePolicy : public StressStatePolicy
+class AxisymmetricStressState : public StressStatePolicy
 {
 public:
     double CalculateIntegrationCoefficient(const Geometry<Node>::IntegrationPointType& rIntegrationPoint,

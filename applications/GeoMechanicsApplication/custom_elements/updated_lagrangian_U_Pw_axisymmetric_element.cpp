@@ -42,7 +42,7 @@ void UPwUpdatedLagrangianAxisymmetricElement<TDim, TNumNodes>::CalculateBMatrix(
 {
     KRATOS_TRY
 
-    AxisymmetricStressStatePolicy policy;
+    AxisymmetricStressState policy;
     rB = policy.CalculateBMatrix(GradNpT, Np, this->GetGeometry());
 
     KRATOS_CATCH("")
@@ -54,7 +54,7 @@ double UPwUpdatedLagrangianAxisymmetricElement<TDim, TNumNodes>::CalculateIntegr
     const GeometryType::IntegrationPointsArrayType& IntegrationPoints, unsigned int PointNumber, double detJ)
 
 {
-    AxisymmetricStressStatePolicy policy;
+    AxisymmetricStressState policy;
     return policy.CalculateIntegrationCoefficient(IntegrationPoints[PointNumber], detJ, this->GetGeometry());
 }
 

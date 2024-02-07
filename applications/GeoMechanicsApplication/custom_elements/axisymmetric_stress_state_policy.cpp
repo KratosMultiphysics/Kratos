@@ -19,7 +19,7 @@ namespace Kratos
 
 static const SizeType NumberOfUDofPerNode = 2; // Axi-symmetric stress state assumes a 2D problem definition
 
-Matrix AxisymmetricStressStatePolicy::CalculateBMatrix(const Matrix&         GradNpT,
+Matrix AxisymmetricStressState::CalculateBMatrix(const Matrix&         GradNpT,
                                                        const Vector&         Np,
                                                        const Geometry<Node>& rGeometry) const
 {
@@ -42,7 +42,7 @@ Matrix AxisymmetricStressStatePolicy::CalculateBMatrix(const Matrix&         Gra
     return result;
 }
 
-double AxisymmetricStressStatePolicy::CalculateIntegrationCoefficient(const Geometry<Node>::IntegrationPointType& rIntegrationPoint,
+double AxisymmetricStressState::CalculateIntegrationCoefficient(const Geometry<Node>::IntegrationPointType& rIntegrationPoint,
                                                                       double detJ,
                                                                       const Geometry<Node>& rGeometry) const
 {
@@ -55,9 +55,9 @@ double AxisymmetricStressStatePolicy::CalculateIntegrationCoefficient(const Geom
     return rIntegrationPoint.Weight() * detJ * radiusWeight;
 }
 
-unique_ptr<StressStatePolicy> AxisymmetricStressStatePolicy::Clone() const
+unique_ptr<StressStatePolicy> AxisymmetricStressState::Clone() const
 {
-    return std::make_unique<AxisymmetricStressStatePolicy>();
+    return std::make_unique<AxisymmetricStressState>();
 }
 
 } // namespace Kratos
