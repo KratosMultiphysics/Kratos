@@ -21,7 +21,6 @@
 
 using namespace Kratos;
 
-
 namespace Kratos::Testing
 {
 
@@ -61,10 +60,10 @@ KRATOS_TEST_CASE_IN_SUITE(CalculateBMatrixWithValidGeometryReturnsCorrectResults
 
     // clang-format off
     Matrix expected_matrix(4, 6);
-    expected_matrix <<= 1   ,0  ,3   ,0 ,5   ,0,
-                        0   ,2  ,0   ,4 ,0   ,6,
-                        0.2 ,0  ,0.4 ,0 ,0.6 ,0,
-                        2   ,1  ,4   ,3 ,6   ,5;
+    expected_matrix <<= 1   ,0  ,3   ,0 ,5   ,0, // This row contains the first column of GradNpT on columns 1, 3 and 5
+                        0   ,2  ,0   ,4 ,0   ,6, // This row contains the second column of GradNpT on columns 2, 4 and 6
+                        0.2 ,0  ,0.4 ,0 ,0.6 ,0, // This row contains Np/radius on columns 1, 3 and 5, where radius = 5
+                        2   ,1  ,4   ,3 ,6   ,5; // This row contains the first and second columns of GradNpT, swapping x and y
     // clang-format on
 
     KRATOS_CHECK_MATRIX_NEAR(calculated_matrix, expected_matrix, 1e-12)
@@ -77,8 +76,8 @@ KRATOS_TEST_CASE_IN_SUITE(ReturnCorrectIntegrationCoefficient, KratosGeoMechanic
     Model      model;
     ModelPart& model_part = CreateModelPart(model);
 
+    // The shape function values for this integration point are 0.2, 0.5 and 0.3 for nodes 1, 2 and 3 respectively
     Geometry<Node>::IntegrationPointType integration_point(0.5, 0.3, 0.0, 0.5);
-    // ShapeFunctionsValues for this integration point are [0.2,0.5,0.3]
 
     const double detJ                   = 2.0;
     const double calculated_coefficient = p_stress_state_policy->CalculateIntegrationCoefficient(
