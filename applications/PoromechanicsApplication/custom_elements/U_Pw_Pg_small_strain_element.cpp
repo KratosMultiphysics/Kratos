@@ -1786,49 +1786,6 @@ void UPwPgSmallStrainElement<TDim,TNumNodes>::CalculateAndAddCompressibilityMatr
 }
 
 //----------------------------------------------------------------------------------------
-
-// TODO. Eliminate
-// template< unsigned int TDim, unsigned int TNumNodes >
-// void UPwPgSmallStrainElement<TDim,TNumNodes>::CalculateWaterSaturationDegree(ElementVariables& rVariables)
-// {
-//     //Get material parameters
-//     double Swr    = rVariables.ResidualWaterSaturation;
-//     double lambda = rVariables.PoreSizeFactor;
-//     double pb     = rVariables.GasEntryPressure;
-//     double pc     = rVariables.ipCapilarPressure;
-
-//     // If the capillar pressure is lower than the gas-entry pressure, the porous media is fully saturated with the wetting phase.
-//     rVariables.Sw     = 1.0;
-//     rVariables.dSwdPc = 0.0;
-
-//     if(pc > pb)
-//     {
-//         switch (rVariables.WaterSaturationLaw){
-//             case 1: // -- Brooks and Corey
-//             //           (see pg. 479 from Khoei's 2015 book: Extended Finite Element: theory and applications, ISBN 978-1-118-45768-9) -----
-                
-//                 // Water saturation degree
-//                 rVariables.Sw = (1.0 - Swr)*pow(pb/pc,lambda) + Swr;
-
-//                 // Derivative of the water saturation degree with respect to the capilar pressure
-//                 rVariables.dSwdPc = (1.0 - Swr) * lambda * pb * pow(pb/pc,lambda-1) / (pc * pc);
-
-//                 break;
-
-//             case 2: // -- van Genuchten (https://www.sciencedirect.com/science/article/pii/S0266352X22004657) -----
-
-//                 // Water saturation degree
-//                 rVariables.Sw = (1.0 - Swr)*pow(1.0 + pow(pc/pb,1.0/(1.0-lambda)),-lambda) + Swr;
-
-//                 // Derivative of the water saturation degree with respect to the capilar pressure
-//                 rVariables.dSwdPc = (1.0 - Swr)*lambda/(pb * pow(pc/pb,1.0+1.0/(lambda-1.0)) * (lambda - 1.0) * pow(1.0+1.0/(pow(pc/pb,1/(lambda-1.0))),lambda+1.0));
-                
-//                 break;
-//         }
-//     }
-// }
-
-//----------------------------------------------------------------------------------------
 template< unsigned int TDim, unsigned int TNumNodes >
 void UPwPgSmallStrainElement<TDim,TNumNodes>::GetCompressibilityCoefficients(double& Cww, double& Cwg, double& Cgw, double& Cgg, const ElementVariables& Variables)
 {
