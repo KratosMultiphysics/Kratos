@@ -21,22 +21,30 @@
 
 using namespace Kratos;
 
+
 namespace Kratos::Testing
 {
+
+ModelPart& CreateModelPart(Model& rModel)
+{
+    ModelPart& result = rModel.CreateModelPart("Main");
+
+    result.CreateNewNode(1, 0.0, 0.0, 0.0);
+    result.CreateNewNode(2, 1.0, 0.0, 0.0);
+    result.CreateNewNode(3, 1.0, 1.0, 0.0);
+
+    std::vector<ModelPart::IndexType> node_ids{1, 2, 3};
+    result.CreateNewElement("UPwSmallStrainElement2D3N", 1, node_ids, result.CreateNewProperties(0));
+
+    return result;
+}
 
 KRATOS_TEST_CASE_IN_SUITE(CalculateBMatrixWithValidGeometryReturnsCorrectResults, KratosGeoMechanicsFastSuite)
 {
     const auto p_stress_state_policy = std::make_unique<AxisymmetricStressStatePolicy>();
 
     Model      model;
-    ModelPart& model_part = model.CreateModelPart("Main");
-
-    model_part.CreateNewNode(1, 0.0, 0.0, 0.0);
-    model_part.CreateNewNode(2, 1.0, 0.0, 0.0);
-    model_part.CreateNewNode(3, 1.0, 1.0, 0.0);
-
-    std::vector<ModelPart::IndexType> node_ids{1, 2, 3};
-    model_part.CreateNewElement("UPwSmallStrainElement2D3N", 1, node_ids, model_part.CreateNewProperties(0));
+    ModelPart& model_part = CreateModelPart(model);
 
     Vector Np(3);
     Np <<= 1.0, 2.0, 3.0;
@@ -67,14 +75,7 @@ KRATOS_TEST_CASE_IN_SUITE(ReturnCorrectIntegrationCoefficient, KratosGeoMechanic
     const auto p_stress_state_policy = std::make_unique<AxisymmetricStressStatePolicy>();
 
     Model      model;
-    ModelPart& model_part = model.CreateModelPart("Main");
-
-    model_part.CreateNewNode(1, 0.0, 0.0, 0.0);
-    model_part.CreateNewNode(2, 1.0, 0.0, 0.0);
-    model_part.CreateNewNode(3, 1.0, 1.0, 0.0);
-
-    std::vector<ModelPart::IndexType> node_ids{1, 2, 3};
-    model_part.CreateNewElement("UPwSmallStrainElement2D3N", 1, node_ids, model_part.CreateNewProperties(0));
+    ModelPart& model_part = CreateModelPart(model);
 
     Geometry<Node>::IntegrationPointType integration_point(0.5, 0.3, 0.0, 0.5);
     // ShapeFunctionsValues for this integration point are [0.2,0.5,0.3]
@@ -90,7 +91,7 @@ KRATOS_TEST_CASE_IN_SUITE(ReturnCorrectIntegrationCoefficient, KratosGeoMechanic
 
 KRATOS_TEST_CASE_IN_SUITE(TestCloneReturnsCorrectType, KratosGeoMechanicsFastSuite)
 {
-    const auto p_stress_state_policy = std::make_unique<AxisymmetricStressStatePolicy>();
+    const auto p_stress_state_policy        = std::make_unique<AxisymmetricStressStatePolicy>();
     const auto p_cloned_stress_state_policy = p_stress_state_policy->Clone();
 
     KRATOS_EXPECT_NE(dynamic_cast<AxisymmetricStressStatePolicy*>(p_cloned_stress_state_policy.get()), nullptr);
