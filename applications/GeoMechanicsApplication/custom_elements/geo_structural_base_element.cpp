@@ -19,7 +19,7 @@ namespace Kratos
 {
 
 template <unsigned int TDim, unsigned int TNumNodes>
-Element::Pointer GeoStructuralBaseElement<TDim, TNumNodes>::Create(IndexType NewId,
+Element::Pointer GeoStructuralBaseElement<TDim, TNumNodes>::Create(IndexType             NewId,
                                                                    NodesArrayType const& ThisNodes,
                                                                    PropertiesType::Pointer pProperties) const
 {
@@ -32,7 +32,7 @@ Element::Pointer GeoStructuralBaseElement<TDim, TNumNodes>::Create(IndexType New
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
-Element::Pointer GeoStructuralBaseElement<TDim, TNumNodes>::Create(IndexType NewId,
+Element::Pointer GeoStructuralBaseElement<TDim, TNumNodes>::Create(IndexType             NewId,
                                                                    GeometryType::Pointer pGeom,
                                                                    PropertiesType::Pointer pProperties) const
 {
@@ -50,7 +50,7 @@ int GeoStructuralBaseElement<TDim, TNumNodes>::Check(const ProcessInfo& rCurrent
     KRATOS_TRY
 
     const PropertiesType& rProp = this->GetProperties();
-    const GeometryType& rGeom   = this->GetGeometry();
+    const GeometryType&   rGeom = this->GetGeometry();
 
     // verify nodal variables and dofs
     for (unsigned int i = 0; i < TNumNodes; ++i) {
@@ -128,9 +128,9 @@ void GeoStructuralBaseElement<TDim, TNumNodes>::Initialize(const ProcessInfo& rC
 {
     KRATOS_TRY
 
-    const PropertiesType& rProp   = this->GetProperties();
-    const GeometryType& rGeom     = this->GetGeometry();
-    const unsigned int NumGPoints = GetTotalNumberIntegrationPoints();
+    const PropertiesType& rProp      = this->GetProperties();
+    const GeometryType&   rGeom      = this->GetGeometry();
+    const unsigned int    NumGPoints = GetTotalNumberIntegrationPoints();
 
     if (mConstitutiveLawVector.size() != NumGPoints) mConstitutiveLawVector.resize(NumGPoints);
 
