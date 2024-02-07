@@ -8,6 +8,7 @@
 //                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Ignasi de Pouplana
+//                   Danilo Cavalcanti
 //
 
 #pragma once
