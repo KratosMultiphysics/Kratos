@@ -1,14 +1,16 @@
 ---
 title: Visualization
-keywords:
+keywords: 
 tags: [visualization expression vtu vtk]
 sidebar: kratos_expressions
-summary:
+summary: 
 ---
 
 ## Introduction
 
 Expressions can be written to the `Vtu` format and can be easily visualized using any compatible software such as [Paraview](https://www.paraview.org/).
+
+This output is compatible with **shared memory** and **distributed memory** architectures. In **shared memory** architectures, it will write only one file having the extension `*.vtu`. In **distributed memory**, it will write one `*.vtu` file per rank, and the will write one `*.pvtu` for all ranks linking all the `*.vtu` files from all ranks.
 
 ## Use case
 ```python
