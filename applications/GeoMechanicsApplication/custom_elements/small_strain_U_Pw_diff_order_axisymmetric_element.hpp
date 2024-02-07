@@ -30,21 +30,21 @@ class KRATOS_API(GEO_MECHANICS_APPLICATION) SmallStrainUPwDiffOrderAxisymmetricE
 public:
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(SmallStrainUPwDiffOrderAxisymmetricElement);
 
-    typedef std::size_t IndexType;
-    typedef Properties PropertiesType;
-    typedef Node NodeType;
-    typedef Geometry<NodeType> GeometryType;
-    typedef Geometry<NodeType>::PointsArrayType NodesArrayType;
-    typedef Vector VectorType;
-    typedef Matrix MatrixType;
+    using IndexType      = std::size_t;
+    using PropertiesType = Properties;
+    using NodeType       = Node;
+    using GeometryType   = Geometry<NodeType>;
+    using NodesArrayType = Geometry<NodeType>::PointsArrayType;
+    using VectorType     = Vector;
+    using MatrixType     = Matrix;
     /// The definition of the sizetype
-    typedef std::size_t SizeType;
+    using SizeType = std::size_t;
     using SmallStrainUPwDiffOrderElement::mConstitutiveLawVector;
 
     ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     /// Default Constructor
-    SmallStrainUPwDiffOrderAxisymmetricElement() : SmallStrainUPwDiffOrderElement() {}
+    using SmallStrainUPwDiffOrderElement::SmallStrainUPwDiffOrderElement;
 
     /// Constructor using Geometry
     SmallStrainUPwDiffOrderAxisymmetricElement(IndexType NewId, GeometryType::Pointer pGeometry)
@@ -61,7 +61,7 @@ public:
     }
 
     /// Destructor
-    ~SmallStrainUPwDiffOrderAxisymmetricElement() override {}
+    ~SmallStrainUPwDiffOrderAxisymmetricElement() override = default;
 
     ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 

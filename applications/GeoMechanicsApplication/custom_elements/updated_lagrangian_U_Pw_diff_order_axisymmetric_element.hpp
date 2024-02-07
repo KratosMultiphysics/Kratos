@@ -45,7 +45,7 @@ public:
     ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     /// Default Constructor
-    UpdatedLagrangianUPwDiffOrderAxisymmetricElement() : UpdatedLagrangianUPwDiffOrderElement() {}
+    using UpdatedLagrangianUPwDiffOrderElement::UpdatedLagrangianUPwDiffOrderElement;
 
     /// Constructor using Geometry
     UpdatedLagrangianUPwDiffOrderAxisymmetricElement(IndexType NewId, GeometryType::Pointer pGeometry)
@@ -62,7 +62,7 @@ public:
     }
 
     /// Destructor
-    ~UpdatedLagrangianUPwDiffOrderAxisymmetricElement() override {}
+    ~UpdatedLagrangianUPwDiffOrderAxisymmetricElement() override = default;
 
     ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 

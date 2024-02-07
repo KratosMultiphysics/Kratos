@@ -46,7 +46,7 @@ public:
     ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     /// Default Constructor
-    UPwUpdatedLagrangianAxisymmetricFICElement(IndexType NewId = 0)
+    explicit UPwUpdatedLagrangianAxisymmetricFICElement(IndexType NewId = 0)
         : UPwUpdatedLagrangianFICElement<TDim, TNumNodes>(NewId)
     {
     }

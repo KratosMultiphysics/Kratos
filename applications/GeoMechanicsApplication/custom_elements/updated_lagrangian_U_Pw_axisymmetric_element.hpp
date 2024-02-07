@@ -46,7 +46,7 @@ public:
     ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     /// Default Constructor
-    UPwUpdatedLagrangianAxisymmetricElement(IndexType NewId = 0)
+    explicit UPwUpdatedLagrangianAxisymmetricElement(IndexType NewId = 0)
         : UPwUpdatedLagrangianElement<TDim, TNumNodes>(NewId)
     {
     }

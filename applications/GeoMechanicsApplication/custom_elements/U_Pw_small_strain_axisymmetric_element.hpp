@@ -43,10 +43,8 @@ public:
     using SizeType = std::size_t;
     using UPwBaseElement<TDim, TNumNodes>::mConstitutiveLawVector;
 
-    ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
     /// Default Constructor
-    UPwSmallStrainAxisymmetricElement(IndexType NewId = 0)
+    explicit UPwSmallStrainAxisymmetricElement(IndexType NewId = 0)
         : UPwSmallStrainElement<TDim, TNumNodes>(NewId)
     {
     }

@@ -46,7 +46,7 @@ public:
     ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     /// Default Constructor
-    UPwSmallStrainAxisymmetricFICElement(IndexType NewId = 0)
+    explicit UPwSmallStrainAxisymmetricFICElement(IndexType NewId = 0)
         : UPwSmallStrainFICElement<TDim, TNumNodes>(NewId)
     {
     }
