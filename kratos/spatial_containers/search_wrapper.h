@@ -44,6 +44,7 @@ namespace Kratos
  * @details Must be adapted and specialized for every search object
  * @author Vicente Mataix Ferrandiz
  * @tparam TSearchObject The seach object considered
+ * @tparam TSpatialSearchCommunication The communication type to be used
  */
 template<class TSearchObject, SpatialSearchCommunication TSpatialSearchCommunication = SpatialSearchCommunication::SYNCHRONOUS_HOMOGENEOUS>
 class KRATOS_API(KRATOS_CORE) SearchWrapper
@@ -268,6 +269,16 @@ public:
     ///@}
     ///@name Inquiry
     ///@{
+
+    /**
+     * @brief Retrieves the static instance of SpatialSearchCommunication.
+     * @details This function returns the static instance of SpatialSearchCommunication used for spatial searching.
+     * @return The static instance of SpatialSearchCommunication.
+     */
+    static constexpr SpatialSearchCommunication GetSpatialSearchCommunication()
+    {
+        return TSpatialSearchCommunication;
+    }
 
     ///@}
     ///@name Input and output
