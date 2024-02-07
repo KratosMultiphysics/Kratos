@@ -405,14 +405,24 @@ void GetLowerOrderDofs(typename TSparseSpace::MatrixType& rA,
             // Mark each DoF of all nodes on the equivalent lower order element
             // (unless they are constrained as slave dofs in multi-point constraints)
             for (std::size_t i_node=0ul; i_node<coarse_node_count; ++i_node) {
-                if (!r_geometry[i_node].Is(SLAVE)) {
+                if (r_geometry[i_node].Is(SLAVE)) {
                     const auto& r_node_dofs = r_geometry[i_node].GetDofs();
                     for (const auto& rp_dof : r_node_dofs) {
                         const std::size_t i_fine_dof = rp_dof->EquationId();
                         KRATOS_DEBUG_ERROR_IF_NOT(i_fine_dof < TSparseSpace::Size1(rA));
 
                         // Flag the DoF as part of the coarse system
-                        if (rp_dof->IsFree()) rCoarseMask[i_fine_dof] = DofCategory::Coarse;
+                        rCoarseMask[i_fine_dof] = DofCategory::Constrained;
+                    }
+                }
+                if (!r_geometry[i_node].Is(SLAVE)) {
+                    const auto& r_node_dofs = r_geometry[i_node].GetDofs();
+                    for (const auto& rp_dof : r_node_dofs) {
+                        const std::size_t i_fine_dof = rp_dof->EquationId();
+                        KRATOS_DEBUG_ERROR_IF_NOT(i_fine_dof < TSparseSpace::Size1(rA));
+
+                        // Flag the DoF as part of the coarse system (unless it's constrained)
+                        rCoarseMask[i_fine_dof] = rp_dof->IsFree() ? DofCategory::Coarse : DofCategory::Constrained;
                     }
                 } // if the node is not flagged SLAVE
             } // for i_node in range(coarse_node_count)
@@ -428,8 +438,10 @@ void GetLowerOrderDofs(typename TSparseSpace::MatrixType& rA,
     } // for entity in rModelPart
 
     // Loop through the active DoFs and remove any slave or dirichlet DoF
-    // from the coarse system, while making sure that master DoFs are included
-    // regardless of their connectivity.
+    // from the coarse system, while making sure that master DoFs are included.
+    // This is a required step if the mesh contains hanging nodes that are not
+    // part of any element but are connected to the rest of the mesh in some
+    // other manner (with MPCs for example).
     for (const Dof<double>& r_dof : rDofs) {
         if (r_dof.IsFixed()) {
             rCoarseMask[r_dof.EquationId()] = DofCategory::Constrained;
@@ -706,11 +718,11 @@ void MapHigherToLowerOrder(const ModelPart& rModelPart,
                                     const auto mpc_coefficient = master_and_coefficient.second;
                                     rRestrictionMap.emplace(std::make_pair(i_coarse_dof, i_master), r_fine_coefficient_pair.second * mpc_coefficient);
                                 }
-                            } else {
+                            } //else {
                                 // The DoF is not a slave, so it can be added to the restriction map
                                 rRestrictionMap.emplace(std::make_pair(i_coarse_dof, i_fine_dof), r_fine_coefficient_pair.second);
-                            }
-                        } // if rCoarseDofMask[i_coarse_dof_in_fine_system]
+                            //}
+                        } // if rCoarseDofMask[i_coarse_dof_in_fine_system] is in the coarse system
 
                         // Check whether the coarse DoF participates in an MPC, and record
                         // data about its connectivities if it does.
@@ -719,7 +731,7 @@ void MapHigherToLowerOrder(const ModelPart& rModelPart,
                             it_slave_dof->second.second.emplace_back(&r_entity,
                                                                      i_coarse_vertex,
                                                                      i_node_dof);
-                        } // if it_slave_dof != rMasterMap.end
+                        } // if it_slave_dof != rSlaveMap.end
                     } // for i_node_dof in range(dofs_per_node)
                 } // for coefficient_pair in restriction_terms
             } // for i_coarse_vertex in restriction_coefficients.size()
@@ -748,24 +760,19 @@ void MapHigherToLowerOrder(const ModelPart& rModelPart,
     for (const auto& r_master_info : rMasterMap) {
         const std::size_t i_coarse_dof_in_fine_system = r_master_info.first;
 
-        // Skip the DoF if it is only part of the fine system
+        // Skip the DoF if it is not part of the coarse system
         if (rCoarseDofMask[i_coarse_dof_in_fine_system] != DofCategory::Coarse) {
             continue;
         }
 
         const std::size_t i_coarse_dof = rCoarseDofMap[i_coarse_dof_in_fine_system];
 
-        for (auto slave_pair : r_master_info.second) {
-            const auto it_slave_info = slave_pair.first;
-
+        for (const auto& [it_slave_info, slave_coefficient] : r_master_info.second) {
             KRATOS_ERROR_IF(it_slave_info == it_slave_end);
             const auto& r_slave_info = it_slave_info->second;
 
-            for (auto entry : r_slave_info.second) {
-                const Geometry<Node>& r_fine_geometry = std::get<0>(entry)->GetGeometry();
-                const std::size_t i_slave_vertex = std::get<1>(entry);
-                const std::size_t i_slave_node_dof = std::get<2>(entry);
-
+            for (const auto& [p_element, i_slave_vertex, i_slave_node_dof] : r_slave_info.second) {
+                const Geometry<Node>& r_fine_geometry = p_element->GetGeometry();
                 std::vector<
                     std::vector<std::pair<
                         std::size_t,    // <== fine DoF index
@@ -776,46 +783,32 @@ void MapHigherToLowerOrder(const ModelPart& rModelPart,
                 GetNonzeroQuadraticCoefficients(r_fine_geometry.GetGeometryType(),
                                                 std::back_inserter(restriction_coefficients));
                 if (i_slave_vertex < restriction_coefficients.size()) {
-                    KRATOS_ERROR_IF_NOT(i_slave_vertex < restriction_coefficients.size());
-
                     const auto& r_restriction_terms = restriction_coefficients[i_slave_vertex];
 
-                    // The first term always corresponds to the linear equivalent of the vertex,
-                    // which would not have an impact on the restricted stiffness under normal
-                    // circumstances, but Kratos takes a dangerous approach to enforcing MPCs.
-                    // Instead of removing rows and columns related to slave DoFs from the system,
-                    // an arbitrary nonzero value is placed on the main diagonal. If the first term
-                    // of slave DoFs is included in the restriction operator, this arbitrary nonzero
-                    // value will completely destroy the rows of the coarse system matrix related to
-                    // master DoFs.
-                    // ==> these first terms must be omitted from the restriction operator.
-                    std::size_t i_term = 0ul;
-
-                    for (; i_term<r_restriction_terms.size(); ++i_term) {
-                        const auto& r_fine_coefficient_pair = r_restriction_terms[i_term];
-                        const std::size_t i_fine_vertex = r_fine_coefficient_pair.first;
+                    for (const auto& [i_fine_vertex, restriction_coefficient] : r_restriction_terms) {
                         const std::size_t i_fine_dof = r_fine_geometry[i_fine_vertex].GetDofs()[i_slave_node_dof]->EquationId();
                         const auto it_slave = rSlaveMap.find(i_fine_dof);
                         const bool is_slave = it_slave != it_slave_end;
-                        if (!is_slave) {
-                            const auto mpc_coefficient = slave_pair.second;
-                            const auto restriction_coefficient = r_fine_coefficient_pair.second * mpc_coefficient;
-                            rRestrictionMap.emplace(std::make_pair(i_coarse_dof, i_fine_dof), restriction_coefficient);
-                        } else {
-                            for (auto master_and_coefficient : it_slave->second.first) {
-                                const auto i_master = master_and_coefficient.first;
-                                //const auto mpc_coefficient = master_and_coefficient.second;
-                                const auto mpc_coefficient = 1.0;
-                                rRestrictionMap.emplace(std::make_pair(i_coarse_dof, i_master), r_fine_coefficient_pair.second * mpc_coefficient);
-                            }
+                        if (is_slave) {
+                            for (const auto& [i_master, master_coefficient] : it_slave->second.first) {
+                                if (i_master == r_master_info.first) {
+                                    // This is the same master we're already looping over, so no need to apply
+                                    // the MPC's coefficient.
+                                    rRestrictionMap.emplace(std::make_pair(i_coarse_dof, i_master), restriction_coefficient);
+                                } else {
+                                    rRestrictionMap.emplace(std::make_pair(i_coarse_dof, i_master), restriction_coefficient * slave_coefficient * master_coefficient);
+                                }
+                            } // for i_master, master_coefficient in it_slave->second.first
+                        } else /*is_slave*/ {
+                            rRestrictionMap.emplace(std::make_pair(i_coarse_dof, i_fine_dof), restriction_coefficient * slave_coefficient);
                         }
-                    }
-                } /* if (i_slave_vertex < restriction_coefficients.size()) */ else {
-                    //const auto mpc_coefficient = slave_pair.second;
-                    //const auto restriction_coefficient = mpc_coefficient;
-                    /// @todo find out why i_slave_dof always evaluates to 0 in this case (matekelemen)
-                    //const std::size_t i_slave_dof = r_fine_geometry[i_slave_vertex].GetDofs()[i_slave_node_dof]->EquationId();
-                    //rRestrictionMap.emplace(std::make_pair(i_coarse_dof, i_slave_dof), restriction_coefficient);
+                    } // for i_fine_vertex, restriction_coefficient in r_restriction_terms
+                } else /*i_slave_vertex < restriction_coefficients.size()*/ {
+                    /// @todo what about the restriction coefficient itself? (@matekelemen)
+                    const auto restriction_coefficient = slave_coefficient;
+                    /// @todo find out why i_slave_dof always evaluates to 0 in this case (@matekelemen)
+                    const std::size_t i_slave_dof = r_fine_geometry[i_slave_vertex].GetDofs()[i_slave_node_dof]->EquationId();
+                    rRestrictionMap.emplace(std::make_pair(i_coarse_dof, i_slave_dof), restriction_coefficient);
                 }
             } // for entry in r_slave_info.mContainingElements
         } // for slave_pair : r_master_info.second.mSlaves
