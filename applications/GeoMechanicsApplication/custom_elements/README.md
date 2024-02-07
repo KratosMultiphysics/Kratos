@@ -10,15 +10,15 @@ $$ \left(n S \rho^w c^w + (1- n) \rho^s c^s \right) \frac{\partial T}{\partial t
 
 where,
 
-- $c^w$    = specific heat capacity liquid phase $\mathrm{[J/kg ^{\circ}C]}$
-- $c^s$    = specific heat capacity solid phase  $\mathrm{[J/kg ^{\circ}C]}$
-- $D_{ij}$ = hydrodynamic thermal dispersion  $\mathrm{[W/m ^{\circ}C]}$
-- $T$      = temperature  $\mathrm{[ ^{\circ}C]}$
-- $\rho^s$ = density solid phase $\mathrm{[kg/m^3]}$ 
-- $\rho^w$ = water density $\mathrm{[kg/m^3]}$ 
-- $q$      = specific discharge $\mathrm{[m/s]}$ 
-- $S$      = degree of saturation $\mathrm{[-]}$
-- $n$      = porosity $\mathrm{[-]}$
+- $c^w$		= specific heat capacity liquid phase $\mathrm{[J/kg ^{\circ}C]}$
+- $c^s$		= specific heat capacity solid phase  $\mathrm{[J/kg ^{\circ}C]}$
+- $D_{ij}$	= hydrodynamic thermal dispersion  $\mathrm{[W/m ^{\circ}C]}$
+- $T$		= temperature  $\mathrm{[ ^{\circ}C]}$
+- $\rho^s$	= density solid phase $\mathrm{[kg/m^3]}$ 
+- $\rho^w$	= water density $\mathrm{[kg/m^3]}$ 
+- $q$		= specific discharge $\mathrm{[m/s]}$ 
+- $S$		= degree of saturation $\mathrm{[-]}$
+- $n$		= porosity $\mathrm{[-]}$
 
 The hydrodynamic thermal dispersion is defined as:
 
@@ -26,11 +26,11 @@ $$ D_{ij}= nS \lambda^w \delta_{ij} + \left(1-n\right) \lambda_{ij}^s + c^w \rho
 
 where
 
-- $\alpha_l$    = longitudinal dispersivity $\mathrm{[m]}$
-- $\alpha_t$    = transverse dispersivity $\mathrm{[m]}$
-- $\delta_{ij}$ = Kronecker delta $\mathrm{[-]}$
-- $\lambda^w$   = thermal conductivity water $\mathrm{[W/m ^{\circ}C]}$
-- $\lambda^s$   = thermal conductivity solid matrix $\mathrm{[W/m ^{\circ}C]}$
+- $\alpha_l$	= longitudinal dispersivity $\mathrm{[m]}$
+- $\alpha_t$	= transverse dispersivity $\mathrm{[m]}$
+- $\delta_{ij}$	= Kronecker delta $\mathrm{[-]}$
+- $\lambda^w$	= thermal conductivity water $\mathrm{[W/m ^{\circ}C]}$
+- $\lambda^s$	= thermal conductivity solid matrix $\mathrm{[W/m ^{\circ}C]}$
 
 In the absence of ground water flow, these equations are simplified to,
 
@@ -116,14 +116,14 @@ $$ \boldsymbol{W^l} = \int_{\Gamma_3^{ep}}  \left( \rho^w c^w q_n \right)^{n+1} 
 
 where
 
-- $\Delta t$ = time step $\mathrm{\left[s \right]}$
-- $\Delta T$ = temperature increment $T^{n+1} - T^n$ $\mathrm{\left[^\circ C \right]}$
-- $\boldsymbol N$ = shape function array $\mathrm{\left[ - \right]}$
-- $\theta$ = a coefficient in Newmark time integration $\mathrm{\left[ - \right]}$
-- $\Omega$ = domain region
-- $\Gamma$ = boundary region
+- $\Delta t$		= time step $\mathrm{\left[s \right]}$
+- $\Delta T$		= temperature increment $T^{n+1} - T^n$ $\mathrm{\left[^\circ C \right]}$
+- $\boldsymbol N$	= shape function array $\mathrm{\left[ - \right]}$
+- $\theta$			= a coefficient in Newmark time integration $\mathrm{\left[ - \right]}$
+- $\Omega$			= domain region
+- $\Gamma$			= boundary region
 
-The superscripts $^l$ and $^r$ for Robin boundary condition indicate the left hands side (matrix) and right hand side (vector), respectively. The supercripts $^e$ and $^{ep}$ for $\Omega$ and $\Gamma$ indicate values in the element volume and perpendicular to element boundaries, respectively.  
+The superscripts $^l$ and $^r$ for Robin boundary condition indicate the left hands side (matrix) and right hand side (vector), respectively. The superscripts $^e$ and $^{ep}$ for $\Omega$ and $\Gamma$ indicate values in the element volume and perpendicular to element boundaries, respectively.  
 
 
 ## Bibliography
