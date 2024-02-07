@@ -25,9 +25,6 @@
 namespace Kratos::Testing
 {
 
-// Definition of the geometrical object bins search wrapper
-using SearchWrapperGeometricalObjectsBins = SearchWrapper<GeometricalObjectsBins>;
-
 ModelPart& CreateCubeSkinModelPart(
     Model& rCurrentModel,
     const double HalfX = 0.6,
@@ -59,9 +56,18 @@ ModelPart& CreateCubeModelPart(Model& rCurrentModel)
     return r_model_part;
 }
 
-/** Checks search_wrapper_bins search in radius
-*/
-KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISearchWrapperGeometricalObjectsBinsSearchInRadius, KratosMPICoreFastSuite)
+// Definition of the geometrical object bins search wrapper
+// SpatialSearchCommunication::SYNCHRONOUS_HOMOGENEOUS
+using SearchWrapperGeometricalObjectsBins = SearchWrapper<GeometricalObjectsBins>;
+// SpatialSearchCommunication::SYNCHRONOUS_HETEROGENEOUS
+using SearchWrapperGeometricalObjectsBinsHetereogeneous = SearchWrapper<GeometricalObjectsBins, SpatialSearchCommunication::SYNCHRONOUS_HETEROGENEOUS>;
+
+/**
+ * @brief Test function for searching geometrical objects in bins using a given search wrapper
+ * @tparam TSearchWrapper The type of search wrapper to be tested
+ */
+template<class TSearchWrapper>
+void TestSearchWrapperGeometricalObjectsBinsSearchInRadius()
 {
     Model current_model;
 
@@ -69,7 +75,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISearchWrapperGeometricalObjectsBinsSear
     ModelPart& r_skin_part = CreateCubeSkinModelPart(current_model);
     const DataCommunicator& r_data_comm = Testing::GetDefaultDataCommunicator();
 
-    SearchWrapperGeometricalObjectsBins search_wrapper_bins(r_skin_part.Elements(), r_data_comm);
+    TSearchWrapper search_wrapper_bins(r_skin_part.Elements(), r_data_comm);
 
     // Generate new model part
     ModelPart& r_point_model_part = current_model.CreateModelPart("PointModelPart");
@@ -84,72 +90,201 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISearchWrapperGeometricalObjectsBinsSear
     }
     auto& r_array_nodes = r_point_model_part.Nodes();
 
-    SearchWrapperGeometricalObjectsBins::ResultContainerVectorType results;
+    typename TSearchWrapper::ResultContainerVectorType results;
 
     // 0.29 radius
     search_wrapper_bins.SearchInRadius(r_array_nodes.begin(), r_array_nodes.end(), 0.29, results);
     // We expect only one result in first and second rank
-    if (rank == 0 || rank == 1) {
+    if constexpr (TSearchWrapper::GetSpatialSearchCommunication() == SpatialSearchCommunication::SYNCHRONOUS_HOMOGENEOUS) {
         KRATOS_EXPECT_EQ(results.NumberOfSearchResults(), 1);
         KRATOS_EXPECT_FALSE(results[0].IsObjectFound());
         KRATOS_EXPECT_EQ(results[0].NumberOfGlobalResults(), 0);
     } else {
-        KRATOS_EXPECT_EQ(results.NumberOfSearchResults(), 0);
+        if (rank == 0 || rank == 1) {
+            KRATOS_EXPECT_EQ(results.NumberOfSearchResults(), 1);
+            KRATOS_EXPECT_FALSE(results[0].IsObjectFound());
+            KRATOS_EXPECT_EQ(results[0].NumberOfGlobalResults(), 0);
+        } else {
+            KRATOS_EXPECT_EQ(results.NumberOfSearchResults(), 0);
+        }
     }
 
     // 0.3 radius
     search_wrapper_bins.SearchInRadius(r_array_nodes.begin(), r_array_nodes.end(), 0.3, results);
     // We expect only one result in first and second rank
-    if (rank == 0 || rank == 1) {
+    if constexpr (TSearchWrapper::GetSpatialSearchCommunication() == SpatialSearchCommunication::SYNCHRONOUS_HOMOGENEOUS) {
         KRATOS_EXPECT_EQ(results.NumberOfSearchResults(), 1);
         KRATOS_EXPECT_TRUE(results[0].IsObjectFound());
         KRATOS_EXPECT_EQ(results[0].NumberOfGlobalResults(), 4);
     } else {
-        KRATOS_EXPECT_EQ(results.NumberOfSearchResults(), 0);
+        if (rank == 0 || rank == 1) {
+            KRATOS_EXPECT_EQ(results.NumberOfSearchResults(), 1);
+            KRATOS_EXPECT_TRUE(results[0].IsObjectFound());
+            KRATOS_EXPECT_EQ(results[0].NumberOfGlobalResults(), 4);
+        } else {
+            KRATOS_EXPECT_EQ(results.NumberOfSearchResults(), 0);
+        }
     }
 
     // 0.4 radius
     search_wrapper_bins.SearchInRadius(r_array_nodes.begin(), r_array_nodes.end(), 0.4, results);
     // We expect only one result in first and second rank
-    if (rank == 0 || rank == 1) {
+    if constexpr (TSearchWrapper::GetSpatialSearchCommunication() == SpatialSearchCommunication::SYNCHRONOUS_HOMOGENEOUS) {
         KRATOS_EXPECT_EQ(results.NumberOfSearchResults(), 1);
         KRATOS_EXPECT_TRUE(results[0].IsObjectFound());
         KRATOS_EXPECT_EQ(results[0].NumberOfGlobalResults(), 4);
     } else {
-        KRATOS_EXPECT_EQ(results.NumberOfSearchResults(), 0);
+        if (rank == 0 || rank == 1) {
+            KRATOS_EXPECT_EQ(results.NumberOfSearchResults(), 1);
+            KRATOS_EXPECT_TRUE(results[0].IsObjectFound());
+            KRATOS_EXPECT_EQ(results[0].NumberOfGlobalResults(), 4);
+        } else {
+            KRATOS_EXPECT_EQ(results.NumberOfSearchResults(), 0);
+        }
     }
 
     // 0.6 radius
     search_wrapper_bins.SearchInRadius(r_array_nodes.begin(), r_array_nodes.end(), 0.6, results);
     // We expect only one result in first and second rank
-    if (rank == 0 || rank == 1) {
+    if constexpr (TSearchWrapper::GetSpatialSearchCommunication() == SpatialSearchCommunication::SYNCHRONOUS_HOMOGENEOUS) {
         KRATOS_EXPECT_EQ(results.NumberOfSearchResults(), 1);
         KRATOS_EXPECT_TRUE(results[0].IsObjectFound());
         KRATOS_EXPECT_EQ(results[0].NumberOfGlobalResults(), 8);
     } else {
-        KRATOS_EXPECT_EQ(results.NumberOfSearchResults(), 0);
+        if (rank == 0 || rank == 1) {
+            KRATOS_EXPECT_EQ(results.NumberOfSearchResults(), 1);
+            KRATOS_EXPECT_TRUE(results[0].IsObjectFound());
+            KRATOS_EXPECT_EQ(results[0].NumberOfGlobalResults(), 8);
+        } else {
+            KRATOS_EXPECT_EQ(results.NumberOfSearchResults(), 0);
+        }
     }
 
     // 0.7 radius
     search_wrapper_bins.SearchInRadius(r_array_nodes.begin(), r_array_nodes.end(), 0.7, results);
     // We expect only one result in first and second rank
-    if (rank == 0 || rank == 1) {
+    if constexpr (TSearchWrapper::GetSpatialSearchCommunication() == SpatialSearchCommunication::SYNCHRONOUS_HOMOGENEOUS) {
         KRATOS_EXPECT_EQ(results.NumberOfSearchResults(), 1);
         KRATOS_EXPECT_TRUE(results[0].IsObjectFound());
         KRATOS_EXPECT_EQ(results[0].NumberOfGlobalResults(), 8);
     } else {
-        KRATOS_EXPECT_EQ(results.NumberOfSearchResults(), 0);
+        if (rank == 0 || rank == 1) {
+            KRATOS_EXPECT_EQ(results.NumberOfSearchResults(), 1);
+            KRATOS_EXPECT_TRUE(results[0].IsObjectFound());
+            KRATOS_EXPECT_EQ(results[0].NumberOfGlobalResults(), 8);
+        } else {
+            KRATOS_EXPECT_EQ(results.NumberOfSearchResults(), 0);
+        }
     }
 
     // 0.9 radius
     search_wrapper_bins.SearchInRadius(r_array_nodes.begin(), r_array_nodes.end(), 0.9, results);
     // We expect only one result in first and second rank
-    if (rank == 0 || rank == 1) {
+    if constexpr (TSearchWrapper::GetSpatialSearchCommunication() == SpatialSearchCommunication::SYNCHRONOUS_HOMOGENEOUS) {
         KRATOS_EXPECT_EQ(results.NumberOfSearchResults(), 1);
         KRATOS_EXPECT_TRUE(results[0].IsObjectFound());
         KRATOS_EXPECT_EQ(results[0].NumberOfGlobalResults(), 12);
     } else {
-        KRATOS_EXPECT_EQ(results.NumberOfSearchResults(), 0);
+        if (rank == 0 || rank == 1) {
+            KRATOS_EXPECT_EQ(results.NumberOfSearchResults(), 1);
+            KRATOS_EXPECT_TRUE(results[0].IsObjectFound());
+            KRATOS_EXPECT_EQ(results[0].NumberOfGlobalResults(), 12);
+        } else {
+            KRATOS_EXPECT_EQ(results.NumberOfSearchResults(), 0);
+        }
+    }
+}
+
+/** Checks search_wrapper_bins search in radius
+*/
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISearchWrapperGeometricalObjectsBinsSearchInRadius, KratosMPICoreFastSuite)
+{
+    TestSearchWrapperGeometricalObjectsBinsSearchInRadius<SearchWrapperGeometricalObjectsBins>();
+    TestSearchWrapperGeometricalObjectsBinsSearchInRadius<SearchWrapperGeometricalObjectsBinsHetereogeneous>();
+}
+
+/**
+ * @brief Test function for nearest searching geometrical objects in bins using a given search wrapper
+ * @tparam TSearchWrapper The type of search wrapper to be tested
+ */
+template<class TSearchWrapper>
+void TestSearchWrapperGeometricalObjectsBinsSearchNearestInRadius()
+{
+    constexpr double tolerance = 1e-12;
+
+    Model current_model;
+
+    // Cube coordinates
+    const double cube_z = 0.3;
+
+    // Generate the cube skin
+    ModelPart& r_skin_part = CreateCubeSkinModelPart(current_model, 0.6, 0.9, cube_z);
+    const DataCommunicator& r_data_comm = Testing::GetDefaultDataCommunicator();
+
+    TSearchWrapper search_wrapper_bins(r_skin_part.Elements(), r_data_comm);
+
+    double epsilon = 1.0e-6;
+    const std::size_t near_point_id = 1;
+
+    // Generate new model part
+    ModelPart& r_point_model_part = current_model.CreateModelPart("PointModelPart");
+    r_point_model_part.AddNodalSolutionStepVariable(PARTITION_INDEX);
+
+    // We generate only in first rank
+    const int rank = r_data_comm.Rank();
+    if (rank == 0) {
+        auto p_node = r_point_model_part.CreateNewNode(near_point_id, epsilon,epsilon,epsilon);
+        p_node->FastGetSolutionStepValue(PARTITION_INDEX) = 0;
+    }
+    auto& r_array_nodes = r_point_model_part.Nodes();
+
+    typename TSearchWrapper::ResultContainerVectorType results;
+    search_wrapper_bins.SearchNearestInRadius(r_array_nodes.begin(), r_array_nodes.end(), cube_z - 1.e-4, results);
+
+    // We expect only one result in first and second rank
+    if constexpr (TSearchWrapper::GetSpatialSearchCommunication() == SpatialSearchCommunication::SYNCHRONOUS_HOMOGENEOUS) {
+        KRATOS_EXPECT_EQ(results.NumberOfSearchResults(), 1);
+        KRATOS_EXPECT_FALSE(results[0].IsObjectFound());
+    } else {
+        if (rank == 0 || rank == 1) {
+            KRATOS_EXPECT_EQ(results.NumberOfSearchResults(), 1);
+            KRATOS_EXPECT_FALSE(results[0].IsObjectFound());
+        }
+    }
+
+    search_wrapper_bins.SearchNearestInRadius(r_array_nodes.begin(), r_array_nodes.end(), cube_z + 1.e-4, results);
+
+    // We expect only one result in first and second rank
+    if constexpr (TSearchWrapper::GetSpatialSearchCommunication() == SpatialSearchCommunication::SYNCHRONOUS_HOMOGENEOUS) {
+        KRATOS_EXPECT_EQ(results.NumberOfSearchResults(), 1);
+        KRATOS_EXPECT_TRUE(results[0].IsObjectFound());
+        KRATOS_EXPECT_EQ(results[0].NumberOfGlobalResults(), 1);
+
+        // Distances are just local
+        const auto distances = results[0].GetDistances();
+        KRATOS_EXPECT_NEAR(distances[0], (cube_z - epsilon), tolerance);
+
+        // Compute indices
+        auto indices = results[0].GetResultIndices();
+        const std::size_t id = indices[0];
+        KRATOS_EXPECT_EQ(id, 3);
+    } else {
+        if (rank == 0 || rank == 1) {
+            KRATOS_EXPECT_EQ(results.NumberOfSearchResults(), 1);
+            KRATOS_EXPECT_TRUE(results[0].IsObjectFound());
+            KRATOS_EXPECT_EQ(results[0].NumberOfGlobalResults(), 1);
+
+            // Distances are just local
+            const auto distances = results[0].GetDistances();
+            KRATOS_EXPECT_NEAR(distances[0], (cube_z - epsilon), tolerance);
+
+            // Compute indices
+            auto indices = results[0].GetResultIndices();
+            const std::size_t id = indices[0];
+            KRATOS_EXPECT_EQ(id, 3);
+        } else {
+            KRATOS_EXPECT_EQ(results.NumberOfSearchResults(), 0);
+        }
     }
 }
 
@@ -157,6 +292,17 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISearchWrapperGeometricalObjectsBinsSear
 */
 KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISearchWrapperGeometricalObjectsBinsSearchNearestInRadius, KratosMPICoreFastSuite)
 {
+    TestSearchWrapperGeometricalObjectsBinsSearchNearestInRadius<SearchWrapperGeometricalObjectsBins>();
+    TestSearchWrapperGeometricalObjectsBinsSearchNearestInRadius<SearchWrapperGeometricalObjectsBinsHetereogeneous>();
+}
+
+/**
+ * @brief Test function for nearest searching geometrical objects in bins using a given search wrapper
+ * @tparam TSearchWrapper The type of search wrapper to be tested
+ */
+template<class TSearchWrapper>
+void TestSearchWrapperGeometricalObjectsBinsSearchNearest()
+{
     constexpr double tolerance = 1e-12;
 
     Model current_model;
@@ -168,7 +314,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISearchWrapperGeometricalObjectsBinsSear
     ModelPart& r_skin_part = CreateCubeSkinModelPart(current_model, 0.6, 0.9, cube_z);
     const DataCommunicator& r_data_comm = Testing::GetDefaultDataCommunicator();
 
-    SearchWrapperGeometricalObjectsBins search_wrapper_bins(r_skin_part.Elements(), r_data_comm);
+    TSearchWrapper search_wrapper_bins(r_skin_part.Elements(), r_data_comm);
 
     double epsilon = 1.0e-6;
     const std::size_t near_point_id = 1;
@@ -185,19 +331,11 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISearchWrapperGeometricalObjectsBinsSear
     }
     auto& r_array_nodes = r_point_model_part.Nodes();
 
-    SearchWrapperGeometricalObjectsBins::ResultContainerVectorType results;
-    search_wrapper_bins.SearchNearestInRadius(r_array_nodes.begin(), r_array_nodes.end(), cube_z - 1.e-4, results);
+    typename TSearchWrapper::ResultContainerVectorType results;
+    search_wrapper_bins.SearchNearest(r_array_nodes.begin(), r_array_nodes.end(), results);
 
     // We expect only one result in first and second rank
-    if (rank == 0 || rank == 1) {
-        KRATOS_EXPECT_EQ(results.NumberOfSearchResults(), 1);
-        KRATOS_EXPECT_FALSE(results[0].IsObjectFound());
-    }
-
-    search_wrapper_bins.SearchNearestInRadius(r_array_nodes.begin(), r_array_nodes.end(), cube_z + 1.e-4, results);
-
-    // We expect only one result in first and second rank
-    if (rank == 0 || rank == 1) {
+    if constexpr (TSearchWrapper::GetSpatialSearchCommunication() == SpatialSearchCommunication::SYNCHRONOUS_HOMOGENEOUS) {
         KRATOS_EXPECT_EQ(results.NumberOfSearchResults(), 1);
         KRATOS_EXPECT_TRUE(results[0].IsObjectFound());
         KRATOS_EXPECT_EQ(results[0].NumberOfGlobalResults(), 1);
@@ -211,7 +349,22 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISearchWrapperGeometricalObjectsBinsSear
         const std::size_t id = indices[0];
         KRATOS_EXPECT_EQ(id, 3);
     } else {
-        KRATOS_EXPECT_EQ(results.NumberOfSearchResults(), 0);
+        if (rank == 0 || rank == 1) {
+            KRATOS_EXPECT_EQ(results.NumberOfSearchResults(), 1);
+            KRATOS_EXPECT_TRUE(results[0].IsObjectFound());
+            KRATOS_EXPECT_EQ(results[0].NumberOfGlobalResults(), 1);
+
+            // Distances are just local
+            const auto distances = results[0].GetDistances();
+            KRATOS_EXPECT_NEAR(distances[0], (cube_z - epsilon), tolerance);
+
+            // Compute indices
+            auto indices = results[0].GetResultIndices();
+            const std::size_t id = indices[0];
+            KRATOS_EXPECT_EQ(id, 3);
+        } else {
+            KRATOS_EXPECT_EQ(results.NumberOfSearchResults(), 0);
+        }
     }
 }
 
@@ -219,59 +372,16 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISearchWrapperGeometricalObjectsBinsSear
 */
 KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISearchWrapperGeometricalObjectsBinsSearchNearest, KratosMPICoreFastSuite)
 {
-    constexpr double tolerance = 1e-12;
-
-    Model current_model;
-
-    // Cube coordinates
-    const double cube_z = 0.3;
-
-    // Generate the cube skin
-    ModelPart& r_skin_part = CreateCubeSkinModelPart(current_model, 0.6, 0.9, cube_z);
-    const DataCommunicator& r_data_comm = Testing::GetDefaultDataCommunicator();
-
-    SearchWrapperGeometricalObjectsBins search_wrapper_bins(r_skin_part.Elements(), r_data_comm);
-
-    double epsilon = 1.0e-6;
-    const std::size_t near_point_id = 1;
-
-    // Generate new model part
-    ModelPart& r_point_model_part = current_model.CreateModelPart("PointModelPart");
-    r_point_model_part.AddNodalSolutionStepVariable(PARTITION_INDEX);
-
-    // We generate only in first rank
-    const int rank = r_data_comm.Rank();
-    if (rank == 0) {
-        auto p_node = r_point_model_part.CreateNewNode(near_point_id, epsilon,epsilon,epsilon);
-        p_node->FastGetSolutionStepValue(PARTITION_INDEX) = 0;
-    }
-    auto& r_array_nodes = r_point_model_part.Nodes();
-
-    SearchWrapperGeometricalObjectsBins::ResultContainerVectorType results;
-    search_wrapper_bins.SearchNearest(r_array_nodes.begin(), r_array_nodes.end(), results);
-
-    // We expect only one result in first and second rank
-    if (rank == 0 || rank == 1) {
-        KRATOS_EXPECT_EQ(results.NumberOfSearchResults(), 1);
-        KRATOS_EXPECT_TRUE(results[0].IsObjectFound());
-        KRATOS_EXPECT_EQ(results[0].NumberOfGlobalResults(), 1);
-
-        // Distances are just local
-        const auto distances = results[0].GetDistances();
-        KRATOS_EXPECT_NEAR(distances[0], (cube_z - epsilon), tolerance);
-
-        // Compute indices
-        auto indices = results[0].GetResultIndices();
-        const std::size_t id = indices[0];
-        KRATOS_EXPECT_EQ(id, 3);
-    } else {
-        KRATOS_EXPECT_EQ(results.NumberOfSearchResults(), 0);
-    }
+    TestSearchWrapperGeometricalObjectsBinsSearchNearest<SearchWrapperGeometricalObjectsBins>();
+    TestSearchWrapperGeometricalObjectsBinsSearchNearest<SearchWrapperGeometricalObjectsBinsHetereogeneous>();
 }
 
-/** Checks search_wrapper_bins empty search nearest
-*/
-KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISearchWrapperGeometricalObjectsBinsEmptySearchNearest, KratosMPICoreFastSuite)
+/**
+ * @brief Test function for empty nearest searching geometrical objects in bins using a given search wrapper
+ * @tparam TSearchWrapper The type of search wrapper to be tested
+ */
+template<class TSearchWrapper>
+void TestSearchWrapperGeometricalObjectsBinsEmptySearchNearest()
 {
     Model current_model;
 
@@ -279,7 +389,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISearchWrapperGeometricalObjectsBinsEmpt
     ModelPart& r_skin_part = current_model.CreateModelPart("Skin");
     const DataCommunicator& r_data_comm = Testing::GetDefaultDataCommunicator();
 
-    SearchWrapperGeometricalObjectsBins search_wrapper_bins(r_skin_part.Elements(), r_data_comm);
+    TSearchWrapper search_wrapper_bins(r_skin_part.Elements(), r_data_comm);
 
     const std::size_t point_id = 1;
 
@@ -295,21 +405,37 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISearchWrapperGeometricalObjectsBinsEmpt
     }
     auto& r_array_nodes = r_point_model_part.Nodes();
 
-    SearchWrapperGeometricalObjectsBins::ResultContainerVectorType results;
+    typename TSearchWrapper::ResultContainerVectorType results;
     search_wrapper_bins.SearchNearest(r_array_nodes.begin(), r_array_nodes.end(), results);
 
     // We expect only one result in first and second rank
-    if (rank == 0) {
+    if constexpr (TSearchWrapper::GetSpatialSearchCommunication() == SpatialSearchCommunication::SYNCHRONOUS_HOMOGENEOUS) {
         KRATOS_EXPECT_EQ(results.NumberOfSearchResults(), 1);
         KRATOS_EXPECT_FALSE(results[0].IsObjectFound());
     } else {
-        KRATOS_EXPECT_EQ(results.NumberOfSearchResults(), 0);
+        if (rank == 0) {
+            KRATOS_EXPECT_EQ(results.NumberOfSearchResults(), 1);
+            KRATOS_EXPECT_FALSE(results[0].IsObjectFound());
+        } else {
+            KRATOS_EXPECT_EQ(results.NumberOfSearchResults(), 0);
+        }
     }
 }
 
-/** Checks search_wrapper_bins search is inside
+/** Checks search_wrapper_bins empty search nearest
 */
-KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISearchWrapperGeometricalObjectsBinsSearchIsInside, KratosMPICoreFastSuite)
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISearchWrapperGeometricalObjectsBinsEmptySearchNearest, KratosMPICoreFastSuite)
+{
+    TestSearchWrapperGeometricalObjectsBinsEmptySearchNearest<SearchWrapperGeometricalObjectsBins>();
+    TestSearchWrapperGeometricalObjectsBinsEmptySearchNearest<SearchWrapperGeometricalObjectsBinsHetereogeneous>();
+}
+
+/**
+ * @brief Test function for inside searching geometrical objects in bins using a given search wrapper
+ * @tparam TSearchWrapper The type of search wrapper to be tested
+ */
+template<class TSearchWrapper>
+void TestSearchWrapperGeometricalObjectsBinsSearchIsInside()
 {
     Model current_model;
 
@@ -317,7 +443,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISearchWrapperGeometricalObjectsBinsSear
     ModelPart& r_skin_part = CreateCubeModelPart(current_model);
     const DataCommunicator& r_data_comm = Testing::GetDefaultDataCommunicator();
 
-    SearchWrapperGeometricalObjectsBins search_wrapper_bins(r_skin_part.Elements(), r_data_comm);
+    TSearchWrapper search_wrapper_bins(r_skin_part.Elements(), r_data_comm);
 
     const std::size_t inside_point_id = 1;
 
@@ -333,22 +459,39 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISearchWrapperGeometricalObjectsBinsSear
     }
     auto& r_array_nodes = r_point_model_part.Nodes();
 
-    SearchWrapperGeometricalObjectsBins::ResultContainerVectorType results;
+    typename TSearchWrapper::ResultContainerVectorType results;
     search_wrapper_bins.SearchIsInside(r_array_nodes.begin(), r_array_nodes.end(), results);
 
     // We expect only one result in first and second rank
-    if (rank == 0 || rank == 1) {
+    if constexpr (TSearchWrapper::GetSpatialSearchCommunication() == SpatialSearchCommunication::SYNCHRONOUS_HOMOGENEOUS) {
         KRATOS_EXPECT_EQ(results.NumberOfSearchResults(), 1);
         KRATOS_EXPECT_TRUE(results[0].IsObjectFound());
         KRATOS_EXPECT_EQ(results[0].NumberOfGlobalResults(), 1);
     } else {
-        KRATOS_EXPECT_EQ(results.NumberOfSearchResults(), 0);
+        if (rank == 0 || rank == 1) {
+            KRATOS_EXPECT_EQ(results.NumberOfSearchResults(), 1);
+            KRATOS_EXPECT_TRUE(results[0].IsObjectFound());
+            KRATOS_EXPECT_EQ(results[0].NumberOfGlobalResults(), 1);
+        } else {
+            KRATOS_EXPECT_EQ(results.NumberOfSearchResults(), 0);
+        }
     }
 }
 
-/** Checks search_wrapper_bins search is inside = not found
+/** Checks search_wrapper_bins search is inside
 */
-KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISearchWrapperGeometricalObjectsBinsSearchIsNotInside, KratosMPICoreFastSuite)
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISearchWrapperGeometricalObjectsBinsSearchIsInside, KratosMPICoreFastSuite)
+{
+    TestSearchWrapperGeometricalObjectsBinsSearchIsInside<SearchWrapperGeometricalObjectsBins>();
+    TestSearchWrapperGeometricalObjectsBinsSearchIsInside<SearchWrapperGeometricalObjectsBinsHetereogeneous>();
+}
+
+/**
+ * @brief Test function for non inside searching geometrical objects in bins using a given search wrapper
+ * @tparam TSearchWrapper The type of search wrapper to be tested
+ */
+template<class TSearchWrapper>
+void TestSearchWrapperGeometricalObjectsBinsSearchIsNotInside()
 {
     Model current_model;
 
@@ -356,7 +499,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISearchWrapperGeometricalObjectsBinsSear
     ModelPart& r_skin_part = CreateCubeModelPart(current_model);
     const DataCommunicator& r_data_comm = Testing::GetDefaultDataCommunicator();
 
-    SearchWrapperGeometricalObjectsBins search_wrapper_bins(r_skin_part.Elements(), r_data_comm);
+    TSearchWrapper search_wrapper_bins(r_skin_part.Elements(), r_data_comm);
 
     const std::size_t outside_point_id = 1;
 
@@ -372,23 +515,43 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISearchWrapperGeometricalObjectsBinsSear
     }
     auto& r_array_nodes = r_point_model_part.Nodes();
 
-    SearchWrapperGeometricalObjectsBins::ResultContainerVectorType results;
+    typename TSearchWrapper::ResultContainerVectorType results;
     search_wrapper_bins.SearchIsInside(r_array_nodes.begin(), r_array_nodes.end(), results);
 
     // We expect only in first rank
-    if (rank == 0) {
+    if constexpr (TSearchWrapper::GetSpatialSearchCommunication() == SpatialSearchCommunication::SYNCHRONOUS_HOMOGENEOUS) {
         KRATOS_EXPECT_EQ(results.NumberOfSearchResults(), 1);
         KRATOS_EXPECT_FALSE(results[0].IsObjectFound());
     } else {
-        KRATOS_EXPECT_EQ(results.NumberOfSearchResults(), 0);
+        if (rank == 0) {
+            KRATOS_EXPECT_EQ(results.NumberOfSearchResults(), 1);
+            KRATOS_EXPECT_FALSE(results[0].IsObjectFound());
+        } else {
+            KRATOS_EXPECT_EQ(results.NumberOfSearchResults(), 0);
+        }
     }
 }
 
+/** Checks search_wrapper_bins search is inside = not found
+*/
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISearchWrapperGeometricalObjectsBinsSearchIsNotInside, KratosMPICoreFastSuite)
+{
+    TestSearchWrapperGeometricalObjectsBinsSearchIsNotInside<SearchWrapperGeometricalObjectsBins>();
+    TestSearchWrapperGeometricalObjectsBinsSearchIsNotInside<SearchWrapperGeometricalObjectsBinsHetereogeneous>();
+}
+
 // Definition of the trees search wrapper
-using SearchWrapperKDTreeElement = SearchWrapper<Tree<KDTreePartition<Bucket<3ul, PointObject<Element>, std::vector<PointObject<Element>::Pointer>>>>>;
-using SearchWrapperOCTreeElement = SearchWrapper<Tree<OCTreePartition<Bucket<3ul, PointObject<Element>, std::vector<PointObject<Element>::Pointer>>>>>;
-using SearchWrapperStaticBinsTreeElement = SearchWrapper<Tree<Bins<3ul, PointObject<Element>, std::vector<PointObject<Element>::Pointer>>>>;
-using SearchWrapperBinsDynamicElement = SearchWrapper<BinsDynamic<3ul, PointObject<Element>, std::vector<PointObject<Element>::Pointer>>>;
+// SpatialSearchCommunication::SYNCHRONOUS_HOMOGENEOUS
+using SearchWrapperKDTreeElement = SearchWrapper<Tree<KDTreePartition<Bucket<3ul, PointObject<Element>, std::vector<PointObject<Element>::Pointer>>>>, SpatialSearchCommunication::SYNCHRONOUS_HOMOGENEOUS>;
+using SearchWrapperOCTreeElement = SearchWrapper<Tree<OCTreePartition<Bucket<3ul, PointObject<Element>, std::vector<PointObject<Element>::Pointer>>>>, SpatialSearchCommunication::SYNCHRONOUS_HOMOGENEOUS>;
+using SearchWrapperStaticBinsTreeElement = SearchWrapper<Tree<Bins<3ul, PointObject<Element>, std::vector<PointObject<Element>::Pointer>>>, SpatialSearchCommunication::SYNCHRONOUS_HOMOGENEOUS>;
+using SearchWrapperBinsDynamicElement = SearchWrapper<BinsDynamic<3ul, PointObject<Element>, std::vector<PointObject<Element>::Pointer>>, SpatialSearchCommunication::SYNCHRONOUS_HOMOGENEOUS>;
+
+// SpatialSearchCommunication::SYNCHRONOUS_HETEROGENEOUS
+using SearchWrapperKDTreeElementHetereogeneous = SearchWrapper<Tree<KDTreePartition<Bucket<3ul, PointObject<Element>, std::vector<PointObject<Element>::Pointer>>>>, SpatialSearchCommunication::SYNCHRONOUS_HETEROGENEOUS>;
+using SearchWrapperOCTreeElementHetereogeneous = SearchWrapper<Tree<OCTreePartition<Bucket<3ul, PointObject<Element>, std::vector<PointObject<Element>::Pointer>>>>, SpatialSearchCommunication::SYNCHRONOUS_HETEROGENEOUS>;
+using SearchWrapperStaticBinsTreeElementHetereogeneous = SearchWrapper<Tree<Bins<3ul, PointObject<Element>, std::vector<PointObject<Element>::Pointer>>>, SpatialSearchCommunication::SYNCHRONOUS_HETEROGENEOUS>;
+using SearchWrapperBinsDynamicElementHetereogeneous = SearchWrapper<BinsDynamic<3ul, PointObject<Element>, std::vector<PointObject<Element>::Pointer>>, SpatialSearchCommunication::SYNCHRONOUS_HETEROGENEOUS>;
 
 /**
  * @brief A function to test tree-based search in a specified radius.
@@ -425,22 +588,34 @@ void TestTreeSearchInRadius()
     // 0.3 radius
     search_wrapper.SearchInRadius(r_array_nodes.begin(), r_array_nodes.end(), 0.3, results);
     // We expect only one result in first and second rank
-    if (rank == 0 || rank == 1) {
+    if constexpr (TSearchWrapper::GetSpatialSearchCommunication() == SpatialSearchCommunication::SYNCHRONOUS_HOMOGENEOUS) {
         KRATOS_EXPECT_EQ(results.NumberOfSearchResults(), 1);
         KRATOS_EXPECT_FALSE(results[0].IsObjectFound());
         KRATOS_EXPECT_EQ(results[0].NumberOfGlobalResults(), 0);
     } else {
-        KRATOS_EXPECT_EQ(results.NumberOfSearchResults(), 0);
+        if (rank == 0 || rank == 1) {
+            KRATOS_EXPECT_EQ(results.NumberOfSearchResults(), 1);
+            KRATOS_EXPECT_FALSE(results[0].IsObjectFound());
+            KRATOS_EXPECT_EQ(results[0].NumberOfGlobalResults(), 0);
+        } else {
+            KRATOS_EXPECT_EQ(results.NumberOfSearchResults(), 0);
+        }
     }
 
     // 2.0 radius
     search_wrapper.SearchInRadius(r_array_nodes.begin(), r_array_nodes.end(), 2.0, results);
-    if (rank == 0 || rank == 1) {
+    if constexpr (TSearchWrapper::GetSpatialSearchCommunication() == SpatialSearchCommunication::SYNCHRONOUS_HOMOGENEOUS) {
         KRATOS_EXPECT_EQ(results.NumberOfSearchResults(), 1);
         KRATOS_EXPECT_TRUE(results[0].IsObjectFound());
         KRATOS_EXPECT_EQ(results[0].NumberOfGlobalResults(), 12);
     } else {
-        KRATOS_EXPECT_EQ(results.NumberOfSearchResults(), 0);
+        if (rank == 0 || rank == 1) {
+            KRATOS_EXPECT_EQ(results.NumberOfSearchResults(), 1);
+            KRATOS_EXPECT_TRUE(results[0].IsObjectFound());
+            KRATOS_EXPECT_EQ(results[0].NumberOfGlobalResults(), 12);
+        } else {
+            KRATOS_EXPECT_EQ(results.NumberOfSearchResults(), 0);
+        }
     }
 }
 
@@ -449,6 +624,7 @@ void TestTreeSearchInRadius()
 KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISearchWrapperKDTreeElementSearchInRadius, KratosMPICoreFastSuite)
 {
     TestTreeSearchInRadius<SearchWrapperKDTreeElement>();
+    TestTreeSearchInRadius<SearchWrapperKDTreeElementHetereogeneous>();
 }
 
 /** Checks SearchWrapper works for OCTreeElement search in radius
@@ -456,6 +632,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISearchWrapperKDTreeElementSearchInRadiu
 KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISearchWrapperOCTreeElementSearchInRadius, KratosMPICoreFastSuite)
 {
     TestTreeSearchInRadius<SearchWrapperOCTreeElement>();
+    TestTreeSearchInRadius<SearchWrapperOCTreeElementHetereogeneous>();
 }
 
 /** Checks SearchWrapper works for StaticBinsTree search in radius
@@ -463,6 +640,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISearchWrapperOCTreeElementSearchInRadiu
 KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISearchWrapperStaticBinsTreeElementSearchInRadius, KratosMPICoreFastSuite)
 {
     TestTreeSearchInRadius<SearchWrapperStaticBinsTreeElement>();
+    TestTreeSearchInRadius<SearchWrapperStaticBinsTreeElementHetereogeneous>();
 }
 
 /** Checks SearchWrapper works for BinsDynamicElement search in radius
@@ -470,6 +648,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISearchWrapperStaticBinsTreeElementSearc
 KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISearchWrapperBinsDynamicElementSearchInRadius, KratosMPICoreFastSuite)
 {
     TestTreeSearchInRadius<SearchWrapperBinsDynamicElement>();
+    TestTreeSearchInRadius<SearchWrapperBinsDynamicElementHetereogeneous>();
 }
 
 /**
@@ -513,17 +692,22 @@ void TestTreeSearchNearestInRadius()
     search_wrapper.SearchNearestInRadius(r_array_nodes.begin(), r_array_nodes.end(), cube_z, results);
 
     // We expect only one result in first and second rank
-    if (rank == 0 || rank == 1) {
+    if constexpr (TSearchWrapper::GetSpatialSearchCommunication() == SpatialSearchCommunication::SYNCHRONOUS_HOMOGENEOUS) {
         KRATOS_EXPECT_EQ(results.NumberOfSearchResults(), 1);
         KRATOS_EXPECT_FALSE(results[0].IsObjectFound());
     } else {
-        KRATOS_EXPECT_EQ(results.NumberOfSearchResults(), 0);
+        if (rank == 0 || rank == 1) {
+            KRATOS_EXPECT_EQ(results.NumberOfSearchResults(), 1);
+            KRATOS_EXPECT_FALSE(results[0].IsObjectFound());
+        } else {
+            KRATOS_EXPECT_EQ(results.NumberOfSearchResults(), 0);
+        }
     }
 
     search_wrapper.SearchNearestInRadius(r_array_nodes.begin(), r_array_nodes.end(), 0.6, results);
 
     // We expect only one result in first and second rank
-    if (rank == 0 || rank == 1) {
+    if constexpr (TSearchWrapper::GetSpatialSearchCommunication() == SpatialSearchCommunication::SYNCHRONOUS_HOMOGENEOUS) {
         KRATOS_EXPECT_EQ(results.NumberOfSearchResults(), 1);
         KRATOS_EXPECT_TRUE(results[0].IsObjectFound());
         KRATOS_EXPECT_EQ(results[0].NumberOfGlobalResults(), 1);
@@ -537,7 +721,22 @@ void TestTreeSearchNearestInRadius()
         const std::size_t id = indices[0];
         KRATOS_EXPECT_EQ(id, 4);
     } else {
-        KRATOS_EXPECT_EQ(results.NumberOfSearchResults(), 0);
+        if (rank == 0 || rank == 1) {
+            KRATOS_EXPECT_EQ(results.NumberOfSearchResults(), 1);
+            KRATOS_EXPECT_TRUE(results[0].IsObjectFound());
+            KRATOS_EXPECT_EQ(results[0].NumberOfGlobalResults(), 1);
+
+            // Distances
+            auto distances = results[0].GetDistances();
+            KRATOS_EXPECT_NEAR(distances[0], (cube_z - 0.08 - epsilon), tolerance);
+
+            // Compute indices
+            auto indices = results[0].GetResultIndices();
+            const std::size_t id = indices[0];
+            KRATOS_EXPECT_EQ(id, 4);
+        } else {
+            KRATOS_EXPECT_EQ(results.NumberOfSearchResults(), 0);
+        }
     }
 }
 
@@ -545,28 +744,28 @@ void TestTreeSearchNearestInRadius()
 */
 KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISearchWrapperKDTreeElementSearchNearestInRadius, KratosMPICoreFastSuite)
 {
-    TestTreeSearchNearestInRadius<SearchWrapperKDTreeElement>();
+    TestTreeSearchNearestInRadius<SearchWrapperKDTreeElement>();TestTreeSearchNearestInRadius<SearchWrapperKDTreeElementHetereogeneous>();
 }
 
 /** Checks SearchWrapper works for OCTreeElement search nearest in radius
 */
 KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISearchWrapperOCTreeElementSearchNearestInRadius, KratosMPICoreFastSuite)
 {
-    TestTreeSearchNearestInRadius<SearchWrapperOCTreeElement>();
+    TestTreeSearchNearestInRadius<SearchWrapperOCTreeElement>();TestTreeSearchNearestInRadius<SearchWrapperOCTreeElementHetereogeneous>();
 }
 
 /** Checks SearchWrapper works for StaticBinsTree search nearest in radius
 */
 KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISearchWrapperStaticBinsTreeElementSearchNearestInRadius, KratosMPICoreFastSuite)
 {
-    TestTreeSearchNearestInRadius<SearchWrapperStaticBinsTreeElement>();
+    TestTreeSearchNearestInRadius<SearchWrapperStaticBinsTreeElement>();TestTreeSearchNearestInRadius<SearchWrapperStaticBinsTreeElementHetereogeneous>();
 }
 
 /** Checks SearchWrapper works for BinsDynamicElement search nearest in radius
 */
 KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISearchWrapperBinsDynamicElementSearchNearestInRadius, KratosMPICoreFastSuite)
 {
-    TestTreeSearchNearestInRadius<SearchWrapperBinsDynamicElement>();
+    TestTreeSearchNearestInRadius<SearchWrapperBinsDynamicElement>();TestTreeSearchNearestInRadius<SearchWrapperBinsDynamicElementHetereogeneous>();
 }
 
 /**
@@ -610,7 +809,7 @@ void TestTreeSearchNearest()
     search_wrapper.SearchNearest(r_array_nodes.begin(), r_array_nodes.end(), results);
 
     // We expect only one result in first and second rank
-    if (rank == 0 || rank == 1) {
+    if constexpr (TSearchWrapper::GetSpatialSearchCommunication() == SpatialSearchCommunication::SYNCHRONOUS_HOMOGENEOUS) {
         KRATOS_EXPECT_EQ(results.NumberOfSearchResults(), 1);
         KRATOS_EXPECT_TRUE(results[0].IsObjectFound());
         KRATOS_EXPECT_EQ(results[0].NumberOfGlobalResults(), 1);
@@ -624,7 +823,22 @@ void TestTreeSearchNearest()
         const std::size_t id = indices[0];
         KRATOS_EXPECT_EQ(id, 4);
     } else {
-        KRATOS_EXPECT_EQ(results.NumberOfSearchResults(), 0);
+        if (rank == 0 || rank == 1) {
+            KRATOS_EXPECT_EQ(results.NumberOfSearchResults(), 1);
+            KRATOS_EXPECT_TRUE(results[0].IsObjectFound());
+            KRATOS_EXPECT_EQ(results[0].NumberOfGlobalResults(), 1);
+
+            // Distances
+            auto distances = results[0].GetDistances();
+            KRATOS_EXPECT_NEAR(distances[0], (cube_z - 0.08 - epsilon), tolerance);
+
+            // Compute indices
+            auto indices = results[0].GetResultIndices();
+            const std::size_t id = indices[0];
+            KRATOS_EXPECT_EQ(id, 4);
+        } else {
+            KRATOS_EXPECT_EQ(results.NumberOfSearchResults(), 0);
+        }
     }
 }
 
@@ -633,6 +847,7 @@ void TestTreeSearchNearest()
 KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISearchWrapperKDTreeElementSearchNearest, KratosMPICoreFastSuite)
 {
     TestTreeSearchNearest<SearchWrapperKDTreeElement>();
+    TestTreeSearchNearest<SearchWrapperKDTreeElementHetereogeneous>();
 }
 
 /** Checks SearchWrapper works for OCTreeElement search nearest
@@ -640,6 +855,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISearchWrapperKDTreeElementSearchNearest
 KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISearchWrapperOCTreeElementSearchNearest, KratosMPICoreFastSuite)
 {
     TestTreeSearchNearest<SearchWrapperOCTreeElement>();
+    TestTreeSearchNearest<SearchWrapperOCTreeElementHetereogeneous>();
 }
 
 /** Checks SearchWrapper works for StaticBinsTree search nearest
@@ -647,6 +863,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISearchWrapperOCTreeElementSearchNearest
 KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISearchWrapperStaticBinsTreeElementSearchNearest, KratosMPICoreFastSuite)
 {
     TestTreeSearchNearest<SearchWrapperStaticBinsTreeElement>();
+    TestTreeSearchNearest<SearchWrapperStaticBinsTreeElementHetereogeneous>();
 }
 
 /** Checks SearchWrapper works for BinsDynamicElement search nearest
@@ -654,6 +871,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISearchWrapperStaticBinsTreeElementSearc
 KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISearchWrapperBinsDynamicElementSearchNearest, KratosMPICoreFastSuite)
 {
     TestTreeSearchNearest<SearchWrapperBinsDynamicElement>();
+    TestTreeSearchNearest<SearchWrapperBinsDynamicElementHetereogeneous>();
 }
 
 /**
@@ -691,11 +909,16 @@ void TestTreeSearchNearestEmpty()
     search_wrapper.SearchNearest(r_array_nodes.begin(), r_array_nodes.end(), results);
 
     // Only in first rank
-    if (rank == 0) {
+    if constexpr (TSearchWrapper::GetSpatialSearchCommunication() == SpatialSearchCommunication::SYNCHRONOUS_HOMOGENEOUS) {
         KRATOS_EXPECT_EQ(results.NumberOfSearchResults(), 1);
         KRATOS_EXPECT_FALSE(results[0].IsObjectFound());
     } else {
-        KRATOS_EXPECT_EQ(results.NumberOfSearchResults(), 0);
+        if (rank == 0) {
+            KRATOS_EXPECT_EQ(results.NumberOfSearchResults(), 1);
+            KRATOS_EXPECT_FALSE(results[0].IsObjectFound());
+        } else {
+            KRATOS_EXPECT_EQ(results.NumberOfSearchResults(), 0);
+        }
     }
 }
 
@@ -704,6 +927,7 @@ void TestTreeSearchNearestEmpty()
 KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISearchWrapperKDTreeElementSearchNearestEmpty, KratosMPICoreFastSuite)
 {
     TestTreeSearchNearestEmpty<SearchWrapperKDTreeElement>();
+    TestTreeSearchNearestEmpty<SearchWrapperKDTreeElementHetereogeneous>();
 }
 
 /** Checks SearchWrapper works for OCTreeElement search nearest
@@ -711,6 +935,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISearchWrapperKDTreeElementSearchNearest
 KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISearchWrapperOCTreeElementSearchNearestEmpty, KratosMPICoreFastSuite)
 {
     TestTreeSearchNearestEmpty<SearchWrapperOCTreeElement>();
+    TestTreeSearchNearestEmpty<SearchWrapperOCTreeElementHetereogeneous>();
 }
 
 /** Checks SearchWrapper works for StaticBinsTree search nearest
@@ -718,6 +943,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISearchWrapperOCTreeElementSearchNearest
 KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISearchWrapperStaticBinsTreeElementSearchNearestEmpty, KratosMPICoreFastSuite)
 {
     TestTreeSearchNearestEmpty<SearchWrapperStaticBinsTreeElement>();
+    TestTreeSearchNearestEmpty<SearchWrapperStaticBinsTreeElementHetereogeneous>();
 }
 
 /** Checks SearchWrapper works for BinsDynamicElement search nearest
@@ -725,6 +951,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISearchWrapperStaticBinsTreeElementSearc
 KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISearchWrapperBinsDynamicElementSearchNearestEmpty, KratosMPICoreFastSuite)
 {
     TestTreeSearchNearestEmpty<SearchWrapperBinsDynamicElement>();
+    TestTreeSearchNearestEmpty<SearchWrapperBinsDynamicElementHetereogeneous>();
 }
 
 } // namespace Kratos::Testing.
