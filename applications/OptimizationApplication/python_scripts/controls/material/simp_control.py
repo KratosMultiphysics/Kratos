@@ -56,8 +56,7 @@ class SimpControl(Control):
         self.model_part_operation = ModelPartOperation(self.model, ModelPartOperation.OperationType.UNION, f"control_{self.GetName()}", controlled_model_names_parts, False)
         self.model_part: 'typing.Optional[Kratos.ModelPart]' = None
 
-        self.density_x_values = [i for i, _ in enumerate(self.densities)]
-        self.youngs_modulus_x_values = [i for i, _ in enumerate(self.young_modulus)]
+        self.x_values = [i for i, _ in enumerate(self.densities)]
 
     def Initialize(self) -> None:
         self.un_buffered_data = ComponentDataView(self, self.optimization_problem).GetUnBufferedData()
@@ -73,8 +72,8 @@ class SimpControl(Control):
         # calculate phi from existing density
         self.phi = self.GetEmptyField()
         KratosOA.PropertiesVariableExpressionIO.Read(self.phi, Kratos.DENSITY)
-        self.phi = KratosOA.ControlUtils.SigmoidalProjectionUtils.ProjectBackward(self.phi, self.density_x_values, self.densities, self.beta, 1)
-        self.__ApplyDensityAndYoungsModulusFromPhi(self.phi)
+        self.phi = KratosOA.ControlUtils.SigmoidalProjectionUtils.ProjectBackward(self.phi, self.x_values, self.densities, self.beta, 1)
+        self.__ApplyDensityAndYoungsModulus()
 
     def Check(self) -> None:
         pass
@@ -107,20 +106,22 @@ class SimpControl(Control):
         d_j_d_youngs = physical_gradient_variable_container_expression_map[Kratos.YOUNG_MODULUS]
 
         # now calculate the total sensitivities of density w.r.t. phi
-        d_density_d_phi = KratosOA.ControlUtils.SigmoidalProjectionUtils.CalculateForwardProjectionGradient(self.phi, self.density_x_values, self.densities, self.beta, 1)
-
-        self.un_buffered_data.SetValue("d_density_d_phi", d_density_d_phi.Clone(), overwrite=True)
+        d_density_d_phi = KratosOA.ControlUtils.SigmoidalProjectionUtils.CalculateForwardProjectionGradient(self.phi, self.x_values, self.densities, self.beta, 1)
 
         # now calculate the total sensitivities of young modulus w.r.t. phi
-        d_young_modulus_d_phi = KratosOA.ControlUtils.SigmoidalProjectionUtils.CalculateForwardProjectionGradient(self.phi, self.youngs_modulus_x_values, self.young_modulus, self.beta, self.simp_power_fac)
-
-        self.un_buffered_data.SetValue("d_young_modulus_d_phi", d_young_modulus_d_phi.Clone(), overwrite=True)
+        d_young_modulus_d_phi = KratosOA.ControlUtils.SigmoidalProjectionUtils.CalculateForwardProjectionGradient(self.phi, self.x_values, self.young_modulus, self.beta, self.simp_power_fac)
 
         # now compute response function total sensitivity w.r.t. phi
         d_j_d_phi = d_j_d_density * d_density_d_phi + d_j_d_youngs * d_young_modulus_d_phi
         return d_j_d_phi.Clone()
 
     def Update(self, control_field: ContainerExpressionTypes) -> bool:
+        if not IsSameContainerExpression(control_field, self.GetEmptyField()):
+            raise RuntimeError(f"Updates for the required element container not found for control \"{self.GetName()}\". [ required model part name: {self.model_part.FullName()}, given model part name: {control_field.GetModelPart().FullName()} ]")
+
+        self.phi = control_field.Clone()
+        self.__ApplyDensityAndYoungsModulus()
+
         step = self.optimization_problem.GetStep()
         if self.beta_adaptive:
             if step % self.beta_update_period == 0 and self.beta < self.beta_max_value:
@@ -128,17 +129,11 @@ class SimpControl(Control):
              if self.beta > self.beta_max_value:
                  self.beta = self.beta_max_value
 
-        if not IsSameContainerExpression(control_field, self.GetEmptyField()):
-            raise RuntimeError(f"Updates for the required element container not found for control \"{self.GetName()}\". [ required model part name: {self.model_part.FullName()}, given model part name: {control_field.GetModelPart().FullName()} ]")
-
-        self.phi = control_field.Clone()
-        self.__ApplyDensityAndYoungsModulusFromPhi(self.phi)
-
-    def __ApplyDensityAndYoungsModulusFromPhi(self, phi: ContainerExpressionTypes) -> None:
-        density = KratosOA.ControlUtils.SigmoidalProjectionUtils.ProjectForward(phi, self.density_x_values, self.densities, self.beta, 1)
+    def __ApplyDensityAndYoungsModulus(self) -> None:
+        density = KratosOA.ControlUtils.SigmoidalProjectionUtils.ProjectForward(self.phi, self.x_values, self.densities, self.beta, 1)
         KratosOA.PropertiesVariableExpressionIO.Write(density, Kratos.DENSITY)
         self.un_buffered_data.SetValue("DENSITY", density.Clone(), overwrite=True)
 
-        youngs_modulus = KratosOA.ControlUtils.SigmoidalProjectionUtils.ProjectForward(phi, self.youngs_modulus_x_values, self.young_modulus, self.beta, self.simp_power_fac)
+        youngs_modulus = KratosOA.ControlUtils.SigmoidalProjectionUtils.ProjectForward(self.phi, self.x_values, self.young_modulus, self.beta, self.simp_power_fac)
         KratosOA.PropertiesVariableExpressionIO.Write(youngs_modulus, Kratos.YOUNG_MODULUS)
         self.un_buffered_data.SetValue("YOUNG_MODULUS", youngs_modulus.Clone(), overwrite=True)
