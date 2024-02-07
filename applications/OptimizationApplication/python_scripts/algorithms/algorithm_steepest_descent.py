@@ -94,7 +94,7 @@ class AlgorithmSteepestDescent(Algorithm):
         if isinstance(alpha, float):
             update = search_direction * alpha
         elif isinstance(alpha, KratosOA.CollectiveExpression):
-            update = search_direction.Scale(alpha)
+            update = Kratos.Expression.Utils.Scale(search_direction, alpha)
         self.algorithm_data.GetBufferedData()["control_field_update"] = update.Clone()
 
     @time_decorator()

@@ -10,7 +10,9 @@ def Factory(model: Kratos.Model, parameters: Kratos.Parameters, optimization_pro
 
 class AlgorithmNesterovAcceleratedGradient(AlgorithmSteepestDescent):
     """
-        A classical steepest descent algorithm to solve unconstrainted optimization problems.
+        Nesterov Accelerated Gradient method to solve unconstrainted optimization problems.
+        The implementation is based on https://paperswithcode.com/method/nesterov-accelerated-gradient
+        In current version to save one response evaluation, the f(x) is only calculated on the momentum points.
     """
 
     @classmethod
@@ -22,7 +24,7 @@ class AlgorithmNesterovAcceleratedGradient(AlgorithmSteepestDescent):
             "controls"          : [],
             "echo_level"        : 0,
             "settings"          : {
-                "eta"             : 0.95,
+                "eta"             : 0.9,
                 "echo_level"      : 0,
                 "line_search"     : {},
                 "conv_settings"   : {}
@@ -36,11 +38,13 @@ class AlgorithmNesterovAcceleratedGradient(AlgorithmSteepestDescent):
 
     @time_decorator()
     def ComputeControlUpdate(self, alpha):
+        # compute the correction part from momentum point
         search_direction = self.algorithm_data.GetBufferedData()["search_direction"]
         if isinstance(alpha, float):
             update = search_direction * alpha
         elif isinstance(alpha, KratosOA.CollectiveExpression):
-            update = search_direction.Scale(alpha)
+            update = Kratos.Expression.Utils.Scale(search_direction, alpha)
+        # add momentum to the correction update to compute new momentum point.
         if self.prev_update:
             mom_update = update + self.prev_update * self.eta
             self.algorithm_data.GetBufferedData()["control_field_update"] = update + mom_update * self.eta

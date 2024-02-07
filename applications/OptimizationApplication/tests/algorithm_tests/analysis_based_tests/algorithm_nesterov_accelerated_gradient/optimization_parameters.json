@@ -79,7 +79,8 @@
             "conv_settings": {
                 "type": "max_iter",
                 "max_iter": 10
-            }
+            },
+            "eta": 0.95
         },
         "controls": [
             "material_control"
