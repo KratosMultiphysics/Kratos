@@ -182,12 +182,16 @@ void IncompressibleNavierStokesDivStable<TDim>::CalculateLocalSystem(
     const auto& r_geom = this->GetGeometry();
     const auto p_prop = this->GetProperties();
     ConstitutiveLaw::Parameters cons_law_params(r_geom, p_prop, rCurrentProcessInfo);
+
     cons_law_params.SetStrainVector(aux_data.StrainRate);
     cons_law_params.SetStressVector(aux_data.ShearStress);
     cons_law_params.SetConstitutiveMatrix(aux_data.ConstitutiveMatrix);
 
+    auto& cons_law_options = cons_law_params.GetOptions();
+    cons_law_options.Set(ConstitutiveLaw::COMPUTE_STRESS);
+    cons_law_options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
+
     // Calculate kinematics
-    //TODO: Bubble is missing here
     Vector weights;
     Matrix velocity_N;
     Matrix pressure_N;
@@ -355,8 +359,12 @@ void IncompressibleNavierStokesDivStable<TDim>::SetElementData(
     rData.DynamicTau = rProcessInfo[DYNAMIC_TAU];
     rData.ElementSize = ElementSizeCalculator<TDim, VelocityNumNodes>::AverageElementSize(r_geom);
 
-    // Set other data
+    // Set ProcessInfo data
     rData.DeltaTime = rProcessInfo[DELTA_TIME];
+    const auto& r_bdf_coefs = rProcessInfo[BDF_COEFFICIENTS];
+    rData.BDF0 = r_bdf_coefs[0];
+    rData.BDF1 = r_bdf_coefs[1];
+    rData.BDF2 = r_bdf_coefs[2];
 }
 
 template< unsigned int TDim >

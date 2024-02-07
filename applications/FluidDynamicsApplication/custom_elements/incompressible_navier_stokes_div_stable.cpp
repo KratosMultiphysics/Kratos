@@ -182,18 +182,30 @@ void IncompressibleNavierStokesDivStable<TDim>::CalculateLocalSystem(
     const auto& r_geom = this->GetGeometry();
     const auto p_prop = this->GetProperties();
     ConstitutiveLaw::Parameters cons_law_params(r_geom, p_prop, rCurrentProcessInfo);
+
     cons_law_params.SetStrainVector(aux_data.StrainRate);
     cons_law_params.SetStressVector(aux_data.ShearStress);
     cons_law_params.SetConstitutiveMatrix(aux_data.ConstitutiveMatrix);
 
+    auto& cons_law_options = cons_law_params.GetOptions();
+    cons_law_options.Set(ConstitutiveLaw::COMPUTE_STRESS);
+    cons_law_options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
+
     // Calculate kinematics
-    //TODO: Bubble is missing here
     Vector weights;
     Matrix velocity_N;
     Matrix pressure_N;
     GeometryType::ShapeFunctionsGradientsType velocity_DN;
     GeometryType::ShapeFunctionsGradientsType pressure_DN;
-    CalculateKinematics(weights, velocity_N, pressure_N, velocity_DN, pressure_DN);
+    Vector velocity_bubble;
+    std::vector<BoundedMatrix<double, 1, TDim>> velocity_bubble_grad;
+    CalculateKinematics(weights, velocity_N, pressure_N, velocity_DN, pressure_DN, velocity_bubble, velocity_bubble_grad);
+
+    // Initialize enrichment arrays
+    array_1d<double, TDim> RHSee = ZeroVector(TDim);
+    BoundedMatrix<double, TDim, TDim> Kee = ZeroMatrix(TDim, TDim);
+    BoundedMatrix<double, TDim, LocalSize> Keu = ZeroMatrix(TDim, LocalSize);
+    BoundedMatrix<double, LocalSize, TDim> Kue = ZeroMatrix(LocalSize, TDim);
 
     // Loop Gauss points
     const SizeType n_gauss = r_geom.IntegrationPointsNumber(IntegrationMethod);
@@ -203,6 +215,8 @@ void IncompressibleNavierStokesDivStable<TDim>::CalculateLocalSystem(
         noalias(aux_data.N_p) = row(pressure_N, g);
         noalias(aux_data.DN_v) = velocity_DN[g];
         noalias(aux_data.DN_p) = pressure_DN[g];
+        aux_data.N_e = velocity_bubble[g];
+        noalias(aux_data.DN_e) = velocity_bubble_grad[g];
         aux_data.Weight = weights[g];
 
         // Calculate current Gauss point material response
@@ -215,11 +229,16 @@ void IncompressibleNavierStokesDivStable<TDim>::CalculateLocalSystem(
         ComputeGaussPointRHSContribution(aux_data, rRightHandSideVector);
 
         // Assemble bubble function contributions (to be condensed)
-        //TODO:
+        ComputeGaussPointEnrichmentContribution(aux_data, RHSee, Kue, Keu, Kee);
     }
 
     // Condense bubble function contribution
-    //TODO:
+    double det;
+    BoundedMatrix<double, TDim, TDim> invKee;
+    MathUtils<double>::InvertMatrix(Kee, invKee, det);
+    const BoundedMatrix<double, LocalSize, TDim> KueinvKee = prod(Kue, invKee);
+    noalias(rLeftHandSideMatrix) -= prod(KueinvKee, Keu);
+    noalias(rRightHandSideVector) -= prod(KueinvKee, RHSee);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
@@ -340,8 +359,12 @@ void IncompressibleNavierStokesDivStable<TDim>::SetElementData(
     rData.DynamicTau = rProcessInfo[DYNAMIC_TAU];
     rData.ElementSize = ElementSizeCalculator<TDim, VelocityNumNodes>::AverageElementSize(r_geom);
 
-    // Set other data
+    // Set ProcessInfo data
     rData.DeltaTime = rProcessInfo[DELTA_TIME];
+    const auto& r_bdf_coefs = rProcessInfo[BDF_COEFFICIENTS];
+    rData.BDF0 = r_bdf_coefs[0];
+    rData.BDF1 = r_bdf_coefs[1];
+    rData.BDF2 = r_bdf_coefs[2];
 }
 
 template< unsigned int TDim >
@@ -350,7 +373,9 @@ void IncompressibleNavierStokesDivStable<TDim>::CalculateKinematics(
     Matrix& rVelocityN,
     Matrix& rPressureN,
     GeometryType::ShapeFunctionsGradientsType& rVelocityDNDX,
-    GeometryType::ShapeFunctionsGradientsType& rPressureDNDX)
+    GeometryType::ShapeFunctionsGradientsType& rPressureDNDX,
+    Vector& rVelocityBubble,
+    std::vector<BoundedMatrix<double, 1, TDim>>& rVelocityBubbleGrad)
 {
     // Get element geometry
     const auto& r_geom = this->GetGeometry();
@@ -399,8 +424,28 @@ void IncompressibleNavierStokesDivStable<TDim>::CalculateKinematics(
         rPressureDNDX[g] = prod(r_DN_De_p[g], inv_J_vect[g]);
     }
 
-    // Calculate enrichment bubble kinematics
-    //TODO:
+    // Calculate enrichment bubble kinematics using the previous auxiliary element barycentric coordinates
+    if (rVelocityBubble.size() != n_gauss) {
+        rVelocityBubble.resize(n_gauss, false);
+    }
+    if (rVelocityBubbleGrad.size() != n_gauss) {
+        rVelocityBubbleGrad.resize(n_gauss);
+    }
+    for (IndexType g = 0; g < n_gauss; ++g) {
+        const auto& r_bar_coords = row(rPressureN, g);
+        const auto& r_bar_coords_grads = rPressureDNDX[g];
+        auto& r_vel_bub_grad_g = rVelocityBubbleGrad[g];
+        if constexpr (TDim == 2) {
+            rVelocityBubble[g] = r_bar_coords[0] * r_bar_coords[1] * r_bar_coords[2];
+            r_vel_bub_grad_g(0,0) = r_bar_coords_grads(0,0) * r_bar_coords[1] * r_bar_coords[2] + r_bar_coords[0] * r_bar_coords_grads(1,0) * r_bar_coords[2] + r_bar_coords[0] * r_bar_coords[1] * r_bar_coords_grads(2,0);
+            r_vel_bub_grad_g(0,1) = r_bar_coords_grads(0,1) * r_bar_coords[1] * r_bar_coords[2] + r_bar_coords[0] * r_bar_coords_grads(1,1) * r_bar_coords[2] + r_bar_coords[0] * r_bar_coords[1] * r_bar_coords_grads(2,1);
+        } else {
+            rVelocityBubble[g] = r_bar_coords[0] * r_bar_coords[1] * r_bar_coords[2] * r_bar_coords[3];
+            r_vel_bub_grad_g(0,0) = r_bar_coords_grads(0,0) * r_bar_coords[1] * r_bar_coords[2] * r_bar_coords[3] + r_bar_coords[0] * r_bar_coords_grads(1,0) * r_bar_coords[2] * r_bar_coords[3] + r_bar_coords[0] * r_bar_coords[1] * r_bar_coords_grads(2,0) * r_bar_coords[3] + r_bar_coords[0] * r_bar_coords[1] * r_bar_coords[2] * r_bar_coords_grads(3,0);
+            r_vel_bub_grad_g(0,1) = r_bar_coords_grads(0,1) * r_bar_coords[1] * r_bar_coords[2] * r_bar_coords[3] + r_bar_coords[0] * r_bar_coords_grads(1,1) * r_bar_coords[2] * r_bar_coords[3] + r_bar_coords[0] * r_bar_coords[1] * r_bar_coords_grads(2,1) * r_bar_coords[3] + r_bar_coords[0] * r_bar_coords[1] * r_bar_coords[2] * r_bar_coords_grads(3,1);
+            r_vel_bub_grad_g(0,2) = r_bar_coords_grads(0,2) * r_bar_coords[1] * r_bar_coords[2] * r_bar_coords[3] + r_bar_coords[0] * r_bar_coords_grads(1,2) * r_bar_coords[2] * r_bar_coords[3] + r_bar_coords[0] * r_bar_coords[1] * r_bar_coords_grads(2,2) * r_bar_coords[3] + r_bar_coords[0] * r_bar_coords[1] * r_bar_coords[2] * r_bar_coords_grads(3,2);
+        }
+    }
 
     // Calculate integration points weight
     if (rGaussWeights.size() != n_gauss) {
@@ -414,6 +459,8 @@ void IncompressibleNavierStokesDivStable<TDim>::CalculateKinematics(
 template< unsigned int TDim >
 void IncompressibleNavierStokesDivStable<TDim>::CalculateStrainRate(ElementDataContainer& rData)
 {
+    //TODO: Add here the bubble contribution to the enrichment!!!
+
     if (rData.StrainRate.size() != StrainSize) {
         rData.StrainRate.resize(StrainSize, false);
     }
@@ -461,7 +508,7 @@ void IncompressibleNavierStokesDivStable<2>::ComputeGaussPointLHSContribution(
     const BoundedMatrix<double,2,6> vconv = rData.Velocity - rData.MeshVelocity;
 
     // Get constitutive matrix
-    const BoundedMatrix<double,3,3>& C = rData.ConstitutiveMatrix;
+    const auto& C = rData.ConstitutiveMatrix;
 
     // Get shape function values
     const auto& N_p = rData.N_p;
@@ -928,7 +975,7 @@ void IncompressibleNavierStokesDivStable<3>::ComputeGaussPointLHSContribution(
     const BoundedMatrix<double,3,10> vconv = rData.Velocity - rData.MeshVelocity;
 
     // Get constitutive matrix
-    const BoundedMatrix<double,6,6>& C = rData.ConstitutiveMatrix;
+    const auto& C = rData.ConstitutiveMatrix;
 
     // Get shape function values
     const auto& N_p = rData.N_p;
@@ -1074,6 +1121,241 @@ void IncompressibleNavierStokesDivStable<3>::ComputeGaussPointRHSContribution(
     // Assemble RHS contribution
     const double gauss_weight = rData.Weight;
     //substitute_rhs_3D
+}
+
+template <>
+void IncompressibleNavierStokesDivStable<2>::ComputeGaussPointEnrichmentContribution(
+    const ElementDataContainer& rData,
+    array_1d<double, 2>& rRHSee,
+    BoundedMatrix<double, LocalSize, 2>& rKue,
+    BoundedMatrix<double, 2, LocalSize>& rKeu,
+    BoundedMatrix<double, 2, 2>& rKee)
+{
+    // Get material data
+    const double rho = rData.Density;
+    const double mu = rData.EffectiveViscosity;
+
+    // Get auxiliary data
+    const double bdf0 = rData.BDF0;
+    const double bdf1 = rData.BDF1;
+    const double bdf2 = rData.BDF2;
+    const double dt = rData.DeltaTime;
+
+    // Get stabilization data
+    const double h = rData.ElementSize;
+    const double stab_c1 = rData.StabC1;
+    const double stab_c2 = rData.StabC2;
+    const double dyn_tau = rData.DynamicTau;
+
+    // Get nodal data
+    const auto& r_v = rData.Velocity;
+    const auto& r_vn = rData.VelocityOld1;
+    const auto& r_vnn = rData.VelocityOld2;
+    const auto& r_vmesh = rData.MeshVelocity;
+    const auto& r_f = rData.BodyForce;
+    const auto& r_p = rData.Pressure;
+
+    // Calculate convective velocity
+    const BoundedMatrix<double,3,10> vconv = r_v - r_vmesh;
+
+    // Get stress from material response
+    const auto& r_stress = rData.ShearStress;
+    const auto& C = rData.ConstitutiveMatrix;
+
+    // Get shape function values
+    const auto& N_p = rData.N_p;
+    const auto& N_v = rData.N_v;
+    const auto& DN_p = rData.DN_p;
+    const auto& DN_v = rData.DN_v;
+    const double N_e = rData.N_e;
+    const auto& DN_e = rData.DN_e;
+
+    // Assemble enrichment contribution
+    const double gauss_weight = rData.Weight;
+    const BoundedMatrix<double,1,2> v_e = ZeroMatrix(1,2);
+
+    const double crRHSee0 = N_p[0]*r_p[0] + N_p[1]*r_p[1] + N_p[2]*r_p[2];
+const double crRHSee1 = N_e*rho;
+const double crRHSee2 = N_v[0]*vconv(0,0) + N_v[1]*vconv(1,0) + N_v[2]*vconv(2,0) + N_v[3]*vconv(3,0) + N_v[4]*vconv(4,0) + N_v[5]*vconv(5,0);
+const double crRHSee3 = N_v[0]*vconv(0,1) + N_v[1]*vconv(1,1) + N_v[2]*vconv(2,1) + N_v[3]*vconv(3,1) + N_v[4]*vconv(4,1) + N_v[5]*vconv(5,1);
+const double crRHSee4 = crRHSee1*(DN_e(0,0)*crRHSee2 + DN_e(0,1)*crRHSee3);
+rRHSee[0]+=-gauss_weight*(-DN_e(0,0)*crRHSee0 + DN_e(0,0)*r_stress[0] + DN_e(0,1)*r_stress[2] + crRHSee1*(crRHSee2*(DN_v(0,0)*r_v(0,0) + DN_v(1,0)*r_v(1,0) + DN_v(2,0)*r_v(2,0) + DN_v(3,0)*r_v(3,0) + DN_v(4,0)*r_v(4,0) + DN_v(5,0)*r_v(5,0)) + crRHSee3*(DN_v(0,1)*r_v(0,0) + DN_v(1,1)*r_v(1,0) + DN_v(2,1)*r_v(2,0) + DN_v(3,1)*r_v(3,0) + DN_v(4,1)*r_v(4,0) + DN_v(5,1)*r_v(5,0))) - crRHSee1*(N_v[0]*r_f(0,0) + N_v[1]*r_f(1,0) + N_v[2]*r_f(2,0) + N_v[3]*r_f(3,0) + N_v[4]*r_f(4,0) + N_v[5]*r_f(5,0)) + crRHSee1*(N_v[0]*(rData.BDF0*r_v(0,0) + rData.BDF1*r_vn(0,0) + rData.BDF2*r_vnn(0,0)) + N_v[1]*(rData.BDF0*r_v(1,0) + rData.BDF1*r_vn(1,0) + rData.BDF2*r_vnn(1,0)) + N_v[2]*(rData.BDF0*r_v(2,0) + rData.BDF1*r_vn(2,0) + rData.BDF2*r_vnn(2,0)) + N_v[3]*(rData.BDF0*r_v(3,0) + rData.BDF1*r_vn(3,0) + rData.BDF2*r_vnn(3,0)) + N_v[4]*(rData.BDF0*r_v(4,0) + rData.BDF1*r_vn(4,0) + rData.BDF2*r_vnn(4,0)) + N_v[5]*(rData.BDF0*r_v(5,0) + rData.BDF1*r_vn(5,0) + rData.BDF2*r_vnn(5,0))) - crRHSee4*v_e(0,0));
+rRHSee[1]+=-gauss_weight*(DN_e(0,0)*r_stress[2] - DN_e(0,1)*crRHSee0 + DN_e(0,1)*r_stress[1] + crRHSee1*(crRHSee2*(DN_v(0,0)*r_v(0,1) + DN_v(1,0)*r_v(1,1) + DN_v(2,0)*r_v(2,1) + DN_v(3,0)*r_v(3,1) + DN_v(4,0)*r_v(4,1) + DN_v(5,0)*r_v(5,1)) + crRHSee3*(DN_v(0,1)*r_v(0,1) + DN_v(1,1)*r_v(1,1) + DN_v(2,1)*r_v(2,1) + DN_v(3,1)*r_v(3,1) + DN_v(4,1)*r_v(4,1) + DN_v(5,1)*r_v(5,1))) - crRHSee1*(N_v[0]*r_f(0,1) + N_v[1]*r_f(1,1) + N_v[2]*r_f(2,1) + N_v[3]*r_f(3,1) + N_v[4]*r_f(4,1) + N_v[5]*r_f(5,1)) + crRHSee1*(N_v[0]*(rData.BDF0*r_v(0,1) + rData.BDF1*r_vn(0,1) + rData.BDF2*r_vnn(0,1)) + N_v[1]*(rData.BDF0*r_v(1,1) + rData.BDF1*r_vn(1,1) + rData.BDF2*r_vnn(1,1)) + N_v[2]*(rData.BDF0*r_v(2,1) + rData.BDF1*r_vn(2,1) + rData.BDF2*r_vnn(2,1)) + N_v[3]*(rData.BDF0*r_v(3,1) + rData.BDF1*r_vn(3,1) + rData.BDF2*r_vnn(3,1)) + N_v[4]*(rData.BDF0*r_v(4,1) + rData.BDF1*r_vn(4,1) + rData.BDF2*r_vnn(4,1)) + N_v[5]*(rData.BDF0*r_v(5,1) + rData.BDF1*r_vn(5,1) + rData.BDF2*r_vnn(5,1))) - crRHSee4*v_e(0,1));
+
+
+    const double crKue0 = N_p[0]*gauss_weight;
+const double crKue1 = N_p[1]*gauss_weight;
+const double crKue2 = N_p[2]*gauss_weight;
+rKue(0,0)+=0;
+rKue(0,1)+=0;
+rKue(1,0)+=0;
+rKue(1,1)+=0;
+rKue(2,0)+=0;
+rKue(2,1)+=0;
+rKue(3,0)+=0;
+rKue(3,1)+=0;
+rKue(4,0)+=0;
+rKue(4,1)+=0;
+rKue(5,0)+=0;
+rKue(5,1)+=0;
+rKue(6,0)+=0;
+rKue(6,1)+=0;
+rKue(7,0)+=0;
+rKue(7,1)+=0;
+rKue(8,0)+=0;
+rKue(8,1)+=0;
+rKue(9,0)+=0;
+rKue(9,1)+=0;
+rKue(10,0)+=0;
+rKue(10,1)+=0;
+rKue(11,0)+=0;
+rKue(11,1)+=0;
+rKue(12,0)+=DN_e(0,0)*crKue0;
+rKue(12,1)+=DN_e(0,1)*crKue0;
+rKue(13,0)+=DN_e(0,0)*crKue1;
+rKue(13,1)+=DN_e(0,1)*crKue1;
+rKue(14,0)+=DN_e(0,0)*crKue2;
+rKue(14,1)+=DN_e(0,1)*crKue2;
+
+
+    const double crKeu0 = C(0,2)*DN_v(0,0);
+const double crKeu1 = C(2,2)*DN_v(0,1) + crKeu0;
+const double crKeu2 = N_v[0]*vconv(0,0) + N_v[1]*vconv(1,0) + N_v[2]*vconv(2,0) + N_v[3]*vconv(3,0) + N_v[4]*vconv(4,0) + N_v[5]*vconv(5,0);
+const double crKeu3 = N_v[0]*vconv(0,1) + N_v[1]*vconv(1,1) + N_v[2]*vconv(2,1) + N_v[3]*vconv(3,1) + N_v[4]*vconv(4,1) + N_v[5]*vconv(5,1);
+const double crKeu4 = N_e*rho;
+const double crKeu5 = crKeu4*rData.BDF0;
+const double crKeu6 = N_v[0]*crKeu5 + crKeu4*(DN_v(0,0)*crKeu2 + DN_v(0,1)*crKeu3);
+const double crKeu7 = C(1,2)*DN_v(0,1);
+const double crKeu8 = C(2,2)*DN_v(0,0) + crKeu7;
+const double crKeu9 = C(0,2)*DN_v(1,0);
+const double crKeu10 = C(2,2)*DN_v(1,1) + crKeu9;
+const double crKeu11 = N_v[1]*crKeu5 + crKeu4*(DN_v(1,0)*crKeu2 + DN_v(1,1)*crKeu3);
+const double crKeu12 = C(1,2)*DN_v(1,1);
+const double crKeu13 = C(2,2)*DN_v(1,0) + crKeu12;
+const double crKeu14 = C(0,2)*DN_v(2,0);
+const double crKeu15 = C(2,2)*DN_v(2,1) + crKeu14;
+const double crKeu16 = N_v[2]*crKeu5 + crKeu4*(DN_v(2,0)*crKeu2 + DN_v(2,1)*crKeu3);
+const double crKeu17 = C(1,2)*DN_v(2,1);
+const double crKeu18 = C(2,2)*DN_v(2,0) + crKeu17;
+const double crKeu19 = C(0,2)*DN_v(3,0);
+const double crKeu20 = C(2,2)*DN_v(3,1) + crKeu19;
+const double crKeu21 = N_v[3]*crKeu5 + crKeu4*(DN_v(3,0)*crKeu2 + DN_v(3,1)*crKeu3);
+const double crKeu22 = C(1,2)*DN_v(3,1);
+const double crKeu23 = C(2,2)*DN_v(3,0) + crKeu22;
+const double crKeu24 = C(0,2)*DN_v(4,0);
+const double crKeu25 = C(2,2)*DN_v(4,1) + crKeu24;
+const double crKeu26 = N_v[4]*crKeu5 + crKeu4*(DN_v(4,0)*crKeu2 + DN_v(4,1)*crKeu3);
+const double crKeu27 = C(1,2)*DN_v(4,1);
+const double crKeu28 = C(2,2)*DN_v(4,0) + crKeu27;
+const double crKeu29 = C(0,2)*DN_v(5,0);
+const double crKeu30 = C(2,2)*DN_v(5,1) + crKeu29;
+const double crKeu31 = N_v[5]*crKeu5 + crKeu4*(DN_v(5,0)*crKeu2 + DN_v(5,1)*crKeu3);
+const double crKeu32 = C(1,2)*DN_v(5,1);
+const double crKeu33 = C(2,2)*DN_v(5,0) + crKeu32;
+const double crKeu34 = DN_e(0,0)*gauss_weight;
+const double crKeu35 = DN_e(0,1)*gauss_weight;
+rKeu(0,0)+=gauss_weight*(DN_e(0,0)*(C(0,0)*DN_v(0,0) + C(0,2)*DN_v(0,1)) + DN_e(0,1)*crKeu1 + crKeu6);
+rKeu(0,1)+=gauss_weight*(DN_e(0,0)*(C(0,1)*DN_v(0,1) + crKeu0) + DN_e(0,1)*crKeu8);
+rKeu(0,2)+=gauss_weight*(DN_e(0,0)*(C(0,0)*DN_v(1,0) + C(0,2)*DN_v(1,1)) + DN_e(0,1)*crKeu10 + crKeu11);
+rKeu(0,3)+=gauss_weight*(DN_e(0,0)*(C(0,1)*DN_v(1,1) + crKeu9) + DN_e(0,1)*crKeu13);
+rKeu(0,4)+=gauss_weight*(DN_e(0,0)*(C(0,0)*DN_v(2,0) + C(0,2)*DN_v(2,1)) + DN_e(0,1)*crKeu15 + crKeu16);
+rKeu(0,5)+=gauss_weight*(DN_e(0,0)*(C(0,1)*DN_v(2,1) + crKeu14) + DN_e(0,1)*crKeu18);
+rKeu(0,6)+=gauss_weight*(DN_e(0,0)*(C(0,0)*DN_v(3,0) + C(0,2)*DN_v(3,1)) + DN_e(0,1)*crKeu20 + crKeu21);
+rKeu(0,7)+=gauss_weight*(DN_e(0,0)*(C(0,1)*DN_v(3,1) + crKeu19) + DN_e(0,1)*crKeu23);
+rKeu(0,8)+=gauss_weight*(DN_e(0,0)*(C(0,0)*DN_v(4,0) + C(0,2)*DN_v(4,1)) + DN_e(0,1)*crKeu25 + crKeu26);
+rKeu(0,9)+=gauss_weight*(DN_e(0,0)*(C(0,1)*DN_v(4,1) + crKeu24) + DN_e(0,1)*crKeu28);
+rKeu(0,10)+=gauss_weight*(DN_e(0,0)*(C(0,0)*DN_v(5,0) + C(0,2)*DN_v(5,1)) + DN_e(0,1)*crKeu30 + crKeu31);
+rKeu(0,11)+=gauss_weight*(DN_e(0,0)*(C(0,1)*DN_v(5,1) + crKeu29) + DN_e(0,1)*crKeu33);
+rKeu(0,12)+=-N_p[0]*crKeu34;
+rKeu(0,13)+=-N_p[1]*crKeu34;
+rKeu(0,14)+=-N_p[2]*crKeu34;
+rKeu(1,0)+=gauss_weight*(DN_e(0,0)*crKeu1 + DN_e(0,1)*(C(0,1)*DN_v(0,0) + crKeu7));
+rKeu(1,1)+=gauss_weight*(DN_e(0,0)*crKeu8 + DN_e(0,1)*(C(1,1)*DN_v(0,1) + C(1,2)*DN_v(0,0)) + crKeu6);
+rKeu(1,2)+=gauss_weight*(DN_e(0,0)*crKeu10 + DN_e(0,1)*(C(0,1)*DN_v(1,0) + crKeu12));
+rKeu(1,3)+=gauss_weight*(DN_e(0,0)*crKeu13 + DN_e(0,1)*(C(1,1)*DN_v(1,1) + C(1,2)*DN_v(1,0)) + crKeu11);
+rKeu(1,4)+=gauss_weight*(DN_e(0,0)*crKeu15 + DN_e(0,1)*(C(0,1)*DN_v(2,0) + crKeu17));
+rKeu(1,5)+=gauss_weight*(DN_e(0,0)*crKeu18 + DN_e(0,1)*(C(1,1)*DN_v(2,1) + C(1,2)*DN_v(2,0)) + crKeu16);
+rKeu(1,6)+=gauss_weight*(DN_e(0,0)*crKeu20 + DN_e(0,1)*(C(0,1)*DN_v(3,0) + crKeu22));
+rKeu(1,7)+=gauss_weight*(DN_e(0,0)*crKeu23 + DN_e(0,1)*(C(1,1)*DN_v(3,1) + C(1,2)*DN_v(3,0)) + crKeu21);
+rKeu(1,8)+=gauss_weight*(DN_e(0,0)*crKeu25 + DN_e(0,1)*(C(0,1)*DN_v(4,0) + crKeu27));
+rKeu(1,9)+=gauss_weight*(DN_e(0,0)*crKeu28 + DN_e(0,1)*(C(1,1)*DN_v(4,1) + C(1,2)*DN_v(4,0)) + crKeu26);
+rKeu(1,10)+=gauss_weight*(DN_e(0,0)*crKeu30 + DN_e(0,1)*(C(0,1)*DN_v(5,0) + crKeu32));
+rKeu(1,11)+=gauss_weight*(DN_e(0,0)*crKeu33 + DN_e(0,1)*(C(1,1)*DN_v(5,1) + C(1,2)*DN_v(5,0)) + crKeu31);
+rKeu(1,12)+=-N_p[0]*crKeu35;
+rKeu(1,13)+=-N_p[1]*crKeu35;
+rKeu(1,14)+=-N_p[2]*crKeu35;
+
+
+    const double crKee0 = C(0,2)*DN_e(0,0);
+const double crKee1 = C(2,2)*DN_e(0,1) + crKee0;
+const double crKee2 = -N_e*rho*(DN_e(0,0)*(N_v[0]*vconv(0,0) + N_v[1]*vconv(1,0) + N_v[2]*vconv(2,0) + N_v[3]*vconv(3,0) + N_v[4]*vconv(4,0) + N_v[5]*vconv(5,0)) + DN_e(0,1)*(N_v[0]*vconv(0,1) + N_v[1]*vconv(1,1) + N_v[2]*vconv(2,1) + N_v[3]*vconv(3,1) + N_v[4]*vconv(4,1) + N_v[5]*vconv(5,1)));
+const double crKee3 = C(1,2)*DN_e(0,1);
+const double crKee4 = C(2,2)*DN_e(0,0) + crKee3;
+rKee(0,0)+=gauss_weight*(DN_e(0,0)*(C(0,0)*DN_e(0,0) + C(0,2)*DN_e(0,1)) + DN_e(0,1)*crKee1 + crKee2);
+rKee(0,1)+=gauss_weight*(DN_e(0,0)*(C(0,1)*DN_e(0,1) + crKee0) + DN_e(0,1)*crKee4);
+rKee(1,0)+=gauss_weight*(DN_e(0,0)*crKee1 + DN_e(0,1)*(C(0,1)*DN_e(0,0) + crKee3));
+rKee(1,1)+=gauss_weight*(DN_e(0,0)*crKee4 + DN_e(0,1)*(C(1,1)*DN_e(0,1) + C(1,2)*DN_e(0,0)) + crKee2);
+
+}
+
+template <>
+void IncompressibleNavierStokesDivStable<3>::ComputeGaussPointEnrichmentContribution(
+    const ElementDataContainer& rData,
+    array_1d<double, 3>& rRHSee,
+    BoundedMatrix<double, LocalSize, 3>& rKue,
+    BoundedMatrix<double, 3, LocalSize>& rKeu,
+    BoundedMatrix<double, 3, 3>& rKee)
+{
+    // Get material data
+    const double rho = rData.Density;
+    const double mu = rData.EffectiveViscosity;
+
+    // Get auxiliary data
+    const double bdf0 = rData.BDF0;
+    const double bdf1 = rData.BDF1;
+    const double bdf2 = rData.BDF2;
+    const double dt = rData.DeltaTime;
+
+    // Get stabilization data
+    const double h = rData.ElementSize;
+    const double stab_c1 = rData.StabC1;
+    const double stab_c2 = rData.StabC2;
+    const double dyn_tau = rData.DynamicTau;
+
+    // Get nodal data
+    const auto& r_v = rData.Velocity;
+    const auto& r_vn = rData.VelocityOld1;
+    const auto& r_vnn = rData.VelocityOld2;
+    const auto& r_vmesh = rData.MeshVelocity;
+    const auto& r_f = rData.BodyForce;
+    const auto& r_p = rData.Pressure;
+
+    // Calculate convective velocity
+    const BoundedMatrix<double,3,10> vconv = r_v - r_vmesh;
+
+    // Get stress from material response
+    const auto& r_stress = rData.ShearStress;
+    const auto& C = rData.ConstitutiveMatrix;
+
+    // Get shape function values
+    const auto& N_p = rData.N_p;
+    const auto& N_v = rData.N_v;
+    const auto& DN_p = rData.DN_p;
+    const auto& DN_v = rData.DN_v;
+    const double N_e = rData.N_e;
+    const auto& DN_e = rData.DN_e;
+
+    // Assemble enrichment contribution
+    const double gauss_weight = rData.Weight;
+    const BoundedMatrix<double,1,3> v_e = ZeroMatrix(1,3);
+
+    //substitute_rhs_ee_3D
+
+    //substitute_K_ue_3D
+
+    //substitute_K_eu_3D
+
+    //substitute_K_ee_3D
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////

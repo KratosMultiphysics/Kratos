@@ -165,7 +165,7 @@ for dim, v_n_nodes, p_n_nodes in zip(dim_vector, v_nodes_vector, p_nodes_vector)
     stab_norm_a = sympy.sqrt(stab_norm_a)
     tau = 1.0/(rho*dyn_tau/dt + stab_c2*rho*stab_norm_a/h + stab_c1*mu/h**2) # Stabilization operator
 
-    mom_residual = rho*f_gauss - rho*accel_gauss -rho*convective_term_gauss.transpose() - grad_p #TODO: Here there should be the viscous component of the stress
+    mom_residual = rho*f_gauss - rho*accel_gauss - rho*convective_term_gauss.transpose() - grad_p #TODO: Here there should be the viscous component of the stress
     vel_subscale = tau * mom_residual
 
     rv_stab = grad_q.transpose()*vel_subscale
@@ -177,7 +177,7 @@ for dim, v_n_nodes, p_n_nodes in zip(dim_vector, v_nodes_vector, p_nodes_vector)
     rv_enr = rho*w_e_gauss*f_gauss - rho*w_e_gauss*accel_gauss
     rv_enr -= rho*w_e_gauss*convective_term_gauss.transpose() - rho*w_e_gauss*convective_term_gauss_e.transpose()
     rv_enr -= grad_w_e_voigt.transpose()*stress
-    rv_enr -= div_w_e*p_gauss
+    rv_enr += div_w_e*p_gauss
     rv_enr -= q_gauss*div_v_e
 
     ## Define DOFs and test function vectors
