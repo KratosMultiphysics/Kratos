@@ -123,7 +123,8 @@ class OptimizationProblemGraphOutputProcess(Kratos.OutputProcess):
         self.output_file_name = parameters["output_file_name"].GetString()
         self.x_axis_label = parameters["x_axis_label"].GetString()
         self.output_file_name = parameters["output_file_name"].GetString()
-        if not self.output_file_name.endswith(".png"):
+        output_file_name_data = Path(self.output_file_name).name.split(".")
+        if len(output_file_name_data) == 1:
             self.output_file_name += ".png"
 
         self.max_iterations = parameters["max_iterations"].GetInt()
