@@ -13,6 +13,7 @@
 
 // Application includes
 #include "custom_elements/U_Pw_small_strain_element.hpp"
+#include "plane_strain_stress_state.h"
 
 namespace Kratos
 {
@@ -1225,15 +1226,8 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateBMatrix(Matrix& rB, const 
             rB(INDEX_3D_XZ, index + INDEX_Z) = GradNpT(i, INDEX_X);
         }
     } else {
-        // 2D plane strain
-        for (unsigned int i = 0; i < TNumNodes; ++i) {
-            index = TDim * i;
-
-            rB(INDEX_2D_PLANE_STRAIN_XX, index + INDEX_X) = GradNpT(i, INDEX_X);
-            rB(INDEX_2D_PLANE_STRAIN_YY, index + INDEX_Y) = GradNpT(i, INDEX_Y);
-            rB(INDEX_2D_PLANE_STRAIN_XY, index + INDEX_X) = GradNpT(i, INDEX_Y);
-            rB(INDEX_2D_PLANE_STRAIN_XY, index + INDEX_Y) = GradNpT(i, INDEX_X);
-        }
+        PlaneStrainStressState stress_state;
+        rB = stress_state.CalculateBMatrix(GradNpT, Np, this->GetGeometry());
     }
 
     KRATOS_CATCH("")

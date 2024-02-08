@@ -21,6 +21,7 @@
 // Application includes
 #include "custom_elements/small_strain_U_Pw_diff_order_element.hpp"
 #include "custom_utilities/element_utilities.hpp"
+#include "plane_strain_stress_state.h"
 
 namespace Kratos
 {
@@ -1818,15 +1819,8 @@ void SmallStrainUPwDiffOrderElement::CalculateBMatrix(Matrix& rB, const Matrix& 
             rB(INDEX_3D_XZ, index + INDEX_Z) = DNp_DX(i, INDEX_X);
         }
     } else {
-        // 2D plane strain
-        for (unsigned int i = 0; i < NumUNodes; ++i) {
-            index = Dim * i;
-
-            rB(INDEX_2D_PLANE_STRAIN_XX, index + INDEX_X) = DNp_DX(i, INDEX_X);
-            rB(INDEX_2D_PLANE_STRAIN_YY, index + INDEX_Y) = DNp_DX(i, INDEX_Y);
-            rB(INDEX_2D_PLANE_STRAIN_XY, index + INDEX_X) = DNp_DX(i, INDEX_Y);
-            rB(INDEX_2D_PLANE_STRAIN_XY, index + INDEX_Y) = DNp_DX(i, INDEX_X);
-        }
+        PlaneStrainStressState stress_state;
+        rB = stress_state.CalculateBMatrix(DNp_DX, Np, this->GetGeometry());
     }
 
     KRATOS_CATCH("")
