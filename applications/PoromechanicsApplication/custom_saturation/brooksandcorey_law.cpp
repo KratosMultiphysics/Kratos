@@ -17,32 +17,6 @@
 namespace Kratos
 {
 
-int BrooksAndCoreyLaw::Check(const Properties& rMaterialProperties,
-                           const GeometryType& rElementGeometry,
-                           const ProcessInfo& rCurrentProcessInfo) const
-{
-    KRATOS_TRY
-
-    int ierr = SaturationLaw::Check(rCurrentProcessInfo);
-    if(ierr != 0)
-        return ierr;
-
-    return ierr;
-
-    KRATOS_CATCH("");
-}
-
-//------------------------------------------------------------------------------------------------
-
-// void BrooksAndCoreyLaw::InitializeMaterial(const Properties& rMaterialProperties,
-//         const GeometryType& rElementGeometry,
-//         const Vector& rShapeFunctionsValues)
-// {
-//     SaturationLaw::InitializeMaterial(rMaterialProperties,rElementGeometry,rShapeFunctionsValues);
-// }
-
-//------------------------------------------------------------------------------------------------
-
 void BrooksAndCoreyLaw::CalculateWaterSaturationDegree (SaturationLawVariables& rVariables, Parameters& rValues)
 {
     double& rSw = rValues.GetSw();
@@ -55,49 +29,40 @@ void BrooksAndCoreyLaw::CalculateWaterSaturationDegree (SaturationLawVariables& 
     if(rVariables.pc > rVariables.pb)
     {
         // Water saturation degree
-        rSw = (1.0 - rVariables.Swr)*pow(rVariables.pb/rVariables.pc,rVariables.lambda) + rVariables.Swr;
+        rSw = (1.0 - rVariables.Swr)*std::pow(rVariables.pb/rVariables.pc,rVariables.lambda)
+                + rVariables.Swr;
 
         // Derivative of the water saturation degree with respect to the capilar pressure
         rdSwdPc = (1.0 - rVariables.Swr) * 
-                    rVariables.lambda * rVariables.pb * pow(rVariables.pb/rVariables.pc,rVariables.lambda-1.0) /
+                    rVariables.lambda * rVariables.pb * std::pow(rVariables.pb/rVariables.pc,rVariables.lambda-1.0) /
                     (rVariables.pc * rVariables.pc);
     }
 }
 
 //------------------------------------------------------------------------------------------------
 
-void BrooksAndCoreyLaw::WaterRelativePermeability (SaturationLawVariables& rVariables, Parameters& rValues)
+void BrooksAndCoreyLaw::CalculateWaterRelativePermeability (SaturationLawVariables& rVariables, Parameters& rValues)
 {
-    double krw, nw, lambda;
+    double& rkrw = rValues.Getkrw();
 
-    // Compute the water relative permeability according with the consitutive model
-        // -- Brooks and Corey
-        //           (see pg. 479 from Khoei's 2015 book: Extended Finite Element: theory and applications, ISBN 978-1-118-45768-9) ----
-           
-            lambda = Variables.PoreSizeFactor;
-            nw     = (2.0 + 3.0*lambda)/lambda;
-            krw    = pow(Se,nw);
+    const double nw = (2.0 + 3.0*rVariables.lambda)/rVariables.lambda;
 
-    krw = std::min(krw,0.0001);
-    return krw;    
+    rkrw = std::pow(rVariables.Se,nw);
+    // TODO. Review this number
+    rkrw = std::min(rkrw,0.0001);
 }
 
 //------------------------------------------------------------------------------------------------
 
-void BrooksAndCoreyLaw::GasRelativePermeability (SaturationLawVariables& rVariables, Parameters& rValues)
+void BrooksAndCoreyLaw::CalculateGasRelativePermeability (SaturationLawVariables& rVariables, Parameters& rValues)
 {
-    double krg, ng, lambda;
+    double& rkrg = rValues.Getkrg();
+    
+    const double ng = (2.0 + rVariables.lambda)/rVariables.lambda;
 
-    // Compute the gas relative permeability according with the consitutive model
-        // -- Brooks and Corey
-        //           (see pg. 479 from Khoei's 2015 book: Extended Finite Element: theory and applications, ISBN 978-1-118-45768-9) -----
-            
-            lambda = Variables.PoreSizeFactor;
-            ng     = (2.0 + lambda)/lambda;
-            krg    = pow(1.0-Se,2.0)*(1.0 - pow(Se,ng));
-
-    krg = std::min(krg,0.0001);
-    return krg;    
+    rkrg = std::pow(1.0-rVariables.Se,2.0)*(1.0 - std::pow(rVariables.Se,ng));
+    // TODO. Review this number
+    rkrg = std::min(rkrg,0.0001);
 }
 
 }

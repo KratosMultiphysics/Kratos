@@ -57,19 +57,13 @@ public:
 
     ///------------------------------------------------------------------------------------------------
 
-    int Check(const Properties& rMaterialProperties, const GeometryType& rElementGeometry, const ProcessInfo& rCurrentProcessInfo) const override;
-
-    // void InitializeMaterial( const Properties& rMaterialProperties,const GeometryType& rElementGeometry,const Vector& rShapeFunctionsValues ) override;
-
-    ///------------------------------------------------------------------------------------------------
-
 protected:
 
     void CalculateWaterSaturationDegree(SaturationLawVariables& rVariables, Parameters& rValues) override;
 
-    void WaterRelativePermeability(SaturationLawVariables& rVariables, Parameters& rValues) override;
+    void CalculateWaterRelativePermeability(SaturationLawVariables& rVariables, Parameters& rValues) override;
 
-    void GasRelativePermeability(SaturationLawVariables& rVariables, Parameters& rValues) override;
+    void CalculateGasRelativePermeability(SaturationLawVariables& rVariables, Parameters& rValues) override;
 
     ///------------------------------------------------------------------------------------------------
 

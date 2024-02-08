@@ -412,9 +412,9 @@ protected:
 
     virtual void CalculateEffectiveSaturation(SaturationLawVariables& rVariables, Parameters& rValues);
 
-    virtual void WaterRelativePermeability(SaturationLawVariables& rVariables, Parameters& rValues);
+    virtual void CalculateWaterRelativePermeability(SaturationLawVariables& rVariables, Parameters& rValues);
 
-    virtual void GasRelativePermeability(SaturationLawVariables& rVariables, Parameters& rValues);
+    virtual void CalculateGasRelativePermeability(SaturationLawVariables& rVariables, Parameters& rValues);
 
     ///------------------------------------------------------------------------------------------------
 

@@ -24,6 +24,11 @@ set( KRATOS_POROMECHANICS_APPLICATION_CORE_SOURCES
 
     # Processes
 
+    # Saturation Laws
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_saturation/saturation_law.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_saturation/brooksandcorey_law.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_saturation/vangenuchten_law.cpp
+
     # Constitutive Laws
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/custom_flow_rules/local_damage_flow_rule.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/custom_flow_rules/nonlocal_damage_flow_rule.cpp
@@ -115,6 +120,7 @@ set( KRATOS_POROMECHANICS_APPLICATION_PYTHON_INTERFACE_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_utilities_to_python.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_processes_to_python.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_constitutive_laws_to_python.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_saturation_laws_to_python.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/poromechanics_python_application.cpp
 )
 

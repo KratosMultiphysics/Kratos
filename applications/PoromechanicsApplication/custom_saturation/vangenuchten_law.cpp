@@ -17,132 +17,58 @@
 namespace Kratos
 {
 
-int VanGenuchtenLaw::Check(const Properties& rMaterialProperties,
-                           const GeometryType& rElementGeometry,
-                           const ProcessInfo& rCurrentProcessInfo) const
-{
-    KRATOS_TRY
-
-    int ierr = BrooksAndCoreyLaw::Check(rCurrentProcessInfo);
-    if(ierr != 0)
-        return ierr;
-
-    return ierr;
-
-    KRATOS_CATCH("");
-}
-
-//------------------------------------------------------------------------------------------------
-
-// void VanGenuchtenLaw::InitializeMaterial(const Properties& rMaterialProperties,
-//         const GeometryType& rElementGeometry,
-//         const Vector& rShapeFunctionsValues)
-// {
-//     BrooksAndCoreyLaw::InitializeMaterial(rMaterialProperties,rElementGeometry,rShapeFunctionsValues);
-// }
-
-//------------------------------------------------------------------------------------------------
-
-void VanGenuchtenLaw::CalculateMaterialResponse (Parameters& rValues)
-{
-    //Check
-    rValues.CheckAllParameters();
-
-    //Initialize main variables
-    SaturationLawVariables Variables;
-    this->InitializeConstitutiveLawVariables(Variables,rValues);
-
-        // //Compute the capilar pressure at the integration point
-        // Variables.ipCapilarPressure = inner_prod(Variables.Np,Variables.CapilarPressureVector);
-
-    this->CalculateWaterSaturationDegree(Variables,rValues);
-
-    this->EffectiveSaturation(Variables,rValues);
-    this->WaterRelativePermeability(Variables,rValues);
-    this->GasRelativePermeability(Variables,rValues);
-    
-
-
-
-}
-
-//------------------------------------------------------------------------------------------------
-
-void VanGenuchtenLaw::CalculateSaturation (Parameters& rValues)
-{
-    //Check
-    rValues.CheckAllParameters();
-
-    //Initialize main variables
-    SaturationLawVariables Variables;
-    this->InitializeConstitutiveLawVariables(Variables,rValues);
-
-        // //Compute the capilar pressure at the integration point
-        // Variables.ipCapilarPressure = inner_prod(Variables.Np,Variables.CapilarPressureVector);
-
-    this->CalculateWaterSaturationDegree(Variables,rValues);
-    
-
-
-
-}
-
-//------------------------------------------------------------------------------------------------
-
 void VanGenuchtenLaw::CalculateWaterSaturationDegree (SaturationLawVariables& rVariables, Parameters& rValues)
 {
-    //Get material parameters
-    double Swr    = rVariables.ResidualWaterSaturation;
-    double lambda = rVariables.PoreSizeFactor;
-    double pb     = rVariables.GasEntryPressure;
-    double pc     = rVariables.ipCapilarPressure;
+    double& rSw = rValues.GetSw();
+    double& rdSwdPc = rValues.GetdSwdPc();
 
     // If the capillar pressure is lower than the gas-entry pressure, the porous media is fully saturated with the wetting phase.
-    rVariables.Sw     = 1.0;
-    rVariables.dSwdPc = 0.0;
+    rSw = 1.0;
+    rdSwdPc = 0.0;
 
-    if(pc > pb)
+    if(rVariables.pc > rVariables.pb)
     {
-            // -- van Genuchten (https://www.sciencedirect.com/science/article/pii/S0266352X22004657) -----
+        // Water saturation degree
+        rSw = (1.0 - rVariables.Swr)*std::pow(1.0 + std::pow(rVariables.pc/rVariables.pb,1.0/(1.0-rVariables.lambda)),-rVariables.lambda) 
+                + rVariables.Swr;
 
-            // Water saturation degree
-            rVariables.Sw = (1.0 - Swr)*pow(1.0 + pow(pc/pb,1.0/(1.0-lambda)),-lambda) + Swr;
-
-            // Derivative of the water saturation degree with respect to the capilar pressure
-            rVariables.dSwdPc = (1.0 - Swr)*lambda/(pb * pow(pc/pb,1.0+1.0/(lambda-1.0)) * (lambda - 1.0) * pow(1.0+1.0/(pow(pc/pb,1/(lambda-1.0))),lambda+1.0));
+        // Derivative of the water saturation degree with respect to the capilar pressure
+        rdSwdPc = (1.0 - rVariables.Swr)*
+                    rVariables.lambda /
+                    (rVariables.pb *
+                    std::pow(rVariables.pc/rVariables.pb,1.0+1.0/(rVariables.lambda-1.0)) *
+                    (rVariables.lambda - 1.0) *
+                    std::pow(1.0+1.0/(std::pow(rVariables.pc/rVariables.pb,1.0/(rVariables.lambda-1.0))),rVariables.lambda+1.0));
                 
     }
 }
 
 //------------------------------------------------------------------------------------------------
 
-void VanGenuchtenLaw::WaterRelativePermeability (SaturationLawVariables& rVariables, Parameters& rValues)
+void VanGenuchtenLaw::CalculateWaterRelativePermeability (SaturationLawVariables& rVariables, Parameters& rValues)
 {
-    double krw, nw, lambda;
+    double& rkrw = rValues.Getkrw();
 
-    // Compute the water relative permeability according with the consitutive model
-        // -- van Genuchten (https://www.sciencedirect.com/science/article/pii/S0266352X22004657) -----
+    // TODO. Review this number
+    const double nw = 1.5;
 
-            nw  = 1.5;
-            krw = pow(Se,nw);
-
-    krw = std::min(krw,0.0001);
-    return krw;    
+    rkrw = std::pow(rVariables.Se,nw);
+    // TODO. Review this number
+    rkrw = std::min(rkrw,0.0001);
 }
 
 //------------------------------------------------------------------------------------------------
 
-void VanGenuchtenLaw::GasRelativePermeability (SaturationLawVariables& rVariables, Parameters& rValues)
+void VanGenuchtenLaw::CalculateGasRelativePermeability (SaturationLawVariables& rVariables, Parameters& rValues)
 {
-    double krg, ng, lambda;
+    double& rkrg = rValues.Getkrg();
 
-    // Compute the gas relative permeability according with the consitutive model
-        // -- van Genuchten (https://www.sciencedirect.com/science/article/pii/S0266352X22004657) -----
-
-            ng  = 3.0;
-            krg = pow(1.0-Se,ng);
-
-    krg = std::min(krg,0.0001);
-    return krg;    
+    // TODO. Review this number
+    const double ng = 3.0;
+    
+    rkrg = std::pow(1.0-rVariables.Se,ng);
+    // TODO. Review this number
+    rkrg = std::min(rkrg,0.0001);
 }
+
 }
