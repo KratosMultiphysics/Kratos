@@ -961,8 +961,6 @@ void UPwPgSmallStrainElement<TDim,TNumNodes>::CalculateMassMatrix( MatrixType& r
 
     //Constitutive Law parameters
     ConstitutiveLaw::Parameters ConstitutiveParameters(Geom,Prop,rCurrentProcessInfo);
-    ConstitutiveParameters.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
-    ConstitutiveParameters.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
 
     //Saturation Law paremeters
     SaturationLaw::Parameters SaturationParameters(Geom,Prop,rCurrentProcessInfo);
@@ -995,31 +993,65 @@ void UPwPgSmallStrainElement<TDim,TNumNodes>::CalculateMassMatrix( MatrixType& r
 }
 
 //----------------------------------------------------------------------------------------
-//TODO
+
 template< unsigned int TDim, unsigned int TNumNodes >
 void UPwPgSmallStrainElement<TDim,TNumNodes>::CalculateLumpedMassMatrix( MatrixType& rLeftHandSideMatrix, const ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY
 
-    const auto& r_geom = GetGeometry();
-    const auto& r_prop = GetProperties();
-    const SizeType element_size = TNumNodes * (TDim + 1);
+    const unsigned int element_size = TNumNodes * (TDim + 2);
 
     //Resizing mass matrix
     if ( rLeftHandSideMatrix.size1() != element_size )
         rLeftHandSideMatrix.resize( element_size, element_size, false );
     noalias( rLeftHandSideMatrix ) = ZeroMatrix( element_size, element_size );
 
-    const double& Porosity = 1.0;  // TODO
-    const double density = 1.0;     // TODO
+    //Previous definitions
+    const PropertiesType& Prop = this->GetProperties();
+    const GeometryType& Geom = this->GetGeometry();
+    const GeometryType::IntegrationPointsArrayType& integration_points = Geom.IntegrationPoints( mThisIntegrationMethod );
+    const unsigned int NumGPoints = integration_points.size();
 
-    const double thickness = (TDim == 2 && r_prop.Has(THICKNESS)) ? r_prop[THICKNESS] : 1.0;
+    // Initialize elemenatal total mass
+    double total_mass = 0.0;
+
+    //Containers of variables at all integration points
+    const Matrix& NContainer = Geom.ShapeFunctionsValues( mThisIntegrationMethod );
+    GeometryType::ShapeFunctionsGradientsType DN_DXContainer(NumGPoints);
+    Vector detJContainer(NumGPoints);
+    Geom.ShapeFunctionsIntegrationPointsGradients(DN_DXContainer,detJContainer,mThisIntegrationMethod);
+
+    //Constitutive Law parameters
+    ConstitutiveLaw::Parameters ConstitutiveParameters(Geom,Prop,rCurrentProcessInfo);
+
+    //Saturation Law paremeters
+    SaturationLaw::Parameters SaturationParameters(Geom,Prop,rCurrentProcessInfo);
+
+    //Element variables
+    ElementVariables Variables;
+    this->InitializeElementVariables(Variables,ConstitutiveParameters,SaturationParameters,Geom,Prop,rCurrentProcessInfo);
+
+    //Loop over integration points
+    for ( unsigned int GPoint = 0; GPoint < NumGPoints; GPoint++ )
+    {
+        //Compute Np
+        noalias(Variables.Np) = row(NContainer,GPoint);
+
+        //Compute Saturation Law variables: Sw, dSwdPc
+        mSaturationLawVector[GPoint]->CalculateSaturation(SaturationParameters);
+
+        // Update the density based on the new saturation degree
+        this->UpdateDensity(Variables);
+
+        //Compute weighting coefficient for integration
+        this->CalculateIntegrationCoefficient(Variables.IntegrationCoefficient, detJContainer[GPoint], integration_points[GPoint].Weight() );
+
+        total_mass += Variables.Density * Variables.IntegrationCoefficient;
+    }
 
     // LUMPED MASS MATRIX
-    const double total_mass = r_geom.DomainSize() * density * thickness;
-
     Vector lumping_factors;
-    lumping_factors = r_geom.LumpingFactors( lumping_factors );
+    lumping_factors = Geom.LumpingFactors( lumping_factors );
 
     for ( IndexType i = 0; i < TNumNodes; ++i ) {
         const double temp = lumping_factors[i] * total_mass;
