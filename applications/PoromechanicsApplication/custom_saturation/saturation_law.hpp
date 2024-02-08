@@ -113,9 +113,6 @@ public:
         };
 
         ~Parameters() = default;
-        {
-
-        }
 
         ///------------------------------------------------------------------------------------------------
 
@@ -158,7 +155,7 @@ public:
         bool CheckInfoMaterialGeometry ()
         {
             if(!mpCurrentProcessInfo)
-                KRATOS_ERROR << "CurrentProcessInfo NOT SET" << std::endl;
+                KRATOS_ERROR << "rCurrentProcessInfo NOT SET" << std::endl;
 
             if(!mpMaterialProperties)
                 KRATOS_ERROR << "MaterialProperties NOT SET" << std::endl;
@@ -171,10 +168,10 @@ public:
 
         ///------------------------------------------------------------------------------------------------
 
-        void SetSw (const double& rSw)         {mpSw=&rSw;};
-        void SetdSwdPc (const double& rdSwdPc) {mpdSwdPc=&rdSwdPc;};
-        void Setkrw (const double& rkrw)       {mpkrw=&rkrw;};
-        void Setkrg (const double& rkrg)       {mpkrg=&rkrg;};
+        void SetSw (double& rSw)         {mpSw=&rSw;};
+        void SetdSwdPc (double& rdSwdPc) {mpdSwdPc=&rdSwdPc;};
+        void Setkrw (double& rkrw)       {mpkrw=&rkrw;};
+        void Setkrg (double& rkrg)       {mpkrg=&rkrg;};
 
         void SetShapeFunctionsValues (const Vector& rShapeFunctionsValues)           {mpShapeFunctionsValues=&rShapeFunctionsValues;};
         void SetShapeFunctionsDerivatives (const Matrix& rShapeFunctionsDerivatives) {mpShapeFunctionsDerivatives=&rShapeFunctionsDerivatives;};
@@ -372,19 +369,19 @@ public:
 
     ///------------------------------------------------------------------------------------------------
 
-    std::string Info() const override
+    virtual std::string Info() const
     {
         std::stringstream buffer;
         buffer << "SaturationLaw";
         return buffer.str();
     }
 
-    void PrintInfo(std::ostream& rOStream) const override
+    virtual void PrintInfo(std::ostream& rOStream) const
     {
         rOStream << "SaturationLaw";
     }
 
-    void PrintData(std::ostream& rOStream) const override
+    virtual void PrintData(std::ostream& rOStream) const
     {
       rOStream << "SaturationLaw has no data";
     }

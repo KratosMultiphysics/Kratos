@@ -177,19 +177,19 @@ protected:
 
     void ExtrapolateGPValues(const Matrix& GradPressureContainer, const Matrix& StressContainer, const unsigned int& VoigtSize);
 
-    void CalculateStiffnessMatrix( MatrixType& rStiffnessMatrix, const ProcessInfo& CurrentProcessInfo ) override;
+    void CalculateStiffnessMatrix( MatrixType& rStiffnessMatrix, const ProcessInfo& rCurrentProcessInfo ) override;
 
     void CalculateMassMatrix(MatrixType& rMassMatrix, const ProcessInfo& rCurrentProcessInfo) override;
 
     void CalculateLumpedMassMatrix( MatrixType& rLeftHandSideMatrix, const ProcessInfo& rCurrentProcessInfo ) override;
 
-    void CalculateAll( MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& CurrentProcessInfo ) override;
+    void CalculateAll( MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo ) override;
 
-    void CalculateRHS( VectorType& rRightHandSideVector, const ProcessInfo& CurrentProcessInfo ) override;
+    void CalculateRHS( VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo ) override;
 
     void InitializeElementVariables(ElementVariables& rVariables, ConstitutiveLaw::Parameters& rConstitutiveParameters,
                                     SaturationLaw::Parameters& rSaturationParameters,
-                                    const GeometryType& Geom, const PropertiesType& Prop, const ProcessInfo& CurrentProcessInfo);
+                                    const GeometryType& Geom, const PropertiesType& Prop, const ProcessInfo& rCurrentProcessInfo);
 
     void CalculateBMatrix(Matrix& rB, const Matrix& GradNpT);
 

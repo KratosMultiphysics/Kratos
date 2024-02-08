@@ -878,7 +878,7 @@ void UPwPgSmallStrainElement<TDim,TNumNodes>::CalculateOnIntegrationPoints( cons
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 template< unsigned int TDim, unsigned int TNumNodes >
-void UPwPgSmallStrainElement<TDim,TNumNodes>::CalculateStiffnessMatrix( MatrixType& rStiffnessMatrix, const ProcessInfo& CurrentProcessInfo )
+void UPwPgSmallStrainElement<TDim,TNumNodes>::CalculateStiffnessMatrix( MatrixType& rStiffnessMatrix, const ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY
 
@@ -902,7 +902,7 @@ void UPwPgSmallStrainElement<TDim,TNumNodes>::CalculateStiffnessMatrix( MatrixTy
     Geom.ShapeFunctionsIntegrationPointsGradients(DN_DXContainer,detJContainer,mThisIntegrationMethod);
 
     //Constitutive Law parameters
-    ConstitutiveLaw::Parameters ConstitutiveParameters(Geom,Prop,CurrentProcessInfo);
+    ConstitutiveLaw::Parameters ConstitutiveParameters(Geom,Prop,rCurrentProcessInfo);
     ConstitutiveParameters.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
     ConstitutiveParameters.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
 
@@ -1067,7 +1067,7 @@ void UPwPgSmallStrainElement<TDim,TNumNodes>::CalculateLumpedMassMatrix( MatrixT
 //----------------------------------------------------------------------------------------
 
 template< unsigned int TDim, unsigned int TNumNodes >
-void UPwPgSmallStrainElement<TDim,TNumNodes>::CalculateAll( MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& CurrentProcessInfo )
+void UPwPgSmallStrainElement<TDim,TNumNodes>::CalculateAll( MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY
 
@@ -1084,7 +1084,7 @@ void UPwPgSmallStrainElement<TDim,TNumNodes>::CalculateAll( MatrixType& rLeftHan
     Geom.ShapeFunctionsIntegrationPointsGradients(DN_DXContainer,detJContainer,mThisIntegrationMethod);
 
     //Constitutive Law parameters
-    ConstitutiveLaw::Parameters ConstitutiveParameters(Geom,Prop,CurrentProcessInfo);
+    ConstitutiveLaw::Parameters ConstitutiveParameters(Geom,Prop,rCurrentProcessInfo);
     ConstitutiveParameters.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
     ConstitutiveParameters.Set(ConstitutiveLaw::COMPUTE_STRESS);
     ConstitutiveParameters.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
@@ -1132,7 +1132,7 @@ void UPwPgSmallStrainElement<TDim,TNumNodes>::CalculateAll( MatrixType& rLeftHan
 //----------------------------------------------------------------------------------------
 
 template< unsigned int TDim, unsigned int TNumNodes >
-void UPwPgSmallStrainElement<TDim,TNumNodes>::CalculateRHS( VectorType& rRightHandSideVector, const ProcessInfo& CurrentProcessInfo )
+void UPwPgSmallStrainElement<TDim,TNumNodes>::CalculateRHS( VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY
 
@@ -1149,7 +1149,7 @@ void UPwPgSmallStrainElement<TDim,TNumNodes>::CalculateRHS( VectorType& rRightHa
     Geom.ShapeFunctionsIntegrationPointsGradients(DN_DXContainer,detJContainer,mThisIntegrationMethod);
 
     //Constitutive Law parameters
-    ConstitutiveLaw::Parameters ConstitutiveParameters(Geom,Prop,CurrentProcessInfo);
+    ConstitutiveLaw::Parameters ConstitutiveParameters(Geom,Prop,rCurrentProcessInfo);
     ConstitutiveParameters.Set(ConstitutiveLaw::COMPUTE_STRESS);
     ConstitutiveParameters.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
 
@@ -1195,7 +1195,7 @@ void UPwPgSmallStrainElement<TDim,TNumNodes>::CalculateRHS( VectorType& rRightHa
 template< unsigned int TDim, unsigned int TNumNodes >
 void UPwPgSmallStrainElement<TDim,TNumNodes>::InitializeElementVariables(ElementVariables& rVariables,ConstitutiveLaw::Parameters& rConstitutiveParameters,
                                                                             SaturationLaw::Parameters& rSaturationParameters,
-                                                                            const GeometryType& Geom, const PropertiesType& Prop, const ProcessInfo& CurrentProcessInfo)
+                                                                            const GeometryType& Geom, const PropertiesType& Prop, const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
@@ -1217,8 +1217,8 @@ void UPwPgSmallStrainElement<TDim,TNumNodes>::InitializeElementVariables(Element
     rVariables.BiotModulusInverse        = rVariables.SolidCompressibilityCoeff + rVariables.FluidCompressibilityCoeff;
 
     //ProcessInfo variables
-    rVariables.VelocityCoefficient = CurrentProcessInfo[VELOCITY_COEFFICIENT];
-    rVariables.DtPressureCoefficient = CurrentProcessInfo[DT_PRESSURE_COEFFICIENT];
+    rVariables.VelocityCoefficient = rCurrentProcessInfo[VELOCITY_COEFFICIENT];
+    rVariables.DtPressureCoefficient = rCurrentProcessInfo[DT_PRESSURE_COEFFICIENT];
 
     //Nodal Variables
     for(unsigned int i=0; i<TNumNodes; i++)
