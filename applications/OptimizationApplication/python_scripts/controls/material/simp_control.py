@@ -35,6 +35,15 @@ class SimpControl(Control):
                 "adaptive"     : false,
                 "increase_fac" : 1.5,
                 "update_period": 20
+            },
+            "filter_settings": {
+                "type"                      : "explicit",
+                "filter_function_type"      : "linear",
+                "damping_function_type"     : "sigmoidal",
+                "radius"                    : 0.000000000001,
+                "max_nodes_in_filter_radius": 1000,
+                "linear_solver_settings"    : {},
+                "fixed_model_parts"         : []
             }
         }""")
         parameters.RecursivelyValidateAndAssignDefaults(default_settings)
