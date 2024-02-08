@@ -97,7 +97,7 @@ public:
         {
             const GaussPoint& ReceiverPoint = *(mGaussPointList[i]);
             double LocalEquivalentStrain;
-            LocalEquivalentStrain = ReceiverPoint.pConstitutiveLaw->GetValue(LOCAL_EQUIVALENT_STRAIN,LocalEquivalentStrain);;
+            LocalEquivalentStrain = ReceiverPoint.pConstitutiveLaw->GetValue(LOCAL_EQUIVALENT_STRAIN,LocalEquivalentStrain);
             double Numerator = ReceiverPoint.Weight*LocalEquivalentStrain;
             double WeightingFunctionDenominator = ReceiverPoint.Weight;
             
