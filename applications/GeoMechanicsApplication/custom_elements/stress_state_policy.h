@@ -27,6 +27,7 @@ public:
     virtual double CalculateIntegrationCoefficient(const Geometry<Node>::IntegrationPointType& rIntegrationPoint,
                                                    double                detJ,
                                                    const Geometry<Node>& rGeometry) const = 0;
+    virtual Vector CalculateGreenLagrangeStrain(const Matrix& rTotalDeformationGradient) const = 0;
     virtual std::unique_ptr<StressStatePolicy> Clone() const = 0;
 
     virtual ~StressStatePolicy() = default;

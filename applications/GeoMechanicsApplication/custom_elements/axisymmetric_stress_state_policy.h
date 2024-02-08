@@ -26,6 +26,7 @@ public:
                                            const Geometry<Node>& rGeometry) const override;
     Matrix CalculateBMatrix(const Matrix& GradNpT, const Vector& Np, const Geometry<Node>& rGeometry) const override;
     unique_ptr<StressStatePolicy> Clone() const override;
+    Vector CalculateGreenLagrangeStrain(const Matrix& rTotalDeformationGradient) const override;
 };
 
 } // namespace Kratos
