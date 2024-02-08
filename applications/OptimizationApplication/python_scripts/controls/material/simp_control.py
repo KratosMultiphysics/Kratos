@@ -130,17 +130,18 @@ class SimpControl(Control):
         if not IsSameContainerExpression(control_field, self.GetEmptyField()):
             raise RuntimeError(f"Updates for the required element container not found for control \"{self.GetName()}\". [ required model part name: {self.model_part.FullName()}, given model part name: {control_field.GetModelPart().FullName()} ]")
 
-        self.phi = control_field.Clone()
-        self.__ApplyDensityAndYoungsModulus()
+        if Kratos.Expression.Utils.NormL2(self.phi - control_field) > 1e-15:
+            self.phi = control_field.Clone()
+            self.__ApplyDensityAndYoungsModulus()
 
-        step = self.optimization_problem.GetStep()
-        # do this only once per step
-        if self.__current_step_value != step and self.beta_adaptive:
-            self.__current_step_value = step
-            if step % self.beta_update_period == 0 and self.beta < self.beta_max_value:
-             self.beta *= self.beta_increase_fac
-             if self.beta > self.beta_max_value:
-                 self.beta = self.beta_max_value
+            step = self.optimization_problem.GetStep()
+            # do this only once per step
+            if self.__current_step_value != step and self.beta_adaptive:
+                self.__current_step_value = step
+                if step % self.beta_update_period == 0 and self.beta < self.beta_max_value:
+                    self.beta *= self.beta_increase_fac
+                    if self.beta > self.beta_max_value:
+                        self.beta = self.beta_max_value
 
     def __ApplyDensityAndYoungsModulus(self) -> None:
         density = KratosOA.ControlUtils.SigmoidalProjectionUtils.ProjectForward(self.phi, self.x_values, self.densities, self.beta, 1)
