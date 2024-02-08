@@ -28,6 +28,9 @@
 #include "includes/process_info.h"
 #include "includes/ublas_interface.h"
 
+// Application includes
+#include "poromechanics_application_variables.h"
+
 namespace Kratos {
 
 class KRATOS_API(POROMECHANICS_APPLICATION) SaturationLaw 

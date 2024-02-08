@@ -286,7 +286,7 @@ void SaturationLaw::InitializeSaturationLawVariables(SaturationLawVariables& rVa
     // Capilar pore pressure: pc = pg - pw
     rVariables.pc = 0.0;
     for (unsigned int i = 0; i < number_of_nodes; i++) {
-        rVariables.pc += N[i] * (geometry[i].GetSolutionStepValue(GAS_PRESSURE) - geometry[i].GetSolutionStepValue(WATER_PRESSURE))
+        rVariables.pc += N[i] * (geometry[i].GetSolutionStepValue(GAS_PRESSURE) - geometry[i].GetSolutionStepValue(WATER_PRESSURE));
     }
 }
 
