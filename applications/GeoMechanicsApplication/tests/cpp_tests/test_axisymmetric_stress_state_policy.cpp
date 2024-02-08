@@ -17,6 +17,7 @@
 #include "geometries/geometry.h"
 #include "includes/checks.h"
 #include "testing/testing.h"
+#include "tests/cpp_tests/test_utilities/model_setup_utilities.h"
 #include <boost/numeric/ublas/assignment.hpp>
 
 using namespace Kratos;
@@ -24,26 +25,12 @@ using namespace Kratos;
 namespace Kratos::Testing
 {
 
-ModelPart& CreateModelPart(Model& rModel)
-{
-    ModelPart& result = rModel.CreateModelPart("Main");
-
-    result.CreateNewNode(1, 0.0, 0.0, 0.0);
-    result.CreateNewNode(2, 1.0, 0.0, 0.0);
-    result.CreateNewNode(3, 1.0, 1.0, 0.0);
-
-    std::vector<ModelPart::IndexType> node_ids{1, 2, 3};
-    result.CreateNewElement("UPwSmallStrainElement2D3N", 1, node_ids, result.CreateNewProperties(0));
-
-    return result;
-}
-
 KRATOS_TEST_CASE_IN_SUITE(CalculateBMatrixWithValidGeometryReturnsCorrectResults, KratosGeoMechanicsFastSuite)
 {
     const auto p_stress_state_policy = std::make_unique<AxisymmetricStressState>();
 
     Model      model;
-    ModelPart& model_part = CreateModelPart(model);
+    ModelPart& model_part = ModelSetupUtilities::CreateModelPartWithASingle2D3NElement(model);
 
     Vector Np(3);
     Np <<= 1.0, 2.0, 3.0;
@@ -74,7 +61,7 @@ KRATOS_TEST_CASE_IN_SUITE(ReturnCorrectIntegrationCoefficient, KratosGeoMechanic
     const auto p_stress_state_policy = std::make_unique<AxisymmetricStressState>();
 
     Model      model;
-    ModelPart& model_part = CreateModelPart(model);
+    ModelPart& model_part = ModelSetupUtilities::CreateModelPartWithASingle2D3NElement(model);
 
     // The shape function values for this integration point are 0.2, 0.5 and 0.3 for nodes 1, 2 and 3 respectively
     Geometry<Node>::IntegrationPointType integration_point(0.5, 0.3, 0.0, 0.5);
