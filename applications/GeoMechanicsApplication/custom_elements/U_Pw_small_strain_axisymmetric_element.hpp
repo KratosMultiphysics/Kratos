@@ -109,6 +109,8 @@ protected:
                                            unsigned int PointNumber,
                                            double       detJ) override;
 
+    void CalculateCauchyGreenStrain(ElementVariables& rVariables) override;
+
     ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 private:
@@ -135,8 +137,9 @@ private:
     UPwSmallStrainAxisymmetricElement(UPwSmallStrainAxisymmetricElement const& rOther);
 
     // Private Operations
+};
 
-}; // Class UPwSmallStrainAxisymmetricElement
+// Class UPwSmallStrainAxisymmetricElement
 
 } // namespace Kratos
 

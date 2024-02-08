@@ -56,6 +56,12 @@ double UpdatedLagrangianUPwDiffOrderAxisymmetricElement::CalculateIntegrationCoe
     return stress_state.CalculateIntegrationCoefficient(IntegrationPoints[PointNumber], detJ, this->GetGeometry());
 }
 
+void UpdatedLagrangianUPwDiffOrderAxisymmetricElement::CalculateCauchyGreenStrain(ElementVariables& rVariables)
+{
+    AxisymmetricStressState stress_state;
+    stress_state.CalculateGreenLagrangeStrain(rVariables.F);
+}
+
 //----------------------------------------------------------------------------------------------------
 
 } // Namespace Kratos

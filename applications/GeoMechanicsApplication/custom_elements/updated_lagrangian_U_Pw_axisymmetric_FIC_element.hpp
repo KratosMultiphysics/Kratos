@@ -113,6 +113,8 @@ protected:
                                            unsigned int PointNumber,
                                            double       detJ) override;
 
+    void CalculateCauchyGreenStrain(ElementVariables& rVariables) override;
+
     ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 private:
@@ -147,8 +149,9 @@ private:
         rNode.FastGetSolutionStepValue(Var) = Value;
         rNode.UnSetLock();
     }
+};
 
-}; // Class UPwUpdatedLagrangianAxisymmetricFICElement
+// Class UPwUpdatedLagrangianAxisymmetricFICElement
 
 } // namespace Kratos
 

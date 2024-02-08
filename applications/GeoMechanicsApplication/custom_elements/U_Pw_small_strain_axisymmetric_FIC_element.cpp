@@ -58,6 +58,13 @@ double UPwSmallStrainAxisymmetricFICElement<TDim, TNumNodes>::CalculateIntegrati
     return stress_state.CalculateIntegrationCoefficient(IntegrationPoints[PointNumber], detJ, this->GetGeometry());
 }
 
+template <unsigned int TDim, unsigned int TNumNodes>
+void UPwSmallStrainAxisymmetricFICElement<TDim, TNumNodes>::CalculateCauchyGreenStrain(ElementVariables& rVariables)
+{
+    AxisymmetricStressState stress_state;
+    stress_state.CalculateGreenLagrangeStrain(rVariables.F);
+}
+
 //----------------------------------------------------------------------------------------------------
 
 template class UPwSmallStrainAxisymmetricFICElement<2, 3>;

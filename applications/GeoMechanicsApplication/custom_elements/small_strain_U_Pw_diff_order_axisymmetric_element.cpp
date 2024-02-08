@@ -54,6 +54,12 @@ double SmallStrainUPwDiffOrderAxisymmetricElement::CalculateIntegrationCoefficie
     return stress_state.CalculateIntegrationCoefficient(IntegrationPoints[PointNumber], detJ, this->GetGeometry());
 }
 
+void SmallStrainUPwDiffOrderAxisymmetricElement::CalculateCauchyGreenStrain(SmallStrainUPwDiffOrderElement::ElementVariables& rVariables)
+{
+    AxisymmetricStressState stress_state;
+    stress_state.CalculateGreenLagrangeStrain(rVariables.F);
+}
+
 //----------------------------------------------------------------------------------------------------
 
 } // Namespace Kratos
