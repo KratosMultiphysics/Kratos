@@ -40,6 +40,7 @@ public:
     /// The definition of the sizetype
     using SizeType = std::size_t;
     using SmallStrainUPwDiffOrderElement::mConstitutiveLawVector;
+    using SmallStrainUPwDiffOrderElement::mConstitutiveLawVector;
 
     ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -103,6 +104,8 @@ protected:
     double CalculateIntegrationCoefficient(const GeometryType::IntegrationPointsArrayType& IntegrationPoints,
                                            unsigned int PointNumber,
                                            double       detJ) override;
+
+    void CalculateGreenLagrangeStrain(ElementVariables& rVariables) override;
 
     ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 

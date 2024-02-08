@@ -277,8 +277,7 @@ protected:
     double CalculateBulkModulus(const Matrix& ConstitutiveMatrix) const;
     double CalculateBiotCoefficient(const ElementVariables& rVariables, bool hasBiotCoefficient) const;
 
-    virtual void CalculateCauchyAlmansiStrain(ElementVariables& rVariables);
-    virtual void CalculateCauchyGreenStrain(ElementVariables& rVariables);
+    virtual void CalculateGreenLagrangeStrain(ElementVariables& rVariables);
     virtual void CalculateCauchyStrain(ElementVariables& rVariables);
     virtual void CalculateStrain(ElementVariables& rVariables, unsigned int GPoint);
     virtual void CalculateDeformationGradient(ElementVariables& rVariables, unsigned int GPoint);

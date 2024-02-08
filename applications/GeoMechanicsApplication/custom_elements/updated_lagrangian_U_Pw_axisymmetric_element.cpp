@@ -12,7 +12,7 @@
 
 // Application includes
 #include "custom_elements/updated_lagrangian_U_Pw_axisymmetric_element.hpp"
-#include "axisymmetric_stress_state_policy.h"
+#include "axisymmetric_stress_state.h"
 
 namespace Kratos
 {
@@ -57,6 +57,13 @@ double UPwUpdatedLagrangianAxisymmetricElement<TDim, TNumNodes>::CalculateIntegr
     AxisymmetricStressState stress_state;
     return stress_state.CalculateIntegrationCoefficient(IntegrationPoints[PointNumber], detJ,
                                                         this->GetGeometry());
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
+void UPwUpdatedLagrangianAxisymmetricElement<TDim, TNumNodes>::CalculateGreenLagrangeStrain(ElementVariables& rVariables)
+{
+    AxisymmetricStressState stress_state;
+    stress_state.CalculateGreenLagrangeStrain(rVariables.F);
 }
 
 //----------------------------------------------------------------------------------------------------

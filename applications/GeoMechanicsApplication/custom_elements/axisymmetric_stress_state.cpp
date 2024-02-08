@@ -11,7 +11,7 @@
 //                   Marjan Fathian
 //
 
-#include "axisymmetric_stress_state_policy.h"
+#include "axisymmetric_stress_state.h"
 #include "custom_utilities/element_utilities.hpp"
 
 namespace Kratos
@@ -59,6 +59,11 @@ double AxisymmetricStressState::CalculateIntegrationCoefficient(const Geometry<N
 unique_ptr<StressStatePolicy> AxisymmetricStressState::Clone() const
 {
     return std::make_unique<AxisymmetricStressState>();
+}
+
+Vector AxisymmetricStressState::CalculateGreenLagrangeStrain(const Matrix& rTotalDeformationGradient) const
+{
+    KRATOS_ERROR << "The calculation of Green Lagrange strain is not implemented for axisymmetric configurations.\n";
 }
 
 } // namespace Kratos

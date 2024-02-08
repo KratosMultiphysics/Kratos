@@ -42,6 +42,7 @@ public:
     /// The definition of the sizetype
     using SizeType = std::size_t;
     using UPwBaseElement<TDim, TNumNodes>::mConstitutiveLawVector;
+    using typename UPwSmallStrainElement<TDim, TNumNodes>::ElementVariables;
 
     ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -113,6 +114,8 @@ protected:
                                            unsigned int PointNumber,
                                            double       detJ) override;
 
+    void CalculateGreenLagrangeStrain(ElementVariables& rVariables) override;
+
     ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 private:
@@ -147,8 +150,9 @@ private:
         rNode.FastGetSolutionStepValue(Var) = Value;
         rNode.UnSetLock();
     }
+};
 
-}; // Class UPwUpdatedLagrangianAxisymmetricFICElement
+// Class UPwUpdatedLagrangianAxisymmetricFICElement
 
 } // namespace Kratos
 

@@ -12,7 +12,7 @@
 
 // Application includes
 #include "custom_elements/U_Pw_small_strain_axisymmetric_element.hpp"
-#include "axisymmetric_stress_state_policy.h"
+#include "axisymmetric_stress_state.h"
 
 namespace Kratos
 {
@@ -59,6 +59,13 @@ double UPwSmallStrainAxisymmetricElement<TDim, TNumNodes>::CalculateIntegrationC
     AxisymmetricStressState stress_state;
     return stress_state.CalculateIntegrationCoefficient(IntegrationPoints[PointNumber], detJ,
                                                         this->GetGeometry());
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
+void UPwSmallStrainAxisymmetricElement<TDim, TNumNodes>::CalculateGreenLagrangeStrain(ElementVariables& rVariables)
+{
+    AxisymmetricStressState stress_state;
+    stress_state.CalculateGreenLagrangeStrain(rVariables.F);
 }
 
 //----------------------------------------------------------------------------------------------------

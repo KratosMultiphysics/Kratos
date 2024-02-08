@@ -12,7 +12,7 @@
 //
 
 #include "containers/model.h"
-#include "custom_elements/axisymmetric_stress_state_policy.h"
+#include "custom_elements/axisymmetric_stress_state.h"
 #include "custom_elements/stress_state_policy.h"
 #include "geometries/geometry.h"
 #include "includes/checks.h"
@@ -81,6 +81,15 @@ KRATOS_TEST_CASE_IN_SUITE(TestCloneReturnsCorrectType, KratosGeoMechanicsFastSui
     const auto p_cloned_stress_state_policy = p_stress_state_policy->Clone();
 
     KRATOS_EXPECT_NE(dynamic_cast<AxisymmetricStressState*>(p_cloned_stress_state_policy.get()), nullptr);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(TestCalculateGreenLagrangeStrainThrows, KratosGeoMechanicsFastSuite)
+{
+    const auto p_stress_state_policy = std::make_unique<AxisymmetricStressState>();
+
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        p_stress_state_policy->CalculateGreenLagrangeStrain(Matrix()),
+        "The calculation of Green Lagrange strain is not implemented for axisymmetric configurations.")
 }
 
 } // namespace Kratos::Testing

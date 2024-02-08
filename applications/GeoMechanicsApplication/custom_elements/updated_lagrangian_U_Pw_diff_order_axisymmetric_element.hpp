@@ -40,6 +40,7 @@ public:
     using MatrixType     = Matrix;
     /// The definition of the sizetype
     using SizeType = std::size_t;
+    using typename SmallStrainUPwDiffOrderElement::ElementVariables;
     using UpdatedLagrangianUPwDiffOrderElement::mConstitutiveLawVector;
 
     ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -104,6 +105,8 @@ protected:
     double CalculateIntegrationCoefficient(const GeometryType::IntegrationPointsArrayType& IntegrationPoints,
                                            unsigned int PointNumber,
                                            double       detJ) override;
+
+    void CalculateGreenLagrangeStrain(ElementVariables& rVariables) override;
 
     ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
