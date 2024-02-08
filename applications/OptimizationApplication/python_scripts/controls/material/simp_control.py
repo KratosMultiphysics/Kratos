@@ -125,6 +125,7 @@ class SimpControl(Control):
         self.__ApplyDensityAndYoungsModulus()
 
         step = self.optimization_problem.GetStep()
+        # do this only once per step
         if self.__current_step_value != step and self.beta_adaptive:
             self.__current_step_value = step
             if step % self.beta_update_period == 0 and self.beta < self.beta_max_value:
