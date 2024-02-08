@@ -24,6 +24,7 @@ public:
     double CalculateIntegrationCoefficient(const Geometry<Node>::IntegrationPointType& rIntegrationPoint,
                                            double                detJ,
                                            const Geometry<Node>& rGeometry) const override;
+    Vector CalculateGreenLagrangeStrain(const Matrix& rTotalDeformationGradient) const override;
     unique_ptr<StressStatePolicy> Clone() const override;
 };
 

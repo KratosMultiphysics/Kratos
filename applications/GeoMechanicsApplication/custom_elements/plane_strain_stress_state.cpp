@@ -46,4 +46,9 @@ unique_ptr<StressStatePolicy> PlaneStrainStressState::Clone() const
     return std::make_unique<PlaneStrainStressState>();
 }
 
+Vector PlaneStrainStressState::CalculateGreenLagrangeStrain(const Matrix& rTotalDeformationGradient) const
+{
+    return Kratos::Vector();
+}
+
 } // namespace Kratos
