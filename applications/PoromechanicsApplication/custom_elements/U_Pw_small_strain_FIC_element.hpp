@@ -122,12 +122,12 @@ protected:
     void ExtrapolateGPDtStress(const Matrix& DtStressContainer);
 
 
-    void CalculateAll( MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& CurrentProcessInfo ) override;
+    void CalculateAll( MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo ) override;
 
-    void CalculateRHS( VectorType& rRightHandSideVector, const ProcessInfo& CurrentProcessInfo ) override;
+    void CalculateRHS( VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo ) override;
 
     void InitializeFICElementVariables(FICElementVariables& rFICVariables, const GeometryType::ShapeFunctionsGradientsType& DN_DXContainer,
-                                        const GeometryType& Geom,const PropertiesType& Prop, const ProcessInfo& CurrentProcessInfo);
+                                        const GeometryType& Geom,const PropertiesType& Prop, const ProcessInfo& rCurrentProcessInfo);
 
     void ExtrapolateShapeFunctionsGradients(array_1d< array_1d<double,TDim*TNumNodes> , TNumNodes >& rNodalShapeFunctionsGradients,
                                                 const GeometryType::ShapeFunctionsGradientsType& DN_DXContainer);

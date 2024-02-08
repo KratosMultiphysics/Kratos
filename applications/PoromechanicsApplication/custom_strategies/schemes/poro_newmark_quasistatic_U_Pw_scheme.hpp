@@ -152,7 +152,7 @@ public:
     {
         KRATOS_TRY
 
-        const ProcessInfo& CurrentProcessInfo = rModelPart.GetProcessInfo();
+        const ProcessInfo& rCurrentProcessInfo = rModelPart.GetProcessInfo();
 
         int NElems = static_cast<int>(rModelPart.Elements().size());
         ModelPart::ElementsContainerType::iterator el_begin = rModelPart.ElementsBegin();
@@ -161,7 +161,7 @@ public:
         for(int i = 0; i < NElems; i++)
         {
             ModelPart::ElementsContainerType::iterator itElem = el_begin + i;
-            itElem -> Initialize(CurrentProcessInfo);
+            itElem -> Initialize(rCurrentProcessInfo);
         }
 
         this->SetElementsAreInitialized();
@@ -179,7 +179,7 @@ public:
     {
         KRATOS_TRY
 
-        const ProcessInfo& CurrentProcessInfo = r_model_part.GetProcessInfo();
+        const ProcessInfo& rCurrentProcessInfo = r_model_part.GetProcessInfo();
 
         int NElems = static_cast<int>(r_model_part.Elements().size());
         ModelPart::ElementsContainerType::iterator el_begin = r_model_part.ElementsBegin();
@@ -188,7 +188,7 @@ public:
         for(int i = 0; i < NElems; i++)
         {
             ModelPart::ElementsContainerType::iterator itElem = el_begin + i;
-            itElem -> InitializeSolutionStep(CurrentProcessInfo);
+            itElem -> InitializeSolutionStep(rCurrentProcessInfo);
         }
 
         int NCons = static_cast<int>(r_model_part.Conditions().size());
@@ -198,7 +198,7 @@ public:
         for(int i = 0; i < NCons; i++)
         {
             ModelPart::ConditionsContainerType::iterator itCond = con_begin + i;
-            itCond -> InitializeSolutionStep(CurrentProcessInfo);
+            itCond -> InitializeSolutionStep(rCurrentProcessInfo);
         }
 
         KRATOS_CATCH("")
@@ -226,7 +226,7 @@ public:
     {
         KRATOS_TRY
 
-        const ProcessInfo& CurrentProcessInfo = r_model_part.GetProcessInfo();
+        const ProcessInfo& rCurrentProcessInfo = r_model_part.GetProcessInfo();
 
         int NElems = static_cast<int>(r_model_part.Elements().size());
         ModelPart::ElementsContainerType::iterator el_begin = r_model_part.ElementsBegin();
@@ -235,7 +235,7 @@ public:
         for(int i = 0; i < NElems; i++)
         {
             ModelPart::ElementsContainerType::iterator itElem = el_begin + i;
-            itElem -> InitializeNonLinearIteration(CurrentProcessInfo);
+            itElem -> InitializeNonLinearIteration(rCurrentProcessInfo);
         }
 
         int NCons = static_cast<int>(r_model_part.Conditions().size());
@@ -245,7 +245,7 @@ public:
         for(int i = 0; i < NCons; i++)
         {
             ModelPart::ConditionsContainerType::iterator itCond = con_begin + i;
-            itCond -> InitializeNonLinearIteration(CurrentProcessInfo);
+            itCond -> InitializeNonLinearIteration(rCurrentProcessInfo);
         }
 
         KRATOS_CATCH("")
@@ -261,7 +261,7 @@ public:
     {
         KRATOS_TRY
 
-        const ProcessInfo& CurrentProcessInfo = r_model_part.GetProcessInfo();
+        const ProcessInfo& rCurrentProcessInfo = r_model_part.GetProcessInfo();
 
         int NElems = static_cast<int>(r_model_part.Elements().size());
         ModelPart::ElementsContainerType::iterator el_begin = r_model_part.ElementsBegin();
@@ -270,7 +270,7 @@ public:
         for(int i = 0; i < NElems; i++)
         {
             ModelPart::ElementsContainerType::iterator itElem = el_begin + i;
-            itElem -> FinalizeNonLinearIteration(CurrentProcessInfo);
+            itElem -> FinalizeNonLinearIteration(rCurrentProcessInfo);
         }
 
         int NCons = static_cast<int>(r_model_part.Conditions().size());
@@ -280,7 +280,7 @@ public:
         for(int i = 0; i < NCons; i++)
         {
             ModelPart::ConditionsContainerType::iterator itCond = con_begin + i;
-            itCond -> FinalizeNonLinearIteration(CurrentProcessInfo);
+            itCond -> FinalizeNonLinearIteration(rCurrentProcessInfo);
         }
 
         KRATOS_CATCH("")
@@ -374,13 +374,13 @@ public:
         LocalSystemMatrixType& LHS_Contribution,
         LocalSystemVectorType& RHS_Contribution,
         Element::EquationIdVectorType& EquationId,
-        const ProcessInfo& CurrentProcessInfo) override
+        const ProcessInfo& rCurrentProcessInfo) override
     {
         KRATOS_TRY
 
-        rCurrentElement.CalculateLocalSystem(LHS_Contribution,RHS_Contribution,CurrentProcessInfo);
+        rCurrentElement.CalculateLocalSystem(LHS_Contribution,RHS_Contribution,rCurrentProcessInfo);
 
-        rCurrentElement.EquationIdVector(EquationId,CurrentProcessInfo);
+        rCurrentElement.EquationIdVector(EquationId,rCurrentProcessInfo);
 
         KRATOS_CATCH( "" )
     }
@@ -394,13 +394,13 @@ public:
         LocalSystemMatrixType& LHS_Contribution,
         LocalSystemVectorType& RHS_Contribution,
         Element::EquationIdVectorType& EquationId,
-        const ProcessInfo& CurrentProcessInfo) override
+        const ProcessInfo& rCurrentProcessInfo) override
     {
         KRATOS_TRY
 
-        rCurrentCondition.CalculateLocalSystem(LHS_Contribution,RHS_Contribution,CurrentProcessInfo);
+        rCurrentCondition.CalculateLocalSystem(LHS_Contribution,RHS_Contribution,rCurrentProcessInfo);
 
-        rCurrentCondition.EquationIdVector(EquationId,CurrentProcessInfo);
+        rCurrentCondition.EquationIdVector(EquationId,rCurrentProcessInfo);
 
         KRATOS_CATCH( "" )
     }
@@ -413,13 +413,13 @@ public:
         Element& rCurrentElement,
         LocalSystemVectorType& RHS_Contribution,
         Element::EquationIdVectorType& EquationId,
-        const ProcessInfo& CurrentProcessInfo) override
+        const ProcessInfo& rCurrentProcessInfo) override
     {
         KRATOS_TRY
 
-        rCurrentElement.CalculateRightHandSide(RHS_Contribution,CurrentProcessInfo);
+        rCurrentElement.CalculateRightHandSide(RHS_Contribution,rCurrentProcessInfo);
 
-        rCurrentElement.EquationIdVector(EquationId,CurrentProcessInfo);
+        rCurrentElement.EquationIdVector(EquationId,rCurrentProcessInfo);
 
         KRATOS_CATCH( "" )
     }
@@ -432,13 +432,13 @@ public:
         Condition& rCurrentCondition,
         LocalSystemVectorType& RHS_Contribution,
         Element::EquationIdVectorType& EquationId,
-        const ProcessInfo& CurrentProcessInfo) override
+        const ProcessInfo& rCurrentProcessInfo) override
     {
         KRATOS_TRY
 
-        rCurrentCondition.CalculateRightHandSide(RHS_Contribution, CurrentProcessInfo);
+        rCurrentCondition.CalculateRightHandSide(RHS_Contribution, rCurrentProcessInfo);
 
-        rCurrentCondition.EquationIdVector(EquationId, CurrentProcessInfo);
+        rCurrentCondition.EquationIdVector(EquationId, rCurrentProcessInfo);
 
         KRATOS_CATCH( "" )
     }
@@ -451,13 +451,13 @@ public:
         Element& rCurrentElement,
         LocalSystemMatrixType& LHS_Contribution,
         Element::EquationIdVectorType& EquationId,
-        const ProcessInfo& CurrentProcessInfo) override
+        const ProcessInfo& rCurrentProcessInfo) override
     {
         KRATOS_TRY
 
-        rCurrentElement.CalculateLeftHandSide(LHS_Contribution,CurrentProcessInfo);
+        rCurrentElement.CalculateLeftHandSide(LHS_Contribution,rCurrentProcessInfo);
 
-        rCurrentElement.EquationIdVector(EquationId,CurrentProcessInfo);
+        rCurrentElement.EquationIdVector(EquationId,rCurrentProcessInfo);
 
         KRATOS_CATCH( "" )
     }
@@ -470,13 +470,13 @@ public:
         Condition& rCurrentCondition,
         LocalSystemMatrixType& LHS_Contribution,
         Element::EquationIdVectorType& EquationId,
-        const ProcessInfo& CurrentProcessInfo) override
+        const ProcessInfo& rCurrentProcessInfo) override
     {
         KRATOS_TRY
 
-        rCurrentCondition.CalculateLeftHandSide(LHS_Contribution, CurrentProcessInfo);
+        rCurrentCondition.CalculateLeftHandSide(LHS_Contribution, rCurrentProcessInfo);
 
-        rCurrentCondition.EquationIdVector(EquationId, CurrentProcessInfo);
+        rCurrentCondition.EquationIdVector(EquationId, rCurrentProcessInfo);
 
         KRATOS_CATCH( "" )
     }

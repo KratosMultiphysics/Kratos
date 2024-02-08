@@ -26,7 +26,7 @@ Condition::Pointer UPwFaceLoadCondition<TDim,TNumNodes>::Create(IndexType NewId,
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 template< unsigned int TDim, unsigned int TNumNodes >
-void UPwFaceLoadCondition<TDim,TNumNodes>::CalculateRHS( VectorType& rRightHandSideVector, const ProcessInfo& CurrentProcessInfo )
+void UPwFaceLoadCondition<TDim,TNumNodes>::CalculateRHS( VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo )
 {        
     //Previous definitions
     const GeometryType& Geom = this->GetGeometry();

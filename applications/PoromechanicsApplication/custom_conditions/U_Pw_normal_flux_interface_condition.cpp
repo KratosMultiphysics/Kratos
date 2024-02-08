@@ -26,7 +26,7 @@ Condition::Pointer UPwNormalFluxInterfaceCondition<TDim,TNumNodes>::Create(Index
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 template< unsigned int TDim, unsigned int TNumNodes >
-void UPwNormalFluxInterfaceCondition<TDim,TNumNodes>::CalculateRHS( VectorType& rRightHandSideVector, const ProcessInfo& CurrentProcessInfo )
+void UPwNormalFluxInterfaceCondition<TDim,TNumNodes>::CalculateRHS( VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo )
 {        
     //Previous definitions
     const GeometryType& Geom = this->GetGeometry();

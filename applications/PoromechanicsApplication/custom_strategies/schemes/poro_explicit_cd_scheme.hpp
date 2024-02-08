@@ -174,7 +174,7 @@ public:
     {
         KRATOS_TRY
 
-        const ProcessInfo& CurrentProcessInfo = rModelPart.GetProcessInfo();
+        const ProcessInfo& rCurrentProcessInfo = rModelPart.GetProcessInfo();
 
         int NElems = static_cast<int>(rModelPart.Elements().size());
         ModelPart::ElementsContainerType::iterator el_begin = rModelPart.ElementsBegin();
@@ -183,7 +183,7 @@ public:
         for(int i = 0; i < NElems; i++)
         {
             ModelPart::ElementsContainerType::iterator itElem = el_begin + i;
-            itElem -> Initialize(CurrentProcessInfo);
+            itElem -> Initialize(rCurrentProcessInfo);
         }
 
         this->SetElementsAreInitialized();

@@ -26,7 +26,7 @@ Condition::Pointer UPwDischargeCondition<TDim,TNumNodes>::Create(IndexType NewId
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 template< unsigned int TDim, unsigned int TNumNodes >
-void UPwDischargeCondition<TDim,TNumNodes>::CalculateRHS( VectorType& rRightHandSideVector, const ProcessInfo& CurrentProcessInfo )
+void UPwDischargeCondition<TDim,TNumNodes>::CalculateRHS( VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo )
 {    
     double DischargeScalar = this->GetGeometry()[0].FastGetSolutionStepValue( DISCHARGE );
     rRightHandSideVector[TDim] = DischargeScalar;

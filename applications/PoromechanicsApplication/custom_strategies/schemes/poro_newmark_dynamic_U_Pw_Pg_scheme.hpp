@@ -157,23 +157,23 @@ public:
         LocalSystemMatrixType& LHS_Contribution,
         LocalSystemVectorType& RHS_Contribution,
         Element::EquationIdVectorType& EquationId,
-        const ProcessInfo& CurrentProcessInfo) override
+        const ProcessInfo& rCurrentProcessInfo) override
     {
         KRATOS_TRY
 
         int thread = OpenMPUtils::ThisThread();
 
-        rCurrentElement.CalculateLocalSystem(LHS_Contribution,RHS_Contribution,CurrentProcessInfo);
+        rCurrentElement.CalculateLocalSystem(LHS_Contribution,RHS_Contribution,rCurrentProcessInfo);
 
-        rCurrentElement.CalculateMassMatrix(mMassMatrix[thread],CurrentProcessInfo);
+        rCurrentElement.CalculateMassMatrix(mMassMatrix[thread],rCurrentProcessInfo);
 
-        rCurrentElement.CalculateDampingMatrix(mDampingMatrix[thread],CurrentProcessInfo);
+        rCurrentElement.CalculateDampingMatrix(mDampingMatrix[thread],rCurrentProcessInfo);
 
-        this->AddDynamicsToLHS (LHS_Contribution, mMassMatrix[thread], mDampingMatrix[thread], CurrentProcessInfo);
+        this->AddDynamicsToLHS (LHS_Contribution, mMassMatrix[thread], mDampingMatrix[thread], rCurrentProcessInfo);
 
-        this->AddDynamicsToRHS (rCurrentElement, RHS_Contribution, mMassMatrix[thread], mDampingMatrix[thread], CurrentProcessInfo);
+        this->AddDynamicsToRHS (rCurrentElement, RHS_Contribution, mMassMatrix[thread], mDampingMatrix[thread], rCurrentProcessInfo);
 
-        rCurrentElement.EquationIdVector(EquationId,CurrentProcessInfo);
+        rCurrentElement.EquationIdVector(EquationId,rCurrentProcessInfo);
 
         KRATOS_CATCH( "" )
     }
@@ -186,21 +186,21 @@ public:
         Element& rCurrentElement,
         LocalSystemVectorType& RHS_Contribution,
         Element::EquationIdVectorType& EquationId,
-        const ProcessInfo& CurrentProcessInfo) override
+        const ProcessInfo& rCurrentProcessInfo) override
     {
         KRATOS_TRY
 
         int thread = OpenMPUtils::ThisThread();
 
-        rCurrentElement.CalculateRightHandSide(RHS_Contribution,CurrentProcessInfo);
+        rCurrentElement.CalculateRightHandSide(RHS_Contribution,rCurrentProcessInfo);
 
-        rCurrentElement.CalculateMassMatrix(mMassMatrix[thread], CurrentProcessInfo);
+        rCurrentElement.CalculateMassMatrix(mMassMatrix[thread], rCurrentProcessInfo);
 
-        rCurrentElement.CalculateDampingMatrix(mDampingMatrix[thread],CurrentProcessInfo);
+        rCurrentElement.CalculateDampingMatrix(mDampingMatrix[thread],rCurrentProcessInfo);
 
-        this->AddDynamicsToRHS (rCurrentElement, RHS_Contribution, mMassMatrix[thread], mDampingMatrix[thread], CurrentProcessInfo);
+        this->AddDynamicsToRHS (rCurrentElement, RHS_Contribution, mMassMatrix[thread], mDampingMatrix[thread], rCurrentProcessInfo);
 
-        rCurrentElement.EquationIdVector(EquationId,CurrentProcessInfo);
+        rCurrentElement.EquationIdVector(EquationId,rCurrentProcessInfo);
 
         KRATOS_CATCH( "" )
     }
@@ -213,21 +213,21 @@ public:
         Element& rCurrentElement,
         LocalSystemMatrixType& LHS_Contribution,
         Element::EquationIdVectorType& EquationId,
-        const ProcessInfo& CurrentProcessInfo) override
+        const ProcessInfo& rCurrentProcessInfo) override
     {
         KRATOS_TRY
 
         int thread = OpenMPUtils::ThisThread();
 
-        rCurrentElement.CalculateLeftHandSide(LHS_Contribution,CurrentProcessInfo);
+        rCurrentElement.CalculateLeftHandSide(LHS_Contribution,rCurrentProcessInfo);
 
-        rCurrentElement.CalculateMassMatrix(mMassMatrix[thread],CurrentProcessInfo);
+        rCurrentElement.CalculateMassMatrix(mMassMatrix[thread],rCurrentProcessInfo);
 
-        rCurrentElement.CalculateDampingMatrix(mDampingMatrix[thread],CurrentProcessInfo);
+        rCurrentElement.CalculateDampingMatrix(mDampingMatrix[thread],rCurrentProcessInfo);
 
-        this->AddDynamicsToLHS (LHS_Contribution, mMassMatrix[thread], mDampingMatrix[thread], CurrentProcessInfo);
+        this->AddDynamicsToLHS (LHS_Contribution, mMassMatrix[thread], mDampingMatrix[thread], rCurrentProcessInfo);
 
-        rCurrentElement.EquationIdVector(EquationId,CurrentProcessInfo);
+        rCurrentElement.EquationIdVector(EquationId,rCurrentProcessInfo);
 
         KRATOS_CATCH( "" )
     }
@@ -245,7 +245,7 @@ protected:
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    void AddDynamicsToLHS(LocalSystemMatrixType& LHS_Contribution,LocalSystemMatrixType& M,LocalSystemMatrixType& C,const ProcessInfo& CurrentProcessInfo)
+    void AddDynamicsToLHS(LocalSystemMatrixType& LHS_Contribution,LocalSystemMatrixType& M,LocalSystemMatrixType& C,const ProcessInfo& rCurrentProcessInfo)
     {
         // adding mass contribution
         if (M.size1() != 0)
@@ -259,7 +259,7 @@ protected:
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     void AddDynamicsToRHS(Element& rCurrentElement,LocalSystemVectorType& RHS_Contribution,
-                            LocalSystemMatrixType& M,LocalSystemMatrixType& C,const ProcessInfo& CurrentProcessInfo)
+                            LocalSystemMatrixType& M,LocalSystemMatrixType& C,const ProcessInfo& rCurrentProcessInfo)
     {
         int thread = OpenMPUtils::ThisThread();
 

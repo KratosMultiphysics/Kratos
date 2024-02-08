@@ -67,7 +67,7 @@ protected:
         
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     
-    void CalculateRHS( VectorType& rRightHandSideVector, const ProcessInfo& CurrentProcessInfo ) override;
+    void CalculateRHS( VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo ) override;
 
     void CalculateIntegrationCoefficient(double& rIntegrationCoefficient, const Matrix& Jacobian, const double& Weight);
     

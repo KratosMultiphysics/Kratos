@@ -413,7 +413,7 @@ void UPwSmallStrainFICElement<3,8>::ExtrapolateGPDtStress(const Matrix& DtStress
 //----------------------------------------------------------------------------------------
 
 template< unsigned int TDim, unsigned int TNumNodes >
-void UPwSmallStrainFICElement<TDim,TNumNodes>::CalculateAll( MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& CurrentProcessInfo )
+void UPwSmallStrainFICElement<TDim,TNumNodes>::CalculateAll( MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY
 
@@ -430,17 +430,17 @@ void UPwSmallStrainFICElement<TDim,TNumNodes>::CalculateAll( MatrixType& rLeftHa
     Geom.ShapeFunctionsIntegrationPointsGradients(DN_DXContainer,detJContainer,mThisIntegrationMethod);
 
     //Constitutive Law parameters
-    ConstitutiveLaw::Parameters ConstitutiveParameters(Geom,Prop,CurrentProcessInfo);
+    ConstitutiveLaw::Parameters ConstitutiveParameters(Geom,Prop,rCurrentProcessInfo);
     ConstitutiveParameters.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
     ConstitutiveParameters.Set(ConstitutiveLaw::COMPUTE_STRESS);
     ConstitutiveParameters.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
 
     //Element variables
     ElementVariables Variables;
-    this->InitializeElementVariables(Variables,ConstitutiveParameters,Geom,Prop,CurrentProcessInfo);
+    this->InitializeElementVariables(Variables,ConstitutiveParameters,Geom,Prop,rCurrentProcessInfo);
 
     FICElementVariables FICVariables;
-    this->InitializeFICElementVariables(FICVariables,DN_DXContainer,Geom,Prop,CurrentProcessInfo);
+    this->InitializeFICElementVariables(FICVariables,DN_DXContainer,Geom,Prop,rCurrentProcessInfo);
 
     //Loop over integration points
     for( unsigned int GPoint = 0; GPoint < NumGPoints; GPoint++)
@@ -479,7 +479,7 @@ void UPwSmallStrainFICElement<TDim,TNumNodes>::CalculateAll( MatrixType& rLeftHa
 //----------------------------------------------------------------------------------------
 
 template< unsigned int TDim, unsigned int TNumNodes >
-void UPwSmallStrainFICElement<TDim,TNumNodes>::CalculateRHS( VectorType& rRightHandSideVector, const ProcessInfo& CurrentProcessInfo )
+void UPwSmallStrainFICElement<TDim,TNumNodes>::CalculateRHS( VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY
 
@@ -496,16 +496,16 @@ void UPwSmallStrainFICElement<TDim,TNumNodes>::CalculateRHS( VectorType& rRightH
     Geom.ShapeFunctionsIntegrationPointsGradients(DN_DXContainer,detJContainer,mThisIntegrationMethod);
 
     //Constitutive Law parameters
-    ConstitutiveLaw::Parameters ConstitutiveParameters(Geom,Prop,CurrentProcessInfo);
+    ConstitutiveLaw::Parameters ConstitutiveParameters(Geom,Prop,rCurrentProcessInfo);
     ConstitutiveParameters.Set(ConstitutiveLaw::COMPUTE_STRESS);
     ConstitutiveParameters.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
 
     //Element variables
     ElementVariables Variables;
-    this->InitializeElementVariables(Variables,ConstitutiveParameters,Geom,Prop,CurrentProcessInfo);
+    this->InitializeElementVariables(Variables,ConstitutiveParameters,Geom,Prop,rCurrentProcessInfo);
 
     FICElementVariables FICVariables;
-    this->InitializeFICElementVariables(FICVariables,DN_DXContainer,Geom,Prop,CurrentProcessInfo);
+    this->InitializeFICElementVariables(FICVariables,DN_DXContainer,Geom,Prop,rCurrentProcessInfo);
 
     //Loop over integration points
     for( unsigned int GPoint = 0; GPoint < NumGPoints; GPoint++)
@@ -540,7 +540,7 @@ void UPwSmallStrainFICElement<TDim,TNumNodes>::CalculateRHS( VectorType& rRightH
 
 template< unsigned int TDim, unsigned int TNumNodes >
 void UPwSmallStrainFICElement<TDim,TNumNodes>::InitializeFICElementVariables(FICElementVariables& rFICVariables,const GeometryType::ShapeFunctionsGradientsType& DN_DXContainer,
-                                                                                const GeometryType& Geom,const PropertiesType& Prop, const ProcessInfo& CurrentProcessInfo)
+                                                                                const GeometryType& Geom,const PropertiesType& Prop, const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 

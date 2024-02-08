@@ -34,7 +34,7 @@ GeometryData::IntegrationMethod UPwNormalFluxFICCondition<TDim,TNumNodes>::GetIn
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 template< unsigned int TDim, unsigned int TNumNodes >
-void UPwNormalFluxFICCondition<TDim,TNumNodes>::CalculateAll( MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& CurrentProcessInfo )
+void UPwNormalFluxFICCondition<TDim,TNumNodes>::CalculateAll( MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo )
 {
     //Previous definitions
     const PropertiesType& Prop = this->GetProperties();
@@ -54,7 +54,7 @@ void UPwNormalFluxFICCondition<TDim,TNumNodes>::CalculateAll( MatrixType& rLeftH
     array_1d<double,TNumNodes> NormalFluxVector;
     NormalFluxVariables Variables;
     NormalFluxFICVariables FICVariables;
-    FICVariables.DtPressureCoefficient = CurrentProcessInfo[DT_PRESSURE_COEFFICIENT];
+    FICVariables.DtPressureCoefficient = rCurrentProcessInfo[DT_PRESSURE_COEFFICIENT];
     this->CalculateElementLength(FICVariables.ElementLength,Geom);
     const double& BulkModulusSolid = Prop[BULK_MODULUS_SOLID];
     const double& Porosity = Prop[POROSITY];
@@ -95,7 +95,7 @@ void UPwNormalFluxFICCondition<TDim,TNumNodes>::CalculateAll( MatrixType& rLeftH
 //----------------------------------------------------------------------------------------
 
 template< unsigned int TDim, unsigned int TNumNodes >
-void UPwNormalFluxFICCondition<TDim,TNumNodes>::CalculateRHS( VectorType& rRightHandSideVector, const ProcessInfo& CurrentProcessInfo )
+void UPwNormalFluxFICCondition<TDim,TNumNodes>::CalculateRHS( VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo )
 {
     //Previous definitions
     const PropertiesType& Prop = this->GetProperties();
@@ -115,7 +115,7 @@ void UPwNormalFluxFICCondition<TDim,TNumNodes>::CalculateRHS( VectorType& rRight
     array_1d<double,TNumNodes> NormalFluxVector;
     NormalFluxVariables Variables;
     NormalFluxFICVariables FICVariables;
-    FICVariables.DtPressureCoefficient = CurrentProcessInfo[DT_PRESSURE_COEFFICIENT];
+    FICVariables.DtPressureCoefficient = rCurrentProcessInfo[DT_PRESSURE_COEFFICIENT];
     this->CalculateElementLength(FICVariables.ElementLength,Geom);
     const double& BulkModulusSolid = Prop[BULK_MODULUS_SOLID];
     const double& Porosity = Prop[POROSITY];

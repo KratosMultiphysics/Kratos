@@ -78,7 +78,7 @@ protected:
 
     void CalculateInitialGap(const GeometryType& Geom);
 
-    void CalculateRHS( VectorType& rRightHandSideVector, const ProcessInfo& CurrentProcessInfo ) override;
+    void CalculateRHS( VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo ) override;
 
     void CheckJointWidth(double& rJointWidth, bool& rComputeJointWidth, BoundedMatrix<double,TDim,TDim>& rRotationMatrix,
                             const double& InitialJointWidth, const GeometryType& Geom);

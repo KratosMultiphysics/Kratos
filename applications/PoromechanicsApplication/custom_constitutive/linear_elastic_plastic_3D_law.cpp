@@ -110,7 +110,7 @@ void  LinearElasticPlastic3DLaw::CalculateMaterialResponsePK2 (Parameters& rValu
 
     //b.- Get Values to compute the constitutive law:
     Flags& Options                        = rValues.GetOptions();
-    const ProcessInfo& CurrentProcessInfo = rValues.GetProcessInfo();
+    const ProcessInfo& rCurrentProcessInfo = rValues.GetProcessInfo();
     const Properties& MaterialProperties  = rValues.GetMaterialProperties();
     Vector& rStrainVector                 = rValues.GetStrainVector();
 
@@ -135,9 +135,9 @@ void  LinearElasticPlastic3DLaw::CalculateMaterialResponsePK2 (Parameters& rValu
     ReturnMappingVariables.initialize(); //it has to be called at the start
 
     // Initialize variables from the process information
-    ReturnMappingVariables.DeltaTime = CurrentProcessInfo[DELTA_TIME];
+    ReturnMappingVariables.DeltaTime = rCurrentProcessInfo[DELTA_TIME];
 
-    if(CurrentProcessInfo[IMPLEX] == 1)
+    if(rCurrentProcessInfo[IMPLEX] == 1)
         ReturnMappingVariables.Options.Set(FlowRule::IMPLEX_ACTIVE,true);
     else
         ReturnMappingVariables.Options.Set(FlowRule::IMPLEX_ACTIVE,false);
@@ -235,7 +235,7 @@ void LinearElasticPlastic3DLaw::CalculateMaterialResponseKirchhoff (Parameters& 
 
     //b.- Get Values to compute the constitutive law:
     Flags& Options                        = rValues.GetOptions();
-    const ProcessInfo& CurrentProcessInfo = rValues.GetProcessInfo();
+    const ProcessInfo& rCurrentProcessInfo = rValues.GetProcessInfo();
     const Properties& MaterialProperties  = rValues.GetMaterialProperties();
     Vector& rStrainVector                 = rValues.GetStrainVector();
 
@@ -258,9 +258,9 @@ void LinearElasticPlastic3DLaw::CalculateMaterialResponseKirchhoff (Parameters& 
     ReturnMappingVariables.initialize(); //it has to be called at the start
 
     // Initialize variables from the process information
-    ReturnMappingVariables.DeltaTime = CurrentProcessInfo[DELTA_TIME];
+    ReturnMappingVariables.DeltaTime = rCurrentProcessInfo[DELTA_TIME];
 
-    if(CurrentProcessInfo[IMPLEX] == 1)
+    if(rCurrentProcessInfo[IMPLEX] == 1)
         ReturnMappingVariables.Options.Set(FlowRule::IMPLEX_ACTIVE,true);
     else
         ReturnMappingVariables.Options.Set(FlowRule::IMPLEX_ACTIVE,false);

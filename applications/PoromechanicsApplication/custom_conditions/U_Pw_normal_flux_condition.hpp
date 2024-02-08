@@ -77,7 +77,7 @@ protected:
     
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
                                     
-    void CalculateRHS( VectorType& rRightHandSideVector, const ProcessInfo& CurrentProcessInfo ) override;
+    void CalculateRHS( VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo ) override;
     
     void CalculateAndAddRHS(VectorType& rRightHandSideVector, NormalFluxVariables& rVariables);
     

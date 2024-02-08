@@ -255,7 +255,7 @@ void HyperElasticPlastic3DLaw::CalculateMaterialResponseKirchhoff (Parameters& r
     //b.- Get Values to compute the constitutive law:
     Flags &Options=rValues.GetOptions();
 
-    const ProcessInfo& CurrentProcessInfo = rValues.GetProcessInfo();
+    const ProcessInfo& rCurrentProcessInfo = rValues.GetProcessInfo();
     const Properties& MaterialProperties  = rValues.GetMaterialProperties();
 
     const Matrix& DeformationGradientF    = rValues.GetDeformationGradientF();
@@ -281,9 +281,9 @@ void HyperElasticPlastic3DLaw::CalculateMaterialResponseKirchhoff (Parameters& r
     ReturnMappingVariables.initialize(); //it has to be called at the start
 
     // Initialize variables from the process information
-    ReturnMappingVariables.DeltaTime = CurrentProcessInfo[DELTA_TIME];
+    ReturnMappingVariables.DeltaTime = rCurrentProcessInfo[DELTA_TIME];
 
-    if(CurrentProcessInfo[IMPLEX] == 1)
+    if(rCurrentProcessInfo[IMPLEX] == 1)
       ReturnMappingVariables.Options.Set(FlowRule::IMPLEX_ACTIVE,true);
     else
       ReturnMappingVariables.Options.Set(FlowRule::IMPLEX_ACTIVE,false);
