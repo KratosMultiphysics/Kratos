@@ -42,7 +42,7 @@ public:
     /// The definition of the sizetype
     using SizeType = std::size_t;
     using UPwBaseElement<TDim, TNumNodes>::mConstitutiveLawVector;
-    using UPwSmallStrainElement<TDim, TNumNodes>::ElementVariables;
+    using typename UPwSmallStrainElement<TDim, TNumNodes>::ElementVariables;
 
     ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
