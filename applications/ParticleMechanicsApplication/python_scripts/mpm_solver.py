@@ -155,7 +155,6 @@ class MPMSolver(PythonSolver):
         self._SearchElement()
         self._GetSolutionStrategy().Initialize()
 
-        print("hi there, its: mario")
         #clean nodal values and map from MPs to nodes
         self._GetSolutionStrategy().InitializeSolutionStep()
 

@@ -160,7 +160,6 @@ void DispNewtonianFluid3DLaw::CalculateMaterialResponseCauchy(Parameters& rValue
 {
 
     //-----------------------------//
-    std::cout << "DispNewtonianFluid3DLaw: CalculateMaterialResponseCauchy:"<< std::endl;
 
 
     //a.-Check if the constitutive parameters are passed correctly to the law calculation
@@ -229,7 +228,6 @@ void DispNewtonianFluid3DLaw::CalculateMaterialResponseCauchy(Parameters& rValue
     {
         this->CalculateConstitutiveMatrix ( ViscousVariables, ConstitutiveMatrix );
     }
-    std::cout << "DispNewtonianFluid3DLaw: CalculateMaterialResponseCauchy: Done"<< std::endl;
 
 }
 

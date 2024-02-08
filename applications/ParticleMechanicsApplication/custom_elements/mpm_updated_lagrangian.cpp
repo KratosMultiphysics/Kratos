@@ -282,9 +282,6 @@ void MPMUpdatedLagrangian::CalculateElementalSystem(
 
     // Create constitutive law parameters:
     ConstitutiveLaw::Parameters Values(GetGeometry(),GetProperties(),rCurrentProcessInfo);
-    std::cout << "CalculateMaterialResponse: GetGeometry:"<< GetGeometry() << std::endl;
-    std::cout << "CalculateMaterialResponse: GetProperties:"<< GetProperties() << std::endl;
-    std::cout << "CalculateMaterialResponse: rCurrentProcessInfo:"<< rCurrentProcessInfo << std::endl;
 
 
     // Set constitutive law flags:

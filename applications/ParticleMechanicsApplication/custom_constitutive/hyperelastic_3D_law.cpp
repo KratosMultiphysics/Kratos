@@ -251,7 +251,6 @@ void HyperElastic3DLaw::CalculateMaterialResponseKirchhoff (Parameters& rValues)
 
 void HyperElastic3DLaw::CalculateMaterialResponseCauchy (Parameters& rValues)
 {
-    std::cout << "HyperElastic3DLaw::CalculateMaterialResponseCauchy:XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"<< std::endl;
     this->CalculateMaterialResponseKirchhoff (rValues);
 
     const double& DeterminantF  = rValues.GetDeterminantF();
@@ -261,7 +260,6 @@ void HyperElastic3DLaw::CalculateMaterialResponseCauchy (Parameters& rValues)
     //Set to cauchy Stress:
     StressVector       /= DeterminantF;
     ConstitutiveMatrix /= DeterminantF;
-    std::cout << "HyperElastic3DLaw::CalculateMaterialResponseCauchy:DONE"<< std::endl;
 
 }
 

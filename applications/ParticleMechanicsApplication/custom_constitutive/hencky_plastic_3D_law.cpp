@@ -209,11 +209,9 @@ void HenckyElasticPlastic3DLaw::CalculateMaterialResponseKirchhoff (Parameters& 
 
     // Preliminary processes
     //-----------------------------//
-    std::cout << "CalculateMaterialResponseKirchhoff:"<< std::endl;
 
     //a.-Check if the constitutive parameters are passed correctly to the law calculation
     CheckParameters(rValues);
-    std::cout << "CalculateMaterialResponseKirchhoff: CheckParameters"<< std::endl;
 
     //b.- Get Values to compute the constitutive law:
     Flags &options=rValues.GetOptions();
@@ -230,7 +228,6 @@ void HenckyElasticPlastic3DLaw::CalculateMaterialResponseKirchhoff (Parameters& 
     Vector& stress_vector                   = rValues.GetStressVector();
     Matrix& constitutive_matrix             = rValues.GetConstitutiveMatrix();
 
-    std::cout << "CalculateMaterialResponseKirchhoff: Get Values to compute the constitutive law"<< std::endl;
     //-----------------------------//
 
     //0.- Initialize parameters
@@ -240,12 +237,10 @@ void HenckyElasticPlastic3DLaw::CalculateMaterialResponseKirchhoff (Parameters& 
 
     ElasticVariables.SetElementGeometry(domain_geometry);
     ElasticVariables.SetShapeFunctionsValues(shape_functions);
-    std::cout << "CalculateMaterialResponseKirchhoff: Initialize parameters"<< std::endl;
 
     ParticleFlowRule::RadialReturnVariables ReturnMappingVariables;
     // ReturnMappingVariables.initialize(); //it has to be called at the start
     ReturnMappingVariables.clear();
-    std::cout << "CalculateMaterialResponseKirchhoff: ReturnMappingVariables"<< std::endl;
 
     // Initialize variables from the process information
     ReturnMappingVariables.DeltaTime = current_process_info[DELTA_TIME];
@@ -255,21 +250,17 @@ void HenckyElasticPlastic3DLaw::CalculateMaterialResponseKirchhoff (Parameters& 
     else
         ReturnMappingVariables.Options.Set(ParticleFlowRule::IMPLEX_ACTIVE,false);
 
-    std::cout << "CalculateMaterialResponseKirchhoff: Initialize variables from the process information"<< std::endl;
     //1.-Determinant of the Total Deformation Gradient -- detF
     ElasticVariables.DeterminantF = determinant_F;
-    std::cout << "CalculateMaterialResponseKirchhoff: Determinant of the Total Deformation Gradient -- detF"<< std::endl;
 
     //2.-Compute Incremental DeformationGradient (in 3D) -- F
     ElasticVariables.DeformationGradientF = deformation_gradient_F;
     ElasticVariables.DeformationGradientF = Transform2DTo3D(ElasticVariables.DeformationGradientF);
     ElasticVariables.DeformationGradientF = prod(ElasticVariables.DeformationGradientF,mInverseDeformationGradientF0);
-    std::cout << "CalculateMaterialResponseKirchhoff: Compute Incremental DeformationGradient (in 3D)"<< std::endl;
 
     //3.-Left Cauchy Green tensor b: (stored in the CauchyGreenMatrix) -- B = FF^T
     ElasticVariables.CauchyGreenMatrix = prod(mElasticLeftCauchyGreen,trans(ElasticVariables.DeformationGradientF));
     ElasticVariables.CauchyGreenMatrix = prod(ElasticVariables.DeformationGradientF,ElasticVariables.CauchyGreenMatrix);
-    std::cout << "CalculateMaterialResponseKirchhoff: Left Cauchy Green tensor b: (stored in the CauchyGreenMatrix)"<< std::endl;
 
     //4.-Almansi Strain:
     if(options.Is( ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN ))
@@ -277,7 +268,6 @@ void HenckyElasticPlastic3DLaw::CalculateMaterialResponseKirchhoff (Parameters& 
         // Almansi Strain -- E = 0.5*(1-invbT*invb)
         this->CalculateAlmansiStrain(ElasticVariables.CauchyGreenMatrix, strain_vector);
     }
-    std::cout << "CalculateMaterialResponseKirchhoff: Almansi Strain"<< std::endl;
 
     //5.-Calculate Total Kirchhoff stress
     if( options.Is(ConstitutiveLaw::COMPUTE_STRESS ) || options.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR ) )
@@ -344,7 +334,6 @@ void HenckyElasticPlastic3DLaw::CalculateMaterialResponseKirchhoff (Parameters& 
         // Compute Inverse
         MathUtils<double>::InvertMatrix( ElasticVariables.DeformationGradientF, mInverseDeformationGradientF0, mDeterminantF0);
     }
-    std::cout << "CalculateMaterialResponseKirchhoff: Done"<< std::endl;
 
 }
 
