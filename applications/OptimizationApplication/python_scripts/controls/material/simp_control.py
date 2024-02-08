@@ -75,6 +75,8 @@ class SimpControl(Control):
         self.phi = KratosOA.ControlUtils.SigmoidalProjectionUtils.ProjectBackward(self.phi, self.x_values, self.densities, self.beta, 1)
         self.__ApplyDensityAndYoungsModulus()
 
+        self.__current_step_value = -1
+
     def Check(self) -> None:
         pass
 
@@ -123,7 +125,8 @@ class SimpControl(Control):
         self.__ApplyDensityAndYoungsModulus()
 
         step = self.optimization_problem.GetStep()
-        if self.beta_adaptive:
+        if self.__current_step_value != step and self.beta_adaptive:
+            self.__current_step_value = step
             if step % self.beta_update_period == 0 and self.beta < self.beta_max_value:
              self.beta *= self.beta_increase_fac
              if self.beta > self.beta_max_value:
