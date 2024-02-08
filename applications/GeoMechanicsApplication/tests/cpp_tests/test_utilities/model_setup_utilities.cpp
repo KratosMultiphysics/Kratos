@@ -24,7 +24,7 @@ ModelPart& CreateModelPartWithASingle2D3NElement(Model& rModel)
     result.CreateNewNode(2, 1.0, 0.0, 0.0);
     result.CreateNewNode(3, 1.0, 1.0, 0.0);
 
-    std::vector<ModelPart::IndexType> node_ids{1, 2, 3};
+    const std::vector<ModelPart::IndexType> node_ids{1, 2, 3};
     result.CreateNewElement("UPwSmallStrainElement2D3N", 1, node_ids, result.CreateNewProperties(0));
 
     return result;
