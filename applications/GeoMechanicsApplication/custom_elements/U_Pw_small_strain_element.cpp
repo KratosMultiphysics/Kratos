@@ -1606,36 +1606,6 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateCauchyGreenStrain(ElementV
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void UPwSmallStrainElement<TDim, TNumNodes>::CalculateCauchyAlmansiStrain(ElementVariables& rVariables)
-{
-    // Compute total deformation gradient
-    const Matrix& F = rVariables.F;
-
-    Matrix LeftCauchyGreen;
-    LeftCauchyGreen = prod(F, trans(F));
-
-    Matrix ETensor;
-    double det;
-    MathUtils<double>::InvertMatrix(LeftCauchyGreen, ETensor, det);
-
-    for (unsigned int i = 0; i < TDim; ++i)
-        ETensor(i, i) = 1.0 - ETensor(i, i);
-
-    ETensor *= 0.5;
-
-    if constexpr (TDim == 2) {
-        Vector StrainVector;
-        StrainVector = MathUtils<double>::StrainTensorToVector(ETensor);
-        rVariables.StrainVector[INDEX_2D_PLANE_STRAIN_XX] = StrainVector[0];
-        rVariables.StrainVector[INDEX_2D_PLANE_STRAIN_YY] = StrainVector[1];
-        rVariables.StrainVector[INDEX_2D_PLANE_STRAIN_ZZ] = 0.0;
-        rVariables.StrainVector[INDEX_2D_PLANE_STRAIN_XY] = StrainVector[2];
-    } else {
-        noalias(rVariables.StrainVector) = MathUtils<double>::StrainTensorToVector(ETensor);
-    }
-}
-
-template <unsigned int TDim, unsigned int TNumNodes>
 void UPwSmallStrainElement<TDim, TNumNodes>::CalculateDeformationGradient(ElementVariables& rVariables,
                                                                           unsigned int GPoint)
 {
