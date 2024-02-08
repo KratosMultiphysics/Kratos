@@ -60,7 +60,7 @@ double UPwUpdatedLagrangianAxisymmetricElement<TDim, TNumNodes>::CalculateIntegr
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void UPwUpdatedLagrangianAxisymmetricElement<TDim, TNumNodes>::CalculateCauchyGreenStrain(ElementVariables& rVariables)
+void UPwUpdatedLagrangianAxisymmetricElement<TDim, TNumNodes>::CalculateGreenLagrangeStrain(ElementVariables& rVariables)
 {
     AxisymmetricStressState stress_state;
     stress_state.CalculateGreenLagrangeStrain(rVariables.F);

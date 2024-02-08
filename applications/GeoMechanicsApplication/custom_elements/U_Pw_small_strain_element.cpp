@@ -1577,7 +1577,7 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateCauchyStrain(ElementVariab
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void UPwSmallStrainElement<TDim, TNumNodes>::CalculateCauchyGreenStrain(ElementVariables& rVariables)
+void UPwSmallStrainElement<TDim, TNumNodes>::CalculateGreenLagrangeStrain(ElementVariables& rVariables)
 {
     KRATOS_TRY
 

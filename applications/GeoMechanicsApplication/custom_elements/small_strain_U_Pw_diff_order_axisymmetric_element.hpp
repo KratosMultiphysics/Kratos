@@ -104,7 +104,7 @@ protected:
                                            unsigned int PointNumber,
                                            double       detJ) override;
 
-    void CalculateCauchyGreenStrain(ElementVariables& rVariables) override;
+    void CalculateGreenLagrangeStrain(ElementVariables& rVariables) override;
 
     ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 

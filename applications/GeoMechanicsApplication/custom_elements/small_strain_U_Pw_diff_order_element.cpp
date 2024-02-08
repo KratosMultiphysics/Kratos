@@ -2274,7 +2274,7 @@ void SmallStrainUPwDiffOrderElement::CalculateCauchyStrain(ElementVariables& rVa
     noalias(rVariables.StrainVector) = prod(rVariables.B, rVariables.DisplacementVector);
 }
 
-void SmallStrainUPwDiffOrderElement::CalculateCauchyGreenStrain(ElementVariables& rVariables)
+void SmallStrainUPwDiffOrderElement::CalculateGreenLagrangeStrain(ElementVariables& rVariables)
 {
     KRATOS_TRY
 

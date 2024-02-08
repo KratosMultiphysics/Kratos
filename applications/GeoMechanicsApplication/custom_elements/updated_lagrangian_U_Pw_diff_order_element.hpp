@@ -67,7 +67,7 @@ public:
     /// The definition of the sizetype
     using SizeType = std::size_t;
     using SmallStrainUPwDiffOrderElement::AssembleUBlockMatrix;
-    using SmallStrainUPwDiffOrderElement::CalculateCauchyGreenStrain;
+    using SmallStrainUPwDiffOrderElement::CalculateCauchyStrain;
     using SmallStrainUPwDiffOrderElement::CalculateCauchyStrain;
     using SmallStrainUPwDiffOrderElement::CalculateDerivativesOnInitialConfiguration;
     using SmallStrainUPwDiffOrderElement::mConstitutiveLawVector;
