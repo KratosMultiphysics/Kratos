@@ -69,7 +69,7 @@
             "scaling":         false
         },
         "problem_domain_sub_model_part_list": ["Soil_two_phase"],
-        "processes_sub_model_part_list":      ["BOTTOM","SIDE","Fluid_Pressure","Line_Load"],
+        "processes_sub_model_part_list":      ["Bottom","Side","Fluid_pressure","Line_load"],
         "body_domain_sub_model_part_list":    ["Soil_two_phase"]
     },
     "output_processes": {
@@ -109,7 +109,7 @@
         "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
         "process_name":  "ApplyVectorConstraintTableProcess",
         "Parameters":    {
-            "model_part_name": "PorousDomain.BOTTOM",
+            "model_part_name": "PorousDomain.Bottom",
             "variable_name":   "DISPLACEMENT",
             "active":          [true,true,true],
             "is_fixed":        [true,true,true],
@@ -121,7 +121,7 @@
         "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
         "process_name":  "ApplyVectorConstraintTableProcess",
         "Parameters":    {
-            "model_part_name": "PorousDomain.SIDE",
+            "model_part_name": "PorousDomain.Side",
             "variable_name":   "DISPLACEMENT",
             "active":          [true,false,false],
             "is_fixed":        [true,false,false],
@@ -133,7 +133,7 @@
         "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
         "process_name":  "ApplyScalarConstraintTableProcess",
         "Parameters":    {
-            "model_part_name":      "PorousDomain.Fluid_Pressure",
+            "model_part_name":      "PorousDomain.Fluid_pressure",
             "variable_name":        "WATER_PRESSURE",
             "is_fixed":             true,
             "value":                0.0,
@@ -145,7 +145,7 @@
         "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
         "process_name":  "ApplyVectorConstraintTableProcess",
         "Parameters":    {
-            "model_part_name": "PorousDomain.Line_Load",
+            "model_part_name": "PorousDomain.Line_load",
             "variable_name":   "LINE_LOAD",
             "active":          [false,true,false],
             "value":           [0.0,-1,0.0],
