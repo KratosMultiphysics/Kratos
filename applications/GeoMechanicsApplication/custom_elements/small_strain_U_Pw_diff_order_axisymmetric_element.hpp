@@ -40,7 +40,7 @@ public:
     /// The definition of the sizetype
     using SizeType = std::size_t;
     using SmallStrainUPwDiffOrderElement::mConstitutiveLawVector;
-    using SmallStrainUPwDiffOrderElement::mConstitutiveLawVector;
+    using typename SmallStrainUPwDiffOrderElement::ElementVariables;
 
     ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
