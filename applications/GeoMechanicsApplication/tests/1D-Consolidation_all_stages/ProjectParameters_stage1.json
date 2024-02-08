@@ -13,10 +13,10 @@
         "domain_size":                        2,
         "model_import_settings":              {
             "input_type":       "mdpa",
-            "input_filename":   "1D-Consolidationtest_stage1"
+            "input_filename":   "1D-Consolidationtest"
         },
         "material_import_settings":              {
-            "materials_filename":       "MaterialParameters_stage1.json"
+            "materials_filename":       "MaterialParameters.json"
         },
         "time_stepping":              {
             "time_step":            0.25
@@ -68,9 +68,9 @@
             "tolerance":       1.0e-6,
             "scaling":         false
         },
-        "problem_domain_sub_model_part_list": ["Soil_undrained-auto-1"],
-        "processes_sub_model_part_list":      ["BOTTOM","SIDE","Line_Load-auto-1"],
-        "body_domain_sub_model_part_list":    ["Soil_undrained-auto-1"]
+        "problem_domain_sub_model_part_list": ["Soil_two_phase"],
+        "processes_sub_model_part_list":      ["BOTTOM","SIDE","Line_Load"],
+        "body_domain_sub_model_part_list":    ["Soil_two_phase"]
     },
     "output_processes": {
         "gid_output": [{
@@ -134,7 +134,7 @@
         "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
         "process_name":  "ApplyVectorConstraintTableProcess",
         "Parameters":    {
-            "model_part_name": "PorousDomain.Line_Load-auto-1",
+            "model_part_name": "PorousDomain.Line_Load",
             "variable_name":   "LINE_LOAD",
             "active":          [false,true,false],
             "value":           [0.0,-1,0.0],
