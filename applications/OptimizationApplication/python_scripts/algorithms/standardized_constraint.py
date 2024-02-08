@@ -145,12 +145,12 @@ class StandardizedConstraint(ResponseRoutine):
 
     def GetRelativeChange(self) -> float:
         if self.__optimization_problem.GetStep() > 1:
-            return self.GetStandardizedValue() / self.GetStandardizedValue(1) - 1.0 if abs(self.GetStandardizedValue(1)) > 1e-12 else self.GetStandardizedValue()
+            return self.GetValue() / self.GetValue(1) - 1.0 if abs(self.GetValue(1)) > 1e-12 else self.GetValue()
         else:
             return 0.0
 
     def GetAbsoluteChange(self) -> float:
-        return self.GetStandardizedValue() / self.GetStandardizedReferenceValue() - 1.0 if abs(self.GetStandardizedReferenceValue()) > 1e-12 else self.GetStandardizedValue()
+        return self.GetValue() * self.__scaling - self.GetStandardizedReferenceValue()
 
     def GetInfo(self) -> dict:
         info = {
