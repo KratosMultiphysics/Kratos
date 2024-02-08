@@ -8,9 +8,13 @@ summary:
 
 # Apply Constant Scalarvalue
 
+## Warning
+
+This is a Legacy process and should not be used directly. Please see [Assign Scalar Variable To Entities](/Assing_Values/assign_scalar_variable_to_entities_process.md)
+
 ## Description
 
-This process is intended to be used for setting constant scalar values (`bool`, `int`, `double`) to a variable in a model part
+This process is intended to be used for setting scalar values (`bool`, `int`, `double`) to a variable in a model part.
 
 This process is executed on the follwing hooks:
 - `ExecuteInitialize`

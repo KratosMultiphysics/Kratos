@@ -6,8 +6,31 @@ sidebar: kratos_core_processes
 summary: 
 ---
 
-# 
-
 ## Description
 
-## Parameters & Defaults
+Processes in kratos are a set of utilities that will be executed during an `AnalysisStage`. The main characteristic of the procsses is that they have a set of fixed execute points (see [AnalysisStage Sequence Diagram](../Sequence_Diagrams/General/AnalysisStage)):
+
+- `ExecuteInitialize`: Will be called during the initialize sequence of an `AnalysisStage`, before the initialization of the `Solver`.
+
+- `ExecuteBeforeSolustionLoop`: Will be called during the initialize sequence of an `AnalysisStage`, after the initialization of the `Solver`
+
+- `ExecuteInitializeSolutionStep`: Will be called at the begining of each solution loop, before executing the preconditioners and solvers
+
+- `ExecuteFinalizeSolutionStep`: Will be called at the end of each solution loop, after executing the preconditioners and solvers but before the output stage.
+
+- `ExecuteBeforeOutputStep`: Will be called at the begining of the output stage for every output process active, before printing the results
+
+- `ExecuteAfterOutputStep`: Will be called at the end of the output stage for every output process active, after printing the results
+
+- `ExecuteFinalize`: Will be called during the finalize sequence of an `AnalysisStage`, just before existing the stage.
+
+## List of processes:
+
+### Value Assignement
+
+- [Assign Scalar Variable]
+- [Assign Vector Variable]
+- [Assign Vector By Direction]
+- [Assign Scalar Input]
+
+### Calculation Utilities
