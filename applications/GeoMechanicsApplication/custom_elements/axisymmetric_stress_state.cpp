@@ -11,7 +11,7 @@
 //                   Marjan Fathian
 //
 
-#include "axisymmetric_stress_state_policy.h"
+#include "axisymmetric_stress_state.h"
 #include "custom_utilities/element_utilities.hpp"
 
 namespace Kratos

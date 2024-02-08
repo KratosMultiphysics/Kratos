@@ -12,7 +12,7 @@
 //
 
 #include "containers/model.h"
-#include "custom_elements/axisymmetric_stress_state_policy.h"
+#include "custom_elements/axisymmetric_stress_state.h"
 #include "custom_elements/stress_state_policy.h"
 #include "geometries/geometry.h"
 #include "includes/checks.h"
