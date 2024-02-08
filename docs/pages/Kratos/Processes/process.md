@@ -6,6 +6,10 @@ sidebar: kratos_core_processes
 summary: 
 ---
 
+# Processes
+
+This section intends to descrive what is a process in Kratos and the different interfaces that are available from python.
+
 ## Description
 
 Processes in kratos are a set of utilities that will be executed during an `AnalysisStage`. The main characteristic of the procsses is that they have a set of fixed execute points (see [AnalysisStage Sequence Diagram](../Sequence_Diagrams/General/AnalysisStage)):
