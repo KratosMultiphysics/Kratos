@@ -20,8 +20,8 @@ namespace Kratos
 static const SizeType NumberOfUDofPerNode = 2; // Axi-symmetric stress state assumes a 2D problem definition
 
 Matrix AxisymmetricStressState::CalculateBMatrix(const Matrix&         GradNpT,
-                                                       const Vector&         Np,
-                                                       const Geometry<Node>& rGeometry) const
+                                                 const Vector&         Np,
+                                                 const Geometry<Node>& rGeometry) const
 {
     const double radius = GeoElementUtilities::CalculateRadius(Np, rGeometry);
 
@@ -43,11 +43,12 @@ Matrix AxisymmetricStressState::CalculateBMatrix(const Matrix&         GradNpT,
 }
 
 double AxisymmetricStressState::CalculateIntegrationCoefficient(const Geometry<Node>::IntegrationPointType& rIntegrationPoint,
-                                                                      double detJ,
-                                                                      const Geometry<Node>& rGeometry) const
+                                                                double detJ,
+                                                                const Geometry<Node>& rGeometry) const
 {
     Vector shape_function_values;
-    shape_function_values = rGeometry.ShapeFunctionsValues(shape_function_values, rIntegrationPoint.Coordinates());
+    shape_function_values =
+        rGeometry.ShapeFunctionsValues(shape_function_values, rIntegrationPoint.Coordinates());
 
     const double radiusWeight =
         GeoElementUtilities::CalculateAxisymmetricCircumference(shape_function_values, rGeometry);

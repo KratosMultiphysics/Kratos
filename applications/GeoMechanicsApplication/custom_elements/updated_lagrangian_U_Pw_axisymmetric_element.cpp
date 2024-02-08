@@ -55,7 +55,8 @@ double UPwUpdatedLagrangianAxisymmetricElement<TDim, TNumNodes>::CalculateIntegr
 
 {
     AxisymmetricStressState stress_state;
-    return stress_state.CalculateIntegrationCoefficient(IntegrationPoints[PointNumber], detJ, this->GetGeometry());
+    return stress_state.CalculateIntegrationCoefficient(IntegrationPoints[PointNumber], detJ,
+                                                        this->GetGeometry());
 }
 
 //----------------------------------------------------------------------------------------------------
