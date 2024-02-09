@@ -209,6 +209,10 @@ void ExponentialCohesive3DLaw::ComputeStressVector(Vector& rStressVector,
 
     noalias(rStressVector) = std::exp(1.0)*rVariables.YieldStress/rVariables.CriticalDisplacement*std::exp(-mStateVariable/rVariables.CriticalDisplacement)*prod(rVariables.WeightMatrix,StrainVector)
                                 + rVariables.PenaltyStiffness*prod(rVariables.CompressionMatrix,StrainVector);
+
+    // Add initial stresses
+    const Element::GeometryType& geometry = rValues.GetElementGeometry();
+    InterfaceElementUtilities::AddInitialInterfaceStresses2D(rStressVector, rValues, geometry);
 }
 
 } // Namespace Kratos
