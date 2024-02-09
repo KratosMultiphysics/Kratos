@@ -1078,6 +1078,12 @@ private:
                 }
             }
         }
+
+        // Checking that is properly cleaned
+        for (auto& p_partial_result : r_results_vector) {
+            auto& r_partial_result = *p_partial_result;
+            KRATOS_ERROR_IF(r_partial_result.NumberOfGlobalResults() > 1) << "Cleaning has not been done properly" << std::endl;
+        }
     }
 
     /**
