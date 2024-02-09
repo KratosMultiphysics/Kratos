@@ -74,6 +74,11 @@ namespace Kratos
                     KRATOS_INFO("ApplyCPhiReductionProces") << "c = " << reduced_c << " (" << c << ") phi = " << reduced_phi <<" (" << phi << ")" <<std::endl;
                 }
                 set_C_Phi_At_Element(rElement, reduced_phi, reduced_c);
+
+                // Back compute strain from resident element Cauchy stress, E = UMAT_PARAMETERS[0], nu = UMAT_PARAMETERS[1]
+                backComputeElementStrains(rElement);
+
+                // Compute RHS ( the unbalance ) from resident Cauchy stress and stress based on reduced C and Phi
             });
             KRATOS_CATCH("")
         }
@@ -156,14 +161,52 @@ namespace Kratos
                 }
                 // needs more checking?
                 c = part_properties[UMAT_PARAMETERS][part_properties[INDEX_OF_UMAT_C_PARAMETER] - 1];
-                if (c < 0.) {
-                    KRATOS_ERROR << "Cohesion C out of range: " << c << std::endl;
-                }
-            }
-            else {
+                if (c < 0.) KRATOS_ERROR << "Cohesion C out of range: " << c << std::endl;
+            } else {
                 KRATOS_ERROR << "Insufficient material data for C-phi reduction: " << std::endl;
             }
             return c;
+        }
+
+        double GetAndCheckYoung(const Element::PropertiesType& rProp)
+        {
+            const auto& part_properties = mrModelPart.GetProperties(rProp.Id());
+            double young = part_properties[UMAT_PARAMETERS][0];
+            if (young < 0.) KRATOS_ERROR << "Positive value expected for Youngs modulus UMAT_PARAMETERS(1) " << young << std::endl;
+            return young;
+        }
+
+        double GetAndCheckPoisson(const Element::PropertiesType& rProp)
+        {
+            const auto& part_properties = mrModelPart.GetProperties(rProp.Id());
+            double nu = part_properties[UMAT_PARAMETERS][0];
+            if (nu < -1. || nu >= 0.5) KRATOS_ERROR << "Value between -1.0 and 0.5 expected for Poissons ratio UMAT_PARAMETERS(2) " << nu << std::endl;
+            return nu;
+        }
+
+        Matrix& FormElasticConstitutiveTensor(const double young, const double poisson)
+        {
+            Matrix C = zero_matrix(VOIGT_SIZE_2D_PLANE_STRAIN, VOIGT_SIZE_2D_PLANE_STRAIN);
+            const double c0 = young / ((1.0 + poisson)*(1.0 - 2.0 * poisson));
+            const double c1 = (1.0 - poisson)*c0;
+            const double c2 = c0 * poisson;
+            const double c3 = (0.5 - poisson)*c0;
+
+            C(INDEX_2D_PLANE_STRAIN_XX, INDEX_2D_PLANE_STRAIN_XX) = c1;
+            C(INDEX_2D_PLANE_STRAIN_XX, INDEX_2D_PLANE_STRAIN_YY) = c2;
+            C(INDEX_2D_PLANE_STRAIN_XX, INDEX_2D_PLANE_STRAIN_ZZ) = c2;
+
+            C(INDEX_2D_PLANE_STRAIN_YY, INDEX_2D_PLANE_STRAIN_XX) = c2;
+            C(INDEX_2D_PLANE_STRAIN_YY, INDEX_2D_PLANE_STRAIN_YY) = c1;
+            C(INDEX_2D_PLANE_STRAIN_YY, INDEX_2D_PLANE_STRAIN_ZZ) = c2;
+
+            C(INDEX_2D_PLANE_STRAIN_ZZ, INDEX_2D_PLANE_STRAIN_XX) = c2;
+            C(INDEX_2D_PLANE_STRAIN_ZZ, INDEX_2D_PLANE_STRAIN_YY) = c2;
+            C(INDEX_2D_PLANE_STRAIN_ZZ, INDEX_2D_PLANE_STRAIN_ZZ) = c1;
+
+            C(INDEX_2D_PLANE_STRAIN_XY, INDEX_2D_PLANE_STRAIN_XY) = c3;
+
+            return C;
         }
 
         void set_C_Phi_At_Element(Element& rElement, const double reduced_phi, const double reduced_c)
@@ -171,7 +214,7 @@ namespace Kratos
             // Get C/Phi material properties of this element
             Element::PropertiesType& rProp = rElement.GetProperties();
 
-            // Overwrite C and Phi in the UMAT_PATAMETERS
+            // Overwrite C and Phi in the UMAT_PARAMETERS
             auto newParameters = rProp[UMAT_PARAMETERS];
             newParameters[rProp[INDEX_OF_UMAT_PHI_PARAMETER]-1] = reduced_phi;
             newParameters[rProp[INDEX_OF_UMAT_C_PARAMETER]-1]   = reduced_c;
@@ -191,6 +234,29 @@ namespace Kratos
             rElement.SetProperties(p_new_prop);
         }
 
+        void backComputeElementStrains(Element& rElement)
+        {
+            Element::PropertiesType& rProp = rElement.GetProperties();
+            const double young = GetAndCheckYoung(rProp);
+            const double poisson = GetAndCheckPoisson(rProp);
+            Matrix C = FormElasticConstitutiveTensor(young, poisson);
+            Matrix CInverse = inverse(C);
+
+            //walk the integration points
+            using NodeType       = Node;
+            using GeometryType   = Geometry<NodeType>;
+
+            const GeometryType& rGeom   = rElement.GetGeometry();
+            const GeometryType::IntegrationPointsArrayType& IntegrationPoints =
+                rGeom.IntegrationPoints(rElement.GetIntegrationMethod());
+            const IndexType NumGPoints = IntegrationPoints.size();
+            for (IndexType GPoint = 0; GPoint < NumGPoints; ++GPoint) {
+                Vector currentStress = getStressVector[GPoint];
+                Vector backStrain=  prod(CInverse, currentStress);
+                // haal B matrix en i.p. gewicht, tel op bij element RHS
+            }
+            // tel element RHS op bij systeem RHS
+        }
     };
 
 }

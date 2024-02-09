@@ -46,7 +46,7 @@
 #include "custom_processes/apply_vector_constraint_table_process.h"
 #include "custom_processes/apply_scalar_constraint_table_process.h"
 #include "custom_processes/apply_normal_load_table_process.h"
-#include "custom_processes/apply_c_phi_reduction_process.h"
+#include "custom_processes/apply_c_phi_reduction_process.hpp"
 
 namespace Kratos::Python
 {

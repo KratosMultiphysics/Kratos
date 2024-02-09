@@ -477,6 +477,7 @@ void SmallStrainUMAT3DLaw::CallUMAT(ConstitutiveLaw::Parameters &rValues)
 
    // variable to check if an error happened in the model:
    const auto &MaterialParameters = rValues.GetMaterialProperties()[UMAT_PARAMETERS];
+   KRATOS_INFO("umat_3D_law") << "UMAT_PARAMETERS = " << MaterialParameters << std::endl;
    auto nProperties = static_cast<int>(MaterialParameters.size());
    pUserMod(&(mStressVector.data()[0]), &(mStateVariables.data()[0]), (double **) mMatrixD, &SSE, &SPD, &SCD,
             nullptr, nullptr, nullptr, nullptr, &(mStrainVectorFinalized.data()[0]),
