@@ -137,6 +137,7 @@ namespace Kratos
             //terms multiplying dphi/dt (aux1)
             noalias(aux1) += (1.0+tau*Variables.beta*Variables.div_v)*outer_prod(N, N);
             
+
             noalias(aux1) +=  tau*outer_prod(a_dot_grad, N);
 
             //terms which multiply the gradient of phi
