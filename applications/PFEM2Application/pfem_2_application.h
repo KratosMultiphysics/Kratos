@@ -29,6 +29,7 @@
 #include "custom_elements/fractional_step_pfem_2_3d.h" //including the file for the element
 #include "custom_elements/monolithic_2fluid_2d.h" //including the file for the element
 #include "custom_elements/monolithic_2fluid_3d.h" //including the file for the element
+#include "custom_elements/monolithic_modified_2fluid_2d.h" //including the file for the element
 #include "custom_elements/nonewtonian_2fluid_2d.h" //including the file for the element
 #include "custom_elements/nonewtonian_2fluid_3d.h" //including the file for the element
 #include "custom_elements/monolithic_2fluid_2d_partintegration.h" //including the file for the element
@@ -202,6 +203,7 @@ namespace Kratos
     const FractionalStepPFEM23D   mFractionalStepPFEM23D;
     const MonolithicPFEM22D   mMonolithicPFEM22D;
     const MonolithicPFEM23D   mMonolithicPFEM23D;
+    const MonolithicModifiedPFEM22D   mMonolithicModifiedPFEM22D;
     const NoNewtonianMonolithicPFEM22D   mNoNewtonianMonolithicPFEM22D;
     const NoNewtonianMonolithicPFEM23D   mNoNewtonianMonolithicPFEM23D;
 
