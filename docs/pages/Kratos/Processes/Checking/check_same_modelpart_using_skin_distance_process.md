@@ -12,6 +12,8 @@ summary:
 
 Checks that two modelparts are the same using the skin distance of both modelparts over an auxuliary background mesh.
 
+Please note that checks process do not produce an output, and will only print its result.
+
 ## Parameters & Defaults
 
 ```json

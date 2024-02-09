@@ -1,12 +1,12 @@
 ---
 title: Assign Vector Variable
 keywords: process core
-tags: [assign scalar variable to entities process]
+tags: [assign vector variable to entities process]
 sidebar: kratos_core_processes
 summary: 
 ---
 
-# Assign Scalar Variable
+# Assign Vector Variable
 
 ## Description
 

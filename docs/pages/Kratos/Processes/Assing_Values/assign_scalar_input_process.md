@@ -12,6 +12,14 @@ summary:
 
 This process assigns a value from an input to a variable belonging to all of the entities in a given mesh
 
+## Execution
+
+This process is executed in the following hooks:
+
+#### `ExecuteInitializeSolutionStep`
+
+Assigns the value.
+
 ## Parameters & Defaults
 
 ```json
@@ -27,14 +35,29 @@ This process assigns a value from an input to a variable belonging to all of the
 }
 ```
 
-- `model_part_name`: Name of the modelpart in wich the field variable will be applied
-- `mesh_id`: Id of the internal mesh to which the process will be applied. Default `0`.
-- `variable_name`: Name of the variable in which the field value will be applied.
-- `interval`: Interval of time in which the process will be applied.
-- `file`: Input file with the input values. currently accepts `json`, `txt` and `csv`
-- `historical`: Selects if the value is applied to the historical (`true`) or the non-historical (`false`) databases. Default `false`
-- `transfer_algorithm`: Searh algortihm. Curently only accepts `nearest_neighbour`.
-- `entities`: List of entities into which the value will be applies. Accepts: `nodes`, `elements`, `conditions`
+##### `model_part_name`
+Name of the modelpart in wich the field variable will be applied
+
+##### `mesh_id`
+Id of the internal mesh to which the process will be applied. Default `0`.
+
+##### `variable_name`
+Name of the variable in which the field value will be applied.
+
+##### `interval`
+Interval of time in which the process will be applied.
+
+##### `file`
+Input file with the input values. currently accepts `json`, `txt` and `csv`
+
+##### `historical`
+Selects if the value is applied to the historical (`true`) or the non-historical (`false`) databases. Default `false`
+
+##### `transfer_algorithm`
+Searh algortihm. Curently only accepts `nearest_neighbour`.
+
+##### `entities`
+List of entities into which the value will be applies. Accepts: `nodes`, `elements`, `conditions`
 
 ## File Formats
 

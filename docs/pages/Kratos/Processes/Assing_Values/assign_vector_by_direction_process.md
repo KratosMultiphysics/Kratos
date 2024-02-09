@@ -1,12 +1,12 @@
 ---
-title: Assign Vector Variable
+title: Assign Vector By Direction
 keywords: process core
-tags: [assign scalar variable to entities process]
+tags: [assign Vector variable by direction]
 sidebar: kratos_core_processes
 summary: 
 ---
 
-# Assign Scalar Variable
+# Assign Vector Variable By Direction
 
 ## Description
 
@@ -20,6 +20,8 @@ Different specialized entry points for directional vectors
 - `AssignVectorByDirectionToNodeProcess`
 - `AssignVectorByDirectionToElementProcess`
 - `AssignVectorByDirectionToConditionProcess`
+
+This process will call the corresponding `AssignScalarVariableToEntityProcess` for each component of the vector.
 
 ## Execution
 
