@@ -26,13 +26,27 @@ $$ \frac{\partial p}{\partial t} = c_v \frac{\partial^2 p}{\partial y^2} $$
 
 where the consolidation coefficient:
 
-$$ c_v = \frac{kappa}{mu ( \frac{1}{K + 4G/3} + \frac{n}{K_w})}$$
+$$ c_v = \frac{\kappa}{\mu ( \frac{1}{K + 4G/3} + \frac{n}{K_w})}$$
 
 The analytical solution given by Terzaghi reads:
 
-$$ p = \frac{4 p_0}{\pi} \SIGMA \frac{(-1)^{j-1}}{2j-1} cos((2j-1) \frac{\pi y}{2 h}) exp(-(2j-1)^2 \frac{\pi^2 c_v t}{4 h^2}) $$
+$$ p = \frac{4 p_0}{\pi} \sum_{j=1}^{\infty} \frac{(-1)^{j-1}}{2j-1} cos((2j-1) \frac{\pi y}{2 h}) exp(-(2j-1)^2 \frac{\pi^2 c_v t}{4 h^2}) $$
 
-Analysis stages are choosen such that at the ends of the 2nd and further stages the dimensionless time parameter $\frac{c_v t}{h^2}$ follows the pattern 0.01, 0.02, 0.05, 0.1, 0.2, 0.5, 1.0, 2.0, 5.0, 10.0
+Analysis stages are chosen such that at the endtimes of the stages and the corresponding dimensionless time parameter $\frac{c_v t}{h^2}$ follows the pattern of the table below.
+
+| $t \mathrm{[s]}$ | $\frac{c_v t}{h^2}$ |
+|------------------|---------------------|
+| 0.0              | 0.0                 |
+| 8640.0           | 0.01                |
+| 17280.0          | 0.02                |
+| 43200.0          | 0.05                |
+| 86400.0          | 0.1                 |
+| 172800.0         | 0.2                 |
+| 432000.0         | 0.5                 |
+| 864000.0         | 1.0                 |
+| 1728000.0        | 2.0                 |
+| 4320000.0        | 5.0                 |
+| 8640000.0        | 10.0                |
 
 ## Assertions
 

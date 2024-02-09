@@ -1,8 +1,8 @@
 {
     "problem_data": {
         "problem_name":         "1D-Consolidationtest_stage7",
-        "start_time":           172801,
-        "end_time":             432001,
+        "start_time":           172800.0,
+        "end_time":             432000.0,
         "echo_level":           1,
         "parallel_type":        "OpenMP",
         "number_of_threads":    1
