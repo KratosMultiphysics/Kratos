@@ -120,7 +120,8 @@ void MassResponseUtils::CalculateGradient(
     const PhysicalFieldVariableTypes& rPhysicalVariable,
     ModelPart& rGradientRequiredModelPart,
     ModelPart& rGradientComputedModelPart,
-    std::vector<ContainerExpressionType>& rListOfContainerExpressions)
+    std::vector<ContainerExpressionType>& rListOfContainerExpressions,
+    const double PerturbationSize)
 {
     KRATOS_TRY
 
@@ -148,7 +149,7 @@ void MassResponseUtils::CalculateGradient(
             VariableUtils().SetNonHistoricalVariableToZero(SHAPE_SENSITIVITY, rGradientRequiredModelPart.Nodes());
 
             // computes density sensitivty and store it within each elements' properties
-            CalculateMassShapeGradient(rGradientComputedModelPart, SHAPE_SENSITIVITY);
+            CalculateMassShapeGradient(rGradientComputedModelPart, SHAPE_SENSITIVITY, PerturbationSize);
         } else {
             KRATOS_ERROR
                 << "Unsupported sensitivity w.r.t. " << pVariable->Name()
@@ -198,11 +199,10 @@ void MassResponseUtils::CalculateGradient(
 
 void MassResponseUtils::CalculateMassShapeGradient(
     ModelPart& rModelPart,
-    const Variable<array_1d<double, 3>>& rOutputGradientVariable)
+    const Variable<array_1d<double, 3>>& rOutputGradientVariable,
+    const double PerturbationSize)
 {
     KRATOS_TRY
-
-    const double perturbation_size = 1e-6;
 
     KRATOS_ERROR_IF(rModelPart.NumberOfElements() == 0) << rModelPart.FullName() << " does not contain any elements.\n";
 
@@ -285,11 +285,11 @@ void MassResponseUtils::CalculateMassShapeGradient(
             break;
         default:
             is_parallel_computation_allowed = false;
-            volume_derivative_method = [perturbation_size](IndexType NodeIndex, IndexType DirectionIndex, GeometryType& rGeometry) {
+            volume_derivative_method = [PerturbationSize](IndexType NodeIndex, IndexType DirectionIndex, GeometryType& rGeometry) {
                 auto& coordinates = rGeometry[NodeIndex].Coordinates();
-                coordinates[DirectionIndex] += perturbation_size;
+                coordinates[DirectionIndex] += PerturbationSize;
                 const double perturbed_domain_size = rGeometry.DomainSize();
-                coordinates[DirectionIndex] -= perturbation_size;
+                coordinates[DirectionIndex] -= PerturbationSize;
                 return perturbed_domain_size;
             };
             break;
@@ -328,7 +328,7 @@ void MassResponseUtils::CalculateMassShapeGradient(
 
                 for (IndexType k = 0; k < dimension; ++k) {
                     const double perturbed_domain_size = volume_derivative_method(c, k, r_geometry);
-                    const double domain_size_derivative = (perturbed_domain_size - initial_domain_size) * thickness * density * cross_area / perturbation_size;
+                    const double domain_size_derivative = (perturbed_domain_size - initial_domain_size) * thickness * density * cross_area / PerturbationSize;
                     r_derivative_value[k] += domain_size_derivative;
                 }
             }
