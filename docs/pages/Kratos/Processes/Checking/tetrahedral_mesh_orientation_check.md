@@ -10,4 +10,12 @@ summary:
 
 ## Description
 
+**Warning**: This process does not follow the standard Process interface.
+
+This process verifies that the orientation of all elements of a modelpart of thetrahedras is correct.
+
+Please note that checks process do not produce an output, and will only print its result.
+
 ## Parameters & Defaults
+
+This process is not configurable

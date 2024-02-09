@@ -10,4 +10,10 @@ summary:
 
 ## Description
 
+**Warning**: This process does not follow the standard Process interface.
+
+This process transfers a number of entities, from a source modelpart to a target modelpart
+
 ## Parameters & Defaults
+
+This process is not configurable
