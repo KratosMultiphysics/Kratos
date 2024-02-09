@@ -43,7 +43,10 @@ class SimpControl(Control):
 
         # filtering settings
         filter_settings = parameters["filter_settings"]
-        self.filter_type = filter_settings["type"].GetString()
+        filter_type = filter_settings["type"].GetString()
+        if filter_type != "explicit":
+            raise RuntimeError(f"Currently simp control only support \"explicit\" vertex morphing.")
+
         self.filter_function_type = filter_settings["filter_function_type"].GetString()
         self.damping_function_type = filter_settings["damping_function_type"].GetString()
         self.filter_radius = filter_settings["radius"].GetDouble()
@@ -92,6 +95,8 @@ class SimpControl(Control):
             Kratos.Expression.LiteralExpressionIO.SetData(filter_radius, self.filter_radius)
             self.filter.SetFilterRadius(filter_radius)
 
+        self.un_buffered_data.SetValue("filtered_phi", self.phi, overwrite=True)
+
     def Check(self) -> None:
         pass
 
@@ -136,6 +141,7 @@ class SimpControl(Control):
 
         if Kratos.Expression.Utils.NormL2(self.phi - control_field) > 1e-15:
             self.phi = KratosOA.ExpressionUtils.Clamp(self.filter.FilterField(control_field), 0, 1)
+            self.un_buffered_data.SetValue("filtered_phi", self.phi.Clone(), overwrite=True)
             self.__ApplyDensityAndYoungsModulus()
 
     def __ApplyDensityAndYoungsModulus(self) -> None:
