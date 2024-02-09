@@ -10,15 +10,10 @@
 //  Main authors:    Vahid Galavi
 //
 
-#if !defined (KRATOS_GEO_LINEAR_ELASTIC_PLANE_STRESS_LAW_H_INCLUDED)
-#define  KRATOS_GEO_LINEAR_ELASTIC_PLANE_STRESS_LAW_H_INCLUDED
-
-// System includes
-
-// External includes
+#pragma once
 
 // Project includes
-#include "custom_constitutive/elastic_isotropic_K0_3d_law.h"
+#include "linear_elastic_law.h"
 
 namespace Kratos
 {
@@ -48,21 +43,13 @@ namespace Kratos
  * @author Riccardo Rossi
  */
 class KRATOS_API(GEO_MECHANICS_APPLICATION) GeoLinearElasticPlaneStress2DLaw
-    : public ElasticIsotropicK03DLaw
+    : public GeoLinearElasticLaw
 {
 public:
     ///@name Type Definitions
     ///@{
 
-    /// The base class ConstitutiveLaw type definition
-    using CLBaseType = ConstitutiveLaw;
-
-    /// The base class ElasticIsotropicK03DLaw type definition
-    using BaseType = ElasticIsotropicK03DLaw;
-
-    // Adding the respective using to avoid overload conflicts
-    using BaseType::Has;
-    using BaseType::GetValue;
+    using BaseType = GeoLinearElasticLaw;
 
     /// The size type definition
     using SizeType = std::size_t;
@@ -79,23 +66,7 @@ public:
     ///@name Life Cycle
     ///@{
 
-    /**
-     * Default constructor.
-     */
-    GeoLinearElasticPlaneStress2DLaw();
-
     ConstitutiveLaw::Pointer Clone() const override;
-
-    /**
-     * Copy constructor.
-     */
-    GeoLinearElasticPlaneStress2DLaw (const GeoLinearElasticPlaneStress2DLaw& rOther);
-
-
-    /**
-     * Destructor.
-     */
-    ~GeoLinearElasticPlaneStress2DLaw() override;
 
     ///@}
     ///@name Operators
@@ -150,6 +121,7 @@ public:
      * @param rValue output: the value of the specified variable
      */
     bool& GetValue(const Variable<bool>& rThisVariable, bool& rValue) override;
+    using BaseType::GetValue;
 
     ///@}
 
@@ -183,21 +155,19 @@ protected:
     * @param rStressVector The stress vector in Voigt notation
     * @param rValues Parameters of the constitutive law
     */
-    void CalculatePK2Stress(
-        const Vector& rStrainVector,
-        Vector& rStressVector,
-        ConstitutiveLaw::Parameters& rValues
-        ) override;
+    void CalculatePK2Stress(const Vector& rStrainVector,
+                            Vector& rStressVector,
+                            ConstitutiveLaw::Parameters& rValues
+                           ) override;
 
     /**
     * It calculates the strain vector
     * @param rValues The internal values of the law
     * @param rStrainVector The strain vector in Voigt notation
     */
-    void CalculateCauchyGreenStrain(
-        ConstitutiveLaw::Parameters& rValues,
-        Vector& rStrainVector
-        ) override;
+    void CalculateCauchyGreenStrain(ConstitutiveLaw::Parameters& rValues,
+                                    Vector& rStrainVector
+                                   ) override;
 
     ///@}
 
@@ -231,15 +201,13 @@ private:
 
     void save(Serializer& rSerializer) const override
     {
-        KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, ElasticIsotropicK03DLaw)
+        KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, BaseType)
     }
 
     void load(Serializer& rSerializer) override
     {
-        KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, ElasticIsotropicK03DLaw)
+        KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, BaseType)
     }
-
-
 }; // Class GeoLinearElasticPlaneStress2DLaw
-}  // namespace Kratos.
-#endif // KRATOS_GEO_LINEAR_ELASTIC_PLANE_STRESS_LAW_H_INCLUDED  defined
+
+}

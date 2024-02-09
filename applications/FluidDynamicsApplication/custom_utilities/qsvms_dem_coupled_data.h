@@ -18,6 +18,7 @@
 // External includes
 
 // Project includes
+#include "geometries/geometry.h"
 #include "utilities/element_size_calculator.h"
 #include "includes/checks.h"
 
@@ -42,9 +43,19 @@ public:
 ///@name Type Definitions
 ///@{
 
+
+constexpr static unsigned int Dim = TDim;
+constexpr static unsigned int NumNodes = TNumNodes;
+constexpr static unsigned int BlockSize = Dim + 2;
+constexpr static unsigned int DofSize = NumNodes * BlockSize;
+constexpr static bool ElementIntegratesInTime = TElementIntegratesInTime;
+
 using NodalScalarData = typename FluidElementData<TDim,TNumNodes, false>::NodalScalarData;
 using NodalVectorData = typename FluidElementData<TDim,TNumNodes, false>::NodalVectorData;
 using NodalTensorData = typename FluidElementData<TDim,TNumNodes, false>::NodalTensorData;
+using ShapeFunctionsSecondDerivativesType = DenseVector<Matrix>;
+using MatrixRowType = MatrixRow<Matrix>;
+using ShapeDerivativesType = BoundedMatrix<double,TNumNodes,TDim>;
 
 ///@}
 ///@name Public Members
@@ -59,6 +70,8 @@ NodalVectorData Acceleration;
 NodalVectorData BodyForce;
 
 NodalTensorData Permeability;
+
+ShapeFunctionsSecondDerivativesType DDN_DDX;
 
 double ElementSize;
 
@@ -81,7 +94,13 @@ void Initialize(
     this->FillFromHistoricalNodalData(Acceleration, ACCELERATION, r_geometry);
     this->FillFromHistoricalNodalData(BodyForce,BODY_FORCE,r_geometry);
 
-    ElementSize = ElementSizeCalculator<TDim,TNumNodes>::MinimumElementSize(r_geometry);
+    ElementSize = ElementSizeCalculator<TDim,TNumNodes>::AverageElementSize(r_geometry);
+}
+
+void UpdateSecondDerivativesValues(const ShapeFunctionsSecondDerivativesType& rDDN_DDX)
+{
+    ShapeFunctionsSecondDerivativesType& ddn_ddx = this->DDN_DDX;
+    ddn_ddx = rDDN_DDX;
 }
 
 ///@}

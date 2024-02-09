@@ -179,6 +179,7 @@ def PostProcessGeneratedStubFiles():
             data = file_input.read()
 
         data = re.sub(R"import +Kratos(\w+)\n", R"import KratosMultiphysics.\1 as Kratos\1\n", data)
+        data = re.sub(R"import +Kratos.(\w+)\n", R"import KratosMultiphysics.\1\n", data)
         data = data.replace("import Kratos\n", "import KratosMultiphysics as Kratos\n")
 
         with open(str(file.absolute()), "w") as file_output:
@@ -234,9 +235,8 @@ if __name__ == "__main__":
     error_and_warning_outut_file = f"{sys.argv[1]}/stub_generation_errors_and_warnings.txt"
     if "--quiet" in sys.argv: # suppress output from Kratos imports
         args = [arg for arg in sys.argv if arg != "--quiet"]
-        output = subprocess.run([sys.executable] + args, stdout = subprocess.PIPE, stderr = subprocess.PIPE)
-        for matched_group in re.finditer(r"(Error|Warning|error|warning)(.*?\\n)", str(output.stdout) + str(output.stderr)):
-            print("---- ", matched_group[1], matched_group[2])
+        subprocess.run([sys.executable] + args, stdout = subprocess.PIPE, stderr = sys.stderr, check=True)
+
     else:
         Main()
         PostProcessGeneratedStubFiles()

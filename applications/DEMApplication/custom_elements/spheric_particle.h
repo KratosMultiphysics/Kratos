@@ -484,6 +484,7 @@ int mClusterId;
 DEMIntegrationScheme* mpTranslationalIntegrationScheme;
 DEMIntegrationScheme* mpRotationalIntegrationScheme;
 double mGlobalDamping;
+double mGlobalViscousDamping;
 double mBondedScalingFactor[3] = {0.0};
 
 private:
@@ -532,6 +533,7 @@ virtual void save(Serializer& rSerializer) const override
     rSerializer.save("mRealMass", mRealMass);
     rSerializer.save("mClusterId", mClusterId);
     rSerializer.save("mGlobalDamping",mGlobalDamping);
+    rSerializer.save("mGlobalViscousDamping",mGlobalViscousDamping);
 }
 
 virtual void load(Serializer& rSerializer) override
@@ -585,6 +587,7 @@ virtual void load(Serializer& rSerializer) override
     rSerializer.load("mRealMass", mRealMass);
     rSerializer.load("mClusterId", mClusterId);
     rSerializer.load("mGlobalDamping",mGlobalDamping);
+    rSerializer.load("mGlobalViscousDamping",mGlobalViscousDamping);
 }
 
 }; // Class SphericParticle

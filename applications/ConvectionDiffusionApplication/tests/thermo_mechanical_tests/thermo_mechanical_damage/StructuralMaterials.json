@@ -1,0 +1,68 @@
+{
+    "properties" : [{
+        "model_part_name" : "Structure.Parts_Solid_Solid_Auto1",
+        "properties_id"   : 1,
+        "Material"        : {
+            "constitutive_law" : {
+                "name" : "SmallStrainThermalIsotropicDamagePlaneStrainVonMises"
+            },
+            "Variables"        : {
+                "DENSITY"         : 2400.0,
+                "YOUNG_MODULUS"   : 30e9,
+                "POISSON_RATIO"   : 0.2,
+                "YIELD_STRESS"    : 1e6,
+                "FRACTURE_ENERGY" : 0.1,
+                "SOFTENING_TYPE"  : 1,
+                "TANGENT_OPERATOR_ESTIMATION" : 2,
+                "THERMAL_EXPANSION_COEFFICIENT" : 0.0,
+                "REFERENCE_TEMPERATURE" : 0.0
+            },
+            "Tables"           : {
+                "TEMPERATURE_vs_E" : {
+                        "input_variable"  : "TEMPERATURE",
+                        "output_variable" : "YOUNG_MODULUS",
+                        "data"            : [[0.0,   30e9],
+                                             [1100,  2.0e10]]
+                },                
+                "TEMPERATURE_vs_yield" : {
+                        "input_variable"  : "TEMPERATURE",
+                        "output_variable" : "YIELD_STRESS",
+                        "data"            : [[0.0,   1.0E6],
+                                             [1100,  7.5E5]]
+                },
+                "TEMPERATURE_vs_G" : {
+                        "input_variable"  : "TEMPERATURE",
+                        "output_variable" : "FRACTURE_ENERGY",
+                        "data"            : [[0.0,   0.1],
+                                             [1100,  0.07]]
+                }
+            },
+            "accessors"        : {
+                "accessor_table_T_E" : {
+                    "accessor_type"  : "table_accessor",
+                    "properties" : {
+                        "table_input_variable"      : "TEMPERATURE",
+                        "table_output_variable"     : "YOUNG_MODULUS",
+                        "table_input_variable_type" : "node_historical"
+                    }
+                },
+                "accessor_table_T_YIELD" : {
+                    "accessor_type"  : "table_accessor",
+                    "properties" : {
+                        "table_input_variable"      : "TEMPERATURE",
+                        "table_output_variable"     : "YIELD_STRESS",
+                        "table_input_variable_type" : "node_historical"
+                    }
+                },
+                "accessor_table_T_G" : {
+                    "accessor_type"  : "table_accessor",
+                    "properties" : {
+                        "table_input_variable"      : "TEMPERATURE",
+                        "table_output_variable"     : "FRACTURE_ENERGY",
+                        "table_input_variable_type" : "node_historical"
+                    }
+                }
+            }
+        }
+    }]
+}
