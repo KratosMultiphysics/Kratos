@@ -178,12 +178,12 @@ int SaturationLaw::Check(const Properties& rMaterialProperties,
     KRATOS_TRY
 
     // Verify Properties variables
-    if(rMaterialProperties.Has(RESIDUAL_WATER_SATURATION)) {
-        const double& residual_water_saturation = rMaterialProperties[RESIDUAL_WATER_SATURATION];
-        const bool check = static_cast<bool>((residual_water_saturation < 0.0) || (residual_water_saturation > 1.0));
-        KRATOS_ERROR_IF(check) << "RESIDUAL_WATER_SATURATION has an invalid value " << std::endl;
+    if(rMaterialProperties.Has(RESIDUAL_LIQUID_SATURATION)) {
+        const double& residual_liquid_saturation = rMaterialProperties[RESIDUAL_LIQUID_SATURATION];
+        const bool check = static_cast<bool>((residual_liquid_saturation < 0.0) || (residual_liquid_saturation > 1.0));
+        KRATOS_ERROR_IF(check) << "RESIDUAL_LIQUID_SATURATION has an invalid value " << std::endl;
     } else {
-        KRATOS_ERROR << "RESIDUAL_WATER_SATURATION not defined" << std::endl;
+        KRATOS_ERROR << "RESIDUAL_LIQUID_SATURATION not defined" << std::endl;
     }
 
     if(rMaterialProperties.Has(PORE_SIZE_FACTOR)) {
@@ -227,10 +227,10 @@ void SaturationLaw::CalculateMaterialResponse (Parameters& rValues)
     SaturationLawVariables Variables;
     this->InitializeSaturationLawVariables(Variables,rValues);
 
-    this->CalculateWaterSaturationDegree(Variables,rValues);
+    this->CalculateLiquidSaturationDegree(Variables,rValues);
 
     this->CalculateEffectiveSaturation(Variables,rValues);
-    this->CalculateWaterRelativePermeability(Variables,rValues);
+    this->CalculateLiquidRelativePermeability(Variables,rValues);
     this->CalculateGasRelativePermeability(Variables,rValues);
 }
 
@@ -259,7 +259,7 @@ void SaturationLaw::CalculateSaturation (Parameters& rValues)
     SaturationLawVariables Variables;
     this->InitializeSaturationLawVariables(Variables,rValues);
 
-    this->CalculateWaterSaturationDegree(Variables,rValues);
+    this->CalculateLiquidSaturationDegree(Variables,rValues);
 }
 
 //------------------------------------------------------------------------------------------------
@@ -280,21 +280,21 @@ void SaturationLaw::InitializeSaturationLawVariables(SaturationLawVariables& rVa
     const Element::GeometryType& geometry = rValues.GetElementGeometry();
     const unsigned int number_of_nodes = geometry.size();
 
-    rVariables.Swr = properties[RESIDUAL_WATER_SATURATION];
+    rVariables.Swr = properties[RESIDUAL_LIQUID_SATURATION];
     rVariables.lambda = properties[PORE_SIZE_FACTOR];
     rVariables.pb = properties[GAS_ENTRY_PRESSURE];
     // Capilar pore pressure: pc = pg - pw
     rVariables.pc = 0.0;
     for (unsigned int i = 0; i < number_of_nodes; i++) {
-        rVariables.pc += N[i] * (geometry[i].GetSolutionStepValue(GAS_PRESSURE) - geometry[i].GetSolutionStepValue(WATER_PRESSURE));
+        rVariables.pc += N[i] * (geometry[i].GetSolutionStepValue(GAS_PRESSURE) - geometry[i].GetSolutionStepValue(LIQUID_PRESSURE));
     }
 }
 
 //------------------------------------------------------------------------------------------------
 
-void SaturationLaw::CalculateWaterSaturationDegree (SaturationLawVariables& rVariables, Parameters& rValues)
+void SaturationLaw::CalculateLiquidSaturationDegree (SaturationLawVariables& rVariables, Parameters& rValues)
 {
-    KRATOS_ERROR <<  "Calling virtual function for CalculateWaterSaturationDegree"<< std::endl;
+    KRATOS_ERROR <<  "Calling virtual function for CalculateLiquidSaturationDegree"<< std::endl;
 }
 
 //------------------------------------------------------------------------------------------------
@@ -307,9 +307,9 @@ void SaturationLaw::CalculateEffectiveSaturation(SaturationLawVariables& rVariab
 
 //------------------------------------------------------------------------------------------------
 
-void SaturationLaw::CalculateWaterRelativePermeability (SaturationLawVariables& rVariables, Parameters& rValues)
+void SaturationLaw::CalculateLiquidRelativePermeability (SaturationLawVariables& rVariables, Parameters& rValues)
 {
-    KRATOS_ERROR <<  "Calling virtual function for CalculateWaterRelativePermeability"<< std::endl;
+    KRATOS_ERROR <<  "Calling virtual function for CalculateLiquidRelativePermeability"<< std::endl;
 }
 
 //------------------------------------------------------------------------------------------------

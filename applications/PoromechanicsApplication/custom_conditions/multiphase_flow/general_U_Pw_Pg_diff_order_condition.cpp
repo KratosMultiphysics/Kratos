@@ -102,7 +102,7 @@ void GeneralUPwPgDiffOrderCondition::GetDofList(DofsVectorType& rConditionDofLis
         rConditionDofList[Index++] = GetGeometry()[i].pGetDof( DISPLACEMENT_Y );
         if(Dim > 2)
             rConditionDofList[Index++] = GetGeometry()[i].pGetDof( DISPLACEMENT_Z );
-        rConditionDofList[Index++] = GetGeometry()[i].pGetDof( WATER_PRESSURE );
+        rConditionDofList[Index++] = GetGeometry()[i].pGetDof( LIQUID_PRESSURE );
     }
 
     for(SizeType i=NumPNodes; i<NumUNodes; i++)
@@ -124,7 +124,7 @@ void GeneralUPwPgDiffOrderCondition::GetDofList(DofsVectorType& rConditionDofLis
 
     for(SizeType i=0; i<NumPNodes; i++)
     {
-        rConditionDofList[Index++] = GetGeometry()[i].pGetDof( WATER_PRESSURE );
+        rConditionDofList[Index++] = GetGeometry()[i].pGetDof( LIQUID_PRESSURE );
         rConditionDofList[Index++] = GetGeometry()[i].pGetDof( GAS_PRESSURE );
     }
 
@@ -223,7 +223,7 @@ void GeneralUPwPgDiffOrderCondition::EquationIdVector(EquationIdVectorType& rRes
 
     for ( SizeType i = 0; i < NumPNodes; i++ )
     {
-        rResult[Index++] = GetGeometry()[i].GetDof( WATER_PRESSURE ).EquationId();
+        rResult[Index++] = GetGeometry()[i].GetDof( LIQUID_PRESSURE ).EquationId();
         rResult[Index++] = GetGeometry()[i].GetDof( GAS_PRESSURE ).EquationId();
     }
 

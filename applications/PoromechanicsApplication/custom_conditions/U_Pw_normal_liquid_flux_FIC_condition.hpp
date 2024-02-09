@@ -11,15 +11,15 @@
 //
 
 
-#if !defined(KRATOS_U_PW_NORMAL_FLUX_FIC_CONDITION_H_INCLUDED )
-#define  KRATOS_U_PW_NORMAL_FLUX_FIC_CONDITION_H_INCLUDED
+#if !defined(KRATOS_U_PW_NORMAL_LIQUID_FLUX_FIC_CONDITION_H_INCLUDED )
+#define  KRATOS_U_PW_NORMAL_LIQUID_FLUX_FIC_CONDITION_H_INCLUDED
 
 // Project includes
 #include "includes/serializer.h"
 
 // Application includes
 #include "custom_conditions/U_Pw_condition.hpp"
-#include "custom_conditions/U_Pw_normal_flux_condition.hpp"
+#include "custom_conditions/U_Pw_normal_liquid_flux_condition.hpp"
 #include "poromechanics_application_variables.h"
 
 namespace Kratos
@@ -126,4 +126,4 @@ private:
 
 } // namespace Kratos.
 
-#endif // KRATOS_U_PW_NORMAL_FLUX_FIC_CONDITION_H_INCLUDED defined
+#endif // KRATOS_U_PW_NORMAL_LIQUID_FLUX_FIC_CONDITION_H_INCLUDED defined

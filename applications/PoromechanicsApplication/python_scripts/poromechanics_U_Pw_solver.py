@@ -124,15 +124,15 @@ class UPwSolver(PythonSolver):
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.FACE_LOAD)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NORMAL_CONTACT_STRESS)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.TANGENTIAL_CONTACT_STRESS)
-        ## Fluid Variables
-        # Add water pressure
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.WATER_PRESSURE)
-        # Add reactions for the water pressure
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.REACTION_WATER_PRESSURE)
+        ## Liquid Variables
+        # Add liquid pressure
+        self.main_model_part.AddNodalSolutionStepVariable(KratosPoro.LIQUID_PRESSURE)
+        # Add reactions for the liquid pressure
+        self.main_model_part.AddNodalSolutionStepVariable(KratosPoro.REACTION_LIQUID_PRESSURE)
         # Add dynamic variables
-        self.main_model_part.AddNodalSolutionStepVariable(KratosPoro.DT_WATER_PRESSURE)
-        # Add variables for the water conditions
-        self.main_model_part.AddNodalSolutionStepVariable(KratosPoro.NORMAL_FLUID_FLUX)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosPoro.DT_LIQUID_PRESSURE)
+        # Add variables for the liquid conditions
+        self.main_model_part.AddNodalSolutionStepVariable(KratosPoro.NORMAL_LIQUID_FLUX)
         self.main_model_part.AddNodalSolutionStepVariable(KratosPoro.DISCHARGE)
         ## Other variables
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VOLUME_ACCELERATION)
@@ -144,7 +144,7 @@ class UPwSolver(PythonSolver):
         self.main_model_part.AddNodalSolutionStepVariable(KratosPoro.NODAL_JOINT_DAMAGE)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_AREA)
         self.main_model_part.AddNodalSolutionStepVariable(KratosPoro.NODAL_EFFECTIVE_STRESS_TENSOR)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosPoro.NODAL_WATER_PRESSURE_GRADIENT)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosPoro.NODAL_LIQUID_PRESSURE_GRADIENT)
         self.main_model_part.AddNodalSolutionStepVariable(KratosPoro.INITIAL_STRESS_TENSOR)
 
         # Add variables from gp to nodal variable list
@@ -187,8 +187,8 @@ class UPwSolver(PythonSolver):
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_X, KratosMultiphysics.REACTION_X,self.main_model_part)
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_Y, KratosMultiphysics.REACTION_Y,self.main_model_part)
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_Z, KratosMultiphysics.REACTION_Z,self.main_model_part)
-        ## Fluid dofs
-        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.WATER_PRESSURE, KratosMultiphysics.REACTION_WATER_PRESSURE,self.main_model_part)
+        ## Liquid dofs
+        KratosMultiphysics.VariableUtils().AddDof(KratosPoro.LIQUID_PRESSURE, KratosPoro.REACTION_LIQUID_PRESSURE,self.main_model_part)
 
         if(self.settings["solution_type"].GetString() == "implicit_dynamic"):
             for node in self.main_model_part.Nodes:

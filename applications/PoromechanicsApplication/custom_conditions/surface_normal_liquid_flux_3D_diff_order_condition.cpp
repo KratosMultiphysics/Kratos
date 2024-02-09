@@ -6,39 +6,39 @@
 //
 
 // Project includes
-#include "custom_conditions/surface_normal_fluid_flux_3D_diff_order_condition.hpp"
+#include "custom_conditions/surface_normal_liquid_flux_3D_diff_order_condition.hpp"
 
 namespace Kratos
 {
 
 // Default Constructor
-SurfaceNormalFluidFlux3DDiffOrderCondition::SurfaceNormalFluidFlux3DDiffOrderCondition() : GeneralUPwDiffOrderCondition() {}
+SurfaceNormalLiquidFlux3DDiffOrderCondition::SurfaceNormalLiquidFlux3DDiffOrderCondition() : GeneralUPwDiffOrderCondition() {}
 
 //----------------------------------------------------------------------------------------
 
 //Constructor 1
-SurfaceNormalFluidFlux3DDiffOrderCondition::SurfaceNormalFluidFlux3DDiffOrderCondition(IndexType NewId, GeometryType::Pointer pGeometry) : GeneralUPwDiffOrderCondition(NewId, pGeometry) {}
+SurfaceNormalLiquidFlux3DDiffOrderCondition::SurfaceNormalLiquidFlux3DDiffOrderCondition(IndexType NewId, GeometryType::Pointer pGeometry) : GeneralUPwDiffOrderCondition(NewId, pGeometry) {}
 
 //----------------------------------------------------------------------------------------
 
 //Constructor 2
-SurfaceNormalFluidFlux3DDiffOrderCondition::SurfaceNormalFluidFlux3DDiffOrderCondition(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties) : GeneralUPwDiffOrderCondition(NewId, pGeometry, pProperties) {}
+SurfaceNormalLiquidFlux3DDiffOrderCondition::SurfaceNormalLiquidFlux3DDiffOrderCondition(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties) : GeneralUPwDiffOrderCondition(NewId, pGeometry, pProperties) {}
 
 //----------------------------------------------------------------------------------------
 
 //Destructor
-SurfaceNormalFluidFlux3DDiffOrderCondition::~SurfaceNormalFluidFlux3DDiffOrderCondition() {}
+SurfaceNormalLiquidFlux3DDiffOrderCondition::~SurfaceNormalLiquidFlux3DDiffOrderCondition() {}
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-Condition::Pointer SurfaceNormalFluidFlux3DDiffOrderCondition::Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const
+Condition::Pointer SurfaceNormalLiquidFlux3DDiffOrderCondition::Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const
 {
-    return Condition::Pointer(new SurfaceNormalFluidFlux3DDiffOrderCondition(NewId, GetGeometry().Create(ThisNodes), pProperties));
+    return Condition::Pointer(new SurfaceNormalLiquidFlux3DDiffOrderCondition(NewId, GetGeometry().Create(ThisNodes), pProperties));
 }
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-void SurfaceNormalFluidFlux3DDiffOrderCondition::CalculateConditionVector(ConditionVariables& rVariables, unsigned int PointNumber)
+void SurfaceNormalLiquidFlux3DDiffOrderCondition::CalculateConditionVector(ConditionVariables& rVariables, unsigned int PointNumber)
 {
     KRATOS_TRY
 
@@ -48,7 +48,7 @@ void SurfaceNormalFluidFlux3DDiffOrderCondition::CalculateConditionVector(Condit
 
     for ( SizeType i = 0; i < NumPNodes; i++ )
     {
-        rVariables.ConditionVector[0] += rVariables.Np[i]*GetGeometry()[i].FastGetSolutionStepValue(NORMAL_FLUID_FLUX);
+        rVariables.ConditionVector[0] += rVariables.Np[i]*GetGeometry()[i].FastGetSolutionStepValue(NORMAL_LIQUID_FLUX);
     }
 
     KRATOS_CATCH( "" )
@@ -56,7 +56,7 @@ void SurfaceNormalFluidFlux3DDiffOrderCondition::CalculateConditionVector(Condit
 
 //----------------------------------------------------------------------------------------
 
-void SurfaceNormalFluidFlux3DDiffOrderCondition::CalculateIntegrationCoefficient(ConditionVariables& rVariables, unsigned int PointNumber, double weight)
+void SurfaceNormalLiquidFlux3DDiffOrderCondition::CalculateIntegrationCoefficient(ConditionVariables& rVariables, unsigned int PointNumber, double weight)
 {
     KRATOS_TRY
 
@@ -80,7 +80,7 @@ void SurfaceNormalFluidFlux3DDiffOrderCondition::CalculateIntegrationCoefficient
 
 //----------------------------------------------------------------------------------------
 
-void SurfaceNormalFluidFlux3DDiffOrderCondition::CalculateAndAddConditionForce(VectorType& rRightHandSideVector, ConditionVariables& rVariables)
+void SurfaceNormalLiquidFlux3DDiffOrderCondition::CalculateAndAddConditionForce(VectorType& rRightHandSideVector, ConditionVariables& rVariables)
 {
     const SizeType NumUNodes = GetGeometry().PointsNumber();
     const SizeType NumPNodes = mpPressureGeometry->PointsNumber();

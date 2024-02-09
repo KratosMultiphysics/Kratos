@@ -75,15 +75,15 @@ int  SmallStrainUPwDiffOrderElement::Check( const ProcessInfo& rCurrentProcessIn
     if ( DENSITY_SOLID.Key() == 0 )
         KRATOS_THROW_ERROR( std::invalid_argument, "DENSITY_SOLID Key is 0. Check if all applications were correctly registered.", "" )
 
-    //Fluid variables
-    if ( WATER_PRESSURE.Key() == 0 )
-        KRATOS_THROW_ERROR( std::invalid_argument, "WATER_PRESSURE Key is 0. Check if all applications were correctly registered.", "" )
+    //Liquid variables
+    if ( LIQUID_PRESSURE.Key() == 0 )
+        KRATOS_THROW_ERROR( std::invalid_argument, "LIQUID_PRESSURE Key is 0. Check if all applications were correctly registered.", "" )
 
-    if ( DT_WATER_PRESSURE.Key() == 0 )
-        KRATOS_THROW_ERROR( std::invalid_argument, "DT_WATER_PRESSURE Key is 0. Check if all applications were correctly registered.", "" )
+    if ( DT_LIQUID_PRESSURE.Key() == 0 )
+        KRATOS_THROW_ERROR( std::invalid_argument, "DT_LIQUID_PRESSURE Key is 0. Check if all applications were correctly registered.", "" )
 
-    if ( DENSITY_WATER.Key() == 0 )
-        KRATOS_THROW_ERROR( std::invalid_argument, "DENSITY_WATER Key is 0. Check if all applications were correctly registered.", "" )
+    if ( DENSITY_LIQUID.Key() == 0 )
+        KRATOS_THROW_ERROR( std::invalid_argument, "DENSITY_LIQUID Key is 0. Check if all applications were correctly registered.", "" )
 
     //verify that the dofs exist
     for ( unsigned int i = 0; i < rGeom.size(); i++ )
@@ -95,11 +95,11 @@ int  SmallStrainUPwDiffOrderElement::Check( const ProcessInfo& rCurrentProcessIn
             KRATOS_THROW_ERROR( std::invalid_argument, "missing one of the dofs for the variable DISPLACEMENT on node ", rGeom[i].Id() )
 
 
-        if ( rGeom[i].SolutionStepsDataHas( WATER_PRESSURE ) == false )
-            KRATOS_THROW_ERROR( std::invalid_argument, "missing variable WATER_PRESSURE on node ", rGeom[i].Id() )
+        if ( rGeom[i].SolutionStepsDataHas( LIQUID_PRESSURE ) == false )
+            KRATOS_THROW_ERROR( std::invalid_argument, "missing variable LIQUID_PRESSURE on node ", rGeom[i].Id() )
 
-        if ( rGeom[i].HasDofFor( WATER_PRESSURE ) == false )
-            KRATOS_THROW_ERROR( std::invalid_argument, "missing the dof for the variable WATER_PRESSURE on node ", rGeom[i].Id() )
+        if ( rGeom[i].HasDofFor( LIQUID_PRESSURE ) == false )
+            KRATOS_THROW_ERROR( std::invalid_argument, "missing the dof for the variable LIQUID_PRESSURE on node ", rGeom[i].Id() )
     }
 
     //verify that the constitutive law exists
@@ -226,7 +226,7 @@ void SmallStrainUPwDiffOrderElement::GetDofList( DofsVectorType& rElementalDofLi
         rElementalDofList[Index++] = GetGeometry()[i].pGetDof( DISPLACEMENT_Y );
         if(Dim > 2)
             rElementalDofList[Index++] = GetGeometry()[i].pGetDof( DISPLACEMENT_Z );
-        rElementalDofList[Index++] = GetGeometry()[i].pGetDof( WATER_PRESSURE );
+        rElementalDofList[Index++] = GetGeometry()[i].pGetDof( LIQUID_PRESSURE );
     }
 
     for(SizeType i=NumPNodes; i<NumUNodes; i++)
@@ -247,7 +247,7 @@ void SmallStrainUPwDiffOrderElement::GetDofList( DofsVectorType& rElementalDofLi
     }
 
     for(SizeType i=0; i<NumPNodes; i++)
-        rElementalDofList[Index++] = GetGeometry()[i].pGetDof( WATER_PRESSURE );
+        rElementalDofList[Index++] = GetGeometry()[i].pGetDof( LIQUID_PRESSURE );
 
     KRATOS_CATCH( "" )
 }
@@ -340,7 +340,7 @@ void SmallStrainUPwDiffOrderElement::CalculateMassMatrix( MatrixType& rMassMatri
     //Loop over integration points
     double IntegrationCoefficient;
     double Porosity = GetProperties()[POROSITY];
-    double Density = Porosity*GetProperties()[DENSITY_WATER] + (1.0-Porosity)*GetProperties()[DENSITY_SOLID];
+    double Density = Porosity*GetProperties()[DENSITY_LIQUID] + (1.0-Porosity)*GetProperties()[DENSITY_SOLID];
     SizeType Index = 0;
     Matrix Nu = ZeroMatrix( Dim , NumUNodes * Dim );
 
@@ -424,7 +424,7 @@ void SmallStrainUPwDiffOrderElement::EquationIdVector( EquationIdVectorType& rRe
     }
 
     for ( SizeType i = 0; i < NumPNodes; i++ )
-        rResult[Index++] = GetGeometry()[i].GetDof( WATER_PRESSURE ).EquationId();
+        rResult[Index++] = GetGeometry()[i].GetDof( LIQUID_PRESSURE ).EquationId();
 
     KRATOS_CATCH( "" )
 }
@@ -492,114 +492,114 @@ void SmallStrainUPwDiffOrderElement::FinalizeSolutionStep( const ProcessInfo& rC
     {
         case 6: //2D T6P3
         {
-            const double p0 = rGeom[0].FastGetSolutionStepValue(WATER_PRESSURE);
-            const double p1 = rGeom[1].FastGetSolutionStepValue(WATER_PRESSURE);
-            const double p2 = rGeom[2].FastGetSolutionStepValue(WATER_PRESSURE);
-            ThreadSafeNodeWrite(rGeom[3],WATER_PRESSURE, 0.5 * (p0 + p1) );
-            ThreadSafeNodeWrite(rGeom[4],WATER_PRESSURE, 0.5 * (p1 + p2) );
-            ThreadSafeNodeWrite(rGeom[5],WATER_PRESSURE, 0.5 * (p2 + p0) );
+            const double p0 = rGeom[0].FastGetSolutionStepValue(LIQUID_PRESSURE);
+            const double p1 = rGeom[1].FastGetSolutionStepValue(LIQUID_PRESSURE);
+            const double p2 = rGeom[2].FastGetSolutionStepValue(LIQUID_PRESSURE);
+            ThreadSafeNodeWrite(rGeom[3],LIQUID_PRESSURE, 0.5 * (p0 + p1) );
+            ThreadSafeNodeWrite(rGeom[4],LIQUID_PRESSURE, 0.5 * (p1 + p2) );
+            ThreadSafeNodeWrite(rGeom[5],LIQUID_PRESSURE, 0.5 * (p2 + p0) );
             break;
         }
         case 8: //2D Q8P4
         {
-            const double p0 = rGeom[0].FastGetSolutionStepValue(WATER_PRESSURE);
-            const double p1 = rGeom[1].FastGetSolutionStepValue(WATER_PRESSURE);
-            const double p2 = rGeom[2].FastGetSolutionStepValue(WATER_PRESSURE);
-            const double p3 = rGeom[3].FastGetSolutionStepValue(WATER_PRESSURE);
-            ThreadSafeNodeWrite(rGeom[4],WATER_PRESSURE, 0.5 * (p0 + p1) );
-            ThreadSafeNodeWrite(rGeom[5],WATER_PRESSURE, 0.5 * (p1 + p2) );
-            ThreadSafeNodeWrite(rGeom[6],WATER_PRESSURE, 0.5 * (p2 + p3) );
-            ThreadSafeNodeWrite(rGeom[7],WATER_PRESSURE, 0.5 * (p3 + p0) );
+            const double p0 = rGeom[0].FastGetSolutionStepValue(LIQUID_PRESSURE);
+            const double p1 = rGeom[1].FastGetSolutionStepValue(LIQUID_PRESSURE);
+            const double p2 = rGeom[2].FastGetSolutionStepValue(LIQUID_PRESSURE);
+            const double p3 = rGeom[3].FastGetSolutionStepValue(LIQUID_PRESSURE);
+            ThreadSafeNodeWrite(rGeom[4],LIQUID_PRESSURE, 0.5 * (p0 + p1) );
+            ThreadSafeNodeWrite(rGeom[5],LIQUID_PRESSURE, 0.5 * (p1 + p2) );
+            ThreadSafeNodeWrite(rGeom[6],LIQUID_PRESSURE, 0.5 * (p2 + p3) );
+            ThreadSafeNodeWrite(rGeom[7],LIQUID_PRESSURE, 0.5 * (p3 + p0) );
             break;
         }
         case 9: //2D Q9P4
         {
-            const double p0 = rGeom[0].FastGetSolutionStepValue(WATER_PRESSURE);
-            const double p1 = rGeom[1].FastGetSolutionStepValue(WATER_PRESSURE);
-            const double p2 = rGeom[2].FastGetSolutionStepValue(WATER_PRESSURE);
-            const double p3 = rGeom[3].FastGetSolutionStepValue(WATER_PRESSURE);
-            ThreadSafeNodeWrite(rGeom[4],WATER_PRESSURE, 0.5 * (p0 + p1) );
-            ThreadSafeNodeWrite(rGeom[5],WATER_PRESSURE, 0.5 * (p1 + p2) );
-            ThreadSafeNodeWrite(rGeom[6],WATER_PRESSURE, 0.5 * (p2 + p3) );
-            ThreadSafeNodeWrite(rGeom[7],WATER_PRESSURE, 0.5 * (p3 + p0) );
-            ThreadSafeNodeWrite(rGeom[8],WATER_PRESSURE, 0.25 * (p0 + p1 + p2 + p3) );
+            const double p0 = rGeom[0].FastGetSolutionStepValue(LIQUID_PRESSURE);
+            const double p1 = rGeom[1].FastGetSolutionStepValue(LIQUID_PRESSURE);
+            const double p2 = rGeom[2].FastGetSolutionStepValue(LIQUID_PRESSURE);
+            const double p3 = rGeom[3].FastGetSolutionStepValue(LIQUID_PRESSURE);
+            ThreadSafeNodeWrite(rGeom[4],LIQUID_PRESSURE, 0.5 * (p0 + p1) );
+            ThreadSafeNodeWrite(rGeom[5],LIQUID_PRESSURE, 0.5 * (p1 + p2) );
+            ThreadSafeNodeWrite(rGeom[6],LIQUID_PRESSURE, 0.5 * (p2 + p3) );
+            ThreadSafeNodeWrite(rGeom[7],LIQUID_PRESSURE, 0.5 * (p3 + p0) );
+            ThreadSafeNodeWrite(rGeom[8],LIQUID_PRESSURE, 0.25 * (p0 + p1 + p2 + p3) );
             break;
         }
         case 10: //3D T10P4
         {
-            const double p0 = rGeom[0].FastGetSolutionStepValue(WATER_PRESSURE);
-            const double p1 = rGeom[1].FastGetSolutionStepValue(WATER_PRESSURE);
-            const double p2 = rGeom[2].FastGetSolutionStepValue(WATER_PRESSURE);
-            const double p3 = rGeom[3].FastGetSolutionStepValue(WATER_PRESSURE);
-            ThreadSafeNodeWrite(rGeom[4],WATER_PRESSURE, 0.5 * (p0 + p1) );
-            ThreadSafeNodeWrite(rGeom[5],WATER_PRESSURE, 0.5 * (p1 + p2) );
-            ThreadSafeNodeWrite(rGeom[6],WATER_PRESSURE, 0.5 * (p2 + p0) );
-            ThreadSafeNodeWrite(rGeom[7],WATER_PRESSURE, 0.5 * (p0 + p3) );
-            ThreadSafeNodeWrite(rGeom[8],WATER_PRESSURE, 0.5 * (p1 + p3) );
-            ThreadSafeNodeWrite(rGeom[9],WATER_PRESSURE, 0.5 * (p2 + p3) );
+            const double p0 = rGeom[0].FastGetSolutionStepValue(LIQUID_PRESSURE);
+            const double p1 = rGeom[1].FastGetSolutionStepValue(LIQUID_PRESSURE);
+            const double p2 = rGeom[2].FastGetSolutionStepValue(LIQUID_PRESSURE);
+            const double p3 = rGeom[3].FastGetSolutionStepValue(LIQUID_PRESSURE);
+            ThreadSafeNodeWrite(rGeom[4],LIQUID_PRESSURE, 0.5 * (p0 + p1) );
+            ThreadSafeNodeWrite(rGeom[5],LIQUID_PRESSURE, 0.5 * (p1 + p2) );
+            ThreadSafeNodeWrite(rGeom[6],LIQUID_PRESSURE, 0.5 * (p2 + p0) );
+            ThreadSafeNodeWrite(rGeom[7],LIQUID_PRESSURE, 0.5 * (p0 + p3) );
+            ThreadSafeNodeWrite(rGeom[8],LIQUID_PRESSURE, 0.5 * (p1 + p3) );
+            ThreadSafeNodeWrite(rGeom[9],LIQUID_PRESSURE, 0.5 * (p2 + p3) );
             break;
         }
         case 20: //3D H20P8
         {
-            const double p0 = rGeom[0].FastGetSolutionStepValue(WATER_PRESSURE);
-            const double p1 = rGeom[1].FastGetSolutionStepValue(WATER_PRESSURE);
-            const double p2 = rGeom[2].FastGetSolutionStepValue(WATER_PRESSURE);
-            const double p3 = rGeom[3].FastGetSolutionStepValue(WATER_PRESSURE);
-            const double p4 = rGeom[4].FastGetSolutionStepValue(WATER_PRESSURE);
-            const double p5 = rGeom[5].FastGetSolutionStepValue(WATER_PRESSURE);
-            const double p6 = rGeom[6].FastGetSolutionStepValue(WATER_PRESSURE);
-            const double p7 = rGeom[7].FastGetSolutionStepValue(WATER_PRESSURE);
+            const double p0 = rGeom[0].FastGetSolutionStepValue(LIQUID_PRESSURE);
+            const double p1 = rGeom[1].FastGetSolutionStepValue(LIQUID_PRESSURE);
+            const double p2 = rGeom[2].FastGetSolutionStepValue(LIQUID_PRESSURE);
+            const double p3 = rGeom[3].FastGetSolutionStepValue(LIQUID_PRESSURE);
+            const double p4 = rGeom[4].FastGetSolutionStepValue(LIQUID_PRESSURE);
+            const double p5 = rGeom[5].FastGetSolutionStepValue(LIQUID_PRESSURE);
+            const double p6 = rGeom[6].FastGetSolutionStepValue(LIQUID_PRESSURE);
+            const double p7 = rGeom[7].FastGetSolutionStepValue(LIQUID_PRESSURE);
             // edges -- bottom
-            ThreadSafeNodeWrite(rGeom[8],WATER_PRESSURE, 0.5 * (p0 + p1) );
-            ThreadSafeNodeWrite(rGeom[9],WATER_PRESSURE, 0.5 * (p1 + p2) );
-            ThreadSafeNodeWrite(rGeom[10],WATER_PRESSURE, 0.5 * (p2 + p3) );
-            ThreadSafeNodeWrite(rGeom[11],WATER_PRESSURE, 0.5 * (p3 + p0) );
+            ThreadSafeNodeWrite(rGeom[8],LIQUID_PRESSURE, 0.5 * (p0 + p1) );
+            ThreadSafeNodeWrite(rGeom[9],LIQUID_PRESSURE, 0.5 * (p1 + p2) );
+            ThreadSafeNodeWrite(rGeom[10],LIQUID_PRESSURE, 0.5 * (p2 + p3) );
+            ThreadSafeNodeWrite(rGeom[11],LIQUID_PRESSURE, 0.5 * (p3 + p0) );
             // edges -- middle
-            ThreadSafeNodeWrite(rGeom[12],WATER_PRESSURE, 0.5 * (p4 + p0) );
-            ThreadSafeNodeWrite(rGeom[13],WATER_PRESSURE, 0.5 * (p5 + p1) );
-            ThreadSafeNodeWrite(rGeom[14],WATER_PRESSURE, 0.5 * (p6 + p2) );
-            ThreadSafeNodeWrite(rGeom[15],WATER_PRESSURE, 0.5 * (p7 + p3) );
+            ThreadSafeNodeWrite(rGeom[12],LIQUID_PRESSURE, 0.5 * (p4 + p0) );
+            ThreadSafeNodeWrite(rGeom[13],LIQUID_PRESSURE, 0.5 * (p5 + p1) );
+            ThreadSafeNodeWrite(rGeom[14],LIQUID_PRESSURE, 0.5 * (p6 + p2) );
+            ThreadSafeNodeWrite(rGeom[15],LIQUID_PRESSURE, 0.5 * (p7 + p3) );
             // edges -- top
-            ThreadSafeNodeWrite(rGeom[16],WATER_PRESSURE, 0.5 * (p4 + p5) );
-            ThreadSafeNodeWrite(rGeom[17],WATER_PRESSURE, 0.5 * (p5 + p6) );
-            ThreadSafeNodeWrite(rGeom[18],WATER_PRESSURE, 0.5 * (p6 + p7) );
-            ThreadSafeNodeWrite(rGeom[19],WATER_PRESSURE, 0.5 * (p7 + p0) );
+            ThreadSafeNodeWrite(rGeom[16],LIQUID_PRESSURE, 0.5 * (p4 + p5) );
+            ThreadSafeNodeWrite(rGeom[17],LIQUID_PRESSURE, 0.5 * (p5 + p6) );
+            ThreadSafeNodeWrite(rGeom[18],LIQUID_PRESSURE, 0.5 * (p6 + p7) );
+            ThreadSafeNodeWrite(rGeom[19],LIQUID_PRESSURE, 0.5 * (p7 + p0) );
             break;
         }
         case 27: //3D H27P8
         {
-            const double p0 = rGeom[0].FastGetSolutionStepValue(WATER_PRESSURE);
-            const double p1 = rGeom[1].FastGetSolutionStepValue(WATER_PRESSURE);
-            const double p2 = rGeom[2].FastGetSolutionStepValue(WATER_PRESSURE);
-            const double p3 = rGeom[3].FastGetSolutionStepValue(WATER_PRESSURE);
-            const double p4 = rGeom[4].FastGetSolutionStepValue(WATER_PRESSURE);
-            const double p5 = rGeom[5].FastGetSolutionStepValue(WATER_PRESSURE);
-            const double p6 = rGeom[6].FastGetSolutionStepValue(WATER_PRESSURE);
-            const double p7 = rGeom[7].FastGetSolutionStepValue(WATER_PRESSURE);
+            const double p0 = rGeom[0].FastGetSolutionStepValue(LIQUID_PRESSURE);
+            const double p1 = rGeom[1].FastGetSolutionStepValue(LIQUID_PRESSURE);
+            const double p2 = rGeom[2].FastGetSolutionStepValue(LIQUID_PRESSURE);
+            const double p3 = rGeom[3].FastGetSolutionStepValue(LIQUID_PRESSURE);
+            const double p4 = rGeom[4].FastGetSolutionStepValue(LIQUID_PRESSURE);
+            const double p5 = rGeom[5].FastGetSolutionStepValue(LIQUID_PRESSURE);
+            const double p6 = rGeom[6].FastGetSolutionStepValue(LIQUID_PRESSURE);
+            const double p7 = rGeom[7].FastGetSolutionStepValue(LIQUID_PRESSURE);
             // edges -- bottom
-            ThreadSafeNodeWrite(rGeom[8],WATER_PRESSURE, 0.5 * (p0 + p1) );
-            ThreadSafeNodeWrite(rGeom[9],WATER_PRESSURE, 0.5 * (p1 + p2) );
-            ThreadSafeNodeWrite(rGeom[10],WATER_PRESSURE, 0.5 * (p2 + p3) );
-            ThreadSafeNodeWrite(rGeom[11],WATER_PRESSURE, 0.5 * (p3 + p0) );
+            ThreadSafeNodeWrite(rGeom[8],LIQUID_PRESSURE, 0.5 * (p0 + p1) );
+            ThreadSafeNodeWrite(rGeom[9],LIQUID_PRESSURE, 0.5 * (p1 + p2) );
+            ThreadSafeNodeWrite(rGeom[10],LIQUID_PRESSURE, 0.5 * (p2 + p3) );
+            ThreadSafeNodeWrite(rGeom[11],LIQUID_PRESSURE, 0.5 * (p3 + p0) );
             // edges -- middle
-            ThreadSafeNodeWrite(rGeom[12],WATER_PRESSURE, 0.5 * (p4 + p0) );
-            ThreadSafeNodeWrite(rGeom[13],WATER_PRESSURE, 0.5 * (p5 + p1) );
-            ThreadSafeNodeWrite(rGeom[14],WATER_PRESSURE, 0.5 * (p6 + p2) );
-            ThreadSafeNodeWrite(rGeom[15],WATER_PRESSURE, 0.5 * (p7 + p3) );
+            ThreadSafeNodeWrite(rGeom[12],LIQUID_PRESSURE, 0.5 * (p4 + p0) );
+            ThreadSafeNodeWrite(rGeom[13],LIQUID_PRESSURE, 0.5 * (p5 + p1) );
+            ThreadSafeNodeWrite(rGeom[14],LIQUID_PRESSURE, 0.5 * (p6 + p2) );
+            ThreadSafeNodeWrite(rGeom[15],LIQUID_PRESSURE, 0.5 * (p7 + p3) );
             // edges -- top
-            ThreadSafeNodeWrite(rGeom[16],WATER_PRESSURE, 0.5 * (p4 + p5) );
-            ThreadSafeNodeWrite(rGeom[17],WATER_PRESSURE, 0.5 * (p5 + p6) );
-            ThreadSafeNodeWrite(rGeom[18],WATER_PRESSURE, 0.5 * (p6 + p7) );
-            ThreadSafeNodeWrite(rGeom[19],WATER_PRESSURE, 0.5 * (p7 + p0) );
+            ThreadSafeNodeWrite(rGeom[16],LIQUID_PRESSURE, 0.5 * (p4 + p5) );
+            ThreadSafeNodeWrite(rGeom[17],LIQUID_PRESSURE, 0.5 * (p5 + p6) );
+            ThreadSafeNodeWrite(rGeom[18],LIQUID_PRESSURE, 0.5 * (p6 + p7) );
+            ThreadSafeNodeWrite(rGeom[19],LIQUID_PRESSURE, 0.5 * (p7 + p0) );
             // face centers
-            ThreadSafeNodeWrite(rGeom[20],WATER_PRESSURE, 0.25 * (p0 + p1 + p2 + p3) );
-            ThreadSafeNodeWrite(rGeom[21],WATER_PRESSURE, 0.25 * (p0 + p1 + p4 + p5) );
-            ThreadSafeNodeWrite(rGeom[22],WATER_PRESSURE, 0.25 * (p1 + p2 + p5 + p6) );
-            ThreadSafeNodeWrite(rGeom[23],WATER_PRESSURE, 0.25 * (p2 + p3 + p6 + p7) );
-            ThreadSafeNodeWrite(rGeom[24],WATER_PRESSURE, 0.25 * (p3 + p0 + p7 + p4) );
-            ThreadSafeNodeWrite(rGeom[25],WATER_PRESSURE, 0.25 * (p4 + p5 + p6 + p7) );
+            ThreadSafeNodeWrite(rGeom[20],LIQUID_PRESSURE, 0.25 * (p0 + p1 + p2 + p3) );
+            ThreadSafeNodeWrite(rGeom[21],LIQUID_PRESSURE, 0.25 * (p0 + p1 + p4 + p5) );
+            ThreadSafeNodeWrite(rGeom[22],LIQUID_PRESSURE, 0.25 * (p1 + p2 + p5 + p6) );
+            ThreadSafeNodeWrite(rGeom[23],LIQUID_PRESSURE, 0.25 * (p2 + p3 + p6 + p7) );
+            ThreadSafeNodeWrite(rGeom[24],LIQUID_PRESSURE, 0.25 * (p3 + p0 + p7 + p4) );
+            ThreadSafeNodeWrite(rGeom[25],LIQUID_PRESSURE, 0.25 * (p4 + p5 + p6 + p7) );
             // element center
-            ThreadSafeNodeWrite(rGeom[26],WATER_PRESSURE, 0.125 * (p0+p1+p2+p3+p4+p5+p6+p7) );
+            ThreadSafeNodeWrite(rGeom[26],LIQUID_PRESSURE, 0.125 * (p0+p1+p2+p3+p4+p5+p6+p7) );
             break;
         }
         default:
@@ -770,7 +770,7 @@ void SmallStrainUPwDiffOrderElement::CalculateOnIntegrationPoints(const Variable
     if ( rOutput.size() != integration_points_number )
         rOutput.resize( integration_points_number );
 
-    if ( rVariable == FLUID_FLUX_VECTOR ) {
+    if ( rVariable == LIQUID_FLUX_VECTOR ) {
         //Definition of variables
         ElementalVariables Variables;
         this->InitializeElementalVariables(Variables,rCurrentProcessInfo);
@@ -781,7 +781,7 @@ void SmallStrainUPwDiffOrderElement::CalculateOnIntegrationPoints(const Variable
             //compute element kinematics (Np, gradNpT, |J|, B, strains)
             this->CalculateKinematics(Variables,PointNumber);
 
-            //Compute FluidFlux vector q [m/s]
+            //Compute LiquidFlux vector q [m/s]
             const SizeType Dim = rGeom.WorkingSpaceDimension();
             const SizeType NumUNodes = rGeom.PointsNumber();
             Vector BodyAcceleration = ZeroVector(Dim);
@@ -796,20 +796,20 @@ void SmallStrainUPwDiffOrderElement::CalculateOnIntegrationPoints(const Variable
 
             Vector GradPressureTerm(Dim);
             noalias(GradPressureTerm) = prod(trans(Variables.GradNpT),Variables.PressureVector);
-            noalias(GradPressureTerm) -= GetProperties()[DENSITY_WATER]*BodyAcceleration;
+            noalias(GradPressureTerm) -= GetProperties()[DENSITY_LIQUID]*BodyAcceleration;
 
-            Vector AuxFluidFlux = ZeroVector(Dim);
-            AuxFluidFlux = - 1.0/Variables.DynamicViscosity * prod(mIntrinsicPermeability, GradPressureTerm );
+            Vector AuxLiquidFlux = ZeroVector(Dim);
+            AuxLiquidFlux = - 1.0/Variables.DynamicViscosity * prod(mIntrinsicPermeability, GradPressureTerm );
 
-            array_1d<double,3> FluidFlux = ZeroVector(3);
-            FluidFlux[0] = AuxFluidFlux[0];
-            FluidFlux[1] = AuxFluidFlux[1];
+            array_1d<double,3> LiquidFlux = ZeroVector(3);
+            LiquidFlux[0] = AuxLiquidFlux[0];
+            LiquidFlux[1] = AuxLiquidFlux[1];
             if(Dim>2)
-                FluidFlux[2] = AuxFluidFlux[2];
+                LiquidFlux[2] = AuxLiquidFlux[2];
 
-            rOutput[PointNumber] = FluidFlux;
+            rOutput[PointNumber] = LiquidFlux;
         }
-    } else if ( rVariable == WATER_PRESSURE_GRADIENT ) {
+    } else if ( rVariable == LIQUID_PRESSURE_GRADIENT ) {
         //Definition of variables
         ElementalVariables Variables;
         this->InitializeElementalVariables(Variables,rCurrentProcessInfo);
@@ -820,7 +820,7 @@ void SmallStrainUPwDiffOrderElement::CalculateOnIntegrationPoints(const Variable
             //compute element kinematics (Np, gradNpT, |J|, B, strains)
             this->CalculateKinematics(Variables,PointNumber);
 
-            //Compute FluidFlux vector q [m/s]
+            //Compute LiquidFlux vector q [m/s]
             const SizeType Dim = rGeom.WorkingSpaceDimension();
 
             Vector GradPressure(Dim);
@@ -881,7 +881,7 @@ void SmallStrainUPwDiffOrderElement::CalculateOnIntegrationPoints( const Variabl
         Vector PressureVector(NumPNodes);
         for(SizeType i=0; i<NumPNodes; i++)
         {
-            PressureVector[i] = rGeom[i].FastGetSolutionStepValue(WATER_PRESSURE);
+            PressureVector[i] = rGeom[i].FastGetSolutionStepValue(LIQUID_PRESSURE);
         }
         const double BiotCoefficient = this->GetProperties()[BIOT_COEFFICIENT];
         Matrix NpContainer(integration_points_number,NumPNodes);
@@ -1111,8 +1111,8 @@ void SmallStrainUPwDiffOrderElement::InitializeNodalVariables (ElementalVariable
     (rVariables.PressureDtVector).resize(NumPNodes,false);
     for(SizeType i=0; i<NumPNodes; i++)
     {
-        rVariables.PressureVector[i]   = rGeom[i].FastGetSolutionStepValue(WATER_PRESSURE);
-        rVariables.PressureDtVector[i] = rGeom[i].FastGetSolutionStepValue(DT_WATER_PRESSURE);
+        rVariables.PressureVector[i]   = rGeom[i].FastGetSolutionStepValue(LIQUID_PRESSURE);
+        rVariables.PressureDtVector[i] = rGeom[i].FastGetSolutionStepValue(DT_LIQUID_PRESSURE);
     }
 }
 
@@ -1123,7 +1123,7 @@ void SmallStrainUPwDiffOrderElement::InitializeProperties (ElementalVariables& r
     double BulkModulusSolid = GetProperties()[BULK_MODULUS_SOLID];
     rVariables.BiotCoefficient = GetProperties()[BIOT_COEFFICIENT];
     double Porosity = GetProperties()[POROSITY];
-    rVariables.BiotModulusInverse = (rVariables.BiotCoefficient-Porosity)/BulkModulusSolid + Porosity/GetProperties()[BULK_MODULUS_FLUID];
+    rVariables.BiotModulusInverse = (rVariables.BiotCoefficient-Porosity)/BulkModulusSolid + Porosity/GetProperties()[BULK_MODULUS_LIQUID];
     rVariables.DynamicViscosity = GetProperties()[DYNAMIC_VISCOSITY];
 }
 
@@ -1430,7 +1430,7 @@ void SmallStrainUPwDiffOrderElement::CalculateAndAddMixBodyForce(VectorType& rRi
     const SizeType NumUNodes = rGeom.PointsNumber();
 
     double Porosity = GetProperties()[POROSITY];
-    double Density = Porosity*GetProperties()[DENSITY_WATER] + (1.0-Porosity)*GetProperties()[DENSITY_SOLID];
+    double Density = Porosity*GetProperties()[DENSITY_LIQUID] + (1.0-Porosity)*GetProperties()[DENSITY_SOLID];
 
     Vector BodyAcceleration = ZeroVector(Dim);
     SizeType Index = 0;
@@ -1541,7 +1541,7 @@ void SmallStrainUPwDiffOrderElement::CalculateAndAddPermeabilityFlow(VectorType&
 
 void SmallStrainUPwDiffOrderElement::CalculateAndAddFluidBodyFlow(VectorType& rRightHandSideVector, ElementalVariables& rVariables)
 {
-    Matrix GradNpTPerm = 1.0/rVariables.DynamicViscosity*GetProperties()[DENSITY_WATER]*
+    Matrix GradNpTPerm = 1.0/rVariables.DynamicViscosity*GetProperties()[DENSITY_LIQUID]*
                          prod(rVariables.GradNpT,mIntrinsicPermeability)*rVariables.IntegrationCoefficient;
 
     const GeometryType& rGeom = GetGeometry();

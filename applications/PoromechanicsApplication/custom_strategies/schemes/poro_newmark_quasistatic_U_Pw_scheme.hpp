@@ -71,10 +71,10 @@ public:
             KRATOS_THROW_ERROR( std::invalid_argument,"DISPLACEMENT Key is 0. Check if all applications were correctly registered.", "" )
         if(VELOCITY.Key() == 0)
             KRATOS_THROW_ERROR( std::invalid_argument,"VELOCITY Key is 0. Check if all applications were correctly registered.", "" )
-        if(WATER_PRESSURE.Key() == 0)
-            KRATOS_THROW_ERROR( std::invalid_argument, "WATER_PRESSURE Key is 0. Check if all applications were correctly registered.", "" )
-        if(DT_WATER_PRESSURE.Key() == 0)
-            KRATOS_THROW_ERROR( std::invalid_argument, "DT_WATER_PRESSURE Key is 0. Check if all applications were correctly registered.", "" )
+        if(LIQUID_PRESSURE.Key() == 0)
+            KRATOS_THROW_ERROR( std::invalid_argument, "LIQUID_PRESSURE Key is 0. Check if all applications were correctly registered.", "" )
+        if(DT_LIQUID_PRESSURE.Key() == 0)
+            KRATOS_THROW_ERROR( std::invalid_argument, "DT_LIQUID_PRESSURE Key is 0. Check if all applications were correctly registered.", "" )
         if ( VELOCITY_COEFFICIENT.Key() == 0 )
             KRATOS_THROW_ERROR( std::invalid_argument, "VELOCITY_COEFFICIENT Key is 0. Check if all applications were correctly registered.", "" )
         if ( DT_PRESSURE_COEFFICIENT.Key() == 0 )
@@ -87,10 +87,10 @@ public:
                 KRATOS_THROW_ERROR( std::logic_error, "DISPLACEMENT variable is not allocated for node ", it->Id() )
             if(it->SolutionStepsDataHas(VELOCITY) == false)
                 KRATOS_THROW_ERROR( std::logic_error, "VELOCITY variable is not allocated for node ", it->Id() )
-            if(it->SolutionStepsDataHas(WATER_PRESSURE) == false)
-                KRATOS_THROW_ERROR( std::logic_error, "WATER_PRESSURE variable is not allocated for node ", it->Id() )
-            if(it->SolutionStepsDataHas(DT_WATER_PRESSURE) == false)
-                KRATOS_THROW_ERROR( std::logic_error, "DT_WATER_PRESSURE variable is not allocated for node ", it->Id() )
+            if(it->SolutionStepsDataHas(LIQUID_PRESSURE) == false)
+                KRATOS_THROW_ERROR( std::logic_error, "LIQUID_PRESSURE variable is not allocated for node ", it->Id() )
+            if(it->SolutionStepsDataHas(DT_LIQUID_PRESSURE) == false)
+                KRATOS_THROW_ERROR( std::logic_error, "DT_LIQUID_PRESSURE variable is not allocated for node ", it->Id() )
 
             if(it->HasDofFor(DISPLACEMENT_X) == false)
                 KRATOS_THROW_ERROR( std::invalid_argument,"missing DISPLACEMENT_X dof on node ",it->Id() )
@@ -98,8 +98,8 @@ public:
                 KRATOS_THROW_ERROR( std::invalid_argument,"missing DISPLACEMENT_Y dof on node ",it->Id() )
             if(it->HasDofFor(DISPLACEMENT_Z) == false)
                 KRATOS_THROW_ERROR( std::invalid_argument,"missing DISPLACEMENT_Z dof on node ",it->Id() )
-            if(it->HasDofFor(WATER_PRESSURE) == false)
-                KRATOS_THROW_ERROR( std::invalid_argument,"missing WATER_PRESSURE dof on node ",it->Id() )
+            if(it->HasDofFor(LIQUID_PRESSURE) == false)
+                KRATOS_THROW_ERROR( std::invalid_argument,"missing LIQUID_PRESSURE dof on node ",it->Id() )
         }
 
         //check for minimum value of the buffer index.
@@ -312,7 +312,7 @@ public:
                 if(rNodalStress.size1() != 3)
                     rNodalStress.resize(3,3,false);
                 noalias(rNodalStress) = ZeroMatrix(3,3);
-                array_1d<double,3>& r_nodal_grad_pressure = itNode->FastGetSolutionStepValue(NODAL_WATER_PRESSURE_GRADIENT);
+                array_1d<double,3>& r_nodal_grad_pressure = itNode->FastGetSolutionStepValue(NODAL_LIQUID_PRESSURE_GRADIENT);
                 noalias(r_nodal_grad_pressure) = ZeroVector(3);
                 itNode->FastGetSolutionStepValue(NODAL_DAMAGE_VARIABLE) = 0.0;
                 itNode->FastGetSolutionStepValue(NODAL_JOINT_AREA) = 0.0;
@@ -333,7 +333,7 @@ public:
                 {
                     const double InvNodalArea = 1.0/NodalArea;
                     Matrix& rNodalStress = itNode->FastGetSolutionStepValue(NODAL_EFFECTIVE_STRESS_TENSOR);
-                    array_1d<double,3>& r_nodal_grad_pressure = itNode->FastGetSolutionStepValue(NODAL_WATER_PRESSURE_GRADIENT);
+                    array_1d<double,3>& r_nodal_grad_pressure = itNode->FastGetSolutionStepValue(NODAL_LIQUID_PRESSURE_GRADIENT);
                     for(unsigned int i = 0; i<3; i++)
                     {
                         r_nodal_grad_pressure[i] *= InvNodalArea;
@@ -554,9 +554,9 @@ protected:
             // A GN22 is used in the dynamic scheme
             noalias(CurrentVelocity) = 1.0/(mTheta*mDeltaTime)*(DeltaDisplacement - (1.0-mTheta)*mDeltaTime*PreviousVelocity);
 
-            double& CurrentDtPressure = itNode->FastGetSolutionStepValue(DT_WATER_PRESSURE);
-            DeltaPressure = itNode->FastGetSolutionStepValue(WATER_PRESSURE) - itNode->FastGetSolutionStepValue(WATER_PRESSURE, 1);
-            const double& PreviousDtPressure = itNode->FastGetSolutionStepValue(DT_WATER_PRESSURE, 1);
+            double& CurrentDtPressure = itNode->FastGetSolutionStepValue(DT_LIQUID_PRESSURE);
+            DeltaPressure = itNode->FastGetSolutionStepValue(LIQUID_PRESSURE) - itNode->FastGetSolutionStepValue(LIQUID_PRESSURE, 1);
+            const double& PreviousDtPressure = itNode->FastGetSolutionStepValue(DT_LIQUID_PRESSURE, 1);
 
             CurrentDtPressure = 1.0/(mTheta*mDeltaTime)*(DeltaPressure - (1.0-mTheta)*mDeltaTime*PreviousDtPressure);
         }

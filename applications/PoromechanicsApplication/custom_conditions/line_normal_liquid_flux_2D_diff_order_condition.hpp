@@ -5,8 +5,8 @@
 //   Revision:            $Revision:                 1.0 $
 //
 
-#if !defined(KRATOS_SURFACE_NORMAL_FLUID_FLUX_3D_DIFF_ORDER_CONDITION_H_INCLUDED )
-#define  KRATOS_SURFACE_NORMAL_FLUID_FLUX_3D_DIFF_ORDER_CONDITION_H_INCLUDED
+#if !defined(KRATOS_LINE_NORMAL_LIQUID_FLUX_2D_DIFF_ORDER_CONDITION_H_INCLUDED )
+#define  KRATOS_LINE_NORMAL_LIQUID_FLUX_2D_DIFF_ORDER_CONDITION_H_INCLUDED
 
 // Project includes
 #include "includes/serializer.h"
@@ -17,26 +17,26 @@
 namespace Kratos
 {
 
-class KRATOS_API(POROMECHANICS_APPLICATION) SurfaceNormalFluidFlux3DDiffOrderCondition : public GeneralUPwDiffOrderCondition
+class KRATOS_API(POROMECHANICS_APPLICATION) LineNormalLiquidFlux2DDiffOrderCondition : public GeneralUPwDiffOrderCondition
 {
 
 public:
 
-    KRATOS_CLASS_POINTER_DEFINITION( SurfaceNormalFluidFlux3DDiffOrderCondition );
-    
+    KRATOS_CLASS_POINTER_DEFINITION( LineNormalLiquidFlux2DDiffOrderCondition );
+
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     // Default constructor
-    SurfaceNormalFluidFlux3DDiffOrderCondition();
+    LineNormalLiquidFlux2DDiffOrderCondition();
     
     // Constructor 1
-    SurfaceNormalFluidFlux3DDiffOrderCondition( IndexType NewId, GeometryType::Pointer pGeometry );
-    
+    LineNormalLiquidFlux2DDiffOrderCondition( IndexType NewId, GeometryType::Pointer pGeometry );
+
     // Constructor 2
-    SurfaceNormalFluidFlux3DDiffOrderCondition( IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties );
+    LineNormalLiquidFlux2DDiffOrderCondition( IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties );
 
     // Destructor
-    ~SurfaceNormalFluidFlux3DDiffOrderCondition() override;
+    ~LineNormalLiquidFlux2DDiffOrderCondition() override;
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -73,9 +73,9 @@ private:
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, GeneralUPwDiffOrderCondition )
     }
-
-}; // class SurfaceNormalFluidFlux3DDiffOrderCondition.
+    
+}; // class LineNormalLiquidFlux2DDiffOrderCondition.
 
 } // namespace Kratos.
 
-#endif // KRATOS_SURFACE_NORMAL_FLUID_FLUX_3D_DIFF_ORDER_CONDITION_H_INCLUDED defined 
+#endif // KRATOS_LINE_NORMAL_LIQUID_FLUX_2D_DIFF_ORDER_CONDITION_H_INCLUDED defined 

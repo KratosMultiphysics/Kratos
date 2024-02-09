@@ -94,7 +94,7 @@ protected:
     {
         ///Properties variables
         double DynamicViscosityInverse;
-        double FluidDensity;
+        double LiquidDensity;
         double Density;
         double BiotCoefficient;
         double BiotModulusInverse;

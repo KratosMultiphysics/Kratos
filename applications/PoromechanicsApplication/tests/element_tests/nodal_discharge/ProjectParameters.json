@@ -66,7 +66,7 @@
             "scaling":         false
         },
         "problem_domain_sub_model_part_list": ["Material"],
-        "processes_sub_model_part_list":      ["Solid_Displacement-auto-1","Fluid_Pressure-auto-1","Discharge-auto-1","Discharge-auto-2"],
+        "processes_sub_model_part_list":      ["Solid_Displacement-auto-1","Liquid_Pressure-auto-1","Discharge-auto-1","Discharge-auto-2"],
         "body_domain_sub_model_part_list":    ["Material"]
     },
     "processes": {
@@ -85,8 +85,8 @@
             "python_module": "apply_scalar_constraint_table_process",
             "kratos_module": "KratosMultiphysics.PoromechanicsApplication",
             "Parameters":    {
-                "model_part_name":      "PorousModelPart.Fluid_Pressure-auto-1",
-                "variable_name":        "WATER_PRESSURE",
+                "model_part_name":      "PorousModelPart.Liquid_Pressure-auto-1",
+                "variable_name":        "LIQUID_PRESSURE",
                 "is_fixed":             true,
                 "value":                0.0,
                 "table":                0,
@@ -119,8 +119,8 @@
             "python_module" : "from_json_check_result_process",
             "kratos_module" : "KratosMultiphysics",
             "Parameters"    : {
-                "check_variables": ["WATER_PRESSURE"],
-                "input_file_name" : "element_tests/nodal_discharge/Test_WaterPressure_results.json",
+                "check_variables": ["LIQUID_PRESSURE"],
+                "input_file_name" : "element_tests/nodal_discharge/Test_LiquidPressure_results.json",
                 "model_part_name"  : "PorousModelPart.porous_computational_model_part",
                 "time_frequency"   : 0.249999
             }

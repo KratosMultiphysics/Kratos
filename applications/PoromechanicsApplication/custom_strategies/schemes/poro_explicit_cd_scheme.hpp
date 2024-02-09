@@ -480,8 +480,8 @@ public:
         // array_1d<double, 3>& r_displacement_older = itCurrentNode->FastGetSolutionStepValue(DISPLACEMENT_OLDER);
         const double nodal_mass = itCurrentNode->GetValue(NODAL_MASS);
 
-        double& r_current_water_pressure = itCurrentNode->FastGetSolutionStepValue(WATER_PRESSURE);
-        double& r_current_dt_water_pressure = itCurrentNode->FastGetSolutionStepValue(DT_WATER_PRESSURE);      
+        double& r_current_liquid_pressure = itCurrentNode->FastGetSolutionStepValue(LIQUID_PRESSURE);
+        double& r_current_dt_liquid_pressure = itCurrentNode->FastGetSolutionStepValue(DT_LIQUID_PRESSURE);      
 
         const array_1d<double, 3>& r_external_force = itCurrentNode->FastGetSolutionStepValue(EXTERNAL_FORCE);
         const array_1d<double, 3>& r_external_force_old = itCurrentNode->FastGetSolutionStepValue(EXTERNAL_FORCE,1);
@@ -506,10 +506,10 @@ public:
         }
 
         // Solution of the darcy_equation
-        if( itCurrentNode->IsFixed(WATER_PRESSURE) == false ) {
+        if( itCurrentNode->IsFixed(LIQUID_PRESSURE) == false ) {
             // TODO: this is on standby
-            r_current_water_pressure = 0.0;
-            r_current_dt_water_pressure = 0.0;
+            r_current_liquid_pressure = 0.0;
+            r_current_dt_liquid_pressure = 0.0;
         }
 
         noalias(r_displacement_old) = displacement_aux;
@@ -646,7 +646,7 @@ public:
                 if(rNodalStress.size1() != 3)
                     rNodalStress.resize(3,3,false);
                 noalias(rNodalStress) = ZeroMatrix(3,3);
-                array_1d<double,3>& r_nodal_grad_pressure = itNode->FastGetSolutionStepValue(NODAL_WATER_PRESSURE_GRADIENT);
+                array_1d<double,3>& r_nodal_grad_pressure = itNode->FastGetSolutionStepValue(NODAL_LIQUID_PRESSURE_GRADIENT);
                 noalias(r_nodal_grad_pressure) = ZeroVector(3);
                 itNode->FastGetSolutionStepValue(NODAL_DAMAGE_VARIABLE) = 0.0;
                 itNode->FastGetSolutionStepValue(NODAL_JOINT_AREA) = 0.0;
@@ -667,7 +667,7 @@ public:
                 {
                     const double InvNodalArea = 1.0/NodalArea;
                     Matrix& rNodalStress = itNode->FastGetSolutionStepValue(NODAL_EFFECTIVE_STRESS_TENSOR);
-                    array_1d<double,3>& r_nodal_grad_pressure = itNode->FastGetSolutionStepValue(NODAL_WATER_PRESSURE_GRADIENT);
+                    array_1d<double,3>& r_nodal_grad_pressure = itNode->FastGetSolutionStepValue(NODAL_LIQUID_PRESSURE_GRADIENT);
                     for(unsigned int i = 0; i<3; i++)
                     {
                         r_nodal_grad_pressure[i] *= InvNodalArea;

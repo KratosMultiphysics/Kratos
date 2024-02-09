@@ -8,19 +8,18 @@
 //                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Ignasi de Pouplana
-//                   Danilo Cavalcanti
 //
 
 
-#if !defined(KRATOS_U_PW_PG_NORMAL_FLUX_CONDITION_H_INCLUDED )
-#define  KRATOS_U_PW_PG_NORMAL_FLUX_CONDITION_H_INCLUDED
+#if !defined(KRATOS_U_PW_PG_NORMAL_LIQUID_FLUX_INTERFACE_CONDITION_H_INCLUDED )
+#define  KRATOS_U_PW_PG_NORMAL_LIQUID_FLUX_INTERFACE_CONDITION_H_INCLUDED
 
 // Project includes
 #include "includes/serializer.h"
 
 // Application includes
 #include "custom_conditions/multiphase_flow/U_Pw_Pg_condition.hpp"
-#include "custom_conditions/multiphase_flow/U_Pw_Pg_face_load_condition.hpp"
+#include "custom_conditions/multiphase_flow//U_Pw_Pg_face_load_interface_condition.hpp"
 #include "custom_utilities/poro_element_utilities.hpp"
 #include "poromechanics_application_variables.h"
 
@@ -28,12 +27,12 @@ namespace Kratos
 {
 
 template< unsigned int TDim, unsigned int TNumNodes >
-class KRATOS_API(POROMECHANICS_APPLICATION) UPwPgNormalFluxCondition : public UPwPgFaceLoadCondition<TDim,TNumNodes>
+class KRATOS_API(POROMECHANICS_APPLICATION) UPwPgNormalFluxInterfaceCondition : public UPwPgFaceLoadInterfaceCondition<TDim,TNumNodes>
 {
 
 public:
 
-    KRATOS_CLASS_POINTER_DEFINITION( UPwPgNormalFluxCondition );
+    KRATOS_CLASS_POINTER_DEFINITION( UPwPgNormalFluxInterfaceCondition );
     
     typedef std::size_t IndexType;
 	typedef Properties PropertiesType;
@@ -47,16 +46,16 @@ public:
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     // Default constructor
-    UPwPgNormalFluxCondition() : UPwPgFaceLoadCondition<TDim,TNumNodes>() {}
+    UPwPgNormalFluxInterfaceCondition() : UPwPgFaceLoadInterfaceCondition<TDim,TNumNodes>() {}
     
     // Constructor 1
-    UPwPgNormalFluxCondition( IndexType NewId, GeometryType::Pointer pGeometry ) : UPwPgFaceLoadCondition<TDim,TNumNodes>(NewId, pGeometry) {}
+    UPwPgNormalFluxInterfaceCondition( IndexType NewId, GeometryType::Pointer pGeometry ) : UPwPgFaceLoadInterfaceCondition<TDim,TNumNodes>(NewId, pGeometry) {}
     
     // Constructor 2
-    UPwPgNormalFluxCondition( IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties ) : UPwPgFaceLoadCondition<TDim,TNumNodes>(NewId, pGeometry, pProperties) {}
+    UPwPgNormalFluxInterfaceCondition( IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties ) : UPwPgFaceLoadInterfaceCondition<TDim,TNumNodes>(NewId, pGeometry, pProperties) {}
 
     // Destructor
-    ~UPwPgNormalFluxCondition() override {}
+    ~UPwPgNormalFluxInterfaceCondition() override {}
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -66,21 +65,11 @@ public:
 
 protected:   
     
-    struct NormalFluxVariables
-    {
-        double NormalFlux;
-        double IntegrationCoefficient;
-        array_1d<double,TNumNodes> Np;
-        array_1d<double,TNumNodes> PVector;
-    };
-    
     // Member Variables
     
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
                                     
     void CalculateRHS( VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo ) override;
-    
-    void CalculateAndAddRHS(VectorType& rRightHandSideVector, NormalFluxVariables& rVariables);
     
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -104,8 +93,8 @@ private:
         KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, Condition )
     }
     
-}; // class UPwPgNormalFluxCondition.
+}; // class UPwPgNormalFluxInterfaceCondition.
 
 } // namespace Kratos.
 
-#endif // KRATOS_U_PW_PG_NORMAL_FLUX_CONDITION_H_INCLUDED defined 
+#endif // KRATOS_U_PW_PG_NORMAL_LIQUID_FLUX_INTERFACE_CONDITION_H_INCLUDED defined 

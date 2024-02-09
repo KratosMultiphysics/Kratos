@@ -203,7 +203,7 @@ void UPwPgSmallStrainElement<TDim,TNumNodes>::FinalizeSolutionStep( const Proces
         Matrix GradPressureContainer(NumGPoints,TDim);
         array_1d<double,TNumNodes> PressureVector;
         for(unsigned int i=0; i<TNumNodes; i++) {
-            PressureVector[i] = Geom[i].FastGetSolutionStepValue(WATER_PRESSURE);
+            PressureVector[i] = Geom[i].FastGetSolutionStepValue(LIQUID_PRESSURE);
         }
         array_1d<double,TDim> GradPressure;
 
@@ -349,7 +349,7 @@ void UPwPgSmallStrainElement<2,3>::ExtrapolateGPValues(const Matrix& GradPressur
         noalias(NodalStressTensor[i]) = MathUtils<double>::StressVectorToTensor(NodalStressVector[i]);
 
         rGeom[i].SetLock();
-        array_1d<double,3>& r_nodal_grad_pressure = rGeom[i].FastGetSolutionStepValue(NODAL_WATER_PRESSURE_GRADIENT);
+        array_1d<double,3>& r_nodal_grad_pressure = rGeom[i].FastGetSolutionStepValue(NODAL_LIQUID_PRESSURE_GRADIENT);
         for(unsigned int j = 0; j < 2; j++) //TDim
         {
             r_nodal_grad_pressure[j] += NodalGradPressure[i][j];
@@ -427,7 +427,7 @@ void UPwPgSmallStrainElement<2,4>::ExtrapolateGPValues(const Matrix& GradPressur
         noalias(NodalStressTensor[i]) = MathUtils<double>::StressVectorToTensor(NodalStressVector[i]);
 
         rGeom[i].SetLock();
-        array_1d<double,3>& r_nodal_grad_pressure = rGeom[i].FastGetSolutionStepValue(NODAL_WATER_PRESSURE_GRADIENT);
+        array_1d<double,3>& r_nodal_grad_pressure = rGeom[i].FastGetSolutionStepValue(NODAL_LIQUID_PRESSURE_GRADIENT);
         for(unsigned int j = 0; j < 2; j++) //TDim
         {
             r_nodal_grad_pressure[j] += NodalGradPressure[i][j];
@@ -494,7 +494,7 @@ void UPwPgSmallStrainElement<3,4>::ExtrapolateGPValues(const Matrix& GradPressur
         noalias(NodalStressTensor[i]) = MathUtils<double>::StressVectorToTensor(NodalStressVector[i]);
 
         rGeom[i].SetLock();
-        noalias(rGeom[i].FastGetSolutionStepValue(NODAL_WATER_PRESSURE_GRADIENT)) += NodalGradPressure[i];
+        noalias(rGeom[i].FastGetSolutionStepValue(NODAL_LIQUID_PRESSURE_GRADIENT)) += NodalGradPressure[i];
         noalias(rGeom[i].FastGetSolutionStepValue(NODAL_EFFECTIVE_STRESS_TENSOR)) += NodalStressTensor[i];
         rGeom[i].FastGetSolutionStepValue(NODAL_DAMAGE_VARIABLE) += NodalDamage[i]*Area;
         rGeom[i].FastGetSolutionStepValue(NODAL_AREA) += Area;
@@ -552,7 +552,7 @@ void UPwPgSmallStrainElement<3,8>::ExtrapolateGPValues(const Matrix& GradPressur
         noalias(NodalStressTensor[i]) = MathUtils<double>::StressVectorToTensor(NodalStressVector[i]);
 
         rGeom[i].SetLock();
-        noalias(rGeom[i].FastGetSolutionStepValue(NODAL_WATER_PRESSURE_GRADIENT)) += NodalGradPressure[i];
+        noalias(rGeom[i].FastGetSolutionStepValue(NODAL_LIQUID_PRESSURE_GRADIENT)) += NodalGradPressure[i];
         noalias(rGeom[i].FastGetSolutionStepValue(NODAL_EFFECTIVE_STRESS_TENSOR)) += NodalStressTensor[i];
         rGeom[i].FastGetSolutionStepValue(NODAL_DAMAGE_VARIABLE) += NodalDamage[i]*Area;
         rGeom[i].FastGetSolutionStepValue(NODAL_AREA) += Area;
@@ -641,7 +641,7 @@ void UPwPgSmallStrainElement<TDim,TNumNodes>::CalculateOnIntegrationPoints( cons
     if ( rOutput.size() != NumGPoints )
         rOutput.resize( NumGPoints );
 
-    if(rVariable == FLUID_FLUX_VECTOR) {
+    if(rVariable == LIQUID_FLUX_VECTOR) {
         const PropertiesType& Prop = this->GetProperties();
 
         //Defining the shape functions, the jacobian and the shape functions local gradients Containers
@@ -652,15 +652,17 @@ void UPwPgSmallStrainElement<TDim,TNumNodes>::CalculateOnIntegrationPoints( cons
         //Defining necessary variables
         array_1d<double,TNumNodes> PressureVector;
         for(unsigned int i=0; i<TNumNodes; i++)
-            PressureVector[i] = Geom[i].FastGetSolutionStepValue(WATER_PRESSURE);
+            PressureVector[i] = Geom[i].FastGetSolutionStepValue(LIQUID_PRESSURE);
         array_1d<double,TNumNodes*TDim> VolumeAcceleration;
         PoroElementUtilities::GetNodalVariableVector(VolumeAcceleration,Geom,VOLUME_ACCELERATION);
         array_1d<double,TDim> BodyAcceleration;
         BoundedMatrix<double,TNumNodes, TDim> GradNpT;
-        const double& DynamicViscosityInverse = 1.0/Prop[DYNAMIC_VISCOSITY];
-        const double& FluidDensity = Prop[DENSITY_WATER];
+        //TODO: review
+        // const double& DynamicViscosityInverse = 1.0/Prop[DYNAMIC_VISCOSITY];
+        const double& DynamicViscosityInverse = 1.0;
+        const double& LiquidDensity = Prop[DENSITY_LIQUID];
         array_1d<double,TDim> GradPressureTerm;
-        array_1d<double,TDim> FluidFlux;
+        array_1d<double,TDim> LiquidFlux;
 
         //Loop over integration points
         for ( unsigned int GPoint = 0; GPoint < NumGPoints; GPoint++ )
@@ -670,13 +672,13 @@ void UPwPgSmallStrainElement<TDim,TNumNodes>::CalculateOnIntegrationPoints( cons
             PoroElementUtilities::InterpolateVariableWithComponents(BodyAcceleration,NContainer,VolumeAcceleration,GPoint);
 
             noalias(GradPressureTerm) = prod(trans(GradNpT),PressureVector);
-            noalias(GradPressureTerm) += -FluidDensity*BodyAcceleration;
+            noalias(GradPressureTerm) += -LiquidDensity*BodyAcceleration;
 
-            noalias(FluidFlux) = -DynamicViscosityInverse*prod(mIntrinsicPermeability,GradPressureTerm);
+            noalias(LiquidFlux) = -DynamicViscosityInverse*prod(mIntrinsicPermeability,GradPressureTerm);
 
-            PoroElementUtilities::FillArray1dOutput(rOutput[GPoint],FluidFlux);
+            PoroElementUtilities::FillArray1dOutput(rOutput[GPoint],LiquidFlux);
         }
-    } else if(rVariable == WATER_PRESSURE_GRADIENT) {
+    } else if(rVariable == LIQUID_PRESSURE_GRADIENT) {
 
         GeometryType::ShapeFunctionsGradientsType DN_DXContainer(NumGPoints);
         Geom.ShapeFunctionsIntegrationPointsGradients(DN_DXContainer,mThisIntegrationMethod);
@@ -684,7 +686,7 @@ void UPwPgSmallStrainElement<TDim,TNumNodes>::CalculateOnIntegrationPoints( cons
         //Defining necessary variables
         array_1d<double,TNumNodes> PressureVector;
         for(unsigned int i=0; i<TNumNodes; i++)
-            PressureVector[i] = Geom[i].FastGetSolutionStepValue(WATER_PRESSURE);
+            PressureVector[i] = Geom[i].FastGetSolutionStepValue(LIQUID_PRESSURE);
         BoundedMatrix<double,TNumNodes, TDim> GradNpT;
         array_1d<double,TDim> GradPressure;
 
@@ -791,7 +793,7 @@ void UPwPgSmallStrainElement<TDim,TNumNodes>::CalculateOnIntegrationPoints( cons
         array_1d<double,TNumNodes> PressureVector;
         for(unsigned int i=0; i<TNumNodes; i++)
         {
-            PressureVector[i] = Geom[i].FastGetSolutionStepValue(WATER_PRESSURE);
+            PressureVector[i] = Geom[i].FastGetSolutionStepValue(LIQUID_PRESSURE);
         }
         const double BiotCoefficient = Prop[BIOT_COEFFICIENT];
 
@@ -1200,21 +1202,18 @@ void UPwPgSmallStrainElement<TDim,TNumNodes>::InitializeElementVariables(Element
     KRATOS_TRY
 
     //Properties variables
-    const double& BulkModulusSolid       = Prop[BULK_MODULUS_SOLID];
-    const double& Porosity               = Prop[POROSITY];
-    rVariables.Porosity                  = Prop[POROSITY];
-    rVariables.DynamicViscosityInverse   = 1.0/Prop[DYNAMIC_VISCOSITY];
-    rVariables.WaterDynamicViscosity     = Prop[VISCOSITY_WATER];
-    rVariables.GasDynamicViscosity       = Prop[VISCOSITY_GAS];
-    rVariables.SolidDensity              = Prop[DENSITY_SOLID];
-    rVariables.FluidDensity              = Prop[DENSITY_WATER];
-    rVariables.GasDensity                = Prop[DENSITY_GAS];
-    rVariables.GasDiffusionCoefficient   = Prop[GAS_DIFFUSION_COEFF];
-    rVariables.BiotCoefficient           = Prop[BIOT_COEFFICIENT];
-    rVariables.SolidCompressibilityCoeff = (rVariables.BiotCoefficient-Porosity)/BulkModulusSolid;
-    rVariables.FluidCompressibilityCoeff = Porosity/Prop[BULK_MODULUS_FLUID];
-    rVariables.GasCompressibilityCoeff   = Porosity/Prop[BULK_MODULUS_GAS];
-    rVariables.BiotModulusInverse        = rVariables.SolidCompressibilityCoeff + rVariables.FluidCompressibilityCoeff;
+    rVariables.Porosity                   = Prop[POROSITY];
+    rVariables.LiquidDynamicViscosity     = Prop[VISCOSITY_LIQUID];
+    rVariables.GasDynamicViscosity        = Prop[VISCOSITY_GAS];
+    rVariables.SolidDensity               = Prop[DENSITY_SOLID];
+    rVariables.LiquidDensity              = Prop[DENSITY_LIQUID];
+    rVariables.GasDensity                 = Prop[DENSITY_GAS];
+    rVariables.GasDiffusionCoefficient    = Prop[GAS_DIFFUSION_COEFF];
+    rVariables.BiotCoefficient            = Prop[BIOT_COEFFICIENT];
+    rVariables.SolidCompressibilityCoeff  = (rVariables.BiotCoefficient-rVariables.Porosity)/Prop[BULK_MODULUS_SOLID];
+    rVariables.LiquidCompressibilityCoeff = rVariables.Porosity/Prop[BULK_MODULUS_LIQUID];
+    rVariables.GasCompressibilityCoeff    = rVariables.Porosity/Prop[BULK_MODULUS_GAS];
+    rVariables.BiotModulusInverse         = rVariables.SolidCompressibilityCoeff + rVariables.LiquidCompressibilityCoeff;
 
     //ProcessInfo variables
     rVariables.VelocityCoefficient = rCurrentProcessInfo[VELOCITY_COEFFICIENT];
@@ -1223,9 +1222,9 @@ void UPwPgSmallStrainElement<TDim,TNumNodes>::InitializeElementVariables(Element
     //Nodal Variables
     for(unsigned int i=0; i<TNumNodes; i++)
     {
-        rVariables.PressureVector[i]      = Geom[i].FastGetSolutionStepValue(WATER_PRESSURE);
+        rVariables.PressureVector[i]      = Geom[i].FastGetSolutionStepValue(LIQUID_PRESSURE);
         rVariables.GasPressureVector[i]   = Geom[i].FastGetSolutionStepValue(GAS_PRESSURE);
-        rVariables.DtPressureVector[i]    = Geom[i].FastGetSolutionStepValue(DT_WATER_PRESSURE);
+        rVariables.DtPressureVector[i]    = Geom[i].FastGetSolutionStepValue(DT_LIQUID_PRESSURE);
         rVariables.DtGasPressureVector[i] = Geom[i].FastGetSolutionStepValue(DT_GAS_PRESSURE);
     }
     PoroElementUtilities::GetNodalVariableVector(rVariables.DisplacementVector,Geom,DISPLACEMENT);
@@ -1826,7 +1825,7 @@ void UPwPgSmallStrainElement<TDim,TNumNodes>::GetCompressibilityCoefficients(dou
     double dSwdPc = Variables.dSwdPc;
     double pc     = inner_prod(Variables.Np,Variables.CapilarPressureVector);
     double Ms     = Variables.SolidCompressibilityCoeff;
-    double Mf     = Variables.FluidCompressibilityCoeff;
+    double Mf     = Variables.LiquidCompressibilityCoeff;
     double Mg     = Variables.GasCompressibilityCoeff;
     double Phi    = Variables.Porosity;
     double Sg     = 1.0 - Sw;
@@ -1857,12 +1856,9 @@ void UPwPgSmallStrainElement<TDim,TNumNodes>::CalculateAndAddPermeabilityMatrix(
     noalias(rVariables.PDimMatrix) = prod(rVariables.GradNpT,mIntrinsicPermeability);
     noalias(rVariables.PermMatrix) = prod(rVariables.PDimMatrix,trans(rVariables.GradNpT))*rVariables.IntegrationCoefficient;
 
-    // Residual permeabilities (TEMP/TODO)
-    double reskrg = 0.0001;
-    // TODO. Review std::max(rVariables.krg,reskrg)
     // Compute the fluid-flow sub-matrices
-    noalias(rVariables.PwPwMatrix) = rVariables.krw * rVariables.PermMatrix / rVariables.WaterDynamicViscosity;
-    noalias(rVariables.PgPgMatrix) = std::max(rVariables.krg,reskrg) * rVariables.PermMatrix / rVariables.GasDynamicViscosity;
+    noalias(rVariables.PwPwMatrix) = rVariables.krw * rVariables.PermMatrix / rVariables.LiquidDynamicViscosity;
+    noalias(rVariables.PgPgMatrix) = rVariables.krg * rVariables.PermMatrix / rVariables.GasDynamicViscosity;
 
     //Distribute fluid-flow block sub-matrices into the elemental matrix
     PoroElementUtilities::AssemblePwPwBlockMatrix< BoundedMatrix<double,TNumNodes,TNumNodes> >(rLeftHandSideMatrix,rVariables.PwPwMatrix,TDim,TNumNodes);
@@ -1933,7 +1929,7 @@ void UPwPgSmallStrainElement<TDim,TNumNodes>::CalculateAndAddCouplingTerms(Vecto
     noalias(rVariables.UPwMatrix) = Cwu*rVariables.UPMatrix;
     noalias(rVariables.UPgMatrix) = Cgu*rVariables.UPMatrix;
 
-    //Add the contribution of the coupling between the displacement and the water pressure in the residual of the momentum equation: Qw * pw
+    //Add the contribution of the coupling between the displacement and the liquid pressure in the residual of the momentum equation: Qw * pw
     noalias(rVariables.UVector) = prod(rVariables.UPwMatrix,rVariables.PressureVector);
     PoroElementUtilities::AssembleUBlockTwoPhaseFlowVector(rRightHandSideVector,rVariables.UVector);
     
@@ -1941,7 +1937,7 @@ void UPwPgSmallStrainElement<TDim,TNumNodes>::CalculateAndAddCouplingTerms(Vecto
     noalias(rVariables.UVector) = prod(rVariables.UPgMatrix,rVariables.GasPressureVector);
     PoroElementUtilities::AssembleUBlockTwoPhaseFlowVector(rRightHandSideVector,rVariables.UVector);
 
-    //Add the contribution of the coupling between the displacement and the water pressure in the residual of the mass balance of water equation: -Qw^T * v
+    //Add the contribution of the coupling between the displacement and the liquid pressure in the residual of the mass balance of liquid equation: -Qw^T * v
     noalias(rVariables.PVector) = -1.0*prod(trans(rVariables.UPwMatrix),rVariables.VelocityVector);
     PoroElementUtilities::AssemblePwBlockVector< array_1d<double,TNumNodes> >(rRightHandSideVector,rVariables.PVector,TDim,TNumNodes);
 
@@ -1969,7 +1965,7 @@ void UPwPgSmallStrainElement<TDim,TNumNodes>::CalculateAndAddCompressibilityFlow
     noalias(rVariables.PgPwMatrix) = Cgw * rVariables.NpNpT;
     noalias(rVariables.PgPgMatrix) = Cgg * rVariables.NpNpT;
 
-    //Add the contribution of the compressibility terms in the residual of the mass balance of water equation: -Sww * dpwdt - Swg * dpgdt
+    //Add the contribution of the compressibility terms in the residual of the mass balance of liquid equation: -Sww * dpwdt - Swg * dpgdt
     noalias(rVariables.PVector) = -1.0*prod(rVariables.PwPwMatrix,rVariables.DtPressureVector) - prod(rVariables.PwPgMatrix,rVariables.DtGasPressureVector);
     PoroElementUtilities::AssemblePwBlockVector< array_1d<double,TNumNodes> >(rRightHandSideVector,rVariables.PVector,TDim,TNumNodes);
 
@@ -1990,14 +1986,14 @@ void UPwPgSmallStrainElement<TDim,TNumNodes>::CalculateAndAddPermeabilityFlow(Ve
     noalias(rVariables.PermMatrix) = prod(rVariables.PDimMatrix,trans(rVariables.GradNpT))*rVariables.IntegrationCoefficient;
 
     // Compute the fluid-flow sub-matrices
-    noalias(rVariables.PwPwMatrix) = rVariables.krw * rVariables.PermMatrix / rVariables.WaterDynamicViscosity;
+    noalias(rVariables.PwPwMatrix) = rVariables.krw * rVariables.PermMatrix / rVariables.LiquidDynamicViscosity;
     noalias(rVariables.PgPgMatrix) = rVariables.krg * rVariables.PermMatrix / rVariables.GasDynamicViscosity;
 
-    //Add the contribution of the permeability term in the residual of the mass balance of water equation: -Hww * pw
+    //Add the contribution of the permeability term in the residual of the mass balance of liquid equation: -Hww * pw
     noalias(rVariables.PVector) = -1.0*prod(rVariables.PwPwMatrix,rVariables.PressureVector);
     PoroElementUtilities::AssemblePwBlockVector< array_1d<double,TNumNodes> >(rRightHandSideVector,rVariables.PVector,TDim,TNumNodes);
 
-    //Add the contribution of the permeability term in the residual of the mass balance of water equation: -Hgg * pg
+    //Add the contribution of the permeability term in the residual of the mass balance of liquid equation: -Hgg * pg
     noalias(rVariables.PVector) = -1.0*prod(rVariables.PgPgMatrix,rVariables.GasPressureVector);
     PoroElementUtilities::AssemblePgBlockVector< array_1d<double,TNumNodes> >(rRightHandSideVector,rVariables.PVector,TDim,TNumNodes);
 }
@@ -2014,10 +2010,10 @@ void UPwPgSmallStrainElement<TDim,TNumNodes>::CalculateAndAddFluidBodyFlow(Vecto
     noalias(rVariables.PVector) = prod(rVariables.PDimMatrix,rVariables.BodyAcceleration)*rVariables.IntegrationCoefficient;
 
     // Compute the fluid-flow sub-matrices
-    noalias(rVariables.PwVector) = (rVariables.krw * rVariables.FluidDensity / rVariables.WaterDynamicViscosity) * rVariables.PVector;
+    noalias(rVariables.PwVector) = (rVariables.krw * rVariables.LiquidDensity / rVariables.LiquidDynamicViscosity) * rVariables.PVector;
     noalias(rVariables.PgVector) = (rVariables.krg * rVariables.GasDensity   / rVariables.GasDynamicViscosity  ) * rVariables.PVector;
 
-    //Add the contribution of the fluid body flow block vector into the residual of the mass balance equation of water
+    //Add the contribution of the fluid body flow block vector into the residual of the mass balance equation of liquid
     PoroElementUtilities::AssemblePwBlockVector< array_1d<double,TNumNodes> >(rRightHandSideVector,rVariables.PwVector,TDim,TNumNodes);
 
     //Add the contribution of the fluid body flow block vector into the residual of the mass balance equation of gas
@@ -2030,7 +2026,7 @@ template< unsigned int TDim, unsigned int TNumNodes >
 void UPwPgSmallStrainElement<TDim,TNumNodes>::UpdateDensity(ElementVariables& rVariables)
 {
     // Update the density based on the new saturation degree
-    rVariables.Density = rVariables.Porosity * (rVariables.Sw * rVariables.FluidDensity + (1.0 - rVariables.Sw) * rVariables.GasDensity) + 
+    rVariables.Density = rVariables.Porosity * (rVariables.Sw * rVariables.LiquidDensity + (1.0 - rVariables.Sw) * rVariables.GasDensity) + 
                             (1.0 - rVariables.Porosity) * rVariables.SolidDensity;
 
 }

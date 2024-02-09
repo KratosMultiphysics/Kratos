@@ -97,4 +97,4 @@ private:
 
 } // namespace Kratos.
 
-#endif // KRATOS_U_PW_PG_NORMAL_FLUX_INTERFACE_CONDITION_H_INCLUDED defined 
+#endif // KRATOS_U_PW_PG_NORMAL_LIQUID_FLUX_INTERFACE_CONDITION_H_INCLUDED defined 

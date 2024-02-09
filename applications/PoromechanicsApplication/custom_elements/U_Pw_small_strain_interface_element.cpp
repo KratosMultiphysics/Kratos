@@ -123,7 +123,7 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::CalculateMassMatrix( Matrix
     //Defining necessary variables
     double IntegrationCoefficient;
     const double& Porosity = Prop[POROSITY];
-    const double Density = Porosity*Prop[DENSITY_WATER] + (1.0-Porosity)*Prop[DENSITY_SOLID];
+    const double Density = Porosity*Prop[DENSITY_LIQUID] + (1.0-Porosity)*Prop[DENSITY_SOLID];
     BoundedMatrix<double,TDim+1, TNumNodes*(TDim+1)> Nut = ZeroMatrix(TDim+1, TNumNodes*(TDim+1));
     array_1d<double,TNumNodes*TDim> DisplacementVector;
     PoroElementUtilities::GetNodalVariableVector(DisplacementVector,Geom,DISPLACEMENT);
@@ -434,13 +434,13 @@ template< unsigned int TDim, unsigned int TNumNodes >
 void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::CalculateOnIntegrationPoints(const Variable<array_1d<double,3>>& rVariable,
                                                                                     std::vector<array_1d<double,3>>& rValues,const ProcessInfo& rCurrentProcessInfo)
 {
-    if(rVariable == FLUID_FLUX_VECTOR || rVariable == CONTACT_STRESS_VECTOR || rVariable == LOCAL_STRESS_VECTOR || rVariable == LOCAL_RELATIVE_DISPLACEMENT_VECTOR || rVariable == LOCAL_FLUID_FLUX_VECTOR)
+    if(rVariable == LIQUID_FLUX_VECTOR || rVariable == CONTACT_STRESS_VECTOR || rVariable == LOCAL_STRESS_VECTOR || rVariable == LOCAL_RELATIVE_DISPLACEMENT_VECTOR || rVariable == LOCAL_LIQUID_FLUX_VECTOR)
     {
         //Variables computed on Lobatto points
         const GeometryType& Geom = this->GetGeometry();
         std::vector<array_1d<double,3>> GPValues(Geom.IntegrationPointsNumber( mThisIntegrationMethod ));
 
-        if(rVariable == FLUID_FLUX_VECTOR)
+        if(rVariable == LIQUID_FLUX_VECTOR)
         {
             const PropertiesType& Prop = this->GetProperties();
             const unsigned int NumGPoints = Geom.IntegrationPointsNumber( mThisIntegrationMethod );
@@ -454,7 +454,7 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::CalculateOnIntegrationPoint
             //Defining necessary variables
             array_1d<double,TNumNodes> PressureVector;
             for(unsigned int i=0; i<TNumNodes; i++)
-                PressureVector[i] = Geom[i].FastGetSolutionStepValue(WATER_PRESSURE);
+                PressureVector[i] = Geom[i].FastGetSolutionStepValue(LIQUID_PRESSURE);
             array_1d<double,TNumNodes*TDim> VolumeAcceleration;
             PoroElementUtilities::GetNodalVariableVector(VolumeAcceleration,Geom,VOLUME_ACCELERATION);
             array_1d<double,TDim> BodyAcceleration;
@@ -471,10 +471,10 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::CalculateOnIntegrationPoint
             const double& Transversal_Permeability_Coeff = Prop[TRANSVERSAL_PERMEABILITY_COEFFICIENT];
             BoundedMatrix<double,TDim, TDim> LocalPermeabilityMatrix = ZeroMatrix(TDim,TDim);
             const double& DynamicViscosityInverse = 1.0/Prop[DYNAMIC_VISCOSITY];
-            const double& FluidDensity = Prop[DENSITY_WATER];
-            array_1d<double,TDim> LocalFluidFlux;
+            const double& LiquidDensity = Prop[DENSITY_LIQUID];
+            array_1d<double,TDim> LocalLiquidFlux;
             array_1d<double,TDim> GradPressureTerm;
-            array_1d<double,TDim> FluidFlux;
+            array_1d<double,TDim> LiquidFlux;
             SFGradAuxVariables SFGradAuxVars;
 
             //Loop over integration points
@@ -496,13 +496,13 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::CalculateOnIntegrationPoint
                 InterfaceElementUtilities::CalculatePermeabilityMatrix(LocalPermeabilityMatrix,JointWidth,Transversal_Permeability_Coeff);
 
                 noalias(GradPressureTerm) = prod(trans(GradNpT),PressureVector);
-                noalias(GradPressureTerm) += -FluidDensity*BodyAcceleration;
+                noalias(GradPressureTerm) += -LiquidDensity*BodyAcceleration;
 
-                noalias(LocalFluidFlux) = -DynamicViscosityInverse*prod(LocalPermeabilityMatrix,GradPressureTerm);
+                noalias(LocalLiquidFlux) = -DynamicViscosityInverse*prod(LocalPermeabilityMatrix,GradPressureTerm);
 
-                noalias(FluidFlux) = prod(trans(RotationMatrix),LocalFluidFlux);
+                noalias(LiquidFlux) = prod(trans(RotationMatrix),LocalLiquidFlux);
 
-                PoroElementUtilities::FillArray1dOutput(GPValues[GPoint],FluidFlux);
+                PoroElementUtilities::FillArray1dOutput(GPValues[GPoint],LiquidFlux);
             }
         }
         else if(rVariable == CONTACT_STRESS_VECTOR)
@@ -642,7 +642,7 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::CalculateOnIntegrationPoint
                 PoroElementUtilities::FillArray1dOutput(GPValues[GPoint],LocalRelDispVector);
             }
         }
-        else if(rVariable == LOCAL_FLUID_FLUX_VECTOR)
+        else if(rVariable == LOCAL_LIQUID_FLUX_VECTOR)
         {
             const PropertiesType& Prop = this->GetProperties();
             const unsigned int NumGPoints = Geom.IntegrationPointsNumber( mThisIntegrationMethod );
@@ -656,7 +656,7 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::CalculateOnIntegrationPoint
             //Defining necessary variables
             array_1d<double,TNumNodes> PressureVector;
             for(unsigned int i=0; i<TNumNodes; i++)
-                PressureVector[i] = Geom[i].FastGetSolutionStepValue(WATER_PRESSURE);
+                PressureVector[i] = Geom[i].FastGetSolutionStepValue(LIQUID_PRESSURE);
             array_1d<double,TNumNodes*TDim> VolumeAcceleration;
             PoroElementUtilities::GetNodalVariableVector(VolumeAcceleration,Geom,VOLUME_ACCELERATION);
             array_1d<double,TDim> BodyAcceleration;
@@ -673,8 +673,8 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::CalculateOnIntegrationPoint
             const double& Transversal_Permeability_Coeff = Prop[TRANSVERSAL_PERMEABILITY_COEFFICIENT];
             BoundedMatrix<double,TDim, TDim> LocalPermeabilityMatrix = ZeroMatrix(TDim,TDim);
             const double& DynamicViscosityInverse = 1.0/Prop[DYNAMIC_VISCOSITY];
-            const double& FluidDensity = Prop[DENSITY_WATER];
-            array_1d<double,TDim> LocalFluidFlux;
+            const double& LiquidDensity = Prop[DENSITY_LIQUID];
+            array_1d<double,TDim> LocalLiquidFlux;
             array_1d<double,TDim> GradPressureTerm;
             SFGradAuxVariables SFGradAuxVars;
 
@@ -697,11 +697,11 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::CalculateOnIntegrationPoint
                 InterfaceElementUtilities::CalculatePermeabilityMatrix(LocalPermeabilityMatrix,JointWidth,Transversal_Permeability_Coeff);
 
                 noalias(GradPressureTerm) = prod(trans(GradNpT),PressureVector);
-                noalias(GradPressureTerm) += -FluidDensity*BodyAcceleration;
+                noalias(GradPressureTerm) += -LiquidDensity*BodyAcceleration;
 
-                noalias(LocalFluidFlux) = -DynamicViscosityInverse*prod(LocalPermeabilityMatrix,GradPressureTerm);
+                noalias(LocalLiquidFlux) = -DynamicViscosityInverse*prod(LocalPermeabilityMatrix,GradPressureTerm);
 
-                PoroElementUtilities::FillArray1dOutput(GPValues[GPoint],LocalFluidFlux);
+                PoroElementUtilities::FillArray1dOutput(GPValues[GPoint],LocalLiquidFlux);
             }
         }
 
@@ -1158,10 +1158,10 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::InitializeElementVariables(
     const double& BulkModulusSolid = Prop[BULK_MODULUS_SOLID];
     const double& Porosity = Prop[POROSITY];
     rVariables.DynamicViscosityInverse = 1.0/Prop[DYNAMIC_VISCOSITY];
-    rVariables.FluidDensity = Prop[DENSITY_WATER];
-    rVariables.Density = Porosity*rVariables.FluidDensity + (1.0-Porosity)*Prop[DENSITY_SOLID];
+    rVariables.LiquidDensity = Prop[DENSITY_LIQUID];
+    rVariables.Density = Porosity*rVariables.LiquidDensity + (1.0-Porosity)*Prop[DENSITY_SOLID];
     rVariables.BiotCoefficient = Prop[BIOT_COEFFICIENT];
-    rVariables.BiotModulusInverse = (rVariables.BiotCoefficient-Porosity)/BulkModulusSolid + Porosity/Prop[BULK_MODULUS_FLUID];
+    rVariables.BiotModulusInverse = (rVariables.BiotCoefficient-Porosity)/BulkModulusSolid + Porosity/Prop[BULK_MODULUS_LIQUID];
 
     //ProcessInfo variables
     rVariables.VelocityCoefficient = rCurrentProcessInfo[VELOCITY_COEFFICIENT];
@@ -1170,8 +1170,8 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::InitializeElementVariables(
     //Nodal Variables
     for(unsigned int i=0; i<TNumNodes; i++)
     {
-        rVariables.PressureVector[i] = Geom[i].FastGetSolutionStepValue(WATER_PRESSURE);
-        rVariables.DtPressureVector[i] = Geom[i].FastGetSolutionStepValue(DT_WATER_PRESSURE);
+        rVariables.PressureVector[i] = Geom[i].FastGetSolutionStepValue(LIQUID_PRESSURE);
+        rVariables.DtPressureVector[i] = Geom[i].FastGetSolutionStepValue(DT_LIQUID_PRESSURE);
     }
     PoroElementUtilities::GetNodalVariableVector(rVariables.DisplacementVector,Geom,DISPLACEMENT);
     PoroElementUtilities::GetNodalVariableVector(rVariables.VelocityVector,Geom,VELOCITY);
@@ -1822,7 +1822,7 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::CalculateLumpedMassMatrix( 
 
     //Defining necessary variables
     const double& Porosity = Prop[POROSITY];
-    const double Density = Porosity*Prop[DENSITY_WATER] + (1.0-Porosity)*Prop[DENSITY_SOLID];
+    const double Density = Porosity*Prop[DENSITY_LIQUID] + (1.0-Porosity)*Prop[DENSITY_SOLID];
     array_1d<double,TNumNodes*TDim> DisplacementVector;
     PoroElementUtilities::GetNodalVariableVector(DisplacementVector,Geom,DISPLACEMENT);
     BoundedMatrix<double,TDim, TDim> RotationMatrix;
@@ -2047,10 +2047,10 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::CalculateAndAddFluidBodyFlo
 {
     noalias(rVariables.PDimMatrix) = prod(rVariables.GradNpT,rVariables.LocalPermeabilityMatrix)*rVariables.JointWidth*rVariables.IntegrationCoefficient;
 
-    noalias(rVariables.PVector) = rVariables.DynamicViscosityInverse*rVariables.FluidDensity*
+    noalias(rVariables.PVector) = rVariables.DynamicViscosityInverse*rVariables.LiquidDensity*
                                     prod(rVariables.PDimMatrix,rVariables.BodyAcceleration);
 
-    //Distribute fluid body flow block vector into elemental vector
+    //Distribute liquid body flow block vector into elemental vector
     PoroElementUtilities::AssemblePBlockVector< array_1d<double,TNumNodes> >(rRightHandSideVector,rVariables.PVector,TDim,TNumNodes);
 }
 

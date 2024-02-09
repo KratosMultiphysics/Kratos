@@ -180,9 +180,9 @@ public:
             noalias(CurrentAcceleration) = 1.0/(mBeta*mDeltaTime*mDeltaTime)*(DeltaDisplacement - mDeltaTime*PreviousVelocity - (0.5-mBeta)*mDeltaTime*mDeltaTime*PreviousAcceleration);
             noalias(CurrentVelocity) = PreviousVelocity + (1.0-mGamma)*mDeltaTime*PreviousAcceleration + mGamma*mDeltaTime*CurrentAcceleration;
 
-            double& CurrentDtPressure = itNode->FastGetSolutionStepValue(DT_WATER_PRESSURE);
-            DeltaPressure = itNode->FastGetSolutionStepValue(WATER_PRESSURE) - itNode->FastGetSolutionStepValue(WATER_PRESSURE, 1);
-            const double& PreviousDtPressure = itNode->FastGetSolutionStepValue(DT_WATER_PRESSURE, 1);
+            double& CurrentDtPressure = itNode->FastGetSolutionStepValue(DT_LIQUID_PRESSURE);
+            DeltaPressure = itNode->FastGetSolutionStepValue(LIQUID_PRESSURE) - itNode->FastGetSolutionStepValue(LIQUID_PRESSURE, 1);
+            const double& PreviousDtPressure = itNode->FastGetSolutionStepValue(DT_LIQUID_PRESSURE, 1);
 
             CurrentDtPressure = 1.0/(mTheta*mDeltaTime)*(DeltaPressure - (1.0-mTheta)*mDeltaTime*PreviousDtPressure);
         }
@@ -311,9 +311,9 @@ protected:
             noalias(CurrentAcceleration) = 1.0/(mBeta*mDeltaTime*mDeltaTime)*(DeltaDisplacement - mDeltaTime*PreviousVelocity - (0.5-mBeta)*mDeltaTime*mDeltaTime*PreviousAcceleration);
             noalias(CurrentVelocity) = PreviousVelocity + (1.0-mGamma)*mDeltaTime*PreviousAcceleration + mGamma*mDeltaTime*CurrentAcceleration;
 
-            double& CurrentDtPressure = itNode->FastGetSolutionStepValue(DT_WATER_PRESSURE);
-            DeltaPressure = itNode->FastGetSolutionStepValue(WATER_PRESSURE) - itNode->FastGetSolutionStepValue(WATER_PRESSURE, 1);
-            const double& PreviousDtPressure = itNode->FastGetSolutionStepValue(DT_WATER_PRESSURE, 1);
+            double& CurrentDtPressure = itNode->FastGetSolutionStepValue(DT_LIQUID_PRESSURE);
+            DeltaPressure = itNode->FastGetSolutionStepValue(LIQUID_PRESSURE) - itNode->FastGetSolutionStepValue(LIQUID_PRESSURE, 1);
+            const double& PreviousDtPressure = itNode->FastGetSolutionStepValue(DT_LIQUID_PRESSURE, 1);
 
             CurrentDtPressure = 1.0/(mTheta*mDeltaTime)*(DeltaPressure - (1.0-mTheta)*mDeltaTime*PreviousDtPressure);
         }

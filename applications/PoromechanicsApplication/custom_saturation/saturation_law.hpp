@@ -395,7 +395,7 @@ protected:
 
     struct SaturationLawVariables
     {
-        double Swr; // Residual water saturation
+        double Swr; // Residual liquid saturation
         double lambda; // Pore size factor
         double pb; // Gas entry pressure
         double pc; // Capilar pore pressure
@@ -408,11 +408,11 @@ protected:
 
     virtual void InitializeSaturationLawVariables(SaturationLawVariables& rVariables, Parameters& rValues);
 
-    virtual void CalculateWaterSaturationDegree(SaturationLawVariables& rVariables, Parameters& rValues);
+    virtual void CalculateLiquidSaturationDegree(SaturationLawVariables& rVariables, Parameters& rValues);
 
     virtual void CalculateEffectiveSaturation(SaturationLawVariables& rVariables, Parameters& rValues);
 
-    virtual void CalculateWaterRelativePermeability(SaturationLawVariables& rVariables, Parameters& rValues);
+    virtual void CalculateLiquidRelativePermeability(SaturationLawVariables& rVariables, Parameters& rValues);
 
     virtual void CalculateGasRelativePermeability(SaturationLawVariables& rVariables, Parameters& rValues);
 

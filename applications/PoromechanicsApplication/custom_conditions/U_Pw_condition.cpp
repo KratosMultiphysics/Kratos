@@ -39,7 +39,7 @@ void UPwCondition<2,1>::GetDofList(DofsVectorType& rConditionDofList, const Proc
 
     rConditionDofList[index++] = rGeom[0].pGetDof(DISPLACEMENT_X);
     rConditionDofList[index++] = rGeom[0].pGetDof(DISPLACEMENT_Y);
-    rConditionDofList[index++] = rGeom[0].pGetDof(WATER_PRESSURE);
+    rConditionDofList[index++] = rGeom[0].pGetDof(LIQUID_PRESSURE);
 
     KRATOS_CATCH( "" )
 }
@@ -62,7 +62,7 @@ void UPwCondition<2,2>::GetDofList(DofsVectorType& rConditionDofList, const Proc
     {
         rConditionDofList[index++] = rGeom[i].pGetDof(DISPLACEMENT_X);
         rConditionDofList[index++] = rGeom[i].pGetDof(DISPLACEMENT_Y);
-        rConditionDofList[index++] = rGeom[i].pGetDof(WATER_PRESSURE);
+        rConditionDofList[index++] = rGeom[i].pGetDof(LIQUID_PRESSURE);
     }
 
     KRATOS_CATCH( "" )
@@ -85,7 +85,7 @@ void UPwCondition<3,1>::GetDofList(DofsVectorType& rConditionDofList, const Proc
     rConditionDofList[index++] = rGeom[0].pGetDof(DISPLACEMENT_X);
     rConditionDofList[index++] = rGeom[0].pGetDof(DISPLACEMENT_Y);
     rConditionDofList[index++] = rGeom[0].pGetDof(DISPLACEMENT_Z);
-    rConditionDofList[index++] = rGeom[0].pGetDof(WATER_PRESSURE);
+    rConditionDofList[index++] = rGeom[0].pGetDof(LIQUID_PRESSURE);
 
     KRATOS_CATCH( "" )
 }
@@ -109,7 +109,7 @@ void UPwCondition<3,3>::GetDofList(DofsVectorType& rConditionDofList, const Proc
         rConditionDofList[index++] = rGeom[i].pGetDof(DISPLACEMENT_X);
         rConditionDofList[index++] = rGeom[i].pGetDof(DISPLACEMENT_Y);
         rConditionDofList[index++] = rGeom[i].pGetDof(DISPLACEMENT_Z);
-        rConditionDofList[index++] = rGeom[i].pGetDof(WATER_PRESSURE);
+        rConditionDofList[index++] = rGeom[i].pGetDof(LIQUID_PRESSURE);
     }
 
     KRATOS_CATCH( "" )
@@ -134,7 +134,7 @@ void UPwCondition<3,4>::GetDofList(DofsVectorType& rConditionDofList, const Proc
         rConditionDofList[index++] = rGeom[i].pGetDof(DISPLACEMENT_X);
         rConditionDofList[index++] = rGeom[i].pGetDof(DISPLACEMENT_Y);
         rConditionDofList[index++] = rGeom[i].pGetDof(DISPLACEMENT_Z);
-        rConditionDofList[index++] = rGeom[i].pGetDof(WATER_PRESSURE);
+        rConditionDofList[index++] = rGeom[i].pGetDof(LIQUID_PRESSURE);
     }
 
     KRATOS_CATCH( "" )
@@ -211,7 +211,7 @@ void UPwCondition<2,1>::EquationIdVector(EquationIdVectorType& rResult,const Pro
 
     rResult[index++] = rGeom[0].GetDof(DISPLACEMENT_X).EquationId();
     rResult[index++] = rGeom[0].GetDof(DISPLACEMENT_Y).EquationId();
-    rResult[index++] = rGeom[0].GetDof(WATER_PRESSURE).EquationId();
+    rResult[index++] = rGeom[0].GetDof(LIQUID_PRESSURE).EquationId();
 
     KRATOS_CATCH( "" )
 }
@@ -234,7 +234,7 @@ void UPwCondition<2,2>::EquationIdVector(EquationIdVectorType& rResult,const Pro
     {
         rResult[index++] = rGeom[i].GetDof(DISPLACEMENT_X).EquationId();
         rResult[index++] = rGeom[i].GetDof(DISPLACEMENT_Y).EquationId();
-        rResult[index++] = rGeom[i].GetDof(WATER_PRESSURE).EquationId();
+        rResult[index++] = rGeom[i].GetDof(LIQUID_PRESSURE).EquationId();
     }
 
     KRATOS_CATCH( "" )
@@ -257,7 +257,7 @@ void UPwCondition<3,1>::EquationIdVector(EquationIdVectorType& rResult,const Pro
     rResult[index++] = rGeom[0].GetDof(DISPLACEMENT_X).EquationId();
     rResult[index++] = rGeom[0].GetDof(DISPLACEMENT_Y).EquationId();
     rResult[index++] = rGeom[0].GetDof(DISPLACEMENT_Z).EquationId();
-    rResult[index++] = rGeom[0].GetDof(WATER_PRESSURE).EquationId();
+    rResult[index++] = rGeom[0].GetDof(LIQUID_PRESSURE).EquationId();
 
     KRATOS_CATCH( "" )
 }
@@ -281,7 +281,7 @@ void UPwCondition<3,3>::EquationIdVector(EquationIdVectorType& rResult,const Pro
         rResult[index++] = rGeom[i].GetDof(DISPLACEMENT_X).EquationId();
         rResult[index++] = rGeom[i].GetDof(DISPLACEMENT_Y).EquationId();
         rResult[index++] = rGeom[i].GetDof(DISPLACEMENT_Z).EquationId();
-        rResult[index++] = rGeom[i].GetDof(WATER_PRESSURE).EquationId();
+        rResult[index++] = rGeom[i].GetDof(LIQUID_PRESSURE).EquationId();
     }
 
     KRATOS_CATCH( "" )
@@ -306,7 +306,7 @@ void UPwCondition<3,4>::EquationIdVector(EquationIdVectorType& rResult,const Pro
         rResult[index++] = rGeom[i].GetDof(DISPLACEMENT_X).EquationId();
         rResult[index++] = rGeom[i].GetDof(DISPLACEMENT_Y).EquationId();
         rResult[index++] = rGeom[i].GetDof(DISPLACEMENT_Z).EquationId();
-        rResult[index++] = rGeom[i].GetDof(WATER_PRESSURE).EquationId();
+        rResult[index++] = rGeom[i].GetDof(LIQUID_PRESSURE).EquationId();
     }
 
     KRATOS_CATCH( "" )

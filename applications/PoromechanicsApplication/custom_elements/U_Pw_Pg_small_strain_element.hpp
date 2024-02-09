@@ -95,17 +95,17 @@ protected:
     struct ElementVariables
     {
         ///Properties variables
-        double WaterDynamicViscosity;
+        double LiquidDynamicViscosity;
         double GasDynamicViscosity;
         double DynamicViscosityInverse;
-        double FluidDensity;
+        double LiquidDensity;
         double GasDensity;
         double SolidDensity;
         double Density;
         double BiotCoefficient;
         double BiotModulusInverse;
         double SolidCompressibilityCoeff;
-        double FluidCompressibilityCoeff;
+        double LiquidCompressibilityCoeff;
         double GasCompressibilityCoeff;
         double Porosity;
         double GasDiffusionCoefficient;

@@ -52,10 +52,10 @@ int UPwElement<TDim,TNumNodes>::Check( const ProcessInfo& rCurrentProcessInfo ) 
         KRATOS_THROW_ERROR( std::invalid_argument, "VELOCITY has Key zero at element", this->Id() )
     if ( ACCELERATION.Key() == 0 )
         KRATOS_THROW_ERROR( std::invalid_argument, "ACCELERATION has Key zero at element", this->Id() )
-    if ( WATER_PRESSURE.Key() == 0 )
-        KRATOS_THROW_ERROR( std::invalid_argument, "WATER_PRESSURE has Key zero at element", this->Id() )
-    if ( DT_WATER_PRESSURE.Key() == 0 )
-        KRATOS_THROW_ERROR( std::invalid_argument, "DT_WATER_PRESSURE has Key zero at element", this->Id() )
+    if ( LIQUID_PRESSURE.Key() == 0 )
+        KRATOS_THROW_ERROR( std::invalid_argument, "LIQUID_PRESSURE has Key zero at element", this->Id() )
+    if ( DT_LIQUID_PRESSURE.Key() == 0 )
+        KRATOS_THROW_ERROR( std::invalid_argument, "DT_LIQUID_PRESSURE has Key zero at element", this->Id() )
     if ( VOLUME_ACCELERATION.Key() == 0 )
         KRATOS_THROW_ERROR( std::invalid_argument, "VOLUME_ACCELERATION has Key zero at element", this->Id() )
 
@@ -67,17 +67,17 @@ int UPwElement<TDim,TNumNodes>::Check( const ProcessInfo& rCurrentProcessInfo ) 
             KRATOS_THROW_ERROR( std::invalid_argument, "missing variable VELOCITY on node ", Geom[i].Id() )
         if ( Geom[i].SolutionStepsDataHas( ACCELERATION ) == false )
             KRATOS_THROW_ERROR( std::invalid_argument, "missing variable ACCELERATION on node ", Geom[i].Id() )
-        if ( Geom[i].SolutionStepsDataHas( WATER_PRESSURE ) == false )
-            KRATOS_THROW_ERROR( std::invalid_argument, "missing variable WATER_PRESSURE on node ", Geom[i].Id() )
-        if ( Geom[i].SolutionStepsDataHas( DT_WATER_PRESSURE ) == false )
-            KRATOS_THROW_ERROR( std::invalid_argument, "missing variable DT_WATER_PRESSURE on node ", Geom[i].Id() )
+        if ( Geom[i].SolutionStepsDataHas( LIQUID_PRESSURE ) == false )
+            KRATOS_THROW_ERROR( std::invalid_argument, "missing variable LIQUID_PRESSURE on node ", Geom[i].Id() )
+        if ( Geom[i].SolutionStepsDataHas( DT_LIQUID_PRESSURE ) == false )
+            KRATOS_THROW_ERROR( std::invalid_argument, "missing variable DT_LIQUID_PRESSURE on node ", Geom[i].Id() )
         if( Geom[i].SolutionStepsDataHas(VOLUME_ACCELERATION) == false )
             KRATOS_THROW_ERROR(std::invalid_argument,"missing VOLUME_ACCELERATION variable on node ", Geom[i].Id() );
 
         if ( Geom[i].HasDofFor( DISPLACEMENT_X ) == false || Geom[i].HasDofFor( DISPLACEMENT_Y ) == false || Geom[i].HasDofFor( DISPLACEMENT_Z ) == false )
             KRATOS_THROW_ERROR( std::invalid_argument, "missing one of the dofs for the variable DISPLACEMENT on node ", Geom[i].Id() )
-        if ( Geom[i].HasDofFor( WATER_PRESSURE ) == false )
-            KRATOS_THROW_ERROR( std::invalid_argument, "missing the dof for the variable WATER_PRESSURE on node ", Geom[i].Id() )
+        if ( Geom[i].HasDofFor( LIQUID_PRESSURE ) == false )
+            KRATOS_THROW_ERROR( std::invalid_argument, "missing the dof for the variable LIQUID_PRESSURE on node ", Geom[i].Id() )
     }
 
     // Verify ProcessInfo variables
@@ -93,12 +93,12 @@ int UPwElement<TDim,TNumNodes>::Check( const ProcessInfo& rCurrentProcessInfo ) 
     // Verify properties
     if ( DENSITY_SOLID.Key() == 0 || Prop.Has( DENSITY_SOLID ) == false || Prop[DENSITY_SOLID] < 0.0 )
         KRATOS_THROW_ERROR( std::invalid_argument,"DENSITY_SOLID has Key zero, is not defined or has an invalid value at element", this->Id() )
-    if ( DENSITY_WATER.Key() == 0 || Prop.Has( DENSITY_WATER ) == false || Prop[DENSITY_WATER] < 0.0 )
-        KRATOS_THROW_ERROR( std::invalid_argument,"DENSITY_WATER has Key zero, is not defined or has an invalid value at element", this->Id() )
+    if ( DENSITY_LIQUID.Key() == 0 || Prop.Has( DENSITY_LIQUID ) == false || Prop[DENSITY_LIQUID] < 0.0 )
+        KRATOS_THROW_ERROR( std::invalid_argument,"DENSITY_LIQUID has Key zero, is not defined or has an invalid value at element", this->Id() )
     if ( BULK_MODULUS_SOLID.Key() == 0 || Prop.Has( BULK_MODULUS_SOLID ) == false || Prop[BULK_MODULUS_SOLID] <= 0.0 )
         KRATOS_THROW_ERROR( std::invalid_argument,"BULK_MODULUS_SOLID has Key zero, is not defined or has an invalid value at element", this->Id() )
-    if ( BULK_MODULUS_FLUID.Key() == 0 || Prop.Has( BULK_MODULUS_FLUID ) == false || Prop[BULK_MODULUS_FLUID] <= 0.0 )
-        KRATOS_THROW_ERROR( std::invalid_argument,"BULK_MODULUS_FLUID has Key zero, is not defined or has an invalid value at element", this->Id() )
+    if ( BULK_MODULUS_LIQUID.Key() == 0 || Prop.Has( BULK_MODULUS_LIQUID ) == false || Prop[BULK_MODULUS_LIQUID] <= 0.0 )
+        KRATOS_THROW_ERROR( std::invalid_argument,"BULK_MODULUS_LIQUID has Key zero, is not defined or has an invalid value at element", this->Id() )
     if ( YOUNG_MODULUS.Key() == 0 || Prop.Has( YOUNG_MODULUS ) == false || Prop[YOUNG_MODULUS] <= 0.0 )
         KRATOS_THROW_ERROR( std::invalid_argument,"YOUNG_MODULUS has Key zero, is not defined or has an invalid value at element", this->Id() )
     if ( DYNAMIC_VISCOSITY.Key() == 0 || Prop.Has( DYNAMIC_VISCOSITY ) == false || Prop[DYNAMIC_VISCOSITY] <= 0.0 )
@@ -181,7 +181,7 @@ void UPwElement<TDim,TNumNodes>::GetDofList( DofsVectorType& rElementalDofList, 
         rElementalDofList[index++] = rGeom[i].pGetDof(DISPLACEMENT_Y);
         if constexpr (TDim>2)
             rElementalDofList[index++] = rGeom[i].pGetDof(DISPLACEMENT_Z);
-        rElementalDofList[index++] = rGeom[i].pGetDof(WATER_PRESSURE);
+        rElementalDofList[index++] = rGeom[i].pGetDof(LIQUID_PRESSURE);
     }
 
     KRATOS_CATCH( "" )
@@ -268,7 +268,7 @@ void UPwElement<2,3>::EquationIdVector( EquationIdVectorType& rResult, const Pro
     {
         rResult[index++] = rGeom[i].GetDof(DISPLACEMENT_X).EquationId();
         rResult[index++] = rGeom[i].GetDof(DISPLACEMENT_Y).EquationId();
-        rResult[index++] = rGeom[i].GetDof(WATER_PRESSURE).EquationId();
+        rResult[index++] = rGeom[i].GetDof(LIQUID_PRESSURE).EquationId();
     }
 
     KRATOS_CATCH( "" )
@@ -292,7 +292,7 @@ void UPwElement<2,4>::EquationIdVector( EquationIdVectorType& rResult, const Pro
     {
         rResult[index++] = rGeom[i].GetDof(DISPLACEMENT_X).EquationId();
         rResult[index++] = rGeom[i].GetDof(DISPLACEMENT_Y).EquationId();
-        rResult[index++] = rGeom[i].GetDof(WATER_PRESSURE).EquationId();
+        rResult[index++] = rGeom[i].GetDof(LIQUID_PRESSURE).EquationId();
     }
 
     KRATOS_CATCH( "" )
@@ -317,7 +317,7 @@ void UPwElement<3,4>::EquationIdVector( EquationIdVectorType& rResult, const Pro
         rResult[index++] = rGeom[i].GetDof(DISPLACEMENT_X).EquationId();
         rResult[index++] = rGeom[i].GetDof(DISPLACEMENT_Y).EquationId();
         rResult[index++] = rGeom[i].GetDof(DISPLACEMENT_Z).EquationId();
-        rResult[index++] = rGeom[i].GetDof(WATER_PRESSURE).EquationId();
+        rResult[index++] = rGeom[i].GetDof(LIQUID_PRESSURE).EquationId();
     }
 
     KRATOS_CATCH( "" )
@@ -342,7 +342,7 @@ void UPwElement<3,6>::EquationIdVector( EquationIdVectorType& rResult, const Pro
         rResult[index++] = rGeom[i].GetDof(DISPLACEMENT_X).EquationId();
         rResult[index++] = rGeom[i].GetDof(DISPLACEMENT_Y).EquationId();
         rResult[index++] = rGeom[i].GetDof(DISPLACEMENT_Z).EquationId();
-        rResult[index++] = rGeom[i].GetDof(WATER_PRESSURE).EquationId();
+        rResult[index++] = rGeom[i].GetDof(LIQUID_PRESSURE).EquationId();
     }
 
     KRATOS_CATCH( "" )
@@ -367,7 +367,7 @@ void UPwElement<3,8>::EquationIdVector( EquationIdVectorType& rResult, const Pro
         rResult[index++] = rGeom[i].GetDof(DISPLACEMENT_X).EquationId();
         rResult[index++] = rGeom[i].GetDof(DISPLACEMENT_Y).EquationId();
         rResult[index++] = rGeom[i].GetDof(DISPLACEMENT_Z).EquationId();
-        rResult[index++] = rGeom[i].GetDof(WATER_PRESSURE).EquationId();
+        rResult[index++] = rGeom[i].GetDof(LIQUID_PRESSURE).EquationId();
     }
 
     KRATOS_CATCH( "" )
@@ -400,7 +400,7 @@ void UPwElement<TDim,TNumNodes>::CalculateMassMatrix( MatrixType& rMassMatrix, c
     //Defining necessary variables
     double IntegrationCoefficient;
     const double& Porosity = Prop[POROSITY];
-    const double Density = Porosity*Prop[DENSITY_WATER] + (1.0-Porosity)*Prop[DENSITY_SOLID];
+    const double Density = Porosity*Prop[DENSITY_LIQUID] + (1.0-Porosity)*Prop[DENSITY_SOLID];
     BoundedMatrix<double,TDim+1, TNumNodes*(TDim+1)> Nut = ZeroMatrix(TDim+1, TNumNodes*(TDim+1));
 
     //Loop over integration points
@@ -765,7 +765,7 @@ void UPwElement<TDim,TNumNodes>::CalculateLumpedMassMatrix( MatrixType& rLeftHan
     noalias( rLeftHandSideMatrix ) = ZeroMatrix( element_size, element_size );
 
     const double& porosity = r_prop[POROSITY];
-    const double density = porosity*r_prop[DENSITY_WATER] + (1.0-porosity)*r_prop[DENSITY_SOLID];
+    const double density = porosity*r_prop[DENSITY_LIQUID] + (1.0-porosity)*r_prop[DENSITY_SOLID];
 
     const double thickness = (TDim == 2 && r_prop.Has(THICKNESS)) ? r_prop[THICKNESS] : 1.0;
 

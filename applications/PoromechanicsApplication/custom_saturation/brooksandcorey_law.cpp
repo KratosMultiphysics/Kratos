@@ -17,7 +17,7 @@
 namespace Kratos
 {
 
-void BrooksAndCoreyLaw::CalculateWaterSaturationDegree (SaturationLawVariables& rVariables, Parameters& rValues)
+void BrooksAndCoreyLaw::CalculateLiquidSaturationDegree (SaturationLawVariables& rVariables, Parameters& rValues)
 {
     double& rSw = rValues.GetSw();
     double& rdSwdPc = rValues.GetdSwdPc();
@@ -28,11 +28,11 @@ void BrooksAndCoreyLaw::CalculateWaterSaturationDegree (SaturationLawVariables& 
 
     if(rVariables.pc > rVariables.pb)
     {
-        // Water saturation degree
+        // Liquid saturation degree
         rSw = (1.0 - rVariables.Swr)*std::pow(rVariables.pb/rVariables.pc,rVariables.lambda)
                 + rVariables.Swr;
 
-        // Derivative of the water saturation degree with respect to the capilar pressure
+        // Derivative of the liquid saturation degree with respect to the capilar pressure
         rdSwdPc = (1.0 - rVariables.Swr) * 
                     rVariables.lambda * rVariables.pb * std::pow(rVariables.pb/rVariables.pc,rVariables.lambda-1.0) /
                     (rVariables.pc * rVariables.pc);
@@ -41,15 +41,15 @@ void BrooksAndCoreyLaw::CalculateWaterSaturationDegree (SaturationLawVariables& 
 
 //------------------------------------------------------------------------------------------------
 
-void BrooksAndCoreyLaw::CalculateWaterRelativePermeability (SaturationLawVariables& rVariables, Parameters& rValues)
+void BrooksAndCoreyLaw::CalculateLiquidRelativePermeability (SaturationLawVariables& rVariables, Parameters& rValues)
 {
     double& rkrw = rValues.Getkrw();
 
     const double nw = (2.0 + 3.0*rVariables.lambda)/rVariables.lambda;
 
     rkrw = std::pow(rVariables.Se,nw);
-    // TODO. Review this number
-    rkrw = std::min(rkrw,0.0001);
+    // TODO. Review this number (and make it an input tolerance)
+    rkrw = std::max(rkrw,0.0001);
 }
 
 //------------------------------------------------------------------------------------------------
@@ -61,8 +61,8 @@ void BrooksAndCoreyLaw::CalculateGasRelativePermeability (SaturationLawVariables
     const double ng = (2.0 + rVariables.lambda)/rVariables.lambda;
 
     rkrg = std::pow(1.0-rVariables.Se,2.0)*(1.0 - std::pow(rVariables.Se,ng));
-    // TODO. Review this number
-    rkrg = std::min(rkrg,0.0001);
+    // TODO. Review this number (and make it an input tolerance)
+    rkrg = std::max(rkrg,0.0001);
 }
 
 }

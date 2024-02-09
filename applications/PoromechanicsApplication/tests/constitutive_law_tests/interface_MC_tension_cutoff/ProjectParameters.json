@@ -108,7 +108,7 @@
             "kratos_module": "KratosMultiphysics.PoromechanicsApplication",
             "Parameters":    {
                 "model_part_name":      "PorousModelPart.bulk_pressure",
-                "variable_name":        "WATER_PRESSURE",
+                "variable_name":        "LIQUID_PRESSURE",
                 "is_fixed":             true,
                 "value":                0.0,
                 "table":                0,

@@ -128,16 +128,16 @@ KratosPoromechanicsApplication::KratosPoromechanicsApplication()
 
     mLineLoadDiffOrderCondition2D3N( 0, Condition::GeometryType::Pointer( new Line2D3<Node >( Condition::GeometryType::PointsArrayType(3)))),
     mLineNormalLoadDiffOrderCondition2D3N( 0, Condition::GeometryType::Pointer( new Line2D3<Node >( Condition::GeometryType::PointsArrayType(3)))),
-    mLineNormalFluidFluxDiffOrderCondition2D3N( 0, Condition::GeometryType::Pointer( new Line2D3<Node >( Condition::GeometryType::PointsArrayType(3)))),
+    mLineNormalLiquidFluxDiffOrderCondition2D3N( 0, Condition::GeometryType::Pointer( new Line2D3<Node >( Condition::GeometryType::PointsArrayType(3)))),
     mSurfaceLoadDiffOrderCondition3D6N( 0, Condition::GeometryType::Pointer( new Triangle3D6 <Node >( Condition::GeometryType::PointsArrayType(6)))),
     mSurfaceLoadDiffOrderCondition3D8N( 0, Condition::GeometryType::Pointer( new Quadrilateral3D8 <Node >( Condition::GeometryType::PointsArrayType(8)))),
     mSurfaceLoadDiffOrderCondition3D9N( 0, Condition::GeometryType::Pointer( new Quadrilateral3D9 <Node >( Condition::GeometryType::PointsArrayType(9)))),
     mSurfaceNormalLoadDiffOrderCondition3D6N( 0, Condition::GeometryType::Pointer( new Triangle3D6 <Node >( Condition::GeometryType::PointsArrayType(6)))),
     mSurfaceNormalLoadDiffOrderCondition3D8N( 0, Condition::GeometryType::Pointer( new Quadrilateral3D8 <Node >( Condition::GeometryType::PointsArrayType(8)))),
     mSurfaceNormalLoadDiffOrderCondition3D9N( 0, Condition::GeometryType::Pointer( new Quadrilateral3D9 <Node >( Condition::GeometryType::PointsArrayType(9)))),
-    mSurfaceNormalFluidFluxDiffOrderCondition3D6N( 0, Condition::GeometryType::Pointer( new Triangle3D6 <Node >( Condition::GeometryType::PointsArrayType(6)))),
-    mSurfaceNormalFluidFluxDiffOrderCondition3D8N( 0, Condition::GeometryType::Pointer( new Quadrilateral3D8 <Node >( Condition::GeometryType::PointsArrayType(8)))),
-    mSurfaceNormalFluidFluxDiffOrderCondition3D9N( 0, Condition::GeometryType::Pointer( new Quadrilateral3D9 <Node >( Condition::GeometryType::PointsArrayType(9))))
+    mSurfaceNormalLiquidFluxDiffOrderCondition3D6N( 0, Condition::GeometryType::Pointer( new Triangle3D6 <Node >( Condition::GeometryType::PointsArrayType(6)))),
+    mSurfaceNormalLiquidFluxDiffOrderCondition3D8N( 0, Condition::GeometryType::Pointer( new Quadrilateral3D8 <Node >( Condition::GeometryType::PointsArrayType(8)))),
+    mSurfaceNormalLiquidFluxDiffOrderCondition3D9N( 0, Condition::GeometryType::Pointer( new Quadrilateral3D9 <Node >( Condition::GeometryType::PointsArrayType(9))))
 
     {}
 
@@ -226,16 +226,16 @@ void KratosPoromechanicsApplication::Register()
 
     KRATOS_REGISTER_CONDITION( "LineLoadDiffOrderCondition2D3N", mLineLoadDiffOrderCondition2D3N )
     KRATOS_REGISTER_CONDITION( "LineNormalLoadDiffOrderCondition2D3N", mLineNormalLoadDiffOrderCondition2D3N )
-    KRATOS_REGISTER_CONDITION( "LineNormalFluidFluxDiffOrderCondition2D3N", mLineNormalFluidFluxDiffOrderCondition2D3N )
+    KRATOS_REGISTER_CONDITION( "LineNormalLiquidFluxDiffOrderCondition2D3N", mLineNormalLiquidFluxDiffOrderCondition2D3N )
     KRATOS_REGISTER_CONDITION( "SurfaceLoadDiffOrderCondition3D6N", mSurfaceLoadDiffOrderCondition3D6N )
     KRATOS_REGISTER_CONDITION( "SurfaceLoadDiffOrderCondition3D8N", mSurfaceLoadDiffOrderCondition3D8N )
     KRATOS_REGISTER_CONDITION( "SurfaceLoadDiffOrderCondition3D9N", mSurfaceLoadDiffOrderCondition3D9N )
     KRATOS_REGISTER_CONDITION( "SurfaceNormalLoadDiffOrderCondition3D6N", mSurfaceNormalLoadDiffOrderCondition3D6N )
     KRATOS_REGISTER_CONDITION( "SurfaceNormalLoadDiffOrderCondition3D8N", mSurfaceNormalLoadDiffOrderCondition3D8N )
     KRATOS_REGISTER_CONDITION( "SurfaceNormalLoadDiffOrderCondition3D9N", mSurfaceNormalLoadDiffOrderCondition3D9N )
-    KRATOS_REGISTER_CONDITION( "SurfaceNormalFluidFluxDiffOrderCondition3D6N", mSurfaceNormalFluidFluxDiffOrderCondition3D6N )
-    KRATOS_REGISTER_CONDITION( "SurfaceNormalFluidFluxDiffOrderCondition3D8N", mSurfaceNormalFluidFluxDiffOrderCondition3D8N )
-    KRATOS_REGISTER_CONDITION( "SurfaceNormalFluidFluxDiffOrderCondition3D9N", mSurfaceNormalFluidFluxDiffOrderCondition3D9N )
+    KRATOS_REGISTER_CONDITION( "SurfaceNormalLiquidFluxDiffOrderCondition3D6N", mSurfaceNormalLiquidFluxDiffOrderCondition3D6N )
+    KRATOS_REGISTER_CONDITION( "SurfaceNormalLiquidFluxDiffOrderCondition3D8N", mSurfaceNormalLiquidFluxDiffOrderCondition3D8N )
+    KRATOS_REGISTER_CONDITION( "SurfaceNormalLiquidFluxDiffOrderCondition3D9N", mSurfaceNormalLiquidFluxDiffOrderCondition3D9N )
 
 
     //Register Constitutive Laws
@@ -287,26 +287,30 @@ void KratosPoromechanicsApplication::Register()
     KRATOS_REGISTER_VARIABLE( VELOCITY_COEFFICIENT )
     KRATOS_REGISTER_VARIABLE( DT_PRESSURE_COEFFICIENT )
 
+    KRATOS_REGISTER_VARIABLE( LIQUID_PRESSURE )
+    KRATOS_REGISTER_VARIABLE( REACTION_LIQUID_PRESSURE )
     KRATOS_REGISTER_VARIABLE( GAS_PRESSURE )
     KRATOS_REGISTER_VARIABLE( REACTION_GAS_PRESSURE )
-    KRATOS_REGISTER_VARIABLE( DT_WATER_PRESSURE )
+    KRATOS_REGISTER_VARIABLE( DT_LIQUID_PRESSURE )
     KRATOS_REGISTER_VARIABLE( DT_GAS_PRESSURE )
-    KRATOS_REGISTER_VARIABLE( NORMAL_FLUID_FLUX )
+    KRATOS_REGISTER_VARIABLE( NORMAL_LIQUID_FLUX )
     KRATOS_REGISTER_VARIABLE( NORMAL_GAS_FLUX )
     KRATOS_REGISTER_VARIABLE( DISCHARGE )
 
     KRATOS_REGISTER_VARIABLE( DENSITY_SOLID )
+    KRATOS_REGISTER_VARIABLE( DENSITY_LIQUID )
     KRATOS_REGISTER_VARIABLE( DENSITY_GAS )
+    KRATOS_REGISTER_VARIABLE( VISCOSITY_LIQUID )
     KRATOS_REGISTER_VARIABLE( VISCOSITY_GAS )
     KRATOS_REGISTER_VARIABLE( ADD_GAS_DIFFUSION )
     KRATOS_REGISTER_VARIABLE( GAS_DIFFUSION_COEFF )
     KRATOS_REGISTER_VARIABLE( SATURATION_LAW )
-    KRATOS_REGISTER_VARIABLE( RESIDUAL_WATER_SATURATION )
+    KRATOS_REGISTER_VARIABLE( RESIDUAL_LIQUID_SATURATION )
     KRATOS_REGISTER_VARIABLE( RESIDUAL_GAS_SATURATION )
     KRATOS_REGISTER_VARIABLE( GAS_ENTRY_PRESSURE )
     KRATOS_REGISTER_VARIABLE( PORE_SIZE_FACTOR )
     KRATOS_REGISTER_VARIABLE( BULK_MODULUS_SOLID )
-    KRATOS_REGISTER_VARIABLE( BULK_MODULUS_FLUID )
+    KRATOS_REGISTER_VARIABLE( BULK_MODULUS_LIQUID )
     KRATOS_REGISTER_VARIABLE( BULK_MODULUS_GAS )
     KRATOS_REGISTER_VARIABLE( PERMEABILITY_XX )
     KRATOS_REGISTER_VARIABLE( PERMEABILITY_YY )
@@ -327,8 +331,8 @@ void KratosPoromechanicsApplication::Register()
 
     KRATOS_REGISTER_VARIABLE( INITIAL_JOINT_WIDTH )
     KRATOS_REGISTER_VARIABLE( TRANSVERSAL_PERMEABILITY_COEFFICIENT )
-    KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( FLUID_FLUX_VECTOR )
-    KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( LOCAL_FLUID_FLUX_VECTOR )
+    KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( LIQUID_FLUX_VECTOR )
+    KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( LOCAL_LIQUID_FLUX_VECTOR )
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( CONTACT_STRESS_VECTOR )
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( LOCAL_STRESS_VECTOR )
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( LOCAL_RELATIVE_DISPLACEMENT_VECTOR )
@@ -358,8 +362,8 @@ void KratosPoromechanicsApplication::Register()
     KRATOS_REGISTER_VARIABLE( NODAL_CAUCHY_STRESS_TENSOR )
     KRATOS_REGISTER_VARIABLE( EFFECTIVE_STRESS_TENSOR )
     KRATOS_REGISTER_VARIABLE( NODAL_EFFECTIVE_STRESS_TENSOR )
-    KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( WATER_PRESSURE_GRADIENT )
-    KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( NODAL_WATER_PRESSURE_GRADIENT )
+    KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( LIQUID_PRESSURE_GRADIENT )
+    KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( NODAL_LIQUID_PRESSURE_GRADIENT )
     KRATOS_REGISTER_VARIABLE( NODAL_DAMAGE_VARIABLE )
     KRATOS_REGISTER_VARIABLE( NODAL_JOINT_AREA )
     KRATOS_REGISTER_VARIABLE( NODAL_JOINT_WIDTH )

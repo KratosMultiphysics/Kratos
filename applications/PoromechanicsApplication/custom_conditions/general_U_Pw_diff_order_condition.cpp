@@ -101,7 +101,7 @@ void GeneralUPwDiffOrderCondition::GetDofList(DofsVectorType& rConditionDofList,
         rConditionDofList[Index++] = GetGeometry()[i].pGetDof( DISPLACEMENT_Y );
         if(Dim > 2)
             rConditionDofList[Index++] = GetGeometry()[i].pGetDof( DISPLACEMENT_Z );
-        rConditionDofList[Index++] = GetGeometry()[i].pGetDof( WATER_PRESSURE );
+        rConditionDofList[Index++] = GetGeometry()[i].pGetDof( LIQUID_PRESSURE );
     }
 
     for(SizeType i=NumPNodes; i<NumUNodes; i++)
@@ -122,7 +122,7 @@ void GeneralUPwDiffOrderCondition::GetDofList(DofsVectorType& rConditionDofList,
     }
 
     for(SizeType i=0; i<NumPNodes; i++)
-        rConditionDofList[Index++] = GetGeometry()[i].pGetDof( WATER_PRESSURE );
+        rConditionDofList[Index++] = GetGeometry()[i].pGetDof( LIQUID_PRESSURE );
 
     KRATOS_CATCH( "" )
 }
@@ -218,7 +218,7 @@ void GeneralUPwDiffOrderCondition::EquationIdVector(EquationIdVectorType& rResul
     }
 
     for ( SizeType i = 0; i < NumPNodes; i++ )
-        rResult[Index++] = GetGeometry()[i].GetDof( WATER_PRESSURE ).EquationId();
+        rResult[Index++] = GetGeometry()[i].GetDof( LIQUID_PRESSURE ).EquationId();
 
     KRATOS_CATCH( "" )
 }

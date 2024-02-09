@@ -17,7 +17,7 @@
 namespace Kratos
 {
 
-void VanGenuchtenLaw::CalculateWaterSaturationDegree (SaturationLawVariables& rVariables, Parameters& rValues)
+void VanGenuchtenLaw::CalculateLiquidSaturationDegree (SaturationLawVariables& rVariables, Parameters& rValues)
 {
     double& rSw = rValues.GetSw();
     double& rdSwdPc = rValues.GetdSwdPc();
@@ -28,11 +28,11 @@ void VanGenuchtenLaw::CalculateWaterSaturationDegree (SaturationLawVariables& rV
 
     if(rVariables.pc > rVariables.pb)
     {
-        // Water saturation degree
+        // Liquid saturation degree
         rSw = (1.0 - rVariables.Swr)*std::pow(1.0 + std::pow(rVariables.pc/rVariables.pb,1.0/(1.0-rVariables.lambda)),-rVariables.lambda) 
                 + rVariables.Swr;
 
-        // Derivative of the water saturation degree with respect to the capilar pressure
+        // Derivative of the liquid saturation degree with respect to the capilar pressure
         rdSwdPc = (1.0 - rVariables.Swr)*
                     rVariables.lambda /
                     (rVariables.pb *
@@ -45,7 +45,7 @@ void VanGenuchtenLaw::CalculateWaterSaturationDegree (SaturationLawVariables& rV
 
 //------------------------------------------------------------------------------------------------
 
-void VanGenuchtenLaw::CalculateWaterRelativePermeability (SaturationLawVariables& rVariables, Parameters& rValues)
+void VanGenuchtenLaw::CalculateLiquidRelativePermeability (SaturationLawVariables& rVariables, Parameters& rValues)
 {
     double& rkrw = rValues.Getkrw();
 
@@ -53,8 +53,8 @@ void VanGenuchtenLaw::CalculateWaterRelativePermeability (SaturationLawVariables
     const double nw = 1.5;
 
     rkrw = std::pow(rVariables.Se,nw);
-    // TODO. Review this number
-    rkrw = std::min(rkrw,0.0001);
+    // TODO. Review this number (and make it an input tolerance)
+    rkrw = std::max(rkrw,0.0001);
 }
 
 //------------------------------------------------------------------------------------------------
@@ -67,8 +67,8 @@ void VanGenuchtenLaw::CalculateGasRelativePermeability (SaturationLawVariables& 
     const double ng = 3.0;
     
     rkrg = std::pow(1.0-rVariables.Se,ng);
-    // TODO. Review this number
-    rkrg = std::min(rkrg,0.0001);
+    // TODO. Review this number (and make it an input tolerance)
+    rkrg = std::max(rkrg,0.0001);
 }
 
 }

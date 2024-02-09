@@ -91,24 +91,24 @@ set( KRATOS_POROMECHANICS_APPLICATION_CORE_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/U_Pw_face_load_condition.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/U_Pw_normal_face_load_condition.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/U_Pw_discharge_condition.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/U_Pw_normal_flux_condition.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/U_Pw_normal_flux_FIC_condition.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/U_Pw_normal_liquid_flux_condition.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/U_Pw_normal_liquid_flux_FIC_condition.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/U_Pw_face_load_interface_condition.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/U_Pw_normal_flux_interface_condition.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/U_Pw_normal_liquid_flux_interface_condition.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/general_U_Pw_diff_order_condition.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/line_load_2D_diff_order_condition.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/line_normal_load_2D_diff_order_condition.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/line_normal_fluid_flux_2D_diff_order_condition.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/line_normal_liquid_flux_2D_diff_order_condition.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/surface_load_3D_diff_order_condition.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/surface_normal_load_3D_diff_order_condition.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/surface_normal_fluid_flux_3D_diff_order_condition.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/surface_normal_liquid_flux_3D_diff_order_condition.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/multiphase_flow/U_Pw_Pg_condition.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/multiphase_flow/U_Pw_Pg_face_load_condition.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/multiphase_flow/U_Pw_Pg_face_load_interface_condition.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/multiphase_flow/U_Pw_Pg_normal_face_load_condition.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/multiphase_flow/U_Pw_Pg_normal_flux_condition.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/multiphase_flow/U_Pw_Pg_normal_liquid_flux_condition.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/multiphase_flow/U_Pw_Pg_normal_gas_flux_condition.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/multiphase_flow/U_Pw_Pg_normal_flux_interface_condition.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/multiphase_flow/U_Pw_Pg_normal_liquid_flux_interface_condition.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/multiphase_flow/U_Pw_Pg_normal_gas_flux_interface_condition.cpp
     
 )

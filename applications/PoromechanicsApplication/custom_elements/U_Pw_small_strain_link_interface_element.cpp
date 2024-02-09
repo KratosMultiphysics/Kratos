@@ -31,13 +31,13 @@ void UPwSmallStrainLinkInterfaceElement<TDim,TNumNodes>::CalculateOnIntegrationP
 {
     KRATOS_TRY
 
-    if(rVariable == FLUID_FLUX_VECTOR || rVariable == CONTACT_STRESS_VECTOR || rVariable == LOCAL_STRESS_VECTOR || rVariable == LOCAL_RELATIVE_DISPLACEMENT_VECTOR || rVariable == LOCAL_FLUID_FLUX_VECTOR)
+    if(rVariable == LIQUID_FLUX_VECTOR || rVariable == CONTACT_STRESS_VECTOR || rVariable == LOCAL_STRESS_VECTOR || rVariable == LOCAL_RELATIVE_DISPLACEMENT_VECTOR || rVariable == LOCAL_LIQUID_FLUX_VECTOR)
     {
         //Variables computed on Lobatto points
         const GeometryType& Geom = this->GetGeometry();
         std::vector<array_1d<double,3>> GPValues(Geom.IntegrationPointsNumber( mThisIntegrationMethod ));
 
-        if(rVariable == FLUID_FLUX_VECTOR)
+        if(rVariable == LIQUID_FLUX_VECTOR)
         {
             const PropertiesType& Prop = this->GetProperties();
             const unsigned int NumGPoints = Geom.IntegrationPointsNumber( mThisIntegrationMethod );
@@ -51,7 +51,7 @@ void UPwSmallStrainLinkInterfaceElement<TDim,TNumNodes>::CalculateOnIntegrationP
             //Defining necessary variables
             array_1d<double,TNumNodes> PressureVector;
             for(unsigned int i=0; i<TNumNodes; i++)
-                PressureVector[i] = Geom[i].FastGetSolutionStepValue(WATER_PRESSURE);
+                PressureVector[i] = Geom[i].FastGetSolutionStepValue(LIQUID_PRESSURE);
             array_1d<double,TNumNodes*TDim> DisplacementVector;
             PoroElementUtilities::GetNodalVariableVector(DisplacementVector,Geom,DISPLACEMENT);
             array_1d<double,TNumNodes*TDim> VolumeAcceleration;
@@ -67,10 +67,10 @@ void UPwSmallStrainLinkInterfaceElement<TDim,TNumNodes>::CalculateOnIntegrationP
             double JointWidth;
             BoundedMatrix<double,TDim, TDim> LocalPermeabilityMatrix = ZeroMatrix(TDim,TDim);
             const double& DynamicViscosityInverse = 1.0/Prop[DYNAMIC_VISCOSITY];
-            const double& FluidDensity = Prop[DENSITY_WATER];
-            array_1d<double,TDim> LocalFluidFlux;
+            const double& LiquidDensity = Prop[DENSITY_LIQUID];
+            array_1d<double,TDim> LocalLiquidFlux;
             array_1d<double,TDim> GradPressureTerm;
-            array_1d<double,TDim> FluidFlux;
+            array_1d<double,TDim> LiquidFlux;
             SFGradAuxVariables SFGradAuxVars;
 
             //Loop over integration points
@@ -92,13 +92,13 @@ void UPwSmallStrainLinkInterfaceElement<TDim,TNumNodes>::CalculateOnIntegrationP
                 InterfaceElementUtilities::CalculateLinkPermeabilityMatrix(LocalPermeabilityMatrix,JointWidth);
                 
                 noalias(GradPressureTerm) = prod(trans(GradNpT),PressureVector);
-                noalias(GradPressureTerm) += -FluidDensity*BodyAcceleration;
+                noalias(GradPressureTerm) += -LiquidDensity*BodyAcceleration;
                 
-                noalias(LocalFluidFlux) = -DynamicViscosityInverse*prod(LocalPermeabilityMatrix,GradPressureTerm);
+                noalias(LocalLiquidFlux) = -DynamicViscosityInverse*prod(LocalPermeabilityMatrix,GradPressureTerm);
                 
-                noalias(FluidFlux) = prod(trans(RotationMatrix),LocalFluidFlux);
+                noalias(LiquidFlux) = prod(trans(RotationMatrix),LocalLiquidFlux);
                 
-                PoroElementUtilities::FillArray1dOutput(GPValues[GPoint],FluidFlux);
+                PoroElementUtilities::FillArray1dOutput(GPValues[GPoint],LiquidFlux);
             }
         }
         else if(rVariable == CONTACT_STRESS_VECTOR)
@@ -238,7 +238,7 @@ void UPwSmallStrainLinkInterfaceElement<TDim,TNumNodes>::CalculateOnIntegrationP
                 PoroElementUtilities::FillArray1dOutput(GPValues[GPoint],LocalRelDispVector);
             }
         }
-        else if(rVariable == LOCAL_FLUID_FLUX_VECTOR)
+        else if(rVariable == LOCAL_LIQUID_FLUX_VECTOR)
         {
             const PropertiesType& Prop = this->GetProperties();
             const unsigned int NumGPoints = Geom.IntegrationPointsNumber( mThisIntegrationMethod );
@@ -252,7 +252,7 @@ void UPwSmallStrainLinkInterfaceElement<TDim,TNumNodes>::CalculateOnIntegrationP
             //Defining necessary variables
             array_1d<double,TNumNodes> PressureVector;
             for(unsigned int i=0; i<TNumNodes; i++)
-                PressureVector[i] = Geom[i].FastGetSolutionStepValue(WATER_PRESSURE);
+                PressureVector[i] = Geom[i].FastGetSolutionStepValue(LIQUID_PRESSURE);
             array_1d<double,TNumNodes*TDim> DisplacementVector;
             PoroElementUtilities::GetNodalVariableVector(DisplacementVector,Geom,DISPLACEMENT);
             array_1d<double,TNumNodes*TDim> VolumeAcceleration;
@@ -268,8 +268,8 @@ void UPwSmallStrainLinkInterfaceElement<TDim,TNumNodes>::CalculateOnIntegrationP
             double JointWidth;
             BoundedMatrix<double,TDim, TDim> LocalPermeabilityMatrix = ZeroMatrix(TDim,TDim);
             const double& DynamicViscosityInverse = 1.0/Prop[DYNAMIC_VISCOSITY];
-            const double& FluidDensity = Prop[DENSITY_WATER];
-            array_1d<double,TDim> LocalFluidFlux;
+            const double& LiquidDensity = Prop[DENSITY_LIQUID];
+            array_1d<double,TDim> LocalLiquidFlux;
             array_1d<double,TDim> GradPressureTerm;
             SFGradAuxVariables SFGradAuxVars;
             
@@ -292,11 +292,11 @@ void UPwSmallStrainLinkInterfaceElement<TDim,TNumNodes>::CalculateOnIntegrationP
                 InterfaceElementUtilities::CalculateLinkPermeabilityMatrix(LocalPermeabilityMatrix,JointWidth);
                 
                 noalias(GradPressureTerm) = prod(trans(GradNpT),PressureVector);
-                noalias(GradPressureTerm) += -FluidDensity*BodyAcceleration;
+                noalias(GradPressureTerm) += -LiquidDensity*BodyAcceleration;
                 
-                noalias(LocalFluidFlux) = -DynamicViscosityInverse*prod(LocalPermeabilityMatrix,GradPressureTerm);
+                noalias(LocalLiquidFlux) = -DynamicViscosityInverse*prod(LocalPermeabilityMatrix,GradPressureTerm);
                 
-                PoroElementUtilities::FillArray1dOutput(GPValues[GPoint],LocalFluidFlux);
+                PoroElementUtilities::FillArray1dOutput(GPValues[GPoint],LocalLiquidFlux);
             }
         }
 

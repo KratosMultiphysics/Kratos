@@ -74,7 +74,7 @@ class ExplicitUPwSolver(UPwSolver):
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.ACCELERATION_Y,self.main_model_part)
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.ACCELERATION_Z,self.main_model_part)
 
-        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.WATER_PRESSURE, KratosMultiphysics.REACTION_WATER_PRESSURE,self.main_model_part)
+        KratosMultiphysics.VariableUtils().AddDof(KratosPoro.LIQUID_PRESSURE, KratosPoro.REACTION_LIQUID_PRESSURE,self.main_model_part)
 
         KratosMultiphysics.Logger.PrintInfo("::[ExplicitUPwSolver]:: DOF's ADDED")
 

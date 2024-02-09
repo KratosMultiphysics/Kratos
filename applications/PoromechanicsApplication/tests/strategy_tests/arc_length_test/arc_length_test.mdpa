@@ -6,10 +6,10 @@ Begin Properties 1
   YOUNG_MODULUS 2.8e10
   POISSON_RATIO 0.1
   DENSITY_SOLID 2.5e3
-  DENSITY_WATER 0.0
+  DENSITY_LIQUID 0.0
   POROSITY 0.0
   BULK_MODULUS_SOLID 1.0e12
-  BULK_MODULUS_FLUID 2.0e9
+  BULK_MODULUS_LIQUID 2.0e9
   PERMEABILITY_XX 4.5e-13
   PERMEABILITY_YY 4.5e-13
   PERMEABILITY_XY 0.0
@@ -18013,7 +18013,7 @@ Begin SubModelPart Solid_Displacement-auto-2
   End SubModelPartConditions
 End SubModelPart
 
-Begin SubModelPart Fluid_Pressure-auto-1
+Begin SubModelPart Liquid_Pressure-auto-1
   Begin SubModelPartTables
   End SubModelPartTables
   Begin SubModelPartNodes

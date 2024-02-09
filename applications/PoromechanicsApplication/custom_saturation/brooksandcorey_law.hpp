@@ -59,9 +59,9 @@ public:
 
 protected:
 
-    void CalculateWaterSaturationDegree(SaturationLawVariables& rVariables, Parameters& rValues) override;
+    void CalculateLiquidSaturationDegree(SaturationLawVariables& rVariables, Parameters& rValues) override;
 
-    void CalculateWaterRelativePermeability(SaturationLawVariables& rVariables, Parameters& rValues) override;
+    void CalculateLiquidRelativePermeability(SaturationLawVariables& rVariables, Parameters& rValues) override;
 
     void CalculateGasRelativePermeability(SaturationLawVariables& rVariables, Parameters& rValues) override;
 

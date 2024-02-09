@@ -8,25 +8,26 @@
 //                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Ignasi de Pouplana
+//                   Danilo Cavalcanti
 //
 
 
 // Application includes
-#include "custom_conditions/U_Pw_normal_flux_interface_condition.hpp"
+#include "custom_conditions/multiphase_flow/U_Pw_Pg_normal_liquid_flux_interface_condition.hpp"
 
 namespace Kratos
 {
 
 template< unsigned int TDim, unsigned int TNumNodes >
-Condition::Pointer UPwNormalFluxInterfaceCondition<TDim,TNumNodes>::Create(IndexType NewId,NodesArrayType const& ThisNodes,PropertiesType::Pointer pProperties) const
+Condition::Pointer UPwPgNormalFluxInterfaceCondition<TDim,TNumNodes>::Create(IndexType NewId,NodesArrayType const& ThisNodes,PropertiesType::Pointer pProperties) const
 {
-    return Condition::Pointer(new UPwNormalFluxInterfaceCondition(NewId, this->GetGeometry().Create(ThisNodes), pProperties));
+    return Condition::Pointer(new UPwPgNormalFluxInterfaceCondition(NewId, this->GetGeometry().Create(ThisNodes), pProperties));
 }
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 template< unsigned int TDim, unsigned int TNumNodes >
-void UPwNormalFluxInterfaceCondition<TDim,TNumNodes>::CalculateRHS( VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo )
+void UPwPgNormalFluxInterfaceCondition<TDim,TNumNodes>::CalculateRHS( VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo )
 {        
     //Previous definitions
     const GeometryType& Geom = this->GetGeometry();
@@ -47,8 +48,7 @@ void UPwNormalFluxInterfaceCondition<TDim,TNumNodes>::CalculateRHS( VectorType& 
     array_1d<double,TNumNodes> NormalFluxVector;
     for(unsigned int i=0; i<TNumNodes; i++)
     {
-        // Multiplied by -1.0 to indicate that positive value = inlet
-        NormalFluxVector[i] = -1.0*Geom[i].FastGetSolutionStepValue(NORMAL_FLUID_FLUX);
+        NormalFluxVector[i] = Geom[i].FastGetSolutionStepValue(NORMAL_LIQUID_FLUX);
     }
     BoundedMatrix<double,TDim,TDim> RotationMatrix;
     const double& InitialJointWidth = this->GetProperties()[INITIAL_JOINT_WIDTH];
@@ -88,13 +88,13 @@ void UPwNormalFluxInterfaceCondition<TDim,TNumNodes>::CalculateRHS( VectorType& 
                 
         //Contributions to the right hand side
         noalias(PVector) = -NormalFlux * Np * IntegrationCoefficient;
-        PoroElementUtilities::AssemblePBlockVector< array_1d<double,TNumNodes> >(rRightHandSideVector,PVector,TDim,TNumNodes);
+        PoroElementUtilities::AssemblePwBlockVector< array_1d<double,TNumNodes> >(rRightHandSideVector,PVector,TDim,TNumNodes);
     }
 }
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-template class UPwNormalFluxInterfaceCondition<2,2>;
-template class UPwNormalFluxInterfaceCondition<3,4>;
+template class UPwPgNormalFluxInterfaceCondition<2,2>;
+template class UPwPgNormalFluxInterfaceCondition<3,4>;
 
 } // Namespace Kratos.

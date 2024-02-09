@@ -52,7 +52,7 @@
             "solver_type":   "LinearSolversApplication.sparse_lu"
         },
         "problem_domain_sub_model_part_list": ["Body_Part-auto-1"],
-        "processes_sub_model_part_list":      ["Solid_Displacement-auto-1","Solid_Displacement-auto-2","Solid_Displacement-auto-3","Fluid_Pressure-auto-1","Face_Load-auto-1","Normal_Fluid_Flux-auto-1"],
+        "processes_sub_model_part_list":      ["Solid_Displacement-auto-1","Solid_Displacement-auto-2","Solid_Displacement-auto-3","Liquid_Pressure-auto-1","Face_Load-auto-1","Normal_Liquid_Flux-auto-1"],
         "body_domain_sub_model_part_list":    ["Body_Part-auto-1"]
     },
     "processes": {
@@ -93,8 +93,8 @@
             "python_module": "apply_scalar_constraint_table_process",
             "kratos_module": "KratosMultiphysics.PoromechanicsApplication",
             "Parameters":    {
-                "model_part_name":      "PorousModelPart.Fluid_Pressure-auto-1",
-                "variable_name":        "WATER_PRESSURE",
+                "model_part_name":      "PorousModelPart.Liquid_Pressure-auto-1",
+                "variable_name":        "LIQUID_PRESSURE",
                 "is_fixed":             true,
                 "value":                0.0,
                 "table":                0,
@@ -118,8 +118,8 @@
             "python_module": "apply_scalar_constraint_table_process",
             "kratos_module": "KratosMultiphysics.PoromechanicsApplication",
             "Parameters":    {
-                "model_part_name": "PorousModelPart.Normal_Fluid_Flux-auto-1",
-                "variable_name":   "NORMAL_FLUID_FLUX",
+                "model_part_name": "PorousModelPart.Normal_Liquid_Flux-auto-1",
+                "variable_name":   "NORMAL_LIQUID_FLUX",
                 "value":           0.0,
                 "table":           0
             }
@@ -128,7 +128,7 @@
             "python_module"   : "from_json_check_result_process",
             "kratos_module"   : "KratosMultiphysics",
             "Parameters"      : {
-                "check_variables"      : ["WATER_PRESSURE"],
+                "check_variables"      : ["LIQUID_PRESSURE"],
                 "input_file_name"      : "element_tests/undrained_soil_column_2D/undrained_soil_column_2D_results.json",
                 "model_part_name"      : "PorousModelPart.Body_Part-auto-1",
                 "time_frequency"       : 0.5
@@ -139,7 +139,7 @@
         "python_module" : "json_output_process",
         "kratos_module" : "KratosMultiphysics",
         "Parameters"    : {
-            "output_variables"     : ["WATER_PRESSURE"],
+            "output_variables"     : ["LIQUID_PRESSURE"],
             "output_file_name"     : "element_tests/undrained_soil_column_2D/undrained_soil_column_2D_results.json",
             "model_part_name"      : "PorousModelPart.Body_Part-auto-1",
             "time_frequency"       : 0.5

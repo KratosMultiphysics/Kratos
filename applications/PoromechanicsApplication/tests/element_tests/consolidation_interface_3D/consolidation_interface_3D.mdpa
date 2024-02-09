@@ -6,10 +6,10 @@ Begin Properties 1
   YOUNG_MODULUS 1.0e6
   POISSON_RATIO 0.2
   DENSITY_SOLID 0.0
-  DENSITY_WATER 1.0e3
+  DENSITY_LIQUID 1.0e3
   POROSITY 0.3
   BULK_MODULUS_SOLID 1.0e12
-  BULK_MODULUS_FLUID 2.0e9
+  BULK_MODULUS_LIQUID 2.0e9
   PERMEABILITY_XX 4.5e-10
   PERMEABILITY_YY 4.5e-10
   PERMEABILITY_ZZ 4.5e-10
@@ -25,10 +25,10 @@ Begin Properties 2
   YOUNG_MODULUS 1.0e6
   POISSON_RATIO 0.2
   DENSITY_SOLID 0.0
-  DENSITY_WATER 1.0e3
+  DENSITY_LIQUID 1.0e3
   POROSITY 0.3
   BULK_MODULUS_SOLID 1.0e12
-  BULK_MODULUS_FLUID 2.0e9
+  BULK_MODULUS_LIQUID 2.0e9
   TRANSVERSAL_PERMEABILITY_COEFFICIENT 1.0e-10
   DYNAMIC_VISCOSITY 1.0e-3
   DAMAGE_THRESHOLD 0.04
@@ -49752,7 +49752,7 @@ Begin SubModelPart Solid_Displacement-auto-2
   End SubModelPartConditions
 End SubModelPart
 
-Begin SubModelPart Fluid_Pressure-auto-1
+Begin SubModelPart Liquid_Pressure-auto-1
   Begin SubModelPartTables
   End SubModelPartTables
   Begin SubModelPartNodes
@@ -50225,7 +50225,7 @@ Begin SubModelPart Fluid_Pressure-auto-1
   End SubModelPartConditions
 End SubModelPart
 
-Begin SubModelPart Fluid_Pressure-auto-2
+Begin SubModelPart Liquid_Pressure-auto-2
   Begin SubModelPartTables
   End SubModelPartTables
   Begin SubModelPartNodes
@@ -60811,7 +60811,7 @@ Begin SubModelPart Face_Load-auto-1
   End SubModelPartConditions
 End SubModelPart
 
-Begin SubModelPart Normal_Fluid_Flux-auto-1
+Begin SubModelPart Normal_Liquid_Flux-auto-1
   Begin SubModelPartTables
   End SubModelPartTables
   Begin SubModelPartNodes
