@@ -23,7 +23,7 @@
 
 namespace Kratos
 {
-///@addtogroup ApplicationNameApplication
+///@addtogroup Core
 ///@{
 
 ///@name Kratos Classes
@@ -108,13 +108,13 @@ public:
     ///@name Access
     ///@{
 
-    /// Returns the global pointer to the object
-    TPointerType Get() {
+    /// Returns the global pointer to the object (reference as GlobalPointer is a class and therefore we are copying values)
+    TPointerType& Get() {
         return mpObject;
     }
 
-    /// Returns a const global pointer to the object
-    TPointerType const Get() const {
+    /// Returns a const global pointer to the object (reference as GlobalPointer is a class and therefore we are copying values)
+    const TPointerType& Get() const {
         return mpObject;
     }
 

@@ -91,11 +91,7 @@ class AlgorithmSteepestDescent(Algorithm):
     @time_decorator()
     def ComputeControlUpdate(self, alpha):
         search_direction = self.algorithm_data.GetBufferedData()["search_direction"]
-        if isinstance(alpha, float):
-            update = search_direction * alpha
-        elif isinstance(alpha, KratosOA.CollectiveExpression):
-            update = search_direction
-            KratosOA.ExpressionUtils.Scale(update, alpha)
+        update = KratosOA.ExpressionUtils.Scale(search_direction, alpha)
         self.algorithm_data.GetBufferedData()["control_field_update"] = update.Clone()
 
     @time_decorator()

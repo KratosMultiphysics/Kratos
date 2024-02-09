@@ -1,0 +1,11 @@
+{
+    "custom_entries": [
+        "Overview.md",
+        "Expression_Types.md",
+        "Expression_Arithmetics.md",
+        "Expression_Interface.md",
+        "Working_with_Numpy.md",
+        "Visualization.md",
+        "Notes.md"
+    ]
+}

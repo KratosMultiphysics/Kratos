@@ -80,8 +80,8 @@ public:
 
     ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    Element::Pointer Create(IndexType NewId,
-                            NodesArrayType const& ThisNodes,
+    Element::Pointer Create(IndexType               NewId,
+                            NodesArrayType const&   ThisNodes,
                             PropertiesType::Pointer pProperties) const override;
 
     Element::Pointer Create(IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties) const override;
@@ -113,11 +113,11 @@ protected:
     /// Member Variables
 
     ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-    void CalculateAll(MatrixType& rLeftHandSideMatrix,
-                      VectorType& rRightHandSideVector,
+    void CalculateAll(MatrixType&        rLeftHandSideMatrix,
+                      VectorType&        rRightHandSideVector,
                       const ProcessInfo& CurrentProcessInfo,
-                      const bool CalculateStiffnessMatrixFlag,
-                      const bool CalculateResidualVectorFlag) override;
+                      const bool         CalculateStiffnessMatrixFlag,
+                      const bool         CalculateResidualVectorFlag) override;
 
     void CalculateAndAddLHS(MatrixType& rLeftHandSideMatrix, ElementVariables& rVariables) override;
 
