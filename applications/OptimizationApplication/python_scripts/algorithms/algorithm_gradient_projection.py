@@ -82,23 +82,25 @@ class AlgorithmGradientProjection(Algorithm):
         return 2
 
     def Check(self):
-        pass
+        self.master_control.Check()
+        self.__objective.Check()
+        CallOnAll(self.__constraints_list, StandardizedConstraint.Check)
 
     @time_decorator()
     def Initialize(self):
         self.converged = False
         self.__obj_val = None
-        self.__objective.Initialize()
-        self.__objective.Check()
-        CallOnAll(self.__constraints_list, StandardizedConstraint.Initialize)
-        CallOnAll(self.__constraints_list, StandardizedConstraint.Check)
         self.master_control.Initialize()
+        self.__objective.Initialize()
+        CallOnAll(self.__constraints_list, StandardizedConstraint.Initialize)
         self.__control_field = self.master_control.GetControlField()
         self.algorithm_data = ComponentDataView("algorithm", self._optimization_problem)
 
     @time_decorator()
     def Finalize(self):
-        pass
+        self.master_control.Finalize()
+        self.__objective.Finalize()
+        CallOnAll(self.__constraints_list, StandardizedConstraint.Finalize)
 
     @time_decorator()
     def ComputeSearchDirection(self, obj_grad: KratosOA.CollectiveExpression, constr_grad: 'list[KratosOA.CollectiveExpression]') -> KratosOA.CollectiveExpression:
@@ -159,7 +161,8 @@ class AlgorithmGradientProjection(Algorithm):
 
     @time_decorator()
     def ComputeControlUpdate(self, alpha: float) -> KratosOA.CollectiveExpression:
-        update = self.algorithm_data.GetBufferedData()["search_direction"] * alpha + self.algorithm_data.GetBufferedData()["correction"]
+        search_direction = self.algorithm_data.GetBufferedData()["search_direction"]
+        update = KratosOA.ExpressionUtils.Scale(search_direction, alpha) + self.algorithm_data.GetBufferedData()["correction"]
         self.algorithm_data.GetBufferedData()["control_field_update"] = update.Clone()
 
     @time_decorator()

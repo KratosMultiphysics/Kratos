@@ -1,0 +1,47 @@
+@startuml
+'https://plantuml.com/class-diagram
+
+abstract class Scheme
+class GeoMechanicsTimeIntegrationScheme
+{
+    - std::vector<FirstOrderScalarVariable> firstOrderScalarVariables;
+    - std::vector<SecondOrderVectorVariable> secondOrderVectorVariables;
+
+    virtual void UpdateVariablesDerivatives() = 0;
+    virtual void SetTimeFactors();
+}
+Scheme <|-- GeoMechanicsTimeIntegrationScheme
+
+class BackwardEulerScheme
+{
+    void UpdateVariablesDerivatives() override;
+    void SetTimeFactors() override;
+}
+class BackwardEulerQuasistaticPwScheme
+class BackwardEulerQuasistaticUPwScheme
+class BackwardEulerQuasistaticTScheme
+
+GeoMechanicsTimeIntegrationScheme <|-- BackwardEulerScheme
+BackwardEulerScheme <|-- BackwardEulerQuasistaticPwScheme
+BackwardEulerScheme <|-- BackwardEulerQuasistaticUPwScheme
+BackwardEulerScheme <|-- BackwardEulerQuasistaticTScheme
+
+class GeneralizedNewmarkScheme
+{
+    void UpdateVariablesDerivatives() override;
+    void SetTimeFactors() override;
+}
+class NewmarkQuasistaticPwScheme
+class GeneralizedNewmarkTScheme
+class NewmarkQuasistaticUPwScheme
+class NewmarkDynamicUPwScheme
+class NewmarkQuasistaticDampedUPwScheme
+
+GeoMechanicsTimeIntegrationScheme <|-- GeneralizedNewmarkScheme
+GeneralizedNewmarkScheme <|-- NewmarkQuasistaticPwScheme
+GeneralizedNewmarkScheme <|-- GeneralizedNewmarkTScheme
+GeneralizedNewmarkScheme <|-- NewmarkQuasistaticUPwScheme
+NewmarkQuasistaticUPwScheme <|-- NewmarkDynamicUPwScheme
+NewmarkQuasistaticUPwScheme <|-- NewmarkQuasistaticDampedUPwScheme
+
+@enduml

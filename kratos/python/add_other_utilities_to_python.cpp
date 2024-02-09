@@ -69,6 +69,7 @@
 #include "utilities/string_utilities.h"
 #include "utilities/model_part_operation_utilities.h"
 #include "utilities/fixed_interval_recurring_event_utility.h"
+#include "utilities/cpp_tests_utilities.h"
 
 namespace Kratos::Python {
 
@@ -547,6 +548,7 @@ void AddOtherUtilitiesToPython(pybind11::module &m)
         .def("UpdateSensitivities", &SensitivityBuilder::UpdateSensitivities)
         .def("FinalizeSolutionStep", &SensitivityBuilder::FinalizeSolutionStep)
         .def("Finalize", &SensitivityBuilder::Finalize)
+        .def("SetResponseFunction", &SensitivityBuilder::SetResponseFunction, py::arg("new_response_function"))
         ;
 
     //Sensitivity utilities
@@ -833,7 +835,11 @@ void AddOtherUtilitiesToPython(pybind11::module &m)
         .def("IsEventExpected", &FixedIntervalRecurringEventUtility<double>::IsEventExpected, py::arg("current_value"))
         .def("ScheduleNextEvent", &FixedIntervalRecurringEventUtility<double>::ScheduleNextEvent, py::arg("current_value"))
         .def("__str__", &FixedIntervalRecurringEventUtility<double>::Info)
-    ;    
+    ;
+
+    m.def_submodule("TestsUtilities", "Auxiliary utilities for tests.")
+        .def("CreateSphereTriangularMesh", &CppTestsUtilities::CreateSphereTriangularMesh)
+    ;
 
 }
 
