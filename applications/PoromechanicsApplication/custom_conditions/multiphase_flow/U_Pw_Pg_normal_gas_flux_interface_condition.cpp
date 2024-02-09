@@ -45,10 +45,10 @@ void UPwPgNormalGasFluxInterfaceCondition<TDim,TNumNodes>::CalculateRHS( VectorT
     //Condition variables
     array_1d<double,TNumNodes*TDim> DisplacementVector;
     PoroConditionUtilities::GetNodalVariableVector(DisplacementVector,Geom,DISPLACEMENT);
-    array_1d<double,TNumNodes> NormalFluxVector;
+    array_1d<double,TNumNodes> NormalLiquidFluxVector;
     for(unsigned int i=0; i<TNumNodes; i++)
     {
-        NormalFluxVector[i] = Geom[i].FastGetSolutionStepValue(NORMAL_GAS_FLUX);
+        NormalLiquidFluxVector[i] = Geom[i].FastGetSolutionStepValue(NORMAL_GAS_FLUX);
     }
     BoundedMatrix<double,TDim,TDim> RotationMatrix;
     const double& InitialJointWidth = this->GetProperties()[INITIAL_JOINT_WIDTH];
@@ -60,17 +60,17 @@ void UPwPgNormalGasFluxInterfaceCondition<TDim,TNumNodes>::CalculateRHS( VectorT
     array_1d<double,TDim> RelDispVector;
     array_1d<double,TNumNodes> Np;
     array_1d<double,TNumNodes> PVector;
-    double NormalFlux;
+    double NormalLiquidFlux;
     double IntegrationCoefficient;
     
     //Loop over integration points
     for(unsigned int GPoint = 0; GPoint < NumGPoints; GPoint++)
     {
         //Compute normal flux
-        NormalFlux = 0.0;
+        NormalLiquidFlux = 0.0;
         for(unsigned int i=0; i<TNumNodes; i++)
         {
-            NormalFlux += NContainer(GPoint,i)*NormalFluxVector[i];
+            NormalLiquidFlux += NContainer(GPoint,i)*NormalLiquidFluxVector[i];
         }
         
         //Obtain Np
@@ -87,7 +87,7 @@ void UPwPgNormalGasFluxInterfaceCondition<TDim,TNumNodes>::CalculateRHS( VectorT
         this->CalculateIntegrationCoefficient(IntegrationCoefficient, JContainer[GPoint], integration_points[GPoint].Weight(), JointWidth );
                 
         //Contributions to the right hand side
-        noalias(PVector) = -NormalFlux * Np * IntegrationCoefficient;
+        noalias(PVector) = -NormalLiquidFlux * Np * IntegrationCoefficient;
         PoroElementUtilities::AssemblePgBlockVector< array_1d<double,TNumNodes> >(rRightHandSideVector,PVector,TDim,TNumNodes);
     }
 }

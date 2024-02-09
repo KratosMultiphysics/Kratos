@@ -348,6 +348,7 @@ void UPwPgSmallStrainElement<2,3>::ExtrapolateGPValues(const Matrix& GradPressur
         noalias(NodalStressVector[i]) = row(AuxNodalStress,i)*Area;
         noalias(NodalStressTensor[i]) = MathUtils<double>::StressVectorToTensor(NodalStressVector[i]);
 
+        // TODO
         rGeom[i].SetLock();
         array_1d<double,3>& r_nodal_grad_pressure = rGeom[i].FastGetSolutionStepValue(NODAL_LIQUID_PRESSURE_GRADIENT);
         for(unsigned int j = 0; j < 2; j++) //TDim
@@ -426,6 +427,7 @@ void UPwPgSmallStrainElement<2,4>::ExtrapolateGPValues(const Matrix& GradPressur
         noalias(NodalStressVector[i]) = row(AuxNodalStress,i)*Area;
         noalias(NodalStressTensor[i]) = MathUtils<double>::StressVectorToTensor(NodalStressVector[i]);
 
+        // TODO
         rGeom[i].SetLock();
         array_1d<double,3>& r_nodal_grad_pressure = rGeom[i].FastGetSolutionStepValue(NODAL_LIQUID_PRESSURE_GRADIENT);
         for(unsigned int j = 0; j < 2; j++) //TDim
@@ -493,6 +495,7 @@ void UPwPgSmallStrainElement<3,4>::ExtrapolateGPValues(const Matrix& GradPressur
         noalias(NodalStressVector[i]) = row(AuxNodalStress,i)*Area;
         noalias(NodalStressTensor[i]) = MathUtils<double>::StressVectorToTensor(NodalStressVector[i]);
 
+        // TODO
         rGeom[i].SetLock();
         noalias(rGeom[i].FastGetSolutionStepValue(NODAL_LIQUID_PRESSURE_GRADIENT)) += NodalGradPressure[i];
         noalias(rGeom[i].FastGetSolutionStepValue(NODAL_EFFECTIVE_STRESS_TENSOR)) += NodalStressTensor[i];
@@ -551,6 +554,7 @@ void UPwPgSmallStrainElement<3,8>::ExtrapolateGPValues(const Matrix& GradPressur
         noalias(NodalStressVector[i]) = row(AuxNodalStress,i)*Area;
         noalias(NodalStressTensor[i]) = MathUtils<double>::StressVectorToTensor(NodalStressVector[i]);
 
+        // TODO
         rGeom[i].SetLock();
         noalias(rGeom[i].FastGetSolutionStepValue(NODAL_LIQUID_PRESSURE_GRADIENT)) += NodalGradPressure[i];
         noalias(rGeom[i].FastGetSolutionStepValue(NODAL_EFFECTIVE_STRESS_TENSOR)) += NodalStressTensor[i];

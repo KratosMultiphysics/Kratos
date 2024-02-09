@@ -27,12 +27,12 @@ namespace Kratos
 {
 
 template< unsigned int TDim, unsigned int TNumNodes >
-class KRATOS_API(POROMECHANICS_APPLICATION) UPwPgNormalFluxInterfaceCondition : public UPwPgFaceLoadInterfaceCondition<TDim,TNumNodes>
+class KRATOS_API(POROMECHANICS_APPLICATION) UPwPgNormalLiquidFluxInterfaceCondition : public UPwPgFaceLoadInterfaceCondition<TDim,TNumNodes>
 {
 
 public:
 
-    KRATOS_CLASS_POINTER_DEFINITION( UPwPgNormalFluxInterfaceCondition );
+    KRATOS_CLASS_POINTER_DEFINITION( UPwPgNormalLiquidFluxInterfaceCondition );
     
     typedef std::size_t IndexType;
 	typedef Properties PropertiesType;
@@ -46,16 +46,16 @@ public:
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     // Default constructor
-    UPwPgNormalFluxInterfaceCondition() : UPwPgFaceLoadInterfaceCondition<TDim,TNumNodes>() {}
+    UPwPgNormalLiquidFluxInterfaceCondition() : UPwPgFaceLoadInterfaceCondition<TDim,TNumNodes>() {}
     
     // Constructor 1
-    UPwPgNormalFluxInterfaceCondition( IndexType NewId, GeometryType::Pointer pGeometry ) : UPwPgFaceLoadInterfaceCondition<TDim,TNumNodes>(NewId, pGeometry) {}
+    UPwPgNormalLiquidFluxInterfaceCondition( IndexType NewId, GeometryType::Pointer pGeometry ) : UPwPgFaceLoadInterfaceCondition<TDim,TNumNodes>(NewId, pGeometry) {}
     
     // Constructor 2
-    UPwPgNormalFluxInterfaceCondition( IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties ) : UPwPgFaceLoadInterfaceCondition<TDim,TNumNodes>(NewId, pGeometry, pProperties) {}
+    UPwPgNormalLiquidFluxInterfaceCondition( IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties ) : UPwPgFaceLoadInterfaceCondition<TDim,TNumNodes>(NewId, pGeometry, pProperties) {}
 
     // Destructor
-    ~UPwPgNormalFluxInterfaceCondition() override {}
+    ~UPwPgNormalLiquidFluxInterfaceCondition() override {}
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -93,7 +93,7 @@ private:
         KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, Condition )
     }
     
-}; // class UPwPgNormalFluxInterfaceCondition.
+}; // class UPwPgNormalLiquidFluxInterfaceCondition.
 
 } // namespace Kratos.
 

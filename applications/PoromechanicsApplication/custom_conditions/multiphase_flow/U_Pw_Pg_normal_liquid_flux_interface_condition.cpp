@@ -19,15 +19,15 @@ namespace Kratos
 {
 
 template< unsigned int TDim, unsigned int TNumNodes >
-Condition::Pointer UPwPgNormalFluxInterfaceCondition<TDim,TNumNodes>::Create(IndexType NewId,NodesArrayType const& ThisNodes,PropertiesType::Pointer pProperties) const
+Condition::Pointer UPwPgNormalLiquidFluxInterfaceCondition<TDim,TNumNodes>::Create(IndexType NewId,NodesArrayType const& ThisNodes,PropertiesType::Pointer pProperties) const
 {
-    return Condition::Pointer(new UPwPgNormalFluxInterfaceCondition(NewId, this->GetGeometry().Create(ThisNodes), pProperties));
+    return Condition::Pointer(new UPwPgNormalLiquidFluxInterfaceCondition(NewId, this->GetGeometry().Create(ThisNodes), pProperties));
 }
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 template< unsigned int TDim, unsigned int TNumNodes >
-void UPwPgNormalFluxInterfaceCondition<TDim,TNumNodes>::CalculateRHS( VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo )
+void UPwPgNormalLiquidFluxInterfaceCondition<TDim,TNumNodes>::CalculateRHS( VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo )
 {        
     //Previous definitions
     const GeometryType& Geom = this->GetGeometry();
@@ -45,10 +45,10 @@ void UPwPgNormalFluxInterfaceCondition<TDim,TNumNodes>::CalculateRHS( VectorType
     //Condition variables
     array_1d<double,TNumNodes*TDim> DisplacementVector;
     PoroConditionUtilities::GetNodalVariableVector(DisplacementVector,Geom,DISPLACEMENT);
-    array_1d<double,TNumNodes> NormalFluxVector;
+    array_1d<double,TNumNodes> NormalLiquidFluxVector;
     for(unsigned int i=0; i<TNumNodes; i++)
     {
-        NormalFluxVector[i] = Geom[i].FastGetSolutionStepValue(NORMAL_LIQUID_FLUX);
+        NormalLiquidFluxVector[i] = Geom[i].FastGetSolutionStepValue(NORMAL_LIQUID_FLUX);
     }
     BoundedMatrix<double,TDim,TDim> RotationMatrix;
     const double& InitialJointWidth = this->GetProperties()[INITIAL_JOINT_WIDTH];
@@ -60,17 +60,17 @@ void UPwPgNormalFluxInterfaceCondition<TDim,TNumNodes>::CalculateRHS( VectorType
     array_1d<double,TDim> RelDispVector;
     array_1d<double,TNumNodes> Np;
     array_1d<double,TNumNodes> PVector;
-    double NormalFlux;
+    double NormalLiquidFlux;
     double IntegrationCoefficient;
     
     //Loop over integration points
     for(unsigned int GPoint = 0; GPoint < NumGPoints; GPoint++)
     {
         //Compute normal flux
-        NormalFlux = 0.0;
+        NormalLiquidFlux = 0.0;
         for(unsigned int i=0; i<TNumNodes; i++)
         {
-            NormalFlux += NContainer(GPoint,i)*NormalFluxVector[i];
+            NormalLiquidFlux += NContainer(GPoint,i)*NormalLiquidFluxVector[i];
         }
         
         //Obtain Np
@@ -87,14 +87,14 @@ void UPwPgNormalFluxInterfaceCondition<TDim,TNumNodes>::CalculateRHS( VectorType
         this->CalculateIntegrationCoefficient(IntegrationCoefficient, JContainer[GPoint], integration_points[GPoint].Weight(), JointWidth );
                 
         //Contributions to the right hand side
-        noalias(PVector) = -NormalFlux * Np * IntegrationCoefficient;
+        noalias(PVector) = -NormalLiquidFlux * Np * IntegrationCoefficient;
         PoroElementUtilities::AssemblePwBlockVector< array_1d<double,TNumNodes> >(rRightHandSideVector,PVector,TDim,TNumNodes);
     }
 }
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-template class UPwPgNormalFluxInterfaceCondition<2,2>;
-template class UPwPgNormalFluxInterfaceCondition<3,4>;
+template class UPwPgNormalLiquidFluxInterfaceCondition<2,2>;
+template class UPwPgNormalLiquidFluxInterfaceCondition<3,4>;
 
 } // Namespace Kratos.

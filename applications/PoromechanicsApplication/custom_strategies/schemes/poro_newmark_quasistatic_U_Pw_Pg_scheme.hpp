@@ -329,6 +329,7 @@ public:
                 if(rNodalStress.size1() != 3)
                     rNodalStress.resize(3,3,false);
                 noalias(rNodalStress) = ZeroMatrix(3,3);
+                // TODO
                 array_1d<double,3>& r_nodal_grad_pressure = itNode->FastGetSolutionStepValue(NODAL_LIQUID_PRESSURE_GRADIENT);
                 noalias(r_nodal_grad_pressure) = ZeroVector(3);
                 itNode->FastGetSolutionStepValue(NODAL_DAMAGE_VARIABLE) = 0.0;
@@ -350,6 +351,7 @@ public:
                 {
                     const double InvNodalArea = 1.0/NodalArea;
                     Matrix& rNodalStress = itNode->FastGetSolutionStepValue(NODAL_EFFECTIVE_STRESS_TENSOR);
+                    //TODO
                     array_1d<double,3>& r_nodal_grad_pressure = itNode->FastGetSolutionStepValue(NODAL_LIQUID_PRESSURE_GRADIENT);
                     for(unsigned int i = 0; i<3; i++)
                     {

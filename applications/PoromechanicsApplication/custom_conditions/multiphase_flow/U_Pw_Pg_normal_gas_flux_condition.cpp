@@ -43,21 +43,21 @@ void UPwPgNormalGasFluxCondition<TDim,TNumNodes>::CalculateRHS( VectorType& rRig
     Geom.Jacobian( JContainer, mThisIntegrationMethod );
     
     //Condition variables
-    array_1d<double,TNumNodes> NormalFluxVector;
+    array_1d<double,TNumNodes> NormalLiquidFluxVector;
     for(unsigned int i=0; i<TNumNodes; i++)
     {
-        NormalFluxVector[i] = Geom[i].FastGetSolutionStepValue(NORMAL_GAS_FLUX);
+        NormalLiquidFluxVector[i] = Geom[i].FastGetSolutionStepValue(NORMAL_GAS_FLUX);
     }
-    NormalFluxVariables Variables;
+    NormalLiquidFluxVariables Variables;
     
     //Loop over integration points
     for(unsigned int GPoint = 0; GPoint < NumGPoints; GPoint++)
     {
         //Compute normal flux 
-        Variables.NormalFlux = 0.0;
+        Variables.NormalLiquidFlux = 0.0;
         for(unsigned int i=0; i<TNumNodes; i++)
         {
-            Variables.NormalFlux += NContainer(GPoint,i)*NormalFluxVector[i];
+            Variables.NormalLiquidFlux += NContainer(GPoint,i)*NormalLiquidFluxVector[i];
         }
         
         //Obtain Np
@@ -75,9 +75,9 @@ void UPwPgNormalGasFluxCondition<TDim,TNumNodes>::CalculateRHS( VectorType& rRig
 //----------------------------------------------------------------------------------------
 
 template< unsigned int TDim, unsigned int TNumNodes >
-void UPwPgNormalGasFluxCondition<TDim,TNumNodes>::CalculateAndAddRHS(VectorType& rRightHandSideVector, NormalFluxVariables& rVariables)
+void UPwPgNormalGasFluxCondition<TDim,TNumNodes>::CalculateAndAddRHS(VectorType& rRightHandSideVector, NormalLiquidFluxVariables& rVariables)
 {
-    noalias(rVariables.PVector) = -rVariables.NormalFlux * rVariables.Np * rVariables.IntegrationCoefficient;
+    noalias(rVariables.PVector) = -rVariables.NormalLiquidFlux * rVariables.Np * rVariables.IntegrationCoefficient;
     
     PoroElementUtilities::AssemblePgBlockVector< array_1d<double,TNumNodes> >(rRightHandSideVector,rVariables.PVector,TDim,TNumNodes);
 }

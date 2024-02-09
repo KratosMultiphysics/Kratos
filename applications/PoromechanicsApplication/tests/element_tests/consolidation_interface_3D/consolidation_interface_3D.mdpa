@@ -18556,7 +18556,7 @@ Begin Conditions UPwFaceLoadCondition3D4N
   400  1  6575 6280 6306 6601
 End Conditions
 
-Begin Conditions UPwNormalFluxCondition3D4N
+Begin Conditions UPwNormalLiquidFluxCondition3D4N
   401  1  9695 9699 9702 9701
   402  1  9693 9701 9702 9700
   403  1  9689 9696 9699 9695

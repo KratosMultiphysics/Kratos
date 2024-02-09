@@ -27,12 +27,12 @@ namespace Kratos
 {
 
 template< unsigned int TDim, unsigned int TNumNodes >
-class KRATOS_API(POROMECHANICS_APPLICATION) UPwNormalFluxCondition : public UPwFaceLoadCondition<TDim,TNumNodes>
+class KRATOS_API(POROMECHANICS_APPLICATION) UPwNormalLiquidFluxCondition : public UPwFaceLoadCondition<TDim,TNumNodes>
 {
 
 public:
 
-    KRATOS_CLASS_POINTER_DEFINITION( UPwNormalFluxCondition );
+    KRATOS_CLASS_POINTER_DEFINITION( UPwNormalLiquidFluxCondition );
     
     typedef std::size_t IndexType;
 	typedef Properties PropertiesType;
@@ -46,16 +46,16 @@ public:
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     // Default constructor
-    UPwNormalFluxCondition() : UPwFaceLoadCondition<TDim,TNumNodes>() {}
+    UPwNormalLiquidFluxCondition() : UPwFaceLoadCondition<TDim,TNumNodes>() {}
     
     // Constructor 1
-    UPwNormalFluxCondition( IndexType NewId, GeometryType::Pointer pGeometry ) : UPwFaceLoadCondition<TDim,TNumNodes>(NewId, pGeometry) {}
+    UPwNormalLiquidFluxCondition( IndexType NewId, GeometryType::Pointer pGeometry ) : UPwFaceLoadCondition<TDim,TNumNodes>(NewId, pGeometry) {}
     
     // Constructor 2
-    UPwNormalFluxCondition( IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties ) : UPwFaceLoadCondition<TDim,TNumNodes>(NewId, pGeometry, pProperties) {}
+    UPwNormalLiquidFluxCondition( IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties ) : UPwFaceLoadCondition<TDim,TNumNodes>(NewId, pGeometry, pProperties) {}
 
     // Destructor
-    ~UPwNormalFluxCondition() override {}
+    ~UPwNormalLiquidFluxCondition() override {}
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -65,9 +65,9 @@ public:
 
 protected:   
     
-    struct NormalFluxVariables
+    struct NormalLiquidFluxVariables
     {
-        double NormalFlux;
+        double NormalLiquidFlux;
         double IntegrationCoefficient;
         array_1d<double,TNumNodes> Np;
         array_1d<double,TNumNodes> PVector;
@@ -79,7 +79,7 @@ protected:
                                     
     void CalculateRHS( VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo ) override;
     
-    void CalculateAndAddRHS(VectorType& rRightHandSideVector, NormalFluxVariables& rVariables);
+    void CalculateAndAddRHS(VectorType& rRightHandSideVector, NormalLiquidFluxVariables& rVariables);
     
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -103,7 +103,7 @@ private:
         KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, Condition )
     }
     
-}; // class UPwNormalFluxCondition.
+}; // class UPwNormalLiquidFluxCondition.
 
 } // namespace Kratos.
 

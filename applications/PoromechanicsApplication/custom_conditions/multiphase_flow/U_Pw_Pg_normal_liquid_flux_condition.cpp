@@ -19,15 +19,15 @@ namespace Kratos
 {
 
 template< unsigned int TDim, unsigned int TNumNodes >
-Condition::Pointer UPwPgNormalFluxCondition<TDim,TNumNodes>::Create(IndexType NewId,NodesArrayType const& ThisNodes,PropertiesType::Pointer pProperties) const
+Condition::Pointer UPwPgNormalLiquidFluxCondition<TDim,TNumNodes>::Create(IndexType NewId,NodesArrayType const& ThisNodes,PropertiesType::Pointer pProperties) const
 {
-    return Condition::Pointer(new UPwPgNormalFluxCondition(NewId, this->GetGeometry().Create(ThisNodes), pProperties));
+    return Condition::Pointer(new UPwPgNormalLiquidFluxCondition(NewId, this->GetGeometry().Create(ThisNodes), pProperties));
 }
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 template< unsigned int TDim, unsigned int TNumNodes >
-void UPwPgNormalFluxCondition<TDim,TNumNodes>::CalculateRHS( VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo )
+void UPwPgNormalLiquidFluxCondition<TDim,TNumNodes>::CalculateRHS( VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo )
 {        
     //Previous definitions
     const GeometryType& Geom = this->GetGeometry();
@@ -43,21 +43,21 @@ void UPwPgNormalFluxCondition<TDim,TNumNodes>::CalculateRHS( VectorType& rRightH
     Geom.Jacobian( JContainer, mThisIntegrationMethod );
     
     //Condition variables
-    array_1d<double,TNumNodes> NormalFluxVector;
+    array_1d<double,TNumNodes> NormalLiquidFluxVector;
     for(unsigned int i=0; i<TNumNodes; i++)
     {
-        NormalFluxVector[i] = Geom[i].FastGetSolutionStepValue(NORMAL_LIQUID_FLUX);
+        NormalLiquidFluxVector[i] = Geom[i].FastGetSolutionStepValue(NORMAL_LIQUID_FLUX);
     }
-    NormalFluxVariables Variables;
+    NormalLiquidFluxVariables Variables;
     
     //Loop over integration points
     for(unsigned int GPoint = 0; GPoint < NumGPoints; GPoint++)
     {
         //Compute normal flux 
-        Variables.NormalFlux = 0.0;
+        Variables.NormalLiquidFlux = 0.0;
         for(unsigned int i=0; i<TNumNodes; i++)
         {
-            Variables.NormalFlux += NContainer(GPoint,i)*NormalFluxVector[i];
+            Variables.NormalLiquidFlux += NContainer(GPoint,i)*NormalLiquidFluxVector[i];
         }
         
         //Obtain Np
@@ -75,17 +75,17 @@ void UPwPgNormalFluxCondition<TDim,TNumNodes>::CalculateRHS( VectorType& rRightH
 //----------------------------------------------------------------------------------------
 
 template< unsigned int TDim, unsigned int TNumNodes >
-void UPwPgNormalFluxCondition<TDim,TNumNodes>::CalculateAndAddRHS(VectorType& rRightHandSideVector, NormalFluxVariables& rVariables)
+void UPwPgNormalLiquidFluxCondition<TDim,TNumNodes>::CalculateAndAddRHS(VectorType& rRightHandSideVector, NormalLiquidFluxVariables& rVariables)
 {
-    noalias(rVariables.PVector) = -rVariables.NormalFlux * rVariables.Np * rVariables.IntegrationCoefficient;
+    noalias(rVariables.PVector) = -rVariables.NormalLiquidFlux * rVariables.Np * rVariables.IntegrationCoefficient;
     
     PoroElementUtilities::AssemblePwBlockVector< array_1d<double,TNumNodes> >(rRightHandSideVector,rVariables.PVector,TDim,TNumNodes);
 }
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-template class UPwPgNormalFluxCondition<2,2>;
-template class UPwPgNormalFluxCondition<3,3>;
-template class UPwPgNormalFluxCondition<3,4>;
+template class UPwPgNormalLiquidFluxCondition<2,2>;
+template class UPwPgNormalLiquidFluxCondition<3,3>;
+template class UPwPgNormalLiquidFluxCondition<3,4>;
 
 } // Namespace Kratos.

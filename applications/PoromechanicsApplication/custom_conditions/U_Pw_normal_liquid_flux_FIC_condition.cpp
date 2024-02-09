@@ -18,15 +18,15 @@ namespace Kratos
 {
 
 template< unsigned int TDim, unsigned int TNumNodes >
-Condition::Pointer UPwNormalFluxFICCondition<TDim,TNumNodes>::Create(IndexType NewId,NodesArrayType const& ThisNodes,PropertiesType::Pointer pProperties) const
+Condition::Pointer UPwNormalLiquidFluxFICCondition<TDim,TNumNodes>::Create(IndexType NewId,NodesArrayType const& ThisNodes,PropertiesType::Pointer pProperties) const
 {
-    return Condition::Pointer(new UPwNormalFluxFICCondition(NewId, this->GetGeometry().Create(ThisNodes), pProperties));
+    return Condition::Pointer(new UPwNormalLiquidFluxFICCondition(NewId, this->GetGeometry().Create(ThisNodes), pProperties));
 }
 
 //----------------------------------------------------------------------------------------
 
 template< unsigned int TDim, unsigned int TNumNodes >
-GeometryData::IntegrationMethod UPwNormalFluxFICCondition<TDim,TNumNodes>::GetIntegrationMethod() const
+GeometryData::IntegrationMethod UPwNormalLiquidFluxFICCondition<TDim,TNumNodes>::GetIntegrationMethod() const
 {
     return GeometryData::IntegrationMethod::GI_GAUSS_2;
 }
@@ -34,7 +34,7 @@ GeometryData::IntegrationMethod UPwNormalFluxFICCondition<TDim,TNumNodes>::GetIn
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 template< unsigned int TDim, unsigned int TNumNodes >
-void UPwNormalFluxFICCondition<TDim,TNumNodes>::CalculateAll( MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo )
+void UPwNormalLiquidFluxFICCondition<TDim,TNumNodes>::CalculateAll( MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo )
 {
     //Previous definitions
     const PropertiesType& Prop = this->GetProperties();
@@ -51,9 +51,9 @@ void UPwNormalFluxFICCondition<TDim,TNumNodes>::CalculateAll( MatrixType& rLeftH
     Geom.Jacobian( JContainer, mThisIntegrationMethod );
 
     //Condition variables
-    array_1d<double,TNumNodes> NormalFluxVector;
-    NormalFluxVariables Variables;
-    NormalFluxFICVariables FICVariables;
+    array_1d<double,TNumNodes> NormalLiquidFluxVector;
+    NormalLiquidFluxVariables Variables;
+    NormalLiquidFluxFICVariables FICVariables;
     FICVariables.DtPressureCoefficient = rCurrentProcessInfo[DT_PRESSURE_COEFFICIENT];
     this->CalculateElementLength(FICVariables.ElementLength,Geom);
     const double& BulkModulusSolid = Prop[BULK_MODULUS_SOLID];
@@ -62,7 +62,7 @@ void UPwNormalFluxFICCondition<TDim,TNumNodes>::CalculateAll( MatrixType& rLeftH
     FICVariables.BiotModulusInverse = (BiotCoefficient-Porosity)/BulkModulusSolid + Porosity/Prop[BULK_MODULUS_LIQUID];
     for(unsigned int i=0; i<TNumNodes; i++)
     {
-        NormalFluxVector[i] = Geom[i].FastGetSolutionStepValue(NORMAL_LIQUID_FLUX);
+        NormalLiquidFluxVector[i] = Geom[i].FastGetSolutionStepValue(NORMAL_LIQUID_FLUX);
         FICVariables.DtPressureVector[i] = Geom[i].FastGetSolutionStepValue(DT_LIQUID_PRESSURE);
     }
 
@@ -70,10 +70,10 @@ void UPwNormalFluxFICCondition<TDim,TNumNodes>::CalculateAll( MatrixType& rLeftH
     for(unsigned int GPoint = 0; GPoint < NumGPoints; GPoint++)
     {
         //Compute normal flux
-        Variables.NormalFlux = 0.0;
+        Variables.NormalLiquidFlux = 0.0;
         for(unsigned int i=0; i<TNumNodes; i++)
         {
-            Variables.NormalFlux += NContainer(GPoint,i)*NormalFluxVector[i];
+            Variables.NormalLiquidFlux += NContainer(GPoint,i)*NormalLiquidFluxVector[i];
         }
 
         //Obtain Np
@@ -95,7 +95,7 @@ void UPwNormalFluxFICCondition<TDim,TNumNodes>::CalculateAll( MatrixType& rLeftH
 //----------------------------------------------------------------------------------------
 
 template< unsigned int TDim, unsigned int TNumNodes >
-void UPwNormalFluxFICCondition<TDim,TNumNodes>::CalculateRHS( VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo )
+void UPwNormalLiquidFluxFICCondition<TDim,TNumNodes>::CalculateRHS( VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo )
 {
     //Previous definitions
     const PropertiesType& Prop = this->GetProperties();
@@ -112,9 +112,9 @@ void UPwNormalFluxFICCondition<TDim,TNumNodes>::CalculateRHS( VectorType& rRight
     Geom.Jacobian( JContainer, mThisIntegrationMethod );
 
     //Condition variables
-    array_1d<double,TNumNodes> NormalFluxVector;
-    NormalFluxVariables Variables;
-    NormalFluxFICVariables FICVariables;
+    array_1d<double,TNumNodes> NormalLiquidFluxVector;
+    NormalLiquidFluxVariables Variables;
+    NormalLiquidFluxFICVariables FICVariables;
     FICVariables.DtPressureCoefficient = rCurrentProcessInfo[DT_PRESSURE_COEFFICIENT];
     this->CalculateElementLength(FICVariables.ElementLength,Geom);
     const double& BulkModulusSolid = Prop[BULK_MODULUS_SOLID];
@@ -123,7 +123,7 @@ void UPwNormalFluxFICCondition<TDim,TNumNodes>::CalculateRHS( VectorType& rRight
     FICVariables.BiotModulusInverse = (BiotCoefficient-Porosity)/BulkModulusSolid + Porosity/Prop[BULK_MODULUS_LIQUID];
     for(unsigned int i=0; i<TNumNodes; i++)
     {
-        NormalFluxVector[i] = Geom[i].FastGetSolutionStepValue(NORMAL_LIQUID_FLUX);
+        NormalLiquidFluxVector[i] = Geom[i].FastGetSolutionStepValue(NORMAL_LIQUID_FLUX);
         FICVariables.DtPressureVector[i] = Geom[i].FastGetSolutionStepValue(DT_LIQUID_PRESSURE);
     }
 
@@ -131,10 +131,10 @@ void UPwNormalFluxFICCondition<TDim,TNumNodes>::CalculateRHS( VectorType& rRight
     for(unsigned int GPoint = 0; GPoint < NumGPoints; GPoint++)
     {
         //Compute normal flux
-        Variables.NormalFlux = 0.0;
+        Variables.NormalLiquidFlux = 0.0;
         for(unsigned int i=0; i<TNumNodes; i++)
         {
-            Variables.NormalFlux += NContainer(GPoint,i)*NormalFluxVector[i];
+            Variables.NormalLiquidFlux += NContainer(GPoint,i)*NormalLiquidFluxVector[i];
         }
 
         //Obtain Np
@@ -153,7 +153,7 @@ void UPwNormalFluxFICCondition<TDim,TNumNodes>::CalculateRHS( VectorType& rRight
 //----------------------------------------------------------------------------------------
 
 template<>
-void UPwNormalFluxFICCondition<2,2>::CalculateElementLength(double& rElementLength, const GeometryType& Geom)
+void UPwNormalLiquidFluxFICCondition<2,2>::CalculateElementLength(double& rElementLength, const GeometryType& Geom)
 {
     rElementLength = Geom.Length();
 }
@@ -161,7 +161,7 @@ void UPwNormalFluxFICCondition<2,2>::CalculateElementLength(double& rElementLeng
 //----------------------------------------------------------------------------------------
 
 template<>
-void UPwNormalFluxFICCondition<3,3>::CalculateElementLength(double& rElementLength, const GeometryType& Geom)
+void UPwNormalLiquidFluxFICCondition<3,3>::CalculateElementLength(double& rElementLength, const GeometryType& Geom)
 {
     rElementLength = sqrt(4.0*Geom.Area()/Globals::Pi);
 }
@@ -169,7 +169,7 @@ void UPwNormalFluxFICCondition<3,3>::CalculateElementLength(double& rElementLeng
 //----------------------------------------------------------------------------------------
 
 template<>
-void UPwNormalFluxFICCondition<3,4>::CalculateElementLength(double& rElementLength, const GeometryType& Geom)
+void UPwNormalLiquidFluxFICCondition<3,4>::CalculateElementLength(double& rElementLength, const GeometryType& Geom)
 {
     rElementLength = sqrt(4.0*Geom.Area()/Globals::Pi);
 }
@@ -178,8 +178,8 @@ void UPwNormalFluxFICCondition<3,4>::CalculateElementLength(double& rElementLeng
 //----------------------------------------------------------------------------------------
 
 template< unsigned int TDim, unsigned int TNumNodes >
-void UPwNormalFluxFICCondition<TDim,TNumNodes>::CalculateAndAddLHSStabilization(MatrixType& rLeftHandSideMatrix, NormalFluxVariables& rVariables,
-                                                                                    NormalFluxFICVariables& rFICVariables)
+void UPwNormalLiquidFluxFICCondition<TDim,TNumNodes>::CalculateAndAddLHSStabilization(MatrixType& rLeftHandSideMatrix, NormalLiquidFluxVariables& rVariables,
+                                                                                    NormalLiquidFluxFICVariables& rFICVariables)
 {
     this->CalculateAndAddBoundaryMassMatrix(rLeftHandSideMatrix, rVariables, rFICVariables);
 }
@@ -187,8 +187,8 @@ void UPwNormalFluxFICCondition<TDim,TNumNodes>::CalculateAndAddLHSStabilization(
 //----------------------------------------------------------------------------------------
 
 template< unsigned int TDim, unsigned int TNumNodes >
-void UPwNormalFluxFICCondition<TDim,TNumNodes>::CalculateAndAddBoundaryMassMatrix(MatrixType& rLeftHandSideMatrix, NormalFluxVariables& rVariables,
-                                                                                    NormalFluxFICVariables& rFICVariables)
+void UPwNormalLiquidFluxFICCondition<TDim,TNumNodes>::CalculateAndAddBoundaryMassMatrix(MatrixType& rLeftHandSideMatrix, NormalLiquidFluxVariables& rVariables,
+                                                                                    NormalLiquidFluxFICVariables& rFICVariables)
 {
     noalias(rFICVariables.PMatrix) = -rFICVariables.DtPressureCoefficient*rFICVariables.ElementLength*rFICVariables.BiotModulusInverse/6.0*
                                         outer_prod(rVariables.Np,rVariables.Np)*rVariables.IntegrationCoefficient;
@@ -201,8 +201,8 @@ void UPwNormalFluxFICCondition<TDim,TNumNodes>::CalculateAndAddBoundaryMassMatri
 //----------------------------------------------------------------------------------------
 
 template< unsigned int TDim, unsigned int TNumNodes >
-void UPwNormalFluxFICCondition<TDim,TNumNodes>::CalculateAndAddRHSStabilization(VectorType& rRightHandSideVector, NormalFluxVariables& rVariables,
-                                                                                    NormalFluxFICVariables& rFICVariables)
+void UPwNormalLiquidFluxFICCondition<TDim,TNumNodes>::CalculateAndAddRHSStabilization(VectorType& rRightHandSideVector, NormalLiquidFluxVariables& rVariables,
+                                                                                    NormalLiquidFluxFICVariables& rFICVariables)
 {
     this->CalculateAndAddBoundaryMassFlow(rRightHandSideVector, rVariables, rFICVariables);
 }
@@ -210,8 +210,8 @@ void UPwNormalFluxFICCondition<TDim,TNumNodes>::CalculateAndAddRHSStabilization(
 //----------------------------------------------------------------------------------------
 
 template< unsigned int TDim, unsigned int TNumNodes >
-void UPwNormalFluxFICCondition<TDim,TNumNodes>::CalculateAndAddBoundaryMassFlow(VectorType& rRightHandSideVector, NormalFluxVariables& rVariables,
-                                                                                    NormalFluxFICVariables& rFICVariables)
+void UPwNormalLiquidFluxFICCondition<TDim,TNumNodes>::CalculateAndAddBoundaryMassFlow(VectorType& rRightHandSideVector, NormalLiquidFluxVariables& rVariables,
+                                                                                    NormalLiquidFluxFICVariables& rFICVariables)
 {
     noalias(rFICVariables.PMatrix) = rFICVariables.ElementLength*rFICVariables.BiotModulusInverse/6.0*
                                         outer_prod(rVariables.Np,rVariables.Np)*rVariables.IntegrationCoefficient;
@@ -225,8 +225,8 @@ void UPwNormalFluxFICCondition<TDim,TNumNodes>::CalculateAndAddBoundaryMassFlow(
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-template class UPwNormalFluxFICCondition<2,2>;
-template class UPwNormalFluxFICCondition<3,3>;
-template class UPwNormalFluxFICCondition<3,4>;
+template class UPwNormalLiquidFluxFICCondition<2,2>;
+template class UPwNormalLiquidFluxFICCondition<3,3>;
+template class UPwNormalLiquidFluxFICCondition<3,4>;
 
 } // Namespace Kratos.

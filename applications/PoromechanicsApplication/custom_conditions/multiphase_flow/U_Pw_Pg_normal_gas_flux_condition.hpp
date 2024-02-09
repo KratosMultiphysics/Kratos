@@ -66,9 +66,9 @@ public:
 
 protected:   
     
-    struct NormalFluxVariables
+    struct NormalLiquidFluxVariables
     {
-        double NormalFlux;
+        double NormalLiquidFlux;
         double IntegrationCoefficient;
         array_1d<double,TNumNodes> Np;
         array_1d<double,TNumNodes> PVector;
@@ -80,7 +80,7 @@ protected:
                                     
     void CalculateRHS( VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo ) override;
     
-    void CalculateAndAddRHS(VectorType& rRightHandSideVector, NormalFluxVariables& rVariables);
+    void CalculateAndAddRHS(VectorType& rRightHandSideVector, NormalLiquidFluxVariables& rVariables);
     
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 

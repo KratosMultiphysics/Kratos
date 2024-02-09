@@ -93,9 +93,9 @@ KratosPoromechanicsApplication::KratosPoromechanicsApplication()
     mUPwNormalFaceLoadCondition3D4N( 0, Condition::GeometryType::Pointer( new Quadrilateral3D4 <Node >( Condition::GeometryType::PointsArrayType(4)))),
     mUPwDischargeCondition2D1N( 0, Condition::GeometryType::Pointer( new Point2D<Node >( Condition::GeometryType::PointsArrayType(1)))),
     mUPwDischargeCondition3D1N( 0, Condition::GeometryType::Pointer( new Point3D<Node >( Condition::GeometryType::PointsArrayType(1)))),
-    mUPwNormalFluxCondition2D2N( 0, Condition::GeometryType::Pointer( new Line2D2<Node >( Condition::GeometryType::PointsArrayType(2)))),
-    mUPwNormalFluxCondition3D3N( 0, Condition::GeometryType::Pointer( new Triangle3D3 <Node >( Condition::GeometryType::PointsArrayType(3)))),
-    mUPwNormalFluxCondition3D4N( 0, Condition::GeometryType::Pointer( new Quadrilateral3D4 <Node >( Condition::GeometryType::PointsArrayType(4)))),
+    mUPwNormalLiquidFluxCondition2D2N( 0, Condition::GeometryType::Pointer( new Line2D2<Node >( Condition::GeometryType::PointsArrayType(2)))),
+    mUPwNormalLiquidFluxCondition3D3N( 0, Condition::GeometryType::Pointer( new Triangle3D3 <Node >( Condition::GeometryType::PointsArrayType(3)))),
+    mUPwNormalLiquidFluxCondition3D4N( 0, Condition::GeometryType::Pointer( new Quadrilateral3D4 <Node >( Condition::GeometryType::PointsArrayType(4)))),
 
     mUPwPgFaceLoadCondition2D2N( 0, Condition::GeometryType::Pointer( new Line2D2<Node >( Condition::GeometryType::PointsArrayType(2)))),
     mUPwPgFaceLoadCondition3D3N( 0, Condition::GeometryType::Pointer( new Triangle3D3 <Node >( Condition::GeometryType::PointsArrayType(3)))),
@@ -103,28 +103,28 @@ KratosPoromechanicsApplication::KratosPoromechanicsApplication()
     mUPwPgNormalFaceLoadCondition2D2N( 0, Condition::GeometryType::Pointer( new Line2D2<Node >( Condition::GeometryType::PointsArrayType(2)))),
     mUPwPgNormalFaceLoadCondition3D3N( 0, Condition::GeometryType::Pointer( new Triangle3D3 <Node >( Condition::GeometryType::PointsArrayType(3)))),
     mUPwPgNormalFaceLoadCondition3D4N( 0, Condition::GeometryType::Pointer( new Quadrilateral3D4 <Node >( Condition::GeometryType::PointsArrayType(4)))),
-    mUPwPgNormalFluxCondition2D2N( 0, Condition::GeometryType::Pointer( new Line2D2<Node >( Condition::GeometryType::PointsArrayType(2)))),
-    mUPwPgNormalFluxCondition3D3N( 0, Condition::GeometryType::Pointer( new Triangle3D3 <Node >( Condition::GeometryType::PointsArrayType(3)))),
-    mUPwPgNormalFluxCondition3D4N( 0, Condition::GeometryType::Pointer( new Quadrilateral3D4 <Node >( Condition::GeometryType::PointsArrayType(4)))),
+    mUPwPgNormalLiquidFluxCondition2D2N( 0, Condition::GeometryType::Pointer( new Line2D2<Node >( Condition::GeometryType::PointsArrayType(2)))),
+    mUPwPgNormalLiquidFluxCondition3D3N( 0, Condition::GeometryType::Pointer( new Triangle3D3 <Node >( Condition::GeometryType::PointsArrayType(3)))),
+    mUPwPgNormalLiquidFluxCondition3D4N( 0, Condition::GeometryType::Pointer( new Quadrilateral3D4 <Node >( Condition::GeometryType::PointsArrayType(4)))),
     mUPwPgNormalGasFluxCondition2D2N( 0, Condition::GeometryType::Pointer( new Line2D2<Node >( Condition::GeometryType::PointsArrayType(2)))),
     mUPwPgNormalGasFluxCondition3D3N( 0, Condition::GeometryType::Pointer( new Triangle3D3 <Node >( Condition::GeometryType::PointsArrayType(3)))),
     mUPwPgNormalGasFluxCondition3D4N( 0, Condition::GeometryType::Pointer( new Quadrilateral3D4 <Node >( Condition::GeometryType::PointsArrayType(4)))),
 
     mUPwFaceLoadInterfaceCondition2D2N( 0, Condition::GeometryType::Pointer( new Line2D2<Node >( Condition::GeometryType::PointsArrayType(2)))),
     mUPwFaceLoadInterfaceCondition3D4N( 0, Condition::GeometryType::Pointer( new QuadrilateralInterface3D4 <Node >( Condition::GeometryType::PointsArrayType(4)))),
-    mUPwNormalFluxInterfaceCondition2D2N( 0, Condition::GeometryType::Pointer( new Line2D2<Node >( Condition::GeometryType::PointsArrayType(2)))),
-    mUPwNormalFluxInterfaceCondition3D4N( 0, Condition::GeometryType::Pointer( new QuadrilateralInterface3D4 <Node >( Condition::GeometryType::PointsArrayType(4)))),
+    mUPwNormalLiquidFluxInterfaceCondition2D2N( 0, Condition::GeometryType::Pointer( new Line2D2<Node >( Condition::GeometryType::PointsArrayType(2)))),
+    mUPwNormalLiquidFluxInterfaceCondition3D4N( 0, Condition::GeometryType::Pointer( new QuadrilateralInterface3D4 <Node >( Condition::GeometryType::PointsArrayType(4)))),
 
     mUPwPgFaceLoadInterfaceCondition2D2N( 0, Condition::GeometryType::Pointer( new Line2D2<Node >( Condition::GeometryType::PointsArrayType(2)))),
     mUPwPgFaceLoadInterfaceCondition3D4N( 0, Condition::GeometryType::Pointer( new QuadrilateralInterface3D4 <Node >( Condition::GeometryType::PointsArrayType(4)))),
-    mUPwPgNormalFluxInterfaceCondition2D2N( 0, Condition::GeometryType::Pointer( new Line2D2<Node >( Condition::GeometryType::PointsArrayType(2)))),
-    mUPwPgNormalFluxInterfaceCondition3D4N( 0, Condition::GeometryType::Pointer( new QuadrilateralInterface3D4 <Node >( Condition::GeometryType::PointsArrayType(4)))),
+    mUPwPgNormalLiquidFluxInterfaceCondition2D2N( 0, Condition::GeometryType::Pointer( new Line2D2<Node >( Condition::GeometryType::PointsArrayType(2)))),
+    mUPwPgNormalLiquidFluxInterfaceCondition3D4N( 0, Condition::GeometryType::Pointer( new QuadrilateralInterface3D4 <Node >( Condition::GeometryType::PointsArrayType(4)))),
     mUPwPgNormalGasFluxInterfaceCondition2D2N( 0, Condition::GeometryType::Pointer( new Line2D2<Node >( Condition::GeometryType::PointsArrayType(2)))),
     mUPwPgNormalGasFluxInterfaceCondition3D4N( 0, Condition::GeometryType::Pointer( new QuadrilateralInterface3D4 <Node >( Condition::GeometryType::PointsArrayType(4)))),
 
-    mUPwNormalFluxFICCondition2D2N( 0, Condition::GeometryType::Pointer( new Line2D2<Node >( Condition::GeometryType::PointsArrayType(2)))),
-    mUPwNormalFluxFICCondition3D3N( 0, Condition::GeometryType::Pointer( new Triangle3D3 <Node >( Condition::GeometryType::PointsArrayType(3)))),
-    mUPwNormalFluxFICCondition3D4N( 0, Condition::GeometryType::Pointer( new Quadrilateral3D4 <Node >( Condition::GeometryType::PointsArrayType(4)))),
+    mUPwNormalLiquidFluxFICCondition2D2N( 0, Condition::GeometryType::Pointer( new Line2D2<Node >( Condition::GeometryType::PointsArrayType(2)))),
+    mUPwNormalLiquidFluxFICCondition3D3N( 0, Condition::GeometryType::Pointer( new Triangle3D3 <Node >( Condition::GeometryType::PointsArrayType(3)))),
+    mUPwNormalLiquidFluxFICCondition3D4N( 0, Condition::GeometryType::Pointer( new Quadrilateral3D4 <Node >( Condition::GeometryType::PointsArrayType(4)))),
 
     mLineLoadDiffOrderCondition2D3N( 0, Condition::GeometryType::Pointer( new Line2D3<Node >( Condition::GeometryType::PointsArrayType(3)))),
     mLineNormalLoadDiffOrderCondition2D3N( 0, Condition::GeometryType::Pointer( new Line2D3<Node >( Condition::GeometryType::PointsArrayType(3)))),
@@ -191,9 +191,9 @@ void KratosPoromechanicsApplication::Register()
     KRATOS_REGISTER_CONDITION( "UpwNormalFaceLoadCondition3D4N", mUPwNormalFaceLoadCondition3D4N )
     KRATOS_REGISTER_CONDITION( "UPwDischargeCondition2D1N", mUPwDischargeCondition2D1N )
     KRATOS_REGISTER_CONDITION( "UPwDischargeCondition3D1N", mUPwDischargeCondition3D1N )
-    KRATOS_REGISTER_CONDITION( "UPwNormalFluxCondition2D2N", mUPwNormalFluxCondition2D2N )
-    KRATOS_REGISTER_CONDITION( "UPwNormalFluxCondition3D3N", mUPwNormalFluxCondition3D3N )
-    KRATOS_REGISTER_CONDITION( "UPwNormalFluxCondition3D4N", mUPwNormalFluxCondition3D4N )
+    KRATOS_REGISTER_CONDITION( "UPwNormalLiquidFluxCondition2D2N", mUPwNormalLiquidFluxCondition2D2N )
+    KRATOS_REGISTER_CONDITION( "UPwNormalLiquidFluxCondition3D3N", mUPwNormalLiquidFluxCondition3D3N )
+    KRATOS_REGISTER_CONDITION( "UPwNormalLiquidFluxCondition3D4N", mUPwNormalLiquidFluxCondition3D4N )
 
     KRATOS_REGISTER_CONDITION( "UPwPgFaceLoadCondition2D2N", mUPwPgFaceLoadCondition2D2N )
     KRATOS_REGISTER_CONDITION( "UPwPgFaceLoadCondition3D3N", mUPwPgFaceLoadCondition3D3N )
@@ -201,28 +201,28 @@ void KratosPoromechanicsApplication::Register()
     KRATOS_REGISTER_CONDITION( "UPwPgNormalFaceLoadCondition2D2N", mUPwPgNormalFaceLoadCondition2D2N )
     KRATOS_REGISTER_CONDITION( "UPwPgNormalFaceLoadCondition3D3N", mUPwPgNormalFaceLoadCondition3D3N )
     KRATOS_REGISTER_CONDITION( "UpwPgNormalFaceLoadCondition3D4N", mUPwPgNormalFaceLoadCondition3D4N )
-    KRATOS_REGISTER_CONDITION( "UPwPgNormalFluxCondition2D2N", mUPwPgNormalFluxCondition2D2N )
-    KRATOS_REGISTER_CONDITION( "UPwPgNormalFluxCondition3D3N", mUPwPgNormalFluxCondition3D3N )
-    KRATOS_REGISTER_CONDITION( "UPwPgNormalFluxCondition3D4N", mUPwPgNormalFluxCondition3D4N )
-    KRATOS_REGISTER_CONDITION( "UPwPgNormalGasFluxCondition2D2N", mUPwPgNormalFluxCondition2D2N )
-    KRATOS_REGISTER_CONDITION( "UPwPgNormalGasFluxCondition3D3N", mUPwPgNormalFluxCondition3D3N )
-    KRATOS_REGISTER_CONDITION( "UPwPgNormalGasFluxCondition3D4N", mUPwPgNormalFluxCondition3D4N )
+    KRATOS_REGISTER_CONDITION( "UPwPgNormalLiquidFluxCondition2D2N", mUPwPgNormalLiquidFluxCondition2D2N )
+    KRATOS_REGISTER_CONDITION( "UPwPgNormalLiquidFluxCondition3D3N", mUPwPgNormalLiquidFluxCondition3D3N )
+    KRATOS_REGISTER_CONDITION( "UPwPgNormalLiquidFluxCondition3D4N", mUPwPgNormalLiquidFluxCondition3D4N )
+    KRATOS_REGISTER_CONDITION( "UPwPgNormalGasFluxCondition2D2N", mUPwPgNormalLiquidFluxCondition2D2N )
+    KRATOS_REGISTER_CONDITION( "UPwPgNormalGasFluxCondition3D3N", mUPwPgNormalLiquidFluxCondition3D3N )
+    KRATOS_REGISTER_CONDITION( "UPwPgNormalGasFluxCondition3D4N", mUPwPgNormalLiquidFluxCondition3D4N )
 
     KRATOS_REGISTER_CONDITION( "UPwFaceLoadInterfaceCondition2D2N", mUPwFaceLoadInterfaceCondition2D2N )
     KRATOS_REGISTER_CONDITION( "UPwFaceLoadInterfaceCondition3D4N", mUPwFaceLoadInterfaceCondition3D4N )
-    KRATOS_REGISTER_CONDITION( "UPwNormalFluxInterfaceCondition2D2N", mUPwNormalFluxInterfaceCondition2D2N )
-    KRATOS_REGISTER_CONDITION( "UPwNormalFluxInterfaceCondition3D4N", mUPwNormalFluxInterfaceCondition3D4N )
+    KRATOS_REGISTER_CONDITION( "UPwNormalLiquidFluxInterfaceCondition2D2N", mUPwNormalLiquidFluxInterfaceCondition2D2N )
+    KRATOS_REGISTER_CONDITION( "UPwNormalLiquidFluxInterfaceCondition3D4N", mUPwNormalLiquidFluxInterfaceCondition3D4N )
 
     KRATOS_REGISTER_CONDITION( "UPwPgFaceLoadInterfaceCondition2D2N", mUPwPgFaceLoadInterfaceCondition2D2N )
     KRATOS_REGISTER_CONDITION( "UPwPgFaceLoadInterfaceCondition3D4N", mUPwPgFaceLoadInterfaceCondition3D4N )
-    KRATOS_REGISTER_CONDITION( "UPwPgNormalFluxInterfaceCondition2D2N", mUPwPgNormalFluxInterfaceCondition2D2N )
-    KRATOS_REGISTER_CONDITION( "UPwPgNormalFluxInterfaceCondition3D4N", mUPwPgNormalFluxInterfaceCondition3D4N )
-    KRATOS_REGISTER_CONDITION( "UPwPgNormalGasFluxInterfaceCondition2D2N", mUPwPgNormalFluxInterfaceCondition2D2N )
-    KRATOS_REGISTER_CONDITION( "UPwPgNormalGasFluxInterfaceCondition3D4N", mUPwPgNormalFluxInterfaceCondition3D4N )
+    KRATOS_REGISTER_CONDITION( "UPwPgNormalLiquidFluxInterfaceCondition2D2N", mUPwPgNormalLiquidFluxInterfaceCondition2D2N )
+    KRATOS_REGISTER_CONDITION( "UPwPgNormalLiquidFluxInterfaceCondition3D4N", mUPwPgNormalLiquidFluxInterfaceCondition3D4N )
+    KRATOS_REGISTER_CONDITION( "UPwPgNormalGasFluxInterfaceCondition2D2N", mUPwPgNormalLiquidFluxInterfaceCondition2D2N )
+    KRATOS_REGISTER_CONDITION( "UPwPgNormalGasFluxInterfaceCondition3D4N", mUPwPgNormalLiquidFluxInterfaceCondition3D4N )
 
-    KRATOS_REGISTER_CONDITION( "UPwNormalFluxFICCondition2D2N", mUPwNormalFluxFICCondition2D2N )
-    KRATOS_REGISTER_CONDITION( "UPwNormalFluxFICCondition3D3N", mUPwNormalFluxFICCondition3D3N )
-    KRATOS_REGISTER_CONDITION( "UPwNormalFluxFICCondition3D4N", mUPwNormalFluxFICCondition3D4N )
+    KRATOS_REGISTER_CONDITION( "UPwNormalLiquidFluxFICCondition2D2N", mUPwNormalLiquidFluxFICCondition2D2N )
+    KRATOS_REGISTER_CONDITION( "UPwNormalLiquidFluxFICCondition3D3N", mUPwNormalLiquidFluxFICCondition3D3N )
+    KRATOS_REGISTER_CONDITION( "UPwNormalLiquidFluxFICCondition3D4N", mUPwNormalLiquidFluxFICCondition3D4N )
 
     KRATOS_REGISTER_CONDITION( "LineLoadDiffOrderCondition2D3N", mLineLoadDiffOrderCondition2D3N )
     KRATOS_REGISTER_CONDITION( "LineNormalLoadDiffOrderCondition2D3N", mLineNormalLoadDiffOrderCondition2D3N )
@@ -364,6 +364,8 @@ void KratosPoromechanicsApplication::Register()
     KRATOS_REGISTER_VARIABLE( NODAL_EFFECTIVE_STRESS_TENSOR )
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( LIQUID_PRESSURE_GRADIENT )
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( NODAL_LIQUID_PRESSURE_GRADIENT )
+    KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( GAS_PRESSURE_GRADIENT )
+    KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( NODAL_GAS_PRESSURE_GRADIENT )
     KRATOS_REGISTER_VARIABLE( NODAL_DAMAGE_VARIABLE )
     KRATOS_REGISTER_VARIABLE( NODAL_JOINT_AREA )
     KRATOS_REGISTER_VARIABLE( NODAL_JOINT_WIDTH )

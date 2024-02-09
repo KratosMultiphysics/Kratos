@@ -26,12 +26,12 @@ namespace Kratos
 {
 
 template< unsigned int TDim, unsigned int TNumNodes >
-class KRATOS_API(POROMECHANICS_APPLICATION) UPwNormalFluxFICCondition : public UPwNormalFluxCondition<TDim,TNumNodes>
+class KRATOS_API(POROMECHANICS_APPLICATION) UPwNormalLiquidFluxFICCondition : public UPwNormalLiquidFluxCondition<TDim,TNumNodes>
 {
 
 public:
 
-    KRATOS_CLASS_POINTER_DEFINITION( UPwNormalFluxFICCondition );
+    KRATOS_CLASS_POINTER_DEFINITION( UPwNormalLiquidFluxFICCondition );
 
     typedef std::size_t IndexType;
 	typedef Properties PropertiesType;
@@ -41,24 +41,24 @@ public:
     typedef Vector VectorType;
     typedef Matrix MatrixType;
     using UPwCondition<TDim,TNumNodes>::mThisIntegrationMethod;
-    typedef typename UPwNormalFluxCondition<TDim,TNumNodes>::NormalFluxVariables NormalFluxVariables;
+    typedef typename UPwNormalLiquidFluxCondition<TDim,TNumNodes>::NormalLiquidFluxVariables NormalLiquidFluxVariables;
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     // Default constructor
-    UPwNormalFluxFICCondition() : UPwNormalFluxCondition<TDim,TNumNodes>() {}
+    UPwNormalLiquidFluxFICCondition() : UPwNormalLiquidFluxCondition<TDim,TNumNodes>() {}
 
     // Constructor 1
-    UPwNormalFluxFICCondition( IndexType NewId, GeometryType::Pointer pGeometry ) : UPwNormalFluxCondition<TDim,TNumNodes>(NewId, pGeometry) {}
+    UPwNormalLiquidFluxFICCondition( IndexType NewId, GeometryType::Pointer pGeometry ) : UPwNormalLiquidFluxCondition<TDim,TNumNodes>(NewId, pGeometry) {}
 
     // Constructor 2
-    UPwNormalFluxFICCondition( IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties ) : UPwNormalFluxCondition<TDim,TNumNodes>(NewId, pGeometry, pProperties)
+    UPwNormalLiquidFluxFICCondition( IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties ) : UPwNormalLiquidFluxCondition<TDim,TNumNodes>(NewId, pGeometry, pProperties)
     {
         mThisIntegrationMethod = this->GetIntegrationMethod();
     }
 
     // Destructor
-    ~UPwNormalFluxFICCondition() override {}
+    ~UPwNormalLiquidFluxFICCondition() override {}
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -70,7 +70,7 @@ public:
 
 protected:
 
-    struct NormalFluxFICVariables
+    struct NormalLiquidFluxFICVariables
     {
         double DtPressureCoefficient;
         double ElementLength;
@@ -91,14 +91,14 @@ protected:
     void CalculateElementLength(double& rElementLength, const GeometryType& Geom);
 
 
-    void CalculateAndAddLHSStabilization(MatrixType& rLeftHandSideMatrix, NormalFluxVariables& rVariables, NormalFluxFICVariables& rFICVariables);
+    void CalculateAndAddLHSStabilization(MatrixType& rLeftHandSideMatrix, NormalLiquidFluxVariables& rVariables, NormalLiquidFluxFICVariables& rFICVariables);
 
-    void CalculateAndAddBoundaryMassMatrix(MatrixType& rLeftHandSideMatrix, NormalFluxVariables& rVariables, NormalFluxFICVariables& rFICVariables);
+    void CalculateAndAddBoundaryMassMatrix(MatrixType& rLeftHandSideMatrix, NormalLiquidFluxVariables& rVariables, NormalLiquidFluxFICVariables& rFICVariables);
 
 
-    void CalculateAndAddRHSStabilization(VectorType& rRightHandSideVector, NormalFluxVariables& rVariables, NormalFluxFICVariables& rFICVariables);
+    void CalculateAndAddRHSStabilization(VectorType& rRightHandSideVector, NormalLiquidFluxVariables& rVariables, NormalLiquidFluxFICVariables& rFICVariables);
 
-    void CalculateAndAddBoundaryMassFlow(VectorType& rRightHandSideVector, NormalFluxVariables& rVariables, NormalFluxFICVariables& rFICVariables);
+    void CalculateAndAddBoundaryMassFlow(VectorType& rRightHandSideVector, NormalLiquidFluxVariables& rVariables, NormalLiquidFluxFICVariables& rFICVariables);
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -122,7 +122,7 @@ private:
         KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, Condition )
     }
 
-}; // class UPwNormalFluxFICCondition.
+}; // class UPwNormalLiquidFluxFICCondition.
 
 } // namespace Kratos.
 

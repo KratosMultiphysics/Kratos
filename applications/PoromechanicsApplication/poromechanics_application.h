@@ -192,9 +192,9 @@ const UPwNormalFaceLoadCondition<3,3> mUPwNormalFaceLoadCondition3D3N;
 const UPwNormalFaceLoadCondition<3,4> mUPwNormalFaceLoadCondition3D4N;
 const UPwDischargeCondition<2,1> mUPwDischargeCondition2D1N;
 const UPwDischargeCondition<3,1> mUPwDischargeCondition3D1N;
-const UPwNormalFluxCondition<2,2> mUPwNormalFluxCondition2D2N;
-const UPwNormalFluxCondition<3,3> mUPwNormalFluxCondition3D3N;
-const UPwNormalFluxCondition<3,4> mUPwNormalFluxCondition3D4N;
+const UPwNormalLiquidFluxCondition<2,2> mUPwNormalLiquidFluxCondition2D2N;
+const UPwNormalLiquidFluxCondition<3,3> mUPwNormalLiquidFluxCondition3D3N;
+const UPwNormalLiquidFluxCondition<3,4> mUPwNormalLiquidFluxCondition3D4N;
 
 const UPwPgFaceLoadCondition<2,2> mUPwPgFaceLoadCondition2D2N;
 const UPwPgFaceLoadCondition<3,3> mUPwPgFaceLoadCondition3D3N;
@@ -202,28 +202,28 @@ const UPwPgFaceLoadCondition<3,4> mUPwPgFaceLoadCondition3D4N;
 const UPwPgNormalFaceLoadCondition<2,2> mUPwPgNormalFaceLoadCondition2D2N;
 const UPwPgNormalFaceLoadCondition<3,3> mUPwPgNormalFaceLoadCondition3D3N;
 const UPwPgNormalFaceLoadCondition<3,4> mUPwPgNormalFaceLoadCondition3D4N;
-const UPwPgNormalFluxCondition<2,2> mUPwPgNormalFluxCondition2D2N;
-const UPwPgNormalFluxCondition<3,3> mUPwPgNormalFluxCondition3D3N;
-const UPwPgNormalFluxCondition<3,4> mUPwPgNormalFluxCondition3D4N;
+const UPwPgNormalLiquidFluxCondition<2,2> mUPwPgNormalLiquidFluxCondition2D2N;
+const UPwPgNormalLiquidFluxCondition<3,3> mUPwPgNormalLiquidFluxCondition3D3N;
+const UPwPgNormalLiquidFluxCondition<3,4> mUPwPgNormalLiquidFluxCondition3D4N;
 const UPwPgNormalGasFluxCondition<2,2> mUPwPgNormalGasFluxCondition2D2N;
 const UPwPgNormalGasFluxCondition<3,3> mUPwPgNormalGasFluxCondition3D3N;
 const UPwPgNormalGasFluxCondition<3,4> mUPwPgNormalGasFluxCondition3D4N;
 
 const UPwFaceLoadInterfaceCondition<2,2> mUPwFaceLoadInterfaceCondition2D2N;
 const UPwFaceLoadInterfaceCondition<3,4> mUPwFaceLoadInterfaceCondition3D4N;
-const UPwNormalFluxInterfaceCondition<2,2> mUPwNormalFluxInterfaceCondition2D2N;
-const UPwNormalFluxInterfaceCondition<3,4> mUPwNormalFluxInterfaceCondition3D4N;
+const UPwNormalLiquidFluxInterfaceCondition<2,2> mUPwNormalLiquidFluxInterfaceCondition2D2N;
+const UPwNormalLiquidFluxInterfaceCondition<3,4> mUPwNormalLiquidFluxInterfaceCondition3D4N;
 
 const UPwPgFaceLoadInterfaceCondition<2,2> mUPwPgFaceLoadInterfaceCondition2D2N;
 const UPwPgFaceLoadInterfaceCondition<3,4> mUPwPgFaceLoadInterfaceCondition3D4N;
-const UPwPgNormalFluxInterfaceCondition<2,2> mUPwPgNormalFluxInterfaceCondition2D2N;
-const UPwPgNormalFluxInterfaceCondition<3,4> mUPwPgNormalFluxInterfaceCondition3D4N;
+const UPwPgNormalLiquidFluxInterfaceCondition<2,2> mUPwPgNormalLiquidFluxInterfaceCondition2D2N;
+const UPwPgNormalLiquidFluxInterfaceCondition<3,4> mUPwPgNormalLiquidFluxInterfaceCondition3D4N;
 const UPwPgNormalGasFluxInterfaceCondition<2,2> mUPwPgNormalGasFluxInterfaceCondition2D2N;
 const UPwPgNormalGasFluxInterfaceCondition<3,4> mUPwPgNormalGasFluxInterfaceCondition3D4N;
 
-const UPwNormalFluxFICCondition<2,2> mUPwNormalFluxFICCondition2D2N;
-const UPwNormalFluxFICCondition<3,3> mUPwNormalFluxFICCondition3D3N;
-const UPwNormalFluxFICCondition<3,4> mUPwNormalFluxFICCondition3D4N;
+const UPwNormalLiquidFluxFICCondition<2,2> mUPwNormalLiquidFluxFICCondition2D2N;
+const UPwNormalLiquidFluxFICCondition<3,3> mUPwNormalLiquidFluxFICCondition3D3N;
+const UPwNormalLiquidFluxFICCondition<3,4> mUPwNormalLiquidFluxFICCondition3D4N;
 
 const LineLoad2DDiffOrderCondition mLineLoadDiffOrderCondition2D3N;
 const LineNormalLoad2DDiffOrderCondition mLineNormalLoadDiffOrderCondition2D3N;
