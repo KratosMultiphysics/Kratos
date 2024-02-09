@@ -68,3 +68,8 @@ class Algorithm(ABC):
         for process_type in process_types:
             CallOnAll(self._optimization_problem.GetListOfProcesses(process_type), *args, **kwargs)
 
+    def _InitializeIteration(self) -> None:
+        self.CallOnAllProcesses(self._optimization_problem.GetAvailableProcessTypes(), Kratos.Process.ExecuteInitializeSolutionStep)
+
+    def _FinalizeIteration(self) -> None:
+        self.CallOnAllProcesses(self._optimization_problem.GetAvailableProcessTypes(), Kratos.Process.ExecuteFinalizeSolutionStep)
