@@ -181,20 +181,22 @@ class AlgorithmGradientProjection(Algorithm):
     @time_decorator()
     def Output(self) -> KratosOA.CollectiveExpression:
         self.algorithm_data.GetBufferedData()["control_field"] = self.__control_field.Clone()
-        self.CallOnAllProcesses(["output_processes"], Kratos.OutputProcess.PrintOutput)
+        for process in self._optimization_problem.GetListOfProcesses("output_processes"):
+            if process.IsOutputStep():
+                process.PrintOutput()
 
     @time_decorator()
     def Solve(self):
-        for_testing = []
         while not self.converged:
             with OptimizationAlgorithmTimeLogger("Gradient Projection",self._optimization_problem.GetStep()):
+                self._InitializeIteration()
+
                 self.__obj_val = self.__objective.CalculateStandardizedValue(self.__control_field)
                 obj_info = self.__objective.GetInfo()
                 self.algorithm_data.GetBufferedData()["std_obj_value"] = obj_info["value"]
                 self.algorithm_data.GetBufferedData()["rel_change[%]"] = obj_info["rel_change [%]"]
                 if "abs_change [%]" in obj_info:
                     self.algorithm_data.GetBufferedData()["abs_change[%]"] = obj_info["abs_change [%]"]
-                    for_testing.append([obj_info["value"], obj_info["rel_change [%]"], obj_info["abs_change [%]"]])
 
                 obj_grad = self.__objective.CalculateStandardizedGradient()
 
@@ -203,18 +205,18 @@ class AlgorithmGradientProjection(Algorithm):
                 for constraint in self.__constraints_list:
                     value = constraint.CalculateStandardizedValue(self.__control_field)
                     self.__constr_value.append(value)
-                    constr_info = constraint.GetInfo()
                     constr_name = constraint.GetResponseName()
-                    self.algorithm_data.GetBufferedData()[f"std_constr_{constr_name}_value"] = constr_info["value"]
+                    self.algorithm_data.GetBufferedData()[f"std_constr_{constr_name}_value"] = value
                     if value >= 0.0:
                         active_constr_grad.append(constraint.CalculateStandardizedGradient())
-                    for_testing.append([constr_info["value"]])
 
                 self.ComputeSearchDirection(obj_grad, active_constr_grad)
 
                 alpha = self.__line_search_method.ComputeStep()
 
                 self.ComputeControlUpdate(alpha)
+
+                self._FinalizeIteration()
 
                 self.Output()
 
