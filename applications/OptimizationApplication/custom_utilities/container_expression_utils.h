@@ -46,6 +46,12 @@ public:
     ///@name Static operations
     ///@{
 
+    template<class TContainerType>
+    static ContainerExpression<TContainerType> Clamp(
+        const ContainerExpression<TContainerType>& rInput,
+        const double LowerValue,
+        const double UpperValue);
+
     /**
      * @brief Calculate max L2 norm of the evaluated expression for each entitiy.
      *

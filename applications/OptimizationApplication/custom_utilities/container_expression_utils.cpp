@@ -21,6 +21,7 @@
 #include "expression/container_data_io.h"
 #include "expression/container_expression.h"
 #include "expression/variable_expression_io.h"
+#include "expression/literal_flat_expression.h"
 #include "includes/define.h"
 #include "includes/model_part.h"
 #include "utilities/atomic_utilities.h"
@@ -154,6 +155,34 @@ void ComputeMatrixExpressionProduct(
     KRATOS_CATCH("");
 }
 } // namespace ContainerVariableDataHolderUtilsHelper
+
+template<class TContainerType>
+ContainerExpression<TContainerType> ContainerExpressionUtils::Clamp(
+    const ContainerExpression<TContainerType>& rInput,
+    const double LowerValue,
+    const double UpperValue)
+{
+    KRATOS_TRY
+
+    const auto& shape = rInput.GetItemShape();
+    const auto number_of_entities = rInput.GetContainer().size();
+    const auto number_of_components = rInput.GetItemComponentCount();
+
+    auto p_expression = LiteralFlatExpression<double>::Create(number_of_entities, shape);
+
+    IndexPartition<IndexType>(number_of_entities).for_each([&rInput, &p_expression, number_of_components, LowerValue, UpperValue](const auto Index) {
+        const auto data_begin_index = number_of_components * Index;
+        for (IndexType i = 0; i < number_of_components; ++i) {
+            *(p_expression->begin() + data_begin_index + i) = std::clamp(rInput.GetExpression().Evaluate(Index, data_begin_index, i), LowerValue, UpperValue);
+        }
+    });
+
+    auto copy = rInput;
+    copy.SetExpression(p_expression);
+    return copy;
+
+    KRATOS_CATCH("");
+}
 
 template<class TContainerType>
 double ContainerExpressionUtils::EntityMaxNormL2(const ContainerExpression<TContainerType>& rContainer)
@@ -554,6 +583,7 @@ void ContainerExpressionUtils::ComputeNodalVariableProductWithEntityMatrix(
 // template instantiations
 #define KRATOS_INSTANTIATE_UTILITY_METHOD_FOR_CONTAINER_TYPE(ContainerType)                                                                                                                                                      \
     template KRATOS_API(OPTIMIZATION_APPLICATION) double ContainerExpressionUtils::EntityMaxNormL2(const ContainerExpression<ContainerType>&);                                                                                                                        \
+    template KRATOS_API(OPTIMIZATION_APPLICATION) ContainerExpression<ContainerType> ContainerExpressionUtils::Clamp(const ContainerExpression<ContainerType>&, const double, const double);                                                                                                                        \
     template KRATOS_API(OPTIMIZATION_APPLICATION) void ContainerExpressionUtils::ProductWithEntityMatrix(ContainerExpression<ContainerType>&, const typename UblasSpace<double, CompressedMatrix, Vector>::MatrixType&, const ContainerExpression<ContainerType>&);   \
     template KRATOS_API(OPTIMIZATION_APPLICATION) void ContainerExpressionUtils::ProductWithEntityMatrix(ContainerExpression<ContainerType>&, const Matrix&, const ContainerExpression<ContainerType>&);
 

@@ -27,45 +27,34 @@ class SimpControl(Control):
         default_settings = Kratos.Parameters("""{
             "controlled_model_part_names": [""],
             "simp_power_fac"  : 3,
-            "youngs_modules"  : [],
-            "densities"       : [],
-            "beta_settings"   : {
-                "initial_value": 25,
-                "max_value"    : 25,
-                "adaptive"     : false,
-                "increase_fac" : 1.5,
-                "update_period": 20
-            },
             "filter_settings": {
                 "type"                      : "explicit",
                 "filter_function_type"      : "linear",
                 "damping_function_type"     : "sigmoidal",
                 "radius"                    : 0.000000000001,
                 "max_nodes_in_filter_radius": 1000,
-                "linear_solver_settings"    : {},
                 "fixed_model_parts"         : []
             }
         }""")
         parameters.RecursivelyValidateAndAssignDefaults(default_settings)
-
-        self.young_modulus = [v for v in parameters["youngs_modules"].GetVector()]
-        self.densities =  [v for v in parameters["densities"].GetVector()]
-        self.simp_power_fac = parameters["simp_power_fac"].GetInt()
-        self.beta = parameters["beta_settings"]["initial_value"].GetDouble()
-        self.beta_adaptive = parameters["beta_settings"]["adaptive"].GetBool()
-        self.beta_update_period = parameters["beta_settings"]["update_period"].GetInt()
-        self.beta_increase_fac = parameters["beta_settings"]["increase_fac"].GetDouble()
-        self.beta_max_value = parameters["beta_settings"]["max_value"].GetDouble()
+        self.simp_power_fac = parameters["simp_power_fac"].GetDouble()
 
         self.controlled_physical_variables = [Kratos.DENSITY, Kratos.YOUNG_MODULUS]
+
+        # filtering settings
+        filter_settings = parameters["filter_settings"]
+        self.filter_type = filter_settings["type"].GetString()
+        self.filter_function_type = filter_settings["filter_function_type"].GetString()
+        self.damping_function_type = filter_settings["damping_function_type"].GetString()
+        self.filter_radius = filter_settings["radius"].GetDouble()
+        self.max_nodes_in_filter_radius = filter_settings["max_nodes_in_filter_radius"].GetInt()
+        self.fixed_model_parts = filter_settings["fixed_model_parts"].GetStringArray()
 
         controlled_model_names_parts = parameters["controlled_model_part_names"].GetStringArray()
         if len(controlled_model_names_parts) == 0:
             raise RuntimeError(f"No model parts are provided for SimpControl. [ control name = \"{self.GetName()}\"]")
         self.model_part_operation = ModelPartOperation(self.model, ModelPartOperation.OperationType.UNION, f"control_{self.GetName()}", controlled_model_names_parts, False)
         self.model_part: 'typing.Optional[Kratos.ModelPart]' = None
-
-        self.x_values = [i for i, _ in enumerate(self.densities)]
 
     def Initialize(self) -> None:
         self.un_buffered_data = ComponentDataView(self, self.optimization_problem).GetUnBufferedData()
@@ -79,12 +68,29 @@ class SimpControl(Control):
             KratosOA.ModelPartUtils.LogModelPartStatus(self.model_part, "element_specific_properties_created")
 
         # calculate phi from existing density
-        self.phi = self.GetEmptyField()
-        KratosOA.PropertiesVariableExpressionIO.Read(self.phi, Kratos.DENSITY)
-        self.phi = KratosOA.ControlUtils.SigmoidalProjectionUtils.ProjectBackward(self.phi, self.x_values, self.densities, self.beta, 1)
+        self.phi = Kratos.Expression.Utils.Collapse(self.GetEmptyField() + 1.0)
+        self.density = 0.0
+        self.young_modulus = 0.0
+        for element in self.model_part.Elements:
+            self.density = element.Properties[Kratos.DENSITY]
+            self.young_modulus = element.Properties[Kratos.YOUNG_MODULUS]
+            break
+
         self.__ApplyDensityAndYoungsModulus()
 
-        self.__current_step_value = -1
+        # create vertex morphing filter
+        if self.fixed_model_parts:
+            fixed_model_part_operation = ModelPartOperation(self.model, ModelPartOperation.OperationType.UNION, f"control_{self.GetName()}", self.fixed_model_parts, False)
+            fixed_model_part = fixed_model_part_operation.GetModelPart()
+            self.filter = KratosOA.ElementExplicitFilter(self.model_part, fixed_model_part, self.filter_function_type, self.damping_function_type, self.max_nodes_in_filter_radius)
+            filter_radius = Kratos.Expression.ElementExpression(self.model_part)
+            Kratos.Expression.LiteralExpressionIO.SetData(filter_radius, self.filter_radius)
+            self.filter.SetFilterRadius(filter_radius)
+        else:
+            self.filter = KratosOA.ElementExplicitFilter(self.model_part, self.filter_function_type, self.max_nodes_in_filter_radius)
+            filter_radius = Kratos.Expression.ElementExpression(self.model_part)
+            Kratos.Expression.LiteralExpressionIO.SetData(filter_radius, self.filter_radius)
+            self.filter.SetFilterRadius(filter_radius)
 
     def Check(self) -> None:
         pass
@@ -116,38 +122,27 @@ class SimpControl(Control):
         # second calculate the young modulus partial sensitivity of the response function
         d_j_d_youngs = physical_gradient_variable_container_expression_map[Kratos.YOUNG_MODULUS]
 
-        # now calculate the total sensitivities of density w.r.t. phi
-        d_density_d_phi = KratosOA.ControlUtils.SigmoidalProjectionUtils.CalculateForwardProjectionGradient(self.phi, self.x_values, self.densities, self.beta, 1)
-
         # now calculate the total sensitivities of young modulus w.r.t. phi
-        d_young_modulus_d_phi = KratosOA.ControlUtils.SigmoidalProjectionUtils.CalculateForwardProjectionGradient(self.phi, self.x_values, self.young_modulus, self.beta, self.simp_power_fac)
+        d_young_modulus_d_phi = Kratos.Expression.Utils.Pow(self.phi, self.simp_power_fac - 1) * self.young_modulus * self.simp_power_fac
 
         # now compute response function total sensitivity w.r.t. phi
-        d_j_d_phi = d_j_d_density * d_density_d_phi + d_j_d_youngs * d_young_modulus_d_phi
-        return d_j_d_phi.Clone()
+        d_j_d_phi = d_j_d_density * self.density + d_j_d_youngs * d_young_modulus_d_phi
+
+        return self.filter.FilterIntegratedField(d_j_d_phi)
 
     def Update(self, control_field: ContainerExpressionTypes) -> bool:
         if not IsSameContainerExpression(control_field, self.GetEmptyField()):
             raise RuntimeError(f"Updates for the required element container not found for control \"{self.GetName()}\". [ required model part name: {self.model_part.FullName()}, given model part name: {control_field.GetModelPart().FullName()} ]")
 
         if Kratos.Expression.Utils.NormL2(self.phi - control_field) > 1e-15:
-            self.phi = control_field.Clone()
+            self.phi = KratosOA.ExpressionUtils.Clamp(self.filter.FilterField(control_field), 0, 1)
             self.__ApplyDensityAndYoungsModulus()
 
-            step = self.optimization_problem.GetStep()
-            # do this only once per step
-            if self.__current_step_value != step and self.beta_adaptive:
-                self.__current_step_value = step
-                if step % self.beta_update_period == 0 and self.beta < self.beta_max_value:
-                    self.beta *= self.beta_increase_fac
-                    if self.beta > self.beta_max_value:
-                        self.beta = self.beta_max_value
-
     def __ApplyDensityAndYoungsModulus(self) -> None:
-        density = KratosOA.ControlUtils.SigmoidalProjectionUtils.ProjectForward(self.phi, self.x_values, self.densities, self.beta, 1)
+        density = self.phi * self.density
         KratosOA.PropertiesVariableExpressionIO.Write(density, Kratos.DENSITY)
         self.un_buffered_data.SetValue("DENSITY", density.Clone(), overwrite=True)
 
-        youngs_modulus = KratosOA.ControlUtils.SigmoidalProjectionUtils.ProjectForward(self.phi, self.x_values, self.young_modulus, self.beta, self.simp_power_fac)
+        youngs_modulus = Kratos.Expression.Utils.Pow(self.phi, self.simp_power_fac) * self.young_modulus
         KratosOA.PropertiesVariableExpressionIO.Write(youngs_modulus, Kratos.YOUNG_MODULUS)
         self.un_buffered_data.SetValue("YOUNG_MODULUS", youngs_modulus.Clone(), overwrite=True)
