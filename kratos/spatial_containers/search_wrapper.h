@@ -1065,11 +1065,8 @@ private:
                     // Calculate the position
                     const IndexType pos = std::distance(values.begin(), it_min_distance);
 
-                    // Retrieve the corresponding index from indexes vector
-                    const IndexType index_to_remove = indexes[pos];
-
                     // Remove the index from the indexes vector
-                    indexes.erase(std::remove(indexes.begin(), indexes.end(), index_to_remove), indexes.end());
+                    indexes.erase(indexes.begin() + pos);
 
                     // Remove all results but the closest one
                     r_partial_result.RemoveResultsFromIndexesList(indexes);
