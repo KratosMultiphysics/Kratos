@@ -18,6 +18,7 @@
 #include "includes/define.h"
 #include "includes/model_part.h"
 #include "includes/data_communicator.h"
+#include "expression/container_expression.h"
 
 // Application includes
 
@@ -69,6 +70,26 @@ public:
     static void CopySolutionStepVariablesList(
         ModelPart& rDestinationModelPart,
         const ModelPart& rOriginModelPart);
+
+    static IndexType Factorial(const IndexType N);
+
+    static IndexType NChooseK(
+        const IndexType N,
+        const IndexType K);
+
+    template<class TContainerType>
+    static ContainerExpression<TContainerType> SmoothClamp(
+        const ContainerExpression<TContainerType>& rInputExpression,
+        const double MinValue,
+        const double MaxValue,
+        const IndexType NumberOfContinuousDerivatives);
+
+    template<class TContainerType>
+    static ContainerExpression<TContainerType> SmoothClampGradient(
+        const ContainerExpression<TContainerType>& rInputExpression,
+        const double MinValue,
+        const double MaxValue,
+        const IndexType NumberOfContinuousDerivatives);
 
     ///@}
 };
