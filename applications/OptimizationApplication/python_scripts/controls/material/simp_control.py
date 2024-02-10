@@ -26,7 +26,9 @@ class SimpControl(Control):
 
         default_settings = Kratos.Parameters("""{
             "controlled_model_part_names": [""],
-            "simp_power_fac"  : 3,
+            "simp_power_fac" : 3,
+            "density"        : 1.0,
+            "young_modulus"  : 1.0,
             "filter_settings": {
                 "type"                      : "explicit",
                 "filter_function_type"      : "linear",
@@ -53,6 +55,9 @@ class SimpControl(Control):
         self.max_nodes_in_filter_radius = filter_settings["max_nodes_in_filter_radius"].GetInt()
         self.fixed_model_parts = filter_settings["fixed_model_parts"].GetStringArray()
 
+        self.density = parameters["density"].GetDouble()
+        self.young_modulus = parameters["young_modulus"].GetDouble()
+
         controlled_model_names_parts = parameters["controlled_model_part_names"].GetStringArray()
         if len(controlled_model_names_parts) == 0:
             raise RuntimeError(f"No model parts are provided for SimpControl. [ control name = \"{self.GetName()}\"]")
@@ -71,14 +76,9 @@ class SimpControl(Control):
             KratosOA.ModelPartUtils.LogModelPartStatus(self.model_part, "element_specific_properties_created")
 
         # calculate phi from existing density
-        self.phi = Kratos.Expression.Utils.Collapse(self.GetEmptyField() + 1.0)
-        self.density = 0.0
-        self.young_modulus = 0.0
-        for element in self.model_part.Elements:
-            self.density = element.Properties[Kratos.DENSITY]
-            self.young_modulus = element.Properties[Kratos.YOUNG_MODULUS]
-            break
-
+        density = Kratos.Expression.ElementExpression(self.model_part)
+        KratosOA.PropertiesVariableExpressionIO.Read(density, Kratos.DENSITY)
+        self.phi = density / self.density
         self.__ApplyDensityAndYoungsModulus()
 
         # create vertex morphing filter
@@ -112,7 +112,7 @@ class SimpControl(Control):
         return field
 
     def GetControlField(self) -> ContainerExpressionTypes:
-        return self.phi
+        return self.phi.Clone()
 
     def MapGradient(self, physical_gradient_variable_container_expression_map: 'dict[SupportedSensitivityFieldVariableTypes, ContainerExpressionTypes]') -> ContainerExpressionTypes:
         keys = physical_gradient_variable_container_expression_map.keys()
@@ -127,11 +127,15 @@ class SimpControl(Control):
         # second calculate the young modulus partial sensitivity of the response function
         d_j_d_youngs = physical_gradient_variable_container_expression_map[Kratos.YOUNG_MODULUS]
 
+        # smooth clamping gradient
+        smooth_clamped_phi = KratosOA.OptimizationUtils.SmoothClamp(self.phi, 0, 1, 2)
+        smooth_clamped_phi_gradient = KratosOA.OptimizationUtils.SmoothClampGradient(self.phi, 0, 1, 2)
+
         # now calculate the total sensitivities of young modulus w.r.t. phi
-        d_young_modulus_d_phi = Kratos.Expression.Utils.Pow(self.phi, self.simp_power_fac - 1) * self.young_modulus * self.simp_power_fac
+        d_young_modulus_d_phi = Kratos.Expression.Utils.Pow(smooth_clamped_phi, self.simp_power_fac - 1) * smooth_clamped_phi_gradient * self.young_modulus * self.simp_power_fac
 
         # now compute response function total sensitivity w.r.t. phi
-        d_j_d_phi = d_j_d_density * self.density + d_j_d_youngs * d_young_modulus_d_phi
+        d_j_d_phi = d_j_d_density * smooth_clamped_phi_gradient * self.density + d_j_d_youngs * d_young_modulus_d_phi
 
         return self.filter.FilterIntegratedField(d_j_d_phi)
 
@@ -140,15 +144,16 @@ class SimpControl(Control):
             raise RuntimeError(f"Updates for the required element container not found for control \"{self.GetName()}\". [ required model part name: {self.model_part.FullName()}, given model part name: {control_field.GetModelPart().FullName()} ]")
 
         if Kratos.Expression.Utils.NormL2(self.phi - control_field) > 1e-15:
-            self.phi = KratosOA.ExpressionUtils.Clamp(self.filter.FilterField(control_field), 0, 1)
+            self.phi = self.filter.FilterField(control_field)
             self.un_buffered_data.SetValue("filtered_phi", self.phi.Clone(), overwrite=True)
             self.__ApplyDensityAndYoungsModulus()
 
     def __ApplyDensityAndYoungsModulus(self) -> None:
-        density = self.phi * self.density
+        smooth_clamped_phi = KratosOA.OptimizationUtils.SmoothClamp(self.phi, 0, 1, 2)
+        density =  smooth_clamped_phi * self.density
         KratosOA.PropertiesVariableExpressionIO.Write(density, Kratos.DENSITY)
         self.un_buffered_data.SetValue("DENSITY", density.Clone(), overwrite=True)
 
-        youngs_modulus = Kratos.Expression.Utils.Pow(self.phi, self.simp_power_fac) * self.young_modulus
+        youngs_modulus = Kratos.Expression.Utils.Pow(smooth_clamped_phi, self.simp_power_fac) * self.young_modulus
         KratosOA.PropertiesVariableExpressionIO.Write(youngs_modulus, Kratos.YOUNG_MODULUS)
         self.un_buffered_data.SetValue("YOUNG_MODULUS", youngs_modulus.Clone(), overwrite=True)
