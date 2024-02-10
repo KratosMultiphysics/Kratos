@@ -189,6 +189,8 @@ def GetDefaultInputParameters():
             "processes" : {},
             "RVEEvalFreq"                      : 1000,
             "RVEWriteFreq"                     : 1000,
+            "RVEConsolidationStopCriterion"    : "time",
+            "LimitConsolidationTime"           : 1,
             "LimitConsolidationStress"         : 100000,
             "LimitConsolidationPorosity"       : 0.15,
             "InnerConsolidationPorosityOffset" : 0.7,

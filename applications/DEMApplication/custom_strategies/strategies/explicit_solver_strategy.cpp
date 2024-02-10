@@ -2780,16 +2780,31 @@ namespace Kratos {
 
     //-----------------------------------------------------------------------------------------------------------------------------------------
     void ExplicitSolverStrategy::RVEStopCompression(void) {
-      ModelPart& r_dem_model_part = GetModelPart();
-      const double limit_stress   = r_dem_model_part.GetProcessInfo()[LIMIT_CONSOLIDATION_STRESS];
-      const double limit_porosity = r_dem_model_part.GetProcessInfo()[LIMIT_CONSOLIDATION_POROSITY];
-      const bool   inner_porosity = r_dem_model_part.GetProcessInfo()[INNER_CONSOLIDATION_POROSITY];
+      if (!mRVE_Compress)
+        return;
 
-      bool check;
-      if (inner_porosity)
-        check = mRVE_Compress && (std::abs(mRVE_EffectStressInner) > limit_stress || mRVE_PorosityInner < limit_porosity);
-      else
-        check = mRVE_Compress && (std::abs(mRVE_EffectStressInner) > limit_stress || mRVE_Porosity < limit_porosity);
+      ModelPart& r_dem_model_part = GetModelPart();
+      ProcessInfo& r_process_info = r_dem_model_part.GetProcessInfo();
+      std::string criterion       = r_process_info[RVE_CONSOLIDATION_STOP_CRITERION];
+      bool check = true;
+
+      if (criterion.compare("time") == 0) {
+        const double limit = r_process_info[LIMIT_CONSOLIDATION_TIME];
+        const double time  = r_process_info[TIME];
+        check = time >= limit;
+      }
+      else if (criterion.compare("stress") == 0) {
+        const double limit = r_process_info[LIMIT_CONSOLIDATION_STRESS];
+        check = std::abs(mRVE_EffectStressInner) >= limit;
+      }
+      else if (criterion.compare("porosity") == 0) {
+        const double limit = r_process_info[LIMIT_CONSOLIDATION_POROSITY];
+        const bool inner_porosity = r_process_info[INNER_CONSOLIDATION_POROSITY];
+        if (inner_porosity)
+          check = mRVE_PorosityInner <= limit;
+        else
+          check = mRVE_Porosity <= limit;
+      }
 
       if (check) {
         mRVE_Compress = false;
