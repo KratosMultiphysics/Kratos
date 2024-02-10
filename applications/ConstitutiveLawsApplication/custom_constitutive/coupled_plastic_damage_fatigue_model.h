@@ -483,16 +483,14 @@ public:
      */
     void CalculateThresholdAndSlope(
         ConstitutiveLaw::Parameters& rValues,
-        PlasticDamageParameters &rPlasticDamageParameters,
-        BoundedVectorType& rBackStress);
+        PlasticDamageParameters &rPlasticDamageParameters);
 
     /**
      * @brief This method computes the plastic flow (dF/dS)
      */
     void CalculateFlowVector(
         ConstitutiveLaw::Parameters& rValues,
-        PlasticDamageParameters &rPlasticDamageParameters,
-        BoundedVectorType& rBackStress);
+        PlasticDamageParameters &rPlasticDamageParameters);
 
     /**
      * @brief This method computes the Plastic Strain increment
@@ -513,16 +511,14 @@ public:
      */
     void CalculatePlasticConsistencyIncrement(
         ConstitutiveLaw::Parameters& rValues,
-        PlasticDamageParameters &rPlasticDamageParameters,
-        BoundedVectorType& rBackStress);
+        PlasticDamageParameters &rPlasticDamageParameters);
 
     /**
      * @brief This method integrates the stress
      */
     void IntegrateStressPlasticDamageMechanics(
         ConstitutiveLaw::Parameters& rValues,
-        PlasticDamageParameters &rPlasticDamageParameters,
-        BoundedVectorType& rBackStress);
+        PlasticDamageParameters &rPlasticDamageParameters);
 
     /**
      * @brief This method computes the constitutive matrix
@@ -612,8 +608,7 @@ public:
      */
     void CalculateAnalyticalTangentTensor(
         ConstitutiveLaw::Parameters& rValues,
-        PlasticDamageParameters &rParam,
-        BoundedVectorType& rBackStress
+        PlasticDamageParameters &rParam
         );
 
     /**
@@ -655,8 +650,7 @@ public:
      */
     double CalculatePlasticDenominator(
         ConstitutiveLaw::Parameters& rValues,
-        PlasticDamageParameters &rParam,
-        BoundedVectorType& rBackStress);
+        PlasticDamageParameters &rParam);
 
     /**
      * @brief This method solves a non-linear
@@ -760,7 +754,6 @@ private:
     double mThreshold          = 0.0;
     double mPlasticDamageProportion          = 0.0;
     BoundedVectorType mPlasticStrain    = ZeroVector(VoigtSize);
-    BoundedVectorType mBackStressVector     = ZeroVector(VoigtSize);
     BoundedVectorType mOldStrain        = ZeroVector(VoigtSize);
     BoundedMatrixType mComplianceMatrix = ZeroMatrix(VoigtSize, VoigtSize);
     BoundedMatrixType mComplianceMatrixCompression = ZeroMatrix(VoigtSize, VoigtSize);

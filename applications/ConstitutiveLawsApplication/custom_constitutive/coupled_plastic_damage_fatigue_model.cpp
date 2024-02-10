@@ -106,23 +106,26 @@ void CoupledPlasticDamageFatigueModel<TYieldSurfaceType>::CalculateMaterialRespo
         noalias(rValues.GetConstitutiveMatrix()) = plastic_damage_parameters.ConstitutiveMatrix;
 
         noalias(plastic_damage_parameters.StressVector) = prod(plastic_damage_parameters.ConstitutiveMatrix, r_strain_vector - plastic_damage_parameters.PlasticStrain);
-        BoundedVectorType stress_vector = plastic_damage_parameters.StressVector;
+
+        // TYieldSurfaceType::CalculateEquivalentStress(plastic_damage_parameters.StressVector, plastic_damage_parameters.StrainVector, plastic_damage_parameters.UniaxialStress, rValues);
+
+        //Updating kpd and the threshold according to the fatigue reduction factor -> this is done following what is done in plasticity where the parameters are updated
+        //even though the nonlinearity is activie. This is necessary because fred is inducing nonlinearities. This should not be necessary for kappa because at this point
+        //there is no plastic strain nor compliance matrix increment -> this should be checked, but these should be 0 at this point of the calculation ALWAYS
+        // CalculatePlasticDissipationIncrement(r_mat_props, plastic_damage_parameters);
+        // CalculateDamageDissipationIncrement(r_mat_props, plastic_damage_parameters);
+        // AddNonLinearDissipation(plastic_damage_parameters);
 
         // updated uniaxial and threshold stress check
-        BoundedVectorType back_stress_vector = mBackStressVector;
-        BoundedVectorType kinematic_stress_vector = stress_vector - back_stress_vector;
-
-        // BoundedVectorType& kinematic_stress_vector = plastic_damage_parameters.StressVector - back_stress_vector;
-        TYieldSurfaceType::CalculateEquivalentStress(kinematic_stress_vector, plastic_damage_parameters.StrainVector, plastic_damage_parameters.UniaxialStress, rValues);
-        CalculateThresholdAndSlope(rValues, plastic_damage_parameters, back_stress_vector);
+        TYieldSurfaceType::CalculateEquivalentStress(plastic_damage_parameters.StressVector, plastic_damage_parameters.StrainVector, plastic_damage_parameters.UniaxialStress, rValues);
+        CalculateThresholdAndSlope(rValues, plastic_damage_parameters);
 
         plastic_damage_parameters.NonLinearIndicator = plastic_damage_parameters.UniaxialStress - plastic_damage_parameters.Threshold;
-
 
         if (plastic_damage_parameters.NonLinearIndicator <= std::abs(tolerance * plastic_damage_parameters.Threshold)) {
             noalias(r_integrated_stress_vector) = plastic_damage_parameters.StressVector;
         } else {
-            IntegrateStressPlasticDamageMechanics(rValues, plastic_damage_parameters, back_stress_vector);
+            IntegrateStressPlasticDamageMechanics(rValues, plastic_damage_parameters);
             noalias(r_integrated_stress_vector) = plastic_damage_parameters.StressVector;
 
             if (r_constitutive_law_options.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR)) {
@@ -176,28 +179,22 @@ void CoupledPlasticDamageFatigueModel<TYieldSurfaceType>::FinalizeMaterialRespon
         }
     noalias(plastic_damage_parameters.StressVector) = prod(plastic_damage_parameters.ConstitutiveMatrix,
         r_strain_vector - plastic_damage_parameters.PlasticStrain);
-    BoundedVectorType stress_vector = plastic_damage_parameters.StressVector;
 
-    BoundedVectorType back_stress_vector = mBackStressVector;
-    BoundedVectorType kinematic_stress_vector = stress_vector - back_stress_vector;
 
-    TYieldSurfaceType::CalculateEquivalentStress(kinematic_stress_vector, plastic_damage_parameters.StrainVector, plastic_damage_parameters.UniaxialStress, rValues);
+    TYieldSurfaceType::CalculateEquivalentStress(plastic_damage_parameters.StressVector, plastic_damage_parameters.StrainVector, plastic_damage_parameters.UniaxialStress, rValues);
     //It is necessary to update the threshold because fred is evolving and it may be the one generating nonlinearities
     //It is not necessary to update kpd value (which is only done for F>0) because although the increment of kd and kp depend on fred, they also depend on the
     //increment of plastic strain and compliance matrix which are zero while fred evolve.
-    CalculateThresholdAndSlope(rValues, plastic_damage_parameters, back_stress_vector);
+    CalculateThresholdAndSlope(rValues, plastic_damage_parameters);
 
     plastic_damage_parameters.NonLinearIndicator = plastic_damage_parameters.UniaxialStress - plastic_damage_parameters.Threshold;
 
-
     if (plastic_damage_parameters.NonLinearIndicator > std::abs(tolerance * plastic_damage_parameters.Threshold)) {
-        IntegrateStressPlasticDamageMechanics(rValues, plastic_damage_parameters, back_stress_vector);
+        IntegrateStressPlasticDamageMechanics(rValues, plastic_damage_parameters);
         UpdateInternalVariables(plastic_damage_parameters);
     }
 
-    mBackStressVector = back_stress_vector;
-
-    //Reference uniaxial stress --> computed with no effect pf the back stress, i.e., with the real stress.
+    //Reference uniaxial stress
     double reference_uniaxial_stress;
     BoundedMatrixType reference_constitutive_matrix = mReferenceConstitutiveMatrix;
     BoundedVectorType reference_plastic_strain = mReferencePlasticStrain;
@@ -262,15 +259,14 @@ double CoupledPlasticDamageFatigueModel<TYieldSurfaceType>::CalculateVolumetricF
 template<class TYieldSurfaceType>
 void CoupledPlasticDamageFatigueModel<TYieldSurfaceType>::CalculateAnalyticalTangentTensor(
     ConstitutiveLaw::Parameters& rValues,
-    PlasticDamageParameters &rPDParameters,
-    BoundedVectorType& rBackStress
+    PlasticDamageParameters &rPDParameters
     )
 {
     const BoundedMatrixType& r_C = rPDParameters.ConstitutiveMatrix;
     const double chi = rPDParameters.PlasticDamageProportion;
     const BoundedVectorType& r_plastic_flow = rPDParameters.PlasticFlow;
     const BoundedVectorType& r_stress = rPDParameters.StressVector;
-    const double denominator = CalculatePlasticDenominator(rValues, rPDParameters, rBackStress);
+    const double denominator = CalculatePlasticDenominator(rValues, rPDParameters);
     const BoundedMatrixType aux_compliance_incr = outer_prod(r_plastic_flow,r_plastic_flow) / inner_prod(r_plastic_flow, r_stress);
     const BoundedVectorType left_vector = (1.0 - chi) * prod(r_C, r_plastic_flow) + chi * prod(Matrix(prod(r_C, aux_compliance_incr)), r_stress);
     const BoundedVectorType right_vector = prod(r_C, r_plastic_flow);
@@ -283,10 +279,8 @@ void CoupledPlasticDamageFatigueModel<TYieldSurfaceType>::CalculateAnalyticalTan
 template<class TYieldSurfaceType>
 double CoupledPlasticDamageFatigueModel<TYieldSurfaceType>::CalculatePlasticDenominator(
     ConstitutiveLaw::Parameters& rValues,
-    PlasticDamageParameters &rParam,
-    BoundedVectorType& rBackStress)
+    PlasticDamageParameters &rParam)
 {
-    const Vector& r_kinematic_parameters = rValues.GetMaterialProperties()[KINEMATIC_PLASTICITY_PARAMETERS];
     double g = CalculateVolumetricFractureEnergy(rValues.GetMaterialProperties(), rParam);
     g *= rParam.FatigueReductionFactor * rParam.FatigueReductionFactor;
     const BoundedVectorType& r_plastic_flow = rParam.PlasticFlow;
@@ -298,12 +292,6 @@ double CoupledPlasticDamageFatigueModel<TYieldSurfaceType>::CalculatePlasticDeno
     // Plasticity terms
     const double A = inner_prod(r_plastic_flow, prod(r_C, r_plastic_flow))*(1.0 - chi);
     const double B = (1.0 - chi) * (1.0 / g) * slope * inner_prod(r_plastic_flow, r_stress);
-    const double E = (1.0 - chi) * 2.0 / 3.0 * r_kinematic_parameters[0] * inner_prod(r_plastic_flow, r_plastic_flow);
-
-    // //Linear
-    // const double F = 0.0;
-    //Armstrong
-    const double F = - (1.0 - chi) * r_kinematic_parameters[1] * inner_prod(r_plastic_flow, rBackStress) * std::sqrt(2.0 / 3.0 * inner_prod(r_plastic_flow, r_plastic_flow));
 
     // Damage terms
     const BoundedMatrixType aux_compliance_incr = outer_prod(r_plastic_flow,r_plastic_flow) / inner_prod(r_plastic_flow, r_stress);
@@ -311,7 +299,7 @@ double CoupledPlasticDamageFatigueModel<TYieldSurfaceType>::CalculatePlasticDeno
     const double C = chi*inner_prod(r_plastic_flow, prod(aux_mat, r_stress));
     const double D = (0.5 * slope * chi / g)*inner_prod(r_stress, prod(aux_compliance_incr, r_stress));
 
-    return A + B + E + F + C + D;
+    return A + B + C + D;
 }
 
 /***********************************************************************************/
@@ -607,8 +595,7 @@ CoupledPlasticDamageFatigueModel<TYieldSurfaceType>::CurveByPointsHardeningImpli
 template<class TYieldSurfaceType>
 void CoupledPlasticDamageFatigueModel<TYieldSurfaceType>::CalculateThresholdAndSlope(
     ConstitutiveLaw::Parameters& rValues,
-    PlasticDamageParameters &rPDParameters,
-    BoundedVectorType& rBackStress
+    PlasticDamageParameters &rPDParameters
     )
 {
     const auto& r_mat_properties = rValues.GetMaterialProperties();
@@ -623,11 +610,9 @@ void CoupledPlasticDamageFatigueModel<TYieldSurfaceType>::CalculateThresholdAndS
     if (chi == 0.0) { // full plastic behaviour
         double uniaxial_plastic_strain = 0.0;
         GenericConstitutiveLawIntegratorPlasticityWithFatigue<TYieldSurfaceType>::
-            CalculateEquivalentPlasticStrain(rPDParameters.StressVector - rBackStress,
+            CalculateEquivalentPlasticStrain(rPDParameters.StressVector,
             rPDParameters.UniaxialStress, rPDParameters.PlasticStrain, 0.0, rValues, uniaxial_plastic_strain);
         double tension_parameter, compression_parameter;
-        //Indicators according to the real stress state, i.e., with no effect of the Back Stress. This is because it is used for the
-        //isotropic degradation which is computed according to the real stress state
         GenericConstitutiveLawIntegratorPlasticityWithFatigue<TYieldSurfaceType>::CalculateIndicatorsFactors(
             rPDParameters.StressVector, tension_parameter,compression_parameter);
 
@@ -833,13 +818,12 @@ double CoupledPlasticDamageFatigueModel<TYieldSurfaceType>::CalculateSlopeFinite
 template<class TYieldSurfaceType>
 void CoupledPlasticDamageFatigueModel<TYieldSurfaceType>::CalculateFlowVector(
     ConstitutiveLaw::Parameters& rValues,
-    PlasticDamageParameters &rPDParameters,
-    BoundedVectorType& rBackStress
+    PlasticDamageParameters &rPDParameters
     )
 {
     BoundedVectorType deviator;
     double J2;
-    const BoundedVectorType& r_stress = rPDParameters.StressVector - rBackStress;
+    const BoundedVectorType& r_stress = rPDParameters.StressVector;
     const double I1 = r_stress[0] + r_stress[1] + r_stress[2];
     ConstitutiveLawUtilities<VoigtSize>::CalculateJ2Invariant(r_stress, I1, deviator, J2);
     TYieldSurfaceType::CalculateYieldSurfaceDerivative(r_stress, deviator, J2, rPDParameters.PlasticFlow, rValues);
@@ -883,11 +867,10 @@ void CoupledPlasticDamageFatigueModel<TYieldSurfaceType>::CalculateComplianceMat
 template<class TYieldSurfaceType>
 void CoupledPlasticDamageFatigueModel<TYieldSurfaceType>::CalculatePlasticConsistencyIncrement(
     ConstitutiveLaw::Parameters& rValues,
-    PlasticDamageParameters &rPDParameters,
-    BoundedVectorType& rBackStress
+    PlasticDamageParameters &rPDParameters
     )
 {
-    const double denominator = CalculatePlasticDenominator(rValues, rPDParameters, rBackStress);
+    const double denominator = CalculatePlasticDenominator(rValues, rPDParameters);
 
     if (std::abs(denominator) > machine_tolerance) {
         rPDParameters.PlasticConsistencyIncrement = (rPDParameters.NonLinearIndicator) / denominator;
@@ -905,18 +888,14 @@ void CoupledPlasticDamageFatigueModel<TYieldSurfaceType>::CalculatePlasticConsis
 template<class TYieldSurfaceType>
 void CoupledPlasticDamageFatigueModel<TYieldSurfaceType>::IntegrateStressPlasticDamageMechanics(
     ConstitutiveLaw::Parameters& rValues,
-    PlasticDamageParameters &rPDParameters,
-    BoundedVectorType& rBackStress
+    PlasticDamageParameters &rPDParameters
     )
 {
     KRATOS_TRY;
     BoundedMatrixType constitutive_matrix_increment;
-    BoundedVectorType kinematic_stress_vector;
-    BoundedVectorType stress_vector;
     noalias(rPDParameters.TangentTensor) = rPDParameters.ConstitutiveMatrix;
     const auto& r_material_properties = rValues.GetMaterialProperties();
     const bool crack_reclosure = (r_material_properties.Has(CRACK_RECLOSING)) ? r_material_properties[CRACK_RECLOSING] : false;
-    const Vector& r_kinematic_parameters = rValues.GetMaterialProperties()[KINEMATIC_PLASTICITY_PARAMETERS];
 
     bool is_converged = false;
     IndexType iteration = 0, max_iter = r_material_properties.Has(MAX_NUMBER_NL_CL_ITERATIONS) ? r_material_properties.GetValue(MAX_NUMBER_NL_CL_ITERATIONS) : 1000;
@@ -924,26 +903,23 @@ void CoupledPlasticDamageFatigueModel<TYieldSurfaceType>::IntegrateStressPlastic
     const double splits = 1;
     double tension_parameter, compression_parameter, det;
     noalias(rPDParameters.StressVector) = prod(rPDParameters.ConstitutiveMatrix, mOldStrain - rPDParameters.PlasticStrain);
-    // kin_hard_stress_vector = rPDParameters.StressVector - rBackStress;
+
 
     for (SizeType i = 0; i < splits; i++) {
         rPDParameters.StressVector += prod(rPDParameters.ConstitutiveMatrix, rPDParameters.StrainVector - mOldStrain) / splits;
-        stress_vector = rPDParameters.StressVector;
-        kinematic_stress_vector = stress_vector - rBackStress;
-        // kin_hard_stress_vector += prod(rPDParameters.ConstitutiveMatrix, rPDParameters.StrainVector - mOldStrain) / splits;
         is_converged = false;
         iteration = 0;
-        TYieldSurfaceType::CalculateEquivalentStress(kinematic_stress_vector, rPDParameters.StrainVector, rPDParameters.UniaxialStress, rValues);
+        TYieldSurfaceType::CalculateEquivalentStress(rPDParameters.StressVector, rPDParameters.StrainVector, rPDParameters.UniaxialStress, rValues);
         rPDParameters.NonLinearIndicator = rPDParameters.UniaxialStress - rPDParameters.Threshold;
         if (rPDParameters.NonLinearIndicator > tolerance*rPDParameters.Threshold) {
             while (is_converged == false && iteration <= max_iter) {
-                CalculateThresholdAndSlope(rValues, rPDParameters, rBackStress);
-                CalculateFlowVector(rValues, rPDParameters, rBackStress);
-                CalculatePlasticConsistencyIncrement(rValues, rPDParameters, rBackStress);
+                CalculateThresholdAndSlope(rValues, rPDParameters);
+                CalculateFlowVector(rValues, rPDParameters);
+                CalculatePlasticConsistencyIncrement(rValues, rPDParameters);
 
                 // Update the analytical tangent tensor
                 if (rValues.GetOptions().Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR))
-                    CalculateAnalyticalTangentTensor(rValues, rPDParameters, rBackStress);
+                    CalculateAnalyticalTangentTensor(rValues, rPDParameters);
 
                 // Compute the plastic strain increment
                 CalculatePlasticStrainIncrement(rValues, rPDParameters);
@@ -953,18 +929,6 @@ void CoupledPlasticDamageFatigueModel<TYieldSurfaceType>::IntegrateStressPlastic
                 CalculateComplianceMatrixIncrement(rValues, rPDParameters);
 
                 noalias(rPDParameters.StressVector) -= rPDParameters.PlasticConsistencyIncrement * prod(rPDParameters.ConstitutiveMatrix, rPDParameters.PlasticFlow);
-
-                // //Linear back-stress
-                // rBackStress += 2.0 / 3.0 * r_kinematic_parameters[0] * rPDParameters.PlasticStrainIncrement;
-
-                //Armstrong-Frederick back stress
-                const double dot_product_dp = inner_prod(rPDParameters.PlasticStrainIncrement, rPDParameters.PlasticStrainIncrement);
-                const double pDot = std::sqrt(2.0 / 3.0 * dot_product_dp);
-                const double back_stress_denominator = 1.0 + (r_kinematic_parameters[1] * pDot);
-                rBackStress = (rBackStress + ((2.0 / 3.0 * r_kinematic_parameters[0]) * rPDParameters.PlasticStrainIncrement)) / back_stress_denominator;
-
-                stress_vector = rPDParameters.StressVector;
-                kinematic_stress_vector = stress_vector - rBackStress;
 
                 if (crack_reclosure) {
                     // now we check the tensile-compressive distribution
@@ -986,8 +950,8 @@ void CoupledPlasticDamageFatigueModel<TYieldSurfaceType>::IntegrateStressPlastic
                 AddNonLinearDissipation(rPDParameters);
 
                 // updated uniaxial and threshold stress check
-                TYieldSurfaceType::CalculateEquivalentStress(kinematic_stress_vector, rPDParameters.StrainVector, rPDParameters.UniaxialStress, rValues);
-                CalculateThresholdAndSlope(rValues, rPDParameters, rBackStress);
+                TYieldSurfaceType::CalculateEquivalentStress(rPDParameters.StressVector, rPDParameters.StrainVector, rPDParameters.UniaxialStress, rValues);
+                CalculateThresholdAndSlope(rValues, rPDParameters);
                 rPDParameters.NonLinearIndicator = rPDParameters.UniaxialStress - rPDParameters.Threshold;
 
                 if (rPDParameters.NonLinearIndicator <= tolerance*rPDParameters.Threshold || rPDParameters.TotalDissipation > 0.999) {
@@ -1170,8 +1134,6 @@ bool CoupledPlasticDamageFatigueModel<TYieldSurfaceType>::Has(
     bool has = false;
     if (rThisVariable == PLASTIC_STRAIN_VECTOR) {
         has = true;
-    } else if (rThisVariable == BACK_STRESS_VECTOR) {
-        has = true;
     }
     return has;
 }
@@ -1267,8 +1229,6 @@ Vector& CoupledPlasticDamageFatigueModel<TYieldSurfaceType>::GetValue(
     rValue.clear();
     if (rThisVariable == PLASTIC_STRAIN_VECTOR) {
         noalias(rValue) = mPlasticStrain;
-    } else if (rThisVariable == BACK_STRESS_VECTOR) {
-        noalias(rValue) = mBackStressVector;
     }
     return rValue;
 }
@@ -1359,8 +1319,6 @@ void CoupledPlasticDamageFatigueModel<TYieldSurfaceType>::SetValue(
 {
     if (rThisVariable == PLASTIC_STRAIN_VECTOR) {
         noalias(mPlasticStrain) = rValue;
-    } else if (rThisVariable == BACK_STRESS_VECTOR) {
-        mBackStressVector = rValue;
     }
 }
 
@@ -1503,8 +1461,6 @@ void CoupledPlasticDamageFatigueModel<TYieldSurfaceType>::InitializeMaterialResp
 {
     // const bool current_load_type = true;
     const bool current_load_type = rValues.GetProcessInfo()[CURRENT_LOAD_TYPE];
-    // const double max_stress = 556091200.0;
-    // const double min_stress = -554422926.4;
     const double max_stress = mMaxStress;
     const double min_stress = mMinStress;
     bool max_indicator = mMaxDetected;
@@ -1591,8 +1547,9 @@ void CoupledPlasticDamageFatigueModel<TYieldSurfaceType>::InitializeMaterialResp
         // if (!damage_activation && global_number_of_cycles > 2 && !advance_in_time_process_applied && (reversion_factor_relative_error > 0.001 || max_stress_relative_error > 0.001)) {
         //HASTA QUE NO ESTE LA AIT NO SE PUEDE PONER
         // if (mFirstCycleOfANewLoad && global_number_of_cycles > 2 && !advance_in_time_process_applied && (reversion_factor_relative_error > 0.001 || max_stress_relative_error > 0.1) && ((1.0 - reference_damage) * max_stress >= s_th)) {
-        //     local_number_of_cycles = std::trunc(std::pow(10, std::pow(-(std::log(fatigue_reduction_factor) / B0), 1.0 / (betaf * betaf * c_factor)))) + 1;
-        // }
+        if (global_number_of_cycles > 2 && !advance_in_time_process_applied && (reversion_factor_relative_error > 0.001 || max_stress_relative_error > 0.1) && (max_stress >= s_th)) {
+            local_number_of_cycles = std::trunc(std::pow(10, std::pow(-(std::log(fatigue_reduction_factor) / B0), 1.0 / (betaf * betaf * c_factor)))) + 1;
+        }
         global_number_of_cycles++;
         local_number_of_cycles++;
         new_cycle = true;
@@ -1679,8 +1636,8 @@ void CoupledPlasticDamageFatigueModel<TYieldSurfaceType>::InitializeMaterialResp
 
         mReferenceConstitutiveMatrix = plastic_damage_parameters.ConstitutiveMatrix;
         mReferencePlasticStrain = plastic_damage_parameters.PlasticStrain;
-        KRATOS_WATCH(mReferenceConstitutiveMatrix)
-        KRATOS_WATCH(mReferencePlasticStrain)
+        // KRATOS_WATCH(mReferenceConstitutiveMatrix)
+        // KRATOS_WATCH(mReferencePlasticStrain)
         // mReferenceDamage = this->GetDamage();   //Updating the damage reference values. This needs to be changed by the end of the method because the calculations
                                                 //done here are built using the values of the previous step. This should not have a big effect in this CL but is consistent.
     }
