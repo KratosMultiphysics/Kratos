@@ -17,7 +17,6 @@
 #include "utilities/parallel_utilities.h"
 #include "utilities/reduction_utilities.h"
 #include "utilities/variable_utils.h"
-#include "expression/literal_flat_expression.h"
 
 // Application includes
 
@@ -138,112 +137,6 @@ void OptimizationUtils::CopySolutionStepVariablesList(
     rDestinationModelPart.GetNodalSolutionStepVariablesList() = rOriginModelPart.GetNodalSolutionStepVariablesList();
 }
 
-
-IndexType OptimizationUtils::Factorial(const IndexType N)
-{
-    return (N == 1 || N == 0) ? 1 : Factorial(N - 1) * N;
-}
-
-IndexType OptimizationUtils::NChooseK(
-    const IndexType N,
-    const IndexType K)
-{
-    return Factorial(N) / (Factorial(K) * Factorial(N - K));
-}
-
-template<class TContainerType>
-ContainerExpression<TContainerType> OptimizationUtils::SmoothClamp(
-    const ContainerExpression<TContainerType>& rInputExpression,
-    const double MinValue,
-    const double MaxValue,
-    const IndexType NumberOfContinuousDerivatives)
-{
-    KRATOS_TRY
-
-    const auto& r_input_expression = rInputExpression.GetExpression();
-    const auto number_of_entities = r_input_expression.NumberOfEntities();
-    const auto number_of_components = r_input_expression.GetItemComponentCount();
-
-    std::vector<IndexType> coeffs(NumberOfContinuousDerivatives + 1);
-    for (IndexType i = 0; i < NumberOfContinuousDerivatives + 1; ++i) {
-        coeffs[i] = NChooseK(NumberOfContinuousDerivatives + i, i) * NChooseK(2 * NumberOfContinuousDerivatives + 1, NumberOfContinuousDerivatives - i);
-    }
-
-    auto p_expression = LiteralFlatExpression<double>::Create(number_of_entities, r_input_expression.GetItemShape());
-
-    IndexPartition<IndexType>(number_of_entities).for_each([&p_expression, &coeffs, &r_input_expression, MinValue, MaxValue, number_of_components](const auto Index) {
-        const auto data_begin_index = Index * number_of_components;
-        for (IndexType i_comp = 0; i_comp < number_of_components; ++i_comp) {
-            const auto x = r_input_expression.Evaluate(Index, data_begin_index, i_comp);
-            const auto clamped_x = std::clamp((x - MinValue) / (MaxValue - MinValue), 0.0, 1.0);
-
-            auto& result = *(p_expression->begin() + data_begin_index + i_comp);
-            result = 0.0;
-            for (IndexType j = 0; j < coeffs.size(); ++j) {
-                result += coeffs[j] * std::pow(-clamped_x, j);
-            }
-            result *= std::pow(clamped_x, coeffs.size());
-        }
-    });
-
-    auto copy = rInputExpression;
-    copy.SetExpression(p_expression);
-    return copy;
-
-    KRATOS_CATCH("");
-}
-
-template<class TContainerType>
-ContainerExpression<TContainerType> OptimizationUtils::SmoothClampGradient(
-    const ContainerExpression<TContainerType>& rInputExpression,
-    const double MinValue,
-    const double MaxValue,
-    const IndexType NumberOfContinuousDerivatives)
-{
-    KRATOS_TRY
-
-    const auto& r_input_expression = rInputExpression.GetExpression();
-    const auto number_of_entities = r_input_expression.NumberOfEntities();
-    const auto number_of_components = r_input_expression.GetItemComponentCount();
-
-    std::vector<IndexType> coeffs(NumberOfContinuousDerivatives + 1);
-    for (IndexType i = 0; i < NumberOfContinuousDerivatives + 1; ++i) {
-        coeffs[i] = NChooseK(NumberOfContinuousDerivatives + i, i) * NChooseK(2 * NumberOfContinuousDerivatives + 1, NumberOfContinuousDerivatives - i);
-    }
-
-    auto p_expression = LiteralFlatExpression<double>::Create(number_of_entities, r_input_expression.GetItemShape());
-
-    IndexPartition<IndexType>(number_of_entities).for_each([&p_expression, &coeffs, &r_input_expression, MinValue, MaxValue, number_of_components](const auto Index) {
-        const auto data_begin_index = Index * number_of_components;
-        for (IndexType i_comp = 0; i_comp < number_of_components; ++i_comp) {
-            const auto x = r_input_expression.Evaluate(Index, data_begin_index, i_comp);
-            auto& result = *(p_expression->begin() + data_begin_index + i_comp);
-
-            result = 0.0;
-            if (x > MinValue && x < MaxValue) {
-                double v1 = 0.0;
-                for (IndexType j = 0; j < coeffs.size(); ++j) {
-                    v1 += coeffs[j] * std::pow(-x, j);
-                }
-
-                double v2 = 0.0;
-                for (IndexType j = 1; j < coeffs.size(); ++j) {
-                    v2 -= coeffs[j] * j * std::pow(-x, j-1);
-                }
-
-                result += v1 * coeffs.size() * std::pow(x, coeffs.size() - 1);
-                result += v2 * std::pow(x, coeffs.size());
-            }
-        }
-    });
-
-    auto copy = rInputExpression;
-    copy.SetExpression(p_expression);
-    return copy;
-
-    KRATOS_CATCH("");
-}
-
 // template instantiations
 template KRATOS_API(OPTIMIZATION_APPLICATION) GeometryData::KratosGeometryType OptimizationUtils::GetContainerEntityGeometryType(const ModelPart::ConditionsContainerType&, const DataCommunicator&);
 template KRATOS_API(OPTIMIZATION_APPLICATION) GeometryData::KratosGeometryType OptimizationUtils::GetContainerEntityGeometryType(const ModelPart::ElementsContainerType&, const DataCommunicator&);
@@ -260,13 +153,5 @@ template KRATOS_API(OPTIMIZATION_APPLICATION) bool OptimizationUtils::IsVariable
 template KRATOS_API(OPTIMIZATION_APPLICATION) bool OptimizationUtils::IsVariableExistsInAtLeastOneContainerProperties(const ModelPart::ElementsContainerType&, const Variable<double>&, const DataCommunicator& rDataCommunicator);
 template KRATOS_API(OPTIMIZATION_APPLICATION) bool OptimizationUtils::IsVariableExistsInAtLeastOneContainerProperties(const ModelPart::ConditionsContainerType&, const Variable<array_1d<double, 3>>&, const DataCommunicator& rDataCommunicator);
 template KRATOS_API(OPTIMIZATION_APPLICATION) bool OptimizationUtils::IsVariableExistsInAtLeastOneContainerProperties(const ModelPart::ElementsContainerType&, const Variable<array_1d<double, 3>>&, const DataCommunicator& rDataCommunicator);
-
-template KRATOS_API(OPTIMIZATION_APPLICATION) ContainerExpression<ModelPart::NodesContainerType> OptimizationUtils::SmoothClamp(const ContainerExpression<ModelPart::NodesContainerType>&, const double, const double, const IndexType);
-template KRATOS_API(OPTIMIZATION_APPLICATION) ContainerExpression<ModelPart::ConditionsContainerType> OptimizationUtils::SmoothClamp(const ContainerExpression<ModelPart::ConditionsContainerType>&, const double, const double, const IndexType);
-template KRATOS_API(OPTIMIZATION_APPLICATION) ContainerExpression<ModelPart::ElementsContainerType> OptimizationUtils::SmoothClamp(const ContainerExpression<ModelPart::ElementsContainerType>&, const double, const double, const IndexType);
-
-template KRATOS_API(OPTIMIZATION_APPLICATION) ContainerExpression<ModelPart::NodesContainerType> OptimizationUtils::SmoothClampGradient(const ContainerExpression<ModelPart::NodesContainerType>&, const double, const double, const IndexType);
-template KRATOS_API(OPTIMIZATION_APPLICATION) ContainerExpression<ModelPart::ConditionsContainerType> OptimizationUtils::SmoothClampGradient(const ContainerExpression<ModelPart::ConditionsContainerType>&, const double, const double, const IndexType);
-template KRATOS_API(OPTIMIZATION_APPLICATION) ContainerExpression<ModelPart::ElementsContainerType> OptimizationUtils::SmoothClampGradient(const ContainerExpression<ModelPart::ElementsContainerType>&, const double, const double, const IndexType);
 
 }

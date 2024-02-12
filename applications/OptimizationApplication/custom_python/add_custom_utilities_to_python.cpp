@@ -184,12 +184,6 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
         .def("GetVariableDimension", &OptimizationUtils::GetVariableDimension<double>)
         .def("GetVariableDimension", &OptimizationUtils::GetVariableDimension<array_1d<double, 3>>)
         .def("CopySolutionStepVariablesList", &OptimizationUtils::CopySolutionStepVariablesList)
-        .def("SmoothClamp", &OptimizationUtils::SmoothClamp<ModelPart::NodesContainerType>, py::arg("container_expression"), py::arg("lower_value"), py::arg("upper_value"), py::arg("number_of_continuous_derivatives"))
-        .def("SmoothClamp", &OptimizationUtils::SmoothClamp<ModelPart::ConditionsContainerType>, py::arg("container_expression"), py::arg("lower_value"), py::arg("upper_value"), py::arg("number_of_continuous_derivatives"))
-        .def("SmoothClamp", &OptimizationUtils::SmoothClamp<ModelPart::ElementsContainerType>, py::arg("container_expression"), py::arg("lower_value"), py::arg("upper_value"), py::arg("number_of_continuous_derivatives"))
-        .def("SmoothClampGradient", &OptimizationUtils::SmoothClampGradient<ModelPart::NodesContainerType>, py::arg("container_expression"), py::arg("lower_value"), py::arg("upper_value"), py::arg("number_of_continuous_derivatives"))
-        .def("SmoothClampGradient", &OptimizationUtils::SmoothClampGradient<ModelPart::ConditionsContainerType>, py::arg("container_expression"), py::arg("lower_value"), py::arg("upper_value"), py::arg("number_of_continuous_derivatives"))
-        .def("SmoothClampGradient", &OptimizationUtils::SmoothClampGradient<ModelPart::ElementsContainerType>, py::arg("container_expression"), py::arg("lower_value"), py::arg("upper_value"), py::arg("number_of_continuous_derivatives"))
         ;
 
     // Add collective expression to python
