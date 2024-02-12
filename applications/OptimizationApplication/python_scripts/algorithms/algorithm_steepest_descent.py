@@ -43,9 +43,15 @@ class AlgorithmSteepestDescent(Algorithm):
 
         self.master_control = MasterControl() # Need to fill it with controls
 
-        for control_name in parameters["controls"].GetStringArray():
-            control = optimization_problem.GetControl(control_name)
-            self.master_control.AddControl(control)
+        control_defaults = Kratos.Parameters("""{
+            "control_name": "",
+            "scaling": 1.0
+
+        }""")
+        for control_params in parameters["controls"].values():
+            control_params.ValidateAndAssignDefaults(control_defaults)
+            control = optimization_problem.GetControl(control_params["control_name"].GetString())
+            self.master_control.AddControl(control, control_params["scaling"].GetDouble())
 
 
         settings = parameters["settings"]

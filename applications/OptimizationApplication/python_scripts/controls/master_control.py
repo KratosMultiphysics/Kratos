@@ -18,14 +18,16 @@ class MasterControl:
     """
     def __init__(self) -> None:
         self.__list_of_controls: 'list[Control]' = []
+        self.__scaling : 'dict[str, float]' = {}
 
-    def AddControl(self, control: Control) -> None:
+    def AddControl(self, control: Control, scaling: float) -> None:
         """Adds a given control to the master control.
 
         Args:
             control (Control): Control to be added
         """
         self.__list_of_controls.append(control)
+        self.__scaling[control.GetName()] = scaling
 
     def GetListOfControls(self) -> 'list[Control]':
         """Returns the list of controls in the master control.
@@ -158,7 +160,7 @@ class MasterControl:
                 control_physical_sensitivities_container_expression_map[physical_control_variable] = control_expression
 
             # map the physical control variable sensitivities to one control space
-            mapped_gradients.Add(control.MapGradient(control_physical_sensitivities_container_expression_map))
+            mapped_gradients.Add(control.MapGradient(control_physical_sensitivities_container_expression_map) * self.__scaling[control.GetName()])
 
         return mapped_gradients
 
