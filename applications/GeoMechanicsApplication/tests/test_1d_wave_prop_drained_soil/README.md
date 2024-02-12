@@ -9,7 +9,7 @@ schematic representation can be found in the figure below:
 
 ![MeshStructure](MeshStructure.svg)
 
-All nodes on the sides ( due to the 1 element width effectively all nodes ) have fixed horizontal displacements. The bottom nodes 81 and 82 also have fixed displacement in the vertical
+All nodes on the sides (due to the single element width effectively all nodes) have fixed horizontal displacements. The bottom nodes 81 and 82 also have fixed displacement in the vertical
 direction. At the top of the column a vertical compressive lineload with a magnitude of 1 kN/m is applied. During a period of 0.0025 s. the load increases from 0 kN/m to 1 kN/m After that period the load is kept constant. See the figure below:
 
 ![LoadIncrease](LoadIncrease.svg)
