@@ -39,6 +39,7 @@ CALL :add_app %KRATOS_APP_DIR%\RANSApplication;
 CALL :add_app %KRATOS_APP_DIR%\MappingApplication;
 CALL :add_app %KRATOS_APP_DIR%\CompressiblePotentialFlowApplication;
 CALL :add_app %KRATOS_APP_DIR%\HDF5Application;
+CALL :add_app %KRATOS_APP_DIR%\MedApplication;
 CALL :add_app %KRATOS_APP_DIR%\IgaApplication;
 CALL :add_app %KRATOS_APP_DIR%\ChimeraApplication;
 CALL :add_app %KRATOS_APP_DIR%\StatisticsApplication;
