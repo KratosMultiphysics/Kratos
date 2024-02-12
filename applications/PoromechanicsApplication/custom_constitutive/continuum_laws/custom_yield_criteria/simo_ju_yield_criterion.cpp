@@ -12,7 +12,7 @@
 // External includes
 
 // Project includes
-#include "custom_constitutive/custom_yield_criteria/simo_ju_yield_criterion.hpp"
+#include "custom_constitutive/continuum_laws/custom_yield_criteria/simo_ju_yield_criterion.hpp"
 
 #include "poromechanics_application_variables.h"
 

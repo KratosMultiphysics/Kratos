@@ -15,7 +15,7 @@
 // External includes
 
 // Project includes
-#include "custom_constitutive/custom_yield_criteria/yield_criterion.hpp"
+#include "custom_constitutive/continuum_laws/custom_yield_criteria/yield_criterion.hpp"
 
 namespace Kratos
 {

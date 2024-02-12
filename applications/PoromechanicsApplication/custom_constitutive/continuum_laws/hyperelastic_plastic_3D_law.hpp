@@ -15,8 +15,8 @@
 // External includes
 
 // Project includes
-#include "custom_constitutive/custom_flow_rules/flow_rule.hpp"
-#include "custom_constitutive/hyperelastic_3D_law.hpp"
+#include "custom_constitutive/continuum_laws/custom_flow_rules/flow_rule.hpp"
+#include "custom_constitutive/continuum_laws/hyperelastic_3D_law.hpp"
 
 
 namespace Kratos

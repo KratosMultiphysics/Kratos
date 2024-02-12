@@ -12,7 +12,7 @@
 // External includes
 
 // Project includes
-#include "custom_constitutive/hyperelastic_plastic_3D_law.hpp"
+#include "custom_constitutive/continuum_laws/hyperelastic_plastic_3D_law.hpp"
 
 #include "poromechanics_application_variables.h"
 

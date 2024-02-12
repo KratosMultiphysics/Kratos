@@ -11,7 +11,7 @@
 //
 
 // Application includes
-#include "custom_constitutive/bilinear_cohesive_2D_law.hpp"
+#include "custom_constitutive/interface_element_laws/bilinear_cohesive_2D_law.hpp"
 
 namespace Kratos
 {

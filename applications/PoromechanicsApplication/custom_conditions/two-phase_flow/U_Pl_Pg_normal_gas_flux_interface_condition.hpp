@@ -18,8 +18,8 @@
 #include "includes/serializer.h"
 
 // Application includes
-#include "custom_conditions/multiphase_flow/U_Pl_Pg_condition.hpp"
-#include "custom_conditions/multiphase_flow//U_Pl_Pg_face_load_interface_condition.hpp"
+#include "custom_conditions/two-phase_flow/multiphase_flow/U_Pl_Pg_condition.hpp"
+#include "custom_conditions/two-phase_flow/multiphase_flow//U_Pl_Pg_face_load_interface_condition.hpp"
 #include "custom_utilities/poro_element_utilities.hpp"
 #include "poromechanics_application_variables.h"
 

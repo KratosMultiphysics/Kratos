@@ -17,7 +17,7 @@
 #include "includes/serializer.h"
 
 // Application includes
-#include "custom_constitutive/history_linear_elastic_plane_strain_2D_law.hpp"
+#include "custom_constitutive/continuum_laws/history_linear_elastic_plane_strain_2D_law.hpp"
 #include "poromechanics_application_variables.h"
 
 namespace Kratos

@@ -6,7 +6,7 @@
 //
 
 // Application includes
-#include "custom_constitutive/custom_flow_rules/nonlocal_damage_flow_rule.hpp"
+#include "custom_constitutive/continuum_laws/custom_flow_rules/nonlocal_damage_flow_rule.hpp"
 
 namespace Kratos
 {

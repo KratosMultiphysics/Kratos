@@ -6,7 +6,7 @@
 //
 
 // Application includes
-#include "custom_constitutive/nonlocal_damage_3D_law.hpp"
+#include "custom_constitutive/continuum_laws/nonlocal_damage_3D_law.hpp"
 
 namespace Kratos
 {

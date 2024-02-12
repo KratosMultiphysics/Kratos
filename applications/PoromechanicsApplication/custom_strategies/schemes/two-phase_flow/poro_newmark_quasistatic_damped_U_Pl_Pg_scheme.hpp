@@ -10,7 +10,7 @@
 #define  KRATOS_PORO_NEWMARK_QUASISTATIC_DAMPED_U_PL_PG_SCHEME
 
 // Application includes
-#include "custom_strategies/schemes/poro_newmark_quasistatic_U_Pl_Pg_scheme.hpp"
+#include "custom_strategies/schemes/two-phase_flow/poro_newmark_quasistatic_U_Pl_Pg_scheme.hpp"
 #include "poromechanics_application_variables.h"
 
 namespace Kratos

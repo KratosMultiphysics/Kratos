@@ -12,7 +12,7 @@
 
 
 // Application includes
-#include "custom_conditions/U_Pl_face_load_interface_condition.hpp"
+#include "custom_conditions/one-phase_flow/U_Pl_face_load_interface_condition.hpp"
 
 namespace Kratos
 {

@@ -6,7 +6,7 @@
 //
 
 // Project includes
-#include "custom_conditions/surface_load_3D_diff_order_condition.hpp"
+#include "custom_conditions/one-phase_flow/surface_load_3D_diff_order_condition.hpp"
 
 namespace Kratos
 {

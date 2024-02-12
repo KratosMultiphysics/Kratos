@@ -16,7 +16,7 @@
 // External includes
 
 // Project includes
-#include "custom_constitutive/custom_flow_rules/flow_rule.hpp"
+#include "custom_constitutive/continuum_laws/custom_flow_rules/flow_rule.hpp"
 #include "custom_utilities/isotropic_damage_utilities.hpp"
 
 namespace Kratos

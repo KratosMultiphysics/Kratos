@@ -24,14 +24,14 @@
 //builders and solvers
 
 //schemes
-#include "custom_strategies/schemes/poro_newmark_quasistatic_U_Pl_scheme.hpp"
-#include "custom_strategies/schemes/poro_newmark_quasistatic_U_Pl_Pg_scheme.hpp"
-#include "custom_strategies/schemes/poro_newmark_quasistatic_damped_U_Pl_scheme.hpp"
-#include "custom_strategies/schemes/poro_newmark_quasistatic_damped_U_Pl_Pg_scheme.hpp"
-#include "custom_strategies/schemes/poro_newmark_dynamic_U_Pl_scheme.hpp"
-#include "custom_strategies/schemes/poro_newmark_dynamic_U_Pl_Pg_scheme.hpp"
-#include "custom_strategies/schemes/poro_explicit_cd_scheme.hpp"
-#include "custom_strategies/schemes/poro_explicit_vv_scheme.hpp"
+#include "custom_strategies/schemes/one-phase_flow/poro_newmark_quasistatic_U_Pl_scheme.hpp"
+#include "custom_strategies/schemes/one-phase_flow/poro_newmark_quasistatic_U_Pl_Pg_scheme.hpp"
+#include "custom_strategies/schemes/one-phase_flow/poro_newmark_quasistatic_damped_U_Pl_scheme.hpp"
+#include "custom_strategies/schemes/one-phase_flow/poro_newmark_quasistatic_damped_U_Pl_Pg_scheme.hpp"
+#include "custom_strategies/schemes/one-phase_flow/poro_newmark_dynamic_U_Pl_scheme.hpp"
+#include "custom_strategies/schemes/one-phase_flow/poro_newmark_dynamic_U_Pl_Pg_scheme.hpp"
+#include "custom_strategies/schemes/one-phase_flow/poro_explicit_cd_scheme.hpp"
+#include "custom_strategies/schemes/one-phase_flow/poro_explicit_vv_scheme.hpp"
 
 //linear solvers
 #include "linear_solvers/linear_solver.h"

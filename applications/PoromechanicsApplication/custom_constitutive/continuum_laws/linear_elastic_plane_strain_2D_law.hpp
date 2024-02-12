@@ -15,7 +15,7 @@
 // External includes
 
 // Project includes
-#include "custom_constitutive/linear_elastic_3D_law.hpp"
+#include "custom_constitutive/continuum_laws/linear_elastic_3D_law.hpp"
 
 namespace Kratos
 {

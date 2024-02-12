@@ -18,7 +18,7 @@
 /* External includes */
 
 /* Project includes */
-#include "custom_strategies/schemes/poro_explicit_cd_scheme.hpp"
+#include "custom_strategies/schemes/one-phase_flow/poro_explicit_cd_scheme.hpp"
 #include "utilities/variable_utils.h"
 
 // Application includes

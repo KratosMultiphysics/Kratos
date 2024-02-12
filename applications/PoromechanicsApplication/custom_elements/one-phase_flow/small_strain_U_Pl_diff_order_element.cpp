@@ -18,7 +18,7 @@
 #include "geometries/hexahedra_3d_8.h"
 
 // Application includes
-#include "custom_elements/small_strain_U_Pl_diff_order_element.hpp"
+#include "custom_elements/one-phase_flow/small_strain_U_Pl_diff_order_element.hpp"
 
 namespace Kratos
 {

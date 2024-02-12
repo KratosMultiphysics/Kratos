@@ -20,7 +20,7 @@
 #include "includes/serializer.h"
 
 // Application includes
-#include "custom_elements/U_Pl_Pg_element.hpp"
+#include "custom_elements/two-phase_flow/U_Pl_Pg_element.hpp"
 #include "custom_utilities/element_utilities.hpp"
 #include "poromechanics_application_variables.h"
 

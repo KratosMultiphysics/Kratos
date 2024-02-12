@@ -12,7 +12,7 @@
 // External includes
 
 // Project includes
-#include "custom_constitutive/custom_hardening_laws/exponential_damage_hardening_law.hpp"
+#include "custom_constitutive/continuum_laws/custom_hardening_laws/exponential_damage_hardening_law.hpp"
 
 #include "poromechanics_application_variables.h"
 

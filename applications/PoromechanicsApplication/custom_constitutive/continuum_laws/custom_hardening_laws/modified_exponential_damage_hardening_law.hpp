@@ -15,7 +15,7 @@
 // External includes
 
 // Project includes
-#include "custom_constitutive/custom_hardening_laws/hardening_law.hpp"
+#include "custom_constitutive/continuum_laws/custom_hardening_laws/hardening_law.hpp"
 
 namespace Kratos
 {

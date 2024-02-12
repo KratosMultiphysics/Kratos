@@ -12,7 +12,7 @@
 
 
 // Application includes
-#include "custom_elements/U_Pl_small_strain_FIC_element.hpp"
+#include "custom_elements/one-phase_flow/U_Pl_small_strain_FIC_element.hpp"
 
 namespace Kratos
 {

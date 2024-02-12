@@ -10,7 +10,7 @@
 
 // Project includes
 #include "includes/serializer.h"
-#include "custom_conditions/general_U_Pl_diff_order_condition.hpp"
+#include "custom_conditions/one-phase_flow/general_U_Pl_diff_order_condition.hpp"
 
 #include "poromechanics_application_variables.h"
 

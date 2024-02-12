@@ -14,7 +14,7 @@
 
 
 // Application includes
-#include "custom_elements/U_Pl_Pg_small_strain_element.hpp"
+#include "custom_elements/two-phase_flow/U_Pl_Pg_small_strain_element.hpp"
 
 namespace Kratos
 {

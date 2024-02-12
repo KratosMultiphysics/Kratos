@@ -18,8 +18,8 @@
 #include "includes/serializer.h"
 
 // Application includes
-#include "custom_elements/U_Pl_element.hpp"
-#include "custom_elements/U_Pl_small_strain_interface_element.hpp"
+#include "custom_elements/one-phase_flow/U_Pl_element.hpp"
+#include "custom_elements/one-phase_flow/U_Pl_small_strain_interface_element.hpp"
 #include "poromechanics_application_variables.h"
 
 namespace Kratos

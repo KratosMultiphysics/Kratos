@@ -11,7 +11,7 @@
 //
 
 // Application includes
-#include "custom_constitutive/elastoplastic_mod_mohr_coulomb_cohesive_2D_law.hpp"
+#include "custom_constitutive/interface_element_laws/elastoplastic_mod_mohr_coulomb_cohesive_2D_law.hpp"
 
 namespace Kratos
 {

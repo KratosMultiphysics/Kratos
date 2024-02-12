@@ -11,7 +11,7 @@
 //
 
 // Application includes
-#include "custom_constitutive/isotropic_damage_cohesive_3D_law.hpp"
+#include "custom_constitutive/interface_element_laws/isotropic_damage_cohesive_3D_law.hpp"
 
 namespace Kratos
 {

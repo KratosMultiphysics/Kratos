@@ -6,7 +6,7 @@
 //
 
 // Application includes
-#include "custom_constitutive/simo_ju_nonlocal_damage_plane_stress_2D_law.hpp"
+#include "custom_constitutive/continuum_laws/simo_ju_nonlocal_damage_plane_stress_2D_law.hpp"
 
 namespace Kratos
 {
