@@ -70,7 +70,7 @@ class Algorithm(ABC):
             CallOnAll(self._optimization_problem.GetListOfProcesses(process_type), *args, **kwargs)
 
     def _InitializeIteration(self) -> None:
-        self.CallOnAllProcesses(self._optimization_problem.GetAvailableProcessTypes(), Kratos.Process.ExecuteInitializeSolutionStep)
+        list(map(lambda x: x.ExecuteInitializeSolutionStep(), self._optimization_problem.GetAvailableProcessTypes()))
 
     def _FinalizeIteration(self) -> None:
-        self.CallOnAllProcesses(self._optimization_problem.GetAvailableProcessTypes(), Kratos.Process.ExecuteFinalizeSolutionStep)
+        list(map(lambda x: x.ExecuteInitializeSolutionStep(), self._optimization_problem.GetAvailableProcessTypes()))
