@@ -279,8 +279,8 @@ class GenericConstitutiveLawIntegratorKinematicPlasticity
         const Vector& rBackStressVector
         )
     {
-        BoundedArrayType deviator = ZeroVector(6);
-        BoundedArrayType h_capa = ZeroVector(6);
+        BoundedArrayType deviator = ZeroVector(VoigtSize);
+        BoundedArrayType h_capa = ZeroVector(VoigtSize);
         double J2, tensile_indicator_factor, compression_indicator_factor, slope, hardening_parameter, equivalent_plastic_strain;
 
         YieldSurfaceType::CalculateEquivalentStress( rPredictiveStressVector, rStrainVector, rUniaxialStress, rValues);

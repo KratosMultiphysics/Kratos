@@ -156,7 +156,7 @@ array_1d<double, 3> GetBodyForce(
  * @param rCurrentProcessInfo The ProcessInfo where it is specified
  * @return whether to compute the lumped mass-matrix
  */
-bool ComputeLumpedMassMatrix(
+bool KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ComputeLumpedMassMatrix(
     const Properties& rProperties,
     const ProcessInfo& rCurrentProcessInfo);
 
@@ -195,7 +195,7 @@ double GetRayleighBeta(
  * @param rElement The Element for which the mass-matrix should be computed
  * @return The density after apply the mass factor to the element
  */
-double GetDensityForMassMatrixComputation(const Element& rElement);
+double KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) GetDensityForMassMatrixComputation(const Element& rElement);
 
 /**
  * @brief Method to calculate the rayleigh damping-matrix

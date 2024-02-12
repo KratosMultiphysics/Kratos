@@ -48,8 +48,8 @@ void UPwUpdatedLagrangianFICElement<TDim, TNumNodes>::CalculateAll(MatrixType& r
 {
     KRATOS_TRY;
 
-    const PropertiesType& Prop = this->GetProperties();
-    const GeometryType& Geom   = this->GetGeometry();
+    const PropertiesType&                           Prop = this->GetProperties();
+    const GeometryType&                             Geom = this->GetGeometry();
     const GeometryType::IntegrationPointsArrayType& IntegrationPoints =
         Geom.IntegrationPoints(mThisIntegrationMethod);
 
@@ -161,8 +161,8 @@ void UPwUpdatedLagrangianFICElement<TDim, TNumNodes>::CalculateOnIntegrationPoin
     const Variable<Matrix>& rVariable, std::vector<Matrix>& rOutput, const ProcessInfo& rCurrentProcessInfo)
 {
     // Defining necessary variables
-    const GeometryType& rGeom     = this->GetGeometry();
-    const unsigned int NumGPoints = rGeom.IntegrationPointsNumber(mThisIntegrationMethod);
+    const GeometryType& rGeom      = this->GetGeometry();
+    const unsigned int  NumGPoints = rGeom.IntegrationPointsNumber(mThisIntegrationMethod);
 
     if (rOutput.size() != NumGPoints) rOutput.resize(NumGPoints);
 

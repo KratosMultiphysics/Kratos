@@ -28,16 +28,16 @@ GeoCrBeamElementLinear2D2N::GeoCrBeamElementLinear2D2N(IndexType NewId, Geometry
 }
 
 //-------------------------------------------------------------------------------------------------
-GeoCrBeamElementLinear2D2N::GeoCrBeamElementLinear2D2N(IndexType NewId,
-                                                       GeometryType::Pointer pGeometry,
+GeoCrBeamElementLinear2D2N::GeoCrBeamElementLinear2D2N(IndexType               NewId,
+                                                       GeometryType::Pointer   pGeometry,
                                                        PropertiesType::Pointer pProperties)
     : CrBeamElementLinear2D2N(NewId, pGeometry, pProperties)
 {
 }
 
 //-------------------------------------------------------------------------------------------------
-Element::Pointer GeoCrBeamElementLinear2D2N::Create(IndexType NewId,
-                                                    NodesArrayType const& rThisNodes,
+Element::Pointer GeoCrBeamElementLinear2D2N::Create(IndexType               NewId,
+                                                    NodesArrayType const&   rThisNodes,
                                                     PropertiesType::Pointer pProperties) const
 {
     const GeometryType& rGeom = GetGeometry();
@@ -45,8 +45,8 @@ Element::Pointer GeoCrBeamElementLinear2D2N::Create(IndexType NewId,
 }
 
 //-------------------------------------------------------------------------------------------------
-Element::Pointer GeoCrBeamElementLinear2D2N::Create(IndexType NewId,
-                                                    GeometryType::Pointer pGeom,
+Element::Pointer GeoCrBeamElementLinear2D2N::Create(IndexType               NewId,
+                                                    GeometryType::Pointer   pGeom,
                                                     PropertiesType::Pointer pProperties) const
 {
     return Kratos::make_intrusive<GeoCrBeamElementLinear2D2N>(NewId, pGeom, pProperties);
@@ -67,8 +67,8 @@ void GeoCrBeamElementLinear2D2N::ResetConstitutiveLaw()
 }
 
 //-------------------------------------------------------------------------------------------------
-void GeoCrBeamElementLinear2D2N::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
-                                                      VectorType& rRightHandSideVector,
+void GeoCrBeamElementLinear2D2N::CalculateLocalSystem(MatrixType&        rLeftHandSideMatrix,
+                                                      VectorType&        rRightHandSideVector,
                                                       const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
@@ -88,7 +88,7 @@ void GeoCrBeamElementLinear2D2N::CalculateLocalSystem(MatrixType& rLeftHandSideM
 }
 
 //-------------------------------------------------------------------------------------------------
-void GeoCrBeamElementLinear2D2N::CalculateRightHandSide(VectorType& rRightHandSideVector,
+void GeoCrBeamElementLinear2D2N::CalculateRightHandSide(VectorType&        rRightHandSideVector,
                                                         const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
@@ -129,7 +129,7 @@ void GeoCrBeamElementLinear2D2N::CalculateOnIntegrationPoints(const Variable<arr
 
     //// start static back condensation
     if (Has(CONDENSED_DOF_LIST)) {
-        Vector dof_list_input = GetValue(CONDENSED_DOF_LIST);
+        Vector           dof_list_input = GetValue(CONDENSED_DOF_LIST);
         std::vector<int> dofList(dof_list_input.size());
         for (SizeType i = 0; i < dof_list_input.size(); ++i) {
             dofList[i] = dof_list_input[i];

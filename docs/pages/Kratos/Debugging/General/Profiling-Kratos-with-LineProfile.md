@@ -14,12 +14,12 @@ Obtaining the profiler:
 You can find the python line profiler an all the relevant information here: https://github.com/pyutils/line_profiler.
 
 If you prefer only to install it just:
-```bash
+```console
 python -m pip install line_profiler
 ```
 
 ### Preparing your code.
-The python line profiler needs to know beforehand which functions are you interested in debugger. In that sense, it is helpful that you already have a slight idea on what sections of your code are interested on. 
+The python line profiler needs to know beforehand which functions are you interested in debugger. In that sense, it is helpful that you already have a slight idea on what sections of your code are interested on.
 
 In order to mark such parts, you will have to use the `@profile` decorator. A example is presented below:
 
@@ -55,12 +55,12 @@ print("Profile output written in:", "profile_"+str(os.getpid())+".prof")
 We do recommend to launch your case with this launcher as well if you intend to run with MPI, as it will automatically generate a different report for every process. An example of an invocation call will look like this:
 
 Serial
-```bash
+```console
 python profiler.py MainKratos.py
 ```
 
 Distributed
-```bash
+```console
 mpirun -np [N] --output-filename profile python profiler.py MainKratos.py
 ```
 ## Analyzing output
@@ -172,7 +172,7 @@ def CalculateTotalSpeedUp(input_files, ref):
         if(proc != ref):
             speedups[proc] = speedups[ref]/speedups[proc]
     speedups[ref] = 1
-    
+
     print(speedups)
 
 def CalculateSpeedUpByLine(input_files, ref):
@@ -208,7 +208,7 @@ def GenerateFieldTable(input_files, function_lines, field, min_procs, max_procs,
         function_line = e_line["Line"]
 
         buffer = str(file_name.split("/")[-1])+":"+str(function_name)+":"+str(function_line["Line"])+":"+str(function_line["Line Content"])
-        
+
         for proc in input_files:
             trace = input_files[proc]
             value = trace[file_name][function_name][function_line["Line"]][field]

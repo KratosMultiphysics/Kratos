@@ -30,7 +30,7 @@ Element::Pointer SteadyStatePwPipingElement<TDim, TNumNodes>::Create(IndexType N
 
 //----------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
-Element::Pointer SteadyStatePwPipingElement<TDim, TNumNodes>::Create(IndexType NewId,
+Element::Pointer SteadyStatePwPipingElement<TDim, TNumNodes>::Create(IndexType             NewId,
                                                                      GeometryType::Pointer pGeom,
                                                                      PropertiesType::Pointer pProperties) const
 {
@@ -183,8 +183,8 @@ void SteadyStatePwPipingElement<TDim, TNumNodes>::CalculateAll(MatrixType& rLeft
 {
     KRATOS_TRY
     // Previous definitions
-    const PropertiesType& Prop = this->GetProperties();
-    const GeometryType& Geom   = this->GetGeometry();
+    const PropertiesType&                           Prop = this->GetProperties();
+    const GeometryType&                             Geom = this->GetGeometry();
     const GeometryType::IntegrationPointsArrayType& IntegrationPoints =
         Geom.IntegrationPoints(mThisIntegrationMethod);
     const unsigned int NumGPoints = IntegrationPoints.size();
@@ -208,7 +208,7 @@ void SteadyStatePwPipingElement<TDim, TNumNodes>::CalculateAll(MatrixType& rLeft
 
     // Auxiliary variables
     array_1d<double, TDim> RelDispVector;
-    SFGradAuxVariables SFGradAuxVars;
+    SFGradAuxVariables     SFGradAuxVars;
 
     // create general parameters of retention law
     RetentionLaw::Parameters RetentionParameters(this->GetProperties(), CurrentProcessInfo);
@@ -248,8 +248,8 @@ void SteadyStatePwPipingElement<TDim, TNumNodes>::CalculateAll(MatrixType& rLeft
 
 template <>
 double SteadyStatePwPipingElement<2, 4>::CalculateHeadGradient(const PropertiesType& Prop,
-                                                               const GeometryType& Geom,
-                                                               double dx)
+                                                               const GeometryType&   Geom,
+                                                               double                dx)
 {
     const auto nodalHead = GeoElementUtilities::CalculateNodalHydraulicHeadFromWaterPressures(Geom, Prop);
     return std::abs((nodalHead[3] + nodalHead[0]) / 2 - (nodalHead[2] + nodalHead[1]) / 2) / dx;
@@ -257,8 +257,8 @@ double SteadyStatePwPipingElement<2, 4>::CalculateHeadGradient(const PropertiesT
 
 template <>
 double SteadyStatePwPipingElement<3, 6>::CalculateHeadGradient(const PropertiesType& Prop,
-                                                               const GeometryType& Geom,
-                                                               double dx)
+                                                               const GeometryType&   Geom,
+                                                               double                dx)
 {
     KRATOS_ERROR << " head gradient calculation of "
                     "SteadyStatePwPipingElement3D6N element is not implemented"
@@ -267,8 +267,8 @@ double SteadyStatePwPipingElement<3, 6>::CalculateHeadGradient(const PropertiesT
 
 template <>
 double SteadyStatePwPipingElement<3, 8>::CalculateHeadGradient(const PropertiesType& Prop,
-                                                               const GeometryType& Geom,
-                                                               double dx)
+                                                               const GeometryType&   Geom,
+                                                               double                dx)
 {
     KRATOS_ERROR << " head gradient calculation of "
                     "SteadyStatePwPipingElement3D8N element is not implemented"

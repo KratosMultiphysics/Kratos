@@ -38,6 +38,7 @@ public:
     virtual void                      OutputProcess()                               = 0;
 
     virtual void                               Initialize()             = 0;
+    virtual void                               InitializeOutput()       = 0;
     virtual void                               InitializeSolutionStep() = 0;
     virtual void                               Predict()                = 0;
     virtual TimeStepEndState::ConvergenceState SolveSolutionStep()      = 0;

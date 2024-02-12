@@ -33,8 +33,8 @@ GeoLinearTrussElement<TDim, TNumNodes>::GeoLinearTrussElement(IndexType NewId, G
 
 //----------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
-GeoLinearTrussElement<TDim, TNumNodes>::GeoLinearTrussElement(IndexType NewId,
-                                                              GeometryType::Pointer pGeometry,
+GeoLinearTrussElement<TDim, TNumNodes>::GeoLinearTrussElement(IndexType               NewId,
+                                                              GeometryType::Pointer   pGeometry,
                                                               PropertiesType::Pointer pProperties)
     : GeoTrussElementLinearBase<TDim, TNumNodes>(NewId, pGeometry, pProperties)
 {
@@ -42,7 +42,7 @@ GeoLinearTrussElement<TDim, TNumNodes>::GeoLinearTrussElement(IndexType NewId,
 
 //----------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
-Element::Pointer GeoLinearTrussElement<TDim, TNumNodes>::Create(IndexType NewId,
+Element::Pointer GeoLinearTrussElement<TDim, TNumNodes>::Create(IndexType             NewId,
                                                                 NodesArrayType const& rThisNodes,
                                                                 PropertiesType::Pointer pProperties) const
 {
@@ -52,7 +52,7 @@ Element::Pointer GeoLinearTrussElement<TDim, TNumNodes>::Create(IndexType NewId,
 
 //----------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
-Element::Pointer GeoLinearTrussElement<TDim, TNumNodes>::Create(IndexType NewId,
+Element::Pointer GeoLinearTrussElement<TDim, TNumNodes>::Create(IndexType             NewId,
                                                                 GeometryType::Pointer pGeom,
                                                                 PropertiesType::Pointer pProperties) const
 {
@@ -113,7 +113,7 @@ void GeoLinearTrussElement<TDim, TNumNodes>::CalculateOnIntegrationPoints(
 
     if (rVariable == FORCE) {
         BoundedVector<double, 3> truss_forces = ZeroVector(3);
-        const double A                        = this->GetProperties()[CROSS_AREA];
+        const double             A            = this->GetProperties()[CROSS_AREA];
 
         double prestress = 0.00;
         if (this->GetProperties().Has(TRUSS_PRESTRESS_PK2)) {

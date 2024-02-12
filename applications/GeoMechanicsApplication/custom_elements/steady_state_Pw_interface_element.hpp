@@ -85,8 +85,8 @@ public:
 
     ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    Element::Pointer Create(IndexType NewId,
-                            NodesArrayType const& ThisNodes,
+    Element::Pointer Create(IndexType               NewId,
+                            NodesArrayType const&   ThisNodes,
                             PropertiesType::Pointer pProperties) const override;
 
     Element::Pointer Create(IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties) const override;
@@ -94,17 +94,17 @@ public:
     int Check(const ProcessInfo& rCurrentProcessInfo) const override;
 
 protected:
-    void CalculateAll(MatrixType& rLeftHandSideMatrix,
-                      VectorType& rRightHandSideVector,
+    void CalculateAll(MatrixType&        rLeftHandSideMatrix,
+                      VectorType&        rRightHandSideVector,
                       const ProcessInfo& CurrentProcessInfo,
-                      const bool CalculateStiffnessMatrixFlag,
-                      const bool CalculateResidualVectorFlag) override;
+                      const bool         CalculateStiffnessMatrixFlag,
+                      const bool         CalculateResidualVectorFlag) override;
 
     void CalculateAndAddLHS(MatrixType& rLeftHandSideMatrix, InterfaceElementVariables& rVariables) override;
 
-    void CalculateAndAddRHS(VectorType& rRightHandSideVector,
+    void CalculateAndAddRHS(VectorType&                rRightHandSideVector,
                             InterfaceElementVariables& rVariables,
-                            unsigned int GPoint) override;
+                            unsigned int               GPoint) override;
 
     ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 

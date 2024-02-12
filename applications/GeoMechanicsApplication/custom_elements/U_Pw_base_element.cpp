@@ -18,8 +18,8 @@ namespace Kratos
 {
 
 template <unsigned int TDim, unsigned int TNumNodes>
-Element::Pointer UPwBaseElement<TDim, TNumNodes>::Create(IndexType NewId,
-                                                         NodesArrayType const& ThisNodes,
+Element::Pointer UPwBaseElement<TDim, TNumNodes>::Create(IndexType               NewId,
+                                                         NodesArrayType const&   ThisNodes,
                                                          PropertiesType::Pointer pProperties) const
 {
     KRATOS_ERROR << "calling the default Create method for a particular "
@@ -31,8 +31,8 @@ Element::Pointer UPwBaseElement<TDim, TNumNodes>::Create(IndexType NewId,
 
 //----------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
-Element::Pointer UPwBaseElement<TDim, TNumNodes>::Create(IndexType NewId,
-                                                         GeometryType::Pointer pGeom,
+Element::Pointer UPwBaseElement<TDim, TNumNodes>::Create(IndexType               NewId,
+                                                         GeometryType::Pointer   pGeom,
                                                          PropertiesType::Pointer pProperties) const
 {
     KRATOS_ERROR << "calling the default Create method for a particular "
@@ -53,7 +53,7 @@ int UPwBaseElement<TDim, TNumNodes>::Check(const ProcessInfo& rCurrentProcessInf
     if (ierr != 0) return ierr;
 
     const PropertiesType& rProp = this->GetProperties();
-    const GeometryType& rGeom   = this->GetGeometry();
+    const GeometryType&   rGeom = this->GetGeometry();
 
     // verify nodal variables and dofs
     for (unsigned int i = 0; i < TNumNodes; ++i) {
@@ -150,9 +150,9 @@ void UPwBaseElement<TDim, TNumNodes>::Initialize(const ProcessInfo& rCurrentProc
 {
     KRATOS_TRY
 
-    const PropertiesType& rProp   = this->GetProperties();
-    const GeometryType& rGeom     = this->GetGeometry();
-    const unsigned int NumGPoints = rGeom.IntegrationPointsNumber(mThisIntegrationMethod);
+    const PropertiesType& rProp      = this->GetProperties();
+    const GeometryType&   rGeom      = this->GetGeometry();
+    const unsigned int    NumGPoints = rGeom.IntegrationPointsNumber(mThisIntegrationMethod);
 
     // pointer to constitutive laws
     if (mConstitutiveLawVector.size() != NumGPoints) mConstitutiveLawVector.resize(NumGPoints);
@@ -220,13 +220,13 @@ void UPwBaseElement<TDim, TNumNodes>::ResetConstitutiveLaw()
 
 //----------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
-void UPwBaseElement<TDim, TNumNodes>::GetDofList(DofsVectorType& rElementalDofList,
+void UPwBaseElement<TDim, TNumNodes>::GetDofList(DofsVectorType&    rElementalDofList,
                                                  const ProcessInfo& rCurrentProcessInfo) const
 {
     KRATOS_TRY
 
     const GeometryType& rGeom = this->GetGeometry();
-    const unsigned int N_DOF  = this->GetNumberOfDOF();
+    const unsigned int  N_DOF = this->GetNumberOfDOF();
 
     if (rElementalDofList.size() != N_DOF) rElementalDofList.resize(N_DOF);
 
@@ -284,8 +284,8 @@ GeometryData::IntegrationMethod UPwBaseElement<TDim, TNumNodes>::GetIntegrationM
 
 //----------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
-void UPwBaseElement<TDim, TNumNodes>::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
-                                                           VectorType& rRightHandSideVector,
+void UPwBaseElement<TDim, TNumNodes>::CalculateLocalSystem(MatrixType&        rLeftHandSideMatrix,
+                                                           VectorType&        rRightHandSideVector,
                                                            const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
@@ -312,7 +312,7 @@ void UPwBaseElement<TDim, TNumNodes>::CalculateLocalSystem(MatrixType& rLeftHand
 
 //----------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
-void UPwBaseElement<TDim, TNumNodes>::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
+void UPwBaseElement<TDim, TNumNodes>::CalculateLeftHandSide(MatrixType&        rLeftHandSideMatrix,
                                                             const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY;
@@ -359,7 +359,7 @@ void UPwBaseElement<TDim, TNumNodes>::EquationIdVector(EquationIdVectorType& rRe
     KRATOS_TRY
 
     const GeometryType& rGeom = this->GetGeometry();
-    const unsigned int N_DOF  = this->GetNumberOfDOF();
+    const unsigned int  N_DOF = this->GetNumberOfDOF();
 
     if (rResult.size() != N_DOF) rResult.resize(N_DOF, false);
 
@@ -402,7 +402,7 @@ void UPwBaseElement<TDim, TNumNodes>::CalculateMassMatrix(MatrixType& rMassMatri
 
 //----------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
-void UPwBaseElement<TDim, TNumNodes>::CalculateDampingMatrix(MatrixType& rDampingMatrix,
+void UPwBaseElement<TDim, TNumNodes>::CalculateDampingMatrix(MatrixType&        rDampingMatrix,
                                                              const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
@@ -443,7 +443,7 @@ void UPwBaseElement<TDim, TNumNodes>::GetValuesVector(Vector& rValues, int Step)
     KRATOS_TRY
 
     const GeometryType& rGeom = this->GetGeometry();
-    const unsigned int N_DOF  = this->GetNumberOfDOF();
+    const unsigned int  N_DOF = this->GetNumberOfDOF();
 
     if (rValues.size() != N_DOF) rValues.resize(N_DOF, false);
 
@@ -478,7 +478,7 @@ void UPwBaseElement<TDim, TNumNodes>::GetFirstDerivativesVector(Vector& rValues,
     KRATOS_TRY
 
     const GeometryType& rGeom = this->GetGeometry();
-    const unsigned int N_DOF  = this->GetNumberOfDOF();
+    const unsigned int  N_DOF = this->GetNumberOfDOF();
 
     if (rValues.size() != N_DOF) rValues.resize(N_DOF, false);
 
@@ -513,7 +513,7 @@ void UPwBaseElement<TDim, TNumNodes>::GetSecondDerivativesVector(Vector& rValues
     KRATOS_TRY
 
     const GeometryType& rGeom = this->GetGeometry();
-    const unsigned int N_DOF  = this->GetNumberOfDOF();
+    const unsigned int  N_DOF = this->GetNumberOfDOF();
 
     if (rValues.size() != N_DOF) rValues.resize(N_DOF, false);
 
@@ -679,11 +679,11 @@ void UPwBaseElement<TDim, TNumNodes>::CalculateMaterialStiffnessMatrix(MatrixTyp
 //----------------------------------------------------------------------------------------
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void UPwBaseElement<TDim, TNumNodes>::CalculateAll(MatrixType& rLeftHandSideMatrix,
-                                                   VectorType& rRightHandSideVector,
+void UPwBaseElement<TDim, TNumNodes>::CalculateAll(MatrixType&        rLeftHandSideMatrix,
+                                                   VectorType&        rRightHandSideVector,
                                                    const ProcessInfo& CurrentProcessInfo,
-                                                   const bool CalculateStiffnessMatrixFlag,
-                                                   const bool CalculateResidualVectorFlag)
+                                                   const bool         CalculateStiffnessMatrixFlag,
+                                                   const bool         CalculateResidualVectorFlag)
 {
     KRATOS_TRY
 
@@ -710,7 +710,7 @@ void UPwBaseElement<TDim, TNumNodes>::CalculateDerivativesOnInitialConfiguration
 {
     KRATOS_TRY
 
-    const GeometryType& rGeom = this->GetGeometry();
+    const GeometryType&                             rGeom = this->GetGeometry();
     const GeometryType::IntegrationPointsArrayType& IntegrationPoints =
         rGeom.IntegrationPoints(mThisIntegrationMethod);
 
@@ -746,7 +746,7 @@ void UPwBaseElement<TDim, TNumNodes>::CalculateJacobianOnCurrentConfiguration(
     KRATOS_TRY
 
     const GeometryType& rGeom = this->GetGeometry();
-    Matrix DisplacementMatrix;
+    Matrix              DisplacementMatrix;
     GeoElementUtilities::GetNodalVariableMatrix<TDim, TNumNodes>(DisplacementMatrix, rGeom, DISPLACEMENT);
 
     J.clear();

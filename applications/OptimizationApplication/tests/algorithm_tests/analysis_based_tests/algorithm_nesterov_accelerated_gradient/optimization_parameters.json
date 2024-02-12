@@ -1,0 +1,110 @@
+{
+    "problem_data": {
+        "parallel_type": "OpenMP",
+        "echo_level": 0
+    },
+    "model_parts": [
+        {
+            "settings": {
+                "model_part_name": "Structure",
+                "domain_size": 3,
+                "input_filename": "Structure"
+            }
+        }
+    ],
+    "analyses": [
+        {
+            "name": "Structure_static",
+            "type": "kratos_analysis_execution_policy",
+            "settings": {
+                "model_part_names": [
+                    "Structure"
+                ],
+                "analysis_module": "KratosMultiphysics.StructuralMechanicsApplication",
+                "analysis_type": "StructuralMechanicsAnalysis",
+                "analysis_settings": {
+                    "@include_json": "primal_parameters.json"
+                },
+                "analysis_output_settings": {
+                    "nodal_solution_step_data_variables": [
+                        "DISPLACEMENT"
+                    ]
+                }
+            }
+        }
+    ],
+    "responses": [
+        {
+            "name": "mass_Structure",
+            "type": "mass_response_function",
+            "settings": {
+                "evaluated_model_part_names": [
+                    "Structure"
+                ]
+            }
+        },
+        {
+            "name": "strain_energy",
+            "type": "linear_strain_energy_response_function",
+            "settings": {
+                "evaluated_model_part_names": [
+                    "Structure"
+                ],
+                "primal_analysis_name": "Structure_static",
+                "perturbation_size": 1e-8
+            }
+        }
+    ],
+    "controls": [
+        {
+            "name": "material_control",
+            "type": "material.material_properties_control",
+            "settings": {
+                "model_part_names": [
+                    "Structure"
+                ],
+                "control_variable_name": "YOUNG_MODULUS"
+            }
+        }
+    ],
+    "algorithm_settings": {
+        "type": "algorithm_nesterov_accelarated_gradient",
+        "settings": {
+            "echo_level": 0,
+            "line_search": {
+                "type": "const_step",
+                "init_step": 1e9,
+                "gradient_scaling": "inf_norm"
+            },
+            "conv_settings": {
+                "type": "max_iter",
+                "max_iter": 10
+            },
+            "eta": 0.95
+        },
+        "controls": [
+            "material_control"
+        ],
+        "objective": {
+            "response_name": "strain_energy",
+            "type": "minimization",
+            "scaling": 1.0
+        }
+    },
+    "processes": {
+        "kratos_processes": {},
+        "optimization_data_processes": {
+            "output_processes": [
+                {
+                    "type": "optimization_problem_ascii_output_process",
+                    "module": "KratosMultiphysics.OptimizationApplication.processes",
+                    "settings": {
+                        "output_file_name": "summary.csv",
+                        "write_kratos_version": false,
+                        "write_time_stamp": false
+                    }
+                }
+            ]
+        }
+    }
+}
