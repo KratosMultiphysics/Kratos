@@ -87,6 +87,9 @@ class ShellThicknessControl(Control):
             "filter_settings": {
                 "type" : "implicit",
                 "radius": 0.000000000001,
+                "filter_function_type": "linear",
+                "damping_function_type": "linear",
+                "max_nodes_in_filter_radius": 1000,
                 "linear_solver_settings" : {}
             },
             "beta_value": 25.0,
@@ -111,7 +114,7 @@ class ShellThicknessControl(Control):
         self.filtered_thicknesses = [i for i, _ in enumerate(self.physical_thicknesses)]
 
         self.filter_type = self.parameters["filter_settings"]["type"].GetString()
-        self.supported_filter_types = ["implicit"]
+        self.supported_filter_types = ["implicit", "explicit"]
 
         if not self.filter_type in self.supported_filter_types:
             raise RuntimeError(f"The specified filter type \"{self.filter_type}\" is not supported. Followings are the variables:\n\t" + "\n\t".join([k for k in self.supported_filter_types]))
@@ -127,13 +130,18 @@ class ShellThicknessControl(Control):
         for model_part_name, thickness_params in self.parameters["fixed_model_parts_and_thicknesses"].items():
             self.fixed_model_parts_and_thicknesses[model_part_name] = thickness_params.GetDouble()
 
-        if not all(entry.GetDouble() in self.physical_thicknesses for entry in self.fixed_model_parts_and_thicknesses.values()):
+        if not all(entry in self.physical_thicknesses for entry in self.fixed_model_parts_and_thicknesses.values()):
             raise RuntimeError("fixed_model_parts_thicknesses should exist in physical_thicknesses !")
 
         helmholtz_settings = GetImplicitFilterParameters(self.model_part_operation.GetModelPartFullName(), self.parameters)
 
         # create implicit filter using Helmholtz analysis
-        self.filter = HelmholtzAnalysis(self.model, helmholtz_settings)
+        if self.filter_type == "implicit":
+            self.is_filter_explicit = False
+            self.filter = HelmholtzAnalysis(self.model, helmholtz_settings)
+        elif self.filter_type == "explicit":
+            self.filter = None
+            self.is_filter_explicit = True
 
         self.is_initialized = False
 
@@ -144,8 +152,26 @@ class ShellThicknessControl(Control):
             KratosOA.OptimizationUtils.CreateEntitySpecificPropertiesForContainer(self.model_part, self.model_part.Elements)
             KratosOA.ModelPartUtils.LogModelPartStatus(self.model_part, "element_specific_properties_created")
 
-        # initiliaze the filter
-        self.filter.Initialize()
+        # initialize the filter
+        if not self.is_filter_explicit:
+            self.filter.Initialize()
+        else:
+            # create the explicit filter
+            fixed_model_parts_names = list(self.fixed_model_parts_and_thicknesses.keys())
+            if len(fixed_model_parts_names)>0:
+                self.fixed_model_part_operation = ModelPartOperation(self.model, ModelPartOperation.OperationType.UNION, f"control_{self.GetName()}", fixed_model_parts_names, False)
+                self.fixed_model_part = self.fixed_model_part_operation.GetModelPart()
+                self.filter = KratosOA.ElementExplicitFilter(self.model_part, self.fixed_model_part, self.parameters["filter_settings"]["filter_function_type"].GetString(),
+                                                           self.parameters["filter_settings"]["damping_function_type"].GetString(),
+                                                           self.parameters["filter_settings"]["max_nodes_in_filter_radius"].GetInt())
+            else:
+                self.filter = KratosOA.ElementExplicitFilter(self.model_part, self.parameters["filter_settings"]["filter_function_type"].GetString(),
+                                                           self.parameters["filter_settings"]["max_nodes_in_filter_radius"].GetInt())
+
+            filter_radius_field = Kratos.Expression.ElementExpression(self.model_part)
+            Kratos.Expression.LiteralExpressionIO.SetData(filter_radius_field, self.parameters["filter_settings"]["radius"].GetDouble())
+            self.filter.SetFilterRadius(filter_radius_field)
+
         # compute control thickness field from the initial physical control field
         physical_thickness_field = Kratos.Expression.ElementExpression(self.model_part)
         Kratos.Expression.LiteralExpressionIO.SetData(physical_thickness_field, self.parameters["initial_physical_thickness"].GetDouble())
@@ -161,10 +187,12 @@ class ShellThicknessControl(Control):
         self.is_initialized = True
 
     def Check(self) -> None:
-        return self.filter.Check()
+        if not self.is_filter_explicit:
+            return self.filter.Check()
 
     def Finalize(self) -> None:
-        return self.filter.Finalize()
+        if not self.is_filter_explicit:
+            return self.filter.Finalize()
 
     def GetPhysicalKratosVariables(self) -> 'list[SupportedSensitivityFieldVariableTypes]':
         return [Kratos.THICKNESS]
