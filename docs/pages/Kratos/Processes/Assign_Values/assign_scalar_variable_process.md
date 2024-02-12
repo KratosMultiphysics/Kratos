@@ -12,7 +12,7 @@ summary:
 
 This process assigns a scalar value to a variable in all of the entities in a given `ModelPart`.
 
-For the vector version please see [Assign Vector Variable](/Assing_Values/assign_vector_variable_process)
+For the vector version please see [Assign Vector Variable](/Assign_Values/assign_vector_variable_process)
 
 This process has a generic version:
 - `AssignScalarVariableToEntitiesProcess`

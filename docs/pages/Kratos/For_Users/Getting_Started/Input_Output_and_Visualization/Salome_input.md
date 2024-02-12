@@ -32,7 +32,7 @@ First, we will read our parameters:
 ```python
 # Load Parameters
 with open("ProjectParameters.json",'r') as parameter_file:
-    parameters = Kratos.Parameters(parameter_file.read())
+    parameters = KMP.Parameters(parameter_file.read())
 ```
 {: data-lang="Python"}
 
@@ -65,7 +65,7 @@ Once the file processed, the geometry from the `.med` file will be loaded into t
 
 ```python
 # apply the elements and conditions
-params = Kratos.Parameters("""{
+params = KMP.Parameters("""{
     "elements_list" : [
         {
             "model_part_name" : "Structure.solid",
