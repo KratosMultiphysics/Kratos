@@ -37,15 +37,14 @@ public:
     using NodesArrayType = Geometry<NodeType>::PointsArrayType;
     using VectorType     = Vector;
     using MatrixType     = Matrix;
-    /// The definition of the sizetype
-    using SizeType = std::size_t;
+    using SizeType       = std::size_t;
     using SmallStrainUPwDiffOrderElement::mConstitutiveLawVector;
     using typename SmallStrainUPwDiffOrderElement::ElementVariables;
 
     ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     /// Default Constructor
-    using SmallStrainUPwDiffOrderElement::SmallStrainUPwDiffOrderElement;
+    SmallStrainUPwDiffOrderAxisymmetricElement() = default;
 
     /// Constructor using Geometry
     SmallStrainUPwDiffOrderAxisymmetricElement(IndexType NewId, GeometryType::Pointer pGeometry)

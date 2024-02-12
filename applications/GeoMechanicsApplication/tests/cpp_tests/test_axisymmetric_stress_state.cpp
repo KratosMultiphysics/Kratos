@@ -40,10 +40,11 @@ ModelPart& CreateModelPart(Model& rModel)
 
 KRATOS_TEST_CASE_IN_SUITE(CalculateBMatrixWithValidGeometryReturnsCorrectResults, KratosGeoMechanicsFastSuite)
 {
-    const auto p_stress_state_policy = std::make_unique<AxisymmetricStressState>();
+    const std::unique_ptr<StressStatePolicy> p_stress_state_policy =
+        std::make_unique<AxisymmetricStressState>();
 
-    Model      model;
-    ModelPart& model_part = CreateModelPart(model);
+    Model model;
+    auto& model_part = CreateModelPart(model);
 
     Vector Np(3);
     Np <<= 1.0, 2.0, 3.0;
@@ -71,10 +72,11 @@ KRATOS_TEST_CASE_IN_SUITE(CalculateBMatrixWithValidGeometryReturnsCorrectResults
 
 KRATOS_TEST_CASE_IN_SUITE(ReturnCorrectIntegrationCoefficient, KratosGeoMechanicsFastSuite)
 {
-    const auto p_stress_state_policy = std::make_unique<AxisymmetricStressState>();
+    const std::unique_ptr<StressStatePolicy> p_stress_state_policy =
+        std::make_unique<AxisymmetricStressState>();
 
-    Model      model;
-    ModelPart& model_part = CreateModelPart(model);
+    Model model;
+    auto& model_part = CreateModelPart(model);
 
     // The shape function values for this integration point are 0.2, 0.5 and 0.3 for nodes 1, 2 and 3 respectively
     Geometry<Node>::IntegrationPointType integration_point(0.5, 0.3, 0.0, 0.5);
@@ -90,7 +92,8 @@ KRATOS_TEST_CASE_IN_SUITE(ReturnCorrectIntegrationCoefficient, KratosGeoMechanic
 
 KRATOS_TEST_CASE_IN_SUITE(TestCloneReturnsCorrectType, KratosGeoMechanicsFastSuite)
 {
-    const auto p_stress_state_policy        = std::make_unique<AxisymmetricStressState>();
+    const std::unique_ptr<StressStatePolicy> p_stress_state_policy =
+        std::make_unique<AxisymmetricStressState>();
     const auto p_cloned_stress_state_policy = p_stress_state_policy->Clone();
 
     KRATOS_EXPECT_NE(dynamic_cast<AxisymmetricStressState*>(p_cloned_stress_state_policy.get()), nullptr);
@@ -98,11 +101,10 @@ KRATOS_TEST_CASE_IN_SUITE(TestCloneReturnsCorrectType, KratosGeoMechanicsFastSui
 
 KRATOS_TEST_CASE_IN_SUITE(TestCalculateGreenLagrangeStrainThrows, KratosGeoMechanicsFastSuite)
 {
-    const auto p_stress_state_policy = std::make_unique<AxisymmetricStressState>();
+    const std::unique_ptr<StressStatePolicy> p_stress_state_policy =
+        std::make_unique<AxisymmetricStressState>();
 
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
-        p_stress_state_policy->CalculateGreenLagrangeStrain(Matrix()),
-        "The calculation of Green Lagrange strain is not implemented for axisymmetric configurations.")
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(p_stress_state_policy->CalculateGreenLagrangeStrain(Matrix()), "The calculation of Green Lagrange strain is not implemented for axisymmetric configurations.")
 }
 
 } // namespace Kratos::Testing

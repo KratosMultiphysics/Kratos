@@ -38,15 +38,14 @@ public:
     using NodesArrayType = GeometryType::PointsArrayType;
     using VectorType     = Vector;
     using MatrixType     = Matrix;
-    /// The definition of the sizetype
-    using SizeType = std::size_t;
+    using SizeType       = std::size_t;
     using typename SmallStrainUPwDiffOrderElement::ElementVariables;
     using UpdatedLagrangianUPwDiffOrderElement::mConstitutiveLawVector;
 
     ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     /// Default Constructor
-    using UpdatedLagrangianUPwDiffOrderElement::UpdatedLagrangianUPwDiffOrderElement;
+    UpdatedLagrangianUPwDiffOrderAxisymmetricElement() = default;
 
     /// Constructor using Geometry
     UpdatedLagrangianUPwDiffOrderAxisymmetricElement(IndexType NewId, GeometryType::Pointer pGeometry)

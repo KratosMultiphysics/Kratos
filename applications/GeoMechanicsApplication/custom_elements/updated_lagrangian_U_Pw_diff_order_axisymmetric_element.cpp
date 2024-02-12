@@ -59,7 +59,7 @@ double UpdatedLagrangianUPwDiffOrderAxisymmetricElement::CalculateIntegrationCoe
 void UpdatedLagrangianUPwDiffOrderAxisymmetricElement::CalculateGreenLagrangeStrain(ElementVariables& rVariables)
 {
     AxisymmetricStressState stress_state;
-    stress_state.CalculateGreenLagrangeStrain(rVariables.F);
+    rVariables.StressVector = stress_state.CalculateGreenLagrangeStrain(rVariables.F);
 }
 
 //----------------------------------------------------------------------------------------------------

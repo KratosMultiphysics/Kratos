@@ -39,8 +39,7 @@ public:
     using NodesArrayType = GeometryType::PointsArrayType;
     using VectorType     = Vector;
     using MatrixType     = Matrix;
-    /// The definition of the sizetype
-    using SizeType = std::size_t;
+    using SizeType       = std::size_t;
     using UPwBaseElement<TDim, TNumNodes>::mConstitutiveLawVector;
     using typename UPwSmallStrainElement<TDim, TNumNodes>::ElementVariables;
 
@@ -148,9 +147,7 @@ private:
         rNode.FastGetSolutionStepValue(Var) = Value;
         rNode.UnSetLock();
     }
-};
-
-// Class UPwSmallStrainAxisymmetricFICElement
+}; // Class UPwSmallStrainAxisymmetricFICElement
 
 } // namespace Kratos
 
