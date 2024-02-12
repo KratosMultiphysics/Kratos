@@ -1,10 +1,10 @@
 # 1D Consolidation
 
-This tests verifies that in a column of triangular plane strain elements, consolidation follows the solution given by Terzaghi in 1923.
+This test verifies that in a column of triangular plane strain elements, consolidation follows the solution given by Terzaghi in 1923.
 
 ## Setup
 
-This test consists of 78 6-noded elements (using the SmallStrainUPwDiffOrderElement2D6N class) of b x h = 0.1 x 1.0 meter. A
+This test consists of 78 6-noded elements (using the SmallStrainUPwDiffOrderElement2D6N class) of $b x h = 0.1 x 1.0 \mathrm{[m]}$. A
 schematic representation can be found in the figure below:
 
 ![MeshStructure](MeshStructure.svg)
@@ -13,7 +13,7 @@ All nodes on the sides have fixed horizontal displacements. The bottom nodes hav
 direction. At the top of the column a vertical compressive line load with a magnitude of 1.0 N/m is applied. This load is kept constant during the whole analysis time. Note that gravity is absent in this computation, the top load generates the excess pore pressure. In the first stage no Dirichlet boundaries for the water pressure D.O.F. are given, such that all water is contained within the column. I n all later stages, the water pressure (p) on the top of the column is specified to be 0.0 [Pa]. This creates an outflow boundary at the top.
 
 The material is described using:
--   A linear elastic plane stress model (LinearElasticPlaneStrain2DLaw)
+-   A linear elastic plane strain model (LinearElasticPlaneStrain2DLaw)
 -   A Young's modulus $E = 1.0E3 \mathrm{[Pa]}$ with Poisson's ratio $\nu = 0.0 \mathrm{[-]}$.
 -   The soil and water density are specified, but irrelevant due to the absence of gravity. The porosity is 0.3.
 These material properties of the dry soil give a compression modulus $K = E / (3(1-2\nu)) = 3.33E2 \mathrm{[Pa]}$ and a shear modulus $G = E / (2( 1 + \nu )) = 5.0E2 \mathrm{[Pa]}$.
