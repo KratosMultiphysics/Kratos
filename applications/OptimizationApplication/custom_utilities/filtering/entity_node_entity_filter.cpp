@@ -17,7 +17,7 @@
 // Project includes
 #include "includes/define.h"
 #include "expression/container_expression.h"
-#include "expression/entity_domain_size_expression_io.h"
+#include "expression/domain_size_expression_io.h"
 
 // Application includes
 #include "custom_utilities/container_expression_utils.h"
@@ -43,7 +43,7 @@ template<class TContainerType>
 void EntityNodeEntityFilter<TContainerType>::Update()
 {
     ContainerExpressionUtils::ComputeNumberOfNeighbourEntities<TContainerType>(mNeighbourEntities);
-    EntityDomainSizeExpressionIO::Read(mEntityDomainSize);
+    DomainSizeExpressionIO::Read(mEntityDomainSize);
 }
 
 template<class TContainerType>
@@ -68,7 +68,7 @@ ContainerExpression<TContainerType> EntityNodeEntityFilter<TContainerType>::Filt
     // first divide by the entity area
     if constexpr(std::is_same_v<TContainerType, ModelPart::ConditionsContainerType> || std::is_same_v<TContainerType, ModelPart::ElementsContainerType>) {
         auto copy = rContainerExpression;
-        return FilterField(copy.Scale(1 / mEntityDomainSize));
+        return FilterField(copy / mEntityDomainSize);
     } else {
         static_assert(std::is_same_v<TContainerType, TContainerType>, "Unsupported TContainerType");
     }

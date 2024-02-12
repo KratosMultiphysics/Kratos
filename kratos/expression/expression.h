@@ -188,17 +188,16 @@ public:
     IndexType GetItemComponentCount() const;
 
     /**
-     * @brief Get the Flat Expression
+     * @brief Get the Max Depth of the lazy expression tree.
      *
-     * Returns an expression containing a flattened expression. This will always
-     * be a LiteralFlatExpression. This keeps the item shape as it is.
+     * Returns the maximum depth of the lazy expression tree.
      *
-     * The flattened expression does not include any other expression combinations
-     * except the LiteralFlatExpression.
+     * @warning This is a recursive computation, hence this should not
+     *          be done repeatedly unless necessary.
      *
-     * @return Expression::ConstPointer     Flattened expression
+     * @return IndexType Max depth of the lazy expression tree.
      */
-    ConstPointer Flatten() const;
+    virtual IndexType GetMaxDepth() const = 0;
 
     ///@}
     ///@name Input and output

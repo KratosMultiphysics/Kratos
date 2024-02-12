@@ -140,7 +140,7 @@ public:
 
     void CalculateSystemContributions(Element& rCurrentElement,
                                       LocalSystemMatrixType& rLHS_Contribution,
-                                      LocalSystemVectorType& rRHS_Contribution,
+                                      LocalSystemVectorType& rRHSContribution,
                                       Element::EquationIdVectorType& rEquationId,
                                       const ProcessInfo& rCurrentProcessInfo) override
     {
@@ -152,17 +152,17 @@ public:
 
         rCurrentElement.CalculateLeftHandSide(rLHS_Contribution, rCurrentProcessInfo);
 
-        if (rRHS_Contribution.size() != rLHS_Contribution.size1())
-            rRHS_Contribution.resize(rLHS_Contribution.size1(), false);
+        if (rRHSContribution.size() != rLHS_Contribution.size1())
+            rRHSContribution.resize(rLHS_Contribution.size1(), false);
 
         mpResponseFunction->CalculateGradient(
-            rCurrentElement, rLHS_Contribution, rRHS_Contribution, rCurrentProcessInfo);
+            rCurrentElement, rLHS_Contribution, rRHSContribution, rCurrentProcessInfo);
 
-        noalias(rRHS_Contribution) = -rRHS_Contribution;
+        noalias(rRHSContribution) = -rRHSContribution;
 
         // Calculate system contributions in residual form.
         r_const_elem_ref.GetValuesVector(mAdjointValues[thread_id]);
-        noalias(rRHS_Contribution) -= prod(rLHS_Contribution, mAdjointValues[thread_id]);
+        noalias(rRHSContribution) -= prod(rLHS_Contribution, mAdjointValues[thread_id]);
 
         r_const_elem_ref.EquationIdVector(rEquationId, rCurrentProcessInfo);
 
@@ -184,7 +184,7 @@ public:
 
     void CalculateRHSContribution(
         Element& rCurrentElement,
-        LocalSystemVectorType& rRHS_Contribution,
+        LocalSystemVectorType& rRHSContribution,
         Element::EquationIdVectorType& rEquationId,
         const ProcessInfo& rCurrentProcessInfo) override
     {
@@ -195,24 +195,24 @@ public:
 
         rCurrentElement.CalculateLeftHandSide(lhs, rCurrentProcessInfo);
 
-        if (rRHS_Contribution.size() != lhs.size1())
-            rRHS_Contribution.resize(lhs.size1(), false);
+        if (rRHSContribution.size() != lhs.size1())
+            rRHSContribution.resize(lhs.size1(), false);
 
         mpResponseFunction->CalculateGradient(
-            rCurrentElement, lhs, rRHS_Contribution, rCurrentProcessInfo);
+            rCurrentElement, lhs, rRHSContribution, rCurrentProcessInfo);
 
-        noalias(rRHS_Contribution) = -rRHS_Contribution;
+        noalias(rRHSContribution) = -rRHSContribution;
 
         // Calculate system contributions in residual form.
         r_const_elem_ref.GetValuesVector(mAdjointValues[thread_id]);
-        noalias(rRHS_Contribution) -= prod(lhs, mAdjointValues[thread_id]);
+        noalias(rRHSContribution) -= prod(lhs, mAdjointValues[thread_id]);
 
         r_const_elem_ref.EquationIdVector(rEquationId, rCurrentProcessInfo);
     }
 
     void CalculateSystemContributions(Condition& rCurrentCondition,
                                       LocalSystemMatrixType& rLHS_Contribution,
-                                      LocalSystemVectorType& rRHS_Contribution,
+                                      LocalSystemVectorType& rRHSContribution,
                                       Condition::EquationIdVectorType& rEquationId,
                                       const ProcessInfo& rCurrentProcessInfo) override
     {
@@ -222,17 +222,17 @@ public:
         const auto& r_const_cond_ref = rCurrentCondition;
         rCurrentCondition.CalculateLeftHandSide(rLHS_Contribution, rCurrentProcessInfo);
 
-        if (rRHS_Contribution.size() != rLHS_Contribution.size1())
-            rRHS_Contribution.resize(rLHS_Contribution.size1(), false);
+        if (rRHSContribution.size() != rLHS_Contribution.size1())
+            rRHSContribution.resize(rLHS_Contribution.size1(), false);
 
         mpResponseFunction->CalculateGradient(
-            rCurrentCondition, rLHS_Contribution, rRHS_Contribution, rCurrentProcessInfo);
+            rCurrentCondition, rLHS_Contribution, rRHSContribution, rCurrentProcessInfo);
 
-        noalias(rRHS_Contribution) = -rRHS_Contribution;
+        noalias(rRHSContribution) = -rRHSContribution;
 
         // Calculate system contributions in residual form.
         r_const_cond_ref.GetValuesVector(mAdjointValues[thread_id]);
-        noalias(rRHS_Contribution) -= prod(rLHS_Contribution, mAdjointValues[thread_id]);
+        noalias(rRHSContribution) -= prod(rLHS_Contribution, mAdjointValues[thread_id]);
 
         r_const_cond_ref.EquationIdVector(rEquationId, rCurrentProcessInfo);
 
@@ -254,7 +254,7 @@ public:
 
     void CalculateRHSContribution(
         Condition& rCurrentCondition,
-        LocalSystemVectorType& rRHS_Contribution,
+        LocalSystemVectorType& rRHSContribution,
         Condition::EquationIdVectorType& rEquationId,
         const ProcessInfo& rCurrentProcessInfo) override
     {
@@ -265,17 +265,17 @@ public:
 
         rCurrentCondition.CalculateLeftHandSide(lhs, rCurrentProcessInfo);
 
-        if (rRHS_Contribution.size() != lhs.size1())
-            rRHS_Contribution.resize(lhs.size1(), false);
+        if (rRHSContribution.size() != lhs.size1())
+            rRHSContribution.resize(lhs.size1(), false);
 
         mpResponseFunction->CalculateGradient(
-            rCurrentCondition, lhs, rRHS_Contribution, rCurrentProcessInfo);
+            rCurrentCondition, lhs, rRHSContribution, rCurrentProcessInfo);
 
-        noalias(rRHS_Contribution) = -rRHS_Contribution;
+        noalias(rRHSContribution) = -rRHSContribution;
 
         // Calculate system contributions in residual form.
         r_const_elem_ref.GetValuesVector(mAdjointValues[thread_id]);
-        noalias(rRHS_Contribution) -= prod(lhs, mAdjointValues[thread_id]);
+        noalias(rRHSContribution) -= prod(lhs, mAdjointValues[thread_id]);
 
         r_const_elem_ref.EquationIdVector(rEquationId, rCurrentProcessInfo);
     }

@@ -17,7 +17,7 @@
 
 // Project includes
 #include "custom_elements/geo_linear_truss_element_base.hpp"
-#include "custom_utilities/structural_mechanics_element_utilities.h"
+#include "../StructuralMechanicsApplication/custom_utilities/structural_mechanics_element_utilities.h"
 #include "geo_mechanics_application_variables.h"
 #include "includes/define.h"
 
@@ -51,7 +51,7 @@ Element::Pointer GeoTrussElementLinearBase<TDim, TNumNodes>::Create(IndexType Ne
 
 //----------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
-Element::Pointer GeoTrussElementLinearBase<TDim, TNumNodes>::Create(IndexType NewId,
+Element::Pointer GeoTrussElementLinearBase<TDim, TNumNodes>::Create(IndexType             NewId,
                                                                     GeometryType::Pointer pGeom,
                                                                     PropertiesType::Pointer pProperties) const
 {
@@ -155,7 +155,7 @@ void GeoTrussElementLinearBase<TDim, TNumNodes>::CalculateOnIntegrationPoints(
 
     if (rVariable == FORCE) {
         BoundedVector<double, TDim> truss_forces = ZeroVector(TDim);
-        const double A                           = this->GetProperties()[CROSS_AREA];
+        const double                A            = this->GetProperties()[CROSS_AREA];
 
         double prestress = 0.00;
         if (this->GetProperties().Has(TRUSS_PRESTRESS_PK2)) {
@@ -250,9 +250,9 @@ double GeoTrussElementLinearBase<TDim, TNumNodes>::CalculateLinearStrain()
 
     double length_0;
     if constexpr (TDim == 2) {
-        length_0 = GeoStructuralMechanicsElementUtilities::CalculateReferenceLength2D2N(*this);
+        length_0 = StructuralMechanicsElementUtilities::CalculateReferenceLength2D2N(*this);
     } else if constexpr (TDim == 3) {
-        length_0 = GeoStructuralMechanicsElementUtilities::CalculateReferenceLength3D2N(*this);
+        length_0 = StructuralMechanicsElementUtilities::CalculateReferenceLength3D2N(*this);
     } else {
         KRATOS_ERROR << "Dimension of truss element should be either 2D or 3D" << std::endl;
     }

@@ -160,7 +160,7 @@ class DamageDetectionResponse(ResponseFunction):
                 sensitivity_variable = Kratos.KratosGlobals.GetVariable(f"{physical_variable.Name()}_SENSITIVITY")
                 for container_expression in collective_expression.GetContainerExpressions():
                     container_expression.SetExpression((container_expression.GetExpression() - sensitivities[sensitivity_variable].GetExpression() * test_case_weight))
-                    container_expression.SetExpression(container_expression.Flatten().GetExpression())
+                    container_expression.SetExpression(Kratos.Expression.Utils.Collapse(container_expression).GetExpression())
 
     def __GetSensor(self, sensor_name: str) -> KratosDT.Sensors.Sensor:
         return self.sensor_name_dict[sensor_name]

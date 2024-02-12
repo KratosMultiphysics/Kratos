@@ -45,6 +45,11 @@ const std::vector<std::size_t> UnaryAbsExpression::GetItemShape() const
     return mpSourceExpression->GetItemShape();
 }
 
+std::size_t UnaryAbsExpression::GetMaxDepth() const
+{
+    return mpSourceExpression->GetMaxDepth() + 1;
+}
+
 std::string UnaryAbsExpression::Info() const
 {
     std::stringstream msg;

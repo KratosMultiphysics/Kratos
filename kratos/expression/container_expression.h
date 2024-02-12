@@ -223,6 +223,15 @@ public:
     const TContainerType& GetContainer() const;
 
     /**
+     * @brief Get the Max Depth of the lazy expression tree.
+     *
+     * Returns the maximum depth of the lazy expression tree.
+     *
+     * @return IndexType Max depth of the lazy expression tree.
+     */
+    IndexType GetMaxDepth() const;
+
+    /**
      * @brief Get the info string
      *
      * @return std::string
@@ -240,53 +249,6 @@ public:
     ///@name Public operators
     ///@{
 
-    /**
-     * @brief Returns a flattened container expression.
-     *
-     * This returns a flattened container expression (which does not include any
-     * combination of any Expression except for a LiteralFlatExpression). A
-     * LiteralFlatExpression is created. The data represented by the underlying Expression
-     * in this ContainerExpression is put on that LiteralFlatExpression. Shape of the
-     * original ContainerExpression is preserved.
-     *
-     * @return ContainerExpression          Returns a flattened container expression.
-     */
-    ContainerExpression Flatten() const;
-
-    /** @brief Returns a slice of the provided expression. Slicing is based on item components.
-     *  @details @see Kratos::Slice.
-     *  @param Offset Offset of the component to start slicing at.
-     *  @param Stride Number of components from the offset in the sliced entity.
-     */
-    ContainerExpression Slice(IndexType Offset, IndexType Stride) const;
-
-    /** @brief Define a new shape for an otherwise identical expression.
-     *  @details @see Kratos::Reshape
-     *  @param rNewShape New shape to used to reshape the existing expression.
-     */
-    ContainerExpression Reshape(const std::vector<IndexType>& rNewShape) const;
-
-    /** @brief Append the components of an expression to the current expression's components.
-     *  @details @see Kratos::Comb.
-     *  @param rOther Expression to comb components from.
-     */
-    ContainerExpression Comb(const ContainerExpression& rOther) const;
-
-    /** @brief Append the components of a set of expressions to the current expression's components.
-     *  @details @see Kratos::Comb.
-     *  @param rOthers Expressions to comb components from.
-     */
-    ContainerExpression Comb(const std::vector<Pointer>& rOthers) const;
-
-    /**
-     * @brief Returns a ContainerExpression having absolute values in all components.
-     *
-     * The ItemShape, number of entities are preserved.
-     *
-     * @return ContainerExpression  Expression with absolute values.
-     */
-    ContainerExpression Abs() const;
-
     ContainerExpression& operator+=(const double Value);
 
     ContainerExpression& operator+=(const ContainerExpression& Value);
@@ -302,12 +264,6 @@ public:
     ContainerExpression& operator/=(const double Value);
 
     ContainerExpression& operator/=(const ContainerExpression& Value);
-
-    ContainerExpression& Power(const double Value);
-
-    ContainerExpression& Power(const ContainerExpression& Value);
-
-    ContainerExpression& Scale(const ContainerExpression& Value);
 
     ///@}
 protected:

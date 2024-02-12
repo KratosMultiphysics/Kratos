@@ -62,7 +62,7 @@ void LinearElastic2DBeamLaw::CalculateElasticMatrix(Matrix& C, ConstitutiveLaw::
         K = rMaterialProperties[PLATE_SHAPE_CORRECTION_FACTOR];
     }
 
-    this->CheckClearElasticMatrix(C);
+    C = ZeroMatrix(GetStrainSize(), GetStrainSize());
 
     const double c0 = E / (1.0 - NU*NU);
     const double G  = E / (2.0 * (1.0 + NU));
