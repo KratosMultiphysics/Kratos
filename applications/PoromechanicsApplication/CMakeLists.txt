@@ -77,9 +77,9 @@ set( KRATOS_POROMECHANICS_APPLICATION_CORE_SOURCES
 
     # Elements
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/one-phase_flow/U_Pl_element.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/one-phase_flow/U_Pl_Pg_element.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/two-phase_flow/U_Pl_Pg_element.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/one-phase_flow/U_Pl_small_strain_element.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/one-phase_flow/U_Pl_Pg_small_strain_element.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/two-phase_flow/U_Pl_Pg_small_strain_element.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/one-phase_flow/U_Pl_small_strain_interface_element.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/one-phase_flow/U_Pl_small_strain_link_interface_element.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/one-phase_flow/U_Pl_small_strain_FIC_element.cpp
@@ -102,14 +102,14 @@ set( KRATOS_POROMECHANICS_APPLICATION_CORE_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/one-phase_flow/surface_load_3D_diff_order_condition.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/one-phase_flow/surface_normal_load_3D_diff_order_condition.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/one-phase_flow/surface_normal_liquid_flux_3D_diff_order_condition.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/one-phase_flow/multiphase_flow/U_Pl_Pg_condition.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/one-phase_flow/multiphase_flow/U_Pl_Pg_face_load_condition.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/one-phase_flow/multiphase_flow/U_Pl_Pg_face_load_interface_condition.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/one-phase_flow/multiphase_flow/U_Pl_Pg_normal_face_load_condition.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/one-phase_flow/multiphase_flow/U_Pl_Pg_normal_liquid_flux_condition.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/one-phase_flow/multiphase_flow/U_Pl_Pg_normal_gas_flux_condition.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/one-phase_flow/multiphase_flow/U_Pl_Pg_normal_liquid_flux_interface_condition.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/one-phase_flow/multiphase_flow/U_Pl_Pg_normal_gas_flux_interface_condition.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/two-phase_flow/U_Pl_Pg_condition.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/two-phase_flow/U_Pl_Pg_face_load_condition.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/two-phase_flow/U_Pl_Pg_face_load_interface_condition.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/two-phase_flow/U_Pl_Pg_normal_face_load_condition.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/two-phase_flow/U_Pl_Pg_normal_liquid_flux_condition.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/two-phase_flow/U_Pl_Pg_normal_gas_flux_condition.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/two-phase_flow/U_Pl_Pg_normal_liquid_flux_interface_condition.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/two-phase_flow/U_Pl_Pg_normal_gas_flux_interface_condition.cpp
     
 )
 

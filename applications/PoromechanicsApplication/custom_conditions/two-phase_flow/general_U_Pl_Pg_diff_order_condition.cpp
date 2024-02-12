@@ -16,7 +16,7 @@
 #include "geometries/quadrilateral_3d_4.h"
 
 // Project includes
-#include "custom_conditions/two-phase_flow/multiphase_flow/general_U_Pl_Pg_diff_order_condition.hpp"
+#include "custom_conditions/two-phase_flow/general_U_Pl_Pg_diff_order_condition.hpp"
 
 namespace Kratos
 {

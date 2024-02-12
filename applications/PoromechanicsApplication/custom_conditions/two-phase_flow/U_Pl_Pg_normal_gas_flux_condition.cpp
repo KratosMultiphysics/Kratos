@@ -13,7 +13,7 @@
 
 
 // Application includes
-#include "custom_conditions/two-phase_flow/multiphase_flow/U_Pl_Pg_normal_gas_flux_condition.hpp"
+#include "custom_conditions/two-phase_flow/U_Pl_Pg_normal_gas_flux_condition.hpp"
 
 namespace Kratos
 {
