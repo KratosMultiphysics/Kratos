@@ -48,83 +48,83 @@ namespace Kratos
 KratosPoromechanicsApplication::KratosPoromechanicsApplication()
     : KratosApplication("PoromechanicsApplication"),
 
-    mUPwSmallStrainElement2D3N( 0, Element::GeometryType::Pointer( new Triangle2D3 <Node >( Element::GeometryType::PointsArrayType(3)))),
-    mUPwSmallStrainElement2D4N( 0, Element::GeometryType::Pointer( new Quadrilateral2D4 <Node >( Element::GeometryType::PointsArrayType(4)))),
-    mUPwSmallStrainElement3D4N( 0, Element::GeometryType::Pointer( new Tetrahedra3D4 <Node >( Element::GeometryType::PointsArrayType(4)))),
-    mUPwSmallStrainElement3D8N( 0, Element::GeometryType::Pointer( new Hexahedra3D8 <Node >( Element::GeometryType::PointsArrayType(8)))),
+    mUPlSmallStrainElement2D3N( 0, Element::GeometryType::Pointer( new Triangle2D3 <Node >( Element::GeometryType::PointsArrayType(3)))),
+    mUPlSmallStrainElement2D4N( 0, Element::GeometryType::Pointer( new Quadrilateral2D4 <Node >( Element::GeometryType::PointsArrayType(4)))),
+    mUPlSmallStrainElement3D4N( 0, Element::GeometryType::Pointer( new Tetrahedra3D4 <Node >( Element::GeometryType::PointsArrayType(4)))),
+    mUPlSmallStrainElement3D8N( 0, Element::GeometryType::Pointer( new Hexahedra3D8 <Node >( Element::GeometryType::PointsArrayType(8)))),
 
-    mUPwPgSmallStrainElement2D3N( 0, Element::GeometryType::Pointer( new Triangle2D3 <Node >( Element::GeometryType::PointsArrayType(3)))),
-    mUPwPgSmallStrainElement2D4N( 0, Element::GeometryType::Pointer( new Quadrilateral2D4 <Node >( Element::GeometryType::PointsArrayType(4)))),
-    mUPwPgSmallStrainElement3D4N( 0, Element::GeometryType::Pointer( new Tetrahedra3D4 <Node >( Element::GeometryType::PointsArrayType(4)))),
-    mUPwPgSmallStrainElement3D8N( 0, Element::GeometryType::Pointer( new Hexahedra3D8 <Node >( Element::GeometryType::PointsArrayType(8)))),
+    mUPlPgSmallStrainElement2D3N( 0, Element::GeometryType::Pointer( new Triangle2D3 <Node >( Element::GeometryType::PointsArrayType(3)))),
+    mUPlPgSmallStrainElement2D4N( 0, Element::GeometryType::Pointer( new Quadrilateral2D4 <Node >( Element::GeometryType::PointsArrayType(4)))),
+    mUPlPgSmallStrainElement3D4N( 0, Element::GeometryType::Pointer( new Tetrahedra3D4 <Node >( Element::GeometryType::PointsArrayType(4)))),
+    mUPlPgSmallStrainElement3D8N( 0, Element::GeometryType::Pointer( new Hexahedra3D8 <Node >( Element::GeometryType::PointsArrayType(8)))),
 
-    mUPwSmallStrainInterfaceElement2D4N( 0, Element::GeometryType::Pointer( new QuadrilateralInterface2D4 <Node >( Element::GeometryType::PointsArrayType(4)))),
-    mUPwSmallStrainInterfaceElement3D6N( 0, Element::GeometryType::Pointer( new PrismInterface3D6 <Node >( Element::GeometryType::PointsArrayType(6)))),
-    mUPwSmallStrainInterfaceElement3D8N( 0, Element::GeometryType::Pointer( new HexahedraInterface3D8 <Node >( Element::GeometryType::PointsArrayType(8)))),
+    mUPlSmallStrainInterfaceElement2D4N( 0, Element::GeometryType::Pointer( new QuadrilateralInterface2D4 <Node >( Element::GeometryType::PointsArrayType(4)))),
+    mUPlSmallStrainInterfaceElement3D6N( 0, Element::GeometryType::Pointer( new PrismInterface3D6 <Node >( Element::GeometryType::PointsArrayType(6)))),
+    mUPlSmallStrainInterfaceElement3D8N( 0, Element::GeometryType::Pointer( new HexahedraInterface3D8 <Node >( Element::GeometryType::PointsArrayType(8)))),
 
-    mUPwPgSmallStrainInterfaceElement2D4N( 0, Element::GeometryType::Pointer( new QuadrilateralInterface2D4 <Node >( Element::GeometryType::PointsArrayType(4)))),
-    mUPwPgSmallStrainInterfaceElement3D6N( 0, Element::GeometryType::Pointer( new PrismInterface3D6 <Node >( Element::GeometryType::PointsArrayType(6)))),
-    mUPwPgSmallStrainInterfaceElement3D8N( 0, Element::GeometryType::Pointer( new HexahedraInterface3D8 <Node >( Element::GeometryType::PointsArrayType(8)))),
+    mUPlPgSmallStrainInterfaceElement2D4N( 0, Element::GeometryType::Pointer( new QuadrilateralInterface2D4 <Node >( Element::GeometryType::PointsArrayType(4)))),
+    mUPlPgSmallStrainInterfaceElement3D6N( 0, Element::GeometryType::Pointer( new PrismInterface3D6 <Node >( Element::GeometryType::PointsArrayType(6)))),
+    mUPlPgSmallStrainInterfaceElement3D8N( 0, Element::GeometryType::Pointer( new HexahedraInterface3D8 <Node >( Element::GeometryType::PointsArrayType(8)))),
 
-    mUPwSmallStrainLinkInterfaceElement2D4N( 0, Element::GeometryType::Pointer( new QuadrilateralInterface2D4 <Node >( Element::GeometryType::PointsArrayType(4)))),
-    mUPwSmallStrainLinkInterfaceElement3D6N( 0, Element::GeometryType::Pointer( new PrismInterface3D6 <Node >( Element::GeometryType::PointsArrayType(6)))),
-    mUPwSmallStrainLinkInterfaceElement3D8N( 0, Element::GeometryType::Pointer( new HexahedraInterface3D8 <Node >( Element::GeometryType::PointsArrayType(8)))),
+    mUPlSmallStrainLinkInterfaceElement2D4N( 0, Element::GeometryType::Pointer( new QuadrilateralInterface2D4 <Node >( Element::GeometryType::PointsArrayType(4)))),
+    mUPlSmallStrainLinkInterfaceElement3D6N( 0, Element::GeometryType::Pointer( new PrismInterface3D6 <Node >( Element::GeometryType::PointsArrayType(6)))),
+    mUPlSmallStrainLinkInterfaceElement3D8N( 0, Element::GeometryType::Pointer( new HexahedraInterface3D8 <Node >( Element::GeometryType::PointsArrayType(8)))),
 
-    mUPwSmallStrainFICElement2D3N( 0, Element::GeometryType::Pointer( new Triangle2D3 <Node >( Element::GeometryType::PointsArrayType(3)))),
-    mUPwSmallStrainFICElement2D4N( 0, Element::GeometryType::Pointer( new Quadrilateral2D4 <Node >( Element::GeometryType::PointsArrayType(4)))),
-    mUPwSmallStrainFICElement3D4N( 0, Element::GeometryType::Pointer( new Tetrahedra3D4 <Node >( Element::GeometryType::PointsArrayType(4)))),
-    mUPwSmallStrainFICElement3D8N( 0, Element::GeometryType::Pointer( new Hexahedra3D8 <Node >( Element::GeometryType::PointsArrayType(8)))),
+    mUPlSmallStrainFICElement2D3N( 0, Element::GeometryType::Pointer( new Triangle2D3 <Node >( Element::GeometryType::PointsArrayType(3)))),
+    mUPlSmallStrainFICElement2D4N( 0, Element::GeometryType::Pointer( new Quadrilateral2D4 <Node >( Element::GeometryType::PointsArrayType(4)))),
+    mUPlSmallStrainFICElement3D4N( 0, Element::GeometryType::Pointer( new Tetrahedra3D4 <Node >( Element::GeometryType::PointsArrayType(4)))),
+    mUPlSmallStrainFICElement3D8N( 0, Element::GeometryType::Pointer( new Hexahedra3D8 <Node >( Element::GeometryType::PointsArrayType(8)))),
 
-    mSmallStrainUPwDiffOrderElement2D6N( 0, Element::GeometryType::Pointer( new Triangle2D6 <Node >( Element::GeometryType::PointsArrayType(6)))),
-    mSmallStrainUPwDiffOrderElement2D8N( 0, Element::GeometryType::Pointer( new Quadrilateral2D8 <Node >( Element::GeometryType::PointsArrayType(8)))),
-    mSmallStrainUPwDiffOrderElement2D9N( 0, Element::GeometryType::Pointer( new Quadrilateral2D9 <Node >( Element::GeometryType::PointsArrayType(9)))),
-    mSmallStrainUPwDiffOrderElement3D10N( 0, Element::GeometryType::Pointer( new Tetrahedra3D10 <Node >( Element::GeometryType::PointsArrayType(10)))),
-    mSmallStrainUPwDiffOrderElement3D20N( 0, Element::GeometryType::Pointer( new Hexahedra3D20 <Node >( Element::GeometryType::PointsArrayType(20)))),
-    mSmallStrainUPwDiffOrderElement3D27N( 0, Element::GeometryType::Pointer( new Hexahedra3D27 <Node >( Element::GeometryType::PointsArrayType(27)))),
+    mSmallStrainUPlDiffOrderElement2D6N( 0, Element::GeometryType::Pointer( new Triangle2D6 <Node >( Element::GeometryType::PointsArrayType(6)))),
+    mSmallStrainUPlDiffOrderElement2D8N( 0, Element::GeometryType::Pointer( new Quadrilateral2D8 <Node >( Element::GeometryType::PointsArrayType(8)))),
+    mSmallStrainUPlDiffOrderElement2D9N( 0, Element::GeometryType::Pointer( new Quadrilateral2D9 <Node >( Element::GeometryType::PointsArrayType(9)))),
+    mSmallStrainUPlDiffOrderElement3D10N( 0, Element::GeometryType::Pointer( new Tetrahedra3D10 <Node >( Element::GeometryType::PointsArrayType(10)))),
+    mSmallStrainUPlDiffOrderElement3D20N( 0, Element::GeometryType::Pointer( new Hexahedra3D20 <Node >( Element::GeometryType::PointsArrayType(20)))),
+    mSmallStrainUPlDiffOrderElement3D27N( 0, Element::GeometryType::Pointer( new Hexahedra3D27 <Node >( Element::GeometryType::PointsArrayType(27)))),
 
 
-    mUPwForceCondition2D1N( 0, Condition::GeometryType::Pointer( new Point2D<Node >( Condition::GeometryType::PointsArrayType(1)))),
-    mUPwForceCondition3D1N( 0, Condition::GeometryType::Pointer( new Point3D<Node >( Condition::GeometryType::PointsArrayType(1)))),
-    mUPwFaceLoadCondition2D2N( 0, Condition::GeometryType::Pointer( new Line2D2<Node >( Condition::GeometryType::PointsArrayType(2)))),
-    mUPwFaceLoadCondition3D3N( 0, Condition::GeometryType::Pointer( new Triangle3D3 <Node >( Condition::GeometryType::PointsArrayType(3)))),
-    mUPwFaceLoadCondition3D4N( 0, Condition::GeometryType::Pointer( new Quadrilateral3D4 <Node >( Condition::GeometryType::PointsArrayType(4)))),
-    mUPwNormalFaceLoadCondition2D2N( 0, Condition::GeometryType::Pointer( new Line2D2<Node >( Condition::GeometryType::PointsArrayType(2)))),
-    mUPwNormalFaceLoadCondition3D3N( 0, Condition::GeometryType::Pointer( new Triangle3D3 <Node >( Condition::GeometryType::PointsArrayType(3)))),
-    mUPwNormalFaceLoadCondition3D4N( 0, Condition::GeometryType::Pointer( new Quadrilateral3D4 <Node >( Condition::GeometryType::PointsArrayType(4)))),
-    mUPwDischargeCondition2D1N( 0, Condition::GeometryType::Pointer( new Point2D<Node >( Condition::GeometryType::PointsArrayType(1)))),
-    mUPwDischargeCondition3D1N( 0, Condition::GeometryType::Pointer( new Point3D<Node >( Condition::GeometryType::PointsArrayType(1)))),
-    mUPwNormalLiquidFluxCondition2D2N( 0, Condition::GeometryType::Pointer( new Line2D2<Node >( Condition::GeometryType::PointsArrayType(2)))),
-    mUPwNormalLiquidFluxCondition3D3N( 0, Condition::GeometryType::Pointer( new Triangle3D3 <Node >( Condition::GeometryType::PointsArrayType(3)))),
-    mUPwNormalLiquidFluxCondition3D4N( 0, Condition::GeometryType::Pointer( new Quadrilateral3D4 <Node >( Condition::GeometryType::PointsArrayType(4)))),
+    mUPlForceCondition2D1N( 0, Condition::GeometryType::Pointer( new Point2D<Node >( Condition::GeometryType::PointsArrayType(1)))),
+    mUPlForceCondition3D1N( 0, Condition::GeometryType::Pointer( new Point3D<Node >( Condition::GeometryType::PointsArrayType(1)))),
+    mUPlFaceLoadCondition2D2N( 0, Condition::GeometryType::Pointer( new Line2D2<Node >( Condition::GeometryType::PointsArrayType(2)))),
+    mUPlFaceLoadCondition3D3N( 0, Condition::GeometryType::Pointer( new Triangle3D3 <Node >( Condition::GeometryType::PointsArrayType(3)))),
+    mUPlFaceLoadCondition3D4N( 0, Condition::GeometryType::Pointer( new Quadrilateral3D4 <Node >( Condition::GeometryType::PointsArrayType(4)))),
+    mUPlNormalFaceLoadCondition2D2N( 0, Condition::GeometryType::Pointer( new Line2D2<Node >( Condition::GeometryType::PointsArrayType(2)))),
+    mUPlNormalFaceLoadCondition3D3N( 0, Condition::GeometryType::Pointer( new Triangle3D3 <Node >( Condition::GeometryType::PointsArrayType(3)))),
+    mUPlNormalFaceLoadCondition3D4N( 0, Condition::GeometryType::Pointer( new Quadrilateral3D4 <Node >( Condition::GeometryType::PointsArrayType(4)))),
+    mUPlDischargeCondition2D1N( 0, Condition::GeometryType::Pointer( new Point2D<Node >( Condition::GeometryType::PointsArrayType(1)))),
+    mUPlDischargeCondition3D1N( 0, Condition::GeometryType::Pointer( new Point3D<Node >( Condition::GeometryType::PointsArrayType(1)))),
+    mUPlNormalLiquidFluxCondition2D2N( 0, Condition::GeometryType::Pointer( new Line2D2<Node >( Condition::GeometryType::PointsArrayType(2)))),
+    mUPlNormalLiquidFluxCondition3D3N( 0, Condition::GeometryType::Pointer( new Triangle3D3 <Node >( Condition::GeometryType::PointsArrayType(3)))),
+    mUPlNormalLiquidFluxCondition3D4N( 0, Condition::GeometryType::Pointer( new Quadrilateral3D4 <Node >( Condition::GeometryType::PointsArrayType(4)))),
 
-    mUPwPgFaceLoadCondition2D2N( 0, Condition::GeometryType::Pointer( new Line2D2<Node >( Condition::GeometryType::PointsArrayType(2)))),
-    mUPwPgFaceLoadCondition3D3N( 0, Condition::GeometryType::Pointer( new Triangle3D3 <Node >( Condition::GeometryType::PointsArrayType(3)))),
-    mUPwPgFaceLoadCondition3D4N( 0, Condition::GeometryType::Pointer( new Quadrilateral3D4 <Node >( Condition::GeometryType::PointsArrayType(4)))),
-    mUPwPgNormalFaceLoadCondition2D2N( 0, Condition::GeometryType::Pointer( new Line2D2<Node >( Condition::GeometryType::PointsArrayType(2)))),
-    mUPwPgNormalFaceLoadCondition3D3N( 0, Condition::GeometryType::Pointer( new Triangle3D3 <Node >( Condition::GeometryType::PointsArrayType(3)))),
-    mUPwPgNormalFaceLoadCondition3D4N( 0, Condition::GeometryType::Pointer( new Quadrilateral3D4 <Node >( Condition::GeometryType::PointsArrayType(4)))),
-    mUPwPgNormalLiquidFluxCondition2D2N( 0, Condition::GeometryType::Pointer( new Line2D2<Node >( Condition::GeometryType::PointsArrayType(2)))),
-    mUPwPgNormalLiquidFluxCondition3D3N( 0, Condition::GeometryType::Pointer( new Triangle3D3 <Node >( Condition::GeometryType::PointsArrayType(3)))),
-    mUPwPgNormalLiquidFluxCondition3D4N( 0, Condition::GeometryType::Pointer( new Quadrilateral3D4 <Node >( Condition::GeometryType::PointsArrayType(4)))),
-    mUPwPgNormalGasFluxCondition2D2N( 0, Condition::GeometryType::Pointer( new Line2D2<Node >( Condition::GeometryType::PointsArrayType(2)))),
-    mUPwPgNormalGasFluxCondition3D3N( 0, Condition::GeometryType::Pointer( new Triangle3D3 <Node >( Condition::GeometryType::PointsArrayType(3)))),
-    mUPwPgNormalGasFluxCondition3D4N( 0, Condition::GeometryType::Pointer( new Quadrilateral3D4 <Node >( Condition::GeometryType::PointsArrayType(4)))),
+    mUPlPgFaceLoadCondition2D2N( 0, Condition::GeometryType::Pointer( new Line2D2<Node >( Condition::GeometryType::PointsArrayType(2)))),
+    mUPlPgFaceLoadCondition3D3N( 0, Condition::GeometryType::Pointer( new Triangle3D3 <Node >( Condition::GeometryType::PointsArrayType(3)))),
+    mUPlPgFaceLoadCondition3D4N( 0, Condition::GeometryType::Pointer( new Quadrilateral3D4 <Node >( Condition::GeometryType::PointsArrayType(4)))),
+    mUPlPgNormalFaceLoadCondition2D2N( 0, Condition::GeometryType::Pointer( new Line2D2<Node >( Condition::GeometryType::PointsArrayType(2)))),
+    mUPlPgNormalFaceLoadCondition3D3N( 0, Condition::GeometryType::Pointer( new Triangle3D3 <Node >( Condition::GeometryType::PointsArrayType(3)))),
+    mUPlPgNormalFaceLoadCondition3D4N( 0, Condition::GeometryType::Pointer( new Quadrilateral3D4 <Node >( Condition::GeometryType::PointsArrayType(4)))),
+    mUPlPgNormalLiquidFluxCondition2D2N( 0, Condition::GeometryType::Pointer( new Line2D2<Node >( Condition::GeometryType::PointsArrayType(2)))),
+    mUPlPgNormalLiquidFluxCondition3D3N( 0, Condition::GeometryType::Pointer( new Triangle3D3 <Node >( Condition::GeometryType::PointsArrayType(3)))),
+    mUPlPgNormalLiquidFluxCondition3D4N( 0, Condition::GeometryType::Pointer( new Quadrilateral3D4 <Node >( Condition::GeometryType::PointsArrayType(4)))),
+    mUPlPgNormalGasFluxCondition2D2N( 0, Condition::GeometryType::Pointer( new Line2D2<Node >( Condition::GeometryType::PointsArrayType(2)))),
+    mUPlPgNormalGasFluxCondition3D3N( 0, Condition::GeometryType::Pointer( new Triangle3D3 <Node >( Condition::GeometryType::PointsArrayType(3)))),
+    mUPlPgNormalGasFluxCondition3D4N( 0, Condition::GeometryType::Pointer( new Quadrilateral3D4 <Node >( Condition::GeometryType::PointsArrayType(4)))),
 
-    mUPwFaceLoadInterfaceCondition2D2N( 0, Condition::GeometryType::Pointer( new Line2D2<Node >( Condition::GeometryType::PointsArrayType(2)))),
-    mUPwFaceLoadInterfaceCondition3D4N( 0, Condition::GeometryType::Pointer( new QuadrilateralInterface3D4 <Node >( Condition::GeometryType::PointsArrayType(4)))),
-    mUPwNormalLiquidFluxInterfaceCondition2D2N( 0, Condition::GeometryType::Pointer( new Line2D2<Node >( Condition::GeometryType::PointsArrayType(2)))),
-    mUPwNormalLiquidFluxInterfaceCondition3D4N( 0, Condition::GeometryType::Pointer( new QuadrilateralInterface3D4 <Node >( Condition::GeometryType::PointsArrayType(4)))),
+    mUPlFaceLoadInterfaceCondition2D2N( 0, Condition::GeometryType::Pointer( new Line2D2<Node >( Condition::GeometryType::PointsArrayType(2)))),
+    mUPlFaceLoadInterfaceCondition3D4N( 0, Condition::GeometryType::Pointer( new QuadrilateralInterface3D4 <Node >( Condition::GeometryType::PointsArrayType(4)))),
+    mUPlNormalLiquidFluxInterfaceCondition2D2N( 0, Condition::GeometryType::Pointer( new Line2D2<Node >( Condition::GeometryType::PointsArrayType(2)))),
+    mUPlNormalLiquidFluxInterfaceCondition3D4N( 0, Condition::GeometryType::Pointer( new QuadrilateralInterface3D4 <Node >( Condition::GeometryType::PointsArrayType(4)))),
 
-    mUPwPgFaceLoadInterfaceCondition2D2N( 0, Condition::GeometryType::Pointer( new Line2D2<Node >( Condition::GeometryType::PointsArrayType(2)))),
-    mUPwPgFaceLoadInterfaceCondition3D4N( 0, Condition::GeometryType::Pointer( new QuadrilateralInterface3D4 <Node >( Condition::GeometryType::PointsArrayType(4)))),
-    mUPwPgNormalLiquidFluxInterfaceCondition2D2N( 0, Condition::GeometryType::Pointer( new Line2D2<Node >( Condition::GeometryType::PointsArrayType(2)))),
-    mUPwPgNormalLiquidFluxInterfaceCondition3D4N( 0, Condition::GeometryType::Pointer( new QuadrilateralInterface3D4 <Node >( Condition::GeometryType::PointsArrayType(4)))),
-    mUPwPgNormalGasFluxInterfaceCondition2D2N( 0, Condition::GeometryType::Pointer( new Line2D2<Node >( Condition::GeometryType::PointsArrayType(2)))),
-    mUPwPgNormalGasFluxInterfaceCondition3D4N( 0, Condition::GeometryType::Pointer( new QuadrilateralInterface3D4 <Node >( Condition::GeometryType::PointsArrayType(4)))),
+    mUPlPgFaceLoadInterfaceCondition2D2N( 0, Condition::GeometryType::Pointer( new Line2D2<Node >( Condition::GeometryType::PointsArrayType(2)))),
+    mUPlPgFaceLoadInterfaceCondition3D4N( 0, Condition::GeometryType::Pointer( new QuadrilateralInterface3D4 <Node >( Condition::GeometryType::PointsArrayType(4)))),
+    mUPlPgNormalLiquidFluxInterfaceCondition2D2N( 0, Condition::GeometryType::Pointer( new Line2D2<Node >( Condition::GeometryType::PointsArrayType(2)))),
+    mUPlPgNormalLiquidFluxInterfaceCondition3D4N( 0, Condition::GeometryType::Pointer( new QuadrilateralInterface3D4 <Node >( Condition::GeometryType::PointsArrayType(4)))),
+    mUPlPgNormalGasFluxInterfaceCondition2D2N( 0, Condition::GeometryType::Pointer( new Line2D2<Node >( Condition::GeometryType::PointsArrayType(2)))),
+    mUPlPgNormalGasFluxInterfaceCondition3D4N( 0, Condition::GeometryType::Pointer( new QuadrilateralInterface3D4 <Node >( Condition::GeometryType::PointsArrayType(4)))),
 
-    mUPwNormalLiquidFluxFICCondition2D2N( 0, Condition::GeometryType::Pointer( new Line2D2<Node >( Condition::GeometryType::PointsArrayType(2)))),
-    mUPwNormalLiquidFluxFICCondition3D3N( 0, Condition::GeometryType::Pointer( new Triangle3D3 <Node >( Condition::GeometryType::PointsArrayType(3)))),
-    mUPwNormalLiquidFluxFICCondition3D4N( 0, Condition::GeometryType::Pointer( new Quadrilateral3D4 <Node >( Condition::GeometryType::PointsArrayType(4)))),
+    mUPlNormalLiquidFluxFICCondition2D2N( 0, Condition::GeometryType::Pointer( new Line2D2<Node >( Condition::GeometryType::PointsArrayType(2)))),
+    mUPlNormalLiquidFluxFICCondition3D3N( 0, Condition::GeometryType::Pointer( new Triangle3D3 <Node >( Condition::GeometryType::PointsArrayType(3)))),
+    mUPlNormalLiquidFluxFICCondition3D4N( 0, Condition::GeometryType::Pointer( new Quadrilateral3D4 <Node >( Condition::GeometryType::PointsArrayType(4)))),
 
     mLineLoadDiffOrderCondition2D3N( 0, Condition::GeometryType::Pointer( new Line2D3<Node >( Condition::GeometryType::PointsArrayType(3)))),
     mLineNormalLoadDiffOrderCondition2D3N( 0, Condition::GeometryType::Pointer( new Line2D3<Node >( Condition::GeometryType::PointsArrayType(3)))),
@@ -146,83 +146,83 @@ void KratosPoromechanicsApplication::Register()
     KRATOS_INFO("") << "Initializing KratosPoromechanicsApplication... " << std::endl;
 
     //Register Elements
-    KRATOS_REGISTER_ELEMENT( "UPwSmallStrainElement2D3N", mUPwSmallStrainElement2D3N )
-    KRATOS_REGISTER_ELEMENT( "UPwSmallStrainElement2D4N", mUPwSmallStrainElement2D4N )
-    KRATOS_REGISTER_ELEMENT( "UPwSmallStrainElement3D4N", mUPwSmallStrainElement3D4N )
-    KRATOS_REGISTER_ELEMENT( "UPwSmallStrainElement3D8N", mUPwSmallStrainElement3D8N )
+    KRATOS_REGISTER_ELEMENT( "UPlSmallStrainElement2D3N", mUPlSmallStrainElement2D3N )
+    KRATOS_REGISTER_ELEMENT( "UPlSmallStrainElement2D4N", mUPlSmallStrainElement2D4N )
+    KRATOS_REGISTER_ELEMENT( "UPlSmallStrainElement3D4N", mUPlSmallStrainElement3D4N )
+    KRATOS_REGISTER_ELEMENT( "UPlSmallStrainElement3D8N", mUPlSmallStrainElement3D8N )
 
-    KRATOS_REGISTER_ELEMENT( "UPwPgSmallStrainElement2D3N", mUPwPgSmallStrainElement2D3N )
-    KRATOS_REGISTER_ELEMENT( "UPwPgSmallStrainElement2D4N", mUPwPgSmallStrainElement2D4N )
-    KRATOS_REGISTER_ELEMENT( "UPwPgSmallStrainElement3D4N", mUPwPgSmallStrainElement3D4N )
-    KRATOS_REGISTER_ELEMENT( "UPwPgSmallStrainElement3D8N", mUPwPgSmallStrainElement3D8N )
+    KRATOS_REGISTER_ELEMENT( "UPlPgSmallStrainElement2D3N", mUPlPgSmallStrainElement2D3N )
+    KRATOS_REGISTER_ELEMENT( "UPlPgSmallStrainElement2D4N", mUPlPgSmallStrainElement2D4N )
+    KRATOS_REGISTER_ELEMENT( "UPlPgSmallStrainElement3D4N", mUPlPgSmallStrainElement3D4N )
+    KRATOS_REGISTER_ELEMENT( "UPlPgSmallStrainElement3D8N", mUPlPgSmallStrainElement3D8N )
 
-    KRATOS_REGISTER_ELEMENT( "UPwSmallStrainInterfaceElement2D4N", mUPwSmallStrainInterfaceElement2D4N )
-    KRATOS_REGISTER_ELEMENT( "UPwSmallStrainInterfaceElement3D6N", mUPwSmallStrainInterfaceElement3D6N )
-    KRATOS_REGISTER_ELEMENT( "UPwSmallStrainInterfaceElement3D8N", mUPwSmallStrainInterfaceElement3D8N )
+    KRATOS_REGISTER_ELEMENT( "UPlSmallStrainInterfaceElement2D4N", mUPlSmallStrainInterfaceElement2D4N )
+    KRATOS_REGISTER_ELEMENT( "UPlSmallStrainInterfaceElement3D6N", mUPlSmallStrainInterfaceElement3D6N )
+    KRATOS_REGISTER_ELEMENT( "UPlSmallStrainInterfaceElement3D8N", mUPlSmallStrainInterfaceElement3D8N )
 
-    KRATOS_REGISTER_ELEMENT( "UPwPgSmallStrainInterfaceElement2D4N", mUPwSmallStrainInterfaceElement2D4N )
-    KRATOS_REGISTER_ELEMENT( "UPwPgSmallStrainInterfaceElement3D6N", mUPwSmallStrainInterfaceElement3D6N )
-    KRATOS_REGISTER_ELEMENT( "UPwPgSmallStrainInterfaceElement3D8N", mUPwSmallStrainInterfaceElement3D8N )
+    KRATOS_REGISTER_ELEMENT( "UPlPgSmallStrainInterfaceElement2D4N", mUPlSmallStrainInterfaceElement2D4N )
+    KRATOS_REGISTER_ELEMENT( "UPlPgSmallStrainInterfaceElement3D6N", mUPlSmallStrainInterfaceElement3D6N )
+    KRATOS_REGISTER_ELEMENT( "UPlPgSmallStrainInterfaceElement3D8N", mUPlSmallStrainInterfaceElement3D8N )
 
-    KRATOS_REGISTER_ELEMENT( "UPwSmallStrainLinkInterfaceElement2D4N", mUPwSmallStrainLinkInterfaceElement2D4N )
-    KRATOS_REGISTER_ELEMENT( "UPwSmallStrainLinkInterfaceElement3D6N", mUPwSmallStrainLinkInterfaceElement3D6N )
-    KRATOS_REGISTER_ELEMENT( "UPwSmallStrainLinkInterfaceElement3D8N", mUPwSmallStrainLinkInterfaceElement3D8N )
+    KRATOS_REGISTER_ELEMENT( "UPlSmallStrainLinkInterfaceElement2D4N", mUPlSmallStrainLinkInterfaceElement2D4N )
+    KRATOS_REGISTER_ELEMENT( "UPlSmallStrainLinkInterfaceElement3D6N", mUPlSmallStrainLinkInterfaceElement3D6N )
+    KRATOS_REGISTER_ELEMENT( "UPlSmallStrainLinkInterfaceElement3D8N", mUPlSmallStrainLinkInterfaceElement3D8N )
 
-    KRATOS_REGISTER_ELEMENT( "UPwSmallStrainFICElement2D3N", mUPwSmallStrainFICElement2D3N )
-    KRATOS_REGISTER_ELEMENT( "UPwSmallStrainFICElement2D4N", mUPwSmallStrainFICElement2D4N )
-    KRATOS_REGISTER_ELEMENT( "UPwSmallStrainFICElement3D4N", mUPwSmallStrainFICElement3D4N )
-    KRATOS_REGISTER_ELEMENT( "UPwSmallStrainFICElement3D8N", mUPwSmallStrainFICElement3D8N )
+    KRATOS_REGISTER_ELEMENT( "UPlSmallStrainFICElement2D3N", mUPlSmallStrainFICElement2D3N )
+    KRATOS_REGISTER_ELEMENT( "UPlSmallStrainFICElement2D4N", mUPlSmallStrainFICElement2D4N )
+    KRATOS_REGISTER_ELEMENT( "UPlSmallStrainFICElement3D4N", mUPlSmallStrainFICElement3D4N )
+    KRATOS_REGISTER_ELEMENT( "UPlSmallStrainFICElement3D8N", mUPlSmallStrainFICElement3D8N )
 
-    KRATOS_REGISTER_ELEMENT( "SmallStrainUPwDiffOrderElement2D6N", mSmallStrainUPwDiffOrderElement2D6N )
-    KRATOS_REGISTER_ELEMENT( "SmallStrainUPwDiffOrderElement2D8N", mSmallStrainUPwDiffOrderElement2D8N )
-    KRATOS_REGISTER_ELEMENT( "SmallStrainUPwDiffOrderElement2D9N", mSmallStrainUPwDiffOrderElement2D9N )
-    KRATOS_REGISTER_ELEMENT( "SmallStrainUPwDiffOrderElement3D10N", mSmallStrainUPwDiffOrderElement3D10N )
-    KRATOS_REGISTER_ELEMENT( "SmallStrainUPwDiffOrderElement3D20N", mSmallStrainUPwDiffOrderElement3D20N )
-    KRATOS_REGISTER_ELEMENT( "SmallStrainUPwDiffOrderElement3D27N", mSmallStrainUPwDiffOrderElement3D27N )
+    KRATOS_REGISTER_ELEMENT( "SmallStrainUPlDiffOrderElement2D6N", mSmallStrainUPlDiffOrderElement2D6N )
+    KRATOS_REGISTER_ELEMENT( "SmallStrainUPlDiffOrderElement2D8N", mSmallStrainUPlDiffOrderElement2D8N )
+    KRATOS_REGISTER_ELEMENT( "SmallStrainUPlDiffOrderElement2D9N", mSmallStrainUPlDiffOrderElement2D9N )
+    KRATOS_REGISTER_ELEMENT( "SmallStrainUPlDiffOrderElement3D10N", mSmallStrainUPlDiffOrderElement3D10N )
+    KRATOS_REGISTER_ELEMENT( "SmallStrainUPlDiffOrderElement3D20N", mSmallStrainUPlDiffOrderElement3D20N )
+    KRATOS_REGISTER_ELEMENT( "SmallStrainUPlDiffOrderElement3D27N", mSmallStrainUPlDiffOrderElement3D27N )
 
     //Register Conditions
-    KRATOS_REGISTER_CONDITION( "UPwForceCondition2D1N", mUPwForceCondition2D1N )
-    KRATOS_REGISTER_CONDITION( "UPwForceCondition3D1N", mUPwForceCondition3D1N )
-    KRATOS_REGISTER_CONDITION( "UPwFaceLoadCondition2D2N", mUPwFaceLoadCondition2D2N )
-    KRATOS_REGISTER_CONDITION( "UPwFaceLoadCondition3D3N", mUPwFaceLoadCondition3D3N )
-    KRATOS_REGISTER_CONDITION( "UPwFaceLoadCondition3D4N", mUPwFaceLoadCondition3D4N )
-    KRATOS_REGISTER_CONDITION( "UPwNormalFaceLoadCondition2D2N", mUPwNormalFaceLoadCondition2D2N )
-    KRATOS_REGISTER_CONDITION( "UPwNormalFaceLoadCondition3D3N", mUPwNormalFaceLoadCondition3D3N )
-    KRATOS_REGISTER_CONDITION( "UpwNormalFaceLoadCondition3D4N", mUPwNormalFaceLoadCondition3D4N )
-    KRATOS_REGISTER_CONDITION( "UPwDischargeCondition2D1N", mUPwDischargeCondition2D1N )
-    KRATOS_REGISTER_CONDITION( "UPwDischargeCondition3D1N", mUPwDischargeCondition3D1N )
-    KRATOS_REGISTER_CONDITION( "UPwNormalLiquidFluxCondition2D2N", mUPwNormalLiquidFluxCondition2D2N )
-    KRATOS_REGISTER_CONDITION( "UPwNormalLiquidFluxCondition3D3N", mUPwNormalLiquidFluxCondition3D3N )
-    KRATOS_REGISTER_CONDITION( "UPwNormalLiquidFluxCondition3D4N", mUPwNormalLiquidFluxCondition3D4N )
+    KRATOS_REGISTER_CONDITION( "UPlForceCondition2D1N", mUPlForceCondition2D1N )
+    KRATOS_REGISTER_CONDITION( "UPlForceCondition3D1N", mUPlForceCondition3D1N )
+    KRATOS_REGISTER_CONDITION( "UPlFaceLoadCondition2D2N", mUPlFaceLoadCondition2D2N )
+    KRATOS_REGISTER_CONDITION( "UPlFaceLoadCondition3D3N", mUPlFaceLoadCondition3D3N )
+    KRATOS_REGISTER_CONDITION( "UPlFaceLoadCondition3D4N", mUPlFaceLoadCondition3D4N )
+    KRATOS_REGISTER_CONDITION( "UPlNormalFaceLoadCondition2D2N", mUPlNormalFaceLoadCondition2D2N )
+    KRATOS_REGISTER_CONDITION( "UPlNormalFaceLoadCondition3D3N", mUPlNormalFaceLoadCondition3D3N )
+    KRATOS_REGISTER_CONDITION( "UpwNormalFaceLoadCondition3D4N", mUPlNormalFaceLoadCondition3D4N )
+    KRATOS_REGISTER_CONDITION( "UPlDischargeCondition2D1N", mUPlDischargeCondition2D1N )
+    KRATOS_REGISTER_CONDITION( "UPlDischargeCondition3D1N", mUPlDischargeCondition3D1N )
+    KRATOS_REGISTER_CONDITION( "UPlNormalLiquidFluxCondition2D2N", mUPlNormalLiquidFluxCondition2D2N )
+    KRATOS_REGISTER_CONDITION( "UPlNormalLiquidFluxCondition3D3N", mUPlNormalLiquidFluxCondition3D3N )
+    KRATOS_REGISTER_CONDITION( "UPlNormalLiquidFluxCondition3D4N", mUPlNormalLiquidFluxCondition3D4N )
 
-    KRATOS_REGISTER_CONDITION( "UPwPgFaceLoadCondition2D2N", mUPwPgFaceLoadCondition2D2N )
-    KRATOS_REGISTER_CONDITION( "UPwPgFaceLoadCondition3D3N", mUPwPgFaceLoadCondition3D3N )
-    KRATOS_REGISTER_CONDITION( "UPwPgFaceLoadCondition3D4N", mUPwPgFaceLoadCondition3D4N )
-    KRATOS_REGISTER_CONDITION( "UPwPgNormalFaceLoadCondition2D2N", mUPwPgNormalFaceLoadCondition2D2N )
-    KRATOS_REGISTER_CONDITION( "UPwPgNormalFaceLoadCondition3D3N", mUPwPgNormalFaceLoadCondition3D3N )
-    KRATOS_REGISTER_CONDITION( "UpwPgNormalFaceLoadCondition3D4N", mUPwPgNormalFaceLoadCondition3D4N )
-    KRATOS_REGISTER_CONDITION( "UPwPgNormalLiquidFluxCondition2D2N", mUPwPgNormalLiquidFluxCondition2D2N )
-    KRATOS_REGISTER_CONDITION( "UPwPgNormalLiquidFluxCondition3D3N", mUPwPgNormalLiquidFluxCondition3D3N )
-    KRATOS_REGISTER_CONDITION( "UPwPgNormalLiquidFluxCondition3D4N", mUPwPgNormalLiquidFluxCondition3D4N )
-    KRATOS_REGISTER_CONDITION( "UPwPgNormalGasFluxCondition2D2N", mUPwPgNormalLiquidFluxCondition2D2N )
-    KRATOS_REGISTER_CONDITION( "UPwPgNormalGasFluxCondition3D3N", mUPwPgNormalLiquidFluxCondition3D3N )
-    KRATOS_REGISTER_CONDITION( "UPwPgNormalGasFluxCondition3D4N", mUPwPgNormalLiquidFluxCondition3D4N )
+    KRATOS_REGISTER_CONDITION( "UPlPgFaceLoadCondition2D2N", mUPlPgFaceLoadCondition2D2N )
+    KRATOS_REGISTER_CONDITION( "UPlPgFaceLoadCondition3D3N", mUPlPgFaceLoadCondition3D3N )
+    KRATOS_REGISTER_CONDITION( "UPlPgFaceLoadCondition3D4N", mUPlPgFaceLoadCondition3D4N )
+    KRATOS_REGISTER_CONDITION( "UPlPgNormalFaceLoadCondition2D2N", mUPlPgNormalFaceLoadCondition2D2N )
+    KRATOS_REGISTER_CONDITION( "UPlPgNormalFaceLoadCondition3D3N", mUPlPgNormalFaceLoadCondition3D3N )
+    KRATOS_REGISTER_CONDITION( "UpwPgNormalFaceLoadCondition3D4N", mUPlPgNormalFaceLoadCondition3D4N )
+    KRATOS_REGISTER_CONDITION( "UPlPgNormalLiquidFluxCondition2D2N", mUPlPgNormalLiquidFluxCondition2D2N )
+    KRATOS_REGISTER_CONDITION( "UPlPgNormalLiquidFluxCondition3D3N", mUPlPgNormalLiquidFluxCondition3D3N )
+    KRATOS_REGISTER_CONDITION( "UPlPgNormalLiquidFluxCondition3D4N", mUPlPgNormalLiquidFluxCondition3D4N )
+    KRATOS_REGISTER_CONDITION( "UPlPgNormalGasFluxCondition2D2N", mUPlPgNormalLiquidFluxCondition2D2N )
+    KRATOS_REGISTER_CONDITION( "UPlPgNormalGasFluxCondition3D3N", mUPlPgNormalLiquidFluxCondition3D3N )
+    KRATOS_REGISTER_CONDITION( "UPlPgNormalGasFluxCondition3D4N", mUPlPgNormalLiquidFluxCondition3D4N )
 
-    KRATOS_REGISTER_CONDITION( "UPwFaceLoadInterfaceCondition2D2N", mUPwFaceLoadInterfaceCondition2D2N )
-    KRATOS_REGISTER_CONDITION( "UPwFaceLoadInterfaceCondition3D4N", mUPwFaceLoadInterfaceCondition3D4N )
-    KRATOS_REGISTER_CONDITION( "UPwNormalLiquidFluxInterfaceCondition2D2N", mUPwNormalLiquidFluxInterfaceCondition2D2N )
-    KRATOS_REGISTER_CONDITION( "UPwNormalLiquidFluxInterfaceCondition3D4N", mUPwNormalLiquidFluxInterfaceCondition3D4N )
+    KRATOS_REGISTER_CONDITION( "UPlFaceLoadInterfaceCondition2D2N", mUPlFaceLoadInterfaceCondition2D2N )
+    KRATOS_REGISTER_CONDITION( "UPlFaceLoadInterfaceCondition3D4N", mUPlFaceLoadInterfaceCondition3D4N )
+    KRATOS_REGISTER_CONDITION( "UPlNormalLiquidFluxInterfaceCondition2D2N", mUPlNormalLiquidFluxInterfaceCondition2D2N )
+    KRATOS_REGISTER_CONDITION( "UPlNormalLiquidFluxInterfaceCondition3D4N", mUPlNormalLiquidFluxInterfaceCondition3D4N )
 
-    KRATOS_REGISTER_CONDITION( "UPwPgFaceLoadInterfaceCondition2D2N", mUPwPgFaceLoadInterfaceCondition2D2N )
-    KRATOS_REGISTER_CONDITION( "UPwPgFaceLoadInterfaceCondition3D4N", mUPwPgFaceLoadInterfaceCondition3D4N )
-    KRATOS_REGISTER_CONDITION( "UPwPgNormalLiquidFluxInterfaceCondition2D2N", mUPwPgNormalLiquidFluxInterfaceCondition2D2N )
-    KRATOS_REGISTER_CONDITION( "UPwPgNormalLiquidFluxInterfaceCondition3D4N", mUPwPgNormalLiquidFluxInterfaceCondition3D4N )
-    KRATOS_REGISTER_CONDITION( "UPwPgNormalGasFluxInterfaceCondition2D2N", mUPwPgNormalLiquidFluxInterfaceCondition2D2N )
-    KRATOS_REGISTER_CONDITION( "UPwPgNormalGasFluxInterfaceCondition3D4N", mUPwPgNormalLiquidFluxInterfaceCondition3D4N )
+    KRATOS_REGISTER_CONDITION( "UPlPgFaceLoadInterfaceCondition2D2N", mUPlPgFaceLoadInterfaceCondition2D2N )
+    KRATOS_REGISTER_CONDITION( "UPlPgFaceLoadInterfaceCondition3D4N", mUPlPgFaceLoadInterfaceCondition3D4N )
+    KRATOS_REGISTER_CONDITION( "UPlPgNormalLiquidFluxInterfaceCondition2D2N", mUPlPgNormalLiquidFluxInterfaceCondition2D2N )
+    KRATOS_REGISTER_CONDITION( "UPlPgNormalLiquidFluxInterfaceCondition3D4N", mUPlPgNormalLiquidFluxInterfaceCondition3D4N )
+    KRATOS_REGISTER_CONDITION( "UPlPgNormalGasFluxInterfaceCondition2D2N", mUPlPgNormalLiquidFluxInterfaceCondition2D2N )
+    KRATOS_REGISTER_CONDITION( "UPlPgNormalGasFluxInterfaceCondition3D4N", mUPlPgNormalLiquidFluxInterfaceCondition3D4N )
 
-    KRATOS_REGISTER_CONDITION( "UPwNormalLiquidFluxFICCondition2D2N", mUPwNormalLiquidFluxFICCondition2D2N )
-    KRATOS_REGISTER_CONDITION( "UPwNormalLiquidFluxFICCondition3D3N", mUPwNormalLiquidFluxFICCondition3D3N )
-    KRATOS_REGISTER_CONDITION( "UPwNormalLiquidFluxFICCondition3D4N", mUPwNormalLiquidFluxFICCondition3D4N )
+    KRATOS_REGISTER_CONDITION( "UPlNormalLiquidFluxFICCondition2D2N", mUPlNormalLiquidFluxFICCondition2D2N )
+    KRATOS_REGISTER_CONDITION( "UPlNormalLiquidFluxFICCondition3D3N", mUPlNormalLiquidFluxFICCondition3D3N )
+    KRATOS_REGISTER_CONDITION( "UPlNormalLiquidFluxFICCondition3D4N", mUPlNormalLiquidFluxFICCondition3D4N )
 
     KRATOS_REGISTER_CONDITION( "LineLoadDiffOrderCondition2D3N", mLineLoadDiffOrderCondition2D3N )
     KRATOS_REGISTER_CONDITION( "LineNormalLoadDiffOrderCondition2D3N", mLineNormalLoadDiffOrderCondition2D3N )
@@ -295,7 +295,8 @@ void KratosPoromechanicsApplication::Register()
     KRATOS_REGISTER_VARIABLE( DT_GAS_PRESSURE )
     KRATOS_REGISTER_VARIABLE( NORMAL_LIQUID_FLUX )
     KRATOS_REGISTER_VARIABLE( NORMAL_GAS_FLUX )
-    KRATOS_REGISTER_VARIABLE( DISCHARGE )
+    KRATOS_REGISTER_VARIABLE( LIQUID_DISCHARGE )
+    KRATOS_REGISTER_VARIABLE( GAS_DISCHARGE )
 
     KRATOS_REGISTER_VARIABLE( DENSITY_SOLID )
     KRATOS_REGISTER_VARIABLE( DENSITY_LIQUID )

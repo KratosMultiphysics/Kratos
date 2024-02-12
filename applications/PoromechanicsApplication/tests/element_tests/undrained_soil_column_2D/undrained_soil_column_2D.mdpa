@@ -152,7 +152,7 @@ Begin Nodes
 End Nodes
 
 
-Begin Elements SmallStrainUPwDiffOrderElement2D9N
+Begin Elements SmallStrainUPlDiffOrderElement2D9N
   1  0  123 117 115 121 120 116 118 122 119
   2  0  117 111 109 115 114 110 112 116 113
   3  0  111 105 103 109 108 104 106 110 107

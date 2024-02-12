@@ -26,34 +26,34 @@
 // Application includes
 #include "poromechanics_application_variables.h"
 
-#include "custom_conditions/U_Pw_force_condition.hpp"
-#include "custom_conditions/U_Pw_face_load_condition.hpp"
-#include "custom_conditions/U_Pw_normal_face_load_condition.hpp"
-#include "custom_conditions/U_Pw_discharge_condition.hpp"
-#include "custom_conditions/U_Pw_normal_liquid_flux_condition.hpp"
-#include "custom_conditions/U_Pw_normal_liquid_flux_FIC_condition.hpp"
-#include "custom_conditions/U_Pw_face_load_interface_condition.hpp"
-#include "custom_conditions/U_Pw_normal_liquid_flux_interface_condition.hpp"
+#include "custom_conditions/U_Pl_force_condition.hpp"
+#include "custom_conditions/U_Pl_face_load_condition.hpp"
+#include "custom_conditions/U_Pl_normal_face_load_condition.hpp"
+#include "custom_conditions/U_Pl_discharge_condition.hpp"
+#include "custom_conditions/U_Pl_normal_liquid_flux_condition.hpp"
+#include "custom_conditions/U_Pl_normal_liquid_flux_FIC_condition.hpp"
+#include "custom_conditions/U_Pl_face_load_interface_condition.hpp"
+#include "custom_conditions/U_Pl_normal_liquid_flux_interface_condition.hpp"
 #include "custom_conditions/line_load_2D_diff_order_condition.hpp"
 #include "custom_conditions/line_normal_load_2D_diff_order_condition.hpp"
 #include "custom_conditions/line_normal_liquid_flux_2D_diff_order_condition.hpp"
 #include "custom_conditions/surface_load_3D_diff_order_condition.hpp"
 #include "custom_conditions/surface_normal_load_3D_diff_order_condition.hpp"
 #include "custom_conditions/surface_normal_liquid_flux_3D_diff_order_condition.hpp"
-#include "custom_conditions/multiphase_flow/U_Pw_Pg_face_load_condition.hpp"
-#include "custom_conditions/multiphase_flow/U_Pw_Pg_normal_face_load_condition.hpp"
-#include "custom_conditions/multiphase_flow/U_Pw_Pg_normal_liquid_flux_condition.hpp"
-#include "custom_conditions/multiphase_flow/U_Pw_Pg_normal_gas_flux_condition.hpp"
-#include "custom_conditions/multiphase_flow/U_Pw_Pg_face_load_interface_condition.hpp"
-#include "custom_conditions/multiphase_flow/U_Pw_Pg_normal_liquid_flux_interface_condition.hpp"
-#include "custom_conditions/multiphase_flow/U_Pw_Pg_normal_gas_flux_interface_condition.hpp"
+#include "custom_conditions/multiphase_flow/U_Pl_Pg_face_load_condition.hpp"
+#include "custom_conditions/multiphase_flow/U_Pl_Pg_normal_face_load_condition.hpp"
+#include "custom_conditions/multiphase_flow/U_Pl_Pg_normal_liquid_flux_condition.hpp"
+#include "custom_conditions/multiphase_flow/U_Pl_Pg_normal_gas_flux_condition.hpp"
+#include "custom_conditions/multiphase_flow/U_Pl_Pg_face_load_interface_condition.hpp"
+#include "custom_conditions/multiphase_flow/U_Pl_Pg_normal_liquid_flux_interface_condition.hpp"
+#include "custom_conditions/multiphase_flow/U_Pl_Pg_normal_gas_flux_interface_condition.hpp"
 
-#include "custom_elements/U_Pw_small_strain_element.hpp"
-#include "custom_elements/U_Pw_Pg_small_strain_element.hpp"
-#include "custom_elements/U_Pw_small_strain_interface_element.hpp"
-#include "custom_elements/U_Pw_small_strain_link_interface_element.hpp"
-#include "custom_elements/U_Pw_small_strain_FIC_element.hpp"
-#include "custom_elements/small_strain_U_Pw_diff_order_element.hpp"
+#include "custom_elements/U_Pl_small_strain_element.hpp"
+#include "custom_elements/U_Pl_Pg_small_strain_element.hpp"
+#include "custom_elements/U_Pl_small_strain_interface_element.hpp"
+#include "custom_elements/U_Pl_small_strain_link_interface_element.hpp"
+#include "custom_elements/U_Pl_small_strain_FIC_element.hpp"
+#include "custom_elements/small_strain_U_Pl_diff_order_element.hpp"
 
 #include "custom_constitutive/bilinear_cohesive_3D_law.hpp"
 #include "custom_constitutive/bilinear_cohesive_2D_law.hpp"
@@ -148,82 +148,82 @@ private:
 
 // Member Variables
 
-const UPwSmallStrainElement<2,3> mUPwSmallStrainElement2D3N;
-const UPwSmallStrainElement<2,4> mUPwSmallStrainElement2D4N;
-const UPwSmallStrainElement<3,4> mUPwSmallStrainElement3D4N;
-const UPwSmallStrainElement<3,8> mUPwSmallStrainElement3D8N;
+const UPlSmallStrainElement<2,3> mUPlSmallStrainElement2D3N;
+const UPlSmallStrainElement<2,4> mUPlSmallStrainElement2D4N;
+const UPlSmallStrainElement<3,4> mUPlSmallStrainElement3D4N;
+const UPlSmallStrainElement<3,8> mUPlSmallStrainElement3D8N;
 
-const UPwPgSmallStrainElement<2,3> mUPwPgSmallStrainElement2D3N;
-const UPwPgSmallStrainElement<2,4> mUPwPgSmallStrainElement2D4N;
-const UPwPgSmallStrainElement<3,4> mUPwPgSmallStrainElement3D4N;
-const UPwPgSmallStrainElement<3,8> mUPwPgSmallStrainElement3D8N;
+const UPlPgSmallStrainElement<2,3> mUPlPgSmallStrainElement2D3N;
+const UPlPgSmallStrainElement<2,4> mUPlPgSmallStrainElement2D4N;
+const UPlPgSmallStrainElement<3,4> mUPlPgSmallStrainElement3D4N;
+const UPlPgSmallStrainElement<3,8> mUPlPgSmallStrainElement3D8N;
 
-const UPwSmallStrainInterfaceElement<2,4> mUPwSmallStrainInterfaceElement2D4N;
-const UPwSmallStrainInterfaceElement<3,6> mUPwSmallStrainInterfaceElement3D6N;
-const UPwSmallStrainInterfaceElement<3,8> mUPwSmallStrainInterfaceElement3D8N;
+const UPlSmallStrainInterfaceElement<2,4> mUPlSmallStrainInterfaceElement2D4N;
+const UPlSmallStrainInterfaceElement<3,6> mUPlSmallStrainInterfaceElement3D6N;
+const UPlSmallStrainInterfaceElement<3,8> mUPlSmallStrainInterfaceElement3D8N;
 
-const UPwSmallStrainInterfaceElement<2,4> mUPwPgSmallStrainInterfaceElement2D4N;
-const UPwSmallStrainInterfaceElement<3,6> mUPwPgSmallStrainInterfaceElement3D6N;
-const UPwSmallStrainInterfaceElement<3,8> mUPwPgSmallStrainInterfaceElement3D8N;
+const UPlSmallStrainInterfaceElement<2,4> mUPlPgSmallStrainInterfaceElement2D4N;
+const UPlSmallStrainInterfaceElement<3,6> mUPlPgSmallStrainInterfaceElement3D6N;
+const UPlSmallStrainInterfaceElement<3,8> mUPlPgSmallStrainInterfaceElement3D8N;
 
-const UPwSmallStrainLinkInterfaceElement<2,4> mUPwSmallStrainLinkInterfaceElement2D4N;
-const UPwSmallStrainLinkInterfaceElement<3,6> mUPwSmallStrainLinkInterfaceElement3D6N;
-const UPwSmallStrainLinkInterfaceElement<3,8> mUPwSmallStrainLinkInterfaceElement3D8N;
+const UPlSmallStrainLinkInterfaceElement<2,4> mUPlSmallStrainLinkInterfaceElement2D4N;
+const UPlSmallStrainLinkInterfaceElement<3,6> mUPlSmallStrainLinkInterfaceElement3D6N;
+const UPlSmallStrainLinkInterfaceElement<3,8> mUPlSmallStrainLinkInterfaceElement3D8N;
 
-const UPwSmallStrainFICElement<2,3> mUPwSmallStrainFICElement2D3N;
-const UPwSmallStrainFICElement<2,4> mUPwSmallStrainFICElement2D4N;
-const UPwSmallStrainFICElement<3,4> mUPwSmallStrainFICElement3D4N;
-const UPwSmallStrainFICElement<3,8> mUPwSmallStrainFICElement3D8N;
+const UPlSmallStrainFICElement<2,3> mUPlSmallStrainFICElement2D3N;
+const UPlSmallStrainFICElement<2,4> mUPlSmallStrainFICElement2D4N;
+const UPlSmallStrainFICElement<3,4> mUPlSmallStrainFICElement3D4N;
+const UPlSmallStrainFICElement<3,8> mUPlSmallStrainFICElement3D8N;
 
-const SmallStrainUPwDiffOrderElement mSmallStrainUPwDiffOrderElement2D6N;
-const SmallStrainUPwDiffOrderElement mSmallStrainUPwDiffOrderElement2D8N;
-const SmallStrainUPwDiffOrderElement mSmallStrainUPwDiffOrderElement2D9N;
-const SmallStrainUPwDiffOrderElement mSmallStrainUPwDiffOrderElement3D10N;
-const SmallStrainUPwDiffOrderElement mSmallStrainUPwDiffOrderElement3D20N;
-const SmallStrainUPwDiffOrderElement mSmallStrainUPwDiffOrderElement3D27N;
+const SmallStrainUPlDiffOrderElement mSmallStrainUPlDiffOrderElement2D6N;
+const SmallStrainUPlDiffOrderElement mSmallStrainUPlDiffOrderElement2D8N;
+const SmallStrainUPlDiffOrderElement mSmallStrainUPlDiffOrderElement2D9N;
+const SmallStrainUPlDiffOrderElement mSmallStrainUPlDiffOrderElement3D10N;
+const SmallStrainUPlDiffOrderElement mSmallStrainUPlDiffOrderElement3D20N;
+const SmallStrainUPlDiffOrderElement mSmallStrainUPlDiffOrderElement3D27N;
 
-const UPwForceCondition<2,1> mUPwForceCondition2D1N;
-const UPwForceCondition<3,1> mUPwForceCondition3D1N;
-const UPwFaceLoadCondition<2,2> mUPwFaceLoadCondition2D2N;
-const UPwFaceLoadCondition<3,3> mUPwFaceLoadCondition3D3N;
-const UPwFaceLoadCondition<3,4> mUPwFaceLoadCondition3D4N;
-const UPwNormalFaceLoadCondition<2,2> mUPwNormalFaceLoadCondition2D2N;
-const UPwNormalFaceLoadCondition<3,3> mUPwNormalFaceLoadCondition3D3N;
-const UPwNormalFaceLoadCondition<3,4> mUPwNormalFaceLoadCondition3D4N;
-const UPwDischargeCondition<2,1> mUPwDischargeCondition2D1N;
-const UPwDischargeCondition<3,1> mUPwDischargeCondition3D1N;
-const UPwNormalLiquidFluxCondition<2,2> mUPwNormalLiquidFluxCondition2D2N;
-const UPwNormalLiquidFluxCondition<3,3> mUPwNormalLiquidFluxCondition3D3N;
-const UPwNormalLiquidFluxCondition<3,4> mUPwNormalLiquidFluxCondition3D4N;
+const UPlForceCondition<2,1> mUPlForceCondition2D1N;
+const UPlForceCondition<3,1> mUPlForceCondition3D1N;
+const UPlFaceLoadCondition<2,2> mUPlFaceLoadCondition2D2N;
+const UPlFaceLoadCondition<3,3> mUPlFaceLoadCondition3D3N;
+const UPlFaceLoadCondition<3,4> mUPlFaceLoadCondition3D4N;
+const UPlNormalFaceLoadCondition<2,2> mUPlNormalFaceLoadCondition2D2N;
+const UPlNormalFaceLoadCondition<3,3> mUPlNormalFaceLoadCondition3D3N;
+const UPlNormalFaceLoadCondition<3,4> mUPlNormalFaceLoadCondition3D4N;
+const UPlDischargeCondition<2,1> mUPlDischargeCondition2D1N;
+const UPlDischargeCondition<3,1> mUPlDischargeCondition3D1N;
+const UPlNormalLiquidFluxCondition<2,2> mUPlNormalLiquidFluxCondition2D2N;
+const UPlNormalLiquidFluxCondition<3,3> mUPlNormalLiquidFluxCondition3D3N;
+const UPlNormalLiquidFluxCondition<3,4> mUPlNormalLiquidFluxCondition3D4N;
 
-const UPwPgFaceLoadCondition<2,2> mUPwPgFaceLoadCondition2D2N;
-const UPwPgFaceLoadCondition<3,3> mUPwPgFaceLoadCondition3D3N;
-const UPwPgFaceLoadCondition<3,4> mUPwPgFaceLoadCondition3D4N;
-const UPwPgNormalFaceLoadCondition<2,2> mUPwPgNormalFaceLoadCondition2D2N;
-const UPwPgNormalFaceLoadCondition<3,3> mUPwPgNormalFaceLoadCondition3D3N;
-const UPwPgNormalFaceLoadCondition<3,4> mUPwPgNormalFaceLoadCondition3D4N;
-const UPwPgNormalLiquidFluxCondition<2,2> mUPwPgNormalLiquidFluxCondition2D2N;
-const UPwPgNormalLiquidFluxCondition<3,3> mUPwPgNormalLiquidFluxCondition3D3N;
-const UPwPgNormalLiquidFluxCondition<3,4> mUPwPgNormalLiquidFluxCondition3D4N;
-const UPwPgNormalGasFluxCondition<2,2> mUPwPgNormalGasFluxCondition2D2N;
-const UPwPgNormalGasFluxCondition<3,3> mUPwPgNormalGasFluxCondition3D3N;
-const UPwPgNormalGasFluxCondition<3,4> mUPwPgNormalGasFluxCondition3D4N;
+const UPlPgFaceLoadCondition<2,2> mUPlPgFaceLoadCondition2D2N;
+const UPlPgFaceLoadCondition<3,3> mUPlPgFaceLoadCondition3D3N;
+const UPlPgFaceLoadCondition<3,4> mUPlPgFaceLoadCondition3D4N;
+const UPlPgNormalFaceLoadCondition<2,2> mUPlPgNormalFaceLoadCondition2D2N;
+const UPlPgNormalFaceLoadCondition<3,3> mUPlPgNormalFaceLoadCondition3D3N;
+const UPlPgNormalFaceLoadCondition<3,4> mUPlPgNormalFaceLoadCondition3D4N;
+const UPlPgNormalLiquidFluxCondition<2,2> mUPlPgNormalLiquidFluxCondition2D2N;
+const UPlPgNormalLiquidFluxCondition<3,3> mUPlPgNormalLiquidFluxCondition3D3N;
+const UPlPgNormalLiquidFluxCondition<3,4> mUPlPgNormalLiquidFluxCondition3D4N;
+const UPlPgNormalGasFluxCondition<2,2> mUPlPgNormalGasFluxCondition2D2N;
+const UPlPgNormalGasFluxCondition<3,3> mUPlPgNormalGasFluxCondition3D3N;
+const UPlPgNormalGasFluxCondition<3,4> mUPlPgNormalGasFluxCondition3D4N;
 
-const UPwFaceLoadInterfaceCondition<2,2> mUPwFaceLoadInterfaceCondition2D2N;
-const UPwFaceLoadInterfaceCondition<3,4> mUPwFaceLoadInterfaceCondition3D4N;
-const UPwNormalLiquidFluxInterfaceCondition<2,2> mUPwNormalLiquidFluxInterfaceCondition2D2N;
-const UPwNormalLiquidFluxInterfaceCondition<3,4> mUPwNormalLiquidFluxInterfaceCondition3D4N;
+const UPlFaceLoadInterfaceCondition<2,2> mUPlFaceLoadInterfaceCondition2D2N;
+const UPlFaceLoadInterfaceCondition<3,4> mUPlFaceLoadInterfaceCondition3D4N;
+const UPlNormalLiquidFluxInterfaceCondition<2,2> mUPlNormalLiquidFluxInterfaceCondition2D2N;
+const UPlNormalLiquidFluxInterfaceCondition<3,4> mUPlNormalLiquidFluxInterfaceCondition3D4N;
 
-const UPwPgFaceLoadInterfaceCondition<2,2> mUPwPgFaceLoadInterfaceCondition2D2N;
-const UPwPgFaceLoadInterfaceCondition<3,4> mUPwPgFaceLoadInterfaceCondition3D4N;
-const UPwPgNormalLiquidFluxInterfaceCondition<2,2> mUPwPgNormalLiquidFluxInterfaceCondition2D2N;
-const UPwPgNormalLiquidFluxInterfaceCondition<3,4> mUPwPgNormalLiquidFluxInterfaceCondition3D4N;
-const UPwPgNormalGasFluxInterfaceCondition<2,2> mUPwPgNormalGasFluxInterfaceCondition2D2N;
-const UPwPgNormalGasFluxInterfaceCondition<3,4> mUPwPgNormalGasFluxInterfaceCondition3D4N;
+const UPlPgFaceLoadInterfaceCondition<2,2> mUPlPgFaceLoadInterfaceCondition2D2N;
+const UPlPgFaceLoadInterfaceCondition<3,4> mUPlPgFaceLoadInterfaceCondition3D4N;
+const UPlPgNormalLiquidFluxInterfaceCondition<2,2> mUPlPgNormalLiquidFluxInterfaceCondition2D2N;
+const UPlPgNormalLiquidFluxInterfaceCondition<3,4> mUPlPgNormalLiquidFluxInterfaceCondition3D4N;
+const UPlPgNormalGasFluxInterfaceCondition<2,2> mUPlPgNormalGasFluxInterfaceCondition2D2N;
+const UPlPgNormalGasFluxInterfaceCondition<3,4> mUPlPgNormalGasFluxInterfaceCondition3D4N;
 
-const UPwNormalLiquidFluxFICCondition<2,2> mUPwNormalLiquidFluxFICCondition2D2N;
-const UPwNormalLiquidFluxFICCondition<3,3> mUPwNormalLiquidFluxFICCondition3D3N;
-const UPwNormalLiquidFluxFICCondition<3,4> mUPwNormalLiquidFluxFICCondition3D4N;
+const UPlNormalLiquidFluxFICCondition<2,2> mUPlNormalLiquidFluxFICCondition2D2N;
+const UPlNormalLiquidFluxFICCondition<3,3> mUPlNormalLiquidFluxFICCondition3D3N;
+const UPlNormalLiquidFluxFICCondition<3,4> mUPlNormalLiquidFluxFICCondition3D4N;
 
 const LineLoad2DDiffOrderCondition mLineLoadDiffOrderCondition2D3N;
 const LineNormalLoad2DDiffOrderCondition mLineNormalLoadDiffOrderCondition2D3N;

@@ -8,7 +8,7 @@
         "fracture_utility":     false
     },
     "solver_settings": {
-        "solver_type":    "poromechanics_U_Pw_solver",
+        "solver_type":    "poromechanics_U_Pl_solver",
         "model_part_name":    "PorousModelPart",
         "domain_size":    2,
         "start_time":    0.0,
@@ -101,7 +101,7 @@
             "kratos_module": "KratosMultiphysics.PoromechanicsApplication",
             "Parameters":    {
                 "model_part_name": "PorousModelPart.Discharge-auto-1",
-                "variable_name":   "DISCHARGE",
+                "variable_name":   "LIQUID_DISCHARGE",
                 "value":           1,
                 "table":           0
             }
@@ -110,7 +110,7 @@
             "kratos_module": "KratosMultiphysics.PoromechanicsApplication",
             "Parameters":    {
                 "model_part_name": "PorousModelPart.Discharge-auto-2",
-                "variable_name":   "DISCHARGE",
+                "variable_name":   "LIQUID_DISCHARGE",
                 "value":           2,
                 "table":           0
             }

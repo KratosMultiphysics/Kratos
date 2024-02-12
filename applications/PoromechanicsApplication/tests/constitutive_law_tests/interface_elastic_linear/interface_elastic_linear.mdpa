@@ -53,17 +53,17 @@ Begin Nodes
 End Nodes
 
 
-Begin Elements UPwSmallStrainElement2D4N
+Begin Elements UPlSmallStrainElement2D4N
   1  0  6 8 4 3
   2  0  5 7 2 1
 End Elements
 
-Begin Elements UPwSmallStrainInterfaceElement2D4N
+Begin Elements UPlSmallStrainInterfaceElement2D4N
   3  0  2 7 6 3
 End Elements
 
 
-Begin Conditions UPwForceCondition2D1N
+Begin Conditions UPlForceCondition2D1N
   1  1  4
 End Conditions
 

@@ -738,7 +738,7 @@ public:
 
     //----------------------------------------------------------------------------------------
 
-    static inline void AssembleUPwBlockMatrix(Matrix& rLeftHandSideMatrix, const BoundedMatrix<double,6,3>& UPwBlockMatrix)
+    static inline void AssembleUPlBlockMatrix(Matrix& rLeftHandSideMatrix, const BoundedMatrix<double,6,3>& UPlBlockMatrix)
     {
         //Triangle_2d_3
         unsigned int Global_i, Global_j, Local_i;
@@ -752,8 +752,8 @@ public:
             {
                 Global_j = j * (2 + 2) + 2;
 
-                rLeftHandSideMatrix(Global_i,Global_j)   += UPwBlockMatrix(Local_i,j);
-                rLeftHandSideMatrix(Global_i+1,Global_j) += UPwBlockMatrix(Local_i+1,j);
+                rLeftHandSideMatrix(Global_i,Global_j)   += UPlBlockMatrix(Local_i,j);
+                rLeftHandSideMatrix(Global_i+1,Global_j) += UPlBlockMatrix(Local_i+1,j);
             }
         }
     }
@@ -804,7 +804,7 @@ public:
 
     //----------------------------------------------------------------------------------------
 
-    static inline void AssembleUPwBlockMatrix(Matrix& rLeftHandSideMatrix, const BoundedMatrix<double,8,4>& UPwBlockMatrix)
+    static inline void AssembleUPlBlockMatrix(Matrix& rLeftHandSideMatrix, const BoundedMatrix<double,8,4>& UPlBlockMatrix)
     {
         //Quadrilateral_2d_4
         unsigned int Global_i, Global_j, Local_i;
@@ -818,8 +818,8 @@ public:
             {
                 Global_j = j * (2 + 2) + 2;
 
-                rLeftHandSideMatrix(Global_i,Global_j)   += UPwBlockMatrix(Local_i,j);
-                rLeftHandSideMatrix(Global_i+1,Global_j) += UPwBlockMatrix(Local_i+1,j);
+                rLeftHandSideMatrix(Global_i,Global_j)   += UPlBlockMatrix(Local_i,j);
+                rLeftHandSideMatrix(Global_i+1,Global_j) += UPlBlockMatrix(Local_i+1,j);
             }
         }
     }
@@ -871,7 +871,7 @@ public:
 
     //----------------------------------------------------------------------------------------
 
-     static inline void AssembleUPwBlockMatrix(Matrix& rLeftHandSideMatrix, const BoundedMatrix<double,12,4>& UPwBlockMatrix)
+     static inline void AssembleUPlBlockMatrix(Matrix& rLeftHandSideMatrix, const BoundedMatrix<double,12,4>& UPlBlockMatrix)
     {
         //Tetrahedra_3d_4
         unsigned int Global_i, Global_j, Local_i;
@@ -885,9 +885,9 @@ public:
             {
                 Global_j = j * (3 + 2) + 3;
 
-                rLeftHandSideMatrix(Global_i,Global_j)   += UPwBlockMatrix(Local_i,j);
-                rLeftHandSideMatrix(Global_i+1,Global_j) += UPwBlockMatrix(Local_i+1,j);
-                rLeftHandSideMatrix(Global_i+2,Global_j) += UPwBlockMatrix(Local_i+2,j);
+                rLeftHandSideMatrix(Global_i,Global_j)   += UPlBlockMatrix(Local_i,j);
+                rLeftHandSideMatrix(Global_i+1,Global_j) += UPlBlockMatrix(Local_i+1,j);
+                rLeftHandSideMatrix(Global_i+2,Global_j) += UPlBlockMatrix(Local_i+2,j);
             }
         }
     }
@@ -940,7 +940,7 @@ public:
 
     //----------------------------------------------------------------------------------------
 
-     static inline void AssembleUPwBlockMatrix(Matrix& rLeftHandSideMatrix, const BoundedMatrix<double,18,6>& UPwBlockMatrix)
+     static inline void AssembleUPlBlockMatrix(Matrix& rLeftHandSideMatrix, const BoundedMatrix<double,18,6>& UPlBlockMatrix)
     {
         //Prism_3d_6
         unsigned int Global_i, Global_j, Local_i;
@@ -954,9 +954,9 @@ public:
             {
                 Global_j = j * (3 + 2) + 3;
 
-                rLeftHandSideMatrix(Global_i,Global_j)   += UPwBlockMatrix(Local_i,j);
-                rLeftHandSideMatrix(Global_i+1,Global_j) += UPwBlockMatrix(Local_i+1,j);
-                rLeftHandSideMatrix(Global_i+2,Global_j) += UPwBlockMatrix(Local_i+2,j);
+                rLeftHandSideMatrix(Global_i,Global_j)   += UPlBlockMatrix(Local_i,j);
+                rLeftHandSideMatrix(Global_i+1,Global_j) += UPlBlockMatrix(Local_i+1,j);
+                rLeftHandSideMatrix(Global_i+2,Global_j) += UPlBlockMatrix(Local_i+2,j);
             }
         }
     }
@@ -1009,7 +1009,7 @@ public:
 
     //----------------------------------------------------------------------------------------
 
-     static inline void AssembleUPwBlockMatrix(Matrix& rLeftHandSideMatrix, const BoundedMatrix<double,24,8>& UPwBlockMatrix)
+     static inline void AssembleUPlBlockMatrix(Matrix& rLeftHandSideMatrix, const BoundedMatrix<double,24,8>& UPlBlockMatrix)
     {
         //Hexahedra_3d_8
         unsigned int Global_i, Global_j, Local_i;
@@ -1023,9 +1023,9 @@ public:
             {
                 Global_j = j * (3 + 2) + 3;
 
-                rLeftHandSideMatrix(Global_i,Global_j)   += UPwBlockMatrix(Local_i,j);
-                rLeftHandSideMatrix(Global_i+1,Global_j) += UPwBlockMatrix(Local_i+1,j);
-                rLeftHandSideMatrix(Global_i+2,Global_j) += UPwBlockMatrix(Local_i+2,j);
+                rLeftHandSideMatrix(Global_i,Global_j)   += UPlBlockMatrix(Local_i,j);
+                rLeftHandSideMatrix(Global_i+1,Global_j) += UPlBlockMatrix(Local_i+1,j);
+                rLeftHandSideMatrix(Global_i+2,Global_j) += UPlBlockMatrix(Local_i+2,j);
             }
         }
     }
@@ -1077,7 +1077,7 @@ public:
 
     //----------------------------------------------------------------------------------------
 
-    static inline void AssemblePwUBlockMatrix(Matrix& rLeftHandSideMatrix, const BoundedMatrix<double,3,6>& PwUBlockMatrix)
+    static inline void AssemblePlUBlockMatrix(Matrix& rLeftHandSideMatrix, const BoundedMatrix<double,3,6>& PlUBlockMatrix)
     {
         //Triangle_2d_3
         unsigned int Global_i, Global_j, Local_j;
@@ -1091,8 +1091,8 @@ public:
                 Global_j = j * (2 + 2);
                 Local_j = j * 2;
 
-                rLeftHandSideMatrix(Global_i,Global_j)   += PwUBlockMatrix(i,Local_j);
-                rLeftHandSideMatrix(Global_i,Global_j+1) += PwUBlockMatrix(i,Local_j+1);
+                rLeftHandSideMatrix(Global_i,Global_j)   += PlUBlockMatrix(i,Local_j);
+                rLeftHandSideMatrix(Global_i,Global_j+1) += PlUBlockMatrix(i,Local_j+1);
             }
         }
     }
@@ -1143,7 +1143,7 @@ public:
 
     //----------------------------------------------------------------------------------------
 
-    static inline void AssemblePwUBlockMatrix(Matrix& rLeftHandSideMatrix, const BoundedMatrix<double,4,8>& PwUBlockMatrix)
+    static inline void AssemblePlUBlockMatrix(Matrix& rLeftHandSideMatrix, const BoundedMatrix<double,4,8>& PlUBlockMatrix)
     {
         //Quadrilateral_2d_4
         unsigned int Global_i, Global_j, Local_j;
@@ -1157,8 +1157,8 @@ public:
                 Global_j = j * (2 + 2);
                 Local_j = j * 2;
 
-                rLeftHandSideMatrix(Global_i,Global_j)   += PwUBlockMatrix(i,Local_j);
-                rLeftHandSideMatrix(Global_i,Global_j+1) += PwUBlockMatrix(i,Local_j+1);
+                rLeftHandSideMatrix(Global_i,Global_j)   += PlUBlockMatrix(i,Local_j);
+                rLeftHandSideMatrix(Global_i,Global_j+1) += PlUBlockMatrix(i,Local_j+1);
             }
         }
     }
@@ -1210,7 +1210,7 @@ public:
 
     //----------------------------------------------------------------------------------------
 
-    static inline void AssemblePwUBlockMatrix(Matrix& rLeftHandSideMatrix, const BoundedMatrix<double,4,12>& PwUBlockMatrix)
+    static inline void AssemblePlUBlockMatrix(Matrix& rLeftHandSideMatrix, const BoundedMatrix<double,4,12>& PlUBlockMatrix)
     {
         //Tetrahedra_3d_4
         unsigned int Global_i, Global_j, Local_j;
@@ -1224,9 +1224,9 @@ public:
                 Global_j = j * (3 + 2);
                 Local_j = j * 3;
 
-                rLeftHandSideMatrix(Global_i,Global_j)   += PwUBlockMatrix(i,Local_j);
-                rLeftHandSideMatrix(Global_i,Global_j+1) += PwUBlockMatrix(i,Local_j+1);
-                rLeftHandSideMatrix(Global_i,Global_j+2) += PwUBlockMatrix(i,Local_j+2);
+                rLeftHandSideMatrix(Global_i,Global_j)   += PlUBlockMatrix(i,Local_j);
+                rLeftHandSideMatrix(Global_i,Global_j+1) += PlUBlockMatrix(i,Local_j+1);
+                rLeftHandSideMatrix(Global_i,Global_j+2) += PlUBlockMatrix(i,Local_j+2);
             }
         }
     }
@@ -1280,7 +1280,7 @@ public:
 
     //----------------------------------------------------------------------------------------
 
-    static inline void AssemblePwUBlockMatrix(Matrix& rLeftHandSideMatrix, const BoundedMatrix<double,6,18>& PwUBlockMatrix)
+    static inline void AssemblePlUBlockMatrix(Matrix& rLeftHandSideMatrix, const BoundedMatrix<double,6,18>& PlUBlockMatrix)
     {
         //Prism_3d_6
         unsigned int Global_i, Global_j, Local_j;
@@ -1294,9 +1294,9 @@ public:
                 Global_j = j * (3 + 2);
                 Local_j = j * 3;
 
-                rLeftHandSideMatrix(Global_i,Global_j)   += PwUBlockMatrix(i,Local_j);
-                rLeftHandSideMatrix(Global_i,Global_j+1) += PwUBlockMatrix(i,Local_j+1);
-                rLeftHandSideMatrix(Global_i,Global_j+2) += PwUBlockMatrix(i,Local_j+2);
+                rLeftHandSideMatrix(Global_i,Global_j)   += PlUBlockMatrix(i,Local_j);
+                rLeftHandSideMatrix(Global_i,Global_j+1) += PlUBlockMatrix(i,Local_j+1);
+                rLeftHandSideMatrix(Global_i,Global_j+2) += PlUBlockMatrix(i,Local_j+2);
             }
         }
     }
@@ -1349,7 +1349,7 @@ public:
 
     //----------------------------------------------------------------------------------------
 
-    static inline void AssemblePwUBlockMatrix(Matrix& rLeftHandSideMatrix, const BoundedMatrix<double,8,24>& PwUBlockMatrix)
+    static inline void AssemblePlUBlockMatrix(Matrix& rLeftHandSideMatrix, const BoundedMatrix<double,8,24>& PlUBlockMatrix)
     {
         //Hexahedra_3d_8
         unsigned int Global_i, Global_j, Local_j;
@@ -1363,9 +1363,9 @@ public:
                 Global_j = j * (3 + 2);
                 Local_j = j * 3;
 
-                rLeftHandSideMatrix(Global_i,Global_j)   += PwUBlockMatrix(i,Local_j);
-                rLeftHandSideMatrix(Global_i,Global_j+1) += PwUBlockMatrix(i,Local_j+1);
-                rLeftHandSideMatrix(Global_i,Global_j+2) += PwUBlockMatrix(i,Local_j+2);
+                rLeftHandSideMatrix(Global_i,Global_j)   += PlUBlockMatrix(i,Local_j);
+                rLeftHandSideMatrix(Global_i,Global_j+1) += PlUBlockMatrix(i,Local_j+1);
+                rLeftHandSideMatrix(Global_i,Global_j+2) += PlUBlockMatrix(i,Local_j+2);
             }
         }
     }
@@ -1416,7 +1416,7 @@ public:
     //----------------------------------------------------------------------------------------
 
     template< class TMatrixType >
-    static inline void AssemblePwPwBlockMatrix(Matrix& rLeftHandSideMatrix,const TMatrixType& PwPwBlockMatrix, const unsigned int& Dim, const unsigned int& NumNodes)
+    static inline void AssemblePlPlBlockMatrix(Matrix& rLeftHandSideMatrix,const TMatrixType& PlPlBlockMatrix, const unsigned int& Dim, const unsigned int& NumNodes)
     {
         unsigned int Global_i, Global_j;
 
@@ -1428,7 +1428,7 @@ public:
             {
                 Global_j = j * (Dim + 2) + Dim;
 
-                rLeftHandSideMatrix(Global_i,Global_j) += PwPwBlockMatrix(i,j);
+                rLeftHandSideMatrix(Global_i,Global_j) += PlPlBlockMatrix(i,j);
             }
         }
     }
@@ -1456,7 +1456,7 @@ public:
     //----------------------------------------------------------------------------------------
 
     template< class TMatrixType >
-    static inline void AssemblePwPgBlockMatrix(Matrix& rLeftHandSideMatrix,const TMatrixType& PwPgBlockMatrix, const unsigned int& Dim, const unsigned int& NumNodes)
+    static inline void AssemblePlPgBlockMatrix(Matrix& rLeftHandSideMatrix,const TMatrixType& PlPgBlockMatrix, const unsigned int& Dim, const unsigned int& NumNodes)
     {
         unsigned int Global_i, Global_j;
 
@@ -1468,7 +1468,7 @@ public:
             {
                 Global_j = j * (Dim + 2) + Dim + 1;
 
-                rLeftHandSideMatrix(Global_i,Global_j) += PwPgBlockMatrix(i,j);
+                rLeftHandSideMatrix(Global_i,Global_j) += PlPgBlockMatrix(i,j);
             }
         }
     }
@@ -1476,7 +1476,7 @@ public:
     //----------------------------------------------------------------------------------------
 
     template< class TMatrixType >
-    static inline void AssemblePgPwBlockMatrix(Matrix& rLeftHandSideMatrix,const TMatrixType& PgPwBlockMatrix, const unsigned int& Dim, const unsigned int& NumNodes)
+    static inline void AssemblePgPlBlockMatrix(Matrix& rLeftHandSideMatrix,const TMatrixType& PgPlBlockMatrix, const unsigned int& Dim, const unsigned int& NumNodes)
     {
         unsigned int Global_i, Global_j;
 
@@ -1488,7 +1488,7 @@ public:
             {
                 Global_j = j * (Dim + 2) + Dim;
 
-                rLeftHandSideMatrix(Global_i,Global_j) += PgPwBlockMatrix(i,j);
+                rLeftHandSideMatrix(Global_i,Global_j) += PgPlBlockMatrix(i,j);
             }
         }
     }
@@ -1686,7 +1686,7 @@ public:
     //----------------------------------------------------------------------------------------
 
     template< class TVectorType >
-    static inline void AssemblePwBlockVector(Vector& rRightHandSideVector,const TVectorType& PwBlockVector, const unsigned int& Dim, const unsigned int& NumNodes)
+    static inline void AssemblePlBlockVector(Vector& rRightHandSideVector,const TVectorType& PlBlockVector, const unsigned int& Dim, const unsigned int& NumNodes)
     {
         unsigned int Global_i;
 
@@ -1694,7 +1694,7 @@ public:
         {
             Global_i = i * (Dim + 2) + Dim;
 
-            rRightHandSideVector[Global_i] += PwBlockVector[i];
+            rRightHandSideVector[Global_i] += PlBlockVector[i];
         }
     }
 

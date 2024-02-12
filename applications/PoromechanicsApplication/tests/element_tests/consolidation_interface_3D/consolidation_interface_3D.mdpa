@@ -9746,7 +9746,7 @@ Begin Nodes
 End Nodes
 
 
-Begin Elements UPwSmallStrainElement3D8N
+Begin Elements UPlSmallStrainElement3D8N
   401  0  9683 9693 9700 9694 9695 9701 9702 9699
   402  0  9668 9683 9694 9685 9689 9695 9699 9696
   403  0  9650 9668 9685 9674 9679 9689 9696 9690
@@ -17749,7 +17749,7 @@ Begin Elements UPwSmallStrainElement3D8N
   8400  0  6575 5983 5690 6280 6601 6026 5706 6306
 End Elements
 
-Begin Elements UPwSmallStrainInterfaceElement3D8N
+Begin Elements UPlSmallStrainInterfaceElement3D8N
   1  0  5983 6026 6601 6575 5985 6025 6602 6577
   2  0  5331 5391 6026 5983 5333 5361 6025 5985
   3  0  4724 4747 5391 5331 4726 4754 5361 5333
@@ -18153,7 +18153,7 @@ Begin Elements UPwSmallStrainInterfaceElement3D8N
 End Elements
 
 
-Begin Conditions UPwFaceLoadCondition3D4N
+Begin Conditions UPlFaceLoadCondition3D4N
   1  1  9700 9702 9699 9694
   2  1  9694 9699 9696 9685
   3  1  9685 9696 9690 9674
@@ -18556,7 +18556,7 @@ Begin Conditions UPwFaceLoadCondition3D4N
   400  1  6575 6280 6306 6601
 End Conditions
 
-Begin Conditions UPwNormalLiquidFluxCondition3D4N
+Begin Conditions UPlNormalLiquidFluxCondition3D4N
   401  1  9695 9699 9702 9701
   402  1  9693 9701 9702 9700
   403  1  9689 9696 9699 9695

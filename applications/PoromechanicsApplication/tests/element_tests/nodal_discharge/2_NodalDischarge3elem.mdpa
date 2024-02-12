@@ -39,7 +39,7 @@ Begin Nodes
 End Nodes
 
 
-Begin Elements UPwSmallStrainElement2D4N
+Begin Elements UPlSmallStrainElement2D4N
   1  0  15 9 14 16
   2  0  13 8 9 15
   3  0  10 6 8 13
@@ -52,12 +52,12 @@ Begin Elements UPwSmallStrainElement2D4N
 End Elements
 
 
-Begin Conditions UPwDischargeCondition2D1N
+Begin Conditions UPlDischargeCondition2D1N
   1  1  1
   2  1  11
 End Conditions
 
-Begin Conditions UPwDischargeCondition2D1N
+Begin Conditions UPlDischargeCondition2D1N
   3  1  2
   4  1  5
 End Conditions

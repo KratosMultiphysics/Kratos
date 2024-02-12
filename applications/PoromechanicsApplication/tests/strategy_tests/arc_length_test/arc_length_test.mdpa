@@ -3130,7 +3130,7 @@ Begin Nodes
 End Nodes
 
 
-Begin Elements UPwSmallStrainElement2D3N
+Begin Elements UPlSmallStrainElement2D3N
   1  0  1405 1386 1369
   2  0  1386 1366 1333
   3  0  1366 1344 1309
@@ -8994,14 +8994,14 @@ Begin Elements UPwSmallStrainElement2D3N
 End Elements
 
 
-Begin Conditions UPwFaceLoadCondition2D2N
+Begin Conditions UPlFaceLoadCondition2D2N
   1  1  1130 1091
   2  1  1091 1056
   3  1  1056 1020
   4  1  1020 985
 End Conditions
 
-Begin Conditions UPwFaceLoadCondition2D2N
+Begin Conditions UPlFaceLoadCondition2D2N
   5  1  3018 3000
   6  1  3000 2984
   7  1  2984 2972
