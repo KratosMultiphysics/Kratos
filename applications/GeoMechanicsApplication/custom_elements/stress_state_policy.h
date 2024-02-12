@@ -23,16 +23,16 @@ namespace Kratos
 class StressStatePolicy
 {
 public:
-    [[nodiscard]] virtual Matrix CalculateBMatrix(const Matrix&         GradNpT,
-                                                  const Vector&         Np,
+    virtual ~StressStatePolicy() = default;
+
+    [[nodiscard]] virtual Matrix CalculateBMatrix(const Matrix&         rGradNpT,
+                                                  const Vector&         rNp,
                                                   const Geometry<Node>& rGeometry) const = 0;
     [[nodiscard]] virtual double CalculateIntegrationCoefficient(const Geometry<Node>::IntegrationPointType& rIntegrationPoint,
                                                                  double detJ,
                                                                  const Geometry<Node>& rGeometry) const = 0;
     [[nodiscard]] virtual Vector CalculateGreenLagrangeStrain(const Matrix& rTotalDeformationGradient) const = 0;
     [[nodiscard]] virtual std::unique_ptr<StressStatePolicy> Clone() const = 0;
-
-    virtual ~StressStatePolicy() = default;
 };
 
 } // namespace Kratos
