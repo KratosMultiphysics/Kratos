@@ -6,6 +6,8 @@ sidebar: kratos_for_developers
 summary: 
 ---
 
+## Overview
+
 Kratos is designed as a framework for building multi-disciplinary finite element programs. Generality in design
 and implementation is the first requirement. Flexibility and extensibility are another key points in this design, enabling the developers to implement very different formulations and algorithms involving in the solution of multi-disciplinary problems.
 
@@ -15,9 +17,9 @@ Another important requirements are good performance and memory efficiency. This 
 
 Finally it has to provide different levels of developers' contributions to the Kratos system, and match their requirements and difficulties in the way they extend it. Developers may want to just make a plug-in extension, create an application over it, or using IO scripts to make Kratos perform a certain algorithm. Some potential users of Kratos are:
 
-* '''Finite Element Developers'''  These developers are considered to be more expert in FEM, from the physical and mathematical points of view, than C++ programming. For this reason, Kratos has to provide their requirements without involving them in advanced programming concepts.
-* '''Application Developers''' These users are less interested in finite element programming and their programming knowledge may vary from very expert to higher than basic. They may use not only Kratos itself but also any other applications provided by finite element developers, or other  application developers. Developers of optimization programs or design tools are the typical users of this kind.
-* '''Package Users''' Engineers and designers are other users of Kratos. They use the complete package of Kratos and its applications to model and solve their problem without getting involved in internal programming of this package. For these users Kratos has to provide a flexible external interface to enable them use different features of Kratos without changing its implementation.
+* **Finite Element Developers**  These developers are considered to be more expert in FEM, from the physical and mathematical points of view, than C++ programming. For this reason, Kratos has to provide their requirements without involving them in advanced programming concepts.
+* **Application Developers** These users are less interested in finite element programming and their programming knowledge may vary from very expert to higher than basic. They may use not only Kratos itself but also any other applications provided by finite element developers, or other  application developers. Developers of optimization programs or design tools are the typical users of this kind.
+* **Package Users** Engineers and designers are other users of Kratos. They use the complete package of Kratos and its applications to model and solve their problem without getting involved in internal programming of this package. For these users Kratos has to provide a flexible external interface to enable them use different features of Kratos without changing its implementation.
 
 Kratos has to provide a framework such that a team of developers with completely different fields of expertise as mentioned before, work on it in order to create multi-disciplinary finite element applications.
 
@@ -31,55 +33,55 @@ In Kratos we have chosen the second approach and have constructed our objects ba
 
 The following figure shows the main classes in Kratos.
 
-[[http://kratos-wiki.cimne.upc.edu/images/7/72/GSMainClasses.jpg]]
+[image](http://kratos-wiki.cimne.upc.edu/images/7/72/GSMainClasses.jpg)
 
-<tt>Vector</tt>, <tt>Matrix</tt>, and <tt>Quadrature</tt> are designed by basic numerical concepts. <tt>Node</tt>,
-<tt>Element</tt>, <tt>Condition</tt>, and <tt>Dof</tt> are defined directly from finite element concepts. <tt>Model</tt>,
-<tt>Mesh</tt>, and <tt>Properties</tt> are coming from practical methodology used in finite element modeling completed by
-<tt>ModelPart</tt>, and <tt>SpatialContainer</tt>, for organizing
-better all data necessary for analysis. <tt>IO</tt>,
-<tt>LinearSolver</tt>, <tt>Process</tt>, and <tt>Strategy</tt> are
+`Vector`, `Matrix`, and `Quadrature` are designed by basic numerical concepts. `Node`,
+`Element`, `Condition`, and `Dof` are defined directly from finite element concepts. `Model`,
+`Mesh`, and `Properties` are coming from practical methodology used in finite element modeling completed by
+`ModelPart`, and `SpatialContainer`, for organizing
+better all data necessary for analysis. `IO`,
+`LinearSolver`, `Process`, and `Strategy` are
 representing the different steps of finite element program flow.
-and finally <tt>Kernel</tt> and <tt>Application</tt> are defined
+and finally `Kernel` and `Application` are defined
 for library management and defining its interface.
 
 These main objects are described below:
 
-* '''<tt>Vector</tt>''' Represents the algebraic vector and defines usual operators over vectors.
+* `Vector` Represents the algebraic vector and defines usual operators over vectors.
 
-* '''<tt>Matrix</tt>''' Encapsulate matrix and its operators. There are different matrix classes are necessary. The most typical ones are dense matrix and compressed row matrix.
+* `Matrix` Encapsulate matrix and its operators. There are different matrix classes are necessary. The most typical ones are dense matrix and compressed row matrix.
 
-* '''<tt>Quadrature</tt>''' Implements the quadrature methods used in finite element method. For example the gaussian integration with different number of integration points.
+* `Quadrature` Implements the quadrature methods used in finite element method. For example the gaussian integration with different number of integration points.
 
-* '''<tt>Geometry</tt>''' Defines a geometry over a list of points or <tt>Node</tt>s and provides from its usual parameter like area or center point to shape functions and coordinate transformation routines.
+* `Geometry` Defines a geometry over a list of points or `Node` and provides from its usual parameter like area or center point to shape functions and coordinate transformation routines.
 
-* '''<tt>Node</tt>''' <tt>Node</tt> is a point with additional facilities. Stores the nodal data, historical nodal data, and list of degrees of freedom. It provides also an interface to access all its data.
+* `Node` `Node` is a point with additional facilities. Stores the nodal data, historical nodal data, and list of degrees of freedom. It provides also an interface to access all its data.
 
-* '''<tt>Element</tt>''' Encapsulates the elemental formulation in one objects and provides an interface for calculating the local matrices and vectors necessary for assembling the global system of equations. It holds its geometry that meanwhile is its array of <tt>Node</tt>s. Also stores the elemental data and interface to access it.
+* `Element` Encapsulates the elemental formulation in one objects and provides an interface for calculating the local matrices and vectors necessary for assembling the global system of equations. It holds its geometry that meanwhile is its array of `Node`s. Also stores the elemental data and interface to access it.
 
-* '''<tt>Condition</tt>''' Encapsulates data and operations necessary for calculating the local contributions of <tt>Condition</tt> in global system of equations. Neumann conditions are example '''Condition'''s which can be encapsulated by derivatives of this class.
+* `Condition` Encapsulates data and operations necessary for calculating the local contributions of `Condition` in global system of equations. Neumann conditions are example `Condition` which can be encapsulated by derivatives of this class.
 
-* '''<tt>Dof</tt>''' Represents a degree of freedom (dof). It is a lightweight object which holds its variable, like <tt>TEMPERATURE</tt>, its state of freedom, and a reference to its value in data structure. This class enables the system to work with different set of dofs and also represents the Dirichlet condition assigned to each dof.
+* `Dof` Represents a degree of freedom (dof). It is a lightweight object which holds its variable, like `TEMPERATURE`, its state of freedom, and a reference to its value in data structure. This class enables the system to work with different set of dofs and also represents the Dirichlet condition assigned to each dof.
 
-* '''<tt>Properties</tt>''' Encapsulates data shared by different <tt>Element</tt>s or <tt>Condition</tt>s. It can stores any type of data and provide a variable base access to them.
+* `Properties` Encapsulates data shared by different `Element` or `Condition`. It can stores any type of data and provide a variable base access to them.
 
-* '''<tt>Model</tt>''' Stores the whole model to be analyzed. All <tt>Node</tt>s, <tt>Properties</tt>, <tt>Element</tt>s, <tt>Condition</tt>s and solution data. It also provides and access interface to these data.
-* '''<tt>ModelPart</tt>''' Holds all data related to an arbitrary part of model. It stores all existing components and data like <tt>Node</tt>s, <tt>Properties</tt>, <tt>Element</tt>s, <tt>Condition</tt>s and solution data related to a part of model and provides interface to access them in different ways.
-* '''<tt>Mesh</tt>''' Holds <tt>Node</tt>s, <tt>Properties</tt>, <tt>Element</tt>s, <tt>Condition</tt>s and represents a part of model but without additional solution parameters. It provides access interface to its data.
+* `Model` Stores the whole model to be analyzed. All `Node`, `Properties`, `Element`, `Condition` and solution data. It also provides and access interface to these data.
+* `ModelPart` Holds all data related to an arbitrary part of model. It stores all existing components and data like `Node`, `Properties`, `Element`, `Condition` and solution data related to a part of model and provides interface to access them in different ways.
+* `Mesh` Holds `Node`, `Properties`, `Element`, `Condition` and represents a part of model but without additional solution parameters. It provides access interface to its data.
 
-* '''<tt>SpatialContainer</tt>''' Containers associated with spacial search algorithms. This algorithms are useful for finding the nearest <tt>Node</tt> or <tt>Element</tt> to some point or other spacial searches. Quadtree and Octree are example of these containers.
+* `SpatialContainer` Containers associated with spacial search algorithms. This algorithms are useful for finding the nearest `Node` or `Element` to some point or other spacial searches. Quadtree and Octree are example of these containers.
 
-* '''<tt>IO</tt>''' Provides different implementation of input output procedures which can be used to read and write with different formats and characteristics.
+* `IO` Provides different implementation of input output procedures which can be used to read and write with different formats and characteristics.
 
-* '''<tt>LinearSolver</tt>''' Encapsulates the algorithms used for solving a linear system of equations. Different direct solvers and iterative solvers can be implemented in Kratos as a derivatives of this class.
+* `LinearSolver` Encapsulates the algorithms used for solving a linear system of equations. Different direct solvers and iterative solvers can be implemented in Kratos as a derivatives of this class.
 
-* '''<tt>Strategy</tt>''' Encapsulates the solving algorithm and general flow of a solving process. Strategy manages the building of equation system and then solve it using a linear solver and finally is in charge of updating the results in the data structure.
+* `Strategy` Encapsulates the solving algorithm and general flow of a solving process. Strategy manages the building of equation system and then solve it using a linear solver and finally is in charge of updating the results in the data structure.
 
-* '''<tt>Process</tt>''' Is the extension point for adding new algorithms to Kratos. Mapping algorithms, Optimization procedures and many other type of algorithms can be implemented as a new process in Kratos.
+* `Process` Is the extension point for adding new algorithms to Kratos. Mapping algorithms, Optimization procedures and many other type of algorithms can be implemented as a new process in Kratos.
 
-* '''<tt>Kernel</tt>''' Manages the whole Kratos by initializing different part of it and provides necessary interface to communicate with applications.
+* `Kernel` Manages the whole Kratos by initializing different part of it and provides necessary interface to communicate with applications.
 
-* '''<tt>Application</tt>''' Provide all information necessary for adding an application to Kratos. A derived class from it is necessary to give kernel its required information like new <tt>Variable</tt>s, <tt>Element</tt>s, <tt>Condition</tt>s, etc.
+* `Application` Provide all information necessary for adding an application to Kratos. A derived class from it is necessary to give kernel its required information like new `Variable`, `Element`, `Condition`, etc.
 
 The main intention here was to hide all difficult but common
 finite element implementations like data structure and IO
@@ -87,7 +89,7 @@ programming from developers.
 
 ## Multi-Layers Design
 
-Kratos uses a ''multi-layer'' approach in its design. In this approach each object only interfaces with other objects in its layer or in layers below its layer. There are some other layering approaches that limited the interface between objects of two layers but in Kratos this limitation is not applied.
+Kratos uses a __multi-layer__ approach in its design. In this approach each object only interfaces with other objects in its layer or in layers below its layer. There are some other layering approaches that limited the interface between objects of two layers but in Kratos this limitation is not applied.
 
 Layering reduces the dependency inside the program. It helps in the maintenance of the code and also helps developers in understanding the code and clarifies their tasks.
 
@@ -95,34 +97,34 @@ In designing the layers of the structure different users mentioned before are co
 
 Following the current design mentioned before, Kratos is organized in the following layers:
 
-* '''Basic Tools Layer''' Holds all basic tools used in Kratos. In this layer using advance techniques in C++ is essential in order to maximize the performance of these tools. This layer is designed to be implemented by an expert programmer and with less knowledge of FEM. This layer may also provides interfaces with other libraries to take benefit of existing work in area.
-* '''Base Finite Element Layer''' This layer holds the objects that are necessary to implement a finite element formulation. It also defines the structure to be extended for new formulations. This layer hides the difficult implementations of nodal and data structure and other common features from the finite element developers.
+* **Basic Tools Layer** Holds all basic tools used in Kratos. In this layer using advance techniques in C++ is essential in order to maximize the performance of these tools. This layer is designed to be implemented by an expert programmer and with less knowledge of FEM. This layer may also provides interfaces with other libraries to take benefit of existing work in area.
+* **Base Finite Element Layer** This layer holds the objects that are necessary to implement a finite element formulation. It also defines the structure to be extended for new formulations. This layer hides the difficult implementations of nodal and data structure and other common features from the finite element developers.
 
-* '''Finite Element Layer''' The extension layer for finite element developers.  The finite element layer is restricted to use the basic and average features of language and uses the component base finite element layer and basic tools to optimize the performance without entering into optimization details.
+* **Finite Element Layer** The extension layer for finite element developers.  The finite element layer is restricted to use the basic and average features of language and uses the component base finite element layer and basic tools to optimize the performance without entering into optimization details.
 
-* '''Data Structure Layer''' Contains all objects organizing the data structure. This layer has no restriction in implementation. Advanced language features are used to maximize the flexibility of the data structure.
+* **Data Structure Layer** Contains all objects organizing the data structure. This layer has no restriction in implementation. Advanced language features are used to maximize the flexibility of the data structure.
 
-* '''Base Algorithms Layer''' Provides the components building the extendible structure for algorithms. Generic algorithms can also be implemented here to help developer in their implementation by reusing them.
+* **Base Algorithms Layer** Provides the components building the extendible structure for algorithms. Generic algorithms can also be implemented here to help developer in their implementation by reusing them.
 
-* '''User's Algorithms Layer''' Another layer to be used by finite element programmers but at a higher level. This layer contains all classes implementing the different algorithms in Kratos. Implementation in this layer requires medium level of programming experience but a higher knowledge of program structure than the finite element layer.
+* **User's Algorithms Layer** Another layer to be used by finite element programmers but at a higher level. This layer contains all classes implementing the different algorithms in Kratos. Implementation in this layer requires medium level of programming experience but a higher knowledge of program structure than the finite element layer.
 
-* '''Applications' Interface Layer''' This layer holds all objects that manage Kratos and its relation with other applications. Components in this layer are implemented using high level programming techniques in order to provide the required flexibility.
-* '''Applications Layer''' A simple layer which contains the interface of certain applications with Kratos.
+* **Applications' Interface Layer** This layer holds all objects that manage Kratos and its relation with other applications. Components in this layer are implemented using high level programming techniques in order to provide the required flexibility.
+* **Applications Layer** A simple layer which contains the interface of certain applications with Kratos.
 
-* '''Scripts Layer''' Holds a set of IO scripts which can be used to implement different algorithms from outside Kratos. Package users can use modules in this layer or create their own extension without having knowledge of C++ programming or the internal structure of Kratos. Via this layer they can activate and deactivate certain functionalities or implement a new global algorithm without entering into Kratos implementation details.
+* **Scripts Layer** Holds a set of IO scripts which can be used to implement different algorithms from outside Kratos. Package users can use modules in this layer or create their own extension without having knowledge of C++ programming or the internal structure of Kratos. Via this layer they can activate and deactivate certain functionalities or implement a new global algorithm without entering into Kratos implementation details.
 
 
 The following figure shows the multi-layer nature of
 Kratos.
 
-[[http://kratos-wiki.cimne.upc.edu/images/a/a9/KratosLayers.jpg]]
+[image](http://kratos-wiki.cimne.upc.edu/images/a/a9/KratosLayers.jpg)
 
 ##  Kernel and Applications
 
 In the first implementation of Kratos all applications were implemented in Kratos and also were compiled together. This approach at that time produced several conflicts between applications and was requiring many unnecessary recompiling of the code for changes in other applications. All these problems lead to a change in the strategy and to separating each application not only from others but also from Kratos itself.
 
-In the current structure of Kratos each application is created and compiled separately and just uses a standard interface to communicate with the kernel of Kratos. In this way the conflicts are reduced and the compilation time is also minimized. The <tt>Application</tt> class provides the interface for introducing
-an application to the kernel of Kratos. <tt>Kernel</tt> uses the information given by <tt>Application</tt> through this interface to mange its components, configure different part of Kratos, and synchronize the application with other ones. The <tt>Application</tt> class is very simple and consists of registering the new components like: <tt>Variable</tt>s, <tt>Element</tt>s, <tt>Condition</tt>s, etc. defined in application. The following code shows a typical application class definition:
+In the current structure of Kratos each application is created and compiled separately and just uses a standard interface to communicate with the kernel of Kratos. In this way the conflicts are reduced and the compilation time is also minimized. The `Application` class provides the interface for introducing
+an application to the kernel of Kratos. `Kernel` uses the information given by `Application` through this interface to mange its components, configure different part of Kratos, and synchronize the application with other ones. The `Application` class is very simple and consists of registering the new components like: `Variable`s, `Element`s, `Condition`s, etc. defined in application. The following code shows a typical application class definition:
 
 ```cpp
 // Variables definition
@@ -142,8 +144,8 @@ class KratosNewApplication : public KratosApplication
 ```
 {: data-lang="C++"}
 
-Here <tt>Application</tt> defines its new components and now its
-time to implement the <tt>Register</tt> method:
+Here `Application` defines its new components and now its
+time to implement the `Register` method:
 
 ```cpp
 // Creating variables
@@ -167,4 +169,4 @@ void KratosR1StructuralApplication::Register()
 ```
 {: data-lang="C++"}
 
-This interface enables Kratos to add all these <tt>Variable</tt>s, <tt>Element</tt>s, and <tt>Condition</tt>s in the list of components. Kratos also synchronizes the variables numbering between different applications. Adding new components to Kratos, enables IO to read and write them and also configures the data structure to hold these new variables.
+This interface enables Kratos to add all these `Variable`, `Element`, and `Condition` in the list of components. Kratos also synchronizes the variables numbering between different applications. Adding new components to Kratos, enables IO to read and write them and also configures the data structure to hold these new variables.
