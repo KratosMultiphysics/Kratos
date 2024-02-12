@@ -24,14 +24,14 @@
      inkscape:deskcolor="#d1d1d1"
      inkscape:document-units="mm"
      showgrid="false"
-     inkscape:zoom="2.0686842"
-     inkscape:cx="184.65844"
-     inkscape:cy="26.828648"
-     inkscape:window-width="1346"
-     inkscape:window-height="1041"
-     inkscape:window-x="336"
-     inkscape:window-y="0"
-     inkscape:window-maximized="0"
+     inkscape:zoom="1.4627806"
+     inkscape:cx="203.03796"
+     inkscape:cy="65.970248"
+     inkscape:window-width="1920"
+     inkscape:window-height="1017"
+     inkscape:window-x="1912"
+     inkscape:window-y="-8"
+     inkscape:window-maximized="1"
      inkscape:current-layer="layer1">
     <inkscape:grid
        id="grid1"
@@ -84,25 +84,6 @@
        not_jump="false"
        sort_points="true"
        message="&lt;b&gt;Ctrl + click&lt;/b&gt; on existing node and move it" />
-    <marker
-       style="overflow:visible"
-       id="Sketch"
-       refX="0"
-       refY="0"
-       orient="auto-start-reverse"
-       inkscape:stockid="Sketched arrow"
-       markerWidth="1"
-       markerHeight="1"
-       viewBox="0 0 1 1"
-       inkscape:isstock="true"
-       inkscape:collect="always"
-       preserveAspectRatio="xMidYMid">
-      <path
-         style="fill:none;stroke:context-stroke;stroke-width:0.4;stroke-linecap:round"
-         d="m -4.5421538,-3.2452189 3.83900644,2.60235235 0.56348102,0.59255887 L -2.4921466,1.1808717 -4.4106004,2.139946 -4.5795251,2.8245356 -4.703996,3.0734773 -4.3128019,2.6822832 -3.9749524,2.3088707 0.66603196,-0.12720162 0.02589622,-0.32279868 -1.7613224,-0.60366199 -3.580874,-2.0472634 -4.3186004,-2.392437 l -1.2937699,-0.2549423 2.1825172,0.042166 0.6996091,1.0554873 1.4406512,0.1145833 1.20879971,0.91674665 1.53333299,0.47138389 -1.85995289,1.23785256 -2.03832621,0.9224332 -1.5469949,0.9779853"
-         sodipodi:nodetypes="ccc"
-         id="path14" />
-    </marker>
     <marker
        style="overflow:visible"
        id="Triangle"
@@ -202,105 +183,6 @@
          style="fill:context-stroke;fill-rule:evenodd;stroke:context-stroke;stroke-width:1pt"
          d="M 5.77,0 -2.88,5 V -5 Z"
          id="path135-2-8" />
-    </marker>
-    <marker
-       style="overflow:visible"
-       id="Sketch-7"
-       refX="0"
-       refY="0"
-       orient="auto-start-reverse"
-       inkscape:stockid="Sketched arrow"
-       markerWidth="1"
-       markerHeight="1"
-       viewBox="0 0 1 1"
-       inkscape:isstock="true"
-       inkscape:collect="always"
-       preserveAspectRatio="xMidYMid">
-      <path
-         style="fill:none;stroke:context-stroke;stroke-width:0.4;stroke-linecap:round"
-         d="m -4.5421538,-3.2452189 3.83900644,2.60235235 0.56348102,0.59255887 L -2.4921466,1.1808717 -4.4106004,2.139946 -4.5795251,2.8245356 -4.703996,3.0734773 -4.3128019,2.6822832 -3.9749524,2.3088707 0.66603196,-0.12720162 0.02589622,-0.32279868 -1.7613224,-0.60366199 -3.580874,-2.0472634 -4.3186004,-2.392437 l -1.2937699,-0.2549423 2.1825172,0.042166 0.6996091,1.0554873 1.4406512,0.1145833 1.20879971,0.91674665 1.53333299,0.47138389 -1.85995289,1.23785256 -2.03832621,0.9224332 -1.5469949,0.9779853"
-         sodipodi:nodetypes="ccc"
-         id="path14-2" />
-    </marker>
-    <marker
-       style="overflow:visible"
-       id="ArrowWide"
-       refX="0"
-       refY="0"
-       orient="auto-start-reverse"
-       inkscape:stockid="Wide arrow"
-       markerWidth="1"
-       markerHeight="1"
-       viewBox="0 0 1 1"
-       inkscape:isstock="true"
-       inkscape:collect="always"
-       preserveAspectRatio="xMidYMid">
-      <path
-         style="fill:none;stroke:context-stroke;stroke-width:1;stroke-linecap:butt"
-         d="M 3,-3 0,0 3,3"
-         transform="rotate(180,0.125,0)"
-         sodipodi:nodetypes="ccc"
-         id="path2" />
-    </marker>
-    <marker
-       style="overflow:visible"
-       id="marker3"
-       refX="0"
-       refY="0"
-       orient="auto-start-reverse"
-       inkscape:stockid="Wide arrow"
-       markerWidth="1"
-       markerHeight="1"
-       viewBox="0 0 1 1"
-       inkscape:isstock="true"
-       inkscape:collect="always"
-       preserveAspectRatio="xMidYMid">
-      <path
-         style="fill:none;stroke:context-stroke;stroke-width:1;stroke-linecap:butt"
-         d="M 3,-3 0,0 3,3"
-         transform="rotate(180,0.125,0)"
-         sodipodi:nodetypes="ccc"
-         id="path3-0" />
-    </marker>
-    <marker
-       style="overflow:visible"
-       id="ArrowWide-2"
-       refX="0"
-       refY="0"
-       orient="auto-start-reverse"
-       inkscape:stockid="Wide arrow"
-       markerWidth="3"
-       markerHeight="3"
-       viewBox="0 0 1 1"
-       inkscape:isstock="true"
-       inkscape:collect="always"
-       preserveAspectRatio="xMidYMid">
-      <path
-         style="fill:none;stroke:context-stroke;stroke-width:1;stroke-linecap:butt"
-         d="M 3,-3 0,0 3,3"
-         transform="rotate(180,0.125,0)"
-         sodipodi:nodetypes="ccc"
-         id="path2-7" />
-    </marker>
-    <marker
-       style="overflow:visible"
-       id="marker3-6"
-       refX="0"
-       refY="0"
-       orient="auto-start-reverse"
-       inkscape:stockid="Wide arrow"
-       markerWidth="3"
-       markerHeight="3"
-       viewBox="0 0 1 1"
-       inkscape:isstock="true"
-       inkscape:collect="always"
-       preserveAspectRatio="xMidYMid">
-      <path
-         style="fill:none;stroke:context-stroke;stroke-width:1;stroke-linecap:butt"
-         d="M 3,-3 0,0 3,3"
-         transform="rotate(180,0.125,0)"
-         sodipodi:nodetypes="ccc"
-         id="path3-0-6" />
     </marker>
   </defs>
   <g
@@ -677,19 +559,19 @@
          y="137.69366"
          style="stroke-width:0">0.1m</tspan></text>
     <path
-       style="fill:none;stroke:#000000;stroke-width:0.264999;stroke-dasharray:none;marker-end:url(#Sketch);paint-order:fill markers stroke"
+       style="fill:none;stroke:#000000;stroke-width:0.264999;stroke-dasharray:none;marker-end:url(#Triangle);paint-order:fill markers stroke"
        d="m 82.556609,64.666361 0.79575,4.788315 h 5.767978"
        id="path9" />
     <path
-       style="fill:none;stroke:#000000;stroke-width:0.264999;stroke-dasharray:none;marker-end:url(#Sketch-7);paint-order:fill markers stroke"
+       style="fill:none;stroke:#000000;stroke-width:0.264999;stroke-dasharray:none;marker-end:url(#Triangle-1-0);paint-order:fill markers stroke"
        d="m 80.130766,57.553628 -0.79575,4.788315 h -5.76798"
        id="path9-3" />
     <path
-       style="fill:none;fill-rule:evenodd;stroke:#000000;stroke-width:0.272118;stroke-dasharray:none;marker-start:url(#ArrowWide);marker-end:url(#marker3);paint-order:fill markers stroke"
+       style="fill:none;fill-rule:evenodd;stroke:#000000;stroke-width:0.472;stroke-dasharray:none;marker-start:url(#Triangle);marker-end:url(#Triangle);paint-order:fill markers stroke"
        d="m 60.387189,65.447575 0.09152,198.225575"
        id="path1" />
     <path
-       style="fill:none;fill-rule:evenodd;stroke:#000000;stroke-width:0.127268;stroke-dasharray:none;marker-start:url(#ArrowWide-2);marker-end:url(#marker3-6);paint-order:fill markers stroke"
+       style="fill:none;fill-rule:evenodd;stroke:#000000;stroke-width:0.327;stroke-dasharray:none;marker-start:url(#Triangle-1);marker-end:url(#Triangle-1);paint-order:fill markers stroke"
        d="M 105.01396,154.85774 80.184263,155.0175"
        id="path1-8" />
   </g>
