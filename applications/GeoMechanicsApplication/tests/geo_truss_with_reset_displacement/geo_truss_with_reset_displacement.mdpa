@@ -18,7 +18,7 @@ Begin Nodes
 End Nodes
 
 
-Begin Elements GeoTrussElement3D2N
+Begin Elements TrussElement3D2N
   1  1  1 2
   2  1  2 3
   3  1  3 4
