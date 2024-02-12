@@ -36,9 +36,9 @@ public:
 
     static Kratos::unique_ptr<SaturationLaw> Clone(const Properties& rMaterialProperties)
      {
-         if (rMaterialProperties.Has(SATURATION_LAW))
+         if (rMaterialProperties.Has(SATURATION_LAW_NAME))
          {
-            const std::string &SaturationLawName = rMaterialProperties[SATURATION_LAW];
+            const std::string &SaturationLawName = rMaterialProperties[SATURATION_LAW_NAME];
             
             if (SaturationLawName == "BrooksAndCoreyLaw")
                 return Kratos::make_unique<BrooksAndCoreyLaw>();
@@ -46,7 +46,7 @@ public:
             if (SaturationLawName == "VanGenuchtenLaw")
                 return Kratos::make_unique<VanGenuchtenLaw>();
 
-            KRATOS_ERROR << "Undefined SATURATION_LAW name" << SaturationLawName << std::endl;
+            KRATOS_ERROR << "Undefined SATURATION_LAW_NAME name" << SaturationLawName << std::endl;
 
             return nullptr;
          }

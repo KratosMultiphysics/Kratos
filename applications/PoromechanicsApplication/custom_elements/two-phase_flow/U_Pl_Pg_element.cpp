@@ -93,8 +93,10 @@ int UPlPgElement<TDim,TNumNodes>::Check( const ProcessInfo& rCurrentProcessInfo 
     // Verify ProcessInfo variables
     if ( VELOCITY_COEFFICIENT.Key() == 0 )
         KRATOS_THROW_ERROR( std::invalid_argument,"VELOCITY_COEFFICIENT has Key zero at element", this->Id() )
-    if ( DT_PRESSURE_COEFFICIENT.Key() == 0 )
-        KRATOS_THROW_ERROR( std::invalid_argument,"DT_PRESSURE_COEFFICIENT has Key zero at element", this->Id() )
+    if ( DT_LIQUID_PRESSURE_COEFFICIENT.Key() == 0 )
+        KRATOS_THROW_ERROR( std::invalid_argument,"DT_LIQUID_PRESSURE_COEFFICIENT has Key zero at element", this->Id() )
+    if ( DT_GAS_PRESSURE_COEFFICIENT.Key() == 0 )
+        KRATOS_THROW_ERROR( std::invalid_argument,"DT_GAS_PRESSURE_COEFFICIENT has Key zero at element", this->Id() )
     if ( RAYLEIGH_ALPHA.Key() == 0)
         KRATOS_THROW_ERROR( std::invalid_argument,"RAYLEIGH_ALPHA has Key zero at element", this->Id() )
     if ( RAYLEIGH_BETA.Key() == 0 )

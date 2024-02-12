@@ -11,11 +11,10 @@ def CreateSolver(model, custom_settings):
     return UPlPgSolver(model, custom_settings)
 
 class UPlPgSolver(PythonSolver):
-    '''Solver for the solution of displacement-pore pressure coupled problems.'''
+    '''Solver for the solution of displacement-pore pressure coupled problems
+    for two-phase flow in porous media.'''
 
     def __init__(self, model, custom_settings):
-
-        self._validate_settings_in_baseclass=True # To be removed eventually
 
         super(UPlPgSolver,self).__init__(model, custom_settings)
 
@@ -124,13 +123,13 @@ class UPlPgSolver(PythonSolver):
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.FACE_LOAD)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NORMAL_CONTACT_STRESS)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.TANGENTIAL_CONTACT_STRESS)
-        ## Liquid Variables
+        ## Fluid Variables
         # Add liquid pressure
         self.main_model_part.AddNodalSolutionStepVariable(KratosPoro.LIQUID_PRESSURE)
-        # Add gas pressure
-        self.main_model_part.AddNodalSolutionStepVariable(KratosPoro.GAS_PRESSURE)
         # Add reactions for the liquid pressure
         self.main_model_part.AddNodalSolutionStepVariable(KratosPoro.REACTION_LIQUID_PRESSURE)
+        # Add gas pressure
+        self.main_model_part.AddNodalSolutionStepVariable(KratosPoro.GAS_PRESSURE)
         # Add reactions for the gas pressure
         self.main_model_part.AddNodalSolutionStepVariable(KratosPoro.REACTION_GAS_PRESSURE)
         # Add dynamic variables
@@ -414,7 +413,8 @@ class UPlPgSolver(PythonSolver):
     def _ConstructScheme(self, scheme_type, solution_type):
 
         self.main_model_part.ProcessInfo.SetValue(KratosPoro.VELOCITY_COEFFICIENT, 1.0)
-        self.main_model_part.ProcessInfo.SetValue(KratosPoro.DT_PRESSURE_COEFFICIENT, 1.0)
+        self.main_model_part.ProcessInfo.SetValue(KratosPoro.DT_LIQUID_PRESSURE_COEFFICIENT, 1.0)
+        self.main_model_part.ProcessInfo.SetValue(KratosPoro.DT_GAS_PRESSURE_COEFFICIENT, 1.0)
 
         if(scheme_type == "Newmark"):
             beta = self.settings["newmark_beta"].GetDouble()

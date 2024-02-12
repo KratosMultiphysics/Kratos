@@ -1055,7 +1055,7 @@ void UPlSmallStrainElement<TDim,TNumNodes>::InitializeElementVariables(ElementVa
 
     //ProcessInfo variables
     rVariables.VelocityCoefficient = rCurrentProcessInfo[VELOCITY_COEFFICIENT];
-    rVariables.DtPressureCoefficient = rCurrentProcessInfo[DT_PRESSURE_COEFFICIENT];
+    rVariables.DtPressureCoefficient = rCurrentProcessInfo[DT_LIQUID_PRESSURE_COEFFICIENT];
 
     //Nodal Variables
     for(unsigned int i=0; i<TNumNodes; i++)

@@ -114,6 +114,7 @@ protected:
         ///ProcessInfo variables
         double VelocityCoefficient;
         double DtPressureCoefficient;
+        double DtGasPressureCoefficient;
 
         ///Nodal variables
         array_1d<double,TNumNodes> PressureVector;

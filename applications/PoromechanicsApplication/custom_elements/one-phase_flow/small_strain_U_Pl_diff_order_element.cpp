@@ -1069,7 +1069,7 @@ void SmallStrainUPlDiffOrderElement::InitializeElementalVariables (ElementalVari
 
     //ProcessInfo variables
     rVariables.NewmarkCoefficient1 = rCurrentProcessInfo[VELOCITY_COEFFICIENT];
-    rVariables.NewmarkCoefficient2 = rCurrentProcessInfo[DT_PRESSURE_COEFFICIENT];
+    rVariables.NewmarkCoefficient2 = rCurrentProcessInfo[DT_LIQUID_PRESSURE_COEFFICIENT];
 }
 
 //----------------------------------------------------------------------------------------

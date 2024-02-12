@@ -19,7 +19,7 @@ class ExplicitUPlSolver(UPlSolver):
     """
     def __init__(self, model, custom_settings):
         # Construct the base solver.
-        super().__init__(model, custom_settings)
+        super(ExplicitUPlSolver,self).__init__(model, custom_settings)
 
         self.min_buffer_size = 2           
 
@@ -37,11 +37,11 @@ class ExplicitUPlSolver(UPlSolver):
             "calculate_xi"               : false,
             "xi_1_factor"                : 1.0
         }""")
-        this_defaults.AddMissingParameters(super().GetDefaultParameters())
+        this_defaults.AddMissingParameters(super(ExplicitUPlSolver,self).GetDefaultParameters())
         return this_defaults
 
     def AddVariables(self):
-        super().AddVariables()
+        super(ExplicitUPlSolver,self).AddVariables()
 
         self.main_model_part.AddNodalSolutionStepVariable(KratosPoro.DISPLACEMENT_OLD)
         # self.main_model_part.AddNodalSolutionStepVariable(KratosPoro.DISPLACEMENT_OLDER)
@@ -60,7 +60,7 @@ class ExplicitUPlSolver(UPlSolver):
         KratosMultiphysics.Logger.PrintInfo("::[ExplicitUPlSolver]:: Variables ADDED")
 
     def AddDofs(self):
-        # super().AddDofs()
+        # super(ExplicitUPlSolver,self).AddDofs()
         ## Solid dofs
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_X, KratosMultiphysics.REACTION_X,self.main_model_part)
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_Y, KratosMultiphysics.REACTION_Y,self.main_model_part)
@@ -80,7 +80,7 @@ class ExplicitUPlSolver(UPlSolver):
 
     def Initialize(self):
         # Using the base Initialize
-        # super().Initialize()
+        # super(ExplicitUPlSolver,self).Initialize()
         """Perform initialization after adding nodal variables and dofs to the main model part. """
 
         self.computing_model_part = self.GetComputingModelPart()

@@ -83,8 +83,10 @@ public:
             KRATOS_THROW_ERROR( std::invalid_argument, "DT_GAS_PRESSURE Key is 0. Check if all applications were correctly registered.", "" )
         if ( VELOCITY_COEFFICIENT.Key() == 0 )
             KRATOS_THROW_ERROR( std::invalid_argument, "VELOCITY_COEFFICIENT Key is 0. Check if all applications were correctly registered.", "" )
-        if ( DT_PRESSURE_COEFFICIENT.Key() == 0 )
-            KRATOS_THROW_ERROR( std::invalid_argument, "DT_PRESSURE_COEFFICIENT Key is 0. Check if all applications were correctly registered.", "" )
+        if ( DT_LIQUID_PRESSURE_COEFFICIENT.Key() == 0 )
+            KRATOS_THROW_ERROR( std::invalid_argument, "DT_LIQUID_PRESSURE_COEFFICIENT Key is 0. Check if all applications were correctly registered.", "" )
+        if ( DT_GAS_PRESSURE_COEFFICIENT.Key() == 0 )
+            KRATOS_THROW_ERROR( std::invalid_argument, "DT_GAS_PRESSURE_COEFFICIENT Key is 0. Check if all applications were correctly registered.", "" )
 
         //check that variables are correctly allocated
         for(ModelPart::NodesContainerType::iterator it=r_model_part.NodesBegin(); it!=r_model_part.NodesEnd(); it++)
@@ -137,7 +139,8 @@ public:
 
         mDeltaTime = r_model_part.GetProcessInfo()[DELTA_TIME];
         r_model_part.GetProcessInfo().SetValue(VELOCITY_COEFFICIENT,mGamma/(mBeta*mDeltaTime));
-        r_model_part.GetProcessInfo().SetValue(DT_PRESSURE_COEFFICIENT,1.0/(mTheta*mDeltaTime));
+        r_model_part.GetProcessInfo().SetValue(DT_LIQUID_PRESSURE_COEFFICIENT,1.0/(mTheta*mDeltaTime));
+        r_model_part.GetProcessInfo().SetValue(DT_GAS_PRESSURE_COEFFICIENT,1.0/(mTheta*mDeltaTime));
 
         const int NNodes = static_cast<int>(r_model_part.Nodes().size());
         ModelPart::NodesContainerType::iterator node_begin = r_model_part.NodesBegin();
@@ -194,7 +197,8 @@ public:
 
         mDeltaTime = r_model_part.GetProcessInfo()[DELTA_TIME];
         r_model_part.GetProcessInfo().SetValue(VELOCITY_COEFFICIENT,mGamma/(mBeta*mDeltaTime));
-        r_model_part.GetProcessInfo().SetValue(DT_PRESSURE_COEFFICIENT,1.0/(mTheta*mDeltaTime));
+        r_model_part.GetProcessInfo().SetValue(DT_LIQUID_PRESSURE_COEFFICIENT,1.0/(mTheta*mDeltaTime));
+        r_model_part.GetProcessInfo().SetValue(DT_GAS_PRESSURE_COEFFICIENT,1.0/(mTheta*mDeltaTime));
 
         const ProcessInfo& rCurrentProcessInfo = r_model_part.GetProcessInfo();
 

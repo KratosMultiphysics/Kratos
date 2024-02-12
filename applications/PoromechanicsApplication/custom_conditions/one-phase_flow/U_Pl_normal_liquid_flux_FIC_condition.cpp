@@ -54,7 +54,7 @@ void UPlNormalLiquidFluxFICCondition<TDim,TNumNodes>::CalculateAll( MatrixType& 
     array_1d<double,TNumNodes> NormalLiquidFluxVector;
     NormalLiquidFluxVariables Variables;
     NormalLiquidFluxFICVariables FICVariables;
-    FICVariables.DtPressureCoefficient = rCurrentProcessInfo[DT_PRESSURE_COEFFICIENT];
+    FICVariables.DtPressureCoefficient = rCurrentProcessInfo[DT_LIQUID_PRESSURE_COEFFICIENT];
     this->CalculateElementLength(FICVariables.ElementLength,Geom);
     const double& BulkModulusSolid = Prop[BULK_MODULUS_SOLID];
     const double& Porosity = Prop[POROSITY];
@@ -115,7 +115,7 @@ void UPlNormalLiquidFluxFICCondition<TDim,TNumNodes>::CalculateRHS( VectorType& 
     array_1d<double,TNumNodes> NormalLiquidFluxVector;
     NormalLiquidFluxVariables Variables;
     NormalLiquidFluxFICVariables FICVariables;
-    FICVariables.DtPressureCoefficient = rCurrentProcessInfo[DT_PRESSURE_COEFFICIENT];
+    FICVariables.DtPressureCoefficient = rCurrentProcessInfo[DT_LIQUID_PRESSURE_COEFFICIENT];
     this->CalculateElementLength(FICVariables.ElementLength,Geom);
     const double& BulkModulusSolid = Prop[BULK_MODULUS_SOLID];
     const double& Porosity = Prop[POROSITY];
