@@ -33,7 +33,7 @@ class KratosGeoMechanicsAbsorbingBoundaryColumnTests(KratosUnittest.TestCase):
 
         :return:
         """
-        test_name = 'test_lysmer_boundary_column2d_quad.gid'
+        test_name = 'lysmer_boundary_column2d_quad'
         file_path = test_helper.get_file_path(os.path.join('.', test_name))
 
         # quarter node, middle node, three quarter node
@@ -49,7 +49,7 @@ class KratosGeoMechanicsAbsorbingBoundaryColumnTests(KratosUnittest.TestCase):
 
         """
 
-        test_name = 'test_lysmer_boundary_stiff_column2d_quad'
+        test_name = 'lysmer_boundary_stiff_column2d_quad'
         file_path = test_helper.get_file_path(os.path.join('.', test_name))
 
         test_helper.run_kratos(file_path)

@@ -1,8 +1,8 @@
 {
     "problem_data": {
-        "problem_name":         "test_lysmer_boundary_stiff_column2d_quad",
+        "problem_name":         "lysmer_boundary_column2d_quad",
         "start_time":           0.0,
-        "end_time":             0.6,
+        "end_time":             0.3,
         "echo_level":           1,
         "parallel_type":        "OpenMP",
         "number_of_threads":    1
@@ -13,13 +13,13 @@
         "domain_size":                        2,
         "model_import_settings":              {
             "input_type":       "mdpa",
-            "input_filename":   "test_lysmer_boundary_stiff_column2d_quad"
+            "input_filename":   "lysmer_boundary_column2d_quad"
         },
         "material_import_settings":              {
             "materials_filename":       "MaterialParameters.json"
         },
         "time_stepping":              {
-            "time_step":                0.005,
+            "time_step":                0.01,
             "max_delta_time_factor":    1000
         },
         "buffer_size":                        2,
@@ -74,6 +74,35 @@
         "body_domain_sub_model_part_list":    ["soil"]
     },
     "output_processes": {
+        "gid_output": [{
+            "python_module": "gid_output_process",
+            "kratos_module": "KratosMultiphysics",
+            "process_name": "GiDOutputProcess",
+            "Parameters":    {
+                "model_part_name": "PorousDomain.porous_computational_model_part",
+                "output_name": "lysmer_boundary_column2d_quad",
+                "postprocess_parameters": {
+                    "result_file_configuration": {
+                        "gidpost_flags":       {
+                            "WriteDeformedMeshFlag": "WriteUndeformed",
+                            "WriteConditionsFlag":   "WriteElementsOnly",
+                            "GiDPostMode":           "GiD_PostAscii",
+                            "MultiFileFlag":         "SingleFile"
+                        },
+                        "file_label":          "step",
+                        "output_control_type": "step",
+                        "output_interval":     1,
+                        "body_output":         true,
+                        "node_output":         false,
+                        "skin_output":         false,
+                        "plane_output":        [],
+                        "nodal_results":       ["DISPLACEMENT", "VELOCITY"],
+                        "gauss_point_results": []
+                    },
+                    "point_data_configuration":  []
+                }
+            }
+        }]
     },
     "processes": {
         "constraints_process_list": [{
@@ -107,23 +136,9 @@
         "Parameters":    {
             "model_part_name":      "PorousDomain.abs",
             "absorbing_factors": [1,1],
-			"virtual_thickness": 0.001
+			"virtual_thickness": 1000
         }
     }],
-        "auxiliar_process_list": [],
-		"json_output": [{
-            "python_module": "json_output_process",
-            "kratos_module": "KratosMultiphysics",
-            "process_name": "JsonOutputProcess",
-            "Parameters":    {
-                "model_part_name": "PorousDomain.output",
-                "output_file_name": "calculated_result.json",
-				"output_variables": ["VELOCITY_Y"],
-				"time_frequency"                : 0.01,
-				"historical_value"              : true,
-				"resultant_solution"            : false,
-				"use_node_coordinates"          : false
-            }
-        }]
+        "auxiliar_process_list": []
     }
 }
