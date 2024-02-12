@@ -35,7 +35,7 @@ Element::Pointer UPwSmallStrainAxisymmetricFICElement<TDim, TNumNodes>::Create(
 
 //----------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
-void UPwSmallStrainAxisymmetricFICElement<TDim, TNumNodes>::CalculateBMatrix(Matrix& rB,
+void UPwSmallStrainAxisymmetricFICElement<TDim, TNumNodes>::CalculateBMatrix(Matrix&       rB,
                                                                              const Matrix& GradNpT,
                                                                              const Vector& Np)
 {
