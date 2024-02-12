@@ -29,7 +29,7 @@ class KratosGeoMechanicsDynamicsTests(KratosUnittest.TestCase):
         time step size is increased for faster calculation
         :return:
         """
-        test_name = 'test_1d_wave_prop_drained_soil.gid'
+        test_name = 'test_1d_wave_prop_drained_soil'
         file_path = test_helper.get_file_path(os.path.join('.', test_name))
 
         test_helper.run_kratos(file_path)
@@ -57,7 +57,7 @@ class KratosGeoMechanicsDynamicsTests(KratosUnittest.TestCase):
         time step size is increased for faster calculation
         :return:
         """
-        test_name = 'test_1d_wave_prop_drained_soil_constant_mass_damping.gid'
+        test_name = 'test_1d_wave_prop_drained_soil_constant_mass_damping'
         file_path = test_helper.get_file_path(os.path.join('.', test_name))
 
         simulation = test_helper.run_kratos(file_path)
