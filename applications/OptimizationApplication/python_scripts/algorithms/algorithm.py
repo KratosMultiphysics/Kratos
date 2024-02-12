@@ -70,7 +70,9 @@ class Algorithm(ABC):
             CallOnAll(self._optimization_problem.GetListOfProcesses(process_type), *args, **kwargs)
 
     def _InitializeIteration(self) -> None:
-        list(map(lambda x: x.ExecuteInitializeSolutionStep(), self._optimization_problem.GetAvailableProcessTypes()))
+        for process_type in self._optimization_problem.GetAvailableProcessTypes():
+            list(map(lambda x: x.ExecuteInitializeSolutionStep(), self._optimization_problem.GetListOfProcesses(process_type)))
 
     def _FinalizeIteration(self) -> None:
-        list(map(lambda x: x.ExecuteInitializeSolutionStep(), self._optimization_problem.GetAvailableProcessTypes()))
+        for process_type in self._optimization_problem.GetAvailableProcessTypes():
+            list(map(lambda x: x.ExecuteFinalizeSolutionStep(), self._optimization_problem.GetListOfProcesses(process_type)))
