@@ -26,7 +26,7 @@
 
 namespace Kratos
 {
-///@addtogroup MappingApplication
+///@addtogroup ApplicationNameApplication
 ///@{
 
 ///@name Kratos Classes

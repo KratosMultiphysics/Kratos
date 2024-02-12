@@ -25,7 +25,6 @@
 #include "includes/model_part.h"
 #include "includes/kratos_parameters.h"
 #include "containers/flags.h"
-#include "expression/expression.h"
 
 
 namespace Kratos
@@ -110,10 +109,6 @@ public:
         const Variable< array_1d<double, 3> >& rOriginVariable,
         const Variable< array_1d<double, 3> >& rDestinationVariable,
         Kratos::Flags MappingOptions) = 0;
-
-    /// @brief Mapping interface for @ref Expression s.
-    virtual Expression::Pointer Map(Expression::Pointer pOriginExpression,
-                                    Kratos::Flags MappingOptions) = 0;
 
     /**
     * @brief Mapping from Destination to Origin, Scalar Variable

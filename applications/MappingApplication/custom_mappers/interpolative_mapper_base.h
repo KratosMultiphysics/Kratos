@@ -20,7 +20,6 @@
 // External includes
 
 // Project includes
-#include "expression/literal_flat_expression.h"
 #include "includes/kratos_filesystem.h"
 #include "input_output/vtk_output.h"
 #include "utilities/variable_utils.h"
@@ -35,9 +34,6 @@
 #include "custom_utilities/mapper_local_system.h"
 #include "custom_utilities/mapping_matrix_utilities.h"
 #include "custom_utilities/mapper_utilities.h"
-#include "expression/view_operators.h"
-#include "expression/c_array_expression_io.h"
-#include "expression/arithmetic_operators.h"
 
 namespace Kratos
 {
@@ -186,12 +182,6 @@ public:
         }
 
         KRATOS_CATCH("");
-    }
-
-    Expression::Pointer Map(Expression::Pointer pOriginExpression,
-                            Kratos::Flags MappingOptions) override
-    {
-        return MapInternal(pOriginExpression, MappingOptions);
     }
 
     void InverseMap(
@@ -344,7 +334,7 @@ protected:
     }
 
     ///@}
-
+    
 private:
     ///@name Member Variables
     ///@{
@@ -428,22 +418,6 @@ private:
         MapperUtilities::AssignInterfaceEquationIds(mrModelPartDestination.GetCommunicator());
     }
 
-    void ApplyTransform() const
-    {
-        TSparseSpace::Mult(
-            *mpMappingMatrix,
-            mpInterfaceVectorContainerOrigin->GetVector(),
-            mpInterfaceVectorContainerDestination->GetVector()); // rQd = rMdo * rQo
-    }
-
-    void ApplyTransposeTransform() const
-    {
-        TSparseSpace::TransposeMult(
-            *mpMappingMatrix,
-            mpInterfaceVectorContainerDestination->GetVector(),
-            mpInterfaceVectorContainerOrigin->GetVector()); // rQo = rMdo^T * rQd
-    }
-
     void MapInternal(const Variable<double>& rOriginVariable,
                      const Variable<double>& rDestinationVariable,
                      Kratos::Flags MappingOptions)
@@ -451,7 +425,12 @@ private:
         KRATOS_TRY;
 
         mpInterfaceVectorContainerOrigin->UpdateSystemVectorFromModelPart(rOriginVariable, MappingOptions);
-        this->ApplyTransform();
+
+        TSparseSpace::Mult(
+            *mpMappingMatrix,
+            mpInterfaceVectorContainerOrigin->GetVector(),
+            mpInterfaceVectorContainerDestination->GetVector()); // rQd = rMdo * rQo
+
         mpInterfaceVectorContainerDestination->UpdateModelPartFromSystemVector(rDestinationVariable, MappingOptions);
 
         KRATOS_CATCH("");
@@ -464,7 +443,12 @@ private:
         KRATOS_TRY;
 
         mpInterfaceVectorContainerDestination->UpdateSystemVectorFromModelPart(rDestinationVariable, MappingOptions);
-        this->ApplyTransposeTransform();
+
+        TSparseSpace::TransposeMult(
+            *mpMappingMatrix,
+            mpInterfaceVectorContainerDestination->GetVector(),
+            mpInterfaceVectorContainerOrigin->GetVector()); // rQo = rMdo^T * rQd
+
         mpInterfaceVectorContainerOrigin->UpdateModelPartFromSystemVector(rOriginVariable, MappingOptions);
 
         KRATOS_CATCH("");
@@ -482,80 +466,6 @@ private:
 
             MapInternal(var_origin, var_destination, MappingOptions);
         }
-
-        KRATOS_CATCH("");
-    }
-
-    // Map expressions to variables with `double` value type, or value types that consist `double`s
-    Expression::Pointer MapInternal(Expression::Pointer pOriginExpression,
-                                    Kratos::Flags MappingOptions)
-    {
-        // Disable options that make no sense for expressions
-        // => Mapper has no control over where the origin data is fetched from
-        //    or where the destination expression gets written.
-        KRATOS_ERROR_IF(MappingOptions.Is(MapperFlags::FROM_NON_HISTORICAL)) << "The FROM_NON_HISTORICAL is disabled when mapping expressions";
-        KRATOS_ERROR_IF(MappingOptions.Is(MapperFlags::TO_NON_HISTORICAL)) << "The TO_NON_HISTORICAL is disabled when mapping expressions";
-        KRATOS_ERROR_IF(MappingOptions.Is(MapperFlags::ADD_VALUES)) << "The ADD_VALUES is disabled when mapping expressions";
-
-        KRATOS_ERROR_IF(MappingOptions.Is(MapperFlags::USE_TRANSPOSE)) << "Transpose mapping with expressions is not implemented";
-
-        KRATOS_TRY;
-
-        const std::size_t origin_size = pOriginExpression->size();
-        const std::size_t origin_node_count = mrModelPartOrigin.GetCommunicator().LocalMesh().NumberOfNodes();
-        const std::size_t destination_node_count = mrModelPartDestination.GetCommunicator().LocalMesh().NumberOfNodes();
-        KRATOS_ERROR_IF_NOT(((origin_size == 0) == (origin_node_count == 0)) && (origin_size == 0 ? true : !bool(origin_size % origin_node_count)))
-            << "Source expression size (" << origin_size
-            << ") must be a multiple of the number of local nodes in the source model part (" << mrModelPartOrigin.GetCommunicator().LocalMesh().NumberOfNodes() << ')';
-
-        // Get the pointer to the first item in the local vector
-        // Sadly, this isn't starightforward because operator[] in Trilinos vector types
-        // returns a double*& instead of a double&, so both cases must be handled.
-        using ComponentType = typename TSparseSpace::DataType;
-        using VectorSubscriptType = decltype(std::declval<typename TSparseSpace::VectorType>()[0]);
-        const auto get_vector_begin = [](InterfaceVectorContainerType& rVector) -> std::optional<ComponentType*> {
-            auto p_begin = std::optional<ComponentType*>();
-            if constexpr (std::is_same_v<VectorSubscriptType,ComponentType*&>) {
-                p_begin = rVector.GetVector()[0];
-            } else if constexpr (std::is_same_v<VectorSubscriptType,ComponentType&>) {
-                p_begin = &rVector.GetVector()[0];
-            }
-            return p_begin;
-        };
-
-        ComponentType* p_source_begin = get_vector_begin(*mpInterfaceVectorContainerOrigin).value();
-
-        // Create an expression for each component of the destination expression
-        // These will be filled one by one and combed at the end.
-        const unsigned stride = pOriginExpression->GetItemComponentCount();
-        std::vector<Expression::Pointer> destination_components;
-        destination_components.reserve(stride);
-
-        KRATOS_ERROR_IF_NOT(stride) << "Cannot map an empty expression";
-
-        for (unsigned i_component=0; i_component<stride; ++i_component) {
-            // Get the next component of the expression
-            Expression::ConstPointer p_slice = Slice(pOriginExpression, i_component, 1);
-
-            // Evaluate the sliced expression to the target array
-            CArrayExpressionIO::Output(p_source_begin, origin_node_count).Execute(*p_slice);
-
-            // Perform the transform
-            this->ApplyTransform();
-
-            // Copy the transformed array to the destination expression
-            ComponentType* p_destination_begin = get_vector_begin(*mpInterfaceVectorContainerDestination).value();
-            auto component = CArrayExpressionIO::Input(
-                p_destination_begin,
-                destination_node_count,
-                nullptr,
-                0).Execute();
-
-            destination_components.push_back(MappingOptions.Is(MapperFlags::SWAP_SIGN) ? -1 * component : component);
-        }
-
-        //return Comb(destination_components.begin(), destination_components.end());
-        return 1 < stride ? Comb(destination_components.begin(), destination_components.end()) : destination_components.front();
 
         KRATOS_CATCH("");
     }
