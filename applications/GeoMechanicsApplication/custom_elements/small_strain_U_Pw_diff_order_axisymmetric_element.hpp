@@ -39,7 +39,6 @@ public:
     using MatrixType     = Matrix;
     using SizeType       = std::size_t;
     using SmallStrainUPwDiffOrderElement::mConstitutiveLawVector;
-    using typename SmallStrainUPwDiffOrderElement::ElementVariables;
 
     ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 

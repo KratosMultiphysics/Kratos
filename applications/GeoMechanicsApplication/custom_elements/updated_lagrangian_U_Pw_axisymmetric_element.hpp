@@ -41,7 +41,6 @@ public:
     using MatrixType     = Matrix;
     using SizeType       = std::size_t;
     using UPwBaseElement<TDim, TNumNodes>::mConstitutiveLawVector;
-    using typename UPwSmallStrainElement<TDim, TNumNodes>::ElementVariables;
 
     ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 

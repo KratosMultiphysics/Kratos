@@ -39,7 +39,6 @@ public:
     using VectorType     = Vector;
     using MatrixType     = Matrix;
     using SizeType       = std::size_t;
-    using typename SmallStrainUPwDiffOrderElement::ElementVariables;
     using UpdatedLagrangianUPwDiffOrderElement::mConstitutiveLawVector;
 
     ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
