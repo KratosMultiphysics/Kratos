@@ -4,11 +4,11 @@ This test verifies that in a block of plane strain elements, the motion induced 
 
 ## Setup
 
-This test consists of a 4 3-noded elements (using the UPwSmallStrainElement2D3N class) of $1x1 \mathrm{[m]}$. A
+This test consists of a 4 3-noded elements (using the UPwSmallStrainElement2D3N class) of $1 \mathrm{x} 1 \mathrm{[m]}$. A
 schematic representation can be found in the figure below:
 ![MeshStructure](MeshStructure.svg)
 
-All nodes on the sides have fixed horizontal displacements. The bottom node displacements are fixed in the horizontal and vertical direction. At the top of the column a vertical compressive lineload with a magnitude of $10 \mathrm{[N/m]}$ is instantly applied at $t = 0 \marthrm{[s]}$.
+All nodes on the sides have fixed horizontal displacements. The bottom node displacements are fixed in the horizontal and vertical direction. At the top of the column a vertical compressive lineload with a magnitude of $10 \mathrm{[N/m]}$ is instantly applied at $t = 0 \mathrm{[s]}$.
 
 The material is described using:
 -   A linear elastic plane strain model (LinearElasticPlaneStrain2DLaw)

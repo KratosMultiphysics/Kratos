@@ -5,6 +5,7 @@ This tests verifies that the ResidualBasedBlockBuilderAnderSolverWithMassAndDamp
 ## Setup
 
 This test is a copy of the test 1D wave propagation in a drained soil column. The difference is that mass and damping matrices only are setup once. For that block_builder and prebuild_dynamics are both set to true in ProjectParameters.json.
+[Other Readme](../test_1d_wave_prop_drained_soil/README.md)
 
 ## Assertions
 
