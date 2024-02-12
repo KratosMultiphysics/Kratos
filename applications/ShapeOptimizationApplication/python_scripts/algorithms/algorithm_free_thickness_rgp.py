@@ -101,8 +101,8 @@ class AlgorithmFreeThicknessRelaxedGradientProjection(OptimizationAlgorithm):
         self.optimization_model_part.AddNodalSolutionStepVariable(KSO.THICKNESS_CORRECTION)
         self.optimization_model_part.AddNodalSolutionStepVariable(KSO.THICKNESS_SEARCH_DIRECTION)
 
-        self.lower_bound = LowerBound(optimization_settings["design_variables"]["t_min"].GetDouble(), self.optimization_model_part)
-        self.upper_bound = UpperBound(optimization_settings["design_variables"]["t_max"].GetDouble(), self.optimization_model_part)
+        self.lower_bound = LowerBound(optimization_settings["design_variables"][0]["t_min"].GetDouble(), self.optimization_model_part)
+        self.upper_bound = UpperBound(optimization_settings["design_variables"][0]["t_max"].GetDouble(), self.optimization_model_part)
 
     # --------------------------------------------------------------------------
     def CheckApplicability(self):
@@ -116,6 +116,8 @@ class AlgorithmFreeThicknessRelaxedGradientProjection(OptimizationAlgorithm):
         self.model_part_controller.Initialize()
 
         self.analyzer.InitializeBeforeOptimizationLoop()
+
+        self.model_part_controller.ModifyInitialProperties()
 
         self.design_surface = self.model_part_controller.GetDesignSurface()
 
@@ -635,14 +637,14 @@ class AlgorithmFreeThicknessRelaxedGradientProjection(OptimizationAlgorithm):
     def __mapElementGradientToNode(self, element_gradient_dict, gradient_variable):
 
         # reset variables
-        for node in self.optimization_model_part.Nodes:
+        for node in self.design_surface.Nodes:
             node.SetSolutionStepValue(gradient_variable, 0, 0.0)
 
-        for condition in self.optimization_model_part.Conditions:
+        for condition in self.design_surface.Conditions:
             condition.SetValue(gradient_variable, element_gradient_dict[condition.Id])
 
         total_node_areas = dict()
-        for condition in self.optimization_model_part.Conditions:
+        for condition in self.design_surface.Conditions:
             df_dt = condition.GetValue(gradient_variable)
             for node in condition.GetNodes():
                 if node.Id in total_node_areas:
@@ -653,7 +655,7 @@ class AlgorithmFreeThicknessRelaxedGradientProjection(OptimizationAlgorithm):
                 df_dt_node += df_dt * condition.GetGeometry().Area()
                 node.SetSolutionStepValue(gradient_variable, 0, df_dt_node)
 
-        for node in self.optimization_model_part.Nodes:
+        for node in self.design_surface.Nodes:
             total_node_area = total_node_areas[node.Id]
             df_dt_node = node.GetSolutionStepValue(gradient_variable)
             df_dt_node /= total_node_area

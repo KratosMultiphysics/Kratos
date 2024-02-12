@@ -168,12 +168,13 @@ class AlgorithmFreeThicknessOptimizationv3RGP(OptimizationAlgorithm):
         self.optimization_model_part.AddNodalSolutionStepVariable(KSO.THICKNESS_PROJECTION)
         self.optimization_model_part.AddNodalSolutionStepVariable(KSO.THICKNESS_CORRECTION)
 
+        self.variable_scaling = False
         if self.shape_opt:
             self.optimization_model_part.AddNodalSolutionStepVariable(KSO.PROJECTION)
             self.optimization_model_part.AddNodalSolutionStepVariable(KSO.CORRECTION)
             self.optimization_model_part.AddNodalSolutionStepVariable(KSO.SEARCH_DIRECTION)
+            self.variable_scaling = True
 
-        self.variable_scaling = True
         self.shape_scaling_divisor = self.algorithm_settings["shape_scaling_divisor"].GetDouble()
         self.thickness_scaling_divisor = self.algorithm_settings["thickness_scaling_divisor"].GetDouble()
 

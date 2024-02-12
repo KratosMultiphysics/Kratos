@@ -41,7 +41,7 @@ class Optimizer:
 
         self.design_variables = optimization_settings["design_variables"]
         for design_variable in self.design_variables:
-            if design_variable["type"].GetString() not in ["vertex_morphing", "free_thickness", "thickness_parameter"]:
+            if design_variable["type"].GetString() not in ["vertex_morphing", "free_thickness", "thickness_parameter", "free_thickness_original_vm"]:
                 variable_type = design_variable["type"].GetString()
                 raise NameError(f"The following type of design variables is not supported by the optimizer: {variable_type}")
 
