@@ -76,7 +76,7 @@ Selects the control type of the output. It can be `step` or `time`
 Selects the amout of `output_control_type`'s that need to happend before printing. (Ex 1 step, or 2.0 times)
 
 ##### `output_sub_model_parts` 
-If set to `true`, will print the diefferent sub_modelparts as diferent outputs. If set to `false`, will print as a unified modelpart.
+If set to `true`, will print the diefferent sub_modelparts as different outputs. If set to `false`, will print as a unified modelpart.
 
 ##### `output_path`
 Path where the files will be written
