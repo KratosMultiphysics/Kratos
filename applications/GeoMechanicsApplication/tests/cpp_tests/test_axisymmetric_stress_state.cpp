@@ -104,7 +104,7 @@ KRATOS_TEST_CASE_IN_SUITE(TestCalculateGreenLagrangeStrainThrows, KratosGeoMecha
     const std::unique_ptr<StressStatePolicy> p_stress_state_policy =
         std::make_unique<AxisymmetricStressState>();
 
-    // Note: avoid a warning triggered by the `[[nodiscard]]` attribute of the `GetIncrement()`
+    // Note: avoid a warning triggered by the `[[nodiscard]]` attribute of the `CalculateGreenLagrangeStrain()`
     // member function by assigning the return value to a dummy variable. In turn, the dummy
     // variable needs to be marked `[[maybe_unused]]` to avoid a warning about an unused variable.
     KRATOS_EXPECT_EXCEPTION_IS_THROWN([[maybe_unused]] const auto strain_vector =
