@@ -56,10 +56,10 @@ double UpdatedLagrangianUPwDiffOrderAxisymmetricElement::CalculateIntegrationCoe
     return stress_state.CalculateIntegrationCoefficient(IntegrationPoints[PointNumber], detJ, this->GetGeometry());
 }
 
-void UpdatedLagrangianUPwDiffOrderAxisymmetricElement::CalculateGreenLagrangeStrain(ElementVariables& rVariables)
+Vector UpdatedLagrangianUPwDiffOrderAxisymmetricElement::CalculateGreenLagrangeStrain(const Matrix& rDeformationGradient)
 {
     AxisymmetricStressState stress_state;
-    rVariables.StressVector = stress_state.CalculateGreenLagrangeStrain(rVariables.F);
+    return stress_state.CalculateGreenLagrangeStrain(rDeformationGradient);
 }
 
 //----------------------------------------------------------------------------------------------------

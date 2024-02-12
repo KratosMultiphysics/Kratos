@@ -104,7 +104,7 @@ protected:
                                            unsigned int PointNumber,
                                            double       detJ) override;
 
-    void CalculateGreenLagrangeStrain(ElementVariables& rVariables) override;
+    Vector CalculateGreenLagrangeStrain(const Matrix& rDeformationGradient) override;
 
     ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 

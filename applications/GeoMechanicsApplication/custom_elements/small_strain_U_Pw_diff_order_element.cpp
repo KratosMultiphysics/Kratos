@@ -2274,18 +2274,19 @@ void SmallStrainUPwDiffOrderElement::CalculateCauchyStrain(ElementVariables& rVa
     noalias(rVariables.StrainVector) = prod(rVariables.B, rVariables.DisplacementVector);
 }
 
-void SmallStrainUPwDiffOrderElement::CalculateGreenLagrangeStrain(ElementVariables& rVariables)
+Vector SmallStrainUPwDiffOrderElement::CalculateGreenLagrangeStrain(const Matrix& rDeformationGradient)
 {
     KRATOS_TRY
 
     const GeometryType& rGeom = GetGeometry();
     const SizeType      Dim   = rGeom.WorkingSpaceDimension();
 
-    //-Compute total deformation gradient
-    const Matrix& F = rVariables.F;
+    const SizeType VoigtSize = (Dim == 3 ? VOIGT_SIZE_3D : VOIGT_SIZE_2D_PLANE_STRAIN);
+    Vector         result    = ZeroVector(VoigtSize);
 
+    //-Compute total deformation gradient
     Matrix ETensor;
-    ETensor = prod(trans(F), F);
+    ETensor = prod(trans(rDeformationGradient), rDeformationGradient);
 
     for (unsigned int i = 0; i < Dim; ++i)
         ETensor(i, i) -= 1.0;
@@ -2294,13 +2295,15 @@ void SmallStrainUPwDiffOrderElement::CalculateGreenLagrangeStrain(ElementVariabl
     if (Dim == 2) {
         Vector StrainVector;
         StrainVector = MathUtils<double>::StrainTensorToVector(ETensor);
-        rVariables.StrainVector[INDEX_2D_PLANE_STRAIN_XX] = StrainVector[0];
-        rVariables.StrainVector[INDEX_2D_PLANE_STRAIN_YY] = StrainVector[1];
-        rVariables.StrainVector[INDEX_2D_PLANE_STRAIN_ZZ] = 0.0;
-        rVariables.StrainVector[INDEX_2D_PLANE_STRAIN_XY] = StrainVector[2];
+        result[INDEX_2D_PLANE_STRAIN_XX] = StrainVector[0];
+        result[INDEX_2D_PLANE_STRAIN_YY] = StrainVector[1];
+        result[INDEX_2D_PLANE_STRAIN_ZZ] = 0.0;
+        result[INDEX_2D_PLANE_STRAIN_XY] = StrainVector[2];
     } else {
-        noalias(rVariables.StrainVector) = MathUtils<double>::StrainTensorToVector(ETensor);
+        result = MathUtils<double>::StrainTensorToVector(ETensor);
     }
+
+    return result;
 
     KRATOS_CATCH("")
 }
