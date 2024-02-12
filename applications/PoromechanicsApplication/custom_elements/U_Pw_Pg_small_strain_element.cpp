@@ -645,6 +645,7 @@ void UPwPgSmallStrainElement<TDim,TNumNodes>::CalculateOnIntegrationPoints( cons
     if ( rOutput.size() != NumGPoints )
         rOutput.resize( NumGPoints );
 
+    // TODO
     if(rVariable == LIQUID_FLUX_VECTOR) {
         const PropertiesType& Prop = this->GetProperties();
 
