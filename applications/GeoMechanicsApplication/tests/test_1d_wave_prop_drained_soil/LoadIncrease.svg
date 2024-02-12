@@ -25,12 +25,12 @@
      inkscape:document-units="mm"
      showgrid="false"
      inkscape:zoom="0.73139029"
-     inkscape:cx="339.08025"
-     inkscape:cy="408.81046"
+     inkscape:cx="500.41682"
+     inkscape:cy="-69.730212"
      inkscape:window-width="1346"
      inkscape:window-height="940"
-     inkscape:window-x="313"
-     inkscape:window-y="101"
+     inkscape:window-x="2201"
+     inkscape:window-y="24"
      inkscape:window-maximized="0"
      inkscape:current-layer="layer1">
     <inkscape:grid
@@ -104,35 +104,6 @@
        style="fill:#ffffff;stroke:#000000;stroke-width:0.564999;paint-order:fill markers stroke"
        d="M 35.000001,115 44.999999,54.999998 H 180"
        id="path2" />
-    <text
-       xml:space="preserve"
-       style="font-size:5.75082px;fill:#010101;stroke:#000000;stroke-width:0;paint-order:fill markers stroke;fill-opacity:1;stroke-dasharray:none"
-       x="48.48761"
-       y="33.125729"
-       id="text2"
-       transform="scale(0.55209552,1.8112808)"><tspan
-         sodipodi:role="line"
-         id="tspan2"
-         style="stroke-width:0;fill:#010101;fill-opacity:1;stroke-dasharray:none"
-         x="48.48761"
-         y="33.125729">1</tspan></text>
-    <text
-       xml:space="preserve"
-       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:11.5617px;font-family:Arial;-inkscape-font-specification:'Arial, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;fill:#000000;stroke:#000000;stroke-width:0;stroke-dasharray:none;paint-order:fill markers stroke;fill-opacity:1"
-       x="216.34413"
-       y="101.55715"
-       id="text3"
-       transform="scale(0.78840311,1.2683867)"><tspan
-         sodipodi:role="line"
-         id="tspan3"
-         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:11.5617px;font-family:Arial;-inkscape-font-specification:'Arial, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;stroke-width:0;stroke-dasharray:none;fill:#000000;fill-opacity:1"
-         x="216.34413"
-         y="101.55715">t</tspan><tspan
-         sodipodi:role="line"
-         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:11.5617px;font-family:Arial;-inkscape-font-specification:'Arial, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;stroke-width:0;stroke-dasharray:none;fill:#000000;fill-opacity:1"
-         x="216.34413"
-         y="116.00928"
-         id="tspan4" /></text>
     <path
        style="fill:#ffffff;stroke:#000000;stroke-width:0.564999;paint-order:fill markers stroke"
        d="m 30,54.999998 h 5.000001"
@@ -141,26 +112,42 @@
        style="fill:#ffffff;stroke:#000000;stroke-width:0.564999;marker-start:url(#RoundedArrow);paint-order:fill markers stroke"
        d="M 163.86297,125 H 146.13703"
        id="path5" />
-    <text
-       xml:space="preserve"
-       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:11.5617px;font-family:Arial;-inkscape-font-specification:'Arial, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;fill:#000000;stroke:#000000;stroke-width:0;paint-order:fill markers stroke;stroke-dasharray:none;fill-opacity:1"
-       x="19.744202"
-       y="50.310951"
-       id="text3-7"
-       transform="scale(0.7884031,1.2683867)"><tspan
-         sodipodi:role="line"
-         id="tspan3-5"
-         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:11.5617px;font-family:Arial;-inkscape-font-specification:'Arial, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;stroke-width:0;stroke-dasharray:none;fill:#000000;fill-opacity:1"
-         x="19.744202"
-         y="50.310951">F</tspan><tspan
-         sodipodi:role="line"
-         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:11.5617px;font-family:Arial;-inkscape-font-specification:'Arial, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;stroke-width:0;stroke-dasharray:none;fill:#000000;fill-opacity:1"
-         x="19.744202"
-         y="64.763077"
-         id="tspan4-8" /></text>
     <path
        style="fill:#ffffff;stroke:#000000;stroke-width:0.564999;marker-start:url(#RoundedArrow-8);paint-order:fill markers stroke"
        d="M 17.406804,70.115843 V 87.841786"
        id="path5-2" />
+    <text
+       xml:space="preserve"
+       style="font-size:9.05691px;font-family:Arial;-inkscape-font-specification:'Arial, Normal';fill:#000000;fill-opacity:1;fill-rule:evenodd;stroke:#000000;stroke-width:1.83379e-08;stroke-dasharray:none;paint-order:fill markers stroke"
+       x="25.600685"
+       y="58.208427"
+       id="text1"><tspan
+         sodipodi:role="line"
+         id="tspan1"
+         style="fill:#000000;fill-opacity:1;stroke-width:1.83379e-08;stroke-dasharray:none"
+         x="25.600685"
+         y="58.208427">1</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-size:9.6874px;font-family:Arial;-inkscape-font-specification:'Arial, Normal';fill:#000000;fill-opacity:1;fill-rule:evenodd;stroke:#000000;stroke-width:1.36229e-08;stroke-dasharray:none;paint-order:fill markers stroke"
+       x="18.0205"
+       y="58.431908"
+       id="text2"><tspan
+         sodipodi:role="line"
+         id="tspan2"
+         style="font-size:9.6874px;stroke-width:1.36229e-08"
+         x="18.0205"
+         y="58.431908">F</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-size:8.02779px;font-family:Arial;-inkscape-font-specification:'Arial, Normal';fill:#000000;fill-opacity:1;fill-rule:evenodd;stroke:#000000;stroke-width:1.12891e-08;stroke-dasharray:none;paint-order:fill markers stroke"
+       x="168.78336"
+       y="127.41142"
+       id="text5"><tspan
+         sodipodi:role="line"
+         id="tspan5"
+         style="stroke-width:1.12891e-08"
+         x="168.78336"
+         y="127.41142">t</tspan></text>
   </g>
 </svg>
