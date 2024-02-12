@@ -17,8 +17,6 @@
 namespace Kratos
 {
 
-static const SizeType NumberOfUDofPerNode = 2; // Axi-symmetric stress state assumes a 2D problem definition
-
 Matrix AxisymmetricStressState::CalculateBMatrix(const Matrix&         rGradNpT,
                                                  const Vector&         rNp,
                                                  const Geometry<Node>& rGeometry) const
@@ -27,7 +25,7 @@ Matrix AxisymmetricStressState::CalculateBMatrix(const Matrix&         rGradNpT,
 
     const auto dimension       = rGeometry.WorkingSpaceDimension();
     const auto number_of_nodes = rGeometry.size();
-    Matrix result = ZeroMatrix(VOIGT_SIZE_2D_AXISYMMETRIC, NumberOfUDofPerNode * number_of_nodes);
+    Matrix     result = ZeroMatrix(VOIGT_SIZE_2D_AXISYMMETRIC, dimension * number_of_nodes);
 
     for (IndexType i = 0; i < number_of_nodes; ++i) {
         const IndexType index = dimension * i;
