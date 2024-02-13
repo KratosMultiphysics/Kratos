@@ -71,12 +71,12 @@ void GeoLinearElasticPlaneStrain2DLaw::CalculateElasticMatrix(Matrix& C, Constit
     const auto  E  = r_material_properties[YOUNG_MODULUS];
     const auto  NU = r_material_properties[POISSON_RATIO];
 
-    this->CheckClearElasticMatrix(C);
+    C = ZeroMatrix(GetStrainSize(), GetStrainSize());
 
     const double c0 = E / ((1.0 + NU)*(1.0 - 2.0 * NU));
     const double c1 = (1.0 - NU)*c0;
-    const double c2 = c0 * NU;
-    const double c3 = (0.5 - NU)*c0;
+    const double c2 = this->GetConsiderDiagonalEntriesOnlyAndNoShear() ? 0.0 : c0 * NU;
+    const double c3 = this->GetConsiderDiagonalEntriesOnlyAndNoShear() ? 0.0 : (0.5 - NU)*c0;
 
     C(INDEX_2D_PLANE_STRAIN_XX, INDEX_2D_PLANE_STRAIN_XX) = c1;
     C(INDEX_2D_PLANE_STRAIN_XX, INDEX_2D_PLANE_STRAIN_YY) = c2;
@@ -114,6 +114,10 @@ void GeoLinearElasticPlaneStrain2DLaw::CalculatePK2Stress(const Vector& rStrainV
     KRATOS_CATCH("")
 }
 
+bool GeoLinearElasticPlaneStrain2DLaw::RequiresInitializeMaterialResponse()
+{
+    return true;
+}
 
 void GeoLinearElasticPlaneStrain2DLaw::InitializeMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues)
 {
@@ -127,6 +131,11 @@ void GeoLinearElasticPlaneStrain2DLaw::InitializeMaterialResponseCauchy(Constitu
         mIsModelInitialized = true;
     }
     KRATOS_CATCH("")
+}
+
+bool GeoLinearElasticPlaneStrain2DLaw::RequiresFinalizeMaterialResponse()
+{
+    return true;
 }
 
 void GeoLinearElasticPlaneStrain2DLaw::FinalizeMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues)

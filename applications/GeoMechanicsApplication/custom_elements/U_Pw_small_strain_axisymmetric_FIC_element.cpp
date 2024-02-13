@@ -12,6 +12,7 @@
 
 // Application includes
 #include "custom_elements/U_Pw_small_strain_axisymmetric_FIC_element.hpp"
+#include "axisymmetric_stress_state.h"
 
 namespace Kratos
 {
@@ -35,23 +36,14 @@ Element::Pointer UPwSmallStrainAxisymmetricFICElement<TDim, TNumNodes>::Create(
 
 //----------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
-void UPwSmallStrainAxisymmetricFICElement<TDim, TNumNodes>::CalculateBMatrix(Matrix& rB,
+void UPwSmallStrainAxisymmetricFICElement<TDim, TNumNodes>::CalculateBMatrix(Matrix&       rB,
                                                                              const Matrix& GradNpT,
                                                                              const Vector& Np)
 {
     KRATOS_TRY
 
-    const double radius = GeoElementUtilities::CalculateRadius(Np, this->GetGeometry());
-
-    for (IndexType i = 0; i < TNumNodes; ++i) {
-        const IndexType index = TDim * i;
-
-        rB(INDEX_2D_PLANE_STRAIN_XX, index + INDEX_X) = GradNpT(i, INDEX_X);
-        rB(INDEX_2D_PLANE_STRAIN_YY, index + INDEX_Y) = GradNpT(i, INDEX_Y);
-        rB(INDEX_2D_PLANE_STRAIN_ZZ, index + INDEX_X) = Np[i] / radius;
-        rB(INDEX_2D_PLANE_STRAIN_XY, index + INDEX_X) = GradNpT(i, INDEX_Y);
-        rB(INDEX_2D_PLANE_STRAIN_XY, index + INDEX_Y) = GradNpT(i, INDEX_X);
-    }
+    AxisymmetricStressState stress_state;
+    rB = stress_state.CalculateBMatrix(GradNpT, Np, this->GetGeometry());
 
     KRATOS_CATCH("")
 }
@@ -62,12 +54,15 @@ double UPwSmallStrainAxisymmetricFICElement<TDim, TNumNodes>::CalculateIntegrati
     const GeometryType::IntegrationPointsArrayType& IntegrationPoints, unsigned int PointNumber, double detJ)
 
 {
-    Vector N;
-    N = this->GetGeometry().ShapeFunctionsValues(N, IntegrationPoints[PointNumber].Coordinates());
-    const double radiusWeight =
-        GeoElementUtilities::CalculateAxisymmetricCircumference(N, this->GetGeometry());
+    AxisymmetricStressState stress_state;
+    return stress_state.CalculateIntegrationCoefficient(IntegrationPoints[PointNumber], detJ, this->GetGeometry());
+}
 
-    return IntegrationPoints[PointNumber].Weight() * detJ * radiusWeight;
+template <unsigned int TDim, unsigned int TNumNodes>
+Vector UPwSmallStrainAxisymmetricFICElement<TDim, TNumNodes>::CalculateGreenLagrangeStrain(const Matrix& rDeformationGradient)
+{
+    AxisymmetricStressState stress_state;
+    return stress_state.CalculateGreenLagrangeStrain(rDeformationGradient);
 }
 
 //----------------------------------------------------------------------------------------------------
