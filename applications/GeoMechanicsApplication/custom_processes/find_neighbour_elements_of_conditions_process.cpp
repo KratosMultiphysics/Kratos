@@ -36,19 +36,6 @@ void FindNeighbourElementsOfConditionsProcess::Execute()
             Ids[i] = rGeometry[i].Id();
         }
 
-        if (rGeometry.GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Quadrilateral3D4) {
-            // reverse ordering to be consistent with face ordering
-            std::swap(Ids[0], Ids[3]);
-            std::swap(Ids[1], Ids[2]);
-        }
-
-        if (rGeometry.GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Quadrilateral3D8) {
-            // reverse ordering to be consistent with face ordering
-            std::swap(Ids[0], Ids[3]);
-            std::swap(Ids[1], Ids[2]);
-            std::swap(Ids[4], Ids[6]);
-        }
-
         // adds to the map
         FacesMap.insert( hashmap::value_type(Ids, std::vector<Condition::Pointer>({*itCond.base()})) );
 
