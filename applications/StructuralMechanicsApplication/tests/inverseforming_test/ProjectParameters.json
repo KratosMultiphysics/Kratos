@@ -17,7 +17,7 @@
         "analysis_type"                        : "non_linear",
         "model_import_settings"                : {
             "input_type"     : "mdpa",
-            "input_filename" : "cyl_sym"
+            "input_filename" : "plate"
         },
         "material_import_settings"             : {
             "materials_filename" : "StructuralMaterials.json"
@@ -28,7 +28,7 @@
         "displacement_absolute_tolerance"      : 1e-15,
         "residual_relative_tolerance"          : 0.0000000001,
         "residual_absolute_tolerance"          : 1e-15,
-        "max_iteration"                        : 50,
+        "max_iteration"                        : 5,
         "use_old_stiffness_in_first_iteration" : false,
         "rotation_dofs"                        : false,
         "volumetric_strain_dofs"               : false,
@@ -115,10 +115,10 @@
                 "output_sub_model_parts"                      : false,
                 "output_path"                                 : "vtk_output",
                 "save_output_files_in_folder"                 : true,
-                "write_deformed_configuration"                : false,
+                "write_deformed_configuration"                : true,
                 "nodal_solution_step_data_variables"          : ["DISPLACEMENT","REACTION"],
                 "nodal_data_value_variables"                  : ["NORMAL"],
-                "element_data_value_variables"                : [],
+                "element_data_value_variables"                : ["THICKNESS"],
                 "condition_data_value_variables"              : [],
                 "gauss_point_variables_extrapolated_to_nodes" : ["LOCAL_AXIS_1","LOCAL_AXIS_2","LOCAL_AXIS_3","GREEN_LAGRANGE_STRAIN_VECTOR"]
             }

@@ -161,8 +161,8 @@ void MembraneElement::CalculateLeftHandSide(
     TotalStiffnessMatrix(rLeftHandSideMatrix,GetGeometry().GetDefaultIntegrationMethod(),rCurrentProcessInfo);
     // TODO: Move implementation to new derived element from membrane
     // TODO: Place implementation into new functions
-    KRATOS_INFO("LHS pre DFextDU") << "LHS before DFext adjustment" << std::endl;
-    KRATOS_WATCH(rLeftHandSideMatrix)
+    // KRATOS_INFO("LHS pre DFextDU") << "LHS before DFext adjustment" << std::endl;
+    // KRATOS_WATCH(rLeftHandSideMatrix)
 
     const SizeType number_of_nodes = GetGeometry().size();
     const SizeType dimension = GetGeometry().WorkingSpaceDimension();
@@ -213,8 +213,8 @@ void MembraneElement::CalculateLeftHandSide(
     rLeftHandSideMatrix(2, 2) = 1.0;
     rLeftHandSideMatrix(5, 5) = 1.0;
     rLeftHandSideMatrix(8, 8) = 1.0;
-    KRATOS_INFO("LHS post DFextDU") << "LHS after DFext adjustment" << std::endl;
-    KRATOS_WATCH(rLeftHandSideMatrix)
+    // KRATOS_INFO("LHS post DFextDU") << "LHS after DFext adjustment" << std::endl;
+    // KRATOS_WATCH(rLeftHandSideMatrix)
 }
 
 //***********************************************************************************
@@ -236,8 +236,8 @@ void MembraneElement::CalculateRightHandSide(
     noalias(rRightHandSideVector) -= internal_forces;
 
     // RHS before external force calculation
-    KRATOS_INFO("RHS -Fint") << "RHS before external force calculation" << std::endl;
-    KRATOS_WATCH(internal_forces)
+    // KRATOS_INFO("RHS -Fint") << "RHS before external force calculation" << std::endl;
+    // KRATOS_WATCH(internal_forces)
     // KRATOS_WATCH(rRightHandSideVector)
 
     Vector external_forces = ZeroVector(system_size);
@@ -281,9 +281,9 @@ void MembraneElement::CalculateRightHandSide(
     // KRATOS_WATCH(p_0)
     // KRATOS_WATCH(p_1)
     // KRATOS_WATCH(p_2)
-    KRATOS_INFO("RHS Fext - Fint") << "RHS after external force calculation" << std::endl;
-    KRATOS_WATCH(external_forces)
-    KRATOS_WATCH(rRightHandSideVector)
+    // KRATOS_INFO("RHS Fext - Fint") << "RHS after external force calculation" << std::endl;
+    // KRATOS_WATCH(external_forces)
+    // KRATOS_WATCH(rRightHandSideVector)
 
     CalculateAndAddBodyForce(rRightHandSideVector,rCurrentProcessInfo);
 }
@@ -625,7 +625,7 @@ void MembraneElement::InternalForces(Vector& rInternalForces,const IntegrationMe
     const GeometryType::ShapeFunctionsGradientsType& r_shape_functions_gradients = r_geom.ShapeFunctionsLocalGradients(ThisMethod);
     const GeometryType::IntegrationPointsArrayType& r_integration_points = r_geom.IntegrationPoints(ThisMethod);
 
-    const double thickness = GetProperties()[THICKNESS];
+    double thickness = GetProperties()[THICKNESS];
 
     array_1d<Vector,2> current_covariant_base_vectors;
     array_1d<Vector,2> reference_covariant_base_vectors;
@@ -640,6 +640,57 @@ void MembraneElement::InternalForces(Vector& rInternalForces,const IntegrationMe
     double detJ = 0.0;
     Vector stress = ZeroVector(3);
     Vector derivative_strain = ZeroVector(3);
+
+    // Calculate thickness Update
+    // get coordinates
+    const double x1 = r_geom[0].Coordinates()[0];
+    const double y1 = r_geom[0].Coordinates()[1];
+    const double x2 = r_geom[1].Coordinates()[0];
+    const double y2 = r_geom[1].Coordinates()[1];
+    const double x3 = r_geom[2].Coordinates()[0];
+    const double y3 = r_geom[2].Coordinates()[1];
+
+    const double elm_area = r_geom.Area();
+
+    // Derivative of Shape-Functions
+    double DN1DX = -(1 / (2 * elm_area)) * (y3 - y2);
+    double DN1DY =  (1 / (2 * elm_area)) * (x3 - x2);
+    double DN2DX = -(1 / (2 * elm_area)) * (y1 - y3);
+    double DN2DY =  (1 / (2 * elm_area)) * (x1 - x3);
+    double DN3DX = -(1 / (2 * elm_area)) * (y2 - y1);
+    double DN3DY =  (1 / (2 * elm_area)) * (x2 - x1);
+
+    Vector current_nodal_disp = ZeroVector(number_dofs);
+    GetValuesVector(current_nodal_disp);   // needed to specify step?
+    KRATOS_WATCH(elm_area)
+    KRATOS_WATCH(r_geom.Points())
+    KRATOS_WATCH(current_nodal_disp)
+
+    // Derivative of U (u,v,w) w.r.t x,y
+    double DUDX = DN1DX * current_nodal_disp[0] + DN2DX * current_nodal_disp[3] + DN3DX * current_nodal_disp[6];
+    double DUDY = DN1DY * current_nodal_disp[0] + DN2DY * current_nodal_disp[3] + DN3DY * current_nodal_disp[6];
+
+    double DVDX = DN1DX * current_nodal_disp[1] + DN2DX * current_nodal_disp[4] + DN3DX * current_nodal_disp[7];
+    double DVDY = DN1DY * current_nodal_disp[1] + DN2DY * current_nodal_disp[4] + DN3DY * current_nodal_disp[7];
+
+    double DWDX = DN1DX * current_nodal_disp[2] + DN2DX * current_nodal_disp[5] + DN3DX * current_nodal_disp[8];
+    double DWDY = DN1DY * current_nodal_disp[2] + DN2DY * current_nodal_disp[5] + DN3DY * current_nodal_disp[8];
+
+    // Inverse Deformation Gradient [FI] terms
+    double a = std::pow((1 - DUDX), 2.0) + std::pow(DVDX, 2.0) + std::pow(DWDX, 2.0);
+    double b = -(DUDY * (1 - DUDX)) - (DVDX * (1 - DVDY)) + (DWDX * DWDY);
+    double c = std::pow(DUDY, 2.0) + (1 - std::pow(DVDY, 2.0)) + std::pow(DWDY, 2.0);
+
+    // Principal stretches
+    Vector L = ZeroVector(3);
+    L[0] = std::pow( 0.5*(a + c) + 0.5*std::sqrt( std::pow(a - c, 2.0) + 4*(b*b) ), -0.5);
+    L[1] = std::pow( 0.5*(a + c) - 0.5*std::sqrt( std::pow(a - c, 2.0) + 4*(b*b) ), -0.5);
+    L[2] = 1.0 / (L[0] * L[1]);
+    KRATOS_WATCH(L)
+
+    thickness = thickness * L[2];
+    KRATOS_WATCH(thickness)
+    KRATOS_WATCH(GetProperties()[THICKNESS])
 
     for (SizeType point_number = 0; point_number < r_integration_points.size(); ++point_number){
         // getting information for integration
