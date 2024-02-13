@@ -240,6 +240,19 @@ namespace MPMParticleGeneratorUtility
         SearchStructure.UpdateSearchDatabase();
         typename BinBasedFastPointLocator<TDimension>::ResultContainerType results(100);
 
+        // initialize NODAL_AREA for SLIP nodes
+        // [ SetValue is used since NODAL_AREA may not be incl. as solution step variable for conforming conditions ]
+        #pragma omp parallel for
+        for(int iter = 0; iter < static_cast<int>(rBackgroundGridModelPart.Nodes().size()); ++iter)
+        {
+            auto i = rBackgroundGridModelPart.NodesBegin() + iter;
+
+            if ((i)->Is(SLIP)){
+                (i)->SetValue(NODAL_AREA, 0.0);
+            }
+        }
+
+
         // Loop over the submodelpart of rBackgroundGridModelPart
         for (auto& submodelpart : rBackgroundGridModelPart.SubModelParts())
         {
@@ -251,9 +264,28 @@ namespace MPMParticleGeneratorUtility
                 // For regular conditions: straight copy all conditions
                 if (!submodelpart.ConditionsBegin()->Is(BOUNDARY)){
                     if (submodelpart.NodesBegin()->Is(SLIP)){
-                        // Do nothing, this is a slip condition applied directly
+                        // Do not copy conditions, this is a slip condition applied directly
                         // to the background grid nodes.
                         // Check 'apply_mpm_slip_boundary_process.py'
+
+                        // For conforming friction, require NODAL_AREA to properly scale
+                        for (ModelPart::ConditionIterator i = submodelpart.ConditionsBegin();
+                             i != submodelpart.ConditionsEnd(); i++) {
+
+                            const Geometry<Node>& r_geometry = i->GetGeometry(); // current condition's geometry
+
+                            const double condition_area = r_geometry.DomainSize();
+                            const auto number_of_nodes = static_cast<double>(r_geometry.PointsNumber());
+
+                            double updated_nodal_area;
+
+                            // assume equal contribution to all constituent nodes
+                            for (Node& r_node : r_geometry.Points()){
+                                updated_nodal_area = r_node.GetValue(NODAL_AREA) + condition_area / number_of_nodes;
+                                r_node.SetValue(NODAL_AREA, updated_nodal_area);
+                            }
+                        }
+
                     }
                     else {
                         rMPMModelPart.CreateSubModelPart(submodelpart_name);
@@ -513,7 +545,18 @@ namespace MPMParticleGeneratorUtility
 
         }
 
+        // Scale TANGENTIAL_PENALTY_FACTOR by NODAL_AREA (in effect incorporating the integration weight)
+        #pragma omp parallel for
+        for(int iter = 0; iter < static_cast<int>(rBackgroundGridModelPart.Nodes().size()); ++iter)
+        {
+            auto i = rBackgroundGridModelPart.NodesBegin() + iter;
+            double modified_factor;
 
+            if ((i)->Is(SLIP)){
+                modified_factor = (i)->GetValue(NODAL_AREA) * (i)->GetValue(TANGENTIAL_PENALTY_FACTOR);
+                (i)->SetValue(TANGENTIAL_PENALTY_FACTOR, modified_factor);
+            }
+        }
 
     }
 

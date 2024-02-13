@@ -192,7 +192,6 @@ public:
                             array_1d<double,3> displacement_copy = rGeometry[itNode].FastGetSolutionStepValue(DISPLACEMENT);
                             RotateVector(displacement_copy, rGeometry[itNode]);
 
-                            // TODO: scaling by nodal_area? [rmb to scale LHS contribution as well]
                             // determine penalty-based sticking force in the tangential direction for the current node
                             // [ displacement in MPM is the displacement update -> penalize any and all displacement
                             //   updates in the tangential direction [this assumes a stationary background grid]
