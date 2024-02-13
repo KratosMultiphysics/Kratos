@@ -677,7 +677,6 @@ private:
 
         // Get position in the column indices vector as this is the same one to be used in the values vector
         const IndexType ij_col_index = GetColumVectorIndex(aux_i_id, aux_j_id);
-        KRATOS_ERROR_IF(ij_col_index < 0) << "Column index cannot be found for ij-edge " << GlobalIdI << "-" << GlobalIdJ << "." << std::endl;
 
         return mEdgeData[ij_col_index];
     }
