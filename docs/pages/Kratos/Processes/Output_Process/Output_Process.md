@@ -1,18 +1,18 @@
 ---
-title: 
-keywords: process core
-tags: [process]
+title: Output Process
+keywords: process core Output
+tags: [Output process]
 sidebar: kratos_core_processes
 summary: 
 ---
 
-# Processes
+# Output Processes
 
-This section intends to describe what is a process in Kratos and the different interfaces that are available from python.
+This section intends to describe what is an output process in Kratos and the different interfaces that are available from python.
 
 ## Description
 
-Processes in kratos are a set of utilities that will be executed during an `AnalysisStage`. The main characteristic of the procsses is that they have a set of fixed execute points (see [AnalysisStage Sequence Diagram](../Sequence_Diagrams/General/AnalysisStage)):
+Output Processes in kratos, like process, are a set of utilities that will be executed during an `AnalysisStage`. The main characteristic of the output process procsses is that in addition to the regular execution points of a process, they have an additional fixed execute point `PrintOutput` and a function to evaluate if the current step is valid for printing `IsOutputStep` . For more information see [AnalysisStage Sequence Diagram](../Sequence_Diagrams/General/AnalysisStage):
 
 - `ExecuteInitialize`: Will be called during the initialize sequence of an `AnalysisStage`, before the initialization of the `Solver`.
 
@@ -28,13 +28,11 @@ Processes in kratos are a set of utilities that will be executed during an `Anal
 
 - `ExecuteFinalize`: Will be called during the finalize sequence of an `AnalysisStage`, just before existing the stage.
 
-## List of processes:
+- `PrintOutput` Will ve called during the print sequence of the `AnalysisStage` if the print condition is meet.
 
-### Value Assignement
+- `IsOutputStep` Will enable (`true`) or disable (`false`) the print condition.
 
-- [Assign Scalar Variable](/Assign_Values/assign_scalar_variable_process)
-- [Assign Vector Variable](/Assign_Values/assign_vector_variable_process)
-- [Assign Vector By Direction](/Assign_Values/assign_vector_by_direction_process)
-- [Assign Scalar Input](/Assign_Values/assign_scalar_input_process)
+## List of Output Processes:
 
-### Calculation Utilities
+- [GiD Output Process](/GiD_Output_process)
+- [Vtk Output Process](/VTK_Output_process)
