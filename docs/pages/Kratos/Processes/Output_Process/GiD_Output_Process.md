@@ -10,7 +10,7 @@ summary:
 
 ## Description
 
-The GiD output process specializes in generating an output in GiD's propietary format. This output is ment to be used with GiD Post only.
+The GiD output process specializes in generating an output in GiD's propietary format. This output is meant to be used with GiD Post only.
 
 ## Execution
 
