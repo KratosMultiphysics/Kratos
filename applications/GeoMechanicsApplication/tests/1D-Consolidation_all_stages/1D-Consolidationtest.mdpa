@@ -296,7 +296,7 @@ Begin Conditions LineLoadDiffOrderCondition2D3N
 End Conditions
 
 
-Begin SubModelPart Soil_undrained-auto-1
+Begin SubModelPart Soil_two_phase
   Begin SubModelPartTables
   End SubModelPartTables
   Begin SubModelPartNodes
@@ -586,7 +586,7 @@ Begin SubModelPart Soil_undrained-auto-1
   End SubModelPartConditions
 End SubModelPart
 
-Begin SubModelPart BOTTOM
+Begin SubModelPart Bottom
   Begin SubModelPartTables
   End SubModelPartTables
   Begin SubModelPartNodes
@@ -602,7 +602,7 @@ Begin SubModelPart BOTTOM
   End SubModelPartConditions
 End SubModelPart
 
-Begin SubModelPart SIDE
+Begin SubModelPart Side
   Begin SubModelPartTables
   End SubModelPartTables
   Begin SubModelPartNodes
@@ -697,7 +697,7 @@ End SubModelPart
 
 
 
-Begin SubModelPart Line_Load-auto-1
+Begin SubModelPart Line_load
   Begin SubModelPartTables
   End SubModelPartTables
   Begin SubModelPartNodes
@@ -712,6 +712,22 @@ Begin SubModelPart Line_Load-auto-1
   Begin SubModelPartConditions
     1
     2
+  End SubModelPartConditions
+End SubModelPart
+
+Begin SubModelPart Fluid_pressure
+  Begin SubModelPartTables
+  End SubModelPartTables
+  Begin SubModelPartNodes
+    197
+    198
+    199
+    200
+    201
+  End SubModelPartNodes
+  Begin SubModelPartElements
+  End SubModelPartElements
+  Begin SubModelPartConditions
   End SubModelPartConditions
 End SubModelPart
 

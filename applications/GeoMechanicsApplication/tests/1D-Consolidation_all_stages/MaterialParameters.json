@@ -1,6 +1,6 @@
 {
    "properties": [{
-      "model_part_name":         "PorousDomain.Soil_two_phase-auto-1",
+      "model_part_name":         "PorousDomain.Soil_two_phase",
       "properties_id":           1,
       "Material": {
           "constitutive_law": {
