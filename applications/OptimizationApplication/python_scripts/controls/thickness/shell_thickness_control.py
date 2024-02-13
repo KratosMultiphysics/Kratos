@@ -225,6 +225,24 @@ class ShellThicknessControl(Control):
             # multiply the physical sensitivity field with projection derivatives
             projected_gradient = physical_gradient * self.projection_derivative_field
             # now filter the field
+
+            if self.is_filter_explicit:
+                # BUG: TODO: The model part somehow re-orders between initialize
+                #            and this step, hence causing the expressions to not function properly.
+                #            Hence, creating the expression always. This is a temporary fix.
+                fixed_model_parts_names = list(self.parameters["fixed_model_parts_and_thicknesses"].keys())
+                if len(fixed_model_parts_names)>0:
+                    self.fixed_model_part_operation = ModelPartOperation(self.model, ModelPartOperation.OperationType.UNION, f"control_{self.GetName()}", fixed_model_parts_names, False)
+                    self.fixed_model_part = self.fixed_model_part_operation.GetModelPart()
+                    self.filter = KratosOA.ElementExplicitFilter(self.model_part, self.fixed_model_part, self.parameters["filter_settings"]["filter_function_type"].GetString(),
+                                                                self.parameters["filter_settings"]["damping_function_type"].GetString(),
+                                                                self.parameters["filter_settings"]["max_nodes_in_filter_radius"].GetInt())
+                else:
+                    self.filter = KratosOA.ElementExplicitFilter(self.model_part, self.parameters["filter_settings"]["filter_function_type"].GetString(),
+                                                                self.parameters["filter_settings"]["max_nodes_in_filter_radius"].GetInt())
+                filter_radius_field = Kratos.Expression.ElementExpression(self.model_part)
+                Kratos.Expression.LiteralExpressionIO.SetData(filter_radius_field, self.parameters["filter_settings"]["radius"].GetDouble())
+                self.filter.SetFilterRadius(filter_radius_field)
             filtered_gradient = self.filter.FilterIntegratedField(projected_gradient)
 
             return filtered_gradient
@@ -246,6 +264,23 @@ class ShellThicknessControl(Control):
         # apply boundary conditions for the forward filtering
         self._SetFixedModelPartValues()
         # filter the control field
+        if self.is_filter_explicit:
+            # BUG: TODO: The model part somehow re-orders between initialize
+            #            and this step, hence causing the expressions to not function properly.
+            #            Hence, creating the expression always. This is a temporary fix.
+            fixed_model_parts_names = list(self.parameters["fixed_model_parts_and_thicknesses"].keys())
+            if len(fixed_model_parts_names)>0:
+                self.fixed_model_part_operation = ModelPartOperation(self.model, ModelPartOperation.OperationType.UNION, f"control_{self.GetName()}", fixed_model_parts_names, False)
+                self.fixed_model_part = self.fixed_model_part_operation.GetModelPart()
+                self.filter = KratosOA.ElementExplicitFilter(self.model_part, self.fixed_model_part, self.parameters["filter_settings"]["filter_function_type"].GetString(),
+                                                            self.parameters["filter_settings"]["damping_function_type"].GetString(),
+                                                            self.parameters["filter_settings"]["max_nodes_in_filter_radius"].GetInt())
+            else:
+                self.filter = KratosOA.ElementExplicitFilter(self.model_part, self.parameters["filter_settings"]["filter_function_type"].GetString(),
+                                                            self.parameters["filter_settings"]["max_nodes_in_filter_radius"].GetInt())
+            filter_radius_field = Kratos.Expression.ElementExpression(self.model_part)
+            Kratos.Expression.LiteralExpressionIO.SetData(filter_radius_field, self.parameters["filter_settings"]["radius"].GetDouble())
+            self.filter.SetFilterRadius(filter_radius_field)
         filtered_thickness_field = self.filter.FilterField(self.control_field)
         # project forward the filtered thickness field
         projected_filtered_thickness_field = KratosOA.ControlUtils.SigmoidalProjectionUtils.ProjectForward(

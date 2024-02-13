@@ -301,8 +301,6 @@ class VertexMorphingShapeControl(Control):
             filter_radius_field = Kratos.Expression.NodalExpression(self.filter_model_part)
             Kratos.Expression.LiteralExpressionIO.SetData(filter_radius_field, self.parameters["filter_settings"]["radius"].GetDouble())
             self.filter.SetFilterRadius(filter_radius_field)
-            self.control_field = Kratos.Expression.NodalExpression(self.filter_model_part)
-            Kratos.Expression.LiteralExpressionIO.SetData(self.control_field,[0,0,0])
 
         filtered_gradient = self.filter.FilterIntegratedField(physical_gradient)
         return filtered_gradient
@@ -378,8 +376,6 @@ class VertexMorphingShapeControl(Control):
             filter_radius_field = Kratos.Expression.NodalExpression(self.filter_model_part)
             Kratos.Expression.LiteralExpressionIO.SetData(filter_radius_field, self.parameters["filter_settings"]["radius"].GetDouble())
             self.filter.SetFilterRadius(filter_radius_field)
-            self.control_field = Kratos.Expression.NodalExpression(self.filter_model_part)
-            Kratos.Expression.LiteralExpressionIO.SetData(self.control_field,[0,0,0])
         shape_update = self.filter.FilterField(control_update)
 
         # now update the shape
