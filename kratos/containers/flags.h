@@ -205,50 +205,84 @@ public:
      * @brief Reset the specified flag.
      * @param ThisFlag The flag to reset.
      */
-    void Reset(const Flags ThisFlag);
+    void Reset(const Flags ThisFlag)
+    {
+        mIsDefined &= (~ThisFlag.mIsDefined);
+        mFlags &= (~ThisFlag.mIsDefined); // I want to put to zero the ones are set regardless to their value. Pooyan.
+    }
 
     /**
      * @brief Flip the specified flag.
      * @param ThisFlag The flag to flip.
      */
-    void Flip(const Flags ThisFlag);
+    void Flip(const Flags ThisFlag)
+    {
+        mIsDefined |= ThisFlag.mIsDefined;
+        mFlags ^= (ThisFlag.mIsDefined); // I want to flip  the ones are set in this flags regardless to their value. Pooyan.
+    }
 
     /**
      * @brief Set the value of the flag at the specified position.
      * @param Position The position of the flag to set.
      * @param Value The value to set the flag to (default is true).
      */
-    void SetPosition(IndexType Position, const bool Value=true );
+    void SetPosition(IndexType Position, const bool Value=true )
+    {
+        mIsDefined |= (BlockType(1) << Position);
+
+        mFlags &= ~(BlockType(1) << Position);   // First reseting the position
+        mFlags |= (BlockType(Value) << Position);
+    }
 
     /**
      * @brief Get the value of the flag at the specified position.
      * @param Position The position of the flag to get.
      * @return True if the flag is set, false otherwise.
      */
-    bool GetPosition(IndexType Position) const;
+    bool GetPosition(IndexType Position) const
+    {
+        return (mFlags & (BlockType(1) << Position));
+    }
 
     /**
      * @brief Flip the value of the flag at the specified position.
      * @param Position The position of the flag to flip.
      */
-    void FlipPosition(IndexType Position);
+    void FlipPosition(IndexType Position)
+    {
+        mIsDefined |= (BlockType(1) << Position);
+        mFlags ^= (BlockType(1) << Position);
+    }
 
     /**
      * @brief Clear the flag at the specified position.
      * @param Position The position of the flag to clear.
      */
-    void ClearPosition(IndexType Position);
+    void ClearPosition(IndexType Position)
+    {
+        mIsDefined &= ~((BlockType(1) << Position));
+        mFlags &= ~(BlockType(1) << Position);
+    }
 
     /**
      * @brief Clear all flags.
      */
-    void Clear();
+    void Clear()
+    {
+        mIsDefined = BlockType();
+        mFlags = BlockType();
+    }
 
     /**
      * @brief Return a Flags object with all flags set to false.
      * @return Flags object with all flags set to false.
      */
-    Flags AsFalse() const;
+    Flags AsFalse() const
+    {
+        Flags this_flag_false(*this);
+        this_flag_false.mFlags = !((*this).mFlags);
+        return this_flag_false;
+    }
 
     ///@}
     ///@name Access
