@@ -61,7 +61,7 @@ KratosMED.MedModelPartIO("plate_with_hole.med", KratosMED.MedModelPartIO.READ).R
 ```
 {: data-lang="Python"}
 
-Once the file processed, the geometry from the `.med` file will be loaded into the kratos modelpart. In order to give the correct elements and condition we will use the `CreateEntitiesFromGeometriesModeler`:
+Once the file is processed, the geometry from the `.med` file will be loaded into the kratos modelpart. In order to give the correct elements and condition we will use the `CreateEntitiesFromGeometriesModeler`:
 
 ```python
 # apply the elements and conditions
