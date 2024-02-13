@@ -284,8 +284,27 @@ class VertexMorphingShapeControl(Control):
             raise RuntimeError(f"Gradients for the required element container not found for control \"{self.GetName()}\". [ required model part name: {self.filter_model_part.FullName()}, given model part name: {physical_gradient.GetModelPart().FullName()} ]")
 
         # now filter the field
-        filtered_gradient = self.filter.FilterIntegratedField(physical_gradient)
+        if not self.is_filter_implicit:
+            # BUG: TODO: The model part somehow re-orders between initialize
+            #            and this step, hence causing the expressions to not function properly.
+            #            Hence, creating the expression always. This is a temporary fix.
+            fixed_model_parts_names = list(self.parameters["fixed_model_parts"].keys())
+            if len(fixed_model_parts_names)>0:
+                self.fixed_model_part_operation = ModelPartOperation(self.model, ModelPartOperation.OperationType.UNION, f"control_{self.GetName()}", fixed_model_parts_names, False)
+                self.fixed_model_part = self.fixed_model_part_operation.GetModelPart()
+                self.filter = KratosOA.NodalExplicitFilter(self.filter_model_part, self.fixed_model_part, self.parameters["filter_settings"]["filter_function_type"].GetString(),
+                                                            self.parameters["filter_settings"]["damping_function_type"].GetString(),
+                                                            self.parameters["filter_settings"]["max_nodes_in_filter_radius"].GetInt())
+            else:
+                self.filter = KratosOA.NodalExplicitFilter(self.filter_model_part, self.parameters["filter_settings"]["filter_function_type"].GetString(),
+                                                            self.parameters["filter_settings"]["max_nodes_in_filter_radius"].GetInt())
+            filter_radius_field = Kratos.Expression.NodalExpression(self.filter_model_part)
+            Kratos.Expression.LiteralExpressionIO.SetData(filter_radius_field, self.parameters["filter_settings"]["radius"].GetDouble())
+            self.filter.SetFilterRadius(filter_radius_field)
+            self.control_field = Kratos.Expression.NodalExpression(self.filter_model_part)
+            Kratos.Expression.LiteralExpressionIO.SetData(self.control_field,[0,0,0])
 
+        filtered_gradient = self.filter.FilterIntegratedField(physical_gradient)
         return filtered_gradient
 
     @time_decorator(methodName="GetName")
@@ -342,6 +361,25 @@ class VertexMorphingShapeControl(Control):
 
     def _UpdateAndOutputFields(self, control_update) -> None:
         # compute the shape update
+        if not self.is_filter_implicit:
+            # BUG: TODO: The model part somehow re-orders between initialize
+            #            and this step, hence causing the expressions to not function properly.
+            #            Hence, creating the expression always. This is a temporary fix.
+            fixed_model_parts_names = list(self.parameters["fixed_model_parts"].keys())
+            if len(fixed_model_parts_names)>0:
+                self.fixed_model_part_operation = ModelPartOperation(self.model, ModelPartOperation.OperationType.UNION, f"control_{self.GetName()}", fixed_model_parts_names, False)
+                self.fixed_model_part = self.fixed_model_part_operation.GetModelPart()
+                self.filter = KratosOA.NodalExplicitFilter(self.filter_model_part, self.fixed_model_part, self.parameters["filter_settings"]["filter_function_type"].GetString(),
+                                                            self.parameters["filter_settings"]["damping_function_type"].GetString(),
+                                                            self.parameters["filter_settings"]["max_nodes_in_filter_radius"].GetInt())
+            else:
+                self.filter = KratosOA.NodalExplicitFilter(self.filter_model_part, self.parameters["filter_settings"]["filter_function_type"].GetString(),
+                                                            self.parameters["filter_settings"]["max_nodes_in_filter_radius"].GetInt())
+            filter_radius_field = Kratos.Expression.NodalExpression(self.filter_model_part)
+            Kratos.Expression.LiteralExpressionIO.SetData(filter_radius_field, self.parameters["filter_settings"]["radius"].GetDouble())
+            self.filter.SetFilterRadius(filter_radius_field)
+            self.control_field = Kratos.Expression.NodalExpression(self.filter_model_part)
+            Kratos.Expression.LiteralExpressionIO.SetData(self.control_field,[0,0,0])
         shape_update = self.filter.FilterField(control_update)
 
         # now update the shape
