@@ -25,7 +25,7 @@ from test_soil_weight import KratosGeoMechanicsSoilWeightTests
 from test_settlement import KratosGeoMechanicsSettlementTests
 from test_curved_beam_elements import KratosGeoMechanicsCurvedBeamElementTests
 from absorbing_boundary import KratosGeoMechanicsAbsorbingBoundaryColumnTests
-from test_absorbing_boundary_validation import KratosGeoMechanicsAbsorbingBoundaryColumnValidationTests
+from absorbing_boundary_3D import KratosGeoMechanicsAbsorbingBoundaryColumn3DTests
 from test_elementary_groundwater_flow import TestElementaryGroundWaterFlow
 from test_sellmeijers_rule import TestSellmeijersRule
 from test_sellmeijers_rule_validation import TestSellmeijersRuleValidation
@@ -102,8 +102,8 @@ def AssembleTestSuites():
 
     # Create an array with all long tests only for validations
     valid_test_cases = [
+                        KratosGeoMechanicsAbsorbingBoundaryColumn3DTests,
                         TestConsecutivePipeLines,
-                        KratosGeoMechanicsAbsorbingBoundaryColumnValidationTests,
                         KratosGeoMechanicsBenchmarkSet1,
                         KratosGeoMechanicsBenchmarkSet2,
                         KratosGeoMechanicsTransientGroundWaterFlowTests,
