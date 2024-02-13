@@ -13,14 +13,14 @@ All Nodes have fixed displacement in the lateral directions. The column bottom i
 
 Two kinds of 3D elements are used to generate a mesh:
 
--   tetra elements: folders **tetra** and **tetra_horizontal**
--   hexa elements: folder **hexa**
+-   tetra elements: folders **tetra_mesh_in_Z** and **tetra_mesh_in_Y**
+-   hexa elements: folder **hexa_mesh_in_Z**
 
-The mesh with tetra elements is presented below for both cases. Note, the column is aligned along Z axis for **tetra** and Y axis for **tetra_horizontal**.
-![MeshTetra](MeshTetra.svg) ![MeshTetraHorizontal](MeshTetraHorizontal.svg)
+The mesh with tetra elements is presented below for both cases. Note, the column is aligned along Z axis for **tetra_mesh_in_Z** and Y axis for **tetra_mesh_in_Y**.
+![MeshTetraZ](MeshTetraZ.svg) ![MeshTetraY](MeshTetraY.svg)
 
 The mesh with hexa elements is given in the following figure.
-![MeshHexa](MeshHexa.svg)
+![MeshHexaZ](MeshHexaZ.svg)
 
 The material is described using:
 
