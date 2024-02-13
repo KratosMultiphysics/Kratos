@@ -656,7 +656,7 @@ private:
         const IndexType I,
         const IndexType J) const
     {
-        IndexType j_col_index;
+        IndexType j_col_index = 0;
         const IndexType i_row_index = mRowIndices[I];
         for (auto it = mColIndices.begin() + i_row_index; it != mColIndices.end(); ++it) {
             if (*it == J) {
