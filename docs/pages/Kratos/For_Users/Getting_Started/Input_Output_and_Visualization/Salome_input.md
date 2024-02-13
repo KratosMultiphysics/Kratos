@@ -73,10 +73,10 @@ params = KMP.Parameters("""{
         }
     ],
     "conditions_list" : [
-    {
-        "model_part_name" : "Structure.load",
-        "condition_name" : "LineLoadCondition2D2N"
-    }
+        {
+            "model_part_name" : "Structure.load",
+            "condition_name" : "LineLoadCondition2D2N"
+        {
     ]
 }""")
 
