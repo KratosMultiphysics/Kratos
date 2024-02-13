@@ -21,7 +21,6 @@ The material is described using:
 -   A linear elastic plane strain model (LinearElasticPlaneStrain2DLaw),
 -   Young's modulus is $E$=10000 $kN/m^2$
 -   Poisson's ratio is $\nu$=0.2,
--   A thickness of 1 $mm$,
 -   Density of solid is $\rho$=2.65 $ton/m^3$,
 -   Porosity of $\Phi$=0.3.
 
