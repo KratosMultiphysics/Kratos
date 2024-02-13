@@ -63,7 +63,7 @@ void LinearElastic3DInterfaceLaw::
     const double E  = r_material_properties[YOUNG_MODULUS];
     const double NU = r_material_properties[POISSON_RATIO];
 
-    this->CheckClearElasticMatrix(C);
+    C = ZeroMatrix(GetStrainSize(), GetStrainSize());
 
     const double c0 = E / ((1.0 + NU)*(1.0 - 2.0 * NU));
 
