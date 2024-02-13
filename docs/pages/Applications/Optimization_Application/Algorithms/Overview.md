@@ -2,6 +2,6 @@
 title: Overview
 keywords: 
 tags: [Overview.md]
-sidebar: kratos_core_processes
+sidebar: optimization_application
 summary: 
 ---

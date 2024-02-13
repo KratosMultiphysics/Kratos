@@ -38,14 +38,13 @@ public:
     using NodesArrayType = GeometryType::PointsArrayType;
     using VectorType     = Vector;
     using MatrixType     = Matrix;
-    /// The definition of the sizetype
-    using SizeType = std::size_t;
+    using SizeType       = std::size_t;
     using UpdatedLagrangianUPwDiffOrderElement::mConstitutiveLawVector;
 
     ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     /// Default Constructor
-    UpdatedLagrangianUPwDiffOrderAxisymmetricElement() : UpdatedLagrangianUPwDiffOrderElement() {}
+    UpdatedLagrangianUPwDiffOrderAxisymmetricElement() = default;
 
     /// Constructor using Geometry
     UpdatedLagrangianUPwDiffOrderAxisymmetricElement(IndexType NewId, GeometryType::Pointer pGeometry)
@@ -62,7 +61,7 @@ public:
     }
 
     /// Destructor
-    ~UpdatedLagrangianUPwDiffOrderAxisymmetricElement() override {}
+    ~UpdatedLagrangianUPwDiffOrderAxisymmetricElement() override = default;
 
     ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -104,6 +103,8 @@ protected:
     double CalculateIntegrationCoefficient(const GeometryType::IntegrationPointsArrayType& IntegrationPoints,
                                            unsigned int PointNumber,
                                            double       detJ) override;
+
+    Vector CalculateGreenLagrangeStrain(const Matrix& rDeformationGradient) override;
 
     ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
