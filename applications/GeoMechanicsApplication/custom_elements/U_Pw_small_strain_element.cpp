@@ -1577,15 +1577,15 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateCauchyStrain(ElementVariab
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void UPwSmallStrainElement<TDim, TNumNodes>::CalculateCauchyGreenStrain(ElementVariables& rVariables)
+Vector UPwSmallStrainElement<TDim, TNumNodes>::CalculateGreenLagrangeStrain(const Matrix& rDeformationGradient)
 {
     KRATOS_TRY
 
-    // Compute total deformation gradient
-    const Matrix& F = rVariables.F;
+    Vector result = ZeroVector(VoigtSize);
 
+    //-Compute total deformation gradient
     Matrix ETensor;
-    ETensor = prod(trans(F), F);
+    ETensor = prod(trans(rDeformationGradient), rDeformationGradient);
 
     for (unsigned int i = 0; i < TDim; ++i)
         ETensor(i, i) -= 1.0;
@@ -1594,45 +1594,17 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateCauchyGreenStrain(ElementV
     if constexpr (TDim == 2) {
         Vector StrainVector;
         StrainVector = MathUtils<double>::StrainTensorToVector(ETensor);
-        rVariables.StrainVector[INDEX_2D_PLANE_STRAIN_XX] = StrainVector[0];
-        rVariables.StrainVector[INDEX_2D_PLANE_STRAIN_YY] = StrainVector[1];
-        rVariables.StrainVector[INDEX_2D_PLANE_STRAIN_ZZ] = 0.0;
-        rVariables.StrainVector[INDEX_2D_PLANE_STRAIN_XY] = StrainVector[2];
+        result[INDEX_2D_PLANE_STRAIN_XX] = StrainVector[0];
+        result[INDEX_2D_PLANE_STRAIN_YY] = StrainVector[1];
+        result[INDEX_2D_PLANE_STRAIN_ZZ] = 0.0;
+        result[INDEX_2D_PLANE_STRAIN_XY] = StrainVector[2];
     } else {
-        noalias(rVariables.StrainVector) = MathUtils<double>::StrainTensorToVector(ETensor);
+        result = MathUtils<double>::StrainTensorToVector(ETensor);
     }
+
+    return result;
 
     KRATOS_CATCH("")
-}
-
-template <unsigned int TDim, unsigned int TNumNodes>
-void UPwSmallStrainElement<TDim, TNumNodes>::CalculateCauchyAlmansiStrain(ElementVariables& rVariables)
-{
-    // Compute total deformation gradient
-    const Matrix& F = rVariables.F;
-
-    Matrix LeftCauchyGreen;
-    LeftCauchyGreen = prod(F, trans(F));
-
-    Matrix ETensor;
-    double det;
-    MathUtils<double>::InvertMatrix(LeftCauchyGreen, ETensor, det);
-
-    for (unsigned int i = 0; i < TDim; ++i)
-        ETensor(i, i) = 1.0 - ETensor(i, i);
-
-    ETensor *= 0.5;
-
-    if constexpr (TDim == 2) {
-        Vector StrainVector;
-        StrainVector = MathUtils<double>::StrainTensorToVector(ETensor);
-        rVariables.StrainVector[INDEX_2D_PLANE_STRAIN_XX] = StrainVector[0];
-        rVariables.StrainVector[INDEX_2D_PLANE_STRAIN_YY] = StrainVector[1];
-        rVariables.StrainVector[INDEX_2D_PLANE_STRAIN_ZZ] = 0.0;
-        rVariables.StrainVector[INDEX_2D_PLANE_STRAIN_XY] = StrainVector[2];
-    } else {
-        noalias(rVariables.StrainVector) = MathUtils<double>::StrainTensorToVector(ETensor);
-    }
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
