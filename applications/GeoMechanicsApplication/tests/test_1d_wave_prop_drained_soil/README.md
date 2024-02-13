@@ -18,7 +18,7 @@ The material is described using:
 -   A linear elastic plane stress model (LinearElasticPlaneStress2DLaw)
 -   A Young's modulus of 50.0 [MPa] with a 0.3 Poisson's ratio.
 -   The non porous soil density is 2700 $\mathrm{[kg/m^3]}$ and the porosity is 0.3
-These material properties of the dry soil give a compression modulus $K = E / (3(1-2\nu)) = 41.667 \mathrm{[MPa]}$ and a shear modulus $G = E / (2( 1 + \nu )) = 19.23 \mathrm{[MPa]}$ so a compressive wave speed of $c = \sqrt(( K + 4/3 G ) / \rho) = 188.71 \mathrm{[m/s]}$.
+These material properties of the dry soil give a compression modulus $K = E / (3(1-2\nu)) = 41.667 \mathrm{[MPa]}$ and a shear modulus $G = E / (2( 1 + \nu )) = 19.23 \mathrm{[MPa]}$ so a compressive wave speed of $c = \sqrt{( K + 4/3 G ) / \rho} = 188.71 \mathrm{[m/s]}$.
 
 Upon hitting the bottom, the wave is reflected and travels back up the column. This gives interference of the wave travelling down and the wave travelling up.
 
