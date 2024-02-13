@@ -435,7 +435,7 @@ void CreateSphereTriangularMesh(
     rModelPart.CreateNewNode(19, scale * 0.43653, scale * -0.18066, scale * -0.16372);
     rModelPart.CreateNewNode(20, scale * 0.47553, scale * 0.15451, 0.0);
     rModelPart.CreateNewNode(21, 0.0, scale * 0.5, 0.0);
-    rModelPart.CreateNewNode(22, scale * -0.36663, scale * -0, scale * 0.33997);
+    rModelPart.CreateNewNode(22, scale * -0.36663, 0.0, scale * -0.33997);
     rModelPart.CreateNewNode(23, scale * 0.5, scale * -0, 0.0);
     rModelPart.CreateNewNode(24, scale * 0.23141, scale * -0.37802, scale * -0.23141);
     rModelPart.CreateNewNode(25, scale * -0.15451, scale * 0.47553, 0.0);
@@ -479,7 +479,7 @@ void CreateSphereTriangularMesh(
     rModelPart.CreateNewNode(63, 0.0, scale * -0, scale * 0.5);
     rModelPart.CreateNewNode(64, 0.0, scale * -0.29389, scale * 0.40451);
     rModelPart.CreateNewNode(65, 0.0, scale * -0.15451, scale * 0.47553);
-    rModelPart.CreateNewNode(66, scale * -0.16372, scale * -0.18066, 0.0);
+    rModelPart.CreateNewNode(66, scale * -0.16372, scale * -0.18066, scale * 0.43653);
 
     // Modify center
     block_for_each(rModelPart.Nodes(), [&rCenter](Node& rNode) {
