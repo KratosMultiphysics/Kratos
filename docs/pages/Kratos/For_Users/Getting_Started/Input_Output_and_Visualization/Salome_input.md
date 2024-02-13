@@ -45,7 +45,7 @@ model_part = model.CreateModelPart("Structure")
 ```
 {: data-lang="Python"}
 
-After thar, we must create our simulation. Since this is a structural analysis, we will use the StructuralMechanicsAnalysis
+After that, we must create our simulation. Since this is a structural analysis, we will use the StructuralMechanicsAnalysis
 
 ```python
 # Create the Analysis Stage
