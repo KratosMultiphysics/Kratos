@@ -281,28 +281,40 @@ public:
      * @param rOther The Flags object to compare against.
      * @return True if the flags match, false otherwise.
      */
-    bool Is(Flags const & rOther) const;
+    bool Is(Flags const & rOther) const
+    {
+        return (mFlags & rOther.mFlags) | ((rOther.mIsDefined ^ rOther.mFlags) & (~mFlags));
+    }
 
     /**
      * @brief Checks if all flags in this object are defined (set).
      * @param rOther The Flags object to compare against.
      * @return True if all flags are defined, false otherwise.
      */
-    bool IsDefined(Flags const & rOther) const;
+    bool IsDefined(Flags const & rOther) const
+    {
+        return (mIsDefined & rOther.mIsDefined);
+    }
 
     /**
      * @brief Checks if the flags in this object do not match those in the given Flags object.
      * @param rOther The Flags object to compare against.
      * @return True if the flags do not match, false otherwise.
      */
-    bool IsNot(Flags const& rOther) const;
+    bool IsNot(Flags const& rOther) const
+    {
+        return !((mFlags & rOther.mFlags) | ((rOther.mIsDefined ^ rOther.mFlags) & (~mFlags)));
+    }
 
     /**
      * @brief Checks if any flags in this object are not defined (unset).
      * @param rOther The Flags object to compare against.
      * @return True if any flags are not defined, false otherwise.
      */
-    bool IsNotDefined(Flags const& rOther) const;
+    bool IsNotDefined(Flags const& rOther) const
+    {
+        return !(mIsDefined & rOther.mIsDefined);
+    }
 
     ///@}
     ///@name Input and output
