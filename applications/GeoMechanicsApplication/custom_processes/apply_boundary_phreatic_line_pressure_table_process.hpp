@@ -52,17 +52,18 @@ public:
     {
         KRATOS_TRY
 
-        const Variable<double> &var = KratosComponents< Variable<double> >::Get(mVariableName);
-        const double Time   = mrModelPart.GetProcessInfo()[TIME]/mTimeUnitConverter;
+        const auto&  var    = KratosComponents<Variable<double>>::Get(GetVariableName());
+        const double Time   = GetModelPart().GetProcessInfo()[TIME] / mTimeUnitConverter;
         const double deltaH = mpTable->GetValue(Time);
 
-        block_for_each(mrModelPart.Nodes(), [&deltaH, &var, this](Node& rNode){
-            double xcoord = rNode.Coordinates()[mHorizontalDirection];
-            xcoord = std::max(xcoord,mMinHorizontalCoordinate);
-            xcoord = std::min(xcoord,mMaxHorizontalCoordinate);
-            double height = mSlope * ( xcoord - mFirstReferenceCoordinate[mHorizontalDirection]) + mFirstReferenceCoordinate[mGravityDirection];
-            const double distance = height - rNode.Coordinates()[mGravityDirection];
-            const double pressure = mSpecificWeight * (distance + deltaH);
+        block_for_each(GetModelPart().Nodes(), [&deltaH, &var, this](Node& rNode){
+            double xcoord = rNode.Coordinates()[GetHorizontalDirection()];
+            xcoord        = std::max(xcoord, GetMinHorizontalCoordinate());
+            xcoord        = std::min(xcoord, GetMaxHorizontalCoordinate());
+            double height = GetSlope() * (xcoord - GetFirstReferenceCoordinate()[GetHorizontalDirection()]) +
+                            GetFirstReferenceCoordinate()[GetGravityDirection()];
+            const double distance = height - rNode.Coordinates()[GetGravityDirection()];
+            const double pressure = GetSpecificWeight() * (distance + deltaH);
             rNode.FastGetSolutionStepValue(var) = std::max(pressure,0.0);
         });
 
