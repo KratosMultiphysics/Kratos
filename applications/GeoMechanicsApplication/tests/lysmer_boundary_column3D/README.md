@@ -16,10 +16,16 @@ Two kinds of 3D elements are used to generate a mesh:
 -   tetra elements: folders **tetra_mesh_in_Z** and **tetra_mesh_in_Y**
 -   hexa elements: folder **hexa_mesh_in_Z**
 
-The mesh with tetra elements is presented below for both cases. Note, the column is aligned along Z axis for **tetra_mesh_in_Z** and Y axis for **tetra_mesh_in_Y**.
-![MeshTetraZ](MeshTetraZ.svg) ![MeshTetraY](MeshTetraY.svg)
+The mesh with tetra elements is presented below for both cases. Note, the column is aligned along Z axis for **tetra_mesh_in_Z** 
+
+![MeshTetraZ](MeshTetraZ.svg) 
+
+and Y axis for **tetra_mesh_in_Y**.
+
+![MeshTetraY](MeshTetraY.svg)
 
 The mesh with hexa elements is given in the following figure.
+
 ![MeshHexaZ](MeshHexaZ.svg)
 
 The material is described using:
