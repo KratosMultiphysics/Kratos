@@ -29,27 +29,30 @@ KRATOS_TEST_CASE_IN_SUITE(CalculateBMatrixReturnsCorrectResults, KratosGeoMechan
     auto stress_state = std::make_unique<ThreeDimensionStressState>();
 
     Model      model;
-    ModelPart& model_part = ModelSetupUtilities::CreateModelPartWithASingle3D6NElement(model);
+    ModelPart& model_part = ModelSetupUtilities::CreateModelPartWithASingle3D4NElement(model);
 
-    Vector Np(3);
-    Np <<= 1.0, 2.0, 3.0;
+    Vector Np(4);
+    Np <<= 1.0, 2.0, 3.0, 4.0;
 
     // clang-format off
-    Matrix GradNpT(3, 2);
-    GradNpT <<= 1.0, 2.0,
-                3.0, 4.0,
-                5.0, 6.0;
+    Matrix GradNpT(4, 3);
+    GradNpT <<= 1.0,  2.0,  3.0,
+                4.0,  5.0,  6.0,
+                7.0,  8.0,  9.0,
+                10.0, 11.0, 12.0;
     // clang-format on
 
     const Matrix calculated_matrix =
             stress_state->CalculateBMatrix(GradNpT, Np, model_part.GetElement(1).GetGeometry());
 
     // clang-format off
-    Matrix expected_matrix(4, 6);
-    expected_matrix <<= 1  ,0  ,3  ,0  ,5  ,0, // This row contains the first column of GradNpT on columns 1, 3 and 5
-                        0  ,2  ,0  ,4  ,0  ,6, // This row contains the second column of GradNpT on columns 2, 4 and 6
-                        0  ,0  ,3  ,0  ,5  ,0, // This row is not set,
-                        2  ,1  ,4  ,3  ,6  ,5; // This row contains the first and second columns of GradNpT, swapping x and y
+    Matrix expected_matrix(6, 12);
+    expected_matrix <<= 1,  0,  0,  4,  0,  0,  7,  0,  0,  10, 0,  0,  // This row (INDEX_3D_XX) contains the first column of GradNpT as INDEX_X
+                        0,  2,  0,  0,  5,  0,  0,  8,  0,  0,  11, 0,  // This row (INDEX_3D_YY) contains the second column of GradNpT as INDEX_Y
+                        0,  0,  3,  0,  0,  6,  0,  0,  9,  0,  0,  12, // This row (INDEX_3D_ZZ) contains the third column of GradNpT as INDEX_Z
+                        2,  1,  0,  5,  4,  0,  8,  7,  0,  11, 10, 0,  // This row (INDEX_3D_XY) contains the first and second columns of GradNpT as INDEX_Y and INDEX_X respectively
+                        0,  3,  2,  0,  6,  5,  0,  9,  8,  0,  12, 11, // This row (INDEX_3D_YZ) contains the second and third column of GradNpT as INDEX_Z and INDEX_Y respectively
+                        3,  0,  1,  6,  0,  4,  9,  0,  7,  12, 0,  10; // This row (INDEX_3D_XZ) contains the first and third column of GradNpT as INDEX_Z and INDEX_X respectively
     // clang-format on
 
     KRATOS_CHECK_MATRIX_NEAR(calculated_matrix, expected_matrix, 1e-12)

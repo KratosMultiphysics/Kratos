@@ -22,6 +22,6 @@ namespace Kratos::Testing::ModelSetupUtilities
 {
 
 ModelPart& CreateModelPartWithASingle2D3NElement(Model& rModel);
-ModelPart& CreateModelPartWithASingle3D6NElement(Model& rModel);
+ModelPart& CreateModelPartWithASingle3D4NElement(Model& rModel);
 
 } // namespace Kratos::ModelSetupUtilities

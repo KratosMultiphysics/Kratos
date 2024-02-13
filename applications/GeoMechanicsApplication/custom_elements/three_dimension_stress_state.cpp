@@ -21,7 +21,7 @@ Matrix ThreeDimensionStressState::CalculateBMatrix(const Matrix&         GradNpT
 {
     const auto dimension       = rGeometry.WorkingSpaceDimension();
     const auto number_of_nodes = rGeometry.size();
-    Matrix result = ZeroMatrix(VOIGT_SIZE_3D_INTERFACE, dimension * number_of_nodes);
+    Matrix result = ZeroMatrix(VOIGT_SIZE_3D, dimension * number_of_nodes);
 
     for (unsigned int i = 0; i < number_of_nodes; ++i) {
     auto index = dimension * i;
