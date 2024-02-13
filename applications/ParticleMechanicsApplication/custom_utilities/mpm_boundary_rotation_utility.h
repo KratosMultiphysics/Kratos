@@ -209,7 +209,7 @@ public:
                             } // else, sliding: nothing needed for LHS
 
                             // add friction to RHS
-                            array_1d<double,3> & r_friction_force = rGeometry[itNode].FastGetSolutionStepValue(FRICTION_FORCE);
+                            array_1d<double,3> & r_friction_force = rGeometry[itNode].FastGetSolutionStepValue(REACTION);
 
                             for( unsigned int i = 1; i < this->GetDomainSize(); ++i)
                                 rLocalVector[j + i] -= r_friction_force[i];
@@ -520,8 +520,7 @@ public:
     }
 
 
-    // Sets FRICTION_STATE for a SLIP node to indicate its stick/sliding state and stores the maximum tangent force
-    // allowed in each direction in FRICTION_FORCE
+    // Sets FRICTION_STATE for a SLIP node to indicate its stick/sliding state and stores the friction force in REACTION
     void ComputeFrictionAndResetFlags(ModelPart& rModelPart){
         #pragma omp parallel for
         for (int iter = 0; iter < static_cast<int>(rModelPart.Nodes().size()); ++iter) {
@@ -530,7 +529,7 @@ public:
             int& r_friction_state = pNode->FastGetSolutionStepValue(FRICTION_STATE, 0);
             const double mu = pNode->GetValue(FRICTION_COEFFICIENT);
 
-            array_1d<double, 3>& r_friction_force = pNode->FastGetSolutionStepValue(FRICTION_FORCE);
+            array_1d<double, 3>& r_friction_force = pNode->FastGetSolutionStepValue(REACTION);
 
             // Limit tangential forces for friction
             if (mu > 0) {
@@ -539,7 +538,10 @@ public:
                 const double tangent_force1 = pNode->FastGetSolutionStepValue(STICK_FORCE_Y, 0);
                 const double tangent_force2 = pNode->FastGetSolutionStepValue(STICK_FORCE_Z, 0);
 
-                // if needed, flip normal direction
+                // forces unmodified in normal direction
+                r_friction_force[0] = normal_force;
+
+                // if needed, flip normal direction [for determination of tensile/compressive force purposes ONLY]
                 if(pNode->Is(MODIFIED)) normal_force *= -1.0;
 
                 // [note: no friction if normal component < 0 [direction chosen to be consistent with contact algo]]

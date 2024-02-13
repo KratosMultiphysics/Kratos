@@ -267,8 +267,8 @@ public:
     void FinalizeNonLinIteration(ModelPart &rModelPart, TSystemMatrixType &rA, TSystemVectorType &rDx,
                                    TSystemVectorType &rb) override {
 
-        // clear nodal reaction values if they were assigned a value outside from the condition
-        ClearReaction();
+        // clear any nodal reaction values on penalty boundary
+        ClearReactionOnPenaltyBoundary();
 
         BossakBaseType::FinalizeNonLinIteration(rModelPart, rA, rDx, rb);
 
@@ -348,10 +348,6 @@ public:
                 array_1d<double, 3 > & r_stick_force = (i)->FastGetSolutionStepValue(STICK_FORCE);
                 r_stick_force.clear();
             }
-            if(i->SolutionStepsDataHas(FRICTION_FORCE)) {
-                array_1d<double, 3 > & r_friction_force = (i)->FastGetSolutionStepValue(FRICTION_FORCE);
-                r_friction_force.clear();
-            }
 
             if(i->SolutionStepsDataHas(FRICTION_STATE)) {
                 int & r_friction_state = (i)->FastGetSolutionStepValue(FRICTION_STATE);
@@ -415,6 +411,35 @@ public:
         mBossak.c5 = ( delta_time * 0.5 * ( ( mBossak.gamma / mBossak.beta ) - 2.0 ) );
 
         KRATOS_CATCH( "" )
+    }
+
+    /**
+     * @brief Function called once at the end of a solution step, after convergence is reached if an iterative process is needed
+     * @param rModelPart The model part of the problem to solve
+     * @param A LHS matrix
+     * @param Dx Incremental update of primary variables
+     * @param b RHS Vector
+     */
+    void FinalizeSolutionStep(
+        ModelPart& rModelPart,
+        TSystemMatrixType& rA,
+        TSystemVectorType& rDx,
+        TSystemVectorType& rb) override
+    {
+        BossakBaseType::FinalizeSolutionStep(rModelPart, rA, rDx, rb);
+
+
+        #pragma omp parallel for
+        for(int iter = 0; iter < static_cast<int>(mGridModelPart.Nodes().size()); ++iter) {
+            auto i = mGridModelPart.NodesBegin() + iter;
+
+            // rotate friction forces stored in REACTION to global coordinates on conforming boundaries
+            if( (i)->GetValue(IS_STRUCTURE) <= 1.000001 &&
+                (i)->GetValue(FRICTION_COEFFICIENT) > 0        ){
+                mRotationTool.RotateVector((i)->FastGetSolutionStepValue(REACTION), *i, true);
+            }
+        }
+
     }
 
     /**
@@ -577,12 +602,14 @@ protected:
     unsigned int mBlockSize;
     MPMBoundaryRotationUtility<LocalSystemMatrixType,LocalSystemVectorType> mRotationTool;
 
-    void ClearReaction() const
+    void ClearReactionOnPenaltyBoundary() const
     {
         #pragma omp parallel for
         for (int iter = 0; iter < static_cast<int>(mGridModelPart.Nodes().size()); ++iter) {
             auto i = mGridModelPart.NodesBegin() + iter;
-            (i)->FastGetSolutionStepValue(REACTION).clear();
+
+            if( (i)->GetValue(IS_STRUCTURE) > 1.000001 )
+                (i)->FastGetSolutionStepValue(REACTION).clear();
         }
     }
 
