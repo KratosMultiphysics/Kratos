@@ -22,6 +22,7 @@
 #include "custom_elements/small_strain_U_Pw_diff_order_element.hpp"
 #include "custom_utilities/element_utilities.hpp"
 #include "plane_strain_stress_state.h"
+#include "three_dimension_stress_state.h"
 
 namespace Kratos
 {
@@ -1805,19 +1806,8 @@ void SmallStrainUPwDiffOrderElement::CalculateBMatrix(Matrix& rB, const Matrix& 
     unsigned int index;
 
     if (Dim > 2) {
-        for (unsigned int i = 0; i < NumUNodes; ++i) {
-            index = Dim * i;
-
-            rB(INDEX_3D_XX, index + INDEX_X) = DNp_DX(i, INDEX_X);
-            rB(INDEX_3D_YY, index + INDEX_Y) = DNp_DX(i, INDEX_Y);
-            rB(INDEX_3D_ZZ, index + INDEX_Z) = DNp_DX(i, INDEX_Z);
-            rB(INDEX_3D_XY, index + INDEX_X) = DNp_DX(i, INDEX_Y);
-            rB(INDEX_3D_XY, index + INDEX_Y) = DNp_DX(i, INDEX_X);
-            rB(INDEX_3D_YZ, index + INDEX_Y) = DNp_DX(i, INDEX_Z);
-            rB(INDEX_3D_YZ, index + INDEX_Z) = DNp_DX(i, INDEX_Y);
-            rB(INDEX_3D_XZ, index + INDEX_X) = DNp_DX(i, INDEX_Z);
-            rB(INDEX_3D_XZ, index + INDEX_Z) = DNp_DX(i, INDEX_X);
-        }
+        ThreeDimensionStressState stress_state;
+        rB = stress_state.CalculateBMatrix(DNp_DX, Np, this->GetGeometry());
     } else {
         PlaneStrainStressState stress_state;
         rB = stress_state.CalculateBMatrix(DNp_DX, Np, this->GetGeometry());

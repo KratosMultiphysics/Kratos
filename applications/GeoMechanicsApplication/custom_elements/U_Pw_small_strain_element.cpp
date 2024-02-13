@@ -14,6 +14,7 @@
 // Application includes
 #include "custom_elements/U_Pw_small_strain_element.hpp"
 #include "plane_strain_stress_state.h"
+#include "three_dimension_stress_state.h"
 
 namespace Kratos
 {
@@ -1212,19 +1213,8 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateBMatrix(Matrix& rB, const 
 
     unsigned int index;
     if constexpr (TDim > 2) {
-        for (unsigned int i = 0; i < TNumNodes; ++i) {
-            index = TDim * i;
-
-            rB(INDEX_3D_XX, index + INDEX_X) = GradNpT(i, INDEX_X);
-            rB(INDEX_3D_YY, index + INDEX_Y) = GradNpT(i, INDEX_Y);
-            rB(INDEX_3D_ZZ, index + INDEX_Z) = GradNpT(i, INDEX_Z);
-            rB(INDEX_3D_XY, index + INDEX_X) = GradNpT(i, INDEX_Y);
-            rB(INDEX_3D_XY, index + INDEX_Y) = GradNpT(i, INDEX_X);
-            rB(INDEX_3D_YZ, index + INDEX_Y) = GradNpT(i, INDEX_Z);
-            rB(INDEX_3D_YZ, index + INDEX_Z) = GradNpT(i, INDEX_Y);
-            rB(INDEX_3D_XZ, index + INDEX_X) = GradNpT(i, INDEX_Z);
-            rB(INDEX_3D_XZ, index + INDEX_Z) = GradNpT(i, INDEX_X);
-        }
+        ThreeDimensionStressState stress_state;
+        rB = stress_state.CalculateBMatrix(GradNpT, Np, this->GetGeometry());
     } else {
         PlaneStrainStressState stress_state;
         rB = stress_state.CalculateBMatrix(GradNpT, Np, this->GetGeometry());

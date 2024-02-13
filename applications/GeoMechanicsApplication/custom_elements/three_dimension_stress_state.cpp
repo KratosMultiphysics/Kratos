@@ -24,17 +24,17 @@ Matrix ThreeDimensionStressState::CalculateBMatrix(const Matrix&         GradNpT
     Matrix result = ZeroMatrix(VOIGT_SIZE_3D, dimension * number_of_nodes);
 
     for (unsigned int i = 0; i < number_of_nodes; ++i) {
-    auto index = dimension * i;
+        auto index = dimension * i;
 
-    result(INDEX_3D_XX, index + INDEX_X) = GradNpT(i, INDEX_X);
-    result(INDEX_3D_YY, index + INDEX_Y) = GradNpT(i, INDEX_Y);
-    result(INDEX_3D_ZZ, index + INDEX_Z) = GradNpT(i, INDEX_Z);
-    result(INDEX_3D_XY, index + INDEX_X) = GradNpT(i, INDEX_Y);
-    result(INDEX_3D_XY, index + INDEX_Y) = GradNpT(i, INDEX_X);
-    result(INDEX_3D_YZ, index + INDEX_Y) = GradNpT(i, INDEX_Z);
-    result(INDEX_3D_YZ, index + INDEX_Z) = GradNpT(i, INDEX_Y);
-    result(INDEX_3D_XZ, index + INDEX_X) = GradNpT(i, INDEX_Z);
-    result(INDEX_3D_XZ, index + INDEX_Z) = GradNpT(i, INDEX_X);
+        result(INDEX_3D_XX, index + INDEX_X) = GradNpT(i, INDEX_X);
+        result(INDEX_3D_YY, index + INDEX_Y) = GradNpT(i, INDEX_Y);
+        result(INDEX_3D_ZZ, index + INDEX_Z) = GradNpT(i, INDEX_Z);
+        result(INDEX_3D_XY, index + INDEX_X) = GradNpT(i, INDEX_Y);
+        result(INDEX_3D_XY, index + INDEX_Y) = GradNpT(i, INDEX_X);
+        result(INDEX_3D_YZ, index + INDEX_Y) = GradNpT(i, INDEX_Z);
+        result(INDEX_3D_YZ, index + INDEX_Z) = GradNpT(i, INDEX_Y);
+        result(INDEX_3D_XZ, index + INDEX_X) = GradNpT(i, INDEX_Z);
+        result(INDEX_3D_XZ, index + INDEX_Z) = GradNpT(i, INDEX_X);
     }
 
     return result;
