@@ -199,7 +199,8 @@ void IncompressibleNavierStokesDivStable<TDim>::CalculateLocalSystem(
     GeometryType::ShapeFunctionsGradientsType pressure_DN;
     Vector velocity_bubble;
     std::vector<BoundedMatrix<double, 1, TDim>> velocity_bubble_grad;
-    CalculateKinematics(weights, velocity_N, pressure_N, velocity_DN, pressure_DN, velocity_bubble, velocity_bubble_grad);
+    DenseVector<GeometryType::ShapeFunctionsSecondDerivativesType> velocity_DDN;
+    CalculateKinematics(weights, velocity_N, pressure_N, velocity_DN, pressure_DN, velocity_bubble, velocity_bubble_grad, velocity_DDN);
 
     // Initialize enrichment arrays
     array_1d<double, TDim> RHSee = ZeroVector(TDim);
@@ -217,6 +218,7 @@ void IncompressibleNavierStokesDivStable<TDim>::CalculateLocalSystem(
         noalias(aux_data.DN_p) = pressure_DN[g];
         aux_data.N_e = velocity_bubble[g];
         noalias(aux_data.DN_e) = velocity_bubble_grad[g];
+        aux_data.DDN_v = velocity_DDN[g];
         aux_data.Weight = weights[g];
 
         // Calculate current Gauss point material response
@@ -375,7 +377,8 @@ void IncompressibleNavierStokesDivStable<TDim>::CalculateKinematics(
     GeometryType::ShapeFunctionsGradientsType& rVelocityDNDX,
     GeometryType::ShapeFunctionsGradientsType& rPressureDNDX,
     Vector& rVelocityBubble,
-    std::vector<BoundedMatrix<double, 1, TDim>>& rVelocityBubbleGrad)
+    std::vector<BoundedMatrix<double, 1, TDim>>& rVelocityBubbleGrad,
+    DenseVector<GeometryType::ShapeFunctionsSecondDerivativesType>& rVelocityDDNDDX)
 {
     // Get element geometry
     const auto& r_geom = this->GetGeometry();
@@ -407,6 +410,7 @@ void IncompressibleNavierStokesDivStable<TDim>::CalculateKinematics(
     for (IndexType g = 0; g < n_gauss; ++g) {
         rVelocityDNDX[g] = prod(r_DN_De_v[g], inv_J_vect[g]);
     }
+    GeometryUtils::ShapeFunctionsSecondDerivativesTransformOnAllIntegrationPoints(rVelocityDDNDDX, r_geom, IntegrationMethod);
 
     // Calculate pressure kinematics from an auxiliary geometry (P1 interpolation)
     GeometryType::UniquePointer p_aux_geom = nullptr;
@@ -436,14 +440,14 @@ void IncompressibleNavierStokesDivStable<TDim>::CalculateKinematics(
         const auto& r_bar_coords_grads = rPressureDNDX[g];
         auto& r_vel_bub_grad_g = rVelocityBubbleGrad[g];
         if constexpr (TDim == 2) {
-            rVelocityBubble[g] = r_bar_coords[0] * r_bar_coords[1] * r_bar_coords[2];
-            r_vel_bub_grad_g(0,0) = r_bar_coords_grads(0,0) * r_bar_coords[1] * r_bar_coords[2] + r_bar_coords[0] * r_bar_coords_grads(1,0) * r_bar_coords[2] + r_bar_coords[0] * r_bar_coords[1] * r_bar_coords_grads(2,0);
-            r_vel_bub_grad_g(0,1) = r_bar_coords_grads(0,1) * r_bar_coords[1] * r_bar_coords[2] + r_bar_coords[0] * r_bar_coords_grads(1,1) * r_bar_coords[2] + r_bar_coords[0] * r_bar_coords[1] * r_bar_coords_grads(2,1);
+            rVelocityBubble[g] = 27.0*(r_bar_coords[0] * r_bar_coords[1] * r_bar_coords[2]);
+            r_vel_bub_grad_g(0,0) = 27.0*(r_bar_coords_grads(0,0) * r_bar_coords[1] * r_bar_coords[2] + r_bar_coords[0] * r_bar_coords_grads(1,0) * r_bar_coords[2] + r_bar_coords[0] * r_bar_coords[1] * r_bar_coords_grads(2,0));
+            r_vel_bub_grad_g(0,1) = 27.0*(r_bar_coords_grads(0,1) * r_bar_coords[1] * r_bar_coords[2] + r_bar_coords[0] * r_bar_coords_grads(1,1) * r_bar_coords[2] + r_bar_coords[0] * r_bar_coords[1] * r_bar_coords_grads(2,1));
         } else {
-            rVelocityBubble[g] = r_bar_coords[0] * r_bar_coords[1] * r_bar_coords[2] * r_bar_coords[3];
-            r_vel_bub_grad_g(0,0) = r_bar_coords_grads(0,0) * r_bar_coords[1] * r_bar_coords[2] * r_bar_coords[3] + r_bar_coords[0] * r_bar_coords_grads(1,0) * r_bar_coords[2] * r_bar_coords[3] + r_bar_coords[0] * r_bar_coords[1] * r_bar_coords_grads(2,0) * r_bar_coords[3] + r_bar_coords[0] * r_bar_coords[1] * r_bar_coords[2] * r_bar_coords_grads(3,0);
-            r_vel_bub_grad_g(0,1) = r_bar_coords_grads(0,1) * r_bar_coords[1] * r_bar_coords[2] * r_bar_coords[3] + r_bar_coords[0] * r_bar_coords_grads(1,1) * r_bar_coords[2] * r_bar_coords[3] + r_bar_coords[0] * r_bar_coords[1] * r_bar_coords_grads(2,1) * r_bar_coords[3] + r_bar_coords[0] * r_bar_coords[1] * r_bar_coords[2] * r_bar_coords_grads(3,1);
-            r_vel_bub_grad_g(0,2) = r_bar_coords_grads(0,2) * r_bar_coords[1] * r_bar_coords[2] * r_bar_coords[3] + r_bar_coords[0] * r_bar_coords_grads(1,2) * r_bar_coords[2] * r_bar_coords[3] + r_bar_coords[0] * r_bar_coords[1] * r_bar_coords_grads(2,2) * r_bar_coords[3] + r_bar_coords[0] * r_bar_coords[1] * r_bar_coords[2] * r_bar_coords_grads(3,2);
+            rVelocityBubble[g] = 256.0*(r_bar_coords[0] * r_bar_coords[1] * r_bar_coords[2] * r_bar_coords[3]);
+            r_vel_bub_grad_g(0,0) = 256.0*(r_bar_coords_grads(0,0) * r_bar_coords[1] * r_bar_coords[2] * r_bar_coords[3] + r_bar_coords[0] * r_bar_coords_grads(1,0) * r_bar_coords[2] * r_bar_coords[3] + r_bar_coords[0] * r_bar_coords[1] * r_bar_coords_grads(2,0) * r_bar_coords[3] + r_bar_coords[0] * r_bar_coords[1] * r_bar_coords[2] * r_bar_coords_grads(3,0));
+            r_vel_bub_grad_g(0,1) = 256.0*(r_bar_coords_grads(0,1) * r_bar_coords[1] * r_bar_coords[2] * r_bar_coords[3] + r_bar_coords[0] * r_bar_coords_grads(1,1) * r_bar_coords[2] * r_bar_coords[3] + r_bar_coords[0] * r_bar_coords[1] * r_bar_coords_grads(2,1) * r_bar_coords[3] + r_bar_coords[0] * r_bar_coords[1] * r_bar_coords[2] * r_bar_coords_grads(3,1));
+            r_vel_bub_grad_g(0,2) = 256.0*(r_bar_coords_grads(0,2) * r_bar_coords[1] * r_bar_coords[2] * r_bar_coords[3] + r_bar_coords[0] * r_bar_coords_grads(1,2) * r_bar_coords[2] * r_bar_coords[3] + r_bar_coords[0] * r_bar_coords[1] * r_bar_coords_grads(2,2) * r_bar_coords[3] + r_bar_coords[0] * r_bar_coords[1] * r_bar_coords[2] * r_bar_coords_grads(3,2));
         }
     }
 
@@ -515,6 +519,7 @@ void IncompressibleNavierStokesDivStable<2>::ComputeGaussPointLHSContribution(
     const auto& N_v = rData.N_v;
     const auto& DN_p = rData.DN_p;
     const auto& DN_v = rData.DN_v;
+    const auto& DDN_v = rData.DDN_v;
 
     // Assemble LHS contribution
     const double gauss_weight = rData.Weight;
@@ -551,6 +556,7 @@ void IncompressibleNavierStokesDivStable<3>::ComputeGaussPointLHSContribution(
     const auto& N_v = rData.N_v;
     const auto& DN_p = rData.DN_p;
     const auto& DN_v = rData.DN_v;
+    const auto& DDN_v = rData.DDN_v;
 
     // Assemble LHS contribution
     const double gauss_weight = rData.Weight;
@@ -591,12 +597,14 @@ void IncompressibleNavierStokesDivStable<2>::ComputeGaussPointRHSContribution(
 
     // Get stress from material response
     const auto& r_stress = rData.ShearStress;
+    const auto& C = rData.ConstitutiveMatrix;
 
     // Get shape function values
     const auto& N_p = rData.N_p;
     const auto& N_v = rData.N_v;
     const auto& DN_p = rData.DN_p;
     const auto& DN_v = rData.DN_v;
+    const auto& DDN_v = rData.DDN_v;
 
     // Assemble RHS contribution
     const double gauss_weight = rData.Weight;
@@ -637,12 +645,14 @@ void IncompressibleNavierStokesDivStable<3>::ComputeGaussPointRHSContribution(
 
     // Get stress from material response
     const auto& r_stress = rData.ShearStress;
+    const auto& C = rData.ConstitutiveMatrix;
 
     // Get shape function values
     const auto& N_p = rData.N_p;
     const auto& N_v = rData.N_v;
     const auto& DN_p = rData.DN_p;
     const auto& DN_v = rData.DN_v;
+    const auto& DDN_v = rData.DDN_v;
 
     // Assemble RHS contribution
     const double gauss_weight = rData.Weight;
@@ -695,6 +705,7 @@ void IncompressibleNavierStokesDivStable<2>::ComputeGaussPointEnrichmentContribu
     const auto& DN_v = rData.DN_v;
     const double N_e = rData.N_e;
     const auto& DN_e = rData.DN_e;
+    const auto& DDN_v = rData.DDN_v;
 
     // Assemble enrichment contribution
     const double gauss_weight = rData.Weight;
@@ -755,6 +766,7 @@ void IncompressibleNavierStokesDivStable<3>::ComputeGaussPointEnrichmentContribu
     const auto& DN_v = rData.DN_v;
     const double N_e = rData.N_e;
     const auto& DN_e = rData.DN_e;
+    const auto& DDN_v = rData.DDN_v;
 
     // Assemble enrichment contribution
     const double gauss_weight = rData.Weight;

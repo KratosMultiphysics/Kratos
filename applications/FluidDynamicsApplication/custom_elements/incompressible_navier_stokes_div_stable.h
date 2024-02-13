@@ -72,13 +72,40 @@ public:
 
     static constexpr IntegrationMethod IntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_3;
 
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(IncompressibleNavierStokesDivStable);
+
+    using BaseType = Element;
+
+    using NodeType = BaseType::NodeType;
+
+    using GeometryType = BaseType::GeometryType;
+
+    using NodesArrayType = BaseType::NodesArrayType;
+
+    using VectorType = BaseType::VectorType;
+
+    using MatrixType = BaseType::MatrixType;
+
+    using IndexType = BaseType::IndexType;
+
+    using SizeType = BaseType::SizeType;
+
+    using EquationIdVectorType = BaseType::EquationIdVectorType;
+
+    using DofsVectorType = BaseType::DofsVectorType;
+
+    using DofsArrayType = BaseType::DofsArrayType;
+
     struct ElementDataContainer
     {
         // Gauss point kinematics
         array_1d<double, VelocityNumNodes> N_v;
-        array_1d<double, PressureNumNodes> N_p;
         BoundedMatrix<double, VelocityNumNodes, TDim> DN_v;
+        GeometryType::ShapeFunctionsSecondDerivativesType DDN_v;
+
+        array_1d<double, PressureNumNodes> N_p;
         BoundedMatrix<double, PressureNumNodes, TDim> DN_p;
+
         double N_e;
         BoundedMatrix<double, 1, TDim> DN_e;
 
@@ -112,30 +139,6 @@ public:
         double Density;
         double EffectiveViscosity;
     };
-
-    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(IncompressibleNavierStokesDivStable);
-
-    using BaseType = Element;
-
-    using NodeType = BaseType::NodeType;
-
-    using GeometryType = BaseType::GeometryType;
-
-    using NodesArrayType = BaseType::NodesArrayType;
-
-    using VectorType = BaseType::VectorType;
-
-    using MatrixType = BaseType::MatrixType;
-
-    using IndexType = BaseType::IndexType;
-
-    using SizeType = BaseType::SizeType;
-
-    using EquationIdVectorType = BaseType::EquationIdVectorType;
-
-    using DofsVectorType = BaseType::DofsVectorType;
-
-    using DofsArrayType = BaseType::DofsArrayType;
 
     ///@}
     ///@name Life Cycle
@@ -312,7 +315,8 @@ private:
         GeometryType::ShapeFunctionsGradientsType& rVelocityDNDX,
         GeometryType::ShapeFunctionsGradientsType& rPressureDNDX,
         Vector& rVelocityBubble,
-        std::vector<BoundedMatrix<double, 1, TDim>>& rVelocityBubbleGrad);
+        std::vector<BoundedMatrix<double, 1, TDim>>& rVelocityBubbleGrad,
+        DenseVector<GeometryType::ShapeFunctionsSecondDerivativesType>& rVelocityDDNDDX);
 
     void CalculateStrainRate(ElementDataContainer& rData);
 

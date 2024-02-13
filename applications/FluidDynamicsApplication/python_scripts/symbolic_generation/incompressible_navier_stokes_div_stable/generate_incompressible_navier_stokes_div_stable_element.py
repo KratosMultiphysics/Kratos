@@ -70,7 +70,7 @@ for dim, v_n_nodes, p_n_nodes in zip(dim_vector, v_nodes_vector, p_nodes_vector)
     vn = DefineMatrix('r_vn', v_n_nodes, dim)          # Previous step velocity
     vnn = DefineMatrix('r_vnn', v_n_nodes, dim)        # 2 previous step velocity
     p = DefineVector('r_p', p_n_nodes)                 # Pressure
-    v_e = DefineMatrix('v_e', 1, dim)                  # Velocity enrichment dof
+    v_e = DefineMatrix('v_e', 1, dim)                  # Velocity enrichment DOF
 
     ## Fluid properties
     mu = sympy.Symbol('mu', positive = True)         # Dynamic viscosity
@@ -131,6 +131,7 @@ for dim, v_n_nodes, p_n_nodes in zip(dim_vector, v_nodes_vector, p_nodes_vector)
     ## Gradients computation (fluid dynamics gradient)
     grad_w = DfjDxi(DN_v, w)
     grad_q = DfjDxi(DN_p, q)
+    grad_w_e = DfjDxi(DN_e, w_e)
 
     grad_v = DfjDxi(DN_v,v)
     grad_p = DfjDxi(DN_p, p)
@@ -145,17 +146,16 @@ for dim, v_n_nodes, p_n_nodes in zip(dim_vector, v_nodes_vector, p_nodes_vector)
 
     grad_sym_v = grad_sym_voigtform(DN_v,v)       # Symmetric gradient of v in Voigt notation
     grad_sym_v_e = grad_sym_voigtform(DN_e,v_e)   # Symmetric gradient of enrichment v in Voigt notation
-    grad_w_voigt = grad_sym_voigtform(DN_v,w)     # Symmetric gradient of w in Voigt notation
-    grad_w_e_voigt = grad_sym_voigtform(DN_e,w_e) # Symmetric gradient of enrichment w in Voigt notation
+    grad_sym_w_voigt = grad_sym_voigtform(DN_v,w)     # Symmetric gradient of w in Voigt notation
+    grad_sym_w_e_voigt = grad_sym_voigtform(DN_e,w_e) # Symmetric gradient of enrichment w in Voigt notation
     # Recall that the grad(w):stress contraction equals grad_sym(w)*stress in Voigt notation since the stress is a symmetric tensor.
 
     # Convective term definition
     convective_term_gauss = (vconv_gauss.transpose()*grad_v)
-    convective_term_gauss_e = (vconv_gauss.transpose()*grad_v_e)
 
     ## Compute galerkin functional
     # Navier-Stokes functional
-    rv_galerkin = rho*w_gauss.transpose()*f_gauss - rho*w_gauss.transpose()*accel_gauss - grad_w_voigt.transpose()*stress + div_w*p_gauss - q_gauss*div_v
+    rv_galerkin = rho*w_gauss.transpose()*f_gauss - rho*w_gauss.transpose()*accel_gauss - grad_sym_w_voigt.transpose()*stress + div_w*p_gauss - q_gauss*div_v
     rv_galerkin -= rho*w_gauss.transpose()*convective_term_gauss.transpose()
 
     ## Stabilization functional
@@ -165,20 +165,56 @@ for dim, v_n_nodes, p_n_nodes in zip(dim_vector, v_nodes_vector, p_nodes_vector)
     stab_norm_a = sympy.sqrt(stab_norm_a)
     tau = 1.0/(rho*dyn_tau/dt + stab_c2*rho*stab_norm_a/h + stab_c1*mu/h**2) # Stabilization operator
 
-    mom_residual = rho*f_gauss - rho*accel_gauss - rho*convective_term_gauss.transpose() - grad_p #TODO: Here there should be the viscous component of the stress
+    C_aux = ConvertVoigtMatrixToTensor(C) # Definition of the 4th order constitutive tensor from the previous definition symbols
+    # DDN = sympy.MutableDenseNDimArray(sympy.zeros(v_n_nodes*dim*dim), shape=(v_n_nodes,dim,dim))
+    # for i in range(v_n_nodes):
+    #     for j in range(dim):
+    #         for k in range(dim):
+    #             DDN[i,j,k] = sympy.var(f"DDN_{i}_{j}_{k}")
+
+    DDN_v = sympy.Matrix(1, v_n_nodes, lambda _, j : (sympy.Matrix(dim, dim, lambda m, n : sympy.var(f"DDN_v_{j}_{m}_{n}"))))
+
+    div_stress = sympy.zeros(dim, 1)
+    for i in range(dim):
+        for j in range(dim):
+            for k in range(dim):
+                for m in range(dim):
+                    for n in range(v_n_nodes):
+                        div_stress[i] += 0.5*C_aux[i,j,k,m]*(DDN_v[0,n][i,m]*v[n,k] + DDN_v[0,n][i,k]*v[n,m])
+
+    mom_residual = rho*f_gauss - rho*accel_gauss - rho*convective_term_gauss.transpose() + div_stress - grad_p
     vel_subscale = tau * mom_residual
 
     rv_stab = grad_q.transpose()*vel_subscale
     rv_stab += rho*vconv_gauss.transpose()*grad_w*vel_subscale
     rv_stab += rho*div_vconv*w_gauss.transpose()*vel_subscale
-    #TODO: Think about the viscous subscale component --> should we include it in the stress calculation?
 
     ## Enrichment functional
-    rv_enr = rho*w_e_gauss*f_gauss - rho*w_e_gauss*accel_gauss
-    rv_enr -= rho*w_e_gauss*convective_term_gauss.transpose() - rho*w_e_gauss*convective_term_gauss_e.transpose()
-    rv_enr -= grad_w_e_voigt.transpose()*stress
+    convective_term_gauss_eu = v_e_gauss*grad_v
+    convective_term_gauss_ee = v_e_gauss*grad_v_e
+    convective_term_gauss_ue = vconv_gauss.transpose()*grad_v_e
+    convective_term_gauss_enr = convective_term_gauss_ue + convective_term_gauss_eu + convective_term_gauss_ee
+
+    rv_enr = rho*w_e_gauss*f_gauss
+    rv_enr -= rho*w_e_gauss*accel_gauss
+    rv_enr -= rho*w_gauss.transpose()*convective_term_gauss_enr.transpose()
+    rv_enr -= rho*w_e_gauss*(convective_term_gauss + convective_term_gauss_enr).transpose()
+    rv_enr -= grad_sym_w_voigt.transpose()*C*grad_sym_v_e
+    rv_enr -= grad_sym_w_e_voigt.transpose()*(stress + C*grad_sym_v_e)
     rv_enr += div_w_e*p_gauss
     rv_enr -= q_gauss*div_v_e
+
+    mom_residual_enr = rho*f_gauss - rho*accel_gauss - rho*(convective_term_gauss.transpose() + convective_term_gauss_enr.transpose()) + div_stress - grad_p
+    vel_subscale_enr = tau*mom_residual_enr
+
+    rv_enr_stab = rho*vconv_gauss.transpose()*grad_w_e*vel_subscale_enr
+    rv_enr_stab += rho*div_vconv*w_e_gauss*vel_subscale_enr
+    rv_enr_stab += rho*v_e_gauss*grad_w_e*vel_subscale_enr
+    rv_enr_stab += rho*div_v_e*w_e_gauss*vel_subscale_enr
+
+    rv_enr_stab -= rho*vconv_gauss.transpose()*grad_w*(tau*rho*convective_term_gauss_enr.transpose())
+    rv_enr_stab -= rho*div_vconv*w_gauss.transpose()*(tau*rho*convective_term_gauss_enr.transpose())
+    rv_enr_stab -= grad_q.transpose()*(tau*rho*convective_term_gauss_enr.transpose())
 
     ## Define DOFs and test function vectors
     n_dofs = v_n_nodes * dim + p_n_nodes
@@ -208,6 +244,7 @@ for dim, v_n_nodes, p_n_nodes in zip(dim_vector, v_nodes_vector, p_nodes_vector)
     ## Compute LHS and RHS
     # Add the stabilization to the Galerkin residual
     functional = rv_galerkin + rv_stab
+    functional_enr = rv_enr + rv_enr_stab
 
     # For the RHS computation one wants the residual of the previous iteration (residual based formulation). By this reason the stress is
     # included as a symbolic variable, which is assumed to be passed as an argument from the previous iteration database.
@@ -229,17 +266,17 @@ for dim, v_n_nodes, p_n_nodes in zip(dim_vector, v_nodes_vector, p_nodes_vector)
     outstring = outstring.replace(f"//substitute_rhs_{dim}D", rhs_out)
 
     ## Compute enrichment matrices
-    rhs_ee = Compute_RHS(rv_enr.copy(), testfunc_enr, do_simplifications)
+    rhs_ee = Compute_RHS(functional_enr.copy(), testfunc_enr, do_simplifications)
     rhs_ee_out = OutputVector_CollectingFactors(gauss_weight*rhs_ee, "rRHSee", mode, assignment_op='+=')
 
-    SubstituteMatrixValue(rhs_ee, stress, C*(grad_sym_v+grad_sym_v_e))
+    SubstituteMatrixValue(rhs_ee, stress, C*grad_sym_v)
     K_ee = Compute_LHS(rhs_ee.copy(), testfunc_enr, dofs_enr, do_simplifications)
     K_eu = Compute_LHS(rhs_ee.copy(), testfunc_enr, dofs, do_simplifications)
     K_ee_out = OutputMatrix_CollectingFactors(gauss_weight*K_ee, "rKee", mode, assignment_op='+=')
     K_eu_out = OutputMatrix_CollectingFactors(gauss_weight*K_eu, "rKeu", mode, assignment_op='+=')
 
-    rhs_ue = Compute_RHS(rv_enr.copy(), testfunc, do_simplifications)
-    SubstituteMatrixValue(rhs_ue, stress, C*(grad_sym_v+grad_sym_v_e))
+    rhs_ue = Compute_RHS(functional_enr.copy(), testfunc, do_simplifications)
+    SubstituteMatrixValue(rhs_ue, stress, C*grad_sym_v)
     K_ue = Compute_LHS(rhs_ue.copy(), testfunc, dofs_enr, do_simplifications)
     K_ue_out = OutputMatrix_CollectingFactors(gauss_weight*K_ue, "rKue", mode, assignment_op='+=')
 
