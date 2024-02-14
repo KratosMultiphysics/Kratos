@@ -17,7 +17,10 @@ namespace Kratos
 
 Element::EquationIdVectorType GeoElementUtilities::ExtractEquationIdsFrom(const Element::DofsVectorType& rDofs)
 {
-    return {};
+    Element::EquationIdVectorType result;
+    std::transform(rDofs.begin(), rDofs.end(), std::back_inserter(result),
+                   [](const auto pDof){return pDof->EquationId();});
+    return result;
 }
 
 } // namespace Kratos
