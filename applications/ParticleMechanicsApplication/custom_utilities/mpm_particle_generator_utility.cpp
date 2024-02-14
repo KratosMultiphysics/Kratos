@@ -277,13 +277,21 @@ namespace MPMParticleGeneratorUtility
                             const double condition_area = r_geometry.DomainSize();
                             const auto number_of_nodes = static_cast<double>(r_geometry.PointsNumber());
 
-                            double updated_nodal_area;
-
                             // assume equal contribution to all constituent nodes
                             for (Node& r_node : r_geometry.Points()){
-                                updated_nodal_area = r_node.GetValue(NODAL_AREA) + condition_area / number_of_nodes;
-                                r_node.SetValue(NODAL_AREA, updated_nodal_area);
+                                double& r_nodal_area = r_node.GetValue(NODAL_AREA);
+                                r_nodal_area += condition_area / number_of_nodes;
+
+                                // if required, flip normal direction
+                                if (r_node.Is(MODIFIED)){
+                                    array_1d<double,3>& r_normal = r_node.FastGetSolutionStepValue(NORMAL);
+                                    r_normal *= -1.0;
+                                    r_node.Reset(MODIFIED);
+                                }
+
                             }
+
+
                         }
 
                     }

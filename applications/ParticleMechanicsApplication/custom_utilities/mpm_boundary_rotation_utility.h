@@ -196,7 +196,7 @@ public:
                             // [ displacement in MPM is the displacement update -> penalize any and all displacement
                             //   updates in the tangential direction [this assumes a stationary background grid]
                             for( unsigned int i = 1; i < this->GetDomainSize(); ++i) {
-                                r_stick_force[i] = tangential_penalty_factor * displacement_copy[i];
+                                r_stick_force[i] = -tangential_penalty_factor * displacement_copy[i];
                             }
 
                             const int friction_state = rGeometry[itNode].FastGetSolutionStepValue(FRICTION_STATE);
@@ -212,7 +212,7 @@ public:
                             array_1d<double,3> & r_friction_force = rGeometry[itNode].FastGetSolutionStepValue(REACTION);
 
                             for( unsigned int i = 1; i < this->GetDomainSize(); ++i)
-                                rLocalVector[j + i] -= r_friction_force[i];
+                                rLocalVector[j + i] += r_friction_force[i];
                         }
                     }
 
@@ -540,9 +540,6 @@ public:
 
                 // forces unmodified in normal direction
                 r_friction_force[0] = normal_force;
-
-                // if needed, flip normal direction [for determination of tensile/compressive force purposes ONLY]
-                if(pNode->Is(MODIFIED)) normal_force *= -1.0;
 
                 // [note: no friction if normal component < 0 [direction chosen to be consistent with contact algo]]
                 // [since normal point away from the boundary/interface, a normal component < 0 indicates a force
