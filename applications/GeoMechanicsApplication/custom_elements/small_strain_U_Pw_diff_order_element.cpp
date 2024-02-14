@@ -572,35 +572,9 @@ void SmallStrainUPwDiffOrderElement::CalculateDampingMatrix(MatrixType&        r
 void SmallStrainUPwDiffOrderElement::EquationIdVector(EquationIdVectorType& rResult,
                                                       const ProcessInfo& rCurrentProcessInfo) const
 {
-    KRATOS_TRY
-
-    const GeometryType& rGeom     = GetGeometry();
-    const SizeType      Dim       = rGeom.WorkingSpaceDimension();
-    const SizeType      NumUNodes = rGeom.PointsNumber();
-    const SizeType      NumPNodes = mpPressureGeometry->PointsNumber();
-
-    const SizeType ElementSize = NumUNodes * Dim + NumPNodes;
-
-    if (rResult.size() != ElementSize) rResult.resize(ElementSize, false);
-
-    SizeType Index = 0;
-
-    for (SizeType i = 0; i < NumUNodes; ++i) {
-        rResult[Index] = rGeom[i].GetDof(DISPLACEMENT_X).EquationId();
-        ++Index;
-        rResult[Index] = rGeom[i].GetDof(DISPLACEMENT_Y).EquationId();
-        ++Index;
-        if (Dim > 2) {
-            rResult[Index] = rGeom[i].GetDof(DISPLACEMENT_Z).EquationId();
-            ++Index;
-        }
-    }
-    for (SizeType i = 0; i < NumPNodes; ++i) {
-        rResult[Index] = rGeom[i].GetDof(WATER_PRESSURE).EquationId();
-        ++Index;
-    }
-
-    KRATOS_CATCH("")
+    DofsVectorType dofs;
+    GetDofList(dofs, rCurrentProcessInfo);
+    rResult = GeoElementUtilities::ExtractEquationIdsFrom(dofs);
 }
 
 void SmallStrainUPwDiffOrderElement::GetFirstDerivativesVector(Vector& rValues, int Step) const
