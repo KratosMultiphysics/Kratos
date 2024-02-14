@@ -137,11 +137,10 @@ class PfemFluidDynamicsAnalysis(AnalysisStage):
 
         self.computing_model_part = self._solver.GetComputingModelPart()
         self.graphical_output = self.SetGraphicalOutput()
+
         ## Sets strategies, builders, linear solvers, schemes and solving info, and fills the buffer
         self._solver.Initialize()
-        # self._solver.InitializeStrategy() #FIXME: This bypasses the standard API (2-step strategy initialize is now done in the Initialize of the solver)
-        # self._solver.SetEchoLevel(self.echo_level) #FIXME: This is already done in the Initialize()
-
+        self._solver.SetEchoLevel(self.echo_level)
         # Initialize GiD  I/O (gid outputs, file_lists)
         self.GraphicalOutputExecuteInitialize()
 

@@ -232,12 +232,6 @@ class PfemFluidSolver(PythonSolver):
 
         return new_time
 
-    # def InitializeStrategy(self):
-    #     if self.settings["clear_storage"].GetBool():
-    #         self.Clear()
-
-    #     self.fluid_solver.Initialize()
-
     def InitializeSolutionStep(self):
         self.fluid_solver.InitializeSolutionStep()
         # if self._TimeBufferIsInitialized():
