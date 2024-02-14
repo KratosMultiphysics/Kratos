@@ -244,7 +244,7 @@ namespace Kratos
     //************************************************************************************
     //************************************************************************************
 
-    void MonolithicModifiedPFEM22D::GetDofList(DofsVectorType& ElementalDofList, const ProcessInfo& CurrentProcessInfo)
+    void MonolithicModifiedPFEM22D::GetDofList(DofsVectorType& ElementalDofList, const ProcessInfo& CurrentProcessInfo) const
     {
         
         KRATOS_TRY
@@ -490,8 +490,7 @@ namespace Kratos
       noalias(rRightHandSideVector) = ZeroVector(18);      
       
       // Set the elemental distances vector
-      Geometry<Node<3>>::Pointer p_geometry = this->pGetGeometry();
-      
+      Geometry< Node >::Pointer p_geometry = this->pGetGeometry();      
 
       array_1d<double, 3> distances_vector;
             for (unsigned int i = 0; i < p_geometry->size(); ++i) {
@@ -523,13 +522,13 @@ namespace Kratos
         positive_side_sh_func,
         positive_side_sh_func_gradients,
         positive_side_weights,
-        GeometryData::GI_GAUSS_1);
+        GeometryData::IntegrationMethod::GI_GAUSS_1);
       
       triangle_shape_functions.ComputeNegativeSideShapeFunctionsAndGradientsValues(
         negative_side_sh_func,
         negative_side_sh_func_gradients,
         negative_side_weights,
-        GeometryData::GI_GAUSS_1);      
+        GeometryData::IntegrationMethod::GI_GAUSS_1);      
       
       // Call the interface modified shape functions calculator
       Matrix positive_interface_side_sh_func, negative_interface_side_sh_func;
@@ -540,24 +539,24 @@ namespace Kratos
         positive_interface_side_sh_func,
         positive_interface_side_sh_func_gradients,
         positive_interface_side_weights,
-        GeometryData::GI_GAUSS_2);
+        GeometryData::IntegrationMethod::GI_GAUSS_2);
       
       triangle_shape_functions.ComputeInterfaceNegativeSideShapeFunctionsAndGradientsValues(
         negative_interface_side_sh_func,
         negative_interface_side_sh_func_gradients,
         negative_interface_side_weights,
-        GeometryData::GI_GAUSS_2);  
+        GeometryData::IntegrationMethod::GI_GAUSS_2);  
       
       // Call the interface outwards normal area vector calculator
-      std::vector<Vector> positive_side_area_normals, negative_side_area_normals;
+      std::vector<array_1d<double,3>> positive_side_area_normals, negative_side_area_normals;
       
       triangle_shape_functions.ComputePositiveSideInterfaceAreaNormals(
         positive_side_area_normals,
-        GeometryData::GI_GAUSS_2);
+        GeometryData::IntegrationMethod::GI_GAUSS_2);
       
       triangle_shape_functions.ComputeNegativeSideInterfaceAreaNormals(
         negative_side_area_normals,
-        GeometryData::GI_GAUSS_2);      
+        GeometryData::IntegrationMethod::GI_GAUSS_2);      
       
       
       //Calculation of the enlargement matrix T
