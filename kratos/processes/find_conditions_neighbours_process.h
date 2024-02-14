@@ -48,7 +48,7 @@ namespace Kratos
  * @details This process iterates over all conditions in the model part and assigns neighboring conditions to each node and condition based on the connectivity information. It also provides functionality to clear the neighbor data if needed.
  * @author Riccardo Rossi
  */
-class FindConditionsNeighboursProcess
+class KRATOS_API(KRATOS_CORE) FindConditionsNeighboursProcess
     : public Process
 {
 public:
