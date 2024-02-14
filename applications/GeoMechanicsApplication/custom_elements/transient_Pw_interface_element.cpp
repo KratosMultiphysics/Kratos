@@ -705,19 +705,9 @@ template <unsigned int TDim, unsigned int TNumNodes>
 void TransientPwInterfaceElement<TDim, TNumNodes>::EquationIdVector(EquationIdVectorType& rResult,
                                                                     const ProcessInfo& rCurrentProcessInfo) const
 {
-    KRATOS_TRY
-
-    const GeometryType& rGeom = this->GetGeometry();
-    const unsigned int  N_DOF = this->GetNumberOfDOF();
-
-    if (rResult.size() != N_DOF) rResult.resize(N_DOF, false);
-
-    unsigned int index = 0;
-    for (unsigned int i = 0; i < TNumNodes; ++i) {
-        rResult[index++] = rGeom[i].GetDof(WATER_PRESSURE).EquationId();
-    }
-
-    KRATOS_CATCH("")
+    DofsVectorType dofs;
+    this->GetDofList(dofs, rCurrentProcessInfo);
+    rResult = GeoElementUtilities::ExtractEquationIdsFrom(dofs);
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
