@@ -18,6 +18,7 @@
 // Project includes
 #include "custom_elements/geo_truss_element_base.hpp"
 #include "../StructuralMechanicsApplication/custom_utilities/structural_mechanics_element_utilities.h"
+#include "custom_utilities/element_utilities.hpp"
 #include "geo_mechanics_application_variables.h"
 #include "includes/checks.h"
 #include "includes/define.h"
@@ -72,24 +73,9 @@ template <unsigned int TDim, unsigned int TNumNodes>
 void GeoTrussElementBase<TDim, TNumNodes>::EquationIdVector(EquationIdVectorType& rResult,
                                                             const ProcessInfo& rCurrentProcessInfo) const
 {
-    if (rResult.size() != TDim * TNumNodes) {
-        rResult.resize(TDim * TNumNodes);
-    }
-
-    if constexpr (TDim > 2) {
-        unsigned int index = 0;
-        for (unsigned int i = 0; i < TNumNodes; ++i) {
-            rResult[index++] = GetGeometry()[i].GetDof(DISPLACEMENT_X).EquationId();
-            rResult[index++] = GetGeometry()[i].GetDof(DISPLACEMENT_Y).EquationId();
-            rResult[index++] = GetGeometry()[i].GetDof(DISPLACEMENT_Z).EquationId();
-        }
-    } else {
-        unsigned int index = 0;
-        for (unsigned int i = 0; i < TNumNodes; ++i) {
-            rResult[index++] = GetGeometry()[i].GetDof(DISPLACEMENT_X).EquationId();
-            rResult[index++] = GetGeometry()[i].GetDof(DISPLACEMENT_Y).EquationId();
-        }
-    }
+    DofsVectorType dofs;
+    this->GetDofList(dofs, rCurrentProcessInfo);
+    rResult = GeoElementUtilities::ExtractEquationIdsFrom(dofs);
 }
 
 //----------------------------------------------------------------------------------------
