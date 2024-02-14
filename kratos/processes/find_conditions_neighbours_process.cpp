@@ -27,6 +27,9 @@ FindConditionsNeighboursProcess::FindConditionsNeighboursProcess(
     Parameters ThisParameters
     ) : mrModelPart(rModel.GetModelPart(ThisParameters["model_part_name"].GetString()))
 {
+    // Checking MPI
+    KRATOS_ERROR_IF(mrModelPart.IsDistributed()) << "ModelPart cannot be distributed!. Current implementation is serial only" << std::endl;
+
     // Now validate against defaults -- this also ensures no type mismatch
     Parameters default_parameters = GetDefaultParameters();
     ThisParameters.ValidateAndAssignDefaults(default_parameters);
@@ -47,6 +50,9 @@ FindConditionsNeighboursProcess::FindConditionsNeighboursProcess(
     ) : mrModelPart(rModelPart),
         mAverageConditions(AverageConditions)
 {
+    // Checking MPI
+    KRATOS_ERROR_IF(mrModelPart.IsDistributed()) << "ModelPart cannot be distributed!. Current implementation is serial only" << std::endl;
+
     // Compute dimension
     ComputeDimension();
 }
@@ -62,6 +68,9 @@ FindConditionsNeighboursProcess::FindConditionsNeighboursProcess(
         mAverageConditions(AverageConditions),
         mDim(Dim)
 {
+    // Checking MPI
+    KRATOS_ERROR_IF(mrModelPart.IsDistributed()) << "ModelPart cannot be distributed!. Current implementation is serial only" << std::endl;
+
     // Compute dimension
     ComputeDimension();
 }
