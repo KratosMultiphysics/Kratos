@@ -55,6 +55,8 @@
 #include "custom_elements/fractional_step.h"
 #include "custom_elements/fractional_step_discontinuous.h"
 #include "custom_elements/spalart_allmaras.h"
+#include "custom_elements/incompressible_navier_stokes_div_stable.h"
+
 #include "custom_conditions/wall_condition.h"
 #include "custom_conditions/fs_werner_wengle_wall_condition.h"
 #include "custom_conditions/fs_generalized_wall_condition.h"
@@ -446,6 +448,10 @@ private:
     const TwoFluidNavierStokesAlphaMethod< TwoFluidNavierStokesAlphaMethodData<3, 4> > mTwoFluidNavierStokesAlphaMethod3D4N;
     const TwoFluidNavierStokesWallCondition<2,2> mTwoFluidNavierStokesWallCondition2D;
     const TwoFluidNavierStokesWallCondition<3,3> mTwoFluidNavierStokesWallCondition3D;
+
+    /// Incompressible Navier-Stokes div-stable element
+    const IncompressibleNavierStokesDivStable<2> mIncompressibleNavierStokesDivStable2D6N;
+    const IncompressibleNavierStokesDivStable<3> mIncompressibleNavierStokesDivStable3D10N;
 
     /// Fluid constitutive laws
     const Bingham3DLaw mBingham3DLaw;

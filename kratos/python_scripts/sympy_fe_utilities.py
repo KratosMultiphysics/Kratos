@@ -59,7 +59,7 @@ def DefineVector( name, m):
     """
     return sympy.Matrix(m, 1, lambda i,_: sympy.var("{name}_{i}".format(name=name, i=i)))
 
-def DefineShapeFunctions(nnodes, dim, impose_partion_of_unity=False):
+def DefineShapeFunctions(nnodes, dim, impose_partion_of_unity=False, shape_functions_name='N', gradients_name='DN'):
     """
     This method defines shape functions and derivatives.
     Note that partition of unity is imposed
@@ -70,8 +70,8 @@ def DefineShapeFunctions(nnodes, dim, impose_partion_of_unity=False):
     - dim -- Dimension of the space
     - impose_partion_of_unity -- Impose the partition of unity
     """
-    DN = DefineMatrix('DN', nnodes, dim)
-    N = DefineVector('N', nnodes)
+    DN = DefineMatrix(gradients_name, nnodes, dim)
+    N = DefineVector(shape_functions_name, nnodes)
 
     #impose partition of unity
     if impose_partion_of_unity:
