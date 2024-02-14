@@ -16,6 +16,7 @@
 
 #include "custom_constitutive/thermal_dispersion_law.h"
 #include "custom_retention/retention_law_factory.h"
+#include "custom_utilities/element_utilities.hpp"
 #include "geo_mechanics_application_variables.h"
 #include "includes/element.h"
 #include "includes/serializer.h"
@@ -63,16 +64,11 @@ public:
         KRATOS_CATCH("")
     }
 
-    void EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo&) const override
+    void EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo& rCurrentProcessInfo) const override
     {
-        KRATOS_TRY
-
-        rResult.resize(TNumNodes, false);
-        for (unsigned int i = 0; i < TNumNodes; ++i) {
-            rResult[i] = GetGeometry()[i].GetDof(TEMPERATURE).EquationId();
-        }
-
-        KRATOS_CATCH("")
+        DofsVectorType dofs;
+        this->GetDofList(dofs, rCurrentProcessInfo);
+        rResult = GeoElementUtilities::ExtractEquationIdsFrom(dofs);
     }
 
     void CalculateLocalSystem(MatrixType&        rLeftHandSideMatrix,
