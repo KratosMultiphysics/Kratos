@@ -1,6 +1,6 @@
 {
     "problem_data": {
-        "problem_name":         "test_lysmer_boundary_column3d_tetra",
+        "problem_name":         "lysmer_column3d_hexa_in_Z",
         "start_time":           0.0,
         "end_time":             0.3,
         "echo_level":           1,
@@ -13,7 +13,7 @@
         "domain_size":                        2,
         "model_import_settings":              {
             "input_type":       "mdpa",
-            "input_filename":   "test_lysmer_boundary_column3d_tetra"
+            "input_filename":   "hexa_mesh_in_Z"
         },
         "material_import_settings":              {
             "materials_filename":       "MaterialParameters.json"
@@ -47,7 +47,7 @@
         "water_pressure_relative_tolerance":  1.0E-4,
         "water_pressure_absolute_tolerance":  1.0E-9,
         "min_iterations":                     6,
-        "max_iterations":                     15,
+        "max_iterations":                     30,
         "number_cycles":                      100,
         "reduction_factor":                   1,
         "increase_factor":                    1,
@@ -80,7 +80,7 @@
             "process_name": "GiDOutputProcess",
             "Parameters":    {
                 "model_part_name": "PorousDomain.porous_computational_model_part",
-                "output_name": "test_lysmer_boundary_column3d_tetra",
+                "output_name": "hexa_mesh_in_Z",
                 "postprocess_parameters": {
                     "result_file_configuration": {
                         "gidpost_flags":       {
@@ -96,7 +96,7 @@
                         "node_output":         false,
                         "skin_output":         false,
                         "plane_output":        [],
-                        "nodal_results":       ["DISPLACEMENT","VELOCITY"],
+                        "nodal_results":       ["DISPLACEMENT","VOLUME_ACCELERATION"],
                         "gauss_point_results": ["CAUCHY_STRESS_TENSOR"]
                     },
                     "point_data_configuration":  []
@@ -130,7 +130,7 @@
             "table":           [0,0,0]
         }
     },{
-       "python_module": "set_absorbing_boundary_parameters_process",
+        "python_module": "set_absorbing_boundary_parameters_process",
         "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
         "process_name":  "SetAbsorbingBoundaryParametersProcess",
         "Parameters":    {
