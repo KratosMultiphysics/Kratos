@@ -136,7 +136,6 @@ void IncompressibleNavierStokesDivStable<TDim>::GetDofList(
 {
     if (rElementalDofList.size() != LocalSize) {
         rElementalDofList.resize(LocalSize);
-
     }
 
     IndexType local_index = 0;
@@ -197,27 +196,17 @@ void IncompressibleNavierStokesDivStable<TDim>::CalculateLocalSystem(
     Matrix pressure_N;
     GeometryType::ShapeFunctionsGradientsType velocity_DN;
     GeometryType::ShapeFunctionsGradientsType pressure_DN;
-    Vector velocity_bubble;
-    std::vector<BoundedMatrix<double, 1, TDim>> velocity_bubble_grad;
     DenseVector<GeometryType::ShapeFunctionsSecondDerivativesType> velocity_DDN;
-    CalculateKinematics(weights, velocity_N, pressure_N, velocity_DN, pressure_DN, velocity_bubble, velocity_bubble_grad, velocity_DDN);
-
-    // Initialize enrichment arrays
-    array_1d<double, TDim> RHSee = ZeroVector(TDim);
-    BoundedMatrix<double, TDim, TDim> Kee = ZeroMatrix(TDim, TDim);
-    BoundedMatrix<double, TDim, LocalSize> Keu = ZeroMatrix(TDim, LocalSize);
-    BoundedMatrix<double, LocalSize, TDim> Kue = ZeroMatrix(LocalSize, TDim);
+    CalculateKinematics(weights, velocity_N, pressure_N, velocity_DN, pressure_DN, velocity_DDN);
 
     // Loop Gauss points
     const SizeType n_gauss = r_geom.IntegrationPointsNumber(IntegrationMethod);
     for (IndexType g = 0; g < n_gauss; ++g) {
-        // set current Gauss point kinematics
+        // Set current Gauss point kinematics
         noalias(aux_data.N_v) = row(velocity_N, g);
         noalias(aux_data.N_p) = row(pressure_N, g);
         noalias(aux_data.DN_v) = velocity_DN[g];
         noalias(aux_data.DN_p) = pressure_DN[g];
-        aux_data.N_e = velocity_bubble[g];
-        noalias(aux_data.DN_e) = velocity_bubble_grad[g];
         aux_data.DDN_v = velocity_DDN[g];
         aux_data.Weight = weights[g];
 
@@ -229,18 +218,7 @@ void IncompressibleNavierStokesDivStable<TDim>::CalculateLocalSystem(
         // Assemble standard Galerkin contribution
         ComputeGaussPointLHSContribution(aux_data, rLeftHandSideMatrix);
         ComputeGaussPointRHSContribution(aux_data, rRightHandSideVector);
-
-        // Assemble bubble function contributions (to be condensed)
-        ComputeGaussPointEnrichmentContribution(aux_data, RHSee, Kue, Keu, Kee);
     }
-
-    // Condense bubble function contribution
-    double det;
-    BoundedMatrix<double, TDim, TDim> invKee;
-    MathUtils<double>::InvertMatrix(Kee, invKee, det);
-    const BoundedMatrix<double, LocalSize, TDim> KueinvKee = prod(Kue, invKee);
-    noalias(rLeftHandSideMatrix) -= prod(KueinvKee, Keu);
-    noalias(rRightHandSideVector) -= prod(KueinvKee, RHSee);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
@@ -356,8 +334,8 @@ void IncompressibleNavierStokesDivStable<TDim>::SetElementData(
     rData.Density = this->GetProperties().GetValue(DENSITY);
 
     // Set stabilization values
-    rData.StabC1 = 2.0;
-    rData.StabC2 = 1.0;
+    rData.StabC1 = 4.0;
+    rData.StabC2 = 2.0;
     rData.DynamicTau = rProcessInfo[DYNAMIC_TAU];
     rData.ElementSize = ElementSizeCalculator<TDim, VelocityNumNodes>::AverageElementSize(r_geom);
 
@@ -376,8 +354,6 @@ void IncompressibleNavierStokesDivStable<TDim>::CalculateKinematics(
     Matrix& rPressureN,
     GeometryType::ShapeFunctionsGradientsType& rVelocityDNDX,
     GeometryType::ShapeFunctionsGradientsType& rPressureDNDX,
-    Vector& rVelocityBubble,
-    std::vector<BoundedMatrix<double, 1, TDim>>& rVelocityBubbleGrad,
     DenseVector<GeometryType::ShapeFunctionsSecondDerivativesType>& rVelocityDDNDDX)
 {
     // Get element geometry
@@ -428,29 +404,6 @@ void IncompressibleNavierStokesDivStable<TDim>::CalculateKinematics(
         rPressureDNDX[g] = prod(r_DN_De_p[g], inv_J_vect[g]);
     }
 
-    // Calculate enrichment bubble kinematics using the previous auxiliary element barycentric coordinates
-    if (rVelocityBubble.size() != n_gauss) {
-        rVelocityBubble.resize(n_gauss, false);
-    }
-    if (rVelocityBubbleGrad.size() != n_gauss) {
-        rVelocityBubbleGrad.resize(n_gauss);
-    }
-    for (IndexType g = 0; g < n_gauss; ++g) {
-        const auto& r_bar_coords = row(rPressureN, g);
-        const auto& r_bar_coords_grads = rPressureDNDX[g];
-        auto& r_vel_bub_grad_g = rVelocityBubbleGrad[g];
-        if constexpr (TDim == 2) {
-            rVelocityBubble[g] = 27.0*(r_bar_coords[0] * r_bar_coords[1] * r_bar_coords[2]);
-            r_vel_bub_grad_g(0,0) = 27.0*(r_bar_coords_grads(0,0) * r_bar_coords[1] * r_bar_coords[2] + r_bar_coords[0] * r_bar_coords_grads(1,0) * r_bar_coords[2] + r_bar_coords[0] * r_bar_coords[1] * r_bar_coords_grads(2,0));
-            r_vel_bub_grad_g(0,1) = 27.0*(r_bar_coords_grads(0,1) * r_bar_coords[1] * r_bar_coords[2] + r_bar_coords[0] * r_bar_coords_grads(1,1) * r_bar_coords[2] + r_bar_coords[0] * r_bar_coords[1] * r_bar_coords_grads(2,1));
-        } else {
-            rVelocityBubble[g] = 256.0*(r_bar_coords[0] * r_bar_coords[1] * r_bar_coords[2] * r_bar_coords[3]);
-            r_vel_bub_grad_g(0,0) = 256.0*(r_bar_coords_grads(0,0) * r_bar_coords[1] * r_bar_coords[2] * r_bar_coords[3] + r_bar_coords[0] * r_bar_coords_grads(1,0) * r_bar_coords[2] * r_bar_coords[3] + r_bar_coords[0] * r_bar_coords[1] * r_bar_coords_grads(2,0) * r_bar_coords[3] + r_bar_coords[0] * r_bar_coords[1] * r_bar_coords[2] * r_bar_coords_grads(3,0));
-            r_vel_bub_grad_g(0,1) = 256.0*(r_bar_coords_grads(0,1) * r_bar_coords[1] * r_bar_coords[2] * r_bar_coords[3] + r_bar_coords[0] * r_bar_coords_grads(1,1) * r_bar_coords[2] * r_bar_coords[3] + r_bar_coords[0] * r_bar_coords[1] * r_bar_coords_grads(2,1) * r_bar_coords[3] + r_bar_coords[0] * r_bar_coords[1] * r_bar_coords[2] * r_bar_coords_grads(3,1));
-            r_vel_bub_grad_g(0,2) = 256.0*(r_bar_coords_grads(0,2) * r_bar_coords[1] * r_bar_coords[2] * r_bar_coords[3] + r_bar_coords[0] * r_bar_coords_grads(1,2) * r_bar_coords[2] * r_bar_coords[3] + r_bar_coords[0] * r_bar_coords[1] * r_bar_coords_grads(2,2) * r_bar_coords[3] + r_bar_coords[0] * r_bar_coords[1] * r_bar_coords[2] * r_bar_coords_grads(3,2));
-        }
-    }
-
     // Calculate integration points weight
     if (rGaussWeights.size() != n_gauss) {
         rGaussWeights.resize(n_gauss, false);
@@ -463,8 +416,6 @@ void IncompressibleNavierStokesDivStable<TDim>::CalculateKinematics(
 template< unsigned int TDim >
 void IncompressibleNavierStokesDivStable<TDim>::CalculateStrainRate(ElementDataContainer& rData)
 {
-    //TODO: Add here the bubble contribution to the enrichment!!!
-
     if (rData.StrainRate.size() != StrainSize) {
         rData.StrainRate.resize(StrainSize, false);
     }
@@ -1202,569 +1153,6 @@ void IncompressibleNavierStokesDivStable<3>::ComputeGaussPointRHSContribution(
     // Assemble RHS contribution
     const double gauss_weight = rData.Weight;
     //substitute_rhs_3D
-}
-
-template <>
-void IncompressibleNavierStokesDivStable<2>::ComputeGaussPointEnrichmentContribution(
-    const ElementDataContainer& rData,
-    array_1d<double, 2>& rRHSee,
-    BoundedMatrix<double, LocalSize, 2>& rKue,
-    BoundedMatrix<double, 2, LocalSize>& rKeu,
-    BoundedMatrix<double, 2, 2>& rKee)
-{
-    // Get material data
-    const double rho = rData.Density;
-    const double mu = rData.EffectiveViscosity;
-
-    // Get auxiliary data
-    const double bdf0 = rData.BDF0;
-    const double bdf1 = rData.BDF1;
-    const double bdf2 = rData.BDF2;
-    const double dt = rData.DeltaTime;
-
-    // Get stabilization data
-    const double h = rData.ElementSize;
-    const double stab_c1 = rData.StabC1;
-    const double stab_c2 = rData.StabC2;
-    const double dyn_tau = rData.DynamicTau;
-
-    // Get nodal data
-    const auto& r_v = rData.Velocity;
-    const auto& r_vn = rData.VelocityOld1;
-    const auto& r_vnn = rData.VelocityOld2;
-    const auto& r_vmesh = rData.MeshVelocity;
-    const auto& r_f = rData.BodyForce;
-    const auto& r_p = rData.Pressure;
-
-    // Calculate convective velocity
-    const BoundedMatrix<double,3,10> vconv = r_v - r_vmesh;
-
-    // Get stress from material response
-    const auto& r_stress = rData.ShearStress;
-    const auto& C = rData.ConstitutiveMatrix;
-
-    // Get shape function values
-    const auto& N_p = rData.N_p;
-    const auto& N_v = rData.N_v;
-    const auto& DN_p = rData.DN_p;
-    const auto& DN_v = rData.DN_v;
-    const double N_e = rData.N_e;
-    const auto& DN_e = rData.DN_e;
-    const auto& DDN_v = rData.DDN_v;
-
-    // Assemble enrichment contribution
-    const double gauss_weight = rData.Weight;
-    const BoundedMatrix<double,1,2> v_e = ZeroMatrix(1,2);
-
-    const double crRHSee0 = N_p[0]*r_p[0] + N_p[1]*r_p[1] + N_p[2]*r_p[2];
-const double crRHSee1 = DN_e(0,0)*v_e(0,0);
-const double crRHSee2 = DN_e(0,1)*v_e(0,1);
-const double crRHSee3 = DN_e(0,0)*v_e(0,1);
-const double crRHSee4 = DN_e(0,1)*v_e(0,0);
-const double crRHSee5 = crRHSee3 + crRHSee4;
-const double crRHSee6 = C(0,2)*crRHSee1 + C(1,2)*crRHSee2 + C(2,2)*crRHSee5 + r_stress[2];
-const double crRHSee7 = rho*(N_v[0]*r_f(0,0) + N_v[1]*r_f(1,0) + N_v[2]*r_f(2,0) + N_v[3]*r_f(3,0) + N_v[4]*r_f(4,0) + N_v[5]*r_f(5,0));
-const double crRHSee8 = rho*(N_v[0]*(rData.BDF0*r_v(0,0) + rData.BDF1*r_vn(0,0) + rData.BDF2*r_vnn(0,0)) + N_v[1]*(rData.BDF0*r_v(1,0) + rData.BDF1*r_vn(1,0) + rData.BDF2*r_vnn(1,0)) + N_v[2]*(rData.BDF0*r_v(2,0) + rData.BDF1*r_vn(2,0) + rData.BDF2*r_vnn(2,0)) + N_v[3]*(rData.BDF0*r_v(3,0) + rData.BDF1*r_vn(3,0) + rData.BDF2*r_vnn(3,0)) + N_v[4]*(rData.BDF0*r_v(4,0) + rData.BDF1*r_vn(4,0) + rData.BDF2*r_vnn(4,0)) + N_v[5]*(rData.BDF0*r_v(5,0) + rData.BDF1*r_vn(5,0) + rData.BDF2*r_vnn(5,0)));
-const double crRHSee9 = N_e*v_e(0,1);
-const double crRHSee10 = N_v[0]*vconv(0,0) + N_v[1]*vconv(1,0) + N_v[2]*vconv(2,0) + N_v[3]*vconv(3,0) + N_v[4]*vconv(4,0) + N_v[5]*vconv(5,0);
-const double crRHSee11 = DN_e(0,0)*crRHSee10;
-const double crRHSee12 = N_v[0]*vconv(0,1) + N_v[1]*vconv(1,1) + N_v[2]*vconv(2,1) + N_v[3]*vconv(3,1) + N_v[4]*vconv(4,1) + N_v[5]*vconv(5,1);
-const double crRHSee13 = DN_v(0,0)*r_v(0,0) + DN_v(1,0)*r_v(1,0) + DN_v(2,0)*r_v(2,0) + DN_v(3,0)*r_v(3,0) + DN_v(4,0)*r_v(4,0) + DN_v(5,0)*r_v(5,0);
-const double crRHSee14 = N_e*v_e(0,0);
-const double crRHSee15 = DN_v(0,1)*r_v(0,0) + DN_v(1,1)*r_v(1,0) + DN_v(2,1)*r_v(2,0) + DN_v(3,1)*r_v(3,0) + DN_v(4,1)*r_v(4,0) + DN_v(5,1)*r_v(5,0);
-const double crRHSee16 = rho*(DN_e(0,0)*N_e*pow(v_e(0,0), 2) + crRHSee10*crRHSee13 + crRHSee11*v_e(0,0) + crRHSee12*crRHSee15 + crRHSee12*crRHSee4 + crRHSee13*crRHSee14 + crRHSee15*crRHSee9 + crRHSee4*crRHSee9);
-const double crRHSee17 = 1.0*C(0,0);
-const double crRHSee18 = DDN_v[0](0,0)*r_v(0,0);
-const double crRHSee19 = DDN_v[1](0,0)*r_v(1,0);
-const double crRHSee20 = DDN_v[2](0,0)*r_v(2,0);
-const double crRHSee21 = DDN_v[3](0,0)*r_v(3,0);
-const double crRHSee22 = DDN_v[4](0,0)*r_v(4,0);
-const double crRHSee23 = DDN_v[5](0,0)*r_v(5,0);
-const double crRHSee24 = 1.0*C(0,1);
-const double crRHSee25 = DDN_v[0](0,1)*r_v(0,1);
-const double crRHSee26 = DDN_v[1](0,1)*r_v(1,1);
-const double crRHSee27 = DDN_v[2](0,1)*r_v(2,1);
-const double crRHSee28 = DDN_v[3](0,1)*r_v(3,1);
-const double crRHSee29 = DDN_v[4](0,1)*r_v(4,1);
-const double crRHSee30 = DDN_v[5](0,1)*r_v(5,1);
-const double crRHSee31 = 1.0*C(0,2);
-const double crRHSee32 = 1.0*C(1,2);
-const double crRHSee33 = DDN_v[0](0,0)*r_v(0,1) + DDN_v[0](0,1)*r_v(0,0);
-const double crRHSee34 = DDN_v[1](0,0)*r_v(1,1) + DDN_v[1](0,1)*r_v(1,0);
-const double crRHSee35 = DDN_v[2](0,0)*r_v(2,1) + DDN_v[2](0,1)*r_v(2,0);
-const double crRHSee36 = DDN_v[3](0,0)*r_v(3,1) + DDN_v[3](0,1)*r_v(3,0);
-const double crRHSee37 = DDN_v[4](0,0)*r_v(4,1) + DDN_v[4](0,1)*r_v(4,0);
-const double crRHSee38 = DDN_v[5](0,0)*r_v(5,1) + DDN_v[5](0,1)*r_v(5,0);
-const double crRHSee39 = 1.0*C(2,2);
-const double crRHSee40 = rho/(dyn_tau*rho/rData.DeltaTime + rho*stab_c2*sqrt(pow(crRHSee10, 2) + pow(crRHSee12, 2))/h + mu*stab_c1/pow(h, 2));
-const double crRHSee41 = crRHSee40*(-DN_p(0,0)*r_p[0] - DN_p(1,0)*r_p[1] - DN_p(2,0)*r_p[2] - crRHSee16 + crRHSee17*crRHSee18 + crRHSee17*crRHSee19 + crRHSee17*crRHSee20 + crRHSee17*crRHSee21 + crRHSee17*crRHSee22 + crRHSee17*crRHSee23 + crRHSee18*crRHSee31 + crRHSee19*crRHSee31 + crRHSee20*crRHSee31 + crRHSee21*crRHSee31 + crRHSee22*crRHSee31 + crRHSee23*crRHSee31 + crRHSee24*crRHSee25 + crRHSee24*crRHSee26 + crRHSee24*crRHSee27 + crRHSee24*crRHSee28 + crRHSee24*crRHSee29 + crRHSee24*crRHSee30 + crRHSee25*crRHSee32 + crRHSee26*crRHSee32 + crRHSee27*crRHSee32 + crRHSee28*crRHSee32 + crRHSee29*crRHSee32 + crRHSee30*crRHSee32 + crRHSee31*crRHSee33 + crRHSee31*crRHSee34 + crRHSee31*crRHSee35 + crRHSee31*crRHSee36 + crRHSee31*crRHSee37 + crRHSee31*crRHSee38 + crRHSee33*crRHSee39 + crRHSee34*crRHSee39 + crRHSee35*crRHSee39 + crRHSee36*crRHSee39 + crRHSee37*crRHSee39 + crRHSee38*crRHSee39 + crRHSee7 - crRHSee8);
-const double crRHSee42 = N_e*crRHSee41;
-const double crRHSee43 = 2.0*crRHSee1 + 2.0*crRHSee2;
-const double crRHSee44 = 1.0*DN_v(0,0)*vconv(0,0) + 1.0*DN_v(0,1)*vconv(0,1) + 1.0*DN_v(1,0)*vconv(1,0) + 1.0*DN_v(1,1)*vconv(1,1) + 1.0*DN_v(2,0)*vconv(2,0) + 1.0*DN_v(2,1)*vconv(2,1) + 1.0*DN_v(3,0)*vconv(3,0) + 1.0*DN_v(3,1)*vconv(3,1) + 1.0*DN_v(4,0)*vconv(4,0) + 1.0*DN_v(4,1)*vconv(4,1) + 1.0*DN_v(5,0)*vconv(5,0) + 1.0*DN_v(5,1)*vconv(5,1);
-const double crRHSee45 = DN_e(0,1)*crRHSee12;
-const double crRHSee46 = 1.0*crRHSee11 + 1.0*crRHSee45;
-const double crRHSee47 = rho*(N_v[0]*r_f(0,1) + N_v[1]*r_f(1,1) + N_v[2]*r_f(2,1) + N_v[3]*r_f(3,1) + N_v[4]*r_f(4,1) + N_v[5]*r_f(5,1));
-const double crRHSee48 = rho*(N_v[0]*(rData.BDF0*r_v(0,1) + rData.BDF1*r_vn(0,1) + rData.BDF2*r_vnn(0,1)) + N_v[1]*(rData.BDF0*r_v(1,1) + rData.BDF1*r_vn(1,1) + rData.BDF2*r_vnn(1,1)) + N_v[2]*(rData.BDF0*r_v(2,1) + rData.BDF1*r_vn(2,1) + rData.BDF2*r_vnn(2,1)) + N_v[3]*(rData.BDF0*r_v(3,1) + rData.BDF1*r_vn(3,1) + rData.BDF2*r_vnn(3,1)) + N_v[4]*(rData.BDF0*r_v(4,1) + rData.BDF1*r_vn(4,1) + rData.BDF2*r_vnn(4,1)) + N_v[5]*(rData.BDF0*r_v(5,1) + rData.BDF1*r_vn(5,1) + rData.BDF2*r_vnn(5,1)));
-const double crRHSee49 = DN_v(0,0)*r_v(0,1) + DN_v(1,0)*r_v(1,1) + DN_v(2,0)*r_v(2,1) + DN_v(3,0)*r_v(3,1) + DN_v(4,0)*r_v(4,1) + DN_v(5,0)*r_v(5,1);
-const double crRHSee50 = DN_v(0,1)*r_v(0,1) + DN_v(1,1)*r_v(1,1) + DN_v(2,1)*r_v(2,1) + DN_v(3,1)*r_v(3,1) + DN_v(4,1)*r_v(4,1) + DN_v(5,1)*r_v(5,1);
-const double crRHSee51 = rho*(DN_e(0,1)*N_e*pow(v_e(0,1), 2) + crRHSee10*crRHSee3 + crRHSee10*crRHSee49 + crRHSee12*crRHSee50 + crRHSee14*crRHSee3 + crRHSee14*crRHSee49 + crRHSee45*v_e(0,1) + crRHSee50*crRHSee9);
-const double crRHSee52 = DDN_v[0](1,0)*r_v(0,0);
-const double crRHSee53 = DDN_v[1](1,0)*r_v(1,0);
-const double crRHSee54 = DDN_v[2](1,0)*r_v(2,0);
-const double crRHSee55 = DDN_v[3](1,0)*r_v(3,0);
-const double crRHSee56 = DDN_v[4](1,0)*r_v(4,0);
-const double crRHSee57 = DDN_v[5](1,0)*r_v(5,0);
-const double crRHSee58 = 1.0*C(1,1);
-const double crRHSee59 = DDN_v[0](1,1)*r_v(0,1);
-const double crRHSee60 = DDN_v[1](1,1)*r_v(1,1);
-const double crRHSee61 = DDN_v[2](1,1)*r_v(2,1);
-const double crRHSee62 = DDN_v[3](1,1)*r_v(3,1);
-const double crRHSee63 = DDN_v[4](1,1)*r_v(4,1);
-const double crRHSee64 = DDN_v[5](1,1)*r_v(5,1);
-const double crRHSee65 = DDN_v[0](1,0)*r_v(0,1) + DDN_v[0](1,1)*r_v(0,0);
-const double crRHSee66 = DDN_v[1](1,0)*r_v(1,1) + DDN_v[1](1,1)*r_v(1,0);
-const double crRHSee67 = DDN_v[2](1,0)*r_v(2,1) + DDN_v[2](1,1)*r_v(2,0);
-const double crRHSee68 = DDN_v[3](1,0)*r_v(3,1) + DDN_v[3](1,1)*r_v(3,0);
-const double crRHSee69 = DDN_v[4](1,0)*r_v(4,1) + DDN_v[4](1,1)*r_v(4,0);
-const double crRHSee70 = DDN_v[5](1,0)*r_v(5,1) + DDN_v[5](1,1)*r_v(5,0);
-const double crRHSee71 = crRHSee40*(-DN_p(0,1)*r_p[0] - DN_p(1,1)*r_p[1] - DN_p(2,1)*r_p[2] + crRHSee24*crRHSee52 + crRHSee24*crRHSee53 + crRHSee24*crRHSee54 + crRHSee24*crRHSee55 + crRHSee24*crRHSee56 + crRHSee24*crRHSee57 + crRHSee31*crRHSee52 + crRHSee31*crRHSee53 + crRHSee31*crRHSee54 + crRHSee31*crRHSee55 + crRHSee31*crRHSee56 + crRHSee31*crRHSee57 + crRHSee32*crRHSee59 + crRHSee32*crRHSee60 + crRHSee32*crRHSee61 + crRHSee32*crRHSee62 + crRHSee32*crRHSee63 + crRHSee32*crRHSee64 + crRHSee32*crRHSee65 + crRHSee32*crRHSee66 + crRHSee32*crRHSee67 + crRHSee32*crRHSee68 + crRHSee32*crRHSee69 + crRHSee32*crRHSee70 + crRHSee39*crRHSee65 + crRHSee39*crRHSee66 + crRHSee39*crRHSee67 + crRHSee39*crRHSee68 + crRHSee39*crRHSee69 + crRHSee39*crRHSee70 + crRHSee47 - crRHSee48 - crRHSee51 + crRHSee58*crRHSee59 + crRHSee58*crRHSee60 + crRHSee58*crRHSee61 + crRHSee58*crRHSee62 + crRHSee58*crRHSee63 + crRHSee58*crRHSee64);
-const double crRHSee72 = N_e*crRHSee71;
-rRHSee[0]+=gauss_weight*(DN_e(0,0)*crRHSee0 - DN_e(0,0)*(C(0,0)*crRHSee1 + C(0,1)*crRHSee2 + C(0,2)*crRHSee5 + r_stress[0]) - DN_e(0,1)*crRHSee6 - N_e*crRHSee16 + N_e*crRHSee7 - N_e*crRHSee8 + crRHSee41*crRHSee46 + crRHSee42*crRHSee43 + crRHSee42*crRHSee44);
-rRHSee[1]+=gauss_weight*(-DN_e(0,0)*crRHSee6 + DN_e(0,1)*crRHSee0 - DN_e(0,1)*(C(0,1)*crRHSee1 + C(1,1)*crRHSee2 + C(1,2)*crRHSee5 + r_stress[1]) + N_e*crRHSee47 - N_e*crRHSee48 - N_e*crRHSee51 + crRHSee43*crRHSee72 + crRHSee44*crRHSee72 + crRHSee46*crRHSee71);
-
-
-    const double crKue0 = C(0,2)*DN_v(0,0);
-const double crKue1 = C(2,2)*DN_v(0,1) + crKue0;
-const double crKue2 = DN_e(0,1)*N_e*v_e(0,1);
-const double crKue3 = DN_e(0,0)*N_e*v_e(0,0);
-const double crKue4 = N_v[0]*vconv(0,0) + N_v[1]*vconv(1,0) + N_v[2]*vconv(2,0) + N_v[3]*vconv(3,0) + N_v[4]*vconv(4,0) + N_v[5]*vconv(5,0);
-const double crKue5 = N_v[0]*vconv(0,1) + N_v[1]*vconv(1,1) + N_v[2]*vconv(2,1) + N_v[3]*vconv(3,1) + N_v[4]*vconv(4,1) + N_v[5]*vconv(5,1);
-const double crKue6 = DN_e(0,0)*crKue4 + DN_e(0,1)*crKue5;
-const double crKue7 = N_e*(DN_v(0,0)*r_v(0,0) + DN_v(1,0)*r_v(1,0) + DN_v(2,0)*r_v(2,0) + DN_v(3,0)*r_v(3,0) + DN_v(4,0)*r_v(4,0) + DN_v(5,0)*r_v(5,0)) + crKue2 + 2*crKue3 + crKue6;
-const double crKue8 = N_v[0]*rho;
-const double crKue9 = 1.0/(dyn_tau*rho/rData.DeltaTime + rho*stab_c2*sqrt(pow(crKue4, 2) + pow(crKue5, 2))/h + mu*stab_c1/pow(h, 2));
-const double crKue10 = crKue9*pow(rho, 2);
-const double crKue11 = crKue10*(DN_v(0,0)*vconv(0,0) + DN_v(0,1)*vconv(0,1) + DN_v(1,0)*vconv(1,0) + DN_v(1,1)*vconv(1,1) + DN_v(2,0)*vconv(2,0) + DN_v(2,1)*vconv(2,1) + DN_v(3,0)*vconv(3,0) + DN_v(3,1)*vconv(3,1) + DN_v(4,0)*vconv(4,0) + DN_v(4,1)*vconv(4,1) + DN_v(5,0)*vconv(5,0) + DN_v(5,1)*vconv(5,1));
-const double crKue12 = N_v[0]*crKue11;
-const double crKue13 = crKue10*(DN_v(0,0)*crKue4 + DN_v(0,1)*crKue5);
-const double crKue14 = C(1,2)*DN_v(0,1);
-const double crKue15 = DN_e(0,1)*v_e(0,0) + DN_v(0,1)*r_v(0,0) + DN_v(1,1)*r_v(1,0) + DN_v(2,1)*r_v(2,0) + DN_v(3,1)*r_v(3,0) + DN_v(4,1)*r_v(4,0) + DN_v(5,1)*r_v(5,0);
-const double crKue16 = N_e*crKue8;
-const double crKue17 = N_e*crKue12;
-const double crKue18 = N_e*crKue13;
-const double crKue19 = C(2,2)*DN_v(0,0) + crKue14;
-const double crKue20 = DN_e(0,0)*v_e(0,1) + DN_v(0,0)*r_v(0,1) + DN_v(1,0)*r_v(1,1) + DN_v(2,0)*r_v(2,1) + DN_v(3,0)*r_v(3,1) + DN_v(4,0)*r_v(4,1) + DN_v(5,0)*r_v(5,1);
-const double crKue21 = N_e*(DN_v(0,1)*r_v(0,1) + DN_v(1,1)*r_v(1,1) + DN_v(2,1)*r_v(2,1) + DN_v(3,1)*r_v(3,1) + DN_v(4,1)*r_v(4,1) + DN_v(5,1)*r_v(5,1)) + 2*crKue2 + crKue3 + crKue6;
-const double crKue22 = C(0,2)*DN_v(1,0);
-const double crKue23 = C(2,2)*DN_v(1,1) + crKue22;
-const double crKue24 = N_v[1]*rho;
-const double crKue25 = N_v[1]*crKue11;
-const double crKue26 = crKue10*(DN_v(1,0)*crKue4 + DN_v(1,1)*crKue5);
-const double crKue27 = C(1,2)*DN_v(1,1);
-const double crKue28 = N_e*crKue24;
-const double crKue29 = N_e*crKue25;
-const double crKue30 = N_e*crKue26;
-const double crKue31 = C(2,2)*DN_v(1,0) + crKue27;
-const double crKue32 = C(0,2)*DN_v(2,0);
-const double crKue33 = C(2,2)*DN_v(2,1) + crKue32;
-const double crKue34 = N_v[2]*rho;
-const double crKue35 = N_v[2]*crKue11;
-const double crKue36 = crKue10*(DN_v(2,0)*crKue4 + DN_v(2,1)*crKue5);
-const double crKue37 = C(1,2)*DN_v(2,1);
-const double crKue38 = N_e*crKue34;
-const double crKue39 = N_e*crKue35;
-const double crKue40 = N_e*crKue36;
-const double crKue41 = C(2,2)*DN_v(2,0) + crKue37;
-const double crKue42 = C(0,2)*DN_v(3,0);
-const double crKue43 = C(2,2)*DN_v(3,1) + crKue42;
-const double crKue44 = N_v[3]*rho;
-const double crKue45 = N_v[3]*crKue11;
-const double crKue46 = crKue10*(DN_v(3,0)*crKue4 + DN_v(3,1)*crKue5);
-const double crKue47 = C(1,2)*DN_v(3,1);
-const double crKue48 = N_e*crKue44;
-const double crKue49 = N_e*crKue45;
-const double crKue50 = N_e*crKue46;
-const double crKue51 = C(2,2)*DN_v(3,0) + crKue47;
-const double crKue52 = C(0,2)*DN_v(4,0);
-const double crKue53 = C(2,2)*DN_v(4,1) + crKue52;
-const double crKue54 = N_v[4]*rho;
-const double crKue55 = N_v[4]*crKue11;
-const double crKue56 = crKue10*(DN_v(4,0)*crKue4 + DN_v(4,1)*crKue5);
-const double crKue57 = C(1,2)*DN_v(4,1);
-const double crKue58 = N_e*crKue54;
-const double crKue59 = N_e*crKue55;
-const double crKue60 = N_e*crKue56;
-const double crKue61 = C(2,2)*DN_v(4,0) + crKue57;
-const double crKue62 = C(0,2)*DN_v(5,0);
-const double crKue63 = C(2,2)*DN_v(5,1) + crKue62;
-const double crKue64 = N_v[5]*rho;
-const double crKue65 = N_v[5]*crKue11;
-const double crKue66 = crKue10*(DN_v(5,0)*crKue4 + DN_v(5,1)*crKue5);
-const double crKue67 = C(1,2)*DN_v(5,1);
-const double crKue68 = N_e*crKue64;
-const double crKue69 = N_e*crKue65;
-const double crKue70 = N_e*crKue66;
-const double crKue71 = C(2,2)*DN_v(5,0) + crKue67;
-const double crKue72 = crKue9*rho;
-const double crKue73 = N_e*crKue72;
-const double crKue74 = crKue20*crKue73;
-const double crKue75 = crKue7*crKue72;
-const double crKue76 = crKue15*crKue73;
-const double crKue77 = crKue21*crKue72;
-rKue(0,0)+=gauss_weight*(DN_e(0,0)*(C(0,0)*DN_v(0,0) + C(0,2)*DN_v(0,1)) + DN_e(0,1)*crKue1 + crKue12*crKue7 + crKue13*crKue7 + crKue7*crKue8);
-rKue(0,1)+=gauss_weight*(DN_e(0,0)*crKue1 + DN_e(0,1)*(C(0,1)*DN_v(0,0) + crKue14) + crKue15*crKue16 + crKue15*crKue17 + crKue15*crKue18);
-rKue(1,0)+=gauss_weight*(DN_e(0,0)*(C(0,1)*DN_v(0,1) + crKue0) + DN_e(0,1)*crKue19 + crKue16*crKue20 + crKue17*crKue20 + crKue18*crKue20);
-rKue(1,1)+=gauss_weight*(DN_e(0,0)*crKue19 + DN_e(0,1)*(C(1,1)*DN_v(0,1) + C(1,2)*DN_v(0,0)) + crKue12*crKue21 + crKue13*crKue21 + crKue21*crKue8);
-rKue(2,0)+=gauss_weight*(DN_e(0,0)*(C(0,0)*DN_v(1,0) + C(0,2)*DN_v(1,1)) + DN_e(0,1)*crKue23 + crKue24*crKue7 + crKue25*crKue7 + crKue26*crKue7);
-rKue(2,1)+=gauss_weight*(DN_e(0,0)*crKue23 + DN_e(0,1)*(C(0,1)*DN_v(1,0) + crKue27) + crKue15*crKue28 + crKue15*crKue29 + crKue15*crKue30);
-rKue(3,0)+=gauss_weight*(DN_e(0,0)*(C(0,1)*DN_v(1,1) + crKue22) + DN_e(0,1)*crKue31 + crKue20*crKue28 + crKue20*crKue29 + crKue20*crKue30);
-rKue(3,1)+=gauss_weight*(DN_e(0,0)*crKue31 + DN_e(0,1)*(C(1,1)*DN_v(1,1) + C(1,2)*DN_v(1,0)) + crKue21*crKue24 + crKue21*crKue25 + crKue21*crKue26);
-rKue(4,0)+=gauss_weight*(DN_e(0,0)*(C(0,0)*DN_v(2,0) + C(0,2)*DN_v(2,1)) + DN_e(0,1)*crKue33 + crKue34*crKue7 + crKue35*crKue7 + crKue36*crKue7);
-rKue(4,1)+=gauss_weight*(DN_e(0,0)*crKue33 + DN_e(0,1)*(C(0,1)*DN_v(2,0) + crKue37) + crKue15*crKue38 + crKue15*crKue39 + crKue15*crKue40);
-rKue(5,0)+=gauss_weight*(DN_e(0,0)*(C(0,1)*DN_v(2,1) + crKue32) + DN_e(0,1)*crKue41 + crKue20*crKue38 + crKue20*crKue39 + crKue20*crKue40);
-rKue(5,1)+=gauss_weight*(DN_e(0,0)*crKue41 + DN_e(0,1)*(C(1,1)*DN_v(2,1) + C(1,2)*DN_v(2,0)) + crKue21*crKue34 + crKue21*crKue35 + crKue21*crKue36);
-rKue(6,0)+=gauss_weight*(DN_e(0,0)*(C(0,0)*DN_v(3,0) + C(0,2)*DN_v(3,1)) + DN_e(0,1)*crKue43 + crKue44*crKue7 + crKue45*crKue7 + crKue46*crKue7);
-rKue(6,1)+=gauss_weight*(DN_e(0,0)*crKue43 + DN_e(0,1)*(C(0,1)*DN_v(3,0) + crKue47) + crKue15*crKue48 + crKue15*crKue49 + crKue15*crKue50);
-rKue(7,0)+=gauss_weight*(DN_e(0,0)*(C(0,1)*DN_v(3,1) + crKue42) + DN_e(0,1)*crKue51 + crKue20*crKue48 + crKue20*crKue49 + crKue20*crKue50);
-rKue(7,1)+=gauss_weight*(DN_e(0,0)*crKue51 + DN_e(0,1)*(C(1,1)*DN_v(3,1) + C(1,2)*DN_v(3,0)) + crKue21*crKue44 + crKue21*crKue45 + crKue21*crKue46);
-rKue(8,0)+=gauss_weight*(DN_e(0,0)*(C(0,0)*DN_v(4,0) + C(0,2)*DN_v(4,1)) + DN_e(0,1)*crKue53 + crKue54*crKue7 + crKue55*crKue7 + crKue56*crKue7);
-rKue(8,1)+=gauss_weight*(DN_e(0,0)*crKue53 + DN_e(0,1)*(C(0,1)*DN_v(4,0) + crKue57) + crKue15*crKue58 + crKue15*crKue59 + crKue15*crKue60);
-rKue(9,0)+=gauss_weight*(DN_e(0,0)*(C(0,1)*DN_v(4,1) + crKue52) + DN_e(0,1)*crKue61 + crKue20*crKue58 + crKue20*crKue59 + crKue20*crKue60);
-rKue(9,1)+=gauss_weight*(DN_e(0,0)*crKue61 + DN_e(0,1)*(C(1,1)*DN_v(4,1) + C(1,2)*DN_v(4,0)) + crKue21*crKue54 + crKue21*crKue55 + crKue21*crKue56);
-rKue(10,0)+=gauss_weight*(DN_e(0,0)*(C(0,0)*DN_v(5,0) + C(0,2)*DN_v(5,1)) + DN_e(0,1)*crKue63 + crKue64*crKue7 + crKue65*crKue7 + crKue66*crKue7);
-rKue(10,1)+=gauss_weight*(DN_e(0,0)*crKue63 + DN_e(0,1)*(C(0,1)*DN_v(5,0) + crKue67) + crKue15*crKue68 + crKue15*crKue69 + crKue15*crKue70);
-rKue(11,0)+=gauss_weight*(DN_e(0,0)*(C(0,1)*DN_v(5,1) + crKue62) + DN_e(0,1)*crKue71 + crKue20*crKue68 + crKue20*crKue69 + crKue20*crKue70);
-rKue(11,1)+=gauss_weight*(DN_e(0,0)*crKue71 + DN_e(0,1)*(C(1,1)*DN_v(5,1) + C(1,2)*DN_v(5,0)) + crKue21*crKue64 + crKue21*crKue65 + crKue21*crKue66);
-rKue(12,0)+=gauss_weight*(DN_e(0,0)*N_p[0] + DN_p(0,0)*crKue75 + DN_p(0,1)*crKue74);
-rKue(12,1)+=gauss_weight*(DN_e(0,1)*N_p[0] + DN_p(0,0)*crKue76 + DN_p(0,1)*crKue77);
-rKue(13,0)+=gauss_weight*(DN_e(0,0)*N_p[1] + DN_p(1,0)*crKue75 + DN_p(1,1)*crKue74);
-rKue(13,1)+=gauss_weight*(DN_e(0,1)*N_p[1] + DN_p(1,0)*crKue76 + DN_p(1,1)*crKue77);
-rKue(14,0)+=gauss_weight*(DN_e(0,0)*N_p[2] + DN_p(2,0)*crKue75 + DN_p(2,1)*crKue74);
-rKue(14,1)+=gauss_weight*(DN_e(0,1)*N_p[2] + DN_p(2,0)*crKue76 + DN_p(2,1)*crKue77);
-
-
-    const double crKeu0 = C(0,2)*DN_v(0,0);
-const double crKeu1 = C(2,2)*DN_v(0,1) + crKeu0;
-const double crKeu2 = 1.0*C(0,0);
-const double crKeu3 = C(0,2)*DDN_v[0](0,0);
-const double crKeu4 = 1.0*DDN_v[0](0,1);
-const double crKeu5 = N_e*v_e(0,0);
-const double crKeu6 = N_e*v_e(0,1);
-const double crKeu7 = N_v[0]*vconv(0,0) + N_v[1]*vconv(1,0) + N_v[2]*vconv(2,0) + N_v[3]*vconv(3,0) + N_v[4]*vconv(4,0) + N_v[5]*vconv(5,0);
-const double crKeu8 = N_v[0]*vconv(0,1) + N_v[1]*vconv(1,1) + N_v[2]*vconv(2,1) + N_v[3]*vconv(3,1) + N_v[4]*vconv(4,1) + N_v[5]*vconv(5,1);
-const double crKeu9 = rho*(DN_v(0,0)*crKeu5 + DN_v(0,0)*crKeu7 + DN_v(0,1)*crKeu6 + DN_v(0,1)*crKeu8);
-const double crKeu10 = rData.BDF0*rho;
-const double crKeu11 = N_v[0]*crKeu10;
-const double crKeu12 = -crKeu11 - crKeu9;
-const double crKeu13 = rho/(dyn_tau*rho/rData.DeltaTime + rho*stab_c2*sqrt(pow(crKeu7, 2) + pow(crKeu8, 2))/h + mu*stab_c1/pow(h, 2));
-const double crKeu14 = crKeu13*(C(0,2)*crKeu4 + C(2,2)*crKeu4 + DDN_v[0](0,0)*crKeu2 + crKeu12 + 1.0*crKeu3);
-const double crKeu15 = 1.0*DN_e(0,0)*crKeu7 + 1.0*DN_e(0,1)*crKeu8;
-const double crKeu16 = N_e*crKeu14;
-const double crKeu17 = 1.0*DN_v(0,0)*vconv(0,0) + 1.0*DN_v(0,1)*vconv(0,1) + 1.0*DN_v(1,0)*vconv(1,0) + 1.0*DN_v(1,1)*vconv(1,1) + 1.0*DN_v(2,0)*vconv(2,0) + 1.0*DN_v(2,1)*vconv(2,1) + 1.0*DN_v(3,0)*vconv(3,0) + 1.0*DN_v(3,1)*vconv(3,1) + 1.0*DN_v(4,0)*vconv(4,0) + 1.0*DN_v(4,1)*vconv(4,1) + 1.0*DN_v(5,0)*vconv(5,0) + 1.0*DN_v(5,1)*vconv(5,1);
-const double crKeu18 = 2.0*DN_e(0,0)*v_e(0,0) + 2.0*DN_e(0,1)*v_e(0,1);
-const double crKeu19 = N_e*crKeu11 + N_e*crKeu9;
-const double crKeu20 = C(1,2)*DN_v(0,1);
-const double crKeu21 = C(2,2)*DN_v(0,0) + crKeu20;
-const double crKeu22 = C(0,1)*DDN_v[0](0,1) + C(1,2)*DDN_v[0](0,1) + C(2,2)*DDN_v[0](0,0) + crKeu3;
-const double crKeu23 = N_e*crKeu13;
-const double crKeu24 = crKeu22*crKeu23;
-const double crKeu25 = crKeu13*crKeu15;
-const double crKeu26 = C(0,2)*DN_v(1,0);
-const double crKeu27 = C(2,2)*DN_v(1,1) + crKeu26;
-const double crKeu28 = C(0,2)*DDN_v[1](0,0);
-const double crKeu29 = 1.0*DDN_v[1](0,1);
-const double crKeu30 = rho*(DN_v(1,0)*crKeu5 + DN_v(1,0)*crKeu7 + DN_v(1,1)*crKeu6 + DN_v(1,1)*crKeu8);
-const double crKeu31 = N_v[1]*crKeu10;
-const double crKeu32 = -crKeu30 - crKeu31;
-const double crKeu33 = C(0,2)*crKeu29 + C(2,2)*crKeu29 + DDN_v[1](0,0)*crKeu2 + 1.0*crKeu28 + crKeu32;
-const double crKeu34 = crKeu23*crKeu33;
-const double crKeu35 = N_e*crKeu30 + N_e*crKeu31;
-const double crKeu36 = C(1,2)*DN_v(1,1);
-const double crKeu37 = C(2,2)*DN_v(1,0) + crKeu36;
-const double crKeu38 = C(0,1)*DDN_v[1](0,1) + C(1,2)*DDN_v[1](0,1) + C(2,2)*DDN_v[1](0,0) + crKeu28;
-const double crKeu39 = crKeu23*crKeu38;
-const double crKeu40 = C(0,2)*DN_v(2,0);
-const double crKeu41 = C(2,2)*DN_v(2,1) + crKeu40;
-const double crKeu42 = C(0,2)*DDN_v[2](0,0);
-const double crKeu43 = 1.0*DDN_v[2](0,1);
-const double crKeu44 = rho*(DN_v(2,0)*crKeu5 + DN_v(2,0)*crKeu7 + DN_v(2,1)*crKeu6 + DN_v(2,1)*crKeu8);
-const double crKeu45 = N_v[2]*crKeu10;
-const double crKeu46 = -crKeu44 - crKeu45;
-const double crKeu47 = C(0,2)*crKeu43 + C(2,2)*crKeu43 + DDN_v[2](0,0)*crKeu2 + 1.0*crKeu42 + crKeu46;
-const double crKeu48 = crKeu23*crKeu47;
-const double crKeu49 = N_e*crKeu44 + N_e*crKeu45;
-const double crKeu50 = C(1,2)*DN_v(2,1);
-const double crKeu51 = C(2,2)*DN_v(2,0) + crKeu50;
-const double crKeu52 = C(0,1)*DDN_v[2](0,1) + C(1,2)*DDN_v[2](0,1) + C(2,2)*DDN_v[2](0,0) + crKeu42;
-const double crKeu53 = crKeu23*crKeu52;
-const double crKeu54 = C(0,2)*DN_v(3,0);
-const double crKeu55 = C(2,2)*DN_v(3,1) + crKeu54;
-const double crKeu56 = C(0,2)*DDN_v[3](0,0);
-const double crKeu57 = 1.0*DDN_v[3](0,1);
-const double crKeu58 = rho*(DN_v(3,0)*crKeu5 + DN_v(3,0)*crKeu7 + DN_v(3,1)*crKeu6 + DN_v(3,1)*crKeu8);
-const double crKeu59 = N_v[3]*crKeu10;
-const double crKeu60 = -crKeu58 - crKeu59;
-const double crKeu61 = C(0,2)*crKeu57 + C(2,2)*crKeu57 + DDN_v[3](0,0)*crKeu2 + 1.0*crKeu56 + crKeu60;
-const double crKeu62 = crKeu23*crKeu61;
-const double crKeu63 = N_e*crKeu58 + N_e*crKeu59;
-const double crKeu64 = C(1,2)*DN_v(3,1);
-const double crKeu65 = C(2,2)*DN_v(3,0) + crKeu64;
-const double crKeu66 = C(0,1)*DDN_v[3](0,1) + C(1,2)*DDN_v[3](0,1) + C(2,2)*DDN_v[3](0,0) + crKeu56;
-const double crKeu67 = crKeu23*crKeu66;
-const double crKeu68 = C(0,2)*DN_v(4,0);
-const double crKeu69 = C(2,2)*DN_v(4,1) + crKeu68;
-const double crKeu70 = C(0,2)*DDN_v[4](0,0);
-const double crKeu71 = 1.0*DDN_v[4](0,1);
-const double crKeu72 = rho*(DN_v(4,0)*crKeu5 + DN_v(4,0)*crKeu7 + DN_v(4,1)*crKeu6 + DN_v(4,1)*crKeu8);
-const double crKeu73 = N_v[4]*crKeu10;
-const double crKeu74 = -crKeu72 - crKeu73;
-const double crKeu75 = C(0,2)*crKeu71 + C(2,2)*crKeu71 + DDN_v[4](0,0)*crKeu2 + 1.0*crKeu70 + crKeu74;
-const double crKeu76 = crKeu23*crKeu75;
-const double crKeu77 = N_e*crKeu72 + N_e*crKeu73;
-const double crKeu78 = C(1,2)*DN_v(4,1);
-const double crKeu79 = C(2,2)*DN_v(4,0) + crKeu78;
-const double crKeu80 = C(0,1)*DDN_v[4](0,1) + C(1,2)*DDN_v[4](0,1) + C(2,2)*DDN_v[4](0,0) + crKeu70;
-const double crKeu81 = crKeu23*crKeu80;
-const double crKeu82 = C(0,2)*DN_v(5,0);
-const double crKeu83 = C(2,2)*DN_v(5,1) + crKeu82;
-const double crKeu84 = C(0,2)*DDN_v[5](0,0);
-const double crKeu85 = 1.0*DDN_v[5](0,1);
-const double crKeu86 = rho*(DN_v(5,0)*crKeu5 + DN_v(5,0)*crKeu7 + DN_v(5,1)*crKeu6 + DN_v(5,1)*crKeu8);
-const double crKeu87 = N_v[5]*crKeu10;
-const double crKeu88 = -crKeu86 - crKeu87;
-const double crKeu89 = C(0,2)*crKeu85 + C(2,2)*crKeu85 + DDN_v[5](0,0)*crKeu2 + 1.0*crKeu84 + crKeu88;
-const double crKeu90 = crKeu23*crKeu89;
-const double crKeu91 = N_e*crKeu86 + N_e*crKeu87;
-const double crKeu92 = C(1,2)*DN_v(5,1);
-const double crKeu93 = C(2,2)*DN_v(5,0) + crKeu92;
-const double crKeu94 = C(0,1)*DDN_v[5](0,1) + C(1,2)*DDN_v[5](0,1) + C(2,2)*DDN_v[5](0,0) + crKeu84;
-const double crKeu95 = crKeu23*crKeu94;
-const double crKeu96 = DN_p(0,0)*crKeu23;
-const double crKeu97 = DN_p(1,0)*crKeu23;
-const double crKeu98 = DN_p(2,0)*crKeu23;
-const double crKeu99 = C(1,2)*DDN_v[0](1,1);
-const double crKeu100 = C(0,1)*DDN_v[0](1,0) + C(0,2)*DDN_v[0](1,0) + C(2,2)*DDN_v[0](1,1) + crKeu99;
-const double crKeu101 = crKeu100*crKeu23;
-const double crKeu102 = 1.0*C(1,1);
-const double crKeu103 = 1.0*DDN_v[0](1,0);
-const double crKeu104 = C(1,2)*crKeu103 + C(2,2)*crKeu103 + DDN_v[0](1,1)*crKeu102 + crKeu12 + 1.0*crKeu99;
-const double crKeu105 = crKeu104*crKeu23;
-const double crKeu106 = C(1,2)*DDN_v[1](1,1);
-const double crKeu107 = C(0,1)*DDN_v[1](1,0) + C(0,2)*DDN_v[1](1,0) + C(2,2)*DDN_v[1](1,1) + crKeu106;
-const double crKeu108 = crKeu107*crKeu23;
-const double crKeu109 = 1.0*DDN_v[1](1,0);
-const double crKeu110 = C(1,2)*crKeu109 + C(2,2)*crKeu109 + DDN_v[1](1,1)*crKeu102 + 1.0*crKeu106 + crKeu32;
-const double crKeu111 = crKeu110*crKeu23;
-const double crKeu112 = C(1,2)*DDN_v[2](1,1);
-const double crKeu113 = C(0,1)*DDN_v[2](1,0) + C(0,2)*DDN_v[2](1,0) + C(2,2)*DDN_v[2](1,1) + crKeu112;
-const double crKeu114 = crKeu113*crKeu23;
-const double crKeu115 = 1.0*DDN_v[2](1,0);
-const double crKeu116 = C(1,2)*crKeu115 + C(2,2)*crKeu115 + DDN_v[2](1,1)*crKeu102 + 1.0*crKeu112 + crKeu46;
-const double crKeu117 = crKeu116*crKeu23;
-const double crKeu118 = C(1,2)*DDN_v[3](1,1);
-const double crKeu119 = C(0,1)*DDN_v[3](1,0) + C(0,2)*DDN_v[3](1,0) + C(2,2)*DDN_v[3](1,1) + crKeu118;
-const double crKeu120 = crKeu119*crKeu23;
-const double crKeu121 = 1.0*DDN_v[3](1,0);
-const double crKeu122 = C(1,2)*crKeu121 + C(2,2)*crKeu121 + DDN_v[3](1,1)*crKeu102 + 1.0*crKeu118 + crKeu60;
-const double crKeu123 = crKeu122*crKeu23;
-const double crKeu124 = C(1,2)*DDN_v[4](1,1);
-const double crKeu125 = C(0,1)*DDN_v[4](1,0) + C(0,2)*DDN_v[4](1,0) + C(2,2)*DDN_v[4](1,1) + crKeu124;
-const double crKeu126 = crKeu125*crKeu23;
-const double crKeu127 = 1.0*DDN_v[4](1,0);
-const double crKeu128 = C(1,2)*crKeu127 + C(2,2)*crKeu127 + DDN_v[4](1,1)*crKeu102 + 1.0*crKeu124 + crKeu74;
-const double crKeu129 = crKeu128*crKeu23;
-const double crKeu130 = C(1,2)*DDN_v[5](1,1);
-const double crKeu131 = C(0,1)*DDN_v[5](1,0) + C(0,2)*DDN_v[5](1,0) + C(2,2)*DDN_v[5](1,1) + crKeu130;
-const double crKeu132 = crKeu131*crKeu23;
-const double crKeu133 = 1.0*DDN_v[5](1,0);
-const double crKeu134 = C(1,2)*crKeu133 + C(2,2)*crKeu133 + DDN_v[5](1,1)*crKeu102 + 1.0*crKeu130 + crKeu88;
-const double crKeu135 = crKeu134*crKeu23;
-const double crKeu136 = DN_p(0,1)*crKeu23;
-const double crKeu137 = DN_p(1,1)*crKeu23;
-const double crKeu138 = DN_p(2,1)*crKeu23;
-rKeu(0,0)+=gauss_weight*(DN_e(0,0)*(C(0,0)*DN_v(0,0) + C(0,2)*DN_v(0,1)) + DN_e(0,1)*crKeu1 - crKeu14*crKeu15 - crKeu16*crKeu17 - crKeu16*crKeu18 + crKeu19);
-rKeu(0,1)+=-gauss_weight*(-DN_e(0,0)*(C(0,1)*DN_v(0,1) + crKeu0) - DN_e(0,1)*crKeu21 + crKeu17*crKeu24 + crKeu18*crKeu24 + crKeu22*crKeu25);
-rKeu(0,2)+=gauss_weight*(DN_e(0,0)*(C(0,0)*DN_v(1,0) + C(0,2)*DN_v(1,1)) + DN_e(0,1)*crKeu27 - crKeu17*crKeu34 - crKeu18*crKeu34 - crKeu25*crKeu33 + crKeu35);
-rKeu(0,3)+=-gauss_weight*(-DN_e(0,0)*(C(0,1)*DN_v(1,1) + crKeu26) - DN_e(0,1)*crKeu37 + crKeu17*crKeu39 + crKeu18*crKeu39 + crKeu25*crKeu38);
-rKeu(0,4)+=gauss_weight*(DN_e(0,0)*(C(0,0)*DN_v(2,0) + C(0,2)*DN_v(2,1)) + DN_e(0,1)*crKeu41 - crKeu17*crKeu48 - crKeu18*crKeu48 - crKeu25*crKeu47 + crKeu49);
-rKeu(0,5)+=-gauss_weight*(-DN_e(0,0)*(C(0,1)*DN_v(2,1) + crKeu40) - DN_e(0,1)*crKeu51 + crKeu17*crKeu53 + crKeu18*crKeu53 + crKeu25*crKeu52);
-rKeu(0,6)+=gauss_weight*(DN_e(0,0)*(C(0,0)*DN_v(3,0) + C(0,2)*DN_v(3,1)) + DN_e(0,1)*crKeu55 - crKeu17*crKeu62 - crKeu18*crKeu62 - crKeu25*crKeu61 + crKeu63);
-rKeu(0,7)+=-gauss_weight*(-DN_e(0,0)*(C(0,1)*DN_v(3,1) + crKeu54) - DN_e(0,1)*crKeu65 + crKeu17*crKeu67 + crKeu18*crKeu67 + crKeu25*crKeu66);
-rKeu(0,8)+=gauss_weight*(DN_e(0,0)*(C(0,0)*DN_v(4,0) + C(0,2)*DN_v(4,1)) + DN_e(0,1)*crKeu69 - crKeu17*crKeu76 - crKeu18*crKeu76 - crKeu25*crKeu75 + crKeu77);
-rKeu(0,9)+=-gauss_weight*(-DN_e(0,0)*(C(0,1)*DN_v(4,1) + crKeu68) - DN_e(0,1)*crKeu79 + crKeu17*crKeu81 + crKeu18*crKeu81 + crKeu25*crKeu80);
-rKeu(0,10)+=gauss_weight*(DN_e(0,0)*(C(0,0)*DN_v(5,0) + C(0,2)*DN_v(5,1)) + DN_e(0,1)*crKeu83 - crKeu17*crKeu90 - crKeu18*crKeu90 - crKeu25*crKeu89 + crKeu91);
-rKeu(0,11)+=-gauss_weight*(-DN_e(0,0)*(C(0,1)*DN_v(5,1) + crKeu82) - DN_e(0,1)*crKeu93 + crKeu17*crKeu95 + crKeu18*crKeu95 + crKeu25*crKeu94);
-rKeu(0,12)+=gauss_weight*(-DN_e(0,0)*N_p[0] + DN_p(0,0)*crKeu25 + crKeu17*crKeu96 + crKeu18*crKeu96);
-rKeu(0,13)+=gauss_weight*(-DN_e(0,0)*N_p[1] + DN_p(1,0)*crKeu25 + crKeu17*crKeu97 + crKeu18*crKeu97);
-rKeu(0,14)+=gauss_weight*(-DN_e(0,0)*N_p[2] + DN_p(2,0)*crKeu25 + crKeu17*crKeu98 + crKeu18*crKeu98);
-rKeu(1,0)+=-gauss_weight*(-DN_e(0,0)*crKeu1 - DN_e(0,1)*(C(0,1)*DN_v(0,0) + crKeu20) + crKeu100*crKeu25 + crKeu101*crKeu17 + crKeu101*crKeu18);
-rKeu(1,1)+=gauss_weight*(DN_e(0,0)*crKeu21 + DN_e(0,1)*(C(1,1)*DN_v(0,1) + C(1,2)*DN_v(0,0)) - crKeu104*crKeu25 - crKeu105*crKeu17 - crKeu105*crKeu18 + crKeu19);
-rKeu(1,2)+=-gauss_weight*(-DN_e(0,0)*crKeu27 - DN_e(0,1)*(C(0,1)*DN_v(1,0) + crKeu36) + crKeu107*crKeu25 + crKeu108*crKeu17 + crKeu108*crKeu18);
-rKeu(1,3)+=gauss_weight*(DN_e(0,0)*crKeu37 + DN_e(0,1)*(C(1,1)*DN_v(1,1) + C(1,2)*DN_v(1,0)) - crKeu110*crKeu25 - crKeu111*crKeu17 - crKeu111*crKeu18 + crKeu35);
-rKeu(1,4)+=-gauss_weight*(-DN_e(0,0)*crKeu41 - DN_e(0,1)*(C(0,1)*DN_v(2,0) + crKeu50) + crKeu113*crKeu25 + crKeu114*crKeu17 + crKeu114*crKeu18);
-rKeu(1,5)+=gauss_weight*(DN_e(0,0)*crKeu51 + DN_e(0,1)*(C(1,1)*DN_v(2,1) + C(1,2)*DN_v(2,0)) - crKeu116*crKeu25 - crKeu117*crKeu17 - crKeu117*crKeu18 + crKeu49);
-rKeu(1,6)+=-gauss_weight*(-DN_e(0,0)*crKeu55 - DN_e(0,1)*(C(0,1)*DN_v(3,0) + crKeu64) + crKeu119*crKeu25 + crKeu120*crKeu17 + crKeu120*crKeu18);
-rKeu(1,7)+=gauss_weight*(DN_e(0,0)*crKeu65 + DN_e(0,1)*(C(1,1)*DN_v(3,1) + C(1,2)*DN_v(3,0)) - crKeu122*crKeu25 - crKeu123*crKeu17 - crKeu123*crKeu18 + crKeu63);
-rKeu(1,8)+=-gauss_weight*(-DN_e(0,0)*crKeu69 - DN_e(0,1)*(C(0,1)*DN_v(4,0) + crKeu78) + crKeu125*crKeu25 + crKeu126*crKeu17 + crKeu126*crKeu18);
-rKeu(1,9)+=gauss_weight*(DN_e(0,0)*crKeu79 + DN_e(0,1)*(C(1,1)*DN_v(4,1) + C(1,2)*DN_v(4,0)) - crKeu128*crKeu25 - crKeu129*crKeu17 - crKeu129*crKeu18 + crKeu77);
-rKeu(1,10)+=-gauss_weight*(-DN_e(0,0)*crKeu83 - DN_e(0,1)*(C(0,1)*DN_v(5,0) + crKeu92) + crKeu131*crKeu25 + crKeu132*crKeu17 + crKeu132*crKeu18);
-rKeu(1,11)+=gauss_weight*(DN_e(0,0)*crKeu93 + DN_e(0,1)*(C(1,1)*DN_v(5,1) + C(1,2)*DN_v(5,0)) - crKeu134*crKeu25 - crKeu135*crKeu17 - crKeu135*crKeu18 + crKeu91);
-rKeu(1,12)+=gauss_weight*(-DN_e(0,1)*N_p[0] + DN_p(0,1)*crKeu25 + crKeu136*crKeu17 + crKeu136*crKeu18);
-rKeu(1,13)+=gauss_weight*(-DN_e(0,1)*N_p[1] + DN_p(1,1)*crKeu25 + crKeu137*crKeu17 + crKeu137*crKeu18);
-rKeu(1,14)+=gauss_weight*(-DN_e(0,1)*N_p[2] + DN_p(2,1)*crKeu25 + crKeu138*crKeu17 + crKeu138*crKeu18);
-
-
-    const double crKee0 = C(0,2)*DN_e(0,0);
-const double crKee1 = C(2,2)*DN_e(0,1) + crKee0;
-const double crKee2 = DN_v(0,0)*r_v(0,0) + DN_v(1,0)*r_v(1,0) + DN_v(2,0)*r_v(2,0) + DN_v(3,0)*r_v(3,0) + DN_v(4,0)*r_v(4,0) + DN_v(5,0)*r_v(5,0);
-const double crKee3 = N_e*crKee2;
-const double crKee4 = DN_e(0,1)*v_e(0,1);
-const double crKee5 = N_e*crKee4;
-const double crKee6 = DN_e(0,0)*v_e(0,0);
-const double crKee7 = N_e*crKee6;
-const double crKee8 = N_v[0]*vconv(0,0) + N_v[1]*vconv(1,0) + N_v[2]*vconv(2,0) + N_v[3]*vconv(3,0) + N_v[4]*vconv(4,0) + N_v[5]*vconv(5,0);
-const double crKee9 = DN_e(0,0)*crKee8;
-const double crKee10 = N_v[0]*vconv(0,1) + N_v[1]*vconv(1,1) + N_v[2]*vconv(2,1) + N_v[3]*vconv(3,1) + N_v[4]*vconv(4,1) + N_v[5]*vconv(5,1);
-const double crKee11 = DN_e(0,1)*crKee10;
-const double crKee12 = crKee11 + crKee9;
-const double crKee13 = crKee12 + crKee3 + crKee5 + 2*crKee7;
-const double crKee14 = N_e*rho;
-const double crKee15 = 1.0/(dyn_tau*rho/rData.DeltaTime + rho*stab_c2*sqrt(pow(crKee10, 2) + pow(crKee8, 2))/h + mu*stab_c1/pow(h, 2));
-const double crKee16 = crKee15*pow(rho, 2);
-const double crKee17 = crKee13*crKee16;
-const double crKee18 = N_e*crKee17;
-const double crKee19 = 2.0*crKee4 + 2.0*crKee6;
-const double crKee20 = 1.0*DN_v(0,0)*vconv(0,0) + 1.0*DN_v(0,1)*vconv(0,1) + 1.0*DN_v(1,0)*vconv(1,0) + 1.0*DN_v(1,1)*vconv(1,1) + 1.0*DN_v(2,0)*vconv(2,0) + 1.0*DN_v(2,1)*vconv(2,1) + 1.0*DN_v(3,0)*vconv(3,0) + 1.0*DN_v(3,1)*vconv(3,1) + 1.0*DN_v(4,0)*vconv(4,0) + 1.0*DN_v(4,1)*vconv(4,1) + 1.0*DN_v(5,0)*vconv(5,0) + 1.0*DN_v(5,1)*vconv(5,1);
-const double crKee21 = 1.0*crKee12;
-const double crKee22 = 1.0*C(0,0);
-const double crKee23 = DDN_v[0](0,0)*r_v(0,0);
-const double crKee24 = DDN_v[1](0,0)*r_v(1,0);
-const double crKee25 = DDN_v[2](0,0)*r_v(2,0);
-const double crKee26 = DDN_v[3](0,0)*r_v(3,0);
-const double crKee27 = DDN_v[4](0,0)*r_v(4,0);
-const double crKee28 = DDN_v[5](0,0)*r_v(5,0);
-const double crKee29 = 1.0*C(0,1);
-const double crKee30 = DDN_v[0](0,1)*r_v(0,1);
-const double crKee31 = DDN_v[1](0,1)*r_v(1,1);
-const double crKee32 = DDN_v[2](0,1)*r_v(2,1);
-const double crKee33 = DDN_v[3](0,1)*r_v(3,1);
-const double crKee34 = DDN_v[4](0,1)*r_v(4,1);
-const double crKee35 = DDN_v[5](0,1)*r_v(5,1);
-const double crKee36 = 1.0*C(0,2);
-const double crKee37 = 1.0*C(1,2);
-const double crKee38 = DDN_v[0](0,0)*r_v(0,1) + DDN_v[0](0,1)*r_v(0,0);
-const double crKee39 = DDN_v[1](0,0)*r_v(1,1) + DDN_v[1](0,1)*r_v(1,0);
-const double crKee40 = DDN_v[2](0,0)*r_v(2,1) + DDN_v[2](0,1)*r_v(2,0);
-const double crKee41 = DDN_v[3](0,0)*r_v(3,1) + DDN_v[3](0,1)*r_v(3,0);
-const double crKee42 = DDN_v[4](0,0)*r_v(4,1) + DDN_v[4](0,1)*r_v(4,0);
-const double crKee43 = DDN_v[5](0,0)*r_v(5,1) + DDN_v[5](0,1)*r_v(5,0);
-const double crKee44 = 1.0*C(2,2);
-const double crKee45 = DN_v(0,1)*r_v(0,0) + DN_v(1,1)*r_v(1,0) + DN_v(2,1)*r_v(2,0) + DN_v(3,1)*r_v(3,0) + DN_v(4,1)*r_v(4,0) + DN_v(5,1)*r_v(5,0);
-const double crKee46 = N_e*v_e(0,1);
-const double crKee47 = 2.0*crKee14*crKee15;
-const double crKee48 = crKee47*(-DN_p(0,0)*r_p[0] - DN_p(1,0)*r_p[1] - DN_p(2,0)*r_p[2] + crKee22*crKee23 + crKee22*crKee24 + crKee22*crKee25 + crKee22*crKee26 + crKee22*crKee27 + crKee22*crKee28 + crKee23*crKee36 + crKee24*crKee36 + crKee25*crKee36 + crKee26*crKee36 + crKee27*crKee36 + crKee28*crKee36 + crKee29*crKee30 + crKee29*crKee31 + crKee29*crKee32 + crKee29*crKee33 + crKee29*crKee34 + crKee29*crKee35 + crKee30*crKee37 + crKee31*crKee37 + crKee32*crKee37 + crKee33*crKee37 + crKee34*crKee37 + crKee35*crKee37 + crKee36*crKee38 + crKee36*crKee39 + crKee36*crKee40 + crKee36*crKee41 + crKee36*crKee42 + crKee36*crKee43 + crKee38*crKee44 + crKee39*crKee44 + crKee40*crKee44 + crKee41*crKee44 + crKee42*crKee44 + crKee43*crKee44 + rho*(N_v[0]*r_f(0,0) + N_v[1]*r_f(1,0) + N_v[2]*r_f(2,0) + N_v[3]*r_f(3,0) + N_v[4]*r_f(4,0) + N_v[5]*r_f(5,0)) - rho*(N_v[0]*(rData.BDF0*r_v(0,0) + rData.BDF1*r_vn(0,0) + rData.BDF2*r_vnn(0,0)) + N_v[1]*(rData.BDF0*r_v(1,0) + rData.BDF1*r_vn(1,0) + rData.BDF2*r_vnn(1,0)) + N_v[2]*(rData.BDF0*r_v(2,0) + rData.BDF1*r_vn(2,0) + rData.BDF2*r_vnn(2,0)) + N_v[3]*(rData.BDF0*r_v(3,0) + rData.BDF1*r_vn(3,0) + rData.BDF2*r_vnn(3,0)) + N_v[4]*(rData.BDF0*r_v(4,0) + rData.BDF1*r_vn(4,0) + rData.BDF2*r_vnn(4,0)) + N_v[5]*(rData.BDF0*r_v(5,0) + rData.BDF1*r_vn(5,0) + rData.BDF2*r_vnn(5,0))) - rho*(DN_e(0,0)*N_e*pow(v_e(0,0), 2) + crKee10*crKee45 + crKee11*v_e(0,0) + crKee2*crKee8 + crKee3*v_e(0,0) + crKee45*crKee46 + crKee5*v_e(0,0) + crKee9*v_e(0,0)));
-const double crKee49 = C(1,2)*DN_e(0,1);
-const double crKee50 = C(2,2)*DN_e(0,0) + crKee49;
-const double crKee51 = DN_e(0,1)*v_e(0,0) + crKee45;
-const double crKee52 = pow(N_e, 2);
-const double crKee53 = crKee52*rho;
-const double crKee54 = crKee16*crKee52;
-const double crKee55 = crKee51*crKee54;
-const double crKee56 = crKee16*crKee21;
-const double crKee57 = N_e*crKee56;
-const double crKee58 = DN_v(0,0)*r_v(0,1) + DN_v(1,0)*r_v(1,1) + DN_v(2,0)*r_v(2,1) + DN_v(3,0)*r_v(3,1) + DN_v(4,0)*r_v(4,1) + DN_v(5,0)*r_v(5,1);
-const double crKee59 = DN_e(0,0)*v_e(0,1) + crKee58;
-const double crKee60 = crKee54*crKee59;
-const double crKee61 = DDN_v[0](1,0)*r_v(0,0);
-const double crKee62 = DDN_v[1](1,0)*r_v(1,0);
-const double crKee63 = DDN_v[2](1,0)*r_v(2,0);
-const double crKee64 = DDN_v[3](1,0)*r_v(3,0);
-const double crKee65 = DDN_v[4](1,0)*r_v(4,0);
-const double crKee66 = DDN_v[5](1,0)*r_v(5,0);
-const double crKee67 = 1.0*C(1,1);
-const double crKee68 = DDN_v[0](1,1)*r_v(0,1);
-const double crKee69 = DDN_v[1](1,1)*r_v(1,1);
-const double crKee70 = DDN_v[2](1,1)*r_v(2,1);
-const double crKee71 = DDN_v[3](1,1)*r_v(3,1);
-const double crKee72 = DDN_v[4](1,1)*r_v(4,1);
-const double crKee73 = DDN_v[5](1,1)*r_v(5,1);
-const double crKee74 = DDN_v[0](1,0)*r_v(0,1) + DDN_v[0](1,1)*r_v(0,0);
-const double crKee75 = DDN_v[1](1,0)*r_v(1,1) + DDN_v[1](1,1)*r_v(1,0);
-const double crKee76 = DDN_v[2](1,0)*r_v(2,1) + DDN_v[2](1,1)*r_v(2,0);
-const double crKee77 = DDN_v[3](1,0)*r_v(3,1) + DDN_v[3](1,1)*r_v(3,0);
-const double crKee78 = DDN_v[4](1,0)*r_v(4,1) + DDN_v[4](1,1)*r_v(4,0);
-const double crKee79 = DDN_v[5](1,0)*r_v(5,1) + DDN_v[5](1,1)*r_v(5,0);
-const double crKee80 = DN_v(0,1)*r_v(0,1) + DN_v(1,1)*r_v(1,1) + DN_v(2,1)*r_v(2,1) + DN_v(3,1)*r_v(3,1) + DN_v(4,1)*r_v(4,1) + DN_v(5,1)*r_v(5,1);
-const double crKee81 = N_e*crKee80;
-const double crKee82 = crKee47*(-DN_p(0,1)*r_p[0] - DN_p(1,1)*r_p[1] - DN_p(2,1)*r_p[2] + crKee29*crKee61 + crKee29*crKee62 + crKee29*crKee63 + crKee29*crKee64 + crKee29*crKee65 + crKee29*crKee66 + crKee36*crKee61 + crKee36*crKee62 + crKee36*crKee63 + crKee36*crKee64 + crKee36*crKee65 + crKee36*crKee66 + crKee37*crKee68 + crKee37*crKee69 + crKee37*crKee70 + crKee37*crKee71 + crKee37*crKee72 + crKee37*crKee73 + crKee37*crKee74 + crKee37*crKee75 + crKee37*crKee76 + crKee37*crKee77 + crKee37*crKee78 + crKee37*crKee79 + crKee44*crKee74 + crKee44*crKee75 + crKee44*crKee76 + crKee44*crKee77 + crKee44*crKee78 + crKee44*crKee79 + crKee67*crKee68 + crKee67*crKee69 + crKee67*crKee70 + crKee67*crKee71 + crKee67*crKee72 + crKee67*crKee73 + rho*(N_v[0]*r_f(0,1) + N_v[1]*r_f(1,1) + N_v[2]*r_f(2,1) + N_v[3]*r_f(3,1) + N_v[4]*r_f(4,1) + N_v[5]*r_f(5,1)) - rho*(N_v[0]*(rData.BDF0*r_v(0,1) + rData.BDF1*r_vn(0,1) + rData.BDF2*r_vnn(0,1)) + N_v[1]*(rData.BDF0*r_v(1,1) + rData.BDF1*r_vn(1,1) + rData.BDF2*r_vnn(1,1)) + N_v[2]*(rData.BDF0*r_v(2,1) + rData.BDF1*r_vn(2,1) + rData.BDF2*r_vnn(2,1)) + N_v[3]*(rData.BDF0*r_v(3,1) + rData.BDF1*r_vn(3,1) + rData.BDF2*r_vnn(3,1)) + N_v[4]*(rData.BDF0*r_v(4,1) + rData.BDF1*r_vn(4,1) + rData.BDF2*r_vnn(4,1)) + N_v[5]*(rData.BDF0*r_v(5,1) + rData.BDF1*r_vn(5,1) + rData.BDF2*r_vnn(5,1))) - rho*(DN_e(0,1)*N_e*pow(v_e(0,1), 2) + N_e*crKee58*v_e(0,0) + crKee10*crKee80 + crKee11*v_e(0,1) + crKee46*crKee6 + crKee58*crKee8 + crKee81*v_e(0,1) + crKee9*v_e(0,1)));
-const double crKee83 = crKee12 + 2*crKee5 + crKee7 + crKee81;
-const double crKee84 = N_e*crKee16*crKee83;
-rKee(0,0)+=gauss_weight*(-DN_e(0,0)*crKee48 + DN_e(0,0)*(C(0,0)*DN_e(0,0) + C(0,2)*DN_e(0,1)) + DN_e(0,1)*crKee1 + crKee13*crKee14 + crKee17*crKee21 + crKee18*crKee19 + crKee18*crKee20);
-rKee(0,1)+=gauss_weight*(DN_e(0,0)*(C(0,1)*DN_e(0,1) + crKee0) - DN_e(0,1)*crKee48 + DN_e(0,1)*crKee50 + crKee19*crKee55 + crKee20*crKee55 + crKee51*crKee53 + crKee51*crKee57);
-rKee(1,0)+=gauss_weight*(DN_e(0,0)*crKee1 - DN_e(0,0)*crKee82 + DN_e(0,1)*(C(0,1)*DN_e(0,0) + crKee49) + crKee19*crKee60 + crKee20*crKee60 + crKee53*crKee59 + crKee57*crKee59);
-rKee(1,1)+=gauss_weight*(DN_e(0,0)*crKee50 - DN_e(0,1)*crKee82 + DN_e(0,1)*(C(1,1)*DN_e(0,1) + C(1,2)*DN_e(0,0)) + crKee14*crKee83 + crKee19*crKee84 + crKee20*crKee84 + crKee56*crKee83);
-
-}
-
-template <>
-void IncompressibleNavierStokesDivStable<3>::ComputeGaussPointEnrichmentContribution(
-    const ElementDataContainer& rData,
-    array_1d<double, 3>& rRHSee,
-    BoundedMatrix<double, LocalSize, 3>& rKue,
-    BoundedMatrix<double, 3, LocalSize>& rKeu,
-    BoundedMatrix<double, 3, 3>& rKee)
-{
-    // Get material data
-    const double rho = rData.Density;
-    const double mu = rData.EffectiveViscosity;
-
-    // Get auxiliary data
-    const double bdf0 = rData.BDF0;
-    const double bdf1 = rData.BDF1;
-    const double bdf2 = rData.BDF2;
-    const double dt = rData.DeltaTime;
-
-    // Get stabilization data
-    const double h = rData.ElementSize;
-    const double stab_c1 = rData.StabC1;
-    const double stab_c2 = rData.StabC2;
-    const double dyn_tau = rData.DynamicTau;
-
-    // Get nodal data
-    const auto& r_v = rData.Velocity;
-    const auto& r_vn = rData.VelocityOld1;
-    const auto& r_vnn = rData.VelocityOld2;
-    const auto& r_vmesh = rData.MeshVelocity;
-    const auto& r_f = rData.BodyForce;
-    const auto& r_p = rData.Pressure;
-
-    // Calculate convective velocity
-    const BoundedMatrix<double,3,10> vconv = r_v - r_vmesh;
-
-    // Get stress from material response
-    const auto& r_stress = rData.ShearStress;
-    const auto& C = rData.ConstitutiveMatrix;
-
-    // Get shape function values
-    const auto& N_p = rData.N_p;
-    const auto& N_v = rData.N_v;
-    const auto& DN_p = rData.DN_p;
-    const auto& DN_v = rData.DN_v;
-    const double N_e = rData.N_e;
-    const auto& DN_e = rData.DN_e;
-    const auto& DDN_v = rData.DDN_v;
-
-    // Assemble enrichment contribution
-    const double gauss_weight = rData.Weight;
-    const BoundedMatrix<double,1,3> v_e = ZeroMatrix(1,3);
-
-    //substitute_rhs_ee_3D
-
-    //substitute_K_ue_3D
-
-    //substitute_K_eu_3D
-
-    //substitute_K_ee_3D
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////

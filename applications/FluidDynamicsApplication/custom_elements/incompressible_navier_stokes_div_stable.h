@@ -70,7 +70,7 @@ public:
 
     static constexpr std::size_t LocalSize = VelocityNumNodes*TDim + PressureNumNodes;
 
-    static constexpr IntegrationMethod IntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_3;
+    static constexpr IntegrationMethod IntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_4;
 
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(IncompressibleNavierStokesDivStable);
 
@@ -105,9 +105,6 @@ public:
 
         array_1d<double, PressureNumNodes> N_p;
         BoundedMatrix<double, PressureNumNodes, TDim> DN_p;
-
-        double N_e;
-        BoundedMatrix<double, 1, TDim> DN_e;
 
         // Nodal values
         array_1d<double, PressureNumNodes> Pressure;
@@ -314,8 +311,6 @@ private:
         Matrix& rPressureN,
         GeometryType::ShapeFunctionsGradientsType& rVelocityDNDX,
         GeometryType::ShapeFunctionsGradientsType& rPressureDNDX,
-        Vector& rVelocityBubble,
-        std::vector<BoundedMatrix<double, 1, TDim>>& rVelocityBubbleGrad,
         DenseVector<GeometryType::ShapeFunctionsSecondDerivativesType>& rVelocityDDNDDX);
 
     void CalculateStrainRate(ElementDataContainer& rData);
@@ -327,13 +322,6 @@ private:
     void ComputeGaussPointRHSContribution(
         const ElementDataContainer& rData,
         VectorType& rRHS);
-
-    void ComputeGaussPointEnrichmentContribution(
-        const ElementDataContainer& rData,
-        array_1d<double, TDim>& rRHSee,
-        BoundedMatrix<double, LocalSize, TDim>& rKue,
-        BoundedMatrix<double, TDim, LocalSize>& rKeu,
-        BoundedMatrix<double, TDim, TDim>& rKee);
 
     ///@}
     ///@name Private  Access
