@@ -8,7 +8,7 @@ summary:
 
 # Processes
 
-This section intends to descrive what is a process in Kratos and the different interfaces that are available from python.
+This section intends to describe what is a process in Kratos and the different interfaces that are available from python.
 
 ## Description
 
@@ -32,9 +32,9 @@ Processes in kratos are a set of utilities that will be executed during an `Anal
 
 ### Value Assignement
 
-- [Assign Scalar Variable](/Assing_Values/assign_scalar_variable_process)
-- [Assign Vector Variable](/Assing_Values/assign_vector_variable_process)
-- [Assign Vector By Direction](/Assing_Values/assign_vector_by_direction_process)
-- [Assign Scalar Input](/Assing_Values/assign_scalar_input_process)
+- [Assign Scalar Variable](/Assign_Values/assign_scalar_variable_process)
+- [Assign Vector Variable](/Assign_Values/assign_vector_variable_process)
+- [Assign Vector By Direction](/Assign_Values/assign_vector_by_direction_process)
+- [Assign Scalar Input](/Assign_Values/assign_scalar_input_process)
 
 ### Calculation Utilities
