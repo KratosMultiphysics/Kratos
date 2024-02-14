@@ -44,9 +44,9 @@ namespace Kratos
 
         // Find neighbour elements and conditions because they are needed to construct the partial derivatives
         FindNodalNeighboursProcess neigbhor_elements_finder(mrModelPart);
-        FindConditionsNeighboursProcess neigbhor_conditions_finder = FindConditionsNeighboursProcess(mrModelPart, 10, 10);
+        FindConditionsNeighboursProcess neigbhour_conditions_finder = FindConditionsNeighboursProcess(mrModelPart);
         neigbhor_elements_finder.Execute();
-        neigbhor_conditions_finder.Execute();
+        neigbhour_conditions_finder.Execute();
         mpNeighborElements = mpTracedNode->GetValue(NEIGHBOUR_ELEMENTS);
         mpNeighborConditions = mpTracedNode->GetValue(NEIGHBOUR_CONDITIONS);
     }
