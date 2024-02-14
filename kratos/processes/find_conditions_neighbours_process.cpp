@@ -103,9 +103,9 @@ void FindConditionsNeighboursProcess::Execute()
     #ifdef KRATOS_DEBUG
         // Checking condition
         if (mDim == 2) {
-            KRATOS_ERROR_IF_NOT(r_geom.GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Triangle3D3) << "FindConditionsNeighboursProcess: 2D conditions are not supported (ony lines supported)" << std::endl;
+            KRATOS_ERROR_IF_NOT(r_geom.GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Line2D2) << "FindConditionsNeighboursProcess: 2D conditions are not supported (ony lines supported)" << std::endl;
         } else if (mDim == 3) {
-            KRATOS_ERROR_IF_NOT(r_geom.GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Line2D2) << "FindConditionsNeighboursProcess: 3D conditions are not supported (only triangles supported)" << std::endl;
+            KRATOS_ERROR_IF_NOT(r_geom.GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Triangle3D3) << "FindConditionsNeighboursProcess: 3D conditions are not supported (only triangles supported)" << std::endl;
         }
     #endif
 
@@ -184,9 +184,9 @@ void FindConditionsNeighboursProcess::ComputeDimension()
         mDim = r_geom.WorkingSpaceDimension();
         // Checking first condition, if mesh is mixed may fail later
         if (mDim == 2) {
-            KRATOS_ERROR_IF_NOT(r_geom.GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Triangle3D3) << "FindConditionsNeighboursProcess: 2D conditions are not supported (ony lines supported)" << std::endl;
+            KRATOS_ERROR_IF_NOT(r_geom.GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Line2D2) << "FindConditionsNeighboursProcess: 2D conditions are not supported (ony lines supported)" << std::endl;
         } else if (mDim == 3) {
-            KRATOS_ERROR_IF_NOT(r_geom.GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Line2D2) << "FindConditionsNeighboursProcess: 3D conditions are not supported (only triangles supported)" << std::endl;
+            KRATOS_ERROR_IF_NOT(r_geom.GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Triangle3D3) << "FindConditionsNeighboursProcess: 3D conditions are not supported (only triangles supported)" << std::endl;
         }
     }
     if (mDim != 2 && mDim != 3) {
