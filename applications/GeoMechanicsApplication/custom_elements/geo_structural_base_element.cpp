@@ -268,35 +268,9 @@ template <unsigned int TDim, unsigned int TNumNodes>
 void GeoStructuralBaseElement<TDim, TNumNodes>::EquationIdVector(EquationIdVectorType& rResult,
                                                                  const ProcessInfo& rCurrentProcessInfo) const
 {
-    KRATOS_TRY
-
-    const GeometryType& rGeom = this->GetGeometry();
-
-    if (rResult.size() != N_DOF_ELEMENT) rResult.resize(N_DOF_ELEMENT, false);
-
-    unsigned int index = 0;
-    if constexpr (TDim == 2) {
-        for (unsigned int i = 0; i < TNumNodes; ++i) {
-            rResult[index++] = rGeom[i].GetDof(DISPLACEMENT_X).EquationId();
-            rResult[index++] = rGeom[i].GetDof(DISPLACEMENT_Y).EquationId();
-            rResult[index++] = rGeom[i].GetDof(ROTATION_Z).EquationId();
-        }
-    } else if constexpr (TDim == 3) {
-        for (unsigned int i = 0; i < TNumNodes; ++i) {
-            rResult[index++] = rGeom[i].GetDof(DISPLACEMENT_X).EquationId();
-            rResult[index++] = rGeom[i].GetDof(DISPLACEMENT_Y).EquationId();
-            rResult[index++] = rGeom[i].GetDof(DISPLACEMENT_Z).EquationId();
-            rResult[index++] = rGeom[i].GetDof(ROTATION_X).EquationId();
-            rResult[index++] = rGeom[i].GetDof(ROTATION_Y).EquationId();
-            rResult[index++] = rGeom[i].GetDof(ROTATION_Z).EquationId();
-        }
-    } else {
-        KRATOS_ERROR << "undefined dimension in EquationIdVector... illegal "
-                        "operation!! element: "
-                     << this->Id() << std::endl;
-    }
-
-    KRATOS_CATCH("")
+    DofsVectorType dofs;
+    this->GetDofList(dofs, rCurrentProcessInfo);
+    rResult = GeoElementUtilities::ExtractEquationIdsFrom(dofs);
 }
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
