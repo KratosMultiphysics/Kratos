@@ -78,6 +78,9 @@ public:
         mPipingIterations = rParameters["max_piping_iterations"].GetInt();
     }
 
+    std::vector<Vector> Solutions;
+    Matrix IntermediateSolutionMatrix;
+
     void FinalizeSolutionStep() override
     {
         KRATOS_INFO_IF("PipingLoop", this->GetEchoLevel() > 0 && rank == 0)
@@ -133,6 +136,23 @@ public:
             if (openPipeElements < n_el) {
                 save_or_reset_pipe_heights(OpenPipeElements, grow);
             }
+
+            Vector a = GetCurrentSolution(BaseType::GetModelPart());
+            Solutions.push_back(a);
+            //KRATOS_WATCH(Solutions.size())
+
+            IntermediateSolutionMatrix = ZeroMatrix( a.size(), Solutions.size() );
+
+            for (std::size_t i = 0; i < Solutions.size(); ++i) {
+                for (std::size_t j = 0; j < a.size(); ++j) {
+                    IntermediateSolutionMatrix(j, i) = Solutions[i](j);
+                }
+            }
+
+            //KRATOS_WATCH(IntermediateSolutionMatrix)
+
+            Solutions.clear();
+
             // recalculate groundwater flow
             bool converged = Recalculate();
 
@@ -232,6 +252,11 @@ public:
         return PipeElements;
     }
 
+
+    Matrix GetIntermediateSolutionsMatrix(){
+        return IntermediateSolutionMatrix;
+    }
+
 private:
     unsigned int mPipingIterations; /// This is used to calculate the pipingLength
     int          rank;
@@ -327,6 +352,24 @@ private:
         return GeoMechanicsNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver>::SolveSolutionStep();
     }
 
+
+
+    Vector GetCurrentSolution(
+        ModelPart &rModelPart
+    ) {
+        int NumberOfNodes = rModelPart.NumberOfNodes();
+        Vector a = ZeroVector(NumberOfNodes);
+        //KRATOS_WATCH(NumberOfNodes)
+        for (Node& node : rModelPart.Nodes()){
+            a(node.Id()-1) = node.GetSolutionStepValue(WATER_PRESSURE);
+        }
+        //KRATOS_WATCH(a)
+        return a;
+    }
+
+
+
+
     bool check_pipe_equilibrium(filtered_elements open_pipe_elements, double amax, unsigned int mPipingIterations)
     {
         bool         equilibrium = false;
@@ -350,6 +393,9 @@ private:
             //{
             //    grow = false;
             //}
+
+            Vector a = GetCurrentSolution(BaseType::GetModelPart());
+            Solutions.push_back(a);
 
             if (converged) {
                 // Update depth of open piping Elements

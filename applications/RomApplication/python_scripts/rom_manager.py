@@ -239,6 +239,7 @@ class RomManager(object):
             analysis_stage_class = self._GetAnalysisStageClass(parameters_copy)
             simulation = self.CustomizeSimulation(analysis_stage_class,model,parameters_copy)
             simulation.Run()
+            np.save(f'intermediate_water_pressure_{Id}.npy',np.array(simulation._GetSolver().solver.GetIntermediateSolutionsMatrix()))
             self.QoI_Fit_FOM.append(simulation.GetFinalData())
             for process in simulation._GetListOfOutputProcesses():
                 if isinstance(process, CalculateRomBasisOutputProcess):
