@@ -239,37 +239,6 @@ public:
     void PrintInfo(std::ostream& rOStream) const override;
 
     ///@}
-protected:
-    ///@name Protected member Variables
-    ///@{
-
-
-    ///@}
-    ///@name Protected Operators
-    ///@{
-
-
-    ///@}
-    ///@name Protected Operations
-    ///@{
-
-
-    ///@}
-    ///@name Protected  Access
-    ///@{
-
-
-    ///@}
-    ///@name Protected Inquiry
-    ///@{
-
-
-    ///@}
-    ///@name Protected LifeCycle
-    ///@{
-
-
-    ///@}
 private:
     ///@name Static Member Variables
     ///@{
@@ -315,11 +284,11 @@ private:
 
     void CalculateStrainRate(ElementDataContainer& rData);
 
-    void ComputeGaussPointLHSContribution(
+    void AddGaussPointLeftHandSideContribution(
         const ElementDataContainer& rData,
         MatrixType& rLHS);
 
-    void ComputeGaussPointRHSContribution(
+    void AddGaussPointRightHandSideContribution(
         const ElementDataContainer& rData,
         VectorType& rRHS);
 

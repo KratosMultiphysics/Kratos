@@ -216,8 +216,8 @@ void IncompressibleNavierStokesDivStable<TDim>::CalculateLocalSystem(
         mpConstitutiveLaw->CalculateValue(cons_law_params, EFFECTIVE_VISCOSITY, aux_data.EffectiveViscosity);
 
         // Assemble standard Galerkin contribution
-        ComputeGaussPointLHSContribution(aux_data, rLeftHandSideMatrix);
-        ComputeGaussPointRHSContribution(aux_data, rRightHandSideVector);
+        AddGaussPointLeftHandSideContribution(aux_data, rLeftHandSideMatrix);
+        AddGaussPointRightHandSideContribution(aux_data, rRightHandSideVector);
     }
 }
 
@@ -334,7 +334,7 @@ void IncompressibleNavierStokesDivStable<TDim>::SetElementData(
     rData.Density = this->GetProperties().GetValue(DENSITY);
 
     // Set stabilization values
-    rData.StabC1 = 4.0;
+    rData.StabC1 = 12.0;
     rData.StabC2 = 2.0;
     rData.DynamicTau = rProcessInfo[DYNAMIC_TAU];
     rData.ElementSize = ElementSizeCalculator<TDim, VelocityNumNodes>::AverageElementSize(r_geom);
@@ -441,7 +441,7 @@ void IncompressibleNavierStokesDivStable<TDim>::CalculateStrainRate(ElementDataC
 }
 
 template <>
-void IncompressibleNavierStokesDivStable<2>::ComputeGaussPointLHSContribution(
+void IncompressibleNavierStokesDivStable<2>::AddGaussPointLeftHandSideContribution(
     const ElementDataContainer& rData,
     MatrixType& rLHS)
 {
@@ -478,7 +478,7 @@ void IncompressibleNavierStokesDivStable<2>::ComputeGaussPointLHSContribution(
 }
 
 template <>
-void IncompressibleNavierStokesDivStable<3>::ComputeGaussPointLHSContribution(
+void IncompressibleNavierStokesDivStable<3>::AddGaussPointLeftHandSideContribution(
     const ElementDataContainer& rData,
     MatrixType& rLHS)
 {
@@ -515,7 +515,7 @@ void IncompressibleNavierStokesDivStable<3>::ComputeGaussPointLHSContribution(
 }
 
 template <>
-void IncompressibleNavierStokesDivStable<2>::ComputeGaussPointRHSContribution(
+void IncompressibleNavierStokesDivStable<2>::AddGaussPointRightHandSideContribution(
     const ElementDataContainer& rData,
     VectorType& rRHS)
 {
@@ -563,7 +563,7 @@ void IncompressibleNavierStokesDivStable<2>::ComputeGaussPointRHSContribution(
 }
 
 template <>
-void IncompressibleNavierStokesDivStable<3>::ComputeGaussPointRHSContribution(
+void IncompressibleNavierStokesDivStable<3>::AddGaussPointRightHandSideContribution(
     const ElementDataContainer& rData,
     VectorType& rRHS)
 {

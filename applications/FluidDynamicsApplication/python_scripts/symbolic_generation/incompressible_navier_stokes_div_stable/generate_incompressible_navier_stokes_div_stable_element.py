@@ -2,36 +2,21 @@ import sympy
 from KratosMultiphysics import *
 from KratosMultiphysics.sympy_fe_utilities import *
 
-## Settings explanation
-# DIMENSION TO COMPUTE:
-# This symbolic generator is valid for both 2D and 3D cases. Since the element has been programed with a dimension template in Kratos,
-# it is advised to set the dim_to_compute flag as "Both". In this case the generated .cpp file will contain both 2D and 3D implementations.
-# LINEARISATION SETTINGS:
-# FullNR considers the convective velocity as "v-vmesh", hence v is taken into account in the derivation of the LHS and RHS.
-# Picard (a.k.a. QuasiNR) considers the convective velocity as "a", thus it is considered as a constant in the derivation of the LHS and RHS.
-# DIVIDE BY RHO:
-# If set to true, divides the mass conservation equation by rho in order to have a better conditioned matrix. Otherwise the original form is kept.
-# ARTIFICIAL COMPRESSIBILITY:
-# If set to true, the time derivative of the density is introduced in the mass conservation equation together with the state equation
-# dp/drho=c^2 (being c the sound velocity). Besides, the velocity divergence is not considered to be 0. These assumptions add some extra terms
-# to the usual Navier-Stokes equations that act as a weak compressibility controlled by the value of "c".
-# CONVECTIVE TERM:
-# If set to true, the convective term is taken into account in the calculation of the variational form. This allows generating both
-# Navier-Stokes and Stokes elements.
-
 ## Symbolic generation settings
 mode = "c"
 do_simplifications = False
-# dim_to_compute = "Both"             # Spatial dimensions to compute. Options:  "2D","3D","Both"
-dim_to_compute = "2D"             # Spatial dimensions to compute. Options:  "2D","3D","Both"
+dim_to_compute = "Both"      # Spatial dimensions to compute. Options:  "2D","3D","Both"
+linearisation = "Picard"     # Convective term linearisation type
+add_pressure_subscale = True # Specifies if the pressure subscale is added to the momentum equation to get the div(w)div(v) term
 
-linearisation = "Picard" # Convective term linearisation type. Options: "Picard", "FullNR"
 output_filename = "incompressible_navier_stokes_div_stable.cpp"
 template_filename = "incompressible_navier_stokes_div_stable_cpp_template.cpp"
 
 info_msg = "\n"
 info_msg += "Element generator settings:\n"
-info_msg += "\t - Dimension: " + dim_to_compute + "\n"
+info_msg += f"\t - Dimension: {dim_to_compute}\n"
+info_msg += f"\t - Linearisation: {linearisation}\n"
+info_msg += f"\t - Pressure subscale: {add_pressure_subscale}\n"
 print(info_msg)
 
 if dim_to_compute == "2D":
@@ -48,7 +33,7 @@ elif dim_to_compute == "Both":
     p_nodes_vector = [3, 4] # tria, tet
 
 ## Initialize the outstring to be filled with the template .cpp file
-print("Reading template file \'"+ template_filename + "\'\n")
+print(f"Reading template file \'{template_filename}'\n")
 templatefile = open(template_filename)
 outstring = templatefile.read()
 
@@ -100,13 +85,13 @@ for dim, v_n_nodes, p_n_nodes in zip(dim_vector, v_nodes_vector, p_nodes_vector)
     bdf2 = sympy.Symbol('rData.BDF2')
 
     ## Convective velocity definition
-    if (linearisation == "Picard"):
+    if linearisation == "Picard":
         vconv = DefineMatrix('vconv',v_n_nodes,dim)     # Convective velocity defined a symbol
-    elif (linearisation == "FullNR"):
+    elif linearisation == "FullNR":
         vmesh = DefineMatrix('r_vmesh',v_n_nodes,dim)   # Mesh velocity
         vconv = v - vmesh                               # Convective velocity defined as a velocity dependent variable
     else:
-        raise Exception("Wrong linearisation \'" + linearisation + "\' selected. Available options are \'Picard\' and \'FullNR\'.")
+        raise Exception(f"Wrong linearisation \'{linearisation}\' selected. Available options are \'Picard\' and \'FullNR\'.")
     vconv_gauss = vconv.transpose()*N_v
 
     ## Compute the rest of magnitudes at the Gauss points
@@ -134,7 +119,7 @@ for dim, v_n_nodes, p_n_nodes in zip(dim_vector, v_nodes_vector, p_nodes_vector)
     div_vconv = div(DN_v, vconv)
 
     grad_sym_v = grad_sym_voigtform(DN_v,v)       # Symmetric gradient of v in Voigt notation
-    grad_sym_w_voigt = grad_sym_voigtform(DN_v,w)     # Symmetric gradient of w in Voigt notation
+    grad_sym_w_voigt = grad_sym_voigtform(DN_v,w) # Symmetric gradient of w in Voigt notation
     # Recall that the grad(w):stress contraction equals grad_sym(w)*stress in Voigt notation since the stress is a symmetric tensor.
 
     # Convective term definition
@@ -150,15 +135,10 @@ for dim, v_n_nodes, p_n_nodes in zip(dim_vector, v_nodes_vector, p_nodes_vector)
     for i in range(dim):
         stab_norm_a += vconv_gauss[i]**2
     stab_norm_a = sympy.sqrt(stab_norm_a)
-    tau = 1.0/(rho*dyn_tau/dt + stab_c2*rho*stab_norm_a/h + stab_c1*mu/h**2) # Stabilization operator
+    tau_1 = 1.0/(rho*dyn_tau/dt + stab_c2*rho*stab_norm_a/h + stab_c1*mu/h**2) # Velocity stabilization operator
+    tau_2 = mu + stab_c2*rho*stab_norm_a*h/stab_c1                             # Pressure stabilization operator
 
     C_aux = ConvertVoigtMatrixToTensor(C) # Definition of the 4th order constitutive tensor from the previous definition symbols
-    # DDN = sympy.MutableDenseNDimArray(sympy.zeros(v_n_nodes*dim*dim), shape=(v_n_nodes,dim,dim))
-    # for i in range(v_n_nodes):
-    #     for j in range(dim):
-    #         for k in range(dim):
-    #             DDN[i,j,k] = sympy.var(f"DDN_{i}_{j}_{k}")
-
     DDN_v = sympy.Matrix(1, v_n_nodes, lambda _, j : (sympy.Matrix(dim, dim, lambda m, n : sympy.var(f"DDN_v_{j}_{m}_{n}"))))
 
     div_stress = sympy.zeros(dim, 1)
@@ -170,11 +150,16 @@ for dim, v_n_nodes, p_n_nodes in zip(dim_vector, v_nodes_vector, p_nodes_vector)
                         div_stress[i] += 0.5*C_aux[i,j,k,m]*(DDN_v[0,n][i,m]*v[n,k] + DDN_v[0,n][i,k]*v[n,m])
 
     mom_residual = rho*f_gauss - rho*accel_gauss - rho*convective_term_gauss.transpose() + div_stress - grad_p
-    vel_subscale = tau * mom_residual
+    vel_subscale = tau_1 * mom_residual
+
+    mass_residual = - div_v
+    pres_subscale = tau_2 * mass_residual
 
     rv_stab = grad_q.transpose()*vel_subscale
     rv_stab += rho*vconv_gauss.transpose()*grad_w*vel_subscale
     rv_stab += rho*div_vconv*w_gauss.transpose()*vel_subscale
+    if add_pressure_subscale:
+        rv_stab += div_w * pres_subscale
 
     ## Define DOFs and test function vectors
     n_dofs = v_n_nodes * dim + p_n_nodes
@@ -217,7 +202,7 @@ for dim, v_n_nodes, p_n_nodes in zip(dim_vector, v_nodes_vector, p_nodes_vector)
     outstring = outstring.replace(f"//substitute_rhs_{dim}D", rhs_out)
 
 ## Write the modified template
-print("Writing output file \'" + output_filename + "\'")
+print(f"Writing output file \'{output_filename}\'")
 out = open(output_filename,'w')
 out.write(outstring)
 out.close()
