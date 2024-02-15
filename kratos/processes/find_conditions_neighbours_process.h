@@ -203,9 +203,10 @@ private:
     ///@name Member Variables
     ///@{
 
-    ModelPart& mrModelPart;               /// Reference to the model part.
-    unsigned int mAverageConditions = 10; /// Expected number of neighboring conditions per node.
-    int mDim = -1;                        /// Dimension of the problem. NOTE: Should be a template argument
+    ModelPart& mrModelPart;                              /// Reference to the model part.
+    unsigned int mAverageConditions = 10;                /// Expected number of neighboring conditions per node.
+    int mDim = -1;                                       /// Dimension of the problem. NOTE: Should be a template argument
+    bool mComputeNeighbourConditionsToConditions = true; /// If the neighbour conditions to the conditions are computed
 
     ///@}
     ///@name Private Operators
