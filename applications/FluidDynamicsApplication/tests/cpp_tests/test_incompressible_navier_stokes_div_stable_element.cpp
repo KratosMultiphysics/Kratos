@@ -24,7 +24,7 @@
 
 // Application includes
 #include "custom_constitutive/newtonian_2d_law.h"
-#include "custom_elements/incompressible_navier_stokes_div_stable.h"
+#include "custom_elements/incompressible_navier_stokes_p2_p1_continuous.h"
 
 namespace Kratos::Testing {
 

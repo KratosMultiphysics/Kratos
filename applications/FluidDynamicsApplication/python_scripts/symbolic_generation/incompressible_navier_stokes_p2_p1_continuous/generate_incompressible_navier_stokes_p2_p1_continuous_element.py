@@ -9,8 +9,8 @@ dim_to_compute = "Both"      # Spatial dimensions to compute. Options:  "2D","3D
 linearisation = "Picard"     # Convective term linearisation type
 add_pressure_subscale = True # Specifies if the pressure subscale is added to the momentum equation to get the div(w)div(v) term
 
-output_filename = "incompressible_navier_stokes_div_stable.cpp"
-template_filename = "incompressible_navier_stokes_div_stable_cpp_template.cpp"
+output_filename = "incompressible_navier_stokes_p2_p1_continuous.cpp"
+template_filename = "incompressible_navier_stokes_p2_p1_continuous_cpp_template.cpp"
 
 info_msg = "\n"
 info_msg += "Element generator settings:\n"

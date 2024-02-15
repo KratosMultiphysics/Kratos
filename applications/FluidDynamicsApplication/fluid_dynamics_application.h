@@ -55,7 +55,7 @@
 #include "custom_elements/fractional_step.h"
 #include "custom_elements/fractional_step_discontinuous.h"
 #include "custom_elements/spalart_allmaras.h"
-#include "custom_elements/incompressible_navier_stokes_div_stable.h"
+#include "custom_elements/incompressible_navier_stokes_p2_p1_continuous.h"
 
 #include "custom_conditions/wall_condition.h"
 #include "custom_conditions/fs_werner_wengle_wall_condition.h"

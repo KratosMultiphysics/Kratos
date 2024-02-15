@@ -20,7 +20,7 @@
 #include "utilities/element_size_calculator.h"
 
 // Application includes
-#include "incompressible_navier_stokes_div_stable.h"
+#include "incompressible_navier_stokes_p2_p1_continuous.h"
 
 namespace Kratos
 {
