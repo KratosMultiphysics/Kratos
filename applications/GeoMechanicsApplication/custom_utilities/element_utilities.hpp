@@ -696,9 +696,6 @@ public:
         }
         return nodal_hydraulic_heads;
     }
-
-    static Element::EquationIdVectorType ExtractEquationIdsFrom(const Element::DofsVectorType& rDofs);
-
 }; /* Class GeoElementUtilities*/
 } /* namespace Kratos.*/
 

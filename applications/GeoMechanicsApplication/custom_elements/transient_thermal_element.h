@@ -16,7 +16,7 @@
 
 #include "custom_constitutive/thermal_dispersion_law.h"
 #include "custom_retention/retention_law_factory.h"
-#include "custom_utilities/element_utilities.hpp"
+#include "custom_utilities/dof_utilities.h"
 #include "geo_mechanics_application_variables.h"
 #include "includes/element.h"
 #include "includes/serializer.h"
@@ -68,7 +68,7 @@ public:
     {
         DofsVectorType dofs;
         this->GetDofList(dofs, rCurrentProcessInfo);
-        rResult = GeoElementUtilities::ExtractEquationIdsFrom(dofs);
+        rResult = ExtractEquationIdsFrom(dofs);
     }
 
     void CalculateLocalSystem(MatrixType&        rLeftHandSideMatrix,

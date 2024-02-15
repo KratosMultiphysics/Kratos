@@ -12,6 +12,7 @@
 
 // Application includes
 #include "custom_elements/transient_Pw_element.hpp"
+#include "custom_utilities/dof_utilities.h"
 
 namespace Kratos
 {
@@ -61,7 +62,7 @@ void TransientPwElement<TDim, TNumNodes>::EquationIdVector(EquationIdVectorType&
 {
     DofsVectorType dofs;
     this->GetDofList(dofs, rCurrentProcessInfo);
-    rResult = GeoElementUtilities::ExtractEquationIdsFrom(dofs);
+    rResult = ExtractEquationIdsFrom(dofs);
 }
 
 //----------------------------------------------------------------------------------------

@@ -18,7 +18,7 @@
 // Project includes
 #include "custom_elements/geo_truss_element_base.hpp"
 #include "../StructuralMechanicsApplication/custom_utilities/structural_mechanics_element_utilities.h"
-#include "custom_utilities/element_utilities.hpp"
+#include "custom_utilities/dof_utilities.h"
 #include "geo_mechanics_application_variables.h"
 #include "includes/checks.h"
 #include "includes/define.h"
@@ -75,7 +75,7 @@ void GeoTrussElementBase<TDim, TNumNodes>::EquationIdVector(EquationIdVectorType
 {
     DofsVectorType dofs;
     this->GetDofList(dofs, rCurrentProcessInfo);
-    rResult = GeoElementUtilities::ExtractEquationIdsFrom(dofs);
+    rResult = ExtractEquationIdsFrom(dofs);
 }
 
 //----------------------------------------------------------------------------------------

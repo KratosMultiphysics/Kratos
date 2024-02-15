@@ -13,6 +13,7 @@
 
 // Application includes
 #include "custom_elements/U_Pw_base_element.hpp"
+#include "custom_utilities/dof_utilities.h"
 
 namespace Kratos
 {
@@ -326,7 +327,7 @@ void UPwBaseElement<TDim, TNumNodes>::CalculateRightHandSide(VectorType& rRightH
 template <unsigned int TDim, unsigned int TNumNodes>
 void UPwBaseElement<TDim, TNumNodes>::EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo&) const
 {
-    rResult = GeoElementUtilities::ExtractEquationIdsFrom(this->GetDofs());
+    rResult = ExtractEquationIdsFrom(this->GetDofs());
 }
 
 //----------------------------------------------------------------------------------------

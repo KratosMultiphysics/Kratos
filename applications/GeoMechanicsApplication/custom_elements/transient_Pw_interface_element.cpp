@@ -12,6 +12,7 @@
 
 // Application includes
 #include "custom_elements/transient_Pw_interface_element.hpp"
+#include "custom_utilities/dof_utilities.h"
 #include "custom_utilities/interface_element_utilities.hpp"
 #include "geo_mechanics_application_variables.h"
 
@@ -707,7 +708,7 @@ void TransientPwInterfaceElement<TDim, TNumNodes>::EquationIdVector(EquationIdVe
 {
     DofsVectorType dofs;
     this->GetDofList(dofs, rCurrentProcessInfo);
-    rResult = GeoElementUtilities::ExtractEquationIdsFrom(dofs);
+    rResult = ExtractEquationIdsFrom(dofs);
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>

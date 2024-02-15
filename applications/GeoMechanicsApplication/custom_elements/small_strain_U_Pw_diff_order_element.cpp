@@ -20,6 +20,7 @@
 
 // Application includes
 #include "custom_elements/small_strain_U_Pw_diff_order_element.hpp"
+#include "custom_utilities/dof_utilities.h"
 #include "custom_utilities/element_utilities.hpp"
 
 namespace Kratos
@@ -574,7 +575,7 @@ void SmallStrainUPwDiffOrderElement::EquationIdVector(EquationIdVectorType& rRes
 {
     DofsVectorType dofs;
     GetDofList(dofs, rCurrentProcessInfo);
-    rResult = GeoElementUtilities::ExtractEquationIdsFrom(dofs);
+    rResult = ExtractEquationIdsFrom(dofs);
 }
 
 void SmallStrainUPwDiffOrderElement::GetFirstDerivativesVector(Vector& rValues, int Step) const
@@ -2268,7 +2269,7 @@ Vector SmallStrainUPwDiffOrderElement::CalculateGreenLagrangeStrain(const Matrix
 
     if (Dim == 2) {
         Vector StrainVector;
-        StrainVector = MathUtils<double>::StrainTensorToVector(ETensor);
+        StrainVector                     = MathUtils<double>::StrainTensorToVector(ETensor);
         result[INDEX_2D_PLANE_STRAIN_XX] = StrainVector[0];
         result[INDEX_2D_PLANE_STRAIN_YY] = StrainVector[1];
         result[INDEX_2D_PLANE_STRAIN_ZZ] = 0.0;
