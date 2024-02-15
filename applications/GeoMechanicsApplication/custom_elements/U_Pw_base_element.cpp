@@ -220,38 +220,9 @@ void UPwBaseElement<TDim, TNumNodes>::ResetConstitutiveLaw()
 
 //----------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
-void UPwBaseElement<TDim, TNumNodes>::GetDofList(DofsVectorType&    rElementalDofList,
-                                                 const ProcessInfo& rCurrentProcessInfo) const
+void UPwBaseElement<TDim, TNumNodes>::GetDofList(DofsVectorType& rElementalDofList, const ProcessInfo&) const
 {
-    KRATOS_TRY
-
-    const GeometryType& rGeom = this->GetGeometry();
-    const unsigned int  N_DOF = this->GetNumberOfDOF();
-
-    if (rElementalDofList.size() != N_DOF) rElementalDofList.resize(N_DOF);
-
-    if constexpr (TDim == 3) {
-        unsigned int index = 0;
-        for (unsigned int i = 0; i < TNumNodes; ++i) {
-            rElementalDofList[index++] = rGeom[i].pGetDof(DISPLACEMENT_X);
-            rElementalDofList[index++] = rGeom[i].pGetDof(DISPLACEMENT_Y);
-            rElementalDofList[index++] = rGeom[i].pGetDof(DISPLACEMENT_Z);
-            rElementalDofList[index++] = rGeom[i].pGetDof(WATER_PRESSURE);
-        }
-    } else if constexpr (TDim == 2) {
-        unsigned int index = 0;
-        for (unsigned int i = 0; i < TNumNodes; ++i) {
-            rElementalDofList[index++] = rGeom[i].pGetDof(DISPLACEMENT_X);
-            rElementalDofList[index++] = rGeom[i].pGetDof(DISPLACEMENT_Y);
-            rElementalDofList[index++] = rGeom[i].pGetDof(WATER_PRESSURE);
-        }
-    } else {
-        KRATOS_ERROR << "undefined dimension in GetDofList... illegal "
-                        "operation!!"
-                     << this->Id() << std::endl;
-    }
-
-    KRATOS_CATCH("")
+    rElementalDofList = this->GetDofs();
 }
 
 //----------------------------------------------------------------------------------------
@@ -353,12 +324,9 @@ void UPwBaseElement<TDim, TNumNodes>::CalculateRightHandSide(VectorType& rRightH
 
 //----------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
-void UPwBaseElement<TDim, TNumNodes>::EquationIdVector(EquationIdVectorType& rResult,
-                                                       const ProcessInfo& rCurrentProcessInfo) const
+void UPwBaseElement<TDim, TNumNodes>::EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo&) const
 {
-    DofsVectorType dofs;
-    this->GetDofList(dofs, rCurrentProcessInfo);
-    rResult = GeoElementUtilities::ExtractEquationIdsFrom(dofs);
+    rResult = GeoElementUtilities::ExtractEquationIdsFrom(this->GetDofs());
 }
 
 //----------------------------------------------------------------------------------------
@@ -414,35 +382,14 @@ void UPwBaseElement<TDim, TNumNodes>::CalculateDampingMatrix(MatrixType&        
 template <unsigned int TDim, unsigned int TNumNodes>
 void UPwBaseElement<TDim, TNumNodes>::GetValuesVector(Vector& rValues, int Step) const
 {
-    KRATOS_TRY
+    const auto dofs = this->GetDofs();
+    rValues.resize(dofs.size());
 
-    const GeometryType& rGeom = this->GetGeometry();
-    const unsigned int  N_DOF = this->GetNumberOfDOF();
-
-    if (rValues.size() != N_DOF) rValues.resize(N_DOF, false);
-
-    if (TDim == 2) {
-        unsigned int index = 0;
-        for (unsigned int i = 0; i < TNumNodes; ++i) {
-            rValues[index++] = rGeom[i].FastGetSolutionStepValue(DISPLACEMENT_X, Step);
-            rValues[index++] = rGeom[i].FastGetSolutionStepValue(DISPLACEMENT_Y, Step);
-            rValues[index++] = 0.0;
-        }
-    } else if (TDim == 3) {
-        unsigned int index = 0;
-        for (unsigned int i = 0; i < TNumNodes; ++i) {
-            rValues[index++] = rGeom[i].FastGetSolutionStepValue(DISPLACEMENT_X, Step);
-            rValues[index++] = rGeom[i].FastGetSolutionStepValue(DISPLACEMENT_Y, Step);
-            rValues[index++] = rGeom[i].FastGetSolutionStepValue(DISPLACEMENT_Z, Step);
-            rValues[index++] = 0.0;
-        }
-    } else {
-        KRATOS_ERROR << "undefined dimension in GetValuesVector... illegal "
-                        "operation!!"
-                     << this->Id() << std::endl;
-    }
-
-    KRATOS_CATCH("")
+    auto get_dof_value = [Step](const auto p_dof) -> double {
+        // Why should we return 0.0 for water pressures?
+        return p_dof->GetVariable() == WATER_PRESSURE ? 0.0 : p_dof->GetSolutionStepValue(Step);
+    };
+    std::transform(dofs.begin(), dofs.end(), rValues.begin(), get_dof_value);
 }
 
 //----------------------------------------------------------------------------------------
@@ -752,6 +699,41 @@ template <unsigned int TDim, unsigned int TNumNodes>
 unsigned int UPwBaseElement<TDim, TNumNodes>::GetNumberOfDOF() const
 {
     return TNumNodes * (TDim + 1);
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
+Element::DofsVectorType UPwBaseElement<TDim, TNumNodes>::GetDofs() const
+{
+    KRATOS_TRY
+
+    auto result = Element::DofsVectorType(this->GetNumberOfDOF());
+
+    const GeometryType& rGeom = this->GetGeometry();
+
+    if constexpr (TDim == 3) {
+        unsigned int index = 0;
+        for (unsigned int i = 0; i < TNumNodes; ++i) {
+            result[index++] = rGeom[i].pGetDof(DISPLACEMENT_X);
+            result[index++] = rGeom[i].pGetDof(DISPLACEMENT_Y);
+            result[index++] = rGeom[i].pGetDof(DISPLACEMENT_Z);
+            result[index++] = rGeom[i].pGetDof(WATER_PRESSURE);
+        }
+    } else if constexpr (TDim == 2) {
+        unsigned int index = 0;
+        for (unsigned int i = 0; i < TNumNodes; ++i) {
+            result[index++] = rGeom[i].pGetDof(DISPLACEMENT_X);
+            result[index++] = rGeom[i].pGetDof(DISPLACEMENT_Y);
+            result[index++] = rGeom[i].pGetDof(WATER_PRESSURE);
+        }
+    } else {
+        KRATOS_ERROR << "undefined dimension in GetDofs... illegal "
+                        "operation!!"
+                     << this->Id() << std::endl;
+    }
+
+    return result;
+
+    KRATOS_CATCH("")
 }
 
 //----------------------------------------------------------------------------------------
