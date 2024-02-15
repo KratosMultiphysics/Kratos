@@ -450,8 +450,8 @@ private:
     const TwoFluidNavierStokesWallCondition<3,3> mTwoFluidNavierStokesWallCondition3D;
 
     /// Incompressible Navier-Stokes div-stable element
-    const IncompressibleNavierStokesDivStable<2> mIncompressibleNavierStokesDivStable2D6N;
-    const IncompressibleNavierStokesDivStable<3> mIncompressibleNavierStokesDivStable3D10N;
+    const IncompressibleNavierStokesP2P1Continuous<2> mIncompressibleNavierStokesP2P1Continuous2D6N;
+    const IncompressibleNavierStokesP2P1Continuous<3> mIncompressibleNavierStokesP2P1Continuous3D10N;
 
     /// Fluid constitutive laws
     const Bingham3DLaw mBingham3DLaw;

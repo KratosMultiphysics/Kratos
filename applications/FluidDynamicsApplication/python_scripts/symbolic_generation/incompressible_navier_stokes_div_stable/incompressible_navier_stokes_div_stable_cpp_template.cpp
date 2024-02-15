@@ -29,26 +29,26 @@ namespace Kratos
 // Life cycle
 
 template< unsigned int TDim >
-IncompressibleNavierStokesDivStable<TDim>::IncompressibleNavierStokesDivStable(IndexType NewId)
+IncompressibleNavierStokesP2P1Continuous<TDim>::IncompressibleNavierStokesP2P1Continuous(IndexType NewId)
     : Element(NewId)
 {}
 
 template< unsigned int TDim >
-IncompressibleNavierStokesDivStable<TDim>::IncompressibleNavierStokesDivStable(
+IncompressibleNavierStokesP2P1Continuous<TDim>::IncompressibleNavierStokesP2P1Continuous(
     IndexType NewId,
     const NodesArrayType& ThisNodes)
     : Element(NewId, ThisNodes)
 {}
 
 template< unsigned int TDim >
-IncompressibleNavierStokesDivStable<TDim>::IncompressibleNavierStokesDivStable(
+IncompressibleNavierStokesP2P1Continuous<TDim>::IncompressibleNavierStokesP2P1Continuous(
     IndexType NewId,
     GeometryType::Pointer pGeometry)
     : Element(NewId, pGeometry)
 {}
 
 template< unsigned int TDim >
-IncompressibleNavierStokesDivStable<TDim>::IncompressibleNavierStokesDivStable(
+IncompressibleNavierStokesP2P1Continuous<TDim>::IncompressibleNavierStokesP2P1Continuous(
     IndexType NewId,
     GeometryType::Pointer pGeometry,
     Properties::Pointer pProperties)
@@ -56,32 +56,32 @@ IncompressibleNavierStokesDivStable<TDim>::IncompressibleNavierStokesDivStable(
 {}
 
 template< unsigned int TDim >
-IncompressibleNavierStokesDivStable<TDim>::~IncompressibleNavierStokesDivStable()
+IncompressibleNavierStokesP2P1Continuous<TDim>::~IncompressibleNavierStokesP2P1Continuous()
 {}
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Public Operations
 
 template< unsigned int TDim >
-Element::Pointer IncompressibleNavierStokesDivStable<TDim>::Create(
+Element::Pointer IncompressibleNavierStokesP2P1Continuous<TDim>::Create(
     IndexType NewId,
     NodesArrayType const& ThisNodes,
     Properties::Pointer pProperties) const
 {
-    return Kratos::make_intrusive<IncompressibleNavierStokesDivStable<TDim>>(NewId, this->GetGeometry().Create(ThisNodes), pProperties);
+    return Kratos::make_intrusive<IncompressibleNavierStokesP2P1Continuous<TDim>>(NewId, this->GetGeometry().Create(ThisNodes), pProperties);
 }
 
 template< unsigned int TDim >
-Element::Pointer IncompressibleNavierStokesDivStable<TDim>::Create(
+Element::Pointer IncompressibleNavierStokesP2P1Continuous<TDim>::Create(
     IndexType NewId,
     GeometryType::Pointer pGeom,
     Properties::Pointer pProperties) const
 {
-    return Kratos::make_intrusive<IncompressibleNavierStokesDivStable<TDim>>(NewId, pGeom, pProperties);
+    return Kratos::make_intrusive<IncompressibleNavierStokesP2P1Continuous<TDim>>(NewId, pGeom, pProperties);
 }
 
 template< unsigned int TDim >
-void IncompressibleNavierStokesDivStable<TDim>::Initialize(const ProcessInfo& rCurrentProcessInfo)
+void IncompressibleNavierStokesP2P1Continuous<TDim>::Initialize(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY;
 
@@ -104,7 +104,7 @@ void IncompressibleNavierStokesDivStable<TDim>::Initialize(const ProcessInfo& rC
 }
 
 template< unsigned int TDim >
-void IncompressibleNavierStokesDivStable<TDim>::EquationIdVector(
+void IncompressibleNavierStokesP2P1Continuous<TDim>::EquationIdVector(
     EquationIdVectorType &rResult,
     const ProcessInfo &rCurrentProcessInfo) const
 {
@@ -130,7 +130,7 @@ void IncompressibleNavierStokesDivStable<TDim>::EquationIdVector(
 }
 
 template< unsigned int TDim >
-void IncompressibleNavierStokesDivStable<TDim>::GetDofList(
+void IncompressibleNavierStokesP2P1Continuous<TDim>::GetDofList(
     DofsVectorType &rElementalDofList,
     const ProcessInfo &rCurrentProcessInfo) const
 {
@@ -156,7 +156,7 @@ void IncompressibleNavierStokesDivStable<TDim>::GetDofList(
 }
 
 template< unsigned int TDim >
-void IncompressibleNavierStokesDivStable<TDim>::CalculateLocalSystem(
+void IncompressibleNavierStokesP2P1Continuous<TDim>::CalculateLocalSystem(
     MatrixType& rLeftHandSideMatrix,
     VectorType& rRightHandSideVector,
     const ProcessInfo& rCurrentProcessInfo)
@@ -225,7 +225,7 @@ void IncompressibleNavierStokesDivStable<TDim>::CalculateLocalSystem(
 // Public Inquiry
 
 template< unsigned int TDim >
-int IncompressibleNavierStokesDivStable<TDim>::Check(const ProcessInfo &rCurrentProcessInfo) const
+int IncompressibleNavierStokesP2P1Continuous<TDim>::Check(const ProcessInfo &rCurrentProcessInfo) const
 {
     KRATOS_TRY;
     int out = Element::Check(rCurrentProcessInfo);
@@ -242,7 +242,7 @@ int IncompressibleNavierStokesDivStable<TDim>::Check(const ProcessInfo &rCurrent
 // Public I/O
 
 template< unsigned int TDim >
-const Parameters IncompressibleNavierStokesDivStable<TDim>::GetSpecifications() const
+const Parameters IncompressibleNavierStokesP2P1Continuous<TDim>::GetSpecifications() const
 {
     const Parameters specifications = Parameters(R"({
         "time_integration"           : ["implicit"],
@@ -282,15 +282,15 @@ const Parameters IncompressibleNavierStokesDivStable<TDim>::GetSpecifications() 
 }
 
 template< unsigned int TDim >
-std::string IncompressibleNavierStokesDivStable<TDim>::Info() const
+std::string IncompressibleNavierStokesP2P1Continuous<TDim>::Info() const
 {
     std::stringstream buffer;
-    buffer << "IncompressibleNavierStokesDivStable" << TDim << "D" << VelocityNumNodes << "N #" << this->Id();
+    buffer << "IncompressibleNavierStokesP2P1Continuous" << TDim << "D" << VelocityNumNodes << "N #" << this->Id();
     return buffer.str();
 }
 
 template< unsigned int TDim >
-void IncompressibleNavierStokesDivStable<TDim>::PrintInfo(std::ostream& rOStream) const
+void IncompressibleNavierStokesP2P1Continuous<TDim>::PrintInfo(std::ostream& rOStream) const
 {
     rOStream << this->Info() << std::endl;
 
@@ -304,7 +304,7 @@ void IncompressibleNavierStokesDivStable<TDim>::PrintInfo(std::ostream& rOStream
 // Private operations
 
 template <unsigned int TDim>
-void IncompressibleNavierStokesDivStable<TDim>::SetElementData(
+void IncompressibleNavierStokesP2P1Continuous<TDim>::SetElementData(
     const ProcessInfo& rProcessInfo,
     ElementDataContainer &rData)
 {
@@ -348,7 +348,7 @@ void IncompressibleNavierStokesDivStable<TDim>::SetElementData(
 }
 
 template< unsigned int TDim >
-void IncompressibleNavierStokesDivStable<TDim>::CalculateKinematics(
+void IncompressibleNavierStokesP2P1Continuous<TDim>::CalculateKinematics(
     Vector& rGaussWeights,
     Matrix& rVelocityN,
     Matrix& rPressureN,
@@ -414,7 +414,7 @@ void IncompressibleNavierStokesDivStable<TDim>::CalculateKinematics(
 }
 
 template< unsigned int TDim >
-void IncompressibleNavierStokesDivStable<TDim>::CalculateStrainRate(ElementDataContainer& rData)
+void IncompressibleNavierStokesP2P1Continuous<TDim>::CalculateStrainRate(ElementDataContainer& rData)
 {
     if (rData.StrainRate.size() != StrainSize) {
         rData.StrainRate.resize(StrainSize, false);
@@ -441,7 +441,7 @@ void IncompressibleNavierStokesDivStable<TDim>::CalculateStrainRate(ElementDataC
 }
 
 template <>
-void IncompressibleNavierStokesDivStable<2>::AddGaussPointLeftHandSideContribution(
+void IncompressibleNavierStokesP2P1Continuous<2>::AddGaussPointLeftHandSideContribution(
     const ElementDataContainer& rData,
     MatrixType& rLHS)
 {
@@ -478,7 +478,7 @@ void IncompressibleNavierStokesDivStable<2>::AddGaussPointLeftHandSideContributi
 }
 
 template <>
-void IncompressibleNavierStokesDivStable<3>::AddGaussPointLeftHandSideContribution(
+void IncompressibleNavierStokesP2P1Continuous<3>::AddGaussPointLeftHandSideContribution(
     const ElementDataContainer& rData,
     MatrixType& rLHS)
 {
@@ -515,7 +515,7 @@ void IncompressibleNavierStokesDivStable<3>::AddGaussPointLeftHandSideContributi
 }
 
 template <>
-void IncompressibleNavierStokesDivStable<2>::AddGaussPointRightHandSideContribution(
+void IncompressibleNavierStokesP2P1Continuous<2>::AddGaussPointRightHandSideContribution(
     const ElementDataContainer& rData,
     VectorType& rRHS)
 {
@@ -563,7 +563,7 @@ void IncompressibleNavierStokesDivStable<2>::AddGaussPointRightHandSideContribut
 }
 
 template <>
-void IncompressibleNavierStokesDivStable<3>::AddGaussPointRightHandSideContribution(
+void IncompressibleNavierStokesP2P1Continuous<3>::AddGaussPointRightHandSideContribution(
     const ElementDataContainer& rData,
     VectorType& rRHS)
 {
@@ -614,14 +614,14 @@ void IncompressibleNavierStokesDivStable<3>::AddGaussPointRightHandSideContribut
 // Private serialization
 
 template< unsigned int TDim >
-void IncompressibleNavierStokesDivStable<TDim>::save(Serializer& rSerializer) const
+void IncompressibleNavierStokesP2P1Continuous<TDim>::save(Serializer& rSerializer) const
 {
     KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Element);
 }
 
 
 template< unsigned int TDim >
-void IncompressibleNavierStokesDivStable<TDim>::load(Serializer& rSerializer)
+void IncompressibleNavierStokesP2P1Continuous<TDim>::load(Serializer& rSerializer)
 {
     KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element);
 }
@@ -629,7 +629,7 @@ void IncompressibleNavierStokesDivStable<TDim>::load(Serializer& rSerializer)
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Class template instantiation
 
-template class IncompressibleNavierStokesDivStable<2>;
-template class IncompressibleNavierStokesDivStable<3>;
+template class IncompressibleNavierStokesP2P1Continuous<2>;
+template class IncompressibleNavierStokesP2P1Continuous<3>;
 
 }

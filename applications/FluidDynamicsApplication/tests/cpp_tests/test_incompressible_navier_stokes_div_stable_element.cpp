@@ -28,7 +28,7 @@
 
 namespace Kratos::Testing {
 
-KRATOS_TEST_CASE_IN_SUITE(IncompressibleNavierStokesDivStable2D6N, FluidDynamicsApplicationFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(IncompressibleNavierStokesP2P1Continuous2D6N, FluidDynamicsApplicationFastSuite)
 {
     Model model;
     unsigned int buffer_size = 3;
@@ -74,7 +74,7 @@ KRATOS_TEST_CASE_IN_SUITE(IncompressibleNavierStokesDivStable2D6N, FluidDynamics
     }
 
     std::vector<ModelPart::IndexType> element_nodes {1, 2, 3, 4, 5, 6};
-    auto p_elem = r_model_part.CreateNewElement("IncompressibleNavierStokesDivStable2D6N", 1, element_nodes, p_properties);
+    auto p_elem = r_model_part.CreateNewElement("IncompressibleNavierStokesP2P1Continuous2D6N", 1, element_nodes, p_properties);
 
     // Define and set the nodal values
     Matrix reference_velocity(6,2);

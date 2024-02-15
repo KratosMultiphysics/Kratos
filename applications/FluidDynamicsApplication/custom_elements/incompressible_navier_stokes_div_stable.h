@@ -56,7 +56,7 @@ namespace Kratos
 ///@{
 
 template< unsigned int TDim >
-class IncompressibleNavierStokesDivStable : public Element
+class IncompressibleNavierStokesP2P1Continuous : public Element
 {
 public:
     ///@name Type Definitions
@@ -72,7 +72,7 @@ public:
 
     static constexpr IntegrationMethod IntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_4;
 
-    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(IncompressibleNavierStokesDivStable);
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(IncompressibleNavierStokesP2P1Continuous);
 
     using BaseType = Element;
 
@@ -147,14 +147,14 @@ public:
     /**
      * @param NewId Index number of the new element (optional)
      */
-    IncompressibleNavierStokesDivStable(IndexType NewId = 0);
+    IncompressibleNavierStokesP2P1Continuous(IndexType NewId = 0);
 
     /// Constructor using an array of nodes.
     /**
      * @param NewId Index of the new element
      * @param ThisNodes An array containing the nodes of the new element
      */
-    IncompressibleNavierStokesDivStable(
+    IncompressibleNavierStokesP2P1Continuous(
         IndexType NewId,
         const NodesArrayType& ThisNodes);
 
@@ -163,7 +163,7 @@ public:
      * @param NewId Index of the new element
      * @param pGeometry Pointer to a geometry object
      */
-    IncompressibleNavierStokesDivStable(
+    IncompressibleNavierStokesP2P1Continuous(
         IndexType NewId,
         GeometryType::Pointer pGeometry);
 
@@ -173,23 +173,23 @@ public:
      * @param pGeometry Pointer to a geometry object
      * @param pProperties Pointer to the element's properties
      */
-    IncompressibleNavierStokesDivStable(
+    IncompressibleNavierStokesP2P1Continuous(
         IndexType NewId,
         GeometryType::Pointer pGeometry,
         Properties::Pointer pProperties);
 
     /// Destructor.
-    virtual ~IncompressibleNavierStokesDivStable();
+    virtual ~IncompressibleNavierStokesP2P1Continuous();
 
     /// Copy constructor.
-    IncompressibleNavierStokesDivStable(IncompressibleNavierStokesDivStable const &rOther) = delete;
+    IncompressibleNavierStokesP2P1Continuous(IncompressibleNavierStokesP2P1Continuous const &rOther) = delete;
 
     ///@}
     ///@name Operators
     ///@{
 
     /// Assignment operator.
-    IncompressibleNavierStokesDivStable &operator=(IncompressibleNavierStokesDivStable const &rOther) = delete;
+    IncompressibleNavierStokesP2P1Continuous &operator=(IncompressibleNavierStokesP2P1Continuous const &rOther) = delete;
 
     ///@}
     ///@name Operations
@@ -308,7 +308,7 @@ private:
 
 
     ///@}
-}; // Class IncompressibleNavierStokesDivStable
+}; // Class IncompressibleNavierStokesP2P1Continuous
 
 ///@}
 ///@name Type Definitions
@@ -323,7 +323,7 @@ private:
 template< unsigned int TDim >
 inline std::istream& operator >>(
     std::istream& rIStream,
-    IncompressibleNavierStokesDivStable<TDim>& rThis)
+    IncompressibleNavierStokesP2P1Continuous<TDim>& rThis)
 {
     return rIStream;
 }
@@ -332,7 +332,7 @@ inline std::istream& operator >>(
 template< unsigned int TDim >
 inline std::ostream& operator <<(
     std::ostream& rOStream,
-    const IncompressibleNavierStokesDivStable<TDim>& rThis)
+    const IncompressibleNavierStokesP2P1Continuous<TDim>& rThis)
 {
     rThis.PrintInfo(rOStream);
     rOStream << std::endl;
