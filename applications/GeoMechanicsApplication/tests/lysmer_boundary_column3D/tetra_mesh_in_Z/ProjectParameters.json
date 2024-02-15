@@ -1,6 +1,6 @@
 {
     "problem_data": {
-        "problem_name":         "test_lysmer_boundary_column3d_tetra_hor",
+        "problem_name":         "lysmer_boundary_column3d_tetra_in_Z",
         "start_time":           0.0,
         "end_time":             0.3,
         "echo_level":           1,
@@ -10,10 +10,10 @@
     "solver_settings": {
         "solver_type":                        "U_Pw",
         "model_part_name":                    "PorousDomain",
-        "domain_size":                        3,
+        "domain_size":                        2,
         "model_import_settings":              {
             "input_type":       "mdpa",
-            "input_filename":   "test_lysmer_boundary_column3d_tetra_hor"
+            "input_filename":   "tetra_mesh_in_Z"
         },
         "material_import_settings":              {
             "materials_filename":       "MaterialParameters.json"
@@ -80,7 +80,7 @@
             "process_name": "GiDOutputProcess",
             "Parameters":    {
                 "model_part_name": "PorousDomain.porous_computational_model_part",
-                "output_name": "test_lysmer_boundary_column3d_tetra_hor",
+                "output_name": "tetra_mesh_in_Z",
                 "postprocess_parameters": {
                     "result_file_configuration": {
                         "gidpost_flags":       {
@@ -96,7 +96,7 @@
                         "node_output":         false,
                         "skin_output":         false,
                         "plane_output":        [],
-                        "nodal_results":       ["DISPLACEMENT","TOTAL_DISPLACEMENT"],
+                        "nodal_results":       ["DISPLACEMENT","VELOCITY"],
                         "gauss_point_results": ["CAUCHY_STRESS_TENSOR"]
                     },
                     "point_data_configuration":  []
@@ -112,8 +112,8 @@
         "Parameters":    {
             "model_part_name": "PorousDomain.sides",
             "variable_name":   "DISPLACEMENT",
-            "active":          [true,false,true],
-            "is_fixed":        [true,false,true],
+            "active":          [true,true,false],
+            "is_fixed":        [true,true,false],
             "value":           [0.0,0.0,0.0],
             "table":           [0,0,0]
         }
@@ -125,12 +125,12 @@
         "Parameters":    {
             "model_part_name": "PorousDomain.load",
             "variable_name":   "SURFACE_LOAD",
-            "active":          [false,true,false],
-            "value":           [0.0,-10,0.0],
+            "active":          [false,false,true],
+            "value":           [0.0,0.0,-10],
             "table":           [0,0,0]
         }
     },{
-         "python_module": "set_absorbing_boundary_parameters_process",
+       "python_module": "set_absorbing_boundary_parameters_process",
         "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
         "process_name":  "SetAbsorbingBoundaryParametersProcess",
         "Parameters":    {
