@@ -396,35 +396,22 @@ void UPwBaseElement<TDim, TNumNodes>::GetValuesVector(Vector& rValues, int Step)
 template <unsigned int TDim, unsigned int TNumNodes>
 void UPwBaseElement<TDim, TNumNodes>::GetFirstDerivativesVector(Vector& rValues, int Step) const
 {
-    KRATOS_TRY
+    const auto dofs = this->GetDofs();
+    rValues.resize(dofs.size());
 
-    const GeometryType& rGeom = this->GetGeometry();
-    const unsigned int  N_DOF = this->GetNumberOfDOF();
+    auto get_first_derivative = [Step](const auto p_dof) -> double {
+        // Why should we return 0.0 for the first time derivatives of water pressure?
+        if (p_dof->GetVariable() == WATER_PRESSURE) return 0.0;
 
-    if (rValues.size() != N_DOF) rValues.resize(N_DOF, false);
-
-    if (TDim == 2) {
-        unsigned int index = 0;
-        for (unsigned int i = 0; i < TNumNodes; ++i) {
-            rValues[index++] = rGeom[i].FastGetSolutionStepValue(VELOCITY_X, Step);
-            rValues[index++] = rGeom[i].FastGetSolutionStepValue(VELOCITY_Y, Step);
-            rValues[index++] = 0.0;
-        }
-    } else if constexpr (TDim == 3) {
-        unsigned int index = 0;
-        for (unsigned int i = 0; i < TNumNodes; ++i) {
-            rValues[index++] = rGeom[i].FastGetSolutionStepValue(VELOCITY_X, Step);
-            rValues[index++] = rGeom[i].FastGetSolutionStepValue(VELOCITY_Y, Step);
-            rValues[index++] = rGeom[i].FastGetSolutionStepValue(VELOCITY_Z, Step);
-            rValues[index++] = 0.0;
-        }
-    } else {
-        KRATOS_ERROR << "undefined dimension in GetFirstDerivativesVector... "
-                        "illegal operation!!"
-                     << this->Id() << std::endl;
-    }
-
-    KRATOS_CATCH("")
+        // Unfortunately, the first time derivative cannot be accessed from a `VariableData`
+        // instance. However, we know that for all U-Pw elements the degrees of freedom are either
+        // displacement components or water pressures, which correspond to `Variable<double>`
+        // instances. Therefore, we should be able to downcast the `VariableData` instance.
+        auto p_variable = dynamic_cast<const Variable<double>*>(&p_dof->GetVariable());
+        KRATOS_ERROR_IF_NOT(p_variable) << "Variable associated with DOF is not of type double" << std::endl;
+        return p_dof->GetSolutionStepValue(p_variable->GetTimeDerivative(), Step);
+    };
+    std::transform(dofs.begin(), dofs.end(), rValues.begin(), get_first_derivative);
 }
 
 //----------------------------------------------------------------------------------------
