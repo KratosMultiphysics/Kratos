@@ -1,7 +1,7 @@
 import KratosMultiphysics
 from KratosMultiphysics import MeshingApplication as Meshing
 
-class ConvertLinearTetsToQuadraticModeler(KratosMultiphysics.Modeler):
+class ConvertLinearTetrahedraToQuadraticModeler(KratosMultiphysics.Modeler):
     """
     This class is a modeler in KratosMultiphysics that converts linear tetrahedral (tet) elements to quadratic tet elements within a specified model part.
 
@@ -19,7 +19,7 @@ class ConvertLinearTetsToQuadraticModeler(KratosMultiphysics.Modeler):
 
     def __init__(self, model, settings):
         """
-        Constructor for the ConvertLinearTetsToQuadraticModeler class.
+        Constructor for the ConvertLinearTetrahedraToQuadraticModeler class.
 
         Args:
             model (KratosMultiphysics.Model): The Kratos model containing the model part to be modified.
@@ -44,7 +44,7 @@ class ConvertLinearTetsToQuadraticModeler(KratosMultiphysics.Modeler):
         super().SetupModelPart()
 
         if KratosMultiphysics.IsDistributedRun():
-            raise Exception("ConvertLinearTetsToQuadraticModeler is not MPI-ready")
+            raise Exception("ConvertLinearTetrahedraToQuadraticModeler is not MPI-ready")
 
         model_part = self.model[self.settings["model_part_name"].GetString()]
 
@@ -86,22 +86,22 @@ class ConvertLinearTetsToQuadraticModeler(KratosMultiphysics.Modeler):
 
     def __str__(self):
         """
-        String representation of the ConvertLinearTetsToQuadraticModeler class.
+        String representation of the ConvertLinearTetrahedraToQuadraticModeler class.
 
         Returns:
             str: A string describing the class.
         """
-        return "ConvertLinearTetsToQuadraticModeler"
+        return "ConvertLinearTetrahedraToQuadraticModeler"
 
 def Factory(model, settings):
     """
-    Factory method to create an instance of ConvertLinearTetsToQuadraticModeler.
+    Factory method to create an instance of ConvertLinearTetrahedraToQuadraticModeler.
 
     Args:
         model (KratosMultiphysics.Model): The Kratos model to be modified.
         settings (KratosMultiphysics.Parameters): Configuration settings for the modeler.
 
     Returns:
-        ConvertLinearTetsToQuadraticModeler: An instance of the modeler class.
+        ConvertLinearTetrahedraToQuadraticModeler: An instance of the modeler class.
     """
-    return ConvertLinearTetsToQuadraticModeler(model, settings)
+    return ConvertLinearTetrahedraToQuadraticModeler(model, settings)
