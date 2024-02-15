@@ -206,7 +206,7 @@ std::unordered_map<IndexType, std::vector<IndexType>> FindConditionsNeighboursPr
         auto& r_neighbours = r_cond.GetValue(NEIGHBOUR_CONDITIONS);
 
         // Check if the number of neighboring conditions matches the expected dimension
-        KRATOS_ERROR_IF_NOT(r_neighbours.size() == mDim) << "Condition " << r_cond.Id() << " has not correct size solution for NEIGHBOUR_CONDITIONS " << r_neighbours.size() << " vs " << mDim  << std::endl;
+        KRATOS_ERROR_IF_NOT(static_cast<int>(r_neighbours.size()) == mDim) << "Condition " << r_cond.Id() << " has not correct size solution for NEIGHBOUR_CONDITIONS " << r_neighbours.size() << " vs " << mDim  << std::endl;
 
         // Create a vector to store the IDs of neighboring conditions
         std::vector<IndexType> solution;
