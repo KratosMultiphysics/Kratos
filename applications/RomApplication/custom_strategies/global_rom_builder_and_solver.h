@@ -503,10 +503,9 @@ protected:
             [&](Element::Pointer p_element)
         {
             if (p_element->Has(HROM_WEIGHT)) {
-                element_queue.enqueue(std::move(p_element));
-                // if (p_element->GetValue(HROM_WEIGHT) != 0.0) { // TODO: Remove this line in the future if elements with 0.0 weight should not be initialized
-                //     element_queue.enqueue(std::move(p_element));
-                // }
+                if (p_element->GetValue(HROM_WEIGHT) != 0.0) { // TODO: Remove this line in the future if elements with 0.0 weight should not be initialized
+                    element_queue.enqueue(std::move(p_element));
+                }
             } else {
                 p_element->SetValue(HROM_WEIGHT, 1.0);
             }
@@ -518,10 +517,9 @@ protected:
             [&](Condition::Pointer p_condition)
         {
             if (p_condition->Has(HROM_WEIGHT)) {
-                condition_queue.enqueue(std::move(p_condition));
-                // if (p_condition->GetValue(HROM_WEIGHT) != 0.0) { // TODO: Remove this line in the future if elements with 0.0 weight should not be initialized
-                //     condition_queue.enqueue(std::move(p_condition));
-                // }
+                if (p_condition->GetValue(HROM_WEIGHT) != 0.0) { // TODO: Remove this line in the future if elements with 0.0 weight should not be initialized
+                    condition_queue.enqueue(std::move(p_condition));
+                }
             } else {
                 p_condition->SetValue(HROM_WEIGHT, 1.0);
             }
@@ -738,6 +736,9 @@ protected:
                     const double h_rom_weight = mHromSimulation ? it_cond->GetValue(HROM_WEIGHT) : 1.0;
                     // KRATOS_WATCH(it_cond->Id())
                     // KRATOS_WATCH(LHS_Contribution)
+                    // if (it_cond->Id()==3311){
+                    //     KRATOS_WATCH(*it_cond)
+                    // }
                     // KRATOS_WATCH(RHS_Contribution)
                     LHS_Contribution *= h_rom_weight;
                     RHS_Contribution *= h_rom_weight;
@@ -804,7 +805,7 @@ protected:
         using EigenDynamicVector = Eigen::Matrix<double, Eigen::Dynamic, 1>;
         Eigen::Map<EigenDynamicVector> dxrom_eigen(dxrom.data().begin(), dxrom.size());
         dxrom_eigen = rEigenRomA.colPivHouseholderQr().solve(rEigenRomB);
-        // KRATOS_WATCH(dxrom_eigen)
+        // KRATOS_WATCH(rEigenRomB)
 
         double time = solving_timer.ElapsedSeconds();
         KRATOS_INFO_IF("GlobalROMBuilderAndSolver", (this->GetEchoLevel() > 0)) << "Solve reduced system time: " << time << std::endl;

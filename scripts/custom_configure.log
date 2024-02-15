@@ -1,0 +1,160 @@
+[H[2J[3J-- The C compiler identification is GNU 10.3.0
+-- The CXX compiler identification is GNU 10.3.0
+-- Detecting C compiler ABI info
+-- Detecting C compiler ABI info - done
+-- Check for working C compiler: /usr/bin/gcc - skipped
+-- Detecting C compile features
+-- Detecting C compile features - done
+-- Detecting CXX compiler ABI info
+-- Detecting CXX compiler ABI info - done
+-- Check for working CXX compiler: /usr/bin/g++ - skipped
+-- Detecting CXX compile features
+-- Detecting CXX compile features - done
+-- No KRATOS_SOURCE_DIR is defined, using: /home/sares/Kratos_PG_HROM
+-- No KRATOS_BINARY_DIR is defined, using: /home/sares/Kratos_PG_HROM/build/Release
+-- No KRATOS_INSTALL_PYTHON_USING_LINKS is defined, setting to OFF
+-- No CMAKE_INSTALL_MESSAGE is defined. Setting to NEVER
+-- Found Git: /usr/bin/git (found version "2.30.2") 
+-- Additional default options were set for GCC
+-- CMAKE_SYSTEM_NAME = Linux
+-- CMAKE_CXX_COMPILER_ID = GNU
+-- CMAKE_CXX_FLAGS =  -funroll-loops -Wall -Wl,--no-as-needed -ldl -Wsuggest-override
+-- CMAKE_C_FLAGS =  -funroll-loops -Wall -Wl,--no-as-needed -ldl
+-- Found PythonInterp: /usr/bin/python3 (found version "3.9.5") 
+-- Found PythonLibs: /usr/lib/x86_64-linux-gnu/libpython3.9.so
+-- LTO is Disabled
+-- AR VERSION: /usr/bin/ar
+-- Python version used for the interface will be 3.9
+-- Standard install dir /home/sares/Kratos_PG_HROM/bin/Release
+-- "KRATOS_SHARED_MEMORY_PARALLELIZATION" not defined, defaulting to "OpenMP"
+-- Found OpenMP_C: -fopenmp (found version "4.5") 
+-- Found OpenMP_CXX: -fopenmp (found version "4.5") 
+-- Found OpenMP: TRUE (found version "4.5")  
+-- Using OpenMP for shared memory parallelization
+-- Found Boost: /usr/lib/x86_64-linux-gnu/cmake/Boost-1.74.0/BoostConfig.cmake (found version "1.74.0")  
+-- Boost Include: /usr/include
+-- Boost Linkdir: 
+-- Found ZLIB: /usr/lib/x86_64-linux-gnu/libz.so (found version "1.2.11") 
+
+-- CMAKE_BUILD_TYPE ........ Release
+
+WARNING: YOUR GIDPOST IS BEING COMPILED  WITHOUT DEBUG (ALL ASSERTS WILL BE AVOIDED)
+-- Looking for pthread.h
+-- Looking for pthread.h - found
+-- Performing Test CMAKE_HAVE_LIBC_PTHREAD
+-- Performing Test CMAKE_HAVE_LIBC_PTHREAD - Success
+-- Found Threads: TRUE  
+-- Configuring applications (ENV):
+	Adding application '/home/sares/Kratos_PG_HROM/scripts/../applications/LinearSolversApplication'
+**** configuring KratosLinearSolversApplication ****
+	Adding application '/home/sares/Kratos_PG_HROM/scripts/../applications/RomApplication'
+**** configuring KratosRomApplication ****
+	Adding application '/home/sares/Kratos_PG_HROM/scripts/../applications/FluidDynamicsApplication'
+**** configuring KratosFluidDynamicsApplication ****
+	Adding application '/home/sares/Kratos_PG_HROM/scripts/../applications/MeshMovingApplication'
+**** configuring KratosMeshMovingApplication ****
+	Adding application '/home/sares/Kratos_PG_HROM/scripts/../applications/CompressiblePotentialFlowApplication'
+**** configuring KratosCompressiblePotentialFlowApplication ****
+	Adding application '/home/sares/Kratos_PG_HROM/scripts/../applications/ConvectionDiffusionApplication'
+**** configuring KratosConvectionDiffusionApplication ****
+	Adding application '/home/sares/Kratos_PG_HROM/scripts/../applications/StructuralMechanicsApplication'
+**** configuring KratosStructuralMechanicsApplication ****
+	Adding application '/home/sares/Kratos_PG_HROM/scripts/../applications/ConstitutiveLawsApplication'
+**** configuring KratosConstitutiveLawsApplication ****
+	Adding application '/home/sares/Kratos_PG_HROM/scripts/../applications/CoSimulationApplication'
+**** configuring KratosCoSimulationApplication ****
+Building the CoSimIO with the following configuration:
+    CO_SIM_IO_BUILD_TYPE:      Release
+    CO_SIM_IO_BUILD_MPI:       OFF
+    CO_SIM_IO_BUILD_TESTING:   OFF
+    CO_SIM_IO_BUILD_C:         OFF
+    CO_SIM_IO_BUILD_PYTHON:    OFF
+    CO_SIM_IO_BUILD_FORTRAN:   OFF
+    CO_SIM_IO_STRICT_COMPILER: OFF
+
+CMAKE_CXX_FLAGS: -funroll-loops -Wall -Wl,--no-as-needed -ldl -Wsuggest-override -fopenmp -std=c++11
+CMAKE_C_FLAGS: -funroll-loops -Wall -Wl,--no-as-needed -ldl -fopenmp -std=c89
+-- Performing Test COMPILER_HAS_HIDDEN_VISIBILITY
+-- Performing Test COMPILER_HAS_HIDDEN_VISIBILITY - Success
+-- Performing Test COMPILER_HAS_HIDDEN_INLINE_VISIBILITY
+-- Performing Test COMPILER_HAS_HIDDEN_INLINE_VISIBILITY - Success
+-- Performing Test COMPILER_HAS_DEPRECATED_ATTR
+-- Performing Test COMPILER_HAS_DEPRECATED_ATTR - Success
+	Adding application '/home/sares/Kratos_PG_HROM/scripts/../applications/MappingApplication'
+**** configuring KratosMappingApplication ****
+	Adding application '/home/sares/Kratos_PG_HROM/scripts/../applications/MeshingApplication'
+**** configuring KratosMeshingApplication ****
+
+***********************************************************************
+
+        LIST OF APPLICATIONS THAT ARE GOING TO BE COMPILED:
+
+        LinearSolversApplication
+        RomApplication
+        FluidDynamicsApplication
+        MeshMovingApplication
+        CompressiblePotentialFlowApplication
+        ConvectionDiffusionApplication
+        StructuralMechanicsApplication
+        ConstitutiveLawsApplication
+        CoSimulationApplication
+        MappingApplication
+        MeshingApplication
+
+        APPLICATIONS ADDED TO COMPILATION THROUGH DEPENDENCIES:
+
+
+***********************************************************************
+
+
+List of upcoming API-breaking and behavior changes:
+	 Geometry 'Dimension' removed: https://github.com/KratosMultiphysics/Kratos/pull/10977
+	 Geometry old projection methods deprecation: https://github.com/KratosMultiphysics/Kratos/pull/9024
+	 Geometry old closest point methods deprecation: https://github.com/KratosMultiphysics/Kratos/pull/9243
+	 Model 'CreateModelPart' behavior change (no error thrown if model part exists): https://github.com/KratosMultiphysics/Kratos/pull/9598
+	 Make GetIntegrationMethod method of Condition const: https://github.com/KratosMultiphysics/Kratos/pull/9769
+	 Behavior change of ModelPart.GetProperties (MeshIndex removed): https://github.com/KratosMultiphysics/Kratos/pull/9774
+	 Behavior change of Testing. Please ensure you use KRATOS_EXPECT for testing instead of KRATOS_CHECK
+-- clipper : /home/sares/Kratos_PG_HROM/external_libraries/clipper
+-- tinyexpr : /home/sares/Kratos_PG_HROM/external_libraries/tinyexpr/tinyexpr/
+-- Configuring done
+-- Generating done
+-- Build files have been written to: /home/sares/Kratos_PG_HROM/build/Release
+[  2%] Built target gidpost
+[  1%] Built target KratosVersion
+[  2%] Built target tinyexpr
+[  2%] Built target clipper
+[  2%] Built target ping
+[  2%] Built target pong
+[  3%] Built target tetMeshOpt
+[  5%] Built target co_sim_io
+[ 46%] Built target KratosCore
+[ 46%] Built target KratosLinearSolversCore
+[ 47%] Built target KratosMeshMovingCore
+[ 52%] Built target Kratos
+[ 54%] Built target KratosConvectionDiffusionCore
+[ 54%] Built target KratosCoSimulationCore
+[ 64%] Built target KratosFluidDynamicsCore
+[ 66%] Built target KratosMappingCore
+[ 78%] Built target KratosStructuralMechanicsCore
+[ 80%] Built target KratosMeshingCore
+[ 81%] Built target KratosLinearSolversApplication
+[ 81%] Building CXX object applications/RomApplication/CMakeFiles/KratosRomApplicationCore.dir/custom_utilities/rom_auxiliary_utilities.cpp.o
+[ 83%] Built target KratosMeshMovingApplication
+[ 83%] Built target KratosFluidDynamicsApplication
+[ 84%] Built target KratosConvectionDiffusionApplication
+[ 84%] Built target KratosStructuralMechanicsApplication
+[ 88%] Built target KratosCompressiblePotentialFlowCore
+[ 89%] Built target KratosCoSimulationApplication
+[ 89%] Built target KratosMappingApplication
+[ 97%] Built target KratosConstitutiveLawsCore
+[ 97%] Built target KratosMeshingApplication
+[ 98%] Built target KratosCompressiblePotentialFlowApplication
+[ 98%] Built target KratosConstitutiveLawsApplication
+/home/sares/Kratos_PG_HROM/applications/RomApplication/custom_utilities/rom_auxiliary_utilities.cpp: In static member function ‘static std::vector<long unsigned int> Kratos::RomAuxiliaryUtilities::FilterConditionsByParentElements(Kratos::ModelPart&, const std::vector<long unsigned int>&)’:
+/home/sares/Kratos_PG_HROM/applications/RomApplication/custom_utilities/rom_auxiliary_utilities.cpp:1240:40: error: ‘class Kratos::Condition’ has no member named ‘Nodes’
+ 1240 |         for (const auto& r_node : cond.Nodes()) {
+      |                                        ^~~~~
+gmake[2]: *** [applications/RomApplication/CMakeFiles/KratosRomApplicationCore.dir/build.make:95: applications/RomApplication/CMakeFiles/KratosRomApplicationCore.dir/custom_utilities/rom_auxiliary_utilities.cpp.o] Error 1
+gmake[1]: *** [CMakeFiles/Makefile2:815: applications/RomApplication/CMakeFiles/KratosRomApplicationCore.dir/all] Error 2
+gmake: *** [Makefile:149: all] Error 2

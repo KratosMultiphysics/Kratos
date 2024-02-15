@@ -90,7 +90,7 @@ class HRomTrainingUtility(object):
             this_modelpart_condition_ids = KratosROM.RomAuxiliaryUtilities.GetConditionIdsInModelPart(self.solver.model.GetModelPart(model_part_name))
             # TODO: REMOVE - Temporary sampling for ECM interface testing
             # ---------------------------------------------------------
-            # Selects a random 10% sample from 'this_modelpart_condition_ids' 
+            # Selects a random 10% sample from 'this_modelpart_condition_ids'
             # for varied condition testing in the ECM interface.
 
             # Calculate 10% of the length of the list

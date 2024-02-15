@@ -213,6 +213,23 @@ public:
         const std::vector<IndexType>& rConditionIds);
 
     /**
+     * @brief Filters conditions based on their parent elements being in a given list.
+     *
+     * This function iterates over all conditions in the provided ModelPart. For each condition,
+     * it checks if any of its parent elements (neighbour elements) are present in the specified list of
+     * new solid element IDs. Only the IDs of conditions whose parent elements are found in the list
+     * are returned. This is useful for filtering conditions based on a subset of the model's
+     * solid elements, often used in scenarios involving interface conditions in ROM simulations.
+     *
+     * @param rModelPart Reference to the ModelPart containing the conditions to be filtered.
+     * @param new_solid_element_ids Vector of IDs representing the new solid elements to check against.
+     * @return std::vector<IndexType> Vector containing the IDs of conditions that meet the criteria.
+     */
+    static std::vector<IndexType> FilterConditionsByParentElements(
+        ModelPart& rModelPart,
+        const std::vector<IndexType>& new_solid_element_ids);
+
+    /**
      * @brief Identifies condition decremented (-1 to account for numpy indexing) IDs from a given ModelPart that are not in the HROM weights
      * This function iterates through the conditions in the provided ModelPart, checks if their IDs exist in the HROM weights,
      * and includes them in a list if they are missing. The decremented (-1 to account for numpy indexing) IDs of the absent conditions are returned.
