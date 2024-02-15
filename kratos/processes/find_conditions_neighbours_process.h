@@ -77,17 +77,6 @@ public:
      * @brief Default constructor.
      * @details The better the guess for the quantities above the less memory occupied and the fastest the algorithm
      * @param rModelPart The model part containing the conditions.
-     * @param AverageConditions The expected number of neighboring conditions per node.
-     */
-    FindConditionsNeighboursProcess(
-        ModelPart& rModelPart,
-        const unsigned int AverageConditions = 10
-        );
-
-    /**
-     * @brief Default constructor.
-     * @details The better the guess for the quantities above the less memory occupied and the fastest the algorithm
-     * @param rModelPart The model part containing the conditions.
      * @param Dim The dimension of the problem.
      * @param AverageConditions The expected number of neighboring conditions per node.
      */

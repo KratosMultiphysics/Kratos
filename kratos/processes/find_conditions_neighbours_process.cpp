@@ -46,22 +46,6 @@ FindConditionsNeighboursProcess::FindConditionsNeighboursProcess(
 
 FindConditionsNeighboursProcess::FindConditionsNeighboursProcess(
     ModelPart& rModelPart,
-    const unsigned int AverageConditions
-    ) : mrModelPart(rModelPart),
-        mAverageConditions(AverageConditions)
-{
-    // Checking MPI
-    KRATOS_ERROR_IF(mrModelPart.IsDistributed()) << "ModelPart cannot be distributed!. Current implementation is serial only" << std::endl;
-
-    // Compute dimension
-    ComputeDimension();
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-FindConditionsNeighboursProcess::FindConditionsNeighboursProcess(
-    ModelPart& rModelPart,
     const int Dim,
     const unsigned int AverageConditions
     ) : mrModelPart(rModelPart),

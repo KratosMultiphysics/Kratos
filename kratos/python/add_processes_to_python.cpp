@@ -239,7 +239,8 @@ void  AddProcessesToPython(pybind11::module& m)
 
     py::class_<FindConditionsNeighboursProcess, FindConditionsNeighboursProcess::Pointer, Process>(m,"FindConditionsNeighboursProcess")
         .def(py::init<Model&, Parameters>())
-        .def(py::init<ModelPart&, const unsigned int>())
+        .def(py::init<ModelPart&>())
+        .def(py::init<ModelPart&, const int>())
         .def(py::init<ModelPart&, const int, const unsigned int>())
         .def("ClearNeighbours",&FindConditionsNeighboursProcess::ClearNeighbours)
     ;
