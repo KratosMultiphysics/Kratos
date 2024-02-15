@@ -192,6 +192,39 @@ const Parameters FindConditionsNeighboursProcess::GetDefaultParameters() const
     return default_parameters;
 }
 
+/***********************************************************************************/
+/***********************************************************************************/
+
+std::unordered_map<IndexType, std::vector<IndexType>> FindConditionsNeighboursProcess::RetrieveConditionsNeighbourConditionsIds()
+{
+    // Initialize the container to store the IDs of neighboring conditions for each condition
+    std::unordered_map<IndexType, std::vector<IndexType>> conditions_neighbours_conditions_ids;
+
+    // Loop over each condition in the model part
+    for (auto& r_cond : mrModelPart.Conditions()) {
+        // Retrieve the neighboring conditions for the current condition
+        auto& r_neighbours = r_cond.GetValue(NEIGHBOUR_CONDITIONS);
+
+        // Check if the number of neighboring conditions matches the expected dimension
+        KRATOS_ERROR_IF_NOT(r_neighbours.size() == mDim) << "Condition " << r_cond.Id() << " has not correct size solution for NEIGHBOUR_CONDITIONS " << r_neighbours.size() << " vs " << mDim  << std::endl;
+
+        // Create a vector to store the IDs of neighboring conditions
+        std::vector<IndexType> solution;
+        solution.reserve(mDim);
+
+        // Loop over each dimension and store the ID of the neighboring condition
+        for (int i_dim = 0; i_dim < mDim; ++i_dim) {
+            solution.push_back(r_neighbours[i_dim].Id());
+        }
+
+        // Insert the IDs of neighboring conditions into the map with the ID of the current condition as the key
+        conditions_neighbours_conditions_ids.insert({r_cond.Id(), solution});
+    }
+
+    // Return the map containing the IDs of neighboring conditions for each condition
+    return conditions_neighbours_conditions_ids;
+}
+
 }  // namespace Kratos.
 
 
