@@ -24,7 +24,7 @@ using namespace Kratos;
 namespace Kratos::Testing
 {
 
-KRATOS_TEST_CASE_IN_SUITE(CalculateBMatrixReturnsCorrectResults, KratosGeoMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(ThreeDimensionStressState_CalculateBMatrixReturnsCorrectResults, KratosGeoMechanicsFastSuite)
 {
     auto stress_state = std::make_unique<ThreeDimensionStressState>();
 
@@ -85,5 +85,14 @@ KRATOS_TEST_CASE_IN_SUITE(ThreeDimensionStressState_GivesCorrectClone, KratosGeo
     KRATOS_EXPECT_NE(dynamic_cast<ThreeDimensionStressState*>(p_clone.get()), nullptr);
 }
 
+KRATOS_TEST_CASE_IN_SUITE(ThreeDimensionStressState_CalculateGreenLagrangeStrainGivesExpectedVector, KratosGeoMechanicsFastSuite)
+{
+    const auto p_stress_state_policy = std::make_unique<ThreeDimensionStressState>();
+
+    const Vector expected_vector   = ZeroVector(0);
+    const Vector calculated_vector = p_stress_state_policy->CalculateGreenLagrangeStrain(Matrix());
+
+    KRATOS_CHECK_VECTOR_NEAR(expected_vector, calculated_vector, 1e-12)
+}
 
 }

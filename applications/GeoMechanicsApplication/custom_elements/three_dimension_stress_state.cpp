@@ -16,8 +16,8 @@ namespace Kratos
 {
 
 Matrix ThreeDimensionStressState::CalculateBMatrix(const Matrix&         GradNpT,
-                                       const Vector&         Np,
-                                       const Geometry<Node>& rGeometry) const
+                                                   const Vector&         Np,
+                                                   const Geometry<Node>& rGeometry) const
 {
     const auto dimension       = rGeometry.WorkingSpaceDimension();
     const auto number_of_nodes = rGeometry.size();
