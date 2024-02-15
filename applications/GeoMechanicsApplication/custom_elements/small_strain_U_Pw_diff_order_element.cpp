@@ -1801,9 +1801,6 @@ void SmallStrainUPwDiffOrderElement::CalculateBMatrix(Matrix& rB, const Matrix& 
 
     const GeometryType& rGeom     = GetGeometry();
     const SizeType      Dim       = rGeom.WorkingSpaceDimension();
-    const SizeType      NumUNodes = rGeom.PointsNumber();
-
-    unsigned int index;
 
     if (Dim > 2) {
         ThreeDimensionStressState stress_state;
