@@ -26,6 +26,8 @@
 #include "includes/convection_diffusion_settings.h"
 #include "includes/radiation_settings.h"
 #include "utilities/quaternion.h"
+// #include "includes/element.h" // NOTE: For NEIGHBOUR_ELEMENTS
+// #include "includes/condition.h" // NOTE: For NEIGHBOUR_CONDITIONS
 
 namespace Kratos::Python
 {
@@ -457,6 +459,7 @@ void  AddContainersToPython(pybind11::module& m)
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, NODAL_H )
     KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, NORMAL_TO_WALL )
     //KRATOS_REGISTER_IN_PYTHON_VARIABLE(m,NEIGHBOUR_NODES)
+    //KRATOS_REGISTER_IN_PYTHON_VARIABLE(m,NEIGHBOUR_CONDITIONS)
     //KRATOS_REGISTER_IN_PYTHON_VARIABLE(m,NEIGHBOUR_ELEMENTS)
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, FRICTION_COEFFICIENT )
 
