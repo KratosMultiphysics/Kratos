@@ -136,7 +136,7 @@ public:
      */
     PointerVectorSet(const PointerVectorSet& rOther)
         :  mData(rOther.mData), mSortedPartSize(rOther.mSortedPartSize), mMaxBufferSize(rOther.mMaxBufferSize) {}
-    
+
     /**
      * @brief Constructs a PointerVectorSet from a container.
      * @details This constructor initializes a PointerVectorSet with elements from a container.
@@ -677,20 +677,7 @@ public:
      */
     iterator find(const key_type& Key)
     {
-        ptr_iterator sorted_part_end;
-
-        if (mData.size() - mSortedPartSize >= mMaxBufferSize) {
-            Sort();
-            sorted_part_end = mData.end();
-        } else
-            sorted_part_end = mData.begin() + mSortedPartSize;
-
-        ptr_iterator i(std::lower_bound(mData.begin(), sorted_part_end, Key, CompareKey()));
-        if (i == sorted_part_end || (!EqualKeyTo(Key)(*i)))
-            if ((i = std::find_if(sorted_part_end, mData.end(), EqualKeyTo(Key))) == mData.end())
-                return mData.end();
-
-        return i;
+        return iterator(std::lower_bound(mData.begin(), mData.end(), Key, CompareKey()));
     }
 
     /**
@@ -703,14 +690,7 @@ public:
      */
     const_iterator find(const key_type& Key) const
     {
-        ptr_const_iterator sorted_part_end(mData.begin() + mSortedPartSize);
-
-        ptr_const_iterator i(std::lower_bound(mData.begin(), sorted_part_end, Key, CompareKey()));
-        if (i == sorted_part_end || (!EqualKeyTo(Key)(*i)))
-            if ((i = std::find_if(sorted_part_end, mData.end(), EqualKeyTo(Key))) == mData.end())
-                return mData.end();
-
-        return const_iterator(i);
+        return const_iterator(std::lower_bound(mData.begin(), mData.end(), Key, CompareKey()));
     }
 
     /**
@@ -789,15 +769,15 @@ public:
     /**
      * @brief Get the maximum size of buffer used in the container
      */
-    size_type GetMaxBufferSize() const 
+    size_type GetMaxBufferSize() const
     {
         return mMaxBufferSize;
     }
 
-    /** 
+    /**
      * @brief Set the maximum size of buffer used in the container.
      * @details This container uses a buffer which keep data unsorted. After buffer size arrived to the MaxBufferSize it will sort all container and empties buffer.
-     * @param NewSize Is the new buffer maximum size. 
+     * @param NewSize Is the new buffer maximum size.
      */
     void SetMaxBufferSize(const size_type NewSize)
     {
@@ -805,16 +785,16 @@ public:
     }
 
     /**
-     * @brief Get the sorted part size of buffer used in the container. 
+     * @brief Get the sorted part size of buffer used in the container.
      */
-    size_type GetSortedPartSize() const 
+    size_type GetSortedPartSize() const
     {
         return mSortedPartSize;
     }
 
-    /** 
+    /**
      * @brief Set the sorted part size of buffer used in the container.
-     * @param NewSize Is the new buffer maximum size. 
+     * @param NewSize Is the new buffer maximum size.
      */
     void SetSortedPartSize(const size_type NewSize)
     {
@@ -980,10 +960,10 @@ private:
 
     /// The data container holding the elements.
     TContainerType mData;
-    
+
     /// The size of the sorted portion of the data.
     size_type mSortedPartSize;
-    
+
     /// The maximum buffer size for data storage.
     size_type mMaxBufferSize;
 
