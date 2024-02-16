@@ -559,53 +559,107 @@ public:
     }
 
     /**
-     * @brief Inserts a pointer at the specified position.
-     * @details This function inserts a given pointer at the specified position in the set. It also maintains
-     * the sorting order and updates mSortedPartSize if necessary.
-     * @param Position An iterator pointing to the position where the pointer should be inserted.
-     * @param pData The pointer to be inserted.
+     * @brief Inserts a pointer.
+     * @details This function inserts a given pointer such that the resulting PointerVectorSet
+     * is kept sorted. If there exists already a pointer with a key same as the key of the value, then
+     * this will return iterator of that existing pointer (The value will not be inserted.)
+     * @param value The pointer to be inserted.
      * @return An iterator pointing to the inserted element.
      */
-    iterator insert(iterator Position, const TPointerType pData)
+    iterator insert(const TPointerType& value)
     {
-        ptr_iterator sorted_part_end;
-
-        key_type key = KeyOf(*pData);
-
-        if (mData.size() - mSortedPartSize >= mMaxBufferSize) {
-            Sort();
-            sorted_part_end = mData.end();
-        } else
-            sorted_part_end = mData.begin() + mSortedPartSize;
-
-        ptr_iterator i(std::lower_bound(mData.begin(), sorted_part_end, key, CompareKey()));
-        if (i == sorted_part_end) {
-            mSortedPartSize++;
-            return mData.insert(sorted_part_end, pData);
+        auto itr_pos = std::lower_bound(mData.begin(), mData.end(), KeyOf(*value), CompareKey());
+        if (itr_pos == mData.end()) {
+            // the position to insert is at the end.
+            mData.push_back(value);
+            return iterator(mData.end() - 1);
+        } else if (EqualKeyTo(KeyOf(*value))(*itr_pos)) {
+            // already found existing element with the same key, hence returning the existing element.
+            return iterator(itr_pos);
+        } else {
+            // insert the new value before the itr_pos.
+            return mData.insert(itr_pos, value);
         }
+    }
 
-        if (!EqualKeyTo(key)(*i))
-            if ((i = std::find_if(sorted_part_end, mData.end(), EqualKeyTo(key))) == mData.end()) {
-                mData.push_back(pData);
+    /**
+     * @brief Inserts a pointer at the specified position.
+     * @details This function inserts a given pointer. If the given position_hint is valid, then
+     * it uses that to insert the value, otherwise the position_hint is discarded to maintain the dataset
+     * sorted. If there is an existing element with the same key as in the value, then an iterator for
+     * the existing element is returned.
+     * @param position_hint An iterator pointing to the position where the pointer may be inserted.
+     * @param value The pointer to be inserted.
+     * @return An iterator pointing to the inserted element.
+     */
+    iterator insert(const_iterator position_hint, const TPointerType& value)
+    {
+        if (empty()) {
+            // the dataset is empty. So use push back.
+            mData.push_back(value);
+            return iterator(mData.end() - 1);
+        } else if (position_hint == cend()) {
+            // trying to insert at the end.
+            if (KeyOf(position_hint - 1) < KeyOf(*value)) {
+                // key at the position hint is less than the value of key. Hence position hint
+                // is valid. So using the push back.
+                mData.push_back(value);
                 return iterator(mData.end() - 1);
+            } else {
+                // given position is invalid. Hence, discarding the hint.
+                return insert(value);
             }
-
-        *i = pData;
-        return i;
+        } else if (EqualKeyTo(KeyOf(position_hint))(*ptr_begin())) {
+            // trying to insert at the front.
+            if (KeyOf(*value) < KeyOf(position_hint)) {
+                // key at the position hint is greater than the value of key. Hence position hint
+                // is valid. So using the push back.
+                return mData.insert(mData.begin(), value);
+            } else {
+                // given position is invalid. Hence, discarding the hint.
+                return insert(value);
+            }
+        } else {
+            // trying to insert at an arbitrary position.
+            if (KeyOf(*value) < KeyOf(position_hint) && (KeyOf(position_hint - 1) < KeyOf(*value))) {
+                return mData.insert(mData.begin() + (position_hint - cbegin()), value);
+            } else {
+                // given position is invalid. Hence, discarding the hint.
+                return insert(value);
+            }
+        }
     }
 
     /**
      * @brief Insert elements from a range of iterators.
-     * @details This function inserts elements from a range defined by the iterators `First` and `Last`
-     * into the set. It uses the `insert` function to insert each element.
-     * @param First An input iterator pointing to the beginning of the range to insert.
-     * @param Last An input iterator pointing to the end of the range to insert.
+     * @details This function inserts elements from a range defined by the iterators `first` and `last`
+     * into the set. This will not insert any elements in the range, if there exists an element with a key
+     * which is equal to an element's key in the input range.
+     * @param first An input iterator pointing to the beginning of the range to insert.
+     * @param last An input iterator pointing to the end of the range to insert.
      */
     template <class InputIterator>
-    void insert(InputIterator First, InputIterator Last)
+    void insert(InputIterator first, InputIterator last)
     {
-        for (; First != Last; ++First)
-            insert(begin(), *First);
+        // first sorts the input iterators and make the input unique.
+        std::sort(first, last, CompareKey());
+        auto new_last = std::unique(first, last, EqualKeyTo());
+
+        if (empty()) {
+            for (; first != new_last; ++first) {
+                mData.push_back(*first);
+            }
+        } else {
+            auto p_current_itr = mData.begin();
+            // now add the new elements
+            for (; first != new_last; ++first) {
+                // find the lower bound element.
+                p_current_itr = std::lower_bound(p_current_itr, mData.end(), KeyOf(*first), CompareKey());
+                if (!EqualKeyTo(KeyOf(*first))(*p_current_itr)) {
+                    mData.insert(p_current_itr, *first);
+                }
+            }
+        }
     }
 
     /**
@@ -677,7 +731,12 @@ public:
      */
     iterator find(const key_type& Key)
     {
-        return iterator(std::lower_bound(mData.begin(), mData.end(), Key, CompareKey()));
+        auto itr = std::lower_bound(mData.begin(), mData.end(), Key, CompareKey());
+        if (itr != mData.end() && !EqualKeyTo(Key)(*itr)) {
+            return iterator(mData.end());
+        } else {
+            return iterator(itr);
+        }
     }
 
     /**
@@ -690,7 +749,12 @@ public:
      */
     const_iterator find(const key_type& Key) const
     {
-        return const_iterator(std::lower_bound(mData.begin(), mData.end(), Key, CompareKey()));
+        auto itr = std::lower_bound(mData.begin(), mData.end(), Key, CompareKey());
+        if (itr != mData.end() && !EqualKeyTo(Key)(*itr)) {
+            return const_iterator(mData.end());
+        } else {
+            return const_iterator(itr);
+        }
     }
 
     /**
@@ -969,7 +1033,7 @@ private:
      * @param i The iterator from which the key is extracted.
      * @return The key extracted from the iterator after applying the key extraction function.
      */
-    key_type KeyOf(iterator i)
+    key_type KeyOf(const_iterator i)
     {
         return TGetKeyType()(*i);
     }
@@ -980,7 +1044,7 @@ private:
      * @param i The pointer iterator from which the key is extracted.
      * @return The key extracted from the pointer iterator after applying the key extraction function.
      */
-    key_type KeyOf(ptr_iterator i)
+    key_type KeyOf(ptr_const_iterator i)
     {
         return TGetKeyType()(**i);
     }
