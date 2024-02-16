@@ -19,6 +19,7 @@ from test_local_refine_parallel_to_boundaries import TestLocalRefineParallelToBo
 from test_local_refine_triangle_conditions import TestLocalRefineTriangleMeshConditions as TTestLocalRefineTriangleMeshConditions
 from test_local_refine_only_on_boundaries import TestLocalRefineOnlyOnBoundaries as TTestLocalRefineOnlyOnBoundaries
 from test_gradual_variable_interpolation_process import TestGradualVariableInterpolationProcess as TTestGradualVariableInterpolationProcess
+from test_convert_linear_tetrahedra_to_quadratic_modeler import TestConvertLinearTetrahedraToQuadraticModeler
 ## NIGHTLY TESTS
 
 ## VALIDATION TESTS
@@ -43,6 +44,8 @@ def AssembleTestSuites():
     smallSuite.addTest(TTestLocalRefineTriangleMeshConditions('test_refine_condition_mesh'))
     smallSuite.addTest(TTestLocalRefineOnlyOnBoundaries('test_refine_on_boundary_edges'))
     smallSuite.addTest(TTestGradualVariableInterpolationProcess('test_gradual_variable_interpolation_process'))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([
+        TestConvertLinearTetrahedraToQuadraticModeler]))
     if  hasattr(MeshingApplication,  "TetrahedraReconnectUtility") :
         smallSuite.addTest(TTestRedistance('test_refine_all'))
         smallSuite.addTest(TTestRedistance('test_refine_half'))
@@ -107,4 +110,4 @@ if __name__ == '__main__':
 
     KratosMultiphysics.Logger.PrintInfo("Unittests", "\nRunning python tests ...")
     KratosUnittest.runTests(AssembleTestSuites())
-    KratosMultiphysics.Logger.PrintInfo("Unittests", "Finished python tests!")
+    KratosMultiphysics.Logger.PrintWarning("Unittests", "Finished python tests!")
