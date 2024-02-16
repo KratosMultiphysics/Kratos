@@ -178,29 +178,18 @@ public:
      */
     TDataType& operator[](const key_type& Key)
     {
-        ptr_iterator sorted_part_end;
-
-        if (mData.size() - mSortedPartSize >= mMaxBufferSize) {
-            Sort();
-            sorted_part_end = mData.end();
+        auto itr_pos = std::lower_bound(mData.begin(), mData.end(), Key, CompareKey());
+        if (itr_pos == mData.end()) {
+            // insert a new element with id.
+            mData.push_back(TPointerType(new TDataType(Key)));
+            return back();
+        } else if (EqualKeyTo(Key)(*itr_pos)) {
+            // already found existing element with the same key, hence returning the existing element.
+            return **itr_pos;
         } else {
-            sorted_part_end = mData.begin() + mSortedPartSize;
+            // insert the new value before the itr_pos.
+            return **(mData.insert(itr_pos, TPointerType(new TDataType(Key))));
         }
-
-        ptr_iterator i(std::lower_bound(mData.begin(), sorted_part_end, Key, CompareKey()));
-        if (i == sorted_part_end) {
-            mSortedPartSize++;
-            return **mData.insert(sorted_part_end, TPointerType(new TDataType(Key)));
-        }
-
-        if (!EqualKeyTo(Key)(*i)) {
-            if ((i = std::find_if(sorted_part_end, mData.end(), EqualKeyTo(Key))) == mData.end()) {
-                mData.push_back(TPointerType(new TDataType(Key)));
-                return **(mData.end() - 1);
-            }
-        }
-
-        return **i;
     }
 
     /**
@@ -213,27 +202,18 @@ public:
      */
     pointer& operator()(const key_type& Key)
     {
-        ptr_iterator sorted_part_end;
-
-        if (mData.size() - mSortedPartSize >= mMaxBufferSize) {
-            Sort();
-            sorted_part_end = mData.end();
-        } else
-            sorted_part_end = mData.begin() + mSortedPartSize;
-
-        ptr_iterator i(std::lower_bound(mData.begin(), sorted_part_end, Key, CompareKey()));
-        if (i == sorted_part_end) {
-            mSortedPartSize++;
-            return *mData.insert(sorted_part_end, TPointerType(new TDataType(Key)));
+        auto itr_pos = std::lower_bound(mData.begin(), mData.end(), Key, CompareKey());
+        if (itr_pos == mData.end()) {
+            // insert a new element with id.
+            mData.push_back(TPointerType(new TDataType(Key)));
+            return mData.back();
+        } else if (EqualKeyTo(Key)(*itr_pos)) {
+            // already found existing element with the same key, hence returning the existing element.
+            return *itr_pos;
+        } else {
+            // insert the new value before the itr_pos.
+            return *(mData.insert(itr_pos, TPointerType(new TDataType(Key))));
         }
-
-        if (!EqualKeyTo(Key)(*i))
-            if ((i = std::find_if(sorted_part_end, mData.end(), EqualKeyTo(Key))) == mData.end()) {
-                mData.push_back(TPointerType(new TDataType(Key)));
-                return *(mData.end() - 1);
-            }
-
-        return *i;
     }
 
     /**
