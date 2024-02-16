@@ -590,6 +590,40 @@ std::vector<std::vector<array_1d<double, 3>>> SpatialSearchResultContainer<TObje
 /***********************************************************************************/
 
 template <class TObjectType, SpatialSearchCommunication TSpatialSearchCommunication>
+void SpatialSearchResultContainer<TObjectType, TSpatialSearchCommunication>::RemoveResultsFromRanksList(const std::vector<int>& rRanks)
+{
+    // Get current rank
+    const int rank = mrDataCommunicator.Rank();
+
+    // Remove current rank if required
+    auto it_find = std::find(rRanks.begin(), rRanks.end(), rank);
+    if (it_find != rRanks.end()) {
+        mLocalResults.clear();
+    }
+
+    // Prepare a map of current indexes for quick lookup
+    const auto ranks = this->GetResultRank();
+    std::vector<IndexType> indexes_to_remove;
+    indexes_to_remove.reserve(ranks.size());
+    for (IndexType i = 0; i < ranks.size(); ++i) {
+        auto it_find = std::find(rRanks.begin(), rRanks.end(), ranks[i]);
+        if (it_find != rRanks.end()) {
+            indexes_to_remove.push_back(i);
+        }
+    }
+    indexes_to_remove.shrink_to_fit();
+
+    // Determine and remove indexes from global results
+    std::sort(indexes_to_remove.begin(), indexes_to_remove.end(), std::greater<IndexType>());
+    for (const auto index : indexes_to_remove) {
+        mGlobalResults.erase(mGlobalResults.begin() + index);
+    }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template <class TObjectType, SpatialSearchCommunication TSpatialSearchCommunication>
 void SpatialSearchResultContainer<TObjectType, TSpatialSearchCommunication>::RemoveResultsFromIndexesList(const std::vector<IndexType>& rIndexes)
 {
     // Prepare for local remove
