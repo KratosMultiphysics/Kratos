@@ -1087,7 +1087,7 @@ private:
             auto& r_partial_result = *p_partial_result;
             KRATOS_ERROR_IF_NOT(r_partial_result.NumberOfGlobalResults() == 1) << "Cleaning has not been done properly. Number of results: " << r_partial_result.NumberOfGlobalResults() << std::endl;
             r_partial_result.Barrier();
-            const auto number_of_local_results = r_partial_result.NumberOfLocalResults();
+            const unsigned int number_of_local_results = r_partial_result.NumberOfLocalResults();
             const auto& r_sub_data_communicator = r_partial_result.GetDataCommunicator();
             KRATOS_ERROR_IF(r_sub_data_communicator.SumAll(number_of_local_results) == 0) << "Local results also removed in result " << r_partial_result.GetGlobalIndex() << std::endl;
         }
