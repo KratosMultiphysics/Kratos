@@ -140,7 +140,6 @@ class PfemFluidDynamicsAnalysis(AnalysisStage):
 
         ## Sets strategies, builders, linear solvers, schemes and solving info, and fills the buffer
         self._solver.Initialize()
-        self._solver.SetEchoLevel(self.echo_level)
         # Initialize GiD  I/O (gid outputs, file_lists)
         self.GraphicalOutputExecuteInitialize()
 
