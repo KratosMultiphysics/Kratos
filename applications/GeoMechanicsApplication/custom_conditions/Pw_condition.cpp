@@ -26,25 +26,10 @@ Condition::Pointer PwCondition<TDim,TNumNodes>::
 }
 
 //----------------------------------------------------------------------------------------
-template< unsigned int TDim, unsigned int TNumNodes >
-void PwCondition<TDim,TNumNodes>::
-    GetDofList(DofsVectorType& rConditionDofList,
-               const ProcessInfo& rCurrentProcessInfo) const
+template <unsigned int TDim, unsigned int TNumNodes>
+void PwCondition<TDim, TNumNodes>::GetDofList(DofsVectorType& rConditionDofList, const ProcessInfo&) const
 {
-    KRATOS_TRY
-
-    const GeometryType& rGeom = GetGeometry();
-    const unsigned int nDof = 1;
-    const unsigned int conditionSize = TNumNodes * nDof;
-    if (rConditionDofList.size() != conditionSize)
-        rConditionDofList.resize( conditionSize );
-
-    for (unsigned int i = 0; i < TNumNodes; ++i) {
-        rConditionDofList[i] = rGeom[i].pGetDof(WATER_PRESSURE);
-    }
-   
-
-    KRATOS_CATCH( "" )
+    rConditionDofList = this->GetDofs();
 }
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -151,6 +136,16 @@ void PwCondition<TDim,TNumNodes>::
     KRATOS_ERROR << "calling the default CalculateRHS method for a particular condition ... illegal operation!!" << std::endl;
 
     KRATOS_CATCH( "" )
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
+Condition::DofsVectorType PwCondition<TDim, TNumNodes>::GetDofs() const
+{
+    const auto nodes   = this->GetGeometry();
+    auto       get_dof = [](const auto& r_node) { return r_node.pGetDof(WATER_PRESSURE); };
+    auto       result  = Condition::DofsVectorType{};
+    std::transform(nodes.begin(), nodes.end(), std::back_inserter(result), get_dof);
+    return result;
 }
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
