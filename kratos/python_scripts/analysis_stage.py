@@ -123,13 +123,13 @@ class AnalysisStage(object):
             process.ExecuteFinalize()
 
         self._GetSolver().Finalize()
-        # Check update of configuration
-        KratosMultiphysics.Logger.PrintInfo("Initial InitialConfiguration Coordinates")
-        for node in self._GetSolver().GetComputingModelPart().Nodes:
-             print(node.Id, node.X0, node.Y0, node.Z0)
-        KratosMultiphysics.Logger.PrintInfo("Final CurrentConfiguration Coordinates")
-        for node in self._GetSolver().GetComputingModelPart().Nodes:
-            print(node.Id, node.X, node.Y, node.Z)
+        # # Check update of configuration
+        # KratosMultiphysics.Logger.PrintInfo("Initial InitialConfiguration Coordinates")
+        # for node in self._GetSolver().GetComputingModelPart().Nodes:
+        #      print(node.Id, node.X0, node.Y0, node.Z0)
+        # KratosMultiphysics.Logger.PrintInfo("Final CurrentConfiguration Coordinates")
+        # for node in self._GetSolver().GetComputingModelPart().Nodes:
+        #     print(node.Id, node.X, node.Y, node.Z)
 
         KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(), "Analysis -END- ")
 

@@ -641,7 +641,10 @@ void MembraneElement::InternalForces(Vector& rInternalForces,const IntegrationMe
     Vector stress = ZeroVector(3);
     Vector derivative_strain = ZeroVector(3);
 
-    // Calculate thickness Update
+    Matrix deformation_gradient = ZeroMatrix(3);
+    double det_deformation_gradient = 0.0;
+
+    /* // Calculate thickness Update
     // get coordinates
     const double x1 = r_geom[0].Coordinates()[0];
     const double y1 = r_geom[0].Coordinates()[1];
@@ -690,7 +693,7 @@ void MembraneElement::InternalForces(Vector& rInternalForces,const IntegrationMe
 
     thickness = thickness * L[2];
     KRATOS_WATCH(thickness)
-    KRATOS_WATCH(GetProperties()[THICKNESS])
+    KRATOS_WATCH(GetProperties()[THICKNESS]) */
 
     for (SizeType point_number = 0; point_number < r_integration_points.size(); ++point_number){
         // getting information for integration
@@ -716,6 +719,29 @@ void MembraneElement::InternalForces(Vector& rInternalForces,const IntegrationMe
         MaterialResponse(stress,contravariant_metric_reference,covariant_metric_reference,covariant_metric_current,
             transformed_base_vectors,inplane_transformation_matrix_material,point_number,material_tangent_modulus,
             rCurrentProcessInfo);
+
+        DeformationGradient(deformation_gradient,det_deformation_gradient,current_covariant_base_vectors,reference_contravariant_base_vectors);
+        // left Cauchy-Green deformation tensor B
+        Matrix left_cauchy_green_tensor = prod(deformation_gradient,trans(deformation_gradient));
+        // Eigenvalues of B matrix
+        Matrix EigenVectorsMatrix, EigenValuesMatrix;
+        MathUtils<double>::GaussSeidelEigenSystem(left_cauchy_green_tensor, EigenVectorsMatrix, EigenValuesMatrix, 1.0e-18, 20);
+        KRATOS_WATCH(deformation_gradient)
+        KRATOS_WATCH(det_deformation_gradient)
+        KRATOS_WATCH(left_cauchy_green_tensor)
+        KRATOS_WATCH(EigenVectorsMatrix)
+        KRATOS_WATCH(EigenValuesMatrix)
+        // Principal stretches
+        Vector L = ZeroVector(3);
+        L[0] = EigenValuesMatrix(0,0);
+        L[1] = EigenValuesMatrix(1,1);
+        L[2] = 1.0 / (L[0] * L[1]);
+        KRATOS_WATCH(L)
+
+        thickness = thickness * L[2];
+        SetValue(THICKNESS, thickness);
+        KRATOS_WATCH(thickness)
+        KRATOS_WATCH(GetProperties()[THICKNESS])
 
         for (SizeType dof_r=0;dof_r<number_dofs;++dof_r)
         {
