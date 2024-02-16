@@ -1044,7 +1044,10 @@ private:
         const TLambda& rLambda
         )
     {
-        // Retrieve th solution
+        // Getting current rank
+        const int rank = mrDataCommunicator.Rank();
+
+        // Retrieve the solution
         auto& r_results_vector = rResults.GetContainer();
         for (auto& p_partial_result : r_results_vector) {
             auto& r_partial_result = *p_partial_result;
@@ -1055,7 +1058,7 @@ private:
                 const auto values = rLambda(r_partial_result);
 
                 // The indexes
-                std::vector<IndexType> indexes = r_partial_result.GetResultIndices();
+                std::vector<int> ranks = r_partial_result.GetResultRank();
 
                 // Find the index of the minimum value
                 auto it_min_distance = std::min_element(values.begin(), values.end());
@@ -1064,12 +1067,15 @@ private:
                 if (it_min_distance != values.end()) {
                     // Calculate the position
                     const IndexType pos = std::distance(values.begin(), it_min_distance);
+                    if (rank == ranks[pos]) {
+                        KRATOS_ERROR_IF(r_partial_result.NumberOfLocalResults() > 1) << "The rank criteria to filter results assumes that one rank only holds one local result. This is not true for " << r_partial_result.GetGlobalIndex() << " in rank " << rank << std::endl;
+                    }
 
-                    // Remove the index from the indexes vector
-                    indexes.erase(indexes.begin() + pos);
+                    // Remove the index from the ranks vector
+                    ranks.erase(ranks.begin() + pos);
 
                     // Remove all results but the closest one
-                    r_partial_result.RemoveResultsFromIndexesList(indexes);
+                    r_partial_result.RemoveResultsFromRanksList(ranks);
                 } else {
                     KRATOS_ERROR << "Distances vector is empty." << std::endl;
                 }
@@ -1079,7 +1085,11 @@ private:
         // Checking that is properly cleaned
         for (auto& p_partial_result : r_results_vector) {
             auto& r_partial_result = *p_partial_result;
-            KRATOS_ERROR_IF(r_partial_result.NumberOfGlobalResults() > 1) << "Cleaning has not been done properly" << std::endl;
+            KRATOS_ERROR_IF_NOT(r_partial_result.NumberOfGlobalResults() == 1) << "Cleaning has not been done properly. Number of results: " << r_partial_result.NumberOfGlobalResults() << std::endl;
+            r_partial_result.Barrier();
+            const auto number_of_local_results = r_partial_result.NumberOfLocalResults();
+            const auto& r_sub_data_communicator = r_partial_result.GetDataCommunicator();
+            KRATOS_ERROR_IF(r_sub_data_communicator.SumAll(number_of_local_results) == 0) << "Local results also removed in result " << r_partial_result.GetGlobalIndex() << std::endl;
         }
     }
 
