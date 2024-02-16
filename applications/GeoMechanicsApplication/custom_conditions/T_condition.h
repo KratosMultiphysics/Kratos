@@ -55,8 +55,7 @@ public:
                               VectorType& rRightHandSideVector,
                               const ProcessInfo& rCurrentProcessInfo) override;
 
-    void EquationIdVector(EquationIdVectorType& rResult,
-                          const ProcessInfo& rCurrentProcessInfo) const override;
+    void EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo&) const override;
 
 protected:
     virtual void CalculateAll(MatrixType& rLeftHandSideMatrix,
