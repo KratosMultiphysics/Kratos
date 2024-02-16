@@ -98,6 +98,11 @@ RUN powershell.exe -Command \
     ./cmake.exe -H"c:\hdf5\source\hdf5-1.12.2" -B"c:\hdf5\build" -DCMAKE_INSTALL_PREFIX="c:\hdf5\bin" -DBUILD_TESTING=OFF -DBUILD_SHARED_LIBS=ON; \
     ./cmake.exe --build "c:\hdf5\build" --target install -- /property:configuration=Release
 
+RUN powershell.exe -Command \
+    cd 'c:/Program Files/CMake/bin/'; \
+    ./cmake.exe -H"c:\med\source\med-5.0.0" -B"c:\med\build" -DCMAKE_INSTALL_PREFIX="c:\med\bin" -DMEDFILE_BUILD_TESTS=OFF -DMEDFILE_BUILD_SHARED_LIBS=ON -DHDF5_ROOT="c:\hdf5\bin"; \
+    ./cmake.exe --build "c:\med\build" --target install -- /property:configuration=Release
+
 # #Downloand blas/lapack
 # RUN powershell.exe -Command \
 # 	[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; \

@@ -19,6 +19,7 @@
 #include "includes/variables.h"
 
 // Application includes
+#include "geo_mechanics_application_constants.h"
 
 namespace Kratos
 {

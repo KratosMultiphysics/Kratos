@@ -7,8 +7,7 @@
 //
 //  License:         geo_mechanics_application/license.txt
 //
-//  Main authors:    Richard Faasse
-//                   Marjan Fathian
+//  Main authors:    Marjan Fathian
 //
 
 #include "containers/model.h"
@@ -101,7 +100,7 @@ KRATOS_TEST_CASE_IN_SUITE(ThreeDimensionStressState_CalculateGreenLagrangeStrain
 
     const Vector calculated_vector = p_stress_state_policy->CalculateGreenLagrangeStrain(deformation_gradient);
 
-    KRATOS_CHECK_VECTOR_NEAR(expected_vector, calculated_vector, 1e-12);
+    KRATOS_CHECK_VECTOR_NEAR(expected_vector, calculated_vector, 1e-12)
 }
 
 }

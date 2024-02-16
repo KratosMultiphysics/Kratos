@@ -39,10 +39,8 @@ public:
     using NodesArrayType = GeometryType::PointsArrayType;
     using VectorType     = Vector;
     using MatrixType     = Matrix;
-    /// The definition of the sizetype
-    using SizeType = std::size_t;
+    using SizeType       = std::size_t;
     using UPwBaseElement<TDim, TNumNodes>::mConstitutiveLawVector;
-    using typename UPwSmallStrainElement<TDim, TNumNodes>::ElementVariables;
 
     ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -112,7 +110,7 @@ protected:
                                            unsigned int PointNumber,
                                            double       detJ) override;
 
-    void CalculateGreenLagrangeStrain(ElementVariables& rVariables) override;
+    Vector CalculateGreenLagrangeStrain(const Matrix& rDeformationGradient) override;
     ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 private:
@@ -139,9 +137,7 @@ private:
     UPwUpdatedLagrangianAxisymmetricElement(UPwUpdatedLagrangianAxisymmetricElement const& rOther);
 
     // Private Operations
-};
-
-// Class UPwUpdatedLagrangianAxisymmetricElement
+}; // Class UPwUpdatedLagrangianAxisymmetricElement
 
 } // namespace Kratos
 
