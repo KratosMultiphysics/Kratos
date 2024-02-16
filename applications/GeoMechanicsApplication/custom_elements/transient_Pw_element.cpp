@@ -37,32 +37,16 @@ Element::Pointer TransientPwElement<TDim, TNumNodes>::Create(IndexType          
 
 //----------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
-void TransientPwElement<TDim, TNumNodes>::GetDofList(DofsVectorType&    rElementalDofList,
-                                                     const ProcessInfo& rCurrentProcessInfo) const
+void TransientPwElement<TDim, TNumNodes>::GetDofList(DofsVectorType& rElementalDofList, const ProcessInfo&) const
 {
-    KRATOS_TRY
-
-    const GeometryType& rGeom = this->GetGeometry();
-    const unsigned int  N_DOF = this->GetNumberOfDOF();
-    unsigned int        index = 0;
-
-    if (rElementalDofList.size() != N_DOF) rElementalDofList.resize(N_DOF);
-
-    for (unsigned int i = 0; i < TNumNodes; ++i) {
-        rElementalDofList[index++] = rGeom[i].pGetDof(WATER_PRESSURE);
-    }
-
-    KRATOS_CATCH("")
+    rElementalDofList = this->GetDofs();
 }
 
 //----------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
-void TransientPwElement<TDim, TNumNodes>::EquationIdVector(EquationIdVectorType& rResult,
-                                                           const ProcessInfo& rCurrentProcessInfo) const
+void TransientPwElement<TDim, TNumNodes>::EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo&) const
 {
-    DofsVectorType dofs;
-    this->GetDofList(dofs, rCurrentProcessInfo);
-    rResult = ExtractEquationIdsFrom(dofs);
+    rResult = ExtractEquationIdsFrom(this->GetDofs());
 }
 
 //----------------------------------------------------------------------------------------
@@ -658,6 +642,16 @@ template <unsigned int TDim, unsigned int TNumNodes>
 unsigned int TransientPwElement<TDim, TNumNodes>::GetNumberOfDOF() const
 {
     return TNumNodes;
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
+Element::DofsVectorType TransientPwElement<TDim, TNumNodes>::GetDofs() const
+{
+    auto       result = Element::DofsVectorType{};
+    const auto nodes  = this->GetGeometry();
+    std::transform(nodes.begin(), nodes.end(), std::back_inserter(result),
+                   [](const auto& r_node) { return r_node.pGetDof(WATER_PRESSURE); });
+    return result;
 }
 
 //----------------------------------------------------------------------------------------------------
