@@ -521,9 +521,9 @@ public:
      * @details This function appends a given pointer to the end of the set.
      * @param x The pointer to be added to the end of the set.
      */
-    void push_back(TPointerType x)
+    KRATOS_DEPRECATED_MESSAGE("This is legacy version (use insert instead)") void push_back(TPointerType x)
     {
-        mData.push_back(x);
+        insert(x);
     }
 
     /**

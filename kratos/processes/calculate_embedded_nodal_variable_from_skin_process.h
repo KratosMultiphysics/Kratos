@@ -296,7 +296,7 @@ public:
         KRATOS_TRY;
         // Generate an auxilary model part and populate it by elements of type DistanceCalculationElementSimplex
         this->GenerateIntersectedEdgesElementsModelPart();
-        
+
         // Set the linear strategy to solve the regression problem
         this->SetLinearStrategy();
 
@@ -599,12 +599,16 @@ protected:
 
         // Populate the modelpart with all the nodes in NodesMap
         // Note that a temporary vector is created from the set to add all nodes at once
-        PointerVectorSet<Node> tmp;
+        PointerVectorSet<
+            Node,
+            IndexedObject,
+            std::less<typename IndexedObject::result_type>,
+            std::equal_to<typename IndexedObject::result_type>> tmp;
         tmp.reserve(rModelPart.NumberOfElements()*2);
         for(auto& item: map_of_nodes){
             tmp.push_back(item.second);
         }
-        rModelPart.AddNodes(tmp.begin(), tmp.end());    
+        rModelPart.AddNodes(tmp.begin(), tmp.end());
     }
 
     void SetLinearStrategy()
@@ -742,7 +746,7 @@ private:
     {
         const auto& rp_var_list = rModelPart.pGetNodalSolutionStepVariablesList();
         unsigned int buffer_size = rModelPart.GetBufferSize();
-        
+
         // Loop the edge nodes
         for (std::size_t i = 0; i < 2; ++i) {
             auto p_i_node = rEdgeGeometry(i);
@@ -750,7 +754,7 @@ private:
             if (!p_i_node->Is(VISITED)) {
                 p_i_node->Set(VISITED, true);
                 auto p_node_copy = Kratos::make_intrusive< Node >(
-                    p_i_node->Id(), 
+                    p_i_node->Id(),
                     p_i_node->Coordinates());
                 p_node_copy->SetSolutionStepVariablesList(rp_var_list);
                 p_node_copy->SetBufferSize(buffer_size);
