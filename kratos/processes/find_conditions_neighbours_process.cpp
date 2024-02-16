@@ -74,17 +74,25 @@ void FindConditionsNeighboursProcess::Execute()
         r_neighbour_conditions.reserve(mAverageConditions);
         r_neighbour_conditions.erase(r_neighbour_conditions.begin(),r_neighbour_conditions.end() );
     });
-    if (mComputeNeighbourConditionsToConditions) {
-        block_for_each(r_conditions_array, [this](Condition& rCond){
-            auto& r_neighbour_conditions = rCond.GetValue(NEIGHBOUR_CONDITIONS);
-            r_neighbour_conditions.reserve(mDim);
-            r_neighbour_conditions.erase(r_neighbour_conditions.begin(),r_neighbour_conditions.end() );
-        });
-    }
+    block_for_each(r_conditions_array, [this](Condition& rCond){
+        auto& r_neighbour_conditions = rCond.GetValue(NEIGHBOUR_CONDITIONS);
+        r_neighbour_conditions.reserve(mDim);
+        r_neighbour_conditions.erase(r_neighbour_conditions.begin(),r_neighbour_conditions.end() );
+    });
 
     // Add the neighbour conditions to all the nodes in the mesh
     for(auto it_cond = r_conditions_array.begin(); it_cond!=r_conditions_array.end(); it_cond++) {
         auto& r_geom = it_cond->GetGeometry();
+
+    #ifdef KRATOS_DEBUG
+        // Checking condition
+        if (mDim == 2) {
+            KRATOS_ERROR_IF_NOT(r_geom.GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Line2D2) << "FindConditionsNeighboursProcess: 2D conditions are not supported (ony lines supported)" << std::endl;
+        } else if (mDim == 3) {
+            KRATOS_ERROR_IF_NOT(r_geom.GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Triangle3D3) << "FindConditionsNeighboursProcess: 3D conditions are not supported (only triangles supported)" << std::endl;
+        }
+    #endif
+
         for(unsigned int i = 0; i < r_geom.size(); i++) {
             (r_geom[i].GetValue(NEIGHBOUR_CONDITIONS)).push_back( Condition::WeakPointer( *(it_cond.base()) ) );
         }
@@ -92,21 +100,19 @@ void FindConditionsNeighboursProcess::Execute()
 
     // Adding the neighbouring conditions to the condition loop over faces
     if (mDim == 3) {
-        if (mComputeNeighbourConditionsToConditions) {
-            for(auto it_cond = r_conditions_array.begin(); it_cond!=r_conditions_array.end(); it_cond++) {
-                // Face nodes
-                auto& r_geom = (it_cond)->GetGeometry();
-                // Vector of the 3 faces around the given face
-                (it_cond->GetValue(NEIGHBOUR_CONDITIONS)).resize(3);
-                auto& r_neighb_faces = it_cond->GetValue(NEIGHBOUR_CONDITIONS);
-                // r_neighb_faces is the vector containing pointers to the three faces around it_cond
-                // r_neighb_faces[0] = neighbour face over edge 1-2 of element it_cond;
-                // r_neighb_faces[1] = neighbour face over edge 2-0 of element it_cond;
-                // r_neighb_faces[2] = neighbour face over edge 0-1 of element it_cond;
-                r_neighb_faces(0) = CheckForNeighbourFaces(r_geom[1].Id(), r_geom[2].Id(), r_geom[1].GetValue(NEIGHBOUR_CONDITIONS), it_cond->Id());
-                r_neighb_faces(1) = CheckForNeighbourFaces(r_geom[2].Id(), r_geom[0].Id(), r_geom[2].GetValue(NEIGHBOUR_CONDITIONS), it_cond->Id());
-                r_neighb_faces(2) = CheckForNeighbourFaces(r_geom[0].Id(), r_geom[1].Id(), r_geom[0].GetValue(NEIGHBOUR_CONDITIONS), it_cond->Id());
-            }
+        for(auto it_cond = r_conditions_array.begin(); it_cond!=r_conditions_array.end(); it_cond++) {
+            // Face nodes
+            auto& r_geom = (it_cond)->GetGeometry();
+            // Vector of the 3 faces around the given face
+            (it_cond->GetValue(NEIGHBOUR_CONDITIONS)).resize(3);
+            auto& r_neighb_faces = it_cond->GetValue(NEIGHBOUR_CONDITIONS);
+            // r_neighb_faces is the vector containing pointers to the three faces around it_cond
+            // r_neighb_faces[0] = neighbour face over edge 1-2 of element it_cond;
+            // r_neighb_faces[1] = neighbour face over edge 2-0 of element it_cond;
+            // r_neighb_faces[2] = neighbour face over edge 0-1 of element it_cond;
+            r_neighb_faces(0) = CheckForNeighbourFaces(r_geom[1].Id(), r_geom[2].Id(), r_geom[1].GetValue(NEIGHBOUR_CONDITIONS), it_cond->Id());
+            r_neighb_faces(1) = CheckForNeighbourFaces(r_geom[2].Id(), r_geom[0].Id(), r_geom[2].GetValue(NEIGHBOUR_CONDITIONS), it_cond->Id());
+            r_neighb_faces(2) = CheckForNeighbourFaces(r_geom[0].Id(), r_geom[1].Id(), r_geom[0].GetValue(NEIGHBOUR_CONDITIONS), it_cond->Id());
         }
     }
 }
@@ -162,15 +168,9 @@ void FindConditionsNeighboursProcess::ComputeDimension()
         mDim = r_geom.WorkingSpaceDimension();
         // Checking first condition, if mesh is mixed may fail later
         if (mDim == 2) {
-            if (r_geom.GetGeometryType() != GeometryData::KratosGeometryType::Kratos_Line2D2) {
-                KRATOS_WARNING("FindConditionsNeighboursProcess") << "2D conditions are not supported (ony lines supported)" << std::endl;
-                mComputeNeighbourConditionsToConditions = false;
-            }
+            KRATOS_ERROR_IF_NOT(r_geom.GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Line2D2) << "FindConditionsNeighboursProcess: 2D conditions are not supported (ony lines supported)" << std::endl;
         } else if (mDim == 3) {
-            if (r_geom.GetGeometryType() != GeometryData::KratosGeometryType::Kratos_Triangle3D3) {
-                KRATOS_WARNING("FindConditionsNeighboursProcess") << " 3D conditions are not supported (only triangles supported)" << std::endl;
-                mComputeNeighbourConditionsToConditions = false;
-            }
+            KRATOS_ERROR_IF_NOT(r_geom.GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Triangle3D3) << "FindConditionsNeighboursProcess: 3D conditions are not supported (only triangles supported)" << std::endl;
         }
     }
     if (mDim != 2 && mDim != 3) {
@@ -201,26 +201,24 @@ std::unordered_map<IndexType, std::vector<IndexType>> FindConditionsNeighboursPr
     std::unordered_map<IndexType, std::vector<IndexType>> conditions_neighbours_conditions_ids;
 
     // Loop over each condition in the model part
-    if (mComputeNeighbourConditionsToConditions) {
-        for (auto& r_cond : mrModelPart.Conditions()) {
-            // Retrieve the neighboring conditions for the current condition
-            auto& r_neighbours = r_cond.GetValue(NEIGHBOUR_CONDITIONS);
+    for (auto& r_cond : mrModelPart.Conditions()) {
+        // Retrieve the neighboring conditions for the current condition
+        auto& r_neighbours = r_cond.GetValue(NEIGHBOUR_CONDITIONS);
 
-            // Check if the number of neighboring conditions matches the expected dimension
-            KRATOS_ERROR_IF_NOT(static_cast<int>(r_neighbours.size()) == mDim) << "Condition " << r_cond.Id() << " has not correct size solution for NEIGHBOUR_CONDITIONS " << r_neighbours.size() << " vs " << mDim  << std::endl;
+        // Check if the number of neighboring conditions matches the expected dimension
+        KRATOS_ERROR_IF_NOT(static_cast<int>(r_neighbours.size()) == mDim) << "Condition " << r_cond.Id() << " has not correct size solution for NEIGHBOUR_CONDITIONS " << r_neighbours.size() << " vs " << mDim  << std::endl;
 
-            // Create a vector to store the IDs of neighboring conditions
-            std::vector<IndexType> solution;
-            solution.reserve(mDim);
+        // Create a vector to store the IDs of neighboring conditions
+        std::vector<IndexType> solution;
+        solution.reserve(mDim);
 
-            // Loop over each dimension and store the ID of the neighboring condition
-            for (int i_dim = 0; i_dim < mDim; ++i_dim) {
-                solution.push_back(r_neighbours[i_dim].Id());
-            }
-
-            // Insert the IDs of neighboring conditions into the map with the ID of the current condition as the key
-            conditions_neighbours_conditions_ids.insert({r_cond.Id(), solution});
+        // Loop over each dimension and store the ID of the neighboring condition
+        for (int i_dim = 0; i_dim < mDim; ++i_dim) {
+            solution.push_back(r_neighbours[i_dim].Id());
         }
+
+        // Insert the IDs of neighboring conditions into the map with the ID of the current condition as the key
+        conditions_neighbours_conditions_ids.insert({r_cond.Id(), solution});
     }
 
     // Return the map containing the IDs of neighboring conditions for each condition
