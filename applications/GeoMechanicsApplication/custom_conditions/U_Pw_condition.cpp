@@ -27,39 +27,10 @@ Condition::Pointer UPwCondition<TDim,TNumNodes>::
 }
 
 //----------------------------------------------------------------------------------------
-template< unsigned int TDim, unsigned int TNumNodes >
-void UPwCondition<TDim,TNumNodes>::
-    GetDofList(DofsVectorType& rConditionDofList,
-               const ProcessInfo& rCurrentProcessInfo) const
+template <unsigned int TDim, unsigned int TNumNodes>
+void UPwCondition<TDim, TNumNodes>::GetDofList(DofsVectorType& rConditionDofList, const ProcessInfo&) const
 {
-    KRATOS_TRY
-
-    const GeometryType& rGeom = GetGeometry();
-    const unsigned int nDof = TDim + 1;
-    const unsigned int conditionSize = TNumNodes * nDof;
-    if (rConditionDofList.size() != conditionSize)
-        rConditionDofList.resize( conditionSize );
-
-    if constexpr (TDim == 2) {
-        unsigned int index = 0;
-        for (unsigned int i = 0; i < TNumNodes; ++i) {
-            rConditionDofList[index++] = rGeom[i].pGetDof(DISPLACEMENT_X);
-            rConditionDofList[index++] = rGeom[i].pGetDof(DISPLACEMENT_Y);
-            rConditionDofList[index++] = rGeom[i].pGetDof(WATER_PRESSURE);
-        }
-    } else if constexpr (TDim == 3) {
-        unsigned int index = 0;
-        for (unsigned int i = 0; i < TNumNodes; ++i) {
-            rConditionDofList[index++] = rGeom[i].pGetDof(DISPLACEMENT_X);
-            rConditionDofList[index++] = rGeom[i].pGetDof(DISPLACEMENT_Y);
-            rConditionDofList[index++] = rGeom[i].pGetDof(DISPLACEMENT_Z);
-            rConditionDofList[index++] = rGeom[i].pGetDof(WATER_PRESSURE);
-        }
-    } else {
-        KRATOS_ERROR << "undefined dimension in U_Pw_condition!!" << std::endl;
-    }
-
-    KRATOS_CATCH( "" )
+    rConditionDofList = this->GetDofs();
 }
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -181,6 +152,19 @@ void UPwCondition<TDim,TNumNodes>::
     KRATOS_ERROR << "calling the default CalculateRHS method for a particular condition ... illegal operation!!" << std::endl;
 
     KRATOS_CATCH( "" )
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
+Condition::DofsVectorType UPwCondition<TDim, TNumNodes>::GetDofs() const
+{
+    auto result = Condition::DofsVectorType{};
+    for (const auto& r_node : this->GetGeometry()) {
+        result.push_back(r_node.pGetDof(DISPLACEMENT_X));
+        result.push_back(r_node.pGetDof(DISPLACEMENT_Y));
+        if constexpr (TDim == 3) result.push_back(r_node.pGetDof(DISPLACEMENT_Z));
+        result.push_back(r_node.pGetDof(WATER_PRESSURE));
+    }
+    return result;
 }
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------

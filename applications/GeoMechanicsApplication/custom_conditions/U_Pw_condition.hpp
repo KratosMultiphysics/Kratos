@@ -62,9 +62,8 @@ public:
     Condition::Pointer Create(IndexType NewId,
                               NodesArrayType const& ThisNodes,
                               PropertiesType::Pointer pProperties ) const override;
- 
-    void GetDofList(DofsVectorType& rConditionDofList,
-                    const ProcessInfo& rCurrentProcessInfo) const override;
+
+    void GetDofList(DofsVectorType& rConditionDofList, const ProcessInfo&) const override;
 
     IntegrationMethod GetIntegrationMethod() const override
     {
@@ -105,6 +104,8 @@ protected:
 
 private:
     GeometryData::IntegrationMethod mThisIntegrationMethod{ Condition::GetIntegrationMethod() };
+
+    [[nodiscard]] DofsVectorType GetDofs() const;
     
     // Serialization
     
