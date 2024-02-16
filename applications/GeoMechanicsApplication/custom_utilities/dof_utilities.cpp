@@ -25,4 +25,12 @@ std::vector<std::size_t> ExtractEquationIdsFrom(const std::vector<Dof<double>*>&
     return result;
 }
 
+Vector ExtractSolutionStepValues(const std::vector<Dof<double>*>& rDofs, int Step)
+{
+    auto result = Vector(rDofs.size());
+    std::transform(rDofs.begin(), rDofs.end(), result.begin(),
+                   [Step](auto p_dof) { return p_dof->GetSolutionStepValue(Step); });
+    return result;
+}
+
 } // namespace Kratos
