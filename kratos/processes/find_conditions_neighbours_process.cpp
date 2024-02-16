@@ -116,13 +116,17 @@ void FindConditionsNeighboursProcess::Execute()
 
 void FindConditionsNeighboursProcess::ClearNeighbours()
 {
-    block_for_each(mrModelPart.Nodes(), [](Node& rNode){
-        auto& r_neighbour_conditions = rNode.GetValue(NEIGHBOUR_CONDITIONS);
-        r_neighbour_conditions.erase(r_neighbour_conditions.begin(),r_neighbour_conditions.end());
+    block_for_each(mrModelPart.Nodes(), [](Node& rNode) {
+        if (rNode.Has(NEIGHBOUR_CONDITIONS)) {
+            auto& r_neighbour_conditions = rNode.GetValue(NEIGHBOUR_CONDITIONS);
+            r_neighbour_conditions.erase(r_neighbour_conditions.begin(),r_neighbour_conditions.end());
+        }
     });
-    block_for_each(mrModelPart.Conditions(), [](Condition& rCond){
-        auto& r_neighbour_conditions = rCond.GetValue(NEIGHBOUR_CONDITIONS);
-        r_neighbour_conditions.erase(r_neighbour_conditions.begin(),r_neighbour_conditions.end());
+    block_for_each(mrModelPart.Conditions(), [](Condition& rCond) {
+        if (rCond.Has(NEIGHBOUR_CONDITIONS)) {
+            auto& r_neighbour_conditions = rCond.GetValue(NEIGHBOUR_CONDITIONS);
+            r_neighbour_conditions.erase(r_neighbour_conditions.begin(),r_neighbour_conditions.end());
+        }
     });
 }
 
