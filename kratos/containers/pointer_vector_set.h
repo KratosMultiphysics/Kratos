@@ -112,7 +112,10 @@ public:
     ///@{
 
     /// Default constructor.
-    PointerVectorSet() : mData(), mSortedPartSize(size_type()), mMaxBufferSize(1) {}
+    PointerVectorSet()
+        : mData(),
+          mMaxBufferSize(1)
+    {}
 
     /**
     * @brief Constructs a PointerVectorSet from a range of elements.
@@ -123,11 +126,13 @@ public:
     * @param NewMaxBufferSize The maximum buffer size (default is 1).
     */
     template <class TInputIteratorType>
-    PointerVectorSet(TInputIteratorType First, TInputIteratorType Last, size_type NewMaxBufferSize = 1)
-    : mSortedPartSize(size_type()), mMaxBufferSize(NewMaxBufferSize)
+    PointerVectorSet(
+        TInputIteratorType First,
+        TInputIteratorType Last,
+        size_type NewMaxBufferSize = 1)
+        : mMaxBufferSize(NewMaxBufferSize)
     {
-    for (; First != Last; ++First)
-        insert(begin(), *First);
+        insert(First, Last);
     }
 
     /**
@@ -135,17 +140,22 @@ public:
      * @param rOther The PointerVectorSet to copy from.
      */
     PointerVectorSet(const PointerVectorSet& rOther)
-        :  mData(rOther.mData), mSortedPartSize(rOther.mSortedPartSize), mMaxBufferSize(rOther.mMaxBufferSize) {}
+        : mData(rOther.mData),
+          mMaxBufferSize(rOther.mMaxBufferSize)
+    {}
 
     /**
      * @brief Constructs a PointerVectorSet from a container.
      * @details This constructor initializes a PointerVectorSet with elements from a container.
      * @param rContainer The container to copy elements from.
      */
-    explicit PointerVectorSet(const TContainerType& rContainer) :  mData(rContainer), mSortedPartSize(size_type()), mMaxBufferSize(1)
+    explicit PointerVectorSet(const TContainerType& rContainer)
+        :  mData(rContainer),
+           mMaxBufferSize(1)
     {
-        Sort();
-        std::unique(mData.begin(), mData.end(), EqualKeyTo());
+        std::sort(mData.begin(), mData.end());
+        auto last = std::unique(mData.begin(), mData.end(), EqualKeyTo());
+        mData.erase(last, mData.end());
     }
 
     /// Destructor.
@@ -164,8 +174,6 @@ public:
     PointerVectorSet& operator=(const PointerVectorSet& rOther)
     {
         mData = rOther.mData;
-        mSortedPartSize = rOther.mSortedPartSize;
-
         return *this;
     }
 
@@ -506,12 +514,10 @@ public:
     /**
      * @brief Swaps the contents of this PointerVectorSet with another.
      * @details This function swaps the contents of this PointerVectorSet with another set, including
-     * mSortedPartSize, mMaxBufferSize, and mData.
      * @param rOther The other PointerVectorSet to swap with.
      */
     void swap(PointerVectorSet& rOther)
     {
-        std::swap(mSortedPartSize, rOther.mSortedPartSize);
         std::swap(mMaxBufferSize, rOther.mMaxBufferSize);
         mData.swap(rOther.mData);
     }
@@ -521,21 +527,18 @@ public:
      * @details This function appends a given pointer to the end of the set.
      * @param x The pointer to be added to the end of the set.
      */
-    KRATOS_DEPRECATED_MESSAGE("This is legacy version (use insert instead)") void push_back(TPointerType x)
+    void push_back(TPointerType x)
     {
         insert(x);
     }
 
     /**
      * @brief Removes the last element from the set.
-     * @details This function removes the last element (pointer) from the set and updates mSortedPartSize
-     * if necessary.
+     * @details This function removes the last element (pointer) from the set.
      */
     void pop_back()
     {
         mData.pop_back();
-        if (mSortedPartSize > mData.size())
-            mSortedPartSize = mData.size();
     }
 
     /**
@@ -644,8 +647,7 @@ public:
 
     /**
      * @brief Erase an element at the specified position.
-     * @details This function erases the element at the specified position and updates `mSortedPartSize`
-     * to match the size of the data container. If the provided position is equal to `end()`,
+     * @details This function erases the element at the specified position. If the provided position is equal to `end()`,
      * it returns `end()`.
      * @param pos An iterator pointing to the position of the element to erase.
      * @return An iterator pointing to the element following the erased element, or `end()` if the
@@ -656,14 +658,12 @@ public:
         if (pos.base() == mData.end())
             return mData.end();
         iterator new_end = iterator(mData.erase(pos.base()));
-        mSortedPartSize = mData.size();
         return new_end;
     }
 
     /**
      * @brief Erase a range of elements defined by iterators.
-     * @details This function erases a range of elements defined by the iterators `first` and `last`
-     * and updates `mSortedPartSize` to match the size of the data container.
+     * @details This function erases a range of elements defined by the iterators `first` and `last`.
      * @param first An iterator pointing to the beginning of the range to erase.
      * @param last An iterator pointing to the end of the range to erase.
      * @return An iterator pointing to the element following the last erased element.
@@ -671,8 +671,6 @@ public:
     iterator erase(iterator first, iterator last)
     {
         iterator new_end = iterator(mData.erase(first.base(), last.base()));
-        // TODO: Sorted part size must change
-        mSortedPartSize = mData.size();
         return new_end;
     }
 
@@ -691,13 +689,12 @@ public:
 
     /**
      * @brief Clear the set, removing all elements.
-     * @details This function clears the set by removing all elements, resetting `mSortedPartSize` to zero,
+     * @details This function clears the set by removing all elements,
      * and setting `mMaxBufferSize` to 1.
      */
     void clear()
     {
         mData.clear();
-        mSortedPartSize = size_type();
         mMaxBufferSize = 1;
     }
 
@@ -757,29 +754,12 @@ public:
         return mData.capacity();
     }
 
-    /**
-     * @brief Sort the elements in the set.
-     * @details This function sorts the elements in the set using the CompareKey comparison function. After sorting,
-     * it updates mSortedPartSize to match the size of the data container.
-     */
     void Sort()
     {
-        std::sort(mData.begin(), mData.end(), CompareKey());
-        mSortedPartSize = mData.size();
     }
 
-    /**
-     * @brief Remove duplicate elements from the set.
-     * @details This function removes duplicate elements from the set using the EqualKeyTo comparison function. After
-     * removing duplicates, it updates mSortedPartSize to match the size of the data container.
-     */
     void Unique()
     {
-        typename TContainerType::iterator end_it = mData.end();
-        std::sort(mData.begin(), mData.end(), CompareKey());
-        typename TContainerType::iterator new_end_it = std::unique(mData.begin(), mData.end(), EqualKeyTo());
-        mData.erase(new_end_it, end_it);
-        mSortedPartSize = mData.size();
     }
 
     ///@}
@@ -821,7 +801,7 @@ public:
      */
     size_type GetSortedPartSize() const
     {
-        return mSortedPartSize;
+        return 0;
     }
 
     /**
@@ -830,7 +810,6 @@ public:
      */
     void SetSortedPartSize(const size_type NewSize)
     {
-        mSortedPartSize = NewSize;
     }
 
     ///@}
@@ -847,14 +826,9 @@ public:
         return mData.empty();
     }
 
-    /**
-     * @brief Check if the data container is sorted.
-     * @details This function checks if the sorted portion of the data, indicated by the member variable mSortedPartSize, is equal to the total size of the data container mData. This is used to determine if the data is sorted.
-     * @return True if the data is sorted, false otherwise.
-     */
     bool IsSorted() const
     {
-        return (mSortedPartSize == mData.size());
+        return  true;
     }
 
     ///@}
@@ -993,9 +967,6 @@ private:
     /// The data container holding the elements.
     TContainerType mData;
 
-    /// The size of the sorted portion of the data.
-    size_type mSortedPartSize;
-
     /// The maximum buffer size for data storage.
     size_type mMaxBufferSize;
 
@@ -1063,7 +1034,6 @@ private:
         for(size_type i = 0 ; i < local_size ; i++)
             rSerializer.save("E", mData[i]);
 
-        rSerializer.save("Sorted Part Size",mSortedPartSize);
         rSerializer.save("Max Buffer Size",mMaxBufferSize);
     }
 
@@ -1082,7 +1052,6 @@ private:
         for(size_type i = 0 ; i < local_size ; i++)
             rSerializer.load("E", mData[i]);
 
-        rSerializer.load("Sorted Part Size",mSortedPartSize);
         rSerializer.load("Max Buffer Size",mMaxBufferSize);
     }
 
