@@ -70,14 +70,14 @@ void FindConditionsNeighboursProcess::Execute()
 
     // First of all the neighbour nodes and conditions array are initialized to the guessed size and empties the old entries
     block_for_each(r_nodes_array, [this](Node& rNode){
-        auto& r_neighbour_conditions = rNode.GetValue(NEIGHBOUR_CONDITIONS);
-        r_neighbour_conditions.reserve(mAverageConditions);
-        r_neighbour_conditions.erase(r_neighbour_conditions.begin(),r_neighbour_conditions.end() );
+        GlobalPointersVector<Condition> neighbour_conditions;
+        neighbour_conditions.reserve(mAverageConditions);
+        rNode.SetValue(NEIGHBOUR_CONDITIONS, neighbour_conditions);
     });
     block_for_each(r_conditions_array, [this](Condition& rCond){
-        auto& r_neighbour_conditions = rCond.GetValue(NEIGHBOUR_CONDITIONS);
-        r_neighbour_conditions.reserve(mDim);
-        r_neighbour_conditions.erase(r_neighbour_conditions.begin(),r_neighbour_conditions.end() );
+        GlobalPointersVector<Condition> neighbour_conditions;
+        neighbour_conditions.resize(mDim);
+        rCond.SetValue(NEIGHBOUR_CONDITIONS, neighbour_conditions);
     });
 
     // Add the neighbour conditions to all the nodes in the mesh
@@ -88,13 +88,17 @@ void FindConditionsNeighboursProcess::Execute()
         }
     }
 
+    // Shrink to fit
+    block_for_each(r_nodes_array, [this](Node& rNode) { 
+        rNode.GetValue(NEIGHBOUR_CONDITIONS).shrink_to_fit();
+    });
+
     // Adding the neighbouring conditions to the condition loop over faces
     if (mDim == 3) {
         for(auto it_cond = r_conditions_array.begin(); it_cond!=r_conditions_array.end(); it_cond++) {
             // Face nodes
-            auto& r_geom = (it_cond)->GetGeometry();
+            auto& r_geom = it_cond->GetGeometry();
             // Vector of the 3 faces around the given face
-            (it_cond->GetValue(NEIGHBOUR_CONDITIONS)).resize(3);
             auto& r_neighb_faces = it_cond->GetValue(NEIGHBOUR_CONDITIONS);
             // r_neighb_faces is the vector containing pointers to the three faces around it_cond
             // r_neighb_faces[0] = neighbour face over edge 1-2 of element it_cond;
