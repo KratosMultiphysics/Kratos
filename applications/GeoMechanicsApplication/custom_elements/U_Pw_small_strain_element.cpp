@@ -1211,7 +1211,6 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateBMatrix(Matrix& rB, const 
 {
     KRATOS_TRY
 
-    unsigned int index;
     if constexpr (TDim > 2) {
         ThreeDimensionStressState stress_state;
         rB = stress_state.CalculateBMatrix(GradNpT, Np, this->GetGeometry());
@@ -1583,7 +1582,8 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateGreenLagrangeStrain(Elemen
         rVariables.StrainVector[INDEX_2D_PLANE_STRAIN_ZZ] = 0.0;
         rVariables.StrainVector[INDEX_2D_PLANE_STRAIN_XY] = StrainVector[2];
     } else {
-        noalias(rVariables.StrainVector) = MathUtils<double>::StrainTensorToVector(ETensor);
+        ThreeDimensionStressState state;
+        rVariables.StrainVector = state.CalculateGreenLagrangeStrain(ETensor);
     }
 
     KRATOS_CATCH("")

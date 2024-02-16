@@ -85,14 +85,23 @@ KRATOS_TEST_CASE_IN_SUITE(ThreeDimensionStressState_GivesCorrectClone, KratosGeo
     KRATOS_EXPECT_NE(dynamic_cast<ThreeDimensionStressState*>(p_clone.get()), nullptr);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(ThreeDimensionStressState_CalculateGreenLagrangeStrainGivesExpectedVector, KratosGeoMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(ThreeDimensionStressState_CalculateGreenLagrangeStrainGivesCorrectVector, KratosGeoMechanicsFastSuite)
 {
     const auto p_stress_state_policy = std::make_unique<ThreeDimensionStressState>();
 
-    const Vector expected_vector   = ZeroVector(0);
-    const Vector calculated_vector = p_stress_state_policy->CalculateGreenLagrangeStrain(Matrix());
+    Matrix deformation_gradient = ZeroMatrix(3, 3);
+    deformation_gradient(0, 0) = 2.0;
+    deformation_gradient(1, 1) = 1.5;
+    deformation_gradient(2, 2) = 1.0;
 
-    KRATOS_CHECK_VECTOR_NEAR(expected_vector, calculated_vector, 1e-12)
+    Vector expected_vector = ZeroVector(6);
+    expected_vector(0) = 0.5 * (deformation_gradient(0, 0) * deformation_gradient(0, 0) - 1.0);
+    expected_vector(1) = 0.5 * (deformation_gradient(1, 1) * deformation_gradient(1, 1) - 1.0);
+    expected_vector(2) = 0.5 * (deformation_gradient(2, 2) * deformation_gradient(2, 2) - 1.0);
+
+    const Vector calculated_vector = p_stress_state_policy->CalculateGreenLagrangeStrain(deformation_gradient);
+
+    KRATOS_CHECK_VECTOR_NEAR(expected_vector, calculated_vector, 1e-12);
 }
 
 }

@@ -54,7 +54,16 @@ unique_ptr<StressStatePolicy> ThreeDimensionStressState::Clone() const
 
 Vector ThreeDimensionStressState::CalculateGreenLagrangeStrain(const Matrix& rTotalDeformationGradient) const
 {
-    return Kratos::Vector();
+    const int dimension = 3;
+
+    Matrix ETensor;
+    ETensor = prod(trans(rTotalDeformationGradient), rTotalDeformationGradient);
+
+    for (unsigned int i = 0; i < dimension; ++i)
+        ETensor(i, i) -= 1.0;
+    ETensor *= 0.5;
+
+    return MathUtils<double>::StrainTensorToVector(ETensor);
 }
 
 }

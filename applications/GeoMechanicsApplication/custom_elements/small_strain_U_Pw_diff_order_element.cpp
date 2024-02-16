@@ -2280,7 +2280,8 @@ void SmallStrainUPwDiffOrderElement::CalculateGreenLagrangeStrain(ElementVariabl
         rVariables.StrainVector[INDEX_2D_PLANE_STRAIN_ZZ] = 0.0;
         rVariables.StrainVector[INDEX_2D_PLANE_STRAIN_XY] = StrainVector[2];
     } else {
-        noalias(rVariables.StrainVector) = MathUtils<double>::StrainTensorToVector(ETensor);
+        ThreeDimensionStressState state;
+        rVariables.StrainVector = state.CalculateGreenLagrangeStrain(ETensor);
     }
 
     KRATOS_CATCH("")
