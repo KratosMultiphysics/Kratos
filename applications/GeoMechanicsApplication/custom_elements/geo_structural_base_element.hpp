@@ -86,7 +86,7 @@ public:
 
     void CalculateRightHandSide(VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo) override;
 
-    void EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo& rCurrentProcessInfo) const override;
+    void EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo&) const override;
 
     void CalculateMassMatrix(MatrixType& rMassMatrix, const ProcessInfo& rCurrentProcessInfo) override;
 
@@ -190,6 +190,8 @@ private:
 
     /// Copy constructor.
     GeoStructuralBaseElement(GeoStructuralBaseElement const& rOther);
+
+    [[nodiscard]] DofsVectorType GetDofs() const;
 
     /// Serialization
 

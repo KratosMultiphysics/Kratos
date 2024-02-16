@@ -69,8 +69,8 @@ protected:
 private:
     [[nodiscard]] DofsVectorType GetDofs() const
     {
-        DofsVectorType result;
-        const auto     nodes = this->GetGeometry();
+        auto       result = DofsVectorType{};
+        const auto nodes  = this->GetGeometry();
         std::transform(nodes.begin(), nodes.end(), std::back_inserter(result),
                        [](const auto& r_node) { return r_node.pGetDof(TEMPERATURE); });
         return result;

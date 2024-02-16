@@ -679,36 +679,14 @@ unsigned int UPwBaseElement<TDim, TNumNodes>::GetNumberOfDOF() const
 template <unsigned int TDim, unsigned int TNumNodes>
 Element::DofsVectorType UPwBaseElement<TDim, TNumNodes>::GetDofs() const
 {
-    KRATOS_TRY
-
-    auto result = Element::DofsVectorType(this->GetNumberOfDOF());
-
-    const GeometryType& rGeom = this->GetGeometry();
-
-    if constexpr (TDim == 3) {
-        unsigned int index = 0;
-        for (unsigned int i = 0; i < TNumNodes; ++i) {
-            result[index++] = rGeom[i].pGetDof(DISPLACEMENT_X);
-            result[index++] = rGeom[i].pGetDof(DISPLACEMENT_Y);
-            result[index++] = rGeom[i].pGetDof(DISPLACEMENT_Z);
-            result[index++] = rGeom[i].pGetDof(WATER_PRESSURE);
-        }
-    } else if constexpr (TDim == 2) {
-        unsigned int index = 0;
-        for (unsigned int i = 0; i < TNumNodes; ++i) {
-            result[index++] = rGeom[i].pGetDof(DISPLACEMENT_X);
-            result[index++] = rGeom[i].pGetDof(DISPLACEMENT_Y);
-            result[index++] = rGeom[i].pGetDof(WATER_PRESSURE);
-        }
-    } else {
-        KRATOS_ERROR << "undefined dimension in GetDofs... illegal "
-                        "operation!!"
-                     << this->Id() << std::endl;
+    auto result = Element::DofsVectorType{};
+    for (const auto& r_node : this->GetGeometry()) {
+        result.push_back(r_node.pGetDof(DISPLACEMENT_X));
+        result.push_back(r_node.pGetDof(DISPLACEMENT_Y));
+        if constexpr (TDim == 3) result.push_back(r_node.pGetDof(DISPLACEMENT_Z));
+        result.push_back(r_node.pGetDof(WATER_PRESSURE));
     }
-
     return result;
-
-    KRATOS_CATCH("")
 }
 
 //----------------------------------------------------------------------------------------

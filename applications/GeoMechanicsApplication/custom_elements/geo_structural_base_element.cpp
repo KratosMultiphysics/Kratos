@@ -156,36 +156,9 @@ void GeoStructuralBaseElement<TDim, TNumNodes>::Initialize(const ProcessInfo& rC
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
-void GeoStructuralBaseElement<TDim, TNumNodes>::GetDofList(DofsVectorType& rElementalDofList,
-                                                           const ProcessInfo& rCurrentProcessInfo) const
+void GeoStructuralBaseElement<TDim, TNumNodes>::GetDofList(DofsVectorType& rElementalDofList, const ProcessInfo&) const
 {
-    KRATOS_TRY
-
-    const GeometryType& rGeom = this->GetGeometry();
-
-    if (rElementalDofList.size() != N_DOF_ELEMENT) rElementalDofList.resize(N_DOF_ELEMENT);
-
-    unsigned int index = 0;
-    if constexpr (TDim == 2) {
-        for (unsigned int i = 0; i < TNumNodes; ++i) {
-            rElementalDofList[index++] = rGeom[i].pGetDof(DISPLACEMENT_X);
-            rElementalDofList[index++] = rGeom[i].pGetDof(DISPLACEMENT_Y);
-            rElementalDofList[index++] = rGeom[i].pGetDof(ROTATION_Z);
-        }
-    } else if constexpr (TDim == 3) {
-        for (unsigned int i = 0; i < TNumNodes; ++i) {
-            rElementalDofList[index++] = rGeom[i].pGetDof(DISPLACEMENT_X);
-            rElementalDofList[index++] = rGeom[i].pGetDof(DISPLACEMENT_Y);
-            rElementalDofList[index++] = rGeom[i].pGetDof(DISPLACEMENT_Z);
-            rElementalDofList[index++] = rGeom[i].pGetDof(ROTATION_X);
-            rElementalDofList[index++] = rGeom[i].pGetDof(ROTATION_Y);
-            rElementalDofList[index++] = rGeom[i].pGetDof(ROTATION_Z);
-        }
-    } else {
-        KRATOS_ERROR << " Unspecified dimension in GetDofList: " << this->Id() << std::endl;
-    }
-
-    KRATOS_CATCH("")
+    rElementalDofList = this->GetDofs();
 }
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -266,11 +239,9 @@ void GeoStructuralBaseElement<TDim, TNumNodes>::CalculateRightHandSide(VectorTyp
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
 void GeoStructuralBaseElement<TDim, TNumNodes>::EquationIdVector(EquationIdVectorType& rResult,
-                                                                 const ProcessInfo& rCurrentProcessInfo) const
+                                                                 const ProcessInfo&) const
 {
-    DofsVectorType dofs;
-    this->GetDofList(dofs, rCurrentProcessInfo);
-    rResult = ExtractEquationIdsFrom(dofs);
+    rResult = ExtractEquationIdsFrom(this->GetDofs());
 }
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -573,6 +544,23 @@ SizeType GeoStructuralBaseElement<TDim, TNumNodes>::GetAlongNumberIntegrationPoi
                  << this->Id() << std::endl;
 
     return 0;
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
+Element::DofsVectorType GeoStructuralBaseElement<TDim, TNumNodes>::GetDofs() const
+{
+    auto result = Element::DofsVectorType{};
+    for (const auto& r_node : this->GetGeometry()) {
+        result.push_back(r_node.pGetDof(DISPLACEMENT_X));
+        result.push_back(r_node.pGetDof(DISPLACEMENT_Y));
+        if constexpr (TDim == 3) {
+            result.push_back(r_node.pGetDof(DISPLACEMENT_Z));
+            result.push_back(r_node.pGetDof(ROTATION_X));
+            result.push_back(r_node.pGetDof(ROTATION_Y));
+        }
+        result.push_back(r_node.pGetDof(ROTATION_Z));
+    }
+    return result;
 }
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
