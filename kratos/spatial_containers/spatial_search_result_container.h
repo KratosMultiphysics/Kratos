@@ -532,6 +532,13 @@ public:
     std::vector<std::vector<array_1d<double, 3>>> GetResultCoordinates();
 
     /**
+     * @brief Removes elements from the given ranks.
+     * @details This function takes a list of ranks and removes the elements at those ranks from the list.
+     * @param rRanks A constant reference to a std::vector<int> containing the ranks where no local solution is expected.
+     */
+    void RemoveResultsFromRanksList(const std::vector<int>& rRanks);
+
+    /**
      * @brief Removes elements at specified indexes from a list.
      * @details This function takes a list of indexes and removes the elements at those indexes from the list.
      * @param rIndexes A constant reference to a std::vector<IndexType> containing the indexes of elements to be removed.
