@@ -186,7 +186,7 @@ void UpdatedLagrangianUPwDiffOrderElement::CalculateOnIntegrationPoints(const Va
         // Loop over integration points
         for (unsigned int GPoint = 0; GPoint < mConstitutiveLawVector.size(); ++GPoint) {
             this->CalculateDeformationGradient(Variables, GPoint);
-            this->CalculateGreenLagrangeStrain(Variables);
+            Variables.StrainVector = this->CalculateGreenLagrangeStrain(Variables.F);
 
             if (rOutput[GPoint].size() != Variables.StrainVector.size())
                 rOutput[GPoint].resize(Variables.StrainVector.size(), false);

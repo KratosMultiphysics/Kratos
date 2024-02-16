@@ -17,43 +17,41 @@
 namespace Kratos
 {
 
-static const SizeType NumberOfUDofPerNode = 2; // Axi-symmetric stress state assumes a 2D problem definition
-
-Matrix AxisymmetricStressState::CalculateBMatrix(const Matrix&         GradNpT,
-                                                 const Vector&         Np,
+Matrix AxisymmetricStressState::CalculateBMatrix(const Matrix&         rGradNpT,
+                                                 const Vector&         rNp,
                                                  const Geometry<Node>& rGeometry) const
 {
-    const double radius = GeoElementUtilities::CalculateRadius(Np, rGeometry);
+    const auto radius = GeoElementUtilities::CalculateRadius(rNp, rGeometry);
 
     const auto dimension       = rGeometry.WorkingSpaceDimension();
     const auto number_of_nodes = rGeometry.size();
-    Matrix result = ZeroMatrix(VOIGT_SIZE_2D_AXISYMMETRIC, NumberOfUDofPerNode * number_of_nodes);
+    Matrix     result = ZeroMatrix(VOIGT_SIZE_2D_AXISYMMETRIC, dimension * number_of_nodes);
 
     for (IndexType i = 0; i < number_of_nodes; ++i) {
         const IndexType index = dimension * i;
 
-        result(INDEX_2D_PLANE_STRAIN_XX, index + INDEX_X) = GradNpT(i, INDEX_X);
-        result(INDEX_2D_PLANE_STRAIN_YY, index + INDEX_Y) = GradNpT(i, INDEX_Y);
-        result(INDEX_2D_PLANE_STRAIN_ZZ, index + INDEX_X) = Np[i] / radius;
-        result(INDEX_2D_PLANE_STRAIN_XY, index + INDEX_X) = GradNpT(i, INDEX_Y);
-        result(INDEX_2D_PLANE_STRAIN_XY, index + INDEX_Y) = GradNpT(i, INDEX_X);
+        result(INDEX_2D_PLANE_STRAIN_XX, index + INDEX_X) = rGradNpT(i, INDEX_X);
+        result(INDEX_2D_PLANE_STRAIN_YY, index + INDEX_Y) = rGradNpT(i, INDEX_Y);
+        result(INDEX_2D_PLANE_STRAIN_ZZ, index + INDEX_X) = rNp[i] / radius;
+        result(INDEX_2D_PLANE_STRAIN_XY, index + INDEX_X) = rGradNpT(i, INDEX_Y);
+        result(INDEX_2D_PLANE_STRAIN_XY, index + INDEX_Y) = rGradNpT(i, INDEX_X);
     }
 
     return result;
 }
 
 double AxisymmetricStressState::CalculateIntegrationCoefficient(const Geometry<Node>::IntegrationPointType& rIntegrationPoint,
-                                                                double detJ,
+                                                                double DetJ,
                                                                 const Geometry<Node>& rGeometry) const
 {
     Vector shape_function_values;
     shape_function_values =
         rGeometry.ShapeFunctionsValues(shape_function_values, rIntegrationPoint.Coordinates());
 
-    const double radiusWeight =
+    const auto radius_weight =
         GeoElementUtilities::CalculateAxisymmetricCircumference(shape_function_values, rGeometry);
 
-    return rIntegrationPoint.Weight() * detJ * radiusWeight;
+    return rIntegrationPoint.Weight() * DetJ * radius_weight;
 }
 
 unique_ptr<StressStatePolicy> AxisymmetricStressState::Clone() const
@@ -63,7 +61,8 @@ unique_ptr<StressStatePolicy> AxisymmetricStressState::Clone() const
 
 Vector AxisymmetricStressState::CalculateGreenLagrangeStrain(const Matrix& rTotalDeformationGradient) const
 {
-    KRATOS_ERROR << "The calculation of Green Lagrange strain is not implemented for axisymmetric configurations.\n";
+    KRATOS_ERROR << "The calculation of Green Lagrange strain is not implemented for axisymmetric "
+                    "configurations.\n";
 }
 
 } // namespace Kratos

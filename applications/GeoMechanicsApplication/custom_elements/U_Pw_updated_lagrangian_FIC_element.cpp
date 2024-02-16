@@ -189,7 +189,7 @@ void UPwUpdatedLagrangianFICElement<TDim, TNumNodes>::CalculateOnIntegrationPoin
 
             // Compute strain
             this->CalculateDeformationGradient(Variables, GPoint);
-            this->CalculateGreenLagrangeStrain(Variables);
+            Variables.StrainVector = this->CalculateGreenLagrangeStrain(Variables.F);
 
             if (rOutput[GPoint].size2() != TDim) rOutput[GPoint].resize(TDim, TDim, false);
 
