@@ -45,8 +45,8 @@ for dim, v_n_nodes, p_n_nodes in zip(dim_vector, v_nodes_vector, p_nodes_vector)
         strain_size = 6
 
     ## Kinematics symbols definition
-    N_v, DN_v = DefineShapeFunctions(v_n_nodes, dim, impose_partion_of_unity=False, shape_functions_name='N_v', gradients_name='DN_v')
-    N_p, DN_p = DefineShapeFunctions(p_n_nodes, dim, impose_partion_of_unity=False, shape_functions_name='N_p', gradients_name='DN_p')
+    N_v, DN_v, DDN_v = DefineShapeFunctions(v_n_nodes, dim, impose_partion_of_unity=False, shape_functions_name='N_v', first_derivatives_name='DN_v', second_derivatives_name='DDN_v')
+    N_p, DN_p = DefineShapeFunctions(p_n_nodes, dim, impose_partion_of_unity=False, shape_functions_name='N_p', first_derivatives_name='DN_p')
 
     ## Unknown fields definition
     v = DefineMatrix('r_v', v_n_nodes, dim)            # Current step velocity (v(i,j) refers to velocity of node i component j)
@@ -139,8 +139,6 @@ for dim, v_n_nodes, p_n_nodes in zip(dim_vector, v_nodes_vector, p_nodes_vector)
     tau_2 = mu + stab_c2*rho*stab_norm_a*h/stab_c1                             # Pressure stabilization operator
 
     C_aux = ConvertVoigtMatrixToTensor(C) # Definition of the 4th order constitutive tensor from the previous definition symbols
-    DDN_v = sympy.Matrix(1, v_n_nodes, lambda _, j : (sympy.Matrix(dim, dim, lambda m, n : sympy.var(f"DDN_v_{j}_{m}_{n}"))))
-
     div_stress = sympy.zeros(dim, 1)
     for i in range(dim):
         for j in range(dim):
