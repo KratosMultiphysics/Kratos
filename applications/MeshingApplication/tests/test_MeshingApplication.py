@@ -110,4 +110,4 @@ if __name__ == '__main__':
 
     KratosMultiphysics.Logger.PrintInfo("Unittests", "\nRunning python tests ...")
     KratosUnittest.runTests(AssembleTestSuites())
-    KratosMultiphysics.Logger.PrintWarning("Unittests", "Finished python tests!")
+    KratosMultiphysics.Logger.PrintInfo("Unittests", "Finished python tests!")
