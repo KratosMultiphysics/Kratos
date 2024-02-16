@@ -41,14 +41,24 @@ double PlaneStrainStressState::CalculateIntegrationCoefficient(const Geometry<No
     return rIntegrationPoint.Weight() * detJ;
 }
 
+Vector PlaneStrainStressState::CalculateGreenLagrangeStrain(const Matrix& rTotalDeformationGradient) const
+{
+    const Matrix ETensor = 0.5 * (prod(trans(rTotalDeformationGradient), rTotalDeformationGradient) -
+                                  IdentityMatrix(rTotalDeformationGradient.size1()));
+
+    const Vector StrainVector        = MathUtils<double>::StrainTensorToVector(ETensor);
+    Vector       result              = ZeroVector(VOIGT_SIZE_2D_PLANE_STRAIN);
+    result[INDEX_2D_PLANE_STRAIN_XX] = StrainVector[0];
+    result[INDEX_2D_PLANE_STRAIN_YY] = StrainVector[1];
+    result[INDEX_2D_PLANE_STRAIN_ZZ] = 0.0;
+    result[INDEX_2D_PLANE_STRAIN_XY] = StrainVector[2];
+
+    return result;
+}
+
 unique_ptr<StressStatePolicy> PlaneStrainStressState::Clone() const
 {
     return std::make_unique<PlaneStrainStressState>();
-}
-
-Vector PlaneStrainStressState::CalculateGreenLagrangeStrain(const Matrix& rTotalDeformationGradient) const
-{
-    return Kratos::Vector();
 }
 
 } // namespace Kratos

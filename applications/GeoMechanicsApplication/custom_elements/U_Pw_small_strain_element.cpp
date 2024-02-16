@@ -1564,29 +1564,13 @@ Vector UPwSmallStrainElement<TDim, TNumNodes>::CalculateGreenLagrangeStrain(cons
 {
     KRATOS_TRY
 
-    Vector result = ZeroVector(VoigtSize);
-
-    //-Compute total deformation gradient
-    Matrix ETensor;
-    ETensor = prod(trans(rDeformationGradient), rDeformationGradient);
-
-    for (unsigned int i = 0; i < TDim; ++i)
-        ETensor(i, i) -= 1.0;
-    ETensor *= 0.5;
-
     if constexpr (TDim == 2) {
-        Vector StrainVector;
-        StrainVector = MathUtils<double>::StrainTensorToVector(ETensor);
-        result[INDEX_2D_PLANE_STRAIN_XX] = StrainVector[0];
-        result[INDEX_2D_PLANE_STRAIN_YY] = StrainVector[1];
-        result[INDEX_2D_PLANE_STRAIN_ZZ] = 0.0;
-        result[INDEX_2D_PLANE_STRAIN_XY] = StrainVector[2];
-    } else {
-        ThreeDimensionalStressState state;
-        result = state.CalculateGreenLagrangeStrain(rDeformationGradient);
+        PlaneStrainStressState state;
+        return state.CalculateGreenLagrangeStrain(rDeformationGradient);
     }
 
-    return result;
+    ThreeDimensionalStressState state;
+    return state.CalculateGreenLagrangeStrain(rDeformationGradient);
 
     KRATOS_CATCH("")
 }

@@ -72,13 +72,33 @@ KRATOS_TEST_CASE_IN_SUITE(PlaneStrainStressState_ReturnsCorrectIntegrationCoeffi
     KRATOS_EXPECT_NEAR(calculated_coefficient, 1.0, 1e-5);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(PlaneStrainStressState_GivesCorrectClone, KratosGeoMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(PlaneStrainStressState_ReturnsCorrectGreenLagrangeStrain, KratosGeoMechanicsFastSuite)
 {
     const auto p_stress_state_policy = std::make_unique<PlaneStrainStressState>();
+
+    // clang-format off
+    Matrix deformation_gradient = ZeroMatrix(2, 2);
+    deformation_gradient <<= 1.0, 2.0,
+                             3.0, 4.0;
+    // clang-format on
+
+    const Vector calculated_strain = p_stress_state_policy->CalculateGreenLagrangeStrain(deformation_gradient);
+
+    Vector expected_vector = ZeroVector(4);
+    expected_vector <<= 4.5, 9.5, 0, 14;
+
+    // The expected strain is calculated as follows:
+    // 0.5 * (F^T * F - I) and then converted to a vector
+    KRATOS_CHECK_VECTOR_NEAR(calculated_strain, expected_vector, 1e-12)
+}
+
+KRATOS_TEST_CASE_IN_SUITE(PlaneStrainStressState_GivesCorrectClone, KratosGeoMechanicsFastSuite)
+{
+    const std::unique_ptr<StressStatePolicy> p_stress_state_policy =
+        std::make_unique<PlaneStrainStressState>();
     const auto p_clone = p_stress_state_policy->Clone();
 
     KRATOS_EXPECT_NE(dynamic_cast<PlaneStrainStressState*>(p_clone.get()), nullptr);
 }
 
-
-}
+} // namespace Kratos::Testing

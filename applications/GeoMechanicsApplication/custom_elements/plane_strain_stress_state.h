@@ -20,12 +20,14 @@ namespace Kratos
 class PlaneStrainStressState : public StressStatePolicy
 {
 public:
-    Matrix CalculateBMatrix(const Matrix& GradNpT, const Vector& Np, const Geometry<Node>& rGeometry) const override;
-    double CalculateIntegrationCoefficient(const Geometry<Node>::IntegrationPointType& rIntegrationPoint,
-                                           double                detJ,
-                                           const Geometry<Node>& rGeometry) const override;
-    Vector CalculateGreenLagrangeStrain(const Matrix& rTotalDeformationGradient) const override;
-    unique_ptr<StressStatePolicy> Clone() const override;
+    [[nodiscard]] Matrix CalculateBMatrix(const Matrix&         GradNpT,
+                                          const Vector&         Np,
+                                          const Geometry<Node>& rGeometry) const override;
+    [[nodiscard]] double CalculateIntegrationCoefficient(const Geometry<Node>::IntegrationPointType& rIntegrationPoint,
+                                                         double detJ,
+                                                         const Geometry<Node>& rGeometry) const override;
+    [[nodiscard]] Vector CalculateGreenLagrangeStrain(const Matrix& rTotalDeformationGradient) const override;
+    [[nodiscard]] unique_ptr<StressStatePolicy> Clone() const override;
 };
 
 } // namespace Kratos

@@ -1799,8 +1799,8 @@ void SmallStrainUPwDiffOrderElement::CalculateBMatrix(Matrix& rB, const Matrix& 
 {
     KRATOS_TRY
 
-    const GeometryType& rGeom     = GetGeometry();
-    const SizeType      Dim       = rGeom.WorkingSpaceDimension();
+    const GeometryType& rGeom = GetGeometry();
+    const SizeType      Dim   = rGeom.WorkingSpaceDimension();
 
     if (Dim > 2) {
         ThreeDimensionalStressState stress_state;
@@ -2259,33 +2259,13 @@ Vector SmallStrainUPwDiffOrderElement::CalculateGreenLagrangeStrain(const Matrix
 {
     KRATOS_TRY
 
-    const GeometryType& rGeom = GetGeometry();
-    const SizeType      Dim   = rGeom.WorkingSpaceDimension();
-
-    const SizeType VoigtSize = (Dim == 3 ? VOIGT_SIZE_3D : VOIGT_SIZE_2D_PLANE_STRAIN);
-    Vector         result    = ZeroVector(VoigtSize);
-
-    //-Compute total deformation gradient
-    Matrix ETensor;
-    ETensor = prod(trans(rDeformationGradient), rDeformationGradient);
-
-    for (unsigned int i = 0; i < Dim; ++i)
-        ETensor(i, i) -= 1.0;
-    ETensor *= 0.5;
-
-    if (Dim == 2) {
-        Vector StrainVector;
-        StrainVector = MathUtils<double>::StrainTensorToVector(ETensor);
-        result[INDEX_2D_PLANE_STRAIN_XX] = StrainVector[0];
-        result[INDEX_2D_PLANE_STRAIN_YY] = StrainVector[1];
-        result[INDEX_2D_PLANE_STRAIN_ZZ] = 0.0;
-        result[INDEX_2D_PLANE_STRAIN_XY] = StrainVector[2];
-    } else {
-        ThreeDimensionalStressState state;
-        result = state.CalculateGreenLagrangeStrain(rDeformationGradient);
+    if (const SizeType Dim = GetGeometry().WorkingSpaceDimension(); Dim == 2) {
+        PlaneStrainStressState state;
+        return state.CalculateGreenLagrangeStrain(rDeformationGradient);
     }
 
-    return result;
+    ThreeDimensionalStressState state;
+    return state.CalculateGreenLagrangeStrain(rDeformationGradient);
 
     KRATOS_CATCH("")
 }
