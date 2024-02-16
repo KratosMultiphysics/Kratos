@@ -92,16 +92,3 @@ class ConvertLinearTetrahedraToQuadraticModeler(KratosMultiphysics.Modeler):
             str: A string describing the class.
         """
         return "ConvertLinearTetrahedraToQuadraticModeler"
-
-def Factory(model, settings):
-    """
-    Factory method to create an instance of ConvertLinearTetrahedraToQuadraticModeler.
-
-    Args:
-        model (KratosMultiphysics.Model): The Kratos model to be modified.
-        settings (KratosMultiphysics.Parameters): Configuration settings for the modeler.
-
-    Returns:
-        ConvertLinearTetrahedraToQuadraticModeler: An instance of the modeler class.
-    """
-    return ConvertLinearTetrahedraToQuadraticModeler(model, settings)
