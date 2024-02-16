@@ -585,7 +585,7 @@ std::vector<std::vector<array_1d<double, 3>>> SpatialSearchResultContainer<TObje
 /***********************************************************************************/
 
 template <class TObjectType>
-void SpatialSearchResultContainer<TObjectType>:::RemoveResultsFromRanksList(const std::vector<int>& rRanks)
+void SpatialSearchResultContainer<TObjectType>::RemoveResultsFromRanksList(const std::vector<int>& rRanks)
 {
     // Get current rank
     const int rank = mrDataCommunicator.Rank();
