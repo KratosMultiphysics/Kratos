@@ -694,18 +694,6 @@ public:
     }
 
     /**
-     * @brief Count the number of elements with the specified key.
-     * @details This function counts the number of elements with the specified key in the set. It returns 1
-     * if the element is found and 0 if it's not found.
-     * @param Key The key to count.
-     * @return The number of elements with the specified key (0 or 1).
-     */
-    size_type count(const key_type& Key)
-    {
-        return find(Key) == mData.end() ? 0 : 1;
-    }
-
-    /**
      * @brief Reserves memory for a specified number of elements.
      * @details This function reserves memory in the underlying data container for a specified number of elements.
      * @param reservedsize The number of elements to reserve memory for.
