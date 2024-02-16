@@ -14,7 +14,7 @@
 // Application includes
 #include "custom_elements/U_Pw_small_strain_element.hpp"
 #include "plane_strain_stress_state.h"
-#include "three_dimension_stress_state.h"
+#include "three_dimensional_stress_state.h"
 
 namespace Kratos
 {
@@ -1212,7 +1212,7 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateBMatrix(Matrix& rB, const 
     KRATOS_TRY
 
     if constexpr (TDim > 2) {
-        ThreeDimensionStressState stress_state;
+        ThreeDimensionalStressState stress_state;
         rB = stress_state.CalculateBMatrix(GradNpT, Np, this->GetGeometry());
     } else {
         PlaneStrainStressState stress_state;
@@ -1582,8 +1582,8 @@ Vector UPwSmallStrainElement<TDim, TNumNodes>::CalculateGreenLagrangeStrain(cons
         result[INDEX_2D_PLANE_STRAIN_ZZ] = 0.0;
         result[INDEX_2D_PLANE_STRAIN_XY] = StrainVector[2];
     } else {
-        ThreeDimensionStressState state;
-        result = state.CalculateGreenLagrangeStrain(ETensor);
+        ThreeDimensionalStressState state;
+        result = state.CalculateGreenLagrangeStrain(rDeformationGradient);
     }
 
     return result;

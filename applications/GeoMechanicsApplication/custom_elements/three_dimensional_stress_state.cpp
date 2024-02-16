@@ -10,18 +10,18 @@
 //  Main authors:    Marjan Fathian
 //                   Richard Faasse
 //
-#include "three_dimension_stress_state.h"
+#include "three_dimensional_stress_state.h"
 
 namespace Kratos
 {
 
-Matrix ThreeDimensionStressState::CalculateBMatrix(const Matrix&         GradNpT,
-                                                   const Vector&         Np,
-                                                   const Geometry<Node>& rGeometry) const
+Matrix ThreeDimensionalStressState::CalculateBMatrix(const Matrix&         GradNpT,
+                                                     const Vector&         Np,
+                                                     const Geometry<Node>& rGeometry) const
 {
     const auto dimension       = rGeometry.WorkingSpaceDimension();
     const auto number_of_nodes = rGeometry.size();
-    Matrix result = ZeroMatrix(VOIGT_SIZE_3D, dimension * number_of_nodes);
+    Matrix     result          = ZeroMatrix(VOIGT_SIZE_3D, dimension * number_of_nodes);
 
     for (unsigned int i = 0; i < number_of_nodes; ++i) {
         auto index = dimension * i;
@@ -40,19 +40,18 @@ Matrix ThreeDimensionStressState::CalculateBMatrix(const Matrix&         GradNpT
     return result;
 }
 
-double ThreeDimensionStressState::CalculateIntegrationCoefficient(const Geometry<Node>::IntegrationPointType& rIntegrationPoint,
-                                                                  double detJ,
-                                                                  const Geometry<Node>&) const
+double ThreeDimensionalStressState::CalculateIntegrationCoefficient(
+    const Geometry<Node>::IntegrationPointType& rIntegrationPoint, double detJ, const Geometry<Node>&) const
 {
     return rIntegrationPoint.Weight() * detJ;
 }
 
-unique_ptr<StressStatePolicy> ThreeDimensionStressState::Clone() const
+unique_ptr<StressStatePolicy> ThreeDimensionalStressState::Clone() const
 {
-    return std::make_unique<ThreeDimensionStressState>();
+    return std::make_unique<ThreeDimensionalStressState>();
 }
 
-Vector ThreeDimensionStressState::CalculateGreenLagrangeStrain(const Matrix& rTotalDeformationGradient) const
+Vector ThreeDimensionalStressState::CalculateGreenLagrangeStrain(const Matrix& rTotalDeformationGradient) const
 {
     const int dimension = 3;
 
@@ -66,4 +65,4 @@ Vector ThreeDimensionStressState::CalculateGreenLagrangeStrain(const Matrix& rTo
     return MathUtils<double>::StrainTensorToVector(ETensor);
 }
 
-}
+} // namespace Kratos

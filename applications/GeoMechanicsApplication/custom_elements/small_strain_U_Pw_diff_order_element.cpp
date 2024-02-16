@@ -22,7 +22,7 @@
 #include "custom_elements/small_strain_U_Pw_diff_order_element.hpp"
 #include "custom_utilities/element_utilities.hpp"
 #include "plane_strain_stress_state.h"
-#include "three_dimension_stress_state.h"
+#include "three_dimensional_stress_state.h"
 
 namespace Kratos
 {
@@ -1803,7 +1803,7 @@ void SmallStrainUPwDiffOrderElement::CalculateBMatrix(Matrix& rB, const Matrix& 
     const SizeType      Dim       = rGeom.WorkingSpaceDimension();
 
     if (Dim > 2) {
-        ThreeDimensionStressState stress_state;
+        ThreeDimensionalStressState stress_state;
         rB = stress_state.CalculateBMatrix(DNp_DX, Np, this->GetGeometry());
     } else {
         PlaneStrainStressState stress_state;
@@ -2281,8 +2281,8 @@ Vector SmallStrainUPwDiffOrderElement::CalculateGreenLagrangeStrain(const Matrix
         result[INDEX_2D_PLANE_STRAIN_ZZ] = 0.0;
         result[INDEX_2D_PLANE_STRAIN_XY] = StrainVector[2];
     } else {
-        ThreeDimensionStressState state;
-        result = state.CalculateGreenLagrangeStrain(ETensor);
+        ThreeDimensionalStressState state;
+        result = state.CalculateGreenLagrangeStrain(rDeformationGradient);
     }
 
     return result;
