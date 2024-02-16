@@ -52,6 +52,10 @@ class ConvertLinearTetrahedraToQuadraticModeler(KratosMultiphysics.Modeler):
             if elem.GetGeometry().GetGeometryType() != KratosMultiphysics.GeometryData.KratosGeometryType.Kratos_Tetrahedra3D4:
                 raise Exception("Only linear tets are accepted as input (4 nodes)")
 
+        for cond in model_part.Conditions:
+            if cond.GetGeometry().GetGeometryType() != KratosMultiphysics.GeometryData.KratosGeometryType.Kratos_Triangle3D3:
+                raise Exception("Only linear triangles are accepted as input condition (3 nodes)")
+
         KratosMultiphysics.VariableUtils().SetNonHistoricalVariable(
             KratosMultiphysics.SPLIT_ELEMENT,
             True,
@@ -64,10 +68,11 @@ class ConvertLinearTetrahedraToQuadraticModeler(KratosMultiphysics.Modeler):
         Meshing.LinearToQuadraticTetrahedraMeshConverter(model_part.GetRootModelPart()).LocalConvertLinearToQuadraticTetrahedraMesh(False, False)
 
         element_name = self.settings["element_name"].GetString()
-        if element_name:
+        condition_name = self.settings["condition_name"].GetString()
+        if element_name or condition_name:
             replace_settings = KratosMultiphysics.Parameters("{}")
             replace_settings.AddString("element_name", element_name)
-            replace_settings.AddString("condition_name", "")
+            replace_settings.AddString("condition_name", condition_name)
             KratosMultiphysics.ReplaceElementsAndConditionsProcess(model_part, replace_settings).Execute()
 
     def __GetDefaultSettings(self):
@@ -81,7 +86,8 @@ class ConvertLinearTetrahedraToQuadraticModeler(KratosMultiphysics.Modeler):
         """
         return KratosMultiphysics.Parameters('''{
             "model_part_name" : "main_model_part",
-            "element_name" : ""
+            "element_name" : "",
+            "condition_name": ""
         }''')
 
     def __str__(self):
