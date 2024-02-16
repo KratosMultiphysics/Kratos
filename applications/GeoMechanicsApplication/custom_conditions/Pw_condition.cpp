@@ -14,6 +14,7 @@
 
 // Application includes
 #include "custom_conditions/Pw_condition.hpp"
+#include "custom_utilities/dof_utilities.h"
 
 namespace Kratos
 {
@@ -93,26 +94,10 @@ void PwCondition<TDim, TNumNodes>::
 }
 
 //----------------------------------------------------------------------------------------
-template< unsigned int TDim, unsigned int TNumNodes >
-void PwCondition<TDim,TNumNodes>::
-    EquationIdVector(EquationIdVectorType& rResult,
-                     const ProcessInfo& rCurrentProcessInfo) const
+template <unsigned int TDim, unsigned int TNumNodes>
+void PwCondition<TDim, TNumNodes>::EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo&) const
 {
-    KRATOS_TRY
-
-    const GeometryType& rGeom = GetGeometry();
-
-    unsigned int nDof = 1;
-    unsigned int conditionSize = TNumNodes * nDof;
-
-    if (rResult.size() != conditionSize)
-        rResult.resize( conditionSize,false );
-
-    for (unsigned int i = 0; i < TNumNodes; ++i) {
-        rResult[i] = rGeom[i].GetDof(WATER_PRESSURE).EquationId();
-    }
-   
-    KRATOS_CATCH( "" )
+    rResult = ExtractEquationIdsFrom(GetDofs());
 }
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
