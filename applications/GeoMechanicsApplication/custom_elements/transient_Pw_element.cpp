@@ -93,6 +93,7 @@ void TransientPwElement<TDim, TNumNodes>::GetValuesVector(Vector& rValues, int S
 
     if (rValues.size() != N_DOF) rValues.resize(N_DOF, false);
 
+    // Why are we constructing a zero vector here?
     for (unsigned int i = 0; i < TNumNodes; ++i) {
         rValues[i] = 0.0;
     }
@@ -110,6 +111,7 @@ void TransientPwElement<TDim, TNumNodes>::GetFirstDerivativesVector(Vector& rVal
 
     if (rValues.size() != N_DOF) rValues.resize(N_DOF, false);
 
+    // Why are we constructing a zero vector here?
     for (unsigned int i = 0; i < TNumNodes; ++i) {
         rValues[i] = 0.0;
     }
@@ -127,6 +129,7 @@ void TransientPwElement<TDim, TNumNodes>::GetSecondDerivativesVector(Vector& rVa
 
     if (rValues.size() != N_DOF) rValues.resize(N_DOF, false);
 
+    // Why are we constructing a zero vector here?
     for (unsigned int i = 0; i < TNumNodes; ++i) {
         rValues[i] = 0.0;
     }
