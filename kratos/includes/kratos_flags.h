@@ -4,28 +4,23 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Pooyan Dadvand
 //                   Riccardo Rossi
 //
-//
 
-#if !defined(KRATOS_KRATOS_FLAGS_H_INCLUDED )
-#define  KRATOS_KRATOS_FLAGS_H_INCLUDED
+#pragma once
 
 // System includes
 
-
 // External includes
-
 
 // Project includes
 #include "includes/define.h"
 #include "containers/flags.h"
 #include "includes/kratos_components.h"
-
 
 // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! VERY IMPORTANT !!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -100,7 +95,5 @@ const Flags ALL_TRUE(Flags::AllTrue());
   ///@} addtogroup block
 
 }  // namespace Kratos.
-
-#endif // KRATOS_KRATOS_FLAGS_H_INCLUDED  defined
 
 
