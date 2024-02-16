@@ -19,6 +19,7 @@
 
 // Project includes
 #include "custom_conditions/general_U_Pw_diff_order_condition.hpp"
+#include "custom_utilities/dof_utilities.h"
 
 namespace Kratos
 {
@@ -153,35 +154,9 @@ void GeneralUPwDiffOrderCondition::
 
 //----------------------------------------------------------------------------------------
 
-void GeneralUPwDiffOrderCondition::
-    EquationIdVector(EquationIdVectorType& rResult,
-                     const ProcessInfo& rCurrentProcessInfo) const
+void GeneralUPwDiffOrderCondition::EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo&) const
 {
-    KRATOS_TRY
-
-    const GeometryType& rGeom = GetGeometry();
-    const SizeType Dim = rGeom.WorkingSpaceDimension();
-    const SizeType NumUNodes = rGeom.PointsNumber();
-    const SizeType NumPNodes = mpPressureGeometry->PointsNumber();
-    const SizeType ConditionSize = NumUNodes * Dim + NumPNodes;
-
-    if ( rResult.size() != ConditionSize )
-        rResult.resize( ConditionSize, false );
-
-    SizeType Index = 0;
-
-    for ( SizeType i = 0; i < NumUNodes; ++i )
-    {
-        rResult[Index++] = GetGeometry()[i].GetDof( DISPLACEMENT_X ).EquationId();
-        rResult[Index++] = GetGeometry()[i].GetDof( DISPLACEMENT_Y ).EquationId();
-        if(Dim > 2)
-            rResult[Index++] = GetGeometry()[i].GetDof( DISPLACEMENT_Z ).EquationId();
-    }
-
-    for ( SizeType i = 0; i < NumPNodes; ++i )
-        rResult[Index++] = GetGeometry()[i].GetDof( WATER_PRESSURE ).EquationId();
-
-    KRATOS_CATCH( "" )
+    rResult = ExtractEquationIdsFrom(GetDofs());
 }
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
