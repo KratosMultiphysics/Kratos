@@ -1,5 +1,5 @@
 python_modelers_to_be_registered = [
-    "convert_linear_tetrahedra_to_quadratic_modeler.ConvertLinearTetrahedraToQuadraticModeler",
+    "modelers.convert_linear_tetrahedra_to_quadratic_modeler.ConvertLinearTetrahedraToQuadraticModeler",
 ]
 
 python_operations_to_be_registered = []
