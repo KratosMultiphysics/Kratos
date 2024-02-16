@@ -685,30 +685,16 @@ void TransientPwInterfaceElement<TDim, TNumNodes>::CalculateAndAddFluidBodyFlow(
 
 template <unsigned int TDim, unsigned int TNumNodes>
 void TransientPwInterfaceElement<TDim, TNumNodes>::GetDofList(DofsVectorType& rElementalDofList,
-                                                              const ProcessInfo& rCurrentProcessInfo) const
+                                                              const ProcessInfo&) const
 {
-    KRATOS_TRY
-
-    const GeometryType& rGeom = this->GetGeometry();
-    const unsigned int  N_DOF = this->GetNumberOfDOF();
-
-    if (rElementalDofList.size() != N_DOF) rElementalDofList.resize(N_DOF);
-
-    unsigned int index = 0;
-    for (unsigned int i = 0; i < TNumNodes; ++i) {
-        rElementalDofList[index++] = rGeom[i].pGetDof(WATER_PRESSURE);
-    }
-
-    KRATOS_CATCH("")
+    rElementalDofList = GetDofs();
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
 void TransientPwInterfaceElement<TDim, TNumNodes>::EquationIdVector(EquationIdVectorType& rResult,
-                                                                    const ProcessInfo& rCurrentProcessInfo) const
+                                                                    const ProcessInfo&) const
 {
-    DofsVectorType dofs;
-    this->GetDofList(dofs, rCurrentProcessInfo);
-    rResult = ExtractEquationIdsFrom(dofs);
+    rResult = ExtractEquationIdsFrom(this->GetDofs());
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
@@ -766,6 +752,16 @@ template <unsigned int TDim, unsigned int TNumNodes>
 unsigned int TransientPwInterfaceElement<TDim, TNumNodes>::GetNumberOfDOF() const
 {
     return TNumNodes;
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
+Element::DofsVectorType TransientPwInterfaceElement<TDim, TNumNodes>::GetDofs() const
+{
+    auto       result = Element::DofsVectorType{};
+    const auto nodes  = this->GetGeometry();
+    std::transform(nodes.begin(), nodes.end(), std::back_inserter(result),
+                   [](const auto& r_node) { return r_node.pGetDof(WATER_PRESSURE); });
+    return result;
 }
 
 template class TransientPwInterfaceElement<2, 4>;
