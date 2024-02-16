@@ -83,16 +83,6 @@ void FindConditionsNeighboursProcess::Execute()
     // Add the neighbour conditions to all the nodes in the mesh
     for(auto it_cond = r_conditions_array.begin(); it_cond!=r_conditions_array.end(); it_cond++) {
         auto& r_geom = it_cond->GetGeometry();
-
-    #ifdef KRATOS_DEBUG
-        // Checking condition
-        if (mDim == 2) {
-            KRATOS_ERROR_IF_NOT(r_geom.GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Line2D2) << "FindConditionsNeighboursProcess: 2D conditions are not supported (ony lines supported)" << std::endl;
-        } else if (mDim == 3) {
-            KRATOS_ERROR_IF_NOT(r_geom.GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Triangle3D3) << "FindConditionsNeighboursProcess: 3D conditions are not supported (only triangles supported)" << std::endl;
-        }
-    #endif
-
         for(unsigned int i = 0; i < r_geom.size(); i++) {
             (r_geom[i].GetValue(NEIGHBOUR_CONDITIONS)).push_back( Condition::WeakPointer( *(it_cond.base()) ) );
         }
@@ -164,14 +154,7 @@ void FindConditionsNeighboursProcess::ComputeDimension()
 {
     // Retrieve from geometry if not defined
     if (mDim < 0) {
-        auto& r_geom = mrModelPart.ConditionsBegin()->GetGeometry();
-        mDim = r_geom.WorkingSpaceDimension();
-        // Checking first condition, if mesh is mixed may fail later
-        if (mDim == 2) {
-            KRATOS_ERROR_IF_NOT(r_geom.GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Line2D2) << "FindConditionsNeighboursProcess: 2D conditions are not supported (ony lines supported)" << std::endl;
-        } else if (mDim == 3) {
-            KRATOS_ERROR_IF_NOT(r_geom.GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Triangle3D3) << "FindConditionsNeighboursProcess: 3D conditions are not supported (only triangles supported)" << std::endl;
-        }
+        mDim = mrModelPart.ConditionsBegin()->GetGeometry().WorkingSpaceDimension();
     }
     if (mDim != 2 && mDim != 3) {
         KRATOS_ERROR << "FindConditionsNeighboursProcess: invalid dimension " << mDim << std::endl;
