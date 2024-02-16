@@ -1085,11 +1085,15 @@ private:
         // Checking that is properly cleaned
         for (auto& p_partial_result : r_results_vector) {
             auto& r_partial_result = *p_partial_result;
-            KRATOS_ERROR_IF_NOT(r_partial_result.NumberOfGlobalResults() == 1) << "Cleaning has not been done properly. Number of results: " << r_partial_result.NumberOfGlobalResults() << std::endl;
-            r_partial_result.Barrier();
-            const unsigned int number_of_local_results = r_partial_result.NumberOfLocalResults();
-            const auto& r_sub_data_communicator = r_partial_result.GetDataCommunicator();
-            KRATOS_ERROR_IF(r_sub_data_communicator.SumAll(number_of_local_results) == 0) << "Local results also removed in result " << r_partial_result.GetGlobalIndex() << std::endl;
+            // Check that the number of results is 0 or 1
+            KRATOS_ERROR_IF(r_partial_result.NumberOfGlobalResults() > 1) << "Cleaning has not been done properly. Number of results: " << r_partial_result.NumberOfGlobalResults() << std::endl;
+            // Check that is not empty locally
+            if (r_partial_result.NumberOfGlobalResults() == 1) {
+                r_partial_result.Barrier();
+                const unsigned int number_of_local_results = r_partial_result.NumberOfLocalResults();
+                const auto& r_sub_data_communicator = r_partial_result.GetDataCommunicator();
+                KRATOS_ERROR_IF(r_sub_data_communicator.SumAll(number_of_local_results) == 0) << "Local results also removed in result " << r_partial_result.GetGlobalIndex() << std::endl;
+            }
         }
     }
 
