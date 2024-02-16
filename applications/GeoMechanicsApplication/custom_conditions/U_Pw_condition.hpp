@@ -87,8 +87,7 @@ public:
     void CalculateRightHandSide(VectorType& rRightHandSideVector,
                                 const ProcessInfo& rCurrentProcessInfo) override;
 
-    void EquationIdVector(EquationIdVectorType& rResult,
-                          const ProcessInfo& rCurrentProcessInfo) const override;
+    void EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo&) const override;
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
