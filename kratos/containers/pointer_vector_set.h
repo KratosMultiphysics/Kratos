@@ -615,7 +615,7 @@ public:
 
     /**
      * @brief Insert elements from a range of iterators.
-     * @details This function inserts elements from a range defined by the iterators `first` and `last`
+     * @details This function inserts element pointers from a range defined by the iterators `first` and `last`
      * into the set. This will not insert any elements in the range, if there exists an element with a key
      * which is equal to an element's key in the input range.
      * @param first An input iterator pointing to the beginning of the range to insert.
@@ -637,9 +637,9 @@ public:
             // now add the new elements
             for (; first != new_last; ++first) {
                 // find the lower bound element.
-                p_current_itr = std::lower_bound(p_current_itr, mData.end(), KeyOf(*first), CompareKey());
-                if (!EqualKeyTo(KeyOf(*first))(*p_current_itr)) {
-                    mData.insert(p_current_itr, *first);
+                p_current_itr = std::lower_bound(p_current_itr, mData.end(), KeyOf(**first), CompareKey());
+                if (!EqualKeyTo(KeyOf(**first))(*p_current_itr)) {
+                    p_current_itr = mData.insert(p_current_itr, *first);
                 }
             }
         }
