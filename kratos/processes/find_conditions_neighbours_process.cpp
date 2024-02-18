@@ -89,7 +89,7 @@ void FindConditionsNeighboursProcess::Execute()
     }
 
     // Shrink to fit
-    block_for_each(r_nodes_array, [this](Node& rNode) {
+    block_for_each(r_nodes_array, [](Node& rNode) {
         rNode.GetValue(NEIGHBOUR_CONDITIONS).shrink_to_fit();
     });
 
