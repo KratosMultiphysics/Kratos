@@ -755,20 +755,19 @@ public:
 
     void Sort()
     {
-        Conform(mData.begin(), mData.end());
+        Conform();
     }
 
     void Unique()
     {
-        Conform(mData.begin(), mData.end());
+        Conform();
     }
 
-    template<class TIteratorType>
-    void Conform(TIteratorType first, TIteratorType last)
+    void Conform()
     {
-        std::sort(first, last, CompareKey());
-        auto new_last = std::unique(first, last, EqualKeyTo());
-        mData.erase(new_last, last);
+        std::sort(mData.begin(), mData.end(), CompareKey());
+        auto new_last = std::unique(mData.begin(), mData.end(), EqualKeyTo());
+        mData.erase(new_last, mData.end());
     }
 
     ///@}
