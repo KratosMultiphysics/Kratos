@@ -113,8 +113,7 @@ public:
 
     /// Default constructor.
     PointerVectorSet()
-        : mData(),
-          mMaxBufferSize(1)
+        : mData()
     {}
 
     /**
@@ -128,9 +127,7 @@ public:
     template <class TInputIteratorType>
     PointerVectorSet(
         TInputIteratorType First,
-        TInputIteratorType Last,
-        size_type NewMaxBufferSize = 1)
-        : mMaxBufferSize(NewMaxBufferSize)
+        TInputIteratorType Last)
     {
         mData.reserve(std::distance(First, Last));
         insert(First, Last);
@@ -141,8 +138,7 @@ public:
      * @param rOther The PointerVectorSet to copy from.
      */
     PointerVectorSet(const PointerVectorSet& rOther)
-        : mData(rOther.mData),
-          mMaxBufferSize(rOther.mMaxBufferSize)
+        : mData(rOther.mData)
     {}
 
     /**
@@ -151,10 +147,9 @@ public:
      * @param rContainer The container to copy elements from.
      */
     explicit PointerVectorSet(const TContainerType& rContainer)
-        :  mData(rContainer),
-           mMaxBufferSize(1)
+        : mData(rContainer)
     {
-        Conform(mData.begin(), mData.end());
+        Conform();
     }
 
     /// Destructor.
@@ -517,7 +512,6 @@ public:
      */
     void swap(PointerVectorSet& rOther)
     {
-        std::swap(mMaxBufferSize, rOther.mMaxBufferSize);
         mData.swap(rOther.mData);
     }
 
@@ -526,7 +520,7 @@ public:
      * @details This function appends a given pointer to the end of the set.
      * @param x The pointer to be added to the end of the set.
      */
-    void push_back(TPointerType x)
+    KRATOS_DEPRECATED_MESSAGE("This is legacy version (use insert instead)") void push_back(TPointerType x)
     {
         insert(x);
     }
@@ -688,13 +682,11 @@ public:
 
     /**
      * @brief Clear the set, removing all elements.
-     * @details This function clears the set by removing all elements,
-     * and setting `mMaxBufferSize` to 1.
-     */
+     * @details This function clears the set by removing all elements
+    */
     void clear()
     {
         mData.clear();
-        mMaxBufferSize = 1;
     }
 
     /**
@@ -753,12 +745,12 @@ public:
         return mData.capacity();
     }
 
-    void Sort()
+    KRATOS_DEPRECATED_MESSAGE("This is legacy version (use Conform instead)") void Sort()
     {
         Conform();
     }
 
-    void Unique()
+    KRATOS_DEPRECATED_MESSAGE("This is legacy version (use Conform instead)") void Unique()
     {
         Conform();
     }
@@ -789,9 +781,9 @@ public:
     /**
      * @brief Get the maximum size of buffer used in the container
      */
-    size_type GetMaxBufferSize() const
+    KRATOS_DEPRECATED_MESSAGE("This is legacy version. This is a blank call") size_type GetMaxBufferSize() const
     {
-        return mMaxBufferSize;
+        return 0;
     }
 
     /**
@@ -799,15 +791,14 @@ public:
      * @details This container uses a buffer which keep data unsorted. After buffer size arrived to the MaxBufferSize it will sort all container and empties buffer.
      * @param NewSize Is the new buffer maximum size.
      */
-    void SetMaxBufferSize(const size_type NewSize)
+    KRATOS_DEPRECATED_MESSAGE("This is legacy version. This is a blank call") void SetMaxBufferSize(const size_type NewSize)
     {
-        mMaxBufferSize = NewSize;
     }
 
     /**
      * @brief Get the sorted part size of buffer used in the container.
      */
-    size_type GetSortedPartSize() const
+    KRATOS_DEPRECATED_MESSAGE("This is legacy version. This is a blank call") size_type GetSortedPartSize() const
     {
         return 0;
     }
@@ -816,7 +807,7 @@ public:
      * @brief Set the sorted part size of buffer used in the container.
      * @param NewSize Is the new buffer maximum size.
      */
-    void SetSortedPartSize(const size_type NewSize)
+    KRATOS_DEPRECATED_MESSAGE("This is legacy version. This is a blank call") void SetSortedPartSize(const size_type NewSize)
     {
     }
 
@@ -975,9 +966,6 @@ private:
     /// The data container holding the elements.
     TContainerType mData;
 
-    /// The maximum buffer size for data storage.
-    size_type mMaxBufferSize;
-
     ///@}
     ///@name Private Operators
     ///@{
@@ -1041,8 +1029,6 @@ private:
 
         for(size_type i = 0 ; i < local_size ; i++)
             rSerializer.save("E", mData[i]);
-
-        rSerializer.save("Max Buffer Size",mMaxBufferSize);
     }
 
     /**
@@ -1059,8 +1045,6 @@ private:
 
         for(size_type i = 0 ; i < local_size ; i++)
             rSerializer.load("E", mData[i]);
-
-        rSerializer.load("Max Buffer Size",mMaxBufferSize);
     }
 
     ///@}
