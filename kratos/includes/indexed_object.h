@@ -102,12 +102,6 @@ public:
         return mId < rThisObject.Id();
     }
 
-    template<class TObjectType>
-    bool operator==(TObjectType const& rThisObject) const
-    {
-        return mId == rThisObject.Id();
-    }
-
     ///@}
     ///@name Operations
     ///@{
