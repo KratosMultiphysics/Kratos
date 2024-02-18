@@ -723,7 +723,12 @@ void MembraneElement::InternalForces(Vector& rInternalForces,const IntegrationMe
         DeformationGradient(deformation_gradient,det_deformation_gradient,current_covariant_base_vectors,reference_contravariant_base_vectors);
         // left Cauchy-Green deformation tensor B
         Matrix left_cauchy_green_tensor = prod(deformation_gradient,trans(deformation_gradient));
-        // Eigenvalues of B matrix
+        double det_B = MathUtils<double>::Det(left_cauchy_green_tensor);
+        // Thickness stretch L3
+        double L3 = 1 / det_B;
+        KRATOS_WATCH(det_B)
+        KRATOS_WATCH(L3)
+        /* // Eigenvalues of B matrix
         Matrix EigenVectorsMatrix, EigenValuesMatrix;
         MathUtils<double>::GaussSeidelEigenSystem(left_cauchy_green_tensor, EigenVectorsMatrix, EigenValuesMatrix, 1.0e-18, 20);
         KRATOS_WATCH(deformation_gradient)
@@ -736,9 +741,9 @@ void MembraneElement::InternalForces(Vector& rInternalForces,const IntegrationMe
         L[0] = EigenValuesMatrix(0,0);
         L[1] = EigenValuesMatrix(1,1);
         L[2] = 1.0 / (L[0] * L[1]);
-        KRATOS_WATCH(L)
+        KRATOS_WATCH(L) */
 
-        thickness = thickness * L[2];
+        thickness = thickness * L3;
         SetValue(THICKNESS, thickness);
         KRATOS_WATCH(thickness)
         KRATOS_WATCH(GetProperties()[THICKNESS])
