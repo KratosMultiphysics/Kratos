@@ -132,6 +132,7 @@ public:
         size_type NewMaxBufferSize = 1)
         : mMaxBufferSize(NewMaxBufferSize)
     {
+        mData.reserve(std::distance(First, Last));
         insert(First, Last);
     }
 
@@ -153,9 +154,7 @@ public:
         :  mData(rContainer),
            mMaxBufferSize(1)
     {
-        std::sort(mData.begin(), mData.end());
-        auto last = std::unique(mData.begin(), mData.end(), EqualKeyTo());
-        mData.erase(last, mData.end());
+        Conform(mData.begin(), mData.end());
     }
 
     /// Destructor.
@@ -756,10 +755,20 @@ public:
 
     void Sort()
     {
+        Conform(mData.begin(), mData.end());
     }
 
     void Unique()
     {
+        Conform(mData.begin(), mData.end());
+    }
+
+    template<class TIteratorType>
+    void Conform(TIteratorType first, TIteratorType last)
+    {
+        std::sort(first, last, CompareKey());
+        auto new_last = std::unique(first, last, EqualKeyTo());
+        mData.erase(new_last, last);
     }
 
     ///@}
