@@ -357,13 +357,13 @@ public:
     void AddNodes(TIteratorType nodes_begin,  TIteratorType nodes_end, IndexType ThisIndex = 0)
     {
         KRATOS_TRY
-        ModelPart::NodesContainerType  aux;
-        ModelPart::NodesContainerType  aux_root; //they may not exist in the root
+        std::vector<NodeType::Pointer>  aux;
+        std::vector<NodeType::Pointer>  aux_root; //they may not exist in the root
         ModelPart* root_model_part = &this->GetRootModelPart();
 
         for(TIteratorType it = nodes_begin; it!=nodes_end; it++)
         {
-            auto it_found = root_model_part->Nodes().find(it->Id());
+            auto it_found = root_model_part->Nodes().find((*(it.base()))->Id());
             if(it_found == root_model_part->NodesEnd()) //node does not exist in the top model part
             {
                 aux_root.push_back( *(it.base()) ); //node does not exist
@@ -371,7 +371,7 @@ public:
             }
             else //if it does exist verify it is the same node
             {
-                if(&(*it_found) != &(*it))//check if the pointee coincides
+                if(&(*it_found) != &(*(*(it.base()))))//check if the pointee coincides
                     KRATOS_ERROR << "attempting to add a new node with Id :" << it_found->Id() << ", unfortunately a (different) node with the same Id already exists" << std::endl;
                 else
                     aux.push_back( *(it.base()) );
@@ -379,20 +379,14 @@ public:
         }
 
         //now add to the root model part
-        for(auto it = aux_root.begin(); it!=aux_root.end(); it++)
-            root_model_part->Nodes().push_back( *(it.base()) );
-        root_model_part->Nodes().Unique();
+        root_model_part->Nodes().insert(aux_root.begin(), aux_root.end());
 
         //add to all of the leaves
 
         ModelPart* current_part = this;
         while(current_part->IsSubModelPart())
         {
-            for(auto it = aux.begin(); it!=aux.end(); it++)
-                current_part->Nodes().push_back( *(it.base()) );
-
-            current_part->Nodes().Unique();
-
+            current_part->Nodes().insert(aux.begin(), aux.end());
             current_part = &(current_part->GetParentModelPart());
         }
 
@@ -695,13 +689,13 @@ public:
     void AddMasterSlaveConstraints(TIteratorType constraints_begin,  TIteratorType constraints_end, IndexType ThisIndex = 0)
     {
         KRATOS_TRY
-        ModelPart::MasterSlaveConstraintContainerType  aux;
-        ModelPart::MasterSlaveConstraintContainerType  aux_root;
+        std::vector<MasterSlaveConstraintType::Pointer>  aux;
+        std::vector<MasterSlaveConstraintType::Pointer>  aux_root;
         ModelPart* root_model_part = &this->GetRootModelPart();
 
         for(TIteratorType it = constraints_begin; it!=constraints_end; it++)
         {
-            auto it_found = root_model_part->MasterSlaveConstraints().find(it->Id());
+            auto it_found = root_model_part->MasterSlaveConstraints().find((*(it.base()))->Id());
             if(it_found == root_model_part->MasterSlaveConstraintsEnd()) //node does not exist in the top model part
             {
                 aux_root.push_back( *(it.base()) );
@@ -709,27 +703,21 @@ public:
             }
             else //if it does exist verify it is the same node
             {
-                if(&(*it_found) != &(*it))//check if the pointee coincides
+                if(&(*it_found) != &(*(*(it.base()))))//check if the pointee coincides
                     KRATOS_ERROR << "attempting to add a new master-slave constraint with Id :" << it_found->Id() << ", unfortunately a (different) master-slave constraint with the same Id already exists" << std::endl;
                 else
                     aux.push_back( *(it.base()) );
             }
         }
 
-        for(auto it = aux_root.begin(); it!=aux_root.end(); it++)
-                root_model_part->MasterSlaveConstraints().push_back( *(it.base()) );
-        root_model_part->MasterSlaveConstraints().Unique();
+        root_model_part->MasterSlaveConstraints().insert(aux_root.begin(), aux_root.end());
 
         //add to all of the leaves
 
         ModelPart* current_part = this;
         while(current_part->IsSubModelPart())
         {
-            for(auto it = aux.begin(); it!=aux.end(); it++)
-                current_part->MasterSlaveConstraints().push_back( *(it.base()) );
-
-            current_part->MasterSlaveConstraints().Unique();
-
+            current_part->MasterSlaveConstraints().insert(aux.begin(), aux.end());
             current_part = &(current_part->GetParentModelPart());
         }
 
@@ -1043,13 +1031,13 @@ public:
     void AddElements(TIteratorType elements_begin,  TIteratorType elements_end, IndexType ThisIndex = 0)
     {
         KRATOS_TRY
-        ModelPart::ElementsContainerType  aux;
-        ModelPart::ElementsContainerType  aux_root;
+        std::vector<ElementType::Pointer>  aux;
+        std::vector<ElementType::Pointer>  aux_root;
         ModelPart* root_model_part = &this->GetRootModelPart();
 
         for(TIteratorType it = elements_begin; it!=elements_end; it++)
         {
-            auto it_found = root_model_part->Elements().find(it->Id());
+            auto it_found = root_model_part->Elements().find((*(it.base()))->Id());
             if(it_found == root_model_part->ElementsEnd()) //node does not exist in the top model part
             {
                 aux_root.push_back( *(it.base()) );
@@ -1057,27 +1045,21 @@ public:
             }
             else //if it does exist verify it is the same node
             {
-                if(&(*it_found) != &(*it))//check if the pointee coincides
+                if(&(*it_found) != &(*(*(it.base()))))//check if the pointee coincides
                     KRATOS_ERROR << "attempting to add a new element with Id :" << it_found->Id() << ", unfortunately a (different) element with the same Id already exists" << std::endl;
                 else
                     aux.push_back( *(it.base()) );
             }
         }
 
-        for(auto it = aux_root.begin(); it!=aux_root.end(); it++)
-                root_model_part->Elements().push_back( *(it.base()) );
-        root_model_part->Elements().Unique();
+        root_model_part->Elements().insert(aux_root.begin(), aux_root.end());
 
         //add to all of the leaves
 
         ModelPart* current_part = this;
         while(current_part->IsSubModelPart())
         {
-            for(auto it = aux.begin(); it!=aux.end(); it++)
-                current_part->Elements().push_back( *(it.base()) );
-
-            current_part->Elements().Unique();
-
+            current_part->Elements().insert(aux.begin(), aux.end());
             current_part = &(current_part->GetParentModelPart());
         }
 
@@ -1234,13 +1216,13 @@ public:
     void AddConditions(TIteratorType conditions_begin,  TIteratorType conditions_end, IndexType ThisIndex = 0)
     {
         KRATOS_TRY
-        ModelPart::ConditionsContainerType  aux;
-        ModelPart::ConditionsContainerType  aux_root;
+        std::vector<ConditionType::Pointer>  aux;
+        std::vector<ConditionType::Pointer>  aux_root;
         ModelPart* root_model_part = &this->GetRootModelPart();
 
         for(TIteratorType it = conditions_begin; it!=conditions_end; it++)
         {
-            auto it_found = root_model_part->Conditions().find(it->Id());
+            auto it_found = root_model_part->Conditions().find((*(it.base()))->Id());
             if(it_found == root_model_part->ConditionsEnd()) //node does not exist in the top model part
             {
                 aux.push_back( *(it.base()) );
@@ -1248,7 +1230,7 @@ public:
             }
             else //if it does exist verify it is the same node
             {
-                if(&(*it_found) != &(*it))//check if the pointee coincides
+                if(&(*it_found) != &(*(*(it.base()))))//check if the pointee coincides
                     KRATOS_ERROR << "attempting to add a new Condition with Id :" << it_found->Id() << ", unfortunately a (different) Condition with the same Id already exists" << std::endl;
                 else
                     aux.push_back( *(it.base()) );
@@ -1256,20 +1238,14 @@ public:
         }
 
         //now add to the root model part
-        for(auto it = aux_root.begin(); it!=aux_root.end(); it++)
-                root_model_part->Conditions().push_back( *(it.base()) );
-        root_model_part->Conditions().Unique();
+        root_model_part->Conditions().insert(aux_root.begin(), aux_root.end());
 
         //add to all of the leaves
 
         ModelPart* current_part = this;
         while(current_part->IsSubModelPart())
         {
-            for(auto it = aux.begin(); it!=aux.end(); it++)
-                current_part->Conditions().push_back( *(it.base()) );
-
-            current_part->Conditions().Unique();
-
+            current_part->Conditions().insert(aux.begin(), aux.end());
             current_part = &(current_part->GetParentModelPart());
         }
 
