@@ -30,7 +30,7 @@ Condition::Pointer PwCondition<TDim,TNumNodes>::
 template <unsigned int TDim, unsigned int TNumNodes>
 void PwCondition<TDim, TNumNodes>::GetDofList(DofsVectorType& rConditionDofList, const ProcessInfo&) const
 {
-    rConditionDofList = this->GetDofs();
+    rConditionDofList = GetDofs();
 }
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -126,8 +126,8 @@ void PwCondition<TDim,TNumNodes>::
 template <unsigned int TDim, unsigned int TNumNodes>
 Condition::DofsVectorType PwCondition<TDim, TNumNodes>::GetDofs() const
 {
-    const auto nodes  = this->GetGeometry();
     auto       result = Condition::DofsVectorType{};
+    const auto nodes  = this->GetGeometry();
     std::transform(nodes.begin(), nodes.end(), std::back_inserter(result),
                    [](const auto& r_node) { return r_node.pGetDof(WATER_PRESSURE); });
     return result;

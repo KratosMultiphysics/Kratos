@@ -57,7 +57,7 @@ void GeoTCondition<TDim, TNumNodes>::CalculateLocalSystem(MatrixType& rLeftHandS
 template <unsigned int TDim, unsigned int TNumNodes>
 void GeoTCondition<TDim, TNumNodes>::EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo&) const
 {
-    rResult = ExtractEquationIdsFrom(this->GetDofs());
+    rResult = ExtractEquationIdsFrom(GetDofs());
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>

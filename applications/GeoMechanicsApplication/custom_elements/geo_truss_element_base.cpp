@@ -72,14 +72,14 @@ GeoTrussElementBase<TDim, TNumNodes>::~GeoTrussElementBase()
 template <unsigned int TDim, unsigned int TNumNodes>
 void GeoTrussElementBase<TDim, TNumNodes>::EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo&) const
 {
-    rResult = ExtractEquationIdsFrom(this->GetDofs());
+    rResult = ExtractEquationIdsFrom(GetDofs());
 }
 
 //----------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
 void GeoTrussElementBase<TDim, TNumNodes>::GetDofList(DofsVectorType& rElementalDofList, const ProcessInfo&) const
 {
-    rElementalDofList = this->GetDofs();
+    rElementalDofList = GetDofs();
 }
 
 //----------------------------------------------------------------------------------------
@@ -215,29 +215,14 @@ void GeoTrussElementBase<TDim, TNumNodes>::CalculateBodyForces(FullDofVectorType
 template <unsigned int TDim, unsigned int TNumNodes>
 void GeoTrussElementBase<TDim, TNumNodes>::GetValuesVector(Vector& rValues, int Step) const
 {
-    rValues = ExtractSolutionStepValues(this->GetDofs(), Step);
+    rValues = ExtractSolutionStepValues(GetDofs(), Step);
 }
 
 //----------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
 void GeoTrussElementBase<TDim, TNumNodes>::GetFirstDerivativesVector(Vector& rValues, int Step) const
 {
-    KRATOS_TRY
-
-    if (rValues.size() != TDim * TNumNodes) {
-        rValues.resize(TDim * TNumNodes, false);
-    }
-
-    unsigned int index = 0;
-    for (unsigned int i = 0; i < TNumNodes; ++i) {
-        const auto& vel = GetGeometry()[i].FastGetSolutionStepValue(VELOCITY, Step);
-
-        for (unsigned int idim = 0; idim < TDim; ++idim) {
-            rValues[index++] = vel[idim];
-        }
-    }
-
-    KRATOS_CATCH("")
+    rValues = ExtractFirstDerivatives(GetDofs(), Step);
 }
 
 //----------------------------------------------------------------------------------------
@@ -1196,7 +1181,7 @@ template <unsigned int TDim, unsigned int TNumNodes>
 Element::DofsVectorType GeoTrussElementBase<TDim, TNumNodes>::GetDofs() const
 {
     auto result = Element::DofsVectorType{};
-    for (const auto& r_node : this->GetGeometry()) {
+    for (const auto& r_node : GetGeometry()) {
         result.push_back(r_node.pGetDof(DISPLACEMENT_X));
         result.push_back(r_node.pGetDof(DISPLACEMENT_Y));
         if constexpr (TDim == 3) result.push_back(r_node.pGetDof(DISPLACEMENT_Z));

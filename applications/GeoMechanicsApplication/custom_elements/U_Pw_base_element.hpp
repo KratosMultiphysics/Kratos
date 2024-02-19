@@ -212,6 +212,7 @@ private:
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element)
     }
+
 }; // Class UPwBaseElement
 
 } // namespace Kratos

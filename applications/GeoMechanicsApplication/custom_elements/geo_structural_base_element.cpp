@@ -158,7 +158,7 @@ void GeoStructuralBaseElement<TDim, TNumNodes>::Initialize(const ProcessInfo& rC
 template <unsigned int TDim, unsigned int TNumNodes>
 void GeoStructuralBaseElement<TDim, TNumNodes>::GetDofList(DofsVectorType& rElementalDofList, const ProcessInfo&) const
 {
-    rElementalDofList = this->GetDofs();
+    rElementalDofList = GetDofs();
 }
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -241,7 +241,7 @@ template <unsigned int TDim, unsigned int TNumNodes>
 void GeoStructuralBaseElement<TDim, TNumNodes>::EquationIdVector(EquationIdVectorType& rResult,
                                                                  const ProcessInfo&) const
 {
-    rResult = ExtractEquationIdsFrom(this->GetDofs());
+    rResult = ExtractEquationIdsFrom(GetDofs());
 }
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -292,7 +292,7 @@ void GeoStructuralBaseElement<TDim, TNumNodes>::CalculateDampingMatrix(MatrixTyp
 template <unsigned int TDim, unsigned int TNumNodes>
 void GeoStructuralBaseElement<TDim, TNumNodes>::GetValuesVector(Vector& rValues, int Step) const
 {
-    rValues = ExtractSolutionStepValues(this->GetDofs(), Step);
+    rValues = ExtractSolutionStepValues(GetDofs(), Step);
 }
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------

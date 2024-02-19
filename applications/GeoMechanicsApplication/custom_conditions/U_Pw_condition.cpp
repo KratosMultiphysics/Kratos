@@ -31,7 +31,7 @@ Condition::Pointer UPwCondition<TDim,TNumNodes>::
 template <unsigned int TDim, unsigned int TNumNodes>
 void UPwCondition<TDim, TNumNodes>::GetDofList(DofsVectorType& rConditionDofList, const ProcessInfo&) const
 {
-    rConditionDofList = this->GetDofs();
+    rConditionDofList = GetDofs();
 }
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -98,7 +98,7 @@ void UPwCondition<TDim, TNumNodes>::
 template <unsigned int TDim, unsigned int TNumNodes>
 void UPwCondition<TDim, TNumNodes>::EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo&) const
 {
-    rResult = ExtractEquationIdsFrom(this->GetDofs());
+    rResult = ExtractEquationIdsFrom(GetDofs());
 }
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------

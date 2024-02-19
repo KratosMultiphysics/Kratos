@@ -223,7 +223,7 @@ void UPwBaseElement<TDim, TNumNodes>::ResetConstitutiveLaw()
 template <unsigned int TDim, unsigned int TNumNodes>
 void UPwBaseElement<TDim, TNumNodes>::GetDofList(DofsVectorType& rElementalDofList, const ProcessInfo&) const
 {
-    rElementalDofList = this->GetDofs();
+    rElementalDofList = GetDofs();
 }
 
 //----------------------------------------------------------------------------------------
@@ -327,7 +327,7 @@ void UPwBaseElement<TDim, TNumNodes>::CalculateRightHandSide(VectorType& rRightH
 template <unsigned int TDim, unsigned int TNumNodes>
 void UPwBaseElement<TDim, TNumNodes>::EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo&) const
 {
-    rResult = ExtractEquationIdsFrom(this->GetDofs());
+    rResult = ExtractEquationIdsFrom(GetDofs());
 }
 
 //----------------------------------------------------------------------------------------
@@ -383,7 +383,7 @@ void UPwBaseElement<TDim, TNumNodes>::CalculateDampingMatrix(MatrixType&        
 template <unsigned int TDim, unsigned int TNumNodes>
 void UPwBaseElement<TDim, TNumNodes>::GetValuesVector(Vector& rValues, int Step) const
 {
-    const auto dofs = this->GetDofs();
+    const auto dofs = GetDofs();
     rValues.resize(dofs.size());
 
     auto get_dof_value = [Step](const auto p_dof) -> double {
@@ -397,14 +397,14 @@ void UPwBaseElement<TDim, TNumNodes>::GetValuesVector(Vector& rValues, int Step)
 template <unsigned int TDim, unsigned int TNumNodes>
 void UPwBaseElement<TDim, TNumNodes>::GetFirstDerivativesVector(Vector& rValues, int Step) const
 {
-    rValues = ExtractFirstDerivativesOfUPwElement(this->GetDofs(), Step);
+    rValues = ExtractFirstDerivativesOfUPwElement(GetDofs(), Step);
 }
 
 //----------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
 void UPwBaseElement<TDim, TNumNodes>::GetSecondDerivativesVector(Vector& rValues, int Step) const
 {
-    const auto dofs = this->GetDofs();
+    const auto dofs = GetDofs();
     rValues.resize(dofs.size());
 
     auto get_second_time_derivative = [Step](const auto p_dof) -> double {

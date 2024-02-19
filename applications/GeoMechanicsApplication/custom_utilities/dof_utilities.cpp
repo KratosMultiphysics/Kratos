@@ -34,6 +34,21 @@ Vector ExtractSolutionStepValues(const std::vector<Dof<double>*>& rDofs, int Ste
     return result;
 }
 
+Vector ExtractFirstDerivatives(const std::vector<Dof<double>*>& rDofs, int Step)
+{
+    auto result                    = Vector(rDofs.size());
+    auto get_first_time_derivative = [Step](const auto p_dof) -> double {
+        // Unfortunately, the first time derivative cannot be accessed from a `VariableData`
+        // instance. However, we assume that each DOF corresponds to a `Variable<double>` instance.
+        // Then we should be able to downcast the `VariableData` instance.
+        auto p_variable = dynamic_cast<const Variable<double>*>(&p_dof->GetVariable());
+        KRATOS_ERROR_IF_NOT(p_variable) << "Variable associated with DOF is not of type double" << std::endl;
+        return p_dof->GetSolutionStepValue(p_variable->GetTimeDerivative(), Step);
+    };
+    std::transform(rDofs.begin(), rDofs.end(), result.begin(), get_first_time_derivative);
+    return result;
+}
+
 Vector ExtractFirstDerivativesOfUPwElement(const std::vector<Dof<double>*>& rDofs, int Step)
 {
     auto result                    = Vector(rDofs.size());
