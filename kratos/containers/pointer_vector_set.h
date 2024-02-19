@@ -572,12 +572,14 @@ public:
         if (itr_pos == mData.end()) {
             // the position to insert is at the end.
             mData.push_back(value);
+            mSortedPartSize = mData.size();
             return iterator(mData.end() - 1);
         } else if (EqualKeyTo(KeyOf(*value))(*itr_pos)) {
             // already found existing element with the same key, hence returning the existing element.
             return iterator(itr_pos);
         } else {
             // insert the new value before the itr_pos.
+            mSortedPartSize = mData.size() + 1;
             return mData.insert(itr_pos, value);
         }
     }
@@ -597,6 +599,7 @@ public:
         if (empty()) {
             // the dataset is empty. So use push back.
             mData.push_back(value);
+            mSortedPartSize = mData.size();
             return iterator(mData.end() - 1);
         } else if (position_hint == cend()) {
             // trying to insert at the end.
@@ -604,6 +607,7 @@ public:
                 // key at the position hint is less than the value of key. Hence position hint
                 // is valid. So using the push back.
                 mData.push_back(value);
+                mSortedPartSize = mData.size();
                 return iterator(mData.end() - 1);
             } else {
                 // given position is invalid. Hence, discarding the hint.
@@ -614,6 +618,7 @@ public:
             if (KeyOf(*value) < KeyOf(*position_hint)) {
                 // key at the position hint is greater than the value of key. Hence position hint
                 // is valid. So using the push back.
+                mSortedPartSize = mData.size() + 1;
                 return mData.insert(mData.begin(), value);
             } else {
                 // given position is invalid. Hence, discarding the hint.
@@ -622,6 +627,7 @@ public:
         } else {
             // trying to insert at an arbitrary position.
             if (KeyOf(*value) < KeyOf(*position_hint) && (KeyOf(*(position_hint - 1)) < KeyOf(*value))) {
+                mSortedPartSize = mData.size() + 1;
                 return mData.insert(mData.begin() + (position_hint - cbegin()), value);
             } else {
                 // given position is invalid. Hence, discarding the hint.
@@ -660,6 +666,11 @@ public:
                 }
             }
         }
+
+        // TODO: To be removed once push back is removed.
+        // insert assumes the PointerVectorSet is already sorted,
+        // hence mSortedPartSize should be mData.size()
+        mSortedPartSize = mData.size();
     }
 
     /**
