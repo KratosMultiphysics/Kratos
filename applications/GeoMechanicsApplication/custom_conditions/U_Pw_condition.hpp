@@ -99,13 +99,13 @@ protected:
     virtual void CalculateRHS(VectorType& rRightHandSideVector,
                               const ProcessInfo& rCurrentProcessInfo);
 
+    [[nodiscard]] DofsVectorType GetDofs() const;
+
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 private:
     GeometryData::IntegrationMethod mThisIntegrationMethod{ Condition::GetIntegrationMethod() };
 
-    [[nodiscard]] DofsVectorType GetDofs() const;
-    
     // Serialization
     
     friend class Serializer;

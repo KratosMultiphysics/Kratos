@@ -127,7 +127,7 @@ template <unsigned int TDim, unsigned int TNumNodes>
 Condition::DofsVectorType PwCondition<TDim, TNumNodes>::GetDofs() const
 {
     auto       result = Condition::DofsVectorType{};
-    const auto nodes  = this->GetGeometry();
+    const auto nodes  = GetGeometry();
     std::transform(nodes.begin(), nodes.end(), std::back_inserter(result),
                    [](const auto& r_node) { return r_node.pGetDof(WATER_PRESSURE); });
     return result;

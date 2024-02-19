@@ -128,7 +128,7 @@ template <unsigned int TDim, unsigned int TNumNodes>
 Condition::DofsVectorType UPwCondition<TDim, TNumNodes>::GetDofs() const
 {
     auto result = Condition::DofsVectorType{};
-    for (const auto& r_node : this->GetGeometry()) {
+    for (const auto& r_node : GetGeometry()) {
         result.push_back(r_node.pGetDof(DISPLACEMENT_X));
         result.push_back(r_node.pGetDof(DISPLACEMENT_Y));
         if constexpr (TDim == 3) result.push_back(r_node.pGetDof(DISPLACEMENT_Z));

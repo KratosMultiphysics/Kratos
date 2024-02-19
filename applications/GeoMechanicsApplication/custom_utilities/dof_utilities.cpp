@@ -34,6 +34,17 @@ Vector ExtractSolutionStepValues(const std::vector<Dof<double>*>& rDofs, int Ste
     return result;
 }
 
+Vector ExtractSolutionStepValuesOfUPwDofs(const std::vector<Dof<double>*>& rDofs, int Step)
+{
+    auto result        = Vector(rDofs.size());
+    auto get_dof_value = [Step](const auto p_dof) -> double {
+        // Why should we return 0.0 for water pressures?
+        return p_dof->GetVariable() == WATER_PRESSURE ? 0.0 : p_dof->GetSolutionStepValue(Step);
+    };
+    std::transform(rDofs.begin(), rDofs.end(), result.begin(), get_dof_value);
+    return result;
+}
+
 Vector ExtractFirstDerivatives(const std::vector<Dof<double>*>& rDofs, int Step)
 {
     auto result                    = Vector(rDofs.size());
