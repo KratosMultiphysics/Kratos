@@ -1,6 +1,6 @@
 {
     "problem_data": {
-        "problem_name":         "test_lysmer_boundary_column2d_quad",
+        "problem_name":         "lysmer_boundary_column2d_quad",
         "start_time":           0.0,
         "end_time":             0.3,
         "echo_level":           1,
@@ -13,7 +13,7 @@
         "domain_size":                        2,
         "model_import_settings":              {
             "input_type":       "mdpa",
-            "input_filename":   "test_lysmer_boundary_column2d_quad"
+            "input_filename":   "lysmer_boundary_column2d_quad"
         },
         "material_import_settings":              {
             "materials_filename":       "MaterialParameters.json"
@@ -80,7 +80,7 @@
             "process_name": "GiDOutputProcess",
             "Parameters":    {
                 "model_part_name": "PorousDomain.porous_computational_model_part",
-                "output_name": "test_lysmer_boundary_column2d_quad",
+                "output_name": "lysmer_boundary_column2d_quad",
                 "postprocess_parameters": {
                     "result_file_configuration": {
                         "gidpost_flags":       {
