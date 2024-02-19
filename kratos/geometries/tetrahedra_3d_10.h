@@ -145,6 +145,10 @@ public:
     /// type as its result.
     using ShapeFunctionsGradientsType = typename BaseType::ShapeFunctionsGradientsType;
 
+    /// A third order tensor to hold shape functions' local second derivatives.
+    /// ShapeFunctionsSecondDerivatives function return this type as its result.
+    using ShapeFunctionsSecondDerivativesType = BaseType::ShapeFunctionsSecondDerivativesType;
+
     /// Type of the normal vector used for normal to edges in geometry.
     using NormalType = typename BaseType::NormalType;
 
@@ -738,6 +742,75 @@ public:
         rResult(9, 0) =  0.0;
         rResult(9, 1) =  4.0 * rPoint[2];
         rResult(9, 2) =  4.0 * rPoint[1];
+
+        return rResult;
+    }
+
+    ShapeFunctionsSecondDerivativesType& ShapeFunctionsSecondDerivatives(
+        ShapeFunctionsSecondDerivativesType& rResult,
+        const CoordinatesArrayType& rPoint) const override
+    {
+        // Check and resize results container
+        if (rResult.size() != this->PointsNumber()) {
+            rResult.resize(this->PointsNumber(), false);
+        }
+
+        for (IndexType i = 0; i < this->PointsNumber(); ++i) {
+            auto& r_DDN_i = rResult[i];
+            if (r_DDN_i.size1() != 3 || r_DDN_i.size2() != 3) {
+                r_DDN_i.resize(3,3, false);
+            }
+        }
+
+        // Node 0
+        rResult[0](0,0) = 4.0; rResult[0](0,1) = 4.0; rResult[0](0,2) = 4.0;
+        rResult[0](1,0) = 4.0; rResult[0](1,1) = 4.0; rResult[0](1,2) = 4.0;
+        rResult[0](2,0) = 4.0; rResult[0](2,1) = 4.0; rResult[0](2,2) = 4.0;
+
+        // Node 1
+        rResult[1](0,0) = 4.0; rResult[1](0,1) = 0.0; rResult[1](0,2) = 0.0;
+        rResult[1](1,0) = 0.0; rResult[1](1,1) = 0.0; rResult[1](1,2) = 0.0;
+        rResult[1](2,0) = 0.0; rResult[1](2,1) = 0.0; rResult[1](2,2) = 0.0;
+
+        // Node 2
+        rResult[1](0,0) = 0.0; rResult[1](0,1) = 0.0; rResult[1](0,2) = 0.0;
+        rResult[1](1,0) = 0.0; rResult[1](1,1) = 4.0; rResult[1](1,2) = 0.0;
+        rResult[1](2,0) = 0.0; rResult[1](2,1) = 0.0; rResult[1](2,2) = 0.0;
+
+        // Node 3
+        rResult[1](0,0) = 0.0; rResult[1](0,1) = 0.0; rResult[1](0,2) = 0.0;
+        rResult[1](1,0) = 0.0; rResult[1](1,1) = 0.0; rResult[1](1,2) = 0.0;
+        rResult[1](2,0) = 0.0; rResult[1](2,1) = 0.0; rResult[1](2,2) = 4.0;
+
+        // Node 4
+        rResult[1](0,0) = -8.0; rResult[1](0,1) = -4.0; rResult[1](0,2) = -4.0;
+        rResult[1](1,0) = -4.0; rResult[1](1,1) = 0.0; rResult[1](1,2) = 0.0;
+        rResult[1](2,0) = -4.0; rResult[1](2,1) = 0.0; rResult[1](2,2) = 0.0;
+
+        // Node 5
+        rResult[1](0,0) = 0.0; rResult[1](0,1) = 4.0; rResult[1](0,2) = 0.0;
+        rResult[1](1,0) = 4.0; rResult[1](1,1) = 0.0; rResult[1](1,2) = 0.0;
+        rResult[1](2,0) = 0.0; rResult[1](2,1) = 0.0; rResult[1](2,2) = 0.0;
+
+        // Node 6
+        rResult[1](0,0) = 0.0; rResult[1](0,1) = -4.0; rResult[1](0,2) = 0.0;
+        rResult[1](1,0) = -4.0; rResult[1](1,1) = -8.0; rResult[1](1,2) = -4.0;
+        rResult[1](2,0) = 0.0; rResult[1](2,1) = -4.0; rResult[1](2,2) = 0.0;
+
+        // Node 7
+        rResult[1](0,0) = 0.0; rResult[1](0,1) = 0.0; rResult[1](0,2) = -4.0;
+        rResult[1](1,0) = 0.0; rResult[1](1,1) = 0.0; rResult[1](1,2) = -4.0;
+        rResult[1](2,0) = -4.0; rResult[1](2,1) = -4.0; rResult[1](2,2) = -8.0;
+
+        // Node 8
+        rResult[1](0,0) = 0.0; rResult[1](0,1) = 0.0; rResult[1](0,2) = 4.0;
+        rResult[1](1,0) = 0.0; rResult[1](1,1) = 0.0; rResult[1](1,2) = 0.0;
+        rResult[1](2,0) = 4.0; rResult[1](2,1) = 0.0; rResult[1](2,2) = 0.0;
+
+        // Node 9
+        rResult[1](0,0) = 0.0; rResult[1](0,1) = 0.0; rResult[1](0,2) = 0.0;
+        rResult[1](1,0) = 0.0; rResult[1](1,1) = 0.0; rResult[1](1,2) = 4.0;
+        rResult[1](2,0) = 0.0; rResult[1](2,1) = 4.0; rResult[1](2,2) = 0.0;
 
         return rResult;
     }
