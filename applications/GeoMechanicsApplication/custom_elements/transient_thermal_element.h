@@ -54,21 +54,12 @@ public:
 
     void GetDofList(DofsVectorType& rElementalDofList, const ProcessInfo&) const override
     {
-        KRATOS_TRY
-
-        rElementalDofList.resize(TNumNodes);
-        for (unsigned int i = 0; i < TNumNodes; ++i) {
-            rElementalDofList[i] = GetGeometry()[i].pGetDof(TEMPERATURE);
-        }
-
-        KRATOS_CATCH("")
+        rElementalDofList = this->GetDofs();
     }
 
-    void EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo& rCurrentProcessInfo) const override
+    void EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo&) const override
     {
-        DofsVectorType dofs;
-        this->GetDofList(dofs, rCurrentProcessInfo);
-        rResult = ExtractEquationIdsFrom(dofs);
+        rResult = ExtractEquationIdsFrom(this->GetDofs());
     }
 
     void CalculateLocalSystem(MatrixType&        rLeftHandSideMatrix,
@@ -293,6 +284,15 @@ private:
         std::transform(r_geometry.begin(), r_geometry.end(), result.begin(), [&rNodalVariable](const auto& node) {
             return node.FastGetSolutionStepValue(rNodalVariable);
         });
+        return result;
+    }
+
+    [[nodiscard]] DofsVectorType GetDofs() const
+    {
+        DofsVectorType result;
+        for (const auto& r_node : this->GetGeometry()) {
+            result.push_back(r_node.pGetDof(TEMPERATURE));
+        }
         return result;
     }
 
