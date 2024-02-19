@@ -54,12 +54,8 @@ public:
         KRATOS_TRY
         if ( pElemIt->GetGeometry().GetGeometryType() == mGeometryType )
         {
-            mMeshElements.push_back ( * (pElemIt.base() ) );
-            Geometry<Node >&geom = pElemIt->GetGeometry();
-            for ( Element::GeometryType::iterator it = geom.begin(); it != geom.end(); it++)
-            {
-                mMeshNodes.push_back ( * (it.base() ) );
-            }
+            mMeshElements.insert (mMeshElements.end(), * (pElemIt.base() ) );
+            mMeshNodes.insert(pElemIt->GetGeometry().ptr_begin(), pElemIt->GetGeometry().ptr_end());
             return true;
         }
         else
@@ -71,12 +67,8 @@ public:
         KRATOS_TRY
         if ( pCondIt->GetGeometry().GetGeometryType() == mGeometryType )
         {
-            mMeshConditions.push_back ( * (pCondIt.base() ) );
-            Geometry<Node >&geom = pCondIt->GetGeometry();
-            for ( Condition::GeometryType::iterator it = geom.begin(); it != geom.end(); it++)
-            {
-                mMeshNodes.push_back ( * (it.base() ) );
-            }
+            mMeshConditions.insert (mMeshConditions.end(), * (pCondIt.base() ) );
+            mMeshNodes.insert(pCondIt->GetGeometry().ptr_begin(), pCondIt->GetGeometry().ptr_end());
             return true;
         }
         else
@@ -85,14 +77,6 @@ public:
     }
     void FinalizeMeshCreation()
     {
-        if ( mMeshElements.size() != 0 )
-        {
-            mMeshNodes.Unique();
-        }
-        if ( mMeshConditions.size() != 0 )
-        {
-            mMeshNodes.Unique();
-        }
     }
     void WriteMesh (GiD_FILE MeshFile, bool deformed)
     {
