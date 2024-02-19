@@ -48,13 +48,13 @@ class ConvertLinearTetrahedraToQuadraticModeler(KratosMultiphysics.Modeler):
 
         model_part = self.model[self.settings["model_part_name"].GetString()]
 
-        for elem in model_part.Elements:
-            if elem.GetGeometry().GetGeometryType() != KratosMultiphysics.GeometryData.KratosGeometryType.Kratos_Tetrahedra3D4:
-                raise Exception("Only linear tets are accepted as input (4 nodes)")
+        if any(elem.GetGeometry().GetGeometryType() != KratosMultiphysics.GeometryData.KratosGeometryType.Kratos_Tetrahedra3D4 \
+                for elem in model_part.Elements):
+            raise Exception("Only linear tets are accepted as input (4 nodes)")
 
-        for cond in model_part.Conditions:
-            if cond.GetGeometry().GetGeometryType() != KratosMultiphysics.GeometryData.KratosGeometryType.Kratos_Triangle3D3:
-                raise Exception("Only linear triangles are accepted as input condition (3 nodes)")
+        if any(cond.GetGeometry().GetGeometryType() != KratosMultiphysics.GeometryData.KratosGeometryType.Kratos_Triangle3D3 \
+               for cond in model_part.Conditions):
+            raise Exception("Only linear triangles are accepted as input condition (3 nodes)")
 
         KratosMultiphysics.VariableUtils().SetNonHistoricalVariable(
             KratosMultiphysics.SPLIT_ELEMENT,
