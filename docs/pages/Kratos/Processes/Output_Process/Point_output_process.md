@@ -18,11 +18,11 @@ This process is executed in the following hooks:
 
 ##### `ExecuteInitialize`
 
-Initializes the search structures, the interal search strategy (Normal, Restarted, MPI).
+Initializes the search structures, the internal search strategy (Normal, Restarted, MPI).
 
 ##### `ExecuteInitializeSolutionStep`
 
-Search for the entitites to be printed. This operation is done for every time step loop in case the entitites have changed position.
+Search for the entities to be printed. This operation is done for every time step loop in case the entities have changed position.
 
 ##### `IsOutputStep`
 
