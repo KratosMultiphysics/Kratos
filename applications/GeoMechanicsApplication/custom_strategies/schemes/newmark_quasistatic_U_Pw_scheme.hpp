@@ -39,9 +39,9 @@ public:
         : GeneralizedNewmarkScheme<TSparseSpace, TDenseSpace>(
               {FirstOrderScalarVariable(WATER_PRESSURE, DT_WATER_PRESSURE, DT_PRESSURE_COEFFICIENT)},
               {SecondOrderVectorVariable(DISPLACEMENT), SecondOrderVectorVariable(ROTATION)},
-              theta,
               beta,
-              gamma)
+              gamma,
+              theta)
     {
     }
 
@@ -89,6 +89,23 @@ public:
 
         KRATOS_CATCH("")
     }
+
+protected:
+    inline void UpdateVariablesDerivatives(ModelPart& rModelPart) override
+    {
+        KRATOS_TRY
+
+        block_for_each(rModelPart.Nodes(), [this](Node& rNode) {
+            // static here means no velocities and accelerations for the displacement D.O.F.
+            for (const auto& r_first_order_scalar_variable : this->GetFirstOrderScalarVariables()) {
+                UpdateScalarTimeDerivative(rNode, r_first_order_scalar_variable.instance,
+                                           r_first_order_scalar_variable.first_time_derivative);
+            }
+        });
+
+        KRATOS_CATCH("")
+    }
+
 }; // Class NewmarkQuasistaticUPwScheme
 
 } // namespace Kratos

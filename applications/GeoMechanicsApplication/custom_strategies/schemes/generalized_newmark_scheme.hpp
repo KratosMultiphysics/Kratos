@@ -23,55 +23,56 @@ class GeneralizedNewmarkScheme : public GeoMechanicsTimeIntegrationScheme<TSpars
 public:
     GeneralizedNewmarkScheme(const std::vector<FirstOrderScalarVariable>& rFirstOrderScalarVariables,
                              const std::vector<SecondOrderVectorVariable>& rSecondOrderVectorVariables,
-                             std::optional<double> theta,
                              std::optional<double> beta,
-                             std::optional<double> gamma)
+                             std::optional<double> gamma,
+                             std::optional<double> theta)
         : GeoMechanicsTimeIntegrationScheme<TSparseSpace, TDenseSpace>(rFirstOrderScalarVariables,
                                                                        rSecondOrderVectorVariables),
-          mTheta(theta),
           mBeta(beta),
-          mGamma(gamma)
+          mGamma(gamma),
+          mTheta(theta)
     {
-        KRATOS_ERROR_IF(!rFirstOrderScalarVariables.empty() && !mTheta.has_value())
-            << "Theta must be set when first order scalar variables are used\n";
         KRATOS_ERROR_IF(!rSecondOrderVectorVariables.empty() && !mBeta.has_value())
             << "Beta must be set when second order vector variables are used\n";
         KRATOS_ERROR_IF(!rSecondOrderVectorVariables.empty() && !mGamma.has_value())
             << "Gamma must be set when second order vector variables are used\n";
+        KRATOS_ERROR_IF(!rFirstOrderScalarVariables.empty() && !mTheta.has_value())
+            << "Theta must be set when first order scalar variables are used\n";
 
-        KRATOS_ERROR_IF(mTheta.has_value() && mTheta.value() <= 0)
-            << "Theta must be larger than zero, but got " << mTheta.value() << "\n";
         KRATOS_ERROR_IF(mBeta.has_value() && mBeta.value() <= 0)
             << "Beta must be larger than zero, but got " << mBeta.value() << "\n";
         KRATOS_ERROR_IF(mGamma.has_value() && mGamma.value() <= 0)
             << "Gamma must be larger than zero, but got " << mGamma.value() << "\n";
+        KRATOS_ERROR_IF(mTheta.has_value() && mTheta.value() <= 0)
+            << "Theta must be larger than zero, but got " << mTheta.value() << "\n";
     }
 
     GeneralizedNewmarkScheme(const std::vector<FirstOrderScalarVariable>& rFirstOrderScalarVariables, double theta)
         : GeneralizedNewmarkScheme<TSparseSpace, TDenseSpace>(
-              rFirstOrderScalarVariables, {}, theta, std::nullopt, std::nullopt)
+              rFirstOrderScalarVariables, {}, std::nullopt, std::nullopt, theta)
     {
     }
 
 protected:
-    inline void UpdateVariablesDerivatives(ModelPart& rModelPart) override
-    {
-        KRATOS_TRY
+    /*
+        inline void UpdateVariablesDerivatives(ModelPart& rModelPart) override
+        {
+            KRATOS_TRY
 
-        block_for_each(rModelPart.Nodes(), [this](Node& rNode) {
-            // For the Newmark schemes the second derivatives should be updated before calculating the first derivatives
-            UpdateVectorSecondTimeDerivative(rNode);
-            UpdateVectorFirstTimeDerivative(rNode);
+            block_for_each(rModelPart.Nodes(), [this](Node& rNode) {
+                // For the Newmark schemes the second derivatives should be updated before
+       calculating the first derivatives UpdateVectorSecondTimeDerivative(rNode);
+                UpdateVectorFirstTimeDerivative(rNode);
 
-            for (const auto& r_first_order_scalar_variable : this->GetFirstOrderScalarVariables()) {
-                UpdateScalarTimeDerivative(rNode, r_first_order_scalar_variable.instance,
-                                           r_first_order_scalar_variable.first_time_derivative);
-            }
-        });
+                for (const auto& r_first_order_scalar_variable :
+       this->GetFirstOrderScalarVariables()) { UpdateScalarTimeDerivative(rNode,
+       r_first_order_scalar_variable.instance, r_first_order_scalar_variable.first_time_derivative);
+                }
+            });
 
-        KRATOS_CATCH("")
-    }
-
+            KRATOS_CATCH("")
+        }
+    */
     inline void SetTimeFactors(ModelPart& rModelPart) override
     {
         KRATOS_TRY
@@ -91,13 +92,12 @@ protected:
         KRATOS_CATCH("")
     }
 
-    double GetBeta() const { return mBeta.value(); }
+    [[nodiscard]] double GetBeta() const { return mBeta.value(); }
 
-    double GetGamma() const { return mGamma.value(); }
+    [[nodiscard]] double GetGamma() const { return mGamma.value(); }
 
-    double GetTheta() const { return mTheta.value(); }
+    [[nodiscard]] double GetTheta() const { return mTheta.value(); }
 
-private:
     void UpdateScalarTimeDerivative(Node& rNode, const Variable<double>& variable, const Variable<double>& dt_variable) const
     {
         const auto delta_variable =
@@ -139,9 +139,10 @@ private:
         }
     }
 
-    std::optional<double> mTheta;
+private:
     std::optional<double> mBeta;
     std::optional<double> mGamma;
+    std::optional<double> mTheta;
 };
 
 } // namespace Kratos
