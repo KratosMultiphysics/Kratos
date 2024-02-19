@@ -34,9 +34,9 @@ KRATOS_TEST_CASE_IN_SUITE(PointerVectorSetCBeginAndCEnd, KratosCoreFastSuite)
     auto p_element_1 = Kratos::make_intrusive<Element>(1);
     auto p_element_2 = Kratos::make_intrusive<Element>(2);
     auto p_element_3 = Kratos::make_intrusive<Element>(3);
-    test_container.push_back(p_element_1);
-    test_container.push_back(p_element_2);
-    test_container.push_back(p_element_3);
+    test_container.insert(p_element_1);
+    test_container.insert(p_element_2);
+    test_container.insert(p_element_3);
 
     KRATOS_EXPECT_EQ(test_container.cbegin()->Id(), 1);
     KRATOS_EXPECT_EQ((test_container.cend()-1)->Id(), 3);
