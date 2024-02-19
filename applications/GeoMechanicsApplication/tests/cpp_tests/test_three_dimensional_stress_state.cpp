@@ -96,14 +96,12 @@ KRATOS_TEST_CASE_IN_SUITE(ThreeDimensionalStressState_CalculateGreenLagrangeStra
     const auto p_stress_state_policy = std::make_unique<ThreeDimensionalStressState>();
 
     Matrix deformation_gradient = ZeroMatrix(3, 3);
-    deformation_gradient(0, 0)  = 1.0;
-    deformation_gradient(1, 1)  = 1.5;
-    deformation_gradient(2, 2)  = 2.0;
+    deformation_gradient <<= 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0;
 
+    // The expected strain is calculated as follows:
+    // 0.5 * (F^T * F - I) and then converted to a vector
     Vector expected_vector = ZeroVector(6);
-    expected_vector(0)     = 0.5 * (deformation_gradient(0, 0) * deformation_gradient(0, 0) - 1.0);
-    expected_vector(1)     = 0.5 * (deformation_gradient(1, 1) * deformation_gradient(1, 1) - 1.0);
-    expected_vector(2)     = 0.5 * (deformation_gradient(2, 2) * deformation_gradient(2, 2) - 1.0);
+    expected_vector <<= 32.5, 46, 62.5, 78, 108, 90;
 
     const auto calculated_vector = p_stress_state_policy->CalculateGreenLagrangeStrain(deformation_gradient);
 
