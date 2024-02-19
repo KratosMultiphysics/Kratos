@@ -93,7 +93,8 @@ class FluidSolver(PythonSolver):
             if not materials_imported:
                 KratosMultiphysics.Logger.PrintWarning(self.__class__.__name__, "Material properties have not been imported. Check \'material_import_settings\' in your ProjectParameters.json.")
             ## Replace default elements and conditions
-            self._ReplaceElementsAndConditions()
+            if not self.settings["model_import_settings"]["input_type"].GetString() == "use_input_model_part":
+                self._ReplaceElementsAndConditions()
             ## Set and fill buffer
             self._SetAndFillBuffer()
 
@@ -390,6 +391,7 @@ class FluidSolver(PythonSolver):
             err_msg =  "The requested analysis type \"" + analysis_type + "\" is not available!\n"
             err_msg += "Available options are: \"linear\", \"non_linear\""
             raise Exception(err_msg)
+        solution_strategy.SetEchoLevel(self.settings["echo_level"].GetInt())
         return solution_strategy
 
     def _CreateLinearStrategy(self):
