@@ -10,6 +10,7 @@
 //  Main authors:    Richard Faasse
 //
 #include "plane_strain_stress_state.h"
+#include "custom_utilities/stress_strain_utilities.hpp"
 
 namespace Kratos
 {
@@ -43,8 +44,7 @@ double PlaneStrainStressState::CalculateIntegrationCoefficient(const Geometry<No
 
 Vector PlaneStrainStressState::CalculateGreenLagrangeStrain(const Matrix& rTotalDeformationGradient) const
 {
-    const auto ETensor = 0.5 * (prod(trans(rTotalDeformationGradient), rTotalDeformationGradient) -
-                                IdentityMatrix(rTotalDeformationGradient.size1()));
+    const auto ETensor = StressStrainUtilities::CalculateGreenLagrangeStrainTensor(rTotalDeformationGradient);
 
     const auto StrainVector          = MathUtils<double>::StrainTensorToVector(ETensor);
     Vector     result                = ZeroVector(VOIGT_SIZE_2D_PLANE_STRAIN);
@@ -56,7 +56,7 @@ Vector PlaneStrainStressState::CalculateGreenLagrangeStrain(const Matrix& rTotal
     return result;
 }
 
-unique_ptr<StressStatePolicy> PlaneStrainStressState::Clone() const
+std::unique_ptr<StressStatePolicy> PlaneStrainStressState::Clone() const
 {
     return std::make_unique<PlaneStrainStressState>();
 }

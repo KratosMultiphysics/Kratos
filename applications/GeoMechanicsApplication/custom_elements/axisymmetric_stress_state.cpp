@@ -54,7 +54,7 @@ double AxisymmetricStressState::CalculateIntegrationCoefficient(const Geometry<N
     return rIntegrationPoint.Weight() * DetJ * radius_weight;
 }
 
-unique_ptr<StressStatePolicy> AxisymmetricStressState::Clone() const
+std::unique_ptr<StressStatePolicy> AxisymmetricStressState::Clone() const
 {
     return std::make_unique<AxisymmetricStressState>();
 }
