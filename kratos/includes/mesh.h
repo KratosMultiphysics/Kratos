@@ -265,7 +265,7 @@ public:
     */
     void AddNode(typename NodeType::Pointer pNewNode)
     {
-        mpNodes->insert(mpNodes->begin(), pNewNode);
+        mpNodes->insert(mpNodes->end(), pNewNode);
     }
 
     /** Returns the Node::Pointer  corresponding to it's identifier */
@@ -487,7 +487,7 @@ public:
     */
     void AddElement(typename ElementType::Pointer pNewElement)
     {
-        mpElements->insert(mpElements->begin(), pNewElement);
+        mpElements->insert(mpElements->end(), pNewElement);
     }
 
     /** Returns the Element::Pointer  corresponding to it's identifier */
@@ -610,7 +610,7 @@ public:
     */
     void AddCondition(typename ConditionType::Pointer pNewCondition)
     {
-        mpConditions->insert(mpConditions->begin(), pNewCondition);
+        mpConditions->insert(mpConditions->end(), pNewCondition);
     }
 
     /** Returns the Condition::Pointer  corresponding to it's identifier */
@@ -732,7 +732,7 @@ public:
     */
     void AddMasterSlaveConstraint(typename MasterSlaveConstraintType::Pointer pNewMasterSlaveConstraint)
     {
-        mpMasterSlaveConstraints->insert(mpMasterSlaveConstraints->begin(), pNewMasterSlaveConstraint);
+        mpMasterSlaveConstraints->insert(mpMasterSlaveConstraints->end(), pNewMasterSlaveConstraint);
     }
 
     /** Returns the MasterSlaveConstraint::Pointer  corresponding to it's identifier */
