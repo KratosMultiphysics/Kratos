@@ -27,7 +27,7 @@ namespace Kratos {
         });
         block_for_each(mModelPart.Conditions(), [&](Condition& r_condition) {
             if(r_condition.Has(SPLIT_ELEMENT) && r_condition.GetValue(SPLIT_ELEMENT)){
-                KRATOS_ERROR_IF_NOT(r_condition.GetGeometry().GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Tetrahedra3D4) << "Condition #" << r_condition.Id() << " is not a linear tetrahedron" << std::endl;
+                KRATOS_ERROR_IF_NOT(r_condition.GetGeometry().GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Triangle3D3) << "Condition #" << r_condition.Id() << " is not a linear tetrahedron" << std::endl;
             }
         });
         LocalRefineMesh(RefineOnReference, InterpolateInternalVariables);
