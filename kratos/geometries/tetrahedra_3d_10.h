@@ -147,7 +147,7 @@ public:
 
     /// A third order tensor to hold shape functions' local second derivatives.
     /// ShapeFunctionsSecondDerivatives function return this type as its result.
-    using ShapeFunctionsSecondDerivativesType = BaseType::ShapeFunctionsSecondDerivativesType;
+    using ShapeFunctionsSecondDerivativesType = typename BaseType::ShapeFunctionsSecondDerivativesType;
 
     /// Type of the normal vector used for normal to edges in geometry.
     using NormalType = typename BaseType::NormalType;
