@@ -229,22 +229,7 @@ void GeoTrussElementBase<TDim, TNumNodes>::GetFirstDerivativesVector(Vector& rVa
 template <unsigned int TDim, unsigned int TNumNodes>
 void GeoTrussElementBase<TDim, TNumNodes>::GetSecondDerivativesVector(Vector& rValues, int Step) const
 {
-    KRATOS_TRY
-
-    if (rValues.size() != TDim * TNumNodes) {
-        rValues.resize(TDim * TNumNodes, false);
-    }
-
-    unsigned int index = 0;
-    for (unsigned int i = 0; i < TNumNodes; ++i) {
-        const auto& acc = GetGeometry()[i].FastGetSolutionStepValue(ACCELERATION, Step);
-
-        for (unsigned int idim = 0; idim < TDim; ++idim) {
-            rValues[index++] = acc[idim];
-        }
-    }
-
-    KRATOS_CATCH("")
+    rValues = ExtractSecondTimeDerivatives(GetDofs(), Step);
 }
 
 //----------------------------------------------------------------------------------------
