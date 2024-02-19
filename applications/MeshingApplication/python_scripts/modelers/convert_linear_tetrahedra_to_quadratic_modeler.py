@@ -47,6 +47,8 @@ class ConvertLinearTetrahedraToQuadraticModeler(KratosMultiphysics.Modeler):
             raise Exception("ConvertLinearTetrahedraToQuadraticModeler is not MPI-ready")
 
         model_part = self.model[self.settings["model_part_name"].GetString()]
+        if model_part != model_part.GetRootModelPart():
+            raise Exception(f"A root ModelPart is required, got SubModelPart {model_part.FullName()}")
 
         if any(elem.GetGeometry().GetGeometryType() != KratosMultiphysics.GeometryData.KratosGeometryType.Kratos_Tetrahedra3D4 \
                 for elem in model_part.Elements):
@@ -65,7 +67,7 @@ class ConvertLinearTetrahedraToQuadraticModeler(KratosMultiphysics.Modeler):
             True,
             model_part.Conditions)
 
-        Meshing.LinearToQuadraticTetrahedraMeshConverter(model_part.GetRootModelPart()).LocalConvertLinearToQuadraticTetrahedraMesh(False, False)
+        Meshing.LinearToQuadraticTetrahedraMeshConverter(model_part).LocalConvertLinearToQuadraticTetrahedraMesh(False, False)
 
         element_name = self.settings["element_name"].GetString()
         condition_name = self.settings["condition_name"].GetString()
