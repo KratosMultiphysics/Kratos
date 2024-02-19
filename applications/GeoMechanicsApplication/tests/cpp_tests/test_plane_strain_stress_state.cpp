@@ -26,8 +26,8 @@ KRATOS_TEST_CASE_IN_SUITE(CalculateBMatrixGivesCorrectResults, KratosGeoMechanic
 {
     auto stress_state = std::make_unique<PlaneStrainStressState>();
 
-    Model      model;
-    ModelPart& model_part = ModelSetupUtilities::CreateModelPartWithASingle2D3NElement(model);
+    Model model;
+    auto& model_part = ModelSetupUtilities::CreateModelPartWithASingle2D3NElement(model);
 
     Vector Np(3);
     Np <<= 1.0, 2.0, 3.0;
@@ -39,7 +39,7 @@ KRATOS_TEST_CASE_IN_SUITE(CalculateBMatrixGivesCorrectResults, KratosGeoMechanic
                 5.0, 6.0;
     // clang-format on
 
-    const Matrix calculated_matrix =
+    const auto calculated_matrix =
         stress_state->CalculateBMatrix(GradNpT, Np, model_part.GetElement(1).GetGeometry());
 
     // clang-format off
@@ -57,14 +57,14 @@ KRATOS_TEST_CASE_IN_SUITE(PlaneStrainStressState_ReturnsCorrectIntegrationCoeffi
 {
     const auto p_stress_state_policy = std::make_unique<PlaneStrainStressState>();
 
-    Model      model;
-    ModelPart& model_part = ModelSetupUtilities::CreateModelPartWithASingle2D3NElement(model);
+    Model model;
+    auto& model_part = ModelSetupUtilities::CreateModelPartWithASingle2D3NElement(model);
 
     // The shape function values for this integration point are 0.2, 0.5 and 0.3 for nodes 1, 2 and 3 respectively
     Geometry<Node>::IntegrationPointType integration_point(0.5, 0.3, 0.0, 0.5);
 
-    const double detJ                   = 2.0;
-    const double calculated_coefficient = p_stress_state_policy->CalculateIntegrationCoefficient(
+    const auto detJ                   = 2.0;
+    const auto calculated_coefficient = p_stress_state_policy->CalculateIntegrationCoefficient(
         integration_point, detJ, model_part.GetElement(1).GetGeometry());
 
     // The expected number is calculated as follows:
@@ -82,7 +82,7 @@ KRATOS_TEST_CASE_IN_SUITE(PlaneStrainStressState_ReturnsCorrectGreenLagrangeStra
                              3.0, 4.0;
     // clang-format on
 
-    const Vector calculated_strain = p_stress_state_policy->CalculateGreenLagrangeStrain(deformation_gradient);
+    const auto calculated_strain = p_stress_state_policy->CalculateGreenLagrangeStrain(deformation_gradient);
 
     Vector expected_vector = ZeroVector(4);
     expected_vector <<= 4.5, 9.5, 0, 14;

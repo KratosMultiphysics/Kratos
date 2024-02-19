@@ -23,7 +23,7 @@ Matrix PlaneStrainStressState::CalculateBMatrix(const Matrix&         GradNpT,
     Matrix     result = ZeroMatrix(VOIGT_SIZE_2D_AXISYMMETRIC, dimension * number_of_nodes);
 
     for (unsigned int i = 0; i < number_of_nodes; ++i) {
-        auto index = dimension * i;
+        const auto index = dimension * i;
 
         result(INDEX_2D_PLANE_STRAIN_XX, index + INDEX_X) = GradNpT(i, INDEX_X);
         result(INDEX_2D_PLANE_STRAIN_YY, index + INDEX_Y) = GradNpT(i, INDEX_Y);
@@ -43,11 +43,11 @@ double PlaneStrainStressState::CalculateIntegrationCoefficient(const Geometry<No
 
 Vector PlaneStrainStressState::CalculateGreenLagrangeStrain(const Matrix& rTotalDeformationGradient) const
 {
-    const Matrix ETensor = 0.5 * (prod(trans(rTotalDeformationGradient), rTotalDeformationGradient) -
-                                  IdentityMatrix(rTotalDeformationGradient.size1()));
+    const auto ETensor = 0.5 * (prod(trans(rTotalDeformationGradient), rTotalDeformationGradient) -
+                                IdentityMatrix(rTotalDeformationGradient.size1()));
 
-    const Vector StrainVector        = MathUtils<double>::StrainTensorToVector(ETensor);
-    Vector       result              = ZeroVector(VOIGT_SIZE_2D_PLANE_STRAIN);
+    const auto StrainVector          = MathUtils<double>::StrainTensorToVector(ETensor);
+    Vector     result                = ZeroVector(VOIGT_SIZE_2D_PLANE_STRAIN);
     result[INDEX_2D_PLANE_STRAIN_XX] = StrainVector[0];
     result[INDEX_2D_PLANE_STRAIN_YY] = StrainVector[1];
     result[INDEX_2D_PLANE_STRAIN_ZZ] = 0.0;
