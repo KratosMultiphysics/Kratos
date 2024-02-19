@@ -306,34 +306,7 @@ void GeoStructuralBaseElement<TDim, TNumNodes>::GetFirstDerivativesVector(Vector
 template <unsigned int TDim, unsigned int TNumNodes>
 void GeoStructuralBaseElement<TDim, TNumNodes>::GetSecondDerivativesVector(Vector& rValues, int Step) const
 {
-    KRATOS_TRY
-
-    const GeometryType& rGeom = this->GetGeometry();
-
-    if (rValues.size() != N_DOF_ELEMENT) rValues.resize(N_DOF_ELEMENT, false);
-
-    unsigned int index = 0;
-    if constexpr (TDim == 2) {
-        for (unsigned int i = 0; i < TNumNodes; ++i) {
-            rValues[index++] = rGeom[i].FastGetSolutionStepValue(ACCELERATION_X, Step);
-            rValues[index++] = rGeom[i].FastGetSolutionStepValue(ACCELERATION_Y, Step);
-            rValues[index++] = rGeom[i].FastGetSolutionStepValue(ANGULAR_ACCELERATION_Z, Step);
-        }
-    } else if constexpr (TDim == 3) {
-        for (unsigned int i = 0; i < TNumNodes; ++i) {
-            rValues[index++] = rGeom[i].FastGetSolutionStepValue(ACCELERATION_X, Step);
-            rValues[index++] = rGeom[i].FastGetSolutionStepValue(ACCELERATION_Y, Step);
-            rValues[index++] = rGeom[i].FastGetSolutionStepValue(ACCELERATION_Z, Step);
-
-            rValues[index++] = rGeom[i].FastGetSolutionStepValue(ANGULAR_ACCELERATION_X, Step);
-            rValues[index++] = rGeom[i].FastGetSolutionStepValue(ANGULAR_ACCELERATION_Y, Step);
-            rValues[index++] = rGeom[i].FastGetSolutionStepValue(ANGULAR_ACCELERATION_Z, Step);
-        }
-    } else {
-        KRATOS_ERROR << " Unspecified dimension in GetSecondDerivativesVector: " << this->Id() << std::endl;
-    }
-
-    KRATOS_CATCH("")
+    rValues = ExtractSecondTimeDerivatives(GetDofs(), Step);
 }
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
