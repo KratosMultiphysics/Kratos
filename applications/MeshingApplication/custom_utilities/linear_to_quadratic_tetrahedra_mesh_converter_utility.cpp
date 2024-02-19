@@ -20,7 +20,7 @@ namespace Kratos {
         bool InterpolateInternalVariables)
     {
         //checking all elements to be refined are linear tets
-        block_for_each(mModelPart.Elements(), [&](Element& r_element) {
+        block_for_each(mModelPart.Elements(), [](const Element& r_element) {
             if(r_element.Has(SPLIT_ELEMENT) && r_element.GetValue(SPLIT_ELEMENT)){
                 KRATOS_ERROR_IF_NOT(r_element.GetGeometry().GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Tetrahedra3D4) << "Element #" << r_element.Id() << " is not a linear tetrahedron" << std::endl;
             }
