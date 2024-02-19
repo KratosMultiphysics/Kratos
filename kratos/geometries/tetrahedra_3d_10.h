@@ -773,44 +773,44 @@ public:
         rResult[1](2,0) = 0.0; rResult[1](2,1) = 0.0; rResult[1](2,2) = 0.0;
 
         // Node 2
-        rResult[1](0,0) = 0.0; rResult[1](0,1) = 0.0; rResult[1](0,2) = 0.0;
-        rResult[1](1,0) = 0.0; rResult[1](1,1) = 4.0; rResult[1](1,2) = 0.0;
-        rResult[1](2,0) = 0.0; rResult[1](2,1) = 0.0; rResult[1](2,2) = 0.0;
+        rResult[2](0,0) = 0.0; rResult[2](0,1) = 0.0; rResult[2](0,2) = 0.0;
+        rResult[2](1,0) = 0.0; rResult[2](1,1) = 4.0; rResult[2](1,2) = 0.0;
+        rResult[2](2,0) = 0.0; rResult[2](2,1) = 0.0; rResult[2](2,2) = 0.0;
 
         // Node 3
-        rResult[1](0,0) = 0.0; rResult[1](0,1) = 0.0; rResult[1](0,2) = 0.0;
-        rResult[1](1,0) = 0.0; rResult[1](1,1) = 0.0; rResult[1](1,2) = 0.0;
-        rResult[1](2,0) = 0.0; rResult[1](2,1) = 0.0; rResult[1](2,2) = 4.0;
+        rResult[3](0,0) = 0.0; rResult[3](0,1) = 0.0; rResult[3](0,2) = 0.0;
+        rResult[3](1,0) = 0.0; rResult[3](1,1) = 0.0; rResult[3](1,2) = 0.0;
+        rResult[3](2,0) = 0.0; rResult[3](2,1) = 0.0; rResult[3](2,2) = 4.0;
 
         // Node 4
-        rResult[1](0,0) = -8.0; rResult[1](0,1) = -4.0; rResult[1](0,2) = -4.0;
-        rResult[1](1,0) = -4.0; rResult[1](1,1) = 0.0; rResult[1](1,2) = 0.0;
-        rResult[1](2,0) = -4.0; rResult[1](2,1) = 0.0; rResult[1](2,2) = 0.0;
+        rResult[4](0,0) = -8.0; rResult[4](0,1) = -4.0; rResult[4](0,2) = -4.0;
+        rResult[4](1,0) = -4.0; rResult[4](1,1) = 0.0; rResult[4](1,2) = 0.0;
+        rResult[4](2,0) = -4.0; rResult[4](2,1) = 0.0; rResult[4](2,2) = 0.0;
 
         // Node 5
-        rResult[1](0,0) = 0.0; rResult[1](0,1) = 4.0; rResult[1](0,2) = 0.0;
-        rResult[1](1,0) = 4.0; rResult[1](1,1) = 0.0; rResult[1](1,2) = 0.0;
-        rResult[1](2,0) = 0.0; rResult[1](2,1) = 0.0; rResult[1](2,2) = 0.0;
+        rResult[5](0,0) = 0.0; rResult[5](0,1) = 4.0; rResult[5](0,2) = 0.0;
+        rResult[5](1,0) = 4.0; rResult[5](1,1) = 0.0; rResult[5](1,2) = 0.0;
+        rResult[5](2,0) = 0.0; rResult[5](2,1) = 0.0; rResult[5](2,2) = 0.0;
 
         // Node 6
-        rResult[1](0,0) = 0.0; rResult[1](0,1) = -4.0; rResult[1](0,2) = 0.0;
-        rResult[1](1,0) = -4.0; rResult[1](1,1) = -8.0; rResult[1](1,2) = -4.0;
-        rResult[1](2,0) = 0.0; rResult[1](2,1) = -4.0; rResult[1](2,2) = 0.0;
+        rResult[6](0,0) = 0.0; rResult[6](0,1) = -4.0; rResult[6](0,2) = 0.0;
+        rResult[6](1,0) = -4.0; rResult[6](1,1) = -8.0; rResult[6](1,2) = -4.0;
+        rResult[6](2,0) = 0.0; rResult[6](2,1) = -4.0; rResult[6](2,2) = 0.0;
 
         // Node 7
-        rResult[1](0,0) = 0.0; rResult[1](0,1) = 0.0; rResult[1](0,2) = -4.0;
-        rResult[1](1,0) = 0.0; rResult[1](1,1) = 0.0; rResult[1](1,2) = -4.0;
-        rResult[1](2,0) = -4.0; rResult[1](2,1) = -4.0; rResult[1](2,2) = -8.0;
+        rResult[7](0,0) = 0.0; rResult[7](0,1) = 0.0; rResult[7](0,2) = -4.0;
+        rResult[7](1,0) = 0.0; rResult[7](1,1) = 0.0; rResult[7](1,2) = -4.0;
+        rResult[7](2,0) = -4.0; rResult[7](2,1) = -4.0; rResult[7](2,2) = -8.0;
 
         // Node 8
-        rResult[1](0,0) = 0.0; rResult[1](0,1) = 0.0; rResult[1](0,2) = 4.0;
-        rResult[1](1,0) = 0.0; rResult[1](1,1) = 0.0; rResult[1](1,2) = 0.0;
-        rResult[1](2,0) = 4.0; rResult[1](2,1) = 0.0; rResult[1](2,2) = 0.0;
+        rResult[8](0,0) = 0.0; rResult[8](0,1) = 0.0; rResult[8](0,2) = 4.0;
+        rResult[8](1,0) = 0.0; rResult[8](1,1) = 0.0; rResult[8](1,2) = 0.0;
+        rResult[8](2,0) = 4.0; rResult[8](2,1) = 0.0; rResult[8](2,2) = 0.0;
 
         // Node 9
-        rResult[1](0,0) = 0.0; rResult[1](0,1) = 0.0; rResult[1](0,2) = 0.0;
-        rResult[1](1,0) = 0.0; rResult[1](1,1) = 0.0; rResult[1](1,2) = 4.0;
-        rResult[1](2,0) = 0.0; rResult[1](2,1) = 4.0; rResult[1](2,2) = 0.0;
+        rResult[9](0,0) = 0.0; rResult[9](0,1) = 0.0; rResult[9](0,2) = 0.0;
+        rResult[9](1,0) = 0.0; rResult[9](1,1) = 0.0; rResult[9](1,2) = 4.0;
+        rResult[9](2,0) = 0.0; rResult[9](2,1) = 4.0; rResult[9](2,2) = 0.0;
 
         return rResult;
     }
