@@ -26,8 +26,8 @@ KRATOS_TEST_CASE_IN_SUITE(ThreeDimensionalStressState_CalculateBMatrixReturnsCor
 {
     auto stress_state = std::make_unique<ThreeDimensionalStressState>();
 
-    Model      model;
-    ModelPart& model_part = ModelSetupUtilities::CreateModelPartWithASingle3D4NElement(model);
+    Model model;
+    auto& model_part = ModelSetupUtilities::CreateModelPartWithASingle3D4NElement(model);
 
     Vector Np(4);
     Np <<= 1.0, 2.0, 3.0, 4.0;
@@ -40,7 +40,7 @@ KRATOS_TEST_CASE_IN_SUITE(ThreeDimensionalStressState_CalculateBMatrixReturnsCor
                 10.0, 11.0, 12.0;
     // clang-format on
 
-    const Matrix calculated_matrix =
+    const auto calculated_matrix =
         stress_state->CalculateBMatrix(GradNpT, Np, model_part.GetElement(1).GetGeometry());
 
     // clang-format off
@@ -66,14 +66,14 @@ KRATOS_TEST_CASE_IN_SUITE(ThreeDimensionalStressState_ReturnsCorrectIntegrationC
 {
     const auto p_stress_state_policy = std::make_unique<ThreeDimensionalStressState>();
 
-    Model      model;
-    ModelPart& model_part = ModelSetupUtilities::CreateModelPartWithASingle2D3NElement(model);
+    Model model;
+    auto& model_part = ModelSetupUtilities::CreateModelPartWithASingle2D3NElement(model);
 
     // The shape function values for this integration point are 0.2, 0.5 and 0.3 for nodes 1, 2 and 3 respectively
     Geometry<Node>::IntegrationPointType integration_point(0.5, 0.3, 0.0, 0.5);
 
-    const double detJ                   = 2.0;
-    const double calculated_coefficient = p_stress_state_policy->CalculateIntegrationCoefficient(
+    const auto detJ                   = 2.0;
+    const auto calculated_coefficient = p_stress_state_policy->CalculateIntegrationCoefficient(
         integration_point, detJ, model_part.GetElement(1).GetGeometry());
 
     // The expected number is calculated as follows:
@@ -83,8 +83,9 @@ KRATOS_TEST_CASE_IN_SUITE(ThreeDimensionalStressState_ReturnsCorrectIntegrationC
 
 KRATOS_TEST_CASE_IN_SUITE(ThreeDimensionalStressState_GivesCorrectClone, KratosGeoMechanicsFastSuite)
 {
-    const auto p_stress_state_policy = std::make_unique<ThreeDimensionalStressState>();
-    const auto p_clone               = p_stress_state_policy->Clone();
+    const std::unique_ptr<StressStatePolicy> p_stress_state_policy =
+        std::make_unique<ThreeDimensionalStressState>();
+    const auto p_clone = p_stress_state_policy->Clone();
 
     KRATOS_EXPECT_NE(dynamic_cast<ThreeDimensionalStressState*>(p_clone.get()), nullptr);
 }
@@ -104,7 +105,7 @@ KRATOS_TEST_CASE_IN_SUITE(ThreeDimensionalStressState_CalculateGreenLagrangeStra
     expected_vector(1)     = 0.5 * (deformation_gradient(1, 1) * deformation_gradient(1, 1) - 1.0);
     expected_vector(2)     = 0.5 * (deformation_gradient(2, 2) * deformation_gradient(2, 2) - 1.0);
 
-    const Vector calculated_vector = p_stress_state_policy->CalculateGreenLagrangeStrain(deformation_gradient);
+    const auto calculated_vector = p_stress_state_policy->CalculateGreenLagrangeStrain(deformation_gradient);
 
     KRATOS_CHECK_VECTOR_NEAR(expected_vector, calculated_vector, 1e-12)
 }

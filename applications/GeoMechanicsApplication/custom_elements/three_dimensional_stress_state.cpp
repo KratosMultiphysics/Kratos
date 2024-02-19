@@ -47,15 +47,15 @@ double ThreeDimensionalStressState::CalculateIntegrationCoefficient(
     return rIntegrationPoint.Weight() * detJ;
 }
 
-std::unique_ptr<StressStatePolicy> ThreeDimensionalStressState::Clone() const
-{
-    return std::make_unique<ThreeDimensionalStressState>();
-}
-
 Vector ThreeDimensionalStressState::CalculateGreenLagrangeStrain(const Matrix& rTotalDeformationGradient) const
 {
     const auto ETensor = StressStrainUtilities::CalculateGreenLagrangeStrainTensor(rTotalDeformationGradient);
     return MathUtils<double>::StrainTensorToVector(ETensor);
+}
+
+std::unique_ptr<StressStatePolicy> ThreeDimensionalStressState::Clone() const
+{
+    return std::make_unique<ThreeDimensionalStressState>();
 }
 
 } // namespace Kratos
