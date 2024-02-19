@@ -27,7 +27,7 @@
 // Project includes
 #include "includes/define.h"
 #include "includes/serializer.h"
-#include "containers/set_identity_function.h"
+#include "containers/set_address_identity_function.h"
 
 namespace Kratos
 {
@@ -63,7 +63,7 @@ namespace Kratos
  * @author Pooyan Dadvand
  */
 template<class TDataType,
-         class TGetKeyType = SetIdentityFunction<TDataType>,
+         class TGetKeyType = SetAddressIdentityFunction<TDataType>,
          class TCompareType = std::less<decltype(std::declval<TGetKeyType>()(std::declval<TDataType>()))>,
          class TEqualType = std::equal_to<decltype(std::declval<TGetKeyType>()(std::declval<TDataType>()))>,
          class TPointerType = typename TDataType::Pointer,
@@ -136,7 +136,7 @@ public:
      */
     PointerVectorSet(const PointerVectorSet& rOther)
         :  mData(rOther.mData), mSortedPartSize(rOther.mSortedPartSize), mMaxBufferSize(rOther.mMaxBufferSize) {}
-    
+
     /**
      * @brief Constructs a PointerVectorSet from a container.
      * @details This constructor initializes a PointerVectorSet with elements from a container.
@@ -789,15 +789,15 @@ public:
     /**
      * @brief Get the maximum size of buffer used in the container
      */
-    size_type GetMaxBufferSize() const 
+    size_type GetMaxBufferSize() const
     {
         return mMaxBufferSize;
     }
 
-    /** 
+    /**
      * @brief Set the maximum size of buffer used in the container.
      * @details This container uses a buffer which keep data unsorted. After buffer size arrived to the MaxBufferSize it will sort all container and empties buffer.
-     * @param NewSize Is the new buffer maximum size. 
+     * @param NewSize Is the new buffer maximum size.
      */
     void SetMaxBufferSize(const size_type NewSize)
     {
@@ -805,16 +805,16 @@ public:
     }
 
     /**
-     * @brief Get the sorted part size of buffer used in the container. 
+     * @brief Get the sorted part size of buffer used in the container.
      */
-    size_type GetSortedPartSize() const 
+    size_type GetSortedPartSize() const
     {
         return mSortedPartSize;
     }
 
-    /** 
+    /**
      * @brief Set the sorted part size of buffer used in the container.
-     * @param NewSize Is the new buffer maximum size. 
+     * @param NewSize Is the new buffer maximum size.
      */
     void SetSortedPartSize(const size_type NewSize)
     {
@@ -980,10 +980,10 @@ private:
 
     /// The data container holding the elements.
     TContainerType mData;
-    
+
     /// The size of the sorted portion of the data.
     size_type mSortedPartSize;
-    
+
     /// The maximum buffer size for data storage.
     size_type mMaxBufferSize;
 
