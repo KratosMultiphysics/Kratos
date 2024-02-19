@@ -30,8 +30,8 @@ KRATOS_TEST_CASE_IN_SUITE(CalculateBMatrixWithValidGeometryReturnsCorrectResults
     const std::unique_ptr<StressStatePolicy> p_stress_state_policy =
         std::make_unique<AxisymmetricStressState>();
 
-    Model      model;
-    ModelPart& model_part = ModelSetupUtilities::CreateModelPartWithASingle2D3NElement(model);
+    Model model;
+    auto& model_part = ModelSetupUtilities::CreateModelPartWithASingle2D3NElement(model);
 
     Vector Np(3);
     Np <<= 1.0, 2.0, 3.0;
