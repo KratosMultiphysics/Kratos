@@ -2,7 +2,6 @@ from importlib import import_module
 from pathlib import Path
 
 import KratosMultiphysics as kratos
-import KratosMultiphysics.MeshingApplication as _ # To be sure that the app is imported and the registry is filled
 
 from KratosMultiphysics import KratosUnittest
 from KratosMultiphysics.MeshingApplication.modelers.convert_linear_tetrahedra_to_quadratic_modeler import ConvertLinearTetrahedraToQuadraticModeler
@@ -11,8 +10,6 @@ from KratosMultiphysics.MeshingApplication.modelers.convert_linear_tetrahedra_to
 class TestConvertLinearTetrahedraToQuadraticModeler(KratosUnittest.TestCase):
 
     def setUp(self):
-        kratos.Logger.GetDefaultOutput().SetSeverity(kratos.Logger.Severity.WARNING)
-
         self.model = kratos.Model()
         model_part = self.model.CreateModelPart("main_model_part")
         model_part.ProcessInfo.SetValue(kratos.DOMAIN_SIZE, 3)
