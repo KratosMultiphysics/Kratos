@@ -133,10 +133,12 @@ class PfemFluidSolver(PythonSolver):
                                                                self.settings["time_order"].GetInt(),
                                                                self.main_model_part.ProcessInfo[KratosMultiphysics.SPACE_DIMENSION])
 
-        echo_level = self.settings["echo_level"].GetInt()
-
         # Set echo_level
+        echo_level = self.settings["echo_level"].GetInt()
         self.fluid_solver.SetEchoLevel(echo_level)
+
+        # Self initialize strategy
+        self.fluid_solver.Initialize()
 
         # Check if everything is assigned correctly
         self.fluid_solver.Check()
@@ -235,16 +237,10 @@ class PfemFluidSolver(PythonSolver):
 
         return new_time
 
-    def InitializeStrategy(self):
-        if self.settings["clear_storage"].GetBool():
-            self.Clear()
-
-        self.fluid_solver.Initialize()
-
     def InitializeSolutionStep(self):
-        #self.fluid_solver.InitializeSolutionStep()
-        if self._TimeBufferIsInitialized():
-            self.fluid_solver.InitializeSolutionStep()
+        self.fluid_solver.InitializeSolutionStep()
+        # if self._TimeBufferIsInitialized():
+        #     self.fluid_solver.InitializeSolutionStep()
 
         ## Automatic time step computation according to user defined CFL number
         if (self.settings["time_stepping"]["automatic_time_step"].GetBool()):
