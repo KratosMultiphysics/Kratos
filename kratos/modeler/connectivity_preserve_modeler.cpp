@@ -157,7 +157,7 @@ void ConnectivityPreserveModeler::DuplicateElements(
     const Element& rReferenceElement) const
 {
     // Generate the elements
-    ModelPart::ElementsContainerType temp_elements;
+    std::vector<ModelPart::ElementType::Pointer> temp_elements;
     temp_elements.reserve(rOriginModelPart.NumberOfElements());
     for (auto i_elem = rOriginModelPart.ElementsBegin(); i_elem != rOriginModelPart.ElementsEnd(); ++i_elem) {
         Properties::Pointer properties = i_elem->pGetProperties();
@@ -177,7 +177,7 @@ void ConnectivityPreserveModeler::DuplicateConditions(
     const Condition& rReferenceBoundaryCondition) const
 {
     // Generate the conditions
-    ModelPart::ConditionsContainerType temp_conditions;
+    std::vector<ModelPart::ConditionType::Pointer> temp_conditions;
     temp_conditions.reserve(rOriginModelPart.NumberOfConditions());
     for (auto i_cond = rOriginModelPart.ConditionsBegin(); i_cond != rOriginModelPart.ConditionsEnd(); ++i_cond) {
         Properties::Pointer properties = i_cond->pGetProperties();
