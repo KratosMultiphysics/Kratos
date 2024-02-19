@@ -45,8 +45,9 @@ public:
     /// Pointer definition of DofUpdater
     KRATOS_CLASS_POINTER_DEFINITION(DofUpdater);
 
-	using DofType = Dof<typename TSparseSpace::DataType>;
-	using DofsArrayType = PointerVectorSet<DofType>;
+	using DofType = ModelPart::DofType;
+
+	using DofsArrayType = ModelPart::DofsArrayType;
 
     using SystemVectorType = typename TSparseSpace::VectorType;
 

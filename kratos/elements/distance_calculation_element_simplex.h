@@ -98,7 +98,7 @@ public:
 
     typedef std::vector<DofType::Pointer> DofsVectorType;
 
-    typedef PointerVectorSet<DofType> DofsArrayType;
+    typedef Element::DofsArrayType DofsArrayType;
 
     /// Type for shape function values container
     typedef Kratos::Vector ShapeFunctionsType;
