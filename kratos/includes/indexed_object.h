@@ -102,6 +102,11 @@ public:
         return mId < rThisObject.Id();
     }
 
+    bool operator==(IndexedObject const& rOther) const
+    {
+        return mId == rOther.mId;
+    }
+
     ///@}
     ///@name Operations
     ///@{

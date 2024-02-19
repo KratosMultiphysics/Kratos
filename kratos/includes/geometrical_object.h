@@ -116,6 +116,12 @@ public:
         return *this;
     }
 
+    bool operator==(GeometricalObject const& rOther) const
+    {
+        return IndexedObject::operator==(rOther) &&
+               static_cast<const Flags&>(*this) == static_cast<const Flags&>(rOther);
+    }
+
     ///@}
     ///@name Operations
     ///@{
