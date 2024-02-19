@@ -52,9 +52,8 @@ KRATOS_TEST_CASE_IN_SUITE(ConstraintUtilitiesComputeActiveDofs, KratosCoreFastSu
     DofsArrayType aux_dof_set;
     aux_dof_set.reserve(r_model_part.NumberOfNodes());
     for (auto& r_node : r_model_part.Nodes()) {
-        aux_dof_set.push_back(r_node.pGetDof(TEMPERATURE));
+        aux_dof_set.insert(aux_dof_set.end(), r_node.pGetDof(TEMPERATURE));
     }
-    aux_dof_set.Sort();
 
     // Adding MPC
     auto p_mpc_1 = r_model_part.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", 1, r_model_part.GetNode(1), TEMPERATURE, r_model_part.GetNode(2), TEMPERATURE, 1.0, 0.0);
