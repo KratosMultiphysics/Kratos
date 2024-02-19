@@ -555,31 +555,7 @@ void SmallStrainUPwDiffOrderElement::GetFirstDerivativesVector(Vector& rValues, 
 
 void SmallStrainUPwDiffOrderElement::GetSecondDerivativesVector(Vector& rValues, int Step) const
 {
-    KRATOS_TRY
-
-    const GeometryType& rGeom       = GetGeometry();
-    const SizeType      Dim         = rGeom.WorkingSpaceDimension();
-    const SizeType      NumUNodes   = rGeom.PointsNumber();
-    const SizeType      NumPNodes   = mpPressureGeometry->PointsNumber();
-    const SizeType      ElementSize = NumUNodes * Dim + NumPNodes;
-
-    if (rValues.size() != ElementSize) rValues.resize(ElementSize, false);
-
-    SizeType Index = 0;
-
-    for (SizeType i = 0; i < NumUNodes; ++i) {
-        rValues[Index] = rGeom[i].FastGetSolutionStepValue(ACCELERATION_X, Step);
-        ++Index;
-        rValues[Index] = rGeom[i].FastGetSolutionStepValue(ACCELERATION_Y, Step);
-        ++Index;
-        if (Dim > 2) {
-            rValues[Index] = rGeom[i].FastGetSolutionStepValue(ACCELERATION_Z, Step);
-            ++Index;
-        }
-    }
-    std::fill_n(rValues.begin() + Index, NumPNodes, 0.0);
-
-    KRATOS_CATCH("")
+    rValues = ExtractSecondDerivativesOfUPwElement(GetDofs(), Step);
 }
 
 void SmallStrainUPwDiffOrderElement::FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
