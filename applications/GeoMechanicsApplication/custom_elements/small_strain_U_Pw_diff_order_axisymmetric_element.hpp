@@ -30,21 +30,20 @@ class KRATOS_API(GEO_MECHANICS_APPLICATION) SmallStrainUPwDiffOrderAxisymmetricE
 public:
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(SmallStrainUPwDiffOrderAxisymmetricElement);
 
-    typedef std::size_t IndexType;
-    typedef Properties PropertiesType;
-    typedef Node NodeType;
-    typedef Geometry<NodeType> GeometryType;
-    typedef Geometry<NodeType>::PointsArrayType NodesArrayType;
-    typedef Vector VectorType;
-    typedef Matrix MatrixType;
-    /// The definition of the sizetype
-    typedef std::size_t SizeType;
+    using IndexType      = std::size_t;
+    using PropertiesType = Properties;
+    using NodeType       = Node;
+    using GeometryType   = Geometry<NodeType>;
+    using NodesArrayType = Geometry<NodeType>::PointsArrayType;
+    using VectorType     = Vector;
+    using MatrixType     = Matrix;
+    using SizeType       = std::size_t;
     using SmallStrainUPwDiffOrderElement::mConstitutiveLawVector;
 
     ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     /// Default Constructor
-    SmallStrainUPwDiffOrderAxisymmetricElement() : SmallStrainUPwDiffOrderElement() {}
+    SmallStrainUPwDiffOrderAxisymmetricElement() = default;
 
     /// Constructor using Geometry
     SmallStrainUPwDiffOrderAxisymmetricElement(IndexType NewId, GeometryType::Pointer pGeometry)
@@ -53,20 +52,20 @@ public:
     }
 
     /// Constructor using Properties
-    SmallStrainUPwDiffOrderAxisymmetricElement(IndexType NewId,
-                                               GeometryType::Pointer pGeometry,
+    SmallStrainUPwDiffOrderAxisymmetricElement(IndexType               NewId,
+                                               GeometryType::Pointer   pGeometry,
                                                PropertiesType::Pointer pProperties)
         : SmallStrainUPwDiffOrderElement(NewId, pGeometry, pProperties)
     {
     }
 
     /// Destructor
-    ~SmallStrainUPwDiffOrderAxisymmetricElement() override {}
+    ~SmallStrainUPwDiffOrderAxisymmetricElement() override = default;
 
     ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    Element::Pointer Create(IndexType NewId,
-                            NodesArrayType const& ThisNodes,
+    Element::Pointer Create(IndexType               NewId,
+                            NodesArrayType const&   ThisNodes,
                             PropertiesType::Pointer pProperties) const override;
 
     Element::Pointer Create(IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties) const override;
@@ -102,7 +101,9 @@ protected:
 
     double CalculateIntegrationCoefficient(const GeometryType::IntegrationPointsArrayType& IntegrationPoints,
                                            unsigned int PointNumber,
-                                           double detJ) override;
+                                           double       detJ) override;
+
+    Vector CalculateGreenLagrangeStrain(const Matrix& rDeformationGradient) override;
 
     ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 

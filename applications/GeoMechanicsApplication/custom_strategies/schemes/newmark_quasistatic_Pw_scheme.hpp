@@ -23,8 +23,7 @@ namespace Kratos
 {
 
 template <class TSparseSpace, class TDenseSpace>
-class NewmarkQuasistaticPwScheme
-    : public GeneralizedNewmarkScheme<TSparseSpace, TDenseSpace>
+class NewmarkQuasistaticPwScheme : public GeneralizedNewmarkScheme<TSparseSpace, TDenseSpace>
 {
 public:
     KRATOS_CLASS_POINTER_DEFINITION(NewmarkQuasistaticPwScheme);

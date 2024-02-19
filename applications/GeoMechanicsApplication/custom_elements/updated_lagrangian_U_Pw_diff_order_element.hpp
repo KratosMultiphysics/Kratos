@@ -67,8 +67,7 @@ public:
     /// The definition of the sizetype
     using SizeType = std::size_t;
     using SmallStrainUPwDiffOrderElement::AssembleUBlockMatrix;
-    using SmallStrainUPwDiffOrderElement::CalculateCauchyAlmansiStrain;
-    using SmallStrainUPwDiffOrderElement::CalculateCauchyGreenStrain;
+    using SmallStrainUPwDiffOrderElement::CalculateGreenLagrangeStrain;
     using SmallStrainUPwDiffOrderElement::CalculateCauchyStrain;
     using SmallStrainUPwDiffOrderElement::CalculateDerivativesOnInitialConfiguration;
     using SmallStrainUPwDiffOrderElement::mConstitutiveLawVector;
@@ -116,8 +115,8 @@ public:
      * @param pProperties The pointer to property
      * @return The pointer to the created element
      */
-    Element::Pointer Create(IndexType NewId,
-                            NodesArrayType const& ThisNodes,
+    Element::Pointer Create(IndexType               NewId,
+                            NodesArrayType const&   ThisNodes,
                             PropertiesType::Pointer pProperties) const override;
 
     /**
@@ -127,8 +126,8 @@ public:
      * @param rCurrentProcessInfo The current process info instance
      */
     void CalculateOnIntegrationPoints(const Variable<double>& rVariable,
-                                      std::vector<double>& rOutput,
-                                      const ProcessInfo& rCurrentProcessInfo) override;
+                                      std::vector<double>&    rOutput,
+                                      const ProcessInfo&      rCurrentProcessInfo) override;
 
     /**
      * @brief Calculate a Matrix Variable on the Element Constitutive Law
@@ -137,12 +136,12 @@ public:
      * @param rCurrentProcessInfo The current process info instance
      */
     void CalculateOnIntegrationPoints(const Variable<Matrix>& rVariable,
-                                      std::vector<Matrix>& rOutput,
-                                      const ProcessInfo& rCurrentProcessInfo) override;
+                                      std::vector<Matrix>&    rOutput,
+                                      const ProcessInfo&      rCurrentProcessInfo) override;
 
     void CalculateOnIntegrationPoints(const Variable<Vector>& rVariable,
-                                      std::vector<Vector>& rOutput,
-                                      const ProcessInfo& rCurrentProcessInfo) override;
+                                      std::vector<Vector>&    rOutput,
+                                      const ProcessInfo&      rCurrentProcessInfo) override;
 
     ///@}
     ///@name Access
@@ -202,15 +201,15 @@ protected:
      * @param CalculateStiffnessMatrixFlag The flag to set if compute the LHS
      * @param CalculateResidualVectorFlag The flag to set if compute the RHS
      */
-    void CalculateAll(MatrixType& rLeftHandSideMatrix,
-                      VectorType& rRightHandSideVector,
+    void CalculateAll(MatrixType&        rLeftHandSideMatrix,
+                      VectorType&        rRightHandSideVector,
                       const ProcessInfo& rCurrentProcessInfo,
-                      const bool CalculateStiffnessMatrixFlag,
-                      const bool CalculateResidualVectorFlag) override;
+                      const bool         CalculateStiffnessMatrixFlag,
+                      const bool         CalculateResidualVectorFlag) override;
 
-    void CalculateAndAddGeometricStiffnessMatrix(MatrixType& rLeftHandSideMatrix,
+    void CalculateAndAddGeometricStiffnessMatrix(MatrixType&       rLeftHandSideMatrix,
                                                  ElementVariables& rVariables,
-                                                 unsigned int GPoint);
+                                                 unsigned int      GPoint);
 
     ///@}
     ///@name Protected Operations
