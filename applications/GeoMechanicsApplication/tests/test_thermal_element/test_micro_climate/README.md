@@ -20,31 +20,31 @@ We employed eight test cases to encompass a range of potential scenarios and tho
 
 The domain, grid and boundary conditions are shown as below. The test cases are done on a domain $0.1 \times 1$ $m^2$. The elements are triangles with 3 nodes.
 
-<img src="../documentation_data/test_micro_climate_boundary_condition.png" alt="Visualization of the domain, grid and the boundary conditions" title="Visualization of the Boundary conditions" width="600">
+<img src="../documentation_data/test_micro_climate_boundary_condition.png" alt="Visualization of the domain, grid and the boundary conditions" title="Visualization of the Boundary conditions" width="300">
 
 ## Results
 The history of the temperature is captured at node 5 for all test cases, which is located at $\left(0.05, -0.2 \right)$. It means this point is at the distance of 0.2 m from the surface.
 
 * Case 1
-<img src="../documentation_data/test_micro_climate_1_history.png" alt="Visualization of the history of temperature at the distance of 0.2 below the surface" title="Visualization of the History" width="600">
+<img src="../documentation_data/test_micro_climate_1_history.png" alt="Visualization of the history of temperature at the distance of 0.2 below the surface" title="Visualization of the History" width="900">
 
 * Case 2
-<img src="../documentation_data/test_micro_climate_2_history.png" alt="Visualization of the history of temperature at the distance of 0.2 below the surface" title="Visualization of the History" width="600">
+<img src="../documentation_data/test_micro_climate_2_history.png" alt="Visualization of the history of temperature at the distance of 0.2 below the surface" title="Visualization of the History" width="900">
 
 * Case 3
-<img src="../documentation_data/test_micro_climate_3_history.png" alt="Visualization of the history of temperature at the distance of 0.2 below the surface" title="Visualization of the History" width="600">
+<img src="../documentation_data/test_micro_climate_3_history.png" alt="Visualization of the history of temperature at the distance of 0.2 below the surface" title="Visualization of the History" width="900">
 
 * Case 4
-<img src="../documentation_data/test_micro_climate_4_history.png" alt="Visualization of the history of temperature at the distance of 0.2 below the surface" title="Visualization of the History" width="600">
+<img src="../documentation_data/test_micro_climate_4_history.png" alt="Visualization of the history of temperature at the distance of 0.2 below the surface" title="Visualization of the History" width="900">
 
 * Case 5
-<img src="../documentation_data/test_micro_climate_5_history.png" alt="Visualization of the history of temperature at the distance of 0.2 below the surface" title="Visualization of the History" width="600">
+<img src="../documentation_data/test_micro_climate_5_history.png" alt="Visualization of the history of temperature at the distance of 0.2 below the surface" title="Visualization of the History" width="900">
 
 * Case 6
-<img src="../documentation_data/test_micro_climate_6_history.png" alt="Visualization of the history of temperature at the distance of 0.2 below the surface" title="Visualization of the History" width="600">
+<img src="../documentation_data/test_micro_climate_6_history.png" alt="Visualization of the history of temperature at the distance of 0.2 below the surface" title="Visualization of the History" width="900">
 
 * Case 7
-<img src="../documentation_data/test_micro_climate_7_history.png" alt="Visualization of the history of temperature at the distance of 0.2 below the surface" title="Visualization of the History" width="600">
+<img src="../documentation_data/test_micro_climate_7_history.png" alt="Visualization of the history of temperature at the distance of 0.2 below the surface" title="Visualization of the History" width="900">
 
 * Case 8
-<img src="../documentation_data/test_micro_climate_8_history.png" alt="Visualization of the history of temperature at the distance of 0.2 below the surface" title="Visualization of the History" width="600">
+<img src="../documentation_data/test_micro_climate_8_history.png" alt="Visualization of the history of temperature at the distance of 0.2 below the surface" title="Visualization of the History" width="900">
