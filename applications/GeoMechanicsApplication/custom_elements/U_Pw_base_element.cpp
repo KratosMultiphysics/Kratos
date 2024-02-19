@@ -383,14 +383,7 @@ void UPwBaseElement<TDim, TNumNodes>::CalculateDampingMatrix(MatrixType&        
 template <unsigned int TDim, unsigned int TNumNodes>
 void UPwBaseElement<TDim, TNumNodes>::GetValuesVector(Vector& rValues, int Step) const
 {
-    const auto dofs = GetDofs();
-    rValues.resize(dofs.size());
-
-    auto get_dof_value = [Step](const auto p_dof) -> double {
-        // Why should we return 0.0 for water pressures?
-        return p_dof->GetVariable() == WATER_PRESSURE ? 0.0 : p_dof->GetSolutionStepValue(Step);
-    };
-    std::transform(dofs.begin(), dofs.end(), rValues.begin(), get_dof_value);
+    rValues = ExtractSolutionStepValuesOfUPwDofs(GetDofs(), Step);
 }
 
 //----------------------------------------------------------------------------------------
@@ -404,7 +397,7 @@ void UPwBaseElement<TDim, TNumNodes>::GetFirstDerivativesVector(Vector& rValues,
 template <unsigned int TDim, unsigned int TNumNodes>
 void UPwBaseElement<TDim, TNumNodes>::GetSecondDerivativesVector(Vector& rValues, int Step) const
 {
-    rValues = ExtractSecondDerivativesOfUPwElement(GetDofs(), Step);
+    rValues = ExtractSecondTimeDerivativesOfUPwDofs(GetDofs(), Step);
 }
 
 //-------------------------------------------------------------------------------------------------------------------------------------------
