@@ -1237,8 +1237,6 @@ ModelPart::MasterSlaveConstraintType::Pointer ModelPart::CreateNewMasterSlaveCon
                                                                                                                     ConstantVector,
                                                                                                                     ThisIndex);
         GetMesh(ThisIndex).AddMasterSlaveConstraint(p_new_constraint);
-        GetMesh(ThisIndex).MasterSlaveConstraints().Unique();
-
         return p_new_constraint;
     }
 
@@ -1255,7 +1253,6 @@ ModelPart::MasterSlaveConstraintType::Pointer ModelPart::CreateNewMasterSlaveCon
                                                                                         ConstantVector);
 
     GetMesh(ThisIndex).AddMasterSlaveConstraint(p_new_constraint);
-    GetMesh(ThisIndex).MasterSlaveConstraints().Unique();
 
     return p_new_constraint;
     KRATOS_CATCH("")
@@ -1287,7 +1284,6 @@ ModelPart::MasterSlaveConstraintType::Pointer ModelPart::CreateNewMasterSlaveCon
                                                                                                                             ThisIndex);
 
                 GetMesh(ThisIndex).AddMasterSlaveConstraint(p_new_constraint);
-                GetMesh(ThisIndex).MasterSlaveConstraints().Unique();
                 return p_new_constraint;
         }
 
@@ -1305,7 +1301,6 @@ ModelPart::MasterSlaveConstraintType::Pointer ModelPart::CreateNewMasterSlaveCon
                                                                                                 Constant);
 
         GetMesh(ThisIndex).AddMasterSlaveConstraint(p_new_constraint);
-        GetMesh(ThisIndex).MasterSlaveConstraints().Unique();
         return p_new_constraint;
     } else
     {
