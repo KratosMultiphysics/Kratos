@@ -17,6 +17,9 @@
 // Project includes
 #include "custom_constitutive/continuum_laws/hyperelastic_3D_law.hpp"
 
+// Application includes
+#include "custom_utilities/poro_element_utilities.hpp"
+
 namespace Kratos
 {
 /**
