@@ -554,8 +554,8 @@ protected:
 
         if (BaseType::mCalculateReactionsFlag) {
             for (auto& r_dof : BaseType::mDofSet) {
-                const bool is_master_fixed = mDoFMasterFixedSet.find(&r_dof) == mDoFMasterFixedSet.end() ? false : true;
-                const bool is_slave = mDoFSlaveSet.find(&r_dof) == mDoFSlaveSet.end() ? false : true;
+                const bool is_master_fixed = mDoFMasterFixedSet.find(r_dof) == mDoFMasterFixedSet.end() ? false : true;
+                const bool is_slave = mDoFSlaveSet.find(r_dof) == mDoFSlaveSet.end() ? false : true;
                 if (is_master_fixed || is_slave) { // Fixed or MPC dof
                     const IndexType equation_id = r_dof.EquationId();
                     r_reactions_vector[mReactionEquationIdMap[equation_id]] += rb[equation_id];
@@ -741,7 +741,7 @@ protected:
              aux_dof_set.reserve(mDoFToSolveSystemSize);
              for (auto& r_dof : BaseType::mDofSet) {
                  if (r_dof.EquationId() < BaseType::mEquationSystemSize) {
-                    auto it = mDoFSlaveSet.find(&r_dof);
+                    auto it = mDoFSlaveSet.find(r_dof);
                     if (it == mDoFSlaveSet.end())
                         aux_dof_set.push_back( &r_dof );
                  }
@@ -966,7 +966,7 @@ protected:
         for (auto& dof : BaseType::mDofSet) {
             if (dof.EquationId() < BaseType::mEquationSystemSize) {
                 const IndexType equation_id = dof.EquationId();
-                auto it = mDoFSlaveSet.find(&dof);
+                auto it = mDoFSlaveSet.find(dof);
                 if (it == mDoFSlaveSet.end()) {
                     solvable_dof_reorder.insert(IndexIndexPairType(equation_id, counter));
                     master_indices.insert(IndexIndexSetPairType(equation_id, IndexSetType({counter})));
@@ -1318,7 +1318,7 @@ protected:
 
         // Updating variables
         for (auto& r_dof : BaseType::mDofSet) {
-            if ((r_dof.IsFixed()) || mDoFSlaveSet.find(&r_dof) != mDoFSlaveSet.end()) {
+            if ((r_dof.IsFixed()) || mDoFSlaveSet.find(r_dof) != mDoFSlaveSet.end()) {
                 r_dof.GetSolutionStepReactionValue() = -r_reactions_vector[mReactionEquationIdMap[r_dof.EquationId()]];
             }
         }
@@ -1356,11 +1356,11 @@ protected:
                 auto it_dof = it_dof_begin + i;
                 const IndexType equation_id = it_dof->EquationId();
                 if (equation_id < BaseType::mEquationSystemSize ) {
-                    auto it_first_check = mDoFSlaveSet.find(&*it_dof);
+                    auto it_first_check = mDoFSlaveSet.find(*it_dof);
                     if (it_first_check == mDoFSlaveSet.end()) {
-                        auto it_second_check = mDoFSlaveSet.find(&*it_dof);
+                        auto it_second_check = mDoFSlaveSet.find(*it_dof);
                         if (it_second_check == mDoFSlaveSet.end()) {
-                            if(mDoFMasterFixedSet.find(&*it_dof) == mDoFMasterFixedSet.end()) {
+                            if(mDoFMasterFixedSet.find(*it_dof) == mDoFMasterFixedSet.end()) {
                                 scaling_factors[counter] = 1.0;
                             }
                         }
@@ -1564,7 +1564,7 @@ private:
 
         for (auto& dof : BaseType::mDofSet) {
             if (dof.IsFixed()) {
-                auto it = mDoFMasterFixedSet.find(&dof);
+                auto it = mDoFMasterFixedSet.find(dof);
                 if (it == mDoFMasterFixedSet.end()) {
                     dof.SetEquationId(--fix_id);
                 } else {
@@ -1581,7 +1581,7 @@ private:
         IndexType counter = 0;
         for (auto& dof : BaseType::mDofSet) {
             if (dof.EquationId() < BaseType::mEquationSystemSize) {
-                auto it = mDoFSlaveSet.find(&dof);
+                auto it = mDoFSlaveSet.find(dof);
                 if (it == mDoFSlaveSet.end()) {
                     ++counter;
                 }
@@ -1594,8 +1594,8 @@ private:
         // Finally we build the relation between the EquationID and the component of the reaction
         counter = 0;
         for (auto& r_dof : BaseType::mDofSet) {
-            const bool is_master_fixed = mDoFMasterFixedSet.find(&r_dof) == mDoFMasterFixedSet.end() ? false : true;
-            const bool is_slave = mDoFSlaveSet.find(&r_dof) == mDoFSlaveSet.end() ? false : true;
+            const bool is_master_fixed = mDoFMasterFixedSet.find(r_dof) == mDoFMasterFixedSet.end() ? false : true;
+            const bool is_slave = mDoFSlaveSet.find(r_dof) == mDoFSlaveSet.end() ? false : true;
             if (is_master_fixed || is_slave) { // Fixed or MPC dof
                 mReactionEquationIdMap.insert({r_dof.EquationId(), counter});
                 ++counter;
@@ -1660,7 +1660,7 @@ private:
             auto it_dof = it_dof_begin + i;
             const IndexType equation_id = it_dof->EquationId();
             if (equation_id < BaseType::mEquationSystemSize ) {
-                auto it = mDoFSlaveSet.find(&*it_dof);
+                auto it = mDoFSlaveSet.find(*it_dof);
                 if (it == mDoFSlaveSet.end()) {
                     current_solution[counter] = it_dof->GetSolutionStepValue() + rDxSolved[counter];
                     counter += 1;
@@ -1936,8 +1936,8 @@ private:
                 const IndexType i_global = rEquationId[i_local];
                 auto it_dof = BaseType::mDofSet.begin() + i_global;
 
-                const bool is_master_fixed = mDoFMasterFixedSet.find(&*it_dof) == mDoFMasterFixedSet.end() ? false : true;
-                const bool is_slave = mDoFSlaveSet.find(&*it_dof) == mDoFSlaveSet.end() ? false : true;
+                const bool is_master_fixed = mDoFMasterFixedSet.find(*it_dof) == mDoFMasterFixedSet.end() ? false : true;
+                const bool is_slave = mDoFSlaveSet.find(*it_dof) == mDoFSlaveSet.end() ? false : true;
                 if (is_master_fixed || is_slave) { // Fixed or MPC dof
                     double& r_b_value = r_reactions_vector[mReactionEquationIdMap[i_global]];
                     const double rhs_value = rRHSContribution[i_local];
@@ -1974,7 +1974,7 @@ private:
         for (auto& dof : BaseType::mDofSet) {
             if (dof.EquationId() < BaseType::mEquationSystemSize) {
                 const IndexType equation_id = dof.EquationId();
-                auto it = mDoFSlaveSet.find(&dof);
+                auto it = mDoFSlaveSet.find(dof);
                 if (it == mDoFSlaveSet.end()) {
                     solvable_dof_reorder.insert(IndexIndexPairType(equation_id, counter));
                     ++counter;
@@ -2014,9 +2014,9 @@ private:
             IndexPartition<std::size_t>(mDoFToSolveSystemSize).for_each([&, this](std::size_t Index){
                 auto it_dof = it_dof_begin + Index;
                 if (Index < this->mEquationSystemSize) {
-                    auto it = mDoFSlaveSet.find(&*it_dof);
+                    auto it = mDoFSlaveSet.find(*it_dof);
                     if (it == mDoFSlaveSet.end()) {
-                        if(mDoFMasterFixedSet.find(&*it_dof) != mDoFMasterFixedSet.end()) {
+                        if(mDoFMasterFixedSet.find(*it_dof) != mDoFMasterFixedSet.end()) {
                             rb[Index] = 0.0;
                         }
                     }
@@ -2064,7 +2064,7 @@ private:
         for (auto& dof : BaseType::mDofSet) {
             if (dof.EquationId() < BaseType::mEquationSystemSize) {
                 const IndexType equation_id = dof.EquationId();
-                auto it = mDoFSlaveSet.find(&dof);
+                auto it = mDoFSlaveSet.find(dof);
                 if (it == mDoFSlaveSet.end()) {
                     solvable_dof_reorder.insert(IndexIndexPairType(equation_id, counter));
                     ++counter;
@@ -2192,7 +2192,7 @@ private:
                 const IndexType equation_id = it_dof->EquationId();
                 if (equation_id < BaseType::mEquationSystemSize ) {
 
-                    auto it = mDoFSlaveSet.find(&*it_dof);
+                    auto it = mDoFSlaveSet.find(*it_dof);
                     if (it == mDoFSlaveSet.end()) {
                         u_bar[counter] = it_dof->GetSolutionStepValue() + rDxSolved[counter];
                         counter += 1;
