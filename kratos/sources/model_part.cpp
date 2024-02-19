@@ -239,7 +239,7 @@ void ModelPart::AddNodes(std::vector<IndexType> const& NodeIds, IndexType ThisIn
     {
         //obtain from the root model part the corresponding list of nodes
         ModelPart* root_model_part = &this->GetRootModelPart();
-        ModelPart::NodesContainerType  aux;
+        std::vector<Node::Pointer> aux;
         aux.reserve(NodeIds.size());
         for(unsigned int i=0; i<NodeIds.size(); i++)
         {
@@ -253,11 +253,7 @@ void ModelPart::AddNodes(std::vector<IndexType> const& NodeIds, IndexType ThisIn
         ModelPart* current_part = this;
         while(current_part->IsSubModelPart())
         {
-            for(auto it = aux.begin(); it!=aux.end(); it++)
-                current_part->Nodes().push_back( *(it.base()) );
-
-            current_part->Nodes().Unique();
-
+            current_part->Nodes().insert(aux.begin(), aux.end());
             current_part = &(current_part->GetParentModelPart());
         }
     }
@@ -464,7 +460,7 @@ void ModelPart::RemoveNodes(Flags IdentifierFlag)
 
         for(ModelPart::NodesContainerType::iterator i_node = temp_nodes_container.begin() ; i_node != temp_nodes_container.end() ; ++i_node) {
             if( i_node->IsNot(IdentifierFlag) )
-                (r_mesh.Nodes()).push_back(std::move(*(i_node.base())));
+                (r_mesh.Nodes()).insert(r_mesh.Nodes().end(), std::move(*(i_node.base())));
         }
     };
 
@@ -945,7 +941,7 @@ void ModelPart::AddElements(std::vector<IndexType> const& ElementIds, IndexType 
     {
         //obtain from the root model part the corresponding list of nodes
         ModelPart* root_model_part = &this->GetRootModelPart();
-        ModelPart::ElementsContainerType  aux;
+        std::vector<Element::Pointer>  aux;
         aux.reserve(ElementIds.size());
         for(unsigned int i=0; i<ElementIds.size(); i++)
         {
@@ -959,11 +955,7 @@ void ModelPart::AddElements(std::vector<IndexType> const& ElementIds, IndexType 
         ModelPart* current_part = this;
         while(current_part->IsSubModelPart())
         {
-            for(auto it = aux.begin(); it!=aux.end(); it++)
-                current_part->Elements().push_back( *(it.base()) );
-
-            current_part->Elements().Unique();
-
+            current_part->Elements().insert(aux.begin(), aux.end());
             current_part = &(current_part->GetParentModelPart());
         }
     }
@@ -1151,7 +1143,7 @@ void ModelPart::RemoveElements(Flags IdentifierFlag)
         for(ModelPart::ElementsContainerType::iterator i_elem = temp_elements_container.begin() ; i_elem != temp_elements_container.end() ; i_elem++)
         {
             if( i_elem->IsNot(IdentifierFlag) )
-                (i_mesh->Elements()).push_back(std::move(*(i_elem.base())));
+                (i_mesh->Elements()).insert(i_mesh->Elements().end(), std::move(*(i_elem.base())));
         }
     }
 
@@ -1204,7 +1196,7 @@ void ModelPart::AddMasterSlaveConstraints(std::vector<IndexType> const& MasterSl
     {
         //obtain from the root model part the corresponding list of constraints
         ModelPart* root_model_part = &this->GetRootModelPart();
-        ModelPart::MasterSlaveConstraintContainerType  aux;
+        std::vector<MasterSlaveConstraint::Pointer> aux;
         aux.reserve(MasterSlaveConstraintIds.size());
         for(unsigned int i=0; i<MasterSlaveConstraintIds.size(); i++)
         {
@@ -1218,11 +1210,7 @@ void ModelPart::AddMasterSlaveConstraints(std::vector<IndexType> const& MasterSl
         ModelPart* current_part = this;
         while(current_part->IsSubModelPart())
         {
-            for(auto it = aux.begin(); it!=aux.end(); it++)
-                current_part->MasterSlaveConstraints().push_back( *(it.base()) );
-
-            current_part->MasterSlaveConstraints().Unique();
-
+            current_part->MasterSlaveConstraints().insert(aux.begin(), aux.end());
             current_part = &(current_part->GetParentModelPart());
         }
     }
@@ -1396,7 +1384,7 @@ void ModelPart::RemoveMasterSlaveConstraints(Flags IdentifierFlag)
 
         for(auto it_const = temp_constraints_container.begin() ; it_const != temp_constraints_container.end(); it_const++) {
             if( it_const->IsNot(IdentifierFlag) )
-                (it_mesh->MasterSlaveConstraints()).push_back(std::move(*(it_const.base())));
+                (it_mesh->MasterSlaveConstraints()).insert(it_mesh->MasterSlaveConstraints().end(), std::move(*(it_const.base())));
         }
     }
 
@@ -1464,7 +1452,7 @@ void ModelPart::AddConditions(std::vector<IndexType> const& ConditionIds, IndexT
     {
         //obtain from the root model part the corresponding list of nodes
         ModelPart* root_model_part = &this->GetRootModelPart();
-        ModelPart::ConditionsContainerType  aux;
+        std::vector<Condition::Pointer>  aux;
         aux.reserve(ConditionIds.size());
         for(unsigned int i=0; i<ConditionIds.size(); i++)
         {
@@ -1478,11 +1466,7 @@ void ModelPart::AddConditions(std::vector<IndexType> const& ConditionIds, IndexT
         ModelPart* current_part = this;
         while(current_part->IsSubModelPart())
         {
-            for(auto it = aux.begin(); it!=aux.end(); it++)
-                current_part->Conditions().push_back( *(it.base()) );
-
-            current_part->Conditions().Unique();
-
+            current_part->Conditions().insert(aux.begin(), aux.end());
             current_part = &(current_part->GetParentModelPart());
         }
     }
@@ -1661,7 +1645,7 @@ void ModelPart::RemoveConditions(Flags IdentifierFlag)
         for(ModelPart::ConditionsContainerType::iterator i_cond = temp_conditions_container.begin() ; i_cond != temp_conditions_container.end() ; i_cond++)
         {
             if( i_cond->IsNot(IdentifierFlag) )
-                (i_mesh->Conditions()).push_back(std::move(*(i_cond.base())));
+                (i_mesh->Conditions()).insert(i_mesh->Conditions().end(), std::move(*(i_cond.base())));
         }
     }
 
