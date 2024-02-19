@@ -696,6 +696,7 @@ public:
         }
         return nodal_hydraulic_heads;
     }
+
 }; /* Class GeoElementUtilities*/
 } /* namespace Kratos.*/
 

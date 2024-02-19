@@ -39,14 +39,14 @@ Element::Pointer TransientPwElement<TDim, TNumNodes>::Create(IndexType          
 template <unsigned int TDim, unsigned int TNumNodes>
 void TransientPwElement<TDim, TNumNodes>::GetDofList(DofsVectorType& rElementalDofList, const ProcessInfo&) const
 {
-    rElementalDofList = this->GetDofs();
+    rElementalDofList = GetDofs();
 }
 
 //----------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
 void TransientPwElement<TDim, TNumNodes>::EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo&) const
 {
-    rResult = ExtractEquationIdsFrom(this->GetDofs());
+    rResult = ExtractEquationIdsFrom(GetDofs());
 }
 
 //----------------------------------------------------------------------------------------

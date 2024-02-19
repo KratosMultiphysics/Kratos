@@ -54,12 +54,12 @@ public:
 
     void GetDofList(DofsVectorType& rElementalDofList, const ProcessInfo&) const override
     {
-        rElementalDofList = this->GetDofs();
+        rElementalDofList = GetDofs();
     }
 
     void EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo&) const override
     {
-        rResult = ExtractEquationIdsFrom(this->GetDofs());
+        rResult = ExtractEquationIdsFrom(GetDofs());
     }
 
     void CalculateLocalSystem(MatrixType&        rLeftHandSideMatrix,
@@ -290,7 +290,7 @@ private:
     [[nodiscard]] DofsVectorType GetDofs() const
     {
         DofsVectorType result;
-        for (const auto& r_node : this->GetGeometry()) {
+        for (const auto& r_node : GetGeometry()) {
             result.push_back(r_node.pGetDof(TEMPERATURE));
         }
         return result;

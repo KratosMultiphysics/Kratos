@@ -694,7 +694,7 @@ template <unsigned int TDim, unsigned int TNumNodes>
 void TransientPwInterfaceElement<TDim, TNumNodes>::EquationIdVector(EquationIdVectorType& rResult,
                                                                     const ProcessInfo&) const
 {
-    rResult = ExtractEquationIdsFrom(this->GetDofs());
+    rResult = ExtractEquationIdsFrom(GetDofs());
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
