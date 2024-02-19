@@ -25,7 +25,7 @@ namespace Kratos {
                 KRATOS_ERROR_IF_NOT(r_element.GetGeometry().GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Tetrahedra3D4) << "Element #" << r_element.Id() << " is not a linear tetrahedron" << std::endl;
             }
         });
-        block_for_each(mModelPart.Conditions(), [&](Condition& r_condition) {
+        block_for_each(mModelPart.Conditions(), [](const Condition& r_condition) {
             if(r_condition.Has(SPLIT_ELEMENT) && r_condition.GetValue(SPLIT_ELEMENT)){
                 KRATOS_ERROR_IF_NOT(r_condition.GetGeometry().GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Triangle3D3) << "Condition #" << r_condition.Id() << " is not a linear tetrahedron" << std::endl;
             }
