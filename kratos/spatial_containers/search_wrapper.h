@@ -114,7 +114,7 @@ public:
             // Prepare the point vector if geometrical objects are provided
             if (rGeometricalObjectsVector.size() > 0) {
                 // Defining the PointVector
-                mpPointVector = Kratos::make_unique<PointVector>(SearchUtilities::PreparePointsSearch(rGeometricalObjectsVector));
+                mpPointVector = Kratos::make_unique<PointVector>(SearchUtilities::PreparePointsSearch(rGeometricalObjectsVector, mrDataCommunicator.Rank()));
 
                 // Create the search object
                 if constexpr (!IsDynamicBins) {
