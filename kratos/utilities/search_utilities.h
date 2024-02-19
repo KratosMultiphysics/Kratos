@@ -461,10 +461,14 @@ public:
     /**
      * @brief This method prepares the points for search
      * @param rStructure The structure to be searched
+     * @param Rank The current MPI rank. If negative will be not considered
      * @tparam TContainer The container type
      */
     template<class TContainer>
-    static std::vector<typename PointObject<typename TContainer::value_type>::Pointer> PreparePointsSearch(const TContainer& rStructure)
+    static std::vector<typename PointObject<typename TContainer::value_type>::Pointer> PreparePointsSearch(
+        const TContainer& rStructure,
+        const int Rank = -1
+        )
     {
         // Some definitions
         using ObjectType = typename TContainer::value_type;
@@ -477,9 +481,25 @@ public:
         const std::size_t structure_size = rStructure.size();
         points.reserve(structure_size);
         const auto it_begin = rStructure.begin();
-        for (std::size_t i = 0; i < structure_size; ++i) {
-            auto it = it_begin + i;
-            points.push_back(PointTypePointer(new PointType(*(it.base()))));
+        if constexpr (std::is_same<TContainer, ModelPart::NodesContainerType>::value) { // For nodes
+            if (Rank < 0) { // Checking if Rank is defined
+                for (std::size_t i = 0; i < structure_size; ++i) {
+                    auto it = it_begin + i;
+                    points.push_back(PointTypePointer(new PointType(*(it.base()))));
+                }
+            } else { // When rank is defined nodes are added only if local
+                for (std::size_t i = 0; i < structure_size; ++i) {
+                    auto it = it_begin + i;
+                    if ( it->FastGetSolutionStepValue(PARTITION_INDEX) == Rank) {
+                        points.push_back(PointTypePointer(new PointType(*(it.base()))));
+                    }
+                }
+            }
+        } else { // For other entities
+            for (std::size_t i = 0; i < structure_size; ++i) {
+                auto it = it_begin + i;
+                points.push_back(PointTypePointer(new PointType(*(it.base()))));
+            }
         }
 
         return points;
