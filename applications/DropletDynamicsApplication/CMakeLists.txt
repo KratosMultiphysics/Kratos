@@ -7,6 +7,7 @@ include(pybind11Tools)
 
 include_directories( ${CMAKE_SOURCE_DIR}/kratos )
 include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/../FluidDynamicsApplication )
+include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/../ConvectionDiffusionApplication )
 kratos_add_dependency(${KRATOS_SOURCE_DIR}/applications/FluidDynamicsApplication)
 
 ## DropletDynamics Core sources

@@ -32,6 +32,10 @@ namespace Kratos {
 
 KratosConvectionDiffusionApplication::KratosConvectionDiffusionApplication()
     : KratosApplication("ConvectionDiffusionApplication"),
+      mConservativeLevelsetElement2D3N(0, Element::GeometryType::Pointer(new Triangle2D3<Node >(Element::GeometryType::PointsArrayType(3)))),
+      mConservativeLevelsetElement2D4N(0, Element::GeometryType::Pointer(new Quadrilateral2D4<Node >(Element::GeometryType::PointsArrayType(4)))),
+      mConservativeLevelsetElement3D4N(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node >(Element::GeometryType::PointsArrayType(4)))),
+      mConservativeLevelsetElement3D8N(0, Element::GeometryType::Pointer(new Hexahedra3D8<Node >(Element::GeometryType::PointsArrayType(8)))),
       mAxisymmetricEulerianConvectionDiffusion2D3N(0, Element::GeometryType::Pointer(new Triangle2D3<Node >(Element::GeometryType::PointsArrayType(3)))),
       mAxisymmetricEulerianConvectionDiffusion2D4N(0, Element::GeometryType::Pointer(new Quadrilateral2D4<Node >(Element::GeometryType::PointsArrayType(4)))),
       mEulerianConvDiff2D3N(0, Element::GeometryType::Pointer(new Triangle2D3<Node >(Element::GeometryType::PointsArrayType(3)))),
@@ -93,6 +97,12 @@ void KratosConvectionDiffusionApplication::Register() {
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(CONVECTION_VELOCITY)
 
     // Registering elements and conditions here
+    
+    KRATOS_REGISTER_ELEMENT("ConservativeLevelsetElement2D3N", mConservativeLevelsetElement2D3N);
+    KRATOS_REGISTER_ELEMENT("ConservativeLevelsetElement2D4N", mConservativeLevelsetElement2D4N);
+    KRATOS_REGISTER_ELEMENT("ConservativeLevelsetElement3D4N", mConservativeLevelsetElement3D4N);
+    KRATOS_REGISTER_ELEMENT("ConservativeLevelsetElement3D8N", mConservativeLevelsetElement3D8N);
+
     KRATOS_REGISTER_ELEMENT("AxisymmetricEulerianConvectionDiffusion2D3N", mAxisymmetricEulerianConvectionDiffusion2D3N);
     KRATOS_REGISTER_ELEMENT("AxisymmetricEulerianConvectionDiffusion2D4N", mAxisymmetricEulerianConvectionDiffusion2D4N);
     KRATOS_REGISTER_ELEMENT("EulerianConvDiff2D", mEulerianConvDiff2D3N); //TODO: To be removed as it does not follow the naming convention

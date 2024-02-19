@@ -36,6 +36,8 @@
 #include "custom_elements/qs_convection_diffusion_explicit.h"
 #include "custom_elements/d_convection_diffusion_explicit.h"
 
+#include "custom_elements/conservative_levelset_element.h"
+
 #include "custom_conditions/axisymmetric_thermal_face.h"
 #include "custom_conditions/thermal_face.h"
 #include "custom_conditions/flux_condition.h"
@@ -269,6 +271,11 @@ private:
     const QSConvectionDiffusionExplicit<3,4> mQSConvectionDiffusionExplicit3D4N;
     const DConvectionDiffusionExplicit<2,3> mDConvectionDiffusionExplicit2D3N;
     const DConvectionDiffusionExplicit<3,4> mDConvectionDiffusionExplicit3D4N;
+    
+    const ConservativeLevelsetElement<2,3>  mConservativeLevelsetElement2D3N;
+    const ConservativeLevelsetElement<2,4>  mConservativeLevelsetElement2D4N;
+    const ConservativeLevelsetElement<3,4>  mConservativeLevelsetElement3D4N;
+    const ConservativeLevelsetElement<3,8>  mConservativeLevelsetElement3D8N;
 
     ///@}
     ///@name Private Operators

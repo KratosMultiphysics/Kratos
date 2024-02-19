@@ -90,7 +90,7 @@ namespace Kratos
 
         // Compute the geometry
         BoundedMatrix<double,TNumNodes, TDim> DN_DX;
-        array_1d<double,TNumNodes > N;conservative_levelset_ArSh
+        array_1d<double,TNumNodes > N;
         double Volume;
         this-> CalculateGeometry(DN_DX,Volume);
 
@@ -103,7 +103,7 @@ namespace Kratos
         this-> GetNodalValues(Variables,rCurrentProcessInfo);
         double h = this->ComputeH(DN_DX);
 
-        //Computing the divergenceconservative_levelset_ArSh
+        //Computing the divergence
         for (unsigned int i = 0; i < TNumNodes; i++)
         {
             for(unsigned int k=0; k<TDim; k++)

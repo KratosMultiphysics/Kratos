@@ -545,7 +545,7 @@ class ConvectionDiffusionSolver(PythonSolver):
         ## Elements
         ## Note that we check for the elements that require substitution to allow for custom elements
         element_name = self.settings["element_replace_settings"]["element_name"].GetString()
-        element_list = ["EulerianConvDiff","LaplacianElement","MixedLaplacianElement","AdjointHeatDiffusionElement","QSConvectionDiffusionExplicit","DConvectionDiffusionExplicit","AxisymmetricEulerianConvectionDiffusion"]
+        element_list = ["EulerianConvDiff","LaplacianElement","MixedLaplacianElement","AdjointHeatDiffusionElement","QSConvectionDiffusionExplicit","DConvectionDiffusionExplicit","AxisymmetricEulerianConvectionDiffusion","ConservativeLevelsetElement"]
         if element_name in element_list:
             num_nodes_elements = 0
             if (len(self.main_model_part.Elements) > 0):
