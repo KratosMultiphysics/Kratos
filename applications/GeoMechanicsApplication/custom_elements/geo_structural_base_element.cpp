@@ -299,7 +299,7 @@ void GeoStructuralBaseElement<TDim, TNumNodes>::GetValuesVector(Vector& rValues,
 template <unsigned int TDim, unsigned int TNumNodes>
 void GeoStructuralBaseElement<TDim, TNumNodes>::GetFirstDerivativesVector(Vector& rValues, int Step) const
 {
-    rValues = ExtractFirstDerivatives(GetDofs(), Step);
+    rValues = ExtractFirstTimeDerivatives(GetDofs(), Step);
 }
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------

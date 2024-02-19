@@ -222,7 +222,7 @@ void GeoTrussElementBase<TDim, TNumNodes>::GetValuesVector(Vector& rValues, int 
 template <unsigned int TDim, unsigned int TNumNodes>
 void GeoTrussElementBase<TDim, TNumNodes>::GetFirstDerivativesVector(Vector& rValues, int Step) const
 {
-    rValues = ExtractFirstDerivatives(GetDofs(), Step);
+    rValues = ExtractFirstTimeDerivatives(GetDofs(), Step);
 }
 
 //----------------------------------------------------------------------------------------

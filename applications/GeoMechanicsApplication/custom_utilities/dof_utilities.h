@@ -22,7 +22,7 @@ namespace Kratos
 std::vector<std::size_t> ExtractEquationIdsFrom(const std::vector<Dof<double>*>& rDofs);
 
 Vector ExtractSolutionStepValues(const std::vector<Dof<double>*>& rDofs, int Step);
-Vector ExtractFirstDerivatives(const std::vector<Dof<double>*>& rDofs, int Step);
+Vector ExtractFirstTimeDerivatives(const std::vector<Dof<double>*>& rDofs, int Step);
 
 Vector ExtractSolutionStepValuesOfUPwDofs(const std::vector<Dof<double>*>& rDofs, int Step);
 Vector ExtractFirstTimeDerivativesOfUPwDofs(const std::vector<Dof<double>*>& rDofs, int Step);

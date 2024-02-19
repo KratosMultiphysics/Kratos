@@ -45,7 +45,7 @@ Vector ExtractSolutionStepValuesOfUPwDofs(const std::vector<Dof<double>*>& rDofs
     return result;
 }
 
-Vector ExtractFirstDerivatives(const std::vector<Dof<double>*>& rDofs, int Step)
+Vector ExtractFirstTimeDerivatives(const std::vector<Dof<double>*>& rDofs, int Step)
 {
     auto result                    = Vector(rDofs.size());
     auto get_first_time_derivative = [Step](const auto p_dof) -> double {
