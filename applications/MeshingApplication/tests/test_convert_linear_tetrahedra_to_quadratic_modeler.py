@@ -48,9 +48,11 @@ class TestConvertLinearTetrahedraToQuadraticModeler(KratosUnittest.TestCase):
         self.assertEqual(len(model_part.Elements[1].GetNodes()), 4)
         self.assertEqual(len(model_part.Conditions[163].GetNodes()), 3)
 
-        modeler = self.make_modeler(kratos.Parameters('''{
-            "model_part_name": "main_model_part"
-        }'''))
+        modeler = ConvertLinearTetrahedraToQuadraticModeler(
+            self.model,
+            kratos.Parameters('''{
+                "model_part_name": "main_model_part"
+            }'''))
 
         modeler.SetupModelPart()
 
@@ -59,6 +61,20 @@ class TestConvertLinearTetrahedraToQuadraticModeler(KratosUnittest.TestCase):
         self.assertEqual(model_part.NumberOfConditions(), 90)
         self.assertEqual(len(model_part.Elements[1].GetNodes()), 10)
         self.assertEqual(len(model_part.Conditions[163].GetNodes()), 6)
+
+
+    def test_root_required(self):
+
+        modeler = ConvertLinearTetrahedraToQuadraticModeler(
+            self.model,
+            kratos.Parameters('''{
+                "model_part_name": "main_model_part.MainPart.VolumeParts.Body1"
+            }'''))
+
+        msg = "A root ModelPart is required, got SubModelPart main_model_part.MainPart.VolumeParts.Body1"
+        with self.assertRaisesRegex(Exception, msg):
+            modeler.SetupModelPart()
+
 
 
 if __name__ == "__main__":
