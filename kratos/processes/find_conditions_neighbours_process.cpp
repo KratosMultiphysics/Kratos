@@ -151,7 +151,7 @@ Condition::WeakPointer FindConditionsNeighboursProcess::CheckForNeighbourFaces(
             }
         }
     }
-    return Condition::WeakPointer();
+    return nullptr;
 }
 
 /***********************************************************************************/
@@ -206,8 +206,14 @@ std::unordered_map<IndexType, std::vector<IndexType>> FindConditionsNeighboursPr
 
         // Loop over each dimension and store the ID of the neighboring condition
         for (int i_dim = 0; i_dim < mDim; ++i_dim) {
-            solution.push_back(r_neighbours[i_dim].Id());
+            auto p_neighbour = r_neighbours(i_dim);
+            if (p_neighbour.get()) {
+                solution.push_back(p_neighbour->Id());
+            }
         }
+
+        // Shrink to fit
+        solution.shrink_to_fit();
 
         // Insert the IDs of neighboring conditions into the map with the ID of the current condition as the key
         conditions_neighbours_conditions_ids.insert({r_cond.Id(), solution});
@@ -218,5 +224,3 @@ std::unordered_map<IndexType, std::vector<IndexType>> FindConditionsNeighboursPr
 }
 
 }  // namespace Kratos.
-
-
