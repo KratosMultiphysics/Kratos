@@ -543,41 +543,14 @@ void SmallStrainUPwDiffOrderElement::CalculateDampingMatrix(MatrixType&        r
     KRATOS_CATCH("")
 }
 
-void SmallStrainUPwDiffOrderElement::EquationIdVector(EquationIdVectorType& rResult,
-                                                      const ProcessInfo& rCurrentProcessInfo) const
+void SmallStrainUPwDiffOrderElement::EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo&) const
 {
-    DofsVectorType dofs;
-    GetDofList(dofs, rCurrentProcessInfo);
-    rResult = ExtractEquationIdsFrom(dofs);
+    rResult = ExtractEquationIdsFrom(GetDofs());
 }
 
 void SmallStrainUPwDiffOrderElement::GetFirstDerivativesVector(Vector& rValues, int Step) const
 {
-    KRATOS_TRY
-
-    const GeometryType& rGeom       = GetGeometry();
-    const SizeType      Dim         = rGeom.WorkingSpaceDimension();
-    const SizeType      NumUNodes   = rGeom.PointsNumber();
-    const SizeType      NumPNodes   = mpPressureGeometry->PointsNumber();
-    const SizeType      ElementSize = NumUNodes * Dim + NumPNodes;
-
-    if (rValues.size() != ElementSize) rValues.resize(ElementSize, false);
-
-    SizeType Index = 0;
-
-    for (SizeType i = 0; i < NumUNodes; ++i) {
-        rValues[Index] = rGeom[i].FastGetSolutionStepValue(VELOCITY_X, Step);
-        ++Index;
-        rValues[Index] = rGeom[i].FastGetSolutionStepValue(VELOCITY_Y, Step);
-        ++Index;
-        if (Dim > 2) {
-            rValues[Index] = rGeom[i].FastGetSolutionStepValue(VELOCITY_Z, Step);
-            ++Index;
-        }
-    }
-    std::fill_n(rValues.begin() + Index, NumPNodes, 0.0);
-
-    KRATOS_CATCH("")
+    rValues = ExtractFirstDerivativesOfUPwElement(GetDofs(), Step);
 }
 
 void SmallStrainUPwDiffOrderElement::GetSecondDerivativesVector(Vector& rValues, int Step) const
