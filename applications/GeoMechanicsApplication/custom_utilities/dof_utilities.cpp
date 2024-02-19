@@ -68,4 +68,23 @@ Vector ExtractFirstDerivativesOfUPwElement(const std::vector<Dof<double>*>& rDof
     return result;
 }
 
+Vector ExtractSecondDerivativesOfUPwElement(const std::vector<Dof<double>*>& rDofs, int Step)
+{
+    auto result                     = Vector(rDofs.size());
+    auto get_second_time_derivative = [Step](const auto p_dof) -> double {
+        // Why should we return 0.0 for the second time derivatives of water pressure?
+        if (p_dof->GetVariable() == WATER_PRESSURE) return 0.0;
+
+        // Unfortunately, the first time derivative cannot be accessed from a `VariableData`
+        // instance. However, we know that for all U-Pw elements the degrees of freedom are either
+        // displacement components or water pressures, which correspond to `Variable<double>`
+        // instances. Therefore, we should be able to downcast the `VariableData` instance.
+        auto p_variable = dynamic_cast<const Variable<double>*>(&p_dof->GetVariable());
+        KRATOS_ERROR_IF_NOT(p_variable) << "Variable associated with DOF is not of type double" << std::endl;
+        return p_dof->GetSolutionStepValue(p_variable->GetTimeDerivative().GetTimeDerivative(), Step);
+    };
+    std::transform(rDofs.begin(), rDofs.end(), result.begin(), get_second_time_derivative);
+    return result;
+}
+
 } // namespace Kratos
