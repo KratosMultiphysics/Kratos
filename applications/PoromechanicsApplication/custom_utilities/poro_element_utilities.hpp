@@ -1801,10 +1801,7 @@ public:
     {
         // Obtain necessary variables
         const Vector& N = rValues.GetShapeFunctionsValues();
-        const unsigned int number_of_nodes = geometry.size();
-        // unsigned int voigt_size = GetStrainSize();
-        // unsigned int dimension = WorkingSpaceDimension();
- 
+        const unsigned int number_of_nodes = geometry.size(); 
         const unsigned int dimension = 2;
         const unsigned int voigt_size = 3;   
 
