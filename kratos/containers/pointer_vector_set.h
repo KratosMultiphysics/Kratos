@@ -661,7 +661,7 @@ public:
             for (; first != new_last; ++first) {
                 // find the lower bound element.
                 p_current_itr = std::lower_bound(p_current_itr, mData.end(), KeyOf(**first), CompareKey());
-                if (!EqualKeyTo(KeyOf(**first))(*p_current_itr)) {
+                if (p_current_itr == mData.end() || !EqualKeyTo(KeyOf(**first))(*p_current_itr)) {
                     p_current_itr = mData.insert(p_current_itr, *first);
                 }
             }
