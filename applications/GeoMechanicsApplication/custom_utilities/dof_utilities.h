@@ -25,7 +25,7 @@ Vector ExtractSolutionStepValues(const std::vector<Dof<double>*>& rDofs, int Ste
 Vector ExtractFirstDerivatives(const std::vector<Dof<double>*>& rDofs, int Step);
 
 Vector ExtractSolutionStepValuesOfUPwDofs(const std::vector<Dof<double>*>& rDofs, int Step);
-Vector ExtractFirstDerivativesOfUPwElement(const std::vector<Dof<double>*>& rDofs, int Step);
+Vector ExtractFirstTimeDerivativesOfUPwDofs(const std::vector<Dof<double>*>& rDofs, int Step);
 Vector ExtractSecondDerivativesOfUPwElement(const std::vector<Dof<double>*>& rDofs, int Step);
 
 } // namespace Kratos

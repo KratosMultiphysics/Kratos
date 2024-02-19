@@ -397,7 +397,7 @@ void UPwBaseElement<TDim, TNumNodes>::GetValuesVector(Vector& rValues, int Step)
 template <unsigned int TDim, unsigned int TNumNodes>
 void UPwBaseElement<TDim, TNumNodes>::GetFirstDerivativesVector(Vector& rValues, int Step) const
 {
-    rValues = ExtractFirstDerivativesOfUPwElement(GetDofs(), Step);
+    rValues = ExtractFirstTimeDerivativesOfUPwDofs(GetDofs(), Step);
 }
 
 //----------------------------------------------------------------------------------------

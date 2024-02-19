@@ -60,7 +60,7 @@ Vector ExtractFirstDerivatives(const std::vector<Dof<double>*>& rDofs, int Step)
     return result;
 }
 
-Vector ExtractFirstDerivativesOfUPwElement(const std::vector<Dof<double>*>& rDofs, int Step)
+Vector ExtractFirstTimeDerivativesOfUPwDofs(const std::vector<Dof<double>*>& rDofs, int Step)
 {
     auto result                    = Vector(rDofs.size());
     auto get_first_time_derivative = [Step](const auto p_dof) -> double {

@@ -550,7 +550,7 @@ void SmallStrainUPwDiffOrderElement::EquationIdVector(EquationIdVectorType& rRes
 
 void SmallStrainUPwDiffOrderElement::GetFirstDerivativesVector(Vector& rValues, int Step) const
 {
-    rValues = ExtractFirstDerivativesOfUPwElement(GetDofs(), Step);
+    rValues = ExtractFirstTimeDerivativesOfUPwDofs(GetDofs(), Step);
 }
 
 void SmallStrainUPwDiffOrderElement::GetSecondDerivativesVector(Vector& rValues, int Step) const

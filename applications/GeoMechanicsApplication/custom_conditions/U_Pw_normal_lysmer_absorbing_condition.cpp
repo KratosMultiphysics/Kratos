@@ -186,35 +186,7 @@ void UPwLysmerAbsorbingCondition<TDim, TNumNodes>::GetValuesVector(Vector& rValu
 template< unsigned int TDim, unsigned int TNumNodes >
 void UPwLysmerAbsorbingCondition<TDim, TNumNodes>::GetFirstDerivativesVector(Vector& rValues, int Step) const
 {
-    KRATOS_TRY
-
-    const GeometryType& r_geom = this->GetGeometry();
-
-    if (rValues.size() != CONDITION_SIZE)
-        rValues.resize(CONDITION_SIZE, false);
-
-    if constexpr(TDim == 2) {
-        unsigned int index = 0;
-        for (unsigned int i = 0; i < TNumNodes; ++i) {
-            rValues[index++] = r_geom[i].FastGetSolutionStepValue(VELOCITY_X, Step);
-            rValues[index++] = r_geom[i].FastGetSolutionStepValue(VELOCITY_Y, Step);
-            rValues[index++] = 0.0;
-        }
-    }
-    else if constexpr (TDim == 3) {
-        unsigned int index = 0;
-        for (unsigned int i = 0; i < TNumNodes; ++i) {
-            rValues[index++] = r_geom[i].FastGetSolutionStepValue(VELOCITY_X, Step);
-            rValues[index++] = r_geom[i].FastGetSolutionStepValue(VELOCITY_Y, Step);
-            rValues[index++] = r_geom[i].FastGetSolutionStepValue(VELOCITY_Z, Step);
-            rValues[index++] = 0.0;
-        }
-    }
-    else {
-        KRATOS_ERROR << "undefined dimension in GetFirstDerivativesVector... illegal operation!!" << this->Id() << std::endl;
-    }
-
-    KRATOS_CATCH("")
+    rValues = ExtractFirstTimeDerivativesOfUPwDofs(this->GetDofs(), Step);
 }
 
 
