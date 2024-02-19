@@ -36,9 +36,6 @@ FindConditionsNeighboursProcess::FindConditionsNeighboursProcess(
 
     // Setting the rest
     mAverageConditions = ThisParameters["average_conditions"].GetInt();
-
-    // Compute dimension
-    ComputeDimension();
 }
 
 /***********************************************************************************/
@@ -54,9 +51,6 @@ FindConditionsNeighboursProcess::FindConditionsNeighboursProcess(
 {
     // Checking MPI
     KRATOS_ERROR_IF(mrModelPart.IsDistributed()) << "ModelPart cannot be distributed!. Current implementation is serial only" << std::endl;
-
-    // Compute dimension
-    ComputeDimension();
 }
 
 /***********************************************************************************/
@@ -64,6 +58,9 @@ FindConditionsNeighboursProcess::FindConditionsNeighboursProcess(
 
 void FindConditionsNeighboursProcess::Execute()
 {
+    // Compute dimension
+    ComputeDimension();
+
     // Entities arrays
     auto& r_nodes_array = mrModelPart.Nodes();
     auto& r_conditions_array = mrModelPart.Conditions();
@@ -84,7 +81,7 @@ void FindConditionsNeighboursProcess::Execute()
     for(auto it_cond = r_conditions_array.begin(); it_cond!=r_conditions_array.end(); it_cond++) {
         auto& r_geom = it_cond->GetGeometry();
         for(unsigned int i = 0; i < r_geom.size(); i++) {
-            (r_geom[i].GetValue(NEIGHBOUR_CONDITIONS)).push_back( Condition::WeakPointer( *(it_cond.base()) ) );
+            (r_geom[i].GetValue(NEIGHBOUR_CONDITIONS)).push_back( Condition::WeakPointer(*(it_cond.base())));
         }
     }
 
@@ -98,15 +95,17 @@ void FindConditionsNeighboursProcess::Execute()
         for(auto it_cond = r_conditions_array.begin(); it_cond!=r_conditions_array.end(); it_cond++) {
             // Face nodes
             auto& r_geom = it_cond->GetGeometry();
-            // Vector of the 3 faces around the given face
-            auto& r_neighb_faces = it_cond->GetValue(NEIGHBOUR_CONDITIONS);
-            // r_neighb_faces is the vector containing pointers to the three faces around it_cond
-            // r_neighb_faces[0] = neighbour face over edge 1-2 of element it_cond;
-            // r_neighb_faces[1] = neighbour face over edge 2-0 of element it_cond;
-            // r_neighb_faces[2] = neighbour face over edge 0-1 of element it_cond;
-            r_neighb_faces(0) = CheckForNeighbourFaces(r_geom[1].Id(), r_geom[2].Id(), r_geom[1].GetValue(NEIGHBOUR_CONDITIONS), it_cond->Id());
-            r_neighb_faces(1) = CheckForNeighbourFaces(r_geom[2].Id(), r_geom[0].Id(), r_geom[2].GetValue(NEIGHBOUR_CONDITIONS), it_cond->Id());
-            r_neighb_faces(2) = CheckForNeighbourFaces(r_geom[0].Id(), r_geom[1].Id(), r_geom[0].GetValue(NEIGHBOUR_CONDITIONS), it_cond->Id());
+            if (r_geom.GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Triangle3D3) { // 3D Triangle
+                // Vector of the 3 faces around the given face
+                auto& r_neighb_faces = it_cond->GetValue(NEIGHBOUR_CONDITIONS);
+                // r_neighb_faces is the vector containing pointers to the three faces around it_cond
+                // r_neighb_faces[0] = neighbour face over edge 1-2 of element it_cond
+                // r_neighb_faces[1] = neighbour face over edge 2-0 of element it_cond
+                // r_neighb_faces[2] = neighbour face over edge 0-1 of element it_cond
+                r_neighb_faces(0) = CheckForNeighbourFaces(r_geom[1].Id(), r_geom[2].Id(), r_geom[1].GetValue(NEIGHBOUR_CONDITIONS), it_cond->Id());
+                r_neighb_faces(1) = CheckForNeighbourFaces(r_geom[2].Id(), r_geom[0].Id(), r_geom[2].GetValue(NEIGHBOUR_CONDITIONS), it_cond->Id());
+                r_neighb_faces(2) = CheckForNeighbourFaces(r_geom[0].Id(), r_geom[1].Id(), r_geom[0].GetValue(NEIGHBOUR_CONDITIONS), it_cond->Id());
+            }
         }
     }
 }
@@ -143,9 +142,9 @@ Condition::WeakPointer FindConditionsNeighboursProcess::CheckForNeighbourFaces(
     // Look for the faces around node Id1
     for( auto it_face =rNeighbourFace.begin(); it_face != rNeighbourFace.end(); it_face++) {
         // Look for the nodes of the neighbour faces
-        auto& r_neigh_face_geometry = (it_face)->GetGeometry();
-        for( unsigned int node_i = 0 ; node_i < r_neigh_face_geometry.size(); node_i++) {
-            if (r_neigh_face_geometry[node_i].Id() == Id2) {
+        auto& r_neigh_face_geometry = it_face->GetGeometry();
+        for( unsigned int i_node = 0 ; i_node < r_neigh_face_geometry.size(); i_node++) {
+            if (r_neigh_face_geometry[i_node].Id() == Id2) {
                 if(it_face->Id() != Face) {
                     return *(it_face.base());
                 }
@@ -161,11 +160,13 @@ Condition::WeakPointer FindConditionsNeighboursProcess::CheckForNeighbourFaces(
 void FindConditionsNeighboursProcess::ComputeDimension()
 {
     // Retrieve from geometry if not defined
-    if (mDim < 0) {
-        mDim = mrModelPart.ConditionsBegin()->GetGeometry().WorkingSpaceDimension();
-    }
-    if (mDim != 2 && mDim != 3) {
-        KRATOS_ERROR << "FindConditionsNeighboursProcess: invalid dimension " << mDim << std::endl;
+    if (mrModelPart.NumberOfConditions() > 0) {
+        if (mDim < 0) {
+            mDim = mrModelPart.ConditionsBegin()->GetGeometry().WorkingSpaceDimension();
+        }
+        if (mDim != 2 && mDim != 3) {
+            KRATOS_ERROR << "FindConditionsNeighboursProcess: invalid dimension " << mDim << std::endl;
+        }
     }
 }
 
