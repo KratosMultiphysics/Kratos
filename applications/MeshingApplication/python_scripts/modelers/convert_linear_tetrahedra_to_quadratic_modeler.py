@@ -50,14 +50,6 @@ class ConvertLinearTetrahedraToQuadraticModeler(KratosMultiphysics.Modeler):
         if model_part != model_part.GetRootModelPart():
             raise Exception(f"A root ModelPart is required, got SubModelPart {model_part.FullName()}")
 
-        if any(elem.GetGeometry().GetGeometryType() != KratosMultiphysics.GeometryData.KratosGeometryType.Kratos_Tetrahedra3D4 \
-                for elem in model_part.Elements):
-            raise Exception("Only linear tets are accepted as input (4 nodes)")
-
-        if any(cond.GetGeometry().GetGeometryType() != KratosMultiphysics.GeometryData.KratosGeometryType.Kratos_Triangle3D3 \
-               for cond in model_part.Conditions):
-            raise Exception("Only linear triangles are accepted as input condition (3 nodes)")
-
         KratosMultiphysics.VariableUtils().SetNonHistoricalVariable(
             KratosMultiphysics.SPLIT_ELEMENT,
             True,
