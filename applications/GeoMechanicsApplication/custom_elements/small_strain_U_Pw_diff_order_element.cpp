@@ -1799,16 +1799,14 @@ void SmallStrainUPwDiffOrderElement::CalculateBMatrix(Matrix& rB, const Matrix& 
 {
     KRATOS_TRY
 
-    const GeometryType& rGeom = GetGeometry();
-    const SizeType      Dim   = rGeom.WorkingSpaceDimension();
-
-    if (Dim > 2) {
-        ThreeDimensionalStressState stress_state;
-        rB = stress_state.CalculateBMatrix(DNp_DX, Np, this->GetGeometry());
+    std::unique_ptr<StressStatePolicy> stress_state_policy;
+    if (GetGeometry().WorkingSpaceDimension() == 2) {
+        stress_state_policy = std::make_unique<PlaneStrainStressState>();
     } else {
-        PlaneStrainStressState stress_state;
-        rB = stress_state.CalculateBMatrix(DNp_DX, Np, this->GetGeometry());
+        stress_state_policy = std::make_unique<ThreeDimensionalStressState>();
     }
+
+    rB = stress_state_policy->CalculateBMatrix(DNp_DX, Np, this->GetGeometry());
 
     KRATOS_CATCH("")
 }
@@ -1834,7 +1832,14 @@ void SmallStrainUPwDiffOrderElement::SetConstitutiveParameters(ElementVariables&
 double SmallStrainUPwDiffOrderElement::CalculateIntegrationCoefficient(
     const GeometryType::IntegrationPointsArrayType& IntegrationPoints, unsigned int GPoint, double detJ)
 {
-    return IntegrationPoints[GPoint].Weight() * detJ;
+    std::unique_ptr<StressStatePolicy> stress_state_policy;
+    if (GetGeometry().WorkingSpaceDimension() == 2) {
+        stress_state_policy = std::make_unique<PlaneStrainStressState>();
+    } else {
+        stress_state_policy = std::make_unique<ThreeDimensionalStressState>();
+    }
+
+    return stress_state_policy->CalculateIntegrationCoefficient(IntegrationPoints[GPoint], detJ, GetGeometry());
 }
 
 void SmallStrainUPwDiffOrderElement::CalculateAndAddLHS(MatrixType& rLeftHandSideMatrix, ElementVariables& rVariables)
@@ -2259,13 +2264,14 @@ Vector SmallStrainUPwDiffOrderElement::CalculateGreenLagrangeStrain(const Matrix
 {
     KRATOS_TRY
 
-    if (const SizeType Dim = GetGeometry().WorkingSpaceDimension(); Dim == 2) {
-        PlaneStrainStressState state;
-        return state.CalculateGreenLagrangeStrain(rDeformationGradient);
+    std::unique_ptr<StressStatePolicy> stress_state_policy;
+    if (GetGeometry().WorkingSpaceDimension() == 2) {
+        stress_state_policy = std::make_unique<PlaneStrainStressState>();
+    } else {
+        stress_state_policy = std::make_unique<ThreeDimensionalStressState>();
     }
 
-    ThreeDimensionalStressState state;
-    return state.CalculateGreenLagrangeStrain(rDeformationGradient);
+    return stress_state_policy->CalculateGreenLagrangeStrain(rDeformationGradient);
 
     KRATOS_CATCH("")
 }
