@@ -90,22 +90,23 @@ namespace Kratos
             const unsigned int n_nodes = 4;
             const unsigned int n_edges = 6;
 
-            // Clear the auxiliar vector points set
-            this->mAuxPointsContainer.clear();
-            this->mAuxPointsContainer.reserve(10);
-
             // Add the original geometry points
             std::vector<int> gl_ids_split_edges(this->mSplitEdges);
+            std::vector<IndexedPointPointerType> aux_points(n_nodes);
             for (unsigned int i = 0; i < n_nodes; ++i) {
                 gl_ids_split_edges[i] = geometry[i].Id();
                 const array_1d<double, 3> aux_point_coords = geometry[i].Coordinates();
-                IndexedPointPointerType paux_point = Kratos::make_shared<IndexedPoint>(aux_point_coords, i);
-                this->mAuxPointsContainer.push_back(paux_point);
+                aux_points[i] = Kratos::make_shared<IndexedPoint>(aux_point_coords, i);
             }
+
+            // Clear the auxiliar vector points set
+            this->mAuxPointsContainer.clear();
+            this->mAuxPointsContainer.insert(aux_points.begin(), aux_points.end());
 
             // Decide the splitting pattern
             unsigned int aux_node_id = n_nodes;
 
+            aux_points.clear();
             for(unsigned int idedge = 0; idedge < n_edges; ++idedge) {
                 const unsigned int edge_node_i = this->mEdgeNodeI[idedge];
                 const unsigned int edge_node_j = this->mEdgeNodeJ[idedge];
@@ -128,12 +129,12 @@ namespace Kratos
                     }
 
                     // Add the intersection point to the auxiliar points array
-                    IndexedPointPointerType paux_point = Kratos::make_shared<IndexedPoint>(aux_point_coords, aux_node_id);
-                    this->mAuxPointsContainer.push_back(paux_point);
+                    aux_points.push_back(Kratos::make_shared<IndexedPoint>(aux_point_coords, aux_node_id));
                 }
 
                 aux_node_id++;
             }
+            this->mAuxPointsContainer.insert(aux_points.begin(), aux_points.end());
 
             // Call the splitting mode computation function
             std::vector<int> edge_ids(6);
@@ -158,7 +159,7 @@ namespace Kratos
                     this->mAuxPointsContainer(i3));
 
                 // Determine if the subdivision is whether in the negative or the positive side
-                // Note that zero distance nodes are also identified and stored in here 
+                // Note that zero distance nodes are also identified and stored in here
                 unsigned int neg = 0, pos = 0;
                 if(i0 <= 3) { if (nodal_distances(i0) < 0.0) neg++; else if (nodal_distances(i0) > 0.0) pos++; else mNodeIsCut.set(i0); }
                 if(i1 <= 3) { if (nodal_distances(i1) < 0.0) neg++; else if (nodal_distances(i1) > 0.0) pos++; else mNodeIsCut.set(i1); }
