@@ -35,20 +35,20 @@ class KRATOS_API(GEO_MECHANICS_APPLICATION) GeoTrussElement : public GeoTrussEle
 {
 protected:
     // const values
-    static constexpr int mStressVectorSize    = 1;
-    Vector mInternalStresses                  = ZeroVector(mStressVectorSize);
-    Vector mInternalStressesFinalized         = ZeroVector(mStressVectorSize);
-    Vector mInternalStressesFinalizedPrevious = ZeroVector(mStressVectorSize);
+    static constexpr int mStressVectorSize                  = 1;
+    Vector               mInternalStresses                  = ZeroVector(mStressVectorSize);
+    Vector               mInternalStressesFinalized         = ZeroVector(mStressVectorSize);
+    Vector               mInternalStressesFinalizedPrevious = ZeroVector(mStressVectorSize);
 
 public:
-    typedef GeoTrussElementBase<TDim, TNumNodes> BaseType;
-    typedef Element::GeometryType GeometryType;
-    typedef Element::NodesArrayType NodesArrayType;
-    typedef Element::PropertiesType PropertiesType;
-    typedef Element::IndexType IndexType;
-    typedef Element::SizeType SizeType;
-    typedef Element::MatrixType MatrixType;
-    typedef Element::VectorType VectorType;
+    typedef GeoTrussElementBase<TDim, TNumNodes>                             BaseType;
+    typedef Element::GeometryType                                            GeometryType;
+    typedef Element::NodesArrayType                                          NodesArrayType;
+    typedef Element::PropertiesType                                          PropertiesType;
+    typedef Element::IndexType                                               IndexType;
+    typedef Element::SizeType                                                SizeType;
+    typedef Element::MatrixType                                              MatrixType;
+    typedef Element::VectorType                                              VectorType;
     typedef typename GeoTrussElementBase<TDim, TNumNodes>::FullDofMatrixType FullDofMatrixType;
     typedef typename GeoTrussElementBase<TDim, TNumNodes>::FullDofVectorType FullDofVectorType;
 
@@ -78,8 +78,8 @@ public:
      * @param pProperties The pointer to property
      * @return The pointer to the created element
      */
-    Element::Pointer Create(IndexType NewId,
-                            NodesArrayType const& ThisNodes,
+    Element::Pointer Create(IndexType               NewId,
+                            NodesArrayType const&   ThisNodes,
                             PropertiesType::Pointer pProperties) const override;
 
     void Initialize(const ProcessInfo& rCurrentProcessInfo) override;
@@ -92,11 +92,11 @@ public:
                               const ProcessInfo& rCurrentProcessInfo) override;
 
     void CalculateOnIntegrationPoints(const Variable<Vector>& rVariable,
-                                      std::vector<Vector>& rOutput,
-                                      const ProcessInfo& rCurrentProcessInfo) override;
+                                      std::vector<Vector>&    rOutput,
+                                      const ProcessInfo&      rCurrentProcessInfo) override;
 
     void CalculateOnIntegrationPoints(const Variable<array_1d<double, 3>>& rVariable,
-                                      std::vector<array_1d<double, 3>>& rOutput,
+                                      std::vector<array_1d<double, 3>>&    rOutput,
                                       const ProcessInfo& rCurrentProcessInfo) override;
 
     void FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;

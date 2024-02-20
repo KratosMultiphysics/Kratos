@@ -39,14 +39,13 @@ public:
     using NodesArrayType = GeometryType::PointsArrayType;
     using VectorType     = Vector;
     using MatrixType     = Matrix;
-    /// The definition of the sizetype
-    using SizeType = std::size_t;
+    using SizeType       = std::size_t;
     using UPwBaseElement<TDim, TNumNodes>::mConstitutiveLawVector;
 
     ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     /// Default Constructor
-    UPwUpdatedLagrangianAxisymmetricFICElement(IndexType NewId = 0)
+    explicit UPwUpdatedLagrangianAxisymmetricFICElement(IndexType NewId = 0)
         : UPwUpdatedLagrangianFICElement<TDim, TNumNodes>(NewId)
     {
     }
@@ -64,8 +63,8 @@ public:
     }
 
     /// Constructor using Properties
-    UPwUpdatedLagrangianAxisymmetricFICElement(IndexType NewId,
-                                               GeometryType::Pointer pGeometry,
+    UPwUpdatedLagrangianAxisymmetricFICElement(IndexType               NewId,
+                                               GeometryType::Pointer   pGeometry,
                                                PropertiesType::Pointer pProperties)
         : UPwUpdatedLagrangianFICElement<TDim, TNumNodes>(NewId, pGeometry, pProperties)
     {
@@ -76,8 +75,8 @@ public:
 
     ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    Element::Pointer Create(IndexType NewId,
-                            NodesArrayType const& ThisNodes,
+    Element::Pointer Create(IndexType               NewId,
+                            NodesArrayType const&   ThisNodes,
                             PropertiesType::Pointer pProperties) const override;
 
     Element::Pointer Create(IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties) const override;
@@ -111,7 +110,9 @@ protected:
 
     double CalculateIntegrationCoefficient(const GeometryType::IntegrationPointsArrayType& IntegrationPoints,
                                            unsigned int PointNumber,
-                                           double detJ) override;
+                                           double       detJ) override;
+
+    Vector CalculateGreenLagrangeStrain(const Matrix& rDeformationGradient) override;
 
     ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -147,7 +148,6 @@ private:
         rNode.FastGetSolutionStepValue(Var) = Value;
         rNode.UnSetLock();
     }
-
 }; // Class UPwUpdatedLagrangianAxisymmetricFICElement
 
 } // namespace Kratos

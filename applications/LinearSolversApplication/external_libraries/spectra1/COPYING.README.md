@@ -245,7 +245,7 @@ More information can be found in the project page [https://spectralib.org](https
 
 An optional CMake installation is supported, if you have CMake with at least v3.10 installed. You can install the headers using the following commands:
 
-```bash
+```console
 mkdir build && cd build
 cmake .. -DCMAKE_INSTALL_PREFIX='intended installation directory' -DCMAKE_PREFIX_PATH='path where the installation of Eigen3 can be found' -DBUILD_TESTS=TRUE
 make all && make tests && make install
