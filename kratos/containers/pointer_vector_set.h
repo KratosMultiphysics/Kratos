@@ -652,7 +652,7 @@ public:
         auto new_last = std::unique(first, last, EqualKeyTo());
 
         if (empty()) {
-            mData.reserve(std::distance(first, new_last));                 
+            mData.reserve(std::distance(first, new_last));
             for (; first != new_last; ++first) {
                 mData.push_back(*first);
             }
@@ -664,6 +664,39 @@ public:
                 p_current_itr = std::lower_bound(p_current_itr, mData.end(), KeyOf(**first), CompareKey());
                 if (p_current_itr == mData.end() || !EqualKeyTo(KeyOf(**first))(*p_current_itr)) {
                     p_current_itr = mData.insert(p_current_itr, *first);
+                }
+            }
+        }
+
+        // TODO: To be removed once push back is removed.
+        // insert assumes the PointerVectorSet is already sorted,
+        // hence mSortedPartSize should be mData.size()
+        mSortedPartSize = mData.size();
+    }
+
+    /**
+     * @brief Insert elements from another PointerVectorSet.
+     * @details This function inserts element pointers from another PointerVectorSet into the current set.
+     * Since, PointerVectorSet is assumed to be sorted and unique, the incoming PointerVectorSet is not
+     * sorted and made unique again. This will not insert any elements in the incoming set, if there exists an element with a key
+     * which is equal to an element's key in the input range.
+     * @param rOther Other PointerVectorSet to insert elements from.
+     */
+    void insert(const PointerVectorSet& rOther)
+    {
+        if (empty()) {
+            mData.reserve(rOther.mData.size());
+            for (auto& p_element : rOther.mData) {
+                mData.push_back(p_element);
+            }
+        } else {
+            auto p_current_itr = mData.begin();
+            // now add the new elements
+            for (auto& p_element : rOther.mData) {
+                // find the lower bound element.
+                p_current_itr = std::lower_bound(p_current_itr, mData.end(), KeyOf(*p_element), CompareKey());
+                if (p_current_itr == mData.end() || !EqualKeyTo(KeyOf(*p_element))(*p_current_itr)) {
+                    p_current_itr = mData.insert(p_current_itr, p_element);
                 }
             }
         }
