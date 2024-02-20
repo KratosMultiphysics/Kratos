@@ -119,14 +119,18 @@ public:
             if (rGeometricalObjectsVector.size() > 0) {
                 // Defining the PointVector
                 const int rank = mrDataCommunicator.IsDistributed() ? mrDataCommunicator.Rank() : -1;
-                mpPointVector = Kratos::make_unique<PointVector>(SearchUtilities::PreparePointsSearch(rGeometricalObjectsVector, rank));
+                const auto preprocessed_points = SearchUtilities::PreparePointsSearch(rGeometricalObjectsVector, rank);
+                // Check that is greater tha zero (may happen that is empty due to non-local nodes container)
+                if (preprocessed_points.size() > 0) {
+                    mpPointVector = Kratos::make_unique<PointVector>(preprocessed_points);
 
-                // Create the search object
-                if constexpr (!IsDynamicBins) {
-                    const int bucket_size = mSettings["bucket_size"].GetInt();
-                    mpSearchObject = Kratos::make_shared<TSearchObject>(mpPointVector->begin(), mpPointVector->end(), bucket_size);
-                } else {
-                    mpSearchObject = Kratos::make_shared<TSearchObject>(mpPointVector->begin(), mpPointVector->end());
+                    // Create the search object
+                    if constexpr (!IsDynamicBins) {
+                        const int bucket_size = mSettings["bucket_size"].GetInt();
+                        mpSearchObject = Kratos::make_shared<TSearchObject>(mpPointVector->begin(), mpPointVector->end(), bucket_size);
+                    } else {
+                        mpSearchObject = Kratos::make_shared<TSearchObject>(mpPointVector->begin(), mpPointVector->end());
+                    }
                 }
             }
         }
