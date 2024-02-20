@@ -96,7 +96,7 @@ class NavierStokesTwoFluidsHydraulicSolver(FluidSolver):
                 "max_CFL": 0.1,
                 "max_delta_time": 1.0,
                 "model_part_name": "",
-                "time_scheme": "RK3-TVD"                                      
+                "time_scheme": "RK3-TVD"
             },
             "distance_reinitialization": "variational",
             "parallel_redistance_max_layers" : 25,
@@ -148,13 +148,13 @@ class NavierStokesTwoFluidsHydraulicSolver(FluidSolver):
             self.settings["eulerian_fm_ale_settings"].AddEmptyValue("levelset_convection_variable_name").SetString("CONVECTION_VELOCITY")
             self.settings["eulerian_fm_ale_settings"].AddEmptyValue("convection_model_part_name").SetString("EulerianFMALEModelPart")
 
-        # TODO: TEST 
+        # TODO: TEST
         self.levelset_test = self.settings["levelset_test"].GetBool()
         if self.levelset_test:
             self.settings["edge_based_level_set_convection"].AddEmptyValue("convected_variable_name").SetString("DISTANCE")
             self.settings["edge_based_level_set_convection"].AddEmptyValue("convection_variable_name").SetString("VELOCITY")
             self.settings["edge_based_level_set_convection"].AddEmptyValue("model_part_name").SetString("FluidModelPart")
-            
+
         dynamic_tau = self.settings["formulation"]["dynamic_tau"].GetDouble()
         self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DYNAMIC_TAU, dynamic_tau)
 
@@ -235,7 +235,7 @@ class NavierStokesTwoFluidsHydraulicSolver(FluidSolver):
         # Instantiate the level set convection process
         # Note that is is required to do this in here in order to validate the defaults and set the corresponding distance gradient flag
         # Note that the nodal gradient of the distance is required either for the eulerian BFECC limiter or by the algebraic element antidiffusivity
-        # TODO: TEST 
+        # TODO: TEST
         if self.levelset_test:
             self._GetEdgeBasedLevelSetConvectionProcess()
         else:
@@ -273,7 +273,7 @@ class NavierStokesTwoFluidsHydraulicSolver(FluidSolver):
         # TODO: TEST
         if self.levelset_test:
             self.__PerformEdgeBasedLevelSetConvection()
-        else: 
+        else:
             self.__PerformLevelSetConvection()
             KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Level-set convection is performed.")
         # Perform the level-set convection according to the previous step velocity
@@ -654,7 +654,7 @@ class NavierStokesTwoFluidsHydraulicSolver(FluidSolver):
             layers = self.settings["parallel_redistance_max_layers"].GetInt()
             parallel_distance_settings = KratosMultiphysics.Parameters("""{
                 "max_levels" : 25,
-                "max_distance" : 1.0,
+                "max_distance" : 5,
                 "calculate_exact_distances_to_plane" : true
             }""")
             parallel_distance_settings["max_levels"].SetInt(layers)
@@ -716,7 +716,7 @@ class NavierStokesTwoFluidsHydraulicSolver(FluidSolver):
         not_boundary_nodes=any([node.Is(boundary) for node in computing_model_part.Nodes])
         if not not_boundary_nodes:
             KratosMultiphysics.Logger.PrintWarning(self.__class__.__name__, name +" condition is not defined in the model part.")
-   
+
     # TODO: TEST
 
     def _CreateEdgeBasedLevelSetConvectionProcess(self):

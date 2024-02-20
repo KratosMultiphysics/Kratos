@@ -356,7 +356,7 @@ protected:
      * @param rData Condition data container
      * @param rProcessInfo Reference to the ProcessInfo container
      */
-    void ComputeGaussPointLHSContribution(
+    virtual void ComputeGaussPointLHSContribution(
         BoundedMatrix<double, LocalSize, LocalSize>& rLHS,
         const ConditionDataStruct& rData,
         const ProcessInfo& rProcessInfo);
@@ -370,7 +370,7 @@ protected:
      * @param rData Condition data container
      * @param rProcessInfo Reference to the ProcessInfo container
      */
-    void ComputeGaussPointRHSContribution(
+    virtual void ComputeGaussPointRHSContribution(
         array_1d<double, LocalSize>& rRHS,
         const ConditionDataStruct& rData,
         const ProcessInfo& rProcessInfo);

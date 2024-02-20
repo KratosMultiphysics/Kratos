@@ -72,8 +72,9 @@ public:
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(TwoFluidNavierStokesWallCondition);
 
     typedef NavierStokesWallCondition<TDim, TNumNodes, TWallModel...> BaseType;
-
-    using BaseType::LocalSize;
+    static constexpr std::size_t VoigtSize = 3 * (TDim - 1);
+    static constexpr std::size_t BlockSize = TDim + 1;
+    static constexpr std::size_t LocalSize = TNumNodes * BlockSize;
 
     typedef typename BaseType::ConditionDataStruct ConditionDataStruct;
 
@@ -227,6 +228,33 @@ public:
      */
     int Check(const ProcessInfo& rCurrentProcessInfo) const override;
 
+    /**
+     * @brief Calculates the Gauss point RHS contribution
+     * This method calculates the current Gauss point RHS contribution and saves it
+     * in the provided array. Note that the input data container is expected to
+     * already contain the data at the Gauss point of interest.
+     * @param rLHS Reference to the RHS output vector
+     * @param rData Condition data container
+     * @param rProcessInfo Reference to the ProcessInfo container
+     */
+    void ComputeGaussPointRHSContribution(
+        array_1d<double, LocalSize>& rRHS,
+        const ConditionDataStruct& rData,
+        const ProcessInfo& rProcessInfo) override;
+    /**
+     * @brief Calculates the Gauss point LHS contribution
+     * This method calculates the current Gauss point LHS contribution and saves it
+     * in the provided array. Note that the input data container is expected to
+     * already contain the data at the Gauss point of interest.
+     * @param rLHS Reference to the LHS output matrix
+     * @param rData Condition data container
+     * @param rProcessInfo Reference to the ProcessInfo container
+     */
+
+    void ComputeGaussPointLHSContribution(
+        BoundedMatrix<double, LocalSize, LocalSize> &rLHS,
+        const ConditionDataStruct &rData,
+        const ProcessInfo &rProcessInfo) override;
     ///@}
     ///@name Access
     ///@{
