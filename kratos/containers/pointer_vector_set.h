@@ -652,6 +652,7 @@ public:
         auto new_last = std::unique(first, last, EqualKeyTo());
 
         if (empty()) {
+            mData.reserve(std::distance(first, new_last));                 
             for (; first != new_last; ++first) {
                 mData.push_back(*first);
             }
