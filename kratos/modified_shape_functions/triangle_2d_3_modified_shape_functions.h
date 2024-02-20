@@ -127,6 +127,7 @@ protected:
     void SetCondensationMatrix(Matrix& rIntPointCondMatrix) override;
 
     void SetPositiveSideCondensationMatrix(Matrix& rPosSideCondMatrix) override;
+    void SetPositiveSideCondensationMatrix2(Matrix& rPosSideCondMatrix) override;
 
     void SetNegativeSideCondensationMatrix(Matrix& rNegSideCondMatrix) override;
 

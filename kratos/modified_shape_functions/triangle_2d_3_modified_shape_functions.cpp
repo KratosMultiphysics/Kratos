@@ -82,6 +82,15 @@ void Triangle2D3ModifiedShapeFunctions::SetPositiveSideCondensationMatrix(Matrix
         mpTriangleSplitter->mSplitEdges);
 }
 
+void Triangle2D3ModifiedShapeFunctions::SetPositiveSideCondensationMatrix2(Matrix& rPosSideCondMatrix)
+{
+    ModifiedShapeFunctions::SetCondensationMatrix2(
+        rPosSideCondMatrix,
+        mpTriangleSplitter->mEdgeNodeI,
+        mpTriangleSplitter->mEdgeNodeJ,
+        mpTriangleSplitter->mSplitEdges);
+}
+
 void Triangle2D3ModifiedShapeFunctions::SetNegativeSideCondensationMatrix(Matrix& rNegSideCondMatrix)
 {
     ModifiedShapeFunctions::SetCondensationMatrix(

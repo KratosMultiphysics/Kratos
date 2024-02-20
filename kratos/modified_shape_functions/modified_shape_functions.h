@@ -158,6 +158,20 @@ public:
         const IntegrationMethodType IntegrationMethod);
 
     /**
+    * Returns the shape function values in the positive split element side for a given quadrature.
+    * @return rPositiveSideShapeFunctionValues: Matrix containing the positive side computed shape function values.
+    * @return rPositiveSideShapeFunctionsGradientsValues: std::vector containing the shape functions gradients values on the positive side.
+    * @return rPositiveSideWeightsValues: Vector containing the Gauss pts. positive side weights (already multiplied by the Jacobian).
+    * @param IntegrationMethod Desired integration quadrature.
+    */
+    void ComputePositiveSideShapeFunctionsAndGradientsValues(
+        Matrix &rPositiveSideShapeFunctionsValues,
+        ShapeFunctionsGradientsType &rPositiveSideShapeFunctionsGradientsValues,
+        ShapeFunctionsGradientsType &rPositiveSideShapeFunctionsGradientsValues_unc,
+        Vector &rPositiveSideWeightsValues,
+        const IntegrationMethodType IntegrationMethod);
+
+    /**
     * Returns the shape function values in the negative split element side for a given quadrature.
     * @return rNegativeSideShapeFunctionValues: Matrix containing the negative side computed shape function values.
     * @return rNegativeSideShapeFunctionsGradientsValues: std::vector containing the shape functions gradients values on the negative side.
@@ -326,6 +340,17 @@ protected:
     }
 
     /**
+     * @brief Set the Positive Side Condensation Matrix object
+     * This function sets the positive side condensation matrix
+     * Note that for the Ausas FE space a different condensation matrix is required for the positive and negative sides
+     * @param rPosSideCondMatrix Positive side condensation matrix
+     */
+    virtual void SetPositiveSideCondensationMatrix2(Matrix& rPosSideCondMatrix)
+    {
+        KRATOS_ERROR << "Calling base class \'SetPositiveSideCondensationMatrix\'. Call the derived class one instead." << std::endl;
+    }
+
+    /**
      * @brief Set the Negative Side Condensation Matrix object
      * This function sets the negative side condensation matrix
      * Note that for the Ausas FE space a different condensation matrix is required for the positive and negative sides
@@ -352,11 +377,26 @@ protected:
         const std::vector<int>& rSplitEdges);
 
     /**
+    * Returns the intersection points condensation matrix.
+    * This matrix is used to extrapolate the subdivisions shape funtion values to the
+    * original geometry ones. It has size (nnodes+nedges)x(nnodes).
+    * @return rIntPointCondMatrix: Reference to the intersection points condensation matrix.
+    * @param rEdgeNodeI Integers array containing the nodes "I" that conform the edges.
+    * @param rEdgeNodeJ Integers array containing the nodes "J" that conform the edges.
+    * @param rSplitEdges Integers array containing the original nodes ids and the intersected edges nodes ones.
+    */
+    void SetCondensationMatrix2(
+        Matrix& rIntPointCondMatrix,
+        const std::vector<int>& rEdgeNodeI,
+        const std::vector<int>& rEdgeNodeJ,
+        const std::vector<int>& rSplitEdges);
+
+    /**
     * Returns the shape function values in either the positive or negative element subdivision for a given quadrature.
     * @return rShapeFunctionValues: Matrix containing the computed shape function values.
     * @return rShapeFunctionsGradientsValues: std::vector containing the shape functions gradients values.
     * @return rWeightsValues: Vector containing the Gauss pts. weights (already multiplied by the Jacobian).
-    * @param rPmatrix Reference to the condensation matrix.
+    * @param rPmatrix Reference to the condensation matrix used for the SF values.
     * @param rSubdivisionGeom std::vector of subdivisions point based geometries where the values are to be computed.
     * @param IntegrationMethod Desired integration quadrature.
     */
@@ -366,6 +406,27 @@ protected:
         Vector &rWeightsValues,
         const std::vector<IndexedPointGeometryPointerType> &rSubdivisionsVector,
         const Matrix &rPmatrix,
+        const IntegrationMethodType IntegrationMethod);
+
+    /**
+    * Returns the shape function values in either the positive or negative element subdivision for a given quadrature.
+    * @return rShapeFunctionValues: Matrix containing the computed shape function values.
+    * @return rShapeFunctionsGradientsValues: std::vector containing the shape functions gradients values.
+    * @return rShapeFunctionsGradientsValues_unc: std::vector containing the shape functions gradients values uncollapsed.
+    * @return rWeightsValues: Vector containing the Gauss pts. weights (already multiplied by the Jacobian).
+    * @param rPmatrix Reference to the condensation matrix used for the SF values.
+    * @param rPmatrix2 Reference to the second condensation matrix used for the SF gradient values.
+    * @param rSubdivisionGeom std::vector of subdivisions point based geometries where the values are to be computed.
+    * @param IntegrationMethod Desired integration quadrature.
+    */
+    void ComputeValuesOnOneSide(
+        Matrix &rShapeFunctionsValues,
+        ShapeFunctionsGradientsType &rShapeFunctionsGradientsValues,
+        ShapeFunctionsGradientsType &rShapeFunctionsGradientsValues_unc,
+        Vector &rWeightsValues,
+        const std::vector<IndexedPointGeometryPointerType> &rSubdivisionsVector,
+        const Matrix &rPmatrix,
+        const Matrix &rPmatrix2,
         const IntegrationMethodType IntegrationMethod);
 
     /**
