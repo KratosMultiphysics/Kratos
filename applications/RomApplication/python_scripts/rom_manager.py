@@ -554,7 +554,7 @@ class RomManager(object):
         model_name = rom_nn_trainer.TrainNetwork()
         rom_nn_trainer.EvaluateNetwork(model_name)
 
-    def TestNeuralNetworkReconstruction(self):
+    def __LaunchTestNeuralNetworkReconstruction(self):
         rom_nn_trainer = RomNeuralNetworkTrainer(self.general_rom_manager_parameters)
         model_name=self.general_rom_manager_parameters["neural_network"]["online"]["model_name"].GetString()
         rom_nn_trainer.EvaluateNetwork(model_name)

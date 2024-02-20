@@ -6,7 +6,9 @@ import tensorflow as tf
 from keras.models import Model
 from keras import layers
 from keras.optimizers import AdamW
+from keras.initializers import HeNormal
 from keras.callbacks import LearningRateScheduler
+from keras.utils import set_random_seed as keras_set_random_seed
 
 import KratosMultiphysics
 
@@ -145,7 +147,11 @@ class RomNeuralNetworkTrainer(object):
         network=Model(input_layer, output_layer)
         return network
 
-    def TrainNetwork(self):
+    def TrainNetwork(self, seed=None):
+        
+        if seed is not None:
+            keras_set_random_seed(seed)
+
 
         nn_training_parameters = self.nn_parameters['training']
         
@@ -182,7 +188,8 @@ class RomNeuralNetworkTrainer(object):
 
         callbacks = [LearningRateScheduler(self._SelectScheduler(lr_scheme, base_lr, lr_additional_params), verbose=0)]
 
-        history = network.fit(Q_inf_train, Q_sup_train, batch_size=batch_size, epochs=epochs, validation_data=(Q_inf_val,Q_sup_val), shuffle=True, validation_batch_size=1, callbacks=callbacks)
+        # history = network.fit(Q_inf_train, Q_sup_train, batch_size=batch_size, epochs=epochs, validation_data=(Q_inf_val,Q_sup_val), shuffle=False, validation_batch_size=1, callbacks=callbacks)
+        history = network.fit(Q_inf_train, Q_sup_train, batch_size=batch_size, epochs=epochs, validation_data=(Q_inf_val,Q_sup_val), shuffle=True, callbacks=callbacks)
         
         
         training_parameters_dict = {
@@ -231,9 +238,12 @@ class RomNeuralNetworkTrainer(object):
         S_val, Q_inf_val, Q_sup_val, phisig_inf, phisig_sup = self._GetEvaluationData(model_properties)
 
         S_recons_val = phisig_sup@network(Q_inf_val).numpy().T+phisig_inf@Q_inf_val.T
-        print('ANN-PROM Validation Reconstruction error (Rel. Frob): ', np.linalg.norm(S_recons_val-S_val)/np.linalg.norm(S_val))
+        err_rel_recons = np.linalg.norm(S_recons_val-S_val)/np.linalg.norm(S_val)
+        print('ANN-PROM Validation Reconstruction error (Rel. Frob): ', err_rel_recons)
 
         S_pod_sup_recons_val = phisig_sup@Q_sup_val.T+phisig_inf@Q_inf_val.T
         print('POD Sup Validation Reconstruction error (Rel. Frob): ', np.linalg.norm(S_pod_sup_recons_val-S_val)/np.linalg.norm(S_val))
         S_pod_inf_recons_val = phisig_inf@Q_inf_val.T
         print('POD Inf Validation Reconstruction error (Rel. Frob): ', np.linalg.norm(S_pod_inf_recons_val-S_val)/np.linalg.norm(S_val))
+
+        return err_rel_recons
