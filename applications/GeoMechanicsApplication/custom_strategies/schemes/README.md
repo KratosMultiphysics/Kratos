@@ -13,7 +13,7 @@ It also has a general `Update` step, which calls the `UpdateVariablesDerivatives
 ![SchemeStructure.svg](SchemeStructure.svg)
 _Class structure of the schemes generated using the SchemeStructure.puml file with PlantUML. Note that the class diagram is simplified and only shows the functions that need emphasis._
 
-The child classes which actually specify which variables are used in the time integration scheme (e.g. the `BackwardEulerUPwScheme` or the `GeneralizedNewmarkTScheme), only fill the lists of first/second order variables. 
+The child classes which actually specify which variables are used in the time integration scheme (e.g. the `BackwardEulerUPwScheme` or the `GeneralizedNewmarkTScheme`), only fill the lists of first/second order variables. 
 
 The exceptions are the `NewmarkQuasistaticUPwScheme`, which has functionality for nodal smoothing (this should be moved to another location) and the damped and dynamic UPw schemes. More info on these can be found in the [Dynamic and damped schemes](#dynamic-and-damped-schemes) section. 
 
@@ -38,13 +38,13 @@ The time factors are set in the `SetTimeFactors` function, which sets the coeffi
 ## Generalized Newmark
 A bit more involved are the Generalized Newmark schemes. This includes more parameters to tweak and has a more complex set of equations. The functionality described in this section can be found in the `GeneralizedNewmarkScheme` class. This results in the following three equations for updating the scalar and vector derivatives.
 
-First time derivative for scalar variables in `UpdateScalarTimeDerivative`:
+First time derivative for scalar variables in `UpdateScalarTimeDerivative`, known as GN11:
 $$\dot{x}\_{t + \Delta t} = \frac{x\_{t + \Delta t} - x\_{t} - (1 - \theta) \Delta t \dot{x}\_{t}}{\theta \Delta t}$$
 
-Second time derivative for vector variables in `UpdateVectorSecondTimeDerivative`:
+Second time derivative for vector variables in `UpdateVectorSecondTimeDerivative`, known as GN22:
 $$\ddot{x}\_{t + \Delta t} = \frac{x\_{t + \Delta t} - x\_{t} - \Delta t \dot{x}\_{t} - (0.5 - \beta)(\Delta t)^{2}\ddot{x}\_{t}}{\beta(\Delta t)^{2}}$$
 
-First time derivative for vector variables in `UpdateVectorFirstTimeDerivative`:
+First time derivative for vector variables in `UpdateVectorFirstTimeDerivative`, known as GN22:
 $$\dot{x}\_{t + \Delta t} = \dot{x}\_{t} + (1 - \gamma)\Delta t \ddot{x}\_{t} + \gamma \Delta t \ddot{x}\_{t + \Delta t}$$
 
 Note that the order here is the other reversed with respect to the Backward Euler scheme. This is because $\ddot{x}\_{t + \Delta t}$ is used in the equation for $\dot{x}\_{t + \Delta t}$.

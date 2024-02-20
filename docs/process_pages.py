@@ -239,13 +239,11 @@ def AddPythonSnippetOutputs(file_path: Path) -> None:
                 while temp_index < len(lines):
                     if lines[temp_index].strip():
                         is_existing_output_found  = lines[temp_index] == "Expected output:\n"
-                        is_existing_output_found &= lines[temp_index+1] == "```bash\n"
+                        is_existing_output_found &= lines[temp_index+1] == "```console\n"
                         break
                     temp_index += 1
 
                 if not is_existing_output_found:
-                    # existing is not found or force re-write is enabled
-
                     # create a temp file
                     temp_file_path = f"{file_path.name}.temp.py"
                     with open(temp_file_path, "w") as temp_file_output:
@@ -254,7 +252,7 @@ def AddPythonSnippetOutputs(file_path: Path) -> None:
                     subprocess_run = subprocess.run([GetPython3Command(), "-u", temp_file_path], stdout=subprocess.PIPE, universal_newlines=True, check=True)
                     output_lines.append("\n")
                     output_lines.append("Expected output:\n")
-                    output_lines.append("```bash\n")
+                    output_lines.append("```console\n")
                     output_lines.append(subprocess_run.stdout)
                     output_lines.append("```\n")
 
@@ -275,15 +273,6 @@ def AddPythonSnippetOutputs(file_path: Path) -> None:
         file_output.writelines(output_lines)
 
 if __name__ == "__main__":
-    ## process the index file.
-    r = requests.get("https://raw.githubusercontent.com/KratosMultiphysics/Kratos/master/README.md", allow_redirects=True)
-
-    with open("pages/index.md", "w") as file_output:
-        if r.status_code == 200:
-            data = r.text
-            data = "---\nkeywords: Summary\ntags: []\nsidebar: kratos_for_users\npermalink: index.html\ntitle: Summary\nsummary: \n---\n" + data
-            file_output.write(data)
-
     parser = ArgumentParser(description="Process mark down files in pages folder to create navigation bars.")
     parser.add_argument("-t", "--build_type", dest="build_type", metavar="<build_type>",
                         choices=['local', 'web'], default="locally", help="type of the web page build")

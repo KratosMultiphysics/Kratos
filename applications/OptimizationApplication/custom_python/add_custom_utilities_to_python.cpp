@@ -244,7 +244,7 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
         .def("__ipow__", [](CollectiveExpression& rSelf, const CollectiveExpression& rInput) { rSelf = ContainerExpressionUtils::Pow(rSelf, rInput); return rSelf; })
         .def("__pow__", [](CollectiveExpression& rSelf, const double Value) { CollectiveExpression result; result = ContainerExpressionUtils::Pow(rSelf, Value); return result; })
         .def("__ipow__", [](CollectiveExpression& rSelf, const double Value) { rSelf = ContainerExpressionUtils::Pow(rSelf, Value); return rSelf; })
-        .def("__neg__", [](CollectiveExpression& rSelf) { return rSelf *= -1.0; })
+        .def("__neg__", [](CollectiveExpression& rSelf) { return rSelf * -1.0; })
         .def("__str__", &CollectiveExpression::Info)
         ;
 
