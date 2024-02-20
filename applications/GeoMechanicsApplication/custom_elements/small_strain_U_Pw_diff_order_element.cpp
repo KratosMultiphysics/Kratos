@@ -31,16 +31,19 @@ namespace Kratos
 SmallStrainUPwDiffOrderElement::SmallStrainUPwDiffOrderElement() : Element() {}
 
 // Constructor 1
-SmallStrainUPwDiffOrderElement::SmallStrainUPwDiffOrderElement(IndexType NewId, GeometryType::Pointer pGeometry)
-    : Element(NewId, pGeometry)
+SmallStrainUPwDiffOrderElement::SmallStrainUPwDiffOrderElement(IndexType             NewId,
+                                                               GeometryType::Pointer pGeometry,
+                                                               std::unique_ptr<StressStatePolicy> pStressStatePolicy)
+    : Element(NewId, pGeometry), mpStressStatePolicy(std::move(pStressStatePolicy))
 {
 }
 
 // Constructor 2
 SmallStrainUPwDiffOrderElement::SmallStrainUPwDiffOrderElement(IndexType               NewId,
                                                                GeometryType::Pointer   pGeometry,
-                                                               PropertiesType::Pointer pProperties)
-    : Element(NewId, pGeometry, pProperties)
+                                                               PropertiesType::Pointer pProperties,
+                                                               std::unique_ptr<StressStatePolicy> pStressStatePolicy)
+    : Element(NewId, pGeometry, pProperties), mpStressStatePolicy(std::move(pStressStatePolicy))
 {
 }
 
@@ -50,14 +53,14 @@ Element::Pointer SmallStrainUPwDiffOrderElement::Create(IndexType               
                                                         NodesArrayType const&   ThisNodes,
                                                         PropertiesType::Pointer pProperties) const
 {
-    return Element::Pointer(new SmallStrainUPwDiffOrderElement(NewId, GetGeometry().Create(ThisNodes), pProperties));
+    return Element::Pointer(new SmallStrainUPwDiffOrderElement(NewId, GetGeometry().Create(ThisNodes), pProperties, mpStressStatePolicy->Clone()));
 }
 
 Element::Pointer SmallStrainUPwDiffOrderElement::Create(IndexType               NewId,
                                                         GeometryType::Pointer   pGeom,
                                                         PropertiesType::Pointer pProperties) const
 {
-    return Element::Pointer(new SmallStrainUPwDiffOrderElement(NewId, pGeom, pProperties));
+    return Element::Pointer(new SmallStrainUPwDiffOrderElement(NewId, pGeom, pProperties, mpStressStatePolicy->Clone()));
 }
 
 int SmallStrainUPwDiffOrderElement::Check(const ProcessInfo& rCurrentProcessInfo) const
@@ -2355,6 +2358,11 @@ void SmallStrainUPwDiffOrderElement::CalculateRetentionResponse(ElementVariables
     rVariables.BishopCoefficient = mRetentionLawVector[GPoint]->CalculateBishopCoefficient(rRetentionParameters);
 
     KRATOS_CATCH("")
+}
+
+const StressStatePolicy& SmallStrainUPwDiffOrderElement::GetStressStatePolicy() const
+{
+    return *mpStressStatePolicy;
 }
 
 } // Namespace Kratos

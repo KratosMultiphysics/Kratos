@@ -21,6 +21,7 @@
 #include "custom_utilities/element_utilities.hpp"
 #include "custom_utilities/stress_strain_utilities.hpp"
 #include "geo_mechanics_application_variables.h"
+#include "axisymmetric_stress_state.h"
 
 namespace Kratos
 {
@@ -47,7 +48,7 @@ public:
 
     /// Constructor using Geometry
     SmallStrainUPwDiffOrderAxisymmetricElement(IndexType NewId, GeometryType::Pointer pGeometry)
-        : SmallStrainUPwDiffOrderElement(NewId, pGeometry)
+        : SmallStrainUPwDiffOrderElement(NewId, pGeometry, std::make_unique<AxisymmetricStressState>())
     {
     }
 
@@ -55,7 +56,8 @@ public:
     SmallStrainUPwDiffOrderAxisymmetricElement(IndexType               NewId,
                                                GeometryType::Pointer   pGeometry,
                                                PropertiesType::Pointer pProperties)
-        : SmallStrainUPwDiffOrderElement(NewId, pGeometry, pProperties)
+        : SmallStrainUPwDiffOrderElement(
+              NewId, pGeometry, pProperties, std::make_unique<AxisymmetricStressState>())
     {
     }
 

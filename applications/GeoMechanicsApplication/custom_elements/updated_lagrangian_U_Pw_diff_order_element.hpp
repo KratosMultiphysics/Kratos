@@ -22,6 +22,7 @@
 #include "custom_utilities/element_utilities.hpp"
 #include "custom_utilities/stress_strain_utilities.hpp"
 #include "geo_mechanics_application_variables.h"
+#include "stress_state_policy.h"
 
 namespace Kratos
 {
@@ -67,9 +68,9 @@ public:
     /// The definition of the sizetype
     using SizeType = std::size_t;
     using SmallStrainUPwDiffOrderElement::AssembleUBlockMatrix;
-    using SmallStrainUPwDiffOrderElement::CalculateGreenLagrangeStrain;
     using SmallStrainUPwDiffOrderElement::CalculateCauchyStrain;
     using SmallStrainUPwDiffOrderElement::CalculateDerivativesOnInitialConfiguration;
+    using SmallStrainUPwDiffOrderElement::CalculateGreenLagrangeStrain;
     using SmallStrainUPwDiffOrderElement::mConstitutiveLawVector;
     using SmallStrainUPwDiffOrderElement::mStateVariablesFinalized;
     using SmallStrainUPwDiffOrderElement::mStressVector;
@@ -85,14 +86,19 @@ public:
     UpdatedLagrangianUPwDiffOrderElement() : SmallStrainUPwDiffOrderElement() {}
 
     /// Constructor using Geometry
-    UpdatedLagrangianUPwDiffOrderElement(IndexType NewId, GeometryType::Pointer pGeometry)
-        : SmallStrainUPwDiffOrderElement(NewId, pGeometry)
+    UpdatedLagrangianUPwDiffOrderElement(IndexType                          NewId,
+                                         GeometryType::Pointer              pGeometry,
+                                         std::unique_ptr<StressStatePolicy> pStressStatePolicy)
+        : SmallStrainUPwDiffOrderElement(NewId, pGeometry, std::move(pStressStatePolicy))
     {
     }
 
     /// Constructor using Properties
-    UpdatedLagrangianUPwDiffOrderElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
-        : SmallStrainUPwDiffOrderElement(NewId, pGeometry, pProperties)
+    UpdatedLagrangianUPwDiffOrderElement(IndexType                          NewId,
+                                         GeometryType::Pointer              pGeometry,
+                                         PropertiesType::Pointer            pProperties,
+                                         std::unique_ptr<StressStatePolicy> pStressStatePolicy)
+        : SmallStrainUPwDiffOrderElement(NewId, pGeometry, pProperties, std::move(pStressStatePolicy))
     {
     }
 
