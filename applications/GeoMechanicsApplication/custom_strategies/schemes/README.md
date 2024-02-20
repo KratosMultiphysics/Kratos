@@ -53,9 +53,7 @@ For these functions, identically to the Backward Euler scheme, $\ddot{x}$ and $\
 
 For setting the time factors (done in the `SetTimeFactors` override), the following equations are used. For the scalar variables, the time coefficient is set to $1/(\theta\Delta t)$, while for the vector variables, the time coefficients are set to $\gamma / (\beta \Delta t)$.
 
-## Dynamic and damped schemes
-The dynamic and damped schemes are both Generalized Newmark schemes (as seen in the class diagrams) and therefore update the derivatives using the same equations, using the same `UpdateVariablesDerivatives` function.
+## Dynamic, damped and quasistatic Generalized Newmark schemes
+The dynamic, damped and quasistatc schemes are all Generalized Newmark schemes (as seen in the class diagrams). For the vector variables part (displacements and/or rotations) they take different parts of the equation of motion into account. Quasistatic the contribution to matrices and vectors for displacements/rotations only, damped the contribution to matrices and vectors for displacements/rotations and velocities/angular velocities and dynamic the contribution to matrices and vectors for accelerations/angular accelerations, velocities/angular velocities and displacements/rotations. Therefore the functionality `UpdateVariablesDerivatives`, `CalculateSystemContributions`, `CalculateRHSContribution` and `CalculateLHSContribution` are overridden and add extra terms to the system matrix and right hand side vector.
 
-However, `CalculateSystemContributions`, `CalculateRHSContribution` and `CalculateLHSContribution` are overridden and add extra terms to the system matrix and right hand side vector. The damped scheme only adds damping terms, while the dynamic scheme adds both damping and mass terms, to also take into account the inertia of the system.
-
-One more anomaly is the `Predict` function, currently found in the `NewmarkDynamicUPwScheme` class. This functionality should move to the `GeneralizedNewmarkScheme` class, since it is not specific to the dynamic scheme.
+One more anomaly is the `Predict` function, currently found in the `NewmarkDynamicUPwScheme` class. This functionality should have its counterparts in the other classes derived from `GeneralizedNewmarkScheme` class.
