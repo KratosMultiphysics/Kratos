@@ -156,7 +156,7 @@ void GeneralUPwDiffOrderCondition::
 
 void GeneralUPwDiffOrderCondition::EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo&) const
 {
-    rResult = ExtractEquationIdsFrom(GetDofs());
+    rResult = Geo::DofUtilities::ExtractEquationIdsFrom(GetDofs());
 }
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -309,9 +309,9 @@ Condition::DofsVectorType GeneralUPwDiffOrderCondition::GetDofs() const
         }
     }
 
-    for (const auto& r_node : *mpPressureGeometry) {
-        result.push_back(r_node.pGetDof(WATER_PRESSURE));
-    }
+    const auto water_pressure_dofs =
+        Geo::DofUtilities::ExtractDofsFromNodes(*mpPressureGeometry, WATER_PRESSURE);
+    result.insert(result.end(), water_pressure_dofs.begin(), water_pressure_dofs.end());
 
     return result;
 }

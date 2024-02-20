@@ -241,7 +241,7 @@ template <unsigned int TDim, unsigned int TNumNodes>
 void GeoStructuralBaseElement<TDim, TNumNodes>::EquationIdVector(EquationIdVectorType& rResult,
                                                                  const ProcessInfo&) const
 {
-    rResult = ExtractEquationIdsFrom(GetDofs());
+    rResult = Geo::DofUtilities::ExtractEquationIdsFrom(GetDofs());
 }
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -292,21 +292,21 @@ void GeoStructuralBaseElement<TDim, TNumNodes>::CalculateDampingMatrix(MatrixTyp
 template <unsigned int TDim, unsigned int TNumNodes>
 void GeoStructuralBaseElement<TDim, TNumNodes>::GetValuesVector(Vector& rValues, int Step) const
 {
-    rValues = ExtractSolutionStepValues(GetDofs(), Step);
+    rValues = Geo::DofUtilities::ExtractSolutionStepValues(GetDofs(), Step);
 }
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
 void GeoStructuralBaseElement<TDim, TNumNodes>::GetFirstDerivativesVector(Vector& rValues, int Step) const
 {
-    rValues = ExtractFirstTimeDerivatives(GetDofs(), Step);
+    rValues = Geo::DofUtilities::ExtractFirstTimeDerivatives(GetDofs(), Step);
 }
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
 void GeoStructuralBaseElement<TDim, TNumNodes>::GetSecondDerivativesVector(Vector& rValues, int Step) const
 {
-    rValues = ExtractSecondTimeDerivatives(GetDofs(), Step);
+    rValues = Geo::DofUtilities::ExtractSecondTimeDerivatives(GetDofs(), Step);
 }
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------

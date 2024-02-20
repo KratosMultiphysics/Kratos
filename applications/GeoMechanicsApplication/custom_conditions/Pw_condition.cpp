@@ -97,7 +97,7 @@ void PwCondition<TDim, TNumNodes>::
 template <unsigned int TDim, unsigned int TNumNodes>
 void PwCondition<TDim, TNumNodes>::EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo&) const
 {
-    rResult = ExtractEquationIdsFrom(GetDofs());
+    rResult = Geo::DofUtilities::ExtractEquationIdsFrom(GetDofs());
 }
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -126,11 +126,7 @@ void PwCondition<TDim,TNumNodes>::
 template <unsigned int TDim, unsigned int TNumNodes>
 Condition::DofsVectorType PwCondition<TDim, TNumNodes>::GetDofs() const
 {
-    auto       result = Condition::DofsVectorType{};
-    const auto nodes  = GetGeometry();
-    std::transform(nodes.begin(), nodes.end(), std::back_inserter(result),
-                   [](const auto& r_node) { return r_node.pGetDof(WATER_PRESSURE); });
-    return result;
+    return Geo::DofUtilities::ExtractDofsFromNodes(GetGeometry(), WATER_PRESSURE);
 }
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------

@@ -327,7 +327,7 @@ void UPwBaseElement<TDim, TNumNodes>::CalculateRightHandSide(VectorType& rRightH
 template <unsigned int TDim, unsigned int TNumNodes>
 void UPwBaseElement<TDim, TNumNodes>::EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo&) const
 {
-    rResult = ExtractEquationIdsFrom(GetDofs());
+    rResult = Geo::DofUtilities::ExtractEquationIdsFrom(GetDofs());
 }
 
 //----------------------------------------------------------------------------------------
@@ -383,21 +383,21 @@ void UPwBaseElement<TDim, TNumNodes>::CalculateDampingMatrix(MatrixType&        
 template <unsigned int TDim, unsigned int TNumNodes>
 void UPwBaseElement<TDim, TNumNodes>::GetValuesVector(Vector& rValues, int Step) const
 {
-    rValues = ExtractSolutionStepValuesOfUPwDofs(GetDofs(), Step);
+    rValues = Geo::DofUtilities::ExtractSolutionStepValuesOfUPwDofs(GetDofs(), Step);
 }
 
 //----------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
 void UPwBaseElement<TDim, TNumNodes>::GetFirstDerivativesVector(Vector& rValues, int Step) const
 {
-    rValues = ExtractFirstTimeDerivativesOfUPwDofs(GetDofs(), Step);
+    rValues = Geo::DofUtilities::ExtractFirstTimeDerivativesOfUPwDofs(GetDofs(), Step);
 }
 
 //----------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
 void UPwBaseElement<TDim, TNumNodes>::GetSecondDerivativesVector(Vector& rValues, int Step) const
 {
-    rValues = ExtractSecondTimeDerivativesOfUPwDofs(GetDofs(), Step);
+    rValues = Geo::DofUtilities::ExtractSecondTimeDerivativesOfUPwDofs(GetDofs(), Step);
 }
 
 //-------------------------------------------------------------------------------------------------------------------------------------------

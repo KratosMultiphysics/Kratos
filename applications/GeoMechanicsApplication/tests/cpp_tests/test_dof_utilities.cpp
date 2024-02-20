@@ -36,7 +36,7 @@ KRATOS_TEST_CASE_IN_SUITE(ExtractingEquationIdsFromEmptyDofListReturnsEmptyList,
 {
     std::vector<Dof<double>*> dofs;
 
-    KRATOS_EXPECT_TRUE(ExtractEquationIdsFrom(dofs).empty())
+    KRATOS_EXPECT_TRUE(Geo::DofUtilities::ExtractEquationIdsFrom(dofs).empty())
 }
 
 KRATOS_TEST_CASE_IN_SUITE(ExtractingEquationIdsFromDofsYieldsAssociatedIds, KratosGeoMechanicsFastSuite)
@@ -47,7 +47,7 @@ KRATOS_TEST_CASE_IN_SUITE(ExtractingEquationIdsFromDofsYieldsAssociatedIds, Krat
     const auto dofs = std::vector<Dof<double>*>{&dof1, &dof2, &dof3};
 
     const auto expected_equation_ids = std::vector<std::size_t>{22, 20, 21};
-    KRATOS_EXPECT_EQ(ExtractEquationIdsFrom(dofs), expected_equation_ids);
+    KRATOS_EXPECT_EQ(Geo::DofUtilities::ExtractEquationIdsFrom(dofs), expected_equation_ids);
 }
 
 } // namespace Kratos::Testing

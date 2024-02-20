@@ -46,10 +46,7 @@ public:
 
     using Condition::Create;
 
-    void GetDofList(DofsVectorType& rConditionDofList, const ProcessInfo&) const override
-    {
-        rConditionDofList = GetDofs();
-    }
+    void GetDofList(DofsVectorType& rConditionDofList, const ProcessInfo&) const override;
 
     void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
                               VectorType& rRightHandSideVector,
@@ -66,14 +63,7 @@ protected:
                               const ProcessInfo& rCurrentProcessInfo);
 
 private:
-    [[nodiscard]] DofsVectorType GetDofs() const
-    {
-        auto       result = DofsVectorType{};
-        const auto nodes  = this->GetGeometry();
-        std::transform(nodes.begin(), nodes.end(), std::back_inserter(result),
-                       [](const auto& r_node) { return r_node.pGetDof(TEMPERATURE); });
-        return result;
-    }
+    [[nodiscard]] DofsVectorType GetDofs() const;
 
     friend class Serializer;
 

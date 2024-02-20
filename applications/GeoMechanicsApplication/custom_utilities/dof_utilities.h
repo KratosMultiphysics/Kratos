@@ -14,19 +14,23 @@
 
 #include <vector>
 
+#include "geometries/geometry.h"
 #include "includes/dof.h"
+#include "includes/node.h"
 
-namespace Kratos
+namespace Kratos::Geo::DofUtilities
 {
 
 std::vector<std::size_t> ExtractEquationIdsFrom(const std::vector<Dof<double>*>& rDofs);
 
-Vector ExtractSolutionStepValues(const std::vector<Dof<double>*>& rDofs, int Step);
-Vector ExtractFirstTimeDerivatives(const std::vector<Dof<double>*>& rDofs, int Step);
-Vector ExtractSecondTimeDerivatives(const std::vector<Dof<double>*>& rDofs, int Step);
+std::vector<Dof<double>*> ExtractDofsFromNodes(const Geometry<Node>& rNodes, const Variable<double>& rDofVariable);
 
-Vector ExtractSolutionStepValuesOfUPwDofs(const std::vector<Dof<double>*>& rDofs, int Step);
-Vector ExtractFirstTimeDerivativesOfUPwDofs(const std::vector<Dof<double>*>& rDofs, int Step);
-Vector ExtractSecondTimeDerivativesOfUPwDofs(const std::vector<Dof<double>*>& rDofs, int Step);
+Vector ExtractSolutionStepValues(const std::vector<Dof<double>*>& rDofs, int BufferIndex);
+Vector ExtractFirstTimeDerivatives(const std::vector<Dof<double>*>& rDofs, int BufferIndex);
+Vector ExtractSecondTimeDerivatives(const std::vector<Dof<double>*>& rDofs, int BufferIndex);
 
-} // namespace Kratos
+Vector ExtractSolutionStepValuesOfUPwDofs(const std::vector<Dof<double>*>& rDofs, int BufferIndex);
+Vector ExtractFirstTimeDerivativesOfUPwDofs(const std::vector<Dof<double>*>& rDofs, int BufferIndex);
+Vector ExtractSecondTimeDerivativesOfUPwDofs(const std::vector<Dof<double>*>& rDofs, int BufferIndex);
+
+} // namespace Kratos::Geo::DofUtilities

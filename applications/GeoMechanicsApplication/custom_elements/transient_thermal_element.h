@@ -59,7 +59,7 @@ public:
 
     void EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo&) const override
     {
-        rResult = ExtractEquationIdsFrom(GetDofs());
+        rResult = Geo::DofUtilities::ExtractEquationIdsFrom(GetDofs());
     }
 
     void CalculateLocalSystem(MatrixType&        rLeftHandSideMatrix,
@@ -289,11 +289,7 @@ private:
 
     [[nodiscard]] DofsVectorType GetDofs() const
     {
-        DofsVectorType result;
-        for (const auto& r_node : GetGeometry()) {
-            result.push_back(r_node.pGetDof(TEMPERATURE));
-        }
-        return result;
+        return Geo::DofUtilities::ExtractDofsFromNodes(GetGeometry(), TEMPERATURE);
     }
 
     friend class Serializer;

@@ -46,7 +46,7 @@ void TransientPwElement<TDim, TNumNodes>::GetDofList(DofsVectorType& rElementalD
 template <unsigned int TDim, unsigned int TNumNodes>
 void TransientPwElement<TDim, TNumNodes>::EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo&) const
 {
-    rResult = ExtractEquationIdsFrom(GetDofs());
+    rResult = Geo::DofUtilities::ExtractEquationIdsFrom(GetDofs());
 }
 
 //----------------------------------------------------------------------------------------
@@ -650,11 +650,7 @@ unsigned int TransientPwElement<TDim, TNumNodes>::GetNumberOfDOF() const
 template <unsigned int TDim, unsigned int TNumNodes>
 Element::DofsVectorType TransientPwElement<TDim, TNumNodes>::GetDofs() const
 {
-    auto       result = Element::DofsVectorType{};
-    const auto nodes  = this->GetGeometry();
-    std::transform(nodes.begin(), nodes.end(), std::back_inserter(result),
-                   [](const auto& r_node) { return r_node.pGetDof(WATER_PRESSURE); });
-    return result;
+    return Geo::DofUtilities::ExtractDofsFromNodes(this->GetGeometry(), WATER_PRESSURE);
 }
 
 //----------------------------------------------------------------------------------------------------

@@ -179,14 +179,14 @@ void UPwLysmerAbsorbingCondition<TDim, TNumNodes>::CalculateDampingMatrix(Matrix
 template< unsigned int TDim, unsigned int TNumNodes >
 void UPwLysmerAbsorbingCondition<TDim, TNumNodes>::GetValuesVector(Vector& rValues, int Step) const
 {
-    rValues = ExtractSolutionStepValuesOfUPwDofs(this->GetDofs(), Step);
+    rValues = Geo::DofUtilities::ExtractSolutionStepValuesOfUPwDofs(this->GetDofs(), Step);
 }
 
 
 template< unsigned int TDim, unsigned int TNumNodes >
 void UPwLysmerAbsorbingCondition<TDim, TNumNodes>::GetFirstDerivativesVector(Vector& rValues, int Step) const
 {
-    rValues = ExtractFirstTimeDerivativesOfUPwDofs(this->GetDofs(), Step);
+    rValues = Geo::DofUtilities::ExtractFirstTimeDerivativesOfUPwDofs(this->GetDofs(), Step);
 }
 
 

@@ -545,17 +545,17 @@ void SmallStrainUPwDiffOrderElement::CalculateDampingMatrix(MatrixType&        r
 
 void SmallStrainUPwDiffOrderElement::EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo&) const
 {
-    rResult = ExtractEquationIdsFrom(GetDofs());
+    rResult = Geo::DofUtilities::ExtractEquationIdsFrom(GetDofs());
 }
 
 void SmallStrainUPwDiffOrderElement::GetFirstDerivativesVector(Vector& rValues, int Step) const
 {
-    rValues = ExtractFirstTimeDerivativesOfUPwDofs(GetDofs(), Step);
+    rValues = Geo::DofUtilities::ExtractFirstTimeDerivativesOfUPwDofs(GetDofs(), Step);
 }
 
 void SmallStrainUPwDiffOrderElement::GetSecondDerivativesVector(Vector& rValues, int Step) const
 {
-    rValues = ExtractSecondTimeDerivativesOfUPwDofs(GetDofs(), Step);
+    rValues = Geo::DofUtilities::ExtractSecondTimeDerivativesOfUPwDofs(GetDofs(), Step);
 }
 
 void SmallStrainUPwDiffOrderElement::FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
@@ -2298,9 +2298,9 @@ Element::DofsVectorType SmallStrainUPwDiffOrderElement::GetDofs() const
         }
     }
 
-    for (const auto& r_node : *mpPressureGeometry) {
-        result.push_back(r_node.pGetDof(WATER_PRESSURE));
-    }
+    const auto water_pressure_dofs =
+        Geo::DofUtilities::ExtractDofsFromNodes(*mpPressureGeometry, WATER_PRESSURE);
+    result.insert(result.end(), water_pressure_dofs.begin(), water_pressure_dofs.end());
 
     return result;
 }

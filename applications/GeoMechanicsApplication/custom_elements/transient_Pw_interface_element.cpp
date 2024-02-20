@@ -694,7 +694,7 @@ template <unsigned int TDim, unsigned int TNumNodes>
 void TransientPwInterfaceElement<TDim, TNumNodes>::EquationIdVector(EquationIdVectorType& rResult,
                                                                     const ProcessInfo&) const
 {
-    rResult = ExtractEquationIdsFrom(GetDofs());
+    rResult = Geo::DofUtilities::ExtractEquationIdsFrom(GetDofs());
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
@@ -760,11 +760,7 @@ unsigned int TransientPwInterfaceElement<TDim, TNumNodes>::GetNumberOfDOF() cons
 template <unsigned int TDim, unsigned int TNumNodes>
 Element::DofsVectorType TransientPwInterfaceElement<TDim, TNumNodes>::GetDofs() const
 {
-    auto       result = Element::DofsVectorType{};
-    const auto nodes  = this->GetGeometry();
-    std::transform(nodes.begin(), nodes.end(), std::back_inserter(result),
-                   [](const auto& r_node) { return r_node.pGetDof(WATER_PRESSURE); });
-    return result;
+    return Geo::DofUtilities::ExtractDofsFromNodes(this->GetGeometry(), WATER_PRESSURE);
 }
 
 template class TransientPwInterfaceElement<2, 4>;
