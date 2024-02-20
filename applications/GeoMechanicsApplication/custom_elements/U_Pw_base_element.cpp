@@ -702,15 +702,15 @@ double UPwBaseElement<TDim, TNumNodes>::CalculateIntegrationCoefficient(
     const GeometryType::IntegrationPointsArrayType& IntegrationPoints, unsigned int PointNumber, double detJ)
 
 {
-    std::unique_ptr<StressStatePolicy> stress_state_policy;
+    std::unique_ptr<StressStatePolicy> p_stress_state_policy;
     if constexpr (TDim == 2) {
-        stress_state_policy = std::make_unique<PlaneStrainStressState>();
+        p_stress_state_policy = std::make_unique<PlaneStrainStressState>();
     } else {
-        stress_state_policy = std::make_unique<ThreeDimensionalStressState>();
+        p_stress_state_policy = std::make_unique<ThreeDimensionalStressState>();
     }
 
-    return stress_state_policy->CalculateIntegrationCoefficient(IntegrationPoints[PointNumber],
-                                                                detJ, GetGeometry());
+    return p_stress_state_policy->CalculateIntegrationCoefficient(IntegrationPoints[PointNumber],
+                                                                  detJ, GetGeometry());
 }
 
 //----------------------------------------------------------------------------------------
