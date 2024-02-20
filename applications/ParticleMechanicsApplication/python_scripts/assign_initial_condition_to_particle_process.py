@@ -21,20 +21,20 @@ class AssignInitialConditionToParticleProcess(KratosMultiphysics.Process):
                 "variable_name"        : "SPECIFY_VARIABLE_NAME",
                 "modulus"              : 1.0,
                 "constrained"          : true,
-                "direction"            : [0.0, 0.0, 0.0],
+                "component"            : [0.0, 0.0, 0.0],
                 "local_axes"           : {}
             }
             """)
 
-        # Trick: allow "modulus" and "direction" to be a double or a string value (otherwise the ValidateAndAssignDefaults might fail)
+        # Trick: allow "modulus" and "component" to be a double or a string value (otherwise the ValidateAndAssignDefaults might fail)
 
         if settings.Has("modulus"):
             if settings["modulus"].IsString():
                 default_settings["modulus"].SetString("0.0")
 
-        if settings.Has("direction"):
-            if settings["direction"].IsString():
-                default_settings["direction"].SetString("Automatic")
+        if settings.Has("component"):
+            if settings["component"].IsString():
+                default_settings["component"].SetString("Automatic")
 
         self.variable = KratosMultiphysics.KratosGlobals.GetVariable(settings["variable_name"].GetString())
         #self.variable = KratosParticle.MP_VELOCITY
@@ -60,11 +60,11 @@ class AssignInitialConditionToParticleProcess(KratosMultiphysics.Process):
         self.aux_function_direction = ["0.0","0.0","0.0"]
         self.value_direction_is_numeric = [False, False, False]
         for i in range(3):
-            if settings["direction"][i].IsNumber():
+            if settings["component"][i].IsNumber():
                 self.value_direction_is_numeric[i] = True
-                self.vector_direction[i] = settings["direction"][i].GetDouble()
+                self.vector_direction[i] = settings["component"][i].GetDouble()
             else:
-                self.function_string_direction = settings["direction"][i].GetString()
+                self.function_string_direction = settings["component"][i].GetString()
                 self.aux_function_direction[i] = KratosMultiphysics.GenericFunctionUtility(self.function_string_direction, settings["local_axes"])
 
 
