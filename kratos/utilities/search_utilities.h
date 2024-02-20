@@ -482,7 +482,8 @@ public:
         points.reserve(structure_size);
         const auto it_begin = rStructure.begin();
         if constexpr (std::is_same<TContainer, ModelPart::NodesContainerType>::value) { // For nodes
-            if (Rank < 0) { // Checking if Rank is defined
+            const bool serial_check = (Rank < 0 || !it_begin->SolutionStepsDataHas(PARTITION_INDEX)) ? true : false;
+            if (serial_check) { // Checking if Rank is defined
                 for (std::size_t i = 0; i < structure_size; ++i) {
                     auto it = it_begin + i;
                     points.push_back(PointTypePointer(new PointType(*(it.base()))));
@@ -494,6 +495,8 @@ public:
                         points.push_back(PointTypePointer(new PointType(*(it.base()))));
                     }
                 }
+                // Reduce size
+                points.shrink_to_fit();
             }
         } else { // For other entities
             for (std::size_t i = 0; i < structure_size; ++i) {
