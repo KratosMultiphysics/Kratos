@@ -26,6 +26,9 @@ namespace Kratos
 template <unsigned int TDim, unsigned int TNumNodes>
 class KRATOS_API(GEO_MECHANICS_APPLICATION) TransientThermalElement : public Element
 {
+private:
+    bool isPressureCoupled = false;
+
 public:
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(TransientThermalElement);
 
@@ -89,10 +92,15 @@ public:
         const auto conductivity_matrix =
             CalculateConductivityMatrix(dN_dX_container, integration_coefficients, rCurrentProcessInfo);
         const auto capacity_matrix = CalculateCapacityMatrix(integration_coefficients, rCurrentProcessInfo);
+        
+        BoundedMatrix<double, TNumNodes, TNumNodes> convection_matrix = ZeroMatrix(TNumNodes, TNumNodes);
+        if (isPressureCoupled) {
+            convection_matrix = CalculateConvectionMatrix(dN_dX_container, integration_coefficients);
+        }
 
-        AddContributionsToLhsMatrix(rLeftHandSideMatrix, conductivity_matrix, capacity_matrix,
+        AddContributionsToLhsMatrix(rLeftHandSideMatrix, conductivity_matrix, capacity_matrix, convection_matrix,
                                     rCurrentProcessInfo[DT_TEMPERATURE_COEFFICIENT]);
-        AddContributionsToRhsVector(rRightHandSideVector, conductivity_matrix, capacity_matrix);
+        AddContributionsToRhsVector(rRightHandSideVector, conductivity_matrix, capacity_matrix, convection_matrix);
 
         KRATOS_CATCH("")
     }
@@ -212,15 +220,18 @@ private:
     static void AddContributionsToLhsMatrix(MatrixType& rLeftHandSideMatrix,
                                             const BoundedMatrix<double, TNumNodes, TNumNodes>& rConductivityMatrix,
                                             const BoundedMatrix<double, TNumNodes, TNumNodes>& rCapacityMatrix,
+                                            const BoundedMatrix<double, TNumNodes, TNumNodes>& rConvectionMatrix,
                                             double DtTemperatureCoefficient)
     {
         rLeftHandSideMatrix = rConductivityMatrix;
         rLeftHandSideMatrix += (DtTemperatureCoefficient * rCapacityMatrix);
+        rLeftHandSideMatrix += rConvectionMatrix;
     }
 
     void AddContributionsToRhsVector(VectorType& rRightHandSideVector,
                                      const BoundedMatrix<double, TNumNodes, TNumNodes>& rConductivityMatrix,
-                                     const BoundedMatrix<double, TNumNodes, TNumNodes>& rCapacityMatrix) const
+                                     const BoundedMatrix<double, TNumNodes, TNumNodes>& rCapacityMatrix,
+                                     const BoundedMatrix<double, TNumNodes, TNumNodes>& rConvectionMatrix) const
     {
         const auto capacity_vector =
             array_1d<double, TNumNodes>{-prod(rCapacityMatrix, GetNodalValuesOf(DT_TEMPERATURE))};
@@ -228,6 +239,10 @@ private:
         const auto conductivity_vector =
             array_1d<double, TNumNodes>{-prod(rConductivityMatrix, GetNodalValuesOf(TEMPERATURE))};
         rRightHandSideVector += conductivity_vector;
+
+        const auto convection_vector =
+            array_1d<double, TNumNodes>{-prod(rConvectionMatrix, GetNodalValuesOf(TEMPERATURE))};
+        rRightHandSideVector += convection_vector;
     }
 
     Vector CalculateIntegrationCoefficients(const Vector& rDetJContainer) const
@@ -250,13 +265,25 @@ private:
         const ProcessInfo& rCurrentProcessInfo) const
     {
         GeoThermalDispersionLaw law{TDim};
-        const auto constitutive_matrix =
-            law.CalculateThermalDispersionMatrix(GetProperties(), rCurrentProcessInfo);
+
+        Vector discharge_vector = ZeroVector(TDim);
+        Matrix constitutive_matrix;
+
+        if (!isPressureCoupled) {
+            constitutive_matrix =
+                law.CalculateThermalDispersionMatrix(GetProperties(), rCurrentProcessInfo, isPressureCoupled, discharge_vector);
+        }
 
         auto result = BoundedMatrix<double, TNumNodes, TNumNodes>{ZeroMatrix{TNumNodes, TNumNodes}};
         for (unsigned int integration_point_index = 0;
              integration_point_index < GetGeometry().IntegrationPointsNumber(GetIntegrationMethod());
              ++integration_point_index) {
+
+             if (isPressureCoupled) {
+                 discharge_vector = this->CalculateDischargeVector(rShapeFunctionGradients, integration_point_index);
+                 constitutive_matrix = law.CalculateThermalDispersionMatrix(GetProperties(), rCurrentProcessInfo, isPressureCoupled, discharge_vector);
+             }
+ 
             BoundedMatrix<double, TDim, TNumNodes> Temp =
                 prod(constitutive_matrix, trans(rShapeFunctionGradients[integration_point_index]));
             result += prod(rShapeFunctionGradients[integration_point_index], Temp) *
@@ -299,6 +326,78 @@ private:
         });
         return result;
     }
+
+    // ============================================================================================
+    // ============================================================================================
+    BoundedMatrix<double, TNumNodes, TNumNodes> CalculateConvectionMatrix(
+        const GeometryType::ShapeFunctionsGradientsType& rShapeFunctionGradients,
+        const Vector& rIntegrationCoefficients) const
+    {
+        const auto& r_properties = GetProperties();
+        auto result = BoundedMatrix<double, TNumNodes, TNumNodes>{ZeroMatrix{TNumNodes, TNumNodes}};
+        const auto& r_N_container = GetGeometry().ShapeFunctionsValues(GetIntegrationMethod());
+        for (unsigned int integration_point_index = 0;
+             integration_point_index < GetGeometry().IntegrationPointsNumber(GetIntegrationMethod());
+             ++integration_point_index) {
+
+            auto discharge_vector = this->CalculateDischargeVector(rShapeFunctionGradients, integration_point_index);
+
+            array_1d<double, TNumNodes> Temp =
+                prod(rShapeFunctionGradients[integration_point_index], discharge_vector);
+            const auto N = Vector{row(r_N_container, integration_point_index)};
+            result += outer_prod(N, Temp) * rIntegrationCoefficients[integration_point_index] *
+                      r_properties[DENSITY_WATER] * r_properties[SPECIFIC_HEAT_CAPACITY_WATER];
+        }
+        return result;
+    }
+
+    // ============================================================================================
+    // ============================================================================================
+    Vector CalculateDischargeVector(const GeometryType::ShapeFunctionsGradientsType& rShapeFunctionGradients,
+                                                    unsigned int integration_point_index) const
+    {
+        const auto& r_properties  = GetProperties();
+        const GeometryType& rGeom = this->GetGeometry();
+        array_1d<double, TNumNodes> pressure_vector;
+        for (unsigned int i = 0; i < TNumNodes; ++i) {
+            pressure_vector[i] = -rGeom[i].FastGetSolutionStepValue(WATER_PRESSURE);
+        }
+        array_1d<double, TDim> pressure_gradient = prod(trans(rShapeFunctionGradients[integration_point_index]), pressure_vector);
+
+        array_1d<double, TDim> weight_vector =
+            rGeom[0].FastGetSolutionStepValue(VOLUME_ACCELERATION) * r_properties[DENSITY_WATER];
+        pressure_gradient = pressure_gradient - weight_vector;
+
+        auto permeability_matrix = this->CalculatePermeabilityMatrix();
+        array_1d<double, TDim> result =
+            -prod(permeability_matrix, pressure_gradient) / r_properties[DYNAMIC_VISCOSITY];
+
+        return result;
+    }
+
+    // ============================================================================================
+    // ============================================================================================
+    BoundedMatrix<double, TDim, TDim> CalculatePermeabilityMatrix() const
+    {
+        const PropertiesType& rProp = this->GetProperties();
+        BoundedMatrix<double, TDim, TDim> C;
+
+        C(0, 0) = rProp[PERMEABILITY_XX];
+        C(0, 1) = rProp[PERMEABILITY_XY];
+        C(1, 0) = rProp[PERMEABILITY_XY];
+        C(1, 1) = rProp[PERMEABILITY_YY];
+        
+        if (TDim == 3) {
+            C(2, 2) = rProp[PERMEABILITY_ZZ];
+            C(1, 2) = rProp[PERMEABILITY_YZ];
+            C(2, 1) = rProp[PERMEABILITY_YZ];
+            C(0, 2) = rProp[PERMEABILITY_ZX];
+            C(2, 0) = rProp[PERMEABILITY_ZX];
+        }
+        return C;
+    }
+
+
 
     friend class Serializer;
 
