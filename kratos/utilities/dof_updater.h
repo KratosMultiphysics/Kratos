@@ -17,6 +17,7 @@
 #include "includes/define.h"
 #include "includes/model_part.h"
 #include "utilities/parallel_utilities.h"
+#include "containers/set_identity_function.h"
 
 namespace Kratos
 {
@@ -46,7 +47,7 @@ public:
     KRATOS_CLASS_POINTER_DEFINITION(DofUpdater);
 
 	using DofType = Dof<typename TSparseSpace::DataType>;
-	using DofsArrayType = PointerVectorSet<DofType>;
+	using DofsArrayType = PointerVectorSet<DofType, SetIdentityFunction<DofType>>;
 
     using SystemVectorType = typename TSparseSpace::VectorType;
 

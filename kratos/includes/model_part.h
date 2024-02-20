@@ -39,6 +39,7 @@
 #include "includes/master_slave_constraint.h"
 #include "containers/variable.h"
 #include "containers/variable_data.h"
+#include "containers/set_identity_function.h"
 
 namespace Kratos
 {
@@ -112,7 +113,7 @@ public:
     typedef Matrix MatrixType;
     typedef Vector VectorType;
 
-    typedef PointerVectorSet<DofType> DofsArrayType;
+    typedef PointerVectorSet<DofType, SetIdentityFunction<DofType>> DofsArrayType;
 
     typedef Node NodeType;
     typedef Geometry<NodeType> GeometryType;
