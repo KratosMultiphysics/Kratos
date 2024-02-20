@@ -42,6 +42,7 @@ PYBIND11_MODULE(KratosDropletDynamicsApplication,m)
 
     //registering variables in python
     KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m,EXT_INT_FORCE)
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m,NODAL_H_MAX)
 
 }
 

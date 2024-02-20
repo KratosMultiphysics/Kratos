@@ -23,6 +23,7 @@
 
 #include "spaces/ublas_space.h"
 #include "linear_solvers/linear_solver.h"
+#include "custom_utilities/find_nodal_h_process_max.h"
 
 
 namespace Kratos {
@@ -35,6 +36,15 @@ void AddCustomUtilitiesToPython(pybind11::module& m)
     typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
     typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
     typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
+    
+    // Add FindNodalHProcessMax to Python
+    py::class_<FindNodalHProcessMax<true>, FindNodalHProcessMax<true>::Pointer, Process>(m, "FindNodalHProcessMax")
+        .def(py::init<ModelPart&>())
+        .def("Execute", &FindNodalHProcessMax<true>::Execute);
+
+    py::class_<FindNodalHProcessMax<false>, FindNodalHProcessMax<false>::Pointer, Process>(m, "FindNonHistoricalNodalHProcessMax")
+        .def(py::init<ModelPart&>())
+        .def("Execute", &FindNodalHProcessMax<false>::Execute);
 
 }
 

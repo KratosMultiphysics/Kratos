@@ -36,6 +36,7 @@ void KratosDropletDynamicsApplication::Register()
 
     // External interfacial force, e.g. for including the electromagentic coupling
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(EXT_INT_FORCE)
+    KRATOS_REGISTER_VARIABLE(NODAL_H_MAX)
 
     // Register Elements
     KRATOS_REGISTER_ELEMENT("DropletDynamics2D3N", mDropletDynamics2D3N);

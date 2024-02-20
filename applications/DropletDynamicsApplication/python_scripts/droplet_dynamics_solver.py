@@ -1,3 +1,8 @@
+import math
+import sys
+import time
+import importlib
+
 # Importing the Kratos Library
 import KratosMultiphysics
 from KratosMultiphysics import auxiliary_solver_utilities
@@ -78,10 +83,10 @@ class DropletDynamicsSolver(PythonSolver):  # Before, it was derived from Navier
                     "cross_wind_stabilization_factor" : 0.7
                 }
             },
-            "distance_reinitialization": "variational",
+            "distance_reinitialization": "none",
             "parallel_redistance_max_layers" : 25,
             "distance_smoothing": false,
-            "distance_smoothing_coefficient": 1.0,
+            "distance_smoothing_coefficient": 0.0,
             "distance_modification_settings": {
                 "model_part_name": "",
                 "distance_threshold": 1e-5,
@@ -99,6 +104,9 @@ class DropletDynamicsSolver(PythonSolver):  # Before, it was derived from Navier
     def __init__(self, model, custom_settings):
         """Initializing the solver."""
         # TODO: DO SOMETHING IN HERE TO REMOVE THE "time_order" FROM THE DEFAULT SETTINGS BUT KEEPING THE BACKWARDS COMPATIBILITY
+
+        #Defining a pseudo time variable for extracting the convection diffusion results
+        self.pseudo_time = 0
 
         if custom_settings.Has("levelset_convection_settings"):
             if custom_settings["levelset_convection_settings"].Has("levelset_splitting"):
@@ -210,6 +218,7 @@ class DropletDynamicsSolver(PythonSolver):  # Before, it was derived from Navier
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.IS_STRUCTURE)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.BODY_FORCE)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_H)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosDroplet.NODAL_H_MAX)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_AREA)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.REACTION)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.REACTION_WATER_PRESSURE)
@@ -261,6 +270,9 @@ class DropletDynamicsSolver(PythonSolver):  # Before, it was derived from Navier
         KratosMultiphysics.NormalCalculationUtils().CalculateOnSimplex(
             computing_model_part,
             computing_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE])
+        
+        # Initializing level-set function
+        self._Initialize_Conservative_LevelSet_Function()
 
         # Finding nodal and elemental neighbors
         data_communicator = computing_model_part.GetCommunicator().GetDataCommunicator()
@@ -334,6 +346,10 @@ class DropletDynamicsSolver(PythonSolver):  # Before, it was derived from Navier
         self._GetDistanceGradientProcess().Execute()
         # curvature is calculated using nodal distance gradient
         self._GetDistanceCurvatureProcess().Execute()
+
+        # Curvature correction (If needed)
+        # self._Curvature_Correction()
+
         # it is needed to store level-set consistent nodal PRESSURE_GRADIENT for stabilization purpose
         self._GetConsistentNodalPressureGradientProcess().Execute()
 
@@ -368,6 +384,11 @@ class DropletDynamicsSolver(PythonSolver):  # Before, it was derived from Navier
 
     def FinalizeSolutionStep(self):
         KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Mass and momentum conservation equations are solved.")
+
+        # Performing The Conservative Law
+        #self._PerformConservativeLaw()
+        self._SetNodalProperties()
+        self._GetDistanceGradientProcess().Execute()
 
         # Recompute the distance field according to the new level-set position
         if self._reinitialization_type != "none":
@@ -887,6 +908,35 @@ class DropletDynamicsSolver(PythonSolver):  # Before, it was derived from Navier
                 self.main_model_part)
 
         return consistent_nodal_pressure_gradient_process
+    
+#####################################################################################################################
+    
+    # Initialization of distance function distribution
+    def _Initialize_Conservative_LevelSet_Function(self):
 
+        find_nodal_h_max = KratosDroplet.FindNodalHProcessMax(self.main_model_part)
+        find_nodal_h_max.Execute()
+
+        # Find Maximum Value of Nodal_h inside the Model_Part   
+        self.nodal_h_max = 0.0
+        for node in self.main_model_part.Nodes:
+            nodal_h = node.GetSolutionStepValue(KratosDroplet.NODAL_H_MAX)
+            if (nodal_h > self.nodal_h_max):
+                self.nodal_h_max = nodal_h
+        print ("Maximum Value of Nodal_H = Epsilon = ",self.nodal_h_max)
+      
+        # Initialization of distance function
+        for node in self.main_model_part.Nodes:
+            distance = node.GetSolutionStepValue(KratosMultiphysics.DISTANCE)
+            conservative_distance = (1 / ( 1 + (math.e)**( -distance/self.nodal_h_max) )) - 0.5
+            node.SetSolutionStepValue(KratosMultiphysics.DISTANCE, conservative_distance)
+
+    # Curvature correction
+    def _Curvature_Correction(self):
+        
+        for node in self.main_model_part.Nodes:
+            distance = node.GetSolutionStepValue(KratosMultiphysics.DISTANCE)
+            if (distance > 0.49999 or distance < -0.49999):
+                node.SetValue(KratosCFD.CURVATURE, 0.0)
 
 

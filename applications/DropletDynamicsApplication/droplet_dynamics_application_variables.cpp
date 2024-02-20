@@ -16,4 +16,5 @@ namespace Kratos
 {
     // External interfacial force, e.g. for including the electromagentic coupling
     KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(EXT_INT_FORCE)
+    KRATOS_CREATE_VARIABLE(double, NODAL_H_MAX)
 }
