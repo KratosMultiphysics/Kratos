@@ -50,6 +50,8 @@ KratosConvectionDiffusionApplication::KratosConvectionDiffusionApplication()
       mMixedLaplacianElement3D4N(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node >(Element::GeometryType::PointsArrayType(4)))),
       mEmbeddedLaplacian2D3N(0, Element::GeometryType::Pointer(new Triangle2D3<Node >(Element::GeometryType::PointsArrayType(3)))),
       mEmbeddedLaplacian3D4N(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node >(Element::GeometryType::PointsArrayType(4)))),
+      mEmbeddedLaplacianBCSF2D3N(0, Element::GeometryType::Pointer(new Triangle2D3<Node >(Element::GeometryType::PointsArrayType(3)))),
+      mEmbeddedLaplacianBCSF3D4N(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node >(Element::GeometryType::PointsArrayType(4)))),
       mAdjointDiffusionElement2D3N(0, Element::GeometryType::Pointer(new Triangle2D3<Node >(Element::GeometryType::PointsArrayType(3)))),
       mAdjointDiffusionElement3D4N(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node >(Element::GeometryType::PointsArrayType(4)))),
       mAxisymmetricThermalFace2D2N(0, Element::GeometryType::Pointer(new Line2D2<Node >(Element::GeometryType::PointsArrayType(2)))),
@@ -113,6 +115,8 @@ void KratosConvectionDiffusionApplication::Register() {
     KRATOS_REGISTER_ELEMENT("MixedLaplacianElement3D4N", mMixedLaplacianElement3D4N);
     KRATOS_REGISTER_ELEMENT("EmbeddedLaplacianElement2D3N", mEmbeddedLaplacian2D3N);
     KRATOS_REGISTER_ELEMENT("EmbeddedLaplacianElement3D4N", mEmbeddedLaplacian3D4N);
+    KRATOS_REGISTER_ELEMENT("EmbeddedLaplacianBCSFElement2D3N", mEmbeddedLaplacianBCSF2D3N);
+    KRATOS_REGISTER_ELEMENT("EmbeddedLaplacianBCSFElement3D4N", mEmbeddedLaplacianBCSF3D4N);
     KRATOS_REGISTER_ELEMENT("QSConvectionDiffusionExplicit2D3N", mQSConvectionDiffusionExplicit2D3N);
     KRATOS_REGISTER_ELEMENT("QSConvectionDiffusionExplicit3D4N", mQSConvectionDiffusionExplicit3D4N);
     KRATOS_REGISTER_ELEMENT("DConvectionDiffusionExplicit2D3N", mDConvectionDiffusionExplicit2D3N);

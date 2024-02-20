@@ -32,6 +32,7 @@
 #include "custom_elements/laplacian_element.h"
 #include "custom_elements/mixed_laplacian_element.h"
 #include "custom_elements/embedded_laplacian_element.h"
+#include "custom_elements/embedded_laplacian_bcsf_element.h"
 #include "custom_elements/adjoint_diffusion_element.h"
 #include "custom_elements/qs_convection_diffusion_explicit.h"
 #include "custom_elements/d_convection_diffusion_explicit.h"
@@ -250,6 +251,8 @@ private:
     const MixedLaplacianElement<3,4> mMixedLaplacianElement3D4N;
     const EmbeddedLaplacianElement<2> mEmbeddedLaplacian2D3N;
     const EmbeddedLaplacianElement<3> mEmbeddedLaplacian3D4N;
+    const EmbeddedLaplacianBCSFElement<2> mEmbeddedLaplacianBCSF2D3N;
+    const EmbeddedLaplacianBCSFElement<3> mEmbeddedLaplacianBCSF3D4N;
 
     const AdjointDiffusionElement<LaplacianElement> mAdjointDiffusionElement2D3N;
     const AdjointDiffusionElement<LaplacianElement> mAdjointDiffusionElement3D4N;
