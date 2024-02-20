@@ -82,13 +82,13 @@ KRATOS_TEST_CASE_IN_SUITE(MixedGenericCriteriaDoubleDouble, KratosCoreFastSuite)
     auto mixed_generic_criteria = MixedGenericCriteriaType(convergence_settings);
 
     // Set the auxiliary arrays
-    DofsArrayType aux_dof_set;
-    aux_dof_set.reserve(20);
+    std::vector<ModelPart::DofType::Pointer> aux_dofs;
+    aux_dofs.reserve(10);
     for (auto& r_node : r_model_part.Nodes()) {
-        aux_dof_set.push_back(r_node.pGetDof(PRESSURE));
-        aux_dof_set.push_back(r_node.pGetDof(TEMPERATURE));
+        aux_dofs.push_back(r_node.pGetDof(PRESSURE));
+        aux_dofs.push_back(r_node.pGetDof(TEMPERATURE));
     }
-    aux_dof_set.Sort();
+    DofsArrayType aux_dof_set(aux_dofs.begin(), aux_dofs.end());
     typename MixedGenericCriteriaType::TSystemMatrixType A; // Only required to match the API
     typename MixedGenericCriteriaType::TSystemVectorType b; // Only required to match the API
     typename MixedGenericCriteriaType::TSystemVectorType Dx(20);
@@ -141,14 +141,15 @@ KRATOS_TEST_CASE_IN_SUITE(MixedGenericCriteriaDoubleVector, KratosCoreFastSuite)
     auto mixed_generic_criteria = MixedGenericCriteriaType(convergence_settings);
 
     // Set the auxiliary arrays
-    DofsArrayType aux_dof_set;
-    aux_dof_set.reserve(30);
+    std::vector<ModelPart::DofType::Pointer> aux_dofs;
+    aux_dofs.reserve(30);
     for (auto& r_node : r_model_part.Nodes()) {
-        aux_dof_set.push_back(r_node.pGetDof(PRESSURE));
-        aux_dof_set.push_back(r_node.pGetDof(VELOCITY_X));
-        aux_dof_set.push_back(r_node.pGetDof(VELOCITY_Y));
+        aux_dofs.push_back(r_node.pGetDof(PRESSURE));
+        aux_dofs.push_back(r_node.pGetDof(VELOCITY_X));
+        aux_dofs.push_back(r_node.pGetDof(VELOCITY_Y));
     }
-    aux_dof_set.Sort();
+    DofsArrayType aux_dof_set(aux_dofs.begin(), aux_dofs.end());
+
     typename MixedGenericCriteriaType::TSystemMatrixType A; // Only required to match the API
     typename MixedGenericCriteriaType::TSystemVectorType b; // Only required to match the API
     typename MixedGenericCriteriaType::TSystemVectorType Dx(30);
@@ -215,14 +216,15 @@ KRATOS_TEST_CASE_IN_SUITE(MixedGenericCriteriaDoubleVectorWithParameters, Kratos
     auto mixed_generic_criteria = MixedGenericCriteriaType(parameters);
 
     // Set the auxiliary arrays
-    DofsArrayType aux_dof_set;
-    aux_dof_set.reserve(30);
+    std::vector<ModelPart::DofType::Pointer> aux_dofs;
+    aux_dofs.reserve(30);
     for (auto& r_node : r_model_part.Nodes()) {
-        aux_dof_set.push_back(r_node.pGetDof(PRESSURE));
-        aux_dof_set.push_back(r_node.pGetDof(VELOCITY_X));
-        aux_dof_set.push_back(r_node.pGetDof(VELOCITY_Y));
+        aux_dofs.push_back(r_node.pGetDof(PRESSURE));
+        aux_dofs.push_back(r_node.pGetDof(VELOCITY_X));
+        aux_dofs.push_back(r_node.pGetDof(VELOCITY_Y));
     }
-    aux_dof_set.Sort();
+    DofsArrayType aux_dof_set(aux_dofs.begin(), aux_dofs.end());
+
     typename MixedGenericCriteriaType::TSystemMatrixType A; // Only required to match the API
     typename MixedGenericCriteriaType::TSystemVectorType b; // Only required to match the API
     typename MixedGenericCriteriaType::TSystemVectorType Dx(30);
