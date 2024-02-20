@@ -27,7 +27,7 @@ public:
     [[nodiscard]] Matrix CalculateBMatrix(const Matrix&         rGradNpT,
                                           const Vector&         rNp,
                                           const Geometry<Node>& rGeometry) const override;
-    [[nodiscard]] Vector CalculateGreenLagrangeStrain(const Matrix& rTotalDeformationGradient) const override;
+    [[nodiscard]] Vector CalculateGreenLagrangeStrain(const Matrix& rDeformationGradient) const override;
     [[nodiscard]] std::unique_ptr<StressStatePolicy> Clone() const override;
 };
 

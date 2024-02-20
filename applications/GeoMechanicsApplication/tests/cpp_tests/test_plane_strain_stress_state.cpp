@@ -24,7 +24,7 @@ namespace Kratos::Testing
 
 KRATOS_TEST_CASE_IN_SUITE(CalculateBMatrixGivesCorrectResults, KratosGeoMechanicsFastSuite)
 {
-    auto stress_state = std::make_unique<PlaneStrainStressState>();
+    auto p_stress_state_policy = std::make_unique<PlaneStrainStressState>();
 
     Model model;
     auto& r_model_part = ModelSetupUtilities::CreateModelPartWithASingle2D3NElement(model);
@@ -40,7 +40,7 @@ KRATOS_TEST_CASE_IN_SUITE(CalculateBMatrixGivesCorrectResults, KratosGeoMechanic
     // clang-format on
 
     const auto calculated_matrix =
-        stress_state->CalculateBMatrix(GradNpT, Np, r_model_part.GetElement(1).GetGeometry());
+        p_stress_state_policy->CalculateBMatrix(GradNpT, Np, r_model_part.GetElement(1).GetGeometry());
 
     // clang-format off
     Matrix expected_matrix(4, 6);

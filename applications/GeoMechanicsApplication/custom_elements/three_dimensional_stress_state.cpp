@@ -42,14 +42,14 @@ Matrix ThreeDimensionalStressState::CalculateBMatrix(const Matrix&         GradN
 }
 
 double ThreeDimensionalStressState::CalculateIntegrationCoefficient(
-    const Geometry<Node>::IntegrationPointType& rIntegrationPoint, double detJ, const Geometry<Node>&) const
+    const Geometry<Node>::IntegrationPointType& rIntegrationPoint, double DetJ, const Geometry<Node>&) const
 {
-    return rIntegrationPoint.Weight() * detJ;
+    return rIntegrationPoint.Weight() * DetJ;
 }
 
-Vector ThreeDimensionalStressState::CalculateGreenLagrangeStrain(const Matrix& rTotalDeformationGradient) const
+Vector ThreeDimensionalStressState::CalculateGreenLagrangeStrain(const Matrix& rDeformationGradient) const
 {
-    const auto ETensor = StressStrainUtilities::CalculateGreenLagrangeStrainTensor(rTotalDeformationGradient);
+    const auto ETensor = StressStrainUtilities::CalculateGreenLagrangeStrainTensor(rDeformationGradient);
     return MathUtils<double>::StrainTensorToVector(ETensor);
 }
 
