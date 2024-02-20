@@ -51,14 +51,16 @@ Element::Pointer SmallStrainUPwDiffOrderElement::Create(IndexType               
                                                         NodesArrayType const&   ThisNodes,
                                                         PropertiesType::Pointer pProperties) const
 {
-    return Element::Pointer(new SmallStrainUPwDiffOrderElement(NewId, GetGeometry().Create(ThisNodes), pProperties, mpStressStatePolicy->Clone()));
+    return Element::Pointer(new SmallStrainUPwDiffOrderElement(
+        NewId, GetGeometry().Create(ThisNodes), pProperties, mpStressStatePolicy->Clone()));
 }
 
 Element::Pointer SmallStrainUPwDiffOrderElement::Create(IndexType               NewId,
                                                         GeometryType::Pointer   pGeom,
                                                         PropertiesType::Pointer pProperties) const
 {
-    return Element::Pointer(new SmallStrainUPwDiffOrderElement(NewId, pGeom, pProperties, mpStressStatePolicy->Clone()));
+    return Element::Pointer(
+        new SmallStrainUPwDiffOrderElement(NewId, pGeom, pProperties, mpStressStatePolicy->Clone()));
 }
 
 int SmallStrainUPwDiffOrderElement::Check(const ProcessInfo& rCurrentProcessInfo) const

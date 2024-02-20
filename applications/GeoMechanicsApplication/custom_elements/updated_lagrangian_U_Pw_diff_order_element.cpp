@@ -33,7 +33,8 @@ Element::Pointer UpdatedLagrangianUPwDiffOrderElement::Create(IndexType         
                                                               GeometryType::Pointer pGeom,
                                                               PropertiesType::Pointer pProperties) const
 {
-    return Element::Pointer(new UpdatedLagrangianUPwDiffOrderElement(NewId, pGeom, pProperties, this->GetStressStatePolicy().Clone()));
+    return Element::Pointer(new UpdatedLagrangianUPwDiffOrderElement(
+        NewId, pGeom, pProperties, this->GetStressStatePolicy().Clone()));
 }
 
 //----------------------------------------------------------------------------------------
