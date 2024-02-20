@@ -161,9 +161,10 @@ protected:
      * @param rConstitutiveMatrix
      * @param rStressVector the stress vector corresponding to the deformation
      */
-    virtual void CalculateStress( const Vector &rStrainVector,
+    void CalculateStress( const Vector &rStrainVector,
                                   const Matrix &rConstitutiveMatrix,
-                                  Vector& rStressVector);
+                                  Vector& rStressVector,
+                                  Parameters& rValues);
 
 
     /**
