@@ -118,13 +118,13 @@ python_version = KratosGlobals.Kernel.PythonVersion()
 python_version = python_version.replace("Python","")
 kratos_version_info = python_version.split(".")
 
-if sys.version_info.major != int(kratos_version_info[0]) and sys.version_info.minor != int(kratos_version_info[1]):
-    Logger.PrintWarning("Warning: Kratos is running with python {}.{} but was compiled with python {}.{}. Please ensure the versions match.".format(
-        sys.version_info.major, sys.version_info.minor,
-        kratos_version_info[0], kratos_version_info[1]
-    ))
+# if sys.version_info.major != int(kratos_version_info[0]) and sys.version_info.minor != int(kratos_version_info[1]):
+#     Logger.PrintWarning("Warning: Kratos is running with python {}.{} but was compiled with python {}.{}. Please ensure the versions match.".format(
+#         sys.version_info.major, sys.version_info.minor,
+#         kratos_version_info[0], kratos_version_info[1]
+#     ))
 
-# print the process id e.g. for attaching a debugger
+# Print the process id e.g. for attatching a debugger
 if KratosGlobals.Kernel.BuildType() != "Release":
     Logger.PrintInfo("Process Id", os.getpid())
 

@@ -1,0 +1,121 @@
+{
+    "problem_data" :
+    {
+        "problem_name":"Barc",
+        "start_time" : 0.0,
+        "end_time" : 4.0,
+        "echo_level" : 0,
+        "print_colors" : true,
+        "parallel_type" : "OpenMP"
+    },
+    "solver_settings" :
+    {
+        "type" : "coupled_solvers.gauss_seidel_weak",
+        "echo_level" : 0,
+        "data_transfer_operators" : {
+            "direct_transfer" : {
+                "type" : "copy_with_empty_ranks"
+            }
+        },
+        "coupling_sequence":
+        [
+        {
+            "name": "RBS2",
+            "input_data_list": [
+                {
+                    "data"              : "root_point_displacement",
+                    "from_solver"       : "RBS1",
+                    "from_solver_data"  : "displacement",
+                    "data_transfer_operator" : "direct_transfer"
+                },
+                {
+                    "data"              : "root_point_rotation",
+                    "from_solver"       : "RBS1",
+                    "from_solver_data"  : "rotation",
+                    "data_transfer_operator" : "direct_transfer"
+                }
+            ],
+            "output_data_list": [
+                {
+                    "data"           : "reaction",
+                    "to_solver"      : "RBS1",
+                    "to_solver_data" : "force",
+                    "data_transfer_operator" : "direct_transfer"
+                },
+                {
+                    "data"           : "reaction_moment",
+                    "to_solver"      : "RBS1",
+                    "to_solver_data" : "moment",
+                    "data_transfer_operator" : "direct_transfer"
+                }
+            ]
+        },
+        {
+            "name": "RBS1",
+            "output_data_list": [],
+            "input_data_list": []
+        }
+        ],
+        "solvers" :
+        {
+            "RBS1":
+            {
+                "type" : "solver_wrappers.rigid_body.rigid_body_solver_wrapper",
+                "solver_wrapper_settings" : {
+                    "input_file"  : "rbs_test/RBS_RBS/ProjectParametersRBS1"
+                },
+                "data" : {
+                    "displacement" : {
+                        "model_part_name" : "Main.RigidBody",
+                        "variable_name" : "DISPLACEMENT",
+                        "dimension" : 3
+                    },
+                    "rotation" : {
+                        "model_part_name" : "Main.RigidBody",
+                        "variable_name" : "ROTATION",
+                        "dimension" : 3
+                    },
+                    "force" : {
+                        "model_part_name" : "Main.RigidBody",
+                        "variable_name" : "FORCE",
+                        "dimension" : 3
+                    },
+                    "moment" : {
+                        "model_part_name" : "Main.RigidBody",
+                        "variable_name" : "MOMENT",
+                        "dimension" : 3
+                    }
+                }
+            },
+            "RBS2" :
+            {
+                "type" : "solver_wrappers.rigid_body.rigid_body_solver_wrapper",
+                "solver_wrapper_settings" : {
+                    "input_file"  : "rbs_test/RBS_RBS/ProjectParametersRBS2"
+                },
+                "data" : {
+                    "root_point_displacement" : {
+                        "model_part_name" : "Main.RootPoint",
+                        "variable_name" : "DISPLACEMENT",
+                        "dimension" : 3
+                    },
+                    "root_point_rotation" : {
+                        "model_part_name" : "Main.RootPoint",
+                        "variable_name" : "ROTATION",
+                        "dimension" : 3
+                    },
+                    "reaction" : {
+                        "model_part_name" : "Main.RootPoint",
+                        "variable_name" : "REACTION",
+                        "dimension" : 3
+                    },
+                    "reaction_moment" : {
+                        "model_part_name" : "Main.RootPoint",
+                        "variable_name" : "REACTION_MOMENT",
+                        "dimension" : 3
+                    }
+                }
+            }
+        }
+    }
+}

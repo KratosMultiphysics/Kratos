@@ -8,6 +8,10 @@ from test_function_callback_utility import TestGenericCallFunction
 from test_ping_pong_coupling import TestPingPong
 from test_processes import TestCreatePointBasedEntitiesProcess
 from test_mok_fsi import TestMokFSI
+from rbs_test_factory import TestRBSStandalone
+from rbs_test_factory import TestRBSRBS
+from rbs_test_factory import TestBarc2DRigidBody
+
 from test_coupling_interface_data import TestCouplingInterfaceData
 from test_data_transfer_operators import TestDataTransferOperators
 from test_coupling_operations import TestScalingOperation
@@ -22,7 +26,7 @@ from test_co_simulation_coupled_solver import TestCoupledSolverModelAccess
 from test_co_simulation_coupled_solver import TestCoupledSolverPassingModel
 from test_co_simulation_coupled_solver import TestCoupledSolverCouplingInterfaceDataAccess
 from test_model_part_utilties import TestModelPartUtiliites
-from test_thermal_rom_co_sim import TestThermalRomCoSim
+from test_rigid_body_solver import TestRigidBodySolver
 
 from test_cosim_EMPIRE_API import TestCoSim_EMPIRE_API
 from test_co_sim_io_py_exposure import TestCoSimIOPyExposure
@@ -49,6 +53,10 @@ def AssembleTestSuites():
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestCreatePointBasedEntitiesProcess]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestCoSim_EMPIRE_API]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestCoSimIOPyExposure_aux_tests]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestRBSStandalone]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestRBSRBS]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestBarc2DRigidBody]))
+    
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestCouplingInterfaceData]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestDataTransferOperators]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestScalingOperation]))
@@ -64,7 +72,7 @@ def AssembleTestSuites():
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestPingPong]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestConvergenceAcceleratorWrapper]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestTinyFetiCoSimulationCases]))
-    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestThermalRomCoSim]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestRigidBodySolver]))
 
 
     ################################################################################
