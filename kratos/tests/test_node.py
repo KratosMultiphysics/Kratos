@@ -36,32 +36,60 @@ class TestNode(KratosUnittest.TestCase):
 
         return mp
 
-    def testSolutionStepValue(self):
+    def testSetValues(self):
         """
-        Tests the functionality related to solution step values of nodes within a ModelPart.
-        This includes checking the existence of specific solution step variables and
-        verifying their correct assignment and retrieval.
+        Tests the functionality related to solution step values and node values within a ModelPart.
+        This test covers:
+        - Checking the existence of specific solution step variables.
+        - Verifying the correct assignment and retrieval of these variables.
+
+        The test assigns PRESSURE and TEMPERATURE based on the X coordinate of each node,
+        then verifies the presence and values of solution step variables and node values.
         """
+        # Initialize the Kratos Multiphysics model
         current_model = KratosMultiphysics.Model()
         test_model_part = self.__SetUpTestModelPart(current_model)
 
-        # Verify the presence of solution step variables for each node.
-        for node in test_model_part.Nodes:
-            self.assertTrue(node.HasSolutionStepValue(KratosMultiphysics.DISPLACEMENT))
-            self.assertTrue(node.HasSolutionStepValue(KratosMultiphysics.DISPLACEMENT_X))
-            self.assertTrue(node.HasSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Y))
-            self.assertTrue(node.HasSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Z))
-            self.assertTrue(node.HasSolutionStepValue(KratosMultiphysics.REACTION))
-            self.assertTrue(node.HasSolutionStepValue(KratosMultiphysics.REACTION_X))
-            self.assertTrue(node.HasSolutionStepValue(KratosMultiphysics.REACTION_Y))
-            self.assertTrue(node.HasSolutionStepValue(KratosMultiphysics.REACTION_Z))
-            self.assertTrue(node.HasSolutionStepValue(KratosMultiphysics.PRESSURE))
-            self.assertFalse(node.HasSolutionStepValue(KratosMultiphysics.TEMPERATURE))
-
-        # Assign PRESSURE solution step value based on node X coordinate and verify.
+        # Assign PRESSURE as a solution step value and TEMPERATURE as a node value
+        # based on the node's X coordinate. Verify these assignments later.
         for node in test_model_part.Nodes:
             node.SetSolutionStepValue(KratosMultiphysics.PRESSURE, node.X)
-            self.assertAlmostEqual(node.GetSolutionStepValue(KratosMultiphysics.PRESSURE), node.X)
+            node.SetValue(KratosMultiphysics.TEMPERATURE, node.X)
+
+        # Verify the presence of solution step variables and their correct assignment for each node
+        for node in test_model_part.Nodes:
+            # Check for the presence of DISPLACEMENT and its components as solution step variables
+            self.assertTrue(node.HasSolutionStepValue(KratosMultiphysics.DISPLACEMENT))
+            self.assertFalse(node.Has(KratosMultiphysics.DISPLACEMENT))  # Verify DISPLACEMENT is not a regular node value
+            self.assertTrue(node.HasSolutionStepValue(KratosMultiphysics.DISPLACEMENT_X))
+            self.assertFalse(node.Has(KratosMultiphysics.DISPLACEMENT_X))
+            self.assertTrue(node.HasSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Y))
+            self.assertFalse(node.Has(KratosMultiphysics.DISPLACEMENT_Y))
+            self.assertTrue(node.HasSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Z))
+            self.assertFalse(node.Has(KratosMultiphysics.DISPLACEMENT_Z))
+
+            # Check for the presence of REACTION and its components as solution step variables
+            self.assertTrue(node.HasSolutionStepValue(KratosMultiphysics.REACTION))
+            self.assertFalse(node.Has(KratosMultiphysics.REACTION))  # Verify REACTION is not a regular node value
+            self.assertTrue(node.HasSolutionStepValue(KratosMultiphysics.REACTION_X))
+            self.assertFalse(node.Has(KratosMultiphysics.REACTION_X))
+            self.assertTrue(node.HasSolutionStepValue(KratosMultiphysics.REACTION_Y))
+            self.assertFalse(node.Has(KratosMultiphysics.REACTION_Y))
+            self.assertTrue(node.HasSolutionStepValue(KratosMultiphysics.REACTION_Z))
+            self.assertFalse(node.Has(KratosMultiphysics.REACTION_Z))
+
+            # Verify PRESSURE is correctly assigned as a solution step variable
+            self.assertTrue(node.HasSolutionStepValue(KratosMultiphysics.PRESSURE))
+            self.assertFalse(node.Has(KratosMultiphysics.PRESSURE))  # Verify PRESSURE is not a regular node value
+
+            # Verify TEMPERATURE is not set as a solution step variable but as a regular node value
+            self.assertFalse(node.HasSolutionStepValue(KratosMultiphysics.TEMPERATURE))
+            self.assertTrue(node.Has(KratosMultiphysics.TEMPERATURE))
+
+        # Verify the assigned values of PRESSURE and TEMPERATURE for each node
+        for node in test_model_part.Nodes:
+            self.assertAlmostEqual(node.GetSolutionStepValue(KratosMultiphysics.PRESSURE), node.X, msg="PRESSURE value mismatch")
+            self.assertAlmostEqual(node.GetValue(KratosMultiphysics.TEMPERATURE), node.X, msg="TEMPERATURE value mismatch")
 
 if __name__ == '__main__':
     # Set logging severity to WARNING to reduce clutter during test execution.
