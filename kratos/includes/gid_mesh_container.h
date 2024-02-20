@@ -55,7 +55,8 @@ public:
         if ( pElemIt->GetGeometry().GetGeometryType() == mGeometryType )
         {
             mMeshElements.insert (mMeshElements.end(), * (pElemIt.base() ) );
-            mMeshNodes.insert(pElemIt->GetGeometry().ptr_begin(), pElemIt->GetGeometry().ptr_end());
+            std::vector<Node::Pointer> temp(pElemIt->GetGeometry().ptr_begin(), pElemIt->GetGeometry().ptr_end());
+            mMeshNodes.insert(temp.begin(), temp.end());
             return true;
         }
         else
@@ -68,7 +69,8 @@ public:
         if ( pCondIt->GetGeometry().GetGeometryType() == mGeometryType )
         {
             mMeshConditions.insert (mMeshConditions.end(), * (pCondIt.base() ) );
-            mMeshNodes.insert(pCondIt->GetGeometry().ptr_begin(), pCondIt->GetGeometry().ptr_end());
+            std::vector<Node::Pointer> temp(pCondIt->GetGeometry().ptr_begin(), pCondIt->GetGeometry().ptr_end());
+            mMeshNodes.insert(temp.begin(), temp.end());
             return true;
         }
         else
