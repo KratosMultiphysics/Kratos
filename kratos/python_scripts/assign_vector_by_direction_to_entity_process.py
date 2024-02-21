@@ -82,7 +82,6 @@ class AssignVectorByDirectionToEntityProcess(KratosMultiphysics.Process):
 
         # Component X
         x_params.AddValue("model_part_name",settings["model_part_name"])
-        x_params.AddValue("mesh_id",settings["mesh_id"])
         x_params.AddValue("interval",settings["interval"])
         x_params.AddEmptyValue("variable_name").SetString(settings["variable_name"].GetString() + "_X")
         x_params.AddValue("local_axes",settings["local_axes"])
@@ -90,7 +89,6 @@ class AssignVectorByDirectionToEntityProcess(KratosMultiphysics.Process):
 
         # Component Y
         y_params.AddValue("model_part_name",settings["model_part_name"])
-        y_params.AddValue("mesh_id",settings["mesh_id"])
         y_params.AddValue("interval",settings["interval"])
         y_params.AddEmptyValue("variable_name").SetString(settings["variable_name"].GetString() + "_Y")
         y_params.AddValue("local_axes",settings["local_axes"])
@@ -98,7 +96,6 @@ class AssignVectorByDirectionToEntityProcess(KratosMultiphysics.Process):
 
         # Component Z
         z_params.AddValue("model_part_name",settings["model_part_name"])
-        z_params.AddValue("mesh_id",settings["mesh_id"])
         z_params.AddValue("interval",settings["interval"])
         z_params.AddEmptyValue("variable_name").SetString(settings["variable_name"].GetString() + "_Z")
         z_params.AddValue("local_axes",settings["local_axes"])
@@ -128,7 +125,7 @@ class AssignVectorByDirectionToEntityProcess(KratosMultiphysics.Process):
 
                 # Note that it is assumed that the NormalCalculationUtils().CalculateNormals returns the outwards normal vector
                 if settings["direction"].GetString() == "automatic_inwards_normal":
-                    unit_direction = -unit_direction
+                    unit_direction = (-1.0)*unit_direction
 
         # Direction is given as a vector
         elif settings["direction"].IsArray():

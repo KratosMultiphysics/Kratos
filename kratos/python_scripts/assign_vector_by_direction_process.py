@@ -112,7 +112,7 @@ class AssignVectorByDirectionProcess(KratosMultiphysics.Process):
 
                 # Note that it is assumed that the NormalCalculationUtils().CalculateNormals returns the outwards normal vector
                 if settings["direction"].GetString() == "automatic_inwards_normal":
-                    unit_direction = -unit_direction
+                    unit_direction = (-1.0)*unit_direction
 
         # Direction is given as a vector
         elif settings["direction"].IsArray():
