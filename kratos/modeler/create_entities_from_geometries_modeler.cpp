@@ -59,7 +59,7 @@ void CreateEntitiesFromGeometries(
         if (rEntityIdentifier.HasPrototypeEntity(r_geom)) {
             const auto& r_ref_entity = rEntityIdentifier.GetPrototypeEntity(r_geom);
             auto p_entity = r_ref_entity.Create(++max_id, r_geom, nullptr);
-            entities_to_add.push_back(p_entity);
+            entities_to_add.insert(entities_to_add.end(), p_entity);
         }
     }
 
