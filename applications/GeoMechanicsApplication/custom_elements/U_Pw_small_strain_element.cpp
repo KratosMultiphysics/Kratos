@@ -13,6 +13,8 @@
 
 // Application includes
 #include "custom_elements/U_Pw_small_strain_element.hpp"
+#include "plane_strain_stress_state.h"
+#include "three_dimensional_stress_state.h"
 
 namespace Kratos
 {
@@ -1209,32 +1211,14 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateBMatrix(Matrix& rB, const 
 {
     KRATOS_TRY
 
-    unsigned int index;
-    if constexpr (TDim > 2) {
-        for (unsigned int i = 0; i < TNumNodes; ++i) {
-            index = TDim * i;
-
-            rB(INDEX_3D_XX, index + INDEX_X) = GradNpT(i, INDEX_X);
-            rB(INDEX_3D_YY, index + INDEX_Y) = GradNpT(i, INDEX_Y);
-            rB(INDEX_3D_ZZ, index + INDEX_Z) = GradNpT(i, INDEX_Z);
-            rB(INDEX_3D_XY, index + INDEX_X) = GradNpT(i, INDEX_Y);
-            rB(INDEX_3D_XY, index + INDEX_Y) = GradNpT(i, INDEX_X);
-            rB(INDEX_3D_YZ, index + INDEX_Y) = GradNpT(i, INDEX_Z);
-            rB(INDEX_3D_YZ, index + INDEX_Z) = GradNpT(i, INDEX_Y);
-            rB(INDEX_3D_XZ, index + INDEX_X) = GradNpT(i, INDEX_Z);
-            rB(INDEX_3D_XZ, index + INDEX_Z) = GradNpT(i, INDEX_X);
-        }
+    std::unique_ptr<StressStatePolicy> p_stress_state_policy;
+    if constexpr (TDim == 2) {
+        p_stress_state_policy = std::make_unique<PlaneStrainStressState>();
     } else {
-        // 2D plane strain
-        for (unsigned int i = 0; i < TNumNodes; ++i) {
-            index = TDim * i;
-
-            rB(INDEX_2D_PLANE_STRAIN_XX, index + INDEX_X) = GradNpT(i, INDEX_X);
-            rB(INDEX_2D_PLANE_STRAIN_YY, index + INDEX_Y) = GradNpT(i, INDEX_Y);
-            rB(INDEX_2D_PLANE_STRAIN_XY, index + INDEX_X) = GradNpT(i, INDEX_Y);
-            rB(INDEX_2D_PLANE_STRAIN_XY, index + INDEX_Y) = GradNpT(i, INDEX_X);
-        }
+        p_stress_state_policy = std::make_unique<ThreeDimensionalStressState>();
     }
+
+    rB = p_stress_state_policy->CalculateBMatrix(GradNpT, Np, this->GetGeometry());
 
     KRATOS_CATCH("")
 }
@@ -1581,28 +1565,14 @@ Vector UPwSmallStrainElement<TDim, TNumNodes>::CalculateGreenLagrangeStrain(cons
 {
     KRATOS_TRY
 
-    Vector result = ZeroVector(VoigtSize);
-
-    //-Compute total deformation gradient
-    Matrix ETensor;
-    ETensor = prod(trans(rDeformationGradient), rDeformationGradient);
-
-    for (unsigned int i = 0; i < TDim; ++i)
-        ETensor(i, i) -= 1.0;
-    ETensor *= 0.5;
-
+    std::unique_ptr<StressStatePolicy> p_stress_state_policy;
     if constexpr (TDim == 2) {
-        Vector StrainVector;
-        StrainVector = MathUtils<double>::StrainTensorToVector(ETensor);
-        result[INDEX_2D_PLANE_STRAIN_XX] = StrainVector[0];
-        result[INDEX_2D_PLANE_STRAIN_YY] = StrainVector[1];
-        result[INDEX_2D_PLANE_STRAIN_ZZ] = 0.0;
-        result[INDEX_2D_PLANE_STRAIN_XY] = StrainVector[2];
+        p_stress_state_policy = std::make_unique<PlaneStrainStressState>();
     } else {
-        result = MathUtils<double>::StrainTensorToVector(ETensor);
+        p_stress_state_policy = std::make_unique<ThreeDimensionalStressState>();
     }
 
-    return result;
+    return p_stress_state_policy->CalculateGreenLagrangeStrain(rDeformationGradient);
 
     KRATOS_CATCH("")
 }
