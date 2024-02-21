@@ -4,6 +4,9 @@ from KratosMultiphysics.process_factory import KratosProcessFactory
 from KratosMultiphysics.kratos_utilities import IssueDeprecationWarning
 from KratosMultiphysics.model_parameters_factory import KratosModelParametersFactory
 
+# Other imports
+from collections import defaultdict
+
 class AnalysisStage(object):
     """The base class for the AnalysisStage-classes in the applications
     Changes to this BaseClass have to be discussed first!
@@ -40,6 +43,8 @@ class AnalysisStage(object):
             KratosMultiphysics.Logger.PrintWarning("Parallel Type", '"MPI" is specified as "parallel_type", but Kratos is not running distributed!')
 
         self._GetSolver().AddVariables() # this creates the solver and adds the variables
+        map_additional_vars = self._GetMapOfAdditionalHistoricalVariables()
+        self._GetSolver().AddAdditionalHistoricalVariables(map_additional_vars)
 
     def Run(self):
         """This function executes the entire AnalysisStage
@@ -372,6 +377,34 @@ class AnalysisStage(object):
                     list_of_processes += factory.ConstructListOfProcesses(value) # Does this work? or should it be processes[name]
 
         return list_of_processes
+
+    def _GetMapOfAdditionalHistoricalVariables(self):
+        """This function returns a dictionary of (additional) historical variables
+        needed in the simulation. The keys are the model part names where variables
+        will be added and the values are sets with the names of the variables.
+        It can be overridden in derived classes
+        """
+        map_additional_vars = defaultdict(set)
+        self._GetLMapOfAdditionalVariablesFromProcesses("processes", map_additional_vars)
+        self._GetLMapOfAdditionalVariablesFromProcesses("output_processes", map_additional_vars)
+
+        return map_additional_vars
+
+    def _GetLMapOfAdditionalVariablesFromProcesses(self, parameter_name, map_additional_vars):
+        """This function extracts the required historical variables needed by the processes.
+        A dictionary is given as a parameter (map_additional_vars) that will be filled in this
+        function. The keys are the model part names where variables will be added and the
+        values are sets with the names of the variables.
+        """
+        factory = KratosProcessFactory(self.model)
+
+        if self.project_parameters.Has(parameter_name):
+            processes_params = self.project_parameters[parameter_name]
+
+            for value in processes_params.values():
+                process_variables_dict = factory.GetMapOfRequiredHistoricalVariables(value)
+                for mp in process_variables_dict:
+                    map_additional_vars[mp].update(process_variables_dict[mp])
 
     def _GetOrderOfProcessesInitialization(self):
         """This function can be overridden in derived classes if the order of

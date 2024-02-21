@@ -51,6 +51,9 @@ public:
     ///@name Type Definitions
     ///@{
 
+    /// The historical variables map. Hash is a variable defined as a string, and it contains a list of variables (vector of strings)
+    using HistoricalVarsMap = std::unordered_map<std::string,std::vector<std::string>>;
+
     /// Pointer definition of Process
     KRATOS_CLASS_POINTER_DEFINITION(Process);
 
@@ -180,6 +183,19 @@ public:
         const Parameters default_parameters = Parameters(R"({})" );
 
         return default_parameters;
+    }
+
+    /**
+     * @brief This static function returns a map that contains the variables that
+     * have to be added to each model part so this process can work correctly.
+     * @param Settings Input settings from user
+     * @return Map with needed variables for each model part
+     */
+    static HistoricalVarsMap GetHistoricalVariables(
+        Parameters Settings)
+    {
+        HistoricalVarsMap empty_map;
+        return empty_map;
     }
 
     ///@}

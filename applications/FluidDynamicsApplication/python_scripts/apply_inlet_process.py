@@ -13,17 +13,7 @@ class ApplyInletProcess(KratosMultiphysics.Process):
     def __init__(self, Model, settings):
         KratosMultiphysics.Process.__init__(self)
 
-        default_settings = KratosMultiphysics.Parameters("""
-        {
-            "mesh_id"         : 0,
-            "model_part_name" : "",
-            "variable_name"   : "VELOCITY",
-            "modulus"         : 0.0,
-            "constrained"     : true,
-            "direction"       : [1.0,0.0,0.0],
-            "interval"        : [0.0,"End"]
-        }
-        """)
+        default_settings = self.GetDefaultParameters()
 
         # Trick: allow "modulus" and "direction" to be a double or a string value (otherwise the ValidateAndAssignDefaults might fail)
         if (settings.Has("modulus")):
@@ -59,6 +49,28 @@ class ApplyInletProcess(KratosMultiphysics.Process):
         # Construct the base process AssignVectorByDirectionProcess
         self.aux_process = assign_vector_by_direction_process.AssignVectorByDirectionProcess(Model, settings)
 
+    @classmethod
+    def GetDefaultParameters(cls):
+        return KratosMultiphysics.Parameters("""{
+            "mesh_id"         : 0,
+            "model_part_name" : "",
+            "variable_name"   : "VELOCITY",
+            "modulus"         : 0.0,
+            "constrained"     : true,
+            "direction"       : [1.0,0.0,0.0],
+            "interval"        : [0.0,"End"]
+        }
+        """)
+
+    @classmethod
+    def GetHistoricalVariables(cls, settings):
+        copy_settings = settings.Clone()
+        copy_settings.AddMissingParameters(cls.GetDefaultParameters())
+        root_model_part_name = copy_settings["model_part_name"].GetString().split(".")[0]
+
+        applied_var = copy_settings["variable_name"].GetString()
+        vars_dict = {root_model_part_name : {applied_var}}
+        return vars_dict
 
     def ExecuteInitializeSolutionStep(self):
         # Call the base process ExecuteInitializeSolutionStep()

@@ -3,6 +3,7 @@ import KratosMultiphysics as KM
 
 # Other imports
 from importlib import import_module
+from collections import defaultdict
 
 ################# Please do not change the following class:
 class KratosProcessFactory(object):
@@ -18,24 +19,7 @@ class KratosProcessFactory(object):
             if item.Has("name"):
                 registry_entry = item["name"].GetString()
                 if KM.Registry.HasItem(registry_entry):
-                    # Get already stored prototype
-                    if KM.Registry.HasItem(f"{registry_entry}.Prototype"):
-                        prototype = KM.Registry[f"{registry_entry}.Prototype"]
-                    # Get prototype from stored Python module
-                    elif KM.Registry.HasItem(f"{registry_entry}.ModuleName"):
-                        class_name = registry_entry.split(".")[-1]
-                        module_name = KM.Registry[f"{registry_entry}.ModuleName"]
-                        module = import_module(module_name)
-                        if hasattr(module, class_name):
-                            prototype = getattr(module, class_name)
-                        else:
-                            #TODO: In here we're assuming that the registry last key is the class name
-                            #TODO: We should enforce this. Now an error happens but as we populate we should throw a warning and search for a ClassName item
-                            err_msg = f"The '{class_name}' class name cannot be found within the '{module_name}' module."
-                            raise Exception(err_msg)
-                    else:
-                        err_msg = f"Registry process '{registry_entry}' cannot be constructed."
-                        raise Exception(err_msg)
+                    prototype = self._GetPrototype(registry_entry)
                     # Construct the process from the obtained prototype and append it to the list
                     instance = prototype(self.Model, item["Parameters"])
                     constructed_processes.append(instance)
@@ -74,6 +58,42 @@ class KratosProcessFactory(object):
 
         return constructed_processes
 
+    def GetMapOfRequiredHistoricalVariables( self, process_list):
+        required_variables_map = defaultdict(set)
+        for i in range(0,process_list.size()):
+            item = process_list[i]
+            if item.Has("name"):
+                registry_entry = item["name"].GetString()
+                if KM.Registry.HasItem(registry_entry):
+                    prototype = self._GetPrototype(registry_entry)
+                    new_dict = prototype.GetHistoricalVariables(item["Parameters"])
+                    for mp in new_dict:
+                        required_variables_map[mp].update(new_dict[mp])
+                else:
+                    KM.Logger.PrintWarning(f"Asking to add variables from non-registered 'name' '{registry_entry}'.")
+
+        return required_variables_map
+
+    def _GetPrototype(self, registry_entry):
+        # Get already stored prototype
+        if KM.Registry.HasItem(f"{registry_entry}.Prototype"):
+            prototype = KM.Registry[f"{registry_entry}.Prototype"]
+        # Get prototype from stored Python module
+        elif KM.Registry.HasItem(f"{registry_entry}.ModuleName"):
+            class_name = registry_entry.split(".")[-1]
+            module_name = KM.Registry[f"{registry_entry}.ModuleName"]
+            module = import_module(module_name)
+            if hasattr(module, class_name):
+                prototype = getattr(module, class_name)
+            else:
+                #TODO: In here we're assuming that the registry last key is the class name
+                #TODO: We should enforce this. Now an error happens but as we populate we should throw a warning and search for a ClassName item
+                err_msg = f"The '{class_name}' class name cannot be found within the '{module_name}' module."
+                raise Exception(err_msg)
+        else:
+            err_msg = f"Registry process '{registry_entry}' cannot be constructed."
+            raise Exception(err_msg)
+        return prototype
 
 ########## here we generate the common kratos processes --- IMPLEMENTED IN C++ ###################
 def Factory(settings, Model):

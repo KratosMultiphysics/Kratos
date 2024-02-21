@@ -20,7 +20,7 @@ sys.path.insert(0, GetFilePath('../../../kratos/tests/'))
 # Import the tests o test_classes to create the suits
 ## SMALL TESTS
 # Exact integration tests
-from test_process_factory import TestProcessFactory                          as TTestProcessFactory
+from test_process_factory_utility import TestProcessFactoryUtility           as TTestProcessFactory
 from test_check_normals_process import TestCheckNormals                      as TTestCheckNormals
 from test_double_curvature_integration import TestDoubleCurvatureIntegration as TTestDoubleCurvatureIntegration
 from test_dynamic_search import TestDynamicSearch                            as TTestDynamicSearch

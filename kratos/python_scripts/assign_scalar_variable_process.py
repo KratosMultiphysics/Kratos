@@ -40,19 +40,7 @@ class AssignScalarVariableProcess(KratosMultiphysics.Process):
         KratosMultiphysics.Process.__init__(self)
 
         #The value can be a double or a string (function)
-        default_settings = KratosMultiphysics.Parameters("""
-        {
-            "help"            : "This process sets a given scalar value for a certain variable in all the nodes of a submodelpart",
-            "mesh_id"         : 0,
-            "model_part_name" : "please_specify_model_part_name",
-            "variable_name"   : "SPECIFY_VARIABLE_NAME",
-            "interval"        : [0.0, 1e30],
-            "constrained"     : true,
-            "value"           : {},
-            "local_axes"      : {}
-        }
-        """
-        )
+        default_settings = self.GetDefaultParameters()
 
         # Assign this here since it will change the "interval" prior to validation
         self.interval = KratosMultiphysics.IntervalUtility(settings)
@@ -95,6 +83,28 @@ class AssignScalarVariableProcess(KratosMultiphysics.Process):
         # Construct a variable_utils object to speedup fixing
         self.variable_utils = KratosMultiphysics.VariableUtils()
         self.step_is_active = False
+
+    @classmethod
+    def GetDefaultParameters(cls):
+        return KratosMultiphysics.Parameters('''{
+            "help"            : "This process sets a given scalar value for a certain variable in all the nodes of a submodelpart",
+            "mesh_id"         : 0,
+            "model_part_name" : "please_specify_model_part_name",
+            "variable_name"   : "SPECIFY_VARIABLE_NAME",
+            "interval"        : [0.0, 1e30],
+            "constrained"     : true,
+            "value"           : {},
+            "local_axes"      : {}
+        }''')
+
+    @classmethod
+    def GetHistoricalVariables(cls, settings):
+        copy_settings = settings.Clone()
+        copy_settings.AddMissingParameters(cls.GetDefaultParameters())
+        root_model_part_name = copy_settings["model_part_name"].GetString().split(".")[0]
+        applied_var = copy_settings["variable_name"].GetString()
+        vars_dict = {root_model_part_name : {applied_var}}
+        return vars_dict
 
     def ExecuteBeforeSolutionLoop(self):
         """This method is executed in before initialize the solution step
