@@ -16,8 +16,8 @@
 namespace Kratos
 {
 
-Matrix ThreeDimensionalStressState::CalculateBMatrix(const Matrix&         GradNpT,
-                                                     const Vector&         Np,
+Matrix ThreeDimensionalStressState::CalculateBMatrix(const Matrix& rGradNpT,
+                                                     const Vector&,
                                                      const Geometry<Node>& rGeometry) const
 {
     const auto dimension       = rGeometry.WorkingSpaceDimension();
@@ -25,17 +25,17 @@ Matrix ThreeDimensionalStressState::CalculateBMatrix(const Matrix&         GradN
     Matrix     result          = ZeroMatrix(VOIGT_SIZE_3D, dimension * number_of_nodes);
 
     for (unsigned int i = 0; i < number_of_nodes; ++i) {
-        auto index = dimension * i;
+        const auto offset = dimension * i;
 
-        result(INDEX_3D_XX, index + INDEX_X) = GradNpT(i, INDEX_X);
-        result(INDEX_3D_YY, index + INDEX_Y) = GradNpT(i, INDEX_Y);
-        result(INDEX_3D_ZZ, index + INDEX_Z) = GradNpT(i, INDEX_Z);
-        result(INDEX_3D_XY, index + INDEX_X) = GradNpT(i, INDEX_Y);
-        result(INDEX_3D_XY, index + INDEX_Y) = GradNpT(i, INDEX_X);
-        result(INDEX_3D_YZ, index + INDEX_Y) = GradNpT(i, INDEX_Z);
-        result(INDEX_3D_YZ, index + INDEX_Z) = GradNpT(i, INDEX_Y);
-        result(INDEX_3D_XZ, index + INDEX_X) = GradNpT(i, INDEX_Z);
-        result(INDEX_3D_XZ, index + INDEX_Z) = GradNpT(i, INDEX_X);
+        result(INDEX_3D_XX, offset + INDEX_X) = rGradNpT(i, INDEX_X);
+        result(INDEX_3D_YY, offset + INDEX_Y) = rGradNpT(i, INDEX_Y);
+        result(INDEX_3D_ZZ, offset + INDEX_Z) = rGradNpT(i, INDEX_Z);
+        result(INDEX_3D_XY, offset + INDEX_X) = rGradNpT(i, INDEX_Y);
+        result(INDEX_3D_XY, offset + INDEX_Y) = rGradNpT(i, INDEX_X);
+        result(INDEX_3D_YZ, offset + INDEX_Y) = rGradNpT(i, INDEX_Z);
+        result(INDEX_3D_YZ, offset + INDEX_Z) = rGradNpT(i, INDEX_Y);
+        result(INDEX_3D_XZ, offset + INDEX_X) = rGradNpT(i, INDEX_Z);
+        result(INDEX_3D_XZ, offset + INDEX_Z) = rGradNpT(i, INDEX_X);
     }
 
     return result;
@@ -49,8 +49,8 @@ double ThreeDimensionalStressState::CalculateIntegrationCoefficient(
 
 Vector ThreeDimensionalStressState::CalculateGreenLagrangeStrain(const Matrix& rDeformationGradient) const
 {
-    const auto ETensor = StressStrainUtilities::CalculateGreenLagrangeStrainTensor(rDeformationGradient);
-    return MathUtils<double>::StrainTensorToVector(ETensor);
+    return MathUtils<>::StrainTensorToVector(
+        StressStrainUtilities::CalculateGreenLagrangeStrainTensor(rDeformationGradient));
 }
 
 std::unique_ptr<StressStatePolicy> ThreeDimensionalStressState::Clone() const

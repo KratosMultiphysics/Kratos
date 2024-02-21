@@ -21,8 +21,8 @@ namespace Kratos
 class ThreeDimensionalStressState : public StressStatePolicy
 {
 public:
-    [[nodiscard]] Matrix CalculateBMatrix(const Matrix&         GradNpT,
-                                          const Vector&         Np,
+    [[nodiscard]] Matrix CalculateBMatrix(const Matrix& rGradNpT,
+                                          const Vector&,
                                           const Geometry<Node>& rGeometry) const override;
     [[nodiscard]] double CalculateIntegrationCoefficient(const Geometry<Node>::IntegrationPointType& rIntegrationPoint,
                                                          double DetJ,

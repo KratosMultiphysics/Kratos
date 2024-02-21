@@ -24,10 +24,10 @@ namespace Kratos::Testing
 
 KRATOS_TEST_CASE_IN_SUITE(ThreeDimensionalStressState_CalculateBMatrixReturnsCorrectResults, KratosGeoMechanicsFastSuite)
 {
-    auto stress_state = std::make_unique<ThreeDimensionalStressState>();
+    auto p_stress_state_policy = std::make_unique<ThreeDimensionalStressState>();
 
     Model model;
-    auto& model_part = ModelSetupUtilities::CreateModelPartWithASingle3D4NElement(model);
+    auto& r_model_part = ModelSetupUtilities::CreateModelPartWithASingle3D4NElement(model);
 
     Vector Np(4);
     Np <<= 1.0, 2.0, 3.0, 4.0;
@@ -41,7 +41,7 @@ KRATOS_TEST_CASE_IN_SUITE(ThreeDimensionalStressState_CalculateBMatrixReturnsCor
     // clang-format on
 
     const auto calculated_matrix =
-        stress_state->CalculateBMatrix(GradNpT, Np, model_part.GetElement(1).GetGeometry());
+        p_stress_state_policy->CalculateBMatrix(GradNpT, Np, r_model_part.GetElement(1).GetGeometry());
 
     // clang-format off
     Matrix expected_matrix(6, 12);
@@ -67,14 +67,14 @@ KRATOS_TEST_CASE_IN_SUITE(ThreeDimensionalStressState_ReturnsCorrectIntegrationC
     const auto p_stress_state_policy = std::make_unique<ThreeDimensionalStressState>();
 
     Model model;
-    auto& model_part = ModelSetupUtilities::CreateModelPartWithASingle2D3NElement(model);
+    auto& r_model_part = ModelSetupUtilities::CreateModelPartWithASingle3D4NElement(model);
 
     // The shape function values for this integration point are 0.2, 0.5 and 0.3 for nodes 1, 2 and 3 respectively
     Geometry<Node>::IntegrationPointType integration_point(0.5, 0.3, 0.0, 0.5);
 
     const auto detJ                   = 2.0;
     const auto calculated_coefficient = p_stress_state_policy->CalculateIntegrationCoefficient(
-        integration_point, detJ, model_part.GetElement(1).GetGeometry());
+        integration_point, detJ, r_model_part.GetElement(1).GetGeometry());
 
     // The expected number is calculated as follows:
     // 2.0 (detJ) * 0.5 (weight) = 1.0
