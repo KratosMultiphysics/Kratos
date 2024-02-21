@@ -408,7 +408,7 @@ void CreateSphereTriangularMesh(
     const std::array<double, 3>& rCenter
     )
 {
-    const double scale = Radius/0.25;
+    const double scale = Radius/0.5;
     Properties::Pointer p_prop = rModelPart.HasProperties(0) ? rModelPart.pGetProperties(0) : rModelPart.CreateNewProperties(0);
 
     // Get the Initial Id
