@@ -50,4 +50,12 @@ KRATOS_TEST_CASE_IN_SUITE(ExtractingEquationIdsFromDofsYieldsAssociatedIds, Krat
     KRATOS_EXPECT_EQ(Geo::DofUtilities::ExtractEquationIdsFrom(dofs), expected_equation_ids);
 }
 
+KRATOS_TEST_CASE_IN_SUITE(ExtractingDofsFromEmptyNodeCollectionYieldsEmptyVector, KratosGeoMechanicsFastSuite)
+{
+    const auto geometry_id    = Geometry<Node>::IndexType{0};
+    const auto empty_geometry = Geometry<Node>{geometry_id};
+
+    KRATOS_EXPECT_TRUE(Geo::DofUtilities::ExtractDofsFromNodes(empty_geometry, WATER_PRESSURE).empty())
+}
+
 } // namespace Kratos::Testing
