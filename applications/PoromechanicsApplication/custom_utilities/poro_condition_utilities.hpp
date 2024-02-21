@@ -173,6 +173,23 @@ public:
 
     //----------------------------------------------------------------------------------------
 
+    static inline void AssembleUBlockTwoPhaseFlowVector(Vector& rRightHandSideVector, const array_1d<double,4>& UBlockVector)
+    {
+        //Line_2d_2  
+        unsigned int Global_i, Local_i;
+
+        for(unsigned int i = 0; i < 2; i++)
+        {
+            Global_i = i * (2 + 2);
+            Local_i  = i * 2;
+
+            rRightHandSideVector[Global_i]   += UBlockVector[Local_i];
+            rRightHandSideVector[Global_i+1] += UBlockVector[Local_i+1];
+        }
+    }
+
+    //----------------------------------------------------------------------------------------
+
     static inline void AssembleUBlockVector(Vector& rRightHandSideVector, const array_1d<double,9>& UBlockVector)
     {      
         //Triangle_3d_3  
@@ -181,6 +198,24 @@ public:
         for(unsigned int i = 0; i < 3; i++)
         {
             Global_i = i * (3 + 1);
+            Local_i  = i * 3;
+
+            rRightHandSideVector[Global_i]   += UBlockVector[Local_i];
+            rRightHandSideVector[Global_i+1] += UBlockVector[Local_i+1];
+            rRightHandSideVector[Global_i+2] += UBlockVector[Local_i+2];
+        }
+    }
+    
+    //----------------------------------------------------------------------------------------
+
+    static inline void AssembleUBlockTwoPhaseFlowVector(Vector& rRightHandSideVector, const array_1d<double,9>& UBlockVector)
+    {      
+        //Triangle_3d_3  
+        unsigned int Global_i, Local_i;
+
+        for(unsigned int i = 0; i < 3; i++)
+        {
+            Global_i = i * (3 + 2);
             Local_i  = i * 3;
 
             rRightHandSideVector[Global_i]   += UBlockVector[Local_i];
@@ -207,6 +242,24 @@ public:
         }
     }
 
+    //----------------------------------------------------------------------------------------
+
+    static inline void AssembleUBlockTwoPhaseFlowVector(Vector& rRightHandSideVector, const array_1d<double,12>& UBlockVector)
+    {        
+        //Quadrilateral_3d_4
+        unsigned int Global_i, Local_i;
+
+        for(unsigned int i = 0; i < 4; i++)
+        {
+            Global_i = i * (3 + 2);
+            Local_i  = i * 3;
+
+            rRightHandSideVector[Global_i]   += UBlockVector[Local_i];
+            rRightHandSideVector[Global_i+1] += UBlockVector[Local_i+1];
+            rRightHandSideVector[Global_i+2] += UBlockVector[Local_i+2];
+        }
+    }
+
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     template< class TVectorType >
@@ -217,6 +270,36 @@ public:
         for(unsigned int i = 0; i < NumNodes; i++)
         {
             Global_i = i * (Dim + 1) + Dim;
+
+            rRightHandSideVector[Global_i] += PBlockVector[i];
+        }
+    }
+
+//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+    template< class TVectorType >
+    static inline void AssemblePlBlockVector(Vector& rRightHandSideVector,const TVectorType& PBlockVector, const unsigned int& Dim, const unsigned int& NumNodes)
+    {
+        unsigned int Global_i;
+        
+        for(unsigned int i = 0; i < NumNodes; i++)
+        {
+            Global_i = i * (Dim + 2) + Dim;
+
+            rRightHandSideVector[Global_i] += PBlockVector[i];
+        }
+    }
+
+//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+    template< class TVectorType >
+    static inline void AssemblePgBlockVector(Vector& rRightHandSideVector,const TVectorType& PBlockVector, const unsigned int& Dim, const unsigned int& NumNodes)
+    {
+        unsigned int Global_i;
+        
+        for(unsigned int i = 0; i < NumNodes; i++)
+        {
+            Global_i = i * (Dim + 2) + Dim + 1;
 
             rRightHandSideVector[Global_i] += PBlockVector[i];
         }
