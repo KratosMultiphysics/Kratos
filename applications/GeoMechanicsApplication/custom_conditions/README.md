@@ -56,9 +56,9 @@ where $a_1$ $\mathrm{[-]}$, $a_2$ $\mathrm{[s]}$ and $a_3$ $\mathrm{[W/m^2]}$ ar
 
 
 ## Evaporation Flux
-The evaporation flux $E$ $\mathrm{[m/s]}$ is calculated by,
+The evaporation flux $E_a$ $\mathrm{[m/s]}$ is calculated by,
 
-$$ E = \frac{L_v}{\lambda \rho_w} $$
+$$ E_a = \frac{L_v}{\lambda \rho_w} $$
 
 where
 
