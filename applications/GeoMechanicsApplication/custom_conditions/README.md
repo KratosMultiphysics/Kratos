@@ -149,16 +149,19 @@ $$ S_p^{j+1} = S_a^j + \Delta t \left( P_p^{j+1} - E_p^{j+1} \right) $$
 If the potential storage is larger than the maximum storage $S_{max}$ $\mathrm{[mm]}$ then the actual evaporation $E_a^{j+1}$ $\mathrm{[mm/s]}$ and the actual precipitation $P_a^{j+1}$ $\mathrm{[mm/s]}$ follow from:
 
 $$ E_a^{j+1} = E_p^{j+1}$$
+
 $$ P_a^{j+1} = \left( S_{max} - S_p^j \right) / \Delta t + E_a^{j+1} $$
 
 If the potential storage is smaller than the minimum storage $S_{min}$ $\mathrm{[mm]}$ then the actual values read:
 
 $$ P_a^{j+1} = P_p^{j+1}$$
+
 $$ E_a^{j+1} = \left( S_p^j - S_{min} \right) / \Delta t + P_a^{j+1} $$
 
 If the potential storage does not exceed the storage limits then the actual fluxes match the potential fluxes:
 
 $$ P_a^{j+1} = P_p^{j+1}$$
+
 $$ E_a^{j+1} = E_p^{j+1}$$
 
 The maximum storage capacity $S_{max}$ is a user defined parameter. The potential precipitation $P_p$ is also given by the user, usually in the form of time-precipitation table in the MPDA file. 
