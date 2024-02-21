@@ -7,16 +7,16 @@
 # Case Specification
 We employed eight test cases to encompass a range of potential scenarios and thoroughly evaluate all functionalities related to the micro-climate within the code. These test cases, each varying in the constant required from the user, are detailed in the table below.
 
-| Case | Description            | $a_1$  | $a_2$  | $a_3$ | $Q_f$ | Smax   |
-|------|:-----------------------|:------:|:------:|:-----:|:-----:|:------:|
-| 1    | Limited evaporation    | 0      | 0      | 0     | 0     | 0.0004 |
-| 2    | Potential evaporation  | 0      | 0      | 0     | 0     | 40000  |
-| 3    | No evaporation         | 0      | 0      | 0     | 0     | 0      |
-| 4    | Limited cover heat     | 0.8    | 0      | -100  | 0     | 0      |
-| 5    | Full cover heat source | 0      | 30     | 0     | 0     | 0      |
-| 6    | Building heat source   | 0      | 0      | 0     | 100   | 0      |
-| 7    | Potential evaporation  | 0.8    | 30     | -100  | 100   | 40000  |
-| 8    | Final setup            | 0.8    | 30     | -100  | 100   | 0.0004 |
+| Case | Description            | $a_1$  | $a_2$  | $a_3$ | $Q_f$ | $S_{max}$ |
+|------|:-----------------------|:------:|:------:|:-----:|:-----:|:---------:|
+| 1    | Limited evaporation    | 0      | 0      | 0     | 0     | 0.0004    |
+| 2    | Potential evaporation  | 0      | 0      | 0     | 0     | 40000     |
+| 3    | No evaporation         | 0      | 0      | 0     | 0     | 0         |
+| 4    | Limited cover heat     | 0.8    | 0      | -100  | 0     | 0         |
+| 5    | Full cover heat source | 0      | 30     | 0     | 0     | 0         |
+| 6    | Building heat source   | 0      | 0      | 0     | 100   | 0         |
+| 7    | Potential evaporation  | 0.8    | 30     | -100  | 100   | 40000     |
+| 8    | Final setup            | 0.8    | 30     | -100  | 100   | 0.0004    |
 
 The domain, grid and boundary conditions are shown as below. The test cases are done on a domain $0.1 \mathrm{[m]} \times 1 \mathrm{[m]}$. The elements are triangles with 3 nodes (GeoTransientThermal2D3N).
 
