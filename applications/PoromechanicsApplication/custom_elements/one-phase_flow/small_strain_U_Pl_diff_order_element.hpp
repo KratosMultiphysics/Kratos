@@ -11,8 +11,8 @@
 //
 
 
-#if !defined(KRATOS_SMALL_STRAIN_U_PW_DIFF_ORDER_ELEMENT_H_INCLUDED )
-#define  KRATOS_SMALL_STRAIN_U_PW_DIFF_ORDER_ELEMENT_H_INCLUDED
+#if !defined(KRATOS_SMALL_STRAIN_U_PL_DIFF_ORDER_ELEMENT_H_INCLUDED )
+#define  KRATOS_SMALL_STRAIN_U_PL_DIFF_ORDER_ELEMENT_H_INCLUDED
 
 // Project includes
 #include "containers/array_1d.h"
@@ -31,26 +31,26 @@
 namespace Kratos
 {
 
-class KRATOS_API(POROMECHANICS_APPLICATION) SmallStrainUPwDiffOrderElement : public Element
+class KRATOS_API(POROMECHANICS_APPLICATION) SmallStrainUPlDiffOrderElement : public Element
 {
 
 public:
 
-    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( SmallStrainUPwDiffOrderElement );
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( SmallStrainUPlDiffOrderElement );
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     // Default constructor
-    SmallStrainUPwDiffOrderElement();
+    SmallStrainUPlDiffOrderElement();
 
     // Constructor 1
-    SmallStrainUPwDiffOrderElement(IndexType NewId, GeometryType::Pointer pGeometry);
+    SmallStrainUPlDiffOrderElement(IndexType NewId, GeometryType::Pointer pGeometry);
 
     // Constructor 2
-    SmallStrainUPwDiffOrderElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties);
+    SmallStrainUPlDiffOrderElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties);
 
     // Destructor
-    virtual ~SmallStrainUPwDiffOrderElement();
+    virtual ~SmallStrainUPlDiffOrderElement();
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -120,7 +120,7 @@ protected:
         double IntegrationCoefficient;
         Vector StrainVector;
         Matrix ConstitutiveMatrix;
-        Vector StressVector; //It is the "Effective Stress Vector": sigma'_ij = sigma_ij + alpha*pw*delta_ij
+        Vector StressVector; //It is the "Effective Stress Vector": sigma'_ij = sigma_ij + alpha*pl*delta_ij
 
         //Variables needed for consistency with the general constitutive law
         double detF;
@@ -225,8 +225,8 @@ private:
         rNode.UnSetLock();
     }
 
-}; // Class SmallStrainUPwDiffOrderElement
+}; // Class SmallStrainUPlDiffOrderElement
 
 } // namespace Kratos
 
-#endif // KRATOS_SMALL_STRAIN_U_PW_DIFF_ORDER_ELEMENT_H_INCLUDED  defined
+#endif // KRATOS_SMALL_STRAIN_U_PL_DIFF_ORDER_ELEMENT_H_INCLUDED  defined

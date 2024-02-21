@@ -12,32 +12,32 @@
 
 
 // Application includes
-#include "custom_elements/U_Pw_small_strain_link_interface_element.hpp"
+#include "custom_elements/one-phase_flow/U_Pl_small_strain_link_interface_element.hpp"
 
 namespace Kratos
 {
 
 template< unsigned int TDim, unsigned int TNumNodes >
-Element::Pointer UPwSmallStrainLinkInterfaceElement<TDim,TNumNodes>::Create( IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties ) const
+Element::Pointer UPlSmallStrainLinkInterfaceElement<TDim,TNumNodes>::Create( IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties ) const
 {
-    return Element::Pointer( new UPwSmallStrainLinkInterfaceElement( NewId, this->GetGeometry().Create( ThisNodes ), pProperties ) );
+    return Element::Pointer( new UPlSmallStrainLinkInterfaceElement( NewId, this->GetGeometry().Create( ThisNodes ), pProperties ) );
 }
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 template< unsigned int TDim, unsigned int TNumNodes >
-void UPwSmallStrainLinkInterfaceElement<TDim,TNumNodes>::CalculateOnIntegrationPoints( const Variable<array_1d<double,3>>& rVariable, 
+void UPlSmallStrainLinkInterfaceElement<TDim,TNumNodes>::CalculateOnIntegrationPoints( const Variable<array_1d<double,3>>& rVariable, 
                                                                                 std::vector<array_1d<double,3>>& rOutput, const ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY
 
-    if(rVariable == FLUID_FLUX_VECTOR || rVariable == CONTACT_STRESS_VECTOR || rVariable == LOCAL_STRESS_VECTOR || rVariable == LOCAL_RELATIVE_DISPLACEMENT_VECTOR || rVariable == LOCAL_FLUID_FLUX_VECTOR)
+    if(rVariable == LIQUID_FLUX_VECTOR || rVariable == CONTACT_STRESS_VECTOR || rVariable == LOCAL_STRESS_VECTOR || rVariable == LOCAL_RELATIVE_DISPLACEMENT_VECTOR || rVariable == LOCAL_LIQUID_FLUX_VECTOR)
     {
         //Variables computed on Lobatto points
         const GeometryType& Geom = this->GetGeometry();
         std::vector<array_1d<double,3>> GPValues(Geom.IntegrationPointsNumber( mThisIntegrationMethod ));
 
-        if(rVariable == FLUID_FLUX_VECTOR)
+        if(rVariable == LIQUID_FLUX_VECTOR)
         {
             const PropertiesType& Prop = this->GetProperties();
             const unsigned int NumGPoints = Geom.IntegrationPointsNumber( mThisIntegrationMethod );
@@ -51,7 +51,7 @@ void UPwSmallStrainLinkInterfaceElement<TDim,TNumNodes>::CalculateOnIntegrationP
             //Defining necessary variables
             array_1d<double,TNumNodes> PressureVector;
             for(unsigned int i=0; i<TNumNodes; i++)
-                PressureVector[i] = Geom[i].FastGetSolutionStepValue(WATER_PRESSURE);
+                PressureVector[i] = Geom[i].FastGetSolutionStepValue(LIQUID_PRESSURE);
             array_1d<double,TNumNodes*TDim> DisplacementVector;
             PoroElementUtilities::GetNodalVariableVector(DisplacementVector,Geom,DISPLACEMENT);
             array_1d<double,TNumNodes*TDim> VolumeAcceleration;
@@ -66,11 +66,11 @@ void UPwSmallStrainLinkInterfaceElement<TDim,TNumNodes>::CalculateOnIntegrationP
             BoundedMatrix<double,TNumNodes, TDim> GradNpT; 
             double JointWidth;
             BoundedMatrix<double,TDim, TDim> LocalPermeabilityMatrix = ZeroMatrix(TDim,TDim);
-            const double& DynamicViscosityInverse = 1.0/Prop[DYNAMIC_VISCOSITY];
-            const double& FluidDensity = Prop[DENSITY_WATER];
-            array_1d<double,TDim> LocalFluidFlux;
+            const double& DynamicViscosityInverse = 1.0/Prop[DYNAMIC_VISCOSITY_LIQUID];
+            const double& LiquidDensity = Prop[DENSITY_LIQUID];
+            array_1d<double,TDim> LocalLiquidFlux;
             array_1d<double,TDim> GradPressureTerm;
-            array_1d<double,TDim> FluidFlux;
+            array_1d<double,TDim> LiquidFlux;
             SFGradAuxVariables SFGradAuxVars;
 
             //Loop over integration points
@@ -92,13 +92,13 @@ void UPwSmallStrainLinkInterfaceElement<TDim,TNumNodes>::CalculateOnIntegrationP
                 InterfaceElementUtilities::CalculateLinkPermeabilityMatrix(LocalPermeabilityMatrix,JointWidth);
                 
                 noalias(GradPressureTerm) = prod(trans(GradNpT),PressureVector);
-                noalias(GradPressureTerm) += -FluidDensity*BodyAcceleration;
+                noalias(GradPressureTerm) += -LiquidDensity*BodyAcceleration;
                 
-                noalias(LocalFluidFlux) = -DynamicViscosityInverse*prod(LocalPermeabilityMatrix,GradPressureTerm);
+                noalias(LocalLiquidFlux) = -DynamicViscosityInverse*prod(LocalPermeabilityMatrix,GradPressureTerm);
                 
-                noalias(FluidFlux) = prod(trans(RotationMatrix),LocalFluidFlux);
+                noalias(LiquidFlux) = prod(trans(RotationMatrix),LocalLiquidFlux);
                 
-                PoroElementUtilities::FillArray1dOutput(GPValues[GPoint],FluidFlux);
+                PoroElementUtilities::FillArray1dOutput(GPValues[GPoint],LiquidFlux);
             }
         }
         else if(rVariable == CONTACT_STRESS_VECTOR)
@@ -238,7 +238,7 @@ void UPwSmallStrainLinkInterfaceElement<TDim,TNumNodes>::CalculateOnIntegrationP
                 PoroElementUtilities::FillArray1dOutput(GPValues[GPoint],LocalRelDispVector);
             }
         }
-        else if(rVariable == LOCAL_FLUID_FLUX_VECTOR)
+        else if(rVariable == LOCAL_LIQUID_FLUX_VECTOR)
         {
             const PropertiesType& Prop = this->GetProperties();
             const unsigned int NumGPoints = Geom.IntegrationPointsNumber( mThisIntegrationMethod );
@@ -252,7 +252,7 @@ void UPwSmallStrainLinkInterfaceElement<TDim,TNumNodes>::CalculateOnIntegrationP
             //Defining necessary variables
             array_1d<double,TNumNodes> PressureVector;
             for(unsigned int i=0; i<TNumNodes; i++)
-                PressureVector[i] = Geom[i].FastGetSolutionStepValue(WATER_PRESSURE);
+                PressureVector[i] = Geom[i].FastGetSolutionStepValue(LIQUID_PRESSURE);
             array_1d<double,TNumNodes*TDim> DisplacementVector;
             PoroElementUtilities::GetNodalVariableVector(DisplacementVector,Geom,DISPLACEMENT);
             array_1d<double,TNumNodes*TDim> VolumeAcceleration;
@@ -267,9 +267,9 @@ void UPwSmallStrainLinkInterfaceElement<TDim,TNumNodes>::CalculateOnIntegrationP
             BoundedMatrix<double,TNumNodes, TDim> GradNpT; 
             double JointWidth;
             BoundedMatrix<double,TDim, TDim> LocalPermeabilityMatrix = ZeroMatrix(TDim,TDim);
-            const double& DynamicViscosityInverse = 1.0/Prop[DYNAMIC_VISCOSITY];
-            const double& FluidDensity = Prop[DENSITY_WATER];
-            array_1d<double,TDim> LocalFluidFlux;
+            const double& DynamicViscosityInverse = 1.0/Prop[DYNAMIC_VISCOSITY_LIQUID];
+            const double& LiquidDensity = Prop[DENSITY_LIQUID];
+            array_1d<double,TDim> LocalLiquidFlux;
             array_1d<double,TDim> GradPressureTerm;
             SFGradAuxVariables SFGradAuxVars;
             
@@ -292,11 +292,11 @@ void UPwSmallStrainLinkInterfaceElement<TDim,TNumNodes>::CalculateOnIntegrationP
                 InterfaceElementUtilities::CalculateLinkPermeabilityMatrix(LocalPermeabilityMatrix,JointWidth);
                 
                 noalias(GradPressureTerm) = prod(trans(GradNpT),PressureVector);
-                noalias(GradPressureTerm) += -FluidDensity*BodyAcceleration;
+                noalias(GradPressureTerm) += -LiquidDensity*BodyAcceleration;
                 
-                noalias(LocalFluidFlux) = -DynamicViscosityInverse*prod(LocalPermeabilityMatrix,GradPressureTerm);
+                noalias(LocalLiquidFlux) = -DynamicViscosityInverse*prod(LocalPermeabilityMatrix,GradPressureTerm);
                 
-                PoroElementUtilities::FillArray1dOutput(GPValues[GPoint],LocalFluidFlux);
+                PoroElementUtilities::FillArray1dOutput(GPValues[GPoint],LocalLiquidFlux);
             }
         }
 
@@ -326,7 +326,7 @@ void UPwSmallStrainLinkInterfaceElement<TDim,TNumNodes>::CalculateOnIntegrationP
 //----------------------------------------------------------------------------------------
 
 template< unsigned int TDim, unsigned int TNumNodes >
-void UPwSmallStrainLinkInterfaceElement<TDim,TNumNodes>::CalculateOnIntegrationPoints( const Variable<Matrix>& rVariable, std::vector<Matrix>& rOutput, 
+void UPlSmallStrainLinkInterfaceElement<TDim,TNumNodes>::CalculateOnIntegrationPoints( const Variable<Matrix>& rVariable, std::vector<Matrix>& rOutput, 
                                                                                     const ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY
@@ -443,7 +443,7 @@ void UPwSmallStrainLinkInterfaceElement<TDim,TNumNodes>::CalculateOnIntegrationP
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 template< unsigned int TDim, unsigned int TNumNodes >
-void UPwSmallStrainLinkInterfaceElement<TDim,TNumNodes>::CalculateAll( MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& CurrentProcessInfo )
+void UPlSmallStrainLinkInterfaceElement<TDim,TNumNodes>::CalculateAll( MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo )
 {    
     KRATOS_TRY
     
@@ -462,14 +462,14 @@ void UPwSmallStrainLinkInterfaceElement<TDim,TNumNodes>::CalculateAll( MatrixTyp
     Geom.DeterminantOfJacobian(detJContainer,mThisIntegrationMethod);
 
     //Constitutive Law parameters
-    ConstitutiveLaw::Parameters ConstitutiveParameters(Geom,Prop,CurrentProcessInfo);
+    ConstitutiveLaw::Parameters ConstitutiveParameters(Geom,Prop,rCurrentProcessInfo);
     ConstitutiveParameters.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
     ConstitutiveParameters.Set(ConstitutiveLaw::COMPUTE_STRESS);
     ConstitutiveParameters.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
     
     //Element variables
     InterfaceElementVariables Variables;
-    this->InitializeElementVariables(Variables,ConstitutiveParameters,Geom,Prop,CurrentProcessInfo);
+    this->InitializeElementVariables(Variables,ConstitutiveParameters,Geom,Prop,rCurrentProcessInfo);
     
     //Auxiliary variables
     const double& InitialJointWidth = Prop[INITIAL_JOINT_WIDTH];
@@ -511,7 +511,7 @@ void UPwSmallStrainLinkInterfaceElement<TDim,TNumNodes>::CalculateAll( MatrixTyp
 //----------------------------------------------------------------------------------------
 
 template< unsigned int TDim, unsigned int TNumNodes >
-void UPwSmallStrainLinkInterfaceElement<TDim,TNumNodes>::CalculateRHS( VectorType& rRightHandSideVector, const ProcessInfo& CurrentProcessInfo )
+void UPlSmallStrainLinkInterfaceElement<TDim,TNumNodes>::CalculateRHS( VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo )
 {     
     KRATOS_TRY
        
@@ -530,13 +530,13 @@ void UPwSmallStrainLinkInterfaceElement<TDim,TNumNodes>::CalculateRHS( VectorTyp
     Geom.DeterminantOfJacobian(detJContainer,mThisIntegrationMethod);
 
     //Constitutive Law parameters
-    ConstitutiveLaw::Parameters ConstitutiveParameters(Geom,Prop,CurrentProcessInfo);
+    ConstitutiveLaw::Parameters ConstitutiveParameters(Geom,Prop,rCurrentProcessInfo);
     ConstitutiveParameters.Set(ConstitutiveLaw::COMPUTE_STRESS);
     ConstitutiveParameters.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
     
     //Element variables
     InterfaceElementVariables Variables;
-    this->InitializeElementVariables(Variables,ConstitutiveParameters,Geom,Prop,CurrentProcessInfo);
+    this->InitializeElementVariables(Variables,ConstitutiveParameters,Geom,Prop,rCurrentProcessInfo);
     
     //Auxiliary variables
     const double& InitialJointWidth = Prop[INITIAL_JOINT_WIDTH];
@@ -574,8 +574,8 @@ void UPwSmallStrainLinkInterfaceElement<TDim,TNumNodes>::CalculateRHS( VectorTyp
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-template class UPwSmallStrainLinkInterfaceElement<2,4>;
-template class UPwSmallStrainLinkInterfaceElement<3,6>;
-template class UPwSmallStrainLinkInterfaceElement<3,8>;
+template class UPlSmallStrainLinkInterfaceElement<2,4>;
+template class UPlSmallStrainLinkInterfaceElement<3,6>;
+template class UPlSmallStrainLinkInterfaceElement<3,8>;
 
 } // Namespace Kratos

@@ -11,8 +11,8 @@
 //
 
 
-#if !defined(KRATOS_U_PW_SMALL_STRAIN_FIC_ELEMENT_H_INCLUDED )
-#define  KRATOS_U_PW_SMALL_STRAIN_FIC_ELEMENT_H_INCLUDED
+#if !defined(KRATOS_U_PL_SMALL_STRAIN_FIC_ELEMENT_H_INCLUDED )
+#define  KRATOS_U_PL_SMALL_STRAIN_FIC_ELEMENT_H_INCLUDED
 
 // System includes
 #include <cmath>
@@ -21,20 +21,20 @@
 #include "includes/serializer.h"
 
 // Application includes
-#include "custom_elements/U_Pw_element.hpp"
-#include "custom_elements/U_Pw_small_strain_element.hpp"
+#include "custom_elements/one-phase_flow/U_Pl_element.hpp"
+#include "custom_elements/one-phase_flow/U_Pl_small_strain_element.hpp"
 #include "poromechanics_application_variables.h"
 
 namespace Kratos
 {
 
 template< unsigned int TDim, unsigned int TNumNodes >
-class KRATOS_API(POROMECHANICS_APPLICATION) UPwSmallStrainFICElement : public UPwSmallStrainElement<TDim,TNumNodes>
+class KRATOS_API(POROMECHANICS_APPLICATION) UPlSmallStrainFICElement : public UPlSmallStrainElement<TDim,TNumNodes>
 {
 
 public:
 
-    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( UPwSmallStrainFICElement );
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( UPlSmallStrainFICElement );
 
     typedef std::size_t IndexType;
 	typedef Properties PropertiesType;
@@ -43,26 +43,26 @@ public:
     typedef Geometry<NodeType>::PointsArrayType NodesArrayType;
     typedef Vector VectorType;
     typedef Matrix MatrixType;
-    using UPwElement<TDim,TNumNodes>::mThisIntegrationMethod;
-    using UPwElement<TDim,TNumNodes>::mConstitutiveLawVector;
-    typedef typename UPwSmallStrainElement<TDim,TNumNodes>::ElementVariables ElementVariables;
+    using UPlElement<TDim,TNumNodes>::mThisIntegrationMethod;
+    using UPlElement<TDim,TNumNodes>::mConstitutiveLawVector;
+    typedef typename UPlSmallStrainElement<TDim,TNumNodes>::ElementVariables ElementVariables;
 
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     /// Default Constructor
-    UPwSmallStrainFICElement(IndexType NewId = 0) : UPwSmallStrainElement<TDim,TNumNodes>( NewId ) {}
+    UPlSmallStrainFICElement(IndexType NewId = 0) : UPlSmallStrainElement<TDim,TNumNodes>( NewId ) {}
 
     /// Constructor using an array of nodes
-    UPwSmallStrainFICElement(IndexType NewId, const NodesArrayType& ThisNodes) : UPwSmallStrainElement<TDim,TNumNodes>(NewId, ThisNodes) {}
+    UPlSmallStrainFICElement(IndexType NewId, const NodesArrayType& ThisNodes) : UPlSmallStrainElement<TDim,TNumNodes>(NewId, ThisNodes) {}
 
     /// Constructor using Geometry
-    UPwSmallStrainFICElement(IndexType NewId, GeometryType::Pointer pGeometry) : UPwSmallStrainElement<TDim,TNumNodes>(NewId, pGeometry) {}
+    UPlSmallStrainFICElement(IndexType NewId, GeometryType::Pointer pGeometry) : UPlSmallStrainElement<TDim,TNumNodes>(NewId, pGeometry) {}
 
     /// Constructor using Properties
-    UPwSmallStrainFICElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties) : UPwSmallStrainElement<TDim,TNumNodes>( NewId, pGeometry, pProperties ) {}
+    UPlSmallStrainFICElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties) : UPlSmallStrainElement<TDim,TNumNodes>( NewId, pGeometry, pProperties ) {}
 
     /// Destructor
-    ~UPwSmallStrainFICElement() override {}
+    ~UPlSmallStrainFICElement() override {}
 
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -122,12 +122,12 @@ protected:
     void ExtrapolateGPDtStress(const Matrix& DtStressContainer);
 
 
-    void CalculateAll( MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& CurrentProcessInfo ) override;
+    void CalculateAll( MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo ) override;
 
-    void CalculateRHS( VectorType& rRightHandSideVector, const ProcessInfo& CurrentProcessInfo ) override;
+    void CalculateRHS( VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo ) override;
 
     void InitializeFICElementVariables(FICElementVariables& rFICVariables, const GeometryType::ShapeFunctionsGradientsType& DN_DXContainer,
-                                        const GeometryType& Geom,const PropertiesType& Prop, const ProcessInfo& CurrentProcessInfo);
+                                        const GeometryType& Geom,const PropertiesType& Prop, const ProcessInfo& rCurrentProcessInfo);
 
     void ExtrapolateShapeFunctionsGradients(array_1d< array_1d<double,TDim*TNumNodes> , TNumNodes >& rNodalShapeFunctionsGradients,
                                                 const GeometryType::ShapeFunctionsGradientsType& DN_DXContainer);
@@ -174,22 +174,22 @@ private:
 
     void save(Serializer& rSerializer) const override
     {
-        KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, Element )
+        KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, UPlSmallStrainElement )
     }
 
     void load(Serializer& rSerializer) override
     {
-        KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, Element )
+        KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, UPlSmallStrainElement )
     }
 
     /// Assignment operator.
-    UPwSmallStrainFICElement & operator=(UPwSmallStrainFICElement const& rOther);
+    UPlSmallStrainFICElement & operator=(UPlSmallStrainFICElement const& rOther);
 
     /// Copy constructor.
-    UPwSmallStrainFICElement(UPwSmallStrainFICElement const& rOther);
+    UPlSmallStrainFICElement(UPlSmallStrainFICElement const& rOther);
 
-}; // Class UPwSmallStrainFICElement
+}; // Class UPlSmallStrainFICElement
 
 } // namespace Kratos
 
-#endif // KRATOS_U_PW_SMALL_STRAIN_FIC_ELEMENT_H_INCLUDED  defined
+#endif // KRATOS_U_PL_SMALL_STRAIN_FIC_ELEMENT_H_INCLUDED  defined

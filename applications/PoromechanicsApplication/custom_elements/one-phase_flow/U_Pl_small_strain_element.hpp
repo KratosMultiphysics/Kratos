@@ -11,14 +11,14 @@
 //
 
 
-#if !defined(KRATOS_U_PW_SMALL_STRAIN_ELEMENT_H_INCLUDED )
-#define  KRATOS_U_PW_SMALL_STRAIN_ELEMENT_H_INCLUDED
+#if !defined(KRATOS_U_PL_SMALL_STRAIN_ELEMENT_H_INCLUDED )
+#define  KRATOS_U_PL_SMALL_STRAIN_ELEMENT_H_INCLUDED
 
 // Project includes
 #include "includes/serializer.h"
 
 // Application includes
-#include "custom_elements/U_Pw_element.hpp"
+#include "custom_elements/one-phase_flow/U_Pl_element.hpp"
 #include "custom_utilities/element_utilities.hpp"
 #include "poromechanics_application_variables.h"
 
@@ -26,12 +26,12 @@ namespace Kratos
 {
 
 template< unsigned int TDim, unsigned int TNumNodes >
-class KRATOS_API(POROMECHANICS_APPLICATION) UPwSmallStrainElement : public UPwElement<TDim,TNumNodes>
+class KRATOS_API(POROMECHANICS_APPLICATION) UPlSmallStrainElement : public UPlElement<TDim,TNumNodes>
 {
 
 public:
 
-    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( UPwSmallStrainElement );
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( UPlSmallStrainElement );
 
     typedef std::size_t IndexType;
 	typedef Properties PropertiesType;
@@ -40,27 +40,27 @@ public:
     typedef Geometry<NodeType>::PointsArrayType NodesArrayType;
     typedef Vector VectorType;
     typedef Matrix MatrixType;
-    using UPwElement<TDim,TNumNodes>::mThisIntegrationMethod;
-    using UPwElement<TDim,TNumNodes>::mConstitutiveLawVector;
-    using UPwElement<TDim,TNumNodes>::mIntrinsicPermeability;
-    using UPwElement<TDim,TNumNodes>::mImposedZStrainVector;
+    using UPlElement<TDim,TNumNodes>::mThisIntegrationMethod;
+    using UPlElement<TDim,TNumNodes>::mConstitutiveLawVector;
+    using UPlElement<TDim,TNumNodes>::mIntrinsicPermeability;
+    using UPlElement<TDim,TNumNodes>::mImposedZStrainVector;
 
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     /// Default Constructor
-    UPwSmallStrainElement(IndexType NewId = 0) : UPwElement<TDim,TNumNodes>( NewId ) {}
+    UPlSmallStrainElement(IndexType NewId = 0) : UPlElement<TDim,TNumNodes>( NewId ) {}
 
     /// Constructor using an array of nodes
-    UPwSmallStrainElement(IndexType NewId, const NodesArrayType& ThisNodes) : UPwElement<TDim,TNumNodes>(NewId, ThisNodes) {}
+    UPlSmallStrainElement(IndexType NewId, const NodesArrayType& ThisNodes) : UPlElement<TDim,TNumNodes>(NewId, ThisNodes) {}
 
     /// Constructor using Geometry
-    UPwSmallStrainElement(IndexType NewId, GeometryType::Pointer pGeometry) : UPwElement<TDim,TNumNodes>(NewId, pGeometry) {}
+    UPlSmallStrainElement(IndexType NewId, GeometryType::Pointer pGeometry) : UPlElement<TDim,TNumNodes>(NewId, pGeometry) {}
 
     /// Constructor using Properties
-    UPwSmallStrainElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties) : UPwElement<TDim,TNumNodes>( NewId, pGeometry, pProperties ) {}
+    UPlSmallStrainElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties) : UPlElement<TDim,TNumNodes>( NewId, pGeometry, pProperties ) {}
 
     /// Destructor
-    ~UPwSmallStrainElement() override {}
+    ~UPlSmallStrainElement() override {}
 
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -94,7 +94,7 @@ protected:
     {
         ///Properties variables
         double DynamicViscosityInverse;
-        double FluidDensity;
+        double LiquidDensity;
         double Density;
         double BiotCoefficient;
         double BiotModulusInverse;
@@ -141,31 +141,12 @@ protected:
 
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    void SaveGPGradPressure(Matrix& rGradPressureContainer, const array_1d<double,TDim>& GradPressure, const unsigned int& GPoint);
-
-    void SaveGPStress(Matrix& rStressContainer, const Vector& StressVector, const unsigned int& VoigtSize, const unsigned int& GPoint);
-
-    void ExtrapolateGPValues(const Matrix& GradPressureContainer, const Matrix& StressContainer, const unsigned int& VoigtSize);
+    void CalculateStiffnessMatrix( MatrixType& rStiffnessMatrix, const ProcessInfo& rCurrentProcessInfo ) override;
 
 
-    void CalculateStiffnessMatrix( MatrixType& rStiffnessMatrix, const ProcessInfo& CurrentProcessInfo ) override;
+    void CalculateAll( MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo ) override;
 
-
-    void CalculateAll( MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& CurrentProcessInfo ) override;
-
-    void CalculateRHS( VectorType& rRightHandSideVector, const ProcessInfo& CurrentProcessInfo ) override;
-
-    void InitializeElementVariables(ElementVariables& rVariables,ConstitutiveLaw::Parameters& rConstitutiveParameters,
-                                    const GeometryType& Geom, const PropertiesType& Prop, const ProcessInfo& CurrentProcessInfo);
-
-    void CalculateBMatrix(Matrix& rB, const Matrix& GradNpT);
-
-    void CalculateKinematics(Matrix& rGradNpT,
-                                Matrix& rB,
-                                Vector& rStrainVector,
-                                const GeometryType::ShapeFunctionsGradientsType& DN_DXContainer,
-                                const array_1d<double,TNumNodes*TDim>& DisplacementVector,
-                                const unsigned int& GPoint);
+    void CalculateRHS( VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo ) override;
 
     void CalculateAndAddLHS(MatrixType& rLeftHandSideMatrix, ElementVariables& rVariables);
 
@@ -176,7 +157,6 @@ protected:
     void CalculateAndAddCompressibilityMatrix(MatrixType& rLeftHandSideMatrix, ElementVariables& rVariables);
 
     void CalculateAndAddPermeabilityMatrix(MatrixType& rLeftHandSideMatrix, ElementVariables& rVariables);
-
 
     void CalculateAndAddRHS(VectorType& rRightHandSideVector, ElementVariables& rVariables);
 
@@ -201,6 +181,23 @@ protected:
 
     void CalculateExplicitContributions (VectorType& rFluxResidual, VectorType& rBodyForce, VectorType& rNegInternalForces, const ProcessInfo& rCurrentProcessInfo) override;
 
+
+    void SaveGPStress(Matrix& rStressContainer, const Vector& StressVector, const unsigned int& VoigtSize, const unsigned int& GPoint);
+
+    void ExtrapolateGPValues(const Matrix& StressContainer, const unsigned int& VoigtSize);
+    
+    void InitializeElementVariables(ElementVariables& rVariables,ConstitutiveLaw::Parameters& rConstitutiveParameters,
+                                    const GeometryType& Geom, const PropertiesType& Prop, const ProcessInfo& rCurrentProcessInfo);
+
+    void CalculateKinematics(Matrix& rGradNpT,
+                                Matrix& rB,
+                                Vector& rStrainVector,
+                                const GeometryType::ShapeFunctionsGradientsType& DN_DXContainer,
+                                const array_1d<double,TNumNodes*TDim>& DisplacementVector,
+                                const unsigned int& GPoint);
+
+    void CalculateBMatrix(Matrix& rB, const Matrix& GradNpT);
+    
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 private:
@@ -215,22 +212,22 @@ private:
 
     void save(Serializer& rSerializer) const override
     {
-        KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, Element )
+        KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, UPlElement )
     }
 
     void load(Serializer& rSerializer) override
     {
-        KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, Element )
+        KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, UPlElement )
     }
 
     /// Assignment operator.
-    UPwSmallStrainElement & operator=(UPwSmallStrainElement const& rOther);
+    UPlSmallStrainElement & operator=(UPlSmallStrainElement const& rOther);
 
     /// Copy constructor.
-    UPwSmallStrainElement(UPwSmallStrainElement const& rOther);
+    UPlSmallStrainElement(UPlSmallStrainElement const& rOther);
 
-}; // Class UPwSmallStrainElement
+}; // Class UPlSmallStrainElement
 
 } // namespace Kratos
 
-#endif // KRATOS_U_PW_SMALL_STRAIN_ELEMENT_H_INCLUDED  defined
+#endif // KRATOS_U_PL_SMALL_STRAIN_ELEMENT_H_INCLUDED  defined

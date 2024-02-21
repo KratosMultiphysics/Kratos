@@ -11,8 +11,8 @@
 //
 
 
-#if !defined(KRATOS_U_PW_ELEMENT_H_INCLUDED )
-#define  KRATOS_U_PW_ELEMENT_H_INCLUDED
+#if !defined(KRATOS_U_PL_ELEMENT_H_INCLUDED )
+#define  KRATOS_U_PL_ELEMENT_H_INCLUDED
 
 // Project includes
 #include "containers/array_1d.h"
@@ -31,32 +31,32 @@ namespace Kratos
 {
 
 template< unsigned int TDim, unsigned int TNumNodes >
-class KRATOS_API(POROMECHANICS_APPLICATION) UPwElement : public Element
+class KRATOS_API(POROMECHANICS_APPLICATION) UPlElement : public Element
 {
 
 public:
 
-    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( UPwElement );
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( UPlElement );
 
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     /// Default Constructor
-    UPwElement(IndexType NewId = 0) : Element( NewId ) {}
+    UPlElement(IndexType NewId = 0) : Element( NewId ) {}
 
     /// Constructor using an array of nodes
-    UPwElement(IndexType NewId, const NodesArrayType& ThisNodes) : Element(NewId, ThisNodes) {}
+    UPlElement(IndexType NewId, const NodesArrayType& ThisNodes) : Element(NewId, ThisNodes) {}
 
     /// Constructor using Geometry
-    UPwElement(IndexType NewId, GeometryType::Pointer pGeometry) : Element( NewId, pGeometry ) {}
+    UPlElement(IndexType NewId, GeometryType::Pointer pGeometry) : Element( NewId, pGeometry ) {}
 
     /// Constructor using Properties
-    UPwElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties) : Element( NewId, pGeometry, pProperties )
+    UPlElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties) : Element( NewId, pGeometry, pProperties )
     {
         mThisIntegrationMethod = this->GetIntegrationMethod();
     }
 
     /// Destructor
-    virtual ~UPwElement() {}
+    virtual ~UPlElement() {}
 
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -139,11 +139,11 @@ protected:
 
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    virtual void CalculateStiffnessMatrix( MatrixType& rStiffnessMatrix, const ProcessInfo& CurrentProcessInfo );
+    virtual void CalculateStiffnessMatrix( MatrixType& rStiffnessMatrix, const ProcessInfo& rCurrentProcessInfo );
 
-    virtual void CalculateAll( MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& CurrentProcessInfo );
+    virtual void CalculateAll( MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo );
 
-    virtual void CalculateRHS( VectorType& rRightHandSideVector, const ProcessInfo& CurrentProcessInfo );
+    virtual void CalculateRHS( VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo );
 
     void CalculateIntegrationCoefficient(double& rIntegrationCoefficient, const double& detJ, const double& weight);
 
@@ -183,14 +183,14 @@ private:
     }
 
     /// Assignment operator.
-    UPwElement & operator=(UPwElement const& rOther);
+    UPlElement & operator=(UPlElement const& rOther);
 
     /// Copy constructor.
-    UPwElement(UPwElement const& rOther);
+    UPlElement(UPlElement const& rOther);
 
 
-}; // Class UPwElement
+}; // Class UPlElement
 
 } // namespace Kratos
 
-#endif // KRATOS_U_PW_ELEMENT_H_INCLUDED  defined
+#endif // KRATOS_U_PL_ELEMENT_H_INCLUDED  defined

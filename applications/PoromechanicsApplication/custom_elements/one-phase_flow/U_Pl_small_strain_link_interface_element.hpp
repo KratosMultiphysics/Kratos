@@ -11,27 +11,27 @@
 //
 
 
-#if !defined(KRATOS_U_PW_SMALL_STRAIN_LINK_INTERFACE_ELEMENT_H_INCLUDED )
-#define  KRATOS_U_PW_SMALL_STRAIN_LINK_INTERFACE_ELEMENT_H_INCLUDED
+#if !defined(KRATOS_U_PL_SMALL_STRAIN_LINK_INTERFACE_ELEMENT_H_INCLUDED )
+#define  KRATOS_U_PL_SMALL_STRAIN_LINK_INTERFACE_ELEMENT_H_INCLUDED
 
 // Project includes
 #include "includes/serializer.h"
 
 // Application includes
-#include "custom_elements/U_Pw_element.hpp"
-#include "custom_elements/U_Pw_small_strain_interface_element.hpp"
+#include "custom_elements/one-phase_flow/U_Pl_element.hpp"
+#include "custom_elements/one-phase_flow/U_Pl_small_strain_interface_element.hpp"
 #include "poromechanics_application_variables.h"
 
 namespace Kratos
 {
 
 template< unsigned int TDim, unsigned int TNumNodes >
-class KRATOS_API(POROMECHANICS_APPLICATION) UPwSmallStrainLinkInterfaceElement : public UPwSmallStrainInterfaceElement<TDim,TNumNodes>
+class KRATOS_API(POROMECHANICS_APPLICATION) UPlSmallStrainLinkInterfaceElement : public UPlSmallStrainInterfaceElement<TDim,TNumNodes>
 {
 
 public:
     
-    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( UPwSmallStrainLinkInterfaceElement );
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( UPlSmallStrainLinkInterfaceElement );
 
     typedef std::size_t IndexType;
 	typedef Properties PropertiesType;
@@ -40,24 +40,24 @@ public:
     typedef Geometry<NodeType>::PointsArrayType NodesArrayType;
     typedef Vector VectorType;
     typedef Matrix MatrixType;
-    using UPwElement<TDim,TNumNodes>::mThisIntegrationMethod;
-    using UPwElement<TDim,TNumNodes>::mConstitutiveLawVector;
-    typedef typename UPwSmallStrainInterfaceElement<TDim,TNumNodes>::SFGradAuxVariables SFGradAuxVariables;
-    typedef typename UPwSmallStrainInterfaceElement<TDim,TNumNodes>::InterfaceElementVariables InterfaceElementVariables;
+    using UPlElement<TDim,TNumNodes>::mThisIntegrationMethod;
+    using UPlElement<TDim,TNumNodes>::mConstitutiveLawVector;
+    typedef typename UPlSmallStrainInterfaceElement<TDim,TNumNodes>::SFGradAuxVariables SFGradAuxVariables;
+    typedef typename UPlSmallStrainInterfaceElement<TDim,TNumNodes>::InterfaceElementVariables InterfaceElementVariables;
     
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     // Default constructor
-    UPwSmallStrainLinkInterfaceElement() : UPwSmallStrainInterfaceElement<TDim,TNumNodes>() {}
+    UPlSmallStrainLinkInterfaceElement() : UPlSmallStrainInterfaceElement<TDim,TNumNodes>() {}
     
     // Constructor 1
-    UPwSmallStrainLinkInterfaceElement(IndexType NewId, GeometryType::Pointer pGeometry) : UPwSmallStrainInterfaceElement<TDim,TNumNodes>( NewId, pGeometry ) {}
+    UPlSmallStrainLinkInterfaceElement(IndexType NewId, GeometryType::Pointer pGeometry) : UPlSmallStrainInterfaceElement<TDim,TNumNodes>( NewId, pGeometry ) {}
     
     // Constructor 2
-    UPwSmallStrainLinkInterfaceElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties) : UPwSmallStrainInterfaceElement<TDim,TNumNodes>( NewId, pGeometry, pProperties ) {}
+    UPlSmallStrainLinkInterfaceElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties) : UPlSmallStrainInterfaceElement<TDim,TNumNodes>( NewId, pGeometry, pProperties ) {}
 
     // Destructor
-    ~UPwSmallStrainLinkInterfaceElement() override {}
+    ~UPlSmallStrainLinkInterfaceElement() override {}
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     
@@ -77,9 +77,9 @@ protected:
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    void CalculateAll( MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& CurrentProcessInfo ) override;
+    void CalculateAll( MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo ) override;
 
-    void CalculateRHS( VectorType& rRightHandSideVector, const ProcessInfo& CurrentProcessInfo ) override;
+    void CalculateRHS( VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo ) override;
         
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -95,17 +95,17 @@ private:
     
     void save(Serializer& rSerializer) const override
     {
-        KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, Element )
+        KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, UPlSmallStrainInterfaceElement )
     }
 
     void load(Serializer& rSerializer) override
     {
-        KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, Element )
+        KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, UPlSmallStrainInterfaceElement )
     }
 
 
-}; // Class UPwSmallStrainLinkInterfaceElement
+}; // Class UPlSmallStrainLinkInterfaceElement
 
 } // namespace Kratos
 
-#endif // KRATOS_U_PW_SMALL_STRAIN_LINK_INTERFACE_ELEMENT_H_INCLUDED  defined 
+#endif // KRATOS_U_PL_SMALL_STRAIN_LINK_INTERFACE_ELEMENT_H_INCLUDED  defined 

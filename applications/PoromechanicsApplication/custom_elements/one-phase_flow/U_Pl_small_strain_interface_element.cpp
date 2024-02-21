@@ -12,29 +12,29 @@
 
 
 // Application includes
-#include "custom_elements/U_Pw_small_strain_interface_element.hpp"
+#include "custom_elements/one-phase_flow/U_Pl_small_strain_interface_element.hpp"
 
 namespace Kratos
 {
 
 template< unsigned int TDim, unsigned int TNumNodes >
-Element::Pointer UPwSmallStrainInterfaceElement<TDim,TNumNodes>::Create( IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties ) const
+Element::Pointer UPlSmallStrainInterfaceElement<TDim,TNumNodes>::Create( IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties ) const
 {
-    return Element::Pointer( new UPwSmallStrainInterfaceElement( NewId, this->GetGeometry().Create( ThisNodes ), pProperties ) );
+    return Element::Pointer( new UPlSmallStrainInterfaceElement( NewId, this->GetGeometry().Create( ThisNodes ), pProperties ) );
 }
 
 //----------------------------------------------------------------------------------------
 
 template< unsigned int TDim, unsigned int TNumNodes >
-Element::Pointer UPwSmallStrainInterfaceElement<TDim,TNumNodes>::Create(IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties) const
+Element::Pointer UPlSmallStrainInterfaceElement<TDim,TNumNodes>::Create(IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties) const
 {
-    return Element::Pointer( new UPwSmallStrainInterfaceElement( NewId, pGeom, pProperties ) );
+    return Element::Pointer( new UPlSmallStrainInterfaceElement( NewId, pGeom, pProperties ) );
 }
 
 //----------------------------------------------------------------------------------------
 
 template< unsigned int TDim, unsigned int TNumNodes >
-int UPwSmallStrainInterfaceElement<TDim,TNumNodes>::Check( const ProcessInfo& rCurrentProcessInfo ) const
+int UPlSmallStrainInterfaceElement<TDim,TNumNodes>::Check( const ProcessInfo& rCurrentProcessInfo ) const
 {
     KRATOS_TRY
 
@@ -44,7 +44,7 @@ int UPwSmallStrainInterfaceElement<TDim,TNumNodes>::Check( const ProcessInfo& rC
         KRATOS_THROW_ERROR(std::logic_error, "Element found with Id 0 or negative","")
 
     // Verify generic variables
-    int ierr = UPwElement<TDim,TNumNodes>::Check(rCurrentProcessInfo);
+    int ierr = UPlElement<TDim,TNumNodes>::Check(rCurrentProcessInfo);
     if(ierr != 0) return ierr;
 
     // Verify specific properties
@@ -84,11 +84,11 @@ int UPwSmallStrainInterfaceElement<TDim,TNumNodes>::Check( const ProcessInfo& rC
 //----------------------------------------------------------------------------------------
 
 template< unsigned int TDim, unsigned int TNumNodes >
-void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::Initialize(const ProcessInfo& rCurrentProcessInfo)
+void UPlSmallStrainInterfaceElement<TDim,TNumNodes>::Initialize(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
-    UPwElement<TDim,TNumNodes>::Initialize(rCurrentProcessInfo);
+    UPlElement<TDim,TNumNodes>::Initialize(rCurrentProcessInfo);
 
     //Compute initial gap of the joint
     this->CalculateInitialGap(this->GetGeometry());
@@ -99,7 +99,7 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::Initialize(const ProcessInf
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 template< unsigned int TDim, unsigned int TNumNodes >
-void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::CalculateMassMatrix( MatrixType& rMassMatrix, const ProcessInfo& rCurrentProcessInfo )
+void UPlSmallStrainInterfaceElement<TDim,TNumNodes>::CalculateMassMatrix( MatrixType& rMassMatrix, const ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY
 
@@ -123,7 +123,7 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::CalculateMassMatrix( Matrix
     //Defining necessary variables
     double IntegrationCoefficient;
     const double& Porosity = Prop[POROSITY];
-    const double Density = Porosity*Prop[DENSITY_WATER] + (1.0-Porosity)*Prop[DENSITY_SOLID];
+    const double Density = Porosity*Prop[DENSITY_LIQUID] + (1.0-Porosity)*Prop[DENSITY_SOLID];
     BoundedMatrix<double,TDim+1, TNumNodes*(TDim+1)> Nut = ZeroMatrix(TDim+1, TNumNodes*(TDim+1));
     array_1d<double,TNumNodes*TDim> DisplacementVector;
     PoroElementUtilities::GetNodalVariableVector(DisplacementVector,Geom,DISPLACEMENT);
@@ -161,7 +161,7 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::CalculateMassMatrix( Matrix
 //----------------------------------------------------------------------------------------
 
 template< unsigned int TDim, unsigned int TNumNodes >
-void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::FinalizeSolutionStep( const ProcessInfo& rCurrentProcessInfo )
+void UPlSmallStrainInterfaceElement<TDim,TNumNodes>::FinalizeSolutionStep( const ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY
 
@@ -231,7 +231,7 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::FinalizeSolutionStep( const
 //----------------------------------------------------------------------------------------
 
 template< >
-void UPwSmallStrainInterfaceElement<2,4>::ExtrapolateGPValues (const std::vector<double>& JointWidthContainer)
+void UPlSmallStrainInterfaceElement<2,4>::ExtrapolateGPValues (const std::vector<double>& JointWidthContainer)
 {
     array_1d<double,2> DamageContainer; // 2 LobattoPoints
 
@@ -269,7 +269,7 @@ void UPwSmallStrainInterfaceElement<2,4>::ExtrapolateGPValues (const std::vector
 //----------------------------------------------------------------------------------------
 
 template< >
-void UPwSmallStrainInterfaceElement<3,6>::ExtrapolateGPValues (const std::vector<double>& JointWidthContainer)
+void UPlSmallStrainInterfaceElement<3,6>::ExtrapolateGPValues (const std::vector<double>& JointWidthContainer)
 {
     array_1d<double,3> DamageContainer; // 3 LobattoPoints
 
@@ -311,7 +311,7 @@ void UPwSmallStrainInterfaceElement<3,6>::ExtrapolateGPValues (const std::vector
 //----------------------------------------------------------------------------------------
 
 template< >
-void UPwSmallStrainInterfaceElement<3,8>::ExtrapolateGPValues (const std::vector<double>& JointWidthContainer)
+void UPlSmallStrainInterfaceElement<3,8>::ExtrapolateGPValues (const std::vector<double>& JointWidthContainer)
 {
     array_1d<double,4> DamageContainer; // 4 LobattoPoints
 
@@ -357,7 +357,7 @@ void UPwSmallStrainInterfaceElement<3,8>::ExtrapolateGPValues (const std::vector
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 template< unsigned int TDim, unsigned int TNumNodes >
-void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::CalculateOnIntegrationPoints( const Variable<double>& rVariable,
+void UPlSmallStrainInterfaceElement<TDim,TNumNodes>::CalculateOnIntegrationPoints( const Variable<double>& rVariable,
                                                                                     std::vector<double>& rValues,const ProcessInfo& rCurrentProcessInfo )
 {
     if(rVariable == DAMAGE_VARIABLE)
@@ -431,16 +431,16 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::CalculateOnIntegrationPoint
 //----------------------------------------------------------------------------------------
 
 template< unsigned int TDim, unsigned int TNumNodes >
-void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::CalculateOnIntegrationPoints(const Variable<array_1d<double,3>>& rVariable,
+void UPlSmallStrainInterfaceElement<TDim,TNumNodes>::CalculateOnIntegrationPoints(const Variable<array_1d<double,3>>& rVariable,
                                                                                     std::vector<array_1d<double,3>>& rValues,const ProcessInfo& rCurrentProcessInfo)
 {
-    if(rVariable == FLUID_FLUX_VECTOR || rVariable == CONTACT_STRESS_VECTOR || rVariable == LOCAL_STRESS_VECTOR || rVariable == LOCAL_RELATIVE_DISPLACEMENT_VECTOR || rVariable == LOCAL_FLUID_FLUX_VECTOR)
+    if(rVariable == LIQUID_FLUX_VECTOR || rVariable == CONTACT_STRESS_VECTOR || rVariable == LOCAL_STRESS_VECTOR || rVariable == LOCAL_RELATIVE_DISPLACEMENT_VECTOR || rVariable == LOCAL_LIQUID_FLUX_VECTOR)
     {
         //Variables computed on Lobatto points
         const GeometryType& Geom = this->GetGeometry();
         std::vector<array_1d<double,3>> GPValues(Geom.IntegrationPointsNumber( mThisIntegrationMethod ));
 
-        if(rVariable == FLUID_FLUX_VECTOR)
+        if(rVariable == LIQUID_FLUX_VECTOR)
         {
             const PropertiesType& Prop = this->GetProperties();
             const unsigned int NumGPoints = Geom.IntegrationPointsNumber( mThisIntegrationMethod );
@@ -454,7 +454,7 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::CalculateOnIntegrationPoint
             //Defining necessary variables
             array_1d<double,TNumNodes> PressureVector;
             for(unsigned int i=0; i<TNumNodes; i++)
-                PressureVector[i] = Geom[i].FastGetSolutionStepValue(WATER_PRESSURE);
+                PressureVector[i] = Geom[i].FastGetSolutionStepValue(LIQUID_PRESSURE);
             array_1d<double,TNumNodes*TDim> VolumeAcceleration;
             PoroElementUtilities::GetNodalVariableVector(VolumeAcceleration,Geom,VOLUME_ACCELERATION);
             array_1d<double,TDim> BodyAcceleration;
@@ -470,11 +470,11 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::CalculateOnIntegrationPoint
             BoundedMatrix<double,TNumNodes, TDim> GradNpT;
             const double& Transversal_Permeability_Coeff = Prop[TRANSVERSAL_PERMEABILITY_COEFFICIENT];
             BoundedMatrix<double,TDim, TDim> LocalPermeabilityMatrix = ZeroMatrix(TDim,TDim);
-            const double& DynamicViscosityInverse = 1.0/Prop[DYNAMIC_VISCOSITY];
-            const double& FluidDensity = Prop[DENSITY_WATER];
-            array_1d<double,TDim> LocalFluidFlux;
+            const double& DynamicViscosityInverse = 1.0/Prop[DYNAMIC_VISCOSITY_LIQUID];
+            const double& LiquidDensity = Prop[DENSITY_LIQUID];
+            array_1d<double,TDim> LocalLiquidFlux;
             array_1d<double,TDim> GradPressureTerm;
-            array_1d<double,TDim> FluidFlux;
+            array_1d<double,TDim> LiquidFlux;
             SFGradAuxVariables SFGradAuxVars;
 
             //Loop over integration points
@@ -496,13 +496,13 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::CalculateOnIntegrationPoint
                 InterfaceElementUtilities::CalculatePermeabilityMatrix(LocalPermeabilityMatrix,JointWidth,Transversal_Permeability_Coeff);
 
                 noalias(GradPressureTerm) = prod(trans(GradNpT),PressureVector);
-                noalias(GradPressureTerm) += -FluidDensity*BodyAcceleration;
+                noalias(GradPressureTerm) += -LiquidDensity*BodyAcceleration;
 
-                noalias(LocalFluidFlux) = -DynamicViscosityInverse*prod(LocalPermeabilityMatrix,GradPressureTerm);
+                noalias(LocalLiquidFlux) = -DynamicViscosityInverse*prod(LocalPermeabilityMatrix,GradPressureTerm);
 
-                noalias(FluidFlux) = prod(trans(RotationMatrix),LocalFluidFlux);
+                noalias(LiquidFlux) = prod(trans(RotationMatrix),LocalLiquidFlux);
 
-                PoroElementUtilities::FillArray1dOutput(GPValues[GPoint],FluidFlux);
+                PoroElementUtilities::FillArray1dOutput(GPValues[GPoint],LiquidFlux);
             }
         }
         else if(rVariable == CONTACT_STRESS_VECTOR)
@@ -642,7 +642,7 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::CalculateOnIntegrationPoint
                 PoroElementUtilities::FillArray1dOutput(GPValues[GPoint],LocalRelDispVector);
             }
         }
-        else if(rVariable == LOCAL_FLUID_FLUX_VECTOR)
+        else if(rVariable == LOCAL_LIQUID_FLUX_VECTOR)
         {
             const PropertiesType& Prop = this->GetProperties();
             const unsigned int NumGPoints = Geom.IntegrationPointsNumber( mThisIntegrationMethod );
@@ -656,7 +656,7 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::CalculateOnIntegrationPoint
             //Defining necessary variables
             array_1d<double,TNumNodes> PressureVector;
             for(unsigned int i=0; i<TNumNodes; i++)
-                PressureVector[i] = Geom[i].FastGetSolutionStepValue(WATER_PRESSURE);
+                PressureVector[i] = Geom[i].FastGetSolutionStepValue(LIQUID_PRESSURE);
             array_1d<double,TNumNodes*TDim> VolumeAcceleration;
             PoroElementUtilities::GetNodalVariableVector(VolumeAcceleration,Geom,VOLUME_ACCELERATION);
             array_1d<double,TDim> BodyAcceleration;
@@ -672,9 +672,9 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::CalculateOnIntegrationPoint
             BoundedMatrix<double,TNumNodes, TDim> GradNpT;
             const double& Transversal_Permeability_Coeff = Prop[TRANSVERSAL_PERMEABILITY_COEFFICIENT];
             BoundedMatrix<double,TDim, TDim> LocalPermeabilityMatrix = ZeroMatrix(TDim,TDim);
-            const double& DynamicViscosityInverse = 1.0/Prop[DYNAMIC_VISCOSITY];
-            const double& FluidDensity = Prop[DENSITY_WATER];
-            array_1d<double,TDim> LocalFluidFlux;
+            const double& DynamicViscosityInverse = 1.0/Prop[DYNAMIC_VISCOSITY_LIQUID];
+            const double& LiquidDensity = Prop[DENSITY_LIQUID];
+            array_1d<double,TDim> LocalLiquidFlux;
             array_1d<double,TDim> GradPressureTerm;
             SFGradAuxVariables SFGradAuxVars;
 
@@ -697,11 +697,11 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::CalculateOnIntegrationPoint
                 InterfaceElementUtilities::CalculatePermeabilityMatrix(LocalPermeabilityMatrix,JointWidth,Transversal_Permeability_Coeff);
 
                 noalias(GradPressureTerm) = prod(trans(GradNpT),PressureVector);
-                noalias(GradPressureTerm) += -FluidDensity*BodyAcceleration;
+                noalias(GradPressureTerm) += -LiquidDensity*BodyAcceleration;
 
-                noalias(LocalFluidFlux) = -DynamicViscosityInverse*prod(LocalPermeabilityMatrix,GradPressureTerm);
+                noalias(LocalLiquidFlux) = -DynamicViscosityInverse*prod(LocalPermeabilityMatrix,GradPressureTerm);
 
-                PoroElementUtilities::FillArray1dOutput(GPValues[GPoint],LocalFluidFlux);
+                PoroElementUtilities::FillArray1dOutput(GPValues[GPoint],LocalLiquidFlux);
             }
         }
 
@@ -729,7 +729,7 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::CalculateOnIntegrationPoint
 //----------------------------------------------------------------------------------------
 
 template< unsigned int TDim, unsigned int TNumNodes >
-void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::CalculateOnIntegrationPoints(const Variable<Matrix>& rVariable,std::vector<Matrix>& rValues,
+void UPlSmallStrainInterfaceElement<TDim,TNumNodes>::CalculateOnIntegrationPoints(const Variable<Matrix>& rVariable,std::vector<Matrix>& rValues,
                                                                                     const ProcessInfo& rCurrentProcessInfo)
 {
     if(rVariable == PERMEABILITY_MATRIX || rVariable == LOCAL_PERMEABILITY_MATRIX)
@@ -844,7 +844,7 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::CalculateOnIntegrationPoint
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 template< >
-void UPwSmallStrainInterfaceElement<2,4>::CalculateInitialGap(const GeometryType& Geom)
+void UPlSmallStrainInterfaceElement<2,4>::CalculateInitialGap(const GeometryType& Geom)
 {
     const double& InitialJointWidth = this->GetProperties()[INITIAL_JOINT_WIDTH];
     const double Tolerance = std::numeric_limits<double>::epsilon();
@@ -871,7 +871,7 @@ void UPwSmallStrainInterfaceElement<2,4>::CalculateInitialGap(const GeometryType
 //----------------------------------------------------------------------------------------
 
 template< >
-void UPwSmallStrainInterfaceElement<3,6>::CalculateInitialGap(const GeometryType& Geom)
+void UPlSmallStrainInterfaceElement<3,6>::CalculateInitialGap(const GeometryType& Geom)
 {
     const double& InitialJointWidth = this->GetProperties()[INITIAL_JOINT_WIDTH];
     const double Tolerance = std::numeric_limits<double>::epsilon();
@@ -906,7 +906,7 @@ void UPwSmallStrainInterfaceElement<3,6>::CalculateInitialGap(const GeometryType
 //----------------------------------------------------------------------------------------
 
 template< >
-void UPwSmallStrainInterfaceElement<3,8>::CalculateInitialGap(const GeometryType& Geom)
+void UPlSmallStrainInterfaceElement<3,8>::CalculateInitialGap(const GeometryType& Geom)
 {
     const double& InitialJointWidth = this->GetProperties()[INITIAL_JOINT_WIDTH];
     const double Tolerance = std::numeric_limits<double>::epsilon();
@@ -949,7 +949,7 @@ void UPwSmallStrainInterfaceElement<3,8>::CalculateInitialGap(const GeometryType
 //----------------------------------------------------------------------------------------
 
 template< unsigned int TDim, unsigned int TNumNodes >
-void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::CalculateStiffnessMatrix( MatrixType& rStiffnessMatrix, const ProcessInfo& CurrentProcessInfo )
+void UPlSmallStrainInterfaceElement<TDim,TNumNodes>::CalculateStiffnessMatrix( MatrixType& rStiffnessMatrix, const ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY
 
@@ -975,12 +975,12 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::CalculateStiffnessMatrix( M
     Geom.DeterminantOfJacobian(detJContainer,mThisIntegrationMethod);
 
     //Constitutive Law parameters
-    ConstitutiveLaw::Parameters ConstitutiveParameters(Geom,Prop,CurrentProcessInfo);
+    ConstitutiveLaw::Parameters ConstitutiveParameters(Geom,Prop,rCurrentProcessInfo);
     ConstitutiveParameters.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
 
     //Element variables
     InterfaceElementVariables Variables;
-    this->InitializeElementVariables(Variables,ConstitutiveParameters,Geom,Prop,CurrentProcessInfo);
+    this->InitializeElementVariables(Variables,ConstitutiveParameters,Geom,Prop,rCurrentProcessInfo);
 
     //Auxiliary variables
     const double& InitialJointWidth = Prop[INITIAL_JOINT_WIDTH];
@@ -1015,7 +1015,7 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::CalculateStiffnessMatrix( M
 //----------------------------------------------------------------------------------------
 
 template< unsigned int TDim, unsigned int TNumNodes >
-void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::CalculateAll( MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& CurrentProcessInfo )
+void UPlSmallStrainInterfaceElement<TDim,TNumNodes>::CalculateAll( MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY
 
@@ -1034,14 +1034,14 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::CalculateAll( MatrixType& r
     Geom.DeterminantOfJacobian(detJContainer,mThisIntegrationMethod);
 
     //Constitutive Law parameters
-    ConstitutiveLaw::Parameters ConstitutiveParameters(Geom,Prop,CurrentProcessInfo);
+    ConstitutiveLaw::Parameters ConstitutiveParameters(Geom,Prop,rCurrentProcessInfo);
     ConstitutiveParameters.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
     ConstitutiveParameters.Set(ConstitutiveLaw::COMPUTE_STRESS);
     ConstitutiveParameters.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
 
     //Element variables
     InterfaceElementVariables Variables;
-    this->InitializeElementVariables(Variables,ConstitutiveParameters,Geom,Prop,CurrentProcessInfo);
+    this->InitializeElementVariables(Variables,ConstitutiveParameters,Geom,Prop,rCurrentProcessInfo);
 
     //Auxiliary variables
     const double& InitialJointWidth = Prop[INITIAL_JOINT_WIDTH];
@@ -1084,7 +1084,7 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::CalculateAll( MatrixType& r
 //----------------------------------------------------------------------------------------
 
 template< unsigned int TDim, unsigned int TNumNodes >
-void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::CalculateRHS( VectorType& rRightHandSideVector, const ProcessInfo& CurrentProcessInfo )
+void UPlSmallStrainInterfaceElement<TDim,TNumNodes>::CalculateRHS( VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY
 
@@ -1103,13 +1103,13 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::CalculateRHS( VectorType& r
     Geom.DeterminantOfJacobian(detJContainer,mThisIntegrationMethod);
 
     //Constitutive Law parameters
-    ConstitutiveLaw::Parameters ConstitutiveParameters(Geom,Prop,CurrentProcessInfo);
+    ConstitutiveLaw::Parameters ConstitutiveParameters(Geom,Prop,rCurrentProcessInfo);
     ConstitutiveParameters.Set(ConstitutiveLaw::COMPUTE_STRESS);
     ConstitutiveParameters.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
 
     //Element variables
     InterfaceElementVariables Variables;
-    this->InitializeElementVariables(Variables,ConstitutiveParameters,Geom,Prop,CurrentProcessInfo);
+    this->InitializeElementVariables(Variables,ConstitutiveParameters,Geom,Prop,rCurrentProcessInfo);
 
     //Auxiliary variables
     const double& InitialJointWidth = Prop[INITIAL_JOINT_WIDTH];
@@ -1149,29 +1149,29 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::CalculateRHS( VectorType& r
 //----------------------------------------------------------------------------------------
 
 template< unsigned int TDim, unsigned int TNumNodes >
-void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::InitializeElementVariables(InterfaceElementVariables& rVariables,ConstitutiveLaw::Parameters& rConstitutiveParameters,
-                                                                                  const GeometryType& Geom, const PropertiesType& Prop, const ProcessInfo& CurrentProcessInfo)
+void UPlSmallStrainInterfaceElement<TDim,TNumNodes>::InitializeElementVariables(InterfaceElementVariables& rVariables,ConstitutiveLaw::Parameters& rConstitutiveParameters,
+                                                                                  const GeometryType& Geom, const PropertiesType& Prop, const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
     //Properties variables
     const double& BulkModulusSolid = Prop[BULK_MODULUS_SOLID];
     const double& Porosity = Prop[POROSITY];
-    rVariables.DynamicViscosityInverse = 1.0/Prop[DYNAMIC_VISCOSITY];
-    rVariables.FluidDensity = Prop[DENSITY_WATER];
-    rVariables.Density = Porosity*rVariables.FluidDensity + (1.0-Porosity)*Prop[DENSITY_SOLID];
+    rVariables.DynamicViscosityInverse = 1.0/Prop[DYNAMIC_VISCOSITY_LIQUID];
+    rVariables.LiquidDensity = Prop[DENSITY_LIQUID];
+    rVariables.Density = Porosity*rVariables.LiquidDensity + (1.0-Porosity)*Prop[DENSITY_SOLID];
     rVariables.BiotCoefficient = Prop[BIOT_COEFFICIENT];
-    rVariables.BiotModulusInverse = (rVariables.BiotCoefficient-Porosity)/BulkModulusSolid + Porosity/Prop[BULK_MODULUS_FLUID];
+    rVariables.BiotModulusInverse = (rVariables.BiotCoefficient-Porosity)/BulkModulusSolid + Porosity/Prop[BULK_MODULUS_LIQUID];
 
     //ProcessInfo variables
-    rVariables.VelocityCoefficient = CurrentProcessInfo[VELOCITY_COEFFICIENT];
-    rVariables.DtPressureCoefficient = CurrentProcessInfo[DT_PRESSURE_COEFFICIENT];
+    rVariables.VelocityCoefficient = rCurrentProcessInfo[VELOCITY_COEFFICIENT];
+    rVariables.DtPressureCoefficient = rCurrentProcessInfo[DT_LIQUID_PRESSURE_COEFFICIENT];
 
     //Nodal Variables
     for(unsigned int i=0; i<TNumNodes; i++)
     {
-        rVariables.PressureVector[i] = Geom[i].FastGetSolutionStepValue(WATER_PRESSURE);
-        rVariables.DtPressureVector[i] = Geom[i].FastGetSolutionStepValue(DT_WATER_PRESSURE);
+        rVariables.PressureVector[i] = Geom[i].FastGetSolutionStepValue(LIQUID_PRESSURE);
+        rVariables.DtPressureVector[i] = Geom[i].FastGetSolutionStepValue(DT_LIQUID_PRESSURE);
     }
     PoroElementUtilities::GetNodalVariableVector(rVariables.DisplacementVector,Geom,DISPLACEMENT);
     PoroElementUtilities::GetNodalVariableVector(rVariables.VelocityVector,Geom,VELOCITY);
@@ -1207,7 +1207,7 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::InitializeElementVariables(
 //----------------------------------------------------------------------------------------
 
 template<>
-void UPwSmallStrainInterfaceElement<2,4>::CalculateRotationMatrix(BoundedMatrix<double,2,2>& rRotationMatrix, const GeometryType& Geom)
+void UPlSmallStrainInterfaceElement<2,4>::CalculateRotationMatrix(BoundedMatrix<double,2,2>& rRotationMatrix, const GeometryType& Geom)
 {
     KRATOS_TRY
 
@@ -1247,7 +1247,7 @@ void UPwSmallStrainInterfaceElement<2,4>::CalculateRotationMatrix(BoundedMatrix<
 //----------------------------------------------------------------------------------------
 
 template<>
-void UPwSmallStrainInterfaceElement<3,6>::CalculateRotationMatrix(BoundedMatrix<double,3,3>& rRotationMatrix, const GeometryType& Geom)
+void UPlSmallStrainInterfaceElement<3,6>::CalculateRotationMatrix(BoundedMatrix<double,3,3>& rRotationMatrix, const GeometryType& Geom)
 {
     KRATOS_TRY
 
@@ -1299,7 +1299,7 @@ void UPwSmallStrainInterfaceElement<3,6>::CalculateRotationMatrix(BoundedMatrix<
 //----------------------------------------------------------------------------------------
 
 template<>
-void UPwSmallStrainInterfaceElement<3,8>::CalculateRotationMatrix(BoundedMatrix<double,3,3>& rRotationMatrix, const GeometryType& Geom)
+void UPlSmallStrainInterfaceElement<3,8>::CalculateRotationMatrix(BoundedMatrix<double,3,3>& rRotationMatrix, const GeometryType& Geom)
 {
     KRATOS_TRY
 
@@ -1351,7 +1351,7 @@ void UPwSmallStrainInterfaceElement<3,8>::CalculateRotationMatrix(BoundedMatrix<
 //----------------------------------------------------------------------------------------
 
 template< unsigned int TDim, unsigned int TNumNodes >
-void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::CalculateJointWidth(double& rJointWidth, const double& NormalRelDisp,
+void UPlSmallStrainInterfaceElement<TDim,TNumNodes>::CalculateJointWidth(double& rJointWidth, const double& NormalRelDisp,
                                                                         const double& InitialJointWidth,const unsigned int& GPoint)
 {
     rJointWidth = mInitialGap[GPoint] + NormalRelDisp;
@@ -1365,7 +1365,7 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::CalculateJointWidth(double&
 //----------------------------------------------------------------------------------------
 
 template< unsigned int TDim, unsigned int TNumNodes >
-void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::CheckAndCalculateJointWidth(double& rJointWidth, ConstitutiveLaw::Parameters& rConstitutiveParameters,
+void UPlSmallStrainInterfaceElement<TDim,TNumNodes>::CheckAndCalculateJointWidth(double& rJointWidth, ConstitutiveLaw::Parameters& rConstitutiveParameters,
                                                                                 double& rNormalRelDisp,const double& InitialJointWidth,const unsigned int& GPoint)
 {
     rJointWidth = mInitialGap[GPoint] + rNormalRelDisp;
@@ -1386,7 +1386,7 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::CheckAndCalculateJointWidth
 
 template< >
 template< class TMatrixType >
-void UPwSmallStrainInterfaceElement<2,4>::CalculateShapeFunctionsGradients(TMatrixType& rGradNpT,SFGradAuxVariables& rAuxVariables,
+void UPlSmallStrainInterfaceElement<2,4>::CalculateShapeFunctionsGradients(TMatrixType& rGradNpT,SFGradAuxVariables& rAuxVariables,
                                                     const Matrix& Jacobian,const BoundedMatrix<double,2,2>& RotationMatrix,
                                                     const Matrix& DN_De,const Matrix& Ncontainer, const double& JointWidth,const unsigned int& GPoint)
 {
@@ -1412,7 +1412,7 @@ void UPwSmallStrainInterfaceElement<2,4>::CalculateShapeFunctionsGradients(TMatr
 
 template< >
 template< class TMatrixType >
-void UPwSmallStrainInterfaceElement<3,6>::CalculateShapeFunctionsGradients(TMatrixType& rGradNpT,SFGradAuxVariables& rAuxVariables,
+void UPlSmallStrainInterfaceElement<3,6>::CalculateShapeFunctionsGradients(TMatrixType& rGradNpT,SFGradAuxVariables& rAuxVariables,
                                                     const Matrix& Jacobian,const BoundedMatrix<double,3,3>& RotationMatrix,
                                                     const Matrix& DN_De,const Matrix& Ncontainer, const double& JointWidth,const unsigned int& GPoint)
 {
@@ -1454,7 +1454,7 @@ void UPwSmallStrainInterfaceElement<3,6>::CalculateShapeFunctionsGradients(TMatr
 
 template< >
 template< class TMatrixType >
-void UPwSmallStrainInterfaceElement<3,8>::CalculateShapeFunctionsGradients(TMatrixType& rGradNpT,SFGradAuxVariables& rAuxVariables,
+void UPlSmallStrainInterfaceElement<3,8>::CalculateShapeFunctionsGradients(TMatrixType& rGradNpT,SFGradAuxVariables& rAuxVariables,
                                                     const Matrix& Jacobian,const BoundedMatrix<double,3,3>& RotationMatrix,
                                                     const Matrix& DN_De,const Matrix& Ncontainer, const double& JointWidth,const unsigned int& GPoint)
 {
@@ -1498,7 +1498,7 @@ void UPwSmallStrainInterfaceElement<3,8>::CalculateShapeFunctionsGradients(TMatr
 //----------------------------------------------------------------------------------------
 
 template< unsigned int TDim, unsigned int TNumNodes >
-void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::CalculateFluxResidual( VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo )
+void UPlSmallStrainInterfaceElement<TDim,TNumNodes>::CalculateFluxResidual( VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY
 
@@ -1572,7 +1572,7 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::CalculateFluxResidual( Vect
 //----------------------------------------------------------------------------------------
 
 template< unsigned int TDim, unsigned int TNumNodes >
-void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::CalculateMixBodyForce( VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo )
+void UPlSmallStrainInterfaceElement<TDim,TNumNodes>::CalculateMixBodyForce( VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY
 
@@ -1644,7 +1644,7 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::CalculateMixBodyForce( Vect
 //----------------------------------------------------------------------------------------
 
 template< unsigned int TDim, unsigned int TNumNodes >
-void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::CalculateNegInternalForce( VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo )
+void UPlSmallStrainInterfaceElement<TDim,TNumNodes>::CalculateNegInternalForce( VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY
 
@@ -1716,7 +1716,7 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::CalculateNegInternalForce( 
 //----------------------------------------------------------------------------------------
 
 template< unsigned int TDim, unsigned int TNumNodes >
-void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::CalculateExplicitContributions( VectorType& rFluxResidual, VectorType& rBodyForce, VectorType& rNegInternalForces, const ProcessInfo& rCurrentProcessInfo )
+void UPlSmallStrainInterfaceElement<TDim,TNumNodes>::CalculateExplicitContributions( VectorType& rFluxResidual, VectorType& rBodyForce, VectorType& rNegInternalForces, const ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY
 
@@ -1801,7 +1801,7 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::CalculateExplicitContributi
 //----------------------------------------------------------------------------------------
 
 template< unsigned int TDim, unsigned int TNumNodes >
-void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::CalculateLumpedMassMatrix( MatrixType& rLeftHandSideMatrix, const ProcessInfo& rCurrentProcessInfo )
+void UPlSmallStrainInterfaceElement<TDim,TNumNodes>::CalculateLumpedMassMatrix( MatrixType& rLeftHandSideMatrix, const ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY
 
@@ -1822,7 +1822,7 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::CalculateLumpedMassMatrix( 
 
     //Defining necessary variables
     const double& Porosity = Prop[POROSITY];
-    const double Density = Porosity*Prop[DENSITY_WATER] + (1.0-Porosity)*Prop[DENSITY_SOLID];
+    const double Density = Porosity*Prop[DENSITY_LIQUID] + (1.0-Porosity)*Prop[DENSITY_SOLID];
     array_1d<double,TNumNodes*TDim> DisplacementVector;
     PoroElementUtilities::GetNodalVariableVector(DisplacementVector,Geom,DISPLACEMENT);
     BoundedMatrix<double,TDim, TDim> RotationMatrix;
@@ -1872,7 +1872,7 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::CalculateLumpedMassMatrix( 
 //----------------------------------------------------------------------------------------
 
 template< unsigned int TDim, unsigned int TNumNodes >
-void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::CalculateAndAddLHS(MatrixType& rLeftHandSideMatrix, InterfaceElementVariables& rVariables)
+void UPlSmallStrainInterfaceElement<TDim,TNumNodes>::CalculateAndAddLHS(MatrixType& rLeftHandSideMatrix, InterfaceElementVariables& rVariables)
 {
     this->CalculateAndAddStiffnessMatrix(rLeftHandSideMatrix,rVariables);
 
@@ -1886,7 +1886,7 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::CalculateAndAddLHS(MatrixTy
 //----------------------------------------------------------------------------------------
 
 template< unsigned int TDim, unsigned int TNumNodes >
-void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::CalculateAndAddStiffnessMatrix(MatrixType& rLeftHandSideMatrix, InterfaceElementVariables& rVariables)
+void UPlSmallStrainInterfaceElement<TDim,TNumNodes>::CalculateAndAddStiffnessMatrix(MatrixType& rLeftHandSideMatrix, InterfaceElementVariables& rVariables)
 {
     noalias(rVariables.DimMatrix) = prod(trans(rVariables.RotationMatrix),
                                         BoundedMatrix<double,TDim,TDim>(prod(rVariables.ConstitutiveMatrix,
@@ -1903,7 +1903,7 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::CalculateAndAddStiffnessMat
 //----------------------------------------------------------------------------------------
 
 template< unsigned int TDim, unsigned int TNumNodes >
-void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::CalculateAndAddCouplingMatrix(MatrixType& rLeftHandSideMatrix, InterfaceElementVariables& rVariables)
+void UPlSmallStrainInterfaceElement<TDim,TNumNodes>::CalculateAndAddCouplingMatrix(MatrixType& rLeftHandSideMatrix, InterfaceElementVariables& rVariables)
 {
     // Note. We actually have B matrix here, but we cancel its rVariables.JointWidth with the one missing next to rVariables.IntegrationCoefficient
     noalias(rVariables.UDimMatrix) = prod(trans(rVariables.Nu),trans(rVariables.RotationMatrix));
@@ -1924,7 +1924,7 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::CalculateAndAddCouplingMatr
 //----------------------------------------------------------------------------------------
 
 template< unsigned int TDim, unsigned int TNumNodes >
-void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::CalculateAndAddCompressibilityMatrix(MatrixType& rLeftHandSideMatrix, InterfaceElementVariables& rVariables)
+void UPlSmallStrainInterfaceElement<TDim,TNumNodes>::CalculateAndAddCompressibilityMatrix(MatrixType& rLeftHandSideMatrix, InterfaceElementVariables& rVariables)
 {
     noalias(rVariables.PMatrix) = rVariables.DtPressureCoefficient*rVariables.BiotModulusInverse*outer_prod(rVariables.Np,rVariables.Np)*rVariables.JointWidth*rVariables.IntegrationCoefficient;
 
@@ -1935,7 +1935,7 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::CalculateAndAddCompressibil
 //----------------------------------------------------------------------------------------
 
 template< unsigned int TDim, unsigned int TNumNodes >
-void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::CalculateAndAddPermeabilityMatrix(MatrixType& rLeftHandSideMatrix, InterfaceElementVariables& rVariables)
+void UPlSmallStrainInterfaceElement<TDim,TNumNodes>::CalculateAndAddPermeabilityMatrix(MatrixType& rLeftHandSideMatrix, InterfaceElementVariables& rVariables)
 {
     noalias(rVariables.PDimMatrix) = prod(rVariables.GradNpT,rVariables.LocalPermeabilityMatrix);
 
@@ -1949,7 +1949,7 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::CalculateAndAddPermeability
 //----------------------------------------------------------------------------------------
 
 template< unsigned int TDim, unsigned int TNumNodes >
-void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::CalculateAndAddRHS(VectorType& rRightHandSideVector, InterfaceElementVariables& rVariables)
+void UPlSmallStrainInterfaceElement<TDim,TNumNodes>::CalculateAndAddRHS(VectorType& rRightHandSideVector, InterfaceElementVariables& rVariables)
 {
     this->CalculateAndAddStiffnessForce(rRightHandSideVector, rVariables);
 
@@ -1967,7 +1967,7 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::CalculateAndAddRHS(VectorTy
 //----------------------------------------------------------------------------------------
 
 template< unsigned int TDim, unsigned int TNumNodes >
-void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::CalculateAndAddStiffnessForce(VectorType& rRightHandSideVector, InterfaceElementVariables& rVariables)
+void UPlSmallStrainInterfaceElement<TDim,TNumNodes>::CalculateAndAddStiffnessForce(VectorType& rRightHandSideVector, InterfaceElementVariables& rVariables)
 {
     // Note. We actually have B matrix here, but we cancel its rVariables.JointWidth with the one missing next to rVariables.IntegrationCoefficient
     noalias(rVariables.UDimMatrix) = prod(trans(rVariables.Nu),trans(rVariables.RotationMatrix));
@@ -1981,7 +1981,7 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::CalculateAndAddStiffnessFor
 //----------------------------------------------------------------------------------------
 
 template< unsigned int TDim, unsigned int TNumNodes >
-void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::CalculateAndAddMixBodyForce(VectorType& rRightHandSideVector, InterfaceElementVariables& rVariables)
+void UPlSmallStrainInterfaceElement<TDim,TNumNodes>::CalculateAndAddMixBodyForce(VectorType& rRightHandSideVector, InterfaceElementVariables& rVariables)
 {
     noalias(rVariables.UVector) = rVariables.Density*prod(trans(rVariables.Nu),rVariables.BodyAcceleration)*rVariables.JointWidth*rVariables.IntegrationCoefficient;
 
@@ -1992,7 +1992,7 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::CalculateAndAddMixBodyForce
 //----------------------------------------------------------------------------------------
 
 template< unsigned int TDim, unsigned int TNumNodes >
-void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::CalculateAndAddCouplingTerms(VectorType& rRightHandSideVector, InterfaceElementVariables& rVariables)
+void UPlSmallStrainInterfaceElement<TDim,TNumNodes>::CalculateAndAddCouplingTerms(VectorType& rRightHandSideVector, InterfaceElementVariables& rVariables)
 {
     // Note. We actually have B matrix here, but we cancel its rVariables.JointWidth with the one missing next to rVariables.IntegrationCoefficient
     noalias(rVariables.UDimMatrix) = prod(trans(rVariables.Nu),trans(rVariables.RotationMatrix));
@@ -2015,7 +2015,7 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::CalculateAndAddCouplingTerm
 //----------------------------------------------------------------------------------------
 
 template< unsigned int TDim, unsigned int TNumNodes >
-void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::CalculateAndAddCompressibilityFlow(VectorType& rRightHandSideVector, InterfaceElementVariables& rVariables)
+void UPlSmallStrainInterfaceElement<TDim,TNumNodes>::CalculateAndAddCompressibilityFlow(VectorType& rRightHandSideVector, InterfaceElementVariables& rVariables)
 {
     noalias(rVariables.PMatrix) = rVariables.BiotModulusInverse*outer_prod(rVariables.Np,rVariables.Np)*rVariables.JointWidth*rVariables.IntegrationCoefficient;
 
@@ -2028,7 +2028,7 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::CalculateAndAddCompressibil
 //----------------------------------------------------------------------------------------
 
 template< unsigned int TDim, unsigned int TNumNodes >
-void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::CalculateAndAddPermeabilityFlow(VectorType& rRightHandSideVector, InterfaceElementVariables& rVariables)
+void UPlSmallStrainInterfaceElement<TDim,TNumNodes>::CalculateAndAddPermeabilityFlow(VectorType& rRightHandSideVector, InterfaceElementVariables& rVariables)
 {
     noalias(rVariables.PDimMatrix) = prod(rVariables.GradNpT,rVariables.LocalPermeabilityMatrix);
 
@@ -2043,21 +2043,21 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::CalculateAndAddPermeability
 //----------------------------------------------------------------------------------------
 
 template< unsigned int TDim, unsigned int TNumNodes >
-void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::CalculateAndAddFluidBodyFlow(VectorType& rRightHandSideVector, InterfaceElementVariables& rVariables)
+void UPlSmallStrainInterfaceElement<TDim,TNumNodes>::CalculateAndAddFluidBodyFlow(VectorType& rRightHandSideVector, InterfaceElementVariables& rVariables)
 {
     noalias(rVariables.PDimMatrix) = prod(rVariables.GradNpT,rVariables.LocalPermeabilityMatrix)*rVariables.JointWidth*rVariables.IntegrationCoefficient;
 
-    noalias(rVariables.PVector) = rVariables.DynamicViscosityInverse*rVariables.FluidDensity*
+    noalias(rVariables.PVector) = rVariables.DynamicViscosityInverse*rVariables.LiquidDensity*
                                     prod(rVariables.PDimMatrix,rVariables.BodyAcceleration);
 
-    //Distribute fluid body flow block vector into elemental vector
+    //Distribute liquid body flow block vector into elemental vector
     PoroElementUtilities::AssemblePBlockVector< array_1d<double,TNumNodes> >(rRightHandSideVector,rVariables.PVector,TDim,TNumNodes);
 }
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 template< >
-void UPwSmallStrainInterfaceElement<2,4>::InterpolateOutputDoubles( std::vector<double>& rOutput, const std::vector<double>& GPValues )
+void UPlSmallStrainInterfaceElement<2,4>::InterpolateOutputDoubles( std::vector<double>& rOutput, const std::vector<double>& GPValues )
 {
     //Interpolation of computed values at Lobatto GP to the standard GiD gauss points
 
@@ -2073,7 +2073,7 @@ void UPwSmallStrainInterfaceElement<2,4>::InterpolateOutputDoubles( std::vector<
 //----------------------------------------------------------------------------------------
 
 template< >
-void UPwSmallStrainInterfaceElement<3,6>::InterpolateOutputDoubles( std::vector<double>& rOutput, const std::vector<double>& GPValues )
+void UPlSmallStrainInterfaceElement<3,6>::InterpolateOutputDoubles( std::vector<double>& rOutput, const std::vector<double>& GPValues )
 {
     //Interpolation of computed values at Lobatto GP to the standard GiD gauss points
 
@@ -2099,7 +2099,7 @@ void UPwSmallStrainInterfaceElement<3,6>::InterpolateOutputDoubles( std::vector<
 //----------------------------------------------------------------------------------------
 
 template<>
-void UPwSmallStrainInterfaceElement<3,8>::InterpolateOutputDoubles( std::vector<double>& rOutput, const std::vector<double>& GPValues )
+void UPlSmallStrainInterfaceElement<3,8>::InterpolateOutputDoubles( std::vector<double>& rOutput, const std::vector<double>& GPValues )
 {
     //Interpolation of computed values at Lobatto GP to the standard GiD gauss points
 
@@ -2132,7 +2132,7 @@ void UPwSmallStrainInterfaceElement<3,8>::InterpolateOutputDoubles( std::vector<
 
 template<>
 template< class TValueType >
-void UPwSmallStrainInterfaceElement<2,4>::InterpolateOutputValues( std::vector<TValueType>& rOutput, const std::vector<TValueType>& GPValues )
+void UPlSmallStrainInterfaceElement<2,4>::InterpolateOutputValues( std::vector<TValueType>& rOutput, const std::vector<TValueType>& GPValues )
 {
     //Interpolation of computed values at Lobatto GP to the standard GiD gauss points
 
@@ -2149,7 +2149,7 @@ void UPwSmallStrainInterfaceElement<2,4>::InterpolateOutputValues( std::vector<T
 
 template<>
 template< class TValueType >
-void UPwSmallStrainInterfaceElement<3,6>::InterpolateOutputValues( std::vector<TValueType>& rOutput, const std::vector<TValueType>& GPValues )
+void UPlSmallStrainInterfaceElement<3,6>::InterpolateOutputValues( std::vector<TValueType>& rOutput, const std::vector<TValueType>& GPValues )
 {
     //Interpolation of computed values at Lobatto GP to the standard GiD gauss points
 
@@ -2176,7 +2176,7 @@ void UPwSmallStrainInterfaceElement<3,6>::InterpolateOutputValues( std::vector<T
 
 template<>
 template< class TValueType >
-void UPwSmallStrainInterfaceElement<3,8>::InterpolateOutputValues( std::vector<TValueType>& rOutput, const std::vector<TValueType>& GPValues )
+void UPlSmallStrainInterfaceElement<3,8>::InterpolateOutputValues( std::vector<TValueType>& rOutput, const std::vector<TValueType>& GPValues )
 {
     //Interpolation of computed values at Lobatto GP to the standard GiD gauss points
 
@@ -2207,48 +2207,48 @@ void UPwSmallStrainInterfaceElement<3,8>::InterpolateOutputValues( std::vector<T
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-template void UPwSmallStrainInterfaceElement<2,4>::CalculateShapeFunctionsGradients< BoundedMatrix<double,4,2> >
+template void UPlSmallStrainInterfaceElement<2,4>::CalculateShapeFunctionsGradients< BoundedMatrix<double,4,2> >
                                                     ( BoundedMatrix<double,4,2>& rGradNpT, SFGradAuxVariables& rAuxVariables,
                                                     const Matrix& Jacobian,const BoundedMatrix<double,2,2>& RotationMatrix,
                                                     const Matrix& DN_De,const Matrix& Ncontainer, const double& JointWidth,const unsigned int& GPoint );
-template void UPwSmallStrainInterfaceElement<2,4>::CalculateShapeFunctionsGradients< Matrix >
+template void UPlSmallStrainInterfaceElement<2,4>::CalculateShapeFunctionsGradients< Matrix >
                                                     ( Matrix& rGradNpT, SFGradAuxVariables& rAuxVariables,const Matrix& Jacobian,
                                                     const BoundedMatrix<double,2,2>& RotationMatrix,
                                                     const Matrix& DN_De,const Matrix& Ncontainer, const double& JointWidth,const unsigned int& GPoint );
-template void UPwSmallStrainInterfaceElement<3,6>::CalculateShapeFunctionsGradients< BoundedMatrix<double,6,3> >
+template void UPlSmallStrainInterfaceElement<3,6>::CalculateShapeFunctionsGradients< BoundedMatrix<double,6,3> >
                                                     ( BoundedMatrix<double,6,3>& rGradNpT, SFGradAuxVariables& rAuxVariables,
                                                     const Matrix& Jacobian,const BoundedMatrix<double,3,3>& RotationMatrix,
                                                     const Matrix& DN_De,const Matrix& Ncontainer, const double& JointWidth,const unsigned int& GPoint );
-template void UPwSmallStrainInterfaceElement<3,6>::CalculateShapeFunctionsGradients< Matrix >
+template void UPlSmallStrainInterfaceElement<3,6>::CalculateShapeFunctionsGradients< Matrix >
                                                     ( Matrix& rGradNpT, SFGradAuxVariables& rAuxVariables,const Matrix& Jacobian,
                                                     const BoundedMatrix<double,3,3>& RotationMatrix,
                                                     const Matrix& DN_De,const Matrix& Ncontainer, const double& JointWidth,const unsigned int& GPoint );
-template void UPwSmallStrainInterfaceElement<3,8>::CalculateShapeFunctionsGradients< BoundedMatrix<double,8,3> >
+template void UPlSmallStrainInterfaceElement<3,8>::CalculateShapeFunctionsGradients< BoundedMatrix<double,8,3> >
                                                     ( BoundedMatrix<double,8,3>& rGradNpT, SFGradAuxVariables& rAuxVariables,
                                                     const Matrix& Jacobian,const BoundedMatrix<double,3,3>& RotationMatrix,
                                                     const Matrix& DN_De,const Matrix& Ncontainer, const double& JointWidth,const unsigned int& GPoint );
-template void UPwSmallStrainInterfaceElement<3,8>::CalculateShapeFunctionsGradients< Matrix >
+template void UPlSmallStrainInterfaceElement<3,8>::CalculateShapeFunctionsGradients< Matrix >
                                                     ( Matrix& rGradNpT, SFGradAuxVariables& rAuxVariables,const Matrix& Jacobian,
                                                     const BoundedMatrix<double,3,3>& RotationMatrix,
                                                     const Matrix& DN_De,const Matrix& Ncontainer, const double& JointWidth,const unsigned int& GPoint );
 
-template void UPwSmallStrainInterfaceElement<2,4>::InterpolateOutputValues< array_1d<double,3> >
+template void UPlSmallStrainInterfaceElement<2,4>::InterpolateOutputValues< array_1d<double,3> >
                                                     ( std::vector<array_1d<double,3>>& rOutput, const std::vector<array_1d<double,3>>& GPValues );
-template void UPwSmallStrainInterfaceElement<2,4>::InterpolateOutputValues< Matrix >
+template void UPlSmallStrainInterfaceElement<2,4>::InterpolateOutputValues< Matrix >
                                                     ( std::vector<Matrix>& rOutput, const std::vector<Matrix>& GPValues );
-template void UPwSmallStrainInterfaceElement<3,6>::InterpolateOutputValues< array_1d<double,3> >
+template void UPlSmallStrainInterfaceElement<3,6>::InterpolateOutputValues< array_1d<double,3> >
                                                     ( std::vector<array_1d<double,3>>& rOutput, const std::vector<array_1d<double,3>>& GPValues );
-template void UPwSmallStrainInterfaceElement<3,6>::InterpolateOutputValues< Matrix >
+template void UPlSmallStrainInterfaceElement<3,6>::InterpolateOutputValues< Matrix >
                                                     ( std::vector<Matrix>& rOutput, const std::vector<Matrix>& GPValues );
-template void UPwSmallStrainInterfaceElement<3,8>::InterpolateOutputValues< array_1d<double,3> >
+template void UPlSmallStrainInterfaceElement<3,8>::InterpolateOutputValues< array_1d<double,3> >
                                                     ( std::vector<array_1d<double,3>>& rOutput, const std::vector<array_1d<double,3>>& GPValues );
-template void UPwSmallStrainInterfaceElement<3,8>::InterpolateOutputValues< Matrix >
+template void UPlSmallStrainInterfaceElement<3,8>::InterpolateOutputValues< Matrix >
                                                     ( std::vector<Matrix>& rOutput, const std::vector<Matrix>& GPValues );
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-template class UPwSmallStrainInterfaceElement<2,4>;
-template class UPwSmallStrainInterfaceElement<3,6>;
-template class UPwSmallStrainInterfaceElement<3,8>;
+template class UPlSmallStrainInterfaceElement<2,4>;
+template class UPlSmallStrainInterfaceElement<3,6>;
+template class UPlSmallStrainInterfaceElement<3,8>;
 
 } // Namespace Kratos

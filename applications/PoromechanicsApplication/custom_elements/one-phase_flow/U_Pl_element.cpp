@@ -12,33 +12,33 @@
 
 
 // Application includes
-#include "custom_elements/U_Pw_element.hpp"
+#include "custom_elements/one-phase_flow/U_Pl_element.hpp"
 
 namespace Kratos
 {
 
 template< unsigned int TDim, unsigned int TNumNodes >
-Element::Pointer UPwElement<TDim,TNumNodes>::Create( IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties ) const
+Element::Pointer UPlElement<TDim,TNumNodes>::Create( IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties ) const
 {
     KRATOS_THROW_ERROR( std::logic_error, "calling the default Create method for a particular element ... illegal operation!!", "" )
 
-    return Element::Pointer( new UPwElement( NewId, this->GetGeometry().Create( ThisNodes ), pProperties ) );
+    return Element::Pointer( new UPlElement( NewId, this->GetGeometry().Create( ThisNodes ), pProperties ) );
 }
 
 //----------------------------------------------------------------------------------------
 
 template< unsigned int TDim, unsigned int TNumNodes >
-Element::Pointer UPwElement<TDim,TNumNodes>::Create(IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties) const
+Element::Pointer UPlElement<TDim,TNumNodes>::Create(IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties) const
 {
     KRATOS_THROW_ERROR( std::logic_error, "calling the default Create method for a particular element ... illegal operation!!", "" )
 
-    return Element::Pointer( new UPwElement( NewId, pGeom, pProperties ) );
+    return Element::Pointer( new UPlElement( NewId, pGeom, pProperties ) );
 }
 
 //----------------------------------------------------------------------------------------
 
 template< unsigned int TDim, unsigned int TNumNodes >
-int UPwElement<TDim,TNumNodes>::Check( const ProcessInfo& rCurrentProcessInfo ) const
+int UPlElement<TDim,TNumNodes>::Check( const ProcessInfo& rCurrentProcessInfo ) const
 {
     KRATOS_TRY
 
@@ -52,10 +52,10 @@ int UPwElement<TDim,TNumNodes>::Check( const ProcessInfo& rCurrentProcessInfo ) 
         KRATOS_THROW_ERROR( std::invalid_argument, "VELOCITY has Key zero at element", this->Id() )
     if ( ACCELERATION.Key() == 0 )
         KRATOS_THROW_ERROR( std::invalid_argument, "ACCELERATION has Key zero at element", this->Id() )
-    if ( WATER_PRESSURE.Key() == 0 )
-        KRATOS_THROW_ERROR( std::invalid_argument, "WATER_PRESSURE has Key zero at element", this->Id() )
-    if ( DT_WATER_PRESSURE.Key() == 0 )
-        KRATOS_THROW_ERROR( std::invalid_argument, "DT_WATER_PRESSURE has Key zero at element", this->Id() )
+    if ( LIQUID_PRESSURE.Key() == 0 )
+        KRATOS_THROW_ERROR( std::invalid_argument, "LIQUID_PRESSURE has Key zero at element", this->Id() )
+    if ( DT_LIQUID_PRESSURE.Key() == 0 )
+        KRATOS_THROW_ERROR( std::invalid_argument, "DT_LIQUID_PRESSURE has Key zero at element", this->Id() )
     if ( VOLUME_ACCELERATION.Key() == 0 )
         KRATOS_THROW_ERROR( std::invalid_argument, "VOLUME_ACCELERATION has Key zero at element", this->Id() )
 
@@ -67,24 +67,24 @@ int UPwElement<TDim,TNumNodes>::Check( const ProcessInfo& rCurrentProcessInfo ) 
             KRATOS_THROW_ERROR( std::invalid_argument, "missing variable VELOCITY on node ", Geom[i].Id() )
         if ( Geom[i].SolutionStepsDataHas( ACCELERATION ) == false )
             KRATOS_THROW_ERROR( std::invalid_argument, "missing variable ACCELERATION on node ", Geom[i].Id() )
-        if ( Geom[i].SolutionStepsDataHas( WATER_PRESSURE ) == false )
-            KRATOS_THROW_ERROR( std::invalid_argument, "missing variable WATER_PRESSURE on node ", Geom[i].Id() )
-        if ( Geom[i].SolutionStepsDataHas( DT_WATER_PRESSURE ) == false )
-            KRATOS_THROW_ERROR( std::invalid_argument, "missing variable DT_WATER_PRESSURE on node ", Geom[i].Id() )
+        if ( Geom[i].SolutionStepsDataHas( LIQUID_PRESSURE ) == false )
+            KRATOS_THROW_ERROR( std::invalid_argument, "missing variable LIQUID_PRESSURE on node ", Geom[i].Id() )
+        if ( Geom[i].SolutionStepsDataHas( DT_LIQUID_PRESSURE ) == false )
+            KRATOS_THROW_ERROR( std::invalid_argument, "missing variable DT_LIQUID_PRESSURE on node ", Geom[i].Id() )
         if( Geom[i].SolutionStepsDataHas(VOLUME_ACCELERATION) == false )
             KRATOS_THROW_ERROR(std::invalid_argument,"missing VOLUME_ACCELERATION variable on node ", Geom[i].Id() );
 
         if ( Geom[i].HasDofFor( DISPLACEMENT_X ) == false || Geom[i].HasDofFor( DISPLACEMENT_Y ) == false || Geom[i].HasDofFor( DISPLACEMENT_Z ) == false )
             KRATOS_THROW_ERROR( std::invalid_argument, "missing one of the dofs for the variable DISPLACEMENT on node ", Geom[i].Id() )
-        if ( Geom[i].HasDofFor( WATER_PRESSURE ) == false )
-            KRATOS_THROW_ERROR( std::invalid_argument, "missing the dof for the variable WATER_PRESSURE on node ", Geom[i].Id() )
+        if ( Geom[i].HasDofFor( LIQUID_PRESSURE ) == false )
+            KRATOS_THROW_ERROR( std::invalid_argument, "missing the dof for the variable LIQUID_PRESSURE on node ", Geom[i].Id() )
     }
 
     // Verify ProcessInfo variables
     if ( VELOCITY_COEFFICIENT.Key() == 0 )
         KRATOS_THROW_ERROR( std::invalid_argument,"VELOCITY_COEFFICIENT has Key zero at element", this->Id() )
-    if ( DT_PRESSURE_COEFFICIENT.Key() == 0 )
-        KRATOS_THROW_ERROR( std::invalid_argument,"DT_PRESSURE_COEFFICIENT has Key zero at element", this->Id() )
+    if ( DT_LIQUID_PRESSURE_COEFFICIENT.Key() == 0 )
+        KRATOS_THROW_ERROR( std::invalid_argument,"DT_LIQUID_PRESSURE_COEFFICIENT has Key zero at element", this->Id() )
     if ( RAYLEIGH_ALPHA.Key() == 0)
         KRATOS_THROW_ERROR( std::invalid_argument,"RAYLEIGH_ALPHA has Key zero at element", this->Id() )
     if ( RAYLEIGH_BETA.Key() == 0 )
@@ -93,16 +93,16 @@ int UPwElement<TDim,TNumNodes>::Check( const ProcessInfo& rCurrentProcessInfo ) 
     // Verify properties
     if ( DENSITY_SOLID.Key() == 0 || Prop.Has( DENSITY_SOLID ) == false || Prop[DENSITY_SOLID] < 0.0 )
         KRATOS_THROW_ERROR( std::invalid_argument,"DENSITY_SOLID has Key zero, is not defined or has an invalid value at element", this->Id() )
-    if ( DENSITY_WATER.Key() == 0 || Prop.Has( DENSITY_WATER ) == false || Prop[DENSITY_WATER] < 0.0 )
-        KRATOS_THROW_ERROR( std::invalid_argument,"DENSITY_WATER has Key zero, is not defined or has an invalid value at element", this->Id() )
+    if ( DENSITY_LIQUID.Key() == 0 || Prop.Has( DENSITY_LIQUID ) == false || Prop[DENSITY_LIQUID] < 0.0 )
+        KRATOS_THROW_ERROR( std::invalid_argument,"DENSITY_LIQUID has Key zero, is not defined or has an invalid value at element", this->Id() )
     if ( BULK_MODULUS_SOLID.Key() == 0 || Prop.Has( BULK_MODULUS_SOLID ) == false || Prop[BULK_MODULUS_SOLID] <= 0.0 )
         KRATOS_THROW_ERROR( std::invalid_argument,"BULK_MODULUS_SOLID has Key zero, is not defined or has an invalid value at element", this->Id() )
-    if ( BULK_MODULUS_FLUID.Key() == 0 || Prop.Has( BULK_MODULUS_FLUID ) == false || Prop[BULK_MODULUS_FLUID] <= 0.0 )
-        KRATOS_THROW_ERROR( std::invalid_argument,"BULK_MODULUS_FLUID has Key zero, is not defined or has an invalid value at element", this->Id() )
+    if ( BULK_MODULUS_LIQUID.Key() == 0 || Prop.Has( BULK_MODULUS_LIQUID ) == false || Prop[BULK_MODULUS_LIQUID] <= 0.0 )
+        KRATOS_THROW_ERROR( std::invalid_argument,"BULK_MODULUS_LIQUID has Key zero, is not defined or has an invalid value at element", this->Id() )
     if ( YOUNG_MODULUS.Key() == 0 || Prop.Has( YOUNG_MODULUS ) == false || Prop[YOUNG_MODULUS] <= 0.0 )
         KRATOS_THROW_ERROR( std::invalid_argument,"YOUNG_MODULUS has Key zero, is not defined or has an invalid value at element", this->Id() )
-    if ( DYNAMIC_VISCOSITY.Key() == 0 || Prop.Has( DYNAMIC_VISCOSITY ) == false || Prop[DYNAMIC_VISCOSITY] <= 0.0 )
-        KRATOS_THROW_ERROR( std::invalid_argument,"DYNAMIC_VISCOSITY has Key zero, is not defined or has an invalid value at element", this->Id() )
+    if ( DYNAMIC_VISCOSITY_LIQUID.Key() == 0 || Prop.Has( DYNAMIC_VISCOSITY_LIQUID ) == false || Prop[DYNAMIC_VISCOSITY_LIQUID] <= 0.0 )
+        KRATOS_THROW_ERROR( std::invalid_argument,"DYNAMIC_VISCOSITY_LIQUID has Key zero, is not defined or has an invalid value at element", this->Id() )
     const double& Porosity = Prop[POROSITY];
     if ( POROSITY.Key() == 0 || Prop.Has( POROSITY ) == false || Porosity < 0.0 || Porosity > 1.0 )
         KRATOS_THROW_ERROR( std::invalid_argument,"POROSITY has Key zero, is not defined or has an invalid value at element", this->Id() )
@@ -132,7 +132,7 @@ int UPwElement<TDim,TNumNodes>::Check( const ProcessInfo& rCurrentProcessInfo ) 
 //----------------------------------------------------------------------------------------
 
 template< unsigned int TDim, unsigned int TNumNodes >
-void UPwElement<TDim,TNumNodes>::Initialize(const ProcessInfo& rCurrentProcessInfo)
+void UPlElement<TDim,TNumNodes>::Initialize(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
@@ -164,7 +164,7 @@ void UPwElement<TDim,TNumNodes>::Initialize(const ProcessInfo& rCurrentProcessIn
 //----------------------------------------------------------------------------------------
 
 template< unsigned int TDim, unsigned int TNumNodes >
-void UPwElement<TDim,TNumNodes>::GetDofList( DofsVectorType& rElementalDofList, const ProcessInfo& rCurrentProcessInfo ) const
+void UPlElement<TDim,TNumNodes>::GetDofList( DofsVectorType& rElementalDofList, const ProcessInfo& rCurrentProcessInfo ) const
 {
     KRATOS_TRY
 
@@ -181,7 +181,7 @@ void UPwElement<TDim,TNumNodes>::GetDofList( DofsVectorType& rElementalDofList, 
         rElementalDofList[index++] = rGeom[i].pGetDof(DISPLACEMENT_Y);
         if constexpr (TDim>2)
             rElementalDofList[index++] = rGeom[i].pGetDof(DISPLACEMENT_Z);
-        rElementalDofList[index++] = rGeom[i].pGetDof(WATER_PRESSURE);
+        rElementalDofList[index++] = rGeom[i].pGetDof(LIQUID_PRESSURE);
     }
 
     KRATOS_CATCH( "" )
@@ -190,7 +190,7 @@ void UPwElement<TDim,TNumNodes>::GetDofList( DofsVectorType& rElementalDofList, 
 //----------------------------------------------------------------------------------------
 
 template< unsigned int TDim, unsigned int TNumNodes >
-GeometryData::IntegrationMethod UPwElement<TDim,TNumNodes>::GetIntegrationMethod() const
+GeometryData::IntegrationMethod UPlElement<TDim,TNumNodes>::GetIntegrationMethod() const
 {
     return GeometryData::IntegrationMethod::GI_GAUSS_2;
 }
@@ -198,7 +198,7 @@ GeometryData::IntegrationMethod UPwElement<TDim,TNumNodes>::GetIntegrationMethod
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 template< unsigned int TDim, unsigned int TNumNodes >
-void UPwElement<TDim,TNumNodes>::CalculateLocalSystem( MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo )
+void UPlElement<TDim,TNumNodes>::CalculateLocalSystem( MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY
 
@@ -222,11 +222,11 @@ void UPwElement<TDim,TNumNodes>::CalculateLocalSystem( MatrixType& rLeftHandSide
 //----------------------------------------------------------------------------------------
 
 template< unsigned int TDim, unsigned int TNumNodes >
-void UPwElement<TDim,TNumNodes>::CalculateLeftHandSide( MatrixType& rLeftHandSideMatrix, const ProcessInfo& rCurrentProcessInfo )
+void UPlElement<TDim,TNumNodes>::CalculateLeftHandSide( MatrixType& rLeftHandSideMatrix, const ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY;
 
-    KRATOS_THROW_ERROR(std::logic_error,"UPwElement::CalculateLeftHandSide not implemented","");
+    KRATOS_THROW_ERROR(std::logic_error,"UPlElement::CalculateLeftHandSide not implemented","");
 
     KRATOS_CATCH("");
 }
@@ -234,7 +234,7 @@ void UPwElement<TDim,TNumNodes>::CalculateLeftHandSide( MatrixType& rLeftHandSid
 //----------------------------------------------------------------------------------------
 
 template< unsigned int TDim, unsigned int TNumNodes >
-void UPwElement<TDim,TNumNodes>::CalculateRightHandSide( VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo )
+void UPlElement<TDim,TNumNodes>::CalculateRightHandSide( VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY
 
@@ -253,7 +253,7 @@ void UPwElement<TDim,TNumNodes>::CalculateRightHandSide( VectorType& rRightHandS
 //----------------------------------------------------------------------------------------
 
 template< >
-void UPwElement<2,3>::EquationIdVector( EquationIdVectorType& rResult, const ProcessInfo& rCurrentProcessInfo ) const
+void UPlElement<2,3>::EquationIdVector( EquationIdVectorType& rResult, const ProcessInfo& rCurrentProcessInfo ) const
 {
     KRATOS_TRY
 
@@ -268,7 +268,7 @@ void UPwElement<2,3>::EquationIdVector( EquationIdVectorType& rResult, const Pro
     {
         rResult[index++] = rGeom[i].GetDof(DISPLACEMENT_X).EquationId();
         rResult[index++] = rGeom[i].GetDof(DISPLACEMENT_Y).EquationId();
-        rResult[index++] = rGeom[i].GetDof(WATER_PRESSURE).EquationId();
+        rResult[index++] = rGeom[i].GetDof(LIQUID_PRESSURE).EquationId();
     }
 
     KRATOS_CATCH( "" )
@@ -277,7 +277,7 @@ void UPwElement<2,3>::EquationIdVector( EquationIdVectorType& rResult, const Pro
 //----------------------------------------------------------------------------------------
 
 template< >
-void UPwElement<2,4>::EquationIdVector( EquationIdVectorType& rResult, const ProcessInfo& rCurrentProcessInfo ) const
+void UPlElement<2,4>::EquationIdVector( EquationIdVectorType& rResult, const ProcessInfo& rCurrentProcessInfo ) const
 {
     KRATOS_TRY
 
@@ -292,7 +292,7 @@ void UPwElement<2,4>::EquationIdVector( EquationIdVectorType& rResult, const Pro
     {
         rResult[index++] = rGeom[i].GetDof(DISPLACEMENT_X).EquationId();
         rResult[index++] = rGeom[i].GetDof(DISPLACEMENT_Y).EquationId();
-        rResult[index++] = rGeom[i].GetDof(WATER_PRESSURE).EquationId();
+        rResult[index++] = rGeom[i].GetDof(LIQUID_PRESSURE).EquationId();
     }
 
     KRATOS_CATCH( "" )
@@ -301,7 +301,7 @@ void UPwElement<2,4>::EquationIdVector( EquationIdVectorType& rResult, const Pro
 //----------------------------------------------------------------------------------------
 
 template<  >
-void UPwElement<3,4>::EquationIdVector( EquationIdVectorType& rResult, const ProcessInfo& rCurrentProcessInfo ) const
+void UPlElement<3,4>::EquationIdVector( EquationIdVectorType& rResult, const ProcessInfo& rCurrentProcessInfo ) const
 {
     KRATOS_TRY
 
@@ -317,7 +317,7 @@ void UPwElement<3,4>::EquationIdVector( EquationIdVectorType& rResult, const Pro
         rResult[index++] = rGeom[i].GetDof(DISPLACEMENT_X).EquationId();
         rResult[index++] = rGeom[i].GetDof(DISPLACEMENT_Y).EquationId();
         rResult[index++] = rGeom[i].GetDof(DISPLACEMENT_Z).EquationId();
-        rResult[index++] = rGeom[i].GetDof(WATER_PRESSURE).EquationId();
+        rResult[index++] = rGeom[i].GetDof(LIQUID_PRESSURE).EquationId();
     }
 
     KRATOS_CATCH( "" )
@@ -326,7 +326,7 @@ void UPwElement<3,4>::EquationIdVector( EquationIdVectorType& rResult, const Pro
 //----------------------------------------------------------------------------------------
 
 template<  >
-void UPwElement<3,6>::EquationIdVector( EquationIdVectorType& rResult, const ProcessInfo& rCurrentProcessInfo ) const
+void UPlElement<3,6>::EquationIdVector( EquationIdVectorType& rResult, const ProcessInfo& rCurrentProcessInfo ) const
 {
     KRATOS_TRY
 
@@ -342,7 +342,7 @@ void UPwElement<3,6>::EquationIdVector( EquationIdVectorType& rResult, const Pro
         rResult[index++] = rGeom[i].GetDof(DISPLACEMENT_X).EquationId();
         rResult[index++] = rGeom[i].GetDof(DISPLACEMENT_Y).EquationId();
         rResult[index++] = rGeom[i].GetDof(DISPLACEMENT_Z).EquationId();
-        rResult[index++] = rGeom[i].GetDof(WATER_PRESSURE).EquationId();
+        rResult[index++] = rGeom[i].GetDof(LIQUID_PRESSURE).EquationId();
     }
 
     KRATOS_CATCH( "" )
@@ -351,7 +351,7 @@ void UPwElement<3,6>::EquationIdVector( EquationIdVectorType& rResult, const Pro
 //----------------------------------------------------------------------------------------
 
 template<  >
-void UPwElement<3,8>::EquationIdVector( EquationIdVectorType& rResult, const ProcessInfo& rCurrentProcessInfo ) const
+void UPlElement<3,8>::EquationIdVector( EquationIdVectorType& rResult, const ProcessInfo& rCurrentProcessInfo ) const
 {
     KRATOS_TRY
 
@@ -367,7 +367,7 @@ void UPwElement<3,8>::EquationIdVector( EquationIdVectorType& rResult, const Pro
         rResult[index++] = rGeom[i].GetDof(DISPLACEMENT_X).EquationId();
         rResult[index++] = rGeom[i].GetDof(DISPLACEMENT_Y).EquationId();
         rResult[index++] = rGeom[i].GetDof(DISPLACEMENT_Z).EquationId();
-        rResult[index++] = rGeom[i].GetDof(WATER_PRESSURE).EquationId();
+        rResult[index++] = rGeom[i].GetDof(LIQUID_PRESSURE).EquationId();
     }
 
     KRATOS_CATCH( "" )
@@ -376,7 +376,7 @@ void UPwElement<3,8>::EquationIdVector( EquationIdVectorType& rResult, const Pro
 //----------------------------------------------------------------------------------------
 
 template< unsigned int TDim, unsigned int TNumNodes >
-void UPwElement<TDim,TNumNodes>::CalculateMassMatrix( MatrixType& rMassMatrix, const ProcessInfo& rCurrentProcessInfo )
+void UPlElement<TDim,TNumNodes>::CalculateMassMatrix( MatrixType& rMassMatrix, const ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY
 
@@ -400,7 +400,7 @@ void UPwElement<TDim,TNumNodes>::CalculateMassMatrix( MatrixType& rMassMatrix, c
     //Defining necessary variables
     double IntegrationCoefficient;
     const double& Porosity = Prop[POROSITY];
-    const double Density = Porosity*Prop[DENSITY_WATER] + (1.0-Porosity)*Prop[DENSITY_SOLID];
+    const double Density = Porosity*Prop[DENSITY_LIQUID] + (1.0-Porosity)*Prop[DENSITY_SOLID];
     BoundedMatrix<double,TDim+1, TNumNodes*(TDim+1)> Nut = ZeroMatrix(TDim+1, TNumNodes*(TDim+1));
 
     //Loop over integration points
@@ -421,7 +421,7 @@ void UPwElement<TDim,TNumNodes>::CalculateMassMatrix( MatrixType& rMassMatrix, c
 //----------------------------------------------------------------------------------------
 
 template< unsigned int TDim, unsigned int TNumNodes >
-void UPwElement<TDim,TNumNodes>::CalculateDampingMatrix(MatrixType& rDampingMatrix, const ProcessInfo& rCurrentProcessInfo)
+void UPlElement<TDim,TNumNodes>::CalculateDampingMatrix(MatrixType& rDampingMatrix, const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
@@ -453,7 +453,7 @@ void UPwElement<TDim,TNumNodes>::CalculateDampingMatrix(MatrixType& rDampingMatr
 //----------------------------------------------------------------------------------------
 
 template< unsigned int TDim, unsigned int TNumNodes >
-void UPwElement<TDim,TNumNodes>::GetValuesVector( Vector& rValues, int Step ) const
+void UPlElement<TDim,TNumNodes>::GetValuesVector( Vector& rValues, int Step ) const
 {
     const GeometryType& Geom = this->GetGeometry();
     const unsigned int element_size = TNumNodes * (TDim + 1);
@@ -475,7 +475,7 @@ void UPwElement<TDim,TNumNodes>::GetValuesVector( Vector& rValues, int Step ) co
 //----------------------------------------------------------------------------------------
 
 template< unsigned int TDim, unsigned int TNumNodes >
-void UPwElement<TDim,TNumNodes>::GetFirstDerivativesVector( Vector& rValues, int Step ) const
+void UPlElement<TDim,TNumNodes>::GetFirstDerivativesVector( Vector& rValues, int Step ) const
 {
     const GeometryType& Geom = this->GetGeometry();
     const unsigned int element_size = TNumNodes * (TDim + 1);
@@ -497,7 +497,7 @@ void UPwElement<TDim,TNumNodes>::GetFirstDerivativesVector( Vector& rValues, int
 //----------------------------------------------------------------------------------------
 
 template< unsigned int TDim, unsigned int TNumNodes >
-void UPwElement<TDim,TNumNodes>::GetSecondDerivativesVector( Vector& rValues, int Step ) const
+void UPlElement<TDim,TNumNodes>::GetSecondDerivativesVector( Vector& rValues, int Step ) const
 {
     const GeometryType& Geom = this->GetGeometry();
     const unsigned int element_size = TNumNodes * (TDim + 1);
@@ -519,7 +519,7 @@ void UPwElement<TDim,TNumNodes>::GetSecondDerivativesVector( Vector& rValues, in
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 template< unsigned int TDim, unsigned int TNumNodes >
-void UPwElement<TDim,TNumNodes>::SetValuesOnIntegrationPoints( const Variable<double>& rVariable, const std::vector<double>& rValues,
+void UPlElement<TDim,TNumNodes>::SetValuesOnIntegrationPoints( const Variable<double>& rVariable, const std::vector<double>& rValues,
                                                                 const ProcessInfo& rCurrentProcessInfo )
 {
     if (rVariable == IMPOSED_Z_STRAIN_VALUE) {
@@ -536,7 +536,7 @@ void UPwElement<TDim,TNumNodes>::SetValuesOnIntegrationPoints( const Variable<do
 //----------------------------------------------------------------------------------------
 
 template< unsigned int TDim, unsigned int TNumNodes >
-void UPwElement<TDim,TNumNodes>::SetValuesOnIntegrationPoints( const Variable<Matrix>& rVariable,const std::vector<Matrix>& rValues,
+void UPlElement<TDim,TNumNodes>::SetValuesOnIntegrationPoints( const Variable<Matrix>& rVariable,const std::vector<Matrix>& rValues,
                                                             const ProcessInfo& rCurrentProcessInfo )
 {
     if (rVariable == PERMEABILITY_MATRIX) {
@@ -552,7 +552,7 @@ void UPwElement<TDim,TNumNodes>::SetValuesOnIntegrationPoints( const Variable<Ma
 //----------------------------------------------------------------------------------------
 
 template< unsigned int TDim, unsigned int TNumNodes >
-void UPwElement<TDim,TNumNodes>::CalculateOnIntegrationPoints( const Variable<double>& rVariable,std::vector<double>& rValues,
+void UPlElement<TDim,TNumNodes>::CalculateOnIntegrationPoints( const Variable<double>& rVariable,std::vector<double>& rValues,
                                                                 const ProcessInfo& rCurrentProcessInfo )
 {
     const GeometryType& rGeom = this->GetGeometry();
@@ -571,7 +571,7 @@ void UPwElement<TDim,TNumNodes>::CalculateOnIntegrationPoints( const Variable<do
 //----------------------------------------------------------------------------------------
 
 template< unsigned int TDim, unsigned int TNumNodes >
-void UPwElement<TDim,TNumNodes>::CalculateOnIntegrationPoints(const Variable<array_1d<double,3>>& rVariable,std::vector<array_1d<double,3>>& rValues,
+void UPlElement<TDim,TNumNodes>::CalculateOnIntegrationPoints(const Variable<array_1d<double,3>>& rVariable,std::vector<array_1d<double,3>>& rValues,
                                                                     const ProcessInfo& rCurrentProcessInfo)
 {
     const GeometryType& rGeom = this->GetGeometry();
@@ -590,7 +590,7 @@ void UPwElement<TDim,TNumNodes>::CalculateOnIntegrationPoints(const Variable<arr
 //----------------------------------------------------------------------------------------
 
 template< unsigned int TDim, unsigned int TNumNodes >
-void UPwElement<TDim,TNumNodes>::CalculateOnIntegrationPoints(const Variable<Matrix>& rVariable,std::vector<Matrix>& rValues,
+void UPlElement<TDim,TNumNodes>::CalculateOnIntegrationPoints(const Variable<Matrix>& rVariable,std::vector<Matrix>& rValues,
                                                                     const ProcessInfo& rCurrentProcessInfo)
 {
     const GeometryType& rGeom = this->GetGeometry();
@@ -610,7 +610,7 @@ void UPwElement<TDim,TNumNodes>::CalculateOnIntegrationPoints(const Variable<Mat
 //----------------------------------------------------------------------------------------
 
 template< unsigned int TDim, unsigned int TNumNodes >
-void UPwElement<TDim,TNumNodes>::CalculateOnIntegrationPoints( const Variable<ConstitutiveLaw::Pointer>& rVariable,std::vector<ConstitutiveLaw::Pointer>& rValues,
+void UPlElement<TDim,TNumNodes>::CalculateOnIntegrationPoints( const Variable<ConstitutiveLaw::Pointer>& rVariable,std::vector<ConstitutiveLaw::Pointer>& rValues,
                                                                 const ProcessInfo& rCurrentProcessInfo )
 {
     if (rVariable == CONSTITUTIVE_LAW) {
@@ -627,7 +627,7 @@ void UPwElement<TDim,TNumNodes>::CalculateOnIntegrationPoints( const Variable<Co
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 template< unsigned int TDim, unsigned int TNumNodes >
-void UPwElement<TDim,TNumNodes>::CalculateStiffnessMatrix( MatrixType& rStiffnessMatrix, const ProcessInfo& CurrentProcessInfo )
+void UPlElement<TDim,TNumNodes>::CalculateStiffnessMatrix( MatrixType& rStiffnessMatrix, const ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY
 
@@ -639,7 +639,7 @@ void UPwElement<TDim,TNumNodes>::CalculateStiffnessMatrix( MatrixType& rStiffnes
 //----------------------------------------------------------------------------------------
 
 template< unsigned int TDim, unsigned int TNumNodes >
-void UPwElement<TDim,TNumNodes>::CalculateAll( MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& CurrentProcessInfo )
+void UPlElement<TDim,TNumNodes>::CalculateAll( MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY
 
@@ -651,7 +651,7 @@ void UPwElement<TDim,TNumNodes>::CalculateAll( MatrixType& rLeftHandSideMatrix, 
 //----------------------------------------------------------------------------------------
 
 template< unsigned int TDim, unsigned int TNumNodes >
-void UPwElement<TDim,TNumNodes>::CalculateRHS( VectorType& rRightHandSideVector, const ProcessInfo& CurrentProcessInfo )
+void UPlElement<TDim,TNumNodes>::CalculateRHS( VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY
 
@@ -663,7 +663,7 @@ void UPwElement<TDim,TNumNodes>::CalculateRHS( VectorType& rRightHandSideVector,
 //----------------------------------------------------------------------------------------
 
 template< >
-void UPwElement<2,3>::CalculateIntegrationCoefficient(double& rIntegrationCoefficient, const double& detJ, const double& weight)
+void UPlElement<2,3>::CalculateIntegrationCoefficient(double& rIntegrationCoefficient, const double& detJ, const double& weight)
 {
     rIntegrationCoefficient = weight * detJ * this->GetProperties()[THICKNESS];
 }
@@ -671,7 +671,7 @@ void UPwElement<2,3>::CalculateIntegrationCoefficient(double& rIntegrationCoeffi
 //----------------------------------------------------------------------------------------
 
 template< >
-void UPwElement<2,4>::CalculateIntegrationCoefficient(double& rIntegrationCoefficient, const double& detJ, const double& weight)
+void UPlElement<2,4>::CalculateIntegrationCoefficient(double& rIntegrationCoefficient, const double& detJ, const double& weight)
 {
     rIntegrationCoefficient = weight * detJ * this->GetProperties()[THICKNESS];
 }
@@ -679,7 +679,7 @@ void UPwElement<2,4>::CalculateIntegrationCoefficient(double& rIntegrationCoeffi
 //----------------------------------------------------------------------------------------
 
 template< >
-void UPwElement<3,4>::CalculateIntegrationCoefficient(double& rIntegrationCoefficient, const double& detJ, const double& weight)
+void UPlElement<3,4>::CalculateIntegrationCoefficient(double& rIntegrationCoefficient, const double& detJ, const double& weight)
 {
     rIntegrationCoefficient = weight * detJ;
 }
@@ -687,7 +687,7 @@ void UPwElement<3,4>::CalculateIntegrationCoefficient(double& rIntegrationCoeffi
 //----------------------------------------------------------------------------------------
 
 template< >
-void UPwElement<3,6>::CalculateIntegrationCoefficient(double& rIntegrationCoefficient, const double& detJ, const double& weight)
+void UPlElement<3,6>::CalculateIntegrationCoefficient(double& rIntegrationCoefficient, const double& detJ, const double& weight)
 {
     rIntegrationCoefficient = weight * detJ;
 }
@@ -695,7 +695,7 @@ void UPwElement<3,6>::CalculateIntegrationCoefficient(double& rIntegrationCoeffi
 //----------------------------------------------------------------------------------------
 
 template< >
-void UPwElement<3,8>::CalculateIntegrationCoefficient(double& rIntegrationCoefficient, const double& detJ, const double& weight)
+void UPlElement<3,8>::CalculateIntegrationCoefficient(double& rIntegrationCoefficient, const double& detJ, const double& weight)
 {
     rIntegrationCoefficient = weight * detJ;
 }
@@ -703,7 +703,7 @@ void UPwElement<3,8>::CalculateIntegrationCoefficient(double& rIntegrationCoeffi
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 template< unsigned int TDim, unsigned int TNumNodes >
-void UPwElement<TDim,TNumNodes>::CalculateFluxResidual( VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo )
+void UPlElement<TDim,TNumNodes>::CalculateFluxResidual( VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY
 
@@ -715,7 +715,7 @@ void UPwElement<TDim,TNumNodes>::CalculateFluxResidual( VectorType& rRightHandSi
 //----------------------------------------------------------------------------------------
 
 template< unsigned int TDim, unsigned int TNumNodes >
-void UPwElement<TDim,TNumNodes>::CalculateMixBodyForce( VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo )
+void UPlElement<TDim,TNumNodes>::CalculateMixBodyForce( VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY
 
@@ -727,7 +727,7 @@ void UPwElement<TDim,TNumNodes>::CalculateMixBodyForce( VectorType& rRightHandSi
 //----------------------------------------------------------------------------------------
 
 template< unsigned int TDim, unsigned int TNumNodes >
-void UPwElement<TDim,TNumNodes>::CalculateNegInternalForce( VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo )
+void UPlElement<TDim,TNumNodes>::CalculateNegInternalForce( VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY
 
@@ -739,7 +739,7 @@ void UPwElement<TDim,TNumNodes>::CalculateNegInternalForce( VectorType& rRightHa
 //----------------------------------------------------------------------------------------
 
 template< unsigned int TDim, unsigned int TNumNodes >
-void UPwElement<TDim,TNumNodes>::CalculateExplicitContributions (VectorType& rFluxResidual, VectorType& rBodyForce, VectorType& rNegInternalForces, const ProcessInfo& rCurrentProcessInfo )
+void UPlElement<TDim,TNumNodes>::CalculateExplicitContributions (VectorType& rFluxResidual, VectorType& rBodyForce, VectorType& rNegInternalForces, const ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY
 
@@ -751,7 +751,7 @@ void UPwElement<TDim,TNumNodes>::CalculateExplicitContributions (VectorType& rFl
 //----------------------------------------------------------------------------------------
 
 template< unsigned int TDim, unsigned int TNumNodes >
-void UPwElement<TDim,TNumNodes>::CalculateLumpedMassMatrix( MatrixType& rLeftHandSideMatrix, const ProcessInfo& rCurrentProcessInfo )
+void UPlElement<TDim,TNumNodes>::CalculateLumpedMassMatrix( MatrixType& rLeftHandSideMatrix, const ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY
 
@@ -765,7 +765,7 @@ void UPwElement<TDim,TNumNodes>::CalculateLumpedMassMatrix( MatrixType& rLeftHan
     noalias( rLeftHandSideMatrix ) = ZeroMatrix( element_size, element_size );
 
     const double& porosity = r_prop[POROSITY];
-    const double density = porosity*r_prop[DENSITY_WATER] + (1.0-porosity)*r_prop[DENSITY_SOLID];
+    const double density = porosity*r_prop[DENSITY_LIQUID] + (1.0-porosity)*r_prop[DENSITY_SOLID];
 
     const double thickness = (TDim == 2 && r_prop.Has(THICKNESS)) ? r_prop[THICKNESS] : 1.0;
 
@@ -789,7 +789,7 @@ void UPwElement<TDim,TNumNodes>::CalculateLumpedMassMatrix( MatrixType& rLeftHan
 //----------------------------------------------------------------------------------------
 
 template< unsigned int TDim, unsigned int TNumNodes >
-void UPwElement<TDim,TNumNodes>::CalculateDampingMatrixWithLumpedMass( MatrixType& rLeftHandSideMatrix, const ProcessInfo& rCurrentProcessInfo )
+void UPlElement<TDim,TNumNodes>::CalculateDampingMatrixWithLumpedMass( MatrixType& rLeftHandSideMatrix, const ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY
 
@@ -821,7 +821,7 @@ void UPwElement<TDim,TNumNodes>::CalculateDampingMatrixWithLumpedMass( MatrixTyp
 //----------------------------------------------------------------------------------------
 
 template< unsigned int TDim, unsigned int TNumNodes >
-void UPwElement<TDim,TNumNodes>::CalculateInertialForce( VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo )
+void UPlElement<TDim,TNumNodes>::CalculateInertialForce( VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY
 
@@ -847,7 +847,7 @@ void UPwElement<TDim,TNumNodes>::CalculateInertialForce( VectorType& rRightHandS
 //----------------------------------------------------------------------------------------
 
 template< unsigned int TDim, unsigned int TNumNodes >
-void UPwElement<TDim,TNumNodes>::CalculateDampingForce( VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo )
+void UPlElement<TDim,TNumNodes>::CalculateDampingForce( VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY
 
@@ -873,7 +873,7 @@ void UPwElement<TDim,TNumNodes>::CalculateDampingForce( VectorType& rRightHandSi
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 template< unsigned int TDim, unsigned int TNumNodes >
-void UPwElement<TDim,TNumNodes>::AddExplicitContribution(
+void UPlElement<TDim,TNumNodes>::AddExplicitContribution(
     const VectorType& rRHSVector,
     const Variable<VectorType>& rRHSVariable,
     const Variable<double>& rDestinationVariable,
@@ -906,7 +906,7 @@ void UPwElement<TDim,TNumNodes>::AddExplicitContribution(
 //----------------------------------------------------------------------------------------
 
 template< unsigned int TDim, unsigned int TNumNodes >
-void UPwElement<TDim,TNumNodes>::AddExplicitContribution(
+void UPlElement<TDim,TNumNodes>::AddExplicitContribution(
     const VectorType& rRHSVector,
     const Variable<VectorType>& rRHSVariable,
     const Variable<array_1d<double,3> >& rDestinationVariable,
@@ -1008,10 +1008,10 @@ void UPwElement<TDim,TNumNodes>::AddExplicitContribution(
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-template class UPwElement<2,3>;
-template class UPwElement<2,4>;
-template class UPwElement<3,4>;
-template class UPwElement<3,6>;
-template class UPwElement<3,8>;
+template class UPlElement<2,3>;
+template class UPlElement<2,4>;
+template class UPlElement<3,4>;
+template class UPlElement<3,6>;
+template class UPlElement<3,8>;
 
 } // Namespace Kratos

@@ -11,14 +11,14 @@
 //
 
 
-#if !defined(KRATOS_U_PW_SMALL_STRAIN_INTERFACE_ELEMENT_H_INCLUDED )
-#define  KRATOS_U_PW_SMALL_STRAIN_INTERFACE_ELEMENT_H_INCLUDED
+#if !defined(KRATOS_U_PL_SMALL_STRAIN_INTERFACE_ELEMENT_H_INCLUDED )
+#define  KRATOS_U_PL_SMALL_STRAIN_INTERFACE_ELEMENT_H_INCLUDED
 
 // Project includes
 #include "includes/serializer.h"
 
 // Application includes
-#include "custom_elements/U_Pw_element.hpp"
+#include "custom_elements/one-phase_flow/U_Pl_element.hpp"
 #include "custom_utilities/interface_element_utilities.hpp"
 #include "poromechanics_application_variables.h"
 
@@ -26,12 +26,12 @@ namespace Kratos
 {
 
 template< unsigned int TDim, unsigned int TNumNodes >
-class KRATOS_API(POROMECHANICS_APPLICATION) UPwSmallStrainInterfaceElement : public UPwElement<TDim,TNumNodes>
+class KRATOS_API(POROMECHANICS_APPLICATION) UPlSmallStrainInterfaceElement : public UPlElement<TDim,TNumNodes>
 {
 
 public:
 
-    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( UPwSmallStrainInterfaceElement );
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( UPlSmallStrainInterfaceElement );
 
     typedef std::size_t IndexType;
 	typedef Properties PropertiesType;
@@ -40,29 +40,29 @@ public:
     typedef Geometry<NodeType>::PointsArrayType NodesArrayType;
     typedef Vector VectorType;
     typedef Matrix MatrixType;
-    using UPwElement<TDim,TNumNodes>::mThisIntegrationMethod;
-    using UPwElement<TDim,TNumNodes>::mConstitutiveLawVector;
+    using UPlElement<TDim,TNumNodes>::mThisIntegrationMethod;
+    using UPlElement<TDim,TNumNodes>::mConstitutiveLawVector;
 
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     /// Default Constructor
-    UPwSmallStrainInterfaceElement(IndexType NewId = 0) : UPwElement<TDim,TNumNodes>( NewId ) {}
+    UPlSmallStrainInterfaceElement(IndexType NewId = 0) : UPlElement<TDim,TNumNodes>( NewId ) {}
 
     /// Constructor using an array of nodes
-    UPwSmallStrainInterfaceElement(IndexType NewId, const NodesArrayType& ThisNodes) : UPwElement<TDim,TNumNodes>(NewId, ThisNodes) {}
+    UPlSmallStrainInterfaceElement(IndexType NewId, const NodesArrayType& ThisNodes) : UPlElement<TDim,TNumNodes>(NewId, ThisNodes) {}
 
     /// Constructor using Geometry
-    UPwSmallStrainInterfaceElement(IndexType NewId, GeometryType::Pointer pGeometry) : UPwElement<TDim,TNumNodes>(NewId, pGeometry) {}
+    UPlSmallStrainInterfaceElement(IndexType NewId, GeometryType::Pointer pGeometry) : UPlElement<TDim,TNumNodes>(NewId, pGeometry) {}
 
     /// Constructor using Properties
-    UPwSmallStrainInterfaceElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties) : UPwElement<TDim,TNumNodes>( NewId, pGeometry, pProperties )
+    UPlSmallStrainInterfaceElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties) : UPlElement<TDim,TNumNodes>( NewId, pGeometry, pProperties )
     {
         /// Lobatto integration method with the integration points located at the "mid plane nodes" of the interface
         mThisIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_1;
     }
 
     /// Destructor
-    ~UPwSmallStrainInterfaceElement() override {}
+    ~UPlSmallStrainInterfaceElement() override {}
 
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -107,7 +107,7 @@ protected:
     {
         ///Properties variables
         double DynamicViscosityInverse;
-        double FluidDensity;
+        double LiquidDensity;
         double Density;
         double BiotCoefficient;
         double BiotModulusInverse;
@@ -167,15 +167,15 @@ protected:
     void ExtrapolateGPValues (const std::vector<double>& JointWidthContainer);
 
 
-    void CalculateStiffnessMatrix( MatrixType& rStiffnessMatrix, const ProcessInfo& CurrentProcessInfo ) override;
+    void CalculateStiffnessMatrix( MatrixType& rStiffnessMatrix, const ProcessInfo& rCurrentProcessInfo ) override;
 
 
-    void CalculateAll( MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& CurrentProcessInfo ) override;
+    void CalculateAll( MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo ) override;
 
-    void CalculateRHS( VectorType& rRightHandSideVector, const ProcessInfo& CurrentProcessInfo ) override;
+    void CalculateRHS( VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo ) override;
 
     void InitializeElementVariables(InterfaceElementVariables& rVariables,ConstitutiveLaw::Parameters& rConstitutiveParameters,
-                                    const GeometryType& Geom, const PropertiesType& Prop, const ProcessInfo& CurrentProcessInfo);
+                                    const GeometryType& Geom, const PropertiesType& Prop, const ProcessInfo& rCurrentProcessInfo);
 
     void CalculateRotationMatrix(BoundedMatrix<double,TDim,TDim>& rRotationMatrix, const GeometryType& Geom);
 
@@ -246,22 +246,22 @@ private:
 
     void save(Serializer& rSerializer) const override
     {
-        KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, Element )
+        KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, UPlElement )
     }
 
     void load(Serializer& rSerializer) override
     {
-        KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, Element )
+        KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, UPlElement )
     }
 
     /// Assignment operator.
-    UPwSmallStrainInterfaceElement & operator=(UPwSmallStrainInterfaceElement const& rOther);
+    UPlSmallStrainInterfaceElement & operator=(UPlSmallStrainInterfaceElement const& rOther);
 
     /// Copy constructor.
-    UPwSmallStrainInterfaceElement(UPwSmallStrainInterfaceElement const& rOther);
+    UPlSmallStrainInterfaceElement(UPlSmallStrainInterfaceElement const& rOther);
 
-}; // Class UPwSmallStrainInterfaceElement
+}; // Class UPlSmallStrainInterfaceElement
 
 } // namespace Kratos
 
-#endif // KRATOS_U_PW_SMALL_STRAIN_INTERFACE_ELEMENT_H_INCLUDED  defined
+#endif // KRATOS_U_PL_SMALL_STRAIN_INTERFACE_ELEMENT_H_INCLUDED  defined
