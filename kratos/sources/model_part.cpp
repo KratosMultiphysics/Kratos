@@ -460,7 +460,7 @@ void ModelPart::RemoveNodes(Flags IdentifierFlag)
 
         for(ModelPart::NodesContainerType::iterator i_node = temp_nodes_container.begin() ; i_node != temp_nodes_container.end() ; ++i_node) {
             if( i_node->IsNot(IdentifierFlag) )
-                (r_mesh.Nodes()).push_back(std::move(*(i_node.base())));
+                (r_mesh.Nodes()).insert(r_mesh.Nodes().end(), std::move(*(i_node.base())));
         }
     };
 
@@ -1143,7 +1143,7 @@ void ModelPart::RemoveElements(Flags IdentifierFlag)
         for(ModelPart::ElementsContainerType::iterator i_elem = temp_elements_container.begin() ; i_elem != temp_elements_container.end() ; i_elem++)
         {
             if( i_elem->IsNot(IdentifierFlag) )
-                (i_mesh->Elements()).push_back(std::move(*(i_elem.base())));
+                (i_mesh->Elements()).insert(i_mesh->Elements().end(), std::move(*(i_elem.base())));
         }
     }
 
@@ -1384,7 +1384,7 @@ void ModelPart::RemoveMasterSlaveConstraints(Flags IdentifierFlag)
 
         for(auto it_const = temp_constraints_container.begin() ; it_const != temp_constraints_container.end(); it_const++) {
             if( it_const->IsNot(IdentifierFlag) )
-                (it_mesh->MasterSlaveConstraints()).push_back(std::move(*(it_const.base())));
+                (it_mesh->MasterSlaveConstraints()).insert(it_mesh->MasterSlaveConstraints().end(), std::move(*(it_const.base())));
         }
     }
 
@@ -1645,7 +1645,7 @@ void ModelPart::RemoveConditions(Flags IdentifierFlag)
         for(ModelPart::ConditionsContainerType::iterator i_cond = temp_conditions_container.begin() ; i_cond != temp_conditions_container.end() ; i_cond++)
         {
             if( i_cond->IsNot(IdentifierFlag) )
-                (i_mesh->Conditions()).push_back(std::move(*(i_cond.base())));
+                (i_mesh->Conditions()).insert(i_mesh->Conditions().end(), std::move(*(i_cond.base())));
         }
     }
 
