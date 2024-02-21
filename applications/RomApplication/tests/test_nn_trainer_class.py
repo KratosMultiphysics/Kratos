@@ -87,7 +87,7 @@ class TestNeuralNetworkTrainerClass(KratosUnittest.TestCase):
                 "rom_basis_output_format": "numpy",
                 "rom_basis_output_name": "RomParameters",
                 "rom_basis_output_folder": "rom_data",
-                "svd_truncation_tolerance": 1e-16
+                "svd_truncation_tolerance": 1e-6
             }
         }""")
 
@@ -121,19 +121,19 @@ class TestNeuralNetworkTrainerClass(KratosUnittest.TestCase):
             basis_output_process._PrintRomBasis(snapshots_matrix_train)
 
             self.assertTrue(np.all(np.abs(snapshots_matrix_train - np.load('rom_data/reference_fom_snapshots.npy')<1e-10)))
-            self.assertTrue(np.all(np.abs(snapshots_matrix_test - np.load('rom_data/reference_fom_snapshots_val.npy')<1e-10)))
-            self.assertTrue(np.all(np.abs(np.load('rom_data/SingularValuesVector.npy') - np.load('rom_data/reference_SingularValuesVector.npy')<1e-10)))
-            self.assertTrue(np.all(np.abs(np.load('rom_data/RightBasisMatrix.npy') - np.load('rom_data/reference_RightBasisMatrix.npy')<1e-10)))
+            self.assertTrue(np.all(np.abs(snapshots_matrix_test - np.load('rom_data/reference_fom_snapshots_val.npy'))<1e-10))
+            self.assertTrue(np.all(np.abs(np.load('rom_data/SingularValuesVector.npy') - np.load('rom_data/reference_SingularValuesVector.npy'))<1e-10))
+            self.assertTrue(np.all(np.abs(np.load('rom_data/RightBasisMatrix.npy') - np.load('rom_data/reference_RightBasisMatrix.npy'))<1e-10))
 
     def tearDown(self):
         with KratosUnittest.WorkFolderScope(self.work_folder, __file__):
             rom_data_path = 'rom_data/'
             neural_network_models_path = rom_data_path+'saved_nn_models/test_neural_network/'
             kratos_utilities.DeleteDirectoryIfExisting(neural_network_models_path)
-            kratos_utilities.DeleteFileIfExisting(rom_data_path+'RightBasisMatrix.npy')
-            kratos_utilities.DeleteFileIfExisting(rom_data_path+'SingularValuesVector.npy')
-            kratos_utilities.DeleteFileIfExisting(rom_data_path+'NodeIds.npy')
-            kratos_utilities.DeleteFileIfExisting(rom_data_path+'RomParameters.json')
+            # kratos_utilities.DeleteFileIfExisting(rom_data_path+'RightBasisMatrix.npy')
+            # kratos_utilities.DeleteFileIfExisting(rom_data_path+'SingularValuesVector.npy')
+            # kratos_utilities.DeleteFileIfExisting(rom_data_path+'NodeIds.npy')
+            # kratos_utilities.DeleteFileIfExisting(rom_data_path+'RomParameters.json')
 
 ##########################################################################################
 
