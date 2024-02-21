@@ -11,6 +11,7 @@
 //                   Richard Faasse
 //
 
+#include "containers/model.h"
 #include "custom_utilities/dof_utilities.h"
 #include "includes/element.h"
 #include "testing/testing.h"
@@ -56,6 +57,23 @@ KRATOS_TEST_CASE_IN_SUITE(ExtractingDofsFromEmptyNodeCollectionYieldsEmptyVector
     const auto empty_geometry = Geometry<Node>{geometry_id};
 
     KRATOS_EXPECT_TRUE(Geo::DofUtilities::ExtractDofsFromNodes(empty_geometry, WATER_PRESSURE).empty())
+}
+
+KRATOS_TEST_CASE_IN_SUITE(ExpectThrowWhenExtractingNonExistingDofsFromNodes, KratosGeoMechanicsFastSuite)
+{
+    auto  model        = Model{};
+    auto& r_model_part = model.CreateModelPart("Dummy");
+
+    r_model_part.CreateNewNode(1, 0.0, 0.0, 0.0);
+    r_model_part.CreateNewNode(2, 1.0, 0.0, 0.0);
+    r_model_part.CreateNewNode(3, 0.0, 1.0, 0.0);
+
+    const auto node_ids  = std::vector<ModelPart::IndexType>{1, 2, 3};
+    const auto p_element = r_model_part.CreateNewElement("UPwSmallStrainElement2D3N", 1, node_ids,
+                                                         r_model_part.CreateNewProperties(0));
+
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(Geo::DofUtilities::ExtractDofsFromNodes(p_element->GetGeometry(), DISPLACEMENT_X),
+                                      "Non-existent DOF in node #1 for variable : DISPLACEMENT_X")
 }
 
 } // namespace Kratos::Testing
