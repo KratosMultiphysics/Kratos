@@ -20,7 +20,7 @@ We employed eight test cases to encompass a range of potential scenarios and tho
 
 The domain, grid and boundary conditions are shown as below. The test cases are done on a domain $0.1 \mathrm{[m]} \times 1 \mathrm{[m]}$. The elements are triangles with 3 nodes (GeoTransientThermal2D3N).
 
-<img src="../documentation_data/test_micro_climate_boundary_condition.svg" alt="Visualization of the domain, grid and the boundary conditions" title="Visualization of the Boundary conditions" width="300">
+<img src="../documentation_data/test_micro_climate_boundary_condition.svg" alt="Visualization of the domain, grid and the boundary conditions" title="Visualization of the boundary conditions" width="900">
 
 ## Results
 The history of the temperature is captured at node 5 for all test cases, which is located at $\left(0.05, -0.2 \right)$. It means this point is at the distance of 0.2 m from the surface. The air temperature, air humidity, solar radiation, precipitation and wind speed are taken from KNMI data and added as tables to the MPDA file.
