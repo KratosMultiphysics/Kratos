@@ -32,5 +32,5 @@ As the input data for air is same for all test cases, the air seasonal condition
 <img src="../documentation_data/test_micro_climate_evaporation_history.svg" alt="Visualization of the history of temperature at the distance of 0.2 $\mathrm{[m]}$ below the surface" title="Visualization of the history" width="900">
 
 * Heat source cases
-<img src="../documentation_data/test_micro_climate_heatsouce_history.svg" alt="Visualization of the history of temperature at the distance of 0.2 $\mathrm{[m]}$ below the surface" title="Visualization of the history" width="900">
+<img src="../documentation_data/test_micro_climate_heatsource_history.svg" alt="Visualization of the history of temperature at the distance of 0.2 $\mathrm{[m]}$ below the surface" title="Visualization of the history" width="900">
 
