@@ -185,7 +185,8 @@ class PotentialFlowSolver(FluidSolver):
     def __init__(self, model, custom_settings):
 
         self._validate_settings_in_baseclass=True # To be removed eventually
-        super(PotentialFlowSolver, self).__init__(model, custom_settings)
+        super().__init__(model, custom_settings)
+        self._enforce_element_and_condition_replacement = True #TODO: Remove once we remove the I/O from the solver
 
         # Set the element and condition names for the replace settings
         self.formulation = PotentialFlowFormulation(self.settings["formulation"])
