@@ -29,7 +29,7 @@ where
 - $\alpha$ = Albedo cover or vegetation coefficient  $\mathrm{[-]}$
 - $R_{g}$ = Short wave radiation  $\mathrm{[W/m^2]}$ 
 
-$R_g$ is a user difined parameter which is usually provided as a "Time-Radiation" table.
+$R_g$ is a user defined parameter which is usually provided as a "Time-Radiation" table.
 
 The absorbed long wave radiation is:
 
@@ -97,17 +97,17 @@ $$ r_a = \frac{1}{0.007+0.0056 u} $$
 where $u$ $\mathrm{[m/s]}$ is the wind speed which is a user defined parameter. $t$ $\mathrm{[s]}$ and $\Delta t$ $\mathrm{[s]}$ are time and time step, respectively.
 
 ## Roughness Layer Temperature
-The uenergy balance equation for the roughness layer reads as,
+The energy balance equation for the roughness layer reads as,
 
 $$ h_{rl} \frac{\partial T_{rl}}{\partial t} = \frac{T_{ss}-T_{rl}}{r_g} + u f_h a_d^2 \left(T_{at}-T_{rl}\right)  $$
 
-After discritization,
+After discretization,
 
 $$ h_{rl} \frac{T_{rl}(t+\Delta t) - T_{rl}(t)}{\Delta t} = \frac{T_{ss}(t)-T_{rl}(t+\Delta t)}{r_g} + u f_h a_d^2 \left[T_{at}(t+\Delta t)-T_{rl}(t+\Delta t) \right] $$
 
 Then the temperature in the roughness layer $T_{rl}$ reads as,
 
-$$ T_{rl}(t+\Delta t) = \frac{r_g \space h_{rl} \space T_{rl}^0 + \Delta t \space T_{ss}(t) + r_g \space \Delta t \space u \space f_h \space d_d^2 \space T_{at}(t+\Delta t)}{r_g \space h_{rl} + \Delta t + r_g \space \Delta t \space u \space f_h \space a_d^2} $$
+$$ T_{rl}(t+\Delta t) = \frac{r_g \space h_{rl} \space T_{rl}^(t) + \Delta t \space T_{ss}(t) + r_g \space \Delta t \space u \space f_h \space d_d^2 \space T_{at}(t+\Delta t)}{r_g \space h_{rl} + \Delta t + r_g \space \Delta t \space u \space f_h \space a_d^2} $$
 
 where
 
@@ -139,3 +139,26 @@ where $r_i$ $\mathrm{[-]}$ is Richardson bulk modulus and is defines as,
 $$ r_i = \frac{2 g z_m}{T_{at}+T_{rl}+ 546.3} \frac{T_{at}-T_{rl}}{u^2} $$
 
 $g$ is gravitation constant $\mathrm{[9.81 m/s^2]}$
+
+## Actual Precipitation and Evaporation
+For the computation of the actual precipitation and actual evaporation the potential and actual storage is introduced. The influs into the soil follows from the actual storage of water.
+The potential storage $S_p^{j+1}$ $\mathrm{[mm]}$ at time step $j+1$ follows from the actual storage $S_a^j$ $\mathrm{[mm]}$ at the previous time step $j$, the time step size $|Delta t$ $\mathrm{[s]}$ and the difference in potential precipitation $P_p^{j+1}$ $\mathrm{[mm/s]}$ and the potential evaporation $E_p^{j+1}$ $\mathrm{[mm/s]}$ during the new time step as:
+
+$$ S_p^{j+1} = S_a^j + \Delta t \left( P_p^{j+1} - E_p^{j+1} \right) $$
+
+If the potential storage is larger than the maximum storage $S_{max}$ $\mathrm{[mm]}$ then the actual evaporation $E_a^{j+1}$ $\mathrm{[mm/s]}$ and the actual precipitation $P_a^{j+1}$ $\mathrm{[mm/s]}$ follow from:
+
+$$ E_a^{j+1} = E_p^{j+1}$$
+$$ P_a^{j+1} = \left( S_{max} - S_p^j \right) / \Delta t + E_a^{j+1} $$
+
+If the potential storage is smaller than the minimum storage $S_{min}$ $\mathrm{[mm]}$ then the actual values read:
+
+$$ P_a^{j+1} = P_p^{j+1}$$
+$$ E_a^{j+1} = \left( S_p^j - S_{min} \right) / \Delta t + P_a^{j+1} $$
+
+If the potential storage does not exceed the storage limits then the actual fluxes match the potential fluxes:
+
+$$ P_a^{j+1} = P_p^{j+1}$$
+$$ E_a^{j+1} = E_p^{j+1}$$
+
+The maximum storage capacity $S_{max}$ is a user defined parameter. The potential precipitation $P_p$ is also given by the user, usually in the form of time-precipitation table in the MPDA file. 
