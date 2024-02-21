@@ -30,7 +30,7 @@ namespace Testing {
 
 KRATOS_TEST_CASE_IN_SUITE(PointerVectorSetCBeginAndCEnd, KratosCoreFastSuite)
 {
-    PointerVectorSet<const Element> test_container;
+    PointerVectorSet<const Element, IndexedObject> test_container;
     auto p_element_1 = Kratos::make_intrusive<Element>(1);
     auto p_element_2 = Kratos::make_intrusive<Element>(2);
     auto p_element_3 = Kratos::make_intrusive<Element>(3);
