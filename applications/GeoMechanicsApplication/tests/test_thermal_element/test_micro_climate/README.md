@@ -28,26 +28,9 @@ The history of the temperature is captured at node 5 for all test cases, which i
 As the input data for air is same for all test cases, the air seasonal conditions are dominated at our simulations. Hence, relatively small differences can be seen between the history curves of these cases.
 
 
-* Case 1
-<img src="../documentation_data/test_micro_climate_1_history.png" alt="Visualization of the history of temperature at the distance of 0.2 $\mathrm{[m]}$ below the surface" title="Visualization of the history" width="900">
+* Evaporation cases 
+<img src="../documentation_data/test_micro_climate_evaporation_history.svg" alt="Visualization of the history of temperature at the distance of 0.2 $\mathrm{[m]}$ below the surface" title="Visualization of the history" width="900">
 
-* Case 2
-<img src="../documentation_data/test_micro_climate_2_history.png" alt="Visualization of the history of temperature at the distance of 0.2 $\mathrm{[m]}$ below the surface" title="Visualization of the history" width="900">
+* Heat source cases
+<img src="../documentation_data/test_micro_climate_heatsouce_history.svg" alt="Visualization of the history of temperature at the distance of 0.2 $\mathrm{[m]}$ below the surface" title="Visualization of the history" width="900">
 
-* Case 3
-<img src="../documentation_data/test_micro_climate_3_history.png" alt="Visualization of the history of temperature at the distance of 0.2 $\mathrm{[m]}$ below the surface" title="Visualization of the history" width="900">
-
-* Case 4
-<img src="../documentation_data/test_micro_climate_4_history.png" alt="Visualization of the history of temperature at the distance of 0.2 $\mathrm{[m]}$ below the surface" title="Visualization of the history" width="900">
-
-* Case 5
-<img src="../documentation_data/test_micro_climate_5_history.png" alt="Visualization of the history of temperature at the distance of 0.2 $\mathrm{[m]}$ below the surface" title="Visualization of the history" width="900">
-
-* Case 6
-<img src="../documentation_data/test_micro_climate_6_history.png" alt="Visualization of the history of temperature at the distance of 0.2 $\mathrm{[m]}$ below the surface" title="Visualization of the history" width="900">
-
-* Case 7
-<img src="../documentation_data/test_micro_climate_7_history.png" alt="Visualization of the history of temperature at the distance of 0.2 $\mathrm{[m]}$ below the surface" title="Visualization of the history" width="900">
-
-* Case 8
-<img src="../documentation_data/test_micro_climate_8_history.png" alt="Visualization of the history of temperature at the distance of 0.2 $\mathrm{[m]}$ below the surface" title="Visualization of the history" width="900">
