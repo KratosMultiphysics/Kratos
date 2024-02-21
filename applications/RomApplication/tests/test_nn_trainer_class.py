@@ -4,7 +4,6 @@ import importlib
 import KratosMultiphysics
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 import KratosMultiphysics.kratos_utilities as kratos_utilities
-import KratosMultiphysics.RomApplication.rom_testing_utilities as rom_testing_utilities
 from KratosMultiphysics.RomApplication.calculate_rom_basis_output_process import CalculateRomBasisOutputProcess
 
 if kratos_utilities.CheckIfApplicationsAvailable("StructuralMechanicsApplication"):
@@ -113,7 +112,7 @@ class TestNeuralNetworkTrainerClass(KratosUnittest.TestCase):
             for process in simulation._GetListOfOutputProcesses():
                 if isinstance(process, CalculateRomBasisOutputProcess):
                     basis_output_process = process
-            snapshots_matrix_train=basis_output_process._GetSnapshotsMatrix() 
+            snapshots_matrix_train=basis_output_process._GetSnapshotsMatrix()
 
             snapshots_matrix_test = snapshots_matrix_train[:,test_timesteps].copy()
             snapshots_matrix_train = np.delete(snapshots_matrix_train, test_timesteps, 1)

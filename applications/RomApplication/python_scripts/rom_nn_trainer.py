@@ -6,7 +6,6 @@ import tensorflow as tf
 from keras.models import Model
 from keras import layers
 from keras.optimizers import AdamW
-from keras.initializers import HeNormal
 from keras.callbacks import LearningRateScheduler
 from keras.utils import set_random_seed as keras_set_random_seed
 
@@ -20,7 +19,7 @@ class RomNeuralNetworkTrainer(object):
         self.general_rom_manager_parameters = general_rom_manager_parameters
         self.nn_parameters = self.general_rom_manager_parameters["ROM"]["ann_enhanced_settings"]
         self.nn_parameters.RecursivelyValidateAndAssignDefaults(self._GetDefaultNeuralNetworkParameters())
-    
+
     @classmethod
     def _GetDefaultNeuralNetworkParameters(self):
         nn_training_parameters = KratosMultiphysics.Parameters("""{
@@ -80,7 +79,7 @@ class RomNeuralNetworkTrainer(object):
 
         phisig_norm_matrix = phisig_sup.T @ phisig_sup
 
-        rescaling_factor = np.mean(np.square((phisig_inf@Q_inf_train.T)-S_train)) 
+        rescaling_factor = np.mean(np.square((phisig_inf@Q_inf_train.T)-S_train))
         rescaling_factor *= S_train.shape[0]/Q_sup_train.shape[1]
 
         return Q_inf_train, Q_inf_val, Q_sup_train, Q_sup_val, phisig_norm_matrix, rescaling_factor
