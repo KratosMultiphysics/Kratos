@@ -5,11 +5,11 @@
 //   Revision:            $Revision:                 1.0 $
 //
 
-#if !defined(KRATOS_PORO_NEWMARK_DYNAMIC_U_PW_SCHEME )
-#define  KRATOS_PORO_NEWMARK_DYNAMIC_U_PW_SCHEME
+#if !defined(KRATOS_PORO_NEWMARK_DYNAMIC_U_PL_SCHEME )
+#define  KRATOS_PORO_NEWMARK_DYNAMIC_U_PL_SCHEME
 
 // Application includes
-#include "custom_strategies/schemes/poro_newmark_quasistatic_U_Pw_scheme.hpp"
+#include "custom_strategies/schemes/one-phase_flow/poro_newmark_quasistatic_U_Pl_scheme.hpp"
 #include "poromechanics_application_variables.h"
 
 namespace Kratos
@@ -17,12 +17,12 @@ namespace Kratos
 
 template<class TSparseSpace, class TDenseSpace>
 
-class PoroNewmarkDynamicUPwScheme : public PoroNewmarkQuasistaticUPwScheme<TSparseSpace,TDenseSpace>
+class PoroNewmarkDynamicUPlScheme : public PoroNewmarkQuasistaticUPlScheme<TSparseSpace,TDenseSpace>
 {
 
 public:
 
-    KRATOS_CLASS_POINTER_DEFINITION( PoroNewmarkDynamicUPwScheme );
+    KRATOS_CLASS_POINTER_DEFINITION( PoroNewmarkDynamicUPlScheme );
 
     typedef Scheme<TSparseSpace,TDenseSpace>                      BaseType;
     typedef typename BaseType::DofsArrayType                 DofsArrayType;
@@ -30,20 +30,29 @@ public:
     typedef typename BaseType::TSystemVectorType         TSystemVectorType;
     typedef typename BaseType::LocalSystemVectorType LocalSystemVectorType;
     typedef typename BaseType::LocalSystemMatrixType LocalSystemMatrixType;
-    using PoroNewmarkQuasistaticUPwScheme<TSparseSpace,TDenseSpace>::mDeltaTime;
-    using PoroNewmarkQuasistaticUPwScheme<TSparseSpace,TDenseSpace>::mBeta;
-    using PoroNewmarkQuasistaticUPwScheme<TSparseSpace,TDenseSpace>::mGamma;
-    using PoroNewmarkQuasistaticUPwScheme<TSparseSpace,TDenseSpace>::mTheta;
+    using PoroNewmarkQuasistaticUPlScheme<TSparseSpace,TDenseSpace>::mDeltaTime;
+    using PoroNewmarkQuasistaticUPlScheme<TSparseSpace,TDenseSpace>::mBeta;
+    using PoroNewmarkQuasistaticUPlScheme<TSparseSpace,TDenseSpace>::mGamma;
+    using PoroNewmarkQuasistaticUPlScheme<TSparseSpace,TDenseSpace>::mTheta_p;
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     ///Constructor
-    PoroNewmarkDynamicUPwScheme(double beta, double gamma, double theta)
-        : PoroNewmarkQuasistaticUPwScheme<TSparseSpace,TDenseSpace>(beta, gamma, theta)
+    PoroNewmarkDynamicUPlScheme(double theta_u,
+                                double theta_p,
+                                double beta,
+                                double gamma) :
+                                PoroNewmarkQuasistaticUPlScheme<TSparseSpace,TDenseSpace>(
+                                    theta_u,
+                                    theta_p,
+                                    beta,
+                                    gamma)
     {
         // Here mBeta and mGamma are used for the GN22 scheme
         mBeta = beta;
         mGamma = gamma;
+        // Here mTheta_u is not used
+        mTheta_u = 1.0;
 
         //Allocate auxiliary memory
         int NumThreads = ParallelUtilities::GetNumThreads();
@@ -56,7 +65,7 @@ public:
     //------------------------------------------------------------------------------------
 
     ///Destructor
-    ~PoroNewmarkDynamicUPwScheme() override {}
+    ~PoroNewmarkDynamicUPlScheme() override {}
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -65,7 +74,7 @@ public:
         KRATOS_TRY
 
         // Base class checks
-        int ierr = PoroNewmarkQuasistaticUPwScheme<TSparseSpace,TDenseSpace>::Check(r_model_part);
+        int ierr = PoroNewmarkQuasistaticUPlScheme<TSparseSpace,TDenseSpace>::Check(r_model_part);
         if(ierr != 0) return ierr;
 
         //check for variables keys (verify that the variables are correctly initialized)
@@ -94,7 +103,7 @@ public:
     {
         KRATOS_TRY
 
-        PoroNewmarkQuasistaticUPwScheme<TSparseSpace,TDenseSpace>::Initialize(r_model_part);
+        PoroNewmarkQuasistaticUPlScheme<TSparseSpace,TDenseSpace>::Initialize(r_model_part);
 
         // Note: VELOCITY_COEFFICIENT is updated according to the GN22 scheme used here
         r_model_part.GetProcessInfo().SetValue(VELOCITY_COEFFICIENT,mGamma/(mBeta*mDeltaTime));
@@ -180,11 +189,11 @@ public:
             noalias(CurrentAcceleration) = 1.0/(mBeta*mDeltaTime*mDeltaTime)*(DeltaDisplacement - mDeltaTime*PreviousVelocity - (0.5-mBeta)*mDeltaTime*mDeltaTime*PreviousAcceleration);
             noalias(CurrentVelocity) = PreviousVelocity + (1.0-mGamma)*mDeltaTime*PreviousAcceleration + mGamma*mDeltaTime*CurrentAcceleration;
 
-            double& CurrentDtPressure = itNode->FastGetSolutionStepValue(DT_WATER_PRESSURE);
-            DeltaPressure = itNode->FastGetSolutionStepValue(WATER_PRESSURE) - itNode->FastGetSolutionStepValue(WATER_PRESSURE, 1);
-            const double& PreviousDtPressure = itNode->FastGetSolutionStepValue(DT_WATER_PRESSURE, 1);
+            double& CurrentDtPressure = itNode->FastGetSolutionStepValue(DT_LIQUID_PRESSURE);
+            DeltaPressure = itNode->FastGetSolutionStepValue(LIQUID_PRESSURE) - itNode->FastGetSolutionStepValue(LIQUID_PRESSURE, 1);
+            const double& PreviousDtPressure = itNode->FastGetSolutionStepValue(DT_LIQUID_PRESSURE, 1);
 
-            CurrentDtPressure = 1.0/(mTheta*mDeltaTime)*(DeltaPressure - (1.0-mTheta)*mDeltaTime*PreviousDtPressure);
+            CurrentDtPressure = 1.0/(mTheta_p*mDeltaTime)*(DeltaPressure - (1.0-mTheta_p)*mDeltaTime*PreviousDtPressure);
         }
     }
 
@@ -197,23 +206,23 @@ public:
         LocalSystemMatrixType& LHS_Contribution,
         LocalSystemVectorType& RHS_Contribution,
         Element::EquationIdVectorType& EquationId,
-        const ProcessInfo& CurrentProcessInfo) override
+        const ProcessInfo& rCurrentProcessInfo) override
     {
         KRATOS_TRY
 
         int thread = OpenMPUtils::ThisThread();
 
-        rCurrentElement.CalculateLocalSystem(LHS_Contribution,RHS_Contribution,CurrentProcessInfo);
+        rCurrentElement.CalculateLocalSystem(LHS_Contribution,RHS_Contribution,rCurrentProcessInfo);
 
-        rCurrentElement.CalculateMassMatrix(mMassMatrix[thread],CurrentProcessInfo);
+        rCurrentElement.CalculateMassMatrix(mMassMatrix[thread],rCurrentProcessInfo);
 
-        rCurrentElement.CalculateDampingMatrix(mDampingMatrix[thread],CurrentProcessInfo);
+        rCurrentElement.CalculateDampingMatrix(mDampingMatrix[thread],rCurrentProcessInfo);
 
-        this->AddDynamicsToLHS (LHS_Contribution, mMassMatrix[thread], mDampingMatrix[thread], CurrentProcessInfo);
+        this->AddDynamicsToLHS (LHS_Contribution, mMassMatrix[thread], mDampingMatrix[thread], rCurrentProcessInfo);
 
-        this->AddDynamicsToRHS (rCurrentElement, RHS_Contribution, mMassMatrix[thread], mDampingMatrix[thread], CurrentProcessInfo);
+        this->AddDynamicsToRHS (rCurrentElement, RHS_Contribution, mMassMatrix[thread], mDampingMatrix[thread], rCurrentProcessInfo);
 
-        rCurrentElement.EquationIdVector(EquationId,CurrentProcessInfo);
+        rCurrentElement.EquationIdVector(EquationId,rCurrentProcessInfo);
 
         KRATOS_CATCH( "" )
     }
@@ -226,21 +235,21 @@ public:
         Element& rCurrentElement,
         LocalSystemVectorType& RHS_Contribution,
         Element::EquationIdVectorType& EquationId,
-        const ProcessInfo& CurrentProcessInfo) override
+        const ProcessInfo& rCurrentProcessInfo) override
     {
         KRATOS_TRY
 
         int thread = OpenMPUtils::ThisThread();
 
-        rCurrentElement.CalculateRightHandSide(RHS_Contribution,CurrentProcessInfo);
+        rCurrentElement.CalculateRightHandSide(RHS_Contribution,rCurrentProcessInfo);
 
-        rCurrentElement.CalculateMassMatrix(mMassMatrix[thread], CurrentProcessInfo);
+        rCurrentElement.CalculateMassMatrix(mMassMatrix[thread], rCurrentProcessInfo);
 
-        rCurrentElement.CalculateDampingMatrix(mDampingMatrix[thread],CurrentProcessInfo);
+        rCurrentElement.CalculateDampingMatrix(mDampingMatrix[thread],rCurrentProcessInfo);
 
-        this->AddDynamicsToRHS (rCurrentElement, RHS_Contribution, mMassMatrix[thread], mDampingMatrix[thread], CurrentProcessInfo);
+        this->AddDynamicsToRHS (rCurrentElement, RHS_Contribution, mMassMatrix[thread], mDampingMatrix[thread], rCurrentProcessInfo);
 
-        rCurrentElement.EquationIdVector(EquationId,CurrentProcessInfo);
+        rCurrentElement.EquationIdVector(EquationId,rCurrentProcessInfo);
 
         KRATOS_CATCH( "" )
     }
@@ -253,21 +262,21 @@ public:
         Element& rCurrentElement,
         LocalSystemMatrixType& LHS_Contribution,
         Element::EquationIdVectorType& EquationId,
-        const ProcessInfo& CurrentProcessInfo) override
+        const ProcessInfo& rCurrentProcessInfo) override
     {
         KRATOS_TRY
 
         int thread = OpenMPUtils::ThisThread();
 
-        rCurrentElement.CalculateLeftHandSide(LHS_Contribution,CurrentProcessInfo);
+        rCurrentElement.CalculateLeftHandSide(LHS_Contribution,rCurrentProcessInfo);
 
-        rCurrentElement.CalculateMassMatrix(mMassMatrix[thread],CurrentProcessInfo);
+        rCurrentElement.CalculateMassMatrix(mMassMatrix[thread],rCurrentProcessInfo);
 
-        rCurrentElement.CalculateDampingMatrix(mDampingMatrix[thread],CurrentProcessInfo);
+        rCurrentElement.CalculateDampingMatrix(mDampingMatrix[thread],rCurrentProcessInfo);
 
-        this->AddDynamicsToLHS (LHS_Contribution, mMassMatrix[thread], mDampingMatrix[thread], CurrentProcessInfo);
+        this->AddDynamicsToLHS (LHS_Contribution, mMassMatrix[thread], mDampingMatrix[thread], rCurrentProcessInfo);
 
-        rCurrentElement.EquationIdVector(EquationId,CurrentProcessInfo);
+        rCurrentElement.EquationIdVector(EquationId,rCurrentProcessInfo);
 
         KRATOS_CATCH( "" )
     }
@@ -311,11 +320,11 @@ protected:
             noalias(CurrentAcceleration) = 1.0/(mBeta*mDeltaTime*mDeltaTime)*(DeltaDisplacement - mDeltaTime*PreviousVelocity - (0.5-mBeta)*mDeltaTime*mDeltaTime*PreviousAcceleration);
             noalias(CurrentVelocity) = PreviousVelocity + (1.0-mGamma)*mDeltaTime*PreviousAcceleration + mGamma*mDeltaTime*CurrentAcceleration;
 
-            double& CurrentDtPressure = itNode->FastGetSolutionStepValue(DT_WATER_PRESSURE);
-            DeltaPressure = itNode->FastGetSolutionStepValue(WATER_PRESSURE) - itNode->FastGetSolutionStepValue(WATER_PRESSURE, 1);
-            const double& PreviousDtPressure = itNode->FastGetSolutionStepValue(DT_WATER_PRESSURE, 1);
+            double& CurrentDtPressure = itNode->FastGetSolutionStepValue(DT_LIQUID_PRESSURE);
+            DeltaPressure = itNode->FastGetSolutionStepValue(LIQUID_PRESSURE) - itNode->FastGetSolutionStepValue(LIQUID_PRESSURE, 1);
+            const double& PreviousDtPressure = itNode->FastGetSolutionStepValue(DT_LIQUID_PRESSURE, 1);
 
-            CurrentDtPressure = 1.0/(mTheta*mDeltaTime)*(DeltaPressure - (1.0-mTheta)*mDeltaTime*PreviousDtPressure);
+            CurrentDtPressure = 1.0/(mTheta_p*mDeltaTime)*(DeltaPressure - (1.0-mTheta_p)*mDeltaTime*PreviousDtPressure);
         }
 
         KRATOS_CATCH( "" )
@@ -323,7 +332,7 @@ protected:
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    void AddDynamicsToLHS(LocalSystemMatrixType& LHS_Contribution,LocalSystemMatrixType& M,LocalSystemMatrixType& C,const ProcessInfo& CurrentProcessInfo)
+    void AddDynamicsToLHS(LocalSystemMatrixType& LHS_Contribution,LocalSystemMatrixType& M,LocalSystemMatrixType& C,const ProcessInfo& rCurrentProcessInfo)
     {
         // adding mass contribution
         if (M.size1() != 0)
@@ -337,7 +346,7 @@ protected:
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     void AddDynamicsToRHS(Element& rCurrentElement,LocalSystemVectorType& RHS_Contribution,
-                            LocalSystemMatrixType& M,LocalSystemMatrixType& C,const ProcessInfo& CurrentProcessInfo)
+                            LocalSystemMatrixType& M,LocalSystemMatrixType& C,const ProcessInfo& rCurrentProcessInfo)
     {
         int thread = OpenMPUtils::ThisThread();
 
@@ -358,7 +367,7 @@ protected:
         }
     }
 
-}; // Class PoroNewmarkDynamicUPwScheme
+}; // Class PoroNewmarkDynamicUPlScheme
 }  // namespace Kratos
 
-#endif // KRATOS_PORO_NEWMARK_DYNAMIC_U_PW_SCHEME defined
+#endif // KRATOS_PORO_NEWMARK_DYNAMIC_U_PL_SCHEME defined

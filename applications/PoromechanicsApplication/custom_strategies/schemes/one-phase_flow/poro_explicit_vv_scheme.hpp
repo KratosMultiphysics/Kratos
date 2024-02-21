@@ -18,7 +18,7 @@
 /* External includes */
 
 /* Project includes */
-#include "custom_strategies/schemes/poro_explicit_cd_scheme.hpp"
+#include "custom_strategies/schemes/one-phase_flow/poro_explicit_cd_scheme.hpp"
 #include "utilities/variable_utils.h"
 
 // Application includes
@@ -289,8 +289,8 @@ public:
         array_1d<double, 3>& r_velocity = itCurrentNode->FastGetSolutionStepValue(VELOCITY);
         const double nodal_mass = itCurrentNode->GetValue(NODAL_MASS);
 
-        double& r_current_water_pressure = itCurrentNode->FastGetSolutionStepValue(WATER_PRESSURE);
-        double& r_current_dt_water_pressure = itCurrentNode->FastGetSolutionStepValue(DT_WATER_PRESSURE);
+        double& r_current_liquid_pressure = itCurrentNode->FastGetSolutionStepValue(LIQUID_PRESSURE);
+        double& r_current_dt_liquid_pressure = itCurrentNode->FastGetSolutionStepValue(DT_LIQUID_PRESSURE);
 
         const array_1d<double, 3>& r_external_force = itCurrentNode->FastGetSolutionStepValue(EXTERNAL_FORCE);
         const array_1d<double, 3>& r_internal_force = itCurrentNode->FastGetSolutionStepValue(INTERNAL_FORCE);
@@ -316,10 +316,10 @@ public:
             noalias(r_velocity) = ZeroVector(3);
         }
         // Solution of the darcy_equation
-        if( itCurrentNode->IsFixed(WATER_PRESSURE) == false ) {
+        if( itCurrentNode->IsFixed(LIQUID_PRESSURE) == false ) {
             // TODO: this is on standby
-            r_current_water_pressure = 0.0;
-            r_current_dt_water_pressure = 0.0;
+            r_current_liquid_pressure = 0.0;
+            r_current_dt_liquid_pressure = 0.0;
         }
 
         const array_1d<double, 3>& r_velocity_old = itCurrentNode->FastGetSolutionStepValue(VELOCITY,1);
