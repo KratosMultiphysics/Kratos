@@ -34,3 +34,5 @@ As the input data for air is same for all test cases, the air seasonal condition
 * Heat source cases
 <img src="../documentation_data/test_micro_climate_heatsource_history.svg" alt="Visualization of the history of temperature at the distance of 0.2 $\mathrm{[m]}$ below the surface" title="Visualization of the history" width="900">
 
+NB: Cases 7 and 8 are cases at which both evaporation and heat source are activated. Case 8 referes to the most realistic problems which we want to simulate for this setup.
+
