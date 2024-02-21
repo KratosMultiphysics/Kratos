@@ -1442,14 +1442,10 @@ void ModelPartIO::ReadNodesBlock(NodesContainerType& rThisNodes)
         temp_node->Y0() = temp_node->Y();
         temp_node->Z0() = temp_node->Z();
 
-        rThisNodes.push_back(temp_node);
+        rThisNodes.insert(rThisNodes.end(), temp_node);
         number_of_nodes_read++;
     }
     KRATOS_INFO("") << number_of_nodes_read << " nodes read]" << std::endl;
-
-    unsigned int numer_of_nodes_read = rThisNodes.size();
-    rThisNodes.Unique();
-    KRATOS_WARNING_IF("ModelPartIO", rThisNodes.size() != numer_of_nodes_read) << "attention! we read " << numer_of_nodes_read << " but there are only " << rThisNodes.size() << " non repeated nodes" << std::endl;
 
     KRATOS_CATCH("")
 }
@@ -1713,8 +1709,7 @@ void ModelPartIO::ReadPropertiesBlock(PropertiesContainerType& rThisProperties)
 
     }
 
-    rThisProperties.push_back(props);
-//         rThisProperties.push_back(temp_properties);
+    rThisProperties.insert(rThisProperties.end(), props);
 
     KRATOS_CATCH("")
 }
@@ -1881,12 +1876,11 @@ void ModelPartIO::ReadElementsBlock(NodesContainerType& rThisNodes, PropertiesCo
             temp_element_nodes.push_back( *(FindKey(rThisNodes, ReorderedNodeId(node_id), "Node").base()));
         }
 
-        rThisElements.push_back(r_clone_element.Create(ReorderedElementId(id), temp_element_nodes, p_temp_properties));
+        rThisElements.insert(rThisElements.end(), r_clone_element.Create(ReorderedElementId(id), temp_element_nodes, p_temp_properties));
         number_of_read_elements++;
 
     }
     KRATOS_INFO("") << number_of_read_elements << " elements read] [Type: " <<element_name << "]" << std::endl;
-    rThisElements.Unique();
 
     KRATOS_CATCH("")
 }
@@ -1950,11 +1944,10 @@ void ModelPartIO::ReadConditionsBlock(NodesContainerType& rThisNodes, Properties
             temp_condition_nodes.push_back( *(FindKey(rThisNodes, ReorderedNodeId(node_id), "Node").base()));
         }
 
-        rThisConditions.push_back(r_clone_condition.Create(ReorderedConditionId(id), temp_condition_nodes, p_temp_properties));
+        rThisConditions.insert(rThisConditions.end(), r_clone_condition.Create(ReorderedConditionId(id), temp_condition_nodes, p_temp_properties));
         number_of_read_conditions++;
     }
     KRATOS_INFO("") << number_of_read_conditions << " conditions read] [Type: " << condition_name << "]" << std::endl;
-    rThisConditions.Unique();
 
     KRATOS_CATCH("")
 }
@@ -2996,18 +2989,12 @@ void ModelPartIO::ReadCommunicatorLocalNodesBlock(Communicator& rThisCommunicato
         ExtractValue(word,node_id);
         NodesContainerType::iterator it_node = FindKey(rThisNodes, ReorderedNodeId(node_id), "Node");
         auto p_node = *(it_node.base());
-        aux_local.push_back(p_node);
-        aux_interface.push_back(p_node);
+        aux_local.insert(aux_local.end(), p_node);
+        aux_interface.insert(aux_interface.end(), p_node);
     }
 
-    for(auto it = aux_local.begin(); it!= aux_local.end(); it++)
-        p_local_mesh->Nodes().push_back(*(it.base()));
-
-    for(auto it = aux_interface.begin(); it!= aux_interface.end(); it++)
-        p_interface_mesh->Nodes().push_back(*(it.base()));
-
-    p_local_mesh->Nodes().Unique();
-    p_interface_mesh->Nodes().Unique();
+    p_local_mesh->Nodes().insert(aux_local);
+    p_interface_mesh->Nodes().insert(aux_interface);
 
     KRATOS_CATCH("")
 }
@@ -3058,12 +3045,9 @@ void ModelPartIO::ReadCommunicatorGhostNodesBlock(Communicator& rThisCommunicato
 
         ExtractValue(word,node_id);
         NodesContainerType::iterator it_node = FindKey(rThisNodes, ReorderedNodeId(node_id), "Node");
-        p_ghost_mesh->Nodes().push_back(*(it_node.base()));
-        p_interface_mesh->Nodes().push_back(*(it_node.base()));
+        p_ghost_mesh->Nodes().insert(p_ghost_mesh->Nodes().end(), *(it_node.base()));
+        p_interface_mesh->Nodes().insert(p_interface_mesh->Nodes().end(), *(it_node.base()));
     }
-
-    p_ghost_mesh->Nodes().Unique();
-    p_interface_mesh->Nodes().Unique();
 
     KRATOS_CATCH("")
 }
@@ -3234,10 +3218,9 @@ void ModelPartIO::ReadMeshNodesBlock(ModelPart& rModelPart, MeshType& rMesh)
 
         ExtractValue(word,node_id);
         NodesContainerType::iterator it_node = FindKey(rModelPart.Nodes(), ReorderedNodeId(node_id), "Node");
-        rMesh.Nodes().push_back(*(it_node.base()));
+        rMesh.Nodes().insert(rMesh.Nodes().end(), *(it_node.base()));
     }
 
-    rMesh.Nodes().Sort();
     KRATOS_CATCH("")
 }
 
@@ -3258,10 +3241,9 @@ void ModelPartIO::ReadMeshElementsBlock(ModelPart& rModelPart, MeshType& rMesh)
 
         ExtractValue(word,element_id);
         ElementsContainerType::iterator i_element = FindKey(rModelPart.Elements(), ReorderedElementId(element_id), "Element");
-        rMesh.Elements().push_back(*(i_element.base()));
+        rMesh.Elements().insert(rMesh.Elements().end(), *(i_element.base()));
     }
 
-    rMesh.Elements().Sort();
     KRATOS_CATCH("")
 }
 
@@ -3282,10 +3264,9 @@ void ModelPartIO::ReadMeshConditionsBlock(ModelPart& rModelPart, MeshType& rMesh
 
         ExtractValue(word,condition_id);
         ConditionsContainerType::iterator i_condition = FindKey(rModelPart.Conditions(), ReorderedConditionId(condition_id), "Condition");
-        rMesh.Conditions().push_back(*(i_condition.base()));
+        rMesh.Conditions().insert(rMesh.Conditions().end(), *(i_condition.base()));
     }
 
-    rMesh.Conditions().Sort();
     KRATOS_CATCH("")
 }
 
@@ -3379,8 +3360,7 @@ void ModelPartIO::ReadMeshPropertiesBlock(ModelPart& rModelPart, MeshType& rMesh
 
     }
 
-    rMesh.Properties().push_back(props);
-//         rMesh.Properties().push_back(temp_properties);
+    rMesh.Properties().insert(rMesh.Properties().end(), props);
 
     KRATOS_CATCH("")
 }
