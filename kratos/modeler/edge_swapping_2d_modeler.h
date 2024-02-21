@@ -437,7 +437,7 @@ private:
         for(ModelPart::ElementsContainerType::iterator i_element = temp_elements_container.begin() ; i_element != temp_elements_container.end() ; i_element++)
         {
             if( static_cast<bool>(mSwappingData[i_element->Id()-1].IsElementErased) == false)
-                (rThisModelPart.Elements()).push_back(*(i_element.base()));
+                (rThisModelPart.Elements()).insert(rThisModelPart.Elements().end(), *(i_element.base()));
         }
 
     }
