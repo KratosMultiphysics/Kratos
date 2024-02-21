@@ -28,6 +28,18 @@ Dof<double> MakeDofWithEquationId(Dof<double>::EquationIdType EquationId)
     return result;
 }
 
+intrusive_ptr<Node> AddNodeWithDof(ModelPart&              rModelPart,
+                                   ModelPart::IndexType    NodeId,
+                                   double                  x,
+                                   double                  y,
+                                   double                  z,
+                                   const Variable<double>& rDofVariable)
+{
+    auto p_result = rModelPart.CreateNewNode(NodeId, x, y, z);
+    p_result->AddDof(rDofVariable);
+    return p_result;
+}
+
 } // namespace
 
 namespace Kratos::Testing
@@ -72,8 +84,36 @@ KRATOS_TEST_CASE_IN_SUITE(ExpectThrowWhenExtractingNonExistingDofsFromNodes, Kra
     const auto p_element = r_model_part.CreateNewElement("UPwSmallStrainElement2D3N", 1, node_ids,
                                                          r_model_part.CreateNewProperties(0));
 
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN(Geo::DofUtilities::ExtractDofsFromNodes(p_element->GetGeometry(), DISPLACEMENT_X),
-                                      "Non-existent DOF in node #1 for variable : DISPLACEMENT_X")
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        Geo::DofUtilities::ExtractDofsFromNodes(p_element->GetGeometry(), DISPLACEMENT_X),
+        "Non-existent DOF in node #1 for variable : DISPLACEMENT_X")
+}
+
+KRATOS_TEST_CASE_IN_SUITE(VariableTypeAndNodeIDsMustMatchWhenExtractingDofsFromNodes, KratosGeoMechanicsFastSuite)
+{
+    auto  model        = Model{};
+    auto& r_model_part = model.CreateModelPart("Dummy");
+    r_model_part.AddNodalSolutionStepVariable(DISPLACEMENT_X);
+
+    AddNodeWithDof(r_model_part, 1, 0.0, 0.0, 0.0, DISPLACEMENT_X);
+    AddNodeWithDof(r_model_part, 2, 1.0, 0.0, 0.0, DISPLACEMENT_X);
+    AddNodeWithDof(r_model_part, 3, 0.0, 1.0, 0.0, DISPLACEMENT_X);
+
+    const auto node_ids  = std::vector<ModelPart::IndexType>{1, 2, 3};
+    const auto p_element = r_model_part.CreateNewElement("UPwSmallStrainElement2D3N", 1, node_ids,
+                                                         r_model_part.CreateNewProperties(0));
+
+    const auto dofs = Geo::DofUtilities::ExtractDofsFromNodes(p_element->GetGeometry(), DISPLACEMENT_X);
+
+    KRATOS_EXPECT_EQ(dofs.size(), node_ids.size());
+    KRATOS_EXPECT_TRUE(
+        std::all_of(dofs.begin(), dofs.end(), [](const auto p_dof) { return p_dof != nullptr; }))
+    KRATOS_EXPECT_TRUE(std::all_of(dofs.begin(), dofs.end(), [](const auto p_dof) {
+        return p_dof->GetVariable() == DISPLACEMENT_X;
+    }))
+    KRATOS_EXPECT_EQ(dofs[0]->GetId(), 1);
+    KRATOS_EXPECT_EQ(dofs[1]->GetId(), 2);
+    KRATOS_EXPECT_EQ(dofs[2]->GetId(), 3);
 }
 
 } // namespace Kratos::Testing
