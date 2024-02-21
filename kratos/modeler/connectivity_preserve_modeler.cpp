@@ -217,18 +217,12 @@ void ConnectivityPreserveModeler::DuplicateCommunicatorData(
         // All elements are passed as local elements to the new communicator
         ModelPart::ElementsContainerType& rDestinationLocalElements = pDestinationComm->LocalMesh().Elements();
         rDestinationLocalElements.clear();
-        rDestinationLocalElements.reserve(rDestinationModelPart.NumberOfElements());
-        for (auto i_elem = rDestinationModelPart.Elements().ptr_begin(); i_elem != rDestinationModelPart.Elements().ptr_end(); ++i_elem) {
-            rDestinationLocalElements.push_back(*i_elem);
-        }
+        rDestinationLocalElements.insert(rDestinationModelPart.Elements());
 
         // Do the same for Conditions
         ModelPart::ConditionsContainerType& rDestinationLocalConditions = pDestinationComm->LocalMesh().Conditions();
         rDestinationLocalConditions.clear();
-        rDestinationLocalConditions.reserve(rDestinationModelPart.NumberOfConditions());
-        for (auto i_cond = rDestinationModelPart.Conditions().ptr_begin(); i_cond != rDestinationModelPart.Conditions().ptr_end(); ++i_cond) {
-            rDestinationLocalConditions.push_back(*i_cond);
-        }
+        rDestinationLocalConditions.insert(rDestinationModelPart.Conditions());
     } else {
         pDestinationComm->SetLocalMesh(rDestinationModelPart.pGetMesh());
     }
