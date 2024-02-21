@@ -709,18 +709,18 @@ protected:
                 }
                 itNodeNew->FastGetSolutionStepValue(ACCELERATION_Y) = inner_prod(ShapeFunctionsValuesVector,NodalVariableVector);
             }
-            if( itNodeNew->IsFixed(WATER_PRESSURE)==false )
+            if( itNodeNew->IsFixed(LIQUID_PRESSURE)==false )
             {
                 for(int j = 0; j < PointsNumber; j++)
                 {
-                    NodalVariableVector[j] = pElementOld->GetGeometry().GetPoint(j).FastGetSolutionStepValue(WATER_PRESSURE);
+                    NodalVariableVector[j] = pElementOld->GetGeometry().GetPoint(j).FastGetSolutionStepValue(LIQUID_PRESSURE);
                 }
-                itNodeNew->FastGetSolutionStepValue(WATER_PRESSURE) = inner_prod(ShapeFunctionsValuesVector,NodalVariableVector);
+                itNodeNew->FastGetSolutionStepValue(LIQUID_PRESSURE) = inner_prod(ShapeFunctionsValuesVector,NodalVariableVector);
                 for(int j = 0; j < PointsNumber; j++)
                 {
-                    NodalVariableVector[j] = pElementOld->GetGeometry().GetPoint(j).FastGetSolutionStepValue(DT_WATER_PRESSURE);
+                    NodalVariableVector[j] = pElementOld->GetGeometry().GetPoint(j).FastGetSolutionStepValue(DT_LIQUID_PRESSURE);
                 }
-                itNodeNew->FastGetSolutionStepValue(DT_WATER_PRESSURE) = inner_prod(ShapeFunctionsValuesVector,NodalVariableVector);
+                itNodeNew->FastGetSolutionStepValue(DT_LIQUID_PRESSURE) = inner_prod(ShapeFunctionsValuesVector,NodalVariableVector);
             }
         }
     }
@@ -1177,7 +1177,7 @@ private:
         // Locate FracturePoints inside CellMatrix
         FracturePoint MyFracturePoint;
         GeometryData::IntegrationMethod MyIntegrationMethod;
-        const ProcessInfo& CurrentProcessInfo = rModelPart.GetProcessInfo();
+        const ProcessInfo& rCurrentProcessInfo = rModelPart.GetProcessInfo();
         rPropagationData.pProcessInfo = rModelPart.pGetProcessInfo();
         array_1d<double,3> AuxLocalCoordinates;
         array_1d<double,3> AuxGlobalCoordinates;
@@ -1205,7 +1205,7 @@ private:
                 Vector detJContainer(NumGPoints);
                 rGeom.DeterminantOfJacobian(detJContainer,MyIntegrationMethod);
                 std::vector<double> DamageVector(NumGPoints);
-                itElem->CalculateOnIntegrationPoints(DAMAGE_VARIABLE,DamageVector,CurrentProcessInfo);
+                itElem->CalculateOnIntegrationPoints(DAMAGE_VARIABLE,DamageVector,rCurrentProcessInfo);
                 int Row;
                 int Column;
 
@@ -1337,12 +1337,12 @@ private:
         }
 
         const double PropagationDamage = rParameters["fracture_data"]["propagation_damage"].GetDouble();
-        const ProcessInfo& CurrentProcessInfo = *(rPropagationData.pProcessInfo);
+        const ProcessInfo& rCurrentProcessInfo = *(rPropagationData.pProcessInfo);
 
         if (IsInside == true)
         {
             std::vector<double> DamageVector;
-            pElement->CalculateOnIntegrationPoints(DAMAGE_VARIABLE,DamageVector,CurrentProcessInfo);
+            pElement->CalculateOnIntegrationPoints(DAMAGE_VARIABLE,DamageVector,rCurrentProcessInfo);
             unsigned int NumGPoints = DamageVector.size();
             double InvNumGPoints = 1.0/static_cast<double>(NumGPoints);
             double ElementDamage = 0.0;
@@ -1394,7 +1394,7 @@ private:
                 if (IsInside == true)
                 {
                     std::vector<double> DamageVector;
-                    pElement->CalculateOnIntegrationPoints(DAMAGE_VARIABLE,DamageVector,CurrentProcessInfo);
+                    pElement->CalculateOnIntegrationPoints(DAMAGE_VARIABLE,DamageVector,rCurrentProcessInfo);
                     unsigned int NumGPoints = DamageVector.size();
                     double InvNumGPoints = 1.0/static_cast<double>(NumGPoints);
                     double ElementDamage = 0.0;
@@ -1429,7 +1429,7 @@ private:
                 if (IsInside == true)
                 {
                     std::vector<double> DamageVector;
-                    pElement->CalculateOnIntegrationPoints(DAMAGE_VARIABLE,DamageVector,CurrentProcessInfo);
+                    pElement->CalculateOnIntegrationPoints(DAMAGE_VARIABLE,DamageVector,rCurrentProcessInfo);
                     unsigned int NumGPoints = DamageVector.size();
                     double InvNumGPoints = 1.0/static_cast<double>(NumGPoints);
                     double ElementDamage = 0.0;

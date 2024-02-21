@@ -1,0 +1,2047 @@
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
+//
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
+//
+//  Main authors:    Danilo Cavalcanti
+//                   Lorena Casallas
+//                   Ignasi de Pouplana
+//
+
+
+// Application includes
+#include "custom_elements/two-phase_flow/U_Pl_Pg_small_strain_element.hpp"
+
+namespace Kratos
+{
+
+template< unsigned int TDim, unsigned int TNumNodes >
+Element::Pointer UPlPgSmallStrainElement<TDim,TNumNodes>::Create( IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties ) const
+{
+    return Element::Pointer( new UPlPgSmallStrainElement( NewId, this->GetGeometry().Create( ThisNodes ), pProperties ) );
+}
+
+//----------------------------------------------------------------------------------------
+
+template< unsigned int TDim, unsigned int TNumNodes >
+Element::Pointer UPlPgSmallStrainElement<TDim,TNumNodes>::Create(IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties) const
+{
+    return Element::Pointer( new UPlPgSmallStrainElement( NewId, pGeom, pProperties ) );
+}
+
+//----------------------------------------------------------------------------------------
+
+template< unsigned int TDim, unsigned int TNumNodes >
+int UPlPgSmallStrainElement<TDim,TNumNodes>::Check( const ProcessInfo& rCurrentProcessInfo ) const
+{
+    KRATOS_TRY
+
+    const PropertiesType& Prop = this->GetProperties();
+    const GeometryType& Geom = this->GetGeometry();
+
+    // Base class checks for positive area and Id > 0
+    int ierr = Element::Check(rCurrentProcessInfo);
+    if(ierr != 0) return ierr;
+
+    if(Geom.DomainSize() < 1.0e-15)
+        KRATOS_THROW_ERROR( std::logic_error, "DomainSize < 1.0e-15 for the element ", this->Id() )
+
+    // Verify generic variables
+    ierr = UPlPgElement<TDim,TNumNodes>::Check(rCurrentProcessInfo);
+    if(ierr != 0) return ierr;
+
+    // Verify specific properties
+    if ( PERMEABILITY_XX.Key() == 0 || Prop.Has( PERMEABILITY_XX ) == false || Prop[PERMEABILITY_XX] < 0.0 )
+        KRATOS_THROW_ERROR( std::invalid_argument,"PERMEABILITY_XX has Key zero, is not defined or has an invalid value at element", this->Id() )
+    if ( PERMEABILITY_YY.Key() == 0 || Prop.Has( PERMEABILITY_YY ) == false || Prop[PERMEABILITY_YY] < 0.0 )
+        KRATOS_THROW_ERROR( std::invalid_argument,"PERMEABILITY_YY has Key zero, is not defined or has an invalid value at element", this->Id() )
+    if ( PERMEABILITY_XY.Key() == 0 || Prop.Has( PERMEABILITY_XY ) == false || Prop[PERMEABILITY_XY] < 0.0 )
+        KRATOS_THROW_ERROR( std::invalid_argument,"PERMEABILITY_XY has Key zero, is not defined or has an invalid value at element", this->Id() )
+    if constexpr (TDim > 2)
+    {
+        if ( PERMEABILITY_ZZ.Key() == 0 || Prop.Has( PERMEABILITY_ZZ ) == false || Prop[PERMEABILITY_ZZ] < 0.0 )
+            KRATOS_THROW_ERROR( std::invalid_argument,"PERMEABILITY_ZZ has Key zero, is not defined or has an invalid value at element", this->Id() )
+        if ( PERMEABILITY_YZ.Key() == 0 || Prop.Has( PERMEABILITY_YZ ) == false || Prop[PERMEABILITY_YZ] < 0.0 )
+            KRATOS_THROW_ERROR( std::invalid_argument,"PERMEABILITY_YZ has Key zero, is not defined or has an invalid value at element", this->Id() )
+        if ( PERMEABILITY_ZX.Key() == 0 || Prop.Has( PERMEABILITY_ZX ) == false || Prop[PERMEABILITY_ZX] < 0.0 )
+            KRATOS_THROW_ERROR( std::invalid_argument,"PERMEABILITY_ZX has Key zero, is not defined or has an invalid value at element", this->Id() )
+    }
+
+    // Verify the constitutive law
+    if ( CONSTITUTIVE_LAW.Key() == 0 || Prop.Has( CONSTITUTIVE_LAW ) == false )
+        KRATOS_THROW_ERROR( std::invalid_argument, "CONSTITUTIVE_LAW has Key zero or is not defined at element ", this->Id() )
+    if ( Prop[CONSTITUTIVE_LAW] != NULL )
+    {
+        // Verify compatibility of the element with the constitutive law
+        ConstitutiveLaw::Features LawFeatures;
+        Prop[CONSTITUTIVE_LAW]->GetLawFeatures(LawFeatures);
+        bool correct_strain_measure = false;
+        for(unsigned int i=0; i<LawFeatures.mStrainMeasures.size(); i++)
+        {
+            if(LawFeatures.mStrainMeasures[i] == ConstitutiveLaw::StrainMeasure_Infinitesimal)
+                correct_strain_measure = true;
+        }
+        if( correct_strain_measure == false )
+            KRATOS_THROW_ERROR( std::logic_error, "constitutive law is not compatible with the element type", " StrainMeasure_Infinitesimal " );
+
+        // Check constitutive law
+        ierr = Prop[CONSTITUTIVE_LAW]->Check( Prop, Geom, rCurrentProcessInfo );
+    }
+    else
+        KRATOS_THROW_ERROR( std::logic_error, "A constitutive law needs to be specified for the element ", this->Id() )
+
+    return ierr;
+
+    KRATOS_CATCH( "" );
+}
+
+//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+template< unsigned int TDim, unsigned int TNumNodes >
+void UPlPgSmallStrainElement<TDim,TNumNodes>::InitializeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo)
+{
+    //Defining necessary variables
+    const GeometryType& Geom = this->GetGeometry();
+    const unsigned int NumGPoints = Geom.IntegrationPointsNumber( mThisIntegrationMethod );
+    const Matrix& NContainer = Geom.ShapeFunctionsValues( mThisIntegrationMethod );
+    GeometryType::ShapeFunctionsGradientsType DN_DXContainer(NumGPoints);
+    Geom.ShapeFunctionsIntegrationPointsGradients(DN_DXContainer,mThisIntegrationMethod);
+
+    const unsigned int strain_size = this->GetProperties().GetValue( CONSTITUTIVE_LAW )->GetStrainSize();
+    Matrix B(strain_size,TNumNodes*TDim);
+    noalias(B) = ZeroMatrix(strain_size,TNumNodes*TDim);
+    array_1d<double,TNumNodes*TDim> DisplacementVector;
+    PoroElementUtilities::GetNodalVariableVector(DisplacementVector,Geom,DISPLACEMENT);
+
+    //Create constitutive law parameters:
+    Vector StrainVector(strain_size);
+    Vector StressVector(strain_size);
+    Matrix ConstitutiveMatrix(strain_size,strain_size);
+    Vector Np(TNumNodes);
+    Matrix GradNpT(TNumNodes,TDim);
+    Matrix F = identity_matrix<double>(TDim);
+    double detF = 1.0;
+    ConstitutiveLaw::Parameters ConstitutiveParameters(Geom,this->GetProperties(),rCurrentProcessInfo);
+    ConstitutiveParameters.Set(ConstitutiveLaw::COMPUTE_STRESS);
+    ConstitutiveParameters.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
+    ConstitutiveParameters.Set(ConstitutiveLaw::INITIALIZE_MATERIAL_RESPONSE); //Note: this is for nonlocal damage
+    ConstitutiveParameters.SetConstitutiveMatrix(ConstitutiveMatrix);
+    ConstitutiveParameters.SetStressVector(StressVector);
+    ConstitutiveParameters.SetStrainVector(StrainVector);
+    ConstitutiveParameters.SetShapeFunctionsValues(Np);
+    ConstitutiveParameters.SetShapeFunctionsDerivatives(GradNpT);
+    ConstitutiveParameters.SetDeformationGradientF(F);
+    ConstitutiveParameters.SetDeterminantF(detF);
+
+    //Loop over integration points
+    for( unsigned int GPoint = 0; GPoint < NumGPoints; GPoint++)
+    {
+        noalias(Np) = row(NContainer,GPoint);
+
+        this->CalculateKinematics(GradNpT,B,StrainVector,DN_DXContainer,DisplacementVector,GPoint);
+
+        // Compute Stress
+        mConstitutiveLawVector[GPoint]->CalculateMaterialResponseCauchy(ConstitutiveParameters);
+    }
+}
+
+//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+template< unsigned int TDim, unsigned int TNumNodes >
+void UPlPgSmallStrainElement<TDim,TNumNodes>::FinalizeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo)
+{
+    this->InitializeNonLinearIteration(rCurrentProcessInfo);
+}
+
+//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+template< unsigned int TDim, unsigned int TNumNodes >
+void UPlPgSmallStrainElement<TDim,TNumNodes>::FinalizeSolutionStep( const ProcessInfo& rCurrentProcessInfo )
+{
+    KRATOS_TRY
+
+    //Defining necessary variables
+    const GeometryType& Geom = this->GetGeometry();
+    const unsigned int NumGPoints = Geom.IntegrationPointsNumber( mThisIntegrationMethod );
+    const Matrix& NContainer = Geom.ShapeFunctionsValues( mThisIntegrationMethod );
+    GeometryType::ShapeFunctionsGradientsType DN_DXContainer(NumGPoints);
+    Geom.ShapeFunctionsIntegrationPointsGradients(DN_DXContainer,mThisIntegrationMethod);
+
+    const unsigned int strain_size = this->GetProperties().GetValue( CONSTITUTIVE_LAW )->GetStrainSize();
+    Matrix B(strain_size,TNumNodes*TDim);
+    noalias(B) = ZeroMatrix(strain_size,TNumNodes*TDim);
+    array_1d<double,TNumNodes*TDim> DisplacementVector;
+    PoroElementUtilities::GetNodalVariableVector(DisplacementVector,Geom,DISPLACEMENT);
+
+    //Create constitutive law parameters:
+    Vector StrainVector(strain_size);
+    Vector StressVector(strain_size);
+    Matrix ConstitutiveMatrix(strain_size,strain_size);
+    Vector Np(TNumNodes);
+    Matrix GradNpT(TNumNodes,TDim);
+    Matrix F = identity_matrix<double>(TDim);
+    double detF = 1.0;
+    ConstitutiveLaw::Parameters ConstitutiveParameters(Geom,this->GetProperties(),rCurrentProcessInfo);
+    ConstitutiveParameters.SetConstitutiveMatrix(ConstitutiveMatrix);
+    ConstitutiveParameters.SetStressVector(StressVector);
+    ConstitutiveParameters.SetStrainVector(StrainVector);
+    ConstitutiveParameters.SetShapeFunctionsValues(Np);
+    ConstitutiveParameters.SetShapeFunctionsDerivatives(GradNpT);
+    ConstitutiveParameters.SetDeterminantF(detF);
+    ConstitutiveParameters.SetDeformationGradientF(F);
+    ConstitutiveParameters.Set(ConstitutiveLaw::COMPUTE_STRESS);
+    ConstitutiveParameters.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
+
+    if(rCurrentProcessInfo[NODAL_SMOOTHING] == true)
+    {
+        Matrix StressContainer(NumGPoints,strain_size);
+
+        Matrix GradPressureContainer(NumGPoints,TDim);
+        array_1d<double,TNumNodes> PressureVector;
+        for(unsigned int i=0; i<TNumNodes; i++) {
+            PressureVector[i] = Geom[i].FastGetSolutionStepValue(LIQUID_PRESSURE);
+        }
+        array_1d<double,TDim> GradPressure;
+
+        //Loop over integration points
+        for ( unsigned int GPoint = 0; GPoint < NumGPoints; GPoint++ )
+        {
+            this->CalculateKinematics(GradNpT,B,StrainVector,DN_DXContainer,DisplacementVector,GPoint);
+
+            noalias(Np) = row(NContainer,GPoint);
+
+            noalias(GradPressure) = prod(trans(GradNpT),PressureVector);
+            this->SaveGPGradPressure(GradPressureContainer,GradPressure,GPoint);
+
+            //compute constitutive tensor and/or stresses
+            mConstitutiveLawVector[GPoint]->FinalizeMaterialResponseCauchy(ConstitutiveParameters);
+            this->SaveGPStress(StressContainer,StressVector,strain_size,GPoint);
+        }
+        this->ExtrapolateGPValues(GradPressureContainer,StressContainer,strain_size);
+    }
+    else
+    {
+        //Loop over integration points
+        for ( unsigned int GPoint = 0; GPoint < NumGPoints; GPoint++ )
+        {
+            this->CalculateKinematics(GradNpT,B,StrainVector,DN_DXContainer,DisplacementVector,GPoint);
+
+            noalias(Np) = row(NContainer,GPoint);
+
+            //compute constitutive tensor and/or stresses
+            mConstitutiveLawVector[GPoint]->FinalizeMaterialResponseCauchy(ConstitutiveParameters);
+        }
+    }
+
+    KRATOS_CATCH( "" )
+}
+
+//----------------------------------------------------------------------------------------
+
+template< unsigned int TDim, unsigned int TNumNodes >
+void UPlPgSmallStrainElement<TDim,TNumNodes>::SaveGPGradPressure(Matrix& rGradPressureContainer, const array_1d<double,TDim>& GradPressure, const unsigned int& GPoint)
+{
+    for(unsigned int i = 0; i < TDim; i++)
+    {
+        rGradPressureContainer(GPoint,i) = GradPressure[i];
+    }
+
+    /* INFO: (Quadrilateral_2D_4 with GI_GAUSS_2)
+     *
+     *                   |GradPX-0 GradPY-0|
+     * rGradPContainer = |GradPX-1 GradPY-1|
+     *                   |GradPX-2 GradPY-2|
+     *                   |GradPX-3 GradPY-3|
+     *
+     * GradPY-2 = GradPY at GP 2
+    */
+}
+
+//----------------------------------------------------------------------------------------
+
+template< unsigned int TDim, unsigned int TNumNodes >
+void UPlPgSmallStrainElement<TDim,TNumNodes>::SaveGPStress(Matrix& rStressContainer, const Vector& StressVector, const unsigned int& VoigtSize, const unsigned int& GPoint)
+{
+    for(unsigned int i = 0; i < VoigtSize; i++)
+    {
+        rStressContainer(GPoint,i) = StressVector[i];
+    }
+
+    /* INFO: (Quadrilateral_2D_4 with GI_GAUSS_2)
+     *
+     *                      |S0-0 S1-0 S2-0|
+     * rStressContainer =   |S0-1 S1-1 S2-1|
+     *                      |S0-2 S1-2 S2-2|
+     *                      |S0-3 S1-3 S2-3|
+     *
+     * S1-0 = S[1] at GP 0
+    */
+}
+
+//----------------------------------------------------------------------------------------
+
+template< >
+void UPlPgSmallStrainElement<2,3>::ExtrapolateGPValues(const Matrix& GradPressureContainer, const Matrix& StressContainer, const unsigned int& VoigtSize)
+{
+    KRATOS_TRY
+
+    // Triangle_2d_3 with GI_GAUSS_2
+
+    array_1d<double,3> DamageContainer; // 3 GPoints
+
+    for ( unsigned int i = 0;  i < 3; i++ ) //NumGPoints
+    {
+        DamageContainer[i] = 0.0;
+        DamageContainer[i] = mConstitutiveLawVector[i]->GetValue( DAMAGE_VARIABLE, DamageContainer[i] );
+    }
+
+    GeometryType& rGeom = this->GetGeometry();
+    const double& Area = rGeom.Area();
+    array_1d<array_1d<double,2>,3> NodalGradPressure; //List with 2D GradP at each node
+    array_1d<Vector,3> NodalStressVector; //List with stresses at each node
+    array_1d<Matrix,3> NodalStressTensor;
+    const unsigned int cl_dimension = this->GetProperties().GetValue( CONSTITUTIVE_LAW )->WorkingSpaceDimension();
+
+    for(unsigned int iNode = 0; iNode < 3; iNode++)
+    {
+        NodalStressVector[iNode].resize(VoigtSize);
+        NodalStressTensor[iNode].resize(cl_dimension,cl_dimension);
+    }
+
+    BoundedMatrix<double,3,3> ExtrapolationMatrix;
+    PoroElementUtilities::Calculate2DExtrapolationMatrix(ExtrapolationMatrix);
+
+    BoundedMatrix<double,3,2> AuxNodalGradPressure;
+    noalias(AuxNodalGradPressure) = prod(ExtrapolationMatrix,GradPressureContainer);
+
+    /* INFO:
+        *
+        *                        |GradPX-0 GradPY-0|
+        * AuxNodalGradPressure = |GradPX-1 GradPY-1|
+        *                        |GradPX-2 GradPY-2|
+        *
+        * GradPY-2 = GradPY at node 2
+    */
+
+    Matrix AuxNodalStress(3,VoigtSize);
+    noalias(AuxNodalStress) = prod(ExtrapolationMatrix,StressContainer);
+
+    /* INFO:
+        *
+        *                  |S0-0 S1-0 S2-0|
+        * AuxNodalStress = |S0-1 S1-1 S2-1|
+        *                  |S0-2 S1-2 S2-2|
+        *
+        * S1-0 = S[1] at node 0
+    */
+
+    array_1d<double,3> NodalDamage;
+    noalias(NodalDamage) = prod(ExtrapolationMatrix,DamageContainer);
+
+    for(unsigned int i = 0; i < 3; i++) //TNumNodes
+    {
+        noalias(NodalGradPressure[i]) = row(AuxNodalGradPressure,i)*Area;
+        noalias(NodalStressVector[i]) = row(AuxNodalStress,i)*Area;
+        noalias(NodalStressTensor[i]) = MathUtils<double>::StressVectorToTensor(NodalStressVector[i]);
+
+        // TODO
+        rGeom[i].SetLock();
+        array_1d<double,3>& r_nodal_grad_pressure = rGeom[i].FastGetSolutionStepValue(NODAL_LIQUID_PRESSURE_GRADIENT);
+        for(unsigned int j = 0; j < 2; j++) //TDim
+        {
+            r_nodal_grad_pressure[j] += NodalGradPressure[i][j];
+        }
+        Matrix& rNodalStress = rGeom[i].FastGetSolutionStepValue(NODAL_EFFECTIVE_STRESS_TENSOR);
+        for(unsigned int j = 0; j < cl_dimension; j++){
+            for(unsigned int k = 0; k < cl_dimension; k++){
+                rNodalStress(j,k) += NodalStressTensor[i](j,k);
+            }
+        }
+        rGeom[i].FastGetSolutionStepValue(NODAL_DAMAGE_VARIABLE) += NodalDamage[i]*Area;
+        rGeom[i].FastGetSolutionStepValue(NODAL_AREA) += Area;
+        rGeom[i].UnSetLock();
+    }
+
+    KRATOS_CATCH( "" )
+}
+
+//----------------------------------------------------------------------------------------
+
+template< >
+void UPlPgSmallStrainElement<2,4>::ExtrapolateGPValues(const Matrix& GradPressureContainer, const Matrix& StressContainer, const unsigned int& VoigtSize)
+{
+    KRATOS_TRY
+
+    // Quadrilateral_2d_4 with GI_GAUSS_2
+
+    array_1d<double,4> DamageContainer; // 4 GPoints
+
+    for ( unsigned int i = 0;  i < 4; i++ ) //NumGPoints
+    {
+        DamageContainer[i] = 0.0;
+        DamageContainer[i] = mConstitutiveLawVector[i]->GetValue( DAMAGE_VARIABLE, DamageContainer[i] );
+    }
+
+    GeometryType& rGeom = this->GetGeometry();
+    const double& Area = rGeom.Area();
+    array_1d<array_1d<double,2>,4> NodalGradPressure; //List with 2D GradP at each node
+    array_1d<Vector,4> NodalStressVector; //List with stresses at each node
+    array_1d<Matrix,4> NodalStressTensor;
+    const unsigned int cl_dimension = this->GetProperties().GetValue( CONSTITUTIVE_LAW )->WorkingSpaceDimension();
+
+    for(unsigned int iNode = 0; iNode < 4; iNode ++)
+    {
+        NodalStressVector[iNode].resize(VoigtSize);
+        NodalStressTensor[iNode].resize(cl_dimension,cl_dimension);
+    }
+
+    BoundedMatrix<double,4,4> ExtrapolationMatrix;
+    PoroElementUtilities::Calculate2DExtrapolationMatrix(ExtrapolationMatrix);
+
+    BoundedMatrix<double,4,2> AuxNodalGradPressure;
+    noalias(AuxNodalGradPressure) = prod(ExtrapolationMatrix,GradPressureContainer);
+
+    Matrix AuxNodalStress(4,VoigtSize);
+    noalias(AuxNodalStress) = prod(ExtrapolationMatrix,StressContainer);
+
+    /* INFO:
+        *
+        *                  |S0-0 S1-0 S2-0|
+        * AuxNodalStress = |S0-1 S1-1 S2-1|
+        *                  |S0-2 S1-2 S2-2|
+        *                  |S0-3 S1-3 S2-3|
+        *
+        * S1-0 = S[1] at node 0
+    */
+
+    array_1d<double,4> NodalDamage; //List with stresses at each node
+    noalias(NodalDamage) = prod(ExtrapolationMatrix,DamageContainer);
+
+    for(unsigned int i = 0; i < 4; i++) //TNumNodes
+    {
+        noalias(NodalGradPressure[i]) = row(AuxNodalGradPressure,i)*Area;
+        noalias(NodalStressVector[i]) = row(AuxNodalStress,i)*Area;
+        noalias(NodalStressTensor[i]) = MathUtils<double>::StressVectorToTensor(NodalStressVector[i]);
+
+        // TODO
+        rGeom[i].SetLock();
+        array_1d<double,3>& r_nodal_grad_pressure = rGeom[i].FastGetSolutionStepValue(NODAL_LIQUID_PRESSURE_GRADIENT);
+        for(unsigned int j = 0; j < 2; j++) //TDim
+        {
+            r_nodal_grad_pressure[j] += NodalGradPressure[i][j];
+        }
+        Matrix& rNodalStress = rGeom[i].FastGetSolutionStepValue(NODAL_EFFECTIVE_STRESS_TENSOR);
+        for(unsigned int j = 0; j < cl_dimension; j++){
+            for(unsigned int k = 0; k < cl_dimension; k++){
+                rNodalStress(j,k) += NodalStressTensor[i](j,k);
+            }
+        }
+        rGeom[i].FastGetSolutionStepValue(NODAL_DAMAGE_VARIABLE) += NodalDamage[i]*Area;
+        rGeom[i].FastGetSolutionStepValue(NODAL_AREA) += Area;
+        rGeom[i].UnSetLock();
+    }
+
+    KRATOS_CATCH( "" )
+}
+
+//----------------------------------------------------------------------------------------
+
+template< >
+void UPlPgSmallStrainElement<3,4>::ExtrapolateGPValues(const Matrix& GradPressureContainer, const Matrix& StressContainer, const unsigned int& VoigtSize)
+{
+    KRATOS_TRY
+
+    // Tetrahedra_3d_4 with GI_GAUSS_2
+
+    array_1d<double,4> DamageContainer; // 4 GPoints
+
+    for ( unsigned int i = 0;  i < 4; i++ ) //NumGPoints
+    {
+        DamageContainer[i] = 0.0;
+        DamageContainer[i] = mConstitutiveLawVector[i]->GetValue( DAMAGE_VARIABLE, DamageContainer[i] );
+    }
+
+    GeometryType& rGeom = this->GetGeometry();
+    const double& Area = rGeom.Area(); // In 3D this is Volume
+    array_1d<array_1d<double,3>,4> NodalGradPressure; //List with 3D GradP at each node
+    array_1d<Vector,4> NodalStressVector; //List with stresses at each node
+    array_1d<Matrix,4> NodalStressTensor;
+
+    for(unsigned int iNode = 0; iNode < 4; iNode ++)
+    {
+        NodalStressVector[iNode].resize(VoigtSize);
+        NodalStressTensor[iNode].resize(3,3);
+    }
+
+    BoundedMatrix<double,4,4> ExtrapolationMatrix;
+    PoroElementUtilities::Calculate3DExtrapolationMatrix(ExtrapolationMatrix);
+
+    BoundedMatrix<double,4,6> AuxNodalStress;
+    noalias(AuxNodalStress) = prod(ExtrapolationMatrix,StressContainer);
+
+    BoundedMatrix<double,4,3> AuxNodalGradPressure;
+    noalias(AuxNodalGradPressure) = prod(ExtrapolationMatrix,GradPressureContainer);
+
+    array_1d<double,4> NodalDamage;
+    noalias(NodalDamage) = prod(ExtrapolationMatrix,DamageContainer);
+
+    for(unsigned int i = 0; i < 4; i++) //TNumNodes
+    {
+        noalias(NodalGradPressure[i]) = row(AuxNodalGradPressure,i)*Area;
+        noalias(NodalStressVector[i]) = row(AuxNodalStress,i)*Area;
+        noalias(NodalStressTensor[i]) = MathUtils<double>::StressVectorToTensor(NodalStressVector[i]);
+
+        // TODO
+        rGeom[i].SetLock();
+        noalias(rGeom[i].FastGetSolutionStepValue(NODAL_LIQUID_PRESSURE_GRADIENT)) += NodalGradPressure[i];
+        noalias(rGeom[i].FastGetSolutionStepValue(NODAL_EFFECTIVE_STRESS_TENSOR)) += NodalStressTensor[i];
+        rGeom[i].FastGetSolutionStepValue(NODAL_DAMAGE_VARIABLE) += NodalDamage[i]*Area;
+        rGeom[i].FastGetSolutionStepValue(NODAL_AREA) += Area;
+        rGeom[i].UnSetLock();
+    }
+
+    KRATOS_CATCH( "" )
+}
+
+//----------------------------------------------------------------------------------------
+
+template< >
+void UPlPgSmallStrainElement<3,8>::ExtrapolateGPValues(const Matrix& GradPressureContainer, const Matrix& StressContainer, const unsigned int& VoigtSize)
+{
+    KRATOS_TRY
+
+    // Hexahedra_3d_8 with GI_GAUSS_2
+
+    array_1d<double,8> DamageContainer; // 8 GPoints
+
+    for ( unsigned int i = 0;  i < 8; i++ ) //NumGPoints
+    {
+        DamageContainer[i] = 0.0;
+        DamageContainer[i] = mConstitutiveLawVector[i]->GetValue( DAMAGE_VARIABLE, DamageContainer[i] );
+    }
+
+    GeometryType& rGeom = this->GetGeometry();
+    const double& Area = rGeom.Area(); // In 3D this is Volume
+    array_1d<array_1d<double,3>,8> NodalGradPressure; //List with 3D GradP at each node
+    array_1d<Vector,8> NodalStressVector; //List with stresses at each node
+    array_1d<Matrix,8> NodalStressTensor;
+
+    for(unsigned int iNode = 0; iNode < 8; iNode ++)
+    {
+        NodalStressVector[iNode].resize(VoigtSize);
+        NodalStressTensor[iNode].resize(3,3);
+    }
+
+    BoundedMatrix<double,8,8> ExtrapolationMatrix;
+    PoroElementUtilities::Calculate3DExtrapolationMatrix(ExtrapolationMatrix);
+
+    BoundedMatrix<double,8,6> AuxNodalStress;
+    noalias(AuxNodalStress) = prod(ExtrapolationMatrix,StressContainer);
+
+    BoundedMatrix<double,8,3> AuxNodalGradPressure;
+    noalias(AuxNodalGradPressure) = prod(ExtrapolationMatrix,GradPressureContainer);
+
+    array_1d<double,8> NodalDamage; //List with stresses at each node
+    noalias(NodalDamage) = prod(ExtrapolationMatrix,DamageContainer);
+
+    for(unsigned int i = 0; i < 8; i++) //TNumNodes
+    {
+        noalias(NodalGradPressure[i]) = row(AuxNodalGradPressure,i)*Area;
+        noalias(NodalStressVector[i]) = row(AuxNodalStress,i)*Area;
+        noalias(NodalStressTensor[i]) = MathUtils<double>::StressVectorToTensor(NodalStressVector[i]);
+
+        // TODO
+        rGeom[i].SetLock();
+        noalias(rGeom[i].FastGetSolutionStepValue(NODAL_LIQUID_PRESSURE_GRADIENT)) += NodalGradPressure[i];
+        noalias(rGeom[i].FastGetSolutionStepValue(NODAL_EFFECTIVE_STRESS_TENSOR)) += NodalStressTensor[i];
+        rGeom[i].FastGetSolutionStepValue(NODAL_DAMAGE_VARIABLE) += NodalDamage[i]*Area;
+        rGeom[i].FastGetSolutionStepValue(NODAL_AREA) += Area;
+        rGeom[i].UnSetLock();
+    }
+
+    KRATOS_CATCH( "" )
+}
+
+//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+template< unsigned int TDim, unsigned int TNumNodes >
+void UPlPgSmallStrainElement<TDim,TNumNodes>::CalculateOnIntegrationPoints( const Variable<double>& rVariable,std::vector<double>& rOutput,
+                                                                            const ProcessInfo& rCurrentProcessInfo )
+{
+    KRATOS_TRY
+
+    const GeometryType& Geom = this->GetGeometry();
+    const unsigned int NumGPoints = Geom.IntegrationPointsNumber( mThisIntegrationMethod );
+
+    if ( rOutput.size() != NumGPoints )
+        rOutput.resize( NumGPoints, false );
+
+    if(rVariable == VON_MISES_STRESS)
+    {
+        //Defining necessary variables
+        const Matrix& NContainer = Geom.ShapeFunctionsValues( mThisIntegrationMethod );
+        GeometryType::ShapeFunctionsGradientsType DN_DXContainer(NumGPoints);
+        Geom.ShapeFunctionsIntegrationPointsGradients(DN_DXContainer,mThisIntegrationMethod);
+        const unsigned int strain_size = this->GetProperties().GetValue( CONSTITUTIVE_LAW )->GetStrainSize();
+
+        Matrix B(strain_size,TNumNodes*TDim);
+        noalias(B) = ZeroMatrix(strain_size,TNumNodes*TDim);
+        array_1d<double,TNumNodes*TDim> DisplacementVector;
+        PoroElementUtilities::GetNodalVariableVector(DisplacementVector,Geom,DISPLACEMENT);
+
+        //Create constitutive law parameters:
+        Vector StrainVector(strain_size);
+        Vector StressVector(strain_size);
+        Matrix ConstitutiveMatrix(strain_size,strain_size);
+        Vector Np(TNumNodes);
+        Matrix GradNpT(TNumNodes,TDim);
+        Matrix F = identity_matrix<double>(TDim);
+        double detF = 1.0;
+        ConstitutiveLaw::Parameters ConstitutiveParameters(Geom,this->GetProperties(),rCurrentProcessInfo);
+        ConstitutiveParameters.Set(ConstitutiveLaw::COMPUTE_STRESS);
+        ConstitutiveParameters.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
+        ConstitutiveParameters.SetConstitutiveMatrix(ConstitutiveMatrix);
+        ConstitutiveParameters.SetStressVector(StressVector);
+        ConstitutiveParameters.SetStrainVector(StrainVector);
+        ConstitutiveParameters.SetShapeFunctionsValues(Np);
+        ConstitutiveParameters.SetShapeFunctionsDerivatives(GradNpT);
+        ConstitutiveParameters.SetDeterminantF(detF);
+        ConstitutiveParameters.SetDeformationGradientF(F);
+
+        //Loop over integration points
+        for ( unsigned int GPoint = 0; GPoint < NumGPoints; GPoint++ )
+        {
+            this->CalculateKinematics(GradNpT,B,StrainVector,DN_DXContainer,DisplacementVector,GPoint);
+
+            noalias(Np) = row(NContainer,GPoint);
+
+            //compute constitutive tensor and/or stresses
+            mConstitutiveLawVector[GPoint]->CalculateMaterialResponseCauchy(ConstitutiveParameters);
+
+            rOutput[GPoint] = ElementUtilities::CalculateVonMises(StressVector);
+        }
+    } else {
+        UPlPgElement<TDim,TNumNodes>::CalculateOnIntegrationPoints(rVariable,rOutput,rCurrentProcessInfo);
+    }
+
+    KRATOS_CATCH( "" )
+}
+
+//----------------------------------------------------------------------------------------
+
+template< unsigned int TDim, unsigned int TNumNodes >
+void UPlPgSmallStrainElement<TDim,TNumNodes>::CalculateOnIntegrationPoints( const Variable<array_1d<double,3>>& rVariable,std::vector<array_1d<double,3>>& rOutput,
+                                                                            const ProcessInfo& rCurrentProcessInfo )
+{
+    KRATOS_TRY
+
+    const GeometryType& Geom = this->GetGeometry();
+    const unsigned int NumGPoints = Geom.IntegrationPointsNumber( mThisIntegrationMethod );
+
+    if ( rOutput.size() != NumGPoints )
+        rOutput.resize( NumGPoints );
+
+    // TODO
+    if(rVariable == LIQUID_FLUX_VECTOR) {
+        const PropertiesType& Prop = this->GetProperties();
+
+        //Defining the shape functions, the jacobian and the shape functions local gradients Containers
+        const Matrix& NContainer = Geom.ShapeFunctionsValues( mThisIntegrationMethod );
+        GeometryType::ShapeFunctionsGradientsType DN_DXContainer(NumGPoints);
+        Geom.ShapeFunctionsIntegrationPointsGradients(DN_DXContainer,mThisIntegrationMethod);
+
+        //Defining necessary variables
+        array_1d<double,TNumNodes> PressureVector;
+        for(unsigned int i=0; i<TNumNodes; i++)
+            PressureVector[i] = Geom[i].FastGetSolutionStepValue(LIQUID_PRESSURE);
+        array_1d<double,TNumNodes*TDim> VolumeAcceleration;
+        PoroElementUtilities::GetNodalVariableVector(VolumeAcceleration,Geom,VOLUME_ACCELERATION);
+        array_1d<double,TDim> BodyAcceleration;
+        BoundedMatrix<double,TNumNodes, TDim> GradNpT;
+        //TODO: review
+        // const double& DynamicViscosityInverse = 1.0/Prop[DYNAMIC_VISCOSITY];
+        const double& DynamicViscosityInverse = 1.0;
+        const double& LiquidDensity = Prop[DENSITY_LIQUID];
+        array_1d<double,TDim> GradPressureTerm;
+        array_1d<double,TDim> LiquidFlux;
+
+        //Loop over integration points
+        for ( unsigned int GPoint = 0; GPoint < NumGPoints; GPoint++ )
+        {
+            noalias(GradNpT) = DN_DXContainer[GPoint];
+
+            PoroElementUtilities::InterpolateVariableWithComponents(BodyAcceleration,NContainer,VolumeAcceleration,GPoint);
+
+            noalias(GradPressureTerm) = prod(trans(GradNpT),PressureVector);
+            noalias(GradPressureTerm) += -LiquidDensity*BodyAcceleration;
+
+            noalias(LiquidFlux) = -DynamicViscosityInverse*prod(mIntrinsicPermeability,GradPressureTerm);
+
+            PoroElementUtilities::FillArray1dOutput(rOutput[GPoint],LiquidFlux);
+        }
+    } else if(rVariable == LIQUID_PRESSURE_GRADIENT) {
+
+        GeometryType::ShapeFunctionsGradientsType DN_DXContainer(NumGPoints);
+        Geom.ShapeFunctionsIntegrationPointsGradients(DN_DXContainer,mThisIntegrationMethod);
+
+        //Defining necessary variables
+        array_1d<double,TNumNodes> PressureVector;
+        for(unsigned int i=0; i<TNumNodes; i++)
+            PressureVector[i] = Geom[i].FastGetSolutionStepValue(LIQUID_PRESSURE);
+        BoundedMatrix<double,TNumNodes, TDim> GradNpT;
+        array_1d<double,TDim> GradPressure;
+
+        //Loop over integration points
+        for ( unsigned int GPoint = 0; GPoint < NumGPoints; GPoint++ )
+        {
+            noalias(GradNpT) = DN_DXContainer[GPoint];
+
+            noalias(GradPressure) = prod(trans(GradNpT),PressureVector);
+
+            PoroElementUtilities::FillArray1dOutput(rOutput[GPoint],GradPressure);
+        }
+    }
+
+    KRATOS_CATCH( "" )
+}
+
+//----------------------------------------------------------------------------------------
+
+template< unsigned int TDim, unsigned int TNumNodes >
+void UPlPgSmallStrainElement<TDim,TNumNodes>::CalculateOnIntegrationPoints( const Variable<Matrix>& rVariable, std::vector<Matrix>& rOutput,
+                                                                                const ProcessInfo& rCurrentProcessInfo )
+{
+    KRATOS_TRY
+
+    const GeometryType& Geom = this->GetGeometry();
+    const unsigned int NumGPoints = Geom.IntegrationPointsNumber( mThisIntegrationMethod );
+
+    if ( rOutput.size() != NumGPoints )
+        rOutput.resize( NumGPoints );
+
+    if(rVariable == EFFECTIVE_STRESS_TENSOR)
+    {
+        //Defining necessary variables
+        const Matrix& NContainer = Geom.ShapeFunctionsValues( mThisIntegrationMethod );
+        GeometryType::ShapeFunctionsGradientsType DN_DXContainer(NumGPoints);
+        Geom.ShapeFunctionsIntegrationPointsGradients(DN_DXContainer,mThisIntegrationMethod);
+        const unsigned int cl_dimension = this->GetProperties().GetValue( CONSTITUTIVE_LAW )->WorkingSpaceDimension();
+        const unsigned int strain_size = this->GetProperties().GetValue( CONSTITUTIVE_LAW )->GetStrainSize();
+
+        Matrix B(strain_size,TNumNodes*TDim);
+        noalias(B) = ZeroMatrix(strain_size,TNumNodes*TDim);
+        array_1d<double,TNumNodes*TDim> DisplacementVector;
+        PoroElementUtilities::GetNodalVariableVector(DisplacementVector,Geom,DISPLACEMENT);
+
+        //Create constitutive law parameters:
+        Vector StrainVector(strain_size);
+        Vector StressVector(strain_size);
+        Matrix ConstitutiveMatrix(strain_size,strain_size);
+        Vector Np(TNumNodes);
+        Matrix GradNpT(TNumNodes,TDim);
+        Matrix F = identity_matrix<double>(TDim);
+        double detF = 1.0;
+        ConstitutiveLaw::Parameters ConstitutiveParameters(Geom,this->GetProperties(),rCurrentProcessInfo);
+        ConstitutiveParameters.Set(ConstitutiveLaw::COMPUTE_STRESS);
+        ConstitutiveParameters.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
+        ConstitutiveParameters.SetConstitutiveMatrix(ConstitutiveMatrix);
+        ConstitutiveParameters.SetStressVector(StressVector);
+        ConstitutiveParameters.SetStrainVector(StrainVector);
+        ConstitutiveParameters.SetShapeFunctionsValues(Np);
+        ConstitutiveParameters.SetShapeFunctionsDerivatives(GradNpT);
+        ConstitutiveParameters.SetDeterminantF(detF);
+        ConstitutiveParameters.SetDeformationGradientF(F);
+
+        //Loop over integration points
+        for ( unsigned int GPoint = 0; GPoint < NumGPoints; GPoint++ )
+        {
+            this->CalculateKinematics(GradNpT,B,StrainVector,DN_DXContainer,DisplacementVector,GPoint);
+
+            noalias(Np) = row(NContainer,GPoint);
+
+            //compute constitutive tensor and/or stresses
+            mConstitutiveLawVector[GPoint]->CalculateMaterialResponseCauchy(ConstitutiveParameters);
+
+            rOutput[GPoint].resize(cl_dimension,cl_dimension,false );
+            rOutput[GPoint] = MathUtils<double>::StressVectorToTensor(StressVector);
+        }
+    }
+    else if(rVariable == TOTAL_STRESS_TENSOR)
+    {
+        //Defining necessary variables
+        const PropertiesType& Prop = this->GetProperties();
+        const Matrix& NContainer = Geom.ShapeFunctionsValues( mThisIntegrationMethod );
+        GeometryType::ShapeFunctionsGradientsType DN_DXContainer(NumGPoints);
+        Geom.ShapeFunctionsIntegrationPointsGradients(DN_DXContainer,mThisIntegrationMethod);
+        const unsigned int cl_dimension = this->GetProperties().GetValue( CONSTITUTIVE_LAW )->WorkingSpaceDimension();
+        const unsigned int strain_size = this->GetProperties().GetValue( CONSTITUTIVE_LAW )->GetStrainSize();
+
+        Vector VoigtVector(strain_size);
+        noalias(VoigtVector) = ZeroVector(strain_size);
+        if(cl_dimension == 3) {
+            VoigtVector[0] = 1.0;
+            VoigtVector[1] = 1.0;
+            VoigtVector[2] = 1.0;
+        } else {
+            VoigtVector[0] = 1.0;
+            VoigtVector[1] = 1.0;
+        }
+        Matrix B(strain_size,TNumNodes*TDim);
+        noalias(B) = ZeroMatrix(strain_size,TNumNodes*TDim);
+        array_1d<double,TNumNodes*TDim> DisplacementVector;
+        PoroElementUtilities::GetNodalVariableVector(DisplacementVector,Geom,DISPLACEMENT);
+        double Pressure;
+        array_1d<double,TNumNodes> PressureVector;
+        for(unsigned int i=0; i<TNumNodes; i++)
+        {
+            PressureVector[i] = Geom[i].FastGetSolutionStepValue(LIQUID_PRESSURE);
+        }
+        const double BiotCoefficient = Prop[BIOT_COEFFICIENT];
+
+        //Create constitutive law parameters:
+        Vector StrainVector(strain_size);
+        Vector StressVector(strain_size);
+        Matrix ConstitutiveMatrix(strain_size,strain_size);
+        Vector Np(TNumNodes);
+        Matrix GradNpT(TNumNodes,TDim);
+        Matrix F = identity_matrix<double>(TDim);
+        double detF = 1.0;
+        ConstitutiveLaw::Parameters ConstitutiveParameters(Geom,Prop,rCurrentProcessInfo);
+        ConstitutiveParameters.Set(ConstitutiveLaw::COMPUTE_STRESS);
+        ConstitutiveParameters.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
+        ConstitutiveParameters.SetConstitutiveMatrix(ConstitutiveMatrix);
+        ConstitutiveParameters.SetStressVector(StressVector);
+        ConstitutiveParameters.SetStrainVector(StrainVector);
+        ConstitutiveParameters.SetShapeFunctionsValues(Np);
+        ConstitutiveParameters.SetShapeFunctionsDerivatives(GradNpT);
+        ConstitutiveParameters.SetDeterminantF(detF);
+        ConstitutiveParameters.SetDeformationGradientF(F);
+
+        //Loop over integration points
+        for ( unsigned int GPoint = 0; GPoint < NumGPoints; GPoint++ )
+        {
+            this->CalculateKinematics(GradNpT,B,StrainVector,DN_DXContainer,DisplacementVector,GPoint);
+
+            noalias(Np) = row(NContainer,GPoint);
+
+            //compute constitutive tensor and/or stresses
+            mConstitutiveLawVector[GPoint]->CalculateMaterialResponseCauchy(ConstitutiveParameters);
+
+            Pressure = 0.0;
+            for(unsigned int i = 0; i < TNumNodes; i++)
+            {
+                Pressure += NContainer(GPoint,i)*PressureVector[i];
+            }
+
+            noalias(StressVector) += -BiotCoefficient*Pressure*VoigtVector;
+
+            rOutput[GPoint].resize(cl_dimension,cl_dimension,false );
+            rOutput[GPoint] = MathUtils<double>::StressVectorToTensor(StressVector);
+        }
+    }
+    else if(rVariable == GREEN_LAGRANGE_STRAIN_TENSOR)
+    {
+        //Defining necessary variables
+        GeometryType::ShapeFunctionsGradientsType DN_DXContainer(NumGPoints);
+        Geom.ShapeFunctionsIntegrationPointsGradients(DN_DXContainer,mThisIntegrationMethod);
+        const unsigned int cl_dimension = this->GetProperties().GetValue( CONSTITUTIVE_LAW )->WorkingSpaceDimension();
+        const unsigned int strain_size = this->GetProperties().GetValue( CONSTITUTIVE_LAW )->GetStrainSize();
+
+        Matrix B(strain_size,TNumNodes*TDim);
+        noalias(B) = ZeroMatrix(strain_size,TNumNodes*TDim);
+        Matrix GradNpT(TNumNodes,TDim);
+        array_1d<double,TNumNodes*TDim> DisplacementVector;
+        PoroElementUtilities::GetNodalVariableVector(DisplacementVector,Geom,DISPLACEMENT);
+        Vector StrainVector(strain_size);
+
+        //Loop over integration points
+        for ( unsigned int GPoint = 0; GPoint < NumGPoints; GPoint++ )
+        {
+            this->CalculateKinematics(GradNpT,B,StrainVector,DN_DXContainer,DisplacementVector,GPoint);
+
+            rOutput[GPoint].resize(cl_dimension,cl_dimension,false );
+            rOutput[GPoint] = MathUtils<double>::StrainVectorToTensor(StrainVector);
+        }
+    }
+    else if(rVariable == PERMEABILITY_MATRIX)
+    {
+        //Loop over integration points
+        for ( unsigned int GPoint = 0; GPoint < NumGPoints; GPoint++ )
+        {
+            rOutput[GPoint].resize(TDim,TDim,false);
+            noalias(rOutput[GPoint]) = mIntrinsicPermeability;
+        }
+    } else {
+        UPlPgElement<TDim,TNumNodes>::CalculateOnIntegrationPoints(rVariable,rOutput,rCurrentProcessInfo);
+    }
+
+    KRATOS_CATCH( "" )
+}
+
+//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+template< unsigned int TDim, unsigned int TNumNodes >
+void UPlPgSmallStrainElement<TDim,TNumNodes>::CalculateStiffnessMatrix( MatrixType& rStiffnessMatrix, const ProcessInfo& rCurrentProcessInfo )
+{
+    KRATOS_TRY
+
+    const unsigned int element_size = TNumNodes * (TDim + 2);
+
+    //Resizing mass matrix
+    if ( rStiffnessMatrix.size1() != element_size )
+        rStiffnessMatrix.resize( element_size, element_size, false );
+    noalias( rStiffnessMatrix ) = ZeroMatrix( element_size, element_size );
+
+    //Previous definitions
+    const PropertiesType& Prop = this->GetProperties();
+    const GeometryType& Geom = this->GetGeometry();
+    const GeometryType::IntegrationPointsArrayType& integration_points = Geom.IntegrationPoints( mThisIntegrationMethod );
+    const unsigned int NumGPoints = integration_points.size();
+
+    //Containers of variables at all integration points
+    const Matrix& NContainer = Geom.ShapeFunctionsValues( mThisIntegrationMethod );
+    GeometryType::ShapeFunctionsGradientsType DN_DXContainer(NumGPoints);
+    Vector detJContainer(NumGPoints);
+    Geom.ShapeFunctionsIntegrationPointsGradients(DN_DXContainer,detJContainer,mThisIntegrationMethod);
+
+    //Constitutive Law parameters
+    ConstitutiveLaw::Parameters ConstitutiveParameters(Geom,Prop,rCurrentProcessInfo);
+    ConstitutiveParameters.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
+    ConstitutiveParameters.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
+
+    //Saturation Law paremeters
+    SaturationLaw::Parameters SaturationParameters(Geom,Prop,rCurrentProcessInfo);
+
+    //Element variables
+    ElementVariables Variables;
+    this->InitializeElementVariables(Variables,ConstitutiveParameters,SaturationParameters,Geom,Prop,rCurrentProcessInfo);
+
+    //Loop over integration points
+    for( unsigned int GPoint = 0; GPoint < NumGPoints; GPoint++)
+    {
+        //Compute Np, GradNpT, B and StrainVector
+        noalias(Variables.Np) = row(NContainer,GPoint);
+        this->CalculateKinematics(Variables.GradNpT,Variables.B,Variables.StrainVector,DN_DXContainer,Variables.DisplacementVector,GPoint);
+
+        //Compute constitutive tensor
+        mConstitutiveLawVector[GPoint]->CalculateMaterialResponseCauchy(ConstitutiveParameters);
+
+        //Compute weighting coefficient for integration
+        this->CalculateIntegrationCoefficient(Variables.IntegrationCoefficient, detJContainer[GPoint], integration_points[GPoint].Weight() );
+
+        //Compute stiffness matrix
+        this->CalculateAndAddStiffnessMatrix(rStiffnessMatrix, Variables);
+    }
+
+    KRATOS_CATCH( "" )
+}
+
+//----------------------------------------------------------------------------------------
+
+template< unsigned int TDim, unsigned int TNumNodes >
+void UPlPgSmallStrainElement<TDim,TNumNodes>::CalculateMassMatrix( MatrixType& rMassMatrix, const ProcessInfo& rCurrentProcessInfo )
+{
+    KRATOS_TRY
+
+    const unsigned int element_size = TNumNodes * (TDim + 2);
+
+    //Resizing mass matrix
+    if ( rMassMatrix.size1() != element_size )
+        rMassMatrix.resize( element_size, element_size, false );
+    noalias( rMassMatrix ) = ZeroMatrix( element_size, element_size );
+
+    //Previous definitions
+    const PropertiesType& Prop = this->GetProperties();
+    const GeometryType& Geom = this->GetGeometry();
+    const GeometryType::IntegrationPointsArrayType& integration_points = Geom.IntegrationPoints( mThisIntegrationMethod );
+    const unsigned int NumGPoints = integration_points.size();
+
+    //Containers of variables at all integration points
+    const Matrix& NContainer = Geom.ShapeFunctionsValues( mThisIntegrationMethod );
+    GeometryType::ShapeFunctionsGradientsType DN_DXContainer(NumGPoints);
+    Vector detJContainer(NumGPoints);
+    Geom.ShapeFunctionsIntegrationPointsGradients(DN_DXContainer,detJContainer,mThisIntegrationMethod);
+
+    //Constitutive Law parameters
+    ConstitutiveLaw::Parameters ConstitutiveParameters(Geom,Prop,rCurrentProcessInfo);
+
+    //Saturation Law paremeters
+    SaturationLaw::Parameters SaturationParameters(Geom,Prop,rCurrentProcessInfo);
+
+    //Element variables
+    ElementVariables Variables;
+    this->InitializeElementVariables(Variables,ConstitutiveParameters,SaturationParameters,Geom,Prop,rCurrentProcessInfo);
+
+    //Loop over integration points
+    for ( unsigned int GPoint = 0; GPoint < NumGPoints; GPoint++ )
+    {
+        //Compute Np and Nu
+        noalias(Variables.Np) = row(NContainer,GPoint);
+        PoroElementUtilities::CalculateNuMatrix(Variables.Nu,NContainer,GPoint);
+
+        //Compute Saturation Law variables: Sw, dSwdPc
+        mSaturationLawVector[GPoint]->CalculateSaturation(SaturationParameters);
+
+        // Update the density based on the new saturation degree
+        this->UpdateDensity(Variables);
+
+        //Compute weighting coefficient for integration
+        this->CalculateIntegrationCoefficient(Variables.IntegrationCoefficient, detJContainer[GPoint], integration_points[GPoint].Weight() );
+
+        //Adding contribution to Mass matrix
+        this->CalculateAndAddMassMatrix(rMassMatrix, Variables);
+    }
+
+    KRATOS_CATCH( "" )
+}
+
+//----------------------------------------------------------------------------------------
+
+template< unsigned int TDim, unsigned int TNumNodes >
+void UPlPgSmallStrainElement<TDim,TNumNodes>::CalculateLumpedMassMatrix( MatrixType& rLeftHandSideMatrix, const ProcessInfo& rCurrentProcessInfo )
+{
+    KRATOS_TRY
+
+    const unsigned int element_size = TNumNodes * (TDim + 2);
+
+    //Resizing mass matrix
+    if ( rLeftHandSideMatrix.size1() != element_size )
+        rLeftHandSideMatrix.resize( element_size, element_size, false );
+    noalias( rLeftHandSideMatrix ) = ZeroMatrix( element_size, element_size );
+
+    //Previous definitions
+    const PropertiesType& Prop = this->GetProperties();
+    const GeometryType& Geom = this->GetGeometry();
+    const GeometryType::IntegrationPointsArrayType& integration_points = Geom.IntegrationPoints( mThisIntegrationMethod );
+    const unsigned int NumGPoints = integration_points.size();
+
+    // Initialize elemenatal total mass
+    double total_mass = 0.0;
+
+    //Containers of variables at all integration points
+    const Matrix& NContainer = Geom.ShapeFunctionsValues( mThisIntegrationMethod );
+    GeometryType::ShapeFunctionsGradientsType DN_DXContainer(NumGPoints);
+    Vector detJContainer(NumGPoints);
+    Geom.ShapeFunctionsIntegrationPointsGradients(DN_DXContainer,detJContainer,mThisIntegrationMethod);
+
+    //Constitutive Law parameters
+    ConstitutiveLaw::Parameters ConstitutiveParameters(Geom,Prop,rCurrentProcessInfo);
+
+    //Saturation Law paremeters
+    SaturationLaw::Parameters SaturationParameters(Geom,Prop,rCurrentProcessInfo);
+
+    //Element variables
+    ElementVariables Variables;
+    this->InitializeElementVariables(Variables,ConstitutiveParameters,SaturationParameters,Geom,Prop,rCurrentProcessInfo);
+
+    //Loop over integration points
+    for ( unsigned int GPoint = 0; GPoint < NumGPoints; GPoint++ )
+    {
+        //Compute Np
+        noalias(Variables.Np) = row(NContainer,GPoint);
+
+        //Compute Saturation Law variables: Sw, dSwdPc
+        mSaturationLawVector[GPoint]->CalculateSaturation(SaturationParameters);
+
+        // Update the density based on the new saturation degree
+        this->UpdateDensity(Variables);
+
+        //Compute weighting coefficient for integration
+        this->CalculateIntegrationCoefficient(Variables.IntegrationCoefficient, detJContainer[GPoint], integration_points[GPoint].Weight() );
+
+        total_mass += Variables.Density * Variables.IntegrationCoefficient;
+    }
+
+    // LUMPED MASS MATRIX
+    Vector lumping_factors;
+    lumping_factors = Geom.LumpingFactors( lumping_factors );
+
+    for ( IndexType i = 0; i < TNumNodes; ++i ) {
+        const double temp = lumping_factors[i] * total_mass;
+        for ( IndexType j = 0; j < TDim; ++j ) {
+            IndexType index = i * (TDim + 1) + j;
+            rLeftHandSideMatrix(index,index) = temp;
+        }
+    }
+
+    KRATOS_CATCH( "" )
+}
+
+//----------------------------------------------------------------------------------------
+
+template< unsigned int TDim, unsigned int TNumNodes >
+void UPlPgSmallStrainElement<TDim,TNumNodes>::CalculateAll( MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo )
+{
+    KRATOS_TRY
+
+    //Previous definitions
+    const PropertiesType& Prop = this->GetProperties();
+    const GeometryType& Geom = this->GetGeometry();
+    const GeometryType::IntegrationPointsArrayType& integration_points = Geom.IntegrationPoints( mThisIntegrationMethod );
+    const unsigned int NumGPoints = integration_points.size();
+
+    //Containers of variables at all integration points
+    const Matrix& NContainer = Geom.ShapeFunctionsValues( mThisIntegrationMethod );
+    GeometryType::ShapeFunctionsGradientsType DN_DXContainer(NumGPoints);
+    Vector detJContainer(NumGPoints);
+    Geom.ShapeFunctionsIntegrationPointsGradients(DN_DXContainer,detJContainer,mThisIntegrationMethod);
+
+    //Constitutive Law parameters
+    ConstitutiveLaw::Parameters ConstitutiveParameters(Geom,Prop,rCurrentProcessInfo);
+    ConstitutiveParameters.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
+    ConstitutiveParameters.Set(ConstitutiveLaw::COMPUTE_STRESS);
+    ConstitutiveParameters.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
+
+    //Saturation Law paremeters
+    SaturationLaw::Parameters SaturationParameters(Geom,Prop,rCurrentProcessInfo);
+
+    //Element variables
+    ElementVariables Variables;
+    this->InitializeElementVariables(Variables,ConstitutiveParameters,SaturationParameters,Geom,Prop,rCurrentProcessInfo);
+
+    //Loop over integration points
+    for( unsigned int GPoint = 0; GPoint < NumGPoints; GPoint++)
+    {
+        //Compute GradNpT, B and StrainVector
+        this->CalculateKinematics(Variables.GradNpT,Variables.B,Variables.StrainVector,DN_DXContainer,Variables.DisplacementVector,GPoint);
+
+        //Compute Np, Nu and BodyAcceleration
+        noalias(Variables.Np) = row(NContainer,GPoint);
+        PoroElementUtilities::CalculateNuMatrix(Variables.Nu,NContainer,GPoint);
+        PoroElementUtilities::InterpolateVariableWithComponents(Variables.BodyAcceleration,NContainer,Variables.VolumeAcceleration,GPoint);
+
+        //Compute Saturation Law variables: Sw, dSwdPc, krw and krg
+        mSaturationLawVector[GPoint]->CalculateMaterialResponse(SaturationParameters);
+
+        // Update the density based on the new saturation degree
+        this->UpdateDensity(Variables);
+
+        //Compute constitutive tensor and stresses
+        mConstitutiveLawVector[GPoint]->CalculateMaterialResponseCauchy(ConstitutiveParameters);
+
+        //Compute weighting coefficient for integration
+        this->CalculateIntegrationCoefficient(Variables.IntegrationCoefficient, detJContainer[GPoint], integration_points[GPoint].Weight() );
+
+        //Contributions to the left hand side
+        this->CalculateAndAddLHS(rLeftHandSideMatrix, Variables);
+
+        //Contributions to the right hand side
+        this->CalculateAndAddRHS(rRightHandSideVector, Variables);
+    }
+
+    KRATOS_CATCH( "" )
+}
+
+//----------------------------------------------------------------------------------------
+
+template< unsigned int TDim, unsigned int TNumNodes >
+void UPlPgSmallStrainElement<TDim,TNumNodes>::CalculateRHS( VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo )
+{
+    KRATOS_TRY
+
+    //Previous definitions
+    const PropertiesType& Prop = this->GetProperties();
+    const GeometryType& Geom = this->GetGeometry();
+    const GeometryType::IntegrationPointsArrayType& integration_points = Geom.IntegrationPoints( mThisIntegrationMethod );
+    const unsigned int NumGPoints = integration_points.size();
+
+    //Containers of variables at all integration points
+    const Matrix& NContainer = Geom.ShapeFunctionsValues( mThisIntegrationMethod );
+    GeometryType::ShapeFunctionsGradientsType DN_DXContainer(NumGPoints);
+    Vector detJContainer(NumGPoints);
+    Geom.ShapeFunctionsIntegrationPointsGradients(DN_DXContainer,detJContainer,mThisIntegrationMethod);
+
+    //Constitutive Law parameters
+    ConstitutiveLaw::Parameters ConstitutiveParameters(Geom,Prop,rCurrentProcessInfo);
+    ConstitutiveParameters.Set(ConstitutiveLaw::COMPUTE_STRESS);
+    ConstitutiveParameters.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
+
+    //Saturation Law paremeters
+    SaturationLaw::Parameters SaturationParameters(Geom,Prop,rCurrentProcessInfo);
+
+    //Element variables
+    ElementVariables Variables;
+    this->InitializeElementVariables(Variables,ConstitutiveParameters,SaturationParameters,Geom,Prop,rCurrentProcessInfo);
+
+    //Loop over integration points
+    for( unsigned int GPoint = 0; GPoint < NumGPoints; GPoint++)
+    {
+        //Compute GradNpT, B and StrainVector
+        this->CalculateKinematics(Variables.GradNpT,Variables.B,Variables.StrainVector,DN_DXContainer,Variables.DisplacementVector,GPoint);
+
+        //Compute Np, Nu and BodyAcceleration
+        noalias(Variables.Np) = row(NContainer,GPoint);
+        PoroElementUtilities::CalculateNuMatrix(Variables.Nu,NContainer,GPoint);
+        PoroElementUtilities::InterpolateVariableWithComponents(Variables.BodyAcceleration,NContainer,Variables.VolumeAcceleration,GPoint);
+
+        //Compute Saturation Law variables: Sw, dSwdPc, krw and krg
+        mSaturationLawVector[GPoint]->CalculateMaterialResponse(SaturationParameters);
+        
+        // Update the density based on the new saturation degree
+        this->UpdateDensity(Variables);
+
+        //Compute stresses
+        mConstitutiveLawVector[GPoint]->CalculateMaterialResponseCauchy(ConstitutiveParameters);
+
+        //Compute weighting coefficient for integration
+        this->CalculateIntegrationCoefficient(Variables.IntegrationCoefficient, detJContainer[GPoint], integration_points[GPoint].Weight() );
+
+        //Contributions to the right hand side
+        this->CalculateAndAddRHS(rRightHandSideVector, Variables);
+    }
+
+    KRATOS_CATCH( "" )
+}
+
+//----------------------------------------------------------------------------------------
+
+template< unsigned int TDim, unsigned int TNumNodes >
+void UPlPgSmallStrainElement<TDim,TNumNodes>::InitializeElementVariables(ElementVariables& rVariables,ConstitutiveLaw::Parameters& rConstitutiveParameters,
+                                                                            SaturationLaw::Parameters& rSaturationParameters,
+                                                                            const GeometryType& Geom, const PropertiesType& Prop, const ProcessInfo& rCurrentProcessInfo)
+{
+    KRATOS_TRY
+
+    //Properties variables
+    rVariables.Porosity                   = Prop[POROSITY];
+    rVariables.LiquidDynamicViscosity     = Prop[VISCOSITY_LIQUID];
+    rVariables.GasDynamicViscosity        = Prop[VISCOSITY_GAS];
+    rVariables.SolidDensity               = Prop[DENSITY_SOLID];
+    rVariables.LiquidDensity              = Prop[DENSITY_LIQUID];
+    rVariables.GasDensity                 = Prop[DENSITY_GAS];
+    rVariables.GasDiffusionCoefficient    = Prop[GAS_DIFFUSION_COEFF];
+    rVariables.BiotCoefficient            = Prop[BIOT_COEFFICIENT];
+    rVariables.SolidCompressibilityCoeff  = (rVariables.BiotCoefficient-rVariables.Porosity)/Prop[BULK_MODULUS_SOLID];
+    rVariables.LiquidCompressibilityCoeff = rVariables.Porosity/Prop[BULK_MODULUS_LIQUID];
+    rVariables.GasCompressibilityCoeff    = rVariables.Porosity/Prop[BULK_MODULUS_GAS];
+    rVariables.BiotModulusInverse         = rVariables.SolidCompressibilityCoeff + rVariables.LiquidCompressibilityCoeff;
+
+    //ProcessInfo variables
+    rVariables.VelocityCoefficient = rCurrentProcessInfo[VELOCITY_COEFFICIENT];
+    rVariables.DtPressureCoefficient = rCurrentProcessInfo[DT_LIQUID_PRESSURE_COEFFICIENT];
+    rVariables.DtGasPressureCoefficient = rCurrentProcessInfo[DT_GAS_PRESSURE_COEFFICIENT];
+
+    //Nodal Variables
+    for(unsigned int i=0; i<TNumNodes; i++)
+    {
+        rVariables.PressureVector[i]      = Geom[i].FastGetSolutionStepValue(LIQUID_PRESSURE);
+        rVariables.GasPressureVector[i]   = Geom[i].FastGetSolutionStepValue(GAS_PRESSURE);
+        rVariables.DtPressureVector[i]    = Geom[i].FastGetSolutionStepValue(DT_LIQUID_PRESSURE);
+        rVariables.DtGasPressureVector[i] = Geom[i].FastGetSolutionStepValue(DT_GAS_PRESSURE);
+    }
+    PoroElementUtilities::GetNodalVariableVector(rVariables.DisplacementVector,Geom,DISPLACEMENT);
+    PoroElementUtilities::GetNodalVariableVector(rVariables.VelocityVector,Geom,VELOCITY);
+    PoroElementUtilities::GetNodalVariableVector(rVariables.VolumeAcceleration,Geom,VOLUME_ACCELERATION);
+
+    // Capilar pore-pressure: pc = pg - pw
+    rVariables.CapilarPressureVector = rVariables.GasPressureVector - rVariables.PressureVector;
+
+    //General Variables
+    const unsigned int strain_size = Prop.GetValue( CONSTITUTIVE_LAW )->GetStrainSize();
+    const unsigned int cl_dimension = Prop.GetValue( CONSTITUTIVE_LAW )->WorkingSpaceDimension();
+
+    rVariables.VoigtVector.resize(strain_size);
+    noalias(rVariables.VoigtVector) = ZeroVector(strain_size);
+    if(cl_dimension == 3) {
+        rVariables.VoigtVector[0] = 1.0;
+        rVariables.VoigtVector[1] = 1.0;
+        rVariables.VoigtVector[2] = 1.0;
+    } else {
+        rVariables.VoigtVector[0] = 1.0;
+        rVariables.VoigtVector[1] = 1.0;
+    }
+
+    //Variables computed at each GP
+    rVariables.B.resize(strain_size,TNumNodes*TDim,false);
+    noalias(rVariables.B) = ZeroMatrix(strain_size,TNumNodes*TDim);
+    noalias(rVariables.Nu) = ZeroMatrix(TDim, TNumNodes*TDim);
+    //Constitutive Law parameters
+    rVariables.StrainVector.resize(strain_size,false);
+    rVariables.StressVector.resize(strain_size,false);
+    rVariables.ConstitutiveMatrix.resize(strain_size,strain_size,false);
+    rVariables.Np.resize(TNumNodes,false);
+    rVariables.GradNpT.resize(TNumNodes,TDim,false);
+    rVariables.F.resize(TDim,TDim,false);
+    rVariables.detF = 1.0;
+    rConstitutiveParameters.SetStrainVector(rVariables.StrainVector);
+    rConstitutiveParameters.SetStressVector(rVariables.StressVector);
+    rConstitutiveParameters.SetConstitutiveMatrix(rVariables.ConstitutiveMatrix);
+    rConstitutiveParameters.SetShapeFunctionsValues(rVariables.Np);
+    rConstitutiveParameters.SetShapeFunctionsDerivatives(rVariables.GradNpT);
+    rConstitutiveParameters.SetDeformationGradientF(rVariables.F);
+    rConstitutiveParameters.SetDeterminantF(rVariables.detF);
+    //Saturation Law parameters
+    rSaturationParameters.SetSw(rVariables.Sw);
+    rSaturationParameters.SetdSwdPc(rVariables.dSwdPc);
+    rSaturationParameters.Setkrw(rVariables.krw);
+    rSaturationParameters.Setkrg(rVariables.krg);
+    rSaturationParameters.SetShapeFunctionsValues(rVariables.Np);
+    rSaturationParameters.SetShapeFunctionsDerivatives(rVariables.GradNpT);
+    //Auxiliary variables
+    rVariables.UVoigtMatrix.resize(TNumNodes*TDim,strain_size,false);
+
+    KRATOS_CATCH( "" )
+}
+
+//----------------------------------------------------------------------------------------
+
+template< unsigned int TDim, unsigned int TNumNodes >
+void UPlPgSmallStrainElement<TDim,TNumNodes>::CalculateKinematics(Matrix& rGradNpT,
+                                        Matrix& rB,
+                                        Vector& rStrainVector,
+                                        const GeometryType::ShapeFunctionsGradientsType& DN_DXContainer,
+                                        const array_1d<double,TNumNodes*TDim>& DisplacementVector,
+                                        const unsigned int& GPoint)
+{
+    KRATOS_TRY
+
+    noalias(rGradNpT) = DN_DXContainer[GPoint];
+    this->CalculateBMatrix(rB, rGradNpT);
+    noalias(rStrainVector) = prod(rB,DisplacementVector);
+
+    // 2.5D element (2D Geometry with 3D ConstitutiveLaw)
+    const unsigned int cl_dimension = this->GetProperties().GetValue( CONSTITUTIVE_LAW )->WorkingSpaceDimension();
+    if (cl_dimension > TDim) {
+
+        // StrainVector must have the shape of a 3D element
+        rStrainVector[3] = rStrainVector[2];
+        rStrainVector[2] = mImposedZStrainVector[GPoint];
+
+        unsigned int index;
+        // B matrix must have the shape of a 3D element
+        for ( unsigned int i = 0; i < TNumNodes; i++ )
+        {
+            index = 2 * i;
+
+            rB( 3, index + 0 ) = rB( 2, index + 0 );
+            rB( 3, index + 1 ) = rB( 2, index + 1 );
+            rB( 2, index + 0 ) = 0.0;
+            rB( 2, index + 1 ) = 0.0;
+        }
+    }
+    
+    KRATOS_CATCH( "" )
+
+}
+//----------------------------------------------------------------------------------------
+
+template< >
+void UPlPgSmallStrainElement<2,3>::CalculateBMatrix(Matrix& rB, const Matrix& GradNpT)
+{
+    KRATOS_TRY
+
+    unsigned int index;
+
+    for ( unsigned int i = 0; i < 3; i++ )
+    {
+        index = 2 * i;
+
+        rB( 0, index + 0 ) = GradNpT( i, 0 );
+        rB( 1, index + 1 ) = GradNpT( i, 1 );
+        rB( 2, index + 0 ) = GradNpT( i, 1 );
+        rB( 2, index + 1 ) = GradNpT( i, 0 );
+    }
+
+    KRATOS_CATCH( "" )
+}
+
+//----------------------------------------------------------------------------------------
+
+template< >
+void UPlPgSmallStrainElement<2,4>::CalculateBMatrix(Matrix& rB, const Matrix& GradNpT)
+{
+    KRATOS_TRY
+
+    unsigned int index;
+
+    for ( unsigned int i = 0; i < 4; i++ )
+    {
+        index = 2 * i;
+
+        rB( 0, index + 0 ) = GradNpT( i, 0 );
+        rB( 1, index + 1 ) = GradNpT( i, 1 );
+        rB( 2, index + 0 ) = GradNpT( i, 1 );
+        rB( 2, index + 1 ) = GradNpT( i, 0 );
+    }
+
+    KRATOS_CATCH( "" )
+}
+
+//----------------------------------------------------------------------------------------
+
+template< >
+void UPlPgSmallStrainElement<3,4>::CalculateBMatrix(Matrix& rB, const Matrix& GradNpT)
+{
+    KRATOS_TRY
+
+    unsigned int index;
+
+    for ( unsigned int i = 0; i < 4; i++ )
+    {
+        index = 3 * i;
+
+        rB( 0, index + 0 ) = GradNpT( i, 0 );
+        rB( 1, index + 1 ) = GradNpT( i, 1 );
+        rB( 2, index + 2 ) = GradNpT( i, 2 );
+        rB( 3, index + 0 ) = GradNpT( i, 1 );
+        rB( 3, index + 1 ) = GradNpT( i, 0 );
+        rB( 4, index + 1 ) = GradNpT( i, 2 );
+        rB( 4, index + 2 ) = GradNpT( i, 1 );
+        rB( 5, index + 0 ) = GradNpT( i, 2 );
+        rB( 5, index + 2 ) = GradNpT( i, 0 );
+    }
+
+    KRATOS_CATCH( "" )
+}
+
+//----------------------------------------------------------------------------------------
+
+template< >
+void UPlPgSmallStrainElement<3,8>::CalculateBMatrix(Matrix& rB, const Matrix& GradNpT)
+{
+    KRATOS_TRY
+
+    unsigned int index;
+
+    for ( unsigned int i = 0; i < 8; i++ )
+    {
+        index = 3 * i;
+
+        rB( 0, index + 0 ) = GradNpT( i, 0 );
+        rB( 1, index + 1 ) = GradNpT( i, 1 );
+        rB( 2, index + 2 ) = GradNpT( i, 2 );
+        rB( 3, index + 0 ) = GradNpT( i, 1 );
+        rB( 3, index + 1 ) = GradNpT( i, 0 );
+        rB( 4, index + 1 ) = GradNpT( i, 2 );
+        rB( 4, index + 2 ) = GradNpT( i, 1 );
+        rB( 5, index + 0 ) = GradNpT( i, 2 );
+        rB( 5, index + 2 ) = GradNpT( i, 0 );
+    }
+
+    KRATOS_CATCH( "" )
+}
+
+//----------------------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------
+
+template< unsigned int TDim, unsigned int TNumNodes >
+void UPlPgSmallStrainElement<TDim,TNumNodes>::CalculateFluxResidual( VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo )
+{
+    KRATOS_TRY
+
+    const unsigned int element_size = TNumNodes * (TDim + 2);
+
+    //Resetting the RHS
+    if ( rRightHandSideVector.size() != element_size )
+        rRightHandSideVector.resize( element_size, false );
+    noalias( rRightHandSideVector ) = ZeroVector( element_size );
+
+    //Previous definitions
+    const PropertiesType& Prop = this->GetProperties();
+    const GeometryType& Geom = this->GetGeometry();
+    const GeometryType::IntegrationPointsArrayType& integration_points = Geom.IntegrationPoints( mThisIntegrationMethod );
+    const unsigned int NumGPoints = integration_points.size();
+
+    //Containers of variables at all integration points
+    const Matrix& NContainer = Geom.ShapeFunctionsValues( mThisIntegrationMethod );
+    GeometryType::ShapeFunctionsGradientsType DN_DXContainer(NumGPoints);
+    Vector detJContainer(NumGPoints);
+    Geom.ShapeFunctionsIntegrationPointsGradients(DN_DXContainer,detJContainer,mThisIntegrationMethod);
+
+    //Constitutive Law parameters
+    ConstitutiveLaw::Parameters ConstitutiveParameters(Geom,Prop,rCurrentProcessInfo);
+    ConstitutiveParameters.Set(ConstitutiveLaw::COMPUTE_STRESS);
+    ConstitutiveParameters.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
+
+    //Saturation Law paremeters
+    SaturationLaw::Parameters SaturationParameters(Geom,Prop,rCurrentProcessInfo);
+
+    //Element variables
+    ElementVariables Variables;
+    this->InitializeElementVariables(Variables,ConstitutiveParameters,SaturationParameters,Geom,Prop,rCurrentProcessInfo);
+
+    //Loop over integration points
+    for( unsigned int GPoint = 0; GPoint < NumGPoints; GPoint++)
+    {
+        //Compute GradNpT, B and StrainVector
+        this->CalculateKinematics(Variables.GradNpT,Variables.B,Variables.StrainVector,DN_DXContainer,Variables.DisplacementVector,GPoint);
+
+        //Compute Np, Nu and BodyAcceleration
+        noalias(Variables.Np) = row(NContainer,GPoint);
+        PoroElementUtilities::CalculateNuMatrix(Variables.Nu,NContainer,GPoint);
+        PoroElementUtilities::InterpolateVariableWithComponents(Variables.BodyAcceleration,NContainer,Variables.VolumeAcceleration,GPoint);
+
+        //Compute Saturation Law variables: Sw, dSwdPc, krw and krg
+        mSaturationLawVector[GPoint]->CalculateMaterialResponse(SaturationParameters);
+
+        // Update the density based on the new saturation degree
+        this->UpdateDensity(Variables);
+
+        //Compute stresses
+        mConstitutiveLawVector[GPoint]->CalculateMaterialResponseCauchy(ConstitutiveParameters);
+
+        //Compute weighting coefficient for integration
+        this->CalculateIntegrationCoefficient(Variables.IntegrationCoefficient, detJContainer[GPoint], integration_points[GPoint].Weight() );
+
+        //Contributions to the right hand side
+        this->CalculateAndAddFluidBodyFlow(rRightHandSideVector, Variables);
+        this->CalculateAndAddCompressibilityFlow(rRightHandSideVector, Variables);
+        this->CalculateAndAddPermeabilityFlow(rRightHandSideVector, Variables);
+    }
+
+    KRATOS_CATCH( "" )
+}
+
+//----------------------------------------------------------------------------------------
+
+template< unsigned int TDim, unsigned int TNumNodes >
+void UPlPgSmallStrainElement<TDim,TNumNodes>::CalculateMixBodyForce( VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo )
+{
+    KRATOS_TRY
+
+    const unsigned int element_size = TNumNodes * (TDim + 2);
+
+    //Resetting the RHS
+    if ( rRightHandSideVector.size() != element_size )
+        rRightHandSideVector.resize( element_size, false );
+    noalias( rRightHandSideVector ) = ZeroVector( element_size );
+
+    //Previous definitions
+    const PropertiesType& Prop = this->GetProperties();
+    const GeometryType& Geom = this->GetGeometry();
+    const GeometryType::IntegrationPointsArrayType& integration_points = Geom.IntegrationPoints( mThisIntegrationMethod );
+    const unsigned int NumGPoints = integration_points.size();
+
+    //Containers of variables at all integration points
+    const Matrix& NContainer = Geom.ShapeFunctionsValues( mThisIntegrationMethod );
+    GeometryType::ShapeFunctionsGradientsType DN_DXContainer(NumGPoints);
+    Vector detJContainer(NumGPoints);
+    Geom.ShapeFunctionsIntegrationPointsGradients(DN_DXContainer,detJContainer,mThisIntegrationMethod);
+
+    //Constitutive Law parameters
+    ConstitutiveLaw::Parameters ConstitutiveParameters(Geom,Prop,rCurrentProcessInfo);
+    ConstitutiveParameters.Set(ConstitutiveLaw::COMPUTE_STRESS);
+    ConstitutiveParameters.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
+
+    //Saturation Law paremeters
+    SaturationLaw::Parameters SaturationParameters(Geom,Prop,rCurrentProcessInfo);
+
+    //Element variables
+    ElementVariables Variables;
+    this->InitializeElementVariables(Variables,ConstitutiveParameters,SaturationParameters,Geom,Prop,rCurrentProcessInfo);
+
+    //Loop over integration points
+    for( unsigned int GPoint = 0; GPoint < NumGPoints; GPoint++)
+    {
+        //Compute GradNpT, B and StrainVector
+        this->CalculateKinematics(Variables.GradNpT,Variables.B,Variables.StrainVector,DN_DXContainer,Variables.DisplacementVector,GPoint);
+
+        //Compute Np, Nu and BodyAcceleration
+        noalias(Variables.Np) = row(NContainer,GPoint);
+        PoroElementUtilities::CalculateNuMatrix(Variables.Nu,NContainer,GPoint);
+        PoroElementUtilities::InterpolateVariableWithComponents(Variables.BodyAcceleration,NContainer,Variables.VolumeAcceleration,GPoint);
+
+        //Compute Saturation Law variables: Sw, dSwdPc, krw and krg
+        mSaturationLawVector[GPoint]->CalculateMaterialResponse(SaturationParameters);
+
+        // Update the density based on the new saturation degree
+        this->UpdateDensity(Variables);
+
+        //Compute stresses
+        mConstitutiveLawVector[GPoint]->CalculateMaterialResponseCauchy(ConstitutiveParameters);
+
+        //Compute weighting coefficient for integration
+        this->CalculateIntegrationCoefficient(Variables.IntegrationCoefficient, detJContainer[GPoint], integration_points[GPoint].Weight() );
+
+        //Contributions to the right hand side
+        this->CalculateAndAddMixBodyForce(rRightHandSideVector, Variables);
+    }
+
+    KRATOS_CATCH( "" )
+}
+
+//----------------------------------------------------------------------------------------
+
+template< unsigned int TDim, unsigned int TNumNodes >
+void UPlPgSmallStrainElement<TDim,TNumNodes>::CalculateNegInternalForce( VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo )
+{
+    KRATOS_TRY
+
+    const unsigned int element_size = TNumNodes * (TDim + 2);
+
+    //Resetting the RHS
+    if ( rRightHandSideVector.size() != element_size )
+        rRightHandSideVector.resize( element_size, false );
+    noalias( rRightHandSideVector ) = ZeroVector( element_size );
+
+    //Previous definitions
+    const PropertiesType& Prop = this->GetProperties();
+    const GeometryType& Geom = this->GetGeometry();
+    const GeometryType::IntegrationPointsArrayType& integration_points = Geom.IntegrationPoints( mThisIntegrationMethod );
+    const unsigned int NumGPoints = integration_points.size();
+
+    //Containers of variables at all integration points
+    const Matrix& NContainer = Geom.ShapeFunctionsValues( mThisIntegrationMethod );
+    GeometryType::ShapeFunctionsGradientsType DN_DXContainer(NumGPoints);
+    Vector detJContainer(NumGPoints);
+    Geom.ShapeFunctionsIntegrationPointsGradients(DN_DXContainer,detJContainer,mThisIntegrationMethod);
+
+    //Constitutive Law parameters
+    ConstitutiveLaw::Parameters ConstitutiveParameters(Geom,Prop,rCurrentProcessInfo);
+    ConstitutiveParameters.Set(ConstitutiveLaw::COMPUTE_STRESS);
+    ConstitutiveParameters.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
+
+    //Saturation Law paremeters
+    SaturationLaw::Parameters SaturationParameters(Geom,Prop,rCurrentProcessInfo);
+
+    //Element variables
+    ElementVariables Variables;
+    this->InitializeElementVariables(Variables,ConstitutiveParameters,SaturationParameters,Geom,Prop,rCurrentProcessInfo);
+
+    //Loop over integration points
+    for( unsigned int GPoint = 0; GPoint < NumGPoints; GPoint++)
+    {
+        //Compute GradNpT, B and StrainVector
+        this->CalculateKinematics(Variables.GradNpT,Variables.B,Variables.StrainVector,DN_DXContainer,Variables.DisplacementVector,GPoint);
+
+        //Compute Np, Nu and BodyAcceleration
+        noalias(Variables.Np) = row(NContainer,GPoint);
+        PoroElementUtilities::CalculateNuMatrix(Variables.Nu,NContainer,GPoint);
+        PoroElementUtilities::InterpolateVariableWithComponents(Variables.BodyAcceleration,NContainer,Variables.VolumeAcceleration,GPoint);
+
+        //Compute Saturation Law variables: Sw, dSwdPc, krw and krg
+        mSaturationLawVector[GPoint]->CalculateMaterialResponse(SaturationParameters);
+
+        // Update the density based on the new saturation degree
+        this->UpdateDensity(Variables);
+
+        //Compute stresses
+        mConstitutiveLawVector[GPoint]->CalculateMaterialResponseCauchy(ConstitutiveParameters);
+
+        //Compute weighting coefficient for integration
+        this->CalculateIntegrationCoefficient(Variables.IntegrationCoefficient, detJContainer[GPoint], integration_points[GPoint].Weight() );
+
+        //Contributions to the right hand side
+        this->CalculateAndAddStiffnessForce(rRightHandSideVector, Variables);
+    }
+
+    KRATOS_CATCH( "" )
+}
+
+//----------------------------------------------------------------------------------------
+
+template< unsigned int TDim, unsigned int TNumNodes >
+void UPlPgSmallStrainElement<TDim,TNumNodes>::CalculateExplicitContributions (VectorType& rFluxResidual, VectorType& rBodyForce, VectorType& rNegInternalForces, const ProcessInfo& rCurrentProcessInfo )
+{
+    KRATOS_TRY
+
+    const unsigned int element_size = TNumNodes * (TDim + 2);
+
+    //Resetting the RHS
+    if ( rFluxResidual.size() != element_size )
+        rFluxResidual.resize( element_size, false );
+    noalias( rFluxResidual ) = ZeroVector( element_size );
+    if ( rBodyForce.size() != element_size )
+        rBodyForce.resize( element_size, false );
+    noalias( rBodyForce ) = ZeroVector( element_size );
+    if ( rNegInternalForces.size() != element_size )
+        rNegInternalForces.resize( element_size, false );
+    noalias( rNegInternalForces ) = ZeroVector( element_size );
+
+    //Previous definitions
+    const PropertiesType& Prop = this->GetProperties();
+    const GeometryType& Geom = this->GetGeometry();
+    const GeometryType::IntegrationPointsArrayType& integration_points = Geom.IntegrationPoints( mThisIntegrationMethod );
+    const unsigned int NumGPoints = integration_points.size();
+
+    //Containers of variables at all integration points
+    const Matrix& NContainer = Geom.ShapeFunctionsValues( mThisIntegrationMethod );
+    GeometryType::ShapeFunctionsGradientsType DN_DXContainer(NumGPoints);
+    Vector detJContainer(NumGPoints);
+    Geom.ShapeFunctionsIntegrationPointsGradients(DN_DXContainer,detJContainer,mThisIntegrationMethod);
+
+    //Constitutive Law parameters
+    ConstitutiveLaw::Parameters ConstitutiveParameters(Geom,Prop,rCurrentProcessInfo);
+    ConstitutiveParameters.Set(ConstitutiveLaw::COMPUTE_STRESS);
+    ConstitutiveParameters.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
+
+    //Saturation Law paremeters
+    SaturationLaw::Parameters SaturationParameters(Geom,Prop,rCurrentProcessInfo);
+
+    //Element variables
+    ElementVariables Variables;
+    this->InitializeElementVariables(Variables,ConstitutiveParameters,SaturationParameters,Geom,Prop,rCurrentProcessInfo);
+
+    //Loop over integration points
+    for( unsigned int GPoint = 0; GPoint < NumGPoints; GPoint++)
+    {
+        //Compute GradNpT, B and StrainVector
+        this->CalculateKinematics(Variables.GradNpT,Variables.B,Variables.StrainVector,DN_DXContainer,Variables.DisplacementVector,GPoint);
+
+        //Compute Np, Nu and BodyAcceleration
+        noalias(Variables.Np) = row(NContainer,GPoint);
+        PoroElementUtilities::CalculateNuMatrix(Variables.Nu,NContainer,GPoint);
+        PoroElementUtilities::InterpolateVariableWithComponents(Variables.BodyAcceleration,NContainer,Variables.VolumeAcceleration,GPoint);
+
+        //Compute Saturation Law variables: Sw, dSwdPc, krw and krg
+        mSaturationLawVector[GPoint]->CalculateMaterialResponse(SaturationParameters);
+
+        // Update the density based on the new saturation degree
+        this->UpdateDensity(Variables);
+
+        //Compute stresses
+        mConstitutiveLawVector[GPoint]->CalculateMaterialResponseCauchy(ConstitutiveParameters);
+
+        //Compute weighting coefficient for integration
+        this->CalculateIntegrationCoefficient(Variables.IntegrationCoefficient, detJContainer[GPoint], integration_points[GPoint].Weight() );
+
+        //Contributions to the right hand side
+        this->CalculateAndAddCompressibilityFlow(rFluxResidual, Variables);
+        this->CalculateAndAddPermeabilityFlow(rFluxResidual, Variables);
+        this->CalculateAndAddFluidBodyFlow(rFluxResidual, Variables);
+
+        this->CalculateAndAddMixBodyForce(rBodyForce, Variables);
+
+        this->CalculateAndAddStiffnessForce(rNegInternalForces, Variables);
+    }
+
+    KRATOS_CATCH( "" )
+}
+
+//----------------------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------
+
+template< unsigned int TDim, unsigned int TNumNodes >
+void UPlPgSmallStrainElement<TDim,TNumNodes>::CalculateAndAddLHS(MatrixType& rLeftHandSideMatrix, ElementVariables& rVariables)
+{
+    this->CalculateAndAddStiffnessMatrix(rLeftHandSideMatrix,rVariables);
+
+    this->CalculateAndAddCouplingMatrix(rLeftHandSideMatrix,rVariables);
+
+    this->CalculateAndAddCompressibilityMatrix(rLeftHandSideMatrix,rVariables);
+
+    this->CalculateAndAddPermeabilityMatrix(rLeftHandSideMatrix,rVariables);
+}
+
+//----------------------------------------------------------------------------------------
+
+template< unsigned int TDim, unsigned int TNumNodes >
+void UPlPgSmallStrainElement<TDim,TNumNodes>::CalculateAndAddStiffnessMatrix(MatrixType& rLeftHandSideMatrix, ElementVariables& rVariables)
+{
+    noalias(rVariables.UVoigtMatrix) = prod(trans(rVariables.B),rVariables.ConstitutiveMatrix);
+    noalias(rVariables.UMatrix) = prod(rVariables.UVoigtMatrix,rVariables.B)*rVariables.IntegrationCoefficient;
+
+    //Distribute stiffness block matrix into the elemental matrix
+    PoroElementUtilities::AssembleUBlockTwoPhaseFlowMatrix(rLeftHandSideMatrix,rVariables.UMatrix);
+}
+
+//----------------------------------------------------------------------------------------
+
+template< unsigned int TDim, unsigned int TNumNodes >
+void UPlPgSmallStrainElement<TDim,TNumNodes>::CalculateAndAddMassMatrix(MatrixType& rLeftHandSideMatrix, ElementVariables& rVariables)
+{
+    noalias(rVariables.UMatrix) = rVariables.Density*prod(trans(rVariables.Nu),rVariables.Nu)*rVariables.IntegrationCoefficient*rVariables.VelocityCoefficient;
+
+    //Distribute stiffness block matrix into the elemental matrix
+    PoroElementUtilities::AssembleUBlockTwoPhaseFlowMatrix(rLeftHandSideMatrix,rVariables.UMatrix);
+}
+
+//----------------------------------------------------------------------------------------
+
+template< unsigned int TDim, unsigned int TNumNodes >
+void UPlPgSmallStrainElement<TDim,TNumNodes>::CalculateAndAddCouplingMatrix(MatrixType& rLeftHandSideMatrix, ElementVariables& rVariables)
+{
+    // Compute intermediate auxiliary vector and matrix
+    noalias(rVariables.UVector) = prod(trans(rVariables.B),rVariables.VoigtVector);
+    noalias(rVariables.UPMatrix) = -outer_prod(rVariables.UVector,rVariables.Np)*rVariables.IntegrationCoefficient;
+
+    // Get compressibility coefficients
+    double Cwu, Cgu;
+    this->GetCouplingCompressibilityCoefficients(Cwu, Cgu, rVariables);
+
+    // Compute the element coupling matrices
+    noalias(rVariables.UPlMatrix) = Cwu*rVariables.UPMatrix;
+    noalias(rVariables.UPgMatrix) = Cgu*rVariables.UPMatrix;
+
+    //Distribute coupling block matrix into the elemental matrix
+    PoroElementUtilities::AssembleUPlBlockMatrix(rLeftHandSideMatrix,rVariables.UPlMatrix);
+    PoroElementUtilities::AssembleUPgBlockMatrix(rLeftHandSideMatrix,rVariables.UPgMatrix);
+
+    noalias(rVariables.PlUMatrix) = -rVariables.VelocityCoefficient*trans(rVariables.UPlMatrix);
+    noalias(rVariables.PgUMatrix) = -rVariables.VelocityCoefficient*trans(rVariables.UPgMatrix);
+
+    //Distribute transposed coupling block matrix into the elemental matrix
+    PoroElementUtilities::AssemblePlUBlockMatrix(rLeftHandSideMatrix,rVariables.PlUMatrix);
+    PoroElementUtilities::AssemblePgUBlockMatrix(rLeftHandSideMatrix,rVariables.PgUMatrix);
+}
+
+//----------------------------------------------------------------------------------------
+
+template< unsigned int TDim, unsigned int TNumNodes >
+void UPlPgSmallStrainElement<TDim,TNumNodes>::GetCouplingCompressibilityCoefficients(double& Cwu, double& Cgu, ElementVariables& rVariables)
+{
+
+    Cwu = rVariables.BiotCoefficient*rVariables.Sw;
+    Cgu = rVariables.BiotCoefficient*(1.0 - rVariables.Sw);
+
+    // Add the parts associated with the diffusion of the gas into the liquid phase, in case it is being considered
+    if (rVariables.AddGasDiffusion){
+        Cgu += rVariables.GasDiffusionCoefficient * rVariables.Sw * (2.0 * rVariables.Porosity - rVariables.BiotCoefficient);
+    }
+
+}
+
+//----------------------------------------------------------------------------------------
+
+template< unsigned int TDim, unsigned int TNumNodes >
+void UPlPgSmallStrainElement<TDim,TNumNodes>::CalculateAndAddCompressibilityMatrix(MatrixType& rLeftHandSideMatrix, ElementVariables& rVariables)
+{
+    // Compute auxiliary matrix: Np * Np^T * w * detJ
+    noalias(rVariables.NpNpT) = outer_prod(rVariables.Np,rVariables.Np)*rVariables.IntegrationCoefficient;
+
+    // Get compressibility coefficients
+    double Cww, Cwg, Cgw, Cgg;
+    this->GetCompressibilityCoefficients(Cww, Cwg, Cgw, Cgg, rVariables);
+
+    // Compute the element compressibility sub-matrices
+    // * The DtPressureCoefficient is associated with the time discretization scheme.
+    noalias(rVariables.PlPlMatrix) = rVariables.DtPressureCoefficient * Cww * rVariables.NpNpT;
+    noalias(rVariables.PlPgMatrix) = rVariables.DtPressureCoefficient * Cwg * rVariables.NpNpT;
+    noalias(rVariables.PgPlMatrix) = rVariables.DtPressureCoefficient * Cgw * rVariables.NpNpT;
+    noalias(rVariables.PgPgMatrix) = rVariables.DtPressureCoefficient * Cgg * rVariables.NpNpT;
+
+    //Distribute compressibility block sub-matrices into the elemental matrix
+    PoroElementUtilities::AssemblePlPlBlockMatrix< BoundedMatrix<double,TNumNodes,TNumNodes> >(rLeftHandSideMatrix,rVariables.PlPlMatrix,TDim,TNumNodes);
+    PoroElementUtilities::AssemblePlPgBlockMatrix< BoundedMatrix<double,TNumNodes,TNumNodes> >(rLeftHandSideMatrix,rVariables.PlPgMatrix,TDim,TNumNodes);
+    PoroElementUtilities::AssemblePgPlBlockMatrix< BoundedMatrix<double,TNumNodes,TNumNodes> >(rLeftHandSideMatrix,rVariables.PgPlMatrix,TDim,TNumNodes);
+    PoroElementUtilities::AssemblePgPgBlockMatrix< BoundedMatrix<double,TNumNodes,TNumNodes> >(rLeftHandSideMatrix,rVariables.PgPgMatrix,TDim,TNumNodes);
+}
+
+//----------------------------------------------------------------------------------------
+template< unsigned int TDim, unsigned int TNumNodes >
+void UPlPgSmallStrainElement<TDim,TNumNodes>::GetCompressibilityCoefficients(double& Cww, double& Cwg, double& Cgw, double& Cgg, const ElementVariables& Variables)
+{
+
+    // Get variables
+    double Sw     = Variables.Sw;
+    double dSwdPc = Variables.dSwdPc;
+    double pc     = inner_prod(Variables.Np,Variables.CapilarPressureVector);
+    double Ms     = Variables.SolidCompressibilityCoeff;
+    double Mf     = Variables.LiquidCompressibilityCoeff;
+    double Mg     = Variables.GasCompressibilityCoeff;
+    double Phi    = Variables.Porosity;
+    double Sg     = 1.0 - Sw;
+
+    // Compute the compressibility coefficients
+    Cww = Ms * Sw * (Sw + pc * dSwdPc) - dSwdPc * Phi + Sw * Mf;
+    Cwg = Ms * Sw * (Sg - pc * dSwdPc) + dSwdPc * Phi;
+    Cgw = Ms * Sg * (Sw + pc * dSwdPc) + dSwdPc * Phi;
+    Cgg = Ms * Sg * (Sg - pc * dSwdPc) - dSwdPc * Phi + Sg * Mg;
+
+    // Add the parts associated with the diffusion of the gas into the liquid phase, in case it is being considered
+    if (Variables.AddGasDiffusion){
+        Cgw += -Variables.GasDiffusionCoefficient * (Ms * Sw * (Sw + pc * dSwdPc) + dSwdPc * Phi);
+        Cgg += -Variables.GasDiffusionCoefficient * (Ms * Sw * (Sg - pc * dSwdPc) + dSwdPc * Phi - Sw * Mg);
+    }
+
+}
+
+//----------------------------------------------------------------------------------------
+
+template< unsigned int TDim, unsigned int TNumNodes >
+void UPlPgSmallStrainElement<TDim,TNumNodes>::CalculateAndAddPermeabilityMatrix(MatrixType& rLeftHandSideMatrix, ElementVariables& rVariables)
+{
+
+    // Compute the auxiliary matrix of the product between: gradNp^T * K * gradNp
+    // where gradNp is the gradient of the shape function vector associated with the pressure fields,
+    // and K is the permeability matrix.
+    noalias(rVariables.PDimMatrix) = prod(rVariables.GradNpT,mIntrinsicPermeability);
+    noalias(rVariables.PermMatrix) = prod(rVariables.PDimMatrix,trans(rVariables.GradNpT))*rVariables.IntegrationCoefficient;
+
+    // Compute the fluid-flow sub-matrices
+    noalias(rVariables.PlPlMatrix) = rVariables.krw * rVariables.PermMatrix / rVariables.LiquidDynamicViscosity;
+    noalias(rVariables.PgPgMatrix) = rVariables.krg * rVariables.PermMatrix / rVariables.GasDynamicViscosity;
+
+    //Distribute fluid-flow block sub-matrices into the elemental matrix
+    PoroElementUtilities::AssemblePlPlBlockMatrix< BoundedMatrix<double,TNumNodes,TNumNodes> >(rLeftHandSideMatrix,rVariables.PlPlMatrix,TDim,TNumNodes);
+    PoroElementUtilities::AssemblePgPgBlockMatrix< BoundedMatrix<double,TNumNodes,TNumNodes> >(rLeftHandSideMatrix,rVariables.PgPgMatrix,TDim,TNumNodes);
+
+    // Add the parts associated with the diffusion of the gas into the liquid phase, in case it is being considered (TODO)
+    if (rVariables.AddGasDiffusion){
+        //PoroElementUtilities::AssemblePlPgBlockMatrix< BoundedMatrix<double,TNumNodes,TNumNodes> >(rLeftHandSideMatrix,rVariables.PlPgMatrix,TDim,TNumNodes);
+        //PoroElementUtilities::AssemblePgPlBlockMatrix< BoundedMatrix<double,TNumNodes,TNumNodes> >(rLeftHandSideMatrix,rVariables.PgPlMatrix,TDim,TNumNodes);
+    }
+}
+
+//----------------------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------
+
+template< unsigned int TDim, unsigned int TNumNodes >
+void UPlPgSmallStrainElement<TDim,TNumNodes>::CalculateAndAddRHS(VectorType& rRightHandSideVector, ElementVariables& rVariables)
+{
+    this->CalculateAndAddStiffnessForce(rRightHandSideVector, rVariables);
+
+    this->CalculateAndAddMixBodyForce(rRightHandSideVector, rVariables);
+
+    this->CalculateAndAddCouplingTerms(rRightHandSideVector, rVariables);
+
+    this->CalculateAndAddCompressibilityFlow(rRightHandSideVector, rVariables);
+
+    this->CalculateAndAddPermeabilityFlow(rRightHandSideVector, rVariables);
+
+    this->CalculateAndAddFluidBodyFlow(rRightHandSideVector, rVariables);
+}
+
+//----------------------------------------------------------------------------------------
+// Integral of (B^T * sigma)
+template< unsigned int TDim, unsigned int TNumNodes >
+void UPlPgSmallStrainElement<TDim,TNumNodes>::CalculateAndAddStiffnessForce(VectorType& rRightHandSideVector, ElementVariables& rVariables)
+{
+    noalias(rVariables.UVector) = -1.0*prod(trans(rVariables.B),rVariables.StressVector)*rVariables.IntegrationCoefficient;
+
+    //Distribute stiffness block vector into elemental vector
+    PoroElementUtilities::AssembleUBlockTwoPhaseFlowVector(rRightHandSideVector,rVariables.UVector);
+}
+
+//----------------------------------------------------------------------------------------
+// Integral of (N^T * rho * b)
+template< unsigned int TDim, unsigned int TNumNodes >
+void UPlPgSmallStrainElement<TDim,TNumNodes>::CalculateAndAddMixBodyForce(VectorType& rRightHandSideVector, ElementVariables& rVariables)
+{
+    noalias(rVariables.UVector) = rVariables.Density*prod(trans(rVariables.Nu),rVariables.BodyAcceleration)*rVariables.IntegrationCoefficient;
+
+    //Distribute body force block vector into elemental vector
+    PoroElementUtilities::AssembleUBlockTwoPhaseFlowVector(rRightHandSideVector,rVariables.UVector);
+}
+
+//----------------------------------------------------------------------------------------
+template< unsigned int TDim, unsigned int TNumNodes >
+void UPlPgSmallStrainElement<TDim,TNumNodes>::CalculateAndAddCouplingTerms(VectorType& rRightHandSideVector, ElementVariables& rVariables)
+{
+
+    // Compute intermediate auxiliary vector and matrix
+    noalias(rVariables.UVector) = prod(trans(rVariables.B),rVariables.VoigtVector);
+    noalias(rVariables.UPMatrix) = outer_prod(rVariables.UVector,rVariables.Np)*rVariables.IntegrationCoefficient;
+
+    // Get compressibility coefficients
+    double Cwu, Cgu;
+    this->GetCouplingCompressibilityCoefficients(Cwu, Cgu, rVariables);
+
+    // Compute the element coupling hydromechanical matrices
+    noalias(rVariables.UPlMatrix) = Cwu*rVariables.UPMatrix;
+    noalias(rVariables.UPgMatrix) = Cgu*rVariables.UPMatrix;
+
+    //Add the contribution of the coupling between the displacement and the liquid pressure in the residual of the momentum equation: Qw * pw
+    noalias(rVariables.UVector) = prod(rVariables.UPlMatrix,rVariables.PressureVector);
+    PoroElementUtilities::AssembleUBlockTwoPhaseFlowVector(rRightHandSideVector,rVariables.UVector);
+    
+    //Add the contribution of the coupling between the displacement and the gas pressure in the residual of the momentum equation: Qg * pg
+    noalias(rVariables.UVector) = prod(rVariables.UPgMatrix,rVariables.GasPressureVector);
+    PoroElementUtilities::AssembleUBlockTwoPhaseFlowVector(rRightHandSideVector,rVariables.UVector);
+
+    //Add the contribution of the coupling between the displacement and the liquid pressure in the residual of the mass balance of liquid equation: -Qw^T * v
+    noalias(rVariables.PVector) = -1.0*prod(trans(rVariables.UPlMatrix),rVariables.VelocityVector);
+    PoroElementUtilities::AssemblePlBlockVector< array_1d<double,TNumNodes> >(rRightHandSideVector,rVariables.PVector,TDim,TNumNodes);
+
+    //Add the contribution of the coupling between the displacement and the gas pressure in the residual of the mass balance of gas equation: -Qg^T * v
+    noalias(rVariables.PVector) = -1.0*prod(trans(rVariables.UPgMatrix),rVariables.VelocityVector);
+    PoroElementUtilities::AssemblePgBlockVector< array_1d<double,TNumNodes> >(rRightHandSideVector,rVariables.PVector,TDim,TNumNodes);
+}
+
+//----------------------------------------------------------------------------------------
+
+template< unsigned int TDim, unsigned int TNumNodes >
+void UPlPgSmallStrainElement<TDim,TNumNodes>::CalculateAndAddCompressibilityFlow(VectorType& rRightHandSideVector, ElementVariables& rVariables)
+{
+    // Compute auxiliary matrix: Np * Np^T * w * detJ
+    noalias(rVariables.NpNpT) = outer_prod(rVariables.Np,rVariables.Np)*rVariables.IntegrationCoefficient;
+
+    // Get compressibility coefficients
+    double Cww, Cwg, Cgw, Cgg;
+    this->GetCompressibilityCoefficients(Cww, Cwg, Cgw, Cgg, rVariables);
+
+    // Compute the element compressibility sub-matrices
+    // * The DtPressureCoefficient is associated with the time discretization scheme.
+    noalias(rVariables.PlPlMatrix) = Cww * rVariables.NpNpT;
+    noalias(rVariables.PlPgMatrix) = Cwg * rVariables.NpNpT;
+    noalias(rVariables.PgPlMatrix) = Cgw * rVariables.NpNpT;
+    noalias(rVariables.PgPgMatrix) = Cgg * rVariables.NpNpT;
+
+    //Add the contribution of the compressibility terms in the residual of the mass balance of liquid equation: -Sww * dpwdt - Swg * dpgdt
+    noalias(rVariables.PVector) = -1.0*prod(rVariables.PlPlMatrix,rVariables.DtPressureVector) - prod(rVariables.PlPgMatrix,rVariables.DtGasPressureVector);
+    PoroElementUtilities::AssemblePlBlockVector< array_1d<double,TNumNodes> >(rRightHandSideVector,rVariables.PVector,TDim,TNumNodes);
+
+    //Add the contribution of the compressibility terms in the residual of the mass balance of gas equation: -Sgw * dpwdt - Sgg * dpgdt
+    noalias(rVariables.PVector) = -1.0*prod(rVariables.PgPlMatrix,rVariables.DtPressureVector) - prod(rVariables.PgPgMatrix,rVariables.DtGasPressureVector);
+    PoroElementUtilities::AssemblePgBlockVector< array_1d<double,TNumNodes> >(rRightHandSideVector,rVariables.PVector,TDim,TNumNodes);
+}
+
+//----------------------------------------------------------------------------------------
+
+template< unsigned int TDim, unsigned int TNumNodes >
+void UPlPgSmallStrainElement<TDim,TNumNodes>::CalculateAndAddPermeabilityFlow(VectorType& rRightHandSideVector, ElementVariables& rVariables)
+{
+    // Compute the auxiliary matrix of the product between: gradNp^T * K * gradNp
+    // where gradNp is the gradient of the shape function vector associated with the pressure fields,
+    // and K is the permeability matrix.
+    noalias(rVariables.PDimMatrix) = prod(rVariables.GradNpT,mIntrinsicPermeability);
+    noalias(rVariables.PermMatrix) = prod(rVariables.PDimMatrix,trans(rVariables.GradNpT))*rVariables.IntegrationCoefficient;
+
+    // Compute the fluid-flow sub-matrices
+    noalias(rVariables.PlPlMatrix) = rVariables.krw * rVariables.PermMatrix / rVariables.LiquidDynamicViscosity;
+    noalias(rVariables.PgPgMatrix) = rVariables.krg * rVariables.PermMatrix / rVariables.GasDynamicViscosity;
+
+    //Add the contribution of the permeability term in the residual of the mass balance of liquid equation: -Hww * pw
+    noalias(rVariables.PVector) = -1.0*prod(rVariables.PlPlMatrix,rVariables.PressureVector);
+    PoroElementUtilities::AssemblePlBlockVector< array_1d<double,TNumNodes> >(rRightHandSideVector,rVariables.PVector,TDim,TNumNodes);
+
+    //Add the contribution of the permeability term in the residual of the mass balance of liquid equation: -Hgg * pg
+    noalias(rVariables.PVector) = -1.0*prod(rVariables.PgPgMatrix,rVariables.GasPressureVector);
+    PoroElementUtilities::AssemblePgBlockVector< array_1d<double,TNumNodes> >(rRightHandSideVector,rVariables.PVector,TDim,TNumNodes);
+}
+
+//----------------------------------------------------------------------------------------
+
+template< unsigned int TDim, unsigned int TNumNodes >
+void UPlPgSmallStrainElement<TDim,TNumNodes>::CalculateAndAddFluidBodyFlow(VectorType& rRightHandSideVector, ElementVariables& rVariables)
+{
+    // Compute the auxiliary matrix of the product between: gradNp^T * K * gradNp
+    // where gradNp is the gradient of the shape function vector associated with the pressure fields,
+    // and K is the permeability matrix.
+    noalias(rVariables.PDimMatrix) = prod(rVariables.GradNpT,mIntrinsicPermeability);
+    noalias(rVariables.PVector) = prod(rVariables.PDimMatrix,rVariables.BodyAcceleration)*rVariables.IntegrationCoefficient;
+
+    // Compute the fluid-flow sub-matrices
+    noalias(rVariables.PlVector) = (rVariables.krw * rVariables.LiquidDensity / rVariables.LiquidDynamicViscosity) * rVariables.PVector;
+    noalias(rVariables.PgVector) = (rVariables.krg * rVariables.GasDensity   / rVariables.GasDynamicViscosity  ) * rVariables.PVector;
+
+    //Add the contribution of the fluid body flow block vector into the residual of the mass balance equation of liquid
+    PoroElementUtilities::AssemblePlBlockVector< array_1d<double,TNumNodes> >(rRightHandSideVector,rVariables.PlVector,TDim,TNumNodes);
+
+    //Add the contribution of the fluid body flow block vector into the residual of the mass balance equation of gas
+    PoroElementUtilities::AssemblePgBlockVector< array_1d<double,TNumNodes> >(rRightHandSideVector,rVariables.PgVector,TDim,TNumNodes);
+}
+
+//----------------------------------------------------------------------------------------
+
+template< unsigned int TDim, unsigned int TNumNodes >
+void UPlPgSmallStrainElement<TDim,TNumNodes>::UpdateDensity(ElementVariables& rVariables)
+{
+    // Update the density based on the new saturation degree
+    rVariables.Density = rVariables.Porosity * (rVariables.Sw * rVariables.LiquidDensity + (1.0 - rVariables.Sw) * rVariables.GasDensity) + 
+                            (1.0 - rVariables.Porosity) * rVariables.SolidDensity;
+
+}
+
+//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+template class UPlPgSmallStrainElement<2,3>;
+template class UPlPgSmallStrainElement<2,4>;
+template class UPlPgSmallStrainElement<3,4>;
+template class UPlPgSmallStrainElement<3,8>;
+
+} // Namespace Kratos

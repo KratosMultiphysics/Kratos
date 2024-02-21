@@ -1,0 +1,74 @@
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
+//
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
+//
+//  Main authors:    Ignasi de Pouplana
+//                   Danilo Cavalcanti
+//
+
+/* Project includes */
+#include "custom_saturation/vangenuchten_law.hpp"
+
+namespace Kratos
+{
+
+void VanGenuchtenLaw::CalculateLiquidSaturationDegree (SaturationLawVariables& rVariables, Parameters& rValues)
+{
+    double& rSw = rValues.GetSw();
+    double& rdSwdPc = rValues.GetdSwdPc();
+
+    // If the capillar pressure is lower than the gas-entry pressure, the porous media is fully saturated with the wetting phase.
+    rSw = 1.0;
+    rdSwdPc = 0.0;
+
+    if(rVariables.pc > rVariables.pb)
+    {
+        // Liquid saturation degree
+        rSw = (1.0 - rVariables.Swr)*std::pow(1.0 + std::pow(rVariables.pc/rVariables.pb,1.0/(1.0-rVariables.lambda)),-rVariables.lambda) 
+                + rVariables.Swr;
+
+        // Derivative of the liquid saturation degree with respect to the capilar pressure
+        rdSwdPc = (1.0 - rVariables.Swr)*
+                    rVariables.lambda /
+                    (rVariables.pb *
+                    std::pow(rVariables.pc/rVariables.pb,1.0+1.0/(rVariables.lambda-1.0)) *
+                    (rVariables.lambda - 1.0) *
+                    std::pow(1.0+1.0/(std::pow(rVariables.pc/rVariables.pb,1.0/(rVariables.lambda-1.0))),rVariables.lambda+1.0));
+                
+    }
+}
+
+//------------------------------------------------------------------------------------------------
+
+void VanGenuchtenLaw::CalculateLiquidRelativePermeability (SaturationLawVariables& rVariables, Parameters& rValues)
+{
+    double& rkrw = rValues.Getkrw();
+
+    // TODO. Review this number
+    const double nw = 1.5;
+
+    rkrw = std::pow(rVariables.Se,nw);
+    // TODO. Review this number (and make it an input tolerance)
+    rkrw = std::max(rkrw,0.0001);
+}
+
+//------------------------------------------------------------------------------------------------
+
+void VanGenuchtenLaw::CalculateGasRelativePermeability (SaturationLawVariables& rVariables, Parameters& rValues)
+{
+    double& rkrg = rValues.Getkrg();
+
+    // TODO. Review this number
+    const double ng = 3.0;
+    
+    rkrg = std::pow(1.0-rVariables.Se,ng);
+    // TODO. Review this number (and make it an input tolerance)
+    rkrg = std::max(rkrg,0.0001);
+}
+
+}
