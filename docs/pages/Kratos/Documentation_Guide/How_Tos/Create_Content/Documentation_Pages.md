@@ -47,4 +47,24 @@ It is allowed to create subfolders to store page data such as ```images```. If t
 <p align="center">Figure 2: Vertex morphing filtering</p>
 ```
 
+## Python snippets
+
+Python snippets can be added to markdown as usual. In this case, if one requires to generate the output of the python snippet automatically and append after the python snippet, then following steps can be followed.
+1. Add `## POST_PROCESS_PAGES_PYTHON_OUTPUT_GENERATION` anywhere in the python snippet. It should not have any leading or trailing spaces/tabs.
+2. Run the local build in your computer [Make sure to initialize kratos environment or any other library environments in the terminal which is being used by the snippet]. This will run the snippet and capture the output. It will also remove the `## POST_PROCESS_PAGES_PYTHON_OUTPUT_GENERATION` tag line from the python snippet.
+3. Now you will see some block after the python snippet which contains the python output.
+
+This generation is only done if ```process_pages.py``` is passed with `-t local` flag.
+Following is an example:
+```python-example
+print(1)
+## POST_PROCESS_PAGES_PYTHON_OUTPUT_GENERATION
+```
+
+This will generate the following markdown
+```
+Expected output:
+1
+```
+
 

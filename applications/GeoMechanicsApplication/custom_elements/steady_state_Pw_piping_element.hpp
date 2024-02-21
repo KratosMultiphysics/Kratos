@@ -85,8 +85,8 @@ public:
 
     ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    Element::Pointer Create(IndexType NewId,
-                            NodesArrayType const& ThisNodes,
+    Element::Pointer Create(IndexType               NewId,
+                            NodesArrayType const&   ThisNodes,
                             PropertiesType::Pointer pProperties) const override;
 
     Element::Pointer Create(IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties) const override;
@@ -104,20 +104,20 @@ public:
     void CalculateLength(const GeometryType& Geom);
 
 protected:
-    void CalculateAll(MatrixType& rLeftHandSideMatrix,
-                      VectorType& rRightHandSideVector,
+    void CalculateAll(MatrixType&        rLeftHandSideMatrix,
+                      VectorType&        rRightHandSideVector,
                       const ProcessInfo& CurrentProcessInfo,
-                      const bool CalculateStiffnessMatrixFlag,
-                      const bool CalculateResidualVectorFlag) override;
+                      const bool         CalculateStiffnessMatrixFlag,
+                      const bool         CalculateResidualVectorFlag) override;
 
     using BaseType::CalculateOnIntegrationPoints;
     void CalculateOnIntegrationPoints(const Variable<bool>& rVariable,
-                                      std::vector<bool>& rValues,
-                                      const ProcessInfo& rCurrentProcessInfo) override;
+                                      std::vector<bool>&    rValues,
+                                      const ProcessInfo&    rCurrentProcessInfo) override;
 
     void CalculateOnIntegrationPoints(const Variable<double>& rVariable,
-                                      std::vector<double>& rValues,
-                                      const ProcessInfo& rCurrentProcessInfo) override;
+                                      std::vector<double>&    rValues,
+                                      const ProcessInfo&      rCurrentProcessInfo) override;
 
     double CalculateParticleDiameter(const PropertiesType& Prop);
 

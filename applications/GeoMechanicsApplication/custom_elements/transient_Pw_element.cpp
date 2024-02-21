@@ -18,7 +18,7 @@ namespace Kratos
 
 //----------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
-Element::Pointer TransientPwElement<TDim, TNumNodes>::Create(IndexType NewId,
+Element::Pointer TransientPwElement<TDim, TNumNodes>::Create(IndexType             NewId,
                                                              NodesArrayType const& ThisNodes,
                                                              PropertiesType::Pointer pProperties) const
 {
@@ -27,7 +27,7 @@ Element::Pointer TransientPwElement<TDim, TNumNodes>::Create(IndexType NewId,
 
 //----------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
-Element::Pointer TransientPwElement<TDim, TNumNodes>::Create(IndexType NewId,
+Element::Pointer TransientPwElement<TDim, TNumNodes>::Create(IndexType             NewId,
                                                              GeometryType::Pointer pGeom,
                                                              PropertiesType::Pointer pProperties) const
 {
@@ -36,14 +36,14 @@ Element::Pointer TransientPwElement<TDim, TNumNodes>::Create(IndexType NewId,
 
 //----------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
-void TransientPwElement<TDim, TNumNodes>::GetDofList(DofsVectorType& rElementalDofList,
+void TransientPwElement<TDim, TNumNodes>::GetDofList(DofsVectorType&    rElementalDofList,
                                                      const ProcessInfo& rCurrentProcessInfo) const
 {
     KRATOS_TRY
 
     const GeometryType& rGeom = this->GetGeometry();
-    const unsigned int N_DOF  = this->GetNumberOfDOF();
-    unsigned int index        = 0;
+    const unsigned int  N_DOF = this->GetNumberOfDOF();
+    unsigned int        index = 0;
 
     if (rElementalDofList.size() != N_DOF) rElementalDofList.resize(N_DOF);
 
@@ -62,8 +62,8 @@ void TransientPwElement<TDim, TNumNodes>::EquationIdVector(EquationIdVectorType&
     KRATOS_TRY
 
     const GeometryType& rGeom = this->GetGeometry();
-    const unsigned int N_DOF  = this->GetNumberOfDOF();
-    unsigned int index        = 0;
+    const unsigned int  N_DOF = this->GetNumberOfDOF();
+    unsigned int        index = 0;
 
     if (rResult.size() != N_DOF) rResult.resize(N_DOF, false);
 
@@ -165,9 +165,9 @@ void TransientPwElement<TDim, TNumNodes>::Initialize(const ProcessInfo& rCurrent
 {
     KRATOS_TRY
 
-    const PropertiesType& Prop    = this->GetProperties();
-    const GeometryType& Geom      = this->GetGeometry();
-    const unsigned int NumGPoints = Geom.IntegrationPointsNumber(this->GetIntegrationMethod());
+    const PropertiesType& Prop       = this->GetProperties();
+    const GeometryType&   Geom       = this->GetGeometry();
+    const unsigned int    NumGPoints = Geom.IntegrationPointsNumber(this->GetIntegrationMethod());
 
     // pointer to constitutive laws
     if (mConstitutiveLawVector.size() != NumGPoints) mConstitutiveLawVector.resize(NumGPoints);
@@ -196,7 +196,7 @@ int TransientPwElement<TDim, TNumNodes>::Check(const ProcessInfo& rCurrentProces
     KRATOS_TRY
 
     const PropertiesType& Prop = this->GetProperties();
-    const GeometryType& Geom   = this->GetGeometry();
+    const GeometryType&   Geom = this->GetGeometry();
 
     if (Geom.DomainSize() < 1.0e-15)
         KRATOS_ERROR << "DomainSize < 1.0e-15 for the element " << this->Id() << std::endl;
@@ -310,8 +310,8 @@ void TransientPwElement<TDim, TNumNodes>::InitializeSolutionStep(const ProcessIn
     if (!mIsInitialised) this->Initialize(rCurrentProcessInfo);
 
     // Defining necessary variables
-    const GeometryType& Geom      = this->GetGeometry();
-    const unsigned int NumGPoints = Geom.IntegrationPointsNumber(this->GetIntegrationMethod());
+    const GeometryType& Geom       = this->GetGeometry();
+    const unsigned int  NumGPoints = Geom.IntegrationPointsNumber(this->GetIntegrationMethod());
 
     // create general parameters of retention law
     RetentionLaw::Parameters RetentionParameters(this->GetProperties(), rCurrentProcessInfo);
@@ -360,8 +360,8 @@ void TransientPwElement<TDim, TNumNodes>::FinalizeSolutionStep(const ProcessInfo
     this->CalculateHydraulicDischarge(rCurrentProcessInfo);
 
     // Defining necessary variables
-    const GeometryType& Geom      = this->GetGeometry();
-    const unsigned int NumGPoints = Geom.IntegrationPointsNumber(this->GetIntegrationMethod());
+    const GeometryType& Geom       = this->GetGeometry();
+    const unsigned int  NumGPoints = Geom.IntegrationPointsNumber(this->GetIntegrationMethod());
 
     // create general parameters of retention law
     RetentionLaw::Parameters RetentionParameters(this->GetProperties(), rCurrentProcessInfo);
@@ -444,8 +444,8 @@ void TransientPwElement<TDim, TNumNodes>::CalculateOnIntegrationPoints(const Var
 
 //----------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
-void TransientPwElement<TDim, TNumNodes>::CalculateAll(MatrixType& rLeftHandSideMatrix,
-                                                       VectorType& rRightHandSideVector,
+void TransientPwElement<TDim, TNumNodes>::CalculateAll(MatrixType&        rLeftHandSideMatrix,
+                                                       VectorType&        rRightHandSideVector,
                                                        const ProcessInfo& rCurrentProcessInfo,
                                                        const bool CalculateStiffnessMatrixFlag,
                                                        const bool CalculateResidualVectorFlag)
@@ -453,8 +453,8 @@ void TransientPwElement<TDim, TNumNodes>::CalculateAll(MatrixType& rLeftHandSide
     KRATOS_TRY
 
     // Previous definitions
-    const PropertiesType& Prop = this->GetProperties();
-    const GeometryType& Geom   = this->GetGeometry();
+    const PropertiesType&                           Prop = this->GetProperties();
+    const GeometryType&                             Geom = this->GetGeometry();
     const GeometryType::IntegrationPointsArrayType& IntegrationPoints =
         Geom.IntegrationPoints(this->GetIntegrationMethod());
     const unsigned int NumGPoints = IntegrationPoints.size();
@@ -520,8 +520,8 @@ void TransientPwElement<TDim, TNumNodes>::InitializeElementVariables(ElementVari
     rVariables.GradNpT.resize(TNumNodes, TDim, false);
 
     // General Variables
-    const GeometryType& Geom      = this->GetGeometry();
-    const unsigned int NumGPoints = Geom.IntegrationPointsNumber(this->GetIntegrationMethod());
+    const GeometryType& Geom       = this->GetGeometry();
+    const unsigned int  NumGPoints = Geom.IntegrationPointsNumber(this->GetIntegrationMethod());
 
     // shape functions
     (rVariables.NContainer).resize(NumGPoints, TNumNodes, false);
@@ -545,7 +545,7 @@ void TransientPwElement<TDim, TNumNodes>::InitializeElementVariables(ElementVari
 
 //----------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
-void TransientPwElement<TDim, TNumNodes>::CalculateAndAddLHS(MatrixType& rLeftHandSideMatrix,
+void TransientPwElement<TDim, TNumNodes>::CalculateAndAddLHS(MatrixType&       rLeftHandSideMatrix,
                                                              ElementVariables& rVariables)
 {
     KRATOS_TRY;
@@ -588,9 +588,9 @@ void TransientPwElement<TDim, TNumNodes>::CalculateAndAddPermeabilityMatrix(Matr
 
 //----------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
-void TransientPwElement<TDim, TNumNodes>::CalculateAndAddRHS(VectorType& rRightHandSideVector,
+void TransientPwElement<TDim, TNumNodes>::CalculateAndAddRHS(VectorType&       rRightHandSideVector,
                                                              ElementVariables& rVariables,
-                                                             unsigned int GPoint)
+                                                             unsigned int      GPoint)
 {
     KRATOS_TRY;
 

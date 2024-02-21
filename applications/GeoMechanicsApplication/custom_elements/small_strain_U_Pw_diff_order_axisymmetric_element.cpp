@@ -17,7 +17,7 @@ namespace Kratos
 {
 
 //----------------------------------------------------------------------------------------
-Element::Pointer SmallStrainUPwDiffOrderAxisymmetricElement::Create(IndexType NewId,
+Element::Pointer SmallStrainUPwDiffOrderAxisymmetricElement::Create(IndexType             NewId,
                                                                     NodesArrayType const& ThisNodes,
                                                                     PropertiesType::Pointer pProperties) const
 {
@@ -26,7 +26,7 @@ Element::Pointer SmallStrainUPwDiffOrderAxisymmetricElement::Create(IndexType Ne
 }
 
 //----------------------------------------------------------------------------------------
-Element::Pointer SmallStrainUPwDiffOrderAxisymmetricElement::Create(IndexType NewId,
+Element::Pointer SmallStrainUPwDiffOrderAxisymmetricElement::Create(IndexType             NewId,
                                                                     GeometryType::Pointer pGeom,
                                                                     PropertiesType::Pointer pProperties) const
 {

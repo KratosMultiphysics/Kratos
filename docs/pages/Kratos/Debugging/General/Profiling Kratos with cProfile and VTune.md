@@ -11,21 +11,21 @@ summary:
 ## Profiling Python code with cProfile
 This page details the steps to follow in order to profile Kratos. Profiling the python part can be done with cProfile. For this no modification of the code is necessary. To visualize the profilling results **SnakeViz** is recommended. SnakeViz can be installed with the following command using pip:
 
-```bash
+```console
 pip install snakeviz
 ```
 or using anaconda:
-```bash
+```console
 conda install -c anaconda snakeviz
 ```
 More details can be found here: https://jiffyclub.github.io/snakeviz/
 
 In order to run the profiler type the following command:
-```bash
+```console
 python -m cProfile -o outputFile.prof MainKratos.py
 ```
 To view the results graphically in the browser:
-```bash
+```console
 snakeviz outputFile.prof
 ```
 The profiling results contain the number of calls for each function, the time per call, the total time and the cummulative time.
@@ -47,12 +47,12 @@ After installation VTune can be run with the gui or the command line. For viewin
 
 After starting kratos:
 
-```bash
+```console
 startkratos
 ```
 vtune can be run with the gui or the command line.
 
 The hotspot analysis gives the run time for each **function**. To see the runtime for each line of code kratos needs to be compiled with debug symbols:
-```bash
+```console
 compilekratosrelwdbg
 ```

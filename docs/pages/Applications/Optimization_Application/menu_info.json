@@ -1,0 +1,17 @@
+{
+    "side_bar_name": "optimization_application",
+    "landing_page": "General/Overview.md",
+    "additional_menu_options": {
+        "product": "Optimization Application",
+        "title": "sidebar"
+    },
+    "custom_entries": [
+        "General",
+        "Algorithms",
+        "Responses",
+        "Controls",
+        "Filtering",
+        "Model_Part_Controllers",
+        "Processes"
+    ]
+}

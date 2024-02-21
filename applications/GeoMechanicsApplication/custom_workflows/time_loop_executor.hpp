@@ -17,6 +17,7 @@
 #include <memory>
 #include <vector>
 
+#include "scoped_output_file_access.h"
 #include "strategy_wrapper.hpp"
 #include "time_incrementor.h"
 #include "time_loop_executor_interface.h"
@@ -63,6 +64,7 @@ public:
         mStrategyWrapper->SaveTotalDisplacementFieldAtStartOfTimeLoop();
         std::vector<TimeStepEndState> result;
         TimeStepEndState              NewEndState = EndState;
+        ScopedOutputFileAccess        limit_output_file_access_to_this_scope{*mStrategyWrapper};
         while (mTimeIncrementor->WantNextStep(NewEndState) && !IsCancelled()) {
             mStrategyWrapper->IncrementStepNumber();
             // clone without end time, the end time is overwritten anyway
@@ -73,8 +75,6 @@ public:
             mStrategyWrapper->OutputProcess();
             result.emplace_back(NewEndState);
         }
-
-        mStrategyWrapper->FinalizeOutput();
 
         return result;
     }

@@ -61,8 +61,8 @@ public:
     UPwBaseElement(UPwBaseElement&&) noexcept            = delete;
     UPwBaseElement& operator=(UPwBaseElement&&) noexcept = delete;
 
-    Element::Pointer Create(IndexType NewId,
-                            NodesArrayType const& ThisNodes,
+    Element::Pointer Create(IndexType               NewId,
+                            NodesArrayType const&   ThisNodes,
                             PropertiesType::Pointer pProperties) const override;
 
     Element::Pointer Create(IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties) const override;
@@ -77,8 +77,8 @@ public:
 
     GeometryData::IntegrationMethod GetIntegrationMethod() const override;
 
-    void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
-                              VectorType& rRightHandSideVector,
+    void CalculateLocalSystem(MatrixType&        rLeftHandSideMatrix,
+                              VectorType&        rRightHandSideVector,
                               const ProcessInfo& rCurrentProcessInfo) override;
 
     void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, const ProcessInfo& rCurrentProcessInfo) override;
@@ -98,38 +98,38 @@ public:
     void GetSecondDerivativesVector(Vector& rValues, int Step = 0) const override;
 
     void CalculateOnIntegrationPoints(const Variable<ConstitutiveLaw::Pointer>& rVariable,
-                                      std::vector<ConstitutiveLaw::Pointer>& rValues,
+                                      std::vector<ConstitutiveLaw::Pointer>&    rValues,
                                       const ProcessInfo& rCurrentProcessInfo) override;
 
     void CalculateOnIntegrationPoints(const Variable<array_1d<double, 3>>& rVariable,
-                                      std::vector<array_1d<double, 3>>& rValues,
+                                      std::vector<array_1d<double, 3>>&    rValues,
                                       const ProcessInfo& rCurrentProcessInfo) override;
 
     void CalculateOnIntegrationPoints(const Variable<Matrix>& rVariable,
-                                      std::vector<Matrix>& rValues,
-                                      const ProcessInfo& rCurrentProcessInfo) override;
+                                      std::vector<Matrix>&    rValues,
+                                      const ProcessInfo&      rCurrentProcessInfo) override;
 
     void CalculateOnIntegrationPoints(const Variable<double>& rVariable,
-                                      std::vector<double>& rValues,
-                                      const ProcessInfo& rCurrentProcessInfo) override;
+                                      std::vector<double>&    rValues,
+                                      const ProcessInfo&      rCurrentProcessInfo) override;
 
     void CalculateOnIntegrationPoints(const Variable<Vector>& rVariable,
-                                      std::vector<Vector>& rValues,
-                                      const ProcessInfo& rCurrentProcessInfo) override;
+                                      std::vector<Vector>&    rValues,
+                                      const ProcessInfo&      rCurrentProcessInfo) override;
 
     using Element::CalculateOnIntegrationPoints;
 
-    void SetValuesOnIntegrationPoints(const Variable<double>& rVariable,
+    void SetValuesOnIntegrationPoints(const Variable<double>&    rVariable,
                                       const std::vector<double>& rValues,
-                                      const ProcessInfo& rCurrentProcessInfo) override;
+                                      const ProcessInfo&         rCurrentProcessInfo) override;
 
-    void SetValuesOnIntegrationPoints(const Variable<Vector>& rVariable,
+    void SetValuesOnIntegrationPoints(const Variable<Vector>&    rVariable,
                                       const std::vector<Vector>& rValues,
-                                      const ProcessInfo& rCurrentProcessInfo) override;
+                                      const ProcessInfo&         rCurrentProcessInfo) override;
 
-    void SetValuesOnIntegrationPoints(const Variable<Matrix>& rVariable,
+    void SetValuesOnIntegrationPoints(const Variable<Matrix>&    rVariable,
                                       const std::vector<Matrix>& rValues,
-                                      const ProcessInfo& rCurrentProcessInfo) override;
+                                      const ProcessInfo&         rCurrentProcessInfo) override;
 
     using Element::SetValuesOnIntegrationPoints;
 
@@ -146,23 +146,23 @@ protected:
     GeometryData::IntegrationMethod mThisIntegrationMethod;
 
     std::vector<ConstitutiveLaw::Pointer> mConstitutiveLawVector;
-    std::vector<RetentionLaw::Pointer> mRetentionLawVector;
+    std::vector<RetentionLaw::Pointer>    mRetentionLawVector;
 
     std::vector<Vector> mStressVector;
     std::vector<Vector> mStateVariablesFinalized;
-    bool mIsInitialised = false;
+    bool                mIsInitialised = false;
 
     virtual void CalculateMaterialStiffnessMatrix(MatrixType& rStiffnessMatrix, const ProcessInfo& CurrentProcessInfo);
 
-    virtual void CalculateAll(MatrixType& rLeftHandSideMatrix,
-                              VectorType& rRightHandSideVector,
+    virtual void CalculateAll(MatrixType&        rLeftHandSideMatrix,
+                              VectorType&        rRightHandSideVector,
                               const ProcessInfo& CurrentProcessInfo,
-                              bool CalculateStiffnessMatrixFlag,
-                              bool CalculateResidualVectorFlag);
+                              bool               CalculateStiffnessMatrixFlag,
+                              bool               CalculateResidualVectorFlag);
 
     virtual double CalculateIntegrationCoefficient(const GeometryType::IntegrationPointsArrayType& IntegrationPoints,
                                                    unsigned int PointNumber,
-                                                   double detJ);
+                                                   double       detJ);
 
     void CalculateDerivativesOnInitialConfiguration(
         double& detJ, Matrix& J0, Matrix& InvJ0, Matrix& DN_DX, unsigned int PointNumber) const;
@@ -190,9 +190,9 @@ protected:
      * @param ThisIntegrationMethod The integration method considered
      * @return The determinant of the jacobian in the current configuration
      */
-    double CalculateDerivativesOnCurrentConfiguration(Matrix& rJ,
-                                                      Matrix& rInvJ,
-                                                      Matrix& rDN_DX,
+    double CalculateDerivativesOnCurrentConfiguration(Matrix&          rJ,
+                                                      Matrix&          rInvJ,
+                                                      Matrix&          rDN_DX,
                                                       const IndexType& PointNumber,
                                                       IntegrationMethod ThisIntegrationMethod) const;
 

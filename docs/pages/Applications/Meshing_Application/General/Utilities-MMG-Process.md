@@ -22,7 +22,7 @@ summary:
 [man]: https://github.com/KratosMultiphysics/Kratos/wiki/%5BUtilities%5D-MMG-Process#manually
 [pro]: https://github.com/KratosMultiphysics/Kratos/wiki/%5BUtilities%5D-MMG-Process#using-the-process
 
-# What is MMG? 
+# What is MMG?
 
 *MMG* is an open source software for simplicial remeshing. [*MMG* main page](http://www.mmgtools.org/ ), and you can download the code in [GitHub](https://github.com/MmgTools/mmg).
 
@@ -32,14 +32,14 @@ summary:
 	*  The `mmg3d` application and the `libmmg3d` library: adaptation and optimization of a tetrahedral mesh and implicit domain meshing
 	*  The `libmmg` library gathering the `libmmg2d`, `libmmgs` and `libmmg3d` libraries
 
-* It uses a [LGPL](https://www.gnu.org/licenses/lgpl-3.0.en.html) license and it has been integrated in *Kratos* via the `mmg_process.h` in the `MeshingApplication`. 
+* It uses a [LGPL](https://www.gnu.org/licenses/lgpl-3.0.en.html) license and it has been integrated in *Kratos* via the `mmg_process.h` in the `MeshingApplication`.
 <span style="color:red">Important: For use it you need to download first (look in the installation section)</span>
 * It is used like a process, using the `mmg_process.py` in the `MeshingApplication`.
 * There are basically two different types of re-meshing strategies (both of them compatibles with an anisotropic re-meshing):
-	* `Level-Set`: This re-meshing technique is based in the gradient of the `DISTANCE` function, and can be used to re-mesh when you are getting closer to the reference geometry. 
+	* `Level-Set`: This re-meshing technique is based in the gradient of the `DISTANCE` function, and can be used to re-mesh when you are getting closer to the reference geometry.
 	* `Hessian`: This re-meshing technique is based in the computation of the Hessian of any variable, in the case of more than one variable or a variable by components is considered them the intersection of the corresponding tensors is computed.
 
-![](https://raw.githubusercontent.com/KratosMultiphysics/Examples/master/mmg_remeshing_examples/validation/bunny/data/Bunny.png) 
+![](https://raw.githubusercontent.com/KratosMultiphysics/Examples/master/mmg_remeshing_examples/validation/bunny/data/Bunny.png)
 
 # How can I install this library?
 
@@ -50,14 +50,14 @@ The installation of the library is fortunately quite straightforward thanks to t
 	* Here you can see the `mmg` folder, but it is empty. You have the `README.txt`, where the installation is explained, and the build folder, where the `configure.sh` script can be found.
 	* Go to a folder of your chose to install the library (for example `~/src`) (make sure you have installed `git` first):
 
-```sh
+```console
 git clone https://github.com/MmgTools/mmg.git
 ```
 
 * Then copy the `build` folder from the old `mmg` folder to the new `mmg` folder. Go to the build folder and execute:
 
 Linux
-```sh
+```console
 sh configure.sh
 ```
 Windows
@@ -71,15 +71,15 @@ Windows
 ./configure.bat
 ```
 
-* Once the compilation is done go to the main *Kratos* folder and go to your `scripts` folder. Here you modify the `configure.sh` or `configure.bat` adding the following lines (modify the `kratos_dir` for your current *Kratos* installation directory): 
+* Once the compilation is done go to the main *Kratos* folder and go to your `scripts` folder. Here you modify the `configure.sh` or `configure.bat` adding the following lines (modify the `kratos_dir` for your current *Kratos* installation directory):
 
-```sh
+```console
 -DINCLUDE_MMG=ON                                                     \
 -DMMG_ROOT="/path/to/src/mmg/build"                                         \
 ```
 
 It will be assumed that the libraries folder is under `/path/to/srtc/mmg/build/lib`. In case your libraries are not detected automatically, you can specify the path by using:
-```sh
+```console
 -DINCLUDE_MMG=ON                                                    \
 -DMMG_BUILDDIR="/path/to/src/mmg/build"                             \
 -DMMG_LIBDIR="/path/to/custom/mmg/lib"                              \
@@ -91,7 +91,7 @@ It will be assumed that the libraries folder is under `/path/to/srtc/mmg/build/l
    Further information and possible errors are covered in [this README.](https://github.com/KratosMultiphysics/Kratos/blob/master/applications/MeshingApplication/custom_external_libraries/mmg/README.md)
 * After that recompile Kratos using again:
 Linux
-```sh
+```console
 sh Kratos/scripts/configure.sh
 ```
 Windows
@@ -102,7 +102,7 @@ Kratos/scripts/configure.sh
 Once Kratos is compiled, you will have to tell the OS where to find the libraries. You can do that by executing this command.
 
 Linux
-```bash
+```console
 echo "export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/path/to/my/src/folder/mmg/build/lib" >> $HOME/.bashrc
 ```
 
@@ -127,7 +127,7 @@ Or set them permanently using the **Edit the system environment variables option
 
 Go to the folder tests in the `MeshingApplication` and run:
 
-```sh
+```console
 python3 test_MeshingApplication.py
 ```
 
@@ -144,9 +144,9 @@ You should get an OK, if you don't get an OK there is something wrong:
 ## Manually
 
 Taking for example the following [mesh](https://github.com/KratosMultiphysics/Examples/tree/master/mmg_remeshing_examples/use_cases/coarse_sphere), and using the following python script (included in the previous compressed file) it is possible to re-mesh a very coarsed mesh of a sphere into a fine an anisotropic sphere.
-    
+
 ```py
-from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
+
 
 import KratosMultiphysics
 import KratosMultiphysics.MeshingApplication as MeshingApplication
@@ -155,7 +155,7 @@ current_model = KratosMultiphysics.Model()
 main_model_part = current_model.CreateModelPart("MainModelPart")
 main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, 3)
 
-# We add the variables needed 
+# We add the variables needed
 main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISTANCE)
 main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISTANCE_GRADIENT)
 main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_AREA)
@@ -168,7 +168,7 @@ local_gradient = KratosMultiphysics.ComputeNodalGradientProcess3D(main_model_par
 local_gradient.Execute()
 
 # We set to zero the metric
-ZeroVector = KratosMultiphysics.Vector(6) 
+ZeroVector = KratosMultiphysics.Vector(6)
 ZeroVector[0] = 0.0
 ZeroVector[1] = 0.0
 ZeroVector[2] = 0.0
@@ -177,17 +177,17 @@ ZeroVector[4] = 0.0
 ZeroVector[5] = 0.0
 for node in main_model_part.Nodes:
     node.SetValue(MeshingApplication.METRIC_TENSOR_3D, ZeroVector)
-            
+
 # We define a metric using the ComputeLevelSetSolMetricProcess
 level_set_param = KratosMultiphysics.Parameters("""
                         {
-                            "minimal_size"                         : 0.1, 
-                            "enforce_current"                      : false, 
-                            "anisotropy_remeshing"                 : true, 
-                            "anisotropy_parameters": 
+                            "minimal_size"                         : 0.1,
+                            "enforce_current"                      : false,
+                            "anisotropy_remeshing"                 : true,
+                            "anisotropy_parameters":
                             {
-                                "hmin_over_hmax_anisotropic_ratio"      : 0.01, 
-                                "boundary_layer_max_distance"           : 0.5, 
+                                "hmin_over_hmax_anisotropic_ratio"      : 0.01,
+                                "boundary_layer_max_distance"           : 0.5,
                                 "interpolation"                         : "Linear"
                             }
                         }
@@ -212,7 +212,7 @@ gid_output = GiDOutputProcess(main_model_part,
                                             "WriteDeformedMeshFlag": "WriteUndeformed",
                                             "WriteConditionsFlag": "WriteConditions",
                                             "MultiFileFlag": "SingleFile"
-                                        },        
+                                        },
                                         "nodal_results"       : []
                                     }
                                 }
@@ -224,14 +224,14 @@ gid_output.ExecuteBeforeSolutionLoop()
 gid_output.ExecuteInitializeSolutionStep()
 gid_output.PrintOutput()
 gid_output.ExecuteFinalizeSolutionStep()
-gid_output.ExecuteFinalize()   
+gid_output.ExecuteFinalize()
 ```
 
 The metric can be calculated by hand if you prefer, for example to get the same result than the previous script:
 
 ```py
 # We import the libraies
-from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
+
 
 import KratosMultiphysics
 import KratosMultiphysics.MeshingApplication as MeshingApplication
@@ -241,7 +241,7 @@ current_model = KratosMultiphysics.Model()
 main_model_part = current_model.CreateModelPart("MainModelPart")
 main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, 3)
 
-# We add the variables needed 
+# We add the variables needed
 main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISTANCE)
 main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_H)
 
@@ -249,13 +249,13 @@ main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_H)
 KratosMultiphysics.ModelPartIO("coarse_sphere").ReadModelPart(main_model_part)
 
 # We know that the gradient is unitary and in X direction
-UnityVector = KratosMultiphysics.Vector(3) 
+UnityVector = KratosMultiphysics.Vector(3)
 UnityVector[0] = 1.0
 UnityVector[1] = 0.0
 UnityVector[2] = 0.0
 
 # We set to zero the metric
-MetricVector = KratosMultiphysics.Vector(6) 
+MetricVector = KratosMultiphysics.Vector(6)
 
 for node in main_model_part.Nodes:
     # Calculate the element size
@@ -309,7 +309,7 @@ gid_output = GiDOutputProcess(main_model_part,
                                         "WriteDeformedMeshFlag": "WriteUndeformed",
                                         "WriteConditionsFlag": "WriteConditions",
                                         "MultiFileFlag": "SingleFile"
-                                    },        
+                                    },
                                     "nodal_results"       : []
                                 }
                             }
@@ -321,10 +321,10 @@ gid_output.ExecuteBeforeSolutionLoop()
 gid_output.ExecuteInitializeSolutionStep()
 gid_output.PrintOutput()
 gid_output.ExecuteFinalizeSolutionStep()
-gid_output.ExecuteFinalize()   
+gid_output.ExecuteFinalize()
 ```
 
-![](https://github.com/KratosMultiphysics/Examples/raw/master/mmg_remeshing_examples/use_cases/coarse_sphere/data/solution.png) 
+![](https://github.com/KratosMultiphysics/Examples/raw/master/mmg_remeshing_examples/use_cases/coarse_sphere/data/solution.png)
 
 ## Using the process
 
@@ -441,7 +441,7 @@ The meaning of each of the parameters is the following one:
 	* `metric_variable`: The list of variables that can be considered to calculate the metrics of re-meshing.
 	* `interpolation_error`: The interpolation error considered in the re-mesh.
 	* `mesh_dependent_constant`: This value is automatically calculated if set to 0, but many definitions can be found in the literature.
-	
+
 * `framework`: Whatever you want to work "fluids" using `Eulerian` or "solids" using `Lagrangian`. If you choose `Lagrangian` you will need to interpolate the internal variables if you are considering any constitutive model with history (damage or plasticity).
 	* `bucket_size`: The size of the bucket used in the tree search.
 	* `allocation_size`: The maximum size to allocate the GP used in the search.
@@ -486,17 +486,17 @@ The meaning of each of the parameters is the following one:
 * `max_number_of_searchs`: This is the max. number of search that can be done in the value interpolation process (when values are interpolated from the old mesh to the new mesh)
 * `debug_mode`: If true will output a *GiD* file with just after each remesh (could be useful to check if the error is in the generated mesh).
 * `echo_level`: This sets the `echo_level`, 0 for no output at all, 3 for standard output.
- 
-Can you show us a little example? 
 
-Of course, in the [examples repository](https://github.com/KratosMultiphysics/Examples/tree/master/mmg_remeshing_examples) you can find some examples using the process that you can run in your machine. 
+Can you show us a little example?
+
+Of course, in the [examples repository](https://github.com/KratosMultiphysics/Examples/tree/master/mmg_remeshing_examples) you can find some examples using the process that you can run in your machine.
 
 [This problem](https://github.com/KratosMultiphysics/Examples/tree/master/mmg_remeshing_examples/use_cases/channel_sphere2D) consists in a 2D fluid problem with continuous re-meshing using the Hessian of the velocity as reference. The resulting output should look something similar to the [this](https://www.youtube.com/watch?v=Yd57qxtnNFk&feature=youtu.be).
 
-![](https://github.com/KratosMultiphysics/Examples/blob/master/mmg_remeshing_examples/use_cases/channel_sphere2D/data/result.gif) 
+![](https://github.com/KratosMultiphysics/Examples/blob/master/mmg_remeshing_examples/use_cases/channel_sphere2D/data/result.gif)
 
 [The same case in 3D](https://github.com/KratosMultiphysics/Examples/tree/master/mmg_remeshing_examples/use_cases/channel_sphere3D). The resulting output should look something similar to the [this](https://youtu.be/HVNa5O6h4wM).
 
-![](https://github.com/KratosMultiphysics/Examples/blob/master/mmg_remeshing_examples/use_cases/channel_sphere3D/data/result.gif) 
+![](https://github.com/KratosMultiphysics/Examples/blob/master/mmg_remeshing_examples/use_cases/channel_sphere3D/data/result.gif)
 
 The problems presented in the tests can be used as reference too.

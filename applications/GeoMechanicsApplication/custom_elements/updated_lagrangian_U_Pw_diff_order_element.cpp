@@ -20,7 +20,7 @@ namespace Kratos
 {
 
 //----------------------------------------------------------------------------------------
-Element::Pointer UpdatedLagrangianUPwDiffOrderElement::Create(IndexType NewId,
+Element::Pointer UpdatedLagrangianUPwDiffOrderElement::Create(IndexType             NewId,
                                                               NodesArrayType const& ThisNodes,
                                                               PropertiesType::Pointer pProperties) const
 {
@@ -29,7 +29,7 @@ Element::Pointer UpdatedLagrangianUPwDiffOrderElement::Create(IndexType NewId,
 }
 
 //----------------------------------------------------------------------------------------
-Element::Pointer UpdatedLagrangianUPwDiffOrderElement::Create(IndexType NewId,
+Element::Pointer UpdatedLagrangianUPwDiffOrderElement::Create(IndexType             NewId,
                                                               GeometryType::Pointer pGeom,
                                                               PropertiesType::Pointer pProperties) const
 {
@@ -37,15 +37,15 @@ Element::Pointer UpdatedLagrangianUPwDiffOrderElement::Create(IndexType NewId,
 }
 
 //----------------------------------------------------------------------------------------
-void UpdatedLagrangianUPwDiffOrderElement::CalculateAll(MatrixType& rLeftHandSideMatrix,
-                                                        VectorType& rRightHandSideVector,
+void UpdatedLagrangianUPwDiffOrderElement::CalculateAll(MatrixType&        rLeftHandSideMatrix,
+                                                        VectorType&        rRightHandSideVector,
                                                         const ProcessInfo& rCurrentProcessInfo,
                                                         const bool CalculateStiffnessMatrixFlag,
                                                         const bool CalculateResidualVectorFlag)
 {
     KRATOS_TRY
 
-    const GeometryType& rGeom   = GetGeometry();
+    const GeometryType&   rGeom = GetGeometry();
     const PropertiesType& rProp = this->GetProperties();
 
     // Definition of variables
@@ -123,9 +123,9 @@ void UpdatedLagrangianUPwDiffOrderElement::CalculateAndAddGeometricStiffnessMatr
 {
     KRATOS_TRY
 
-    const GeometryType& rGeom = GetGeometry();
-    const SizeType NumUNodes  = rGeom.PointsNumber();
-    const SizeType Dim        = rGeom.WorkingSpaceDimension();
+    const GeometryType& rGeom     = GetGeometry();
+    const SizeType      NumUNodes = rGeom.PointsNumber();
+    const SizeType      Dim       = rGeom.WorkingSpaceDimension();
 
     Matrix StressTensor = MathUtils<double>::StressVectorToTensor(mStressVector[GPoint]);
 
@@ -206,7 +206,7 @@ void UpdatedLagrangianUPwDiffOrderElement::CalculateOnIntegrationPoints(const Va
                                                                         const ProcessInfo& rCurrentProcessInfo)
 {
     const GeometryType& rGeom = GetGeometry();
-    const SizeType Dim        = rGeom.WorkingSpaceDimension();
+    const SizeType      Dim   = rGeom.WorkingSpaceDimension();
 
     if (rOutput.size() != mConstitutiveLawVector.size())
         rOutput.resize(mConstitutiveLawVector.size());

@@ -1,6 +1,6 @@
 {
    "properties": [{
-      "model_part_name":         "PorousDomain.bodemplaat",
+      "model_part_name":         "PorousDomain.shell",
       "properties_id":           1,
       "Material": {
                     "name": "Vloerbeton",

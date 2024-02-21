@@ -23,16 +23,14 @@ namespace Kratos
 {
 
 template <class TSparseSpace, class TDenseSpace>
-class BackwardEulerQuasistaticPwScheme
-    : public BackwardEulerScheme<TSparseSpace, TDenseSpace>
+class BackwardEulerQuasistaticPwScheme : public BackwardEulerScheme<TSparseSpace, TDenseSpace>
 {
 public:
     KRATOS_CLASS_POINTER_DEFINITION(BackwardEulerQuasistaticPwScheme);
 
     BackwardEulerQuasistaticPwScheme()
         : BackwardEulerScheme<TSparseSpace, TDenseSpace>(
-              {FirstOrderScalarVariable(WATER_PRESSURE, DT_WATER_PRESSURE, DT_PRESSURE_COEFFICIENT)},
-              {})
+              {FirstOrderScalarVariable(WATER_PRESSURE, DT_WATER_PRESSURE, DT_PRESSURE_COEFFICIENT)}, {})
     {
     }
 }; // Class BackwardEulerQuasistaticPwScheme
