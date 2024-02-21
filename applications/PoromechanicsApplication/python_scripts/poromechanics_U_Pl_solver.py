@@ -8,16 +8,15 @@ import KratosMultiphysics.PoromechanicsApplication as KratosPoro
 import KratosMultiphysics.StructuralMechanicsApplication as KratosStructural
 
 def CreateSolver(model, custom_settings):
-    return UPwSolver(model, custom_settings)
+    return UPlSolver(model, custom_settings)
 
-class UPwSolver(PythonSolver):
-    '''Solver for the solution of displacement-pore pressure coupled problems.'''
+class UPlSolver(PythonSolver):
+    '''Solver for the solution of displacement-pore pressure coupled problems
+    for one-phase flow in porous media.'''
 
     def __init__(self, model, custom_settings):
 
-        self._validate_settings_in_baseclass=True # To be removed eventually
-
-        super(UPwSolver,self).__init__(model, custom_settings)
+        super(UPlSolver,self).__init__(model, custom_settings)
 
         self.min_buffer_size = 2
 
@@ -35,12 +34,12 @@ class UPwSolver(PythonSolver):
         self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE,
                                                   self.settings["domain_size"].GetInt())
 
-        KratosMultiphysics.Logger.PrintInfo("UPwSolver", "Construction of UPwSolver finished.")
+        KratosMultiphysics.Logger.PrintInfo("UPlSolver", "Construction of UPlSolver finished.")
 
     @classmethod
     def GetDefaultParameters(cls):
         this_defaults = KratosMultiphysics.Parameters("""{
-            "solver_type": "poromechanics_U_Pw_solver",
+            "solver_type": "poromechanics_U_Pl_solver",
             "model_part_name": "PorousModelPart",
             "domain_size": 2,
             "start_time": 0.0,
@@ -66,7 +65,8 @@ class UPwSolver(PythonSolver):
             "scheme_type": "Newmark",
             "newmark_beta": 0.25,
             "newmark_gamma": 0.5,
-            "newmark_theta": 0.5,
+            "newmark_theta_u": 0.5,
+            "newmark_theta_p": 0.5,
             "calculate_alpha_beta"       : false,
             "omega_1"                    : 1.0,
             "omega_n"                    : 10.0,
@@ -106,7 +106,7 @@ class UPwSolver(PythonSolver):
             "loads_variable_list": []
         }""")
 
-        this_defaults.AddMissingParameters(super(UPwSolver, cls).GetDefaultParameters())
+        this_defaults.AddMissingParameters(super(UPlSolver, cls).GetDefaultParameters())
         return this_defaults
 
     def AddVariables(self):
@@ -125,26 +125,24 @@ class UPwSolver(PythonSolver):
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NORMAL_CONTACT_STRESS)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.TANGENTIAL_CONTACT_STRESS)
         ## Fluid Variables
-        # Add water pressure
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.WATER_PRESSURE)
-        # Add reactions for the water pressure
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.REACTION_WATER_PRESSURE)
+        # Add liquid pressure
+        self.main_model_part.AddNodalSolutionStepVariable(KratosPoro.LIQUID_PRESSURE)
+        # Add reactions for the liquid pressure
+        self.main_model_part.AddNodalSolutionStepVariable(KratosPoro.REACTION_LIQUID_PRESSURE)
         # Add dynamic variables
-        self.main_model_part.AddNodalSolutionStepVariable(KratosPoro.DT_WATER_PRESSURE)
-        # Add variables for the water conditions
-        self.main_model_part.AddNodalSolutionStepVariable(KratosPoro.NORMAL_FLUID_FLUX)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosPoro.DISCHARGE)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosPoro.DT_LIQUID_PRESSURE)
+        # Add variables for the liquid conditions
+        self.main_model_part.AddNodalSolutionStepVariable(KratosPoro.NORMAL_LIQUID_FLUX)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosPoro.LIQUID_DISCHARGE)
         ## Other variables
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VOLUME_ACCELERATION)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.PERIODIC_PAIR_INDEX)
 
-        self.main_model_part.AddNodalSolutionStepVariable(KratosPoro.NODAL_DAMAGE_VARIABLE)
         self.main_model_part.AddNodalSolutionStepVariable(KratosPoro.NODAL_JOINT_AREA)
         self.main_model_part.AddNodalSolutionStepVariable(KratosPoro.NODAL_JOINT_WIDTH)
         self.main_model_part.AddNodalSolutionStepVariable(KratosPoro.NODAL_JOINT_DAMAGE)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_AREA)
         self.main_model_part.AddNodalSolutionStepVariable(KratosPoro.NODAL_EFFECTIVE_STRESS_TENSOR)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosPoro.NODAL_WATER_PRESSURE_GRADIENT)
         self.main_model_part.AddNodalSolutionStepVariable(KratosPoro.INITIAL_STRESS_TENSOR)
 
         # Add variables from gp to nodal variable list
@@ -154,7 +152,7 @@ class UPwSolver(PythonSolver):
                 variable = KratosMultiphysics.KratosGlobals.GetVariable(variable_name)
                 self.main_model_part.AddNodalSolutionStepVariable(variable)
 
-        KratosMultiphysics.Logger.PrintInfo("UPwSolver", "Variables added correctly.")
+        KratosMultiphysics.Logger.PrintInfo("UPlSolver", "Variables added correctly.")
 
     def ImportModelPart(self):
         # we can use the default implementation in the base class
@@ -180,15 +178,15 @@ class UPwSolver(PythonSolver):
             ## Set buffer size
             self._SetBufferSize()
 
-        KratosMultiphysics.Logger.PrintInfo("UPwSolver", "Model reading finished.")
+        KratosMultiphysics.Logger.PrintInfo("UPlSolver", "Model reading finished.")
 
     def AddDofs(self):
         ## Solid dofs
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_X, KratosMultiphysics.REACTION_X,self.main_model_part)
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_Y, KratosMultiphysics.REACTION_Y,self.main_model_part)
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_Z, KratosMultiphysics.REACTION_Z,self.main_model_part)
-        ## Fluid dofs
-        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.WATER_PRESSURE, KratosMultiphysics.REACTION_WATER_PRESSURE,self.main_model_part)
+        ## Liquid dofs
+        KratosMultiphysics.VariableUtils().AddDof(KratosPoro.LIQUID_PRESSURE, KratosPoro.REACTION_LIQUID_PRESSURE,self.main_model_part)
 
         if(self.settings["solution_type"].GetString() == "implicit_dynamic"):
             for node in self.main_model_part.Nodes:
@@ -201,7 +199,7 @@ class UPwSolver(PythonSolver):
                 node.AddDof(KratosMultiphysics.ACCELERATION_Y)
                 node.AddDof(KratosMultiphysics.ACCELERATION_Z)
 
-        KratosMultiphysics.Logger.PrintInfo("UPwSolver", "DOFs added correctly.")
+        KratosMultiphysics.Logger.PrintInfo("UPlSolver", "DOFs added correctly.")
 
     def GetMinimumBufferSize(self):
         return self.min_buffer_size
@@ -244,7 +242,7 @@ class UPwSolver(PythonSolver):
         # Check and construct gp_to_nodal_variable process
         self._CheckAndConstructGPtoNodalVariableExtrapolationProcess()
 
-        KratosMultiphysics.Logger.PrintInfo("UPwSolver", "Solver initialization finished.")
+        KratosMultiphysics.Logger.PrintInfo("UPlSolver", "Solver initialization finished.")
 
     def GetComputingModelPart(self):
         return self.main_model_part.GetSubModelPart(self.computing_model_part_name)
@@ -293,14 +291,14 @@ class UPwSolver(PythonSolver):
 
     def Solve(self):
         message = "".join([
-            "Calling UPwSolver.Solve() method, which is deprecated\n",
+            "Calling UPlSolver.Solve() method, which is deprecated\n",
             "Please call the individual methods instead:\n",
             "solver.InitializeSolutionStep()\n",
             "solver.Predict()\n",
             "solver.SolveSolutionStep()\n",
             "solver.FinalizeSolutionStep()\n"]
         )
-        KratosMultiphysics.Logger.PrintWarning("UPwSolver",message)
+        KratosMultiphysics.Logger.PrintWarning("UPlSolver",message)
 
         if self.settings["clear_storage"].GetBool():
             self.Clear()
@@ -345,9 +343,9 @@ class UPwSolver(PythonSolver):
         # Constitutive law import
         materials_imported = self.import_constitutive_laws()
         if materials_imported:
-            KratosMultiphysics.Logger.PrintInfo("UPwSolver", "Constitutive law was successfully imported via json.")
+            KratosMultiphysics.Logger.PrintInfo("UPlSolver", "Constitutive law was successfully imported via json.")
         else:
-            KratosMultiphysics.Logger.PrintInfo("UPwSolver", "Constitutive law was not successfully imported.")
+            KratosMultiphysics.Logger.PrintInfo("UPlSolver", "Constitutive law was not successfully imported.")
 
     def import_constitutive_laws(self):
         materials_filename = self.settings["material_import_settings"]["materials_filename"].GetString()
@@ -405,12 +403,13 @@ class UPwSolver(PythonSolver):
     def _ConstructScheme(self, scheme_type, solution_type):
 
         self.main_model_part.ProcessInfo.SetValue(KratosPoro.VELOCITY_COEFFICIENT, 1.0)
-        self.main_model_part.ProcessInfo.SetValue(KratosPoro.DT_PRESSURE_COEFFICIENT, 1.0)
+        self.main_model_part.ProcessInfo.SetValue(KratosPoro.DT_LIQUID_PRESSURE_COEFFICIENT, 1.0)
 
         if(scheme_type == "Newmark"):
             beta = self.settings["newmark_beta"].GetDouble()
             gamma = self.settings["newmark_gamma"].GetDouble()
-            theta = self.settings["newmark_theta"].GetDouble()
+            theta_u = self.settings["newmark_theta_u"].GetDouble()
+            theta_p = self.settings["newmark_theta_p"].GetDouble()
             rayleigh_alpha = self.settings["rayleigh_alpha"].GetDouble()
             rayleigh_beta = self.settings["rayleigh_beta"].GetDouble()
             if self.settings["calculate_alpha_beta"].GetBool():
@@ -420,24 +419,24 @@ class UPwSolver(PythonSolver):
                 xi_n = self.settings["xi_n"].GetDouble()
                 rayleigh_beta = 2.0*(xi_n*omega_n-xi_1*omega_1)/(omega_n*omega_n-omega_1*omega_1)
                 rayleigh_alpha = 2.0*xi_1*omega_1-rayleigh_beta*omega_1*omega_1
-                KratosMultiphysics.Logger.PrintInfo("::[UPwSolver]:: Scheme Information")
-                KratosMultiphysics.Logger.PrintInfo("::[UPwSolver]:: omega_1: ",omega_1)
-                KratosMultiphysics.Logger.PrintInfo("::[UPwSolver]:: omega_n: ",omega_n)
-                KratosMultiphysics.Logger.PrintInfo("::[UPwSolver]:: xi_1: ",xi_1)
-                KratosMultiphysics.Logger.PrintInfo("::[UPwSolver]:: xi_n: ",xi_n)
-                KratosMultiphysics.Logger.PrintInfo("::[UPwSolver]:: Alpha and Beta output")
-                KratosMultiphysics.Logger.PrintInfo("::[UPwSolver]:: rayleigh_alpha: ",rayleigh_alpha)
-                KratosMultiphysics.Logger.PrintInfo("::[UPwSolver]:: rayleigh_beta: ",rayleigh_beta)
+                KratosMultiphysics.Logger.PrintInfo("::[UPlSolver]:: Scheme Information")
+                KratosMultiphysics.Logger.PrintInfo("::[UPlSolver]:: omega_1: ",omega_1)
+                KratosMultiphysics.Logger.PrintInfo("::[UPlSolver]:: omega_n: ",omega_n)
+                KratosMultiphysics.Logger.PrintInfo("::[UPlSolver]:: xi_1: ",xi_1)
+                KratosMultiphysics.Logger.PrintInfo("::[UPlSolver]:: xi_n: ",xi_n)
+                KratosMultiphysics.Logger.PrintInfo("::[UPlSolver]:: Alpha and Beta output")
+                KratosMultiphysics.Logger.PrintInfo("::[UPlSolver]:: rayleigh_alpha: ",rayleigh_alpha)
+                KratosMultiphysics.Logger.PrintInfo("::[UPlSolver]:: rayleigh_beta: ",rayleigh_beta)
             
             self.main_model_part.ProcessInfo.SetValue(KratosStructural.RAYLEIGH_ALPHA,rayleigh_alpha)
             self.main_model_part.ProcessInfo.SetValue(KratosStructural.RAYLEIGH_BETA,rayleigh_beta)
             if(solution_type == "implicit_quasi_static"):
                 if(rayleigh_alpha<1.0e-20 and rayleigh_beta<1.0e-20):
-                    scheme = KratosPoro.PoroNewmarkQuasistaticUPwScheme(beta,gamma,theta)
+                    scheme = KratosPoro.PoroNewmarkQuasistaticUPlScheme(theta_u,theta_p,beta,gamma)
                 else:
-                    scheme = KratosPoro.PoroNewmarkQuasistaticDampedUPwScheme(beta,gamma,theta)
+                    scheme = KratosPoro.PoroNewmarkQuasistaticDampedUPlScheme(theta_u,theta_p,beta,gamma)
             else:
-                scheme = KratosPoro.PoroNewmarkDynamicUPwScheme(beta,gamma,theta)
+                scheme = KratosPoro.PoroNewmarkDynamicUPlScheme(theta_u,theta_p,beta,gamma)
         else:
             raise Exception("Apart from Newmark, other scheme_type are not available.")
 

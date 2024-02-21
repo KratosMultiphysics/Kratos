@@ -7,25 +7,25 @@ import KratosMultiphysics.PoromechanicsApplication as KratosPoro
 import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication
 
 # Import base class file
-from KratosMultiphysics.PoromechanicsApplication.poromechanics_U_Pw_solver import UPwSolver
+from KratosMultiphysics.PoromechanicsApplication.poromechanics_U_Pl_solver import UPlSolver
 
 def CreateSolver(model, custom_settings):
-    return ExplicitUPwSolver(model, custom_settings)
+    return ExplicitUPlSolver(model, custom_settings)
 
-class ExplicitUPwSolver(UPwSolver):
+class ExplicitUPlSolver(UPlSolver):
     """The Poromechanics explicit U (displacement) dynamic solver.
 
     This class creates the mechanical solvers for explicit dynamic analysis.
     """
     def __init__(self, model, custom_settings):
         # Construct the base solver.
-        super().__init__(model, custom_settings)
+        super(ExplicitUPlSolver,self).__init__(model, custom_settings)
 
         self.min_buffer_size = 2           
 
         # Lumped mass-matrix is necessary for explicit analysis
         self.main_model_part.ProcessInfo[KratosMultiphysics.COMPUTE_LUMPED_MASS_MATRIX] = True
-        KratosMultiphysics.Logger.PrintInfo("::[ExplicitUPwSolver]:: Construction finished")
+        KratosMultiphysics.Logger.PrintInfo("::[ExplicitUPlSolver]:: Construction finished")
 
     @classmethod
     def GetDefaultParameters(cls):
@@ -37,11 +37,11 @@ class ExplicitUPwSolver(UPwSolver):
             "calculate_xi"               : false,
             "xi_1_factor"                : 1.0
         }""")
-        this_defaults.AddMissingParameters(super().GetDefaultParameters())
+        this_defaults.AddMissingParameters(super(ExplicitUPlSolver,self).GetDefaultParameters())
         return this_defaults
 
     def AddVariables(self):
-        super().AddVariables()
+        super(ExplicitUPlSolver,self).AddVariables()
 
         self.main_model_part.AddNodalSolutionStepVariable(KratosPoro.DISPLACEMENT_OLD)
         # self.main_model_part.AddNodalSolutionStepVariable(KratosPoro.DISPLACEMENT_OLDER)
@@ -57,10 +57,10 @@ class ExplicitUPwSolver(UPwSolver):
         # self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_MASS)
         # self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.RESIDUAL_VECTOR)
 
-        KratosMultiphysics.Logger.PrintInfo("::[ExplicitUPwSolver]:: Variables ADDED")
+        KratosMultiphysics.Logger.PrintInfo("::[ExplicitUPlSolver]:: Variables ADDED")
 
     def AddDofs(self):
-        # super().AddDofs()
+        # super(ExplicitUPlSolver,self).AddDofs()
         ## Solid dofs
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_X, KratosMultiphysics.REACTION_X,self.main_model_part)
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_Y, KratosMultiphysics.REACTION_Y,self.main_model_part)
@@ -74,13 +74,13 @@ class ExplicitUPwSolver(UPwSolver):
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.ACCELERATION_Y,self.main_model_part)
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.ACCELERATION_Z,self.main_model_part)
 
-        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.WATER_PRESSURE, KratosMultiphysics.REACTION_WATER_PRESSURE,self.main_model_part)
+        KratosMultiphysics.VariableUtils().AddDof(KratosPoro.LIQUID_PRESSURE, KratosPoro.REACTION_LIQUID_PRESSURE,self.main_model_part)
 
-        KratosMultiphysics.Logger.PrintInfo("::[ExplicitUPwSolver]:: DOF's ADDED")
+        KratosMultiphysics.Logger.PrintInfo("::[ExplicitUPlSolver]:: DOF's ADDED")
 
     def Initialize(self):
         # Using the base Initialize
-        # super().Initialize()
+        # super(ExplicitUPlSolver,self).Initialize()
         """Perform initialization after adding nodal variables and dofs to the main model part. """
 
         self.computing_model_part = self.GetComputingModelPart()
@@ -136,16 +136,16 @@ class ExplicitUPwSolver(UPwSolver):
                 xi_n = (np.sqrt(1+g_coeff*Dt)-theta_factor*omega_n*Dt*0.5)
             rayleigh_beta = 2.0*(xi_n*omega_n-xi_1*omega_1)/(omega_n*omega_n-omega_1*omega_1)
             rayleigh_alpha = 2.0*xi_1*omega_1-rayleigh_beta*omega_1*omega_1
-            KratosMultiphysics.Logger.PrintInfo("::[ExplicitUPwSolver]:: Scheme Information")
-            KratosMultiphysics.Logger.PrintInfo("::[ExplicitUPwSolver]:: dt: ",Dt)
-            KratosMultiphysics.Logger.PrintInfo("::[ExplicitUPwSolver]:: g_coeff: ",g_coeff)
-            KratosMultiphysics.Logger.PrintInfo("::[ExplicitUPwSolver]:: omega_1: ",omega_1)
-            KratosMultiphysics.Logger.PrintInfo("::[ExplicitUPwSolver]:: omega_n: ",omega_n)
-            KratosMultiphysics.Logger.PrintInfo("::[ExplicitUPwSolver]:: xi_1: ",xi_1)
-            KratosMultiphysics.Logger.PrintInfo("::[ExplicitUPwSolver]:: xi_n: ",xi_n)
-            KratosMultiphysics.Logger.PrintInfo("::[ExplicitUPwSolver]:: Alpha and Beta output")
-            KratosMultiphysics.Logger.PrintInfo("::[ExplicitUPwSolver]:: rayleigh_alpha: ",rayleigh_alpha)
-            KratosMultiphysics.Logger.PrintInfo("::[ExplicitUPwSolver]:: rayleigh_beta: ",rayleigh_beta)
+            KratosMultiphysics.Logger.PrintInfo("::[ExplicitUPlSolver]:: Scheme Information")
+            KratosMultiphysics.Logger.PrintInfo("::[ExplicitUPlSolver]:: dt: ",Dt)
+            KratosMultiphysics.Logger.PrintInfo("::[ExplicitUPlSolver]:: g_coeff: ",g_coeff)
+            KratosMultiphysics.Logger.PrintInfo("::[ExplicitUPlSolver]:: omega_1: ",omega_1)
+            KratosMultiphysics.Logger.PrintInfo("::[ExplicitUPlSolver]:: omega_n: ",omega_n)
+            KratosMultiphysics.Logger.PrintInfo("::[ExplicitUPlSolver]:: xi_1: ",xi_1)
+            KratosMultiphysics.Logger.PrintInfo("::[ExplicitUPlSolver]:: xi_n: ",xi_n)
+            KratosMultiphysics.Logger.PrintInfo("::[ExplicitUPlSolver]:: Alpha and Beta output")
+            KratosMultiphysics.Logger.PrintInfo("::[ExplicitUPlSolver]:: rayleigh_alpha: ",rayleigh_alpha)
+            KratosMultiphysics.Logger.PrintInfo("::[ExplicitUPlSolver]:: rayleigh_beta: ",rayleigh_beta)
         
         process_info.SetValue(StructuralMechanicsApplication.RAYLEIGH_ALPHA, rayleigh_alpha)
         process_info.SetValue(StructuralMechanicsApplication.RAYLEIGH_BETA, rayleigh_beta)
