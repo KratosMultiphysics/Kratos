@@ -24,6 +24,11 @@ set( KRATOS_POROMECHANICS_APPLICATION_CORE_SOURCES
 
     # Processes
 
+    # Saturation Laws
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_saturation/saturation_law.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_saturation/brooksandcorey_law.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_saturation/vangenuchten_law.cpp
+
     # Constitutive Laws
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/continuum_laws/custom_flow_rules/local_damage_flow_rule.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/continuum_laws/custom_flow_rules/nonlocal_damage_flow_rule.cpp
@@ -77,6 +82,8 @@ set( KRATOS_POROMECHANICS_APPLICATION_CORE_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/one-phase_flow/U_Pl_small_strain_link_interface_element.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/one-phase_flow/U_Pl_small_strain_FIC_element.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/one-phase_flow/small_strain_U_Pl_diff_order_element.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/two-phase_flow/U_Pl_Pg_element.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/two-phase_flow/U_Pl_Pg_small_strain_element.cpp
 
     # Conditions
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/one-phase_flow/U_Pl_condition.cpp
@@ -95,6 +102,15 @@ set( KRATOS_POROMECHANICS_APPLICATION_CORE_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/one-phase_flow/surface_load_3D_diff_order_condition.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/one-phase_flow/surface_normal_load_3D_diff_order_condition.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/one-phase_flow/surface_normal_liquid_flux_3D_diff_order_condition.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/two-phase_flow/U_Pl_Pg_condition.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/two-phase_flow/U_Pl_Pg_force_condition.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/two-phase_flow/U_Pl_Pg_face_load_condition.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/two-phase_flow/U_Pl_Pg_normal_face_load_condition.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/two-phase_flow/U_Pl_Pg_liquid_discharge_condition.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/two-phase_flow/U_Pl_Pg_gas_discharge_condition.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/two-phase_flow/U_Pl_Pg_normal_liquid_flux_condition.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/two-phase_flow/U_Pl_Pg_normal_gas_flux_condition.cpp
+    
 )
 
 ## Define python interface sources
@@ -104,6 +120,7 @@ set( KRATOS_POROMECHANICS_APPLICATION_PYTHON_INTERFACE_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_utilities_to_python.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_processes_to_python.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_constitutive_laws_to_python.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_saturation_laws_to_python.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/poromechanics_python_application.cpp
 )
 

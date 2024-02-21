@@ -40,12 +40,20 @@
 #include "custom_conditions/one-phase_flow/surface_load_3D_diff_order_condition.hpp"
 #include "custom_conditions/one-phase_flow/surface_normal_load_3D_diff_order_condition.hpp"
 #include "custom_conditions/one-phase_flow/surface_normal_liquid_flux_3D_diff_order_condition.hpp"
+#include "custom_conditions/two-phase_flow/U_Pl_Pg_force_condition.hpp"
+#include "custom_conditions/two-phase_flow/U_Pl_Pg_face_load_condition.hpp"
+#include "custom_conditions/two-phase_flow/U_Pl_Pg_normal_face_load_condition.hpp"
+#include "custom_conditions/two-phase_flow/U_Pl_Pg_liquid_discharge_condition.hpp"
+#include "custom_conditions/two-phase_flow/U_Pl_Pg_gas_discharge_condition.hpp"
+#include "custom_conditions/two-phase_flow/U_Pl_Pg_normal_liquid_flux_condition.hpp"
+#include "custom_conditions/two-phase_flow/U_Pl_Pg_normal_gas_flux_condition.hpp"
 
 #include "custom_elements/one-phase_flow/U_Pl_small_strain_element.hpp"
 #include "custom_elements/one-phase_flow/U_Pl_small_strain_interface_element.hpp"
 #include "custom_elements/one-phase_flow/U_Pl_small_strain_link_interface_element.hpp"
 #include "custom_elements/one-phase_flow/U_Pl_small_strain_FIC_element.hpp"
 #include "custom_elements/one-phase_flow/small_strain_U_Pl_diff_order_element.hpp"
+#include "custom_elements/two-phase_flow/U_Pl_Pg_small_strain_element.hpp"
 
 #include "custom_constitutive/interface_element_laws/bilinear_cohesive_3D_law.hpp"
 #include "custom_constitutive/interface_element_laws/bilinear_cohesive_2D_law.hpp"
@@ -165,6 +173,11 @@ const SmallStrainUPlDiffOrderElement mSmallStrainUPlDiffOrderElement3D10N;
 const SmallStrainUPlDiffOrderElement mSmallStrainUPlDiffOrderElement3D20N;
 const SmallStrainUPlDiffOrderElement mSmallStrainUPlDiffOrderElement3D27N;
 
+const UPlPgSmallStrainElement<2,3> mUPlPgSmallStrainElement2D3N;
+const UPlPgSmallStrainElement<2,4> mUPlPgSmallStrainElement2D4N;
+const UPlPgSmallStrainElement<3,4> mUPlPgSmallStrainElement3D4N;
+const UPlPgSmallStrainElement<3,8> mUPlPgSmallStrainElement3D8N;
+
 const UPlForceCondition<2,1> mUPlForceCondition2D1N;
 const UPlForceCondition<3,1> mUPlForceCondition3D1N;
 const UPlFaceLoadCondition<2,2> mUPlFaceLoadCondition2D2N;
@@ -200,6 +213,25 @@ const SurfaceNormalLoad3DDiffOrderCondition mSurfaceNormalLoadDiffOrderCondition
 const SurfaceNormalLiquidFlux3DDiffOrderCondition mSurfaceNormalLiquidFluxDiffOrderCondition3D6N;
 const SurfaceNormalLiquidFlux3DDiffOrderCondition mSurfaceNormalLiquidFluxDiffOrderCondition3D8N;
 const SurfaceNormalLiquidFlux3DDiffOrderCondition mSurfaceNormalLiquidFluxDiffOrderCondition3D9N;
+
+const UPlPgForceCondition<2,1> mUPlPgForceCondition2D1N;
+const UPlPgForceCondition<3,1> mUPlPgForceCondition3D1N;
+const UPlPgFaceLoadCondition<2,2> mUPlPgFaceLoadCondition2D2N;
+const UPlPgFaceLoadCondition<3,3> mUPlPgFaceLoadCondition3D3N;
+const UPlPgFaceLoadCondition<3,4> mUPlPgFaceLoadCondition3D4N;
+const UPlPgNormalFaceLoadCondition<2,2> mUPlPgNormalFaceLoadCondition2D2N;
+const UPlPgNormalFaceLoadCondition<3,3> mUPlPgNormalFaceLoadCondition3D3N;
+const UPlPgNormalFaceLoadCondition<3,4> mUPlPgNormalFaceLoadCondition3D4N;
+const UPlPgLiquidDischargeCondition<2,1> mUPlPgLiquidDischargeCondition2D1N;
+const UPlPgLiquidDischargeCondition<3,1> mUPlPgLiquidDischargeCondition3D1N;
+const UPlPgGasDischargeCondition<2,1> mUPlPgGasDischargeCondition2D1N;
+const UPlPgGasDischargeCondition<3,1> mUPlPgGasDischargeCondition3D1N;
+const UPlPgNormalLiquidFluxCondition<2,2> mUPlPgNormalLiquidFluxCondition2D2N;
+const UPlPgNormalLiquidFluxCondition<3,3> mUPlPgNormalLiquidFluxCondition3D3N;
+const UPlPgNormalLiquidFluxCondition<3,4> mUPlPgNormalLiquidFluxCondition3D4N;
+const UPlPgNormalGasFluxCondition<2,2> mUPlPgNormalGasFluxCondition2D2N;
+const UPlPgNormalGasFluxCondition<3,3> mUPlPgNormalGasFluxCondition3D3N;
+const UPlPgNormalGasFluxCondition<3,4> mUPlPgNormalGasFluxCondition3D4N;
 
 const ElastoPlasticMohrCoulombCohesive3DLaw mElastoPlasticMohrCoulombCohesive3DLaw;
 const ElastoPlasticMohrCoulombCohesive2DLaw mElastoPlasticMohrCoulombCohesive2DLaw;
