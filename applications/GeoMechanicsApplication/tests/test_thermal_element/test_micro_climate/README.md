@@ -2,7 +2,9 @@
 
 **Author:** [Mohamed Nabi](https://github.com/mnabideltares)
 
-**Source files:** [Micro Climate Boundary Condition](https://github.com/KratosMultiphysics/Kratos/tree/master/applications/GeoMechanicsApplication/tests/test_thermal_element/test_micro_climate)
+**Source files:** [Micro Climate Tests](https://github.com/KratosMultiphysics/Kratos/tree/master/applications/GeoMechanicsApplication/tests/test_thermal_element/test_micro_climate)
+
+**Theoretical documentation source** [Micro Climate Condition](https://github.com/KratosMultiphysics/Kratos/tree/master/applications/GeoMechanicsApplication/custom_conditions/README.md)
 #
 # Case Specification
 We employed eight test cases to encompass a range of potential scenarios and thoroughly evaluate all functionalities related to the micro-climate within the code. These test cases, each varying in the constant required from the user, are detailed in the table below.
