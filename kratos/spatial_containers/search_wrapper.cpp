@@ -78,37 +78,34 @@ int SearchWrapper<TSearchObject, TSpatialSearchCommunication>::GetWorldSize() co
 template<class TSearchObject, SpatialSearchCommunication TSpatialSearchCommunication>
 void SearchWrapper<TSearchObject, TSpatialSearchCommunication>::InitializeGlobalBoundingBoxes()
 {
-    // Just executed in MPI
-    if (mrDataCommunicator.IsDistributed()) {
-        // We get the world size
-        const int world_size = GetWorldSize();
+    // We get the world size
+    const int world_size = GetWorldSize();
 
-        // Set up the global bounding boxes
-        if (static_cast<int>(mGlobalBoundingBoxes.size()) != 6*world_size) {
-            mGlobalBoundingBoxes.resize(6*world_size);
-        }
-
-        // Set up the local bounding boxes
-        std::vector<double> local_bounding_box(6);
-        array_1d<double, 3> local_max, local_min;
-        if (mpSearchObject) {
-            const auto& r_local_bb = mpSearchObject->GetBoundingBox();
-            noalias(local_max) = r_local_bb.GetMaxPoint().Coordinates();
-            noalias(local_min) = r_local_bb.GetMinPoint().Coordinates();
-        } else {
-            noalias(local_max) = ZeroVector(3);
-            noalias(local_min) = ZeroVector(3);
-        }
-
-        // Assign local BB
-        for (int i = 0; i < 3; ++i) {
-            local_bounding_box[2 * i] = local_max[i];
-            local_bounding_box[2 * i + 1] = local_min[i];
-        }
-
-        // Gather all bounding boxes
-        mrDataCommunicator.AllGather(local_bounding_box, mGlobalBoundingBoxes);
+    // Set up the global bounding boxes
+    if (static_cast<int>(mGlobalBoundingBoxes.size()) != 6*world_size) {
+        mGlobalBoundingBoxes.resize(6*world_size);
     }
+
+    // Set up the local bounding boxes
+    std::vector<double> local_bounding_box(6);
+    array_1d<double, 3> local_max, local_min;
+    if (mpSearchObject) {
+        const auto& r_local_bb = mpSearchObject->GetBoundingBox();
+        noalias(local_max) = r_local_bb.GetMaxPoint().Coordinates();
+        noalias(local_min) = r_local_bb.GetMinPoint().Coordinates();
+    } else {
+        noalias(local_max) = ZeroVector(3);
+        noalias(local_min) = ZeroVector(3);
+    }
+
+    // Assign local BB
+    for (int i = 0; i < 3; ++i) {
+        local_bounding_box[2 * i] = local_max[i];
+        local_bounding_box[2 * i + 1] = local_min[i];
+    }
+
+    // Gather all bounding boxes
+    mrDataCommunicator.AllGather(local_bounding_box, mGlobalBoundingBoxes);
 }
 
 /***********************************************************************************/
