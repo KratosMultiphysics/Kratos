@@ -976,16 +976,14 @@ private:
             const std::size_t total_number_of_points = itPointEnd - itPointBegin;
             for (IndexType i_point = 0 ; i_point < total_number_of_points; ++i_point) {
                 auto it_point = itPointBegin + i_point;
-                if (PointIsInsideBoundingBox(rBoundingBox, *it_point, ThresholdBoundingBox)) {
-                    const auto& r_coordinates = it_point->Coordinates();
-                    for (i_coord = 0; i_coord < 3; ++i_coord) {
-                        rSearchInfo.PointCoordinates.push_back(r_coordinates[i_coord]);
-                    }
-                    rSearchInfo.LocalIndices.push_back(all_points_local_ids[i_point]);
-                    rSearchInfo.GlobalIndices.push_back(all_points_global_ids[i_point]);
-                    rSearchInfo.GlobalPosition.push_back(i_point);
-                    rSearchInfo.Ranks.push_back({0});
+                const auto& r_coordinates = it_point->Coordinates();
+                for (i_coord = 0; i_coord < 3; ++i_coord) {
+                    rSearchInfo.PointCoordinates.push_back(r_coordinates[i_coord]);
                 }
+                rSearchInfo.LocalIndices.push_back(all_points_local_ids[i_point]);
+                rSearchInfo.GlobalIndices.push_back(all_points_global_ids[i_point]);
+                rSearchInfo.GlobalPosition.push_back(i_point);
+                rSearchInfo.Ranks.push_back({0});
             }
         }
 
