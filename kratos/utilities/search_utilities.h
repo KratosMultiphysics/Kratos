@@ -876,8 +876,8 @@ private:
                 ++counter;
             }
             // Copy values
-            IndexPartition<std::size_t>(TotalNumberOfPoints).for_each([&rAllPointsGlobalIds, &rAllPointsLocalIds](std::size_t i) {
-                rAllPointsLocalIds[i] = rAllPointsGlobalIds[i];
+            IndexPartition<std::size_t>(TotalNumberOfPoints).for_each([&rAllPointsLocalIds](std::size_t i) {
+                rAllPointsLocalIds[i] = i;
             });
         }
 
