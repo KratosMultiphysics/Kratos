@@ -102,9 +102,6 @@ vector variables part (displacements and/or rotations) they take different parts
 - Damped: as quasistatic + velocity/angular velocity related matrices and vectors
 - Dynamics: as damped + intertia (acceleration/angular acceleration) related matrices and vectors
 
-Quasistatic the contribution to matrices and vectors for displacements/rotations only, damped the contribution to
-matrices and vectors for displacements/rotations and velocities/angular velocities and dynamic the contribution to
-matrices and vectors for accelerations/angular accelerations, velocities/angular velocities and displacements/rotations.
 Therefore, the functionality `UpdateVariablesDerivatives`, `CalculateSystemContributions`, `CalculateRHSContribution`
 and `CalculateLHSContribution` are overridden and add extra terms to the system matrix and right hand side vector for
 the dynamic/damped schemes.
