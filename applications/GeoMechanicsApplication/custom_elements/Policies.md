@@ -77,9 +77,9 @@ For a very simple 2D element consisting of three nodes, this gradient could look
 ```math
 \nabla{N} =
 \begin{bmatrix}
-\delta N_1/\delta d_x & \delta N_1/\delta d_x \\
-\delta N_2/\delta d_x & \delta N_2/\delta d_x \\
-\delta N_3/\delta d_x & \delta N_3/\delta d_x
+\delta N_1/\delta d_x & \delta N_1/\delta d_y \\
+\delta N_2/\delta d_x & \delta N_2/\delta d_y \\
+\delta N_3/\delta d_x & \delta N_3/\delta d_y
 \end{bmatrix}
 ```
 Where the rows depict the different nodes in the element.
