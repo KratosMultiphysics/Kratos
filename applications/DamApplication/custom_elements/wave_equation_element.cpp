@@ -60,8 +60,8 @@ int WaveEquationElement<TDim,TNumNodes>::Check(const ProcessInfo& rCurrentProces
         KRATOS_THROW_ERROR( std::invalid_argument,"ACCELERATION_PRESSURE_COEFFICIENT has Key zero at element", this->Id() )
 
        // Verify properties
-    if ( BULK_MODULUS_FLUID.Key() == 0 || Prop.Has( BULK_MODULUS_FLUID ) == false || Prop[BULK_MODULUS_FLUID] < 0.0 )
-        KRATOS_THROW_ERROR( std::invalid_argument,"BULK_MODULUS_FLUID has Key zero, is not defined or has an invalid value at element", this->Id() )
+    if ( BULK_MODULUS_LIQUID.Key() == 0 || Prop.Has( BULK_MODULUS_LIQUID ) == false || Prop[BULK_MODULUS_LIQUID] < 0.0 )
+        KRATOS_THROW_ERROR( std::invalid_argument,"BULK_MODULUS_LIQUID has Key zero, is not defined or has an invalid value at element", this->Id() )
     if ( DENSITY_WATER.Key() == 0 || Prop.Has( DENSITY_WATER ) == false || Prop[DENSITY_WATER] < 0.0 )
         KRATOS_THROW_ERROR( std::invalid_argument,"DENSITY_WATER has Key zero, is not defined or has an invalid value at element", this->Id() )
 
@@ -266,7 +266,7 @@ void WaveEquationElement<TDim,TNumNodes>::CalculateLHS( MatrixType& rLeftHandSid
 		double IntegrationCoefficient;
 
         // Definition of the speed in the fluid
-        const double BulkModulus = Prop[BULK_MODULUS_FLUID];
+        const double BulkModulus = Prop[BULK_MODULUS_LIQUID];
         const double Water_density = Prop[DENSITY_WATER];
         const double inv_c_speed = 1.0 /sqrt(BulkModulus/Water_density);
 
@@ -316,7 +316,7 @@ void WaveEquationElement<TDim,TNumNodes>::CalculateRHS(VectorType& rRightHandSid
 		double IntegrationCoefficient;
 
         // Definition of the speed in the fluid
-        const double BulkModulus = Prop[BULK_MODULUS_FLUID];
+        const double BulkModulus = Prop[BULK_MODULUS_LIQUID];
         const double Water_density = Prop[DENSITY_WATER];
         const double inv_c_speed = 1.0 /sqrt(BulkModulus/Water_density);
 

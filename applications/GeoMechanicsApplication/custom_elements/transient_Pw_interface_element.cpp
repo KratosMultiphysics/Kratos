@@ -12,6 +12,7 @@
 
 // Application includes
 #include "custom_elements/transient_Pw_interface_element.hpp"
+#include "custom_utilities/dof_utilities.h"
 #include "custom_utilities/interface_element_utilities.hpp"
 #include "geo_mechanics_application_variables.h"
 
@@ -684,40 +685,16 @@ void TransientPwInterfaceElement<TDim, TNumNodes>::CalculateAndAddFluidBodyFlow(
 
 template <unsigned int TDim, unsigned int TNumNodes>
 void TransientPwInterfaceElement<TDim, TNumNodes>::GetDofList(DofsVectorType& rElementalDofList,
-                                                              const ProcessInfo& rCurrentProcessInfo) const
+                                                              const ProcessInfo&) const
 {
-    KRATOS_TRY
-
-    const GeometryType& rGeom = this->GetGeometry();
-    const unsigned int  N_DOF = this->GetNumberOfDOF();
-
-    if (rElementalDofList.size() != N_DOF) rElementalDofList.resize(N_DOF);
-
-    unsigned int index = 0;
-    for (unsigned int i = 0; i < TNumNodes; ++i) {
-        rElementalDofList[index++] = rGeom[i].pGetDof(WATER_PRESSURE);
-    }
-
-    KRATOS_CATCH("")
+    rElementalDofList = GetDofs();
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
 void TransientPwInterfaceElement<TDim, TNumNodes>::EquationIdVector(EquationIdVectorType& rResult,
-                                                                    const ProcessInfo& rCurrentProcessInfo) const
+                                                                    const ProcessInfo&) const
 {
-    KRATOS_TRY
-
-    const GeometryType& rGeom = this->GetGeometry();
-    const unsigned int  N_DOF = this->GetNumberOfDOF();
-
-    if (rResult.size() != N_DOF) rResult.resize(N_DOF, false);
-
-    unsigned int index = 0;
-    for (unsigned int i = 0; i < TNumNodes; ++i) {
-        rResult[index++] = rGeom[i].GetDof(WATER_PRESSURE).EquationId();
-    }
-
-    KRATOS_CATCH("")
+    rResult = Geo::DofUtilities::ExtractEquationIdsFrom(GetDofs());
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
@@ -729,6 +706,7 @@ void TransientPwInterfaceElement<TDim, TNumNodes>::GetValuesVector(Vector& rValu
 
     if (rValues.size() != N_DOF) rValues.resize(N_DOF, false);
 
+    // Why are we constructing a zero vector here?
     unsigned int index = 0;
     for (unsigned int i = 0; i < TNumNodes; ++i) {
         rValues[index++] = 0.0;
@@ -746,6 +724,7 @@ void TransientPwInterfaceElement<TDim, TNumNodes>::GetFirstDerivativesVector(Vec
 
     if (rValues.size() != N_DOF) rValues.resize(N_DOF, false);
 
+    // Why are we constructing a zero vector here?
     unsigned int index = 0;
     for (unsigned int i = 0; i < TNumNodes; ++i) {
         rValues[index++] = 0.0;
@@ -763,6 +742,7 @@ void TransientPwInterfaceElement<TDim, TNumNodes>::GetSecondDerivativesVector(Ve
 
     if (rValues.size() != N_DOF) rValues.resize(N_DOF, false);
 
+    // Why are we constructing a zero vector here?
     unsigned int index = 0;
     for (unsigned int i = 0; i < TNumNodes; ++i) {
         rValues[index++] = 0.0;
@@ -775,6 +755,12 @@ template <unsigned int TDim, unsigned int TNumNodes>
 unsigned int TransientPwInterfaceElement<TDim, TNumNodes>::GetNumberOfDOF() const
 {
     return TNumNodes;
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
+Element::DofsVectorType TransientPwInterfaceElement<TDim, TNumNodes>::GetDofs() const
+{
+    return Geo::DofUtilities::ExtractDofsFromNodes(this->GetGeometry(), WATER_PRESSURE);
 }
 
 template class TransientPwInterfaceElement<2, 4>;
