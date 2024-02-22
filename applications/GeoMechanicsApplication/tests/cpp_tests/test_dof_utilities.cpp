@@ -297,4 +297,33 @@ KRATOS_TEST_CASE_IN_SUITE(ExtractingValuesFromUPwDofsNotBeingPwYieldsNodalValues
                               expected_values, abs_tolerance)
 }
 
+KRATOS_TEST_CASE_IN_SUITE(ExtractingPwValuesFromUPwDofsAlwaysYieldsZeroes, KratosGeoMechanicsFastSuite)
+{
+    auto        model        = Model{};
+    const auto& r_variable   = WATER_PRESSURE;
+    auto&       r_model_part = CreateTestModelPart(model, r_variable);
+    AddThreeNodesWithDofs(r_model_part, r_variable);
+
+    const auto current_buffer_index = std::size_t{0};
+    const auto current_values       = std::vector<NodeIndexAndValue>{
+        std::make_pair(1, 1.0), std::make_pair(2, 2.0), std::make_pair(3, 3.0)};
+    SetNodalValues(r_model_part, current_values, r_variable, current_buffer_index);
+
+    const auto previous_buffer_index = std::size_t{1};
+    const auto previous_values       = std::vector<NodeIndexAndValue>{
+        std::make_pair(1, 4.0), std::make_pair(2, 5.0), std::make_pair(3, 6.0)};
+    SetNodalValues(r_model_part, previous_values, r_variable, previous_buffer_index);
+
+    const auto dofs = Geo::DofUtilities::ExtractDofsFromNodes(r_model_part.Nodes(), r_variable);
+
+    auto expected_values = Vector(3);
+    expected_values <<= 0.0, 0.0, 0.0;
+    const auto abs_tolerance = 1.0e-8;
+    KRATOS_EXPECT_VECTOR_NEAR(Geo::DofUtilities::ExtractSolutionStepValuesOfUPwDofs(dofs, current_buffer_index),
+                              expected_values, abs_tolerance)
+
+    KRATOS_EXPECT_VECTOR_NEAR(Geo::DofUtilities::ExtractSolutionStepValuesOfUPwDofs(dofs, previous_buffer_index),
+                              expected_values, abs_tolerance)
+}
+
 } // namespace Kratos::Testing
