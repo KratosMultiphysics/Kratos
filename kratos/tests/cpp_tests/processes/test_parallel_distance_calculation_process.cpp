@@ -20,8 +20,7 @@
 #include "processes/parallel_distance_calculation_process.h"
 #include "testing/testing.h"
 
-namespace Kratos {
-namespace Testing {
+namespace Kratos ::Testing {
 
 namespace ParallelDistanceCalculationProcessTestInternals
 {
@@ -174,5 +173,4 @@ KRATOS_TEST_CASE_IN_SUITE(ParallelDistanceProcessQuadrilateralNonHistorical2D, K
     }
 }
 
-}
-}  // namespace Kratos.
+}  // namespace Kratos::Testing.
