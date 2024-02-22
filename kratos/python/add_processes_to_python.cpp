@@ -683,7 +683,7 @@ void  AddProcessesToPython(pybind11::module& m)
     .def("HasNeighboursInFaces", &GenericFindElementalNeighboursProcess::HasNeighboursInFaces)
     ;
 
-    py::class_<CalculateOnlyNodalDistanceToSkin, CalculateOnlyNodalDistanceToSkin::Pointer, Process> (m, "CalculateOnlyNodalDistanceToSkin")
+    py::class_<CalculateOnlyNodalDistanceToSkinProcess, CalculateOnlyNodalDistanceToSkinProcess::Pointer, Process> (m, "CalculateOnlyNodalDistanceToSkinProcess")
     .def(py::init<Model&, Parameters>())
     ;
 }

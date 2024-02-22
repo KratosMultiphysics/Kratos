@@ -29,21 +29,21 @@ namespace Kratos
 ///@{
 
 /**
- * @class CalculateOnlyNodalDistanceToSkin
+ * @class CalculateOnlyNodalDistanceToSkinProcess
  * @ingroup KratosCore
  * @brief This class computes the distance in the node using the GeometricalObjectBins class
  * @details Distance is only, and only calculated in the nodes.
  * @author Vicente Mataix Ferrandiz
  */
-class KRATOS_API(KRATOS_CORE) CalculateOnlyNodalDistanceToSkin
+class KRATOS_API(KRATOS_CORE) CalculateOnlyNodalDistanceToSkinProcess
     : public Process
 {
 public:
     ///@name Type Definitions
     ///@{
 
-    /// Pointer definition of CalculateOnlyNodalDistanceToSkin
-    KRATOS_CLASS_POINTER_DEFINITION(CalculateOnlyNodalDistanceToSkin);
+    /// Pointer definition of CalculateOnlyNodalDistanceToSkinProcess
+    KRATOS_CLASS_POINTER_DEFINITION(CalculateOnlyNodalDistanceToSkinProcess);
 
     ///@}
     ///@name Life Cycle
@@ -57,7 +57,7 @@ public:
      * @param HistoricalVariable If the variable is part of the historical database of from the non-historical database
      * @param rDistanceVariableName The distance variable considered
      */
-    CalculateOnlyNodalDistanceToSkin(
+    CalculateOnlyNodalDistanceToSkinProcess(
         ModelPart& rVolumeModelPart,
         ModelPart& rSkinModelPart,
         const bool HistoricalVariable = true,
@@ -71,26 +71,26 @@ public:
      * @param ThisParameters User-defined parameters to construct the
      * class
      */
-    CalculateOnlyNodalDistanceToSkin(
+    CalculateOnlyNodalDistanceToSkinProcess(
         Model& rModel,
         Parameters ThisParameters
         );
 
     /// Destructor.
-    ~CalculateOnlyNodalDistanceToSkin() override = default;
+    ~CalculateOnlyNodalDistanceToSkinProcess() override = default;
 
     ///@}
     ///@name Deleted
     ///@{
 
     /// Default constructor.
-    CalculateOnlyNodalDistanceToSkin() = delete;;
+    CalculateOnlyNodalDistanceToSkinProcess() = delete;;
 
     /// Copy constructor.
-    CalculateOnlyNodalDistanceToSkin(CalculateOnlyNodalDistanceToSkin const& rOther) = delete;
+    CalculateOnlyNodalDistanceToSkinProcess(CalculateOnlyNodalDistanceToSkinProcess const& rOther) = delete;
 
     /// Assignment operator.
-    CalculateOnlyNodalDistanceToSkin& operator=(CalculateOnlyNodalDistanceToSkin const& rOther) = delete;
+    CalculateOnlyNodalDistanceToSkinProcess& operator=(CalculateOnlyNodalDistanceToSkinProcess const& rOther) = delete;
 
     ///@}
     ///@name Operations
@@ -157,7 +157,7 @@ private:
     ///@{
 
     ///@}
-}; // Class CalculateOnlyNodalDistanceToSkin
+}; // Class CalculateOnlyNodalDistanceToSkinProcess
 
 ///@}
 ///@name Type Definitions
@@ -171,12 +171,12 @@ private:
 /// input stream function
 inline std::istream& operator >> (
     std::istream& rIStream,
-    CalculateOnlyNodalDistanceToSkin& rThis);
+    CalculateOnlyNodalDistanceToSkinProcess& rThis);
 
 /// output stream function
 inline std::ostream& operator << (
     std::ostream& rOStream,
-    const CalculateOnlyNodalDistanceToSkin& rThis)
+    const CalculateOnlyNodalDistanceToSkinProcess& rThis)
 {
     rThis.PrintInfo(rOStream);
     rOStream << std::endl;
