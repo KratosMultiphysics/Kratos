@@ -1,5 +1,5 @@
 # Microclimate Boundary Condition
-A microclimate boundary condition refers to the specific set of environmental factors and conditions that influence the climate within a small, localized area, known as a microclimate. Unlike the broader regional or global climate, microclimates are unique climatic conditions that can vary significantly within a relatively small space.
+A microclimate boundary condition refers to the specific set of environmental factors and conditions that influence the climate within a small, localized area, known as a microclimate. Unlike the broader regional or global climate, microclimates are unique climatic conditions that can vary significantly over a relatively small distance.
 
 Microclimate boundary conditions are determined by factors such as:
 
@@ -16,9 +16,9 @@ $$ R_n = R^s + R^{l,ab} - R^{l,em} $$
 
 where
 
-- $R^s$ = in-coming short wave radiation $\mathrm{[W/m^2]}$
-- $R^{l,ab}$ = absorbed long wave radiation $\mathrm{[W/m^2]}$
-- $R^{l,em}$ = emitted long wave radiation $\mathrm{[W/m^2]}$
+- $R^s$ = absorbed solar radiation $\mathrm{[W/m^2]}$
+- $R^{l,ab}$ = absorbed atmospheric radiation $\mathrm{[W/m^2]}$
+- $R^{l,em}$ = emitted black/grey body radiation from the soil $\mathrm{[W/m^2]}$
 
 The incoming short wave radiation is defined by
 
@@ -88,7 +88,7 @@ $$ e^\prime=  \frac{4098 \space e^s}{\left(T + 237.3\right)^2} $$
 
 $$ e^a = \frac{\mathrm{RH}}{100} e^s $$
 
-$\mathrm{RH}$ is the relative humidity which is a user defined parameter.
+$\mathrm{RH}$ $\mathrm{[%]}$is the relative humidity which is a user defined parameter.
 
 The atomospheric resistance,
 
