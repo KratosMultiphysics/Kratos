@@ -326,4 +326,37 @@ KRATOS_TEST_CASE_IN_SUITE(ExtractingPwValuesFromUPwDofsAlwaysYieldsZeroes, Krato
                               expected_values, abs_tolerance)
 }
 
+KRATOS_TEST_CASE_IN_SUITE(ExtractingFirstDerivativesFromUPwDofsNotBeingDPwDtYieldsNodalFirstDerivatives, KratosGeoMechanicsFastSuite)
+{
+    const auto& r_variable              = DISPLACEMENT_X;
+    const auto& r_first_time_derivative = VELOCITY_X;
+    const auto all_variables = ConstVariableRefs{std::cref(r_variable), std::cref(r_first_time_derivative)};
+
+    auto  model        = Model{};
+    auto& r_model_part = CreateTestModelPart(model, all_variables);
+    AddThreeNodesWithDofs(r_model_part, all_variables);
+
+    const auto current_buffer_index = std::size_t{0};
+    const auto current_values       = std::vector<NodeIndexAndValue>{
+        std::make_pair(1, 1.0), std::make_pair(2, 2.0), std::make_pair(3, 3.0)};
+    SetNodalValues(r_model_part, current_values, r_first_time_derivative, current_buffer_index);
+
+    const auto previous_buffer_index = std::size_t{1};
+    const auto previous_values       = std::vector<NodeIndexAndValue>{
+        std::make_pair(1, 4.0), std::make_pair(2, 5.0), std::make_pair(3, 6.0)};
+    SetNodalValues(r_model_part, previous_values, r_first_time_derivative, previous_buffer_index);
+
+    const auto dofs = Geo::DofUtilities::ExtractDofsFromNodes(r_model_part.Nodes(), r_variable);
+
+    auto expected_values = Vector(3);
+    expected_values <<= 1.0, 2.0, 3.0;
+    const auto abs_tolerance = 1.0e-8;
+    KRATOS_EXPECT_VECTOR_NEAR(Geo::DofUtilities::ExtractFirstTimeDerivativesOfUPwDofs(dofs, current_buffer_index),
+                              expected_values, abs_tolerance)
+
+    boost::range::copy(std::vector<double>{4.0, 5.0, 6.0}, expected_values.begin());
+    KRATOS_EXPECT_VECTOR_NEAR(Geo::DofUtilities::ExtractFirstTimeDerivativesOfUPwDofs(dofs, previous_buffer_index),
+                              expected_values, abs_tolerance)
+}
+
 } // namespace Kratos::Testing
