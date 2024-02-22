@@ -54,7 +54,7 @@ public:
     void Predict(ModelPart& rModelPart, DofsArrayType& rDofSet, TSystemMatrixType& A, TSystemVectorType& Dx, TSystemVectorType& b) override
     {
         KRATOS_TRY
-        KRATOS_INFO("NewmarkDynamicUPw Predict") << std::endl;
+
         PredictVariables(rModelPart);
         // Update (Angular) Acceleration, (Angular) Velocity and DtPressure
         this->UpdateVariablesDerivatives(rModelPart);
