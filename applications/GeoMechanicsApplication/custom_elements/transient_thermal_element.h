@@ -16,6 +16,7 @@
 
 #include "custom_constitutive/thermal_dispersion_law.h"
 #include "custom_retention/retention_law_factory.h"
+#include "custom_utilities/dof_utilities.h"
 #include "geo_mechanics_application_variables.h"
 #include "includes/element.h"
 #include "includes/serializer.h"
@@ -53,26 +54,12 @@ public:
 
     void GetDofList(DofsVectorType& rElementalDofList, const ProcessInfo&) const override
     {
-        KRATOS_TRY
-
-        rElementalDofList.resize(TNumNodes);
-        for (unsigned int i = 0; i < TNumNodes; ++i) {
-            rElementalDofList[i] = GetGeometry()[i].pGetDof(TEMPERATURE);
-        }
-
-        KRATOS_CATCH("")
+        rElementalDofList = GetDofs();
     }
 
     void EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo&) const override
     {
-        KRATOS_TRY
-
-        rResult.resize(TNumNodes, false);
-        for (unsigned int i = 0; i < TNumNodes; ++i) {
-            rResult[i] = GetGeometry()[i].GetDof(TEMPERATURE).EquationId();
-        }
-
-        KRATOS_CATCH("")
+        rResult = Geo::DofUtilities::ExtractEquationIdsFrom(GetDofs());
     }
 
     void CalculateLocalSystem(MatrixType&        rLeftHandSideMatrix,
@@ -298,6 +285,11 @@ private:
             return node.FastGetSolutionStepValue(rNodalVariable);
         });
         return result;
+    }
+
+    [[nodiscard]] DofsVectorType GetDofs() const
+    {
+        return Geo::DofUtilities::ExtractDofsFromNodes(GetGeometry(), TEMPERATURE);
     }
 
     friend class Serializer;

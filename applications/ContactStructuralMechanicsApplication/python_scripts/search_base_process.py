@@ -720,10 +720,10 @@ class SearchBaseProcess(KM.Process):
         self -- It signifies an instance of a class
         key -- The key to identify the current pair.
         """
-        detect_skin_parameters = KM.Parameters("""{"name_auxiliary_model_part": "Contact"}""")
+        detect_skin_parameters = KM.Parameters("""{"name_auxiliar_model_part": "Contact"}""")
         sub_search_model_part_name = "ContactSub" + key
         self._get_process_model_part().CreateSubModelPart(sub_search_model_part_name)
-        detect_skin_parameters["name_auxiliary_model_part"].SetString(sub_search_model_part_name)
+        detect_skin_parameters["name_auxiliar_model_part"].SetString(sub_search_model_part_name)
         if self.dimension == 2:
             detect_skin = KM.SkinDetectionProcess2D(model_part, detect_skin_parameters)
         else:
