@@ -34,6 +34,7 @@ public:
     using PoroNewmarkQuasistaticUPlPgScheme<TSparseSpace,TDenseSpace>::mDeltaTime;
     using PoroNewmarkQuasistaticUPlPgScheme<TSparseSpace,TDenseSpace>::mBeta;
     using PoroNewmarkQuasistaticUPlPgScheme<TSparseSpace,TDenseSpace>::mGamma;
+    using PoroNewmarkQuasistaticUPlPgScheme<TSparseSpace,TDenseSpace>::mTheta_u;
     using PoroNewmarkQuasistaticUPlPgScheme<TSparseSpace,TDenseSpace>::mTheta_pl;
     using PoroNewmarkQuasistaticUPlPgScheme<TSparseSpace,TDenseSpace>::mTheta_pg;
 
