@@ -100,7 +100,7 @@ The dynamic, damped and quasistatic schemes are all Generalized Newmark schemes 
 vector variables part (displacements and/or rotations) they take different parts of the equation of motion into account:
 - Quasistatic: displacements/rotations related matrices and vectors only
 - Damped: as quasistatic + velocity/angular velocity related matrices and vectors
-- Dynamics: as damped + intertia (acceleration/angular acceleration) related matrices and vectors
+- Dynamics: as damped + inertia (acceleration/angular acceleration) related matrices and vectors
 
 Therefore, the functionality `UpdateVariablesDerivatives`, `CalculateSystemContributions`, `CalculateRHSContribution`
 and `CalculateLHSContribution` are overridden and add extra terms to the system matrix and right hand side vector for
