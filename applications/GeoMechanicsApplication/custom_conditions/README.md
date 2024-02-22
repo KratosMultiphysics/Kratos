@@ -142,7 +142,7 @@ $g$ is gravitation constant $\mathrm{[9.81 m/s^2]}$
 
 ## Actual Precipitation and Evaporation
 For the computation of the actual precipitation and actual evaporation the potential and actual storage is introduced. The influs into the soil follows from the actual storage of water.
-The potential storage $S_p^{j+1}$ $\mathrm{[mm]}$ at time step $j+1$ follows from the actual storage $S_a^j$ $\mathrm{[mm]}$ at the previous time step $j$, the time step size $|Delta t$ $\mathrm{[s]}$ and the difference in potential precipitation $P_p^{j+1}$ $\mathrm{[mm/s]}$ and the potential evaporation $E_p^{j+1}$ $\mathrm{[mm/s]}$ during the new time step as:
+The potential storage $S_p^{j+1}$ $\mathrm{[mm]}$ at time step $j+1$ follows from the actual storage $S_a^j$ $\mathrm{[mm]}$ at the previous time step $j$, the time step size $\Delta t$ $\mathrm{[s]}$ and the difference in potential precipitation $P_p^{j+1}$ $\mathrm{[mm/s]}$ and the potential evaporation $E_p^{j+1}$ $\mathrm{[mm/s]}$ during the new time step as:
 
 $$ S_p^{j+1} = S_a^j + \Delta t \left( P_p^{j+1} - E_p^{j+1} \right) $$
 
