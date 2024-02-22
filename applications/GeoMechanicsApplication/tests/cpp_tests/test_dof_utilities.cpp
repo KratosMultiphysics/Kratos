@@ -24,6 +24,14 @@ namespace
 
 using namespace Kratos;
 
+ModelPart& CreateTestModelPart(Model& rModel, const Variable<double>& rVariable)
+{
+    const auto buffer_size = std::size_t{2};
+    auto&      r_result    = rModel.CreateModelPart("Dummy", buffer_size);
+    r_result.AddNodalSolutionStepVariable(rVariable);
+    return r_result;
+}
+
 Dof<double> MakeDofWithEquationId(Dof<double>::EquationIdType EquationId)
 {
     Dof<double> result;
@@ -41,6 +49,26 @@ intrusive_ptr<Node> AddNodeWithDof(ModelPart&              rModelPart,
     auto p_result = rModelPart.CreateNewNode(NodeId, x, y, z);
     p_result->AddDof(rDofVariable);
     return p_result;
+}
+
+void AddThreeNodesWithDofs(ModelPart& rModelPart, const Variable<double>& rVariable)
+{
+    AddNodeWithDof(rModelPart, 1, 0.0, 0.0, 0.0, rVariable);
+    AddNodeWithDof(rModelPart, 2, 1.0, 0.0, 0.0, rVariable);
+    AddNodeWithDof(rModelPart, 3, 0.0, 1.0, 0.0, rVariable);
+}
+
+using NodeIndexAndValue = std::pair<std::size_t, double>;
+
+void SetNodalValues(ModelPart&                            rModelPart,
+                    const std::vector<NodeIndexAndValue>& rNodalValues,
+                    const Variable<double>&               rDofVariable,
+                    std::size_t                           BufferIndex)
+{
+    for (const auto& [index, value] : rNodalValues) {
+        auto& r_node                                               = rModelPart.GetNode(index);
+        r_node.FastGetSolutionStepValue(rDofVariable, BufferIndex) = value;
+    }
 }
 
 } // namespace
@@ -121,36 +149,32 @@ KRATOS_TEST_CASE_IN_SUITE(VariableTypeAndNodeIDsMustMatchWhenExtractingDofsFromN
 
 KRATOS_TEST_CASE_IN_SUITE(ExtractingValuesFromDofsGetsNodalValues, KratosGeoMechanicsFastSuite)
 {
-    auto       model        = Model{};
-    const auto buffer_size  = Model::IndexType{2};
-    auto&      r_model_part = model.CreateModelPart("Dummy", buffer_size);
-    r_model_part.AddNodalSolutionStepVariable(DISPLACEMENT_X);
+    auto        model        = Model{};
+    const auto& r_variable   = DISPLACEMENT_X;
+    auto&       r_model_part = CreateTestModelPart(model, r_variable);
+    AddThreeNodesWithDofs(r_model_part, r_variable);
 
-    const auto current_buffer_index = Node::IndexType{0};
-    auto       p_node1 = AddNodeWithDof(r_model_part, 1, 0.0, 0.0, 0.0, DISPLACEMENT_X);
-    p_node1->FastGetSolutionStepValue(DISPLACEMENT_X, current_buffer_index) = 1.0;
-    auto p_node2 = AddNodeWithDof(r_model_part, 2, 1.0, 0.0, 0.0, DISPLACEMENT_X);
-    p_node2->FastGetSolutionStepValue(DISPLACEMENT_X, current_buffer_index) = 2.0;
-    auto p_node3 = AddNodeWithDof(r_model_part, 3, 0.0, 1.0, 0.0, DISPLACEMENT_X);
-    p_node3->FastGetSolutionStepValue(DISPLACEMENT_X, current_buffer_index) = 3.0;
+    const auto current_buffer_index = std::size_t{0};
+    const auto current_values       = std::vector<NodeIndexAndValue>{
+        std::make_pair(1, 1.0), std::make_pair(2, 2.0), std::make_pair(3, 3.0)};
+    SetNodalValues(r_model_part, current_values, r_variable, current_buffer_index);
 
-    const auto previous_buffer_index                                         = 1;
-    p_node1->FastGetSolutionStepValue(DISPLACEMENT_X, previous_buffer_index) = 4.0;
-    p_node2->FastGetSolutionStepValue(DISPLACEMENT_X, previous_buffer_index) = 5.0;
-    p_node3->FastGetSolutionStepValue(DISPLACEMENT_X, previous_buffer_index) = 6.0;
+    const auto previous_buffer_index = std::size_t{1};
+    const auto previous_values       = std::vector<NodeIndexAndValue>{
+        std::make_pair(1, 4.0), std::make_pair(2, 5.0), std::make_pair(3, 6.0)};
+    SetNodalValues(r_model_part, previous_values, r_variable, previous_buffer_index);
 
-    const auto dofs = std::vector<Dof<double>*>{
-        p_node1->pGetDof(DISPLACEMENT_X), p_node2->pGetDof(DISPLACEMENT_X), p_node3->pGetDof(DISPLACEMENT_X)};
+    const auto dofs = Geo::DofUtilities::ExtractDofsFromNodes(r_model_part.Nodes(), r_variable);
 
-    auto expected_displacement_x_values = Vector(3);
-    expected_displacement_x_values <<= 1.0, 2.0, 3.0;
+    auto expected_values = Vector(3);
+    expected_values <<= 1.0, 2.0, 3.0;
     const auto abs_tolerance = 1.0e-8;
     KRATOS_EXPECT_VECTOR_NEAR(Geo::DofUtilities::ExtractSolutionStepValues(dofs, current_buffer_index),
-                              expected_displacement_x_values, abs_tolerance)
+                              expected_values, abs_tolerance)
 
-    boost::range::copy(std::vector<double>{4.0, 5.0, 6.0}, expected_displacement_x_values.begin());
+    boost::range::copy(std::vector<double>{4.0, 5.0, 6.0}, expected_values.begin());
     KRATOS_EXPECT_VECTOR_NEAR(Geo::DofUtilities::ExtractSolutionStepValues(dofs, previous_buffer_index),
-                              expected_displacement_x_values, abs_tolerance)
+                              expected_values, abs_tolerance)
 }
 
 } // namespace Kratos::Testing

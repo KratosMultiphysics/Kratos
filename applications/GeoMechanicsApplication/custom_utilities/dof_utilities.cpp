@@ -10,8 +10,6 @@
 //  Main authors:    Anne van de Graaf
 //
 
-#include <algorithm>
-
 #include "dof_utilities.h"
 #include "includes/variables.h"
 
@@ -41,14 +39,6 @@ std::vector<std::size_t> ExtractEquationIdsFrom(const std::vector<Dof<double>*>&
     std::vector<std::size_t> result;
     std::transform(rDofs.begin(), rDofs.end(), std::back_inserter(result),
                    [](const auto p_dof) { return p_dof->EquationId(); });
-    return result;
-}
-
-std::vector<Dof<double>*> ExtractDofsFromNodes(const Geometry<Node>& rNodes, const Variable<double>& rDofVariable)
-{
-    auto result = std::vector<Dof<double>*>{};
-    std::transform(rNodes.begin(), rNodes.end(), std::back_inserter(result),
-                   [&rDofVariable](const auto& r_node) { return r_node.pGetDof(rDofVariable); });
     return result;
 }
 
