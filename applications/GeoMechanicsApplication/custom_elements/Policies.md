@@ -17,7 +17,7 @@ Currently, the following policies are implemented (still under development):
 
 The stress state policy is used to easily configure elements to have a specific stress state. The responsibility of the
 stress state is to convert strain tensors to [strain vectors](#strain-vectors), define the strain-displacement relation
-by filling the B-matrix and calculate the integration coefficient (needs a correction depending on the symmetry of the
+by filling the [B-matrix](#b-matrix) and calculate the [integration coefficient](#integration-coefficient) (which needs a correction depending on the symmetry of the
 stress state).
 
 There are three different
@@ -35,37 +35,43 @@ stress state policies:
 
 ### Strain vectors
 
-For the different stress states, the strain tensor, defined as:
+For the different stress states, the strain vector is created by performing a conversion of the strain tensor, which is defined as:
+```math
+E = \begin{bmatrix} \epsilon_{xx} & \epsilon_{xy} & \epsilon_{xz} \\
+                    \epsilon_{yx} & \epsilon_{yy} & \epsilon_{yz} \\
+                    \epsilon_{zx} & \epsilon_{zy} & \epsilon_{zz} \end{bmatrix}
+```
+The strain tensor can be calculated using different methods, like Green Lagrange or Hencky Strain. This calculation is delegated to the `StressStrainUtilities`. However the conversion to strain vectors depends on the type of stress state. Therefore that conversion is defined in these policies and are described below. 
 
-| $\epsilon_{xx}$ $\epsilon_{xy}$ $\epsilon_{xz}$ |\
-| $\epsilon_{yx}$ $\epsilon_{yy}$ $\epsilon_{yz}$ | \
-| $\epsilon_{zx}$ $\epsilon_{zy}$ $\epsilon_{zz}$ |
+For the 3D stress state, the strain vector is defined as:
+```math
+\vec{\epsilon} = \begin{bmatrix} \epsilon_{xx} \\
+                                 \epsilon_{yy} \\
+                                 \epsilon_{zz} \\
+                                 \epsilon_{xy} \\
+                                 \epsilon_{yz} \\
+                                 \epsilon_{xz} \end{bmatrix}
+```
 
-This is converted to a strain vector for the different cases. For 3D, it is defined as:\
-| $\epsilon_{xx}$ |\
-| $\epsilon_{yy}$ |\
-| $\epsilon_{zz}$ |\
-| $\epsilon_{xy}$ |\
-| $\epsilon_{yz}$ |\
-| $\epsilon_{xz}$ |
+For the plane strain stress state, it is defined as:
+```math
+\vec{\epsilon} = \begin{bmatrix} \epsilon_{xx} \\
+                                 \epsilon_{yy} \\
+                                 0 \\
+                                 \epsilon_{xy} \end{bmatrix}
+```
 
-For plane strain, it is defined as:\
-| $\epsilon_{xx}$ |\
-| $\epsilon_{yy}$ |\
-| $0$ |\
-| $\epsilon_{xy}$ |
-
-For axisymmetric, it is defined as:\
-| $\epsilon_{xx}$ |\
-| $\epsilon_{yy}$ |\
-| $u/r$ |\
-| $\epsilon_{xy}$ |
-
+Lastly, for the axisymmetric stress state, it is defined as:
+```math
+\vec{\epsilon} = \begin{bmatrix} \epsilon_{xx} \\
+                                 \epsilon_{yy} \\
+                                 u/r \\
+                                 \epsilon_{xy} \end{bmatrix}
+```
 Where $u$ is the displacement and $r$ is the radial coordinate. 
 
-
 ### B-matrix
-
+The B matrix is used to relate strains and displacements. 
 
 
 ### Integration coefficient
