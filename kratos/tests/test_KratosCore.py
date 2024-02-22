@@ -88,6 +88,7 @@ import test_spatial_search
 import test_sequential_orchestrator
 import test_controllers
 import test_stl_io
+import test_find_conditions_neighbours_process
 import test_search_wrapper
 
 # Import modules required for sequential orchestrator test
@@ -201,6 +202,7 @@ def AssembleTestSuites():
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_sequential_orchestrator.TestSequentialOrchestrator]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_controllers.TestControllers]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_stl_io.TestStlIO]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_find_conditions_neighbours_process.TestFindConditionsNeighboursProcess]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_search_wrapper.TestSearchWrapper]))
 
     if sympy_available:
