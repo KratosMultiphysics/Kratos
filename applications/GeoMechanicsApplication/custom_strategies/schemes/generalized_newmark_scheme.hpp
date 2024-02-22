@@ -54,25 +54,6 @@ public:
     }
 
 protected:
-    /*
-        inline void UpdateVariablesDerivatives(ModelPart& rModelPart) override
-        {
-            KRATOS_TRY
-
-            block_for_each(rModelPart.Nodes(), [this](Node& rNode) {
-                // For the Newmark schemes the second derivatives should be updated before
-       calculating the first derivatives UpdateVectorSecondTimeDerivative(rNode);
-                UpdateVectorFirstTimeDerivative(rNode);
-
-                for (const auto& r_first_order_scalar_variable :
-       this->GetFirstOrderScalarVariables()) { UpdateScalarTimeDerivative(rNode,
-       r_first_order_scalar_variable.instance, r_first_order_scalar_variable.first_time_derivative);
-                }
-            });
-
-            KRATOS_CATCH("")
-        }
-    */
     inline void SetTimeFactors(ModelPart& rModelPart) override
     {
         KRATOS_TRY

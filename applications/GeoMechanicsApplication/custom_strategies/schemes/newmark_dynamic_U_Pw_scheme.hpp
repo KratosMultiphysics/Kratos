@@ -341,8 +341,8 @@ protected:
             this->UpdateVectorFirstTimeDerivative(rNode);
 
             for (const auto& r_first_order_scalar_variable : this->GetFirstOrderScalarVariables()) {
-                UpdateScalarTimeDerivative(rNode, r_first_order_scalar_variable.instance,
-                                           r_first_order_scalar_variable.first_time_derivative);
+                this->UpdateScalarTimeDerivative(rNode, r_first_order_scalar_variable.instance,
+                                                 r_first_order_scalar_variable.first_time_derivative);
             }
         });
 

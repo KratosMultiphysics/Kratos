@@ -32,11 +32,11 @@ public:
 
     NewmarkQuasistaticDampedUPwScheme(double beta, double gamma, double theta)
         : GeneralizedNewmarkScheme<TSparseSpace, TDenseSpace>(
-            {FirstOrderScalarVariable(WATER_PRESSURE, DT_WATER_PRESSURE, DT_PRESSURE_COEFFICIENT)},
-            {SecondOrderVectorVariable(DISPLACEMENT), SecondOrderVectorVariable(ROTATION)},
-            beta,
-            gamma,
-            theta)
+              {FirstOrderScalarVariable(WATER_PRESSURE, DT_WATER_PRESSURE, DT_PRESSURE_COEFFICIENT)},
+              {SecondOrderVectorVariable(DISPLACEMENT), SecondOrderVectorVariable(ROTATION)},
+              beta,
+              gamma,
+              theta)
     {
         // Allocate auxiliary memory
         const auto num_threads = ParallelUtilities::GetNumThreads();
@@ -138,14 +138,13 @@ protected:
             this->UpdateVectorFirstTimeDerivative(rNode);
 
             for (const auto& r_first_order_scalar_variable : this->GetFirstOrderScalarVariables()) {
-                UpdateScalarTimeDerivative(rNode, r_first_order_scalar_variable.instance,
-                                           r_first_order_scalar_variable.first_time_derivative);
+                this->UpdateScalarTimeDerivative(rNode, r_first_order_scalar_variable.instance,
+                                                 r_first_order_scalar_variable.first_time_derivative);
             }
         });
 
         KRATOS_CATCH("")
     }
-
 
 private:
     std::vector<Matrix> mDampingMatrix;

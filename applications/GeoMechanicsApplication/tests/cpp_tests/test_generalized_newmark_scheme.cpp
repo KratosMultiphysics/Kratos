@@ -27,11 +27,7 @@ namespace Kratos::Testing
 class ConcreteGeneralizedNewmarkScheme : public GeneralizedNewmarkScheme<SparseSpaceType, LocalSpaceType>
 {
 public:
-    ConcreteGeneralizedNewmarkScheme(const std::vector<FirstOrderScalarVariable>& rFirstOrderScalarVariables,
-                                     double theta)
-        : GeneralizedNewmarkScheme<SparseSpaceType, LocalSpaceType>(rFirstOrderScalarVariables, theta)
-    {
-    }
+    using GeneralizedNewmarkScheme::GeneralizedNewmarkScheme;
 
 protected:
     void UpdateVariablesDerivatives(ModelPart& rModelPart) override
