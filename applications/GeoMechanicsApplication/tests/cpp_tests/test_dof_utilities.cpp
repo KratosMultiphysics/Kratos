@@ -24,12 +24,22 @@ namespace
 
 using namespace Kratos;
 
-ModelPart& CreateTestModelPart(Model& rModel, const Variable<double>& rVariable)
+using ConstVariableRefs = std::vector<std::reference_wrapper<const Variable<double>>>;
+
+ModelPart& CreateTestModelPart(Model& rModel, const ConstVariableRefs& rVariables)
 {
     const auto buffer_size = std::size_t{2};
     auto&      r_result    = rModel.CreateModelPart("Dummy", buffer_size);
-    r_result.AddNodalSolutionStepVariable(rVariable);
+    for (const auto& r_variable : rVariables) {
+        r_result.AddNodalSolutionStepVariable(r_variable);
+    }
     return r_result;
+}
+
+ModelPart& CreateTestModelPart(Model& rModel, const Variable<double>& rVariable)
+{
+    const auto variables = ConstVariableRefs{std::cref(rVariable)};
+    return CreateTestModelPart(rModel, variables);
 }
 
 Dof<double> MakeDofWithEquationId(Dof<double>::EquationIdType EquationId)
@@ -39,35 +49,46 @@ Dof<double> MakeDofWithEquationId(Dof<double>::EquationIdType EquationId)
     return result;
 }
 
-intrusive_ptr<Node> AddNodeWithDof(ModelPart&              rModelPart,
-                                   ModelPart::IndexType    NodeId,
-                                   double                  x,
-                                   double                  y,
-                                   double                  z,
-                                   const Variable<double>& rDofVariable)
+[[maybe_unused]] intrusive_ptr<Node> AddNodeWithDofs(
+    ModelPart& rModelPart, ModelPart::IndexType NodeId, double x, double y, double z, const ConstVariableRefs& rVariables)
 {
     auto p_result = rModelPart.CreateNewNode(NodeId, x, y, z);
-    p_result->AddDof(rDofVariable);
+    for (const auto& r_variable : rVariables) {
+        p_result->AddDof(r_variable.get());
+    }
     return p_result;
+}
+
+[[maybe_unused]] intrusive_ptr<Node> AddNodeWithDof(
+    ModelPart& rModelPart, ModelPart::IndexType NodeId, double x, double y, double z, const Variable<double>& rVariable)
+{
+    const auto variables = ConstVariableRefs{std::cref(rVariable)};
+    return AddNodeWithDofs(rModelPart, NodeId, x, y, z, variables);
+}
+
+void AddThreeNodesWithDofs(ModelPart& rModelPart, const ConstVariableRefs& rVariables)
+{
+    AddNodeWithDofs(rModelPart, 1, 0.0, 0.0, 0.0, rVariables);
+    AddNodeWithDofs(rModelPart, 2, 1.0, 0.0, 0.0, rVariables);
+    AddNodeWithDofs(rModelPart, 3, 0.0, 1.0, 0.0, rVariables);
 }
 
 void AddThreeNodesWithDofs(ModelPart& rModelPart, const Variable<double>& rVariable)
 {
-    AddNodeWithDof(rModelPart, 1, 0.0, 0.0, 0.0, rVariable);
-    AddNodeWithDof(rModelPart, 2, 1.0, 0.0, 0.0, rVariable);
-    AddNodeWithDof(rModelPart, 3, 0.0, 1.0, 0.0, rVariable);
+    const auto variables = ConstVariableRefs{std::cref(rVariable)};
+    AddThreeNodesWithDofs(rModelPart, variables);
 }
 
 using NodeIndexAndValue = std::pair<std::size_t, double>;
 
 void SetNodalValues(ModelPart&                            rModelPart,
                     const std::vector<NodeIndexAndValue>& rNodalValues,
-                    const Variable<double>&               rDofVariable,
+                    const Variable<double>&               rVariable,
                     std::size_t                           BufferIndex)
 {
     for (const auto& [index, value] : rNodalValues) {
-        auto& r_node                                               = rModelPart.GetNode(index);
-        r_node.FastGetSolutionStepValue(rDofVariable, BufferIndex) = value;
+        auto& r_node                                            = rModelPart.GetNode(index);
+        r_node.FastGetSolutionStepValue(rVariable, BufferIndex) = value;
     }
 }
 
@@ -174,6 +195,39 @@ KRATOS_TEST_CASE_IN_SUITE(ExtractingValuesFromDofsGetsNodalValues, KratosGeoMech
 
     boost::range::copy(std::vector<double>{4.0, 5.0, 6.0}, expected_values.begin());
     KRATOS_EXPECT_VECTOR_NEAR(Geo::DofUtilities::ExtractSolutionStepValues(dofs, previous_buffer_index),
+                              expected_values, abs_tolerance)
+}
+
+KRATOS_TEST_CASE_IN_SUITE(ExtractingFirstDerivativeValuesFromDofsYieldsNodalFirstDerivativeValues, KratosGeoMechanicsFastSuite)
+{
+    const auto& r_variable              = DISPLACEMENT_X;
+    const auto& r_first_time_derivative = VELOCITY_X;
+    const auto all_variables = ConstVariableRefs{std::cref(r_variable), std::cref(r_first_time_derivative)};
+
+    auto  model        = Model{};
+    auto& r_model_part = CreateTestModelPart(model, all_variables);
+    AddThreeNodesWithDofs(r_model_part, all_variables);
+
+    const auto current_buffer_index = std::size_t{0};
+    const auto current_values       = std::vector<NodeIndexAndValue>{
+        std::make_pair(1, 1.0), std::make_pair(2, 2.0), std::make_pair(3, 3.0)};
+    SetNodalValues(r_model_part, current_values, r_first_time_derivative, current_buffer_index);
+
+    const auto previous_buffer_index = std::size_t{1};
+    const auto previous_values       = std::vector<NodeIndexAndValue>{
+        std::make_pair(1, 4.0), std::make_pair(2, 5.0), std::make_pair(3, 6.0)};
+    SetNodalValues(r_model_part, previous_values, r_first_time_derivative, previous_buffer_index);
+
+    const auto dofs = Geo::DofUtilities::ExtractDofsFromNodes(r_model_part.Nodes(), r_variable);
+
+    auto expected_values = Vector(3);
+    expected_values <<= 1.0, 2.0, 3.0;
+    const auto abs_tolerance = 1.0e-8;
+    KRATOS_EXPECT_VECTOR_NEAR(Geo::DofUtilities::ExtractFirstTimeDerivatives(dofs, current_buffer_index),
+                              expected_values, abs_tolerance)
+
+    boost::range::copy(std::vector<double>{4.0, 5.0, 6.0}, expected_values.begin());
+    KRATOS_EXPECT_VECTOR_NEAR(Geo::DofUtilities::ExtractFirstTimeDerivatives(dofs, previous_buffer_index),
                               expected_values, abs_tolerance)
 }
 
