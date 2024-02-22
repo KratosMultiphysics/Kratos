@@ -238,12 +238,14 @@ private:
 
     void save(Serializer& rSerializer) const override
     {
-        KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, UPlPgElement )
+        typedef UPlPgElement<TDim,TNumNodes> BaseElement;
+        KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, BaseElement )
     }
 
     void load(Serializer& rSerializer) override
     {
-        KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, UPlPgElement )
+        typedef UPlPgElement<TDim,TNumNodes> BaseElement;
+        KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, BaseElement )
     }
 
     /// Assignment operator.

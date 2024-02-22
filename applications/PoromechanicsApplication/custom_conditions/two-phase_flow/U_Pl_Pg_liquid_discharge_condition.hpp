@@ -83,12 +83,14 @@ private:
     
     void save(Serializer& rSerializer) const override
     {
-        KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, UPlPgCondition )
+        typedef UPlPgCondition<TDim,TNumNodes> BaseCondition;
+        KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, BaseCondition )
     }
 
     void load(Serializer& rSerializer) override
     {
-        KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, UPlPgCondition )
+        typedef UPlPgCondition<TDim,TNumNodes> BaseCondition;
+        KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, BaseCondition )
     }
     
 }; // class UPlPgLiquidDischargeCondition.
