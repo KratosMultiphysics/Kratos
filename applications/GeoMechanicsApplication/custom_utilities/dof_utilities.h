@@ -25,18 +25,20 @@ namespace Kratos::Geo::DofUtilities
 std::vector<std::size_t> ExtractEquationIdsFrom(const std::vector<Dof<double>*>& rDofs);
 
 template <typename InputIt>
-std::vector<Dof<double>*> ExtractDofsFromNodes(InputIt RangeBegin, InputIt RangeEnd, const Variable<double>& rDofVariable)
+std::vector<Dof<double>*> ExtractDofsFromNodes(InputIt                 NodePtrRangeBegin,
+                                               InputIt                 NodePtrRangeEnd,
+                                               const Variable<double>& rDofVariable)
 {
     auto result = std::vector<Dof<double>*>{};
-    std::transform(RangeBegin, RangeEnd, std::back_inserter(result),
+    std::transform(NodePtrRangeBegin, NodePtrRangeEnd, std::back_inserter(result),
                    [&rDofVariable](const auto& r_node) { return r_node.pGetDof(rDofVariable); });
     return result;
 }
 
-template <typename NodeRange>
-std::vector<Dof<double>*> ExtractDofsFromNodes(const NodeRange& rNodes, const Variable<double>& rDofVariable)
+template <typename NodePtrRange>
+std::vector<Dof<double>*> ExtractDofsFromNodes(const NodePtrRange& rNodePtrs, const Variable<double>& rDofVariable)
 {
-    return ExtractDofsFromNodes(std::begin(rNodes), std::end(rNodes), rDofVariable);
+    return ExtractDofsFromNodes(std::begin(rNodePtrs), std::end(rNodePtrs), rDofVariable);
 }
 
 Vector ExtractSolutionStepValues(const std::vector<Dof<double>*>& rDofs, int BufferIndex);
