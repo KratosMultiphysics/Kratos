@@ -429,4 +429,29 @@ KRATOS_TEST_CASE_IN_SUITE(ExtractingSecondDerivativesFromUPwDofsNotBeingPwYields
                               expected_values, abs_tolerance)
 }
 
+KRATOS_TEST_CASE_IN_SUITE(ExtractingD2PwDt2ValuesFromUPwDofsAlwaysYieldsZeroes, KratosGeoMechanicsFastSuite)
+{
+    const auto& r_variable              = WATER_PRESSURE;
+    const auto& r_first_time_derivative = DT_WATER_PRESSURE;
+    // There is no variable defined for the second time derivative of the water pressure
+    const auto all_variables = ConstVariableRefs{std::cref(r_variable), std::cref(r_first_time_derivative)};
+
+    auto  model        = Model{};
+    auto& r_model_part = CreateTestModelPart(model, all_variables);
+    AddThreeNodesWithDofs(r_model_part, all_variables);
+
+    const auto dofs = Geo::DofUtilities::ExtractDofsFromNodes(r_model_part.Nodes(), r_variable);
+
+    const auto current_buffer_index = std::size_t{0};
+    auto       expected_values      = Vector(3);
+    expected_values <<= 0.0, 0.0, 0.0;
+    const auto abs_tolerance = 1.0e-8;
+    KRATOS_EXPECT_VECTOR_NEAR(Geo::DofUtilities::ExtractSecondTimeDerivativesOfUPwDofs(dofs, current_buffer_index),
+                              expected_values, abs_tolerance)
+
+    const auto previous_buffer_index = std::size_t{1};
+    KRATOS_EXPECT_VECTOR_NEAR(Geo::DofUtilities::ExtractSecondTimeDerivativesOfUPwDofs(dofs, previous_buffer_index),
+                              expected_values, abs_tolerance)
+}
+
 } // namespace Kratos::Testing
