@@ -71,8 +71,18 @@ Lastly, for the axisymmetric stress state, it is defined as:
 Where $u$ is the displacement and $r$ is the radial coordinate. 
 
 ### B-matrix
-The B matrix is used to relate strains and displacements. 
+The B matrix is used to relate strains and displacements. Therefore, its elements consist of numbers in the `rGradNpT` matrix (Gradient of the shape functions with respect to ???)
 
+For a very simple 2D element consisting of three nodes, this gradient could look like:
+```math
+\nabla{N} =
+\begin{bmatrix}
+\delta N_1/\delta d_x & \delta N_1/\delta d_x \\
+\delta N_2/\delta d_x & \delta N_2/\delta d_x \\
+\delta N_3/\delta d_x & \delta N_3/\delta d_x
+\end{bmatrix}
+```
+Where the rows depict the different nodes in the element.
 
 ### Integration coefficient
 
