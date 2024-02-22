@@ -150,6 +150,8 @@ bool TractionSeparationLaw3D<TDim>::Has(const Variable<double>& rThisVariable)
         has = true;
     } else if (rThisVariable == REFERENCE_DAMAGE) {
         has = true;
+    } else if (rThisVariable == PREVIOUS_CYCLE_DAMAGE) {
+        has = true;
     } else if (rThisVariable == PREVIOUS_CYCLE) {
         has = true;
     } else if (rThisVariable == CYCLE_PERIOD) {
@@ -271,6 +273,11 @@ double& TractionSeparationLaw3D<TDim>::GetValue(
 
         // rValue = mFatigueDataContainersModeTwo[0].GetReferenceDamage();
         rValue = mFatigueDataContainersModeOne[0].GetReferenceDamage();    //Change the loading mode here
+        return rValue;
+    } else if (rThisVariable == PREVIOUS_CYCLE_DAMAGE) {
+
+        // rValue = mFatigueDataContainersModeTwo[0].GetPreviousCycleDamage();
+        rValue = mFatigueDataContainersModeOne[0].GetPreviousCycleDamage();    //Change the loading mode here
         return rValue;
     } else if (rThisVariable == PREVIOUS_CYCLE) {
 
@@ -432,6 +439,10 @@ void TractionSeparationLaw3D<TDim>::SetValue(
 
         // mFatigueDataContainersModeTwo[0].SetCyclePeriod(rValue);
         mFatigueDataContainersModeOne[0].SetCyclePeriod(rValue);    //Change the loading mode here
+    } else if (rThisVariable == PREVIOUS_CYCLE_DAMAGE) {
+
+        // mFatigueDataContainersModeTwo[0].SetPreviousCycleDamage(rValue);
+        mFatigueDataContainersModeOne[0].SetPreviousCycleDamage(rValue);    //Change the loading mode here
     } else {
         BaseType::SetValue(rThisVariable, rValue, rCurrentProcessInfo);
     }

@@ -68,6 +68,9 @@ public:
         bool DamageActivation = false;
         bool current_load_type = false;
         bool new_model_part = false;
+        bool is_initiated = false;
+        double nc_initiation = 0.0;
+        double fred_initiation = 1.0;
     };
 
     static constexpr double tolerance = 1.0e-3;
@@ -180,6 +183,20 @@ public:
      */
     void SetPreviousCycleTime(double rValue) {
         mPreviousCycleTime = rValue;
+    }
+
+    /**
+     * @brief This method sets the previous cycle damage
+     */
+    void SetPreviousCycleDamage(double rValue) {
+        mPreviousCycleDamage = rValue;
+    }
+
+    /**
+     * @brief This method returns the previous cycle damage
+     */
+    double GetPreviousCycleDamage() {
+        return mPreviousCycleDamage;
     }
 
     /**
@@ -324,6 +341,10 @@ private:
     double mPeriod = 0.0; // Instanced variable used in the advanciing process for the conversion between time and number of cycles.
     double mReversionFactor = 0.0;
     unsigned int mAITControlParameter = 0;
+    bool mIsInitiated = false;
+    double mNcInitiation = 0.0;
+    double mFredInitiation = 1.0;
+    double mPreviousCycleDamage = 0.0;
     ///@}
 
 friend class Serializer;

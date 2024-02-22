@@ -224,6 +224,7 @@ void AdvanceInTimeHighCycleFatigueProcess::CyclePeriodPerIntegrationPoint(bool& 
                             rCycleFound = true;
                         } else {
                             period[i] = 0.0;
+                            previous_cycle_time[i] = time;
                         }
                     }
             }
@@ -244,9 +245,14 @@ void AdvanceInTimeHighCycleFatigueProcess::StableConditionForAdvancingStrategy(b
     std::vector<double> rev_factor_rel_error;
     std::vector<double> s_th;
     std::vector<double> max_stress;
+    std::vector<double> damage;
+    std::vector<double> previous_cycle_damage;
 
     double acumulated_max_stress_rel_error = 0.0;
     double acumulated_rev_factor_rel_error = 0.0;
+    double MaximumDamageIncrement = 0.0;
+    double max_max_stress_rel_error = 0.0;
+    double max_rev_factor_rel_error = 0.0;
     bool fatigue_in_course = false;
 
     KRATOS_ERROR_IF(mrModelPart.NumberOfElements() == 0) << "The number of elements in the domain is zero. The process can not be applied."<< std::endl;
@@ -255,6 +261,21 @@ void AdvanceInTimeHighCycleFatigueProcess::StableConditionForAdvancingStrategy(b
                                                     //This loop is done for all the integration points even if the cycle has not changed
                                                     //in order to guarantee the stable condition in the WHOLE model (when Smax > Sth)
         unsigned int number_of_ip = r_elem.GetGeometry().IntegrationPoints(r_elem.GetIntegrationMethod()).size();
+        std::vector<ConstitutiveLaw::Pointer> constitutive_law_vector(number_of_ip);
+        r_elem.CalculateOnIntegrationPoints(CONSTITUTIVE_LAW,constitutive_law_vector,process_info);
+        const bool is_damage = constitutive_law_vector[0]->Has(DAMAGE);
+
+        if (is_damage) {
+            r_elem.CalculateOnIntegrationPoints(DAMAGE, damage, process_info);
+            r_elem.CalculateOnIntegrationPoints(PREVIOUS_CYCLE_DAMAGE, previous_cycle_damage, process_info);
+            for (unsigned int i = 0; i < number_of_ip; i++) {
+                if (damage[i] > 0.0) {
+                    MaximumDamageIncrement = std::max(MaximumDamageIncrement, std::abs(damage[i] - previous_cycle_damage[i]));
+                }
+            }
+            r_elem.SetValuesOnIntegrationPoints(PREVIOUS_CYCLE_DAMAGE, damage, process_info);
+        }
+
         r_elem.CalculateOnIntegrationPoints(MAX_STRESS_RELATIVE_ERROR, max_stress_rel_error, process_info);
         r_elem.CalculateOnIntegrationPoints(REVERSION_FACTOR_RELATIVE_ERROR, rev_factor_rel_error, process_info);
         r_elem.CalculateOnIntegrationPoints(THRESHOLD_STRESS, s_th, process_info);
@@ -265,10 +286,12 @@ void AdvanceInTimeHighCycleFatigueProcess::StableConditionForAdvancingStrategy(b
                 fatigue_in_course = true;
                 acumulated_max_stress_rel_error += max_stress_rel_error[i];
                 acumulated_rev_factor_rel_error += rev_factor_rel_error[i];
+                max_max_stress_rel_error = std::max(max_max_stress_rel_error, max_stress_rel_error[i]);
+                max_rev_factor_rel_error = std::max(max_rev_factor_rel_error, rev_factor_rel_error[i]);
             }
         }
     }
-    if ((acumulated_max_stress_rel_error < 1e-4 && acumulated_rev_factor_rel_error < 1e-4 && fatigue_in_course) || (DamageIndicator && acumulated_max_stress_rel_error < 1e-3 && acumulated_rev_factor_rel_error < 1e-3 && fatigue_in_course)) {
+    if ((acumulated_max_stress_rel_error < 1e-4 && acumulated_rev_factor_rel_error < 1e-4 && fatigue_in_course) || (DamageIndicator && acumulated_max_stress_rel_error < 1e-3 && acumulated_rev_factor_rel_error < 1e-3 && fatigue_in_course) || (DamageIndicator && max_max_stress_rel_error < 0.3 && max_rev_factor_rel_error < 0.3 && fatigue_in_course)) { //(DamageIndicator && MaximumDamageIncrement < 0.3 && fatigue_in_course)
         rAdvancingStrategy = true;
     }
 }
@@ -375,6 +398,7 @@ void AdvanceInTimeHighCycleFatigueProcess::TimeAndCyclesUpdate(const double Incr
                 unsigned int local_cycles_increment;
                 if (period[i] == 0.0) {
                     local_cycles_increment = 0;
+                    previous_cycle_time[i] += Increment;
                 } else {
                     local_cycles_increment = std::trunc(Increment / period[i]);
                     time_increment = std::trunc(Increment / period[i]) * period[i];

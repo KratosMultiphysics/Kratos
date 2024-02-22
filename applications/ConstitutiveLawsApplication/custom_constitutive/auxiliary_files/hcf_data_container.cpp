@@ -132,16 +132,50 @@ void HCFDataContainer::CalculateFatigueParameters(const Properties& rMaterialPar
 
 void HCFDataContainer::CalculateFatigueReductionFactorAndWohlerStress(const Properties& rMaterialParameters, HCFDataContainer::FatigueVariables &rFatigueVariables, const Variable<double>& rVariable)
 {
-    HighCycleFatigueLawIntegrator<6>::CalculateFatigueReductionFactorAndWohlerStress(rMaterialParameters,
-                                                                                    (1 - rFatigueVariables.ReferenceDamage) * rFatigueVariables.MaxStress,
-                                                                                    rFatigueVariables.LocalNumberOfCycles,
-                                                                                    rFatigueVariables.GlobalNumberOfCycles,
-                                                                                    rFatigueVariables.B0,
-                                                                                    rFatigueVariables.Sth,
-                                                                                    rFatigueVariables.Alphat,
-                                                                                    rFatigueVariables.FatigueReductionFactor,
-                                                                                    rFatigueVariables.WohlerStress,
-                                                                                    rVariable);
+    const double BETAF = rMaterialParameters[HIGH_CYCLE_FATIGUE_COEFFICIENTS][4];
+    const double c_factor = rMaterialParameters[HIGH_CYCLE_FATIGUE_COEFFICIENTS][7];
+
+    double ultimate_stress = 0.0;
+
+    if (rVariable == YIELD_STRESS) {
+        ultimate_stress = rMaterialParameters.Has(YIELD_STRESS) ? rMaterialParameters[YIELD_STRESS] : rMaterialParameters[YIELD_STRESS_TENSION];
+    } else {
+        ultimate_stress = rMaterialParameters[rVariable];
+    }
+
+    // The calculation is prepared to update the rN_f value when using a softening curve which initiates with hardening.
+    // The jump in the advance in time process is done in these cases to the Syield rather to Sult.
+    const int softening_type = rMaterialParameters[SOFTENING_TYPE];
+    const int curve_by_points = static_cast<int>(SofteningType::CurveFittingDamage);
+    if (softening_type == curve_by_points) {
+        const Vector& stress_damage_curve = rMaterialParameters[STRESS_DAMAGE_CURVE]; //Integrated_stress points of the fitting curve
+        const SizeType curve_points = stress_damage_curve.size() - 1;
+
+        ultimate_stress = 0.0;
+        for (IndexType i = 1; i <= curve_points; ++i) {
+            ultimate_stress = std::max(ultimate_stress, stress_damage_curve[i-1]);
+        }
+    }
+
+    if (rFatigueVariables.GlobalNumberOfCycles > 2){
+        rFatigueVariables.WohlerStress = (rFatigueVariables.Sth + (ultimate_stress - rFatigueVariables.Sth) * std::exp(-rFatigueVariables.Alphat * (std::pow(std::log10(static_cast<double>(rFatigueVariables.LocalNumberOfCycles)), BETAF)))) / ultimate_stress;
+    }
+
+    double MaxStressRD = (1 - rFatigueVariables.ReferenceDamage) * rFatigueVariables.MaxStress;
+    if (MaxStressRD > rFatigueVariables.Sth) {
+        if (MaxStressRD <= ultimate_stress) {
+        rFatigueVariables.FatigueReductionFactor = std::min(rFatigueVariables.FatigueReductionFactor, std::exp(-rFatigueVariables.B0 * std::pow(std::log10(static_cast<double>(rFatigueVariables.LocalNumberOfCycles)), c_factor * (BETAF * BETAF))));
+        } else {
+            if (!rFatigueVariables.is_initiated) {
+                rFatigueVariables.nc_initiation = rFatigueVariables.GlobalNumberOfCycles;
+                rFatigueVariables.fred_initiation = rFatigueVariables.FatigueReductionFactor;
+                rFatigueVariables.is_initiated = true;
+            }
+            double etha = (rFatigueVariables.GlobalNumberOfCycles - rFatigueVariables.nc_initiation) / 10;
+            rFatigueVariables.FatigueReductionFactor = (-rFatigueVariables.fred_initiation) * etha + rFatigueVariables.fred_initiation;
+        }
+        rFatigueVariables.FatigueReductionFactor = (rFatigueVariables.FatigueReductionFactor < 0.01) ? 0.01 : rFatigueVariables.FatigueReductionFactor;
+    }
 }
 
 /***********************************************************************************/
@@ -170,6 +204,9 @@ void HCFDataContainer::InitializeFatigueVariables(HCFDataContainer::FatigueVaria
     rFatigueVariables.AdvanceStrategyApplied = rValues.GetProcessInfo()[ADVANCE_STRATEGY_APPLIED];
     rFatigueVariables.current_load_type = rValues.GetProcessInfo()[CURRENT_LOAD_TYPE];
     rFatigueVariables.new_model_part = rValues.GetProcessInfo()[NEW_MODEL_PART];
+    rFatigueVariables.is_initiated = mIsInitiated;
+    rFatigueVariables.nc_initiation = mNcInitiation;
+    rFatigueVariables.fred_initiation = mFredInitiation;
 }
 
 /***********************************************************************************/
@@ -193,6 +230,9 @@ void HCFDataContainer::UpdateFatigueVariables(HCFDataContainer::FatigueVariables
     mReferenceDamage = rFatigueVariables.ReferenceDamage;
     mReversionFactorRelativeError = rFatigueVariables.ReversionFactorRelativeError;
     mMaxStressRelativeError = rFatigueVariables.MaxStressRelativeError;
+    mIsInitiated = rFatigueVariables.is_initiated;
+    mNcInitiation = rFatigueVariables.nc_initiation;
+    mFredInitiation = rFatigueVariables.fred_initiation;
 }
 
 /***********************************************************************************/
@@ -312,6 +352,9 @@ void HCFDataContainer::FinalizeSolutionStep(HCFDataContainer::FatigueVariables &
     }
     mAITControlParameter = rFatigueVariables.LocalNumberOfCycles;
     // KRATOS_WATCH(mAITControlParameter);
+    // rFatigueVariables.PreviousStresses = ZeroVector(2);
+    rFatigueVariables.MaxIndicator = false;
+    rFatigueVariables.MinIndicator = false;
     }
 
     // mAITControlParameter += 1.0;
