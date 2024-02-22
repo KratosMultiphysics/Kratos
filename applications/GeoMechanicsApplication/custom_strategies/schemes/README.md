@@ -96,13 +96,18 @@ are set to $\gamma / (\beta \Delta t)$.
 
 ## Dynamic, damped and quasistatic Generalized Newmark schemes
 
-The dynamic, damped and quasistatc schemes are all Generalized Newmark schemes (as seen in the class diagrams). For the
-vector variables part (displacements and/or rotations) they take different parts of the equation of motion into account.
+The dynamic, damped and quasistatic schemes are all Generalized Newmark schemes (as seen in the class diagrams). For the
+vector variables part (displacements and/or rotations) they take different parts of the equation of motion into account:
+- Quasistatic: displacements/rotations related matrices and vectors only
+- Damped: as quasistatic + velocity/angular velocity related matrices and vectors
+- Dynamics: as damped + intertia (acceleration/angular acceleration) related matrices and vectors
+
 Quasistatic the contribution to matrices and vectors for displacements/rotations only, damped the contribution to
 matrices and vectors for displacements/rotations and velocities/angular velocities and dynamic the contribution to
 matrices and vectors for accelerations/angular accelerations, velocities/angular velocities and displacements/rotations.
-Therefore the functionality `UpdateVariablesDerivatives`, `CalculateSystemContributions`, `CalculateRHSContribution`
-and `CalculateLHSContribution` are overridden and add extra terms to the system matrix and right hand side vector.
+Therefore, the functionality `UpdateVariablesDerivatives`, `CalculateSystemContributions`, `CalculateRHSContribution`
+and `CalculateLHSContribution` are overridden and add extra terms to the system matrix and right hand side vector for
+the dynamic/damped schemes.
 
 One more anomaly is the `Predict` function, currently found in the `NewmarkDynamicUPwScheme` class. This functionality
 should have its counterparts in the other classes derived from `GeneralizedNewmarkScheme` class.

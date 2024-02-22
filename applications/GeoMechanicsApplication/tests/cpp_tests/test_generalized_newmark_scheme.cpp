@@ -39,9 +39,8 @@ protected:
 KRATOS_TEST_CASE_IN_SUITE(ForInvalidTheta_CheckNewmarkScheme_Throws, KratosGeoMechanicsFastSuite)
 {
     constexpr double invalid_theta = -2.0;
-    using SchemeType               = ConcreteGeneralizedNewmarkScheme;
 
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN(SchemeType scheme({}, invalid_theta),
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(ConcreteGeneralizedNewmarkScheme scheme({}, invalid_theta),
                                       "Theta must be larger than zero, but got -2")
 }
 

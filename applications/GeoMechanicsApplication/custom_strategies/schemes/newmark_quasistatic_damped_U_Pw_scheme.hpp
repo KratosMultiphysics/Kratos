@@ -134,7 +134,7 @@ protected:
         KRATOS_TRY
 
         block_for_each(rModelPart.Nodes(), [this](Node& rNode) {
-            // No accelerations of the displacement D.O.F. in this quasistatic damped scheme
+            // No accelerations of the displacement/rotation D.O.F. in this quasistatic damped scheme
             this->UpdateVectorFirstTimeDerivative(rNode);
 
             for (const auto& r_first_order_scalar_variable : this->GetFirstOrderScalarVariables()) {
