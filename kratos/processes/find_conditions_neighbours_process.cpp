@@ -135,6 +135,7 @@ void FindConditionsNeighboursProcess::Clear()
 void FindConditionsNeighboursProcess::ClearNeighbours()
 {
     // Call Clear method
+    KRATOS_WARNING("FindConditionsNeighboursProcess") << "ClearNeighbours is a legacy method, please call Clear instead" << std::endl;
     Clear();
 }
 
