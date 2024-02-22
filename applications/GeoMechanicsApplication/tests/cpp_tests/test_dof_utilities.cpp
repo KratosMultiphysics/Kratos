@@ -11,6 +11,9 @@
 //                   Richard Faasse
 //
 
+#include <boost/numeric/ublas/assignment.hpp>
+#include <boost/range/algorithm/copy.hpp>
+
 #include "containers/model.h"
 #include "custom_utilities/dof_utilities.h"
 #include "includes/element.h"
@@ -114,6 +117,40 @@ KRATOS_TEST_CASE_IN_SUITE(VariableTypeAndNodeIDsMustMatchWhenExtractingDofsFromN
     KRATOS_EXPECT_EQ(dofs[0]->GetId(), 1);
     KRATOS_EXPECT_EQ(dofs[1]->GetId(), 2);
     KRATOS_EXPECT_EQ(dofs[2]->GetId(), 3);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(ExtractingValuesFromDofsGetsNodalValues, KratosGeoMechanicsFastSuite)
+{
+    auto       model        = Model{};
+    const auto buffer_size  = Model::IndexType{2};
+    auto&      r_model_part = model.CreateModelPart("Dummy", buffer_size);
+    r_model_part.AddNodalSolutionStepVariable(DISPLACEMENT_X);
+
+    const auto current_buffer_index = Node::IndexType{0};
+    auto       p_node1 = AddNodeWithDof(r_model_part, 1, 0.0, 0.0, 0.0, DISPLACEMENT_X);
+    p_node1->FastGetSolutionStepValue(DISPLACEMENT_X, current_buffer_index) = 1.0;
+    auto p_node2 = AddNodeWithDof(r_model_part, 2, 1.0, 0.0, 0.0, DISPLACEMENT_X);
+    p_node2->FastGetSolutionStepValue(DISPLACEMENT_X, current_buffer_index) = 2.0;
+    auto p_node3 = AddNodeWithDof(r_model_part, 3, 0.0, 1.0, 0.0, DISPLACEMENT_X);
+    p_node3->FastGetSolutionStepValue(DISPLACEMENT_X, current_buffer_index) = 3.0;
+
+    const auto previous_buffer_index                                         = 1;
+    p_node1->FastGetSolutionStepValue(DISPLACEMENT_X, previous_buffer_index) = 4.0;
+    p_node2->FastGetSolutionStepValue(DISPLACEMENT_X, previous_buffer_index) = 5.0;
+    p_node3->FastGetSolutionStepValue(DISPLACEMENT_X, previous_buffer_index) = 6.0;
+
+    const auto dofs = std::vector<Dof<double>*>{
+        p_node1->pGetDof(DISPLACEMENT_X), p_node2->pGetDof(DISPLACEMENT_X), p_node3->pGetDof(DISPLACEMENT_X)};
+
+    auto expected_displacement_x_values = Vector(3);
+    expected_displacement_x_values <<= 1.0, 2.0, 3.0;
+    const auto abs_tolerance = 1.0e-8;
+    KRATOS_EXPECT_VECTOR_NEAR(Geo::DofUtilities::ExtractSolutionStepValues(dofs, current_buffer_index),
+                              expected_displacement_x_values, abs_tolerance)
+
+    boost::range::copy(std::vector<double>{4.0, 5.0, 6.0}, expected_displacement_x_values.begin());
+    KRATOS_EXPECT_VECTOR_NEAR(Geo::DofUtilities::ExtractSolutionStepValues(dofs, previous_buffer_index),
+                              expected_displacement_x_values, abs_tolerance)
 }
 
 } // namespace Kratos::Testing
