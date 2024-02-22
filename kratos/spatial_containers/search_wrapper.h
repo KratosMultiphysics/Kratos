@@ -175,7 +175,55 @@ public:
         const bool ClearSolution = true
         )
     {
-        ImplementationSearchInRadius(itPointBegin, itPointEnd, Radius, rResults, ClearSolution);
+        // Clear current solution
+        if (ClearSolution) {
+            rResults.Clear();
+        }
+
+        // Retrieving parameters
+        const int allocation_size = mSettings["allocation_size"].GetInt();
+
+        // The local bounding box
+        const auto& r_local_bb = mpSearchObject ? mpSearchObject->GetBoundingBox() : BoundingBox<PointType>();
+
+        // Prepare MPI search
+        Timer::Start("SearchWrapper::SynchronousPointSynchronizationWithBoundingBox");
+        DistributedSearchInformation search_info;
+        SearchUtilities::SynchronousPointSynchronizationWithBoundingBox(itPointBegin, itPointEnd, search_info, r_local_bb, Radius, mrDataCommunicator, true);
+        Timer::Stop("SearchWrapper::SynchronousPointSynchronizationWithBoundingBox");
+
+        // Initialize results
+        Timer::Start("SearchWrapper::PrepareResultsInProperRanks");
+        PrepareResultsInProperRanks(rResults, search_info);
+        Timer::Stop("SearchWrapper::PrepareResultsInProperRanks");
+
+        // Perform the corresponding searches
+        Timer::Start("SearchWrapper::Search");
+        const std::size_t total_number_of_points = search_info.LocalIndices.size();
+        struct TLS {
+            Point point;
+        };
+        const bool is_distributed = mrDataCommunicator.IsDistributed();
+        IndexPartition<IndexType>(total_number_of_points).for_each(TLS(),[this, &is_distributed, &search_info, &rResults, &Radius, &allocation_size](std::size_t i_point, TLS& rTLS) {
+            rTLS.point[0] = search_info.PointCoordinates[i_point * 3 + 0];
+            rTLS.point[1] = search_info.PointCoordinates[i_point * 3 + 1];
+            rTLS.point[2] = search_info.PointCoordinates[i_point * 3 + 2];
+            auto& r_point_result = rResults[i_point];
+
+            // Search
+            std::vector<ResultType> results;
+            const int rank = is_distributed ? r_point_result.GetDataCommunicator().Rank() : -1;
+            LocalSearchInRadius(rTLS.point, Radius, results, rank, allocation_size);
+            for (auto& r_result : results) {
+                r_point_result.AddResult(r_result);
+            }
+        });
+        Timer::Stop("SearchWrapper::Search");
+
+        // Synchronize
+        Timer::Start("SearchWrapper::SynchronizeAll");
+        rResults.SynchronizeAll(mrDataCommunicator);
+        Timer::Stop("SearchWrapper::SynchronizeAll");
     }
 
     /**
@@ -199,7 +247,60 @@ public:
         const bool ClearSolution = true
         )
     {
-        ImplementationSearchNearestInRadius(itPointBegin, itPointEnd, Radius, rResults, ClearSolution);
+        // Clear current solution
+        if (ClearSolution) {
+            rResults.Clear();
+        }
+
+        // Retrieving parameters
+        const int allocation_size = mSettings["allocation_size"].GetInt();
+
+        // The local bounding box
+        const auto& r_local_bb = mpSearchObject ? mpSearchObject->GetBoundingBox() : BoundingBox<PointType>();
+
+        // Prepare MPI search
+        Timer::Start("SearchWrapper::SynchronousPointSynchronizationWithBoundingBox");
+        DistributedSearchInformation search_info;
+        SearchUtilities::SynchronousPointSynchronizationWithBoundingBox(itPointBegin, itPointEnd, search_info, r_local_bb, Radius, mrDataCommunicator, true);
+        Timer::Stop("SearchWrapper::SynchronousPointSynchronizationWithBoundingBox");
+
+        // Initialize results
+        Timer::Start("SearchWrapper::PrepareResultsInProperRanks");
+        PrepareResultsInProperRanks(rResults, search_info);
+        Timer::Stop("SearchWrapper::PrepareResultsInProperRanks");
+
+        // Perform the corresponding searches
+        Timer::Start("SearchWrapper::Search");
+        const std::size_t total_number_of_points = search_info.LocalIndices.size();
+        struct TLS {
+            Point point;
+        };
+        const bool is_distributed = mrDataCommunicator.IsDistributed();
+        IndexPartition<IndexType>(total_number_of_points).for_each(TLS(),[this, &is_distributed, &search_info, &rResults, &Radius, &allocation_size](std::size_t i_point, TLS& rTLS) {
+            rTLS.point[0] = search_info.PointCoordinates[i_point * 3 + 0];
+            rTLS.point[1] = search_info.PointCoordinates[i_point * 3 + 1];
+            rTLS.point[2] = search_info.PointCoordinates[i_point * 3 + 2];
+            auto& r_point_result = rResults[i_point];
+
+            // Result of search
+            ResultType local_result;
+            const int rank = is_distributed ? r_point_result.GetDataCommunicator().Rank() : -1;
+            LocalSearchNearestInRadius(rTLS.point, Radius, local_result, rank, allocation_size);
+            if (local_result.GetIsObjectFound()) {
+                r_point_result.AddResult(local_result);
+            }
+        });
+        Timer::Stop("SearchWrapper::Search");
+
+        // Synchronize
+        Timer::Start("SearchWrapper::SynchronizeAll");
+        rResults.SynchronizeAll(mrDataCommunicator);
+        Timer::Stop("SearchWrapper::SynchronizeAll");
+
+        // Remove the non closest results
+        Timer::Start("SearchWrapper::KeepOnlyClosestResult");
+        KeepOnlyClosestResult(rResults);
+        Timer::Stop("SearchWrapper::KeepOnlyClosestResult");
     }
 
     /**
@@ -220,7 +321,62 @@ public:
         const bool ClearSolution = true
         )
     {
-        ImplementationSearchNearest(itPointBegin, itPointEnd, rResults, ClearSolution);
+        // Clear current solution
+        if (ClearSolution) {
+            rResults.Clear();
+        }
+
+        // Get the maximum radius
+        const auto bb = GetBoundingBox();
+        const array_1d<double, 3> box_size = bb.GetMaxPoint() - bb.GetMinPoint();
+        const double max_radius= *std::max_element(box_size.begin(), box_size.end());
+
+        // The local bounding box
+        const auto& r_local_bb = mpSearchObject ? mpSearchObject->GetBoundingBox() : BoundingBox<PointType>();
+
+        // Prepare MPI search
+        Timer::Start("SearchWrapper::SynchronousPointSynchronizationWithBoundingBox");
+        DistributedSearchInformation search_info;
+        SearchUtilities::SynchronousPointSynchronizationWithBoundingBox(itPointBegin, itPointEnd, search_info, r_local_bb, max_radius, mrDataCommunicator, true);
+        Timer::Stop("SearchWrapper::SynchronousPointSynchronizationWithBoundingBox");
+
+        // Initialize results
+        Timer::Start("SearchWrapper::PrepareResultsInProperRanks");
+        PrepareResultsInProperRanks(rResults, search_info);
+        Timer::Stop("SearchWrapper::PrepareResultsInProperRanks");
+
+        // Perform the corresponding searches
+        Timer::Start("SearchWrapper::Search");
+        const std::size_t total_number_of_points = search_info.LocalIndices.size();
+        struct TLS {
+            Point point;
+        };
+        const bool is_distributed = mrDataCommunicator.IsDistributed();
+        IndexPartition<IndexType>(total_number_of_points).for_each(TLS(),[this, &is_distributed, &search_info, &rResults](std::size_t i_point, TLS& rTLS) {
+            rTLS.point[0] = search_info.PointCoordinates[i_point * 3 + 0];
+            rTLS.point[1] = search_info.PointCoordinates[i_point * 3 + 1];
+            rTLS.point[2] = search_info.PointCoordinates[i_point * 3 + 2];
+            auto& r_point_result = rResults[i_point];
+
+            // Result of search
+            ResultType local_result;
+            const int rank = is_distributed ? r_point_result.GetDataCommunicator().Rank() : -1;
+            LocalSearchNearest(rTLS.point, local_result, rank);
+            if (local_result.GetIsObjectFound()) {
+                r_point_result.AddResult(local_result);
+            }
+        });
+        Timer::Stop("SearchWrapper::Search");
+
+        // Synchronize
+        Timer::Start("SearchWrapper::SynchronizeAll");
+        rResults.SynchronizeAll(mrDataCommunicator);
+        Timer::Stop("SearchWrapper::SynchronizeAll");
+
+        // Remove the non closest results
+        Timer::Start("SearchWrapper::KeepOnlyClosestResult");
+        KeepOnlyClosestResult(rResults);
+        Timer::Stop("SearchWrapper::KeepOnlyClosestResult");
     }
 
     /**
@@ -242,7 +398,57 @@ public:
         const bool ClearSolution = true
         )
     {
-        ImplementationSearchIsInside(itPointBegin, itPointEnd, rResults, ClearSolution);
+        // Clear current solution
+        if (ClearSolution) {
+            rResults.Clear();
+        }
+
+        // The local bounding box
+        const auto& r_local_bb = mpSearchObject ? mpSearchObject->GetBoundingBox() : BoundingBox<PointType>();
+
+        // Prepare MPI search
+        Timer::Start("SearchWrapper::SynchronousPointSynchronizationWithBoundingBox");
+        DistributedSearchInformation search_info;
+        SearchUtilities::SynchronousPointSynchronizationWithBoundingBox(itPointBegin, itPointEnd, search_info, r_local_bb, 0.0, mrDataCommunicator, true);
+        Timer::Stop("SearchWrapper::SynchronousPointSynchronizationWithBoundingBox");
+
+        // Initialize results
+        Timer::Start("SearchWrapper::PrepareResultsInProperRanks");
+        PrepareResultsInProperRanks(rResults, search_info);
+        Timer::Stop("SearchWrapper::PrepareResultsInProperRanks");
+
+        // Perform the corresponding searches
+        Timer::Start("SearchWrapper::Search");
+        const std::size_t total_number_of_points = search_info.LocalIndices.size();
+        struct TLS {
+            Point point;
+        };
+        const bool is_distributed = mrDataCommunicator.IsDistributed();
+        IndexPartition<IndexType>(total_number_of_points).for_each(TLS(),[this, &is_distributed, &search_info, &rResults](std::size_t i_point, TLS& rTLS) {
+            rTLS.point[0] = search_info.PointCoordinates[i_point * 3 + 0];
+            rTLS.point[1] = search_info.PointCoordinates[i_point * 3 + 1];
+            rTLS.point[2] = search_info.PointCoordinates[i_point * 3 + 2];
+            auto& r_point_result = rResults[i_point];
+
+            // Result of search
+            ResultType local_result;
+            const int rank = is_distributed ? r_point_result.GetDataCommunicator().Rank() : -1;
+            LocalSearchIsInside(rTLS.point, local_result, rank);
+            if (local_result.GetIsObjectFound()) {
+                r_point_result.AddResult(local_result);
+            }
+        });
+        Timer::Stop("SearchWrapper::Search");
+
+        // Synchronize
+        Timer::Start("SearchWrapper::SynchronizeAll");
+        rResults.SynchronizeAll(mrDataCommunicator);
+        Timer::Stop("SearchWrapper::SynchronizeAll");
+
+        // Remove the non lowest rank results
+        Timer::Start("SearchWrapper::KeepOnlyLowestRankResult");
+        KeepOnlyLowestRankResult(rResults);
+        Timer::Stop("SearchWrapper::KeepOnlyLowestRankResult");
     }
 
     ///@}
@@ -349,301 +555,6 @@ private:
         const array_1d<double, 3>& rCoords,
         const double Tolerance
         );
-
-    /**
-     * @brief This method takes a point and finds all of the objects in the given radius to it (MPI version).
-     * @details The result contains the object and also its distance to the point.
-     * @param itPointBegin The first point iterator.
-     * @param itPointEnd The last point iterator.
-     * @param Radius The radius to be checked.
-     * @param rResults The results of the search.
-     * @param ClearSolution Clear the current solution
-     * @tparam TPointIteratorType The type of the point iterator.
-     */
-    template<class TPointIteratorType>
-    void ImplementationSearchInRadius(
-        TPointIteratorType itPointBegin,
-        TPointIteratorType itPointEnd,
-        const double Radius,
-        ResultContainerVectorType& rResults,
-        const bool ClearSolution = true
-        )
-    {
-        // Clear current solution
-        if (ClearSolution) {
-            rResults.Clear();
-        }
-
-        // Retrieving parameters
-        const int allocation_size = mSettings["allocation_size"].GetInt();
-
-        // The local bounding box
-        const auto& r_local_bb = mpSearchObject ? mpSearchObject->GetBoundingBox() : BoundingBox<PointType>();
-
-        // Prepare MPI search
-        Timer::Start("SearchWrapper::SynchronousPointSynchronizationWithBoundingBox");
-        DistributedSearchInformation search_info;
-        SearchUtilities::SynchronousPointSynchronizationWithBoundingBox(itPointBegin, itPointEnd, search_info, r_local_bb, Radius, mrDataCommunicator, true);
-        Timer::Stop("SearchWrapper::SynchronousPointSynchronizationWithBoundingBox");
-
-        // Initialize results
-        Timer::Start("SearchWrapper::PrepareResultsInProperRanks");
-        PrepareResultsInProperRanks(rResults, search_info);
-        Timer::Stop("SearchWrapper::PrepareResultsInProperRanks");
-
-        // Perform the corresponding searches
-        Timer::Start("SearchWrapper::Search");
-        const std::size_t total_number_of_points = search_info.LocalIndices.size();
-        struct TLS {
-            Point point;
-        };
-        const bool is_distributed = mrDataCommunicator.IsDistributed();
-        IndexPartition<IndexType>(total_number_of_points).for_each(TLS(),[this, &is_distributed, &search_info, &rResults, &Radius, &allocation_size](std::size_t i_point, TLS& rTLS) {
-            rTLS.point[0] = search_info.PointCoordinates[i_point * 3 + 0];
-            rTLS.point[1] = search_info.PointCoordinates[i_point * 3 + 1];
-            rTLS.point[2] = search_info.PointCoordinates[i_point * 3 + 2];
-            auto& r_point_result = rResults[i_point];
-
-            // Search
-            std::vector<ResultType> results;
-            const int rank = is_distributed ? r_point_result.GetDataCommunicator().Rank() : -1;
-            LocalSearchInRadius(rTLS.point, Radius, results, rank, allocation_size);
-            for (auto& r_result : results) {
-                r_point_result.AddResult(r_result);
-            }
-        });
-        Timer::Stop("SearchWrapper::Search");
-
-        // Synchronize
-        Timer::Start("SearchWrapper::SynchronizeAll");
-        rResults.SynchronizeAll(mrDataCommunicator);
-        Timer::Stop("SearchWrapper::SynchronizeAll");
-    }
-
-    /**
-     * @brief This method takes a point and finds the nearest object to it in a given radius (MPI version).
-     * @details If there are more than one object in the same minimum distance only one is returned.
-     * If there are no objects in that radius the result will be set to not found.
-     * Result contains a flag is the object has been found or not.
-     * @param itPointBegin The first point iterator.
-     * @param itPointEnd The last point iterator.
-     * @param Radius The radius to be checked.
-     * @param rResults The results of the search.
-     * @param ClearSolution Clear the current solution.
-     * @tparam TPointIteratorType The type of the point iterator.
-     */
-    template<class TPointIteratorType>
-    void ImplementationSearchNearestInRadius(
-        TPointIteratorType itPointBegin,
-        TPointIteratorType itPointEnd,
-        const double Radius,
-        ResultContainerVectorType& rResults,
-        const bool ClearSolution = true
-        )
-    {
-        // Clear current solution
-        if (ClearSolution) {
-            rResults.Clear();
-        }
-
-        // Retrieving parameters
-        const int allocation_size = mSettings["allocation_size"].GetInt();
-
-        // The local bounding box
-        const auto& r_local_bb = mpSearchObject ? mpSearchObject->GetBoundingBox() : BoundingBox<PointType>();
-
-        // Prepare MPI search
-        Timer::Start("SearchWrapper::SynchronousPointSynchronizationWithBoundingBox");
-        DistributedSearchInformation search_info;
-        SearchUtilities::SynchronousPointSynchronizationWithBoundingBox(itPointBegin, itPointEnd, search_info, r_local_bb, Radius, mrDataCommunicator, true);
-        Timer::Stop("SearchWrapper::SynchronousPointSynchronizationWithBoundingBox");
-
-        // Initialize results
-        Timer::Start("SearchWrapper::PrepareResultsInProperRanks");
-        PrepareResultsInProperRanks(rResults, search_info);
-        Timer::Stop("SearchWrapper::PrepareResultsInProperRanks");
-
-        // Perform the corresponding searches
-        Timer::Start("SearchWrapper::Search");
-        const std::size_t total_number_of_points = search_info.LocalIndices.size();
-        struct TLS {
-            Point point;
-        };
-        const bool is_distributed = mrDataCommunicator.IsDistributed();
-        IndexPartition<IndexType>(total_number_of_points).for_each(TLS(),[this, &is_distributed, &search_info, &rResults, &Radius, &allocation_size](std::size_t i_point, TLS& rTLS) {
-            rTLS.point[0] = search_info.PointCoordinates[i_point * 3 + 0];
-            rTLS.point[1] = search_info.PointCoordinates[i_point * 3 + 1];
-            rTLS.point[2] = search_info.PointCoordinates[i_point * 3 + 2];
-            auto& r_point_result = rResults[i_point];
-
-            // Result of search
-            ResultType local_result;
-            const int rank = is_distributed ? r_point_result.GetDataCommunicator().Rank() : -1;
-            LocalSearchNearestInRadius(rTLS.point, Radius, local_result, rank, allocation_size);
-            if (local_result.GetIsObjectFound()) {
-                r_point_result.AddResult(local_result);
-            }
-        });
-        Timer::Stop("SearchWrapper::Search");
-
-        // Synchronize
-        Timer::Start("SearchWrapper::SynchronizeAll");
-        rResults.SynchronizeAll(mrDataCommunicator);
-        Timer::Stop("SearchWrapper::SynchronizeAll");
-
-        // Remove the non closest results
-        Timer::Start("SearchWrapper::KeepOnlyClosestResult");
-        KeepOnlyClosestResult(rResults);
-        Timer::Stop("SearchWrapper::KeepOnlyClosestResult");
-    }
-
-    /**
-     * @brief This method takes a point and finds the nearest object to it (MPI version).
-     * @details If there are more than one object in the same minimum distance only one is returned.
-     * Result contains a flag is the object has been found or not.
-     * @param itPointBegin The first point iterator.
-     * @param itPointEnd The last point iterator.
-     * @param rResults The results of the search.
-     * @param ClearSolution Clear the current solution.
-     * @tparam TPointIteratorType The type of the point iterator.
-     */
-    template<class TPointIteratorType>
-    void ImplementationSearchNearest(
-        TPointIteratorType itPointBegin,
-        TPointIteratorType itPointEnd,
-        ResultContainerVectorType& rResults,
-        const bool ClearSolution = true
-        )
-    {
-        // Clear current solution
-        if (ClearSolution) {
-            rResults.Clear();
-        }
-
-        // Get the maximum radius
-        const auto bb = GetBoundingBox();
-        const array_1d<double, 3> box_size = bb.GetMaxPoint() - bb.GetMinPoint();
-        const double max_radius= *std::max_element(box_size.begin(), box_size.end());
-
-        // The local bounding box
-        const auto& r_local_bb = mpSearchObject ? mpSearchObject->GetBoundingBox() : BoundingBox<PointType>();
-
-        // Prepare MPI search
-        Timer::Start("SearchWrapper::SynchronousPointSynchronizationWithBoundingBox");
-        DistributedSearchInformation search_info;
-        SearchUtilities::SynchronousPointSynchronizationWithBoundingBox(itPointBegin, itPointEnd, search_info, r_local_bb, max_radius, mrDataCommunicator, true);
-        Timer::Stop("SearchWrapper::SynchronousPointSynchronizationWithBoundingBox");
-
-        // Initialize results
-        Timer::Start("SearchWrapper::PrepareResultsInProperRanks");
-        PrepareResultsInProperRanks(rResults, search_info);
-        Timer::Stop("SearchWrapper::PrepareResultsInProperRanks");
-
-        // Perform the corresponding searches
-        Timer::Start("SearchWrapper::Search");
-        const std::size_t total_number_of_points = search_info.LocalIndices.size();
-        struct TLS {
-            Point point;
-        };
-        const bool is_distributed = mrDataCommunicator.IsDistributed();
-        IndexPartition<IndexType>(total_number_of_points).for_each(TLS(),[this, &is_distributed, &search_info, &rResults](std::size_t i_point, TLS& rTLS) {
-            rTLS.point[0] = search_info.PointCoordinates[i_point * 3 + 0];
-            rTLS.point[1] = search_info.PointCoordinates[i_point * 3 + 1];
-            rTLS.point[2] = search_info.PointCoordinates[i_point * 3 + 2];
-            auto& r_point_result = rResults[i_point];
-
-            // Result of search
-            ResultType local_result;
-            const int rank = is_distributed ? r_point_result.GetDataCommunicator().Rank() : -1;
-            LocalSearchNearest(rTLS.point, local_result, rank);
-            if (local_result.GetIsObjectFound()) {
-                r_point_result.AddResult(local_result);
-            }
-        });
-        Timer::Stop("SearchWrapper::Search");
-
-        // Synchronize
-        Timer::Start("SearchWrapper::SynchronizeAll");
-        rResults.SynchronizeAll(mrDataCommunicator);
-        Timer::Stop("SearchWrapper::SynchronizeAll");
-
-        // Remove the non closest results
-        Timer::Start("SearchWrapper::KeepOnlyClosestResult");
-        KeepOnlyClosestResult(rResults);
-        Timer::Stop("SearchWrapper::KeepOnlyClosestResult");
-    }
-
-    /**
-     * @brief This method takes a point and search if it's inside an geometrical object of the domain (iterative version) (MPI version).
-     * @details If it is inside an object, it returns it, and search distance is set to zero.
-     * If there is no object, the result will be set to not found.
-     * Result contains a flag is the object has been found or not.
-     * @param itPointBegin The first point iterator.
-     * @param itPointEnd The last point iterator.
-     * @param rResults The results of the search.
-     * @param ClearSolution Clear the current solution.
-     * @tparam TPointIteratorType The type of the point iterator.
-     */
-    template<class TPointIteratorType>
-    void ImplementationSearchIsInside(
-        TPointIteratorType itPointBegin,
-        TPointIteratorType itPointEnd,
-        ResultContainerVectorType& rResults,
-        const bool ClearSolution = true
-        )
-    {
-        // Clear current solution
-        if (ClearSolution) {
-            rResults.Clear();
-        }
-
-        // The local bounding box
-        const auto& r_local_bb = mpSearchObject ? mpSearchObject->GetBoundingBox() : BoundingBox<PointType>();
-
-        // Prepare MPI search
-        Timer::Start("SearchWrapper::SynchronousPointSynchronizationWithBoundingBox");
-        DistributedSearchInformation search_info;
-        SearchUtilities::SynchronousPointSynchronizationWithBoundingBox(itPointBegin, itPointEnd, search_info, r_local_bb, 0.0, mrDataCommunicator, true);
-        Timer::Stop("SearchWrapper::SynchronousPointSynchronizationWithBoundingBox");
-
-        // Initialize results
-        Timer::Start("SearchWrapper::PrepareResultsInProperRanks");
-        PrepareResultsInProperRanks(rResults, search_info);
-        Timer::Stop("SearchWrapper::PrepareResultsInProperRanks");
-
-        // Perform the corresponding searches
-        Timer::Start("SearchWrapper::Search");
-        const std::size_t total_number_of_points = search_info.LocalIndices.size();
-        struct TLS {
-            Point point;
-        };
-        const bool is_distributed = mrDataCommunicator.IsDistributed();
-        IndexPartition<IndexType>(total_number_of_points).for_each(TLS(),[this, &is_distributed, &search_info, &rResults](std::size_t i_point, TLS& rTLS) {
-            rTLS.point[0] = search_info.PointCoordinates[i_point * 3 + 0];
-            rTLS.point[1] = search_info.PointCoordinates[i_point * 3 + 1];
-            rTLS.point[2] = search_info.PointCoordinates[i_point * 3 + 2];
-            auto& r_point_result = rResults[i_point];
-
-            // Result of search
-            ResultType local_result;
-            const int rank = is_distributed ? r_point_result.GetDataCommunicator().Rank() : -1;
-            LocalSearchIsInside(rTLS.point, local_result, rank);
-            if (local_result.GetIsObjectFound()) {
-                r_point_result.AddResult(local_result);
-            }
-        });
-        Timer::Stop("SearchWrapper::Search");
-
-        // Synchronize
-        Timer::Start("SearchWrapper::SynchronizeAll");
-        rResults.SynchronizeAll(mrDataCommunicator);
-        Timer::Stop("SearchWrapper::SynchronizeAll");
-
-        // Remove the non lowest rank results
-        Timer::Start("SearchWrapper::KeepOnlyLowestRankResult");
-        KeepOnlyLowestRankResult(rResults);
-        Timer::Stop("SearchWrapper::KeepOnlyLowestRankResult");
-    }
 
     /**
      * @brief This method takes a point and finds all of the objects in the given radius to it.
