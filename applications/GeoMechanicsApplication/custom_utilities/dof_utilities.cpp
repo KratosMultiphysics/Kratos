@@ -24,7 +24,7 @@ const Variable<double>& GetTimeDerivativeOf(const Dof<double>* pDof)
     // instance. However, that class does not give us access to the first time derivative.
     // Therefore, we need to downcast to a `Variable<double>` first. In practice, we expect this
     // cast to always succeed, but we will check it here, just in case.
-    auto p_variable = dynamic_cast<const Variable<double>*>(&pDof->GetVariable());
+    auto p_variable = dynamic_cast<const Variable<double>*>(&(pDof->GetVariable()));
     KRATOS_ERROR_IF_NOT(p_variable) << "Variable associated with DOF is not of type double" << std::endl;
     return p_variable->GetTimeDerivative();
 }
