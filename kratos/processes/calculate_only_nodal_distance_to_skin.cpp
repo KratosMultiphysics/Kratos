@@ -37,6 +37,9 @@ CalculateOnlyNodalDistanceToSkin::CalculateOnlyNodalDistanceToSkin(
     if (rDistanceVariableName != "") {
         mpDistanceVariable = &KratosComponents<Variable<double>>::Get(rDistanceVariableName);
     }
+
+    // Check it is serial
+    KRATOS_ERROR_IF(mrVolumeModelPart.IsDistributed()) << "Distributed computation still not supported. Please update implementation as soon as MPI search is merged. See https://github.com/KratosMultiphysics/Kratos/pull/11719" << std::endl;
 }
 
 /***********************************************************************************/
@@ -63,6 +66,9 @@ CalculateOnlyNodalDistanceToSkin::CalculateOnlyNodalDistanceToSkin(
 
     // Assign distance variable
     mpDistanceVariable = &KratosComponents<Variable<double>>::Get(ThisParameters["distance_variable"].GetString());
+
+    // Check it is serial
+    KRATOS_ERROR_IF(mrVolumeModelPart.IsDistributed()) << "Distributed computation still not supported. Please update implementation as soon as MPI search is merged. See https://github.com/KratosMultiphysics/Kratos/pull/11719" << std::endl;
 }
 
 /***********************************************************************************/
