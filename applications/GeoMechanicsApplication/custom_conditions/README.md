@@ -88,7 +88,7 @@ $$ e^\prime=  \frac{4098 \space e^s}{\left(T + 237.3\right)^2} $$
 
 $$ e^a = \frac{\mathrm{RH}}{100} e^s $$
 
-$\mathrm{RH}$ $\text{[\%]}$ is the relative humidity which is a user defined parameter.
+$\mathrm{RH}$ [%] is the relative humidity which is a user defined parameter.
 
 The atomospheric resistance,
 
