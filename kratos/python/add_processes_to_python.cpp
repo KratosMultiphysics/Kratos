@@ -241,7 +241,6 @@ void  AddProcessesToPython(pybind11::module& m)
         .def(py::init<Model&, Parameters>())
         .def(py::init<ModelPart&, const int, const unsigned int>())
         .def("ClearNeighbours",&FindConditionsNeighboursProcess::ClearNeighbours)
-        .def("RetrieveConditionsNeighbourConditionsIds",&FindConditionsNeighboursProcess::RetrieveConditionsNeighbourConditionsIds)
     ;
 
     py::class_<CalculateNodalAreaProcess<CalculateNodalAreaSettings::SaveAsHistoricalVariable>, CalculateNodalAreaProcess<CalculateNodalAreaSettings::SaveAsHistoricalVariable>::Pointer, Process>(m,"CalculateNodalAreaProcess")

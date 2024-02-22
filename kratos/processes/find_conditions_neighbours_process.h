@@ -136,15 +136,6 @@ public:
     ///@name Inquiry
     ///@{
 
-    /**
-    * @brief Retrieve the IDs of neighboring conditions for each condition.
-    * @details This function retrieves the IDs of neighboring conditions for each condition in the model part.
-    * The IDs are stored in an unordered map where the key is the ID of the condition and the value
-    * is a vector containing the IDs of its neighboring conditions.
-    * @return An unordered map containing the IDs of neighboring conditions for each condition.
-    */
-    std::unordered_map<IndexType, std::vector<IndexType>> RetrieveConditionsNeighbourConditionsIds();
-
     ///@}
     ///@name Input and output
     ///@{

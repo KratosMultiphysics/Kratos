@@ -162,7 +162,7 @@ class TestFindConditionsNeighboursProcess(KratosUnittest.TestCase):
             127: [45, 38, 112],
             128: [65, 104, 25]
         }
-        solution = self.process.RetrieveConditionsNeighbourConditionsIds()
+        solution = KratosMultiphysics.AuxiliarModelPartUtilities(self.model_part).RetrieveConditionsNeighbourConditionsIds()
         for cond in self.model_part.Conditions:
             id = cond.Id
             partial_solution = solution[id]
