@@ -12,15 +12,15 @@
 
 #pragma once
 
-namespace Kratos {
+namespace Kratos
+{
 
 class KratosGeoSettlement;
 
-class CustomWorkflowFactory{
+class CustomWorkflowFactory
+{
 public:
     static KratosGeoSettlement* CreateKratosGeoSettlement();
 };
 
-}
-
-
+} // namespace Kratos
