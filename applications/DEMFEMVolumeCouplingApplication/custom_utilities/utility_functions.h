@@ -102,19 +102,19 @@ void CalculateDisplacementDifference(ModelPart& rFEMModelPart, double& dt)
             array_1d<double, 3> zero_array = ZeroVector(3);
             node_it->FastGetSolutionStepValue(POINT_LOAD) = zero_array; // nodal coupling forces set to zero before every iteration
             node_it->FastGetSolutionStepValue(DEMFEM_VOLUME_COUPLING_FORCE) = zero_array; // force to map to dem (set to zero before every iteration)
-            array_1d<double, 3> displacement_dem = node_it->FastGetSolutionStepValue(DISPLACEMENT_MULTIPLIED_MASS) / total_mass; // updated lagrange method-> calculating homogenised displacement
-            node_it->FastGetSolutionStepValue(PENALIZE_DISPLACEMENT) += (displacement_dem - node_it->FastGetSolutionStepValue(DISPLACEMENT)) ; // updated lagrange method : calcualting displacement difference
-            // condition checking if the above displacement difference (PENALIZE_DISPLACEMENT) is greater than 0.1*element size then set the displacement difference to 0.1*element size
-            if (norm_2(node_it->FastGetSolutionStepValue(PENALIZE_DISPLACEMENT)) > 0.001 * 0.02) 
-            {
-                node_it->FastGetSolutionStepValue(PENALIZE_DISPLACEMENT) = 0.001 * 0.02 * node_it->FastGetSolutionStepValue(PENALIZE_DISPLACEMENT) / norm_2(node_it->FastGetSolutionStepValue(PENALIZE_DISPLACEMENT));
-            }
+            // array_1d<double, 3> displacement_dem = node_it->FastGetSolutionStepValue(DISPLACEMENT_MULTIPLIED_MASS) / total_mass; // updated lagrange method-> calculating homogenised displacement
+            // node_it->FastGetSolutionStepValue(PENALIZE_DISPLACEMENT) += (displacement_dem - node_it->FastGetSolutionStepValue(DISPLACEMENT)) ; // updated lagrange method : calcualting displacement difference
+            // // condition checking if the above displacement difference (PENALIZE_DISPLACEMENT) is greater than 0.1*element size then set the displacement difference to 0.1*element size
+            // if (norm_2(node_it->FastGetSolutionStepValue(PENALIZE_DISPLACEMENT)) > 0.001 * 0.02) 
+            // {
+            //     node_it->FastGetSolutionStepValue(PENALIZE_DISPLACEMENT) = 0.001 * 0.02 * node_it->FastGetSolutionStepValue(PENALIZE_DISPLACEMENT) / norm_2(node_it->FastGetSolutionStepValue(PENALIZE_DISPLACEMENT));
+            // }
             //print value of nodal_H
             //std::cout<<"NODAL_H"<<node_it->FastGetSolutionStepValue(NODAL_H)<<std::endl;
 
 
             array_1d<double, 3> velocity_dem = node_it->FastGetSolutionStepValue(VELOCITY_MULTIPLIED_MASS) / total_mass; // updated lagrange method-> calculating homogenised velocity
-            node_it->FastGetSolutionStepValue(PENALIZE_VELOCITY) += (velocity_dem - node_it->FastGetSolutionStepValue(VELOCITY)) ; // updated lagrange method : calcualting displacement difference in velocity method
+            node_it->FastGetSolutionStepValue(PENALIZE_DISPLACEMENT) += (velocity_dem - node_it->FastGetSolutionStepValue(VELOCITY))*dt ; // updated lagrange method : calcualting displacement difference in velocity method
        }
     }
 
@@ -143,7 +143,7 @@ void CalculateNodalCouplingForces(ModelPart& rFEMModelPart, double& penalty_max)
                     for (unsigned int m = 0; m < elem_it->GetGeometry().size(); m++)
                     {
                         double vol = penalty_max * w * J * shape_functions(i,n) * shape_functions(i,m);
-                        elem_it->GetGeometry()[n].FastGetSolutionStepValue(POINT_LOAD) += (vol * elem_it->GetGeometry()[n].FastGetSolutionStepValue(PENALIZE_DISPLACEMENT) + vol*0.01* elem_it->GetGeometry()[n].FastGetSolutionStepValue(PENALIZE_VELOCITY));
+                        elem_it->GetGeometry()[n].FastGetSolutionStepValue(POINT_LOAD) += (vol * elem_it->GetGeometry()[n].FastGetSolutionStepValue(PENALIZE_DISPLACEMENT) );
                     }
                 }
             }
