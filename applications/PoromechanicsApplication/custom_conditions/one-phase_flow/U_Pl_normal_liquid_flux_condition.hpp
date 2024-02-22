@@ -95,12 +95,14 @@ private:
     
     void save(Serializer& rSerializer) const override
     {
-        KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, UPlFaceLoadCondition )
+        typedef UPlFaceLoadCondition<TDim,TNumNodes> BaseCondition;
+        KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, BaseCondition )
     }
 
     void load(Serializer& rSerializer) override
     {
-        KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, UPlFaceLoadCondition )
+        typedef UPlFaceLoadCondition<TDim,TNumNodes> BaseCondition;
+        KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, BaseCondition )
     }
     
 }; // class UPlNormalLiquidFluxCondition.
