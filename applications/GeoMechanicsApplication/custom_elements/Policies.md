@@ -37,7 +37,36 @@ stress state policies:
 
 For the different stress states, the strain tensor, defined as:
 
+| $\epsilon_{xx}$ $\epsilon_{xy}$ $\epsilon_{xz}$ |\
+| $\epsilon_{yx}$ $\epsilon_{yy}$ $\epsilon_{yz}$ | \
+| $\epsilon_{zx}$ $\epsilon_{zy}$ $\epsilon_{zz}$ |
+
+This is converted to a strain vector for the different cases. For 3D, it is defined as:\
+| $\epsilon_{xx}$ |\
+| $\epsilon_{yy}$ |\
+| $\epsilon_{zz}$ |\
+| $\epsilon_{xy}$ |\
+| $\epsilon_{yz}$ |\
+| $\epsilon_{xz}$ |
+
+For plane strain, it is defined as:\
+| $\epsilon_{xx}$ |\
+| $\epsilon_{yy}$ |\
+| $0$ |\
+| $\epsilon_{xy}$ |
+
+For axisymmetric, it is defined as:\
+| $\epsilon_{xx}$ |\
+| $\epsilon_{yy}$ |\
+| $u/r$ |\
+| $\epsilon_{xy}$ |
+
+Where $u$ is the displacement and $r$ is the radial coordinate. 
+
+
 ### B-matrix
+
+
 
 ### Integration coefficient
 
