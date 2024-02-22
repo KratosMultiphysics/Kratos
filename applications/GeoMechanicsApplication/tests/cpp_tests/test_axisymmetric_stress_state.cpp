@@ -31,7 +31,7 @@ KRATOS_TEST_CASE_IN_SUITE(CalculateBMatrixWithValidGeometryReturnsCorrectResults
         std::make_unique<AxisymmetricStressState>();
 
     Model model;
-    auto& model_part = ModelSetupUtilities::CreateModelPartWithASingle2D3NElement(model);
+    auto& r_model_part = ModelSetupUtilities::CreateModelPartWithASingle2D3NElement(model);
 
     Vector Np(3);
     Np <<= 1.0, 2.0, 3.0;
@@ -44,7 +44,7 @@ KRATOS_TEST_CASE_IN_SUITE(CalculateBMatrixWithValidGeometryReturnsCorrectResults
     // clang-format on
 
     const Matrix calculated_matrix =
-        p_stress_state_policy->CalculateBMatrix(GradNpT, Np, model_part.GetElement(1).GetGeometry());
+        p_stress_state_policy->CalculateBMatrix(GradNpT, Np, r_model_part.GetElement(1).GetGeometry());
 
     // clang-format off
     Matrix expected_matrix(4, 6);
@@ -63,14 +63,14 @@ KRATOS_TEST_CASE_IN_SUITE(ReturnCorrectIntegrationCoefficient, KratosGeoMechanic
         std::make_unique<AxisymmetricStressState>();
 
     Model model;
-    auto& model_part = ModelSetupUtilities::CreateModelPartWithASingle2D3NElement(model);
+    auto& r_model_part = ModelSetupUtilities::CreateModelPartWithASingle2D3NElement(model);
 
     // The shape function values for this integration point are 0.2, 0.5 and 0.3 for nodes 1, 2 and 3 respectively
     Geometry<Node>::IntegrationPointType integration_point(0.5, 0.3, 0.0, 0.5);
 
     const double detJ                   = 2.0;
     const double calculated_coefficient = p_stress_state_policy->CalculateIntegrationCoefficient(
-        integration_point, detJ, model_part.GetElement(1).GetGeometry());
+        integration_point, detJ, r_model_part.GetElement(1).GetGeometry());
 
     // The expected number is calculated as follows:
     // 2.0 * pi * 0.8 (radius) * 2.0 (detJ) * 0.5 (weight) = 5.02655

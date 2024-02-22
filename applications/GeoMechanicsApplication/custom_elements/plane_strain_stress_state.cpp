@@ -15,50 +15,50 @@
 namespace Kratos
 {
 
-Matrix PlaneStrainStressState::CalculateBMatrix(const Matrix&         GradNpT,
-                                                const Vector&         Np,
-                                                const Geometry<Node>& rGeometry) const
+Matrix PlaneStrainStressState::CalculateBMatrix(const Matrix& rGradNpT, const Vector&, const Geometry<Node>& rGeometry) const
 {
     const auto dimension       = rGeometry.WorkingSpaceDimension();
     const auto number_of_nodes = rGeometry.size();
     Matrix     result = ZeroMatrix(VOIGT_SIZE_2D_AXISYMMETRIC, dimension * number_of_nodes);
 
     for (unsigned int i = 0; i < number_of_nodes; ++i) {
-        const auto index = dimension * i;
+        const auto offset = dimension * i;
 
-        result(INDEX_2D_PLANE_STRAIN_XX, index + INDEX_X) = GradNpT(i, INDEX_X);
-        result(INDEX_2D_PLANE_STRAIN_YY, index + INDEX_Y) = GradNpT(i, INDEX_Y);
-        result(INDEX_2D_PLANE_STRAIN_XY, index + INDEX_X) = GradNpT(i, INDEX_Y);
-        result(INDEX_2D_PLANE_STRAIN_XY, index + INDEX_Y) = GradNpT(i, INDEX_X);
+        result(INDEX_2D_PLANE_STRAIN_XX, offset + INDEX_X) = rGradNpT(i, INDEX_X);
+        result(INDEX_2D_PLANE_STRAIN_YY, offset + INDEX_Y) = rGradNpT(i, INDEX_Y);
+        result(INDEX_2D_PLANE_STRAIN_XY, offset + INDEX_X) = rGradNpT(i, INDEX_Y);
+        result(INDEX_2D_PLANE_STRAIN_XY, offset + INDEX_Y) = rGradNpT(i, INDEX_X);
     }
 
     return result;
 }
 
 double PlaneStrainStressState::CalculateIntegrationCoefficient(const Geometry<Node>::IntegrationPointType& rIntegrationPoint,
-                                                               double detJ,
+                                                               double DetJ,
                                                                const Geometry<Node>&) const
 {
-    return rIntegrationPoint.Weight() * detJ;
+    return rIntegrationPoint.Weight() * DetJ;
 }
 
-Vector PlaneStrainStressState::CalculateGreenLagrangeStrain(const Matrix& rTotalDeformationGradient) const
+Vector PlaneStrainStressState::CalculateGreenLagrangeStrain(const Matrix& rDeformationGradient) const
 {
-    const auto ETensor = StressStrainUtilities::CalculateGreenLagrangeStrainTensor(rTotalDeformationGradient);
-
-    const auto StrainVector          = MathUtils<double>::StrainTensorToVector(ETensor);
-    Vector     result                = ZeroVector(VOIGT_SIZE_2D_PLANE_STRAIN);
-    result[INDEX_2D_PLANE_STRAIN_XX] = StrainVector[0];
-    result[INDEX_2D_PLANE_STRAIN_YY] = StrainVector[1];
-    result[INDEX_2D_PLANE_STRAIN_ZZ] = 0.0;
-    result[INDEX_2D_PLANE_STRAIN_XY] = StrainVector[2];
-
-    return result;
+    return ConvertStrainTensorToVector(StressStrainUtilities::CalculateGreenLagrangeStrainTensor(rDeformationGradient));
 }
 
 std::unique_ptr<StressStatePolicy> PlaneStrainStressState::Clone() const
 {
     return std::make_unique<PlaneStrainStressState>();
+}
+
+Vector PlaneStrainStressState::ConvertStrainTensorToVector(const Matrix& rStrainTensor)
+{
+    const auto strain_vector         = MathUtils<double>::StrainTensorToVector(rStrainTensor);
+    Vector     result                = ZeroVector(VOIGT_SIZE_2D_PLANE_STRAIN);
+    result[INDEX_2D_PLANE_STRAIN_XX] = strain_vector[0];
+    result[INDEX_2D_PLANE_STRAIN_YY] = strain_vector[1];
+    result[INDEX_2D_PLANE_STRAIN_ZZ] = 0.0;
+    result[INDEX_2D_PLANE_STRAIN_XY] = strain_vector[2];
+    return result;
 }
 
 } // namespace Kratos
