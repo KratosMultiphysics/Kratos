@@ -113,7 +113,7 @@ void FindConditionsNeighboursProcess::Execute()
 /***********************************************************************************/
 /***********************************************************************************/
 
-void FindConditionsNeighboursProcess::ClearNeighbours()
+void FindConditionsNeighboursProcess::Clear()
 {
     block_for_each(mrModelPart.Nodes(), [](Node& rNode) {
         if (rNode.Has(NEIGHBOUR_CONDITIONS)) {
@@ -127,6 +127,15 @@ void FindConditionsNeighboursProcess::ClearNeighbours()
             r_neighbour_conditions.erase(r_neighbour_conditions.begin(),r_neighbour_conditions.end());
         }
     });
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void FindConditionsNeighboursProcess::ClearNeighbours()
+{
+    // Call Clear method
+    Clear();
 }
 
 /***********************************************************************************/

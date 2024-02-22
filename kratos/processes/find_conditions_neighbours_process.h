@@ -114,6 +114,11 @@ public:
     void Execute() override;
 
     /**
+     * @brief This method clears the assignation of the conditions
+     */
+    void Clear() override;
+
+    /**
      * @brief Clears the neighbor data for all nodes and conditions.
      */
     void ClearNeighbours();
