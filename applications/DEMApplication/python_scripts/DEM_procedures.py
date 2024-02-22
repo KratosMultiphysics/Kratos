@@ -439,6 +439,7 @@ class Procedures():
         ####################################################################################################################  #  programmed for volume coupling  
         model_part.AddNodalSolutionStepVariable(VCA.PARTICLE_COUPLING_WEIGHT) 
         model_part.AddNodalSolutionStepVariable(VCA.DISPLACEMENT_MULTIPLIED_MASS)
+        model_part.AddNodalSolutionStepVariable(VCA.VELOCITY_MULTIPLIED_MASS)
         model_part.AddNodalSolutionStepVariable(VCA.DEMFEM_VOLUME_COUPLING_FORCE)
         #################################################################################################################
 

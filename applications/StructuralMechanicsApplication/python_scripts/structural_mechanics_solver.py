@@ -174,6 +174,9 @@ class MechanicalSolver(PythonSolver):
         self.main_model_part.AddNodalSolutionStepVariable(VCA.NODAL_COUPLING_WEIGHT)# for storing the coupling weights at nodes.
         self.main_model_part.AddNodalSolutionStepVariable(VCA.DEMFEM_VOLUME_COUPLING_FORCE) #For storing coupling forces at nodes.
         self.main_model_part.AddNodalSolutionStepVariable(VCA.DISPLACEMENT_MULTIPLIED_MASS) #For storing coupling forces at nodes.
+        self.main_model_part.AddNodalSolutionStepVariable(VCA.VELOCITY_MULTIPLIED_MASS) #For storing coupling forces at nodes.
+        self.main_model_part.AddNodalSolutionStepVariable(VCA.PENALIZE_DISPLACEMENT) #For storing coupling forces at nodes.
+        self.main_model_part.AddNodalSolutionStepVariable(VCA.PENALIZE_VELOCITY) #For storing coupling forces at nodes.
         # self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_MAUX)# for nodal mass of dem particles
         # self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.LINEAR_MOMENTUM) # for momentum of dem particles
         # self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.LAGRANGE_DISPLACEMENT) # for storing the displacement at each timestep

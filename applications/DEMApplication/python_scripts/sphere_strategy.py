@@ -359,7 +359,7 @@ class ExplicitStrategy():
     def Initialize(self):
         self.CheckMomentumConservation()
         self.cplusplus_strategy.Initialize()  # Calls the cplusplus_strategy (C++) Initialize function (initializes all elements and performs other necessary tasks before starting the time loop in Python)
-
+        self.step=0
     def SetDt(self, dt):
         self.dt = dt
 
@@ -374,6 +374,23 @@ class ExplicitStrategy():
         self.SolveSolutionStep()
 
     def SolveSolutionStep(self):
+        ######################################################################################################
+        # node_ids = [22,38,55,86] # for assigning loads to the top nodes
+        # self.step+=1
+        # self.force_end_time=0.025
+        # self.dt=  1e-5
+        # self.timesteps=self.force_end_time/self.dt
+        # self.max_force=0.025
+        # self.force_slope=self.max_force/self.timesteps
+
+        # pointload=min(self.force_slope*self.step,self.max_force)
+        # for node in self.spheres_model_part.Nodes:
+        #     if node.Id in node_ids:
+        #             node.SetSolutionStepValue(EXTERNAL_APPLIED_FORCE, [0,-pointload,0])
+            #     for node in self.spheres_model_part.Nodes:
+            # print("positions of particle ",node.Id,", ",node.X,", ",node.Y,", ",node.Z)
+            # print("Velocitiy of particle ",node.GetSolutionStepValue(VELOCITY))
+        ######################################################################################################
         self.cplusplus_strategy.SolveSolutionStep()
         return True
 
@@ -415,7 +432,9 @@ class ExplicitStrategy():
 
 
     def FinalizeSolutionStep(self):
+
         self.cplusplus_strategy.FinalizeSolutionStep()
+
 
     def Finalize(self):
         pass

@@ -10,7 +10,7 @@
 // Project includes
 #include "includes/define_python.h"
 #include "../DEMFEM_volume_coupling_application.h"
-// #include "add_custom_utilities_to_python.h"
+#include "add_custom_utilities_to_python.h"
 // #include "add_custom_processes_to_python.h"
 
 
@@ -29,7 +29,7 @@ PYBIND11_MODULE(KratosDEMFEMVolumeCouplingApplication, m)
         ;
 
     // //AddCustomStrategiesToPython(m);
-    // AddCustomUtilitiesToPython(m);
+     AddCustomUtilitiesToPython(m);
     // AddCustomProcessesToPython(m);
  
   
@@ -37,6 +37,9 @@ PYBIND11_MODULE(KratosDEMFEMVolumeCouplingApplication, m)
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, PARTICLE_COUPLING_WEIGHT )
 
     KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, DISPLACEMENT_MULTIPLIED_MASS)
+    KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, PENALIZE_DISPLACEMENT)
+    KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, PENALIZE_VELOCITY)
+    KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, VELOCITY_MULTIPLIED_MASS)
     KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, DEMFEM_VOLUME_COUPLING_FORCE)
 }
 

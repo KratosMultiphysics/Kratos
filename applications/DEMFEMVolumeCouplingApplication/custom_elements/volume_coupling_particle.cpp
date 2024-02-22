@@ -54,8 +54,32 @@ void VolumeCouplingParticle::ComputeBallToRigidFaceContactForceAndMoment(
         //  }
 }
 
+double VolumeCouplingParticle::GetMass ()
+  { 
+    double Pparticle_weight = this->GetGeometry()[0].FastGetSolutionStepValue(PARTICLE_COUPLING_WEIGHT); 
+    // std::cout<<"particle ID: "<<this->Id()<<" mass before = "<<mRealMass<<" mass after = "<<mRealMass*Pparticle_weight<<" particle weight = "<<Pparticle_weight<<std::endl;
+    //to check if particle id is 1 or not
+    // if (this->Id()==1)
+    // {
+    //     Pparticle_weight=1;
+    // }
+    // else
+    // {
+    //     Pparticle_weight=0.5;
+    // }
+    return mRealMass*Pparticle_weight;     
+  }
+void VolumeCouplingParticle::Initialize(const ProcessInfo& r_process_info)
+{
+    
+    // Initialize the particle coupling weight
+    this->GetGeometry()[0].FastGetSolutionStepValue(PARTICLE_COUPLING_WEIGHT) = 1.0;
 
+    // Call the base class's function.
+    SphericParticle::Initialize(r_process_info);
 
+    
+}
 void VolumeCouplingParticle::EvaluateBallToBallForcesForPositiveIndentiations(SphericParticle::ParticleDataBuffer & data_buffer,
                                                             const ProcessInfo& r_process_info,
                                                             double LocalElasticContactForce[3],
@@ -79,32 +103,40 @@ void VolumeCouplingParticle::EvaluateBallToBallForcesForPositiveIndentiations(Sp
                                                                         OldLocalCoordSystem,neighbour_elastic_contact_force);
   
 
-    double particle_weight = this->GetGeometry()[0].FastGetSolutionStepValue(PARTICLE_COUPLING_WEIGHT); // Coupling weight of the particle center
-        // to check if particle coupling weight is non zer0,
-    if (particle_weight!=0)
+    double particle_weight = this->GetGeometry()[0].FastGetSolutionStepValue(PARTICLE_COUPLING_WEIGHT);
+    double other_particle_weight = element2->GetGeometry()[0].FastGetSolutionStepValue(PARTICLE_COUPLING_WEIGHT);
+
+    // to rule out weighting contact forces with particle outsides of the hybrid domain
+    if(particle_weight!=1 && other_particle_weight!=1)
     {
+
         const double other_young = element2->GetYoung();
         const double my_young = this->GetYoung();
-
+        // KRATOS_WATCH(r_process_info[TIME])
+        // KRATOS_WATCH(this->Id())
+        // KRATOS_WATCH(element2->Id())
         const double inverse_of_sum_of_youngs = 1.0 / (other_young + my_young);
         const double my_arm_length = this->GetRadius() - indentation * other_young * inverse_of_sum_of_youngs;
         const double other_arm_length  = element2->GetRadius() - indentation * my_young * inverse_of_sum_of_youngs;
-        double interpolated_weight = (particle_weight*other_arm_length+element2->GetGeometry()[0].FastGetSolutionStepValue(PARTICLE_COUPLING_WEIGHT)*my_arm_length)/(my_arm_length+other_arm_length);
-    
-    // Calculate the interpolated weight based on the current and neighboring particles, w'=w1+((3r1+r2-|y1-y2|)/2|y1-y2|)*(w2-w1) considering some indentation
-    // double interpolated_weight = this->GetGeometry()[0].FastGetSolutionStepValue(PARTICLE_COUPLING_WEIGHT)+
-    // (( 3* this->GetGeometry()[0].FastGetSolutionStepValue(RADIUS) + element2->GetGeometry()[0].FastGetSolutionStepValue(RADIUS)-
-    // std::abs(this->GetGeometry()[0][1]-element2->GetGeometry()[0][1]))/2*std::abs(this->GetGeometry()[0][1]-element2->GetGeometry()[0][1]))*(element2->GetGeometry()[0].FastGetSolutionStepValue(PARTICLE_COUPLING_WEIGHT)-this->GetGeometry()[0].FastGetSolutionStepValue(PARTICLE_COUPLING_WEIGHT));
+        double interpolated_weight = (particle_weight*other_arm_length+other_particle_weight*my_arm_length)/(my_arm_length+other_arm_length);
 
-    // Scale forces by the interpolated weight
-    for(int i=0; i<3; ++i)
-    {
-        LocalElasticContactForce[i] *= (interpolated_weight/particle_weight); // Scale elastic contact force
-        ViscoDampingLocalContactForce[i] *= (interpolated_weight/particle_weight); // Scale visco-damping contact force
-    }
+        // Scale forces by the interpolated weight
+        // KRATOS_WATCH(r_process_info[TIME])
 
-    cohesive_force *=(interpolated_weight/particle_weight); // Scale cohesive force
+        //std::cout<<"Before interpolation Ball_contact particle Id "<<this->Id()<<" neighbour id "<<data_buffer.mpOtherParticle->Id()<<" "<<LocalElasticContactForce[0]<<" "<<LocalElasticContactForce[1]<<" "<<LocalElasticContactForce[2]<<std::endl<<std::flush;
+        // KRATOS_WATCH(interpolated_weight)
+        // KRATOS_WATCH(particle_weight)
+        for(int i=0; i<3; ++i)
+        {
+            LocalElasticContactForce[i] *= (interpolated_weight); // Scale elastic contact force
+            ViscoDampingLocalContactForce[i] *= (interpolated_weight); // Scale visco-damping contact force
+        }
+
+        cohesive_force *=(interpolated_weight); // Scale cohesive force
     }
+    //std::cout<<"After interpolation Ball_contact particle Id "<<this->Id()<<" neighbour id "<<data_buffer.mpOtherParticle->Id()<<" "<<LocalElasticContactForce[0]<<" "<<LocalElasticContactForce[1]<<" "<<LocalElasticContactForce[2]<<std::endl<<std::flush;
+       
+    // std::cout<<"LocalElasticContactForce "<<LocalElasticContactForce[0]<<" " << LocalElasticContactForce[1]<<" " << LocalElasticContactForce[2]<<std::endl;
 }
 
 // Function to compute additional forces and moments on the particle considering coupling weight.

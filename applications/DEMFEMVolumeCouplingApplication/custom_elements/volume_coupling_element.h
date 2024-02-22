@@ -53,6 +53,12 @@ public:
         const double detJ
         ) const override;
 
+    void CalculateOnIntegrationPoints(
+    const Variable<Vector>& rVariable,
+    std::vector<Vector>& rOutput,
+    const ProcessInfo& rCurrentProcessInfo
+    ) override;
+    
     // Other declarations can be added here as needed
 
 };

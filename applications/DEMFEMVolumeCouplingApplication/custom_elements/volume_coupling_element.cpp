@@ -85,33 +85,61 @@ double VolumeCouplingElement::GetIntegrationWeight(const GeometryType::Integrati
                                                    const IndexType PointNumber,
                                                    const double detJ) const 
 {
-    //auto P = this->GetIntegrationMethod();
-    // auto N = row(this->GetGeometry().ShapeFunctionsValues(this->GetIntegrationMethod()), PointNumber);
-    // double interpolated_coupling_weight_at_int_point=0; 
-    // //std::cout<<"shape function at int point: "<<N;
-    // //std::cout<<"geometry size: "<<this->GetGeometry().size();
-    // for (int i=0; i < this->GetGeometry().size(); i++)
-    // {
-    //    interpolated_coupling_weight_at_int_point += N[i]*this->GetGeometry()[i].GetSolutionStepValue(NODAL_COUPLING_WEIGHT);
-    //    //KRATOS_WATCH(this->GetGeometry()[i].GetSolutionStepValue(NODAL_COUPLING_WEIGHT));
-    //    //KRATOS_WATCH( N[i]);
+    auto P = this->GetIntegrationMethod();
+    auto N = row(this->GetGeometry().ShapeFunctionsValues(this->GetIntegrationMethod()), PointNumber);
+    double interpolated_coupling_weight_at_int_point=0; 
+    //std::cout<<"shape function at int point: "<<N;
+    //std::cout<<"geometry size: "<<this->GetGeometry().size();
+    for (int i=0; i < this->GetGeometry().size(); i++)
+    {
+       interpolated_coupling_weight_at_int_point += N[i]*this->GetGeometry()[i].GetSolutionStepValue(NODAL_COUPLING_WEIGHT);
+       //std::cout<<" nodal coupling weight ="<<this->GetGeometry()[i].GetSolutionStepValue(NODAL_COUPLING_WEIGHT)<<std::endl;
+       //KRATOS_WATCH( N[i]);
        
-    // }
-    //KRATOS_WATCH(interpolated_coupling_weight_at_int_point);
-    //function to check if interpolated_coupling_weight_at_int_point is not zero
-    // if (interpolated_coupling_weight_at_int_point!=0)
-    // {
-    //     return (0.5) * SmallDisplacement::GetIntegrationWeight(rThisIntegrationPoints,PointNumber,detJ);
-    // }
-    // else
-    // {
-    //     return SmallDisplacement::GetIntegrationWeight(rThisIntegrationPoints,PointNumber,detJ);
-    // }
-    return SmallDisplacement::GetIntegrationWeight(rThisIntegrationPoints,PointNumber,detJ);
-    // interpolated_coupling_weight_at_int_point = 0; // incase weidght dem + weight fem !=1, this must be used for hybrid region to have 0 dem-weight => 1 fem weight.
-    // return (1-interpolated_coupling_weight_at_int_point) * SmallDisplacement::GetIntegrationWeight(rThisIntegrationPoints,PointNumber,detJ);
+    }
+
+    //interpolated_coupling_weight_at_int_point =0.5;
+    return (1-interpolated_coupling_weight_at_int_point) * SmallDisplacement::GetIntegrationWeight(rThisIntegrationPoints,PointNumber,detJ);
 
 }
+
+
+
+void VolumeCouplingElement::CalculateOnIntegrationPoints(
+    const Variable<Vector>& rVariable,
+    std::vector<Vector>& rOutput,
+    const ProcessInfo& rCurrentProcessInfo
+) {
+    // Call base class function to fill rOutput with stress values
+    SmallDisplacement::CalculateOnIntegrationPoints(rVariable, rOutput, rCurrentProcessInfo);
+
+    // Check if we are dealing with stress vectors and if the custom condition is met
+    if ((rVariable == CAUCHY_STRESS_VECTOR) && (rCurrentProcessInfo[ACTIVATION_LEVEL] > 0.0)) {
+        // Access integration points
+        //print activation level with std::cout
+        // std::cout<<"activation level: "<<rCurrentProcessInfo[ACTIVATION_LEVEL]<<std::endl;
+
+        const GeometryType::IntegrationPointsArrayType& integration_points = this->IntegrationPoints(this->GetIntegrationMethod());
+        const SizeType number_of_integration_points = integration_points.size();
+
+
+        // Loop over each integration point
+        for (IndexType point_number = 0; point_number < number_of_integration_points; ++point_number) {
+            // Calculate the coupling weight for this integration point
+            auto N = row(this->GetGeometry().ShapeFunctionsValues(this->GetIntegrationMethod()), point_number);
+            double coupling_weight_on_this_integration_point = 0.0;
+            for (SizeType i = 0; i < this->GetGeometry().size(); ++i) 
+            {
+                    coupling_weight_on_this_integration_point += N[i] * this->GetGeometry()[i].GetSolutionStepValue(NODAL_COUPLING_WEIGHT);      
+            }
+
+            // Scale the stress vector at this integration point by the calculated coupling weight
+            rOutput[point_number] *= (1-coupling_weight_on_this_integration_point);
+        }
+    }
+}
+
+
 
 } // Namespace Kratos
 

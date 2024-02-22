@@ -34,6 +34,7 @@ set(KRATOS_DEMFEM_VOLUME_COUPLING_APPLICATION_CORE
 
 set(KRATOS_DEMFEM_VOLUME_COUPLING_APPLICATION_PYTHON_INTERFACE
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/DEMFEM_volume_coupling_python_application.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_utilities_to_python.cpp
 )
 
 

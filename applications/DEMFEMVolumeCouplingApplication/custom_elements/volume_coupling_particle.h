@@ -21,6 +21,7 @@
 // #include "includes/kratos_flags.h"
 #include "custom_elements/spheric_particle.h"
 
+
 namespace Kratos
 {
 
@@ -53,12 +54,16 @@ protected:
 //                                                                    Condition* const wall,
 //                                                                    bool& sliding) override;
 
+double GetMass () override;  
+
 virtual void ComputeBallToRigidFaceContactForceAndMoment(
     SphericParticle::ParticleDataBuffer & data_buffer,
     array_1d<double, 3>& r_elastic_force,
     array_1d<double, 3>& r_contact_force,
     array_1d<double, 3>& rigid_element_force,
     const ProcessInfo& r_process_info) override;
+
+void Initialize(const ProcessInfo& r_process_info) override;
 
 
 virtual void EvaluateBallToBallForcesForPositiveIndentiations(SphericParticle::ParticleDataBuffer & data_buffer,

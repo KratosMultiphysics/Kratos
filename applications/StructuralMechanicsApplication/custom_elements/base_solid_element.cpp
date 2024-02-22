@@ -628,8 +628,8 @@ void BaseSolidElement::CalculateMassMatrix(
 
         
         //######################################################for volume coupling ######################################################################
-        //const IntegrationMethod integration_method = UseGeometryIntegrationMethod() ? IntegrationUtilities::GetIntegrationMethodForExactMassMatrixEvaluation(r_geom) : mThisIntegrationMethod ;
-        const IntegrationMethod integration_method = this->GetIntegrationMethod();
+        //const IntegrationMethod integration_method = UseGeometryIntegrationMethod() ? IntegrationUtilities::GetIntegrationMethodForExactMassMatrixEvaluation(r_geom) : mThisIntegrationMethod ; // this was commented in my implementation, dont know how, check it if there are any errors.
+        const IntegrationMethod integration_method = this->GetIntegrationMethod();  // this got commented when the top line got uncommented and vice versa.
         const GeometryType::IntegrationPointsArrayType& integration_points = this->IntegrationPoints( integration_method );
         //######################################################for volume coupling ######################################################################
         //auto P = this->GetIntegrationMethod();

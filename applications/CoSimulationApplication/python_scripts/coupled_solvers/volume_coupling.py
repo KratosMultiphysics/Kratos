@@ -16,10 +16,8 @@ class DemFemVolumeCoupledSolver(CoSimulationCoupledSolver):
                  for solver_name, solver in self.solver_wrappers.items():
                      if solver_name == "structure":
                          self._SynchronizeInputData(solver_name) # send the momentum and mass  to fem
-                         #print("mass and momentum sent to fem")
             else:
                 coupling_op.InitializeCouplingIteration() # calculate nodal coupling forces
-                #print("else part is executed")
 
 
         for solver_name, solver in self.solver_wrappers.items():  # for dem this does nothing, for fem it  maps the forces to the particles
