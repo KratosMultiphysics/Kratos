@@ -5,7 +5,9 @@
 In our element structure, the strategy-pattern (also known as policy-pattern), is used to gain control and
 configurability for the element functionality. This is done by encapsulating the behavior in an interface and using a
 pointer to the interface in the element. The behavior can then be changed by changing the pointer to a different
-implementation of the interface. This is a powerful tool for creating flexible and reusable code.
+implementation of the interface. This is a powerful tool for creating flexible and reusable code. For more information
+about the strategy-pattern, the reader is referred to the book written by 'the Gang of four' on the topic
+of [design patterns](#bibliography).
 
 Currently, the following policies are implemented (still under development):
 
@@ -132,7 +134,12 @@ Note that in our geomechanics code base, the radial coordinate $r$ is equal to $
 
 The integration coefficient (or integration volume) depends on the integration weight ($w_i$) and the determinant of the Jacobian ($J$). In case of the 3D stress state, the integration volume is calculated as:
 $$V_i = w_i \det{(J)}$$
+
+##
 Since $w_i$ is the volume in isoparametric coordinates. For the plane strain stress state, $w_i$ is the area in isoparametric coordinates. However, since the thickness is by definition 1, the integration coefficient can be calculated using the same equation.
 
 Also for the axisymmetric stress state, $w_i$ is defined as the isoparametric area. To convert this to a volume, the area is multiplied with the axisymmetric circumference:
 $$V_i = 2\pi r w_i \det{(J)}$$
+
+## Bibliography
+Gamma, E., Helm, R., Johnson, R., & Vlissides, J. (1994). _Design Patterns: Elements of Reusable Object-Oriented Software._
