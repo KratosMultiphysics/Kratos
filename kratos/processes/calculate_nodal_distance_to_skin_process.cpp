@@ -18,13 +18,13 @@
 // Project includes
 #include "containers/model.h"
 #include "utilities/parallel_utilities.h"
-#include "processes/calculate_only_nodal_distance_to_skin.h"
+#include "processes/calculate_nodal_distance_to_skin_process.h"
 #include "spatial_containers/geometrical_objects_bins.h"
 
 namespace Kratos
 {
 
-CalculateOnlyNodalDistanceToSkinProcess::CalculateOnlyNodalDistanceToSkinProcess(
+CalculateNodalDistanceToSkinProcess::CalculateNodalDistanceToSkinProcess(
     ModelPart& rVolumeModelPart,
     ModelPart& rSkinModelPart,
     const bool HistoricalVariable,
@@ -45,7 +45,7 @@ CalculateOnlyNodalDistanceToSkinProcess::CalculateOnlyNodalDistanceToSkinProcess
 /***********************************************************************************/
 /***********************************************************************************/
 
-CalculateOnlyNodalDistanceToSkinProcess::CalculateOnlyNodalDistanceToSkinProcess(
+CalculateNodalDistanceToSkinProcess::CalculateNodalDistanceToSkinProcess(
     Model& rModel,
     Parameters ThisParameters
     ) : mrVolumeModelPart(rModel.GetModelPart(ThisParameters["volume_model_part"].GetString())),
@@ -74,7 +74,7 @@ CalculateOnlyNodalDistanceToSkinProcess::CalculateOnlyNodalDistanceToSkinProcess
 /***********************************************************************************/
 /***********************************************************************************/
 
-void CalculateOnlyNodalDistanceToSkinProcess::Execute()
+void CalculateNodalDistanceToSkinProcess::Execute()
 {
     // Define distance lambda
     const std::function<void(ModelPart::NodesContainerType& rNodes, GeometricalObjectsBins& rBins)> distance_lambda_historical = [this](ModelPart::NodesContainerType& rNodes, GeometricalObjectsBins& rBins) {
@@ -98,7 +98,7 @@ void CalculateOnlyNodalDistanceToSkinProcess::Execute()
     const std::size_t number_of_elements_skin = mrSkinModelPart.NumberOfElements();
     const std::size_t number_of_conditions_skin = mrSkinModelPart.NumberOfConditions();
     if (number_of_elements_skin > 0) {
-        KRATOS_WARNING_IF("CalculateOnlyNodalDistanceToSkinProcess", number_of_conditions_skin > 0) << "Skin model part has elements and conditions. Considering elements. " << std::endl;
+        KRATOS_WARNING_IF("CalculateNodalDistanceToSkinProcess", number_of_conditions_skin > 0) << "Skin model part has elements and conditions. Considering elements. " << std::endl;
         GeometricalObjectsBins bins(mrSkinModelPart.ElementsBegin(), mrSkinModelPart.ElementsEnd());
 
         // Call lambda
@@ -114,7 +114,7 @@ void CalculateOnlyNodalDistanceToSkinProcess::Execute()
 /***********************************************************************************/
 /***********************************************************************************/
 
-const Parameters CalculateOnlyNodalDistanceToSkinProcess::GetDefaultParameters() const
+const Parameters CalculateNodalDistanceToSkinProcess::GetDefaultParameters() const
 {
     const Parameters default_parameters = Parameters(R"({
         "volume_model_part" : "",
@@ -128,25 +128,25 @@ const Parameters CalculateOnlyNodalDistanceToSkinProcess::GetDefaultParameters()
 /***********************************************************************************/
 /***********************************************************************************/
 
-std::string CalculateOnlyNodalDistanceToSkinProcess::Info() const
+std::string CalculateNodalDistanceToSkinProcess::Info() const
 {
-    return "CalculateOnlyNodalDistanceToSkinProcess";
+    return "CalculateNodalDistanceToSkinProcess";
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
 
 
-void CalculateOnlyNodalDistanceToSkinProcess::PrintInfo(std::ostream& rOStream) const
+void CalculateNodalDistanceToSkinProcess::PrintInfo(std::ostream& rOStream) const
 {
-    rOStream << "CalculateOnlyNodalDistanceToSkinProcess" << std::endl;
+    rOStream << "CalculateNodalDistanceToSkinProcess" << std::endl;
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
 
 
-void CalculateOnlyNodalDistanceToSkinProcess::PrintData(std::ostream& rOStream) const
+void CalculateNodalDistanceToSkinProcess::PrintData(std::ostream& rOStream) const
 {
     rOStream << "Volume model part:\n" << mrVolumeModelPart << "\nSkin model part:\n" << mrSkinModelPart << "\nHistorical variable: " << std::boolalpha << mHistoricalVariable << "\nDistance variable: " << mpDistanceVariable->Name() << std::endl;
 }

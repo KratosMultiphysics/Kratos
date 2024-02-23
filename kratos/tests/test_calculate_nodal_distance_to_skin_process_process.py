@@ -105,7 +105,7 @@ def CalculateAnalyticalDistance(node):
     distance = 0.5 - math.sqrt(node.X**2 + node.Y**2 + node.Z**2)
     return distance
 
-class TestCalculateOnlyNodalDistanceToSkinProcessCoarseSphere(KratosUnittest.TestCase):
+class TestCalculateNodalDistanceToSkinProcessCoarseSphere(KratosUnittest.TestCase):
     """Test case for verifying the nodal distance calculation to a skin surface on a coarse sphere model."""
 
     @classmethod
@@ -142,7 +142,7 @@ class TestCalculateOnlyNodalDistanceToSkinProcessCoarseSphere(KratosUnittest.Tes
             "skin_model_part"        : "skin_model_part"
         }""")
         # Execute the distance calculation process
-        KratosMultiphysics.CalculateOnlyNodalDistanceToSkinProcess(self.current_model, settings).Execute()
+        KratosMultiphysics.CalculateNodalDistanceToSkinProcess(self.current_model, settings).Execute()
 
         ## DEBUG
         # Uncomment to visualize output
