@@ -73,7 +73,31 @@ Where $u$ is the displacement and $r$ is the radial coordinate.
 ### B-matrix
 The B matrix is used to relate strains and displacements. Therefore, its elements consist of numbers in the `rGradNpT` matrix (Gradient of the shape functions with respect to ???)
 
-For a very simple 2D element consisting of three nodes, this gradient could look like:
+For a 3D element consisting of 4 nodes, the gradient looks like:
+```math
+\nabla{N} =
+\begin{bmatrix}
+\delta N_1/\delta d_x & \delta N_1/\delta d_y & \delta N_1/\delta d_z\\
+\delta N_2/\delta d_x & \delta N_2/\delta d_y & \delta N_2/\delta d_z\\
+\delta N_3/\delta d_x & \delta N_3/\delta d_y & \delta N_3/\delta d_z
+\end{bmatrix}
+```
+Resulting in the following B-matrix:
+```math
+B =
+\begin{bmatrix}
+\delta N_1/\delta d_x & 0 & 0 & \delta N_2/\delta d_x & 0 & 0 & \delta N_3/\delta d_x & 0 & 0 \\
+0 & \delta N_1/\delta d_y & 0 & 0 & \delta N_2/\delta d_y & 0 & 0 & \delta N_3/\delta d_y & 0\\
+0 & 0 & \delta N_1/\delta d_z & 0 & 0 & \delta N_2/\delta d_z & 0 & 0 & \delta N_3/\delta d_z\\
+\delta N_1/\delta d_y & \delta N_1/\delta d_x & 0 & \delta N_2/\delta d_y & \delta N_2/\delta d_x & 0 & \delta N_3/\delta d_y & \delta N_3/\delta d_x & 0 \\
+0 & \delta N_1/\delta d_z & \delta N_1/\delta d_y & 0 & \delta N_2/\delta d_z & \delta N_2/\delta d_y & 0 & \delta N_3/\delta d_z & \delta N_3/\delta d_y & 0 \\
+0 & \delta N_1/\delta d_z & \delta N_1/\delta d_y & 0 & \delta N_2/\delta d_z & \delta N_2/\delta d_y & 0 & \delta N_3/\delta d_z & \delta N_3/\delta d_y & 0 \\
+\delta N_1/\delta d_z & 0 & \delta N_1/\delta d_x & \delta N_2/\delta d_z & 0 & \delta N_2/\delta d_x & \delta N_3/\delta d_z & 0 & \delta N_3/\delta d_x\\
+\end{bmatrix}
+```
+Where the first three columns are for the first node, the next three columns for the second node and so on for the number of nodes in the element.
+
+For a 2D element consisting of three nodes, the gradient looks like:
 ```math
 \nabla{N} =
 \begin{bmatrix}
@@ -82,7 +106,26 @@ For a very simple 2D element consisting of three nodes, this gradient could look
 \delta N_3/\delta d_x & \delta N_3/\delta d_y
 \end{bmatrix}
 ```
-Where the rows depict the different nodes in the element.
+Where the rows depict the different nodes in the element (i.e. $N_i$ is the shape function for node $i$). For the plane strain case, this would result in the following B-matrix
+```math
+B =
+\begin{bmatrix}
+\delta N_1/\delta d_x & 0 & \delta N_2/\delta d_x & 0 & \delta N_3/\delta d_x & 0 \\
+0 & \delta N_1/\delta d_y & 0 & \delta N_2/\delta d_y & 0 & \delta N_3/\delta d_y\\
+0 & 0 & 0 & 0 & 0 & 0\\
+\delta N_1/\delta d_y & \delta N_1/\delta d_x & \delta N_2/\delta d_y & \delta N_2/\delta d_x & \delta N_2/\delta d_y & \delta N_3/\delta d_x
+\end{bmatrix}
+```
+For the axisymmetric stress state, this would result in the following B-matrix
+```math
+B =
+\begin{bmatrix}
+\delta N_1/\delta d_x & 0 & \delta N_2/\delta d_x & 0 & \delta N_3/\delta d_x & 0 \\
+0 & \delta N_1/\delta d_y & 0 & \delta N_2/\delta d_y & 0 & \delta N_3/\delta d_y\\
+N_1 / r_1 & 0 & N_2 / r_2 & 0 & N_3 / r_3 & 0\\
+\delta N_1/\delta d_y & \delta N_1/\delta d_x & \delta N_2/\delta d_y & \delta N_2/\delta d_x & \delta N_2/\delta d_y & \delta N_3/\delta d_x
+\end{bmatrix}
+```
 
 ### Integration coefficient
 
