@@ -2,7 +2,7 @@
 
 ## Introduction
 
-The `Scheme` class in Kratos is used to create time integration schemes. It is an abstract class, for which Geomechanics
+The `Scheme` class in Kratos is used to create time integration schemes. It is a base class, for which Geomechanics
 has implemented a number of flavors, subdivided in the Backward Euler and the Generalized Newmark families.
 
 ## Code Structure

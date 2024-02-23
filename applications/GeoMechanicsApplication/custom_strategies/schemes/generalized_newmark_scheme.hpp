@@ -11,8 +11,8 @@
 //
 #pragma once
 
-#include "includes/model_part.h"
 #include "geomechanics_time_integration_scheme.hpp"
+#include "includes/model_part.h"
 #include <optional>
 
 namespace Kratos
@@ -22,10 +22,10 @@ template <class TSparseSpace, class TDenseSpace>
 class GeneralizedNewmarkScheme : public GeoMechanicsTimeIntegrationScheme<TSparseSpace, TDenseSpace>
 {
 public:
-    using BaseType              = Scheme<TSparseSpace, TDenseSpace>;
-    using TSystemMatrixType     = typename BaseType::TSystemMatrixType;
-    using TSystemVectorType     = typename BaseType::TSystemVectorType;
-    
+    using BaseType          = Scheme<TSparseSpace, TDenseSpace>;
+    using TSystemMatrixType = typename BaseType::TSystemMatrixType;
+    using TSystemVectorType = typename BaseType::TSystemVectorType;
+
     GeneralizedNewmarkScheme(const std::vector<FirstOrderScalarVariable>& rFirstOrderScalarVariables,
                              const std::vector<SecondOrderVectorVariable>& rSecondOrderVectorVariables,
                              std::optional<double> beta,
