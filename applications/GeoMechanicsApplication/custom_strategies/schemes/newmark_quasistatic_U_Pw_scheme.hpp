@@ -28,13 +28,6 @@ class NewmarkQuasistaticUPwScheme : public GeneralizedNewmarkScheme<TSparseSpace
 public:
     KRATOS_CLASS_POINTER_DEFINITION(NewmarkQuasistaticUPwScheme);
 
-    using BaseType              = Scheme<TSparseSpace, TDenseSpace>;
-    using DofsArrayType         = typename BaseType::DofsArrayType;
-    using TSystemMatrixType     = typename BaseType::TSystemMatrixType;
-    using TSystemVectorType     = typename BaseType::TSystemVectorType;
-    using LocalSystemVectorType = typename BaseType::LocalSystemVectorType;
-    using LocalSystemMatrixType = typename BaseType::LocalSystemMatrixType;
-
     NewmarkQuasistaticUPwScheme(double beta, double gamma, double theta)
         : GeneralizedNewmarkScheme<TSparseSpace, TDenseSpace>(
               {FirstOrderScalarVariable(WATER_PRESSURE, DT_WATER_PRESSURE, DT_PRESSURE_COEFFICIENT)},
