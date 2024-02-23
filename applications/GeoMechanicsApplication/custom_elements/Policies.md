@@ -16,7 +16,7 @@ Currently, the following policies are implemented (still under development):
 
 The stress state policy is used to easily configure elements to have a specific stress state. The responsibility of the
 stress state is to convert strain tensors to [strain vectors](#strain-vectors), define the strain-displacement relation
-by filling the [B-matrix](#b-matrix) and calculate the [integration coefficient](#integration-coefficient) (which needs a correction for the axisymmetric stress state).
+by filling the [B-matrix](#b-matrix) and calculate the [integration coefficient](#integration-coefficient).
 
 There are three different
 stress state implementations:
@@ -37,11 +37,11 @@ For simple code examples of the functionalities described in the next sections, 
 
 For the different stress states, the strain vector is created by performing a conversion of the strain tensor, which is defined as:
 ```math
-\epsilon = \begin{bmatrix} \epsilon_{xx} & \epsilon_{xy} & \epsilon_{xz} \\
-                    \epsilon_{yx} & \epsilon_{yy} & \epsilon_{yz} \\
-                    \epsilon_{zx} & \epsilon_{zy} & \epsilon_{zz} \end{bmatrix}
+\boldsymbol{\epsilon} = \begin{bmatrix} \epsilon_{xx} & \epsilon_{xy} & \epsilon_{xz} \\
+                        \epsilon_{yx} & \epsilon_{yy} & \epsilon_{yz} \\
+                        \epsilon_{zx} & \epsilon_{zy} & \epsilon_{zz} \end{bmatrix}
 ```
-The strain tensor can be calculated using different methods, like Green Lagrange or Hencky Strain. This calculation is delegated to the `StressStrainUtilities`. However the conversion to strain vectors depends on the type of stress state. Therefore, that conversion is defined in these policies and are described below. 
+Note that the strain tensor is symmetric, meaning that $\epsilon_{ij} = \epsilon{ji}$. The strain tensor can be calculated using different methods, like Green Lagrange or Hencky Strain. This calculation is delegated to the `StressStrainUtilities`. However, the conversion to strain vectors depends on the type of stress state. Therefore, that conversion is defined in these policies and are described below. 
 
 For the 3D stress state, the strain vector is defined as:
 ```math
@@ -68,31 +68,31 @@ Lastly, for the axisymmetric stress state, it is defined as:
                                  u_r/r \\
                                  \epsilon_{xy} \end{bmatrix}
 ```
-Where $u_r$ is the radial displacement and $r$ is the radial coordinate. 
+Where $u_r$ is the radial displacement and $r$ is the radial coordinate (in our geomechanics code base, the radial coordinate is equal to $x$). 
 
 ### B-matrix
-The B matrix is used to relate strains and displacements. Therefore, its elements are filled with the spatial gradients of the shape functions ($N$).
+The B-matrix is used to relate strains and displacements. Therefore, its elements are filled with the spatial gradients of the shape functions ($N$).
 
 For a 3D element consisting of 4 nodes, the gradient looks like:
 ```math
 \nabla{N} =
 \begin{bmatrix}
-\delta N_1/\delta x & \delta N_1/\delta y & \delta N_1/\delta z\\
-\delta N_2/\delta x & \delta N_2/\delta y & \delta N_2/\delta z\\
-\delta N_3/\delta x & \delta N_3/\delta y & \delta N_3/\delta z\\
-\delta N_4/\delta x & \delta N_4/\delta y & \delta N_4/\delta z
+\partial N_1/\partial x & \partial N_1/\partial y & \partial N_1/\partial z\\
+\partial N_2/\partial x & \partial N_2/\partial y & \partial N_2/\partial z\\
+\partial N_3/\partial x & \partial N_3/\partial y & \partial N_3/\partial z\\
+\partial N_4/\partial x & \partial N_4/\partial y & \partial N_4/\partial z
 \end{bmatrix}
 ```
 Resulting in the following B-matrix:
 ```math
 B =
 \begin{bmatrix}
-\delta N_1/\delta x & 0 & 0 & && & \delta N_4/\delta x & 0 & 0 \\
-0 & \delta N_1/\delta y & 0 & && & 0 & \delta N_4/\delta y & 0\\
-0 & 0 & \delta N_1/\delta z & &\dots& & 0 & 0 & \delta N_4/\delta z\\
-\delta N_1/\delta y & \delta N_1/\delta x & 0 & && & \delta N_4/\delta y & \delta N_4/\delta x & 0 \\
-0 & \delta N_1/\delta z & \delta N_1/\delta y & && & 0 & \delta N_4/\delta z & \delta N_4/\delta y \\
-\delta N_1/\delta z & 0 & \delta N_1/\delta x & && & \delta N_4/\delta z & 0 & \delta N_4/\delta x
+\partial N_1/\partial x & 0 & 0 & && & \partial N_4/\partial x & 0 & 0 \\
+0 & \partial N_1/\partial y & 0 & && & 0 & \partial N_4/\partial y & 0\\
+0 & 0 & \partial N_1/\partial z & &\dots& & 0 & 0 & \partial N_4/\partial z\\
+\partial N_1/\partial y & \partial N_1/\partial x & 0 & && & \partial N_4/\partial y & \partial N_4/\partial x & 0 \\
+0 & \partial N_1/\partial z & \partial N_1/\partial y & && & 0 & \partial N_4/\partial z & \partial N_4/\partial y \\
+\partial N_1/\partial z & 0 & \partial N_1/\partial x & && & \partial N_4/\partial z & 0 & \partial N_4/\partial x
 \end{bmatrix}
 ```
 Where the first three columns are for the first node, the next three columns for the second node and so on for the number of nodes in the element.
@@ -101,37 +101,38 @@ For a 2D element consisting of three nodes, the gradient looks like:
 ```math
 \nabla{N} =
 \begin{bmatrix}
-\delta N_1/\delta x & \delta N_1/\delta y \\
-\delta N_2/\delta x & \delta N_2/\delta y \\
-\delta N_3/\delta x & \delta N_3/\delta y
+\partial N_1/\partial x & \partial N_1/\partial y \\
+\partial N_2/\partial x & \partial N_2/\partial y \\
+\partial N_3/\partial x & \partial N_3/\partial y
 \end{bmatrix}
 ```
-Where the rows depict the different nodes in the element (i.e. $N_i$ is the shape function for node $i$). For the plane strain case, this would result in the following B-matrix
+Where the rows depict the different nodes in the element (i.e. $N_i$ is the shape function for node $i$). For the plane strain case, this would result in the following B-matrix:
 ```math
 B =
 \begin{bmatrix}
-\delta N_1/\delta x & 0 & \delta N_2/\delta x & 0 & \delta N_3/\delta x & 0 \\
-0 & \delta N_1/\delta y & 0 & \delta N_2/\delta y & 0 & \delta N_3/\delta y\\
+\partial N_1/\partial x & 0 & \partial N_2/\partial x & 0 & \partial N_3/\partial x & 0 \\
+0 & \partial N_1/\partial y & 0 & \partial N_2/\partial y & 0 & \partial N_3/\partial y\\
 0 & 0 & 0 & 0 & 0 & 0\\
-\delta N_1/\delta y & \delta N_1/\delta x & \delta N_2/\delta y & \delta N_2/\delta x & \delta N_2/\delta y & \delta N_3/\delta x
+\partial N_1/\partial y & \partial N_1/\partial x & \partial N_2/\partial y & \partial N_2/\partial x & \partial N_2/\partial y & \partial N_3/\partial x
 \end{bmatrix}
 ```
-For the axisymmetric stress state, this would result in the following B-matrix
+For the axisymmetric stress state, this would result in the following B-matrix:
 ```math
 B =
 \begin{bmatrix}
-\delta N_1/\delta x & 0 & \delta N_2/\delta x & 0 & \delta N_3/\delta x & 0 \\
-0 & \delta N_1/\delta y & 0 & \delta N_2/\delta y & 0 & \delta N_3/\delta y\\
+\partial N_1/\partial x & 0 & \partial N_2/\partial x & 0 & \partial N_3/\partial x & 0 \\
+0 & \partial N_1/\partial y & 0 & \partial N_2/\partial y & 0 & \partial N_3/\partial y\\
 N_1 / r & 0 & N_2 / r & 0 & N_3 / r & 0\\
-\delta N_1/\delta y & \delta N_1/\delta x & \delta N_2/\delta y & \delta N_2/\delta x & \delta N_2/\delta y & \delta N_3/\delta x
+\partial N_1/\partial y & \partial N_1/\partial x & \partial N_2/\partial y & \partial N_2/\partial x & \partial N_2/\partial y & \partial N_3/\partial x
 \end{bmatrix}
 ```
+Note that in our geomechanics code base, the radial coordinate $r$ is equal to $x$.
 
 ### Integration coefficient
 
-For the 3D and plane strain stress states, the integration coefficient (or integration volume) is the product of the weight of the
-integration point and the determinant of the Jacobian:
+The integration coefficient (or integration volume) depends on the integration weight ($w_i$) and the determinant of the Jacobian ($J$). In case of the 3D stress state, the integration volume is calculated as:
 $$V_i = w_i \det{(J)}$$
-Where $w_i$ is the weight and $J$ is the Jacobian. For the axisymmetric stress state, this same calculation is done, but due to the symmetry, the integration volume
-is corrected by multiplying it with the axisymmetric circumference:
+Since $w_i$ is the volume in isoparametric coordinates. For the plane strain stress state, $w_i$ is the area in isoparametric coordinates. However, since the thickness is by definition 1, the integration coefficient can be calculated using the same equation.
+
+Also for the axisymmetric stress state, $w_i$ is defined as the isoparametric area. To convert this to a volume, the area is multiplied with the axisymmetric circumference:
 $$V_i = 2\pi r w_i \det{(J)}$$

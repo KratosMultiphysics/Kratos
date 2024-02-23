@@ -15,7 +15,7 @@ class ThreeDimensionalStressState {
   +std::unique_ptr<StressStatePolicy> Clone()
 }
 
-class PlaneStrainState {
+class PlaneStrainStressState {
   +Matrix CalculateBMatrix()
   +double CalculateIntegrationCoefficient()
   +Vector CalculateGreenLagrangeStrain()
@@ -30,6 +30,6 @@ class AxisymmetricStressState {
 }
 
 StressStatePolicy <|-- ThreeDimensionalStressState
-StressStatePolicy <|-- PlaneStrainState
+StressStatePolicy <|-- PlaneStrainStressState
 StressStatePolicy <|-- AxisymmetricStressState
 @enduml
