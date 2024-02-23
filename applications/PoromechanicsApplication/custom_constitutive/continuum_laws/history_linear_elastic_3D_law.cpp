@@ -36,13 +36,13 @@ void HistoryLinearElastic3DLaw::CalculateMaterialResponseKirchhoff (Parameters& 
 	    if( Options.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR ) ) {
             Matrix& ConstitutiveMatrix = rValues.GetConstitutiveMatrix();
             this->CalculateLinearElasticMatrix( ConstitutiveMatrix, YoungModulus, PoissonCoefficient );
-            this->CalculateStress( StrainVector, ConstitutiveMatrix, StressVector );
+            this->CalculateStress( StrainVector, ConstitutiveMatrix, StressVector, rValues  );
             this->AddInitialStresses(rValues,StressVector);
 	    } else {
             Matrix ConstitutiveMatrix( StrainVector.size() ,StrainVector.size());
             noalias(ConstitutiveMatrix) = ZeroMatrix( StrainVector.size() ,StrainVector.size());
             this->CalculateLinearElasticMatrix( ConstitutiveMatrix, YoungModulus, PoissonCoefficient );
-            this->CalculateStress( StrainVector, ConstitutiveMatrix, StressVector );
+            this->CalculateStress( StrainVector, ConstitutiveMatrix, StressVector, rValues );
             this->AddInitialStresses(rValues,StressVector);
 	    }
     } else if( Options.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR ) ) {
